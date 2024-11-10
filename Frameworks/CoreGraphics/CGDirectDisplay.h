@@ -128,34 +128,6 @@ typedef float CGDisplayReservationInterval;
 
 typedef uint32_t CGOpenGLDisplayMask;
 
-#define kCGNumReservedWindowLevels 16; // tested on Sonoma
-typedef int32_t CGWindowLevel;
-typedef enum CGWindowLevelKey : int32_t {
-    kCGBaseWindowLevelKey = 0,
-    kCGMinimumWindowLevelKey,
-    kCGDesktopWindowLevelKey,
-    kCGBackstopMenuLevelKey,
-    kCGNormalWindowLevelKey,
-    kCGFloatingWindowLevelKey,
-    kCGTornOffMenuWindowLevelKey,
-    kCGDockWindowLevelKey,
-    kCGMainMenuWindowLevelKey,
-    kCGStatusWindowLevelKey,
-    kCGModalPanelWindowLevelKey,
-    kCGPopUpMenuWindowLevelKey,
-    kCGDraggingWindowLevelKey,
-    kCGScreenSaverWindowLevelKey,
-    kCGMaximumWindowLevelKey,
-    kCGOverlayWindowLevelKey,
-    kCGHelpWindowLevelKey,
-    kCGUtilityWindowLevelKey,
-    kCGDesktopIconWindowLevelKey,
-    kCGCursorWindowLevelKey,
-    kCGAssistiveTechHighWindowLevelKey,
-    kCGNumberOfWindowLevelKeys,
-} CGWindowLevelKey;
-
-
 typedef enum CGCaptureOptions : uint32_t {
     kCGCaptureNoOptions = 0,
     kCGCaptureNoFill,   // deprecated

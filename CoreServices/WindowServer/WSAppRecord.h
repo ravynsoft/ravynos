@@ -38,7 +38,7 @@
 
 -init;
 -(void)addWindow:(WSWindowRecord *)window;
--(void)removeWindowWithID:(int)number;
+-(WSWindowRecord *)removeWindowWithID:(int)number;
 -(WSWindowRecord *)windowWithID:(int)number;
 -(NSArray *)windows;
 -(void)removeAllWindows;

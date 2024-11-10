@@ -76,6 +76,7 @@ extern pthread_mutex_t renderLock;
 
     NSMutableArray *displays;
     NSMutableDictionary *apps;          // key is CFBundleID
+    NSMutableArray *_windows[kCGNumReservedWindowLevels];
     WSAppRecord *curApp;
     WSWindowRecord *curWindow;
 
@@ -107,5 +108,8 @@ extern pthread_mutex_t renderLock;
 -(void)signalQuit;
 -(CGFontRef)titleFont;
 -(NSSize)sizeOfTitleText:(NSString *)title;
+-(void)addWindowByLevel:(WSWindowRecord *)window;
+-(void)removeWindowByLevel:(WSWindowRecord *)window;
+-(void)removeWindowFromAllLevels:(WSWindowRecord *)window;
 -(void)setShell:(int)shell;
 @end

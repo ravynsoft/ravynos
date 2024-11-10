@@ -40,6 +40,7 @@
 @property NSImage *icon;                // window icon
 @property NSString *shmPath;
 @property int styleMask;                // NSWindow style flags
+@property int level;                    // CGWindowLevel
 @property(readonly) NSRect closeButtonRect;
 @property(readonly) NSRect miniButtonRect;
 @property(readonly) NSRect zoomButtonRect;

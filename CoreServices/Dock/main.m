@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022-2024 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,6 +42,7 @@ int main(int argc, const char *argv[]) {
         exit(-1);
     [pool drain];
 
+    [NSApp setDelegate:dock];
     [NSApp run];
     return 0;
 }

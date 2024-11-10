@@ -224,10 +224,11 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
     _frame=[self frameRectForContentRect:contentRect];
     _frame=[self constrainFrameRect: _frame toScreen: [NSScreen mainScreen]];
     _styleMask=styleMask;
+   _level=NSNormalWindowLevel;
     struct wsRPCWindow data = {
         { kWSWindowCreate, sizeof(struct wsRPCWindow) - sizeof(struct wsRPCBase) },
         _number, _frame.origin.x, _frame.origin.y,
-        _frame.size.width, _frame.size.height, _styleMask, 0, {'\0'}
+        _frame.size.width, _frame.size.height, _styleMask, 0, {'\0'}, _level
     };
     struct wsRPCSimple reply = {0};
     int len = sizeof(reply);
@@ -244,7 +245,6 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    _savedFrame = _frame;
 	
    _backingType=backing;
-   _level=NSNormalWindowLevel;
    _minSize=NSMakeSize(0,0);
 	// "The default maximum size of a window is {FLT_MAX, FLT_MAX}"
    _maxSize=NSMakeSize(FLT_MAX,FLT_MAX);
@@ -472,7 +472,8 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    return _level;
 }
 -(void)setLevel:(NSInteger)value {
-    _level = value; // FIXME: tell WS?
+    _level = value;
+    [self _updateWSState];
 }
 
 -(NSRect)frame {
@@ -1998,7 +1999,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
     struct wsRPCWindow data = {
         { kWSWindowDestroy, sizeof(struct wsRPCWindow) - sizeof(struct wsRPCBase) },
         _number, _frame.origin.x, _frame.origin.y,
-        _frame.size.width, _frame.size.height, _styleMask, 0, {'\0'}
+        _frame.size.width, _frame.size.height, _styleMask, 0, {'\0'}, _level
     };
     _windowServerRPC(&data, sizeof(data), NULL, NULL);
 
@@ -3144,7 +3145,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
     struct wsRPCWindow data = {
         { kWSWindowModifyState, sizeof(struct wsRPCWindow) - sizeof(struct wsRPCBase) },
         _number, _frame.origin.x, _frame.origin.y,
-        _frame.size.width, _frame.size.height, _styleMask, 0, {'\0'}
+        _frame.size.width, _frame.size.height, _styleMask, 0, {'\0'}, _level
     };
     strncpy(data.title, [_title UTF8String], sizeof(data.title));
     if(_isMiniaturized == YES)

@@ -25,7 +25,7 @@ build: buildWindowServer DMIHelper buildDock #buildFiler
             -e 's/BUILD_STAMP/${SHA}/' < ${.CURDIR}/SystemVersion.plist.in \
             >${BUILDROOT}/System/Library/CoreServices/SystemVersion.plist
 	cp -av ${OBJTOP}/CoreServices/WindowServer/WindowServer.app ${BUILDROOT}/System/Library/CoreServices
-	#cp -av ${OBJTOP}/CoreServices/Dock/Dock.app ${BUILDROOT}/System/Library/CoreServices
+	cp -av ${OBJTOP}/CoreServices/Dock/Dock.app ${BUILDROOT}/System/Library/CoreServices
 	#cp -av ${.CURDIR}/Filer/Filer.app ${BUILDROOT}/System/Library/CoreServices
 .for f in ${.CURDIR}/askpass 
 	cp -fv ${f} ${BUILDROOT}/System/Library/CoreServices/
@@ -35,7 +35,7 @@ build: buildWindowServer DMIHelper buildDock #buildFiler
 buildDock:
 	mkdir -p ${MAKEOBJDIR}/Dock/Trash
 	mkdir -p ${MAKEOBJDIR}/Dock/Downloads
-	#${MAKE} -C ${.CURDIR}/Dock obj all
+	${MAKE} -C ${.CURDIR}/Dock obj all
 
 buildWindowServer:
 	${MAKE} -C ${.CURDIR}/WindowServer make-obj-dirs obj all

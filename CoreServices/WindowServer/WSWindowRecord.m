@@ -74,6 +74,7 @@ NSRect WSOutsetFrame(NSRect rect, int style) {
         path = [bundle pathForResource:@"zoomDownHover" ofType:@"png"];
         wsZoomDown = [[[NSBitmapImageRep alloc] initWithContentsOfFile:path] CGImage];
     }
+    _level = kCGNormalWindowLevelKey;
     return self;
 }
 
@@ -153,9 +154,9 @@ NSRect WSOutsetFrame(NSRect rect, int style) {
 }
 
 -(NSString *)description {
-    return [NSString stringWithFormat:@"<%@ 0x%x> %@ %@ title:%@ state:%u style:0x%x",
+    return [NSString stringWithFormat:@"<%@ 0x%x> %@ %@ title:%@ state:%u style:0x%x level:%d",
            [self class], (uint32_t)self, self.shmPath, NSStringFromRect(self.geometry),
-           self.title, self.state, self.styleMask];
+           self.title, self.state, self.styleMask, self.level];
 }
 
 -(void)moveByX:(double)x Y:(double)y {

@@ -35,6 +35,7 @@ extern pthread_mutex_t mtx;
         backing:NSBackingStoreBuffered defer:NO];
 
     [self setMovableByWindowBackground:NO];
+    [self setLevel:kCGMainMenuWindowLevelKey];
 
     float mainWidth = frame.size.width * 0.65;
     float extraWidth = frame.size.width - mainWidth;

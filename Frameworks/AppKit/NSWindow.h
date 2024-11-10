@@ -55,15 +55,15 @@ enum {
 typedef NSUInteger NSWindowBackingLocation;
 
 enum {
-    NSNormalWindowLevel = kCGNormalWindowLevel,
-    NSFloatingWindowLevel = kCGFloatingWindowLevel,
-    NSSubmenuWindowLevel = kCGTornOffMenuWindowLevel,
-    NSTornOffMenuWindowLevel = kCGTornOffMenuWindowLevel,
-    NSMainMenuWindowLevel = kCGMainMenuWindowLevel,
-    NSStatusWindowLevel = kCGStatusWindowLevel,
-    NSModalPanelWindowLevel = kCGModalPanelWindowLevel,
-    NSPopUpMenuWindowLevel = kCGPopUpMenuWindowLevel,
-    NSScreenSaverWindowLevel = kCGScreenSaverWindowLevel,
+    NSNormalWindowLevel = kCGNormalWindowLevelKey,
+    NSFloatingWindowLevel = kCGFloatingWindowLevelKey,
+    NSSubmenuWindowLevel = kCGTornOffMenuWindowLevelKey,
+    NSTornOffMenuWindowLevel = kCGTornOffMenuWindowLevelKey,
+    NSMainMenuWindowLevel = kCGMainMenuWindowLevelKey,
+    NSStatusWindowLevel = kCGStatusWindowLevelKey,
+    NSModalPanelWindowLevel = kCGModalPanelWindowLevelKey,
+    NSPopUpMenuWindowLevel = kCGPopUpMenuWindowLevelKey,
+    NSScreenSaverWindowLevel = kCGScreenSaverWindowLevelKey,
 };
 
 enum {

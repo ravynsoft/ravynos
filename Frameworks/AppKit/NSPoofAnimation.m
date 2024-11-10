@@ -119,7 +119,7 @@ static const float kAnimationDuration = .3;
     [poofView setContextInfo:contextInfo];
     
     [window setContentView: poofView];
-    [window setLevel: kCGScreenSaverWindowLevel];
+    [window setLevel: kCGScreenSaverWindowLevelKey];
     
     [window setReleasedWhenClosed:YES];
     

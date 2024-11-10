@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022-2024 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,13 +23,12 @@
 #pragma once
 
 @interface DesktopWindow: NSWindow {
-    NSScreen *_output;
-    NSDictionary *_outputDict; // properties of output
+    NSScreen *_screen;
     NSImageView *view;
     NSString *_wallpaperPath;
 }
 
-- (DesktopWindow *)initWithFrame:(NSRect)frame forOutput:(NSDictionary *)outputDict;
+- (DesktopWindow *)initForScreen:(NSScreen *)screen;
 - (void)updateBackground;
 - (NSString *)wallpaperPath;
 - (NSScreen *)screen;

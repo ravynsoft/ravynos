@@ -48,6 +48,8 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
+#include <launch.h>
+
 #import "rpc.h"
 
 /* This lock prevents other threads from messing with the graphics context while we
@@ -84,24 +86,11 @@ pthread_mutex_t renderLock;
     displays = [NSMutableArray new];
     apps = [NSMutableDictionary new];
 
+    for(int i = 0; i < kCGNumReservedWindowLevels; ++i)
+        _windows[i] = [NSMutableArray new];
+
     input = [WSInput new];
     [input setLogLevel:logLevel];
-
-    struct group *group = getgrnam("video");
-    if(!group) {
-        perror("getgrnam(video)");
-        return nil;
-    }
-    videoGID = group->gr_gid;
- 
-    // ensure our helper is owned correctly
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"SystemUIServer" ofType:@"app"];
-    if(path)
-        path = [[NSBundle bundleWithPath:path] pathForResource:@"shutdown" ofType:@""];
-    if(path) {
-        chown([path UTF8String], 0, videoGID);
-        chmod([path UTF8String], 0550);
-    }
 
     // FIXME: try drm/kms first then fall back
     fb = [BSDFramebuffer new];
@@ -201,6 +190,10 @@ pthread_mutex_t renderLock;
     winrec.state = data->state;
     winrec.styleMask = data->style;
     winrec.geometry = NSMakeRect(data->x, data->y, data->w, data->h); // FIXME: bounds check?
+    if([app.bundleID isEqualToString:@"com.ravynos.LoginWindow"])
+        winrec.level = kCGOverlayWindowLevelKey;
+    else if(data->level >= kCGMinimumWindowLevelKey && data->level <= kCGMaximumWindowLevelKey)
+        winrec.level = data->level;
     int len = 0;
     while(data->title[len] != '\0' && len < sizeof(data->title)) ++len;
     winrec.title = [NSString stringWithCString:data->title length:len];
@@ -255,6 +248,7 @@ pthread_mutex_t renderLock;
     winrec.frame = WSOutsetFrame(winrec.geometry, winrec.styleMask);
 
     [app addWindow:winrec];
+    [self addWindowByLevel:winrec];
     if(curApp == app)
         curWindow = winrec; // FIXME: is this how macOS behaves?
     if(logLevel >= WS_INFO)
@@ -288,8 +282,41 @@ pthread_mutex_t renderLock;
         winrec.titleSet = NO;
     winrec.icon = nil;
     winrec.frame = WSOutsetFrame(winrec.geometry, winrec.styleMask);
+
+    if(![app.bundleID isEqualToString:@"com.ravynos.LoginWindow"]) {
+        if(data->level >= kCGMinimumWindowLevelKey && data->level <= kCGMaximumWindowLevelKey
+            && data->level != winrec.level) {
+            [self removeWindowByLevel:winrec];
+            winrec.level = data->level;
+            [self addWindowByLevel:winrec];
+        }
+    }
+
     if(logLevel >= WS_INFO)
         NSLog(@"windowModify %@ win %@", app, winrec);
+}
+
+-(void)addWindowByLevel:(WSWindowRecord *)window {
+    if(logLevel >= WS_INFO)
+        NSLog(@"addWindowByLevel %@", window);
+    [_windows[window.level] addObject:window];
+}
+
+-(void)removeWindowByLevel:(WSWindowRecord *)window {
+    if(logLevel >= WS_INFO)
+        NSLog(@"removeWindowByLevel %@", window);
+    pthread_mutex_lock(&renderLock);
+    [_windows[window.level] removeObject:window];
+    pthread_mutex_unlock(&renderLock);
+}
+
+-(void)removeWindowFromAllLevels:(WSWindowRecord *)window {
+    if(logLevel >= WS_INFO)
+        NSLog(@"removeWindowFromAllLevels %@", window);
+    pthread_mutex_lock(&renderLock);
+    for(int i = 0; i < kCGNumReservedWindowLevels; ++i)
+        [_windows[window.level] removeObject:window];
+    pthread_mutex_unlock(&renderLock);
 }
 
 -(void)setShell:(int)shell {
@@ -306,6 +333,7 @@ pthread_mutex_t renderLock;
     while(curShell != NONE) {
         switch(curShell) {
             case LOGINWINDOW:
+                // FIXME: can we use load_launchd_jobs_at_loginwindow_prompt() here?
                 lwPath = [[NSBundle mainBundle] pathForResource:@"LoginWindow" ofType:@"app"];
                 if(!lwPath) {
                     NSLog(@"missing LoginWindow.app!");
@@ -396,6 +424,33 @@ pthread_mutex_t renderLock;
                 break;
             case DESKTOP: {
                 pid_t pid = fork();
+
+                if(pid == 0) {
+                    struct passwd *pw = getpwuid(uid);
+                    if(!pw) {
+                        NSLog(@"uid not found");
+                        curShell = LOGINWINDOW;
+                        break;
+                    }
+                    setlogin(pw->pw_name);
+                    chdir(pw->pw_dir);
+
+                    login_cap_t *lc = login_getpwclass(pw);
+                    if (setusercontext(lc, pw, pw->pw_uid,
+                        LOGIN_SETALL & ~(LOGIN_SETLOGIN)) != 0) {
+                            perror("setusercontext");
+                            exit(-1);
+                    }
+                    login_close(lc);
+
+                    NSString *path = [[NSBundle bundleWithPath:@"/System/Library/CoreServices/Dock.app"]
+                        executablePath];
+                    execle([path UTF8String], [path UTF8String], NULL, NULL);
+                    perror("execl");
+                    exit(1);
+                }
+
+                pid = fork();
                 if(pid == 0) {
                     struct passwd *pw = getpwuid(uid);
                     if(!pw) {
@@ -419,9 +474,7 @@ pthread_mutex_t renderLock;
                         path = [[NSBundle bundleWithPath:path] executablePath];
 
                     if(path) {
-                        char buf[32];
-                        sprintf(buf, "%u", pw->pw_uid); // just informational
-                        execle([path UTF8String], [[path lastPathComponent] UTF8String], buf, NULL, NULL);
+                        execle([path UTF8String], [path UTF8String], NULL, NULL);
                     }
 
                     perror("execl");
@@ -439,16 +492,24 @@ pthread_mutex_t renderLock;
                 switch(WEXITSTATUS(status)) {
                     case EXIT_RESTART: NSLog(@"should restart!");
                                        curShell = NONE;
+                                       system("/bin/launchctl stop com.ravynos.Dock");
                                        kill(1, SIGINT);
                                        break;
                     case EXIT_SHUTDOWN: NSLog(@"should shut down!");
+                                        system("/bin/launchctl stop com.ravynos.Dock");
                                         curShell = NONE;
                                         kill(1, SIGUSR2);
                                         break;
-                    case EXIT_LOGOUT: NSLog(@"should log out!");
-                                      curShell = LOGINWINDOW;
+                    case EXIT_LOGOUT: {
+                                          NSLog(@"should log out!");
+                                          system("/bin/launchctl stop com.ravynos.Dock");
+                                          NSEnumerator *appEnum = [apps objectEnumerator];
+                                          WSAppRecord *app;
+                                          while((app = [appEnum nextObject]) != nil)
+                                              kill(app.pid, SIGTERM);
+                                          curShell = LOGINWINDOW;
+                                      }
                                       break;
-                    default: NSLog(@"SysUI exited with status %d", status);
                 }
             }
             break;
@@ -458,6 +519,9 @@ pthread_mutex_t renderLock;
     [[NSThread currentThread] cancel];
 }
 
+/*
+ * KEEP THIS RUN LOOP EFFICIENT! It is called every frame to render the entire screen contents.
+ */
 #define _cursor_height 24
 -(void)run {
     [NSThread detachNewThreadSelector:@selector(launchShell:) toTarget:self withObject:nil];
@@ -498,17 +562,22 @@ pthread_mutex_t renderLock;
         if(capturedPID == 0) {
             O2ContextSetRGBFillColor(ctx, 0, 0, 0, 1);
             O2ContextFillRect(ctx, (O2Rect)_geometry);
-            NSEnumerator *appEnum = [apps objectEnumerator];
-            WSAppRecord *app;
-            while((app = [appEnum nextObject]) != nil) {
-                NSArray *wins = [app windows];
+            for(int level = 0; level < kCGNumReservedWindowLevels; ++level) {
+                NSArray *wins = _windows[level];
                 int count = [wins count];
                 for(int i = 0; i < count; ++i) {
                     WSWindowRecord *win = [wins objectAtIndex:i];
                     if(win.state == HIDDEN)
                         continue;
-                    [win drawFrame:ctx pointer:cursorRect.origin];
-                    [ctx drawImage:win.surface inRect:win.geometry];
+                    // Ensure curWindow is on top of stack
+                    if(win != curWindow) {
+                        [win drawFrame:ctx pointer:cursorRect.origin];
+                        [ctx drawImage:win.surface inRect:win.geometry];
+                    }
+                }
+                if(curWindow.level == level) {
+                    [curWindow drawFrame:ctx pointer:cursorRect.origin];
+                    [ctx drawImage:curWindow.surface inRect:curWindow.geometry];
                 }
             }
         }
@@ -528,7 +597,6 @@ pthread_mutex_t renderLock;
                 [fb draw];
         pthread_mutex_unlock(&renderLock);
     }
-
 }
 
 - (void)rpcMainDisplayID:(PortMessage *)msg {
@@ -1392,7 +1460,8 @@ pthread_mutex_t renderLock;
         WSAppRecord *app = [apps objectForKey:[NSString stringWithCString:msg->bundleID]];
 
         if(app != nil) {
-            [app removeWindowWithID:data->windowID];
+            WSWindowRecord *winrec = [app removeWindowWithID:data->windowID];
+            [self removeWindowFromAllLevels:winrec];
         } else {
             NSLog(@"No matching app for rpcWindowDestroy! %s %u", msg->bundleID, msg->pid);
         }
@@ -1626,6 +1695,8 @@ pthread_mutex_t renderLock;
                         NSLog(@"PID %u exited, but no matching app record", out[i].ident);
                     else {
                         [apps removeObjectForKey:app.bundleID];
+                        for(int x = 0; x < [[app windows] count]; ++x)
+                            [self removeWindowFromAllLevels:[[app windows] objectAtIndex:x]];
                         [app removeAllWindows];
 
                         if([app.bundleID isEqualToString:@"com.ravynos.LoginWindow"]

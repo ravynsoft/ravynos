@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022-2024 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,29 +21,21 @@
  */
 
 #import <AppKit/AppKit.h>
+#import <CoreGraphics/CGWindowLevel.h>
 #import "Dock.h"
 #import "DesktopWindow.h"
 
 @implementation DesktopWindow
-- initWithFrame:(NSRect)frame forOutput:(NSDictionary *)outputDict {
-    _outputDict = outputDict;
-    NSNumber *key = [outputDict objectForKey:@"WLOutputXDGOutput"];
-    NSArray *screens = [NSScreen screens];
-    _output = nil;
+- initForScreen:(NSScreen *)screen {
+    _screen = screen;
+    NSRect frame = [screen visibleFrame];
 
-    for(int i = 0; i < [screens count]; ++i) {
-        _output = [screens objectAtIndex:i];
-        if([_output key] == key)
-            break;
-    }
-
-    frame = NSZeroRect;
-    frame.size = NSSizeFromString([outputDict objectForKey:@"WLOutputSize"]);
-    frame.origin = NSPointFromString([outputDict objectForKey:@"WLOutputPosition"]);
-
-    self = [self initWithContentRect:frame
-        styleMask:NSBorderlessWindowMask|WLWindowLayerBackground
-        backing:NSBackingStoreBuffered defer:NO screen:_output];
+    self = [super initWithContentRect:frame
+                            styleMask:NSBorderlessWindowMask
+                              backing:NSBackingStoreBuffered
+                                defer:NO
+                               screen:screen];
+    [self setLevel:kCGDesktopWindowLevelKey];
 
     frame.origin = NSZeroPoint;
     view = [[NSImageView alloc] initWithFrame:frame];
@@ -59,9 +51,9 @@
 - (void)updateBackground {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     NSDictionary *dict = [prefs objectForKey:INFOKEY_WALLPAPER];
-    _wallpaperPath = [dict objectForKey:[_outputDict objectForKey:@"WLOutputModel"]];
+    _wallpaperPath = [dict objectForKey:@"NSMainScreen"]; // FIXME: use CGDisplayID from NSScreen deviceDescription
     if(!_wallpaperPath)
-        _wallpaperPath = @"/System/Library/Desktop Pictures/Mountain.jpg";
+        _wallpaperPath = @"/System/Library/Desktop Pictures/umbrellas.jpg";
 
     NSImage *image = [[NSImage alloc] initWithContentsOfFile:_wallpaperPath];
     [image setScalesWhenResized:YES];
@@ -74,13 +66,12 @@
 }
 
 - (NSScreen *)screen {
-    return _output;
+    return _screen;
 }
 
 - (NSDictionary *)properties {
-    return _outputDict;
+    return nil; // FIXME
 }
-
 
 @end
 

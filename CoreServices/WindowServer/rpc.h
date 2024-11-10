@@ -134,6 +134,7 @@ struct wsRPCWindow {
     uint32_t style;
     uint32_t state;
     char title[128];
+    uint32_t level;
 };
 
 typedef enum WSDisplayFlags : uint32_t {

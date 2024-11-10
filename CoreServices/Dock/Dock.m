@@ -1,7 +1,7 @@
 /*
  * ravynOS Application Launcher & Status Bar
  *
- * Copyright (C) 2021-2022 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2021-2024 Zoe Knox <zoe@pixin.net>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,12 +23,12 @@
  */
 
 #import <AppKit/AppKit.h>
+#import <CoreGraphics/CGWindowLevel.h>
 #import "Dock.h"
 #import "DockTileData.h"
 #import "DesktopWindow.h"
 
-static const NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotification";
-
+// FIXME: make this go away and get notified by WS
 static void kqSvcLoop(void *arg) {
     Dock *dock = (__bridge_transfer Dock *)arg;
     while(1)
@@ -61,9 +61,6 @@ static void kqSvcLoop(void *arg) {
     [self createWindowWithFrame:frame];
     [self placeItemsInWindow:max];
 
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(screenDidResize:)
-        name:WLOutputDidResizeNotification object:nil];
-
     [_window orderFront:nil];
     pthread_create(&kqThread, NULL, kqSvcLoop, (__bridge_retained void *)self);
 
@@ -73,6 +70,14 @@ static void kqSvcLoop(void *arg) {
     kevent(_kq, e, 2, NULL, 0, NULL);
 
     return self;
+}
+
+-(void)applicationWillFinishLaunching:(NSNotification *)note {
+    DesktopWindow *desktop = [[DesktopWindow alloc] initForScreen:[NSScreen mainScreen]];
+    [_desktops setObject:desktop forKey:@"NSMainScreen"]; // FIXME: use NSScreen deviceDescription dict for display ID
+    [desktop setDelegate:self];
+    [desktop makeKeyAndOrderFront:nil];
+    [self savePrefs];
 }
 
 // called from our kq watcher thread
@@ -137,7 +142,7 @@ static void kqSvcLoop(void *arg) {
 }
 
 -(NSWindow *)createWindowWithFrame:(NSRect)frame {
-    NSScreen *mainScreen = [[NSScreen screens] objectAtIndex:0];
+    NSScreen *mainScreen = [NSScreen mainScreen];
     switch(_location) {
         case LOCATION_LEFT:
             frame.origin.x = 0;
@@ -156,23 +161,9 @@ static void kqSvcLoop(void *arg) {
         backing:NSBackingStoreBuffered defer:NO];
     [_window setBackgroundColor:[NSColor colorWithDeviceRed:0.666 green:0.666
         blue:0.666 alpha:_alpha]];
+    [_window setLevel:kCGDockWindowLevelKey];
     
     return _window;
-}
-
--(void)screenDidResize:(NSNotification *)note {
-    NSMutableDictionary *dict = (NSMutableDictionary *)[note userInfo];
-
-    NSRect frame = NSZeroRect;
-    frame.size = NSSizeFromString([dict objectForKey:@"WLOutputSize"]);
-    frame.origin = NSPointFromString([dict objectForKey:@"WLOutputPosition"]);
-
-    DesktopWindow *desktop = [[DesktopWindow alloc] initWithFrame:frame];
-    [_desktops setObject:desktop forKey:[dict objectForKey:@"WLOutputXDGOutput"]];
-    [desktop setDelegate:self];
-    [desktop makeKeyAndOrderFront:nil];
-
-    [self savePrefs];
 }
 
 -(NSArray *)tileDataForAppItems {
@@ -199,9 +190,7 @@ static void kqSvcLoop(void *arg) {
     NSArray *values = [_desktops allValues];
     for(unsigned i = 0; i < [values count]; ++i) {
         DesktopWindow *dw = [values objectAtIndex:i];
-        NSDictionary *props = [dw properties];
-
-        [_wallpaper setObject:[dw wallpaperPath] forKey:[props objectForKey:@"WLOutputModel"]];
+        [_wallpaper setObject:[dw wallpaperPath] forKey:@"NSMainScreen"]; // FIXME: CGDisplayID
     }
     [_prefs setObject:_wallpaper forKey:INFOKEY_WALLPAPER];
     [_prefs setObject:[self tileDataForAppItems] forKey:INFOKEY_PERSISTENT_APPS];
@@ -273,8 +262,8 @@ static void kqSvcLoop(void *arg) {
     if(!pa || [pa count] == 0) {
         // populate default apps
         [pa addObject:dockTileData(@"/System/Library/CoreServices/Filer.app")];
-        [pa addObject:dockTileData(@"/Applications/Utilities/foot.app")];
-        [pa addObject:dockTileData(@"/Applications/Utilities/Install ravynOS.app")];
+        [pa addObject:dockTileData(@"/Applications/Utilities/Terminal.app")];
+        //[pa addObject:dockTileData(@"/Applications/Utilities/Install ravynOS.app")];
     }
 
     for(int i = 0; i < [pa count]; ++i) {

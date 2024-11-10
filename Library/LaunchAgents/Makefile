@@ -1,7 +1,7 @@
 SYSLIB= /System/Library/LaunchAgents
 LIBLIB= /Library/LaunchAgents
 
-SYSAGENTS=	com.ravynos.Dock.json \
+SYSAGENTS=	\
 		com.ravynos.Filer.json \
 		org.freedesktop.dbus-session.json
 AGENTS=

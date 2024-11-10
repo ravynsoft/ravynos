@@ -107,7 +107,7 @@ typedef struct {
             @"CFBundleIconFile"];
         if(!iconFile)
             iconFile = [b objectForInfoDictionaryKey:@"NSIcon"];
-        NSString *iconPath = [NSString stringWithFormat:@"%@/Resources/%@",path,iconFile];
+        NSString *iconPath = [NSString stringWithFormat:@"%@/Contents/Resources/%@",path,iconFile];
 
         _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(
             0,RUNMK_DIAMETER+2*RUNMK_SPACER,size,size)];

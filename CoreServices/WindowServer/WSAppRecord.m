@@ -41,14 +41,14 @@ extern pthread_mutex_t renderLock;
     [_windows addObject:window];
 }
 
--(void)removeWindowWithID:(int)number {
+-(WSWindowRecord *)removeWindowWithID:(int)number {
     for(int i = 0; i < [_windows count]; i++) {
         WSWindowRecord *r = [_windows objectAtIndex:i];
         if(r.number == number) {
             pthread_mutex_lock(&renderLock);
             [_windows removeObjectAtIndex:i];
             pthread_mutex_unlock(&renderLock);
-            return;
+            return r;
         }
     }
 }

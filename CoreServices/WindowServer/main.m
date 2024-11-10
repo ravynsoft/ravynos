@@ -28,6 +28,8 @@
 #import <servers/bootstrap.h>
 #import "message.h"
 
+#define FINISH(x) ret=(x); goto __finish;
+
 extern int optopt;
 
 void *machSvcLoop(void *arg) {
@@ -47,6 +49,7 @@ int main(int argc, const char *argv[]) {
     int logLevel = WS_ERROR;
     srandomdev();
     int curShell = LOGINWINDOW;
+    WindowServer *ws = nil;
 
     while(getopt(argc, argv, "Lxv") != -1) {
         switch(optopt) {
@@ -91,18 +94,19 @@ int main(int argc, const char *argv[]) {
 
     setsid(); // Start a new session
 
+    int ret = 0;
     int vt = 0, origvt = 0;
     int fd = open("/dev/ttyv0", O_RDWR|O_CLOEXEC);
     if(fd < 0) {
         NSLog(@"Cannot open console: %s", strerror(errno));
-        exit(1);
+        FINISH(1);
     }
 
     ioctl(fd, VT_GETACTIVE, &origvt);
 
     if(ioctl(fd, VT_OPENQRY, &vt) < 0) {
         NSLog(@"Cannot allocate terminal: %s", strerror(errno));
-        exit(1);
+        FINISH(1);
     }
 
     char filename[64];
@@ -112,12 +116,12 @@ int main(int argc, const char *argv[]) {
     int wsfd = open(filename, O_RDWR|O_CLOEXEC);
     if(wsfd < 0) {
         NSLog(@"Cannot open terminal: %s", strerror(errno));
-        exit(1);
+        FINISH(1);
     }
 
     if(ioctl(wsfd, VT_ACTIVATE, vt) < 0) {
         NSLog(@"Cannot activate terminal: %s", strerror(errno));
-        exit(1);
+        FINISH(1);
     }
 
     // Associate the new VT as our ctty
@@ -140,7 +144,7 @@ int main(int argc, const char *argv[]) {
     new.c_lflag &= ~(ICANON | ECHO);
     tcsetattr(wsfd,TCSANOW, &new);
 
-    WindowServer *ws = [WindowServer new];
+    ws = [WindowServer new];
     if(ws == nil)
         exit(1);
     [ws setLogLevel:logLevel];
@@ -155,6 +159,7 @@ int main(int argc, const char *argv[]) {
     [ws run];
     ws = nil;
 
+__finish:
     // Restore old terminal settings
     tcsetattr(wsfd, TCSANOW, &old);
 

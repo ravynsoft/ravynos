@@ -342,7 +342,7 @@ NSInteger NS12HourFromTimeInterval(NSTimeInterval interval){ // 1-12
 NSInteger NSAMPMFromTimeInterval(NSTimeInterval interval){ // 0-1
     NSInteger hour=NS24HourFromTimeInterval(interval);
 
-    return (hour < 11) ? 0 : 1;
+    return (hour < 12) ? 0 : 1;
 }
 
 NSInteger NSMinuteFromTimeInterval(NSTimeInterval interval){ // 0-59
