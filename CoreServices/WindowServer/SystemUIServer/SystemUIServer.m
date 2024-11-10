@@ -41,6 +41,14 @@ int main(int argc, const char *argv[]) {
     if(!del)
         exit(EXIT_FAILURE);
 
+    // kick off a per-user launchd to invoke LaunchAgents and per-user LaunchDaemons
+    // this starts Filer and Dock to establish the desktop session
+    NSString *kickerPath = [[NSBundle mainBundle] pathForResource:@"kickSession" ofType:@""];
+    if(kickerPath) {
+        NSLog(@"kicking off session");
+        system([kickerPath UTF8String]);
+    }
+
     [pool drain];
     [NSApp setDelegate:del];
     [NSApp run];

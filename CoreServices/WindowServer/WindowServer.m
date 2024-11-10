@@ -424,33 +424,6 @@ pthread_mutex_t renderLock;
                 break;
             case DESKTOP: {
                 pid_t pid = fork();
-
-                if(pid == 0) {
-                    struct passwd *pw = getpwuid(uid);
-                    if(!pw) {
-                        NSLog(@"uid not found");
-                        curShell = LOGINWINDOW;
-                        break;
-                    }
-                    setlogin(pw->pw_name);
-                    chdir(pw->pw_dir);
-
-                    login_cap_t *lc = login_getpwclass(pw);
-                    if (setusercontext(lc, pw, pw->pw_uid,
-                        LOGIN_SETALL & ~(LOGIN_SETLOGIN)) != 0) {
-                            perror("setusercontext");
-                            exit(-1);
-                    }
-                    login_close(lc);
-
-                    NSString *path = [[NSBundle bundleWithPath:@"/System/Library/CoreServices/Dock.app"]
-                        executablePath];
-                    execle([path UTF8String], [path UTF8String], NULL, NULL);
-                    perror("execl");
-                    exit(1);
-                }
-
-                pid = fork();
                 if(pid == 0) {
                     struct passwd *pw = getpwuid(uid);
                     if(!pw) {
@@ -492,17 +465,16 @@ pthread_mutex_t renderLock;
                 switch(WEXITSTATUS(status)) {
                     case EXIT_RESTART: NSLog(@"should restart!");
                                        curShell = NONE;
-                                       system("/bin/launchctl stop com.ravynos.Dock");
                                        kill(1, SIGINT);
                                        break;
                     case EXIT_SHUTDOWN: NSLog(@"should shut down!");
-                                        system("/bin/launchctl stop com.ravynos.Dock");
                                         curShell = NONE;
                                         kill(1, SIGUSR2);
                                         break;
                     case EXIT_LOGOUT: {
-                                          NSLog(@"should log out!");
-                                          system("/bin/launchctl stop com.ravynos.Dock");
+                                          NSString *cmd = [NSString stringWithFormat:
+                                              @"/bin/launchctl remove com.apple.launchd.peruser.%d", uid];
+                                          system([cmd UTF8String]);
                                           NSEnumerator *appEnum = [apps objectEnumerator];
                                           WSAppRecord *app;
                                           while((app = [appEnum nextObject]) != nil)

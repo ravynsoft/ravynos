@@ -11,7 +11,7 @@ SRCS=           SystemUIServer.m \
                 Label.m \
                 AboutWindow.m
 RESOURCES=	${.CURDIR}/../Icon.png ${.CURDIR}/ravynos-mark-64.png \
-                ${.CURDIR}/../SneakySnek.png ${.CURDIR}/shutdown
+                ${.CURDIR}/../SneakySnek.png ${.CURDIR}/kickSession
 
 MK_WERROR=	no
 WARNS=	        1
@@ -48,8 +48,18 @@ LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' \
 ${MAKEOBJDIR}/OpenGL:
 	ln -sf ${SRCTOP}/Frameworks/OpenGL/include ${.TARGET}
 
-${.CURDIR}/shutdown: shutdown.c
-	${CC} -o ${.TARGET} ${.ALLSRC}
+${.CURDIR}/kickSession: kickSession.m
+	${CC} -D__RAVYNOS__ -D__MACH__ -O0 -g -o ${.TARGET} ${.ALLSRC} \
+		--sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin \
+		${OBJCFLAGS} -I${SRCTOP}/Frameworks -I${MAKEOBJDIR} \
+		-F${OBJTOP}/Frameworks/Foundation \
+		-I${SRCTOP}/Frameworks/AppKit/Headers \
+		-I${OBJTOP}/Frameworks/Foundation/Headers \
+		-L${OBJTOP}/Frameworks/AppKit/AppKit.framework \
+		-L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
+		-Wl,-R/System/Library/Frameworks/AppKit.framework/Versions/A \
+		-Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
+		-lAppKit -lFoundation -lSystem -lobjc
 
 .include <rvn.app.mk>
 
