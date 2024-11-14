@@ -1,8 +1,8 @@
 # Key Technologies
 
-- Base system, kernel, drivers: a soft fork of FreeBSD "current" (14.0)
-- Graphics system: Wayland, EGL, GLESv2, DRM/KMS
-- Desktop environment: Custom, written in Cocoa on Wayland
+- Base system, kernel, drivers: a soft fork of FreeBSD "current" (15.0)
+- Graphics system: EFI Framebuffer (Future: DRM/KMS, OpenGL, Metal)
+- Desktop environment: Custom, written in Cocoa on our custom WindowServer
 
 - Apple Open Source (https://opensource.apple.com/source/)
 - GNUstep (http://www.gnustep.org) libobjc2
