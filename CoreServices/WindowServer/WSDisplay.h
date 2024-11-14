@@ -26,6 +26,8 @@
 #import <Onyx2D/O2Context_builtin.h>
 #import <CoreGraphics/CGColorSpace.h>
 
+extern pthread_mutex_t renderLock;
+
 @interface WSDisplay : NSObject {
     uint32_t _ID;               // CGDirectDisplayID
     uint32_t _flags;            // status flags

@@ -157,7 +157,10 @@ extern struct CGDisplayMode *CGDisplayModeRetain(struct CGDisplayMode *);
 }
 
 -(O2ImageRef)imageForRect:(O2Rect)rect {
-    return O2ImageCreateWithImageInRect([[self context] surface], rect);
+    pthread_mutex_lock(&renderLock);
+    O2ImageRef ref = O2ImageCreateWithImageInRect([[self context] surface], rect);
+    pthread_mutex_unlock(&renderLock);
+    return ref;
 }
 
 -(float)rotation {
