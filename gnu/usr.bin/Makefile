@@ -8,6 +8,7 @@ SUBDIR+=                avahi
 SUBDIR+=                binutils
 SUBDIR+=                gmake
 #SUBDIR+=                libtool
+SUBDIR+=		dmidecode
 
 SUBDIR_PARALLEL=
 

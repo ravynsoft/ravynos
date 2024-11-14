@@ -1,0 +1,212 @@
+Version 3.6 (Wed Apr 24 2024)
+  - [PORTABILITY] Use -DALIGNMENT_WORKAROUND on arm.
+  - [PORTABILITY] Read SMBIOS entry point via kenv on DragonFly BSD.
+  - Support for SMBIOS 3.6.0. This includes new memory device types, new
+    processor upgrades, and Loongarch support.
+  - Support for SMBIOS 3.7.0. This includes new port types, new processor
+    upgrades, new slot characteristics and new fields for memory modules.
+  - Add bash completion.
+  - Decode HPE OEM records 197, 239 and 245.
+  - Implement options --list-strings and --list-types.
+  - Update HPE OEM records 203, 212, 216, 221, 233, 236, 237, 238 and 242.
+  - Update Redfish support.
+  - Bug fixes:
+    Fix option --from-dump for user root
+    Fix enabled slot characteristics not being printed
+  - Minor improvements:
+    Print slot width on its own line
+    Use standard strings for slot width
+
+Version 3.5 (Tue Mar 14 2023)
+  - Decode HPE OEM records 216, 224, 230, 238 and 242.
+  - Fortify entry point length checks.
+  - Add a --no-quirks option.
+  - Drop the CPUID exception list.
+  - Do not let --dump-bin overwrite an existing file.
+  - Ensure /dev/mem is a character device file.
+  - Bug fixes:
+    Fix segmentation fault in HPE OEM record 240
+  - Minor improvements:
+    Typo fixes
+    Write the whole dump file at once
+    Fix a build warning when USE_MMAP isn't set
+
+Version 3.4 (Mon Jun 27 2022)
+  - Support for SMBIOS 3.4.0. This includes new memory device types, new
+    processor upgrades, new slot types and characteristics, decoding of memory
+    module extended speed, new system slot types, new processor characteristics
+    and new format of Processor ID.
+  - Support for SMBIOS 3.5.0. This includes new processor upgrades, BIOS
+    characteristics, new slot characteristics, new on-board device types, new
+    pointing device interface types, and a new record type (type 45 -
+    Firmware Inventory Information).
+  - Decode HPE OEM records 194, 199, 203, 236, 237, 238 and 240.
+  - Bug fixes:
+    Fix OEM vendor name matching
+    Fix ASCII filtering of strings
+    Fix crash with option -u
+  - Minor improvements:
+    Skip details of uninstalled memory modules
+    Don't display the raw CPU ID in quiet mode
+    Improve the formatting of the manual pages
+
+Version 3.3 (Wed Oct 14 2020)
+  - [BUILD] Allow overriding build settings from the environment.
+  - [COMPATIBILITY] Document how the UUID fields are interpreted.
+  - [PORTABILITY] Don't use memcpy on /dev/mem on arm64.
+  - [PORTABILITY] Only scan /dev/mem for entry point on x86.
+  - Support for SMBIOS 3.3.0. This includes new processor names, new port
+    connector types, and new memory device form factors, types and
+    technologies.
+  - Add bios-revision, firmware-revision and system-sku-number to -s option.
+  - Use the most appropriate unit for cache size.
+  - Decode system slot base bus width and peers.
+  - Important bug fixes:
+    Fix Redfish Hostname print length
+    Fix formatting of TPM table output
+    Fix System Slot Information for PCIe SSD
+    Don't choke on invalid processor voltage
+  - Use the most appropriate unit for cache size.
+
+Version 3.2 (Wed Sep 14 2018)
+  - [COMPATIBILITY] The UUID is now displayed using lowercase letters, per
+    RFC 4122 (#53569). You must ensure that any code parsing it is
+    case-insensitive.
+  - Support for SMBIOS 3.2.0. This includes new processor names, new socket
+    and port connector types, new system slot state and property, and support
+    for non-volatile memory (NVDIMM).
+  - Support for Redfish management controllers.
+  - A new command line option to query a specific structure by its handle.
+  - A new command line option to query the system family string.
+  - Support for 3 ThinkPad-specific structures (patch #9642).
+  - Support for HPE's new company name.
+  - Support UEFI on FreeBSD.
+  - Important bug fixes:
+    Fix firmware version of TPM device
+    Fix the HPE UEFI feature flag check
+  - (biosdecode) A new command line option to fully decode PIR information
+    (support request #109339).
+
+Version 3.1 (Tue May 23 2017)
+  - Support for SMBIOS 3.1.0 and 3.1.1. This includes new chassis types, new
+    processor family names, new processor family upgrade names, and new slot
+    types, as well as support of larger BIOS ROM sizes and cache sizes, and a
+    new structure type (43, TPM Device.)
+  - A new command line option to query OEM strings.
+  - All error messages are now printed on stderr (#47274, #48158.)
+  - Several bug fixes related to 64-bit entry points (#50037 and more.)
+  - Important bug fixes:
+    #46176 (Unexpected end of file error)
+    #46066 (Crash with SIGBUS)
+  - Various minor fixes, improvements and cleanups.
+
+Version 3.0 (Thu Sep 03 2015)
+  - Support for SMBIOS 3.0. This includes new chassis types, new
+    processor family names, new processor family upgrade names, new slot
+    types, and new memory device types.
+  - Support for the new 64-bit entry point (_SM3_) defined in SMBIOS 3.0.
+  - Support for the new kernel interface (as of Linux v4.2) as an
+    alternative to relying /dev/mem to access the entry point and DMI
+    table.
+  - Decoding of Acer-specific DMI type 170.
+  - Decoding of HP-specific DMI types 212, 219 and 233.
+  - Various minor fixes and output format cleanups.
+
+Version 2.12 (Wed Apr 17 2013)
+  - Support of the SMBIOS 2.8.0 specification.
+
+Version 2.11 (Wed Jan 19 2011)
+  - Support of the SMBIOS 2.7.0 specification:
+    - UEFI support
+    - Virtual machine flags in BIOS characteristics
+    - Limited support for the Management Controller Host Interface
+  - Various fixes that address stability.
+
+Version 2.10 (Sun Nov 23 2008)
+  - Support for Solaris (x86 only, of course).
+  - Possibility to dump the SMBIOS/DMI table to a small binary file
+    (option --dump-bin).
+  - Possibility to read the SMBIOS/DMI table from such binary files
+    (option --from-dump).
+  - Support for SMBIOS 2.6. This includes new chassis types, new
+    processor family names, new processor family upgrade names, bus
+    address for system slots, and a new entry type for on-board devices,
+    amongst many other minor changes.
+  - Support for DMI entry type 31 (Boot integrity services).
+  - Many processor family names taken from the CIM Schema document.
+  - (vpddecode) No longer ask users to report broken records.
+  - (vpddecode) Fix --quiet option.
+
+Version 2.9 (Mon Feb 26 2007)
+  - Support of the SMBIOS 2.5 specification. It adds many enumerated
+    values for recent hardware, as well as CPU core and thread count
+    reporting.
+  - Decoding of 3 HP-specific entries. More vendor-specific entries can
+    be supported later if vendors contribute code or documentation.
+  - Run-time detection of EFI, so that a single binary can support
+    Intel-based Macintosh machines and regular x86 machines.
+  - Better IA-64 support.
+  - Fixes to the decoding of individual fields, including the CPU
+    signature of recent CPU models.
+  - (biosdecode) Support of the FJKEYINF entry point type (for Fujitsu laptops).
+  - (vpddecode) The product name look-up table was dropped. It was unreliable
+    and a burden to maintain.
+  - biosdecode, ownership and vpddecode are no longer built on IA-64.
+
+Version 2.8 (Sat Feb 04 2006)
+  - Option --string has four additional keywords available:
+    system-uuid, chassis-type, processor-family and processor-frequency.
+    These needed additional work because, technically speaking, they are
+    not DMI strings.
+  - IPMI interface type SSIF was added. This is a new interface type
+    defined by IPMI 2.0.
+  - (vpddecode) New --string option, much similar in spirit to
+    dmidecode's. Available keywords are bios-build-id, box-serial-number,
+    motherboard-serial-number, machine-type-model and bios-release-date.
+  - (vpddecode) 9 product names were added to the lookup table.
+  -  A few bug fixes, cleanups and minor improvements all around the place.
+
+Version 2.7 (Thu Aug 04 2005)
+  - New command line interface. For example, it is now possible to limit
+    the output of dmidecode to a given DMI type, or to extract a single
+    string from the DMI table. The documentation has been updated
+    accordingly.
+  - The default output of dmidecode was slightly modified to be more
+    easily readable by humans. This might break tools parsing its output.
+    Such tools may benefit from the new command line interface, although
+    this interface shouldn't be considered stable until version 2.8.
+  - (vpddecode) New command line interface.
+  - (vpddecode) 6 product names were added.
+
+Version 2.6 (Mon Feb 28 2005)
+  - Fixes a 2 GB memory limit regression.
+  - Basic command-line handling.
+  - BeOS and Cygwin support.
+
+Version 2.5 (Thu Nov 11 2004)
+  - Code cleanups.
+  - Compatibility fixes.
+  - Documentation updates.
+
+Version 2.4 (Fri Mar 19 2004)
+  - Manual pages added.
+  - (vpddecode) Many improvements.
+  - A few fixes and minor improvements.
+
+Version 2.3 (Sun Oct 19 2003)
+  - Support of x86_64 systems.
+  - Support of systems with 2 GB and more memory.
+  - Loads of bug fixes and corrections.
+  - New tool "vpddecode" added.
+
+Version 2.2 (Fri Aug 08 2003)
+  - Support of IA-64 systems.
+  - Support of IBM and Fujitsu-Siemens laptops.
+  - Many minor bug fixes.
+  - New tool "ownership" added.
+
+Version 2.1 (Tue Jun 10 2003)
+  - Support of the SMBIOS 2.3.4 specification.
+  - Better support of IPMI.
+  - Minor bugs fixed.
+  - Documentation added.
