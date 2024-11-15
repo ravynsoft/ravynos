@@ -68,13 +68,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -(void)createUserDefaultsDirectoryIfNeeded {
    BOOL      isDirectory;
    NSArray  *components=[_path pathComponents];
-   NSInteger       i,count=[components count];
-   NSString *check=@"";
+   NSInteger       i, count = [components count] - 1;
+   NSString *check=@"/";
    
    for(i=0;i<count;i++){
    // leave the error checking up to -synchronize
     check=[check stringByAppendingPathComponent:[components objectAtIndex:i]];
-    if(i>0 && ![[NSFileManager defaultManager] fileExistsAtPath:check isDirectory:&isDirectory]){
+    if(![[NSFileManager defaultManager] fileExistsAtPath:check isDirectory:&isDirectory]){
      [[NSFileManager defaultManager] createDirectoryAtPath:check attributes:nil];
     }
    }

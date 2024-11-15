@@ -471,7 +471,7 @@ pthread_mutex_t renderLock;
                                         curShell = NONE;
                                         kill(1, SIGUSR2);
                                         break;
-                    case EXIT_LOGOUT: [self performLogout];
+                    case EXIT_LOGOUT: [self performLogout:uid];
                                       curShell = LOGINWINDOW;
                                       break;
                 }
@@ -483,7 +483,7 @@ pthread_mutex_t renderLock;
     [[NSThread currentThread] cancel];
 }
 
--(void)performLogout {
+-(void)performLogout:(uid_t)uid {
       WSAppRecord *app;
 
       NSString *cmd = [NSString stringWithFormat:
@@ -1990,7 +1990,7 @@ pthread_mutex_t renderLock;
 }
 
 -(void)signalQuit {
-    [self performLogout];
+    [self performLogout:0];
     execl("/bin/launchctl", "launchctl", "remove", "com.ravynos.WindowServer", NULL);
     ready = NO;
 }
