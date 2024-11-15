@@ -102,15 +102,13 @@ USER_PASS
 # Move rc.conf.local file
 mv /etc/rc.conf.local /etc/rc.conf
 
-# Configure /etc/rc.conf
-echo "Configuring /etc/rc.conf..."
-cat <<'RC_CONF' >> /etc/rc.conf
-zfs_enable="YES"
-zfsd_enable="YES"
-RC_CONF
+# Configure /etc/rc.conf using sysrc
+echo "Configuring ravynOS..."
+sysrc zfs_enable=YES
+sysrc zfsd_enable=YES
 
 # Configure /boot/loader.conf
-echo "Configuring /boot/loader.conf..."
+echo "Configuring ravynOS bootloader..."
 cat <<'LOADER_CONF' >> /boot/loader.conf
 cryptodev_load="YES"
 zfs_load="YES"
