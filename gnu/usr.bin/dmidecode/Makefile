@@ -160,3 +160,7 @@ uninstall-completion :
 
 clean :
 	$(RM) *.o $(PROGRAMS) core
+
+includes:
+distribute:
+	$(MAKE) -C ${.CURDIR} DESTDIR=${OBJTOP}/release/dist/base/ install
