@@ -114,9 +114,9 @@ util.o : util.c types.h util.h config.h
 strip : $(PROGRAMS)
 	strip $(PROGRAMS)
 
-install : install-bin install-man install-doc install-completion
+install : install-bin #install-man install-doc install-completion
 
-uninstall : uninstall-bin uninstall-man uninstall-doc uninstall-completion
+uninstall : uninstall-bin #uninstall-man uninstall-doc uninstall-completion
 
 install-bin : $(PROGRAMS)
 	$(INSTALL_DIR) $(DESTDIR)$(sbindir)

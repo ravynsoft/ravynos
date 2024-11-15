@@ -471,16 +471,8 @@ pthread_mutex_t renderLock;
                                         curShell = NONE;
                                         kill(1, SIGUSR2);
                                         break;
-                    case EXIT_LOGOUT: {
-                                          NSString *cmd = [NSString stringWithFormat:
-                                              @"/bin/launchctl remove com.apple.launchd.peruser.%d", uid];
-                                          system([cmd UTF8String]);
-                                          NSEnumerator *appEnum = [apps objectEnumerator];
-                                          WSAppRecord *app;
-                                          while((app = [appEnum nextObject]) != nil)
-                                              kill(app.pid, SIGTERM);
-                                          curShell = LOGINWINDOW;
-                                      }
+                    case EXIT_LOGOUT: [self performLogout];
+                                      curShell = LOGINWINDOW;
                                       break;
                 }
             }
@@ -489,6 +481,18 @@ pthread_mutex_t renderLock;
 
     }
     [[NSThread currentThread] cancel];
+}
+
+-(void)performLogout {
+      WSAppRecord *app;
+
+      NSString *cmd = [NSString stringWithFormat:
+          @"/bin/launchctl remove com.apple.launchd.peruser.%d", uid];
+      system([cmd UTF8String]);
+
+      NSEnumerator *appEnum = [apps objectEnumerator];
+      while((app = [appEnum nextObject]) != nil)
+          kill(app.pid, SIGTERM);
 }
 
 /*
@@ -1986,6 +1990,7 @@ pthread_mutex_t renderLock;
 }
 
 -(void)signalQuit {
+    [self performLogout];
     execl("/bin/launchctl", "launchctl", "remove", "com.ravynos.WindowServer", NULL);
     ready = NO;
 }

@@ -112,6 +112,7 @@ system_task:
       git reset --hard $CIRRUS_CHANGE_IN_REPO
     fi
   setup_script:
+    - pkg remove -fy zstd
     - pkg install -fy python311 python3 py311-pip py311-setuptools
     - echo "PLATFORM=$(uname -m).$(uname -p)" >> ${CIRRUS_ENV}
   sys_cache:

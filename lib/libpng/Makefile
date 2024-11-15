@@ -27,9 +27,5 @@ build:
 	${MAKE} -C ${MAKEOBJDIR} DESTDIR=${DESTDIR} install
 
 install:
+	${MAKE} -C ${MAKEOBJDIR} DESTDIR=${DESTDIR} install
 
-distribute-me:
-	mkdir -p ${OBJTOP}/release/dist/ravynOS
-	${MAKE} -C ${MAKEOBJDIR} INSTALL=${INSTALL} \
-		DESTDIR=${OBJTOP}/release/dist/ravynOS install
-distribute: distribute-me

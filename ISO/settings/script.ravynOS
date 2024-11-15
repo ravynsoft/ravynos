@@ -9,24 +9,8 @@ cd /tmp/system-overlay
 # Install our standard app bundles
 mkdir -p "${uzip}/Applications/Utilities"
 
-# This syntax below needs bash or zsh. Rewrite it or add them to build server
-#declare -A apps utils
-#apps=(Kate 21.08.1 Firefox 97.0)
-#utils=(Terminal 0.9.0)
-
-#for app in ${!apps[@]}; do
-#    tag="v${apps[$app]}"
-#    echo Fetching $app $tag
-#    #curl -Lo - https://api.cirrus-ci.com/v1/artifact/github/airyxos/${app}_app/build/app/${app}.app.txz | \
-#    curl -Lo - https://github.com/airyxos/${app}_app/releases/download/${tag}/${app}.txz | \
-#        tar -xf - -C "${uzip}/Applications/"
-#done
-#for app in ${!utils[@]}; do
-#    tag="v${utils[$app]}"
-#    echo Fetching $app $tag
-#    curl -Lo - https://github.com/ravynsoft/${app}_app/releases/download/${tag}/${app}.txz | \
-#        tar -xf - -C "${uzip}/Applications/Utilities/"
-#done
+curl -Lo - https://github.com/ravynsoft/Terminal_app/releases/download/v0.9.1/Terminal.txz | \
+    tar -xf - -C "${uzip}/Applications/Utilities/"
 
 # Silence late boot messages
 cat > /tmp/rc <<\EOF
