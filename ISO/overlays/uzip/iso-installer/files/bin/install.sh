@@ -20,8 +20,19 @@ RESET='\033[0m'
 show_disks_and_partitions() {
     echo -e "${CYAN}Available Disks and Partitions:${RESET}"
     echo -e "${GRAY}------------------------------------------${RESET}"
-    gpart show | awk 'BEGIN {print "'${WHITE}'Disk/Partition Layout'${RESET}'"} 
-        {if ($0 ~ /^[0-9]/) {print "'${GREEN}'" $0 "'${RESET}'"} else {print "'${GRAY}'" $0 "'${RESET}'"}}'
+
+    echo -e "DISKS:"
+    # Применяем ${GRAY} для всего вывода команды geom disk list
+    geom disk list | while IFS= read -r line; do
+        echo -e "${GRAY}$line${RESET}"
+    done
+
+    echo -e ""
+    # Используем ${WHITE} и ${GRAY} для стилизации вывода gpart show
+    gpart show | awk 'BEGIN {print "'${WHITE}'PARTITIONS:'${RESET}'"} 
+        {if ($0 ~ /^[0-9]/) {print "'${GREEN}'" $0 "'${RESET}'"} 
+        else {print "'${GRAY}'" $0 "'${RESET}'"}}'
+
     echo -e "${GRAY}------------------------------------------${RESET}"
 }
 
@@ -38,21 +49,17 @@ echo -e "${CYAN}Enter the disk device name (e.g., ada0, da0, etc.): ${RESET}"
 read device
 confirm_msg="${GRAY}You selected the device:${CYAN} $device${RESET}"
 
-# Check if the selected device exists
-if ! gpart show $device &>/dev/null; then
-    echo -e "${RED}Error: The device $device does not exist or is not accessible.${RESET}"
-    exit 1
-fi
-
 # Check for existing ravynOS partition on the selected disk
 echo -e "${CYAN}Checking for existing ravynOS partition on $device...${RESET}"
-existing_partition=$(gpart show -l $device | grep -o 'ravynOS')
+existing_partition=$(gpart show -l $device 2>/dev/null | grep -o 'ravynOS')
 
 if [[ -n "$existing_partition" ]]; then
-    echo -e "${RED}Error: ravynOS partition already exists on this disk. Only a fresh installation is allowed.${RESET}"
+    echo -e "${RED}ravynOS partition already exists on this disk. Only a fresh installation is allowed.${RESET}"
     echo -e "${WHITE}1)${GRAY} [SELECTED] Fresh installation (wipes disk)${RESET}"
     install_mode=1
 else
+    echo -e "${CYAN}No existing ravynOS partition found on $device.${RESET}"
+
     # Mode selection
     echo -e "${GRAY}Select installation mode:${RESET}"
     echo -e "${WHITE}1)${GRAY} Fresh installation (wipes disk)${RESET}"
@@ -79,7 +86,7 @@ fi
 # Prepare the disk or partition
 if [[ "$install_mode" -eq 1 ]]; then
     echo -e "${GRAY}Preparing the device...${RESET}"
-    gpart destroy -F $device || true
+    gpart destroy -F $device &>/dev/null || true
     gpart create -s gpt $device
     echo -e "${GRAY}Creating EFI partition...${RESET}"
     gpart add -t efi -l efi -s 256M $device
@@ -111,20 +118,30 @@ mkdir /tmp/efi
 mount -t msdosfs /dev/$efi_partition /tmp/efi
 
 # Add ravynOS bootloader
-mkdir -p /tmp/efi/efi/ravynos
-cp /boot/loader.efi /tmp/efi/efi/ravynos/bootx64.efi
+mkdir -p /tmp/efi/EFI/RAVYNOS
+cp /boot/loader.efi /tmp/efi/EFI/RAVYNOS/bootx64.efi
 
 # Check for existing bootloader entries
 if [[ "$install_mode" -eq 2 ]]; then
     echo -e "${GRAY}Adding ravynOS to the existing EFI partition...${RESET}"
-    efibootmgr -c -d /dev/$device -p 1 -L "ravynOS" -l '/tmp/efi/efi/ravynos/bootx64.efi'
+    
+    # Extract the EFI partition number using awk instead of grep -P
+    efi_partition=$(gpart show $device | awk '/efi/ {print $3}')
+    
+    # Ensure we got a valid partition number
+    if [[ -z "$efi_partition" ]]; then
+        echo -e "${RED}Error: EFI partition not found on $device.${RESET}"
+        exit 1
+    fi
+    
+    efibootmgr -c -d /dev/$device -p $efi_partition -L "ravynOS" -l '/tmp/efi/EFI/RAVYNOS/bootx64.efi'
     efibootmgr -t 10
     echo -e "\033[0;32mTimeout of 10 seconds has been set.\033[0m"
     echo -e "To change it, use: \033[0;36mefibootmgr -t 5\033[0m"
 else
     echo -e "${GRAY}Setting up new EFI boot entry...${RESET}"
-    mkdir -p /tmp/efi/efi/boot
-    cp /boot/loader.efi /tmp/efi/efi/boot/bootx64.efi
+    mkdir -p /tmp/efi/EFI/BOOT
+    cp /boot/loader.efi /tmp/efi/EFI/BOOT/bootx64.efi
 fi
 
 # Clean up
