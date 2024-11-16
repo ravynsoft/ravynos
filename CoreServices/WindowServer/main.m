@@ -31,6 +31,7 @@
 #define FINISH(x) ret=(x); goto __finish;
 
 extern int optopt;
+static jmp_buf jb;
 
 void *machSvcLoop(void *arg) {
     WindowServer *ws = (__bridge WindowServer *)arg;
@@ -43,6 +44,10 @@ void *kqSvcLoop(void *arg) {
     while(1)
         [ws processKernelQueue];
 } 
+
+static void crashHandler(int sig) {
+    longjmp(jb, SIGSEGV);
+}
 
 int main(int argc, const char *argv[]) {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
@@ -81,6 +86,11 @@ int main(int argc, const char *argv[]) {
     signal(SIGUSR2, SIG_IGN);
     signal(SIGTHR, SIG_IGN);
     signal(SIGLIBRT, SIG_IGN);
+
+    if(setjmp(jb) != 0)
+        goto __finish; // sighandler must have caught something - get out
+
+    signal(SIGSEGV, crashHandler);
 
     /* Drop our controlling terminal - we're gonna switch */
     /* This is the recommended but sucky way. Using TIOCNOTTY isn't working */

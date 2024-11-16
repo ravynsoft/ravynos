@@ -161,6 +161,12 @@ uninstall-completion :
 clean :
 	$(RM) *.o $(PROGRAMS) core
 
+# Targets for etcupdate.sh
+installetc:
+buildetc:
+installconfig:
+
+# Targets for buildworld
 includes:
 distribute:
 	$(MAKE) -C ${.CURDIR} DESTDIR=${OBJTOP}/release/dist/base/ install
