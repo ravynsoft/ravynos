@@ -175,6 +175,9 @@ USER_PASS
 echo "Configuring ravynOS..."
 sysrc zfs_enable=YES
 sysrc zfsd_enable=YES
+sysrc sshd_enable=YES
+
+ssh-keygen -A >/dev/null 2>&1
 
 echo "Configuring ravynOS bootloader..."
 cat <<'LOADER_CONF' >> /boot/loader.conf
