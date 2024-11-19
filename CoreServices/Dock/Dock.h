@@ -98,5 +98,6 @@ typedef enum Location Location;
 -(void)loadItems;
 -(void)relocate;
 -(DockItem *)dockItemForPath:(NSString *)path;
+-(float)alpha;
 
 @end

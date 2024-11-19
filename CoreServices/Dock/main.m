@@ -23,13 +23,15 @@
 #import <AppKit/AppKit.h>
 #import "Dock.h"
 
+Dock *dock = nil;
+
 int main(int argc, const char *argv[]) {
     __NSInitializeProcess(argc, argv);
 
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
     [NSApplication sharedApplication];
 
-    Dock *dock = [Dock new];
+    dock = [Dock new];
     if(!dock)
         exit(-1);
     [pool drain];

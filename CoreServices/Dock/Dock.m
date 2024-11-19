@@ -28,6 +28,10 @@
 #import "DockTileData.h"
 #import "DesktopWindow.h"
 
+@interface DockView: NSView
+@end
+
+extern Dock *dock; // our singleton object in main.m
 @implementation Dock
 
 -(id)init {
@@ -153,8 +157,9 @@
                                           styleMask:NSBorderlessWindowMask
                                             backing:NSBackingStoreBuffered
                                               defer:NO];
-    [_window setBackgroundColor:[NSColor colorWithDeviceRed:0.666 green:0.666
-        blue:0.666 alpha:_alpha]];
+    // transparent background because we'll draw over it
+    [_window setBackgroundColor:[NSColor colorWithDeviceRed:1 green:1 blue:1 alpha:0]];
+    [_window setContentView:[DockView new]];
     [_window setLevel:kCGDockWindowLevelKey];
     
     return _window;
@@ -294,4 +299,41 @@
     [_window orderFront:nil];
 }
 
+-(float)alpha {
+    return _alpha;
+}
+
 @end
+
+@implementation DockView
+-(void)drawRect:(NSRect)rect {
+    CGContextRef context = [[[self window] graphicsContext] graphicsPort];
+
+    CGContextSetGrayStrokeColor(context, 0.666, [dock alpha]);
+    CGContextSetGrayFillColor(context, 0.666, [dock alpha]);
+
+    // round the corners
+    float radius = 16;
+    CGContextBeginPath(context);
+    CGContextMoveToPoint(context, _frame.origin.x+radius, NSMaxY(_frame));
+    CGContextAddArc(context, _frame.origin.x + _frame.size.width - radius,
+        _frame.origin.y + _frame.size.height - radius, radius, 1.5708 /*radians*/,
+        0 /*radians*/, YES);
+    CGContextAddLineToPoint(context, _frame.origin.x + _frame.size.width,
+        _frame.origin.y);
+    CGContextAddArc(context, _frame.origin.x + _frame.size.width - radius,
+        _frame.origin.y + radius, radius, 6.28319 /*radians*/, 4.71239 /*radians*/,
+        YES);
+    CGContextAddLineToPoint(context, _frame.origin.x, _frame.origin.y);
+    CGContextAddArc(context, _frame.origin.x + radius, _frame.origin.y + radius,
+        radius, 4.71239, 3.14159, YES);
+    CGContextAddLineToPoint(context, _frame.origin.x,
+        _frame.origin.y + _frame.size.height);
+    CGContextAddArc(context, _frame.origin.x + radius, _frame.origin.y +
+        _frame.size.height - radius, radius, 3.14159, 1.5708, YES);
+    CGContextAddLineToPoint(context, _frame.origin.x, NSMaxY(_frame));
+    CGContextClosePath(context);
+    CGContextFillPath(context);
+}
+@end
+

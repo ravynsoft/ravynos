@@ -19,11 +19,13 @@ CFLAGS+=	-g -O0 --sysroot=${OBJTOP}/tmp -D__MACH__ -fPIC \
 
 LDFLAGS+=	-L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
 		-L${OBJTOP}/Frameworks/LaunchServices/LaunchServices.framework \
+		-L${OBJTOP}/Frameworks/CoreGraphics/CoreGraphics.framework \
 		-L${OBJTOP}/Frameworks/AppKit/AppKit.framework \
 		-Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
 		-Wl,-R/System/Library/Frameworks/AppKit.framework/Versions/A \
+		-Wl,-R/System/Library/Frameworks/CoreGraphics.framework/Versions/A \
 		-Wl,-R/System/Library/Frameworks/LaunchServices.framework/Versions/A \
-                -lAppKit -lLaunchServices -lFoundation -lobjc -lSystem
+                -lAppKit -lCoreGraphics -lLaunchServices -lFoundation -lobjc -lSystem
 
 Trash.app::
 	rm -rf ${.TARGET}
