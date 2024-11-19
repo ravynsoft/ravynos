@@ -97,7 +97,7 @@ extern Dock *dock; // our singleton object in main.m
         }
 
         [item setRunning:YES];
-        [_items addObject:item];
+        [_items insertObject:item atIndex:[_items count] - 1]; // before Trash
         [self relocate];
     } else if([item isPersistent])
         [item setRunning:YES];
@@ -237,8 +237,37 @@ extern Dock *dock; // our singleton object in main.m
     NSSize size = NSMakeSize(_tileSize, _tileSize);
     [[_window contentView] setSubviews:nil];
 
-    for(int i = 0; i < maxItems; ++i) {
+    for(int i = 0; i < maxItems - 1; ++i) {
         DockItem *item = [_items objectAtIndex:i];
+
+        // if this item is the first non-persistent entry, we need to put a spacer in
+        if(![item isPersistent] && i > 0 && [[_items objectAtIndex:i-1] isPersistent]) {
+            NSRect rect = NSMakeRect(itemPos.x, itemPos.y, _tileSize, _tileSize);
+            NSBox *divider = [[NSBox alloc] initWithFrame:rect];
+            [divider setTransparent:YES];
+            [divider setBorderType:NSNoBorder];
+
+            if(_location == LOCATION_BOTTOM) {
+                rect.origin.x = _tileSize / 2;
+                rect.origin.y = 0;
+                rect.size.width = 1;
+                rect.size.height = _tileSize;
+            } else {
+                rect.origin.x = 0;
+                rect.origin.y = _tileSize / 2;
+                rect.size.width = _tileSize;
+                rect.size.height = 1;
+            }
+            NSBox *line = [[NSBox alloc] initWithFrame:rect];
+            [line setBoxType:NSBoxSeparator];
+            [divider addSubview:line];
+            [[_window contentView] addSubview:divider];
+            if(_location == LOCATION_BOTTOM)
+                itemPos.x += _tileSize;
+            else
+                itemPos.y += _tileSize;
+        }
+
         [item setFrameOrigin:itemPos];
         [item setTileSize:size];
         NSLog(@"placing item %d at %@ frame %@", i, NSStringFromPoint(itemPos), NSStringFromRect([item frame]));
@@ -248,6 +277,13 @@ extern Dock *dock; // our singleton object in main.m
         else
             itemPos.y += _tileSize + CELL_SPACER / 2;
     }
+
+    // make sure Trash comes last
+    DockItem *item = [_items objectAtIndex:[_items count]];
+    [item setFrameOrigin:itemPos];
+    [item setTileSize:size];
+    [[_window contentView] addSubview:item];
+
     [[_window contentView] setNeedsDisplay:YES];
 }
 
