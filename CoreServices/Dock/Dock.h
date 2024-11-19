@@ -72,8 +72,6 @@ defaults write com.apple.dock no-bouncing -bool TRUE
 #define NSDebugLog(fmt,...)
 #endif
 
-extern int _kq;
-
 enum Location : int {
     LOCATION_BOTTOM = 0,
     LOCATION_LEFT = 1,
@@ -86,13 +84,11 @@ typedef enum Location Location;
     NSUserDefaults *_prefs;
     NSMutableArray *_items;
     Location _location;
-    NSScreen *_screen;
     NSWindow *_window;
     NSMutableDictionary *_desktops;
     NSSize _currentSize;
     int _tileSize;
     float _alpha;
-    pthread_t kqThread;
 }
 
 -(id)init;
@@ -101,7 +97,6 @@ typedef enum Location Location;
 -(void)placeItemsInWindow:(int)maxItems;
 -(void)loadItems;
 -(void)relocate;
--(void)processKernelQueue;
 -(DockItem *)dockItemForPath:(NSString *)path;
 
 @end

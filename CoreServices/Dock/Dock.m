@@ -28,13 +28,6 @@
 #import "DockTileData.h"
 #import "DesktopWindow.h"
 
-// FIXME: make this go away and get notified by WS
-static void kqSvcLoop(void *arg) {
-    Dock *dock = (__bridge_transfer Dock *)arg;
-    while(1)
-        [dock processKernelQueue];
-} 
-
 @implementation Dock
 
 -(id)init {
@@ -62,13 +55,6 @@ static void kqSvcLoop(void *arg) {
     [self placeItemsInWindow:max];
 
     [_window orderFront:nil];
-    pthread_create(&kqThread, NULL, kqSvcLoop, (__bridge_retained void *)self);
-
-    struct kevent e[2];
-    EV_SET(&e[0], getpid(), EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK, 0, (__bridge_retained void *)nil);
-    EV_SET(&e[1], getppid(), EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK, 0, (__bridge_retained void *)nil);
-    kevent(_kq, e, 2, NULL, 0, NULL);
-
     return self;
 }
 
@@ -78,58 +64,61 @@ static void kqSvcLoop(void *arg) {
     [desktop setDelegate:self];
     [desktop makeKeyAndOrderFront:nil];
     [self savePrefs];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appDidQuit:)
+        name:@"NSApplicationDidQuit" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appDidLaunch:)
+        name:@"NSApplicationDidLaunch" object:nil];
 }
 
-// called from our kq watcher thread
--(void)processKernelQueue {
-    struct kevent out[128];
-    int count = kevent(_kq, NULL, 0, out, 128, NULL);
-    char buf[PATH_MAX];
+-(void)appDidLaunch:(NSNotification *)note {
+    NSMutableDictionary *dict = (NSMutableDictionary *)[note userInfo];
+    NSString *bundleID = [dict objectForKey:@"BundleID"];
+    pid_t pid = [[dict objectForKey:@"ProcessID"] intValue];
+    NSString *path = [dict objectForKey:@"Path"];
 
-    for(int i = 0; i < count; ++i) {
-        switch(out[i].filter) {
-            case EVFILT_PROC:
-                // ignore FORK notices for this PID - we only care about children
-                if(_PID == out[i].ident)
-                    break;
+    // just to be safe
+    if([bundleID isEqualToString:@"com.ravynos.Dock"] ||
+        [bundleID isEqualToString:@"com.ravynos.WindowServer"] ||
+        [bundleID isEqualToString:@"com.ravynos.SystemUIServer"] ||
+        [bundleID isEqualToString:@"com.ravynOS.LoginWindow"])
+            return;
 
-                if(out[i].fflags & (NOTE_FORK|NOTE_EXEC|NOTE_CHILD)) {
-                    NSString *path = [NSString
-                        stringWithFormat:@"/proc/%lu/file", out[i].ident];
-                    int len = readlink([path UTF8String], buf, PATH_MAX-1);
-                    if(len <= 0)
-                        break;
-                    buf[len] = 0;
-
-                    NSString *p = [NSString stringWithUTF8String:buf];
-                    DockItem *item = [self dockItemForPath:p];
-                    if(item == nil) {
-                        item = [DockItem dockItemWithPath:p];
-                        if([item type] == DIT_INVALID)
-                            break;
-                        if([[item bundleIdentifier] isEqualToString:@"com.ravynos.Dock"])
-                            break; // can't add Dock to itself
-                        [_items addObject:item];
-                        int maxItems = [self fitWindowToItems];
-                        [self placeItemsInWindow:maxItems];
-                    }
-                    [item addPID:out[i].ident];
-                }
-
-                if((out[i].fflags & NOTE_EXIT)) {
-                    DockItem *item = (__bridge_transfer DockItem *)(out[i].udata);
-                    [item removePID:out[i].ident];
-                    if(![item isRunning] && ![item isPersistent]) {
-                        [_items removeObjectIdenticalTo:item];
-                        int maxItems = [self fitWindowToItems];
-                        [self placeItemsInWindow:maxItems];
-                    }
-                }
-                break;
-            default:
-                NSLog(@"unknown filter");
+    DockItem *item = [self dockItemForPath:path];
+    if(item == nil) {
+        item = [DockItem dockItemWithPath:path];
+        if([item type] == DIT_INVALID) {
+            NSDebugLog(@"Invalid bundle type for %@", path);
+            return;
         }
+
+        [item setRunning:YES];
+        [_items addObject:item];
+        [self relocate];
+    } else if([item isPersistent])
+        [item setRunning:YES];
+    else
+        NSDebugLog(@"Attempted to add launched bundle %@ with path %@, already added",
+                bundleID, path);
+    [self setNeedsDisplay:YES];
+}
+
+-(void)appDidQuit:(NSNotification *)note {
+    NSMutableDictionary *dict = (NSMutableDictionary *)[note userInfo];
+    NSString *path = [dict objectForKey:@"Path"];
+    DockItem *item = [self dockItemForPath:path];
+
+    if(item == nil) {
+        NSDebugLog(@"App %@ exited but not found in our list");
+        return;
     }
+
+    [item setRunning:NO];
+    if(![item isPersistent]) {
+        [_items removeObjectIdenticalTo:item];
+        [self relocate];
+    }
+    [self setNeedsDisplay:YES];
 }
 
 -(DockItem *)dockItemForPath:(NSString *)path {
@@ -141,7 +130,7 @@ static void kqSvcLoop(void *arg) {
     return nil;
 }
 
--(NSWindow *)createWindowWithFrame:(NSRect)frame {
+-(NSRect)positionWindowWithFrame:(NSRect)frame {
     NSScreen *mainScreen = [NSScreen mainScreen];
     switch(_location) {
         case LOCATION_LEFT:
@@ -156,9 +145,14 @@ static void kqSvcLoop(void *arg) {
             frame.origin.x = [mainScreen frame].size.width / 2 - frame.size.width / 2;
             frame.origin.y = 0;
     }
+    return frame;
+}
 
-    _window = [[NSWindow alloc] initWithContentRect:frame styleMask:NSBorderlessWindowMask
-        backing:NSBackingStoreBuffered defer:NO];
+-(NSWindow *)createWindowWithFrame:(NSRect)frame {
+    _window = [[NSWindow alloc] initWithContentRect:[self positionWindowWithFrame:frame]
+                                          styleMask:NSBorderlessWindowMask
+                                            backing:NSBackingStoreBuffered
+                                              defer:NO];
     [_window setBackgroundColor:[NSColor colorWithDeviceRed:0.666 green:0.666
         blue:0.666 alpha:_alpha]];
     [_window setLevel:kCGDockWindowLevelKey];
@@ -202,9 +196,7 @@ static void kqSvcLoop(void *arg) {
 // size the window to our number of items. if it exceeds the screen size, shrink the tiles
 // until it fits or we reach the minimum tile size. truncate items if we can't display them.
 -(int)fitWindowToItems {
-    NSSize scrSize = [_screen visibleFrame].size;
-    if(_screen == nil)
-        scrSize = NSMakeSize(1280,720); // minimum resolution
+    NSSize scrSize = [[NSScreen mainScreen] visibleFrame].size;
 
     int maxLength = (_location == LOCATION_BOTTOM) ? scrSize.width : scrSize.height;
     int numItems = [_items count];
@@ -229,6 +221,7 @@ static void kqSvcLoop(void *arg) {
         _currentSize.height = needLength;
         _currentSize.width = _tileSize + 16;
     }
+
     return maxItems;
 }
 
@@ -243,6 +236,7 @@ static void kqSvcLoop(void *arg) {
         DockItem *item = [_items objectAtIndex:i];
         [item setFrameOrigin:itemPos];
         [item setTileSize:size];
+        NSLog(@"placing item %d at %@ frame %@", i, NSStringFromPoint(itemPos), NSStringFromRect([item frame]));
         [[_window contentView] addSubview:item];
         if(_location == LOCATION_BOTTOM)
             itemPos.x += _tileSize + CELL_SPACER / 2;

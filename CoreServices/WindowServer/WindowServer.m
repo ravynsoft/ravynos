@@ -59,6 +59,40 @@ pthread_mutex_t renderLock;
 
 @implementation WindowServer
 
+static void notifyAppExited(mach_port_t port, pid_t pid, const char *bundleID, const char *path) {
+    Message msg = {0};
+    msg.header.msgh_remote_port = port;
+    msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
+    msg.header.msgh_id = MSG_ID_INLINE;
+    msg.header.msgh_size = sizeof(msg) - sizeof(mach_msg_trailer_t);
+    msg.code = CODE_APP_EXITED;
+    msg.pid = pid;
+    msg.len = strlen(path);
+    strncpy(msg.data, path, PATH_MAX);
+    strncpy(msg.bundleID, bundleID, sizeof(msg.bundleID));
+    mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG|MACH_SEND_TIMEOUT,
+            sizeof(msg) - sizeof(mach_msg_trailer_t),
+            0, MACH_PORT_NULL, 100 /* ms timeout */, MACH_PORT_NULL);
+}
+
+static NSString *_pathForPID(pid_t pid) {
+    int mib[4];
+    char buf[PATH_MAX+1];
+    size_t len = PATH_MAX;
+
+    mib[0] = CTL_KERN;
+    mib[1] = KERN_PROC;
+    mib[2] = KERN_PROC_PATHNAME;
+    mib[3] = pid;
+
+    if(sysctl(mib, 4, buf, &len, NULL, 0) < 0) {
+        NSLog(@"KERN_PROC_PATHNAME(%d): %s", pid, strerror(errno));
+        return nil;
+    }
+
+    return [NSString stringWithCString:buf];
+}
+
 -init {
     ready = NO;
     logLevel = WS_ERROR;
@@ -1543,10 +1577,31 @@ pthread_mutex_t renderLock;
                         [rec skipSwitcher:YES];
                 }
                 rec.pid = pid;
+                rec.path = _pathForPID(pid);
                 if(port != rec.port && logLevel >= WS_WARNING)
                     NSLog(@"Port registration received for %@ pid %u when already registered (%u -> %u)",
                             rec.bundleID, pid, rec.port, port);
                 [apps setObject:rec forKey:bundleID];
+
+                Message msg = {0};
+                WSAppRecord *dock = [apps objectForKey:@"com.ravynos.Dock"];
+                if(dock == nil) {
+                    NSLog(@"Cannot notify for new app - is Dock running?");
+                } else {
+                    msg.header.msgh_remote_port = [dock port];
+                    msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
+                    msg.header.msgh_id = MSG_ID_INLINE;
+                    msg.header.msgh_size = sizeof(msg) - sizeof(mach_msg_trailer_t);
+                    msg.code = CODE_APP_LAUNCHED;
+                    msg.pid = pid;
+                    msg.len = [rec.path length];
+                    strncpy(msg.data, [rec.path UTF8String], PATH_MAX);
+                    strncpy(msg.bundleID, [bundleID UTF8String], sizeof(msg.bundleID));
+                    mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG|MACH_SEND_TIMEOUT,
+                            sizeof(msg) - sizeof(mach_msg_trailer_t),
+                            0, MACH_PORT_NULL, 100 /* ms timeout */, MACH_PORT_NULL);
+                }
+
                 [self watchForProcessExit:pid];
 
                 // A newly-launched app becomes the active one
@@ -1575,7 +1630,7 @@ pthread_mutex_t renderLock;
                         menuMsg.code = msg.msg.code;
                         menuMsg.pid = msg.msg.pid;
                         strncpy(menuMsg.bundleID, msg.msg.bundleID, sizeof(menuMsg.bundleID));
-                        memcpy(menuMsg.data, msg.msg.data, msg.msg.len); // window ID
+                        memcpy(menuMsg.data, msg.msg.data, msg.msg.len);
                         menuMsg.len = msg.msg.len;
                         mach_msg((mach_msg_header_t *)&menuMsg, MACH_SEND_MSG|MACH_SEND_TIMEOUT,
                                 sizeof(menuMsg) - sizeof(mach_msg_trailer_t),
@@ -1679,23 +1734,19 @@ pthread_mutex_t renderLock;
                          ||[app.bundleID isEqualToString:@"com.ravynos.SystemUIServer"])
                             break; // SysUI isn't running yet or this is it, so don't try to notify
 
-                        Message msg = {0};
                         WSAppRecord *sysui = [apps objectForKey:@"com.ravynos.SystemUIServer"];
-                        if(sysui == nil) {
+                        if(sysui != nil)
+                            notifyAppExited([sysui port], out[i].ident,
+                                    [app.bundleID UTF8String], [app.path UTF8String]);
+                        else
                             NSLog(@"Cannot notify for exited app - is SystemUIServer running?");
-                            break;
-                        }
-                        msg.header.msgh_remote_port = [sysui port];
-                        msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
-                        msg.header.msgh_id = MSG_ID_INLINE;
-                        msg.header.msgh_size = sizeof(msg) - sizeof(mach_msg_trailer_t);
-                        msg.code = CODE_APP_EXITED;
-                        msg.len = 0;
-                        msg.pid = out[i].ident;
-                        strncpy(msg.bundleID, [app.bundleID UTF8String], sizeof(msg.bundleID));
-                        mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG|MACH_SEND_TIMEOUT,
-                                sizeof(msg) - sizeof(mach_msg_trailer_t),
-                                0, MACH_PORT_NULL, 100 /* ms timeout */, MACH_PORT_NULL);
+
+                        WSAppRecord *dock = [apps objectForKey:@"com.ravynos.Dock"];
+                        if(dock != nil)
+                            notifyAppExited([dock port], out[i].ident,
+                                    [app.bundleID UTF8String], [app.path UTF8String]);
+                        else
+                            NSLog(@"Cannot notify for exited app - is Dock running?");
                     }
                 }
                 break;

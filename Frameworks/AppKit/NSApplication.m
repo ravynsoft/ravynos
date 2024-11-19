@@ -287,13 +287,29 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                         }
                         case CODE_APP_EXITED:
                         {
-                            if([bundleID isEqualToString:@"com.ravynos.SystemUIServer"]) {
+                            if([bundleID isEqualToString:@"com.ravynos.SystemUIServer"] ||
+                               [bundleID isEqualToString:@"com.ravynos.Dock"]) {
                                 NSMutableDictionary *md = [NSMutableDictionary new];
                                 [md setObject:[NSNumber numberWithInt:msg.pid] forKey:@"ProcessID"];
                                 [md setObject:[NSString stringWithCString:msg.bundleID] forKey:@"BundleID"];
+                                [md setObject:[NSString stringWithCString:msg.data] forKey:@"Path"];
 
                                 [[NSNotificationCenter defaultCenter] 
                                     postNotificationName:@"NSApplicationDidQuit" object:nil
+                                    userInfo:md];
+                            }
+                            break;
+                        }
+                        case CODE_APP_LAUNCHED:
+                        {
+                            if([bundleID isEqualToString:@"com.ravynos.Dock"]) {
+                                NSMutableDictionary *md = [NSMutableDictionary new];
+                                [md setObject:[NSNumber numberWithInt:msg.pid] forKey:@"ProcessID"];
+                                [md setObject:[NSString stringWithCString:msg.bundleID] forKey:@"BundleID"];
+                                [md setObject:[NSString stringWithCString:msg.data] forKey:@"Path"];
+
+                                [[NSNotificationCenter defaultCenter] 
+                                    postNotificationName:@"NSApplicationDidLaunch" object:nil
                                     userInfo:md];
                             }
                             break;

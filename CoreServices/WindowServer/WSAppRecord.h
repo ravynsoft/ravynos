@@ -31,6 +31,7 @@
 }
 
 @property NSString *bundleID;           // CFBundleID
+@property NSString *path;               // Executable path
 @property NSString *name;               // Display name
 @property unsigned int pid;             // process ID
 @property mach_port_t port;             // reply port for events

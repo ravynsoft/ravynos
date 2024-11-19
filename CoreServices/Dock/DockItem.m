@@ -1,7 +1,7 @@
 /*
  * ravynOS Application Launcher & Status Bar
  *
- * Copyright (C) 2021-2022 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2021-2024 Zoe Knox <zoe@pixin.net>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,23 +26,12 @@
 #import "Dock.h"
 #import "DockItem.h"
 #import "DockTileData.h"
+#import "WindowServer/message.h"
+#import "WindowServer/rpc.h"
 #import <LaunchServices/LaunchServices.h>
-
-#define MSG_ID_INLINE 90211
-#define CODE_APP_ACTIVATE 5
-#define CODE_APP_HIDE 6
 
 #define RUNMK_DIAMETER 8
 #define RUNMK_SPACER 2
-
-typedef struct {
-    mach_msg_header_t header;
-    unsigned int code;
-    unsigned char data[64*1024];
-    unsigned int len;
-    mach_msg_trailer_t trailer;
-} Message;
-
 
 @implementation DockItem
 
@@ -146,7 +135,6 @@ typedef struct {
     if([_bundleID isEqualToString:@"com.ravynos.Filer"] || [_bundleID hasPrefix:@"com.ravynos.Dock"])
         [self setLocked:YES];
 
-    _pids = [NSMutableArray new];
     _windows = [NSMutableArray new];
 
     NSString *marker = [[NSBundle mainBundle] pathForResource:@"running" ofType:@"png"];
@@ -204,7 +192,6 @@ typedef struct {
 
     _bundleID = nil;
     _flags = DIF_NORMAL;
-    _pids = [NSMutableArray new];
     _windows = [NSMutableArray new];
     [_windows addObject:[NSNumber numberWithInteger:window]];
 
@@ -254,9 +241,7 @@ typedef struct {
 }
 
 -(BOOL)isRunning {
-    if(_pids && [_pids count])
-        return YES;
-    return NO;
+    return _isRunning;
 }
 
 -(BOOL)isPersistent {
@@ -265,16 +250,6 @@ typedef struct {
 
 -(BOOL)needsAttention {
     return (_flags & DIF_ATTENTION) ? YES : NO;
-}
-
--(pid_t)pid {
-    if(_pids && [_pids count])
-        return [[_pids firstObject] intValue];
-    return 0;
-}
-
--(NSArray *)pids {
-    return [NSArray arrayWithArray:_pids];
 }
 
 -(unsigned int)window {
@@ -331,54 +306,16 @@ typedef struct {
         _flags &= ~DIF_LOCKED;
 }
 
--(BOOL)_checkIsRunning {
+-(void)setRunning:(BOOL)value {
     BOOL _currentlyRunning = _isRunning;
-    _isRunning = ([_pids count] == 0) ? NO : YES;
+    _isRunning = value;
+
     if(_currentlyRunning && !_isRunning) {
         [_runMarker removeFromSuperview];
     } else if(!_currentlyRunning && _isRunning) {
         [self addSubview:_runMarker];
     }
     [self setNeedsDisplay:YES];
-    return _isRunning;
-}
-
--(void)addPID:(pid_t)pid {
-    struct kevent e[1];
-
-    if(pid == 0)
-        NSLog(@"addPID: pid of 0 is invalid");
-    else {
-
-        for(int i = 0; i < [_pids count]; ++i) {
-            if([[_pids objectAtIndex:i] intValue] == pid)
-                return; // already have this PID
-        }
-        [_pids addObject:[NSNumber numberWithInteger:pid]];
-        EV_SET(e, pid, EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK|NOTE_EXIT, 0, (__bridge_retained void *)self);
-        kevent(_kq, e, 1, NULL, 0, NULL);
-    }
-    [self _checkIsRunning];
-}
-
--(void)removePID:(pid_t)pid {
-    struct kevent e[1];
-
-    if(pid == 0)
-        NSLog(@"removePID: pid of 0 is invalid");
-    else {
-
-        for(int i = 0; i < [_pids count]; ++i) {
-            if([[_pids objectAtIndex:i] intValue] == pid) {
-                [_pids removeObjectAtIndex:i];
-                break;
-            }
-        }
-
-        EV_SET(e, pid, EVFILT_PROC, EV_DELETE, 0, 0, (__bridge_retained void *)self);
-        kevent(_kq, e, 1, NULL, 0, NULL);
-    }
-    [self _checkIsRunning];
 }
 
 -(void)addWindow:(unsigned int)window {
@@ -441,8 +378,8 @@ view does not need to draw the application or custom string badges.
 }
 
 -(void)activateWindow:(id)sender {
+#if 0
     int windowNumber = [[_windows firstObject] intValue];
-    int processID = [[[_app pids] firstObject] intValue];
     Message activate = {0};
     activate.header.msgh_remote_port = [NSApp _wsServicePort];
     activate.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
@@ -455,6 +392,7 @@ view does not need to draw the application or custom string badges.
     mach_msg((mach_msg_header_t *)&activate, MACH_SEND_MSG,
         sizeof(activate) - sizeof(mach_msg_trailer_t),
         0, MACH_PORT_NULL, 2000 /* ms timeout */, MACH_PORT_NULL);
+#endif
 }
 
 -(void)openApp:(id)sender {
@@ -468,8 +406,8 @@ view does not need to draw the application or custom string badges.
 
 -(NSString *)description {
     return [NSString stringWithFormat:
-    @"<%@ 0x%p> path:%@ exec:%@ label:%@ pid:%@ windows:%@ flags:0x%02x id:%@",
-    [self class], self, _path, _execPath, _label, _pids, _windows, _flags,
+    @"<%@ 0x%p> path:%@ exec:%@ label:%@ windows:%@ flags:0x%02x id:%@",
+    [self class], self, _path, _execPath, _label, _windows, _flags,
     _bundleID];
 }
 @end

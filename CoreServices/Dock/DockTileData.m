@@ -1,7 +1,7 @@
 /*
  * ravynOS Application Launcher & Status Bar
  *
- * Copyright (C) 2021-2022 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2021-2024 Zoe Knox <zoe@pixin.net>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal

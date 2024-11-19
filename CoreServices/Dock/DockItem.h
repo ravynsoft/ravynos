@@ -52,8 +52,7 @@ typedef enum DockItemFlags DockItemFlags;
     unsigned int _flags;
     NSString *_path;        // path of the item represented
     NSString *_execPath;    // actual executable for _path
-    NSString *_bundleID;    // CFBundleIdentifier if one exists
-    NSMutableArray *_pids;  // PIDs, if running
+    NSString *_bundleID;    // CFBundleIdentifier
     NSMutableArray *_windows; // Window IDs
     NSString *_label;       // displayed on hover
     NSString *_badgeText;
@@ -83,8 +82,6 @@ typedef enum DockItemFlags DockItemFlags;
 -(BOOL)isRunning;
 -(BOOL)isPersistent;
 -(BOOL)needsAttention;
--(pid_t)pid;
--(NSArray *)pids;
 -(unsigned int)window;
 -(NSArray *)windows;
 -(NSImage *)icon;
@@ -93,8 +90,7 @@ typedef enum DockItemFlags DockItemFlags;
 -(void)setFlags:(DockItemFlags)flags;
 -(void)setNormal; // clears all flags
 -(void)setLocked:(BOOL)value;
--(void)addPID:(pid_t)pid;
--(void)removePID:(pid_t)pid;
+-(void)setRunning:(BOOL)value;
 -(void)addWindow:(unsigned int)window;
 -(void)removeWindow:(unsigned int)window;
 -(void)setPersistent:(BOOL)value;

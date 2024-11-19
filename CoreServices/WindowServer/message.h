@@ -53,6 +53,7 @@ enum {
     CODE_MENU_FOR_APP,          // Serialized menu data to set for app
     CODE_ITEM_CLICKED,          // Menu item was clicked
     CODE_APP_EXITED,            // Tell SystemUIServer to drop this app's menus
+                                // and Dock to update run status and icons
 
     // Activation
     CODE_APP_BECAME_ACTIVE,
@@ -69,6 +70,9 @@ enum {
 
     // Window state change
     CODE_WINDOW_STATE,
+
+    // Other
+    CODE_APP_LAUNCHED,          // New app has launched
 };
 
 enum {
