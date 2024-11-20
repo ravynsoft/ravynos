@@ -80,7 +80,7 @@
 
 -(void)applicationWillFinishLaunching:(NSNotification *)note {
     NSScreen *mainDisplay = [[NSScreen screens] objectAtIndex:0];
-    [menuBar initWithFrame:[mainDisplay visibleFrame]];
+    [menuBar initWithFrame:[mainDisplay frame]];
     [menuBar setDelegate:self];
     [[menuBar contentView] setNeedsDisplay:YES];
     [menuBar makeKeyAndOrderFront:self];
