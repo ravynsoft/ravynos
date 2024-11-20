@@ -27,6 +27,8 @@ SOFTWARE. */
 #import <AppKit/O2Font_FT.h>
 #import <fontconfig.h>
 
+#define MENU_BAR_HEIGHT 24  // exclude from visibleFrame height
+
 @implementation NSDisplay
 
 +(void)initialize {
@@ -61,7 +63,9 @@ SOFTWARE. */
     CGDisplayModeRef mode = CGDisplayCopyDisplayMode(mainDisplay);
     NSRect frame = NSMakeRect(0, 0, CGDisplayModeGetWidth(mode), CGDisplayModeGetHeight(mode));
     CGDisplayModeRelease(mode);
-    NSScreen *screen = [[[NSScreen alloc] initWithFrame:frame visibleFrame:frame] retain];
+    NSRect visFrame = frame;
+    visFrame.size.height -= MENU_BAR_HEIGHT;
+    NSScreen *screen = [[[NSScreen alloc] initWithFrame:frame visibleFrame:visFrame] retain];
     [_screens addObject:screen];
 
     // now add any other displays as additional screens
