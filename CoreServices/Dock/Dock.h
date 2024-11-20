@@ -30,8 +30,8 @@
 
 #import "DockItem.h"
 
-#define RADIUS 10      // rounded corner radius
-#define CELL_SPACER 4  // pixels between grid cells
+#define RADIUS 16      // rounded corner radius
+#define CELL_SPACER 5  // pixels between grid cells
 #define END_CAP 8
 #define TILESIZE_MIN 24
 #define TILESIZE_MAX 256

@@ -61,6 +61,7 @@ typedef enum DockItemFlags DockItemFlags;
     NSImageView *_origIcon; // original icon we found, to revert custom icons
     NSImageView *_runMarker;
     BOOL _isRunning;
+    BOOL _special;
 }
 
 +(DockItem *)dockItemWithPath:(NSString *)path;

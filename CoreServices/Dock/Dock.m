@@ -27,8 +27,13 @@
 #import "Dock.h"
 #import "DockTileData.h"
 #import "DesktopWindow.h"
+#import "WindowServer/message.h"
+#import "WindowServer/rpc.h"
 
 @interface DockView: NSView
+@end
+
+@interface Divider: NSView
 @end
 
 extern Dock *dock; // our singleton object in main.m
@@ -58,7 +63,6 @@ extern Dock *dock; // our singleton object in main.m
     [self createWindowWithFrame:frame];
     [self placeItemsInWindow:max];
 
-    [_window orderFront:nil];
     return self;
 }
 
@@ -73,6 +77,8 @@ extern Dock *dock; // our singleton object in main.m
         name:@"NSApplicationDidQuit" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appDidLaunch:)
         name:@"NSApplicationDidLaunch" object:nil];
+
+    [_window orderFront:nil];
 }
 
 -(void)appDidLaunch:(NSNotification *)note {
@@ -113,7 +119,7 @@ extern Dock *dock; // our singleton object in main.m
     DockItem *item = [self dockItemForPath:path];
 
     if(item == nil) {
-        NSDebugLog(@"App %@ exited but not found in our list");
+        NSDebugLog(@"App %@ exited but not found in our list", path);
         return;
     }
 
@@ -121,6 +127,16 @@ extern Dock *dock; // our singleton object in main.m
     if(![item isPersistent]) {
         [_items removeObjectIdenticalTo:item];
         [self relocate];
+    }
+
+    int count = [_items count];
+    for(int i = 0; i < count; ) {
+        DockItem *d = [_items objectAtIndex:i];
+        if([d type] == DIT_WINDOW && [d app] == item) {
+            [_items removeObject:d];
+            --count;
+        } else
+            ++i;
     }
     [self setNeedsDisplay:YES];
 }
@@ -161,6 +177,9 @@ extern Dock *dock; // our singleton object in main.m
     [_window setBackgroundColor:[NSColor colorWithDeviceRed:1 green:1 blue:1 alpha:0]];
     [_window setContentView:[DockView new]];
     [_window setLevel:kCGDockWindowLevelKey];
+
+    [[_window contentView] drawRect:[_window frame]];
+    [_window orderFront:nil];
     
     return _window;
 }
@@ -240,37 +259,24 @@ extern Dock *dock; // our singleton object in main.m
     for(int i = 0; i < maxItems - 1; ++i) {
         DockItem *item = [_items objectAtIndex:i];
 
-        // if this item is the first non-persistent entry, we need to put a spacer in
-        if(![item isPersistent] && i > 0 && [[_items objectAtIndex:i-1] isPersistent]) {
-            NSRect rect = NSMakeRect(itemPos.x, itemPos.y, _tileSize, _tileSize);
-            NSBox *divider = [[NSBox alloc] initWithFrame:rect];
-            [divider setTransparent:YES];
-            [divider setBorderType:NSNoBorder];
-
+        // Put a divider in the space between persistent and special tiles
+        if([item isSpecial] && i > 0 && ![[_items objectAtIndex:i-1] isSpecial]) {
+            NSRect rect;
             if(_location == LOCATION_BOTTOM) {
-                rect.origin.x = _tileSize / 2;
-                rect.origin.y = 0;
-                rect.size.width = 1;
-                rect.size.height = _tileSize;
+                rect = NSMakeRect(itemPos.x, 8, CELL_SPACER, _tileSize);
+                itemPos.x += CELL_SPACER + 2;
             } else {
-                rect.origin.x = 0;
-                rect.origin.y = _tileSize / 2;
-                rect.size.width = _tileSize;
-                rect.size.height = 1;
+                rect = NSMakeRect(8, itemPos.y, _tileSize, CELL_SPACER);
+                itemPos.y += CELL_SPACER + 2;
             }
-            NSBox *line = [[NSBox alloc] initWithFrame:rect];
-            [line setBoxType:NSBoxSeparator];
-            [divider addSubview:line];
+
+            Divider *divider = [[Divider alloc] initWithFrame:rect];
+            [divider setNeedsDisplay:YES];
             [[_window contentView] addSubview:divider];
-            if(_location == LOCATION_BOTTOM)
-                itemPos.x += _tileSize;
-            else
-                itemPos.y += _tileSize;
         }
 
         [item setFrameOrigin:itemPos];
         [item setTileSize:size];
-        NSLog(@"placing item %d at %@ frame %@", i, NSStringFromPoint(itemPos), NSStringFromRect([item frame]));
         [[_window contentView] addSubview:item];
         if(_location == LOCATION_BOTTOM)
             itemPos.x += _tileSize + CELL_SPACER / 2;
@@ -279,7 +285,7 @@ extern Dock *dock; // our singleton object in main.m
     }
 
     // make sure Trash comes last
-    DockItem *item = [_items objectAtIndex:[_items count]];
+    DockItem *item = [_items objectAtIndex:[_items count] - 1];
     [item setFrameOrigin:itemPos];
     [item setTileSize:size];
     [[_window contentView] addSubview:item];
@@ -331,12 +337,55 @@ extern Dock *dock; // our singleton object in main.m
     [self createWindowWithFrame:frame];
     [self placeItemsInWindow:maxItems];
     [self savePrefs];
-
-    [_window orderFront:nil];
 }
 
 -(float)alpha {
     return _alpha;
+}
+
+-(void)processWindowUpdate:(Message *)msg {
+    struct wsRPCWindow *data = (struct wsRPCWindow *)msg->data;
+    NSLog(@"State Update app:%s PID:%d windowID:%d frame:%.0f,%.0f %.0fx%.0f state:%d",
+            msg->bundleID, msg->pid, data->windowID, data->x, data->y, data->w, data->h,
+            data->state);
+
+    // First, find the matching app owning this window
+    DockItem *app = nil;
+    for(int i = 0; i < [_items count]; ++i) {
+        app = [_items objectAtIndex:i];
+        if(!strcmp([[app bundleIdentifier] UTF8String], msg->bundleID))
+            break;
+    }
+
+    if(!app) {
+        NSLog(@"processWindowUpdate for unknown app %s", msg->bundleID);
+        return;
+    }
+
+    switch(data->state) {
+        case MINIMIZED: {
+            DockItem *win = [DockItem dockItemWithMinimizedWindow:data->windowID
+                                                           forApp:app];
+            [_items insertObject:win atIndex:[_items count] - 1];
+            [app addWindow:data->windowID];
+            [self relocate];
+            break;
+        }
+        default: {
+            for(int i = 0; i < [_items count]; ++i) {
+                DockItem *win = [_items objectAtIndex:i];
+                if([win type] != DIT_WINDOW)
+                    continue;
+                if([win window] == data->windowID) {
+                    [app removeWindow:data->windowID];
+                    [_items removeObject:win];
+                    [self relocate];
+                }
+            }
+        }
+    }
+
+    free(msg);
 }
 
 @end
@@ -349,7 +398,7 @@ extern Dock *dock; // our singleton object in main.m
     CGContextSetGrayFillColor(context, 0.666, [dock alpha]);
 
     // round the corners
-    float radius = 16;
+    float radius = RADIUS;
     CGContextBeginPath(context);
     CGContextMoveToPoint(context, _frame.origin.x+radius, NSMaxY(_frame));
     CGContextAddArc(context, _frame.origin.x + _frame.size.width - radius,
@@ -373,3 +422,17 @@ extern Dock *dock; // our singleton object in main.m
 }
 @end
 
+@implementation Divider
+-(void)drawRect:(NSRect)rect {
+    [[NSColor darkGrayColor] set];
+    NSBezierPath *line = [NSBezierPath bezierPath];
+    if (NSWidth(_bounds) > NSHeight(_bounds)) {
+        [line moveToPoint: NSMakePoint(NSMinX(_bounds), NSMidY(_bounds))];
+        [line lineToPoint: NSMakePoint(NSMaxX(_bounds), NSMidY(_bounds))];
+    } else {
+        [line moveToPoint: NSMakePoint(NSMidX(_bounds), NSMinY(_bounds))];
+        [line lineToPoint: NSMakePoint(NSMidX(_bounds), NSMaxY(_bounds))];
+    }
+    [line stroke];
+}
+@end

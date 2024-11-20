@@ -68,6 +68,7 @@
     _bundleID = nil;
     _app = nil;
     _isRunning = NO;
+    _special = NO;
     int size = [DockItem iconSize];
 
     self = [super initWithFrame:NSMakeRect(0,0,size,size + 16)];
@@ -92,6 +93,10 @@
             _label = [b objectForInfoDictionaryKey:@"CFBundleName"];
         _execPath = [b executablePath];
 
+        NSString *rsc = [[NSBundle mainBundle] resourcePath];
+        if([[b bundlePath] hasPrefix:rsc])
+            _special = YES;
+
         NSString *iconFile = [b objectForInfoDictionaryKey:
             @"CFBundleIconFile"];
         if(!iconFile)
@@ -105,6 +110,8 @@
         [_icon setImageScaling:NSImageScaleProportionallyUpOrDown];
 
         _bundleID = [b objectForInfoDictionaryKey:@"CFBundleIdentifier"];
+        if(_bundleID == nil)
+            _bundleID = [NSString stringWithFormat:@"unknown.bundle.%x", self];
     } else if(LSIsAppDir((__bridge CFURLRef)url)) {
         _type = DIT_APP_APPDIR;
         _execPath = [_path stringByAppendingPathComponent:@"AppRun"];
@@ -168,6 +175,7 @@
     _app = appItem;
     _type = DIT_WINDOW;
     _isRunning = NO;
+    _special = NO;
     int size = [DockItem iconSize];
     self = [super initWithFrame:NSMakeRect(0,0,size,size+16)];
 
@@ -252,6 +260,10 @@
     return (_flags & DIF_ATTENTION) ? YES : NO;
 }
 
+-(BOOL)isSpecial {
+    return _special;
+}
+
 -(unsigned int)window {
     if(_windows && [_windows count])
         return [[_windows firstObject] intValue];
@@ -264,6 +276,10 @@
 
 -(NSImage *)icon {
     return [_icon image];
+}
+
+-(id)app {
+    return _app;
 }
 
 // YES if equal to either item path
@@ -377,22 +393,28 @@ view does not need to draw the application or custom string badges.
     [self addSubview:_icon];
 }
 
+// This is called when a miniaturized window icon is clicked. Restore it and
+// activate the owning app.
 -(void)activateWindow:(id)sender {
-#if 0
     int windowNumber = [[_windows firstObject] intValue];
-    Message activate = {0};
-    activate.header.msgh_remote_port = [NSApp _wsServicePort];
-    activate.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
-    activate.header.msgh_id = MSG_ID_INLINE;
-    activate.header.msgh_size = sizeof(activate) - sizeof(mach_msg_trailer_t);
-    activate.code = CODE_APP_ACTIVATE;
-    memcpy(activate.data, &processID, sizeof(int));
-    memcpy(activate.data+sizeof(int), &windowNumber, sizeof(int));
-    activate.len = sizeof(int)*2;
-    mach_msg((mach_msg_header_t *)&activate, MACH_SEND_MSG,
-        sizeof(activate) - sizeof(mach_msg_trailer_t),
-        0, MACH_PORT_NULL, 2000 /* ms timeout */, MACH_PORT_NULL);
-#endif
+    struct {
+        struct wsRPCWindow win;
+        char buf[128];
+    } data = {
+        .win = {
+            .base = {
+                .code = kWSApplicationActivate,
+                .len = sizeof(struct wsRPCWindow) - sizeof(struct wsRPCBase),
+            },
+            .windowID = windowNumber,
+            .state = NORMAL,
+        },
+        '\0',
+    };
+
+    strncpy(data.buf, [[self app] bundleIdentifier], sizeof(data.buf));
+    data.win.base.len += strlen(data.buf);
+    _windowServerRPC(&data, sizeof(data), NULL, NULL);
 }
 
 -(void)openApp:(id)sender {
