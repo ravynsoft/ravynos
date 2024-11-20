@@ -32,6 +32,7 @@
 @property size_t bufSize;               // size of surfaceBuf (bytes)
 @property O2Surface *surface;           // rendering surface
 @property enum WindowState state;       // state
+@property enum WindowState prevState;
 @property NSRect geometry;              // position and size of client window
 @property NSRect frame;                 // position and size with decorations
 @property NSString *title;              // titlebar string

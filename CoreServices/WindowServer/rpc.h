@@ -103,6 +103,8 @@ typedef enum WSRPC {
     kWSWindowCreate = 8000,
     kWSWindowDestroy,
     kWSWindowModifyState,
+    // App management
+    kWSApplicationActivate = 8100,
 } WSRPC;
 
 typedef enum : uint32_t {

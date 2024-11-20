@@ -221,6 +221,7 @@ static NSString *_pathForPID(pid_t pid) {
 
     WSWindowRecord *winrec = [WSWindowRecord new];
     winrec.number = data->windowID;
+    winrec.prevState = winrec.state;
     winrec.state = data->state;
     winrec.styleMask = data->style;
     winrec.geometry = NSMakeRect(data->x, data->y, data->w, data->h); // FIXME: bounds check?
@@ -297,6 +298,7 @@ static NSString *_pathForPID(pid_t pid) {
     }
 
     WSWindowRecord *winrec = [app windowWithID:data->windowID];
+    winrec.prevState = winrec.state;
     winrec.state = data->state;
     winrec.styleMask = data->style;
     // FIXME: this will probably require changing the surface and shm buffer
@@ -577,7 +579,7 @@ static NSString *_pathForPID(pid_t pid) {
                 int count = [wins count];
                 for(int i = 0; i < count; ++i) {
                     WSWindowRecord *win = [wins objectAtIndex:i];
-                    if(win.state == HIDDEN)
+                    if(win.state == HIDDEN || win.state == MINIMIZED)
                         continue;
                     // Ensure curWindow is on top of stack
                     if(win != curWindow) {
@@ -585,7 +587,8 @@ static NSString *_pathForPID(pid_t pid) {
                         [ctx drawImage:win.surface inRect:win.geometry];
                     }
                 }
-                if(curWindow.level == level) {
+                if(curWindow.level == level && curWindow.state != MINIMIZED
+                        && curWindow.state != HIDDEN) {
                     [curWindow drawFrame:ctx pointer:cursorRect.origin];
                     [ctx drawImage:curWindow.surface inRect:curWindow.geometry];
                 }
@@ -1478,6 +1481,26 @@ static NSString *_pathForPID(pid_t pid) {
     }
 }
 
+// App management
+-(void)rpcApplicationActivate:(PortMessage *)msg {
+    if(msg->len == sizeof(struct wsRPCWindow)) {
+        struct wsRPCWindow *data = (struct wsRPCWindow *)msg->data;
+        const char *bundleID = (const char *)((msg->data)+sizeof(struct wsRPCWindow));
+        WSAppRecord *app = [apps objectForKey:[NSString stringWithCString:bundleID]];
+        NSLog(@"activating %s %@ by request", bundleID, app);
+
+        if(app != nil) {
+            WSAppRecord *oldApp = curApp;
+            WSWindowRecord *winrec = [app windowWithID:data->windowID];
+            winrec.state = winrec.prevState; // deminiaturize to previous state 
+            curApp = app;
+            [self switchFromApp:oldApp toWindow:winrec];
+        } else {
+            NSLog(@"No matching app for rpcApplicationActivate! %s", msg->bundleID);
+        }
+    }
+}
+
 - (void)receiveMachMessage {
     ReceiveMessage msg = {0};
     mach_msg_return_t result = mach_msg((mach_msg_header_t *)&msg, MACH_RCV_MSG, 0, sizeof(msg),
@@ -1557,6 +1580,8 @@ static NSString *_pathForPID(pid_t pid) {
                     case kWSWindowCreate: [self rpcWindowCreate:&msg.portMsg]; break;
                     case kWSWindowDestroy: [self rpcWindowDestroy:&msg.portMsg]; break;
                     case kWSWindowModifyState: [self rpcWindowModifyState:&msg.portMsg]; break;
+                    // App management (Dock)
+                    case kWSApplicationActivate: [self rpcApplicationActivate:&msg.portMsg]; break;
                 }
                 break;
             }
@@ -1823,15 +1848,19 @@ static NSString *_pathForPID(pid_t pid) {
             // actually change the window until it sends us a new state message
             if(NSPointInRect(pos, window.closeButtonRect)) {
                 NSLog(@"closing window %@", window);
+                window.prevState = window.state;
                 window.state = CLOSED;
                 [self updateClientWindowState:window];
                 return YES; // closing a window doesn't activate the app owning it
             } else if(NSPointInRect(pos, window.miniButtonRect)) {
                 NSLog(@"miniaturizing window %@", window);
+                window.prevState = window.state;
                 window.state = MINIMIZED;
+                curWindow = nil;
                 [self updateClientWindowState:window];
             } else if(NSPointInRect(pos, window.zoomButtonRect)) {
                 NSLog(@"zooming window %@", window);
+                window.prevState = window.state;
                 window.state = MAXIMIZED;
                 [self updateClientWindowState:window];
             }
@@ -1889,6 +1918,41 @@ static NSString *_pathForPID(pid_t pid) {
         [self sendInlineData:&data length:sizeof(data) withCode:CODE_WINDOW_STATE toPort:[app port]];
     else
         NSLog(@"Cannot send window state update to app: not found. %@", window);
+
+    // Tell Dock if the window gets minimized or closed so it can manage icons
+    if(window.state == MINIMIZED || window.state == CLOSED)
+        [self notifyDock:&data length:sizeof(data) withCode:CODE_WINDOW_STATE forApp:app];
+}
+
+- (BOOL)notifyDock:(void *)data length:(int)length withCode:(int)code forApp:(WSAppRecord *)app {
+    WSAppRecord *dock = [apps objectForKey:@"com.ravynos.Dock"];
+    if(dock == nil) {
+        if(logLevel >= WS_WARNING)
+            NSLog(@"Cannot notify Dock - is it running?");
+        return NO;
+    }
+
+    Message msg = {0};
+    msg.header.msgh_remote_port = [dock port];
+    msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
+    msg.header.msgh_id = MSG_ID_INLINE;
+    msg.header.msgh_size = sizeof(msg) - sizeof(mach_msg_trailer_t);
+    msg.code = code;
+    msg.pid = [app pid];
+    strncpy(msg.bundleID, [app.bundleID UTF8String], sizeof(msg.bundleID)-1);
+
+    memcpy(msg.data, data, length);
+    msg.len = length;
+
+    int ret;
+    if((ret = mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG|MACH_SEND_TIMEOUT,
+        sizeof(msg) - sizeof(mach_msg_trailer_t), 0, MACH_PORT_NULL, 50 /* ms timeout */,
+        MACH_PORT_NULL)) != MACH_MSG_SUCCESS) {
+        if(logLevel >= WS_WARNING)
+            NSLog(@"Failed to send message to Dock: 0x%x", ret);
+        return NO;
+    }
+    return YES;
 }
 
 - (BOOL)sendInlineData:(void *)data length:(int)length withCode:(int)code toPort:(mach_port_t)port {
@@ -1998,6 +2062,10 @@ static NSString *_pathForPID(pid_t pid) {
         }
     }
     
+    [self switchFromApp:oldApp];
+}
+
+-(void)switchFromApp:(WSAppRecord *)oldApp toWindow:(WSWindowRecord *)win {
     struct mach_activation_data data = {0};
     if(oldApp != curApp) {
         // Inform the old app that it has become inactive
@@ -2014,14 +2082,18 @@ static NSString *_pathForPID(pid_t pid) {
     if(curApp == nil)
         return;
 
-    // Find the first non-hidden window for the newly active app
-    for(int i = 0; i < [[curApp windows] count]; ++i) {
-        WSWindowRecord *win = [[curApp windows] objectAtIndex:i];
-        if([win state] == HIDDEN)
-            continue;
-        else {
-            curWindow = win;
-            break;
+    if(win != nil) {
+        curWindow = win;
+    } else {
+        // Find the first non-hidden window for the newly active app
+        for(int i = 0; i < [[curApp windows] count]; ++i) {
+            WSWindowRecord *win = [[curApp windows] objectAtIndex:i];
+            if([win state] == HIDDEN)
+                continue;
+            else {
+                curWindow = win;
+                break;
+            }
         }
     }
 
@@ -2038,6 +2110,10 @@ static NSString *_pathForPID(pid_t pid) {
 
     // Now tell SystemUIServer the app became active
     [self activateApp:curApp];
+}
+
+-(void)switchFromApp:(WSAppRecord *)oldApp {
+    [self switchFromApp:oldApp toWindow:nil];
 }
 
 -(void)signalQuit {

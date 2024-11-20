@@ -168,6 +168,17 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                             }
                             struct wsRPCWindow *data = (struct wsRPCWindow *)msg.data;
                             int _id = data->windowID;
+
+                            if([bundleID isEqualToString:@"com.ravynos.Dock"]) {
+                                ReceiveMessage *dupe = malloc(sizeof(ReceiveMessage));
+                                memmove(dupe, &msg, sizeof(msg));
+                                [_delegate processWindowUpdate:dupe]; // must free dupe
+
+                                // We're done here if this message wasn't about Dock.
+                                if(strcmp(msg.bundleID, "com.ravynos.Dock"))
+                                    break;
+                            }
+
                             NSWindow *window = [self windowWithWindowNumber:_id];
                             if(window == nil) {
                                 NSLog(@"WINDOW_STATE: ID %u, not found in window list!", _id);
