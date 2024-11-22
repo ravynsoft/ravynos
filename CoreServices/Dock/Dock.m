@@ -118,17 +118,14 @@ extern Dock *dock; // our singleton object in main.m
             break;
         }
         default: {
-            NSLog(@"state = %d, windowID = %d", state, windowID);
             for(int i = 0; i < [_items count]; ++i) {
                 DockItem *win = [_items objectAtIndex:i];
-                NSLog(@"looking at %@", win);
                 if([win type] != DIT_WINDOW)
                     continue;
                 if([win window] == windowID) {
                     [app removeWindow:windowID];
                     [_items removeObject:win];
                     [self relocate];
-                    NSLog(@"found and relocated!");
                 }
             }
         }

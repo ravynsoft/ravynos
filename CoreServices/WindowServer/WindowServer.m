@@ -222,7 +222,6 @@ static NSString *_pathForPID(pid_t pid) {
     WSWindowRecord *winrec = [WSWindowRecord new];
     winrec.app = app;
     winrec.number = data->windowID;
-    winrec.prevState = winrec.state;
     winrec.state = data->state;
     winrec.styleMask = data->style;
     winrec.geometry = NSMakeRect(data->x, data->y, data->w, data->h); // FIXME: bounds check?
@@ -299,7 +298,6 @@ static NSString *_pathForPID(pid_t pid) {
     }
 
     WSWindowRecord *winrec = [app windowWithID:data->windowID];
-    winrec.prevState = winrec.state;
     winrec.state = data->state;
     winrec.styleMask = data->style;
     // FIXME: this will probably require changing the surface and shm buffer
@@ -1484,21 +1482,22 @@ static NSString *_pathForPID(pid_t pid) {
 
 // App management
 -(void)rpcApplicationActivate:(PortMessage *)msg {
-    if(msg->len == sizeof(struct wsRPCWindow)) {
-        struct wsRPCWindow *data = (struct wsRPCWindow *)msg->data;
-        const char *bundleID = (const char *)((msg->data)+sizeof(struct wsRPCWindow));
-        WSAppRecord *app = [apps objectForKey:[NSString stringWithCString:bundleID]];
-        NSLog(@"activating %s %@ by request", bundleID, app);
+    struct wsRPCWindow *data = (struct wsRPCWindow *)msg->data;
+    const char *bundleID = (const char *)((msg->data)+sizeof(struct wsRPCWindow));
+    WSAppRecord *app = [apps objectForKey:[NSString stringWithCString:bundleID]];
 
-        if(app != nil) {
-            WSAppRecord *oldApp = curApp;
-            WSWindowRecord *winrec = [app windowWithID:data->windowID];
-            winrec.state = winrec.prevState; // deminiaturize to previous state 
-            curApp = app;
-            [self switchFromApp:oldApp toWindow:winrec];
-        } else {
-            NSLog(@"No matching app for rpcApplicationActivate! %s", msg->bundleID);
-        }
+    if(app != nil) {
+        WSAppRecord *oldApp = curApp;
+        WSWindowRecord *winrec = [app windowWithID:data->windowID];
+        winrec.state = winrec.prevState; // deminiaturize to previous state 
+        curApp = app;
+        [self switchFromApp:oldApp toWindow:winrec];
+        // now tell Dock about it
+        data->state = winrec.state;
+        [self notifyDock:data length:sizeof(struct wsRPCWindow) 
+                withCode:CODE_WINDOW_STATE forApp:app];
+    } else {
+        NSLog(@"No matching app for rpcApplicationActivate! %s", msg->bundleID);
     }
 }
 
@@ -1852,12 +1851,14 @@ static NSString *_pathForPID(pid_t pid) {
             // these are just requests - the client can ignore them, so we don't
             // actually change the window until it sends us a new state message
             if(NSPointInRect(pos, window.closeButtonRect)) {
-                window.prevState = window.state;
                 window.state = CLOSED;
                 [self updateClientWindowState:window];
                 return YES; // closing a window doesn't activate the app owning it
             } else if(NSPointInRect(pos, window.miniButtonRect)) {
-                window.prevState = window.state;
+                if(window.state != MINIMIZED)
+                    window.prevState = window.state;
+                else
+                    window.prevState = NORMAL;
                 window.state = MINIMIZED;
                 [self updateClientWindowState:window];
 
@@ -1871,7 +1872,6 @@ static NSString *_pathForPID(pid_t pid) {
                 if(curWindow.number == window.number)
                     curWindow = nil; // app stays active though
             } else if(NSPointInRect(pos, window.zoomButtonRect)) {
-                window.prevState = window.state;
                 window.state = MAXIMIZED;
                 [self updateClientWindowState:window];
             } else {
