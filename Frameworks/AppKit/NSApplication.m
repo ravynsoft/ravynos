@@ -170,9 +170,15 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                             int _id = data->windowID;
 
                             if([bundleID isEqualToString:@"com.ravynos.Dock"]) {
-                                ReceiveMessage *dupe = malloc(sizeof(ReceiveMessage));
-                                memmove(dupe, &msg, sizeof(msg));
-                                [_delegate processWindowUpdate:dupe]; // must free dupe
+                                NSMutableDictionary *md = [NSMutableDictionary new];
+                                [md setObject:[NSNumber numberWithInt:msg.pid] forKey:@"ProcessID"];
+                                [md setObject:[NSString stringWithCString:msg.bundleID] forKey:@"BundleID"];
+                                [md setObject:[NSNumber numberWithInt:_id] forKey:@"WindowID"];
+                                [md setObject:[NSNumber numberWithInt:data->state] forKey:@"State"];
+
+                                [[NSNotificationCenter defaultCenter] 
+                                    postNotificationName:@"WSWindowDidChangeState" object:nil
+                                    userInfo:md];
 
                                 // We're done here if this message wasn't about Dock.
                                 if(strcmp(msg.bundleID, "com.ravynos.Dock"))

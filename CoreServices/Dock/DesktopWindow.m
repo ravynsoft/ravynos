@@ -28,7 +28,7 @@
 @implementation DesktopWindow
 - initForScreen:(NSScreen *)screen {
     _screen = screen;
-    NSRect frame = [screen visibleFrame];
+    NSRect frame = [screen frame];
 
     self = [super initWithContentRect:frame
                             styleMask:NSBorderlessWindowMask
@@ -46,6 +46,14 @@
     [self updateBackground];
 
     return self;
+}
+
+-(BOOL)acceptsFirstResponder {
+    return NO;
+}
+
+-(BOOL)refusesFirstResponder {
+    return YES;
 }
 
 - (void)updateBackground {
@@ -71,6 +79,11 @@
 
 - (NSDictionary *)properties {
     return nil; // FIXME
+}
+
+// Don't let NSWindow constrain us to the visibleFrame, because it excludes the menu bar!
+-(NSRect)constrainFrameRect:(NSRect)rect toScreen:(NSScreen *)screen {
+    return rect;
 }
 
 @end

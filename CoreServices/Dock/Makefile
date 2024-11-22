@@ -9,7 +9,7 @@ DockItem.o: DockItem.m DockItem.h
 
 MK_WERROR=	no
 WARNS=		1
-CFLAGS+=	-g -O0 --sysroot=${OBJTOP}/tmp -D__MACH__ -fPIC \
+CFLAGS+=	-g -O0 -fobjc-arc --sysroot=${OBJTOP}/tmp -D__MACH__ -fPIC \
 		-B${OBJTOP}/tmp/usr/bin -D__RAVYNOS__ \
 		-Wno-missing-method-return-type -I${SRCTOP}/CoreServices \
 		-Wno-macro-redefined -I${SRCTOP}/Frameworks \

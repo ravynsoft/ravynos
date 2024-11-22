@@ -79,7 +79,7 @@
 #endif
 
 -(void)applicationWillFinishLaunching:(NSNotification *)note {
-    NSScreen *mainDisplay = [[NSScreen screens] objectAtIndex:0];
+    NSScreen *mainDisplay = [NSScreen mainScreen];
     [menuBar initWithFrame:[mainDisplay frame]];
     [menuBar setDelegate:self];
     [[menuBar contentView] setNeedsDisplay:YES];

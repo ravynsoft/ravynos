@@ -112,5 +112,10 @@ extern pthread_mutex_t mtx;
     return [self nextEventMatchingMask:mask untilDate:[NSDate distantFuture]
                                 inMode:NSEventTrackingRunLoopMode dequeue:YES];
 }
+
+// Don't let NSWindow constrain us to the visibleFrame, because it excludes the menu bar!
+-(NSRect)constrainFrameRect:(NSRect)rect toScreen:(NSScreen *)screen {
+    return rect;
+}
 @end
 

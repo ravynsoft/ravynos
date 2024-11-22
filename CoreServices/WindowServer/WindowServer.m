@@ -220,6 +220,7 @@ static NSString *_pathForPID(pid_t pid) {
     }
 
     WSWindowRecord *winrec = [WSWindowRecord new];
+    winrec.app = app;
     winrec.number = data->windowID;
     winrec.prevState = winrec.state;
     winrec.state = data->state;
@@ -579,7 +580,7 @@ static NSString *_pathForPID(pid_t pid) {
                 int count = [wins count];
                 for(int i = 0; i < count; ++i) {
                     WSWindowRecord *win = [wins objectAtIndex:i];
-                    if(win.state == HIDDEN || win.state == MINIMIZED)
+                    if(win.state == HIDDEN || win.state == MINIMIZED || win.state == CLOSED)
                         continue;
                     // Ensure curWindow is on top of stack
                     if(win != curWindow) {
@@ -1522,7 +1523,8 @@ static NSString *_pathForPID(pid_t pid) {
                     bundleID = [NSString stringWithFormat:@"unix.%u", pid];
                 struct wsRPCBase *base = (struct wsRPCBase *)msg.portMsg.data;
 
-                NSLog(@"RPC[%@ %u] reply %u data len %u code %u", bundleID, pid, reply, msg.portMsg.len, base->code);
+                if(logLevel >= WS_WARNING)
+                    NSLog(@"RPC[%@ %u] reply %u data len %u code %u", bundleID, pid, reply, msg.portMsg.len, base->code);
                 if(base->len > sizeof(msg.portMsg.data) - sizeof(struct wsRPCBase)) {
                     NSLog(@"RPC[%@ %u] rejected code %u request with oversized data block of %u bytes",
                             base->code, base->len);
@@ -1740,39 +1742,33 @@ static NSString *_pathForPID(pid_t pid) {
                 if((out[i].fflags & NOTE_EXIT)) {
                     //NSLog(@"PID %lu exited", out[i].ident);
                     WSAppRecord *app = [self findAppByPID:out[i].ident];
-                    if(app != nil && curApp == app) {
+                    if(app == nil) {
+                        NSLog(@"PID %u exited, but no matching app record", out[i].ident);
+                        break;
+                    }
+
+                    if(curApp == app) {
                         [self switchApp];
                         if(curApp == app) {
                             curApp = nil; // there was nothing to switch to
                             curWindow = nil;
                         }
                     }
-                    if(app == nil)
-                        NSLog(@"PID %u exited, but no matching app record", out[i].ident);
-                    else {
-                        [apps removeObjectForKey:app.bundleID];
-                        for(int x = 0; x < [[app windows] count]; ++x)
-                            [self removeWindowFromAllLevels:[[app windows] objectAtIndex:x]];
-                        [app removeAllWindows];
 
-                        if([app.bundleID isEqualToString:@"com.ravynos.LoginWindow"]
-                         ||[app.bundleID isEqualToString:@"com.ravynos.SystemUIServer"])
-                            break; // SysUI isn't running yet or this is it, so don't try to notify
+                    [apps removeObjectForKey:app.bundleID];
+                    for(int x = 0; x < [[app windows] count]; ++x)
+                        [self removeWindowFromAllLevels:[[app windows] objectAtIndex:x]];
+                    [app removeAllWindows];
 
-                        WSAppRecord *sysui = [apps objectForKey:@"com.ravynos.SystemUIServer"];
-                        if(sysui != nil)
-                            notifyAppExited([sysui port], out[i].ident,
-                                    [app.bundleID UTF8String], [app.path UTF8String]);
-                        else
-                            NSLog(@"Cannot notify for exited app - is SystemUIServer running?");
+                    WSAppRecord *sysui = [apps objectForKey:@"com.ravynos.SystemUIServer"];
+                    if(sysui != nil)
+                        notifyAppExited([sysui port], out[i].ident,
+                                [app.bundleID UTF8String], [app.path UTF8String]);
 
-                        WSAppRecord *dock = [apps objectForKey:@"com.ravynos.Dock"];
-                        if(dock != nil)
-                            notifyAppExited([dock port], out[i].ident,
-                                    [app.bundleID UTF8String], [app.path UTF8String]);
-                        else
-                            NSLog(@"Cannot notify for exited app - is Dock running?");
-                    }
+                    WSAppRecord *dock = [apps objectForKey:@"com.ravynos.Dock"];
+                    if(dock != nil)
+                        notifyAppExited([dock port], out[i].ident,
+                                [app.bundleID UTF8String], [app.path UTF8String]);
                 }
                 break;
             default:
@@ -1782,15 +1778,24 @@ static NSString *_pathForPID(pid_t pid) {
 }
 
 - (WSWindowRecord *)windowUnderPointer:(NSPoint)pos app:(WSAppRecord **)app {
-    NSEnumerator *appEnum = [apps objectEnumerator];
-    while((*app = [appEnum nextObject]) != nil) {
-        NSArray *windows = [*app windows];
-        for(int w = 0; w < [windows count]; ++w) {
-            WSWindowRecord *win = [windows objectAtIndex:w];
-            if(NSPointInRect(pos, win.frame))
+    // We need to work from foreground (highest level) to background (0) to
+    // find the foremost window. Otherwise we might be choosing something
+    // that is behind another.
+
+    for(int level = kCGNumReservedWindowLevels - 1; level >= 0; --level) {
+        NSArray *wins = _windows[level];
+        int count = [wins count];
+        for(int i = 0; i < count; ++i) {
+            WSWindowRecord *win = [wins objectAtIndex:i];
+            if(win.state == HIDDEN || win.state == MINIMIZED || win.state == CLOSED)
+                continue;
+            if(NSPointInRect(pos, win.frame)) {
+                *app = win.app;
                 return win;
+            }
         }
     }
+
     return nil;
 }
 
@@ -1847,30 +1852,36 @@ static NSString *_pathForPID(pid_t pid) {
             // these are just requests - the client can ignore them, so we don't
             // actually change the window until it sends us a new state message
             if(NSPointInRect(pos, window.closeButtonRect)) {
-                NSLog(@"closing window %@", window);
                 window.prevState = window.state;
                 window.state = CLOSED;
                 [self updateClientWindowState:window];
                 return YES; // closing a window doesn't activate the app owning it
             } else if(NSPointInRect(pos, window.miniButtonRect)) {
-                NSLog(@"miniaturizing window %@", window);
                 window.prevState = window.state;
                 window.state = MINIMIZED;
-                curWindow = nil;
                 [self updateClientWindowState:window];
+
+                // Are there other windows active for this app?
+                NSArray *wins = [app windows];
+                for(int i = 0; i < [wins count]; ++i) {
+                    curWindow = [wins objectAtIndex:i];
+                    if(curWindow.number != window.number)
+                        i = [wins count];
+                }
+                if(curWindow.number == window.number)
+                    curWindow = nil; // app stays active though
             } else if(NSPointInRect(pos, window.zoomButtonRect)) {
-                NSLog(@"zooming window %@", window);
                 window.prevState = window.state;
                 window.state = MAXIMIZED;
                 [self updateClientWindowState:window];
-            }
-
-            // Handled all WS cases - send this to the window!
-            if(![app skipSwitcher]) {
-                [self deactivateApp:curApp];
-                curApp = app;
-                curWindow = window;
-                [self activateApp:curApp];
+            } else {
+                // Handled all WS cases - send this to the window!
+                if(![app skipSwitcher]) {
+                    [self deactivateApp:curApp];
+                    curApp = app;
+                    curWindow = window;
+                    [self activateApp:curApp];
+                }
             }
             break;
         }
@@ -2002,6 +2013,10 @@ static NSString *_pathForPID(pid_t pid) {
     Message msg = {0};
     struct mach_activation_data data = {0};
     WSAppRecord *sysui = [apps objectForKey:@"com.ravynos.SystemUIServer"];
+    if(sysui == nil) {
+        NSLog(@"cannot notify for deactivated app - is SystemUIServer running?");
+        return;
+    }
     msg.header.msgh_remote_port = [sysui port];
     msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
     msg.header.msgh_id = MSG_ID_INLINE;
@@ -2023,6 +2038,10 @@ static NSString *_pathForPID(pid_t pid) {
     Message msg = {0};
     struct mach_activation_data data = {0, 1};
     WSAppRecord *sysui = [apps objectForKey:@"com.ravynos.SystemUIServer"];
+    if(sysui == nil) {
+        NSLog(@"cannot notify for activated app - is SystemUIServer running?");
+        return;
+    }
     msg.header.msgh_remote_port = [sysui port];
     msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
     msg.header.msgh_id = MSG_ID_INLINE;
@@ -2082,18 +2101,16 @@ static NSString *_pathForPID(pid_t pid) {
     if(curApp == nil)
         return;
 
-    if(win != nil) {
+    if(win != nil)
         curWindow = win;
-    } else {
+    else {
         // Find the first non-hidden window for the newly active app
         for(int i = 0; i < [[curApp windows] count]; ++i) {
             WSWindowRecord *win = [[curApp windows] objectAtIndex:i];
-            if([win state] == HIDDEN)
+            if(win.state == HIDDEN || win.state == MINIMIZED || win.state == CLOSED)
                 continue;
-            else {
-                curWindow = win;
-                break;
-            }
+            curWindow = win;
+            break;
         }
     }
 

@@ -23,6 +23,7 @@
  */
 
 #import <AppKit/AppKit.h>
+#import <AppKit/NSRaise.h>
 #import <CoreGraphics/CGWindowLevel.h>
 #import "Dock.h"
 #import "DockTileData.h"
@@ -44,6 +45,7 @@ extern Dock *dock; // our singleton object in main.m
     _prefs = [NSUserDefaults standardUserDefaults];
     _desktops = [NSMutableDictionary new];
     _currentSize = NSZeroSize;
+    _window = nil;
 
     _tileSize = [_prefs integerForKey:INFOKEY_TILESIZE];
     if(_tileSize < TILESIZE_MIN)
@@ -62,7 +64,6 @@ extern Dock *dock; // our singleton object in main.m
     NSRect frame = NSMakeRect(0,0,_currentSize.width,_currentSize.height);
     [self createWindowWithFrame:frame];
     [self placeItemsInWindow:max];
-
     return self;
 }
 
@@ -70,15 +71,68 @@ extern Dock *dock; // our singleton object in main.m
     DesktopWindow *desktop = [[DesktopWindow alloc] initForScreen:[NSScreen mainScreen]];
     [_desktops setObject:desktop forKey:@"NSMainScreen"]; // FIXME: use NSScreen deviceDescription dict for display ID
     [desktop setDelegate:self];
-    [desktop makeKeyAndOrderFront:nil];
+    [desktop orderBack:self];
+
+    [_window makeKeyAndOrderFront:nil];
+    [[_window contentView] drawRect:[_window frame]];
+
     [self savePrefs];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appDidQuit:)
         name:@"NSApplicationDidQuit" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appDidLaunch:)
         name:@"NSApplicationDidLaunch" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+         selector:@selector(windowDidChangeState:) name:@"WSWindowDidChangeState" object:nil];
+}
 
-    [_window orderFront:nil];
+-(void)windowDidChangeState:(NSNotification *)note {
+    NSMutableDictionary *dict = (NSMutableDictionary *)[note userInfo];
+    NSString *bundleID = [dict objectForKey:@"BundleID"];
+    pid_t pid = [[dict objectForKey:@"ProcessID"] intValue];
+    int windowID = [[dict objectForKey:@"WindowID"] intValue];
+    int state = [[dict objectForKey:@"State"] intValue];
+
+    // First, find the matching app owning this window
+    DockItem *app = nil;
+    for(int i = 0; i < [_items count]; ++i) {
+        app = [_items objectAtIndex:i];
+        if([app type] == DIT_WINDOW)
+            continue;
+        if([[app bundleIdentifier] isEqualToString:bundleID])
+            break;
+    }
+
+    if(!app) {
+        NSLog(@"processWindowUpdate for unknown app %@", bundleID);
+        return;
+    }
+
+    switch(state) {
+        case MINIMIZED: {
+            DockItem *win = [DockItem dockItemWithMinimizedWindow:windowID
+                                                           forApp:app];
+            [_items insertObject:win atIndex:[_items count] - 1];
+            [app addWindow:windowID];
+            [self relocate];
+            break;
+        }
+        default: {
+            NSLog(@"state = %d, windowID = %d", state, windowID);
+            for(int i = 0; i < [_items count]; ++i) {
+                DockItem *win = [_items objectAtIndex:i];
+                NSLog(@"looking at %@", win);
+                if([win type] != DIT_WINDOW)
+                    continue;
+                if([win window] == windowID) {
+                    [app removeWindow:windowID];
+                    [_items removeObject:win];
+                    [self relocate];
+                    NSLog(@"found and relocated!");
+                }
+            }
+        }
+    }
 }
 
 -(void)appDidLaunch:(NSNotification *)note {
@@ -110,7 +164,6 @@ extern Dock *dock; // our singleton object in main.m
     else
         NSDebugLog(@"Attempted to add launched bundle %@ with path %@, already added",
                 bundleID, path);
-    [self setNeedsDisplay:YES];
 }
 
 -(void)appDidQuit:(NSNotification *)note {
@@ -119,14 +172,13 @@ extern Dock *dock; // our singleton object in main.m
     DockItem *item = [self dockItemForPath:path];
 
     if(item == nil) {
-        NSDebugLog(@"App %@ exited but not found in our list", path);
+        NSLog(@"App %@ exited but not found in our list", path);
         return;
     }
 
     [item setRunning:NO];
     if(![item isPersistent]) {
         [_items removeObjectIdenticalTo:item];
-        [self relocate];
     }
 
     int count = [_items count];
@@ -138,7 +190,7 @@ extern Dock *dock; // our singleton object in main.m
         } else
             ++i;
     }
-    [self setNeedsDisplay:YES];
+    [self relocate];
 }
 
 -(DockItem *)dockItemForPath:(NSString *)path {
@@ -175,12 +227,11 @@ extern Dock *dock; // our singleton object in main.m
                                               defer:NO];
     // transparent background because we'll draw over it
     [_window setBackgroundColor:[NSColor colorWithDeviceRed:1 green:1 blue:1 alpha:0]];
-    [_window setContentView:[DockView new]];
+    [_window setContentView:[[DockView alloc] initWithFrame:
+        NSMakeRect(0, 0, frame.size.width, frame.size.height)]];
     [_window setLevel:kCGDockWindowLevelKey];
+    [_window setDelegate:self];
 
-    [[_window contentView] drawRect:[_window frame]];
-    [_window orderFront:nil];
-    
     return _window;
 }
 
@@ -254,7 +305,6 @@ extern Dock *dock; // our singleton object in main.m
         NSLog(@"Warning: truncating some items to fit the screen");
     NSPoint itemPos = NSMakePoint(8, 0);
     NSSize size = NSMakeSize(_tileSize, _tileSize);
-    [[_window contentView] setSubviews:nil];
 
     for(int i = 0; i < maxItems - 1; ++i) {
         DockItem *item = [_items objectAtIndex:i];
@@ -289,7 +339,6 @@ extern Dock *dock; // our singleton object in main.m
     [item setFrameOrigin:itemPos];
     [item setTileSize:size];
     [[_window contentView] addSubview:item];
-
     [[_window contentView] setNeedsDisplay:YES];
 }
 
@@ -327,65 +376,24 @@ extern Dock *dock; // our singleton object in main.m
 
 // FIXME: call this when _location changes
 -(void)relocate {
-    if(_window)
+    if(_window) {
         [_window orderOut:nil];
-    _window = nil;
+        [_window performClose:nil];
+        _window = nil;
+    }
 
     int maxItems = [self fitWindowToItems];
     NSRect frame = NSZeroRect;
     frame.size = _currentSize;
     [self createWindowWithFrame:frame];
     [self placeItemsInWindow:maxItems];
+    [_window makeKeyAndOrderFront:nil];
+    [[_window contentView] drawRect:[_window frame]];
     [self savePrefs];
 }
 
 -(float)alpha {
     return _alpha;
-}
-
--(void)processWindowUpdate:(Message *)msg {
-    struct wsRPCWindow *data = (struct wsRPCWindow *)msg->data;
-    NSLog(@"State Update app:%s PID:%d windowID:%d frame:%.0f,%.0f %.0fx%.0f state:%d",
-            msg->bundleID, msg->pid, data->windowID, data->x, data->y, data->w, data->h,
-            data->state);
-
-    // First, find the matching app owning this window
-    DockItem *app = nil;
-    for(int i = 0; i < [_items count]; ++i) {
-        app = [_items objectAtIndex:i];
-        if(!strcmp([[app bundleIdentifier] UTF8String], msg->bundleID))
-            break;
-    }
-
-    if(!app) {
-        NSLog(@"processWindowUpdate for unknown app %s", msg->bundleID);
-        return;
-    }
-
-    switch(data->state) {
-        case MINIMIZED: {
-            DockItem *win = [DockItem dockItemWithMinimizedWindow:data->windowID
-                                                           forApp:app];
-            [_items insertObject:win atIndex:[_items count] - 1];
-            [app addWindow:data->windowID];
-            [self relocate];
-            break;
-        }
-        default: {
-            for(int i = 0; i < [_items count]; ++i) {
-                DockItem *win = [_items objectAtIndex:i];
-                if([win type] != DIT_WINDOW)
-                    continue;
-                if([win window] == data->windowID) {
-                    [app removeWindow:data->windowID];
-                    [_items removeObject:win];
-                    [self relocate];
-                }
-            }
-        }
-    }
-
-    free(msg);
 }
 
 @end
@@ -419,6 +427,8 @@ extern Dock *dock; // our singleton object in main.m
     CGContextAddLineToPoint(context, _frame.origin.x, NSMaxY(_frame));
     CGContextClosePath(context);
     CGContextFillPath(context);
+
+    [self setNeedsDisplay:YES];
 }
 @end
 
