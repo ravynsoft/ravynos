@@ -3,6 +3,7 @@
 int main(int argc, const char **argv) {
     __NSInitializeProcess(argc, argv);
 
+    NSAutoreleasePool *pool = [NSAutoreleasePool new];
     mach_port_t tmp;
     int rc = bootstrap_look_up(bootstrap_port, "com.ravynos.WindowServer", &tmp);
     if(rc != KERN_SUCCESS)

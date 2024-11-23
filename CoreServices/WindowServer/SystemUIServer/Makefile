@@ -49,7 +49,7 @@ ${MAKEOBJDIR}/OpenGL:
 	ln -sf ${SRCTOP}/Frameworks/OpenGL/include ${.TARGET}
 
 ${.CURDIR}/kickSession: kickSession.m
-	${CC} -D__RAVYNOS__ -D__MACH__ -O0 -g -o ${.TARGET} ${.ALLSRC} \
+	${CC} -D__RAVYNOS__ -D__MACH__ -o ${.TARGET} ${.ALLSRC} \
 		--sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin \
 		${OBJCFLAGS} -I${SRCTOP}/Frameworks -I${MAKEOBJDIR} \
 		-F${OBJTOP}/Frameworks/Foundation \
