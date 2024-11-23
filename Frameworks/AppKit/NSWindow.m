@@ -2336,9 +2336,9 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(void)makeKeyAndOrderFront:sender {
-   if ([self isMiniaturized]) {
-    [self _deminiaturize];
-   }
+    if ([self isMiniaturized]) {
+        [self deminiaturize:self];
+    }
 
 // Order window before making it key, per doc.s and behavior
 

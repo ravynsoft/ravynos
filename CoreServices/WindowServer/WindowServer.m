@@ -298,6 +298,7 @@ static NSString *_pathForPID(pid_t pid) {
     }
 
     WSWindowRecord *winrec = [app windowWithID:data->windowID];
+    int oldState = winrec.state;
     winrec.state = data->state;
     winrec.styleMask = data->style;
     // FIXME: this will probably require changing the surface and shm buffer
@@ -329,6 +330,10 @@ static NSString *_pathForPID(pid_t pid) {
 
     if(logLevel >= WS_INFO)
         NSLog(@"windowModify %@ win %@", app, winrec);
+
+    if(oldState == MINIMIZED && winrec.state != MINIMIZED)
+        [self notifyDock:data length:sizeof(struct wsRPCWindow) 
+                withCode:CODE_WINDOW_STATE forApp:app];
 }
 
 -(void)addWindowByLevel:(WSWindowRecord *)window {
@@ -1522,10 +1527,11 @@ static NSString *_pathForPID(pid_t pid) {
         curApp = app;
         [self switchFromApp:oldApp toWindow:winrec];
 
-        // now tell Dock about it
+        // now tell Dock and the app about the window state changes
         if(winrec != nil) {
             data->windowID = winrec.number;
             data->state = winrec.state;
+            [self updateClientWindowState:winrec];
         }
         [self notifyDock:data length:sizeof(struct wsRPCWindow) 
                 withCode:CODE_WINDOW_STATE forApp:app];

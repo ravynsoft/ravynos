@@ -738,7 +738,6 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
      [window setMenu:_mainMenu];
    }
 
-    _tagAllMenus(_mainMenu, 1);
     [self sendMenusToWindowServer];
 }
 
@@ -765,6 +764,7 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     if(_mainMenu == nil)
         return;
 
+    _tagAllMenus(_mainMenu, 1);
     NSMenu *menuCopy = [_mainMenu copy];
     [self _menuEnumerateAndChange:menuCopy];
 
