@@ -173,12 +173,16 @@ __finish:
     // Restore old terminal settings
     tcsetattr(wsfd, TCSANOW, &old);
 
+    // Go back to the original vt now!
+    if(ioctl(fd, VT_ACTIVATE, origvt) < 0)
+        NSLog(@"Cannot restore original VT %d: %s", origvt, strerror(errno));
+    else
+        NSLog(@"Reactivated VT %d", origvt);
+
     memset(&mode, 0, sizeof(mode));
     if(ioctl(wsfd, VT_SETMODE, &mode) < 0)
         NSLog(@"Cannot release VT switching: %s", strerror(errno));
 
-    // Go back to the original vt now!
-    ioctl(fd, VT_ACTIVATE, origvt);
     close(fd);
     close(wsfd);
     pthread_cancel(machSvcThread);

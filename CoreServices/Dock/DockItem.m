@@ -418,8 +418,29 @@ view does not need to draw the application or custom string badges.
 }
 
 -(void)openApp:(id)sender {
-    NSURL *url = [NSURL fileURLWithPath:_path];
-    LSOpenCFURLRef((__bridge_retained CFURLRef)url, NULL);
+    if(![self isRunning]) {
+        NSURL *url = [NSURL fileURLWithPath:_path];
+        LSOpenCFURLRef((__bridge_retained CFURLRef)url, NULL);
+    } else {
+        struct {
+            struct wsRPCWindow win;
+            char buf[128];
+        } data = {
+            .win = {
+                .base = {
+                    .code = kWSApplicationActivate,
+                    .len = sizeof(struct wsRPCWindow) - sizeof(struct wsRPCBase),
+                },
+                .windowID = 0,
+                .state = NORMAL,
+            },
+            '\0',
+        };
+
+        strncpy(data.buf, [[self bundleIdentifier] UTF8String], sizeof(data.buf));
+        data.win.base.len += strlen(data.buf);
+        _windowServerRPC(&data, sizeof(data), NULL, NULL);
+    }
 }
 
 -(NSDictionary *)tileData {

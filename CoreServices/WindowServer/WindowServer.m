@@ -1480,7 +1480,11 @@ static NSString *_pathForPID(pid_t pid) {
     }
 }
 
-// App management
+/* App management. If a window number is included (and found), make it the active
+ * window. If not, just activate the app and let it choose a window. Dock calls this
+ * with window = 0 to activate a running app, and with a windowID to restore a
+ * miniaturized window.
+ */
 -(void)rpcApplicationActivate:(PortMessage *)msg {
     struct wsRPCWindow *data = (struct wsRPCWindow *)msg->data;
     const char *bundleID = (const char *)((msg->data)+sizeof(struct wsRPCWindow));
@@ -1489,11 +1493,15 @@ static NSString *_pathForPID(pid_t pid) {
     if(app != nil) {
         WSAppRecord *oldApp = curApp;
         WSWindowRecord *winrec = [app windowWithID:data->windowID];
-        winrec.state = winrec.prevState; // deminiaturize to previous state 
+        if(winrec != nil)
+            winrec.state = winrec.prevState; // deminiaturize to previous state 
+
         curApp = app;
         [self switchFromApp:oldApp toWindow:winrec];
+
         // now tell Dock about it
-        data->state = winrec.state;
+        if(winrec != nil)
+            data->state = winrec.state;
         [self notifyDock:data length:sizeof(struct wsRPCWindow) 
                 withCode:CODE_WINDOW_STATE forApp:app];
     } else {
@@ -2135,7 +2143,11 @@ static NSString *_pathForPID(pid_t pid) {
 
 -(void)signalQuit {
     [self performLogout:0];
-    execl("/bin/launchctl", "launchctl", "remove", "com.ravynos.WindowServer", NULL);
+    pid_t pid = fork();
+    if(pid == 0)
+        execl("/bin/launchctl", "launchctl", "remove", "com.ravynos.WindowServer", NULL);
+    else
+        waitpid(pid, NULL, 0);
     ready = NO;
 }
 
