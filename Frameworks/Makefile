@@ -23,9 +23,9 @@ SUBDIR+=	CoreText
 SUBDIR+=	CoreVideo
 SUBDIR+=	QuartzCore
 SUBDIR+=	AppKit
-#SUBDIR+=	DBusKit
 SUBDIR+=	Cocoa
 SUBDIR+=	LaunchServices
+SUBDIR+=	PreferencePanes
 
 .include <bsd.subdir.mk>
 
