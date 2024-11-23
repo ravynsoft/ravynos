@@ -1495,13 +1495,38 @@ static NSString *_pathForPID(pid_t pid) {
         WSWindowRecord *winrec = [app windowWithID:data->windowID];
         if(winrec != nil)
             winrec.state = winrec.prevState; // deminiaturize to previous state 
+        else {
+            // Dock has called this to activate an app. Check for minimized windows.
+            NSArray *wins = [app windows];
+            WSWindowRecord *restore = nil;
+            BOOL visWindows = NO;
+            for(int x = 0; x < [wins count]; ++x) {
+                winrec = [wins objectAtIndex:x];
+                if(winrec.state != MINIMIZED && winrec.state != HIDDEN && winrec.state != CLOSED) {
+                    visWindows = YES;
+                    break;
+                } else if(winrec.state == MINIMIZED)
+                    restore = winrec;
+            }
+            if(!visWindows) {
+                winrec = nil;
+                if(restore != nil) {
+                    // No visible windows but something is minimized - restore it
+                    // Otherwise we activate the app and let it choose one
+                    restore.state = restore.prevState;
+                    winrec = restore;
+                }
+            }
+        }
 
         curApp = app;
         [self switchFromApp:oldApp toWindow:winrec];
 
         // now tell Dock about it
-        if(winrec != nil)
+        if(winrec != nil) {
+            data->windowID = winrec.number;
             data->state = winrec.state;
+        }
         [self notifyDock:data length:sizeof(struct wsRPCWindow) 
                 withCode:CODE_WINDOW_STATE forApp:app];
     } else {
