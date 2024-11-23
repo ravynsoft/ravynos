@@ -68,6 +68,15 @@ extern pthread_mutex_t mtx;
 
 - (void)setMenu:(NSMenu *)menu forApp:(NSString *)bundleID {
     [menuDict setObject:menu forKey:bundleID];
+
+    /* We don't get menus until after the app registers its mach ports with WS,
+     * so it can be the active app with empty menus. Then it should send us the
+     * menu dict, and we can display it
+     */
+    if([activeApp isEqualToString:bundleID]) {
+        [menuView setMenu:menu];
+        [menuView setNeedsDisplay:YES];
+    }
 }
 
 - (void)removeMenuForApp:(NSString *)bundleID {
