@@ -5,7 +5,7 @@ WARNS= 0
 SRCS= NSPreferencePane.m
 INCS= NSPreferencePane.h
 RESOURCES= Info.plist 
-CFLAGS+= ${FMWK_CFLAGS} -fobjc-arc -I${OBJTOP}/Frameworks/Foundation/Headers \
+CFLAGS+= ${FMWK_CFLAGS:N-D__WSRPC} -fobjc-arc -I${OBJTOP}/Frameworks/Foundation/Headers \
 	 -I${SRCTOP}/Frameworks/AppKit/Headers/
 LDFLAGS+= -L${OBJTOP}/tmp/usr/lib 
 

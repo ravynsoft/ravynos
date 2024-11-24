@@ -23,6 +23,11 @@
  */
 
 #import "NSPreferencePane.h"
+#import <AppKit/NSNib.h>
+#import <AppKit/NSNibLoading.h>
+#import <AppKit/NSMenu.h>
+#import <AppKit/NSMenuItem.h>
+#import <AppKit/NSHelpManager.h>
 
 NSString * const NSPreferencePrefPaneIsAvailableNotification = @"NSPreferencePrefPaneIsAvailableNotification";
 NSString * const NSPreferencePaneDoUnselectNotification = @"NSPreferencePaneDoUnselectNotification";
@@ -43,13 +48,35 @@ NSString * const NSPrefPaneHelpMenuAnchorKey = @"anchor";
 -(id)initWithBundle:(NSBundle *)bundle {
     self = [super init];
     _bundle = bundle;
+    _mainView = nil;
+    _mainNibName = [bundle objectForInfoDictionaryKey:@"NSMainNibFile"];
+    if(_mainNibName == nil)
+        _mainNibName = @"Main";
+    _selected = NO;
+    _shouldUnselect = NSUnselectNow;
+    _autoSaveTextFields = YES;
+    _helpItemsDict = nil;
+    _help = nil;
     return self;
 }
 
 -(NSView *)loadMainView {
+    // FIXME: this loadNibNamed variant is deprecated from 10.8+
+    // should use -loadNibNamed:owner:topLevelObjects instead
+    NSDictionary *nameTable = [NSDictionary dictionaryWithObject:self
+                                                          forKey:NSNibOwner];
+    if([_bundle loadNibFile:_mainNibName
+          externalNameTable:nameTable
+                   withZone:NSDefaultMallocZone()]) {
+        [self assignMainView];
+        [self mainViewDidLoad];
+    }
+    return _mainView;
 }
 
 -(void)assignMainView {
+    _mainView = [_window contentView];
+    _window = nil;
 }
 
 -(void)mainViewDidLoad {
@@ -68,10 +95,43 @@ NSString * const NSPrefPaneHelpMenuAnchorKey = @"anchor";
 }
 
 -(void)replyToShouldUnselect:(BOOL)shouldUnselect {
+    if(shouldUnselect)
+        _shouldUnselect = NSUnselectNow;
 }
 
 
 -(void)updateHelpMenuWithArray:(NSArray *)inArrayOfMenuItems {
+    if(_help == nil) // _help is set by Sys Prefs on load
+        return;
+
+    [_help removeAllItems];
+    _helpItemsDict = nil;
+    _helpItemsDict = [NSMutableDictionary new];
+
+    for(int i = 0; i < [inArrayOfMenuItems count]; ++i) {
+        NSDictionary *dict = [inArrayOfMenuItems objectAtIndex:i];
+        NSString *title = [dict objectForKey:kNSPrefPaneHelpMenuTitleKey];
+        NSString *anchor = [dict objectForKey:kNSPrefPaneHelpMenuAnchorKey];
+        [_helpItemsDict setObject:anchor forKey:title];
+        NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:title
+                                                      action:@selector(_helpMenuAction:)
+                                               keyEquivalent:@""];
+        [item setTarget:self];
+        [_help addItem:item];
+    }
+}
+
+// Private stuff
+
+-(void)_helpMenuAction:(NSMenuItem *)item {
+    NSString *anchor = [_helpItemsDict objectForKey:[item title]];
+    NSString *book = [_bundle objectForInfoDictionaryKey:@"CFBundleHelpBookName"];
+    if(anchor && book)
+        [[NSHelpManager sharedHelpManager] openHelpAnchor:anchor inBook:book];
+}
+
+-(void)setHelpMenu:(NSMenu *)help {
+    _help = help;
 }
 
 @end

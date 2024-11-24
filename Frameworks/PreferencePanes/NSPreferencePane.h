@@ -24,6 +24,8 @@
 
 #import <Foundation/NSObject.h>
 #import <Foundation/NSBundle.h>
+#import <Foundation/NSMutableDictionary.h>
+#import <AppKit/NSWindow.h>
 #import <AppKit/NSView.h>
 
 enum _NSPreferencePaneUnselectReply : NSUInteger {
@@ -47,19 +49,22 @@ extern NSString * const NSPrefPaneHelpMenuAnchorKey;
 #define kNSPrefPaneHelpMenuTitleKey NSPrefPaneHelpMenuTitleKey
 #define kNSPrefPaneHelpMenuAnchorKey NSPrefPaneHelpMenuAnchorKey
 
-@interface NSPreferencePane : NSObject
+@interface NSPreferencePane : NSObject {
+    NSMutableDictionary *_helpItemsDict;
+    NSMenu *_help;
+}
 
 @property(strong, readonly) NSBundle *bundle;
 @property(strong, readonly) NSString *mainNibName;
 @property(strong) NSView *mainView;
 @property(readonly, getter=isSelected) BOOL selected;
 @property(readonly) NSPreferencePaneUnselectReply shouldUnselect;
-
 @property(strong) NSView *firstKeyView;
 @property(strong) NSView *initialKeyView;
 @property(strong) NSView *lastKeyView;
 @property(readonly) BOOL autoSaveTextFields;
 
+@property(weak) IBOutlet NSWindow *window;
 
 -(id)initWithBundle:(NSBundle *)bundle;
 -(NSView *)loadMainView;
