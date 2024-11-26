@@ -24,5 +24,15 @@
 
 @implementation SystemPreferences
 
+const float windowWidth = 668;
+
+-(void)applicationWillFinishLaunching:(NSNotification *)note {
+    NSRect rect = NSMakeRect(100, 100, windowWidth, 200);
+    window = [[NSWindow alloc] initWithContentRect:rect
+                                         styleMask:NSTitledWindowMask
+                                           backing:NSBackingStoreBuffered
+                                             defer:NO];
+    [window makeKeyAndOrderFront:self];
+}
 
 @end

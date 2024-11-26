@@ -23,6 +23,7 @@
 #import <AppKit/AppKit.h>
 
 @interface SystemPreferences : NSApplication {
+    NSWindow *window;
     NSArray *panes;
 }
 

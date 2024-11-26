@@ -27,7 +27,8 @@ int main(int argc, const char *argv[])
     __NSInitializeProcess(argc, argv);
 
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
-    SystemPreferences *app = [SystemPreferences sharedApplication];
+    SystemPreferences *app = (SystemPreferences *)[SystemPreferences sharedApplication];
+    [app setDelegate:app];
     [pool drain];
     [app run];
     return 0;
