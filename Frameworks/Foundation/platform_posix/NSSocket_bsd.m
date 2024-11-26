@@ -208,7 +208,8 @@ static inline void byteZero(void *vsrc,size_t size){
     FD_ZERO(&s);
     FD_SET(_descriptor, &s);
 
-    return (select(0, &s, NULL, NULL, &t) == 1) ? YES : NO;
+    if(select(_descriptor+1, &s, NULL, NULL, &t) > 0)
+        return FD_ISSET(_descriptor, &s) ? YES : NO;
 }
 
 -(NSInteger)read:(uint8_t *)buffer maxLength:(NSUInteger)length {
