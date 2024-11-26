@@ -409,7 +409,15 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
 /* Each event notification is 2 chars. Don't read more! */
 -(int)_drainPipe {
     char junk[2];
-    return read(_machEventPipe[0], junk, sizeof(junk));
+    fd_set fds;
+    struct timeval tv = {0};
+
+    FD_ZERO(&fds);
+    FD_SET(_machEventPipe[0], &fds);
+    if(select(_machEventPipe[0] + 1, &fds, NULL, NULL, &tv) == 1)
+        if(FD_ISSET(_machEventPipe[0], &fds))
+            return read(_machEventPipe[0], junk, sizeof(junk));
+    return 0;
 }
 
 -(int)_wakeUp {
@@ -981,6 +989,11 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 		NSImage* image = [NSImage imageNamed: iconName];
 		[self setApplicationIconImage: image];
 	}
+
+    /* If there are no menus loaded (e.g. we have no nib), make sure we at least have
+     * the application menu and some other standard ones
+     */
+    [self setMenu:[NSMenu new]];
 	
 // Give us a first event
    [NSTimer scheduledTimerWithTimeInterval:0.1 target:nil

@@ -73,7 +73,7 @@ SOFTWARE. */
         if(cgDisplays[i] == mainDisplay)
             continue;
         mode = CGDisplayCopyDisplayMode(cgDisplays[i]);
-        NSRect frame = NSMakeRect(0, 0, CGDisplayModeGetWidth(mode), CGDisplayModeGetHeight(mode));
+        frame = NSMakeRect(0, 0, CGDisplayModeGetWidth(mode), CGDisplayModeGetHeight(mode));
         CGDisplayModeRelease(mode);
         NSScreen *screen = [[[NSScreen alloc] initWithFrame:frame visibleFrame:frame] retain];
         [_screens addObject:screen];
@@ -167,8 +167,7 @@ SOFTWARE. */
    
     [[NSRunLoop currentRunLoop] addInputSource:[NSApp inputSource] forMode:mode];
     [[NSRunLoop currentRunLoop] runMode:mode beforeDate:untilDate];
-    if([[NSApp inputSource] hasBytesAvailable]) // this source isn't really a socket so we can't just read:
-        [NSApp _drainPipe];
+    [NSApp _drainPipe]; // if there are events, read one at a time
     [[NSRunLoop currentRunLoop] removeInputSource:[NSApp inputSource] forMode:mode];
 
     while(result==nil && [_eventQueue count]>0) {
