@@ -75,6 +75,7 @@ make-obj-dirs: .EXEC
 .for subdir in ${SUBDIR}
 	mkdir -p ${MAKEOBJDIR}/${subdir}
 .endfor
+	mkdir -p ${MAKEOBJDIR}/LoadingWindow
 	mkdir -p ${MAKEOBJDIR}/LoginWindow
 	mkdir -p ${MAKEOBJDIR}/SystemUIServer
 	mkdir -p ${MAKEOBJDIR}/libxkbcommon/src/xkbcomp

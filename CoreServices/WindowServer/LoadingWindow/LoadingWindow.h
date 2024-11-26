@@ -20,20 +20,14 @@
  * THE SOFTWARE.
  */
 
-#define WINDOWSERVER // we are building WindowServer itself - flag to message.h
+#import <Foundation/Foundation.h>
+#import <AppKit/AppKit.h>
 
-#define SA_RESTART      0x0002  /* restart system call on signal return */
+@interface LoadingWindow: NSWindow {
+    NSProgressIndicator *spinner;
+    NSImageView *backdrop;
+}
 
-enum {
-    EXIT_RESTART = 200,
-    EXIT_SHUTDOWN,
-    EXIT_LOGOUT
-};
+@end
 
-enum {
-    WS_ERROR, WS_WARNING, WS_INFO
-};
 
-enum ShellType {
-    NONE, LOGINWINDOW, DESKTOP, LOADING
-};

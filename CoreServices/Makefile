@@ -40,8 +40,10 @@ buildDock:
 buildWindowServer:
 	${MAKE} -C ${.CURDIR}/WindowServer make-obj-dirs obj all
 	${MAKE} -C ${.CURDIR}/WindowServer/SystemUIServer
+	${MAKE} -C ${.CURDIR}/WindowServer/LoadingWindow
 	${MAKE} -C ${.CURDIR}/WindowServer/LoginWindow
 	cp -afv ${OBJTOP}/CoreServices/WindowServer/SystemUIServer/SystemUIServer.app \
+	        ${OBJTOP}/CoreServices/WindowServer/LoadingWindow/LoadingWindow.app \
 	        ${OBJTOP}/CoreServices/WindowServer/LoginWindow/LoginWindow.app \
                 ${OBJTOP}/CoreServices/WindowServer/WindowServer.app/Contents/Resources/
 

@@ -30,6 +30,9 @@
 #import <AppKit/NSColor.h>
 #import <AppKit/NSFont.h>
 #import <AppKit/NSWindow.h>
+#import <AppKit/NSProgressIndicator.h>
+#import <AppKit/NSImageView.h>
+#import <AppKit/NSGraphicsContext.h>
 #import "common.h"
 #import "WindowServer.h"
 
@@ -97,7 +100,7 @@ static NSString *_pathForPID(pid_t pid) {
     ready = NO;
     logLevel = WS_ERROR;
     envp = NULL;
-    curShell = LOGINWINDOW;
+    curShell = LOADING;
     curApp = nil;
     curWindow = nil;
     pthread_mutex_init(&renderLock, NULL);
@@ -372,6 +375,24 @@ static NSString *_pathForPID(pid_t pid) {
 
     while(curShell != NONE) {
         switch(curShell) {
+            case LOADING: {
+                lwPath = [[NSBundle mainBundle] pathForResource:@"LoadingWindow" ofType:@"app"];
+                lwPath = [[NSBundle bundleWithPath:lwPath] executablePath];
+                if(!lwPath) {
+                    NSLog(@"missing LoginWindow.app!");
+                    curShell = LOGINWINDOW;
+                    break;
+                }
+
+                pid_t pid = fork();
+                if(!pid) { // child
+                    setuid(65534); // nobody
+                    execle([lwPath UTF8String], [[lwPath lastPathComponent] UTF8String], NULL, NULL);
+                    exit(1);
+                } else
+                    waitpid(pid, &status, WEXITED);
+                break;
+            }
             case LOGINWINDOW:
                 // FIXME: can we use load_launchd_jobs_at_loginwindow_prompt() here?
                 lwPath = [[NSBundle mainBundle] pathForResource:@"LoginWindow" ofType:@"app"];

@@ -53,7 +53,7 @@ int main(int argc, const char *argv[]) {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
     int logLevel = WS_ERROR;
     srandomdev();
-    int curShell = LOGINWINDOW;
+    int curShell = LOADING;
     WindowServer *ws = nil;
 
     while(getopt(argc, argv, "Lxv") != -1) {
