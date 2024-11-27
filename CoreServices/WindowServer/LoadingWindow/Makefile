@@ -6,7 +6,7 @@ MK_WERROR=	no
 WARNS=	        1
 OBJCFLAGS= -fobjc-runtime=gnustep-2.0 -fobjc-nonfragile-abi -fPIC \
 	   -Wno-missing-method-return-type -Wno-macro-redefined -fobjc-arc
-CFLAGS+=	-g -O0 -I${.CURDIR} -I${MAKEOBJDIR} \
+CFLAGS+=	-O3 -I${.CURDIR} -I${MAKEOBJDIR} \
 		--sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin \
 		${OBJCFLAGS} -I${SRCTOP}/Frameworks -D__MACH__ \
 		-I${MAKEOBJDIR}/../SystemUIServer -D__RAVYNOS__ \

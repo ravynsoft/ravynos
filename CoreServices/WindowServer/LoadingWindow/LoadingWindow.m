@@ -60,7 +60,7 @@ NSTimer *timer;
     [self becomeMainWindow];
     [self makeKeyAndOrderFront:nil];
 
-    timer = [NSTimer scheduledTimerWithTimeInterval:0.05 target:self selector:nil
+    timer = [NSTimer scheduledTimerWithTimeInterval:0.05 target:nil selector:NULL
                                    userInfo:nil repeats:YES];
     [NSThread detachNewThreadSelector:@selector(watchForFile:) toTarget:self withObject:nil];
 }
