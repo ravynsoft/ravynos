@@ -389,8 +389,14 @@ static NSString *_pathForPID(pid_t pid) {
                     setuid(65534); // nobody
                     execle([lwPath UTF8String], [[lwPath lastPathComponent] UTF8String], NULL, NULL);
                     exit(1);
-                } else
-                    waitpid(pid, &status, WEXITED);
+                } else if(pid < 0) {
+                    NSLog(@"LoadingWindow fork() failed");
+                    break;
+                }
+
+                waitpid(pid, &status, WEXITED);
+                if(WIFEXITED(status) && WEXITSTATUS(status) == 0)
+                    curShell = LOGINWINDOW;
                 break;
             }
             case LOGINWINDOW:
