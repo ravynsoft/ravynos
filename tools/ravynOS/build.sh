@@ -24,6 +24,10 @@ install() {
         ${TMPLEGACY}/gmake -C plutil install
     fi
     make COMPILER_TYPE=clang -f Makefile.ravynOS install
+
+    if grep -q -v mach_load /boot/loader.conf; then
+        echo 'mach_load="YES"' >> /boot/loader.conf
+    fi
 }
 
 
