@@ -46,7 +46,7 @@ void *kqSvcLoop(void *arg) {
 } 
 
 static void crashHandler(int sig) {
-    longjmp(jb, SIGSEGV);
+    // longjmp(jb, SIGSEGV);
 }
 
 int main(int argc, const char *argv[]) {
@@ -94,7 +94,7 @@ int main(int argc, const char *argv[]) {
     switch(pid) {
         case -1: NSLog(@"fork: %s", strerror(errno)); exit(1);
         case 0: break; // let child continue
-        default: waitpid(pid, &status, 0); exit(status); // parent
+        default: NSLog(@"parent: waiting"); waitpid(pid, &status, 0); exit(status); // parent
     }
 
     setsid(); // Start a new session
