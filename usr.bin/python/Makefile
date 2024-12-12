@@ -14,7 +14,8 @@ NEWCFLAGS+=     -I${DESTDIR}/usr/include/apple/System -DHAVE_SYS_KERN_CONTROL_H
 
 all: ${PROG} install
 ${PROG}:
-	${.CURDIR}/configure --prefix=${PREFIX} --sysconfdir=/etc ${CONFIGURE_ARGS}
+	LD_LIBRARY_PATH=${OBJTOP}/tmp/usr/lib \
+		${.CURDIR}/configure --prefix=${PREFIX} --sysconfdir=/etc ${CONFIGURE_ARGS}
 	${MAKE} CFLAGS="${NEWCFLAGS}" LDFLAGS="-lthr"
 	${MAKE} DESTDIR=${DESTDIR} INSTALL="${DESTDIR}/legacy/bin/install" install
 
