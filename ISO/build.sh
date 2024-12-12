@@ -34,7 +34,7 @@ if [ -z "${workdir}" ]; then
 fi
 livecd="${workdir}/furybsd"
 if [ -z "${arch}" ] ; then
-  arch=amd64
+  arch="$(uname -m)"
 fi
 cache="${livecd}/${arch}/cache"
 base="${cache}/${version}/base"

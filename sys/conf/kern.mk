@@ -5,7 +5,7 @@
 CWARNFLAGS?=	-Wall -Wstrict-prototypes \
 		-Wmissing-prototypes -Wpointer-arith -Wcast-qual \
 		-Wundef -Wno-pointer-sign ${FORMAT_EXTENSIONS} \
-		-Wmissing-include-dirs -fdiagnostics-show-option \
+		-fdiagnostics-show-option \
 		-Wno-unknown-pragmas -Wswitch \
 		${CWARNEXTRA}
 #

@@ -1,8 +1,8 @@
 	.section .text
 
-	.global _objc_msgSendv
+	.global objc_msgSendv
 
-_objc_msgSendv:
+objc_msgSendv:
 	// Prologue
 	stp    x29, x30, [sp, #-16]!    // Save frame pointer and link register
 	mov    x29, sp                   // Set up frame pointer
@@ -21,7 +21,7 @@ _objc_msgSendv:
 	mov    x19, x2                   // Assuming the receiver object pointer is passed in x2
 
 	// Call objc_msg_lookup() to get the IMP (method implementation pointer)
-	bl     _objc_msg_lookup
+	bl     objc_msg_lookup
 
 	// Restore callee-saved registers
 	ldp    x19, x20, [sp, #0]        // Restore x19 and x20
