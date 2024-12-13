@@ -69,7 +69,7 @@
 	mov    x9, x0                         // IMP -> x9
 	ldp    x0, x1, [sp, #16]              // Reload spilled argument registers
 	ldp    x2, x3, [sp, #32]
-	ldp    x4, x5, [sp, #64]
+	ldp    x4, x5, [sp, #48]
 	ldp    x6, x7, [sp, #64]
 	ldp    q0, q1, [sp, #80]
 	ldp    q2, q3, [sp, #112]
