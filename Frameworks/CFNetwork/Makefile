@@ -14,7 +14,7 @@ INCS= \
 	CFSocketStream.h
 
 RESOURCES=Info.plist English.lproj
-CFLAGS+= ${FMWK_CFLAGS} -I${SRCTOP}/Frameworks -I../Foundation/Headers \
+CFLAGS+= ${FMWK_CFLAGS} -I${SRCTOP}/Frameworks -I../Foundation/Headers -I${SRCTOP}/gnu/lib/libobjc2 \
 	-F${BUILDROOT}/System/Library/Frameworks -framework CoreFoundation
 LDFLAGS+=-L${BUILDROOT}/System/Library/Frameworks/CoreFoundation.framework/Versions/Current -lCoreFoundation -Wl,-R/System/Library/Frameworks/CoreFoundation.framework/Versions/A
 

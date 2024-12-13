@@ -19,7 +19,7 @@ OBJCFLAGS= -fobjc-runtime=gnustep-2.0 -fobjc-nonfragile-abi -fPIC \
 	   -Wno-missing-method-return-type -Wno-macro-redefined
 CFLAGS+=	-g -fobjc-arc ${OBJCFLAGS} -D__RAVYNOS__ -D__MACH__ \
 		--sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin \
-		-B${OBJTOP}/tmp/legacy/bin \
+		-B${OBJTOP}/tmp/legacy/bin -I${SRCTOP}/gnu/lib/libobjc2 \
 		-I${.CURDIR} -I${MAKEOBJDIR} -I${SRCTOP}/include \
 		-I${SRCTOP}/Frameworks/AppKit/Headers -I${.CURDIR}/../.. \
 		-I${TOPDIR}/CoreServices -I${OBJTOP}/Frameworks/Foundation/Headers \
@@ -33,7 +33,7 @@ CFLAGS+=	-g -fobjc-arc ${OBJCFLAGS} -D__RAVYNOS__ -D__MACH__ \
 		-I${OBJTOP}/Frameworks/QuartzCore/QuartzCore.framework/Headers \
 		-I${OBJTOP}/Frameworks/AppKit \
 		-I${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework/Headers 
-LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' \
+LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' -L${OBJTOP}/tmp/usr/lib \
 		-L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
 		-L${OBJTOP}/Frameworks/CoreGraphics/CoreGraphics.framework \
 		-L${OBJTOP}/Frameworks/AppKit/AppKit.framework \

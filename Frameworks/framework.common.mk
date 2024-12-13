@@ -4,7 +4,8 @@ OPTIMIZE= -O0 -g
 STD_DEFS= -D__RAVYNOS__ -DPLATFORM_IS_POSIX -DGCC_RUNTIME_3 \
 	  -DPLATFORM_USES_BSD_SOCKETS -D__MACH__  -D__WSRPC
 OBJCFLAGS= -fobjc-runtime=gnustep-2.0 -fobjc-nonfragile-abi -fPIC \
-	   -Wno-missing-method-return-type -Wno-macro-redefined
+	   -Wno-missing-method-return-type -Wno-macro-redefined \
+	   -I${SRCTOP}/gnu/lib/libobjc2
 FMWK_CFLAGS := ${SYSROOT} ${OPTIMIZE} ${STD_DEFS} \
 	 ${OBJCFLAGS} -I${SRCTOP}/Frameworks \
 	 -I${SRCTOP}/sys -I${SRCTOP}/include -I${OBJTOP}/tmp/usr/include
