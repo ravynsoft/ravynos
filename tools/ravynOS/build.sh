@@ -12,8 +12,13 @@ export PREFIX
 
 install() {
     cd ${CIRRUS_WORKING_DIR}
-    make -j${CORES} MALLOC_PRODUCTION=1 WITHOUT_CLEAN=1 MK_LIB32=no COMPILER_TYPE=clang installworld
-    make -j${CORES} MK_LIB32=no KERNCONF=RAVYN COMPILER_TYPE=clang installkernel
+    make -j${CORES} MALLOC_PRODUCTION=1 WITHOUT_CLEAN=1 \
+	MK_LIB32=no MK_LLVM_TARGET_X86=yes \
+	MK_LLVM_TARGET_ARM=yes MK_LLVM_TARGET_AARCH64=yes \
+	MK_LLVM_TARGET_RISCV=no MK_LLVM_TARGET_POWERPC=no \
+	MK_LLVM_TARGET_MIPS=no MK_LLVM_TARGET_BPF=no \
+	COMPILER_TYPE=clang installworld
+    make -j${CORES} MK_LIB32=no KERNCONF=RAVYN WITHOUT_CLEAN=1 COMPILER_TYPE=clang installkernel
     if [ -d drm-kmod ]; then
         COMPILER_TYPE=clang make -C drm-kmod install
     fi
@@ -24,6 +29,21 @@ install() {
         ${TMPLEGACY}/gmake -C plutil install
     fi
     make COMPILER_TYPE=clang -f Makefile.ravynOS install
+
+    while read -r LINE; do
+        option="$(echo "$LINE" | cut -d= -f1)"
+        if grep -q -v -E "^${option}=" /boot/loader.conf; then
+            echo "$LINE" >> /boot/loader.conf
+        fi
+    done <<END
+        cryptodev_load="YES"
+        zfs_load="YES"
+        beastie_disable="YES"
+        autoboot_delay="3"
+        vfs.root.mountfrom.options="rw"
+        vfs.root.mountfrom="zfs:ravynOS/ROOT/default"
+END
+
 }
 
 
