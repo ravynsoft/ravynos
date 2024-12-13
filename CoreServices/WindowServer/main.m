@@ -46,7 +46,7 @@ void *kqSvcLoop(void *arg) {
 } 
 
 static void crashHandler(int sig) {
-    // longjmp(jb, SIGSEGV);
+    longjmp(jb, SIGSEGV);
 }
 
 int main(int argc, const char *argv[]) {
@@ -133,7 +133,7 @@ int main(int argc, const char *argv[]) {
 
     if(setjmp(jb) != 0)
         goto __finish; // sighandler must have caught something - get out
-    signal(SIGSEGV, crashHandler);
+    //signal(SIGSEGV, crashHandler);
 
     if(ioctl(wsfd, VT_ACTIVATE, vt) < 0) {
         NSLog(@"Cannot activate terminal: %s", strerror(errno));
