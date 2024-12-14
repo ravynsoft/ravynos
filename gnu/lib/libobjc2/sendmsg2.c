@@ -97,6 +97,7 @@ struct objc_slot2 *objc_msg_lookup_internal(id *receiver, SEL selector, uint64_t
 	}
 	Class class = classForObject((*receiver));
 
+#if notyet
 	/* Sometimes, we can get here from a MachO object with `selector`
 	 * pointing to a method name str in the executable instead of the
 	 * SEL we expect. Try to detect this and fake it
@@ -104,12 +105,14 @@ struct objc_slot2 *objc_msg_lookup_internal(id *receiver, SEL selector, uint64_t
 	uint64_t name = ((uint64_t)selector->name);
 	uint8_t bits = 0;
 	int fail = 0;
+
 	for(uint8_t byte = (name & (0xFF << bits)); bits < 64; bits += 8) {
 	    if(!isalnum(byte) && byte != '_' && byte !=':' && byte != 0) {
 		fail = 1;
 		break;
 	    }
 	}
+
 	if (!fail) {
 	    char *p = (char *)selector;
 	    while(*p)
@@ -122,6 +125,7 @@ struct objc_slot2 *objc_msg_lookup_internal(id *receiver, SEL selector, uint64_t
 		selector = tmp;
 	    }
 	}
+#endif
 
 retry:;
 	struct objc_slot2 * result = objc_dtable_lookup(class->dtable, selector->index);
