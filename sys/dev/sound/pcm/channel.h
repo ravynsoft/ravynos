@@ -117,6 +117,8 @@ struct pcm_channel {
 	 * lock.
 	 */
 	unsigned int inprog;
+	/* Incrememnt/decrement around cv_timedwait_sig() in chn_sleep(). */
+	unsigned int sleeping;
 	/**
 	 * Special channel operations should examine @c inprog after acquiring
 	 * lock.  If zero, operations may continue.  Else, thread should
@@ -166,8 +168,6 @@ struct pcm_channel {
 
 	int16_t volume[SND_VOL_C_MAX][SND_CHN_T_VOL_MAX];
   	int8_t muted[SND_VOL_C_MAX][SND_CHN_T_VOL_MAX];
-
-	void *data1, *data2;
 };
 
 #define CHN_HEAD(x, y)			&(x)->y.head
@@ -244,11 +244,6 @@ struct pcm_channel {
 	(x)->parentchannel->bufhard != NULL) ?				\
 	(x)->parentchannel->bufhard : (y))
 
-#define CHN_BROADCAST(x)	do {					\
-	if ((x)->cv_waiters != 0)					\
-		cv_broadcastpri(x, PRIBIO);				\
-} while (0)
-
 #include "channel_if.h"
 
 int chn_reinit(struct pcm_channel *c);
@@ -322,6 +317,8 @@ int chn_getpeaks(struct pcm_channel *c, int *lpeak, int *rpeak);
 #define CHN_LOCKASSERT(c)	mtx_assert((c)->lock, MA_OWNED)
 #define CHN_UNLOCKASSERT(c)	mtx_assert((c)->lock, MA_NOTOWNED)
 
+#define CHN_BROADCAST(x)	cv_broadcastpri(x, PRIBIO)
+
 int snd_fmtvalid(uint32_t fmt, uint32_t *fmtlist);
 
 uint32_t snd_str2afmt(const char *);
@@ -356,7 +353,7 @@ enum {
 #define CHN_F_RUNNING		0x00000004  /* dma is running */
 #define CHN_F_TRIGGERED		0x00000008
 #define CHN_F_NOTRIGGER		0x00000010
-#define CHN_F_SLEEPING		0x00000020
+/* unused			0x00000020 */
 
 #define CHN_F_NBIO              0x00000040  /* do non-blocking i/o */
 #define CHN_F_MMAP		0x00000080  /* has been mmap()ed */
@@ -364,7 +361,7 @@ enum {
 #define CHN_F_BUSY              0x00000100  /* has been opened 	*/
 #define CHN_F_DIRTY		0x00000200  /* need re-config */
 #define CHN_F_DEAD		0x00000400  /* too many errors, dead, mdk */
-#define CHN_F_SILENCE		0x00000800  /* silence, nil, null, yada */
+/* unused			0x00000800 */
 
 #define	CHN_F_HAS_SIZE		0x00001000  /* user set block size */
 #define CHN_F_HAS_VCHAN		0x00002000  /* vchan master */
@@ -384,13 +381,13 @@ enum {
 				"\003RUNNING"				\
 				"\004TRIGGERED"				\
 				"\005NOTRIGGER"				\
-				"\006SLEEPING"				\
+				/* \006 */				\
 				"\007NBIO"				\
 				"\010MMAP"				\
 				"\011BUSY"				\
 				"\012DIRTY"				\
 				"\013DEAD"				\
-				"\014SILENCE"				\
+				/* \014 */				\
 				"\015HAS_SIZE"				\
 				"\016HAS_VCHAN"				\
 				"\017VCHAN_PASSTHROUGH"			\

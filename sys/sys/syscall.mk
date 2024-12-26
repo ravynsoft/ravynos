@@ -201,7 +201,6 @@ MIASM =  \
 	aio_suspend.o \
 	aio_cancel.o \
 	aio_error.o \
-	yield.o \
 	mlockall.o \
 	munlockall.o \
 	__getcwd.o \
@@ -442,6 +441,8 @@ MIASM =  \
 	timerfd_settime.o \
 	kcmp.o \
 	getrlimitusage.o \
+	fchroot.o \
+	setcred.o \
 	_kernelrpc_mach_vm_allocate_trap.o \
 	_kernelrpc_mach_vm_deallocate_trap.o \
 	_kernelrpc_mach_vm_protect_trap.o \
@@ -488,4 +489,4 @@ MIASM =  \
 	mk_timer_create.o \
 	mk_timer_destroy.o \
 	mk_timer_arm.o \
-	mk_timer_cancel.o
+	mk_timer_cancel.o \

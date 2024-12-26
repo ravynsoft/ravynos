@@ -137,7 +137,7 @@ dsp_destroy_dev(device_t dev)
 	struct snddev_info *d;
 
 	d = device_get_softc(dev);
-	destroy_dev_sched(d->dsp_dev);
+	destroy_dev(d->dsp_dev);
 }
 
 static void
@@ -177,7 +177,7 @@ dsp_close(void *data)
 
 	d = priv->sc;
 	/* At this point pcm_unregister() will destroy all channels anyway. */
-	if (!DSP_REGISTERED(d) || PCM_DETACHING(d))
+	if (!DSP_REGISTERED(d))
 		goto skip;
 
 	PCM_GIANT_ENTER(d);
@@ -264,7 +264,7 @@ dsp_open(struct cdev *i_dev, int flags, int mode, struct thread *td)
 		return (ENODEV);
 
 	d = i_dev->si_drv1;
-	if (!DSP_REGISTERED(d) || PCM_DETACHING(d))
+	if (!DSP_REGISTERED(d))
 		return (EBADF);
 
 	priv = malloc(sizeof(*priv), M_DEVBUF, M_WAITOK | M_ZERO);
@@ -445,7 +445,7 @@ dsp_io_ops(struct dsp_cdevpriv *priv, struct uio *buf)
 	    ("%s(): io train wreck!", __func__));
 
 	d = priv->sc;
-	if (!DSP_REGISTERED(d) || PCM_DETACHING(d))
+	if (!DSP_REGISTERED(d))
 		return (EBADF);
 
 	PCM_GIANT_ENTER(d);
@@ -664,7 +664,7 @@ dsp_ioctl(struct cdev *i_dev, u_long cmd, caddr_t arg, int mode,
 		return (err);
 
 	d = priv->sc;
-	if (!DSP_REGISTERED(d) || PCM_DETACHING(d))
+	if (!DSP_REGISTERED(d))
 		return (EBADF);
 
 	PCM_GIANT_ENTER(d);
@@ -1257,7 +1257,6 @@ dsp_ioctl(struct cdev *i_dev, u_long cmd, caddr_t arg, int mode,
 	        		struct snd_dbuf *bs = wrch->bufsoft;
 
 				CHN_LOCK(wrch);
-				/* XXX abusive DMA update: chn_wrupdate(wrch); */
 				a->bytes = sndbuf_getfree(bs);
 	        		a->fragments = a->bytes / sndbuf_getblksz(bs);
 	        		a->fragstotal = sndbuf_getblkcnt(bs);
@@ -1275,7 +1274,6 @@ dsp_ioctl(struct cdev *i_dev, u_long cmd, caddr_t arg, int mode,
 	        		struct snd_dbuf *bs = rdch->bufsoft;
 
 				CHN_LOCK(rdch);
-				/* XXX abusive DMA update: chn_rdupdate(rdch); */
 	        		a->bytes = sndbuf_gettotal(bs);
 	        		a->blocks = sndbuf_getblocks(bs) - rdch->blocks;
 	        		a->ptr = sndbuf_getfreeptr(bs);
@@ -1293,7 +1291,6 @@ dsp_ioctl(struct cdev *i_dev, u_long cmd, caddr_t arg, int mode,
 	        		struct snd_dbuf *bs = wrch->bufsoft;
 
 				CHN_LOCK(wrch);
-				/* XXX abusive DMA update: chn_wrupdate(wrch); */
 	        		a->bytes = sndbuf_gettotal(bs);
 	        		a->blocks = sndbuf_getblocks(bs) - wrch->blocks;
 	        		a->ptr = sndbuf_getreadyptr(bs);
@@ -1385,7 +1382,6 @@ dsp_ioctl(struct cdev *i_dev, u_long cmd, caddr_t arg, int mode,
 	        	struct snd_dbuf *bs = wrch->bufsoft;
 
 			CHN_LOCK(wrch);
-			/* XXX abusive DMA update: chn_wrupdate(wrch); */
 			*arg_i = sndbuf_getready(bs);
 			CHN_UNLOCK(wrch);
 		} else
@@ -1582,14 +1578,8 @@ dsp_ioctl(struct cdev *i_dev, u_long cmd, caddr_t arg, int mode,
 
 			CHN_LOCK(chn);
 			bs = chn->bufsoft;
-#if 0
-			tmp = (sndbuf_getsize(b) + chn_getptr(chn) - sndbuf_gethwptr(b)) % sndbuf_getsize(b);
-			oc->samples = (sndbuf_gettotal(b) + tmp) / sndbuf_getalign(b);
-			oc->fifo_samples = (sndbuf_getready(b) - tmp) / sndbuf_getalign(b);
-#else
 			oc->samples = sndbuf_gettotal(bs) / sndbuf_getalign(bs);
 			oc->fifo_samples = sndbuf_getready(bs) / sndbuf_getalign(bs);
-#endif
 			CHN_UNLOCK(chn);
 		}
 		break;
@@ -1738,18 +1728,6 @@ dsp_ioctl(struct cdev *i_dev, u_long cmd, caddr_t arg, int mode,
 	case SNDCTL_SETNAME:
 		ret = dsp_oss_setname(wrch, rdch, (oss_longname_t *)arg);
 		break;
-#if 0
-	/**
-	 * @note The S/PDIF interface ioctls, @c SNDCTL_DSP_READCTL and
-	 * @c SNDCTL_DSP_WRITECTL have been omitted at the suggestion of
-	 * 4Front Technologies.
-	 */
-	case SNDCTL_DSP_READCTL:
-	case SNDCTL_DSP_WRITECTL:
-		ret = EINVAL;
-		break;
-#endif	/* !0 (explicitly omitted ioctls) */
-
 #endif	/* !OSSV4_EXPERIMENT */
     	case SNDCTL_DSP_MAPINBUF:
     	case SNDCTL_DSP_MAPOUTBUF:
@@ -1783,7 +1761,7 @@ dsp_poll(struct cdev *i_dev, int events, struct thread *td)
 	if ((err = devfs_get_cdevpriv((void **)&priv)) != 0)
 		return (err);
 	d = priv->sc;
-	if (!DSP_REGISTERED(d) || PCM_DETACHING(d)) {
+	if (!DSP_REGISTERED(d)) {
 		/* XXX many clients don't understand POLLNVAL */
 		return (events & (POLLHUP | POLLPRI | POLLIN |
 		    POLLRDNORM | POLLOUT | POLLWRNORM));
@@ -1865,7 +1843,7 @@ dsp_mmap_single(struct cdev *i_dev, vm_ooffset_t *offset,
 	if ((err = devfs_get_cdevpriv((void **)&priv)) != 0)
 		return (err);
 	d = priv->sc;
-	if (!DSP_REGISTERED(d) || PCM_DETACHING(d))
+	if (!DSP_REGISTERED(d))
 		return (EINVAL);
 
 	PCM_GIANT_ENTER(d);

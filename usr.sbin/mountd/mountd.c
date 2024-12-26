@@ -57,6 +57,7 @@
 
 #include <arpa/inet.h>
 
+#include <assert.h>
 #include <ctype.h>
 #include <err.h>
 #include <errno.h>
@@ -245,7 +246,7 @@ static void	huphandler(int sig);
 static int	makemask(struct sockaddr_storage *ssp, int bitlen);
 static void	mntsrv(struct svc_req *, SVCXPRT *);
 static void	nextfield(char **, char **);
-static void	out_of_mem(void);
+static void	out_of_mem(void) __dead2;
 static void	parsecred(char *, struct expcred *);
 static int	parsesec(char *, struct exportlist *);
 static int	put_exlist(struct dirlist *, XDR *, struct dirlist *,
@@ -263,6 +264,8 @@ static int	xdr_fhs(XDR *, caddr_t);
 static int	xdr_mlist(XDR *, caddr_t);
 static void	terminate(int);
 static void	cp_cred(struct expcred *, struct expcred *);
+
+static gid_t	nogroup();
 
 #define	EXPHASH(f)	(fnv_32_buf((f), sizeof(fsid_t), 0) % exphashsize)
 static struct exportlisthead *exphead = NULL;
@@ -300,6 +303,11 @@ static int has_publicfh = 0;
 static int has_set_publicfh = 0;
 
 static struct pidfh *pfh = NULL;
+
+/* Temporary storage for credentials' groups. */
+static long tngroups_max;
+static gid_t *tmp_groups = NULL;
+
 /* Bits for opt_flags above */
 #define	OP_MAPROOT	0x01
 #define	OP_MAPALL	0x02
@@ -432,6 +440,18 @@ main(int argc, char **argv)
 		warn("cannot open or create pidfile");
 	}
 
+	openlog("mountd", LOG_PID, LOG_DAEMON);
+
+	/* How many groups do we support? */
+	tngroups_max = sysconf(_SC_NGROUPS_MAX);
+	if (tngroups_max == -1)
+		tngroups_max = NGROUPS_MAX;
+	/* Add space for the effective GID. */
+	++tngroups_max;
+	tmp_groups = malloc(tngroups_max);
+	if (tmp_groups == NULL)
+		out_of_mem();
+
 	s = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	if (s < 0)
 		have_v6 = 0;
@@ -537,7 +557,6 @@ main(int argc, char **argv)
 		exnames = argv;
 	else
 		exnames = exnames_default;
-	openlog("mountd", LOG_PID, LOG_DAEMON);
 	if (debug)
 		warnx("getting export list");
 	get_exportlist(0);
@@ -1569,9 +1588,9 @@ get_exportlist_one(int passno)
 	int unvis_len;
 
 	v4root_phase = 0;
-	anon.cr_groups = NULL;
 	dirhead = (struct dirlist *)NULL;
 	unvis_dir[0] = '\0';
+
 	while (get_line()) {
 		if (debug)
 			warnx("got line %s", line);
@@ -1584,10 +1603,10 @@ get_exportlist_one(int passno)
 		 * Set defaults.
 		 */
 		has_host = FALSE;
-		anon.cr_groups = anon.cr_smallgrps;
 		anon.cr_uid = UID_NOBODY;
 		anon.cr_ngroups = 1;
-		anon.cr_groups[0] = GID_NOGROUP;
+		anon.cr_groups = tmp_groups;
+		anon.cr_groups[0] = nogroup();
 		exflags = MNT_EXPORTED;
 		got_nondir = 0;
 		opt_flags = 0;
@@ -1915,10 +1934,6 @@ nextline:
 		if (dirhead) {
 			free_dir(dirhead);
 			dirhead = (struct dirlist *)NULL;
-		}
-		if (anon.cr_groups != anon.cr_smallgrps) {
-			free(anon.cr_groups);
-			anon.cr_groups = NULL;
 		}
 	}
 }
@@ -3185,11 +3200,11 @@ do_mount(struct exportlist *ep, struct grouplist *grp, uint64_t exflags,
 	eap->ex_flags = exflags;
 	eap->ex_uid = anoncrp->cr_uid;
 	eap->ex_ngroups = anoncrp->cr_ngroups;
-	if (eap->ex_ngroups > 0) {
-		eap->ex_groups = malloc(eap->ex_ngroups * sizeof(gid_t));
-		memcpy(eap->ex_groups, anoncrp->cr_groups, eap->ex_ngroups *
-		    sizeof(gid_t));
-	}
+	/*
+	 * Use the memory pointed to by 'anoncrp', as it outlives 'eap' which is
+	 * local to this function.
+	 */
+	eap->ex_groups = anoncrp->cr_groups;
 	LOGDEBUG("do_mount exflags=0x%jx", (uintmax_t)exflags);
 	eap->ex_indexfile = ep->ex_indexfile;
 	if (grp->gr_type == GT_HOST)
@@ -3379,7 +3394,6 @@ skip:
 	if (cp)
 		*cp = savedc;
 error_exit:
-	free(eap->ex_groups);
 	/* free strings allocated by strdup() in getmntopts.c */
 	if (iov != NULL) {
 		free(iov[0].iov_base); /* fstype */
@@ -3607,84 +3621,64 @@ get_line(void)
  * Parse a description of a credential.
  */
 static void
-parsecred(char *namelist, struct expcred *cr)
+parsecred(char *names, struct expcred *cr)
 {
 	char *name;
-	int inpos;
-	char *names;
 	struct passwd *pw;
-	struct group *gr;
-	gid_t groups[NGROUPS_MAX + 1];
-	int ngroups;
 	unsigned long name_ul;
 	char *end = NULL;
 
+	assert(cr->cr_groups == tmp_groups);
+
 	/*
-	 * Set up the unprivileged user.
+	 * Parse the user and if possible get its password table entry.
+	 * 'cr_uid' is filled when exiting this block.
 	 */
-	cr->cr_groups = cr->cr_smallgrps;
-	cr->cr_uid = UID_NOBODY;
-	cr->cr_groups[0] = GID_NOGROUP;
-	cr->cr_ngroups = 1;
-	/*
-	 * Get the user's password table entry.
-	 */
-	names = namelist;
 	name = strsep_quote(&names, ":");
-	/* Bug?  name could be NULL here */
 	name_ul = strtoul(name, &end, 10);
 	if (*end != '\0' || end == name)
 		pw = getpwnam(name);
 	else
 		pw = getpwuid((uid_t)name_ul);
-	/*
-	 * Credentials specified as those of a user.
-	 */
-	if (names == NULL) {
-		if (pw == NULL) {
-			syslog(LOG_ERR, "unknown user: %s", name);
-			return;
-		}
-		cr->cr_uid = pw->pw_uid;
-		ngroups = NGROUPS_MAX + 1;
-		if (getgrouplist(pw->pw_name, pw->pw_gid, groups, &ngroups)) {
-			syslog(LOG_ERR, "too many groups");
-			ngroups = NGROUPS_MAX + 1;
-		}
-
-		/*
-		 * Compress out duplicate.
-		 */
-		if (ngroups > 1 && groups[0] == groups[1]) {
-			ngroups--;
-			inpos = 2;
-		} else {
-			inpos = 1;
-		}
-		if (ngroups > NGROUPS_MAX)
-			ngroups = NGROUPS_MAX;
-		if (ngroups > SMALLNGROUPS)
-			cr->cr_groups = malloc(ngroups * sizeof(gid_t));
-		cr->cr_ngroups = ngroups;
-		cr->cr_groups[0] = groups[0];
-		memcpy(&cr->cr_groups[1], &groups[inpos], (ngroups - 1) *
-		    sizeof(gid_t));
-		return;
-	}
-	/*
-	 * Explicit credential specified as a colon separated list:
-	 *	uid:gid:gid:...
-	 */
 	if (pw != NULL) {
 		cr->cr_uid = pw->pw_uid;
 	} else if (*end != '\0' || end == name) {
 		syslog(LOG_ERR, "unknown user: %s", name);
-		return;
+		cr->cr_uid = UID_NOBODY;
+		goto nogroup;
 	} else {
 		cr->cr_uid = name_ul;
 	}
+
+	/*
+	 * Credentials specified as those of a user (i.e., use its associated
+	 * groups as specified in the password database).
+	 */
+	if (names == NULL) {
+		if (pw == NULL) {
+			syslog(LOG_ERR, "no passwd entry for user: %s, "
+			    "can't determine groups", name);
+			goto nogroup;
+		}
+
+		cr->cr_ngroups = tngroups_max;
+		if (getgrouplist(pw->pw_name, pw->pw_gid,
+		    cr->cr_groups, &cr->cr_ngroups) != 0) {
+			syslog(LOG_ERR, "too many groups");
+			cr->cr_ngroups = tngroups_max;
+		}
+		return;
+	}
+
+	/*
+	 * Explicit credentials specified as a colon separated list:
+	 *	uid:gid:gid:...
+	 */
 	cr->cr_ngroups = 0;
-	while (names != NULL && *names != '\0' && cr->cr_ngroups < NGROUPS_MAX) {
+	while (names != NULL && *names != '\0') {
+		const struct group *gr;
+		gid_t group;
+
 		name = strsep_quote(&names, ":");
 		name_ul = strtoul(name, &end, 10);
 		if (*end != '\0' || end == name) {
@@ -3692,16 +3686,23 @@ parsecred(char *namelist, struct expcred *cr)
 				syslog(LOG_ERR, "unknown group: %s", name);
 				continue;
 			}
-			groups[cr->cr_ngroups++] = gr->gr_gid;
+			group = gr->gr_gid;
 		} else {
-			groups[cr->cr_ngroups++] = name_ul;
+			group = name_ul;
 		}
+		if (cr->cr_ngroups == tngroups_max) {
+			syslog(LOG_ERR, "too many groups");
+			break;
+		}
+		cr->cr_groups[cr->cr_ngroups++] = group;
 	}
-	if (names != NULL && *names != '\0' && cr->cr_ngroups == NGROUPS_MAX)
-		syslog(LOG_ERR, "too many groups");
-	if (cr->cr_ngroups > SMALLNGROUPS)
-		cr->cr_groups = malloc(cr->cr_ngroups * sizeof(gid_t));
-	memcpy(cr->cr_groups, groups, cr->cr_ngroups * sizeof(gid_t));
+	if (cr->cr_ngroups == 0)
+		goto nogroup;
+	return;
+
+nogroup:
+	cr->cr_ngroups = 1;
+	cr->cr_groups[0] = nogroup();
 }
 
 #define	STRSIZ	(MNTNAMLEN+MNTPATHLEN+50)
@@ -4065,6 +4066,7 @@ huphandler(int sig __unused)
 static void
 terminate(int sig __unused)
 {
+	free(tmp_groups);
 	pidfile_remove(pfh);
 	rpcb_unset(MOUNTPROG, MOUNTVERS, NULL);
 	rpcb_unset(MOUNTPROG, MOUNTVERS3, NULL);
@@ -4083,4 +4085,20 @@ cp_cred(struct expcred *outcr, struct expcred *incr)
 		outcr->cr_groups = outcr->cr_smallgrps;
 	memcpy(outcr->cr_groups, incr->cr_groups, incr->cr_ngroups *
 	    sizeof(gid_t));
+}
+
+static gid_t
+nogroup()
+{
+	static gid_t nogroup = 0;	/* 0 means unset. */
+
+	if (nogroup == 0) {
+		const struct group *gr = getgrnam("nogroup");
+
+		if (gr != NULL && gr->gr_gid != 0)
+			nogroup = gr->gr_gid;
+		else
+			nogroup = GID_NOGROUP;
+	}
+	return (nogroup);
 }

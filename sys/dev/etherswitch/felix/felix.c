@@ -463,8 +463,8 @@ felix_attach(device_t dev)
 	FELIX_UNLOCK(sc);
 
 	/* Allow etherswitch to attach as our child. */
-	bus_generic_probe(dev);
-	bus_generic_attach(dev);
+	bus_identify_children(dev);
+	bus_attach_children(dev);
 
 	return (0);
 

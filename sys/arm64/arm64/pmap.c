@@ -1309,6 +1309,8 @@ pmap_bootstrap(vm_size_t kernlen)
 	vm_paddr_t start_pa, pa;
 	uint64_t tcr;
 
+	pmap_cpu_init();
+
 	tcr = READ_SPECIALREG(tcr_el1);
 
 	/* Verify that the ASID is set through TTBR0. */
@@ -1620,6 +1622,39 @@ pmap_init_pv_table(void)
 				pvd--;
 			}
 		}
+	}
+}
+
+void
+pmap_cpu_init(void)
+{
+	uint64_t id_aa64mmfr1, tcr;
+	bool enable_dbm;
+
+	enable_dbm = false;
+
+	/* Enable HAFDBS if supported */
+	id_aa64mmfr1 = READ_SPECIALREG(id_aa64mmfr1_el1);
+	if (ID_AA64MMFR1_HAFDBS_VAL(id_aa64mmfr1) >= ID_AA64MMFR1_HAFDBS_AF_DBS)
+		enable_dbm = true;
+	/* Disable on Cortex-A55 for erratum 1024718 - all revisions */
+	if (CPU_MATCH(CPU_IMPL_MASK | CPU_PART_MASK, CPU_IMPL_ARM,
+	    CPU_PART_CORTEX_A55, 0, 0))
+		enable_dbm = false;
+	/* Disable on Cortex-A510 for erratum 2051678 - r0p0 to r0p2 */
+	else if (CPU_MATCH(CPU_IMPL_MASK | CPU_PART_MASK | CPU_VAR_MASK,
+	    CPU_IMPL_ARM, CPU_PART_CORTEX_A510, 0, 0))
+		if (CPU_REV(PCPU_GET(midr)) < 3)
+			enable_dbm = false;
+	if (enable_dbm) {
+		tcr = READ_SPECIALREG(tcr_el1) | TCR_HD;
+		WRITE_SPECIALREG(tcr_el1, tcr);
+		isb();
+		/* Flush the local TLB for the TCR_HD flag change */
+		dsb(nshst);
+		__asm __volatile("tlbi vmalle1");
+		dsb(nsh);
+		isb();
 	}
 }
 

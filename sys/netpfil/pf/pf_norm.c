@@ -42,6 +42,7 @@
 #include <sys/socket.h>
 
 #include <net/if.h>
+#include <net/if_var.h>
 #include <net/vnet.h>
 #include <net/pfvar.h>
 #include <net/if_pflog.h>
@@ -49,6 +50,8 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/ip_var.h>
+#include <netinet6/in6_var.h>
+#include <netinet6/nd6.h>
 #include <netinet6/ip6_var.h>
 #include <netinet6/scope6_var.h>
 #include <netinet/tcp.h>
@@ -98,13 +101,6 @@ struct pf_fragment {
 	uint16_t	fr_maxlen;	/* maximum length of single fragment */
 	u_int16_t	fr_holes;	/* number of holes in the queue */
 	TAILQ_HEAD(pf_fragq, pf_frent) fr_queue;
-};
-
-struct pf_fragment_tag {
-	uint16_t	ft_hdrlen;	/* header length of reassembled pkt */
-	uint16_t	ft_extoff;	/* last extension header offset or 0 */
-	uint16_t	ft_maxlen;	/* maximum fragment payload length */
-	uint32_t	ft_id;		/* fragment id */
 };
 
 VNET_DEFINE_STATIC(struct mtx, pf_frag_mtx);
@@ -747,8 +743,12 @@ pf_reassemble(struct mbuf **m0, int dir, u_short *reason)
 	struct ip		*ip = mtod(m, struct ip *);
 	struct pf_frent		*frent;
 	struct pf_fragment	*frag;
+	struct m_tag		*mtag;
+	struct pf_fragment_tag	*ftag;
 	struct pf_fragment_cmp	key;
 	uint16_t		total, hdrlen;
+	uint32_t		 frag_id;
+	uint16_t		 maxlen;
 
 	/* Get an entry for the fragment queue */
 	if ((frent = pf_create_fragment(reason)) == NULL)
@@ -781,6 +781,8 @@ pf_reassemble(struct mbuf **m0, int dir, u_short *reason)
 		TAILQ_LAST(&frag->fr_queue, pf_fragq)->fe_len;
 	hdrlen = frent->fe_hdrlen;
 
+	maxlen = frag->fr_maxlen;
+	frag_id = frag->fr_id;
 	m = *m0 = pf_join_fragment(frag);
 	frag = NULL;
 
@@ -791,6 +793,19 @@ pf_reassemble(struct mbuf **m0, int dir, u_short *reason)
 		m = *m0;
 		m->m_pkthdr.len = plen;
 	}
+
+	if ((mtag = m_tag_get(PACKET_TAG_PF_REASSEMBLED,
+	    sizeof(struct pf_fragment_tag), M_NOWAIT)) == NULL) {
+		REASON_SET(reason, PFRES_SHORT);
+		/* PF_DROP requires a valid mbuf *m0 in pf_test() */
+		return (PF_DROP);
+	}
+	ftag = (struct pf_fragment_tag *)(mtag + 1);
+	ftag->ft_hdrlen = hdrlen;
+	ftag->ft_extoff = 0;
+	ftag->ft_maxlen = maxlen;
+	ftag->ft_id = frag_id;
+	m_tag_prepend(m, mtag);
 
 	ip = mtod(m, struct ip *);
 	ip->ip_sum = pf_cksum_fixup(ip->ip_sum, ip->ip_len,
@@ -958,7 +973,7 @@ pf_max_frag_size(struct mbuf *m)
 
 int
 pf_refragment6(struct ifnet *ifp, struct mbuf **m0, struct m_tag *mtag,
-    bool forward)
+    struct ifnet *rt, bool forward)
 {
 	struct mbuf		*m = *m0, *t;
 	struct ip6_hdr		*hdr;
@@ -1029,16 +1044,27 @@ pf_refragment6(struct ifnet *ifp, struct mbuf **m0, struct m_tag *mtag,
 		m->m_flags |= M_SKIP_FIREWALL;
 		memset(&pd, 0, sizeof(pd));
 		pd.pf_mtag = pf_find_mtag(m);
-		if (error == 0)
-			if (forward) {
-				MPASS(m->m_pkthdr.rcvif != NULL);
-				ip6_forward(m, 0);
-			} else {
-				(void)ip6_output(m, NULL, NULL, 0, NULL, NULL,
-				    NULL);
-			}
-		else
+		if (error != 0) {
 			m_freem(m);
+			continue;
+		}
+		if (rt != NULL) {
+			struct sockaddr_in6	dst;
+			hdr = mtod(m, struct ip6_hdr *);
+
+			bzero(&dst, sizeof(dst));
+			dst.sin6_family = AF_INET6;
+			dst.sin6_len = sizeof(dst);
+			dst.sin6_addr = hdr->ip6_dst;
+
+			nd6_output_ifp(rt, rt, m, &dst, NULL);
+		} else if (forward) {
+			MPASS(m->m_pkthdr.rcvif != NULL);
+			ip6_forward(m, 0);
+		} else {
+			(void)ip6_output(m, NULL, NULL, 0, NULL, NULL,
+			    NULL);
+		}
 	}
 
 	return (action);
@@ -1184,6 +1210,7 @@ pf_normalize_ip(struct mbuf **m0, u_short *reason,
 			return (PF_DROP);
 
 		h = mtod(pd->m, struct ip *);
+		pd->tot_len = htons(h->ip_len);
 
  no_fragment:
 		/* At this point, only IP_DF is allowed in ip_off */
@@ -1214,6 +1241,7 @@ pf_normalize_ip6(struct mbuf **m0, int off, u_short *reason,
     struct pf_pdesc *pd)
 {
 	struct pf_krule		*r;
+	struct ip6_hdr		*h;
 	struct ip6_frag		 frag;
 	bool			 scrub_compat;
 
@@ -1280,6 +1308,8 @@ pf_normalize_ip6(struct mbuf **m0, int off, u_short *reason,
 		pd->m = *m0;
 		if (pd->m == NULL)
 			return (PF_DROP);
+		h = mtod(pd->m, struct ip6_hdr *);
+		pd->tot_len = ntohs(h->ip6_plen) + sizeof(struct ip6_hdr);
 	}
 
 	return (PF_PASS);
@@ -1446,7 +1476,7 @@ pf_normalize_tcp_init(struct pf_pdesc *pd, struct tcphdr *th,
 	 * All normalizations below are only begun if we see the start of
 	 * the connections.  They must all set an enabled bit in pfss_flags
 	 */
-	if ((th->th_flags & TH_SYN) == 0)
+	if ((tcp_get_flags(th) & TH_SYN) == 0)
 		return (0);
 
 	if (th->th_off > (sizeof(struct tcphdr) >> 2) && src->scrub &&
@@ -1797,7 +1827,7 @@ pf_normalize_tcp_stateful(struct pf_pdesc *pd,
 			    dst->scrub->pfss_tsecr, dst->scrub->pfss_tsval0));
 			if (V_pf_status.debug >= PF_DEBUG_MISC) {
 				pf_print_state(state);
-				pf_print_flags(th->th_flags);
+				pf_print_flags(tcp_get_flags(th));
 				printf("\n");
 			}
 			REASON_SET(reason, PFRES_TS);
@@ -1806,9 +1836,9 @@ pf_normalize_tcp_stateful(struct pf_pdesc *pd,
 
 		/* XXX I'd really like to require tsecr but it's optional */
 
-	} else if (!got_ts && (th->th_flags & TH_RST) == 0 &&
+	} else if (!got_ts && (tcp_get_flags(th) & TH_RST) == 0 &&
 	    ((src->state == TCPS_ESTABLISHED && dst->state == TCPS_ESTABLISHED)
-	    || pd->p_len > 0 || (th->th_flags & TH_SYN)) &&
+	    || pd->p_len > 0 || (tcp_get_flags(th) & TH_SYN)) &&
 	    src->scrub && dst->scrub &&
 	    (src->scrub->pfss_flags & PFSS_PAWS) &&
 	    (dst->scrub->pfss_flags & PFSS_PAWS)) {
@@ -1847,7 +1877,7 @@ pf_normalize_tcp_stateful(struct pf_pdesc *pd,
 				DPFPRINTF(("Did not receive expected RFC1323 "
 				    "timestamp\n"));
 				pf_print_state(state);
-				pf_print_flags(th->th_flags);
+				pf_print_flags(tcp_get_flags(th));
 				printf("\n");
 			}
 			REASON_SET(reason, PFRES_TS);
@@ -1876,7 +1906,7 @@ pf_normalize_tcp_stateful(struct pf_pdesc *pd,
 				    "timestamp data packet. Disabled PAWS "
 				    "security.\n"));
 				pf_print_state(state);
-				pf_print_flags(th->th_flags);
+				pf_print_flags(tcp_get_flags(th));
 				printf("\n");
 			}
 		}
@@ -2224,6 +2254,7 @@ pf_scrub(struct pf_pdesc *pd)
 	}
 
 	/* random-id, but not for fragments */
+#ifdef INET
 	if (pd->af == AF_INET &&
 	    pd->act.flags & PFSTATE_RANDOMID && !(h->ip_off & ~htons(IP_DF))) {
 		uint16_t ip_id = h->ip_id;
@@ -2231,5 +2262,6 @@ pf_scrub(struct pf_pdesc *pd)
 		ip_fillid(h);
 		h->ip_sum = pf_cksum_fixup(h->ip_sum, ip_id, h->ip_id, 0);
 	}
+#endif
 }
 #endif

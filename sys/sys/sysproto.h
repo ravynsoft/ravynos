@@ -18,8 +18,6 @@
 
 #include <bsm/audit_kevents.h>
 
-#include <sys/mach/mach.h>
-
 struct proc;
 
 struct thread;
@@ -1923,6 +1921,14 @@ struct getrlimitusage_args {
 	char flags_l_[PADL_(int)]; int flags; char flags_r_[PADR_(int)];
 	char res_l_[PADL_(rlim_t *)]; rlim_t * res; char res_r_[PADR_(rlim_t *)];
 };
+struct fchroot_args {
+	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
+};
+struct setcred_args {
+	char flags_l_[PADL_(u_int)]; u_int flags; char flags_r_[PADR_(u_int)];
+	char wcred_l_[PADL_(const struct setcred *)]; const struct setcred * wcred; char wcred_r_[PADR_(const struct setcred *)];
+	char size_l_[PADL_(size_t)]; size_t size; char size_r_[PADR_(size_t)];
+};
 struct _kernelrpc_mach_vm_allocate_trap_args {
 	char target_l_[PADL_(mach_port_name_t)]; mach_port_name_t target; char target_r_[PADR_(mach_port_name_t)];
 	char address_l_[PADL_(mach_vm_offset_t *)]; mach_vm_offset_t * address; char address_r_[PADR_(mach_vm_offset_t *)];
@@ -2058,8 +2064,7 @@ struct semaphore_timedwait_trap_args {
 struct semaphore_timedwait_signal_trap_args {
 	char wait_name_l_[PADL_(mach_port_name_t)]; mach_port_name_t wait_name; char wait_name_r_[PADR_(mach_port_name_t)];
 	char signal_name_l_[PADL_(mach_port_name_t)]; mach_port_name_t signal_name; char signal_name_r_[PADR_(mach_port_name_t)];
-	char sec_l_[PADL_(unsigned int)]; unsigned int sec; char sec_r_[PADR_(unsigned int)];
-	char nsec_l_[PADL_(mach_clock_res_t)]; mach_clock_res_t nsec; char nsec_r_[PADR_(mach_clock_res_t)];
+	char nsec_l_[PADL_(unsigned int sec, mach_clock_res_t)]; unsigned int sec, mach_clock_res_t nsec; char nsec_r_[PADR_(unsigned int sec, mach_clock_res_t)];
 };
 struct _kernelrpc_mach_port_guard_trap_args {
 	char target_l_[PADL_(mach_port_name_t)]; mach_port_name_t target; char target_r_[PADR_(mach_port_name_t)];
@@ -2554,6 +2559,8 @@ int	sys_timerfd_gettime(struct thread *, struct timerfd_gettime_args *);
 int	sys_timerfd_settime(struct thread *, struct timerfd_settime_args *);
 int	sys_kcmp(struct thread *, struct kcmp_args *);
 int	sys_getrlimitusage(struct thread *, struct getrlimitusage_args *);
+int	sys_fchroot(struct thread *, struct fchroot_args *);
+int	sys_setcred(struct thread *, struct setcred_args *);
 int	sys__kernelrpc_mach_vm_allocate_trap(struct thread *, struct _kernelrpc_mach_vm_allocate_trap_args *);
 int	sys__kernelrpc_mach_vm_deallocate_trap(struct thread *, struct _kernelrpc_mach_vm_deallocate_trap_args *);
 int	sys__kernelrpc_mach_vm_protect_trap(struct thread *, struct _kernelrpc_mach_vm_protect_trap_args *);
@@ -3589,6 +3596,8 @@ int	freebsd13_swapoff(struct thread *, struct freebsd13_swapoff_args *);
 #define	SYS_AUE_timerfd_settime	AUE_TIMERFD
 #define	SYS_AUE_kcmp	AUE_NULL
 #define	SYS_AUE_getrlimitusage	AUE_NULL
+#define	SYS_AUE_fchroot	AUE_NULL
+#define	SYS_AUE_setcred	AUE_SETCRED
 #define	SYS_AUE__kernelrpc_mach_vm_allocate_trap	AUE_NULL
 #define	SYS_AUE__kernelrpc_mach_vm_deallocate_trap	AUE_NULL
 #define	SYS_AUE__kernelrpc_mach_vm_protect_trap	AUE_NULL

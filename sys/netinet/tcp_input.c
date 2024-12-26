@@ -368,11 +368,11 @@ cc_conn_init(struct tcpcb *tp)
 	tcp_hc_get(&inp->inp_inc, &metrics);
 	maxseg = tcp_maxseg(tp);
 
-	if (tp->t_srtt == 0 && (rtt = metrics.rmx_rtt)) {
+	if (tp->t_srtt == 0 && (rtt = metrics.hc_rtt)) {
 		tp->t_srtt = rtt;
 		TCPSTAT_INC(tcps_usedrtt);
-		if (metrics.rmx_rttvar) {
-			tp->t_rttvar = metrics.rmx_rttvar;
+		if (metrics.hc_rttvar) {
+			tp->t_rttvar = metrics.hc_rttvar;
 			TCPSTAT_INC(tcps_usedrttvar);
 		} else {
 			/* default variation is +- 1 rtt */
@@ -383,14 +383,14 @@ cc_conn_init(struct tcpcb *tp)
 		    ((tp->t_srtt >> 2) + tp->t_rttvar) >> 1,
 		    tp->t_rttmin, TCPTV_REXMTMAX);
 	}
-	if (metrics.rmx_ssthresh) {
+	if (metrics.hc_ssthresh) {
 		/*
 		 * There's some sort of gateway or interface
 		 * buffer limit on the path.  Use this to set
 		 * the slow start threshold, but set the
 		 * threshold to no less than 2*mss.
 		 */
-		tp->snd_ssthresh = max(2 * maxseg, metrics.rmx_ssthresh);
+		tp->snd_ssthresh = max(2 * maxseg, metrics.hc_ssthresh);
 		TCPSTAT_INC(tcps_usedssthresh);
 	}
 
@@ -1512,7 +1512,7 @@ tcp_handle_wakeup(struct tcpcb *tp)
 		struct socket *so = tptosocket(tp);
 
 		tp->t_flags &= ~TF_WAKESOR;
-		SOCKBUF_LOCK_ASSERT(&so->so_rcv);
+		SOCK_RECVBUF_LOCK_ASSERT(so);
 		sorwakeup_locked(so);
 	}
 }
@@ -1939,7 +1939,7 @@ tcp_do_segment(struct tcpcb *tp, struct mbuf *m, struct tcphdr *th,
 			newsize = tcp_autorcvbuf(m, th, so, tp, tlen);
 
 			/* Add data to socket buffer. */
-			SOCKBUF_LOCK(&so->so_rcv);
+			SOCK_RECVBUF_LOCK(so);
 			if (so->so_rcv.sb_state & SBS_CANTRCVMORE) {
 				m_freem(m);
 			} else {
@@ -2653,13 +2653,14 @@ tcp_do_segment(struct tcpcb *tp, struct mbuf *m, struct tcphdr *th,
 						tcp_do_prr_ack(tp, th, &to,
 						    sack_changed, &maxseg);
 					} else if (tcp_is_sack_recovery(tp, &to) &&
-						    IN_FASTRECOVERY(tp->t_flags)) {
+						    IN_FASTRECOVERY(tp->t_flags) &&
+						    (tp->snd_nxt == tp->snd_max)) {
 						int awnd;
 
 						/*
 						 * Compute the amount of data in flight first.
 						 * We can inject new data into the pipe iff
-						 * we have less than 1/2 the original window's
+						 * we have less than ssthresh
 						 * worth of data in flight.
 						 */
 						if (V_tcp_do_newsack) {
@@ -2669,10 +2670,18 @@ tcp_do_segment(struct tcpcb *tp, struct mbuf *m, struct tcphdr *th,
 								tp->sackhint.sack_bytes_rexmit;
 						}
 						if (awnd < tp->snd_ssthresh) {
-							tp->snd_cwnd += maxseg;
+							tp->snd_cwnd += imax(maxseg,
+							    imin(2 * maxseg,
+							    tp->sackhint.delivered_data));
 							if (tp->snd_cwnd > tp->snd_ssthresh)
 								tp->snd_cwnd = tp->snd_ssthresh;
 						}
+					} else if (tcp_is_sack_recovery(tp, &to) &&
+						    IN_FASTRECOVERY(tp->t_flags) &&
+						    SEQ_LT(tp->snd_nxt, tp->snd_max)) {
+						tp->snd_cwnd += imax(maxseg,
+						    imin(2 * maxseg,
+						    tp->sackhint.delivered_data));
 					} else {
 						tp->snd_cwnd += maxseg;
 					}
@@ -2696,14 +2705,13 @@ enter_recovery:
 					tcp_seq onxt = tp->snd_nxt;
 
 					/*
-					 * If we're doing sack, or prr, check
-					 * to see if we're already in sack
+					 * If we're doing sack, check to
+					 * see if we're already in sack
 					 * recovery. If we're not doing sack,
 					 * check to see if we're in newreno
 					 * recovery.
 					 */
-					if (V_tcp_do_prr ||
-					    (tp->t_flags & TF_SACK_PERMIT)) {
+					if (tcp_is_sack_recovery(tp, &to)) {
 						if (IN_FASTRECOVERY(tp->t_flags)) {
 							tp->t_dupacks = 0;
 							break;
@@ -2723,29 +2731,40 @@ enter_recovery:
 					tp->t_rtttime = 0;
 					if (V_tcp_do_prr) {
 						/*
-						 * snd_ssthresh is already updated by
-						 * cc_cong_signal.
+						 * snd_ssthresh and snd_recover are
+						 * already updated by cc_cong_signal.
 						 */
 						if (tcp_is_sack_recovery(tp, &to)) {
 							/*
-							 * Exclude Limited Transmit
+							 * Include Limited Transmit
 							 * segments here
 							 */
 							tp->sackhint.prr_delivered =
-							    maxseg;
+							    imin(tp->snd_max - th->th_ack,
+							    (tp->snd_limited + 1) * maxseg);
 						} else {
 							tp->sackhint.prr_delivered =
-							    imin(tp->snd_max - tp->snd_una,
-							    imin(INT_MAX / 65536,
-								tp->t_dupacks) * maxseg);
+							    maxseg;
 						}
 						tp->sackhint.recover_fs = max(1,
 						    tp->snd_nxt - tp->snd_una);
 					}
+					tp->snd_limited = 0;
 					if (tcp_is_sack_recovery(tp, &to)) {
 						TCPSTAT_INC(tcps_sack_recovery_episode);
-						tp->snd_cwnd = maxseg;
+						/*
+						 * When entering LR after RTO due to
+						 * Duplicate ACKs, retransmit existing
+						 * holes from the scoreboard.
+						 */
+						tcp_resend_sackholes(tp);
+						/* Avoid inflating cwnd in tcp_output */
+						tp->snd_nxt = tp->snd_max;
+						tp->snd_cwnd = tcp_compute_pipe(tp) +
+						    maxseg;
 						(void) tcp_output(tp);
+						/* Set cwnd to the expected flightsize */
+						tp->snd_cwnd = tp->snd_ssthresh;
 						if (SEQ_GT(th->th_ack, tp->snd_una)) {
 							goto resume_partialack;
 						}
@@ -2790,18 +2809,19 @@ enter_recovery:
 					    (tp->t_rxtshift == 0))
 						tp->snd_cwnd =
 						    SEQ_SUB(tp->snd_nxt,
-							    tp->snd_una);
+							    tp->snd_una) -
+							tcp_sack_adjust(tp);
 					tp->snd_cwnd +=
 					    (tp->t_dupacks - tp->snd_limited) *
-					    maxseg;
+					    maxseg - tcp_sack_adjust(tp);
 					/*
 					 * Only call tcp_output when there
 					 * is new data available to be sent
 					 * or we need to send an ACK.
 					 */
-					SOCKBUF_LOCK(&so->so_snd);
+					SOCK_SENDBUF_LOCK(so);
 					avail = sbavail(&so->so_snd);
-					SOCKBUF_UNLOCK(&so->so_snd);
+					SOCK_SENDBUF_UNLOCK(so);
 					if (tp->t_flags & TF_ACKNOW ||
 					    (avail >=
 					     SEQ_SUB(tp->snd_nxt, tp->snd_una))) {
@@ -2978,7 +2998,7 @@ process_ACK:
 			tcp_xmit_timer(tp, ticks - tp->t_rtttime);
 		}
 
-		SOCKBUF_LOCK(&so->so_snd);
+		SOCK_SENDBUF_LOCK(so);
 		/*
 		 * Clear t_acktime if remote side has ACKd all data in the
 		 * socket buffer and FIN (if applicable).
@@ -3009,7 +3029,7 @@ process_ACK:
 		 *    skip rest of ACK processing.
 		 */
 		if (acked == 0) {
-			SOCKBUF_UNLOCK(&so->so_snd);
+			SOCK_SENDBUF_UNLOCK(so);
 			goto step6;
 		}
 
@@ -3049,9 +3069,8 @@ process_ACK:
 		    SEQ_GEQ(th->th_ack, tp->snd_recover)) {
 			cc_post_recovery(tp, th);
 		}
-		if (tp->t_flags & TF_SACK_PERMIT) {
-			if (SEQ_GT(tp->snd_una, tp->snd_recover))
-				tp->snd_recover = tp->snd_una;
+		if (SEQ_GT(tp->snd_una, tp->snd_recover)) {
+			tp->snd_recover = tp->snd_una;
 		}
 		if (SEQ_LT(tp->snd_nxt, tp->snd_una))
 			tp->snd_nxt = tp->snd_una;
@@ -3146,11 +3165,11 @@ step6:
 		 * soreceive.  It's hard to imagine someone
 		 * actually wanting to send this much urgent data.
 		 */
-		SOCKBUF_LOCK(&so->so_rcv);
+		SOCK_RECVBUF_LOCK(so);
 		if (th->th_urp + sbavail(&so->so_rcv) > sb_max) {
 			th->th_urp = 0;			/* XXX */
 			thflags &= ~TH_URG;		/* XXX */
-			SOCKBUF_UNLOCK(&so->so_rcv);	/* XXX */
+			SOCK_RECVBUF_UNLOCK(so);	/* XXX */
 			goto dodata;			/* XXX */
 		}
 		/*
@@ -3176,7 +3195,7 @@ step6:
 			sohasoutofband(so);
 			tp->t_oobflags &= ~(TCPOOB_HAVEDATA | TCPOOB_HADDATA);
 		}
-		SOCKBUF_UNLOCK(&so->so_rcv);
+		SOCK_RECVBUF_UNLOCK(so);
 		/*
 		 * Remove out of band data so doesn't get presented to user.
 		 * This can happen independent of advancing the URG pointer,
@@ -3249,7 +3268,7 @@ dodata:							/* XXX */
 			thflags = tcp_get_flags(th) & TH_FIN;
 			TCPSTAT_INC(tcps_rcvpack);
 			TCPSTAT_ADD(tcps_rcvbyte, tlen);
-			SOCKBUF_LOCK(&so->so_rcv);
+			SOCK_RECVBUF_LOCK(so);
 			if (so->so_rcv.sb_state & SBS_CANTRCVMORE)
 				m_freem(m);
 			else
@@ -3858,19 +3877,16 @@ tcp_mss_update(struct tcpcb *tp, int offer, int mtuoffer,
 			offer = max(offer, V_tcp_minmss);
 	}
 
-	/*
-	 * rmx information is now retrieved from tcp_hostcache.
-	 */
-	tcp_hc_get(&inp->inp_inc, &metrics);
-	if (metricptr != NULL)
-		bcopy(&metrics, metricptr, sizeof(struct hc_metrics_lite));
+	if (metricptr == NULL)
+		metricptr = &metrics;
+	tcp_hc_get(&inp->inp_inc, metricptr);
 
 	/*
 	 * If there's a discovered mtu in tcp hostcache, use it.
 	 * Else, use the link mtu.
 	 */
-	if (metrics.rmx_mtu)
-		mss = min(metrics.rmx_mtu, maxmtu) - min_protoh;
+	if (metricptr->hc_mtu)
+		mss = min(metricptr->hc_mtu, maxmtu) - min_protoh;
 	else {
 #ifdef INET6
 		if (isipv6) {
@@ -3961,9 +3977,9 @@ tcp_mss(struct tcpcb *tp, int offer)
 	 * if the mss is larger than the socket buffer, decrease the mss.
 	 */
 	so = inp->inp_socket;
-	SOCKBUF_LOCK(&so->so_snd);
-	if ((so->so_snd.sb_hiwat == V_tcp_sendspace) && metrics.rmx_sendpipe)
-		bufsize = metrics.rmx_sendpipe;
+	SOCK_SENDBUF_LOCK(so);
+	if ((so->so_snd.sb_hiwat == V_tcp_sendspace) && metrics.hc_sendpipe)
+		bufsize = metrics.hc_sendpipe;
 	else
 		bufsize = so->so_snd.sb_hiwat;
 	if (bufsize < mss)
@@ -3975,7 +3991,7 @@ tcp_mss(struct tcpcb *tp, int offer)
 		if (bufsize > so->so_snd.sb_hiwat)
 			(void)sbreserve_locked(so, SO_SND, bufsize, NULL);
 	}
-	SOCKBUF_UNLOCK(&so->so_snd);
+	SOCK_SENDBUF_UNLOCK(so);
 	/*
 	 * Sanity check: make sure that maxseg will be large
 	 * enough to allow some data on segments even if the
@@ -3996,9 +4012,9 @@ tcp_mss(struct tcpcb *tp, int offer)
 		tp->t_flags2 &= ~TF2_PROC_SACK_PROHIBIT;
 	}
 
-	SOCKBUF_LOCK(&so->so_rcv);
-	if ((so->so_rcv.sb_hiwat == V_tcp_recvspace) && metrics.rmx_recvpipe)
-		bufsize = metrics.rmx_recvpipe;
+	SOCK_RECVBUF_LOCK(so);
+	if ((so->so_rcv.sb_hiwat == V_tcp_recvspace) && metrics.hc_recvpipe)
+		bufsize = metrics.hc_recvpipe;
 	else
 		bufsize = so->so_rcv.sb_hiwat;
 	if (bufsize > mss) {
@@ -4008,7 +4024,7 @@ tcp_mss(struct tcpcb *tp, int offer)
 		if (bufsize > so->so_rcv.sb_hiwat)
 			(void)sbreserve_locked(so, SO_RCV, bufsize, NULL);
 	}
-	SOCKBUF_UNLOCK(&so->so_rcv);
+	SOCK_RECVBUF_UNLOCK(so);
 
 	/* Check the interface for TSO capabilities. */
 	if (cap.ifcap & CSUM_TSO) {
@@ -4138,9 +4154,7 @@ tcp_do_prr_ack(struct tcpcb *tp, struct tcphdr *th, struct tcpopt *to,
 	 */
 	if (IN_FASTRECOVERY(tp->t_flags)) {
 		if (tcp_is_sack_recovery(tp, to)) {
-			tp->snd_cwnd = tp->snd_nxt - tp->snd_recover +
-					    tp->sackhint.sack_bytes_rexmit +
-					    (snd_cnt * maxseg);
+			tp->snd_cwnd = pipe - del_data + (snd_cnt * maxseg);
 		} else {
 			tp->snd_cwnd = (tp->snd_max - tp->snd_una) +
 					    (snd_cnt * maxseg);
@@ -4168,17 +4182,19 @@ tcp_newreno_partial_ack(struct tcpcb *tp, struct tcphdr *th)
 
 	tcp_timer_activate(tp, TT_REXMT, 0);
 	tp->t_rtttime = 0;
-	tp->snd_nxt = th->th_ack;
-	/*
-	 * Set snd_cwnd to one segment beyond acknowledged offset.
-	 * (tp->snd_una has not yet been updated when this function is called.)
-	 */
-	tp->snd_cwnd = maxseg + BYTES_THIS_ACK(tp, th);
-	tp->t_flags |= TF_ACKNOW;
-	(void) tcp_output(tp);
-	tp->snd_cwnd = ocwnd;
-	if (SEQ_GT(onxt, tp->snd_nxt))
-		tp->snd_nxt = onxt;
+	if (IN_FASTRECOVERY(tp->t_flags)) {
+		tp->snd_nxt = th->th_ack;
+		/*
+		 * Set snd_cwnd to one segment beyond acknowledged offset.
+		 * (tp->snd_una has not yet been updated when this function is called.)
+		 */
+		tp->snd_cwnd = maxseg + BYTES_THIS_ACK(tp, th);
+		tp->t_flags |= TF_ACKNOW;
+		(void) tcp_output(tp);
+		tp->snd_cwnd = ocwnd;
+		if (SEQ_GT(onxt, tp->snd_nxt))
+			tp->snd_nxt = onxt;
+	}
 	/*
 	 * Partial window deflation.  Relies on fact that tp->snd_una
 	 * not updated yet.

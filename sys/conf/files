@@ -225,7 +225,6 @@ contrib/openzfs/module/os/freebsd/zfs/zio_crypt.c		optional zfs compile-with "${
 contrib/openzfs/module/os/freebsd/zfs/zvol_os.c		optional zfs compile-with "${ZFS_C}"
 
 #zfs unicode support
-contrib/openzfs/module/unicode/uconv.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/unicode/u8_textprep.c		optional zfs compile-with "${ZFS_C}"
 
 #zfs checksums / zcommon
@@ -857,18 +856,6 @@ contrib/alpine-hal/eth/al_hal_eth_main.c	optional al_eth		\
 dev/alc/if_alc.c		optional alc pci
 dev/ale/if_ale.c		optional ale pci
 dev/alpm/alpm.c			optional alpm pci
-dev/altera/avgen/altera_avgen.c		optional altera_avgen
-dev/altera/avgen/altera_avgen_fdt.c	optional altera_avgen fdt
-dev/altera/avgen/altera_avgen_nexus.c	optional altera_avgen
-dev/altera/msgdma/msgdma.c		optional altera_msgdma xdma
-dev/altera/sdcard/altera_sdcard.c	optional altera_sdcard
-dev/altera/sdcard/altera_sdcard_disk.c	optional altera_sdcard
-dev/altera/sdcard/altera_sdcard_io.c	optional altera_sdcard
-dev/altera/sdcard/altera_sdcard_fdt.c	optional altera_sdcard fdt
-dev/altera/sdcard/altera_sdcard_nexus.c	optional altera_sdcard
-dev/altera/softdma/softdma.c	optional altera_softdma xdma fdt
-dev/altera/pio/pio.c		optional altera_pio
-dev/altera/pio/pio_if.m		optional altera_pio
 dev/amdpm/amdpm.c		optional amdpm pci | nfpm pci
 dev/amdsmb/amdsmb.c		optional amdsmb pci
 #
@@ -1732,14 +1719,17 @@ dev/gve/gve_adminq.c		optional gve
 dev/gve/gve_main.c		optional gve
 dev/gve/gve_qpl.c		optional gve
 dev/gve/gve_rx.c		optional gve
+dev/gve/gve_rx_dqo.c		optional gve
 dev/gve/gve_sysctl.c		optional gve
 dev/gve/gve_tx.c		optional gve
+dev/gve/gve_tx_dqo.c		optional gve
 dev/gve/gve_utils.c		optional gve
 dev/goldfish/goldfish_rtc.c	optional goldfish_rtc fdt
 dev/gpio/acpi_gpiobus.c		optional acpi gpio
 dev/gpio/dwgpio/dwgpio.c	optional gpio dwgpio fdt
 dev/gpio/dwgpio/dwgpio_bus.c	optional gpio dwgpio fdt
 dev/gpio/dwgpio/dwgpio_if.m	optional gpio dwgpio fdt
+dev/gpio/gpioaei.c		optional acpi gpio
 dev/gpio/gpiobacklight.c	optional gpiobacklight fdt
 dev/gpio/gpiokeys.c		optional gpiokeys fdt
 dev/gpio/gpiokeys_codes.c	optional gpiokeys fdt
@@ -3130,7 +3120,6 @@ dev/sound/pci/hdspe.c		optional snd_hdspe pci
 dev/sound/pci/hdspe-pcm.c	optional snd_hdspe pci
 dev/sound/pcm/ac97.c		optional sound
 dev/sound/pcm/ac97_if.m		optional sound
-dev/sound/pcm/ac97_patch.c	optional sound
 dev/sound/pcm/buffer.c		optional sound	\
 	dependency	"snd_fxdiv_gen.h"
 dev/sound/pcm/channel.c		optional sound
@@ -4265,6 +4254,7 @@ net80211/ieee80211_alq.c	optional wlan ieee80211_alq
 netgraph/bluetooth/common/ng_bluetooth.c optional netgraph_bluetooth
 netgraph/bluetooth/drivers/ubt/ng_ubt.c optional netgraph_bluetooth_ubt usb
 netgraph/bluetooth/drivers/ubt/ng_ubt_intel.c optional netgraph_bluetooth_ubt usb
+netgraph/bluetooth/drivers/ubt/ng_ubt_rtl.c optional netgraph_bluetooth_ubt usb
 netgraph/bluetooth/drivers/ubtbcmfw/ubtbcmfw.c optional netgraph_bluetooth_ubtbcmfw usb
 netgraph/bluetooth/hci/ng_hci_cmds.c optional netgraph_bluetooth_hci
 netgraph/bluetooth/hci/ng_hci_evnt.c optional netgraph_bluetooth_hci
@@ -4570,6 +4560,7 @@ netpfil/pf/pf_table.c		optional pf inet
 netpfil/pf/pflow.c		optional pflow pf inet
 netpfil/pf/pfsync_nv.c		optional pfsync pf inet
 netpfil/pf/in4_cksum.c		optional pf inet
+netpfil/pf/inet_nat64.c		optional pf inet
 netsmb/smb_conn.c		optional netsmb
 netsmb/smb_crypt.c		optional netsmb
 netsmb/smb_dev.c		optional netsmb

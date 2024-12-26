@@ -417,7 +417,7 @@ pidhash_sunlockall(void)
 }
 
 /*
- * Similar to pfind_any(), this function finds zombies.
+ * Similar to pfind(), this function locate a process by number.
  */
 struct proc *
 pfind_any_locked(pid_t pid)
@@ -730,8 +730,12 @@ jobc_parent(struct proc *p, struct proc *p_exiting)
 	return (jobc_reaper(pp));
 }
 
+<<<<<<< HEAD
 /* Removed 'static' as this is needed by sys/compat/mach */
 /*static*/ int
+=======
+int
+>>>>>>> upstream/main
 pgrp_calc_jobc(struct pgrp *pgrp)
 {
 	struct proc *q;
@@ -2700,8 +2704,6 @@ kern_proc_vmmap_out(struct proc *p, struct sbuf *sb, ssize_t maxlen, int flags)
 			kve->kve_flags |= KVME_FLAG_NEEDS_COPY;
 		if (entry->eflags & MAP_ENTRY_NOCOREDUMP)
 			kve->kve_flags |= KVME_FLAG_NOCOREDUMP;
-		if (entry->eflags & MAP_ENTRY_GROWS_UP)
-			kve->kve_flags |= KVME_FLAG_GROWS_UP;
 		if (entry->eflags & MAP_ENTRY_GROWS_DOWN)
 			kve->kve_flags |= KVME_FLAG_GROWS_DOWN;
 		if (entry->eflags & MAP_ENTRY_USER_WIRED)
@@ -2723,9 +2725,10 @@ kern_proc_vmmap_out(struct proc *p, struct sbuf *sb, ssize_t maxlen, int flags)
 
 			kve->kve_ref_count = obj->ref_count;
 			kve->kve_shadow_count = obj->shadow_count;
-			if (obj->type == OBJT_DEVICE ||
-			    obj->type == OBJT_MGTDEVICE) {
-				cdev = obj->un_pager.devp.dev;
+			if ((obj->type == OBJT_DEVICE ||
+			    obj->type == OBJT_MGTDEVICE) &&
+			    (obj->flags & OBJ_CDEVH) != 0) {
+				cdev = obj->un_pager.devp.handle;
 				if (cdev != NULL) {
 					csw = dev_refthread(cdev, &ref);
 					if (csw != NULL) {

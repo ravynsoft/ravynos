@@ -641,8 +641,7 @@ cxgb_controller_attach(device_t dev)
 		sc->portdev[i] = child;
 		device_set_softc(child, pi);
 	}
-	if ((error = bus_generic_attach(dev)) != 0)
-		goto out;
+	bus_attach_children(dev);
 
 	/* initialize sge private state */
 	t3_sge_init_adapter(sc);
@@ -1041,6 +1040,11 @@ cxgb_port_attach(device_t dev)
 		if_sethwassistbits(ifp, 0, CSUM_TSO);
 	}
 
+	/* Create a list of media supported by this port */
+	ifmedia_init(&p->media, IFM_IMASK, cxgb_media_change,
+	    cxgb_media_status);
+	cxgb_build_medialist(p);
+
 	ether_ifattach(ifp, p->hw_addr);
 
 	/* Attach driver debugnet methods. */
@@ -1055,11 +1059,6 @@ cxgb_port_attach(device_t dev)
 		return (err);
 	}
 
-	/* Create a list of media supported by this port */
-	ifmedia_init(&p->media, IFM_IMASK, cxgb_media_change,
-	    cxgb_media_status);
-	cxgb_build_medialist(p);
-      
 	t3_sge_init_port(p);
 
 	return (err);

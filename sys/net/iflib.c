@@ -2880,6 +2880,9 @@ iflib_rxd_pkt_get(iflib_rxq_t rxq, if_rxd_info_t ri)
 	m->m_flags |= ri->iri_flags;
 	m->m_pkthdr.ether_vtag = ri->iri_vtag;
 	m->m_pkthdr.flowid = ri->iri_flowid;
+#ifdef NUMA
+	m->m_pkthdr.numa_domain = if_getnumadomain(ri->iri_ifp);
+#endif
 	M_HASHTYPE_SET(m, ri->iri_rsstype);
 	m->m_pkthdr.csum_flags = ri->iri_csum_flags;
 	m->m_pkthdr.csum_data = ri->iri_csum_data;
@@ -3420,7 +3423,7 @@ iflib_parse_header(iflib_txq_t txq, if_pkt_info_t pi, struct mbuf **mp)
 						return (ENOMEM);
 					th = (struct tcphdr *)((caddr_t)ip + pi->ipi_ip_hlen);
 				}
-				pi->ipi_tcp_hflags = th->th_flags;
+				pi->ipi_tcp_hflags = tcp_get_flags(th);
 				pi->ipi_tcp_hlen = th->th_off << 2;
 				pi->ipi_tcp_seq = th->th_seq;
 			}
@@ -3473,7 +3476,7 @@ iflib_parse_header(iflib_txq_t txq, if_pkt_info_t pi, struct mbuf **mp)
 					if (__predict_false((m = m_pullup(m, pi->ipi_ehdrlen + sizeof(struct ip6_hdr) + sizeof(struct tcphdr))) == NULL))
 						return (ENOMEM);
 				}
-				pi->ipi_tcp_hflags = th->th_flags;
+				pi->ipi_tcp_hflags = tcp_get_flags(th);
 				pi->ipi_tcp_hlen = th->th_off << 2;
 				pi->ipi_tcp_seq = th->th_seq;
 			}

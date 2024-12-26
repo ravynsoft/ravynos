@@ -71,6 +71,8 @@ enum pfstate_key_type_t {
 	PF_STK_ADDR1		= 2, /* ip */
 	PF_STK_PORT0		= 3, /* u16 */
 	PF_STK_PORT1		= 4, /* u16 */
+	PF_STK_AF		= 5, /* u8 */
+	PF_STK_PROTO		= 6, /* u16 */
 };
 
 enum pfstate_peer_type_t {
@@ -198,7 +200,7 @@ enum pf_rule_type_t {
 	PF_RT_TAGNAME		= 8, /* string */
 	PF_RT_MATCH_TAGNAME	= 9, /* string */
 	PF_RT_OVERLOAD_TBLNAME	= 10, /* string */
-	PF_RT_RPOOL		= 11, /* nested, pf_rpool_type_t */
+	PF_RT_RPOOL_RDR		= 11, /* nested, pf_rpool_type_t */
 	PF_RT_OS_FINGERPRINT	= 12, /* u32 */
 	PF_RT_RTABLEID		= 13, /* u32 */
 	PF_RT_TIMEOUT		= 14, /* nested, pf_timeout_type_t */
@@ -262,6 +264,8 @@ enum pf_rule_type_t {
 	PF_RT_ANCHOR_CALL	= 72, /* string */
 	PF_RT_RCV_IFNAME	= 73, /* string */
 	PF_RT_MAX_SRC_CONN	= 74, /* u32 */
+	PF_RT_RPOOL_NAT		= 75, /* nested, pf_rpool_type_t */
+	PF_RT_NAF		= 76, /* u8 */
 };
 
 enum pf_addrule_type_t {
@@ -381,6 +385,7 @@ enum pf_add_addr_types_t {
 	PF_AA_AF		= 7, /* u8 */
 	PF_AA_ANCHOR		= 8, /* string */
 	PF_AA_ADDR		= 9, /* nested, pf_pooladdr */
+	PF_AA_WHICH		= 10, /* u32 */
 };
 
 enum pf_get_rulesets_types_t {
@@ -414,6 +419,7 @@ enum pf_srcnodes_types_t {
 	PF_SN_CREATION		= 12, /* u64 */
 	PF_SN_EXPIRE		= 13, /* u64 */
 	PF_SN_CONNECTION_RATE	= 14, /* nested, pf_threshold */
+	PF_SN_NAF		= 15, /* u8 */
 };
 
 #ifdef _KERNEL

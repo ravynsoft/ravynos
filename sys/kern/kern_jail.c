@@ -130,6 +130,12 @@ struct jailsys_flags {
 	unsigned	 new;
 };
 
+/*
+ * Handle jail teardown in a dedicated thread to avoid deadlocks from
+ * vnet_destroy().
+ */
+TASKQUEUE_DEFINE_THREAD(jail_remove);
+
 /* allprison, allprison_racct and lastprid are protected by allprison_lock. */
 struct	sx allprison_lock;
 SX_SYSINIT(allprison_lock, &allprison_lock, "allprison");
@@ -2902,7 +2908,7 @@ prison_free(struct prison *pr)
 		 * Don't remove the last reference in this context,
 		 * in case there are locks held.
 		 */
-		taskqueue_enqueue(taskqueue_thread, &pr->pr_task);
+		taskqueue_enqueue(taskqueue_jail_remove, &pr->pr_task);
 	}
 }
 
@@ -2976,7 +2982,7 @@ prison_proc_free(struct prison *pr)
 		     pr->pr_id));
 		pr->pr_flags |= PR_COMPLETE_PROC;
 		mtx_unlock(&pr->pr_mtx);
-		taskqueue_enqueue(taskqueue_thread, &pr->pr_task);
+		taskqueue_enqueue(taskqueue_jail_remove, &pr->pr_task);
 	}
 }
 
@@ -3085,8 +3091,7 @@ prison_proc_iterate(struct prison *pr, void (*cb)(struct proc *, void *),
 	FOREACH_PROC_IN_SYSTEM(p) {
 		PROC_LOCK(p);
 		if (p->p_state != PRS_NEW && p->p_ucred != NULL) {
-			for (ppr = p->p_ucred->cr_prison;
-			    ppr != &prison0;
+			for (ppr = p->p_ucred->cr_prison; ppr != NULL;
 			    ppr = ppr->pr_parent) {
 				if (ppr == pr) {
 					cb(p, cbarg);
@@ -3956,6 +3961,7 @@ prison_priv_check(struct ucred *cred, int priv)
 		 * Allow jailed processes to manipulate process UNIX
 		 * credentials in any way they see fit.
 		 */
+	case PRIV_CRED_SETCRED:
 	case PRIV_CRED_SETUID:
 	case PRIV_CRED_SETEUID:
 	case PRIV_CRED_SETGID:

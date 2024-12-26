@@ -1577,14 +1577,6 @@ zfs_zero_partial_page(znode_t *zp, uint64_t start, uint64_t len)
 		mark_page_accessed(pp);
 		SetPageUptodate(pp);
 		ClearPageError(pp);
-		if (!PagePrivate(pp)) {
-			/*
-			 * Set private bit so page migration will wait for us to
-			 * finish writeback before calling migrate_folio().
-			 */
-			SetPagePrivate(pp);
-			get_page(pp);
-		}
 		unlock_page(pp);
 		put_page(pp);
 	}
@@ -1975,7 +1967,6 @@ zfs_create_fs(objset_t *os, cred_t *cr, nvlist_t *zplprops, dmu_tx_t *tx)
 EXPORT_SYMBOL(zfs_create_fs);
 EXPORT_SYMBOL(zfs_obj_to_path);
 
-/* CSTYLED */
 module_param(zfs_object_mutex_size, uint, 0644);
 MODULE_PARM_DESC(zfs_object_mutex_size, "Size of znode hold array");
 module_param(zfs_unlink_suspend_progress, int, 0644);

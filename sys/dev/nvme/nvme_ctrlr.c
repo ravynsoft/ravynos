@@ -820,7 +820,13 @@ nvme_ctrlr_construct_and_submit_aer(struct nvme_controller *ctrlr,
 	struct nvme_request *req;
 
 	aer->ctrlr = ctrlr;
-	req = nvme_allocate_request_null(nvme_ctrlr_async_event_cb, aer);
+	/*
+	 * XXX-MJ this should be M_WAITOK but we might be in a non-sleepable
+	 * callback context.  AER completions should be handled on a dedicated
+	 * thread.
+	 */
+	req = nvme_allocate_request_null(M_NOWAIT, nvme_ctrlr_async_event_cb,
+	    aer);
 	aer->req = req;
 
 	/*
@@ -1272,12 +1278,12 @@ nvme_ctrlr_passthrough_cmd(struct nvme_controller *ctrlr,
 				goto err;
 			}
 			req = nvme_allocate_request_vaddr(buf->b_data, pt->len,
-			    nvme_pt_done, pt);
+			    M_WAITOK, nvme_pt_done, pt);
 		} else
 			req = nvme_allocate_request_vaddr(pt->buf, pt->len,
-			    nvme_pt_done, pt);
+			    M_WAITOK, nvme_pt_done, pt);
 	} else
-		req = nvme_allocate_request_null(nvme_pt_done, pt);
+		req = nvme_allocate_request_null(M_WAITOK, nvme_pt_done, pt);
 
 	/* Assume user space already converted to little-endian */
 	req->cmd.opc = pt->cmd.opc;
@@ -1363,14 +1369,14 @@ nvme_ctrlr_linux_passthru_cmd(struct nvme_controller *ctrlr,
 				ret = EFAULT;
 				goto err;
 			}
-			req = nvme_allocate_request_vaddr(buf->b_data, npc->data_len,
-			    nvme_npc_done, npc);
+			req = nvme_allocate_request_vaddr(buf->b_data,
+			    npc->data_len, M_WAITOK, nvme_npc_done, npc);
 		} else
 			req = nvme_allocate_request_vaddr(
 			    (void *)(uintptr_t)npc->addr, npc->data_len,
-			    nvme_npc_done, npc);
+			    M_WAITOK, nvme_npc_done, npc);
 	} else
-		req = nvme_allocate_request_null(nvme_npc_done, npc);
+		req = nvme_allocate_request_null(M_WAITOK, nvme_npc_done, npc);
 
 	req->cmd.opc = npc->opcode;
 	req->cmd.fuse = npc->flags;
@@ -1804,7 +1810,8 @@ nvme_ctrlr_resume(struct nvme_controller *ctrlr)
 	/*
 	 * Now that we've reset the hardware, we can restart the controller. Any
 	 * I/O that was pending is requeued. Any admin commands are aborted with
-	 * an error. Once we've restarted, take the controller out of reset.
+	 * an error. Once we've restarted, stop flagging the controller as being
+	 * in the reset phase.
 	 */
 	nvme_ctrlr_start(ctrlr, true);
 	(void)atomic_cmpset_32(&ctrlr->is_resetting, 1, 0);

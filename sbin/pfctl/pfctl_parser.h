@@ -55,8 +55,6 @@
 #define PF_OPT_RECURSE		0x4000
 #define PF_OPT_KILLMATCH	0x8000
 
-#define PF_TH_ALL		0xFF
-
 #define PF_NAT_PROXY_PORT_LOW	50001
 #define PF_NAT_PROXY_PORT_HIGH	65535
 
@@ -283,7 +281,7 @@ int	pfctl_append_rule(struct pfctl *, struct pfctl_rule *, const char *);
 int	pfctl_append_eth_rule(struct pfctl *, struct pfctl_eth_rule *,
 	    const char *);
 int	pfctl_add_altq(struct pfctl *, struct pf_altq *);
-int	pfctl_add_pool(struct pfctl *, struct pfctl_pool *, sa_family_t);
+int	pfctl_add_pool(struct pfctl *, struct pfctl_pool *, sa_family_t, int);
 void	pfctl_move_pool(struct pfctl_pool *, struct pfctl_pool *);
 void	pfctl_clear_pool(struct pfctl_pool *);
 

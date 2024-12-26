@@ -378,8 +378,10 @@ FBSD_1.7 {
 };
 
 FBSD_1.8 {
+	fchroot;
 	getrlimitusage;
 	kcmp;
+	setcred;
 };
 
 FBSDprivate_1.0 {

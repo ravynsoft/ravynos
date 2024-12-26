@@ -362,7 +362,9 @@ vmm_handler(module_t mod, int what, void *arg)
 	switch (what) {
 	case MOD_LOAD:
 		/* TODO: if (vmm_is_hw_supported()) { */
-		vmmdev_init();
+		error = vmmdev_init();
+		if (error != 0)
+			break;
 		error = vmm_init();
 		if (error == 0)
 			vmm_initialized = true;
@@ -394,8 +396,9 @@ static moduledata_t vmm_kmod = {
  *
  * - HYP initialization requires smp_rendezvous() and therefore must happen
  *   after SMP is fully functional (after SI_SUB_SMP).
+ * - vmm device initialization requires an initialized devfs.
  */
-DECLARE_MODULE(vmm, vmm_kmod, SI_SUB_SMP + 1, SI_ORDER_ANY);
+DECLARE_MODULE(vmm, vmm_kmod, MAX(SI_SUB_SMP, SI_SUB_DEVFS) + 1, SI_ORDER_ANY);
 MODULE_VERSION(vmm, 1);
 
 static void
@@ -443,7 +446,8 @@ vm_alloc_vcpu(struct vm *vm, int vcpuid)
 	if (vcpuid >= vgic_max_cpu_count(vm->cookie))
 		return (NULL);
 
-	vcpu = atomic_load_ptr(&vm->vcpu[vcpuid]);
+	vcpu = (struct vcpu *)
+	    atomic_load_acq_ptr((uintptr_t *)&vm->vcpu[vcpuid]);
 	if (__predict_true(vcpu != NULL))
 		return (vcpu);
 

@@ -318,15 +318,17 @@ static int t4_nofldtxq = -NOFLDTXQ;
 SYSCTL_INT(_hw_cxgbe, OID_AUTO, nofldtxq, CTLFLAG_RDTUN, &t4_nofldtxq, 0,
     "Number of offload TX queues per port");
 
-#define NOFLDRXQ 2
-static int t4_nofldrxq = -NOFLDRXQ;
-SYSCTL_INT(_hw_cxgbe, OID_AUTO, nofldrxq, CTLFLAG_RDTUN, &t4_nofldrxq, 0,
-    "Number of offload RX queues per port");
-
 #define NOFLDTXQ_VI 1
 static int t4_nofldtxq_vi = -NOFLDTXQ_VI;
 SYSCTL_INT(_hw_cxgbe, OID_AUTO, nofldtxq_vi, CTLFLAG_RDTUN, &t4_nofldtxq_vi, 0,
     "Number of offload TX queues per VI");
+#endif
+
+#if defined(TCP_OFFLOAD)
+#define NOFLDRXQ 2
+static int t4_nofldrxq = -NOFLDRXQ;
+SYSCTL_INT(_hw_cxgbe, OID_AUTO, nofldrxq, CTLFLAG_RDTUN, &t4_nofldrxq, 0,
+    "Number of offload RX queues per port");
 
 #define NOFLDRXQ_VI 1
 static int t4_nofldrxq_vi = -NOFLDRXQ_VI;
@@ -334,12 +336,12 @@ SYSCTL_INT(_hw_cxgbe, OID_AUTO, nofldrxq_vi, CTLFLAG_RDTUN, &t4_nofldrxq_vi, 0,
     "Number of offload RX queues per VI");
 
 #define TMR_IDX_OFLD 1
-int t4_tmr_idx_ofld = TMR_IDX_OFLD;
+static int t4_tmr_idx_ofld = TMR_IDX_OFLD;
 SYSCTL_INT(_hw_cxgbe, OID_AUTO, holdoff_timer_idx_ofld, CTLFLAG_RDTUN,
     &t4_tmr_idx_ofld, 0, "Holdoff timer index for offload queues");
 
 #define PKTC_IDX_OFLD (-1)
-int t4_pktc_idx_ofld = PKTC_IDX_OFLD;
+static int t4_pktc_idx_ofld = PKTC_IDX_OFLD;
 SYSCTL_INT(_hw_cxgbe, OID_AUTO, holdoff_pktc_idx_ofld, CTLFLAG_RDTUN,
     &t4_pktc_idx_ofld, 0, "holdoff packet counter index for offload queues");
 
@@ -686,9 +688,10 @@ SYSCTL_INT(_hw_cxgbe, OID_AUTO, drop_pkts_with_l4_errors, CTLFLAG_RDTUN,
  * TOE tunables.
  */
 static int t4_cop_managed_offloading = 0;
-SYSCTL_INT(_hw_cxgbe, OID_AUTO, cop_managed_offloading, CTLFLAG_RDTUN,
+SYSCTL_INT(_hw_cxgbe_toe, OID_AUTO, cop_managed_offloading, CTLFLAG_RDTUN,
     &t4_cop_managed_offloading, 0,
     "COP (Connection Offload Policy) controls all TOE offload");
+TUNABLE_INT("hw.cxgbe.cop_managed_offloading", &t4_cop_managed_offloading);
 #endif
 
 #ifdef KERN_TLS
@@ -935,15 +938,15 @@ struct {
 	{0x6402, "Chelsio T6225-SO-CR"},	/* 2 x 10/25G, nomem */
 	{0x6403, "Chelsio T6425-CR"},		/* 4 x 10/25G */
 	{0x6404, "Chelsio T6425-SO-CR"},	/* 4 x 10/25G, nomem */
-	{0x6405, "Chelsio T6225-OCP-SO"},	/* 2 x 10/25G, nomem */
-	{0x6406, "Chelsio T62100-OCP-SO"},	/* 2 x 40/50/100G, nomem */
+	{0x6405, "Chelsio T6225-SO-OCP3"},	/* 2 x 10/25G, nomem */
+	{0x6406, "Chelsio T6225-OCP3"},		/* 2 x 10/25G */
 	{0x6407, "Chelsio T62100-LP-CR"},	/* 2 x 40/50/100G */
 	{0x6408, "Chelsio T62100-SO-CR"},	/* 2 x 40/50/100G, nomem */
 	{0x6409, "Chelsio T6210-BT"},		/* 2 x 10GBASE-T */
 	{0x640d, "Chelsio T62100-CR"},		/* 2 x 40/50/100G */
 	{0x6410, "Chelsio T6-DBG-100"},		/* 2 x 40/50/100G, debug */
 	{0x6411, "Chelsio T6225-LL-CR"},	/* 2 x 10/25G */
-	{0x6414, "Chelsio T61100-OCP-SO"},	/* 1 x 40/50/100G, nomem */
+	{0x6414, "Chelsio T62100-SO-OCP3"},	/* 2 x 40/50/100G, nomem */
 	{0x6415, "Chelsio T6201-BT"},		/* 2 x 1000BASE-T */
 
 	/* Custom */
@@ -1624,11 +1627,7 @@ t4_attach(device_t dev)
 		goto done;
 	}
 
-	rc = bus_generic_probe(dev);
-	if (rc != 0) {
-		device_printf(dev, "failed to probe child drivers: %d\n", rc);
-		goto done;
-	}
+	bus_identify_children(dev);
 
 	/*
 	 * Ensure thread-safe mailbox access (in debug builds).
@@ -1639,12 +1638,7 @@ t4_attach(device_t dev)
 	 */
 	sc->flags |= CHK_MBOX_ACCESS;
 
-	rc = bus_generic_attach(dev);
-	if (rc != 0) {
-		device_printf(dev,
-		    "failed to attach all child ports: %d\n", rc);
-		goto done;
-	}
+	bus_attach_children(dev);
 	t4_calibration_start(sc);
 
 	device_printf(dev,
@@ -2779,7 +2773,7 @@ cxgbe_attach(device_t dev)
 
 	cxgbe_sysctls(pi);
 
-	bus_generic_attach(dev);
+	bus_attach_children(dev);
 
 	return (0);
 }
@@ -7795,7 +7789,7 @@ t4_sysctls(struct adapter *sc)
 		SYSCTL_ADD_INT(ctx, children, OID_AUTO, "rx_coalesce",
 		    CTLFLAG_RW, &sc->tt.rx_coalesce, 0, "receive coalescing");
 
-		sc->tt.tls = 0;
+		sc->tt.tls = 1;
 		SYSCTL_ADD_PROC(ctx, children, OID_AUTO, "tls", CTLTYPE_INT |
 		    CTLFLAG_RW | CTLFLAG_MPSAFE, sc, 0, sysctl_tls, "I",
 		    "Inline TLS allowed");

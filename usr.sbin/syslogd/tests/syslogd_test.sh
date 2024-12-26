@@ -11,101 +11,80 @@
 #
 
 # Tests to-do:
-# actions: hostname, users
+# actions: users
 
-readonly SYSLOGD_UDP_PORT="5140"
-readonly SYSLOGD_CONFIG="${PWD}/syslog.conf"
-readonly SYSLOGD_LOCAL_SOCKET="${PWD}/log.sock"
-readonly SYSLOGD_PIDFILE="${PWD}/syslogd.pid"
-readonly SYSLOGD_LOCAL_PRIVSOCKET="${PWD}/logpriv.sock"
+. $(atf_get_srcdir)/syslogd_test_common.sh
 
-# Start a private syslogd instance.
-syslogd_start()
+atf_test_case "unix" "cleanup"
+unix_head()
 {
-    local jail
-
-    if [ "$1" = "-j" ]; then
-        jail="jexec $2"
-        shift 2
-    fi
-    $jail syslogd \
-        -b ":${SYSLOGD_UDP_PORT}" \
-        -C \
-        -d \
-        -f "${SYSLOGD_CONFIG}" \
-        -H \
-        -p "${SYSLOGD_LOCAL_SOCKET}" \
-        -P "${SYSLOGD_PIDFILE}" \
-        -S "${SYSLOGD_LOCAL_PRIVSOCKET}" \
-        $@ \
-        &
-
-    # Give syslogd a bit of time to spin up.
-    while [ "$((i+=1))" -le 20 ]; do
-        [ -S "${SYSLOGD_LOCAL_SOCKET}" ] && return
-        sleep 0.1
-    done
-    atf_fail "timed out waiting for syslogd to start"
+    atf_set descr "Messages are logged over UNIX transport"
 }
+unix_body()
+{
+    local logfile="${PWD}/unix.log"
 
-# Simple logger(1) wrapper.
-syslogd_log()
-{
-    atf_check -s exit:0 -o empty -e empty logger $*
-}
-
-# Make syslogd reload its configuration file.
-syslogd_reload()
-{
-    pkill -HUP -F "${SYSLOGD_PIDFILE}"
-}
-
-# Stop a private syslogd instance.
-syslogd_stop()
-{
-    pid=$(cat "${SYSLOGD_PIDFILE}")
-    if pkill -F "${SYSLOGD_PIDFILE}"; then
-        wait "${pid}"
-        rm -f "${SYSLOGD_PIDFILE}" "${SYSLOGD_LOCAL_SOCKET}" \
-            "${SYSLOGD_LOCAL_PRIVSOCKET}"
-    fi
-}
-
-atf_test_case "basic" "cleanup"
-basic_head()
-{
-    atf_set descr "Messages are logged via supported transports"
-}
-basic_body()
-{
-    logfile="${PWD}/basic.log"
     printf "user.debug\t${logfile}\n" > "${SYSLOGD_CONFIG}"
     syslogd_start
 
-    syslogd_log -p user.debug -t basic -h "${SYSLOGD_LOCAL_SOCKET}" \
+    syslogd_log -p user.debug -t unix -h "${SYSLOGD_LOCAL_SOCKET}" \
         "hello, world (unix)"
-    atf_check -s exit:0 -o match:"basic: hello, world \(unix\)" \
+    atf_check -s exit:0 -o match:"unix: hello, world \(unix\)" \
         tail -n 1 "${logfile}"
+}
+unix_cleanup()
+{
+    syslogd_stop
+}
 
-    # Grab kernel configuration file.
-    sysctl kern.conftxt > conf.txt
+atf_test_case "inet" "cleanup"
+inet_head()
+{
+    atf_set descr "Messages are logged over INET transport"
+}
+inet_body()
+{
+    local logfile="${PWD}/inet.log"
+
+    [ "$(sysctl -n kern.features.inet)" != "1" ] &&
+        atf_skip "Kernel does not support INET"
+
+    printf "user.debug\t${logfile}\n" > "${SYSLOGD_CONFIG}"
+    syslogd_start
 
     # We have INET transport; make sure we can use it.
-    if grep -qw "INET" conf.txt; then
-        syslogd_log -4 -p user.debug -t basic -h 127.0.0.1 -P "${SYSLOGD_UDP_PORT}" \
-            "hello, world (v4)"
-        atf_check -s exit:0 -o match:"basic: hello, world \(v4\)" \
-            tail -n 1 "${logfile}"
-    fi
-    # We have INET6 transport; make sure we can use it.
-    if grep -qw "INET6" conf.txt; then
-        syslogd_log -6 -p user.debug -t basic -h ::1 -P "${SYSLOGD_UDP_PORT}" \
-            "hello, world (v6)"
-        atf_check -s exit:0 -o match:"basic: hello, world \(v6\)" \
-            tail -n 1 "${logfile}"
-    fi
+    syslogd_log -4 -p user.debug -t inet -h 127.0.0.1 -P "${SYSLOGD_UDP_PORT}" \
+        "hello, world (v4)"
+    atf_check -s exit:0 -o match:"inet: hello, world \(v4\)" \
+        tail -n 1 "${logfile}"
 }
-basic_cleanup()
+inet_cleanup()
+{
+    syslogd_stop
+}
+
+atf_test_case "inet6" "cleanup"
+inet6_head()
+{
+    atf_set descr "Messages are logged over INET6 transport"
+}
+inet6_body()
+{
+    local logfile="${PWD}/inet6.log"
+
+    [ "$(sysctl -n kern.features.inet6)" != "1" ] &&
+        atf_skip "Kernel does not support INET6"
+
+    printf "user.debug\t${logfile}\n" > "${SYSLOGD_CONFIG}"
+    syslogd_start
+
+    # We have INET6 transport; make sure we can use it.
+    syslogd_log -6 -p user.debug -t unix -h ::1 -P "${SYSLOGD_UDP_PORT}" \
+        "hello, world (v6)"
+    atf_check -s exit:0 -o match:"unix: hello, world \(v6\)" \
+        tail -n 1 "${logfile}"
+}
+inet6_cleanup()
 {
     syslogd_stop
 }
@@ -270,6 +249,45 @@ prop_filter_cleanup()
     syslogd_stop
 }
 
+atf_test_case "host_action" "cleanup"
+host_action_head()
+{
+    atf_set descr "Sends a message to a specified host"
+}
+host_action_body()
+{
+    local addr="192.0.2.100"
+    local logfile="${PWD}/host_action.log"
+
+    atf_check ifconfig lo1 create
+    atf_check ifconfig lo1 inet "${addr}/24"
+    atf_check ifconfig lo1 up
+
+    printf "user.debug\t${logfile}\n" > "${SYSLOGD_CONFIG}"
+    syslogd_start -b "${addr}"
+
+    printf "user.debug\t@${addr}\n" > "${SYSLOGD_CONFIG}.2"
+    syslogd_start \
+        -f "${SYSLOGD_CONFIG}.2" \
+        -P "${SYSLOGD_PIDFILE}.2" \
+        -p "${SYSLOGD_LOCAL_SOCKET}.2" \
+        -S "${SYSLOGD_LOCAL_PRIVSOCKET}.2"
+
+    syslogd_log -p user.debug -t "test" -h "${SYSLOGD_LOCAL_SOCKET}.2" \
+        "message from syslogd2"
+    atf_check -s exit:0 -o match:"test: message from syslogd2" \
+        cat "${logfile}"
+}
+host_action_cleanup()
+{
+    syslogd_stop
+    syslogd_stop \
+        "${SYSLOGD_PIDFILE}.2" \
+        "${SYSLOGD_LOCAL_SOCKET}.2" \
+        "${SYSLOGD_LOCAL_PRIVSOCKET}.2"
+    atf_check ifconfig lo1 destroy
+}
+
 atf_test_case "pipe_action" "cleanup"
 pipe_action_head()
 {
@@ -308,7 +326,7 @@ jail_noinet_body()
 
     logfile="${PWD}/jail_noinet.log"
     printf "user.debug\t${logfile}\n" > "${SYSLOGD_CONFIG}"
-    syslogd_start -j syslogd_noinet -ss
+    syslogd_start -j syslogd_noinet -s -s
 
     syslogd_log -p user.debug -t "test" -h "${SYSLOGD_LOCAL_SOCKET}" \
         "hello, world"
@@ -321,11 +339,14 @@ jail_noinet_cleanup()
 
 atf_init_test_cases()
 {
-    atf_add_test_case "basic"
+    atf_add_test_case "unix"
+    atf_add_test_case "inet"
+    atf_add_test_case "inet6"
     atf_add_test_case "reload"
     atf_add_test_case "prog_filter"
     atf_add_test_case "host_filter"
     atf_add_test_case "prop_filter"
+    atf_add_test_case "host_action"
     atf_add_test_case "pipe_action"
     atf_add_test_case "jail_noinet"
 }

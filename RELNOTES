@@ -10,6 +10,16 @@ newline.  Entries should be separated by a newline.
 
 Changes to this file should not be MFCed.
 
+0e8a36a2ab12:
+	Add a new NFS mount option called "mountport" that may be used
+	to specify the port# for the NFS server's Mount protocol.
+	This permits a NFSv3 mount to be done without running rpcbind(8).
+
+b2f7c53430c3:
+	Kernel TLS is now enabled by default in kernels including KTLS
+	support.  KTLS is included in GENERIC kernels for aarch64,
+	amd64, powerpc64, and powerpc64le.
+
 f57efe95cc25:
 	New mididump(1) utility which dumps MIDI 1.0 events in real time.
 
@@ -33,6 +43,11 @@ a1da7dc1cdad:
 	The SO_SPLICE socket option was added.  It allows TCP connections to
 	be spliced together, enabling proxy-like functionality without the
 	need to copy data in and out of user memory.
+
+fc12c191c087:
+	grep(1) no longer follows symbolic links by default for
+	recursive searches.  This matches the documented behavior in
+	the manual page.
 
 e962b37bf0ff:
 	When running bhyve(8) guests with a boot ROM, i.e., bhyveload(8) is not

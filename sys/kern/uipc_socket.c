@@ -188,17 +188,17 @@ static int	filt_sowrite(struct knote *kn, long hint);
 static int	filt_soempty(struct knote *kn, long hint);
 fo_kqfilter_t	soo_kqfilter;
 
-static struct filterops soread_filtops = {
+static const struct filterops soread_filtops = {
 	.f_isfd = 1,
 	.f_detach = filt_sordetach,
 	.f_event = filt_soread,
 };
-static struct filterops sowrite_filtops = {
+static const struct filterops sowrite_filtops = {
 	.f_isfd = 1,
 	.f_detach = filt_sowdetach,
 	.f_event = filt_sowrite,
 };
-static struct filterops soempty_filtops = {
+static const struct filterops soempty_filtops = {
 	.f_isfd = 1,
 	.f_detach = filt_sowdetach,
 	.f_event = filt_soempty,
@@ -5033,6 +5033,7 @@ sotoxsocket(struct socket *so, struct xsocket *xso)
 	xso->so_uid = so->so_cred->cr_uid;
 	xso->so_pgid = so->so_sigio ? so->so_sigio->sio_pgid : 0;
 	SOCK_LOCK(so);
+	xso->so_fibnum = so->so_fibnum;
 	if (SOLISTENING(so)) {
 		xso->so_qlen = so->sol_qlen;
 		xso->so_incqlen = so->sol_incqlen;

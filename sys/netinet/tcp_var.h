@@ -892,13 +892,13 @@ struct tcpopt {
 #define	TO_SYN		0x01		/* parse SYN-only options */
 
 struct hc_metrics_lite {	/* must stay in sync with hc_metrics */
-	uint32_t	rmx_mtu;	/* MTU for this path */
-	uint32_t	rmx_ssthresh;	/* outbound gateway buffer limit */
-	uint32_t	rmx_rtt;	/* estimated round trip time */
-	uint32_t	rmx_rttvar;	/* estimated rtt variance */
-	uint32_t	rmx_cwnd;	/* congestion window */
-	uint32_t	rmx_sendpipe;   /* outbound delay-bandwidth product */
-	uint32_t	rmx_recvpipe;   /* inbound delay-bandwidth product */
+	uint32_t	hc_mtu;		/* MTU for this path */
+	uint32_t	hc_ssthresh;	/* outbound gateway buffer limit */
+	uint32_t	hc_rtt;		/* estimated round trip time */
+	uint32_t	hc_rttvar;	/* estimated rtt variance */
+	uint32_t	hc_cwnd;	/* congestion window */
+	uint32_t	hc_sendpipe;	/* outbound delay-bandwidth product */
+	uint32_t	hc_recvpipe;	/* inbound delay-bandwidth product */
 };
 
 #ifndef _NETINET_IN_PCB_H_
@@ -1486,10 +1486,10 @@ void	 tcp_hc_init(void);
 #ifdef VIMAGE
 void	 tcp_hc_destroy(void);
 #endif
-void	 tcp_hc_get(struct in_conninfo *, struct hc_metrics_lite *);
-uint32_t tcp_hc_getmtu(struct in_conninfo *);
-void	 tcp_hc_updatemtu(struct in_conninfo *, uint32_t);
-void	 tcp_hc_update(struct in_conninfo *, struct hc_metrics_lite *);
+void	 tcp_hc_get(const struct in_conninfo *, struct hc_metrics_lite *);
+uint32_t tcp_hc_getmtu(const struct in_conninfo *);
+void	 tcp_hc_updatemtu(const struct in_conninfo *, uint32_t);
+void	 tcp_hc_update(const struct in_conninfo *, struct hc_metrics_lite *);
 void 	 cc_after_idle(struct tcpcb *tp);
 
 extern	struct protosw tcp_protosw;		/* shared for TOE */

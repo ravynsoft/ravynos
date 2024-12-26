@@ -309,14 +309,7 @@ chn_wakeup(struct pcm_channel *c)
 	if (CHN_EMPTY(c, children.busy)) {
 		if (SEL_WAITING(sndbuf_getsel(bs)) && chn_polltrigger(c))
 			selwakeuppri(sndbuf_getsel(bs), PRIBIO);
-		if (c->flags & CHN_F_SLEEPING) {
-			/*
-			 * Ok, I can just panic it right here since it is
-			 * quite obvious that we never allow multiple waiters
-			 * from userland. I'm too generous...
-			 */
-			CHN_BROADCAST(&c->intr_cv);
-		}
+		CHN_BROADCAST(&c->intr_cv);
 	} else {
 		CHN_FOREACH(ch, c, children.busy) {
 			CHN_LOCK(ch);
@@ -332,15 +325,13 @@ chn_sleep(struct pcm_channel *c, int timeout)
 	int ret;
 
 	CHN_LOCKASSERT(c);
-	KASSERT((c->flags & CHN_F_SLEEPING) == 0,
-	    ("%s(): entered with CHN_F_SLEEPING", __func__));
 
 	if (c->flags & CHN_F_DEAD)
 		return (EINVAL);
 
-	c->flags |= CHN_F_SLEEPING;
+	c->sleeping++;
 	ret = cv_timedwait_sig(&c->intr_cv, c->lock, timeout);
-	c->flags &= ~CHN_F_SLEEPING;
+	c->sleeping--;
 
 	return ((c->flags & CHN_F_DEAD) ? EINVAL : ret);
 }
@@ -415,23 +406,6 @@ chn_wrfeed(struct pcm_channel *c)
 	if (sndbuf_getfree(b) < wasfree)
 		chn_wakeup(c);
 }
-
-#if 0
-static void
-chn_wrupdate(struct pcm_channel *c)
-{
-
-	CHN_LOCKASSERT(c);
-	KASSERT(c->direction == PCMDIR_PLAY, ("%s(): bad channel", __func__));
-
-	if ((c->flags & (CHN_F_MMAP | CHN_F_VIRTUAL)) || CHN_STOPPED(c))
-		return;
-	chn_dmaupdate(c);
-	chn_wrfeed(c);
-	/* tell the driver we've updated the primary buffer */
-	chn_trigger(c, PCMTRIG_EMLDMAWR);
-}
-#endif
 
 static void
 chn_wrintr(struct pcm_channel *c)
@@ -545,22 +519,6 @@ chn_rdfeed(struct pcm_channel *c)
 	if (sndbuf_getready(bs) > 0)
 		chn_wakeup(c);
 }
-
-#if 0
-static void
-chn_rdupdate(struct pcm_channel *c)
-{
-
-	CHN_LOCKASSERT(c);
-	KASSERT(c->direction == PCMDIR_REC, ("chn_rdupdate on bad channel"));
-
-	if ((c->flags & (CHN_F_MMAP | CHN_F_VIRTUAL)) || CHN_STOPPED(c))
-		return;
-	chn_trigger(c, PCMTRIG_EMLDMARD);
-	chn_dmaupdate(c);
-	chn_rdfeed(c);
-}
-#endif
 
 /* read interrupt routine. Must be called with interrupts blocked. */
 static void
@@ -1991,12 +1949,6 @@ chn_resizebuf(struct pcm_channel *c, int latency,
 
 		hblksz -= hblksz % sndbuf_getalign(b);
 
-#if 0
-		hblksz = sndbuf_getmaxsize(b) >> 1;
-		hblksz -= hblksz % sndbuf_getalign(b);
-		hblkcnt = 2;
-#endif
-
 		CHN_UNLOCK(c);
 		if (chn_usefrags == 0 ||
 		    CHANNEL_SETFRAGMENTS(c->methods, c->devinfo,
@@ -2026,14 +1978,6 @@ chn_resizebuf(struct pcm_channel *c, int latency,
 
 	if (limit > CHN_2NDBUFMAXSIZE)
 		limit = CHN_2NDBUFMAXSIZE;
-
-#if 0
-	while (limit > 0 && (sblksz * sblkcnt) > limit) {
-		if (sblkcnt < 4)
-			break;
-		sblkcnt >>= 1;
-	}
-#endif
 
 	while ((sblksz * sblkcnt) < limit)
 		sblkcnt <<= 1;
@@ -2150,12 +2094,6 @@ chn_setspeed(struct pcm_channel *c, uint32_t speed)
 {
 	uint32_t oldformat, oldspeed, format;
 	int ret;
-
-#if 0
-	/* XXX force 48k */
-	if (c->format & AFMT_PASSTHROUGH)
-		speed = AFMT_PASSTHROUGH_RATE;
-#endif
 
 	oldformat = c->format;
 	oldspeed = c->speed;
@@ -2318,44 +2256,46 @@ chn_trigger(struct pcm_channel *c, int go)
 	if (go == c->trigger)
 		return (0);
 
+	if (snd_verbose > 3) {
+		device_printf(c->dev, "%s() %s: calling go=0x%08x , "
+		    "prev=0x%08x\n", __func__, c->name, go, c->trigger);
+	}
+
+	c->trigger = go;
 	ret = CHANNEL_TRIGGER(c->methods, c->devinfo, go);
 	if (ret != 0)
 		return (ret);
 
+	CHN_UNLOCK(c);
+	PCM_LOCK(d);
+	CHN_LOCK(c);
+
+	/*
+	 * Do nothing if another thread set a different trigger while we had
+	 * dropped the mutex.
+	 */
+	if (go != c->trigger) {
+		PCM_UNLOCK(d);
+		return (0);
+	}
+
+	/*
+	 * Use the SAFE variants to prevent inserting/removing an already
+	 * existing/missing element.
+	 */
 	switch (go) {
 	case PCMTRIG_START:
-		if (snd_verbose > 3)
-			device_printf(c->dev,
-			    "%s() %s: calling go=0x%08x , "
-			    "prev=0x%08x\n", __func__, c->name, go,
-			    c->trigger);
-		if (c->trigger != PCMTRIG_START) {
-			c->trigger = go;
-			CHN_UNLOCK(c);
-			PCM_LOCK(d);
-			CHN_INSERT_HEAD(d, c, channels.pcm.busy);
-			PCM_UNLOCK(d);
-			CHN_LOCK(c);
-			chn_syncstate(c);
-		}
+		CHN_INSERT_HEAD_SAFE(d, c, channels.pcm.busy);
+		PCM_UNLOCK(d);
+		chn_syncstate(c);
 		break;
 	case PCMTRIG_STOP:
 	case PCMTRIG_ABORT:
-		if (snd_verbose > 3)
-			device_printf(c->dev,
-			    "%s() %s: calling go=0x%08x , "
-			    "prev=0x%08x\n", __func__, c->name, go,
-			    c->trigger);
-		if (c->trigger == PCMTRIG_START) {
-			c->trigger = go;
-			CHN_UNLOCK(c);
-			PCM_LOCK(d);
-			CHN_REMOVE(d, c, channels.pcm.busy);
-			PCM_UNLOCK(d);
-			CHN_LOCK(c);
-		}
+		CHN_REMOVE_SAFE(d, c, channels.pcm.busy);
+		PCM_UNLOCK(d);
 		break;
 	default:
+		PCM_UNLOCK(d);
 		break;
 	}
 

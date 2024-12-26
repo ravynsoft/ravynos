@@ -649,14 +649,9 @@ arswitch_attach(device_t dev)
 		return (err);
 	}
 
-	bus_generic_probe(dev);
+	bus_identify_children(dev);
 	bus_enumerate_hinted_children(dev);
-	err = bus_generic_attach(dev);
-	if (err != 0) {
-		DPRINTF(sc, ARSWITCH_DBG_ANY,
-		    "%s: bus_generic_attach: err=%d\n", __func__, err);
-		return (err);
-	}
+	bus_attach_children(dev);
 	
 	callout_init_mtx(&sc->callout_tick, &sc->sc_mtx, 0);
 

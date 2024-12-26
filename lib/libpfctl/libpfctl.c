@@ -731,7 +731,7 @@ pf_nvrule_to_rule(const nvlist_t *nvl, struct pfctl_rule *rule)
 	strlcpy(rule->overload_tblname, nvlist_get_string(nvl, "overload_tblname"),
 	    PF_TABLE_NAME_SIZE);
 
-	pf_nvpool_to_pool(nvlist_get_nvlist(nvl, "rpool"), &rule->rpool);
+	pf_nvpool_to_pool(nvlist_get_nvlist(nvl, "rpool"), &rule->rdr);
 
 	rule->evaluations = nvlist_get_number(nvl, "evaluations");
 	pf_nvuint_64_array(nvl, "packets", 2, rule->packets, NULL);
@@ -1226,7 +1226,8 @@ snl_add_msg_attr_pf_rule(struct snl_writer *nw, uint32_t type, const struct pfct
 	snl_add_msg_attr_string(nw, PF_RT_TAGNAME, r->tagname);
 	snl_add_msg_attr_string(nw, PF_RT_MATCH_TAGNAME, r->match_tagname);
 	snl_add_msg_attr_string(nw, PF_RT_OVERLOAD_TBLNAME, r->overload_tblname);
-	snl_add_msg_attr_rpool(nw, PF_RT_RPOOL, &r->rpool);
+	snl_add_msg_attr_rpool(nw, PF_RT_RPOOL_RDR, &r->rdr);
+	snl_add_msg_attr_rpool(nw, PF_RT_RPOOL_NAT, &r->nat);
 	snl_add_msg_attr_u32(nw, PF_RT_OS_FINGERPRINT, r->os_fingerprint);
 	snl_add_msg_attr_u32(nw, PF_RT_RTABLEID, r->rtableid);
 	snl_add_msg_attr_timeouts(nw, PF_RT_TIMEOUT, r->timeout);
@@ -1284,6 +1285,7 @@ snl_add_msg_attr_pf_rule(struct snl_writer *nw, uint32_t type, const struct pfct
 	snl_add_msg_attr_u8(nw, PF_RT_PRIO, r->prio);
 	snl_add_msg_attr_u8(nw, PF_RT_SET_PRIO, r->set_prio[0]);
 	snl_add_msg_attr_u8(nw, PF_RT_SET_PRIO_REPLY, r->set_prio[1]);
+	snl_add_msg_attr_u8(nw, PF_RT_NAF, r->naf);
 
 	snl_add_msg_attr_ip6(nw, PF_RT_DIVERT_ADDRESS, &r->divert.addr.v6);
 	snl_add_msg_attr_u16(nw, PF_RT_DIVERT_PORT, r->divert.port);
@@ -1596,7 +1598,7 @@ static struct snl_attr_parser ap_getrule[] = {
 	{ .type = PF_RT_TAGNAME, .off = _OUT(r.tagname), .arg = (void *)PF_TAG_NAME_SIZE, .cb = snl_attr_copy_string },
 	{ .type = PF_RT_MATCH_TAGNAME, .off = _OUT(r.match_tagname), .arg = (void *)PF_TAG_NAME_SIZE, .cb = snl_attr_copy_string },
 	{ .type = PF_RT_OVERLOAD_TBLNAME, .off = _OUT(r.overload_tblname), .arg = (void *)PF_TABLE_NAME_SIZE, .cb = snl_attr_copy_string },
-	{ .type = PF_RT_RPOOL, .off = _OUT(r.rpool), .arg = &pool_parser, .cb = snl_attr_get_nested },
+	{ .type = PF_RT_RPOOL_RDR, .off = _OUT(r.rdr), .arg = &pool_parser, .cb = snl_attr_get_nested },
 	{ .type = PF_RT_OS_FINGERPRINT, .off = _OUT(r.os_fingerprint), .cb = snl_attr_get_uint32 },
 	{ .type = PF_RT_RTABLEID, .off = _OUT(r.rtableid), .cb = snl_attr_get_uint32 },
 	{ .type = PF_RT_TIMEOUT, .off = _OUT(r.timeout), .arg = &timeout_parser, .cb = snl_attr_get_nested_timeouts },
@@ -1660,6 +1662,8 @@ static struct snl_attr_parser ap_getrule[] = {
 	{ .type = PF_RT_ANCHOR_CALL, .off = _OUT(anchor_call), .arg = (void*)MAXPATHLEN, .cb = snl_attr_copy_string },
 	{ .type = PF_RT_RCV_IFNAME, .off = _OUT(r.rcv_ifname), .arg = (void*)IFNAMSIZ, .cb = snl_attr_copy_string },
 	{ .type = PF_RT_MAX_SRC_CONN, .off = _OUT(r.max_src_conn), .cb = snl_attr_get_uint32 },
+	{ .type = PF_RT_RPOOL_NAT, .off = _OUT(r.nat), .arg = &pool_parser, .cb = snl_attr_get_nested },
+	{ .type = PF_RT_NAF, .off = _OUT(r.naf), .cb = snl_attr_get_uint8 },
 };
 static struct snl_field_parser fp_getrule[] = {};
 #undef _OUT
@@ -1864,12 +1868,14 @@ static const struct snl_attr_parser nla_p_speer[] = {
 SNL_DECLARE_ATTR_PARSER(speer_parser, nla_p_speer);
 #undef _OUT
 
-#define	_OUT(_field)	offsetof(struct pf_state_key_export, _field)
+#define	_OUT(_field)	offsetof(struct pfctl_state_key, _field)
 static const struct snl_attr_parser nla_p_skey[] = {
 	{ .type = PF_STK_ADDR0, .off = _OUT(addr[0]), .cb = snl_attr_get_pfaddr },
 	{ .type = PF_STK_ADDR1, .off = _OUT(addr[1]), .cb = snl_attr_get_pfaddr },
 	{ .type = PF_STK_PORT0, .off = _OUT(port[0]), .cb = snl_attr_get_uint16 },
 	{ .type = PF_STK_PORT1, .off = _OUT(port[1]), .cb = snl_attr_get_uint16 },
+	{ .type = PF_STK_AF, .off = _OUT(af), .cb = snl_attr_get_uint8 },
+	{ .type = PF_STK_PROTO, .off = _OUT(proto), .cb = snl_attr_get_uint16 },
 };
 SNL_DECLARE_ATTR_PARSER(skey_parser, nla_p_skey);
 #undef _OUT
@@ -1895,8 +1901,6 @@ static struct snl_attr_parser ap_state[] = {
 	{ .type = PF_ST_PACKETS1, .off = _OUT(packets[1]), .cb = snl_attr_get_uint64 },
 	{ .type = PF_ST_BYTES0, .off = _OUT(bytes[0]), .cb = snl_attr_get_uint64 },
 	{ .type = PF_ST_BYTES1, .off = _OUT(bytes[1]), .cb = snl_attr_get_uint64 },
-	{ .type = PF_ST_AF, .off = _OUT(key[0].af), .cb = snl_attr_get_uint8 },
-	{ .type = PF_ST_PROTO, .off = _OUT(key[0].proto), .cb = snl_attr_get_uint8 },
 	{ .type = PF_ST_DIRECTION, .off = _OUT(direction), .cb = snl_attr_get_uint8 },
 	{ .type = PF_ST_LOG, .off = _OUT(log), .cb = snl_attr_get_uint8 },
 	{ .type = PF_ST_STATE_FLAGS, .off = _OUT(state_flags), .cb = snl_attr_get_uint16 },
@@ -1956,9 +1960,6 @@ pfctl_get_states_nl(struct pfctl_state_filter *filter, struct snl_state *ss, pfc
 		bzero(&s, sizeof(s));
 		if (!snl_parse_nlmsg(ss, hdr, &state_parser, &s))
 			continue;
-
-		s.key[1].af = s.key[0].af;
-		s.key[1].proto = s.key[0].proto;
 
 		ret = f(&s, arg);
 		if (ret != 0)
@@ -2771,7 +2772,7 @@ pfctl_begin_addrs(struct pfctl_handle *h, uint32_t *ticket)
 }
 
 int
-pfctl_add_addr(struct pfctl_handle *h, const struct pfioc_pooladdr *pa)
+pfctl_add_addr(struct pfctl_handle *h, const struct pfioc_pooladdr *pa, int which)
 {
 	struct snl_writer nw;
 	struct snl_errmsg_data e = {};
@@ -2795,6 +2796,7 @@ pfctl_add_addr(struct pfctl_handle *h, const struct pfioc_pooladdr *pa)
 	snl_add_msg_attr_u8(&nw, PF_AA_AF, pa->af);
 	snl_add_msg_attr_string(&nw, PF_AA_ANCHOR, pa->anchor);
 	snl_add_msg_attr_pool_addr(&nw, PF_AA_ADDR, &pa->addr);
+	snl_add_msg_attr_u32(&nw, PF_AA_WHICH, which);
 
 	if ((hdr = snl_finalize_msg(&nw)) == NULL)
 		return (ENXIO);
@@ -2818,7 +2820,7 @@ SNL_DECLARE_PARSER(get_addrs_parser, struct genlmsghdr, fp_get_addrs, ap_get_add
 
 int
 pfctl_get_addrs(struct pfctl_handle *h, uint32_t ticket, uint32_t r_num,
-    uint8_t r_action, const char *anchor, uint32_t *nr)
+    uint8_t r_action, const char *anchor, uint32_t *nr, int which)
 {
 	struct snl_writer nw;
 	struct snl_errmsg_data e = {};
@@ -2837,6 +2839,7 @@ pfctl_get_addrs(struct pfctl_handle *h, uint32_t ticket, uint32_t r_num,
 	snl_add_msg_attr_u32(&nw, PF_AA_R_NUM, r_num);
 	snl_add_msg_attr_u8(&nw, PF_AA_R_ACTION, r_action);
 	snl_add_msg_attr_string(&nw, PF_AA_ANCHOR, anchor);
+	snl_add_msg_attr_u32(&nw, PF_AA_WHICH, which);
 
 	if ((hdr = snl_finalize_msg(&nw)) == NULL)
 		return (ENXIO);
@@ -2880,7 +2883,8 @@ SNL_DECLARE_PARSER(get_addr_parser, struct genlmsghdr, fp_get_addr, ap_get_addr)
 
 int
 pfctl_get_addr(struct pfctl_handle *h, uint32_t ticket, uint32_t r_num,
-    uint8_t r_action, const char *anchor, uint32_t nr, struct pfioc_pooladdr *pa)
+    uint8_t r_action, const char *anchor, uint32_t nr, struct pfioc_pooladdr *pa,
+    int which)
 {
 	struct snl_writer nw;
 	struct snl_errmsg_data e = {};
@@ -2900,6 +2904,7 @@ pfctl_get_addr(struct pfctl_handle *h, uint32_t ticket, uint32_t r_num,
 	snl_add_msg_attr_u8(&nw, PF_AA_R_ACTION, r_action);
 	snl_add_msg_attr_string(&nw, PF_AA_ANCHOR, anchor);
 	snl_add_msg_attr_u32(&nw, PF_AA_NR, nr);
+	snl_add_msg_attr_u32(&nw, PF_AA_WHICH, which);
 
 	if ((hdr = snl_finalize_msg(&nw)) == NULL)
 		return (ENXIO);
@@ -3024,6 +3029,7 @@ static struct snl_attr_parser ap_srcnode[] = {
 	{ .type = PF_SN_CREATION, .off = _OUT(creation), .cb = snl_attr_get_uint64 },
 	{ .type = PF_SN_EXPIRE, .off = _OUT(expire), .cb = snl_attr_get_uint64 },
 	{ .type = PF_SN_CONNECTION_RATE, .off = _OUT(conn_rate), .arg = &pfctl_threshold_parser, .cb = snl_attr_get_nested },
+	{ .type = PF_SN_NAF, .off = _OUT(naf), .cb = snl_attr_get_uint8 },
 };
 static struct snl_field_parser fp_srcnode[] = {};
 #undef _OUT

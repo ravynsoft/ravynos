@@ -442,7 +442,7 @@ nvmf_tcp_construct_pdu(struct nvmf_tcp_qpair *qp, void *hdr, size_t hlen,
 		plen += sizeof(digest);
 	if (data_len != 0) {
 		KASSERT(m_length(data, NULL) == data_len, ("length mismatch"));
-		pdo = roundup2(plen, qp->txpda);
+		pdo = roundup(plen, qp->txpda);
 		pad = pdo - plen;
 		plen = pdo + data_len;
 		if (qp->data_digests)
@@ -884,7 +884,7 @@ nvmf_tcp_mext_pg(void *arg, int how)
 	struct nvmf_tcp_command_buffer *cb = arg;
 	struct mbuf *m;
 
-	m = mb_alloc_ext_pgs(how, nvmf_tcp_free_mext_pg);
+	m = mb_alloc_ext_pgs(how, nvmf_tcp_free_mext_pg, M_RDONLY);
 	m->m_ext.ext_arg1 = cb;
 	tcp_hold_command_buffer(cb);
 	return (m);

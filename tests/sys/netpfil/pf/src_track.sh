@@ -52,7 +52,19 @@ source_track_body()
 		"pass out keep state (source-track)"
 
 	ping -c 3 192.0.2.1
-	jexec alcatraz pfctl -s all -v
+	atf_check -s exit:0 -o match:'192.0.2.2 -> 0.0.0.0 \( states 1,.*' \
+	    jexec alcatraz pfctl -sS
+
+	# Flush all source nodes
+	jexec alcatraz pfctl -FS
+
+	# We can't find the previous source node any more
+	atf_check -s exit:0 -o not-match:'192.0.2.2 -> 0.0.0.0 \( states 1,.*' \
+	    jexec alcatraz pfctl -sS
+
+	# But we still have the state
+	atf_check -s exit:0 -o match:'all icmp 192.0.2.1:8 <- 192.0.2.2:.*' \
+	    jexec alcatraz pfctl -ss
 }
 
 source_track_cleanup()
@@ -60,6 +72,61 @@ source_track_cleanup()
 	pft_cleanup
 }
 
+atf_test_case "kill" "cleanup"
+kill_head()
+{
+	atf_set descr 'Test killing source nodes'
+	atf_set require.user root
+}
+
+kill_body()
+{
+	pft_init
+
+	epair=$(vnet_mkepair)
+	vnet_mkjail alcatraz ${epair}b
+
+	ifconfig ${epair}a 192.0.2.2/24 up
+	ifconfig ${epair}a inet alias 192.0.2.3/24 up
+	jexec alcatraz ifconfig ${epair}b 192.0.2.1/24 up
+
+	# Enable pf!
+	jexec alcatraz pfctl -e
+	pft_set_rules alcatraz \
+		"pass in keep state (source-track)" \
+		"pass out keep state (source-track)"
+
+	# Establish two sources
+	atf_check -s exit:0 -o ignore \
+	    ping -c 1 -S 192.0.2.2 192.0.2.1
+	atf_check -s exit:0 -o ignore \
+	    ping -c 1 -S 192.0.2.3 192.0.2.1
+
+	# Check that both source nodes exist
+	atf_check -s exit:0 -o match:'192.0.2.2 -> 0.0.0.0 \( states 1,.*' \
+	    jexec alcatraz pfctl -sS
+	atf_check -s exit:0 -o match:'192.0.2.3 -> 0.0.0.0 \( states 1,.*' \
+	    jexec alcatraz pfctl -sS
+
+
+jexec alcatraz pfctl -sS
+
+	# Kill the 192.0.2.2 source
+	jexec alcatraz pfctl -K 192.0.2.2
+
+	# The other source still exists
+	atf_check -s exit:0 -o match:'192.0.2.3 -> 0.0.0.0 \( states 1,.*' \
+	    jexec alcatraz pfctl -sS
+
+	# But not the one we killed
+	atf_check -s exit:0 -o not-match:'192.0.2.2 -> 0.0.0.0 \( states 1,.*' \
+	    jexec alcatraz pfctl -sS
+}
+
+kill_cleanup()
+{
+	pft_cleanup
+}
 
 max_src_conn_rule_head()
 {
@@ -98,16 +165,16 @@ max_src_conn_rule_body()
 	ping_server_check_reply exit:0 --ping-type=tcp3way --send-sport=4205 --fromaddr 2001:db8:44::2
 
 	states=$(mktemp) || exit 1
-	jexec router pfctl -qss | grep 'tcp 2001:db8:43::2\[9\] <-' > $states
+	jexec router pfctl -qss | normalize_pfctl_s | grep 'tcp 2001:db8:43::2\[9\] <-' > $states
 
-	grep -qE '2001:db8:44::1\[4201\]\s+ESTABLISHED:ESTABLISHED' $states || atf_fail "State for port 4201 not found or not established"
-	grep -qE '2001:db8:44::1\[4202\]\s+ESTABLISHED:ESTABLISHED' $states || atf_fail "State for port 4202 not found or not established"
-	grep -qE '2001:db8:44::1\[4203\]\s+ESTABLISHED:ESTABLISHED' $states || atf_fail "State for port 4203 not found or not established"
-	grep -qE '2001:db8:44::2\[4205\]\s+ESTABLISHED:ESTABLISHED' $states || atf_fail "State for port 4205 not found or not established"
+	grep -qE '2001:db8:44::1\[4201\] ESTABLISHED:ESTABLISHED' $states || atf_fail "State for port 4201 not found or not established"
+	grep -qE '2001:db8:44::1\[4202\] ESTABLISHED:ESTABLISHED' $states || atf_fail "State for port 4202 not found or not established"
+	grep -qE '2001:db8:44::1\[4203\] ESTABLISHED:ESTABLISHED' $states || atf_fail "State for port 4203 not found or not established"
+	grep -qE '2001:db8:44::2\[4205\] ESTABLISHED:ESTABLISHED' $states || atf_fail "State for port 4205 not found or not established"
 
 	if (
-		grep -qE '2001:db8:44::1\[4204\]\s+' $states &&
-		! grep -qE '2001:db8:44::1\[4204\]\s+CLOSED:CLOSED' $states
+		grep -qE '2001:db8:44::1\[4204\] ' $states &&
+		! grep -qE '2001:db8:44::1\[4204\] CLOSED:CLOSED' $states
 	); then
 		atf_fail "State for port 4204 found but not closed"
 	fi
@@ -150,30 +217,33 @@ max_src_states_rule_body()
 	# 2 connections from host ::1 matching rule_A will be allowed, 1 will fail to create a state.
 	ping_server_check_reply exit:0 --ping-type=tcp3way --send-sport=4211 --fromaddr 2001:db8:44::1
 	ping_server_check_reply exit:0 --ping-type=tcp3way --send-sport=4212 --fromaddr 2001:db8:44::1
-	ping_server_check_reply exit:1 --ping-type=tcp3way --send-sport=4213 --fromaddr 2001:db8:44::1
+	ping_server_check_reply exit:0 --ping-type=tcp3way --send-sport=4213 --fromaddr 2001:db8:44::1
+	ping_server_check_reply exit:1 --ping-type=tcp3way --send-sport=4214 --fromaddr 2001:db8:44::1
 
 	# 2 connections from host ::1 matching rule_B will be allowed, 1 will fail to create a state.
 	# Limits from rule_A don't interfere with rule_B.
 	ping_server_check_reply exit:0 --ping-type=tcp3way --send-sport=4221 --fromaddr 2001:db8:44::1
 	ping_server_check_reply exit:0 --ping-type=tcp3way --send-sport=4222 --fromaddr 2001:db8:44::1
-	ping_server_check_reply exit:1 --ping-type=tcp3way --send-sport=4223 --fromaddr 2001:db8:44::1
+	ping_server_check_reply exit:0 --ping-type=tcp3way --send-sport=4223 --fromaddr 2001:db8:44::1
+	ping_server_check_reply exit:1 --ping-type=tcp3way --send-sport=4224 --fromaddr 2001:db8:44::1
 
 	# 2 connections from host ::2 matching rule_B will be allowed, 1 will fail to create a state.
 	# Limits for host ::1 will not interfere with host ::2.
 	ping_server_check_reply exit:0 --ping-type=tcp3way --send-sport=4224 --fromaddr 2001:db8:44::2
 	ping_server_check_reply exit:0 --ping-type=tcp3way --send-sport=4225 --fromaddr 2001:db8:44::2
-	ping_server_check_reply exit:1 --ping-type=tcp3way --send-sport=4226 --fromaddr 2001:db8:44::2
+	ping_server_check_reply exit:0 --ping-type=tcp3way --send-sport=4226 --fromaddr 2001:db8:44::2
+	ping_server_check_reply exit:1 --ping-type=tcp3way --send-sport=4227 --fromaddr 2001:db8:44::2
 
 	# We will check the resulting source nodes, though.
 	# Order of source nodes in output is not guaranteed, find each one separately.
 	nodes=$(mktemp) || exit 1
-	jexec router pfctl -qvsS  > $nodes
+	jexec router pfctl -qvsS | normalize_pfctl_s > $nodes
 	for node_regexp in \
-		'2001:db8:44::1 -> :: \( states 2, connections 2, rate [0-9/\.]+s \)\s+age [0-9:]+, 6 pkts, [0-9]+ bytes, filter rule 3' \
-		'2001:db8:44::1 -> :: \( states 2, connections 2, rate [0-9/\.]+s \)\s+age [0-9:]+, 6 pkts, [0-9]+ bytes, filter rule 4' \
-		'2001:db8:44::2 -> :: \( states 2, connections 2, rate [0-9/\.]+s \)\s+age [0-9:]+, 6 pkts, [0-9]+ bytes, filter rule 4' \
+		'2001:db8:44::1 -> :: \( states 3, connections 3, rate [0-9/\.]+s \) age [0-9:]+, 9 pkts, [0-9]+ bytes, filter rule 3$' \
+		'2001:db8:44::1 -> :: \( states 3, connections 3, rate [0-9/\.]+s \) age [0-9:]+, 9 pkts, [0-9]+ bytes, filter rule 4$' \
+		'2001:db8:44::2 -> :: \( states 3, connections 3, rate [0-9/\.]+s \) age [0-9:]+, 9 pkts, [0-9]+ bytes, filter rule 4$' \
 	; do
-		cat $nodes | tr '\n' ' ' | grep -qE "$node_regexp" || atf_fail "Source nodes not matching expected output"
+		grep -qE "$node_regexp" $nodes || atf_fail "Source nodes not matching expected output"
 	done
 
 	# Check if limit counters have been properly set.
@@ -188,6 +258,7 @@ max_src_states_rule_cleanup()
 atf_init_test_cases()
 {
 	atf_add_test_case "source_track"
+	atf_add_test_case "kill"
 	atf_add_test_case "max_src_conn_rule"
 	atf_add_test_case "max_src_states_rule"
 }

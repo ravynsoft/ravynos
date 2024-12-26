@@ -266,7 +266,7 @@ nvmf_establish_connection(struct nvmf_softc *sc, struct nvmf_ivars *ivars)
 
 	/* Setup the admin queue. */
 	sc->admin = nvmf_init_qp(sc, ivars->hh->trtype, &ivars->hh->admin,
-	    "admin queue");
+	    "admin queue", 0);
 	if (sc->admin == NULL) {
 		device_printf(sc->dev, "Failed to setup admin queue\n");
 		return (ENXIO);
@@ -279,7 +279,7 @@ nvmf_establish_connection(struct nvmf_softc *sc, struct nvmf_ivars *ivars)
 	for (u_int i = 0; i < sc->num_io_queues; i++) {
 		snprintf(name, sizeof(name), "I/O queue %u", i);
 		sc->io[i] = nvmf_init_qp(sc, ivars->hh->trtype,
-		    &ivars->io_params[i], name);
+		    &ivars->io_params[i], name, i);
 		if (sc->io[i] == NULL) {
 			device_printf(sc->dev, "Failed to setup I/O queue %u\n",
 			    i + 1);
@@ -376,10 +376,10 @@ nvmf_scan_active_nslist(struct nvmf_softc *sc, struct nvme_ns_list *nslist,
 
 	MPASS(nsid == nslist->ns[nitems(nslist->ns) - 1] && nsid != 0);
 
-	if (nsid >= 0xfffffffd)
+	if (nsid >= NVME_GLOBAL_NAMESPACE_TAG - 1)
 		*nsidp = 0;
 	else
-		*nsidp = nsid + 1;
+		*nsidp = nsid;
 	return (true);
 }
 
@@ -453,6 +453,7 @@ nvmf_attach(device_t dev)
 	struct make_dev_args mda;
 	struct nvmf_softc *sc = device_get_softc(dev);
 	struct nvmf_ivars *ivars = device_get_ivars(dev);
+	struct sysctl_oid *oid;
 	uint64_t val;
 	u_int i;
 	int error;
@@ -467,14 +468,16 @@ nvmf_attach(device_t dev)
 	sx_init(&sc->connection_lock, "nvmf connection");
 	TASK_INIT(&sc->disconnect_task, 0, nvmf_disconnect_task, sc);
 
+	oid = SYSCTL_ADD_NODE(device_get_sysctl_ctx(dev),
+	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)), OID_AUTO, "ioq",
+	    CTLFLAG_RD | CTLFLAG_MPSAFE, NULL, "I/O Queues");
+	sc->ioq_oid_list = SYSCTL_CHILDREN(oid);
+
 	/* Claim the cdata pointer from ivars. */
 	sc->cdata = ivars->cdata;
 	ivars->cdata = NULL;
 
 	nvmf_init_aer(sc);
-
-	/* TODO: Multiqueue support. */
-	sc->max_pending_io = ivars->io_params[0].qsize /* * sc->num_io_queues */;
 
 	error = nvmf_establish_connection(sc, ivars);
 	if (error != 0)
@@ -502,6 +505,8 @@ nvmf_attach(device_t dev)
 		    1 << (sc->cdata->mdts + NVME_MPS_SHIFT +
 		    NVME_CAP_HI_MPSMIN(sc->cap >> 32)));
 	}
+
+	sc->max_pending_io = ivars->io_params[0].qsize * sc->num_io_queues;
 
 	error = nvmf_init_sim(sc);
 	if (error != 0)
@@ -774,7 +779,7 @@ nvmf_detach(device_t dev)
 	sx_xunlock(&sc->connection_lock);
 
 	EVENTHANDLER_DEREGISTER(shutdown_pre_sync, sc->shutdown_pre_sync_eh);
-	EVENTHANDLER_DEREGISTER(shutdown_pre_sync, sc->shutdown_post_sync_eh);
+	EVENTHANDLER_DEREGISTER(shutdown_post_sync, sc->shutdown_post_sync_eh);
 
 	nvmf_destroy_sim(sc);
 	for (i = 0; i < sc->cdata->nn; i++) {

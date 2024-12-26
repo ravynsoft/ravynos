@@ -800,6 +800,14 @@ dmu_tx_dirty_buf(dmu_tx_t *tx, dmu_buf_impl_t *db)
 			case THT_CLONE:
 				if (blkid >= beginblk && blkid <= endblk)
 					match_offset = TRUE;
+				/*
+				 * They might have to increase nlevels,
+				 * thus dirtying the new TLIBs.  Or the
+				 * might have to change the block size,
+				 * thus dirying the new lvl=0 blk=0.
+				 */
+				if (blkid == 0)
+					match_offset = TRUE;
 				break;
 			default:
 				cmn_err(CE_PANIC, "bad txh_type %d",
@@ -1377,6 +1385,13 @@ dmu_tx_pool(dmu_tx_t *tx)
 	return (tx->tx_pool);
 }
 
+/*
+ * Register a callback to be executed at the end of a TXG.
+ *
+ * Note: This currently exists for outside consumers, specifically the ZFS OSD
+ * for Lustre. Please do not remove before checking that project. For examples
+ * on how to use this see `ztest_commit_callback`.
+ */
 void
 dmu_tx_callback_register(dmu_tx_t *tx, dmu_tx_callback_func_t *func, void *data)
 {

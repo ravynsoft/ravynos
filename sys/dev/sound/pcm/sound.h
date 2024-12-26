@@ -83,8 +83,8 @@ struct snd_mixer;
 
 #include <dev/sound/pcm/buffer.h>
 #include <dev/sound/pcm/matrix.h>
-#include <dev/sound/pcm/matrix_map.h>
 #include <dev/sound/pcm/channel.h>
+#include <dev/sound/pcm/pcm.h>
 #include <dev/sound/pcm/feeder.h>
 #include <dev/sound/pcm/mixer.h>
 #include <dev/sound/pcm/dsp.h>
@@ -104,17 +104,15 @@ struct snd_mixer;
 #define SD_F_SIMPLEX		0x00000001
 #define SD_F_AUTOVCHAN		0x00000002
 #define SD_F_SOFTPCMVOL		0x00000004
-#define SD_F_DYING		0x00000008
-#define SD_F_DETACHING		0x00000010
-#define SD_F_BUSY		0x00000020
-#define SD_F_MPSAFE		0x00000040
-#define SD_F_REGISTERED		0x00000080
-#define SD_F_BITPERFECT		0x00000100
-#define SD_F_VPC		0x00000200	/* volume-per-channel */
-#define SD_F_EQ			0x00000400	/* EQ */
-#define SD_F_EQ_ENABLED		0x00000800	/* EQ enabled */
-#define SD_F_EQ_BYPASSED	0x00001000	/* EQ bypassed */
-#define SD_F_EQ_PC		0x00002000	/* EQ per-channel */
+#define SD_F_BUSY		0x00000008
+#define SD_F_MPSAFE		0x00000010
+#define SD_F_REGISTERED		0x00000020
+#define SD_F_BITPERFECT		0x00000040
+#define SD_F_VPC		0x00000080	/* volume-per-channel */
+#define SD_F_EQ			0x00000100	/* EQ */
+#define SD_F_EQ_ENABLED		0x00000200	/* EQ enabled */
+#define SD_F_EQ_BYPASSED	0x00000400	/* EQ bypassed */
+#define SD_F_EQ_PC		0x00000800	/* EQ per-channel */
 
 #define SD_F_EQ_DEFAULT		(SD_F_EQ | SD_F_EQ_ENABLED)
 #define SD_F_EQ_MASK		(SD_F_EQ | SD_F_EQ_ENABLED |		\
@@ -127,26 +125,20 @@ struct snd_mixer;
 				"\001SIMPLEX"				\
 				"\002AUTOVCHAN"				\
 				"\003SOFTPCMVOL"			\
-				"\004DYING"				\
-				"\005DETACHING"				\
-				"\006BUSY"				\
-				"\007MPSAFE"				\
-				"\010REGISTERED"			\
-				"\011BITPERFECT"			\
-				"\012VPC"				\
-				"\013EQ"				\
-				"\014EQ_ENABLED"			\
-				"\015EQ_BYPASSED"			\
-				"\016EQ_PC"				\
+				"\004BUSY"				\
+				"\005MPSAFE"				\
+				"\006REGISTERED"			\
+				"\007BITPERFECT"			\
+				"\010VPC"				\
+				"\011EQ"				\
+				"\012EQ_ENABLED"			\
+				"\013EQ_BYPASSED"			\
+				"\014EQ_PC"				\
 				"\035PRIO_RD"				\
 				"\036PRIO_WR"
 
-#define PCM_ALIVE(x)		((x) != NULL && (x)->lock != NULL &&	\
-				 !((x)->flags & SD_F_DYING))
-#define PCM_REGISTERED(x)	(PCM_ALIVE(x) &&			\
-				 ((x)->flags & SD_F_REGISTERED))
-
-#define	PCM_DETACHING(x)	((x)->flags & SD_F_DETACHING)
+#define PCM_ALIVE(x)		((x) != NULL && (x)->lock != NULL)
+#define PCM_REGISTERED(x)	(PCM_ALIVE(x) && ((x)->flags & SD_F_REGISTERED))
 
 #define	PCM_CHANCOUNT(d)	\
 	(d->playcount + d->pvchancount + d->reccount + d->rvchancount)
@@ -229,7 +221,6 @@ enum {
 
 #define DSP_DEFAULT_SPEED	8000
 
-extern int pcm_veto_load;
 extern int snd_unit;
 extern int snd_verbose;
 extern devclass_t pcm_devclass;
@@ -246,9 +237,9 @@ int pcm_chnalloc(struct snddev_info *d, struct pcm_channel **ch, int direction,
 
 int pcm_addchan(device_t dev, int dir, kobj_class_t cls, void *devinfo);
 unsigned int pcm_getbuffersize(device_t dev, unsigned int minbufsz, unsigned int deflt, unsigned int maxbufsz);
-int pcm_register(device_t dev, void *devinfo, int numplay, int numrec);
+void pcm_init(device_t dev, void *devinfo);
+int pcm_register(device_t dev, char *str);
 int pcm_unregister(device_t dev);
-int pcm_setstatus(device_t dev, char *str);
 u_int32_t pcm_getflags(device_t dev);
 void pcm_setflags(device_t dev, u_int32_t val);
 void *pcm_getdevinfo(device_t dev);
@@ -368,15 +359,7 @@ int	sound_oss_card_info(oss_card_info *);
 		    __func__, __LINE__);				\
 	if ((x)->flags & SD_F_BUSY) {					\
 		(x)->flags &= ~SD_F_BUSY;				\
-		if ((x)->cv.cv_waiters != 0) {				\
-			if ((x)->cv.cv_waiters > 1 && snd_verbose > 3)	\
-				device_printf((x)->dev,			\
-				    "%s(%d): [PCM RELEASE] "		\
-				    "cv_waiters=%d > 1!\n",		\
-				    __func__, __LINE__,			\
-				    (x)->cv.cv_waiters);		\
-			cv_broadcast(&(x)->cv);				\
-		}							\
+		cv_broadcast(&(x)->cv);					\
 	} else								\
 		panic("%s(%d): [PCM RELEASE] Releasing non-BUSY cv!",	\
 		    __func__, __LINE__);				\
@@ -468,8 +451,7 @@ int	sound_oss_card_info(oss_card_info *);
 	    ("%s(%d): [PCM RELEASE] Releasing non-BUSY cv!",		\
 	    __func__, __LINE__));					\
 	(x)->flags &= ~SD_F_BUSY;					\
-	if ((x)->cv.cv_waiters != 0)					\
-		cv_broadcast(&(x)->cv);					\
+	cv_broadcast(&(x)->cv);						\
 } while (0)
 
 /* Quick version, for shorter path. */

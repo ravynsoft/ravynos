@@ -257,11 +257,9 @@ ip17x_attach(device_t dev)
 	 */
 	sc->hal.ip17x_set_vlan_mode(sc, ETHERSWITCH_VLAN_PORT);
 
-	bus_generic_probe(dev);
+	bus_identify_children(dev);
 	bus_enumerate_hinted_children(dev);
-	err = bus_generic_attach(dev);
-	if (err != 0)
-		return (err);
+	bus_attach_children(dev);
 	
 	if (sc->miipoll) {
 		callout_init(&sc->callout_tick, 0);

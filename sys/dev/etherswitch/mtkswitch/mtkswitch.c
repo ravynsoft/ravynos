@@ -231,12 +231,9 @@ mtkswitch_attach(device_t dev)
 	if (err != 0)
 		return (err);
 
-	bus_generic_probe(dev);
+	bus_identify_children(dev);
 	bus_enumerate_hinted_children(dev);
-	err = bus_generic_attach(dev);
-	DPRINTF(dev, "%s: bus_generic_attach: err=%d\n", __func__, err);
-	if (err != 0)
-		return (err);
+	bus_attach_children(dev);
 
 	callout_init_mtx(&sc->callout_tick, &sc->sc_mtx, 0);
 

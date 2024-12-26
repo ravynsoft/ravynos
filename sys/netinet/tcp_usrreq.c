@@ -685,28 +685,22 @@ tcp_usr_disconnect(struct socket *so)
 	struct inpcb *inp;
 	struct tcpcb *tp = NULL;
 	struct epoch_tracker et;
-	int error = 0;
 
 	NET_EPOCH_ENTER(et);
 	inp = sotoinpcb(so);
 	KASSERT(inp != NULL, ("tcp_usr_disconnect: inp == NULL"));
 	INP_WLOCK(inp);
-	if (inp->inp_flags & INP_DROPPED) {
-		INP_WUNLOCK(inp);
-		NET_EPOCH_EXIT(et);
-		return (ECONNRESET);
-	}
 	tp = intotcpcb(inp);
 
 	if (tp->t_state == TCPS_TIME_WAIT)
 		goto out;
 	tcp_disconnect(tp);
 out:
-	tcp_bblog_pru(tp, PRU_DISCONNECT, error);
+	tcp_bblog_pru(tp, PRU_DISCONNECT, 0);
 	TCP_PROBE2(debug__user, tp, PRU_DISCONNECT);
 	INP_WUNLOCK(inp);
 	NET_EPOCH_EXIT(et);
-	return (error);
+	return (0);
 }
 
 #ifdef INET
@@ -1125,9 +1119,9 @@ tcp_usr_send(struct socket *so, int flags, struct mbuf *m,
 		/*
 		 * XXXRW: PRUS_EOF not implemented with PRUS_OOB?
 		 */
-		SOCKBUF_LOCK(&so->so_snd);
+		SOCK_SENDBUF_LOCK(so);
 		if (sbspace(&so->so_snd) < -512) {
-			SOCKBUF_UNLOCK(&so->so_snd);
+			SOCK_SENDBUF_UNLOCK(so);
 			error = ENOBUFS;
 			goto out;
 		}
@@ -1142,7 +1136,7 @@ tcp_usr_send(struct socket *so, int flags, struct mbuf *m,
 		if (tp->t_acktime == 0)
 			tp->t_acktime = ticks;
 		sbappendstream_locked(&so->so_snd, m, flags);
-		SOCKBUF_UNLOCK(&so->so_snd);
+		SOCK_SENDBUF_UNLOCK(so);
 		m = NULL;
 		if (nam && tp->t_state < TCPS_SYN_SENT) {
 			/*
@@ -1237,9 +1231,9 @@ tcp_usr_ready(struct socket *so, struct mbuf *m, int count)
 	}
 	tp = intotcpcb(inp);
 
-	SOCKBUF_LOCK(&so->so_snd);
+	SOCK_SENDBUF_LOCK(so);
 	error = sbready(&so->so_snd, m, count);
-	SOCKBUF_UNLOCK(&so->so_snd);
+	SOCK_SENDBUF_UNLOCK(so);
 	if (error) {
 		INP_WUNLOCK(inp);
 		return (error);
@@ -1471,7 +1465,7 @@ tcp_connect(struct tcpcb *tp, struct sockaddr_in *sin, struct thread *td)
 		return (EISCONN);
 
 	INP_HASH_WLOCK(&V_tcbinfo);
-	error = in_pcbconnect(inp, sin, td->td_ucred, true);
+	error = in_pcbconnect(inp, sin, td->td_ucred);
 	INP_HASH_WUNLOCK(&V_tcbinfo);
 	if (error != 0)
 		return (error);

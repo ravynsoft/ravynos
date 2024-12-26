@@ -323,9 +323,10 @@ DPCPU_DEFINE_STATIC(struct vdbatch, vd);
 static void	vdbatch_dequeue(struct vnode *vp);
 
 /*
- * When shutting down the syncer, run it at four times normal speed.
+ * The syncer will require at least SYNCER_MAXDELAY iterations to shutdown;
+ * we probably don't want to pause for the whole second each time.
  */
-#define SYNCER_SHUTDOWN_SPEEDUP		4
+#define SYNCER_SHUTDOWN_SPEEDUP		32
 static int sync_vnode_count;
 static int syncer_worklist_len;
 static enum { SYNCER_RUNNING, SYNCER_SHUTTING_DOWN, SYNCER_FINAL_DELAY }
@@ -1992,25 +1993,11 @@ vn_alloc_hard(struct mount *mp, u_long rnumvnodes, bool bumped)
 
 	mtx_lock(&vnode_list_mtx);
 
-	if (vn_alloc_cyclecount != 0) {
-		rnumvnodes = atomic_load_long(&numvnodes);
-		if (rnumvnodes + 1 < desiredvnodes) {
-			vn_alloc_cyclecount = 0;
-			mtx_unlock(&vnode_list_mtx);
-			goto alloc;
-		}
-
-		rfreevnodes = vnlru_read_freevnodes();
-		if (rfreevnodes < wantfreevnodes) {
-			if (vn_alloc_cyclecount++ >= rfreevnodes) {
-				vn_alloc_cyclecount = 0;
-				vstir = true;
-			}
-		} else {
-			vn_alloc_cyclecount = 0;
-		}
+	rfreevnodes = vnlru_read_freevnodes();
+	if (vn_alloc_cyclecount++ >= rfreevnodes) {
+		vn_alloc_cyclecount = 0;
+		vstir = true;
 	}
-
 	/*
 	 * Grow the vnode cache if it will not be above its target max after
 	 * growing.  Otherwise, if there is at least one free vnode, try to
@@ -6489,7 +6476,7 @@ static int	filt_fsattach(struct knote *kn);
 static void	filt_fsdetach(struct knote *kn);
 static int	filt_fsevent(struct knote *kn, long hint);
 
-struct filterops fs_filtops = {
+const struct filterops fs_filtops = {
 	.f_isfd = 0,
 	.f_attach = filt_fsattach,
 	.f_detach = filt_fsdetach,
@@ -6569,17 +6556,17 @@ static int	filt_vfsread(struct knote *kn, long hint);
 static int	filt_vfswrite(struct knote *kn, long hint);
 static int	filt_vfsvnode(struct knote *kn, long hint);
 static void	filt_vfsdetach(struct knote *kn);
-static struct filterops vfsread_filtops = {
+static const struct filterops vfsread_filtops = {
 	.f_isfd = 1,
 	.f_detach = filt_vfsdetach,
 	.f_event = filt_vfsread
 };
-static struct filterops vfswrite_filtops = {
+static const struct filterops vfswrite_filtops = {
 	.f_isfd = 1,
 	.f_detach = filt_vfsdetach,
 	.f_event = filt_vfswrite
 };
-static struct filterops vfsvnode_filtops = {
+static const struct filterops vfsvnode_filtops = {
 	.f_isfd = 1,
 	.f_detach = filt_vfsdetach,
 	.f_event = filt_vfsvnode

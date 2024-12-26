@@ -1436,7 +1436,9 @@ s32 ixgbe_identify_sfp_module_generic(struct ixgbe_hw *hw)
 		if (((comp_codes_1g & IXGBE_SFF_1GBASESX_CAPABLE) &&
 		   (comp_codes_10g & IXGBE_SFF_10GBASESR_CAPABLE)) ||
 		   ((comp_codes_1g & IXGBE_SFF_1GBASELX_CAPABLE) &&
-		   (comp_codes_10g & IXGBE_SFF_10GBASELR_CAPABLE)))
+		   (comp_codes_10g & IXGBE_SFF_10GBASELR_CAPABLE)) ||
+		   (cable_tech & IXGBE_SFF_DA_PASSIVE_CABLE) ||
+		   (cable_tech & IXGBE_SFF_DA_ACTIVE_CABLE))
 			hw->phy.multispeed_fiber = true;
 
 		/* Determine PHY vendor */

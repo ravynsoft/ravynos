@@ -3404,6 +3404,51 @@ mlx5e_set_rx_mode(if_t ifp)
 	queue_work(priv->wq, &priv->set_rx_mode_work);
 }
 
+static bool
+mlx5e_is_ipsec_capable(struct mlx5_core_dev *mdev)
+{
+#ifdef IPSEC_OFFLOAD
+	if ((mlx5_ipsec_device_caps(mdev) & MLX5_IPSEC_CAP_PACKET_OFFLOAD) != 0)
+		return (true);
+#endif
+	return (false);
+}
+
+static bool
+mlx5e_is_ratelimit_capable(struct mlx5_core_dev *mdev)
+{
+#ifdef RATELIMIT
+	if (MLX5_CAP_GEN(mdev, qos) &&
+	    MLX5_CAP_QOS(mdev, packet_pacing))
+		return (true);
+#endif
+	return (false);
+}
+
+static bool
+mlx5e_is_tlstx_capable(struct mlx5_core_dev *mdev)
+{
+#ifdef KERN_TLS
+	if (MLX5_CAP_GEN(mdev, tls_tx) != 0 &&
+	    MLX5_CAP_GEN(mdev, log_max_dek) != 0)
+		return (true);
+#endif
+	return (false);
+}
+
+static bool
+mlx5e_is_tlsrx_capable(struct mlx5_core_dev *mdev)
+{
+#ifdef KERN_TLS
+	if (MLX5_CAP_GEN(mdev, tls_rx) != 0 &&
+	    MLX5_CAP_GEN(mdev, log_max_dek) != 0 &&
+	    MLX5_CAP_FLOWTABLE_NIC_RX(mdev,
+	    ft_field_support.outer_ip_version) != 0)
+		return (true);
+#endif
+	return (false);
+}
+
 static int
 mlx5e_ioctl(if_t ifp, u_long command, caddr_t data)
 {
@@ -3507,6 +3552,24 @@ mlx5e_ioctl(if_t ifp, u_long command, caddr_t data)
 		drv_ioctl_data = (struct siocsifcapnv_driver_data *)data;
 		PRIV_LOCK(priv);
 siocsifcap_driver:
+		if (!mlx5e_is_tlstx_capable(priv->mdev)) {
+			drv_ioctl_data->reqcap &= ~(IFCAP_TXTLS4 |
+			    IFCAP_TXTLS6);
+		}
+		if (!mlx5e_is_tlsrx_capable(priv->mdev)) {
+		        drv_ioctl_data->reqcap &= ~(
+			    IFCAP2_BIT(IFCAP2_RXTLS4) |
+			    IFCAP2_BIT(IFCAP2_RXTLS6));
+		}
+		if (!mlx5e_is_ipsec_capable(priv->mdev)) {
+			drv_ioctl_data->reqcap &=
+			    ~IFCAP2_BIT(IFCAP2_IPSEC_OFFLOAD);
+		}
+		if (!mlx5e_is_ratelimit_capable(priv->mdev)) {
+			drv_ioctl_data->reqcap &= ~(IFCAP_TXTLS_RTLMT |
+			    IFCAP_TXRTLMT);
+		}
+
 		mask = drv_ioctl_data->reqcap ^ if_getcapenable(ifp);
 
 		if (mask & IFCAP_TXCSUM) {
@@ -4535,15 +4598,18 @@ mlx5e_create_ifp(struct mlx5_core_dev *mdev)
 	if_setcapabilitiesbit(ifp, IFCAP_TSO | IFCAP_VLAN_HWTSO, 0);
 	if_setcapabilitiesbit(ifp, IFCAP_HWSTATS | IFCAP_HWRXTSTMP, 0);
 	if_setcapabilitiesbit(ifp, IFCAP_MEXTPG, 0);
-	if_setcapabilitiesbit(ifp, IFCAP_TXTLS4 | IFCAP_TXTLS6, 0);
-#ifdef RATELIMIT
-	if_setcapabilitiesbit(ifp, IFCAP_TXRTLMT | IFCAP_TXTLS_RTLMT, 0);
-#endif
+	if (mlx5e_is_tlstx_capable(mdev))
+		if_setcapabilitiesbit(ifp, IFCAP_TXTLS4 | IFCAP_TXTLS6, 0);
+	if (mlx5e_is_tlsrx_capable(mdev))
+		if_setcapabilities2bit(ifp, IFCAP2_BIT(IFCAP2_RXTLS4) |
+		    IFCAP2_BIT(IFCAP2_RXTLS6), 0);
+	if (mlx5e_is_ratelimit_capable(mdev)) {
+		if_setcapabilitiesbit(ifp, IFCAP_TXRTLMT, 0);
+		if (mlx5e_is_tlstx_capable(mdev))
+			if_setcapabilitiesbit(ifp, IFCAP_TXTLS_RTLMT, 0);
+	}
 	if_setcapabilitiesbit(ifp, IFCAP_VXLAN_HWCSUM | IFCAP_VXLAN_HWTSO, 0);
-	if_setcapabilities2bit(ifp, IFCAP2_BIT(IFCAP2_RXTLS4) |
-	    IFCAP2_BIT(IFCAP2_RXTLS6), 0);
-
-	if (mlx5_ipsec_device_caps(mdev) & MLX5_IPSEC_CAP_PACKET_OFFLOAD)
+	if (mlx5e_is_ipsec_capable(mdev))
 		if_setcapabilities2bit(ifp, IFCAP2_BIT(IFCAP2_IPSEC_OFFLOAD),
 		    0);
 
