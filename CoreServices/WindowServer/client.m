@@ -35,7 +35,9 @@
                             styleMask:NSTitledWindowMask
                               backing:NSBackingStoreRetained
                                 defer:NO];
-    textfield = [[NSTextView alloc] initWithFrame:NSMakeRect(1,1,438,478)];
+    NSRect bounds = [[self contentView] bounds];
+    bounds.size.width -= 200;
+    textfield = [[NSTextView alloc] initWithFrame:bounds];
 
     return self;
 }
@@ -48,22 +50,14 @@
     [textfield setNeedsDisplay:YES];
     NSString *path = [[NSBundle mainBundle] pathForResource:@"SneakySnek" ofType:@"png"];
     NSImage *img = [[NSImage alloc] initWithContentsOfFile:path];
-    NSImageView *iv = [[NSImageView alloc] initWithFrame:NSMakeRect(439,1,200,478)];
+    NSRect bounds = [[self contentView] bounds];
+    bounds.origin.x = bounds.size.width - 190;
+    bounds.size.width = 180;
+    NSImageView *iv = [[NSImageView alloc] initWithFrame:bounds];
     [iv setImage:img];
     [v addSubview:iv];
     [v setNeedsDisplay:YES];
 
-#if 0
-    win = [[NSWindow alloc] initWithContentRect:NSMakeRect(400, 400, 640, 480)
-                                     styleMask:NSTitledWindowMask
-                                       backing:NSBackingStoreRetained
-                                         defer:NO];
-    NSImageView *iv2 = [[NSImageView alloc] initWithFrame:NSMakeRect(0, 0, 640, 480)];
-    [iv2 setImage:img];
-    [[win contentView] addSubview:iv2];
-    [[win contentView] setNeedsDisplay:YES];
-    [win orderFront:self];
-#endif
     [self makeKeyAndOrderFront:self];
 }
 
@@ -74,9 +68,11 @@
         [textfield insertText:[e characters]];
 }
 
+#if 0
 -(void)mouseMoved:(NSEvent *)e {
     NSLog(@"mouseMoved %@", e);
 }
+#endif
 
 @end
 
