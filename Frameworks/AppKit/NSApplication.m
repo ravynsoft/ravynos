@@ -991,9 +991,10 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 	}
 
     /* If there are no menus loaded (e.g. we have no nib), make sure we at least have
-     * the application menu and some other standard ones
+     * the application menu
      */
-    [self setMenu:[NSMenu new]];
+    if([self mainMenu] == nil)
+        [self setMenu:[NSMenu new]];
 	
 // Give us a first event
    [NSTimer scheduledTimerWithTimeInterval:0.1 target:nil
