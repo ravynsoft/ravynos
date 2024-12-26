@@ -737,7 +737,8 @@ DIRS= \
 
 
 
-CFLAGS+= ${FMWK_CFLAGS} -IHeaders -I${.CURDIR}/.. -I${BUILDROOT}/usr/include -pthread
+CFLAGS+= ${FMWK_CFLAGS} -I${SRCTOP}/gnu/lib/libobjc2 -IHeaders -I${.CURDIR}/.. \
+	 -I${BUILDROOT}/usr/include -pthread
 LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -Wl,-R/System/Library/Frameworks/CFNetwork.framework/Versions/A \
 	  -L${BUILDROOT}/System/Library/Frameworks/CFNetwork.framework/Versions/Current \
@@ -746,7 +747,6 @@ LDFLAGS+= ${FMWK_LDFLAGS} \
 
 .if ${MACHINE_CPUARCH} == "aarch64"
 CFLAGS += -DCOCOTRON_DISALLOW_FORWARDING=1
-# SRCS += NSObject/objc_msg_sendv-Disabled.m
 SRCS += NSObject/platform_linux/msgSendv-aarch64.s
 .elif ${MACHINE_CPUARCH} == "i386" || ${MACHINE_CPUARCH} == "amd64"
 SRCS += NSObject/platform_linux/msgSendv-x64.s

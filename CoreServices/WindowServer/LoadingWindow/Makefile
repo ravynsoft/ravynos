@@ -11,8 +11,8 @@ CFLAGS+=	-O3 -I${.CURDIR} -I${MAKEOBJDIR} \
 		${OBJCFLAGS} -I${SRCTOP}/Frameworks -D__MACH__ \
 		-I${MAKEOBJDIR}/../SystemUIServer -D__RAVYNOS__ \
 		-I${SRCTOP}/Frameworks/AppKit/Headers -I${SRCTOP}/CoreServices \
-		-I${OBJTOP}/Frameworks/Foundation/Headers
-LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' \
+		-I${OBJTOP}/Frameworks/Foundation/Headers -I${SRCTOP}/gnu/lib/libobjc2
+LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' -L${OBJTOP}/tmp/usr/lib \
 		-L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
 		-L${OBJTOP}/Frameworks/AppKit/AppKit.framework \
 		-L${OBJTOP}/Frameworks/CoreGraphics/CoreGraphics.framework \

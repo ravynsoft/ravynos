@@ -13,7 +13,7 @@ CFLAGS+=	-g -O0 -fobjc-arc --sysroot=${OBJTOP}/tmp -D__MACH__ -fPIC \
 		-B${OBJTOP}/tmp/usr/bin -D__RAVYNOS__ \
 		-Wno-missing-method-return-type -I${SRCTOP}/CoreServices \
 		-Wno-macro-redefined -I${SRCTOP}/Frameworks \
-		-I${SRCTOP}/Frameworks/AppKit/Headers \
+		-I${SRCTOP}/Frameworks/AppKit/Headers -I${SRCTOP}/gnu/lib/libobjc2 \
 		-I${OBJTOP}/Frameworks/Foundation/Headers \
 		-I${MAKEOBJDIR}/../WindowServer/SystemUIServer
 
@@ -21,6 +21,7 @@ LDFLAGS+=	-L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
 		-L${OBJTOP}/Frameworks/LaunchServices/LaunchServices.framework \
 		-L${OBJTOP}/Frameworks/CoreGraphics/CoreGraphics.framework \
 		-L${OBJTOP}/Frameworks/AppKit/AppKit.framework \
+		-L${OBJTOP}/tmp/usr/lib \
 		-Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
 		-Wl,-R/System/Library/Frameworks/AppKit.framework/Versions/A \
 		-Wl,-R/System/Library/Frameworks/CoreGraphics.framework/Versions/A \

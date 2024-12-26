@@ -94,7 +94,7 @@ int main(int argc, const char *argv[]) {
     switch(pid) {
         case -1: NSLog(@"fork: %s", strerror(errno)); exit(1);
         case 0: break; // let child continue
-        default: waitpid(pid, &status, 0); exit(status); // parent
+        default: NSLog(@"parent: waiting"); waitpid(pid, &status, 0); exit(status); // parent
     }
 
     setsid(); // Start a new session
@@ -133,7 +133,7 @@ int main(int argc, const char *argv[]) {
 
     if(setjmp(jb) != 0)
         goto __finish; // sighandler must have caught something - get out
-    signal(SIGSEGV, crashHandler);
+    //signal(SIGSEGV, crashHandler);
 
     if(ioctl(wsfd, VT_ACTIVATE, vt) < 0) {
         NSLog(@"Cannot activate terminal: %s", strerror(errno));
