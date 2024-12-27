@@ -3783,8 +3783,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		struct semaphore_timedwait_signal_trap_args *p = params;
 		iarg[a++] = p->wait_name; /* mach_port_name_t */
 		iarg[a++] = p->signal_name; /* mach_port_name_t */
-		uarg[a++] = p->nsec; /* unsigned int sec, mach_clock_res_t */
-		*n_args = 3;
+		uarg[a++] = p->sec; /* unsigned int */
+		iarg[a++] = p->nsec; /* mach_clock_res_t */
+		*n_args = 4;
 		break;
 	}
 	/* _kernelrpc_mach_port_guard_trap */
@@ -10302,7 +10303,10 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			p = "mach_port_name_t";
 			break;
 		case 2:
-			p = "unsigned int sec, mach_clock_res_t";
+			p = "unsigned int";
+			break;
+		case 3:
+			p = "mach_clock_res_t";
 			break;
 		default:
 			break;

@@ -730,12 +730,7 @@ jobc_parent(struct proc *p, struct proc *p_exiting)
 	return (jobc_reaper(pp));
 }
 
-<<<<<<< HEAD
-/* Removed 'static' as this is needed by sys/compat/mach */
-/*static*/ int
-=======
 int
->>>>>>> upstream/main
 pgrp_calc_jobc(struct pgrp *pgrp)
 {
 	struct proc *q;

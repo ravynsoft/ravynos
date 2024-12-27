@@ -505,7 +505,7 @@ typedef int (__sys_semaphore_signal_thread_trap_t)(mach_port_name_t, mach_port_n
 typedef int (__sys_semaphore_wait_trap_t)(mach_port_name_t);
 typedef int (__sys_semaphore_wait_signal_trap_t)(mach_port_name_t, mach_port_name_t);
 typedef int (__sys_semaphore_timedwait_trap_t)(mach_port_name_t, unsigned int, mach_clock_res_t);
-typedef int (__sys_semaphore_timedwait_signal_trap_t)(mach_port_name_t, mach_port_name_t, unsigned int sec, mach_clock_res_t);
+typedef int (__sys_semaphore_timedwait_signal_trap_t)(mach_port_name_t, mach_port_name_t, unsigned int, mach_clock_res_t);
 typedef int (__sys__kernelrpc_mach_port_guard_trap_t)(mach_port_name_t, mach_port_name_t, uint64_t, int);
 typedef int (__sys__kernelrpc_mach_port_unguard_trap_t)(mach_port_name_t, mach_port_name_t, uint64_t);
 typedef int (__sys_task_name_for_pid_t)(mach_port_name_t, int, mach_port_name_t *);

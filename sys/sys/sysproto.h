@@ -18,6 +18,8 @@
 
 #include <bsm/audit_kevents.h>
 
+#include <sys/mach/mach.h>
+
 struct proc;
 
 struct thread;
@@ -2064,7 +2066,8 @@ struct semaphore_timedwait_trap_args {
 struct semaphore_timedwait_signal_trap_args {
 	char wait_name_l_[PADL_(mach_port_name_t)]; mach_port_name_t wait_name; char wait_name_r_[PADR_(mach_port_name_t)];
 	char signal_name_l_[PADL_(mach_port_name_t)]; mach_port_name_t signal_name; char signal_name_r_[PADR_(mach_port_name_t)];
-	char nsec_l_[PADL_(unsigned int sec, mach_clock_res_t)]; unsigned int sec, mach_clock_res_t nsec; char nsec_r_[PADR_(unsigned int sec, mach_clock_res_t)];
+	char sec_l_[PADL_(unsigned int)]; unsigned int sec; char sec_r_[PADR_(unsigned int)];
+	char nsec_l_[PADL_(mach_clock_res_t)]; mach_clock_res_t nsec; char nsec_r_[PADR_(mach_clock_res_t)];
 };
 struct _kernelrpc_mach_port_guard_trap_args {
 	char target_l_[PADL_(mach_port_name_t)]; mach_port_name_t target; char target_r_[PADR_(mach_port_name_t)];

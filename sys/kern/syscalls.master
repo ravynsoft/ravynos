@@ -3599,7 +3599,8 @@
 		int semaphore_timedwait_signal_trap(
 		    mach_port_name_t wait_name, 
 		    mach_port_name_t signal_name, 
-		    unsigned int sec, mach_clock_res_t nsec
+		    unsigned int sec,
+                    mach_clock_res_t nsec
 		);
 	}
 640 AUE_NULL	UNIMPL	nosys
