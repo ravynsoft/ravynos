@@ -23,9 +23,7 @@
 #import <CoreFoundation/CFString.h>
 #import <CoreGraphics/CGFont.h>
 
-@interface WSWindowRecord : NSObject {
-    CGGlyph _titleGlyphs[128];          // AppKit can't pass anything longer
-}
+@interface WSWindowRecord : NSObject
 
 @property int number;                   // internal window ID
 @property void *surfaceBuf;             // mmaped shared graphics memory
@@ -36,22 +34,15 @@
 @property NSRect geometry;              // position and size of client window
 @property NSRect frame;                 // position and size with decorations
 @property NSString *title;              // titlebar string
-@property NSSize titleSize;             // bounding box of glyphs
-@property BOOL titleSet;                // YES if ready to display title
 @property NSImage *icon;                // window icon
 @property NSString *shmPath;
 @property int styleMask;                // NSWindow style flags
 @property int level;                    // CGWindowLevel
 @property id app;                       // owning app
-@property(readonly) NSRect closeButtonRect;
-@property(readonly) NSRect miniButtonRect;
-@property(readonly) NSRect zoomButtonRect;
 
 -(void)dealloc;
 -(void)setOrigin:(NSPoint)pos;
--(void)drawFrame:(O2Context *)_context pointer:(NSPoint)pointer;
 -(void)moveByX:(double)x Y:(double)y;
--(void)setGlyphs:(CGGlyph *)glyphs;
 
 @end
 

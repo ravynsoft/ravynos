@@ -235,16 +235,6 @@ static NSString *_pathForPID(pid_t pid) {
     int len = 0;
     while(data->title[len] != '\0' && len < sizeof(data->title)) ++len;
     winrec.title = [NSString stringWithCString:data->title length:len];
-    if(len > 0) {
-        CGGlyph glyphs[128];
-        CTFontRef ctfont = CTFontCreateWithGraphicsFont(_titleFont, 14.0, &CGAffineTransformIdentity, nil);
-        CTFontGetGlyphsForCharacters(ctfont, (const unichar *)[winrec.title
-                cStringUsingEncoding:NSUnicodeStringEncoding], glyphs, [winrec.title length]);
-        winrec.titleSize = [self sizeOfTitleText:winrec.title];
-        [winrec setGlyphs:glyphs];
-        winrec.titleSet = YES;
-    } else
-        winrec.titleSet = NO;
     winrec.icon = nil;
 
     winrec.shmPath = [NSString stringWithFormat:@"/%@/%u/win/%u", [app bundleID],
@@ -283,7 +273,7 @@ static NSString *_pathForPID(pid_t pid) {
             height:data->h bitsPerComponent:8 bytesPerRow:4*(data->w)
             colorSpace:[fb colorSpace]
             bitmapInfo:kCGBitmapByteOrderDefault|kCGImageAlphaPremultipliedFirst];
-    winrec.frame = WSOutsetFrame(winrec.geometry, winrec.styleMask);
+    winrec.frame = winrec.geometry;
 
     [app addWindow:winrec];
     [self addWindowByLevel:winrec];
@@ -304,23 +294,55 @@ static NSString *_pathForPID(pid_t pid) {
     int oldState = winrec.state;
     winrec.state = data->state;
     winrec.styleMask = data->style;
-    // FIXME: this will probably require changing the surface and shm buffer
+    NSRect oldFrame = winrec.geometry;
     winrec.geometry = NSMakeRect(data->x, data->y, data->w, data->h); // FIXME: bounds check?
+    if(!NSEqualRects(winrec.geometry, oldFrame)) {
+        // it resized, so fix up our surface to match
+        pthread_mutex_lock(&renderLock);
+        winrec.bufSize = ([fb getDepth]/8) * data->w * data->h;
+
+        int shmfd = shm_open([winrec.shmPath cString], O_RDWR|O_CREAT, 0600);
+        if(shmfd < 0) {
+            NSLog(@"Cannot open shm fd: %s", strerror(errno));
+            return;
+        }
+
+        if(ftruncate(shmfd, winrec.bufSize) < 0)
+            NSLog(@"shmfd ftruncate failed: %s", strerror(errno));
+
+        int count = 0;
+        struct kinfo_proc *kp;
+        kp = kvm_getprocs(kvm, KERN_PROC_PID, [app pid], &count);
+        if(count != 1 || kp->ki_pid != [app pid]) {
+            NSLog(@"Cannot get client task info! pid %u", [app pid]);
+            return;
+        }
+
+        if(fchown(shmfd, kp->ki_uid, kp->ki_rgid) < 0)
+            NSLog(@"shmfd fchown failed: %s", strerror(errno));
+
+        winrec.surfaceBuf = mmap(NULL, winrec.bufSize, PROT_WRITE|PROT_READ,
+                MAP_SHARED|MAP_NOCORE, shmfd, 0);
+        close(shmfd);
+
+        if(winrec.surfaceBuf == NULL) {
+            winrec.bufSize = 0;
+            NSLog(@"Cannot alloc surface memory! %s", strerror(errno));
+            return;
+        }
+
+        winrec.surface = [[O2Surface alloc] initWithBytes:winrec.surfaceBuf width:data->w
+            height:data->h bitsPerComponent:8 bytesPerRow:4*(data->w)
+            colorSpace:[fb colorSpace]
+            bitmapInfo:kCGBitmapByteOrderDefault|kCGImageAlphaPremultipliedFirst];
+        pthread_mutex_unlock(&renderLock);
+    }
+
     int len = 0;
     while(data->title[len] != '\0' && len < sizeof(data->title)) ++len;
     winrec.title = [NSString stringWithCString:data->title length:len];
-    if(len > 0) {
-        CGGlyph glyphs[128];
-        CTFontRef ctfont = CTFontCreateWithGraphicsFont(_titleFont, 14.0, &CGAffineTransformIdentity, nil);
-        CTFontGetGlyphsForCharacters(ctfont, (const unichar *)[winrec.title
-                cStringUsingEncoding:NSUnicodeStringEncoding], glyphs, [winrec.title length]);
-        winrec.titleSize = [self sizeOfTitleText:winrec.title];
-        [winrec setGlyphs:glyphs];
-        winrec.titleSet = YES;
-    } else
-        winrec.titleSet = NO;
     winrec.icon = nil;
-    winrec.frame = WSOutsetFrame(winrec.geometry, winrec.styleMask);
+    winrec.frame = winrec.geometry;
 
     if(![app.bundleID isEqualToString:@"com.ravynos.LoginWindow"]) {
         if(data->level >= kCGMinimumWindowLevelKey && data->level <= kCGMaximumWindowLevelKey
@@ -581,13 +603,6 @@ static NSString *_pathForPID(pid_t pid) {
     O2ImageRef cursor = [cursorIS createImageAtIndex:0 options:nil];
     NSRect cursorRect = NSMakeRect(0, 0, _cursor_height, _cursor_height);
 
-    _titleFont = CGFontCreateWithFontName((__bridge CFStringRef)@"Inter-Bold");
-    pthread_mutex_lock(&renderLock);
-    O2ContextSetFont(ctx, (__bridge O2Font *)_titleFont);
-    O2ContextSetFontSize(ctx, 14.0);
-    O2ContextSetTextDrawingMode(ctx, kO2TextFillStroke);
-    pthread_mutex_unlock(&renderLock);
-
     struct pollfd fds;
     fds.fd = [input fileDescriptor];
     fds.events = POLLIN;
@@ -614,13 +629,11 @@ static NSString *_pathForPID(pid_t pid) {
                         continue;
                     // Ensure curWindow is on top of stack
                     if(win != curWindow) {
-                        [win drawFrame:ctx pointer:cursorRect.origin];
                         [ctx drawImage:win.surface inRect:win.geometry];
                     }
                 }
                 if(curWindow.level == level && curWindow.state != MINIMIZED
                         && curWindow.state != HIDDEN) {
-                    [curWindow drawFrame:ctx pointer:cursorRect.origin];
                     [ctx drawImage:curWindow.surface inRect:curWindow.geometry];
                 }
             }
@@ -1486,16 +1499,20 @@ static NSString *_pathForPID(pid_t pid) {
 }
 
 -(void)rpcWindowModifyState:(PortMessage *)msg {
+    struct wsRPCSimple reply = { {kWSWindowModifyState, 4}, kWSErrorFailure, 0, 0, 0 };
+
     if(msg->len == sizeof(struct wsRPCWindow)) {
         struct wsRPCWindow *data = (struct wsRPCWindow*)msg->data;
         WSAppRecord *app = [apps objectForKey:[NSString stringWithCString:msg->bundleID]];
 
         if(app != nil) {
             [self windowModify:data forApp:app];
+            reply.val1 = kWSErrorSuccess;
         } else {
             NSLog(@"No matching app for rpcWindowModifyState! %s %u", msg->bundleID, msg->pid);
         }
     }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
 -(void)rpcWindowDestroy:(PortMessage *)msg {
@@ -1897,7 +1914,7 @@ static NSString *_pathForPID(pid_t pid) {
 
             // Are we dragging the titlebar?
             NSRect titleFrame = window.geometry;
-            titleFrame.origin.y += titleFrame.size.height;
+            titleFrame.origin.y -= WSWindowTitleHeight;
             titleFrame.size.height = WSWindowTitleHeight;
             if(NSPointInRect(pos, titleFrame)) {
                 [window moveByX:event->dx Y:event->dy];
@@ -1916,10 +1933,7 @@ static NSString *_pathForPID(pid_t pid) {
 
             // these are just requests - the client can ignore them, so we don't
             // actually change the window until it sends us a new state message
-            if(NSPointInRect(pos, window.closeButtonRect)) {
-                window.state = CLOSED;
-                [self updateClientWindowState:window];
-                return YES; // closing a window doesn't activate the app owning it
+#if 0
             } else if(NSPointInRect(pos, window.miniButtonRect)) {
                 if(window.state != MINIMIZED)
                     window.prevState = window.state;
@@ -1937,10 +1951,8 @@ static NSString *_pathForPID(pid_t pid) {
                 }
                 if(curWindow.number == window.number)
                     curWindow = nil; // app stays active though
-            } else if(NSPointInRect(pos, window.zoomButtonRect)) {
-                window.state = MAXIMIZED;
-                [self updateClientWindowState:window];
             } else {
+#endif
                 // Handled all WS cases - send this to the window!
                 if(![app skipSwitcher]) {
                     [self deactivateApp:curApp];
@@ -1948,7 +1960,9 @@ static NSString *_pathForPID(pid_t pid) {
                     curWindow = window;
                     [self activateApp:curApp];
                 }
+#if 0
             }
+#endif
             break;
         }
         case NSLeftMouseUp: {
@@ -2207,20 +2221,6 @@ static NSString *_pathForPID(pid_t pid) {
     else
         waitpid(pid, NULL, 0);
     ready = NO;
-}
-
--(CGFontRef)titleFont {
-    return _titleFont;
-}
-
--(NSSize)sizeOfTitleText:(NSString *)title {
-    NSDictionary *attrs = @{
-        NSFontAttributeName : [NSFont fontWithName:@"Inter" size:14.0], // FIXME: should be titleBarFontOfSize
-    };
-    NSAttributedString *atitle = [[NSAttributedString alloc] initWithString:title attributes:attrs];
-    NSSize size = [atitle size];
-
-    return size;
 }
 
 @end

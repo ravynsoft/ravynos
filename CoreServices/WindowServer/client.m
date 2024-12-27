@@ -38,6 +38,7 @@
     NSRect bounds = [[self contentView] bounds];
     bounds.size.width -= 200;
     textfield = [[NSTextView alloc] initWithFrame:bounds];
+    [textfield setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
 
     return self;
 }
@@ -54,6 +55,7 @@
     bounds.origin.x = bounds.size.width - 190;
     bounds.size.width = 180;
     NSImageView *iv = [[NSImageView alloc] initWithFrame:bounds];
+    [iv setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
     [iv setImage:img];
     [v addSubview:iv];
     [v setNeedsDisplay:YES];

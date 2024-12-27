@@ -52,11 +52,6 @@
 
 extern const float WSWindowTitleHeight;
 extern const float WSWindowEdgePad;
-extern const float WSWindowCornerRadius;
-extern const float WSWindowControlDiameter;
-extern const float WSWindowControlSpacing;
-
-NSRect WSOutsetFrame(NSRect rect, int style);
 
 extern pthread_mutex_t renderLock;
 

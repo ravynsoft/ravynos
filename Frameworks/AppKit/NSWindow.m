@@ -1,24 +1,26 @@
-/* Copyright (c) 2006-2007 Christopher J. W. Lloyd <cjwl@objc.net>
-                 2009 Markus Hitter <mah@jump-ing.de>
-   Copyright (C) 2024 Zoe Knox <zoe@ravynsoft.com>
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-of the Software, and to permit persons to whom the Software is furnished to do
-so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE. */
+/*
+ * Copyright (c) 2006-2007 Christopher J. W. Lloyd <cjwl@objc.net>
+ *               2009 Markus Hitter <mah@jump-ing.de>
+ * Copyright (C) 2024 Zoe Knox <zoe@ravynsoft.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
 
 #include <fcntl.h>
 #include <errno.h>
@@ -28,6 +30,7 @@ SOFTWARE. */
 
 #import <CoreGraphics/CGDirectDisplay.h>
 #import <Onyx2D/O2Surface.h>
+#import <Onyx2D/O2GraphicsState.h>
 #import <AppKit/NSWindow.h>
 #import <AppKit/NSWindow-Private.h>
 #import <AppKit/NSThemeFrame.h>
@@ -78,6 +81,10 @@ NSString * const NSWindowDidEndLiveResizeNotification=@"NSWindowDidEndLiveResize
 NSString * const NSWindowWillAnimateNotification=@"NSWindowWillAnimateNotification";
 NSString * const NSWindowAnimatingNotification=@"NSWindowAnimatingNotification";
 NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification";
+
+// All measurements in pixel. Keep in sync with WSWindowRecord!!
+const float WSWindowTitleHeight = 32;
+const float WSWindowEdgePad = 2;
 
 @interface NSToolbar (NSToolbar_privateForWindow)
 - (void)_setWindow:(NSWindow *)window;
@@ -388,6 +395,12 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
                 bitsPerComponent:8 bytesPerRow:4*_frame.size.width colorSpace:colorSpace
                 bitmapInfo:kO2BitmapByteOrderDefault|kCGImageAlphaPremultipliedFirst];
         _context = [[O2Context_builtin_FT alloc] initWithSurface:surface flipped:NO];
+
+        NSGraphicsContext *gc = [NSGraphicsContext currentContext];
+        if(gc != nil)
+            [gc release];
+        gc = [NSGraphicsContext graphicsContextWithGraphicsPort:_context flipped:NO];
+        [NSGraphicsContext setCurrentContext:gc];
     }
     return _context;
 }
@@ -408,13 +421,20 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
      object:self];
 }
 
+/* FIXME: I have no idea why this is using a different store for the context
+ * than is used in NSGraphicsContext.m. _threadToContext only seems to be 
+ * used here. Leave it for now but also set the other one, because NSThemeFrame
+ * and others use that.
+ */
 -(NSGraphicsContext *)graphicsContext {
-   NSValue           *key=[NSValue valueWithPointer:[NSThread currentThread]];
-   NSGraphicsContext *result=[_threadToContext objectForKey:key];
+//   NSValue           *key=[NSValue valueWithPointer:[NSThread currentThread]];
+//   NSGraphicsContext *result=[_threadToContext objectForKey:key];
+   NSGraphicsContext *result=[NSGraphicsContext currentContext];
    
    if(result==nil){
     result=[NSGraphicsContext graphicsContextWithWindow:self];
-    [_threadToContext setObject:result forKey:key];
+//    [_threadToContext setObject:result forKey:key];
+    [NSGraphicsContext setCurrentContext:result];
    }
    
    return result;
@@ -832,20 +852,21 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
     O2Image *snapshot = nil;
     if(_context)
         snapshot = O2BitmapContextCreateImage(_context);
-#endif
     NSSize oldSize = _frame.size;
+#endif
 
     if(!NSEqualSizes(_frame.size,size) || forceRebuild) {
         _frame.size = size;
+        [self _updateWSState];
 
         [_context release];
         _context = nil;
+        [self cgContext];
         //[_caContext release];
         //_caContext = NULL;
         //CGLReleaseContext(_cglContext);
         //_cglContext = NULL;
         //[self createCGLContextObjIfNeeded];
-
     }
 
     [self cgContext];
@@ -891,9 +912,10 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
     _makeSureIsOnAScreen=YES;
 
     if(didSize) {
+        NSSize oldSize = [_backgroundView frame].size;
         [_backgroundView setFrameSize:_frame.size];
-        [_backgroundView setNeedsDisplay:YES];
-        [self invalidateContextsWithNewSize:_frame.size];
+        [_backgroundView resizeSubviewsWithOldSize:oldSize];
+        [self invalidateContextsWithNewSize:_frame.size forceRebuild:YES];
         [self resetCursorRects];
         [self saveFrameUsingName:_autosaveFrameName];
         [self postNotificationName:NSWindowDidResizeNotification];
@@ -903,6 +925,10 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
         [self saveFrameUsingName:_autosaveFrameName];
         [self postNotificationName:NSWindowDidMoveNotification];
     }
+
+    // Sync WS to our new geometry & position before redisplaying
+    if(tellWS)
+        [self _updateWSState];
 
     // If you setFrame:display:YES before rearranging views with only setFrame:
     // calls (which do not mark the view for display) Cocoa will properly
@@ -923,9 +949,6 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
     [self _setSheetOriginAndFront];
     [_childWindows makeObjectsPerformSelector:@selector(_parentWindowDidChangeFrame:) withObject:self];
     [_drawers makeObjectsPerformSelector:@selector(parentWindowDidChangeFrame:) withObject:self];
-
-    if(tellWS)
-        [self _updateWSState];
 }
 
 -(void)setContentSize:(NSSize)size {
@@ -2535,23 +2558,6 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    return [_backgroundView performKeyEquivalent:event];
 }
 
-#if 0
--(void)keyDown:(NSEvent *)event {
-   if(![self performKeyEquivalent:event]){
-    NSString *characters=[event charactersIgnoringModifiers];
-
-    if([characters isEqualToString:@" "])
-     [_firstResponder tryToPerform:@selector(performClick:) with:nil];
-    else if([characters isEqualToString:@"\t"]){
-     if([event modifierFlags]&NSShiftKeyMask)
-      [self selectPreviousKeyView:nil];
-     else
-      [self selectNextKeyView:nil];
-    }
-   }
-}
-#endif
-
 -(void)setMenu:(NSMenu *)menu {
     [menu retain];
     [_menu release];
@@ -3154,16 +3160,32 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
         data.state = MAXIMIZED;
     else if(_isVisible == NO)
         data.state = HIDDEN;
-    return _windowServerRPC(&data, sizeof(data), NULL, NULL) == KERN_SUCCESS;
+    int len = sizeof(data);
+    return _windowServerRPC(&data, len, &data, &len) == KERN_SUCCESS;
 }
 
 @end
 
+void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *left,
+                                       CGFloat *bottom,CGFloat *right);
+
 CGRect CGInsetRectForNativeWindowBorder(CGRect frame,unsigned styleMask) {
+    CGFloat top, left, bottom, right;
+    CGNativeBorderFrameWidthsForStyle(styleMask, &top, &left, &bottom, &right);
+    frame.origin.x += left;
+    frame.origin.y += bottom;
+    frame.size.width -= right;
+    frame.size.height -= top;
     return frame;
 }
 
 CGRect CGOutsetRectForNativeWindowBorder(CGRect frame,unsigned styleMask) {
+    CGFloat top, left, bottom, right;
+    CGNativeBorderFrameWidthsForStyle(styleMask, &top, &left, &bottom, &right);
+    frame.origin.x -= left;
+    frame.origin.y -= bottom;
+    frame.size.width += right;
+    frame.size.height += top;
     return frame;
 }
 
@@ -3179,10 +3201,10 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
             break;
         // FIXME: tool window style?
         default:
-            *top=30;
-            *left=0;
-            *bottom=0;
-            *right=0;
+            *top=32;
+            *left=2;
+            *bottom=3;
+            *right=2;
     }
 }
 
