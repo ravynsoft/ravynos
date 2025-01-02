@@ -50,8 +50,11 @@
 #import "WSWindowRecord.h"
 #import "WSAppRecord.h"
 
+// These are defined in NSThemeFrame
 extern const float WSWindowTitleHeight;
 extern const float WSWindowEdgePad;
+extern const float NSWindowControlSpacing;
+extern const float NSWindowControlDiameter;
 
 extern pthread_mutex_t renderLock;
 
@@ -83,6 +86,7 @@ extern pthread_mutex_t renderLock;
 -init;
 -(void)dealloc;
 -(void)setLogLevel:(int)level;
+-(void)setDebugLevel:(int)level subsystem:(char)sys;
 -(BOOL)launchShell;
 -(BOOL)isReady;
 -(NSRect)geometry;

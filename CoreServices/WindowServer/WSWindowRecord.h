@@ -43,6 +43,7 @@
 -(void)dealloc;
 -(void)setOrigin:(NSPoint)pos;
 -(void)moveByX:(double)x Y:(double)y;
+-(void)setLogLevel:(int)level;
 
 @end
 

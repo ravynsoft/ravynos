@@ -226,29 +226,19 @@ static O2Image *wsZoom, *wsZoomUp, *wsZoomDown;
 }
 
 -(void)mouseDown:(NSEvent *)event {
-    // is click in title bar?
     CGFloat top, left, right, bottom;
     CGNativeBorderFrameWidthsForStyle([[self window] styleMask], &top, &left, &bottom, &right);
     NSPoint pos = [event locationInWindow];
 
-    // no - is movable by background?
-    if(!(pos.y > (NSMaxY(_frame) - top))) {
-        if([[self window] isMovableByWindowBackground]) {
-            [[self window] requestMove:event];
-            return;
-        }
-        // no - return
-        return;
-    }
-
-    // it was titlebar. did they click a button?
     if(NSPointInRect(pos, _closeButtonRect))
         [[self window] performClose:self];
     else if(NSPointInRect(pos, _miniButtonRect))
         [[self window] performMiniaturize:self];
     else if(NSPointInRect(pos, _zoomButtonRect))
         [[self window] performZoom:self];
-    else
+    else if(pos.y > (NSMaxY(_frame) - top)) // in titlebar?
+        [[self window] requestMove:event];
+    else if([[self window] isMovableByWindowBackground])
         [[self window] requestMove:event];
 }
 

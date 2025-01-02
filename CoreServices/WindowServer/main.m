@@ -55,20 +55,6 @@ int main(int argc, const char *argv[]) {
     srandomdev();
     int curShell = LOADING;
     WindowServer *ws = nil;
-
-    while(getopt(argc, argv, "Lxv") != -1) {
-        switch(optopt) {
-            case 'L': // bypass loginwindow, run desktop for current user
-                curShell = DESKTOP;
-                break;
-            case 'x': // just run the compositor
-                curShell = NONE;
-                break;
-            case 'v':
-                logLevel++;
-                break;
-        }
-    }
     [pool drain];
 
     /* Become immortal. Mwahahahaha! 
@@ -157,6 +143,28 @@ int main(int argc, const char *argv[]) {
     ws = [WindowServer new];
     if(ws == nil)
         exit(1);
+
+    while(getopt(argc, argv, "LxvD:") != -1) {
+        switch(optopt) {
+            case 'L': // bypass loginwindow, run desktop for current user
+                curShell = DESKTOP;
+                break;
+            case 'x': // just run the compositor
+                curShell = NONE;
+                break;
+            case 'v':
+                logLevel++;
+                break;
+            case 'D':
+                if(optarg != NULL) {
+                    if(optarg[1] != '=') break;
+                    int level = MAX(0, optarg[2] - '0');
+                    level = MIN(level, WS_INFO);
+                    [ws setDebugLevel:level subsystem:optarg[0]];
+                }
+                break;
+        }
+    }
     [ws setLogLevel:logLevel];
 
     pthread_t machSvcThread;

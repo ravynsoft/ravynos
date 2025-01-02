@@ -131,10 +131,13 @@ static unichar translateKeySym(xkb_keysym_t keysym) {
 
 -(void)setLogLevel:(int)level {
     logLevel = level;
+}
+
+-(void)setDebugLevel:(int)level {
     switch(level) {
-        case WS_ERROR: level = LIBINPUT_LOG_PRIORITY_ERROR; break;
         case WS_WARNING: level = LIBINPUT_LOG_PRIORITY_INFO; break;
-        case WS_INFO: level = LIBINPUT_LOG_PRIORITY_DEBUG; break;
+        case WS_INFO: level = LIBINPUT_LOG_PRIORITY_DEBUG; break; 
+        default: level = LIBINPUT_LOG_PRIORITY_ERROR;
     }
     libinput_log_set_priority(li, level);
 }
@@ -147,7 +150,7 @@ static unichar translateKeySym(xkb_keysym_t keysym) {
 /* event is destroyed after this function returns */
 -(void)processEvent:(struct libinput_event *)event target:(NSObject *)target {
     enum libinput_event_type etype = libinput_event_get_type(event);
-    if(logLevel >= WS_INFO)
+    if(logLevel > WS_INFO)
         NSLog(@"input event: device %s type %d",
         libinput_device_get_name(libinput_event_get_device(event)), etype);
     
@@ -211,8 +214,8 @@ static unichar translateKeySym(xkb_keysym_t keysym) {
             else
                 me.code = NSMouseMoved;
             struct libinput_event_pointer *pe = libinput_event_get_pointer_event(event);
-            me.dx = libinput_event_pointer_get_dx(pe);
-            me.dy = (-1) * libinput_event_pointer_get_dy(pe); // our origin is lower left
+            me.dx = libinput_event_pointer_get_dx_unaccelerated(pe);
+            me.dy = (-1) * libinput_event_pointer_get_dy_unaccelerated(pe); // our origin is lower left
             me.mods = [self modifierFlagsForState:xkb_state];
             pointerX = clipTo(pointerX + me.dx, geometry.origin.x, geometry.size.width);
             pointerY = clipTo(pointerY + me.dy, geometry.origin.y, geometry.size.height);

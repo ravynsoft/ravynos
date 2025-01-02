@@ -75,6 +75,7 @@ double clipTo(double val, double min, double max);
 -(void)run:(NSObject *)target; /* target obj receives the events */
 -(void)processEvent:(struct libinput_event *)event target:(NSObject *)target;
 -(void)setLogLevel:(int)level;
+-(void)setDebugLevel:(int)level;
 -(void)setKeymap;
 -(unsigned int)modifierFlagsForState:(struct xkb_state *)state;
 -(NSPoint)pointerPos;

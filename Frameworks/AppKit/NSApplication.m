@@ -222,7 +222,9 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                                     [_display postEvent:e atStart:NO];
                                     break;
                                 }
-                                case NSMouseMoved: {
+                                case NSMouseMoved:
+                                case NSMouseEntered:
+                                case NSMouseExited: {
                                     NSEvent *e = [NSEvent mouseEventWithType:me.code
                                                         location:NSMakePoint(me.x, me.y)
                                                modifierFlags:me.mods
@@ -236,7 +238,9 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                                 case NSLeftMouseDown:
                                 case NSLeftMouseUp: 
                                 case NSRightMouseDown:
-                                case NSRightMouseUp: {
+                                case NSRightMouseUp:
+                                case NSLeftMouseDragged:
+                                case NSRightMouseDragged: {
                                     NSEvent *e = [NSEvent mouseEventWithType:me.code
                                                     location:NSMakePoint(me.x, me.y)
                                                modifierFlags:me.mods

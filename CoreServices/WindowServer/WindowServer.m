@@ -157,6 +157,16 @@ static NSString *_pathForPID(pid_t pid) {
 
 -(void)setLogLevel:(int)level {
     logLevel = level;
+    [input setLogLevel:level];
+}
+
+-(void)setDebugLevel:(int)level subsystem:(char)sys {
+    id obj = nil;
+    switch(sys) {
+        case 'i': obj = input; break;
+    }
+    if(obj)
+        [obj setDebugLevel:level];
 }
 
 -(BOOL)isReady {
@@ -1898,6 +1908,13 @@ static NSString *_pathForPID(pid_t pid) {
     else
         window = [self windowUnderPointer:pos app:&app];
 
+    NSRect titleFrame = NSZeroRect;
+    if(window != nil) {
+        titleFrame = window.geometry;
+        titleFrame.origin.y += titleFrame.size.height - WSWindowTitleHeight;
+        titleFrame.size.height = WSWindowTitleHeight;
+    }
+
     // First, check if we want to handle this event ourselves!
     switch(event->code) {
         case NSLeftMouseDragged: {
@@ -1913,9 +1930,6 @@ static NSString *_pathForPID(pid_t pid) {
                 return YES;
 
             // Are we dragging the titlebar?
-            NSRect titleFrame = window.geometry;
-            titleFrame.origin.y -= WSWindowTitleHeight;
-            titleFrame.size.height = WSWindowTitleHeight;
             if(NSPointInRect(pos, titleFrame)) {
                 [window moveByX:event->dx Y:event->dy];
                 [self updateClientWindowState:window];
@@ -1930,6 +1944,18 @@ static NSString *_pathForPID(pid_t pid) {
         case NSLeftMouseDown: {
             if(window == nil)
                 return YES;
+            
+            // Did we click in the titlebar but not a button?
+            NSRect noControl = titleFrame;
+            noControl.origin.x += NSWindowControlSpacing*3;
+            noControl.origin.x += NSWindowControlDiameter*3;
+            if(window.state == NORMAL && NSPointInRect(pos, noControl)) {
+                [window moveByX:event->dx Y:event->dy];
+                //[self updateClientWindowState:window];
+                inDrag = YES;
+                dragWindow = window;
+                return YES;
+            }
 
             // these are just requests - the client can ignore them, so we don't
             // actually change the window until it sends us a new state message
@@ -1966,8 +1992,12 @@ static NSString *_pathForPID(pid_t pid) {
             break;
         }
         case NSLeftMouseUp: {
-            inDrag = NO;
-            dragWindow = nil;
+            if(inDrag) {
+                [self updateClientWindowState:dragWindow];
+                inDrag = NO;
+                dragWindow = nil;
+                return YES;
+            }
         }
     }
 
