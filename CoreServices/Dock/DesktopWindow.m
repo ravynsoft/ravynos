@@ -25,6 +25,17 @@
 #import "Dock.h"
 #import "DesktopWindow.h"
 
+@interface DesktopView : NSImageView
+@end
+
+@implementation DesktopView
+// Block any clicks on the wallpaper so it doesn't flicker on redraw
+// This should just activate Finder eventually
+-(void)mouseDown:(NSEvent *)event {
+    NSLog(@"clickity click");
+}
+@end
+
 @implementation DesktopWindow
 - initForScreen:(NSScreen *)screen {
     _screen = screen;
@@ -36,9 +47,10 @@
                                 defer:NO
                                screen:screen];
     [self setLevel:kCGDesktopWindowLevelKey];
+    [self setMovableByWindowBackground:NO];
 
     frame.origin = NSZeroPoint;
-    view = [[NSImageView alloc] initWithFrame:frame];
+    view = [[DesktopView alloc] initWithFrame:frame];
     [view setAutoresizingMask:0];
     [view setImageScaling:NSImageScaleAxesIndependently];
     [view setImageAlignment:NSImageAlignCenter];
@@ -54,6 +66,14 @@
 
 -(BOOL)refusesFirstResponder {
     return YES;
+}
+
+-(BOOL)canBecomeKeyWindow {
+    return NO;
+}
+
+-(BOOL)canBecomeMainWindow {
+    return NO;
 }
 
 - (void)updateBackground {
