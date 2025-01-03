@@ -122,7 +122,7 @@ static O2Image *wsZoom, *wsZoomUp, *wsZoomDown;
     }
 
     NSWindow *window = [self window];
-    O2Context *_context = [window cgContext];
+    O2Context *_context = [[window graphicsContext] graphicsPort];
     CGFloat r, g, b, a;
     [[[self window] backgroundColor] getRed:&r green:&g blue:&b alpha:&a];
     O2ContextSetRGBStrokeColor(_context, r, g, b, a);

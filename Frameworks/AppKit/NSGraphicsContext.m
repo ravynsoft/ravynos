@@ -33,6 +33,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	[pool drain];
 }
 
+-(NSString *)description {
+    return [NSString stringWithFormat:@"<%@ 0x%x> %@", [self class], self, _graphicsPort];
+}
+
 -initWithWindow:(NSWindow *)window {
    _graphicsPort=CGContextRetain([window cgContext]);
    _focusStack=[NSMutableArray new];

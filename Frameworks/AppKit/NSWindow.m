@@ -401,6 +401,8 @@ const float WSWindowEdgePad = 2;
             [gc release];
         gc = [NSGraphicsContext graphicsContextWithGraphicsPort:_context flipped:NO];
         [NSGraphicsContext setCurrentContext:gc];
+        NSValue *key = [NSValue valueWithPointer:[NSThread currentThread]];
+        [_threadToContext setObject:gc forKey:key];
     }
     return _context;
 }
@@ -427,13 +429,12 @@ const float WSWindowEdgePad = 2;
  * and others use that.
  */
 -(NSGraphicsContext *)graphicsContext {
-//   NSValue           *key=[NSValue valueWithPointer:[NSThread currentThread]];
-//   NSGraphicsContext *result=[_threadToContext objectForKey:key];
-   NSGraphicsContext *result=[NSGraphicsContext currentContext];
+   NSValue           *key=[NSValue valueWithPointer:[NSThread currentThread]];
+   NSGraphicsContext *result=[_threadToContext objectForKey:key];
    
    if(result==nil){
     result=[NSGraphicsContext graphicsContextWithWindow:self];
-//    [_threadToContext setObject:result forKey:key];
+    [_threadToContext setObject:result forKey:key];
     [NSGraphicsContext setCurrentContext:result];
    }
    
