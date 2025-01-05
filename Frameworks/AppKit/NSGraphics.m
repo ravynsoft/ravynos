@@ -1,10 +1,25 @@
-/* Copyright (c) 2006-2007 Christopher J. W. Lloyd <cjwl@objc.net>
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+/*
+ * Copyright (c) 2006-2007 Christopher J. W. Lloyd
+ * Copyright (C) 2022-2025 Zoe Knox <zoe@ravynsoft.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
 
 #import <AppKit/NSGraphics.h>
 #import <AppKit/NSGraphicsContextFunctions.h>
@@ -38,6 +53,49 @@ NSString * const NSDeviceSize=@"NSDeviceSize";
 NSString * const NSDeviceResolution=@"NSDeviceResolution";
 NSString * const NSDeviceColorSpaceName=@"NSDeviceColorSpaceName";
 NSString * const NSDeviceBitsPerSample=@"NSDeviceBitsPerSample";
+
+NSInteger NSNumberOfColorComponents(NSColorSpaceName colorSpaceName) {
+    CGColorSpaceRef cs;
+    if([colorSpaceName rangeOfString:@"RGB"].location != NSNotFound)
+        cs = CGColorSpaceCreateDeviceRGB();
+    else if([colorSpaceName rangeOfString:@"CMYK"].location != NSNotFound)
+        cs = CGColorSpaceCreateDeviceCMYK();
+    else
+        cs = CGColorSpaceCreateDeviceGray();
+    size_t comps = CGColorSpaceGetNumberOfComponents(cs);
+    CGColorSpaceRelease(cs);
+    return comps;
+}
+
+NSInteger NSBitsPerPixelFromDepth(NSWindowDepth depth) {
+    NSColorSpaceName name = NSColorSpaceFromDepth(depth);
+    if(name == nil)
+        return 0;
+    int bps = NSBitsPerSampleFromDepth(depth);
+    return bps * NSNumberOfColorComponents(name);
+}
+
+
+NSInteger NSBitsPerSampleFromDepth(NSWindowDepth depth) {
+    return (depth & 0xFF); // this seems to be encoded as the LSB
+}
+
+// These were determined from experimenting on macOS Sequoia. I'm sure there are more.
+NSColorSpaceName NSColorSpaceFromDepth(NSWindowDepth depth) {
+    unsigned code = (depth & 0xFF00) >> 8;
+    switch(code) {
+        case 0: return @"NSCalibratedBlackColorSpace";
+        case 1: return @"NSCalibratedWhiteColorSpace";
+        case 2: return @"NSCalibratedRGBColorSpace";
+        case 5: return @"NSDeviceCMYKColorSpace";
+        case 6: return @"NSDeviceRGBColorSpace";
+        default: return nil;
+    }
+}
+
+BOOL NSPlanarFromDepth(NSWindowDepth depth) {
+    return NO; // not sure which ones should be planar
+}
 
 static inline CGBlendMode blendModeForCompositeOp(NSCompositingOperation op){
    static CGBlendMode table[]={

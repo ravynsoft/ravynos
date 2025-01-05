@@ -511,7 +511,7 @@ CGError CGConfigureDisplayWithDisplayMode(CGDisplayConfigRef config, CGDirectDis
 }
 
 // Getting the Display Configuration
-CGColorSpaceRef CGDislayCopyColorSpace(CGDirectDisplayID display) {
+CGColorSpaceRef CGDisplayCopyColorSpace(CGDirectDisplayID display) {
     // FIXME: implement this properly, then use it in drawing ctx/image for rect
     return CGColorSpaceRetain(CGColorSpaceCreateDeviceRGB());
 }

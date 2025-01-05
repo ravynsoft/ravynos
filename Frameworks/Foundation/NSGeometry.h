@@ -1,10 +1,25 @@
-/* Copyright (c) 2006-2007 Christopher J. W. Lloyd
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+/*
+ * Copyright (c) 2006-2007 Christopher J. W. Lloyd
+ * Copyright (C) 2022-2025 Zoe Knox <zoe@ravynsoft.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
 
 #import <Foundation/NSObject.h>
 #import <CoreFoundation/CFBase.h>
@@ -28,6 +43,34 @@ typedef enum {
 
 typedef NSRect *NSRectArray;
 typedef NSRect *NSRectPointer;
+
+typedef enum NSAlignmentOptions : unsigned long long {
+    NSAlignMinXInward = 1ULL << 0,
+    NSAlignMinYInward = 1ULL << 1,
+    NSAlignMaxXInward = 1ULL << 2,
+    NSAlignMaxYInward = 1ULL << 3,
+    NSAlignWidthInward = 1ULL << 4,
+    NSAlignHeightInward = 1ULL << 5,
+    NSAlignMinXOutward = 1ULL << 8,
+    NSAlignMinYOutward = 1ULL << 9,
+    NSAlignMaxXOutward = 1ULL << 10,
+    NSAlignMaxYOutward = 1ULL << 11,
+    NSAlignWidthOutward = 1ULL << 12,
+    NSAlignHeightOutward = 1ULL << 13,
+    NSAlignMinXNearest = 1ULL << 16,
+    NSAlignMinYNearest = 1ULL << 17,
+    NSAlignMaxXNearest = 1ULL << 18,
+    NSAlignMaxYNearest = 1ULL << 19,
+    NSAlignWidthNearest = 1ULL << 20,
+    NSAlignHeightNearest = 1ULL << 21,
+    NSAlignRectFlipped = 1ULL << 63,
+    NSAlignAllEdgesInward = NSAlignMinXInward | NSAlignMaxXInward |
+                            NSAlignMinYInward | NSAlignMaxYInward,
+    NSAlignAllEdgesOutward = NSAlignMinXOutward | NSAlignMaxXOutward |
+                             NSAlignMinYOutward | NSAlignMaxYOutward,
+    NSAlignAllEdgesNearest = NSAlignMinXNearest | NSAlignMaxXNearest |
+                             NSAlignMinYNearest | NSAlignMaxYNearest,
+} NSAlignmentOptions;
 
 //
 FOUNDATION_EXPORT const NSPoint NSZeroPoint;

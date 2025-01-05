@@ -61,6 +61,8 @@
     [v setNeedsDisplay:YES];
 
     [self makeKeyAndOrderFront:self];
+
+    NSLog(@"deviceDescription %@", [[NSScreen mainScreen] deviceDescription]);
 }
 
 -(void)keyDown:(NSEvent *)e {

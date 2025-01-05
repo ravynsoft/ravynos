@@ -53,7 +53,7 @@ COREFOUNDATION_EXPORT CFComparisonResult CFDateCompare(CFDateRef self, CFDateRef
 COREFOUNDATION_EXPORT CFAbsoluteTime CFDateGetAbsoluteTime(CFDateRef self);
 COREFOUNDATION_EXPORT CFTimeInterval CFDateGetTimeIntervalSinceDate(CFDateRef self, CFDateRef other);
 
-COREFOUNDATION_EXPORT CFAbsoluteTime CFAbsoluteTimeGetCurrent();
+COREFOUNDATION_EXPORT CFAbsoluteTime CFAbsoluteTimeGetCurrent(void);
 
 COREFOUNDATION_EXPORT SInt32 CFAbsoluteTimeGetWeekOfYear(CFAbsoluteTime absoluteTime, CFTimeZoneRef timeZone);
 COREFOUNDATION_EXPORT SInt32 CFAbsoluteTimeGetDayOfWeek(CFAbsoluteTime absoluteTime, CFTimeZoneRef timeZone);

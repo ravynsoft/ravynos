@@ -61,11 +61,13 @@ SOFTWARE. */
     // make the main display first in our screen list
     // the main display is the one that has an origin of 0,0
     CGDisplayModeRef mode = CGDisplayCopyDisplayMode(mainDisplay);
+    CGColorSpaceRef cs = CGDisplayCopyColorSpace(mainDisplay);
     NSRect frame = NSMakeRect(0, 0, CGDisplayModeGetWidth(mode), CGDisplayModeGetHeight(mode));
-    CGDisplayModeRelease(mode);
     NSRect visFrame = frame;
     visFrame.size.height -= MENU_BAR_HEIGHT;
     NSScreen *screen = [[[NSScreen alloc] initWithFrame:frame visibleFrame:visFrame] retain];
+    [screen _propertiesFromMode:mode colorSpace:cs displayID:mainDisplay];
+    CGDisplayModeRelease(mode);
     [_screens addObject:screen];
 
     // now add any other displays as additional screens
@@ -73,12 +75,15 @@ SOFTWARE. */
         if(cgDisplays[i] == mainDisplay)
             continue;
         mode = CGDisplayCopyDisplayMode(cgDisplays[i]);
+        cs = CGDisplayCopyColorSpace(mainDisplay);
         frame = NSMakeRect(0, 0, CGDisplayModeGetWidth(mode), CGDisplayModeGetHeight(mode));
-        CGDisplayModeRelease(mode);
         NSScreen *screen = [[[NSScreen alloc] initWithFrame:frame visibleFrame:frame] retain];
+        [screen _propertiesFromMode:mode colorSpace:cs displayID:cgDisplays[i]];
+        CGDisplayModeRelease(mode);
         [_screens addObject:screen];
     }
-    _depth = 32; // always do 32-bit color internally
+    
+    _depth = 32;
     return self;
 }
 

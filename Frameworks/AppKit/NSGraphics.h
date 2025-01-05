@@ -1,10 +1,25 @@
-/* Copyright (c) 2006-2007 Christopher J. W. Lloyd
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+/*
+ * Copyright (c) 2006-2007 Christopher J. W. Lloyd
+ * Copyright (C) 2022-2025 Zoe Knox <zoe@ravynsoft.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
 
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKitExport.h>
@@ -62,7 +77,10 @@ typedef enum {
     NSFocusRingTypeExterior
 } NSFocusRingType;
 
-typedef int NSWindowDepth;
+typedef enum NSDisplayGamut : NSInteger {
+    NSDisplayGamutSRGB = 1,
+    NSDisplayGamutP3 = 2,
+} NSDisplayGamut;
 
 enum {
     NSAnimationEffectDisappearingItemDefault = 0,
@@ -75,22 +93,36 @@ APPKIT_EXPORT const float NSDarkGray;
 APPKIT_EXPORT const float NSLightGray;
 APPKIT_EXPORT const float NSWhite;
 
-APPKIT_EXPORT NSString *const NSDeviceBlackColorSpace;
+typedef NSString * NSColorSpaceName;
+APPKIT_EXPORT NSString *const NSDeviceBlackColorSpace; // deprecated from 10.6
 APPKIT_EXPORT NSString *const NSDeviceWhiteColorSpace;
 APPKIT_EXPORT NSString *const NSDeviceRGBColorSpace;
 APPKIT_EXPORT NSString *const NSDeviceCMYKColorSpace;
-APPKIT_EXPORT NSString *const NSCalibratedBlackColorSpace;
+APPKIT_EXPORT NSString *const NSCalibratedBlackColorSpace; // deprecated from 10.6
 APPKIT_EXPORT NSString *const NSCalibratedWhiteColorSpace;
 APPKIT_EXPORT NSString *const NSCalibratedRGBColorSpace;
 APPKIT_EXPORT NSString *const NSNamedColorSpace;
 APPKIT_EXPORT NSString *const NSPatternColorSpace;
 
+typedef NSString * NSDeviceDescriptionKey;
 APPKIT_EXPORT NSString *const NSDeviceIsScreen;
 APPKIT_EXPORT NSString *const NSDeviceIsPrinter;
 APPKIT_EXPORT NSString *const NSDeviceSize;
 APPKIT_EXPORT NSString *const NSDeviceResolution;
 APPKIT_EXPORT NSString *const NSDeviceColorSpaceName;
 APPKIT_EXPORT NSString *const NSDeviceBitsPerSample;
+
+typedef enum NSWindowDepth : int32_t {
+    NSWindowDepthOnehundredtwentyeightBitRGB = 544,
+    NSWindowDepthSixtyfourBitRGB = 528,
+    NSWindowDepthTwentyfourBitRGB = 520,
+} NSWindowDepth;
+
+extern NSInteger NSBitsPerPixelFromDepth(NSWindowDepth depth);
+extern NSInteger NSBitsPerSampleFromDepth(NSWindowDepth depth);
+extern NSColorSpaceName NSColorSpaceFromDepth(NSWindowDepth depth);
+extern NSInteger NSNumberOfColorComponents(NSColorSpaceName colorSpaceName);
+extern BOOL NSPlanarFromDepth(NSWindowDepth depth);
 
 APPKIT_EXPORT void NSRectClipList(const NSRect *rects, int count);
 APPKIT_EXPORT void NSRectClip(NSRect rect);
