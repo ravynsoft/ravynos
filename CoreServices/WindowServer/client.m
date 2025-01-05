@@ -62,7 +62,19 @@
 
     [self makeKeyAndOrderFront:self];
 
-    NSLog(@"deviceDescription %@", [[NSScreen mainScreen] deviceDescription]);
+    NSScreen *main = [NSScreen mainScreen];
+    NSDictionary *desc = [main deviceDescription];
+    unsigned int depth = [main depth];
+    NSColorSpace *cs = [main colorSpace];
+
+    NSLog(@"ID %x name %@ size %@ res %@\ncs %@ %@ %d\ncomps %ld bps %ld (%d) bpp %ld\ndepth %x",
+            [[desc objectForKey:@"NSScreenNumber"] intValue], [main localizedName],
+            NSStringFromSize([[desc objectForKey:NSDeviceSize] sizeValue]),
+            NSStringFromSize([[desc objectForKey:NSDeviceResolution] sizeValue]),
+            NSColorSpaceFromDepth(depth), cs, CGColorSpaceGetModel([cs CGColorSpace]),
+            NSNumberOfColorComponents(NSColorSpaceFromDepth(depth)),
+            NSBitsPerSampleFromDepth(depth), [[desc objectForKey:NSDeviceBitsPerSample] intValue],
+            NSBitsPerPixelFromDepth(depth), depth);
 }
 
 -(void)keyDown:(NSEvent *)e {

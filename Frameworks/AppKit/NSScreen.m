@@ -42,12 +42,38 @@ NSString * const NSScreenColorSpaceDidChangeNotification = @"NSScreenColorSpaceD
    return self;
 }
 
-// private API for NSDisplay
+/*
+ * Private API used by NSDisplay to set up the properties of the screen.
+ * Experiments show that 'depth' is the Bits Per Sample (component) in the lowest byte
+ * and a colorspace number in the higher 24 bits. The only valid values found through
+ * enumerating this 24 bits are:
+ * 2025-01-05 12:14:13.821 foo[7386:982302] [0x8] bpp 0 bps 8 cs NSCalibratedBlackColorSpace
+ * 2025-01-05 12:14:13.821 foo[7386:982302] [0x108] bpp 8 bps 8 cs NSCalibratedWhiteColorSpace
+ * 2025-01-05 12:14:13.821 foo[7386:982302] [0x208] bpp 24 bps 8 cs NSCalibratedRGBColorSpace
+ * 2025-01-05 12:14:13.821 foo[7386:982302] [0x508] bpp 0 bps 8 cs NSDeviceCMYKColorSpace
+ * 2025-01-05 12:14:13.821 foo[7386:982302] [0x608] bpp 0 bps 8 cs NSDeviceRGBColorSpace
+ * 2025-01-05 12:21:34.925 foo[7386:982302] [0xffffff08] bpp 0 bps 8 cs NSCustomColorSpace
+ */
 -(void)_propertiesFromMode:(CGDisplayModeRef)mode colorSpace:(CGColorSpaceRef)cs displayID:(CGDirectDisplayID)displayID {
     _colorSpace = [[[NSColorSpace alloc] initWithCGColorSpace:cs] retain];
-    int type = CGColorSpaceGetModel(cs);
-    int bps = 8; // I think component size is always 8
-    _depth = (type << 8) | bps; // we always use uncalibrated RGBA for now
+    _depth = 8; // I think component size is always 8 bits
+    switch(CGColorSpaceGetModel(cs)) {
+        case kCGColorSpaceModelMonochrome:
+            // This could be either CalibratedWhite or CalibratedBlack. Prefer
+            // spaces where 1.0 = white since that's how RGB behaves.
+            _depth |= 0x0100; break; // NSCalibratedWhiteColorSpace
+        case kCGColorSpaceModelRGB:
+            if(O2ColorSpaceIsPlatformRGB(cs))
+                _depth |= 0x0200; // NSCalibratedRGBColorSpace
+            else
+                _depth |= 0x0600; // NSDeviceRGBColorSpace
+            break;
+        case kCGColorSpaceModelCMYK:
+            _depth |= 0x0508; break; // NSDeviceCMYKColorSpace
+        default:
+            _depth |= 0xffffff00; break; // NSCustomColorSpace
+    }
+
     unsigned int *p = malloc(sizeof(int)*2);
     p[0] = _depth;
     p[1] = 0;
@@ -57,7 +83,7 @@ NSString * const NSScreenColorSpaceDidChangeNotification = @"NSScreenColorSpaceD
         dictionaryWithObjects:@[
             [NSNumber numberWithBool:YES], [NSValue valueWithSize:_frame.size],
             [NSValue valueWithSize:NSMakeSize(100, 100)], // FIXME: fixed to 100dpi
-            NSColorSpaceFromDepth(_depth), [NSNumber numberWithInt:bps],
+            NSColorSpaceFromDepth(_depth), [NSNumber numberWithInt:(_depth & 0xFF)],
             [NSNumber numberWithInt:displayID]
         ] forKeys:@[
             @"NSDeviceIsScreen", @"NSDeviceSize", @"NSDeviceResolution",
