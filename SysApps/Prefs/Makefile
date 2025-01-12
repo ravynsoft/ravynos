@@ -2,7 +2,7 @@ APP= System_Preferences
 SRCS= main.m SysPrefs.m
 MK_DEBUG_FILES= no
 MK_WERROR= no
-RESOURCES= ${.CURDIR}/Info.plist Icon.png
+RESOURCES= ${.CURDIR}/Info.plist ${.CURDIR}/Icon.png
 
 WARNS= 1
 CFLAGS= -g -fobjc-arc --sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin \
