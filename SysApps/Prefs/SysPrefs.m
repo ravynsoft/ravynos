@@ -29,6 +29,11 @@ const float size = 96; // icon & label container size
 const float spacer = 8; // icon spacing
 
 -(void)applicationWillFinishLaunching:(NSNotification *)note {
+    doubleClickInterval = [[NSDisplay currentDisplay] doubleClickInterval];
+    lastClickTime = 0;
+    lastClickObject = nil;
+    clickCount = 0;
+
     NSBundle *mainBundle = [NSBundle mainBundle];
     NSString *displayName = [[mainBundle infoDictionary] objectForKey:@"CFBundleDisplayName"];
     NSRect rect = NSMakeRect(100, 100, windowWidth, 200);
@@ -40,8 +45,6 @@ const float spacer = 8; // icon spacing
 
     panes = [NSMutableArray new];
     font = [NSFont systemFontOfSize:15];
-    attr = [NSDictionary dictionaryWithObjects:@[font, [NSColor blackColor]]
-            forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
 
     [self loadPanes];
     [window makeKeyAndOrderFront:self];
@@ -65,6 +68,7 @@ const float spacer = 8; // icon spacing
                 if(b) {
                     [panes addObject:b];
                     NSView *item = [self loadPaneIcon:b]; 
+                    [(NSButton *)item setTag:[panes indexOfObject:b]];
                     [item setFrameOrigin:NSMakePoint(x, y)];
                     x += size;
                     x += spacer;
@@ -87,16 +91,6 @@ const float spacer = 8; // icon spacing
         if(!label)
             label = [b objectForInfoDictionaryKey:@"CFBundleName"];
 
-
-        NSAttributedString *as = [[NSAttributedString alloc] initWithString:label
-                                                                 attributes:attr];
-        NSRect frame = NSMakeRect(0, 0, size, 32);
-
-        NSTextField *tf = [[NSTextField alloc] initWithFrame:frame];
-        [tf setAttributedStringValue:as];
-        [tf setBordered:NO];
-        [tf setEditable:NO];
-
         NSString *rsc = [b resourcePath];
         NSString *exe = [b executablePath];
 
@@ -106,18 +100,50 @@ const float spacer = 8; // icon spacing
         NSString *iconPath = [NSString stringWithFormat:@"%@/%@",rsc,iconFile];
 
         NSRect rect = NSMakeRect(0, 0, size, size);
-        NSView *container = [[NSView alloc] initWithFrame:rect];
+        NSButton *container = [[NSButton alloc] initWithFrame:rect];
+        [container setBezeled:NO];
+        [container setBordered:NO];
+        [container setImagePosition:NSImageAbove];
+        [container setAction:@selector(iconClicked:)];
 
-        NSImageView *iconView = [[NSImageView alloc] initWithFrame:NSMakeRect(
-                rect.origin.x + 8, rect.origin.y + 32, rect.size.width - 8, rect.size.height - 32)];
-        [iconView setImage:[[NSImage alloc] initWithContentsOfFile:iconPath]];
-        [[iconView image] setScalesWhenResized:YES];
-        [iconView setImageScaling:NSImageScaleProportionallyUpOrDown];
+        [container setImage:[[NSImage alloc] initWithContentsOfFile:iconPath]];
+        [[container image] setScalesWhenResized:YES];
+        [[container image] setSize:NSMakeSize(size - 24, size - 24)];
 
-        [container addSubview:iconView];
-        [container addSubview:tf];
+        [container setFont:font];
+        [container setTitle:label];
 
         return container;
+}
+
+// This is a little hacky but it works :)
+-(void)iconClicked:(NSButton *)button {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    NSTimeInterval now = ts.tv_sec + ts.tv_nsec / 1000000000;
+
+    if(button != lastClickObject) {
+        clickCount = 1;
+        lastClickTime = now;
+        lastClickObject = button;
+        return;
+    }
+
+    if((now - lastClickTime) < doubleClickInterval)
+        clickCount++;
+    else
+        clickCount = 1;
+    lastClickTime = now;
+    lastClickObject = button;
+
+    if(clickCount >= 2) {
+        [self openPane:[button tag]];
+        clickCount = 0;
+    }
+}
+
+-(void)openPane:(int)tag {
+    NSLog(@"opening pane tag %d, %@", tag, [panes objectAtIndex:tag]);
 }
 
 @end

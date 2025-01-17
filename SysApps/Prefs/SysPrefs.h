@@ -26,7 +26,10 @@
     NSWindow *window;
     NSMutableArray *panes;
     NSFont *font;
-    NSDictionary *attr;
+    NSTimeInterval doubleClickInterval;
+    NSTimeInterval lastClickTime;
+    NSButton *lastClickObject;
+    unsigned clickCount;
 }
 
 @end

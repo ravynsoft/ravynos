@@ -47,6 +47,7 @@ SOFTWARE. */
 - (void)_addSystemColor:(NSColor *)result forName:(NSString *)colorName;
 
 - (NSTimeInterval)textCaretBlinkInterval;
+- (float)doubleClickInterval;
 
 - (void)hideCursor;
 - (void)unhideCursor;

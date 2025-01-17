@@ -150,6 +150,12 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
 
 -(void)machServiceLoop:(id)object {
     //NSLog(@"starting mach service loop");
+    NSTimeInterval lastClickTime = 0;
+    NSTimeInterval lastRightClickTime = 0;
+    unsigned clickCount = 0;
+    unsigned rightClickCount = 0;
+    struct timespec ts;
+
     while(1) {
         ReceiveMessage msg = {0};
         mach_msg_return_t result = mach_msg((mach_msg_header_t *)&msg, MACH_RCV_MSG, 0, sizeof(msg),
@@ -236,16 +242,62 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                                     break;
                                 }
                                 case NSLeftMouseDown:
-                                case NSLeftMouseUp: 
+                                    clock_gettime(CLOCK_MONOTONIC, &ts);
+                                    lastClickTime = ts.tv_sec + ts.tv_nsec/1000000000;
+                                    clickCount++;
+                                case NSLeftMouseUp: {
+                                    clock_gettime(CLOCK_MONOTONIC, &ts);
+                                    NSTimeInterval now = ts.tv_sec + ts.tv_nsec/1000000000;
+                                    if((now - lastClickTime) > [_display doubleClickInterval])
+                                        clickCount = 0;
+
+                                    NSEvent *e = [NSEvent mouseEventWithType:me.code
+                                                    location:NSMakePoint(me.x, me.y)
+                                               modifierFlags:me.mods
+                                                      window:window
+                                                  clickCount:clickCount
+                                                      deltaX:me.dx
+                                                      deltaY:me.dy];
+                                    [_display postEvent:e atStart:NO];
+                                    break;
+                                }
+                                case NSLeftMouseDragged: {
+                                    NSEvent *e = [NSEvent mouseEventWithType:me.code
+                                                    location:NSMakePoint(me.x, me.y)
+                                               modifierFlags:me.mods
+                                                      window:window
+                                                  clickCount:0
+                                                      deltaX:me.dx
+                                                      deltaY:me.dy];
+                                    [_display postEvent:e atStart:NO];
+                                    break;
+                                }
                                 case NSRightMouseDown:
-                                case NSRightMouseUp:
-                                case NSLeftMouseDragged:
+                                    clock_gettime(CLOCK_MONOTONIC, &ts);
+                                    lastRightClickTime = ts.tv_sec + ts.tv_nsec/1000000000;
+                                    rightClickCount++;
+                                case NSRightMouseUp: {
+                                    clock_gettime(CLOCK_MONOTONIC, &ts);
+                                    NSTimeInterval now = ts.tv_sec + ts.tv_nsec/1000000000;
+                                    if((now - lastRightClickTime) > [_display doubleClickInterval])
+                                        rightClickCount = 0;
+
+                                    NSEvent *e = [NSEvent mouseEventWithType:me.code
+                                                    location:NSMakePoint(me.x, me.y)
+                                               modifierFlags:me.mods
+                                                      window:window
+                                                  clickCount:rightClickCount
+                                                      deltaX:me.dx
+                                                      deltaY:me.dy];
+                                    [_display postEvent:e atStart:NO];
+                                    break;
+                                }
                                 case NSRightMouseDragged: {
                                     NSEvent *e = [NSEvent mouseEventWithType:me.code
                                                     location:NSMakePoint(me.x, me.y)
                                                modifierFlags:me.mods
                                                       window:window
-                                                  clickCount:1
+                                                  clickCount:0
                                                       deltaX:me.dx
                                                       deltaY:me.dy];
                                     [_display postEvent:e atStart:NO];
