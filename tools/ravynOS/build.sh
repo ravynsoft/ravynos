@@ -139,7 +139,17 @@ kernelpkg() {
 
 basepkg() {
     cd ${CIRRUS_WORKING_DIR}
-    make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN COMPILER_TYPE=clang base.txz
+    DISTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist
+    mkdir -p ${DISTDIR}
+    make -DNO_ROOT distributeworld MK_LIB32=no NO_PORTS=true NOSRC=true DISTDIR=${DISTDIR}
+    # Bootstrap etcupdate(8) database.
+    sh ${CIRRUS_WORKING_DIR}/usr.sbin/etcupdate/etcupdate.sh extract -B \
+        -m "make" -M "TARGET_ARCH=$(uname -m) TARGET=$(uname -p)" \
+        -s ${CIRRUS_WORKING_DIR} -d "${DISTDIR}/base/var/db/etcupdate" \
+        -L /dev/null -N
+    # Package all components
+    make packageworld MK_LIB32=no NO_PORTS=true NOSRC=true DISTDIR=${DISTDIR}
+    mv ${DISTDIR}/*.txz ${DISTDIR}/../
     if [ $? -ne 0 ]; then exit $?; fi
 }
 
