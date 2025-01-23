@@ -58,8 +58,10 @@ include/sys/epoll.h::
 makedirs:
 	mkdir -p ${OBJTOP}/release/dist/base/${INCSDIR}
 
+copydetail:
+	cp -Rv ${.CURDIR}/include/epoll-shim/ ${OBJTOP}/release/dist/base/${INCSDIR}/
 
 .include <bsd.lib.mk>
 
 includes: include/epoll-shim
-distribute: makedirs
+distribute: makedirs copydetail
