@@ -24,8 +24,6 @@ base_task:
     fi
   setup_script:
     - pkg remove -fy zstd
-    - pkg install -fy python311 python3 py311-pip py311-setuptools
-    - pip install --upgrade cloudsmith-cli
     - echo "PLATFORM=$(uname -m).$(uname -p)" >> ${CIRRUS_ENV}
   sys_cache:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/sys
@@ -44,6 +42,8 @@ base_task:
     - cp -afv ${CIRRUS_WORKING_DIR}/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/ /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}
     - ${CIRRUS_WORKING_DIR}/tools/ravynOS/build.sh base basepkg
+    - pkg install -fy python311 python3 py311-pip py311-setuptools
+    - pip install --upgrade cloudsmith-cli
     - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/base.txz
     - rm -rfv /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/base/usr/share/locale/nn_NO.*
   upload_caches:
@@ -69,7 +69,6 @@ kernel_task:
       git reset --hard $CIRRUS_CHANGE_IN_REPO
     fi
   setup_script:
-    - pkg remove -fy zstd
     - pkg install -fy python311 python3 py311-pip py311-setuptools
     - pip install --upgrade cloudsmith-cli
     - echo "PLATFORM=$(uname -m).$(uname -p)" >> ${CIRRUS_ENV}
@@ -114,7 +113,6 @@ system_task:
       git reset --hard $CIRRUS_CHANGE_IN_REPO
     fi
   setup_script:
-    - pkg remove -fy zstd
     - pkg install -fy python311 python3 py311-pip py311-setuptools
     - echo "PLATFORM=$(uname -m).$(uname -p)" >> ${CIRRUS_ENV}
   sys_cache:
