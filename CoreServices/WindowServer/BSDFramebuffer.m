@@ -89,11 +89,11 @@
 
     cs = CGColorSpaceCreateDeviceRGB();
     ctx = [O2Context createWithBytes:NULL width:width height:height 
-                bitsPerComponent:8 bytesPerRow:0 colorSpace:(__bridge O2ColorSpaceRef)cs
+                bitsPerComponent:8 bytesPerRow:stride colorSpace:(__bridge O2ColorSpaceRef)cs
                 bitmapInfo:[self format] releaseCallback:NULL releaseInfo:NULL];
     ctxPixels = [[ctx surface] pixelBytes];
     ctx2 = [O2Context createWithBytes:NULL width:width height:height 
-            bitsPerComponent:8 bytesPerRow:0 colorSpace:(__bridge O2ColorSpaceRef)cs
+            bitsPerComponent:8 bytesPerRow:stride colorSpace:(__bridge O2ColorSpaceRef)cs
             bitmapInfo:[self format] releaseCallback:NULL releaseInfo:NULL];
     ctx2Pixels = [[ctx2 surface] pixelBytes];
     activeCtx = ctx;
