@@ -19,7 +19,7 @@ readonly SYSLOGD_LOCAL_PRIVSOCKET="${PWD}/logpriv.sock"
 # Start a private syslogd instance.
 syslogd_start()
 {
-    local jail bind_addr conf_file pid_file socket privsocket
+    local jail bind_arg conf_file pid_file socket privsocket
     local opt next other_args
 
     # Setup loopback so we can deliver messages to ourself.
@@ -29,7 +29,7 @@ syslogd_start()
     while getopts ":b:f:j:P:p:S:" opt; do
         case "${opt}" in
         b)
-            bind_addr="${OPTARG}"
+            bind_arg="${bind_arg} -b ${OPTARG}"
             ;;
         f)
             conf_file="${OPTARG}"
@@ -71,7 +71,7 @@ syslogd_start()
     done
 
     $jail syslogd \
-        -b "${bind_addr:-":${SYSLOGD_UDP_PORT}"}" \
+        ${bind_arg:--b :${SYSLOGD_UDP_PORT}} \
         -C \
         -d \
         -f "${conf_file:-${SYSLOGD_CONFIG}}" \
@@ -99,7 +99,7 @@ syslogd_log()
 # Make syslogd reload its configuration file.
 syslogd_reload()
 {
-    pkill -HUP -F "${1:-${SYSLOGD_PIDFILE}}"
+    atf_check pkill -HUP -F "${1:-${SYSLOGD_PIDFILE}}"
 }
 
 # Stop a private syslogd instance.
@@ -113,5 +113,48 @@ syslogd_stop()
     if pkill -F "${pid_file}"; then
         wait "${pid}"
         rm -f "${pid_file}" "${socket_file}" "${privsocket_file}"
+    fi
+}
+
+# Check required kernel module.
+syslogd_check_req()
+{
+    type=$1
+
+    if kldstat -q -n if_${type}.ko; then
+        return
+    fi
+
+    if ! kldload -n -q if_${type}; then
+        atf_skip "if_${type}.ko is required to run this test."
+        return
+    fi
+}
+
+# Make a jail and save its name to the created_jails.lst file.
+# Accepts a name and optional arguments.
+syslogd_mkjail()
+{
+    jailname=$1
+    shift
+    args=$*
+
+    atf_check jail -c name=${jailname} ${args} persist
+
+    echo $jailname >> created_jails.lst
+}
+
+# Remove epair interfaces and jails.
+syslogd_cleanup()
+{
+    if [ -f created_jails.lst ]; then
+        while read jailname; do
+            jail -r ${jailname}
+        done < created_jails.lst
+        rm created_jails.lst
+    fi
+
+    if [ -f epair ]; then
+        ifconfig $(cat epair) destroy
     fi
 }

@@ -162,8 +162,6 @@ SYSCTL_PROC(_vm, OID_AUTO, page_blacklist, CTLTYPE_STRING | CTLFLAG_RD |
 
 static uma_zone_t fakepg_zone;
 
-static vm_page_t vm_page_alloc_after(vm_object_t object, vm_pindex_t pindex,
-    int req, vm_page_t mpred);
 static void vm_page_alloc_check(vm_page_t m);
 static vm_page_t vm_page_alloc_nofree_domain(int domain, int req);
 static bool _vm_page_busy_sleep(vm_object_t obj, vm_page_t m,
@@ -460,7 +458,8 @@ vm_page_domain_init(int domain)
 	vmd->vmd_page_count = 0;
 	vmd->vmd_free_count = 0;
 	vmd->vmd_segs = 0;
-	vmd->vmd_oom = FALSE;
+	vmd->vmd_oom = false;
+	vmd->vmd_helper_threads_enabled = true;
 	for (i = 0; i < PQ_COUNT; i++) {
 		pq = &vmd->vmd_pagequeues[i];
 		TAILQ_INIT(&pq->pq_pl);
@@ -571,6 +570,7 @@ vm_page_startup(vm_offset_t vaddr)
 #if defined(__i386__) && defined(VM_PHYSSEG_DENSE)
 	long ii;
 #endif
+	int pool;
 #ifdef VM_FREEPOOL_LAZYINIT
 	int lazyinit;
 #endif
@@ -650,41 +650,42 @@ vm_page_startup(vm_offset_t vaddr)
 		dump_add_page(pa);
 		pa += PAGE_SIZE;
 	}
+#else
+	(void)pa;
 #endif
+
 	/*
-	 * Compute the number of pages of memory that will be available for
-	 * use, taking into account the overhead of a page structure per page.
-	 * In other words, solve
-	 *	"available physical memory" - round_page(page_range *
-	 *	    sizeof(struct vm_page)) = page_range * PAGE_SIZE 
-	 * for page_range.  
+	 * Determine the lowest and highest physical addresses and, in the case
+	 * of VM_PHYSSEG_SPARSE, the exact size of the available physical
+	 * memory.  vm_phys_early_startup() already checked that phys_avail[]
+	 * has at least one element.
 	 */
+#ifdef VM_PHYSSEG_SPARSE
+	size = phys_avail[1] - phys_avail[0];
+#endif
 	low_avail = phys_avail[0];
 	high_avail = phys_avail[1];
-	for (i = 0; i < vm_phys_nsegs; i++) {
-		if (vm_phys_segs[i].start < low_avail)
-			low_avail = vm_phys_segs[i].start;
-		if (vm_phys_segs[i].end > high_avail)
-			high_avail = vm_phys_segs[i].end;
-	}
-	/* Skip the first chunk.  It is already accounted for. */
 	for (i = 2; phys_avail[i + 1] != 0; i += 2) {
+#ifdef VM_PHYSSEG_SPARSE
+		size += phys_avail[i + 1] - phys_avail[i];
+#endif
 		if (phys_avail[i] < low_avail)
 			low_avail = phys_avail[i];
 		if (phys_avail[i + 1] > high_avail)
 			high_avail = phys_avail[i + 1];
 	}
-	first_page = low_avail / PAGE_SIZE;
+	for (i = 0; i < vm_phys_nsegs; i++) {
 #ifdef VM_PHYSSEG_SPARSE
-	size = 0;
-	for (i = 0; i < vm_phys_nsegs; i++)
 		size += vm_phys_segs[i].end - vm_phys_segs[i].start;
-	for (i = 0; phys_avail[i + 1] != 0; i += 2)
-		size += phys_avail[i + 1] - phys_avail[i];
-#elif defined(VM_PHYSSEG_DENSE)
+#endif
+		if (vm_phys_segs[i].start < low_avail)
+			low_avail = vm_phys_segs[i].start;
+		if (vm_phys_segs[i].end > high_avail)
+			high_avail = vm_phys_segs[i].end;
+	}
+	first_page = low_avail / PAGE_SIZE;
+#ifdef VM_PHYSSEG_DENSE
 	size = high_avail - low_avail;
-#else
-#error "Either VM_PHYSSEG_DENSE or VM_PHYSSEG_SPARSE must be defined."
 #endif
 
 #ifdef PMAP_HAS_PAGE_ARRAY
@@ -746,17 +747,19 @@ vm_page_startup(vm_offset_t vaddr)
 	 * physical pages.
 	 */
 	for (i = 0; phys_avail[i + 1] != 0; i += 2)
-		if (vm_phys_avail_size(i) != 0)
-			vm_phys_add_seg(phys_avail[i], phys_avail[i + 1]);
+		vm_phys_add_seg(phys_avail[i], phys_avail[i + 1]);
 
 	/*
 	 * Initialize the physical memory allocator.
 	 */
 	vm_phys_init();
 
+	pool = VM_FREEPOOL_DEFAULT;
 #ifdef VM_FREEPOOL_LAZYINIT
 	lazyinit = 1;
 	TUNABLE_INT_FETCH("debug.vm.lazy_page_init", &lazyinit);
+	if (lazyinit)
+		pool = VM_FREEPOOL_LAZYINIT;
 #endif
 
 	/*
@@ -776,48 +779,27 @@ vm_page_startup(vm_offset_t vaddr)
 		seg = &vm_phys_segs[segind];
 
 		/*
-		 * If lazy vm_page initialization is not enabled, simply
-		 * initialize all of the pages in the segment.  Otherwise, we
-		 * only initialize:
-		 * 1. Pages not covered by phys_avail[], since they might be
-		 *    freed to the allocator at some future point, e.g., by
-		 *    kmem_bootstrap_free().
-		 * 2. The first page of each run of free pages handed to the
-		 *    vm_phys allocator, which in turn defers initialization
-		 *    of pages until they are needed.
-		 * This avoids blocking the boot process for long periods, which
-		 * may be relevant for VMs (which ought to boot as quickly as
-		 * possible) and/or systems with large amounts of physical
-		 * memory.
+		 * Initialize pages not covered by phys_avail[], since they
+		 * might be freed to the allocator at some future point, e.g.,
+		 * by kmem_bootstrap_free().
 		 */
-#ifdef VM_FREEPOOL_LAZYINIT
-		if (lazyinit) {
-			startp = seg->start;
-			for (i = 0; phys_avail[i + 1] != 0; i += 2) {
-				if (startp >= seg->end)
-					break;
-
-				if (phys_avail[i + 1] < startp)
-					continue;
-				if (phys_avail[i] <= startp) {
-					startp = phys_avail[i + 1];
-					continue;
-				}
-
-				m = vm_phys_seg_paddr_to_vm_page(seg, startp);
-				for (endp = MIN(phys_avail[i], seg->end);
-				    startp < endp; startp += PAGE_SIZE, m++) {
-					vm_page_init_page(m, startp, segind,
-					    VM_FREEPOOL_DEFAULT);
-				}
+		startp = seg->start;
+		for (i = 0; phys_avail[i + 1] != 0; i += 2) {
+			if (startp >= seg->end)
+				break;
+			if (phys_avail[i + 1] < startp)
+				continue;
+			if (phys_avail[i] <= startp) {
+				startp = phys_avail[i + 1];
+				continue;
 			}
-		} else
-#endif
-			for (m = seg->first_page, pa = seg->start;
-			    pa < seg->end; m++, pa += PAGE_SIZE) {
-				vm_page_init_page(m, pa, segind,
+			m = vm_phys_seg_paddr_to_vm_page(seg, startp);
+			for (endp = MIN(phys_avail[i], seg->end);
+			    startp < endp; startp += PAGE_SIZE, m++) {
+				vm_page_init_page(m, startp, segind,
 				    VM_FREEPOOL_DEFAULT);
 			}
+		}
 
 		/*
 		 * Add the segment's pages that are covered by one of
@@ -834,16 +816,31 @@ vm_page_startup(vm_offset_t vaddr)
 			if (pagecount == 0)
 				continue;
 
+			/*
+			 * If lazy vm_page initialization is not enabled, simply
+			 * initialize all of the pages in the segment covered by
+			 * phys_avail.  Otherwise, initialize only the first
+			 * page of each run of free pages handed to the vm_phys
+			 * allocator, which in turn defers initialization of
+			 * pages until they are needed.
+			 *
+			 * This avoids blocking the boot process for long
+			 * periods, which may be relevant for VMs (which ought
+			 * to boot as quickly as possible) and/or systems with
+			 * large amounts of physical memory.
+			 */
 			m = vm_phys_seg_paddr_to_vm_page(seg, startp);
-#ifdef VM_FREEPOOL_LAZYINIT
-			if (lazyinit) {
-				vm_page_init_page(m, startp, segind,
-				    VM_FREEPOOL_LAZYINIT);
+			vm_page_init_page(m, startp, segind, pool);
+			if (pool == VM_FREEPOOL_DEFAULT) {
+				for (u_long j = 1; j < pagecount; j++) {
+					vm_page_init_page(&m[j],
+					    startp + ptoa((vm_paddr_t)j),
+					    segind, pool);
+				}
 			}
-#endif
 			vmd = VM_DOMAIN(seg->domain);
 			vm_domain_free_lock(vmd);
-			vm_phys_enqueue_contig(m, pagecount);
+			vm_phys_enqueue_contig(m, pool, pagecount);
 			vm_domain_free_unlock(vmd);
 			vm_domain_freecnt_inc(vmd, pagecount);
 			vm_cnt.v_page_count += (u_int)pagecount;
@@ -1840,21 +1837,6 @@ vm_page_iter_limit_init(struct pctrie_iter *pages, vm_object_t object,
 }
 
 /*
- *	vm_page_iter_lookup:
- *
- *	Returns the page associated with the object/offset pair specified, and
- *	stores the path to its position; if none is found, NULL is returned.
- *
- *	The iter pctrie must be locked.
- */
-vm_page_t
-vm_page_iter_lookup(struct pctrie_iter *pages, vm_pindex_t pindex)
-{
-
-	return (vm_radix_iter_lookup(pages, pindex));
-}
-
-/*
  *	vm_page_lookup_unlocked:
  *
  *	Returns the page associated with the object/offset pair specified;
@@ -1936,22 +1918,6 @@ vm_page_find_least(vm_object_t object, vm_pindex_t pindex)
 	if ((m = TAILQ_FIRST(&object->memq)) != NULL && m->pindex < pindex)
 		m = vm_radix_lookup_ge(&object->rtree, pindex);
 	return (m);
-}
-
-/*
- *	vm_page_iter_lookup_ge:
- *
- *	Returns the page associated with the object with least pindex
- *	greater than or equal to the parameter pindex, or NULL.  Initializes the
- *	iterator to point to that page.
- *
- *	The iter pctrie must be locked.
- */
-vm_page_t
-vm_page_iter_lookup_ge(struct pctrie_iter *pages, vm_pindex_t pindex)
-{
-
-	return (vm_radix_iter_lookup_ge(pages, pindex));
 }
 
 /*
@@ -2174,7 +2140,7 @@ vm_page_alloc(vm_object_t object, vm_pindex_t pindex, int req)
  * the resident page in the object with largest index smaller than the given
  * page index, or NULL if no such page exists.
  */
-static vm_page_t
+vm_page_t
 vm_page_alloc_after(vm_object_t object, vm_pindex_t pindex,
     int req, vm_page_t mpred)
 {
@@ -2340,6 +2306,7 @@ found:
 	m->flags = flags;
 	m->a.flags = 0;
 	m->oflags = (object->flags & OBJ_UNMANAGED) != 0 ? VPO_UNMANAGED : 0;
+	m->pool = VM_FREEPOOL_DEFAULT;
 	if ((req & (VM_ALLOC_NOBUSY | VM_ALLOC_SBUSY)) == 0)
 		m->busy_lock = VPB_CURTHREAD_EXCLUSIVE;
 	else if ((req & VM_ALLOC_SBUSY) != 0)
@@ -2557,6 +2524,7 @@ vm_page_alloc_contig_domain(vm_object_t object, vm_pindex_t pindex, int domain,
 			m->ref_count = 1;
 		m->a.act_count = 0;
 		m->oflags = oflags;
+		m->pool = VM_FREEPOOL_DEFAULT;
 		if (vm_page_iter_insert(&pages, m, object, pindex, mpred)) {
 			if ((req & VM_ALLOC_WIRED) != 0)
 				vm_wire_sub(npages);
@@ -2654,6 +2622,7 @@ found:
 	m->flags = (m->flags & PG_ZERO) | flags;
 	m->a.flags = 0;
 	m->oflags = VPO_UNMANAGED;
+	m->pool = VM_FREEPOOL_DIRECT;
 	m->busy_lock = VPB_UNBUSIED;
 	if ((req & VM_ALLOC_WIRED) != 0) {
 		vm_wire_add(1);
@@ -2802,6 +2771,7 @@ vm_page_alloc_noobj_contig_domain(int domain, int req, u_long npages,
 			m->ref_count = 1;
 		m->a.act_count = 0;
 		m->oflags = VPO_UNMANAGED;
+		m->pool = VM_FREEPOOL_DIRECT;
 
 		/*
 		 * Zero the page before updating any mappings since the page is
@@ -2880,7 +2850,7 @@ vm_page_zone_release(void *arg, void **store, int cnt)
 	vm_domain_free_lock(vmd);
 	for (i = 0; i < cnt; i++) {
 		m = (vm_page_t)store[i];
-		vm_phys_free_pages(m, 0);
+		vm_phys_free_pages(m, pgcache->pool, 0);
 	}
 	vm_domain_free_unlock(vmd);
 	vm_domain_freecnt_inc(vmd, cnt);
@@ -3265,7 +3235,7 @@ unlock:
 		do {
 			MPASS(vm_page_domain(m) == domain);
 			SLIST_REMOVE_HEAD(&free, plinks.s.ss);
-			vm_phys_free_pages(m, 0);
+			vm_phys_free_pages(m, m->pool, 0);
 			cnt++;
 		} while ((m = SLIST_FIRST(&free)) != NULL);
 		vm_domain_free_unlock(vmd);
@@ -4270,7 +4240,7 @@ vm_page_free_toq(vm_page_t m)
 		return;
 	}
 	vm_domain_free_lock(vmd);
-	vm_phys_free_pages(m, 0);
+	vm_phys_free_pages(m, m->pool, 0);
 	vm_domain_free_unlock(vmd);
 	vm_domain_freecnt_inc(vmd, 1);
 }
@@ -5042,8 +5012,8 @@ retrylookup:
 				    !vm_page_tryxbusy(ma[i]))
 					break;
 			} else {
-				ma[i] = vm_page_alloc(object, m->pindex + i,
-				    VM_ALLOC_NORMAL);
+				ma[i] = vm_page_alloc_after(object,
+				    m->pindex + i, VM_ALLOC_NORMAL, ma[i - 1]);
 				if (ma[i] == NULL)
 					break;
 			}
@@ -5081,6 +5051,57 @@ out:
 		vm_page_busy_release(m);
 	*mp = m;
 	return (VM_PAGER_OK);
+}
+
+/*
+ * Fill a partial page with zeroes.  The object write lock is held on entry and
+ * exit, but may be temporarily released.
+ */
+int
+vm_page_grab_zero_partial(vm_object_t object, vm_pindex_t pindex, int base,
+    int end)
+{
+	vm_page_t m;
+	int rv;
+
+	VM_OBJECT_ASSERT_WLOCKED(object);
+	KASSERT(base >= 0, ("%s: base %d", __func__, base));
+	KASSERT(end - base <= PAGE_SIZE, ("%s: base %d end %d", __func__, base,
+	    end));
+
+retry:
+	m = vm_page_grab(object, pindex, VM_ALLOC_NOCREAT);
+	if (m != NULL) {
+		MPASS(vm_page_all_valid(m));
+	} else if (vm_pager_has_page(object, pindex, NULL, NULL)) {
+		m = vm_page_alloc(object, pindex,
+		    VM_ALLOC_NORMAL | VM_ALLOC_WAITFAIL);
+		if (m == NULL)
+			goto retry;
+		vm_object_pip_add(object, 1);
+		VM_OBJECT_WUNLOCK(object);
+		rv = vm_pager_get_pages(object, &m, 1, NULL, NULL);
+		VM_OBJECT_WLOCK(object);
+		vm_object_pip_wakeup(object);
+		if (rv != VM_PAGER_OK) {
+			vm_page_free(m);
+			return (EIO);
+		}
+
+		/*
+		 * Since the page was not resident, and therefore not recently
+		 * accessed, immediately enqueue it for asynchronous laundering.
+		 * The current operation is not regarded as an access.
+		 */
+		vm_page_launder(m);
+	} else
+		return (0);
+
+	pmap_zero_page_area(m, base, end - base);
+	KASSERT(vm_page_all_valid(m), ("%s: page %p is invalid", __func__, m));
+	vm_page_set_dirty(m);
+	vm_page_xunbusy(m);
+	return (0);
 }
 
 /*

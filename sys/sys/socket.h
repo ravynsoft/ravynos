@@ -164,7 +164,8 @@ typedef	__uintptr_t	uintptr_t;
 #define	SO_LISTENQLIMIT	0x1011		/* socket's backlog limit */
 #define	SO_LISTENQLEN	0x1012		/* socket's complete queue length */
 #define	SO_LISTENINCQLEN	0x1013	/* socket's incomplete queue length */
-#define	SO_SETFIB	0x1014		/* use this FIB to route */
+#define	SO_FIB		0x1014		/* get or set socket FIB */
+#define	SO_SETFIB	SO_FIB		/* backward compat alias */
 #define	SO_USER_COOKIE	0x1015		/* user cookie (dummynet etc.) */
 #define	SO_PROTOCOL	0x1016		/* get socket protocol (Linux name) */
 #define	SO_PROTOTYPE	SO_PROTOCOL	/* alias for SO_PROTOCOL (SunOS name) */
@@ -268,12 +269,13 @@ struct accept_filter_arg {
 #define	AF_INET6_SDP	42		/* OFED Socket Direct Protocol ipv6 */
 #define	AF_HYPERV	43		/* HyperV sockets */
 #define	AF_DIVERT	44		/* divert(4) */
-#define AF_RESV00	46		/* Reserved */
+#define	AF_IPFWLOG	46
 #define AF_RESV01	48		/* Reserved */
 #define AF_RESV02	50		/* Reserved */
 #define AF_RESV03	52		/* Reserved */
 #define AF_SYSTEM	54		/* Mach */
 #define	AF_MAX		54
+
 /*
  * When allocating a new AF_ constant, please only allocate
  * even numbered constants for FreeBSD until 134 as odd numbered AF_
@@ -400,6 +402,7 @@ struct sockproto {
 #define	PF_INET6_SDP	AF_INET6_SDP
 #define PF_SYSTEM	AF_SYSTEM
 #define	PF_DIVERT	AF_DIVERT
+#define	PF_IPFWLOG	AF_IPFWLOG
 
 #define	PF_MAX		AF_MAX
 

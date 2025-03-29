@@ -24,7 +24,6 @@ SUBDIR=adjkerntz \
 	geom \
 	ggate \
 	growfs \
-	gvinum \
 	ifconfig \
 	init \
 	kldconfig \
@@ -64,6 +63,7 @@ SUBDIR=adjkerntz \
 	swapon \
 	sysctl \
 	tunefs \
+	umbctl \
 	umount
 
 .if ${MK_INET} != "no" || ${MK_INET6} != "no"

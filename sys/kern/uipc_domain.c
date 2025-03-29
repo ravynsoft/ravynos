@@ -59,12 +59,6 @@ pr_accept_notsupp(struct socket *so, struct sockaddr *sa)
 }
 
 static int
-pr_aio_queue_notsupp(struct socket *so, struct kaiocb *job)
-{
-	return (EOPNOTSUPP);
-}
-
-static int
 pr_bind_notsupp(struct socket *so, struct sockaddr *nam, struct thread *td)
 {
 	return (EOPNOTSUPP);
@@ -109,7 +103,7 @@ pr_disconnect_notsupp(struct socket *so)
 	return (EOPNOTSUPP);
 }
 
-static int
+int
 pr_listen_notsupp(struct socket *so, int backlog, struct thread *td)
 {
 	return (EOPNOTSUPP);
@@ -176,13 +170,6 @@ pr_soreceive_notsupp(struct socket *so, struct sockaddr **paddr,
 	return (EOPNOTSUPP);
 }
 
-static int
-pr_sopoll_notsupp(struct socket *so, int events, struct ucred *cred,
-    struct thread *td)
-{
-	return (EOPNOTSUPP);
-}
-
 static void
 pr_init(struct domain *dom, struct protosw *pr)
 {
@@ -197,10 +184,10 @@ pr_init(struct domain *dom, struct protosw *pr)
 	DEFAULT(pr_soreceive, soreceive_generic);
 	DEFAULT(pr_sopoll, sopoll_generic);
 	DEFAULT(pr_setsbopt, sbsetopt);
+	DEFAULT(pr_aio_queue, soaio_queue_generic);
 
 #define NOTSUPP(foo)	if (pr->foo == NULL)  pr->foo = foo ## _notsupp
 	NOTSUPP(pr_accept);
-	NOTSUPP(pr_aio_queue);
 	NOTSUPP(pr_bind);
 	NOTSUPP(pr_bindat);
 	NOTSUPP(pr_connect);
@@ -217,7 +204,6 @@ pr_init(struct domain *dom, struct protosw *pr)
 	NOTSUPP(pr_sockaddr);
 	NOTSUPP(pr_sosend);
 	NOTSUPP(pr_soreceive);
-	NOTSUPP(pr_sopoll);
 	NOTSUPP(pr_ready);
 }
 

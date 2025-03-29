@@ -178,6 +178,7 @@ struct rtwn_softc {
 	int			sc_hwcrypto;
 	int			sc_ratectl_sysctl;
 	int			sc_ratectl;
+	uint32_t		sc_reg_addr;
 
 	uint8_t			sc_detached;
 	uint8_t			sc_flags;
@@ -318,7 +319,7 @@ struct rtwn_softc {
 	void		(*sc_detach_private)(struct rtwn_softc *);
 	void		(*sc_fill_tx_desc)(struct rtwn_softc *,
 			    struct ieee80211_node *, struct mbuf *,
-			    void *, uint8_t, int);
+			    void *, uint8_t, bool, int);
 	void		(*sc_fill_tx_desc_raw)(struct rtwn_softc *,
 			    struct ieee80211_node *, struct mbuf *,
 			    void *, const struct ieee80211_bpf_params *);
@@ -400,6 +401,7 @@ struct rtwn_softc {
 	uint16_t			rx_dma_size;
 
 	int				macid_limit;
+	int				macid_rpt2_max_num;
 	int				cam_entry_limit;
 	int				fwsize_limit;
 	int				temp_delta;
@@ -433,6 +435,8 @@ int	rtwn_attach(struct rtwn_softc *);
 void	rtwn_detach(struct rtwn_softc *);
 void	rtwn_resume(struct rtwn_softc *);
 void	rtwn_suspend(struct rtwn_softc *);
+
+void	rtwn_attach_vht_cap_info_mcs(struct rtwn_softc *);
 
 /* Interface-specific. */
 #define rtwn_write_1(_sc, _addr, _val) \
@@ -525,9 +529,9 @@ void	rtwn_suspend(struct rtwn_softc *);
 #define rtwn_detach_private(_sc) \
 	(((_sc)->sc_detach_private)((_sc)))
 #define rtwn_fill_tx_desc(_sc, _ni, _m, \
-	    _buf, _ridx, _maxretry) \
+	    _buf, _ridx, _force, _maxretry) \
 	(((_sc)->sc_fill_tx_desc)((_sc), (_ni), \
-	    (_m), (_buf), (_ridx), (_maxretry)))
+	    (_m), (_buf), (_ridx), (_force), (_maxretry)))
 #define rtwn_fill_tx_desc_raw(_sc, _ni, _m, \
 	    _buf, _params) \
 	(((_sc)->sc_fill_tx_desc_raw)((_sc), (_ni), \

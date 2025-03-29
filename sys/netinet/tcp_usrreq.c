@@ -262,7 +262,8 @@ tcp_usr_bind(struct socket *so, struct sockaddr *nam, struct thread *td)
 		goto out;
 	}
 	INP_HASH_WLOCK(&V_tcbinfo);
-	error = in_pcbbind(inp, sinp, td->td_ucred);
+	error = in_pcbbind(inp, sinp, V_tcp_bind_all_fibs ? 0 : INPBIND_FIB,
+	    td->td_ucred);
 	INP_HASH_WUNLOCK(&V_tcbinfo);
 out:
 	tcp_bblog_pru(tp, PRU_BIND, error);
@@ -330,13 +331,14 @@ tcp6_usr_bind(struct socket *so, struct sockaddr *nam, struct thread *td)
 			}
 			inp->inp_vflag |= INP_IPV4;
 			inp->inp_vflag &= ~INP_IPV6;
-			error = in_pcbbind(inp, &sin, td->td_ucred);
+			error = in_pcbbind(inp, &sin, 0, td->td_ucred);
 			INP_HASH_WUNLOCK(&V_tcbinfo);
 			goto out;
 		}
 	}
 #endif
-	error = in6_pcbbind(inp, sin6, td->td_ucred);
+	error = in6_pcbbind(inp, sin6, V_tcp_bind_all_fibs ? 0 : INPBIND_FIB,
+	    td->td_ucred);
 	INP_HASH_WUNLOCK(&V_tcbinfo);
 out:
 	if (error != 0)
@@ -355,9 +357,10 @@ out:
 static int
 tcp_usr_listen(struct socket *so, int backlog, struct thread *td)
 {
-	int error = 0;
 	struct inpcb *inp;
 	struct tcpcb *tp;
+	int error = 0;
+	bool already_listening;
 
 	inp = sotoinpcb(so);
 	KASSERT(inp != NULL, ("tcp_usr_listen: inp == NULL"));
@@ -369,6 +372,7 @@ tcp_usr_listen(struct socket *so, int backlog, struct thread *td)
 	tp = intotcpcb(inp);
 
 	SOCK_LOCK(so);
+	already_listening = SOLISTENING(so);
 	error = solisten_proto_check(so);
 	if (error != 0) {
 		SOCK_UNLOCK(so);
@@ -376,7 +380,8 @@ tcp_usr_listen(struct socket *so, int backlog, struct thread *td)
 	}
 	if (inp->inp_lport == 0) {
 		INP_HASH_WLOCK(&V_tcbinfo);
-		error = in_pcbbind(inp, NULL, td->td_ucred);
+		error = in_pcbbind(inp, NULL,
+		    V_tcp_bind_all_fibs ? 0 : INPBIND_FIB, td->td_ucred);
 		INP_HASH_WUNLOCK(&V_tcbinfo);
 	}
 	if (error == 0) {
@@ -390,7 +395,11 @@ tcp_usr_listen(struct socket *so, int backlog, struct thread *td)
 		solisten_proto_abort(so);
 	}
 	SOCK_UNLOCK(so);
+	if (already_listening)
+		goto out;
 
+	if (error == 0)
+		in_pcblisten(inp);
 	if (tp->t_flags & TF_FASTOPEN)
 		tp->t_tfo_pending = tcp_fastopen_alloc_counter();
 
@@ -406,10 +415,11 @@ out:
 static int
 tcp6_usr_listen(struct socket *so, int backlog, struct thread *td)
 {
-	int error = 0;
 	struct inpcb *inp;
 	struct tcpcb *tp;
 	u_char vflagsav;
+	int error = 0;
+	bool already_listening;
 
 	inp = sotoinpcb(so);
 	KASSERT(inp != NULL, ("tcp6_usr_listen: inp == NULL"));
@@ -423,6 +433,7 @@ tcp6_usr_listen(struct socket *so, int backlog, struct thread *td)
 	vflagsav = inp->inp_vflag;
 
 	SOCK_LOCK(so);
+	already_listening = SOLISTENING(so);
 	error = solisten_proto_check(so);
 	if (error != 0) {
 		SOCK_UNLOCK(so);
@@ -433,7 +444,8 @@ tcp6_usr_listen(struct socket *so, int backlog, struct thread *td)
 		inp->inp_vflag &= ~INP_IPV4;
 		if ((inp->inp_flags & IN6P_IPV6_V6ONLY) == 0)
 			inp->inp_vflag |= INP_IPV4;
-		error = in6_pcbbind(inp, NULL, td->td_ucred);
+		error = in6_pcbbind(inp, NULL,
+		    V_tcp_bind_all_fibs ? 0 : INPBIND_FIB, td->td_ucred);
 	}
 	INP_HASH_WUNLOCK(&V_tcbinfo);
 	if (error == 0) {
@@ -447,7 +459,11 @@ tcp6_usr_listen(struct socket *so, int backlog, struct thread *td)
 		solisten_proto_abort(so);
 	}
 	SOCK_UNLOCK(so);
+	if (already_listening)
+		goto out;
 
+	if (error == 0)
+		in_pcblisten(inp);
 	if (tp->t_flags & TF_FASTOPEN)
 		tp->t_tfo_pending = tcp_fastopen_alloc_counter();
 
@@ -510,7 +526,7 @@ tcp_usr_connect(struct socket *so, struct sockaddr *nam, struct thread *td)
 	}
 	if ((error = prison_remote_ip4(td->td_ucred, &sinp->sin_addr)) != 0)
 		goto out;
-	if (SOLISTENING(so)) {
+	if (SOLISTENING(so) || so->so_options & SO_REUSEPORT_LB) {
 		error = EOPNOTSUPP;
 		goto out;
 	}
@@ -577,8 +593,8 @@ tcp6_usr_connect(struct socket *so, struct sockaddr *nam, struct thread *td)
 		error = EAFNOSUPPORT;
 		goto out;
 	}
-	if (SOLISTENING(so)) {
-		error = EINVAL;
+	if (SOLISTENING(so) || so->so_options & SO_REUSEPORT_LB) {
+		error = EOPNOTSUPP;
 		goto out;
 	}
 #ifdef INET

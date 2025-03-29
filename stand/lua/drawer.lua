@@ -327,7 +327,7 @@ local function drawbrand()
 	if core.isFramebufferConsole() and
 	    gfx.term_putimage ~= nil and
 	    branddef.image ~= nil then
-		if gfx.term_putimage(branddef.image, 1, 1, 0, 7, 0)
+		if gfx.term_putimage(branddef.image, x, y, 0, 7, 0)
 		then
 			return true
 		end
@@ -470,9 +470,9 @@ logodefs = {
 }
 
 brand_position = {x = 2, y = 1}
-logo_position = {x = 46, y = 4}
+logo_position = {x = 40, y = 10}
 menu_position = {x = 5, y = 10}
-frame_size = {w = 42, h = 14}
+frame_size = {w = 39, h = 14}
 default_shift = {x = 0, y = 0}
 shift = default_shift
 

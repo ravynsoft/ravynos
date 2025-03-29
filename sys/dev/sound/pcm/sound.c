@@ -6,7 +6,7 @@
  * Copyright (c) 1999 Cameron Grant <cg@FreeBSD.org>
  * Copyright (c) 1997 Luigi Rizzo
  * All rights reserved.
- * Copyright (c) 2024 The FreeBSD Foundation
+ * Copyright (c) 2024-2025 The FreeBSD Foundation
  *
  * Portions of this software were developed by Christos Margiolis
  * <christos@FreeBSD.org> under sponsorship from the FreeBSD Foundation.
@@ -107,62 +107,6 @@ snd_setup_intr(device_t dev, struct resource *res, int flags, driver_intr_t hand
 	return bus_setup_intr(dev, res, flags, NULL, hand, param, cookiep);
 }
 
-int
-pcm_chnalloc(struct snddev_info *d, struct pcm_channel **ch, int direction,
-    pid_t pid, char *comm)
-{
-	struct pcm_channel *c;
-	int err, vchancount;
-	bool retry;
-
-	KASSERT(d != NULL && ch != NULL &&
-	    (direction == PCMDIR_PLAY || direction == PCMDIR_REC),
-	    ("%s(): invalid d=%p ch=%p direction=%d pid=%d",
-	    __func__, d, ch, direction, pid));
-	PCM_BUSYASSERT(d);
-
-	*ch = NULL;
-	vchancount = (direction == PCMDIR_PLAY) ? d->pvchancount :
-	    d->rvchancount;
-	retry = false;
-
-retry_chnalloc:
-	/* Scan for a free channel. */
-	CHN_FOREACH(c, d, channels.pcm) {
-		CHN_LOCK(c);
-		if (c->direction != direction) {
-			CHN_UNLOCK(c);
-			continue;
-		}
-		if (!(c->flags & CHN_F_BUSY)) {
-			c->flags |= CHN_F_BUSY;
-			c->pid = pid;
-			strlcpy(c->comm, (comm != NULL) ? comm :
-			    CHN_COMM_UNKNOWN, sizeof(c->comm));
-			*ch = c;
-
-			return (0);
-		}
-		CHN_UNLOCK(c);
-	}
-	/* Maybe next time... */
-	if (retry)
-		return (EBUSY);
-
-	/* No channel available. We also cannot create more VCHANs. */
-	if (!(vchancount > 0 && vchancount < snd_maxautovchans))
-		return (ENOTSUP);
-
-	/* Increase the VCHAN count and try to get the new channel. */
-	err = vchan_setnew(d, direction, vchancount + 1);
-	if (err == 0) {
-		retry = true;
-		goto retry_chnalloc;
-	}
-
-	return (err);
-}
-
 static int
 sysctl_hw_snd_default_unit(SYSCTL_HANDLER_ARGS)
 {
@@ -192,9 +136,9 @@ pcm_addchan(device_t dev, int dir, kobj_class_t cls, void *devinfo)
 	struct snddev_info *d = device_get_softc(dev);
 	struct pcm_channel *ch;
 
-	PCM_BUSYASSERT(d);
-
 	PCM_LOCK(d);
+	PCM_WAIT(d);
+	PCM_ACQUIRE(d);
 	ch = chn_init(d, NULL, cls, dir, devinfo);
 	if (!ch) {
 		device_printf(d->dev, "chn_init(%s, %d, %p) failed\n",
@@ -202,6 +146,7 @@ pcm_addchan(device_t dev, int dir, kobj_class_t cls, void *devinfo)
 		PCM_UNLOCK(d);
 		return (ENODEV);
 	}
+	PCM_RELEASE(d);
 	PCM_UNLOCK(d);
 
 	return (0);
@@ -377,28 +322,32 @@ sysctl_dev_pcm_bitperfect(SYSCTL_HANDLER_ARGS)
 	return (err);
 }
 
-static u_int8_t
-pcm_mode_init(struct snddev_info *d)
+static int
+sysctl_dev_pcm_mode(SYSCTL_HANDLER_ARGS)
 {
-	u_int8_t mode = 0;
+	struct snddev_info *d;
+	int mode = 0;
 
+	d = oidp->oid_arg1;
+	if (!PCM_REGISTERED(d))
+		return (ENODEV);
+
+	PCM_LOCK(d);
 	if (d->playcount > 0)
 		mode |= PCM_MODE_PLAY;
 	if (d->reccount > 0)
 		mode |= PCM_MODE_REC;
 	if (d->mixer_dev != NULL)
 		mode |= PCM_MODE_MIXER;
+	PCM_UNLOCK(d);
 
-	return (mode);
+	return (sysctl_handle_int(oidp, &mode, 0, req));
 }
 
 static void
 pcm_sysinit(device_t dev)
 {
   	struct snddev_info *d = device_get_softc(dev);
-	u_int8_t mode;
-
-	mode = pcm_mode_init(d);
 
 	sysctl_ctx_init(&d->play_sysctl_ctx);
 	d->play_sysctl_tree = SYSCTL_ADD_NODE(&d->play_sysctl_ctx,
@@ -419,13 +368,13 @@ pcm_sysinit(device_t dev)
 	    "bitperfect", CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_MPSAFE, d,
 	    sizeof(d), sysctl_dev_pcm_bitperfect, "I",
 	    "bit-perfect playback/recording (0=disable, 1=enable)");
-	SYSCTL_ADD_UINT(device_get_sysctl_ctx(dev),
-	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)),
-	    OID_AUTO, "mode", CTLFLAG_RD, NULL, mode,
+	SYSCTL_ADD_PROC(device_get_sysctl_ctx(dev),
+	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)), OID_AUTO,
+	    "mode", CTLTYPE_INT | CTLFLAG_RD | CTLFLAG_MPSAFE, d, sizeof(d),
+	    sysctl_dev_pcm_mode, "I",
 	    "mode (1=mixer, 2=play, 4=rec. The values are OR'ed if more than "
 	    "one mode is supported)");
-	if (d->flags & SD_F_AUTOVCHAN)
-		vchan_initsys(dev);
+	vchan_initsys(dev);
 	if (d->flags & SD_F_EQ)
 		feeder_eq_initsys(dev);
 }
@@ -444,7 +393,6 @@ pcm_init(device_t dev, void *devinfo)
 	d->dev = dev;
 	d->lock = snd_mtxcreate(device_get_nameunit(dev), "sound cdev");
 	cv_init(&d->cv, device_get_nameunit(dev));
-	PCM_ACQUIRE_QUICK(d);
 
 	i = 0;
 	if (resource_int_value(device_get_name(dev), device_get_unit(dev),
@@ -472,6 +420,7 @@ pcm_init(device_t dev, void *devinfo)
 	CHN_INIT(d, channels.pcm);
 	CHN_INIT(d, channels.pcm.busy);
 	CHN_INIT(d, channels.pcm.opened);
+	CHN_INIT(d, channels.pcm.primary);
 }
 
 int
@@ -483,27 +432,17 @@ pcm_register(device_t dev, char *str)
 	if (d->flags & SD_F_REGISTERED)
 		return (EINVAL);
 
-	PCM_BUSYASSERT(d);
-
 	if (d->playcount == 0 || d->reccount == 0)
 		d->flags |= SD_F_SIMPLEX;
-
-	if (d->playcount > 0 || d->reccount > 0)
-		d->flags |= SD_F_AUTOVCHAN;
-
-	vchan_setmaxauto(d, snd_maxautovchans);
+	if (d->playcount > 0)
+		d->flags |= SD_F_PVCHANS;
+	if (d->reccount > 0)
+		d->flags |= SD_F_RVCHANS;
 
 	strlcpy(d->status, str, SND_STATUSLEN);
-	sndstat_register(dev, d->status);
-
-	PCM_LOCK(d);
 
 	/* Done, we're ready.. */
 	d->flags |= SD_F_REGISTERED;
-
-	PCM_RELEASE(d);
-
-	PCM_UNLOCK(d);
 
 	/*
 	 * Create all sysctls once SD_F_REGISTERED is set else
@@ -517,6 +456,8 @@ pcm_register(device_t dev, char *str)
 		snd_unit = device_get_unit(dev);
 	else if (snd_unit_auto == 1)
 		snd_unit = pcm_best_unit(snd_unit);
+
+	sndstat_register(dev, d->status);
 
 	return (dsp_make_dev(dev));
 }
@@ -733,9 +674,7 @@ sound_global_init(void)
 	if (snd_unit < 0)
 		snd_unit = -1;
 
-	if (snd_maxautovchans < 0 ||
-	    snd_maxautovchans > SND_MAXVCHANS)
-		snd_maxautovchans = 0;
+	snd_vchans_enable = true;
 
 	if (chn_latency < CHN_LATENCY_MIN ||
 	    chn_latency > CHN_LATENCY_MAX)
@@ -759,11 +698,11 @@ sound_global_init(void)
 		feeder_rate_round = FEEDRATE_ROUNDHZ;
 
 	if (bootverbose)
-		printf("%s: snd_unit=%d snd_maxautovchans=%d "
+		printf("%s: snd_unit=%d snd_vchans_enable=%d "
 		    "latency=%d "
 		    "feeder_rate_min=%d feeder_rate_max=%d "
 		    "feeder_rate_round=%d\n",
-		    __func__, snd_unit, snd_maxautovchans,
+		    __func__, snd_unit, snd_vchans_enable,
 		    chn_latency,
 		    feeder_rate_min, feeder_rate_max,
 		    feeder_rate_round);

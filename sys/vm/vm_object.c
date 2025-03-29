@@ -1576,8 +1576,9 @@ vm_object_split(vm_map_entry_t entry)
 	vm_object_set_flag(orig_object, OBJ_SPLIT);
 	vm_page_iter_limit_init(&pages, orig_object, offidxstart + size);
 retry:
-	pctrie_iter_reset(&pages);
-	for (m = vm_page_iter_lookup_ge(&pages, offidxstart); m != NULL;
+	KASSERT(pctrie_iter_is_reset(&pages),
+	    ("%s: pctrie_iter not reset for retry", __func__));
+	for (m = vm_radix_iter_lookup_ge(&pages, offidxstart); m != NULL;
 	    m = vm_radix_iter_step(&pages)) {
 		/*
 		 * We must wait for pending I/O to complete before we can
@@ -1590,6 +1591,7 @@ retry:
 			VM_OBJECT_WUNLOCK(new_object);
 			if (vm_page_busy_sleep(m, "spltwt", 0))
 				VM_OBJECT_WLOCK(orig_object);
+			pctrie_iter_reset(&pages);
 			VM_OBJECT_WLOCK(new_object);
 			goto retry;
 		}
@@ -1611,6 +1613,7 @@ retry:
 			VM_OBJECT_WUNLOCK(new_object);
 			VM_OBJECT_WUNLOCK(orig_object);
 			vm_radix_wait();
+			pctrie_iter_reset(&pages);
 			VM_OBJECT_WLOCK(orig_object);
 			VM_OBJECT_WLOCK(new_object);
 			goto retry;
@@ -1681,7 +1684,7 @@ vm_object_collapse_scan_wait(struct pctrie_iter *pages, vm_object_t object,
 	}
 	VM_OBJECT_WLOCK(backing_object);
 	vm_page_iter_init(pages, backing_object);
-	return (vm_page_iter_lookup_ge(pages, 0));
+	return (vm_radix_iter_lookup_ge(pages, 0));
 }
 
 static void
@@ -1702,10 +1705,7 @@ vm_object_collapse_scan(vm_object_t object)
 	 * Our scan
 	 */
 	vm_page_iter_init(&pages, backing_object);
-	for (p = vm_page_iter_lookup_ge(&pages, 0); p != NULL; p = next) {
-		next = TAILQ_NEXT(p, listq);
-		new_pindex = p->pindex - backing_offset_index;
-
+	for (p = vm_radix_iter_lookup_ge(&pages, 0); p != NULL; p = next) {
 		/*
 		 * Check for busy page
 		 */
@@ -1721,8 +1721,8 @@ vm_object_collapse_scan(vm_object_t object)
 		    ("vm_object_collapse_scan: object mismatch %p != %p",
 		    p->object, backing_object));
 
-		if (p->pindex < backing_offset_index ||
-		    new_pindex >= object->size) {
+		if (p->pindex < backing_offset_index || object->size <=
+		    (new_pindex = p->pindex - backing_offset_index)) {
 			vm_pager_freespace(backing_object, p->pindex, 1);
 
 			KASSERT(!pmap_page_is_mapped(p),
@@ -1999,8 +1999,9 @@ vm_object_page_remove(vm_object_t object, vm_pindex_t start, vm_pindex_t end,
 	vm_object_pip_add(object, 1);
 	vm_page_iter_limit_init(&pages, object, end);
 again:
-	pctrie_iter_reset(&pages);
-	for (p = vm_page_iter_lookup_ge(&pages, start); p != NULL;
+	KASSERT(pctrie_iter_is_reset(&pages),
+	    ("%s: pctrie_iter not reset for retry", __func__));
+	for (p = vm_radix_iter_lookup_ge(&pages, start); p != NULL;
 	     p = vm_radix_iter_step(&pages)) {
 		/*
 		 * Skip invalid pages if asked to do so.  Try to avoid acquiring
@@ -2028,6 +2029,7 @@ again:
 		if (vm_page_tryxbusy(p) == 0) {
 			if (vm_page_busy_sleep(p, "vmopar", 0))
 				VM_OBJECT_WLOCK(object);
+			pctrie_iter_reset(&pages);
 			goto again;
 		}
 		if ((options & OBJPR_VALIDONLY) != 0 && vm_page_none_valid(p)) {
@@ -2256,6 +2258,64 @@ vm_object_coalesce(vm_object_t prev_object, vm_ooffset_t prev_offset,
 	return (TRUE);
 }
 
+/*
+ * Fill in the m_dst array with up to *rbehind optional pages before m_src[0]
+ * and up to *rahead optional pages after m_src[count - 1].  In both cases, stop
+ * the filling-in short on encountering a cached page, an object boundary limit,
+ * or an allocation error.  Update *rbehind and *rahead to indicate the number
+ * of pages allocated.  Copy elements of m_src into array elements from
+ * m_dst[*rbehind] to m_dst[*rbehind + count -1].
+ */
+void
+vm_object_prepare_buf_pages(vm_object_t object, vm_page_t *ma_dst, int count,
+    int *rbehind, int *rahead, vm_page_t *ma_src)
+{
+	vm_pindex_t pindex;
+	vm_page_t m, mpred, msucc;
+
+	VM_OBJECT_ASSERT_LOCKED(object);
+	if (*rbehind != 0) {
+		m = ma_src[0];
+		pindex = m->pindex;
+		mpred = TAILQ_PREV(m, pglist, listq);
+		*rbehind = MIN(*rbehind,
+		    pindex - (mpred != NULL ? mpred->pindex + 1 : 0));
+		/* Stepping backward from pindex, mpred doesn't change. */
+		for (int i = 0; i < *rbehind; i++) {
+			m = vm_page_alloc_after(object, pindex - i - 1,
+			    VM_ALLOC_NORMAL, mpred);
+			if (m == NULL) {
+				/* Shift the array. */
+				for (int j = 0; j < i; j++)
+					ma_dst[j] = ma_dst[j + *rbehind - i];
+				*rbehind = i;
+				*rahead = 0;
+				break;
+			}
+			ma_dst[*rbehind - i - 1] = m;
+		}
+	}	
+	for (int i = 0; i < count; i++)
+		ma_dst[*rbehind + i] = ma_src[i];
+	if (*rahead != 0) {
+		m = ma_src[count - 1];
+		pindex = m->pindex + 1;
+		msucc = TAILQ_NEXT(m, listq);
+		*rahead = MIN(*rahead,
+		    (msucc != NULL ? msucc->pindex : object->size) - pindex);
+		mpred = m;
+		for (int i = 0; i < *rahead; i++) {
+			m = vm_page_alloc_after(object, pindex + i,
+			    VM_ALLOC_NORMAL, mpred);
+			if (m == NULL) {
+				*rahead = i;
+				break;
+			}
+			ma_dst[*rbehind + count + i] = mpred = m;
+		}
+	}
+}
+
 void
 vm_object_set_writeable_dirty_(vm_object_t object)
 {
@@ -2425,10 +2485,8 @@ vm_object_list_handler(struct sysctl_req *req, bool swap_only)
 	struct vattr va;
 	vm_object_t obj;
 	vm_page_t m;
-	struct cdev *cdev;
-	struct cdevsw *csw;
 	u_long sp;
-	int count, error, ref;
+	int count, error;
 	key_t key;
 	unsigned short seq;
 	bool want_path;
@@ -2517,17 +2575,9 @@ vm_object_list_handler(struct sysctl_req *req, bool swap_only)
 			sp = swap_pager_swapped_pages(obj);
 			kvo->kvo_swapped = sp > UINT32_MAX ? UINT32_MAX : sp;
 		}
-		if ((obj->type == OBJT_DEVICE || obj->type == OBJT_MGTDEVICE) &&
-		    (obj->flags & OBJ_CDEVH) != 0) {
-			cdev = obj->un_pager.devp.handle;
-			if (cdev != NULL) {
-				csw = dev_refthread(cdev, &ref);
-				if (csw != NULL) {
-					strlcpy(kvo->kvo_path, cdev->si_name,
-					    sizeof(kvo->kvo_path));
-					dev_relthread(cdev, ref);
-				}
-			}
+		if (obj->type == OBJT_DEVICE || obj->type == OBJT_MGTDEVICE) {
+			cdev_pager_get_path(obj, kvo->kvo_path,
+			    sizeof(kvo->kvo_path));
 		}
 		VM_OBJECT_RUNLOCK(obj);
 		if ((obj->flags & OBJ_SYSVSHM) != 0) {
