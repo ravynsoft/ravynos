@@ -15,7 +15,7 @@ all: zsh
 zsh:
 	${.CURDIR}/configure --prefix=${PREFIX} --sysconfdir=/etc ${CONFIGURE_ARGS}
 	${MAKE}
-	${MAKE} install DESTDIR=${DESTDIR} INSTALL="${DESTDIR}/legacy/bin/install"
+	${MAKE} install DESTDIR=${DESTDIR} INSTALL="${OBJTOP}/tmp/legacy/bin/install"
 
 install:
 	${MAKE} install DESTDIR=${DESTDIR} INSTALL="${OBJTOP}/tmp/legacy/bin/install"
