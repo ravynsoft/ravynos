@@ -1,25 +1,25 @@
 # Mi az a ravynOS? [![Build Status](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 ### Don't speak Hungarian? Read this in: [Italiano](README.IT.md), [Türkçe](README.TR.md), [Deutsch](README.DE.md), [Indonesia](README.ID.md)
 
-A ravynOS egy új nyilt forrásu operációs rendszer projekt ami arra célzik hogy hasonló élményt és valamenyi kompatibilitást adjon a macOS-el x86-64 (és egyszer majd ARM) rendszereken is. A megbízható FreeBSD alapján épűl, létező nyilt forrású csomagokkal ugyanazon a helyen és új kódot hogy a hibákat befedjük.
+ravynOS egy új nyílt forráskódú operációs rendszer projekt, aminek a célja, hogy macOS-hez haosnló élményt és némi kompatibiltást nyújtson x86-64 (és valamikor ARM) rendeszereken. A FreeBSD stabil alapjára és meglévő nyílt forráskódú csomagokra épül, valamint a hiányosságok pótlására szolgáló új kódokra épít.
 
-Az alap tervezési célpontjaink:
-- Fórráskód kompatibilitás a macOS programokkal (példáúl létre tudnál hozni egy Mac programot a ravynOS-en és futtatni lehetne)
-- Hasonló felület (fáljkezelő, programinditó, menü a képernyő tetején ami mutatja a kinyitott programot, stb)
-- Kompatibilis a macOS mappa felosztásokkal (/Library, /System, /Users, /Volumes, stb) és esetleg fáljrendszerekkel (HFS+, APFS) úgy ahogy még a ZFS-t is támogatja
-- Öntárolt alkalmazások [App Bundles](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir), és [AppImage](https://github.com/AppImage) fáljok - telepitő-nélküli élmény az /Applications-ben
-- Nagyjából megtartja a kompatibilitást a FreeBSD rendszerrel és az X11-el - a standard Unix környezettel amivel működik
-- Kompatibilis a Linux alkalmazásokkal a FreeBSD Linuxulator segitségével
-- Talán kompatibilitás x86-64/arm64 macOS alkalmazásokkal (Mach-O) és könyvtárakkal 
-- Jó élmény használni, biztonságos, stabil, és performáns
+A fő dizájn célok a következők:
+- Forrás kompatibilitás a macOS programokkal (pl.: létretudsz hozni Mac alkalmazásokat ravynOs-n és futtatni tudod)
+- Hasonló grafikai felület metafórák és hasonló felhasználói élmény (fájlkezelő, alkalmzás indító, menüsor ami alkalmazkodik a programokhoz stb.)
+- Kompatibilitás a macOS mappa felépítéssel (/Library, /System, /Users stb.) és talán fájlrendszerekkel is (HFS+, APFS), valamin teljes ZFS támogatás
+- Öntárolt alkalmazások [App Bundles](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir), és [AppImage](https://github.com/AppImage) fáljok - telepitő-nélküli élmény az /Applications-ba
+- Nagyjából megtartja a kompatibilitást a FreeBSD rendszerrel és az X11-el - a standard Unix környezettel a háztető alatt
+- Kompatibilitás a Linux alkalmazásokkal a FreeBSD Linuxulator segitségével
+- Végül kompatibilitás x86-64/arm macOS alkalmazásokkal (Mach-O) és könyvtárakkal
+- Kellemes használat, biztonság, stabilitás és teljesítmény
 
 Látogasd meg a [ravynos.com](https://ravynos.com/)-ot több informaciókrt: [Release Notes](https://ravynos.com/releases.html) | [Screenshots](https://ravynos.com/screenshots.html) | [FAQ](https://ravynos.com/faq.html)
 
 ### Csatlakozz!
 
-* Tudsz segíteni hogy megépitjük az álmot? Nézd meg a jelenlegi projektek/szükségeket a[CONTRIBUTING.md](CONTRIBUTING.md)-ben!
-* A [Discord](https://discord.com/invite/8caJbAGNwY) serverünkhez.
-* `#ravynOS-general:matrix.org` - csatlakozz az Element segitségével: [Element.io](https://app.element.io/#/room/%23ravynOS-general:matrix.org)
+* Segíteni tudsz az álom megépítésében? Nézd meg a jelenlegi projektek/igényeket a[CONTRIBUTING.md](CONTRIBUTING.md)-ben!
+* A [Discord](https://discord.com/invite/8caJbAGNwY) szerverünk.
+* `#ravynOS-general:matrix.org` - csatlakozz a Element segitségével: [Element.io](https://app.element.io/#/room/%23ravynOS-general:matrix.org)
 
 [![Packages hosted by: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
 
