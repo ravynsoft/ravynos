@@ -467,7 +467,7 @@ mlx5e_build_rx_mbuf(struct mlx5_cqe64 *cqe, struct mlx5e_rq *rq,
 		break;
 	}
 
-	mlx5e_accel_ipsec_handle_rx(mb, cqe, mr);
+	mlx5e_accel_ipsec_handle_rx(ifp, mb, cqe, mr);
 }
 
 static inline void
@@ -697,6 +697,9 @@ mlx5e_rx_cq_comp(struct mlx5_core_cq *mcq, struct mlx5_eqe *eqe __unused)
 	mtx_unlock(&c->iq.lock);
 
 	mtx_lock(&rq->mtx);
+	if (rq->enabled == 0)
+		goto out;
+	rq->processing++;
 
 	/*
 	 * Polling the entire CQ without posting new WQEs results in
@@ -717,6 +720,8 @@ mlx5e_rx_cq_comp(struct mlx5_core_cq *mcq, struct mlx5_eqe *eqe __unused)
 		net_dim(&rq->dim, rq->stats.packets, rq->stats.bytes);
 	mlx5e_cq_arm(&rq->cq, MLX5_GET_DOORBELL_LOCK(&rq->channel->priv->doorbell_lock));
 	tcp_lro_flush_all(&rq->lro);
+	rq->processing--;
+out:
 	mtx_unlock(&rq->mtx);
 
 	for (int j = 0; j != MLX5E_MAX_TX_NUM_TC; j++) {

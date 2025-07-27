@@ -15,7 +15,7 @@ SRCS=	sshd-session.c auth-rhosts.c auth-passwd.c \
 	sftp-server.c sftp-common.c \
 	sandbox-null.c sandbox-rlimit.c sandbox-systrace.c sandbox-darwin.c \
 	sandbox-seccomp-filter.c sandbox-capsicum.c sandbox-pledge.c \
-	sandbox-solaris.c uidswap.c
+	sandbox-solaris.c uidswap.c $(SKSRCS)
 PACKAGE=	ssh
 
 # gss-genr.c really belongs in libssh; see src/secure/lib/libssh/Makefile
@@ -40,6 +40,15 @@ LDFLAGS+=-L${LIBBLACKLISTDIR}
 
 .if ${MK_GSSAPI} != "no" && ${MK_KERBEROS_SUPPORT} != "no"
 LIBADD+=	gssapi_krb5 gssapi krb5
+.if ${MK_MITKRB5} != "no"
+.include "../../krb5/Makefile.inc"
+CFLAGS+=	-I${KRB5_DIR}/include \
+		-I${KRB5_SRCTOP}/include \
+		-I${KRB5_OBJTOP}/lib \
+		-I${KRB5_DIR}/lib/gssapi/generic \
+		-I${KRB5_DIR}/lib/gssapi/krb5 \
+		-I${KRB5_DIR}/lib/gssapi/mechglue
+.endif
 .endif
 
 .if ${MK_TCP_WRAPPERS} != "no"

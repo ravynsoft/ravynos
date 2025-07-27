@@ -15,7 +15,13 @@ ATF_TESTS_C+=	kcov
 .endif
 ATF_TESTS_C+=	kern_copyin
 ATF_TESTS_C+=	kern_descrip_test
+# One test modifies the maxfiles limit, which can cause spurious test failures.
+TEST_METADATA.kern_descrip_test+= is_exclusive="true"
+ATF_TESTS_C+=	exterr_test
 ATF_TESTS_C+=	fdgrowtable_test
+ATF_TESTS_C+=	getdirentries_test
+ATF_TESTS_C+=	jail_lookup_root
+ATF_TESTS_C+=	inotify_test
 ATF_TESTS_C+=	kill_zombie
 .if ${MK_OPENSSL} != "no"
 ATF_TESTS_C+=	ktls_test
@@ -59,6 +65,7 @@ TEST_METADATA.sigsys+=	is_exclusive="true"
 
 ATF_TESTS_SH+=	coredump_phnum_test
 ATF_TESTS_SH+=	logsigexit_test
+ATF_TESTS_SH+=	jailmeta
 ATF_TESTS_SH+=	sonewconn_overflow
 TEST_METADATA.sonewconn_overflow+=	required_programs="python"
 TEST_METADATA.sonewconn_overflow+=	required_user="root"
@@ -74,12 +81,14 @@ PROGS+=		coredump_phnum_helper
 PROGS+=		pdeathsig_helper
 PROGS+=		sendfile_helper
 
+LIBADD.jail_lookup_root+=		jail util
 CFLAGS.sys_getrandom+=			-I${SRCTOP}/sys/contrib/zstd/lib
 LIBADD.sys_getrandom+=			zstd
 LIBADD.sys_getrandom+=			c
 LIBADD.sys_getrandom+=			pthread
 LIBADD.ptrace_test+=			pthread
 LIBADD.unix_seqpacket_test+=		pthread
+LIBADD.inotify_test+=			util
 LIBADD.kcov+=				pthread
 CFLAGS.ktls_test+=			-DOPENSSL_API_COMPAT=0x10100000L
 LIBADD.ktls_test+=			crypto util
@@ -91,6 +100,9 @@ LIBADD.sendfile_helper+=		pthread
 LIBADD.fdgrowtable_test+=		util pthread kvm procstat
 LIBADD.sigwait+=			rt
 LIBADD.ktrace_test+=			sysdecode
+LIBADD.unix_passfd_dgram+=		jail
+LIBADD.unix_passfd_stream+=		jail
+LIBADD.unix_stream+=			pthread
 
 NETBSD_ATF_TESTS_C+=	lockf_test
 NETBSD_ATF_TESTS_C+=	mqueue_test

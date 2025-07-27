@@ -142,7 +142,6 @@ udp6_append(struct inpcb *inp, struct mbuf *n, int off,
 	struct socket *so;
 	struct mbuf *opts = NULL, *tmp_opts;
 	struct udpcb *up;
-	bool filtered;
 
 	INP_LOCK_ASSERT(inp);
 
@@ -151,13 +150,19 @@ udp6_append(struct inpcb *inp, struct mbuf *n, int off,
 	 */
 	up = intoudpcb(inp);
 	if (up->u_tun_func != NULL) {
+		bool filtered;
+
 		in_pcbref(inp);
 		INP_RUNLOCK(inp);
 		filtered = (*up->u_tun_func)(n, off, inp,
 		    (struct sockaddr *)&fromsa[0], up->u_tun_ctx);
 		INP_RLOCK(inp);
-		if (filtered)
-			return (in_pcbrele_rlocked(inp));
+		if (in_pcbrele_rlocked(inp))
+			return (1);
+		if (filtered) {
+			INP_RUNLOCK(inp);
+			return (1);
+		}
 	}
 
 	off += sizeof(struct udphdr);
@@ -517,7 +522,7 @@ skip_checksum:
 			goto badunlocked;
 		}
 		if (V_udp_blackhole && (V_udp_blackhole_local ||
-		    !in6_localaddr(&ip6->ip6_src)))
+		    !in6_localip(&ip6->ip6_src)))
 			goto badunlocked;
 		icmp6_error(m, ICMP6_DST_UNREACH, ICMP6_DST_UNREACH_NOPORT, 0);
 		*mp = NULL;
@@ -860,14 +865,18 @@ udp6_send(struct socket *so, int flags_arg, struct mbuf *m,
 	hlen = sizeof(struct ip6_hdr);
 
 	/*
-	 * Calculate data length and get a mbuf
-	 * for UDP and IP6 headers.
+	 * Calculate data length and get a mbuf for UDP, IP6, and possible
+	 * link-layer headers.  Immediate slide the data pointer back forward
+	 * since we won't use that space at this layer.
 	 */
-	M_PREPEND(m, hlen + sizeof(struct udphdr), M_NOWAIT);
+	M_PREPEND(m, hlen + sizeof(struct udphdr) + max_linkhdr, M_NOWAIT);
 	if (m == NULL) {
 		error = ENOBUFS;
 		goto release;
 	}
+	m->m_data += max_linkhdr;
+	m->m_len -= max_linkhdr;
+	m->m_pkthdr.len -= max_linkhdr;
 
 	/*
 	 * Stuff checksum and output datagram.

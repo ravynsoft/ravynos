@@ -51,6 +51,109 @@
 #   xargs -n1 | sort | uniq -d;
 # done
 
+# 20250726: MIT KRB5 DSO bump
+OLD_LIBS+=usr/lib/libcom_err.so.121
+OLD_LIBS+=usr/lib/libgssapi_krb5.so.121
+OLD_LIBS+=usr/lib/libgssrpc.so.121
+OLD_LIBS+=usr/lib/libk5crypto.so.121
+OLD_LIBS+=usr/lib/libkadm5clnt_mit.so.121
+OLD_LIBS+=usr/lib/libkadm5srv_mit.so.121
+OLD_LIBS+=usr/lib/libkdb5.so.121
+OLD_LIBS+=usr/lib/libkrad.so.121
+OLD_LIBS+=usr/lib/libkrb5.so.121
+OLD_LIBS+=usr/lib/libkrb5profile.so.121
+OLD_LIBS+=usr/lib/libkrb5support.so.121
+OLD_LIBS+=usr/lib/libverto.so.121
+OLD_LIBS+=usr/lib/libcom_err.so.121
+OLD_LIBS+=usr/lib/libgssapi_krb5.so.121
+OLD_LIBS+=usr/lib/libgssrpc.so.121
+OLD_LIBS+=usr/lib/libk5crypto.so.121
+OLD_LIBS+=usr/lib/libkadm5clnt_mit.so.121
+OLD_LIBS+=usr/lib/libkadm5srv_mit.so.121
+OLD_LIBS+=usr/lib/libkdb5.so.121
+OLD_LIBS+=usr/lib/libkrad.so.121
+OLD_LIBS+=usr/lib/libkrb5.so.121
+OLD_LIBS+=usr/lib/libkrb5profile.so.121
+OLD_LIBS+=usr/lib/libkrb5support.so.121
+OLD_LIBS+=usr/lib/libverto.so.121
+
+# 20250726: xargs tests rewritten
+OLD_FILES+=usr/tests/usr.bin/xargs/legacy_test
+OLD_FILES+=usr/tests/usr.bin/xargs/regress.n2147483647.out
+OLD_FILES+=usr/tests/usr.bin/xargs/regress.sh
+
+# 20250726: This file is now installed in /etc/dma
+OLD_FILES+=usr/share/examples/dma/auth.conf
+
+# 20250725: libbsnmp bumped to version 7
+OLD_LIBS+=usr/lib/libbsnmp.so.6
+
+# 20250725: Files which were briefly installed by WITH_MITKRB5 in 15.0.
+OLD_FILES+=usr/include/kadm5/admin_internal.h
+OLD_FILES+=usr/include/kadm5/admin_xdr.h
+OLD_FILES+=usr/include/kadm5/kadm_rpc.h
+OLD_FILES+=usr/include/kadm5/server_internal.h
+OLD_FILES+=usr/include/internal.h
+OLD_FILES+=usr/include/t_daemon.h
+OLD_FILES+=usr/include/t_test.h
+OLD_FILES+=usr/include/dyn.h
+OLD_FILES+=usr/include/dynP.h
+OLD_FILES+=usr/include/gssrpcint.h
+OLD_FILES+=usr/include/import_err.h
+OLD_FILES+=usr/share/man/man3/db_btree.3.gz
+OLD_FILES+=usr/share/man/man3/db_hash.3.gz
+OLD_FILES+=usr/share/man/man3/db_lock.3.gz
+OLD_FILES+=usr/share/man/man3/db_log.3.gz
+OLD_FILES+=usr/share/man/man3/db_mpool.3.gz
+OLD_FILES+=usr/share/man/man3/db_open.3.gz
+OLD_FILES+=usr/share/man/man3/db_recno.3.gz
+OLD_FILES+=usr/share/man/man3/db_txn.3.gz
+OLD_FILES+=usr/share/man/man5/profile.5.gz
+OLD_FILES+=usr/share/man/man8/kamdin.local.8.gz
+
+# 20250716: Remove an old manual page, vn(4) was removed in FreeBSD 5.0
+OLD_FILES+=usr/share/man/man4/vn.4.gz
+
+# 20250710: share: Delete bitrotted make_*_driver.sh scripts
+OLD_FILES+=usr/share/examples/drivers/README
+OLD_FILES+=usr/share/examples/drivers/make_device_driver.sh
+OLD_FILES+=usr/share/examples/drivers/make_pseudo_driver.sh
+OLD_DIRS+=usr/share/examples/drivers
+
+# 20250710: shar(1) removed
+OLD_FILES+=usr/bin/shar
+
+# 20250708: For 34 days 15.0-CURRENT installed libkadm5clnt symlink without .so
+OLD_FILES+=usr/lib/libkadm5clnt
+
+# 20250626: For 11 days 15.0-CURRENT installed libtpool to the wrong location
+MOVED_LIBS+=usr/lib/libtpool.so.2
+
+# 20250626: replace yaml.lua with lyaml
+OLD_FILES+=usr/share/flua/yaml.lua
+
+# 20250615: don't install man page for absent function
+OLD_FILES+=usr/share/man/man9/vm_map_simplify_entry.9.gz
+
+# 20250521: don't install zoneinfo version
+OLD_FILES+=usr/share/zoneinfo/version
+
+# 20250516: NDFREE(9) -> NDFREE_PNBUF(9)
+OLD_FILES+=usr/share/man/man9/NDFREE.9.gz
+
+# 20250511: mailx test renamed
+OLD_FILES+=usr/tests/usr.bin/mail/mail_sigint_test
+
+# 20250505: Remove audio(8) files after rename to sndctl(8)
+OLD_FILES+=usr/sbin/audio
+OLD_FILES+=usr/share/man/man8/audio.8.gz
+
+# 20250409: removal of iwlwifi firmware files
+OLD_FILES+=usr/share/doc/legal/intel_iwlwifi_firmware.LICENCE
+
+# 20250331: removal of TCPPCAP
+OLD_FILES+=usr/include/netinet/tcp_pcap.h
+
 # 20250310: caroot bundle updated
 OLD_FILES+=usr/share/certs/trusted/Entrust_Root_Certification_Authority_-_G4.pem
 OLD_FILES+=usr/share/certs/trusted/SecureSign_RootCA11.pem
@@ -79,7 +182,7 @@ OLD_FILES+=usr/tests/sys/vm/stack/.debug/libsoxstack.so.debug
 OLD_DIRS+=usr/tests/sys/vm/stack/.debug
 
 # 20250129: libdevinfo bumped to version 7
-OLD_LIBS+=lib/libdevinfo.so.6
+OLD_LIBS+=usr/lib/libdevinfo.so.6
 
 # 20250123: Remove gvinum(8)
 OLD_FILES+=sbin/gvinum
@@ -96,6 +199,7 @@ OLD_FILES+=usr/share/man/man1/keylogin.1.gz
 OLD_FILES+=usr/share/man/man1/keylogin.1.gz
 OLD_FILES+=usr/share/man/man5/publickey.5.gz
 OLD_FILES+=usr/share/man/man8/keyserv.1.gz
+OLD_FILES+=etc/rc.d/keyserv
 
 # 20241206: Remove Altera DE4 drivers
 OLD_FILES+=usr/share/man/man4/altera_atse.4.gz
@@ -2448,7 +2552,7 @@ OLD_FILES+=usr/share/man/man4/ng_uni.4.gz
 OLD_FILES+=usr/share/man/man4/ngatmbase.4.gz
 
 # 20230308: machine-id merged into hostid_save
-OLD_FILES+=etc/rc.d/machine-id
+OLD_FILES+=etc/rc.d/machine_id
 
 # 20230306: remove tzsetwall(3)
 OLD_FILES+=usr/share/man/man3/tzsetwall.3.gz
@@ -4002,9 +4106,9 @@ OLD_FILES+=usr/share/man/man4/twa.4.gz
 OLD_FILES+=usr/share/man/man9/kernel_vmount.9.gz
 
 # 20211115: vm_page busy functions removed
-OLD_FILES+=share/man/man9/vm_page_sbusy.9.gz
-OLD_FILES+=share/man/man9/vm_page_xbusy.9.gz
-OLD_FILES+=share/man/man9/vm_page_sleep_if_busy.9.gz
+OLD_FILES+=usr/share/man/man9/vm_page_sbusy.9.gz
+OLD_FILES+=usr/share/man/man9/vm_page_xbusy.9.gz
+OLD_FILES+=usr/share/man/man9/vm_page_sleep_if_busy.9.gz
 
 # 20211113: new clang import which bumps version from 12.0.1 to 13.0.0
 OLD_FILES+=usr/lib/clang/12.0.1/include/cuda_wrappers/algorithm
@@ -15403,8 +15507,6 @@ OLD_FILES+=usr/share/man/man4/lindev.4.gz
 # 20140425
 OLD_FILES+=usr/lib/libssp_p.a
 OLD_FILES+=usr/lib/libstand_p.a
-# 20140413: Removed NO_MANCOMPRESS from mount_fusefs
-OLD_FILES+=usr/share/man/man8/mount_fusefs.8
 # 20140314: AppleTalk
 OLD_DIRS+=usr/include/netatalk
 OLD_FILES+=usr/include/netatalk/aarp.h

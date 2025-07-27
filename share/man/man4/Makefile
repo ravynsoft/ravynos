@@ -1,5 +1,8 @@
 .include <src.opts.mk>
 
+MANGROUPS=	MAN
+MANPACKAGE=	kernel
+
 # If you add a new file here, please consider adding an entry to the
 # hardware notes template (website/archetypes/release/hardware.adoc in
 # the doc repository); otherwise the automatically generated hardware
@@ -58,7 +61,6 @@ MAN=	aac.4 \
 	atkbdc.4 \
 	${_atopcase.4} \
 	atp.4 \
-	${_atf_test_case.4} \
 	${_atrtc.4} \
 	${_attimer.4} \
 	audit.4 \
@@ -151,6 +153,7 @@ MAN=	aac.4 \
 	eventtimers.4 \
 	exca.4 \
 	ext2fs.4 \
+	e6000sw.4 \
 	e6060sw.4 \
 	fd.4 \
 	fdc.4 \
@@ -212,6 +215,7 @@ MAN=	aac.4 \
 	${_hv_vmbus.4} \
 	${_hv_vss.4} \
 	hwpmc.4 \
+	${_hwt.4} \
 	${_hwpstate_intel.4} \
 	i2ctinyusb.4 \
 	iavf.4 \
@@ -243,6 +247,7 @@ MAN=	aac.4 \
 	${_io.4} \
 	${_ioat.4} \
 	ip.4 \
+	ip17x.4 \
 	ip6.4 \
 	ipfirewall.4 \
 	ipheth.4 \
@@ -265,6 +270,7 @@ MAN=	aac.4 \
 	iwnfw.4 \
 	iwlwifi.4 \
 	iwlwififw.4 \
+	${_iwx.4} \
 	ix.4 \
 	ixl.4 \
 	jedec_dimm.4 \
@@ -287,6 +293,8 @@ MAN=	aac.4 \
 	linprocfs.4 \
 	linsysfs.4 \
 	${_linux.4} \
+	linuxkpi.4 \
+	linuxkpi_wlan.4 \
 	liquidio.4 \
 	lm75.4 \
 	lo.4 \
@@ -338,6 +346,7 @@ MAN=	aac.4 \
 	msdosfs.4 \
 	msk.4 \
 	mtio.4 \
+	mtkswitch.4 \
 	multicast.4 \
 	muge.4 \
 	mvs.4 \
@@ -587,6 +596,7 @@ MAN=	aac.4 \
 	tws.4 \
 	udp.4 \
 	udplite.4 \
+	${_ufshci.4} \
 	unionfs.4 \
 	ure.4 \
 	vale.4 \
@@ -621,6 +631,7 @@ MAN=	aac.4 \
 	wlan_acl.4 \
 	wlan_amrr.4 \
 	wlan_ccmp.4 \
+	wlan_gcmp.4 \
 	wlan_tkip.4 \
 	wlan_wep.4 \
 	wlan_xauth.4 \
@@ -738,7 +749,6 @@ MLINKS+=lge.4 if_lge.4
 MLINKS+=lo.4 loop.4
 MLINKS+=lp.4 plip.4
 MLINKS+=malo.4 if_malo.4
-MLINKS+=md.4 vn.4
 MLINKS+=mem.4 kmem.4
 MLINKS+=mfi.4 mfi_linux.4 \
 	mfi.4 mfip.4
@@ -895,6 +905,7 @@ _xnb.4=		xnb.4
 
 .if ${MACHINE_CPUARCH} == "amd64"
 _ioat.4=	ioat.4
+_iwx.4=		iwx.4
 _nvdimm.4=	nvdimm.4
 _qlxge.4=	qlxge.4
 _qlxgb.4=	qlxgb.4
@@ -904,6 +915,7 @@ _sfxge.4=	sfxge.4
 _smartpqi.4=	smartpqi.4
 _sume.4=	sume.4
 
+MLINKS+=iwx.4 if_iwx.4
 MLINKS+=qlxge.4 if_qlxge.4
 MLINKS+=qlxgb.4 if_qlxgb.4
 MLINKS+=qlxgbe.4 if_qlxgbe.4
@@ -915,6 +927,21 @@ MLINKS+=sume.4 if_sume.4
 _bhyve.4=	bhyve.4
 _vmm.4=		vmm.4
 .endif
+.endif
+
+.if ${MACHINE_CPUARCH} == "amd64" || ${MACHINE_CPUARCH} == "aarch64"
+_hwt.4=		hwt.4
+.if ${MACHINE_CPUARCH} == "amd64"
+MLINKS+=hwt.4	intel_pt.4
+.endif
+.if ${MACHINE_CPUARCH} == "aarch64"
+MLINKS+=hwt.4	coresight.4
+MLINKS+=hwt.4	spe.4
+.endif
+.endif
+
+.if ${MACHINE_CPUARCH} == "amd64" || ${MACHINE_CPUARCH} == "aarch64"
+_ufshci.4=	ufshci.4
 .endif
 
 .if ${MACHINE_CPUARCH} == "amd64" || ${MACHINE_CPUARCH} == "i386" || \
@@ -959,11 +986,14 @@ _ccd.4=		ccd.4
 
 .if ${MK_CDDL} != "no"
 _dtrace_provs=	dtrace_audit.4 \
+		dtrace_dtrace.4 \
+		dtrace_fbt.4 \
 		dtrace_io.4 \
 		dtrace_ip.4 \
 		dtrace_kinst.4 \
 		dtrace_lockstat.4 \
 		dtrace_proc.4 \
+		dtrace_profile.4 \
 		dtrace_sched.4 \
 		dtrace_sctp.4 \
 		dtrace_tcp.4 \
@@ -995,9 +1025,11 @@ MAN+=		mlx5io.4
 .endif
 
 .if ${MK_TESTS} != "no"
+MANGROUPS+=	TESTS
 ATF=            ${SRCTOP}/contrib/atf
 .PATH:          ${ATF}/doc
-_atf_test_case.4=	atf-test-case.4
+TESTS=		atf-test-case.4
+TESTSPACKAGE=	tests
 .endif
 
 .if ${MK_PF} != "no"

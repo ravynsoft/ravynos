@@ -279,11 +279,15 @@
 
 #define	CAP_KQUEUE		(CAP_KQUEUE_EVENT | CAP_KQUEUE_CHANGE)
 
+/* Allows operations on inotify descriptors. */
+#define	CAP_INOTIFY_ADD		CAPRIGHT(1, 0x0000000000200000ULL)
+#define	CAP_INOTIFY_RM		CAPRIGHT(1, 0x0000000000400000ULL)
+
 /* All used bits for index 1. */
-#define	CAP_ALL1		CAPRIGHT(1, 0x00000000001FFFFFULL)
+#define	CAP_ALL1		CAPRIGHT(1, 0x00000000007FFFFFULL)
 
 /* Available bits for index 1. */
-#define	CAP_UNUSED1_22		CAPRIGHT(1, 0x0000000000200000ULL)
+#define	CAP_UNUSED1_22		CAPRIGHT(1, 0x0000000000800000ULL)
 /* ... */
 #define	CAP_UNUSED1_57		CAPRIGHT(1, 0x0100000000000000ULL)
 
@@ -370,6 +374,24 @@ _Static_assert(CAP_RIGHTS_VERSION == CAP_RIGHTS_VERSION_00,
 	_r->cr_rights[CAPIDXBIT(right) - 1] |= right;			\
 	_r;								\
 })
+
+#define	_CAP_RIGHTS_WORD_INITIALIZER(i, r)				\
+	(CAPIDXBIT(r) == (i) + 1 ? (r) : 0ULL)
+
+/*
+ * Define a set of up to two rights at compile time.
+ */
+#define	CAP_RIGHTS_INITIALIZER2(r1, r2) ((struct cap_rights){		\
+	.cr_rights = {							\
+		[0] = ((uint64_t)CAP_RIGHTS_VERSION << 62) |		\
+		    _CAP_RIGHTS_WORD_INITIALIZER(0, r1) |		\
+		    _CAP_RIGHTS_WORD_INITIALIZER(0, r2),		\
+		[1] = _CAP_RIGHTS_WORD_INITIALIZER(1, r1) |		\
+		    _CAP_RIGHTS_WORD_INITIALIZER(1, r2),		\
+	},								\
+})
+#define	CAP_RIGHTS_INITIALIZER(r)					\
+	CAP_RIGHTS_INITIALIZER2(r, 0ULL)
 
 /*
  * Allow checking caps which are possibly getting modified at the same time.

@@ -17,7 +17,8 @@ SUBDIR_PARALLEL=
 INCS=	a.out.h ar.h assert.h bitstring.h byteswap.h \
 	complex.h cpio.h _ctype.h ctype.h \
 	crt_externs.h db.h \
-	dirent.h dlfcn.h elf.h elf-hints.h endian.h err.h fmtmsg.h fnmatch.h \
+	dirent.h dlfcn.h elf.h elf-hints.h endian.h err.h exterr.h \
+	fmtmsg.h fnmatch.h \
 	fstab.h fts.h ftw.h getopt.h glob.h grp.h \
 	ieeefp.h ifaddrs.h \
 	inttypes.h iso646.h kenv.h langinfo.h libgen.h limits.h link.h \
@@ -63,9 +64,9 @@ ASUBDIRS+= mach-o/ppc mach-o/sparc mach-o/x86_64
 .PATH: ${SRCTOP}/contrib/libc-vis
 INCS+=	vis.h
 
-MHDRS=	float.h floatingpoint.h stdarg.h
+MHDRS=	float.h floatingpoint.h
 
-PHDRS=	_semaphore.h
+PHDRS=	_semaphore.h stdarg.h
 
 LHDRS=	aio.h errno.h fcntl.h linker_set.h poll.h stdatomic.h stdint.h \
 	syslog.h ucontext.h

@@ -113,20 +113,7 @@ pfr_get_tables(struct pfr_table *filter, struct pfr_table *tbl, int *size,
 int
 pfr_clr_addrs(struct pfr_table *tbl, int *ndel, int flags)
 {
-	struct pfioc_table io;
-
-	if (tbl == NULL) {
-		errno = EINVAL;
-		return (-1);
-	}
-	bzero(&io, sizeof io);
-	io.pfrio_flags = flags;
-	io.pfrio_table = *tbl;
-	if (ioctl(dev, DIOCRCLRADDRS, &io))
-		return (-1);
-	if (ndel != NULL)
-		*ndel = io.pfrio_ndel;
-	return (0);
+	return (pfctl_clear_addrs(pfh, tbl, ndel, flags));
 }
 
 int
@@ -406,15 +393,14 @@ pfr_buf_clear(struct pfr_buffer *b)
 {
 	if (b == NULL)
 		return;
-	if (b->pfrb_caddr != NULL)
-		free(b->pfrb_caddr);
+	free(b->pfrb_caddr);
 	b->pfrb_caddr = NULL;
 	b->pfrb_size = b->pfrb_msize = 0;
 }
 
 int
 pfr_buf_load(struct pfr_buffer *b, char *file, int nonetwork,
-    int (*append_addr)(struct pfr_buffer *, char *, int))
+    int (*append_addr)(struct pfr_buffer *, char *, int, int), int opts)
 {
 	FILE	*fp;
 	char	 buf[BUF_SIZE];
@@ -430,7 +416,7 @@ pfr_buf_load(struct pfr_buffer *b, char *file, int nonetwork,
 			return (-1);
 	}
 	while ((rv = pfr_next_token(buf, fp)) == 1)
-		if (append_addr(b, buf, nonetwork)) {
+		if (append_addr(b, buf, nonetwork, opts)) {
 			rv = -1;
 			break;
 		}
@@ -474,17 +460,4 @@ pfr_next_token(char buf[BUF_SIZE], FILE *fp)
 	}
 	buf[i] = '\0';
 	return (1);
-}
-
-char *
-pfr_strerror(int errnum)
-{
-	switch (errnum) {
-	case ESRCH:
-		return "Table does not exist";
-	case ENOENT:
-		return "Anchor or Ruleset does not exist";
-	default:
-		return strerror(errnum);
-	}
 }

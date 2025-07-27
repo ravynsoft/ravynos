@@ -32,6 +32,8 @@
 #ifndef _NETINET_IN_SYSTM_H_
 #define _NETINET_IN_SYSTM_H_
 
+#include <sys/types.h>
+
 /*
  * Miscellaneous internetwork
  * definitions for kernel.
@@ -56,8 +58,10 @@ typedef	u_int32_t n_time;		/* ms since 00:00 UTC, byte rev */
 #ifdef _KERNEL
 struct inpcb;
 struct ucred;
+struct thread;
 
 int	cr_canseeinpcb(struct ucred *cred, struct inpcb *inp);
+bool	cr_canexport_ktlskeys(struct thread *td, struct inpcb *inp);
 
 uint32_t	 iptime(void);
 #endif

@@ -316,6 +316,183 @@ counter_cleanup()
 	pft_cleanup
 }
 
+atf_test_case "nat" "cleanup"
+nat_head()
+{
+	atf_set descr 'Test nested nat anchors'
+	atf_set require.user root
+}
+
+nat_body()
+{
+	pft_init
+
+	epair=$(vnet_mkepair)
+	vnet_mkjail alcatraz ${epair}a
+
+	ifconfig ${epair}b 192.0.2.2/24 up
+	jexec alcatraz ifconfig ${epair}a 192.0.2.1/24 up
+
+	# Sanity check
+	atf_check -s exit:0 -o ignore ping -c 1 192.0.2.1
+
+	jexec alcatraz pfctl -e
+	pft_set_rules alcatraz \
+	    "nat-anchor \"foo/*\"" \
+	    "pass"
+
+	echo "nat log on ${epair}a inet from 192.0.2.0/24 to any port = 53 -> 192.0.2.1" \
+	    | jexec alcatraz pfctl -a "foo/bar" -g -f -
+	echo "rdr on ${epair}a proto tcp to port echo -> 127.0.0.1 port echo" \
+	    | jexec alcatraz pfctl -a "foo/baz" -g -f -
+
+	jexec alcatraz pfctl -sn -a "*"
+	jexec alcatraz pfctl -sn -a "foo/bar"
+	jexec alcatraz pfctl -sn -a "foo/baz"
+
+	atf_check -s exit:0 -o match:"nat log on ${epair}a inet from 192.0.2.0/24 to any port = domain -> 192.0.2.1" \
+	    jexec alcatraz pfctl -sn -a "*"
+	atf_check -s exit:0 -o match:"rdr on ${epair}a inet proto tcp from any to any port = echo -> 127.0.0.1 port 7" \
+	    jexec alcatraz pfctl -sn -a "*"
+}
+
+nat_cleanup()
+{
+	pft_cleanup
+}
+
+atf_test_case "include" "cleanup"
+include_head()
+{
+	atf_set descr 'Test including inside anchors'
+	atf_set require.user root
+}
+
+include_body()
+{
+	pft_init
+
+	wd=`pwd`
+
+	epair=$(vnet_mkepair)
+	vnet_mkjail alcatraz ${epair}a
+
+	ifconfig ${epair}b 192.0.2.2/24 up
+	jexec alcatraz ifconfig ${epair}a 192.0.2.1/24 up
+
+	# Sanity check
+	atf_check -s exit:0 -o ignore ping -c 1 192.0.2.1
+
+	echo "pass" > ${wd}/extra.conf
+	jexec alcatraz pfctl -e
+	pft_set_rules alcatraz \
+	    "block" \
+	    "anchor \"foo\" {\n\
+	        include \"${wd}/extra.conf\"\n\
+	    }"
+
+	jexec alcatraz pfctl -sr
+
+	atf_check -s exit:0 -o ignore ping -c 1 192.0.2.1
+}
+
+include_cleanup()
+{
+	pft_cleanup
+}
+
+atf_test_case "quick" "cleanup"
+quick_head()
+{
+	atf_set descr 'Test quick on anchors'
+	atf_set require.user root
+}
+
+quick_body()
+{
+	pft_init
+
+	epair=$(vnet_mkepair)
+	vnet_mkjail alcatraz ${epair}a
+
+	ifconfig ${epair}b 192.0.2.2/24 up
+	jexec alcatraz ifconfig ${epair}a 192.0.2.1/24 up
+
+	# Sanity check
+	atf_check -s exit:0 -o ignore ping -c 1 192.0.2.1
+
+	jexec alcatraz pfctl -e
+	pft_set_rules alcatraz \
+	    "anchor quick {\n\
+	        pass\n\
+	    }" \
+	    "block"
+
+	atf_check -s exit:0 -o ignore ping -c 1 192.0.2.1
+	jexec alcatraz pfctl -sr -vv -a "*"
+}
+
+quick_cleanup()
+{
+	pft_cleanup
+}
+
+atf_test_case "recursive_flush" "cleanup"
+recursive_flush_head()
+{
+	atf_set descr 'Test recursive flushing of rules'
+	atf_set require.user root
+}
+
+recursive_flush_body()
+{
+	pft_init
+
+	epair=$(vnet_mkepair)
+	vnet_mkjail alcatraz ${epair}a
+
+	ifconfig ${epair}b 192.0.2.2/24 up
+	jexec alcatraz ifconfig ${epair}a 192.0.2.1/24 up
+
+	# Sanity check
+	atf_check -s exit:0 -o ignore ping -c 1 192.0.2.1
+
+	jexec alcatraz pfctl -e
+	pft_set_rules alcatraz \
+	    "block" \
+	    "anchor \"foo\" {\n\
+	        pass\n\
+	    }"
+
+	# We can ping thanks to the pass rule in foo
+	atf_check -s exit:0 -o ignore ping -c 1 192.0.2.1
+
+	# Only reset the main rules. I.e. not a recursive flush
+	pft_set_rules alcatraz \
+	    "block" \
+	    "anchor \"foo\""
+
+	# "foo" still has the pass rule, so this works
+	jexec alcatraz pfctl -a "*" -sr
+	atf_check -s exit:0 -o ignore ping -c 1 192.0.2.1
+
+	# Now do a recursive flush
+	atf_check -s exit:0 -e ignore -o ignore \
+	    jexec alcatraz pfctl -a "*" -Fr
+	pft_set_rules alcatraz \
+	    "block" \
+	    "anchor \"foo\""
+
+	# So this fails
+	jexec alcatraz pfctl -a "*" -sr
+	atf_check -s exit:2 -o ignore ping -c 1 192.0.2.1
+}
+
+recursive_flush_cleanup()
+{
+	pft_cleanup
+}
+
 atf_init_test_cases()
 {
 	atf_add_test_case "pr183198"
@@ -326,4 +503,8 @@ atf_init_test_cases()
 	atf_add_test_case "quick"
 	atf_add_test_case "quick_nested"
 	atf_add_test_case "counter"
+	atf_add_test_case "nat"
+	atf_add_test_case "include"
+	atf_add_test_case "quick"
+	atf_add_test_case "recursive_flush"
 }

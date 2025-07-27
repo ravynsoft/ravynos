@@ -537,11 +537,11 @@ get_system_info(struct system_info *si)
 	if (arc_enabled) {
 		GETSYSCTL("kstat.zfs.misc.arcstats.size", arc_stat);
 		arc_stats[0] = arc_stat >> 10;
-		GETSYSCTL("vfs.zfs.mfu_size", arc_stat);
+		GETSYSCTL("kstat.zfs.misc.arcstats.mfu_size", arc_stat);
 		arc_stats[1] = arc_stat >> 10;
-		GETSYSCTL("vfs.zfs.mru_size", arc_stat);
+		GETSYSCTL("kstat.zfs.misc.arcstats.mru_size", arc_stat);
 		arc_stats[2] = arc_stat >> 10;
-		GETSYSCTL("vfs.zfs.anon_size", arc_stat);
+		GETSYSCTL("kstat.zfs.misc.arcstats.anon_size", arc_stat);
 		arc_stats[3] = arc_stat >> 10;
 		GETSYSCTL("kstat.zfs.misc.arcstats.hdr_size", arc_stat);
 		GETSYSCTL("kstat.zfs.misc.arcstats.l2_hdr_size", arc_stat2);
@@ -1134,7 +1134,7 @@ format_next_process(struct handle * xhandle, char *(*get_userid)(int), int flags
 			sbuf_printf(procbuf, " ");
 		}
 
-		sbuf_printf(procbuf, "%3d ", pp->ki_pri.pri_level - PZERO);
+		sbuf_printf(procbuf, "%3d ", pp->ki_pri.pri_level - PUSER);
 		sbuf_printf(procbuf, "%4s", format_nice(pp));
 		sbuf_printf(procbuf, "%7s ", format_k(PROCSIZE(pp)));
 		sbuf_printf(procbuf, "%6s ", format_k(pagetok(pp->ki_rssize)));

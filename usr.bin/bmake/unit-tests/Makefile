@@ -1,9 +1,9 @@
 # This is a generated file, do NOT edit!
 # See contrib/bmake/bsd.after-import.mk
 #
-# $Id: Makefile,v 1.230 2025/01/30 18:04:20 sjg Exp $
+# $Id: Makefile,v 1.240 2025/06/30 18:40:54 sjg Exp $
 #
-# $NetBSD: Makefile,v 1.355 2025/01/25 22:46:30 sjg Exp $
+# $NetBSD: Makefile,v 1.369 2025/06/29 09:40:13 rillig Exp $
 #
 # Unit tests for make(1)
 #
@@ -61,6 +61,7 @@ rm-tmpdir:	.NOMETA
 # src/tests/usr.bin/make/t_make.sh as well.
 #TESTS+=		archive
 #TESTS+=		archive-suffix
+TESTS+=		char-005c-reverse-solidus
 TESTS+=		cmd-errors
 TESTS+=		cmd-errors-jobs
 TESTS+=		cmd-errors-lint
@@ -225,6 +226,7 @@ TESTS+=		hanoi-include
 TESTS+=		impsrc
 TESTS+=		include-main
 TESTS+=		job-flags
+TESTS+=		job-output
 TESTS+=		job-output-long-lines
 TESTS+=		job-output-null
 TESTS+=		jobs-empty-commands
@@ -302,6 +304,9 @@ TESTS+=		parse
 TESTS+=		parse-var
 TESTS+=		phony-end
 TESTS+=		posix
+TESTS+=		posix-execution
+TESTS+=		posix-expansion
+TESTS+=		posix-varassign
 TESTS+=		# posix1	# broken by reverting POSIX changes
 TESTS+=		recursive
 TESTS+=		sh
@@ -412,6 +417,7 @@ TESTS+=		varmod-to-upper
 TESTS+=		varmod-undefined
 TESTS+=		varmod-unique
 TESTS+=		varname
+TESTS+=		varname-circumflex
 TESTS+=		varname-dollar
 TESTS+=		varname-dot-alltargets
 TESTS+=		varname-dot-curdir
@@ -459,6 +465,7 @@ TESTS+=		varname-dot-suffixes
 TESTS+=		varname-dot-targets
 TESTS+=		varname-empty
 TESTS+=		varname-make
+TESTS+=		varname-make_stack_trace
 TESTS+=		varname-make_print_var_on_error
 TESTS+=		varname-make_print_var_on_error-jobs
 TESTS+=		varname-makefile
@@ -539,7 +546,6 @@ TESTS:= ${TESTS:${BROKEN_TESTS:S,^,N,:ts:}}
 
 # Ideas for more tests:
 #	char-0020-space.mk
-#	char-005C-backslash.mk
 #	escape-cond-str.mk
 #	escape-cond-func-arg.mk
 #	escape-varmod.mk
@@ -612,18 +618,14 @@ SED_CMDS.opt-chdir=		-e 's,\(nonexistent\).[1-9][0-9]*,\1,' \
 	-e 's,Filename,File name,'
 
 # meta line numbers can vary based on filemon implementation
-SED_CMDS.meta-ignore= -e 's,\(\.meta:\) [1-9][0-9]*:,\1 <line>:,'
+SED_CMDS.meta-ignore= -e 's,\(\.meta:\)[1-9][0-9]*:,\1<line>:,'
+
+SED_CMDS.opt-chdir=		-e 's,\(nonexistent\).[1-9][0-9]*,\1,'
 SED_CMDS.opt-debug-graph1=	${STD_SED_CMDS.dg1}
 SED_CMDS.opt-debug-graph2=	${STD_SED_CMDS.dg2}
 SED_CMDS.opt-debug-graph3=	${STD_SED_CMDS.dg3}
 SED_CMDS.opt-debug-hash=	-e 's,\(entries\)=[1-9][0-9],\1=<entries>,'
-SED_CMDS.opt-debug-jobs=	-e 's,([0-9][0-9]*),(<pid>),'
-SED_CMDS.opt-debug-jobs+=	-e 's,pid [0-9][0-9]*,pid <pid>,'
-SED_CMDS.opt-debug-jobs+=	-e 's,Process [0-9][0-9]*,Process <pid>,'
-SED_CMDS.opt-debug-jobs+=	-e 's,JobFinish: [0-9][0-9]*,JobFinish: <pid>,'
-SED_CMDS.opt-debug-jobs+=	-e 's,Command: ${.SHELL:T},Command: <shell>,'
-# The "-q" may be there or not, see jobs.c, variable shells.
-SED_CMDS.opt-debug-jobs+=	-e 's,^\(.Command: <shell>\) -q,\1,'
+SED_CMDS.opt-debug-jobs=	${STD_SED_CMDS.dj}
 SED_CMDS.opt-debug-lint+=	${STD_SED_CMDS.regex}
 SED_CMDS.opt-jobs-no-action=	${STD_SED_CMDS.hide-from-output}
 SED_CMDS.opt-no-action-runflags= ${STD_SED_CMDS.hide-from-output}
@@ -631,9 +633,12 @@ SED_CMDS.opt-where-am-i=	-e '/usr.obj/d'
 # For Compat_RunCommand, useShell == false.
 SED_CMDS.sh-dots=		-e 's,^.*\.\.\.:.*,<not found: ...>,'
 # For Compat_RunCommand, useShell == true.
-SED_CMDS.sh-dots+=		-e 's,^make: exec(\(.*\)) failed (.*)$$,<not found: \1>,'
+SED_CMDS.sh-dots+=		-e 's,^make: exec(\(.*\)): .*$$,<not found: \1>,'
 SED_CMDS.sh-dots+=		-e 's,^\(\*\*\* Error code \)[1-9][0-9]*,\1<nonzero>,'
+# Race condition between the child's stdout and make's status.
 SED_CMDS.sh-errctl=		${STD_SED_CMDS.dj}
+SED_CMDS.sh-errctl+=		-e '/^Process with pid/d'
+SED_CMDS.sh-errctl+=		-e '/^JobFinish:/d'
 SED_CMDS.sh-flags=		${STD_SED_CMDS.hide-from-output}
 SED_CMDS.shell-csh=		${STD_SED_CMDS.white-space}
 SED_CMDS.sh-leading-hyphen=	${STD_SED_CMDS.shell}
@@ -644,14 +649,14 @@ SED_CMDS.var-op-shell+=		${STD_SED_CMDS.shell}
 SED_CMDS.var-op-shell+=		-e '/command/s,No such.*,not found,'
 SED_CMDS.var-op-shell+=		${STD_SED_CMDS.white-space}
 SED_CMDS.vardebug+=		-e 's,${.SHELL},</path/to/shell>,'
-SED_CMDS.varmod-mtime+=		-e "s,\(.*\)': .*,\1': <ENOENT>,"
+SED_CMDS.varmod-mtime+=		-e "s,\(mtime for .*\): .*,\1: <ENOENT>,"
 SED_CMDS.varmod-subst-regex+=	${STD_SED_CMDS.regex}
 SED_CMDS.varparse-errors+=	${STD_SED_CMDS.timestamp}
 SED_CMDS.varname-dot-make-meta-ignore_filter+= ${SED_CMDS.meta-ignore}
 SED_CMDS.varname-dot-make-meta-ignore_paths+= ${SED_CMDS.meta-ignore}
 SED_CMDS.varname-dot-make-meta-ignore_patterns+= ${SED_CMDS.meta-ignore}
-SED_CMDS.varname-dot-parsedir=	-e '/in some cases/ s,^make: "[^"]*,make: "<normalized>,'
-SED_CMDS.varname-dot-parsefile=	-e '/in some cases/ s,^make: "[^"]*,make: "<normalized>,'
+SED_CMDS.varname-dot-parsedir=	-e '/in some cases/ s,^make: [^:]*:,make: <normalized>:,'
+SED_CMDS.varname-dot-parsefile=	-e '/in some cases/ s,^make: [^:]*:,make: <normalized>:,'
 SED_CMDS.varname-dot-shell=	-e 's, = /[^ ]*, = (details omitted),g'
 SED_CMDS.varname-dot-shell+=	-e 's,"/[^" ]*","(details omitted)",g'
 SED_CMDS.varname-dot-shell+=	-e 's,\[/[^] ]*\],[(details omitted)],g'
@@ -660,7 +665,7 @@ SED_CMDS.varname-empty=		${.OBJDIR .PARSEDIR .PATH .SHELL .SYSPATH:L:@v@-e '/\\$
 # Some tests need an additional round of postprocessing.
 POSTPROC.depsrc-wait=		sed -e '/^---/d' -e 's,^\(: Making 3[abc]\)[123]$$,\1,'
 POSTPROC.deptgt-suffixes=	awk '/^\#\*\*\* Suffixes/,/^never-stop/'
-POSTPROC.gnode-submake=		awk '/Input graph/, /^$$/'
+POSTPROC.gnode-submake=		awk '/Begin input graph/, /^$$/'
 POSTPROC.varname-dot-make-mode=	sed 's,^\(: Making [abc]\)[123]$$,\1,'
 
 # Some tests reuse other tests, which makes them unnecessarily fragile.
@@ -696,12 +701,10 @@ STD_SED_CMDS.dg2+=	-e 's,\(last modified\) ..:..:.. ... ..\, ....,\1 <timestamp>
 STD_SED_CMDS.dg3=	${STD_SED_CMDS.dg2}
 
 # Omit details such as process IDs from the output of the -dj option.
-STD_SED_CMDS.dj= \
-	-e '/Process/d;/JobFinish:/d' \
-	-e 's,^\(Job_TokenWithdraw\)([0-9]*),\1(<pid>),' \
-	-e 's,^([0-9][0-9]*) \(withdrew token\),(<pid>) \1,' \
-	-e 's, \(pid\) [0-9][0-9]*, \1 <pid>,' \
-	-e 's,^\(	Command:\) .*,\1 <shell>,'
+STD_SED_CMDS.dj=	-e 's, pid [0-9][0-9]*, pid <pid>,'
+STD_SED_CMDS.dj+=	-e 's,^\(.Command\): ${.SHELL:T},\1: <shell>,'
+# The "-q" may be there or not, see jobs.c, variable shells.
+STD_SED_CMDS.dj+=	-e 's,^\(.Command: <shell>\) -q,\1,'
 
 # Reduce the noise for tests running with the -n option, since there is no
 # other way to suppress the echoing of the commands.
@@ -848,7 +851,7 @@ _SED_CMDS+=	-e 's,${.OBJDIR},<curdir>,g' -e 's,${.OBJDIR:tA},<curdir>,g'
 _SED_CMDS+=	-e 's,^${TEST_MAKE:T:S,.,\\.,g}[][0-9]*:,make:,'
 _SED_CMDS+=	-e 's,${TEST_MAKE:S,.,\\.,g},make,'
 _SED_CMDS+=	-e 's,^usage: ${TEST_MAKE:T:S,.,\\.,g} ,usage: make ,'
-_SED_CMDS+=	-e 's,${TEST_MAKE:T:S,.,\\.,g}\(\[[1-9][0-9]*\]:\),make\1,'
+_SED_CMDS+=	-e 's,${TEST_MAKE:T:S,.,\\.,g}\(\[[1-9][0-9]*\][: ]\),make\1,'
 _SED_CMDS+=	-e 's,<curdir>/,,g'
 _SED_CMDS+=	-e 's,${UNIT_TESTS:S,.,\\.,g}/,,g'
 _SED_CMDS+=	-e '/MAKE_VERSION/d'

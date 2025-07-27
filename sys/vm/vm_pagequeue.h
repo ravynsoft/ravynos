@@ -247,10 +247,7 @@ struct vm_domain {
 	u_int vmd_domain;		/* (c) Domain number. */
 	u_int vmd_page_count;		/* (c) Total page count. */
 	long vmd_segs;			/* (c) bitmask of the segments */
-	struct vm_nofreeq {
-		vm_page_t ma;
-		int offs;
-	} vmd_nofreeq;			/* (f) NOFREE page bump allocator. */
+	struct pglist vmd_nofreeq;	/* (f) NOFREE page bump allocator. */
 	u_int __aligned(CACHE_LINE_SIZE) vmd_free_count; /* (a,f) free page count */
 	u_int vmd_pageout_deficit;	/* (a) Estimated number of pages deficit */
 	uint8_t vmd_pad[CACHE_LINE_SIZE - (sizeof(u_int) * 2)];
@@ -263,9 +260,9 @@ struct vm_domain {
 	u_int vmd_inactive_shortage;		/* Per-thread shortage. */
 	blockcount_t vmd_inactive_running;	/* Number of inactive threads. */
 	blockcount_t vmd_inactive_starting;	/* Number of threads started. */
-	volatile u_int vmd_addl_shortage;	/* Shortage accumulator. */
-	volatile u_int vmd_inactive_freed;	/* Successful inactive frees. */
-	volatile u_int vmd_inactive_us;		/* Microseconds for above. */
+	u_int vmd_addl_shortage;	/* (a) Shortage accumulator. */
+	u_int vmd_inactive_freed;	/* (a) Successful inactive frees. */
+	u_int vmd_inactive_us;		/* (a) Microseconds for above. */
 	u_int vmd_inactive_pps;		/* Exponential decay frees/second. */
 	int vmd_oom_seq;
 	int vmd_last_active_scan;

@@ -136,7 +136,6 @@ FBSDprivate_1.0 {
 	__pthread_mutex_lock;
 	__pthread_mutex_timedlock;
 	__pthread_mutex_trylock;
-	__pthread_distribute_static_tls;
 	_pthread_atfork;
 	_pthread_barrier_destroy;
 	_pthread_barrier_init;
@@ -371,5 +370,7 @@ FBSD_1.6 {
 };
 
 FBSD_1.8 {
+	 pthread_signals_block_np;
+	 pthread_signals_unblock_np;
 	 pthread_sigqueue;
 };

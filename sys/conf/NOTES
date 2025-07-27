@@ -1025,9 +1025,6 @@ device		dummymbuf
 #
 # PF_DEFAULT_TO_DROP causes the default pf(4) rule to deny everything.
 #
-# TCPPCAP enables code which keeps the last n packets sent and received
-# on a TCP socket.
-#
 # TCP_BLACKBOX enables enhanced TCP event logging.
 #
 # TCP_HHOOK enables the hhook(9) framework hooks for the TCP stack.
@@ -1050,7 +1047,6 @@ options 	IPFILTER_LOOKUP		#ipfilter pools
 options 	IPFILTER_DEFAULT_BLOCK	#block all packets by default
 options 	IPSTEALTH		#support for stealth forwarding
 options 	PF_DEFAULT_TO_DROP	#drop everything by default
-options 	TCPPCAP
 options 	TCP_BLACKBOX
 options 	TCP_HHOOK
 options		SOCKET_HHOOK
@@ -1256,6 +1252,7 @@ options 	MAC
 options 	MAC_BIBA
 options 	MAC_BSDEXTENDED
 options 	MAC_DDB
+options		MAC_DO
 options 	MAC_IFOFF
 options 	MAC_IPACL
 options 	MAC_LOMAC
@@ -1599,6 +1596,8 @@ envvar		hint.isp.0.topology="nport-only"
 envvar		hint.isp.0.portwnn="w50000000aaaa0000"
 envvar		hint.isp.0.nodewnn="w50000000aaaa0001"
 device		ispfw
+# Only works on aarch64 and amd64
+#device		mpi3mr			# LSI-Logic MPT-Fusion 4
 device		mpr			# LSI-Logic MPT-Fusion 3
 device		mps			# LSI-Logic MPT-Fusion 2
 device		mpt			# LSI-Logic MPT-Fusion
@@ -2062,7 +2061,8 @@ device		rtwnfw
 # mismatch between the mbuf size assumed by the kernel and the mbuf size
 # assumed by a module.  The only driver that currently has the ability to
 # detect a mismatch is ti(4).
-options 	MCLSHIFT=11	# mbuf cluster shift in bits, 11 == 2KB
+options 	MCLSHIFT=12	# mbuf cluster shift in bits, 12 == 4 kB
+				#   default is 11 == 2 kB
 options 	MSIZE=256	# mbuf size in bytes
 
 #
@@ -2872,3 +2872,6 @@ options 	STATS
 
 # File system monitoring
 device		filemon		# file monitoring for make(1) meta-mode
+
+# Options for the Intel QuickAssist (QAT) driver.
+options		QAT_DISABLE_SAFE_DC_MODE	# Disable QAT safe data compression mode (only for 4940 devices).

@@ -28,13 +28,13 @@
 #include <sys/elf.h>
 #include <sys/event.h>
 #include <sys/file.h>
+#include <sys/mman.h>
 #include <sys/time.h>
 #include <sys/procctl.h>
 #include <sys/procdesc.h>
 #include <sys/ptrace.h>
 #include <sys/procfs.h>
 #include <sys/queue.h>
-#include <sys/runq.h>
 #include <sys/syscall.h>
 #include <sys/sysctl.h>
 #include <sys/user.h>
@@ -2027,7 +2027,7 @@ ATF_TC_BODY(ptrace__PT_KILL_competing_signal, tc)
 		    sched_get_priority_min(SCHED_FIFO)) / 2;
 		CHILD_REQUIRE(pthread_setschedparam(pthread_self(),
 		    SCHED_FIFO, &sched_param) == 0);
-		sched_param.sched_priority -= RQ_PPQ;
+		sched_param.sched_priority -= 1;
 		CHILD_REQUIRE(pthread_setschedparam(t, SCHED_FIFO,
 		    &sched_param) == 0);
 
@@ -2130,7 +2130,7 @@ ATF_TC_BODY(ptrace__PT_KILL_competing_stop, tc)
 		    sched_get_priority_min(SCHED_FIFO)) / 2;
 		CHILD_REQUIRE(pthread_setschedparam(pthread_self(),
 		    SCHED_FIFO, &sched_param) == 0);
-		sched_param.sched_priority -= RQ_PPQ;
+		sched_param.sched_priority -= 1;
 		CHILD_REQUIRE(pthread_setschedparam(t, SCHED_FIFO,
 		    &sched_param) == 0);
 
@@ -4161,6 +4161,53 @@ ATF_TC_BODY(ptrace__syscall_args, tc)
 }
 
 /*
+ * Check that syscall info is available whenever kernel has valid td_sa.
+ * Assumes that libc nanosleep(2) is the plain syscall wrapper.
+ */
+ATF_TC_WITHOUT_HEAD(ptrace__syscall_args_anywhere);
+ATF_TC_BODY(ptrace__syscall_args_anywhere, tc)
+{
+	struct timespec rqt;
+	struct ptrace_lwpinfo lwpi;
+	register_t args[8];
+	pid_t debuggee, wpid;
+	int error, status;
+
+	debuggee = fork();
+	ATF_REQUIRE(debuggee >= 0);
+	if (debuggee == 0) {
+		rqt.tv_sec = 100000;
+		rqt.tv_nsec = 0;
+		for (;;)
+			nanosleep(&rqt, NULL);
+		_exit(0);
+	}
+
+	/* Give the debuggee some time to go to sleep. */
+	sleep(2);
+	error = ptrace(PT_ATTACH, debuggee, 0, 0);
+	ATF_REQUIRE(error == 0);
+	wpid = waitpid(debuggee, &status, 0);
+	REQUIRE_EQ(wpid, debuggee);
+	ATF_REQUIRE(WIFSTOPPED(status));
+	REQUIRE_EQ(WSTOPSIG(status), SIGSTOP);
+
+	error = ptrace(PT_LWPINFO, debuggee, (caddr_t)&lwpi, sizeof(lwpi));
+	ATF_REQUIRE(error == 0);
+	ATF_REQUIRE(lwpi.pl_syscall_code == SYS_nanosleep);
+	ATF_REQUIRE(lwpi.pl_syscall_narg == 2);
+	error = ptrace(PT_GET_SC_ARGS, debuggee, (caddr_t)&args[0],
+	    lwpi.pl_syscall_narg * sizeof(register_t));
+	ATF_REQUIRE(error == 0);
+	ATF_REQUIRE(args[0] == (register_t)&rqt);
+	ATF_REQUIRE(args[1] == 0);
+
+	error = ptrace(PT_DETACH, debuggee, 0, 0);
+	ATF_REQUIRE(error == 0);
+	kill(SIGKILL, debuggee);
+}
+
+/*
  * Verify that when the process is traced that it isn't reparent
  * to the init process when we close all process descriptors.
  */
@@ -4331,7 +4378,10 @@ ATF_TC_BODY(ptrace__PT_SC_REMOTE_getpid, tc)
 		exit(0);
 	}
 
-	attach_child(fpid);
+	wpid = waitpid(fpid, &status, 0);
+	REQUIRE_EQ(wpid, fpid);
+	ATF_REQUIRE(WIFSTOPPED(status));
+	REQUIRE_EQ(WSTOPSIG(status), SIGSTOP);
 
 	pscr.pscr_syscall = SYS_getpid;
 	pscr.pscr_nargs = 0;
@@ -4414,6 +4464,132 @@ ATF_TC_BODY(ptrace__reap_kill_stopped, tc)
 	REQUIRE_EQ(-1, prk.rk_fpid);
 }
 
+struct child_res {
+	struct timespec sleep_time;
+	int nanosleep_res;
+	int nanosleep_errno;
+};
+
+static const long nsec = 1000000000L;
+static const struct timespec ten_sec = {
+	.tv_sec = 10,
+	.tv_nsec = 0,
+};
+static const struct timespec twelve_sec = {
+	.tv_sec = 12,
+	.tv_nsec = 0,
+};
+
+ATF_TC_WITHOUT_HEAD(ptrace__PT_ATTACH_no_EINTR);
+ATF_TC_BODY(ptrace__PT_ATTACH_no_EINTR, tc)
+{
+	struct child_res *shm;
+	struct timespec rqt, now, wake;
+	pid_t debuggee;
+	int status;
+
+	shm = mmap(NULL, sizeof(*shm), PROT_READ | PROT_WRITE,
+	    MAP_SHARED | MAP_ANON, -1, 0);
+	ATF_REQUIRE(shm != MAP_FAILED);
+
+	ATF_REQUIRE((debuggee = fork()) != -1);
+	if (debuggee == 0) {
+		rqt.tv_sec = 10;
+		rqt.tv_nsec = 0;
+		clock_gettime(CLOCK_MONOTONIC_PRECISE, &now);
+		errno = 0;
+		shm->nanosleep_res = nanosleep(&rqt, NULL);
+		shm->nanosleep_errno = errno;
+		clock_gettime(CLOCK_MONOTONIC_PRECISE, &wake);
+		timespecsub(&wake, &now, &shm->sleep_time);
+		_exit(0);
+	}
+
+	/* Give the debuggee some time to go to sleep. */
+	sleep(2);
+	REQUIRE_EQ(ptrace(PT_ATTACH, debuggee, 0, 0), 0);
+	REQUIRE_EQ(waitpid(debuggee, &status, 0), debuggee);
+	ATF_REQUIRE(WIFSTOPPED(status));
+	REQUIRE_EQ(WSTOPSIG(status), SIGSTOP);
+
+	REQUIRE_EQ(ptrace(PT_DETACH, debuggee, 0, 0), 0);
+	REQUIRE_EQ(waitpid(debuggee, &status, 0), debuggee);
+	ATF_REQUIRE(WIFEXITED(status));
+	REQUIRE_EQ(WEXITSTATUS(status), 0);
+
+	ATF_REQUIRE(shm->nanosleep_res == 0);
+	ATF_REQUIRE(shm->nanosleep_errno == 0);
+	ATF_REQUIRE(timespeccmp(&shm->sleep_time, &ten_sec, >=));
+	ATF_REQUIRE(timespeccmp(&shm->sleep_time, &twelve_sec, <=));
+}
+
+ATF_TC_WITHOUT_HEAD(ptrace__PT_DETACH_continued);
+ATF_TC_BODY(ptrace__PT_DETACH_continued, tc)
+{
+	char buf[256];
+	pid_t debuggee, debugger;
+	int dpipe[2] = {-1, -1}, status;
+
+	/* Setup the debuggee's pipe, which we'll use to let it terminate. */
+	ATF_REQUIRE(pipe(dpipe) == 0);
+	ATF_REQUIRE((debuggee = fork()) != -1);
+
+	if (debuggee == 0) {
+		ssize_t readsz;
+
+		/*
+		 * The debuggee will just absorb everything until the parent
+		 * closes it.  In the process, we expect it to get SIGSTOP'd,
+		 * then ptrace(2)d and finally, it should resume after we detach
+		 * and the parent will be notified.
+		 */
+		close(dpipe[1]);
+		while ((readsz = read(dpipe[0], buf, sizeof(buf))) != 0) {
+			if (readsz > 0 || errno == EINTR)
+				continue;
+			_exit(1);
+		}
+
+		_exit(0);
+	}
+
+	close(dpipe[0]);
+
+	ATF_REQUIRE(kill(debuggee, SIGSTOP) == 0);
+	REQUIRE_EQ(waitpid(debuggee, &status, WUNTRACED), debuggee);
+	ATF_REQUIRE(WIFSTOPPED(status));
+
+	/* Child is stopped, enter the debugger to attach/detach. */
+	ATF_REQUIRE((debugger = fork()) != -1);
+	if (debugger == 0) {
+		REQUIRE_EQ(ptrace(PT_ATTACH, debuggee, 0, 0), 0);
+		REQUIRE_EQ(waitpid(debuggee, &status, 0), debuggee);
+		ATF_REQUIRE(WIFSTOPPED(status));
+		REQUIRE_EQ(WSTOPSIG(status), SIGSTOP);
+
+		REQUIRE_EQ(ptrace(PT_DETACH, debuggee, 0, 0), 0);
+		_exit(0);
+	}
+
+	REQUIRE_EQ(waitpid(debugger, &status, 0), debugger);
+	ATF_REQUIRE(WIFEXITED(status));
+	REQUIRE_EQ(WEXITSTATUS(status), 0);
+
+	REQUIRE_EQ(waitpid(debuggee, &status, WCONTINUED), debuggee);
+	ATF_REQUIRE(WIFCONTINUED(status));
+
+	/*
+	 * Closing the pipe will trigger the debuggee to exit now that the
+	 * child has resumed following detach.
+	 */
+	close(dpipe[1]);
+
+	REQUIRE_EQ(waitpid(debuggee, &status, 0), debuggee);
+	ATF_REQUIRE(WIFEXITED(status));
+	REQUIRE_EQ(WEXITSTATUS(status), 0);
+
+}
+
 ATF_TP_ADD_TCS(tp)
 {
 	ATF_TP_ADD_TC(tp, ptrace__parent_wait_after_trace_me);
@@ -4476,11 +4652,14 @@ ATF_TP_ADD_TCS(tp)
 #endif
 	ATF_TP_ADD_TC(tp, ptrace__PT_LWPINFO_stale_siginfo);
 	ATF_TP_ADD_TC(tp, ptrace__syscall_args);
+	ATF_TP_ADD_TC(tp, ptrace__syscall_args_anywhere);
 	ATF_TP_ADD_TC(tp, ptrace__proc_reparent);
 	ATF_TP_ADD_TC(tp, ptrace__procdesc_wait_child);
 	ATF_TP_ADD_TC(tp, ptrace__procdesc_reparent_wait_child);
 	ATF_TP_ADD_TC(tp, ptrace__PT_SC_REMOTE_getpid);
 	ATF_TP_ADD_TC(tp, ptrace__reap_kill_stopped);
+	ATF_TP_ADD_TC(tp, ptrace__PT_ATTACH_no_EINTR);
+	ATF_TP_ADD_TC(tp, ptrace__PT_DETACH_continued);
 
 	return (atf_no_error());
 }

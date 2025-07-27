@@ -53,6 +53,7 @@ FILES=	\
 	bsd.progs.mk \
 	bsd.snmpmod.mk \
 	bsd.subdir.mk \
+	bsd.suffixes-extra.mk \
 	bsd.suffixes-posix.mk \
 	bsd.suffixes.mk \
 	bsd.symver.mk \
@@ -64,6 +65,7 @@ FILES=	\
 	dirdeps-targets.mk \
 	gendirdeps.mk \
 	host-target.mk \
+	host.test.mk \
 	install-new.mk \
 	jobs.mk \
 	meta.autodep.mk \

@@ -32,15 +32,19 @@
 #ifndef _SYS_MOUNT_H_
 #define _SYS_MOUNT_H_
 
+#include <sys/types.h>
 #include <sys/ucred.h>
 #include <sys/queue.h>
 #ifdef _KERNEL
-#include <sys/types.h>
 #include <sys/lock.h>
 #include <sys/lockmgr.h>
 #include <sys/tslog.h>
 #include <sys/_mutex.h>
 #include <sys/_sx.h>
+#elif defined(_WANT_MOUNT)
+#include <sys/_lock.h>
+#include <sys/_lockmgr.h>
+#include <sys/_mutex.h>
 #endif
 
 /*
@@ -263,6 +267,7 @@ struct mount {
 	int		mnt_lazyvnodelistsize;	/* (l) # of lazy vnodes */
 	int		mnt_upper_pending;	/* (i) # of pending ops on mnt_uppers */
 	struct lock	mnt_explock;		/* vfs_export walkers lock */
+	struct lock	mnt_renamelock;		/* renames and O_RESOLVE_BENEATH */
 	TAILQ_HEAD(, mount_upper_node) mnt_uppers; /* (i) upper mounts over us */
 	TAILQ_HEAD(, mount_upper_node) mnt_notify; /* (i) upper mounts for notification */
 	STAILQ_ENTRY(mount) mnt_taskqueue_link;	/* (d) our place in deferred unmount list */
@@ -365,6 +370,7 @@ struct mntoptnames {
 	{ MNT_RELOAD,		"reload" },				\
 	{ MNT_FORCE,		"force" },				\
 	{ MNT_SNAPSHOT,		"snapshot" },				\
+	{ MNT_NAMEDATTR,	"named attributes" },			\
 	{ 0, NULL }
 #endif
 
@@ -390,6 +396,7 @@ struct mntoptnames {
 #define	MNT_SUJ		0x0000000100000000ULL /* using journaled soft updates */
 #define	MNT_AUTOMOUNTED	0x0000000200000000ULL /* mounted by automountd(8) */
 #define	MNT_UNTRUSTED	0x0000000800000000ULL /* filesys metadata untrusted */
+#define	MNT_NAMEDATTR	0x0000020000000000ULL /* named attributes enabled */
 
 /*
  * NFS export related mount flags.
@@ -429,7 +436,7 @@ struct mntoptnames {
 			MNT_IGNORE	| MNT_EXPUBLIC	| MNT_NOSYMFOLLOW | \
 			MNT_GJOURNAL	| MNT_MULTILABEL | MNT_ACLS	| \
 			MNT_NFS4ACLS	| MNT_AUTOMOUNTED | MNT_VERIFIED | \
-			MNT_UNTRUSTED)
+			MNT_UNTRUSTED	| MNT_NAMEDATTR)
 
 /* Mask of flags that can be updated. */
 #define	MNT_UPDATEMASK (MNT_NOSUID	| MNT_NOEXEC	| \

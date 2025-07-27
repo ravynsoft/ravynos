@@ -2087,6 +2087,12 @@ icmp6_reflect(struct mbuf *m, size_t off)
 	hlim = 0;
 	srcp = NULL;
 
+	if (__predict_false(IN6_IS_ADDR_UNSPECIFIED(&ip6->ip6_src))) {
+		nd6log((LOG_DEBUG,
+		    "icmp6_reflect: source address is unspecified\n"));
+		goto bad;
+	}
+
 	/*
 	 * If the incoming packet was addressed directly to us (i.e. unicast),
 	 * use dst as the src for the reply.
@@ -2385,7 +2391,7 @@ void
 icmp6_redirect_output(struct mbuf *m0, struct nhop_object *nh)
 {
 	struct ifnet *ifp;	/* my outgoing interface */
-	struct in6_addr *ifp_ll6;
+	struct in6_addr ifp_ll6;
 	struct in6_addr *router_ll6;
 	struct ip6_hdr *sip6;	/* m0 as struct ip6_hdr */
 	struct mbuf *m = NULL;	/* newly allocated one */
@@ -2455,8 +2461,7 @@ icmp6_redirect_output(struct mbuf *m0, struct nhop_object *nh)
 						 IN6_IFF_NOTREADY|
 						 IN6_IFF_ANYCAST)) == NULL)
 			goto fail;
-		ifp_ll6 = &ia->ia_addr.sin6_addr;
-		/* XXXRW: reference released prematurely. */
+		bcopy(&ia->ia_addr.sin6_addr, &ifp_ll6, sizeof(ifp_ll6));
 		ifa_free(&ia->ia_ifa);
 	}
 
@@ -2479,7 +2484,7 @@ icmp6_redirect_output(struct mbuf *m0, struct nhop_object *nh)
 	ip6->ip6_nxt = IPPROTO_ICMPV6;
 	ip6->ip6_hlim = 255;
 	/* ip6->ip6_src must be linklocal addr for my outgoing if. */
-	bcopy(ifp_ll6, &ip6->ip6_src, sizeof(struct in6_addr));
+	bcopy(&ifp_ll6, &ip6->ip6_src, sizeof(struct in6_addr));
 	bcopy(&sip6->ip6_src, &ip6->ip6_dst, sizeof(struct in6_addr));
 
 	/* ND Redirect */
@@ -2599,6 +2604,7 @@ nolladdropt:
 				/* pad if easy enough, truncate if not */
 				if (8 - extra <= M_TRAILINGSPACE(m0)) {
 					/* pad */
+					bzero(m0->m_data + m0->m_len, 8 - extra);
 					m0->m_len += (8 - extra);
 					m0->m_pkthdr.len += (8 - extra);
 				} else {
@@ -2838,7 +2844,7 @@ sysctl_icmp6lim_and_jitter(SYSCTL_HANDLER_ARGS)
 }
 
 
-VNET_DEFINE_STATIC(struct counter_rate, icmp6_rates[RATELIM_MAX]);
+VNET_DEFINE_STATIC(struct counter_rate *, icmp6_rates[RATELIM_MAX]);
 #define	V_icmp6_rates	VNET(icmp6_rates)
 
 static void
@@ -2846,8 +2852,7 @@ icmp6_ratelimit_init(void)
 {
 
 	for (int i = 0; i < RATELIM_MAX; i++) {
-		V_icmp6_rates[i].cr_rate = counter_u64_alloc(M_WAITOK);
-		V_icmp6_rates[i].cr_ticks = ticks;
+		V_icmp6_rates[i] = counter_rate_alloc(M_WAITOK, 1);
 		icmp6lim_new_jitter(i);
 	}
 }
@@ -2860,7 +2865,7 @@ icmp6_ratelimit_uninit(void)
 {
 
 	for (int i = 0; i < RATELIM_MAX; i++)
-		counter_u64_free(V_icmp6_rates[i].cr_rate);
+		counter_rate_free(V_icmp6_rates[i]);
 }
 VNET_SYSUNINIT(icmp6_ratelimit, SI_SUB_PROTO_DOMAIN, SI_ORDER_THIRD,
     icmp6_ratelimit_uninit, NULL);
@@ -2910,7 +2915,7 @@ icmp6_ratelimit(const struct in6_addr *dst, const int type, const int code)
 		break;
 	};
 
-	pps = counter_ratecheck(&V_icmp6_rates[which], V_icmp6errppslim +
+	pps = counter_ratecheck(V_icmp6_rates[which], V_icmp6errppslim +
 	    V_icmp6lim_curr_jitter[which]);
 	if (pps > 0) {
 		if (V_icmp6lim_output)

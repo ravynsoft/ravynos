@@ -106,6 +106,7 @@ nobase_dist_datadir_zfs_tests_tests_DATA += \
 	functional/channel_program/lua_core/tst.args_to_lua.zcp \
 	functional/channel_program/lua_core/tst.divide_by_zero.err \
 	functional/channel_program/lua_core/tst.divide_by_zero.zcp \
+	functional/channel_program/lua_core/tst.encryption.zcp \
 	functional/channel_program/lua_core/tst.exists.zcp \
 	functional/channel_program/lua_core/tst.large_prog.out \
 	functional/channel_program/lua_core/tst.large_prog.zcp \
@@ -123,6 +124,7 @@ nobase_dist_datadir_zfs_tests_tests_DATA += \
 	functional/channel_program/lua_core/tst.timeout.zcp \
 	functional/channel_program/synctask_core/tst.bookmark.copy.zcp \
 	functional/channel_program/synctask_core/tst.bookmark.create.zcp \
+	functional/channel_program/synctask_core/tst.clone.zcp \
 	functional/channel_program/synctask_core/tst.get_index_props.out \
 	functional/channel_program/synctask_core/tst.get_index_props.zcp \
 	functional/channel_program/synctask_core/tst.get_number_props.out \
@@ -429,6 +431,7 @@ nobase_dist_datadir_zfs_tests_tests_SCRIPTS += \
 	functional/alloc_class/alloc_class_013_pos.ksh \
 	functional/alloc_class/alloc_class_014_neg.ksh \
 	functional/alloc_class/alloc_class_015_pos.ksh \
+	functional/alloc_class/alloc_class_016_pos.ksh \
 	functional/alloc_class/cleanup.ksh \
 	functional/alloc_class/setup.ksh \
 	functional/append/file_append.ksh \
@@ -543,6 +546,7 @@ nobase_dist_datadir_zfs_tests_tests_SCRIPTS += \
 	functional/channel_program/lua_core/setup.ksh \
 	functional/channel_program/lua_core/tst.args_to_lua.ksh \
 	functional/channel_program/lua_core/tst.divide_by_zero.ksh \
+	functional/channel_program/lua_core/tst.encryption.ksh \
 	functional/channel_program/lua_core/tst.exists.ksh \
 	functional/channel_program/lua_core/tst.integer_illegal.ksh \
 	functional/channel_program/lua_core/tst.integer_overflow.ksh \
@@ -566,6 +570,7 @@ nobase_dist_datadir_zfs_tests_tests_SCRIPTS += \
 	functional/channel_program/synctask_core/setup.ksh \
 	functional/channel_program/synctask_core/tst.bookmark.copy.ksh \
 	functional/channel_program/synctask_core/tst.bookmark.create.ksh \
+	functional/channel_program/synctask_core/tst.clone.ksh \
 	functional/channel_program/synctask_core/tst.destroy_fs.ksh \
 	functional/channel_program/synctask_core/tst.destroy_snap.ksh \
 	functional/channel_program/synctask_core/tst.get_count_and_limit.ksh \
@@ -862,6 +867,9 @@ nobase_dist_datadir_zfs_tests_tests_SCRIPTS += \
 	functional/cli_root/zfs_reservation/setup.ksh \
 	functional/cli_root/zfs_reservation/zfs_reservation_001_pos.ksh \
 	functional/cli_root/zfs_reservation/zfs_reservation_002_pos.ksh \
+	functional/cli_root/zfs_rewrite/cleanup.ksh \
+	functional/cli_root/zfs_rewrite/setup.ksh \
+	functional/cli_root/zfs_rewrite/zfs_rewrite.ksh \
 	functional/cli_root/zfs_rollback/cleanup.ksh \
 	functional/cli_root/zfs_rollback/setup.ksh \
 	functional/cli_root/zfs_rollback/zfs_rollback_001_pos.ksh \
@@ -1085,6 +1093,7 @@ nobase_dist_datadir_zfs_tests_tests_SCRIPTS += \
 	functional/cli_root/zpool_events/zpool_events_errors.ksh \
 	functional/cli_root/zpool_events/zpool_events_follow.ksh \
 	functional/cli_root/zpool_events/zpool_events_poolname.ksh \
+	functional/cli_root/zpool_events/zpool_events_scrub_txg_continue_from_last.ksh \
 	functional/cli_root/zpool_expand/cleanup.ksh \
 	functional/cli_root/zpool_expand/setup.ksh \
 	functional/cli_root/zpool_expand/zpool_expand_001_pos.ksh \
@@ -1103,6 +1112,7 @@ nobase_dist_datadir_zfs_tests_tests_SCRIPTS += \
 	functional/cli_root/zpool_get/cleanup.ksh \
 	functional/cli_root/zpool_get/setup.ksh \
 	functional/cli_root/zpool_get/vdev_get_001_pos.ksh \
+	functional/cli_root/zpool_get/vdev_get_all.ksh \
 	functional/cli_root/zpool_get/zpool_get_001_pos.ksh \
 	functional/cli_root/zpool_get/zpool_get_002_pos.ksh \
 	functional/cli_root/zpool_get/zpool_get_003_pos.ksh \
@@ -1519,8 +1529,12 @@ nobase_dist_datadir_zfs_tests_tests_SCRIPTS += \
 	functional/exec/exec_002_neg.ksh \
 	functional/exec/setup.ksh \
 	functional/fadvise/cleanup.ksh \
-	functional/fadvise/fadvise_sequential.ksh \
+	functional/fadvise/fadvise_willneed.ksh \
 	functional/fadvise/setup.ksh \
+	functional/failmode/cleanup.ksh \
+	functional/failmode/failmode_dmu_tx_wait.ksh \
+	functional/failmode/failmode_dmu_tx_continue.ksh \
+	functional/failmode/setup.ksh \
 	functional/fallocate/cleanup.ksh \
 	functional/fallocate/fallocate_prealloc.ksh \
 	functional/fallocate/fallocate_punch-hole.ksh \
@@ -1534,6 +1548,7 @@ nobase_dist_datadir_zfs_tests_tests_SCRIPTS += \
 	functional/fault/auto_spare_001_pos.ksh \
 	functional/fault/auto_spare_002_pos.ksh \
 	functional/fault/auto_spare_ashift.ksh \
+	functional/fault/auto_spare_double.ksh \
 	functional/fault/auto_spare_multiple.ksh \
 	functional/fault/auto_spare_shared.ksh \
 	functional/fault/cleanup.ksh \
@@ -1560,6 +1575,8 @@ nobase_dist_datadir_zfs_tests_tests_SCRIPTS += \
 	functional/features/large_dnode/large_dnode_009_pos.ksh \
 	functional/features/large_dnode/setup.ksh \
 	functional/gang_blocks/cleanup.ksh \
+	functional/gang_blocks/gang_blocks_001_pos.ksh \
+	functional/gang_blocks/gang_blocks_ddt_copies.ksh \
 	functional/gang_blocks/gang_blocks_redundant.ksh \
 	functional/gang_blocks/setup.ksh \
 	functional/grow/grow_pool_001_pos.ksh \
@@ -1761,10 +1778,18 @@ nobase_dist_datadir_zfs_tests_tests_SCRIPTS += \
 	functional/projectquota/projectquota_007_pos.ksh \
 	functional/projectquota/projectquota_008_pos.ksh \
 	functional/projectquota/projectquota_009_pos.ksh \
+	functional/projectquota/defaultprojectquota_001_pos.ksh \
+	functional/projectquota/defaultprojectquota_002_pos.ksh \
+	functional/projectquota/defaultprojectquota_003_neg.ksh \
+	functional/projectquota/defaultprojectquota_004_pos.ksh \
+	functional/projectquota/defaultprojectquota_005_pos.ksh \
+	functional/projectquota/defaultprojectquota_006_pos.ksh \
+	functional/projectquota/defaultprojectquota_007_pos.ksh \
 	functional/projectquota/projectspace_001_pos.ksh \
 	functional/projectquota/projectspace_002_pos.ksh \
 	functional/projectquota/projectspace_003_pos.ksh \
 	functional/projectquota/projectspace_004_pos.ksh \
+	functional/projectquota/projectspace_005_pos.ksh \
 	functional/projectquota/projecttree_001_pos.ksh \
 	functional/projectquota/projecttree_002_pos.ksh \
 	functional/projectquota/projecttree_003_neg.ksh \
@@ -1988,6 +2013,7 @@ nobase_dist_datadir_zfs_tests_tests_SCRIPTS += \
 	functional/rsend/send_holds.ksh \
 	functional/rsend/send_hole_birth.ksh \
 	functional/rsend/send_invalid.ksh \
+	functional/rsend/send_leak_keymaps.ksh \
 	functional/rsend/send-L_toggle.ksh \
 	functional/rsend/send_mixed_raw.ksh \
 	functional/rsend/send_partial_dataset.ksh \
@@ -2065,6 +2091,7 @@ nobase_dist_datadir_zfs_tests_tests_SCRIPTS += \
 	functional/stat/setup.ksh \
 	functional/stat/stat_001_pos.ksh \
 	functional/stat/statx_dioalign.ksh \
+	functional/syncfs/syncfs_suspend.ksh \
 	functional/suid/cleanup.ksh \
 	functional/suid/setup.ksh \
 	functional/suid/suid_write_to_none.ksh \
@@ -2101,7 +2128,21 @@ nobase_dist_datadir_zfs_tests_tests_SCRIPTS += \
 	functional/userquota/groupspace_001_pos.ksh \
 	functional/userquota/groupspace_002_pos.ksh \
 	functional/userquota/groupspace_003_pos.ksh \
+	functional/userquota/groupspace_004_pos.ksh \
 	functional/userquota/setup.ksh \
+	functional/userquota/defaultuserquota_001_pos.ksh \
+	functional/userquota/defaultuserquota_002_pos.ksh \
+	functional/userquota/defaultuserquota_003_pos.ksh \
+	functional/userquota/defaultuserquota_004_neg.ksh \
+	functional/userquota/defaultuserquota_005_pos.ksh \
+	functional/userquota/defaultuserquota_006_pos.ksh \
+	functional/userquota/defaultuserquota_007_pos.ksh \
+	functional/userquota/defaultuserquota_008_pos.ksh \
+	functional/userquota/defaultuserquota_009_pos.ksh \
+	functional/userquota/defaultuserquota_010_neg.ksh \
+	functional/userquota/defaultuserquota_011_neg.ksh \
+	functional/userquota/defaultuserquota_012_neg.ksh \
+	functional/userquota/defaultuserquota_013_neg.ksh \
 	functional/userquota/userquota_001_pos.ksh \
 	functional/userquota/userquota_002_pos.ksh \
 	functional/userquota/userquota_003_pos.ksh \
@@ -2118,6 +2159,7 @@ nobase_dist_datadir_zfs_tests_tests_SCRIPTS += \
 	functional/userquota/userspace_001_pos.ksh \
 	functional/userquota/userspace_002_pos.ksh \
 	functional/userquota/userspace_003_pos.ksh \
+	functional/userquota/userspace_004_pos.ksh \
 	functional/userquota/userspace_encrypted.ksh \
 	functional/userquota/userspace_send_encrypted.ksh \
 	functional/userquota/userspace_encrypted_13709.ksh \

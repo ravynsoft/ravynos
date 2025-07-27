@@ -110,9 +110,6 @@ static int old_msync;
 SYSCTL_INT(_vm, OID_AUTO, old_msync, CTLFLAG_RW, &old_msync, 0,
     "Use old (insecure) msync behavior");
 
-static int	vm_object_page_collect_flush(vm_object_t object, vm_page_t p,
-		    int pagerflags, int flags, boolean_t *allclean,
-		    boolean_t *eio);
 static boolean_t vm_object_page_remove_write(vm_page_t p, int flags,
 		    boolean_t *allclean);
 static void	vm_object_backing_remove(vm_object_t object);
@@ -181,8 +178,6 @@ vm_object_zdtor(void *mem, int size, void *arg)
 	object = (vm_object_t)mem;
 	KASSERT(object->ref_count == 0,
 	    ("object %p ref_count = %d", object, object->ref_count));
-	KASSERT(TAILQ_EMPTY(&object->memq),
-	    ("object %p has resident pages in its memq", object));
 	KASSERT(vm_radix_is_empty(&object->rtree),
 	    ("object %p has resident pages in its trie", object));
 #if VM_NRESERVLEVEL > 0
@@ -235,8 +230,6 @@ static void
 _vm_object_allocate(objtype_t type, vm_pindex_t size, u_short flags,
     vm_object_t object, void *handle)
 {
-
-	TAILQ_INIT(&object->memq);
 	LIST_INIT(&object->shadow_head);
 
 	object->type = type;
@@ -336,7 +329,7 @@ vm_object_set_memattr(vm_object_t object, vm_memattr_t memattr)
 
 	if (object->type == OBJT_DEAD)
 		return (KERN_INVALID_ARGUMENT);
-	if (!TAILQ_EMPTY(&object->memq))
+	if (!vm_radix_is_empty(&object->rtree))
 		return (KERN_FAILURE);
 
 	object->memattr = memattr;
@@ -922,7 +915,6 @@ vm_object_terminate_pages(vm_object_t object)
 
 	vm_radix_reclaim_callback(&object->rtree,
 	    vm_object_terminate_single_page, object);
-	TAILQ_INIT(&object->memq);
 	object->resident_page_count = 0;
 	if (object->type == OBJT_VNODE)
 		vdrop(object->handle);
@@ -1006,6 +998,30 @@ vm_object_page_remove_write(vm_page_t p, int flags, boolean_t *allclean)
 	}
 }
 
+static int
+vm_object_page_clean_flush(struct pctrie_iter *pages, vm_page_t p,
+    int pagerflags, int flags, boolean_t *allclean, bool *eio)
+{
+	vm_page_t ma[vm_pageout_page_count];
+	int count, runlen;
+
+	vm_page_assert_xbusied(p);
+	ma[0] = p;
+	runlen = vm_radix_iter_lookup_range(pages, p->pindex + 1,
+	    &ma[1], vm_pageout_page_count - 1);
+	for (count = 1; count <= runlen; count++) {
+		p = ma[count];
+		if (vm_page_tryxbusy(p) == 0)
+			break;
+		if (!vm_object_page_remove_write(p, flags, allclean)) {
+			vm_page_xunbusy(p);
+			break;
+		}
+	}
+
+	return (vm_pageout_flush(ma, count, pagerflags, eio));
+}
+
 /*
  *	vm_object_page_clean
  *
@@ -1032,10 +1048,12 @@ boolean_t
 vm_object_page_clean(vm_object_t object, vm_ooffset_t start, vm_ooffset_t end,
     int flags)
 {
+	struct pctrie_iter pages;
 	vm_page_t np, p;
 	vm_pindex_t pi, tend, tstart;
 	int curgeneration, n, pagerflags;
-	boolean_t eio, res, allclean;
+	boolean_t res, allclean;
+	bool eio;
 
 	VM_OBJECT_ASSERT_WLOCKED(object);
 
@@ -1050,31 +1068,36 @@ vm_object_page_clean(vm_object_t object, vm_ooffset_t start, vm_ooffset_t end,
 	tend = (end == 0) ? object->size : OFF_TO_IDX(end + PAGE_MASK);
 	allclean = tstart == 0 && tend >= object->size;
 	res = TRUE;
+	vm_page_iter_init(&pages, object);
 
 rescan:
 	curgeneration = object->generation;
 
-	for (p = vm_page_find_least(object, tstart); p != NULL; p = np) {
+	for (p = vm_radix_iter_lookup_ge(&pages, tstart); p != NULL; p = np) {
 		pi = p->pindex;
 		if (pi >= tend)
 			break;
-		np = TAILQ_NEXT(p, listq);
-		if (vm_page_none_valid(p))
+		if (vm_page_none_valid(p)) {
+			np = vm_radix_iter_step(&pages);
 			continue;
-		if (vm_page_busy_acquire(p, VM_ALLOC_WAITFAIL) == 0) {
+		}
+		if (!vm_page_busy_acquire(p, VM_ALLOC_WAITFAIL)) {
+			pctrie_iter_reset(&pages);
 			if (object->generation != curgeneration &&
 			    (flags & OBJPC_SYNC) != 0)
 				goto rescan;
-			np = vm_page_find_least(object, pi);
+			np = vm_radix_iter_lookup_ge(&pages, pi);
 			continue;
 		}
 		if (!vm_object_page_remove_write(p, flags, &allclean)) {
+			np = vm_radix_iter_step(&pages);
 			vm_page_xunbusy(p);
 			continue;
 		}
 		if (object->type == OBJT_VNODE) {
-			n = vm_object_page_collect_flush(object, p, pagerflags,
+			n = vm_object_page_clean_flush(&pages, p, pagerflags,
 			    flags, &allclean, &eio);
+			pctrie_iter_reset(&pages);
 			if (eio) {
 				res = FALSE;
 				allclean = FALSE;
@@ -1103,7 +1126,7 @@ rescan:
 			n = 1;
 			vm_page_xunbusy(p);
 		}
-		np = vm_page_find_least(object, pi + n);
+		np = vm_radix_iter_lookup_ge(&pages, pi + n);
 	}
 #if 0
 	VOP_FSYNC(vp, (pagerflags & VM_PAGER_PUT_SYNC) ? MNT_WAIT : 0);
@@ -1117,45 +1140,6 @@ rescan:
 	if (allclean && object->type == OBJT_VNODE)
 		object->cleangeneration = curgeneration;
 	return (res);
-}
-
-static int
-vm_object_page_collect_flush(vm_object_t object, vm_page_t p, int pagerflags,
-    int flags, boolean_t *allclean, boolean_t *eio)
-{
-	vm_page_t ma[2 * vm_pageout_page_count - 1], tp;
-	int base, count, runlen;
-
-	vm_page_lock_assert(p, MA_NOTOWNED);
-	vm_page_assert_xbusied(p);
-	VM_OBJECT_ASSERT_WLOCKED(object);
-	base = nitems(ma) / 2;
-	ma[base] = p;
-	for (count = 1, tp = p; count < vm_pageout_page_count; count++) {
-		tp = vm_page_next(tp);
-		if (tp == NULL || vm_page_tryxbusy(tp) == 0)
-			break;
-		if (!vm_object_page_remove_write(tp, flags, allclean)) {
-			vm_page_xunbusy(tp);
-			break;
-		}
-		ma[base + count] = tp;
-	}
-
-	for (tp = p; count < vm_pageout_page_count; count++) {
-		tp = vm_page_prev(tp);
-		if (tp == NULL || vm_page_tryxbusy(tp) == 0)
-			break;
-		if (!vm_object_page_remove_write(tp, flags, allclean)) {
-			vm_page_xunbusy(tp);
-			break;
-		}
-		ma[--base] = tp;
-	}
-
-	vm_pageout_flush(&ma[base], count, pagerflags, nitems(ma) / 2 - base,
-	    &runlen, eio);
-	return (runlen);
 }
 
 /*
@@ -1326,6 +1310,7 @@ void
 vm_object_madvise(vm_object_t object, vm_pindex_t pindex, vm_pindex_t end,
     int advice)
 {
+	struct pctrie_iter pages;
 	vm_pindex_t tpindex;
 	vm_object_t backing_object, tobject;
 	vm_page_t m, tm;
@@ -1333,13 +1318,15 @@ vm_object_madvise(vm_object_t object, vm_pindex_t pindex, vm_pindex_t end,
 	if (object == NULL)
 		return;
 
+	vm_page_iter_init(&pages, object);
 relookup:
 	VM_OBJECT_WLOCK(object);
 	if (!vm_object_advice_applies(object, advice)) {
 		VM_OBJECT_WUNLOCK(object);
 		return;
 	}
-	for (m = vm_page_find_least(object, pindex); pindex < end; pindex++) {
+	for (m = vm_radix_iter_lookup_ge(&pages, pindex); pindex < end;
+	    pindex++) {
 		tobject = object;
 
 		/*
@@ -1388,7 +1375,7 @@ relookup:
 		} else {
 next_page:
 			tm = m;
-			m = TAILQ_NEXT(m, listq);
+			m = vm_radix_iter_step(&pages);
 		}
 
 		/*
@@ -1414,6 +1401,7 @@ next_page:
 			}
 			if (!vm_page_busy_sleep(tm, "madvpo", 0))
 				VM_OBJECT_WUNLOCK(tobject);
+			pctrie_iter_reset(&pages);
   			goto relookup;
 		}
 		vm_page_advise(tm, advice);
@@ -1597,16 +1585,21 @@ retry:
 		}
 
 		/*
-		 * The page was left invalid.  Likely placed there by
+		 * If the page was left invalid, it was likely placed there by
 		 * an incomplete fault.  Just remove and ignore.
+		 *
+		 * One other possibility is that the map entry is wired, in
+		 * which case we must hang on to the page to avoid leaking it,
+		 * as the map entry owns the wiring.  This case can arise if the
+		 * backing object is truncated by the pager.
 		 */
-		if (vm_page_none_valid(m)) {
+		if (vm_page_none_valid(m) && entry->wired_count == 0) {
 			if (vm_page_iter_remove(&pages, m))
 				vm_page_free(m);
 			continue;
 		}
 
-		/* vm_page_iter_rename() will dirty the page. */
+		/* vm_page_iter_rename() will dirty the page if it is valid. */
 		if (!vm_page_iter_rename(&pages, m, new_object, m->pindex -
 		    offidxstart)) {
 			vm_page_xunbusy(m);
@@ -1641,8 +1634,8 @@ retry:
 	 * and new_object's locks are released and reacquired.
 	 */
 	swap_pager_copy(orig_object, new_object, offidxstart, 0);
-
-	TAILQ_FOREACH(m, &new_object->memq, listq)
+	vm_page_iter_init(&pages, new_object);
+	VM_RADIX_FOREACH(m, &pages)
 		vm_page_xunbusy(m);
 
 	vm_object_clear_flag(orig_object, OBJ_SPLIT);
@@ -2091,23 +2084,18 @@ wired:
 void
 vm_object_page_noreuse(vm_object_t object, vm_pindex_t start, vm_pindex_t end)
 {
-	vm_page_t p, next;
+	struct pctrie_iter pages;
+	vm_page_t p;
 
 	VM_OBJECT_ASSERT_LOCKED(object);
 	KASSERT((object->flags & (OBJ_FICTITIOUS | OBJ_UNMANAGED)) == 0,
 	    ("vm_object_page_noreuse: illegal object %p", object));
 	if (object->resident_page_count == 0)
 		return;
-	p = vm_page_find_least(object, start);
 
-	/*
-	 * Here, the variable "p" is either (1) the page with the least pindex
-	 * greater than or equal to the parameter "start" or (2) NULL. 
-	 */
-	for (; p != NULL && (p->pindex < end || end == 0); p = next) {
-		next = TAILQ_NEXT(p, listq);
+	vm_page_iter_limit_init(&pages, object, end);
+	VM_RADIX_FOREACH_FROM(p, &pages, start)
 		vm_page_deactivate_noreuse(p);
-	}
 }
 
 /*
@@ -2123,13 +2111,16 @@ vm_object_page_noreuse(vm_object_t object, vm_pindex_t start, vm_pindex_t end)
 boolean_t
 vm_object_populate(vm_object_t object, vm_pindex_t start, vm_pindex_t end)
 {
+	struct pctrie_iter pages;
 	vm_page_t m;
 	vm_pindex_t pindex;
 	int rv;
 
+	vm_page_iter_init(&pages, object);
 	VM_OBJECT_ASSERT_WLOCKED(object);
 	for (pindex = start; pindex < end; pindex++) {
-		rv = vm_page_grab_valid(&m, object, pindex, VM_ALLOC_NORMAL);
+		rv = vm_page_grab_valid_iter(&m, object, pindex,
+		    VM_ALLOC_NORMAL, &pages);
 		if (rv != VM_PAGER_OK)
 			break;
 
@@ -2139,11 +2130,9 @@ vm_object_populate(vm_object_t object, vm_pindex_t start, vm_pindex_t end)
 		 */
 	}
 	if (pindex > start) {
-		m = vm_page_lookup(object, start);
-		while (m != NULL && m->pindex < pindex) {
+		pages.limit = pindex;
+		VM_RADIX_FORALL_FROM(m, &pages, start)
 			vm_page_xunbusy(m);
-			m = TAILQ_NEXT(m, listq);
-		}
 	}
 	return (pindex == end);
 }
@@ -2270,20 +2259,21 @@ void
 vm_object_prepare_buf_pages(vm_object_t object, vm_page_t *ma_dst, int count,
     int *rbehind, int *rahead, vm_page_t *ma_src)
 {
+	struct pctrie_iter pages;
 	vm_pindex_t pindex;
 	vm_page_t m, mpred, msucc;
 
+	vm_page_iter_init(&pages, object);
 	VM_OBJECT_ASSERT_LOCKED(object);
 	if (*rbehind != 0) {
 		m = ma_src[0];
 		pindex = m->pindex;
-		mpred = TAILQ_PREV(m, pglist, listq);
+		mpred = vm_radix_iter_lookup_lt(&pages, pindex);
 		*rbehind = MIN(*rbehind,
 		    pindex - (mpred != NULL ? mpred->pindex + 1 : 0));
-		/* Stepping backward from pindex, mpred doesn't change. */
 		for (int i = 0; i < *rbehind; i++) {
-			m = vm_page_alloc_after(object, pindex - i - 1,
-			    VM_ALLOC_NORMAL, mpred);
+			m = vm_page_alloc_iter(object, pindex - i - 1,
+			    VM_ALLOC_NORMAL, &pages);
 			if (m == NULL) {
 				/* Shift the array. */
 				for (int j = 0; j < i; j++)
@@ -2300,18 +2290,17 @@ vm_object_prepare_buf_pages(vm_object_t object, vm_page_t *ma_dst, int count,
 	if (*rahead != 0) {
 		m = ma_src[count - 1];
 		pindex = m->pindex + 1;
-		msucc = TAILQ_NEXT(m, listq);
+		msucc = vm_radix_iter_lookup_ge(&pages, pindex);
 		*rahead = MIN(*rahead,
 		    (msucc != NULL ? msucc->pindex : object->size) - pindex);
-		mpred = m;
 		for (int i = 0; i < *rahead; i++) {
-			m = vm_page_alloc_after(object, pindex + i,
-			    VM_ALLOC_NORMAL, mpred);
+			m = vm_page_alloc_iter(object, pindex + i,
+			    VM_ALLOC_NORMAL, &pages);
 			if (m == NULL) {
 				*rahead = i;
 				break;
 			}
-			ma_dst[*rbehind + count + i] = mpred = m;
+			ma_dst[*rbehind + count + i] = m;
 		}
 	}
 }
@@ -2340,6 +2329,7 @@ void
 vm_object_unwire(vm_object_t object, vm_ooffset_t offset, vm_size_t length,
     uint8_t queue)
 {
+	struct pctrie_iter pages;
 	vm_object_t tobject, t1object;
 	vm_page_t m, tm;
 	vm_pindex_t end_pindex, pindex, tpindex;
@@ -2354,10 +2344,11 @@ vm_object_unwire(vm_object_t object, vm_ooffset_t offset, vm_size_t length,
 		return;
 	pindex = OFF_TO_IDX(offset);
 	end_pindex = pindex + atop(length);
+	vm_page_iter_init(&pages, object);
 again:
 	locked_depth = 1;
 	VM_OBJECT_RLOCK(object);
-	m = vm_page_find_least(object, pindex);
+	m = vm_radix_iter_lookup_ge(&pages, pindex);
 	while (pindex < end_pindex) {
 		if (m == NULL || pindex < m->pindex) {
 			/*
@@ -2385,7 +2376,7 @@ again:
 			    NULL);
 		} else {
 			tm = m;
-			m = TAILQ_NEXT(m, listq);
+			m = vm_radix_iter_step(&pages);
 		}
 		if (vm_page_trysbusy(tm) == 0) {
 			for (tobject = object; locked_depth >= 1;
@@ -2399,6 +2390,7 @@ again:
 			if (!vm_page_busy_sleep(tm, "unwbo",
 			    VM_ALLOC_IGN_SBUSY))
 				VM_OBJECT_RUNLOCK(tobject);
+			pctrie_iter_reset(&pages);
 			goto again;
 		}
 		vm_page_unwire(tm, queue);
@@ -2479,6 +2471,7 @@ vm_object_is_active(vm_object_t obj)
 static int
 vm_object_list_handler(struct sysctl_req *req, bool swap_only)
 {
+	struct pctrie_iter pages;
 	struct kinfo_vmobject *kvo;
 	char *fullpath, *freepath;
 	struct vnode *vp;
@@ -2536,9 +2529,11 @@ vm_object_list_handler(struct sysctl_req *req, bool swap_only)
 		kvo->kvo_memattr = obj->memattr;
 		kvo->kvo_active = 0;
 		kvo->kvo_inactive = 0;
+		kvo->kvo_laundry = 0;
 		kvo->kvo_flags = 0;
 		if (!swap_only) {
-			TAILQ_FOREACH(m, &obj->memq, listq) {
+			vm_page_iter_init(&pages, obj);
+			VM_RADIX_FOREACH(m, &pages) {
 				/*
 				 * A page may belong to the object but be
 				 * dequeued and set to PQ_NONE while the
@@ -2720,8 +2715,9 @@ DB_SHOW_COMMAND_FLAGS(vmochk, vm_object_check, DB_CMD_MEMSAFE)
 	TAILQ_FOREACH(object, &vm_object_list, object_list) {
 		if ((object->flags & OBJ_ANON) != 0) {
 			if (object->ref_count == 0) {
-				db_printf("vmochk: internal obj has zero ref count: %ld\n",
-					(long)object->size);
+				db_printf(
+			"vmochk: internal obj has zero ref count: %lu\n",
+				    (u_long)object->size);
 			}
 			if (!vm_object_in_map(object)) {
 				db_printf(
@@ -2742,6 +2738,7 @@ DB_SHOW_COMMAND_FLAGS(vmochk, vm_object_check, DB_CMD_MEMSAFE)
  */
 DB_SHOW_COMMAND(object, vm_object_print_static)
 {
+	struct pctrie_iter pages;
 	/* XXX convert args. */
 	vm_object_t object = (vm_object_t)addr;
 	boolean_t full = have_addr;
@@ -2756,11 +2753,12 @@ DB_SHOW_COMMAND(object, vm_object_print_static)
 	if (object == NULL)
 		return;
 
-	db_iprintf(
-	    "Object %p: type=%d, size=0x%jx, res=%d, ref=%d, flags=0x%x ruid %d charge %jx\n",
+	db_iprintf("Object %p: type=%d, size=0x%jx, res=%d, ref=%d, flags=0x%x",
 	    object, (int)object->type, (uintmax_t)object->size,
-	    object->resident_page_count, object->ref_count, object->flags,
-	    object->cred ? object->cred->cr_ruid : -1, (uintmax_t)object->charge);
+	    object->resident_page_count, object->ref_count, object->flags);
+	db_iprintf(" ruid %d charge %jx\n",
+	    object->cred ? object->cred->cr_ruid : -1,
+	    (uintmax_t)object->charge);
 	db_iprintf(" sref=%d, backing_object(%d)=(%p)+0x%jx\n",
 	    atomic_load_int(&object->shadow_count),
 	    object->backing_object ? object->backing_object->ref_count : 0,
@@ -2771,7 +2769,8 @@ DB_SHOW_COMMAND(object, vm_object_print_static)
 
 	db_indent += 2;
 	count = 0;
-	TAILQ_FOREACH(p, &object->memq, listq) {
+	vm_page_iter_init(&pages, object);
+	VM_RADIX_FOREACH(p, &pages) {
 		if (count == 0)
 			db_iprintf("memory:=");
 		else if (count == 6) {
@@ -2809,49 +2808,38 @@ vm_object_print(
 
 DB_SHOW_COMMAND_FLAGS(vmopag, vm_object_print_pages, DB_CMD_MEMSAFE)
 {
+	struct pctrie_iter pages;
 	vm_object_t object;
-	vm_pindex_t fidx;
-	vm_paddr_t pa;
-	vm_page_t m, prev_m;
+	vm_page_t m, start_m;
 	int rcount;
 
 	TAILQ_FOREACH(object, &vm_object_list, object_list) {
 		db_printf("new object: %p\n", (void *)object);
 		if (db_pager_quit)
 			return;
-
-		rcount = 0;
-		fidx = 0;
-		pa = -1;
-		TAILQ_FOREACH(m, &object->memq, listq) {
-			if ((prev_m = TAILQ_PREV(m, pglist, listq)) != NULL &&
-			    prev_m->pindex + 1 != m->pindex) {
-				if (rcount) {
-					db_printf(" index(%ld)run(%d)pa(0x%lx)\n",
-						(long)fidx, rcount, (long)pa);
-					if (db_pager_quit)
-						return;
-					rcount = 0;
-				}
-			}				
-			if (rcount &&
-				(VM_PAGE_TO_PHYS(m) == pa + rcount * PAGE_SIZE)) {
-				++rcount;
-				continue;
-			}
-			if (rcount) {
+		start_m = NULL;
+		vm_page_iter_init(&pages, object);
+		VM_RADIX_FOREACH(m, &pages) {
+			if (start_m == NULL) {
+				start_m = m;
+				rcount = 0;
+			} else if (start_m->pindex + rcount != m->pindex ||
+			    VM_PAGE_TO_PHYS(start_m)  + ptoa(rcount) !=
+			    VM_PAGE_TO_PHYS(m)) {
 				db_printf(" index(%ld)run(%d)pa(0x%lx)\n",
-					(long)fidx, rcount, (long)pa);
+				    (long)start_m->pindex, rcount,
+				    (long)VM_PAGE_TO_PHYS(start_m));
 				if (db_pager_quit)
 					return;
+				start_m = m;
+				rcount = 0;
 			}
-			fidx = m->pindex;
-			pa = VM_PAGE_TO_PHYS(m);
-			rcount = 1;
+			rcount++;
 		}
-		if (rcount) {
+		if (start_m != NULL) {
 			db_printf(" index(%ld)run(%d)pa(0x%lx)\n",
-				(long)fidx, rcount, (long)pa);
+			    (long)start_m->pindex, rcount,
+			    (long)VM_PAGE_TO_PHYS(start_m));
 			if (db_pager_quit)
 				return;
 		}

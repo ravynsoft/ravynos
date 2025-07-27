@@ -1,4 +1,6 @@
 .\"
+.\" SPDX-License-Identifier: BSD-2-Clause
+.\"
 .\" Copyright (c) 2003 David O'Brien
 .\" Copyright (c) 2000 Jeroen Ruigrok van der Werven
 .\" Copyright (c) 2000 Michael Smith
@@ -23,12 +25,12 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd January 10, 2025
+.Dd May 27, 2025
 .Dt MLX 4
 .Os
 .Sh NAME
 .Nm mlx
-.Nd Mylex DAC-family RAID driver
+.Nd Mylex DAC-family Parallel SCSI RAID driver
 .Sh SYNOPSIS
 To compile this driver into the kernel,
 place the following lines in your
@@ -50,42 +52,35 @@ The
 driver provides support for Mylex DAC-family PCI to SCSI RAID controllers,
 including versions relabeled by Digital/Compaq.
 .Sh HARDWARE
-Controllers supported by the
+The
 .Nm
-driver include:
+driver supports the following Parallel SCSI RAID controllers:
 .Pp
 .Bl -bullet -compact
 .It
-Mylex DAC960P
+Mylex DAC960P (Wide Fast SCSI-2)
 .It
-Mylex DAC960PD / DEC KZPSC (Fast Wide)
+Mylex DAC960PD / DEC KZPSC (Wide Fast SCSI-2)
 .It
-Mylex DAC960PDU
+Mylex DAC960PDU (Ultra SCSI-3)
 .It
-Mylex DAC960PL
+Mylex DAC960PL (Wide Fast SCSI-2)
 .It
-Mylex DAC960PJ
+Mylex DAC960PJ (Wide Ultra SCSI-3)
 .It
-Mylex DAC960PG
+Mylex DAC960PG (Wide Ultra SCSI-3)
 .It
-Mylex DAC960PU / DEC PZPAC (Ultra Wide)
+Mylex DAC960PU / DEC PZPAC (Wide Ultra SCSI-3)
 .It
-Mylex AcceleRAID 150 (DAC960PRL)
+Mylex AcceleRAID 150 (DAC960PRL) (Wide Ultra2 SCSI)
 .It
-Mylex AcceleRAID 250 (DAC960PTL1)
+Mylex AcceleRAID 250 (DAC960PTL1) (Wide Ultra2 SCSI)
 .It
-Mylex eXtremeRAID 1100 (DAC1164P)
+Mylex eXtremeRAID 1100 (DAC1164P) (Wide Ultra2 SCSI)
 .It
 RAIDarray 230 controllers, aka the Ultra-SCSI DEC KZPAC-AA (1-ch, 4MB
 cache), KZPAC-CA (3-ch, 4MB), KZPAC-CB (3-ch, 8MB cache)
 .El
-.Pp
-All major firmware revisions (2.x, 3.x, 4.x and 5.x) are supported, however
-it is always advisable to upgrade to the most recent firmware
-available for the controller.
-.Pp
-Compatible Mylex controllers not listed should work, but have not been
-verified.
 .Sh DIAGNOSTICS
 .Ss Controller initialisation phase
 .Bl -diag

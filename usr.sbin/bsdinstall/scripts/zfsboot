@@ -86,7 +86,7 @@ f_include $BSDCFG_SHARE/variable.subr
 
 #
 # Create a separate boot pool?
-# NB: Automatically set when using geli(8) or MBR
+# NB: Automatically set when using geli(8)
 #
 : ${ZFSBOOT_BOOT_POOL=}
 
@@ -96,12 +96,12 @@ f_include $BSDCFG_SHARE/variable.subr
 : ${ZFSBOOT_BOOT_POOL_CREATE_OPTIONS:=}
 
 #
-# Default name for boot pool when enabled (e.g., geli(8) or MBR)
+# Default name for boot pool when enabled (e.g., geli(8))
 #
 : ${ZFSBOOT_BOOT_POOL_NAME:=bootpool}
 
 #
-# Default size for boot pool when enabled (e.g., geli(8) or MBR)
+# Default size for boot pool when enabled (e.g., geli(8))
 #
 : ${ZFSBOOT_BOOT_POOL_SIZE:=2g}
 
@@ -121,7 +121,7 @@ f_include $BSDCFG_SHARE/variable.subr
 : ${ZFSBOOT_BOOT_TYPE:=}
 
 #
-# How much swap to put on each block device in the boot zpool
+# How much swap to put on each block device in the boot pool
 # NOTE: Value passed to gpart(8); which supports SI unit suffixes.
 #
 : ${ZFSBOOT_SWAP_SIZE:=2g}
@@ -137,7 +137,7 @@ f_include $BSDCFG_SHARE/variable.subr
 : ${ZFSBOOT_SWAP_MIRROR=}
 
 #
-# Default ZFS datasets for root zpool
+# Default ZFS datasets for root pool
 #
 # NOTE: Requires /tmp, /var/tmp, /$ZFSBOOT_BEROOT_NAME/$ZFSBOOT_BOOTFS_NAME
 # NOTE: Anything after pound/hash character [#] is ignored as a comment.
@@ -285,12 +285,12 @@ msg_odd_disk_selected="An even number of disks must be selected to create a RAID
 msg_ok="OK"
 msg_partition_scheme="Partition Scheme"
 msg_partition_scheme_help="Select partitioning scheme. GPT is recommended."
-msg_please_enter_a_name_for_your_zpool="Please enter a name for your zpool:"
+msg_please_enter_a_name_for_your_pool="Please enter a name for your pool:"
 msg_please_enter_amount_of_swap_space="Please enter amount of swap space (SI-Unit suffixes\nrecommended; e.g., \`2g' for 2 Gigabytes):"
-msg_please_select_one_or_more_disks="Please select one or more disks to create a zpool:"
+msg_please_select_one_or_more_disks="Please select one or more disks to create a pool:"
 msg_pool_name="Pool Name"
 msg_pool_name_cannot_be_empty="Pool name cannot be empty."
-msg_pool_name_help="Customize the name of the zpool to be created (Required)"
+msg_pool_name_help="Customize the name of the pool to be created (Required)"
 msg_pool_type_disks="Pool Type/Disks:"
 msg_pool_type_disks_help="Choose type of ZFS Virtual Device and disks to use (Required)"
 msg_processing_selection="Processing selection..."
@@ -323,9 +323,9 @@ msg_unsupported_partition_scheme="%s is an unsupported partition scheme"
 msg_user_cancelled="User Cancelled."
 msg_yes="YES"
 msg_zfs_configuration="ZFS Configuration"
-msg_please_enter_options_for_your_zpool="Please enter options for your zpool"
+msg_please_enter_options_for_your_pool="Please enter options for your pool"
 msg_zfs_options_name="ZFS Pool Options"
-msg_zfs_options_name_help="Customize ZFS options for the zpool to be created"
+msg_zfs_options_name_help="Customize ZFS options for the pool to be created"
 
 ############################################################ FUNCTIONS
 
@@ -748,8 +748,8 @@ dialog_menu_layout()
 
 # zfs_create_diskpart $disk $index
 #
-# For each block device to be used in the zpool, rather than just create the
-# zpool with the raw block devices (e.g., da0, da1, etc.) we create partitions
+# For each block device to be used in the pool, rather than just create the
+# pool with the raw block devices (e.g., da0, da1, etc.) we create partitions
 # so we can have some real swap. This also provides wiggle room incase your
 # replacement drivers do not have the exact same sector counts.
 #
@@ -790,7 +790,7 @@ zfs_create_diskpart()
 
 	# Check for unknown partition scheme before proceeding further
 	case "$ZFSBOOT_PARTITION_SCHEME" in
-	""|MBR|GPT*) : known good ;;
+	""|GPT*) : known good ;;
 	*)
 		f_dprintf "$funcname: %s is an unsupported partition scheme" \
 		          "$ZFSBOOT_PARTITION_SCHEME"
@@ -825,14 +825,11 @@ zfs_create_diskpart()
 	#
 	# Lay down the desired type of partition scheme
 	#
-	local setsize mbrindex align_small align_big
+	local setsize align_small align_big
 	#
 	# If user has requested 4 K alignment, add these params to the
 	# gpart add calls. With GPT, we align large partitions to 1 M for
-	# improved performance on SSDs. MBR does not always play well with gaps
-	# between partitions, so all alignment is only 4k for that case.
-	# With MBR, we align the BSD partition that contains the MBR, otherwise
-	# the system fails to boot.
+	# improved performance on SSDs.
 	#
 	if [ "$ZFSBOOT_FORCE_4K_SECTORS" ]; then
 		align_small="-a 4k"
@@ -905,7 +902,7 @@ zfs_create_diskpart()
 			fi
 		fi
 
-		# NB: zpool will use the `zfs#' GPT labels
+		# NB: ZFS pools will use `zfs#' GPT labels
 		if [ "$ZFSBOOT_BOOT_TYPE" = "BIOS+UEFI" ]; then
 			if [ "$ZFSBOOT_BOOT_POOL" ]; then
 				bootpart=p3 swappart=p4 targetpart=p4
@@ -974,90 +971,6 @@ zfs_create_diskpart()
 		                /dev/$disk$targetpart
 		;;
 
-	MBR) f_dprintf "$funcname: Creating MBR layout..."
-		#
-		# Enable boot pool if encryption is desired
-		#
-		[ "$ZFSBOOT_GELI_ENCRYPTION" ] && ZFSBOOT_BOOT_POOL=1
-		#
-		# 1. Create MBR layout (no labels)
-		#
-		f_eval_catch $funcname gpart "$GPART_CREATE" mbr $disk ||
-		             return $FAILURE
-		f_eval_catch $funcname gpart "$GPART_BOOTCODE" /boot/mbr \
-		             $disk || return $FAILURE
-
-		#
-		# 2. Add freebsd slice with all available space
-		#
-		f_eval_catch $funcname gpart "$GPART_ADD_ALIGN" \
-		             "$align_small" freebsd $disk || return $FAILURE
-		f_eval_catch $funcname gpart "$GPART_SET_ACTIVE" 1 $disk ||
-		             return $FAILURE
-		# Pedantically nuke any old labels
-		f_eval_catch -d $funcname zpool "$ZPOOL_LABELCLEAR_F" \
-		                /dev/${disk}s1
-		# Pedantically nuke any old scheme
-		f_eval_catch -d $funcname gpart "$GPART_DESTROY_F" ${disk}s1
-
-		#
-		# 3. Write BSD scheme to the freebsd slice
-		#
-		f_eval_catch $funcname gpart "$GPART_CREATE" BSD ${disk}s1 ||
-		             return $FAILURE
-
-		# NB: zpool will use s1a (no labels)
-		bootpart=s1a swappart=s1b targetpart=s1d mbrindex=4
-
-		#
-		# Always prepare a boot pool on MBR
-		# Do not align this partition, there must not be a gap
-		#
-		ZFSBOOT_BOOT_POOL=1
-		f_eval_catch $funcname gpart \
-		             "$GPART_ADD_ALIGN_INDEX_WITH_SIZE" \
-		             "" 1 freebsd-zfs ${bootsize}b ${disk}s1 ||
-		             return $FAILURE
-		# Pedantically nuke any old labels
-		f_eval_catch -d $funcname zpool "$ZPOOL_LABELCLEAR_F" \
-		                /dev/$disk$bootpart
-		if [ "$ZFSBOOT_GELI_ENCRYPTION" ]; then
-			# Pedantically detach targetpart for later
-			f_eval_catch -d $funcname geli \
-			                "$GELI_DETACH_F" \
-					/dev/$disk$targetpart
-		fi
-
-		#
-		# 4. Add freebsd-swap partition
-		#
-		if [ ${swapsize:-0} -gt 0 ]; then
-			f_eval_catch $funcname gpart \
-			             "$GPART_ADD_ALIGN_INDEX_WITH_SIZE" \
-			             "$align_small" 2 freebsd-swap \
-			             ${swapsize}b ${disk}s1 || return $FAILURE
-			# Pedantically nuke any old labels on the swap
-			f_eval_catch -d $funcname zpool "$ZPOOL_LABELCLEAR_F" \
-			                /dev/${disk}s1b
-		fi
-
-		#
-		# 5. Add freebsd-zfs partition for zroot
-		#
-		if [ "$ZFSBOOT_POOL_SIZE" ]; then
-			f_eval_catch $funcname gpart "$GPART_ADD_ALIGN_INDEX_WITH_SIZE" \
-					"$align_small" $mbrindex freebsd-zfs $ZFSBOOT_POOL_SIZE ${disk}s1 || return $FAILURE
-		else
-			f_eval_catch $funcname gpart "$GPART_ADD_ALIGN_INDEX" \
-					"$align_small" $mbrindex freebsd-zfs ${disk}s1 || return $FAILURE
-		fi
-		f_eval_catch -d $funcname zpool "$ZPOOL_LABELCLEAR_F" \
-		                /dev/$disk$targetpart # Pedantic
-		f_eval_catch $funcname dd "$DD_WITH_OPTIONS" \
-		             /boot/zfsboot /dev/${disk}s1 count=1 ||
-		             return $FAILURE
-		;;
-
 	esac # $ZFSBOOT_PARTITION_SCHEME
 
 	# Update fstab(5)
@@ -1102,7 +1015,7 @@ zfs_create_boot()
 	local zroot_vdevtype="$2"
 	local zroot_vdevs= # Calculated below
 	local swap_devs= # Calculated below
-	local boot_vdevs= # Used for geli(8) and/or MBR layouts
+	local boot_vdevs= # Used for geli(8) layouts
 	shift 2 # poolname vdev_type
 	local disks="$*" disk
 	local isswapmirror
@@ -1191,7 +1104,6 @@ zfs_create_boot()
 		f_dprintf "$funcname: With 4K sectors..."
 		f_eval_catch $funcname sysctl "$SYSCTL_ZFS_MIN_ASHIFT_12" \
 		    || return $FAILURE
-		sysctl kern.geom.part.mbr.enforce_chs=0
 	fi
 	local n=0
 	for disk in $disks; do
@@ -1415,40 +1327,6 @@ zfs_create_boot()
 		"bootfs=\"$zroot_name/$zroot_bootfs\"" "$zroot_name" ||
 		return $FAILURE
 
-	# MBR boot loader touch-up
-	if [ "$ZFSBOOT_PARTITION_SCHEME" = "MBR" ]; then
-		# Export the pool(s)
-		f_dprintf "$funcname: Temporarily exporting ZFS pool(s)..."
-		f_eval_catch $funcname zpool "$ZPOOL_EXPORT" "$zroot_name" ||
-			     return $FAILURE
-		if [ "$ZFSBOOT_BOOT_POOL" ]; then
-			f_eval_catch $funcname zpool "$ZPOOL_EXPORT" \
-				     "$bootpool_name" || return $FAILURE
-		fi
-
-		f_dprintf "$funcname: Updating MBR boot loader on disks..."
-		# Stick the ZFS boot loader in the "convenient hole" after
-		# the ZFS internal metadata
-		for disk in $disks; do
-			f_eval_catch $funcname dd "$DD_WITH_OPTIONS" \
-			             /boot/zfsboot /dev/$disk$bootpart \
-			             "skip=1 seek=1024" || return $FAILURE
-		done
-
-		# Re-import the ZFS pool(s)
-		f_dprintf "$funcname: Re-importing ZFS pool(s)..."
-		f_eval_catch $funcname zpool "$ZPOOL_IMPORT_WITH_OPTIONS" \
-			     "-o altroot=\"$BSDINSTALL_CHROOT\"" \
-			     "$zroot_name" || return $FAILURE
-		if [ "$ZFSBOOT_BOOT_POOL" ]; then
-			# Import the bootpool, but do not mount it yet
-			f_eval_catch $funcname zpool \
-				     "$ZPOOL_IMPORT_WITH_OPTIONS" \
-				     "-o altroot=\"$BSDINSTALL_CHROOT\" -N" \
-				     "$bootpool_name" || return $FAILURE
-		fi
-	fi
-
 	# Remount bootpool and create symlink(s)
 	if [ "$ZFSBOOT_BOOT_POOL" ]; then
 		f_eval_catch $funcname zfs "$ZFS_MOUNT" "$bootpool_name" ||
@@ -1594,7 +1472,7 @@ dialog_menu_diskinfo()
 	return $SUCCESS
 }
 
-dialog_zpool_name()
+dialog_pool_name()
 {
 	local prompt="$* is already taken, please enter a name for the ZFS pool \
 	(Or confirm using the same name by just pressing enter)"
@@ -1639,7 +1517,7 @@ for pool in ${pools}; do
 	f_dprintf "Checking ${pool} against ${ZFSBOOT_POOL_NAME}"
 	if [ "${pool}" = "${ZFSBOOT_POOL_NAME}" ]; then
 		f_dprintf "Pool ${pool} already taken"
-		ZFSBOOT_POOL_NAME=$(dialog_zpool_name "${ZFSBOOT_POOL_NAME}")
+		ZFSBOOT_POOL_NAME=$(dialog_pool_name "${ZFSBOOT_POOL_NAME}")
 		break
 	fi
 done
@@ -1771,7 +1649,7 @@ while :; do
 	?" $msg_pool_name")
 		# Prompt the user to input/change the name for the new pool
 		f_dialog_input input \
-			"$msg_please_enter_a_name_for_your_zpool" \
+			"$msg_please_enter_a_name_for_your_pool" \
 			"$ZFSBOOT_POOL_NAME" &&
 			ZFSBOOT_POOL_NAME="$input"
 		;;
@@ -1793,7 +1671,7 @@ while :; do
 		fi
 		;;
 	?" $msg_partition_scheme")
-		# Toggle between GPT (BIOS), GPT (UEFI) and MBR
+		# Toggle between partition schemes
 		if [ "$ZFSBOOT_PARTITION_SCHEME" = "GPT" -a \
 		     "$ZFSBOOT_BOOT_TYPE" = "BIOS" ]
 		then
@@ -1805,9 +1683,6 @@ while :; do
 			ZFSBOOT_PARTITION_SCHEME="GPT"
 			ZFSBOOT_BOOT_TYPE="BIOS+UEFI"
 		elif [ "$ZFSBOOT_PARTITION_SCHEME" = "GPT" ]; then
-			ZFSBOOT_PARTITION_SCHEME="MBR"
-			ZFSBOOT_BOOT_TYPE="BIOS"
-		elif [ "$ZFSBOOT_PARTITION_SCHEME" = "MBR" ]; then
 			ZFSBOOT_PARTITION_SCHEME="GPT + Active"
 			ZFSBOOT_BOOT_TYPE="BIOS"
 		elif [ "$ZFSBOOT_PARTITION_SCHEME" = "GPT + Active" ]; then
@@ -1860,7 +1735,7 @@ while :; do
 	?" $msg_zfs_options_name")
 		# Prompt the user to input/change the pool options
 		f_dialog_input input \
-			"$msg_please_enter_options_for_your_zpool" \
+			"$msg_please_enter_options_for_your_pool" \
 			"$ZFSBOOT_POOL_CREATE_OPTIONS" &&
 			ZFSBOOT_POOL_CREATE_OPTIONS="$input"
 		;;

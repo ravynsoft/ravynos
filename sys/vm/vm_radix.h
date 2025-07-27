@@ -80,26 +80,6 @@ vm_radix_iter_insert(struct pctrie_iter *pages, vm_page_t page)
 }
 
 /*
- * Insert the page into the vm_radix tree with its pindex as the key.  Panic if
- * the pindex already exists.  Return zero on success or a non-zero error on
- * memory allocation failure.  Set the out parameter mpred to the previous page
- * in the tree as if found by a previous call to vm_radix_lookup_le with the
- * new page pindex.
- */
-static __inline int
-vm_radix_insert_lookup_lt(struct vm_radix *rtree, vm_page_t page,
-    vm_page_t *mpred)
-{
-	int error;
-
-	error = VM_RADIX_PCTRIE_INSERT_LOOKUP_LE(&rtree->rt_trie, page, mpred);
-	if (__predict_false(error == EEXIST))
-		panic("vm_radix_insert_lookup_lt: page already present, %p",
-		    *mpred);
-	return (error);
-}
-
-/*
  * Returns the value stored at the index assuming there is an external lock.
  *
  * If the index is not present, NULL is returned.
@@ -119,6 +99,29 @@ static __inline vm_page_t
 vm_radix_lookup_unlocked(struct vm_radix *rtree, vm_pindex_t index)
 {
 	return (VM_RADIX_PCTRIE_LOOKUP_UNLOCKED(&rtree->rt_trie, index));
+}
+
+/*
+ * Returns the number of contiguous, non-NULL pages read into the ma[]
+ * array, without requiring an external lock.
+ */
+static __inline int
+vm_radix_lookup_range_unlocked(struct vm_radix *rtree, vm_pindex_t index,
+    vm_page_t ma[], int count)
+{
+	return (VM_RADIX_PCTRIE_LOOKUP_RANGE_UNLOCKED(&rtree->rt_trie, index,
+	    ma, count));
+}
+
+/*
+ * Returns the number of contiguous, non-NULL pages read into the ma[]
+ * array, without requiring an external lock.
+ */
+static __inline int
+vm_radix_iter_lookup_range(struct pctrie_iter *pages, vm_pindex_t index,
+    vm_page_t ma[], int count)
+{
+	return (VM_RADIX_PCTRIE_ITER_LOOKUP_RANGE(pages, index, ma, count));
 }
 
 /*
@@ -258,6 +261,18 @@ vm_radix_iter_step(struct pctrie_iter *pages)
 }
 
 /*
+ * Iterate over each non-NULL page from page 'start' to the end of the object.
+ */
+#define VM_RADIX_FOREACH_FROM(m, pages, start)				\
+	for (m = vm_radix_iter_lookup_ge(pages, start); m != NULL;	\
+	    m = vm_radix_iter_step(pages))
+
+/*
+ * Iterate over each non-NULL page from the beginning to the end of the object.
+ */
+#define VM_RADIX_FOREACH(m, pages) VM_RADIX_FOREACH_FROM(m, pages, 0)
+
+/*
  * Initialize an iterator pointing to the page with the greatest pindex that is
  * less than or equal to the specified pindex, or NULL if there are no such
  * pages.  Return the page.
@@ -271,6 +286,19 @@ vm_radix_iter_lookup_le(struct pctrie_iter *pages, vm_pindex_t index)
 }
 
 /*
+ * Initialize an iterator pointing to the page with the greatest pindex that is
+ * less than to the specified pindex, or NULL if there are no such
+ * pages.  Return the page.
+ *
+ * Requires that access be externally synchronized by a lock.
+ */
+static __inline vm_page_t
+vm_radix_iter_lookup_lt(struct pctrie_iter *pages, vm_pindex_t index)
+{
+	return (index == 0 ? NULL : vm_radix_iter_lookup_le(pages, index - 1));
+}
+
+/*
  * Update the iterator to point to the page with the pindex that is one greater
  * than the current pindex, or NULL if there is no such page.  Return the page.
  *
@@ -281,6 +309,20 @@ vm_radix_iter_next(struct pctrie_iter *pages)
 {
 	return (VM_RADIX_PCTRIE_ITER_NEXT(pages));
 }
+
+/*
+ * Iterate over consecutive non-NULL pages from position 'start' to first NULL
+ * page.
+ */
+#define VM_RADIX_FORALL_FROM(m, pages, start)				\
+	for (m = vm_radix_iter_lookup(pages, start); m != NULL;		\
+	    m = vm_radix_iter_next(pages))
+
+/*
+ * Iterate over consecutive non-NULL pages from the beginning to first NULL
+ * page.
+ */
+#define VM_RADIX_FORALL(m, pages) VM_RADIX_FORALL_FROM(m, pages, 0)
 
 /*
  * Update the iterator to point to the page with the pindex that is one less

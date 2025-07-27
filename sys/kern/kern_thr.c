@@ -26,12 +26,16 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "opt_ktrace.h"
 #include "opt_posix.h"
 #include "opt_thrworkq.h"
 #include "opt_hwpmc_hooks.h"
-
+#include "opt_hwt_hooks.h"
 #include <sys/systm.h>
 #include <sys/kernel.h>
+#ifdef KTRACE
+#include <sys/ktrace.h>
+#endif
 #include <sys/limits.h>
 #include <sys/lock.h>
 #include <sys/mman.h>
@@ -59,6 +63,9 @@
 #include <sys/umtxvar.h>
 #ifdef	HWPMC_HOOKS
 #include <sys/pmckern.h>
+#endif
+#ifdef HWT_HOOKS
+#include <dev/hwt/hwt_hook.h>
 #endif
 
 #include <machine/frame.h>
@@ -190,7 +197,7 @@ thr_new_initthr(struct thread *td, void *thunk)
 	if (error != 0)
 		return (error);
 	/* Setup user TLS address and TLS pointer register. */
-	return (cpu_set_user_tls(td, param->tls_base));
+	return (cpu_set_user_tls(td, param->tls_base, param->flags));
 }
 
 int
@@ -199,6 +206,9 @@ kern_thr_new(struct thread *td, struct thr_param *param)
 	struct rtprio rtp, *rtpp;
 	int error;
 
+	if ((param->flags & ~(THR_SUSPENDED | THR_SYSTEM_SCOPE |
+	    THR_C_RUNTIME)) != 0)
+		return (EINVAL);
 	rtpp = NULL;
 	if (param->rtp != 0) {
 		error = copyin(param->rtp, &rtp, sizeof(struct rtprio));
@@ -206,6 +216,10 @@ kern_thr_new(struct thread *td, struct thr_param *param)
 			return (error);
 		rtpp = &rtp;
 	}
+#ifdef KTRACE
+	if (KTRPOINT(td, KTR_STRUCT))
+		ktrthrparam(param);
+#endif
 	return (thread_create(td, rtpp, thr_new_initthr, param));
 }
 
@@ -288,6 +302,10 @@ thread_create(struct thread *td, struct rtprio *rtp,
 		PMC_CALL_HOOK(newtd, PMC_FN_THR_CREATE, NULL);
 	else if (PMC_SYSTEM_SAMPLING_ACTIVE())
 		PMC_CALL_HOOK_UNLOCKED(newtd, PMC_FN_THR_CREATE_LOG, NULL);
+#endif
+
+#ifdef HWT_HOOKS
+	HWT_CALL_HOOK(newtd, HWT_THREAD_CREATE, NULL);
 #endif
 
 	tidhash_add(newtd);
@@ -629,6 +647,9 @@ sys_thr_set_name(struct thread *td, struct thr_set_name_args *uap)
 #ifdef HWPMC_HOOKS
 	if (PMC_PROC_IS_USING_PMCS(p) || PMC_SYSTEM_SAMPLING_ACTIVE())
 		PMC_CALL_HOOK_UNLOCKED(ttd, PMC_FN_THR_CREATE_LOG, NULL);
+#endif
+#ifdef HWT_HOOKS
+	HWT_CALL_HOOK(ttd, HWT_THREAD_SET_NAME, NULL);
 #endif
 #ifdef KTR
 	sched_clear_tdname(ttd);

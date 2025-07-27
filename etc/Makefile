@@ -59,7 +59,11 @@ distribution:
 	@echo "set DESTDIR before running \"make ${.TARGET}\""
 	@false
 .endif
+.if ${MK_MITKRB5} != "no"
+	${_+_}cd ${.CURDIR}/gss-krb5; ${MAKE} install
+.else
 	${_+_}cd ${.CURDIR}/gss; ${MAKE} install
+.endif
 	${_+_}cd ${.CURDIR}/mtree; ${MAKE} install
 	${_+_}cd ${SRCTOP}/share/termcap; ${MAKE} etc-termcap
 	${_+_}cd ${SRCTOP}/usr.sbin/rmt; ${MAKE} etc-rmt
@@ -86,7 +90,7 @@ distribution:
 .if ${MK_KERBEROS} != "no"
 	cd ${.CURDIR}/root; \
 	    ${INSTALL} -o ${BINOWN} -g ${BINGRP} -m 644 \
-		-T "package=runtime" \
+		-T "package=runtime,config" \
 		dot.k5login ${DESTDIR}/root/.k5login;
 .endif
 

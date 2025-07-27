@@ -58,6 +58,7 @@
 #include <sys/serial.h>
 #include <sys/signalvar.h>
 #include <sys/smp.h>
+#include <sys/stdarg.h>
 #include <sys/sysctl.h>
 #include <sys/tty.h>
 #include <sys/power.h>
@@ -72,7 +73,6 @@
 #include <machine/psl.h>
 #include <machine/frame.h>
 #endif
-#include <machine/stdarg.h>
 
 #if defined(__amd64__) || defined(__i386__)
 #include <machine/vmparam.h>
@@ -1310,7 +1310,7 @@ sctty_ioctl(struct tty *tp, u_long cmd, caddr_t data, struct thread *td)
 		if (i == sc->cur_scp->index)
 			return 0;
 		error =
-		    tsleep(VTY_WCHAN(sc, i), (PZERO + 1) | PCATCH, "waitvt", 0);
+		    tsleep(VTY_WCHAN(sc, i), PZERO | PCATCH, "waitvt", 0);
 		return error;
 
 	case VT_GETACTIVE: /* get active vty # */
@@ -3571,7 +3571,7 @@ sc_alloc_scr_buffer(scr_stat *scp, int wait, int discard)
 	old = scp->vtb;
 	sc_vtb_init(&new, VTB_MEMORY, scp->xsize, scp->ysize, NULL, wait);
 	if (!discard && (old.vtb_flags & VTB_VALID)) {
-		/* retain the current cursor position and buffer contants */
+		/* retain the current cursor position and buffer constants */
 		scp->cursor_oldpos = scp->cursor_pos;
 		/*
 		 * This works only if the old buffer has the same size as or

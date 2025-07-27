@@ -39,6 +39,7 @@
 #include <sys/conf.h>
 #include <sys/event.h>
 #include <sys/filio.h>
+#include <sys/inotify.h>
 #include <sys/kernel.h>
 #include <sys/limits.h>
 #include <sys/lock.h>
@@ -119,6 +120,8 @@ struct vop_vector default_vnodeops = {
 	.vop_getwritemount =	vop_stdgetwritemount,
 	.vop_inactive =		VOP_NULL,
 	.vop_need_inactive =	vop_stdneed_inactive,
+	.vop_inotify =		vop_stdinotify,
+	.vop_inotify_add_watch = vop_stdinotify_add_watch,
 	.vop_ioctl =		vop_stdioctl,
 	.vop_kqfilter =		vop_stdkqfilter,
 	.vop_islocked =		vop_stdislocked,
@@ -451,6 +454,9 @@ vop_stdpathconf(struct vop_pathconf_args *ap)
 		case _PC_DEALLOC_PRESENT:
 		case _PC_INF_PRESENT:
 		case _PC_MAC_PRESENT:
+		case _PC_NAMEDATTR_ENABLED:
+		case _PC_HAS_NAMEDATTR:
+		case _PC_HAS_HIDDENSYSTEM:
 			*ap->a_retval = 0;
 			return (0);
 		default:
@@ -1304,6 +1310,20 @@ vop_stdneed_inactive(struct vop_need_inactive_args *ap)
 }
 
 int
+vop_stdinotify(struct vop_inotify_args *ap)
+{
+	vn_inotify(ap->a_vp, ap->a_dvp, ap->a_cnp, ap->a_event, ap->a_cookie);
+	return (0);
+}
+
+int
+vop_stdinotify_add_watch(struct vop_inotify_add_watch_args *ap)
+{
+	return (vn_inotify_add_watch(ap->a_vp, ap->a_sc, ap->a_mask,
+	    ap->a_wdp, ap->a_td));
+}
+
+int
 vop_stdioctl(struct vop_ioctl_args *ap)
 {
 	struct vnode *vp;
@@ -1512,6 +1532,7 @@ vop_stdstat(struct vop_stat_args *a)
 	vap->va_gen = 0;
 	vap->va_rdev = NODEV;
 	vap->va_filerev = 0;
+	vap->va_bsdflags = 0;
 
 	error = VOP_GETATTR(vp, vap, a->a_active_cred);
 	if (error)
@@ -1589,6 +1610,7 @@ vop_stdstat(struct vop_stat_args *a)
 	sb->st_blocks = vap->va_bytes / S_BLKSIZE;
 	sb->st_gen = vap->va_gen;
 	sb->st_filerev = vap->va_filerev;
+	sb->st_bsdflags = vap->va_bsdflags;
 out:
 	return (vop_stat_helper_post(a, error));
 }

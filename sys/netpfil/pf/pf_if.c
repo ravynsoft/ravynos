@@ -86,10 +86,10 @@ static void	 pfi_attach_ifgroup(struct ifg_group *, struct pfi_kkif *);
 
 static void	 pfi_kkif_update(struct pfi_kkif *);
 static void	 pfi_dynaddr_update(struct pfi_dynaddr *dyn);
-static void	 pfi_table_update(struct pfr_ktable *, struct pfi_kkif *, int,
+static void	 pfi_table_update(struct pfr_ktable *, struct pfi_kkif *, uint8_t,
 		    int);
-static void	 pfi_instance_add(struct ifnet *, int, int);
-static void	 pfi_address_add(struct sockaddr *, int, int);
+static void	 pfi_instance_add(struct ifnet *, uint8_t, int);
+static void	 pfi_address_add(struct sockaddr *, sa_family_t, uint8_t);
 static int	 pfi_kkif_compare(struct pfi_kkif *, struct pfi_kkif *);
 static int	 pfi_skip_if(const char *, struct pfi_kkif *);
 static int	 pfi_unmask(void *);
@@ -522,7 +522,7 @@ pfi_match_addr(struct pfi_dynaddr *dyn, struct pf_addr *a, sa_family_t af)
 		case 0:
 			return (0);
 		case 1:
-			return (PF_MATCHA(0, &dyn->pfid_addr4,
+			return (pf_match_addr(0, &dyn->pfid_addr4,
 			    &dyn->pfid_mask4, a, AF_INET));
 		default:
 			return (pfr_match_addr(dyn->pfid_kt, a, AF_INET));
@@ -535,7 +535,7 @@ pfi_match_addr(struct pfi_dynaddr *dyn, struct pf_addr *a, sa_family_t af)
 		case 0:
 			return (0);
 		case 1:
-			return (PF_MATCHA(0, &dyn->pfid_addr6,
+			return (pf_match_addr(0, &dyn->pfid_addr6,
 			    &dyn->pfid_mask6, a, AF_INET6));
 		default:
 			return (pfr_match_addr(dyn->pfid_kt, a, AF_INET6));
@@ -682,7 +682,8 @@ pfi_dynaddr_update(struct pfi_dynaddr *dyn)
 }
 
 static void
-pfi_table_update(struct pfr_ktable *kt, struct pfi_kkif *kif, int net, int flags)
+pfi_table_update(struct pfr_ktable *kt, struct pfi_kkif *kif, uint8_t net,
+    int flags)
 {
 	int			 e, size2 = 0;
 	struct ifg_member	*ifgm;
@@ -705,11 +706,12 @@ pfi_table_update(struct pfr_ktable *kt, struct pfi_kkif *kif, int net, int flags
 }
 
 static void
-pfi_instance_add(struct ifnet *ifp, int net, int flags)
+pfi_instance_add(struct ifnet *ifp, uint8_t net, int flags)
 {
 	struct ifaddr	*ia;
 	int		 got4 = 0, got6 = 0;
-	int		 net2, af;
+	sa_family_t	 af;
+	uint8_t		 net2;
 
 	NET_EPOCH_ASSERT();
 
@@ -773,7 +775,7 @@ pfi_instance_add(struct ifnet *ifp, int net, int flags)
 }
 
 static void
-pfi_address_add(struct sockaddr *sa, int af, int net)
+pfi_address_add(struct sockaddr *sa, sa_family_t af, uint8_t net)
 {
 	struct pfr_addr	*p;
 	int		 i;

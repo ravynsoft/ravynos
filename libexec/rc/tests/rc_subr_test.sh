@@ -52,16 +52,16 @@ oomprotect_all_body()
 	_rc_arg="$4"
 	setvar "${name}_oomprotect" all
 	command="/usr/sbin/daemon"
-	command_args="-P $pidfile -p $_childpidfile -- /bin/sleep 5"
+	command_args="-P $pidfile -p $_childpidfile -- /bin/sleep 60"
 	run_rc_command "$_rc_arg"
 	LITERAL
 
 	atf_check -s exit:0 -o inline:"Starting ${__name}.\n" -e empty \
 		/bin/sh "$__script" "$__name" "$__pidfile" "$__childpidfile" onestart
 	atf_check -s exit:0 -o match:'^..1..... .......1$' -e empty \
-		ps -p "$(cat "$__pidfile")" -ax -o flags,flags2
+		ps -p "$(cat "$__pidfile")" -o flags,flags2
 	atf_check -s exit:0 -o match:'^..1..... .......1$' -e empty \
-		ps -p "$(cat "$__childpidfile")" -ax -o flags,flags2
+		ps -p "$(cat "$__childpidfile")" -o flags,flags2
 	atf_check -s exit:0 -o ignore -e empty \
 		/bin/sh "$__script" "$__name" "$__pidfile" "$__childpidfile" onestop
 }
@@ -92,7 +92,7 @@ oomprotect_yes_body()
 	setvar "${name}_oomprotect" yes
 	procname="/bin/sleep"
 	command="/usr/sbin/daemon"
-	command_args="-p $pidfile -- $procname 5"
+	command_args="-p $pidfile -- $procname 60"
 	run_rc_command "$_rc_arg"
 	LITERAL
 

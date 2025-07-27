@@ -29,7 +29,7 @@
 #
 
 .if !target(__<src.opts.mk>__)
-__<src.opts.mk>__:
+__<src.opts.mk>__:	.NOTMAIN
 
 .include <bsd.own.mk>
 
@@ -123,7 +123,6 @@ __DEFAULT_YES_OPTIONS = \
     LEGACY_CONSOLE \
     LLD \
     LLD_BOOTSTRAP \
-    LLVM_ASSERTIONS \
     LLVM_BINUTILS \
     LLVM_COV \
     LLVM_CXXFILT \
@@ -143,6 +142,7 @@ __DEFAULT_YES_OPTIONS = \
     MAIL \
     MAILWRAPPER \
     MAKE \
+    MITKRB5 \
     MLX5TOOL \
     NETCAT \
     NETGRAPH \
@@ -209,6 +209,7 @@ __DEFAULT_NO_OPTIONS = \
     HESIOD \
     LOADER_VERBOSE \
     LOADER_VERIEXEC_PASS_MANIFEST \
+    LLVM_ASSERTIONS \
     LLVM_FULL_DEBUGINFO \
     MALLOC_PRODUCTION \
     OFED_EXTRA \
@@ -403,6 +404,7 @@ MK_OPENSSL:=	no
 MK_OPENSSH:=	no
 MK_KERBEROS:=	no
 MK_KERBEROS_SUPPORT:=	no
+MK_MITKRB5:=	no
 .endif
 
 .if ${MK_DTRACE} == "no"
@@ -429,6 +431,7 @@ MK_OPENSSH:=	no
 MK_OPENSSL_KTLS:=	no
 MK_KERBEROS:=	no
 MK_KERBEROS_SUPPORT:=	no
+MK_MITKRB5:=	no
 MK_LDNS:=	no
 MK_PKGBOOTSTRAP:=	no
 MK_LOADER_ZFS:=	no

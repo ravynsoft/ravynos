@@ -4,13 +4,13 @@ SUBDIR+=	libfreebsd
 SUBDIR+=	libhash
 SUBDIR+=	libjail
 SUBDIR+=	libucl
+SUBDIR+=	liblyaml
 
 LUASRC?=	${SRCTOP}/contrib/lua/src
 .PATH: ${LUASRC}
 
 PROG=	flua
 WARNS?=	3
-MAN=	# No manpage; this is internal.
 
 CWARNFLAGS.gcc+=	-Wno-format-nonliteral
 

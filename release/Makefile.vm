@@ -1,6 +1,4 @@
 #
-#
-#
 # Makefile for building virtual machine and cloud provider disk images.
 #
 
@@ -44,8 +42,9 @@ BASIC-CLOUDINIT_FSLIST?=	ufs zfs
 BASIC-CLOUDINIT_DESC?=	Images for VM with cloudinit disk config support
 EC2_FORMAT=	raw
 EC2_FSLIST?=	ufs zfs
-EC2_FLAVOURS?=	BASE CLOUD-INIT SMALL
+EC2_FLAVOURS?=	BASE BUILDER CLOUD-INIT SMALL
 EC2-BASE_DESC=	Amazon EC2 image
+EC2-BUILDER_DESC=	Amazon EC2 AMI Builder image
 EC2-CLOUD-INIT_DESC=	Amazon EC2 Cloud-Init image
 EC2-SMALL_DESC=	Amazon EC2 small image
 GCE_FORMAT=	raw
@@ -107,11 +106,12 @@ QEMUTGT=emulator-portinstall
 .endif
 QEMUTGT?=
 
-.if defined(WITH_CLOUDWARE) && !empty(WITH_CLOUDWARE) && !empty(CLOUDWARE)
 .if (defined(WITHOUT_QEMU) && !defined(NO_ROOT)) || \
   (!defined(WITHOUT_QEMU) && defined(NO_ROOT))
 .error WITHOUT_QEMU requires NO_ROOT (and vice versa)
 .endif
+
+.if defined(WITH_CLOUDWARE) && !empty(WITH_CLOUDWARE) && !empty(CLOUDWARE)
 . for _CW in ${CLOUDWARE}
 .  if exists(${.CURDIR}/tools/${_CW:tl}.conf) && !defined(${_CW:tu}CONF)
 ${_CW:tu}CONF?=	${.CURDIR}/tools/${_CW:tl}.conf
@@ -125,16 +125,25 @@ CLEANFILES+=	${_CW:tl}.${_FS}.${_FMT}.img \
 		${_CW:tl}.${_FS}.${_FMT}.raw
 ${_CW:tu}${_FS:tu}${_FMT:tu}IMAGE=	${_CW:tl}.${_FS}.${_FMT}
 
+# Special handling: EC2 "AMI Builder" images need a copy of the "base" disk
+# built first.
+.if ${_CW} == EC2-BUILDER
+cw-${_CW:tl}-${_FS}-${_FMT}: cw-ec2-base-${_FS}-${_FMT}
+.endif
+
 cw-${_CW:tl}-${_FS}-${_FMT}: ${QEMUTGT}
 	mkdir -p ${.OBJDIR}/${.TARGET}
 	env TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} SWAPSIZE=${SWAPSIZE} \
 		QEMUSTATIC=${QEMUSTATIC} \
+		EC2BASEIMG=${.OBJDIR}/${EC2-BASE${_FS:tu}${_FMT:tu}IMAGE} \
 		${WITHOUT_QEMU:DWITHOUT_QEMU=true} \
 		${NO_ROOT:DNO_ROOT=true} \
+		PKG_INSTALL_EPOCH=${PKG_INSTALL_EPOCH:U${GITEPOCH}} \
 		${.CURDIR}/scripts/mk-vmimage.sh \
-		-C ${.CURDIR}/tools/vmimage.subr -d ${.OBJDIR}/${.TARGET} -F ${_FS} \
+		-C ${.CURDIR}/tools/vmimage.subr -d ${.OBJDIR}/${.TARGET} \
+		-F ${"${_CW:MEC2-BUILDER}" != "":?ufs:${_FS}} \
 		-i ${.OBJDIR}/${_CW:tl}.${_FS}.${_FMT}.img -s ${VMSIZE} -f ${_FMT} \
-		-S ${WORLDDIR} -o ${.OBJDIR}/${${_CW:tu}${_FS:tu}${_FMT:tu}IMAGE} -c ${${_CW:tu}CONF}
+		-S ${WORLDDIR} -o ${.OBJDIR}/${${_CW:tu}${_FS:tu}${_FMT:tu}IMAGE} -c ${${_CW:tu}CONF} || true
 	touch ${.TARGET}
 .   endfor
 .  endfor
@@ -147,7 +156,7 @@ CLOUDTARGETS+=	cw-${_CW:tl}-${_FMT}
 CLEANFILES+=	${_CW:tl}.${_FMT}
 ${_CW:tu}${_FMT:tu}IMAGE=	${_CW:tl}.${_FMT}
 cw-${_CW:tl}-${_FMT}: cw-${_CW:tl}-${VMFS}-${_FMT}
-	ln -f ${${_CW:tu}${VMFS:tu}${_FMT:tu}IMAGE} ${${_CW:tu}${_FMT:tu}IMAGE}
+	ln -f ${${_CW:tu}${VMFS:tu}${_FMT:tu}IMAGE} ${${_CW:tu}${_FMT:tu}IMAGE} || true
 .  endfor
 
 # Targets without a disk format listed are the first disk format on the list
@@ -180,12 +189,14 @@ vm-image:	${QEMUTGT}
 	mkdir -p ${.OBJDIR}/${.TARGET}-${FORMAT}-${FS}
 	env TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} SWAPSIZE=${SWAPSIZE} \
 		QEMUSTATIC=${QEMUSTATIC} \
-		WITHOUT_QEMU=${WITHOUT_QEMU:Dtrue} \
+		${WITHOUT_QEMU:DWITHOUT_QEMU=true} \
+		${NO_ROOT:DNO_ROOT=true} \
+		PKG_INSTALL_EPOCH=${PKG_INSTALL_EPOCH:U${GITEPOCH}} \
 		${.CURDIR}/scripts/mk-vmimage.sh \
 		-C ${.CURDIR}/tools/vmimage.subr \
 		-d ${.OBJDIR}/${.TARGET}-${FORMAT}-${FS} -F ${FS} \
 		-i ${.OBJDIR}/${FORMAT}.${FS}.img -s ${VMSIZE} -f ${FORMAT} \
-		-S ${WORLDDIR} -o ${.OBJDIR}/${VMBASE}.${FS}.${FORMAT}
+		-S ${WORLDDIR} -o ${.OBJDIR}/${VMBASE}.${FS}.${FORMAT} || true
 .  endfor
 . endfor
 .endif

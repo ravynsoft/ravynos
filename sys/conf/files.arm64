@@ -547,7 +547,9 @@ arm/annapurna/alpine/alpine_serdes.c		optional al_serdes fdt		\
 
 # Apple
 arm64/apple/apple_aic.c				optional soc_apple_t8103 fdt
+arm64/apple/apple_pinctrl.c			optional soc_apple_t8103 fdt
 arm64/apple/apple_wdog.c			optional soc_apple_t8103 fdt
+arm64/apple/exynos_uart.c			optional soc_apple_t8103 fdt
 
 # Broadcom
 arm64/broadcom/brcmmdio/mdio_mux_iproc.c		optional soc_brcm_ns2 fdt

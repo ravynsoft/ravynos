@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2024, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2025, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -179,10 +179,10 @@
 
 #include <sys/ctype.h>
 #include <sys/param.h>
+#include <sys/stdarg.h>
 #include <sys/systm.h>
 #include <sys/libkern.h>
 #include <machine/acpica_machdep.h>
-#include <machine/stdarg.h>
 
 #include "opt_acpi.h"
 

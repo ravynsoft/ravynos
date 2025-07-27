@@ -8,8 +8,6 @@ SHLIBDIR?=	/lib
 LIB=		tinfow
 SHLIB_MAJOR=	9
 
-NO_LINT=
-
 NCURSES_MAJOR!=	egrep 'NCURSES_MAJOR[ 	]*=' ${NCURSES_DIR}/dist.mk | sed -e 's%^[^0-9]*%%'
 NCURSES_MINOR!=	egrep 'NCURSES_MINOR[ 	]*=' ${NCURSES_DIR}/dist.mk | sed -e 's%^[^0-9]*%%'
 NCURSES_PATCH!=	egrep 'NCURSES_PATCH[ 	]*=' ${NCURSES_DIR}/dist.mk | sed -e 's%^[^0-9]*%%'
@@ -261,10 +259,18 @@ term.h: MKterm.h.awk edit_cfg.sh Caps Caps-ncurses
 	sh ${NCURSES_DIR}/include/edit_cfg.sh ${NCURSES_CFG_H} $@.new
 	mv -f $@.new $@
 
+# Avoid hard-coding absolute source paths if requested.
+.if ${MK_REPRODUCIBLE_BUILD} != "no"
+NCURSES_SRCTOP=/usr/src
+.else
+NCURSES_SRCTOP=${SRCTOP}
+.endif
+
 curses.h: curses.head MKkey_defs.sh Caps Caps-ncurses
 	cat curses.head > $@.new
 	AWK=${AWK} _POSIX2_VERSION=199209 sh ${NCURSES_DIR}/include/MKkey_defs.sh \
 	    ${NCURSES_DIR}/include/Caps ${NCURSES_DIR}/include/Caps-ncurses >> $@.new
+	sed -i '' 's|${SRCTOP}|${NCURSES_SRCTOP}|g' $@.new
 	cat ${NCURSES_DIR}/include/curses.wide >> $@.new
 	cat ${NCURSES_DIR}/include/curses.tail >> $@.new
 	mv -f $@.new $@
@@ -389,6 +395,7 @@ unctrl.h: unctrl.h.in
 terminfo.5: MKterminfo.sh terminfo.head Caps
 	sh ${NCURSES_DIR}/man/MKterminfo.sh ${NCURSES_DIR}/man/terminfo.head \
 	    ${NCURSES_DIR}/include/Caps ${NCURSES_DIR}/man/terminfo.tail >$@
+	sed -i '' 's|${SRCTOP}|${NCURSES_SRCTOP}|g' $@
 
 CLEANFILES+=	terminfo.5
 

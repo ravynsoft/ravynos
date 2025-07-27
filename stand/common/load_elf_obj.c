@@ -30,11 +30,8 @@
 #include <sys/exec.h>
 #include <sys/linker.h>
 #include <sys/module.h>
-#include <stdint.h>
-#include <string.h>
 #include <machine/elf.h>
 #include <stand.h>
-#include <sys/link_elf.h>
 
 #include "bootstrap.h"
 #include "modinfo.h"
@@ -160,10 +157,7 @@ __elfN(obj_loadfile)(char *filename, uint64_t dest,
 		goto oerr;
 	}
 
-	if (archsw.arch_loadaddr != NULL)
-		dest = archsw.arch_loadaddr(LOAD_ELF, hdr, dest);
-	else
-		dest = roundup(dest, PAGE_SIZE);
+	dest = md_align(dest);
 
 	/*
 	 * Ok, we think we should handle this.

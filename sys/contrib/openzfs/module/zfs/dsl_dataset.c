@@ -32,6 +32,7 @@
  * Copyright (c) 2019, Klara Inc.
  * Copyright (c) 2019, Allan Jude
  * Copyright (c) 2020 The FreeBSD Foundation [1]
+ * Copyright (c) 2025, Rob Norris <robn@despairlabs.com>
  *
  * [1] Portions of this software were developed by Allan Jude
  *     under sponsorship from the FreeBSD Foundation.
@@ -1518,7 +1519,7 @@ dsl_dataset_snapshot_reserve_space(dsl_dataset_t *ds, dmu_tx_t *tx)
 
 int
 dsl_dataset_snapshot_check_impl(dsl_dataset_t *ds, const char *snapname,
-    dmu_tx_t *tx, boolean_t recv, uint64_t cnt, cred_t *cr, proc_t *proc)
+    dmu_tx_t *tx, boolean_t recv, uint64_t cnt, cred_t *cr)
 {
 	int error;
 	uint64_t value;
@@ -1563,7 +1564,7 @@ dsl_dataset_snapshot_check_impl(dsl_dataset_t *ds, const char *snapname,
 	 */
 	if (cnt != 0 && cr != NULL) {
 		error = dsl_fs_ss_limit_check(ds->ds_dir, cnt,
-		    ZFS_PROP_SNAPSHOT_LIMIT, NULL, cr, proc);
+		    ZFS_PROP_SNAPSHOT_LIMIT, NULL, cr);
 		if (error != 0)
 			return (error);
 	}
@@ -1664,7 +1665,7 @@ dsl_dataset_snapshot_check(void *arg, dmu_tx_t *tx)
 			if (error == 0) {
 				error = dsl_fs_ss_limit_check(ds->ds_dir, cnt,
 				    ZFS_PROP_SNAPSHOT_LIMIT, NULL,
-				    ddsa->ddsa_cr, ddsa->ddsa_proc);
+				    ddsa->ddsa_cr);
 				dsl_dataset_rele(ds, FTAG);
 			}
 
@@ -1702,7 +1703,7 @@ dsl_dataset_snapshot_check(void *arg, dmu_tx_t *tx)
 		if (error == 0) {
 			/* passing 0/NULL skips dsl_fs_ss_limit_check */
 			error = dsl_dataset_snapshot_check_impl(ds,
-			    atp + 1, tx, B_FALSE, 0, NULL, NULL);
+			    atp + 1, tx, B_FALSE, 0, NULL);
 			dsl_dataset_rele(ds, FTAG);
 		}
 
@@ -1976,17 +1977,21 @@ dsl_dataset_snapshot(nvlist_t *snaps, nvlist_t *props, nvlist_t *errors)
 		}
 	}
 
+	cred_t *cr = CRED();
+	crhold(cr);
+
 	ddsa.ddsa_snaps = snaps;
 	ddsa.ddsa_props = props;
 	ddsa.ddsa_errors = errors;
-	ddsa.ddsa_cr = CRED();
-	ddsa.ddsa_proc = curproc;
+	ddsa.ddsa_cr = cr;
 
 	if (error == 0) {
 		error = dsl_sync_task(firstname, dsl_dataset_snapshot_check,
 		    dsl_dataset_snapshot_sync, &ddsa,
 		    fnvlist_num_pairs(snaps) * 3, ZFS_SPACE_CHECK_NORMAL);
 	}
+
+	crfree(cr);
 
 	if (suspended != NULL) {
 		for (pair = nvlist_next_nvpair(suspended, NULL); pair != NULL;
@@ -2028,7 +2033,7 @@ dsl_dataset_snapshot_tmp_check(void *arg, dmu_tx_t *tx)
 
 	/* NULL cred means no limit check for tmp snapshot */
 	error = dsl_dataset_snapshot_check_impl(ds, ddsta->ddsta_snapname,
-	    tx, B_FALSE, 0, NULL, NULL);
+	    tx, B_FALSE, 0, NULL);
 	if (error != 0) {
 		dsl_dataset_rele(ds, FTAG);
 		return (error);
@@ -2881,6 +2886,9 @@ dsl_dataset_fast_stat(dsl_dataset_t *ds, dmu_objset_stats_t *stat)
 	stat->dds_guid = dsl_get_guid(ds);
 	stat->dds_redacted = dsl_get_redacted(ds);
 	stat->dds_origin[0] = '\0';
+	stat->dds_flags = DDS_FLAG_HAS_ENCRYPTED;
+	if (ds->ds_dir->dd_crypto_obj != 0)
+		stat->dds_flags |= DDS_FLAG_ENCRYPTED;
 	if (ds->ds_is_snapshot) {
 		stat->dds_is_snapshot = B_TRUE;
 		stat->dds_num_clones = dsl_get_numclones(ds);
@@ -3312,6 +3320,106 @@ dsl_dataset_rollback(const char *fsname, const char *tosnap, void *owner,
 	    1, ZFS_SPACE_CHECK_RESERVED));
 }
 
+int
+dsl_dataset_clone_check(void *arg, dmu_tx_t *tx)
+{
+	dsl_dataset_clone_arg_t *ddca = arg;
+	dsl_dir_t *pdd;
+	const char *tail;
+	int error;
+	dsl_dataset_t *origin;
+	dsl_pool_t *dp = dmu_tx_pool(tx);
+
+	if (strchr(ddca->ddca_clone, '@') != NULL)
+		return (SET_ERROR(EINVAL));
+
+	if (strlen(ddca->ddca_clone) >= ZFS_MAX_DATASET_NAME_LEN)
+		return (SET_ERROR(ENAMETOOLONG));
+
+	error = dsl_dir_hold(dp, ddca->ddca_clone, FTAG, &pdd, &tail);
+	if (error != 0)
+		return (error);
+	if (tail == NULL) {
+		dsl_dir_rele(pdd, FTAG);
+		return (SET_ERROR(EEXIST));
+	}
+
+	error = dsl_fs_ss_limit_check(pdd, 1, ZFS_PROP_FILESYSTEM_LIMIT, NULL,
+	    ddca->ddca_cred);
+	if (error != 0) {
+		dsl_dir_rele(pdd, FTAG);
+		return (SET_ERROR(EDQUOT));
+	}
+
+	error = dsl_dataset_hold(dp, ddca->ddca_origin, FTAG, &origin);
+	if (error != 0) {
+		dsl_dir_rele(pdd, FTAG);
+		return (error);
+	}
+
+	/* You can only clone snapshots, not the head datasets. */
+	if (!origin->ds_is_snapshot) {
+		dsl_dataset_rele(origin, FTAG);
+		dsl_dir_rele(pdd, FTAG);
+		return (SET_ERROR(EINVAL));
+	}
+
+	dsl_dataset_rele(origin, FTAG);
+	dsl_dir_rele(pdd, FTAG);
+
+	return (0);
+}
+
+void
+dsl_dataset_clone_sync(void *arg, dmu_tx_t *tx)
+{
+	dsl_dataset_clone_arg_t *ddca = arg;
+	dsl_pool_t *dp = dmu_tx_pool(tx);
+	dsl_dir_t *pdd;
+	const char *tail;
+	dsl_dataset_t *origin, *ds;
+	uint64_t obj;
+	char namebuf[ZFS_MAX_DATASET_NAME_LEN];
+
+	VERIFY0(dsl_dir_hold(dp, ddca->ddca_clone, FTAG, &pdd, &tail));
+	VERIFY0(dsl_dataset_hold(dp, ddca->ddca_origin, FTAG, &origin));
+
+	obj = dsl_dataset_create_sync(pdd, tail, origin, 0,
+	    ddca->ddca_cred, NULL, tx);
+
+	VERIFY0(dsl_dataset_hold_obj(pdd->dd_pool, obj, FTAG, &ds));
+	dsl_dataset_name(origin, namebuf);
+	spa_history_log_internal_ds(ds, "clone", tx,
+	    "origin=%s (%llu)", namebuf, (u_longlong_t)origin->ds_object);
+	dsl_dataset_rele(ds, FTAG);
+	dsl_dataset_rele(origin, FTAG);
+	dsl_dir_rele(pdd, FTAG);
+}
+
+int
+dsl_dataset_clone(const char *clone, const char *origin)
+{
+	dsl_dataset_clone_arg_t ddca;
+
+	cred_t *cr = CRED();
+	crhold(cr);
+
+	ddca.ddca_clone = clone;
+	ddca.ddca_origin = origin;
+	ddca.ddca_cred = cr;
+
+	int rv = dsl_sync_task(clone,
+	    dsl_dataset_clone_check, dsl_dataset_clone_sync, &ddca,
+	    6, ZFS_SPACE_CHECK_NORMAL);
+
+	if (rv == 0)
+		zvol_create_minor(clone);
+
+	crfree(cr);
+
+	return (rv);
+}
+
 struct promotenode {
 	list_node_t link;
 	dsl_dataset_t *ds;
@@ -3496,7 +3604,7 @@ dsl_dataset_promote_check(void *arg, dmu_tx_t *tx)
 
 	/* Check that there is enough space and limit headroom here */
 	err = dsl_dir_transfer_possible(origin_ds->ds_dir, hds->ds_dir,
-	    0, ss_mv_cnt, ddpa->used, ddpa->cr, ddpa->proc);
+	    0, ss_mv_cnt, ddpa->used, ddpa->cr);
 	if (err != 0)
 		goto out;
 
@@ -3932,14 +4040,18 @@ dsl_dataset_promote(const char *name, char *conflsnap)
 	if (error != 0)
 		return (error);
 
+	cred_t *cr = CRED();
+	crhold(cr);
+
 	ddpa.ddpa_clonename = name;
 	ddpa.err_ds = fnvlist_alloc();
-	ddpa.cr = CRED();
-	ddpa.proc = curproc;
+	ddpa.cr = cr;
 
 	error = dsl_sync_task(name, dsl_dataset_promote_check,
 	    dsl_dataset_promote_sync, &ddpa,
 	    2 + numsnaps, ZFS_SPACE_CHECK_RESERVED);
+
+	crfree(cr);
 
 	/*
 	 * Return the first conflicting snapshot found.

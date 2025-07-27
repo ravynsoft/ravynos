@@ -172,7 +172,7 @@ rack_update_pcm_ack(struct tcp_rack *rack, int was_cumack, uint32_t start, uint3
 		goto skip_ack_accounting;
 	}
 	/*
-	 * Record ACK data. 
+	 * Record ACK data.
 	 */
 	ack_arrival = tcp_tv_to_lusectick(&rack->r_ctl.act_rcv_time);
 	if (SEQ_GT(end, rack->r_ctl.pcm_i.eseq)) {
@@ -241,7 +241,7 @@ skip_ack_accounting:
 		for (i=0; i<rack->r_ctl.pcm_i.cnt; i++) {
 
 			e = &rack->r_ctl.pcm_s[i];
-			memset(&log.u_bbr, 0, sizeof(log.u_bbr));
+			memset(&log, 0, sizeof(log));
 			log.u_bbr.timeStamp = tcp_tv_to_usectick(&tv);
 			log.u_bbr.inflight = ctf_flight_size(rack->rc_tp, rack->r_ctl.rc_sacked);
 			log.u_bbr.flex8 = 1;
@@ -305,7 +305,7 @@ skip_ack_accounting:
 					    0, &log, false, NULL, NULL, 0, &tv);
 		}
 	}
-	/* 
+	/*
 	 * Here we need a lot to be added including:
 	 * 1) Some form of measurement, where if we think the measurement
 	 *    is valid we iterate over the PCM data and come up with a path

@@ -181,7 +181,8 @@ typedef struct metaslab_class_allocator {
 struct metaslab_class {
 	kmutex_t		mc_lock;
 	spa_t			*mc_spa;
-	const metaslab_ops_t		*mc_ops;
+	const char		*mc_name;
+	const metaslab_ops_t	*mc_ops;
 
 	/*
 	 * Track the number of metaslab groups that have been initialized
@@ -269,7 +270,6 @@ struct metaslab_group {
 	kmutex_t		mg_ms_disabled_lock;
 	kcondvar_t		mg_ms_disabled_cv;
 
-	int			mg_allocators;
 	metaslab_group_allocator_t	mg_allocator[];
 };
 

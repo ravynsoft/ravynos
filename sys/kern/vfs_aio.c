@@ -301,7 +301,7 @@ static TAILQ_HEAD(,kaiocb) aio_jobs;			/* (c) Async job list */
 static struct unrhdr *aiod_unr;
 
 static void	aio_biocleanup(struct bio *bp);
-void		aio_init_aioinfo(struct proc *p);
+static int	aio_init_aioinfo(struct proc *p);
 static int	aio_onceonly(void);
 static int	aio_free_entry(struct kaiocb *job);
 static void	aio_process_rw(struct kaiocb *job);
@@ -309,7 +309,7 @@ static void	aio_process_sync(struct kaiocb *job);
 static void	aio_process_mlock(struct kaiocb *job);
 static void	aio_schedule_fsync(void *context, int pending);
 static int	aio_newproc(int *);
-int		aio_aqueue(struct thread *td, struct aiocb *ujob,
+static int	aio_aqueue(struct thread *td, struct aiocb *ujob,
 		    struct aioliojob *lio, int type, struct aiocb_ops *ops);
 static int	aio_queue_file(struct file *fp, struct kaiocb *job);
 static void	aio_biowakeup(struct bio *bp);
@@ -422,10 +422,11 @@ aio_onceonly(void)
  * Init the per-process aioinfo structure.  The aioinfo limits are set
  * per-process for user limit (resource) management.
  */
-void
+static int
 aio_init_aioinfo(struct proc *p)
 {
 	struct kaioinfo *ki;
+	int error;
 
 	ki = uma_zalloc(kaio_zone, M_WAITOK);
 	mtx_init(&ki->kaio_mtx, "aiomtx", NULL, MTX_DEF | MTX_NEW);
@@ -451,8 +452,20 @@ aio_init_aioinfo(struct proc *p)
 		uma_zfree(kaio_zone, ki);
 	}
 
-	while (num_aio_procs < MIN(target_aio_procs, max_aio_procs))
-		aio_newproc(NULL);
+	error = 0;
+	while (num_aio_procs < MIN(target_aio_procs, max_aio_procs)) {
+		error = aio_newproc(NULL);
+		if (error != 0) {
+			/*
+			 * At least one worker is enough to have AIO
+			 * functional.  Clear error in that case.
+			 */
+			if (num_aio_procs > 0)
+				error = 0;
+			break;
+		}
+	}
+	return (error);
 }
 
 static int
@@ -755,10 +768,9 @@ aio_process_rw(struct kaiocb *job)
 	long inblock_st, inblock_end;
 	int error, opcode;
 
-	KASSERT(job->uaiocb.aio_lio_opcode == LIO_READ ||
-	    job->uaiocb.aio_lio_opcode == LIO_READV ||
-	    job->uaiocb.aio_lio_opcode == LIO_WRITE ||
-	    job->uaiocb.aio_lio_opcode == LIO_WRITEV,
+	opcode = job->uaiocb.aio_lio_opcode & ~LIO_FOFFSET;
+	KASSERT(opcode == LIO_READ || opcode == LIO_READV ||
+	    opcode == LIO_WRITE || opcode == LIO_WRITEV,
 	    ("%s: opcode %d", __func__, job->uaiocb.aio_lio_opcode));
 
 	aio_switch_vmspace(job);
@@ -768,7 +780,6 @@ aio_process_rw(struct kaiocb *job)
 	job->uiop->uio_td = td;
 	fp = job->fd_file;
 
-	opcode = job->uaiocb.aio_lio_opcode;
 	cnt = job->uiop->uio_resid;
 
 	msgrcv_st = td->td_ru.ru_msgrcv;
@@ -1478,7 +1489,7 @@ static struct aiocb_ops aiocb_ops_osigevent = {
  * Queue a new AIO request.  Choosing either the threaded or direct bio VCHR
  * technique is done in this code.
  */
-int
+static int
 aio_aqueue(struct thread *td, struct aiocb *ujob, struct aioliojob *lj,
     int type, struct aiocb_ops *ops)
 {
@@ -1492,8 +1503,11 @@ aio_aqueue(struct thread *td, struct aiocb *ujob, struct aioliojob *lj,
 	int fd, kqfd;
 	u_short evflags;
 
-	if (p->p_aioinfo == NULL)
-		aio_init_aioinfo(p);
+	if (p->p_aioinfo == NULL) {
+		error = aio_init_aioinfo(p);
+		if (error != 0)
+			goto err1;
+	}
 
 	ki = p->p_aioinfo;
 
@@ -2215,8 +2229,11 @@ kern_lio_listio(struct thread *td, int mode, struct aiocb * const *uacb_list,
 	if (nent < 0 || nent > max_aio_queue_per_proc)
 		return (EINVAL);
 
-	if (p->p_aioinfo == NULL)
-		aio_init_aioinfo(p);
+	if (p->p_aioinfo == NULL) {
+		error = aio_init_aioinfo(p);
+		if (error != 0)
+			return (error);
+	}
 
 	ki = p->p_aioinfo;
 
@@ -2505,8 +2522,11 @@ kern_aio_waitcomplete(struct thread *td, struct aiocb **ujobp,
 		timo = tvtohz(&atv);
 	}
 
-	if (p->p_aioinfo == NULL)
-		aio_init_aioinfo(p);
+	if (p->p_aioinfo == NULL) {
+		error = aio_init_aioinfo(p);
+		if (error != 0)
+			return (error);
+	}
 	ki = p->p_aioinfo;
 
 	error = 0;

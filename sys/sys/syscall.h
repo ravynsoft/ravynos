@@ -536,6 +536,9 @@
 #define	SYS_getrlimitusage	589
 #define	SYS_fchroot	590
 #define	SYS_setcred	591
+#define	SYS_exterrctl	592
+#define	SYS_inotify_add_watch_at	593
+#define	SYS_inotify_rm_watch	594
 #define	SYS__kernelrpc_mach_vm_allocate_trap	610
 #define	SYS__kernelrpc_mach_vm_deallocate_trap	612
 #define	SYS__kernelrpc_mach_vm_protect_trap	614

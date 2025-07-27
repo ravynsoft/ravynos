@@ -1510,7 +1510,7 @@ dnode_hold_impl(objset_t *os, uint64_t object, int flag, int slots,
 	 * if we get the encrypted or decrypted version.
 	 */
 	err = dbuf_read(db, NULL, DB_RF_CANFAIL |
-	    DB_RF_NO_DECRYPT | DB_RF_NOPREFETCH);
+	    DMU_READ_NO_PREFETCH | DMU_READ_NO_DECRYPT);
 	if (err) {
 		DNODE_STAT_BUMP(dnode_hold_dbuf_read);
 		dbuf_rele(db, FTAG);
@@ -2559,6 +2559,11 @@ dnode_next_offset_level(dnode_t *dn, int flags, uint64_t *offset,
 		error = 0;
 		epb = dn->dn_phys->dn_nblkptr;
 		data = dn->dn_phys->dn_blkptr;
+		if (dn->dn_dbuf != NULL)
+			rw_enter(&dn->dn_dbuf->db_rwlock, RW_READER);
+		else if (dmu_objset_ds(dn->dn_objset) != NULL)
+			rrw_enter(&dmu_objset_ds(dn->dn_objset)->ds_bp_rwlock,
+			    RW_READER, FTAG);
 	} else {
 		uint64_t blkid = dbuf_whichblock(dn, lvl, *offset);
 		error = dbuf_hold_impl(dn, lvl, blkid, TRUE, FALSE, FTAG, &db);
@@ -2578,7 +2583,7 @@ dnode_next_offset_level(dnode_t *dn, int flags, uint64_t *offset,
 		}
 		error = dbuf_read(db, NULL,
 		    DB_RF_CANFAIL | DB_RF_HAVESTRUCT |
-		    DB_RF_NO_DECRYPT | DB_RF_NOPREFETCH);
+		    DMU_READ_NO_PREFETCH | DMU_READ_NO_DECRYPT);
 		if (error) {
 			dbuf_rele(db, FTAG);
 			return (error);
@@ -2663,6 +2668,12 @@ dnode_next_offset_level(dnode_t *dn, int flags, uint64_t *offset,
 	if (db != NULL) {
 		rw_exit(&db->db_rwlock);
 		dbuf_rele(db, FTAG);
+	} else {
+		if (dn->dn_dbuf != NULL)
+			rw_exit(&dn->dn_dbuf->db_rwlock);
+		else if (dmu_objset_ds(dn->dn_objset) != NULL)
+			rrw_exit(&dmu_objset_ds(dn->dn_objset)->ds_bp_rwlock,
+			    FTAG);
 	}
 
 	return (error);

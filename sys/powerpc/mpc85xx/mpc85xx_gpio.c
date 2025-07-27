@@ -36,10 +36,10 @@
 #include <sys/resource.h>
 #include <sys/rman.h>
 #include <sys/gpio.h>
+#include <sys/stdarg.h>
 
 #include <machine/bus.h>
 #include <machine/resource.h>
-#include <machine/stdarg.h>
 
 #include <dev/fdt/fdt_common.h>
 #include <dev/gpio/gpiobusvar.h>
@@ -226,13 +226,13 @@ mpc85xx_gpio_attach(device_t dev)
 		return (ENOMEM);
 	}
 
+	OF_device_register_xref(OF_xref_from_node(ofw_bus_get_node(dev)), dev);
+
 	sc->busdev = gpiobus_attach_bus(dev);
 	if (sc->busdev == NULL) {
 		mpc85xx_gpio_detach(dev);
 		return (ENOMEM);
 	}
-
-	OF_device_register_xref(OF_xref_from_node(ofw_bus_get_node(dev)), dev);
 
 	return (0);
 }

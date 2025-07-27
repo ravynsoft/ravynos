@@ -92,13 +92,19 @@
 
 @end
 
+#ifdef __RAVYN__
 @interface NSMenu(client)
 -(NSMenu *)initApplicationMenu:(NSString *)name;
 @end
 
+void __NSInitializeProcess(int argc, char *argv[]);
+#endif
+
 int main(int argc, const char *argv[]) {
+#ifdef __RAVYN__
     __NSInitializeProcess(argc, argv);
-    
+#endif
+
     @autoreleasepool {
         NSApplication *app = [NSApplication sharedApplication];
         NSLog(@"Press Esc to exit");
@@ -108,8 +114,14 @@ int main(int argc, const char *argv[]) {
         [menu setAutoenablesItems:YES];
         [[menu addItemWithTitle:@"File" action:@selector(fileMenu:) keyEquivalent:@""] setTarget:del];
         [[menu addItemWithTitle:@"Edit" action:@selector(editMenu:) keyEquivalent:@""] setTarget:del];
+
+        NSMenu *appMenu = [[NSMenu alloc]
+#ifdef __RAVYN__
         // Hack up an application menu since we don't load a nib
-        NSMenu *appMenu = [[NSMenu alloc] initApplicationMenu:@"Client Demo"];
+        initApplicationMenu:@"Client Demo"];
+#else
+        init];
+#endif
         NSMenuItem *appMenuItem = [NSMenuItem new];
         [appMenuItem setTitle:@"Client Demo"];
         [appMenuItem setSubmenu:appMenu];

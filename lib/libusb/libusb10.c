@@ -3,6 +3,8 @@
  *
  * Copyright (c) 2009 Sylvestre Gallon. All rights reserved.
  * Copyright (c) 2009-2023 Hans Petter Selasky
+ * Copyright (c) 2024 Aymeric Wibo
+ * Copyright (c) 2025 ShengYi Hung
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,15 +32,18 @@
 #include LIBUSB_GLOBAL_INCLUDE_FILE
 #else
 #include <assert.h>
+#include <ctype.h>
 #include <errno.h>
 #include <poll.h>
 #include <pthread.h>
 #include <signal.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include <sys/eventfd.h>
 #include <sys/fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/queue.h>
@@ -46,6 +51,7 @@
 #endif
 
 #define	libusb_device_handle libusb20_device
+#define	LIBUSB_LOG_BUFFER_SIZE 1024
 
 #include "libusb20.h"
 #include "libusb20_desc.h"
@@ -79,6 +85,52 @@ static const struct libusb_version libusb_version = {
 	.rc = "",
 	.describe = "https://www.freebsd.org"
 };
+
+static const struct libusb_language_context libusb_language_ctx[] = {
+	{
+	    .lang_name = "en",
+	    .err_strs = {
+			[-LIBUSB_SUCCESS] = "Success",
+			[-LIBUSB_ERROR_IO] = "I/O error",
+			[-LIBUSB_ERROR_INVALID_PARAM] = "Invalid parameter",
+			[-LIBUSB_ERROR_ACCESS] = "Permissions error",
+			[-LIBUSB_ERROR_NO_DEVICE] = "No device",
+			[-LIBUSB_ERROR_NOT_FOUND] = "Not found",
+			[-LIBUSB_ERROR_BUSY] = "Device busy",
+			[-LIBUSB_ERROR_TIMEOUT] = "Timeout",
+			[-LIBUSB_ERROR_OVERFLOW] = "Overflow",
+			[-LIBUSB_ERROR_PIPE] = "Pipe error",
+			[-LIBUSB_ERROR_INTERRUPTED] = "Interrupted",
+			[-LIBUSB_ERROR_NO_MEM] = "Out of memory",
+			[-LIBUSB_ERROR_NOT_SUPPORTED]  ="Not supported",
+			[LIBUSB_ERROR_COUNT - 1] = "Other error",
+			[LIBUSB_ERROR_COUNT] = "Unknown error",
+		}
+	},
+	{
+		.lang_name = "zh",
+		.err_strs = {
+			[-LIBUSB_SUCCESS] = "成功",
+			[-LIBUSB_ERROR_IO] = "I/O 錯誤",
+			[-LIBUSB_ERROR_INVALID_PARAM] = "不合法的參數",
+			[-LIBUSB_ERROR_ACCESS] = "權限錯誤",
+			[-LIBUSB_ERROR_NO_DEVICE] = "裝置不存在",
+			[-LIBUSB_ERROR_NOT_FOUND] = "不存在",
+			[-LIBUSB_ERROR_BUSY] = "裝置忙碌中",
+			[-LIBUSB_ERROR_TIMEOUT] = "逾時",
+			[-LIBUSB_ERROR_OVERFLOW] = "溢位",
+			[-LIBUSB_ERROR_PIPE] = "管道錯誤",
+			[-LIBUSB_ERROR_INTERRUPTED] = "被中斷",
+			[-LIBUSB_ERROR_NO_MEM] = "記憶體不足",
+			[-LIBUSB_ERROR_NOT_SUPPORTED]  ="不支援",
+			[LIBUSB_ERROR_COUNT - 1] = "其他錯誤",
+			[LIBUSB_ERROR_COUNT] = "未知錯誤",
+		}
+	},
+};
+
+static const struct libusb_language_context *default_language_context =
+    &libusb_language_ctx[0];
 
 const struct libusb_version *
 libusb_get_version(void)
@@ -118,17 +170,15 @@ libusb_set_nonblocking(int f)
 void
 libusb_interrupt_event_handler(libusb_context *ctx)
 {
-	uint8_t dummy;
 	int err;
 
 	if (ctx == NULL)
 		return;
 
-	dummy = 0;
-	err = write(ctx->ctrl_pipe[1], &dummy, sizeof(dummy));
-	if (err < (int)sizeof(dummy)) {
+	err = eventfd_write(ctx->event, 1);
+	if (err < 0) {
 		/* ignore error, if any */
-		DPRINTF(ctx, LIBUSB_DEBUG_FUNCTION, "Waking up event loop failed!");
+		DPRINTF(ctx, LIBUSB_LOG_LEVEL_ERROR, "Waking up event loop failed!");
 	}
 }
 
@@ -145,7 +195,6 @@ libusb_init_context(libusb_context **context,
 	struct libusb_context *ctx;
 	pthread_condattr_t attr;
 	char *debug, *ep;
-	int ret;
 
 	if (num_options < 0)
 		return (LIBUSB_ERROR_INVALID_PARAM);
@@ -234,19 +283,16 @@ libusb_init_context(libusb_context **context,
 	ctx->ctx_handler = NO_THREAD;
 	ctx->hotplug_handler = NO_THREAD;
 
-	ret = pipe(ctx->ctrl_pipe);
-	if (ret < 0) {
+	ctx->event = eventfd(0, EFD_NONBLOCK);
+	if (ctx->event < 0) {
 		pthread_mutex_destroy(&ctx->ctx_lock);
 		pthread_mutex_destroy(&ctx->hotplug_lock);
 		pthread_cond_destroy(&ctx->ctx_cond);
 		free(ctx);
 		return (LIBUSB_ERROR_OTHER);
 	}
-	/* set non-blocking mode on the control pipe to avoid deadlock */
-	libusb_set_nonblocking(ctx->ctrl_pipe[0]);
-	libusb_set_nonblocking(ctx->ctrl_pipe[1]);
 
-	libusb10_add_pollfd(ctx, &ctx->ctx_poll, NULL, ctx->ctrl_pipe[0], POLLIN);
+	libusb10_add_pollfd(ctx, &ctx->ctx_poll, NULL, ctx->event, POLLIN);
 
 	pthread_mutex_lock(&default_context_lock);
 	if (usbi_default_context == NULL) {
@@ -257,7 +303,7 @@ libusb_init_context(libusb_context **context,
 	if (context)
 		*context = ctx;
 
-	DPRINTF(ctx, LIBUSB_DEBUG_FUNCTION, "libusb_init complete");
+	DPRINTF(ctx, LIBUSB_LOG_LEVEL_INFO, "libusb_init complete");
 
 	signal(SIGPIPE, SIG_IGN);
 
@@ -296,8 +342,7 @@ libusb_exit(libusb_context *ctx)
 	/* XXX cleanup devices */
 
 	libusb10_remove_pollfd(ctx, &ctx->ctx_poll);
-	close(ctx->ctrl_pipe[0]);
-	close(ctx->ctrl_pipe[1]);
+	close(ctx->event);
 	pthread_mutex_destroy(&ctx->ctx_lock);
 	pthread_mutex_destroy(&ctx->hotplug_lock);
 	pthread_cond_destroy(&ctx->ctx_cond);
@@ -317,9 +362,9 @@ ssize_t
 libusb_get_device_list(libusb_context *ctx, libusb_device ***list)
 {
 	struct libusb20_backend *usb_backend;
-	struct libusb20_device *pdev;
+	struct libusb20_device *pdev, *parent_dev;
 	struct libusb_device *dev;
-	int i;
+	int i, j, k;
 
 	ctx = GET_CONTEXT(ctx);
 
@@ -371,6 +416,9 @@ libusb_get_device_list(libusb_context *ctx, libusb_device ***list)
 		/* set context we belong to */
 		dev->ctx = ctx;
 
+		/* assume we have no parent by default */
+		dev->parent_dev = NULL;
+
 		/* link together the two structures */
 		dev->os_priv = pdev;
 		pdev->privLuData = dev;
@@ -379,6 +427,25 @@ libusb_get_device_list(libusb_context *ctx, libusb_device ***list)
 		i++;
 	}
 	(*list)[i] = NULL;
+
+	/* for each device, find its parent */
+	for (j = 0; j < i; j++) {
+		pdev = (*list)[j]->os_priv;
+
+		for (k = 0; k < i; k++) {
+			if (k == j)
+				continue;
+
+			parent_dev = (*list)[k]->os_priv;
+
+			if (parent_dev->bus_number != pdev->bus_number)
+				continue;
+			if (parent_dev->device_address == pdev->parent_address) {
+				(*list)[j]->parent_dev = libusb_ref_device((*list)[k]);
+				break;
+			}
+		}
+	}
 
 	libusb20_be_free(usb_backend);
 	return (i);
@@ -451,6 +518,8 @@ libusb_get_device_speed(libusb_device *dev)
 		return (LIBUSB_SPEED_HIGH);
 	case LIBUSB20_SPEED_SUPER:
 		return (LIBUSB_SPEED_SUPER);
+	case LIBUSB20_SPEED_SUPER_PLUS:
+		return (LIBUSB_SPEED_SUPER_PLUS);
 	default:
 		break;
 	}
@@ -544,6 +613,7 @@ libusb_unref_device(libusb_device *dev)
 	CTX_UNLOCK(dev->ctx);
 
 	if (dev->refcnt == 0) {
+		libusb_unref_device(dev->parent_dev);
 		libusb20_dev_free(dev->os_priv);
 		free(dev);
 	}
@@ -605,7 +675,7 @@ libusb_open_device_with_vid_pid(libusb_context *ctx, uint16_t vendor_id,
 	if (ctx == NULL)
 		return (NULL);		/* be NULL safe */
 
-	DPRINTF(ctx, LIBUSB_DEBUG_FUNCTION, "libusb_open_device_with_vid_pid enter");
+	DPRINTF(ctx, LIBUSB_LOG_LEVEL_DEBUG, "libusb_open_device_with_vid_pid enter");
 
 	if ((i = libusb_get_device_list(ctx, &devs)) < 0)
 		return (NULL);
@@ -629,7 +699,7 @@ libusb_open_device_with_vid_pid(libusb_context *ctx, uint16_t vendor_id,
 	}
 
 	libusb_free_device_list(devs, 1);
-	DPRINTF(ctx, LIBUSB_DEBUG_FUNCTION, "libusb_open_device_with_vid_pid leave");
+	DPRINTF(ctx, LIBUSB_LOG_LEVEL_DEBUG, "libusb_open_device_with_vid_pid leave");
 	return (pdev);
 }
 
@@ -818,6 +888,12 @@ libusb_set_interface_alt_setting(struct libusb20_device *pdev,
 	    POLLIN | POLLOUT | POLLRDNORM | POLLWRNORM);
 
 	return (err ? LIBUSB_ERROR_OTHER : 0);
+}
+
+libusb_device *
+libusb_get_parent(libusb_device *dev)
+{
+	return (dev->parent_dev);
 }
 
 static struct libusb20_transfer *
@@ -1079,6 +1155,9 @@ libusb10_get_buffsize(struct libusb20_device *pdev, libusb_transfer *xfer)
 			break;
 		case LIBUSB20_SPEED_SUPER:
 			ret = 65536;
+			break;
+		case LIBUSB20_SPEED_SUPER_PLUS:
+			ret = 131072;
 			break;
 		default:
 			ret = 16384;
@@ -1451,6 +1530,7 @@ found:
 		libusb20_tr_set_callback(pxfer0, libusb10_isoc_proxy);
 		break;
 	case LIBUSB_TRANSFER_TYPE_BULK:
+	case LIBUSB_TRANSFER_TYPE_BULK_STREAM:
 	case LIBUSB_TRANSFER_TYPE_INTERRUPT:
 		libusb20_tr_set_callback(pxfer0, libusb10_bulk_intr_proxy);
 		break;
@@ -1507,7 +1587,7 @@ libusb_submit_transfer(struct libusb_transfer *uxfer)
 
 	dev = libusb_get_device(uxfer->dev_handle);
 
-	DPRINTF(dev->ctx, LIBUSB_DEBUG_FUNCTION, "libusb_submit_transfer enter");
+	DPRINTF(dev->ctx, LIBUSB_LOG_LEVEL_DEBUG, "libusb_submit_transfer enter");
 
 	sxfer = (struct libusb_super_transfer *)(
 	    (uint8_t *)uxfer - sizeof(*sxfer));
@@ -1542,7 +1622,7 @@ libusb_submit_transfer(struct libusb_transfer *uxfer)
 
 	CTX_UNLOCK(dev->ctx);
 
-	DPRINTF(dev->ctx, LIBUSB_DEBUG_FUNCTION, "libusb_submit_transfer leave %d", err);
+	DPRINTF(dev->ctx, LIBUSB_LOG_LEVEL_DEBUG, "libusb_submit_transfer leave %d", err);
 
 	return (err);
 }
@@ -1571,7 +1651,7 @@ libusb_cancel_transfer(struct libusb_transfer *uxfer)
 
 	dev = libusb_get_device(devh);
 
-	DPRINTF(dev->ctx, LIBUSB_DEBUG_FUNCTION, "libusb_cancel_transfer enter");
+	DPRINTF(dev->ctx, LIBUSB_LOG_LEVEL_DEBUG, "libusb_cancel_transfer enter");
 
 	sxfer = (struct libusb_super_transfer *)(
 	    (uint8_t *)uxfer - sizeof(*sxfer));
@@ -1632,7 +1712,7 @@ libusb_cancel_transfer(struct libusb_transfer *uxfer)
 
 	CTX_UNLOCK(dev->ctx);
 
-	DPRINTF(dev->ctx, LIBUSB_DEBUG_FUNCTION, "libusb_cancel_transfer leave");
+	DPRINTF(dev->ctx, LIBUSB_LOG_LEVEL_DEBUG, "libusb_cancel_transfer leave");
 
 	return (retval);
 }
@@ -1697,38 +1777,26 @@ libusb_le16_to_cpu(uint16_t x)
 const char *
 libusb_strerror(int code)
 {
-	switch (code) {
-	case LIBUSB_SUCCESS:
-		return ("Success");
-	case LIBUSB_ERROR_IO:
-		return ("I/O error");
-	case LIBUSB_ERROR_INVALID_PARAM:
-		return ("Invalid parameter");
-	case LIBUSB_ERROR_ACCESS:
-		return ("Permissions error");
-	case LIBUSB_ERROR_NO_DEVICE:
-		return ("No device");
-	case LIBUSB_ERROR_NOT_FOUND:
-		return ("Not found");
-	case LIBUSB_ERROR_BUSY:
-		return ("Device busy");
-	case LIBUSB_ERROR_TIMEOUT:
-		return ("Timeout");
-	case LIBUSB_ERROR_OVERFLOW:
-		return ("Overflow");
-	case LIBUSB_ERROR_PIPE:
-		return ("Pipe error");
-	case LIBUSB_ERROR_INTERRUPTED:
-		return ("Interrupted");
-	case LIBUSB_ERROR_NO_MEM:
-		return ("Out of memory");
-	case LIBUSB_ERROR_NOT_SUPPORTED:
-		return ("Not supported");
-	case LIBUSB_ERROR_OTHER:
-		return ("Other error");
-	default:
-		return ("Unknown error");
-	}
+	int entry = -code;
+
+	if (code == LIBUSB_ERROR_OTHER)
+		entry = LIBUSB_ERROR_COUNT - 1;
+	/*
+	 * The libusb upstream considers all code out of range a
+	 * LIBUSB_ERROR_OTHER. In FreeBSD, it is a special unknown error. We
+	 * preserve the FreeBSD implementation as I think it make sense.
+	 */
+	if (entry < 0 || entry >= LIBUSB_ERROR_COUNT)
+		entry = LIBUSB_ERROR_COUNT;
+
+	/*
+	 * Fall back to English one as the translation may be unimplemented
+	 * when adding new error code.
+	 */
+	if (default_language_context->err_strs[entry] == NULL)
+		return (libusb_language_ctx[0].err_strs[entry]);
+
+	return (default_language_context->err_strs[entry]);
 }
 
 const char *
@@ -1781,4 +1849,72 @@ libusb_has_capability(uint32_t capability)
 	default:
 		return (0);
 	}
+}
+
+void
+libusb_log_va_args(struct libusb_context *ctx, enum libusb_log_level level,
+    const char *fmt, ...)
+{
+	static const char *log_prefix[5] = {
+		[LIBUSB_LOG_LEVEL_ERROR] = "LIBUSB_ERROR",
+		[LIBUSB_LOG_LEVEL_WARNING] = "LIBUSB_WARN",
+		[LIBUSB_LOG_LEVEL_INFO] = "LIBUSB_INFO",
+		[LIBUSB_LOG_LEVEL_DEBUG] = "LIBUSB_DEBUG",
+	};
+
+	char buffer[LIBUSB_LOG_BUFFER_SIZE];
+	char new_fmt[LIBUSB_LOG_BUFFER_SIZE];
+	va_list args;
+
+	ctx = GET_CONTEXT(ctx);
+
+	if (ctx->debug < level)
+		return;
+
+	va_start(args, fmt);
+
+	snprintf(new_fmt, sizeof(new_fmt), "%s: %s\n", log_prefix[level], fmt);
+	vsnprintf(buffer, sizeof(buffer), new_fmt, args);
+	fputs(buffer, stdout);
+
+	va_end(args);
+}
+
+/*
+ * Upstream code actually recognizes the first two characters to identify a
+ * language. We do so to provide API compatibility with setlocale.
+ */
+int
+libusb_setlocale(const char *locale)
+{
+	size_t idx;
+	const char *lang;
+
+	if (locale == NULL || strlen(locale) < 2 ||
+	    (locale[2] != '\0' && strchr("-_.", locale[2]) == NULL))
+		return (LIBUSB_ERROR_INVALID_PARAM);
+
+	for (idx = 0; idx < nitems(libusb_language_ctx); ++idx) {
+		lang = libusb_language_ctx[idx].lang_name;
+		if (tolower(locale[0]) == lang[0] &&
+		    tolower(locale[1]) == lang[1]) {
+			default_language_context = &libusb_language_ctx[idx];
+			return (LIBUSB_SUCCESS);
+		}
+	}
+
+	return (LIBUSB_ERROR_INVALID_PARAM);
+}
+
+unsigned char *
+libusb_dev_mem_alloc(libusb_device_handle *devh)
+{
+	return (NULL);
+}
+
+int
+libusb_dev_mem_free(libusb_device_handle *devh, unsigned char *buffer,
+    size_t size)
+{
+	return (LIBUSB_ERROR_NOT_SUPPORTED);
 }

@@ -78,10 +78,6 @@
  *		A radix tree used to quickly
  *		perform object/offset lookups
  *
- *		A list of all pages for a given object,
- *		so they can be quickly deactivated at
- *		time of deallocation.
- *
  *		An ordered list of pages due for pageout.
  *
  *	In addition, the structure contains the object
@@ -233,7 +229,6 @@ struct vm_page {
 			void *zone;
 		} uma;
 	} plinks;
-	TAILQ_ENTRY(vm_page) listq;	/* pages in same object (O) */
 	vm_object_t object;		/* which object am I in (O) */
 	vm_pindex_t pindex;		/* offset into object (O,P) */
 	vm_paddr_t phys_addr;		/* physical address of page (C) */
@@ -340,50 +335,6 @@ SLIST_HEAD(spglist, vm_page);
 #ifdef _KERNEL
 extern vm_page_t bogus_page;
 #endif	/* _KERNEL */
-
-extern struct mtx_padalign pa_lock[];
-
-#if defined(__arm__)
-#define	PDRSHIFT	PDR_SHIFT
-#elif !defined(PDRSHIFT)
-#define PDRSHIFT	21
-#endif
-
-#define	pa_index(pa)	((pa) >> PDRSHIFT)
-#define	PA_LOCKPTR(pa)	((struct mtx *)(&pa_lock[pa_index(pa) % PA_LOCK_COUNT]))
-#define	PA_LOCKOBJPTR(pa)	((struct lock_object *)PA_LOCKPTR((pa)))
-#define	PA_LOCK(pa)	mtx_lock(PA_LOCKPTR(pa))
-#define	PA_TRYLOCK(pa)	mtx_trylock(PA_LOCKPTR(pa))
-#define	PA_UNLOCK(pa)	mtx_unlock(PA_LOCKPTR(pa))
-#define	PA_UNLOCK_COND(pa) 			\
-	do {		   			\
-		if ((pa) != 0) {		\
-			PA_UNLOCK((pa));	\
-			(pa) = 0;		\
-		}				\
-	} while (0)
-
-#define	PA_LOCK_ASSERT(pa, a)	mtx_assert(PA_LOCKPTR(pa), (a))
-
-#if defined(KLD_MODULE) && !defined(KLD_TIED)
-#define	vm_page_lock(m)		vm_page_lock_KBI((m), LOCK_FILE, LOCK_LINE)
-#define	vm_page_unlock(m)	vm_page_unlock_KBI((m), LOCK_FILE, LOCK_LINE)
-#define	vm_page_trylock(m)	vm_page_trylock_KBI((m), LOCK_FILE, LOCK_LINE)
-#else	/* !KLD_MODULE */
-#define	vm_page_lockptr(m)	(PA_LOCKPTR(VM_PAGE_TO_PHYS((m))))
-#define	vm_page_lock(m)		mtx_lock(vm_page_lockptr((m)))
-#define	vm_page_unlock(m)	mtx_unlock(vm_page_lockptr((m)))
-#define	vm_page_trylock(m)	mtx_trylock(vm_page_lockptr((m)))
-#endif
-#if defined(INVARIANTS)
-#define	vm_page_assert_locked(m)		\
-    vm_page_assert_locked_KBI((m), __FILE__, __LINE__)
-#define	vm_page_lock_assert(m, a)		\
-    vm_page_lock_assert_KBI((m), (a), __FILE__, __LINE__)
-#else
-#define	vm_page_assert_locked(m)
-#define	vm_page_lock_assert(m, a)
-#endif
 
 /*
  * The vm_page's aflags are updated using atomic operations.  To set or clear
@@ -511,13 +462,15 @@ extern long first_page;			/* first physical page number */
 vm_page_t PHYS_TO_VM_PAGE(vm_paddr_t pa);
 
 /*
- * Page allocation parameters for vm_page for the functions
- * vm_page_alloc(), vm_page_grab(), vm_page_alloc_contig() and
- * vm_page_alloc_freelist().  Some functions support only a subset
- * of the flags, and ignore others, see the flags legend.
+ * vm_page allocation arguments for the functions vm_page_alloc(),
+ * vm_page_alloc_contig(), vm_page_alloc_noobj(), vm_page_grab(), and
+ * vm_page_grab_pages().  Each function supports only a subset of the flags.
+ * See the flags legend.
  *
- * The meaning of VM_ALLOC_ZERO differs slightly between the vm_page_alloc*()
- * and the vm_page_grab*() functions.  See these functions for details.
+ * The meaning of VM_ALLOC_ZERO varies: vm_page_alloc_noobj(), vm_page_grab(),
+ * and vm_page_grab_pages() guarantee that the returned pages are zeroed; in
+ * contrast vm_page_alloc() and vm_page_alloc_contig() do not, leaving it to
+ * the caller to test the page's flags for PG_ZERO.
  *
  * Bits 0 - 1 define class.
  * Bits 2 - 15 dedicated for flags.
@@ -525,7 +478,7 @@ vm_page_t PHYS_TO_VM_PAGE(vm_paddr_t pa);
  * (a) - vm_page_alloc() supports the flag.
  * (c) - vm_page_alloc_contig() supports the flag.
  * (g) - vm_page_grab() supports the flag.
- * (n) - vm_page_alloc_noobj() and vm_page_alloc_freelist() support the flag.
+ * (n) - vm_page_alloc_noobj() supports the flag.
  * (p) - vm_page_grab_pages() supports the flag.
  * Bits above 15 define the count of additional pages that the caller
  * intends to allocate.
@@ -534,26 +487,26 @@ vm_page_t PHYS_TO_VM_PAGE(vm_paddr_t pa);
 #define VM_ALLOC_INTERRUPT	1
 #define VM_ALLOC_SYSTEM		2
 #define	VM_ALLOC_CLASS_MASK	3
-#define	VM_ALLOC_WAITOK		0x0008	/* (acn) Sleep and retry */
-#define	VM_ALLOC_WAITFAIL	0x0010	/* (acn) Sleep and return error */
+#define	VM_ALLOC_WAITOK		0x0008	/* (gnp) Sleep and retry */
+#define	VM_ALLOC_WAITFAIL	0x0010	/* (acgnp) Sleep and return error */
 #define	VM_ALLOC_WIRED		0x0020	/* (acgnp) Allocate a wired page */
 #define	VM_ALLOC_ZERO		0x0040	/* (acgnp) Allocate a zeroed page */
 #define	VM_ALLOC_NORECLAIM	0x0080	/* (c) Do not reclaim after failure */
-#define	VM_ALLOC_NOFREE		0x0100	/* (an) Page will never be released */
+#define	VM_ALLOC_NOFREE		0x0100	/* (agnp) Page will never be freed */
 #define	VM_ALLOC_NOBUSY		0x0200	/* (acgp) Do not excl busy the page */
-#define	VM_ALLOC_NOCREAT	0x0400	/* (gp) Don't create a page */
+#define	VM_ALLOC_NOCREAT	0x0400	/* (gp) Do not allocate a page */
 #define	VM_ALLOC_AVAIL1		0x0800
-#define	VM_ALLOC_IGN_SBUSY	0x1000	/* (gp) Ignore shared busy flag */
-#define	VM_ALLOC_NODUMP		0x2000	/* (ag) don't include in dump */
+#define	VM_ALLOC_IGN_SBUSY	0x1000	/* (gp) Ignore shared busy state */
+#define	VM_ALLOC_NODUMP		0x2000	/* (acgnp) Do not include in dump */
 #define	VM_ALLOC_SBUSY		0x4000	/* (acgp) Shared busy the page */
 #define	VM_ALLOC_NOWAIT		0x8000	/* (acgnp) Do not sleep */
 #define	VM_ALLOC_COUNT_MAX	0xffff
 #define	VM_ALLOC_COUNT_SHIFT	16
 #define	VM_ALLOC_COUNT_MASK	(VM_ALLOC_COUNT(VM_ALLOC_COUNT_MAX))
-#define	VM_ALLOC_COUNT(count)	({				\
-	KASSERT((count) <= VM_ALLOC_COUNT_MAX,			\
-	    ("%s: invalid VM_ALLOC_COUNT value", __func__));	\
-	(count) << VM_ALLOC_COUNT_SHIFT;			\
+#define	VM_ALLOC_COUNT(count)	({ 	/* (acgn) Additional pages */	\
+	KASSERT((count) <= VM_ALLOC_COUNT_MAX,				\
+	    ("%s: invalid VM_ALLOC_COUNT value", __func__));		\
+	(count) << VM_ALLOC_COUNT_SHIFT;				\
 })
 
 #ifdef M_NOWAIT
@@ -595,22 +548,9 @@ malloc2vm_flags(int malloc_flags)
 #define	PS_ALL_VALID	0x2
 #define	PS_NONE_BUSY	0x4
 
-bool vm_page_busy_acquire(vm_page_t m, int allocflags);
-void vm_page_busy_downgrade(vm_page_t m);
-int vm_page_busy_tryupgrade(vm_page_t m);
-bool vm_page_busy_sleep(vm_page_t m, const char *msg, int allocflags);
-void vm_page_busy_sleep_unlocked(vm_object_t obj, vm_page_t m,
-    vm_pindex_t pindex, const char *wmesg, int allocflags);
-void vm_page_free(vm_page_t m);
-void vm_page_free_zero(vm_page_t m);
-
 void vm_page_activate (vm_page_t);
 void vm_page_advise(vm_page_t m, int advice);
-vm_page_t vm_page_mpred(vm_object_t, vm_pindex_t);
 vm_page_t vm_page_alloc(vm_object_t, vm_pindex_t, int);
-vm_page_t vm_page_alloc_after(vm_object_t, vm_pindex_t, int, vm_page_t);
-vm_page_t vm_page_alloc_domain_after(vm_object_t, vm_pindex_t, int, int,
-    vm_page_t);
 vm_page_t vm_page_alloc_contig(vm_object_t object, vm_pindex_t pindex, int req,
     u_long npages, vm_paddr_t low, vm_paddr_t high, u_long alignment,
     vm_paddr_t boundary, vm_memattr_t memattr);
@@ -618,6 +558,10 @@ vm_page_t vm_page_alloc_contig_domain(vm_object_t object,
     vm_pindex_t pindex, int domain, int req, u_long npages, vm_paddr_t low,
     vm_paddr_t high, u_long alignment, vm_paddr_t boundary,
     vm_memattr_t memattr);
+vm_page_t vm_page_alloc_domain_iter(vm_object_t object, vm_pindex_t pindex,
+    int domain, int req, struct pctrie_iter *pages);
+vm_page_t vm_page_alloc_iter(vm_object_t object, vm_pindex_t pindex, int req,
+    struct pctrie_iter *pages);
 vm_page_t vm_page_alloc_noobj(int);
 vm_page_t vm_page_alloc_noobj_domain(int, int);
 vm_page_t vm_page_alloc_noobj_contig(int req, u_long npages, vm_paddr_t low,
@@ -628,9 +572,26 @@ vm_page_t vm_page_alloc_noobj_contig_domain(int domain, int req, u_long npages,
     vm_memattr_t memattr);
 void vm_page_bits_set(vm_page_t m, vm_page_bits_t *bits, vm_page_bits_t set);
 bool vm_page_blacklist_add(vm_paddr_t pa, bool verbose);
+bool vm_page_busy_acquire(vm_page_t m, int allocflags);
+void vm_page_busy_downgrade(vm_page_t m);
+int vm_page_busy_tryupgrade(vm_page_t m);
+bool vm_page_busy_sleep(vm_page_t m, const char *msg, int allocflags);
+void vm_page_busy_sleep_unlocked(vm_object_t obj, vm_page_t m,
+    vm_pindex_t pindex, const char *wmesg, int allocflags);
+void vm_page_deactivate(vm_page_t m);
+void vm_page_deactivate_noreuse(vm_page_t m);
+void vm_page_dequeue(vm_page_t m);
+void vm_page_dequeue_deferred(vm_page_t m);
+void vm_page_free(vm_page_t m);
+void vm_page_free_invalid(vm_page_t m);
+int vm_page_free_pages_toq(struct spglist *free, bool update_wire_count);
+void vm_page_free_zero(vm_page_t m);
+vm_page_t vm_page_getfake(vm_paddr_t paddr, vm_memattr_t memattr);
 int vm_page_grab_zero_partial(vm_object_t object, vm_pindex_t pindex, int base,
     int end);
 vm_page_t vm_page_grab(vm_object_t, vm_pindex_t, int);
+vm_page_t vm_page_grab_iter(vm_object_t object, vm_pindex_t pindex,
+    int allocflags, struct pctrie_iter *pages);
 vm_page_t vm_page_grab_unlocked(vm_object_t, vm_pindex_t, int);
 int vm_page_grab_pages(vm_object_t object, vm_pindex_t pindex, int allocflags,
     vm_page_t *ma, int count);
@@ -638,15 +599,10 @@ int vm_page_grab_pages_unlocked(vm_object_t object, vm_pindex_t pindex,
     int allocflags, vm_page_t *ma, int count);
 int vm_page_grab_valid(vm_page_t *mp, vm_object_t object, vm_pindex_t pindex,
     int allocflags);
+int vm_page_grab_valid_iter(vm_page_t *mp, vm_object_t object,
+    vm_pindex_t pindex, int allocflags, struct pctrie_iter *pages);
 int vm_page_grab_valid_unlocked(vm_page_t *mp, vm_object_t object,
     vm_pindex_t pindex, int allocflags);
-void vm_page_deactivate(vm_page_t);
-void vm_page_deactivate_noreuse(vm_page_t);
-void vm_page_dequeue(vm_page_t m);
-void vm_page_dequeue_deferred(vm_page_t m);
-vm_page_t vm_page_find_least(vm_object_t, vm_pindex_t);
-void vm_page_free_invalid(vm_page_t);
-vm_page_t vm_page_getfake(vm_paddr_t paddr, vm_memattr_t memattr);
 void vm_page_initfake(vm_page_t m, vm_paddr_t paddr, vm_memattr_t memattr);
 void vm_page_init_marker(vm_page_t marker, int queue, uint16_t aflags);
 void vm_page_init_page(vm_page_t m, vm_paddr_t pa, int segind, int pool);
@@ -654,6 +610,8 @@ int vm_page_insert (vm_page_t, vm_object_t, vm_pindex_t);
 void vm_page_invalid(vm_page_t m);
 void vm_page_iter_free(struct pctrie_iter *pages, vm_page_t m);
 void vm_page_iter_init(struct pctrie_iter *, vm_object_t);
+int vm_page_iter_insert(vm_page_t m, vm_object_t, vm_pindex_t,
+    struct pctrie_iter *);
 void vm_page_iter_limit_init(struct pctrie_iter *, vm_object_t, vm_pindex_t);
 bool vm_page_iter_remove(struct pctrie_iter *pages, vm_page_t m);
 bool vm_page_iter_rename(struct pctrie_iter *old_pages, vm_page_t m,
@@ -661,12 +619,10 @@ bool vm_page_iter_rename(struct pctrie_iter *old_pages, vm_page_t m,
 void vm_page_launder(vm_page_t m);
 vm_page_t vm_page_lookup(vm_object_t, vm_pindex_t);
 vm_page_t vm_page_lookup_unlocked(vm_object_t, vm_pindex_t);
-vm_page_t vm_page_next(vm_page_t m);
 void vm_page_pqbatch_drain(void);
 void vm_page_pqbatch_submit(vm_page_t m, uint8_t queue);
 bool vm_page_pqstate_commit(vm_page_t m, vm_page_astate_t *old,
     vm_page_astate_t new);
-vm_page_t vm_page_prev(vm_page_t m);
 bool vm_page_ps_test(vm_page_t m, int psind, int flags, vm_page_t skip_m);
 void vm_page_putfake(vm_page_t m);
 void vm_page_readahead_finish(vm_page_t m);
@@ -713,16 +669,8 @@ int vm_page_is_valid(vm_page_t, int, int);
 void vm_page_test_dirty(vm_page_t);
 vm_page_bits_t vm_page_bits(int base, int size);
 void vm_page_zero_invalid(vm_page_t m, boolean_t setvalid);
-int vm_page_free_pages_toq(struct spglist *free, bool update_wire_count);
 
 void vm_page_dirty_KBI(vm_page_t m);
-void vm_page_lock_KBI(vm_page_t m, const char *file, int line);
-void vm_page_unlock_KBI(vm_page_t m, const char *file, int line);
-int vm_page_trylock_KBI(vm_page_t m, const char *file, int line);
-#if defined(INVARIANTS) || defined(INVARIANT_SUPPORT)
-void vm_page_assert_locked_KBI(vm_page_t m, const char *file, int line);
-void vm_page_lock_assert_KBI(vm_page_t m, int a, const char *file, int line);
-#endif
 
 #define	vm_page_busy_fetch(m)	atomic_load_int(&(m)->busy_lock)
 

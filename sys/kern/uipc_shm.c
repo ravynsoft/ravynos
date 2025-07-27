@@ -100,6 +100,7 @@
 #include <vm/vm_page.h>
 #include <vm/vm_pageout.h>
 #include <vm/vm_pager.h>
+#include <vm/vm_radix.h>
 #include <vm/swap_pager.h>
 
 struct shm_mapping {
@@ -195,6 +196,7 @@ SYSCTL_INT(_vm_largepages, OID_AUTO, reclaim_tries,
 static int
 uiomove_object_page(vm_object_t obj, size_t len, struct uio *uio)
 {
+	struct pctrie_iter pages;
 	vm_page_t m;
 	vm_pindex_t idx;
 	size_t tlen;
@@ -214,8 +216,9 @@ uiomove_object_page(vm_object_t obj, size_t len, struct uio *uio)
 	 * page: use zero_region.  This is intended to avoid instantiating
 	 * pages on read from a sparse region.
 	 */
+	vm_page_iter_init(&pages, obj);
 	VM_OBJECT_WLOCK(obj);
-	m = vm_page_lookup(obj, idx);
+	m = vm_radix_iter_lookup(&pages, idx);
 	if (uio->uio_rw == UIO_READ && m == NULL &&
 	    !vm_pager_has_page(obj, idx, NULL, NULL)) {
 		VM_OBJECT_WUNLOCK(obj);
@@ -229,8 +232,8 @@ uiomove_object_page(vm_object_t obj, size_t len, struct uio *uio)
 	 * lock to page out tobj's pages because tobj is a OBJT_SWAP
 	 * type object.
 	 */
-	rv = vm_page_grab_valid(&m, obj, idx,
-	    VM_ALLOC_NORMAL | VM_ALLOC_SBUSY | VM_ALLOC_IGN_SBUSY);
+	rv = vm_page_grab_valid_iter(&m, obj, idx,
+	    VM_ALLOC_NORMAL | VM_ALLOC_SBUSY | VM_ALLOC_IGN_SBUSY, &pages);
 	if (rv != VM_PAGER_OK) {
 		VM_OBJECT_WUNLOCK(obj);
 		if (bootverbose) {
@@ -481,7 +484,10 @@ shm_write(struct file *fp, struct uio *uio, struct ucred *active_cred,
 	struct shmfd *shmfd;
 	void *rl_cookie;
 	int error;
-	off_t size;
+	off_t newsize;
+
+	KASSERT((flags & FOF_OFFSET) == 0 || uio->uio_offset >= 0,
+	    ("%s: negative offset", __func__));
 
 	shmfd = fp->f_data;
 #ifdef MAC
@@ -503,21 +509,23 @@ shm_write(struct file *fp, struct uio *uio, struct ucred *active_cred,
 			return (EFBIG);
 		}
 
-		size = shmfd->shm_size;
+		newsize = atomic_load_64(&shmfd->shm_size);
 	} else {
-		size = uio->uio_offset + uio->uio_resid;
+		newsize = uio->uio_offset + uio->uio_resid;
 	}
 	if ((flags & FOF_OFFSET) == 0)
 		rl_cookie = shm_rangelock_wlock(shmfd, 0, OFF_MAX);
 	else
-		rl_cookie = shm_rangelock_wlock(shmfd, uio->uio_offset, size);
+		rl_cookie = shm_rangelock_wlock(shmfd, uio->uio_offset,
+		    MAX(newsize, uio->uio_offset));
 	if ((shmfd->shm_seals & F_SEAL_WRITE) != 0) {
 		error = EPERM;
 	} else {
 		error = 0;
 		if ((shmfd->shm_flags & SHM_GROW_ON_WRITE) != 0 &&
-		    size > shmfd->shm_size) {
-			error = shm_dotruncate_cookie(shmfd, size, rl_cookie);
+		    newsize > shmfd->shm_size) {
+			error = shm_dotruncate_cookie(shmfd, newsize,
+			    rl_cookie);
 		}
 		if (error == 0)
 			error = uiomove_object(shmfd->shm_object,
@@ -1126,10 +1134,10 @@ shm_doremove(struct shm_mapping *map)
 
 int
 kern_shm_open2(struct thread *td, const char *userpath, int flags, mode_t mode,
-    int shmflags, struct filecaps *fcaps, const char *name __unused)
+    int shmflags, struct filecaps *fcaps, const char *name __unused,
+    struct shmfd *shmfd)
 {
 	struct pwddesc *pdp;
-	struct shmfd *shmfd;
 	struct file *fp;
 	char *path;
 	void *rl_cookie;
@@ -1206,23 +1214,41 @@ kern_shm_open2(struct thread *td, const char *userpath, int flags, mode_t mode,
 	if (error != 0)
 		goto outnofp;
 
-	/* A SHM_ANON path pointer creates an anonymous object. */
+	/*
+	 * A SHM_ANON path pointer creates an anonymous object.  We allow other
+	 * parts of the kernel to pre-populate a shmfd and then materialize an
+	 * fd for it here as a means to pass data back up to userland.  This
+	 * doesn't really make sense for named shm objects, but it makes plenty
+	 * of sense for anonymous objects.
+	 */
 	if (userpath == SHM_ANON) {
-		/* A read-only anonymous object is pointless. */
-		if ((flags & O_ACCMODE) == O_RDONLY) {
-			error = EINVAL;
-			goto out;
+		if (shmfd != NULL) {
+			shm_hold(shmfd);
+		} else {
+			/*
+			 * A read-only anonymous object is pointless, unless it
+			 * was pre-populated by the kernel with the expectation
+			 * that a shmfd would later be created for userland to
+			 * access it through.
+			 */
+			if ((flags & O_ACCMODE) == O_RDONLY) {
+				error = EINVAL;
+				goto out;
+			}
+			shmfd = shm_alloc(td->td_ucred, cmode, largepage);
+			if (shmfd == NULL) {
+				error = ENOMEM;
+				goto out;
+			}
+
+			shmfd->shm_seals = initial_seals;
+			shmfd->shm_flags = shmflags;
 		}
-		shmfd = shm_alloc(td->td_ucred, cmode, largepage);
-		if (shmfd == NULL) {
-			error = ENOMEM;
-			goto out;
-		}
-		shmfd->shm_seals = initial_seals;
-		shmfd->shm_flags = shmflags;
 	} else {
 		fnv = fnv_32_str(path, FNV1_32_INIT);
 		sx_xlock(&shm_dict_lock);
+
+		MPASS(shmfd == NULL);
 		shmfd = shm_lookup(path, fnv);
 		if (shmfd == NULL) {
 			/* Object does not yet exist, create it if requested. */
@@ -2165,7 +2191,7 @@ kern_shm_open(struct thread *td, const char *path, int flags, mode_t mode,
     struct filecaps *caps)
 {
 
-	return (kern_shm_open2(td, path, flags, mode, 0, caps, NULL));
+	return (kern_shm_open2(td, path, flags, mode, 0, caps, NULL, NULL));
 }
 
 /*
@@ -2183,7 +2209,7 @@ sys_shm_open2(struct thread *td, struct shm_open2_args *uap)
 {
 
 	return (kern_shm_open2(td, uap->path, uap->flags, uap->mode,
-	    uap->shmflags, NULL, uap->name));
+	    uap->shmflags, NULL, uap->name, NULL));
 }
 
 int

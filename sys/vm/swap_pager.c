@@ -384,8 +384,8 @@ swap_release_by_cred(vm_ooffset_t decr, struct ucred *cred)
 #endif
 }
 
-static int swap_pager_full = 2;	/* swap space exhaustion (task killing) */
-static int swap_pager_almost_full = 1; /* swap space exhaustion (w/hysteresis)*/
+static bool swap_pager_full = true; /* swap space exhaustion (task killing) */
+static bool swap_pager_almost_full = true; /* swap space exhaustion (w/hysteresis) */
 static struct mtx swbuf_mtx;	/* to sync nsw_wcount_async */
 static int nsw_wcount_async;	/* limit async write buffers */
 static int nsw_wcount_async_max;/* assigned maximum			*/
@@ -642,14 +642,14 @@ swp_sizecheck(void)
 {
 
 	if (swap_pager_avail < nswap_lowat) {
-		if (swap_pager_almost_full == 0) {
+		if (!swap_pager_almost_full) {
 			printf("swap_pager: out of swap space\n");
-			swap_pager_almost_full = 1;
+			swap_pager_almost_full = true;
 		}
 	} else {
-		swap_pager_full = 0;
+		swap_pager_full = false;
 		if (swap_pager_avail > nswap_hiwat)
-			swap_pager_almost_full = 0;
+			swap_pager_almost_full = false;
 	}
 }
 
@@ -958,11 +958,10 @@ swp_pager_getswapspace(int *io_npages)
 		swp_sizecheck();
 		swdevhd = TAILQ_NEXT(sp, sw_list);
 	} else {
-		if (swap_pager_full != 2) {
+		if (!swap_pager_full) {
 			printf("swp_pager_getswapspace(%d): failed\n",
 			    *io_npages);
-			swap_pager_full = 2;
-			swap_pager_almost_full = 1;
+			swap_pager_full = swap_pager_almost_full = true;
 		}
 		swdevhd = NULL;
 	}
@@ -1202,8 +1201,8 @@ swap_pager_copy(vm_object_t srcobject, vm_object_t dstobject,
  *	store exists before and after the requested page.
  */
 static boolean_t
-swp_pager_haspage_iter(struct pctrie_iter *blks, vm_pindex_t pindex,
-    int *before, int *after)
+swp_pager_haspage_iter(vm_pindex_t pindex, int *before, int *after,
+    struct pctrie_iter *blks)
 {
 	daddr_t blk, blk0;
 	int i;
@@ -1265,7 +1264,7 @@ swap_pager_haspage(vm_object_t object, vm_pindex_t pindex, int *before,
 	struct pctrie_iter blks;
 
 	swblk_iter_init_only(&blks, object);
-	return (swp_pager_haspage_iter(&blks, pindex, before, after));
+	return (swp_pager_haspage_iter(pindex, before, after, &blks));
 }
 
 static void
@@ -1366,7 +1365,7 @@ swap_pager_getpages_locked(struct pctrie_iter *blks, vm_object_t object,
 	KASSERT((object->flags & OBJ_SWAP) != 0,
 	    ("%s: object not swappable", __func__));
 	pindex = ma[0]->pindex;
-	if (!swp_pager_haspage_iter(blks, pindex, &rbehind, &rahead)) {
+	if (!swp_pager_haspage_iter(pindex, &rbehind, &rahead, blks)) {
 		VM_OBJECT_WUNLOCK(object);
 		uma_zfree(swrbuf_zone, bp);
 		return (VM_PAGER_FAIL);
@@ -1935,10 +1934,9 @@ swap_pager_swapoff_object(struct swdevt *sp, vm_object_t object,
 				if (!vm_page_busy_acquire(m, VM_ALLOC_WAITFAIL))
 					break;
 			} else {
-				m = vm_radix_iter_lookup_le(&pages,
-				    blks.index + i);
-				m = vm_page_alloc_after(object, blks.index + i,
-				    VM_ALLOC_NORMAL | VM_ALLOC_WAITFAIL, m);
+				m = vm_page_alloc_iter(object, blks.index + i,
+				    VM_ALLOC_NORMAL | VM_ALLOC_WAITFAIL,
+				    &pages);
 				if (m == NULL)
 					break;
 			}
@@ -2592,8 +2590,7 @@ swap_pager_scan_all_shadowed(vm_object_t object)
 		 * required to clear valid and initiate paging.
 		 */
 		if ((pp == NULL || vm_page_none_valid(pp)) &&
-		    !swp_pager_haspage_iter(&blks, new_pindex, NULL,
-		    NULL))
+		    !swp_pager_haspage_iter(new_pindex, NULL, NULL, &blks))
 			break;
 		if (pi == pv)
 			vm_page_xunbusy(p);
@@ -2865,10 +2862,8 @@ swapoff_one(struct swdevt *sp, struct ucred *cred, u_int flags)
 	sp->sw_id = NULL;
 	TAILQ_REMOVE(&swtailq, sp, sw_list);
 	nswapdev--;
-	if (nswapdev == 0) {
-		swap_pager_full = 2;
-		swap_pager_almost_full = 1;
-	}
+	if (nswapdev == 0)
+		swap_pager_full = swap_pager_almost_full = true;
 	if (swdevhd == sp)
 		swdevhd = NULL;
 	mtx_unlock(&sw_dev_mtx);

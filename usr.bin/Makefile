@@ -129,6 +129,7 @@ SUBDIR=	alias \
 	revoke \
 	rpcinfo \
 	rs \
+	runat \
 	rup \
 	ruptime \
 	rusers \
@@ -138,7 +139,6 @@ SUBDIR=	alias \
 	sdiff \
 	sed \
 	seq \
-	shar \
 	showmount \
 	sockstat \
 	soelim \
@@ -146,6 +146,7 @@ SUBDIR=	alias \
 	split \
 	stat \
 	stdbuf \
+	strings \
 	su \
 	systat \
 	tail \
@@ -159,6 +160,7 @@ SUBDIR=	alias \
 	tr \
 	true \
 	truncate \
+	ts \
 	tsort \
 	tty \
 	uname \
@@ -224,7 +226,9 @@ SUBDIR.${MK_ICONV}+=	mkesdb
 SUBDIR.${MK_ISCSI}+=	iscsictl
 SUBDIR.${MK_KDUMP}+=	kdump
 SUBDIR.${MK_KDUMP}+=	truss
+.if ${MK_MITKRB5} == "no"
 SUBDIR.${MK_KERBEROS_SUPPORT}+=	compile_et
+.endif
 SUBDIR.${MK_LDNS_UTILS}+=	drill
 SUBDIR.${MK_LDNS_UTILS}+=	host
 SUBDIR.${MK_LIB32}+=	ldd32
@@ -258,27 +262,20 @@ SUBDIR.${MK_TOOLCHAIN}+=	nm
 SUBDIR.${MK_TOOLCHAIN}+=	readelf
 SUBDIR.${MK_TOOLCHAIN}+=	size
 .endif
-# Include elftoolchain's strings in build targets even if using LLVM_BINUTILS,
-# as we may later install with different options.  In particular, the release
-# artifact builds use default options for buildworld but install with
-# MK_TOOLCHAIN=no which implies MK_LLVM_BINUTILS=no.
-.if ${MK_LLVM_BINUTILS} == "no" || !make(install)
-SUBDIR+=			strings
-.endif
 SUBDIR.${MK_TOOLCHAIN}+=	c89
 SUBDIR.${MK_TOOLCHAIN}+=	c99
 SUBDIR.${MK_TOOLCHAIN}+=	ctags
 .if ${MK_LLVM_CXXFILT} == "no"
 SUBDIR.${MK_TOOLCHAIN}+=	cxxfilt
 .endif
+# ELF Tool Chain elfcopy required for EFI objects (PR280771)
+SUBDIR.${MK_TOOLCHAIN}+=	elfcopy
 SUBDIR.${MK_TOOLCHAIN}+=	file2c
 SUBDIR.${MK_TOOLCHAIN}+=	gprof
 SUBDIR.${MK_TOOLCHAIN}+=	indent
 SUBDIR.${MK_TOOLCHAIN}+=	lex
 SUBDIR.${MK_TOOLCHAIN}+=	lorder
 SUBDIR.${MK_TOOLCHAIN}+=	mkstr
-# ELF Tool Chain elfcopy required for EFI objects (PR280771)
-SUBDIR.${MK_TOOLCHAIN}+=	objcopy
 SUBDIR.${MK_TOOLCHAIN}+=	rpcgen
 SUBDIR.${MK_TOOLCHAIN}+=	unifdef
 SUBDIR.${MK_TOOLCHAIN}+=	xstr

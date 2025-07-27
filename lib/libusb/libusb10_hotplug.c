@@ -73,7 +73,7 @@ netlink_init(libusb_context *ctx)
 	if (modfind("nlsysevent") < 0)
 		return (false);
 	if (!snl_init(&ctx->ss, NETLINK_GENERIC) || (group =
-	    snl_get_genl_mcast_group(&ctx->ss, "nlsysevent", "ACPI", NULL)) == 0)
+	    snl_get_genl_mcast_group(&ctx->ss, "nlsysevent", "USB", NULL)) == 0)
 		return (false);
 
 	if (setsockopt(ctx->ss.fd, SOL_NETLINK, NETLINK_ADD_MEMBERSHIP, &group,
@@ -140,6 +140,8 @@ verify_event_validity(libusb_context *ctx)
 				return (valid_event);
 			return (invalid_event);
 		}
+		if (errno == EBADF)
+			return (broken_event);
 		return (invalid_event);
 	} else if (ctx->usb_event_mode == usb_event_devd) {
 		char buf[DEVCTL_MAXBUF];
@@ -407,7 +409,26 @@ void libusb_hotplug_deregister_callback(libusb_context *ctx,
 
 	HOTPLUG_LOCK(ctx);
 	TAILQ_REMOVE(&ctx->hotplug_cbh, handle, entry);
+	libusb_interrupt_event_handler(ctx);
 	HOTPLUG_UNLOCK(ctx);
 
 	free(handle);
+}
+
+void *
+libusb_hotplug_get_user_data(struct libusb_context *ctx,
+    libusb_hotplug_callback_handle callback_handle)
+{
+	libusb_hotplug_callback_handle handle;
+
+	ctx = GET_CONTEXT(ctx);
+
+	HOTPLUG_LOCK(ctx);
+	TAILQ_FOREACH(handle, &ctx->hotplug_cbh, entry) {
+		if (handle == callback_handle)
+			break;
+	}
+	HOTPLUG_UNLOCK(ctx);
+
+	return (handle);
 }

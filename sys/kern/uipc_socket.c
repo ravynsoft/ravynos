@@ -41,18 +41,18 @@
  * sodealloc() tears down socket layer state for a socket, called only by
  * sofree() and sonewconn().  Socket layer private.
  *
- * pru_attach() associates protocol layer state with an allocated socket;
+ * pr_attach() associates protocol layer state with an allocated socket;
  * called only once, may fail, aborting socket allocation.  This is called
  * from socreate() and sonewconn().  Socket layer private.
  *
- * pru_detach() disassociates protocol layer state from an attached socket,
- * and will be called exactly once for sockets in which pru_attach() has
- * been successfully called.  If pru_attach() returned an error,
- * pru_detach() will not be called.  Socket layer private.
+ * pr_detach() disassociates protocol layer state from an attached socket,
+ * and will be called exactly once for sockets in which pr_attach() has
+ * been successfully called.  If pr_attach() returned an error,
+ * pr_detach() will not be called.  Socket layer private.
  *
- * pru_abort() and pru_close() notify the protocol layer that the last
+ * pr_abort() and pr_close() notify the protocol layer that the last
  * consumer of a socket is starting to tear down the socket, and that the
- * protocol should terminate the connection.  Historically, pru_abort() also
+ * protocol should terminate the connection.  Historically, pr_abort() also
  * detached protocol state from the socket state, but this is no longer the
  * case.
  *
@@ -186,7 +186,6 @@ static int	filt_soread(struct knote *kn, long hint);
 static void	filt_sowdetach(struct knote *kn);
 static int	filt_sowrite(struct knote *kn, long hint);
 static int	filt_soempty(struct knote *kn, long hint);
-fo_kqfilter_t	soo_kqfilter;
 
 static const struct filterops soread_filtops = {
 	.f_isfd = 1,
@@ -970,7 +969,7 @@ socreate(int dom, struct socket **aso, int type, int proto,
 	}
 	/*
 	 * Auto-sizing of socket buffers is managed by the protocols and
-	 * the appropriate flags must be set in the pru_attach function.
+	 * the appropriate flags must be set in the pr_attach() method.
 	 */
 	CURVNET_SET(so->so_vnet);
 	error = prp->pr_attach(so, proto, td);
@@ -1212,7 +1211,8 @@ solisten_clone(struct socket *head)
 	so->so_rcv.sb_timeo = head->sol_sbrcv_timeo;
 	so->so_snd.sb_timeo = head->sol_sbsnd_timeo;
 	so->so_rcv.sb_flags = head->sol_sbrcv_flags & SB_AUTOSIZE;
-	so->so_snd.sb_flags = head->sol_sbsnd_flags & SB_AUTOSIZE;
+	so->so_snd.sb_flags = head->sol_sbsnd_flags &
+	    (SB_AUTOSIZE | SB_AUTOLOWAT);
 	if ((so->so_proto->pr_flags & PR_SOCKBUF) == 0) {
 		so->so_snd.sb_mtx = &so->so_snd_mtx;
 		so->so_rcv.sb_mtx = &so->so_rcv_mtx;
@@ -1339,9 +1339,9 @@ sopeeloff(struct socket *head)
 		    __func__, head->so_pcb);
 		return (NULL);
 	}
-	if ((*so->so_proto->pr_attach)(so, 0, NULL)) {
+	if (so->so_proto->pr_attach(so, 0, NULL)) {
 		sodealloc(so);
-		log(LOG_DEBUG, "%s: pcb %p: pru_attach() failed\n",
+		log(LOG_DEBUG, "%s: pcb %p: pr_attach() failed\n",
 		    __func__, head->so_pcb);
 		return (NULL);
 	}
@@ -1699,10 +1699,16 @@ so_splice(struct socket *so, struct socket *so2, struct splice *splice)
 		uma_zfree(splice_zone, sp);
 		return (error);
 	}
-	soref(so);
-	so->so_splice = sp;
 	SOCK_RECVBUF_LOCK(so);
+	if (so->so_rcv.sb_tls_info != NULL) {
+		SOCK_RECVBUF_UNLOCK(so);
+		SOCK_UNLOCK(so);
+		uma_zfree(splice_zone, sp);
+		return (EINVAL);
+	}
 	so->so_rcv.sb_flags |= SB_SPLICED;
+	so->so_splice = sp;
+	soref(so);
 	SOCK_RECVBUF_UNLOCK(so);
 	SOCK_UNLOCK(so);
 
@@ -1716,20 +1722,19 @@ so_splice(struct socket *so, struct socket *so2, struct splice *splice)
 		error = EBUSY;
 	if (error != 0) {
 		SOCK_UNLOCK(so2);
-		SOCK_LOCK(so);
-		so->so_splice = NULL;
-		SOCK_RECVBUF_LOCK(so);
-		so->so_rcv.sb_flags &= ~SB_SPLICED;
-		SOCK_RECVBUF_UNLOCK(so);
-		SOCK_UNLOCK(so);
-		sorele(so);
-		uma_zfree(splice_zone, sp);
+		so_unsplice(so, false);
 		return (error);
 	}
-	soref(so2);
-	so2->so_splice_back = sp;
 	SOCK_SENDBUF_LOCK(so2);
+	if (so->so_snd.sb_tls_info != NULL) {
+		SOCK_SENDBUF_UNLOCK(so2);
+		SOCK_UNLOCK(so2);
+		so_unsplice(so, false);
+		return (EINVAL);
+	}
 	so2->so_snd.sb_flags |= SB_SPLICED;
+	so2->so_splice_back = sp;
+	soref(so2);
 	mtx_lock(&sp->mtx);
 	SOCK_SENDBUF_UNLOCK(so2);
 	SOCK_UNLOCK(so2);
@@ -1742,6 +1747,8 @@ so_splice(struct socket *so, struct socket *so2, struct splice *splice)
 	/*
 	 * Transfer any data already present in the socket buffer.
 	 */
+	KASSERT(sp->state == SPLICE_INIT,
+	    ("so_splice: splice %p state %d", sp, sp->state));
 	sp->state = SPLICE_QUEUED;
 	so_splice_xfer(sp);
 	return (0);
@@ -1752,7 +1759,7 @@ so_unsplice(struct socket *so, bool timeout)
 {
 	struct socket *so2;
 	struct so_splice *sp;
-	bool drain;
+	bool drain, so2rele;
 
 	/*
 	 * First unset SB_SPLICED and hide the splice structure so that
@@ -1770,8 +1777,19 @@ so_unsplice(struct socket *so, bool timeout)
 		SOCK_UNLOCK(so);
 		return (ENOTCONN);
 	}
-	so->so_rcv.sb_flags &= ~SB_SPLICED;
 	sp = so->so_splice;
+	mtx_lock(&sp->mtx);
+	if (sp->state == SPLICE_INIT) {
+		/*
+		 * A splice is in the middle of being set up.
+		 */
+		mtx_unlock(&sp->mtx);
+		SOCK_RECVBUF_UNLOCK(so);
+		SOCK_UNLOCK(so);
+		return (ENOTCONN);
+	}
+	mtx_unlock(&sp->mtx);
+	so->so_rcv.sb_flags &= ~SB_SPLICED;
 	so->so_splice = NULL;
 	SOCK_RECVBUF_UNLOCK(so);
 	SOCK_UNLOCK(so);
@@ -1780,11 +1798,14 @@ so_unsplice(struct socket *so, bool timeout)
 	SOCK_LOCK(so2);
 	KASSERT(!SOLISTENING(so2), ("%s: so2 is listening", __func__));
 	SOCK_SENDBUF_LOCK(so2);
-	KASSERT((so2->so_snd.sb_flags & SB_SPLICED) != 0,
+	KASSERT(sp->state == SPLICE_INIT ||
+	    (so2->so_snd.sb_flags & SB_SPLICED) != 0,
 	    ("%s: so2 is not spliced", __func__));
-	KASSERT(so2->so_splice_back == sp,
+	KASSERT(sp->state == SPLICE_INIT ||
+	    so2->so_splice_back == sp,
 	    ("%s: so_splice_back != sp", __func__));
 	so2->so_snd.sb_flags &= ~SB_SPLICED;
+	so2rele = so2->so_splice_back != NULL;
 	so2->so_splice_back = NULL;
 	SOCK_SENDBUF_UNLOCK(so2);
 	SOCK_UNLOCK(so2);
@@ -1802,6 +1823,7 @@ so_unsplice(struct socket *so, bool timeout)
 		while (sp->state == SPLICE_CLOSING)
 			msleep(sp, &sp->mtx, PSOCK, "unsplice", 0);
 		break;
+	case SPLICE_INIT:
 	case SPLICE_IDLE:
 	case SPLICE_EXCEPTION:
 		sp->state = SPLICE_CLOSED;
@@ -1827,7 +1849,8 @@ so_unsplice(struct socket *so, bool timeout)
 	CURVNET_SET(so->so_vnet);
 	sorele(so);
 	sowwakeup(so2);
-	sorele(so2);
+	if (so2rele)
+		sorele(so2);
 	CURVNET_RESTORE();
 	so_splice_free(sp);
 	return (0);
@@ -2912,13 +2935,7 @@ dontblock:
 		while (cm != NULL) {
 			cmn = cm->m_next;
 			cm->m_next = NULL;
-			if (pr->pr_domain->dom_externalize != NULL) {
-				SOCKBUF_UNLOCK(&so->so_rcv);
-				VNET_SO_ASSERT(so);
-				error = (*pr->pr_domain->dom_externalize)
-				    (cm, controlp, flags);
-				SOCKBUF_LOCK(&so->so_rcv);
-			} else if (controlp != NULL)
+			if (controlp != NULL)
 				*controlp = cm;
 			else
 				m_freem(cm);
@@ -2972,8 +2989,8 @@ dontblock:
 	 */
 	moff = 0;
 	offset = 0;
-	while (m != NULL && !(m->m_flags & M_NOTAVAIL) && uio->uio_resid > 0
-	    && error == 0) {
+	while (m != NULL && !(m->m_flags & M_NOTREADY) && uio->uio_resid > 0 &&
+	    error == 0) {
 		/*
 		 * If the type of mbuf has changed since the last mbuf
 		 * examined ('type'), end the receive operation.
@@ -3325,7 +3342,7 @@ deliver:
 			for (m = sb->sb_mb;
 			     m != NULL && m->m_len <= len;
 			     m = m->m_next) {
-				KASSERT(!(m->m_flags & M_NOTAVAIL),
+				KASSERT(!(m->m_flags & M_NOTREADY),
 				    ("%s: m %p not available", __func__, m));
 				len -= m->m_len;
 				uio->uio_resid -= m->m_len;
@@ -3601,10 +3618,7 @@ soreceive_dgram(struct socket *so, struct sockaddr **psa, struct uio *uio,
 		while (cm != NULL) {
 			cmn = cm->m_next;
 			cm->m_next = NULL;
-			if (pr->pr_domain->dom_externalize != NULL) {
-				error = (*pr->pr_domain->dom_externalize)
-				    (cm, controlp, flags);
-			} else if (controlp != NULL)
+			if (controlp != NULL)
 				*controlp = cm;
 			else
 				m_freem(cm);
@@ -3804,10 +3818,7 @@ sosetopt(struct socket *so, struct sockopt *sopt)
 	CURVNET_SET(so->so_vnet);
 	error = 0;
 	if (sopt->sopt_level != SOL_SOCKET) {
-		if (so->so_proto->pr_ctloutput != NULL)
-			error = (*so->so_proto->pr_ctloutput)(so, sopt);
-		else
-			error = ENOPROTOOPT;
+		error = so->so_proto->pr_ctloutput(so, sopt);
 	} else {
 		switch (sopt->sopt_name) {
 		case SO_ACCEPTFILTER:
@@ -4017,8 +4028,8 @@ sosetopt(struct socket *so, struct sockopt *sopt)
 				error = ENOPROTOOPT;
 			break;
 		}
-		if (error == 0 && so->so_proto->pr_ctloutput != NULL)
-			(void)(*so->so_proto->pr_ctloutput)(so, sopt);
+		if (error == 0)
+			(void)so->so_proto->pr_ctloutput(so, sopt);
 	}
 bad:
 	CURVNET_RESTORE();
@@ -4068,10 +4079,7 @@ sogetopt(struct socket *so, struct sockopt *sopt)
 	CURVNET_SET(so->so_vnet);
 	error = 0;
 	if (sopt->sopt_level != SOL_SOCKET) {
-		if (so->so_proto->pr_ctloutput != NULL)
-			error = (*so->so_proto->pr_ctloutput)(so, sopt);
-		else
-			error = ENOPROTOOPT;
+		error = so->so_proto->pr_ctloutput(so, sopt);
 		CURVNET_RESTORE();
 		return (error);
 	} else {
@@ -4471,9 +4479,8 @@ sopoll_generic(struct socket *so, int events, struct thread *td)
 }
 
 int
-soo_kqfilter(struct file *fp, struct knote *kn)
+sokqfilter_generic(struct socket *so, struct knote *kn)
 {
-	struct socket *so = kn->kn_fp->f_data;
 	struct sockbuf *sb;
 	sb_which which;
 	struct knlist *knl;
@@ -4508,6 +4515,9 @@ soo_kqfilter(struct file *fp, struct knote *kn)
 		SOCK_BUF_LOCK(so, which);
 		knlist_add(knl, kn, 1);
 		sb->sb_flags |= SB_KNOTE;
+		if ((kn->kn_sfflags & NOTE_LOWAT) &&
+		    (sb->sb_flags & SB_AUTOLOWAT))
+			sb->sb_flags &= ~SB_AUTOLOWAT;
 		SOCK_BUF_UNLOCK(so, which);
 	}
 	SOCK_UNLOCK(so);

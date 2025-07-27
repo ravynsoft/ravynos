@@ -375,6 +375,9 @@
 /* iops->create() takes struct user_namespace* */
 /* #undef HAVE_IOPS_CREATE_USERNS */
 
+/* iops->mkdir() returns struct dentry* */
+/* #undef HAVE_IOPS_MKDIR_DENTRY */
+
 /* iops->mkdir() takes struct mnt_idmap* */
 /* #undef HAVE_IOPS_MKDIR_IDMAP */
 
@@ -507,6 +510,9 @@
 /* folio_wait_bit() exists */
 /* #undef HAVE_PAGEMAP_FOLIO_WAIT_BIT */
 
+/* readahead_page() exists */
+/* #undef HAVE_PAGEMAP_READAHEAD_PAGE */
+
 /* part_to_dev() exists */
 /* #undef HAVE_PART_TO_DEV */
 
@@ -526,7 +532,7 @@
 /* #undef HAVE_PROC_OPS_STRUCT */
 
 /* If available, contains the Python version number currently in use. */
-#define HAVE_PYTHON "3.7"
+/* #undef HAVE_PYTHON */
 
 /* qat is enabled and existed */
 /* #undef HAVE_QAT */
@@ -602,6 +608,9 @@
 /* STACK_FRAME_NON_STANDARD is defined */
 /* #undef HAVE_STACK_FRAME_NON_STANDARD */
 
+/* STACK_FRAME_NON_STANDARD asm macro is defined */
+/* #undef HAVE_STACK_FRAME_NON_STANDARD_ASM */
+
 /* standalone <linux/stdarg.h> exists */
 /* #undef HAVE_STANDALONE_LINUX_STDARG */
 
@@ -635,6 +644,9 @@
 /* have super_block s_shrink pointer */
 /* #undef HAVE_SUPER_BLOCK_S_SHRINK_PTR */
 
+/* have super_block s_wb_err */
+/* #undef HAVE_SUPER_BLOCK_S_WB_ERR */
+
 /* sync_blockdev() is declared in include/blkdev.h */
 /* #undef HAVE_SYNC_BLOCKDEV */
 
@@ -646,6 +658,9 @@
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #define HAVE_SYS_TYPES_H 1
+
+/* timer_delete_sync is available */
+/* #undef HAVE_TIMER_DELETE_SYNC */
 
 /* i_op->tmpfile() uses old dentry signature */
 /* #undef HAVE_TMPFILE_DENTRY */
@@ -689,6 +704,9 @@
 /* generic_copy_file_range() is available */
 /* #undef HAVE_VFS_GENERIC_COPY_FILE_RANGE */
 
+/* migratepage exists */
+/* #undef HAVE_VFS_MIGRATEPAGE */
+
 /* migrate_folio exists */
 /* #undef HAVE_VFS_MIGRATE_FOLIO */
 
@@ -706,6 +724,9 @@
 
 /* splice_copy_file_range() is available */
 /* #undef HAVE_VFS_SPLICE_COPY_FILE_RANGE */
+
+/* address_space_operations->writepage exists */
+/* #undef HAVE_VFS_WRITEPAGE */
 
 /* __vmalloc page flags exists */
 /* #undef HAVE_VMALLOC_PAGE_KERNEL */
@@ -739,6 +760,9 @@
 
 /* Define if you have [z] */
 #define HAVE_ZLIB 1
+
+/* libunwind is llvm libunwind */
+/* #undef IS_LIBUNWIND_LLVM */
 
 /* kernel exports FPU functions */
 /* #undef KERNEL_EXPORTS_X86_FPU */
@@ -794,7 +818,7 @@
 /* #undef ZFS_DEVICE_MINOR */
 
 /* Define the project alias string. */
-#define ZFS_META_ALIAS "zfs-2.3.99-263-FreeBSD_g4abc21b28"
+#define ZFS_META_ALIAS "zfs-2.3.99-443-FreeBSD_g69ee01aa4"
 
 /* Define the project author. */
 #define ZFS_META_AUTHOR "OpenZFS"
@@ -803,7 +827,7 @@
 /* #undef ZFS_META_DATA */
 
 /* Define the maximum compatible kernel version. */
-#define ZFS_META_KVER_MAX "6.12"
+#define ZFS_META_KVER_MAX "6.15"
 
 /* Define the minimum compatible kernel version. */
 #define ZFS_META_KVER_MIN "4.18"
@@ -824,7 +848,7 @@
 #define ZFS_META_NAME "zfs"
 
 /* Define the project release. */
-#define ZFS_META_RELEASE "263-FreeBSD_g4abc21b28"
+#define ZFS_META_RELEASE "443-FreeBSD_g69ee01aa4"
 
 /* Define the project version. */
 #define ZFS_META_VERSION "2.3.99"

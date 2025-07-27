@@ -85,6 +85,9 @@ static void print_registers(struct trapframe *frame);
 
 int (*dtrace_invop_jump_addr)(struct trapframe *);
 
+u_long cnt_efirt_faults;
+int print_efirt_faults;
+
 typedef void (abort_handler)(struct thread *, struct trapframe *, uint64_t,
     uint64_t, int);
 
@@ -575,8 +578,6 @@ do_el1h_sync(struct thread *td, struct trapframe *frame)
 		panic("FPAC kernel exception");
 		break;
 	case EXCP_UNKNOWN:
-		if (undef_insn(1, frame))
-			break;
 		print_registers(frame);
 		print_gp_register("far", far);
 		panic("Undefined instruction: %08x",
@@ -673,7 +674,7 @@ do_el0_sync(struct thread *td, struct trapframe *frame)
 		}
 		break;
 	case EXCP_UNKNOWN:
-		if (!undef_insn(0, frame))
+		if (!undef_insn(frame))
 			call_trapsignal(td, SIGILL, ILL_ILLTRP, (void *)far,
 			    exception);
 		userret(td, frame);
@@ -713,7 +714,7 @@ do_el0_sync(struct thread *td, struct trapframe *frame)
 		 * instruction to access a special register userspace doesn't
 		 * have access to.
 		 */
-		if (!undef_insn(0, frame))
+		if (!undef_insn(frame))
 			call_trapsignal(td, SIGILL, ILL_PRVOPC,
 			    (void *)frame->tf_elr, exception);
 		userret(td, frame);

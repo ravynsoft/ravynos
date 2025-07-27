@@ -58,6 +58,7 @@
 #include <sys/nv.h>
 #include <sys/rwlock.h>
 #include <sys/sockio.h>
+#include <sys/stdarg.h>
 #include <sys/syslog.h>
 #include <sys/sysctl.h>
 #include <sys/sysent.h>
@@ -70,7 +71,6 @@
 #include <ddb/ddb.h>
 #endif
 
-#include <machine/stdarg.h>
 #include <vm/uma.h>
 
 #include <net/bpf.h>
@@ -278,7 +278,6 @@ static void	if_input_default(struct ifnet *, struct mbuf *);
 static int	if_requestencap_default(struct ifnet *, struct if_encap_req *);
 static int	if_setflag(struct ifnet *, int, int, int *, int);
 static int	if_transmit_default(struct ifnet *ifp, struct mbuf *m);
-static void	if_unroute(struct ifnet *, int flag, int fam);
 static int	if_delmulti_locked(struct ifnet *, struct ifmultiaddr *, int);
 static void	do_link_state_change(void *, int);
 static int	if_getgroup(struct ifgroupreq *, struct ifnet *);
@@ -871,7 +870,7 @@ if_attach_internal(struct ifnet *ifp, bool vmove)
 		 */
 		namelen = strlen(ifp->if_xname);
 		/*
-		 * Always save enough space for any possiable name so we
+		 * Always save enough space for any possible name so we
 		 * can do a rename in place later.
 		 */
 		masklen = offsetof(struct sockaddr_dl, sdl_data[0]) + IFNAMSIZ;
@@ -931,26 +930,11 @@ if_attach_internal(struct ifnet *ifp, bool vmove)
 		}
 #endif
 	}
-#ifdef VIMAGE
-	else {
-		/*
-		 * Update the interface index in the link layer address
-		 * of the interface.
-		 */
-		for (ifa = ifp->if_addr; ifa != NULL;
-		    ifa = CK_STAILQ_NEXT(ifa, ifa_link)) {
-			if (ifa->ifa_addr->sa_family == AF_LINK) {
-				sdl = (struct sockaddr_dl *)ifa->ifa_addr;
-				sdl->sdl_index = ifp->if_index;
-			}
-		}
-	}
-#endif
-
-	if_link_ifnet(ifp);
 
 	if (domain_init_status >= 2)
 		if_attachdomain1(ifp);
+
+	if_link_ifnet(ifp);
 
 	EVENTHANDLER_INVOKE(ifnet_arrival_event, ifp);
 	if (IS_DEFAULT_VNET(curvnet))
@@ -2097,25 +2081,6 @@ link_init_sdl(struct ifnet *ifp, struct sockaddr *paddr, u_char iftype)
 	return (sdl);
 }
 
-/*
- * Mark an interface down and notify protocols of
- * the transition.
- */
-static void
-if_unroute(struct ifnet *ifp, int flag, int fam)
-{
-
-	KASSERT(flag == IFF_UP, ("if_unroute: flag != IFF_UP"));
-
-	ifp->if_flags &= ~flag;
-	getmicrotime(&ifp->if_lastchange);
-	ifp->if_qflush(ifp);
-
-	if (ifp->if_carp)
-		(*carp_linkstate_p)(ifp);
-	rt_ifmsg(ifp, IFF_UP);
-}
-
 void	(*vlan_link_state_p)(struct ifnet *);	/* XXX: private from if_vlan */
 void	(*vlan_trunk_cap_p)(struct ifnet *);		/* XXX: private from if_vlan */
 struct ifnet *(*vlan_trunkdev_p)(struct ifnet *);
@@ -2124,6 +2089,7 @@ int	(*vlan_tag_p)(struct ifnet *, uint16_t *);
 int	(*vlan_pcp_p)(struct ifnet *, uint16_t *);
 int	(*vlan_setcookie_p)(struct ifnet *, void *);
 void	*(*vlan_cookie_p)(struct ifnet *);
+void	(*vlan_input_p)(struct ifnet *, struct mbuf *);
 
 /*
  * Handle a change in the interface link state. To avoid LORs
@@ -2190,7 +2156,14 @@ if_down(struct ifnet *ifp)
 {
 
 	EVENTHANDLER_INVOKE(ifnet_event, ifp, IFNET_EVENT_DOWN);
-	if_unroute(ifp, IFF_UP, AF_UNSPEC);
+
+	ifp->if_flags &= ~IFF_UP;
+	getmicrotime(&ifp->if_lastchange);
+	ifp->if_qflush(ifp);
+
+	if (ifp->if_carp)
+		(*carp_linkstate_p)(ifp);
+	rt_ifmsg(ifp, IFF_UP);
 }
 
 /*

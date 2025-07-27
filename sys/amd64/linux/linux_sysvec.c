@@ -247,7 +247,7 @@ linux_exec_setregs(struct thread *td, struct image_params *imgp,
 
 	pcb->pcb_fsbase = 0;
 	pcb->pcb_gsbase = 0;
-	clear_pcb_flags(pcb, PCB_32BIT);
+	clear_pcb_flags(pcb, PCB_32BIT | PCB_TLSBASE);
 	pcb->pcb_initial_fpucw = __LINUX_NPXCW__;
 	set_pcb_flags(pcb, PCB_FULL_IRET);
 
@@ -711,6 +711,8 @@ struct sysentvec elf_linux_sysvec = {
 	.sv_trap	= linux_vsyscall,
 	.sv_hwcap	= NULL,
 	.sv_hwcap2	= NULL,
+	.sv_hwcap3	= NULL,
+	.sv_hwcap4	= NULL,
 	.sv_onexec	= linux_on_exec_vmspace,
 	.sv_onexit	= linux_on_exit,
 	.sv_ontdexit	= linux_thread_dtor,

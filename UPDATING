@@ -27,6 +27,142 @@ NOTE TO PEOPLE WHO THINK THAT FreeBSD 15.x IS SLOW:
 	world, or to merely disable the most expensive debugging functionality
 	at runtime, run "ln -s 'abort:false,junk:false' /etc/malloc.conf".)
 
+20250727:
+	LLVM's debugging assertions are now disabled in main by default.
+	The WITH_LLVM_ASSERTIONS src.conf(5) knob should be used to
+	enable it when working on LLVM or requesting help with it.
+
+20250726:
+	amd64 kernel configurations must contain "options SMP".
+
+20250725:
+	gssd(8) has been moved to a new package, FreeBSD-gssd.  If you use
+	pkgbase and you need gssd, you should install this package.
+
+20250724:
+	The Kerberos packages which are built when WITH_MITKRB5 is enabled
+	have been renamed from FreeBSD-krb5* to FreeBSD-kerberos*.  This
+	affects pkgbase users who manually enabled WITH_MITKRB5, *or* use
+	the default value of WITH_MITKRB5 and updated past c7da9fb90b0b
+	(20250721) which made WITH_MITKRB5 the default.
+
+	In either case, if you have FreeBSD-krb5* packages installed, you
+	should remove them and (re)install the equivalent FreeBSD-kerberos*
+	packages instead.
+
+20250721:
+	WITH_MITKRB5 is now enabled by default. MIT KRB5 has replaced
+	Heimdal in base. Ports that use USES=gssapi must be rebuilt.
+	A clean buildworld is required.
+
+20250719:
+	Commits 392a82b225 and c00baac0ab both changed the
+	internal API between the NFS modules.  As such, all
+	these modules need to be rebuilt from sources.
+	__FreeBSD_version was bumped to 1500053 for this.
+
+20250710:
+	The shar(1) utility has been removed from base.  The
+	sysutils/freebsd-shar port was created to maintain this version of
+	shar(1) past its removal from base.
+
+20250704:
+	LinuxKPI device.h and acpi changes effecting drivers and drm-kmod.
+	Bump __FreeBSD_version 1500050 to be able to detect these changes.
+
+20250630:
+	Commits 171f66b0c2ca and 8e2a90ac8089 changed the internal
+	api between nfscommon.ko and the other nfs modules.
+	Bump __FreeBSD_version to 1500049 for this.
+	All NFS related modules must be rebuilt from up-to-date
+	sources.
+
+20250625:
+	"make delete-old" will now remove the Forth bootloader entirely
+	if the system is built with WITHOUT_FORTH.
+
+20250614:
+	MIT KRB5 (MIT Kerberos5) has been imported into 15-CURRENT. To
+	and install MIT KRB5, add WITH_MITKRB5=yes to /etc/src.conf. This
+	will build and install MIT KRB5 1.21.3. And it will remove Heimdal
+	1.5.2 when delete-old and delete-old-libs are run. To revert back
+	simply buildworld/installworld again with delete-old-libs and
+	delete-old.
+
+	At the moment we only know of a couple of ports that might be
+	affected. Adjusting libmap.conf does not circumvent runtime issues.
+	The few affected ports must be rebuilt. A successful exp-run will be
+	run before MIT KRB5 becomes default.
+
+	Those using the KDC in FreeBSD base may wish to wait. The Heimdal
+	HDB is incompatible with the MIT KRB5 KDC. The migration procedure
+	is a little involved.
+
+20250603:
+	LinuxKPI dma-mapping.h were pulled into the tree from drm-kmod.
+	Bump _FreeBSD_version to 1500045 to be able to detect this change.
+
+20250527:
+	pf changed extension header handling. It now treats AH headers on IPv4 just
+	like AH headers on IPv6 and skips over them, allowing filtering on the inner
+	protocol.
+
+20250527:
+	pf now blocks IPv6 packets with a hop-by-hop or destination options header by
+	default. Such packets can be passed by adding "allow-opts" to the rule. IPv6
+	options are now handled just like their IPv4 counterparts.
+
+20250527:
+	The CAM target layer userland, i.e. ctld(8), ctladm(8) and ctlstat(8),
+	has moved to the new FreeBSD-ctl package.  If you use pkgbase and you
+	need the CAM Target Layer, you should install the new package.
+
+	Development-related tools (e.g. ar and nm) have moved to the new
+	"FreeBSD-toolchain" package, which subsumes and obsoletes the
+	existing "FreeBSD-elftoolchain" package.  If you use pkgbase and
+	need to compile software, you should install the new package and
+	ensure the old FreeBSD-elftoolchain* packages are completely removed.
+
+20250521:
+	Commit e64fe5ad3a23 removed in6_maxmtu and its setter in6_setmaxmtu().
+	in6_maxmtu is used to store the max IPv6 MTU of all interfaces,
+	however it does not have any in-tree consumers since the introduction
+	from the KAME project. The removal should have little impact, and the
+	max IPv6 MTU can be easily retrieved by iterating over all the attached
+	interface if 3rd party modules need it.
+
+20250515:
+	Commit 772258c89f28 changed the internal API between the nfscommon
+	and nfscl modules.  Both need to be built from updated sources.
+
+20250513:
+	The bridge(4) sysctl net.link.bridge.member_ifaddrs now defaults to 0,
+	meaning that interfaces added to a bridge may not have IP addresses
+	assigned.  Refer to bridge(4) for more information.
+
+20250507:
+	UMASS quirks and auto-quirk probing has been overhauled. CAM now won't
+	send SYNCHRONIZE CACHE unless MODE PAGE 8 is present and valid. This
+	should allow more devices to work (since the auto quirk code was updated
+	in 14 and broke several e-readers and the like). Please send imp@freebsd.org
+	any regression reports.
+
+20250504:
+	Commit 9419e086e1a3 changed the internal API between the nfscommon
+	and nfscl modules.  Both need to be built from updated sources.
+
+20250412:
+	LinuxKPI alloc routines were changed to return physically contiguous
+	memory where expected. These changes may require out-of-tree drivers
+	to be recompiled.
+	Bump __FreeBSD_version to 1500037 to be able to detect this change.
+
+20250409:
+	Intel iwlwifi firmware has been removed from the src repository.
+	Before updating their system, users of iwlwifi(4) or iwx(4) must
+	install the appropriate firmware for their chipset using fwget(8) or
+	building it from ports.
+
 20250314:
 	We now use LLVM's binary utilities (nm, objcopy, etc.) by default.
 	The WITHOUT_LLVM_BINUTILS src.conf(5) knob can be used to revert to
@@ -83,6 +219,12 @@ NOTE TO PEOPLE WHO THINK THAT FreeBSD 15.x IS SLOW:
 	The OpenBSD derived bc and dc implementations and the WITHOUT_GH_BC
 	option that allowed building them instead of the advanced version
 	imported more than 4 years ago have been removed.
+
+20241107:
+	The ng_ubt(4) driver now requires firmwares to be loaded on Realtek
+	adaptors with rtlbtfw(8) utility. It no longer attaches to devices
+	standing in bootloader mode. Firmware files are available in the
+	comms/rtlbt-firmware port.
 
 20241025:
 	The support for the rc_fast_and_loose variable has been removed from
@@ -2117,10 +2259,11 @@ COMMON ITEMS:
 	# Note: sometimes if you are running current you gotta do more than
 	# is listed here if you are upgrading from a really old current.
 
-	<make sure you have good level 0 dumps>
+	<make sure you have good level 0 dumps>		[2]
 	make buildworld
+	<make sure any needed PORTS_MODULES are set>	[1]
 	make buildkernel KERNCONF=YOUR_KERNEL_HERE
-	make installkernel KERNCONF=YOUR_KERNEL_HERE	[1]
+	make installkernel KERNCONF=YOUR_KERNEL_HERE
 	<reboot in single user>				[3]
 	etcupdate -p					[5]
 	make installworld
@@ -2154,10 +2297,11 @@ COMMON ITEMS:
 
 	To upgrade in-place from stable to current
 	----------------------------------------------
-	<make sure you have good level 0 dumps>
+	<make sure you have good level 0 dumps>		[2]
 	make buildworld					[9]
+	<make sure any needed PORTS_MODULES are set>	[1]
 	make buildkernel KERNCONF=YOUR_KERNEL_HERE	[8]
-	make installkernel KERNCONF=YOUR_KERNEL_HERE	[1]
+	make installkernel KERNCONF=YOUR_KERNEL_HERE
 	<reboot in single user>				[3]
 	etcupdate -p					[5]
 	make installworld
@@ -2189,6 +2333,11 @@ FOOTNOTES:
 	the port origin directories to PORTS_MODULES instead is also automatic
 	and effective, eg:
 	     PORTS_MODULES+=graphics/drm-kmod graphics/nvidia-drm-kmod
+
+	[2] To make complete dumps on zfs(4), use bectl(8), which
+	creates bootable snapshots of configurable depth that are
+	selectable via the bootloader. For ufs(4), use dump(8) and
+	restore(8).
 
 	[3] From the bootblocks, boot -s, and then do
 		fsck -p

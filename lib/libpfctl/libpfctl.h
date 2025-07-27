@@ -159,6 +159,13 @@ struct pfctl_rules_info {
 	uint32_t	ticket;
 };
 
+struct pfctl_threshold {
+	uint32_t		limit;
+	uint32_t		seconds;
+	uint32_t		count;
+	uint32_t		last;
+};
+
 struct pfctl_rule {
 	struct pf_rule_addr	 src;
 	struct pf_rule_addr	 dst;
@@ -181,6 +188,7 @@ struct pfctl_rule {
 		struct pfctl_pool	 rdr;
 	};
 	struct pfctl_pool	 route;
+	struct pfctl_threshold	 pktrate;
 
 	uint64_t		 evaluations;
 	uint64_t		 packets[2];
@@ -203,6 +211,7 @@ struct pfctl_rule {
 		uint32_t		limit;
 		uint32_t		seconds;
 	}			 max_src_conn_rate;
+	uint16_t		 max_pkt_size;
 	uint32_t		 qid;
 	uint32_t		 pqid;
 	uint16_t		 dnpipe;
@@ -396,13 +405,6 @@ struct pfctl_syncookies {
 	uint32_t			halfopen_states;
 };
 
-struct pfctl_threshold {
-	uint32_t		limit;
-	uint32_t		seconds;
-	uint32_t		count;
-	uint32_t		last;
-};
-
 struct pfctl_src_node {
 	struct pf_addr		addr;
 	struct pf_addr		raddr;
@@ -556,5 +558,7 @@ int	pfctl_get_tstats(struct pfctl_handle *h, const struct pfr_table *filter,
 	    pfctl_get_tstats_fn fn, void *arg);
 int	pfctl_clear_tstats(struct pfctl_handle *h, const struct pfr_table *filter,
 	    int *nzero, int flags);
+int	pfctl_clear_addrs(struct pfctl_handle *h, const struct pfr_table *filter,
+	    int *ndel, int flags);
 
 #endif

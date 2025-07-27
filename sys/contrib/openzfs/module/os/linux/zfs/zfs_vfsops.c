@@ -265,6 +265,7 @@ zfs_sync(struct super_block *sb, int wait, cred_t *cr)
 {
 	(void) cr;
 	zfsvfs_t *zfsvfs = sb->s_fs_info;
+	ASSERT3P(zfsvfs, !=, NULL);
 
 	/*
 	 * Semantically, the only requirement is that the sync be initiated.
@@ -273,38 +274,22 @@ zfs_sync(struct super_block *sb, int wait, cred_t *cr)
 	if (!wait)
 		return (0);
 
-	if (zfsvfs != NULL) {
-		/*
-		 * Sync a specific filesystem.
-		 */
-		dsl_pool_t *dp;
-		int error;
+	int err = zfs_enter(zfsvfs, FTAG);
+	if (err != 0)
+		return (err);
 
-		if ((error = zfs_enter(zfsvfs, FTAG)) != 0)
-			return (error);
-		dp = dmu_objset_pool(zfsvfs->z_os);
-
-		/*
-		 * If the system is shutting down, then skip any
-		 * filesystems which may exist on a suspended pool.
-		 */
-		if (spa_suspended(dp->dp_spa)) {
-			zfs_exit(zfsvfs, FTAG);
-			return (0);
-		}
-
-		if (zfsvfs->z_log != NULL)
-			zil_commit(zfsvfs->z_log, 0);
-
+	/*
+	 * If the pool is suspended, just return an error. This is to help
+	 * with shutting down with pools suspended, as we don't want to block
+	 * in that case.
+	 */
+	if (spa_suspended(zfsvfs->z_os->os_spa)) {
 		zfs_exit(zfsvfs, FTAG);
-	} else {
-		/*
-		 * Sync all ZFS filesystems.  This is what happens when you
-		 * run sync(1).  Unlike other filesystems, ZFS honors the
-		 * request by waiting for all pools to commit all dirty data.
-		 */
-		spa_sync_allpools();
+		return (SET_ERROR(EIO));
 	}
+
+	zil_commit(zfsvfs->z_log, 0);
+	zfs_exit(zfsvfs, FTAG);
 
 	return (0);
 }
@@ -697,6 +682,36 @@ zfsvfs_init(zfsvfs_t *zfsvfs, objset_t *os)
 			zfsvfs->z_xattr_sa = B_TRUE;
 	}
 
+	error = zfs_get_zplprop(os, ZFS_PROP_DEFAULTUSERQUOTA,
+	    &zfsvfs->z_defaultuserquota);
+	if (error != 0)
+		return (error);
+
+	error = zfs_get_zplprop(os, ZFS_PROP_DEFAULTGROUPQUOTA,
+	    &zfsvfs->z_defaultgroupquota);
+	if (error != 0)
+		return (error);
+
+	error = zfs_get_zplprop(os, ZFS_PROP_DEFAULTPROJECTQUOTA,
+	    &zfsvfs->z_defaultprojectquota);
+	if (error != 0)
+		return (error);
+
+	error = zfs_get_zplprop(os, ZFS_PROP_DEFAULTUSEROBJQUOTA,
+	    &zfsvfs->z_defaultuserobjquota);
+	if (error != 0)
+		return (error);
+
+	error = zfs_get_zplprop(os, ZFS_PROP_DEFAULTGROUPOBJQUOTA,
+	    &zfsvfs->z_defaultgroupobjquota);
+	if (error != 0)
+		return (error);
+
+	error = zfs_get_zplprop(os, ZFS_PROP_DEFAULTPROJECTOBJQUOTA,
+	    &zfsvfs->z_defaultprojectobjquota);
+	if (error != 0)
+		return (error);
+
 	error = zap_lookup(os, MASTER_NODE_OBJ, ZFS_ROOT_OBJ, 8, 1,
 	    &zfsvfs->z_root);
 	if (error != 0)
@@ -1038,15 +1053,19 @@ zfs_statfs_project(zfsvfs_t *zfsvfs, znode_t *zp, struct kstatfs *statp,
 	if (err)
 		return (err);
 
-	if (zfsvfs->z_projectquota_obj == 0)
-		goto objs;
-
-	err = zap_lookup(zfsvfs->z_os, zfsvfs->z_projectquota_obj,
-	    buf + offset, 8, 1, &quota);
-	if (err == ENOENT)
-		goto objs;
-	else if (err)
-		return (err);
+	if (zfsvfs->z_projectquota_obj == 0) {
+		if (zfsvfs->z_defaultprojectquota == 0)
+			goto objs;
+		quota = zfsvfs->z_defaultprojectquota;
+	} else {
+		err = zap_lookup(zfsvfs->z_os, zfsvfs->z_projectquota_obj,
+		    buf + offset, 8, 1, &quota);
+		if (err && (quota = zfsvfs->z_defaultprojectquota) == 0) {
+			if (err == ENOENT)
+				goto objs;
+			return (err);
+		}
+	}
 
 	err = zap_lookup(zfsvfs->z_os, DMU_PROJECTUSED_OBJECT,
 	    buf + offset, 8, 1, &used);
@@ -1072,15 +1091,21 @@ zfs_statfs_project(zfsvfs_t *zfsvfs, znode_t *zp, struct kstatfs *statp,
 	statp->f_bavail = statp->f_bfree;
 
 objs:
-	if (zfsvfs->z_projectobjquota_obj == 0)
-		return (0);
 
-	err = zap_lookup(zfsvfs->z_os, zfsvfs->z_projectobjquota_obj,
-	    buf + offset, 8, 1, &quota);
-	if (err == ENOENT)
-		return (0);
-	else if (err)
-		return (err);
+	if (zfsvfs->z_projectobjquota_obj == 0) {
+		if (zfsvfs->z_defaultprojectobjquota == 0)
+			return (0);
+		quota = zfsvfs->z_defaultprojectobjquota;
+	} else {
+		err = zap_lookup(zfsvfs->z_os, zfsvfs->z_projectobjquota_obj,
+		    buf + offset, 8, 1, &quota);
+		if (err && (quota = zfsvfs->z_defaultprojectobjquota) == 0) {
+			if (err == ENOENT)
+				return (0);
+			return (err);
+		}
+	}
+
 
 	err = zap_lookup(zfsvfs->z_os, DMU_PROJECTUSED_OBJECT,
 	    buf, 8, 1, &used);
@@ -2005,6 +2030,62 @@ zfs_set_version(zfsvfs_t *zfsvfs, uint64_t newvers)
 	return (0);
 }
 
+int
+zfs_set_default_quota(zfsvfs_t *zfsvfs, zfs_prop_t prop, uint64_t quota)
+{
+	int error;
+	objset_t *os = zfsvfs->z_os;
+	const char *propstr = zfs_prop_to_name(prop);
+	dmu_tx_t *tx;
+
+	tx = dmu_tx_create(os);
+	dmu_tx_hold_zap(tx, MASTER_NODE_OBJ, B_FALSE, propstr);
+	error = dmu_tx_assign(tx, DMU_TX_WAIT);
+	if (error) {
+		dmu_tx_abort(tx);
+		return (error);
+	}
+
+	if (quota == 0) {
+		error = zap_remove(os, MASTER_NODE_OBJ, propstr, tx);
+		if (error == ENOENT)
+			error = 0;
+	} else {
+		error = zap_update(os, MASTER_NODE_OBJ, propstr, 8, 1,
+		    &quota, tx);
+	}
+
+	if (error)
+		goto out;
+
+	switch (prop) {
+	case ZFS_PROP_DEFAULTUSERQUOTA:
+		zfsvfs->z_defaultuserquota = quota;
+		break;
+	case ZFS_PROP_DEFAULTGROUPQUOTA:
+		zfsvfs->z_defaultgroupquota = quota;
+		break;
+	case ZFS_PROP_DEFAULTPROJECTQUOTA:
+		zfsvfs->z_defaultprojectquota = quota;
+		break;
+	case ZFS_PROP_DEFAULTUSEROBJQUOTA:
+		zfsvfs->z_defaultuserobjquota = quota;
+		break;
+	case ZFS_PROP_DEFAULTGROUPOBJQUOTA:
+		zfsvfs->z_defaultgroupobjquota = quota;
+		break;
+	case ZFS_PROP_DEFAULTPROJECTOBJQUOTA:
+		zfsvfs->z_defaultprojectobjquota = quota;
+		break;
+	default:
+		break;
+	}
+
+out:
+	dmu_tx_commit(tx);
+	return (error);
+}
+
 /*
  * Return true if the corresponding vfs's unmounted flag is set.
  * Otherwise return false.
@@ -2073,4 +2154,5 @@ EXPORT_SYMBOL(zfs_remount);
 EXPORT_SYMBOL(zfs_statvfs);
 EXPORT_SYMBOL(zfs_vget);
 EXPORT_SYMBOL(zfs_prune);
+EXPORT_SYMBOL(zfs_set_default_quota);
 #endif

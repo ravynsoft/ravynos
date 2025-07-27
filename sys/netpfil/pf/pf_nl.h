@@ -66,6 +66,7 @@ enum {
 	PFNL_CMD_DEL_TABLE = 28,
 	PFNL_CMD_GET_TSTATS = 29,
 	PFNL_CMD_CLR_TSTATS = 30,
+	PFNL_CMD_CLR_ADDRS = 31,
 	__PFNL_CMD_MAX,
 };
 #define PFNL_CMD_MAX (__PFNL_CMD_MAX -1)
@@ -277,6 +278,8 @@ enum pf_rule_type_t {
 	PF_RT_SRC_NODES_LIMIT	= 79, /* u64 */
 	PF_RT_SRC_NODES_NAT	= 80, /* u64 */
 	PF_RT_SRC_NODES_ROUTE	= 81, /* u64 */
+	PF_RT_PKTRATE		= 82, /* nested, pf_threshold_type_t */
+	PF_RT_MAX_PKT_SIZE	= 83, /* u16 */
 };
 
 enum pf_addrule_type_t {

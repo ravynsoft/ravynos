@@ -56,6 +56,7 @@
 #include <sys/filedesc.h>
 #include <sys/reboot.h>
 #include <sys/sbuf.h>
+#include <sys/stdarg.h>
 #include <sys/syscallsubr.h>
 #include <sys/sysproto.h>
 #include <sys/sx.h>
@@ -66,8 +67,6 @@
 #include <vm/uma.h>
 
 #include <geom/geom.h>
-
-#include <machine/stdarg.h>
 
 #include <security/audit/audit.h>
 #include <security/mac/mac_framework.h>
@@ -157,6 +156,7 @@ mount_init(void *mem, int size, int flags)
 	mtx_init(&mp->mnt_mtx, "struct mount mtx", NULL, MTX_DEF);
 	mtx_init(&mp->mnt_listmtx, "struct mount vlist mtx", NULL, MTX_DEF);
 	lockinit(&mp->mnt_explock, PVFS, "explock", 0, 0);
+	lockinit(&mp->mnt_renamelock, PVFS, "rename", 0, 0);
 	mp->mnt_pcpu = uma_zalloc_pcpu(pcpu_zone_16, M_WAITOK | M_ZERO);
 	mp->mnt_ref = 0;
 	mp->mnt_vfs_ops = 1;
@@ -171,6 +171,7 @@ mount_fini(void *mem, int size)
 
 	mp = (struct mount *)mem;
 	uma_zfree_pcpu(pcpu_zone_16, mp->mnt_pcpu);
+	lockdestroy(&mp->mnt_renamelock);
 	lockdestroy(&mp->mnt_explock);
 	mtx_destroy(&mp->mnt_listmtx);
 	mtx_destroy(&mp->mnt_mtx);

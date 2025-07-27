@@ -518,6 +518,9 @@
 #define	FREEBSD32_SYS_getrlimitusage	589
 #define	FREEBSD32_SYS_fchroot	590
 #define	FREEBSD32_SYS_freebsd32_setcred	591
+#define	FREEBSD32_SYS_exterrctl	592
+#define	FREEBSD32_SYS_inotify_add_watch_at	593
+#define	FREEBSD32_SYS_inotify_rm_watch	594
 #define	FREEBSD32_SYS__kernelrpc_mach_vm_allocate_trap	610
 #define	FREEBSD32_SYS__kernelrpc_mach_vm_deallocate_trap	612
 #define	FREEBSD32_SYS__kernelrpc_mach_vm_protect_trap	614

@@ -40,13 +40,13 @@
 #define	SB_SEL		0x08		/* someone is selecting */
 #define	SB_ASYNC	0x10		/* ASYNC I/O, need signals */
 #define	SB_UPCALL	0x20		/* someone wants an upcall */
-/* was	SB_NOINTR	0x40		*/
+#define	SB_AUTOLOWAT	0x40		/* sendfile(2) may autotune sb_lowat */
 #define	SB_AIO		0x80		/* AIO operations queued */
 #define	SB_KNOTE	0x100		/* kernel note attached */
 #define	SB_NOCOALESCE	0x200		/* don't coalesce new data into existing mbufs */
 #define	SB_IN_TOE	0x400		/* socket buffer is in the middle of an operation */
 #define	SB_AUTOSIZE	0x800		/* automatically size socket buffer */
-#define	SB_STOP		0x1000		/* backpressure indicator */
+/* was	SB_STOP		0x1000		*/
 #define	SB_AIO_RUNNING	0x2000		/* AIO operation running */
 #define	SB_SPLICED	0x4000		/* socket buffer is spliced;
 					   previously used for SB_TLS_IFNET */
@@ -133,6 +133,18 @@ struct sockbuf {
 			struct	ktls_session *sb_tls_info;
 		};
 		/*
+		 * PF_UNIX/SOCK_STREAM and PF_UNIX/SOCK_SEQPACKET
+		 * A simple stream buffer with not ready data pointer.
+		 */
+		struct {
+			STAILQ_HEAD(, mbuf)	uxst_mbq;
+			struct mbuf		*uxst_fnrdy;
+			struct socket		*uxst_peer;
+			u_int			uxst_flags;
+#define	UXST_PEER_AIO	0x1
+#define	UXST_PEER_SEL	0x2
+		};
+		/*
 		 * PF_UNIX/SOCK_DGRAM
 		 *
 		 * Local protocol, thus we should buffer on the receive side
@@ -198,8 +210,6 @@ typedef enum { SO_RCV, SO_SND } sb_which;
  * Socket buffer private mbuf(9) flags.
  */
 #define	M_NOTREADY	M_PROTO1	/* m_data not populated yet */
-#define	M_BLOCKED	M_PROTO2	/* M_NOTREADY in front of m */
-#define	M_NOTAVAIL	(M_NOTREADY | M_BLOCKED)
 
 void	sbappend(struct sockbuf *sb, struct mbuf *m, int flags);
 void	sbappend_locked(struct sockbuf *sb, struct mbuf *m, int flags);
@@ -290,9 +300,6 @@ sbspace(struct sockbuf *sb)
 #if 0
 	SOCKBUF_LOCK_ASSERT(sb);
 #endif
-
-	if (sb->sb_flags & SB_STOP)
-		return(0);
 
 	bleft = sb->sb_hiwat - sb->sb_ccc;
 	mleft = sb->sb_mbmax - sb->sb_mbcnt;

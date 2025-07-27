@@ -5126,8 +5126,8 @@ bbr_timeout_rxt(struct tcpcb *tp, struct tcp_bbr *bbr, uint32_t cts)
 				tp->t_maxseg = tp->t_pmtud_saved_maxseg;
 				if (tp->t_maxseg < V_tcp_mssdflt) {
 					/*
-					 * The MSS is so small we should not 
-					 * process incoming SACK's since we are 
+					 * The MSS is so small we should not
+					 * process incoming SACK's since we are
 					 * subject to attack in such a case.
 					 */
 					tp->t_flags2 |= TF2_PROC_SACK_PROHIBIT;
@@ -8763,7 +8763,7 @@ bbr_do_syn_sent(struct mbuf *m, struct tcphdr *th, struct socket *so,
 	    (SEQ_LEQ(th->th_ack, tp->iss) ||
 	    SEQ_GT(th->th_ack, tp->snd_max))) {
 		tcp_log_end_status(tp, TCP_EI_STATUS_RST_IN_FRONT);
-		ctf_do_dropwithreset(m, tp, th, BANDLIM_RST_OPENPORT, tlen);
+		ctf_do_dropwithreset(m, tp, th, BANDLIM_TCP_RST, tlen);
 		return (1);
 	}
 	if ((thflags & (TH_ACK | TH_RST)) == (TH_ACK | TH_RST)) {
@@ -8965,7 +8965,7 @@ bbr_do_syn_recv(struct mbuf *m, struct tcphdr *th, struct socket *so,
 	    (SEQ_LEQ(th->th_ack, tp->snd_una) ||
 	     SEQ_GT(th->th_ack, tp->snd_max))) {
 		tcp_log_end_status(tp, TCP_EI_STATUS_RST_IN_FRONT);
-		ctf_do_dropwithreset(m, tp, th, BANDLIM_RST_OPENPORT, tlen);
+		ctf_do_dropwithreset(m, tp, th, BANDLIM_TCP_RST, tlen);
 		return (1);
 	}
 	if (tp->t_flags & TF_FASTOPEN) {
@@ -8977,7 +8977,7 @@ bbr_do_syn_recv(struct mbuf *m, struct tcphdr *th, struct socket *so,
 		 */
 		if ((thflags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK)) {
 			tcp_log_end_status(tp, TCP_EI_STATUS_RST_IN_FRONT);
-			ctf_do_dropwithreset(m, tp, th, BANDLIM_RST_OPENPORT, tlen);
+			ctf_do_dropwithreset(m, tp, th, BANDLIM_TCP_RST, tlen);
 			return (1);
 		} else if (thflags & TH_SYN) {
 			/* non-initial SYN is ignored */
@@ -9010,7 +9010,7 @@ bbr_do_syn_recv(struct mbuf *m, struct tcphdr *th, struct socket *so,
 	 */
 	if (SEQ_LT(th->th_seq, tp->irs)) {
 		tcp_log_end_status(tp, TCP_EI_STATUS_RST_IN_FRONT);
-		ctf_do_dropwithreset(m, tp, th, BANDLIM_RST_OPENPORT, tlen);
+		ctf_do_dropwithreset(m, tp, th, BANDLIM_TCP_RST, tlen);
 		return (1);
 	}
 	if (ctf_drop_checks(to, m, th, tp, &tlen, &thflags, &drop_hdrlen, &ret_val)) {
@@ -9288,7 +9288,7 @@ bbr_do_established(struct mbuf *m, struct tcphdr *th, struct socket *so,
 	if (sbavail(&so->so_snd)) {
 		if (ctf_progress_timeout_check(tp, true)) {
 			bbr_log_progress_event(bbr, tp, tick, PROGRESS_DROP, __LINE__);
-			ctf_do_dropwithreset_conn(m, tp, th, BANDLIM_RST_OPENPORT, tlen);
+			ctf_do_dropwithreset_conn(m, tp, th, BANDLIM_TCP_RST, tlen);
 			return (1);
 		}
 	}
@@ -9385,7 +9385,7 @@ bbr_do_close_wait(struct mbuf *m, struct tcphdr *th, struct socket *so,
 	if (sbavail(&so->so_snd)) {
 		if (ctf_progress_timeout_check(tp, true)) {
 			bbr_log_progress_event(bbr, tp, tick, PROGRESS_DROP, __LINE__);
-			ctf_do_dropwithreset_conn(m, tp, th, BANDLIM_RST_OPENPORT, tlen);
+			ctf_do_dropwithreset_conn(m, tp, th, BANDLIM_TCP_RST, tlen);
 			return (1);
 		}
 	}
@@ -9535,7 +9535,7 @@ bbr_do_fin_wait_1(struct mbuf *m, struct tcphdr *th, struct socket *so,
 	if (sbavail(&so->so_snd)) {
 		if (ctf_progress_timeout_check(tp, true)) {
 			bbr_log_progress_event(bbr, tp, tick, PROGRESS_DROP, __LINE__);
-			ctf_do_dropwithreset_conn(m, tp, th, BANDLIM_RST_OPENPORT, tlen);
+			ctf_do_dropwithreset_conn(m, tp, th, BANDLIM_TCP_RST, tlen);
 			return (1);
 		}
 	}
@@ -9637,7 +9637,7 @@ bbr_do_closing(struct mbuf *m, struct tcphdr *th, struct socket *so,
 	if (sbavail(&so->so_snd)) {
 		if (ctf_progress_timeout_check(tp, true)) {
 			bbr_log_progress_event(bbr, tp, tick, PROGRESS_DROP, __LINE__);
-			ctf_do_dropwithreset_conn(m, tp, th, BANDLIM_RST_OPENPORT, tlen);
+			ctf_do_dropwithreset_conn(m, tp, th, BANDLIM_TCP_RST, tlen);
 			return (1);
 		}
 	}
@@ -9739,7 +9739,7 @@ bbr_do_lastack(struct mbuf *m, struct tcphdr *th, struct socket *so,
 	if (sbavail(&so->so_snd)) {
 		if (ctf_progress_timeout_check(tp, true)) {
 			bbr_log_progress_event(bbr, tp, tick, PROGRESS_DROP, __LINE__);
-			ctf_do_dropwithreset_conn(m, tp, th, BANDLIM_RST_OPENPORT, tlen);
+			ctf_do_dropwithreset_conn(m, tp, th, BANDLIM_TCP_RST, tlen);
 			return (1);
 		}
 	}
@@ -9848,7 +9848,7 @@ bbr_do_fin_wait_2(struct mbuf *m, struct tcphdr *th, struct socket *so,
 	if (sbavail(&so->so_snd)) {
 		if (ctf_progress_timeout_check(tp, true)) {
 			bbr_log_progress_event(bbr, tp, tick, PROGRESS_DROP, __LINE__);
-			ctf_do_dropwithreset_conn(m, tp, th, BANDLIM_RST_OPENPORT, tlen);
+			ctf_do_dropwithreset_conn(m, tp, th, BANDLIM_TCP_RST, tlen);
 			return (1);
 		}
 	}
@@ -10141,7 +10141,7 @@ bbr_init(struct tcpcb *tp, void **ptr)
 	 * flags.
 	 */
 	bbr_stop_all_timers(tp, bbr);
-	/* 
+	/*
 	 * Validate the timers are not in usec, if they are convert.
 	 * BBR should in theory move to USEC and get rid of a
 	 * lot of the TICKS_2 calls.. but for now we stay
@@ -10150,7 +10150,7 @@ bbr_init(struct tcpcb *tp, void **ptr)
 	tcp_change_time_units(tp, TCP_TMR_GRANULARITY_TICKS);
 	TCPT_RANGESET(tp->t_rxtcur,
 	    ((tp->t_srtt >> 2) + tp->t_rttvar) >> 1,
-	    tp->t_rttmin, TCPTV_REXMTMAX);
+	    tp->t_rttmin, tcp_rexmit_max);
 	bbr_start_hpts_timer(bbr, tp, cts, 5, 0, 0);
 	return (0);
 }
@@ -11510,7 +11510,7 @@ bbr_do_segment_nounlock(struct tcpcb *tp, struct mbuf *m, struct tcphdr *th,
 	if ((tp->t_state == TCPS_SYN_SENT) && (thflags & TH_ACK) &&
 	    (SEQ_LEQ(th->th_ack, tp->iss) || SEQ_GT(th->th_ack, tp->snd_max))) {
 		tcp_log_end_status(tp, TCP_EI_STATUS_RST_IN_FRONT);
-		ctf_do_dropwithreset_conn(m, tp, th, BANDLIM_RST_OPENPORT, tlen);
+		ctf_do_dropwithreset_conn(m, tp, th, BANDLIM_TCP_RST, tlen);
 		return (1);
 	}
 	if (tiwin > bbr->r_ctl.rc_high_rwnd)
@@ -11544,7 +11544,7 @@ bbr_do_segment_nounlock(struct tcpcb *tp, struct mbuf *m, struct tcphdr *th,
 		bbr_check_bbr_for_state(bbr, cts, __LINE__, (bbr->r_ctl.rc_lost - lost));
 		if (nxt_pkt == 0) {
 			if ((bbr->r_wanted_output != 0) ||
-			    (tp->t_flags & TF_ACKNOW)) { 
+			    (tp->t_flags & TF_ACKNOW)) {
 
 				bbr->rc_output_starts_timer = 0;
 				did_out = 1;
@@ -13172,11 +13172,7 @@ send:
 				mb, moff, &len,
 				if_hw_tsomaxsegcount,
 				if_hw_tsomaxsegsize, msb,
-				((rsm == NULL) ? hw_tls : 0)
-#ifdef NETFLIX_COPY_ARGS
-				, NULL, NULL
-#endif
-				);
+				((rsm == NULL) ? hw_tls : 0));
 			if (len <= maxseg) {
 				/*
 				 * Must have ran out of mbufs for the copy
@@ -13806,8 +13802,8 @@ nomore:
 					tp->t_maxseg = old_maxseg - 40;
 					if (tp->t_maxseg < V_tcp_mssdflt) {
 						/*
-						 * The MSS is so small we should not 
-						 * process incoming SACK's since we are 
+						 * The MSS is so small we should not
+						 * process incoming SACK's since we are
 						 * subject to attack in such a case.
 						 */
 						tp->t_flags2 |= TF2_PROC_SACK_PROHIBIT;

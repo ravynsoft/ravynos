@@ -51,6 +51,9 @@
 static MALLOC_DEFINE(M_IDENTCPU, "CPU ID", "arm64 CPU identification memory");
 
 struct cpu_desc;
+#ifdef INVARIANTS
+static bool hwcaps_set = false;
+#endif
 
 static void print_cpu_midr(struct sbuf *sb, u_int cpu);
 static void print_cpu_features(u_int cpu, struct cpu_desc *desc,
@@ -215,19 +218,28 @@ static const struct cpu_parts cpu_parts_arm[] = {
 	{ CPU_PART_CORTEX_A76AE, "Cortex-A76AE" },
 	{ CPU_PART_CORTEX_A77, "Cortex-A77" },
 	{ CPU_PART_CORTEX_A78, "Cortex-A78" },
+	{ CPU_PART_CORTEX_A78AE, "Cortex-A78AE" },
 	{ CPU_PART_CORTEX_A78C, "Cortex-A78C" },
 	{ CPU_PART_CORTEX_A510, "Cortex-A510" },
+	{ CPU_PART_CORTEX_A520, "Cortex-A520" },
 	{ CPU_PART_CORTEX_A710, "Cortex-A710" },
 	{ CPU_PART_CORTEX_A715, "Cortex-A715" },
+	{ CPU_PART_CORTEX_A720, "Cortex-A720" },
+	{ CPU_PART_CORTEX_A725, "Cortex-A725" },
+	{ CPU_PART_CORTEX_X925, "Cortex-A925" },
 	{ CPU_PART_CORTEX_X1, "Cortex-X1" },
 	{ CPU_PART_CORTEX_X1C, "Cortex-X1C" },
 	{ CPU_PART_CORTEX_X2, "Cortex-X2" },
 	{ CPU_PART_CORTEX_X3, "Cortex-X3" },
+	{ CPU_PART_CORTEX_X4, "Cortex-X4" },
 	{ CPU_PART_NEOVERSE_E1, "Neoverse-E1" },
 	{ CPU_PART_NEOVERSE_N1, "Neoverse-N1" },
 	{ CPU_PART_NEOVERSE_N2, "Neoverse-N2" },
+	{ CPU_PART_NEOVERSE_N3, "Neoverse-N3" },
 	{ CPU_PART_NEOVERSE_V1, "Neoverse-V1" },
 	{ CPU_PART_NEOVERSE_V2, "Neoverse-V2" },
+	{ CPU_PART_NEOVERSE_V3, "Neoverse-V3" },
+	{ CPU_PART_NEOVERSE_V3AE, "Neoverse-V3AE" },
 	CPU_PART_NONE,
 };
 
@@ -238,9 +250,22 @@ static const struct cpu_parts cpu_parts_cavium[] = {
 	CPU_PART_NONE,
 };
 
-/* APM / Ampere */
+/* APM (now Ampere) */
 static const struct cpu_parts cpu_parts_apm[] = {
 	{ CPU_PART_EMAG8180, "eMAG 8180" },
+	CPU_PART_NONE,
+};
+
+/* Ampere */
+static const struct cpu_parts cpu_parts_ampere[] = {
+	{ CPU_PART_AMPERE1, "AmpereOne AC03" },
+	{ CPU_PART_AMPERE1A, "AmpereOne AC04" },
+	CPU_PART_NONE,
+};
+
+/* Microsoft */
+static const struct cpu_parts cpu_parts_microsoft[] = {
+	{ CPU_PART_AZURE_COBALT_100, "Azure Cobalt 100" },
 	CPU_PART_NONE,
 };
 
@@ -277,7 +302,7 @@ static const struct cpu_parts cpu_parts_none[] = {
  * Implementers table.
  */
 const struct cpu_implementers cpu_implementers[] = {
-	{ CPU_IMPL_AMPERE,	"Ampere",	cpu_parts_none },
+	{ CPU_IMPL_AMPERE,	"Ampere",	cpu_parts_ampere },
 	{ CPU_IMPL_APPLE,	"Apple",	cpu_parts_apple },
 	{ CPU_IMPL_APM,		"APM",		cpu_parts_apm },
 	{ CPU_IMPL_ARM,		"ARM",		cpu_parts_arm },
@@ -286,9 +311,11 @@ const struct cpu_implementers cpu_implementers[] = {
 	{ CPU_IMPL_DEC,		"DEC",		cpu_parts_none },
 	{ CPU_IMPL_FREESCALE,	"Freescale",	cpu_parts_none },
 	{ CPU_IMPL_FUJITSU,	"Fujitsu",	cpu_parts_none },
+	{ CPU_IMPL_HISILICON,	"HiSilicon",	cpu_parts_none },
 	{ CPU_IMPL_INFINEON,	"IFX",		cpu_parts_none },
 	{ CPU_IMPL_INTEL,	"Intel",	cpu_parts_none },
 	{ CPU_IMPL_MARVELL,	"Marvell",	cpu_parts_none },
+	{ CPU_IMPL_MICROSOFT,	"Microsoft",	cpu_parts_microsoft },
 	{ CPU_IMPL_NVIDIA,	"NVIDIA",	cpu_parts_none },
 	{ CPU_IMPL_QUALCOMM,	"Qualcomm",	cpu_parts_qcom },
 	CPU_IMPLEMENTER_NONE,
@@ -1002,9 +1029,9 @@ static const struct mrs_field id_aa64isar1_fields[] = {
 	    id_aa64isar1_sb, id_aa64isar1_sb_caps),
 	MRS_FIELD_HWCAP(ID_AA64ISAR1, FRINTTS, false, MRS_LOWER, MRS_USERSPACE,
 	    id_aa64isar1_frintts, id_aa64isar1_frintts_caps),
-	MRS_FIELD_HWCAP(ID_AA64ISAR1, GPI, false, MRS_LOWER, 0,
+	MRS_FIELD_HWCAP(ID_AA64ISAR1, GPI, false, MRS_LOWER, MRS_USERSPACE,
 	    id_aa64isar1_gpi, id_aa64isar1_gpi_caps),
-	MRS_FIELD_HWCAP(ID_AA64ISAR1, GPA, false, MRS_LOWER, 0,
+	MRS_FIELD_HWCAP(ID_AA64ISAR1, GPA, false, MRS_LOWER, MRS_USERSPACE,
 	    id_aa64isar1_gpa, id_aa64isar1_gpa_caps),
 	MRS_FIELD_HWCAP(ID_AA64ISAR1, LRCPC, false, MRS_LOWER, MRS_USERSPACE,
 	    id_aa64isar1_lrcpc, id_aa64isar1_lrcpc_caps),
@@ -1012,9 +1039,9 @@ static const struct mrs_field id_aa64isar1_fields[] = {
 	    id_aa64isar1_fcma, id_aa64isar1_fcma_caps),
 	MRS_FIELD_HWCAP(ID_AA64ISAR1, JSCVT, false, MRS_LOWER, MRS_USERSPACE,
 	    id_aa64isar1_jscvt, id_aa64isar1_jscvt_caps),
-	MRS_FIELD_HWCAP(ID_AA64ISAR1, API, false, MRS_LOWER, 0,
+	MRS_FIELD_HWCAP(ID_AA64ISAR1, API, false, MRS_LOWER, MRS_USERSPACE,
 	    id_aa64isar1_api, id_aa64isar1_api_caps),
-	MRS_FIELD_HWCAP(ID_AA64ISAR1, APA, false, MRS_LOWER, 0,
+	MRS_FIELD_HWCAP(ID_AA64ISAR1, APA, false, MRS_LOWER, MRS_USERSPACE,
 	    id_aa64isar1_apa, id_aa64isar1_apa_caps),
 	MRS_FIELD_HWCAP(ID_AA64ISAR1, DPB, false, MRS_LOWER, MRS_USERSPACE,
 	    id_aa64isar1_dpb, id_aa64isar1_dpb_caps),
@@ -1119,9 +1146,9 @@ static const struct mrs_field id_aa64isar2_fields[] = {
 	    id_aa64isar2_pac_frac),
 	MRS_FIELD(ID_AA64ISAR2, BC, false, MRS_LOWER, 0, id_aa64isar2_bc),
 	MRS_FIELD(ID_AA64ISAR2, MOPS, false, MRS_LOWER, 0, id_aa64isar2_mops),
-	MRS_FIELD_HWCAP(ID_AA64ISAR2, APA3, false, MRS_LOWER, 0,
+	MRS_FIELD_HWCAP(ID_AA64ISAR2, APA3, false, MRS_LOWER, MRS_USERSPACE,
 	    id_aa64isar2_apa3, id_aa64isar2_apa3_caps),
-	MRS_FIELD_HWCAP(ID_AA64ISAR2, GPA3, false, MRS_LOWER, 0,
+	MRS_FIELD_HWCAP(ID_AA64ISAR2, GPA3, false, MRS_LOWER, MRS_USERSPACE,
 	    id_aa64isar2_gpa3, id_aa64isar2_gpa3_caps),
 	MRS_FIELD_HWCAP(ID_AA64ISAR2, RPRES, false, MRS_LOWER, MRS_USERSPACE,
 	    id_aa64isar2_rpres, id_aa64isar2_rpres_caps),
@@ -2192,9 +2219,7 @@ static const struct mrs_field mvfr1_fields[] = {
 #endif /* COMPAT_FREEBSD32 */
 
 struct mrs_user_reg {
-	u_int		reg;
-	u_int		CRm;
-	u_int		Op2;
+	u_int		iss;
 	bool		is64bit;
 	size_t		offset;
 	const struct mrs_field *fields;
@@ -2202,9 +2227,7 @@ struct mrs_user_reg {
 
 #define	USER_REG(name, field_name, _is64bit)				\
 	{								\
-		.reg = name,						\
-		.CRm = name##_CRm,					\
-		.Op2 = name##_op2,					\
+		.iss = name##_ISS,					\
 		.offset = __offsetof(struct cpu_desc, field_name),	\
 		.fields = field_name##_fields,				\
 		.is64bit = _is64bit,					\
@@ -2343,21 +2366,22 @@ static struct cpu_feat user_ctr = {
 };
 DATA_SET(cpu_feat_set, user_ctr);
 
-static int
-user_ctr_handler(vm_offset_t va, uint32_t insn, struct trapframe *frame,
-    uint32_t esr)
+static bool
+user_ctr_handler(uint64_t esr, struct trapframe *frame)
 {
 	uint64_t value;
 	int reg;
 
-	if ((insn & MRS_MASK) != MRS_VALUE)
-		return (0);
+	if (ESR_ELx_EXCEPTION(esr) != EXCP_MSR)
+		return (false);
+
+	/* Only support reading from ctr_el0 */
+	if ((esr & ISS_MSR_DIR) == 0)
+		return (false);
 
 	/* Check if this is the ctr_el0 register */
-	/* TODO: Add macros to armreg.h */
-	if (mrs_Op0(insn) != 3 || mrs_Op1(insn) != 3 || mrs_CRn(insn) != 0 ||
-	    mrs_CRm(insn) != 0 || mrs_Op2(insn) != 1)
-		return (0);
+	if ((esr & ISS_MSR_REG_MASK) != CTR_EL0_ISS)
+		return (false);
 
 	if (SV_CURPROC_ABI() == SV_ABI_FREEBSD)
 		value = user_cpu_desc.ctr;
@@ -2369,61 +2393,62 @@ user_ctr_handler(vm_offset_t va, uint32_t insn, struct trapframe *frame,
 	 */
 	frame->tf_elr += INSN_SIZE;
 
-	reg = MRS_REGISTER(insn);
+	reg = ISS_MSR_Rt(esr);
 	/* If reg is 31 then write to xzr, i.e. do nothing */
 	if (reg == 31)
-		return (1);
+		return (true);
 
 	if (reg < nitems(frame->tf_x))
 		frame->tf_x[reg] = value;
 	else if (reg == 30)
 		frame->tf_lr = value;
 
-	return (1);
+	return (true);
 }
 
-static int
-user_mrs_handler(vm_offset_t va, uint32_t insn, struct trapframe *frame,
-    uint32_t esr)
+static bool
+user_idreg_handler(uint64_t esr, struct trapframe *frame)
 {
 	uint64_t value;
-	int CRm, Op2, i, reg;
+	int reg;
 
-	if ((insn & MRS_MASK) != MRS_VALUE)
-		return (0);
+	if (ESR_ELx_EXCEPTION(esr) != EXCP_MSR)
+		return (false);
+
+	/* Only support reading from ID registers */
+	if ((esr & ISS_MSR_DIR) == 0)
+		return (false);
 
 	/*
-	 * We only emulate Op0 == 3, Op1 == 0, CRn == 0, CRm == {0, 4-7}.
-	 * These are in the EL1 CPU identification space.
-	 * CRm == 0 holds MIDR_EL1, MPIDR_EL1, and REVID_EL1.
-	 * CRm == {4-7} holds the ID_AA64 registers.
+	 * This only handles the ID register space and a few registers that
+	 * are safe to pass through to userspace.
 	 *
-	 * For full details see the ARMv8 ARM (ARM DDI 0487C.a)
-	 * Table D9-2 System instruction encodings for non-Debug System
-	 * register accesses.
+	 * These registers are all in the space op0 == 3, op1 == 0,
+	 * CRn == 0. We support the following CRm:
+	 *  - CRm == 0: midr_el1, mpidr_el1, and revidr_el1.
+	 *  - CRm in {4-7}: sanitized ID registers.
+	 *
+	 * Registers in the ID register space (CRm in {4-7}) are all
+	 * read-only and have either defined fields, or are read as
+	 * zero (RAZ). For these we return 0 for any unknown register.
 	 */
-	if (mrs_Op0(insn) != 3 || mrs_Op1(insn) != 0 || mrs_CRn(insn) != 0)
-		return (0);
+	if (ISS_MSR_OP0(esr) != 3 || ISS_MSR_OP1(esr) != 0 ||
+	    ISS_MSR_CRn(esr) != 0)
+		return (false);
 
-	CRm = mrs_CRm(insn);
-	if (CRm > 7 || (CRm < 4 && CRm != 0))
-		return (0);
-
-	Op2 = mrs_Op2(insn);
 	value = 0;
-
-	for (i = 0; i < nitems(user_regs); i++) {
-		if (user_regs[i].CRm == CRm && user_regs[i].Op2 == Op2) {
-			if (SV_CURPROC_ABI() == SV_ABI_FREEBSD)
-				value = CPU_DESC_FIELD(user_cpu_desc, i);
-			else
-				value = CPU_DESC_FIELD(l_user_cpu_desc, i);
-			break;
+	if (ISS_MSR_CRm(esr) >= 4 && ISS_MSR_CRm(esr) <= 7) {
+		for (int i = 0; i < nitems(user_regs); i++) {
+			if (user_regs[i].iss == (esr & ISS_MSR_REG_MASK)) {
+				if (SV_CURPROC_ABI() == SV_ABI_FREEBSD)
+					value = CPU_DESC_FIELD(user_cpu_desc, i);
+				else
+					value = CPU_DESC_FIELD(l_user_cpu_desc, i);
+				break;
+			}
 		}
-	}
-
-	if (CRm == 0) {
-		switch (Op2) {
+	} else if (ISS_MSR_CRm(esr) == 0) {
+		switch (ISS_MSR_OP2(esr)) {
 		case 0:
 			value = READ_SPECIALREG(midr_el1);
 			break;
@@ -2434,8 +2459,10 @@ user_mrs_handler(vm_offset_t va, uint32_t insn, struct trapframe *frame,
 			value = READ_SPECIALREG(revidr_el1);
 			break;
 		default:
-			return (0);
+			return (false);
 		}
+	} else {
+		return (false);
 	}
 
 	/*
@@ -2444,7 +2471,7 @@ user_mrs_handler(vm_offset_t va, uint32_t insn, struct trapframe *frame,
 	 */
 	frame->tf_elr += INSN_SIZE;
 
-	reg = MRS_REGISTER(insn);
+	reg = ISS_MSR_Rt(esr);
 	/* If reg is 31 then write to xzr, i.e. do nothing */
 	if (reg == 31)
 		return (1);
@@ -2454,7 +2481,7 @@ user_mrs_handler(vm_offset_t va, uint32_t insn, struct trapframe *frame,
 	else if (reg == 30)
 		frame->tf_lr = value;
 
-	return (1);
+	return (true);
 }
 
 /*
@@ -2492,29 +2519,12 @@ mrs_field_cmp(uint64_t a, uint64_t b, u_int shift, int width, bool sign)
 }
 
 bool
-extract_user_id_field(u_int reg, u_int field_shift, uint8_t *val)
-{
-	uint64_t value;
-	int i;
-
-	for (i = 0; i < nitems(user_regs); i++) {
-		if (user_regs[i].reg == reg) {
-			value = CPU_DESC_FIELD(user_cpu_desc, i);
-			*val = value >> field_shift;
-			return (true);
-		}
-	}
-
-	return (false);
-}
-
-bool
-get_kernel_reg(u_int reg, uint64_t *val)
+get_kernel_reg_iss(u_int iss, uint64_t *val)
 {
 	int i;
 
 	for (i = 0; i < nitems(user_regs); i++) {
-		if (user_regs[i].reg == reg) {
+		if (user_regs[i].iss == iss) {
 			*val = CPU_DESC_FIELD(kern_cpu_desc, i);
 			return (true);
 		}
@@ -2528,13 +2538,13 @@ get_kernel_reg(u_int reg, uint64_t *val)
  * do not exceed those in the mask.
  */
 bool
-get_kernel_reg_masked(u_int reg, uint64_t *valp, uint64_t mask)
+get_kernel_reg_iss_masked(u_int iss, uint64_t *valp, uint64_t mask)
 {
 	const struct mrs_field *fields;
 	uint64_t val;
 
 	for (int i = 0; i < nitems(user_regs); i++) {
-		if (user_regs[i].reg == reg) {
+		if (user_regs[i].iss == iss) {
 			val = CPU_DESC_FIELD(kern_cpu_desc, i);
 			fields = user_regs[i].fields;
 			for (int j = 0; fields[j].type != 0; j++) {
@@ -2543,6 +2553,24 @@ get_kernel_reg_masked(u_int reg, uint64_t *valp, uint64_t mask)
 				    fields[j].shift, fields[j].sign);
 			}
 			*valp = mask;
+			return (true);
+		}
+	}
+
+	return (false);
+}
+
+bool
+get_user_reg_iss(u_int iss, uint64_t *val, bool fbsd)
+{
+	int i;
+
+	for (i = 0; i < nitems(user_regs); i++) {
+		if (user_regs[i].iss == iss) {
+			if (fbsd)
+				*val = CPU_DESC_FIELD(user_cpu_desc, i);
+			else
+				*val = CPU_DESC_FIELD(l_user_cpu_desc, i);
 			return (true);
 		}
 	}
@@ -2592,13 +2620,62 @@ update_special_reg_field(uint64_t user_reg, u_int type, uint64_t value,
 	return (user_reg);
 }
 
+static void
+clear_set_special_reg_idx(int idx, uint64_t clear, uint64_t set)
+{
+	const struct mrs_field *fields;
+	uint64_t k_old, k_new;
+	uint64_t f_old, f_new;
+	uint64_t l_old, l_new;
+
+	MPASS(idx < nitems(user_regs));
+
+	k_old = CPU_DESC_FIELD(kern_cpu_desc, idx);
+	k_new = (k_old & ~clear) | set;
+
+	f_old = CPU_DESC_FIELD(user_cpu_desc, idx);
+	f_new = (f_old & ~clear) | set;
+
+	l_old = CPU_DESC_FIELD(l_user_cpu_desc, idx);
+	l_new = (l_old & ~clear) | set;
+
+	fields = user_regs[idx].fields;
+	for (int j = 0; fields[j].type != 0; j++) {
+		u_int type;
+
+		/* Update the FreeBSD userspace ID register view */
+		type = ((fields[j].type & MRS_FREEBSD) != 0) ?
+		    fields[j].type :
+		    (MRS_EXACT | (fields[j].type & MRS_SAFE_MASK));
+		f_new = update_special_reg_field(f_new,
+		    type, f_old, fields[j].width, fields[j].shift,
+		    fields[j].sign);
+
+		/* Update the Linux userspace ID register view */
+		type = ((fields[j].type & MRS_LINUX) != 0) ?
+		    fields[j].type :
+		    (MRS_EXACT | (fields[j].type & MRS_SAFE_MASK));
+		l_new = update_special_reg_field(l_new,
+		    type, l_old, fields[j].width, fields[j].shift,
+		    fields[j].sign);
+
+		/* Update the kernel ID register view */
+		k_new = update_special_reg_field(k_new,
+		    fields[j].type, k_old, fields[j].width,
+		    fields[j].shift, fields[j].sign);
+	}
+
+	CPU_DESC_FIELD(kern_cpu_desc, idx) = k_new;
+	CPU_DESC_FIELD(user_cpu_desc, idx) = f_new;
+	CPU_DESC_FIELD(l_user_cpu_desc, idx) = l_new;
+}
+
 void
 update_special_regs(u_int cpu)
 {
 	struct cpu_desc *desc;
-	const struct mrs_field *fields;
-	uint64_t l_user_reg, user_reg, kern_reg, value;
-	int i, j;
+	uint64_t value;
+	int i;
 
 	if (cpu == 0) {
 		/* Create a user visible cpu description with safe values */
@@ -2616,44 +2693,42 @@ update_special_regs(u_int cpu)
 	for (i = 0; i < nitems(user_regs); i++) {
 		value = CPU_DESC_FIELD(*desc, i);
 		if (cpu == 0) {
-			kern_reg = value;
-			user_reg = value;
-			l_user_reg = value;
-		} else {
-			kern_reg = CPU_DESC_FIELD(kern_cpu_desc, i);
-			user_reg = CPU_DESC_FIELD(user_cpu_desc, i);
-			l_user_reg = CPU_DESC_FIELD(l_user_cpu_desc, i);
+			CPU_DESC_FIELD(kern_cpu_desc, i) = value;
+			CPU_DESC_FIELD(user_cpu_desc, i) = value;
+			CPU_DESC_FIELD(l_user_cpu_desc, i) = value;
 		}
 
-		fields = user_regs[i].fields;
-		for (j = 0; fields[j].type != 0; j++) {
-			u_int type;
+		clear_set_special_reg_idx(i, UINT64_MAX, value);
+	}
+}
 
-			/* Update the FreeBSD userspace ID register view */
-			type = ((fields[j].type & MRS_FREEBSD) != 0) ?
-			    fields[j].type :
-			    (MRS_EXACT | (fields[j].type & MRS_SAFE_MASK));
-			user_reg = update_special_reg_field(user_reg,
-			    type, value, fields[j].width, fields[j].shift,
-			    fields[j].sign);
+/*
+ * Updates a special register in all views. This creates a copy of the
+ * register then clears it and sets new bits. It will then compare this
+ * with the old version as if it was the ID register for a new CPU.
+ *
+ * It is intended to let code that disables features, e.g. due to errata,
+ * to clear the user visible field.
+ *
+ * This needs to be called before the HWCAPs are set. If called from a CPU
+ * feature handler this safe to call from CPU_FEAT_EARLY_BOOT. It also needs
+ * to be before link_elf_late_ireloc is called. As this is called after the
+ * HWCAPs are set the check for these is enough.
+ */
+void
+update_special_reg_iss(u_int iss, uint64_t clear, uint64_t set)
+{
+	MPASS(hwcaps_set == false);
+	/* There is no locking here, so we only support changing this on CPU0 */
+	/* TODO: Add said locking */
+	MPASS(PCPU_GET(cpuid) == 0);
 
-			/* Update the Linux userspace ID register view */
-			type = ((fields[j].type & MRS_LINUX) != 0) ?
-			    fields[j].type :
-			    (MRS_EXACT | (fields[j].type & MRS_SAFE_MASK));
-			l_user_reg = update_special_reg_field(l_user_reg,
-			    type, value, fields[j].width, fields[j].shift,
-			    fields[j].sign);
+	for (int i = 0; i < nitems(user_regs); i++) {
+		if (user_regs[i].iss != iss)
+			continue;
 
-			/* Update the kernel ID register view */
-			kern_reg = update_special_reg_field(kern_reg,
-			    fields[j].type, value, fields[j].width,
-			    fields[j].shift, fields[j].sign);
-		}
-
-		CPU_DESC_FIELD(kern_cpu_desc, i) = kern_reg;
-		CPU_DESC_FIELD(user_cpu_desc, i) = user_reg;
-		CPU_DESC_FIELD(l_user_cpu_desc, i) = l_user_reg;
+		clear_set_special_reg_idx(i, clear, set);
+		return;
 	}
 }
 
@@ -2755,6 +2830,11 @@ identify_cpu_sysinit(void *dummy __unused)
 		prev_desc = desc;
 	}
 
+#ifdef INVARIANTS
+	/* Check we dont update the special registers after this point */
+	hwcaps_set = true;
+#endif
+
 	/* Find the values to export to userspace as AT_HWCAP and AT_HWCAP2 */
 	parse_cpu_features(true, &user_cpu_desc, &elf_hwcap, &elf_hwcap2);
 	parse_cpu_features(true, &l_user_cpu_desc, &linux_elf_hwcap,
@@ -2792,10 +2872,15 @@ identify_cpu_sysinit(void *dummy __unused)
 		panic("CPU does not support LSE atomic instructions");
 #endif
 
-	install_undef_handler(true, user_ctr_handler);
-	install_undef_handler(true, user_mrs_handler);
+	install_sys_handler(user_ctr_handler);
+	install_sys_handler(user_idreg_handler);
 }
-SYSINIT(identify_cpu, SI_SUB_CPU, SI_ORDER_MIDDLE, identify_cpu_sysinit, NULL);
+/*
+ * This needs to be after the APs have stareted as they may have errata that
+ * means we need to mask out ID registers & that could affect hwcaps, etc.
+ */
+SYSINIT(identify_cpu, SI_SUB_CONFIGURE, SI_ORDER_ANY, identify_cpu_sysinit,
+    NULL);
 
 static void
 cpu_features_sysinit(void *dummy __unused)

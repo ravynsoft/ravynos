@@ -57,8 +57,6 @@ SYSCTL_INT(_hw_snd, OID_AUTO, default_auto, CTLFLAG_RWTUN,
 SYSCTL_NODE(_hw, OID_AUTO, snd, CTLFLAG_RD | CTLFLAG_MPSAFE, 0,
     "Sound driver");
 
-static void pcm_sysinit(device_t);
-
 /**
  * @brief Unit number allocator for syncgroup IDs
  */
@@ -116,17 +114,21 @@ sysctl_hw_snd_default_unit(SYSCTL_HANDLER_ARGS)
 	unit = snd_unit;
 	error = sysctl_handle_int(oidp, &unit, 0, req);
 	if (error == 0 && req->newptr != NULL) {
+		bus_topo_lock();
 		d = devclass_get_softc(pcm_devclass, unit);
-		if (!PCM_REGISTERED(d) || CHN_EMPTY(d, channels.pcm))
+		if (!PCM_REGISTERED(d) || CHN_EMPTY(d, channels.pcm)) {
+			bus_topo_unlock();
 			return EINVAL;
+		}
 		snd_unit = unit;
 		snd_unit_auto = 0;
+		bus_topo_unlock();
 	}
 	return (error);
 }
 /* XXX: do we need a way to let the user change the default unit? */
 SYSCTL_PROC(_hw_snd, OID_AUTO, default_unit,
-    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_ANYBODY | CTLFLAG_NEEDGIANT, 0,
+    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_ANYBODY | CTLFLAG_MPSAFE, 0,
     sizeof(int), sysctl_hw_snd_default_unit, "I",
     "default sound device");
 
@@ -135,6 +137,7 @@ pcm_addchan(device_t dev, int dir, kobj_class_t cls, void *devinfo)
 {
 	struct snddev_info *d = device_get_softc(dev);
 	struct pcm_channel *ch;
+	int err = 0;
 
 	PCM_LOCK(d);
 	PCM_WAIT(d);
@@ -143,13 +146,12 @@ pcm_addchan(device_t dev, int dir, kobj_class_t cls, void *devinfo)
 	if (!ch) {
 		device_printf(d->dev, "chn_init(%s, %d, %p) failed\n",
 		    cls->name, dir, devinfo);
-		PCM_UNLOCK(d);
-		return (ENODEV);
+		err = ENODEV;
 	}
 	PCM_RELEASE(d);
 	PCM_UNLOCK(d);
 
-	return (0);
+	return (err);
 }
 
 static void
@@ -213,6 +215,7 @@ pcm_best_unit(int old)
 
 	best = -1;
 	bestprio = -100;
+	bus_topo_lock();
 	for (i = 0; pcm_devclass != NULL &&
 	    i < devclass_get_maxunit(pcm_devclass); i++) {
 		d = devclass_get_softc(pcm_devclass, i);
@@ -228,6 +231,8 @@ pcm_best_unit(int old)
 			bestprio = prio;
 		}
 	}
+	bus_topo_unlock();
+
 	return (best);
 }
 
@@ -344,41 +349,6 @@ sysctl_dev_pcm_mode(SYSCTL_HANDLER_ARGS)
 	return (sysctl_handle_int(oidp, &mode, 0, req));
 }
 
-static void
-pcm_sysinit(device_t dev)
-{
-  	struct snddev_info *d = device_get_softc(dev);
-
-	sysctl_ctx_init(&d->play_sysctl_ctx);
-	d->play_sysctl_tree = SYSCTL_ADD_NODE(&d->play_sysctl_ctx,
-	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)), OID_AUTO, "play",
-	    CTLFLAG_RD | CTLFLAG_MPSAFE, 0, "playback channels node");
-	sysctl_ctx_init(&d->rec_sysctl_ctx);
-	d->rec_sysctl_tree = SYSCTL_ADD_NODE(&d->rec_sysctl_ctx,
-	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)), OID_AUTO, "rec",
-	    CTLFLAG_RD | CTLFLAG_MPSAFE, 0, "recording channels node");
-
-	/* XXX: a user should be able to set this with a control tool, the
-	   sysadmin then needs min+max sysctls for this */
-	SYSCTL_ADD_UINT(device_get_sysctl_ctx(dev),
-	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)),
-            OID_AUTO, "buffersize", CTLFLAG_RD, &d->bufsz, 0, "allocated buffer size");
-	SYSCTL_ADD_PROC(device_get_sysctl_ctx(dev),
-	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)), OID_AUTO,
-	    "bitperfect", CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_MPSAFE, d,
-	    sizeof(d), sysctl_dev_pcm_bitperfect, "I",
-	    "bit-perfect playback/recording (0=disable, 1=enable)");
-	SYSCTL_ADD_PROC(device_get_sysctl_ctx(dev),
-	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)), OID_AUTO,
-	    "mode", CTLTYPE_INT | CTLFLAG_RD | CTLFLAG_MPSAFE, d, sizeof(d),
-	    sysctl_dev_pcm_mode, "I",
-	    "mode (1=mixer, 2=play, 4=rec. The values are OR'ed if more than "
-	    "one mode is supported)");
-	vchan_initsys(dev);
-	if (d->flags & SD_F_EQ)
-		feeder_eq_initsys(dev);
-}
-
 /*
  * Basic initialization so that drivers can use pcm_addchan() before
  * pcm_register().
@@ -448,7 +418,35 @@ pcm_register(device_t dev, char *str)
 	 * Create all sysctls once SD_F_REGISTERED is set else
 	 * tunable sysctls won't work:
 	 */
-	pcm_sysinit(dev);
+	sysctl_ctx_init(&d->play_sysctl_ctx);
+	d->play_sysctl_tree = SYSCTL_ADD_NODE(&d->play_sysctl_ctx,
+	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)), OID_AUTO, "play",
+	    CTLFLAG_RD | CTLFLAG_MPSAFE, 0, "playback channels node");
+	sysctl_ctx_init(&d->rec_sysctl_ctx);
+	d->rec_sysctl_tree = SYSCTL_ADD_NODE(&d->rec_sysctl_ctx,
+	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)), OID_AUTO, "rec",
+	    CTLFLAG_RD | CTLFLAG_MPSAFE, 0, "recording channels node");
+
+	/* XXX: a user should be able to set this with a control tool, the
+	   sysadmin then needs min+max sysctls for this */
+	SYSCTL_ADD_UINT(device_get_sysctl_ctx(dev),
+	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)),
+            OID_AUTO, "buffersize", CTLFLAG_RD, &d->bufsz, 0,
+	    "allocated buffer size");
+	SYSCTL_ADD_PROC(device_get_sysctl_ctx(dev),
+	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)), OID_AUTO,
+	    "bitperfect", CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_MPSAFE, d,
+	    sizeof(d), sysctl_dev_pcm_bitperfect, "I",
+	    "bit-perfect playback/recording (0=disable, 1=enable)");
+	SYSCTL_ADD_PROC(device_get_sysctl_ctx(dev),
+	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)), OID_AUTO,
+	    "mode", CTLTYPE_INT | CTLFLAG_RD | CTLFLAG_MPSAFE, d, sizeof(d),
+	    sysctl_dev_pcm_mode, "I",
+	    "mode (1=mixer, 2=play, 4=rec. The values are OR'ed if more than "
+	    "one mode is supported)");
+	vchan_initsys(dev);
+	if (d->flags & SD_F_EQ)
+		feeder_eq_initsys(dev);
 
 	if (snd_unit_auto < 0)
 		snd_unit_auto = (snd_unit < 0) ? 1 : 0;
@@ -557,6 +555,7 @@ sound_oss_sysinfo(oss_sysinfo *si)
 
 	j = 0;
 
+	bus_topo_lock();
 	for (i = 0; pcm_devclass != NULL &&
 	    i < devclass_get_maxunit(pcm_devclass); i++) {
 		d = devclass_get_softc(pcm_devclass, i);
@@ -583,6 +582,7 @@ sound_oss_sysinfo(oss_sysinfo *si)
 
 		PCM_UNLOCK(d);
 	}
+	bus_topo_unlock();
 
 	si->numsynths = 0;	/* OSSv4 docs:  this field is obsolete */
 	/**
@@ -603,9 +603,11 @@ sound_oss_sysinfo(oss_sysinfo *si)
 	 * break if they try to loop through all mixers and some of them are
 	 * not available.
 	 */
+	bus_topo_lock();
 	si->nummixers = devclass_get_maxunit(pcm_devclass);
 	si->numcards = devclass_get_maxunit(pcm_devclass);
 	si->numaudios = devclass_get_maxunit(pcm_devclass);
+	bus_topo_unlock();
 		/* OSSv4 docs:	Intended only for test apps; API doesn't
 		   really have much of a concept of cards.  Shouldn't be
 		   used by applications. */
@@ -631,6 +633,7 @@ sound_oss_card_info(oss_card_info *si)
 	struct snddev_info *d;
 	int i;
 
+	bus_topo_lock();
 	for (i = 0; pcm_devclass != NULL &&
 	    i < devclass_get_maxunit(pcm_devclass); i++) {
 		d = devclass_get_softc(pcm_devclass, i);
@@ -658,8 +661,11 @@ sound_oss_card_info(oss_card_info *si)
 			PCM_UNLOCK(d);
 		}
 
+		bus_topo_unlock();
 		return (0);
 	}
+	bus_topo_unlock();
+
 	return (ENXIO);
 }
 

@@ -44,6 +44,7 @@
 #include <sys/proc.h>
 #include <sys/sbuf.h>
 #include <sys/smp.h>
+#include <sys/stdarg.h>
 #include <sys/taskqueue.h>
 
 #include <sys/lock.h>
@@ -68,7 +69,6 @@
 #include <cam/scsi/scsi_message.h>
 #include <cam/scsi/scsi_pass.h>
 
-#include <machine/stdarg.h>	/* for xpt_print below */
 
 /* Wild guess based on not wanting to grow the stack too much */
 #define XPT_PRINT_MAXLEN	512
@@ -2471,15 +2471,12 @@ xptsetasyncfunc(struct cam_ed *device, void *arg)
 	if ((device->flags & CAM_DEV_UNCONFIGURED) != 0)
 		return (1);
 
-	memset(&cgd, 0, sizeof(cgd));
 	xpt_compile_path(&path,
 			 NULL,
 			 device->target->bus->path_id,
 			 device->target->target_id,
 			 device->lun_id);
-	xpt_setup_ccb(&cgd.ccb_h, &path, CAM_PRIORITY_NORMAL);
-	cgd.ccb_h.func_code = XPT_GDEV_TYPE;
-	xpt_action((union ccb *)&cgd);
+	xpt_gdev_type(&cgd, &path);
 	csa->callback(csa->callback_arg,
 			    AC_FOUND_DEVICE,
 			    &path, &cgd);
@@ -2517,6 +2514,15 @@ xpt_action(union ccb *start_ccb)
 	CAM_DEBUG(start_ccb->ccb_h.path, CAM_DEBUG_TRACE,
 	    ("xpt_action: func %#x %s\n", start_ccb->ccb_h.func_code,
 		xpt_action_name(start_ccb->ccb_h.func_code)));
+
+	/*
+	 * Either it isn't queued, or it has a real priority. There still too
+	 * many places that reuse CCBs with a real priority to do immediate
+	 * queries to do the other side of this assert.
+	 */
+	KASSERT((start_ccb->ccb_h.func_code & XPT_FC_QUEUED) == 0 ||
+	    start_ccb->ccb_h.pinfo.priority != CAM_PRIORITY_NONE,
+	    ("%s: queued ccb and CAM_PRIORITY_NONE illegal.", __func__));
 
 	start_ccb->ccb_h.status = CAM_REQ_INPROG;
 	(*(start_ccb->ccb_h.path->bus->xport->ops->action))(start_ccb);

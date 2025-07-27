@@ -30,13 +30,14 @@
 #include <sys/types.h>
 #include <sys/queue.h>
 
+#include <machine/tls.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
 
 #include "libc_private.h"
 #include "thr_private.h"
-#include "static_tls.h"
 
 /*#define DEBUG_THREAD_LIST */
 #ifdef DEBUG_THREAD_LIST
@@ -150,11 +151,13 @@ _thr_alloc(struct pthread *curthread)
 		if (total_threads > MAX_THREADS)
 			return (NULL);
 		atomic_add_int(&total_threads, 1);
-		thread = __thr_calloc(1, sizeof(struct pthread));
+		thread = __thr_aligned_alloc_offset(_Alignof(struct pthread),
+		    sizeof(struct pthread), 0);
 		if (thread == NULL) {
 			atomic_add_int(&total_threads, -1);
 			return (NULL);
 		}
+		memset(thread, 0, sizeof(*thread));
 		if ((thread->sleepqueue = _sleepq_alloc()) == NULL ||
 		    (thread->wake_addr = _thr_alloc_wake_addr()) == NULL) {
 			thr_destroy(curthread, thread);
@@ -359,36 +362,4 @@ _thr_find_thread(struct pthread *curthread, struct pthread *thread,
 	}
 	THREAD_LIST_UNLOCK(curthread);
 	return (ret);
-}
-
-#include "pthread_tls.h"
-
-static void
-thr_distribute_static_tls(uintptr_t tlsbase, void *src, size_t len,
-    size_t total_len)
-{
-
-	memcpy((void *)tlsbase, src, len);
-	memset((char *)tlsbase + len, 0, total_len - len);
-}
-
-void
-__pthread_distribute_static_tls(size_t offset, void *src, size_t len,
-    size_t total_len)
-{
-	struct pthread *curthread, *thrd;
-	uintptr_t tlsbase;
-
-	if (!_thr_is_inited()) {
-		tlsbase = _libc_get_static_tls_base(offset);
-		thr_distribute_static_tls(tlsbase, src, len, total_len);
-		return;
-	}
-	curthread = _get_curthread();
-	THREAD_LIST_RDLOCK(curthread);
-	TAILQ_FOREACH(thrd, &_thread_list, tle) {
-		tlsbase = _get_static_tls_base(thrd, offset);
-		thr_distribute_static_tls(tlsbase, src, len, total_len);
-	}
-	THREAD_LIST_UNLOCK(curthread);
 }

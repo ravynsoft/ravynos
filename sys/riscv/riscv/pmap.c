@@ -183,12 +183,13 @@
 
 #define	pmap_l1_pindex(v)	(NUL2E + ((v) >> L1_SHIFT))
 #define	pmap_l2_pindex(v)	((v) >> L2_SHIFT)
+#define	pa_index(pa)		((pa) >> L2_SHIFT)
 #define	pa_to_pvh(pa)		(&pv_table[pa_index(pa)])
 
 #define	NPV_LIST_LOCKS	MAXCPU
 
 #define	PHYS_TO_PV_LIST_LOCK(pa)	\
-			(&pv_list_locks[pmap_l2_pindex(pa) % NPV_LIST_LOCKS])
+			(&pv_list_locks[pa_index(pa) % NPV_LIST_LOCKS])
 
 #define	CHANGE_PV_LIST_LOCK_TO_PHYS(lockp, pa)	do {	\
 	struct rwlock **_lockp = (lockp);		\
@@ -239,6 +240,11 @@ vm_offset_t kernel_vm_end = 0;
 vm_paddr_t dmap_phys_base;	/* The start of the dmap region */
 vm_paddr_t dmap_phys_max;	/* The limit of the dmap region */
 vm_offset_t dmap_max_addr;	/* The virtual address limit of the dmap */
+
+static int pmap_growkernel_panic = 0;
+SYSCTL_INT(_vm_pmap, OID_AUTO, growkernel_panic, CTLFLAG_RDTUN,
+    &pmap_growkernel_panic, 0,
+    "panic on failure to allocate kernel page table page");
 
 /* This code assumes all L1 DMAP entries will be used */
 CTASSERT((DMAP_MIN_ADDRESS  & ~L1_OFFSET) == DMAP_MIN_ADDRESS);
@@ -1872,8 +1878,8 @@ SYSCTL_PROC(_vm, OID_AUTO, kvm_free, CTLTYPE_LONG | CTLFLAG_RD | CTLFLAG_MPSAFE,
 /*
  * grow the number of kernel page table entries, if needed
  */
-void
-pmap_growkernel(vm_offset_t addr)
+static int
+pmap_growkernel_nopanic(vm_offset_t addr)
 {
 	vm_paddr_t paddr;
 	vm_page_t nkpg;
@@ -1893,7 +1899,8 @@ pmap_growkernel(vm_offset_t addr)
 			nkpg = vm_page_alloc_noobj(VM_ALLOC_INTERRUPT |
 			    VM_ALLOC_NOFREE | VM_ALLOC_WIRED | VM_ALLOC_ZERO);
 			if (nkpg == NULL)
-				panic("%s: no memory to grow kernel", __func__);
+				return (KERN_RESOURCE_SHORTAGE);
+
 			nkpg->pindex = pmap_l1_pindex(kernel_vm_end);
 			paddr = VM_PAGE_TO_PHYS(nkpg);
 
@@ -1919,7 +1926,7 @@ pmap_growkernel(vm_offset_t addr)
 		nkpg = vm_page_alloc_noobj(VM_ALLOC_INTERRUPT |
 		    VM_ALLOC_NOFREE | VM_ALLOC_WIRED | VM_ALLOC_ZERO);
 		if (nkpg == NULL)
-			panic("%s: no memory to grow kernel", __func__);
+			return (KERN_RESOURCE_SHORTAGE);
 		nkpg->pindex = pmap_l2_pindex(kernel_vm_end);
 		paddr = VM_PAGE_TO_PHYS(nkpg);
 
@@ -1936,6 +1943,19 @@ pmap_growkernel(vm_offset_t addr)
 			break;                       
 		}
 	}
+
+	return (KERN_SUCCESS);
+}
+
+int
+pmap_growkernel(vm_offset_t addr)
+{
+	int rv;
+
+	rv = pmap_growkernel_nopanic(addr);
+	if (rv != KERN_SUCCESS && pmap_growkernel_panic)
+		panic("pmap_growkernel: no memory to grow kernel");
+	return (rv);
 }
 
 /***************************************************
@@ -3614,31 +3634,33 @@ void
 pmap_enter_object(pmap_t pmap, vm_offset_t start, vm_offset_t end,
     vm_page_t m_start, vm_prot_t prot)
 {
+	struct pctrie_iter pages;
 	struct rwlock *lock;
 	vm_offset_t va;
 	vm_page_t m, mpte;
-	vm_pindex_t diff, psize;
 	int rv;
 
 	VM_OBJECT_ASSERT_LOCKED(m_start->object);
 
-	psize = atop(end - start);
 	mpte = NULL;
-	m = m_start;
+	vm_page_iter_limit_init(&pages, m_start->object,
+	    m_start->pindex + atop(end - start));
+	m = vm_radix_iter_lookup(&pages, m_start->pindex);
 	lock = NULL;
 	rw_rlock(&pvh_global_lock);
 	PMAP_LOCK(pmap);
-	while (m != NULL && (diff = m->pindex - m_start->pindex) < psize) {
-		va = start + ptoa(diff);
+	while (m != NULL) {
+		va = start + ptoa(m->pindex - m_start->pindex);
 		if ((va & L2_OFFSET) == 0 && va + L2_SIZE <= end &&
 		    m->psind == 1 && pmap_ps_enabled(pmap) &&
 		    ((rv = pmap_enter_2mpage(pmap, va, m, prot, &lock)) ==
-		    KERN_SUCCESS || rv == KERN_NO_SPACE))
-			m = &m[L2_SIZE / PAGE_SIZE - 1];
-		else
+		    KERN_SUCCESS || rv == KERN_NO_SPACE)) {
+			m = vm_radix_iter_jump(&pages, L2_SIZE / PAGE_SIZE);
+		} else {
 			mpte = pmap_enter_quick_locked(pmap, va, m, prot, mpte,
 			    &lock);
-		m = TAILQ_NEXT(m, listq);
+			m = vm_radix_iter_step(&pages);
+		}
 	}
 	if (lock != NULL)
 		rw_wunlock(lock);
@@ -4816,6 +4838,8 @@ pmap_unmapbios(void *p, vm_size_t size)
 void
 pmap_page_set_memattr(vm_page_t m, vm_memattr_t ma)
 {
+	if (m->md.pv_memattr == ma)
+		return;
 
 	m->md.pv_memattr = ma;
 

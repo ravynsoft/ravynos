@@ -429,7 +429,11 @@ SUBDIR+=cddl
 .endif
 SUBDIR+=gnu include
 .if ${MK_KERBEROS} != "no"
+.if ${MK_MITKRB5} != "no"
+SUBDIR+=krb5
+.else
 SUBDIR+=kerberos5
+.endif
 .endif
 .if ${MK_RESCUE} != "no"
 SUBDIR+=rescue
@@ -767,7 +771,6 @@ BSARGS= 	DESTDIR= \
 		BOOTSTRAPPING=${BOOTSTRAPPING_OSRELDATE} \
 		BWPHASE=${.TARGET:C,^_,,} \
 		-DNO_CPU_CFLAGS \
-		-DNO_LINT \
 		-DNO_PIC \
 		-DNO_SHARED \
 		MK_ASAN=no \
@@ -800,7 +803,6 @@ TMAKE=		\
 		BOOTSTRAPPING=${BOOTSTRAPPING_OSRELDATE} \
 		BWPHASE=${.TARGET:C,^_,,} \
 		-DNO_CPU_CFLAGS \
-		-DNO_LINT \
 		MK_ASAN=no \
 		MK_CTF=no \
 		MK_CLANG_EXTRAS=no \
@@ -817,6 +819,7 @@ TMAKE=		\
 # TOOLS_PREFIX set in BMAKE
 XMAKE=		${BMAKE} \
 		TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} \
+		MK_CLANG=${MK_CLANG_BOOTSTRAP} \
 		MK_LLDB=no \
 		MK_LLVM_BINUTILS=no \
 		MK_TESTS=no
@@ -837,7 +840,6 @@ KTMAKE=		${TIME_ENV} \
 		MAKEOBJDIRPREFIX= \
 		BOOTSTRAPPING=${BOOTSTRAPPING_OSRELDATE} \
 		-DNO_CPU_CFLAGS \
-		-DNO_LINT \
 		-DNO_PIC \
 		-DNO_SHARED \
 		MK_CTF=no \
@@ -1222,7 +1224,7 @@ _libraries:
 	@echo ">>> stage 4.2: building libraries"
 	@echo "--------------------------------------------------------------"
 	${_+_}cd ${.CURDIR}; \
-	    ${WMAKE} -DNO_FSCHG MK_HTML=no -DNO_LINT MK_MAN=no \
+	    ${WMAKE} -DNO_FSCHG MK_HTML=no MK_MAN=no \
 	    MK_TESTS=no MK_TESTS_SUPPORT=${MK_TESTS_SUPPORT} \
 	    libraries
 everything: .PHONY
@@ -1673,8 +1675,8 @@ buildetc: .MAKE .PHONY
 	${_+_}cd ${.CURDIR}; ${MAKE} -f Makefile.inc1 _legacy
 	${_+_}cd ${.CURDIR}; ${MAKE} -f Makefile.inc1 _bootstrap-tools \
 	    MK_CROSS_COMPILER=no MK_TOOLCHAIN=no
-	${_+_}cd ${.CURDIR}; ${MAKE} -f Makefile.inc1 _obj \
-	    SUBDIR_OVERRIDE=etc
+	${_+_}cd ${.CURDIR}; ${MAKE} -f Makefile.inc1 _obj
+	${_+_}cd ${.CURDIR}; ${MAKE} -f Makefile.inc1 buildconfig
 	${_+_}cd ${.CURDIR}; ${MAKE} -f Makefile.inc1 everything \
 	    SUBDIR_OVERRIDE=etc
 
@@ -1937,7 +1939,6 @@ distributekernel distributekernel.debug: .PHONY
 .endif
 
 packagekernel: .PHONY
-.if defined(NO_ROOT)
 .if !defined(NO_INSTALLKERNEL)
 	cd ${DESTDIR}/${DISTDIR}/kernel; \
 	    ${TAR_CMD} cvf - --exclude '*.debug' \
@@ -1963,30 +1964,6 @@ packagekernel: .PHONY
 	    ${XZ_CMD} > ${DESTDIR}/${DISTDIR}/kernel.${_kernel}-dbg.txz
 .endif
 .endfor
-.endif
-.else
-.if !defined(NO_INSTALLKERNEL)
-	cd ${DESTDIR}/${DISTDIR}/kernel; \
-	    ${TAR_CMD} cvf - --exclude '*.debug' . | \
-	    ${XZ_CMD} > ${PACKAGEDIR}/kernel.txz
-.endif
-.if ${MK_DEBUG_FILES} != "no"
-	cd ${DESTDIR}/${DISTDIR}/kernel; \
-	    ${TAR_CMD} cvf - --include '*/*/*.debug' $$(eval find .) | \
-	    ${XZ_CMD} > ${DESTDIR}/${DISTDIR}/kernel-dbg.txz
-.endif
-.if ${BUILDKERNELS:[#]} > 1 && ${NO_INSTALLEXTRAKERNELS} != "yes"
-.for _kernel in ${BUILDKERNELS:[2..-1]}
-	cd ${DESTDIR}/${DISTDIR}/kernel.${_kernel}; \
-	    ${TAR_CMD} cvf - --exclude '*.debug' . | \
-	    ${XZ_CMD} > ${PACKAGEDIR}/kernel.${_kernel}.txz
-.if ${MK_DEBUG_FILES} != "no"
-	cd ${DESTDIR}/${DISTDIR}/kernel.${_kernel}; \
-	    ${TAR_CMD} cvf - --include '*/*/*.debug' $$(eval find .) | \
-	    ${XZ_CMD} > ${DESTDIR}/${DISTDIR}/kernel.${_kernel}-dbg.txz
-.endif
-.endfor
-.endif
 .endif
 
 stagekernel: .PHONY
@@ -2026,8 +2003,8 @@ PKG_EXT=	${PKG_FORMAT}
 PKG_EXT=	pkg
 .endif
 
-.if !defined(PKG_VERSION_FROM) && make(real-update-packages)
-.if exists(${PKG_ABI_FILE}) && exists(${REPODIR}/${PKG_ABI})
+.if !defined(PKG_VERSION_FROM) && make(real-update-packages) && \
+    exists(${PKG_ABI_FILE}) && exists(${REPODIR}/${PKG_ABI}/latest)
 PKG_VERSION_FROM!=/usr/bin/readlink ${REPODIR}/${PKG_ABI}/latest
 PKG_VERSION_FROM_DIR=	${REPODIR}/${PKG_ABI}/${PKG_VERSION_FROM}
 # Determine the name of the branch base on the version
@@ -2049,11 +2026,6 @@ BRANCH_EXT_FROM=	beta
 BRANCH_EXT_FROM=	rc
 .elif ${PKG_VERSION_FROM:M*.a*}
 BRANCH_EXT_FROM=	alpha
-.endif
-.else
-PKG_VERSION_FROM=
-PKG_VERSION_FROM_DIR=
-BRANCH_EXT_FROM=
 .endif
 .endif
 
@@ -2078,9 +2050,7 @@ real-packages:	stage-packages create-packages sign-packages .PHONY
 
 real-update-packages: stage-packages .PHONY
 	${_+_}${MAKE} -C ${.CURDIR} PKG_VERSION=${PKG_VERSION} create-packages
-.if empty(PKG_VERSION_FROM_DIR)
-	@echo "==> Bootstrapping repository, not checking for new packages"
-.else
+.if defined(PKG_VERSION_FROM_DIR)
 	@echo "==> Checking for new packages (comparing ${PKG_VERSION} to ${PKG_VERSION_FROM})"
 	@for pkg in ${PKG_VERSION_FROM_DIR}/${PKG_NAME_PREFIX}-*; do \
 	  pkgname=$$(pkg query -F $${pkg} '%n' | sed 's/${PKG_NAME_PREFIX}-\(.*\)/\1/') ; \
@@ -2098,9 +2068,10 @@ real-update-packages: stage-packages .PHONY
 	    echo "==> New package $${newpkgname}" ; \
 	  fi ; \
 	done
+.else
+	@echo "==> Bootstrapping repository, not checking for new packages"
 .endif
-	${_+_}@cd ${.CURDIR}; \
-		${MAKE} -f Makefile.inc1 PKG_VERSION=${PKG_VERSION} sign-packages
+	${_+_}${MAKE} -C ${.CURDIR} -f Makefile.inc1 PKG_VERSION=${PKG_VERSION} sign-packages
 
 stage-packages-world: .PHONY
 	@mkdir -p ${WSTAGEDIR}
@@ -2142,7 +2113,9 @@ create-packages-source:	_pkgbootstrap _repodir .PHONY
 	${_+_}@cd ${.CURDIR}; \
 		${MAKE} -f Makefile.inc1 \
 			DESTDIR=${SSTAGEDIR} \
-			PKG_VERSION=${PKG_VERSION} create-source-packages
+			PKG_VERSION=${PKG_VERSION} \
+			SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH} \
+			create-source-packages
 
 create-packages: .PHONY create-packages-world create-packages-kernel create-packages-source
 
@@ -2157,11 +2130,10 @@ create-source-src-package: _pkgbootstrap .PHONY
 		PKGNAME "src" \
 		PKGGENNAME "src" \
 		VERSION "${PKG_VERSION}" \
-		DESC "FreeBSD Kernel Sources" \
-		COMMENT "FreeBSD Userland Sources" \
 		PKG_NAME_PREFIX "${PKG_NAME_PREFIX}" \
 		PKG_MAINTAINER "${PKG_MAINTAINER}" \
 		PKG_WWW "${PKG_WWW}" \
+		UCLFILES "${SRCDIR}/release/packages/ucl" \
 		${SRCDIR}/release/packages/template.ucl \
 		${SSTAGEDIR}/src.ucl
 	${PKG_CMD} -o ABI=${PKG_ABI} \
@@ -2182,13 +2154,12 @@ create-source-src-sys-package: _pkgbootstrap .PHONY
 		> ${SSTAGEDIR}/src-sys.plist
 	${SRCDIR}/release/packages/generate-ucl.lua \
 		PKGNAME "src-sys" \
-		PKGGENNAME "src" \
+		PKGGENNAME "src-sys" \
 		VERSION "${PKG_VERSION}" \
-		DESC "FreeBSD Kernel Sources" \
-		COMMENT "FreeBSD Kernel Sources" \
 		PKG_NAME_PREFIX "${PKG_NAME_PREFIX}" \
 		PKG_MAINTAINER "${PKG_MAINTAINER}" \
 		PKG_WWW "${PKG_WWW}" \
+		UCLFILES "${SRCDIR}/release/packages/ucl" \
 		${SRCDIR}/release/packages/template.ucl \
 		${SSTAGEDIR}/src-sys.ucl
 	${PKG_CMD} -o ABI=${PKG_ABI} \
@@ -2253,12 +2224,12 @@ create-dtb-package:
 	@if [ -f ${KSTAGEDIR}/${DISTDIR}/dtb.plist ]; then \
 	${SRCDIR}/release/packages/generate-ucl.lua \
 		PKGNAME "dtb" \
+		PKGGENNAME "dtb" \
 		VERSION "${PKG_VERSION}" \
-		COMMENT "FreeBSD Devicetree Blobs" \
-		DESC "FreeBSD Devicetree Blobs" \
 		PKG_NAME_PREFIX "${PKG_NAME_PREFIX}" \
 		PKG_MAINTAINER "${PKG_MAINTAINER}" \
 		PKG_WWW "${PKG_WWW}" \
+		UCLFILES "${SRCDIR}/release/packages/ucl" \
 		${SRCDIR}/release/packages/template.ucl \
 		${KSTAGEDIR}/${DISTDIR}/dtb.ucl ; \
 	awk -F\" ' \
@@ -2284,13 +2255,15 @@ create-kernel-packages-flavor${flavor:C,^""$,${_default_flavor},}: _pkgbootstrap
 		-v kernel=yes -v _kernconf=${INSTALLKERNEL} ; \
 	${SRCDIR}/release/packages/generate-ucl.lua \
 		PKGNAME "kernel-${INSTALLKERNEL:tl}${flavor}" \
+		PKGGENNAME "kernel" \
 		VERSION "${PKG_VERSION}" \
 		KERNELDIR "kernel" \
-		COMMENT "FreeBSD ${INSTALLKERNEL} kernel ${flavor}" \
-		DESC "FreeBSD ${INSTALLKERNEL} kernel ${flavor}" \
+		KERNEL_NAME "${INSTALLKERNEL}" \
+		KERNEL_FLAVOR "${flavor}" \
 		PKG_NAME_PREFIX "${PKG_NAME_PREFIX}" \
 		PKG_MAINTAINER "${PKG_MAINTAINER}" \
 		PKG_WWW "${PKG_WWW}" \
+		UCLFILES "${SRCDIR}/release/packages/ucl" \
 		${SRCDIR}/release/packages/template.ucl \
 		 ${KSTAGEDIR}/${DISTDIR}/kernel.${INSTALLKERNEL}${flavor}.ucl ; \
 	awk -F\" ' \
@@ -2323,14 +2296,14 @@ create-kernel-packages-extra-flavor${flavor:C,^""$,${_default_flavor},}-${_kerne
 		PKGNAME "kernel-${_kernel:tl}${flavor}" \
 		PKGGENNAME "kernel" \
 		FORCEINCLUDE "kernel${flavor}" \
-		UCLFILES "${SRCDIR}/release/packages/" \
 		VERSION "${PKG_VERSION}" \
+		KERNEL_NAME "${_kernel:tl}" \
+		KERNEL_FLAVOR "${flavor}" \
 		KERNELDIR "kernel.${_kernel}" \
-		DESC "FreeBSD ${_kernel} kernel ${flavor}" \
-		COMMENT "FreeBSD ${_kernel} kernel ${flavor}" \
 		PKG_NAME_PREFIX "${PKG_NAME_PREFIX}" \
 		PKG_MAINTAINER "${PKG_MAINTAINER}" \
 		PKG_WWW "${PKG_WWW}" \
+		UCLFILES "${SRCDIR}/release/packages/ucl" \
 		${SRCDIR}/release/packages/template.ucl \
 		${KSTAGEDIR}/kernel.${_kernel}/kernel.${_kernel}${flavor}.ucl ; \
 	awk -F\" ' \
@@ -2351,7 +2324,10 @@ create-kernel-packages-extra-flavor${flavor:C,^""$,${_default_flavor},}-${_kerne
 
 sign-packages:	.PHONY
 	${_+_}@cd ${.CURDIR}; \
-		${MAKE} -f Makefile.inc1 PKG_VERSION=${PKG_VERSION} real-sign-packages
+		${MAKE} -f Makefile.inc1 \
+			PKG_VERSION=${PKG_VERSION} \
+			SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH} \
+			real-sign-packages
 
 real-sign-packages:	_pkgbootstrap .PHONY
 	printf "version = 2;\n" > ${WSTAGEDIR}/meta
@@ -2647,6 +2623,22 @@ ${_bt}-usr.bin/mkcsmapper: ${_bt}-usr.bin/yacc ${_bt_lex_depend}
 .endif
 
 .if ${MK_KERBEROS} != "no"
+.if ${MK_MITKRB5} != "no"
+_kerberos5_bootstrap_tools= \
+	krb5/util/build-tools \
+	krb5/util/compile_et \
+	krb5/util/support \
+	krb5/util/et \
+	lib/ncurses/tinfo \
+	lib/libedit \
+	krb5/util/ss \
+	krb5/util/profile \
+	krb5/util/verto
+#	krb5/include \
+#	krb5/lib/crypto \
+#	krb5/lib/krb5 \
+#	krb5/lib/gssapi
+.else
 _kerberos5_bootstrap_tools= \
 	kerberos5/tools/make-roken \
 	kerberos5/lib/libroken \
@@ -2655,6 +2647,7 @@ _kerberos5_bootstrap_tools= \
 	kerberos5/tools/slc \
 	usr.bin/compile_et
 
+.endif
 .ORDER: ${_kerberos5_bootstrap_tools:C/^/${_bt}-/g}
 .for _tool in ${_kerberos5_bootstrap_tools}
 ${_bt}-${_tool}: ${_bt}-usr.bin/yacc ${_bt_lex_depend}
@@ -2767,7 +2760,7 @@ ${_bt}-links: .PHONY
 .for _tool in ${_bootstrap_tools_links}
 ${_bt}-link-${_tool}: .PHONY
 	@rm -f "${WORLDTMP}/legacy/bin/${_tool}"; \
-	source_path=`which ${_tool}`; \
+	source_path=`which ${_tool} || true`; \
 	if [ ! -e "$${source_path}" ] ; then \
 		echo "Cannot find host tool '${_tool}'"; false; \
 	fi; \
@@ -2918,14 +2911,14 @@ _dtrace_tools= cddl/lib/libctf cddl/lib/libspl cddl/usr.bin/ctfconvert \
 .endif
 
 .if ${MK_ELFTOOLCHAIN_BOOTSTRAP} != "no"
-# Some bespoke tools from or based on ELF Tool Chain.  objcopy (elfcopy) is
-# included because llvm-objcopy is currently not capable of translating ELF to
-# PE32+, which is required for EFI boot programs.
+# Some bespoke tools from or based on ELF Tool Chain.  elfcopy is included
+# because llvm-objcopy is currently not capable of translating ELF to PE32+,
+# which is required for EFI boot programs.
 _elftctools=	lib/libelftc \
 		lib/libpe \
+		usr.bin/elfcopy \
 		usr.bin/elfctl \
-		usr.bin/elfdump \
-		usr.bin/objcopy
+		usr.bin/elfdump
 # If we're given an XNM we don't need to build standard binary utilities.
 .if ${XNM:M/*} == ""
 _elftctools+=	usr.bin/nm \
@@ -2938,7 +2931,7 @@ _elftctools+=	usr.bin/addr2line
 .endif
 
 .if ${MK_CLANG_BOOTSTRAP} != "no"
-_clang=		usr.bin/clang
+_clang=		usr.bin/clang/clang
 .endif
 .if ${MK_LLD_BOOTSTRAP} != "no"
 _lld=		usr.bin/clang/lld
@@ -3019,7 +3012,7 @@ NXBDIRS+= \
     usr.bin/cmp \
     usr.bin/diff \
     usr.bin/dirname \
-    usr.bin/objcopy \
+    usr.bin/elfcopy \
     usr.bin/env \
     usr.bin/fetch \
     usr.bin/find \
@@ -3227,6 +3220,8 @@ _prebuild_libs=	${_kerberos5_lib_libasn1} \
 		${_kerberos5_lib_libhx509} ${_kerberos5_lib_libkrb5} \
 		${_kerberos5_lib_libroken} \
 		${_kerberos5_lib_libwind} \
+		${_krb5_util_et} \
+		${_krb5_util_profile} \
 		lib/libbz2 ${_libcom_err} lib/libcrypt \
 		lib/libc++ \
 		lib/libelf lib/libexpat \
@@ -3239,6 +3234,18 @@ _prebuild_libs=	${_kerberos5_lib_libasn1} \
 		${_lib_casper} \
 		lib/ncurses/tinfo \
 		lib/ncurses/ncurses \
+		lib/libedit \
+		${_krb5_util_ss} \
+		${_krb5_util_support} \
+		${_krb5_util_verto} \
+		${_krb5_lib_krb5} \
+		${_krb5_lib_crypto} \
+		${_krb5_lib_gssapikrb5} \
+		${_krb5_lib_gssrpc} \
+		${_krb5_lib_kdb5} \
+		${_krb5_lib_krad} \
+		${_krb5_lib_kadm5srvmit} \
+		${_krb5_lib_kadm5clntmit} \
 		lib/libpam/libpam lib/libthr \
 		${_lib_libradius} lib/libsbuf lib/libtacplus \
 		lib/libgeom \
@@ -3277,6 +3284,8 @@ _lib_libradius=	lib/libradius
 .endif
 
 lib/ncurses/ncurses__L:	lib/ncurses/tinfo__L
+
+lib/libedit__L:		lib/ncurses/ncurses__L
 
 .if ${MK_OFED} != "no"
 _prebuild_libs+= \
@@ -3377,10 +3386,16 @@ secure/lib/libssh__L: lib/libz__L secure/lib/libcrypto__L lib/libcrypt__L
 .if ${MK_LDNS} != "no"
 secure/lib/libssh__L: lib/libldns__L
 .endif
+
 .if ${MK_GSSAPI} != "no" && ${MK_KERBEROS_SUPPORT} != "no"
+.if ${MK_MITKRB5} != "no"
+secure/lib/libssh__L: lib/libgssapi__L krb5/lib/krb5__L \
+    krb5/util/et__L lib/libmd__L krb5/util/support__L
+.else
 secure/lib/libssh__L: lib/libgssapi__L kerberos5/lib/libkrb5__L \
     kerberos5/lib/libhx509__L kerberos5/lib/libasn1__L lib/libcom_err__L \
     lib/libmd__L kerberos5/lib/libroken__L
+.endif
 .endif
 .endif
 .endif
@@ -3388,6 +3403,28 @@ _secure_lib=	secure/lib
 .endif
 
 .if ${MK_KERBEROS} != "no"
+.if ${MK_MITKRB5} != "no"
+krb5/util/et__L: krb5/util/support__L
+krb5/util/profile__L: krb5/util/et__L krb5/util/support__L
+krb5/lib/crypto__L:  krb5/util/et__L krb5/util/support__L \
+    secure/lib/libcrypto__L
+krb5/lib/gssapi__L: krb5/lib/krb5__L krb5/lib/crypto__L krb5/util/et__L \
+    krb5/util/support__L
+krb5/lib/kadm5clnt__L: krb5/util/profile__L krb5/lib/rpc__L \
+    krb5/lib/gssapi__L krb5/lib/krb5__L krb5/lib/crypto__L \
+    krb5/util/support__L krb5/util/et__L
+krb5/lib/kadm5srv__L: krb5/util/profile__L krb5/lib/rpc__L \
+    krb5/lib/gssapi__L krb5/lib/kdb__L krb5/lib/krb5 krb5/lib/crypto__L \
+    krb5/util/support__L krb5/util/et__L
+krb5/lib/kdb__L: krb5/util/profile__L krb5/lib/rpc__L krb5/lib/krb5__L \
+    krb5/lib/crypto__L krb5/util/et__L krb5/util/support__L krb5/lib/gssapi__L
+krb5/lib/krad__L: krb5/lib/krb5__L krb5/lib/crypto__L krb5/util/et__L \
+    krb5/util/support__L krb5/util/verto__L
+krb5/lib/krb5__L: krb5/util/profile__L krb5/lib/crypto__L krb5/util/et__L \
+    krb5/util/support__L
+krb5/lib/rpc__L: krb5/lib/gssapi__L krb5/lib/krb5__L krb5/lib/crypto__L \
+    krb5/util/et__L krb5/util/support__L
+.else
 kerberos5/lib/libasn1__L: lib/libcom_err__L kerberos5/lib/libroken__L
 kerberos5/lib/libhdb__L: kerberos5/lib/libasn1__L lib/libcom_err__L \
     kerberos5/lib/libkrb5__L kerberos5/lib/libroken__L \
@@ -3405,6 +3442,7 @@ kerberos5/lib/libwind__L: kerberos5/lib/libroken__L lib/libcom_err__L
 kerberos5/lib/libheimbase__L: lib/libthr__L
 kerberos5/lib/libheimipcc__L: kerberos5/lib/libroken__L kerberos5/lib/libheimbase__L lib/libthr__L
 .endif
+.endif
 
 lib/libsqlite3__L: lib/libthr__L
 
@@ -3413,6 +3451,28 @@ _lib_libgssapi=	lib/libgssapi
 .endif
 
 .if ${MK_KERBEROS} != "no"
+.if ${MK_MITKRB5} != "no"
+_krb5_util=		krb5/util
+_krb5_util_build_tools=	krb5/util/build-tools
+_krb5_util_compileet=	krb5/util/compile_et
+_krb5_util_et=		krb5/util/et
+_krb5_util_profile=	krb5/util/profile
+_krb5_util_ss=		krb5/util/ss
+_krb5_util_support=	krb5/util/support
+_krb5_util_verto=	krb5/util/verto
+_krb5_lib=		krb5/lib
+_krb5_lib_krb5=		krb5/lib/krb5
+_krb5_lib_kdb5=		krb5/lib/kdb
+_krb5_lib_crypto=	krb5/lib/crypto
+_krb5_lib_gssapikrb5=	krb5/lib/gssapi
+_krb5_lib_gssrpc=	krb5/lib/rpc
+_krb5_lib_apputils=	krb5/lib/apputils
+_krb5_lib_kadm5clntmit=	krb5/lib/kadm5clnt
+_krb5_lib_kadm5srvmit=	krb5/lib/kadm5srv
+_krb5_lib_kadm_common=	krb5/lib/kadm_common
+_krb5_lib_kproputil=	krb5/lib/kprop_util
+_krb5_lib_krad=		krb5/lib/krad
+.else
 _kerberos5_lib=	kerberos5/lib
 _kerberos5_lib_libasn1= kerberos5/lib/libasn1
 _kerberos5_lib_libhdb= kerberos5/lib/libhdb
@@ -3425,6 +3485,7 @@ _libsqlite3= lib/libsqlite3
 _kerberos5_lib_libheimipcc= kerberos5/lib/libheimipcc
 _kerberos5_lib_libwind= kerberos5/lib/libwind
 _libcom_err= lib/libcom_err
+.endif
 .endif
 
 .if ${MK_NIS} != "no"
@@ -3547,6 +3608,32 @@ delete-old-files: .PHONY
 			rm ${RM_I} $${catpage} <&3; \
 	        fi; \
 	done
+# Remove compressed copies of uncompressed manpages
+.if ${MK_MANCOMPRESS} != "yes"
+	@exec 3<&0; \
+	find ${DESTDIR}/usr/share/man ${DESTDIR}/usr/share/openssl/man ! -type d ! -name \*.gz 2>/dev/null | \
+	while read manpage; do \
+		if [ -e "$${manpage}.gz" ]; then \
+			rm ${RM_I} $${manpage}.gz <&3; \
+		fi; \
+	done
+# Remove uncompressed copies of compressed manpages
+.else
+	@exec 3<&0; \
+	find ${DESTDIR}/usr/share/man ${DESTDIR}/usr/share/openssl/man ! -type d ! -name \*.gz 2>/dev/null | \
+	while read manpage; do \
+		if [ -e "$${manpage}.gz" ]; then \
+			rm ${RM_I} $${manpage} <&3; \
+		fi; \
+	done
+.endif
+.if !empty(MAN_ARCH) && ${MAN_ARCH} != "all"
+	@exec 3<&0; \
+	find -E /usr/share/man/man4/ -mindepth 1 -type d ! -regex '.*/(${MAN_ARCH:C/[[:space:]]+/|/gW})' | \
+	while read dir; do \
+		find $$dir ! -type d -exec rm ${RM_I} {} + <&3; \
+	done
+.endif
 	@echo ">>> Old files removed"
 
 check-old-files: .PHONY
@@ -3572,6 +3659,29 @@ check-old-files: .PHONY
 			echo $${catpage}; \
 	        fi; \
 	done | sort
+# Check for compressed copies of uncompressed manpages
+.if ${MK_MANCOMPRESS} != "yes"
+	@find ${DESTDIR}/usr/share/man ${DESTDIR}/usr/share/openssl/man ! -type d ! -name \*.gz 2>/dev/null | \
+	while read manpage; do \
+		if [ -e "$${manpage}.gz" ]; then \
+			echo $${manpage}.gz; \
+		fi; \
+	done | sort
+# Check for uncompressed copies of compressed manpages
+.else
+	@find ${DESTDIR}/usr/share/man ${DESTDIR}/usr/share/openssl/man ! -type d ! -name \*.gz 2>/dev/null | \
+	while read manpage; do \
+		if [ -e "$${manpage}.gz" ]; then \
+			echo $${manpage}; \
+		fi; \
+	done | sort
+.endif
+.if !empty(MAN_ARCH) && ${MAN_ARCH} != "all"
+	@find -E /usr/share/man/man4/ -mindepth 1 -type d ! -regex '.*/(${MAN_ARCH:C/[[:space:]]+/|/gW})' | \
+	while read dir; do \
+		find $$dir ! -type d; \
+	done | sort
+.endif
 
 list-old-libs: .PHONY
 	@cd ${.CURDIR}; \
@@ -3749,7 +3859,7 @@ XDEV_CPUTYPE?=${CPUTYPE}
 XDEV_CPUTYPE?=${TARGET_CPUTYPE}
 .endif
 
-NOFUN=-DNO_FSCHG MK_HTML=no -DNO_LINT \
+NOFUN=-DNO_FSCHG MK_HTML=no \
 	MK_MAN=no MK_NLS=no \
 	MK_KERBEROS=no MK_RESCUE=no MK_TESTS=no MK_WERROR=no \
 	TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} \

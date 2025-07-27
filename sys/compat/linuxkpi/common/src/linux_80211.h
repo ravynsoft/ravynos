@@ -86,6 +86,7 @@
 
 #define	MTAG_ABI_LKPI80211	1707696513	/* LinuxKPI 802.11 KBI */
 
+#ifdef LKPI_80211_USE_MTAG
 /*
  * Deferred RX path.
  * We need to pass *ni along (and possibly more in the future so
@@ -95,6 +96,7 @@
 struct lkpi_80211_tag_rxni {
 	struct ieee80211_node	*ni;		/* MUST hold a reference to it. */
 };
+#endif
 
 struct lkpi_radiotap_tx_hdr {
 	struct ieee80211_radiotap_header wt_ihdr;
@@ -161,6 +163,8 @@ struct lkpi_sta {
 	bool			added_to_drv;			/* Driver knows; i.e. we called ...(). */
 	bool			in_mgd;				/* XXX-BZ should this be per-vif? */
 
+	struct station_info	sinfo;				/* statistics */
+
 	/* Must be last! */
 	struct ieee80211_sta	sta __aligned(CACHE_LINE_SIZE);
 };
@@ -187,6 +191,8 @@ struct lkpi_vif {
 
 	struct lkpi_sta		*lvif_bss;
 
+	struct ieee80211_node	*key_update_iv_bss;
+	int			ic_unlocked;			/* Count of ic unlocks pending (*mo_set_key) */
 	int			nt_unlocked;			/* Count of nt unlocks pending (*mo_set_key) */
 	bool			lvif_bss_synched;
 	bool			added_to_drv;			/* Driver knows; i.e. we called add_interface(). */
@@ -216,7 +222,7 @@ struct lkpi_hw {	/* name it mac80211_sc? */
 	TAILQ_HEAD(, lkpi_vif)		lvif_head;
 	struct sx			lvif_sx;
 
-	struct sx			sx;			/* XXX-BZ Can this be wiphy->mtx in the future? */
+	struct list_head		lchanctx_list;
 
 	struct mtx			txq_mtx;
 	uint32_t			txq_generation[IEEE80211_NUM_ACS];
@@ -284,7 +290,10 @@ struct lkpi_hw {	/* name it mac80211_sc? */
 #define	HW_TO_LHW(_hw)		container_of(_hw, struct lkpi_hw, hw)
 
 struct lkpi_chanctx {
+	struct list_head		entry;
+
 	bool				added_to_drv;	/* Managed by MO */
+
 	struct ieee80211_chanctx_conf	chanctx_conf __aligned(CACHE_LINE_SIZE);
 };
 #define	LCHANCTX_TO_CHANCTX_CONF(_lchanctx)		\
@@ -317,19 +326,6 @@ struct lkpi_wiphy {
     mtx_assert(&(_lwiphy)->wwk_mtx, MA_OWNED)
 #define	LKPI_80211_LWIPHY_WORK_UNLOCK_ASSERT(_lwiphy)	\
     mtx_assert(&(_lwiphy)->wwk_mtx, MA_NOTOWNED)
-
-#define	LKPI_80211_LHW_LOCK_INIT(_lhw)			\
-    sx_init_flags(&(_lhw)->sx, "lhw", SX_RECURSE);
-#define	LKPI_80211_LHW_LOCK_DESTROY(_lhw)		\
-    sx_destroy(&(_lhw)->sx);
-#define	LKPI_80211_LHW_LOCK(_lhw)			\
-    sx_xlock(&(_lhw)->sx)
-#define	LKPI_80211_LHW_UNLOCK(_lhw)			\
-    sx_xunlock(&(_lhw)->sx)
-#define	LKPI_80211_LHW_LOCK_ASSERT(_lhw)		\
-    sx_assert(&(_lhw)->sx, SA_LOCKED)
-#define	LKPI_80211_LHW_UNLOCK_ASSERT(_lhw)		\
-    sx_assert(&(_lhw)->sx, SA_UNLOCKED)
 
 #define	LKPI_80211_LHW_SCAN_LOCK_INIT(_lhw)		\
     mtx_init(&(_lhw)->scan_mtx, "lhw-scan", NULL, MTX_DEF | MTX_RECURSE);
@@ -425,7 +421,7 @@ int lkpi_80211_mo_config(struct ieee80211_hw *, uint32_t);
 int lkpi_80211_mo_assign_vif_chanctx(struct ieee80211_hw *, struct ieee80211_vif *,
     struct ieee80211_bss_conf *, struct ieee80211_chanctx_conf *);
 void lkpi_80211_mo_unassign_vif_chanctx(struct ieee80211_hw *, struct ieee80211_vif *,
-    struct ieee80211_bss_conf *, struct ieee80211_chanctx_conf **);
+    struct ieee80211_bss_conf *, struct ieee80211_chanctx_conf *);
 int lkpi_80211_mo_add_chanctx(struct ieee80211_hw *, struct ieee80211_chanctx_conf *);
 void lkpi_80211_mo_change_chanctx(struct ieee80211_hw *,
     struct ieee80211_chanctx_conf *, uint32_t);

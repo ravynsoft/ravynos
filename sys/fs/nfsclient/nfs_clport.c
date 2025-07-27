@@ -828,7 +828,7 @@ nfscl_wcc_data(struct nfsrv_descript *nd, struct vnode *vp,
 	    == (ND_NFSV4 | ND_V4WCCATTR)) {
 		error = nfsv4_loadattr(nd, NULL, &nfsva, NULL,
 		    NULL, 0, NULL, NULL, NULL, NULL, NULL, 0,
-		    NULL, NULL, NULL, NULL, NULL);
+		    NULL, NULL, NULL, NULL, NULL, NULL);
 		if (error)
 			return (error);
 		/*
@@ -1489,3 +1489,4 @@ MODULE_DEPEND(nfscl, nfscommon, 1, 1, 1);
 MODULE_DEPEND(nfscl, krpc, 1, 1, 1);
 MODULE_DEPEND(nfscl, nfssvc, 1, 1, 1);
 MODULE_DEPEND(nfscl, xdr, 1, 1, 1);
+MODULE_DEPEND(nfscl, acl_nfs4, 1, 1, 1);

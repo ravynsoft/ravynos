@@ -23,7 +23,6 @@ Some other ideas for code contributions can be found on our [Project Wish List](
 
 The skills we need immediately are: *C/C++, Objective-C, x86-64 assembly, linker/toolchain, kernel programming, OpenGL graphics programming, Wayland development*.
 
-
 ### Join the community
 
 Join us on Discord or Matrix (see [README.md](README.md)) to meet other users and developers.

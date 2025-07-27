@@ -110,11 +110,18 @@ u_int exec_map_entry_size;
 u_int exec_map_entries;
 
 SYSCTL_ULONG(_vm, OID_AUTO, min_kernel_address, CTLFLAG_RD,
-    SYSCTL_NULL_ULONG_PTR, VM_MIN_KERNEL_ADDRESS, "Min kernel address");
+#if defined(__amd64__)
+    &kva_layout.km_low, 0,
+#else
+    SYSCTL_NULL_ULONG_PTR, VM_MIN_KERNEL_ADDRESS,
+#endif
+    "Min kernel address");
 
 SYSCTL_ULONG(_vm, OID_AUTO, max_kernel_address, CTLFLAG_RD,
 #if defined(__arm__)
     &vm_max_kernel_address, 0,
+#elif defined(__amd64__)
+    &kva_layout.km_high, 0,
 #else
     SYSCTL_NULL_ULONG_PTR, VM_MAX_KERNEL_ADDRESS,
 #endif
@@ -530,8 +537,9 @@ int
 kmem_back_domain(int domain, vm_object_t object, vm_offset_t addr,
     vm_size_t size, int flags)
 {
+	struct pctrie_iter pages;
 	vm_offset_t offset, i;
-	vm_page_t m, mpred;
+	vm_page_t m;
 	vm_prot_t prot;
 	int pflags;
 
@@ -546,12 +554,12 @@ kmem_back_domain(int domain, vm_object_t object, vm_offset_t addr,
 	prot = (flags & M_EXEC) != 0 ? VM_PROT_ALL : VM_PROT_RW;
 
 	i = 0;
+	vm_page_iter_init(&pages, object);
 	VM_OBJECT_WLOCK(object);
 retry:
-	mpred = vm_radix_lookup_le(&object->rtree, atop(offset + i));
-	for (; i < size; i += PAGE_SIZE, mpred = m) {
-		m = vm_page_alloc_domain_after(object, atop(offset + i),
-		    domain, pflags, mpred);
+	for (; i < size; i += PAGE_SIZE) {
+		m = vm_page_alloc_domain_iter(object, atop(offset + i),
+		    domain, pflags, &pages);
 
 		/*
 		 * Ran out of space, free everything up and return. Don't need
@@ -648,8 +656,8 @@ _kmem_unback(vm_object_t object, vm_offset_t addr, vm_size_t size)
 	pmap_remove(kernel_pmap, addr, addr + size);
 	offset = addr - VM_MIN_KERNEL_ADDRESS;
 	end = offset + size;
-	VM_OBJECT_WLOCK(object);
 	vm_page_iter_init(&pages, object);
+	VM_OBJECT_WLOCK(object);
 	m = vm_radix_iter_lookup(&pages, atop(offset)); 
 	domain = vm_page_domain(m);
 	if (__predict_true((m->oflags & VPO_KMEM_EXEC) == 0))

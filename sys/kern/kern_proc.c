@@ -93,6 +93,7 @@
 #include <vm/vm_object.h>
 #include <vm/vm_page.h>
 #include <vm/vm_pager.h>
+#include <vm/vm_radix.h>
 #include <vm/uma.h>
 
 #include <fs/devfs/devfs.h>
@@ -1352,6 +1353,9 @@ fill_kinfo_thread(struct thread *td, struct kinfo_proc *kp, int preferthread)
 	thread_unlock(td);
 	if (preferthread)
 		PROC_STATUNLOCK(p);
+
+	if ((td->td_pflags & TDP2_UEXTERR) != 0)
+		kp->ki_uerrmsg = td->td_exterr_ptr;
 }
 
 /*
@@ -1507,6 +1511,7 @@ freebsd32_kinfo_proc_out(const struct kinfo_proc *ki, struct kinfo_proc32 *ki32)
 	PTRTRIM_CP(*ki, *ki32, ki_tdaddr);
 	CP(*ki, *ki32, ki_sflag);
 	CP(*ki, *ki32, ki_tdflags);
+	PTRTRIM_CP(*ki, *ki32, ki_uerrmsg);
 }
 #endif
 
@@ -2565,7 +2570,7 @@ kern_proc_vmmap_resident(vm_map_t map, vm_map_entry_t entry,
 			pi_adv = atop(entry->end - addr);
 			pindex = pi;
 			for (tobj = obj;; tobj = tobj->backing_object) {
-				m = vm_page_find_least(tobj, pindex);
+				m = vm_radix_lookup_ge(&tobj->rtree, pindex);
 				if (m != NULL) {
 					if (m->pindex == pindex)
 						break;

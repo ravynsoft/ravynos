@@ -29,6 +29,7 @@
 
 #include <sys/cdefs.h>
 #include "opt_inet.h"
+#include "opt_ddb.h"
 #include <sys/param.h>
 #include <sys/arb.h>
 #include <sys/hash.h>
@@ -43,10 +44,17 @@
 #include <sys/socket.h>
 #include <sys/socketvar.h>
 #include <sys/sysctl.h>
+#ifdef DDB
+#include <sys/time.h>
+#endif
 #include <sys/tree.h>
 #include <sys/stats.h> /* Must come after qmath.h and tree.h */
 #include <sys/counter.h>
 #include <dev/tcp_log/tcp_log_dev.h>
+
+#ifdef DDB
+#include <ddb/ddb.h>
+#endif
 
 #include <net/if.h>
 #include <net/if_var.h>
@@ -1840,35 +1848,36 @@ retry:
 		log_buf->tlb_txbuf.tls_sb_ccc = 0;
 	}
 	/* Copy values from tp to the log entry. */
-#define	COPY_STAT(f)	log_buf->tlb_ ## f = tp->f
-#define	COPY_STAT_T(f)	log_buf->tlb_ ## f = tp->t_ ## f
-	COPY_STAT_T(state);
-	COPY_STAT_T(starttime);
-	COPY_STAT(iss);
-	COPY_STAT_T(flags);
-	COPY_STAT(snd_una);
-	COPY_STAT(snd_max);
-	COPY_STAT(snd_cwnd);
-	COPY_STAT(snd_nxt);
-	COPY_STAT(snd_recover);
-	COPY_STAT(snd_wnd);
-	COPY_STAT(snd_ssthresh);
-	COPY_STAT_T(srtt);
-	COPY_STAT_T(rttvar);
-	COPY_STAT(rcv_up);
-	COPY_STAT(rcv_adv);
-	COPY_STAT(rcv_nxt);
-	COPY_STAT(rcv_wnd);
-	COPY_STAT_T(dupacks);
-	COPY_STAT_T(segqlen);
-	COPY_STAT(snd_numholes);
-	COPY_STAT(snd_scale);
-	COPY_STAT(rcv_scale);
-	COPY_STAT_T(flags2);
-	COPY_STAT_T(fbyte_in);
-	COPY_STAT_T(fbyte_out);
-#undef COPY_STAT
-#undef COPY_STAT_T
+	log_buf->tlb_state = tp->t_state;
+	log_buf->tlb_starttime = tp->t_starttime;
+	log_buf->tlb_iss = tp->iss;
+	log_buf->tlb_flags = tp->t_flags;
+	log_buf->tlb_snd_una = tp->snd_una;
+	log_buf->tlb_snd_max = tp->snd_max;
+	log_buf->tlb_snd_cwnd = tp->snd_cwnd;
+	log_buf->tlb_snd_nxt = tp->snd_nxt;
+	log_buf->tlb_snd_recover = tp->snd_recover;
+	log_buf->tlb_snd_wnd = tp->snd_wnd;
+	log_buf->tlb_snd_ssthresh = tp->snd_ssthresh;
+	log_buf->tlb_srtt = tp->t_srtt;
+	log_buf->tlb_rttvar = tp->t_rttvar;
+	log_buf->tlb_rcv_up = tp->rcv_up;
+	log_buf->tlb_rcv_adv = tp->rcv_adv;
+	log_buf->tlb_flags2 = tp->t_flags2;
+	log_buf->tlb_rcv_nxt = tp->rcv_nxt;
+	log_buf->tlb_rcv_wnd = tp->rcv_wnd;
+	log_buf->tlb_dupacks = tp->t_dupacks;
+	log_buf->tlb_segqlen = tp->t_segqlen;
+	log_buf->tlb_snd_numholes = tp->snd_numholes;
+	log_buf->tlb_flex1 = 0;
+	log_buf->tlb_flex2 = 0;
+	log_buf->tlb_fbyte_in = tp->t_fbyte_in;
+	log_buf->tlb_fbyte_out = tp->t_fbyte_out;
+	log_buf->tlb_snd_scale = tp->snd_scale;
+	log_buf->tlb_rcv_scale = tp->rcv_scale;
+	log_buf->_pad[0] = 0;
+	log_buf->_pad[1] = 0;
+	log_buf->_pad[2] = 0;
 	/* Copy stack-specific info. */
 	if (stackinfo != NULL) {
 		memcpy(&log_buf->tlb_stackinfo, stackinfo,
@@ -2869,10 +2878,11 @@ tcp_log_sendfile(struct socket *so, off_t offset, size_t nbytes, int flags)
 	/* double check log state now that we have the lock */
 	if (inp->inp_flags & INP_DROPPED)
 		goto done;
-	if (tp->_t_logstate != TCP_LOG_STATE_OFF) {
+	if (tcp_bblogging_on(tp)) {
 		struct timeval tv;
 		tcp_log_eventspecific_t log;
 
+		memset(&log, 0, sizeof(log));
 		microuptime(&tv);
 		log.u_sf.offset = offset;
 		log.u_sf.length = nbytes;
@@ -2970,3 +2980,370 @@ skip_closed_req:
 done:
 	INP_WUNLOCK(inp);
 }
+
+#ifdef DDB
+static void
+db_print_indent(int indent)
+{
+	int i;
+
+	for (i = 0; i < indent; i++)
+		db_printf(" ");
+}
+
+static void
+db_print_tcphdr(struct tcp_log_buffer *tlm_buf)
+{
+	struct sackblk sack;
+	struct tcphdr *th;
+	int cnt, i, j, opt, optlen, num_sacks;
+	uint32_t val, ecr;
+	uint16_t mss;
+	uint16_t flags;
+
+	if ((tlm_buf->tlb_eventflags & TLB_FLAG_HDR) == 0) {
+		return;
+	}
+	th = &tlm_buf->tlb_th;
+	flags = tcp_get_flags(th);
+	if (flags & TH_FIN) {
+		db_printf("F");
+	}
+	if (flags & TH_SYN) {
+		db_printf("S");
+	}
+	if (flags & TH_RST) {
+		db_printf("R");
+	}
+	if (flags & TH_PUSH) {
+		db_printf("P");
+	}
+	if (flags & TH_ACK) {
+		db_printf(".");
+	}
+	if (flags & TH_URG) {
+		db_printf("U");
+	}
+	if (flags & TH_ECE) {
+		db_printf("E");
+	}
+	if (flags & TH_CWR) {
+		db_printf("W");
+	}
+	if (flags & TH_AE) {
+		db_printf("A");
+	}
+	db_printf(" %u:%u(%u)", ntohl(th->th_seq),
+	    ntohl(th->th_seq) + tlm_buf->tlb_len, tlm_buf->tlb_len);
+	if (flags & TH_ACK) {
+		db_printf(" ack %u", ntohl(th->th_ack));
+	}
+	db_printf(" win %u", ntohs(th->th_win));
+	if (flags & TH_URG) {
+		db_printf(" urg %u", ntohs(th->th_urp));
+	}
+	cnt = (th->th_off << 2) - sizeof(struct tcphdr);
+	if (cnt > 0) {
+		db_printf(" <");
+		for (i = 0; i < cnt; i += optlen) {
+			opt = tlm_buf->tlb_opts[i];
+			if (opt == TCPOPT_EOL || opt == TCPOPT_NOP) {
+				optlen = 1;
+			} else {
+				if (cnt - i < 2) {
+					break;
+				}
+				optlen = tlm_buf->tlb_opts[i + 1];
+				if (optlen < 2 || optlen > cnt - i) {
+					break;
+				}
+			}
+			if (i > 0) {
+				db_printf(",");
+			}
+			switch (opt) {
+			case TCPOPT_EOL:
+				db_printf("eol");
+				break;
+			case TCPOPT_NOP:
+				db_printf("nop");
+				break;
+			case TCPOPT_MAXSEG:
+				if (optlen != TCPOLEN_MAXSEG) {
+					break;
+				}
+				bcopy(tlm_buf->tlb_opts + i + 2, &mss,
+				    sizeof(uint16_t));
+				db_printf("mss %u", ntohs(mss));
+				break;
+			case TCPOPT_WINDOW:
+				if (optlen != TCPOLEN_WINDOW) {
+					break;
+				}
+				db_printf("wscale %u",
+				    tlm_buf->tlb_opts[i + 2]);
+				break;
+			case TCPOPT_SACK_PERMITTED:
+				if (optlen != TCPOLEN_SACK_PERMITTED) {
+					break;
+				}
+				db_printf("sackOK");
+				break;
+			case TCPOPT_SACK:
+				if (optlen == TCPOLEN_SACKHDR ||
+				    (optlen - 2) % TCPOLEN_SACK != 0) {
+					break;
+				}
+				num_sacks = (optlen - 2) / TCPOLEN_SACK;
+				db_printf("sack");
+				for (j = 0; j < num_sacks; j++) {
+					bcopy(tlm_buf->tlb_opts + i + 2 +
+					    j * TCPOLEN_SACK, &sack,
+					    TCPOLEN_SACK);
+					db_printf(" %u:%u", ntohl(sack.start),
+					    ntohl(sack.end));
+				}
+				break;
+			case TCPOPT_TIMESTAMP:
+				if (optlen != TCPOLEN_TIMESTAMP) {
+					break;
+				}
+				bcopy(tlm_buf->tlb_opts + i + 2, &val,
+				    sizeof(uint32_t));
+				bcopy(tlm_buf->tlb_opts + i + 6, &ecr,
+				    sizeof(uint32_t));
+				db_printf("TS val %u ecr %u", ntohl(val),
+				    ntohl(ecr));
+				break;
+			case TCPOPT_SIGNATURE:
+				db_printf("md5");
+				if (optlen > 2) {
+					db_printf(" ");
+				}
+				for (j = 0; j < optlen - 2; j++) {
+					db_printf("%02x",
+					    tlm_buf->tlb_opts[i + 2 + j]);
+				}
+				break;
+			case TCPOPT_FAST_OPEN:
+				db_printf("FO");
+				if (optlen > 2) {
+					db_printf(" ");
+				}
+				for (j = 0; j < optlen - 2; j++) {
+					db_printf("%02x",
+					    tlm_buf->tlb_opts[i + 2 + j]);
+				}
+				break;
+			default:
+				db_printf("opt=%u len=%u", opt, optlen);
+				break;
+			}
+		}
+		db_printf(">");
+	}
+}
+static void
+db_print_pru(struct tcp_log_buffer *tlm_buf)
+{
+	switch (tlm_buf->tlb_flex1) {
+	case PRU_ATTACH:
+		db_printf("ATTACH");
+		break;
+	case PRU_DETACH:
+		db_printf("DETACH");
+		break;
+	case PRU_BIND:
+		db_printf("BIND");
+		break;
+	case PRU_LISTEN:
+		db_printf("LISTEN");
+		break;
+	case PRU_CONNECT:
+		db_printf("CONNECT");
+		break;
+	case PRU_ACCEPT:
+		db_printf("ACCEPT");
+		break;
+	case PRU_DISCONNECT:
+		db_printf("DISCONNECT");
+		break;
+	case PRU_SHUTDOWN:
+		db_printf("SHUTDOWN");
+		break;
+	case PRU_RCVD:
+		db_printf("RCVD");
+		break;
+	case PRU_SEND:
+		db_printf("SEND");
+		break;
+	case PRU_ABORT:
+		db_printf("ABORT");
+		break;
+	case PRU_CONTROL:
+		db_printf("CONTROL");
+		break;
+	case PRU_SENSE:
+		db_printf("SENSE");
+		break;
+	case PRU_RCVOOB:
+		db_printf("RCVOOB");
+		break;
+	case PRU_SENDOOB:
+		db_printf("SENDOOB");
+		break;
+	case PRU_SOCKADDR:
+		db_printf("SOCKADDR");
+		break;
+	case PRU_PEERADDR:
+		db_printf("PEERADDR");
+		break;
+	case PRU_CONNECT2:
+		db_printf("CONNECT2");
+		break;
+	case PRU_FASTTIMO:
+		db_printf("FASTTIMO");
+		break;
+	case PRU_SLOWTIMO:
+		db_printf("SLOWTIMO");
+		break;
+	case PRU_PROTORCV:
+		db_printf("PROTORCV");
+		break;
+	case PRU_PROTOSEND:
+		db_printf("PROTOSEND");
+		break;
+	case PRU_SEND_EOF:
+		db_printf("SEND_EOF");
+		break;
+	case PRU_SOSETLABEL:
+		db_printf("SOSETLABEL");
+		break;
+	case PRU_CLOSE:
+		db_printf("CLOSE");
+		break;
+	case PRU_FLUSH:
+		db_printf("FLUSH");
+		break;
+	default:
+		db_printf("Unknown PRU (%u)", tlm_buf->tlb_flex1);
+		break;
+	}
+	if (tlm_buf->tlb_errno >= 0) {
+		db_printf(", error: %d", tlm_buf->tlb_errno);
+	}
+}
+
+static void
+db_print_rto(struct tcp_log_buffer *tlm_buf)
+{
+	tt_what what;
+	tt_which which;
+
+	what = (tlm_buf->tlb_flex1 & 0xffffff00) >> 8;
+	which = tlm_buf->tlb_flex1 & 0x000000ff;
+	switch (what) {
+	case TT_PROCESSING:
+		db_printf("Processing ");
+		break;
+	case TT_PROCESSED:
+		db_printf("Processed ");
+		break;
+	case TT_STARTING:
+		db_printf("Starting ");
+		break;
+	case TT_STOPPING:
+		db_printf("Stopping ");
+		break;
+	default:
+		db_printf("Unknown operation (%u) for ", what);
+		break;
+	}
+	switch (which) {
+	case TT_REXMT:
+		db_printf("Retransmission ");
+		break;
+	case TT_PERSIST:
+		db_printf("Persist ");
+		break;
+	case TT_KEEP:
+		db_printf("Keepalive ");
+		break;
+	case TT_2MSL:
+		db_printf("2 MSL ");
+		break;
+	case TT_DELACK:
+		db_printf("Delayed ACK ");
+		break;
+	default:
+		db_printf("Unknown (%u) ", which);
+		break;
+	}
+	db_printf("timer");
+	if (what == TT_STARTING) {
+		db_printf(": %u ms", tlm_buf->tlb_flex2);
+	}
+}
+
+static void
+db_print_usersend(struct tcp_log_buffer *tlm_buf)
+{
+	if ((tlm_buf->tlb_eventflags & TLB_FLAG_RXBUF) == 0) {
+		return;
+	}
+	if ((tlm_buf->tlb_eventflags & TLB_FLAG_TXBUF) == 0) {
+		return;
+	}
+	db_printf("usersend: rcv.acc: %u rcv.ccc: %u snd.acc: %u snd.ccc: %u",
+	    tlm_buf->tlb_rxbuf.tls_sb_acc, tlm_buf->tlb_rxbuf.tls_sb_ccc,
+	    tlm_buf->tlb_txbuf.tls_sb_acc, tlm_buf->tlb_txbuf.tls_sb_ccc);
+}
+
+void
+db_print_bblog_entries(struct tcp_log_stailq *log_entries, int indent)
+{
+	struct tcp_log_mem *log_entry;
+	struct tcp_log_buffer *tlm_buf, *prev_tlm_buf;
+	int64_t delta_t;
+
+	indent += 2;
+	prev_tlm_buf = NULL;
+	STAILQ_FOREACH(log_entry, log_entries, tlm_queue) {
+		db_print_indent(indent);
+		tlm_buf = &log_entry->tlm_buf;
+		if (prev_tlm_buf == NULL) {
+			db_printf(" 0.000 ");
+		} else {
+			delta_t = sbttoms(tvtosbt(tlm_buf->tlb_tv) -
+			    tvtosbt(prev_tlm_buf->tlb_tv));
+			db_printf("+%u.%03u ", (uint32_t)(delta_t / 1000),
+			    (uint32_t)(delta_t % 1000));
+		}
+		switch (tlm_buf->tlb_eventid) {
+		case TCP_LOG_IN:
+			db_printf("< ");
+			db_print_tcphdr(tlm_buf);
+			break;
+		case TCP_LOG_OUT:
+			db_printf("> ");
+			db_print_tcphdr(tlm_buf);
+			break;
+		case TCP_LOG_RTO:
+			db_print_rto(tlm_buf);
+			break;
+		case TCP_LOG_PRU:
+			db_print_pru(tlm_buf);
+			break;
+		case TCP_LOG_USERSEND:
+			db_print_usersend(tlm_buf);
+			break;
+		default:
+			break;
+		}
+		db_printf("\n");
+		prev_tlm_buf = tlm_buf;
+		if (db_pager_quit)
+			break;
+	}
+}
+#endif

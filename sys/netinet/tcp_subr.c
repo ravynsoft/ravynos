@@ -109,9 +109,6 @@
 #include <netinet/tcpip.h>
 #include <netinet/tcp_fastopen.h>
 #include <netinet/tcp_accounting.h>
-#ifdef TCPPCAP
-#include <netinet/tcp_pcap.h>
-#endif
 #ifdef TCP_OFFLOAD
 #include <netinet/tcp_offload.h>
 #endif
@@ -1035,10 +1032,6 @@ tcp_default_fb_init(struct tcpcb *tp, void **ptr)
 	/* We don't use the pointer */
 	*ptr = NULL;
 
-	KASSERT(tp->t_state < TCPS_TIME_WAIT,
-	    ("%s: connection %p in unexpected state %d", __func__, tp,
-	    tp->t_state));
-
 	/* Make sure we get no interesting mbuf queuing behavior */
 	/* All mbuf queue/ack compress flags should be off */
 	tcp_lro_features_off(tp);
@@ -1055,7 +1048,8 @@ tcp_default_fb_init(struct tcpcb *tp, void **ptr)
 	if (tp->t_rxtshift == 0)
 		tp->t_rxtcur = rexmt;
 	else
-		TCPT_RANGESET(tp->t_rxtcur, rexmt, tp->t_rttmin, TCPTV_REXMTMAX);
+		TCPT_RANGESET(tp->t_rxtcur, rexmt, tp->t_rttmin,
+		    tcp_rexmit_max);
 
 	/*
 	 * Nothing to do for ESTABLISHED or LISTEN states. And, we don't
@@ -1416,13 +1410,6 @@ tcp_drain(void *ctx __unused, int flags __unused)
 #ifdef TCP_BLACKBOX
 				tcp_log_drain(tcpb);
 #endif
-#ifdef TCPPCAP
-				if (tcp_pcap_aggressive_free) {
-					/* Free the TCP PCAP queues. */
-					tcp_pcap_drain(&(tcpb->t_inpkts));
-					tcp_pcap_drain(&(tcpb->t_outpkts));
-				}
-#endif
 			}
 		}
 		CURVNET_RESTORE();
@@ -1464,6 +1451,7 @@ tcp_vnet_init(void *arg __unused)
 	VNET_PCPUSTAT_ALLOC(tcpstat, M_WAITOK);
 
 	V_tcp_msl = TCPTV_MSL;
+	V_tcp_msl_local = TCPTV_MSL_LOCAL;
 	arc4rand(&V_ts_offset_secret, sizeof(V_ts_offset_secret), 0);
 }
 VNET_SYSINIT(tcp_vnet_init, SI_SUB_PROTO_DOMAIN, SI_ORDER_FOURTH,
@@ -1483,11 +1471,8 @@ tcp_init(void *arg __unused)
 	tcp_keepintvl = TCPTV_KEEPINTVL;
 	tcp_maxpersistidle = TCPTV_KEEP_IDLE;
 	tcp_rexmit_initial = TCPTV_RTOBASE;
-	if (tcp_rexmit_initial < 1)
-		tcp_rexmit_initial = 1;
 	tcp_rexmit_min = TCPTV_MIN;
-	if (tcp_rexmit_min < 1)
-		tcp_rexmit_min = 1;
+	tcp_rexmit_max = TCPTV_REXMTMAX;
 	tcp_persmin = TCPTV_PERSMIN;
 	tcp_persmax = TCPTV_PERSMAX;
 	tcp_rexmit_slop = TCPTV_CPU_VAR;
@@ -1535,9 +1520,6 @@ tcp_init(void *arg __unused)
 	tcp_bad_csums = counter_u64_alloc(M_WAITOK);
 	tcp_pacing_failures = counter_u64_alloc(M_WAITOK);
 	tcp_dgp_failures = counter_u64_alloc(M_WAITOK);
-#ifdef TCPPCAP
-	tcp_pcap_init();
-#endif
 
 	hashsize = tcp_tcbhashsize;
 	if (hashsize == 0) {
@@ -2099,7 +2081,7 @@ tcp_respond(struct tcpcb *tp, void *ipgen, struct tcphdr *th, struct mbuf *m,
 			union tcp_log_stackspecific log;
 			struct timeval tv;
 
-			memset(&log.u_bbr, 0, sizeof(log.u_bbr));
+			memset(&log, 0, sizeof(log));
 			log.u_bbr.inhpts = tcp_in_hpts(tp);
 			log.u_bbr.flex8 = 4;
 			log.u_bbr.pkts_out = tp->t_maxseg;
@@ -2337,12 +2319,6 @@ tcp_newtcpcb(struct inpcb *inp, struct tcpcb *listening_tcb)
 	 * which may match an IPv4-mapped IPv6 address.
 	 */
 	inp->inp_ip_ttl = V_ip_defttl;
-#ifdef TCPPCAP
-	/*
-	 * Init the TCP PCAP queues.
-	 */
-	tcp_pcap_tcpcb_init(tp);
-#endif
 #ifdef TCP_BLACKBOX
 	/* Initialize the per-TCPCB log data. */
 	tcp_log_tcpcbinit(tp);
@@ -2418,11 +2394,6 @@ tcp_discardcb(struct tcpcb *tp)
 	/* Disconnect offload device, if any. */
 	if (tp->t_flags & TF_TOE)
 		tcp_offload_detach(tp);
-#endif
-#ifdef TCPPCAP
-	/* Free the TCP PCAP queues. */
-	tcp_pcap_drain(&(tp->t_inpkts));
-	tcp_pcap_drain(&(tp->t_outpkts));
 #endif
 
 	/* Allow the CC algorithm to clean up after itself. */
@@ -2687,6 +2658,272 @@ SYSCTL_PROC(_net_inet_tcp, TCPCTL_PCBLIST, pcblist,
     CTLTYPE_OPAQUE | CTLFLAG_RD | CTLFLAG_NEEDGIANT,
     NULL, 0, tcp_pcblist, "S,xtcpcb",
     "List of active TCP connections");
+
+#define SND_TAG_STATUS_MAXLEN	128
+
+#ifdef KERN_TLS
+
+static struct sx ktlslist_lock;
+SX_SYSINIT(ktlslistlock, &ktlslist_lock, "ktlslist");
+static uint64_t ktls_glob_gen = 1;
+
+static int
+tcp_ktlslist_locked(SYSCTL_HANDLER_ARGS, bool export_keys)
+{
+	struct xinpgen xig;
+	struct inpcb *inp;
+	struct socket *so;
+	struct ktls_session *ksr, *kss;
+	char *buf;
+	struct xktls_session *xktls;
+	uint64_t ipi_gencnt;
+	size_t buflen, len, sz;
+	u_int cnt;
+	int error;
+	bool ek, p;
+
+	sx_assert(&ktlslist_lock, SA_XLOCKED);
+	if (req->newptr != NULL)
+		return (EPERM);
+
+	len = 0;
+	cnt = 0;
+	ipi_gencnt = V_tcbinfo.ipi_gencnt;
+	bzero(&xig, sizeof(xig));
+	xig.xig_len = sizeof(xig);
+	xig.xig_gen = ktls_glob_gen++;
+	xig.xig_sogen = so_gencnt;
+
+	struct inpcb_iterator inpi = INP_ALL_ITERATOR(&V_tcbinfo,
+	    INPLOOKUP_RLOCKPCB);
+	while ((inp = inp_next(&inpi)) != NULL) {
+		if (inp->inp_gencnt > ipi_gencnt ||
+		    cr_canseeinpcb(req->td->td_ucred, inp) != 0)
+			continue;
+
+		so = inp->inp_socket;
+		if (so != NULL && so->so_gencnt <= xig.xig_sogen) {
+			p = false;
+			ek = export_keys && cr_canexport_ktlskeys(
+			    req->td, inp);
+			ksr = so->so_rcv.sb_tls_info;
+			if (ksr != NULL) {
+				ksr->gen = xig.xig_gen;
+				p = true;
+				if (ek) {
+					sz = SIZE_T_MAX;
+					ktls_session_copy_keys(ksr,
+					    NULL, &sz);
+					len += sz;
+				}
+				if (ksr->snd_tag != NULL &&
+				    ksr->snd_tag->sw->snd_tag_status_str !=
+				    NULL) {
+					sz = SND_TAG_STATUS_MAXLEN;
+					in_pcbref(inp);
+					INP_RUNLOCK(inp);
+					error = ksr->snd_tag->sw->
+					    snd_tag_status_str(
+					    ksr->snd_tag, NULL, &sz);
+					if (in_pcbrele_rlock(inp))
+						return (EDEADLK);
+					if (error == 0)
+						len += sz;
+				}
+			}
+			kss = so->so_snd.sb_tls_info;
+			if (kss != NULL) {
+				kss->gen = xig.xig_gen;
+				p = true;
+				if (ek) {
+					sz = SIZE_T_MAX;
+					ktls_session_copy_keys(kss,
+					    NULL, &sz);
+					len += sz;
+				}
+				if (kss->snd_tag != NULL &&
+				    kss->snd_tag->sw->snd_tag_status_str !=
+				    NULL) {
+					sz = SND_TAG_STATUS_MAXLEN;
+					in_pcbref(inp);
+					INP_RUNLOCK(inp);
+					error = kss->snd_tag->sw->
+					    snd_tag_status_str(
+					    kss->snd_tag, NULL, &sz);
+					if (in_pcbrele_rlock(inp))
+						return (EDEADLK);
+					if (error == 0)
+						len += sz;
+				}
+			}
+			if (p) {
+				len += sizeof(*xktls);
+				len = roundup2(len, __alignof(struct
+				    xktls_session));
+			}
+		}
+	}
+	if (req->oldptr == NULL) {
+		len += 2 * sizeof(xig);
+		len += 3 * len / 4;
+		req->oldidx = len;
+		return (0);
+	}
+
+	if ((error = sysctl_wire_old_buffer(req, 0)) != 0)
+		return (error);
+
+	error = SYSCTL_OUT(req, &xig, sizeof xig);
+	if (error != 0)
+		return (error);
+
+	buflen = roundup2(sizeof(*xktls) + 2 * TLS_MAX_PARAM_SIZE +
+	    2 * SND_TAG_STATUS_MAXLEN, __alignof(struct xktls_session));
+	buf = malloc(buflen, M_TEMP, M_WAITOK | M_ZERO);
+	struct inpcb_iterator inpi1 = INP_ALL_ITERATOR(&V_tcbinfo,
+	    INPLOOKUP_RLOCKPCB);
+	while ((inp = inp_next(&inpi1)) != NULL) {
+		if (inp->inp_gencnt > ipi_gencnt ||
+		    cr_canseeinpcb(req->td->td_ucred, inp) != 0)
+			continue;
+
+		so = inp->inp_socket;
+		if (so == NULL)
+			continue;
+
+		p = false;
+		ek = export_keys && cr_canexport_ktlskeys(req->td, inp);
+		ksr = so->so_rcv.sb_tls_info;
+		kss = so->so_snd.sb_tls_info;
+		xktls = (struct xktls_session *)buf;
+		if (ksr != NULL && ksr->gen == xig.xig_gen) {
+			p = true;
+			ktls_session_to_xktls_onedir(ksr, ek, &xktls->rcv);
+		}
+		if (kss != NULL && kss->gen == xig.xig_gen) {
+			p = true;
+			ktls_session_to_xktls_onedir(kss, ek, &xktls->snd);
+		}
+		if (!p)
+			continue;
+
+		xktls->inp_gencnt = inp->inp_gencnt;
+		xktls->so_pcb = (kvaddr_t)inp;
+		memcpy(&xktls->coninf, &inp->inp_inc, sizeof(xktls->coninf));
+		len = sizeof(*xktls);
+		if (ksr != NULL && ksr->gen == xig.xig_gen) {
+			if (ek) {
+				sz = buflen - len;
+				ktls_session_copy_keys(ksr, buf + len, &sz);
+				len += sz;
+			} else {
+				xktls->rcv.cipher_key_len = 0;
+				xktls->rcv.auth_key_len = 0;
+			}
+			if (ksr->snd_tag != NULL &&
+			    ksr->snd_tag->sw->snd_tag_status_str != NULL) {
+				sz = SND_TAG_STATUS_MAXLEN;
+				in_pcbref(inp);
+				INP_RUNLOCK(inp);
+				error = ksr->snd_tag->sw->snd_tag_status_str(
+				    ksr->snd_tag, buf + len, &sz);
+				if (in_pcbrele_rlock(inp))
+					return (EDEADLK);
+				if (error == 0) {
+					xktls->rcv.drv_st_len = sz;
+					len += sz;
+				}
+			}
+		}
+		if (kss != NULL && kss->gen == xig.xig_gen) {
+			if (ek) {
+				sz = buflen - len;
+				ktls_session_copy_keys(kss, buf + len, &sz);
+				len += sz;
+			} else {
+				xktls->snd.cipher_key_len = 0;
+				xktls->snd.auth_key_len = 0;
+			}
+			if (kss->snd_tag != NULL &&
+			    kss->snd_tag->sw->snd_tag_status_str != NULL) {
+				sz = SND_TAG_STATUS_MAXLEN;
+				in_pcbref(inp);
+				INP_RUNLOCK(inp);
+				error = kss->snd_tag->sw->snd_tag_status_str(
+				    kss->snd_tag, buf + len, &sz);
+				if (in_pcbrele_rlock(inp))
+					return (EDEADLK);
+				if (error == 0) {
+					xktls->snd.drv_st_len = sz;
+					len += sz;
+				}
+			}
+		}
+		len = roundup2(len, __alignof(*xktls));
+		xktls->tsz = len;
+		xktls->fsz = sizeof(*xktls);
+
+		error = SYSCTL_OUT(req, xktls, len);
+		if (error != 0) {
+			INP_RUNLOCK(inp);
+			break;
+		}
+		cnt++;
+	}
+
+	if (error == 0) {
+		xig.xig_sogen = so_gencnt;
+		xig.xig_count = cnt;
+		error = SYSCTL_OUT(req, &xig, sizeof(xig));
+	}
+
+	zfree(buf, M_TEMP);
+	return (error);
+}
+
+static int
+tcp_ktlslist1(SYSCTL_HANDLER_ARGS, bool export_keys)
+{
+	int repeats, error;
+
+	for (repeats = 0; repeats < 100; repeats++) {
+		if (sx_xlock_sig(&ktlslist_lock))
+			return (EINTR);
+		error = tcp_ktlslist_locked(oidp, arg1, arg2, req,
+		    export_keys);
+		sx_xunlock(&ktlslist_lock);
+		if (error != EDEADLK)
+			break;
+		if (sig_intr() != 0) {
+			error = EINTR;
+			break;
+		}
+		req->oldidx = 0;
+	}
+	return (error);
+}
+	
+static int
+tcp_ktlslist_nokeys(SYSCTL_HANDLER_ARGS)
+{
+	return (tcp_ktlslist1(oidp, arg1, arg2, req, false));
+}
+
+static int
+tcp_ktlslist_wkeys(SYSCTL_HANDLER_ARGS)
+{
+	return (tcp_ktlslist1(oidp, arg1, arg2, req, true));
+}
+
+SYSCTL_PROC(_net_inet_tcp, TCPCTL_KTLSLIST, ktlslist,
+    CTLTYPE_OPAQUE | CTLFLAG_RD | CTLFLAG_MPSAFE,
+    NULL, 0, tcp_ktlslist_nokeys, "S,xktls_session",
+    "List of active kTLS sessions for TCP connections");
+SYSCTL_PROC(_net_inet_tcp, TCPCTL_KTLSLIST_WKEYS, ktlslist_wkeys,
+    CTLTYPE_OPAQUE | CTLFLAG_RD | CTLFLAG_MPSAFE,
+    NULL, 0, tcp_ktlslist_wkeys, "S,xktls_session",
+    "List of active kTLS sessions for TCP connections with keys");
+#endif /* KERN_TLS */
 
 #ifdef INET
 static int
@@ -4300,7 +4537,7 @@ tcp_change_time_units(struct tcpcb *tp, int granularity)
 		panic("Unknown granularity:%d tp:%p",
 		      granularity, tp);
 	}
-#endif	
+#endif
 }
 
 void
@@ -4388,7 +4625,7 @@ tcp_req_log_req_info(struct tcpcb *tp, struct tcp_sendfile_track *req,
 		union tcp_log_stackspecific log;
 		struct timeval tv;
 
-		memset(&log.u_bbr, 0, sizeof(log.u_bbr));
+		memset(&log, 0, sizeof(log));
 		log.u_bbr.inhpts = tcp_in_hpts(tp);
 		log.u_bbr.flex8 = val;
 		log.u_bbr.rttProp = req->timestamp;

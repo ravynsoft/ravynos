@@ -326,7 +326,8 @@ SET_DECLARE(Xcommand_set, struct bootblk_command);
  * The intention of the architecture switch is to provide a convenient
  * encapsulation of the interface between the bootstrap MI and MD code.
  * MD code may selectively populate the switch at runtime based on the
- * actual configuration of the target system.
+ * actual configuration of the target system, though some routines are
+ * mandatory.
  */
 struct arch_switch
 {
@@ -351,14 +352,6 @@ struct arch_switch
 	void (*arch_isaoutb)(int port, int value);
 
 	/*
-	 * Interface to adjust the load address according to the "object"
-	 * being loaded.
-	 */
-	uint64_t (*arch_loadaddr)(u_int type, void *data, uint64_t addr);
-#define	LOAD_ELF	1	/* data points to the ELF header. */
-#define	LOAD_RAW	2	/* data points to the file name. */
-
-	/*
 	 * Interface to inform MD code about a loaded (ELF) segment. This
 	 * can be used to flush caches and/or set up translations.
 	 */
@@ -378,6 +371,8 @@ extern struct arch_switch archsw;
 
 /* This must be provided by the MD code, but should it be in the archsw? */
 void	delay(int delay);
+
+int setprint_delay(struct env_var *ev, int flags, const void *value);
 
 /* common code to set currdev variable. */
 int gen_setcurrdev(struct env_var *ev, int flags, const void *value);

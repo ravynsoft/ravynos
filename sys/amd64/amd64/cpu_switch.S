@@ -91,14 +91,8 @@ ENTRY(cpu_switch)
 	jnz	2f
 	testb	$CPUID_STDEXT_FSGSBASE,cpu_stdext_feature(%rip)
 	jz	2f
-	movl	%fs,%eax
-	cmpl	$KUF32SEL,%eax
-	jne	1f
 	rdfsbase %rax
 	movq	%rax,PCB_FSBASE(%r8)
-1:	movl	%gs,%eax
-	cmpl	$KUG32SEL,%eax
-	jne	2f
 	movq	%rdx,%r12
 	movl	$MSR_KGSBASE,%ecx		/* Read user gs base */
 	rdmsr
@@ -142,7 +136,7 @@ ctx_switch_fpusave_done:
 	movq	%r15,TD_LOCK(%r13)		/* Release the old thread */
 sw1:
 	leaq	TD_MD_PCB(%r12),%r8
-#if defined(SCHED_ULE) && defined(SMP)
+#if defined(SCHED_ULE)
 	movq	$blocked_lock, %rdx
 	movq	TD_LOCK(%r12),%rcx
 	cmpq	%rcx, %rdx
@@ -498,7 +492,7 @@ ENTRY(resumectx)
 END(resumectx)
 
 /* Wait for the new thread to become unblocked */
-#if defined(SCHED_ULE) && defined(SMP)
+#if defined(SCHED_ULE)
 sw1wait:
 1:
 	pause

@@ -48,11 +48,10 @@
 #include <sys/mutex.h>
 #include <sys/proc.h>
 #include <sys/errno.h>
+#include <sys/stdarg.h>
 #include <sys/time.h>
 #include <geom/geom.h>
 #include <geom/geom_int.h>
-
-#include <machine/stdarg.h>
 
 TAILQ_HEAD(event_tailq_head, g_event);
 
@@ -146,7 +145,7 @@ g_attr_changed(struct g_provider *pp, const char *attr, int flag)
 	struct g_attrchanged_args *args;
 	int error;
 
-	args = g_malloc(sizeof *args, flag);
+	args = g_malloc(sizeof(*args), flag);
 	if (args == NULL)
 		return (ENOMEM);
 	args->pp = pp;

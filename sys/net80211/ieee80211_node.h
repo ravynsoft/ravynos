@@ -342,7 +342,7 @@ MALLOC_DECLARE(M_80211_NODE_IE);
 #define	IEEE80211_NODE_BITS \
 	"\20\1AUTH\2QOS\3ERP\5PWR_MGT\6AREF\7HT\10HTCOMPAT\11WPS\12TSN" \
 	"\13AMPDU_RX\14AMPDU_TX\15MIMO_PS\16MIMO_RTS\17RIFS\20SGI20\21SGI40" \
-	"\22ASSOCID"
+	"\22ASSOCID\23AMSDU_RX\24AMSDU_TX\25VHT\26LDPC\27UAPSD"
 
 #define	IEEE80211_NODE_AID(ni)	IEEE80211_AID(ni->ni_associd)
 
@@ -530,6 +530,12 @@ void	ieee80211_node_join(struct ieee80211_node *,int);
 void	ieee80211_node_leave(struct ieee80211_node *);
 int8_t	ieee80211_getrssi(struct ieee80211vap *);
 void	ieee80211_getsignal(struct ieee80211vap *, int8_t *, int8_t *);
+
+/* TX sequence space related routines */
+ieee80211_seq	ieee80211_tx_seqno_fetch_incr(struct ieee80211_node *,
+	uint8_t);
+ieee80211_seq	ieee80211_tx_seqno_fetch(const struct ieee80211_node *,
+	uint8_t);
 
 /*
  * Node transmit rate specific manipulation.

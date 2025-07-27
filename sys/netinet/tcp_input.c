@@ -112,9 +112,6 @@
 #include <netinet/tcpip.h>
 #include <netinet/cc/cc.h>
 #include <netinet/tcp_fastopen.h>
-#ifdef TCPPCAP
-#include <netinet/tcp_pcap.h>
-#endif
 #include <netinet/tcp_syncache.h>
 #ifdef TCP_OFFLOAD
 #include <netinet/tcp_offload.h>
@@ -386,7 +383,7 @@ cc_conn_init(struct tcpcb *tp)
 		}
 		TCPT_RANGESET(tp->t_rxtcur,
 		    ((tp->t_srtt >> 2) + tp->t_rttvar) >> 1,
-		    tp->t_rttmin, TCPTV_REXMTMAX);
+		    tp->t_rttmin, tcp_rexmit_max);
 	}
 	if (metrics.hc_ssthresh) {
 		/*
@@ -570,8 +567,6 @@ int
 tcp6_input_with_port(struct mbuf **mp, int *offp, int proto, uint16_t port)
 {
 	struct mbuf *m;
-	struct in6_ifaddr *ia6;
-	struct ip6_hdr *ip6;
 
 	m = *mp;
 	if (m->m_len < *offp + sizeof(struct tcphdr)) {
@@ -581,19 +576,6 @@ tcp6_input_with_port(struct mbuf **mp, int *offp, int proto, uint16_t port)
 			TCPSTAT_INC(tcps_rcvshort);
 			return (IPPROTO_DONE);
 		}
-	}
-
-	/*
-	 * draft-itojun-ipv6-tcp-to-anycast
-	 * better place to put this in?
-	 */
-	ip6 = mtod(m, struct ip6_hdr *);
-	ia6 = in6ifa_ifwithaddr(&ip6->ip6_dst, 0 /* XXX */, false);
-	if (ia6 && (ia6->ia6_flags & IN6_IFF_ANYCAST)) {
-		icmp6_error(m, ICMP6_DST_UNREACH, ICMP6_DST_UNREACH_ADDR,
-			    (caddr_t)&ip6->ip6_dst - (caddr_t)ip6);
-		*mp = NULL;
-		return (IPPROTO_DONE);
 	}
 
 	*mp = m;
@@ -639,6 +621,7 @@ tcp_input_with_port(struct mbuf **mp, int *offp, int proto, uint16_t port)
 #endif /* INET6 */
 	struct tcpopt to;		/* options in this segment */
 	char *s = NULL;			/* address and port logging */
+	bool closed_port = false;	/* segment is hitting a closed port */
 
 	NET_EPOCH_ASSERT();
 
@@ -925,7 +908,8 @@ findpcb:
 				log(LOG_INFO, "%s; %s: Connection attempt "
 				    "to closed port\n", s, __func__);
 		}
-		rstreason = BANDLIM_RST_CLOSEDPORT;
+		rstreason = BANDLIM_TCP_RST;
+		closed_port = true;
 		goto dropwithreset;
 	}
 	INP_LOCK_ASSERT(inp);
@@ -1016,12 +1000,14 @@ findpcb:
 		 * down or it is in the CLOSED state.  Either way we drop the
 		 * segment and send an appropriate response.
 		 */
-		rstreason = BANDLIM_RST_CLOSEDPORT;
+		rstreason = BANDLIM_TCP_RST;
+		closed_port = true;
 		goto dropwithreset;
 	}
 
 	if ((tp->t_port != port) && (tp->t_state > TCPS_LISTEN)) {
-		rstreason = BANDLIM_RST_CLOSEDPORT;
+		rstreason = BANDLIM_TCP_RST;
+		closed_port = true;
 		goto dropwithreset;
 	}
 
@@ -1073,6 +1059,8 @@ findpcb:
 		 * socket appended to the listen queue in SYN_RECEIVED state.
 		 */
 		if ((thflags & (TH_RST|TH_ACK|TH_SYN)) == TH_ACK) {
+			int result;
+
 			/*
 			 * Parse the TCP options here because
 			 * syncookies need access to the reflected
@@ -1082,8 +1070,8 @@ findpcb:
 			/*
 			 * NB: syncache_expand() doesn't unlock inp.
 			 */
-			rstreason = syncache_expand(&inc, &to, th, &so, m, port);
-			if (rstreason < 0) {
+			result = syncache_expand(&inc, &to, th, &so, m, port);
+			if (result < 0) {
 				/*
 				 * A failing TCP MD5 signature comparison
 				 * must result in the segment being dropped
@@ -1091,7 +1079,7 @@ findpcb:
 				 * to the sender.
 				 */
 				goto dropunlock;
-			} else if (rstreason == 0) {
+			} else if (result == 0) {
 				/*
 				 * No syncache entry, or ACK was not for our
 				 * SYN/ACK.  Do our protection against double
@@ -1110,7 +1098,7 @@ findpcb:
 				 * of the failure cause.
 				 */
 				INP_WUNLOCK(inp);
-				rstreason = BANDLIM_RST_OPENPORT;
+				rstreason = BANDLIM_TCP_RST;
 				lookupflag &= ~INPLOOKUP_WILDCARD;
 				goto findpcb;
 			}
@@ -1201,7 +1189,7 @@ tfo_socket_result:
 				    s, __func__);
 			syncache_badack(&inc, port);	/* XXX: Not needed! */
 			TCPSTAT_INC(tcps_badsyn);
-			rstreason = BANDLIM_RST_OPENPORT;
+			rstreason = BANDLIM_TCP_RST;
 			goto dropwithreset;
 		}
 		/*
@@ -1277,7 +1265,7 @@ tfo_socket_result:
 					"Connection attempt to deprecated "
 					"IPv6 address rejected\n",
 					s, __func__);
-				rstreason = BANDLIM_RST_OPENPORT;
+				rstreason = BANDLIM_TCP_RST;
 				goto dropwithreset;
 			}
 		}
@@ -1398,12 +1386,13 @@ dropwithreset:
 	 * When blackholing do not respond with a RST but
 	 * completely ignore the segment and drop it.
 	 */
-	if (((rstreason == BANDLIM_RST_OPENPORT && V_blackhole == 3) ||
-	    (rstreason == BANDLIM_RST_CLOSEDPORT &&
-	    ((V_blackhole == 1 && (thflags & TH_SYN)) || V_blackhole > 1))) &&
+	if (rstreason == BANDLIM_TCP_RST &&
+	    ((!closed_port && V_blackhole == 3) ||
+	     (closed_port &&
+	      ((V_blackhole == 1 && (thflags & TH_SYN)) || V_blackhole > 1))) &&
 	    (V_blackhole_local || (
 #ifdef INET6
-	    isipv6 ? !in6_localaddr(&ip6->ip6_src) :
+	    isipv6 ? !in6_localip(&ip6->ip6_src) :
 #endif
 #ifdef INET
 	    !in_localip(ip->ip_src)
@@ -1456,7 +1445,7 @@ drop:
  *     is at least 3/8 of the current socket buffer size.
  *  3. receive buffer size has not hit maximal automatic size;
  *
- * If all of the criteria are met we increaset the socket buffer
+ * If all of the criteria are met, we increase the socket buffer
  * by a 1/2 (bounded by the max). This allows us to keep ahead
  * of slow-start but also makes it so our peer never gets limited
  * by our rwnd which we then open up causing a burst.
@@ -1533,7 +1522,9 @@ tcp_do_segment(struct tcpcb *tp, struct mbuf *m, struct tcphdr *th,
 	struct tcpopt to;
 	int tfo_syn;
 	u_int maxseg = 0;
+	bool no_data;
 
+	no_data = (tlen == 0);
 	thflags = tcp_get_flags(th);
 	tp->sackhint.last_sack_ack = 0;
 	sack_changed = SACK_NOCHANGE;
@@ -1546,10 +1537,6 @@ tcp_do_segment(struct tcpcb *tp, struct mbuf *m, struct tcphdr *th,
 	KASSERT(tp->t_state != TCPS_TIME_WAIT, ("%s: TCPS_TIME_WAIT",
 	    __func__));
 
-#ifdef TCPPCAP
-	/* Save segment, if requested. */
-	tcp_pcap_add(th, m, &(tp->t_inpkts));
-#endif
 	TCP_LOG_EVENT(tp, th, &so->so_rcv, &so->so_snd, TCP_LOG_IN, 0,
 	    tlen, NULL, true);
 
@@ -1776,7 +1763,7 @@ tcp_do_segment(struct tcpcb *tp, struct mbuf *m, struct tcphdr *th,
 			tp->ts_recent = to.to_tsval;
 		}
 
-		if (tlen == 0) {
+		if (no_data) {
 			if (SEQ_GT(th->th_ack, tp->snd_una) &&
 			    SEQ_LEQ(th->th_ack, tp->snd_max) &&
 			    !IN_RECOVERY(tp->t_flags) &&
@@ -1985,7 +1972,7 @@ tcp_do_segment(struct tcpcb *tp, struct mbuf *m, struct tcphdr *th,
 		if ((thflags & TH_ACK) &&
 		    (SEQ_LEQ(th->th_ack, tp->snd_una) ||
 		     SEQ_GT(th->th_ack, tp->snd_max))) {
-				rstreason = BANDLIM_RST_OPENPORT;
+				rstreason = BANDLIM_TCP_RST;
 				tcp_log_end_status(tp, TCP_EI_STATUS_RST_IN_FRONT);
 				goto dropwithreset;
 		}
@@ -1998,7 +1985,7 @@ tcp_do_segment(struct tcpcb *tp, struct mbuf *m, struct tcphdr *th,
 			 * FIN, or a RST.
 			 */
 			if ((thflags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)) {
-				rstreason = BANDLIM_RST_OPENPORT;
+				rstreason = BANDLIM_TCP_RST;
 				tcp_log_end_status(tp, TCP_EI_STATUS_RST_IN_FRONT);
 				goto dropwithreset;
 			} else if (thflags & TH_SYN) {
@@ -2266,7 +2253,7 @@ tcp_do_segment(struct tcpcb *tp, struct mbuf *m, struct tcphdr *th,
 	 * for the "LAND" DoS attack.
 	 */
 	if (tp->t_state == TCPS_SYN_RECEIVED && SEQ_LT(th->th_seq, tp->irs)) {
-		rstreason = BANDLIM_RST_OPENPORT;
+		rstreason = BANDLIM_TCP_RST;
 		tcp_log_end_status(tp, TCP_EI_STATUS_RST_IN_FRONT);
 		goto dropwithreset;
 	}
@@ -2579,7 +2566,7 @@ tcp_do_segment(struct tcpcb *tp, struct mbuf *m, struct tcphdr *th,
 
 		if (SEQ_LEQ(th->th_ack, tp->snd_una)) {
 			maxseg = tcp_maxseg(tp);
-			if (tlen == 0 &&
+			if (no_data &&
 			    (tiwin == tp->snd_wnd ||
 			    (tp->t_flags & TF_SACK_PERMIT))) {
 				/*
@@ -2822,9 +2809,11 @@ enter_recovery:
 						KASSERT((tp->t_dupacks == 2 &&
 						    tp->snd_limited == 0) ||
 						   (sent == maxseg + 1 &&
-						    tp->t_flags & TF_SENTFIN),
-						    ("%s: sent too much",
-						    __func__));
+						    tp->t_flags & TF_SENTFIN) ||
+						   (sent < 2 * maxseg &&
+						    tp->t_flags & TF_NODELAY),
+						    ("%s: sent too much: %u>%u",
+						    __func__, sent, maxseg));
 						tp->snd_limited = 2;
 					} else if (sent > 0) {
 						++tp->snd_limited;
@@ -3133,8 +3122,7 @@ step6:
 	    (tp->snd_wl1 == th->th_seq && (SEQ_LT(tp->snd_wl2, th->th_ack) ||
 	     (tp->snd_wl2 == th->th_ack && tiwin > tp->snd_wnd))))) {
 		/* keep track of pure window updates */
-		if (tlen == 0 &&
-		    tp->snd_wl2 == th->th_ack && tiwin > tp->snd_wnd)
+		if (no_data && tp->snd_wl2 == th->th_ack && tiwin > tp->snd_wnd)
 			TCPSTAT_INC(tcps_rcvwinupd);
 		tp->snd_wnd = tiwin;
 		tp->snd_wl1 = th->th_seq;
@@ -3444,7 +3432,7 @@ dropafterack:
 	if (tp->t_state == TCPS_SYN_RECEIVED && (thflags & TH_ACK) &&
 	    (SEQ_GT(tp->snd_una, th->th_ack) ||
 	     SEQ_GT(th->th_ack, tp->snd_max)) ) {
-		rstreason = BANDLIM_RST_OPENPORT;
+		rstreason = BANDLIM_TCP_RST;
 		tcp_log_end_status(tp, TCP_EI_STATUS_RST_IN_FRONT);
 		goto dropwithreset;
 	}
@@ -3752,7 +3740,7 @@ tcp_xmit_timer(struct tcpcb *tp, int rtt)
 	 * the minimum feasible timer (which is 2 ticks).
 	 */
 	TCPT_RANGESET(tp->t_rxtcur, TCP_REXMTVAL(tp),
-		      max(tp->t_rttmin, rtt + 2), TCPTV_REXMTMAX);
+	    max(tp->t_rttmin, rtt + 2), tcp_rexmit_max);
 
 	/*
 	 * We received an ack for a packet that wasn't retransmitted;

@@ -888,15 +888,6 @@ vlan_devat(struct ifnet *ifp, uint16_t vid)
 	return (ifp);
 }
 
-/*
- * VLAN support can be loaded as a module.  The only place in the
- * system that's intimately aware of this is ether_input.  We hook
- * into this code through vlan_input_p which is defined there and
- * set here.  No one else in the system should be aware of this so
- * we use an explicit reference here.
- */
-extern	void (*vlan_input_p)(struct ifnet *, struct mbuf *);
-
 /* For if_link_state_change() eyes only... */
 extern	void (*vlan_link_state_p)(struct ifnet *);
 
@@ -1186,10 +1177,10 @@ vlan_clone_create(struct if_clone *ifc, char *name, size_t len,
 	ifp->if_ratelimit_query = vlan_ratelimit_query;
 #endif
 	ifp->if_flags = VLAN_IFFLAGS;
+	ifp->if_type = IFT_L2VLAN;
 	ether_ifattach(ifp, eaddr);
 	/* Now undo some of the damage... */
 	ifp->if_baudrate = 0;
-	ifp->if_type = IFT_L2VLAN;
 	ifp->if_hdrlen = ETHER_VLAN_ENCAP_LEN;
 	ifa = ifp->if_addr;
 	sdl = (struct sockaddr_dl *)ifa->ifa_addr;
@@ -1273,7 +1264,7 @@ vlan_clone_create_nl(struct if_clone *ifc, char *name, size_t len,
 	error = nl_parse_nested(lattrs->ifla_idata, &vlan_parser, npt, &attrs);
 	if (error != 0)
 		return (error);
-	if (attrs.vlan_id > 4095) {
+	if (attrs.vlan_id > DOT1Q_VID_MAX) {
 		nlmsg_report_err_msg(npt, "Invalid VID: %d", attrs.vlan_id);
 		return (EINVAL);
 	}
@@ -1682,6 +1673,7 @@ vlan_config(struct ifvlan *ifv, struct ifnet *p, uint16_t vid,
 	 */
 	if (p->if_type != IFT_ETHER &&
 	    p->if_type != IFT_L2VLAN &&
+	    p->if_type != IFT_BRIDGE &&
 	    (p->if_capenable & IFCAP_VLAN_HWTAGGING) == 0)
 		return (EPROTONOSUPPORT);
 	if ((p->if_flags & VLAN_IFFLAGS) != VLAN_IFFLAGS)

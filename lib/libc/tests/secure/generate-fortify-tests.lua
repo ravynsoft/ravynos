@@ -478,6 +478,18 @@ local all_tests = {
 			init = poll_init,
 		},
 	},
+	signal = {
+		-- <signal.h>
+		{
+			func = "sig2str",
+			bufsize = "SIG2STR_MAX",
+			arguments = {
+				"1",
+				"__buf",
+			},
+			exclude = excludes_stack_overflow,
+		},
+	},
 	stdio = {
 		-- <stdio.h>
 		{
@@ -579,6 +591,15 @@ local all_tests = {
 		{
 			func = "arc4random_buf",
 			arguments = {
+				"__buf",
+				"__len",
+			},
+			exclude = excludes_stack_overflow,
+		},
+		{
+			func = "getenv_r",
+			arguments = {
+				"\"PATH\"",
 				"__buf",
 				"__len",
 			},

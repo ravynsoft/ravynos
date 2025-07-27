@@ -214,7 +214,7 @@ struct stat32 {
 	ino_t st_ino;
 	nlink_t st_nlink;
 	mode_t	st_mode;
-	uint16_t st_padding0;
+	uint16_t st_bsdflags;
 	uid_t	st_uid;
 	gid_t	st_gid;
 	uint32_t st_padding1;
@@ -419,6 +419,7 @@ struct kinfo_proc32 {
 	uint32_t ki_kstack;
 	uint32_t ki_udata;
 	uint32_t ki_tdaddr;
+	uint32_t ki_uerrmsg;
 	uint32_t ki_spareptrs[KI_NSPARE_PTR];	/* spare room for growth */
 	int	ki_sparelongs[KI_NSPARE_LONG];
 	int	ki_sflag;

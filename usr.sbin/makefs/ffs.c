@@ -679,15 +679,14 @@ ffs_build_dinode1(struct ufs1_dinode *dinp, dirbuf_t *dbufp, fsnode *cur,
 {
 	size_t slen;
 	void *membuf;
-	struct stat *st = stampst.st_ino != 0 ? &stampst : &cur->inode->st;
+	struct stat *st;
 
+	st = &cur->inode->st;
 	memset(dinp, 0, sizeof(*dinp));
 	dinp->di_mode = cur->inode->st.st_mode;
 	dinp->di_nlink = cur->inode->nlink;
 	dinp->di_size = cur->inode->st.st_size;
-#if HAVE_STRUCT_STAT_ST_FLAGS
-	dinp->di_flags = cur->inode->st.st_flags;
-#endif
+	dinp->di_flags = FSINODE_ST_FLAGS(*cur->inode);
 	dinp->di_gen = random();
 	dinp->di_uid = cur->inode->st.st_uid;
 	dinp->di_gid = cur->inode->st.st_gid;
@@ -727,15 +726,14 @@ ffs_build_dinode2(struct ufs2_dinode *dinp, dirbuf_t *dbufp, fsnode *cur,
 {
 	size_t slen;
 	void *membuf;
-	struct stat *st = stampst.st_ino != 0 ? &stampst : &cur->inode->st;
+	struct stat *st;
 
+	st = &cur->inode->st;
 	memset(dinp, 0, sizeof(*dinp));
 	dinp->di_mode = cur->inode->st.st_mode;
 	dinp->di_nlink = cur->inode->nlink;
 	dinp->di_size = cur->inode->st.st_size;
-#if HAVE_STRUCT_STAT_ST_FLAGS
-	dinp->di_flags = cur->inode->st.st_flags;
-#endif
+	dinp->di_flags = FSINODE_ST_FLAGS(*cur->inode);
 	dinp->di_gen = random();
 	dinp->di_uid = cur->inode->st.st_uid;
 	dinp->di_gid = cur->inode->st.st_gid;
@@ -1058,7 +1056,7 @@ ffs_make_dirbuf(dirbuf_t *dbuf, const char *name, fsnode *node, int needswap)
 	reclen = DIRSIZ_SWAP(0, &de, needswap);
 	de.d_reclen = ufs_rw16(reclen, needswap);
 
-	dp = (struct direct *)(dbuf->buf + dbuf->cur);
+	dp = dbuf->buf == NULL ? NULL : (struct direct *)(dbuf->buf + dbuf->cur);
 	llen = 0;
 	if (dp != NULL)
 		llen = DIRSIZ_SWAP(0, dp, needswap);

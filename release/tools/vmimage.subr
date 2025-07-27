@@ -6,6 +6,7 @@
 #
 
 scriptdir=$(dirname $(realpath $0))
+. ${scriptdir}/../scripts/tools.subr
 . ${scriptdir}/../../tools/boot/install-boot.sh
 
 export PATH="/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
@@ -110,7 +111,7 @@ vm_emulation_setup() {
 	if [ -n "${WITHOUT_QEMU}" ]; then
 		return 0
 	fi
-	if ! [ -z "${QEMUSTATIC}" ]; then
+	if [ -n "${QEMUSTATIC}" ]; then
 		export EMULATOR=/qemu
 		cp ${QEMUSTATIC} ${DESTDIR}/${EMULATOR}
 	fi
@@ -133,7 +134,7 @@ vm_extra_install_base() {
 }
 
 vm_extra_enable_services() {
-	if [ ! -z "${VM_RC_LIST}" ]; then
+	if [ -n "${VM_RC_LIST}" ]; then
 		for _rcvar in ${VM_RC_LIST}; do
 			echo ${_rcvar}_enable="YES" >> ${DESTDIR}/etc/rc.conf
 		done
@@ -209,11 +210,11 @@ buildfs() {
 
 	case "${VMFS}" in
 	ufs)
-		cd ${DESTDIR} && makefs ${MAKEFSARGS} -o label=rootfs -o version=2 -o softupdates=1 \
+		cd ${DESTDIR} && ${MAKEFS} ${MAKEFSARGS} -o label=rootfs -o version=2 -o softupdates=1 \
 			${VMBASE} .${NO_ROOT:+/METALOG}
 		;;
 	zfs)
-		cd ${DESTDIR} && makefs -t zfs ${MAKEFSARGS} \
+		cd ${DESTDIR} && ${MAKEFS} -t zfs ${MAKEFSARGS} \
 			-o poolname=zroot -o bootfs=zroot/ROOT/default -o rootpath=/ \
 			-o fs=zroot\;mountpoint=none \
 			-o fs=zroot/ROOT\;mountpoint=none \
@@ -342,7 +343,7 @@ vm_create_disk() {
 	buildfs
 
 	echo "Building final disk image...  Please wait."
-	mkimg -s ${PARTSCHEME} -f ${VMFORMAT} \
+	${MKIMG} -s ${PARTSCHEME} -f ${VMFORMAT} \
 		${BOOTPARTS} \
 		${SWAPOPT} \
 		${CONFIG_DRIVE} \

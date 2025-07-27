@@ -49,8 +49,6 @@
 #include <net/vnet.h>
 #include <net/pfvar.h>
 
-#define DPFPRINTF(n, x) if (V_pf_status.debug >= (n)) printf x
-
 #define	ACCEPT_FLAGS(flags, oklist)		\
 	do {					\
 		if ((flags & ~(oklist)) &	\
@@ -704,7 +702,7 @@ pfr_validate_addr(struct pfr_addr *ad)
 			return (-1);
 	if (ad->pfra_not && ad->pfra_not != 1)
 		return (-1);
-	if (ad->pfra_fback)
+	if (ad->pfra_fback != PFR_FB_NONE)
 		return (-1);
 	return (0);
 }
@@ -791,10 +789,16 @@ pfr_create_kentry(struct pfr_addr *ad, bool counters)
 	if (ke == NULL)
 		return (NULL);
 
-	if (ad->pfra_af == AF_INET)
+	switch (ad->pfra_af) {
+	case AF_INET:
 		FILLIN_SIN(ke->pfrke_sa.sin, ad->pfra_ip4addr);
-	else if (ad->pfra_af == AF_INET6)
+		break;
+	case AF_INET6:
 		FILLIN_SIN6(ke->pfrke_sa.sin6, ad->pfra_ip6addr);
+		break;
+	default:
+		unhandled_af(ad->pfra_af);
+	}
 	ke->pfrke_af = ad->pfra_af;
 	ke->pfrke_net = ad->pfra_net;
 	ke->pfrke_not = ad->pfra_not;
@@ -813,10 +817,10 @@ pfr_create_kentry(struct pfr_addr *ad, bool counters)
 static void
 pfr_destroy_kentries(struct pfr_kentryworkq *workq)
 {
-	struct pfr_kentry	*p, *q;
+	struct pfr_kentry	*p;
 
-	for (p = SLIST_FIRST(workq); p != NULL; p = q) {
-		q = SLIST_NEXT(p, pfrke_workq);
+	while ((p = SLIST_FIRST(workq)) != NULL) {
+		SLIST_REMOVE_HEAD(workq, pfrke_workq);
 		pfr_destroy_kentry(p);
 	}
 }
@@ -933,11 +937,13 @@ pfr_prepare_network(union sockaddr_union *sa, int af, int net)
 	int	i;
 
 	bzero(sa, sizeof(*sa));
-	if (af == AF_INET) {
+	switch (af) {
+	case AF_INET:
 		sa->sin.sin_len = sizeof(sa->sin);
 		sa->sin.sin_family = AF_INET;
 		sa->sin.sin_addr.s_addr = net ? htonl(-1 << (32-net)) : 0;
-	} else if (af == AF_INET6) {
+		break;
+	case AF_INET6:
 		sa->sin6.sin6_len = sizeof(sa->sin6);
 		sa->sin6.sin6_family = AF_INET6;
 		for (i = 0; i < 4; i++) {
@@ -949,6 +955,9 @@ pfr_prepare_network(union sockaddr_union *sa, int af, int net)
 			sa->sin6.sin6_addr.s6_addr32[i] = 0xFFFFFFFF;
 			net -= 32;
 		}
+		break;
+	default:
+		unhandled_af(af);
 	}
 }
 
@@ -1022,10 +1031,16 @@ pfr_copyout_addr(struct pfr_addr *ad, const struct pfr_kentry *ke)
 	ad->pfra_af = ke->pfrke_af;
 	ad->pfra_net = ke->pfrke_net;
 	ad->pfra_not = ke->pfrke_not;
-	if (ad->pfra_af == AF_INET)
+	switch (ad->pfra_af) {
+	case AF_INET:
 		ad->pfra_ip4addr = ke->pfrke_sa.sin.sin_addr;
-	else if (ad->pfra_af == AF_INET6)
+		break;
+	case AF_INET6:
 		ad->pfra_ip6addr = ke->pfrke_sa.sin6.sin6_addr;
+		break;
+	default:
+		unhandled_af(ad->pfra_af);
+	}
 }
 
 static void
@@ -1118,18 +1133,23 @@ pfr_walktree(struct radix_node *rn, void *arg)
 	    {
 		union sockaddr_union	pfr_mask;
 
-		if (ke->pfrke_af == AF_INET) {
+		switch (ke->pfrke_af) {
+		case AF_INET:
 			if (w->pfrw_dyn->pfid_acnt4++ > 0)
 				break;
 			pfr_prepare_network(&pfr_mask, AF_INET, ke->pfrke_net);
 			pfr_sockaddr_to_pf_addr(&ke->pfrke_sa, &w->pfrw_dyn->pfid_addr4);
 			pfr_sockaddr_to_pf_addr(&pfr_mask, &w->pfrw_dyn->pfid_mask4);
-		} else if (ke->pfrke_af == AF_INET6){
+			break;
+		case AF_INET6:
 			if (w->pfrw_dyn->pfid_acnt6++ > 0)
 				break;
 			pfr_prepare_network(&pfr_mask, AF_INET6, ke->pfrke_net);
 			pfr_sockaddr_to_pf_addr(&ke->pfrke_sa, &w->pfrw_dyn->pfid_addr6);
 			pfr_sockaddr_to_pf_addr(&pfr_mask, &w->pfrw_dyn->pfid_mask6);
+			break;
+		default:
+			unhandled_af(ke->pfrke_af);
 		}
 		break;
 	    }
@@ -1658,8 +1678,7 @@ pfr_ina_commit(struct pfr_table *trs, u_int32_t ticket, int *nadd,
 	}
 
 	if (!(flags & PFR_FLAG_DUMMY)) {
-		for (p = SLIST_FIRST(&workq); p != NULL; p = q) {
-			q = SLIST_NEXT(p, pfrkt_workq);
+		SLIST_FOREACH_SAFE(p, &workq, pfrkt_workq, q) {
 			pfr_commit_ktable(p, tzero);
 		}
 		rs->topen = 0;
@@ -1688,7 +1707,7 @@ pfr_commit_ktable(struct pfr_ktable *kt, time_t tzero)
 	} else if (kt->pfrkt_flags & PFR_TFLAG_ACTIVE) {
 		/* kt might contain addresses */
 		struct pfr_kentryworkq	 addrq, addq, changeq, delq, garbageq;
-		struct pfr_kentry	*p, *q, *next;
+		struct pfr_kentry	*p, *q;
 		struct pfr_addr		 ad;
 
 		pfr_enqueue_addrs(shadow, &addrq, NULL, 0);
@@ -1698,7 +1717,8 @@ pfr_commit_ktable(struct pfr_ktable *kt, time_t tzero)
 		SLIST_INIT(&delq);
 		SLIST_INIT(&garbageq);
 		pfr_clean_node_mask(shadow, &addrq);
-		SLIST_FOREACH_SAFE(p, &addrq, pfrke_workq, next) {
+		while ((p = SLIST_FIRST(&addrq)) != NULL) {
+			SLIST_REMOVE_HEAD(&addrq, pfrke_workq);
 			pfr_copyout_addr(&ad, p);
 			q = pfr_lookup_addr(kt, &ad, 1);
 			if (q != NULL) {
@@ -1842,8 +1862,7 @@ pfr_setflags_ktables(struct pfr_ktableworkq *workq)
 {
 	struct pfr_ktable	*p, *q;
 
-	for (p = SLIST_FIRST(workq); p; p = q) {
-		q = SLIST_NEXT(p, pfrkt_workq);
+	SLIST_FOREACH_SAFE(p, workq, pfrkt_workq, q) {
 		pfr_setflags_ktable(p, p->pfrkt_nflags);
 	}
 }
@@ -1993,10 +2012,10 @@ pfr_create_ktable(struct pfr_table *tbl, time_t tzero, int attachruleset)
 static void
 pfr_destroy_ktables(struct pfr_ktableworkq *workq, int flushaddr)
 {
-	struct pfr_ktable	*p, *q;
+	struct pfr_ktable	*p;
 
-	for (p = SLIST_FIRST(workq); p; p = q) {
-		q = SLIST_NEXT(p, pfrkt_workq);
+	while ((p = SLIST_FIRST(workq)) != NULL) {
+		SLIST_REMOVE_HEAD(workq, pfrkt_workq);
 		pfr_destroy_ktable(p, flushaddr);
 	}
 }
@@ -2052,17 +2071,16 @@ pfr_lookup_table(struct pfr_table *tbl)
 	    (struct pfr_ktable *)tbl));
 }
 
-int
-pfr_match_addr(struct pfr_ktable *kt, struct pf_addr *a, sa_family_t af)
+static struct pfr_kentry *
+pfr_kentry_byaddr(struct pfr_ktable *kt, struct pf_addr *a, sa_family_t af,
+    int exact)
 {
 	struct pfr_kentry	*ke = NULL;
-	int			 match;
 
 	PF_RULES_RASSERT();
 
-	if (!(kt->pfrkt_flags & PFR_TFLAG_ACTIVE) && kt->pfrkt_root != NULL)
-		kt = kt->pfrkt_root;
-	if (!(kt->pfrkt_flags & PFR_TFLAG_ACTIVE))
+	kt = pfr_ktable_select_active(kt);
+	if (kt == NULL)
 		return (0);
 
 	switch (af) {
@@ -2099,11 +2117,26 @@ pfr_match_addr(struct pfr_ktable *kt, struct pf_addr *a, sa_family_t af)
 	default:
 		unhandled_af(af);
 	}
+	if (exact && ke && KENTRY_NETWORK(ke))
+		ke = NULL;
+
+	return (ke);
+}
+
+int
+pfr_match_addr(struct pfr_ktable *kt, struct pf_addr *a, sa_family_t af)
+{
+	struct pfr_kentry	*ke = NULL;
+	int match;
+
+	ke = pfr_kentry_byaddr(kt, a, af, 0);
+
 	match = (ke && !ke->pfrke_not);
 	if (match)
 		pfr_kstate_counter_add(&kt->pfrkt_match, 1);
 	else
 		pfr_kstate_counter_add(&kt->pfrkt_nomatch, 1);
+
 	return (match);
 }
 
@@ -2113,9 +2146,8 @@ pfr_update_stats(struct pfr_ktable *kt, struct pf_addr *a, sa_family_t af,
 {
 	struct pfr_kentry	*ke = NULL;
 
-	if (!(kt->pfrkt_flags & PFR_TFLAG_ACTIVE) && kt->pfrkt_root != NULL)
-		kt = kt->pfrkt_root;
-	if (!(kt->pfrkt_flags & PFR_TFLAG_ACTIVE))
+	kt = pfr_ktable_select_active(kt);
+	if (kt == NULL)
 		return;
 
 	switch (af) {
@@ -2155,7 +2187,7 @@ pfr_update_stats(struct pfr_ktable *kt, struct pf_addr *a, sa_family_t af,
 	if ((ke == NULL || ke->pfrke_not) != notrule) {
 		if (op_pass != PFR_OP_PASS)
 			DPFPRINTF(PF_DEBUG_URGENT,
-			    ("pfr_update_stats: assertion failed.\n"));
+			    "pfr_update_stats: assertion failed.");
 		op_pass = PFR_OP_XPASS;
 	}
 	pfr_kstate_counter_add(&kt->pfrkt_packets[dir_out][op_pass], 1);
@@ -2259,7 +2291,7 @@ pfr_detach_table(struct pfr_ktable *kt)
 
 int
 pfr_pool_get(struct pfr_ktable *kt, int *pidx, struct pf_addr *counter,
-    sa_family_t af, pf_addr_filter_func_t filter)
+    sa_family_t af, pf_addr_filter_func_t filter, bool loop_once)
 {
 	struct pf_addr		*addr, cur, mask, umask_addr;
 	union sockaddr_union	 uaddr, umask;
@@ -2284,9 +2316,8 @@ pfr_pool_get(struct pfr_ktable *kt, int *pidx, struct pf_addr *counter,
 		unhandled_af(af);
 	}
 
-	if (!(kt->pfrkt_flags & PFR_TFLAG_ACTIVE) && kt->pfrkt_root != NULL)
-		kt = kt->pfrkt_root;
-	if (!(kt->pfrkt_flags & PFR_TFLAG_ACTIVE))
+	kt = pfr_ktable_select_active(kt);
+	if (kt == NULL)
 		return (-1);
 
 	idx = *pidx;
@@ -2305,7 +2336,7 @@ _next_block:
 	ke = pfr_kentry_byidx(kt, idx, af);
 	if (ke == NULL) {
 		/* we don't have this idx, try looping */
-		if (loop || (ke = pfr_kentry_byidx(kt, 0, af)) == NULL) {
+		if ((loop || loop_once) || (ke = pfr_kentry_byidx(kt, 0, af)) == NULL) {
 			pfr_kstate_counter_add(&kt->pfrkt_nomatch, 1);
 			return (1);
 		}
@@ -2318,16 +2349,16 @@ _next_block:
 
 	if (use_counter && !PF_AZERO(counter, af)) {
 		/* is supplied address within block? */
-		if (!PF_MATCHA(0, &cur, &mask, counter, af)) {
+		if (!pf_match_addr(0, &cur, &mask, counter, af)) {
 			/* no, go to next block in table */
 			idx++;
 			use_counter = 0;
 			goto _next_block;
 		}
-		PF_ACPY(addr, counter, af);
+		pf_addrcpy(addr, counter, af);
 	} else {
 		/* use first address of block */
-		PF_ACPY(addr, &cur, af);
+		pf_addrcpy(addr, &cur, af);
 	}
 
 	if (!KENTRY_NETWORK(ke)) {
@@ -2336,7 +2367,7 @@ _next_block:
 			idx++;
 			goto _next_block;
 		}
-		PF_ACPY(counter, addr, af);
+		pf_addrcpy(counter, addr, af);
 		*pidx = idx;
 		pfr_kstate_counter_add(&kt->pfrkt_match, 1);
 		return (0);
@@ -2352,13 +2383,15 @@ _next_block:
 			ke2 = (struct pfr_kentry *)rn_match(&uaddr,
 			    &kt->pfrkt_ip6->rh);
 			break;
+		default:
+			unhandled_af(af);
 		}
 		/* no need to check KENTRY_RNF_ROOT() here */
 		if (ke2 == ke) {
 			/* lookup return the same block - perfect */
 			if (filter && filter(af, addr))
 				goto _next_entry;
-			PF_ACPY(counter, addr, af);
+			pf_addrcpy(counter, addr, af);
 			*pidx = idx;
 			pfr_kstate_counter_add(&kt->pfrkt_match, 1);
 			return (0);
@@ -2368,9 +2401,9 @@ _next_entry:
 		/* we need to increase the counter past the nested block */
 		pfr_prepare_network(&umask, AF_INET, ke2->pfrke_net);
 		pfr_sockaddr_to_pf_addr(&umask, &umask_addr);
-		PF_POOLMASK(addr, addr, &umask_addr, &pfr_ffaddr, af);
-		PF_AINC(addr, af);
-		if (!PF_MATCHA(0, &cur, &mask, addr, af)) {
+		pf_poolmask(addr, addr, &umask_addr, &pfr_ffaddr, af);
+		pf_addr_inc(addr, af);
+		if (!pf_match_addr(0, &cur, &mask, addr, af)) {
 			/* ok, we reached the end of our main block */
 			/* go to next block in table */
 			idx++;
@@ -2416,8 +2449,29 @@ pfr_dynaddr_update(struct pfr_ktable *kt, struct pfi_dynaddr *dyn)
 
 	dyn->pfid_acnt4 = 0;
 	dyn->pfid_acnt6 = 0;
-	if (!dyn->pfid_af || dyn->pfid_af == AF_INET)
+	switch (dyn->pfid_af) {
+	case AF_UNSPEC: /* look up all both addresses IPv4 + IPv6 */
 		kt->pfrkt_ip4->rnh_walktree(&kt->pfrkt_ip4->rh, pfr_walktree, &w);
-	if (!dyn->pfid_af || dyn->pfid_af == AF_INET6)
 		kt->pfrkt_ip6->rnh_walktree(&kt->pfrkt_ip6->rh, pfr_walktree, &w);
+		break;
+	case AF_INET:
+		kt->pfrkt_ip4->rnh_walktree(&kt->pfrkt_ip4->rh, pfr_walktree, &w);
+		break;
+	case AF_INET6:
+		kt->pfrkt_ip6->rnh_walktree(&kt->pfrkt_ip6->rh, pfr_walktree, &w);
+		break;
+	default:
+		unhandled_af(dyn->pfid_af);
+	}
+}
+
+struct pfr_ktable *
+pfr_ktable_select_active(struct pfr_ktable *kt)
+{
+	if (!(kt->pfrkt_flags & PFR_TFLAG_ACTIVE) && kt->pfrkt_root != NULL)
+		kt = kt->pfrkt_root;
+	if (!(kt->pfrkt_flags & PFR_TFLAG_ACTIVE))
+		return (NULL);
+
+	return (kt);
 }

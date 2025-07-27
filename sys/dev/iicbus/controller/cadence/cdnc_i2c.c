@@ -42,11 +42,11 @@
 #include <sys/mutex.h>
 #include <sys/resource.h>
 #include <sys/rman.h>
+#include <sys/stdarg.h>
 #include <sys/uio.h>
 
 #include <machine/bus.h>
 #include <machine/resource.h>
-#include <machine/stdarg.h>
 
 #include <dev/fdt/fdt_common.h>
 #include <dev/ofw/ofw_bus.h>
@@ -612,7 +612,7 @@ cdnc_i2c_attach(device_t dev)
 		return (err);
 	}
 
-	sc->iicbus = device_add_child(dev, "iicbus", -1);
+	sc->iicbus = device_add_child(dev, "iicbus", DEVICE_UNIT_ANY);
 
 	cdnc_i2c_add_sysctls(dev);
 

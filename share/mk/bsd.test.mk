@@ -7,7 +7,7 @@
 
 .include <bsd.init.mk>
 
-__<bsd.test.mk>__:
+__<bsd.test.mk>__:	.NOTMAIN
 
 # Third-party software (kyua, etc) prefix.
 LOCALBASE?=	/usr/local
@@ -89,6 +89,11 @@ MAN=
 
 .if !defined(NOT_FOR_TEST_SUITE)
 .include <suite.test.mk>
+.endif
+
+.if ${MK_RUN_TESTS} == "yes"
+# Run tests as part of the build
+.include <host.test.mk>
 .endif
 
 .if !target(realcheck)

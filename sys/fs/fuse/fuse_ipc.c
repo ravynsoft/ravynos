@@ -443,11 +443,6 @@ retry:
 	if (err == EWOULDBLOCK) {
 		SDT_PROBE2(fusefs, , ipc, trace, 3,
 			"fticket_wait_answer: EWOULDBLOCK");
-#ifdef XXXIP				/* die conditionally */
-		if (!fdata_get_dead(data)) {
-			fdata_set_dead(data);
-		}
-#endif
 		err = ETIMEDOUT;
 		fticket_set_answered(ftick);
 	} else if ((err == EINTR || err == ERESTART)) {
@@ -593,7 +588,7 @@ fdata_set_dead(struct fuse_data *data)
 	fuse_lck_mtx_lock(data->ms_mtx);
 	data->dataflags |= FSESS_DEAD;
 	wakeup_one(data);
-	selwakeuppri(&data->ks_rsel, PZERO + 1);
+	selwakeuppri(&data->ks_rsel, PZERO);
 	wakeup(&data->ticketer);
 	fuse_lck_mtx_unlock(data->ms_mtx);
 	FUSE_UNLOCK();
@@ -669,7 +664,7 @@ fuse_insert_message(struct fuse_ticket *ftick, bool urgent)
 	else
 		fuse_ms_push(ftick);
 	wakeup_one(ftick->tk_data);
-	selwakeuppri(&ftick->tk_data->ks_rsel, PZERO + 1);
+	selwakeuppri(&ftick->tk_data->ks_rsel, PZERO);
 	KNOTE_LOCKED(&ftick->tk_data->ks_rsel.si_note, 0);
 	fuse_lck_mtx_unlock(ftick->tk_data->ms_mtx);
 }
@@ -873,7 +868,7 @@ fuse_setup_ihead(struct fuse_in_header *ihead, struct fuse_ticket *ftick,
 
 	ihead->pid = pid;
 	ihead->uid = cred->cr_uid;
-	ihead->gid = cred->cr_groups[0];
+	ihead->gid = cred->cr_gid;
 }
 
 /*

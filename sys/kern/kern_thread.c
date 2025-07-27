@@ -30,6 +30,7 @@
 
 #include "opt_witness.h"
 #include "opt_hwpmc_hooks.h"
+#include "opt_hwt_hooks.h"
 
 #include <sys/systm.h>
 #include <sys/asan.h>
@@ -60,6 +61,9 @@
 #ifdef	HWPMC_HOOKS
 #include <sys/pmckern.h>
 #endif
+#ifdef HWT_HOOKS
+#include <dev/hwt/hwt_hook.h>
+#endif
 #include <sys/priv.h>
 
 #include <security/audit/audit.h>
@@ -86,9 +90,9 @@ _Static_assert(offsetof(struct thread, td_flags) == 0x108,
     "struct thread KBI td_flags");
 _Static_assert(offsetof(struct thread, td_pflags) == 0x114,
     "struct thread KBI td_pflags");
-_Static_assert(offsetof(struct thread, td_frame) == 0x4c0,
+_Static_assert(offsetof(struct thread, td_frame) == 0x4f0,
     "struct thread KBI td_frame");
-_Static_assert(offsetof(struct thread, td_emuldata) == 0x6d0,
+_Static_assert(offsetof(struct thread, td_emuldata) == 0x700,
     "struct thread KBI td_emuldata");
 _Static_assert(offsetof(struct proc, p_flag) == 0xb8,
     "struct proc KBI p_flag");
@@ -106,9 +110,9 @@ _Static_assert(offsetof(struct thread, td_flags) == 0x9c,
     "struct thread KBI td_flags");
 _Static_assert(offsetof(struct thread, td_pflags) == 0xa8,
     "struct thread KBI td_pflags");
-_Static_assert(offsetof(struct thread, td_frame) == 0x318,
+_Static_assert(offsetof(struct thread, td_frame) == 0x33c,
     "struct thread KBI td_frame");
-_Static_assert(offsetof(struct thread, td_emuldata) == 0x360,
+_Static_assert(offsetof(struct thread, td_emuldata) == 0x380,
     "struct thread KBI td_emuldata");
 _Static_assert(offsetof(struct proc, p_flag) == 0x6c,
     "struct proc KBI p_flag");
@@ -1006,6 +1010,11 @@ thread_exit(void)
 	} else if (PMC_SYSTEM_SAMPLING_ACTIVE())
 		PMC_CALL_HOOK_UNLOCKED(td, PMC_FN_THR_EXIT_LOG, NULL);
 #endif
+
+#ifdef HWT_HOOKS
+	HWT_CALL_HOOK(td, HWT_THREAD_EXIT, NULL);
+#endif
+
 	PROC_UNLOCK(p);
 	PROC_STATLOCK(p);
 	thread_lock(td);

@@ -45,6 +45,7 @@
 #include <sys/module.h>
 #include <sys/queue.h>
 #include <sys/sbuf.h>
+#include <sys/stdarg.h>
 #include <sys/sysctl.h>
 #include <sys/systm.h>
 #include <sys/taskqueue.h>
@@ -58,7 +59,6 @@
 #include <machine/bus.h>
 #include <sys/rman.h>
 #include <machine/resource.h>
-#include <machine/stdarg.h>
 
 #if defined(__i386__) || defined(__amd64__) || defined(__powerpc__)
 #include <machine/intr_machdep.h>
@@ -428,6 +428,10 @@ static bool pci_enable_mps_tune = true;
 SYSCTL_BOOL(_hw_pci, OID_AUTO, enable_mps_tune, CTLFLAG_RWTUN,
     &pci_enable_mps_tune, 1,
     "Enable tuning of MPS(maximum payload size)." );
+
+static bool pci_intx_reroute = true;
+SYSCTL_BOOL(_hw_pci, OID_AUTO, intx_reroute, CTLFLAG_RWTUN,
+    &pci_intx_reroute, 0, "Re-route INTx interrupts when scanning devices");
 
 static int
 pci_has_quirk(uint32_t devid, int quirk)
@@ -1923,7 +1927,11 @@ pci_alloc_msix_method(device_t dev, device_t child, int *count)
 		}
 	}
 
-	/* Mask all vectors. */
+	/*
+	 * Mask all vectors. Note that the message index assertion in
+	 * pci_mask_msix requires msix_ctrl to be set.
+	 */
+	cfg->msix.msix_ctrl = ctrl;
 	for (i = 0; i < msgnum; i++)
 		pci_mask_msix(child, i);
 
@@ -4175,7 +4183,8 @@ pci_add_resources(device_t bus, device_t dev, int force, uint32_t prefetchmask)
 		if (q->devid == devid && q->type == PCI_QUIRK_MAP_REG)
 			pci_add_map(bus, dev, q->arg1, rl, force, 0);
 
-	if (cfg->intpin > 0 && PCI_INTERRUPT_VALID(cfg->intline)) {
+	if (cfg->intpin > 0 && PCI_INTERRUPT_VALID(cfg->intline) &&
+	    pci_intx_reroute) {
 		/*
 		 * Try to re-route interrupts. Sometimes the BIOS or
 		 * firmware may leave bogus values in these registers.

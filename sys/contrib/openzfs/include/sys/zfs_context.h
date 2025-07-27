@@ -623,14 +623,19 @@ extern void delay(clock_t ticks);
  * Process priorities as defined by setpriority(2) and getpriority(2).
  */
 #define	minclsyspri	19
-#define	maxclsyspri	-20
 #define	defclsyspri	0
+/* Write issue taskq priority. */
+#define	wtqclsyspri	-19
+#define	maxclsyspri	-20
 
 #define	CPU_SEQID	((uintptr_t)pthread_self() & (max_ncpus - 1))
 #define	CPU_SEQID_UNSTABLE	CPU_SEQID
 
 #define	kcred		NULL
 #define	CRED()		NULL
+
+#define	crhold(cr)	((void)cr)
+#define	crfree(cr)	((void)cr)
 
 #define	ptob(x)		((x) * PAGESIZE)
 
@@ -744,7 +749,6 @@ extern int zfs_secpolicy_rename_perms(const char *from, const char *to,
     cred_t *cr);
 extern int zfs_secpolicy_destroy_perms(const char *name, cred_t *cr);
 extern int secpolicy_zfs(const cred_t *cr);
-extern int secpolicy_zfs_proc(const cred_t *cr, proc_t *proc);
 extern zoneid_t getzoneid(void);
 
 /* SID stuff */

@@ -25,15 +25,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-load_modules() {
-	if ! kldstat -q -m ctl; then
-		kldload ctl || atf_skip "could not load ctl kernel mod"
-	fi
-	if ! ctladm port -o on -p 0; then
-		atf_skip "could not enable the camsim frontend"
-	fi
-}
-
 find_device() {
 	LUN=$1
 
@@ -80,7 +71,20 @@ find_device() {
 	done
 }
 
-# Create a CTL LUN
+# Create a CTL LUN backed by a file
+create_block() {
+	EXTRA_ARGS=$*
+
+	atf_check -o save:lun-create.txt ctladm create -b block $EXTRA_ARGS
+	atf_check egrep -q "LUN created successfully" lun-create.txt
+	LUN=`awk '/LUN ID:/ {print $NF}' lun-create.txt`
+	if [ -z "$LUN" ]; then
+		atf_fail "Could not find LUN id"
+	fi
+	find_device $LUN
+}
+
+# Create a CTL LUN backed by RAM
 create_ramdisk() {
 	EXTRA_ARGS=$*
 
@@ -95,7 +99,8 @@ create_ramdisk() {
 
 cleanup() {
 	if [ -e "lun-create.txt" ]; then
+		backend=`awk '/backend:/ {print $NF}' lun-create.txt`
 		lun_id=`awk '/LUN ID:/ {print $NF}' lun-create.txt`
-		ctladm remove -b ramdisk -l $lun_id > /dev/null
+		ctladm remove -b $backend -l $lun_id > /dev/null
 	fi
 }

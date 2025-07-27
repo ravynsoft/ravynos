@@ -4,6 +4,8 @@ PACKAGE=	tests
 
 TESTSDIR=	${TESTSBASE}/sys/fs/fusefs
 
+ATF_TESTS_SH+=	ctl
+
 # We could simply link all of these files into a single executable.  But since
 # Kyua treats googletest programs as plain tests, it's better to separate them
 # out, so we get more granular reporting.
@@ -39,6 +41,7 @@ GTESTS+=	nfs
 GTESTS+=	notify
 GTESTS+=	open
 GTESTS+=	opendir
+GTESTS+=	pre-init
 GTESTS+=	read
 GTESTS+=	readdir
 GTESTS+=	readlink
@@ -55,7 +58,6 @@ GTESTS+=	xattr
 
 .for p in ${GTESTS}
 SRCS.$p+=	${p}.cc
-SRCS.$p+=	getmntopts.c
 SRCS.$p+=	mockfs.cc
 SRCS.$p+=	utils.cc
 .endfor
@@ -64,11 +66,14 @@ TEST_METADATA.default_permissions+=	required_user="unprivileged"
 TEST_METADATA.default_permissions_privileged+=	required_user="root"
 TEST_METADATA.mknod+=	required_user="root"
 TEST_METADATA.nfs+=	required_user="root"
+# ctl must be exclusive because it disables/enables camsim
+TEST_METADATA.ctl+=	is_exclusive="true"
+TEST_METADATA.ctl+=	required_user="root"
 
-TEST_METADATA+= timeout=10
+TEST_METADATA+=	timeout=10
+TEST_METADATA+=	required_kmods="fusefs"
 
 FUSEFS=		${SRCTOP}/sys/fs/fuse
-MOUNT=		${SRCTOP}/sbin/mount
 # Suppress warnings that GCC generates for the libc++ and gtest headers.
 CXXWARNFLAGS.gcc+=	-Wno-placement-new -Wno-attributes
 # Suppress Wcast-align for readdir.cc, because it is unavoidable when using
@@ -87,9 +92,6 @@ CXXWARNFLAGS+=	-Wno-vla-cxx-extension
 .endif
 CXXFLAGS+=	-I${SRCTOP}/tests
 CXXFLAGS+=	-I${FUSEFS}
-CXXFLAGS+=	-I${MOUNT}
-.PATH:		${MOUNT}
-CXXSTD=		c++14
 
 LIBADD+=	pthread
 LIBADD+=	gmock gtest

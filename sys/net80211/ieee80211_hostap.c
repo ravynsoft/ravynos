@@ -48,7 +48,6 @@
 #include <net/if_var.h>
 #include <net/if_media.h>
 #include <net/if_llc.h>
-#include <net/if_private.h>
 #include <net/ethernet.h>
 
 #include <net/bpf.h>
@@ -309,7 +308,7 @@ hostap_newstate(struct ieee80211vap *vap, enum ieee80211_state nstate, int arg)
 				    ether_sprintf(ni->ni_bssid));
 				ieee80211_print_essid(ni->ni_essid,
 				    ni->ni_esslen);
-				printf(" channel %d start %uMbit/s\n",
+				net80211_printf(" channel %d start %uMbit/s\n",
 				    ieee80211_chan2ieee(ic, ic->ic_curchan),
 				    ieee80211_node_get_txrate_kbit(ni) / 1000);
 			}
@@ -416,8 +415,6 @@ hostap_deliver_data(struct ieee80211vap *vap,
 			(void) ieee80211_vap_xmitpkt(vap, mcopy);
 	}
 	if (m != NULL) {
-		struct epoch_tracker et;
-
 		/*
 		 * Mark frame as coming from vap's interface.
 		 */
@@ -434,9 +431,8 @@ hostap_deliver_data(struct ieee80211vap *vap,
 			m->m_pkthdr.ether_vtag = ni->ni_vlan;
 			m->m_flags |= M_VLANTAG;
 		}
-		NET_EPOCH_ENTER(et);
-		ifp->if_input(ifp, m);
-		NET_EPOCH_EXIT(et);
+
+		ieee80211_vap_deliver_data(vap, m);
 	}
 }
 
@@ -560,9 +556,10 @@ hostap_input(struct ieee80211_node *ni, struct mbuf *m,
 		 * Validate the bssid.
 		 */
 		if (!(type == IEEE80211_FC0_TYPE_MGT &&
-		      subtype == IEEE80211_FC0_SUBTYPE_BEACON) &&
+		    subtype == IEEE80211_FC0_SUBTYPE_BEACON) &&
 		    !IEEE80211_ADDR_EQ(bssid, vap->iv_bss->ni_bssid) &&
-		    !IEEE80211_ADDR_EQ(bssid, ifp->if_broadcastaddr)) {
+		    !IEEE80211_ADDR_EQ(bssid,
+		    ieee80211_vap_get_broadcast_address(vap))) {
 			/* not interested in */
 			IEEE80211_DISCARD_MAC(vap, IEEE80211_MSG_INPUT,
 			    bssid, NULL, "%s", "not to bss");
@@ -840,7 +837,8 @@ hostap_input(struct ieee80211_node *ni, struct mbuf *m,
 #ifdef IEEE80211_DEBUG
 		if ((ieee80211_msg_debug(vap) && doprint(vap, subtype)) ||
 		    ieee80211_msg_dumppkts(vap)) {
-			if_printf(ifp, "received %s from %s rssi %d\n",
+			net80211_vap_printf(vap,
+			    "received %s from %s rssi %d\n",
 			    ieee80211_mgt_subtype_name(subtype),
 			    ether_sprintf(wh->i_addr2), rssi);
 		}
@@ -889,7 +887,8 @@ hostap_input(struct ieee80211_node *ni, struct mbuf *m,
 	case IEEE80211_FC0_TYPE_CTL:
 		vap->iv_stats.is_rx_ctl++;
 		IEEE80211_NODE_STAT(ni, rx_ctrl);
-		vap->iv_recv_ctl(ni, m, subtype);
+		if (ieee80211_is_ctl_frame_for_vap(ni, m))
+			vap->iv_recv_ctl(ni, m, subtype);
 		goto out;
 	default:
 		IEEE80211_DISCARD(vap, IEEE80211_MSG_ANY,
@@ -1656,7 +1655,6 @@ static void
 ieee80211_deliver_l2uf(struct ieee80211_node *ni)
 {
 	struct ieee80211vap *vap = ni->ni_vap;
-	struct ifnet *ifp = vap->iv_ifp;
 	struct mbuf *m;
 	struct l2_update_frame *l2uf;
 	struct ether_header *eh;
@@ -1671,7 +1669,8 @@ ieee80211_deliver_l2uf(struct ieee80211_node *ni)
 	l2uf = mtod(m, struct l2_update_frame *);
 	eh = &l2uf->eh;
 	/* dst: Broadcast address */
-	IEEE80211_ADDR_COPY(eh->ether_dhost, ifp->if_broadcastaddr);
+	IEEE80211_ADDR_COPY(eh->ether_dhost,
+	    ieee80211_vap_get_broadcast_address(vap));
 	/* src: associated STA */
 	IEEE80211_ADDR_COPY(eh->ether_shost, ni->ni_macaddr);
 	eh->ether_type = htons(sizeof(*l2uf) - sizeof(*eh));
@@ -2215,12 +2214,9 @@ hostap_recv_mgmt(struct ieee80211_node *ni, struct mbuf *m0,
 
 		/* VHT */
 		if (IEEE80211_IS_CHAN_VHT(ni->ni_chan) &&
-		    vhtcap != NULL &&
-		    vhtinfo != NULL) {
-			/* XXX TODO; see below */
-			printf("%s: VHT TODO!\n", __func__);
+		    vhtcap != NULL) {
 			ieee80211_vht_node_init(ni);
-			ieee80211_vht_update_cap(ni, vhtcap, vhtinfo);
+			ieee80211_vht_update_cap(ni, vhtcap);
 		} else if (ni->ni_flags & IEEE80211_NODE_VHT)
 			ieee80211_vht_node_cleanup(ni);
 

@@ -2061,14 +2061,15 @@ repeat_set_config:
 		}
 #endif
 	}
-#if USB_HAVE_MSCTEST
+#if USB_HAVE_MSCTEST_AUTOQUIRK
 	if (set_config_failed == 0 && config_index == 0 &&
 	    usb_test_quirk(&uaa, UQ_MSC_NO_START_STOP) == 0 &&
 	    usb_test_quirk(&uaa, UQ_MSC_NO_PREVENT_ALLOW) == 0 &&
 	    usb_test_quirk(&uaa, UQ_MSC_NO_SYNC_CACHE) == 0 &&
 	    usb_test_quirk(&uaa, UQ_MSC_NO_TEST_UNIT_READY) == 0 &&
 	    usb_test_quirk(&uaa, UQ_MSC_NO_GETMAXLUN) == 0 &&
-	    usb_test_quirk(&uaa, UQ_MSC_NO_INQUIRY) == 0) {
+	    usb_test_quirk(&uaa, UQ_MSC_NO_INQUIRY) == 0 &&
+		usb_test_quirk(&uaa, UQ_MSC_IGNORE) == 0) {
 		/*
 		 * Try to figure out if there are any MSC quirks we
 		 * should apply automatically:

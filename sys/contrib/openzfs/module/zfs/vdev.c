@@ -323,6 +323,19 @@ vdev_derive_alloc_bias(const char *bias)
 	return (alloc_bias);
 }
 
+uint64_t
+vdev_default_psize(vdev_t *vd, uint64_t asize, uint64_t txg)
+{
+	ASSERT0(asize % (1ULL << vd->vdev_top->vdev_ashift));
+	uint64_t csize, psize = asize;
+	for (int c = 0; c < vd->vdev_children; c++) {
+		csize = vdev_asize_to_psize_txg(vd->vdev_child[c], asize, txg);
+		psize = MIN(psize, csize);
+	}
+
+	return (psize);
+}
+
 /*
  * Default asize function: return the MAX of psize with the asize of
  * all children.  This is what's used by anything other than RAID-Z.
@@ -540,6 +553,7 @@ vdev_add_child(vdev_t *pvd, vdev_t *cvd)
 
 	pvd->vdev_child = newchild;
 	pvd->vdev_child[id] = cvd;
+	pvd->vdev_nonrot &= cvd->vdev_nonrot;
 
 	cvd->vdev_top = (pvd->vdev_top ? pvd->vdev_top: cvd);
 	ASSERT(cvd->vdev_top->vdev_parent->vdev_parent == NULL);
@@ -1361,6 +1375,7 @@ vdev_add_parent(vdev_t *cvd, vdev_ops_t *ops)
 	mvd->vdev_physical_ashift = cvd->vdev_physical_ashift;
 	mvd->vdev_state = cvd->vdev_state;
 	mvd->vdev_crtxg = cvd->vdev_crtxg;
+	mvd->vdev_nonrot = cvd->vdev_nonrot;
 
 	vdev_remove_child(pvd, cvd);
 	vdev_add_child(pvd, mvd);
@@ -1490,12 +1505,11 @@ vdev_metaslab_group_create(vdev_t *vd)
 			mc = spa_normal_class(spa);
 		}
 
-		vd->vdev_mg = metaslab_group_create(mc, vd,
-		    spa->spa_alloc_count);
+		vd->vdev_mg = metaslab_group_create(mc, vd);
 
 		if (!vd->vdev_islog) {
 			vd->vdev_log_mg = metaslab_group_create(
-			    spa_embedded_log_class(spa), vd, 1);
+			    spa_embedded_log_class(spa), vd);
 		}
 
 		/*
@@ -1513,6 +1527,25 @@ vdev_metaslab_group_create(vdev_t *vd)
 			uint64_t min_alloc = vdev_get_min_alloc(vd);
 			vdev_spa_set_alloc(spa, min_alloc);
 		}
+	}
+}
+
+void
+vdev_update_nonallocating_space(vdev_t *vd, boolean_t add)
+{
+	spa_t *spa = vd->vdev_spa;
+
+	if (vd->vdev_mg->mg_class != spa_normal_class(spa))
+		return;
+
+	uint64_t raw_space = metaslab_group_get_space(vd->vdev_mg);
+	uint64_t dspace = spa_deflate(spa) ?
+	    vdev_deflated_space(vd, raw_space) : raw_space;
+	if (add) {
+		spa->spa_nonallocating_dspace += dspace;
+	} else {
+		ASSERT3U(spa->spa_nonallocating_dspace, >=, dspace);
+		spa->spa_nonallocating_dspace -= dspace;
 	}
 }
 
@@ -1547,6 +1580,18 @@ vdev_metaslab_init(vdev_t *vd, uint64_t txg)
 
 	vd->vdev_ms = mspp;
 	vd->vdev_ms_count = newc;
+
+	/*
+	 * Weighting algorithms can depend on the number of metaslabs in the
+	 * vdev. In order to ensure that all weights are correct at all times,
+	 * we need to recalculate here.
+	 */
+	for (uint64_t m = 0; m < oldc; m++) {
+		metaslab_t *msp = vd->vdev_ms[m];
+		mutex_enter(&msp->ms_lock);
+		metaslab_recalculate_weight_and_sort(msp);
+		mutex_exit(&msp->ms_lock);
+	}
 
 	for (uint64_t m = oldc; m < newc; m++) {
 		uint64_t object = 0;
@@ -1627,8 +1672,7 @@ vdev_metaslab_init(vdev_t *vd, uint64_t txg)
 	 */
 	if (vd->vdev_noalloc) {
 		/* track non-allocating vdev space */
-		spa->spa_nonallocating_dspace += spa_deflate(spa) ?
-		    vd->vdev_stat.vs_dspace : vd->vdev_stat.vs_space;
+		vdev_update_nonallocating_space(vd, B_TRUE);
 	} else if (!expanding) {
 		metaslab_group_activate(vd->vdev_mg);
 		if (vd->vdev_log_mg != NULL)
@@ -1742,8 +1786,11 @@ vdev_probe_done(zio_t *zio)
 			 * change the state in a spa_async_request. Probes that
 			 * were initiated from a vdev_open can change the state
 			 * as part of the open call.
+			 * Skip fault injection if this vdev is already removed
+			 * or a removal is pending.
 			 */
-			if (vps->vps_zio_done_probe) {
+			if (vps->vps_zio_done_probe &&
+			    !vd->vdev_remove_wanted && !vd->vdev_removed) {
 				vd->vdev_fault_wanted = B_TRUE;
 				spa_async_request(spa, SPA_ASYNC_FAULT_VDEV);
 			}
@@ -1921,14 +1968,21 @@ vdev_open_children_impl(vdev_t *vd, vdev_open_children_func_t *open_func)
 			VERIFY(taskq_dispatch(tq, vdev_open_child,
 			    cvd, TQ_SLEEP) != TASKQID_INVALID);
 		}
+	}
 
+	if (tq != NULL)
+		taskq_wait(tq);
+	for (int c = 0; c < children; c++) {
+		vdev_t *cvd = vd->vdev_child[c];
+
+		if (open_func(cvd) == B_FALSE ||
+		    cvd->vdev_state <= VDEV_STATE_FAULTED)
+			continue;
 		vd->vdev_nonrot &= cvd->vdev_nonrot;
 	}
 
-	if (tq != NULL) {
-		taskq_wait(tq);
+	if (tq != NULL)
 		taskq_destroy(tq);
-	}
 }
 
 /*
@@ -4115,17 +4169,22 @@ vdev_sync(vdev_t *vd, uint64_t txg)
 	(void) txg_list_add(&spa->spa_vdev_txg_list, vd, TXG_CLEAN(txg));
 	dmu_tx_commit(tx);
 }
+uint64_t
+vdev_asize_to_psize_txg(vdev_t *vd, uint64_t asize, uint64_t txg)
+{
+	return (vd->vdev_ops->vdev_op_asize_to_psize(vd, asize, txg));
+}
 
 /*
  * Return the amount of space that should be (or was) allocated for the given
  * psize (compressed block size) in the given TXG. Note that for expanded
  * RAIDZ vdevs, the size allocated for older BP's may be larger. See
- * vdev_raidz_asize().
+ * vdev_raidz_psize_to_asize().
  */
 uint64_t
 vdev_psize_to_asize_txg(vdev_t *vd, uint64_t psize, uint64_t txg)
 {
-	return (vd->vdev_ops->vdev_op_asize(vd, psize, txg));
+	return (vd->vdev_ops->vdev_op_psize_to_asize(vd, psize, txg));
 }
 
 uint64_t
@@ -4271,7 +4330,7 @@ vdev_remove_wanted(spa_t *spa, uint64_t guid)
 		return (spa_vdev_state_exit(spa, NULL, SET_ERROR(EEXIST)));
 
 	vd->vdev_remove_wanted = B_TRUE;
-	spa_async_request(spa, SPA_ASYNC_REMOVE);
+	spa_async_request(spa, SPA_ASYNC_REMOVE_BY_USER);
 
 	return (spa_vdev_state_exit(spa, vd, 0));
 }
