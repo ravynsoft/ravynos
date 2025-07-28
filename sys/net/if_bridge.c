@@ -254,6 +254,8 @@ struct bridge_iflist {
 	uint32_t		bif_addrcnt;	/* cur. # of addresses */
 	uint32_t		bif_addrexceeded;/* # of address violations */
 	struct epoch_context	bif_epoch_ctx;
+	ether_vlanid_t		bif_pvid;	/* port vlan id */
+	ifbvlan_set_t		bif_vlan_set;	/* if allowed tagged vlans */
 };
 
 /*
@@ -397,6 +399,9 @@ static int	bridge_ioctl_sma(struct bridge_softc *, void *);
 static int	bridge_ioctl_sifprio(struct bridge_softc *, void *);
 static int	bridge_ioctl_sifcost(struct bridge_softc *, void *);
 static int	bridge_ioctl_sifmaxaddr(struct bridge_softc *, void *);
+static int	bridge_ioctl_sifpvid(struct bridge_softc *, void *);
+static int	bridge_ioctl_sifvlanset(struct bridge_softc *, void *);
+static int	bridge_ioctl_gifvlanset(struct bridge_softc *, void *);
 static int	bridge_ioctl_addspan(struct bridge_softc *, void *);
 static int	bridge_ioctl_delspan(struct bridge_softc *, void *);
 static int	bridge_ioctl_gbparam(struct bridge_softc *, void *);
@@ -602,6 +607,14 @@ static const struct bridge_control bridge_control_table[] = {
 	{ bridge_ioctl_sifmaxaddr,	sizeof(struct ifbreq),
 	  BC_F_COPYIN|BC_F_SUSER },
 
+	{ bridge_ioctl_sifpvid,		sizeof(struct ifbreq),
+	  BC_F_COPYIN|BC_F_SUSER },
+
+	{ bridge_ioctl_sifvlanset,	sizeof(struct ifbif_vlan_req),
+	  BC_F_COPYIN|BC_F_SUSER },
+
+	{ bridge_ioctl_gifvlanset,	sizeof(struct ifbif_vlan_req),
+	  BC_F_COPYIN|BC_F_COPYOUT },
 };
 static const int bridge_control_table_size = nitems(bridge_control_table);
 
@@ -1462,6 +1475,7 @@ bridge_ioctl_gifflags(struct bridge_softc *sc, void *arg)
 	req->ifbr_addrcnt = bif->bif_addrcnt;
 	req->ifbr_addrmax = bif->bif_addrmax;
 	req->ifbr_addrexceeded = bif->bif_addrexceeded;
+	req->ifbr_pvid = bif->bif_pvid;
 
 	/* Copy STP state options as flags */
 	if (bp->bp_operedge)
@@ -1841,7 +1855,7 @@ bridge_ioctl_sifmaxaddr(struct bridge_softc *sc, void *arg)
 }
 
 static int
-bridge_ioctl_sifuntagged(struct bridge_softc *sc, void *arg)
+bridge_ioctl_sifpvid(struct bridge_softc *sc, void *arg)
 {
 	struct ifbreq *req = arg;
 	struct bridge_iflist *bif;
@@ -1850,12 +1864,12 @@ bridge_ioctl_sifuntagged(struct bridge_softc *sc, void *arg)
 	if (bif == NULL)
 		return (EXTERROR(ENOENT, "Interface is not a bridge member"));
 
-	if (req->ifbr_untagged > DOT1Q_VID_MAX)
+	if (req->ifbr_pvid > DOT1Q_VID_MAX)
 		return (EXTERROR(EINVAL, "Invalid VLAN ID"));
 
-	if (req->ifbr_untagged != DOT1Q_VID_NULL)
+	if (req->ifbr_pvid != DOT1Q_VID_NULL)
 		bif->bif_flags |= IFBIF_VLANFILTER;
-	bif->bif_untagged = req->ifbr_untagged;
+	bif->bif_pvid = req->ifbr_pvid;
 	return (0);
 }
 
@@ -2212,6 +2226,18 @@ bridge_enqueue(struct bridge_softc *sc, struct ifnet *dst_ifp, struct mbuf *m)
 		m->m_nextpkt = NULL;
 		len = m->m_pkthdr.len;
 		mflags = m->m_flags;
+
+		/*
+		 * If VLAN filtering is enabled, and the native VLAN ID of the
+		 * outgoing interface matches the VLAN ID of the frame, remove
+		 * the VLAN header.
+		 */
+		if ((bif->bif_flags & IFBIF_VLANFILTER) &&
+		    bif->bif_pvid != DOT1Q_VID_NULL &&
+		    VLANTAGOF(m) == bif->bif_pvid) {
+			m->m_flags &= ~M_VLANTAG;
+			m->m_pkthdr.ether_vtag = 0;
+		}
 
 		/*
 		 * If underlying interface can not do VLAN tag insertion itself
@@ -2990,6 +3016,111 @@ bridge_span(struct bridge_softc *sc, struct mbuf *m)
 
 		bridge_enqueue(sc, dst_if, mc);
 	}
+}
+
+/*
+ * Incoming VLAN filtering.  Given a frame and the member interface it was
+ * received on, decide whether the port configuration allows it.
+ */
+static bool
+bridge_vfilter_in(const struct bridge_iflist *sbif, struct mbuf *m)
+{
+	ether_vlanid_t vlan;
+
+	vlan = VLANTAGOF(m);
+	/* Make sure the vlan id is reasonable. */
+	if (vlan > DOT1Q_VID_MAX)
+		return (false);
+
+	/* If VLAN filtering isn't enabled, pass everything. */
+	if ((sbif->bif_flags & IFBIF_VLANFILTER) == 0)
+		return (true);
+
+	if (vlan == DOT1Q_VID_NULL) {
+		/*
+		 * The frame doesn't have a tag.  If the interface does not
+		 * have an untagged vlan configured, drop the frame.
+		 */
+		if (sbif->bif_pvid == DOT1Q_VID_NULL)
+			return (false);
+
+		/*
+		 * Otherwise, insert a new tag based on the interface's
+		 * untagged vlan id.
+		 */
+		m->m_pkthdr.ether_vtag = sbif->bif_pvid;
+		m->m_flags |= M_VLANTAG;
+	} else {
+		/*
+		 * The frame has a tag, so check it matches the interface's
+		 * vlan access list.  We explicitly do not accept tagged
+		 * frames for the untagged vlan id here (unless it's also
+		 * in the access list).
+		 */
+		if (!BRVLAN_TEST(&sbif->bif_vlan_set, vlan))
+			return (false);
+	}
+
+	/* Accept the frame. */
+	return (true);
+}
+
+/*
+ * Outgoing VLAN filtering.  Given a frame, its vlan, and the member interface
+ * we intend to send it to, decide whether the port configuration allows it to
+ * be sent.
+ */
+static bool
+bridge_vfilter_out(const struct bridge_iflist *dbif, const struct mbuf *m)
+{
+	struct ether_header *eh;
+	ether_vlanid_t vlan;
+
+	NET_EPOCH_ASSERT();
+
+	/* If VLAN filtering isn't enabled, pass everything. */
+	if ((dbif->bif_flags & IFBIF_VLANFILTER) == 0)
+		return (true);
+
+	vlan = VLANTAGOF(m);
+
+	/*
+	 * Always allow untagged 802.1D STP frames, even if they would
+	 * otherwise be dropped.  This is required for STP to work on
+	 * a filtering bridge.
+	 *
+	 * Tagged STP (Cisco PVST+) is a non-standard extension, so
+	 * handle those frames via the normal filtering path.
+	 */
+	eh = mtod(m, struct ether_header *);
+	if (vlan == DOT1Q_VID_NULL &&
+	    memcmp(eh->ether_dhost, bstp_etheraddr, ETHER_ADDR_LEN) == 0)
+		return (true);
+
+	/*
+	 * If the frame wasn't assigned to a vlan at ingress, drop it.
+	 * We can't forward these frames to filtering ports because we
+	 * don't know what VLAN they're supposed to be in.
+	 */
+	if (vlan == DOT1Q_VID_NULL)
+		return (false);
+
+	/*
+	 * If the frame's vlan matches the interfaces's untagged vlan,
+	 * allow it.
+	 */
+	if (vlan == dbif->bif_pvid)
+		return (true);
+
+	/*
+	 * If the frame's vlan is on the interface's tagged access list,
+	 * allow it.
+	 */
+	if (BRVLAN_TEST(&dbif->bif_vlan_set, vlan))
+		return (true);
+
+	/* The frame was not permitted, so drop it. */
+	return (false);
 }
 
 /*
