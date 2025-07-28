@@ -361,7 +361,6 @@ OLD_FILES+=boot/shortcuts.4th
 OLD_FILES+=boot/support.4th
 OLD_FILES+=boot/userboot.so
 OLD_FILES+=boot/version.4th
-OLD_FILES+=boot/zfsboot
 OLD_FILES+=boot/zfsloader
 OLD_FILES+=usr/lib/kgzldr.o
 OLD_FILES+=usr/share/man/man5/loader.conf.5.gz
@@ -378,7 +377,6 @@ OLD_FILES+=usr/share/man/man8/menu.4th.8.gz
 OLD_FILES+=usr/share/man/man8/menusets.4th.8.gz
 OLD_FILES+=usr/share/man/man8/pxeboot.8.gz
 OLD_FILES+=usr/share/man/man8/version.4th.8.gz
-OLD_FILES+=usr/share/man/man8/zfsboot.8.gz
 OLD_FILES+=usr/share/man/man8/zfsloader.8.gz
 .endif
 
@@ -8982,7 +8980,6 @@ OLD_FILES+=usr/share/snmp/mibs/BEGEMOT-WIRELESS-MIB.txt
 
 .if ${MK_ZFS} == no
 OLD_FILES+=boot/gptzfsboot
-OLD_FILES+=boot/zfsboot
 OLD_FILES+=boot/zfsloader
 OLD_FILES+=etc/rc.d/zfs
 OLD_FILES+=etc/rc.d/zfsbe
@@ -9082,7 +9079,6 @@ OLD_FILES+=usr/share/man/man8/gptzfsboot.8.gz
 OLD_FILES+=usr/share/man/man8/zdb.8.gz
 OLD_FILES+=usr/share/man/man8/zfs-program.8.gz
 OLD_FILES+=usr/share/man/man8/zfs.8.gz
-OLD_FILES+=usr/share/man/man8/zfsboot.8.gz
 OLD_FILES+=usr/share/man/man8/zfsbootcfg.8.gz
 OLD_FILES+=usr/share/man/man8/zfsd.8.gz
 OLD_FILES+=usr/share/man/man8/zfsloader.8.gz
