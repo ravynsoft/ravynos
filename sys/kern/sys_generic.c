@@ -2200,3 +2200,109 @@ file_kcmp_generic(struct file *fp1, struct file *fp2, struct thread *td)
 		return (3);
 	return (kcmp_cmp((uintptr_t)fp1->f_data, (uintptr_t)fp2->f_data));
 }
+
+int
+exterr_to_ue(struct thread *td, struct uexterror *ue)
+{
+	if ((td->td_pflags2 & TDP2_EXTERR) == 0)
+		return (ENOENT);
+
+	memset(ue, 0, sizeof(*ue));
+	ue->error = td->td_kexterr.error;
+	ue->cat = td->td_kexterr.cat;
+	ue->src_line = td->td_kexterr.src_line;
+	ue->p1 = td->td_kexterr.p1;
+	ue->p2 = td->td_kexterr.p2;
+	if (td->td_kexterr.msg != NULL)
+		strlcpy(ue->msg, td->td_kexterr.msg, sizeof(ue->msg));
+	return (0);
+}
+
+void
+exterr_copyout(struct thread *td)
+{
+	struct uexterror ue;
+	ksiginfo_t ksi;
+	void *uloc;
+	size_t sz;
+	int error;
+
+	MPASS((td->td_pflags2 & TDP2_UEXTERR) != 0);
+
+	uloc = (char *)td->td_exterr_ptr + __offsetof(struct uexterror,
+	    error);
+	error = exterr_to_ue(td, &ue);
+	if (error != 0) {
+		ue.error = 0;
+		sz = sizeof(ue.error);
+	} else {
+		ktrexterr(td);
+		sz = sizeof(ue) - __offsetof(struct uexterror, error);
+	}
+	error = copyout(&ue.error, uloc, sz);
+	if (error != 0) {
+		td->td_pflags2 &= ~TDP2_UEXTERR;
+		ksiginfo_init_trap(&ksi);
+		ksi.ksi_signo = SIGSEGV;
+		ksi.ksi_code = SEGV_ACCERR;
+		ksi.ksi_addr = uloc;
+		trapsignal(td, &ksi);
+	}
+}
+
+int
+sys_exterrctl(struct thread *td, struct exterrctl_args *uap)
+{
+	uint32_t ver;
+	int error;
+
+	if ((uap->flags & ~(EXTERRCTLF_FORCE)) != 0)
+		return (EINVAL);
+	switch (uap->op) {
+	case EXTERRCTL_ENABLE:
+		if ((td->td_pflags2 & TDP2_UEXTERR) != 0 &&
+		    (uap->flags & EXTERRCTLF_FORCE) == 0)
+			return (EBUSY);
+		td->td_pflags2 &= ~TDP2_UEXTERR;
+		error = copyin(uap->ptr, &ver, sizeof(ver));
+		if (error != 0)
+			return (error);
+		if (ver != UEXTERROR_VER)
+			return (EINVAL);
+		td->td_pflags2 |= TDP2_UEXTERR;
+		td->td_exterr_ptr = uap->ptr;
+		return (0);
+	case EXTERRCTL_DISABLE:
+		if ((td->td_pflags2 & TDP2_UEXTERR) == 0)
+			return (EINVAL);
+		td->td_pflags2 &= ~TDP2_UEXTERR;
+		return (0);
+	case EXTERRCTL_UD:
+		/*
+		 * Important: this code must always return EINVAL and never any
+		 * extended error, for testing purposes.
+		 */
+		/* FALLTHROUGH */
+	default:
+		return (EINVAL);
+	}
+}
+
+int
+exterr_set(int eerror, int category, const char *mmsg, uintptr_t pp1,
+    uintptr_t pp2, int line)
+{
+	struct thread *td;
+
+	td = curthread;
+	if ((td->td_pflags2 & TDP2_UEXTERR) != 0) {
+		td->td_pflags2 |= TDP2_EXTERR;
+		td->td_kexterr.error = eerror;
+		td->td_kexterr.cat = category;
+		td->td_kexterr.msg = mmsg;
+		td->td_kexterr.p1 = pp1;
+		td->td_kexterr.p2 = pp2;
+		td->td_kexterr.src_line = line;
+	}
+	return (eerror);
+}
