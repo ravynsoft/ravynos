@@ -2647,6 +2647,20 @@ ${_bt}-usr.bin/mkcsmapper: ${_bt}-usr.bin/yacc ${_bt_lex_depend}
 .endif
 
 .if ${MK_KERBEROS} != "no"
+.if ${MK_MITKRB5} != "no"
+_kerberos5_bootstrap_tools= \
+	krb5/util/build-tools \
+	krb5/util/compile_et \
+	krb5/util/support \
+	krb5/util/et \
+	krb5/util/ss \
+	krb5/util/profile \
+	krb5/util/verto
+#	krb5/include \
+#	krb5/lib/crypto \
+#	krb5/lib/krb5 \
+#	krb5/lib/gssapi
+.else
 _kerberos5_bootstrap_tools= \
 	kerberos5/tools/make-roken \
 	kerberos5/lib/libroken \
