@@ -425,13 +425,10 @@ main(int argc, char * const argv[])
 	int ch;
 	size_t sz, j;
 	int error;
-	char *buf;
-	u_int sectorsize;
-	off_t stripesize;
-	time_t t1, t2;
-	struct stat sb;
-	u_int n, snapshot = 60;
-	static struct lump *lp;
+	time_t t_now, t_report, t_save;
+	time_t snapshot = 60, unsaved;
+	setbuf(stdout, NULL);
+	setbuf(stderr, NULL);
 
 	while ((ch = getopt(argc, argv, "b:r:w:s:u:v")) != -1) {
 		switch (ch) {
