@@ -396,7 +396,7 @@ static void		 pf_overload_task(void *v, int pending);
 static u_short		 pf_insert_src_node(struct pf_ksrc_node *[PF_SN_MAX],
 			    struct pf_srchash *[PF_SN_MAX], struct pf_krule *,
 			    struct pf_addr *, sa_family_t, struct pf_addr *,
-			    struct pfi_kkif *, pf_sn_types_t);
+			    struct pfi_kkif *, sa_family_t, pf_sn_types_t);
 static u_int		 pf_purge_expired_states(u_int, int);
 static void		 pf_purge_unlinked_rules(void);
 static int		 pf_mtag_uminit(void *, int, int);
@@ -1058,7 +1058,7 @@ static u_short
 pf_insert_src_node(struct pf_ksrc_node *sns[PF_SN_MAX],
     struct pf_srchash *snhs[PF_SN_MAX], struct pf_krule *rule,
     struct pf_addr *src, sa_family_t af, struct pf_addr *raddr,
-    struct pfi_kkif *rkif, pf_sn_types_t sn_type)
+    struct pfi_kkif *rkif, sa_family_t raf, pf_sn_types_t sn_type)
 {
 	u_short			 reason = 0;
 	struct pf_krule		*r_track = rule;
@@ -1126,8 +1126,9 @@ pf_insert_src_node(struct pf_ksrc_node *sns[PF_SN_MAX],
 		(*sn)->rule = r_track;
 		PF_ACPY(&(*sn)->addr, src, af);
 		if (raddr != NULL)
-			PF_ACPY(&(*sn)->raddr, raddr, af);
+			pf_addrcpy(&(*sn)->raddr, raddr, raf);
 		(*sn)->rkif = rkif;
+		(*sn)->raf = raf;
 		LIST_INSERT_HEAD(&(*sh)->nodes, *sn, entry);
 		(*sn)->creation = time_uptime;
 		(*sn)->ruletype = rule->action;
@@ -5941,10 +5942,14 @@ nextrule:
 		 * it is applied only from the last pass rule.
 		 */
 		pd->act.rt = r->rt;
-		/* Don't use REASON_SET, pf_map_addr increases the reason counters */
-		reason = pf_map_addr_sn(pd->af, r, pd->src, &pd->act.rt_addr,
-		    &pd->act.rt_kif, NULL, &sn, &snh, pool, PF_SN_ROUTE);
-		if (reason != 0)
+		if (r->rt == PF_REPLYTO)
+			pd->act.rt_af = pd->af;
+		else
+			pd->act.rt_af = pd->naf;
+		if ((transerror = pf_map_addr_sn(pd->af, r, pd->src,
+		    &pd->act.rt_addr, &pd->act.rt_af, &pd->act.rt_kif, NULL,
+		    &(r->route), PF_SN_ROUTE)) != PFRES_MATCH) {
+			REASON_SET(&ctx.reason, transerror);
 			goto cleanup;
 	}
 
@@ -6069,25 +6074,37 @@ pf_create_state(struct pf_krule *r, struct pf_krule *nr, struct pf_krule *a,
 	/* src node for limits */
 	if ((r->rule_flag & PFRULE_SRCTRACK) &&
 	    (sn_reason = pf_insert_src_node(sns, snhs, r, pd->src, pd->af,
-	        NULL, NULL, PF_SN_LIMIT)) != 0) {
-	    REASON_SET(&reason, sn_reason);
+	    NULL, NULL, pd->af, PF_SN_LIMIT)) != 0) {
+		REASON_SET(&ctx->reason, sn_reason);
 		goto csfailed;
 	}
 	/* src node for route-to rule */
-	if (TAILQ_EMPTY(&pool_route->list)) /* Backwards compatibility. */
-		pool_route = &r->rdr;
-	if ((pool_route->opts & PF_POOL_STICKYADDR) &&
-	    (sn_reason = pf_insert_src_node(sns, snhs, r, pd->src, pd->af,
-		 &pd->act.rt_addr, pd->act.rt_kif, PF_SN_ROUTE)) != 0) {
-		REASON_SET(&reason, sn_reason);
-		goto csfailed;
+	if (r->rt) {
+		if ((r->route.opts & PF_POOL_STICKYADDR) &&
+		    (sn_reason = pf_insert_src_node(sns, snhs, r, pd->src,
+		    pd->af, &pd->act.rt_addr, pd->act.rt_kif, pd->act.rt_af,
+		    PF_SN_ROUTE)) != 0) {
+			REASON_SET(&ctx->reason, sn_reason);
+			goto csfailed;
+		}
 	}
 	/* src node for translation rule */
-	if (nr != NULL && (nr->rdr.opts & PF_POOL_STICKYADDR) &&
-	    (sn_reason = pf_insert_src_node(sns, snhs, nr, &sk->addr[pd->sidx],
-	    pd->af, &nk->addr[1], NULL, PF_SN_NAT)) != 0 ) {
-		REASON_SET(&reason, sn_reason);
-		goto csfailed;
+	if (ctx->nr != NULL) {
+		KASSERT(ctx->nat_pool != NULL, ("%s: nat_pool is NULL", __func__));
+		/*
+		 * The NAT addresses are chosen during ruleset parsing.
+		 * The new afto code stores post-nat addresses in nsaddr.
+		 * The old nat code (also used for new nat-to rules) creates
+		 * state keys and stores addresses in them.
+		 */
+		if ((ctx->nat_pool->opts & PF_POOL_STICKYADDR) &&
+		    (sn_reason = pf_insert_src_node(sns, snhs, ctx->nr,
+		    ctx->sk ? &(ctx->sk->addr[pd->sidx]) : pd->src, pd->af,
+		    ctx->nk ? &(ctx->nk->addr[1]) : &(pd->nsaddr), NULL,
+		    pd->naf, PF_SN_NAT)) != 0 ) {
+			REASON_SET(&ctx->reason, sn_reason);
+			goto csfailed;
+		}
 	}
 	s = pf_alloc_state(M_NOWAIT);
 	if (s == NULL) {
