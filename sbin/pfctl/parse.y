@@ -244,7 +244,8 @@ struct redirspec {
 	struct node_host	*host;
 	struct range		 rport;
 	struct pool_opts	 pool_opts;
-	int			 af;
+	sa_family_t		 af;
+	bool			 binat;
 };
 
 static struct filter_opts {
@@ -381,7 +382,11 @@ void		 expand_eth_rule(struct pfctl_eth_rule *,
 int		 apply_rdr_ports(struct pfctl_rule *r, struct pfctl_pool *, struct redirspec *);
 int		 apply_nat_ports(struct pfctl_pool *, struct redirspec *);
 int		 apply_redirspec(struct pfctl_pool *, struct redirspec *);
-void		 expand_rule(struct pfctl_rule *, struct node_if *,
+int		 check_binat_redirspec(struct node_host *, struct pfctl_rule *, sa_family_t);
+void		 add_binat_rdr_rule(struct pfctl_rule *, struct redirspec *,
+		 struct node_host *, struct pfctl_rule *, struct redirspec **,
+		 struct node_host **);
+void		 expand_rule(struct pfctl_rule *, bool, struct node_if *,
 		    struct redirspec *, struct redirspec *, struct redirspec *,
 		    struct node_proto *, struct node_os *, struct node_host *,
 		    struct node_port *, struct node_host *, struct node_port *,
@@ -6138,6 +6143,72 @@ apply_redirspec(struct pfctl_pool *rpool, struct redirspec *rs)
 	}
 
 	return 0;
+}
+
+int
+check_binat_redirspec(struct node_host *src_host, struct pfctl_rule *r,
+    sa_family_t af)
+{
+	struct pf_pooladdr	*nat_pool = TAILQ_FIRST(&(r->nat.list));
+	int			error = 0;
+
+	/* XXX: FreeBSD allows syntax like "{ host1 host2 }" for redirection
+	 * pools but does not covert them to tables automatically, because
+	 * syntax "{ (iface1 host1), (iface2 iface2) }" is allowed for route-to
+	 * redirection. Add a FreeBSD-specific guard against using multiple
+	 * hosts for source and redirection.
+	 */
+	if (src_host->next) {
+		yyerror("invalid use of table as the source address "
+		    "of a binat-to rule");
+		error++;
+	}
+	if (TAILQ_NEXT(nat_pool, entries)) {
+		yyerror ("tables cannot be used as the redirect "
+		    "address of a binat-to rule");
+		error++;
+	}
+
+	if (disallow_table(src_host, "invalid use of table "
+	    "<%s> as the source address of a binat-to rule") ||
+	    disallow_alias(src_host, "invalid use of interface "
+	    "(%s) as the source address of a binat-to rule")) {
+		error++;
+	} else if ((r->src.addr.type != PF_ADDR_ADDRMASK &&
+	    r->src.addr.type != PF_ADDR_DYNIFTL) ||
+	    (nat_pool->addr.type != PF_ADDR_ADDRMASK &&
+	    nat_pool->addr.type != PF_ADDR_DYNIFTL)) {
+		yyerror("binat-to requires a specified "
+		    "source and redirect address");
+		error++;
+	}
+	if (DYNIF_MULTIADDR(r->src.addr) ||
+	    DYNIF_MULTIADDR(nat_pool->addr)) {
+		yyerror ("dynamic interfaces must be "
+		    "used with:0 in a binat-to rule");
+		error++;
+	}
+	if (PF_AZERO(&r->src.addr.v.a.mask, af) ||
+	    PF_AZERO(&(nat_pool->addr.v.a.mask), af)) {
+		yyerror ("source and redir addresess must have "
+		    "a matching network mask in binat-rule");
+		error++;
+	}
+	if (nat_pool->addr.type == PF_ADDR_TABLE) {
+		yyerror ("tables cannot be used as the redirect "
+		    "address of a binat-to rule");
+		error++;
+	}
+	if (r->direction != PF_INOUT) {
+		yyerror("binat-to cannot be specified "
+		    "with a direction");
+		error++;
+	}
+
+	/* first specify outbound NAT rule */
+	r->direction = PF_OUT;
+
+	return (error);
 }
 
 void
