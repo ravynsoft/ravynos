@@ -90,6 +90,11 @@ _svcauth_unix(struct svc_req *rqst, struct rpc_msg *msg)
 			goto done;
 		}
 		for (i = 0; i < gid_len; i++) {
+			/*
+			 * Note that this is a `struct xucred`, which maintains
+			 * its historical layout of preserving the egid in
+			 * cr_ngroups and cr_groups[0] == egid.
+			 */
 			if (i + 1 < XU_NGROUPS)
 				xcr->cr_groups[i + 1] = IXDR_GET_INT32(buf);
 			else
