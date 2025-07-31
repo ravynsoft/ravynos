@@ -2100,8 +2100,9 @@ get_port(struct snmp_client *sc, const char **strp)
 		return (NULL);
 	}
 
-	*strp += strlen(*strp);
-	return (*strp);
+	++port[0];
+	port[1] = port[0] + strlen(port[0]);
+	return (port[1]);
 }
 
 /**
