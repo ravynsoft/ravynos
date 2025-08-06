@@ -125,7 +125,7 @@ __ovfl_get(BTREE *t, void *p, size_t *ssz, void **buf, size_t *bufsz)
  *	RET_ERROR, RET_SUCCESS
  */
 int
-__ovfl_put(BTREE *t, const DBT *dbt, pgno_t *pg)
+__ovfl_put(BTREE *t, const DBT *dbt, db_pgno_t *pg)
 {
 	PAGE *h, *last;
 	void *p;

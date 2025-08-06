@@ -58,7 +58,8 @@
  *	RET_SUCCESS, RET_ERROR.
  */
 int
-__bt_ret(BTREE *t, EPG *e, DBT *key, DBT *rkey, DBT *data, DBT *rdata, int copy)
+__bt_ret(BTREE *t, EPG *e, DBT *key, DBT *rkey, DBT *data, DBT *rdata,
+	 int copy)
 {
 	BLEAF *bl;
 	void *p;

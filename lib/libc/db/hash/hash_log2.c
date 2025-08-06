@@ -38,7 +38,7 @@
 #include "extern.h"
 
 u_int32_t
-__log2(u_int32_t num)
+__kdb2_log2(u_int32_t num)
 {
 	u_int32_t i, limit;
 

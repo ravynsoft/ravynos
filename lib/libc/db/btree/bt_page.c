@@ -75,7 +75,7 @@ __bt_free(BTREE *t, PAGE *h)
  *	Pointer to a page, NULL on error.
  */
 PAGE *
-__bt_new(BTREE *t, pgno_t *npg)
+__bt_new(BTREE *t, db_pgno_t *npg)
 {
 	PAGE *h;
 
