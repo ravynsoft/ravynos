@@ -5,9 +5,6 @@
 #ifndef KRB5_AUTOCONF_H
 #define KRB5_AUTOCONF_H
 
-#include <sys/types.h>
-#include <machine/param.h>
-
 
 /* Define if AES-NI support is enabled */
 /* #undef AESNI */
@@ -263,7 +260,7 @@
 #define HAVE_LIBCRYPTO 1
 
 /* Define if building with libedit. */
-#define HAVE_LIBEDIT 1
+/* #undef HAVE_LIBEDIT */
 
 /* Define to 1 if you have the `nsl' library (-lnsl). */
 /* #undef HAVE_LIBNSL */
@@ -644,7 +641,7 @@
 #define PACKAGE_NAME "Kerberos 5"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "Kerberos 5 1.21.1"
+#define PACKAGE_STRING "Kerberos 5 1.22.1"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "krb5"
@@ -653,7 +650,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.21.1"
+#define PACKAGE_VERSION "1.22.1"
 
 /* Default PKCS11 module name */
 #define PKCS11_MODNAME "opensc-pkcs11.so"

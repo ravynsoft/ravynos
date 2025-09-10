@@ -122,7 +122,7 @@
  * The maximum number of i/os active to each device.  Ideally, this will be >=
  * the sum of each queue's max_active.
  */
-uint_t zfs_vdev_max_active = 1000;
+static uint_t zfs_vdev_max_active = 1000;
 
 /*
  * Per-queue limits on the number of i/os active to each device.  If the
@@ -780,7 +780,7 @@ vdev_queue_aggregate(vdev_queue_t *vq, zio_t *zio)
 			if (dio->io_flags & ZIO_FLAG_NODATA) {
 				/* allocate a buffer for a write gap */
 				ASSERT3U(dio->io_type, ==, ZIO_TYPE_WRITE);
-				ASSERT3P(dio->io_abd, ==, NULL);
+				ASSERT0P(dio->io_abd);
 				abd_gang_add(aio->io_abd,
 				    abd_get_zeros(dio->io_size), B_TRUE);
 			} else {

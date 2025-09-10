@@ -505,8 +505,7 @@ match_boot_info(char *boot_info, size_t bisz)
  * a drop to the OK boot loader prompt is possible.
  */
 static int
-find_currdev(bool do_bootmgr, bool is_last,
-    char *boot_info, size_t boot_info_sz)
+find_currdev(bool do_bootmgr, char *boot_info, size_t boot_info_sz)
 {
 	pdinfo_t *dp, *pp;
 	EFI_DEVICE_PATH *devpath, *copy;
@@ -864,7 +863,7 @@ static int
 check_acpi_spcr(void)
 {
 	ACPI_TABLE_SPCR *spcr;
-	int br, db, io, rs, rw, sb, xo, pv, pd;
+	int br, db, io, rs, rw, xo, pv, pd;
 	uintmax_t mm;
 	const char *dt, *pa;
 	char *val = NULL;
@@ -896,7 +895,6 @@ check_acpi_spcr(void)
 
 	/* Uart settings */
 	pa = acpi_uart_parity(spcr->Parity);
-	sb = spcr->StopBits;
 	db = 8;
 
 	/*
@@ -1121,6 +1119,8 @@ read_loader_env(const char *name, char *def_fn, bool once)
 		printf("    Reading loader env vars from %s\n", fn);
 		parse_loader_efi_config(boot_img->DeviceHandle, fn);
 	}
+
+	free(freeme);
 }
 
 caddr_t
@@ -1201,12 +1201,12 @@ EFI_STATUS
 main(int argc, CHAR16 *argv[])
 {
 	int howto, i, uhowto;
-	bool has_kbd, is_last;
+	bool has_kbd;
 	char *s;
 	EFI_DEVICE_PATH *imgpath;
 	CHAR16 *text;
 	EFI_STATUS rv;
-	size_t sz, bosz = 0, bisz = 0;
+	size_t sz, bisz = 0;
 	UINT16 boot_order[100];
 	char boot_info[4096];
 	char buf[32];
@@ -1404,17 +1404,13 @@ main(int argc, CHAR16 *argv[])
 				printf(" %04x%s", boot_order[i],
 				    boot_order[i] == boot_current ? "[*]" : "");
 			printf("\n");
-			is_last = boot_order[(sz / sizeof(boot_order[0])) - 1] == boot_current;
-			bosz = sz;
 		} else if (uefi_boot_mgr) {
 			/*
 			 * u-boot doesn't set BootOrder, but otherwise participates in the
 			 * boot manager protocol. So we fake it here and don't consider it
 			 * a failure.
 			 */
-			bosz = sizeof(boot_order[0]);
 			boot_order[0] = boot_current;
-			is_last = true;
 		}
 	}
 
@@ -1463,7 +1459,7 @@ main(int argc, CHAR16 *argv[])
 	 * the boot protocol and also allow an escape hatch for users wishing
 	 * to try something different.
 	 */
-	if (find_currdev(uefi_boot_mgr, is_last, boot_info, bisz) != 0)
+	if (find_currdev(uefi_boot_mgr, boot_info, bisz) != 0)
 		if (uefi_boot_mgr &&
 		    !interactive_interrupt("Failed to find bootable partition"))
 			return (EFI_NOT_FOUND);

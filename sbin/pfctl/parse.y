@@ -166,8 +166,8 @@ struct node_gid {
 };
 
 struct node_icmp {
-	u_int8_t		 code;
-	u_int8_t		 type;
+	uint16_t		 code;
+	uint16_t		 type;
 	u_int8_t		 proto;
 	struct node_icmp	*next;
 	struct node_icmp	*tail;
@@ -238,6 +238,7 @@ static struct pool_opts {
 #define POM_TYPE		0x01
 #define POM_STICKYADDRESS	0x02
 #define POM_ENDPI		0x04
+#define POM_IPV6NH		0x08
 	u_int8_t		 opts;
 	int			 type;
 	int			 staticport;
@@ -249,7 +250,7 @@ struct redirspec {
 	struct node_host	*host;
 	struct range		 rport;
 	struct pool_opts	 pool_opts;
-	int			 af;
+	sa_family_t		 af;
 	bool			 binat;
 };
 
@@ -393,7 +394,7 @@ void		 expand_eth_rule(struct pfctl_eth_rule *,
 int		 apply_rdr_ports(struct pfctl_rule *r, struct pfctl_pool *, struct redirspec *);
 int		 apply_nat_ports(struct pfctl_pool *, struct redirspec *);
 int		 apply_redirspec(struct pfctl_pool *, struct redirspec *);
-int		 check_binat_redirspec(struct node_host *, struct pfctl_rule *, int);
+int		 check_binat_redirspec(struct node_host *, struct pfctl_rule *, sa_family_t);
 void		 add_binat_rdr_rule(struct pfctl_rule *, struct redirspec *,
 		 struct node_host *, struct pfctl_rule *, struct redirspec **,
 		 struct node_host **);
@@ -543,7 +544,7 @@ int	parseport(char *, struct range *r, int);
 %token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH SLOPPY PFLOW ALLOW_RELATED
 %token	TAGGED TAG IFBOUND FLOATING STATEPOLICY STATEDEFAULTS ROUTE SETTOS
 %token	DIVERTTO DIVERTREPLY BRIDGE_TO RECEIVEDON NE LE GE AFTO NATTO RDRTO
-%token	BINATTO MAXPKTRATE MAXPKTSIZE
+%token	BINATTO MAXPKTRATE MAXPKTSIZE IPV6NH
 %token	<v.string>		STRING
 %token	<v.number>		NUMBER
 %token	<v.i>			PORTBINARY
@@ -2648,13 +2649,16 @@ pfrule		: action dir logquick interface route af proto fromto
 					YYERROR;
 				}
 				r.rt = $5.rt;
-				decide_address_family($5.redirspec->host, &r.af);
-				if (!(r.rule_flag & PFRULE_AFTO))
-					remove_invalid_hosts(&($5.redirspec->host), &r.af);
-				if ($5.redirspec->host == NULL) {
-					yyerror("no routing address with "
-					    "matching address family found.");
-					YYERROR;
+
+				if (!($5.redirspec->pool_opts.opts & PF_POOL_IPV6NH)) {
+					decide_address_family($5.redirspec->host, &r.af);
+					if (!(r.rule_flag & PFRULE_AFTO))
+						remove_invalid_hosts(&($5.redirspec->host), &r.af);
+					if ($5.redirspec->host == NULL) {
+						yyerror("no routing address with "
+						    "matching address family found.");
+						YYERROR;
+					}
 				}
 			}
 #ifdef __FreeBSD__
@@ -2978,7 +2982,8 @@ filter_opt	: USER uids {
 
 			filter_opts.nat = $4;
 			filter_opts.nat->af = $2;
-			if ($4->af && $4->af != $2) {
+			remove_invalid_hosts(&($4->host), &(filter_opts.nat->af));
+			if ($4->host == NULL) {
 				yyerror("af-to addresses must be in the "
 				   "target address family");
 				YYERROR;
@@ -2998,8 +3003,9 @@ filter_opt	: USER uids {
 			filter_opts.nat->af = $2;
 			filter_opts.rdr = $6;
 			filter_opts.rdr->af = $2;
-			if (($4->af && $4->host->af != $2) ||
-			    ($6->af && $6->host->af != $2)) {
+			remove_invalid_hosts(&($4->host), &(filter_opts.nat->af));
+			remove_invalid_hosts(&($6->host), &(filter_opts.rdr->af));
+			if ($4->host == NULL || $6->host == NULL) {
 				yyerror("af-to addresses must be in the "
 				   "target address family");
 				YYERROR;
@@ -4674,6 +4680,14 @@ pool_opt	: BITMASK	{
 			pool_opts.marker |= POM_ENDPI;
 			pool_opts.opts |= PF_POOL_ENDPI;
 		}
+		| IPV6NH {
+			if (pool_opts.marker & POM_IPV6NH) {
+				yyerror("prefer-ipv6-nexthop cannot be redefined");
+				YYERROR;
+			}
+			pool_opts.marker |= POM_IPV6NH;
+			pool_opts.opts |= PF_POOL_IPV6NH;
+		}
 		| MAPEPORTSET number '/' number '/' number {
 			if (pool_opts.mape.offset) {
 				yyerror("map-e-portset cannot be redefined");
@@ -4813,6 +4827,12 @@ natrule		: nataction interface af proto fromto tag tagged rtable
 					    "address'");
 					YYERROR;
 				}
+				if ($9->pool_opts.opts & PF_POOL_IPV6NH) {
+					yyerror("The prefer-ipv6-nexthop option "
+					    "can't be used for nat/rdr/binat pools"
+					);
+					YYERROR;
+				}
 				if (!r.af && ! $9->host->ifindex)
 					r.af = $9->host->af;
 
@@ -4852,7 +4872,7 @@ binatrule	: no BINAT natpasslog interface af proto FROM ipspec toipspec tag
 		    tagged rtable binat_redirspec
 		{
 			struct pfctl_rule	binat;
-			struct pf_pooladdr	*pa;
+			struct pfctl_pooladdr	*pa;
 
 			if (check_rulestate(PFCTL_STATE_NAT))
 				YYERROR;
@@ -5011,11 +5031,12 @@ binatrule	: no BINAT natpasslog interface af proto FROM ipspec toipspec tag
 					YYERROR;
 				}
 
-				pa = calloc(1, sizeof(struct pf_pooladdr));
+				pa = calloc(1, sizeof(struct pfctl_pooladdr));
 				if (pa == NULL)
 					err(1, "binat: calloc");
 				pa->addr = $13->host->addr;
 				pa->ifname[0] = 0;
+				pa->af = $13->host->af;
 				TAILQ_INSERT_TAIL(&binat.rdr.list,
 				    pa, entries);
 
@@ -5073,13 +5094,6 @@ route_host	: STRING			{
 
 route_host_list	: route_host optnl			{ $$ = $1; }
 		| route_host_list comma route_host optnl {
-			if ($1->af == 0)
-				$1->af = $3->af;
-			if ($1->af != $3->af) {
-				yyerror("all pool addresses must be in the "
-				    "same address family");
-				YYERROR;
-			}
 			$1->tail->next = $3;
 			$1->tail = $3->tail;
 			$$ = $1;
@@ -6115,7 +6129,7 @@ int
 apply_redirspec(struct pfctl_pool *rpool, struct redirspec *rs)
 {
 	struct node_host	*h;
-	struct pf_pooladdr	*pa;
+	struct pfctl_pooladdr	*pa;
 
 	if (rs == NULL)
 		return 0;
@@ -6155,10 +6169,11 @@ apply_redirspec(struct pfctl_pool *rpool, struct redirspec *rs)
 		    sizeof(struct pf_poolhashkey));
 
 	for (h = rs->host; h != NULL; h = h->next) {
-		pa = calloc(1, sizeof(struct pf_pooladdr));
+		pa = calloc(1, sizeof(struct pfctl_pooladdr));
 		if (pa == NULL)
 			err(1, "%s: calloc", __func__);
 		pa->addr = h->addr;
+		pa->af = h->af;
 		if (h->ifname != NULL) {
 			if (strlcpy(pa->ifname, h->ifname,
 			    sizeof(pa->ifname)) >= sizeof(pa->ifname))
@@ -6172,9 +6187,10 @@ apply_redirspec(struct pfctl_pool *rpool, struct redirspec *rs)
 }
 
 int
-check_binat_redirspec(struct node_host *src_host, struct pfctl_rule *r, int af)
+check_binat_redirspec(struct node_host *src_host, struct pfctl_rule *r,
+    sa_family_t af)
 {
-	struct pf_pooladdr	*nat_pool = TAILQ_FIRST(&(r->nat.list));
+	struct pfctl_pooladdr	*nat_pool = TAILQ_FIRST(&(r->nat.list));
 	int			error = 0;
 
 	/* XXX: FreeBSD allows syntax like "{ host1 host2 }" for redirection
@@ -6247,7 +6263,7 @@ add_binat_rdr_rule(
 
 	/*
 	 * We're copying the whole rule, but we must re-init redir pools.
-	 * FreeBSD uses lists of pf_pooladdr, we can't just overwrite them.
+	 * FreeBSD uses lists of pfctl_pooladdr, we can't just overwrite them.
 	 */
 	bcopy(binat_rule, rdr_rule, sizeof(struct pfctl_rule));
 	TAILQ_INIT(&(rdr_rule->rdr.list));
@@ -6675,6 +6691,7 @@ lookup(char *s)
 		{ "pass",		PASS},
 		{ "pflow",		PFLOW},
 		{ "port",		PORT},
+		{ "prefer-ipv6-nexthop", IPV6NH},
 		{ "prio",		PRIO},
 		{ "priority",		PRIORITY},
 		{ "priq",		PRIQ},

@@ -76,6 +76,13 @@ struct acpi_powerconsumer {
     /* Device which is powered */
     ACPI_HANDLE				ac_consumer;
     int					ac_state;
+
+    struct {
+	bool				prx_has;
+	size_t				prx_count;
+	ACPI_HANDLE			*prx_deps;
+    } ac_prx[ACPI_D_STATE_COUNT];
+
     TAILQ_ENTRY(acpi_powerconsumer)	ac_link;
     TAILQ_HEAD(,acpi_powerreference)	ac_references;
 };
@@ -96,9 +103,7 @@ static TAILQ_HEAD(acpi_powerconsumer_list, acpi_powerconsumer)
 ACPI_SERIAL_DECL(powerres, "ACPI power resources");
 
 static ACPI_STATUS	acpi_pwr_register_consumer(ACPI_HANDLE consumer);
-#ifdef notyet
 static ACPI_STATUS	acpi_pwr_deregister_consumer(ACPI_HANDLE consumer);
-#endif /* notyet */
 static ACPI_STATUS	acpi_pwr_register_resource(ACPI_HANDLE res);
 #ifdef notyet
 static ACPI_STATUS	acpi_pwr_deregister_resource(ACPI_HANDLE res);
@@ -112,6 +117,8 @@ static struct acpi_powerresource
 			*acpi_pwr_find_resource(ACPI_HANDLE res);
 static struct acpi_powerconsumer
 			*acpi_pwr_find_consumer(ACPI_HANDLE consumer);
+static ACPI_STATUS	acpi_pwr_infer_state(struct acpi_powerconsumer *pc);
+static ACPI_STATUS	acpi_pwr_get_state_locked(ACPI_HANDLE consumer, int *state);
 
 /*
  * Register a power resource.
@@ -222,6 +229,84 @@ acpi_pwr_deregister_resource(ACPI_HANDLE res)
 #endif /* notyet */
 
 /*
+ * Evaluate the _PRx (power resources each D-state depends on).  This also
+ * populates the acpi_powerresources queue with the power resources discovered
+ * during this step.
+ *
+ * ACPI 7.3.8 - 7.3.11 guarantee that _PRx will return the same data each
+ * time they are evaluated.
+ *
+ * If this function fails, acpi_pwr_deregister_consumer() must be called on the
+ * power consumer to free already allocated memory.
+ */
+static ACPI_STATUS
+acpi_pwr_get_power_resources(ACPI_HANDLE consumer, struct acpi_powerconsumer *pc)
+{
+    ACPI_INTEGER	status;
+    ACPI_STRING		reslist_name;
+    ACPI_HANDLE		reslist_handle;
+    ACPI_STRING		reslist_names[] = {"_PR0", "_PR1", "_PR2", "_PR3"};
+    ACPI_BUFFER		reslist;
+    ACPI_OBJECT		*reslist_object;
+    ACPI_OBJECT		*dep;
+    ACPI_HANDLE		*res;
+
+    ACPI_FUNCTION_TRACE((char *)(uintptr_t)__func__);
+    ACPI_SERIAL_ASSERT(powerres);
+
+    MPASS(consumer != NULL);
+
+    for (int state = ACPI_STATE_D0; state <= ACPI_STATE_D3_HOT; state++) {
+	pc->ac_prx[state].prx_has = false;
+	pc->ac_prx[state].prx_count = 0;
+	pc->ac_prx[state].prx_deps = NULL;
+
+	reslist_name = reslist_names[state - ACPI_STATE_D0];
+	if (ACPI_FAILURE(AcpiGetHandle(consumer, reslist_name, &reslist_handle)))
+	    continue;
+
+	reslist.Pointer = NULL;
+	reslist.Length = ACPI_ALLOCATE_BUFFER;
+	status = AcpiEvaluateObjectTyped(reslist_handle, NULL, NULL, &reslist,
+					 ACPI_TYPE_PACKAGE);
+	if (ACPI_FAILURE(status) || reslist.Pointer == NULL)
+	    /*
+	     * ACPI_ALLOCATE_BUFFER entails everything will be freed on error
+	     * by AcpiEvaluateObjectTyped.
+	     */
+	    continue;
+
+	reslist_object = (ACPI_OBJECT *)reslist.Pointer;
+	pc->ac_prx[state].prx_has = true;
+	pc->ac_prx[state].prx_count = reslist_object->Package.Count;
+
+	if (reslist_object->Package.Count == 0) {
+	    AcpiOsFree(reslist_object);
+	    continue;
+	}
+
+	pc->ac_prx[state].prx_deps = mallocarray(pc->ac_prx[state].prx_count,
+	    sizeof(*pc->ac_prx[state].prx_deps), M_ACPIPWR, M_NOWAIT);
+	if (pc->ac_prx[state].prx_deps == NULL) {
+	    AcpiOsFree(reslist_object);
+	    return_ACPI_STATUS (AE_NO_MEMORY);
+	}
+
+	for (size_t i = 0; i < reslist_object->Package.Count; i++) {
+	    dep = &reslist_object->Package.Elements[i];
+	    res = dep->Reference.Handle;
+	    pc->ac_prx[state].prx_deps[i] = res;
+
+	    /* It's fine to attempt to register the same resource twice. */
+	    acpi_pwr_register_resource(res);
+	}
+	AcpiOsFree(reslist_object);
+    }
+
+    return_ACPI_STATUS (AE_OK);
+}
+
+/*
  * Register a power consumer.  
  *
  * It's OK to call this if we already know about the consumer.
@@ -229,6 +314,7 @@ acpi_pwr_deregister_resource(ACPI_HANDLE res)
 static ACPI_STATUS
 acpi_pwr_register_consumer(ACPI_HANDLE consumer)
 {
+    ACPI_INTEGER		status;
     struct acpi_powerconsumer	*pc;
     
     ACPI_FUNCTION_TRACE((char *)(uintptr_t)__func__);
@@ -239,14 +325,30 @@ acpi_pwr_register_consumer(ACPI_HANDLE consumer)
 	return_ACPI_STATUS (AE_OK);
     
     /* Allocate a new power consumer */
-    if ((pc = malloc(sizeof(*pc), M_ACPIPWR, M_NOWAIT)) == NULL)
+    if ((pc = malloc(sizeof(*pc), M_ACPIPWR, M_NOWAIT | M_ZERO)) == NULL)
 	return_ACPI_STATUS (AE_NO_MEMORY);
     TAILQ_INSERT_HEAD(&acpi_powerconsumers, pc, ac_link);
     TAILQ_INIT(&pc->ac_references);
     pc->ac_consumer = consumer;
 
-    /* XXX we should try to find its current state */
-    pc->ac_state = ACPI_STATE_UNKNOWN;
+    /*
+     * Get all its power resource dependencies, if it has _PRx.  We do this now
+     * as an opportunity to populate the acpi_powerresources queue.
+     *
+     * If this fails, immediately deregister it.
+     */
+    status = acpi_pwr_get_power_resources(consumer, pc);
+    if (ACPI_FAILURE(status)) {
+	ACPI_DEBUG_PRINT((ACPI_DB_OBJECTS,
+			 "failed to get power resources for %s\n",
+			 acpi_name(consumer)));
+	acpi_pwr_deregister_consumer(consumer);
+	return_ACPI_STATUS (status);
+    }
+
+    /* Find its initial state. */
+    if (ACPI_FAILURE(acpi_pwr_get_state_locked(consumer, &pc->ac_state)))
+	pc->ac_state = ACPI_STATE_UNKNOWN;
 
     ACPI_DEBUG_PRINT((ACPI_DB_OBJECTS, "registered power consumer %s\n",
 		     acpi_name(consumer)));
@@ -254,7 +356,6 @@ acpi_pwr_register_consumer(ACPI_HANDLE consumer)
     return_ACPI_STATUS (AE_OK);
 }
 
-#ifdef notyet
 /*
  * Deregister a power consumer.
  *
@@ -279,6 +380,9 @@ acpi_pwr_deregister_consumer(ACPI_HANDLE consumer)
 
     /* Pull the consumer off the list and free it */
     TAILQ_REMOVE(&acpi_powerconsumers, pc, ac_link);
+    for (size_t i = 0; i < sizeof(pc->ac_prx) / sizeof(*pc->ac_prx); i++)
+	if (pc->ac_prx[i].prx_deps != NULL)
+	    free(pc->ac_prx[i].prx_deps, M_ACPIPWR);
     free(pc, M_ACPIPWR);
 
     ACPI_DEBUG_PRINT((ACPI_DB_OBJECTS, "deregistered power consumer %s\n",
@@ -286,10 +390,139 @@ acpi_pwr_deregister_consumer(ACPI_HANDLE consumer)
 
     return_ACPI_STATUS (AE_OK);
 }
-#endif /* notyet */
 
 /*
- * Set a power consumer to a particular power state.
+ * The _PSC control method isn't required if it's possible to infer the D-state
+ * from the _PRx control methods.  (See 7.3.6.)
+ * We can infer that a given D-state has been achieved when all the dependencies
+ * are in the ON state.
+ */
+static ACPI_STATUS
+acpi_pwr_infer_state(struct acpi_powerconsumer *pc)
+{
+    ACPI_HANDLE		*res;
+    uint32_t		on;
+    bool		all_on = false;
+
+    ACPI_FUNCTION_TRACE((char *)(uintptr_t)__func__);
+    ACPI_SERIAL_ASSERT(powerres);
+
+    /* It is important we go from the hottest to the coldest state. */
+    for (
+	pc->ac_state = ACPI_STATE_D0;
+	pc->ac_state <= ACPI_STATE_D3_HOT && !all_on;
+	pc->ac_state++
+    ) {
+	MPASS(pc->ac_state <= sizeof(pc->ac_prx) / sizeof(*pc->ac_prx));
+
+	if (!pc->ac_prx[pc->ac_state].prx_has)
+	    continue;
+
+	all_on = true;
+
+	for (size_t i = 0; i < pc->ac_prx[pc->ac_state].prx_count; i++) {
+	    res = pc->ac_prx[pc->ac_state].prx_deps[i];
+	    /* If failure, better to assume D-state is hotter than colder. */
+	    if (ACPI_FAILURE(acpi_GetInteger(res, "_STA", &on)))
+		continue;
+	    if (on == 0) {
+		all_on = false;
+		break;
+	    }
+	}
+    }
+
+    MPASS(pc->ac_state != ACPI_STATE_D0);
+
+    /*
+     * If none of the power resources required for the shallower D-states are
+     * on, then we can assume it is unpowered (i.e. D3cold).  A device is not
+     * required to support D3cold however; in that case, _PR3 is not explicitly
+     * provided.  Those devices should default to D3hot instead.
+     *
+     * See comments of first row of table 7.1 in ACPI spec.
+     */
+    if (!all_on)
+	pc->ac_state = pc->ac_prx[ACPI_STATE_D3_HOT].prx_has ?
+	    ACPI_STATE_D3_COLD : ACPI_STATE_D3_HOT;
+    else
+	pc->ac_state--;
+
+    return_ACPI_STATUS (AE_OK);
+}
+
+static ACPI_STATUS
+acpi_pwr_get_state_locked(ACPI_HANDLE consumer, int *state)
+{
+    struct acpi_powerconsumer	*pc;
+    ACPI_HANDLE			method_handle;
+    ACPI_STATUS			status;
+    ACPI_BUFFER			result;
+    ACPI_OBJECT			*object = NULL;
+
+    ACPI_FUNCTION_TRACE((char *)(uintptr_t)__func__);
+    ACPI_SERIAL_ASSERT(powerres);
+
+    if (consumer == NULL)
+	return_ACPI_STATUS (AE_NOT_FOUND);
+
+    if ((pc = acpi_pwr_find_consumer(consumer)) == NULL) {
+	if (ACPI_FAILURE(status = acpi_pwr_register_consumer(consumer)))
+	    goto out;
+	if ((pc = acpi_pwr_find_consumer(consumer)) == NULL)
+	    panic("acpi added power consumer but can't find it");
+    }
+
+    status = AcpiGetHandle(consumer, "_PSC", &method_handle);
+    if (ACPI_FAILURE(status)) {
+	ACPI_DEBUG_PRINT((ACPI_DB_OBJECTS, "no _PSC object - %s\n",
+			 AcpiFormatException(status)));
+	status = acpi_pwr_infer_state(pc);
+	if (ACPI_FAILURE(status)) {
+		ACPI_DEBUG_PRINT((ACPI_DB_OBJECTS, "couldn't infer D-state - %s\n",
+				 AcpiFormatException(status)));
+		pc->ac_state = ACPI_STATE_UNKNOWN;
+	}
+	goto out;
+    }
+
+    result.Pointer = NULL;
+    result.Length = ACPI_ALLOCATE_BUFFER;
+    status = AcpiEvaluateObjectTyped(method_handle, NULL, NULL, &result, ACPI_TYPE_INTEGER);
+    if (ACPI_FAILURE(status) || result.Pointer == NULL) {
+	ACPI_DEBUG_PRINT((ACPI_DB_OBJECTS, "failed to get state with _PSC - %s\n",
+			 AcpiFormatException(status)));
+	pc->ac_state = ACPI_STATE_UNKNOWN;
+	goto out;
+    }
+
+    object = (ACPI_OBJECT *)result.Pointer;
+    pc->ac_state = ACPI_STATE_D0 + object->Integer.Value;
+    status = AE_OK;
+
+out:
+    if (object != NULL)
+	AcpiOsFree(object);
+    *state = pc->ac_state;
+    return_ACPI_STATUS (status);
+}
+
+/*
+ * Get a power consumer's D-state.
+ */
+ACPI_STATUS
+acpi_pwr_get_state(ACPI_HANDLE consumer, int *state)
+{
+	ACPI_STATUS	res;
+
+	ACPI_SERIAL_BEGIN(powerres);
+	res = acpi_pwr_get_state_locked(consumer, state);
+	ACPI_SERIAL_END(powerres);
+	return (res);
+}
+
+/*
+ * Set a power consumer to a particular D-state.
  */
 ACPI_STATUS
 acpi_pwr_switch_consumer(ACPI_HANDLE consumer, int state)
@@ -299,7 +532,8 @@ acpi_pwr_switch_consumer(ACPI_HANDLE consumer, int state)
     ACPI_BUFFER			reslist_buffer;
     ACPI_OBJECT			*reslist_object;
     ACPI_STATUS			status;
-    char			*method_name, *reslist_name;
+    char			*method_name, *reslist_name = NULL;
+    int				new_state;
 
     ACPI_FUNCTION_TRACE((char *)(uintptr_t)__func__);
 
@@ -318,9 +552,26 @@ acpi_pwr_switch_consumer(ACPI_HANDLE consumer, int state)
 	    panic("acpi added power consumer but can't find it");
     }
 
-    /* Check for valid transitions.  We can only go to D0 from D3. */
+    /* Stop here if we're already at the target D-state. */
+    if (pc->ac_state == state) {
+	status = AE_OK;
+	goto out;
+    }
+
+    /*
+     * Check for valid transitions.  From D3hot or D3cold, we can only go to D0.
+     * The exception to this is going from D3hot to D3cold or the other way
+     * around.  This is because they both use _PS3, so the only difference when
+     * doing these transitions is whether or not the power resources for _PR3
+     * are on for devices which support D3cold, and turning these power
+     * resources on/off is always perfectly fine (ACPI 7.3.11).
+     */
     status = AE_BAD_PARAMETER;
-    if (pc->ac_state == ACPI_STATE_D3 && state != ACPI_STATE_D0)
+    if (pc->ac_state == ACPI_STATE_D3_HOT && state != ACPI_STATE_D0 &&
+	state != ACPI_STATE_D3_COLD)
+	goto out;
+    if (pc->ac_state == ACPI_STATE_D3_COLD && state != ACPI_STATE_D0 &&
+	state != ACPI_STATE_D3_HOT)
 	goto out;
 
     /* Find transition mechanism(s) */
@@ -337,15 +588,20 @@ acpi_pwr_switch_consumer(ACPI_HANDLE consumer, int state)
 	method_name = "_PS2";
 	reslist_name = "_PR2";
 	break;
-    case ACPI_STATE_D3:
+    case ACPI_STATE_D3_HOT:
 	method_name = "_PS3";
 	reslist_name = "_PR3";
+	break;
+    case ACPI_STATE_D3_COLD:
+	method_name = "_PS3";
+	reslist_name = NULL;
 	break;
     default:
 	goto out;
     }
-    ACPI_DEBUG_PRINT((ACPI_DB_OBJECTS, "setup to switch %s D%d -> D%d\n",
-		     acpi_name(consumer), pc->ac_state, state));
+    ACPI_DEBUG_PRINT((ACPI_DB_OBJECTS, "setup to switch %s %s -> %s\n",
+		     acpi_name(consumer), acpi_d_state_to_str(pc->ac_state),
+		     acpi_d_state_to_str(state)));
 
     /*
      * Verify that this state is supported, ie. one of method or
@@ -359,7 +615,8 @@ acpi_pwr_switch_consumer(ACPI_HANDLE consumer, int state)
      */
     if (ACPI_FAILURE(AcpiGetHandle(consumer, method_name, &method_handle)))
 	method_handle = NULL;
-    if (ACPI_FAILURE(AcpiGetHandle(consumer, reslist_name, &reslist_handle)))
+    if (reslist_name == NULL ||
+	ACPI_FAILURE(AcpiGetHandle(consumer, reslist_name, &reslist_handle)))
 	reslist_handle = NULL;
     if (reslist_handle == NULL && method_handle == NULL) {
 	if (state == ACPI_STATE_D0) {
@@ -367,9 +624,12 @@ acpi_pwr_switch_consumer(ACPI_HANDLE consumer, int state)
 	    status = AE_OK;
 	    goto out;
 	}
-	if (state != ACPI_STATE_D3) {
+	if (state == ACPI_STATE_D3_COLD)
+	    state = ACPI_STATE_D3_HOT;
+	if (state != ACPI_STATE_D3_HOT) {
 	    ACPI_DEBUG_PRINT((ACPI_DB_OBJECTS,
-		"attempt to set unsupported state D%d\n", state));
+		"attempt to set unsupported state %s\n",
+		acpi_d_state_to_str(state)));
 	    goto out;
 	}
 
@@ -380,21 +640,23 @@ acpi_pwr_switch_consumer(ACPI_HANDLE consumer, int state)
 	if (ACPI_FAILURE(AcpiGetHandle(consumer, "_PR0", &pr0_handle))) {
 	    status = AE_NOT_FOUND;
 	    ACPI_DEBUG_PRINT((ACPI_DB_OBJECTS,
-		"device missing _PR0 (desired state was D%d)\n", state));
+		"device missing _PR0 (desired state was %s)\n",
+		acpi_d_state_to_str(state)));
 	    goto out;
 	}
 	reslist_buffer.Length = ACPI_ALLOCATE_BUFFER;
 	status = AcpiEvaluateObject(pr0_handle, NULL, NULL, &reslist_buffer);
 	if (ACPI_FAILURE(status)) {
 	    ACPI_DEBUG_PRINT((ACPI_DB_OBJECTS,
-		"can't evaluate _PR0 for device %s, state D%d\n",
-		acpi_name(consumer), state));
+		"can't evaluate _PR0 for device %s, state %s\n",
+		acpi_name(consumer), acpi_d_state_to_str(state)));
 	    goto out;
 	}
 	reslist_object = (ACPI_OBJECT *)reslist_buffer.Pointer;
 	if (!ACPI_PKG_VALID(reslist_object, 1)) {
 	    ACPI_DEBUG_PRINT((ACPI_DB_OBJECTS,
-		"invalid package object for state D%d\n", state));
+		"invalid package object for state %s\n",
+		acpi_d_state_to_str(state)));
 	    status = AE_TYPE;
 	    goto out;
 	}
@@ -450,8 +712,8 @@ acpi_pwr_switch_consumer(ACPI_HANDLE consumer, int state)
      */
     if (ACPI_FAILURE(status = acpi_pwr_switch_power())) {
 	ACPI_DEBUG_PRINT((ACPI_DB_OBJECTS,
-			 "failed to switch resources from %s to D%d\n",
-			  acpi_name(consumer), state));
+			 "failed to switch resources from %s to %s\n",
+			  acpi_name(consumer), acpi_d_state_to_str(state)));
 
 	/* XXX is this appropriate?  Should we return to previous state? */
 	goto out;
@@ -473,8 +735,28 @@ acpi_pwr_switch_consumer(ACPI_HANDLE consumer, int state)
 	}
     }
 
-    /* Transition was successful */
-    pc->ac_state = state;
+    /*
+     * Make sure the transition succeeded.  If getting new state failed,
+     * just assume the new state is what we wanted.  This was the behaviour
+     * before we were checking D-states.
+     */
+    if (ACPI_FAILURE(acpi_pwr_get_state_locked(consumer, &new_state))) {
+	printf("%s: failed to get new D-state\n", __func__);
+	pc->ac_state = state;
+    } else {
+	if (new_state != state)
+	    printf("%s: new power state %s is not the one requested %s\n",
+		   __func__, acpi_d_state_to_str(new_state),
+		   acpi_d_state_to_str(state));
+	pc->ac_state = new_state;
+    }
+
+    /*
+     * We consider the transition successful even if the state we got doesn't
+     * reflect what we set it to.  This is because we weren't previously
+     * checking the new state at all, so there might exist buggy platforms on
+     * which suspend would otherwise succeed if we failed here.
+     */
     status = AE_OK;
 
 out:

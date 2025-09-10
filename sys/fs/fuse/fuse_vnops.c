@@ -877,6 +877,9 @@ fuse_vnop_copy_file_range(struct vop_copy_file_range_args *ap)
 	pid_t pid;
 	int err;
 
+	if ((ap->a_flags & COPY_FILE_RANGE_CLONE) != 0)
+		return (EXTERROR(ENOSYS, "Cannot clone"));
+
 	if (mp == NULL || mp != vnode_mount(outvp))
 		return (EXTERROR(ENOSYS, "Mount points do not match"));
 
@@ -1219,36 +1222,20 @@ fuse_vnop_getattr(struct vop_getattr_args *ap)
 	struct vattr *vap = ap->a_vap;
 	struct ucred *cred = ap->a_cred;
 	struct thread *td = curthread;
-
 	int err = 0;
-	int dataflags;
 
-	dataflags = fuse_get_mpdata(vnode_mount(vp))->dataflags;
-
-	/* Note that we are not bailing out on a dead file system just yet. */
-
-	if (!(dataflags & FSESS_INITED)) {
-		if (!vnode_isvroot(vp)) {
-			fdata_set_dead(fuse_get_mpdata(vnode_mount(vp)));
-			return (EXTERROR(ENOTCONN, "FUSE daemon is not "
-			    "initialized"));
-		} else {
-			goto fake;
-		}
-	}
 	err = fuse_internal_getattr(vp, vap, cred, td);
 	if (err == ENOTCONN && vnode_isvroot(vp)) {
-		/* see comment in fuse_vfsop_statfs() */
-		goto fake;
-	} else {
-		return err;
+		/*
+		 * We want to seem a legitimate fs even if the daemon is dead,
+		 * so that, eg., we can still do path based unmounting after
+		 * the daemon dies.
+		 */
+		err = 0;
+		bzero(vap, sizeof(*vap));
+		vap->va_type = vnode_vtype(vp);
 	}
-
-fake:
-	bzero(vap, sizeof(*vap));
-	vap->va_type = vnode_vtype(vp);
-
-	return 0;
+	return err;
 }
 
 /*
@@ -1761,7 +1748,7 @@ fuse_vnop_open(struct vop_open_args *ap)
 	if (fuse_isdeadfs(vp))
 		return (EXTERROR(ENXIO, "This FUSE session is about "
 		    "to be closed"));
-	if (vp->v_type == VCHR || vp->v_type == VBLK || vp->v_type == VFIFO)
+	if (VN_ISDEV(vp) || vp->v_type == VFIFO)
 		return (EXTERROR(EOPNOTSUPP, "Unsupported vnode type",
 		    vp->v_type));
 	if ((a_mode & (FREAD | FWRITE | FEXEC)) == 0)

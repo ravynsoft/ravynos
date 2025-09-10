@@ -46,6 +46,8 @@ MALLOC_DECLARE(M_UFSHCI);
 #define UFSHCI_UTR_ENTRIES	      (32)
 #define UFSHCI_UTRM_ENTRIES	      (8)
 
+#define UFSHCI_SECTOR_SIZE	      (512)
+
 struct ufshci_controller;
 
 struct ufshci_completion_poll_status {
@@ -125,6 +127,8 @@ struct ufshci_qops {
 	    struct ufshci_tracker **tr);
 	void (*ring_doorbell)(struct ufshci_controller *ctrlr,
 	    struct ufshci_tracker *tr);
+	bool (*is_doorbell_cleared)(struct ufshci_controller *ctrlr,
+	    uint8_t slot);
 	void (*clear_cpl_ntf)(struct ufshci_controller *ctrlr,
 	    struct ufshci_tracker *tr);
 	bool (*process_cpl)(struct ufshci_req_queue *req_queue);
@@ -143,7 +147,10 @@ struct ufshci_hw_queue {
 	int domain;
 	int cpu;
 
-	struct ufshci_utp_xfer_req_desc *utrd;
+	union {
+		struct ufshci_utp_xfer_req_desc *utrd;
+		struct ufshci_utp_task_mgmt_req_desc *utmrd;
+	};
 
 	bus_dma_tag_t dma_tag_queue;
 	bus_dmamap_t queuemem_map;
@@ -209,6 +216,15 @@ struct ufshci_device {
 	struct ufshci_geometry_descriptor geo_desc;
 
 	uint32_t unipro_version;
+
+	/* WriteBooster */
+	bool is_wb_enabled;
+	bool is_wb_flush_enabled;
+	uint32_t wb_buffer_type;
+	uint32_t wb_buffer_size_mb;
+	uint32_t wb_user_space_config_option;
+	uint8_t wb_dedicated_lu;
+	uint32_t write_booster_flush_threshold;
 };
 
 /*
@@ -224,7 +240,8 @@ struct ufshci_controller {
 	2 /* Need an additional 200 ms of PA_TActivate */
 #define UFSHCI_QUIRK_WAIT_AFTER_POWER_MODE_CHANGE \
 	4 /* Need to wait 1250us after power mode change */
-
+#define UFSHCI_QUIRK_CHANGE_LANE_AND_GEAR_SEPARATELY \
+	8 /* Need to change the number of lanes before changing HS-GEAR. */
 	uint32_t ref_clk;
 
 	struct cam_sim *ufshci_sim;
@@ -333,6 +350,8 @@ int ufshci_ctrlr_reset(struct ufshci_controller *ctrlr);
 void ufshci_ctrlr_start_config_hook(void *arg);
 void ufshci_ctrlr_poll(struct ufshci_controller *ctrlr);
 
+int ufshci_ctrlr_submit_task_mgmt_request(struct ufshci_controller *ctrlr,
+    struct ufshci_request *req);
 int ufshci_ctrlr_submit_admin_request(struct ufshci_controller *ctrlr,
     struct ufshci_request *req);
 int ufshci_ctrlr_submit_io_request(struct ufshci_controller *ctrlr,
@@ -349,8 +368,12 @@ int ufshci_dev_init_unipro(struct ufshci_controller *ctrlr);
 int ufshci_dev_init_uic_power_mode(struct ufshci_controller *ctrlr);
 int ufshci_dev_init_ufs_power_mode(struct ufshci_controller *ctrlr);
 int ufshci_dev_get_descriptor(struct ufshci_controller *ctrlr);
+int ufshci_dev_config_write_booster(struct ufshci_controller *ctrlr);
 
 /* Controller Command */
+void ufshci_ctrlr_cmd_send_task_mgmt_request(struct ufshci_controller *ctrlr,
+    ufshci_cb_fn_t cb_fn, void *cb_arg, uint8_t function, uint8_t lun,
+    uint8_t task_tag, uint8_t iid);
 void ufshci_ctrlr_cmd_send_nop(struct ufshci_controller *ctrlr,
     ufshci_cb_fn_t cb_fn, void *cb_arg);
 void ufshci_ctrlr_cmd_send_query_request(struct ufshci_controller *ctrlr,
@@ -361,12 +384,12 @@ void ufshci_ctrlr_cmd_send_scsi_command(struct ufshci_controller *ctrlr,
 
 /* Request Queue */
 bool ufshci_req_queue_process_completions(struct ufshci_req_queue *req_queue);
-int ufshci_utm_req_queue_construct(struct ufshci_controller *ctrlr);
-int ufshci_ut_req_queue_construct(struct ufshci_controller *ctrlr);
-void ufshci_utm_req_queue_destroy(struct ufshci_controller *ctrlr);
-void ufshci_ut_req_queue_destroy(struct ufshci_controller *ctrlr);
-int ufshci_utm_req_queue_enable(struct ufshci_controller *ctrlr);
-int ufshci_ut_req_queue_enable(struct ufshci_controller *ctrlr);
+int ufshci_utmr_req_queue_construct(struct ufshci_controller *ctrlr);
+int ufshci_utr_req_queue_construct(struct ufshci_controller *ctrlr);
+void ufshci_utmr_req_queue_destroy(struct ufshci_controller *ctrlr);
+void ufshci_utr_req_queue_destroy(struct ufshci_controller *ctrlr);
+int ufshci_utmr_req_queue_enable(struct ufshci_controller *ctrlr);
+int ufshci_utr_req_queue_enable(struct ufshci_controller *ctrlr);
 void ufshci_req_queue_fail(struct ufshci_controller *ctrlr,
     struct ufshci_hw_queue *hwq);
 int ufshci_req_queue_submit_request(struct ufshci_req_queue *req_queue,
@@ -385,9 +408,17 @@ int ufshci_req_sdb_enable(struct ufshci_controller *ctrlr,
     struct ufshci_req_queue *req_queue);
 int ufshci_req_sdb_reserve_slot(struct ufshci_req_queue *req_queue,
     struct ufshci_tracker **tr);
-void ufshci_req_sdb_ring_doorbell(struct ufshci_controller *ctrlr,
+void ufshci_req_sdb_utmr_ring_doorbell(struct ufshci_controller *ctrlr,
     struct ufshci_tracker *tr);
-void ufshci_req_sdb_clear_cpl_ntf(struct ufshci_controller *ctrlr,
+void ufshci_req_sdb_utr_ring_doorbell(struct ufshci_controller *ctrlr,
+    struct ufshci_tracker *tr);
+bool ufshci_req_sdb_utmr_is_doorbell_cleared(struct ufshci_controller *ctrlr,
+    uint8_t slot);
+bool ufshci_req_sdb_utr_is_doorbell_cleared(struct ufshci_controller *ctrlr,
+    uint8_t slot);
+void ufshci_req_sdb_utmr_clear_cpl_ntf(struct ufshci_controller *ctrlr,
+    struct ufshci_tracker *tr);
+void ufshci_req_sdb_utr_clear_cpl_ntf(struct ufshci_controller *ctrlr,
     struct ufshci_tracker *tr);
 bool ufshci_req_sdb_process_cpl(struct ufshci_req_queue *req_queue);
 int ufshci_req_sdb_get_inflight_io(struct ufshci_controller *ctrlr);

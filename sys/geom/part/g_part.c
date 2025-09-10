@@ -998,7 +998,7 @@ g_part_ctl_create(struct gctl_req *req, struct g_part_parms *gpp)
 	}
 
 	if (null == NULL)
-		gp = g_new_geomf(&g_part_class, "%s", pp->name);
+		gp = g_new_geom(&g_part_class, pp->name);
 	gp->softc = kobj_create((kobj_class_t)gpp->gpp_scheme, M_GEOM,
 	    M_WAITOK);
 	table = gp->softc;
@@ -1046,7 +1046,7 @@ g_part_ctl_create(struct gctl_req *req, struct g_part_parms *gpp)
 	/*
 	 * Synthesize a disk geometry. Some partitioning schemes
 	 * depend on it and since some file systems need it even
-	 * when the partitition scheme doesn't, we do it here in
+	 * when the partition scheme doesn't, we do it here in
 	 * scheme-independent code.
 	 */
 	g_part_geometry(table, cp, pp->mediasize / pp->sectorsize);
@@ -1539,7 +1539,7 @@ g_part_ctl_undo(struct gctl_req *req, struct g_part_parms *gpp)
 		/*
 		 * Synthesize a disk geometry. Some partitioning schemes
 		 * depend on it and since some file systems need it even
-		 * when the partitition scheme doesn't, we do it here in
+		 * when the partition scheme doesn't, we do it here in
 		 * scheme-independent code.
 		 */
 		pp = cp->provider;
@@ -1979,7 +1979,7 @@ g_part_taste(struct g_class *mp, struct g_provider *pp, int flags __unused)
 	 * With that we become part of the topology. Obtain read access
 	 * to the provider.
 	 */
-	gp = g_new_geomf(mp, "%s", pp->name);
+	gp = g_new_geom(mp, pp->name);
 	cp = g_new_consumer(gp);
 	cp->flags |= G_CF_DIRECT_SEND | G_CF_DIRECT_RECEIVE;
 	error = g_attach(cp, pp);
@@ -2023,7 +2023,7 @@ g_part_taste(struct g_class *mp, struct g_provider *pp, int flags __unused)
 	/*
 	 * Synthesize a disk geometry. Some partitioning schemes
 	 * depend on it and since some file systems need it even
-	 * when the partitition scheme doesn't, we do it here in
+	 * when the partition scheme doesn't, we do it here in
 	 * scheme-independent code.
 	 */
 	g_part_geometry(table, cp, pp->mediasize / pp->sectorsize);

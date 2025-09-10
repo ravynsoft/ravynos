@@ -4,7 +4,7 @@
  * Copyright (c) 2010 Panasas, Inc.
  * Copyright (c) 2013-2016 Mellanox Technologies, Ltd.
  * All rights reserved.
- * Copyright (c) 2020-2022 The FreeBSD Foundation
+ * Copyright (c) 2020-2025 The FreeBSD Foundation
  *
  * Portions of this software were developed by Björn Zeeb
  * under sponsorship from the FreeBSD Foundation.
@@ -223,11 +223,11 @@ enum pcie_link_width {
 
 typedef int pci_power_t;
 
-#define PCI_D0	PCI_POWERSTATE_D0
-#define PCI_D1	PCI_POWERSTATE_D1
-#define PCI_D2	PCI_POWERSTATE_D2
-#define PCI_D3hot	PCI_POWERSTATE_D3
-#define PCI_D3cold	4
+#define PCI_D0		PCI_POWERSTATE_D0
+#define PCI_D1		PCI_POWERSTATE_D1
+#define PCI_D2		PCI_POWERSTATE_D2
+#define PCI_D3hot	PCI_POWERSTATE_D3_HOT
+#define PCI_D3cold	PCI_POWERSTATE_D3_COLD
 
 #define PCI_POWER_ERROR	PCI_POWERSTATE_UNKNOWN
 
@@ -355,20 +355,22 @@ struct pci_dev {
 	TAILQ_HEAD(, pci_mmio_region)	mmio;
 };
 
-int pci_request_region(struct pci_dev *pdev, int bar, const char *res_name);
 int pci_alloc_irq_vectors(struct pci_dev *pdev, int minv, int maxv,
     unsigned int flags);
 bool pci_device_is_present(struct pci_dev *pdev);
 
 int linuxkpi_pcim_enable_device(struct pci_dev *pdev);
 void __iomem **linuxkpi_pcim_iomap_table(struct pci_dev *pdev);
-void *linuxkpi_pci_iomap_range(struct pci_dev *pdev, int mmio_bar,
-    unsigned long mmio_off, unsigned long mmio_size);
-void *linuxkpi_pci_iomap(struct pci_dev *pdev, int mmio_bar, int mmio_size);
+void *linuxkpi_pci_iomap_range(struct pci_dev *, int,
+    unsigned long, unsigned long);
+void *linuxkpi_pci_iomap(struct pci_dev *, int, unsigned long);
+void *linuxkpi_pcim_iomap(struct pci_dev *, int, unsigned long);
 void linuxkpi_pci_iounmap(struct pci_dev *pdev, void *res);
 int linuxkpi_pcim_iomap_regions(struct pci_dev *pdev, uint32_t mask,
     const char *name);
+int linuxkpi_pci_request_region(struct pci_dev *, int, const char *);
 int linuxkpi_pci_request_regions(struct pci_dev *pdev, const char *res_name);
+int linuxkpi_pcim_request_all_regions(struct pci_dev *, const char *);
 void linuxkpi_pci_release_region(struct pci_dev *pdev, int bar);
 void linuxkpi_pci_release_regions(struct pci_dev *pdev);
 int linuxkpi_pci_enable_msix(struct pci_dev *pdev, struct msix_entry *entries,
@@ -377,14 +379,7 @@ int linuxkpi_pci_enable_msix(struct pci_dev *pdev, struct msix_entry *entries,
 /* Internal helper function(s). */
 struct pci_dev *lkpinew_pci_dev(device_t);
 void lkpi_pci_devres_release(struct device *, void *);
-void __iomem *pci_iomap_range(struct pci_dev *dev,
-			      int bar,
-			      unsigned long offset,
-			      unsigned long maxlen);
-static struct resource *_lkpi_pci_iomap(struct pci_dev *pdev, int bar, int mmio_size);
-static struct pcim_iomap_devres *lkpi_pcim_iomap_devres_find(struct pci_dev *pdev);
-static void lkpi_pcim_iomap_table_release(struct device *, void *);
-struct pci_dev *lkpi_pci_get_device(uint16_t, uint16_t, struct pci_dev *);
+struct pci_dev *lkpi_pci_get_device(uint32_t, uint32_t, struct pci_dev *);
 struct msi_desc *lkpi_pci_msi_desc_alloc(int);
 struct device *lkpi_pci_find_irq_dev(unsigned int irq);
 int _lkpi_pci_enable_msi_range(struct pci_dev *pdev, int minvec, int maxvec);
@@ -568,10 +563,16 @@ done:
 	return (pdev->bus->self);
 }
 
-#define	pci_release_region(pdev, bar)	linuxkpi_pci_release_region(pdev, bar)
-#define	pci_release_regions(pdev)	linuxkpi_pci_release_regions(pdev)
-#define	pci_request_regions(pdev, res_name) \
-	linuxkpi_pci_request_regions(pdev, res_name)
+#define	pci_request_region(pdev, bar, res_name)				\
+    linuxkpi_pci_request_region(pdev, bar, res_name)
+#define	pci_release_region(pdev, bar)					\
+    linuxkpi_pci_release_region(pdev, bar)
+#define	pci_request_regions(pdev, res_name)				\
+    linuxkpi_pci_request_regions(pdev, res_name)
+#define	pci_release_regions(pdev)					\
+    linuxkpi_pci_release_regions(pdev)
+#define	pcim_request_all_regions(pdev, name)				\
+    linuxkpi_pcim_request_all_regions(pdev, name)
 
 static inline void
 lkpi_pci_disable_msix(struct pci_dev *pdev)
@@ -737,8 +738,10 @@ int	linux_pci_register_drm_driver(struct pci_driver *pdrv);
 void	linux_pci_unregister_driver(struct pci_driver *pdrv);
 void	linux_pci_unregister_drm_driver(struct pci_driver *pdrv);
 
-#define	pci_register_driver(pdrv)	linux_pci_register_driver(pdrv)
-#define	pci_unregister_driver(pdrv)	linux_pci_unregister_driver(pdrv)
+#define	pci_register_driver(pdrv)					\
+    linux_pci_register_driver(pdrv)
+#define	pci_unregister_driver(pdrv)					\
+    linux_pci_unregister_driver(pdrv)
 
 /*
  * Enable msix, positive errors indicate actual number of available
@@ -747,10 +750,11 @@ void	linux_pci_unregister_drm_driver(struct pci_driver *pdrv);
  * NB: define added to prevent this definition of pci_enable_msix from
  * clashing with the native FreeBSD version.
  */
-#define	pci_enable_msix(...)	linuxkpi_pci_enable_msix(__VA_ARGS__)
+#define	pci_enable_msix(...)						\
+    linuxkpi_pci_enable_msix(__VA_ARGS__)
 
-#define	pci_enable_msix_range(...) \
-  linux_pci_enable_msix_range(__VA_ARGS__)
+#define	pci_enable_msix_range(...)					\
+    linux_pci_enable_msix_range(__VA_ARGS__)
 
 static inline int
 pci_enable_msix_range(struct pci_dev *dev, struct msix_entry *entries,
@@ -775,8 +779,8 @@ pci_enable_msix_range(struct pci_dev *dev, struct msix_entry *entries,
 	return (nvec);
 }
 
-#define	pci_enable_msi(pdev) \
-  linux_pci_enable_msi(pdev)
+#define	pci_enable_msi(pdev)						\
+    linux_pci_enable_msi(pdev)
 
 static inline int
 pci_enable_msi(struct pci_dev *pdev)
@@ -801,11 +805,14 @@ static inline void pci_disable_sriov(struct pci_dev *dev)
 {
 }
 
-#define	pci_iomap_range(pdev, mmio_bar, mmio_off, mmio_size) \
-	linuxkpi_pci_iomap_range(pdev, mmio_bar, mmio_off, mmio_size)
-#define	pci_iomap(pdev, mmio_bar, mmio_size) \
-	linuxkpi_pci_iomap(pdev, mmio_bar, mmio_size)
-#define	pci_iounmap(pdev, res)	linuxkpi_pci_iounmap(pdev, res)
+#define	pci_iomap_range(pdev, mmio_bar, mmio_off, mmio_size)		\
+    linuxkpi_pci_iomap_range(pdev, mmio_bar, mmio_off, mmio_size)
+#define	pci_iomap(pdev, mmio_bar, mmio_size)				\
+    linuxkpi_pci_iomap(pdev, mmio_bar, mmio_size)
+#define	pcim_iomap(pdev, bar, maxlen)					\
+    linuxkpi_pcim_iomap(pdev, bar, maxlen)
+#define	pci_iounmap(pdev, res)						\
+    linuxkpi_pci_iounmap(pdev, res)
 
 static inline void
 lkpi_pci_save_state(struct pci_dev *pdev)
@@ -1394,10 +1401,12 @@ struct pci_dev *lkpi_pci_get_base_class(unsigned int class,
 
 /* -------------------------------------------------------------------------- */
 
-#define	pcim_enable_device(pdev)	linuxkpi_pcim_enable_device(pdev)
-#define	pcim_iomap_table(pdev)	 linuxkpi_pcim_iomap_table(pdev)
-#define	pcim_iomap_regions(pdev, mask, name) \
-	linuxkpi_pcim_iomap_regions(pdev,  mask, name)
+#define	pcim_enable_device(pdev)					\
+    linuxkpi_pcim_enable_device(pdev)
+#define	pcim_iomap_table(pdev)						\
+    linuxkpi_pcim_iomap_table(pdev)
+#define	pcim_iomap_regions(pdev, mask, name)				\
+    linuxkpi_pcim_iomap_regions(pdev,  mask, name)
 
 static inline int
 pcim_iomap_regions_request_all(struct pci_dev *pdev, uint32_t mask, char *name)
@@ -1438,11 +1447,14 @@ err:
  * using pci_get_device() need to be changed to call linuxkpi_pci_get_device().
  */
 static inline struct pci_dev *
-linuxkpi_pci_get_device(uint16_t vendor, uint16_t device, struct pci_dev *odev)
+linuxkpi_pci_get_device(uint32_t vendor, uint32_t device, struct pci_dev *odev)
 {
 
 	return (lkpi_pci_get_device(vendor, device, odev));
 }
+
+#define	for_each_pci_dev(_pdev)						\
+    while ((_pdev = linuxkpi_pci_get_device(PCI_ANY_ID, PCI_ANY_ID, _pdev)) != NULL)
 
 /* This is a FreeBSD extension so we can use bus_*(). */
 static inline void

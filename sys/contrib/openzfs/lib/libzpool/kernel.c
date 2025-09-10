@@ -38,6 +38,7 @@
 #include <sys/processor.h>
 #include <sys/rrwlock.h>
 #include <sys/spa.h>
+#include <sys/spa_impl.h>
 #include <sys/stat.h>
 #include <sys/systeminfo.h>
 #include <sys/time.h>
@@ -369,7 +370,7 @@ cv_timedwait(kcondvar_t *cv, kmutex_t *mp, clock_t abstime)
 	if (delta <= 0)
 		return (-1);
 
-	VERIFY(gettimeofday(&tv, NULL) == 0);
+	VERIFY0(gettimeofday(&tv, NULL));
 
 	ts.tv_sec = tv.tv_sec + delta / hz;
 	ts.tv_nsec = tv.tv_usec * NSEC_PER_USEC + (delta % hz) * (NANOSEC / hz);
@@ -811,6 +812,79 @@ umem_out_of_memory(void)
 	return (0);
 }
 
+static void
+spa_config_load(void)
+{
+	void *buf = NULL;
+	nvlist_t *nvlist, *child;
+	nvpair_t *nvpair;
+	char *pathname;
+	zfs_file_t *fp;
+	zfs_file_attr_t zfa;
+	uint64_t fsize;
+	int err;
+
+	/*
+	 * Open the configuration file.
+	 */
+	pathname = kmem_alloc(MAXPATHLEN, KM_SLEEP);
+
+	(void) snprintf(pathname, MAXPATHLEN, "%s", spa_config_path);
+
+	err = zfs_file_open(pathname, O_RDONLY, 0, &fp);
+	if (err)
+		err = zfs_file_open(ZPOOL_CACHE_BOOT, O_RDONLY, 0, &fp);
+
+	kmem_free(pathname, MAXPATHLEN);
+
+	if (err)
+		return;
+
+	if (zfs_file_getattr(fp, &zfa))
+		goto out;
+
+	fsize = zfa.zfa_size;
+	buf = kmem_alloc(fsize, KM_SLEEP);
+
+	/*
+	 * Read the nvlist from the file.
+	 */
+	if (zfs_file_read(fp, buf, fsize, NULL) < 0)
+		goto out;
+
+	/*
+	 * Unpack the nvlist.
+	 */
+	if (nvlist_unpack(buf, fsize, &nvlist, KM_SLEEP) != 0)
+		goto out;
+
+	/*
+	 * Iterate over all elements in the nvlist, creating a new spa_t for
+	 * each one with the specified configuration.
+	 */
+	mutex_enter(&spa_namespace_lock);
+	nvpair = NULL;
+	while ((nvpair = nvlist_next_nvpair(nvlist, nvpair)) != NULL) {
+		if (nvpair_type(nvpair) != DATA_TYPE_NVLIST)
+			continue;
+
+		child = fnvpair_value_nvlist(nvpair);
+
+		if (spa_lookup(nvpair_name(nvpair)) != NULL)
+			continue;
+		(void) spa_add(nvpair_name(nvpair), child, NULL);
+	}
+	mutex_exit(&spa_namespace_lock);
+
+	nvlist_free(nvlist);
+
+out:
+	if (buf != NULL)
+		kmem_free(buf, fsize);
+
+	zfs_file_close(fp);
+}
+
 void
 kernel_init(int mode)
 {
@@ -835,6 +909,7 @@ kernel_init(int mode)
 	zstd_init();
 
 	spa_init((spa_mode_t)mode);
+	spa_config_load();
 
 	fletcher_4_init();
 
@@ -1025,25 +1100,13 @@ spl_fstrans_unmark(fstrans_cookie_t cookie)
 }
 
 int
-__spl_pf_fstrans_check(void)
-{
-	return (0);
-}
-
-int
 kmem_cache_reap_active(void)
 {
 	return (0);
 }
 
 void
-zvol_create_minor(const char *name)
-{
-	(void) name;
-}
-
-void
-zvol_create_minors_recursive(const char *name)
+zvol_create_minors(const char *name)
 {
 	(void) name;
 }
@@ -1073,8 +1136,8 @@ zvol_rename_minors(spa_t *spa, const char *oldname, const char *newname,
 int
 zfs_file_open(const char *path, int flags, int mode, zfs_file_t **fpp)
 {
-	int fd = -1;
-	int dump_fd = -1;
+	int fd;
+	int dump_fd;
 	int err;
 	int old_umask = 0;
 	zfs_file_t *fp;

@@ -102,15 +102,15 @@
 
 #include <security/mac/mac_framework.h>
 
-VNET_DEFINE_STATIC(int, tcp_syncookies) = 1;
+VNET_DEFINE_STATIC(bool, tcp_syncookies) = true;
 #define	V_tcp_syncookies		VNET(tcp_syncookies)
-SYSCTL_INT(_net_inet_tcp, OID_AUTO, syncookies, CTLFLAG_VNET | CTLFLAG_RW,
+SYSCTL_BOOL(_net_inet_tcp, OID_AUTO, syncookies, CTLFLAG_VNET | CTLFLAG_RW,
     &VNET_NAME(tcp_syncookies), 0,
     "Use TCP SYN cookies if the syncache overflows");
 
-VNET_DEFINE_STATIC(int, tcp_syncookiesonly) = 0;
+VNET_DEFINE_STATIC(bool, tcp_syncookiesonly) = false;
 #define	V_tcp_syncookiesonly		VNET(tcp_syncookiesonly)
-SYSCTL_INT(_net_inet_tcp, OID_AUTO, syncookies_only, CTLFLAG_VNET | CTLFLAG_RW,
+SYSCTL_BOOL(_net_inet_tcp, OID_AUTO, syncookies_only, CTLFLAG_VNET | CTLFLAG_RW,
     &VNET_NAME(tcp_syncookiesonly), 0,
     "Use only TCP SYN cookies");
 
@@ -553,9 +553,8 @@ syncache_timer(void *xsch)
 static inline bool
 syncache_cookiesonly(void)
 {
-
-	return (V_tcp_syncookies && (V_tcp_syncache.paused ||
-	    V_tcp_syncookiesonly));
+	return ((V_tcp_syncookies && V_tcp_syncache.paused) ||
+	    V_tcp_syncookiesonly);
 }
 
 /*
@@ -1083,40 +1082,48 @@ syncache_expand(struct in_conninfo *inc, struct tcpopt *to, struct tcphdr *th,
 #endif
 
 	if (sc == NULL) {
-		/*
-		 * There is no syncache entry, so see if this ACK is
-		 * a returning syncookie.  To do this, first:
-		 *  A. Check if syncookies are used in case of syncache
-		 *     overflows
-		 *  B. See if this socket has had a syncache entry dropped in
-		 *     the recent past. We don't want to accept a bogus
-		 *     syncookie if we've never received a SYN or accept it
-		 *     twice.
-		 *  C. check that the syncookie is valid.  If it is, then
-		 *     cobble up a fake syncache entry, and return.
-		 */
-		if (locked && !V_tcp_syncookies) {
+		if (locked) {
+			/*
+			 * The syncache is currently in use (neither disabled,
+			 * nor paused), but no entry was found.
+			 */
+			if (!V_tcp_syncookies) {
+				/*
+				 * Since no syncookies are used in case of
+				 * a bucket overflow, don't even check for
+				 * a valid syncookie.
+				 */
+				SCH_UNLOCK(sch);
+				TCPSTAT_INC(tcps_sc_spurcookie);
+				if ((s = tcp_log_addrs(inc, th, NULL, NULL)))
+					log(LOG_DEBUG, "%s; %s: Spurious ACK, "
+					    "segment rejected "
+					    "(syncookies disabled)\n",
+					    s, __func__);
+				goto failed;
+			}
+			if (sch->sch_last_overflow <
+			    time_uptime - SYNCOOKIE_LIFETIME) {
+				/*
+				 * Since the bucket did not overflow recently,
+				 * don't even check for a valid syncookie.
+				 */
+				SCH_UNLOCK(sch);
+				TCPSTAT_INC(tcps_sc_spurcookie);
+				if ((s = tcp_log_addrs(inc, th, NULL, NULL)))
+					log(LOG_DEBUG, "%s; %s: Spurious ACK, "
+					    "segment rejected "
+					    "(no syncache entry)\n",
+					    s, __func__);
+				goto failed;
+			}
 			SCH_UNLOCK(sch);
-			TCPSTAT_INC(tcps_sc_spurcookie);
-			if ((s = tcp_log_addrs(inc, th, NULL, NULL)))
-				log(LOG_DEBUG, "%s; %s: Spurious ACK, "
-				    "segment rejected (syncookies disabled)\n",
-				    s, __func__);
-			goto failed;
 		}
-		if (locked && !V_tcp_syncookiesonly &&
-		    sch->sch_last_overflow < time_uptime - SYNCOOKIE_LIFETIME) {
-			SCH_UNLOCK(sch);
-			TCPSTAT_INC(tcps_sc_spurcookie);
-			if ((s = tcp_log_addrs(inc, th, NULL, NULL)))
-				log(LOG_DEBUG, "%s; %s: Spurious ACK, "
-				    "segment rejected (no syncache entry)\n",
-				    s, __func__);
-			goto failed;
-		}
-		if (locked)
-			SCH_UNLOCK(sch);
 		bzero(&scs, sizeof(scs));
+		/*
+		 * Now check, if the syncookie is valid. If it is, create an on
+		 * stack syncache entry.
+		 */
 		if (syncookie_expand(inc, sch, &scs, th, to, *lsop, port)) {
 			sc = &scs;
 			TCPSTAT_INC(tcps_sc_recvcookie);
@@ -1291,10 +1298,9 @@ syncache_expand(struct in_conninfo *inc, struct tcpopt *to, struct tcphdr *th,
 	if (__predict_false(*lsop == NULL)) {
 		TCPSTAT_INC(tcps_sc_aborted);
 		TCPSTATES_DEC(TCPS_SYN_RECEIVED);
-	} else
+	} else if (sc != &scs)
 		TCPSTAT_INC(tcps_sc_completed);
 
-/* how do we find the inp for the new socket? */
 	if (sc != &scs)
 		syncache_free(sc);
 	return (1);
@@ -1669,7 +1675,7 @@ syncache_add(struct in_conninfo *inc, struct tcpopt *to, struct tcphdr *th,
 			sc->sc_tsoff = tcp_new_ts_offset(inc);
 		}
 		if ((to->to_flags & TOF_SCALE) && (V_tcp_do_rfc1323 != 3)) {
-			int wscale = 0;
+			u_int wscale = 0;
 
 			/*
 			 * Pick the smallest possible scaling factor that
@@ -1719,13 +1725,13 @@ syncache_add(struct in_conninfo *inc, struct tcpopt *to, struct tcphdr *th,
 	if (V_tcp_do_ecn && (tp->t_flags2 & TF2_CANNOT_DO_ECN) == 0)
 		sc->sc_flags |= tcp_ecn_syncache_add(tcp_get_flags(th), iptos);
 
-	if (V_tcp_syncookies)
+	if (V_tcp_syncookies || V_tcp_syncookiesonly)
 		sc->sc_iss = syncookie_generate(sch, sc);
 	else
 		sc->sc_iss = arc4random();
 #ifdef INET6
 	if (autoflowlabel) {
-		if (V_tcp_syncookies)
+		if (V_tcp_syncookies || V_tcp_syncookiesonly)
 			sc->sc_flowlabel = sc->sc_iss;
 		else
 			sc->sc_flowlabel = ip6_randomflowlabel();
@@ -2265,7 +2271,7 @@ syncookie_expand(struct in_conninfo *inc, const struct syncache_head *sch,
 	uint32_t hash;
 	uint8_t *secbits;
 	tcp_seq ack, seq;
-	int wnd, wscale = 0;
+	int wnd;
 	union syncookie cookie;
 
 	/*
@@ -2316,12 +2322,14 @@ syncookie_expand(struct in_conninfo *inc, const struct syncache_head *sch,
 
 	sc->sc_peer_mss = tcp_sc_msstab[cookie.flags.mss_idx];
 
-	/* We can simply recompute receive window scale we sent earlier. */
-	while (wscale < TCP_MAX_WINSHIFT && (TCP_MAXWIN << wscale) < sb_max)
-		wscale++;
-
 	/* Only use wscale if it was enabled in the orignal SYN. */
 	if (cookie.flags.wscale_idx > 0) {
+		u_int wscale = 0;
+
+		/* Recompute the receive window scale that was sent earlier. */
+		while (wscale < TCP_MAX_WINSHIFT &&
+		    (TCP_MAXWIN << wscale) < sb_max)
+			wscale++;
 		sc->sc_requested_r_scale = wscale;
 		sc->sc_requested_s_scale = tcp_sc_wstab[cookie.flags.wscale_idx];
 		sc->sc_flags |= SCF_WINSCALE;

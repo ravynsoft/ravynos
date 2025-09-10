@@ -1,6 +1,5 @@
 #
-# GENERIC-NODEBUG -- WITNESS and INVARIANTS free kernel configuration file
-#		     for FreeBSD/amd64
+# RAVYN --  Kernel configuration file without debugging for ravynOS
 #
 # This configuration file removes several debugging options, including
 # WITNESS and INVARIANTS checking, which are known to have significant
@@ -29,5 +28,6 @@
 include GENERIC
 include "../../conf/std.nodebug"
 nooptions	DEBUG_MEMGUARD
+options		THRWORKQ
 
 ident   RAVYN

@@ -87,6 +87,9 @@ enum mcast_filter_flags {
 	FIF_PSPOLL			= BIT(5),
 	FIF_CONTROL			= BIT(6),
 	FIF_MCAST_ACTION		= BIT(7),
+
+	/* Must stay last. */
+	FIF_FLAGS_MASK			= BIT(8)-1,
 };
 
 enum ieee80211_bss_changed {
@@ -734,7 +737,7 @@ struct ieee80211_link_sta {
 	struct ieee80211_he_6ghz_capa		he_6ghz_capa;
 	struct ieee80211_sta_eht_cap		eht_cap;
 	uint8_t					rx_nss;
-	enum ieee80211_sta_rx_bw		bandwidth;
+	enum ieee80211_sta_rx_bandwidth		bandwidth;
 	enum ieee80211_smps_mode		smps_mode;
 	struct ieee80211_sta_agg		agg;
 	struct ieee80211_sta_txpwr		txpwr;
@@ -1135,7 +1138,7 @@ extern const struct cfg80211_ops linuxkpi_mac80211cfgops;
 struct ieee80211_hw *linuxkpi_ieee80211_alloc_hw(size_t,
     const struct ieee80211_ops *);
 void linuxkpi_ieee80211_iffree(struct ieee80211_hw *);
-void linuxkpi_set_ieee80211_dev(struct ieee80211_hw *, char *);
+void linuxkpi_set_ieee80211_dev(struct ieee80211_hw *);
 int linuxkpi_ieee80211_ifattach(struct ieee80211_hw *);
 void linuxkpi_ieee80211_ifdetach(struct ieee80211_hw *);
 void linuxkpi_ieee80211_unregister_hw(struct ieee80211_hw *);
@@ -1184,7 +1187,7 @@ struct wireless_dev *linuxkpi_ieee80211_vif_to_wdev(struct ieee80211_vif *);
 void linuxkpi_ieee80211_connection_loss(struct ieee80211_vif *);
 void linuxkpi_ieee80211_beacon_loss(struct ieee80211_vif *);
 struct sk_buff *linuxkpi_ieee80211_probereq_get(struct ieee80211_hw *,
-    uint8_t *, uint8_t *, size_t, size_t);
+    const uint8_t *, const uint8_t *, size_t, size_t);
 void linuxkpi_ieee80211_tx_status(struct ieee80211_hw *, struct sk_buff *);
 void linuxkpi_ieee80211_tx_status_ext(struct ieee80211_hw *,
     struct ieee80211_tx_status *);
@@ -1255,7 +1258,7 @@ SET_IEEE80211_DEV(struct ieee80211_hw *hw, struct device *dev)
 {
 
 	set_wiphy_dev(hw->wiphy, dev);
-	linuxkpi_set_ieee80211_dev(hw, dev_name(dev));
+	linuxkpi_set_ieee80211_dev(hw);
 
 	IMPROVE();
 }
@@ -1741,12 +1744,15 @@ ieee80211_request_smps(struct ieee80211_vif *vif, u_int link_id,
 		"SMPS_STATIC",
 		"SMPS_DYNAMIC",
 		"SMPS_AUTOMATIC",
-		"SMPS_NUM_MODES"
 	};
 
-	if (linuxkpi_debug_80211 & D80211_TODO)
-		printf("%s:%d: XXX LKPI80211 TODO smps %d %s\n",
-		    __func__, __LINE__, smps, smps_mode_name[smps]);
+	if (vif->type != NL80211_IFTYPE_STATION)
+		return;
+
+	if (smps >= nitems(smps_mode_name))
+		panic("%s: unsupported smps value: %d\n", __func__, smps);
+
+	IMPROVE("XXX LKPI80211 TODO smps %d %s\n", smps, smps_mode_name[smps]);
 }
 
 static __inline void
@@ -2161,8 +2167,8 @@ ieee80211_nullfunc_get(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 }
 
 static __inline struct sk_buff *
-ieee80211_probereq_get(struct ieee80211_hw *hw, uint8_t *addr,
-    uint8_t *ssid, size_t ssid_len, size_t tailroom)
+ieee80211_probereq_get(struct ieee80211_hw *hw, const uint8_t *addr,
+    const uint8_t *ssid, size_t ssid_len, size_t tailroom)
 {
 
 	return (linuxkpi_ieee80211_probereq_get(hw, addr, ssid, ssid_len,

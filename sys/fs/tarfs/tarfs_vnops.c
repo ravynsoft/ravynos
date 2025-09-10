@@ -208,8 +208,7 @@ tarfs_getattr(struct vop_getattr_args *ap)
 	vap->va_birthtime = tnp->birthtime;
 	vap->va_gen = tnp->gen;
 	vap->va_flags = tnp->flags;
-	vap->va_rdev = (vp->v_type == VBLK || vp->v_type == VCHR) ?
-	    tnp->rdev : NODEV;
+	vap->va_rdev = VN_ISDEV(vp) ? tnp->rdev : NODEV;
 	vap->va_bytes = round_page(tnp->physize);
 	vap->va_filerev = 0;
 
@@ -335,6 +334,10 @@ tarfs_readdir(struct vop_readdir_args *ap)
 	    tnp, tnp->name, uio->uio_offset, uio->uio_resid);
 
 	if (uio->uio_offset == TARFS_COOKIE_EOF) {
+		if (eofflag != NULL) {
+			TARFS_DPF(VNODE, "%s: Setting EOF flag\n", __func__);
+			*eofflag = 1;
+		}
 		TARFS_DPF(VNODE, "%s: EOF\n", __func__);
 		return (0);
 	}
@@ -515,7 +518,7 @@ tarfs_read(struct vop_read_args *ap)
 	uiop = ap->a_uio;
 	vp = ap->a_vp;
 
-	if (vp->v_type == VCHR || vp->v_type == VBLK)
+	if (VN_ISDEV(vp))
 		return (EOPNOTSUPP);
 
 	if (vp->v_type != VREG)

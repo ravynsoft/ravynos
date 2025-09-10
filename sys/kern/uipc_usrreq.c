@@ -154,15 +154,12 @@ static struct task	unp_defer_task;
  * and don't really want to reserve the sendspace.  Their recvspace should be
  * large enough for at least one max-size datagram plus address.
  */
-#ifndef PIPSIZ
-#define	PIPSIZ	8192
-#endif
-static u_long	unpst_sendspace = PIPSIZ;
-static u_long	unpst_recvspace = PIPSIZ;
+static u_long	unpst_sendspace = 64*1024;
+static u_long	unpst_recvspace = 64*1024;
 static u_long	unpdg_maxdgram = 8*1024;	/* support 8KB syslog msgs */
 static u_long	unpdg_recvspace = 16*1024;
-static u_long	unpsp_sendspace = PIPSIZ;
-static u_long	unpsp_recvspace = PIPSIZ;
+static u_long	unpsp_sendspace = 64*1024;
+static u_long	unpsp_recvspace = 64*1024;
 
 static SYSCTL_NODE(_net, PF_LOCAL, local, CTLFLAG_RW | CTLFLAG_MPSAFE, 0,
     "Local domain");
@@ -1810,9 +1807,7 @@ uipc_filt_sowrite(struct knote *kn, long hint)
 	kn->kn_data = uipc_stream_sbspace(&so2->so_rcv);
 
 	if (so2->so_rcv.sb_state & SBS_CANTRCVMORE) {
-		/*
-		 * XXXGL: maybe kn->kn_flags |= EV_EOF ?
-		 */
+		kn->kn_flags |= EV_EOF;
 		return (1);
 	} else if (kn->kn_sfflags & NOTE_LOWAT)
 		return (kn->kn_data >= kn->kn_sdata);

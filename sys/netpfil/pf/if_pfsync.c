@@ -123,8 +123,8 @@ union inet_template {
 	sizeof(struct pfsync_header) + \
 	sizeof(struct pfsync_subheader) )
 
-static int	pfsync_upd_tcp(struct pf_kstate *, struct pfsync_state_peer *,
-		    struct pfsync_state_peer *);
+static int	pfsync_upd_tcp(struct pf_kstate *, struct pf_state_peer_export *,
+		    struct pf_state_peer_export *);
 static int	pfsync_in_clr(struct mbuf *, int, int, int, int);
 static int	pfsync_in_ins(struct mbuf *, int, int, int, int);
 static int	pfsync_in_iack(struct mbuf *, int, int, int, int);
@@ -330,7 +330,7 @@ SYSCTL_UINT(_net_pfsync, OID_AUTO, defer_delay, CTLFLAG_VNET | CTLFLAG_RW,
 
 static int	pfsync_clone_create(struct if_clone *, int, caddr_t);
 static void	pfsync_clone_destroy(struct ifnet *);
-static int	pfsync_alloc_scrub_memory(struct pfsync_state_peer *,
+static int	pfsync_alloc_scrub_memory(struct pf_state_peer_export *,
 		    struct pf_state_peer *);
 static int	pfsyncoutput(struct ifnet *, struct mbuf *,
 		    const struct sockaddr *, struct route *);
@@ -502,7 +502,7 @@ pfsync_clone_destroy(struct ifnet *ifp)
 }
 
 static int
-pfsync_alloc_scrub_memory(struct pfsync_state_peer *s,
+pfsync_alloc_scrub_memory(struct pf_state_peer_export *s,
     struct pf_state_peer *d)
 {
 	if (s->scrub.scrub_flag && d->scrub == NULL) {
@@ -529,6 +529,7 @@ pfsync_state_import(union pfsync_state_union *sp, int flags, int msg_version)
 	struct pfi_kkif		*rt_kif = NULL;
 	struct pf_kpooladdr	*rpool_first;
 	int			 error;
+	sa_family_t		 rt_af = 0;
 	uint8_t			 rt = 0;
 	int			 n = 0;
 
@@ -602,6 +603,12 @@ pfsync_state_import(union pfsync_state_union *sp, int flags, int msg_version)
 			}
 			rt = r->rt;
 			rt_kif = rpool_first->kif;
+			/*
+			 * Guess the AF of the route address, FreeBSD 13 does
+			 * not support af-to nor prefer-ipv6-nexthop
+			 * so it should be safe.
+			 */
+			rt_af = r->af;
 		} else if (!PF_AZERO(&sp->pfs_1301.rt_addr, sp->pfs_1301.af)) {
 			/*
 			 * Ruleset different, routing *supposedly* requested,
@@ -627,6 +634,12 @@ pfsync_state_import(union pfsync_state_union *sp, int flags, int msg_version)
 				return ((flags & PFSYNC_SI_IOCTL) ? EINVAL : 0);
 			}
 			rt = sp->pfs_1400.rt;
+			/*
+			 * Guess the AF of the route address, FreeBSD 14 does
+			 * not support af-to nor prefer-ipv6-nexthop
+			 * so it should be safe.
+			 */
+			rt_af = sp->pfs_1400.af;
 		}
 	break;
 	}
@@ -706,6 +719,7 @@ pfsync_state_import(union pfsync_state_union *sp, int flags, int msg_version)
 
 	st->act.rt = rt;
 	st->act.rt_kif = rt_kif;
+	st->act.rt_af = rt_af;
 
 	switch (msg_version) {
 		case PFSYNC_MSG_VERSION_1301:
@@ -1160,8 +1174,8 @@ pfsync_in_iack(struct mbuf *m, int offset, int count, int flags, int action)
 }
 
 static int
-pfsync_upd_tcp(struct pf_kstate *st, struct pfsync_state_peer *src,
-    struct pfsync_state_peer *dst)
+pfsync_upd_tcp(struct pf_kstate *st, struct pf_state_peer_export *src,
+    struct pf_state_peer_export *dst)
 {
 	int sync = 0;
 
@@ -1729,16 +1743,16 @@ pfsyncioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
 		if (ifr->ifr_cap_nv.length > IFR_CAP_NV_MAXBUFSIZE)
 			return (EINVAL);
 
-		data = malloc(ifr->ifr_cap_nv.length, M_TEMP, M_WAITOK);
+		data = malloc(ifr->ifr_cap_nv.length, M_PF, M_WAITOK);
 
 		if ((error = copyin(ifr->ifr_cap_nv.buffer, data,
 		    ifr->ifr_cap_nv.length)) != 0) {
-			free(data, M_TEMP);
+			free(data, M_PF);
 			return (error);
 		}
 
 		if ((nvl = nvlist_unpack(data, ifr->ifr_cap_nv.length, 0)) == NULL) {
-			free(data, M_TEMP);
+			free(data, M_PF);
 			return (EINVAL);
 		}
 
@@ -1746,7 +1760,7 @@ pfsyncioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
 		pfsync_nvstatus_to_kstatus(nvl, &status);
 
 		nvlist_destroy(nvl);
-		free(data, M_TEMP);
+		free(data, M_PF);
 
 		error = pfsync_kstatus_to_softc(&status, sc);
 		return (error);

@@ -8,6 +8,7 @@ lib/systemd/system/zfs-import-scan.service
 lib/systemd/system/zfs-import.target
 lib/systemd/system/zfs-load-key.service
 lib/systemd/system/zfs-mount.service
+lib/systemd/system/zfs-mount@.service
 lib/systemd/system/zfs-scrub-monthly@.timer
 lib/systemd/system/zfs-scrub-weekly@.timer
 lib/systemd/system/zfs-scrub@.service
@@ -36,7 +37,9 @@ usr/lib/zfs-linux/zpool.d/
 usr/lib/zfs-linux/zpool_influxdb
 usr/lib/zfs-linux/zfs_prepare_disk
 usr/sbin/arc_summary
+usr/sbin/zarcsummary
 usr/sbin/arcstat
+usr/sbin/zarcstat
 usr/sbin/dbufstat
 usr/sbin/zilstat
 usr/share/zfs/compatibility.d/

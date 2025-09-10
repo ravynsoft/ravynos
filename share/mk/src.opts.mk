@@ -123,6 +123,7 @@ __DEFAULT_YES_OPTIONS = \
     LEGACY_CONSOLE \
     LLD \
     LLD_BOOTSTRAP \
+    LLVM_ASSERTIONS \
     LLVM_BINUTILS \
     LLVM_COV \
     LLVM_CXXFILT \
@@ -209,12 +210,10 @@ __DEFAULT_NO_OPTIONS = \
     HESIOD \
     LOADER_VERBOSE \
     LOADER_VERIEXEC_PASS_MANIFEST \
-    LLVM_ASSERTIONS \
     LLVM_FULL_DEBUGINFO \
     MALLOC_PRODUCTION \
     OFED_EXTRA \
     OPENLDAP \
-    REPRODUCIBLE_BUILD \
     RPCBIND_WARMSTART_SUPPORT \
     SORT_THREADS \
     ZONEINFO_LEAPSECONDS_SUPPORT \
@@ -296,9 +295,9 @@ __DEFAULT_NO_OPTIONS+=LLVM_TARGET_BPF LLVM_TARGET_MIPS
 .include <bsd.compiler.mk>
 
 .if ${__T} == "i386" || ${__T} == "amd64"
-__DEFAULT_NO_OPTIONS += FDT
+__DEFAULT_NO_OPTIONS+=FDT
 .else
-__DEFAULT_YES_OPTIONS += FDT
+__DEFAULT_YES_OPTIONS+=FDT
 .endif
 
 .if ${__T:Marm*} == "" && ${__T:Mriscv64*} == ""
@@ -508,7 +507,7 @@ MK_LOADER_VERIEXEC_PASS_MANIFEST := no
 # MK_* options whose default value depends on another option.
 #
 .for vv in \
-    GSSAPI/KERBEROS \
+    KERBEROS_SUPPORT/KERBEROS \
     MAN_UTILS/MAN
 .if defined(WITH_${vv:H})
 MK_${vv:H}:=	yes
@@ -518,9 +517,5 @@ MK_${vv:H}:=	no
 MK_${vv:H}:=	${MK_${vv:T}}
 .endif
 .endfor
-
-#
-# Set defaults for the MK_*_SUPPORT variables.
-#
 
 .endif #  !target(__<src.opts.mk>__)

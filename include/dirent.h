@@ -115,9 +115,6 @@ DIR	*opendir(const char *);
 DIR	*fdopendir(int);
 struct dirent *
 	 readdir(DIR *);
-#if __POSIX_VISIBLE >= 199506 || __XSI_VISIBLE >= 500
-int	 readdir_r(DIR *, struct dirent *, struct dirent **);
-#endif
 void	 rewinddir(DIR *);
 #if __POSIX_VISIBLE >= 200809 || __XSI_VISIBLE >= 700
 int	 scandir(const char *, struct dirent ***,

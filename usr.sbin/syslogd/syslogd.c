@@ -1830,15 +1830,14 @@ fprintlog_write(struct filed *f, struct iovlist *il, int flags)
 			case EHOSTUNREACH:
 			case EHOSTDOWN:
 			case EADDRNOTAVAIL:
+			case EAGAIN:
+			case ECONNREFUSED:
 				break;
 			/* case EBADF: */
 			/* case EACCES: */
 			/* case ENOTSOCK: */
 			/* case EFAULT: */
 			/* case EMSGSIZE: */
-			/* case EAGAIN: */
-			/* case ENOBUFS: */
-			/* case ECONNREFUSED: */
 			default:
 				dprintf("removing entry: errno=%d\n", e);
 				f->f_type = F_UNUSED;
@@ -2571,7 +2570,7 @@ syslogd_cap_enter(void)
 	if (cap_syslogd == NULL)
 		err(1, "Failed to open the syslogd.casper libcasper service");
 	cap_net = cap_service_open(cap_casper, "system.net");
-	if (cap_syslogd == NULL)
+	if (cap_net == NULL)
 		err(1, "Failed to open the system.net libcasper service");
 	cap_close(cap_casper);
 	limit = cap_net_limit_init(cap_net,

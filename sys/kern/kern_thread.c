@@ -575,7 +575,7 @@ threadinit(void)
 
 	/*
 	 * Thread structures are specially aligned so that (at least) the
-	 * 5 lower bits of a pointer to 'struct thead' must be 0.  These bits
+	 * 5 lower bits of a pointer to 'struct thread' must be 0.  These bits
 	 * are used by synchronization primitives to store flags in pointers to
 	 * such structures.
 	 */
@@ -1704,8 +1704,10 @@ thread_single_end(struct proc *p, int mode)
 				thread_unlock(td);
 		}
 	}
-	KASSERT(mode != SINGLE_BOUNDARY || p->p_boundary_count == 0,
-	    ("inconsistent boundary count %d", p->p_boundary_count));
+	KASSERT(mode != SINGLE_BOUNDARY || P_SHOULDSTOP(p) ||
+	    p->p_boundary_count == 0,
+	    ("pid %d proc %p flags %#x inconsistent boundary count %d",
+	    p->p_pid, p, p->p_flag, p->p_boundary_count));
 	PROC_SUNLOCK(p);
 	wakeup(&p->p_flag);
 }

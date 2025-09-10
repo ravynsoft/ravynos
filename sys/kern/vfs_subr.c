@@ -97,10 +97,6 @@
 #include <vm/vnode_pager.h>
 #include <vm/uma.h>
 
-#if defined(DEBUG_VFS_LOCKS) && (!defined(INVARIANTS) || !defined(WITNESS))
-#error DEBUG_VFS_LOCKS requires INVARIANTS and WITNESS
-#endif
-
 #ifdef DDB
 #include <ddb/ddb.h>
 #endif
@@ -2190,6 +2186,8 @@ freevnode(struct vnode *vp)
 {
 	struct bufobj *bo;
 
+	ASSERT_VOP_UNLOCKED(vp, __func__);
+
 	/*
 	 * The vnode has been marked for destruction, so free it.
 	 *
@@ -2226,12 +2224,16 @@ freevnode(struct vnode *vp)
 	mac_vnode_destroy(vp);
 #endif
 	if (vp->v_pollinfo != NULL) {
+		int error __diagused;
+
 		/*
 		 * Use LK_NOWAIT to shut up witness about the lock. We may get
 		 * here while having another vnode locked when trying to
 		 * satisfy a lookup and needing to recycle.
 		 */
-		VOP_LOCK(vp, LK_EXCLUSIVE | LK_NOWAIT);
+		error = VOP_LOCK(vp, LK_EXCLUSIVE | LK_NOWAIT);
+		VNASSERT(error == 0, vp,
+		    ("freevnode: cannot lock vp %p for pollinfo destroy", vp));
 		destroy_vpollinfo(vp->v_pollinfo);
 		VOP_UNLOCK(vp);
 		vp->v_pollinfo = NULL;
@@ -5736,102 +5738,69 @@ extattr_check_cred(struct vnode *vp, int attrnamespace, struct ucred *cred,
 	}
 }
 
-#ifdef DEBUG_VFS_LOCKS
-int vfs_badlock_ddb = 1;	/* Drop into debugger on violation. */
-SYSCTL_INT(_debug, OID_AUTO, vfs_badlock_ddb, CTLFLAG_RW, &vfs_badlock_ddb, 0,
-    "Drop into debugger on lock violation");
-
-int vfs_badlock_mutex = 1;	/* Check for interlock across VOPs. */
-SYSCTL_INT(_debug, OID_AUTO, vfs_badlock_mutex, CTLFLAG_RW, &vfs_badlock_mutex,
-    0, "Check for interlock across VOPs");
-
-int vfs_badlock_print = 1;	/* Print lock violations. */
-SYSCTL_INT(_debug, OID_AUTO, vfs_badlock_print, CTLFLAG_RW, &vfs_badlock_print,
-    0, "Print lock violations");
-
-int vfs_badlock_vnode = 1;	/* Print vnode details on lock violations. */
-SYSCTL_INT(_debug, OID_AUTO, vfs_badlock_vnode, CTLFLAG_RW, &vfs_badlock_vnode,
-    0, "Print vnode details on lock violations");
-
-#ifdef KDB
-int vfs_badlock_backtrace = 1;	/* Print backtrace at lock violations. */
-SYSCTL_INT(_debug, OID_AUTO, vfs_badlock_backtrace, CTLFLAG_RW,
-    &vfs_badlock_backtrace, 0, "Print backtrace at lock violations");
-#endif
-
-static void
-vfs_badlock(const char *msg, const char *str, struct vnode *vp)
-{
-
-#ifdef KDB
-	if (vfs_badlock_backtrace)
-		kdb_backtrace();
-#endif
-	if (vfs_badlock_vnode)
-		vn_printf(vp, "vnode ");
-	if (vfs_badlock_print)
-		printf("%s: %p %s\n", str, (void *)vp, msg);
-	if (vfs_badlock_ddb)
-		kdb_enter(KDB_WHY_VFSLOCK, "lock violation");
-}
-
+#ifdef INVARIANTS
 void
 assert_vi_locked(struct vnode *vp, const char *str)
 {
-
-	if (vfs_badlock_mutex && !mtx_owned(VI_MTX(vp)))
-		vfs_badlock("interlock is not locked but should be", str, vp);
+	VNASSERT(mtx_owned(VI_MTX(vp)), vp,
+	    ("%s: vnode interlock is not locked but should be", str));
 }
 
 void
 assert_vi_unlocked(struct vnode *vp, const char *str)
 {
-
-	if (vfs_badlock_mutex && mtx_owned(VI_MTX(vp)))
-		vfs_badlock("interlock is locked but should not be", str, vp);
+	VNASSERT(!mtx_owned(VI_MTX(vp)), vp,
+	    ("%s: vnode interlock is locked but should not be", str));
 }
 
 void
 assert_vop_locked(struct vnode *vp, const char *str)
 {
+	bool locked;
+
 	if (KERNEL_PANICKED() || vp == NULL)
 		return;
 
 #ifdef WITNESS
-	if ((vp->v_irflag & VIRF_CROSSMP) == 0 &&
-	    witness_is_owned(&vp->v_vnlock->lock_object) == -1)
+	locked = !((vp->v_irflag & VIRF_CROSSMP) == 0 &&
+	    witness_is_owned(&vp->v_vnlock->lock_object) == -1);
 #else
-	int locked = VOP_ISLOCKED(vp);
-	if (locked == 0 || locked == LK_EXCLOTHER)
+	int state = VOP_ISLOCKED(vp);
+	locked = state != 0 && state != LK_EXCLOTHER;
 #endif
-		vfs_badlock("is not locked but should be", str, vp);
+	VNASSERT(locked, vp, ("%s: vnode is not locked but should be", str));
 }
 
 void
 assert_vop_unlocked(struct vnode *vp, const char *str)
 {
+	bool locked;
+
 	if (KERNEL_PANICKED() || vp == NULL)
 		return;
 
 #ifdef WITNESS
-	if ((vp->v_irflag & VIRF_CROSSMP) == 0 &&
-	    witness_is_owned(&vp->v_vnlock->lock_object) == 1)
+	locked = (vp->v_irflag & VIRF_CROSSMP) == 0 &&
+	    witness_is_owned(&vp->v_vnlock->lock_object) == 1;
 #else
-	if (VOP_ISLOCKED(vp) == LK_EXCLUSIVE)
+	locked = VOP_ISLOCKED(vp) == LK_EXCLUSIVE;
 #endif
-		vfs_badlock("is locked but should not be", str, vp);
+	VNASSERT(!locked, vp, ("%s: vnode is locked but should not be", str));
 }
 
 void
 assert_vop_elocked(struct vnode *vp, const char *str)
 {
+	bool locked;
+
 	if (KERNEL_PANICKED() || vp == NULL)
 		return;
 
-	if (VOP_ISLOCKED(vp) != LK_EXCLUSIVE)
-		vfs_badlock("is not exclusive locked but should be", str, vp);
+	locked = VOP_ISLOCKED(vp) == LK_EXCLUSIVE;
+	VNASSERT(locked, vp,
+	    ("%s: vnode is not exclusive locked but should be", str));
 }
-#endif /* DEBUG_VFS_LOCKS */
+#endif /* INVARIANTS */
 
 void
 vop_rename_fail(struct vop_rename_args *ap)
@@ -5852,7 +5821,7 @@ vop_rename_pre(void *ap)
 {
 	struct vop_rename_args *a = ap;
 
-#ifdef DEBUG_VFS_LOCKS
+#ifdef INVARIANTS
 	struct mount *tmp;
 
 	if (a->a_tvp)
@@ -5895,7 +5864,7 @@ vop_rename_pre(void *ap)
 		vhold(a->a_tvp);
 }
 
-#ifdef DEBUG_VFS_LOCKS
+#ifdef INVARIANTS
 void
 vop_fplookup_vexec_debugpre(void *ap __unused)
 {
@@ -5934,6 +5903,8 @@ vop_fplookup_symlink_debugpost(void *ap __unused, int rc __unused)
 static void
 vop_fsync_debugprepost(struct vnode *vp, const char *name)
 {
+	struct mount *mp;
+
 	if (vp->v_type == VCHR)
 		;
 	/*
@@ -5951,10 +5922,16 @@ vop_fsync_debugprepost(struct vnode *vp, const char *name)
 	 * should still be caught when the stacked filesystem
 	 * invokes VOP_FSYNC() on the underlying filesystem.
 	 */
-	else if (MNT_SHARED_WRITES(vp->v_mount))
-		ASSERT_VOP_LOCKED(vp, name);
-	else
-		ASSERT_VOP_ELOCKED(vp, name);
+	else {
+		mp = NULL;
+		VOP_GETWRITEMOUNT(vp, &mp);
+		if (vn_lktype_write(mp, vp) == LK_SHARED)
+			ASSERT_VOP_LOCKED(vp, name);
+		else
+			ASSERT_VOP_ELOCKED(vp, name);
+		if (mp != NULL)
+			vfs_rel(mp);
+	}
 }
 
 void
@@ -6008,13 +5985,7 @@ vop_strategy_debugpre(void *ap)
 	if ((bp->b_flags & B_CLUSTER) != 0)
 		return;
 
-	if (!KERNEL_PANICKED() && !BUF_ISLOCKED(bp)) {
-		if (vfs_badlock_print)
-			printf(
-			    "VOP_STRATEGY: bp is not locked but should be\n");
-		if (vfs_badlock_ddb)
-			kdb_enter(KDB_WHY_VFSLOCK, "lock violation");
-	}
+	BUF_ASSERT_LOCKED(bp);
 }
 
 void
@@ -6063,7 +6034,7 @@ vop_need_inactive_debugpost(void *ap, int rc)
 
 	ASSERT_VI_LOCKED(a->a_vp, "VOP_NEED_INACTIVE");
 }
-#endif
+#endif /* INVARIANTS */
 
 void
 vop_allocate_post(void *ap, int rc)
@@ -6229,7 +6200,7 @@ vop_mkdir_post(void *ap, int rc)
 	}
 }
 
-#ifdef DEBUG_VFS_LOCKS
+#ifdef INVARIANTS
 void
 vop_mkdir_debugpost(void *ap, int rc)
 {
@@ -6677,7 +6648,7 @@ vfs_knlunlock(void *arg)
 static void
 vfs_knl_assert_lock(void *arg, int what)
 {
-#ifdef DEBUG_VFS_LOCKS
+#ifdef INVARIANTS
 	struct vnode *vp = arg;
 
 	if (what == LA_LOCKED)

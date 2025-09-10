@@ -187,6 +187,7 @@ VNET_DEFINE(uma_zone_t,	 pf_tag_z);
 #define	V_pf_tag_z		 VNET(pf_tag_z)
 static MALLOC_DEFINE(M_PFALTQ, "pf_altq", "pf(4) altq configuration db");
 static MALLOC_DEFINE(M_PFRULE, "pf_rule", "pf(4) rules");
+MALLOC_DEFINE(M_PF, "pf", "pf(4)");
 
 #if (PF_QNAME_SIZE != PF_TAG_NAME_SIZE)
 #error PF_QNAME_SIZE must be equal to PF_TAG_NAME_SIZE
@@ -331,6 +332,8 @@ pfattach_vnet(void)
 
 	V_pf_limits[PF_LIMIT_STATES].limit = PFSTATE_HIWAT;
 	V_pf_limits[PF_LIMIT_SRC_NODES].limit = PFSNODE_HIWAT;
+	V_pf_limits[PF_LIMIT_ANCHORS].limit = PF_ANCHOR_HIWAT;
+	V_pf_limits[PF_LIMIT_ETH_ANCHORS].limit = PF_ANCHOR_HIWAT;
 
 	RB_INIT(&V_pf_anchors);
 	pf_init_kruleset(&pf_main_ruleset);
@@ -1179,18 +1182,18 @@ pf_rule_tree_alloc(int flags)
 {
 	struct pf_krule_global *tree;
 
-	tree = malloc(sizeof(struct pf_krule_global), M_TEMP, flags);
+	tree = malloc(sizeof(struct pf_krule_global), M_PF, flags);
 	if (tree == NULL)
 		return (NULL);
 	RB_INIT(tree);
 	return (tree);
 }
 
-static void
+void
 pf_rule_tree_free(struct pf_krule_global *tree)
 {
 
-	free(tree, M_TEMP);
+	free(tree, M_PF);
 }
 
 static int
@@ -1209,7 +1212,7 @@ pf_begin_rules(u_int32_t *ticket, int rs_num, const char *anchor)
 		return (ENOMEM);
 	rs = pf_find_or_create_kruleset(anchor);
 	if (rs == NULL) {
-		free(tree, M_TEMP);
+		pf_rule_tree_free(tree);
 		return (EINVAL);
 	}
 	pf_rule_tree_free(rs->rules[rs_num].inactive.tree);
@@ -1430,7 +1433,7 @@ pf_commit_rules(u_int32_t ticket, int rs_num, char *anchor)
 	rs->rules[rs_num].inactive.rcount = 0;
 	rs->rules[rs_num].inactive.open = 0;
 	pf_remove_if_empty_kruleset(rs);
-	free(old_tree, M_TEMP);
+	pf_rule_tree_free(old_tree);
 
 	return (0);
 }
@@ -2092,19 +2095,18 @@ pf_ioctl_addrule(struct pf_krule *rule, uint32_t ticket,
 	int			 rs_num;
 	int			 error = 0;
 
-	if ((rule->return_icmp >> 8) > ICMP_MAXTYPE) {
-		error = EINVAL;
-		goto errout_unlocked;
-	}
+#define	ERROUT(x)		ERROUT_FUNCTION(errout, x)
+#define	ERROUT_UNLOCKED(x)	ERROUT_FUNCTION(errout_unlocked, x)
 
-#define	ERROUT(x)	ERROUT_FUNCTION(errout, x)
+	if ((rule->return_icmp >> 8) > ICMP_MAXTYPE)
+		ERROUT_UNLOCKED(EINVAL);
 
 	if ((error = pf_rule_checkaf(rule)))
-		ERROUT(error);
+		ERROUT_UNLOCKED(error);
 	if (pf_validate_range(rule->src.port_op, rule->src.port))
-		ERROUT(EINVAL);
+		ERROUT_UNLOCKED(EINVAL);
 	if (pf_validate_range(rule->dst.port_op, rule->dst.port))
-		ERROUT(EINVAL);
+		ERROUT_UNLOCKED(EINVAL);
 
 	if (rule->ifname[0])
 		kif = pf_kkif_create(M_WAITOK);
@@ -2275,6 +2277,7 @@ pf_ioctl_addrule(struct pf_krule *rule, uint32_t ticket,
 	rule->nat.cur = TAILQ_FIRST(&rule->nat.list);
 	rule->rdr.cur = TAILQ_FIRST(&rule->rdr.list);
 	rule->route.cur = TAILQ_FIRST(&rule->route.list);
+	rule->route.ipv6_nexthop_af = AF_INET6;
 	TAILQ_INSERT_TAIL(ruleset->rules[rs_num].inactive.ptr,
 	    rule, entries);
 	ruleset->rules[rs_num].inactive.rcount++;
@@ -2294,6 +2297,7 @@ pf_ioctl_addrule(struct pf_krule *rule, uint32_t ticket,
 	return (0);
 
 #undef ERROUT
+#undef ERROUT_UNLOCKED
 errout:
 	PF_RULES_WUNLOCK();
 	PF_CONFIG_UNLOCK();
@@ -2661,6 +2665,7 @@ pf_ioctl_add_addr(struct pf_nl_pooladdr *pp)
 		PF_RULES_WUNLOCK();
 		goto out;
 	}
+	pa->af = pp->af;
 	switch (pp->which) {
 	case PF_NAT:
 		TAILQ_INSERT_TAIL(&V_pf_pabuf[0], pa, entries);
@@ -2742,6 +2747,7 @@ pf_ioctl_get_addr(struct pf_nl_pooladdr *pp)
 		return (EBUSY);
 	}
 	pf_kpooladdr_to_pooladdr(pa, &pp->addr);
+	pp->af = pa->af;
 	pf_addr_copyout(&pp->addr.addr);
 	PF_RULES_RUNLOCK();
 
@@ -4072,7 +4078,7 @@ DIOCCHANGERULE_error:
 
 		out = ps->ps_states;
 		pstore = mallocarray(slice_count,
-		    sizeof(struct pfsync_state_1301), M_TEMP, M_WAITOK | M_ZERO);
+		    sizeof(struct pfsync_state_1301), M_PF, M_WAITOK | M_ZERO);
 		nr = 0;
 
 		for (i = 0; i <= V_pf_hashmask; i++) {
@@ -4094,10 +4100,10 @@ DIOCGETSTATES_retry:
 
 			if (count > slice_count) {
 				PF_HASHROW_UNLOCK(ih);
-				free(pstore, M_TEMP);
+				free(pstore, M_PF);
 				slice_count = count * 2;
 				pstore = mallocarray(slice_count,
-				    sizeof(struct pfsync_state_1301), M_TEMP,
+				    sizeof(struct pfsync_state_1301), M_PF,
 				    M_WAITOK | M_ZERO);
 				goto DIOCGETSTATES_retry;
 			}
@@ -4119,13 +4125,15 @@ DIOCGETSTATES_retry:
 			PF_HASHROW_UNLOCK(ih);
 			error = copyout(pstore, out,
 			    sizeof(struct pfsync_state_1301) * count);
-			if (error)
+			if (error) {
+				free(pstore, M_PF);
 				goto fail;
+			}
 			out = ps->ps_states + nr;
 		}
 DIOCGETSTATES_full:
 		ps->ps_len = sizeof(struct pfsync_state_1301) * nr;
-		free(pstore, M_TEMP);
+		free(pstore, M_PF);
 
 		break;
 	}
@@ -4151,7 +4159,7 @@ DIOCGETSTATES_full:
 
 		out = ps->ps_states;
 		pstore = mallocarray(slice_count,
-		    sizeof(struct pf_state_export), M_TEMP, M_WAITOK | M_ZERO);
+		    sizeof(struct pf_state_export), M_PF, M_WAITOK | M_ZERO);
 		nr = 0;
 
 		for (i = 0; i <= V_pf_hashmask; i++) {
@@ -4173,10 +4181,10 @@ DIOCGETSTATESV2_retry:
 
 			if (count > slice_count) {
 				PF_HASHROW_UNLOCK(ih);
-				free(pstore, M_TEMP);
+				free(pstore, M_PF);
 				slice_count = count * 2;
 				pstore = mallocarray(slice_count,
-				    sizeof(struct pf_state_export), M_TEMP,
+				    sizeof(struct pf_state_export), M_PF,
 				    M_WAITOK | M_ZERO);
 				goto DIOCGETSTATESV2_retry;
 			}
@@ -4197,13 +4205,15 @@ DIOCGETSTATESV2_retry:
 			PF_HASHROW_UNLOCK(ih);
 			error = copyout(pstore, out,
 			    sizeof(struct pf_state_export) * count);
-			if (error)
+			if (error) {
+				free(pstore, M_PF);
 				goto fail;
+			}
 			out = ps->ps_states + nr;
 		}
 DIOCGETSTATESV2_full:
 		ps->ps_len = nr * sizeof(struct pf_state_export);
-		free(pstore, M_TEMP);
+		free(pstore, M_PF);
 
 		break;
 	}
@@ -4733,17 +4743,17 @@ DIOCCHANGEADDR_error:
 
 		totlen = io->pfrio_size * sizeof(struct pfr_table);
 		pfrts = mallocarray(io->pfrio_size, sizeof(struct pfr_table),
-		    M_TEMP, M_WAITOK);
+		    M_PF, M_WAITOK);
 		error = copyin(io->pfrio_buffer, pfrts, totlen);
 		if (error) {
-			free(pfrts, M_TEMP);
+			free(pfrts, M_PF);
 			goto fail;
 		}
 		PF_RULES_WLOCK();
 		error = pfr_add_tables(pfrts, io->pfrio_size,
 		    &io->pfrio_nadd, io->pfrio_flags | PFR_FLAG_USERIOCTL);
 		PF_RULES_WUNLOCK();
-		free(pfrts, M_TEMP);
+		free(pfrts, M_PF);
 		break;
 	}
 
@@ -4765,17 +4775,17 @@ DIOCCHANGEADDR_error:
 
 		totlen = io->pfrio_size * sizeof(struct pfr_table);
 		pfrts = mallocarray(io->pfrio_size, sizeof(struct pfr_table),
-		    M_TEMP, M_WAITOK);
+		    M_PF, M_WAITOK);
 		error = copyin(io->pfrio_buffer, pfrts, totlen);
 		if (error) {
-			free(pfrts, M_TEMP);
+			free(pfrts, M_PF);
 			goto fail;
 		}
 		PF_RULES_WLOCK();
 		error = pfr_del_tables(pfrts, io->pfrio_size,
 		    &io->pfrio_ndel, io->pfrio_flags | PFR_FLAG_USERIOCTL);
 		PF_RULES_WUNLOCK();
-		free(pfrts, M_TEMP);
+		free(pfrts, M_PF);
 		break;
 	}
 
@@ -4801,7 +4811,7 @@ DIOCCHANGEADDR_error:
 		totlen = io->pfrio_size * sizeof(struct pfr_table);
 
 		pfrts = mallocarray(io->pfrio_size, sizeof(struct pfr_table),
-		    M_TEMP, M_NOWAIT | M_ZERO);
+		    M_PF, M_NOWAIT | M_ZERO);
 		if (pfrts == NULL) {
 			error = ENOMEM;
 			PF_RULES_RUNLOCK();
@@ -4812,7 +4822,7 @@ DIOCCHANGEADDR_error:
 		PF_RULES_RUNLOCK();
 		if (error == 0)
 			error = copyout(pfrts, io->pfrio_buffer, totlen);
-		free(pfrts, M_TEMP);
+		free(pfrts, M_PF);
 		break;
 	}
 
@@ -4839,7 +4849,7 @@ DIOCCHANGEADDR_error:
 
 		totlen = io->pfrio_size * sizeof(struct pfr_tstats);
 		pfrtstats = mallocarray(io->pfrio_size,
-		    sizeof(struct pfr_tstats), M_TEMP, M_NOWAIT | M_ZERO);
+		    sizeof(struct pfr_tstats), M_PF, M_NOWAIT | M_ZERO);
 		if (pfrtstats == NULL) {
 			error = ENOMEM;
 			PF_RULES_RUNLOCK();
@@ -4852,7 +4862,7 @@ DIOCCHANGEADDR_error:
 		PF_TABLE_STATS_UNLOCK();
 		if (error == 0)
 			error = copyout(pfrtstats, io->pfrio_buffer, totlen);
-		free(pfrtstats, M_TEMP);
+		free(pfrtstats, M_PF);
 		break;
 	}
 
@@ -4877,10 +4887,10 @@ DIOCCHANGEADDR_error:
 
 		totlen = io->pfrio_size * sizeof(struct pfr_table);
 		pfrts = mallocarray(io->pfrio_size, sizeof(struct pfr_table),
-		    M_TEMP, M_WAITOK);
+		    M_PF, M_WAITOK);
 		error = copyin(io->pfrio_buffer, pfrts, totlen);
 		if (error) {
-			free(pfrts, M_TEMP);
+			free(pfrts, M_PF);
 			goto fail;
 		}
 
@@ -4890,7 +4900,7 @@ DIOCCHANGEADDR_error:
 		    &io->pfrio_nzero, io->pfrio_flags | PFR_FLAG_USERIOCTL);
 		PF_RULES_RUNLOCK();
 		PF_TABLE_STATS_UNLOCK();
-		free(pfrts, M_TEMP);
+		free(pfrts, M_PF);
 		break;
 	}
 
@@ -4918,10 +4928,10 @@ DIOCCHANGEADDR_error:
 
 		totlen = io->pfrio_size * sizeof(struct pfr_table);
 		pfrts = mallocarray(io->pfrio_size, sizeof(struct pfr_table),
-		    M_TEMP, M_WAITOK);
+		    M_PF, M_WAITOK);
 		error = copyin(io->pfrio_buffer, pfrts, totlen);
 		if (error) {
-			free(pfrts, M_TEMP);
+			free(pfrts, M_PF);
 			goto fail;
 		}
 		PF_RULES_WLOCK();
@@ -4929,7 +4939,7 @@ DIOCCHANGEADDR_error:
 		    io->pfrio_setflag, io->pfrio_clrflag, &io->pfrio_nchange,
 		    &io->pfrio_ndel, io->pfrio_flags | PFR_FLAG_USERIOCTL);
 		PF_RULES_WUNLOCK();
-		free(pfrts, M_TEMP);
+		free(pfrts, M_PF);
 		break;
 	}
 
@@ -4964,20 +4974,21 @@ DIOCCHANGEADDR_error:
 		}
 		totlen = io->pfrio_size * sizeof(struct pfr_addr);
 		pfras = mallocarray(io->pfrio_size, sizeof(struct pfr_addr),
-		    M_TEMP, M_WAITOK);
+		    M_PF, M_WAITOK);
 		error = copyin(io->pfrio_buffer, pfras, totlen);
 		if (error) {
-			free(pfras, M_TEMP);
+			free(pfras, M_PF);
 			goto fail;
 		}
 		PF_RULES_WLOCK();
+		io->pfrio_nadd = 0;
 		error = pfr_add_addrs(&io->pfrio_table, pfras,
 		    io->pfrio_size, &io->pfrio_nadd, io->pfrio_flags |
 		    PFR_FLAG_USERIOCTL);
 		PF_RULES_WUNLOCK();
 		if (error == 0 && io->pfrio_flags & PFR_FLAG_FEEDBACK)
 			error = copyout(pfras, io->pfrio_buffer, totlen);
-		free(pfras, M_TEMP);
+		free(pfras, M_PF);
 		break;
 	}
 
@@ -4998,10 +5009,10 @@ DIOCCHANGEADDR_error:
 		}
 		totlen = io->pfrio_size * sizeof(struct pfr_addr);
 		pfras = mallocarray(io->pfrio_size, sizeof(struct pfr_addr),
-		    M_TEMP, M_WAITOK);
+		    M_PF, M_WAITOK);
 		error = copyin(io->pfrio_buffer, pfras, totlen);
 		if (error) {
-			free(pfras, M_TEMP);
+			free(pfras, M_PF);
 			goto fail;
 		}
 		PF_RULES_WLOCK();
@@ -5011,7 +5022,7 @@ DIOCCHANGEADDR_error:
 		PF_RULES_WUNLOCK();
 		if (error == 0 && io->pfrio_flags & PFR_FLAG_FEEDBACK)
 			error = copyout(pfras, io->pfrio_buffer, totlen);
-		free(pfras, M_TEMP);
+		free(pfras, M_PF);
 		break;
 	}
 
@@ -5035,11 +5046,11 @@ DIOCCHANGEADDR_error:
 			goto fail;
 		}
 		totlen = count * sizeof(struct pfr_addr);
-		pfras = mallocarray(count, sizeof(struct pfr_addr), M_TEMP,
+		pfras = mallocarray(count, sizeof(struct pfr_addr), M_PF,
 		    M_WAITOK);
 		error = copyin(io->pfrio_buffer, pfras, totlen);
 		if (error) {
-			free(pfras, M_TEMP);
+			free(pfras, M_PF);
 			goto fail;
 		}
 		PF_RULES_WLOCK();
@@ -5050,7 +5061,7 @@ DIOCCHANGEADDR_error:
 		PF_RULES_WUNLOCK();
 		if (error == 0 && io->pfrio_flags & PFR_FLAG_FEEDBACK)
 			error = copyout(pfras, io->pfrio_buffer, totlen);
-		free(pfras, M_TEMP);
+		free(pfras, M_PF);
 		break;
 	}
 
@@ -5071,14 +5082,14 @@ DIOCCHANGEADDR_error:
 		}
 		totlen = io->pfrio_size * sizeof(struct pfr_addr);
 		pfras = mallocarray(io->pfrio_size, sizeof(struct pfr_addr),
-		    M_TEMP, M_WAITOK | M_ZERO);
+		    M_PF, M_WAITOK | M_ZERO);
 		PF_RULES_RLOCK();
 		error = pfr_get_addrs(&io->pfrio_table, pfras,
 		    &io->pfrio_size, io->pfrio_flags | PFR_FLAG_USERIOCTL);
 		PF_RULES_RUNLOCK();
 		if (error == 0)
 			error = copyout(pfras, io->pfrio_buffer, totlen);
-		free(pfras, M_TEMP);
+		free(pfras, M_PF);
 		break;
 	}
 
@@ -5099,14 +5110,14 @@ DIOCCHANGEADDR_error:
 		}
 		totlen = io->pfrio_size * sizeof(struct pfr_astats);
 		pfrastats = mallocarray(io->pfrio_size,
-		    sizeof(struct pfr_astats), M_TEMP, M_WAITOK | M_ZERO);
+		    sizeof(struct pfr_astats), M_PF, M_WAITOK | M_ZERO);
 		PF_RULES_RLOCK();
 		error = pfr_get_astats(&io->pfrio_table, pfrastats,
 		    &io->pfrio_size, io->pfrio_flags | PFR_FLAG_USERIOCTL);
 		PF_RULES_RUNLOCK();
 		if (error == 0)
 			error = copyout(pfrastats, io->pfrio_buffer, totlen);
-		free(pfrastats, M_TEMP);
+		free(pfrastats, M_PF);
 		break;
 	}
 
@@ -5127,10 +5138,10 @@ DIOCCHANGEADDR_error:
 		}
 		totlen = io->pfrio_size * sizeof(struct pfr_addr);
 		pfras = mallocarray(io->pfrio_size, sizeof(struct pfr_addr),
-		    M_TEMP, M_WAITOK);
+		    M_PF, M_WAITOK);
 		error = copyin(io->pfrio_buffer, pfras, totlen);
 		if (error) {
-			free(pfras, M_TEMP);
+			free(pfras, M_PF);
 			goto fail;
 		}
 		PF_RULES_WLOCK();
@@ -5140,7 +5151,7 @@ DIOCCHANGEADDR_error:
 		PF_RULES_WUNLOCK();
 		if (error == 0 && io->pfrio_flags & PFR_FLAG_FEEDBACK)
 			error = copyout(pfras, io->pfrio_buffer, totlen);
-		free(pfras, M_TEMP);
+		free(pfras, M_PF);
 		break;
 	}
 
@@ -5161,10 +5172,10 @@ DIOCCHANGEADDR_error:
 		}
 		totlen = io->pfrio_size * sizeof(struct pfr_addr);
 		pfras = mallocarray(io->pfrio_size, sizeof(struct pfr_addr),
-		    M_TEMP, M_WAITOK);
+		    M_PF, M_WAITOK);
 		error = copyin(io->pfrio_buffer, pfras, totlen);
 		if (error) {
-			free(pfras, M_TEMP);
+			free(pfras, M_PF);
 			goto fail;
 		}
 		PF_RULES_RLOCK();
@@ -5174,7 +5185,7 @@ DIOCCHANGEADDR_error:
 		PF_RULES_RUNLOCK();
 		if (error == 0)
 			error = copyout(pfras, io->pfrio_buffer, totlen);
-		free(pfras, M_TEMP);
+		free(pfras, M_PF);
 		break;
 	}
 
@@ -5195,10 +5206,10 @@ DIOCCHANGEADDR_error:
 		}
 		totlen = io->pfrio_size * sizeof(struct pfr_addr);
 		pfras = mallocarray(io->pfrio_size, sizeof(struct pfr_addr),
-		    M_TEMP, M_WAITOK);
+		    M_PF, M_WAITOK);
 		error = copyin(io->pfrio_buffer, pfras, totlen);
 		if (error) {
-			free(pfras, M_TEMP);
+			free(pfras, M_PF);
 			goto fail;
 		}
 		PF_RULES_WLOCK();
@@ -5206,7 +5217,7 @@ DIOCCHANGEADDR_error:
 		    io->pfrio_size, &io->pfrio_nadd, &io->pfrio_naddr,
 		    io->pfrio_ticket, io->pfrio_flags | PFR_FLAG_USERIOCTL);
 		PF_RULES_WUNLOCK();
-		free(pfras, M_TEMP);
+		free(pfras, M_PF);
 		break;
 	}
 
@@ -5244,10 +5255,10 @@ DIOCCHANGEADDR_error:
 		}
 		totlen = sizeof(struct pfioc_trans_e) * io->size;
 		ioes = mallocarray(io->size, sizeof(struct pfioc_trans_e),
-		    M_TEMP, M_WAITOK);
+		    M_PF, M_WAITOK);
 		error = copyin(io->array, ioes, totlen);
 		if (error) {
-			free(ioes, M_TEMP);
+			free(ioes, M_PF);
 			goto fail;
 		}
 		PF_RULES_WLOCK();
@@ -5257,7 +5268,7 @@ DIOCCHANGEADDR_error:
 			case PF_RULESET_ETH:
 				if ((error = pf_begin_eth(&ioe->ticket, ioe->anchor))) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					goto fail;
 				}
 				break;
@@ -5265,13 +5276,13 @@ DIOCCHANGEADDR_error:
 			case PF_RULESET_ALTQ:
 				if (ioe->anchor[0]) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					error = EINVAL;
 					goto fail;
 				}
 				if ((error = pf_begin_altq(&ioe->ticket))) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					goto fail;
 				}
 				break;
@@ -5286,7 +5297,7 @@ DIOCCHANGEADDR_error:
 				if ((error = pfr_ina_begin(&table,
 				    &ioe->ticket, NULL, 0))) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					goto fail;
 				}
 				break;
@@ -5295,7 +5306,7 @@ DIOCCHANGEADDR_error:
 				if ((error = pf_begin_rules(&ioe->ticket,
 				    ioe->rs_num, ioe->anchor))) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					goto fail;
 				}
 				break;
@@ -5303,7 +5314,7 @@ DIOCCHANGEADDR_error:
 		}
 		PF_RULES_WUNLOCK();
 		error = copyout(ioes, io->array, totlen);
-		free(ioes, M_TEMP);
+		free(ioes, M_PF);
 		break;
 	}
 
@@ -5325,10 +5336,10 @@ DIOCCHANGEADDR_error:
 		}
 		totlen = sizeof(struct pfioc_trans_e) * io->size;
 		ioes = mallocarray(io->size, sizeof(struct pfioc_trans_e),
-		    M_TEMP, M_WAITOK);
+		    M_PF, M_WAITOK);
 		error = copyin(io->array, ioes, totlen);
 		if (error) {
-			free(ioes, M_TEMP);
+			free(ioes, M_PF);
 			goto fail;
 		}
 		PF_RULES_WLOCK();
@@ -5339,7 +5350,7 @@ DIOCCHANGEADDR_error:
 				if ((error = pf_rollback_eth(ioe->ticket,
 				    ioe->anchor))) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					goto fail; /* really bad */
 				}
 				break;
@@ -5347,13 +5358,13 @@ DIOCCHANGEADDR_error:
 			case PF_RULESET_ALTQ:
 				if (ioe->anchor[0]) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					error = EINVAL;
 					goto fail;
 				}
 				if ((error = pf_rollback_altq(ioe->ticket))) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					goto fail; /* really bad */
 				}
 				break;
@@ -5368,7 +5379,7 @@ DIOCCHANGEADDR_error:
 				if ((error = pfr_ina_rollback(&table,
 				    ioe->ticket, NULL, 0))) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					goto fail; /* really bad */
 				}
 				break;
@@ -5377,14 +5388,14 @@ DIOCCHANGEADDR_error:
 				if ((error = pf_rollback_rules(ioe->ticket,
 				    ioe->rs_num, ioe->anchor))) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					goto fail; /* really bad */
 				}
 				break;
 			}
 		}
 		PF_RULES_WUNLOCK();
-		free(ioes, M_TEMP);
+		free(ioes, M_PF);
 		break;
 	}
 
@@ -5410,10 +5421,10 @@ DIOCCHANGEADDR_error:
 
 		totlen = sizeof(struct pfioc_trans_e) * io->size;
 		ioes = mallocarray(io->size, sizeof(struct pfioc_trans_e),
-		    M_TEMP, M_WAITOK);
+		    M_PF, M_WAITOK);
 		error = copyin(io->array, ioes, totlen);
 		if (error) {
-			free(ioes, M_TEMP);
+			free(ioes, M_PF);
 			goto fail;
 		}
 		PF_RULES_WLOCK();
@@ -5426,7 +5437,7 @@ DIOCCHANGEADDR_error:
 				if (ers == NULL || ioe->ticket == 0 ||
 				    ioe->ticket != ers->inactive.ticket) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					error = EINVAL;
 					goto fail;
 				}
@@ -5435,14 +5446,14 @@ DIOCCHANGEADDR_error:
 			case PF_RULESET_ALTQ:
 				if (ioe->anchor[0]) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					error = EINVAL;
 					goto fail;
 				}
 				if (!V_altqs_inactive_open || ioe->ticket !=
 				    V_ticket_altqs_inactive) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					error = EBUSY;
 					goto fail;
 				}
@@ -5453,7 +5464,7 @@ DIOCCHANGEADDR_error:
 				if (rs == NULL || !rs->topen || ioe->ticket !=
 				    rs->tticket) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					error = EBUSY;
 					goto fail;
 				}
@@ -5462,7 +5473,7 @@ DIOCCHANGEADDR_error:
 				if (ioe->rs_num < 0 || ioe->rs_num >=
 				    PF_RULESET_MAX) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					error = EINVAL;
 					goto fail;
 				}
@@ -5472,7 +5483,7 @@ DIOCCHANGEADDR_error:
 				    rs->rules[ioe->rs_num].inactive.ticket !=
 				    ioe->ticket) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					error = EBUSY;
 					goto fail;
 				}
@@ -5485,7 +5496,7 @@ DIOCCHANGEADDR_error:
 			case PF_RULESET_ETH:
 				if ((error = pf_commit_eth(ioe->ticket, ioe->anchor))) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					goto fail; /* really bad */
 				}
 				break;
@@ -5493,7 +5504,7 @@ DIOCCHANGEADDR_error:
 			case PF_RULESET_ALTQ:
 				if ((error = pf_commit_altq(ioe->ticket))) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					goto fail; /* really bad */
 				}
 				break;
@@ -5508,7 +5519,7 @@ DIOCCHANGEADDR_error:
 				if ((error = pfr_ina_commit(&table,
 				    ioe->ticket, NULL, NULL, 0))) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					goto fail; /* really bad */
 				}
 				break;
@@ -5517,7 +5528,7 @@ DIOCCHANGEADDR_error:
 				if ((error = pf_commit_rules(ioe->ticket,
 				    ioe->rs_num, ioe->anchor))) {
 					PF_RULES_WUNLOCK();
-					free(ioes, M_TEMP);
+					free(ioes, M_PF);
 					goto fail; /* really bad */
 				}
 				break;
@@ -5531,7 +5542,7 @@ DIOCCHANGEADDR_error:
 		else
 			dehook_pf_eth();
 
-		free(ioes, M_TEMP);
+		free(ioes, M_PF);
 		break;
 	}
 
@@ -5560,7 +5571,7 @@ DIOCCHANGEADDR_error:
 
 		nr = 0;
 
-		p = pstore = malloc(psn->psn_len, M_TEMP, M_WAITOK | M_ZERO);
+		p = pstore = malloc(psn->psn_len, M_PF, M_WAITOK | M_ZERO);
 		for (i = 0, sh = V_pf_srchash; i <= V_pf_srchashmask;
 		    i++, sh++) {
 		    PF_HASHROW_LOCK(sh);
@@ -5579,11 +5590,11 @@ DIOCCHANGEADDR_error:
 		error = copyout(pstore, psn->psn_src_nodes,
 		    sizeof(struct pf_src_node) * nr);
 		if (error) {
-			free(pstore, M_TEMP);
+			free(pstore, M_PF);
 			goto fail;
 		}
 		psn->psn_len = sizeof(struct pf_src_node) * nr;
-		free(pstore, M_TEMP);
+		free(pstore, M_PF);
 		break;
 	}
 
@@ -5650,13 +5661,13 @@ DIOCCHANGEADDR_error:
 
 		bufsiz = io->pfiio_size * sizeof(struct pfi_kif);
 		ifstore = mallocarray(io->pfiio_size, sizeof(struct pfi_kif),
-		    M_TEMP, M_WAITOK | M_ZERO);
+		    M_PF, M_WAITOK | M_ZERO);
 
 		PF_RULES_RLOCK();
 		pfi_get_ifaces(io->pfiio_name, ifstore, &io->pfiio_size);
 		PF_RULES_RUNLOCK();
 		error = copyout(ifstore, io->pfiio_buffer, bufsiz);
-		free(ifstore, M_TEMP);
+		free(ifstore, M_PF);
 		break;
 	}
 
@@ -6439,19 +6450,14 @@ shutdown_pf(void)
 	int error = 0;
 	u_int32_t t[5];
 	char nn = '\0';
-	struct pf_kanchor *anchor;
-	struct pf_keth_anchor *eth_anchor;
+	struct pf_kanchor *anchor, *tmp_anchor;
+	struct pf_keth_anchor *eth_anchor, *tmp_eth_anchor;
 	int rs_num;
 
 	do {
 		/* Unlink rules of all user defined anchors */
-		RB_FOREACH(anchor, pf_kanchor_global, &V_pf_anchors) {
-			/* Wildcard based anchors may not have a respective
-			 * explicit anchor rule or they may be left empty
-			 * without rules. It leads to anchor.refcnt=0, and the
-			 * rest of the logic does not expect it. */
-			if (anchor->refcnt == 0)
-				anchor->refcnt = 1;
+		RB_FOREACH_SAFE(anchor, pf_kanchor_global, &V_pf_anchors,
+		    tmp_anchor) {
 			for (rs_num = 0; rs_num < PF_RULESET_MAX; ++rs_num) {
 				if ((error = pf_begin_rules(&t[rs_num], rs_num,
 				    anchor->path)) != 0) {
@@ -6469,14 +6475,8 @@ shutdown_pf(void)
 		}
 
 		/* Unlink rules of all user defined ether anchors */
-		RB_FOREACH(eth_anchor, pf_keth_anchor_global,
-		    &V_pf_keth_anchors) {
-			/* Wildcard based anchors may not have a respective
-			 * explicit anchor rule or they may be left empty
-			 * without rules. It leads to anchor.refcnt=0, and the
-			 * rest of the logic does not expect it. */
-			if (eth_anchor->refcnt == 0)
-				eth_anchor->refcnt = 1;
+		RB_FOREACH_SAFE(eth_anchor, pf_keth_anchor_global,
+		    &V_pf_keth_anchors, tmp_eth_anchor) {
 			if ((error = pf_begin_eth(&t[0], eth_anchor->path))
 			    != 0) {
 				DPFPRINTF(PF_DEBUG_MISC, "%s: eth "

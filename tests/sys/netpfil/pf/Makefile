@@ -55,11 +55,13 @@ ATF_TESTS_SH+=	altq \
 		tcp \
 		tos
 
+ATF_TESTS_PYTEST+=	frag4.py
 ATF_TESTS_PYTEST+=	frag6.py
 ATF_TESTS_PYTEST+=	header.py
 ATF_TESTS_PYTEST+=	icmp.py
 ATF_TESTS_PYTEST+=	igmp.py
 ATF_TESTS_PYTEST+=	mld.py
+ATF_TESTS_PYTEST+=	nat44.py
 ATF_TESTS_PYTEST+=	nat64.py
 ATF_TESTS_PYTEST+=	nat66.py
 ATF_TESTS_PYTEST+=	return.py

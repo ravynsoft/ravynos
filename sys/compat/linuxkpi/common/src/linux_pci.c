@@ -1,7 +1,7 @@
 /*-
  * Copyright (c) 2015-2016 Mellanox Technologies, Ltd.
  * All rights reserved.
- * Copyright (c) 2020-2022 The FreeBSD Foundation
+ * Copyright (c) 2020-2025 The FreeBSD Foundation
  *
  * Portions of this software were developed by Björn Zeeb
  * under sponsorship from the FreeBSD Foundation.
@@ -111,6 +111,9 @@ static device_method_t pci_methods[] = {
 	DEVMETHOD(pci_iov_uninit, linux_pci_iov_uninit),
 	DEVMETHOD(pci_iov_add_vf, linux_pci_iov_add_vf),
 
+	/* Bus interface. */
+	DEVMETHOD(bus_add_child, bus_generic_add_child),
+
 	/* backlight interface */
 	DEVMETHOD(backlight_update_status, linux_backlight_update_status),
 	DEVMETHOD(backlight_get_status, linux_backlight_get_status),
@@ -144,6 +147,23 @@ struct linux_dma_priv {
 };
 #define	DMA_PRIV_LOCK(priv) mtx_lock(&(priv)->lock)
 #define	DMA_PRIV_UNLOCK(priv) mtx_unlock(&(priv)->lock)
+
+static void
+lkpi_set_pcim_iomap_devres(struct pcim_iomap_devres *dr, int bar,
+    void *res)
+{
+	dr->mmio_table[bar] = (void *)rman_get_bushandle(res);
+	dr->res_table[bar] = res;
+}
+
+static bool
+lkpi_pci_bar_id_valid(int bar)
+{
+	if (bar < 0 || bar > PCIR_MAX_BAR_0)
+		return (false);
+
+	return (true);
+}
 
 static int
 linux_pdev_dma_uninit(struct pci_dev *pdev)
@@ -285,16 +305,22 @@ linux_pci_find(device_t dev, const struct pci_device_id **idp)
 }
 
 struct pci_dev *
-lkpi_pci_get_device(uint16_t vendor, uint16_t device, struct pci_dev *odev)
+lkpi_pci_get_device(uint32_t vendor, uint32_t device, struct pci_dev *odev)
 {
 	struct pci_dev *pdev, *found;
-
-	KASSERT(odev == NULL, ("%s: odev argument not yet supported\n", __func__));
 
 	found = NULL;
 	spin_lock(&pci_lock);
 	list_for_each_entry(pdev, &pci_devices, links) {
-		if (pdev->vendor == vendor && pdev->device == device) {
+		/* Walk until we find odev. */
+		if (odev != NULL) {
+			if (pdev == odev)
+				odev = NULL;
+			continue;
+		}
+
+		if ((pdev->vendor == vendor || vendor == PCI_ANY_ID) &&
+		    (pdev->device == device || device == PCI_ANY_ID)) {
 			found = pdev;
 			break;
 		}
@@ -752,10 +778,13 @@ linuxkpi_pcim_iomap_table(struct pci_dev *pdev)
 }
 
 static struct resource *
-_lkpi_pci_iomap(struct pci_dev *pdev, int bar, int mmio_size __unused)
+_lkpi_pci_iomap(struct pci_dev *pdev, int bar, unsigned long maxlen __unused)
 {
 	struct pci_mmio_region *mmio, *p;
 	int type;
+
+	if (!lkpi_pci_bar_id_valid(bar))
+		return (NULL);
 
 	type = pci_resource_type(pdev, bar);
 	if (type < 0) {
@@ -792,25 +821,60 @@ _lkpi_pci_iomap(struct pci_dev *pdev, int bar, int mmio_size __unused)
 }
 
 void *
-linuxkpi_pci_iomap_range(struct pci_dev *pdev, int mmio_bar,
-    unsigned long mmio_off, unsigned long mmio_size)
+linuxkpi_pci_iomap_range(struct pci_dev *pdev, int bar,
+    unsigned long off, unsigned long maxlen)
 {
 	struct resource *res;
 
-	res = _lkpi_pci_iomap(pdev, mmio_bar, mmio_size);
+	if (!lkpi_pci_bar_id_valid(bar))
+		return (NULL);
+
+	res = _lkpi_pci_iomap(pdev, bar, maxlen);
 	if (res == NULL)
 		return (NULL);
 	/* This is a FreeBSD extension so we can use bus_*(). */
 	if (pdev->want_iomap_res)
 		return (res);
-	MPASS(mmio_off < rman_get_size(res));
-	return ((void *)(rman_get_bushandle(res) + mmio_off));
+	MPASS(off < rman_get_size(res));
+	return ((void *)(rman_get_bushandle(res) + off));
 }
 
 void *
-linuxkpi_pci_iomap(struct pci_dev *pdev, int mmio_bar, int mmio_size)
+linuxkpi_pci_iomap(struct pci_dev *pdev, int bar, unsigned long maxlen)
 {
-	return (linuxkpi_pci_iomap_range(pdev, mmio_bar, 0, mmio_size));
+	if (!lkpi_pci_bar_id_valid(bar))
+		return (NULL);
+
+	return (linuxkpi_pci_iomap_range(pdev, bar, 0, maxlen));
+}
+
+void *
+linuxkpi_pcim_iomap(struct pci_dev *pdev, int bar, unsigned long maxlen)
+{
+	struct pcim_iomap_devres *dr;
+	void *res;
+
+	if (!lkpi_pci_bar_id_valid(bar))
+		return (NULL);
+
+	dr = lkpi_pcim_iomap_devres_find(pdev);
+	if (dr == NULL)
+		return (NULL);
+
+	if (dr->res_table[bar] != NULL)
+		return (dr->res_table[bar]);
+
+	res = linuxkpi_pci_iomap(pdev, bar, maxlen);
+	if (res == NULL) {
+		/*
+		 * Do not free the devres in case there were
+		 * other valid mappings before already.
+		 */
+		return (NULL);
+	}
+	lkpi_set_pcim_iomap_devres(dr, bar, res);
+
+	return (res);
 }
 
 void
@@ -864,8 +928,7 @@ linuxkpi_pcim_iomap_regions(struct pci_dev *pdev, uint32_t mask, const char *nam
 		res = _lkpi_pci_iomap(pdev, bar, 0);
 		if (res == NULL)
 			goto err;
-		dr->mmio_table[bar] = (void *)rman_get_bushandle(res);
-		dr->res_table[bar] = res;
+		lkpi_set_pcim_iomap_devres(dr, bar, res);
 
 		mappings |= (1 << bar);
 	}
@@ -1099,8 +1162,9 @@ pci_resource_len(struct pci_dev *pdev, int bar)
 	return (rle->count);
 }
 
-int
-pci_request_region(struct pci_dev *pdev, int bar, const char *res_name)
+static int
+lkpi_pci_request_region(struct pci_dev *pdev, int bar, const char *res_name,
+    bool managed)
 {
 	struct resource *res;
 	struct pci_devres *dr;
@@ -1108,9 +1172,20 @@ pci_request_region(struct pci_dev *pdev, int bar, const char *res_name)
 	int rid;
 	int type;
 
+	if (!lkpi_pci_bar_id_valid(bar))
+		return (-EINVAL);
+
+	/*
+	 * If the bar is not valid, return success without adding the BAR;
+	 * otherwise linuxkpi_pcim_request_all_regions() will error.
+	 */
+	if (pci_resource_len(pdev, bar) == 0)
+		return (0);
+	/* Likewise if it is neither IO nor MEM, nothing to do for us. */
 	type = pci_resource_type(pdev, bar);
 	if (type < 0)
-		return (-ENODEV);
+		return (0);
+
 	rid = PCIR_BAR(bar);
 	res = bus_alloc_resource_any(pdev->dev.bsddev, type, &rid,
 	    RF_ACTIVE|RF_SHAREABLE);
@@ -1123,11 +1198,16 @@ pci_request_region(struct pci_dev *pdev, int bar, const char *res_name)
 
 	/*
 	 * It seems there is an implicit devres tracking on these if the device
-	 * is managed; otherwise the resources are not automatiaclly freed on
-	 * FreeBSD/LinuxKPI tough they should be/are expected to be by Linux
-	 * drivers.
+	 * is managed (lkpi_pci_devres_find() case); otherwise the resources are
+	 * not automatically freed on FreeBSD/LinuxKPI though they should be/are
+	 * expected to be by Linux drivers.
+	 * Otherwise if we are called from a pcim-function with the managed
+	 * argument set, we need to track devres independent of pdev->managed.
 	 */
-	dr = lkpi_pci_devres_find(pdev);
+	if (managed)
+		dr = lkpi_pci_devres_get_alloc(pdev);
+	else
+		dr = lkpi_pci_devres_find(pdev);
 	if (dr != NULL) {
 		dr->region_mask |= (1 << bar);
 		dr->region_table[bar] = res;
@@ -1144,6 +1224,12 @@ pci_request_region(struct pci_dev *pdev, int bar, const char *res_name)
 }
 
 int
+linuxkpi_pci_request_region(struct pci_dev *pdev, int bar, const char *res_name)
+{
+	return (lkpi_pci_request_region(pdev, bar, res_name, false));
+}
+
+int
 linuxkpi_pci_request_regions(struct pci_dev *pdev, const char *res_name)
 {
 	int error;
@@ -1152,6 +1238,24 @@ linuxkpi_pci_request_regions(struct pci_dev *pdev, const char *res_name)
 	for (i = 0; i <= PCIR_MAX_BAR_0; i++) {
 		error = pci_request_region(pdev, i, res_name);
 		if (error && error != -ENODEV) {
+			pci_release_regions(pdev);
+			return (error);
+		}
+	}
+	return (0);
+}
+
+int
+linuxkpi_pcim_request_all_regions(struct pci_dev *pdev, const char *res_name)
+{
+	int bar, error;
+
+	for (bar = 0; bar <= PCIR_MAX_BAR_0; bar++) {
+		error = lkpi_pci_request_region(pdev, bar, res_name, true);
+		if (error != 0) {
+			device_printf(pdev->dev.bsddev, "%s: bar %d res_name '%s': "
+			    "lkpi_pci_request_region returned %d\n", __func__,
+			    bar, res_name, error);
 			pci_release_regions(pdev);
 			return (error);
 		}

@@ -124,7 +124,10 @@ PORTSMODULESENV=\
 all:
 .for __i in ${PORTS_MODULES}
 	@${ECHO} "===> Ports module ${__i} (all)"
-	cd ${PORTSDIR:U/usr/ports}/${__i}; ${PORTSMODULESENV} ${MAKE} -B clean build
+	port=${__i}; flavor=$${port#*@}; port=$${port%@*}; flavor=$${flavor%$${port}}; \
+	cd ${PORTSDIR:U/usr/ports}/$${port}; \
+	${PORTSMODULESENV} ${MAKE} -B $${flavor:+FLAVOR=}$${flavor} \
+	    clean build
 .endfor
 
 .for __target in install reinstall clean
@@ -132,7 +135,10 @@ ${__target}: ports-${__target}
 ports-${__target}:
 .for __i in ${PORTS_MODULES}
 	@${ECHO} "===> Ports module ${__i} (${__target})"
-	cd ${PORTSDIR:U/usr/ports}/${__i}; ${PORTSMODULESENV} ${MAKE} -B ${__target:C/(re)?install/deinstall reinstall/}
+	port=${__i}; flavor=$${port#*@}; port=$${port%@*}; flavor=$${flavor%$${port}}; \
+	cd ${PORTSDIR:U/usr/ports}/$${port}; \
+	${PORTSMODULESENV} ${MAKE} -B $${flavor:+FLAVOR=}$${flavor} \
+	    ${__target:C/(re)?install/deinstall reinstall/}
 .endfor
 .endfor
 .endif
@@ -366,6 +372,19 @@ _ILINKS+= x86
 _ILINKS+= i386
 .endif
 
+.if ${MK_REPRODUCIBLE_BUILD} != "no"
+PREFIX_SYSDIR=/usr/src/sys
+PREFIX_OBJDIR=/usr/obj/usr/src/${MACHINE}.${MACHINE_CPUARCH}/sys/${KERN_IDENT}
+CFLAGS+= -ffile-prefix-map=${SYSDIR}=${PREFIX_SYSDIR}
+CFLAGS+= -ffile-prefix-map=${.OBJDIR}=${PREFIX_OBJDIR}
+.if defined(SYSROOT)
+CFLAGS+= -ffile-prefix-map=${SYSROOT}=/sysroot
+.endif
+.else
+PREFIX_SYSDIR=${SYSDIR}
+PREFIX_OBJDIR=${.OBJDIR}
+.endif
+
 # Ensure that the link exists without depending on it when it exists.
 # Ensure that debug info references the path in the source tree.
 .for _link in ${_ILINKS}
@@ -373,9 +392,9 @@ _ILINKS+= i386
 ${SRCS} ${DEPENDOBJS}: ${_link}
 .endif
 .if ${_link} == "machine"
-CFLAGS+= -fdebug-prefix-map=./machine=${SYSDIR}/${MACHINE}/include
+CFLAGS+= -fdebug-prefix-map=./machine=${PREFIX_SYSDIR}/${MACHINE}/include
 .else
-CFLAGS+= -fdebug-prefix-map=./${_link}=${SYSDIR}/${_link}/include
+CFLAGS+= -fdebug-prefix-map=./${_link}=${PREFIX_SYSDIR}/${_link}/include
 .endif
 .endfor
 
@@ -448,7 +467,7 @@ config.o env.o hints.o vers.o vnode_if.o:
 
 NEWVERS_ENV+= MAKE="${MAKE}"
 .if ${MK_REPRODUCIBLE_BUILD} != "no"
-NEWVERS_ARGS+= -R
+NEWVERS_ARGS+= -R -d ${PREFIX_OBJDIR}
 .endif
 vers.c: .NOMETA_CMP $S/conf/newvers.sh $S/sys/param.h ${SYSTEM_DEP:Nvers.*}
 	${NEWVERS_ENV} sh $S/conf/newvers.sh ${NEWVERS_ARGS} ${KERN_IDENT}
