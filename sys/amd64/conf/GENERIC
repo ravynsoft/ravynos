@@ -388,8 +388,6 @@ device		hidbus			# Generic HID Bus
 options 	IICHID_SAMPLING		# Workaround missing GPIO INTR support
 options 	U2F_MAKE_UHID_ALIAS	# install /dev/uhid alias for /dev/u2f/
 
-options		THRWORKQ
-
 # EFI devices
 device		efidev			# EFI pseudo-device
 device		efirtc			# EFI RTC

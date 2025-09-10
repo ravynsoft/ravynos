@@ -46,9 +46,9 @@
 #define EVFILT_SENDFILE		(-12)	/* attached to sendfile requests */
 #define EVFILT_EMPTY		(-13)	/* empty send socket buf */
 #define EVFILT_JAIL		(-14)	/* attached to struct prison */
-#define	EVFILT_MACHPORT		(-14)	/* Mach portsets */
-#define EVFILT_VM		(-15)	/* Virtual Memory events */
-#define EVFILT_SYSCOUNT		15
+#define	EVFILT_MACHPORT		(-15)	/* Mach portsets */
+#define EVFILT_VM		(-16)	/* Virtual Memory events */
+#define EVFILT_SYSCOUNT		16
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #define	EV_SET(kevp_, a, b, c, d, e, f) do {	\

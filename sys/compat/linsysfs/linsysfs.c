@@ -563,9 +563,6 @@ linsysfs_init(PFS_INIT_ARGS)
 
 	linsysfs_net_init();
 
-	/* /sys/subsystem/... */
-	dir = pfs_create_dir(root, "subsystem", NULL, NULL, NULL, 0);
-
 	return (0);
 }
 
