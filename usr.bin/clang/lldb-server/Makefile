@@ -52,5 +52,6 @@ LIBADD+=	panel
 LIBADD+=	pthread
 LIBADD+=	z
 LIBADD+=	zstd
+LIBADD+=	mach
 
 .include <bsd.prog.mk>

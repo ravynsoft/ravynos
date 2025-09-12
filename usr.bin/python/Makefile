@@ -26,6 +26,7 @@ install:
 
 installconfig: .PHONY
 includes: .PHONY
+cleandir: .PHONY
 
 distribute:
 	${MAKE} install DESTDIR=${DESTDIR} \

@@ -15,6 +15,7 @@ install:
 
 installconfig: .PHONY
 includes: .PHONY
+cleandir: .PHONY
 
 distribute:
 	${MAKE} -C ${MAKEOBJDIR} INSTALL=${OBJTOP}/tmp/legacy/bin/install \

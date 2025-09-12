@@ -27,4 +27,7 @@ LINKS=		${BINDIR}/llvm-cxxfilt ${BINDIR}/c++filt
 MLINKS=		llvm-cxxfilt.1 c++filt.1
 .endif
 
+LIBS+=		libmach.so
+LDFLAGS+=	-lmach
+
 .include "../llvm.prog.mk"

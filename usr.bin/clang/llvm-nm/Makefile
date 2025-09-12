@@ -28,4 +28,7 @@ LINKS+=		${BINDIR}/llvm-nm ${BINDIR}/nm
 MLINKS+=	llvm-nm.1 nm.1
 .endif
 
+LIBS+=		libmach.so
+LDFLAGS+=	-lmach
+
 .include "../llvm.prog.mk"

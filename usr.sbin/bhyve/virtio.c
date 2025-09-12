@@ -478,7 +478,7 @@ vq_endchains(struct vqueue_info *vq, int used_all_avail)
 	uint16_t event_idx, new_idx, old_idx;
 	int intr;
 
-	if (!vq || !vq->used)
+	if (!vq || !vq->vq_used)
 		return;
 
 	/*

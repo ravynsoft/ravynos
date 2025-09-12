@@ -32,4 +32,7 @@ CLEANFILES+=	${TGHDRS} ${TGHDRS:C/$/.d/}
 LINKS=		${BINDIR}/llvm-objdump ${BINDIR}/objdump
 MLINKS=		llvm-objdump.1 objdump.1
 
+LIBS+=		libmach.so
+LDFLAGS+=	-lmach
+
 .include "../llvm.prog.mk"

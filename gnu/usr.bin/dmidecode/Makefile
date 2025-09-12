@@ -167,6 +167,7 @@ buildetc:
 installconfig:
 
 # Targets for buildworld
+cleandir:
 includes:
 distribute:
 	$(MAKE) -C ${.CURDIR} DESTDIR=${OBJTOP}/release/dist/base/ install

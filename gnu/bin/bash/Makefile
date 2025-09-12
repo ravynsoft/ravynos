@@ -5,6 +5,6 @@
 
 all: gnu_configure .WAIT gnu_build
 build: gnu_build
-clean: gnu_clean
+clean: .PHONY
 install: gnu_install
 distribute: gnu_distribute

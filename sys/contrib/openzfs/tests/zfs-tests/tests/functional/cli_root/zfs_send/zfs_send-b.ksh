@@ -64,7 +64,7 @@ for opt in ${opts[@]}; do
 	log_must eval "zfs send -b$opt -I $SENDFS@s1 $SENDFS@s2 > /dev/null"
 done
 for opt in ${opts[@]}; do
-	log_mustnot eval "zfs send -b$opt $SENDFS > dev/null"
+	log_mustnot eval "zfs send -b$opt $SENDFS > /dev/null"
 	log_mustnot eval "zfs send -b$opt $SENDFS#bm > /dev/null"
 done
 
