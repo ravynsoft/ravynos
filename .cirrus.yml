@@ -6,6 +6,7 @@ compute_engine_instance:
   memory: 16G
   disk: 80
 
+base_task:
   timeout_in: 120m
   environment:
     PKG_CONFIG_PATH: /usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
