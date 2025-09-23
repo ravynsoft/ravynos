@@ -28,4 +28,6 @@ MLINKS+= clang.1 cc.1 \
 # Ensure we don't add CFLAGS.clang when using GCC
 NO_TARGET_FLAGS=
 
+LIBADD+=	mach
+LDFLAGS+=	-lmach
 .include "../clang.prog.mk"

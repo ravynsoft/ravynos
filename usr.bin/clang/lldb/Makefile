@@ -23,6 +23,9 @@ DPADD+=		${OBJTOP}/lib/clang/lib${lib}/lib${LIBPRIV}${lib}.${LIBEXT}
 LDADD+=		${OBJTOP}/lib/clang/lib${lib}/lib${LIBPRIV}${lib}.${LIBEXT}
 .endfor
 
+DPADD+=		${OBJTOP}/lib/libmach/libmach.${LIBEXT}
+LDADD+=		${OBJTOP}/lib/libmach/libmach.${LIBEXT}
+
 INCFILE=	Options.inc
 TDFILE=		${LLVM_BASE}/${SRCDIR}/Options.td
 GENOPT=		-gen-opt-parser-defs

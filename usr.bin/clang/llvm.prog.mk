@@ -18,6 +18,8 @@ LIBPRIV=	private
 LIBEXT=		so
 LIBADD+=	z
 LIBADD+=	zstd
+DPADD+=		${OBJTOP}/lib/libmach/libmach.${LIBEXT}
+LDADD+=		${OBJTOP}/lib/libmach/libmach.${LIBEXT}
 .endif
 
 .for lib in ${LIBDEPS}

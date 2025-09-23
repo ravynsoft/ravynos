@@ -63,8 +63,8 @@ install-strip:
 	$(MAKE) install STRIPFLAGS="-s"
 
 # install/uninstall most things
-install: install.bin install.modules install.fns install.man install.runhelp
-uninstall: uninstall.bin uninstall.modules uninstall.fns uninstall.man uninstall.runhelp
+install: install.bin install.modules install.fns install.man 
+uninstall: uninstall.bin uninstall.modules uninstall.fns uninstall.man 
 
 # install/uninstall just the binary
 install.bin uninstall.bin:

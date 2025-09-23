@@ -87,6 +87,8 @@ LIBEXT=		a
 .else
 LIBPRIV=	private
 LIBEXT=		so
+DPADD+=		${OBJTOP}/lib/libmach/libmach.${LIBEXT}
+LDADD+=		${OBJTOP}/lib/libmach/libmach.${LIBEXT}
 .endif
 
 .for lib in ${LIBDEPS}
