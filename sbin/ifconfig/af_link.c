@@ -210,8 +210,7 @@ link_getaddr(const char *addr, int which)
 		temp[0] = ':';
 		strcpy(temp + 1, addr);
 		sdl.sdl_len = sizeof(sdl);
-		if (link_addr(temp, &sdl) == -1)
-			errx(1, "malformed link-level address");
+		link_addr(temp, &sdl);
 		free(temp);
 	}
 	if (sdl.sdl_alen > sizeof(sa->sa_data))

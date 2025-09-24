@@ -12,7 +12,6 @@
 set -e
 
 scriptdir=$(dirname $(realpath $0))
-. ${scriptdir}/../scripts/tools.subr
 . ${scriptdir}/../../tools/boot/install-boot.sh
 
 if [ "$(uname -s)" = "FreeBSD" ]; then
@@ -52,7 +51,7 @@ if [ -n "${METALOG}" ]; then
 	echo "./etc/rc.conf.local type=file uname=root gname=wheel mode=0644" >> ${metalogfilename}
 	MAKEFSARG=${metalogfilename}
 fi
-${MAKEFS} -D -N ${BASEBITSDIR}/etc -B little -o label=FreeBSD_Install -o version=2 ${2}.part ${MAKEFSARG}
+makefs -D -N ${BASEBITSDIR}/etc -B little -o label=FreeBSD_Install -o version=2 ${2}.part ${MAKEFSARG}
 rm ${BASEBITSDIR}/etc/fstab
 rm ${BASEBITSDIR}/etc/rc.conf.local
 if [ -n "${METALOG}" ]; then
@@ -68,10 +67,10 @@ else
 	make_esp_file ${espfilename} ${fat32min} ${BASEBITSDIR}/boot/loader.efi
 fi
 
-${MKIMG} -s mbr \
+mkimg -s mbr \
     -b ${BASEBITSDIR}/boot/mbr \
     -p efi:=${espfilename} \
-    -p freebsd:-"${MKIMG} -s bsd -b ${BASEBITSDIR}/boot/boot -p freebsd-ufs:=${2}.part" \
+    -p freebsd:-"mkimg -s bsd -b ${BASEBITSDIR}/boot/boot -p freebsd-ufs:=${2}.part" \
     -a 2 \
     -o ${2}
 rm ${espfilename}

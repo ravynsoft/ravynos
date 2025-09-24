@@ -1,7 +1,6 @@
-PACKAGE= rcmds
-PROG=	rpc.rstatd
-SRCS=	rstatd.c rstat_proc.c
-MAN=	rpc.rstatd.8
+PROG =	rpc.rstatd
+SRCS =	rstatd.c rstat_proc.c
+MAN =	rpc.rstatd.8
 
 LIBADD=	rpcsvc devstat
 

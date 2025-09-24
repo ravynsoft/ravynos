@@ -14,8 +14,7 @@ ATF_TESTS_SH=		exthdr \
 			lpm6 \
 			fibs6 \
 			ndp \
-			proxy_ndp \
-			addr6
+			proxy_ndp
 
 TEST_METADATA.divert+=	execenv="jail"		\
 			execenv_jail_params="vnet allow.raw_sockets"
@@ -33,8 +32,6 @@ TEST_METADATA.proxy_ndp+= execenv="jail"		\
 TEST_METADATA.redirect+= execenv="jail"		\
 			execenv_jail_params="vnet allow.raw_sockets"
 TEST_METADATA.scapyi386+= execenv="jail"		\
-			execenv_jail_params="vnet allow.raw_sockets"
-TEST_METADATA.addr6+= execenv="jail"		\
 			execenv_jail_params="vnet allow.raw_sockets"
 
 ${PACKAGE}FILES+=	exthdr.py \

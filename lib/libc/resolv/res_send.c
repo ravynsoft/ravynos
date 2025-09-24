@@ -112,6 +112,10 @@
 
 #include "un-namespace.h"
 
+/* Options.  Leave them on. */
+#ifndef	DEBUG
+#define	DEBUG
+#endif
 #include "res_debug.h"
 #include "res_private.h"
 
@@ -134,12 +138,15 @@ static int		send_dg(res_state,
 				const u_char *, int,
 				u_char *, int, int *, int, int,
 				int *, int *);
-#ifdef DEBUG
 static void		Aerror(const res_state, FILE *, const char *, int,
 			       const struct sockaddr *, int);
 static void		Perror(const res_state, FILE *, const char *, int);
-#endif
 static int		sock_eq(struct sockaddr *, struct sockaddr *);
+#if defined(NEED_PSELECT) && !defined(USE_POLL) && !defined(USE_KQUEUE)
+static int		pselect(int, void *, void *, void *,
+				struct timespec *,
+				const sigset_t *);
+#endif
 void res_pquery(const res_state, const u_char *, int, FILE *);
 
 static const int niflags = NI_NUMERICHOST | NI_NUMERICSERV;
@@ -295,9 +302,7 @@ res_nsend(res_state statp,
 #ifdef USE_KQUEUE
 	int kq;
 #endif
-#ifdef DEBUG
 	char abuf[NI_MAXHOST];
-#endif
 
 	/* No name servers or res_init() failure */
 	if (statp->nscount == 0 || EXT(statp).ext == NULL) {
@@ -413,10 +418,10 @@ res_nsend(res_state statp,
 	 */
 	for (tries = 0; tries < statp->retry; tries++) {
 	    for (ns = 0; ns < statp->nscount; ns++) {
-		struct sockaddr *nsap = get_nsaddr(statp, ns);
-#ifdef DEBUG
-		int nsaplen = get_salen(nsap);
-#endif
+		struct sockaddr *nsap;
+		int nsaplen;
+		nsap = get_nsaddr(statp, ns);
+		nsaplen = get_salen(nsap);
 		statp->_flags &= ~RES_F_LASTMASK;
 		statp->_flags |= (ns << RES_F_LASTSHIFT);
  same_ns:
@@ -1083,7 +1088,6 @@ send_dg(res_state statp,
 	return (resplen);
 }
 
-#ifdef DEBUG
 static void
 Aerror(const res_state statp, FILE *file, const char *string, int error,
        const struct sockaddr *address, int alen)
@@ -1115,7 +1119,6 @@ Perror(const res_state statp, FILE *file, const char *string, int error) {
 			string, strerror(error));
 	errno = save;
 }
-#endif
 
 static int
 sock_eq(struct sockaddr *a, struct sockaddr *b) {
@@ -1142,3 +1145,29 @@ sock_eq(struct sockaddr *a, struct sockaddr *b) {
 		return 0;
 	}
 }
+
+#if defined(NEED_PSELECT) && !defined(USE_POLL) && !defined(USE_KQUEUE)
+/* XXX needs to move to the porting library. */
+static int
+pselect(int nfds, void *rfds, void *wfds, void *efds,
+	struct timespec *tsp, const sigset_t *sigmask)
+{
+	struct timeval tv, *tvp;
+	sigset_t sigs;
+	int n;
+
+	if (tsp) {
+		tvp = &tv;
+		tv = evTimeVal(*tsp);
+	} else
+		tvp = NULL;
+	if (sigmask)
+		sigprocmask(SIG_SETMASK, sigmask, &sigs);
+	n = select(nfds, rfds, wfds, efds, tvp);
+	if (sigmask)
+		sigprocmask(SIG_SETMASK, &sigs, NULL);
+	if (tsp)
+		*tsp = evTimeSpec(tv);
+	return (n);
+}
+#endif

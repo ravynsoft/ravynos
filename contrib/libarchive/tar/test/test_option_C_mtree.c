@@ -17,7 +17,7 @@ DEFINE_TEST(test_option_C_mtree)
 	p0 = NULL;
 	char *content = "./foo type=file uname=root gname=root mode=0755\n";
 	char *filename = "output.tar";
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(CYGWIN)
 	char *p;
 #endif
 
@@ -32,7 +32,7 @@ DEFINE_TEST(test_option_C_mtree)
 	assertMakeDir("bar", 0775);
 	assertMakeFile("bar/foo", 0777, "abc");
 
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(CYGWIN)
 	p = absolute_path;
 	while(*p != '\0') {
 		if (*p == '/')

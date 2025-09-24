@@ -28,13 +28,13 @@
 
 #include <sys/cdefs.h>
 #ifdef _KERNEL
+#include <machine/stdarg.h>
 #include <sys/param.h>
 #include <sys/kernel.h>
 #include <sys/systm.h>
 #include <sys/lock.h>
 #include <sys/module.h>
 #include <sys/rwlock.h>
-#include <sys/stdarg.h>
 #include <sys/syslog.h>
 #else
 #include <stdarg.h>
@@ -1049,19 +1049,15 @@ FindLinkByInternalEndpoint(struct libalias *la, struct in_addr src_addr,
 (prototypes in alias_local.h)
 */
 
-int
+struct alias_link *
 FindIcmpIn(struct libalias *la, struct in_addr dst_addr,
     struct in_addr alias_addr,
     u_short id_alias,
-    int create,
-    struct alias_link **lnkp)
+    int create)
 {
 	struct alias_link *lnk;
 
 	LIBALIAS_LOCK_ASSERT(la);
-
-	*lnkp = NULL;
-
 	lnk = FindLinkIn(la, dst_addr, alias_addr,
 	    NO_DEST_PORT, id_alias,
 	    LINK_ICMP, 0);
@@ -1072,26 +1068,19 @@ FindIcmpIn(struct libalias *la, struct in_addr dst_addr,
 		lnk = AddLink(la, target_addr, dst_addr, alias_addr,
 		    id_alias, NO_DEST_PORT, id_alias,
 		    LINK_ICMP);
-		if (lnk == NULL)
-			return (PKT_ALIAS_ERROR);
 	}
-	*lnkp = lnk;
-	return (lnk != NULL ? PKT_ALIAS_OK : PKT_ALIAS_IGNORED);
+	return (lnk);
 }
 
-int
+struct alias_link *
 FindIcmpOut(struct libalias *la, struct in_addr src_addr,
     struct in_addr dst_addr,
     u_short id,
-    int create,
-    struct alias_link **lnkp)
+    int create)
 {
 	struct alias_link *lnk;
 
 	LIBALIAS_LOCK_ASSERT(la);
-
-	*lnkp = NULL;
-
 	lnk = FindLinkOut(la, src_addr, dst_addr,
 	    id, NO_DEST_PORT,
 	    LINK_ICMP, 0);
@@ -1102,11 +1091,8 @@ FindIcmpOut(struct libalias *la, struct in_addr src_addr,
 		lnk = AddLink(la, src_addr, dst_addr, alias_addr,
 		    id, NO_DEST_PORT, GET_ALIAS_ID,
 		    LINK_ICMP);
-		if (lnk == NULL)
-			return (PKT_ALIAS_ERROR);
 	}
-	*lnkp = lnk;
-	return (lnk != NULL ? PKT_ALIAS_OK : PKT_ALIAS_IGNORED);
+	return (lnk);
 }
 
 struct alias_link *
@@ -1160,21 +1146,18 @@ FindFragmentPtr(struct libalias *la, struct in_addr dst_addr,
 	    LINK_FRAGMENT_PTR, 0);
 }
 
-int
+struct alias_link *
 FindProtoIn(struct libalias *la, struct in_addr dst_addr,
     struct in_addr alias_addr,
-    u_char proto,
-    struct alias_link **lnkp)
+    u_char proto)
 {
 	struct alias_link *lnk;
 
 	LIBALIAS_LOCK_ASSERT(la);
-
-	*lnkp = NULL;
-
 	lnk = FindLinkIn(la, dst_addr, alias_addr,
 	    NO_DEST_PORT, 0,
 	    proto, 1);
+
 	if (lnk == NULL && !(la->packetAliasMode & PKT_ALIAS_DENY_INCOMING)) {
 		struct in_addr target_addr;
 
@@ -1182,28 +1165,22 @@ FindProtoIn(struct libalias *la, struct in_addr dst_addr,
 		lnk = AddLink(la, target_addr, dst_addr, alias_addr,
 		    NO_SRC_PORT, NO_DEST_PORT, 0,
 		    proto);
-		if (lnk == NULL)
-			return (PKT_ALIAS_ERROR);
 	}
-	*lnkp = lnk;
-	return (lnk != NULL ? PKT_ALIAS_OK : PKT_ALIAS_IGNORED);
+	return (lnk);
 }
 
-int
+struct alias_link *
 FindProtoOut(struct libalias *la, struct in_addr src_addr,
     struct in_addr dst_addr,
-    u_char proto,
-    struct alias_link **lnkp)
+    u_char proto)
 {
 	struct alias_link *lnk;
 
 	LIBALIAS_LOCK_ASSERT(la);
-
-	*lnkp = NULL;
-
 	lnk = FindLinkOut(la, src_addr, dst_addr,
 	    NO_SRC_PORT, NO_DEST_PORT,
 	    proto, 1);
+
 	if (lnk == NULL) {
 		struct in_addr alias_addr;
 
@@ -1211,29 +1188,22 @@ FindProtoOut(struct libalias *la, struct in_addr src_addr,
 		lnk = AddLink(la, src_addr, dst_addr, alias_addr,
 		    NO_SRC_PORT, NO_DEST_PORT, 0,
 		    proto);
-		if (lnk == NULL)
-			return (PKT_ALIAS_ERROR);
 	}
-	*lnkp = lnk;
-	return (lnk != NULL ? PKT_ALIAS_OK : PKT_ALIAS_IGNORED);
+	return (lnk);
 }
 
-int
+struct alias_link *
 FindUdpTcpIn(struct libalias *la, struct in_addr dst_addr,
     struct in_addr alias_addr,
     u_short dst_port,
     u_short alias_port,
     u_char proto,
-    int create,
-    struct alias_link **lnkp)
+    int create)
 {
 	int link_type;
 	struct alias_link *lnk;
 
 	LIBALIAS_LOCK_ASSERT(la);
-
-	*lnkp = NULL;
-
 	switch (proto) {
 	case IPPROTO_UDP:
 		link_type = LINK_UDP;
@@ -1242,7 +1212,8 @@ FindUdpTcpIn(struct libalias *la, struct in_addr dst_addr,
 		link_type = LINK_TCP;
 		break;
 	default:
-		return (PKT_ALIAS_IGNORED);
+		return (NULL);
+		break;
 	}
 
 	lnk = FindLinkIn(la, dst_addr, alias_addr,
@@ -1256,30 +1227,22 @@ FindUdpTcpIn(struct libalias *la, struct in_addr dst_addr,
 		lnk = AddLink(la, target_addr, dst_addr, alias_addr,
 		    alias_port, dst_port, alias_port,
 		    link_type);
-		if (lnk == NULL)
-			return (PKT_ALIAS_ERROR);
-
 	}
-	*lnkp = lnk;
-	return (lnk != NULL ? PKT_ALIAS_OK : PKT_ALIAS_IGNORED);
+	return (lnk);
 }
 
-int
+struct alias_link *
 FindUdpTcpOut(struct libalias *la, struct in_addr src_addr,
     struct in_addr dst_addr,
     u_short src_port,
     u_short dst_port,
     u_char proto,
-    int create,
-    struct alias_link **lnkp)
+    int create)
 {
 	int link_type;
 	struct alias_link *lnk;
 
 	LIBALIAS_LOCK_ASSERT(la);
-
-	*lnkp = NULL;
-
 	switch (proto) {
 	case IPPROTO_UDP:
 		link_type = LINK_UDP;
@@ -1288,10 +1251,12 @@ FindUdpTcpOut(struct libalias *la, struct in_addr src_addr,
 		link_type = LINK_TCP;
 		break;
 	default:
-		return (PKT_ALIAS_IGNORED);
+		return (NULL);
+		break;
 	}
 
 	lnk = FindLinkOut(la, src_addr, dst_addr, src_port, dst_port, link_type, create);
+
 	if (lnk == NULL && create) {
 		struct in_addr alias_addr;
 
@@ -1299,11 +1264,8 @@ FindUdpTcpOut(struct libalias *la, struct in_addr src_addr,
 		lnk = AddLink(la, src_addr, dst_addr, alias_addr,
 		    src_port, dst_port, GET_ALIAS_PORT,
 		    link_type);
-		if (lnk == NULL)
-			return (PKT_ALIAS_ERROR);
 	}
-	*lnkp = lnk;
-	return (lnk != NULL ? PKT_ALIAS_OK : PKT_ALIAS_IGNORED);
+	return (lnk);
 }
 
 struct alias_link *

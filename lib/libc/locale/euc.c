@@ -426,7 +426,7 @@ _EUC_wcrtomb_impl(char * __restrict s, wchar_t wc,
 	/* This first check excludes CS1, which is implicitly valid. */
 	if ((wc < 0xa100) || (wc > 0xffff)) {
 		/* Check for valid CS2 or CS3 */
-		nm = (wc >> ((len - 1) * 8)) & 0xff;
+		nm = (wc >> ((len - 1) * 8));
 		if (nm == cs2) {
 			if (len != cs2width) {
 				errno = EILSEQ;

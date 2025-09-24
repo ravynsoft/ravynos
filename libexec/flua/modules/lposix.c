@@ -21,26 +21,18 @@
 #include "lauxlib.h"
 #include "lposix.h"
 
-static void
-enforce_max_args(lua_State *L, int max)
-{
-	int narg;
-
-	narg = lua_gettop(L);
-	luaL_argcheck(L, narg <= max, max + 1, "too many arguments");
-}
-
 /*
  * Minimal implementation of luaposix needed for internal FreeBSD bits.
  */
 static int
 lua__exit(lua_State *L)
 {
-	int code;
+	int code, narg;
 
-	enforce_max_args(L, 1);
+	narg = lua_gettop(L);
+	luaL_argcheck(L, narg == 1, 1, "_exit takes exactly one argument");
+
 	code = luaL_checkinteger(L, 1);
-
 	_exit(code);
 }
 
@@ -48,8 +40,10 @@ static int
 lua_basename(lua_State *L)
 {
 	char *inpath, *outpath;
+	int narg;
 
-	enforce_max_args(L, 1);
+	narg = lua_gettop(L);
+	luaL_argcheck(L, narg > 0, 1, "at least one argument required");
 	inpath = strdup(luaL_checkstring(L, 1));
 	if (inpath == NULL) {
 		lua_pushnil(L);
@@ -67,13 +61,15 @@ lua_basename(lua_State *L)
 static int
 lua_chmod(lua_State *L)
 {
+	int n;
 	const char *path;
 	mode_t mode;
 
-	enforce_max_args(L, 2);
+	n = lua_gettop(L);
+	luaL_argcheck(L, n == 2, n > 2 ? 3 : n,
+	    "chmod takes exactly two arguments");
 	path = luaL_checkstring(L, 1);
 	mode = (mode_t)luaL_checkinteger(L, 2);
-
 	if (chmod(path, mode) == -1) {
 		lua_pushnil(L);
 		lua_pushstring(L, strerror(errno));
@@ -87,24 +83,21 @@ lua_chmod(lua_State *L)
 static int
 lua_chown(lua_State *L)
 {
+	int n;
 	const char *path;
-	uid_t owner = (uid_t)-1;
-	gid_t group = (gid_t)-1;
-	int error;
+	uid_t owner = (uid_t) -1;
+	gid_t group = (gid_t) -1;
 
-	enforce_max_args(L, 3);
-
+	n = lua_gettop(L);
+	luaL_argcheck(L, n > 1, n,
+	   "chown takes at least two arguments");
 	path = luaL_checkstring(L, 1);
 	if (lua_isinteger(L, 2))
-		owner = (uid_t)lua_tointeger(L, 2);
+		owner = (uid_t) lua_tointeger(L, 2);
 	else if (lua_isstring(L, 2)) {
-		char buf[4096];
-		struct passwd passwd, *pwd;
-
-		error = getpwnam_r(lua_tostring(L, 2), &passwd,
-		    buf, sizeof(buf), &pwd);
-		if (error == 0)
-			owner = pwd->pw_uid;
+		struct passwd *p = getpwnam(lua_tostring(L, 2));
+		if (p != NULL)
+			owner = p->pw_uid;
 		else
 			return (luaL_argerror(L, 2,
 			    lua_pushfstring(L, "unknown user %s",
@@ -117,15 +110,11 @@ lua_chown(lua_State *L)
 	}
 
 	if (lua_isinteger(L, 3))
-		group = (gid_t)lua_tointeger(L, 3);
+		group = (gid_t) lua_tointeger(L, 3);
 	else if (lua_isstring(L, 3)) {
-		char buf[4096];
-		struct group gr, *grp;
-
-		error = getgrnam_r(lua_tostring(L, 3), &gr, buf, sizeof(buf),
-		    &grp);
-		if (error == 0)
-			group = grp->gr_gid;
+		struct group *g = getgrnam(lua_tostring(L, 3));
+		if (g != NULL)
+			group = g->gr_gid;
 		else
 			return (luaL_argerror(L, 3,
 			    lua_pushfstring(L, "unknown group %s",
@@ -150,9 +139,11 @@ lua_chown(lua_State *L)
 static int
 lua_pclose(lua_State *L)
 {
-	int error, fd;
+	int error, fd, n;
 
-	enforce_max_args(L, 1);
+	n = lua_gettop(L);
+	luaL_argcheck(L, n == 1, 1,
+	    "close takes exactly one argument (fd)");
 
 	fd = luaL_checkinteger(L, 1);
 	if (fd < 0) {
@@ -175,105 +166,17 @@ err:
 }
 
 static int
-lua_dup2(lua_State *L)
-{
-	int error, oldd, newd;
-
-	enforce_max_args(L, 2);
-
-	oldd = luaL_checkinteger(L, 1);
-	if (oldd < 0) {
-		error = EBADF;
-		goto err;
-	}
-
-	newd = luaL_checkinteger(L, 2);
-	if (newd < 0) {
-		error = EBADF;
-		goto err;
-	}
-
-	error = dup2(oldd, newd);
-	if (error >= 0) {
-		lua_pushinteger(L, error);
-		return (1);
-	}
-
-	error = errno;
-err:
-	lua_pushnil(L);
-	lua_pushstring(L, strerror(error));
-	lua_pushinteger(L, error);
-	return (3);
-}
-
-static int
-lua_execp(lua_State *L)
-{
-	int argc, error;
-	const char *file;
-	const char **argv;
-
-	enforce_max_args(L, 2);
-
-	file = luaL_checkstring(L, 1);
-	luaL_checktype(L, 2, LUA_TTABLE);
-
-	lua_len(L, 2);
-	argc = lua_tointeger(L, -1);
-
-	/*
-	 * Use lua_newuserdatauv() to allocate a scratch buffer that is tracked
-	 * and freed by lua's GC. This avoid any chance of a leak if a lua error
-	 * is raised later in this function (e.g. by luaL_argerror()).
-	 * The (argc + 2) size gives enough space in the buffer for argv[0] and
-	 * the terminating NULL.
-	 */
-	argv = lua_newuserdatauv(L, (argc + 2) * sizeof(char *), 0);
-
-	/*
-	 * Sequential tables in lua start at index 1 by convention.
-	 * If there happens to be a string at index 0, use that to
-	 * override the default argv[0]. This matches the lposix API.
-	 */
-	lua_pushinteger(L, 0);
-	lua_gettable(L, 2);
-	argv[0] = lua_tostring(L, -1);
-	if (argv[0] == NULL) {
-		argv[0] = file;
-	}
-
-	for (int i = 1; i <= argc; i++) {
-		lua_pushinteger(L, i);
-		lua_gettable(L, 2);
-		argv[i] = lua_tostring(L, -1);
-		if (argv[i] == NULL) {
-			luaL_argerror(L, 2,
-			    "argv table must contain only strings");
-		}
-	}
-	argv[argc + 1] = NULL;
-
-	execvp(file, (char **)argv);
-	error = errno;
-
-	lua_pushnil(L);
-	lua_pushstring(L, strerror(error));
-	lua_pushinteger(L, error);
-	return (3);
-}
-
-static int
 lua_fnmatch(lua_State *L)
 {
 	const char *pattern, *string;
-	int flags;
+	int flags, n;
 
-	enforce_max_args(L, 3);
+	n = lua_gettop(L);
+	luaL_argcheck(L, n == 2 || n == 3, 4, "need 2 or 3 arguments");
+
 	pattern = luaL_checkstring(L, 1);
 	string = luaL_checkstring(L, 2);
 	flags = luaL_optinteger(L, 3, 0);
-
 	lua_pushinteger(L, fnmatch(pattern, string, flags));
 
 	return (1);
@@ -283,9 +186,10 @@ static int
 lua_uname(lua_State *L)
 {
 	struct utsname name;
-	int error;
+	int error, n;
 
-	enforce_max_args(L, 0);
+	n = lua_gettop(L);
+	luaL_argcheck(L, n == 0, 1, "too many arguments");
 
 	error = uname(&name);
 	if (error != 0) {
@@ -315,9 +219,11 @@ static int
 lua_dirname(lua_State *L)
 {
 	char *inpath, *outpath;
+	int narg;
 
-	enforce_max_args(L, 1);
-
+	narg = lua_gettop(L);
+	luaL_argcheck(L, narg > 0, 1,
+	    "dirname takes at least one argument (path)");
 	inpath = strdup(luaL_checkstring(L, 1));
 	if (inpath == NULL) {
 		lua_pushnil(L);
@@ -336,8 +242,10 @@ static int
 lua_fork(lua_State *L)
 {
 	pid_t pid;
+	int narg;
 
-	enforce_max_args(L, 0);
+	narg = lua_gettop(L);
+	luaL_argcheck(L, narg == 0, 1, "too many arguments");
 
 	pid = fork();
 	if (pid < 0) {
@@ -354,8 +262,10 @@ lua_fork(lua_State *L)
 static int
 lua_getpid(lua_State *L)
 {
-	enforce_max_args(L, 0);
+	int narg;
 
+	narg = lua_gettop(L);
+	luaL_argcheck(L, narg == 0, 1, "too many arguments");
 	lua_pushinteger(L, getpid());
 	return (1);
 }
@@ -363,9 +273,10 @@ lua_getpid(lua_State *L)
 static int
 lua_pipe(lua_State *L)
 {
-	int error, fd[2];
+	int error, fd[2], narg;
 
-	enforce_max_args(L, 0);
+	narg = lua_gettop(L);
+	luaL_argcheck(L, narg == 0, 1, "too many arguments");
 
 	error = pipe(fd);
 	if (error != 0) {
@@ -386,9 +297,12 @@ lua_read(lua_State *L)
 	char *buf;
 	ssize_t ret;
 	size_t sz;
-	int error, fd;
+	int error, fd, narg;
 
-	enforce_max_args(L, 2);
+	narg = lua_gettop(L);
+	luaL_argcheck(L, narg == 2, 1,
+	    "read takes exactly two arguments (fd, size)");
+
 	fd = luaL_checkinteger(L, 1);
 	sz = luaL_checkinteger(L, 2);
 
@@ -429,8 +343,10 @@ lua_realpath(lua_State *L)
 {
 	const char *inpath;
 	char *outpath;
+	int narg;
 
-	enforce_max_args(L, 1);
+	narg = lua_gettop(L);
+	luaL_argcheck(L, narg > 0, 1, "at least one argument required");
 	inpath = luaL_checkstring(L, 1);
 
 	outpath = realpath(inpath, NULL);
@@ -451,12 +367,17 @@ lua_wait(lua_State *L)
 {
 	pid_t pid;
 	int options, status;
+	int narg;
 
-	enforce_max_args(L, 2);
-	pid = luaL_optinteger(L, 1, -1);
-	options = luaL_optinteger(L, 2, 0);
+	narg = lua_gettop(L);
 
-	status = 0;
+	pid = -1;
+	status = options = 0;
+	if (narg >= 1 && !lua_isnil(L, 1))
+		pid = luaL_checkinteger(L, 1);
+	if (narg >= 2 && !lua_isnil(L, 2))
+		options = luaL_checkinteger(L, 2);
+
 	pid = waitpid(pid, &status, options);
 	if (pid < 0) {
 		lua_pushnil(L);
@@ -498,9 +419,13 @@ lua_write(lua_State *L)
 	size_t bufsz, sz;
 	ssize_t ret;
 	off_t offset;
-	int error, fd;
+	int error, fd, narg;
 
-	enforce_max_args(L, 4);
+	narg = lua_gettop(L);
+	luaL_argcheck(L, narg >= 2, 1,
+	    "write takes at least two arguments (fd, buf, sz, off)");
+	luaL_argcheck(L, narg <= 4, 5,
+	    "write takes no more than four arguments (fd, buf, sz, off)");
 
 	fd = luaL_checkinteger(L, 1);
 	if (fd < 0) {
@@ -510,11 +435,13 @@ lua_write(lua_State *L)
 
 	buf = luaL_checkstring(L, 2);
 
-	bufsz = lua_rawlen(L, 2);
-	sz = luaL_optinteger(L, 3, bufsz);
+	bufsz = sz = lua_rawlen(L, 2);
+	if (narg >= 3 && !lua_isnil(L, 3))
+		sz = luaL_checkinteger(L, 3);
 
-	offset = luaL_optinteger(L, 4, 0);
-
+	offset = 0;
+	if (narg >= 4 && !lua_isnil(L, 4))
+		offset = luaL_checkinteger(L, 4);
 
 	if ((size_t)offset > bufsz || offset + sz > bufsz) {
 		lua_pushnil(L);
@@ -577,8 +504,6 @@ static const struct luaL_Reg unistdlib[] = {
 	REG_SIMPLE(_exit),
 	REG_SIMPLE(chown),
 	REG_DEF(close, lua_pclose),
-	REG_SIMPLE(dup2),
-	REG_SIMPLE(execp),
 	REG_SIMPLE(fork),
 	REG_SIMPLE(getpid),
 	REG_SIMPLE(pipe),
@@ -590,21 +515,21 @@ static const struct luaL_Reg unistdlib[] = {
 #undef REG_SIMPLE
 #undef REG_DEF
 
-static int
+int
 luaopen_posix_libgen(lua_State *L)
 {
 	luaL_newlib(L, libgenlib);
 	return (1);
 }
 
-static int
+int
 luaopen_posix_stdlib(lua_State *L)
 {
 	luaL_newlib(L, stdliblib);
 	return (1);
 }
 
-static int
+int
 luaopen_posix_fnmatch(lua_State *L)
 {
 	luaL_newlib(L, fnmatchlib);
@@ -622,21 +547,14 @@ luaopen_posix_fnmatch(lua_State *L)
 	return 1;
 }
 
-static int
+int
 luaopen_posix_sys_stat(lua_State *L)
 {
 	luaL_newlib(L, sys_statlib);
 	return (1);
 }
 
-static int
-luaopen_posix_sys_utsname(lua_State *L)
-{
-	luaL_newlib(L, sys_utsnamelib);
-	return 1;
-}
-
-static int
+int
 luaopen_posix_sys_wait(lua_State *L)
 {
 	luaL_newlib(L, sys_waitlib);
@@ -662,38 +580,16 @@ luaopen_posix_sys_wait(lua_State *L)
 	return (1);
 }
 
-static int
-luaopen_posix_unistd(lua_State *L)
+int
+luaopen_posix_sys_utsname(lua_State *L)
 {
-	luaL_newlib(L, unistdlib);
-	return (1);
+	luaL_newlib(L, sys_utsnamelib);
+	return 1;
 }
 
 int
-luaopen_posix(lua_State *L)
+luaopen_posix_unistd(lua_State *L)
 {
-	lua_newtable(L); /* posix */
-
-	luaL_requiref(L, "posix.fnmatch", luaopen_posix_fnmatch, 0);
-	lua_setfield(L, -2, "fnmatch");
-
-	luaL_requiref(L, "posix.libgen", luaopen_posix_libgen, 0);
-	lua_setfield(L, -2, "libgen");
-
-	luaL_requiref(L, "posix.stdlib", luaopen_posix_stdlib, 0);
-	lua_setfield(L, -2, "stdlib");
-
-	lua_newtable(L); /* posix.sys */
-	luaL_requiref(L, "posix.sys.stat", luaopen_posix_sys_stat, 0);
-	lua_setfield(L, -2, "stat");
-	luaL_requiref(L, "posix.sys.utsname", luaopen_posix_sys_utsname, 0);
-	lua_setfield(L, -2, "utsname");
-	luaL_requiref(L, "posix.sys.wait", luaopen_posix_sys_wait, 0);
-	lua_setfield(L, -2, "wait");
-	lua_setfield(L, -2, "sys");
-
-	luaL_requiref(L, "posix.unistd", luaopen_posix_unistd, 0);
-	lua_setfield(L, -2, "unistd");
-
+	luaL_newlib(L, unistdlib);
 	return (1);
 }

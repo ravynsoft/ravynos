@@ -1,4 +1,3 @@
-PACKAGE= nfs
 PROG=	showmount
 MAN=	showmount.8
 

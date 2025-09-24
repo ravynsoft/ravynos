@@ -622,8 +622,7 @@ cxgb_controller_attach(device_t dev)
 	for (i = 0; i < (sc)->params.nports; i++) {
 		struct port_info *pi;
 		
-		if ((child = device_add_child(dev, "cxgb",
-		    DEVICE_UNIT_ANY)) == NULL) {
+		if ((child = device_add_child(dev, "cxgb", -1)) == NULL) {
 			device_printf(dev, "failed to add child port\n");
 			error = EINVAL;
 			goto out;

@@ -34,11 +34,9 @@
 bind ^[[A ed-search-prev-history
 bind ^[[B ed-search-next-history
 
-# # Ctrl+right arrow: go to the next word
-# # Ctrl+left arrow: go to the previous word
+# # ctrl+arrow allow to jump from words to words
 bind "\\e[1;5C" em-next-word
 bind "\\e[1;5D" ed-prev-word
-
 alias history='fc -l'
 
 # Fix home/del for mobaxterm

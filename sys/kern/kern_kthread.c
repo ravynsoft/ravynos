@@ -42,10 +42,11 @@
 #include <sys/unistd.h>
 #include <sys/wait.h>
 #include <sys/sched.h>
-#include <sys/stdarg.h>
 #include <sys/tslog.h>
 #include <vm/vm.h>
 #include <vm/vm_extern.h>
+
+#include <machine/stdarg.h>
 
 /*
  * Start a kernel process.  This is called after a fork() call in

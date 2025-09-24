@@ -90,7 +90,6 @@ SRCS+= \
 	glob.c \
 	glob-compat11.c \
 	initgroups.c \
-	inotify.c \
 	isatty.c \
 	isinf.c \
 	isnan.c \
@@ -136,7 +135,6 @@ SRCS+= \
 	setmode.c \
 	setproctitle.c \
 	setprogname.c \
-	sig2str.c \
 	siginterrupt.c \
 	siglist.c \
 	signal.c \
@@ -162,8 +160,6 @@ SRCS+= \
 	ttyname.c \
 	ttyslot.c \
 	ualarm.c \
-	uexterr_format.c \
-	uexterr_gettext.c \
 	ulimit.c \
 	uname.c \
 	unvis-compat.c \
@@ -172,11 +168,6 @@ SRCS+= \
 	utxdb.c \
 	valloc.c \
 	wordexp.c
-
-.if ${COMPILER_FEATURES:Mblocks}
-CFLAGS.fts.c= -fblocks
-CFLAGS.glob.c= -fblocks
-.endif
 
 CFLAGS.arc4random.c= -I${SRCTOP}/sys -I${SRCTOP}/sys/crypto/chacha20
 
@@ -372,8 +363,7 @@ MLINKS+=exec.3 execl.3 \
 	exec.3 exect.3 \
 	exec.3 execv.3 \
 	exec.3 execvP.3 \
-	exec.3 execvp.3 \
-	exec.3 execvpe.3
+	exec.3 execvp.3
 MLINKS+=fpclassify.3 finite.3 \
 	fpclassify.3 finitef.3 \
 	fpclassify.3 isfinite.3 \
@@ -476,10 +466,7 @@ MLINKS+=posix_spawn.3 posix_spawnp.3 \
 	posix_spawnattr_getsigdefault.3 posix_spawnattr_setsigdefault.3 \
 	posix_spawnattr_getsigmask.3 posix_spawnattr_setsigmask.3 \
 	posix_spawnattr_init.3 posix_spawnattr_destroy.3
-MLINKS+=psignal.3 psiginfo.3 \
-	psignal.3 sig2str.3 \
-	psignal.3 str2sig.3 \
-	psignal.3 strsignal.3 \
+MLINKS+=psignal.3 strsignal.3 \
 	psignal.3 sys_siglist.3 \
 	psignal.3 sys_signame.3
 MLINKS+=pwcache.3 gid_from_group.3 \
@@ -501,11 +488,8 @@ MLINKS+=rand48.3 _rand48.3 \
 MLINKS+=rtld_get_var.3 \
 	rtld_set_var.3
 MLINKS+=scandir.3 alphasort.3 \
-	scandir.3 fdscandir.3 \
-	scandir.3 fdscandir_b.3 \
-	scandir.3 scandir_b.3 \
 	scandir.3 scandirat.3 \
-	scandir.3 scandirat_b.3 \
+	scandir.3 scandir_b.3 \
 	scandir.3 versionsort.3
 MLINKS+=sem_open.3 sem_close.3 \
 	sem_open.3 sem_unlink.3

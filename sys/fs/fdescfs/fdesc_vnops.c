@@ -502,7 +502,7 @@ fdesc_setattr(struct vop_setattr_args *ap)
 		    cap_rights_init_one(&rights, CAP_EXTATTR_SET), &fp);
 	} else {
 		error = getvnode_path(td, fd,
-		    cap_rights_init_one(&rights, CAP_EXTATTR_SET), NULL, &fp);
+		    cap_rights_init_one(&rights, CAP_EXTATTR_SET), &fp);
 	}
 	if (error) {
 		/*
@@ -547,8 +547,6 @@ fdesc_readdir(struct vop_readdir_args *ap)
 	fmp = VFSTOFDESC(ap->a_vp->v_mount);
 	if (ap->a_ncookies != NULL)
 		*ap->a_ncookies = 0;
-	if (ap->a_eofflag != NULL)
-		*ap->a_eofflag = 0;
 
 	off = (int)uio->uio_offset;
 	if (off != uio->uio_offset || off < 0 || (u_int)off % UIO_MX != 0 ||
@@ -561,12 +559,7 @@ fdesc_readdir(struct vop_readdir_args *ap)
 	fcnt = i - 2;		/* The first two nodes are `.' and `..' */
 
 	FILEDESC_SLOCK(fdp);
-	while (uio->uio_resid >= UIO_MX) {
-		if (i >= fdp->fd_nfiles + 2) {
-			if (ap->a_eofflag != NULL)
-				*ap->a_eofflag = 1;
-			break;
-		}
+	while (i < fdp->fd_nfiles + 2 && uio->uio_resid >= UIO_MX) {
 		bzero((caddr_t)dp, UIO_MX);
 		switch (i) {
 		case 0:	/* `.' */
@@ -646,7 +639,7 @@ fdesc_readlink(struct vop_readlink_args *va)
 	VOP_UNLOCK(vn);
 
 	td = curthread;
-	error = fget_cap(td, fd_fd, &cap_no_rights, NULL, &fp, NULL);
+	error = fget_cap(td, fd_fd, &cap_no_rights, &fp, NULL);
 	if (error != 0)
 		goto out;
 

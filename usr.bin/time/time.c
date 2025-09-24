@@ -40,8 +40,6 @@
 #include <errno.h>
 #include <locale.h>
 #include <signal.h>
-#include <stdatomic.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -56,7 +54,7 @@ static void showtime(FILE *, struct timespec *, struct timespec *,
 static void siginfo(int);
 static void usage(void) __dead2;
 
-static sig_atomic_t siginfo_recvd;
+static volatile sig_atomic_t siginfo_recvd;
 static char decimal_point;
 static struct timespec before_ts;
 static int hflag, pflag;
@@ -127,10 +125,7 @@ main(int argc, char **argv)
 	(void)signal(SIGINFO, siginfo);
 	(void)siginterrupt(SIGINFO, 1);
 	while (wait4(pid, &status, 0, &ru) != pid) {
-		bool do_siginfo = siginfo_recvd != 0;
-
-		atomic_signal_fence(memory_order_acquire);
-		if (do_siginfo) {
+		if (siginfo_recvd) {
 			siginfo_recvd = 0;
 			if (clock_gettime(CLOCK_MONOTONIC, &after))
 				err(1, "clock_gettime");
@@ -301,5 +296,4 @@ siginfo(int sig __unused)
 {
 
 	siginfo_recvd = 1;
-	atomic_signal_fence(memory_order_release);
 }

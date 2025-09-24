@@ -511,12 +511,11 @@ vm_reserv_from_page(vm_page_t m)
  */
 static vm_reserv_t
 vm_reserv_from_object(vm_object_t object, vm_pindex_t pindex,
-    vm_page_t *mpredp, vm_page_t *msuccp, struct pctrie_iter *pages)
+    vm_page_t mpred, vm_page_t *msuccp)
 {
 	vm_reserv_t rv;
-	vm_page_t mpred, msucc;
+	vm_page_t msucc;
 
-	mpred = vm_radix_iter_lookup_lt(pages, pindex);
 	if (mpred != NULL) {
 		KASSERT(mpred->object == object,
 		    ("vm_reserv_from_object: object doesn't contain mpred"));
@@ -525,9 +524,9 @@ vm_reserv_from_object(vm_object_t object, vm_pindex_t pindex,
 		rv = vm_reserv_from_page(mpred);
 		if (rv->object == object && vm_reserv_has_pindex(rv, pindex))
 			return (rv);
-	}
-
-	msucc = vm_radix_iter_lookup_ge(pages, pindex);
+		msucc = TAILQ_NEXT(mpred, listq);
+	} else
+		msucc = TAILQ_FIRST(&object->memq);
 	if (msucc != NULL) {
 		KASSERT(msucc->pindex > pindex,
 		    ("vm_reserv_from_object: msucc doesn't succeed pindex"));
@@ -535,7 +534,6 @@ vm_reserv_from_object(vm_object_t object, vm_pindex_t pindex,
 		if (rv->object == object && vm_reserv_has_pindex(rv, pindex))
 			return (rv);
 	}
-	*mpredp = mpred;
 	*msuccp = msucc;
 	return (NULL);
 }
@@ -549,73 +547,6 @@ vm_reserv_has_pindex(vm_reserv_t rv, vm_pindex_t pindex)
 {
 
 	return (((pindex - rv->pindex) & ~(VM_LEVEL_0_NPAGES - 1)) == 0);
-}
-
-/*
- * How many pages should be in a new allocation that starts at the first page of
- * the reservation superpage that contains 'first', fits between the allocations
- * that include 'mpred' and 'msucc', fits within 'object', includes at least
- * 'minpages' pages, and tries to include every allocated page in a superpage?
- *
- * We must synchronize with the reserv object lock to protect the pindex/object
- * of the resulting reservations against rename while we are inspecting.
- */
-static u_long
-vm_reserv_num_alloc_pages(vm_object_t object, vm_pindex_t first,
-    u_long minpages, vm_page_t mpred, vm_page_t msucc)
-{
-	vm_pindex_t leftcap, rightcap;
-	vm_reserv_t rv;
-	u_int allocpages;
-
-	allocpages = roundup2(minpages, VM_LEVEL_0_NPAGES);
-
-	vm_reserv_object_lock(object);
-	if (mpred != NULL) {
-		if ((rv = vm_reserv_from_page(mpred))->object != object)
-			leftcap = mpred->pindex + 1;
-		else
-			leftcap = rv->pindex + VM_LEVEL_0_NPAGES;
-		if (leftcap > first)
-			allocpages = 0;
-	}
-	if (minpages < allocpages) {
-		if (msucc == NULL) {
-			/*
-			 * Would the last new reservation extend past the end of
-			 * the object?
-			 *
-			 * If the object is unlikely to grow don't allocate a
-			 * reservation for the tail.
-			 */
-			if ((object->flags & OBJ_ANON) == 0)
-				rightcap = object->size;
-			else
-				rightcap = OBJ_MAX_SIZE;
-		} else {
-			/*
-			 * Would the last new reservation extend past the start
-			 * of another page or reservation?
-			 *
-			 * If the object would, don't allocate a reservation for
-			 * the tail.
-			 */
-			if ((rv = vm_reserv_from_page(msucc))->object != object)
-				rightcap = msucc->pindex;
-			else
-				rightcap = rv->pindex;
-		}
-		if (first + allocpages > rightcap) {
-			/*
-			 * A reservation for the last of the requested pages
-			 * will not fit.  Reduce the size of the upcoming
-			 * allocation accordingly.
-			 */
-			allocpages = minpages;
-		}
-	}
-	vm_reserv_object_unlock(object);
-	return (allocpages);
 }
 
 /*
@@ -686,15 +617,15 @@ vm_reserv_populate(vm_reserv_t rv, int index)
  */
 vm_page_t
 vm_reserv_alloc_contig(vm_object_t object, vm_pindex_t pindex, int domain,
-    int req, u_long npages, vm_paddr_t low, vm_paddr_t high, u_long alignment,
-    vm_paddr_t boundary, struct pctrie_iter *pages)
+    int req, vm_page_t mpred, u_long npages, vm_paddr_t low, vm_paddr_t high,
+    u_long alignment, vm_paddr_t boundary)
 {
 	struct vm_domain *vmd;
 	vm_paddr_t pa, size;
-	vm_page_t m, m_ret, mpred, msucc;
-	vm_pindex_t first;
+	vm_page_t m, m_ret, msucc;
+	vm_pindex_t first, leftcap, rightcap;
 	vm_reserv_t rv;
-	u_long allocpages;
+	u_long allocpages, maxpages, minpages;
 	int i, index, n;
 
 	VM_OBJECT_ASSERT_WLOCKED(object);
@@ -725,7 +656,7 @@ vm_reserv_alloc_contig(vm_object_t object, vm_pindex_t pindex, int domain,
 	/*
 	 * Look for an existing reservation.
 	 */
-	rv = vm_reserv_from_object(object, pindex, &mpred, &msucc, pages);
+	rv = vm_reserv_from_object(object, pindex, mpred, &msucc);
 	if (rv != NULL) {
 		KASSERT(object != kernel_object || rv->domain == domain,
 		    ("vm_reserv_alloc_contig: domain mismatch"));
@@ -759,14 +690,63 @@ out:
 	}
 
 	/*
-	 * Check whether an allocation including at least one reservation can
-	 * fit between mpred and msucc.
+	 * Could at least one reservation fit between the first index to the
+	 * left that can be used ("leftcap") and the first index to the right
+	 * that cannot be used ("rightcap")?
+	 *
+	 * We must synchronize with the reserv object lock to protect the
+	 * pindex/object of the resulting reservations against rename while
+	 * we are inspecting.
 	 */
 	first = pindex - VM_RESERV_INDEX(object, pindex);
-	allocpages = vm_reserv_num_alloc_pages(object, first,
-	    VM_RESERV_INDEX(object, pindex) + npages, mpred, msucc);
-	if (allocpages < VM_LEVEL_0_NPAGES)
-		return (NULL);
+	minpages = VM_RESERV_INDEX(object, pindex) + npages;
+	maxpages = roundup2(minpages, VM_LEVEL_0_NPAGES);
+	allocpages = maxpages;
+	vm_reserv_object_lock(object);
+	if (mpred != NULL) {
+		if ((rv = vm_reserv_from_page(mpred))->object != object)
+			leftcap = mpred->pindex + 1;
+		else
+			leftcap = rv->pindex + VM_LEVEL_0_NPAGES;
+		if (leftcap > first) {
+			vm_reserv_object_unlock(object);
+			return (NULL);
+		}
+	}
+	if (msucc != NULL) {
+		if ((rv = vm_reserv_from_page(msucc))->object != object)
+			rightcap = msucc->pindex;
+		else
+			rightcap = rv->pindex;
+		if (first + maxpages > rightcap) {
+			if (maxpages == VM_LEVEL_0_NPAGES) {
+				vm_reserv_object_unlock(object);
+				return (NULL);
+			}
+
+			/*
+			 * At least one reservation will fit between "leftcap"
+			 * and "rightcap".  However, a reservation for the
+			 * last of the requested pages will not fit.  Reduce
+			 * the size of the upcoming allocation accordingly.
+			 */
+			allocpages = minpages;
+		}
+	}
+	vm_reserv_object_unlock(object);
+
+	/*
+	 * Would the last new reservation extend past the end of the object?
+	 *
+	 * If the object is unlikely to grow don't allocate a reservation for
+	 * the tail.
+	 */
+	if ((object->flags & OBJ_ANON) == 0 &&
+	    first + maxpages > object->size) {
+		if (maxpages == VM_LEVEL_0_NPAGES)
+			return (NULL);
+		allocpages = minpages;
+	}
 
 	/*
 	 * Allocate the physical pages.  The alignment and boundary specified
@@ -833,11 +813,11 @@ out:
  */
 vm_page_t
 vm_reserv_alloc_page(vm_object_t object, vm_pindex_t pindex, int domain,
-    int req, struct pctrie_iter *pages)
+    int req, vm_page_t mpred)
 {
 	struct vm_domain *vmd;
-	vm_page_t m, mpred, msucc;
-	vm_pindex_t first;
+	vm_page_t m, msucc;
+	vm_pindex_t first, leftcap, rightcap;
 	vm_reserv_t rv;
 	int index;
 
@@ -853,7 +833,7 @@ vm_reserv_alloc_page(vm_object_t object, vm_pindex_t pindex, int domain,
 	/*
 	 * Look for an existing reservation.
 	 */
-	rv = vm_reserv_from_object(object, pindex, &mpred, &msucc, pages);
+	rv = vm_reserv_from_object(object, pindex, mpred, &msucc);
 	if (rv != NULL) {
 		KASSERT(object != kernel_object || rv->domain == domain,
 		    ("vm_reserv_alloc_page: domain mismatch"));
@@ -879,12 +859,45 @@ out:
 	}
 
 	/*
-	 * Check whether an allocation including reservations can fit
-	 * between mpred and msucc.
+	 * Could a reservation fit between the first index to the left that
+	 * can be used and the first index to the right that cannot be used?
+	 *
+	 * We must synchronize with the reserv object lock to protect the
+	 * pindex/object of the resulting reservations against rename while
+	 * we are inspecting.
 	 */
 	first = pindex - VM_RESERV_INDEX(object, pindex);
-	if (vm_reserv_num_alloc_pages(object, first, 1, mpred, msucc) < 
-	    VM_LEVEL_0_NPAGES)
+	vm_reserv_object_lock(object);
+	if (mpred != NULL) {
+		if ((rv = vm_reserv_from_page(mpred))->object != object)
+			leftcap = mpred->pindex + 1;
+		else
+			leftcap = rv->pindex + VM_LEVEL_0_NPAGES;
+		if (leftcap > first) {
+			vm_reserv_object_unlock(object);
+			return (NULL);
+		}
+	}
+	if (msucc != NULL) {
+		if ((rv = vm_reserv_from_page(msucc))->object != object)
+			rightcap = msucc->pindex;
+		else
+			rightcap = rv->pindex;
+		if (first + VM_LEVEL_0_NPAGES > rightcap) {
+			vm_reserv_object_unlock(object);
+			return (NULL);
+		}
+	}
+	vm_reserv_object_unlock(object);
+
+	/*
+	 * Would the last new reservation extend past the end of the object?
+	 *
+	 * If the object is unlikely to grow don't allocate a reservation for
+	 * the tail.
+	 */
+	if ((object->flags & OBJ_ANON) == 0 &&
+	    first + VM_LEVEL_0_NPAGES > object->size)
 		return (NULL);
 
 	/*

@@ -25,11 +25,7 @@ static char bufs[4][128];
 // for DJGPP builds.
 //
 // MSVC doesn't support thousand separators.
-//
-// MinGW-w64 supports thousand separators only with its own stdio functions
-// which our sysdefs.h disables when _UCRT && HAVE_SMALL.
-#if defined(__DJGPP__) || defined(_MSC_VER) \
-		|| (defined(__MINGW32__) && __USE_MINGW_ANSI_STDIO == 0)
+#if defined(__DJGPP__) || defined(_MSC_VER)
 #	define FORMAT_THOUSAND_SEP(prefix, suffix) prefix suffix
 #	define check_thousand_sep(slot) do { } while (0)
 #else
@@ -107,8 +103,8 @@ str_to_uint64(const char *name, const char *value, uint64_t min, uint64_t max)
 		return max;
 
 	if (*value < '0' || *value > '9')
-		message_fatal(_("%s: %s"), value,
-			_("Value is not a non-negative decimal integer"));
+		message_fatal(_("%s: Value is not a non-negative "
+				"decimal integer"), value);
 
 	do {
 		// Don't overflow.

@@ -38,12 +38,9 @@
 #include_next <string.h>
 
 /*
- * strchrnul is provided by macOS 15.4 and later.  However, there is
- * no good way to detect the current host version at compile time, so
- * provide an inline definition under an alternate name.
+ * strchrnul is not provided by macOS and the strchrnul.c implementation
+ * can not be compiled on macOS so just provide it inline here
  */
-#define	strchrnul(p, ch)	__freebsd_strchrnul(p, ch)
-
 static inline char *
 strchrnul(const char *p, int ch)
 {

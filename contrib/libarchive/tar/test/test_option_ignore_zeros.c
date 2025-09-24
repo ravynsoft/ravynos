@@ -76,7 +76,8 @@ DEFINE_TEST(test_option_ignore_zeros_mode_c)
 	// bsdtar.exe: b: Can't translate uname '(null)' to UTF-8
 	skipping("TODO: figure out why this test fails on github workflows with MSVC");
 	return;
-#else
+#endif
+
 	if (make_files())
 		return;
 
@@ -96,7 +97,6 @@ DEFINE_TEST(test_option_ignore_zeros_mode_c)
 	assertEqualFile("out/a", "in/a");
 	assertEqualFile("out/b", "in/b");
 	assertEqualFile("out/c", "in/c");
-#endif
 }
 
 static void

@@ -1,14 +1,12 @@
 .include <src.opts.mk>
 
 ATF_TESTS_C+=		clearenv_test
-ATF_TESTS_C+=		cxa_atexit_test
 ATF_TESTS_C+=		dynthr_test
-ATF_TESTS_C+=		getenv_r_test
 ATF_TESTS_C+=		heapsort_test
 ATF_TESTS_C+=		libc_exit_test
 ATF_TESTS_C+=		mergesort_test
 ATF_TESTS_C+=		qsort_test
-.if ${COMPILER_FEATURES:Mblocks}
+.if ${COMPILER_TYPE} == "clang"
 ATF_TESTS_C+=		qsort_b_test
 .endif
 ATF_TESTS_C+=		qsort_r_compat_test
@@ -60,9 +58,11 @@ PROGS+=		h_getopt h_getopt_long
 
 CFLAGS+=	-I${.CURDIR}
 
+CXXSTD.cxa_thread_atexit_test=	c++11
+CXXSTD.cxa_thread_atexit_nothr_test=	c++11
 LIBADD.cxa_thread_atexit_test+=		pthread
 
-# Tests that require blocks support
+# Tests that requires Blocks feature
 .for t in qsort_b_test
 CFLAGS.${t}.c+=		-fblocks
 LIBADD.${t}+=		BlocksRuntime
@@ -79,6 +79,5 @@ LIBADD.libc_exit_test+=		pthread
 LIBADD.strtod_test+=		m
 
 SUBDIR+=	dynthr_mod
-SUBDIR+=	libatexit
 
 .include <bsd.test.mk>

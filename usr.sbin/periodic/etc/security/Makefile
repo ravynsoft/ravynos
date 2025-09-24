@@ -40,9 +40,7 @@ PFPACKAGE=	pf
 .endif
 
 .if ${MK_INETD} != "no" && ${MK_TCP_WRAPPERS} != "no"
-CONFGROUPS+=	TCPWRAP
-TCPWRAP+=	900.tcpwrap
-TCPWRAPPACKAGE=	tcpd
+CONFS+=	900.tcpwrap
 .endif
 
 .include <bsd.prog.mk>

@@ -30,5 +30,3 @@ ENTRY(host_syscall)
 	blr
 /* Note: We're exposing the raw return value to the caller */	
 END(host_syscall)
-
-	.section .note.GNU-stack,"",%progbits

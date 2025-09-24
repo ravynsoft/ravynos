@@ -27,7 +27,7 @@
 .\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 .\" POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd June 24, 2025
+.Dd October 5, 2020
 .Dt PKILL 1
 .Os
 .Sh NAME
@@ -71,17 +71,12 @@ The
 .Nm pgrep
 command searches the process table on the running system and prints the
 process IDs of all processes that match the criteria given on the command
-line, excluding itself and all direct ancestors unless the
-.Fl a
-option is specified.
+line.
 .Pp
 The
 .Nm pkill
 command searches the process table on the running system and signals all
-processes that match the criteria given on the command line, excluding itself
-and all direct ancestors unless the
-.Fl a
-option is specified.
+processes that match the criteria given on the command line.
 .Pp
 The following options are available:
 .Bl -tag -width ".Fl F Ar pidfile"
@@ -135,16 +130,6 @@ or
 process and all of its ancestors are excluded (unless
 .Fl v
 is used).
-Note that the
-.Fl a
-option will not
-.Dq unhide
-the
-.Nm pgrep
-or
-.Nm pkill
-process itself, even with
-.Fl v .
 .It Fl c Ar class
 Restrict matches to processes running with specified login class
 .Ar class .

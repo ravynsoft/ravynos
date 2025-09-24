@@ -79,7 +79,7 @@ static void mt7663u_copy(struct mt76_dev *dev, u32 offset,
 	mutex_unlock(&usb->usb_ctrl_mtx);
 }
 
-static void mt7663u_stop(struct ieee80211_hw *hw, bool suspend)
+static void mt7663u_stop(struct ieee80211_hw *hw)
 {
 	struct mt7615_phy *phy = mt7615_hw_phy(hw);
 	struct mt7615_dev *dev = hw->priv;
@@ -123,7 +123,6 @@ static int mt7663u_probe(struct usb_interface *usb_intf,
 		.sta_add = mt7615_mac_sta_add,
 		.sta_remove = mt7615_mac_sta_remove,
 		.update_survey = mt7615_update_channel,
-		.set_channel = mt7615_set_channel,
 	};
 	static struct mt76_bus_ops bus_ops = {
 		.rr = mt7663u_rr,
@@ -225,7 +224,7 @@ static int mt7663u_suspend(struct usb_interface *intf, pm_message_t state)
 	    mt7615_firmware_offload(dev)) {
 		int err;
 
-		err = mt76_connac_mcu_set_hif_suspend(&dev->mt76, true, true);
+		err = mt76_connac_mcu_set_hif_suspend(&dev->mt76, true);
 		if (err < 0)
 			return err;
 	}
@@ -253,7 +252,7 @@ static int mt7663u_resume(struct usb_interface *intf)
 
 	if (!test_bit(MT76_STATE_SUSPEND, &dev->mphy.state) &&
 	    mt7615_firmware_offload(dev))
-		err = mt76_connac_mcu_set_hif_suspend(&dev->mt76, false, true);
+		err = mt76_connac_mcu_set_hif_suspend(&dev->mt76, false);
 
 	return err;
 }
@@ -282,5 +281,4 @@ module_usb_driver(mt7663u_driver);
 
 MODULE_AUTHOR("Sean Wang <sean.wang@mediatek.com>");
 MODULE_AUTHOR("Lorenzo Bianconi <lorenzo@kernel.org>");
-MODULE_DESCRIPTION("MediaTek MT7663U (USB) wireless driver");
 MODULE_LICENSE("Dual BSD/GPL");

@@ -27,7 +27,7 @@
 #define	_LINUXKPI_LINUX_LEDS_H
 
 enum led_brightness {
-	LED_OFF,
+	__DUMMY,
 };
 
 struct led_classdev {
@@ -35,7 +35,6 @@ struct led_classdev {
 	const char		*default_trigger;
 	int (*blink_set)(struct led_classdev *, unsigned long *, unsigned long *);
 	void (*brightness_set)(struct led_classdev *, enum led_brightness);
-	void (*led_set)(struct led_classdev *, enum led_brightness);
 };
 
 #endif	/* _LINUXKPI_LINUX_LEDS_H */

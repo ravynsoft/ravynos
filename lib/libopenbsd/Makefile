@@ -2,8 +2,7 @@ PACKAGE=lib${LIB}
 LIB=	openbsd
 SRCS=	imsg-buffer.c \
 	imsg.c \
-	ohash.c \
-	recallocarray.c
+	ohash.c
 .if !defined(BOOTSTRAPPING)
 # Skip getdtablecount.c when bootstrapping since it doesn't compile for Linux
 # and is not used by any of the bootstrap tools

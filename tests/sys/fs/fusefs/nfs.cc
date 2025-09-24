@@ -84,7 +84,6 @@ TEST_F(Fhstat, estale)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = mode;
 		out.body.entry.nodeid = ino;
-		out.body.entry.attr.ino = ino;
 		out.body.entry.generation = 1;
 		out.body.entry.attr_valid = UINT64_MAX;
 		out.body.entry.entry_valid = 0;
@@ -96,7 +95,6 @@ TEST_F(Fhstat, estale)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = mode;
 		out.body.entry.nodeid = ino;
-		out.body.entry.attr.ino = ino;
 		out.body.entry.generation = 2;
 		out.body.entry.attr_valid = UINT64_MAX;
 		out.body.entry.entry_valid = 0;
@@ -123,7 +121,6 @@ TEST_F(Fhstat, lookup_dot)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = mode;
 		out.body.entry.nodeid = ino;
-		out.body.entry.attr.ino = ino;
 		out.body.entry.generation = 1;
 		out.body.entry.attr.uid = uid;
 		out.body.entry.attr_valid = UINT64_MAX;
@@ -135,7 +132,6 @@ TEST_F(Fhstat, lookup_dot)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = mode;
 		out.body.entry.nodeid = ino;
-		out.body.entry.attr.ino = ino;
 		out.body.entry.generation = 1;
 		out.body.entry.attr.uid = uid;
 		out.body.entry.attr_valid = UINT64_MAX;
@@ -164,7 +160,6 @@ TEST_F(Fhstat, lookup_dot_error)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = mode;
 		out.body.entry.nodeid = ino;
-		out.body.entry.attr.ino = ino;
 		out.body.entry.generation = 1;
 		out.body.entry.attr.uid = uid;
 		out.body.entry.attr_valid = UINT64_MAX;
@@ -194,7 +189,6 @@ TEST_F(Fhstat, cached)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = mode;
 		out.body.entry.nodeid = ino;
-		out.body.entry.attr.ino = ino;
 		out.body.entry.generation = 1;
 		out.body.entry.attr.ino = ino;
 		out.body.entry.attr_valid = UINT64_MAX;
@@ -221,7 +215,6 @@ TEST_F(Fhstat, cache_expired)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = mode;
 		out.body.entry.nodeid = ino;
-		out.body.entry.attr.ino = ino;
 		out.body.entry.generation = 1;
 		out.body.entry.attr.ino = ino;
 		out.body.entry.attr_valid = UINT64_MAX;
@@ -233,7 +226,6 @@ TEST_F(Fhstat, cache_expired)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = mode;
 		out.body.entry.nodeid = ino;
-		out.body.entry.attr.ino = ino;
 		out.body.entry.generation = 1;
 		out.body.entry.attr.ino = ino;
 		out.body.entry.attr_valid = UINT64_MAX;
@@ -247,99 +239,6 @@ TEST_F(Fhstat, cache_expired)
 	nap();
 
 	/* Cache should be expired; fuse should issue a FUSE_LOOKUP */
-	ASSERT_EQ(0, fhstat(&fhp, &sb)) << strerror(errno);
-	EXPECT_EQ(ino, sb.st_ino);
-}
-
-/*
- * If the server returns a FUSE_LOOKUP response for a nodeid that we didn't
- * lookup, it's a bug.  But we should handle it gracefully.
- */
-TEST_F(Fhstat, inconsistent_nodeid)
-{
-	const char FULLPATH[] = "mountpoint/some_dir/.";
-	const char RELDIRPATH[] = "some_dir";
-	fhandle_t fhp;
-	struct stat sb;
-	const uint64_t ino_in = 42;
-	const uint64_t ino_out = 43;
-	const mode_t mode = S_IFDIR | 0755;
-	const uid_t uid = 12345;
-
-	EXPECT_LOOKUP(FUSE_ROOT_ID, RELDIRPATH)
-	.WillOnce(Invoke(ReturnImmediate([=](auto in __unused, auto& out) {
-		SET_OUT_HEADER_LEN(out, entry);
-		out.body.entry.nodeid = ino_in;
-		out.body.entry.attr.ino = ino_in;
-		out.body.entry.attr.mode = mode;
-		out.body.entry.generation = 1;
-		out.body.entry.attr.uid = uid;
-		out.body.entry.attr_valid = UINT64_MAX;
-		out.body.entry.entry_valid = 0;
-	})));
-
-	EXPECT_LOOKUP(ino_in, ".")
-	.WillOnce(Invoke(ReturnImmediate([=](auto in __unused, auto& out) {
-		SET_OUT_HEADER_LEN(out, entry);
-		out.body.entry.nodeid = ino_out;
-		out.body.entry.attr.ino = ino_out;
-		out.body.entry.attr.mode = mode;
-		out.body.entry.generation = 1;
-		out.body.entry.attr.uid = uid;
-		out.body.entry.attr_valid = UINT64_MAX;
-		out.body.entry.entry_valid = 0;
-	})));
-
-	ASSERT_EQ(0, getfh(FULLPATH, &fhp)) << strerror(errno);
-	EXPECT_NE(0, fhstat(&fhp, &sb)) << strerror(errno);
-	EXPECT_EQ(EIO, errno);
-}
-
-/*
- * If the server returns a FUSE_LOOKUP response where the nodeid doesn't match
- * the inode number, and the file system is exported, it's a bug.  But we
- * should handle it gracefully.
- */
-TEST_F(Fhstat, inconsistent_ino)
-{
-	const char FULLPATH[] = "mountpoint/some_dir/.";
-	const char RELDIRPATH[] = "some_dir";
-	fhandle_t fhp;
-	struct stat sb;
-	const uint64_t nodeid = 42;
-	const uint64_t ino = 711;	// Could be anything that != nodeid
-	const mode_t mode = S_IFDIR | 0755;
-	const uid_t uid = 12345;
-
-	EXPECT_LOOKUP(FUSE_ROOT_ID, RELDIRPATH)
-	.WillOnce(Invoke(ReturnImmediate([=](auto in __unused, auto& out) {
-		SET_OUT_HEADER_LEN(out, entry);
-		out.body.entry.nodeid = nodeid;
-		out.body.entry.attr.ino = nodeid;
-		out.body.entry.attr.mode = mode;
-		out.body.entry.generation = 1;
-		out.body.entry.attr.uid = uid;
-		out.body.entry.attr_valid = UINT64_MAX;
-		out.body.entry.entry_valid = 0;
-	})));
-
-	EXPECT_LOOKUP(nodeid, ".")
-	.WillOnce(Invoke(ReturnImmediate([=](auto in __unused, auto& out) {
-		SET_OUT_HEADER_LEN(out, entry);
-		out.body.entry.nodeid = nodeid;
-		out.body.entry.attr.ino = ino;
-		out.body.entry.attr.mode = mode;
-		out.body.entry.generation = 1;
-		out.body.entry.attr.uid = uid;
-		out.body.entry.attr_valid = UINT64_MAX;
-		out.body.entry.entry_valid = 0;
-	})));
-
-	ASSERT_EQ(0, getfh(FULLPATH, &fhp)) << strerror(errno);
-	/*
-	 * The fhstat operation will actually succeed.  But future operations
-	 * will likely fail.
-	 */
 	ASSERT_EQ(0, fhstat(&fhp, &sb)) << strerror(errno);
 	EXPECT_EQ(ino, sb.st_ino);
 }
@@ -361,7 +260,6 @@ TEST_F(FhstatNotExportable, lookup_dot)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = mode;
 		out.body.entry.nodeid = ino;
-		out.body.entry.attr.ino = ino;
 		out.body.entry.generation = 1;
 		out.body.entry.attr_valid = UINT64_MAX;
 		out.body.entry.entry_valid = 0;
@@ -384,7 +282,6 @@ TEST_F(Getfh, eoverflow)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = S_IFDIR | 0755;
 		out.body.entry.nodeid = ino;
-		out.body.entry.attr.ino = ino;
 		out.body.entry.generation = (uint64_t)UINT32_MAX + 1;
 		out.body.entry.attr_valid = UINT64_MAX;
 		out.body.entry.entry_valid = UINT64_MAX;
@@ -407,7 +304,6 @@ TEST_F(Getfh, ok)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = S_IFDIR | 0755;
 		out.body.entry.nodeid = ino;
-		out.body.entry.attr.ino = ino;
 		out.body.entry.attr_valid = UINT64_MAX;
 		out.body.entry.entry_valid = UINT64_MAX;
 	})));
@@ -439,7 +335,6 @@ TEST_F(Readdir, getdirentries)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = mode;
 		out.body.entry.nodeid = ino;
-		out.body.entry.attr.ino = ino;
 		out.body.entry.generation = 1;
 		out.body.entry.attr_valid = UINT64_MAX;
 		out.body.entry.entry_valid = 0;
@@ -450,7 +345,6 @@ TEST_F(Readdir, getdirentries)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = mode;
 		out.body.entry.nodeid = ino;
-		out.body.entry.attr.ino = ino;
 		out.body.entry.generation = 1;
 		out.body.entry.attr_valid = UINT64_MAX;
 		out.body.entry.entry_valid = 0;

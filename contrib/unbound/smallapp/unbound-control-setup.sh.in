@@ -204,8 +204,7 @@ fi
 # remove unused permissions
 chmod o-rw \
       "$SVR_BASE.pem" \
-      "$SVR_BASE.key"
-chmod g+r,o-rw \
+      "$SVR_BASE.key" \
       "$CTL_BASE.pem" \
       "$CTL_BASE.key"
 

@@ -4,22 +4,10 @@
 LIB=	ssh
 PRIVATELIB=	true
 SHLIB_MAJOR=	5
-
-LIBOPENSSH_SRCS=\
-	ssh_api.c \
-	ssherr.c \
-	sshbuf.c \
-	sshkey.c \
-	sshbuf-getput-basic.c \
-	sshbuf-misc.c \
-	sshbuf-getput-crypto.c \
-	krl.c \
-	bitmap.c
-
-# gss-genr.c should be in $SRCS but causes linking problems, so it is
-# compiled directly into sshd instead.
-SRCS=	${LIBOPENSSH_SRCS} \
-	authfd.c authfile.c \
+SRCS=	ssh_api.c ssherr.c \
+	sshbuf.c sshkey.c sshbuf-getput-basic.c \
+	sshbuf-misc.c sshbuf-getput-crypto.c krl.c bitmap.c
+SRCS+=	authfd.c authfile.c \
 	canohost.c channels.c cipher.c cipher-aes.c cipher-aesctr.c \
 	cleanup.c \
 	compat.c fatal.c hostfile.c \
@@ -38,11 +26,12 @@ SRCS=	${LIBOPENSSH_SRCS} \
 	kexsntrup761x25519.c kexmlkem768x25519.c sntrup761.c kexgen.c \
 	sftp-realpath.c platform-pledge.c platform-tracing.c platform-misc.c \
 	sshbuf-io.c
-
-# Add ${SKSRCS} to avoid linking problems.
-SRCS+=	${SKSRCS}
+SRCS+=	ssh-sk-client.c
 
 PACKAGE=	ssh
+
+# gss-genr.c should be in $SRCS but causes linking problems, so it is
+# compiled directly into sshd instead.
 
 # Portability layer
 SRCS+=	bcrypt_pbkdf.c blowfish.c bsd-misc.c bsd-signal.c explicit_bzero.c \
@@ -64,6 +53,8 @@ LIBADD+=	ldns
 .if defined(LOCALBASE)
 CFLAGS+= -D_PATH_SSH_ASKPASS_DEFAULT='"${LOCALBASE}/bin/ssh-askpass"'
 .endif
+
+NO_LINT=
 
 LIBADD+=	crypto crypt z
 

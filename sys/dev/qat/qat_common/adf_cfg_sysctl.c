@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright(c) 2007-2025 Intel Corporation */
+/* Copyright(c) 2007-2022 Intel Corporation */
 #include <sys/types.h>
 #include <sys/sysctl.h>
 #include <sys/systm.h>
@@ -10,7 +10,6 @@
 #include "adf_common_drv.h"
 #include <sys/mutex.h>
 #include <sys/sbuf.h>
-#include <sys/priv.h>
 
 #define ADF_CFG_SYSCTL_BUF_SZ ADF_CFG_MAX_VAL
 #define ADF_CFG_UP_STR "up"
@@ -106,9 +105,6 @@ static int adf_cfg_sysctl_services_handle(SYSCTL_HANDLER_ARGS)
 	int ret = 0;
 	int i = 0;
 
-	if (priv_check(curthread, PRIV_DRIVER) != 0)
-		return EPERM;
-
 	accel_dev = arg1;
 	if (!accel_dev)
 		return ENXIO;
@@ -160,9 +156,6 @@ static int adf_cfg_sysctl_mode_handle(SYSCTL_HANDLER_ARGS)
 	int ret = 0;
 	int i = 0;
 
-	if (priv_check(curthread, PRIV_DRIVER) != 0)
-		return EPERM;
-
 	accel_dev = arg1;
 	if (!accel_dev)
 		return ENXIO;
@@ -211,9 +204,6 @@ static int adf_cfg_sysctl_handle(SYSCTL_HANDLER_ARGS)
 	unsigned int len;
 	int ret = 0;
 
-	if (priv_check(curthread, PRIV_DRIVER) != 0)
-		return EPERM;
-
 	accel_dev = arg1;
 	if (!accel_dev)
 		return ENXIO;
@@ -254,9 +244,6 @@ static int adf_cfg_sysctl_num_processes_handle(SYSCTL_HANDLER_ARGS)
 	struct adf_accel_dev *accel_dev;
 	uint32_t num_user_processes = 0;
 	int ret = 0;
-
-	if (priv_check(curthread, PRIV_DRIVER) != 0)
-		return EPERM;
 
 	accel_dev = arg1;
 	if (!accel_dev)

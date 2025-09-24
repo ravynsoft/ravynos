@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright(c) 2007-2025 Intel Corporation */
+/* Copyright(c) 2007-2022 Intel Corporation */
 
 /**
  ***************************************************************************
@@ -336,6 +336,7 @@ LacSymSession_ParamCheck(const CpaInstanceHandle instanceHandle,
 	return CPA_STATUS_SUCCESS;
 }
 
+
 /**
  * @ingroup LacSym
  * Function which perform parameter checks on data buffers for symmetric
@@ -444,7 +445,7 @@ LacSymPerform_BufferParamCheck(const CpaBufferList *const pSrcBuffer,
 		}
 	}
 
-	/* check for partial packet support for the session operation */
+	/* check for partial packet suport for the session operation */
 	if (CPA_CY_SYM_PACKET_TYPE_FULL != pOpData->packetType) {
 		if (CPA_FALSE == pSessionDesc->isPartialSupported) {
 			/* return out here to simplify cleanup */
@@ -568,6 +569,7 @@ LacSym_InitSession(const CpaInstanceHandle instanceHandle,
 		return CPA_STATUS_INVALID_PARAM;
 	}
 
+
 	pCipherSetupData = &pSessionSetupData->cipherSetupData;
 	pHashSetupData = &pSessionSetupData->hashSetupData;
 
@@ -670,6 +672,7 @@ cpaCySymRemoveSession(const CpaInstanceHandle instanceHandle_in,
 	CpaStatus status = CPA_STATUS_SUCCESS;
 	CpaInstanceHandle instanceHandle = NULL;
 	Cpa64U numPendingRequests = 0;
+
 
 	if (CPA_INSTANCE_HANDLE_SINGLE == instanceHandle_in) {
 		instanceHandle =
@@ -791,6 +794,7 @@ LacSym_Perform(const CpaInstanceHandle instanceHandle,
 		}
 	}
 
+
 	/* If synchronous Operation - Callback function stored in the session
 	 * descriptor so a flag is set in the perform to indicate that
 	 * the perform is being re-called for the synchronous operation */
@@ -868,7 +872,7 @@ LacSym_Perform(const CpaInstanceHandle instanceHandle,
 				     pVerifyResult);
 
 	if (CPA_STATUS_SUCCESS == status) {
-		/* check for partial packet support for the session operation */
+		/* check for partial packet suport for the session operation */
 		if (CPA_CY_SYM_PACKET_TYPE_FULL != pOpData->packetType) {
 			LacSym_PartialPacketStateUpdate(
 			    pOpData->packetType, &pSessionDesc->partialState);
@@ -919,6 +923,7 @@ cpaCySymQueryStats(const CpaInstanceHandle instanceHandle_in,
 
 	CpaInstanceHandle instanceHandle = NULL;
 
+
 	if (CPA_INSTANCE_HANDLE_SINGLE == instanceHandle_in) {
 		instanceHandle =
 		    Lac_GetFirstHandle(SAL_SERVICE_TYPE_CRYPTO_SYM);
@@ -949,6 +954,7 @@ cpaCySymQueryStats64(const CpaInstanceHandle instanceHandle_in,
 {
 
 	CpaInstanceHandle instanceHandle = NULL;
+
 
 	if (CPA_INSTANCE_HANDLE_SINGLE == instanceHandle_in) {
 		instanceHandle =
@@ -1031,6 +1037,7 @@ cpaCySymSessionCtxGetDynamicSize(
 	/* Choose Session Context size */
 	getCtxSize(pSessionSetupData, pSessionCtxSizeInBytes);
 
+
 	return CPA_STATUS_SUCCESS;
 }
 
@@ -1108,6 +1115,7 @@ cpaCyBufferListGetMetaSize(const CpaInstanceHandle instanceHandle_in,
 	*pSizeInBytes = sizeof(icp_buffer_list_desc_t) +
 	    (sizeof(icp_flat_buffer_desc_t) * numBuffers) +
 	    ICP_DESCRIPTOR_ALIGNMENT_BYTES;
+
 
 	return CPA_STATUS_SUCCESS;
 }

@@ -283,7 +283,7 @@ __archive_write_filters_open(struct archive_write *a)
 }
 
 /*
- * Close all filters
+ * Close all filtes
  */
 static int
 __archive_write_filters_close(struct archive_write *a)

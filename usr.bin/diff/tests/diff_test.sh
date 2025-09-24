@@ -23,7 +23,6 @@ atf_test_case binary
 atf_test_case functionname
 atf_test_case noderef
 atf_test_case ignorecase
-atf_test_case dirloop
 
 simple_body()
 {
@@ -365,21 +364,6 @@ ignorecase_body()
 	atf_check -o empty -s exit:0 diff -u -r --ignore-file-name-case A B
 }
 
-dirloop_head()
-{
-	atf_set "timeout" "10"
-}
-dirloop_body()
-{
-	atf_check mkdir -p a/foo/bar
-	atf_check ln -s .. a/foo/bar/up
-	atf_check cp -a a b
-	atf_check \
-	    -e match:"a/foo/bar/up: Directory loop detected" \
-	    -e match:"b/foo/bar/up: Directory loop detected" \
-	    diff -r a b
-}
-
 atf_init_test_cases()
 {
 	atf_add_test_case simple
@@ -406,5 +390,4 @@ atf_init_test_cases()
 	atf_add_test_case functionname
 	atf_add_test_case noderef
 	atf_add_test_case ignorecase
-	atf_add_test_case dirloop
 }

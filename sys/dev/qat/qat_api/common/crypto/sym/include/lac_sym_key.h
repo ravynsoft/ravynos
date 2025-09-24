@@ -1,5 +1,8 @@
-/* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright(c) 2007-2025 Intel Corporation */
+/***************************************************************************
+ *
+ * <COPYRIGHT_TAG>
+ *
+ ***************************************************************************/
 
 /**
  *****************************************************************************
@@ -13,7 +16,7 @@
  *
  * @lld_overview
  *
- * Key generation component is responsible for SSL, TLS & MGF operations. All
+ * Key generation component is reponsible for SSL, TLS & MGF operations. All
  * memory required for the keygen operations is got from the keygen cookie
  * structure which is carved up as required.
  *
@@ -21,8 +24,8 @@
  * outer hash and SHA1 as the inner hash.
  *
  * Refer to sections in draft-freier-ssl-version3-02.txt:
- *      6.1 Asymmetric cryptographic computations - This refers to converting
- *          the pre-master secret to the master secret.
+ *      6.1 Asymmetric cryptographic computations - This refers to coverting
+ *          the pre master secret to the master secret.
  *      6.2.2 Converting the master secret into keys and MAC secrets - Using
  *          the master secret to generate the key material.
  *
@@ -37,11 +40,11 @@
  *
  * @lld_dependencies
  * \ref LacSymQatHash: for building up hash content descriptor
- * \ref LacMem: for virt to phys conversions
+ * \ref LacMem: for virt to phys coversions
  *
  * @lld_initialisation
- * The response handler is registered with Symmetric. The Maximum SSL is
- * allocated. A structure is allocated containing all the TLS labels that
+ * The reponse handler is registered with Symmetric. The Maximum SSL is
+ * allocated. A structure is allocated containing all the TLS lables that
  * are supported. On shutdown the memory for these structures are freed.
  *
  * @lld_module_algorithms
@@ -112,7 +115,7 @@
  *
  * @description
  *      This structure is used to hold the various TLS labels. Each field is
- *      on an 8 byte boundary provided the structure itself is 8 bytes aligned.
+ *      on an 8 byte boundary provided the structure itslef is 8 bytes aligned.
  *****************************************************************************/
 typedef struct lac_sym_key_tls_labels_s {
 	Cpa8U masterSecret[ICP_QAT_FW_LA_TLS_LABEL_LEN_MAX];

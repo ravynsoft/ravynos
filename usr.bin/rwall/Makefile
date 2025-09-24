@@ -1,4 +1,3 @@
-PACKAGE= rcmds
-PROG=	rwall
+PROG = rwall
 
 .include <bsd.prog.mk>

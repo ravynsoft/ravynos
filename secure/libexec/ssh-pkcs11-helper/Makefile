@@ -2,7 +2,7 @@
 .include "${SRCTOP}/secure/ssh.mk"
 
 PROG=	ssh-pkcs11-helper
-SRCS=	ssh-pkcs11-helper.c ssh-pkcs11.c $(SKSRCS)
+SRCS=	ssh-pkcs11.c ssh-pkcs11-helper.c
 MAN=	ssh-pkcs11-helper.8
 
 LIBADD=	crypto ssh

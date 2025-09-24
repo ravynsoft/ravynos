@@ -1,8 +1,8 @@
-/*	$Id: tbl_layout.c,v 1.51 2025/01/05 18:14:39 schwarze Exp $ */
+/*	$Id: tbl_layout.c,v 1.50 2021/08/10 12:55:04 schwarze Exp $ */
 /*
- * Copyright (c) 2012, 2014, 2015, 2017, 2020, 2021, 2025
- *               Ingo Schwarze <schwarze@openbsd.org>
  * Copyright (c) 2009, 2010, 2011 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2012, 2014, 2015, 2017, 2020, 2021
+ *               Ingo Schwarze <schwarze@openbsd.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -67,6 +67,7 @@ mods(struct tbl_node *tbl, struct tbl_cell *cp,
 {
 	char		*endptr;
 	unsigned long	 spacing;
+	size_t		 sz;
 	int		 isz;
 	enum mandoc_esc	 fontesc;
 
@@ -137,27 +138,20 @@ mod:
 		cp->flags |= TBL_CELL_UP;
 		goto mod;
 	case 'w':
+		sz = 0;
 		if (p[*pos] == '(') {
 			(*pos)++;
-			isz = 0;
-			if (roff_evalnum(ln, p, pos, &isz, 'n', 1) == 0 ||
-			    p[*pos] != ')')
-				mandoc_msg(MANDOCERR_TBLLAYOUT_WIDTH,
-				    ln, *pos, "%s", p + *pos);
-			else {
-				/* Convert from BU to EN and round. */
-				cp->width = (isz + 11) /24;
+			while (p[*pos + sz] != '\0' && p[*pos + sz] != ')')
+				sz++;
+		} else
+			while (isdigit((unsigned char)p[*pos + sz]))
+				sz++;
+		if (sz) {
+			free(cp->wstr);
+			cp->wstr = mandoc_strndup(p + *pos, sz);
+			*pos += sz;
+			if (p[*pos] == ')')
 				(*pos)++;
-			}
-		} else {
-			cp->width = 0;
-			while (isdigit((unsigned char)p[*pos])) {
-				cp->width *= 10;
-				cp->width += p[(*pos)++] - '0';
-			}
-			if (cp->width == 0)
-				mandoc_msg(MANDOCERR_TBLLAYOUT_WIDTH,
-				    ln, *pos, "%s", p + *pos);
 		}
 		goto mod;
 	case 'x':

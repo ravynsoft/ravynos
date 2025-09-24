@@ -445,16 +445,9 @@ l_getparams(lua_State *L)
 	for (size_t i = 0; i < params_count; ++i) {
 		char *value;
 
-		if (params[i].jp_flags & JP_KEYVALUE &&
-		    params[i].jp_valuelen == 0) {
-			/* Communicate back a missing key. */
-			lua_pushnil(L);
-		} else {
-			value = jailparam_export(&params[i]);
-			lua_pushstring(L, value);
-			free(value);
-		}
-
+		value = jailparam_export(&params[i]);
+		lua_pushstring(L, value);
+		free(value);
 		lua_setfield(L, -2, params[i].jp_name);
 	}
 
@@ -542,8 +535,7 @@ l_setparams(lua_State *L)
 		}
 
 		value = lua_tostring(L, -1);
-		/* Allow passing NULL for key removal. */
-		if (value == NULL && !(params[i].jp_flags & JP_KEYVALUE)) {
+		if (value == NULL) {
 			jailparam_free(params, i + 1);
 			free(params);
 			return (luaL_argerror(L, 2,

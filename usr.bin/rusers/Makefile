@@ -1,5 +1,4 @@
-PACKAGE= rcmds
-PROG=	rusers
+PROG = rusers
 
 LIBADD=	rpcsvc
 

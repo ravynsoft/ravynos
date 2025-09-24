@@ -436,7 +436,7 @@ hv_hid_attach(device_t dev)
 		ret = ENODEV;
 		goto out;
 	}
-	child = device_add_child(sc->dev, "hidbus", DEVICE_UNIT_ANY);
+	child = device_add_child(sc->dev, "hidbus", -1);
 	if (child == NULL) {
 		device_printf(sc->dev, "failed to add hidbus\n");
 		ret = ENOMEM;

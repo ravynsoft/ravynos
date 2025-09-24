@@ -49,7 +49,6 @@
 #include <sys/rman.h>
 #include <sys/sbuf.h>
 #include <sys/smp.h>
-#include <sys/stdarg.h>
 #include <sys/sysctl.h>
 #include <sys/systm.h>
 #include <sys/taskqueue.h>
@@ -62,6 +61,7 @@
 #include <net/vnet.h>
 
 #include <machine/cpu.h>
+#include <machine/stdarg.h>
 
 #include <vm/uma.h>
 #include <vm/vm.h>
@@ -6258,10 +6258,8 @@ SYSCTL_INT(_debug, OID_AUTO, obsolete_panic, CTLFLAG_RWTUN, &obsolete_panic, 0,
     "2 = if deprecated)");
 
 static void
-gone_panic(int major, int running, const char *msg, ...)
+gone_panic(int major, int running, const char *msg)
 {
-	va_list ap;
-
 	switch (obsolete_panic)
 	{
 	case 0:
@@ -6271,36 +6269,32 @@ gone_panic(int major, int running, const char *msg, ...)
 			return;
 		/* FALLTHROUGH */
 	default:
-		va_start(ap, msg);
-		vpanic(msg, ap);
+		panic("%s", msg);
 	}
 }
 
 void
-_gone_in(int major, const char *msg, ...)
+_gone_in(int major, const char *msg)
 {
-	va_list ap;
-
-	va_start(ap, msg);
-	gone_panic(major, P_OSREL_MAJOR(__FreeBSD_version), msg, ap);
-	vprintf(msg, ap);
-	va_end(ap);
-	if (P_OSREL_MAJOR(__FreeBSD_version) < major)
-		printf("To be removed in FreeBSD %d\n", major);
+	gone_panic(major, P_OSREL_MAJOR(__FreeBSD_version), msg);
+	if (P_OSREL_MAJOR(__FreeBSD_version) >= major)
+		printf("Obsolete code will be removed soon: %s\n", msg);
+	else
+		printf("Deprecated code (to be removed in FreeBSD %d): %s\n",
+		    major, msg);
 }
 
 void
-_gone_in_dev(device_t dev, int major, const char *msg, ...)
+_gone_in_dev(device_t dev, int major, const char *msg)
 {
-	va_list ap;
-
-	va_start(ap, msg);
-	gone_panic(major, P_OSREL_MAJOR(__FreeBSD_version), msg, ap);
-	device_printf(dev, msg, ap);
-	va_end(ap);
-	if (P_OSREL_MAJOR(__FreeBSD_version) < major)
+	gone_panic(major, P_OSREL_MAJOR(__FreeBSD_version), msg);
+	if (P_OSREL_MAJOR(__FreeBSD_version) >= major)
 		device_printf(dev,
-		    "to be removed in FreeBSD %d\n", major);
+		    "Obsolete code will be removed soon: %s\n", msg);
+	else
+		device_printf(dev,
+		    "Deprecated code (to be removed in FreeBSD %d): %s\n",
+		    major, msg);
 }
 
 #ifdef DDB

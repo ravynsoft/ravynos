@@ -119,8 +119,6 @@ MLINKS+=	atf-c.3 ATF_CHECK.3 \
 		atf-c.3 atf_tc_fail.3 \
 		atf-c.3 atf_tc_fail_nonfatal.3 \
 		atf-c.3 atf_tc_pass.3 \
-		atf-c.3 atf_tc_require_kmod.3 \
-		atf-c.3 atf_tc_require_prog.3 \
 		atf-c.3 atf_tc_skip.3 \
 		atf-c.3 atf_utils_cat_file.3 \
 		atf-c.3 atf_utils_compare_file.3 \

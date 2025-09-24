@@ -1,6 +1,5 @@
 .PATH: ${.CURDIR:H}/fdread
 
-PACKAGE= fd
 PROG=	fdcontrol
 SRCS=	fdcontrol.c fdutil.c
 CFLAGS+= -I${.CURDIR:H}/fdread

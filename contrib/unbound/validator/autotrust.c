@@ -353,7 +353,7 @@ autr_tp_create(struct val_anchors* anchors, uint8_t* own, size_t own_len,
 
 	lock_basic_lock(&anchors->lock);
 	if(!rbtree_insert(anchors->tree, &tp->node)) {
-		char buf[LDNS_MAX_DOMAINLEN];
+		char buf[LDNS_MAX_DOMAINLEN+1];
 		lock_basic_unlock(&anchors->lock);
 		dname_str(tp->name, buf);
 		log_err("trust anchor for '%s' presented twice", buf);
@@ -363,7 +363,7 @@ autr_tp_create(struct val_anchors* anchors, uint8_t* own, size_t own_len,
 		return NULL;
 	}
 	if(!rbtree_insert(&anchors->autr->probe, &tp->autr->pnode)) {
-		char buf[LDNS_MAX_DOMAINLEN];
+		char buf[LDNS_MAX_DOMAINLEN+1];
 		(void)rbtree_delete(anchors->tree, tp);
 		lock_basic_unlock(&anchors->lock);
 		dname_str(tp->name, buf);
@@ -2035,38 +2035,23 @@ wait_probe_time(struct val_anchors* anchors)
 	return 0;
 }
 
-/** reset worker timer, at the time from wait_probe_time. */
+/** reset worker timer */
 static void
-reset_worker_timer_at(struct module_env* env, time_t next)
+reset_worker_timer(struct module_env* env)
 {
 	struct timeval tv;
 #ifndef S_SPLINT_S
+	time_t next = (time_t)wait_probe_time(env->anchors);
 	/* in case this is libunbound, no timer */
 	if(!env->probe_timer)
 		return;
 	if(next > *env->now)
 		tv.tv_sec = (time_t)(next - *env->now);
 	else	tv.tv_sec = 0;
-#else
-	(void)next;
 #endif
 	tv.tv_usec = 0;
 	comm_timer_set(env->probe_timer, &tv);
 	verbose(VERB_ALGO, "scheduled next probe in " ARG_LL "d sec", (long long)tv.tv_sec);
-}
-
-/** reset worker timer. This routine manages the locks on acquiring the
- * next time for the timer. */
-static void
-reset_worker_timer(struct module_env* env)
-{
-	time_t next;
-	if(!env->anchors)
-		return;
-	lock_basic_lock(&env->anchors->lock);
-	next = wait_probe_time(env->anchors);
-	lock_basic_unlock(&env->anchors->lock);
-	reset_worker_timer_at(env, next);
 }
 
 /** set next probe for trust anchor */
@@ -2107,7 +2092,7 @@ set_next_probe(struct module_env* env, struct trust_anchor* tp,
 	verbose(VERB_ALGO, "next probe set in %d seconds", 
 		(int)tp->autr->next_probe_time - (int)*env->now);
 	if(mold != mnew) {
-		reset_worker_timer_at(env, mnew);
+		reset_worker_timer(env);
 	}
 	return 1;
 }
@@ -2162,7 +2147,7 @@ autr_tp_remove(struct module_env* env, struct trust_anchor* tp,
 		autr_point_delete(del_tp);
 	}
 	if(mold != mnew) {
-		reset_worker_timer_at(env, mnew);
+		reset_worker_timer(env);
 	}
 }
 
@@ -2303,9 +2288,7 @@ static void
 autr_debug_print_tp(struct trust_anchor* tp)
 {
 	struct autr_ta* ta;
-	/* Note: buf is also used for autr_ctime_r but that only needs a size
-	 *       of 26, so LDNS_MAX_DOMAINLEN is enough. */
-	char buf[LDNS_MAX_DOMAINLEN];
+	char buf[257];
 	if(!tp->autr)
 		return;
 	dname_str(tp->name, buf);

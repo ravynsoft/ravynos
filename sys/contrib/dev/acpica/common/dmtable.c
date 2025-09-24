@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2025, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2024, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -272,7 +272,6 @@ static const char           *AcpiDmDmarSubnames[] =
     "Remapping Hardware Static Affinity",
     "ACPI Namespace Device Declaration",
     "SoC Integrated Address Translation Cache",
-    "SoC Integrated Device Property",
     "Unknown Subtable Type"         /* Reserved */
 };
 
@@ -311,22 +310,6 @@ static const char           *AcpiDmEinjInstructions[] =
     "Noop",
     "Flush Cacheline",
     "Unknown Instruction"
-};
-
-static const char           *AcpiDmErdtSubnames[] =
-{
-    "RMDD",
-    "CACD",
-    "DACD",
-    "CMRC",
-    "MMRC",
-    "MARC",
-    "CARC",
-    "CMRD",
-    "IBRD",
-    "IBAD",
-    "CARD",
-    "RESERVED"
 };
 
 static const char           *AcpiDmErstActions[] =
@@ -677,7 +660,6 @@ const ACPI_DMTABLE_DATA     AcpiDmTableData[] =
     {ACPI_SIG_DRTM, NULL,                   AcpiDmDumpDrtm, DtCompileDrtm,  TemplateDrtm},
     {ACPI_SIG_ECDT, AcpiDmTableInfoEcdt,    NULL,           NULL,           TemplateEcdt},
     {ACPI_SIG_EINJ, NULL,                   AcpiDmDumpEinj, DtCompileEinj,  TemplateEinj},
-    {ACPI_SIG_ERDT, NULL,                   AcpiDmDumpErdt, DtCompileErdt,  TemplateErdt},
     {ACPI_SIG_ERST, NULL,                   AcpiDmDumpErst, DtCompileErst,  TemplateErst},
     {ACPI_SIG_FADT, NULL,                   AcpiDmDumpFadt, DtCompileFadt,  TemplateFadt},
     {ACPI_SIG_FPDT, NULL,                   AcpiDmDumpFpdt, DtCompileFpdt,  TemplateFpdt},
@@ -693,7 +675,6 @@ const ACPI_DMTABLE_DATA     AcpiDmTableData[] =
     {ACPI_SIG_MCHI, AcpiDmTableInfoMchi,    NULL,           NULL,           TemplateMchi},
     {ACPI_SIG_MPAM, NULL,                   AcpiDmDumpMpam, DtCompileMpam,  TemplateMpam},
     {ACPI_SIG_MPST, AcpiDmTableInfoMpst,    AcpiDmDumpMpst, DtCompileMpst,  TemplateMpst},
-    {ACPI_SIG_MRRM, NULL,                   AcpiDmDumpMrrm, DtCompileMrrm,  TemplateMrrm},
     {ACPI_SIG_MSCT, NULL,                   AcpiDmDumpMsct, DtCompileMsct,  TemplateMsct},
     {ACPI_SIG_MSDM, NULL,                   AcpiDmDumpSlic, DtCompileSlic,  TemplateMsdm},
     {ACPI_SIG_NFIT, AcpiDmTableInfoNfit,    AcpiDmDumpNfit, DtCompileNfit,  TemplateNfit},
@@ -708,7 +689,6 @@ const ACPI_DMTABLE_DATA     AcpiDmTableData[] =
     {ACPI_SIG_RAS2, AcpiDmTableInfoRas2,    AcpiDmDumpRas2, DtCompileRas2,  TemplateRas2},
     {ACPI_SIG_RGRT, NULL,                   AcpiDmDumpRgrt, DtCompileRgrt,  TemplateRgrt},
     {ACPI_SIG_RHCT, NULL,                   AcpiDmDumpRhct, DtCompileRhct,  TemplateRhct},
-    {ACPI_SIG_RIMT, NULL,                   AcpiDmDumpRimt, DtCompileRimt,  TemplateRimt},
     {ACPI_SIG_RSDT, NULL,                   AcpiDmDumpRsdt, DtCompileRsdt,  TemplateRsdt},
     {ACPI_SIG_S3PT, NULL,                   NULL,           NULL,           TemplateS3pt},
     {ACPI_SIG_SBST, AcpiDmTableInfoSbst,    NULL,           NULL,           TemplateSbst},
@@ -1152,7 +1132,6 @@ AcpiDmDumpTable (
         case ACPI_DMT_ASPT:
         case ACPI_DMT_UINT16:
         case ACPI_DMT_DMAR:
-        case ACPI_DMT_ERDT:
         case ACPI_DMT_HEST:
         case ACPI_DMT_HMAT:
         case ACPI_DMT_NFIT:
@@ -1206,11 +1185,6 @@ AcpiDmDumpTable (
             ByteLength = 10;
             break;
 
-        case ACPI_DMT_BUF11:
-
-            ByteLength = 11;
-            break;
-
         case ACPI_DMT_BUF12:
 
             ByteLength = 12;
@@ -1225,16 +1199,6 @@ AcpiDmDumpTable (
         case ACPI_DMT_BUF18:
 
             ByteLength = 18;
-            break;
-
-        case ACPI_DMT_BUF24:
-
-            ByteLength = 24;
-            break;
-
-        case ACPI_DMT_BUF26:
-
-            ByteLength = 26;
             break;
 
         case ACPI_DMT_BUF32:
@@ -1455,12 +1419,9 @@ AcpiDmDumpTable (
 
         case ACPI_DMT_BUF7:
         case ACPI_DMT_BUF10:
-        case ACPI_DMT_BUF11:
         case ACPI_DMT_BUF12:
         case ACPI_DMT_BUF16:
         case ACPI_DMT_BUF18:
-        case ACPI_DMT_BUF24:
-        case ACPI_DMT_BUF26:
         case ACPI_DMT_BUF32:
         case ACPI_DMT_BUF112:
         case ACPI_DMT_BUF128:
@@ -1804,20 +1765,6 @@ AcpiDmDumpTable (
 
             AcpiOsPrintf (UINT8_FORMAT, *Target,
                 AcpiDmErstActions[Temp8]);
-            break;
-
-        case ACPI_DMT_ERDT:
-
-            /* ERDT subtable types */
-
-            Temp16 = *Target;
-            if (Temp16 > ACPI_ERDT_TYPE_RESERVED)
-            {
-                Temp16 = ACPI_ERDT_TYPE_RESERVED;
-            }
-
-            AcpiOsPrintf (UINT8_FORMAT, *Target,
-                AcpiDmErdtSubnames[Temp16]);
             break;
 
         case ACPI_DMT_ERSTINST:

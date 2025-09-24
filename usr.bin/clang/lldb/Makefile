@@ -15,16 +15,13 @@ LIBDEPS+=	lldb
 LIBDEPS+=	clang
 LIBDEPS+=	llvm
 
-LIBPRIV=	private
-LIBEXT=		so
-
 .for lib in ${LIBDEPS}
-DPADD+=		${OBJTOP}/lib/clang/lib${lib}/lib${LIBPRIV}${lib}.${LIBEXT}
-LDADD+=		${OBJTOP}/lib/clang/lib${lib}/lib${LIBPRIV}${lib}.${LIBEXT}
+DPADD+=		${OBJTOP}/lib/clang/lib${lib}/lib${lib}.a
+LDADD+=		${OBJTOP}/lib/clang/lib${lib}/lib${lib}.a
 .endfor
 
-DPADD+=		${OBJTOP}/lib/libmach/libmach.${LIBEXT}
-LDADD+=		${OBJTOP}/lib/libmach/libmach.${LIBEXT}
+DPADD+=		${OBJTOP}/lib/libmach/libmach.so
+LDADD+=		${OBJTOP}/lib/libmach/libmach.so
 
 INCFILE=	Options.inc
 TDFILE=		${LLVM_BASE}/${SRCDIR}/Options.td

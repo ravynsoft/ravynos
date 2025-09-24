@@ -38,6 +38,7 @@
  * SUCH DAMAGE.
  */
 
+#include <sys/cdefs.h>
 #include "opt_atpic.h"
 #include "opt_cpu.h"
 #include "opt_ddb.h"
@@ -81,7 +82,9 @@
 #include <sys/rwlock.h>
 #include <sys/sched.h>
 #include <sys/signalvar.h>
+#ifdef SMP
 #include <sys/smp.h>
+#endif
 #include <sys/syscallsubr.h>
 #include <sys/sysctl.h>
 #include <sys/sysent.h>
@@ -129,7 +132,9 @@
 #include <machine/tss.h>
 #include <x86/ucode.h>
 #include <x86/ifunc.h>
+#ifdef SMP
 #include <machine/smp.h>
+#endif
 #ifdef FDT
 #include <x86/fdt.h>
 #endif
@@ -143,10 +148,6 @@
 #include <isa/isareg.h>
 #include <isa/rtc.h>
 #include <x86/init.h>
-
-#ifndef SMP
-#error amd64 requires options SMP
-#endif
 
 /* Sanity check for __curthread() */
 CTASSERT(offsetof(struct pcpu, pc_curthread) == 0);
@@ -186,12 +187,6 @@ struct init_ops init_ops = {
  * passed into the kernel and used by the EFI code to call runtime services.
  */
 vm_paddr_t efi_systbl_phys;
-
-/*
- * Bitmap of extra EFI memory region types that should be preserved and mapped
- * during runtime services calls.
- */
-uint32_t efi_map_regs;
 
 /* Intel ICH registers */
 #define ICH_PMBASE	0x400
@@ -650,7 +645,7 @@ add_physmap_entry(uint64_t base, uint64_t length, vm_paddr_t *physmap,
 	 * NB: physmap_idx points to the next free slot.
 	 */
 	insert_idx = physmap_idx;
-	for (i = 0; i < physmap_idx; i += 2) {
+	for (i = 0; i <= physmap_idx; i += 2) {
 		if (base < physmap[i + 1]) {
 			if (base + length <= physmap[i]) {
 				insert_idx = i;
@@ -664,7 +659,7 @@ add_physmap_entry(uint64_t base, uint64_t length, vm_paddr_t *physmap,
 	}
 
 	/* See if we can prepend to the next entry. */
-	if (insert_idx < physmap_idx && base + length == physmap[insert_idx]) {
+	if (insert_idx <= physmap_idx && base + length == physmap[insert_idx]) {
 		physmap[insert_idx] = base;
 		return (1);
 	}
@@ -675,6 +670,8 @@ add_physmap_entry(uint64_t base, uint64_t length, vm_paddr_t *physmap,
 		return (1);
 	}
 
+	physmap_idx += 2;
+	*physmap_idxp = physmap_idx;
 	if (physmap_idx == PHYS_AVAIL_ENTRIES) {
 		printf(
 		"Too many segments in the physical address map, giving up\n");
@@ -685,13 +682,10 @@ add_physmap_entry(uint64_t base, uint64_t length, vm_paddr_t *physmap,
 	 * Move the last 'N' entries down to make room for the new
 	 * entry if needed.
 	 */
-	for (i = physmap_idx; i > insert_idx; i -= 2) {
+	for (i = (physmap_idx - 2); i > insert_idx; i -= 2) {
 		physmap[i] = physmap[i - 2];
 		physmap[i + 1] = physmap[i - 1];
 	}
-
-	physmap_idx += 2;
-	*physmap_idxp = physmap_idx;
 
 	/* Insert the new entry. */
 	physmap[insert_idx] = base;
@@ -763,7 +757,6 @@ add_efi_map_entries(struct efi_map_header *efihdr, vm_paddr_t *physmap,
 		printf("%23s %12s %12s %8s %4s\n",
 		    "Type", "Physical", "Virtual", "#Pages", "Attr");
 
-	TUNABLE_INT_FETCH("machdep.efirt.regs", &efi_map_regs);
 	for (i = 0, p = map; i < ndesc; i++,
 	    p = efi_next_descriptor(p, efihdr->descriptor_size)) {
 		if (boothowto & RB_VERBOSE) {
@@ -801,13 +794,10 @@ add_efi_map_entries(struct efi_map_header *efihdr, vm_paddr_t *physmap,
 		}
 
 		switch (p->md_type) {
-		case EFI_MD_TYPE_BS_CODE:
-		case EFI_MD_TYPE_BS_DATA:
-			if (EFI_MAP_BOOTTYPE_ALLOWED(p->md_type))
-				continue;
-			/* FALLTHROUGH */
 		case EFI_MD_TYPE_CODE:
 		case EFI_MD_TYPE_DATA:
+		case EFI_MD_TYPE_BS_CODE:
+		case EFI_MD_TYPE_BS_DATA:
 		case EFI_MD_TYPE_FREE:
 			/*
 			 * We're allowed to use any entry with these types.
@@ -1799,8 +1789,10 @@ set_pcb_flags_fsgsbase(struct pcb *pcb, const u_int flags)
 	    (pcb->pcb_flags & PCB_FULL_IRET) == 0) {
 		r = intr_disable();
 		if ((pcb->pcb_flags & PCB_FULL_IRET) == 0) {
-			pcb->pcb_fsbase = rdfsbase();
-			pcb->pcb_gsbase = rdmsr(MSR_KGSBASE);
+			if (rfs() == _ufssel)
+				pcb->pcb_fsbase = rdfsbase();
+			if (rgs() == _ugssel)
+				pcb->pcb_gsbase = rdmsr(MSR_KGSBASE);
 		}
 		set_pcb_flags_raw(pcb, flags);
 		intr_restore(r);

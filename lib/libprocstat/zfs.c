@@ -26,36 +26,39 @@
  * SUCH DAMAGE.
  */
 
+#include <sys/cdefs.h>	/* __RENAME */
+
+#include <stdbool.h>
+
 #include <sys/param.h>
-#define _WANT_MOUNT
+#define _KERNEL
 #include <sys/mount.h>
+#undef _KERNEL
 #include <sys/queue.h>
 #include <sys/stat.h>
 #include <sys/sysctl.h>
 #include <sys/time.h>
 #include <sys/vnode.h>
-#define _WANT_ZNODE
-#include <sys/zfs_context.h>
-#include <sys/zfs_znode.h>
 
 #include <netinet/in.h>
 
 #include <err.h>
 #include <kvm.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #define ZFS
 #include "libprocstat.h"
 #include "common_kvm.h"
+#include "zfs_defs.h"
 
 int
 zfs_filestat(kvm_t *kd, struct vnode *vp, struct vnstat *vn)
 {
 
 	struct mount mount, *mountptr;
-	znode_t *kznodeptr, *znode;
+	void *znodeptr;
+	char *dataptr;
 	size_t len;
 	int size;
 
@@ -64,30 +67,27 @@ zfs_filestat(kvm_t *kd, struct vnode *vp, struct vnstat *vn)
 		warnx("error getting sysctl");
 		return (1);
 	}
-	znode = malloc(size);
-	if (znode == NULL) {
+	dataptr = malloc(size);
+	if (dataptr == NULL) {
 		warnx("error allocating memory for znode storage");
 		return (1);
 	}
 
-	if ((size_t)size != sizeof(znode_t))
-		warnx("znode_t size mismatch, data could be wrong");
-
-	if ((size_t)size < offsetof(znode_t, z_id) + sizeof(znode->z_id) ||
-	    (size_t)size < offsetof(znode_t, z_mode) + sizeof(znode->z_mode) ||
-	    (size_t)size < offsetof(znode_t, z_size) + sizeof(znode->z_size)) {
+	if ((size_t)size < offsetof_z_id + sizeof(uint64_t) ||
+	    (size_t)size < offsetof_z_mode + sizeof(mode_t) ||
+	    (size_t)size < offsetof_z_size + sizeof(uint64_t)) {
 		warnx("znode_t size is too small");
 		goto bad;
 	}
 
-	/*
-	 * OpenZFS's libspl provides a dummy sys/vnode.h that shadows ours so
-	 * struct vnode is an incomplete type. Use the wrapper until that is
-	 * resolved.
-	 */
-	kznodeptr = getvnodedata(vp);
-	if (!kvm_read_all(kd, (unsigned long)kznodeptr, znode, (size_t)size)) {
-		warnx("can't read znode at %p", (void *)kznodeptr);
+	if ((size_t)size != sizeof_znode_t)
+		warnx("znode_t size mismatch, data could be wrong");
+
+	/* Since we have problems including vnode.h, we'll use the wrappers. */
+	znodeptr = getvnodedata(vp);
+	if (!kvm_read_all(kd, (unsigned long)znodeptr, dataptr,
+	    (size_t)size)) {
+		warnx("can't read znode at %p", (void *)znodeptr);
 		goto bad;
 	}
 
@@ -103,10 +103,12 @@ zfs_filestat(kvm_t *kd, struct vnode *vp, struct vnstat *vn)
 	 * under .zfs/.
 	 */
 	vn->vn_fsid = mount.mnt_stat.f_fsid.val[0];
-	vn->vn_fileid = znode->z_id;
-	vn->vn_mode = znode->z_mode;
-	vn->vn_size = znode->z_size;
+	vn->vn_fileid = *(uint64_t *)(void *)(dataptr + offsetof_z_id);
+	vn->vn_mode = *(mode_t *)(void *)(dataptr + offsetof_z_mode);
+	vn->vn_size = *(uint64_t *)(void *)(dataptr + offsetof_z_size);
+	free(dataptr);
 	return (0);
 bad:
+	free(dataptr);
 	return (1);
 }

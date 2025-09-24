@@ -104,6 +104,21 @@ struct ti_i2c_clock_config
 	uint8_t hssclh;		/* High Speed mode SCL high time */
 };
 
+#if defined(SOC_OMAP4)
+/*
+ * OMAP4 i2c bus clock is 96MHz / ((psc + 1) * (scll + 7 + sclh + 5)).
+ * The prescaler values for 100KHz and 400KHz modes come from the table in the
+ * OMAP4 TRM.  The table doesn't list 1MHz; these values should give that speed.
+ */
+static struct ti_i2c_clock_config ti_omap4_i2c_clock_configs[] = {
+	{  100000, 23,  13,  15,  0,  0},
+	{  400000,  9,   5,   7,  0,  0},
+	{ 1000000,  3,   5,   7,  0,  0},
+/*	{ 3200000,  1, 113, 115,  7, 10}, - HS mode */
+	{       0 /* Table terminator */ }
+};
+#endif
+
 #if defined(SOC_TI_AM335X)
 /*
  * AM335x i2c bus clock is 48MHZ / ((psc + 1) * (scll + 7 + sclh + 5))
@@ -460,6 +475,11 @@ ti_i2c_reset(struct ti_i2c_softc *sc, u_char speed)
 	uint16_t fifo_trsh, reg, scll, sclh;
 
 	switch (ti_chip()) {
+#ifdef SOC_OMAP4
+	case CHIP_OMAP_4:
+		clkcfg = ti_omap4_i2c_clock_configs;
+		break;
+#endif
 #ifdef SOC_TI_AM335X
 	case CHIP_AM335X:
 		clkcfg = ti_am335x_i2c_clock_configs;
@@ -555,6 +575,17 @@ ti_i2c_reset(struct ti_i2c_softc *sc, u_char speed)
 	 *    capacitance exceeds 45 pF, (see Section 18.4.8, PAD Functional
 	 *    Multiplexing and Configuration).
 	 */
+	switch (ti_chip()) {
+#ifdef SOC_OMAP4
+	case CHIP_OMAP_4:
+		if ((clkcfg->hsscll + clkcfg->hssclh) > 0) {
+			scll |= clkcfg->hsscll << I2C_HSSCLL_SHIFT;
+			sclh |= clkcfg->hssclh << I2C_HSSCLH_SHIFT;
+			sc->sc_con_reg |= I2C_CON_OPMODE_HS;
+		}
+		break;
+#endif
+	}
 
 	/* Write the selected bit rate. */
 	ti_i2c_write_2(sc, I2C_REG_SCLL, scll);
@@ -851,8 +882,7 @@ ti_i2c_attach(device_t dev)
 		goto out;
 
 	/* Attach the iicbus. */
-	if ((sc->sc_iicbus = device_add_child(dev, "iicbus",
-	    DEVICE_UNIT_ANY)) == NULL) {
+	if ((sc->sc_iicbus = device_add_child(dev, "iicbus", -1)) == NULL) {
 		device_printf(dev, "could not allocate iicbus instance\n");
 		err = ENXIO;
 		goto out;

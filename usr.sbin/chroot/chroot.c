@@ -111,12 +111,7 @@ main(int argc, char *argv[])
 	ngroups_max = sysconf(_SC_NGROUPS_MAX) + 1;
 	if ((gidlist = malloc(sizeof(gid_t) * ngroups_max)) == NULL)
 		err(1, "malloc");
-	/* Populate the egid slot in our groups to avoid accidents. */
-	if (gid == 0)
-		gidlist[0] = getegid();
-	else
-		gidlist[0] = gid;
-	for (gids = 1;
+	for (gids = 0;
 	    (p = strsep(&grouplist, ",")) != NULL && gids < ngroups_max; ) {
 		if (*p == '\0')
 			continue;

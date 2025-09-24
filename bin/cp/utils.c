@@ -38,7 +38,6 @@
 #include <fcntl.h>
 #include <fts.h>
 #include <limits.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sysexits.h>
@@ -99,13 +98,13 @@ copy_fallback(int from_fd, int to_fd)
 }
 
 int
-copy_file(const FTSENT *entp, bool dne, bool beneath)
+copy_file(const FTSENT *entp, int dne)
 {
 	struct stat sb, *fs;
 	ssize_t wcount;
 	off_t wtotal;
 	int ch, checkch, from_fd, rval, to_fd;
-	bool use_copy_file_range = true;
+	int use_copy_file_range = 1;
 
 	fs = entp->fts_statp;
 	from_fd = to_fd = -1;
@@ -143,13 +142,12 @@ copy_file(const FTSENT *entp, bool dne, bool beneath)
 	if (!dne) {
 		if (nflag) {
 			if (vflag)
-				printf("%s%s not overwritten\n",
-				    to.base, to.path);
+				printf("%s not overwritten\n", to.p_path);
 			rval = 1;
 			goto done;
 		} else if (iflag) {
-			(void)fprintf(stderr, "overwrite %s%s? %s",
-			    to.base, to.path, YESNO);
+			(void)fprintf(stderr, "overwrite %s? %s", 
+			    to.p_path, YESNO);
 			checkch = ch = getchar();
 			while (ch != '\n' && ch != EOF)
 				ch = getchar();
@@ -162,8 +160,7 @@ copy_file(const FTSENT *entp, bool dne, bool beneath)
 
 		if (fflag) {
 			/* remove existing destination file */
-			(void)unlinkat(to.dir, to.path,
-			    beneath ? AT_RESOLVE_BENEATH : 0);
+			(void)unlink(to.p_path);
 			dne = 1;
 		}
 	}
@@ -171,16 +168,16 @@ copy_file(const FTSENT *entp, bool dne, bool beneath)
 	rval = 0;
 
 	if (lflag) {
-		if (linkat(AT_FDCWD, entp->fts_path, to.dir, to.path, 0) != 0) {
-			warn("%s%s", to.base, to.path);
+		if (link(entp->fts_path, to.p_path) != 0) {
+			warn("%s", to.p_path);
 			rval = 1;
 		}
 		goto done;
 	}
 
 	if (sflag) {
-		if (symlinkat(entp->fts_path, to.dir, to.path) != 0) {
-			warn("%s%s", to.base, to.path);
+		if (symlink(entp->fts_path, to.p_path) != 0) {
+			warn("%s", to.p_path);
 			rval = 1;
 		}
 		goto done;
@@ -188,17 +185,14 @@ copy_file(const FTSENT *entp, bool dne, bool beneath)
 
 	if (!dne) {
 		/* overwrite existing destination file */
-		to_fd = openat(to.dir, to.path,
-		    O_WRONLY | O_TRUNC | (beneath ? O_RESOLVE_BENEATH : 0), 0);
+		to_fd = open(to.p_path, O_WRONLY | O_TRUNC, 0);
 	} else {
 		/* create new destination file */
-		to_fd = openat(to.dir, to.path,
-		    O_WRONLY | O_TRUNC | O_CREAT |
-		    (beneath ? O_RESOLVE_BENEATH : 0),
+		to_fd = open(to.p_path, O_WRONLY | O_TRUNC | O_CREAT,
 		    fs->st_mode & ~(S_ISUID | S_ISGID));
 	}
 	if (to_fd == -1) {
-		warn("%s%s", to.base, to.path);
+		warn("%s", to.p_path);
 		rval = 1;
 		goto done;
 	}
@@ -210,7 +204,7 @@ copy_file(const FTSENT *entp, bool dne, bool beneath)
 			    to_fd, NULL, SSIZE_MAX, 0);
 			if (wcount < 0 && errno == EINVAL) {
 				/* probably a non-seekable descriptor */
-				use_copy_file_range = false;
+				use_copy_file_range = 0;
 			}
 		}
 		if (!use_copy_file_range) {
@@ -220,8 +214,8 @@ copy_file(const FTSENT *entp, bool dne, bool beneath)
 		if (info) {
 			info = 0;
 			(void)fprintf(stderr,
-			    "%s -> %s%s %3d%%\n",
-			    entp->fts_path, to.base, to.path,
+			    "%s -> %s %3d%%\n",
+			    entp->fts_path, to.p_path,
 			    cp_pct(wtotal, fs->st_size));
 		}
 	} while (wcount > 0);
@@ -236,12 +230,12 @@ copy_file(const FTSENT *entp, bool dne, bool beneath)
 	 * or its contents might be irreplaceable.  It would only be safe
 	 * to remove it if we created it and its length is 0.
 	 */
-	if (pflag && setfile(fs, to_fd, beneath))
+	if (pflag && setfile(fs, to_fd))
 		rval = 1;
 	if (pflag && preserve_fd_acls(from_fd, to_fd) != 0)
 		rval = 1;
 	if (close(to_fd)) {
-		warn("%s%s", to.base, to.path);
+		warn("%s", to.p_path);
 		rval = 1;
 	}
 
@@ -252,15 +246,14 @@ done:
 }
 
 int
-copy_link(const FTSENT *p, bool dne, bool beneath)
+copy_link(const FTSENT *p, int exists)
 {
 	ssize_t len;
-	int atflags = beneath ? AT_RESOLVE_BENEATH : 0;
 	char llink[PATH_MAX];
 
-	if (!dne && nflag) {
+	if (exists && nflag) {
 		if (vflag)
-			printf("%s%s not overwritten\n", to.base, to.path);
+			printf("%s not overwritten\n", to.p_path);
 		return (1);
 	}
 	if ((len = readlink(p->fts_path, llink, sizeof(llink) - 1)) == -1) {
@@ -268,86 +261,81 @@ copy_link(const FTSENT *p, bool dne, bool beneath)
 		return (1);
 	}
 	llink[len] = '\0';
-	if (!dne && unlinkat(to.dir, to.path, atflags) != 0) {
-		warn("unlink: %s%s", to.base, to.path);
+	if (exists && unlink(to.p_path)) {
+		warn("unlink: %s", to.p_path);
 		return (1);
 	}
-	if (symlinkat(llink, to.dir, to.path) != 0) {
+	if (symlink(llink, to.p_path)) {
 		warn("symlink: %s", llink);
 		return (1);
 	}
-	return (pflag ? setfile(p->fts_statp, -1, beneath) : 0);
+	return (pflag ? setfile(p->fts_statp, -1) : 0);
 }
 
 int
-copy_fifo(struct stat *from_stat, bool dne, bool beneath)
+copy_fifo(struct stat *from_stat, int exists)
 {
-	int atflags = beneath ? AT_RESOLVE_BENEATH : 0;
 
-	if (!dne && nflag) {
+	if (exists && nflag) {
 		if (vflag)
-			printf("%s%s not overwritten\n", to.base, to.path);
+			printf("%s not overwritten\n", to.p_path);
 		return (1);
 	}
-	if (!dne && unlinkat(to.dir, to.path, atflags) != 0) {
-		warn("unlink: %s%s", to.base, to.path);
+	if (exists && unlink(to.p_path)) {
+		warn("unlink: %s", to.p_path);
 		return (1);
 	}
-	if (mkfifoat(to.dir, to.path, from_stat->st_mode) != 0) {
-		warn("mkfifo: %s%s", to.base, to.path);
+	if (mkfifo(to.p_path, from_stat->st_mode)) {
+		warn("mkfifo: %s", to.p_path);
 		return (1);
 	}
-	return (pflag ? setfile(from_stat, -1, beneath) : 0);
+	return (pflag ? setfile(from_stat, -1) : 0);
 }
 
 int
-copy_special(struct stat *from_stat, bool dne, bool beneath)
+copy_special(struct stat *from_stat, int exists)
 {
-	int atflags = beneath ? AT_RESOLVE_BENEATH : 0;
 
-	if (!dne && nflag) {
+	if (exists && nflag) {
 		if (vflag)
-			printf("%s%s not overwritten\n", to.base, to.path);
+			printf("%s not overwritten\n", to.p_path);
 		return (1);
 	}
-	if (!dne && unlinkat(to.dir, to.path, atflags) != 0) {
-		warn("unlink: %s%s", to.base, to.path);
+	if (exists && unlink(to.p_path)) {
+		warn("unlink: %s", to.p_path);
 		return (1);
 	}
-	if (mknodat(to.dir, to.path, from_stat->st_mode, from_stat->st_rdev) != 0) {
-		warn("mknod: %s%s", to.base, to.path);
+	if (mknod(to.p_path, from_stat->st_mode, from_stat->st_rdev)) {
+		warn("mknod: %s", to.p_path);
 		return (1);
 	}
-	return (pflag ? setfile(from_stat, -1, beneath) : 0);
+	return (pflag ? setfile(from_stat, -1) : 0);
 }
 
 int
-setfile(struct stat *fs, int fd, bool beneath)
+setfile(struct stat *fs, int fd)
 {
 	static struct timespec tspec[2];
 	struct stat ts;
-	int atflags = beneath ? AT_RESOLVE_BENEATH : 0;
 	int rval, gotstat, islink, fdval;
 
 	rval = 0;
 	fdval = fd != -1;
 	islink = !fdval && S_ISLNK(fs->st_mode);
-	if (islink)
-		atflags |= AT_SYMLINK_NOFOLLOW;
 	fs->st_mode &= S_ISUID | S_ISGID | S_ISVTX |
 	    S_IRWXU | S_IRWXG | S_IRWXO;
 
 	tspec[0] = fs->st_atim;
 	tspec[1] = fs->st_mtim;
-	if (fdval ? futimens(fd, tspec) :
-	    utimensat(to.dir, to.path, tspec, atflags)) {
-		warn("utimensat: %s%s", to.base, to.path);
+	if (fdval ? futimens(fd, tspec) : utimensat(AT_FDCWD, to.p_path, tspec,
+	    islink ? AT_SYMLINK_NOFOLLOW : 0)) {
+		warn("utimensat: %s", to.p_path);
 		rval = 1;
 	}
 	if (fdval ? fstat(fd, &ts) :
-	    fstatat(to.dir, to.path, &ts, atflags)) {
+	    (islink ? lstat(to.p_path, &ts) : stat(to.p_path, &ts)))
 		gotstat = 0;
-	} else {
+	else {
 		gotstat = 1;
 		ts.st_mode &= S_ISUID | S_ISGID | S_ISVTX |
 		    S_IRWXU | S_IRWXG | S_IRWXO;
@@ -358,28 +346,30 @@ setfile(struct stat *fs, int fd, bool beneath)
 	 * the mode; current BSD behavior is to remove all setuid bits on
 	 * chown.  If chown fails, lose setuid/setgid bits.
 	 */
-	if (!gotstat || fs->st_uid != ts.st_uid || fs->st_gid != ts.st_gid) {
+	if (!gotstat || fs->st_uid != ts.st_uid || fs->st_gid != ts.st_gid)
 		if (fdval ? fchown(fd, fs->st_uid, fs->st_gid) :
-		    fchownat(to.dir, to.path, fs->st_uid, fs->st_gid, atflags)) {
+		    (islink ? lchown(to.p_path, fs->st_uid, fs->st_gid) :
+		    chown(to.p_path, fs->st_uid, fs->st_gid))) {
 			if (errno != EPERM) {
-				warn("chown: %s%s", to.base, to.path);
+				warn("chown: %s", to.p_path);
 				rval = 1;
 			}
 			fs->st_mode &= ~(S_ISUID | S_ISGID);
 		}
-	}
 
-	if (!gotstat || fs->st_mode != ts.st_mode) {
+	if (!gotstat || fs->st_mode != ts.st_mode)
 		if (fdval ? fchmod(fd, fs->st_mode) :
-		    fchmodat(to.dir, to.path, fs->st_mode, atflags)) {
-			warn("chmod: %s%s", to.base, to.path);
+		    (islink ? lchmod(to.p_path, fs->st_mode) :
+		    chmod(to.p_path, fs->st_mode))) {
+			warn("chmod: %s", to.p_path);
 			rval = 1;
 		}
-	}
 
-	if (!Nflag && (!gotstat || fs->st_flags != ts.st_flags)) {
-		if (fdval ? fchflags(fd, fs->st_flags) :
-		    chflagsat(to.dir, to.path, fs->st_flags, atflags)) {
+	if (!Nflag && (!gotstat || fs->st_flags != ts.st_flags))
+		if (fdval ?
+		    fchflags(fd, fs->st_flags) :
+		    (islink ? lchflags(to.p_path, fs->st_flags) :
+		    chflags(to.p_path, fs->st_flags))) {
 			/*
 			 * NFS doesn't support chflags; ignore errors unless
 			 * there's reason to believe we're losing bits.  (Note,
@@ -388,11 +378,10 @@ setfile(struct stat *fs, int fd, bool beneath)
 			 * that we copied, i.e., that we didn't create.)
 			 */
 			if (errno != EOPNOTSUPP || fs->st_flags != 0) {
-				warn("chflags: %s%s", to.base, to.path);
+				warn("chflags: %s", to.p_path);
 				rval = 1;
 			}
 		}
-	}
 
 	return (rval);
 }
@@ -409,9 +398,8 @@ preserve_fd_acls(int source_fd, int dest_fd)
 		acl_supported = 1;
 		acl_type = ACL_TYPE_NFS4;
 	} else if (ret < 0 && errno != EINVAL) {
-		warn("fpathconf(..., _PC_ACL_NFS4) failed for %s%s",
-		    to.base, to.path);
-		return (-1);
+		warn("fpathconf(..., _PC_ACL_NFS4) failed for %s", to.p_path);
+		return (1);
 	}
 	if (acl_supported == 0) {
 		ret = fpathconf(source_fd, _PC_ACL_EXTENDED);
@@ -419,9 +407,9 @@ preserve_fd_acls(int source_fd, int dest_fd)
 			acl_supported = 1;
 			acl_type = ACL_TYPE_ACCESS;
 		} else if (ret < 0 && errno != EINVAL) {
-			warn("fpathconf(..., _PC_ACL_EXTENDED) failed for %s%s",
-			    to.base, to.path);
-			return (-1);
+			warn("fpathconf(..., _PC_ACL_EXTENDED) failed for %s",
+			    to.p_path);
+			return (1);
 		}
 	}
 	if (acl_supported == 0)
@@ -429,54 +417,112 @@ preserve_fd_acls(int source_fd, int dest_fd)
 
 	acl = acl_get_fd_np(source_fd, acl_type);
 	if (acl == NULL) {
-		warn("failed to get acl entries while setting %s%s",
-		    to.base, to.path);
-		return (-1);
+		warn("failed to get acl entries while setting %s", to.p_path);
+		return (1);
 	}
 	if (acl_is_trivial_np(acl, &trivial)) {
-		warn("acl_is_trivial() failed for %s%s",
-		    to.base, to.path);
+		warn("acl_is_trivial() failed for %s", to.p_path);
 		acl_free(acl);
-		return (-1);
+		return (1);
 	}
 	if (trivial) {
 		acl_free(acl);
 		return (0);
 	}
 	if (acl_set_fd_np(dest_fd, acl, acl_type) < 0) {
-		warn("failed to set acl entries for %s%s",
-		    to.base, to.path);
+		warn("failed to set acl entries for %s", to.p_path);
 		acl_free(acl);
-		return (-1);
+		return (1);
 	}
 	acl_free(acl);
 	return (0);
 }
 
 int
-preserve_dir_acls(const char *source_dir, const char *dest_dir)
+preserve_dir_acls(struct stat *fs, char *source_dir, char *dest_dir)
 {
-	int source_fd = -1, dest_fd = -1, ret;
+	acl_t (*aclgetf)(const char *, acl_type_t);
+	int (*aclsetf)(const char *, acl_type_t, acl_t);
+	struct acl *aclp;
+	acl_t acl;
+	acl_type_t acl_type;
+	int acl_supported = 0, ret, trivial;
 
-	if ((source_fd = open(source_dir, O_DIRECTORY | O_RDONLY)) < 0) {
-		warn("%s: failed to copy ACLs", source_dir);
-		return (-1);
+	ret = pathconf(source_dir, _PC_ACL_NFS4);
+	if (ret > 0) {
+		acl_supported = 1;
+		acl_type = ACL_TYPE_NFS4;
+	} else if (ret < 0 && errno != EINVAL) {
+		warn("fpathconf(..., _PC_ACL_NFS4) failed for %s", source_dir);
+		return (1);
 	}
-	dest_fd = (*dest_dir == '\0') ? to.dir :
-	    openat(to.dir, dest_dir, O_DIRECTORY, AT_RESOLVE_BENEATH);
-	if (dest_fd < 0) {
-		warn("%s: failed to copy ACLs to %s%s", source_dir,
-		    to.base, dest_dir);
-		close(source_fd);
-		return (-1);
+	if (acl_supported == 0) {
+		ret = pathconf(source_dir, _PC_ACL_EXTENDED);
+		if (ret > 0) {
+			acl_supported = 1;
+			acl_type = ACL_TYPE_ACCESS;
+		} else if (ret < 0 && errno != EINVAL) {
+			warn("fpathconf(..., _PC_ACL_EXTENDED) failed for %s",
+			    source_dir);
+			return (1);
+		}
 	}
-	if ((ret = preserve_fd_acls(source_fd, dest_fd)) != 0) {
-		/* preserve_fd_acls() already printed a message */
+	if (acl_supported == 0)
+		return (0);
+
+	/*
+	 * If the file is a link we will not follow it.
+	 */
+	if (S_ISLNK(fs->st_mode)) {
+		aclgetf = acl_get_link_np;
+		aclsetf = acl_set_link_np;
+	} else {
+		aclgetf = acl_get_file;
+		aclsetf = acl_set_file;
 	}
-	if (dest_fd != to.dir)
-		close(dest_fd);
-	close(source_fd);
-	return (ret);
+	if (acl_type == ACL_TYPE_ACCESS) {
+		/*
+		 * Even if there is no ACL_TYPE_DEFAULT entry here, a zero
+		 * size ACL will be returned. So it is not safe to simply
+		 * check the pointer to see if the default ACL is present.
+		 */
+		acl = aclgetf(source_dir, ACL_TYPE_DEFAULT);
+		if (acl == NULL) {
+			warn("failed to get default acl entries on %s",
+			    source_dir);
+			return (1);
+		}
+		aclp = &acl->ats_acl;
+		if (aclp->acl_cnt != 0 && aclsetf(dest_dir,
+		    ACL_TYPE_DEFAULT, acl) < 0) {
+			warn("failed to set default acl entries on %s",
+			    dest_dir);
+			acl_free(acl);
+			return (1);
+		}
+		acl_free(acl);
+	}
+	acl = aclgetf(source_dir, acl_type);
+	if (acl == NULL) {
+		warn("failed to get acl entries on %s", source_dir);
+		return (1);
+	}
+	if (acl_is_trivial_np(acl, &trivial)) {
+		warn("acl_is_trivial() failed on %s", source_dir);
+		acl_free(acl);
+		return (1);
+	}
+	if (trivial) {
+		acl_free(acl);
+		return (0);
+	}
+	if (aclsetf(dest_dir, acl_type, acl) < 0) {
+		warn("failed to set acl entries on %s", dest_dir);
+		acl_free(acl);
+		return (1);
+	}
+	acl_free(acl);
+	return (0);
 }
 
 void

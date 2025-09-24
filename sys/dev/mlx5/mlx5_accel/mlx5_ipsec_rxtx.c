@@ -24,14 +24,11 @@
  *
  */
 
-#include "opt_ipsec.h"
-
 #include <sys/mbuf.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netipsec/keydb.h>
 #include <netipsec/ipsec_offload.h>
-#include <netipsec/xform.h>
 #include <dev/mlx5/qp.h>
 #include <dev/mlx5/mlx5_en/en.h>
 #include <dev/mlx5/mlx5_accel/ipsec.h>
@@ -51,8 +48,7 @@ mlx5_accel_ipsec_rx_tag_add(if_t ifp, struct mlx5e_rq_mbuf *mr)
 		return (0);
 
 	mtag = (struct ipsec_accel_in_tag *)m_tag_get(
-	    PACKET_TAG_IPSEC_ACCEL_IN, sizeof(struct ipsec_accel_in_tag) -
-	    __offsetof(struct ipsec_accel_in_tag, xh), M_NOWAIT);
+	    PACKET_TAG_IPSEC_ACCEL_IN, sizeof(*mtag), M_NOWAIT);
 	if (mtag == NULL)
 		return (-ENOMEM);
 	mr->ipsec_mtag = mtag;
@@ -60,8 +56,8 @@ mlx5_accel_ipsec_rx_tag_add(if_t ifp, struct mlx5e_rq_mbuf *mr)
 }
 
 void
-mlx5e_accel_ipsec_handle_rx_cqe(if_t ifp, struct mbuf *mb,
-    struct mlx5_cqe64 *cqe, struct mlx5e_rq_mbuf *mr)
+mlx5e_accel_ipsec_handle_rx_cqe(struct mbuf *mb, struct mlx5_cqe64 *cqe,
+    struct mlx5e_rq_mbuf *mr)
 {
 	struct ipsec_accel_in_tag *mtag;
 	u32 drv_spi;
@@ -69,12 +65,10 @@ mlx5e_accel_ipsec_handle_rx_cqe(if_t ifp, struct mbuf *mb,
 	drv_spi = MLX5_IPSEC_METADATA_HANDLE(be32_to_cpu(cqe->ft_metadata));
 	mtag = mr->ipsec_mtag;
 	WARN_ON(mtag == NULL);
+	mr->ipsec_mtag = NULL;
 	if (mtag != NULL) {
 		mtag->drv_spi = drv_spi;
-		if (ipsec_accel_fill_xh(ifp, drv_spi, &mtag->xh)) {
-			m_tag_prepend(mb, &mtag->tag);
-			mr->ipsec_mtag = NULL;
-		}
+		m_tag_prepend(mb, &mtag->tag);
 	}
 }
 

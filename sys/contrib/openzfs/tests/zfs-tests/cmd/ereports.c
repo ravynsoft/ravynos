@@ -49,7 +49,6 @@ static const char *const criteria_name[] = {
 	FM_EREPORT_PAYLOAD_ZFS_ZIO_ERR,
 	FM_EREPORT_PAYLOAD_ZFS_ZIO_SIZE,
 	FM_EREPORT_PAYLOAD_ZFS_ZIO_OFFSET,
-	FM_EREPORT_PAYLOAD_ZFS_ZIO_TYPE,
 	FM_EREPORT_PAYLOAD_ZFS_ZIO_PRIORITY,
 
 	/* logical zio criteriai (optional) */

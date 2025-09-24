@@ -76,6 +76,11 @@
 #include <string.h>
 #include "port_after.h"
 
+/* Options.  Leave them on. */
+#ifndef	DEBUG
+#define	DEBUG
+#endif
+
 extern const char *_res_opcodes[];
 
 /*%

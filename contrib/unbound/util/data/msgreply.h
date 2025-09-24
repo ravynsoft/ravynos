@@ -554,13 +554,11 @@ void log_dns_msg(const char* str, struct query_info* qinfo,
  * @param rmsg: sldns buffer packet.
  * @param daddr: if not NULL, the destination address and port are logged.
  * @param tp: type of the comm point for logging destination connection type.
- * @param ssl: the SSL pointer of the connection, to see if the connection
- *	type is tcp or dot.
  */
 void log_reply_info(enum verbosity_value v, struct query_info *qinf,
 	struct sockaddr_storage *addr, socklen_t addrlen, struct timeval dur,
 	int cached, struct sldns_buffer *rmsg, struct sockaddr_storage* daddr,
-	enum comm_point_type tp, void* ssl);
+	enum comm_point_type tp);
 
 /**
  * Print string with neat domain name, type, class from query info.

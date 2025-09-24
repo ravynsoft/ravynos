@@ -32,21 +32,21 @@
 #include <linux/types.h>
 #include <linux/time.h>
 
+#include <sys/time.h>
 #include <sys/kernel.h>
 #include <sys/limits.h>
-#include <sys/time.h>
 
-extern unsigned long jiffies;	/* defined in sys/kern/subr_ticks.S */
-#define	jiffies_64		jiffies	/* XXX-MJ wrong on 32-bit platforms */
+#define	jiffies			ticks
+#define	jiffies_64		ticks
 #define	jiffies_to_msecs(x)     ((unsigned int)(((int64_t)(int)(x)) * 1000 / hz))
 
-#define	MAX_JIFFY_OFFSET	((LONG_MAX >> 1) - 1)
+#define	MAX_JIFFY_OFFSET	((INT_MAX >> 1) - 1)
 
-#define	time_after(a, b)	((long)((b) - (a)) < 0)
+#define	time_after(a, b)	((int)((b) - (a)) < 0)
 #define	time_after32(a, b)	((int32_t)((uint32_t)(b) - (uint32_t)(a)) < 0)
 #define	time_before(a, b)	time_after(b,a)
 #define	time_before32(a, b)	time_after32(b, a)
-#define	time_after_eq(a, b)	((long)((a) - (b)) >= 0)
+#define	time_after_eq(a, b)	((int)((a) - (b)) >= 0)
 #define	time_before_eq(a, b)	time_after_eq(b, a)
 #define	time_in_range(a,b,c)	\
 	(time_after_eq(a,b) && time_before_eq(a,c))
@@ -68,7 +68,7 @@ extern uint64_t lkpi_msec2hz_rem;
 extern uint64_t lkpi_msec2hz_div;
 extern uint64_t lkpi_msec2hz_max;
 
-static inline unsigned long
+static inline int
 msecs_to_jiffies(uint64_t msec)
 {
 	uint64_t result;
@@ -79,10 +79,10 @@ msecs_to_jiffies(uint64_t msec)
 	if (result > MAX_JIFFY_OFFSET)
 		result = MAX_JIFFY_OFFSET;
 
-	return ((unsigned long)result);
+	return ((int)result);
 }
 
-static inline unsigned long
+static inline int
 usecs_to_jiffies(uint64_t usec)
 {
 	uint64_t result;
@@ -93,7 +93,7 @@ usecs_to_jiffies(uint64_t usec)
 	if (result > MAX_JIFFY_OFFSET)
 		result = MAX_JIFFY_OFFSET;
 
-	return ((unsigned long)result);
+	return ((int)result);
 }
 
 static inline uint64_t
@@ -120,24 +120,34 @@ nsecs_to_jiffies(uint64_t nsec)
 }
 
 static inline uint64_t
-jiffies_to_nsecs(unsigned long j)
+jiffies_to_nsecs(int j)
 {
 
-	return ((1000000000ULL / hz) * (uint64_t)j);
+	return ((1000000000ULL / hz) * (uint64_t)(unsigned int)j);
 }
 
 static inline uint64_t
-jiffies_to_usecs(unsigned long j)
+jiffies_to_usecs(int j)
 {
 
-	return ((1000000ULL / hz) * (uint64_t)j);
+	return ((1000000ULL / hz) * (uint64_t)(unsigned int)j);
 }
 
 static inline uint64_t
 get_jiffies_64(void)
 {
 
-	return ((uint64_t)jiffies);
+	return ((uint64_t)(unsigned int)ticks);
+}
+
+static inline int
+linux_timer_jiffies_until(int expires)
+{
+	int delta = expires - jiffies;
+	/* guard against already expired values */
+	if (delta < 1)
+		delta = 1;
+	return (delta);
 }
 
 #endif	/* _LINUXKPI_LINUX_JIFFIES_H_ */

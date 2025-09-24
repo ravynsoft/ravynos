@@ -1474,7 +1474,7 @@ freebsd32_shmsys(struct thread *td, struct freebsd32_shmsys_args *uap)
 		return (EINVAL);
 	}
 #else
-	return (kern_nosys(td, 0));
+	return (nosys(td, NULL));
 #endif
 }
 

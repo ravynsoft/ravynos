@@ -21,9 +21,6 @@
 # Variables affecting the build process:
 #  WORLDDIR: location of src tree -- must have built world and default kernel
 #            (by default, the directory above this one)
-#  NODISTSETS: if set, do not include dist sets or MANIFEST
-#  PKGBASE:  if set, include pkgbase packages rather than dist tarballs in
-#            disc1 and dvd1 installation media
 #  PORTSDIR: location of ports tree to distribute (default: /usr/ports)
 #  XTRADIR:  xtra-bits-dir argument for <arch>/mkisoimages.sh
 #  NOPKG:    if set, do not distribute third-party packages
@@ -54,8 +51,7 @@ TARGET_ARCH=	${MACHINE_ARCH}
 TARGET_ARCH=	${TARGET}
 .endif
 .endif
-IMAKE=		${MAKE} TARGET_ARCH=${TARGET_ARCH} TARGET=${TARGET} \
-		    -DNO_ROOT -DDB_FROM_SRC
+IMAKE=		${MAKE} TARGET_ARCH=${TARGET_ARCH} TARGET=${TARGET}
 DISTDIR=	dist
 
 # Define OSRELEASE by using newvers.sh
@@ -76,13 +72,13 @@ VOLUME_LABEL=	${REVISION:C/[.-]/_/g}_${BRANCH:C/[.-]/_/g}_${TARGET_ARCH}
 
 .if ${.MAKE.OS} == "FreeBSD"
 # For installing packages into the release media.
+.if defined(NO_ROOT)
 PKG_ENV+=	INSTALL_AS_USER=yes
-PKG_ENV+=	ASSUME_ALWAYS_YES=yes
 PKG_ARGS+=	-o METALOG=METALOG
+.endif
+PKG_ENV+=	ASSUME_ALWAYS_YES=yes
 PKG_ARGS+=	-r ${.TARGET} -o REPOS_DIR=${.CURDIR}/pkg_repos
-# Pass -f to make sure pkg writes to the METALOG even if the package
-# is already installed from a previous build
-PKG_INSTALL=	env ${PKG_ENV} ${PKG_CMD} ${PKG_ARGS} install -f
+PKG_INSTALL=	env ${PKG_ENV} ${PKG_CMD} ${PKG_ARGS} install
 PKG_CLEAN=	env ${PKG_ENV} ${PKG_CMD} ${PKG_ARGS} clean -a
 .endif
 
@@ -128,18 +124,15 @@ CLEANFILES+=	${I}.xz
 .if defined(WITH_DVD) && !empty(WITH_DVD)
 CLEANFILES+=	pkg-stage
 .endif
-CLEANDIRS=	dist pkgbase-repo pkgbase-repo-conf ftp disc1 disc1-disc1 disc1-memstick bootonly bootonly-bootonly bootonly-memstick dvd
+CLEANDIRS=	dist ftp disc1 disc1-disc1 disc1-memstick bootonly bootonly-bootonly bootonly-memstick dvd
 beforeclean:
 	chflags -R noschg .
 .include <bsd.obj.mk>
 clean: beforeclean
 
-#
-# Legacy distribution tarballs
-#
-base.txz: # Also (if enabled) tests, compat libs, and -dbg variants for all.
+base.txz:
 	mkdir -p ${DISTDIR}
-	( cd ${WORLDDIR} && ${IMAKE} distributeworld DISTDIR=${.OBJDIR}/${DISTDIR} )
+	( cd ${WORLDDIR} && ${IMAKE} -DNO_ROOT distributeworld DISTDIR=${.OBJDIR}/${DISTDIR} )
 	# Bootstrap etcupdate(8) database.
 	sh ${WORLDDIR}/usr.sbin/etcupdate/etcupdate.sh extract -B \
 	    -m "${MAKE}" -M "TARGET_ARCH=${TARGET_ARCH} TARGET=${TARGET}" \
@@ -151,53 +144,32 @@ base.txz: # Also (if enabled) tests, compat libs, and -dbg variants for all.
 	    env -i LC_COLLATE=C sort >> ${.OBJDIR}/${DISTDIR}/base.meta
 	rm ${.OBJDIR}/${DISTDIR}/base/var/db/etcupdate/current/METALOG
 # Package all components
-	( cd ${WORLDDIR} && ${IMAKE} packageworld DISTDIR=${.OBJDIR}/${DISTDIR} )
+	( cd ${WORLDDIR} && ${IMAKE} -DNO_ROOT packageworld DISTDIR=${.OBJDIR}/${DISTDIR} )
 	mv ${DISTDIR}/*.txz .
 
-kernel.txz: # Also (if enabled) kernel-dbg.txz.
+kernel.txz:
 	mkdir -p ${DISTDIR}
-	( cd ${WORLDDIR} && ${IMAKE} distributekernel DISTDIR=${.OBJDIR}/${DISTDIR} )
-	( cd ${WORLDDIR} && ${IMAKE} packagekernel DISTDIR=${.OBJDIR}/${DISTDIR} )
+	( cd ${WORLDDIR} && ${IMAKE} -DNO_ROOT distributekernel DISTDIR=${.OBJDIR}/${DISTDIR} )
+	( cd ${WORLDDIR} && ${IMAKE} -DNO_ROOT packagekernel DISTDIR=${.OBJDIR}/${DISTDIR} )
 	mv ${DISTDIR}/kernel*.txz .
 
 src.txz:
 	mkdir -p ${DISTDIR}/usr
-	rm -f ${DISTDIR}/usr/src
-	ln -s ${WORLDDIR} ${DISTDIR}/usr/src
-	( cd ${DISTDIR} && ${TAR_XZ_CMD} -cLvf ${.OBJDIR}/src.txz \
-	    --exclude .svn --exclude .zfs \
-	    --exclude .git --exclude @ --exclude usr/src/release/dist \
-	    --exclude usr/src/release/obj usr/src )
+	ln -fs ${WORLDDIR} ${DISTDIR}/usr/src
+	( cd ${DISTDIR} && ${TAR_CMD} cLvf - --exclude .svn --exclude .zfs \
+	    --exclude .git --exclude @ --exclude usr/src/release/dist usr/src | \
+	    ${XZ_CMD} > ${.OBJDIR}/src.txz )
 
 ports.txz:
 	mkdir -p ${DISTDIR}/usr
-	rm -f ${DISTDIR}/usr/ports
-	ln -s ${PORTSDIR} ${DISTDIR}/usr/ports
-	( cd ${DISTDIR} && ${TAR_XZ_CMD} -cLvf ${.OBJDIR}/ports.txz \
+	ln -fs ${PORTSDIR} ${DISTDIR}/usr/ports
+	( cd ${DISTDIR} && ${TAR_CMD} cLvf - \
 	    --exclude .git --exclude .svn \
 	    --exclude usr/ports/distfiles --exclude usr/ports/packages \
-	    --exclude 'usr/ports/INDEX*' --exclude work usr/ports )
+	    --exclude 'usr/ports/INDEX*' --exclude work usr/ports | \
+	    ${XZ_CMD} > ${.OBJDIR}/ports.txz )
 
-packagesystem: ${DISTRIBUTIONS}
-	sh ${.CURDIR}/scripts/make-manifest.sh $$(ls *.txz | grep -v container) > MANIFEST
-	touch ${.TARGET}
-
-.if !defined(NODISTSETS)
 disc1: packagesystem
-bootonly: packagesystem
-dvd: packagesystem
-.endif
-
-.if defined(PKGBASE)
-PKGBASE_REPO=	pkgbase-repo
-PKG_ABI=	$$(${PKG_CMD} -o ABI_FILE=${.TARGET}/usr/bin/uname config ABI)
-.endif
-
-pkgbase-repo:
-	mkdir -p pkgbase-repo
-	( ${IMAKE} -C ${WORLDDIR} packages REPODIR=${.OBJDIR}/pkgbase-repo )
-
-disc1: ${PKGBASE_REPO}
 # Install system
 	mkdir -p ${.TARGET}
 	( cd ${WORLDDIR} && ${IMAKE} installworld installkernel distribution \
@@ -206,37 +178,21 @@ disc1: ${PKGBASE_REPO}
 	    ${_ALL_LIBCOMPATS:@v@MK_LIB$v=no@} \
 	    MK_TOOLCHAIN=no \
 	    MK_RESCUE=no MK_DICT=no \
-	    MK_KERNEL_SYMBOLS=no MK_TESTS=no MK_DEBUG_FILES=no)
-.if defined(PKGBASE)
-# Create offline pkgbase repo on release media
-	mkdir -p ${.TARGET}/usr/freebsd-packages/repos/
-	${.CURDIR}/scripts/pkgbase-stage.lua disc \
-	    ${.OBJDIR}/pkgbase-repo/${PKG_ABI}/latest \
-	    ${.TARGET}/usr/freebsd-packages/offline \
-	    "${_ALL_libcompats}"
-	cp ${.CURDIR}/scripts/FreeBSD-base-offline.conf \
-		${.TARGET}/usr/freebsd-packages/repos/
-	mtree -c -p ${.TARGET}/usr/freebsd-packages | \
-	    mtree -C -k type,mode,link,size | \
-	    sed 's|^\.|./usr/freebsd-packages|g' >> ${.TARGET}/METALOG
-.endif
-.if !defined(NODISTSETS)
-	# Copy MANIFEST to provide legacy dist checksums in both modes
-	mkdir -p ${.TARGET}/usr/freebsd-dist
-	echo "./usr/freebsd-dist type=dir uname=root gname=wheel mode=0755" >> ${.TARGET}/METALOG
-	cp MANIFEST ${.TARGET}/usr/freebsd-dist
-	echo "./usr/freebsd-dist/MANIFEST type=file uname=root gname=wheel mode=0644" >> ${.TARGET}/METALOG
-.if !defined(PKGBASE)
+	    MK_KERNEL_SYMBOLS=no MK_TESTS=no MK_DEBUG_FILES=no \
+	    -DDB_FROM_SRC )
 # Copy distfiles
-	for dist in $$(ls *.txz | grep -v container | grep -vE -- '(${base ${_ALL_libcompats}:L:ts|})-dbg'); do \
-	    cp $${dist} ${.TARGET}/usr/freebsd-dist; \
-	    echo "./usr/freebsd-dist/$${dist} type=file uname=root gname=wheel mode=0644" >> ${.TARGET}/METALOG; \
+	mkdir -p ${.TARGET}/usr/freebsd-dist
+	for dist in MANIFEST $$(ls *.txz | grep -v container | grep -vE -- '(${base ${_ALL_libcompats}:L:ts|})-dbg'); \
+	    do cp $${dist} ${.TARGET}/usr/freebsd-dist; \
 	done
-.endif
+.if defined(NO_ROOT)
+	echo "./usr/freebsd-dist type=dir uname=root gname=wheel mode=0755" >> ${.TARGET}/METALOG
+	for dist in MANIFEST $$(ls *.txz | grep -v container | grep -vE -- '(${base ${_ALL_libcompats}:L:ts|})-dbg'); \
+	    do echo "./usr/freebsd-dist/$${dist} type=file uname=root gname=wheel mode=0644" >> ${.TARGET}/METALOG; \
+	done
 .endif
 .if ${.MAKE.OS} == "FreeBSD" && (!defined(NOPKG) || empty(NOPKG))
 # Install packages onto release media.
-	${PKG_INSTALL} pkg || true
 	${PKG_INSTALL} wifi-firmware-kmod-release || true
 	${PKG_CLEAN} || true
 .endif
@@ -247,17 +203,18 @@ disc1: ${PKGBASE_REPO}
 	echo debug.witness.trace=0 >> ${.TARGET}/etc/sysctl.conf
 	echo vfs.mountroot.timeout=\"10\" >> ${.TARGET}/boot/loader.conf
 	echo kernels_autodetect=\"NO\" >> ${.TARGET}/boot/loader.conf
-	echo loader_brand=\"install\" >> ${.TARGET}/boot/loader.conf
 	echo loader_menu_multi_user_prompt=\"Installer\" >> ${.TARGET}/boot/loader.conf
 	cp ${.CURDIR}/rc.local ${.TARGET}/etc
+.if defined(NO_ROOT)
 	echo "./etc/resolv.conf type=link uname=root gname=wheel mode=0644 link=/tmp/bsdinstall_etc/resolv.conf" >> ${.TARGET}/METALOG
 	echo "./etc/rc.conf type=file uname=root gname=wheel mode=0644" >> ${.TARGET}/METALOG
 	echo "./etc/sysctl.conf type=file uname=root gname=wheel mode=0644" >> ${.TARGET}/METALOG
 	echo "./boot/loader.conf type=file uname=root gname=wheel mode=0644" >> ${.TARGET}/METALOG
 	echo "./etc/rc.local type=file uname=root gname=wheel mode=0644" >> ${.TARGET}/METALOG
+.endif
 	touch ${.TARGET}
 
-bootonly:
+bootonly: packagesystem
 # Install system
 	mkdir -p ${.TARGET}
 	( cd ${WORLDDIR} && ${IMAKE} installworld installkernel distribution \
@@ -267,20 +224,13 @@ bootonly:
 	    ${_ALL_LIBCOMPATS:@v@MK_LIB$v=no@} \
 	    MK_TOOLCHAIN=no \
 	    MK_RESCUE=no MK_DICT=no \
-	    MK_KERNEL_SYMBOLS=no MK_TESTS=no MK_DEBUG_FILES=no)
-.if !defined(NODISTSETS)
+	    MK_KERNEL_SYMBOLS=no MK_TESTS=no MK_DEBUG_FILES=no \
+	    -DDB_FROM_SRC -DNO_ROOT)
 # Copy manifest only (no distfiles) to get checksums
 	mkdir -p ${.TARGET}/usr/freebsd-dist
 	cp MANIFEST ${.TARGET}/usr/freebsd-dist
 	echo "./usr/freebsd-dist type=dir uname=root gname=wheel mode=0755" >> ${.TARGET}/METALOG
 	echo "./usr/freebsd-dist/MANIFEST type=file uname=root gname=wheel mode=0644" >> ${.TARGET}/METALOG
-.endif
-.if ${.MAKE.OS} == "FreeBSD" && (!defined(NOPKG) || empty(NOPKG))
-# Install packages onto release media.
-	${PKG_INSTALL} pkg || true
-	${PKG_INSTALL} wifi-firmware-iwlwifi-kmod wifi-firmware-rtw88-kmod || true
-	${PKG_CLEAN} || true
-.endif
 # Set up installation environment
 	ln -fs /tmp/bsdinstall_etc/resolv.conf ${.TARGET}/etc/resolv.conf
 	echo sendmail_enable=\"NONE\" > ${.TARGET}/etc/rc.conf
@@ -288,7 +238,6 @@ bootonly:
 	echo debug.witness.trace=0 >> ${.TARGET}/etc/sysctl.conf
 	echo vfs.mountroot.timeout=\"10\" >> ${.TARGET}/boot/loader.conf
 	echo kernels_autodetect=\"NO\" >> ${.TARGET}/boot/loader.conf
-	echo loader_brand=\"install\" >> ${.TARGET}/boot/loader.conf
 	echo loader_menu_multi_user_prompt=\"Installer\" >> ${.TARGET}/boot/loader.conf
 	cp ${.CURDIR}/rc.local ${.TARGET}/etc
 	echo "./etc/resolv.conf type=link uname=root gname=wheel mode=0644 link=/tmp/bsdinstall_etc/resolv.conf" >> ${.TARGET}/METALOG
@@ -297,43 +246,26 @@ bootonly:
 	echo "./boot/loader.conf type=file uname=root gname=wheel mode=0644" >> ${.TARGET}/METALOG
 	echo "./etc/rc.local type=file uname=root gname=wheel mode=0644" >> ${.TARGET}/METALOG
 
-dvd: ${PKGBASE_REPO}
+dvd: packagesystem
 # Install system
 	mkdir -p ${.TARGET}
 	( cd ${WORLDDIR} && ${IMAKE} installworld installkernel distribution \
 		DESTDIR=${.OBJDIR}/${.TARGET} MK_RESCUE=no MK_KERNEL_SYMBOLS=no \
-		MK_TESTS=no MK_DEBUG_FILES=no)
-.if defined(PKGBASE)
-# Create offline pkgbase repo on release media
-	mkdir -p ${.TARGET}/usr/freebsd-packages/repos/
-	${.CURDIR}/scripts/pkgbase-stage.lua dvd \
-	    ${.OBJDIR}/pkgbase-repo/${PKG_ABI}/latest \
-	    ${.TARGET}/usr/freebsd-packages/offline \
-	    "${_ALL_libcompats}"
-	cp ${.CURDIR}/scripts/FreeBSD-base-offline.conf \
-		${.TARGET}/usr/freebsd-packages/repos/
-	mtree -c -p ${.TARGET}/usr/freebsd-packages | \
-	    mtree -C -k type,mode,link,size | \
-	    sed 's|^\.|./usr/freebsd-packages|g' >> ${.TARGET}/METALOG
-.endif
-.if !defined(NODISTSETS)
-	# Copy MANIFEST to provide legacy dist checksums in both modes
-	mkdir -p ${.TARGET}/usr/freebsd-dist
-	echo "./usr/freebsd-dist type=dir uname=root gname=wheel mode=0755" >> ${.TARGET}/METALOG
-	cp MANIFEST ${.TARGET}/usr/freebsd-dist
-	echo "./usr/freebsd-dist/MANIFEST type=file uname=root gname=wheel mode=0644" >> ${.TARGET}/METALOG
-.if !defined(PKGBASE)
+		MK_TESTS=no MK_DEBUG_FILES=no \
+		-DDB_FROM_SRC )
 # Copy distfiles
 	mkdir -p ${.TARGET}/usr/freebsd-dist
-	for dist in $$(ls *.txz | grep -v container); do \
-	    cp $${dist} ${.TARGET}/usr/freebsd-dist; \
-	    echo "./usr/freebsd-dist/$${dist} type=file uname=root gname=wheel mode=0644" >> ${.TARGET}/METALOG; \
+	for dist in MANIFEST $$(ls *.txz | grep -v container); \
+	    do cp $${dist} ${.TARGET}/usr/freebsd-dist; \
 	done
-.endif
+.if defined(NO_ROOT)
+	echo "./usr/freebsd-dist type=dir uname=root gname=wheel mode=0755" >> ${.TARGET}/METALOG
+	for dist in MANIFEST $$(ls *.txz | grep -v container); \
+	    do echo "./usr/freebsd-dist/$${dist} type=file uname=root gname=wheel mode=0644" >> ${.TARGET}/METALOG; \
+	done
 .endif
 .if ${.MAKE.OS} == "FreeBSD" && (!defined(NOPKG) || empty(NOPKG))
 # Install packages onto release media.
-	${PKG_INSTALL} pkg || true
 	${PKG_INSTALL} wifi-firmware-kmod-release || true
 	${PKG_CLEAN} || true
 .endif
@@ -344,14 +276,15 @@ dvd: ${PKGBASE_REPO}
 	echo debug.witness.trace=0 >> ${.TARGET}/etc/sysctl.conf
 	echo vfs.mountroot.timeout=\"10\" >> ${.TARGET}/boot/loader.conf
 	echo kernels_autodetect=\"NO\" >> ${.TARGET}/boot/loader.conf
-	echo loader_brand=\"install\" >> ${.TARGET}/boot/loader.conf
 	echo loader_menu_multi_user_prompt=\"Installer\" >> ${.TARGET}/boot/loader.conf
 	cp ${.CURDIR}/rc.local ${.TARGET}/etc
+.if defined(NO_ROOT)
 	echo "./etc/resolv.conf type=link uname=root gname=wheel mode=0644 link=/tmp/bsdinstall_etc/resolv.conf" >> ${.TARGET}/METALOG
 	echo "./etc/rc.conf type=file uname=root gname=wheel mode=0644" >> ${.TARGET}/METALOG
 	echo "./etc/sysctl.conf type=file uname=root gname=wheel mode=0644" >> ${.TARGET}/METALOG
 	echo "./boot/loader.conf type=file uname=root gname=wheel mode=0644" >> ${.TARGET}/METALOG
 	echo "./etc/rc.local type=file uname=root gname=wheel mode=0644" >> ${.TARGET}/METALOG
+.endif
 	touch ${.TARGET}
 
 disc1-disc1 disc1-memstick: disc1
@@ -364,26 +297,31 @@ bootonly-bootonly bootonly-memstick: bootonly
 
 release.iso: disc1.iso
 disc1.iso: disc1-disc1
-	cd disc1-disc1 && sh ${.CURDIR}/${TARGET}/mkisoimages.sh -b ${VOLUME_LABEL}_CD ../${.TARGET} ./METALOG ${XTRADIR}
+	cd disc1-disc1 && sh ${.CURDIR}/${TARGET}/mkisoimages.sh -b ${VOLUME_LABEL}_CD ../${.TARGET} .${NO_ROOT:D/METALOG} ${XTRADIR}
 
 dvd1.iso: dvd pkg-stage
-	cd dvd && sh ${.CURDIR}/${TARGET}/mkisoimages.sh -b ${VOLUME_LABEL}_DVD ../${.TARGET} ./METALOG ${XTRADIR}
+	cd dvd && sh ${.CURDIR}/${TARGET}/mkisoimages.sh -b ${VOLUME_LABEL}_DVD ../${.TARGET} .${NO_ROOT:D/METALOG} ${XTRADIR}
 
 bootonly.iso: bootonly-bootonly
 	cd bootonly-bootonly && sh ${.CURDIR}/${TARGET}/mkisoimages.sh -b ${VOLUME_LABEL}_BO ../${.TARGET} ./METALOG ${XTRADIR}
 
 memstick: memstick.img
 memstick.img: disc1-memstick
-	cd disc1-memstick && sh ${.CURDIR}/${TARGET}/make-memstick.sh ./METALOG ../${.TARGET}
+	cd disc1-memstick && sh ${.CURDIR}/${TARGET}/make-memstick.sh .${NO_ROOT:D/METALOG} ../${.TARGET}
 
 mini-memstick: mini-memstick.img
 mini-memstick.img: bootonly-memstick
 	cd bootonly-memstick && sh ${.CURDIR}/${TARGET}/make-memstick.sh ./METALOG ../${.TARGET}
 
+packagesystem: ${DISTRIBUTIONS}
+	sh ${.CURDIR}/scripts/make-manifest.sh $$(ls *.txz | grep -v container) > MANIFEST
+	touch ${.TARGET}
+
 pkg-stage: dvd
+# TODO: Support for -DNO_ROOT
 .if !defined(NOPKG) || empty(NOPKG)
 	env PORTSDIR=${PORTSDIR} REPOS_DIR=${.CURDIR}/pkg_repos/ \
-		sh ${.CURDIR}/scripts/pkg-stage.sh -N
+		sh ${.CURDIR}/scripts/pkg-stage.sh
 	mkdir -p ${.OBJDIR}/dvd/packages/repos/
 	cp ${.CURDIR}/scripts/FreeBSD_install_cdrom.conf \
 		${.OBJDIR}/dvd/packages/repos/

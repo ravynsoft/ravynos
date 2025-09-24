@@ -3,7 +3,10 @@
 PACKAGE=runtime
 PROG=	fsck
 SRCS=	fsck.c fsutil.c preen.c
+SRCS+=	getmntopts.c
 MAN=	fsck.8
-LIBADD=	util
+MOUNT=	${SRCTOP}/sbin/mount
+CFLAGS+= -I${MOUNT}
+.PATH:  ${MOUNT}
 
 .include <bsd.prog.mk>

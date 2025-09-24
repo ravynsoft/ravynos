@@ -34,7 +34,7 @@
  */
 
 #include <stand.h>
-#include <sys/stdarg.h>
+#include <machine/stdarg.h>
 
 /*
  * Boot loaders and other standalone programs that wish to have a

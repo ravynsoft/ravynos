@@ -570,9 +570,7 @@ t4_sge_modload(void)
 	}
 
 	if (largest_rx_cluster != MCLBYTES &&
-#if MJUMPAGESIZE != MCLBYTES
 	    largest_rx_cluster != MJUMPAGESIZE &&
-#endif
 	    largest_rx_cluster != MJUM9BYTES &&
 	    largest_rx_cluster != MJUM16BYTES) {
 		printf("Invalid hw.cxgbe.largest_rx_cluster value (%d),"
@@ -581,9 +579,7 @@ t4_sge_modload(void)
 	}
 
 	if (safest_rx_cluster != MCLBYTES &&
-#if MJUMPAGESIZE != MCLBYTES
 	    safest_rx_cluster != MJUMPAGESIZE &&
-#endif
 	    safest_rx_cluster != MJUM9BYTES &&
 	    safest_rx_cluster != MJUM16BYTES) {
 		printf("Invalid hw.cxgbe.safest_rx_cluster value (%d),"
@@ -722,9 +718,7 @@ t4_tweak_chip_settings(struct adapter *sc)
 	uint16_t indsz = min(RX_COPY_THRESHOLD - 1, M_INDICATESIZE);
 	static int sw_buf_sizes[] = {
 		MCLBYTES,
-#if MJUMPAGESIZE != MCLBYTES
 		MJUMPAGESIZE,
-#endif
 		MJUM9BYTES,
 		MJUM16BYTES
 	};
@@ -861,9 +855,7 @@ t4_init_rx_buf_info(struct adapter *sc)
 	int i, j, n;
 	static int sw_buf_sizes[] = {	/* Sorted by size */
 		MCLBYTES,
-#if MJUMPAGESIZE != MCLBYTES
 		MJUMPAGESIZE,
-#endif
 		MJUM9BYTES,
 		MJUM16BYTES
 	};

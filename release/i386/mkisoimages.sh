@@ -24,9 +24,6 @@
 
 set -e
 
-scriptdir=$(dirname $(realpath $0))
-. ${scriptdir}/../scripts/tools.subr
-
 if [ "$1" = "-b" ]; then
 	MAKEFSARG="$4"
 else
@@ -70,7 +67,7 @@ if [ -n "${METALOG}" ]; then
 	echo "./etc/fstab type=file uname=root gname=wheel mode=0644" >> ${metalogfilename}
 	MAKEFSARG=${metalogfilename}
 fi
-${MAKEFS} -D -N ${BASEBITSDIR}/etc -t cd9660 $bootable -o rockridge -o label="$LABEL" -o publisher="$publisher" "$NAME" "$MAKEFSARG" "$@"
+makefs -D -N ${BASEBITSDIR}/etc -t cd9660 $bootable -o rockridge -o label="$LABEL" -o publisher="$publisher" "$NAME" "$MAKEFSARG" "$@"
 rm -f "$BASEBITSDIR/etc/fstab"
 if [ -n "${METALOG}" ]; then
 	rm ${metalogfilename}

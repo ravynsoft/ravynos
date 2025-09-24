@@ -38,7 +38,7 @@
 #
 
 .if !target(__<bsd.obj.mk>__)
-__<bsd.obj.mk>__:	.NOTMAIN
+__<bsd.obj.mk>__:
 .include <bsd.own.mk>
 
 # This is also done in bsd.init.mk

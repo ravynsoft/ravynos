@@ -81,19 +81,9 @@ SRCS+=		tools/lld/lld.cpp
 
 LIBDEPS+=	llvm
 
-.if defined(TOOLS_PREFIX)
-LIBPRIV=
-LIBEXT=		a
-.else
-LIBPRIV=	private
-LIBEXT=		so
-DPADD+=		${OBJTOP}/lib/libmach/libmach.${LIBEXT}
-LDADD+=		${OBJTOP}/lib/libmach/libmach.${LIBEXT}
-.endif
-
 .for lib in ${LIBDEPS}
-DPADD+=		${OBJTOP}/lib/clang/lib${lib}/lib${LIBPRIV}${lib}.${LIBEXT}
-LDADD+=		${OBJTOP}/lib/clang/lib${lib}/lib${LIBPRIV}${lib}.${LIBEXT}
+DPADD+=		${OBJTOP}/lib/clang/lib${lib}/lib${lib}.a
+LDADD+=		${OBJTOP}/lib/clang/lib${lib}/lib${lib}.a
 .endfor
 
 INCFILE=	Options.inc

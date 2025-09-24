@@ -36,7 +36,6 @@ set -u
 ############################################################ GLOBALS
 
 SCRIPTNAME="${0##*/}"
-LINK=-lrs
 ERRORS=0
 NOOP=false
 UNPRIV=false
@@ -111,6 +110,7 @@ create_trusted()
 {
 	local hash certhash otherfile otherhash
 	local suffix
+	local link=${2:+-lrs}
 
 	hash=$(do_hash "$1") || return
 	certhash=$(openssl x509 -sha1 -in "$1" -noout -fingerprint)
@@ -130,7 +130,7 @@ create_trusted()
 	done
 	suffix=$(get_decimal "$CERTDESTDIR" "$hash")
 	verbose "Adding $hash.$suffix to trust store"
-	perform install ${INSTALLFLAGS} -m 0444 ${LINK} \
+	perform install ${INSTALLFLAGS} -m 0444 ${link} \
 		"$(realpath "$1")" "$CERTDESTDIR/$hash.$suffix"
 }
 
@@ -159,6 +159,7 @@ resolve_certname()
 create_untrusted()
 {
 	local srcfile filename
+	local link=${2:+-lrs}
 
 	set -- $(resolve_certname "$1")
 	srcfile=$1
@@ -169,7 +170,7 @@ create_untrusted()
 	fi
 
 	verbose "Adding $filename to untrusted list"
-	perform install ${INSTALLFLAGS} -m 0444 ${LINK} \
+	perform install ${INSTALLFLAGS} -m 0444 ${link} \
 		"$srcfile" "$UNTRUSTDESTDIR/$filename"
 }
 
@@ -189,7 +190,7 @@ do_scan()
 		0)
 			;;
 		1)
-			"$CFUNC" "$CFILE"
+			"$CFUNC" "$CFILE" link
 			;;
 		*)
 			verbose "Multiple certificates found, splitting..."
@@ -302,20 +303,19 @@ usage()
 	echo "		List trusted certificates"
 	echo "	$SCRIPTNAME [-v] untrusted"
 	echo "		List untrusted certificates"
-	echo "	$SCRIPTNAME [-cnUv] [-D <destdir>] [-d <distbase>] [-M <metalog>] rehash"
-	echo "		Rehash all trusted and untrusted certificates"
-	echo "	$SCRIPTNAME [-cnv] untrust <file>"
+	echo "	$SCRIPTNAME [-nUv] [-D <destdir>] [-d <distbase>] [-M <metalog>] rehash"
+	echo "		Generate hash links for all certificates"
+	echo "	$SCRIPTNAME [-nv] untrust <file>"
 	echo "		Add <file> to the list of untrusted certificates"
-	echo "	$SCRIPTNAME [-cnv] trust <file>"
+	echo "	$SCRIPTNAME [-nv] trust <file>"
 	echo "		Remove <file> from the list of untrusted certificates"
 	exit 64
 }
 
 ############################################################ MAIN
 
-while getopts cD:d:M:nUv flag; do
+while getopts D:d:M:nUv flag; do
 	case "$flag" in
-	c) LINK=-c ;;
 	D) DESTDIR=${OPTARG} ;;
 	d) DISTBASE=${OPTARG} ;;
 	M) METALOG=${OPTARG} ;;
@@ -334,7 +334,7 @@ fi
 : ${METALOG:=${DESTDIR}/METALOG}
 INSTALLFLAGS=
 if "$UNPRIV" ; then
-	INSTALLFLAGS="-U -M ${METALOG} -D ${DESTDIR:-/} -o root -g wheel"
+	INSTALLFLAGS="-U -M ${METALOG} -D ${DESTDIR} -o root -g wheel"
 fi
 : ${LOCALBASE:=$(sysctl -n user.localbase)}
 : ${TRUSTPATH:=${DESTDIR}${DISTBASE}/usr/share/certs/trusted:${DESTDIR}${LOCALBASE}/share/certs:${DESTDIR}${LOCALBASE}/etc/ssl/certs}

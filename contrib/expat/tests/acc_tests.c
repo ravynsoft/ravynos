@@ -360,16 +360,13 @@ END_TEST
 START_TEST(test_helper_unsigned_char_to_printable) {
   // Smoke test
   unsigned char uc = 0;
-  for (;; uc++) {
+  for (; uc < (unsigned char)-1; uc++) {
     set_subtest("char %u", (unsigned)uc);
     const char *const printable = unsignedCharToPrintable(uc);
     if (printable == NULL)
       fail("unsignedCharToPrintable returned NULL");
     else if (strlen(printable) < (size_t)1)
       fail("unsignedCharToPrintable returned empty string");
-    if (uc == (unsigned char)-1) {
-      break;
-    }
   }
 
   // Two concrete samples

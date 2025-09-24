@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright(c) 2007-2025 Intel Corporation */
+/* Copyright(c) 2007-2022 Intel Corporation */
+
 
 /* --- (Automatically generated (relocation v. 1.3), do not modify manually) --- */
 
@@ -10,7 +11,7 @@
  * @brief
  *      This file documents the external interfaces that the QAT FW running
  *      on the QAT Acceleration Engine provides to clients wanting to
- *      accelerate crypto asymmetric applications
+ *      accelerate crypto assymetric applications
  */
 
 #ifndef __ICP_QAT_FW_MMP_IDS__

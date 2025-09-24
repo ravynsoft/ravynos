@@ -560,7 +560,6 @@ TEST_F(LookupExportable, dotdot_entry_cache_timeout)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = S_IFDIR | 0755;
 		out.body.entry.nodeid = foo_ino;
-		out.body.entry.attr.ino = foo_ino;
 		out.body.entry.attr_valid = UINT64_MAX;
 		out.body.entry.entry_valid = 0;	// immediate timeout
 	})));
@@ -569,7 +568,6 @@ TEST_F(LookupExportable, dotdot_entry_cache_timeout)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = S_IFDIR | 0755;
 		out.body.entry.nodeid = bar_ino;
-		out.body.entry.attr.ino = bar_ino;
 		out.body.entry.attr_valid = UINT64_MAX;
 		out.body.entry.entry_valid = UINT64_MAX;
 	})));
@@ -579,7 +577,6 @@ TEST_F(LookupExportable, dotdot_entry_cache_timeout)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = S_IFDIR | 0755;
 		out.body.entry.nodeid = FUSE_ROOT_ID;
-		out.body.entry.attr.ino = FUSE_ROOT_ID;
 		out.body.entry.attr_valid = UINT64_MAX;
 		out.body.entry.entry_valid = UINT64_MAX;
 	})));
@@ -610,7 +607,6 @@ TEST_F(LookupExportable, dotdot_no_parent_nid)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = S_IFDIR | 0755;
 		out.body.entry.nodeid = foo_ino;
-		out.body.entry.attr.ino = foo_ino;
 		out.body.entry.attr_valid = UINT64_MAX;
 		out.body.entry.entry_valid = UINT64_MAX;
 	})));
@@ -619,7 +615,6 @@ TEST_F(LookupExportable, dotdot_no_parent_nid)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = S_IFDIR | 0755;
 		out.body.entry.nodeid = bar_ino;
-		out.body.entry.attr.ino = bar_ino;
 		out.body.entry.attr_valid = UINT64_MAX;
 		out.body.entry.entry_valid = UINT64_MAX;
 	})));
@@ -637,7 +632,6 @@ TEST_F(LookupExportable, dotdot_no_parent_nid)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = S_IFDIR | 0755;
 		out.body.entry.nodeid = foo_ino;
-		out.body.entry.attr.ino = foo_ino;
 		out.body.entry.attr_valid = UINT64_MAX;
 		out.body.entry.entry_valid = UINT64_MAX;
 	})));
@@ -646,7 +640,6 @@ TEST_F(LookupExportable, dotdot_no_parent_nid)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.attr.mode = S_IFDIR | 0755;
 		out.body.entry.nodeid = FUSE_ROOT_ID;
-		out.body.entry.attr.ino = FUSE_ROOT_ID;
 		out.body.entry.attr_valid = UINT64_MAX;
 		out.body.entry.entry_valid = UINT64_MAX;
 	})));

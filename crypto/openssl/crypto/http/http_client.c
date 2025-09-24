@@ -1138,12 +1138,13 @@ BIO *OSSL_HTTP_get(const char *url, const char *proxy, const char *no_proxy,
                    const char *expected_ct, int expect_asn1,
                    size_t max_resp_len, int timeout)
 {
-    char *current_url;
+    char *current_url, *redirection_url = NULL;
     int n_redirs = 0;
     char *host;
     char *port;
     char *path;
     int use_ssl;
+    OSSL_HTTP_REQ_CTX *rctx = NULL;
     BIO *resp = NULL;
     time_t max_time = timeout > 0 ? time(NULL) + timeout : 0;
 
@@ -1155,9 +1156,6 @@ BIO *OSSL_HTTP_get(const char *url, const char *proxy, const char *no_proxy,
         return NULL;
 
     for (;;) {
-        char *redirection_url;
-        OSSL_HTTP_REQ_CTX *rctx;
-
         if (!OSSL_HTTP_parse_url(current_url, &use_ssl, NULL /* user */, &host,
                                  &port, NULL /* port_num */, &path, NULL, NULL))
             break;
@@ -1166,7 +1164,6 @@ BIO *OSSL_HTTP_get(const char *url, const char *proxy, const char *no_proxy,
                               use_ssl, bio, rbio, bio_update_fn, arg,
                               buf_size, timeout);
     new_rpath:
-        redirection_url = NULL;
         if (rctx != NULL) {
             if (!OSSL_HTTP_set1_request(rctx, path, headers,
                                         NULL /* content_type */,
@@ -1176,9 +1173,9 @@ BIO *OSSL_HTTP_get(const char *url, const char *proxy, const char *no_proxy,
                                         0 /* no keep_alive */)) {
                 OSSL_HTTP_REQ_CTX_free(rctx);
                 rctx = NULL;
-            } else {
+           } else {
                 resp = OSSL_HTTP_exchange(rctx, &redirection_url);
-            }
+           }
         }
         OPENSSL_free(path);
         if (resp == NULL && redirection_url != NULL) {
@@ -1193,6 +1190,7 @@ BIO *OSSL_HTTP_get(const char *url, const char *proxy, const char *no_proxy,
                         OPENSSL_free(host);
                         OPENSSL_free(port);
                         (void)OSSL_HTTP_close(rctx, 1);
+                        rctx = NULL;
                         BIO_free(resp);
                         OPENSSL_free(current_url);
                         return NULL;
@@ -1202,6 +1200,7 @@ BIO *OSSL_HTTP_get(const char *url, const char *proxy, const char *no_proxy,
                 OPENSSL_free(host);
                 OPENSSL_free(port);
                 (void)OSSL_HTTP_close(rctx, 1);
+                rctx = NULL;
                 continue;
             }
             /* if redirection not allowed, ignore it */
@@ -1211,6 +1210,7 @@ BIO *OSSL_HTTP_get(const char *url, const char *proxy, const char *no_proxy,
         OPENSSL_free(port);
         if (!OSSL_HTTP_close(rctx, resp != NULL)) {
             BIO_free(resp);
+            rctx = NULL;
             resp = NULL;
         }
         break;

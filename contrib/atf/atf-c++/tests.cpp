@@ -319,13 +319,6 @@ impl::tc::cleanup(void)
 }
 
 void
-impl::tc::require_kmod(const std::string& kmod)
-    const
-{
-    atf_tc_require_kmod(kmod.c_str());
-}
-
-void
 impl::tc::require_prog(const std::string& prog)
     const
 {

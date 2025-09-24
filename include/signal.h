@@ -40,10 +40,6 @@
 #include <sys/_ucontext.h>
 #endif
 
-#if __POSIX_VISIBLE >= 202405 || __BSD_VISIBLE
-#define SIG2STR_MAX	32	/* size of buffer required for sig2str() */
-#endif
-
 __NULLABILITY_PRAGMA_PUSH
 
 #if __BSD_VISIBLE
@@ -71,10 +67,6 @@ typedef __pthread_t pthread_t;
 #define	_PTHREAD_T_DECLARED
 #endif
 #endif /* __POSIX_VISIBLE || __XSI_VISIBLE */
-
-#if !defined(_STANDALONE) && defined(_FORTIFY_SOURCE) && _FORTIFY_SOURCE > 0
-#include <ssp/signal.h>
-#endif
 
 __BEGIN_DECLS
 int	raise(int);
@@ -123,13 +115,7 @@ int	siginterrupt(int, int);
 #endif
 
 #if __POSIX_VISIBLE >= 200809
-void	psiginfo(const siginfo_t *, const char *);
 void	psignal(int, const char *);
-#endif
-
-#if __POSIX_VISIBLE >= 202405 || __BSD_VISIBLE
-int sig2str(int, char *);
-int str2sig(const char * __restrict, int * __restrict);
 #endif
 
 #if __BSD_VISIBLE

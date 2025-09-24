@@ -298,7 +298,7 @@ print_variables(void)
 static void
 print_known_guid(void)
 {
-	struct guid_table *tbl;
+	struct uuid_table *tbl;
 	int i, n;
 
 	n = efi_known_guid(&tbl);

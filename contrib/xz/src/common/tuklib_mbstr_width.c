@@ -12,7 +12,7 @@
 #include "tuklib_mbstr.h"
 #include <string.h>
 
-#ifdef HAVE_MBRTOWC
+#if defined(HAVE_MBRTOWC) && defined(HAVE_WCWIDTH)
 #	include <wchar.h>
 #endif
 
@@ -24,17 +24,9 @@ tuklib_mbstr_width(const char *str, size_t *bytes)
 	if (bytes != NULL)
 		*bytes = len;
 
-	return tuklib_mbstr_width_mem(str, len);
-}
-
-
-extern size_t
-tuklib_mbstr_width_mem(const char *str, size_t len)
-{
-#ifndef HAVE_MBRTOWC
+#if !(defined(HAVE_MBRTOWC) && defined(HAVE_WCWIDTH))
 	// In single-byte mode, the width of the string is the same
 	// as its length.
-	(void)str;
 	return len;
 
 #else
@@ -49,35 +41,21 @@ tuklib_mbstr_width_mem(const char *str, size_t len)
 	while (i < len) {
 		wchar_t wc;
 		const size_t ret = mbrtowc(&wc, str + i, len - i, &state);
-		if (ret < 1 || ret > len - i)
+		if (ret < 1 || ret > len)
 			return (size_t)-1;
 
 		i += ret;
 
-#ifdef HAVE_WCWIDTH
 		const int wc_width = wcwidth(wc);
 		if (wc_width < 0)
 			return (size_t)-1;
 
 		width += (size_t)wc_width;
-#else
-		// Without wcwidth() (like in a native Windows build),
-		// assume that one multibyte char == one column. With
-		// UTF-8, this is less bad than one byte == one column.
-		// This way quite a few languages will be handled correctly
-		// in practice; CJK chars will be very wrong though.
-		++width;
-#endif
 	}
 
-	// It's good to check that the string ended in the initial state.
-	// However, in practice this is redundant:
-	//
-	//   - No one will use this code with character sets that have
-	//     locking shift states.
-	//
-	//   - We already checked that mbrtowc() didn't return (size_t)-2
-	//     which would indicate a partial multibyte character.
+	// Require that the string ends in the initial shift state.
+	// This way the caller can be combine the string with other
+	// strings without needing to worry about the shift states.
 	if (!mbsinit(&state))
 		return (size_t)-1;
 

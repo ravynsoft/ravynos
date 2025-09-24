@@ -167,8 +167,7 @@ main(int argc, char **argv)
 	}
 
 	rpctls_verbose = false;
-	ncpu = (u_int)sysconf(_SC_NPROCESSORS_ONLN);
-	rpctls_maxthreads = ncpu > 1 ? ncpu / 2 : 1;
+	rpctls_maxthreads = (ncpu = (u_int)sysconf(_SC_NPROCESSORS_ONLN)) / 2;
 
 	while ((ch = getopt_long(argc, argv, "2C:D:dhl:N:n:mp:r:uvWw", longopts,
 	    NULL)) != -1) {

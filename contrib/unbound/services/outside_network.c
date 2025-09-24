@@ -262,14 +262,12 @@ pick_outgoing_tcp(struct pending_tcp* pend, struct waiting_tcp* w, int s)
 /** get TCP file descriptor for address, returns -1 on failure,
  * tcp_mss is 0 or maxseg size to set for TCP packets. */
 int
-outnet_get_tcp_fd(struct sockaddr_storage* addr, socklen_t addrlen,
-	int tcp_mss, int dscp, int nodelay)
+outnet_get_tcp_fd(struct sockaddr_storage* addr, socklen_t addrlen, int tcp_mss, int dscp)
 {
 	int s;
 	int af;
 	char* err;
-#if defined(SO_REUSEADDR) || defined(IP_BIND_ADDRESS_NO_PORT)	\
-	|| defined(TCP_NODELAY)
+#if defined(SO_REUSEADDR) || defined(IP_BIND_ADDRESS_NO_PORT)
 	int on = 1;
 #endif
 #ifdef INET6
@@ -322,18 +320,6 @@ outnet_get_tcp_fd(struct sockaddr_storage* addr, socklen_t addrlen,
 			" setsockopt(.. IP_BIND_ADDRESS_NO_PORT ..) failed");
 	}
 #endif /* IP_BIND_ADDRESS_NO_PORT */
-	if(nodelay) {
-#if defined(IPPROTO_TCP) && defined(TCP_NODELAY)
-		if(setsockopt(s, IPPROTO_TCP, TCP_NODELAY, (void*)&on,
-			(socklen_t)sizeof(on)) < 0) {
-			verbose(VERB_ALGO, "outgoing tcp:"
-				" setsockopt(.. TCP_NODELAY ..) failed");
-		}
-#else
-		verbose(VERB_ALGO, "outgoing tcp:"
-			" setsockopt(.. TCP_NODELAY ..) unsupported");
-#endif /* defined(IPPROTO_TCP) && defined(TCP_NODELAY) */
-	}
 	return s;
 }
 
@@ -663,8 +649,7 @@ outnet_tcp_take_into_use(struct waiting_tcp* w)
 	}
 
 	/* open socket */
-	s = outnet_get_tcp_fd(&w->addr, w->addrlen, w->outnet->tcp_mss,
-		w->outnet->ip_dscp, w->ssl_upstream);
+	s = outnet_get_tcp_fd(&w->addr, w->addrlen, w->outnet->tcp_mss, w->outnet->ip_dscp);
 
 	if(s == -1)
 		return 0;
@@ -1069,7 +1054,7 @@ reuse_move_writewait_away(struct outside_network* outnet,
 		if(verbosity >= VERB_CLIENT && pend->query->pkt_len > 12+2+2 &&
 			LDNS_QDCOUNT(pend->query->pkt) > 0 &&
 			dname_valid(pend->query->pkt+12, pend->query->pkt_len-12)) {
-			char buf[LDNS_MAX_DOMAINLEN];
+			char buf[LDNS_MAX_DOMAINLEN+1];
 			dname_str(pend->query->pkt+12, buf);
 			verbose(VERB_CLIENT, "reuse_move_writewait_away current %s %d bytes were written",
 				buf, (int)pend->c->tcp_write_byte_count);
@@ -1094,7 +1079,7 @@ reuse_move_writewait_away(struct outside_network* outnet,
 		if(verbosity >= VERB_CLIENT && w->pkt_len > 12+2+2 &&
 			LDNS_QDCOUNT(w->pkt) > 0 &&
 			dname_valid(w->pkt+12, w->pkt_len-12)) {
-			char buf[LDNS_MAX_DOMAINLEN];
+			char buf[LDNS_MAX_DOMAINLEN+1];
 			dname_str(w->pkt+12, buf);
 			verbose(VERB_CLIENT, "reuse_move_writewait_away item %s", buf);
 		}
@@ -2840,7 +2825,7 @@ serviced_perturb_qname(struct ub_randstate* rnd, uint8_t* qbuf, size_t len)
 		lablen = *d++;
 	}
 	if(verbosity >= VERB_ALGO) {
-		char buf[LDNS_MAX_DOMAINLEN];
+		char buf[LDNS_MAX_DOMAINLEN+1];
 		dname_str(qbuf+10, buf);
 		verbose(VERB_ALGO, "qname perturbed to %s", buf);
 	}
@@ -3733,8 +3718,7 @@ outnet_comm_point_for_tcp(struct outside_network* outnet,
 	sldns_buffer* query, int timeout, int ssl, char* host)
 {
 	struct comm_point* cp;
-	int fd = outnet_get_tcp_fd(to_addr, to_addrlen, outnet->tcp_mss,
-		outnet->ip_dscp, ssl);
+	int fd = outnet_get_tcp_fd(to_addr, to_addrlen, outnet->tcp_mss, outnet->ip_dscp);
 	if(fd == -1) {
 		return 0;
 	}
@@ -3809,8 +3793,7 @@ outnet_comm_point_for_http(struct outside_network* outnet,
 {
 	/* cp calls cb with err=NETEVENT_DONE when transfer is done */
 	struct comm_point* cp;
-	int fd = outnet_get_tcp_fd(to_addr, to_addrlen, outnet->tcp_mss,
-		outnet->ip_dscp, ssl);
+	int fd = outnet_get_tcp_fd(to_addr, to_addrlen, outnet->tcp_mss, outnet->ip_dscp);
 	if(fd == -1) {
 		return 0;
 	}

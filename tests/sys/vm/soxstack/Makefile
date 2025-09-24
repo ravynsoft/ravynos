@@ -1,4 +1,3 @@
-PACKAGE=	tests
 SHLIB=		soxstack
 SHLIB_NAME=	libsoxstack.so
 SHLIB_MAJOR=	1

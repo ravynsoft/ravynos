@@ -79,7 +79,7 @@ ieee80211_alq_setlogging(int enable)
 		    ieee80211_alq_qsize, 0);
 		ieee80211_alq_lost = 0;
 		ieee80211_alq_logged = 0;
-		net80211_printf("net80211: logging to %s enabled; "
+		printf("net80211: logging to %s enabled; "
 		    "struct size %d bytes\n",
 		    ieee80211_alq_logfile,
 		    (int) sizeof(struct ieee80211_alq_rec));
@@ -87,7 +87,7 @@ ieee80211_alq_setlogging(int enable)
 		if (ieee80211_alq)
 			alq_close(ieee80211_alq);
 		ieee80211_alq = NULL;
-		net80211_printf("net80211: logging disabled\n");
+		printf("net80211: logging disabled\n");
 		error = 0;
 	}
 	return (error);

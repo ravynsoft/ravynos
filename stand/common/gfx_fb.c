@@ -1001,8 +1001,6 @@ gfx_fb_fill(void *arg, const teken_rect_t *r, teken_char_t c,
 	teken_pos_t p;
 	struct text_pixel *row;
 
-	TSENTER();
-
 	/* remove the cursor */
 	if (state->tg_cursor_visible)
 		gfx_fb_cursor_draw(state, &state->tg_cursor, false);
@@ -1028,8 +1026,6 @@ gfx_fb_fill(void *arg, const teken_rect_t *r, teken_char_t c,
 		c = teken_get_cursor(&state->tg_teken);
 		gfx_fb_cursor_draw(state, c, true);
 	}
-
-	TSEXIT();
 }
 
 static void
@@ -2054,8 +2050,7 @@ gfx_get_ppi(void)
  * not smaller than calculated size value.
  */
 static vt_font_bitmap_data_t *
-gfx_get_font(teken_unit_t rows, teken_unit_t cols, teken_unit_t height,
-    teken_unit_t width)
+gfx_get_font(void)
 {
 	unsigned ppi, size;
 	vt_font_bitmap_data_t *font = NULL;
@@ -2078,14 +2073,6 @@ gfx_get_font(teken_unit_t rows, teken_unit_t cols, teken_unit_t height,
 	size = roundup(size * 2, 10) / 10;
 
 	STAILQ_FOREACH(fl, &fonts, font_next) {
-		/*
-		 * Skip too large fonts.
-		 */
-		font = fl->font_data;
-		if (height / font->vfbd_height < rows ||
-		    width / font->vfbd_width < cols)
-			continue;
-
 		next = STAILQ_NEXT(fl, font_next);
 
 		/*
@@ -2093,6 +2080,7 @@ gfx_get_font(teken_unit_t rows, teken_unit_t cols, teken_unit_t height,
 		 * we have our font. Make sure, it actually is loaded.
 		 */
 		if (next == NULL || next->font_data->vfbd_height < size) {
+			font = fl->font_data;
 			if (font->vfbd_font == NULL ||
 			    fl->font_flags == FONT_RELOAD) {
 				if (fl->font_load != NULL &&
@@ -2101,7 +2089,6 @@ gfx_get_font(teken_unit_t rows, teken_unit_t cols, teken_unit_t height,
 			}
 			break;
 		}
-		font = NULL;
 	}
 
 	return (font);
@@ -2132,7 +2119,7 @@ set_font(teken_unit_t *rows, teken_unit_t *cols, teken_unit_t h, teken_unit_t w)
 	}
 
 	if (font == NULL)
-		font = gfx_get_font(*rows, *cols, h, w);
+		font = gfx_get_font();
 
 	if (font != NULL) {
 		*rows = height / font->vfbd_height;

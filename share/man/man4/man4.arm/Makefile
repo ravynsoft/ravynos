@@ -1,5 +1,4 @@
 MAN=	\
-	ar40xx.4 \
 	aw_gpio.4 \
 	aw_mmc.4 \
 	aw_rtc.4 \

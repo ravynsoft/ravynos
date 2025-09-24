@@ -472,18 +472,14 @@ dt_aggregate_snap_cpu(dtrace_hdl_t *dtp, processorid_t cpu)
 	}
 
 	if (buf->dtbd_drops != 0) {
-		int error;
-
-		if (dtp->dt_oformat) {
-			xo_open_instance("probes");
-			dt_oformat_drop(dtp, cpu);
-		}
-		error = dt_handle_cpudrop(dtp, cpu, DTRACEDROP_AGGREGATION,
-		    buf->dtbd_drops);
-		if (dtp->dt_oformat)
+		xo_open_instance("probes");
+		dt_oformat_drop(dtp, cpu);
+		if (dt_handle_cpudrop(dtp, cpu,
+		    DTRACEDROP_AGGREGATION, buf->dtbd_drops) == -1) {
 			xo_close_instance("probes");
-		if (error != 0)
 			return (-1);
+		}
+		xo_close_instance("probes");
 	}
 
 	if (buf->dtbd_size == 0)

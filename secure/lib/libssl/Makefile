@@ -5,6 +5,8 @@ SHLIB_MAJOR=	30
 VERSION_MAP=	${.CURDIR}/Version.map
 PACKAGE=	openssl-lib
 
+NO_LINT=
+
 PCFILES=	libssl.pc openssl.pc
 
 .include "../libcrypto/Makefile.inc"

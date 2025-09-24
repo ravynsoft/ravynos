@@ -98,7 +98,6 @@
 #include <vm/vm_pagequeue.h>
 #include <vm/vm_object.h>
 #include <vm/vm_kern.h>
-#include <vm/vm_radix.h>
 #include <vm/vm_extern.h>
 #include <vm/vm_pager.h>
 #include <vm/vm_phys.h>
@@ -453,7 +452,7 @@ vm_thread_stack_create(struct domainset *ds, int pages)
 	obj = vm_thread_kstack_size_to_obj(pages);
 	if (vm_ndomains > 1)
 		obj->domain.dr_policy = ds;
-	vm_domainset_iter_page_init(&di, obj, 0, &domain, &req, NULL);
+	vm_domainset_iter_page_init(&di, obj, 0, &domain, &req);
 	do {
 		/*
 		 * Get a kernel virtual address for this thread's kstack.
@@ -480,7 +479,7 @@ vm_thread_stack_create(struct domainset *ds, int pages)
 			vm_page_valid(ma[i]);
 		pmap_qenter(ks, ma, pages);
 		return (ks);
-	} while (vm_domainset_iter_page(&di, obj, &domain, NULL) == 0);
+	} while (vm_domainset_iter_page(&di, obj, &domain) == 0);
 
 	return (0);
 }
@@ -612,7 +611,6 @@ static int
 vm_thread_stack_back(vm_offset_t ks, vm_page_t ma[], int npages, int req_class,
     int domain)
 {
-	struct pctrie_iter pages;
 	vm_object_t obj = vm_thread_kstack_size_to_obj(npages);
 	vm_pindex_t pindex;
 	vm_page_t m;
@@ -620,26 +618,33 @@ vm_thread_stack_back(vm_offset_t ks, vm_page_t ma[], int npages, int req_class,
 
 	pindex = vm_kstack_pindex(ks, npages);
 
-	vm_page_iter_init(&pages, obj);
 	VM_OBJECT_WLOCK(obj);
-	for (n = 0; n < npages; ma[n++] = m) {
-		m = vm_page_grab_iter(obj, pindex + n,
-		    VM_ALLOC_NOCREAT | VM_ALLOC_WIRED, &pages);
-		if (m != NULL)
-			continue;
-		m = vm_page_alloc_domain_iter(obj, pindex + n,
-		    domain, req_class | VM_ALLOC_WIRED, &pages);
-		if (m != NULL)
-			continue;
-		for (int i = 0; i < n; i++) {
-			m = ma[i];
-			(void)vm_page_unwire_noq(m);
-			vm_page_free(m);
+	for (n = 0; n < npages;) {
+		m = vm_page_grab(obj, pindex + n,
+		    VM_ALLOC_NOCREAT | VM_ALLOC_WIRED);
+		if (m == NULL) {
+			m = n > 0 ? ma[n - 1] : vm_page_mpred(obj, pindex);
+			m = vm_page_alloc_domain_after(obj, pindex + n, domain,
+			    req_class | VM_ALLOC_WIRED, m);
 		}
-		break;
+		if (m == NULL)
+			break;
+		ma[n++] = m;
+	}
+	if (n < npages)
+		goto cleanup;
+	VM_OBJECT_WUNLOCK(obj);
+
+	return (0);
+cleanup:
+	for (int i = 0; i < n; i++) {
+		m = ma[i];
+		(void)vm_page_unwire_noq(m);
+		vm_page_free(m);
 	}
 	VM_OBJECT_WUNLOCK(obj);
-	return (n < npages ? ENOMEM : 0);
+
+	return (ENOMEM);
 }
 
 static vm_object_t

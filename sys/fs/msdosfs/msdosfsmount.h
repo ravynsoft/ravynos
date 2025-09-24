@@ -52,17 +52,14 @@
 #ifndef _MSDOSFS_MSDOSFSMOUNT_H_
 #define	_MSDOSFS_MSDOSFSMOUNT_H_
 
-#if defined(_KERNEL) || defined(_WANT_MSDOSFS_INTERNALS)
+#if defined (_KERNEL) || defined(MAKEFS)
 
 #include <sys/types.h>
-#ifdef _KERNEL
+#ifndef MAKEFS
 #include <sys/lock.h>
 #include <sys/lockmgr.h>
-#else
-#include <sys/_lock.h>
-#include <sys/_lockmgr.h>
-#endif
 #include <sys/_task.h>
+#endif
 #include <sys/tree.h>
 
 #ifdef MALLOC_DECLARE
@@ -117,8 +114,11 @@ struct msdosfsmount {
 	void *pm_w2u;	/* Unicode->Local iconv handle */
 	void *pm_u2d;	/* Unicode->DOS iconv handle */
 	void *pm_d2u;	/* DOS->Local iconv handle */
+#ifndef MAKEFS
 	struct lock pm_fatlock;	/* lockmgr protecting allocations */
+	struct lock pm_checkpath_lock; /* protects doscheckpath result */
 	struct task pm_rw2ro_task; /* context for emergency remount ro */
+#endif
 };
 
 /*
@@ -245,9 +245,9 @@ struct msdosfs_fileno {
 #define	MSDOSFS_ASSERT_MP_LOCKED(pmp) \
 	lockmgr_assert(&(pmp)->pm_fatlock, KA_XLOCKED)
 
-#endif /* _KERNEL || _WANT_MSDOSFS_INTERNALS */
+#endif /* _KERNEL || MAKEFS */
 
-#ifdef _KERNEL
+#ifndef MAKEFS
 /*
  *  Arguments to mount MSDOS filesystems.
  */
@@ -265,7 +265,7 @@ struct msdosfs_args {
 	char	*cs_local;	/* Local Charset */
 	mode_t	dirmask;	/* dir  mask to be applied for msdosfs perms */
 };
-#endif /* _KERNEL */
+#endif /* MAKEFS */
 
 /*
  * Msdosfs mount options:

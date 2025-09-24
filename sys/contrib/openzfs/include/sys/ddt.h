@@ -339,8 +339,6 @@ extern void ddt_bp_create(enum zio_checksum checksum, const ddt_key_t *ddk,
 
 extern void ddt_phys_extend(ddt_univ_phys_t *ddp, ddt_phys_variant_t v,
     const blkptr_t *bp);
-extern void ddt_phys_unextend(ddt_univ_phys_t *cur, ddt_univ_phys_t *orig,
-    ddt_phys_variant_t v);
 extern void ddt_phys_copy(ddt_univ_phys_t *dst, const ddt_univ_phys_t *src,
     ddt_phys_variant_t v);
 extern void ddt_phys_clear(ddt_univ_phys_t *ddp, ddt_phys_variant_t v);
@@ -351,8 +349,6 @@ extern uint64_t ddt_phys_refcnt(const ddt_univ_phys_t *ddp,
 extern ddt_phys_variant_t ddt_phys_select(const ddt_t *ddt,
     const ddt_entry_t *dde, const blkptr_t *bp);
 extern uint64_t ddt_phys_birth(const ddt_univ_phys_t *ddp,
-    ddt_phys_variant_t v);
-extern int ddt_phys_is_gang(const ddt_univ_phys_t *ddp,
     ddt_phys_variant_t v);
 extern int ddt_phys_dva_count(const ddt_univ_phys_t *ddp, ddt_phys_variant_t v,
     boolean_t encrypted);

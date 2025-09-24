@@ -28,7 +28,6 @@
  * Copyright (c) 2016 Actifio, Inc. All rights reserved.
  * Copyright (c) 2018, loli10K <ezomori.nozomu@gmail.com>. All rights reserved.
  * Copyright (c) 2023 Hewlett Packard Enterprise Development LP.
- * Copyright (c) 2025, Rob Norris <robn@despairlabs.com>
  */
 
 #include <sys/dmu.h>
@@ -760,7 +759,7 @@ typedef enum {
 
 static enforce_res_t
 dsl_enforce_ds_ss_limits(dsl_dir_t *dd, zfs_prop_t prop,
-    cred_t *cr)
+    cred_t *cr, proc_t *proc)
 {
 	enforce_res_t enforce = ENFORCE_ALWAYS;
 	uint64_t obj;
@@ -775,8 +774,16 @@ dsl_enforce_ds_ss_limits(dsl_dir_t *dd, zfs_prop_t prop,
 	if (crgetzoneid(cr) != GLOBAL_ZONEID)
 		return (ENFORCE_ALWAYS);
 
-	if (secpolicy_zfs(cr) == 0)
+	/*
+	 * We are checking the saved credentials of the user process, which is
+	 * not the current process.  Note that we can't use secpolicy_zfs(),
+	 * because it only works if the cred is that of the current process (on
+	 * Linux).
+	 */
+	if (secpolicy_zfs_proc(cr, proc) == 0)
 		return (ENFORCE_NEVER);
+#else
+	(void) proc;
 #endif
 
 	if ((obj = dsl_dir_phys(dd)->dd_head_dataset_obj) == 0)
@@ -810,7 +817,7 @@ dsl_enforce_ds_ss_limits(dsl_dir_t *dd, zfs_prop_t prop,
  */
 int
 dsl_fs_ss_limit_check(dsl_dir_t *dd, uint64_t delta, zfs_prop_t prop,
-    dsl_dir_t *ancestor, cred_t *cr)
+    dsl_dir_t *ancestor, cred_t *cr, proc_t *proc)
 {
 	objset_t *os = dd->dd_pool->dp_meta_objset;
 	uint64_t limit, count;
@@ -842,7 +849,7 @@ dsl_fs_ss_limit_check(dsl_dir_t *dd, uint64_t delta, zfs_prop_t prop,
 	 * are allowed to change the limit on the current dataset, but there
 	 * is another limit in the tree above.
 	 */
-	enforce = dsl_enforce_ds_ss_limits(dd, prop, cr);
+	enforce = dsl_enforce_ds_ss_limits(dd, prop, cr, proc);
 	if (enforce == ENFORCE_NEVER)
 		return (0);
 
@@ -886,7 +893,7 @@ dsl_fs_ss_limit_check(dsl_dir_t *dd, uint64_t delta, zfs_prop_t prop,
 
 	if (dd->dd_parent != NULL)
 		err = dsl_fs_ss_limit_check(dd->dd_parent, delta, prop,
-		    ancestor, cr);
+		    ancestor, cr, proc);
 
 	return (err);
 }
@@ -1450,8 +1457,6 @@ dsl_dir_tempreserve_space(dsl_dir_t *dd, uint64_t lsize, uint64_t asize,
 			    MSEC2NSEC(10), MSEC2NSEC(10));
 			err = SET_ERROR(ERESTART);
 		}
-
-		ASSERT3U(err, ==, ERESTART);
 	}
 
 	if (err == 0) {
@@ -1911,6 +1916,7 @@ typedef struct dsl_dir_rename_arg {
 	const char *ddra_oldname;
 	const char *ddra_newname;
 	cred_t *ddra_cred;
+	proc_t *ddra_proc;
 } dsl_dir_rename_arg_t;
 
 typedef struct dsl_valid_rename_arg {
@@ -2089,7 +2095,8 @@ dsl_dir_rename_check(void *arg, dmu_tx_t *tx)
 		}
 
 		error = dsl_dir_transfer_possible(dd->dd_parent,
-		    newparent, fs_cnt, ss_cnt, myspace, ddra->ddra_cred);
+		    newparent, fs_cnt, ss_cnt, myspace,
+		    ddra->ddra_cred, ddra->ddra_proc);
 		if (error != 0) {
 			dsl_dir_rele(newparent, FTAG);
 			dsl_dir_rele(dd, FTAG);
@@ -2206,27 +2213,22 @@ dsl_dir_rename_sync(void *arg, dmu_tx_t *tx)
 int
 dsl_dir_rename(const char *oldname, const char *newname)
 {
-	cred_t *cr = CRED();
-	crhold(cr);
-
 	dsl_dir_rename_arg_t ddra;
 
 	ddra.ddra_oldname = oldname;
 	ddra.ddra_newname = newname;
-	ddra.ddra_cred = cr;
+	ddra.ddra_cred = CRED();
+	ddra.ddra_proc = curproc;
 
-	int err = dsl_sync_task(oldname,
+	return (dsl_sync_task(oldname,
 	    dsl_dir_rename_check, dsl_dir_rename_sync, &ddra,
-	    3, ZFS_SPACE_CHECK_RESERVED);
-
-	crfree(cr);
-	return (err);
+	    3, ZFS_SPACE_CHECK_RESERVED));
 }
 
 int
 dsl_dir_transfer_possible(dsl_dir_t *sdd, dsl_dir_t *tdd,
     uint64_t fs_cnt, uint64_t ss_cnt, uint64_t space,
-    cred_t *cr)
+    cred_t *cr, proc_t *proc)
 {
 	dsl_dir_t *ancestor;
 	int64_t adelta;
@@ -2240,11 +2242,11 @@ dsl_dir_transfer_possible(dsl_dir_t *sdd, dsl_dir_t *tdd,
 		return (SET_ERROR(ENOSPC));
 
 	err = dsl_fs_ss_limit_check(tdd, fs_cnt, ZFS_PROP_FILESYSTEM_LIMIT,
-	    ancestor, cr);
+	    ancestor, cr, proc);
 	if (err != 0)
 		return (err);
 	err = dsl_fs_ss_limit_check(tdd, ss_cnt, ZFS_PROP_SNAPSHOT_LIMIT,
-	    ancestor, cr);
+	    ancestor, cr, proc);
 	if (err != 0)
 		return (err);
 

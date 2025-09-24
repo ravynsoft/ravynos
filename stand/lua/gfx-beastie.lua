@@ -49,6 +49,5 @@ return {
 		    "         `--{__________)\027[m",
 		},
 		requires_color = true,
-		shift = {x = 2, y = -5},
 	}
 }

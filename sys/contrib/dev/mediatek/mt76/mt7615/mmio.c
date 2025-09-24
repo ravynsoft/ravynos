@@ -182,7 +182,6 @@ int mt7615_mmio_probe(struct device *pdev, void __iomem *mem_base,
 		.sta_add = mt7615_mac_sta_add,
 		.sta_remove = mt7615_mac_sta_remove,
 		.update_survey = mt7615_update_channel,
-		.set_channel = mt7615_set_channel,
 	};
 	struct mt76_bus_ops *bus_ops;
 	struct ieee80211_ops *ops;
@@ -271,5 +270,4 @@ static void __exit mt7615_exit(void)
 
 module_init(mt7615_init);
 module_exit(mt7615_exit);
-MODULE_DESCRIPTION("MediaTek MT7615E MMIO helpers");
 MODULE_LICENSE("Dual BSD/GPL");

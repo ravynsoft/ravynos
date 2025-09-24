@@ -41,7 +41,6 @@ sysctl_aflag_body()
 	# output and it would all otherwise be saved.
 	sysctl -ao >/dev/null 2>stderr
 	if [ $? -ne 0 ]; then
-		cat stderr
 		atf_fail "sysctl -ao failed"
 	elif [ -s stderr ]; then
 		cat stderr

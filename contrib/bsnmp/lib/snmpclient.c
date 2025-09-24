@@ -977,15 +977,18 @@ remove_local(void)
 static int
 open_client_local(const char *path)
 {
-	struct sockaddr_un sa = {
-		.sun_family = AF_LOCAL,
-		.sun_len = sizeof(sa),
-	};
+	struct sockaddr_un sa;
 	char *ptr;
 	int stype;
 
-	if (snmp_client.chost == NULL && path == NULL)
-		path = SNMP_DEFAULT_LOCAL;
+	if (snmp_client.chost == NULL) {
+		if ((snmp_client.chost = malloc(1 + sizeof(DEFAULT_LOCAL)))
+		    == NULL) {
+			seterr(&snmp_client, "%s", strerror(errno));
+			return (-1);
+		}
+		strcpy(snmp_client.chost, DEFAULT_LOCAL);
+	}
 	if (path != NULL) {
 		if ((ptr = malloc(1 + strlen(path))) == NULL) {
 			seterr(&snmp_client, "%s", strerror(errno));
@@ -1006,56 +1009,43 @@ open_client_local(const char *path)
 		return (-1);
 	}
 
-	/*
-	 * A datagram socket requires a name to receive replies back.  Would
-	 * be cool to have an extension to unix(4) sockets similar to ip(4)
-	 * IP_RECVDSTADDR/IP_SENDSRCADDR, so that a one-to-many datagram
-	 * UNIX socket can send replies to its anonymous peers.
-	 */
-	if (snmp_client.trans == SNMP_TRANS_LOC_DGRAM &&
-	    snmp_client.local_path[0] == '\0') {
-		(void)strlcpy(snmp_client.local_path, "/tmp/snmpXXXXXXXXXXXXXX",
-		    sizeof(snmp_client.local_path));
-		if (mktemp(snmp_client.local_path) == NULL) {
-			seterr(&snmp_client, "mktemp(3): %s", strerror(errno));
-			goto fail;
-		}
+	snprintf(snmp_client.local_path, sizeof(snmp_client.local_path),
+	    "%s", SNMP_LOCAL_PATH);
+
+	if (mkstemp(snmp_client.local_path) == -1) {
+		seterr(&snmp_client, "%s", strerror(errno));
+		(void)close(snmp_client.fd);
+		snmp_client.fd = -1;
+		return (-1);
 	}
 
-	if (snmp_client.local_path[0] != '\0') {
-		if (strlcpy(sa.sun_path, snmp_client.local_path,
-		    sizeof(sa.sun_path)) >=
-		    sizeof(sa.sun_path)) {
-			seterr(&snmp_client, "%s",
-			    "Local socket pathname too long");
-			goto fail;
-		}
-		if (bind(snmp_client.fd, (struct sockaddr *)&sa, sizeof(sa)) ==
-		    -1) {
-			seterr(&snmp_client, "%s", strerror(errno));
-			goto fail;
-		}
-		atexit(remove_local);
-	}
+	sa.sun_family = AF_LOCAL;
+	sa.sun_len = sizeof(sa);
+	strcpy(sa.sun_path, snmp_client.local_path);
 
-	if (strlcpy(sa.sun_path, snmp_client.chost, sizeof(sa.sun_path)) >=
-	    sizeof(sa.sun_path)) {
-		seterr(&snmp_client, "%s", "Server socket pathname too long");
-		goto fail;
+	if (bind(snmp_client.fd, (struct sockaddr *)&sa, sizeof(sa)) == -1) {
+		seterr(&snmp_client, "%s", strerror(errno));
+		(void)close(snmp_client.fd);
+		snmp_client.fd = -1;
+		(void)remove(snmp_client.local_path);
+		return (-1);
 	}
+	atexit(remove_local);
+
+	sa.sun_family = AF_LOCAL;
+	sa.sun_len = offsetof(struct sockaddr_un, sun_path) +
+	    strlen(snmp_client.chost);
+	strncpy(sa.sun_path, snmp_client.chost, sizeof(sa.sun_path) - 1);
+	sa.sun_path[sizeof(sa.sun_path) - 1] = '\0';
 
 	if (connect(snmp_client.fd, (struct sockaddr *)&sa, sa.sun_len) == -1) {
 		seterr(&snmp_client, "%s", strerror(errno));
-		goto fail;
+		(void)close(snmp_client.fd);
+		snmp_client.fd = -1;
+		(void)remove(snmp_client.local_path);
+		return (-1);
 	}
 	return (0);
-
-fail:
-	(void)close(snmp_client.fd);
-	snmp_client.fd = -1;
-	if (snmp_client.local_path[0] != '\0')
-		(void)remove(snmp_client.local_path);
-	return (-1);
 }
 
 /*
@@ -1942,64 +1932,70 @@ get_transp(struct snmp_client *sc, const char **strp)
  * community strings are legal.
  *
  * \param sc	client struct to set errors
- * \param comm	possible start of community; updated to start & end
+ * \param strp	possible start of community; updated to the point to
+ *		the next character to parse
  *
- * \return	the next character to parse; NULL if there was an error
+ * \return	end of community; equals *strp if there is none; NULL if there
+ *		was an error
  */
 static inline const char *
-get_comm(struct snmp_client *sc, const char *comm[2])
+get_comm(struct snmp_client *sc, const char **strp)
 {
-	const char *p = strrchr(comm[0], '@');
+	const char *p = strrchr(*strp, '@');
 
 	if (p == NULL)
 		/* no community string */
-		return (comm[1] = comm[0]);
+		return (*strp);
 
-	if (p - comm[0] > SNMP_COMMUNITY_MAXLEN) {
+	if (p - *strp > SNMP_COMMUNITY_MAXLEN) {
 		seterr(sc, "community string too long '%.*s'",
-		    p - comm[0], comm[0]);
+		    p - *strp, *strp);
 		return (NULL);
 	}
 
-	return ((comm[1] = p) + 1);
+	*strp = p + 1;
+	return (p);
 }
 
 /**
  * Try to get an IPv6 address. This starts with an [ and should end with an ]
  * and everything between should be not longer than INET6_ADDRSTRLEN and
- * parseable by getaddrinfo().
+ * parseable by inet_pton().
  *
  * \param sc	client struct to set errors
- * \param ipv6	possible start of IPv6 address (the '['); updated to actual
- *		start (one after '[') and actual end (the '[' itself)
+ * \param strp	possible start of IPv6 address (the '['); updated to point to
+ *		the next character to parse (the one after the closing ']')
  *
- * \return	the next character to parse (the one after the closing ']')
- *		or NULL on errors
+ * \return	end of address (equals *strp + 1 if there is none) or NULL
+ *		on errors
  */
 static inline const char *
-get_ipv6(struct snmp_client *sc, const char *ipv6[2])
+get_ipv6(struct snmp_client *sc, const char **strp)
 {
-	char str[INET6_ADDRSTRLEN];
-	const char *p;
+	char str[INET6_ADDRSTRLEN + IF_NAMESIZE];
 	struct addrinfo hints, *res;
 	int error;
 
-	if (ipv6[0][0] != '[')
-		return (ipv6[1] = ipv6[0]);
+	if (**strp != '[')
+		return (*strp + 1);
 
-	if ((p = strchr(++(ipv6[0]), ']')) == NULL) {
-		seterr(sc, "unterminated IPv6 address '%s'", ipv6[0]);
+	const char *p = *strp + 1;
+	while (*p != ']' ) {
+		if (*p == '\0') {
+			seterr(sc, "unterminated IPv6 address '%.*s'",
+			    p - *strp, *strp);
+			return (NULL);
+		}
+		p++;
+	}
+
+	if (p - *strp > INET6_ADDRSTRLEN + IF_NAMESIZE) {
+		seterr(sc, "IPv6 address too long '%.*s'", p - *strp, *strp);
 		return (NULL);
 	}
 
-	if ((size_t)(p - ipv6[0]) >= sizeof(str)) {
-		seterr(sc, "IPv6 address too long '%.*s'",
-		    p - ipv6[0], ipv6[0]);
-		return (NULL);
-	}
-
-	strncpy(str, ipv6[0], p - ipv6[0]);
-	str[p - ipv6[0]] = '\0';
+	strncpy(str, *strp + 1, p - (*strp + 1));
+	str[p - (*strp + 1)] = '\0';
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_flags = AI_CANONNAME | AI_NUMERICHOST;
@@ -2012,7 +2008,8 @@ get_ipv6(struct snmp_client *sc, const char *ipv6[2])
 		return (NULL);
 	}
 	freeaddrinfo(res);
-	return ((ipv6[1] = p) + 1);
+	*strp = p + 1;
+	return (p);
 }
 
 /**
@@ -2021,29 +2018,30 @@ get_ipv6(struct snmp_client *sc, const char *ipv6[2])
  * inet_aton().
  *
  * \param sc	client struct to set errors
- * \param ipv4	possible start of IPv4 address; updated to start & end
+ * \param strp	possible start of IPv4 address; updated to point to the
+ *		next character to parse
  *
- * \return	the next character to parse; or NULL on errors
+ * \return	end of address (equals *strp if there is none) or NULL
+ *		on errors
  */
 static inline const char *
-get_ipv4(struct snmp_client *sc, const char *ipv4[2])
+get_ipv4(struct snmp_client *sc, const char **strp)
 {
-	char str[INET_ADDRSTRLEN];
-	const char *p = ipv4[0];
+	const char *p = *strp;
 
 	while (isascii(*p) && (isdigit(*p) || *p == '.'))
 		p++;
 
-	if ((size_t)(p - ipv4[0]) >= sizeof(str)) {
-		seterr(sc, "IPv4 address too long '%.*s'",
-		    p - ipv4[0], ipv4[0]);
+	if (p - *strp > INET_ADDRSTRLEN) {
+		seterr(sc, "IPv4 address too long '%.*s'", p - *strp, *strp);
 		return (NULL);
 	}
-	if (p == ipv4[0])
-		return (ipv4[1] = ipv4[0]);
+	if (*strp == p)
+		return *strp;
 
-	strncpy(str, ipv4[0], p - ipv4[0]);
-	str[p - ipv4[0]] = '\0';
+	char str[INET_ADDRSTRLEN + 1];
+	strncpy(str, *strp, p - *strp);
+	str[p - *strp] = '\0';
 
 	struct in_addr addr;
 	if (inet_aton(str, &addr) != 1) {
@@ -2051,7 +2049,8 @@ get_ipv4(struct snmp_client *sc, const char *ipv4[2])
 		return (NULL);
 	}
 
-	return (ipv4[1] = p);
+	*strp = p;
+	return (p);
 }
 
 /**
@@ -2059,19 +2058,24 @@ get_ipv4(struct snmp_client *sc, const char *ipv4[2])
  * the last colon (if any). There is no length restriction.
  *
  * \param sc	client struct to set errors
- * \param host	possible start of hostname; start & end updated
+ * \param strp	possible start of hostname; updated to point to the next
+ *		character to parse (the trailing NUL character or the last
+ *		colon)
  *
- * \return	next character to parse (semicolon or NUL)
+ * \return	end of address (equals *strp if there is none)
  */
 static inline const char *
-get_host(struct snmp_client *sc __unused, const char *host[2])
+get_host(struct snmp_client *sc __unused, const char **strp)
 {
-	const char *p = strrchr(host[0], ':');
+	const char *p = strrchr(*strp, ':');
 
-	if (p == NULL)
-		return (host[1] = host[0] + strlen(host[0]));
+	if (p == NULL) {
+		*strp += strlen(*strp);
+		return (*strp);
+	}
 
-	return (host[1] = p);
+	*strp = p;
+	return (p);
 }
 
 /**
@@ -2079,24 +2083,25 @@ get_host(struct snmp_client *sc __unused, const char *host[2])
  * of string. The port number must not be empty.
  *
  * \param sc	client struct to set errors
- * \param port	possible start of port specification; if this points to a
+ * \param strp	possible start of port specification; if this points to a
  *		colon there is a port specification
  *
  * \return	end of port number (equals *strp if there is none); NULL
  *		if there is no port number
  */
 static inline const char *
-get_port(struct snmp_client *sc, const char *port[2])
+get_port(struct snmp_client *sc, const char **strp)
 {
-	if (*port[0] != ':')
-		return (port[1] = port[0]);
+	if (**strp != ':')
+		return (*strp + 1);
 
-	if (port[0][1] == '\0') {
+	if ((*strp)[1] == '\0') {
 		seterr(sc, "empty port name");
 		return (NULL);
 	}
 
-	return (port[1] = ++(port[0]) + strlen(port[0]));
+	*strp += strlen(*strp);
+	return (*strp);
 }
 
 /**
@@ -2157,7 +2162,6 @@ int
 snmp_parse_server(struct snmp_client *sc, const char *str)
 {
 	const char *const orig = str;
-	const char *comm[2], *ipv6[2], *ipv4[2], *host[2], *port[2];
 
 	/* parse input */
 	int def_trans = 0, trans = get_transp(sc, &str);
@@ -2167,32 +2171,42 @@ snmp_parse_server(struct snmp_client *sc, const char *str)
 	if (orig == str)
 		def_trans = 1;
 
-	comm[0] = str;
-	if ((str = get_comm(sc, comm)) == NULL)
+	const char *const comm[2] = {
+		str,
+		get_comm(sc, &str),
+	};
+	if (comm[1] == NULL)
 		return (-1);
 
-	ipv6[0] = str;
-	if ((str = get_ipv6(sc, ipv6)) == NULL)
+	const char *const ipv6[2] = {
+		str + 1,
+		get_ipv6(sc, &str),
+	};
+	if (ipv6[1] == NULL)
 		return (-1);
+
+	const char *ipv4[2] = {
+		str,
+		str,
+	};
+
+	const char *host[2] = {
+		str,
+		str,
+	};
 
 	if (ipv6[0] == ipv6[1]) {
-		ipv4[0] = str;
-		if ((str = get_ipv4(sc, ipv4)) == NULL) {
-			/* This failure isn't fatal: restore str. */
-			str = ipv4[0];
-			ipv4[0] = ipv4[1] = NULL;
-		}
+		ipv4[1] = get_ipv4(sc, &str);
 
-		if (ipv4[0] == ipv4[1]) {
-			host[0] = str;
-			str = get_host(sc, host);
-		} else
-			host[0] = host[1] = NULL;
-	} else
-		ipv4[0] = ipv4[1] = host[0] = host[1] = NULL;
+		if (ipv4[0] == ipv4[1])
+			host[1] = get_host(sc, &str);
+	}
 
-	port[0] = str;
-	if ((str = get_port(sc, port)) == NULL)
+	const char *port[2] = {
+		str + 1,
+		get_port(sc, &str),
+	};
+	if (port[1] == NULL)
 		return (-1);
 
 	if (*str != '\0') {
@@ -2223,7 +2237,7 @@ snmp_parse_server(struct snmp_client *sc, const char *str)
 			return (-1);
 		if (def_trans)
 			trans = SNMP_TRANS_UDP;
-	} else if (host[0] != host[1]) {
+	} else {
 		if ((chost = save_str(sc, host)) == NULL)
 			return (-1);
 
@@ -2238,17 +2252,6 @@ snmp_parse_server(struct snmp_client *sc, const char *str)
 					break;
 				}
 		}
-	} else switch (trans) {
-		case SNMP_TRANS_UDP:
-		case SNMP_TRANS_UDP6:
-			if ((chost = strdup(DEFAULT_HOST)) == NULL)
-				return (-1);
-			break;
-		case SNMP_TRANS_LOC_DGRAM:
-		case SNMP_TRANS_LOC_STREAM:
-			if ((chost = strdup(SNMP_DEFAULT_LOCAL)) == NULL)
-				return (-1);
-			break;
 	}
 
 	char *cport;

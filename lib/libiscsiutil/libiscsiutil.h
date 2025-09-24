@@ -95,8 +95,6 @@ struct rchap {
 	size_t		rchap_challenge_len;
 };
 
-__BEGIN_DECLS
-
 struct chap		*chap_new(void);
 char			*chap_get_id(const struct chap *chap);
 char			*chap_get_challenge(const struct chap *chap);
@@ -175,7 +173,5 @@ void			log_warnx(const char *, ...) __printflike(1, 2);
 void			log_debugx(const char *, ...) __printflike(1, 2);
 
 char			*checked_strdup(const char *);
-
-__END_DECLS
 
 #endif /* !__LIBISCSIUTIL_H__ */

@@ -118,7 +118,7 @@ _seekdir(DIR *dirp, long loc)
 	struct dirent *dp;
 	union ddloc_packed ddloc;
 	off_t loc_seek;
-	size_t loc_loc;
+	long loc_loc;
 
 	ddloc.l = loc;
 
@@ -171,7 +171,7 @@ _seekdir(DIR *dirp, long loc)
  * fetching a new block to fix any such telldir locations.
  */
 void
-_fixtelldir(DIR *dirp, off_t oldseek, size_t oldloc)
+_fixtelldir(DIR *dirp, long oldseek, long oldloc)
 {
 	struct ddloc_mem *lp;
 

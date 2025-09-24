@@ -242,14 +242,9 @@ static void *AllocUnits(CPpmd8 *p, unsigned indx)
   return AllocUnitsRare(p, indx);
 }
 
-#define MyMem12Cpy(dest, src, num) do {					\
-	UInt32 *d = (UInt32 *)dest;					\
-	const UInt32 *z = (const UInt32 *)src;				\
-	UInt32 n = num;							\
-	do {								\
-		d[0] = z[0]; d[1] = z[1]; d[2] = z[2]; z += 3; d += 3;	\
-	} while (--n);							\
-} while (0)
+#define MyMem12Cpy(dest, src, num) \
+  { UInt32 *d = (UInt32 *)dest; const UInt32 *z = (const UInt32 *)src; UInt32 n = num; \
+    do { d[0] = z[0]; d[1] = z[1]; d[2] = z[2]; z += 3; d += 3; } while (--n); }
 
 static void *ShrinkUnits(CPpmd8 *p, void *oldPtr, unsigned oldNU, unsigned newNU)
 {
@@ -346,9 +341,7 @@ static void SetSuccessor(CPpmd_State *p, CPpmd_Void_Ref v)
   (p)->SuccessorHigh = (UInt16)(((UInt32)(v) >> 16) & 0xFFFF);
 }
 
-#define RESET_TEXT(offs) do {						\
-	p->Text = p->Base + p->AlignOffset + (offs);			\
-} while (0)
+#define RESET_TEXT(offs) { p->Text = p->Base + p->AlignOffset + (offs); }
 
 static void RestartModel(CPpmd8 *p)
 {

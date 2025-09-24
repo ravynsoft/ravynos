@@ -1,12 +1,12 @@
 PACKAGE=nfs
 PROG=	mount_nfs
-SRCS=	mount_nfs.c mounttab.c
+SRCS=	mount_nfs.c getmntopts.c mounttab.c
 MAN=	mount_nfs.8
-LIBADD=	util
 
+MOUNT=	${.CURDIR:H}/mount
 UMNTALL= ${SRCTOP}/usr.sbin/rpc.umntall
-CFLAGS+= -DNFS -I${UMNTALL}
+CFLAGS+= -DNFS -I${MOUNT} -I${UMNTALL}
 
-.PATH: ${UMNTALL}
+.PATH: ${MOUNT} ${UMNTALL}
 
 .include <bsd.prog.mk>

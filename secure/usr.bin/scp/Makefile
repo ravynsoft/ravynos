@@ -2,7 +2,7 @@
 .include "${SRCTOP}/secure/ssh.mk"
 
 PROG=	scp
-SRCS=	scp.c progressmeter.c $(SFTP_CLIENT_SRCS) $(SKSRCS)
+SRCS=	scp.c sftp-common.c sftp-client.c sftp-glob.c progressmeter.c
 PACKAGE=	ssh
 
 LIBADD=	ssh

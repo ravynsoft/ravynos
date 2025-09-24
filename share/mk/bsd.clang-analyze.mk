@@ -25,7 +25,7 @@
 #		output on stdout.
 
 .if !target(__<bsd.clang-analyze.mk>__)
-__<bsd.clang-analyze.mk>__:	.NOTMAIN
+__<bsd.clang-analyze.mk>__:
 
 .include <bsd.compiler.mk>
 

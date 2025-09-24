@@ -42,7 +42,8 @@
 #include <sys/kdb.h>
 #include <sys/proc.h>
 #include <sys/reboot.h>
-#include <sys/stdarg.h>
+
+#include <machine/stdarg.h>
 
 #include <vm/vm.h>
 #include <vm/pmap.h>

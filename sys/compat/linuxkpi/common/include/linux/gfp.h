@@ -134,8 +134,6 @@ dev_alloc_pages(unsigned int order)
 	return (linux_alloc_pages(GFP_ATOMIC, order));
 }
 
-struct folio *folio_alloc(gfp_t gfp, unsigned int order);
-
 /*
  * Page management for mapped pages:
  */

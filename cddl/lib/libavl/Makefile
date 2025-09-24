@@ -1,6 +1,6 @@
 .PATH: ${SRCTOP}/sys/contrib/openzfs/module/avl
 
-PACKAGE=	libzfs
+PACKAGE=	zfs
 LIB=	avl
 LIBADD=	spl
 SRCS=	avl.c

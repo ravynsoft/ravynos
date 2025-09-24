@@ -67,12 +67,19 @@ pl061_acpi_probe(device_t dev)
 static int
 pl061_acpi_attach(device_t dev)
 {
-	struct pl061_softc *sc;
+	int error;
 
-	sc = device_get_softc(dev);
-	sc->sc_xref = ACPI_GPIO_XREF;
+	error = pl061_attach(dev);
+	if (error != 0)
+		return (error);
 
-	return (pl061_attach(dev));
+	if (!intr_pic_register(dev, ACPI_GPIO_XREF)) {
+		device_printf(dev, "couldn't register PIC\n");
+		pl061_detach(dev);
+		error = ENXIO;
+	}
+
+	return (error);
 }
 
 static device_method_t pl061_acpi_methods[] = {

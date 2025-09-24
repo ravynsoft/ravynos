@@ -30,7 +30,7 @@
 #
 
 .if !target(__<bsd.opts.mk>__)
-__<bsd.opts.mk>__:	.NOTMAIN
+__<bsd.opts.mk>__:
 
 .if !defined(_WITHOUT_SRCCONF)
 #
@@ -79,7 +79,6 @@ __DEFAULT_NO_OPTIONS = \
     CTF \
     INSTALL_AS_USER \
     RETPOLINE \
-    RUN_TESTS \
     STALE_STAGED \
     UBSAN \
     UNDEFINED_VERSION \

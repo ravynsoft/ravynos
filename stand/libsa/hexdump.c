@@ -61,7 +61,7 @@ hexdump(caddr_t region, size_t len)
 	for (x = 0; x < 16; x++) {
 	    if ((line + x) < (region + len)) {
 		c = *(uint8_t *)(line + x);
-		if (!isprint(c))
+		if ((c < ' ') || (c > '~'))	/* !isprint(c) */
 		    c = '.';
 		emit("%c", c);
 	    } else {

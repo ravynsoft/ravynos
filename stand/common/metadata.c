@@ -111,7 +111,7 @@ md_load_dual(char *args, vm_offset_t *modulep, vm_offset_t *dtb, int kern64)
      * tested/set by MI code before launching the kernel.
      */
     rootdevname = getenv("rootdev");
-    if (rootdevname == NULL || *rootdevname == '\0')
+    if (rootdevname == NULL)
 	rootdevname = getenv("currdev");
     /* Try reading the /etc/fstab file to select the root device */
     getrootmount(rootdevname);
@@ -123,14 +123,14 @@ md_load_dual(char *args, vm_offset_t *modulep, vm_offset_t *dtb, int kern64)
 	    addr = xp->f_addr + xp->f_size;
     }
     /* Pad to a page boundary */
-    addr = md_align(addr);
+    addr = roundup(addr, PAGE_SIZE);
 
     /* Copy our environment */
     envp = addr;
     addr = md_copyenv(addr);
 
     /* Pad to a page boundary */
-    addr = md_align(addr);
+    addr = roundup(addr, PAGE_SIZE);
 
 #if defined(LOADER_FDT_SUPPORT)
     /* Copy out FDT */
@@ -141,7 +141,7 @@ md_load_dual(char *args, vm_offset_t *modulep, vm_offset_t *dtb, int kern64)
     {
 	size = fdt_copy(addr);
 	fdtp = addr;
-	addr = md_align(addr + size);
+	addr = roundup(addr + size, PAGE_SIZE);
     }
 #endif
 
@@ -176,7 +176,7 @@ md_load_dual(char *args, vm_offset_t *modulep, vm_offset_t *dtb, int kern64)
 
     *modulep = addr;
     size = md_copymodules(0, kern64);
-    kernend = md_align(addr + size);
+    kernend = roundup(addr + size, PAGE_SIZE);
 
     md = file_findmetadata(kfp, MODINFOMD_KERNEND);
     if (kern64) {

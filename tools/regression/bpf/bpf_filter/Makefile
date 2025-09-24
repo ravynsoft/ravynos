@@ -63,7 +63,7 @@ all:		${TEST_CASES}
 .if defined(BPF_BENCHMARK)
 	@-time ${.CURDIR}/${TEST}
 .else
-	@-env MALLOC_CONF=junk:true ${.CURDIR}/${TEST}
+	@-env MALLOC_OPTIONS=J ${.CURDIR}/${TEST}
 .endif
 	@rm -f ${.CURDIR}/${TEST}
 .endfor

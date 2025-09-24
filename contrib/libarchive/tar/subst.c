@@ -229,7 +229,6 @@ apply_substitution(struct bsdtar *bsdtar, const char *name, char **result,
 
 		if (rule->from_begin && *result) {
 			realloc_strcat(result, name);
-			if (buffer) buffer[0] = 0;
 			realloc_strcat(&buffer, *result);
 			name = buffer;
 			(*result)[0] = 0;

@@ -885,11 +885,9 @@ m_gettype(int size)
 	case MCLBYTES:
 		type = EXT_CLUSTER;
 		break;
-#if MJUMPAGESIZE != MCLBYTES
 	case MJUMPAGESIZE:
 		type = EXT_JUMBOP;
 		break;
-#endif
 	case MJUM9BYTES:
 		type = EXT_JUMBO9;
 		break;
@@ -935,11 +933,9 @@ m_getzone(int size)
 	case MCLBYTES:
 		zone = zone_clust;
 		break;
-#if MJUMPAGESIZE != MCLBYTES
 	case MJUMPAGESIZE:
 		zone = zone_jumbop;
 		break;
-#endif
 	case MJUM9BYTES:
 		zone = zone_jumbo9;
 		break;
@@ -1059,11 +1055,9 @@ m_cljset(struct mbuf *m, void *cl, int type)
 	case EXT_CLUSTER:
 		size = MCLBYTES;
 		break;
-#if MJUMPAGESIZE != MCLBYTES
 	case EXT_JUMBOP:
 		size = MJUMPAGESIZE;
 		break;
-#endif
 	case EXT_JUMBO9:
 		size = MJUM9BYTES;
 		break;
@@ -1115,7 +1109,7 @@ static inline u_int
 m_extrefcnt(struct mbuf *m)
 {
 
-	KASSERT(m->m_flags & M_EXT, ("%s: M_EXT missing for %p", __func__, m));
+	KASSERT(m->m_flags & M_EXT, ("%s: M_EXT missing", __func__));
 
 	return ((m->m_ext.ext_flags & EXT_FLAG_EMBREF) ? m->m_ext.ext_count :
 	    *m->m_ext.ext_cnt);
@@ -1147,13 +1141,13 @@ m_extrefcnt(struct mbuf *m)
 /* Check if the supplied mbuf has a packet header, or else panic. */
 #define	M_ASSERTPKTHDR(m)						\
 	KASSERT((m) != NULL && (m)->m_flags & M_PKTHDR,			\
-	    ("%s: no mbuf %p packet header!", __func__, (m)))
+	    ("%s: no mbuf packet header!", __func__))
 
 /* Check if the supplied mbuf has no send tag, or else panic. */
 #define	M_ASSERT_NO_SND_TAG(m)						\
 	KASSERT((m) != NULL && (m)->m_flags & M_PKTHDR &&		\
 	       ((m)->m_pkthdr.csum_flags & CSUM_SND_TAG) == 0,		\
-	    ("%s: receive mbuf %p has send tag!", __func__, (m)))
+	    ("%s: receive mbuf has send tag!", __func__))
 
 /* Check if mbuf is multipage. */
 #define M_ASSERTEXTPG(m)						\
@@ -1167,7 +1161,7 @@ m_extrefcnt(struct mbuf *m)
  */
 #define	M_ASSERTVALID(m)						\
 	KASSERT((((struct mbuf *)m)->m_flags & 0) == 0,			\
-	    ("%s: attempted use of a free mbuf %p!", __func__, (m)))
+	    ("%s: attempted use of a free mbuf!", __func__))
 
 /* Check whether any mbuf in the chain is unmapped. */
 #ifdef INVARIANTS
@@ -1212,9 +1206,12 @@ m_extrefcnt(struct mbuf *m)
 static __inline void
 m_align(struct mbuf *m, int len)
 {
+#ifdef INVARIANTS
+	const char *msg = "%s: not a virgin mbuf";
+#endif
 	int adjust;
-	KASSERT(m->m_data == M_START(m),
-	    ("%s: not a virgin mbuf %p", __func__, m));
+
+	KASSERT(m->m_data == M_START(m), (msg, __func__));
 
 	adjust = M_SIZE(m) - len;
 	m->m_data += adjust &~ (sizeof(long)-1);
@@ -1534,16 +1531,14 @@ m_free(struct mbuf *m)
 static __inline int
 rt_m_getfib(struct mbuf *m)
 {
-	KASSERT(m->m_flags & M_PKTHDR,
-	    ("%s: Attempt to get FIB from non header mbuf %p", __func__, m));
+	KASSERT(m->m_flags & M_PKTHDR , ("Attempt to get FIB from non header mbuf."));
 	return (m->m_pkthdr.fibnum);
 }
 
 #define M_GETFIB(_m)   rt_m_getfib(_m)
 
 #define M_SETFIB(_m, _fib) do {						\
-        KASSERT((_m)->m_flags & M_PKTHDR, \
-	    ("%s: Attempt to set FIB on non header mbuf %p", __func__, (_m))); \
+        KASSERT((_m)->m_flags & M_PKTHDR, ("Attempt to set FIB on non header mbuf."));	\
 	((_m)->m_pkthdr.fibnum) = (_fib);				\
 } while (0)
 
@@ -1814,9 +1809,9 @@ static inline void
 mbuf_tstmp2timespec(struct mbuf *m, struct timespec *ts)
 {
 
-	M_ASSERTPKTHDR(m);
+	KASSERT((m->m_flags & M_PKTHDR) != 0, ("mbuf %p no M_PKTHDR", m));
 	KASSERT((m->m_flags & (M_TSTMP|M_TSTMP_LRO)) != 0,
-	    ("%s: mbuf %p no M_TSTMP or M_TSTMP_LRO", __func__, m));
+	    ("mbuf %p no M_TSTMP or M_TSTMP_LRO", m));
 	ts->tv_sec = m->m_pkthdr.rcv_tstmp / 1000000000;
 	ts->tv_nsec = m->m_pkthdr.rcv_tstmp % 1000000000;
 }
@@ -1826,9 +1821,9 @@ static inline void
 mbuf_tstmp2timeval(struct mbuf *m, struct timeval *tv)
 {
 
-	M_ASSERTPKTHDR(m);
+	KASSERT((m->m_flags & M_PKTHDR) != 0, ("mbuf %p no M_PKTHDR", m));
 	KASSERT((m->m_flags & (M_TSTMP|M_TSTMP_LRO)) != 0,
-	    ("%s: mbuf %p no M_TSTMP or M_TSTMP_LRO", __func__, m));
+	    ("mbuf %p no M_TSTMP or M_TSTMP_LRO", m));
 	tv->tv_sec = m->m_pkthdr.rcv_tstmp / 1000000000;
 	tv->tv_usec = (m->m_pkthdr.rcv_tstmp % 1000000000) / 1000;
 }

@@ -3,7 +3,8 @@
 #
 
 # PROVIDE: zpool
-# REQUIRE: hostid disks mountcritlocal
+# REQUIRE: hostid disks
+# BEFORE: mountcritlocal
 # KEYWORD: nojail
 
 . /etc/rc.subr

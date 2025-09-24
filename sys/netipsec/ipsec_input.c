@@ -54,7 +54,6 @@
 #include <sys/socket.h>
 #include <sys/errno.h>
 #include <sys/hhook.h>
-#include <sys/stdarg.h>
 #include <sys/syslog.h>
 
 #include <net/if.h>
@@ -100,6 +99,7 @@
 #include <netipsec/xform.h>
 
 #include <machine/in_cksum.h>
+#include <machine/stdarg.h>
 
 #define	IPSEC_ISTAT(proto, name)	do {	\
 	if ((proto) == IPPROTO_ESP)		\

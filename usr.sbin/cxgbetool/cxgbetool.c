@@ -25,8 +25,6 @@
  * SUCH DAMAGE.
  */
 
-#define _WANT_SFF_8472_ID
-
 #include <sys/param.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>

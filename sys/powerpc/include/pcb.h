@@ -66,8 +66,16 @@ struct pcb {
 #define	PCB_VECREGS     0x200	/* Process had Altivec registers initialized */
 	struct fpu {
 		union {
-			uint32_t vsr[4];
+#if _BYTE_ORDER == _BIG_ENDIAN
 			double fpr;
+			uint32_t vsr[4];
+#else
+			uint32_t vsr[4];
+			struct {
+				double padding;
+				double fpr;
+			};
+#endif
 		} fpr[32];
 		double	fpscr;	/* FPSCR stored as double for easier access */
 	} pcb_fpu;		/* Floating point processor */

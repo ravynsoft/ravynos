@@ -74,10 +74,8 @@
 
 #define SPRINTF(x) ((size_t)sprintf x)
 
-#ifdef DEBUG
 static const char AskedForGot[] =
 		"gethostby*.gethostanswer: asked for \"%s\", got \"%s\"";
-#endif
 
 #ifdef RESOLVSORT
 static void addrsort(char **, int, res_state);
@@ -301,10 +299,8 @@ gethostanswer(const querybuf *answer, int anslen, const char *qname, int qtype,
 		switch (type) {
 		case T_PTR:
 			if (strcasecmp(tname, bp) != 0) {
-#ifdef DEBUG
 				syslog(LOG_NOTICE|LOG_AUTH,
 				       AskedForGot, qname, bp);
-#endif
 				cp += n;
 				continue;	/* XXX - had_error++ ? */
 			}
@@ -351,10 +347,8 @@ gethostanswer(const querybuf *answer, int anslen, const char *qname, int qtype,
 		case T_A:
 		case T_AAAA:
 			if (strcasecmp(he->h_name, bp) != 0) {
-#ifdef DEBUG
 				syslog(LOG_NOTICE|LOG_AUTH,
 				       AskedForGot, he->h_name, bp);
-#endif
 				cp += n;
 				continue;	/* XXX - had_error++ ? */
 			}

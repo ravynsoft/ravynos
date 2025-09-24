@@ -692,7 +692,6 @@ fs::rm_r(const fs::path& directory)
 {
     const fs::directory dir(directory);
 
-    ::chmod(directory.c_str(), 0700);
     for (fs::directory::const_iterator iter = dir.begin(); iter != dir.end();
          ++iter) {
         if (iter->name == "." || iter->name == "..")
@@ -702,7 +701,6 @@ fs::rm_r(const fs::path& directory)
 
         if (fs::is_directory(entry)) {
             LD(F("Descending into %s") % entry);
-            ::chmod(entry.c_str(), 0700);
             fs::rm_r(entry);
         } else {
             LD(F("Removing file %s") % entry);

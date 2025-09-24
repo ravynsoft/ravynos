@@ -37,7 +37,6 @@ ${PACKAGE}FILES= \
      tst.profileusec.d  \
      tst.profileusec.d.out  \
      tst.sym.ksh  \
-     tst.ticks.d  \
      tst.ufunc.ksh  \
      tst.ufuncsort.ksh  \
      tst.ufuncsort.ksh.out  \

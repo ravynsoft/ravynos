@@ -36,7 +36,6 @@ static void
 gve_rx_free_ring_gqi(struct gve_priv *priv, int i)
 {
 	struct gve_rx_ring *rx = &priv->rx[i];
-	struct gve_ring_com *com = &rx->com;
 
 	if (rx->page_info != NULL) {
 		free(rx->page_info, M_GVE);
@@ -51,11 +50,6 @@ gve_rx_free_ring_gqi(struct gve_priv *priv, int i)
 	if (rx->desc_ring != NULL) {
 		gve_dma_free_coherent(&rx->desc_ring_mem);
 		rx->desc_ring = NULL;
-	}
-
-	if (com->qpl != NULL) {
-		gve_free_qpl(priv, com->qpl);
-		com->qpl = NULL;
 	}
 }
 
@@ -119,13 +113,10 @@ gve_rx_alloc_ring_gqi(struct gve_priv *priv, int i)
 	rx->mask = priv->rx_pages_per_qpl - 1;
 	rx->desc_ring = rx->desc_ring_mem.cpu_addr;
 
-	com->qpl = gve_alloc_qpl(priv, i + priv->tx_cfg.max_queues,
-	    priv->rx_desc_cnt, /*single_kva=*/false);
+	com->qpl = &priv->qpls[priv->tx_cfg.max_queues + i];
 	if (com->qpl == NULL) {
-		device_printf(priv->dev,
-		    "Failed to alloc QPL for rx ring %d", i);
-		err = ENOMEM;
-		goto abort;
+		device_printf(priv->dev, "No QPL left for rx ring %d", i);
+		return (ENOMEM);
 	}
 
 	rx->page_info = malloc(priv->rx_desc_cnt * sizeof(*rx->page_info),
@@ -185,32 +176,38 @@ abort:
 }
 
 int
-gve_alloc_rx_rings(struct gve_priv *priv, uint16_t start_idx, uint16_t stop_idx)
+gve_alloc_rx_rings(struct gve_priv *priv)
 {
+	int err = 0;
 	int i;
-	int err;
 
-	KASSERT(priv->rx != NULL, ("priv->rx is NULL!"));
+	priv->rx = malloc(sizeof(struct gve_rx_ring) * priv->rx_cfg.num_queues,
+	    M_GVE, M_WAITOK | M_ZERO);
 
-	for (i = start_idx; i < stop_idx; i++) {
+	for (i = 0; i < priv->rx_cfg.num_queues; i++) {
 		err = gve_rx_alloc_ring(priv, i);
 		if (err != 0)
 			goto free_rings;
 	}
 
 	return (0);
+
 free_rings:
-	gve_free_rx_rings(priv, start_idx, i);
+	while (i--)
+		gve_rx_free_ring(priv, i);
+	free(priv->rx, M_GVE);
 	return (err);
 }
 
 void
-gve_free_rx_rings(struct gve_priv *priv, uint16_t start_idx, uint16_t stop_idx)
+gve_free_rx_rings(struct gve_priv *priv)
 {
 	int i;
 
-	for (i = start_idx; i < stop_idx; i++)
+	for (i = 0; i < priv->rx_cfg.num_queues; i++)
 		gve_rx_free_ring(priv, i);
+
+	free(priv->rx, M_GVE);
 }
 
 static void

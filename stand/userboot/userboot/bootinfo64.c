@@ -131,14 +131,14 @@ bi_load64(char *args, vm_offset_t *modulep, vm_offset_t *kernendp)
 	    addr = xp->f_addr + xp->f_size;
     }
     /* pad to a page boundary */
-    addr = md_align(addr);
+    addr = roundup(addr, PAGE_SIZE);
 
     /* copy our environment */
     envp = addr;
     addr = md_copyenv(addr);
 
     /* pad to a page boundary */
-    addr = md_align(addr);
+    addr = roundup(addr, PAGE_SIZE);
 
     kfp = file_findfile(NULL, md_kerntype);
     if (kfp == NULL)
@@ -152,7 +152,7 @@ bi_load64(char *args, vm_offset_t *modulep, vm_offset_t *kernendp)
     /* Figure out the size and location of the metadata */
     *modulep = addr;
     size = md_copymodules(0, true);
-    kernend = md_align(addr + size);
+    kernend = roundup(addr + size, PAGE_SIZE);
     *kernendp = kernend;
 
     /* patch MODINFOMD_KERNEND */

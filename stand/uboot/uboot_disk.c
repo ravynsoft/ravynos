@@ -33,8 +33,7 @@
 
 #include <sys/param.h>
 #include <sys/disk.h>
-#include <sys/stdarg.h>
-
+#include <machine/stdarg.h>
 #include <stand.h>
 
 #include "api_public.h"

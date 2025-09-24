@@ -25,7 +25,6 @@
 
 #include <sys/soundcard.h>
 
-#include <capsicum_helpers.h>
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -153,7 +152,7 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	float *buffer;
+	int32_t *buffer;
 	size_t slope;
 	size_t size;
 	size_t off;
@@ -205,16 +204,13 @@ main(int argc, char **argv)
 	if (f < 0)
 		err(1, "Failed to open '%s'", oss_dev);
 
-	if (caph_enter() == -1)
-		err(1, "Failed to enter capability mode");
-
 	c = 1;				/* mono */
 	if (ioctl(f, SOUND_PCM_WRITE_CHANNELS, &c) != 0)
 		errx(1, "ioctl SOUND_PCM_WRITE_CHANNELS(1) failed");
 
-	c = AFMT_FLOAT;
+	c = AFMT_S32_NE;
 	if (ioctl(f, SNDCTL_DSP_SETFMT, &c) != 0)
-		errx(1, "ioctl SNDCTL_DSP_SETFMT(AFMT_FLOAT) failed");
+		errx(1, "ioctl SNDCTL_DSP_SETFMT(AFMT_S32_NE) failed");
 
 	if (ioctl(f, SNDCTL_DSP_SPEED, &sample_rate) != 0)
 		errx(1, "ioctl SNDCTL_DSP_SPEED(%d) failed", sample_rate);
@@ -255,7 +251,7 @@ main(int argc, char **argv)
 		else if (off > (size - slope))
 			sample = sample * (size - off - 1) / (float)slope;
 
-		buffer[off] = sample;
+		buffer[off] = sample * 0x7fffff00;
 	}
 
 	if (write(f, buffer, size * sizeof(buffer[0])) !=

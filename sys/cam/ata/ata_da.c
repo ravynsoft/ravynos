@@ -1359,7 +1359,10 @@ adaasync(void *callback_arg, uint32_t code,
 	case AC_GETDEV_CHANGED:
 	{
 		softc = (struct ada_softc *)periph->softc;
-		xpt_gdev_type(&cgd, periph->path);
+		memset(&cgd, 0, sizeof(cgd));
+		xpt_setup_ccb(&cgd.ccb_h, periph->path, CAM_PRIORITY_NORMAL);
+		cgd.ccb_h.func_code = XPT_GDEV_TYPE;
+		xpt_action((union ccb *)&cgd);
 
 		/*
 		 * Update our information based on the new Identify data.

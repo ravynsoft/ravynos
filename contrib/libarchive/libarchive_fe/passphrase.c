@@ -119,7 +119,7 @@ readpassphrase(const char *prompt, char *buf, size_t bufsiz, int flags)
 	return (buf);
 }
 
-#elif defined(HAVE_TCGETATTR) && defined(HAVE_TCSETATTR)
+#else /* _WIN32 && !__CYGWIN__ */
 
 #include <assert.h>
 #include <ctype.h>
@@ -314,13 +314,7 @@ restart:
 		errno = save_errno;
 	return(nr == -1 ? NULL : buf);
 }
-#else
-static char *
-readpassphrase(const char *prompt, char *buf, size_t bufsiz, int flags)
-{
-	return (NULL);
-}
-#endif
+#endif /* _WIN32 && !__CYGWIN__ */
 #endif /* HAVE_READPASSPHRASE */
 
 char *

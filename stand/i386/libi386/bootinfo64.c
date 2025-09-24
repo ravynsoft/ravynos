@@ -136,7 +136,7 @@ bi_load64(char *args, vm_offset_t *modulep,
             addr = xp->f_addr + xp->f_size;
     }
     /* pad to a page boundary */
-    addr = md_align(addr);
+    addr = roundup(addr, PAGE_SIZE);
 
     addr = build_font_module(addr);
 
@@ -161,11 +161,11 @@ bi_load64(char *args, vm_offset_t *modulep,
     size = md_copymodules(0, true);
 
     /* copy our environment */
-    envp = md_align(addr + size);
+    envp = roundup(addr + size, PAGE_SIZE);
     addr = md_copyenv(envp);
 
     /* set kernend */
-    kernend = md_align(addr);
+    kernend = roundup(addr, PAGE_SIZE);
     *kernendp = kernend;
 
     /* patch MODINFOMD_KERNEND */

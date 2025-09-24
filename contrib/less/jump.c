@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1984-2025  Mark Nudelman
+ * Copyright (C) 1984-2024  Mark Nudelman
  *
  * You may distribute under the terms of either the GNU General Public
  * License or the Less License, as specified in the README file.
@@ -53,7 +53,7 @@ public void jump_forw(void)
 	 * to get to the beginning of the last line.
 	 */
 	pos_clear();
-	pos = back_line(end_pos, NULL);
+	pos = back_line(end_pos);
 	if (pos == NULL_POSITION)
 		jump_loc(ch_zero(), sc_height-1);
 	else
@@ -232,7 +232,6 @@ public void jump_loc(POSITION pos, int sline)
 	 * Normalize sline.
 	 */
 	pos = after_header_pos(pos);
-	pos = next_unfiltered(pos);
 	sindex = sindex_from_sline(sline);
 
 	if ((nline = onscreen(pos)) >= 0)
@@ -243,9 +242,9 @@ public void jump_loc(POSITION pos, int sline)
 		 */
 		nline -= sindex;
 		if (nline > 0)
-			forw(nline, position(BOTTOM_PLUS_ONE), TRUE, FALSE, FALSE, 0);
+			forw(nline, position(BOTTOM_PLUS_ONE), 1, 0, 0);
 		else
-			back(-nline, position(TOP), TRUE, FALSE, FALSE);
+			back(-nline, position(TOP), 1, 0);
 #if HILITE_SEARCH
 		if (show_attn)
 			repaint_hilite(TRUE);
@@ -286,14 +285,14 @@ public void jump_loc(POSITION pos, int sline)
 				 * close enough to the current screen
 				 * that we can just scroll there after all.
 				 */
-				forw(sc_height-sindex+nline-1, bpos, TRUE, FALSE, FALSE, 0);
+				forw(sc_height-sindex+nline-1, bpos, 1, 0, 0);
 #if HILITE_SEARCH
 				if (show_attn)
 					repaint_hilite(TRUE);
 #endif
 				return;
 			}
-			pos = back_line(pos, NULL);
+			pos = back_line(pos);
 			if (pos == NULL_POSITION)
 			{
 				/*
@@ -308,7 +307,7 @@ public void jump_loc(POSITION pos, int sline)
 		lastmark();
 		squished = FALSE;
 		screen_trashed_num(0);
-		forw(sc_height-1, pos, TRUE, FALSE, FALSE, sindex-nline);
+		forw(sc_height-1, pos, 1, 0, sindex-nline);
 	} else
 	{
 		/*
@@ -319,8 +318,7 @@ public void jump_loc(POSITION pos, int sline)
 		 */
 		for (nline = sindex;  nline < sc_height - 1;  nline++)
 		{
-			POSITION linepos;
-			pos = forw_line(pos, &linepos, NULL);
+			pos = forw_line(pos);
 			if (pos == NULL_POSITION)
 			{
 				/*
@@ -330,14 +328,17 @@ public void jump_loc(POSITION pos, int sline)
 				 */
 				break;
 			}
-			if (linepos >= tpos)
+#if HILITE_SEARCH
+			pos = next_unfiltered(pos);
+#endif
+			if (pos >= tpos)
 			{
 				/* 
 				 * Surprise!  The desired line is
 				 * close enough to the current screen
 				 * that we can just scroll there after all.
 				 */
-				back(nline, tpos, TRUE, FALSE, FALSE);
+				back(nline+1, tpos, 1, 0);
 #if HILITE_SEARCH
 				if (show_attn)
 					repaint_hilite(TRUE);
@@ -352,6 +353,6 @@ public void jump_loc(POSITION pos, int sline)
 			home();
 		screen_trashed_num(0);
 		add_back_pos(pos);
-		back(sc_height-1, pos, TRUE, FALSE, FALSE);
+		back(sc_height-1, pos, 1, 0);
 	}
 }

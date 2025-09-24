@@ -48,6 +48,7 @@
 #include <net/if_var.h>
 #include <net/if_media.h>
 #include <net/if_llc.h>
+#include <net/if_private.h>
 #include <net/ethernet.h>
 
 #include <net/bpf.h>
@@ -168,7 +169,7 @@ ieee80211_create_wds(struct ieee80211vap *vap, struct ieee80211_channel *chan)
 			IEEE80211_DPRINTF(vap, IEEE80211_MSG_WDS,
 			    "%s: station %s in use with %s\n",
 			    __func__, ether_sprintf(vap->iv_des_bssid),
-			    ieee80211_get_vap_ifname(ni->ni_wdsvap));
+			    ni->ni_wdsvap->iv_ifp->if_xname);
 			/* XXX stat? */
 		} else {
 			/*
@@ -486,8 +487,7 @@ wds_input(struct ieee80211_node *ni, struct mbuf *m,
 	}
 	/* NB: the TA is implicitly verified by finding the wds peer node */
 	if (!IEEE80211_ADDR_EQ(wh->i_addr1, vap->iv_myaddr) &&
-	    !IEEE80211_ADDR_EQ(wh->i_addr1,
-	    ieee80211_vap_get_broadcast_address(vap))) {
+	    !IEEE80211_ADDR_EQ(wh->i_addr1, ifp->if_broadcastaddr)) {
 		/* not interested in */
 		IEEE80211_DISCARD_MAC(vap, IEEE80211_MSG_INPUT,
 		    wh->i_addr1, NULL, "%s", "not to bss");
@@ -702,8 +702,7 @@ wds_input(struct ieee80211_node *ni, struct mbuf *m,
 		}
 #ifdef IEEE80211_DEBUG
 		if (ieee80211_msg_debug(vap) || ieee80211_msg_dumppkts(vap)) {
-			net80211_vap_printf(vap,
-			    "received %s from %s rssi %d\n",
+			if_printf(ifp, "received %s from %s rssi %d\n",
 			    ieee80211_mgt_subtype_name(subtype),
 			    ether_sprintf(wh->i_addr2), rssi);
 		}

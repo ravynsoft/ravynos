@@ -77,9 +77,7 @@
 #define O_CLOEXEC	0
 #endif
 
-#if ARCHIVE_VERSION_NUMBER < 4000000
-static int __LA_LIBC_CC archive_utility_string_sort_helper(const void *, const void *);
-#endif
+static int archive_utility_string_sort_helper(char **, unsigned int);
 
 /* Generic initialization of 'struct archive' objects. */
 int
@@ -631,28 +629,74 @@ __archive_ensure_cloexec_flag(int fd)
 #endif
 }
 
-#if ARCHIVE_VERSION_NUMBER < 4000000
 /*
- * Utility functions to sort a group of strings using quicksort.
+ * Utility function to sort a group of strings using quicksort.
  */
 static int
-__LA_LIBC_CC
-archive_utility_string_sort_helper(const void *p1, const void *p2)
+archive_utility_string_sort_helper(char **strings, unsigned int n)
 {
-	const char * const * const s1 = p1;
-	const char * const * const s2 = p2;
+	unsigned int i, lesser_count, greater_count;
+	char **lesser, **greater, **tmp, *pivot;
+	int retval1, retval2;
 
-	return strcmp(*s1, *s2);
+	/* A list of 0 or 1 elements is already sorted */
+	if (n <= 1)
+		return (ARCHIVE_OK);
+
+	lesser_count = greater_count = 0;
+	lesser = greater = NULL;
+	pivot = strings[0];
+	for (i = 1; i < n; i++)
+	{
+		if (strcmp(strings[i], pivot) < 0)
+		{
+			lesser_count++;
+			tmp = realloc(lesser, lesser_count * sizeof(*tmp));
+			if (!tmp) {
+				free(greater);
+				free(lesser);
+				return (ARCHIVE_FATAL);
+			}
+			lesser = tmp;
+			lesser[lesser_count - 1] = strings[i];
+		}
+		else
+		{
+			greater_count++;
+			tmp = realloc(greater, greater_count * sizeof(*tmp));
+			if (!tmp) {
+				free(greater);
+				free(lesser);
+				return (ARCHIVE_FATAL);
+			}
+			greater = tmp;
+			greater[greater_count - 1] = strings[i];
+		}
+	}
+
+	/* quicksort(lesser) */
+	retval1 = archive_utility_string_sort_helper(lesser, lesser_count);
+	for (i = 0; i < lesser_count; i++)
+		strings[i] = lesser[i];
+	free(lesser);
+
+	/* pivot */
+	strings[lesser_count] = pivot;
+
+	/* quicksort(greater) */
+	retval2 = archive_utility_string_sort_helper(greater, greater_count);
+	for (i = 0; i < greater_count; i++)
+		strings[lesser_count + 1 + i] = greater[i];
+	free(greater);
+
+	return (retval1 < retval2) ? retval1 : retval2;
 }
 
 int
 archive_utility_string_sort(char **strings)
 {
-	size_t size = 0;
-	while (strings[size] != NULL)
+	  unsigned int size = 0;
+	  while (strings[size] != NULL)
 		size++;
-	qsort(strings, size, sizeof(char *),
-	      archive_utility_string_sort_helper);
-	return (ARCHIVE_OK);
+	  return archive_utility_string_sort_helper(strings, size);
 }
-#endif

@@ -284,11 +284,11 @@ glxiic_identify(driver_t *driver, device_t parent)
 {
 
 	/* Prevent child from being added more than once. */
-	if (device_find_child(parent, driver->name, DEVICE_UNIT_ANY) != NULL)
+	if (device_find_child(parent, driver->name, -1) != NULL)
 		return;
 
 	if (pci_get_devid(parent) == GLXIIC_CS5536_DEV_ID) {
-		if (device_add_child(parent, driver->name, DEVICE_UNIT_ANY) == NULL)
+		if (device_add_child(parent, driver->name, -1) == NULL)
 			device_printf(parent, "Could not add glxiic child\n");
 	}
 }
@@ -390,8 +390,7 @@ glxiic_attach(device_t dev)
 		goto out;
 	}
 
-	if ((sc->iicbus = device_add_child(dev, "iicbus",
-	    DEVICE_UNIT_ANY)) == NULL) {
+	if ((sc->iicbus = device_add_child(dev, "iicbus", -1)) == NULL) {
 		device_printf(dev, "Could not allocate iicbus instance\n");
 		error = ENXIO;
 		goto out;

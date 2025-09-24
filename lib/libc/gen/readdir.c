@@ -48,9 +48,8 @@ struct dirent *
 _readdir_unlocked(DIR *dirp, int flags)
 {
 	struct dirent *dp;
-	off_t initial_seek;
-	size_t initial_loc = 0;
-	ssize_t ret;
+	long initial_seek;
+	long initial_loc = 0;
 
 	for (;;) {
 		if (dirp->dd_loc >= dirp->dd_size) {
@@ -62,13 +61,11 @@ _readdir_unlocked(DIR *dirp, int flags)
 		}
 		if (dirp->dd_loc == 0 &&
 		    !(dirp->dd_flags & (__DTF_READALL | __DTF_SKIPREAD))) {
-			dirp->dd_size = 0;
 			initial_seek = dirp->dd_seek;
-			ret = _getdirentries(dirp->dd_fd,
+			dirp->dd_size = _getdirentries(dirp->dd_fd,
 			    dirp->dd_buf, dirp->dd_len, &dirp->dd_seek);
-			if (ret <= 0)
+			if (dirp->dd_size <= 0)
 				return (NULL);
-			dirp->dd_size = (size_t)ret;
 			_fixtelldir(dirp, initial_seek, initial_loc);
 		}
 		dirp->dd_flags &= ~__DTF_SKIPREAD;

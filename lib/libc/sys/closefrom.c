@@ -26,12 +26,20 @@
  */
 
 #include <sys/param.h>
+#include <sys/syscall.h>
 #include <unistd.h>
 
 #include "libc_private.h"
 
+#define	CLOSE_RANGE_OSREL		1300091
+
 void
 closefrom(int lowfd)
 {
-	__sys_close_range(MAX(0, lowfd), ~0U, 0);
+
+	if (__getosreldate() >= CLOSE_RANGE_OSREL)
+		__sys_close_range(MAX(0, lowfd), ~0U, 0);
+	else
+		/* Fallback to closefrom(2) on older kernels. */
+		syscall(SYS_freebsd12_closefrom, lowfd);
 }

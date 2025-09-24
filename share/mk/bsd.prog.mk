@@ -4,7 +4,7 @@
 .include <bsd.compiler.mk>
 .include <bsd.linker.mk>
 
-.include <bsd.suffixes-extra.mk>
+.SUFFIXES: .out .o .bc .c .cc .cpp .cxx .C .m .y .l .ll .ln .s .S .asm
 
 # XXX The use of COPTS in modern makefiles is discouraged.
 .if defined(COPTS)
@@ -47,14 +47,13 @@ LDFLAGS+= -Wl,-znorelro
 LDFLAGS+= -Wl,-zrelro
 .endif
 .endif
+.if ${MK_PIE} != "no"
 # Static PIE is not yet supported/tested.
-.if ${MK_PIE} != "no" && (!defined(NO_SHARED) || ${NO_SHARED:tl} == "no")
+.if !defined(NO_SHARED) || ${NO_SHARED:tl} == "no"
 CFLAGS+= -fPIE
 CXXFLAGS+= -fPIE
 LDFLAGS+= -pie
-OBJ_EXT=pieo
-.else
-OBJ_EXT=o
+.endif
 .endif
 .if ${MK_RETPOLINE} != "no"
 .if ${COMPILER_FEATURES:Mretpoline} && ${LINKER_FEATURES:Mretpoline}
@@ -162,7 +161,7 @@ PROGNAME?=	${PROG}
 
 .if defined(SRCS)
 
-OBJS+=  ${SRCS:N*.h:${OBJS_SRCS_FILTER:ts:}:S/$/.${OBJ_EXT}/g}
+OBJS+=  ${SRCS:N*.h:${OBJS_SRCS_FILTER:ts:}:S/$/.o/g}
 
 # LLVM bitcode / textual IR representations of the program
 BCOBJS+=${SRCS:N*.[hsS]:N*.asm:${OBJS_SRCS_FILTER:ts:}:S/$/.bco/g}
@@ -198,10 +197,10 @@ SRCS=	${PROG}.c
 # - the name of the object gets put into the executable symbol table instead of
 #   the name of a variable temporary object.
 # - it's useful to keep objects around for crunching.
-OBJS+=		${PROG}.${OBJ_EXT}
+OBJS+=		${PROG}.o
 BCOBJS+=	${PROG}.bc
 LLOBJS+=	${PROG}.ll
-CLEANFILES+=	${PROG}.${OBJ_EXT} ${PROG}.bc ${PROG}.ll
+CLEANFILES+=	${PROG}.o ${PROG}.bc ${PROG}.ll
 
 .if target(beforelinking)
 beforelinking: ${OBJS}

@@ -26,6 +26,10 @@
 
 typedef void (*crt_func)(void);
 
+static crt_func __JCR_END__[] __section(".jcr") __used = {
+	(crt_func)0
+};
+
 #ifdef HAVE_CTORS
 
 /*

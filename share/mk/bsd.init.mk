@@ -6,7 +6,7 @@
 # MK_FOO variables.
 
 .if !target(__<bsd.init.mk>__)
-__<bsd.init.mk>__:	.NOTMAIN
+__<bsd.init.mk>__:
 .include <bsd.opts.mk>
 .-include "local.init.mk"
 

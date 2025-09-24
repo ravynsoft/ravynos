@@ -25,7 +25,6 @@
  */
 /*
  * Copyright (c) 2012, 2016 by Delphix. All rights reserved.
- * Copyright (c) 2025, Klara, Inc.
  */
 
 #ifndef	_SYS_DMU_TX_H
@@ -80,9 +79,6 @@ struct dmu_tx {
 
 	/* has this transaction already been delayed? */
 	boolean_t tx_dirty_delayed;
-
-	/* whether dmu_tx_wait() should return on suspend */
-	boolean_t tx_break_on_suspend;
 
 	int tx_err;
 };
@@ -147,7 +143,7 @@ extern dmu_tx_stats_t dmu_tx_stats;
  * These routines are defined in dmu.h, and are called by the user.
  */
 dmu_tx_t *dmu_tx_create(objset_t *dd);
-int dmu_tx_assign(dmu_tx_t *tx, dmu_tx_flag_t flags);
+int dmu_tx_assign(dmu_tx_t *tx, uint64_t txg_how);
 void dmu_tx_commit(dmu_tx_t *tx);
 void dmu_tx_abort(dmu_tx_t *tx);
 uint64_t dmu_tx_get_txg(dmu_tx_t *tx);

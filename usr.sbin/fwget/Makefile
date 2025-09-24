@@ -2,6 +2,6 @@ PACKAGE=	fwget
 
 SCRIPTS=	fwget
 MAN=		fwget.8
-SUBDIR=		pci usb
+SUBDIR=		pci
 
 .include <bsd.prog.mk>

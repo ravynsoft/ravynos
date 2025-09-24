@@ -112,6 +112,9 @@ void mpentry_psci(unsigned long cpuid);
 void mpentry_spintable(void);
 void init_secondary(uint64_t);
 
+/* Synchronize AP startup. */
+static struct mtx ap_boot_mtx;
+
 /* Used to initialize the PCPU ahead of calling init_secondary(). */
 void *bootpcpu;
 uint64_t ap_cpuid;
@@ -124,7 +127,7 @@ static void *bootstacks[MAXCPU];
 static volatile int aps_started;
 
 /* Set to 1 once we're ready to let the APs out of the pen. */
-static volatile int aps_after_dev, aps_ready;
+static volatile int aps_ready;
 
 /* Temporary variables for init_secondary()  */
 static void *dpcpu[MAXCPU - 1];
@@ -136,53 +139,11 @@ is_boot_cpu(uint64_t target_cpu)
 	return (PCPU_GET_MPIDR(cpuid_to_pcpu[0]) == (target_cpu & CPU_AFF_MASK));
 }
 
-static bool
-wait_for_aps(void)
-{
-	for (int i = 0, started = 0; i < 2000; i++) {
-		int32_t nstarted;
-
-		nstarted = atomic_load_32(&aps_started);
-		if (nstarted == mp_ncpus - 1)
-			return (true);
-
-		/*
-		 * Don't time out while we are making progress. Some large
-		 * systems can take a while to start all CPUs.
-		 */
-		if (nstarted > started) {
-			i = 0;
-			started = nstarted;
-		}
-		DELAY(1000);
-	}
-
-	return (false);
-}
-
-static void
-release_aps_after_dev(void *dummy __unused)
-{
-	/* Only release CPUs if they exist */
-	if (mp_ncpus == 1)
-		return;
-
-	atomic_store_int(&aps_started, 0);
-	atomic_store_rel_int(&aps_after_dev, 1);
-	/* Wake up the other CPUs */
-	__asm __volatile(
-	    "dsb ishst	\n"
-	    "sev	\n"
-	    ::: "memory");
-
-	wait_for_aps();
-}
-SYSINIT(aps_after_dev, SI_SUB_CONFIGURE, SI_ORDER_MIDDLE + 1,
-    release_aps_after_dev, NULL);
-
 static void
 release_aps(void *dummy __unused)
 {
+	int i, started;
+
 	/* Only release CPUs if they exist */
 	if (mp_ncpus == 1)
 		return;
@@ -194,7 +155,6 @@ release_aps(void *dummy __unused)
 	intr_ipi_setup(IPI_STOP_HARD, "stop hard", ipi_stop, NULL);
 	intr_ipi_setup(IPI_HARDCLOCK, "hardclock", ipi_hardclock, NULL);
 
-	atomic_store_int(&aps_started, 0);
 	atomic_store_rel_int(&aps_ready, 1);
 	/* Wake up the other CPUs */
 	__asm __volatile(
@@ -204,13 +164,24 @@ release_aps(void *dummy __unused)
 
 	printf("Release APs...");
 
-	if (wait_for_aps())
-		printf("done\n");
-	else
-		printf("APs not started\n");
+	started = 0;
+	for (i = 0; i < 2000; i++) {
+		if (atomic_load_acq_int(&smp_started) != 0) {
+			printf("done\n");
+			return;
+		}
+		/*
+		 * Don't time out while we are making progress. Some large
+		 * systems can take a while to start all CPUs.
+		 */
+		if (smp_cpus > started) {
+			i = 0;
+			started = smp_cpus;
+		}
+		DELAY(1000);
+	}
 
-	smp_cpus = atomic_load_int(&aps_started) + 1;
-	atomic_store_rel_int(&smp_started, 1);
+	printf("APs not started\n");
 }
 SYSINIT(start_aps, SI_SUB_SMP, SI_ORDER_FIRST, release_aps, NULL);
 
@@ -257,20 +228,8 @@ init_secondary(uint64_t cpu)
 	/* Detect early CPU feature support */
 	enable_cpu_feat(CPU_FEAT_EARLY_BOOT);
 
-	/* Signal we are waiting for aps_after_dev */
+	/* Signal the BSP and spin until it has released all APs. */
 	atomic_add_int(&aps_started, 1);
-
-	/* Wait for devices to be ready */
-	while (!atomic_load_int(&aps_after_dev))
-		__asm __volatile("wfe");
-
-	install_cpu_errata();
-	enable_cpu_feat(CPU_FEAT_AFTER_DEV);
-
-	/* Signal we are done */
-	atomic_add_int(&aps_started, 1);
-
-	/* Wait until we can run the scheduler */
 	while (!atomic_load_int(&aps_ready))
 		__asm __volatile("wfe");
 
@@ -285,6 +244,9 @@ init_secondary(uint64_t cpu)
 	    ("pmap0 doesn't match cpu %ld's ttbr0", cpu));
 	pcpup->pc_curpmap = pmap0;
 
+	install_cpu_errata();
+	enable_cpu_feat(CPU_FEAT_AFTER_DEV);
+
 	intr_pic_init_secondary();
 
 	/* Start per-CPU event timers. */
@@ -296,8 +258,13 @@ init_secondary(uint64_t cpu)
 
 	dbg_init();
 
-	/* Signal the CPU is ready */
-	atomic_add_int(&aps_started, 1);
+	mtx_lock_spin(&ap_boot_mtx);
+	atomic_add_rel_32(&smp_cpus, 1);
+	if (smp_cpus == mp_ncpus) {
+		/* enable IPI's, tlb shootdown, freezes etc */
+		atomic_store_rel_int(&smp_started, 1);
+	}
+	mtx_unlock_spin(&ap_boot_mtx);
 
 	kcsan_cpu_init(cpu);
 
@@ -727,6 +694,8 @@ void
 cpu_mp_start(void)
 {
 	uint64_t mpidr;
+
+	mtx_init(&ap_boot_mtx, "ap boot", NULL, MTX_SPIN);
 
 	/* CPU 0 is always boot CPU. */
 	CPU_SET(0, &all_cpus);

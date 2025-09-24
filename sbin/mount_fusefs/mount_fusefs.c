@@ -49,9 +49,10 @@
 #include <signal.h>
 #include <getopt.h>
 #include <limits.h>
-#include <mntopts.h>
 #include <osreldate.h>
 #include <paths.h>
+
+#include "mntopts.h"
 
 #ifndef FUSE4BSD_VERSION
 #define	FUSE4BSD_VERSION	"0.3.9-pre1"

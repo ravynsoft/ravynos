@@ -43,6 +43,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sysexits.h>
 #include <unistd.h>
 
@@ -107,6 +108,7 @@ struct reqfile {
 static int flags = 0;	/* Option flags. */
 
 static void	printflags(struct consumer *consumer);
+static int	str2sig(const char *str);
 static void	usage(void) __dead2;
 static int	addfile(const char *path, struct reqfile *reqfile);
 static void	dofiles(struct procstat *procstat, struct kinfo_proc *kp,
@@ -162,7 +164,7 @@ do_fuser(int argc, char *argv[])
 	struct kinfo_proc *procs;
 	struct procstat *procstat;
 	struct reqfile *reqfiles;
-	char *nlistf, *memf;
+	char *ep, *nlistf, *memf;
 	int ch, sig;
 	unsigned int i, cnt, nfiles;
 
@@ -197,8 +199,17 @@ do_fuser(int argc, char *argv[])
 			flags |= KFLAG;
 			break;
 		case 's':
-			if (str2sig(optarg, &sig) != 0)
-				errx(EX_USAGE, "invalid signal: %s", optarg);
+			if (isdigit(*optarg)) {
+				sig = strtol(optarg, &ep, 10);
+				if (*ep != '\0' || sig < 0 || sig >= sys_nsig)
+					errx(EX_USAGE, "illegal signal number" ": %s",
+					    optarg);
+			} else {
+				sig = str2sig(optarg);
+				if (sig < 0)
+					errx(EX_USAGE, "illegal signal name: "
+					    "%s", optarg);
+			}
 			break;
 		case 'h':
 			/* PASSTHROUGH */
@@ -336,4 +347,21 @@ dofiles(struct procstat *procstat, struct kinfo_proc *kp,
 		}
 	}
 	procstat_freefiles(procstat, head);
+}
+
+/*
+ * Returns signal number for it's string representation.
+ */
+static int
+str2sig(const char *str)
+{
+	int i;
+
+	if (!strncasecmp(str, "SIG", 3))
+		str += 3;
+	for (i = 1; i < sys_nsig; i++) {
+                if (!strcasecmp(sys_signame[i], str))
+                        return (i);
+        }
+        return (-1);
 }

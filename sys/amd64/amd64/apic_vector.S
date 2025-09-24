@@ -49,6 +49,12 @@
 #include <machine/specialreg.h>
 #include <x86/apicreg.h>
 
+#ifdef SMP
+#define LK	lock ;
+#else
+#define LK
+#endif
+
 	.text
 	SUPERALIGN_TEXT
 	/* End Of Interrupt to APIC */
@@ -157,6 +163,7 @@ IDTVEC(spuriousint)
 	jmp	doreti
 #endif
 
+#ifdef SMP
 /*
  * Global address space TLB shootdown.
  */
@@ -263,3 +270,5 @@ IDTVEC(justreturn)
 	INTR_HANDLER	justreturn1
 	call	as_lapic_eoi
 	jmp	doreti
+
+#endif /* SMP */

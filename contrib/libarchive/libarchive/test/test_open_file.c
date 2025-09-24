@@ -31,14 +31,14 @@ DEFINE_TEST(test_open_file)
 	struct archive *a;
 	FILE *f;
 
-	f = fopen("test.7z", "wb");
+	f = fopen("test.tar", "wb");
 	assert(f != NULL);
 	if (f == NULL)
 		return;
 
 	/* Write an archive through this FILE *. */
 	assert((a = archive_write_new()) != NULL);
-	assertEqualIntA(a, ARCHIVE_OK, archive_write_set_format_7zip(a));
+	assertEqualIntA(a, ARCHIVE_OK, archive_write_set_format_ustar(a));
 	assertEqualIntA(a, ARCHIVE_OK, archive_write_add_filter_none(a));
 	assertEqualIntA(a, ARCHIVE_OK, archive_write_open_FILE(a, f));
 
@@ -70,10 +70,9 @@ DEFINE_TEST(test_open_file)
 	fclose(f);
 
 	/*
-	 * Now, read the data back. 7z requiring seeking, that also
-	 * tests that the seeking support works.
+	 * Now, read the data back.
 	 */
-	f = fopen("test.7z", "rb");
+	f = fopen("test.tar", "rb");
 	assert(f != NULL);
 	if (f == NULL)
 		return;

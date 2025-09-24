@@ -7,9 +7,6 @@ SRCS=	as.c traceroute.c ifaddrlist.c findsaddr-udp.c
 BINOWN=	root
 BINMODE=4555
 
-HAS_TESTS=
-SUBDIR.${MK_TESTS}+= tests
-
 .if !defined(TRACEROUTE_NO_IPSEC)
 CFLAGS+= -DIPSEC
 .endif

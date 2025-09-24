@@ -241,10 +241,6 @@ primes(ubig start, ubig stop)
 		if (p <= pr_limit) {
 			return;
 		}
-		/*
-		 * the next odd number after the largest prime in the
-		 * precomputed list
-		 */
 		start = *pr_limit+2;
 	}
 
@@ -289,12 +285,9 @@ primes(ubig start, ubig stop)
 			} else {
 				q = &table[mod ? factor-(mod/2) : 0];
 			}
-			/* sieve for our current factor */
+			/* sive for our current factor */
 			for ( ; q < tab_lim; q += factor) {
 				*q = '\0'; /* sieve out a spot */
-			}
-			if (p > pr_limit) {
-				break;
 			}
 			factor = *p++;
 		} while (factor <= fact_lim);

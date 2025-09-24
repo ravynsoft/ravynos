@@ -644,24 +644,24 @@ void dname_str(uint8_t* dname, char* str)
 	if(!dname || !*dname) {
 		*s++ = '.';
 		*s = 0;
-		goto out;
+		return;
 	}
 	lablen = *dname++;
 	while(lablen) {
 		if(lablen > LDNS_MAX_LABELLEN) {
 			*s++ = '#';
 			*s = 0;
-			goto out;
+			return;
 		}
 		len += lablen+1;
-		if(len >= LDNS_MAX_DOMAINLEN) {
+		if(len >= LDNS_MAX_DOMAINLEN-1) {
 			*s++ = '&';
 			*s = 0;
-			goto out;
+			return;
 		}
 		while(lablen--) {
-			if(isalnum((unsigned char)*dname)
-				|| *dname == '-' || *dname == '_'
+			if(isalnum((unsigned char)*dname) 
+				|| *dname == '-' || *dname == '_' 
 				|| *dname == '*')
 				*s++ = *(char*)dname++;
 			else	{
@@ -673,10 +673,6 @@ void dname_str(uint8_t* dname, char* str)
 		lablen = *dname++;
 	}
 	*s = 0;
-
-out:
-	log_assert(s - str < LDNS_MAX_DOMAINLEN);
-	return;
 }
 
 int 

@@ -1,4 +1,4 @@
-/*
+/*-
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Copyright (c) 1980, 1989, 1993, 1994
@@ -39,7 +39,6 @@
 
 #include <errno.h>
 #include <fstab.h>
-#include <mntopts.h>
 #include <paths.h>
 #include <pwd.h>
 #include <signal.h>
@@ -52,6 +51,7 @@
 #include <libxo/xo.h>
 
 #include "extern.h"
+#include "mntopts.h"
 #include "pathnames.h"
 
 #define EXIT(a) {			\
@@ -882,9 +882,9 @@ usage(void)
 {
 
 	xo_error("%s\n%s\n%s\n",
-"usage: mount [-adflpruvw] [-F fstab] [-o options] [-t [no]type[,type ...]]",
+"usage: mount [-adflpruvw] [-F fstab] [-o options] [-t ufs | external_type]",
 "       mount [-dfpruvw] special | node",
-"       mount [-dfpruvw] [-o options] [-t [no]type[,type ...]] special node");
+"       mount [-dfpruvw] [-o options] [-t ufs | external_type] special node");
 	EXIT(EXIT_FAILURE);
 }
 

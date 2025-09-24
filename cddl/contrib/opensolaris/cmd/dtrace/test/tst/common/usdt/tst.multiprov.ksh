@@ -40,8 +40,8 @@ echo '#pragma D option aggsortkey' >> test.d
 cat > test.c <<EOF
 #include <unistd.h>
 
-int
-main(void)
+void
+main()
 {
 EOF
 
@@ -52,7 +52,7 @@ for oogle in doogle bagnoogle; do
 #include <sys/sdt.h>
 
 void
-$oogle(void)
+$oogle()
 {
 	DTRACE_PROBE($oogle, knows);
 }
@@ -79,7 +79,6 @@ EOF
 	fi
 
 	objs="$objs $oogle.o $oogle.d.o"
-	echo "extern void $oogle(void);" >> test.c
 	echo $oogle'();' >> test.c
 	echo $oogle'$target:::{@[probefunc] = count()}' >> test.d
 done

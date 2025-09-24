@@ -1,6 +1,3 @@
-.\"
-.\" SPDX-License-Identifier: BSD-4-Clause
-.\"
 .\" Copyright (c) 1997, 1998, 1999
 .\"	Bill Paul <wpaul@ee.columbia.edu>. All rights reserved.
 .\"
@@ -31,12 +28,12 @@
 .\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 .\" THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd May 26, 2025
+.Dd November 24, 2015
 .Dt AUE 4
 .Os
 .Sh NAME
 .Nm aue
-.Nd ADMtek AN986 Pegasus USB Fast Ethernet driver
+.Nd ADMtek AN986 Pegasus USB Ethernet driver
 .Sh SYNOPSIS
 To compile this driver into the kernel,
 place the following lines in your
@@ -59,8 +56,8 @@ if_aue_load="YES"
 .Sh DESCRIPTION
 The
 .Nm
-driver provides support for USB Fast Ethernet adapters based on the
-ADMtek AN986 Pegasus chipset.
+driver provides support for USB Ethernet adapters based on the ADMtek
+AN986 Pegasus chipset.
 .Pp
 The LinkSys USB10T adapters that contain the AN986 Pegasus chipset
 will operate at 100Base-TX and full-duplex.
@@ -128,10 +125,9 @@ half duplex mode if this media option is not specified.
 For more information on configuring this device, see
 .Xr ifconfig 8 .
 .Sh HARDWARE
-The
+Adapters supported by the
 .Nm
-driver supports the following USB Fast Ethernet adapters based on the
-ADMtek AN986 Pegasus chipset:
+driver include:
 .Pp
 .Bl -bullet -compact
 .It

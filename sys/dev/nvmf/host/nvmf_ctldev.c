@@ -29,7 +29,7 @@ nvmf_handoff_host(struct nvmf_ioc_nv *nv)
 		return (error);
 
 	bus_topo_lock();
-	dev = device_add_child(root_bus, "nvme", DEVICE_UNIT_ANY);
+	dev = device_add_child(root_bus, "nvme", -1);
 	if (dev == NULL) {
 		bus_topo_unlock();
 		error = ENXIO;

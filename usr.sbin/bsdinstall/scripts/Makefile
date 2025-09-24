@@ -1,5 +1,3 @@
-.include <bsd.compat.pre.mk>
-
 SCRIPTS=auto \
 	adduser \
 	bootconfig \
@@ -19,7 +17,6 @@ SCRIPTS=auto \
 	netconfig \
 	netconfig_ipv4 \
 	netconfig_ipv6 \
-	pkgbase \
 	rootpass \
 	script \
 	services \
@@ -31,8 +28,5 @@ SCRIPTS=auto \
 BINDIR= ${LIBEXECDIR}/bsdinstall
 
 MAN=
-
-pkgbase: pkgbase.in
-	sed "s|%%_ALL_libcompats%%|${_ALL_libcompats}|" < ${.ALLSRC} > ${.TARGET}
 
 .include <bsd.prog.mk>

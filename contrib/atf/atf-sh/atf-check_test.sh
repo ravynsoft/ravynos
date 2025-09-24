@@ -389,19 +389,21 @@ stdin_body()
         atf_fail "atf-check does not seem to respect stdin"
 }
 
-atf_test_case unusual_umask
-unusual_umask_head()
+atf_test_case invalid_umask
+invalid_umask_head()
 {
-    atf_set "descr" "Tests that atf-check doesn't care about unusual umasks"
+    atf_set "descr" "Tests for a correct error condition if the umask is" \
+            "too restrictive"
 }
-unusual_umask_body()
+invalid_umask_body()
 {
-    for mask in 022 027 0222 0177 0777 ; do
-        umask $mask
-        ${Atf_Check} true || \
-            atf_fail "atf-check failed with umask $mask"
-    done
-    umask 022
+    umask 0222
+    ${Atf_Check} false 2>stderr && \
+        atf_fail "atf-check returned 0 but it should have failed"
+    cat stderr
+    grep 'temporary.*current umask.*0222' stderr >/dev/null || \
+        atf_fail "atf-check did not report an error related to the" \
+                 "current umask"
 }
 
 atf_init_test_cases()
@@ -433,7 +435,7 @@ atf_init_test_cases()
 
     atf_add_test_case stdin
 
-    atf_add_test_case unusual_umask
+    atf_add_test_case invalid_umask
 }
 
 # vim: syntax=sh:expandtab:shiftwidth=4:softtabstop=4

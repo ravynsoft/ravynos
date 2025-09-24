@@ -40,9 +40,11 @@
 /*
  * Compiled KERNBASE location
  */
-	.globl	kernbase, kernload
+	.globl	kernbase, kernload, dmapbase, dmapend
 	.set	kernbase,KERNBASE
 	.set    kernload,KERNLOAD
+	.set	dmapbase,DMAP_MIN_ADDRESS
+	.set	dmapend,DMAP_MAX_ADDRESS
 
 #define	BOOTSTACK_SIZE	(PAGE_SIZE * KSTACK_PAGES)
 
@@ -110,7 +112,7 @@ ENTRY(btext)
  * - reset IDT back to long mode.
  */
 ENTRY(la57_trampoline)
-	movq	%rsp,lst(%rip)		/* save registers into memory */
+	movq	%rsp,lst(%rip)		/* save registers into memeory */
 	movq	%rbx,lst+8(%rip)	/* upper halves are not saved .. */
 	movq	%rbp,lst+0x10(%rip)	/* by 64->32->64 switch */
 	movq	%cr4,%rax
@@ -119,8 +121,6 @@ ENTRY(la57_trampoline)
 	leaq	la57_trampoline_end(%rip),%rsp /* priv stack */
 
 	movq	%cr0,%rbp
-	leaq	la57_trampoline_gdt(%rip),%rax
-	movq	%rax,la57_trampoline_gdt_desc+2(%rip)
 	lgdtq	la57_trampoline_gdt_desc(%rip)
 
 	pushq	$(2<<3)

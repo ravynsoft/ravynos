@@ -1377,9 +1377,10 @@ umb_getinfobuf(char *in, int inlen, uint32_t offs, uint32_t sz,
 {
 	offs = le32toh(offs);
 	sz = le32toh(sz);
-	memset(out, 0, outlen);
-	if ((uint64_t)inlen >= (uint64_t)offs + (uint64_t)sz)
+	if (inlen >= offs + sz) {
+		memset(out, 0, outlen);
 		memcpy(out, in + offs, MIN(sz, outlen));
+	}
 }
 
 static inline int
@@ -1752,8 +1753,7 @@ umb_add_inet_config(struct umb_softc *sc, struct in_addr ip, u_int prefixlen,
 	sin = (struct sockaddr_in *)&ifra.ifra_mask;
 	sin->sin_family = AF_INET;
 	sin->sin_len = sizeof (*sin);
-	umb_in_len2mask(&sin->sin_addr,
-	    MIN(prefixlen, sizeof (struct in_addr) * 8));
+	umb_in_len2mask(&sin->sin_addr, prefixlen);
 
 	mtx_unlock(&sc->sc_mutex);
 	CURVNET_SET_QUIET(if_getvnet(ifp));
@@ -2147,12 +2147,10 @@ umb_decap(struct umb_softc *sc, struct usb_xfer *xfer, int frame)
 		goto fail;
 	}
 
-	if (len < ptroff)
-		goto toosmall;
 	ptr16 = (struct ncm_pointer16 *)(buf + ptroff);
 	psig = UGETDW(ptr16->dwSignature);
 	ptrlen = UGETW(ptr16->wLength);
-	if ((uint64_t)len < (uint64_t)ptrlen + (uint64_t)ptroff)
+	if (len < ptrlen + ptroff)
 		goto toosmall;
 	if (!MBIM_NCM_NTH16_ISISG(psig) && !MBIM_NCM_NTH32_ISISG(psig)) {
 		DPRINTF("%s: unsupported NCM pointer signature (0x%08x)\n",
@@ -2199,7 +2197,7 @@ umb_decap(struct umb_softc *sc, struct usb_xfer *xfer, int frame)
 		/* Terminating zero entry */
 		if (dlen == 0 || doff == 0)
 			break;
-		if ((uint64_t)len < (uint64_t)dlen + (uint64_t)doff) {
+		if (len < dlen + doff) {
 			/* Skip giant datagram but continue processing */
 			DPRINTF("%s: datagram too large (%d @ off %d)\n",
 			    DEVNAM(sc), dlen, doff);

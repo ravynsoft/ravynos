@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright(c) 2007-2025 Intel Corporation */
+/* Copyright(c) 2007-2022 Intel Corporation */
 /**
  *****************************************************************************
  * @file dc_datapath.c
@@ -118,19 +118,14 @@ dcCompression_ProcessCallback(void *pRespMsg)
 
 	/* Cast response message to compression response message type */
 	pCompRespMsg = (icp_qat_fw_comp_resp_t *)pRespMsg;
-	if (!(pCompRespMsg)) {
-		QAT_UTILS_LOG("pCompRespMsg is NULL\n");
-		return;
-	}
+
 	/* Extract request data pointer from the opaque data */
 	LAC_MEM_SHARED_READ_TO_PTR(pCompRespMsg->opaque_data, pReqData);
-	if (!(pReqData)) {
-		QAT_UTILS_LOG("pReqData is NULL\n");
-		return;
-	}
 
 	/* Extract fields from the request data structure */
 	pCookie = (dc_compression_cookie_t *)pReqData;
+	if (!pCookie)
+		return;
 
 	pSessionDesc = DC_SESSION_DESC_FROM_CTX_GET(pCookie->pSessionHandle);
 	pService = (sal_compression_service_t *)(pCookie->dcInstance);
@@ -528,7 +523,7 @@ dcCheckOpData(sal_compression_service_t *pService, CpaDcOpData *pOpData)
 	if (CPA_TRUE == pOpData->integrityCrcCheck &&
 	    NULL == pOpData->pCrcData) {
 		LAC_INVALID_PARAM_LOG("Integrity CRC data structure "
-				      "not initialized in CpaDcOpData");
+				      "not intialized in CpaDcOpData");
 		return CPA_STATUS_INVALID_PARAM;
 	}
 
@@ -1406,6 +1401,7 @@ cpaDcCompressData(CpaInstanceHandle dcInstance,
 	CpaInstanceHandle insHandle = NULL;
 	Cpa64U srcBuffSize = 0;
 
+
 	if (CPA_INSTANCE_HANDLE_SINGLE == dcInstance) {
 		insHandle = dcGetFirstHandle();
 	} else {
@@ -1511,6 +1507,7 @@ cpaDcCompressData2(CpaInstanceHandle dcInstance,
 		return CPA_STATUS_INVALID_PARAM;
 	}
 
+
 	if ((CPA_TRUE == pOpData->compressAndVerify) &&
 	    (CPA_TRUE == pOpData->compressAndVerifyAndRecover) &&
 	    (CPA_FALSE == pOpData->integrityCrcCheck)) {
@@ -1528,6 +1525,7 @@ cpaDcCompressData2(CpaInstanceHandle dcInstance,
 		    "Data compression without verification not allowed");
 		return CPA_STATUS_UNSUPPORTED;
 	}
+
 
 	if (CPA_INSTANCE_HANDLE_SINGLE == dcInstance) {
 		insHandle = dcGetFirstHandle();
@@ -1705,6 +1703,7 @@ dcDecompressDataCheck(CpaInstanceHandle insHandle,
 		return CPA_STATUS_INVALID_PARAM;
 	}
 
+
 	*srcBufferSize = srcBuffSize;
 
 	return CPA_STATUS_SUCCESS;
@@ -1724,6 +1723,7 @@ cpaDcDecompressData(CpaInstanceHandle dcInstance,
 	CpaInstanceHandle insHandle = NULL;
 	Cpa64U srcBuffSize = 0;
 	CpaStatus status = CPA_STATUS_SUCCESS;
+
 
 	if (CPA_INSTANCE_HANDLE_SINGLE == dcInstance) {
 		insHandle = dcGetFirstHandle();
@@ -1782,6 +1782,7 @@ cpaDcDecompressData(CpaInstanceHandle dcInstance,
 		QAT_UTILS_LOG("Invalid sessDirection value");
 		return CPA_STATUS_INVALID_PARAM;
 	}
+
 
 	if (CPA_DC_STATEFUL == pSessionDesc->sessState) {
 		/* Lock the session to check if there are in-flight stateful
@@ -1863,6 +1864,7 @@ cpaDcDecompressData2(CpaInstanceHandle dcInstance,
 					   callbackTag);
 	}
 
+
 	if (CPA_INSTANCE_HANDLE_SINGLE == dcInstance) {
 		insHandle = dcGetFirstHandle();
 	} else {
@@ -1928,6 +1930,7 @@ cpaDcDecompressData2(CpaInstanceHandle dcInstance,
 		QAT_UTILS_LOG("Invalid sessDirection value");
 		return CPA_STATUS_INVALID_PARAM;
 	}
+
 
 	if (CPA_DC_STATEFUL == pSessionDesc->sessState) {
 		/* Lock the session to check if there are in-flight stateful

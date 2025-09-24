@@ -47,7 +47,6 @@
 #include <stdlib.h>
 #include <err.h>
 #include <sysexits.h>
-#include <mntopts.h>
 
 #include <cflib.h>
 
@@ -56,6 +55,8 @@
 #include <netsmb/smb_lib.h>
 
 #include <fs/smbfs/smbfs.h>
+
+#include "mntopts.h"
 
 static char mount_point[MAXPATHLEN + 1];
 static void usage(void);

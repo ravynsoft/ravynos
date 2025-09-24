@@ -5,7 +5,7 @@
 LIB=	nvpair
 LIBADD=	spl
 
-PACKAGE=	libzfs
+PACKAGE=	zfs
 # user
 INCS=	libnvpair.h
 SRCS=	libnvpair.c \

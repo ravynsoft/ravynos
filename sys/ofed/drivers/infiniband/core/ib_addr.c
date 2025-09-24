@@ -65,7 +65,7 @@ struct addr_req {
 	void *context;
 	void (*callback)(int status, struct sockaddr *src_addr,
 			 struct rdma_dev_addr *addr, void *context);
-	unsigned long timeout;
+	int timeout;
 	int status;
 };
 
@@ -210,9 +210,9 @@ int rdma_translate_ip(const struct sockaddr *addr,
 }
 EXPORT_SYMBOL(rdma_translate_ip);
 
-static void set_timeout(unsigned long time)
+static void set_timeout(int time)
 {
-	unsigned long delay;
+	int delay;	/* under FreeBSD ticks are 32-bit */
 
 	delay = time - jiffies;
 	if (delay <= 0)

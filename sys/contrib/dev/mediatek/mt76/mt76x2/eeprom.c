@@ -5,7 +5,7 @@
 
 #include <linux/module.h>
 #include <linux/of.h>
-#include <linux/unaligned.h>
+#include <asm/unaligned.h>
 #include "mt76x2.h"
 #include "eeprom.h"
 
@@ -256,8 +256,7 @@ void mt76x2_read_rx_gain(struct mt76x02_dev *dev)
 	struct ieee80211_channel *chan = dev->mphy.chandef.chan;
 	int channel = chan->hw_value;
 	s8 lna_5g[3], lna_2g;
-	bool use_lna;
-	u8 lna = 0;
+	u8 lna;
 	u16 val;
 
 	if (chan->band == NL80211_BAND_2GHZ)
@@ -276,15 +275,7 @@ void mt76x2_read_rx_gain(struct mt76x02_dev *dev)
 	dev->cal.rx.mcu_gain |= (lna_5g[1] & 0xff) << 16;
 	dev->cal.rx.mcu_gain |= (lna_5g[2] & 0xff) << 24;
 
-	val = mt76x02_eeprom_get(dev, MT_EE_NIC_CONF_1);
-	if (chan->band == NL80211_BAND_2GHZ)
-		use_lna = !(val & MT_EE_NIC_CONF_1_LNA_EXT_2G);
-	else
-		use_lna = !(val & MT_EE_NIC_CONF_1_LNA_EXT_5G);
-
-	if (use_lna)
-		lna = mt76x02_get_lna_gain(dev, &lna_2g, lna_5g, chan);
-
+	lna = mt76x02_get_lna_gain(dev, &lna_2g, lna_5g, chan);
 	dev->cal.rx.lna_gain = mt76x02_sign_extend(lna, 8);
 }
 EXPORT_SYMBOL_GPL(mt76x2_read_rx_gain);
@@ -506,5 +497,4 @@ int mt76x2_eeprom_init(struct mt76x02_dev *dev)
 }
 EXPORT_SYMBOL_GPL(mt76x2_eeprom_init);
 
-MODULE_DESCRIPTION("MediaTek MT76x2 EEPROM helpers");
 MODULE_LICENSE("Dual BSD/GPL");

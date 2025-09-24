@@ -49,7 +49,6 @@
 #include <sys/signalvar.h>
 #include <sys/socket.h>
 #include <sys/socketvar.h>
-#include <sys/stdarg.h>
 #include <sys/sysctl.h>
 #include <sys/systm.h>
 
@@ -63,6 +62,8 @@
 #include <netipsec/keysock.h>
 #include <netipsec/key_debug.h>
 #include <netipsec/ipsec.h>
+
+#include <machine/stdarg.h>
 
 static struct mtx keysock_mtx;
 MTX_SYSINIT(keysock, &keysock_mtx, "key socket pcb list", MTX_DEF);

@@ -31,7 +31,8 @@
 #include <sys/malloc.h>
 #include <sys/module.h>
 #include <sys/bus.h>
-#include <sys/stdarg.h>
+
+#include <machine/stdarg.h>
 
 #include <isa/isavar.h>
 #include <isa/pnpreg.h>

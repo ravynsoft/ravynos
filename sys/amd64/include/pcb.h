@@ -84,7 +84,6 @@ struct pcb {
 #define	PCB_KERNFPU_THR	0x0020	/* fpu_kern_thread() */
 #define	PCB_32BIT	0x0040	/* process has 32 bit context (segs etc) */
 #define	PCB_FPUNOSAVE	0x0080	/* no save area for current FPU ctx */
-#define	PCB_TLSBASE	0x0100	/* tlsbase was set */
 
 	uint16_t	pcb_initial_fpucw;
 
@@ -105,8 +104,7 @@ struct pcb {
 
 	struct savefpu	*pcb_save;
 
-	register_t	pcb_tlsbase;	/* not same as pcb_fsbase */
-	uint64_t	pcb_pad[4];
+	uint64_t	pcb_pad[5];
 };
 
 /* Per-CPU state saved during suspend and resume. */

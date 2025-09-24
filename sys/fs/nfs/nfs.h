@@ -865,8 +865,6 @@ struct nfsslot {
 /* Enumerated type for nfsuserd state. */
 typedef enum { NOTRUNNING=0, STARTSTOP=1, RUNNING=2 } nfsuserd_state;
 
-typedef enum { UNKNOWN=0, DELETED=1, NLINK_ZERO=2, VALID=3 } nfsremove_status;
-
 #endif	/* _KERNEL */
 
 #endif	/* _NFS_NFS_H */

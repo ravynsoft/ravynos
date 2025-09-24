@@ -1,6 +1,5 @@
 .include <src.opts.mk>
 
-PACKAGE= toolchain
 PROG=	file2c
 
 HAS_TESTS=

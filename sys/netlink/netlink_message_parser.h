@@ -209,8 +209,7 @@ int nlattr_get_nested(struct nlattr *nla, struct nl_pstate *npt,
 int nlattr_get_nested_ptr(struct nlattr *nla, struct nl_pstate *npt,
     const void *arg, void *target);
 
-bool nlmsg_report_err_msg(struct nl_pstate *npt, const char *fmt, ...)
-	__printflike(2, 3);
+bool nlmsg_report_err_msg(struct nl_pstate *npt, const char *fmt, ...);
 
 #define	NLMSG_REPORT_ERR_MSG(_npt, _fmt, ...) {	\
 	nlmsg_report_err_msg(_npt, _fmt, ## __VA_ARGS__); \

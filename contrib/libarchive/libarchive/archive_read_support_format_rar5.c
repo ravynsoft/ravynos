@@ -46,7 +46,6 @@
 #include "archive_entry_locale.h"
 #include "archive_ppmd7_private.h"
 #include "archive_entry_private.h"
-#include "archive_time_private.h"
 
 #ifdef HAVE_BLAKE2_H
 #include <blake2.h>
@@ -101,12 +100,10 @@ struct file_header {
 	uint8_t dir : 1;             /* Is this file entry a directory? */
 
 	/* Optional time fields. */
-	int64_t e_mtime;
-	int64_t e_ctime;
-	int64_t e_atime;
-	uint32_t e_mtime_ns;
-	uint32_t e_ctime_ns;
-	uint32_t e_atime_ns;
+	uint64_t e_mtime;
+	uint64_t e_ctime;
+	uint64_t e_atime;
+	uint32_t e_unix_ns;
 
 	/* Optional hash fields. */
 	uint32_t stored_crc32;
@@ -694,8 +691,7 @@ static int run_filter(struct archive_read* a, struct filter_info* flt) {
 		default:
 			archive_set_error(&a->archive,
 			    ARCHIVE_ERRNO_FILE_FORMAT,
-			    "Unsupported filter type: 0x%x",
-			    (unsigned int)flt->type);
+			    "Unsupported filter type: 0x%x", flt->type);
 			return ARCHIVE_FATAL;
 	}
 
@@ -1104,22 +1100,22 @@ static int read_consume_bits(struct archive_read* a, struct rar5* rar,
 	return ARCHIVE_OK;
 }
 
-static char read_u32(struct archive_read* a, uint32_t* pvalue) {
+static int read_u32(struct archive_read* a, uint32_t* pvalue) {
 	const uint8_t* p;
 	if(!read_ahead(a, 4, &p))
 		return 0;
 
 	*pvalue = archive_le32dec(p);
-	return ARCHIVE_OK == consume(a, 4);
+	return ARCHIVE_OK == consume(a, 4) ? 1 : 0;
 }
 
-static char read_u64(struct archive_read* a, uint64_t* pvalue) {
+static int read_u64(struct archive_read* a, uint64_t* pvalue) {
 	const uint8_t* p;
 	if(!read_ahead(a, 8, &p))
 		return 0;
 
 	*pvalue = archive_le64dec(p);
-	return ARCHIVE_OK == consume(a, 8);
+	return ARCHIVE_OK == consume(a, 8) ? 1 : 0;
 }
 
 static int bid_standard(struct archive_read* a) {
@@ -1297,15 +1293,21 @@ static int parse_file_extra_hash(struct archive_read* a, struct rar5* rar,
 		*extra_data_size -= hash_size;
 	} else {
 		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
-		    "Unsupported hash type (0x%jx)", (uintmax_t)hash_type);
+		    "Unsupported hash type (0x%x)", (int) hash_type);
 		return ARCHIVE_FATAL;
 	}
 
 	return ARCHIVE_OK;
 }
 
+static uint64_t time_win_to_unix(uint64_t win_time) {
+	const size_t ns_in_sec = 10000000;
+	const uint64_t sec_to_unix = 11644473600LL;
+	return win_time / ns_in_sec - sec_to_unix;
+}
+
 static int parse_htime_item(struct archive_read* a, char unix_time,
-    int64_t* sec, uint32_t* nsec, int64_t* extra_data_size)
+    uint64_t* where, int64_t* extra_data_size)
 {
 	if(unix_time) {
 		uint32_t time_val;
@@ -1313,13 +1315,13 @@ static int parse_htime_item(struct archive_read* a, char unix_time,
 			return ARCHIVE_EOF;
 
 		*extra_data_size -= 4;
-		*sec = (int64_t) time_val;
+		*where = (uint64_t) time_val;
 	} else {
 		uint64_t windows_time;
 		if(!read_u64(a, &windows_time))
 			return ARCHIVE_EOF;
 
-		ntfs_to_unix(windows_time, sec, nsec);
+		*where = time_win_to_unix(windows_time);
 		*extra_data_size -= 8;
 	}
 
@@ -1383,7 +1385,7 @@ static int parse_file_extra_version(struct archive_read* a,
 static int parse_file_extra_htime(struct archive_read* a,
     struct archive_entry* e, struct rar5* rar, int64_t* extra_data_size)
 {
-	char unix_time, has_unix_ns, has_mtime, has_ctime, has_atime;
+	char unix_time = 0;
 	size_t flags = 0;
 	size_t value_len;
 
@@ -1404,60 +1406,30 @@ static int parse_file_extra_htime(struct archive_read* a,
 	}
 
 	unix_time = flags & IS_UNIX;
-	has_unix_ns = unix_time && (flags & HAS_UNIX_NS);
-	has_mtime = flags & HAS_MTIME;
-	has_atime = flags & HAS_ATIME;
-	has_ctime = flags & HAS_CTIME;
-	rar->file.e_atime_ns = rar->file.e_ctime_ns = rar->file.e_mtime_ns = 0;
 
-	if(has_mtime) {
+	if(flags & HAS_MTIME) {
 		parse_htime_item(a, unix_time, &rar->file.e_mtime,
-		    &rar->file.e_mtime_ns, extra_data_size);
+		    extra_data_size);
+		archive_entry_set_mtime(e, rar->file.e_mtime, 0);
 	}
 
-	if(has_ctime) {
+	if(flags & HAS_CTIME) {
 		parse_htime_item(a, unix_time, &rar->file.e_ctime,
-		    &rar->file.e_ctime_ns, extra_data_size);
+		    extra_data_size);
+		archive_entry_set_ctime(e, rar->file.e_ctime, 0);
 	}
 
-	if(has_atime) {
+	if(flags & HAS_ATIME) {
 		parse_htime_item(a, unix_time, &rar->file.e_atime,
-		    &rar->file.e_atime_ns, extra_data_size);
+		    extra_data_size);
+		archive_entry_set_atime(e, rar->file.e_atime, 0);
 	}
 
-	if(has_mtime && has_unix_ns) {
-		if(!read_u32(a, &rar->file.e_mtime_ns))
+	if(flags & HAS_UNIX_NS) {
+		if(!read_u32(a, &rar->file.e_unix_ns))
 			return ARCHIVE_EOF;
 
 		*extra_data_size -= 4;
-	}
-
-	if(has_ctime && has_unix_ns) {
-		if(!read_u32(a, &rar->file.e_ctime_ns))
-			return ARCHIVE_EOF;
-
-		*extra_data_size -= 4;
-	}
-
-	if(has_atime && has_unix_ns) {
-		if(!read_u32(a, &rar->file.e_atime_ns))
-			return ARCHIVE_EOF;
-
-		*extra_data_size -= 4;
-	}
-
-	/* The seconds and nanoseconds are either together, or separated in two
-	 * fields so we parse them, then set the archive_entry's times. */
-	if(has_mtime) {
-		archive_entry_set_mtime(e, rar->file.e_mtime, rar->file.e_mtime_ns);
-	}
-
-	if(has_ctime) {
-		archive_entry_set_ctime(e, rar->file.e_ctime, rar->file.e_ctime_ns);
-	}
-
-	if(has_atime) {
-		archive_entry_set_atime(e, rar->file.e_atime, rar->file.e_atime_ns);
 	}
 
 	return ARCHIVE_OK;
@@ -1924,8 +1896,7 @@ static int process_head_file(struct archive_read* a, struct rar5* rar,
 	} else {
 		/* Unknown host OS */
 		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
-				"Unsupported Host OS: 0x%jx",
-				(uintmax_t)host_os);
+				"Unsupported Host OS: 0x%x", (int) host_os);
 
 		return ARCHIVE_FATAL;
 	}
@@ -2133,8 +2104,8 @@ static int process_head_main(struct archive_read* a, struct rar5* rar,
 		default:
 			archive_set_error(&a->archive,
 			    ARCHIVE_ERRNO_FILE_FORMAT,
-			    "Unsupported extra type (0x%jx)",
-			    (uintmax_t)extra_field_id);
+			    "Unsupported extra type (0x%x)",
+			    (int) extra_field_id);
 			return ARCHIVE_FATAL;
 	}
 
@@ -3122,7 +3093,7 @@ static int do_uncompress_block(struct archive_read* a, const uint8_t* p) {
 		 *   can be stored in the output buffer directly.
 		 *
 		 * - Code 256 defines a new filter, which is later used to
-		 *   transform the data block accordingly to the filter type.
+		 *   ransform the data block accordingly to the filter type.
 		 *   The data block needs to be fully uncompressed first.
 		 *
 		 * - Code bigger than 257 and smaller than 262 define
@@ -4012,7 +3983,7 @@ static int do_unpack(struct archive_read* a, struct rar5* rar,
 				archive_set_error(&a->archive,
 				    ARCHIVE_ERRNO_FILE_FORMAT,
 				    "Compression method not supported: 0x%x",
-				    (unsigned int)rar->cstate.method);
+				    rar->cstate.method);
 
 				return ARCHIVE_FATAL;
 		}

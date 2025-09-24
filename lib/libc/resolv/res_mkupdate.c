@@ -48,6 +48,10 @@
 
 #include "port_after.h"
 
+/* Options.  Leave them on. */
+#ifndef	DEBUG
+#define	DEBUG
+#endif
 #define MAXPORT 1024
 
 static int getnum_str(u_char **, u_char *);

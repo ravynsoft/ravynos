@@ -49,7 +49,6 @@
 #include "ifconfig.h"
 
 static const char *GIFBITS[] = {
-	[0] = "NOCLAMP",
 	[1] = "IGNORE_SOURCE",
 };
 
@@ -91,8 +90,6 @@ setgifopts(if_ctx *ctx, const char *val __unused, int d)
 }
 
 static struct cmd gif_cmds[] = {
-	DEF_CMD("noclamp",		GIF_NOCLAMP,		setgifopts),
-	DEF_CMD("-noclamp",		-GIF_NOCLAMP,		setgifopts),
 	DEF_CMD("ignore_source",	GIF_IGNORE_SOURCE,	setgifopts),
 	DEF_CMD("-ignore_source",	-GIF_IGNORE_SOURCE,	setgifopts),
 };

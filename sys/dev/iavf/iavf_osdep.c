@@ -37,7 +37,7 @@
  * independent layer for sharing code between drivers on different operating
  * systems.
  */
-#include <sys/stdarg.h>
+#include <machine/stdarg.h>
 
 #include "iavf_iflib.h"
 

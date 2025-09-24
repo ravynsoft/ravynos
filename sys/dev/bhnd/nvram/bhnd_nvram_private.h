@@ -39,7 +39,8 @@
 
 #ifdef _KERNEL
 #include <sys/malloc.h>
-#include <sys/stdarg.h>
+
+#include <machine/stdarg.h>
 #else
 #include <stdarg.h>
 #include <stdbool.h>

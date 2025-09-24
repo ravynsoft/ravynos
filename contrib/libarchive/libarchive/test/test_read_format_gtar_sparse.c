@@ -30,13 +30,13 @@ struct contents {
 	const char *d;
 };
 
-static struct contents archive_contents_sparse[] = {
+struct contents archive_contents_sparse[] = {
 	{ 1000000, 1, "a" },
 	{ 2000000, 1, "a" },
 	{ 3145728, 0, NULL }
 };
 
-static struct contents archive_contents_sparse2[] = {
+struct contents archive_contents_sparse2[] = {
 	{ 1000000, 1, "a" },
 	{ 2000000, 1, "a" },
 	{ 3000000, 1, "a" },
@@ -139,7 +139,7 @@ static struct contents archive_contents_sparse2[] = {
 	{ 99000001, 0, NULL }
 };
 
-static struct contents archive_contents_nonsparse[] = {
+struct contents archive_contents_nonsparse[] = {
 	{ 0, 1, "a" },
 	{ 1, 0, NULL }
 };
@@ -159,7 +159,7 @@ static struct contents archive_contents_nonsparse[] = {
  *   * contains a single byte 'a'
  */
 
-static struct archive_contents {
+struct archive_contents {
 	const char *filename;
 	struct contents *contents;
 } files[] = {

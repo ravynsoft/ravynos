@@ -1,4 +1,4 @@
-/*	$NetBSD: common.c,v 1.50 2024/06/30 16:29:42 christos Exp $	*/
+/*	$NetBSD: common.c,v 1.49 2020/03/30 06:54:37 ryo Exp $	*/
 
 /*-
  * Copyright (c) 1992, 1993
@@ -37,7 +37,7 @@
 #if 0
 static char sccsid[] = "@(#)common.c	8.1 (Berkeley) 6/4/93";
 #else
-__RCSID("$NetBSD: common.c,v 1.50 2024/06/30 16:29:42 christos Exp $");
+__RCSID("$NetBSD: common.c,v 1.49 2020/03/30 06:54:37 ryo Exp $");
 #endif
 #endif /* not lint && not SCCSID */
 
@@ -222,8 +222,7 @@ ed_move_to_end(EditLine *el, wint_t c __attribute__((__unused__)))
 			return CC_REFRESH;
 		}
 #ifdef VI_MOVE
-		if (el->el_line.cursor > el->el_line.buffer)
-			el->el_line.cursor--;
+		el->el_line.cursor--;
 #endif
 	}
 	return CC_CURSOR;

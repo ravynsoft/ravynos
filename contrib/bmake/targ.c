@@ -1,4 +1,4 @@
-/*	$NetBSD: targ.c,v 1.185 2025/05/07 19:49:00 rillig Exp $	*/
+/*	$NetBSD: targ.c,v 1.184 2024/07/07 09:54:12 rillig Exp $	*/
 
 /*
  * Copyright (c) 1988, 1989, 1990, 1993
@@ -107,7 +107,7 @@
 #include "dir.h"
 
 /*	"@(#)targ.c	8.2 (Berkeley) 3/19/94"	*/
-MAKE_RCSID("$NetBSD: targ.c,v 1.185 2025/05/07 19:49:00 rillig Exp $");
+MAKE_RCSID("$NetBSD: targ.c,v 1.184 2024/07/07 09:54:12 rillig Exp $");
 
 /*
  * All target nodes that appeared on the left-hand side of one of the
@@ -548,8 +548,7 @@ PrintOnlySources(void)
 void
 Targ_PrintGraph(int pass)
 {
-	debug_printf("#*** Begin input graph for pass %d in %s:\n",
-	    pass, curdir);
+	debug_printf("#*** Input graph:\n");
 	Targ_PrintNodes(&allTargets, pass);
 	debug_printf("\n");
 	debug_printf("\n");
@@ -569,8 +568,6 @@ Targ_PrintGraph(int pass)
 	debug_printf("\n");
 
 	Suff_PrintAll();
-	debug_printf("#*** End input graph for pass %d in %s:\n",
-	    pass, curdir);
 }
 
 /*

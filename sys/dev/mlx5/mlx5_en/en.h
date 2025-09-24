@@ -772,7 +772,6 @@ struct mlx5e_rq {
 	struct mlx5e_cq cq;
 	struct lro_ctrl lro;
 	volatile int enabled;
-	int processing;
 	int	ix;
 
 	/* Dynamic Interrupt Moderation */

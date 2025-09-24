@@ -423,7 +423,7 @@ viapm_586b_attach(device_t dev)
 	VIAPM_OUTB(GPIO_DIR, VIAPM_INB(GPIO_DIR) | VIAPM_SCL | VIAPM_SDA);
 
 	/* add generic bit-banging code */
-	if (!(viapm->iicbb = device_add_child(dev, "iicbb", DEVICE_UNIT_ANY)))
+	if (!(viapm->iicbb = device_add_child(dev, "iicbb", -1)))
 		goto error;
 
 	bus_attach_children(dev);

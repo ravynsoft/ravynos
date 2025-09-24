@@ -50,18 +50,16 @@ DISKLIST=$(get_disklist $TESTPOOL)
 
 function cleanup
 {
-	kill $killpid >/dev/null 2>&1
-
 	#
 	# Ensure we don't leave disks in the offline state
 	#
 	for disk in $DISKLIST; do
 		log_must zpool online $TESTPOOL $disk
 		log_must check_state $TESTPOOL $disk "online"
-	done
-	sleep 1 # Delay for resilver to start
-	log_must zpool wait -t resilver $TESTPOOL
 
+	done
+
+	kill $killpid >/dev/null 2>&1
 	[[ -e $TESTDIR ]] && log_must rm -rf $TESTDIR/*
 }
 
@@ -78,8 +76,9 @@ for disk in $DISKLIST; do
 
 	log_must zpool online $TESTPOOL $disk
 	log_must check_state $TESTPOOL $disk "online"
-	sleep 1 # Delay for resilver to start
-	log_must zpool wait -t resilver $TESTPOOL
+
+	# Delay for resilver to complete
+	sleep 3
 done
 
 log_must kill $killpid

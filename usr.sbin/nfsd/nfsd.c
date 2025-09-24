@@ -58,7 +58,6 @@
 
 #include <err.h>
 #include <errno.h>
-#include <libutil.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,7 +70,6 @@
 static int	debug = 0;
 static int	nofork = 0;
 
-#define	DEFAULT_PIDFILE		"/var/run/nfsd.pid"
 #define	NFSD_STABLERESTART	"/var/db/nfs-stablerestart"
 #define	NFSD_STABLEBACKUP	"/var/db/nfs-stablerestart.bak"
 #define	MAXNFSDCNT	256
@@ -81,7 +79,6 @@ static int	nofork = 0;
 #define NFS_VER4	 4
 static pid_t children[MAXNFSDCNT]; /* PIDs of children */
 static pid_t masterpid;		   /* PID of master/parent */
-static struct pidfh *masterpidfh = NULL;	/* pidfh of master/parent */
 static int nfsdcnt;		/* number of children */
 static int nfsdcnt_set;
 static int minthreads;
@@ -164,8 +161,7 @@ main(int argc, char **argv)
 	size_t jailed_size, nfs_minvers_size;
 	const char *lopt;
 	char **bindhost = NULL;
-	const char *pidfile_path = DEFAULT_PIDFILE;
-	pid_t pid, otherpid;
+	pid_t pid;
 	struct nfsd_nfsd_args nfsdargs;
 	const char *vhostname = NULL;
 
@@ -175,14 +171,14 @@ main(int argc, char **argv)
 	nfsdcnt = DEFNFSDCNT;
 	unregister = reregister = tcpflag = maxsock = 0;
 	bindanyflag = udpflag = connect_type_cnt = bindhostc = 0;
-	getopt_shortopts = "ah:n:rdtuep:m:V:NP:";
+	getopt_shortopts = "ah:n:rdtuep:m:V:N";
 	getopt_usage =
 	    "usage:\n"
 	    "  nfsd [-ardtueN] [-h bindip]\n"
 	    "       [-n numservers] [--minthreads #] [--maxthreads #]\n"
 	    "       [-p/--pnfs dsserver0:/dsserver0-mounted-on-dir,...,"
 	    "dsserverN:/dsserverN-mounted-on-dir] [-m mirrorlevel]\n"
-	    "       [-P pidfile ] [-V virtual_hostname]\n";
+	    "       [-V virtual_hostname]\n";
 	while ((ch = getopt_long(argc, argv, getopt_shortopts, longopts,
 		    &longindex)) != -1)
 		switch (ch) {
@@ -237,9 +233,6 @@ main(int argc, char **argv)
 			break;
 		case 'N':
 			nofork = 1;
-			break;
-		case 'P':
-			pidfile_path = optarg;
 			break;
 		case 0:
 			lopt = longopts[longindex].name;
@@ -422,16 +415,6 @@ main(int argc, char **argv)
 		}
 		exit (0);
 	}
-
-	if (pidfile_path != NULL) {
-		masterpidfh = pidfile_open(pidfile_path, 0600, &otherpid);
-		if (masterpidfh == NULL) {
-			if (errno == EEXIST)
-				errx(1, "daemon already running, pid: %jd.",
-				    (intmax_t)otherpid);
-			warn("cannot open pid file");
-		}
-	}
 	if (debug == 0 && nofork == 0) {
 		daemon(0, 0);
 		(void)signal(SIGHUP, SIG_IGN);
@@ -450,9 +433,6 @@ main(int argc, char **argv)
 	(void)signal(SIGUSR2, backup_stable);
 
 	openlog("nfsd", LOG_PID | (debug ? LOG_PERROR : 0), LOG_DAEMON);
-
-	if (masterpidfh != NULL && pidfile_write(masterpidfh) != 0)
-		syslog(LOG_ERR, "pidfile_write(): %m");
 
 	/*
 	 * For V4, we open the stablerestart file and call nfssvc()
@@ -510,7 +490,6 @@ main(int argc, char **argv)
 		if (pid) {
 			children[0] = pid;
 		} else {
-			pidfile_close(masterpidfh);
 			(void)signal(SIGUSR1, child_cleanup);
 			setproctitle("server");
 			start_server(0, &nfsdargs, vhostname);
@@ -1029,8 +1008,6 @@ nfsd_exit(int status)
 {
 	killchildren();
 	unregistration();
-	if (masterpidfh != NULL)
-		pidfile_remove(masterpidfh);
 	exit(status);
 }
 

@@ -39,7 +39,7 @@ atimeIsUpdated(void)
 {
 	const char *fn = "fs_noatime";
 	struct stat st;
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(CYGWIN)
 	char *buff = NULL;
 	char *ptr;
 	int r;

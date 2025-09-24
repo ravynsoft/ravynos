@@ -1,6 +1,6 @@
 
 .if !target(__${_this}__)
-__${_this}__:	.NOTMAIN
+__${_this}__:
 
 .if ${.MAKE.MODE:Mmeta*} != ""
 .if !empty(SUBDIR) && !defined(LIB) && !defined(PROG) && ${.MAKE.MAKEFILES:M*bsd.prog.mk} == ""

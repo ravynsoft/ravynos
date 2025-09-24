@@ -39,22 +39,21 @@ int __dup3(int, int, int);
 int
 __dup3(int oldfd, int newfd, int flags)
 {
-	int fdflags;
+	int how;
 
 	if (oldfd == newfd) {
 		errno = EINVAL;
 		return (-1);
 	}
 
-	if ((flags & ~(O_CLOEXEC | O_CLOFORK)) != 0) {
+	if (flags & ~O_CLOEXEC) {
 		errno = EINVAL;
 		return (-1);
 	}
 
-	fdflags = ((flags & O_CLOEXEC) != 0 ? FD_CLOEXEC : 0) |
-	    ((flags & O_CLOFORK) != 0 ? FD_CLOFORK : 0);
+	how = (flags & O_CLOEXEC) ? F_DUP2FD_CLOEXEC : F_DUP2FD;
 
-	return (_fcntl(oldfd, F_DUP3FD | (fdflags << F_DUP3FD_SHIFT), newfd));
+	return (_fcntl(oldfd, how, newfd));
 }
 
 __weak_reference(__dup3, dup3);

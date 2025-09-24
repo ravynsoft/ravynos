@@ -64,7 +64,7 @@ activate_bootonce()
 
 be_start()
 {
-	if check_jail jailed; then
+	if [ `$SYSCTL_N security.jail.jailed` -eq 1 ]; then
 		:
 	else
 		mount -p | while read _dev _mp _type _rest; do

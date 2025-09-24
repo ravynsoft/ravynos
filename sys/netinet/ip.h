@@ -33,8 +33,7 @@
 #ifndef _NETINET_IP_H_
 #define	_NETINET_IP_H_
 
-#include <sys/types.h>
-#include <netinet/in.h>
+#include <sys/cdefs.h>
 
 /*
  * Definitions for internet protocol version 4.
@@ -67,7 +66,7 @@ struct ip {
 	u_char	ip_p;			/* protocol */
 	u_short	ip_sum;			/* checksum */
 	struct	in_addr ip_src,ip_dst;	/* source and dest address */
-} __packed;
+} __packed __aligned(2);
 
 #define	IP_MAXPACKET	65535		/* maximum packet size */
 
@@ -187,7 +186,7 @@ struct	ip_timestamp {
 			uint32_t ipt_time;	/* network format */
 		} ipt_ta[1];
 	} ipt_timestamp;
-} __packed;
+};
 
 /* Flag bits for ipt_flg. */
 #define	IPOPT_TS_TSONLY		0		/* timestamps only */

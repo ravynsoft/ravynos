@@ -6,8 +6,7 @@
 
 /*
  * Define the "ticks" and "ticksl" variables.  The former is overlaid onto the
- * low bits of the latter.  Also define an alias "jiffies" of "ticksl",
- * used by the LinuxKPI.
+ * low bits of the latter.
  */
 
 #if defined(__aarch64__)
@@ -35,8 +34,3 @@ ticksl:	.zero __SIZEOF_LONG__
 	.type ticks, %object
 ticks	=ticksl + TICKS_OFFSET
 	.size ticks, __SIZEOF_INT__
-
-	.global jiffies
-	.type jiffies, %object
-jiffies	= ticksl
-	.size jiffies, __SIZEOF_LONG__

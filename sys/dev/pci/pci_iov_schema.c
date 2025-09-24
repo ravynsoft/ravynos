@@ -33,7 +33,8 @@
 #include <sys/malloc.h>
 #include <sys/module.h>
 #include <sys/queue.h>
-#include <sys/stdarg.h>
+
+#include <machine/stdarg.h>
 
 #include <sys/dnv.h>
 #include <sys/nv.h>

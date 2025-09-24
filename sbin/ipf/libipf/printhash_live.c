@@ -61,8 +61,5 @@ printhash_live(iphtable_t *hp, int fd, char *name, int opts, wordtab_t *fields)
 
 	if ((opts & OPT_DEBUG) == 0)
 		PRINTF(" };\n");
-
-	(void) ioctl(fd,SIOCIPFDELTOK, &iter.ili_key);
-
 	return (hp->iph_next);
 }

@@ -41,7 +41,6 @@
 #include <sys/conf.h>
 #include <sys/malloc.h>
 #include <sys/sbuf.h>
-#include <sys/stdarg.h>
 
 #include <vm/vm.h>
 #include <vm/vm_extern.h>
@@ -50,6 +49,8 @@
 #include <geom/geom_int.h>
 #define GCTL_TABLE 1
 #include <geom/geom_ctl.h>
+
+#include <machine/stdarg.h>
 
 static d_ioctl_t g_ctl_ioctl;
 

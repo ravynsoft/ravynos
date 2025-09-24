@@ -33,7 +33,8 @@
 .\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 .\" POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd July 19, 2025
+.Dd January 19, 2024
+
 .Dt MAKEFS 8
 .Os
 .Sh NAME
@@ -258,13 +259,9 @@ can be a
 .Pa pathname ,
 where the timestamps are derived from that file, or an integer
 value interpreted as the number of seconds from the Epoch.
-Timestamps in a
+Note that timestamps specified in an
 .Xr mtree 5
-specfile (specified with
-.Fl F )
-are used even if a default timestamp is specified.
-However, the timestamps in an mtree manifest are ignored
-if a default timestamp is specified.
+spec file, override the default timestamp.
 .It Fl t Ar fs-type
 Create an
 .Ar fs-type
@@ -550,12 +547,6 @@ This option allows the default heuristic to be overridden.
 .It verify-txgs
 Prompt OpenZFS to verify pool metadata during import.
 This is disabled by default as it may significantly increase import times.
-.It poolguid
-Use the specified 64-bit integer as the pool GUID.
-If this option is not specified, the pool GUID will be random but fixed
-across multiple identical invocations of
-.Nm .
-This option is useful for testing but not required for reproducibility.
 .It poolname
 The name of the ZFS pool.
 This option must be specified.
@@ -601,17 +592,10 @@ The following properties may be set for a dataset:
 .Bl -tag -compact -offset indent
 .It atime
 .It canmount
-.It compression
 .It exec
 .It mountpoint
 .It setuid
 .El
-Note that
-.Nm
-does not implement compression of files included in the image,
-regardless of the value of the
-.Dv compression
-property.
 .El
 .Sh SEE ALSO
 .Xr mtree 5 ,

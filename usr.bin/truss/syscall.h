@@ -99,7 +99,6 @@ enum Argtype {
 	Getfsstatmode,
 	Idtype,
 	Ioctl,
-	Inotifyflags,
 	Itimerwhich,
 	Kldsymcmd,
 	Kldunloadflags,

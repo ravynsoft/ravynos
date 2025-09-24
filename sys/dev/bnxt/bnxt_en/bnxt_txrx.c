@@ -97,7 +97,6 @@ bnxt_isc_txd_encap(void *sc, if_pkt_info_t pi)
 	uint16_t lflags;
 	uint32_t cfa_meta;
 	int seg = 0;
-	uint8_t wrap = 0;
 
 	/* If we have offloads enabled, we need to use two BDs. */
 	if ((pi->ipi_csum_flags & (CSUM_OFFLOAD | CSUM_TSO | CSUM_IP)) ||
@@ -124,18 +123,7 @@ bnxt_isc_txd_encap(void *sc, if_pkt_info_t pi)
 	if (need_hi) {
 		flags_type |= TX_BD_LONG_TYPE_TX_BD_LONG;
 
-		/* Handle wrapping */
-		if (pi->ipi_new_pidx == txr->ring_size - 1)
-			wrap = 1;
-
 		pi->ipi_new_pidx = RING_NEXT(txr, pi->ipi_new_pidx);
-
-		/* Toggle epoch bit on wrap */
-		if (wrap && pi->ipi_new_pidx == 0)
-			txr->epoch_bit = !txr->epoch_bit;
-		if (pi->ipi_new_pidx < EPOCH_ARR_SZ)
-			txr->epoch_arr[pi->ipi_new_pidx] = txr->epoch_bit;
-
 		tbdh = &((struct tx_bd_long_hi *)txr->vaddr)[pi->ipi_new_pidx];
 		tbdh->kid_or_ts_high_mss = htole16(pi->ipi_tso_segsz);
 		tbdh->kid_or_ts_low_hdr_size = htole16((pi->ipi_ehdrlen + pi->ipi_ip_hlen +
@@ -169,15 +157,7 @@ bnxt_isc_txd_encap(void *sc, if_pkt_info_t pi)
 
 	for (; seg < pi->ipi_nsegs; seg++) {
 		tbd->flags_type = htole16(flags_type);
-
-		if (pi->ipi_new_pidx == txr->ring_size - 1)
-			wrap = 1;
 		pi->ipi_new_pidx = RING_NEXT(txr, pi->ipi_new_pidx);
-		if (wrap && pi->ipi_new_pidx == 0)
-			txr->epoch_bit = !txr->epoch_bit;
-		if (pi->ipi_new_pidx < EPOCH_ARR_SZ)
-			txr->epoch_arr[pi->ipi_new_pidx] = txr->epoch_bit;
-
 		tbd = &((struct tx_bd_long *)txr->vaddr)[pi->ipi_new_pidx];
 		tbd->len = htole16(pi->ipi_segs[seg].ds_len);
 		tbd->addr = htole64(pi->ipi_segs[seg].ds_addr);
@@ -185,13 +165,7 @@ bnxt_isc_txd_encap(void *sc, if_pkt_info_t pi)
 	}
 	flags_type |= TX_BD_SHORT_FLAGS_PACKET_END;
 	tbd->flags_type = htole16(flags_type);
-	if (pi->ipi_new_pidx == txr->ring_size - 1)
-		wrap = 1;
 	pi->ipi_new_pidx = RING_NEXT(txr, pi->ipi_new_pidx);
-	if (wrap && pi->ipi_new_pidx == 0)
-		txr->epoch_bit = !txr->epoch_bit;
-	if (pi->ipi_new_pidx < EPOCH_ARR_SZ)
-		txr->epoch_arr[pi->ipi_new_pidx] = txr->epoch_bit;
 
 	return 0;
 }
@@ -215,21 +189,16 @@ bnxt_isc_txd_credits_update(void *sc, uint16_t txqid, bool clear)
 	struct tx_cmpl *cmpl = (struct tx_cmpl *)cpr->ring.vaddr;
 	int avail = 0;
 	uint32_t cons = cpr->cons;
-	uint32_t raw_cons = cpr->raw_cons;
 	bool v_bit = cpr->v_bit;
 	bool last_v_bit;
 	uint32_t last_cons;
-	uint32_t last_raw_cons;
 	uint16_t type;
 	uint16_t err;
 
 	for (;;) {
 		last_cons = cons;
-		last_raw_cons = raw_cons;
 		last_v_bit = v_bit;
-
 		NEXT_CP_CONS_V(&cpr->ring, cons, v_bit);
-		raw_cons++;
 		CMPL_PREFETCH_NEXT(cpr, cons);
 
 		if (!CMP_VALID(&cmpl[cons], v_bit))
@@ -257,10 +226,8 @@ bnxt_isc_txd_credits_update(void *sc, uint16_t txqid, bool clear)
 		default:
 			if (type & 1) {
 				NEXT_CP_CONS_V(&cpr->ring, cons, v_bit);
-				raw_cons++;
-				if (!CMP_VALID(&cmpl[cons], v_bit)) {
+				if (!CMP_VALID(&cmpl[cons], v_bit))
 					goto done;
-				}
 			}
 			device_printf(softc->dev,
 			    "Unhandled TX completion type %u\n", type);
@@ -271,7 +238,6 @@ done:
 
 	if (clear && avail) {
 		cpr->cons = last_cons;
-		cpr->raw_cons = last_raw_cons;
 		cpr->v_bit = last_v_bit;
 		softc->db_ops.bnxt_db_tx_cq(cpr, 0);
 	}
@@ -318,16 +284,9 @@ bnxt_isc_rxd_refill(void *sc, if_rxd_update_t iru)
 		rxbd[pidx].opaque = (((rxqid & 0xff) << 24) | (flid << 16)
 		    | (frag_idxs[i]));
 		rxbd[pidx].addr = htole64(paddrs[i]);
-
-		/* Increment pidx and handle wrap-around */
-		if (++pidx == rx_ring->ring_size) {
+		if (++pidx == rx_ring->ring_size)
 			pidx = 0;
-			rx_ring->epoch_bit = !rx_ring->epoch_bit;
-		}
-		if (pidx < EPOCH_ARR_SZ)
-			rx_ring->epoch_arr[pidx] = rx_ring->epoch_bit;
 	}
-
 	return;
 }
 
@@ -378,7 +337,6 @@ bnxt_isc_rxd_available(void *sc, uint16_t rxqid, qidx_t idx, qidx_t budget)
 		type = le16toh(cmp[cons].type) & CMPL_BASE_TYPE_MASK;
 		switch (type) {
 		case CMPL_BASE_TYPE_RX_L2:
-		case CMPL_BASE_TYPE_RX_L2_V3:
 			rcp = (void *)&cmp[cons];
 			ags = (rcp->agg_bufs_v1 & RX_PKT_CMPL_AGG_BUFS_MASK) >>
 			    RX_PKT_CMPL_AGG_BUFS_SFT;
@@ -512,7 +470,6 @@ bnxt_pkt_get_l2(struct bnxt_softc *softc, if_rxd_info_t ri,
 
 	/* Now the second 16-byte BD */
 	NEXT_CP_CONS_V(&cpr->ring, cpr->cons, cpr->v_bit);
-	cpr->raw_cons++;
 	ri->iri_cidx = RING_NEXT(&cpr->ring, ri->iri_cidx);
 	rcph = &((struct rx_pkt_cmpl_hi *)cpr->ring.vaddr)[cpr->cons];
 
@@ -544,7 +501,6 @@ bnxt_pkt_get_l2(struct bnxt_softc *softc, if_rxd_info_t ri,
 	/* And finally the ag ring stuff. */
 	for (i=1; i < ri->iri_nfrags; i++) {
 		NEXT_CP_CONS_V(&cpr->ring, cpr->cons, cpr->v_bit);
-		cpr->raw_cons++;
 		ri->iri_cidx = RING_NEXT(&cpr->ring, ri->iri_cidx);
 		acp = &((struct rx_abuf_cmpl *)cpr->ring.vaddr)[cpr->cons];
 
@@ -595,7 +551,6 @@ bnxt_pkt_get_tpa(struct bnxt_softc *softc, if_rxd_info_t ri,
 
 	/* Now the second 16-byte BD */
 	NEXT_CP_CONS_V(&cpr->ring, cpr->cons, cpr->v_bit);
-	cpr->raw_cons++;
 	ri->iri_cidx = RING_NEXT(&cpr->ring, ri->iri_cidx);
 
 	flags2 = le32toh(tpas->high.flags2);
@@ -621,7 +576,6 @@ bnxt_pkt_get_tpa(struct bnxt_softc *softc, if_rxd_info_t ri,
 	/* Now the ag ring stuff. */
 	for (i=1; i < ri->iri_nfrags; i++) {
 		NEXT_CP_CONS_V(&cpr->ring, cpr->cons, cpr->v_bit);
-		cpr->raw_cons++;
 		ri->iri_cidx = RING_NEXT(&cpr->ring, ri->iri_cidx);
 		acp = &((struct rx_abuf_cmpl *)cpr->ring.vaddr)[cpr->cons];
 
@@ -658,7 +612,6 @@ bnxt_isc_rxd_pkt_get(void *sc, if_rxd_info_t ri)
 
 	for (;;) {
 		NEXT_CP_CONS_V(&cpr->ring, cpr->cons, cpr->v_bit);
-		cpr->raw_cons++;
 		ri->iri_cidx = RING_NEXT(&cpr->ring, ri->iri_cidx);
 		CMPL_PREFETCH_NEXT(cpr, cpr->cons);
 		cmp = &((struct cmpl_base *)cpr->ring.vaddr)[cpr->cons];
@@ -668,12 +621,10 @@ bnxt_isc_rxd_pkt_get(void *sc, if_rxd_info_t ri)
 
 		switch (type) {
 		case CMPL_BASE_TYPE_RX_L2:
-		case CMPL_BASE_TYPE_RX_L2_V3:
 			return bnxt_pkt_get_l2(softc, ri, cpr, flags_type);
 		case CMPL_BASE_TYPE_RX_TPA_END:
 			return bnxt_pkt_get_tpa(softc, ri, cpr, flags_type);
 		case CMPL_BASE_TYPE_RX_TPA_START:
-		case CMPL_BASE_TYPE_RX_TPA_START_V3:
 			rtpa = (void *)&cmp_q[cpr->cons];
 			agg_id = (rtpa->agg_id &
 			    RX_TPA_START_CMPL_AGG_ID_MASK) >>
@@ -681,7 +632,6 @@ bnxt_isc_rxd_pkt_get(void *sc, if_rxd_info_t ri)
 			softc->rx_rings[ri->iri_qsidx].tpa_start[agg_id].low = *rtpa;
 
 			NEXT_CP_CONS_V(&cpr->ring, cpr->cons, cpr->v_bit);
-			cpr->raw_cons++;
 			ri->iri_cidx = RING_NEXT(&cpr->ring, ri->iri_cidx);
 			CMPL_PREFETCH_NEXT(cpr, cpr->cons);
 
@@ -695,7 +645,6 @@ bnxt_isc_rxd_pkt_get(void *sc, if_rxd_info_t ri)
 			if (type & 1) {
 				NEXT_CP_CONS_V(&cpr->ring, cpr->cons,
 				    cpr->v_bit);
-				cpr->raw_cons++;
 				ri->iri_cidx = RING_NEXT(&cpr->ring,
 				    ri->iri_cidx);
 				CMPL_PREFETCH_NEXT(cpr, cpr->cons);

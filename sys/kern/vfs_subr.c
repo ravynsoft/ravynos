@@ -38,6 +38,7 @@
  * External virtual filesystem routines
  */
 
+#include <sys/cdefs.h>
 #include "opt_ddb.h"
 #include "opt_watchdog.h"
 
@@ -56,7 +57,6 @@
 #include <sys/extattr.h>
 #include <sys/file.h>
 #include <sys/fcntl.h>
-#include <sys/inotify.h>
 #include <sys/jail.h>
 #include <sys/kdb.h>
 #include <sys/kernel.h>
@@ -77,13 +77,14 @@
 #include <sys/smr.h>
 #include <sys/smp.h>
 #include <sys/stat.h>
-#include <sys/stdarg.h>
 #include <sys/sysctl.h>
 #include <sys/syslog.h>
 #include <sys/user.h>
 #include <sys/vmmeter.h>
 #include <sys/vnode.h>
 #include <sys/watchdog.h>
+
+#include <machine/stdarg.h>
 
 #include <security/mac/mac_framework.h>
 
@@ -756,17 +757,18 @@ vntblinit(void *dummy __unused)
 	int cpu, physvnodes, virtvnodes;
 
 	/*
-	 * 'desiredvnodes' is the minimum of a function of the physical memory
-	 * size and another of the kernel heap size (UMA limit, a portion of the
-	 * KVA).
-	 *
-	 * Currently, on 64-bit platforms, 'desiredvnodes' is set to
-	 * 'virtvnodes' up to a physical memory cutoff of ~1722MB, after which
-	 * 'physvnodes' applies instead.  With the current automatic tuning for
-	 * 'maxfiles' (32 files/MB), 'desiredvnodes' is always greater than it.
+	 * Desiredvnodes is a function of the physical memory size and the
+	 * kernel's heap size.  Generally speaking, it scales with the
+	 * physical memory size.  The ratio of desiredvnodes to the physical
+	 * memory size is 1:16 until desiredvnodes exceeds 98,304.
+	 * Thereafter, the
+	 * marginal ratio of desiredvnodes to the physical memory size is
+	 * 1:64.  However, desiredvnodes is limited by the kernel's heap
+	 * size.  The memory required by desiredvnodes vnodes and vm objects
+	 * must not exceed 1/10th of the kernel's heap size.
 	 */
-	physvnodes = maxproc + pgtok(vm_cnt.v_page_count) / 32 +
-	    min(98304 * 16, pgtok(vm_cnt.v_page_count)) / 32;
+	physvnodes = maxproc + pgtok(vm_cnt.v_page_count) / 64 +
+	    3 * min(98304 * 16, pgtok(vm_cnt.v_page_count)) / 64;
 	virtvnodes = vm_kmem_size / (10 * (sizeof(struct vm_object) +
 	    sizeof(struct vnode) + NC_SZ * ncsizefactor + NFS_NCLNODE_SZ));
 	desiredvnodes = min(physvnodes, virtvnodes);
@@ -1200,7 +1202,6 @@ vattr_null(struct vattr *vap)
 	vap->va_gen = VNOVAL;
 	vap->va_vaflags = 0;
 	vap->va_filerev = VNOVAL;
-	vap->va_bsdflags = 0;
 }
 
 /*
@@ -1994,24 +1995,11 @@ vn_alloc_hard(struct mount *mp, u_long rnumvnodes, bool bumped)
 
 	mtx_lock(&vnode_list_mtx);
 
-	/*
-	 * Reload 'numvnodes', as since we acquired the lock, it may have
-	 * changed significantly if we waited, and 'rnumvnodes' above was only
-	 * actually passed if 'bumped' is true (else it is 0).
-	 */
-	rnumvnodes = atomic_load_long(&numvnodes);
-	if (rnumvnodes + !bumped < desiredvnodes) {
-		vn_alloc_cyclecount = 0;
-		mtx_unlock(&vnode_list_mtx);
-		goto alloc;
-	}
-
 	rfreevnodes = vnlru_read_freevnodes();
 	if (vn_alloc_cyclecount++ >= rfreevnodes) {
 		vn_alloc_cyclecount = 0;
 		vstir = true;
 	}
-
 	/*
 	 * Grow the vnode cache if it will not be above its target max after
 	 * growing.  Otherwise, if there is at least one free vnode, try to
@@ -4786,7 +4774,6 @@ DB_SHOW_COMMAND(mount, db_show_mount)
 	MNT_FLAG(MNT_FORCE);
 	MNT_FLAG(MNT_SNAPSHOT);
 	MNT_FLAG(MNT_BYFSID);
-	MNT_FLAG(MNT_NAMEDATTR);
 #undef MNT_FLAG
 	if (mflags != 0) {
 		if (buf[0] != '\0')
@@ -5246,8 +5233,7 @@ destroy_vpollinfo_free(struct vpollinfo *vi)
 static void
 destroy_vpollinfo(struct vpollinfo *vi)
 {
-	KASSERT(TAILQ_EMPTY(&vi->vpi_inotify),
-	    ("%s: pollinfo %p has lingering watches", __func__, vi));
+
 	knlist_clear(&vi->vpi_selinfo.si_note, 1);
 	seldrain(&vi->vpi_selinfo);
 	destroy_vpollinfo_free(vi);
@@ -5261,13 +5247,12 @@ v_addpollinfo(struct vnode *vp)
 {
 	struct vpollinfo *vi;
 
-	if (atomic_load_ptr(&vp->v_pollinfo) != NULL)
+	if (vp->v_pollinfo != NULL)
 		return;
 	vi = malloc(sizeof(*vi), M_VNODEPOLL, M_WAITOK | M_ZERO);
 	mtx_init(&vi->vpi_lock, "vnode pollinfo", NULL, MTX_DEF);
 	knlist_init(&vi->vpi_selinfo.si_note, vp, vfs_knllock,
 	    vfs_knlunlock, vfs_knl_assert_lock);
-	TAILQ_INIT(&vi->vpi_inotify);
 	VI_LOCK(vp);
 	if (vp->v_pollinfo != NULL) {
 		VI_UNLOCK(vp);
@@ -5853,8 +5838,6 @@ vop_rename_pre(void *ap)
 	struct vop_rename_args *a = ap;
 
 #ifdef DEBUG_VFS_LOCKS
-	struct mount *tmp;
-
 	if (a->a_tvp)
 		ASSERT_VI_UNLOCKED(a->a_tvp, "VOP_RENAME");
 	ASSERT_VI_UNLOCKED(a->a_tdvp, "VOP_RENAME");
@@ -5872,11 +5855,6 @@ vop_rename_pre(void *ap)
 	if (a->a_tvp)
 		ASSERT_VOP_LOCKED(a->a_tvp, "vop_rename: tvp not locked");
 	ASSERT_VOP_LOCKED(a->a_tdvp, "vop_rename: tdvp not locked");
-
-	tmp = NULL;
-	VOP_GETWRITEMOUNT(a->a_tdvp, &tmp);
-	lockmgr_assert(&tmp->mnt_renamelock, KA_XLOCKED);
-	vfs_rel(tmp);
 #endif
 	/*
 	 * It may be tempting to add vn_seqc_write_begin/end calls here and
@@ -6066,28 +6044,6 @@ vop_need_inactive_debugpost(void *ap, int rc)
 #endif
 
 void
-vop_allocate_post(void *ap, int rc)
-{
-	struct vop_allocate_args *a;
-
-	a = ap;
-	if (rc == 0)
-		INOTIFY(a->a_vp, IN_MODIFY);
-}
-
-void
-vop_copy_file_range_post(void *ap, int rc)
-{
-	struct vop_copy_file_range_args *a;
-
-	a = ap;
-	if (rc == 0) {
-		INOTIFY(a->a_invp, IN_ACCESS);
-		INOTIFY(a->a_outvp, IN_MODIFY);
-	}
-}
-
-void
 vop_create_pre(void *ap)
 {
 	struct vop_create_args *a;
@@ -6107,20 +6063,8 @@ vop_create_post(void *ap, int rc)
 	a = ap;
 	dvp = a->a_dvp;
 	vn_seqc_write_end(dvp);
-	if (!rc) {
+	if (!rc)
 		VFS_KNOTE_LOCKED(dvp, NOTE_WRITE);
-		INOTIFY_NAME(*a->a_vpp, dvp, a->a_cnp, IN_CREATE);
-	}
-}
-
-void
-vop_deallocate_post(void *ap, int rc)
-{
-	struct vop_deallocate_args *a;
-
-	a = ap;
-	if (rc == 0)
-		INOTIFY(a->a_vp, IN_MODIFY);
 }
 
 void
@@ -6165,10 +6109,8 @@ vop_deleteextattr_post(void *ap, int rc)
 	a = ap;
 	vp = a->a_vp;
 	vn_seqc_write_end(vp);
-	if (!rc) {
+	if (!rc)
 		VFS_KNOTE_LOCKED(a->a_vp, NOTE_ATTRIB);
-		INOTIFY(vp, IN_ATTRIB);
-	}
 }
 
 void
@@ -6198,8 +6140,6 @@ vop_link_post(void *ap, int rc)
 	if (!rc) {
 		VFS_KNOTE_LOCKED(vp, NOTE_LINK);
 		VFS_KNOTE_LOCKED(tdvp, NOTE_WRITE);
-		INOTIFY_NAME(vp, tdvp, a->a_cnp, _IN_ATTRIB_LINKCOUNT);
-		INOTIFY_NAME(vp, tdvp, a->a_cnp, IN_CREATE);
 	}
 }
 
@@ -6223,10 +6163,8 @@ vop_mkdir_post(void *ap, int rc)
 	a = ap;
 	dvp = a->a_dvp;
 	vn_seqc_write_end(dvp);
-	if (!rc) {
+	if (!rc)
 		VFS_KNOTE_LOCKED(dvp, NOTE_WRITE | NOTE_LINK);
-		INOTIFY_NAME(*a->a_vpp, dvp, a->a_cnp, IN_CREATE);
-	}
 }
 
 #ifdef DEBUG_VFS_LOCKS
@@ -6261,10 +6199,8 @@ vop_mknod_post(void *ap, int rc)
 	a = ap;
 	dvp = a->a_dvp;
 	vn_seqc_write_end(dvp);
-	if (!rc) {
+	if (!rc)
 		VFS_KNOTE_LOCKED(dvp, NOTE_WRITE);
-		INOTIFY_NAME(*a->a_vpp, dvp, a->a_cnp, IN_CREATE);
-	}
 }
 
 void
@@ -6276,10 +6212,8 @@ vop_reclaim_post(void *ap, int rc)
 	a = ap;
 	vp = a->a_vp;
 	ASSERT_VOP_IN_SEQC(vp);
-	if (!rc) {
+	if (!rc)
 		VFS_KNOTE_LOCKED(vp, NOTE_REVOKE);
-		INOTIFY_REVOKE(vp);
-	}
 }
 
 void
@@ -6310,8 +6244,6 @@ vop_remove_post(void *ap, int rc)
 	if (!rc) {
 		VFS_KNOTE_LOCKED(dvp, NOTE_WRITE);
 		VFS_KNOTE_LOCKED(vp, NOTE_DELETE);
-		INOTIFY_NAME(vp, dvp, a->a_cnp, _IN_ATTRIB_LINKCOUNT);
-		INOTIFY_NAME(vp, dvp, a->a_cnp, IN_DELETE);
 	}
 }
 
@@ -6343,8 +6275,6 @@ vop_rename_post(void *ap, int rc)
 		VFS_KNOTE_UNLOCKED(a->a_fvp, NOTE_RENAME);
 		if (a->a_tvp)
 			VFS_KNOTE_UNLOCKED(a->a_tvp, NOTE_DELETE);
-		INOTIFY_MOVE(a->a_fvp, a->a_fdvp, a->a_fcnp, a->a_tvp,
-		    a->a_tdvp, a->a_tcnp);
 	}
 	if (a->a_tdvp != a->a_fdvp)
 		vdrop(a->a_fdvp);
@@ -6384,7 +6314,6 @@ vop_rmdir_post(void *ap, int rc)
 		vp->v_vflag |= VV_UNLINKED;
 		VFS_KNOTE_LOCKED(dvp, NOTE_WRITE | NOTE_LINK);
 		VFS_KNOTE_LOCKED(vp, NOTE_DELETE);
-		INOTIFY_NAME(vp, dvp, a->a_cnp, IN_DELETE);
 	}
 }
 
@@ -6408,10 +6337,8 @@ vop_setattr_post(void *ap, int rc)
 	a = ap;
 	vp = a->a_vp;
 	vn_seqc_write_end(vp);
-	if (!rc) {
+	if (!rc)
 		VFS_KNOTE_LOCKED(vp, NOTE_ATTRIB);
-		INOTIFY(vp, IN_ATTRIB);
-	}
 }
 
 void
@@ -6456,10 +6383,8 @@ vop_setextattr_post(void *ap, int rc)
 	a = ap;
 	vp = a->a_vp;
 	vn_seqc_write_end(vp);
-	if (!rc) {
+	if (!rc)
 		VFS_KNOTE_LOCKED(vp, NOTE_ATTRIB);
-		INOTIFY(vp, IN_ATTRIB);
-	}
 }
 
 void
@@ -6482,10 +6407,8 @@ vop_symlink_post(void *ap, int rc)
 	a = ap;
 	dvp = a->a_dvp;
 	vn_seqc_write_end(dvp);
-	if (!rc) {
+	if (!rc)
 		VFS_KNOTE_LOCKED(dvp, NOTE_WRITE);
-		INOTIFY_NAME(*a->a_vpp, dvp, a->a_cnp, IN_CREATE);
-	}
 }
 
 void
@@ -6493,10 +6416,8 @@ vop_open_post(void *ap, int rc)
 {
 	struct vop_open_args *a = ap;
 
-	if (!rc) {
+	if (!rc)
 		VFS_KNOTE_LOCKED(a->a_vp, NOTE_OPEN);
-		INOTIFY(a->a_vp, IN_OPEN);
-	}
 }
 
 void
@@ -6508,8 +6429,6 @@ vop_close_post(void *ap, int rc)
 	    !VN_IS_DOOMED(a->a_vp))) {
 		VFS_KNOTE_LOCKED(a->a_vp, (a->a_fflag & FWRITE) != 0 ?
 		    NOTE_CLOSE_WRITE : NOTE_CLOSE);
-		INOTIFY(a->a_vp, (a->a_fflag & FWRITE) != 0 ?
-		    IN_CLOSE_WRITE : IN_CLOSE_NOWRITE);
 	}
 }
 
@@ -6518,10 +6437,8 @@ vop_read_post(void *ap, int rc)
 {
 	struct vop_read_args *a = ap;
 
-	if (!rc) {
+	if (!rc)
 		VFS_KNOTE_LOCKED(a->a_vp, NOTE_READ);
-		INOTIFY(a->a_vp, IN_ACCESS);
-	}
 }
 
 void
@@ -6531,6 +6448,15 @@ vop_read_pgcache_post(void *ap, int rc)
 
 	if (!rc)
 		VFS_KNOTE_UNLOCKED(a->a_vp, NOTE_READ);
+}
+
+void
+vop_readdir_post(void *ap, int rc)
+{
+	struct vop_readdir_args *a = ap;
+
+	if (!rc)
+		VFS_KNOTE_LOCKED(a->a_vp, NOTE_READ);
 }
 
 static struct knlist fs_knlist;

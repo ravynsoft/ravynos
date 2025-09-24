@@ -476,7 +476,7 @@ atopcase_add_child(struct atopcase_softc *sc, struct atopcase_child *ac,
 		goto exit;
 	}
 
-	hidbus = device_add_child(sc->sc_dev, "hidbus", DEVICE_UNIT_ANY);
+	hidbus = device_add_child(sc->sc_dev, "hidbus", -1);
 	if (hidbus == NULL) {
 		device_printf(sc->sc_dev, "can't add child\n");
 		err = ENOMEM;

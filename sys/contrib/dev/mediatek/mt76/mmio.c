@@ -4,7 +4,6 @@
  */
 
 #include "mt76.h"
-#include "dma.h"
 #include "trace.h"
 
 static u32 mt76_mmio_rr(struct mt76_dev *dev, u32 offset)

@@ -81,7 +81,6 @@
 #include <vm/vm_extern.h>
 #include <vm/vm_pageout.h>
 #include <vm/vm_dumpset.h>
-#include <vm/vm_radix.h>
 #include <vm/vm_reserv.h>
 #include <vm/uma.h>
 
@@ -122,11 +121,8 @@ uintptr_t moea64_get_unique_vsid(void);
  *
  */
 
-#define PV_LOCK_COUNT	MAXCPU
+#define PV_LOCK_COUNT	PA_LOCK_COUNT
 static struct mtx_padalign pv_lock[PV_LOCK_COUNT];
-
-#define	PV_LOCK_SHIFT	21
-#define	pa_index(pa)	((pa) >> PV_LOCK_SHIFT)
 
 /*
  * Cheap NUMA-izing of the pv locks, to reduce contention across domains.
@@ -148,7 +144,7 @@ static struct mtx_padalign pv_lock[PV_LOCK_COUNT];
 
 /* Superpage PV lock */
 
-#define	PV_LOCK_SIZE		(1 << PV_LOCK_SHIFT)
+#define	PV_LOCK_SIZE		(1<<PDRSHIFT)
 
 static __always_inline void
 moea64_sp_pv_lock(vm_paddr_t pa)
@@ -368,9 +364,7 @@ static int moea64_sp_enter(pmap_t pmap, vm_offset_t va,
 static struct pvo_entry *moea64_sp_remove(struct pvo_entry *sp,
     struct pvo_dlist *tofree);
 
-#if VM_NRESERVLEVEL > 0
 static void moea64_sp_promote(pmap_t pmap, vm_offset_t va, vm_page_t m);
-#endif
 static void moea64_sp_demote_aligned(struct pvo_entry *sp);
 static void moea64_sp_demote(struct pvo_entry *pvo);
 
@@ -1830,18 +1824,17 @@ void
 moea64_enter_object(pmap_t pm, vm_offset_t start, vm_offset_t end,
     vm_page_t m_start, vm_prot_t prot)
 {
-	struct pctrie_iter pages;
 	vm_page_t m;
+	vm_pindex_t diff, psize;
 	vm_offset_t va;
 	int8_t psind;
 
 	VM_OBJECT_ASSERT_LOCKED(m_start->object);
 
-	vm_page_iter_limit_init(&pages, m_start->object,
-	    m_start->pindex + atop(end - start));
-	m = vm_radix_iter_lookup(&pages, m_start->pindex);
-	while (m != NULL) {
-		va = start + ptoa(m->pindex - m_start->pindex);
+	psize = atop(end - start);
+	m = m_start;
+	while (m != NULL && (diff = m->pindex - m_start->pindex) < psize) {
+		va = start + ptoa(diff);
 		if ((va & HPT_SP_MASK) == 0 && va + HPT_SP_SIZE <= end &&
 		    m->psind == 1 && moea64_ps_enabled(pm))
 			psind = 1;
@@ -1851,9 +1844,8 @@ moea64_enter_object(pmap_t pm, vm_offset_t start, vm_offset_t end,
 		    (VM_PROT_READ | VM_PROT_EXECUTE),
 		    PMAP_ENTER_NOSLEEP | PMAP_ENTER_QUICK_LOCKED, psind);
 		if (psind == 1)
-			m = vm_radix_iter_jump(&pages, HPT_SP_SIZE / PAGE_SIZE);
-		else
-			m = vm_radix_iter_step(&pages);
+			m = &m[HPT_SP_SIZE / PAGE_SIZE - 1];
+		m = TAILQ_NEXT(m, listq);
 	}
 }
 
@@ -2133,9 +2125,6 @@ moea64_page_set_memattr(vm_page_t m, vm_memattr_t ma)
 
 	CTR3(KTR_PMAP, "%s: pa=%#jx, ma=%#x",
 	    __func__, (uintmax_t)VM_PAGE_TO_PHYS(m), ma);
-
-	if (m->md.mdpg_cache_attrs == ma)
-		return;
 
 	if ((m->oflags & VPO_UNMANAGED) != 0) {
 		m->md.mdpg_cache_attrs = ma;
@@ -3805,7 +3794,6 @@ moea64_sp_enter(pmap_t pmap, vm_offset_t va, vm_page_t m,
 	return (KERN_SUCCESS);
 }
 
-#if VM_NRESERVLEVEL > 0
 static void
 moea64_sp_promote(pmap_t pmap, vm_offset_t va, vm_page_t m)
 {
@@ -3932,7 +3920,6 @@ error:
 	atomic_add_long(&sp_p_failures, 1);
 	PMAP_UNLOCK(pmap);
 }
-#endif
 
 static void
 moea64_sp_demote_aligned(struct pvo_entry *sp)

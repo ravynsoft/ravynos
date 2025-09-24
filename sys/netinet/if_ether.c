@@ -56,7 +56,6 @@
 #include <net/if_dl.h>
 #include <net/if_private.h>
 #include <net/if_types.h>
-#include <net/if_bridgevar.h>
 #include <net/netisr.h>
 #include <net/ethernet.h>
 #include <net/route.h>
@@ -833,7 +832,7 @@ in_arpinput(struct mbuf *m)
 	 * when we have clusters of interfaces).
 	 */
 	CK_LIST_FOREACH(ia, INADDR_HASH(itaddr.s_addr), ia_hash) {
-		if (((bridged && bridge_same_p(ia->ia_ifp->if_bridge, ifp->if_bridge)) ||
+		if (((bridged && ia->ia_ifp->if_bridge == ifp->if_bridge) ||
 		    ia->ia_ifp == ifp) &&
 		    itaddr.s_addr == ia->ia_addr.sin_addr.s_addr &&
 		    (ia->ia_ifa.ifa_carp == NULL ||
@@ -843,7 +842,7 @@ in_arpinput(struct mbuf *m)
 		}
 	}
 	CK_LIST_FOREACH(ia, INADDR_HASH(isaddr.s_addr), ia_hash)
-		if (((bridged && bridge_same_p(ia->ia_ifp->if_bridge, ifp->if_bridge)) ||
+		if (((bridged && ia->ia_ifp->if_bridge == ifp->if_bridge) ||
 		    ia->ia_ifp == ifp) &&
 		    isaddr.s_addr == ia->ia_addr.sin_addr.s_addr) {
 			ifa_ref(&ia->ia_ifa);
@@ -851,7 +850,7 @@ in_arpinput(struct mbuf *m)
 		}
 
 #define BDG_MEMBER_MATCHES_ARP(addr, ifp, ia)				\
-  (bridge_get_softc_p(ia->ia_ifp) == ifp->if_softc &&			\
+  (ia->ia_ifp->if_bridge == ifp->if_softc &&				\
   !bcmp(IF_LLADDR(ia->ia_ifp), IF_LLADDR(ifp), ifp->if_addrlen) &&	\
   addr == ia->ia_addr.sin_addr.s_addr)
 	/*

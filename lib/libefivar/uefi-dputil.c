@@ -28,6 +28,7 @@
  * this file is taken from EDK2 and rototilled.
  */
 
+#include <sys/cdefs.h>
 #include <efivar.h>
 #include <limits.h>
 #include <stdio.h>

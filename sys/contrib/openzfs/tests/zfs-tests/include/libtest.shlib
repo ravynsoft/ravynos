@@ -3386,21 +3386,17 @@ function set_tunable_impl
 
 function save_tunable
 {
-	if tunable_exists $1 ; then
-		[[ ! -d $TEST_BASE_DIR ]] && return 1
-		[[ -e $TEST_BASE_DIR/tunable-$1 ]] && return 2
-		echo "$(get_tunable """$1""")" > "$TEST_BASE_DIR"/tunable-"$1"
-	fi
+	[[ ! -d $TEST_BASE_DIR ]] && return 1
+	[[ -e $TEST_BASE_DIR/tunable-$1 ]] && return 2
+	echo "$(get_tunable """$1""")" > "$TEST_BASE_DIR"/tunable-"$1"
 }
 
 function restore_tunable
 {
-	if tunable_exists $1 ; then
-		[[ ! -e $TEST_BASE_DIR/tunable-$1 ]] && return 1
-		val="$(cat $TEST_BASE_DIR/tunable-"""$1""")"
-		set_tunable64 "$1" "$val"
-		rm $TEST_BASE_DIR/tunable-$1
-	fi
+	[[ ! -e $TEST_BASE_DIR/tunable-$1 ]] && return 1
+	val="$(cat $TEST_BASE_DIR/tunable-"""$1""")"
+	set_tunable64 "$1" "$val"
+	rm $TEST_BASE_DIR/tunable-$1
 }
 
 #

@@ -2,7 +2,7 @@
 .include "${SRCTOP}/secure/ssh.mk"
 
 PROG=	ssh-keysign
-SRCS=	ssh-keysign.c readconf.c uidswap.c $(SKSRCS)
+SRCS=	ssh-keysign.c readconf.c uidswap.c
 MAN=	ssh-keysign.8
 BINMODE=4555
 

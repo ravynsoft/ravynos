@@ -30,7 +30,6 @@
 #include "opt_ddb.h"
 #include "opt_kld.h"
 #include "opt_hwpmc_hooks.h"
-#include "opt_hwt_hooks.h"
 
 #include <sys/param.h>
 #include <sys/systm.h>
@@ -65,7 +64,7 @@
 
 #include "linker_if.h"
 
-#if defined(HWPMC_HOOKS) || defined(HWT_HOOKS)
+#ifdef HWPMC_HOOKS
 #include <sys/pmckern.h>
 #endif
 
@@ -2185,7 +2184,7 @@ linker_basename(const char *path)
 	return (filename);
 }
 
-#if defined(HWPMC_HOOKS) || defined(HWT_HOOKS)
+#ifdef HWPMC_HOOKS
 /*
  * Inform hwpmc about the set of kernel modules currently loaded.
  */

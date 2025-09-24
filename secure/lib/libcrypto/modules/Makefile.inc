@@ -1,4 +1,3 @@
-PACKAGE?=	openssl-lib
 SHLIBDIR=	${LIBDIR}/ossl-modules
 
 LCRYPTO_SRC=	${SRCTOP}/crypto/openssl

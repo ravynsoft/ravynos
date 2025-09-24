@@ -274,8 +274,7 @@ compare_acls(
 	for (i = 0; i < n; ++i) {
 		failure(" ACL entry missing from file: "
 		    "type=%#010x,permset=%#010x,tag=%d,qual=%d,name=``%s''\n",
-		    (unsigned int)myacls[marker[i]].type,
-		    (unsigned int)myacls[marker[i]].permset,
+		    myacls[marker[i]].type, myacls[marker[i]].permset,
 		    myacls[marker[i]].tag, myacls[marker[i]].qual,
 		    myacls[marker[i]].name);
 		assert(0); /* Record this as a failure. */

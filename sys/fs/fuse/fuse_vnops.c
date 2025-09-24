@@ -89,8 +89,6 @@
 #include <sys/buf.h>
 #include <sys/sysctl.h>
 #include <sys/vmmeter.h>
-#define EXTERR_CATEGORY EXTERR_CAT_FUSE
-#include <sys/exterrvar.h>
 
 #include <vm/vm.h>
 #include <vm/vm_extern.h>
@@ -291,10 +289,6 @@ fuse_flush(struct vnode *vp, struct ucred *cred, pid_t pid, int fflag)
 	if (err)
 		return err;
 
-	if (fufh->fuse_open_flags & FOPEN_NOFLUSH &&
-	    (!fsess_opt_writeback(vnode_mount(vp))))
-		return (0);
-
 	fdisp_init(&fdi, sizeof(*ffi));
 	fdisp_make_vp(&fdi, FUSE_FLUSH, vp, td, cred);
 	ffi = fdi.indata;
@@ -441,8 +435,7 @@ fuse_vnop_access(struct vop_access_args *ap)
 		if (vnode_isvroot(vp)) {
 			return 0;
 		}
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return ENXIO;
 	}
 	if (!(data->dataflags & FSESS_INITED)) {
 		if (vnode_isvroot(vp)) {
@@ -451,8 +444,7 @@ fuse_vnop_access(struct vop_access_args *ap)
 				return 0;
 			}
 		}
-		return (EXTERROR(EBADF, "Access denied until FUSE session "
-		    "is initialized"));
+		return EBADF;
 	}
 	if (vnode_islnk(vp)) {
 		return 0;
@@ -493,8 +485,7 @@ fuse_vnop_advlock(struct vop_advlock_args *ap)
 	dataflags = fuse_get_mpdata(vnode_mount(vp))->dataflags;
 
 	if (fuse_isdeadfs(vp)) {
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return ENXIO;
 	}
 
 	switch(ap->a_op) {
@@ -511,7 +502,7 @@ fuse_vnop_advlock(struct vop_advlock_args *ap)
 		op = FUSE_SETLK;
 		break;
 	default:
-		return (EXTERROR(EINVAL, "Unsupported lock flags"));
+		return EINVAL;
 	}
 
 	if (!(dataflags & FSESS_POSIX_LOCKS))
@@ -539,14 +530,14 @@ fuse_vnop_advlock(struct vop_advlock_args *ap)
 		size = vattr.va_size;
 		if (size > OFF_MAX ||
 		    (fl->l_start > 0 && size > OFF_MAX - fl->l_start)) {
-			err = EXTERROR(EOVERFLOW, "Offset is too large");
+			err = EOVERFLOW;
 			goto out;
 		}
 		start = size + fl->l_start;
 		break;
 
 	default:
-		return (EXTERROR(EINVAL, "Unsupported offset type"));
+		return (EINVAL);
 	}
 
 	err = fuse_filehandle_get_anyflags(vp, &fufh, cred, pid);
@@ -608,14 +599,15 @@ fuse_vnop_allocate(struct vop_allocate_args *ap)
 	int err;
 
 	if (fuse_isdeadfs(vp))
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return (ENXIO);
 
 	switch (vp->v_type) {
 	case VFIFO:
 		return (ESPIPE);
 	case VLNK:
 	case VREG:
+		if (vfs_isrdonly(mp))
+			return (EROFS);
 		break;
 	default:
 		return (ENODEV);
@@ -625,8 +617,7 @@ fuse_vnop_allocate(struct vop_allocate_args *ap)
 		return (EROFS);
 
 	if (fsess_not_impl(mp, FUSE_FALLOCATE))
-		return (EXTERROR(EINVAL, "This server does not implement "
-		    "FUSE_FALLOCATE"));
+		return (EINVAL);
 
 	io.uio_offset = *offset;
 	io.uio_resid = *len;
@@ -656,14 +647,13 @@ fuse_vnop_allocate(struct vop_allocate_args *ap)
 
 	if (err == ENOSYS) {
 		fsess_set_notimpl(mp, FUSE_FALLOCATE);
-		err = EXTERROR(EINVAL, "This server does not implement "
-		    "FUSE_ALLOCATE");
+		err = EINVAL;
 	} else if (err == EOPNOTSUPP) {
 		/*
 		 * The file system server does not support FUSE_FALLOCATE with
 		 * the supplied mode for this particular file.
 		 */
-		err = EXTERROR(EINVAL, "This file can't be pre-allocated");
+		err = EINVAL;
 	} else if (!err) {
 		*offset += *len;
 		*len = 0;
@@ -709,8 +699,7 @@ fuse_vnop_bmap(struct vop_bmap_args *ap)
 	int maxrun;
 
 	if (fuse_isdeadfs(vp)) {
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return ENXIO;
 	}
 
 	mp = vnode_mount(vp);
@@ -807,9 +796,6 @@ fuse_vnop_close(struct vop_close_args *ap)
 	if (fflag & IO_NDELAY)
 		return 0;
 
-	if (cred == NULL)
-		cred = td->td_ucred;
-
 	err = fuse_flush(vp, cred, pid, fflag);
 	if (err == 0 && (fvdat->flag & FN_ATIMECHANGE) && !vfs_isrdonly(mp)) {
 		struct vattr vap;
@@ -877,21 +863,19 @@ fuse_vnop_copy_file_range(struct vop_copy_file_range_args *ap)
 	pid_t pid;
 	int err;
 
+	err = ENOSYS;
 	if (mp == NULL || mp != vnode_mount(outvp))
-		return (EXTERROR(ENOSYS, "Mount points do not match"));
+		goto fallback;
 
 	if (incred->cr_uid != outcred->cr_uid)
-		return (EXTERROR(ENOSYS, "FUSE_COPY_FILE_RANGE does not "
-		    "support different credentials for infd and outfd"));
+		goto fallback;
 
-	if (incred->cr_gid != outcred->cr_gid)
-		return (EXTERROR(ENOSYS, "FUSE_COPY_FILE_RANGE does not "
-		    "support different credentials for infd and outfd"));
+	if (incred->cr_groups[0] != outcred->cr_groups[0])
+		goto fallback;
 
 	/* Caller busied mp, mnt_data can be safely accessed. */
 	if (fsess_not_impl(mp, FUSE_COPY_FILE_RANGE))
-		return (EXTERROR(ENOSYS, "This daemon does not "
-		    "implement COPY_FILE_RANGE"));
+		goto fallback;
 
 	if (ap->a_fsizetd == NULL)
 		td = curthread;
@@ -901,7 +885,7 @@ fuse_vnop_copy_file_range(struct vop_copy_file_range_args *ap)
 
 	vn_lock_pair(invp, false, LK_SHARED, outvp, false, LK_EXCLUSIVE);
 	if (invp->v_data == NULL || outvp->v_data == NULL) {
-		err = EXTERROR(EBADF, "vnode got reclaimed");
+		err = EBADF;
 		goto unlock;
 	}
 
@@ -965,6 +949,7 @@ unlock:
 
 	if (err == ENOSYS)
 		fsess_set_notimpl(mp, FUSE_COPY_FILE_RANGE);
+fallback:
 
 	/*
 	 * No need to call vn_rlimit_fsizex_res before return, since the uio is
@@ -1032,8 +1017,7 @@ fuse_vnop_create(struct vop_create_args *ap)
 	int flags;
 
 	if (fuse_isdeadfs(dvp))
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return ENXIO;
 
 	/* FUSE expects sockets to be created with FUSE_MKNOD */
 	if (vap->va_type == VSOCK)
@@ -1049,7 +1033,7 @@ fuse_vnop_create(struct vop_create_args *ap)
 	bzero(&fdi, sizeof(fdi));
 
 	if (vap->va_type != VREG)
-		return (EXTERROR(EINVAL, "Only regular files can be created"));
+		return (EINVAL);
 
 	if (fsess_not_impl(mp, FUSE_CREATE) || vap->va_type == VSOCK) {
 		/* Fallback to FUSE_MKNOD/FUSE_OPEN */
@@ -1230,8 +1214,8 @@ fuse_vnop_getattr(struct vop_getattr_args *ap)
 	if (!(dataflags & FSESS_INITED)) {
 		if (!vnode_isvroot(vp)) {
 			fdata_set_dead(fuse_get_mpdata(vnode_mount(vp)));
-			return (EXTERROR(ENOTCONN, "FUSE daemon is not "
-			    "initialized"));
+			err = ENOTCONN;
+			return err;
 		} else {
 			goto fake;
 		}
@@ -1360,11 +1344,10 @@ fuse_vnop_link(struct vop_link_args *ap)
 	int err;
 
 	if (fuse_isdeadfs(vp)) {
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return ENXIO;
 	}
 	if (vnode_mount(tdvp) != vnode_mount(vp)) {
-		return (EXDEV);
+		return EXDEV;
 	}
 
 	/*
@@ -1374,7 +1357,7 @@ fuse_vnop_link(struct vop_link_args *ap)
 	 * validating that nlink does not overflow.
 	 */
 	if (vap != NULL && vap->va_nlink >= FUSE_LINK_MAX)
-		return (EMLINK);
+		return EMLINK;
 	fli.oldnodeid = VTOI(vp);
 
 	fdisp_init(&fdi, 0);
@@ -1386,13 +1369,12 @@ fuse_vnop_link(struct vop_link_args *ap)
 	feo = fdi.answ;
 
 	if (fli.oldnodeid != feo->nodeid) {
-		static const char exterr[] = "Server assigned wrong inode "
-		    "for a hard link.";
 		struct fuse_data *data = fuse_get_mpdata(vnode_mount(vp));
-		fuse_warn(data, FSESS_WARN_ILLEGAL_INODE, exterr);
+		fuse_warn(data, FSESS_WARN_ILLEGAL_INODE,
+			"Assigned wrong inode for a hard link.");
 		fuse_vnode_clear_attr_cache(vp);
 		fuse_vnode_clear_attr_cache(tdvp);
-		err = EXTERROR(EIO, exterr);
+		err = EIO;
 		goto out;
 	}
 
@@ -1449,8 +1431,8 @@ fuse_vnop_lookup(struct vop_lookup_args *ap)
 	struct timespec now;
 
 	int nameiop = cnp->cn_nameiop;
-	bool isdotdot = cnp->cn_flags & ISDOTDOT;
-	bool islastcn = cnp->cn_flags & ISLASTCN;
+	int flags = cnp->cn_flags;
+	int islastcn = flags & ISLASTCN;
 	struct mount *mp = vnode_mount(dvp);
 	struct fuse_data *data = fuse_get_mpdata(mp);
 	int default_permissions = data->dataflags & FSESS_DEFAULT_PERMISSIONS;
@@ -1469,8 +1451,7 @@ fuse_vnop_lookup(struct vop_lookup_args *ap)
 
 	if (fuse_isdeadfs(dvp)) {
 		*vpp = NULL;
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return ENXIO;
 	}
 	if (!vnode_isdir(dvp))
 		return ENOTDIR;
@@ -1484,14 +1465,14 @@ fuse_vnop_lookup(struct vop_lookup_args *ap)
 		return err;
 
 	is_dot = cnp->cn_namelen == 1 && *(cnp->cn_nameptr) == '.';
-	if (isdotdot && !(data->dataflags & FSESS_EXPORT_SUPPORT)) {
+	if ((flags & ISDOTDOT) && !(data->dataflags & FSESS_EXPORT_SUPPORT))
+	{
 		if (!(VTOFUD(dvp)->flag & FN_PARENT_NID)) {
 			/*
 			 * Since the file system doesn't support ".." lookups,
 			 * we have no way to find this entry.
 			 */
-			return (EXTERROR(ESTALE, "This server does not support "
-			    "'..' lookups"));
+			return ESTALE;
 		}
 		nid = VTOFUD(dvp)->parent_nid;
 		if (nid == 0)
@@ -1599,7 +1580,7 @@ fuse_vnop_lookup(struct vop_lookup_args *ap)
 		}
 	} else {
 		/* Entry was found */
-		if (isdotdot) {
+		if (flags & ISDOTDOT) {
 			struct fuse_lookup_alloc_arg flaa;
 
 			flaa.nid = nid;
@@ -1614,11 +1595,11 @@ fuse_vnop_lookup(struct vop_lookup_args *ap)
 				vref(dvp);
 				*vpp = dvp;
 			} else {
-				static const char exterr[] = "Server assigned "
-				    "same inode to both parent and child.";
 				fuse_warn(fuse_get_mpdata(mp),
-				    FSESS_WARN_ILLEGAL_INODE, exterr);
-				err = EXTERROR(EIO, exterr);
+				    FSESS_WARN_ILLEGAL_INODE,
+				    "Assigned same inode to both parent and "
+				    "child.");
+				err = EIO;
 			}
 
 		} else {
@@ -1706,8 +1687,7 @@ fuse_vnop_mkdir(struct vop_mkdir_args *ap)
 	struct fuse_mkdir_in fmdi;
 
 	if (fuse_isdeadfs(dvp)) {
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return ENXIO;
 	}
 	fmdi.mode = MAKEIMODE(vap->va_type, vap->va_mode);
 	fmdi.umask = curthread->td_proc->p_pd->pd_cmask;
@@ -1734,8 +1714,7 @@ fuse_vnop_mknod(struct vop_mknod_args *ap)
 	struct vattr *vap = ap->a_vap;
 
 	if (fuse_isdeadfs(dvp))
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return ENXIO;
 
 	return fuse_internal_mknod(dvp, vpp, cnp, vap);
 }
@@ -1759,13 +1738,11 @@ fuse_vnop_open(struct vop_open_args *ap)
 	pid_t pid = td->td_proc->p_pid;
 
 	if (fuse_isdeadfs(vp))
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return ENXIO;
 	if (vp->v_type == VCHR || vp->v_type == VBLK || vp->v_type == VFIFO)
-		return (EXTERROR(EOPNOTSUPP, "Unsupported vnode type",
-		    vp->v_type));
+		return (EOPNOTSUPP);
 	if ((a_mode & (FREAD | FWRITE | FEXEC)) == 0)
-		return (EXTERROR(EINVAL, "Illegal mode", a_mode));
+		return EINVAL;
 
 	if (fuse_filehandle_validrw(vp, a_mode, cred, pid)) {
 		fuse_vnode_open(vp, 0, td);
@@ -1847,8 +1824,7 @@ fuse_vnop_pathconf(struct vop_pathconf_args *ap)
 			return (0);
 		} else if (fsess_not_impl(mp, FUSE_LSEEK)) {
 			/* FUSE_LSEEK is not implemented */
-			return (EXTERROR(EINVAL, "This server does not "
-			    "implement FUSE_LSEEK"));
+			return (EINVAL);
 		} else {
 			return (err);
 		}
@@ -1882,8 +1858,7 @@ fuse_vnop_read(struct vop_read_args *ap)
 	MPASS(vp->v_type == VREG || vp->v_type == VDIR);
 
 	if (fuse_isdeadfs(vp)) {
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return ENXIO;
 	}
 
 	if (VTOFUD(vp)->flag & FN_DIRECTIO) {
@@ -1960,11 +1935,12 @@ fuse_vnop_readdir(struct vop_readdir_args *ap)
 	if (ap->a_eofflag)
 		*ap->a_eofflag = 0;
 	if (fuse_isdeadfs(vp)) {
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return ENXIO;
 	}
-	if (uio_resid(uio) < sizeof(struct dirent))
-		return (EXTERROR(EINVAL, "Buffer is too small"));
+	if (				/* XXXIP ((uio_iovcnt(uio) > 1)) || */
+	    (uio_resid(uio) < sizeof(struct dirent))) {
+		return EINVAL;
+	}
 
 	tresid = uio->uio_resid;
 	err = fuse_filehandle_get_dir(vp, &fufh, cred, pid);
@@ -2034,8 +2010,7 @@ fuse_vnop_readlink(struct vop_readlink_args *ap)
 	int err;
 
 	if (fuse_isdeadfs(vp)) {
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return ENXIO;
 	}
 	if (!vnode_islnk(vp)) {
 		return EINVAL;
@@ -2046,11 +2021,10 @@ fuse_vnop_readlink(struct vop_readlink_args *ap)
 		goto out;
 	}
 	if (strnlen(fdi.answ, fdi.iosize) + 1 < fdi.iosize) {
-		static const char exterr[] = "Server returned an embedded NUL "
-		    "from FUSE_READLINK.";
 		struct fuse_data *data = fuse_get_mpdata(vnode_mount(vp));
-		fuse_warn(data, FSESS_WARN_READLINK_EMBEDDED_NUL, exterr);
-		err = EXTERROR(EIO, exterr);
+		fuse_warn(data, FSESS_WARN_READLINK_EMBEDDED_NUL,
+				"Returned an embedded NUL from FUSE_READLINK.");
+		err = EIO;
 		goto out;
 	}
 	if (((char *)fdi.answ)[0] == '/' &&
@@ -2134,11 +2108,10 @@ fuse_vnop_remove(struct vop_remove_args *ap)
 	int err;
 
 	if (fuse_isdeadfs(vp)) {
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return ENXIO;
 	}
 	if (vnode_isdir(vp)) {
-		return (EXTERROR(EPERM, "vnode is a directory"));
+		return EPERM;
 	}
 
 	err = fuse_internal_remove(dvp, vp, cnp, FUSE_UNLINK);
@@ -2171,13 +2144,12 @@ fuse_vnop_rename(struct vop_rename_args *ap)
 	int err = 0;
 
 	if (fuse_isdeadfs(fdvp)) {
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return ENXIO;
 	}
 	if (fvp->v_mount != tdvp->v_mount ||
 	    (tvp && fvp->v_mount != tvp->v_mount)) {
 		SDT_PROBE2(fusefs, , vnops, trace, 1, "cross-device rename");
-		err = EXTERROR(EXDEV, "Cross-device rename");
+		err = EXDEV;
 		goto out;
 	}
 	cache_purge(fvp);
@@ -2248,12 +2220,10 @@ fuse_vnop_rmdir(struct vop_rmdir_args *ap)
 	int err;
 
 	if (fuse_isdeadfs(vp)) {
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return ENXIO;
 	}
 	if (VTOFUD(vp) == VTOFUD(dvp)) {
-		return (EXTERROR(EINVAL, "Directory to be removed "
-		    "contains itself"));
+		return EINVAL;
 	}
 	err = fuse_internal_remove(dvp, vp, ap->a_cnp, FUSE_RMDIR);
 
@@ -2290,8 +2260,7 @@ fuse_vnop_setattr(struct vop_setattr_args *ap)
 	checkperm = dataflags & FSESS_DEFAULT_PERMISSIONS;
 
 	if (fuse_isdeadfs(vp)) {
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return ENXIO;
 	}
 
 	if (vap->va_uid != (uid_t)VNOVAL) {
@@ -2456,8 +2425,7 @@ fuse_vnop_symlink(struct vop_symlink_args *ap)
 	size_t len;
 
 	if (fuse_isdeadfs(dvp)) {
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return ENXIO;
 	}
 	/*
 	 * Unlike the other creator type calls, here we have to create a message
@@ -2503,8 +2471,7 @@ fuse_vnop_write(struct vop_write_args *ap)
 	MPASS(vp->v_type == VREG || vp->v_type == VDIR);
 
 	if (fuse_isdeadfs(vp)) {
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return ENXIO;
 	}
 
 	if (VTOFUD(vp)->flag & FN_DIRECTIO) {
@@ -2657,12 +2624,10 @@ fuse_vnop_getextattr(struct vop_getextattr_args *ap)
 	int err;
 
 	if (fuse_isdeadfs(vp))
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return (ENXIO);
 
 	if (fsess_not_impl(mp, FUSE_GETXATTR))
-		return (EXTERROR(EOPNOTSUPP, "This server does not implement "
-		    "extended attributes"));
+		return EOPNOTSUPP;
 
 	err = fuse_extattr_check_cred(vp, ap->a_attrnamespace, cred, td, VREAD);
 	if (err)
@@ -2700,8 +2665,7 @@ fuse_vnop_getextattr(struct vop_getextattr_args *ap)
 	if (err != 0) {
 		if (err == ENOSYS) {
 			fsess_set_notimpl(mp, FUSE_GETXATTR);
-			err = (EXTERROR(EOPNOTSUPP, "This server does not "
-			    "implement extended attributes"));
+			err = EOPNOTSUPP;
 		}
 		goto out;
 	}
@@ -2740,19 +2704,16 @@ fuse_vnop_setextattr(struct vop_setextattr_args *ap)
 	struct mount *mp = vnode_mount(vp);
 	struct thread *td = ap->a_td;
 	struct ucred *cred = ap->a_cred;
-	size_t struct_size = FUSE_COMPAT_SETXATTR_IN_SIZE;
 	char *prefix;
 	size_t len;
 	char *attr_str;
 	int err;
 
 	if (fuse_isdeadfs(vp))
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return (ENXIO);
 
 	if (fsess_not_impl(mp, FUSE_SETXATTR))
-		return (EXTERROR(EOPNOTSUPP, "This server does not implement "
-		    "setting extended attributes"));
+		return EOPNOTSUPP;
 
 	if (vfs_isrdonly(mp))
 		return EROFS;
@@ -2764,11 +2725,9 @@ fuse_vnop_setextattr(struct vop_setextattr_args *ap)
 		 * return EOPNOTSUPP.
 		 */
 		if (fsess_not_impl(mp, FUSE_REMOVEXATTR))
-			return (EXTERROR(EOPNOTSUPP, "This server does not "
-			    "implement removing extended attributess"));
+			return (EOPNOTSUPP);
 		else
-			return (EXTERROR(EINVAL, "DELETEEXTATTR should be used "
-			    "to remove extattrs"));
+			return (EINVAL);
 	}
 
 	err = fuse_extattr_check_cred(vp, ap->a_attrnamespace, cred, td,
@@ -2785,26 +2744,17 @@ fuse_vnop_setextattr(struct vop_setextattr_args *ap)
 	len = strlen(prefix) + sizeof(extattr_namespace_separator) +
 	    strlen(ap->a_name) + 1;
 
-	/* older FUSE servers  use a smaller fuse_setxattr_in struct*/
-	if (fuse_libabi_geq(fuse_get_mpdata(mp), 7, 33))
-		struct_size = sizeof(*set_xattr_in);
-
-	fdisp_init(&fdi, len + struct_size + uio->uio_resid);
+	fdisp_init(&fdi, len + sizeof(*set_xattr_in) + uio->uio_resid);
 	fdisp_make_vp(&fdi, FUSE_SETXATTR, vp, td, cred);
 
 	set_xattr_in = fdi.indata;
 	set_xattr_in->size = uio->uio_resid;
 
-	if (fuse_libabi_geq(fuse_get_mpdata(mp), 7, 33)) {
-		set_xattr_in->setxattr_flags = 0;
-		set_xattr_in->padding = 0;
-	}
-
-	attr_str = (char *)fdi.indata + struct_size;
+	attr_str = (char *)fdi.indata + sizeof(*set_xattr_in);
 	snprintf(attr_str, len, "%s%c%s", prefix, extattr_namespace_separator,
 	    ap->a_name);
 
-	err = uiomove((char *)fdi.indata + struct_size + len,
+	err = uiomove((char *)fdi.indata + sizeof(*set_xattr_in) + len,
 	    uio->uio_resid, uio);
 	if (err != 0) {
 		goto out;
@@ -2814,8 +2764,7 @@ fuse_vnop_setextattr(struct vop_setextattr_args *ap)
 
 	if (err == ENOSYS) {
 		fsess_set_notimpl(mp, FUSE_SETXATTR);
-		err = EXTERROR(EOPNOTSUPP, "This server does not implement "
-		    "setting extended attributes");
+		err = EOPNOTSUPP;
 	}
 	if (err == ERESTART) {
 		/* Can't restart after calling uiomove */
@@ -2926,12 +2875,10 @@ fuse_vnop_listextattr(struct vop_listextattr_args *ap)
 	int err;
 
 	if (fuse_isdeadfs(vp))
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return (ENXIO);
 
 	if (fsess_not_impl(mp, FUSE_LISTXATTR))
-		return (EXTERROR(EOPNOTSUPP, "This server does not implement "
-		    "extended attributes"));
+		return EOPNOTSUPP;
 
 	err = fuse_extattr_check_cred(vp, ap->a_attrnamespace, cred, td, VREAD);
 	if (err)
@@ -2959,8 +2906,7 @@ fuse_vnop_listextattr(struct vop_listextattr_args *ap)
 	if (err != 0) {
 		if (err == ENOSYS) {
 			fsess_set_notimpl(mp, FUSE_LISTXATTR);
-			err = EXTERROR(EOPNOTSUPP, "This server does not "
-			    "implement extended attributes");
+			err = EOPNOTSUPP;
 		}
 		goto out;
 	}
@@ -3060,8 +3006,7 @@ fuse_vnop_deallocate(struct vop_deallocate_args *ap)
 	bool closefufh = false;
 
 	if (fuse_isdeadfs(vp))
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return (ENXIO);
 
 	if (vfs_isrdonly(mp))
 		return (EROFS);
@@ -3167,12 +3112,10 @@ fuse_vnop_deleteextattr(struct vop_deleteextattr_args *ap)
 	int err;
 
 	if (fuse_isdeadfs(vp))
-		return (EXTERROR(ENXIO, "This FUSE session is about "
-		    "to be closed"));
+		return (ENXIO);
 
 	if (fsess_not_impl(mp, FUSE_REMOVEXATTR))
-		return (EXTERROR(EOPNOTSUPP, "This server does not implement "
-		    "removing extended attributes"));
+		return EOPNOTSUPP;
 
 	if (vfs_isrdonly(mp))
 		return EROFS;
@@ -3201,8 +3144,7 @@ fuse_vnop_deleteextattr(struct vop_deleteextattr_args *ap)
 	err = fdisp_wait_answ(&fdi);
 	if (err == ENOSYS) {
 		fsess_set_notimpl(mp, FUSE_REMOVEXATTR);
-		err = EXTERROR(EOPNOTSUPP, "This server does not implement "
-		    "removing extended attributes");
+		err = EOPNOTSUPP;
 	}
 
 	fdisp_destroy(&fdi);
@@ -3256,8 +3198,7 @@ fuse_vnop_vptofh(struct vop_vptofh_args *ap)
 		/* NFS requires lookups for "." and ".." */
 		SDT_PROBE2(fusefs, , vnops, trace, 1,
 			"VOP_VPTOFH without FUSE_EXPORT_SUPPORT");
-		return (EXTERROR(EOPNOTSUPP, "This server is "
-		    "missing FUSE_EXPORT_SUPPORT"));
+		return EOPNOTSUPP;
 	}
 	if ((mp->mnt_flag & MNT_EXPORTED) &&
 		fsess_is_impl(mp, FUSE_OPENDIR))
@@ -3275,8 +3216,7 @@ fuse_vnop_vptofh(struct vop_vptofh_args *ap)
                  */
 		SDT_PROBE2(fusefs, , vnops, trace, 1,
 			"VOP_VPTOFH with FUSE_OPENDIR");
-		return (EXTERROR(EOPNOTSUPP, "This server implements "
-		    "FUSE_OPENDIR so is not compatible with getfh"));
+		return EOPNOTSUPP;
 	}
 
 	err = fuse_internal_getattr(vp, &va, curthread->td_ucred, curthread);
@@ -3290,7 +3230,6 @@ fuse_vnop_vptofh(struct vop_vptofh_args *ap)
 	if (fvdat->generation <= UINT32_MAX)
 		fhp->gen = fvdat->generation;
 	else
-		return (EXTERROR(EOVERFLOW, "inode generation "
-		    "number overflow"));
+		return EOVERFLOW;
 	return (0);
 }

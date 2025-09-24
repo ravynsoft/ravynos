@@ -328,7 +328,6 @@ next_code(struct archive_read_filter *self)
 	static int debug_buff[1024];
 	static unsigned debug_index;
 
-again:
 	code = newcode = getbits(self, state->bits);
 	if (code < 0)
 		return (code);
@@ -361,7 +360,7 @@ again:
 		state->section_end_code = (1 << state->bits) - 1;
 		state->free_ent = 257;
 		state->oldcode = -1;
-		goto again;
+		return (next_code(self));
 	}
 
 	if (code > state->free_ent

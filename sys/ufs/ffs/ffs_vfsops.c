@@ -1012,6 +1012,7 @@ ffs_mountfs(struct vnode *odevvp, struct mount *mp, struct thread *td)
 	else
 		ump->um_check_blkno = NULL;
 	mtx_init(UFS_MTX(ump), "FFS", "FFS Lock", MTX_DEF);
+	sx_init(&ump->um_checkpath_lock, "uchpth");
 	fs->fs_ronly = ronly;
 	fs->fs_active = NULL;
 	mp->mnt_data = ump;
@@ -1181,6 +1182,7 @@ out:
 	}
 	if (ump != NULL) {
 		mtx_destroy(UFS_MTX(ump));
+		sx_destroy(&ump->um_checkpath_lock);
 		if (mp->mnt_gjprovider != NULL) {
 			free(mp->mnt_gjprovider, M_UFSMNT);
 			mp->mnt_gjprovider = NULL;
@@ -1304,6 +1306,7 @@ ffs_unmount(struct mount *mp, int mntflags)
 	vrele(ump->um_odevvp);
 	dev_rel(ump->um_dev);
 	mtx_destroy(UFS_MTX(ump));
+	sx_destroy(&ump->um_checkpath_lock);
 	if (mp->mnt_gjprovider != NULL) {
 		free(mp->mnt_gjprovider, M_UFSMNT);
 		mp->mnt_gjprovider = NULL;

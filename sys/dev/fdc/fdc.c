@@ -70,7 +70,6 @@
 #include <sys/priv.h>
 #include <sys/proc.h>
 #include <sys/rman.h>
-#include <sys/stdarg.h>
 #include <sys/sysctl.h>
 #include <sys/systm.h>
 
@@ -78,6 +77,7 @@
 
 #include <machine/bus.h>
 #include <machine/clock.h>
+#include <machine/stdarg.h>
 
 #include <isa/isavar.h>
 #include <isa/isareg.h>

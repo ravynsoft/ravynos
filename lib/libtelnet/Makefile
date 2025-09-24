@@ -19,8 +19,7 @@ CFLAGS+=	-DENCRYPTION -DAUTHENTICATION -DSRA
 CFLAGS+=	-DOPENSSL_API_COMPAT=0x10100000L
 .endif
 
-.if ${MK_KERBEROS_SUPPORT} != "no" && ${MK_MITKRB5} != "yes"
-# MIT KRB5 deprecated and removed 3DES. Therefore no telnet support.
+.if ${MK_KERBEROS_SUPPORT} != "no"
 SRCS+=		kerberos5.c
 CFLAGS+=	-DKRB5 -DFORWARD -Dnet_write=telnet_net_write
 .endif

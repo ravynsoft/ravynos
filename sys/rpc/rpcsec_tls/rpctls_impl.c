@@ -181,12 +181,6 @@ sys_rpctls_syscall(struct thread *td, struct rpctls_syscall_args *uap)
 		return (EPERM);
 	}
 	if ((error = falloc(td, &fp, &fd, 0)) != 0) {
-		/*
-		 * The socket will not be acquired by the daemon,
-		 * but has been removed from the upcall socket RB.
-		 * As such, it needs to be closed here.
-		 */
-		soclose(ups.so);
 		KRPC_CURVNET_RESTORE();
 		return (error);
 	}
@@ -229,25 +223,19 @@ rpctls_rpc_failed(struct upsock *ups, struct socket *so)
 		mtx_unlock(&rpctls_lock);
 		MPASS(removed == ups);
 		/*
-		 * Since the socket was still in the RB tree when
-		 * this function was called, the daemon will not
-		 * close it.  As such, it needs to be closed here.
+		 * Do a shutdown on the socket, since the daemon is
+		 * probably stuck in SSL_accept() trying to read the
+		 * socket.  Do not soclose() the socket, since the
+		 * daemon will close() the socket after SSL_accept()
+		 * returns an error.
 		 */
-		soclose(so);
+		soshutdown(so, SHUT_RD);
 	} else {
 		/*
 		 * The daemon has taken the socket from the tree, but
 		 * failed to do the handshake.
 		 */
 		mtx_unlock(&rpctls_lock);
-		/*
-		 * Do a shutdown on the socket, since the daemon is
-		 * probably stuck in SSL_accept() or SSL_connect() trying to
-		 * read the socket.  Do not soclose() the socket, since the
-		 * daemon will close() the socket after SSL_accept()
-		 * returns an error.
-		 */
-		soshutdown(so, SHUT_RD);
 	}
 }
 

@@ -48,6 +48,4 @@ _get_curthread(void)
 	return (NULL);
 }
 
-#define	__thr_setup_tsd(thread)		_tcb_set((thread)->tcb)
-
 #endif /* _PTHREAD_MD_H_ */

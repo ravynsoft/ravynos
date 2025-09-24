@@ -38,7 +38,7 @@
 
 /*
  * An implementation of the CUBIC congestion control algorithm for FreeBSD,
- * based on the Internet RFC9438 by Xu, Ha, Rhee, Goel, and Eggert.
+ * based on the Internet Draft "draft-rhee-tcpm-cubic-02" by Rhee, Xu and Ha.
  * Originally released as part of the NewTCP research project at Swinburne
  * University of Technology's Centre for Advanced Internet Architectures,
  * Melbourne, Australia, which was made possible in part by a grant from the
@@ -81,7 +81,7 @@ static void	cubic_conn_init(struct cc_var *ccv);
 static int	cubic_mod_init(void);
 static void	cubic_post_recovery(struct cc_var *ccv);
 static void	cubic_record_rtt(struct cc_var *ccv);
-static uint32_t	cubic_get_ssthresh(struct cc_var *ccv, uint32_t maxseg);
+static void	cubic_ssthresh_update(struct cc_var *ccv, uint32_t maxseg);
 static void	cubic_after_idle(struct cc_var *ccv);
 static size_t	cubic_data_sz(void);
 static void	cubic_newround(struct cc_var *ccv, uint32_t round_cnt);
@@ -236,11 +236,10 @@ static void
 cubic_ack_received(struct cc_var *ccv, ccsignal_t type)
 {
 	struct cubic *cubic_data;
-	uint32_t W_est, W_cubic, cwin, target, incr;
+	unsigned long W_est, W_cubic;
 	int usecs_since_epoch;
 	uint32_t mss = tcp_fixed_maxseg(ccv->tp);
 
-	cwin = CCV(ccv, snd_cwnd);
 	cubic_data = ccv->cc_data;
 	cubic_record_rtt(ccv);
 
@@ -251,7 +250,7 @@ cubic_ack_received(struct cc_var *ccv, ccsignal_t type)
 	if (type == CC_ACK && !IN_RECOVERY(CCV(ccv, t_flags)) &&
 	    (ccv->flags & CCF_CWND_LIMITED)) {
 		 /* Use the logic in NewReno ack_received() for slow start. */
-		if (cwin <= CCV(ccv, snd_ssthresh) ||
+		if (CCV(ccv, snd_cwnd) <= CCV(ccv, snd_ssthresh) ||
 		    cubic_data->min_rtt_usecs == TCPTV_SRTTBASE) {
 			cubic_does_slow_start(ccv, cubic_data);
 		} else {
@@ -266,32 +265,20 @@ cubic_ack_received(struct cc_var *ccv, ccsignal_t type)
 				cubic_data->flags &= ~CUBICFLAG_HYSTART_ENABLED;
 				cubic_log_hystart_event(ccv, cubic_data, 11, CCV(ccv, snd_ssthresh));
 			}
-			if (cubic_data->flags & (CUBICFLAG_IN_SLOWSTART |
-						 CUBICFLAG_CONG_EVENT   |
-						 CUBICFLAG_IN_APPLIMIT)) {
-				/*
-				 * At the beginning of the current congestion
-				 * avoidance stage, The epoch variables
-				 * (t_epoch, cwnd_epoch, K) are updated in the
-				 * following three cases:
-				 * 1) just exited the slow start
-				 * 2) after a congestion event
-				 * 3) application-limited
-				 */
+			if ((cubic_data->flags & CUBICFLAG_RTO_EVENT) &&
+			    (cubic_data->flags & CUBICFLAG_IN_SLOWSTART)) {
+				/* RFC8312 Section 4.7 */
+				cubic_data->flags &= ~(CUBICFLAG_RTO_EVENT |
+						       CUBICFLAG_IN_SLOWSTART);
+				cubic_data->W_max = CCV(ccv, snd_cwnd);
 				cubic_data->t_epoch = ticks;
-				cubic_data->cwnd_epoch = cwin;
-				cubic_data->K = cubic_k(cubic_data->W_max / mss,
-							cubic_data->cwnd_epoch / mss);
+				cubic_data->K = 0;
+			} else if (cubic_data->flags & (CUBICFLAG_IN_SLOWSTART |
+						 CUBICFLAG_IN_APPLIMIT)) {
 				cubic_data->flags &= ~(CUBICFLAG_IN_SLOWSTART |
-						       CUBICFLAG_CONG_EVENT   |
 						       CUBICFLAG_IN_APPLIMIT);
-
-				if (cubic_data->flags & CUBICFLAG_RTO_EVENT) {
-					/* RFC9438 Section 4.8: Timeout */
-					cubic_data->flags &= ~CUBICFLAG_RTO_EVENT;
-					cubic_data->W_max = cwin;
-					cubic_data->K = 0;
-				}
+				cubic_data->t_epoch = ticks;
+				cubic_data->K = cubic_k(cubic_data->W_max / mss);
 			}
 			usecs_since_epoch = (ticks - cubic_data->t_epoch) * tick;
 			if (usecs_since_epoch < 0) {
@@ -301,9 +288,12 @@ cubic_ack_received(struct cc_var *ccv, ccsignal_t type)
 				usecs_since_epoch = INT_MAX;
 				cubic_data->t_epoch = ticks - INT_MAX;
 			}
+
 			W_est = tf_cwnd(ccv);
+
 			/*
-			 * The mean RTT is used to best reflect the equations.
+			 * The mean RTT is used to best reflect the equations in
+			 * the I-D.
 			 */
 			W_cubic = cubic_cwnd(usecs_since_epoch +
 					     cubic_data->mean_rtt_usecs,
@@ -312,24 +302,33 @@ cubic_ack_received(struct cc_var *ccv, ccsignal_t type)
 					     cubic_data->K);
 
 			if (W_cubic < W_est) {
-				/* RFC9438 Section 4.3: Reno-friendly region */
-				CCV(ccv, snd_cwnd) = W_est;
-				cubic_data->flags |= CUBICFLAG_IN_TF;
-			} else {
 				/*
-				 * RFC9438 Section 4.4 or 4.5:
-				 * Concave or Convex Region
+				 * TCP-friendly region, follow tf
+				 * cwnd growth.
 				 */
-				if (W_cubic < cwin) {
-					target = cwin;
-				} else if (W_cubic > ((cwin * 3) >> 1)) {
-					target = (cwin * 3) >> 1;
-				} else {
-					target = W_cubic;
-				}
-				incr = (((target - cwin) << CUBIC_SHIFT) /
-					cwin * mss) >> CUBIC_SHIFT;
-				CCV(ccv, snd_cwnd) = cwin + incr;
+				CCV(ccv, snd_cwnd) = ulmin(W_est, INT_MAX);
+				cubic_data->flags |= CUBICFLAG_IN_TF;
+			} else if (CCV(ccv, snd_cwnd) < W_cubic) {
+				/*
+				 * Concave or convex region, follow CUBIC
+				 * cwnd growth.
+				 * Only update snd_cwnd, if it doesn't shrink.
+				 */
+				CCV(ccv, snd_cwnd) = ulmin(W_cubic, INT_MAX);
+				cubic_data->flags &= ~CUBICFLAG_IN_TF;
+			}
+
+			/*
+			 * If we're not in slow start and we're probing for a
+			 * new cwnd limit at the start of a connection
+			 * (happens when hostcache has a relevant entry),
+			 * keep updating our current estimate of the
+			 * W_max.
+			 */
+			if (((cubic_data->flags & CUBICFLAG_CONG_EVENT) == 0) &&
+			    cubic_data->W_max < CCV(ccv, snd_cwnd)) {
+				cubic_data->W_max = CCV(ccv, snd_cwnd);
+				cubic_data->K = cubic_k(cubic_data->W_max / mss);
 			}
 		}
 	} else if (type == CC_ACK && !IN_RECOVERY(CCV(ccv, t_flags)) &&
@@ -346,11 +345,12 @@ cubic_ack_received(struct cc_var *ccv, ccsignal_t type)
 static void
 cubic_after_idle(struct cc_var *ccv)
 {
-	struct cubic *cubic_data = ccv->cc_data;
-	uint32_t mss = tcp_fixed_maxseg(ccv->tp);
+	struct cubic *cubic_data;
+
+	cubic_data = ccv->cc_data;
 
 	cubic_data->W_max = ulmax(cubic_data->W_max, CCV(ccv, snd_cwnd));
-	cubic_data->K = cubic_k(cubic_data->W_max / mss, cubic_data->cwnd_epoch / mss);
+	cubic_data->K = cubic_k(cubic_data->W_max / tcp_fixed_maxseg(ccv->tp));
 	if ((cubic_data->flags & CUBICFLAG_HYSTART_ENABLED) == 0) {
 		/*
 		 * Re-enable hystart if we have been idle.
@@ -389,9 +389,7 @@ cubic_cb_init(struct cc_var *ccv, void *ptr)
 		cubic_data = ptr;
 
 	/* Init some key variables with sensible defaults. */
-	cubic_data->t_epoch = 0;
-	cubic_data->cwnd_epoch = 0;
-	cubic_data->K = 0;
+	cubic_data->t_epoch = ticks;
 	cubic_data->min_rtt_usecs = TCPTV_SRTTBASE;
 	cubic_data->mean_rtt_usecs = 1;
 
@@ -418,7 +416,7 @@ static void
 cubic_cong_signal(struct cc_var *ccv, ccsignal_t type)
 {
 	struct cubic *cubic_data;
-	uint32_t mss, pipe, ssthresh;
+	uint32_t mss, pipe;
 
 	cubic_data = ccv->cc_data;
 	mss = tcp_fixed_maxseg(ccv->tp);
@@ -433,13 +431,10 @@ cubic_cong_signal(struct cc_var *ccv, ccsignal_t type)
 		}
 		if (!IN_FASTRECOVERY(CCV(ccv, t_flags))) {
 			if (!IN_CONGRECOVERY(CCV(ccv, t_flags))) {
-				ssthresh = cubic_get_ssthresh(ccv, mss);
-				CCV(ccv, snd_ssthresh) = max(ssthresh, 2 * mss);
-				/*
-				 * The congestion flag will recalculate K at the
-				 * beginning of the congestion avoidance stage.
-				 */
+				cubic_ssthresh_update(ccv, mss);
 				cubic_data->flags |= CUBICFLAG_CONG_EVENT;
+				cubic_data->t_epoch = ticks;
+				cubic_data->K = cubic_k(cubic_data->W_max / mss);
 			}
 			ENTER_RECOVERY(CCV(ccv, t_flags));
 		}
@@ -453,20 +448,17 @@ cubic_cong_signal(struct cc_var *ccv, ccsignal_t type)
 			cubic_log_hystart_event(ccv, cubic_data, 9, CCV(ccv, snd_ssthresh));
 		}
 		if (!IN_CONGRECOVERY(CCV(ccv, t_flags))) {
-			ssthresh = cubic_get_ssthresh(ccv, mss);
-			CCV(ccv, snd_ssthresh) = max(ssthresh, 2 * mss);
-			CCV(ccv, snd_cwnd) = max(ssthresh, mss);
-			/*
-			 * The congestion flag will recalculate K at the
-			 * beginning of the congestion avoidance stage.
-			 */
+			cubic_ssthresh_update(ccv, mss);
 			cubic_data->flags |= CUBICFLAG_CONG_EVENT;
+			cubic_data->t_epoch = ticks;
+			cubic_data->K = cubic_k(cubic_data->W_max / mss);
+			CCV(ccv, snd_cwnd) = CCV(ccv, snd_ssthresh);
 			ENTER_CONGRECOVERY(CCV(ccv, t_flags));
 		}
 		break;
 
 	case CC_RTO:
-		/* RFC9438 Section 4.8: Timeout */
+		/* RFC8312 Section 4.7 */
 		if (CCV(ccv, t_rxtshift) == 1) {
 			/*
 			 * Remember the state only for the first RTO event. This
@@ -483,16 +475,12 @@ cubic_cong_signal(struct cc_var *ccv, ccsignal_t type)
 				(((uint64_t)min(CCV(ccv, snd_wnd), pipe) *
 				CUBIC_BETA) >> CUBIC_SHIFT) / mss) * mss;
 		}
-		/*
-		 * The RTO flag will recalculate K at the
-		 * beginning of the congestion avoidance stage.
-		 */
-		cubic_data->flags |= CUBICFLAG_RTO_EVENT;
+		cubic_data->flags |= CUBICFLAG_CONG_EVENT | CUBICFLAG_RTO_EVENT;
 		CCV(ccv, snd_cwnd) = mss;
 		break;
 
 	case CC_RTO_ERR:
-		cubic_data->flags &= ~CUBICFLAG_RTO_EVENT;
+		cubic_data->flags &= ~(CUBICFLAG_CONG_EVENT | CUBICFLAG_RTO_EVENT);
 		cubic_data->K = cubic_data->undo_K;
 		cubic_data->W_max = cubic_data->undo_W_max;
 		cubic_data->cwnd_epoch = cubic_data->undo_cwnd_epoch;
@@ -515,7 +503,7 @@ cubic_conn_init(struct cc_var *ccv)
 	 * this here bad things happen when entries from the TCP hostcache
 	 * get used.
 	 */
-	cubic_data->W_max = UINT_MAX;
+	cubic_data->W_max = CCV(ccv, snd_cwnd);
 }
 
 static int
@@ -615,36 +603,44 @@ cubic_record_rtt(struct cc_var *ccv)
 }
 
 /*
- * Return the new value for ssthresh in the event of a congestion.
+ * Update the ssthresh in the event of congestion.
  */
-static uint32_t
-cubic_get_ssthresh(struct cc_var *ccv, uint32_t maxseg)
+static void
+cubic_ssthresh_update(struct cc_var *ccv, uint32_t maxseg)
 {
 	struct cubic *cubic_data;
-	uint32_t cwnd, pipe;
+	uint32_t ssthresh;
+	uint32_t cwnd;
 
 	cubic_data = ccv->cc_data;
 	cwnd = CCV(ccv, snd_cwnd);
 
-	/* RFC9438 Section 4.7: Fast convergence */
+	/* Fast convergence heuristic. */
 	if (cwnd < cubic_data->W_max) {
 		cwnd = ((uint64_t)cwnd * CUBIC_FC_FACTOR) >> CUBIC_SHIFT;
 	}
+	cubic_data->undo_W_max = cubic_data->W_max;
 	cubic_data->W_max = cwnd;
 
 	if (cubic_data->flags & CUBICFLAG_IN_TF) {
-		/* If in the TCP friendly region, follow what newreno does. */
-		return (newreno_cc_cwnd_on_multiplicative_decrease(ccv, maxseg));
+		/* If in the TCP friendly region, follow what newreno does */
+		ssthresh = newreno_cc_cwnd_on_multiplicative_decrease(ccv, maxseg);
 
+	} else if ((cubic_data->flags & CUBICFLAG_CONG_EVENT) == 0) {
+		/*
+		 * On the first congestion event, set ssthresh to cwnd * 0.5
+		 * and reduce W_max to cwnd * beta. This aligns the cubic
+		 * concave region appropriately.
+		 */
+		ssthresh = cwnd >> 1;
+		cubic_data->W_max = ((uint64_t)cwnd * CUBIC_BETA) >> CUBIC_SHIFT;
 	} else {
 		/*
-		 * RFC9438 Section 4.6: Multiplicative Decrease
-		 * Outside the TCP friendly region, set ssthresh to the size of
-		 * inflight_size * beta.
+		 * On subsequent congestion events, set ssthresh to cwnd * beta.
 		 */
-		pipe = tcp_compute_pipe(ccv->tp);
-		return ((pipe * CUBIC_BETA) >> CUBIC_SHIFT);
+		ssthresh = ((uint64_t)cwnd * CUBIC_BETA) >> CUBIC_SHIFT;
 	}
+	CCV(ccv, snd_ssthresh) = max(ssthresh, 2 * maxseg);
 }
 
 static void

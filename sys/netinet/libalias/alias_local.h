@@ -239,12 +239,12 @@ struct alias_link *
 AddLink(struct libalias *la, struct in_addr src_addr, struct in_addr dst_addr,
     struct in_addr alias_addr, u_short src_port, u_short dst_port,
     int alias_param, int link_type);
-int
+struct alias_link *
 FindIcmpIn(struct libalias *la, struct in_addr _dst_addr, struct in_addr _alias_addr,
-    u_short _id_alias, int _create, struct alias_link **_lnkp);
-int
+    u_short _id_alias, int _create);
+struct alias_link *
 FindIcmpOut(struct libalias *la, struct in_addr _src_addr, struct in_addr _dst_addr,
-    u_short _id, int _create, struct alias_link **_lnkp);
+    u_short _id, int _create);
 struct alias_link *
 FindFragmentIn1(struct libalias *la, struct in_addr _dst_addr, struct in_addr _alias_addr,
     u_short _ip_id);
@@ -255,20 +255,18 @@ struct alias_link *
 AddFragmentPtrLink(struct libalias *la, struct in_addr _dst_addr, u_short _ip_id);
 struct alias_link *
 FindFragmentPtr(struct libalias *la, struct in_addr _dst_addr, u_short _ip_id);
-int
+struct alias_link *
 FindProtoIn(struct libalias *la, struct in_addr _dst_addr, struct in_addr _alias_addr,
-    u_char _proto, struct alias_link **_lnkp);
-int
+    u_char _proto);
+struct alias_link *
 FindProtoOut(struct libalias *la, struct in_addr _src_addr, struct in_addr _dst_addr,
-    u_char _proto, struct alias_link **_lnkp);
-int
+    u_char _proto);
+struct alias_link *
 FindUdpTcpIn(struct libalias *la, struct in_addr _dst_addr, struct in_addr _alias_addr,
-    u_short _dst_port, u_short _alias_port, u_char _proto, int _create,
-    struct alias_link **_lnkp);
-int
+    u_short _dst_port, u_short _alias_port, u_char _proto, int _create);
+struct alias_link *
 FindUdpTcpOut(struct libalias *la, struct in_addr _src_addr, struct in_addr _dst_addr,
-    u_short _src_port, u_short _dst_port, u_char _proto, int _create,
-    struct alias_link **_lnkp);
+    u_short _src_port, u_short _dst_port, u_char _proto, int _create);
 struct alias_link *
 AddPptp(struct libalias *la, struct in_addr _src_addr, struct in_addr _dst_addr,
     struct in_addr _alias_addr, u_int16_t _src_call_id);

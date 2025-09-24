@@ -88,8 +88,7 @@
 
 typedef struct vdev_disk_db_entry
 {
-	/* 24 byte name + 1 byte NULL terminator to make GCC happy */
-	char id[25];
+	char id[24];
 	int sector_size;
 } vdev_disk_db_entry_t;
 

@@ -26,14 +26,15 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/systm.h>
+#include <sys/param.h>
 #include <sys/kernel.h>
 #include <sys/lock.h>
 #include <sys/malloc.h>
 #include <sys/memrange.h>
-#include <sys/sx.h>
+#include <sys/rwlock.h>
+#include <sys/systm.h>
 
-static struct sx	mr_lock;
+static struct rwlock	mr_lock;
 
 /*
  * Implementation-neutral, kernel-callable functions for manipulating
@@ -45,7 +46,7 @@ mem_range_init(void)
 
 	if (mem_range_softc.mr_op == NULL)
 		return;
-	sx_init(&mr_lock, "memrange");
+	rw_init(&mr_lock, "memrange");
 	mem_range_softc.mr_op->init(&mem_range_softc);
 }
 
@@ -55,7 +56,7 @@ mem_range_destroy(void)
 
 	if (mem_range_softc.mr_op == NULL)
 		return;
-	sx_destroy(&mr_lock);
+	rw_destroy(&mr_lock);
 }
 
 int
@@ -66,12 +67,12 @@ mem_range_attr_get(struct mem_range_desc *mrd, int *arg)
 	if (mem_range_softc.mr_op == NULL)
 		return (EOPNOTSUPP);
 	nd = *arg;
-	sx_slock(&mr_lock);
+	rw_rlock(&mr_lock);
 	if (nd == 0)
 		*arg = mem_range_softc.mr_ndesc;
 	else
 		bcopy(mem_range_softc.mr_desc, mrd, nd * sizeof(*mrd));
-	sx_sunlock(&mr_lock);
+	rw_runlock(&mr_lock);
 	return (0);
 }
 
@@ -82,8 +83,8 @@ mem_range_attr_set(struct mem_range_desc *mrd, int *arg)
 
 	if (mem_range_softc.mr_op == NULL)
 		return (EOPNOTSUPP);
-	sx_xlock(&mr_lock);
+	rw_wlock(&mr_lock);
 	ret = mem_range_softc.mr_op->set(&mem_range_softc, mrd, arg);
-	sx_xunlock(&mr_lock);
+	rw_wunlock(&mr_lock);
 	return (ret);
 }

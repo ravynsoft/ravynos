@@ -39,13 +39,6 @@
 #
 # MANDOC_CMD	command and flags to create preformatted pages
 #
-# MANGROUPS	A list of groups, each of which should be a variable containing
-# 		a list of manual pages in that group.  By default one group is
-# 		defined called "MAN".
-#
-# 		For each group, group-specific options may be set:
-# 		<group>OWN, <group>GRP, <group>MODE and <group>PACKAGE.
-#
 # +++ targets +++
 #
 #	maninstall:
@@ -56,10 +49,11 @@
 .error bsd.man.mk cannot be included directly.
 .endif
 
-MANGROUPS?=	MAN
-
-# Backwards compatibility.
-MINSTALL?=	${MANINSTALL}
+.if ${MK_MANSPLITPKG} == "no"
+MINSTALL?=	${INSTALL} ${TAG_ARGS} -o ${MANOWN} -g ${MANGRP} -m ${MANMODE}
+.else
+MINSTALL?=	${INSTALL} ${TAG_ARGS:D${TAG_ARGS},man} -o ${MANOWN} -g ${MANGRP} -m ${MANMODE}
+.endif
 
 CATDIR=		${MANDIR:H:S/$/\/cat/}
 CATEXT=		.cat
@@ -71,54 +65,17 @@ MCOMPRESS_EXT?=	${COMPRESS_EXT}
 SECTIONS=	1 2 3 4 5 6 7 8 9
 .SUFFIXES:	${SECTIONS:S/^/./g}
 
+
 # Backwards compatibility.
 .if !defined(MAN)
 .for __sect in ${SECTIONS}
-MANGROUPS+=	MAN${__sect}
+.if defined(MAN${__sect}) && !empty(MAN${__sect})
+MAN+=	${MAN${__sect}}
+.endif
 .endfor
 .endif
 
-# Following the conventions of MANGROUPS, manpage links should be defined
-# as ${group}LINKS, which means the default groups' links would be called
-# MANLINKS.  However it's actually called MLINKS, so for compatibility,
-# use ${MLINKS} as the default group's links if it's set.
-.if defined(MLINKS)
-MANLINKS=	${MLINKS}
-.endif
-
-maninstall: realmaninstall manlinksinstall .PHONY
-# Make sure all manpages are installed before we try to link any.
-.ORDER: realmaninstall manlinksinstall
-realmaninstall: .PHONY
-manlinksinstall: .PHONY
-
 all-man:
-
-.for __group in ${MANGROUPS}
-
-realmaninstall: realmaninstall-${__group}
-manlinksinstall: manlinksinstall-${__group}
-
-${__group}OWN?=		${MANOWN}
-${__group}GRP?=		${MANGRP}
-${__group}MODE?=	${MANMODE}
-
-# Tag processing is only done for NO_ROOT installs.
-.if defined(NO_ROOT)
-
-.if !defined(${__group}TAGS) || ! ${${__group}TAGS:Mpackage=*}
-.if ${MK_MANSPLITPKG} == "no"
-${__group}TAGS+=	package=${${__group}PACKAGE:U${PACKAGE:Uutilities}}
-.else
-${__group}TAGS+=	package=${${__group}PACKAGE:U${PACKAGE:Uutilities}}-man
-.endif
-.endif
-
-${__group}TAG_ARGS=	-T ${${__group}TAGS:[*]:S/ /,/g}
-.endif	# defined(NO_ROOT)
-
-${__group}INSTALL?=	${INSTALL} ${${__group}TAG_ARGS} \
-	-o ${${__group}OWN} -g ${${__group}GRP} -m ${${__group}MODE}
 
 .if ${MK_MANCOMPRESS} == "no"
 
@@ -133,10 +90,10 @@ FILTEXTENSION=
 ZEXT=
 
 .if defined(MANFILTER)
-.if defined(${__group}) && !empty(${__group})
-CLEANFILES+=	${${__group}:T:S/$/${FILTEXTENSION}/g}
-CLEANFILES+=	${${__group}:T:S/$/${CATEXT}${FILTEXTENSION}/g}
-.for __page in ${${__group}}
+.if defined(MAN) && !empty(MAN)
+CLEANFILES+=	${MAN:T:S/$/${FILTEXTENSION}/g}
+CLEANFILES+=	${MAN:T:S/$/${CATEXT}${FILTEXTENSION}/g}
+.for __page in ${MAN}
 .for __target in ${__page:T:S/$/${FILTEXTENSION}/g}
 all-man: ${__target}
 ${__target}: ${__page}
@@ -150,12 +107,12 @@ ${__target}: ${__page}
 .endfor
 .endif
 .endfor
-.endif	# !empty(${__group})
+.endif	# !empty(MAN)
 .else	# !defined(MANFILTER)
-.if defined(${__group}) && !empty(${__group})
-CLEANFILES+=	${${__group}:T:S/$/${CATEXT}/g}
+.if defined(MAN) && !empty(MAN)
+CLEANFILES+=	${MAN:T:S/$/${CATEXT}/g}
 .if defined(MANBUILDCAT) && !empty(MANBUILDCAT)
-.for __page in ${${__group}}
+.for __page in ${MAN}
 .for __target in ${__page:T:S/$/${CATEXT}/g}
 all-man: ${__target}
 ${__target}: ${__page}
@@ -163,7 +120,7 @@ ${__target}: ${__page}
 .endfor
 .endfor
 .else
-all-man: ${${__group}}
+all-man: ${MAN}
 .endif
 .endif
 .endif	# defined(MANFILTER)
@@ -172,10 +129,10 @@ all-man: ${${__group}}
 
 ZEXT=		${MCOMPRESS_EXT}
 
-.if defined(${__group}) && !empty(${__group})
-CLEANFILES+=	${${__group}:T:S/$/${MCOMPRESS_EXT}/g}
-CLEANFILES+=	${${__group}:T:S/$/${CATEXT}${MCOMPRESS_EXT}/g}
-.for __page in ${${__group}}
+.if defined(MAN) && !empty(MAN)
+CLEANFILES+=	${MAN:T:S/$/${MCOMPRESS_EXT}/g}
+CLEANFILES+=	${MAN:T:S/$/${CATEXT}${MCOMPRESS_EXT}/g}
+.for __page in ${MAN}
 .for __target in ${__page:T:S/$/${MCOMPRESS_EXT}/}
 all-man: ${__target}
 ${__target}: ${__page}
@@ -201,9 +158,8 @@ ${__target}: ${__page}
 
 .endif	# ${MK_MANCOMPRESS} == "no"
 
-_MANLINKS=
-.if !defined(NO_MLINKS) && defined(${__group}LINKS) && !empty(${__group}LINKS)
-.for _oname _osect _dname _dsect in ${${__group}LINKS:C/\.([^.]*)$/.\1 \1/}
+.if !defined(NO_MLINKS) && defined(MLINKS) && !empty(MLINKS)
+.for _oname _osect _dname _dsect in ${MLINKS:C/\.([^.]*)$/.\1 \1/}
 _MANLINKS+=	${MANDIR}${_osect}${MANSUBDIR}/${_oname} \
 		${MANDIR}${_dsect}${MANSUBDIR}/${_dname}
 .if defined(MANBUILDCAT) && !empty(MANBUILDCAT)
@@ -213,37 +169,37 @@ _MANLINKS+=	${CATDIR}${_osect}${MANSUBDIR}/${_oname} \
 .endfor
 .endif
 
-.if defined(${__group}) && !empty(${__group})
+.if defined(MAN) && !empty(MAN)
 .if ${MK_STAGING_MAN} == "yes"
-STAGE_TARGETS+= stage_files.${__group}
-_mansets.${__group}:= ${${__group}:E:O:u:M*[1-9]:@s@man$s@}
-STAGE_SETS+= ${_mansets.${__group}}
-.for _page in ${${__group}}
-stage_files.${__group}.man${_page:T:E}: ${_page}
+STAGE_TARGETS+= stage_files
+_mansets:= ${MAN:E:O:u:M*[1-9]:@s@man$s@}
+STAGE_SETS+= ${_mansets}
+.for _page in ${MAN}
+stage_files.man${_page:T:E}: ${_page}
 .if target(${_page}${MCOMPRESS_EXT})
-stage_files.${__group}.man${_page:T:E}: ${_page}${MCOMPRESS_EXT}
+stage_files.man${_page:T:E}: ${_page}${MCOMPRESS_EXT}
 .endif
-STAGE_DIR.${__group}.man${_page:T:E}?= ${STAGE_OBJTOP}${MANDIR}${_page:T:E}${MANSUBDIR}
+STAGE_DIR.man${_page:T:E}?= ${STAGE_OBJTOP}${MANDIR}${_page:T:E}${MANSUBDIR}
 .endfor
-.if !defined(NO_MLINKS) && !empty(${__group}LINKS)
-STAGE_SETS+= mlinks.${__group}
-STAGE_TARGETS+= stage_links.${__group}
-STAGE_LINKS.mlinks.${__group}:= ${${__group}LINKS:M*.[1-9]:@f@${f:S,^,${MANDIR}${f:E}${MANSUBDIR}/,}@}
-stage_links.mlinks.${__group}: ${_mansets.${__group}:@s@stage_files.${__group}.$s@}
+.if !defined(NO_MLINKS) && !empty(MLINKS)
+STAGE_SETS+= mlinks
+STAGE_TARGETS+= stage_links
+STAGE_LINKS.mlinks:= ${MLINKS:M*.[1-9]:@f@${f:S,^,${MANDIR}${f:E}${MANSUBDIR}/,}@}
+stage_links.mlinks: ${_mansets:@s@stage_files.$s@}
 .endif
 .endif
 .endif
 
-realmaninstall-${__group}:
-.if defined(${__group}) && !empty(${__group})
-realmaninstall-${__group}: ${${__group}}
+maninstall:
+.if defined(MAN) && !empty(MAN)
+maninstall: ${MAN}
 .if ${MK_MANCOMPRESS} == "no"
 .if defined(MANFILTER)
-.for __page in ${${__group}}
-	${${__group}INSTALL} ${__page:T:S/$/${FILTEXTENSION}/g} \
+.for __page in ${MAN}
+	${MINSTALL} ${__page:T:S/$/${FILTEXTENSION}/g} \
 		${DESTDIR}${MANDIR}${__page:E}${MANSUBDIR}/${__page}
 .if defined(MANBUILDCAT) && !empty(MANBUILDCAT)
-	${${__group}INSTALL} ${__page:T:S/$/${CATEXT}${FILTEXTENSION}/g} \
+	${MINSTALL} ${__page:T:S/$/${CATEXT}${FILTEXTENSION}/g} \
 		${DESTDIR}${CATDIR}${__page:E}${MANSUBDIR}/${__page}
 .endif
 .endfor
@@ -256,39 +212,43 @@ realmaninstall-${__group}: ${${__group}}
 		esac; \
 		page=$$1; shift; sect=$$1; shift; \
 		d=${DESTDIR}${MANDIR}$${sect}${MANSUBDIR}; \
-		${ECHO} ${${__group}INSTALL} $${page} $${d}; \
-		${${__group}INSTALL} $${page} $${d}; \
+		${ECHO} ${MINSTALL} $${page} $${d}; \
+		${MINSTALL} $${page} $${d}; \
 	done
 .if defined(MANBUILDCAT) && !empty(MANBUILDCAT)
-.for __page in ${${__group}}
-	${${__group}INSTALL} ${__page:T:S/$/${CATEXT}/} \
+.for __page in ${MAN}
+	${MINSTALL} ${__page:T:S/$/${CATEXT}/} \
 		${DESTDIR}${CATDIR}${__page:E}${MANSUBDIR}/${__page:T}
 .endfor
 .endif
 .endif	# defined(MANFILTER)
 .else	# ${MK_MANCOMPRESS} == "yes"
-.for __page in ${${__group}}
-	${${__group}INSTALL} ${__page:T:S/$/${MCOMPRESS_EXT}/g} \
+.for __page in ${MAN}
+	${MINSTALL} ${__page:T:S/$/${MCOMPRESS_EXT}/g} \
 		${DESTDIR}${MANDIR}${__page:E}${MANSUBDIR}/
 .if defined(MANBUILDCAT) && !empty(MANBUILDCAT)
-	${${__group}INSTALL} ${__page:T:S/$/${CATEXT}${MCOMPRESS_EXT}/g} \
+	${MINSTALL} ${__page:T:S/$/${CATEXT}${MCOMPRESS_EXT}/g} \
 		${DESTDIR}${CATDIR}${__page:E}${MANSUBDIR}/${__page:T:S/$/${MCOMPRESS_EXT}/}
 .endif
 .endfor
 .endif	# ${MK_MANCOMPRESS} == "no"
 .endif
-
-manlinksinstall-${__group}:
 .for l t in ${_MANLINKS}
 # On MacOS, assume case folding FS, and don't install links from foo.x to FOO.x.
 .if ${.MAKE.OS} != "Darwin" || ${l:tu} != ${t:tu}
-	${INSTALL_MANLINK} ${${__group}TAG_ARGS} ${DESTDIR}${l}${ZEXT} ${DESTDIR}${t}${ZEXT}
+.if ${MK_MANSPLITPKG} == "no"
+	rm -f ${DESTDIR}${t} ${DESTDIR}${t}${MCOMPRESS_EXT}; \
+	    ${INSTALL_MANLINK} ${TAG_ARGS} ${DESTDIR}${l}${ZEXT} ${DESTDIR}${t}${ZEXT}
+.else
+	rm -f ${DESTDIR}${t} ${DESTDIR}${t}${MCOMPRESS_EXT}; \
+	    ${INSTALL_MANLINK} ${TAG_ARGS:D${TAG_ARGS},man} ${DESTDIR}${l}${ZEXT} ${DESTDIR}${t}${ZEXT}
+.endif
 .endif
 .endfor
 
 manlint:
-.if defined(${__group}) && !empty(${__group})
-.for __page in ${${__group}}
+.if defined(MAN) && !empty(MAN)
+.for __page in ${MAN}
 manlint: ${__page}lint
 ${__page}lint: ${__page}
 .if defined(MANFILTER)
@@ -298,5 +258,3 @@ ${__page}lint: ${__page}
 .endif
 .endfor
 .endif
-
-.endfor	# __group in ${MANGROUPS}

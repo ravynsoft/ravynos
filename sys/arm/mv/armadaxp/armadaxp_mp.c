@@ -46,7 +46,6 @@
 #include <machine/armreg.h>
 
 #include <arm/mv/mvwin.h>
-#include <arm/mv/mvvar.h>
 
 #include <machine/platformvar.h>
 

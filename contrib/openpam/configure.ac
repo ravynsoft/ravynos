@@ -1,16 +1,17 @@
 AC_PREREQ([2.69])
-AC_INIT([OpenPAM], [20250531], [des@des.dev], [openpam], [https://openpam.org/])
+AC_INIT([OpenPAM], [20230627], [des@des.no], [openpam], [https://openpam.org/])
 AC_CONFIG_SRCDIR([lib/libpam/pam_start.c])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign])
-AC_CONFIG_HEADERS([config.h])
+AM_CONFIG_HEADER([config.h])
 
 # C compiler and features
 AC_LANG(C)
-AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC([clang gcc cc])
+AC_PROG_CC_STDC
 AC_PROG_CPP
 AC_PROG_CXX([clang++ g++ c++])
+AC_GNU_SOURCE
 AC_C_CONST
 AC_C_RESTRICT
 AC_C_VOLATILE
@@ -31,12 +32,12 @@ AC_SUBST(LIB_MAJ)
 AC_DEFINE_UNQUOTED(LIB_MAJ, $LIB_MAJ, [OpenPAM library major number])
 
 AC_ARG_ENABLE([debug],
-    AS_HELP_STRING([--enable-debug],
+    AC_HELP_STRING([--enable-debug],
         [turn debugging macros on]),
     AC_DEFINE(OPENPAM_DEBUG, 1, [Turn debugging macros on]))
 
 AC_ARG_ENABLE([unversioned-modules],
-    AS_HELP_STRING([--disable-unversioned-modules],
+    AC_HELP_STRING([--disable-unversioned-modules],
         [support loading of unversioned modules]),
     [AS_IF([test x"$enableval" = x"no"], [
         AC_DEFINE(DISABLE_UNVERSIONED_MODULES,
@@ -45,7 +46,7 @@ AC_ARG_ENABLE([unversioned-modules],
     ])])
 
 AC_ARG_WITH([modules-dir],
-    AS_HELP_STRING([--with-modules-dir=DIR],
+    AC_HELP_STRING([--with-modules-dir=DIR],
         [OpenPAM modules directory]),
     [AS_IF([test x"$withval" != x"no"], [
         OPENPAM_MODULES_DIR="$withval"
@@ -56,46 +57,32 @@ AC_ARG_WITH([modules-dir],
 AC_SUBST(OPENPAM_MODULES_DIR)
 AM_CONDITIONAL([CUSTOM_MODULES_DIR], [test x"$OPENPAM_MODULES_DIR" != x""])
 
-AS_IF([test x"$LOCALBASE" = x""], [
-    AS_IF([test x"$prefix" = x"NONE"],
-        [LOCALBASE=/usr/local], [LOCALBASE=$prefix])])
-AC_ARG_WITH([localbase],
-    AS_HELP_STRING([--with-localbase=DIR],
-        [Base directory for local policies and modules]),
-    AS_CASE([$withval],
-	[no], [LOCALBASE=],
-        [yes], [LOCALBASE=$ac_default_prefix],
-	[*], [LOCALBASE="$withval"]))
-AS_IF([test x"$LOCALBASE" != x""], [
-    AC_DEFINE_UNQUOTED(LOCALBASE, "${LOCALBASE%/}",
-        [Base directory for local policies and modules])])
-
 AC_ARG_WITH([doc],
-    AS_HELP_STRING([--without-doc], [do not build documentation]),
+    AC_HELP_STRING([--without-doc], [do not build documentation]),
     [],
     [with_doc=yes])
 AM_CONDITIONAL([WITH_DOC], [test x"$with_doc" = x"yes"])
 
 AC_ARG_WITH([pam-unix],
-    AS_HELP_STRING([--with-pam-unix], [build sample pam_unix(8) module]),
+    AC_HELP_STRING([--with-pam-unix], [build sample pam_unix(8) module]),
     [],
     [with_pam_unix=no])
 AM_CONDITIONAL([WITH_PAM_UNIX], [test x"$with_pam_unix" = x"yes"])
 
 AC_ARG_WITH(pamtest,
-    AS_HELP_STRING([--with-pamtest], [build test application]),
+    AC_HELP_STRING([--with-pamtest], [build test application]),
     [],
     [with_pamtest=no])
 AM_CONDITIONAL([WITH_PAMTEST], [test x"$with_pamtest" = x"yes"])
 
 AC_ARG_WITH(su,
-    AS_HELP_STRING([--with-su], [build sample su(1) implementation]),
+    AC_HELP_STRING([--with-su], [build sample su(1) implementation]),
     [],
     [with_su=no])
 AM_CONDITIONAL([WITH_SU], [test x"$with_su" = x"yes"])
 
 AC_ARG_WITH(system-libpam,
-    AS_HELP_STRING([--with-system-libpam], [use system libpam]),
+    AC_HELP_STRING([--with-system-libpam], [use system libpam]),
     [],
     [with_system_libpam=no])
 AM_CONDITIONAL([WITH_SYSTEM_LIBPAM], [test x"$with_system_libpam" = x"yes"])

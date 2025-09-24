@@ -49,9 +49,11 @@ ipf_p_raudio_main_unload(void)
  * Setup for a new proxy to handle Real Audio.
  */
 int
-ipf_p_raudio_new(void *arg, fr_info_t *fin, ap_session_t *aps, nat_t *nat __unused)
+ipf_p_raudio_new(void *arg, fr_info_t *fin, ap_session_t *aps, nat_t *nat)
 {
 	raudio_t *rap;
+
+	nat = nat;	/* LINT */
 
 	if (fin->fin_v != 4)
 		return (-1);
@@ -70,7 +72,7 @@ ipf_p_raudio_new(void *arg, fr_info_t *fin, ap_session_t *aps, nat_t *nat __unus
 
 
 int
-ipf_p_raudio_out(void *arg, fr_info_t *fin, ap_session_t *aps, nat_t *nat __unused)
+ipf_p_raudio_out(void *arg, fr_info_t *fin, ap_session_t *aps, nat_t *nat)
 {
 	raudio_t *rap = aps->aps_data;
 	unsigned char membuf[512 + 1], *s;
@@ -79,6 +81,8 @@ ipf_p_raudio_out(void *arg, fr_info_t *fin, ap_session_t *aps, nat_t *nat __unus
 	int off, dlen;
 	int len = 0;
 	mb_t *m;
+
+	nat = nat;	/* LINT */
 
 	/*
 	 * If we've already processed the start messages, then nothing left

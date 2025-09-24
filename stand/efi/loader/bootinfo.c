@@ -389,18 +389,18 @@ bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp, bool exit_bs)
 	}
 
 	/* Pad to a page boundary. */
-	addr = md_align(addr);
+	addr = roundup(addr, PAGE_SIZE);
 
 #ifdef EFI
 	addr = build_font_module(addr);
 
 	/* Pad to a page boundary. */
-	addr = md_align(addr);
+	addr = roundup(addr, PAGE_SIZE);
 
 	addr = build_splash_module(addr);
 
 	/* Pad to a page boundary. */
-	addr = md_align(addr);
+	addr = roundup(addr, PAGE_SIZE);
 #endif
 
 	/* Copy our environment. */
@@ -408,16 +408,16 @@ bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp, bool exit_bs)
 	addr = md_copyenv(addr);
 
 	/* Pad to a page boundary. */
-	addr = md_align(addr);
+	addr = roundup(addr, PAGE_SIZE);
 
 #if defined(LOADER_FDT_SUPPORT)
 	/* Handle device tree blob */
 	dtbp = addr;
 	dtb_size = fdt_copy(addr);
-
+		
 	/* Pad to a page boundary */
 	if (dtb_size)
-		addr += md_align(dtb_size);
+		addr += roundup(dtb_size, PAGE_SIZE);
 #endif
 
 	kfp = file_findfile(NULL, md_kerntype);
@@ -461,7 +461,7 @@ bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp, bool exit_bs)
 #endif
 
 	size = md_copymodules(0, is64);	/* Find the size of the modules */
-	kernend = md_align(addr + size);
+	kernend = roundup(addr + size, PAGE_SIZE);
 	*kernendp = kernend;
 
 	/* patch MODINFOMD_KERNEND */

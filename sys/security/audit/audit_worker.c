@@ -53,7 +53,6 @@
 #include <sys/socketvar.h>
 #include <sys/protosw.h>
 #include <sys/domain.h>
-#include <sys/stdarg.h>
 #include <sys/sx.h>
 #include <sys/sysproto.h>
 #include <sys/sysent.h>
@@ -75,6 +74,8 @@
 #include <security/audit/audit_private.h>
 
 #include <vm/uma.h>
+
+#include <machine/stdarg.h>
 
 /*
  * Worker thread that will schedule disk I/O, etc.

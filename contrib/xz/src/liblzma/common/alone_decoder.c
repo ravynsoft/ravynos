@@ -134,7 +134,8 @@ alone_decode(void *coder_ptr, const lzma_allocator *allocator,
 
 		coder->pos = 0;
 		coder->sequence = SEQ_CODER_INIT;
-		FALLTHROUGH;
+
+	// Fall through
 
 	case SEQ_CODER_INIT: {
 		if (coder->memusage > coder->memlimit)

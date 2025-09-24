@@ -140,17 +140,11 @@ for (( i=0; i < ${#tests[@]}; i+=1 )); do
 
 	log_must eval zpool create "$TESTPOOL" $tree
 	log_must poolexists "$TESTPOOL"
-	typeset out
-	out="$(eval zpool split -n '$TESTPOOL' '$NEWPOOL' $devs)"
-	if [[ $? -ne 0 ]]; then
-		log_fail eval "zpool split -n '$TESTPOOL' '$NEWPOOL' $devs"
-	fi
+	typeset out="$(log_must eval "zpool split -n \
+	    '$TESTPOOL' '$NEWPOOL' $devs" | sed /^SUCCESS/d)"
+
 	if [[ "$out" != "$want" ]]; then
-		log_note "Got:"
-		log_note "$out"
-		log_note "but expected:"
-		log_note "$want"
-		log_fail "Dry run does not display config correctly"
+		log_fail "Got:\n" "$out" "\nbut expected:\n" "$want"
 	fi
 	log_must destroy_pool "$TESTPOOL"
 done

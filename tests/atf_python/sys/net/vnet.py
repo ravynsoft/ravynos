@@ -61,7 +61,6 @@ class VnetInterface(object):
             self.iftype = self.IFT_LOOP
         else:
             self.iftype = self.IFT_ETHER
-            self.ether = ToolsHelper.get_output("/sbin/ifconfig %s ether | awk '/ether/ { print $2; }'" % iface_name).rstrip()
 
     @property
     def ifindex(self):
@@ -100,12 +99,9 @@ class VnetInterface(object):
         name = run_cmd("/sbin/ifconfig {} create".format(iface_name)).rstrip()
         if not name:
             raise Exception("Unable to create iface {}".format(iface_name))
-        if1 = cls(alias_name, name)
-        ret = [if1]
+        ret = [cls(alias_name, name)]
         if name.startswith("epair"):
-            if2 = cls(alias_name, name[:-1] + "b")
-            if1.epairb = if2
-            ret.append(if2);
+            ret.append(cls(alias_name, name[:-1] + "b"))
         return ret
 
     def setup_addr(self, _addr: str):
@@ -138,7 +134,7 @@ class VnetInterface(object):
         self.run_cmd(cmd)
 
     def enable_ipv6(self):
-        cmd = "/usr/sbin/ndp -i {} -- -disabled".format(self.name)
+        cmd = "/usr/sbin/ndp -i {} -disabled".format(self.name)
         self.run_cmd(cmd)
 
     def has_tentative(self) -> bool:

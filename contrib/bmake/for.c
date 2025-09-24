@@ -1,4 +1,4 @@
-/*	$NetBSD: for.c,v 1.186 2025/06/28 22:39:27 rillig Exp $	*/
+/*	$NetBSD: for.c,v 1.182 2024/06/07 18:57:30 rillig Exp $	*/
 
 /*
  * Copyright (c) 1992, The Regents of the University of California.
@@ -58,14 +58,14 @@
 #include "make.h"
 
 /*	"@(#)for.c	8.1 (Berkeley) 6/6/93"	*/
-MAKE_RCSID("$NetBSD: for.c,v 1.186 2025/06/28 22:39:27 rillig Exp $");
+MAKE_RCSID("$NetBSD: for.c,v 1.182 2024/06/07 18:57:30 rillig Exp $");
 
 
 typedef struct ForLoop {
 	Vector /* of 'char *' */ vars; /* Iteration variables */
 	SubstringWords items;	/* Substitution items */
 	Buffer body;		/* Unexpanded body of the loop */
-	unsigned nextItem;	/* Where to continue iterating */
+	unsigned int nextItem;	/* Where to continue iterating */
 } ForLoop;
 
 
@@ -148,54 +148,59 @@ IsValidInVarname(char c)
 static void
 ForLoop_ParseVarnames(ForLoop *f, const char **pp)
 {
-	const char *p = *pp, *start;
+	const char *p = *pp;
 
 	for (;;) {
+		size_t len;
+
 		cpp_skip_whitespace(&p);
 		if (*p == '\0') {
-			Parse_Error(PARSE_FATAL,
-			    "Missing \"in\" in .for loop");
-			goto cleanup;
+			Parse_Error(PARSE_FATAL, "missing `in' in for");
+			while (f->vars.len > 0)
+				free(*(char **)Vector_Pop(&f->vars));
+			return;
 		}
 
-		for (start = p; *p != '\0' && !ch_isspace(*p); p++)
-			if (!IsValidInVarname(*p))
-				goto invalid_variable_name;
+		for (len = 0; p[len] != '\0' && !ch_isspace(p[len]); len++) {
+			if (!IsValidInVarname(p[len])) {
+				Parse_Error(PARSE_FATAL,
+				    "invalid character '%c' "
+				    "in .for loop variable name",
+				    p[len]);
+				while (f->vars.len > 0)
+					free(*(char **)Vector_Pop(&f->vars));
+				return;
+			}
+		}
 
-		if (p - start == 2 && memcmp(start, "in", 2) == 0)
+		if (len == 2 && p[0] == 'i' && p[1] == 'n') {
+			p += 2;
 			break;
+		}
 
-		*(char **)Vector_Push(&f->vars) = bmake_strsedup(start, p);
+		*(char **)Vector_Push(&f->vars) = bmake_strldup(p, len);
+		p += len;
 	}
 
 	if (f->vars.len == 0) {
-		Parse_Error(PARSE_FATAL,
-		    "Missing iteration variables in .for loop");
+		Parse_Error(PARSE_FATAL, "no iteration variables in for");
 		return;
 	}
 
 	*pp = p;
-	return;
-
-invalid_variable_name:
-	Parse_Error(PARSE_FATAL,
-	    "Invalid character \"%c\" in .for loop variable name", *p);
-cleanup:
-	while (f->vars.len > 0)
-		free(*(char **)Vector_Pop(&f->vars));
 }
 
 static bool
 ForLoop_ParseItems(ForLoop *f, const char *p)
 {
 	char *items;
-	int parseErrorsBefore = parseErrors;
 
 	cpp_skip_whitespace(&p);
 
 	items = Var_Subst(p, SCOPE_GLOBAL, VARE_EVAL);
-	f->items = Substring_Words(
-	    parseErrors == parseErrorsBefore ? items : "", false);
+	/* TODO: handle errors */
+
+	f->items = Substring_Words(items, false);
 	free(items);
 
 	if (f->items.len == 1 && Substring_IsEmpty(f->items.words[0]))
@@ -332,7 +337,7 @@ ExprLen(const char *s, const char *e)
  * by ApplyModifier_Defined.
  */
 static void
-AddEscaped(Buffer *body, Substring item, char endc)
+AddEscaped(Buffer *cmds, Substring item, char endc)
 {
 	const char *p;
 	char ch;
@@ -346,18 +351,18 @@ AddEscaped(Buffer *body, Substring item, char endc)
 				 * XXX: Should a '\' be added here?
 				 * See directive-for-escape.mk, ExprLen.
 				 */
-				Buf_AddBytes(body, p, 1 + len);
+				Buf_AddBytes(cmds, p, 1 + len);
 				p += 1 + len;
 				continue;
 			}
-			Buf_AddByte(body, '\\');
+			Buf_AddByte(cmds, '\\');
 		} else if (ch == ':' || ch == '\\' || ch == endc)
-			Buf_AddByte(body, '\\');
+			Buf_AddByte(cmds, '\\');
 		else if (ch == '\n') {
 			Parse_Error(PARSE_FATAL, "newline in .for value");
 			ch = ' ';	/* prevent newline injection */
 		}
-		Buf_AddByte(body, ch);
+		Buf_AddByte(cmds, ch);
 		p++;
 	}
 }
@@ -367,7 +372,7 @@ AddEscaped(Buffer *body, Substring item, char endc)
  * expression like ${i} or ${i:...} or $(i) or $(i:...) with ":Uvalue".
  */
 static void
-ForLoop_SubstVarLong(ForLoop *f, unsigned firstItem, Buffer *body,
+ForLoop_SubstVarLong(ForLoop *f, unsigned int firstItem, Buffer *body,
 		     const char **pp, char endc, const char **inout_mark)
 {
 	size_t i;
@@ -402,7 +407,7 @@ ForLoop_SubstVarLong(ForLoop *f, unsigned firstItem, Buffer *body,
  * expressions like $i with their ${:U...} expansion.
  */
 static void
-ForLoop_SubstVarShort(ForLoop *f, unsigned firstItem, Buffer *body,
+ForLoop_SubstVarShort(ForLoop *f, unsigned int firstItem, Buffer *body,
 		      const char *p, const char **inout_mark)
 {
 	char ch = *p;
@@ -446,7 +451,7 @@ found:
  * See unit-tests/directive-for-escape.mk.
  */
 static void
-ForLoop_SubstBody(ForLoop *f, unsigned firstItem, Buffer *body)
+ForLoop_SubstBody(ForLoop *f, unsigned int firstItem, Buffer *body)
 {
 	const char *p, *end;
 	const char *mark;	/* where the last substitution left off */
@@ -481,8 +486,8 @@ For_NextIteration(ForLoop *f, Buffer *body)
 	if (f->nextItem == f->items.len)
 		return false;
 
-	f->nextItem += (unsigned)f->vars.len;
-	ForLoop_SubstBody(f, f->nextItem - (unsigned)f->vars.len, body);
+	f->nextItem += (unsigned int)f->vars.len;
+	ForLoop_SubstBody(f, f->nextItem - (unsigned int)f->vars.len, body);
 	if (DEBUG(FOR)) {
 		char *details = ForLoop_Details(f);
 		debug_printf("For: loop body with %s:\n%s",
@@ -496,7 +501,7 @@ For_NextIteration(ForLoop *f, Buffer *body)
 void
 For_Break(ForLoop *f)
 {
-	f->nextItem = (unsigned)f->items.len;
+	f->nextItem = (unsigned int)f->items.len;
 }
 
 /* Run the .for loop, imitating the actions of an include file. */

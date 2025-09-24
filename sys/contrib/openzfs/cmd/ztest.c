@@ -1816,7 +1816,7 @@ ztest_zd_fini(ztest_ds_t *zd)
 	(ztest_random(10) == 0 ? DMU_TX_NOWAIT : DMU_TX_WAIT)
 
 static uint64_t
-ztest_tx_assign(dmu_tx_t *tx, dmu_tx_flag_t txg_how, const char *tag)
+ztest_tx_assign(dmu_tx_t *tx, uint64_t txg_how, const char *tag)
 {
 	uint64_t txg;
 	int error;
@@ -1829,10 +1829,9 @@ ztest_tx_assign(dmu_tx_t *tx, dmu_tx_flag_t txg_how, const char *tag)
 		if (error == ERESTART) {
 			ASSERT3U(txg_how, ==, DMU_TX_NOWAIT);
 			dmu_tx_wait(tx);
-		} else if (error == ENOSPC) {
-			ztest_record_enospc(tag);
 		} else {
-			ASSERT(error == EDQUOT || error == EIO);
+			ASSERT3U(error, ==, ENOSPC);
+			ztest_record_enospc(tag);
 		}
 		dmu_tx_abort(tx);
 		return (0);
@@ -1994,8 +1993,7 @@ ztest_log_write(ztest_ds_t *zd, dmu_tx_t *tx, lr_write_t *lr)
 
 	if (write_state == WR_COPIED &&
 	    dmu_read(zd->zd_os, lr->lr_foid, lr->lr_offset, lr->lr_length,
-	    ((lr_write_t *)&itx->itx_lr) + 1, DMU_READ_NO_PREFETCH |
-	    DMU_KEEP_CACHING) != 0) {
+	    ((lr_write_t *)&itx->itx_lr) + 1, DMU_READ_NO_PREFETCH) != 0) {
 		zil_itx_destroy(itx);
 		itx = zil_itx_create(TX_WRITE, sizeof (*lr));
 		write_state = WR_NEED_COPY;
@@ -2267,19 +2265,19 @@ ztest_replay_write(void *arg1, void *arg2, boolean_t byteswap)
 		ASSERT(doi.doi_data_block_size);
 		ASSERT0(offset % doi.doi_data_block_size);
 		if (ztest_random(4) != 0) {
-			dmu_flags_t flags = ztest_random(2) ?
+			int prefetch = ztest_random(2) ?
 			    DMU_READ_PREFETCH : DMU_READ_NO_PREFETCH;
 
 			/*
 			 * We will randomly set when to do O_DIRECT on a read.
 			 */
 			if (ztest_random(4) == 0)
-				flags |= DMU_DIRECTIO;
+				prefetch |= DMU_DIRECTIO;
 
 			ztest_block_tag_t rbt;
 
 			VERIFY(dmu_read(os, lr->lr_foid, offset,
-			    sizeof (rbt), &rbt, flags) == 0);
+			    sizeof (rbt), &rbt, prefetch) == 0);
 			if (rbt.bt_magic == BT_MAGIC) {
 				ztest_bt_verify(&rbt, os, lr->lr_foid, 0,
 				    offset, gen, txg, crtxg);
@@ -2310,7 +2308,7 @@ ztest_replay_write(void *arg1, void *arg2, boolean_t byteswap)
 		dmu_write(os, lr->lr_foid, offset, length, data, tx);
 	} else {
 		memcpy(abuf->b_data, data, length);
-		VERIFY0(dmu_assign_arcbuf_by_dbuf(db, offset, abuf, tx, 0));
+		VERIFY0(dmu_assign_arcbuf_by_dbuf(db, offset, abuf, tx));
 	}
 
 	(void) ztest_log_write(zd, tx, lr);
@@ -2535,7 +2533,7 @@ ztest_get_data(void *arg, uint64_t arg2, lr_write_t *lr, char *buf,
 		    object, offset, size, ZTRL_READER);
 
 		error = dmu_read(os, object, offset, size, buf,
-		    DMU_READ_NO_PREFETCH | DMU_KEEP_CACHING);
+		    DMU_READ_NO_PREFETCH);
 		ASSERT0(error);
 	} else {
 		ASSERT3P(zio, !=, NULL);
@@ -2551,6 +2549,7 @@ ztest_get_data(void *arg, uint64_t arg2, lr_write_t *lr, char *buf,
 		    object, offset, size, ZTRL_READER);
 
 		error = dmu_buf_hold_noread(os, object, offset, zgd, &db);
+
 		if (error == 0) {
 			blkptr_t *bp = &lr->lr_blkptr;
 
@@ -2827,7 +2826,7 @@ ztest_io(ztest_ds_t *zd, uint64_t object, uint64_t offset)
 	enum ztest_io_type io_type;
 	uint64_t blocksize;
 	void *data;
-	dmu_flags_t dmu_read_flags = DMU_READ_NO_PREFETCH;
+	uint32_t dmu_read_flags = DMU_READ_NO_PREFETCH;
 
 	/*
 	 * We will randomly set when to do O_DIRECT on a read.
@@ -4917,7 +4916,7 @@ ztest_dsl_dataset_promote_busy(ztest_ds_t *zd, uint64_t id)
 		fatal(B_FALSE, "dmu_take_snapshot(%s) = %d", snap1name, error);
 	}
 
-	error = dsl_dataset_clone(clone1name, snap1name);
+	error = dmu_objset_clone(clone1name, snap1name);
 	if (error) {
 		if (error == ENOSPC) {
 			ztest_record_enospc(FTAG);
@@ -4944,7 +4943,7 @@ ztest_dsl_dataset_promote_busy(ztest_ds_t *zd, uint64_t id)
 		fatal(B_FALSE, "dmu_open_snapshot(%s) = %d", snap3name, error);
 	}
 
-	error = dsl_dataset_clone(clone2name, snap3name);
+	error = dmu_objset_clone(clone2name, snap3name);
 	if (error) {
 		if (error == ENOSPC) {
 			ztest_record_enospc(FTAG);
@@ -5066,7 +5065,7 @@ ztest_dmu_read_write(ztest_ds_t *zd, uint64_t id)
 	uint64_t stride = 123456789ULL;
 	uint64_t width = 40;
 	int free_percent = 5;
-	dmu_flags_t dmu_read_flags = DMU_READ_PREFETCH;
+	uint32_t dmu_read_flags = DMU_READ_PREFETCH;
 
 	/*
 	 * We will randomly set when to do O_DIRECT on a read.
@@ -5542,13 +5541,13 @@ ztest_dmu_read_write_zcopy(ztest_ds_t *zd, uint64_t id)
 			}
 			if (i != 5 || chunksize < (SPA_MINBLOCKSIZE * 2)) {
 				VERIFY0(dmu_assign_arcbuf_by_dbuf(bonus_db,
-				    off, bigbuf_arcbufs[j], tx, 0));
+				    off, bigbuf_arcbufs[j], tx));
 			} else {
 				VERIFY0(dmu_assign_arcbuf_by_dbuf(bonus_db,
-				    off, bigbuf_arcbufs[2 * j], tx, 0));
+				    off, bigbuf_arcbufs[2 * j], tx));
 				VERIFY0(dmu_assign_arcbuf_by_dbuf(bonus_db,
 				    off + chunksize / 2,
-				    bigbuf_arcbufs[2 * j + 1], tx, 0));
+				    bigbuf_arcbufs[2 * j + 1], tx));
 			}
 			if (i == 1) {
 				dmu_buf_rele(dbt, FTAG);
@@ -6335,13 +6334,13 @@ ztest_dmu_snapshot_hold(ztest_ds_t *zd, uint64_t id)
 		fatal(B_FALSE, "dmu_objset_snapshot(%s) = %d", fullname, error);
 	}
 
-	error = dsl_dataset_clone(clonename, fullname);
+	error = dmu_objset_clone(clonename, fullname);
 	if (error) {
 		if (error == ENOSPC) {
-			ztest_record_enospc("dsl_dataset_clone");
+			ztest_record_enospc("dmu_objset_clone");
 			goto out;
 		}
-		fatal(B_FALSE, "dsl_dataset_clone(%s) = %d", clonename, error);
+		fatal(B_FALSE, "dmu_objset_clone(%s) = %d", clonename, error);
 	}
 
 	error = dsl_destroy_snapshot(fullname, B_TRUE);

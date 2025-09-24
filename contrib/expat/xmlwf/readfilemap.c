@@ -14,7 +14,6 @@
    Copyright (c) 2017      Rhodri James <rhodri@wildebeest.org.uk>
    Copyright (c) 2017      Franek Korta <fkorta@gmail.com>
    Copyright (c) 2022      Sean McBride <sean@rogue-research.com>
-   Copyright (c) 2025      Hanno Böck <hanno@gentoo.org>
    Licensed under the MIT license:
 
    Permission is  hereby granted,  free of charge,  to any  person obtaining
@@ -56,7 +55,7 @@
 #  define EXPAT_read_count_t int
 #  define EXPAT_read_req_t unsigned int
 #else /* POSIX */
-/* https://pubs.opengroup.org/onlinepubs/009695399/functions/read.html */
+/* http://pubs.opengroup.org/onlinepubs/009695399/functions/read.html */
 #  define EXPAT_read read
 #  define EXPAT_read_count_t ssize_t
 #  define EXPAT_read_req_t size_t

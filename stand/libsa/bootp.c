@@ -42,6 +42,7 @@
 
 #include <string.h>
 
+#define BOOTP_DEBUGxx
 #define SUPPORT_DHCP
 
 #define	DHCP_ENV_NOVENDOR	1	/* do not parse vendor options */
@@ -129,7 +130,10 @@ bootp(int sock)
 	} wbuf;
 	struct bootp *rbootp;
 
-	DEBUG_PRINTF(1, ("bootp: socket=%d\n", sock));
+#ifdef BOOTP_DEBUG
+ 	if (debug)
+		printf("bootp: socket=%d\n", sock);
+#endif
 	if (!bot)
 		bot = getsecs();
 	
@@ -137,7 +141,10 @@ bootp(int sock)
 		printf("bootp: bad socket. %d\n", sock);
 		return;
 	}
-	DEBUG_PRINTF(1, ("bootp: socktodesc=%lx\n", (long)d));
+#ifdef BOOTP_DEBUG
+ 	if (debug)
+		printf("bootp: d=%lx\n", (long)d);
+#endif
 
 	bp = &wbuf.wbootp;
 	bzero(bp, sizeof(*bp));
@@ -218,20 +225,31 @@ bootp(int sock)
 			netmask = htonl(IN_CLASSB_NET);
 		else
 			netmask = htonl(IN_CLASSC_NET);
-		DEBUG_PRINTF(1, ("'native netmask' is %s\n", intoa(netmask)));
+#ifdef BOOTP_DEBUG
+		if (debug)
+			printf("'native netmask' is %s\n", intoa(netmask));
+#endif
 	}
 
-	DEBUG_PRINTF(1,("rootip: %s\n", inet_ntoa(rootip)));
-	DEBUG_PRINTF(1,("mask: %s\n", intoa(netmask)));
+#ifdef BOOTP_DEBUG
+	if (debug)
+		printf("mask: %s\n", intoa(netmask));
+#endif
 
 	/* We need a gateway if root is on a different net */
 	if (!SAMENET(myip, rootip, netmask)) {
-		DEBUG_PRINTF(1,("need gateway for root ip\n"));
+#ifdef BOOTP_DEBUG
+		if (debug)
+			printf("need gateway for root ip\n");
+#endif
 	}
 
 	/* Toss gateway if on a different net */
 	if (!SAMENET(myip, gateip, netmask)) {
-		DEBUG_PRINTF(1,("gateway ip (%s) bad\n", inet_ntoa(gateip)));
+#ifdef BOOTP_DEBUG
+		if (debug)
+			printf("gateway ip (%s) bad\n", inet_ntoa(gateip));
+#endif
 		gateip.s_addr = 0;
 	}
 
@@ -246,11 +264,18 @@ bootpsend(struct iodesc *d, void *pkt, size_t len)
 {
 	struct bootp *bp;
 
-	DEBUG_PRINTF(1,("bootpsend: d=%lx called.\n", (long)d));
+#ifdef BOOTP_DEBUG
+	if (debug)
+		printf("bootpsend: d=%lx called.\n", (long)d);
+#endif
+
 	bp = pkt;
 	bp->bp_secs = htons((u_short)(getsecs() - bot));
 
-	DEBUG_PRINTF(1,("bootpsend: calling sendudp\n"));
+#ifdef BOOTP_DEBUG
+	if (debug)
+		printf("bootpsend: calling sendudp\n");
+#endif
 
 	return (sendudp(d, pkt, len));
 }
@@ -263,22 +288,34 @@ bootprecv(struct iodesc *d, void **pkt, void **payload, time_t tleft,
 	struct bootp *bp;
 	void *ptr;
 
-	DEBUG_PRINTF(1,("bootp_recvoffer: called\n"));
+#ifdef BOOTP_DEBUG
+	if (debug)
+		printf("bootp_recvoffer: called\n");
+#endif
 
 	ptr = NULL;
 	n = readudp(d, &ptr, (void **)&bp, tleft);
 	if (n == -1 || n < sizeof(struct bootp) - BOOTP_VENDSIZE)
 		goto bad;
 
-	DEBUG_PRINTF(1,("bootprecv: checked.  bp = %p, n = %zd\n", bp, n));
-
+#ifdef BOOTP_DEBUG
+	if (debug)
+		printf("bootprecv: checked.  bp = %p, n = %zd\n", bp, n);
+#endif
 	if (bp->bp_xid != htonl(d->xid)) {
-		DEBUG_PRINTF(1,("bootprecv: expected xid 0x%lx, got 0x%x\n",
-			d->xid, ntohl(bp->bp_xid)));
+#ifdef BOOTP_DEBUG
+		if (debug) {
+			printf("bootprecv: expected xid 0x%lx, got 0x%x\n",
+			    d->xid, ntohl(bp->bp_xid));
+		}
+#endif
 		goto bad;
 	}
 
-	DEBUG_PRINTF(1,("bootprecv: got one!\n"));
+#ifdef BOOTP_DEBUG
+	if (debug)
+		printf("bootprecv: got one!\n");
+#endif
 
 	/* Suck out vendor info */
 	if (bcmp(vm_rfc1048, bp->bp_vend, sizeof(vm_rfc1048)) == 0) {
@@ -322,7 +359,10 @@ vend_rfc1048(u_char *cp, u_int len)
 	u_char tag;
 	const char *val;
 
-	DEBUG_PRINTF(1,("vend_rfc1048 bootp info. len=%d\n", len));
+#ifdef BOOTP_DEBUG
+	if (debug)
+		printf("vend_rfc1048 bootp info. len=%d\n", len);
+#endif
 	ep = cp + len;
 
 	/* Step over magic cookie */
@@ -403,8 +443,10 @@ vend_cmu(u_char *cp)
 {
 	struct cmu_vend *vp;
 
-	DEBUG_PRINTF(1,("vend_cmu bootp info.\n"));
-
+#ifdef BOOTP_DEBUG
+	if (debug)
+		printf("vend_cmu bootp info.\n");
+#endif
 	vp = (struct cmu_vend *)cp;
 
 	if (vp->v_smask.s_addr != 0) {

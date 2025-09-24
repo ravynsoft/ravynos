@@ -43,7 +43,6 @@
 #endif
 
 #include "bootstrap.h"
-#include "modinfo.h"
 
 #define	MDIR_REMOVED	0x0001
 #define	MDIR_NOHINTS	0x0002
@@ -66,7 +65,7 @@ static char *			mod_searchmodule_pnpinfo(const char *bus, const char *pnpinfo);
 static void			file_insert_tail(struct preloaded_file *mp);
 static void			file_remove(struct preloaded_file *fp);
 static void			file_remove_tail(struct preloaded_file *fp);
-static struct file_metadata *	metadata_next(struct file_metadata *base_mp, int type);
+struct file_metadata*		metadata_next(struct file_metadata *base_mp, int type);
 static void			moduledir_readhints(struct moduledir *mdp);
 static void			moduledir_rebuild(void);
 
@@ -455,8 +454,7 @@ command_pnpload(int argc, char *argv[])
 
 #if defined(LOADER_FDT_SUPPORT)
 static void
-pnpautoload_fdt_bus(const char *busname)
-{
+pnpautoload_fdt_bus(const char *busname) {
 	const char *pnpstring;
 	const char *compatstr;
 	char *pnpinfo = NULL;
@@ -554,7 +552,7 @@ command_pnpautoload(int argc, char *argv[])
 /*
  * File level interface, functions file_*
  */
-static int
+int
 file_load(char *filename, vm_offset_t dest, struct preloaded_file **result)
 {
 	static int last_file_format = 0;
@@ -563,7 +561,8 @@ file_load(char *filename, vm_offset_t dest, struct preloaded_file **result)
 	int i;
 
 	TSENTER2(filename);
-	dest = md_align(dest);
+	if (archsw.arch_loadaddr != NULL)
+		dest = archsw.arch_loadaddr(LOAD_RAW, filename, dest);
 
 	error = EFTYPE;
 	for (i = last_file_format, fp = NULL;
@@ -713,7 +712,8 @@ file_loadraw(const char *fname, const char *type, int insert)
 #endif
 #endif
 
-	loadaddr = md_align(loadaddr);
+	if (archsw.arch_loadaddr != NULL)
+		loadaddr = archsw.arch_loadaddr(LOAD_RAW, name, loadaddr);
 
 	if (module_verbose > MODULE_VERBOSE_SILENT)
 		printf("%s ", name);
@@ -915,7 +915,7 @@ file_findfile(const char *name, const char *type)
  * Find a module matching (name) inside of given file.
  * NULL may be passed as a wildcard.
  */
-static struct kernel_module *
+struct kernel_module *
 file_findmodule(struct preloaded_file *fp, char *modname,
 	struct mod_depend *verinfo)
 {
@@ -1014,7 +1014,9 @@ file_addbuf(const char *name, const char *type, size_t len, void *buf)
 	}
 
 	/* Figure out where to load the data. */
-	dest = md_align(loadaddr);
+	dest = loadaddr;
+	if (archsw.arch_loadaddr != NULL)
+		dest = archsw.arch_loadaddr(LOAD_RAW, (void *)name, dest);
 
 	/* Create & populate control structure */
 	fp = file_alloc();
@@ -1047,7 +1049,7 @@ file_addbuf(const char *name, const char *type, size_t len, void *buf)
 	return(0);
 }
 
-static struct file_metadata *
+struct file_metadata *
 metadata_next(struct file_metadata *md, int type)
 {
 

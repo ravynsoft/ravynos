@@ -458,7 +458,8 @@ ATF_TC(exec_umask);
 ATF_TC_HEAD(exec_umask, tc)
 {
     atf_tc_set_md_var(tc, "descr", "Checks that atf_check_exec_array "
-                      "works regardless of umask");
+                      "correctly reports an error if the umask is too "
+                      "restrictive to create temporary files");
 }
 ATF_TC_BODY(exec_umask, tc)
 {
@@ -472,7 +473,10 @@ ATF_TC_BODY(exec_umask, tc)
     argv[2] = NULL;
 
     umask(0222);
-    RE(atf_check_exec_array(argv, &result));
+    atf_error_t err = atf_check_exec_array(argv, &result);
+    ATF_CHECK(atf_is_error(err));
+    ATF_CHECK(atf_error_is(err, "invalid_umask"));
+    atf_error_free(err);
 
     atf_fs_path_fini(&process_helpers);
 }

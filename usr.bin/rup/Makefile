@@ -1,4 +1,3 @@
-PACKAGE= rcmds
 PROG=	rup
 
 LIBADD=	rpcsvc

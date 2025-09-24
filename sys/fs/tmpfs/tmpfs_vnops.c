@@ -1691,10 +1691,6 @@ tmpfs_pathconf(struct vop_pathconf_args *v)
 		*retval = PAGE_SIZE;
 		break;
 
-	case _PC_HAS_HIDDENSYSTEM:
-		*retval = 1;
-		break;
-
 	default:
 		error = vop_stdpathconf(v);
 	}

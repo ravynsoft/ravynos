@@ -7,6 +7,7 @@
 #include <linux/pinctrl/consumer.h>
 #include <linux/of.h>
 #include <linux/of_reserved_mem.h>
+#include <linux/of_gpio.h>
 #include <linux/iopoll.h>
 #include <linux/reset.h>
 #include <linux/of_net.h>
@@ -515,8 +516,7 @@ static int mt798x_wmac_adie_patch_7976(struct mt7915_dev *dev, u8 adie)
 	if (ret)
 		return ret;
 
-	if (version == 0x8a00 || version == 0x8a10 ||
-	    version == 0x8b00 || version == 0x8c10) {
+	if (version == 0x8a00 || version == 0x8a10 || version == 0x8b00) {
 		rg_xo_01 = 0x1d59080f;
 		rg_xo_03 = 0x34c00fe0;
 	} else {
@@ -1219,7 +1219,10 @@ static int mt798x_wmac_init(struct mt7915_dev *dev)
 		return PTR_ERR(dev->sku);
 
 	dev->rstc = devm_reset_control_get(pdev, "consys");
-	return PTR_ERR_OR_ZERO(dev->rstc);
+	if (IS_ERR(dev->rstc))
+		return PTR_ERR(dev->rstc);
+
+	return 0;
 }
 
 static int mt798x_wmac_probe(struct platform_device *pdev)
@@ -1282,11 +1285,13 @@ free_device:
 	return ret;
 }
 
-static void mt798x_wmac_remove(struct platform_device *pdev)
+static int mt798x_wmac_remove(struct platform_device *pdev)
 {
 	struct mt7915_dev *dev = platform_get_drvdata(pdev);
 
 	mt7915_unregister_device(dev);
+
+	return 0;
 }
 
 static const struct of_device_id mt798x_wmac_of_match[] = {

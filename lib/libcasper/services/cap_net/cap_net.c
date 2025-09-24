@@ -288,7 +288,7 @@ cap_getaddrinfo(cap_channel_t *chan, const char *hostname, const char *servname,
 	const nvlist_t *nvlai;
 	char nvlname[64];
 	nvlist_t *nvl;
-	int error, serrno, n;
+	int error, n;
 
 	nvl = nvlist_create(0);
 	nvlist_add_string(nvl, "cmd", "getaddrinfo");
@@ -311,9 +311,7 @@ cap_getaddrinfo(cap_channel_t *chan, const char *hostname, const char *servname,
 		return (EAI_MEMORY);
 	if (nvlist_get_number(nvl, "error") != 0) {
 		error = (int)nvlist_get_number(nvl, "error");
-		serrno = dnvlist_get_number(nvl, "errno", 0);
 		nvlist_destroy(nvl);
-		errno = (error == EAI_SYSTEM) ? serrno : 0;
 		return (error);
 	}
 
@@ -352,7 +350,7 @@ cap_getnameinfo(cap_channel_t *chan, const struct sockaddr *sa, socklen_t salen,
     char *host, size_t hostlen, char *serv, size_t servlen, int flags)
 {
 	nvlist_t *nvl;
-	int error, serrno;
+	int error;
 
 	nvl = nvlist_create(0);
 	nvlist_add_string(nvl, "cmd", "getnameinfo");
@@ -365,9 +363,7 @@ cap_getnameinfo(cap_channel_t *chan, const struct sockaddr *sa, socklen_t salen,
 		return (EAI_MEMORY);
 	if (nvlist_get_number(nvl, "error") != 0) {
 		error = (int)nvlist_get_number(nvl, "error");
-		serrno = dnvlist_get_number(nvl, "errno", 0);
 		nvlist_destroy(nvl);
-		errno = (error == EAI_SYSTEM) ? serrno : 0;
 		return (error);
 	}
 
@@ -862,21 +858,19 @@ net_getnameinfo(const nvlist_t *limits, const nvlist_t *nvlin, nvlist_t *nvlout)
 	char *host, *serv;
 	size_t sabinsize, hostlen, servlen;
 	socklen_t salen;
-	int error, serrno, flags;
+	int error, flags;
 	const nvlist_t *funclimit;
 
-	host = serv = NULL;
-	if (!net_allowed_mode(limits, CAPNET_ADDR2NAME)) {
-		serrno = ENOTCAPABLE;
-		error = EAI_SYSTEM;
-		goto out;
-	}
+	if (!net_allowed_mode(limits, CAPNET_ADDR2NAME))
+		return (ENOTCAPABLE);
 	funclimit = NULL;
 	if (limits != NULL) {
 		funclimit = dnvlist_get_nvlist(limits, LIMIT_NV_ADDR2NAME,
 		    NULL);
 	}
+
 	error = 0;
+	host = serv = NULL;
 	memset(&sast, 0, sizeof(sast));
 
 	hostlen = (size_t)nvlist_get_number(nvlin, "hostlen");
@@ -903,8 +897,7 @@ net_getnameinfo(const nvlist_t *limits, const nvlist_t *nvlin, nvlist_t *nvlout)
 		goto out;
 	}
 	if (!net_allowed_bsaddr(funclimit, sabin, sabinsize)) {
-		serrno = ENOTCAPABLE;
-		error = EAI_SYSTEM;
+		error = ENOTCAPABLE;
 		goto out;
 	}
 
@@ -920,8 +913,7 @@ net_getnameinfo(const nvlist_t *limits, const nvlist_t *nvlin, nvlist_t *nvlout)
 	}
 
 	if (!net_allowed_family(funclimit, (int)sast.ss_family)) {
-		serrno = ENOTCAPABLE;
-		error = EAI_SYSTEM;
+		error = ENOTCAPABLE;
 		goto out;
 	}
 
@@ -929,7 +921,6 @@ net_getnameinfo(const nvlist_t *limits, const nvlist_t *nvlin, nvlist_t *nvlout)
 
 	error = getnameinfo((struct sockaddr *)&sast, salen, host, hostlen,
 	    serv, servlen, flags);
-	serrno = errno;
 	if (error != 0)
 		goto out;
 
@@ -941,8 +932,6 @@ out:
 	if (error != 0) {
 		free(host);
 		free(serv);
-		if (error == EAI_SYSTEM)
-			nvlist_add_number(nvlout, "errno", serrno);
 	}
 	return (error);
 }
@@ -972,15 +961,12 @@ net_getaddrinfo(const nvlist_t *limits, const nvlist_t *nvlin, nvlist_t *nvlout)
 	char nvlname[64];
 	nvlist_t *elem;
 	unsigned int ii;
-	int error, serrno, family, n;
+	int error, family, n;
 	const nvlist_t *funclimit;
 	bool dnscache;
 
-	if (!net_allowed_mode(limits, CAPNET_NAME2ADDR)) {
-		serrno = ENOTCAPABLE;
-		error = EAI_SYSTEM;
-		goto out;
-	}
+	if (!net_allowed_mode(limits, CAPNET_NAME2ADDR))
+		return (ENOTCAPABLE);
 	dnscache = net_allowed_mode(limits, CAPNET_CONNECTDNS);
 	funclimit = NULL;
 	if (limits != NULL) {
@@ -1010,18 +996,11 @@ net_getaddrinfo(const nvlist_t *limits, const nvlist_t *nvlin, nvlist_t *nvlout)
 		family = AF_UNSPEC;
 	}
 
-	if (!net_allowed_family(funclimit, family)) {
-		errno = ENOTCAPABLE;
-		error = EAI_SYSTEM;
-		goto out;
-	}
-	if (!net_allowed_hosts(funclimit, hostname, servname)) {
-		errno = ENOTCAPABLE;
-		error = EAI_SYSTEM;
-		goto out;
-	}
+	if (!net_allowed_family(funclimit, family))
+		return (ENOTCAPABLE);
+	if (!net_allowed_hosts(funclimit, hostname, servname))
+		return (ENOTCAPABLE);
 	error = getaddrinfo(hostname, servname, hintsp, &res);
-	serrno = errno;
 	if (error != 0) {
 		goto out;
 	}
@@ -1040,8 +1019,6 @@ net_getaddrinfo(const nvlist_t *limits, const nvlist_t *nvlin, nvlist_t *nvlout)
 	freeaddrinfo(res);
 	error = 0;
 out:
-	if (error == EAI_SYSTEM)
-		nvlist_add_number(nvlout, "errno", serrno);
 	return (error);
 }
 

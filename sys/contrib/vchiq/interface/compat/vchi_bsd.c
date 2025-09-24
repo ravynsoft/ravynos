@@ -36,10 +36,11 @@
 #include <sys/firmware.h>
 #include <sys/param.h>
 #include <sys/proc.h>
-#include <sys/stdarg.h>
 #include <sys/syscallsubr.h>
 #include <sys/systm.h>
 #include <sys/taskqueue.h>
+
+#include <machine/stdarg.h>
 
 #include "mbox_if.h"
 

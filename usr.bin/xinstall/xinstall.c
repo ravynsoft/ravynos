@@ -81,7 +81,7 @@
  * non-FreeBSD system. Linux does not have the st_flags and st_birthtime
  * members in struct stat so we need to omit support for changing those fields.
  */
-#ifndef __linux__
+#ifdef UF_SETTABLE
 #define HAVE_STRUCT_STAT_ST_FLAGS 1
 #else
 #define HAVE_STRUCT_STAT_ST_FLAGS 0

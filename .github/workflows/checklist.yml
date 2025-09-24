@@ -4,7 +4,7 @@ name: Checklist
 # for the submission to align with CONTRIBUTING.md
 
 on:
-  pull_request_target:
+  pull_request:
     types: [ opened, reopened, edited, synchronize ]
 
 permissions:
@@ -89,7 +89,6 @@ jobs:
               /* Loop for each key in "checklist". */
               for (const c in checklist)
                 msg += "- " + c + "<sup>" + checklist[c].join(", ") + "</sup>\n";
-              msg += "\nPlease review CONTRIBUTING.md, then update and push your branch again.\n"
 
               comment_func({
                 owner: context.repo.owner,

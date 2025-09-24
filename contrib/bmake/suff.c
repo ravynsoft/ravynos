@@ -1,4 +1,4 @@
-/*	$NetBSD: suff.c,v 1.384 2025/05/18 06:24:27 rillig Exp $	*/
+/*	$NetBSD: suff.c,v 1.383 2025/01/14 21:39:24 rillig Exp $	*/
 
 /*
  * Copyright (c) 1988, 1989, 1990, 1993
@@ -115,7 +115,7 @@
 #include "dir.h"
 
 /*	"@(#)suff.c	8.4 (Berkeley) 3/21/94"	*/
-MAKE_RCSID("$NetBSD: suff.c,v 1.384 2025/05/18 06:24:27 rillig Exp $");
+MAKE_RCSID("$NetBSD: suff.c,v 1.383 2025/01/14 21:39:24 rillig Exp $");
 
 typedef List SuffixList;
 typedef ListNode SuffixListNode;
@@ -1027,16 +1027,16 @@ CandidateList_AddCandidatesFor(CandidateList *list, Candidate *cand)
  * Return whether a candidate was removed.
  */
 static bool
-RemoveCandidate(CandidateList *sources)
+RemoveCandidate(CandidateList *srcs)
 {
 	CandidateListNode *ln;
 
 #ifdef DEBUG_SRC
-	debug_printf("cleaning list %p:", sources);
-	CandidateList_PrintAddrs(sources);
+	debug_printf("cleaning list %p:", srcs);
+	CandidateList_PrintAddrs(srcs);
 #endif
 
-	for (ln = sources->first; ln != NULL; ln = ln->next) {
+	for (ln = srcs->first; ln != NULL; ln = ln->next) {
 		Candidate *src = ln->datum;
 
 		if (src->numChildren == 0) {
@@ -1056,10 +1056,10 @@ RemoveCandidate(CandidateList *sources)
 			}
 #ifdef DEBUG_SRC
 			debug_printf("free: list %p src %p:%s children %d\n",
-			    sources, src, src->file, src->numChildren);
+			    srcs, src, src->file, src->numChildren);
 			Lst_Done(&src->childrenList);
 #endif
-			Lst_Remove(sources, ln);
+			Lst_Remove(srcs, ln);
 			free(src->file);
 			free(src);
 			return true;
@@ -1067,7 +1067,7 @@ RemoveCandidate(CandidateList *sources)
 #ifdef DEBUG_SRC
 		else {
 			debug_printf("keep: list %p src %p:%s children %d:",
-			    sources, src, src->file, src->numChildren);
+			    srcs, src, src->file, src->numChildren);
 			CandidateList_PrintAddrs(&src->childrenList);
 		}
 #endif
@@ -1076,20 +1076,20 @@ RemoveCandidate(CandidateList *sources)
 	return false;
 }
 
-/* Find the first existing file/target in sources. */
+/* Find the first existing file/target in srcs. */
 static Candidate *
-FindThem(CandidateList *sources, CandidateSearcher *cs)
+FindThem(CandidateList *srcs, CandidateSearcher *cs)
 {
 	HashSet seen;
 
 	HashSet_Init(&seen);
 
-	while (!Lst_IsEmpty(sources)) {
-		Candidate *src = Lst_Dequeue(sources);
+	while (!Lst_IsEmpty(srcs)) {
+		Candidate *src = Lst_Dequeue(srcs);
 
 #ifdef DEBUG_SRC
 		debug_printf("remove from list %p src %p:%s\n",
-		    sources, src, src->file);
+		    srcs, src, src->file);
 #endif
 		DEBUG1(SUFF, "\ttrying %s...", src->file);
 
@@ -1116,7 +1116,7 @@ FindThem(CandidateList *sources, CandidateSearcher *cs)
 		DEBUG0(SUFF, "not there\n");
 
 		if (HashSet_Add(&seen, src->file))
-			CandidateList_AddCandidatesFor(sources, src);
+			CandidateList_AddCandidatesFor(srcs, src);
 		else {
 			DEBUG1(SUFF, "FindThem: skipping duplicate \"%s\"\n",
 			    src->file);
@@ -1650,7 +1650,7 @@ FindDepsLib(GNode *gn)
 
 static void
 FindDepsRegularKnown(const char *name, size_t nameLen, GNode *gn,
-		     CandidateList *sources, CandidateList *targets)
+		     CandidateList *srcs, CandidateList *targs)
 {
 	SuffixListNode *ln;
 	Candidate *targ;
@@ -1665,20 +1665,20 @@ FindDepsRegularKnown(const char *name, size_t nameLen, GNode *gn,
 		targ = Candidate_New(bmake_strdup(gn->name), pref, suff, NULL,
 		    gn);
 
-		CandidateList_AddCandidatesFor(sources, targ);
+		CandidateList_AddCandidatesFor(srcs, targ);
 
 		/* Record the target so we can nuke it. */
-		Lst_Append(targets, targ);
+		Lst_Append(targs, targ);
 	}
 }
 
 static void
 FindDepsRegularUnknown(GNode *gn, const char *sopref,
-		       CandidateList *sources, CandidateList *targets)
+		       CandidateList *srcs, CandidateList *targs)
 {
 	Candidate *targ;
 
-	if (!Lst_IsEmpty(targets) || nullSuff == NULL)
+	if (!Lst_IsEmpty(targs) || nullSuff == NULL)
 		return;
 
 	DEBUG1(SUFF, "\tNo known suffix on %s. Using .NULL suffix\n", gn->name);
@@ -1693,14 +1693,14 @@ FindDepsRegularUnknown(GNode *gn, const char *sopref,
 	 * this anymore.
 	 */
 	if (Lst_IsEmpty(&gn->commands))
-		CandidateList_AddCandidatesFor(sources, targ);
+		CandidateList_AddCandidatesFor(srcs, targ);
 	else {
 		DEBUG0(SUFF, "not ");
 	}
 
 	DEBUG0(SUFF, "adding suffix rules\n");
 
-	Lst_Append(targets, targ);
+	Lst_Append(targs, targ);
 }
 
 /*
@@ -1762,12 +1762,12 @@ static void
 FindDepsRegular(GNode *gn, CandidateSearcher *cs)
 {
 	/* List of sources at which to look */
-	CandidateList sources = LST_INIT;
+	CandidateList srcs = LST_INIT;
 	/*
 	 * List of targets to which things can be transformed.
 	 * They all have the same file, but different suff and prefix fields.
 	 */
-	CandidateList targets = LST_INIT;
+	CandidateList targs = LST_INIT;
 	Candidate *bottom;	/* Start of found transformation path */
 	Candidate *src;
 	Candidate *targ;
@@ -1803,25 +1803,25 @@ FindDepsRegular(GNode *gn, CandidateSearcher *cs)
 
 	if (!(gn->type & OP_PHONY)) {
 
-		FindDepsRegularKnown(name, nameLen, gn, &sources, &targets);
+		FindDepsRegularKnown(name, nameLen, gn, &srcs, &targs);
 
 		/* Handle target of unknown suffix... */
-		FindDepsRegularUnknown(gn, name, &sources, &targets);
+		FindDepsRegularUnknown(gn, name, &srcs, &targs);
 
 		/*
 		 * Using the list of possible sources built up from the target
 		 * suffix(es), try and find an existing file/target that
 		 * matches.
 		 */
-		bottom = FindThem(&sources, cs);
+		bottom = FindThem(&srcs, cs);
 
 		if (bottom == NULL) {
 			/*
 			 * No known transformations -- use the first suffix
 			 * found for setting the local variables.
 			 */
-			if (targets.first != NULL)
-				targ = targets.first->datum;
+			if (targs.first != NULL)
+				targ = targs.first->datum;
 			else
 				targ = NULL;
 		} else {
@@ -1940,11 +1940,11 @@ sfnd_return:
 	if (bottom != NULL)
 		CandidateSearcher_AddIfNew(cs, bottom);
 
-	while (RemoveCandidate(&sources) || RemoveCandidate(&targets))
+	while (RemoveCandidate(&srcs) || RemoveCandidate(&targs))
 		continue;
 
-	CandidateSearcher_MoveAll(cs, &sources);
-	CandidateSearcher_MoveAll(cs, &targets);
+	CandidateSearcher_MoveAll(cs, &srcs);
+	CandidateSearcher_MoveAll(cs, &targs);
 }
 
 static void

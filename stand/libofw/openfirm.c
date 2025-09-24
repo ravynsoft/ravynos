@@ -56,7 +56,8 @@
  */
 
 #include <sys/endian.h>
-#include <sys/stdarg.h>
+
+#include <machine/stdarg.h>
 
 #include <stand.h>
 

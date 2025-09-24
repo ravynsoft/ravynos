@@ -233,6 +233,9 @@ zfs_uiomove_iter(void *p, size_t n, zfs_uio_rw_t rw, zfs_uio_t *uio,
 {
 	size_t cnt = MIN(n, uio->uio_resid);
 
+	if (uio->uio_skip)
+		iov_iter_advance(uio->uio_iter, uio->uio_skip);
+
 	if (rw == UIO_READ)
 		cnt = copy_to_iter(p, cnt, uio->uio_iter);
 	else
@@ -504,13 +507,11 @@ static int
 zfs_uio_pin_user_pages(zfs_uio_t *uio, zfs_uio_rw_t rw)
 {
 	long res;
-	size_t skip = uio->uio_iter->iov_offset;
+	size_t skip = uio->uio_skip;
 	size_t len = uio->uio_resid - skip;
 	unsigned int gup_flags = 0;
 	unsigned long addr;
 	unsigned long nr_pages;
-
-	ASSERT3U(uio->uio_segflg, ==, UIO_ITER);
 
 	/*
 	 * Kernel 6.2 introduced the FOLL_PCI_P2PDMA flag. This flag could
@@ -576,7 +577,7 @@ static int
 zfs_uio_get_dio_pages_iov_iter(zfs_uio_t *uio, zfs_uio_rw_t rw)
 {
 	size_t start;
-	size_t wanted = uio->uio_resid;
+	size_t wanted = uio->uio_resid - uio->uio_skip;
 	ssize_t rollback = 0;
 	ssize_t cnt;
 	unsigned maxpages = DIV_ROUND_UP(wanted, PAGE_SIZE);
@@ -610,7 +611,7 @@ zfs_uio_get_dio_pages_iov_iter(zfs_uio_t *uio, zfs_uio_rw_t rw)
 #endif
 
 	}
-	ASSERT3U(rollback, ==, uio->uio_resid);
+	ASSERT3U(rollback, ==, uio->uio_resid - uio->uio_skip);
 	iov_iter_revert(uio->uio_iter, rollback);
 
 	return (0);

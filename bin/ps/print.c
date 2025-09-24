@@ -66,7 +66,7 @@
 void
 printheader(void)
 {
-	const VAR *v;
+	VAR *v;
 	struct varent *vent;
 
 	STAILQ_FOREACH(vent, &varlist, next_ve)
@@ -81,9 +81,9 @@ printheader(void)
 			if (STAILQ_NEXT(vent, next_ve) == NULL)	/* last one */
 				xo_emit("{T:/%hs}", vent->header);
 			else
-				xo_emit("{T:/%-*hs}", vent->width, vent->header);
+				xo_emit("{T:/%-*hs}", v->width, vent->header);
 		} else
-			xo_emit("{T:/%*hs}", vent->width, vent->header);
+			xo_emit("{T:/%*hs}", v->width, vent->header);
 		if (STAILQ_NEXT(vent, next_ve) != NULL)
 			xo_emit("{P: }");
 	}
@@ -277,7 +277,7 @@ state(KINFO *k, VARENT *ve __unused)
 	return (buf);
 }
 
-#define	scalepri(x)	((x) - PUSER)
+#define	scalepri(x)	((x) - PZERO)
 
 char *
 pri(KINFO *k, VARENT *ve __unused)
@@ -734,7 +734,7 @@ priorityr(KINFO *k, VARENT *ve __unused)
  * structures.
  */
 static char *
-printval(void *bp, const VAR *v)
+printval(void *bp, VAR *v)
 {
 	static char ofmt[32] = "%";
 	const char *fcp;
@@ -747,10 +747,6 @@ printval(void *bp, const VAR *v)
 #define	CHKINF127(n)	(((n) > 127) && (v->flag & INF127) ? 127 : (n))
 
 	switch (v->type) {
-	case UNSPEC:
-		xo_errx(1, "cannot print value of unspecified type "
-		    "(internal error)");
-		break;
 	case CHAR:
 		(void)asprintf(&str, ofmt, *(char *)bp);
 		break;
@@ -781,9 +777,6 @@ printval(void *bp, const VAR *v)
 	case PGTOK:
 		(void)asprintf(&str, ofmt, ps_pgtok(*(u_long *)bp));
 		break;
-	default:
-		xo_errx(1, "unknown type (internal error)");
-		break;
 	}
 
 	return (str);
@@ -792,7 +785,7 @@ printval(void *bp, const VAR *v)
 char *
 kvar(KINFO *k, VARENT *ve)
 {
-	const VAR *v;
+	VAR *v;
 
 	v = ve->var;
 	return (printval((char *)((char *)k->ki_p + v->off), v));
@@ -801,7 +794,7 @@ kvar(KINFO *k, VARENT *ve)
 char *
 rvar(KINFO *k, VARENT *ve)
 {
-	const VAR *v;
+	VAR *v;
 
 	v = ve->var;
 	if (!k->ki_valid)

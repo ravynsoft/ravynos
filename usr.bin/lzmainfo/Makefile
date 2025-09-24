@@ -8,10 +8,7 @@ SRCS+=	lzmainfo.c
 
 .PATH: ${XZDIR}/common
 SRCS+=	tuklib_progname.c \
-	tuklib_exit.c \
-	tuklib_mbstr_nonprint.c \
-	tuklib_mbstr_width.c \
-	tuklib_mbstr_wrap.c
+	tuklib_exit.c
 
 CFLAGS+=	-DHAVE_CONFIG_H \
 		-I${LZMALIBDIR} \

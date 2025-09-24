@@ -1,4 +1,3 @@
-PACKAGE= toolchain
 PROG=	mkstr
 
 WARNS?=	2

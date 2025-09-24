@@ -523,8 +523,7 @@ mt7915_fw_debug_wm_set(void *data, u64 val)
 
 	/* WM CPU info record control */
 	mt76_clear(dev, MT_CPU_UTIL_CTRL, BIT(0));
-	mt76_wr(dev, MT_DIC_CMD_REG_CMD, BIT(2) | BIT(13) |
-		(dev->fw.debug_wm ? 0 : BIT(0)));
+	mt76_wr(dev, MT_DIC_CMD_REG_CMD, BIT(2) | BIT(13) | !dev->fw.debug_wm);
 	mt76_wr(dev, MT_MCU_WM_CIRQ_IRQ_MASK_CLR_ADDR, BIT(5));
 	mt76_wr(dev, MT_MCU_WM_CIRQ_IRQ_SOFT_ADDR, BIT(5));
 
@@ -1050,7 +1049,6 @@ static ssize_t
 mt7915_rate_txpower_set(struct file *file, const char __user *user_buf,
 			size_t count, loff_t *ppos)
 {
-	int i, ret, pwr, pwr160 = 0, pwr80 = 0, pwr40 = 0, pwr20 = 0;
 	struct mt7915_phy *phy = file->private_data;
 	struct mt7915_dev *dev = phy->dev;
 	struct mt76_phy *mphy = phy->mt76;
@@ -1059,6 +1057,7 @@ mt7915_rate_txpower_set(struct file *file, const char __user *user_buf,
 		.band_idx = phy->mt76->band_idx,
 	};
 	char buf[100];
+	int i, ret, pwr160 = 0, pwr80 = 0, pwr40 = 0, pwr20 = 0;
 	enum mac80211_rx_encoding mode;
 	u32 offs = 0, len = 0;
 
@@ -1131,8 +1130,8 @@ skip:
 	if (ret)
 		goto out;
 
-	pwr = max3(pwr80, pwr40, pwr20);
-	mphy->txpower_cur = max3(mphy->txpower_cur, pwr160, pwr);
+	mphy->txpower_cur = max(mphy->txpower_cur,
+				max(pwr160, max(pwr80, max(pwr40, pwr20))));
 out:
 	mutex_unlock(&dev->mt76.mutex);
 

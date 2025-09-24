@@ -93,7 +93,6 @@ void 	wlock_acquire(rtld_lock_t, RtldLockState *);
 void	lock_release(rtld_lock_t, RtldLockState *);
 void	lock_upgrade(rtld_lock_t, RtldLockState *);
 void	lock_restart_for_upgrade(RtldLockState *);
-bool	lockstate_wlocked(const RtldLockState *);
 
 void	dlerror_dflt_init(void);
 

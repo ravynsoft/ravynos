@@ -109,7 +109,8 @@ dt_module_syminit32(dt_module_t *dmp)
 		if (sym->st_name == 0 || sym->st_name >= ss_size)
 			continue; /* skip null or invalid names */
 
-		if (ELF32_ST_BIND(sym->st_info) != STB_LOCAL || sym->st_size) {
+		if (sym->st_value != 0 &&
+		    (ELF32_ST_BIND(sym->st_info) != STB_LOCAL || sym->st_size)) {
 			asrsv++; /* reserve space in the address map */
 
 #if defined(__FreeBSD__)
@@ -158,7 +159,8 @@ dt_module_syminit64(dt_module_t *dmp)
 		if (sym->st_name == 0 || sym->st_name >= ss_size)
 			continue; /* skip null or invalid names */
 
-		if (ELF64_ST_BIND(sym->st_info) != STB_LOCAL || sym->st_size) {
+		if (sym->st_value != 0 &&
+		    (ELF64_ST_BIND(sym->st_info) != STB_LOCAL || sym->st_size)) {
 			asrsv++; /* reserve space in the address map */
 #if defined(__FreeBSD__)
 			sym->st_value += (Elf_Addr) dmp->dm_reloc_offset;
@@ -243,7 +245,8 @@ dt_module_symsort32(dt_module_t *dmp)
 
 	for (i = 1; i < n; i++, dsp++) {
 		Elf32_Sym *sym = symtab + dsp->ds_symid;
-		if (ELF32_ST_BIND(sym->st_info) != STB_LOCAL || sym->st_size)
+		if (sym->st_value != 0 &&
+		    (ELF32_ST_BIND(sym->st_info) != STB_LOCAL || sym->st_size))
 			*sympp++ = sym;
 	}
 
@@ -266,7 +269,8 @@ dt_module_symsort64(dt_module_t *dmp)
 
 	for (i = 1; i < n; i++, dsp++) {
 		Elf64_Sym *sym = symtab + dsp->ds_symid;
-		if (ELF64_ST_BIND(sym->st_info) != STB_LOCAL || sym->st_size)
+		if (sym->st_value != 0 &&
+		    (ELF64_ST_BIND(sym->st_info) != STB_LOCAL || sym->st_size))
 			*sympp++ = sym;
 	}
 
@@ -1214,7 +1218,7 @@ dt_module_update(dtrace_hdl_t *dtp, struct kld_file_stat *k_stat)
 			continue; /* skip any malformed sections */
 		if (sh.sh_size == 0)
 			continue;
-		if (sh.sh_flags & SHF_ALLOC) {
+		if (sh.sh_type == SHT_PROGBITS || sh.sh_type == SHT_NOBITS) {
 			alignmask = sh.sh_addralign - 1;
 			mapbase += alignmask;
 			mapbase &= ~alignmask;

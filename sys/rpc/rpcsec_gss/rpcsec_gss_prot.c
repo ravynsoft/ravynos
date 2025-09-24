@@ -321,7 +321,7 @@ xdr_rpc_gss_unwrap_data(struct mbuf **resultsp,
 }
 
 #ifdef DEBUG
-#include <sys/stdarg.h>
+#include <machine/stdarg.h>
 
 void
 rpc_gss_log_debug(const char *fmt, ...)

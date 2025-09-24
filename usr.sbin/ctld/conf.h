@@ -36,8 +36,6 @@
  * ctld.
  */
 
-__BEGIN_DECLS
-
 bool	auth_group_start(const char *name);
 void	auth_group_finish(void);
 bool	auth_group_add_chap(const char *user, const char *secret);
@@ -98,7 +96,5 @@ bool	lun_set_serial(const char *value);
 bool	lun_set_size(uint64_t value);
 
 bool	parse_conf(const char *path);
-
-__END_DECLS
 
 #endif /* !__CONF_H__ */

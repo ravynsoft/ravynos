@@ -242,12 +242,11 @@ void dname_print(FILE* out, struct sldns_buffer* pkt, uint8_t* dname);
 
 /** 
  * Debug helper. Print dname to given string buffer (string buffer must
- * be at least 255 chars, in printable form.
+ * be at least 255 chars + 1 for the 0, in printable form.
  * This may lose information (? for nonprintable characters, or & if
  * the name is too long, # for a bad label length).
- * Upon return, the buffer will always have a terminating \0 value.
  * @param dname: uncompressed wireformat.
- * @param str: buffer of at least 255 length.
+ * @param str: buffer of 255+1 length.
  */
 void dname_str(uint8_t* dname, char* str);
 

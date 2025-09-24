@@ -21,8 +21,19 @@
 set -e
 
 scriptdir=$(dirname $(realpath $0))
-. ${scriptdir}/../scripts/tools.subr
 . ${scriptdir}/../../tools/boot/install-boot.sh
+
+if [ -z $ETDUMP ]; then
+	ETDUMP=etdump
+fi
+
+if [ -z $MAKEFS ]; then
+	MAKEFS=makefs
+fi
+
+if [ -z $MKIMG ]; then
+	MKIMG=mkimg
+fi
 
 if [ "$1" = "-b" ]; then
 	MAKEFSARG="$4"

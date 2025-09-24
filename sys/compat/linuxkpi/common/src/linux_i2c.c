@@ -85,7 +85,7 @@ lkpi_iic_attach(device_t dev)
 	struct lkpi_iic_softc *sc;
 
 	sc = device_get_softc(dev);
-	sc->iicbus = device_add_child(dev, "iicbus", DEVICE_UNIT_ANY);
+	sc->iicbus = device_add_child(dev, "iicbus", -1);
 	if (sc->iicbus == NULL) {
 		device_printf(dev, "Couldn't add iicbus child, aborting\n");
 		return (ENXIO);
@@ -323,8 +323,7 @@ lkpi_i2c_add_adapter(struct i2c_adapter *adapter)
 		device_printf(adapter->dev.parent->bsddev,
 		    "Adding i2c adapter %s\n", adapter->name);
 	sx_xlock(&lkpi_sx_i2c);
-	lkpi_iic = device_add_child(adapter->dev.parent->bsddev, "lkpi_iic",
-	    DEVICE_UNIT_ANY);
+	lkpi_iic = device_add_child(adapter->dev.parent->bsddev, "lkpi_iic", -1);
 	if (lkpi_iic == NULL) {
 		device_printf(adapter->dev.parent->bsddev, "Couldn't add lkpi_iic\n");
 		sx_xunlock(&lkpi_sx_i2c);

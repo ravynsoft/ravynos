@@ -7741,10 +7741,7 @@ SourceLocation ASTReader::getSourceLocationForDeclID(GlobalDeclID ID) {
   return Loc;
 }
 
-Decl *ASTReader::getPredefinedDecl(PredefinedDeclIDs ID) {
-  assert(ContextObj && "reading predefined decl without AST context");
-  ASTContext &Context = *ContextObj;
-  Decl *NewLoaded = nullptr;
+static Decl *getPredefinedDecl(ASTContext &Context, PredefinedDeclIDs ID) {
   switch (ID) {
   case PREDEF_DECL_NULL_ID:
     return nullptr;
@@ -7753,106 +7750,54 @@ Decl *ASTReader::getPredefinedDecl(PredefinedDeclIDs ID) {
     return Context.getTranslationUnitDecl();
 
   case PREDEF_DECL_OBJC_ID_ID:
-    if (Context.ObjCIdDecl)
-      return Context.ObjCIdDecl;
-    NewLoaded = Context.getObjCIdDecl();
-    break;
+    return Context.getObjCIdDecl();
 
   case PREDEF_DECL_OBJC_SEL_ID:
-    if (Context.ObjCSelDecl)
-      return Context.ObjCSelDecl;
-    NewLoaded = Context.getObjCSelDecl();
-    break;
+    return Context.getObjCSelDecl();
 
   case PREDEF_DECL_OBJC_CLASS_ID:
-    if (Context.ObjCClassDecl)
-      return Context.ObjCClassDecl;
-    NewLoaded = Context.getObjCClassDecl();
-    break;
+    return Context.getObjCClassDecl();
 
   case PREDEF_DECL_OBJC_PROTOCOL_ID:
-    if (Context.ObjCProtocolClassDecl)
-      return Context.ObjCProtocolClassDecl;
-    NewLoaded = Context.getObjCProtocolDecl();
-    break;
+    return Context.getObjCProtocolDecl();
 
   case PREDEF_DECL_INT_128_ID:
-    if (Context.Int128Decl)
-      return Context.Int128Decl;
-    NewLoaded = Context.getInt128Decl();
-    break;
+    return Context.getInt128Decl();
 
   case PREDEF_DECL_UNSIGNED_INT_128_ID:
-    if (Context.UInt128Decl)
-      return Context.UInt128Decl;
-    NewLoaded = Context.getUInt128Decl();
-    break;
+    return Context.getUInt128Decl();
 
   case PREDEF_DECL_OBJC_INSTANCETYPE_ID:
-    if (Context.ObjCInstanceTypeDecl)
-      return Context.ObjCInstanceTypeDecl;
-    NewLoaded = Context.getObjCInstanceTypeDecl();
-    break;
+    return Context.getObjCInstanceTypeDecl();
 
   case PREDEF_DECL_BUILTIN_VA_LIST_ID:
-    if (Context.BuiltinVaListDecl)
-      return Context.BuiltinVaListDecl;
-    NewLoaded = Context.getBuiltinVaListDecl();
-    break;
+    return Context.getBuiltinVaListDecl();
 
   case PREDEF_DECL_VA_LIST_TAG:
-    if (Context.VaListTagDecl)
-      return Context.VaListTagDecl;
-    NewLoaded = Context.getVaListTagDecl();
-    break;
+    return Context.getVaListTagDecl();
 
   case PREDEF_DECL_BUILTIN_MS_VA_LIST_ID:
-    if (Context.BuiltinMSVaListDecl)
-      return Context.BuiltinMSVaListDecl;
-    NewLoaded = Context.getBuiltinMSVaListDecl();
-    break;
+    return Context.getBuiltinMSVaListDecl();
 
   case PREDEF_DECL_BUILTIN_MS_GUID_ID:
-    // ASTContext::getMSGuidTagDecl won't create MSGuidTagDecl conditionally.
     return Context.getMSGuidTagDecl();
 
   case PREDEF_DECL_EXTERN_C_CONTEXT_ID:
-    if (Context.ExternCContext)
-      return Context.ExternCContext;
-    NewLoaded = Context.getExternCContextDecl();
-    break;
+    return Context.getExternCContextDecl();
 
   case PREDEF_DECL_MAKE_INTEGER_SEQ_ID:
-    if (Context.MakeIntegerSeqDecl)
-      return Context.MakeIntegerSeqDecl;
-    NewLoaded = Context.getMakeIntegerSeqDecl();
-    break;
+    return Context.getMakeIntegerSeqDecl();
 
   case PREDEF_DECL_CF_CONSTANT_STRING_ID:
-    if (Context.CFConstantStringTypeDecl)
-      return Context.CFConstantStringTypeDecl;
-    NewLoaded = Context.getCFConstantStringDecl();
-    break;
+    return Context.getCFConstantStringDecl();
 
   case PREDEF_DECL_CF_CONSTANT_STRING_TAG_ID:
-    if (Context.CFConstantStringTagDecl)
-      return Context.CFConstantStringTagDecl;
-    NewLoaded = Context.getCFConstantStringTagDecl();
-    break;
+    return Context.getCFConstantStringTagDecl();
 
   case PREDEF_DECL_TYPE_PACK_ELEMENT_ID:
-    if (Context.TypePackElementDecl)
-      return Context.TypePackElementDecl;
-    NewLoaded = Context.getTypePackElementDecl();
-    break;
+    return Context.getTypePackElementDecl();
   }
-
-  assert(NewLoaded && "Failed to load predefined decl?");
-
-  if (DeserializationListener)
-    DeserializationListener->PredefinedDeclBuilt(ID, NewLoaded);
-
-  return NewLoaded;
+  llvm_unreachable("PredefinedDeclIDs unknown enum value");
 }
 
 unsigned ASTReader::translateGlobalDeclIDToIndex(GlobalDeclID GlobalID) const {
@@ -7869,7 +7814,7 @@ Decl *ASTReader::GetExistingDecl(GlobalDeclID ID) {
   assert(ContextObj && "reading decl with no AST context");
 
   if (ID < NUM_PREDEF_DECL_IDS) {
-    Decl *D = getPredefinedDecl((PredefinedDeclIDs)ID);
+    Decl *D = getPredefinedDecl(*ContextObj, (PredefinedDeclIDs)ID);
     if (D) {
       // Track that we have merged the declaration with ID \p ID into the
       // pre-existing predefined declaration \p D.

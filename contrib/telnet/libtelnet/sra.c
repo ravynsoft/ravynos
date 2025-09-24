@@ -241,10 +241,9 @@ bad:
 void
 sra_reply(Authenticator *ap, unsigned char *data, int cnt)
 {
-	char uprompt[256 + 10];	/* +10 for "User (): " */
-	char tuser[256];
+	char uprompt[256],tuser[256];
 	Session_Key skey;
-	size_t i, len;
+	size_t i;
 
 	if (cnt-- < 1)
 		return;
@@ -267,15 +266,8 @@ sra_reply(Authenticator *ap, unsigned char *data, int cnt)
 
 		/* encode user */
 		memset(tuser,0,sizeof(tuser));
-		len = snprintf(uprompt, sizeof(uprompt), "User (%s): ",
-		    UserNameRequested);
-		if (len >= sizeof(uprompt)) {
-			if (auth_debug_mode) {
-				printf("SRA user name too long\r\n");
-			}
-			return;
-		}
-		telnet_gets(uprompt, tuser, sizeof(tuser) - 1, 1);
+		sprintf(uprompt,"User (%s): ",UserNameRequested);
+		telnet_gets(uprompt,tuser,255,1);
 		if (tuser[0] == '\n' || tuser[0] == '\r' )
 			strcpy(user,UserNameRequested);
 		else {

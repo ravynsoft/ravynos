@@ -31,6 +31,12 @@
 #include <string.h>
 #include <zlib.h>
 
+#ifdef PKGFS_DEBUG
+#define	DBG(x)	printf x
+#else
+#define	DBG(x)
+#endif
+
 static int   pkg_open(const char *, struct open_file *);
 static int   pkg_close(struct open_file *);
 static int   pkg_read(struct open_file *, void *, size_t, size_t *);
@@ -166,9 +172,6 @@ pkgfs_init(const char *pkgname, struct fs_ops *proto)
 
 	exclusive_file_system = NULL;
 
-	DEBUG_PRINTF(0, ("%s(%s: '%s') -> %d (error=%d)\n", __func__,
-		proto->fs_name, pkgname, fd, errno));
-
 	if (fd == -1)
 		return (errno);
 
@@ -236,7 +239,7 @@ pkg_open_follow(const char *fn, struct open_file *f, int lnks)
 		if (strcmp(fn, tf->tf_hdr.ut_name) == 0) {
 			f->f_fsdata = tf;
 			tf->tf_fp = 0;	/* Reset the file pointer. */
-			DEBUG_PRINTF(1, ("%s: found %s type %c\n", __func__,
+			DBG(("%s: found %s type %c\n", __func__,
 			     fn, tf->tf_hdr.ut_typeflag[0]));
 			if (tf->tf_hdr.ut_typeflag[0] == '2') {
 			    /* we have a symlink
@@ -272,7 +275,6 @@ pkg_close(struct open_file *f)
 	/*
 	 * Free up the cache if we read all of the file.
 	 */
-	DEBUG_PRINTF(1, ("%s(%s)\n", __func__, tf->tf_hdr.ut_name));
 	if (tf->tf_fp == tf->tf_size && tf->tf_cachesz > 0) {
 		free(tf->tf_cache);
 		tf->tf_cachesz = 0;
@@ -294,8 +296,6 @@ pkg_read(struct open_file *f, void *buf, size_t size, size_t *res)
 			*res = size;
 		return (EBADF);
 	}
-
-	DEBUG_PRINTF(4, ("%s(%s,%zd)\n", __func__, tf->tf_hdr.ut_name, size));
 
 	if (tf->tf_cachesz == 0)
 		cache_data(tf, 1);
@@ -334,8 +334,6 @@ pkg_read(struct open_file *f, void *buf, size_t size, size_t *res)
 	tf->tf_fp = fp;
 	if (res != NULL)
 		*res = size;
-	DEBUG_PRINTF(4, ("%s(%s) res=%zd\n", __func__, tf->tf_hdr.ut_name,
-	     (ssize_t)(tf->tf_size - tf->tf_fp)));
 	return ((sz == -1) ? errno : 0);
 }
 
@@ -379,7 +377,7 @@ pkg_seek(struct open_file *f, off_t ofs, int whence)
 				return (tf->tf_fp);
 			}
 		}
-		DEBUG_PRINTF(3, ("%s: negative file seek (%jd)\n", __func__,
+		DBG(("%s: negative file seek (%jd)\n", __func__,
 		    (intmax_t)delta));
 		errno = ESPIPE;
 		return (-1);
@@ -513,28 +511,26 @@ cache_data(struct tarfile *tf, int force)
 	size_t sz;
 
 	if (tf == NULL) {
-		DEBUG_PRINTF(5, ("%s: no file to cache data for?\n",
-			__func__));
+		DBG(("%s: no file to cache data for?\n", __func__));
 		errno = EINVAL;
 		return (-1);
 	}
 
 	pkg = tf->tf_pkg;
 	if (pkg == NULL) {
-		DEBUG_PRINTF(5, ("%s: no package associated with file?\n",
-			__func__));
+		DBG(("%s: no package associated with file?\n", __func__));
 		errno = EINVAL;
 		return (-1);
 	}
 
 	if (tf->tf_cachesz > 0) {
-		DEBUG_PRINTF(5, ("%s: data already cached\n", __func__));
+		DBG(("%s: data already cached\n", __func__));
 		errno = EINVAL;
 		return (-1);
 	}
 
 	if (tf->tf_ofs != pkg->pkg_ofs) {
-		DEBUG_PRINTF(5, ("%s: caching after force read of file %s?\n",
+		DBG(("%s: caching after force read of file %s?\n",
 		    __func__, tf->tf_hdr.ut_name));
 		errno = EINVAL;
 		return (-1);
@@ -552,8 +548,7 @@ cache_data(struct tarfile *tf, int force)
 
 	tf->tf_cache = malloc(sz);
 	if (tf->tf_cache == NULL) {
-		DEBUG_PRINTF(5, ("%s: could not allocate %d bytes\n",
-			__func__, (int)sz));
+		DBG(("%s: could not allocate %d bytes\n", __func__, (int)sz));
 		errno = ENOMEM;
 		return (-1);
 	}
@@ -737,7 +732,7 @@ new_package(int fd, struct package **pp)
 	}
 
 	/*
-	 * Done parsing the ZIP header. Start the inflation engine.
+	 * Done parsing the ZIP header. Spkgt the inflation engine.
 	 */
 	error = inflateInit2(&pkg->pkg_zs, -15);
 	if (error != Z_OK)

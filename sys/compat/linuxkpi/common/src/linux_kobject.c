@@ -122,10 +122,10 @@ kobject_add_complete(struct kobject *kobj)
 
 		for (attr = t->default_attrs; *attr != NULL; attr++) {
 			error = sysfs_create_file(kobj, *attr);
-			if (error != 0)
+			if (error)
 				break;
 		}
-		if (error != 0)
+		if (error)
 			sysfs_remove_dir(kobj);
 	}
 

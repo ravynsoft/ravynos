@@ -154,11 +154,6 @@
 #define	_PC_MAC_PRESENT		63
 #define	_PC_ACL_NFS4		64
 #define	_PC_DEALLOC_PRESENT	65
-#define	_PC_NAMEDATTR_ENABLED	66
-#define	_PC_HAS_NAMEDATTR	67
-#define	_PC_XATTR_ENABLED	_PC_NAMEDATTR_ENABLED	/* Solaris Compatible */
-#define	_PC_XATTR_EXISTS	_PC_HAS_NAMEDATTR	/* Solaris Compatible */
-#define	_PC_HAS_HIDDENSYSTEM	68
 #endif
 
 /* From OpenSolaris, used by SEEK_DATA/SEEK_HOLE. */
@@ -213,7 +208,6 @@
  * close_range() options.
  */
 #define	CLOSE_RANGE_CLOEXEC	(1<<2)
-#define	CLOSE_RANGE_CLOFORK	(1<<3)
 
 #endif /* __BSD_VISIBLE */
 

@@ -2,6 +2,6 @@
 
 PROG= spi
 
-MAN= spi.8
+MAN8= spi.8
 
 .include <bsd.prog.mk>

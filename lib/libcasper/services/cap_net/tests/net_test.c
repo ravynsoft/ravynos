@@ -331,11 +331,7 @@ test_extend_mode(cap_channel_t *capnet, int current)
 	}
 }
 
-ATF_TC(capnet__getnameinfo);
-ATF_TC_HEAD(capnet__getnameinfo, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__getnameinfo);
 ATF_TC_BODY(capnet__getnameinfo, tc)
 {
 	cap_channel_t *capnet;
@@ -348,11 +344,7 @@ ATF_TC_BODY(capnet__getnameinfo, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__connect);
-ATF_TC_HEAD(capnet__connect, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__connect);
 ATF_TC_BODY(capnet__connect, tc)
 {
 	cap_channel_t *capnet;
@@ -364,11 +356,7 @@ ATF_TC_BODY(capnet__connect, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__bind);
-ATF_TC_HEAD(capnet__bind, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__bind);
 ATF_TC_BODY(capnet__bind, tc)
 {
 	cap_channel_t *capnet;
@@ -380,11 +368,7 @@ ATF_TC_BODY(capnet__bind, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__getaddrinfo);
-ATF_TC_HEAD(capnet__getaddrinfo, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__getaddrinfo);
 ATF_TC_BODY(capnet__getaddrinfo, tc)
 {
 	cap_channel_t *capnet;
@@ -402,11 +386,7 @@ ATF_TC_BODY(capnet__getaddrinfo, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__gethostbyname);
-ATF_TC_HEAD(capnet__gethostbyname, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__gethostbyname);
 ATF_TC_BODY(capnet__gethostbyname, tc)
 {
 	cap_channel_t *capnet;
@@ -418,11 +398,7 @@ ATF_TC_BODY(capnet__gethostbyname, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__gethostbyaddr);
-ATF_TC_HEAD(capnet__gethostbyaddr, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__gethostbyaddr);
 ATF_TC_BODY(capnet__gethostbyaddr, tc)
 {
 	cap_channel_t *capnet;
@@ -435,11 +411,7 @@ ATF_TC_BODY(capnet__gethostbyaddr, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__getnameinfo_buffer);
-ATF_TC_HEAD(capnet__getnameinfo_buffer, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__getnameinfo_buffer);
 ATF_TC_BODY(capnet__getnameinfo_buffer, tc)
 {
 	cap_channel_t *chan;
@@ -478,11 +450,7 @@ ATF_TC_BODY(capnet__getnameinfo_buffer, tc)
 	cap_close(chan);
 }
 
-ATF_TC(capnet__limits_addr2name_mode);
-ATF_TC_HEAD(capnet__limits_addr2name_mode, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_addr2name_mode);
 ATF_TC_BODY(capnet__limits_addr2name_mode, tc)
 {
 	cap_channel_t *capnet;
@@ -513,11 +481,7 @@ ATF_TC_BODY(capnet__limits_addr2name_mode, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__limits_addr2name_family);
-ATF_TC_HEAD(capnet__limits_addr2name_family, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_addr2name_family);
 ATF_TC_BODY(capnet__limits_addr2name_family, tc)
 {
 	cap_channel_t *capnet;
@@ -562,11 +526,7 @@ ATF_TC_BODY(capnet__limits_addr2name_family, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__limits_addr2name);
-ATF_TC_HEAD(capnet__limits_addr2name, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_addr2name);
 ATF_TC_BODY(capnet__limits_addr2name, tc)
 {
 	cap_channel_t *capnet;
@@ -620,11 +580,7 @@ ATF_TC_BODY(capnet__limits_addr2name, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__limits_deprecated_addr2name_mode);
-ATF_TC_HEAD(capnet__limits_deprecated_addr2name_mode, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_deprecated_addr2name_mode);
 ATF_TC_BODY(capnet__limits_deprecated_addr2name_mode, tc)
 {
 	cap_channel_t *capnet;
@@ -653,11 +609,7 @@ ATF_TC_BODY(capnet__limits_deprecated_addr2name_mode, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__limits_deprecated_addr2name_family);
-ATF_TC_HEAD(capnet__limits_deprecated_addr2name_family, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_deprecated_addr2name_family);
 ATF_TC_BODY(capnet__limits_deprecated_addr2name_family, tc)
 {
 	cap_channel_t *capnet;
@@ -708,11 +660,7 @@ ATF_TC_BODY(capnet__limits_deprecated_addr2name_family, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__limits_deprecated_addr2name);
-ATF_TC_HEAD(capnet__limits_deprecated_addr2name, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_deprecated_addr2name);
 ATF_TC_BODY(capnet__limits_deprecated_addr2name, tc)
 {
 	cap_channel_t *capnet;
@@ -764,11 +712,7 @@ ATF_TC_BODY(capnet__limits_deprecated_addr2name, tc)
 }
 
 
-ATF_TC(capnet__limits_name2addr_mode);
-ATF_TC_HEAD(capnet__limits_name2addr_mode, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_name2addr_mode);
 ATF_TC_BODY(capnet__limits_name2addr_mode, tc)
 {
 	cap_channel_t *capnet;
@@ -800,11 +744,7 @@ ATF_TC_BODY(capnet__limits_name2addr_mode, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__limits_name2addr_hosts);
-ATF_TC_HEAD(capnet__limits_name2addr_hosts, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_name2addr_hosts);
 ATF_TC_BODY(capnet__limits_name2addr_hosts, tc)
 {
 	cap_channel_t *capnet;
@@ -857,11 +797,7 @@ ATF_TC_BODY(capnet__limits_name2addr_hosts, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__limits_name2addr_hosts_servnames_strict);
-ATF_TC_HEAD(capnet__limits_name2addr_hosts_servnames_strict, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_name2addr_hosts_servnames_strict);
 ATF_TC_BODY(capnet__limits_name2addr_hosts_servnames_strict, tc)
 {
 	cap_channel_t *capnet;
@@ -893,11 +829,7 @@ ATF_TC_BODY(capnet__limits_name2addr_hosts_servnames_strict, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__limits_name2addr_hosts_servnames_mix);
-ATF_TC_HEAD(capnet__limits_name2addr_hosts_servnames_mix, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_name2addr_hosts_servnames_mix);
 ATF_TC_BODY(capnet__limits_name2addr_hosts_servnames_mix, tc)
 {
 	cap_channel_t *capnet;
@@ -950,11 +882,7 @@ ATF_TC_BODY(capnet__limits_name2addr_hosts_servnames_mix, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__limits_name2addr_family);
-ATF_TC_HEAD(capnet__limits_name2addr_family, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_name2addr_family);
 ATF_TC_BODY(capnet__limits_name2addr_family, tc)
 {
 	cap_channel_t *capnet;
@@ -1013,11 +941,7 @@ ATF_TC_BODY(capnet__limits_name2addr_family, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__limits_deprecated_name2addr_mode);
-ATF_TC_HEAD(capnet__limits_deprecated_name2addr_mode, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_deprecated_name2addr_mode);
 ATF_TC_BODY(capnet__limits_deprecated_name2addr_mode, tc)
 {
 	cap_channel_t *capnet;
@@ -1048,11 +972,7 @@ ATF_TC_BODY(capnet__limits_deprecated_name2addr_mode, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__limits_deprecated_name2addr_hosts);
-ATF_TC_HEAD(capnet__limits_deprecated_name2addr_hosts, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_deprecated_name2addr_hosts);
 ATF_TC_BODY(capnet__limits_deprecated_name2addr_hosts, tc)
 {
 	cap_channel_t *capnet;
@@ -1091,11 +1011,7 @@ ATF_TC_BODY(capnet__limits_deprecated_name2addr_hosts, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__limits_deprecated_name2addr_family);
-ATF_TC_HEAD(capnet__limits_deprecated_name2addr_family, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_deprecated_name2addr_family);
 ATF_TC_BODY(capnet__limits_deprecated_name2addr_family, tc)
 {
 	cap_channel_t *capnet;
@@ -1149,11 +1065,7 @@ ATF_TC_BODY(capnet__limits_deprecated_name2addr_family, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__limits_bind_mode);
-ATF_TC_HEAD(capnet__limits_bind_mode, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_bind_mode);
 ATF_TC_BODY(capnet__limits_bind_mode, tc)
 {
 	cap_channel_t *capnet;
@@ -1185,11 +1097,7 @@ ATF_TC_BODY(capnet__limits_bind_mode, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__limits_bind);
-ATF_TC_HEAD(capnet__limits_bind, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_bind);
 ATF_TC_BODY(capnet__limits_bind, tc)
 {
 	cap_channel_t *capnet;
@@ -1214,11 +1122,7 @@ ATF_TC_BODY(capnet__limits_bind, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__limits_connect_mode);
-ATF_TC_HEAD(capnet__limits_connect_mode, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_connect_mode);
 ATF_TC_BODY(capnet__limits_connect_mode, tc)
 {
 	cap_channel_t *capnet;
@@ -1250,11 +1154,7 @@ ATF_TC_BODY(capnet__limits_connect_mode, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__limits_connect_dns_mode);
-ATF_TC_HEAD(capnet__limits_connect_dns_mode, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_connect_dns_mode);
 ATF_TC_BODY(capnet__limits_connect_dns_mode, tc)
 {
 	cap_channel_t *capnet;
@@ -1286,11 +1186,7 @@ ATF_TC_BODY(capnet__limits_connect_dns_mode, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__limits_connect);
-ATF_TC_HEAD(capnet__limits_connect, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_connect);
 ATF_TC_BODY(capnet__limits_connect, tc)
 {
 	cap_channel_t *capnet;
@@ -1334,11 +1230,7 @@ ATF_TC_BODY(capnet__limits_connect, tc)
 	cap_close(capnet);
 }
 
-ATF_TC(capnet__limits_connecttodns);
-ATF_TC_HEAD(capnet__limits_connecttodns, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_connecttodns);
 ATF_TC_BODY(capnet__limits_connecttodns, tc)
 {
 	cap_channel_t *capnet;
@@ -1387,11 +1279,7 @@ ATF_TC_BODY(capnet__limits_connecttodns, tc)
 }
 
 
-ATF_TC(capnet__limits_deprecated_connecttodns);
-ATF_TC_HEAD(capnet__limits_deprecated_connecttodns, tc)
-{
-	atf_tc_set_md_var(tc, "require.config", "allow_network_access");
-}
+ATF_TC_WITHOUT_HEAD(capnet__limits_deprecated_connecttodns);
 ATF_TC_BODY(capnet__limits_deprecated_connecttodns, tc)
 {
 	cap_channel_t *capnet;

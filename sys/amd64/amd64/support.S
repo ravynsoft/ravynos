@@ -934,7 +934,10 @@ ENTRY(casueword32_nosmap)
 	ja	fusufault
 
 	movl	%esi,%eax			/* old */
-	lock cmpxchgl %ecx,(%rdi)		/* new = %ecx */
+#ifdef SMP
+	lock
+#endif
+	cmpxchgl %ecx,(%rdi)			/* new = %ecx */
 	setne	%cl
 
 	/*
@@ -968,7 +971,10 @@ ENTRY(casueword32_smap)
 
 	movl	%esi,%eax			/* old */
 	stac
-	lock cmpxchgl %ecx,(%rdi)		/* new = %ecx */
+#ifdef SMP
+	lock
+#endif
+	cmpxchgl %ecx,(%rdi)			/* new = %ecx */
 	clac
 	setne	%cl
 
@@ -1008,7 +1014,10 @@ ENTRY(casueword_nosmap)
 	ja	fusufault
 
 	movq	%rsi,%rax			/* old */
-	lock cmpxchgq %rcx,(%rdi)		/* new = %rcx */
+#ifdef SMP
+	lock
+#endif
+	cmpxchgq %rcx,(%rdi)			/* new = %rcx */
 	setne	%cl
 
 	/*
@@ -1036,7 +1045,10 @@ ENTRY(casueword_smap)
 
 	movq	%rsi,%rax			/* old */
 	stac
-	lock cmpxchgq %rcx,(%rdi)		/* new = %rcx */
+#ifdef SMP
+	lock
+#endif
+	cmpxchgq %rcx,(%rdi)			/* new = %rcx */
 	clac
 	setne	%cl
 

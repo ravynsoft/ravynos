@@ -15,16 +15,14 @@ SRCS=	aliases_parse.y \
 	net.c \
 	spool.c \
 	util.c
-MAN=	dma.8
+MAN8=	dma.8
 MLINKS=	dma.8 dma.conf.5
-CONFSMODE=	0640
-CONFSGRP=	mail
-CONFS=	auth.conf dma.conf
+CONFS=	dma.conf
 CONFSDIR=	${CONFDIR}/dma
 CFLAGS+=	-DOPENSSL_API_COMPAT=0x10100000L
 YFLAGS+=	-i
 CLEANFILES=	aliases_parse.i
-FILES=	mailer.conf
+FILES=	auth.conf mailer.conf
 FILESDIR=	${SHAREDIR}/examples/dma
 
 BINMODE=	2555

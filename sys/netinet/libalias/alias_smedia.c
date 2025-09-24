@@ -435,8 +435,8 @@ alias_pna_out(struct libalias *la, struct ip *pip,
 
 		if ((ntohs(msg_id) == 1) || (ntohs(msg_id) == 7)) {
 			memcpy(&port, work, 2);
-			(void)FindUdpTcpOut(la, pip->ip_src, GetDestAddress(lnk),
-			    port, 0, IPPROTO_UDP, 1, &pna_links);
+			pna_links = FindUdpTcpOut(la, pip->ip_src, GetDestAddress(lnk),
+			    port, 0, IPPROTO_UDP, 1);
 			if (pna_links != NULL) {
 #ifndef NO_FW_PUNCH
 				/* Punch hole in firewall */

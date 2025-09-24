@@ -37,7 +37,6 @@
 #include <sys/rman.h>
 #include <sys/sched.h>
 #include <sys/smp.h>
-#include <sys/stdarg.h>
 
 #include <vm/vm.h>
 #include <vm/vm_param.h>
@@ -46,6 +45,7 @@
 #include <machine/cpufunc.h>
 #include <machine/intr_machdep.h>
 #include <machine/pmap.h>
+#include <machine/stdarg.h>
 
 #include <dev/dpaa/bman.h>
 #include <dev/dpaa/qman.h>

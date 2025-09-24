@@ -33,10 +33,7 @@
 # it is better to terminate it.
 ulimit -t 20
 
-# Do not ignore the exit codes of roff tools, as they may indicate a
-# problem with the page being rendered.  Note that this also causes a
-# nonzero exit when the user quits reading before reaching the end, so
-# we need to look out for and deal with that specific case.
+# do not ignore the exit status of roff tools
 set -o pipefail
 
 # Usage: add_to_manpath path
@@ -313,8 +310,6 @@ manpath_warnings() {
 # redirected to another source file.
 man_check_for_so() {
 	local IFS line tstr
-	local counter_so=0
-	local counter_so_limit=32
 
 	unset IFS
 	if [ -n "$catpage" ]; then
@@ -322,16 +317,13 @@ man_check_for_so() {
 	fi
 
 	# We need to loop to accommodate multiple .so directives.
-	while [ $counter_so -lt $counter_so_limit ]
+	while true
 	do
-		counter_so=$((counter_so + 1))
-
 		line=$($cattool "$manpage" 2>/dev/null | grep -E -m1 -v '^\.\\"[ ]*|^[ ]*$')
 		case "$line" in
                '.so /'*) break ;; # ignore absolute path
                '.so '*) trim "${line#.so}"
-			decho "$manpage includes $tstri level=$counter_so"
-
+			decho "$manpage includes $tstr"
 			# Glob and check for the file.
 			if ! check_man "$1/$tstr" ""; then
 				decho "  Unable to find $tstr"
@@ -341,10 +333,6 @@ man_check_for_so() {
 		*)	break ;;
 		esac
 	done
-
-	if [ $counter_so -ge $counter_so_limit ]; then
-		decho ".so include limit of $counter_so_limit reached, stop"
-	fi
 
 	return 0
 }
@@ -1072,16 +1060,6 @@ do_man() {
 		decho "Searching for \"$page\""
 		man_find_and_display "$page"
 	done
-
-	# The user will very commonly quit reading the page before
-	# reaching the bottom.  Depending on the length of the page
-	# and the pager's buffer size, this may result in a SIGPIPE.
-	# This is normal, so convert that exit code to zero.
-	if [ ${ret:-0} -gt 128 ]; then
-		if [ "$(kill -l "${ret}")" = "PIPE" ]; then
-			ret=0
-		fi
-	fi
 
 	exit ${ret:-0}
 }

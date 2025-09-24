@@ -541,10 +541,10 @@ struct utils::process::executor::executor_handle::impl : utils::noncopyable {
     size_t last_subprocess;
 
     /// Interrupts handler.
-    std::unique_ptr< signals::interrupts_handler > interrupts_handler;
+    std::auto_ptr< signals::interrupts_handler > interrupts_handler;
 
     /// Root work directory for all executed subprocesses.
-    std::unique_ptr< fs::auto_directory > root_work_directory;
+    std::auto_ptr< fs::auto_directory > root_work_directory;
 
     /// Mapping of PIDs to the data required at run time.
     exec_handles_map all_exec_handles;
@@ -633,10 +633,10 @@ struct utils::process::executor::executor_handle::impl : utils::noncopyable {
                 "this could be an internal error or a buggy test") %
                 root_work_directory->directory() % e.what());
         }
-        root_work_directory.reset();
+        root_work_directory.reset(NULL);
 
         interrupts_handler->unprogram();
-        interrupts_handler.reset();
+        interrupts_handler.reset(NULL);
     }
 
     /// Common code to run after any of the wait calls.
@@ -807,7 +807,7 @@ executor::executor_handle::spawn_post(
     const fs::path& stderr_file,
     const datetime::delta& timeout,
     const optional< passwd::user > unprivileged_user,
-    std::unique_ptr< process::child > child)
+    std::auto_ptr< process::child > child)
 {
     const exec_handle handle(std::shared_ptr< exec_handle::impl >(
         new exec_handle::impl(
@@ -853,7 +853,7 @@ executor::exec_handle
 executor::executor_handle::spawn_followup_post(
     const exit_handle& base,
     const datetime::delta& timeout,
-    std::unique_ptr< process::child > child)
+    std::auto_ptr< process::child > child)
 {
     INV(*base.state_owners() > 0);
     const exec_handle handle(std::shared_ptr< exec_handle::impl >(

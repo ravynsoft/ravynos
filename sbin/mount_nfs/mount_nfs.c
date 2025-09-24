@@ -58,7 +58,6 @@
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <mntopts.h>
 #include <netdb.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -68,6 +67,7 @@
 #include <sysexits.h>
 #include <unistd.h>
 
+#include "mntopts.h"
 #include "mounttab.h"
 
 /* Table for af,sotype -> netid conversions. */

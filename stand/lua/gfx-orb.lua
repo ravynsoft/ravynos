@@ -27,8 +27,7 @@
 
 return {
 	logo = {
-		ascii = {
-			image = {
+		graphic = {
 		    "  \027[31m```                        \027[31;1m`\027[31m",
 		    " s` `.....---...\027[31;1m....--.```   -/\027[31m",
 		    " +o   .--`         \027[31;1m/y:`      +.\027[31m",
@@ -44,14 +43,10 @@ return {
 		    "    `:`                  \027[31;1m`:`",
 		    "      \027[31;1m.--             `--.",
 		    "         .---.....----.\027[m",
-			},
-			requires_color = true,
-			shift = {x = 5, y = -1},
 		},
-		fb = {
-			image = "/boot/images/freebsd-logo-rev.png",
-			width = 15,
-			shift = {x = 2, y = -2},
-		},
+		requires_color = true,
+		shift = {x = 2, y = -1},
+		image = "/boot/images/freebsd-logo-rev.png",
+		image_rl = 15
 	}
 }

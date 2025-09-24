@@ -1,4 +1,4 @@
 PROG=	mkkfont
-MAN=
+MAN1=
 
 .include <bsd.prog.mk>

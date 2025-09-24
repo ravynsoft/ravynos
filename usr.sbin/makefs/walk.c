@@ -59,50 +59,6 @@ static	void	 apply_specentry(const char *, NODE *, fsnode *);
 static	fsnode	*create_fsnode(const char *, const char *, const char *,
 			       struct stat *);
 
-static int
-cmp(const void *_a, const void *_b)
-{
-	const fsnode * const *a = _a;
-	const fsnode * const *b = _b;
-
-	assert(strcmp((*a)->name, (*b)->name) != 0);
-	if (strcmp((*a)->name, ".") == 0)
-		return (-1);
-	if (strcmp((*b)->name, ".") == 0)
-		return (1);
-	return (strcoll((*a)->name, (*b)->name));
-}
-
-/*
- * Sort the entries rather than relying on the order given by readdir(3),
- * which might not be reproducible.
- */
-static fsnode *
-sort_dir(fsnode *list)
-{
-	fsnode		**array;
-	fsnode		*cur;
-	size_t		nitems, i;
-
-	nitems = 0;
-	for (cur = list; cur != NULL; cur = cur->next)
-		nitems++;
-	assert(nitems > 0);
-
-	array = malloc(nitems * sizeof(fsnode *));
-	if (array == NULL)
-		err(1, "malloc");
-	for (i = 0, cur = list; cur != NULL; i++, cur = cur->next)
-		array[i] = cur;
-	qsort(array, nitems, sizeof(fsnode *), cmp);
-	for (i = 0; i < nitems; i++) {
-		array[i]->first = array[0];
-		array[i]->next = i == nitems - 1 ? NULL : array[i + 1];
-	}
-	cur = array[0];
-	free(array);
-	return (cur);
-}
 
 /*
  * walk_dir --
@@ -115,7 +71,7 @@ sort_dir(fsnode *list)
 fsnode *
 walk_dir(const char *root, const char *dir, fsnode *parent, fsnode *join)
 {
-	fsnode		*first, *cur;
+	fsnode		*first, *cur, *prev, *last;
 	DIR		*dirp;
 	struct dirent	*dent;
 	char		path[MAXPATHLEN + 1];
@@ -139,8 +95,10 @@ walk_dir(const char *root, const char *dir, fsnode *parent, fsnode *join)
 		first = cur = join;
 		while (cur->next != NULL)
 			cur = cur->next;
+		prev = cur;
 	} else
-		first = NULL;
+		first = prev = NULL;
+	last = prev;
 	while ((dent = readdir(dirp)) != NULL) {
 		name = dent->d_name;
 		dot = 0;
@@ -178,6 +136,10 @@ walk_dir(const char *root, const char *dir, fsnode *parent, fsnode *join)
 			for (;;) {
 				if (cur == NULL || strcmp(cur->name, name) == 0)
 					break;
+				if (cur == last) {
+					cur = NULL;
+					break;
+				}
 				cur = cur->next;
 			}
 			if (cur != NULL) {
@@ -198,11 +160,24 @@ walk_dir(const char *root, const char *dir, fsnode *parent, fsnode *join)
 
 		cur = create_fsnode(root, dir, name, &stbuf);
 		cur->parent = parent;
-		cur->next = first;
-		first = cur;
-		if (!dot && S_ISDIR(cur->type)) {
-			cur->child = walk_dir(root, rp, cur, NULL);
-			continue;
+		if (dot) {
+				/* ensure "." is at the start of the list */
+			cur->next = first;
+			first = cur;
+			if (! prev)
+				prev = cur;
+			cur->first = first;
+		} else {			/* not "." */
+			if (prev)
+				prev->next = cur;
+			prev = cur;
+			if (!first)
+				first = cur;
+			cur->first = first;
+			if (S_ISDIR(cur->type)) {
+				cur->child = walk_dir(root, rp, cur, NULL);
+				continue;
+			}
 		}
 		if (stbuf.st_nlink > 1) {
 			fsinode	*curino;
@@ -229,9 +204,13 @@ walk_dir(const char *root, const char *dir, fsnode *parent, fsnode *join)
 			cur->symlink = estrdup(slink);
 		}
 	}
+	assert(first != NULL);
+	if (join == NULL)
+		for (cur = first->next; cur != NULL; cur = cur->next)
+			cur->first = first;
 	if (closedir(dirp) == -1)
 		err(1, "Can't closedir `%s/%s'", root, dir);
-	return (sort_dir(first));
+	return (first);
 }
 
 static fsnode *
@@ -248,8 +227,20 @@ create_fsnode(const char *root, const char *path, const char *name,
 	cur->type = stbuf->st_mode & S_IFMT;
 	cur->inode->nlink = 1;
 	cur->inode->st = *stbuf;
-	if (stampst.st_ino != 0)
-		set_tstamp(cur);
+	if (stampst.st_ino) {
+		cur->inode->st.st_atime = stampst.st_atime;
+		cur->inode->st.st_mtime = stampst.st_mtime;
+		cur->inode->st.st_ctime = stampst.st_ctime;
+#if HAVE_STRUCT_STAT_ST_MTIMENSEC
+		cur->inode->st.st_atimensec = stampst.st_atimensec;
+		cur->inode->st.st_mtimensec = stampst.st_mtimensec;
+		cur->inode->st.st_ctimensec = stampst.st_ctimensec;
+#endif
+#if HAVE_STRUCT_STAT_BIRTHTIME
+		cur->inode->st.st_birthtime = stampst.st_birthtime;
+		cur->inode->st.st_birthtimensec = stampst.st_birthtimensec;
+#endif
+	}
 	return (cur);
 }
 
@@ -539,12 +530,14 @@ apply_specentry(const char *dir, NODE *specnode, fsnode *dirnode)
 		    dirnode->inode->st.st_uid, specnode->st_uid);
 		dirnode->inode->st.st_uid = specnode->st_uid;
 	}
+#if HAVE_STRUCT_STAT_ST_FLAGS
 	if (specnode->flags & F_FLAGS) {
 		ASEPRINT("flags", "%#lX",
-		    (unsigned long)FSINODE_ST_FLAGS(*dirnode->inode),
+		    (unsigned long)dirnode->inode->st.st_flags,
 		    (unsigned long)specnode->st_flags);
-		FSINODE_ST_FLAGS(*dirnode->inode) = specnode->st_flags;
+		dirnode->inode->st.st_flags = specnode->st_flags;
 	}
+#endif
 /*	if (specnode->flags & F_DEV) {
 		ASEPRINT("rdev", "%#llx",
 		    (unsigned long long)dirnode->inode->st.st_rdev,

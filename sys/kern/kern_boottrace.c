@@ -33,10 +33,11 @@
 #include <sys/proc.h>
 #include <sys/resourcevar.h>
 #include <sys/sbuf.h>
-#include <sys/stdarg.h>
 #include <sys/syscallsubr.h>
 #include <sys/sysctl.h>
 #include <sys/time.h>
+
+#include <machine/stdarg.h>
 
 #define	dprintf(fmt, ...)						\
 	do {								\

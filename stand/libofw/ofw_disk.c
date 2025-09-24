@@ -28,9 +28,10 @@
  */
 
 #include <sys/param.h>
-#include <sys/stdarg.h>
 
 #include <netinet/in.h>
+
+#include <machine/stdarg.h>
 
 #include <stand.h>
 #include <sys/disk.h>

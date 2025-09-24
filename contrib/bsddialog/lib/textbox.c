@@ -200,7 +200,7 @@ bsddialog_textbox(struct bsddialog_conf *conf, const char *file, int rows,
 		switch(input) {
 		case KEY_ENTER:
 		case 10: /* Enter */
-			retval = BUTTONVALUE(d.bs);
+			retval = BSDDIALOG_OK;
 			loop = false;
 			break;
 		case 27: /* Esc */

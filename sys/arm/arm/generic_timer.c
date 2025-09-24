@@ -289,22 +289,20 @@ setup_user_access(void *arg __unused)
 }
 
 #ifdef __aarch64__
-static bool
-cntpct_handler(uint64_t esr, struct trapframe *frame)
+static int
+cntpct_handler(vm_offset_t va, uint32_t insn, struct trapframe *frame,
+    uint32_t esr)
 {
 	uint64_t val;
 	int reg;
 
-	if (ESR_ELx_EXCEPTION(esr) != EXCP_MSR)
-		return (false);
+	if ((insn & MRS_MASK) != MRS_VALUE)
+		return (0);
 
-	if ((esr & ISS_MSR_DIR) == 0)
-		return (false);
+	if (MRS_SPECIAL(insn) != MRS_SPECIAL(CNTPCT_EL0))
+		return (0);
 
-	if ((esr & ISS_MSR_REG_MASK) != CNTPCT_EL0_ISS)
-		return (false);
-
-	reg = ISS_MSR_Rt(esr);
+	reg = MRS_REGISTER(insn);
 	val = READ_SPECIALREG(cntvct_el0);
 	if (reg < nitems(frame->tf_x)) {
 		frame->tf_x[reg] = val;
@@ -318,7 +316,7 @@ cntpct_handler(uint64_t esr, struct trapframe *frame)
 	 */
 	frame->tf_elr += INSN_SIZE;
 
-	return (true);
+	return (1);
 }
 #endif
 
@@ -334,7 +332,7 @@ tmr_setup_user_access(void *arg __unused)
 #ifdef __aarch64__
 		if (TUNABLE_INT_FETCH("hw.emulate_phys_counter", &emulate) &&
 		    emulate != 0) {
-			install_sys_handler(cntpct_handler);
+			install_undef_handler(true, cntpct_handler);
 		}
 #endif
 	}

@@ -86,13 +86,11 @@ enum vgetstate {
  * it from v_data.  If non-null, this area is freed in getnewvnode().
  */
 
-struct cache_fpl;
-struct inotify_watch;
 struct namecache;
+struct cache_fpl;
 
 struct vpollinfo {
 	struct	mtx vpi_lock;		/* lock to protect below */
-	TAILQ_HEAD(, inotify_watch) vpi_inotify; /* list of inotify watchers */
 	struct	selinfo vpi_selinfo;	/* identity of poller(s) */
 	short	vpi_events;		/* what they are looking for */
 	short	vpi_revents;		/* what has happened */
@@ -248,11 +246,6 @@ _Static_assert(sizeof(struct vnode) <= 448, "vnode size crosses 448 bytes");
 #define	VIRF_MOUNTPOINT	0x0004	/* This vnode is mounted on */
 #define	VIRF_TEXT_REF	0x0008	/* Executable mappings ref the vnode */
 #define	VIRF_CROSSMP	0x0010	/* Cross-mp vnode, no locking */
-#define	VIRF_NAMEDDIR	0x0020	/* Named attribute directory */
-#define	VIRF_NAMEDATTR	0x0040	/* Named attribute */
-#define	VIRF_INOTIFY	0x0080	/* This vnode is being watched */
-#define	VIRF_INOTIFY_PARENT 0x0100 /* A parent of this vnode may be being
-				      watched */
 
 #define	VI_UNUSED0	0x0001	/* unused */
 #define	VI_MOUNT	0x0002	/* Mount in progress */
@@ -288,7 +281,7 @@ _Static_assert(sizeof(struct vnode) <= 448, "vnode size crosses 448 bytes");
 struct vattr {
 	__enum_uint8(vtype)	va_type;	/* vnode type (for create) */
 	u_short		va_mode;	/* files access mode and type */
-	uint16_t	va_bsdflags;	/* same as st_bsdflags from stat(2) */
+	u_short		va_padding0;
 	uid_t		va_uid;		/* owner user id */
 	gid_t		va_gid;		/* owner group id */
 	nlink_t		va_nlink;	/* number of references to file */
@@ -672,7 +665,6 @@ char	*cache_symlink_alloc(size_t size, int flags);
 void	cache_symlink_free(char *string, size_t size);
 int	cache_symlink_resolve(struct cache_fpl *fpl, const char *string,
 	    size_t len);
-void	cache_vop_inotify(struct vnode *vp, int event, uint32_t cookie);
 void	cache_vop_rename(struct vnode *fdvp, struct vnode *fvp, struct vnode *tdvp,
     struct vnode *tvp, struct componentname *fcnp, struct componentname *tcnp);
 void	cache_vop_rmdir(struct vnode *dvp, struct vnode *vp);
@@ -875,10 +867,8 @@ int	vop_stdfsync(struct vop_fsync_args *);
 int	vop_stdgetwritemount(struct vop_getwritemount_args *);
 int	vop_stdgetpages(struct vop_getpages_args *);
 int	vop_stdinactive(struct vop_inactive_args *);
-int	vop_stdneed_inactive(struct vop_need_inactive_args *);
-int	vop_stdinotify(struct vop_inotify_args *);
-int	vop_stdinotify_add_watch(struct vop_inotify_add_watch_args *);
 int	vop_stdioctl(struct vop_ioctl_args *);
+int	vop_stdneed_inactive(struct vop_need_inactive_args *);
 int	vop_stdkqfilter(struct vop_kqfilter_args *);
 int	vop_stdlock(struct vop_lock1_args *);
 int	vop_stdunlock(struct vop_unlock_args *);
@@ -918,12 +908,9 @@ int	dead_read(struct vop_read_args *ap);
 int	dead_write(struct vop_write_args *ap);
 
 /* These are called from within the actual VOPS. */
-void	vop_allocate_post(void *a, int rc);
-void	vop_copy_file_range_post(void *ap, int rc);
 void	vop_close_post(void *a, int rc);
 void	vop_create_pre(void *a);
 void	vop_create_post(void *a, int rc);
-void	vop_deallocate_post(void *a, int rc);
 void	vop_whiteout_pre(void *a);
 void	vop_whiteout_post(void *a, int rc);
 void	vop_deleteextattr_pre(void *a);
@@ -939,6 +926,7 @@ void	vop_mknod_post(void *a, int rc);
 void	vop_open_post(void *a, int rc);
 void	vop_read_post(void *a, int rc);
 void	vop_read_pgcache_post(void *ap, int rc);
+void	vop_readdir_post(void *a, int rc);
 void	vop_reclaim_post(void *a, int rc);
 void	vop_remove_pre(void *a);
 void	vop_remove_post(void *a, int rc);
@@ -998,10 +986,10 @@ void	vop_rename_fail(struct vop_rename_args *ap);
 	AUDIT_ARG_VNODE1(ap->a_vp);						\
 	_error = mac_vnode_check_stat(_ap->a_active_cred, _ap->a_file_cred, _ap->a_vp);\
 	if (__predict_true(_error == 0)) {					\
+		ap->a_sb->st_padding0 = 0;					\
 		ap->a_sb->st_padding1 = 0;					\
 		bzero(_ap->a_sb->st_spare, sizeof(_ap->a_sb->st_spare));	\
 		ap->a_sb->st_filerev = 0;					\
-		ap->a_sb->st_bsdflags = 0;					\
 	}									\
 	_error;									\
 })
@@ -1014,36 +1002,7 @@ void	vop_rename_fail(struct vop_rename_args *ap);
 	_error;									\
 })
 
-#ifdef INVARIANTS
-#define	vop_readdir_pre_assert(ap)					\
-	ssize_t nresid, oresid;						\
-									\
-	oresid = (ap)->a_uio->uio_resid;
-
-#define	vop_readdir_post_assert(ap, ret)				\
-	nresid = (ap)->a_uio->uio_resid;				\
-	if ((ret) == 0 && (ap)->a_eofflag != NULL) {			\
-		VNASSERT(oresid == 0 || nresid != oresid ||		\
-		    *(ap)->a_eofflag == 1,				\
-		    (ap)->a_vp, ("VOP_READDIR: eofflag not set"));	\
-	}
-#else
-#define	vop_readdir_pre_assert(ap)
-#define	vop_readdir_post_assert(ap, ret)
-#endif
-
-#define	vop_readdir_pre(ap) do {					\
-	vop_readdir_pre_assert(ap)
-
-#define vop_readdir_post(ap, ret)					\
-	vop_readdir_post_assert(ap, ret);				\
-	if ((ret) == 0) {						\
-		VFS_KNOTE_LOCKED((ap)->a_vp, NOTE_READ);		\
-		INOTIFY((ap)->a_vp, IN_ACCESS);				\
-	}								\
-} while (0)
-
-#define	vop_write_pre(ap)						\
+#define	VOP_WRITE_PRE(ap)						\
 	struct vattr va;						\
 	int error;							\
 	off_t osize, ooffset, noffset;					\
@@ -1057,14 +1016,11 @@ void	vop_rename_fail(struct vop_rename_args *ap);
 		osize = (off_t)va.va_size;				\
 	}
 
-#define vop_write_post(ap, ret)						\
+#define VOP_WRITE_POST(ap, ret)						\
 	noffset = (ap)->a_uio->uio_offset;				\
-	if (noffset > ooffset) {					\
-		if (!VN_KNLIST_EMPTY((ap)->a_vp)) {			\
-			VFS_KNOTE_LOCKED((ap)->a_vp, NOTE_WRITE |	\
-			    (noffset > osize ? NOTE_EXTEND : 0));	\
-		}							\
-		INOTIFY((ap)->a_vp, IN_MODIFY);				\
+	if (noffset > ooffset && !VN_KNLIST_EMPTY((ap)->a_vp)) {	\
+		VFS_KNOTE_LOCKED((ap)->a_vp, NOTE_WRITE			\
+		    | (noffset > osize ? NOTE_EXTEND : 0));		\
 	}
 
 #define VOP_LOCK(vp, flags) VOP_LOCK1(vp, flags, __FILE__, __LINE__)
@@ -1237,7 +1193,6 @@ vn_get_state(struct vnode *vp)
 #define vfs_smr_exit()	smr_exit(VFS_SMR())
 #define vfs_smr_synchronize()	smr_synchronize(VFS_SMR())
 #define vfs_smr_entered_load(ptr)	smr_entered_load((ptr), VFS_SMR())
-#define VFS_SMR_ENTERED()		SMR_ENTERED(VFS_SMR())
 #define VFS_SMR_ASSERT_ENTERED()	SMR_ASSERT_ENTERED(VFS_SMR())
 #define VFS_SMR_ASSERT_NOT_ENTERED()	SMR_ASSERT_NOT_ENTERED(VFS_SMR())
 #define VFS_SMR_ZONE_SET(zone)	uma_zone_set_smr((zone), VFS_SMR())

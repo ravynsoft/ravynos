@@ -30,12 +30,9 @@
  */
 
 #include "namespace.h"
-#include <sys/exterrvar.h>
 #include <err.h>
 #include <errno.h>
-#include <exterr.h>
 #include <stdarg.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,11 +42,6 @@
 
 static FILE *err_file; /* file to use for error output */
 static void (*err_exit)(int);
-
-static void verrci(bool doexterr, int eval, int code, const char *fmt,
-    va_list ap) __printf0like(4, 0) __dead2;
-static void vwarnci(bool doexterr, int code, const char *fmt, va_list ap)
-    __printf0like(3, 0);
 
 /*
  * This is declared to take a `void *' so that the caller is not required
@@ -78,14 +70,14 @@ _err(int eval, const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	verrci(true, eval, errno, fmt, ap);
+	verrc(eval, errno, fmt, ap);
 	va_end(ap);
 }
 
 void
 verr(int eval, const char *fmt, va_list ap)
 {
-	verrci(true, eval, errno, fmt, ap);
+	verrc(eval, errno, fmt, ap);
 }
 
 void
@@ -93,24 +85,13 @@ errc(int eval, int code, const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	verrci(false, eval, code, fmt, ap);
+	verrc(eval, code, fmt, ap);
 	va_end(ap);
 }
 
 void
 verrc(int eval, int code, const char *fmt, va_list ap)
 {
-	verrci(false, eval, code, fmt, ap);
-}
-
-static void
-vexterr(bool doexterr, int code, const char *fmt, va_list ap)
-{
-	char exterr[UEXTERROR_MAXLEN];	/* libc knows the buffer size */
-	int extstatus;
-
-	if (doexterr)
-		extstatus = uexterr_gettext(exterr, sizeof(exterr));
 	if (err_file == NULL)
 		err_set_file(NULL);
 	fprintf(err_file, "%s: ", _getprogname());
@@ -118,16 +99,7 @@ vexterr(bool doexterr, int code, const char *fmt, va_list ap)
 		vfprintf(err_file, fmt, ap);
 		fprintf(err_file, ": ");
 	}
-	fprintf(err_file, "%s", strerror(code));
-	if (doexterr && extstatus == 0 && exterr[0] != '\0')
-		fprintf(err_file, " (extended error %s)", exterr);
-	fprintf(err_file, "\n");
-}
-
-static void
-verrci(bool doexterr, int eval, int code, const char *fmt, va_list ap)
-{
-	vexterr(doexterr, code, fmt, ap);
+	fprintf(err_file, "%s\n", strerror(code));
 	if (err_exit)
 		err_exit(eval);
 	exit(eval);
@@ -185,16 +157,17 @@ warnc(int code, const char *fmt, ...)
 void
 vwarnc(int code, const char *fmt, va_list ap)
 {
-	vwarnci(false, code, fmt, ap);
-}
-
-static void
-vwarnci(bool doexterr, int code, const char *fmt, va_list ap)
-{
 	int saved_errno;
 
 	saved_errno = errno;
-	vexterr(doexterr, code, fmt, ap);
+	if (err_file == NULL)
+		err_set_file(NULL);
+	fprintf(err_file, "%s: ", _getprogname());
+	if (fmt != NULL) {
+		vfprintf(err_file, fmt, ap);
+		fprintf(err_file, ": ");
+	}
+	fprintf(err_file, "%s\n", strerror(code));
 	errno = saved_errno;
 }
 

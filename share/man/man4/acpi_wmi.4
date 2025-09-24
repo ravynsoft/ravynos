@@ -1,6 +1,3 @@
-.\"-
-.\" SPDX-License-Identifier: BSD-2-Clause
-.\"
 .\" Copyright (c) 2009 Michael Gmelin
 .\" All rights reserved.
 .\"
@@ -25,45 +22,47 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd June 12, 2025
+.Dd September 5, 2019
 .Dt ACPI_WMI 4
 .Os
 .Sh NAME
 .Nm acpi_wmi
-.Nd ACPI to WMI mapping driver
+.Nd "ACPI to WMI mapping driver"
 .Sh SYNOPSIS
 To compile this driver into the kernel,
 place the following line in your
 kernel configuration file:
-.Pp
-.Dl Cd "device acpi_wmi"
+.Bd -ragged -offset indent
+.Cd "device acpi_wmi"
+.Ed
 .Pp
 Alternatively, to load the driver as a
 module at boot time, place the following line in
 .Xr loader.conf 5 :
-.Pp
-.Dl acpi_wmi_load="YES"
+.Bd -literal -offset indent
+acpi_wmi_load="YES"
+.Ed
 .Sh DESCRIPTION
 The
 .Nm
 driver provides an interface for vendor specific WMI implementations
-.Pq e.g. HP and Acer laptops .
-It creates
-.Pa /dev/wmistat%d ,
-which can be read to get information about GUIDs found in the system.
+(e.g. HP and Acer laptops).
+It creates /dev/wmistat%d, which can be read to get
+information about GUIDs found in the system.
 .Sh FILES
 .Bl -tag -width /dev/wmistat%d -compact
 .It Pa /dev/wmistat%d
-WMI status devices.
+WMI status device.
 .El
 .Sh SYSCTLS
 The following sysctl node is currently implemented:
-.Bl -tag -width "dev.acpi_wmi.%d.bmof"
+.Bl -tag 
 .It Va dev.acpi_wmi.%d.bmof
-binary Managed Object Format (MOF) buffer
+Managed Object Format (MOF) blob.
+You can obtain human readable output by bmf2mof in bmfdec tool.
+(https://github.com/pali/bmfdec)
 .El
 .Sh EXAMPLES
-Read GUIDs from the first WMI interface found in the system:
 .Bd -literal
 # cat /dev/wmistat0
 GUID                                  INST EXPE METH STR EVENT OID
@@ -79,14 +78,7 @@ GUID                                  INST EXPE METH STR EVENT OID
 {8232DE3D-663D-4327-A8F4-E293ADB9BF05}   0 NO   NO   NO  NO    BG
 {8F1F6436-9F42-42C8-BADC-0E9424F20C9A}   0 NO   NO   NO  NO    BH
 {8F1F6435-9F42-42C8-BADC-0E9424F20C9A}   0 NO   NO   NO  NO    BI
-.Ed
-.Pp
-Read first WMI interface description with
-.Sy bmf2mof
-from
-.Pa ports/converters/bmfdec :
-.Bd -literal
-# sysctl -b dev.acpi_wmi.0.bmof | bmf2mof
+# sysctl -b dev.acpi_wmi.0.bmof |bmf2mof
 [abstract]
 class Lenovo_BIOSElement {
 };
@@ -99,15 +91,10 @@ class Lenovo_BiosSetting : Lenovo_BiosElement {
       [WmiDataId(1), Description("BIOS setting")] String CurrentSetting;
       };
    ...
+
 .Ed
 .Sh SEE ALSO
 .Xr acpi 4
-.Sh STANDARDS
-.Rs
-.%T Windows Instrumentation: WMI and ACPI
-.%I Microsoft Corporation
-.%U https://github.com/microsoft/Windows-driver-samples/tree/main/wmi/wmiacpi
-.Re
 .Sh HISTORY
 The
 .Nm
@@ -120,13 +107,13 @@ The
 driver was written by
 .An Michael Gmelin Aq Mt freebsd@grem.de .
 .Pp
-Work inspired by the Linux
-.Sy acpi-wmi
-driver written by Carlos Corbacho.
+Work has been inspired by the Linux acpi-wmi driver written by Carlos Corbacho.
 .Pp
-MOF handling inspired by the Linux
-.Sy wmi-bmof
-driver written by Andy Lutomirski.
+See http://www.microsoft.com/whdc/system/pnppwr/wmi/wmi-acpi.mspx for
+the specification of ACPI-WMI.
+.Pp
+MOF part has been inspired by the Linux wmi-bmof driver
+written by Andy Lutomirski.
 .Pp
 This manual page was written by
 .An Michael Gmelin Aq Mt freebsd@grem.de .

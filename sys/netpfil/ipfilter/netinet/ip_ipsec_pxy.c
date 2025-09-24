@@ -341,12 +341,14 @@ ipf_p_ipsec_inout(void *arg, fr_info_t *fin, ap_session_t *aps, nat_t *nat)
  * UDP/TCP port numbers).
  */
 int
-ipf_p_ipsec_match(fr_info_t *fin, ap_session_t *aps, nat_t *nat __unused)
+ipf_p_ipsec_match(fr_info_t *fin, ap_session_t *aps, nat_t *nat)
 {
 	ipsec_pxy_t *ipsec;
 	u_32_t cookies[4];
 	mb_t *m;
 	int off;
+
+	nat = nat;	/* LINT */
 
 	if ((fin->fin_dlen < sizeof(cookies)) || (fin->fin_flx & FI_FRAG))
 		return (-1);

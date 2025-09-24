@@ -34,7 +34,8 @@
 #include <sys/sysctl.h>
 #include <sys/lock.h>
 #include <sys/mutex.h>
-#include <sys/stdarg.h>
+
+#include <machine/stdarg.h>
 
 #include <linux/bitmap.h>
 #include <linux/kobject.h>

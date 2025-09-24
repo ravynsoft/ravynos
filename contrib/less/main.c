@@ -1,5 +1,6 @@
+/* $FreeBSD$ */
 /*
- * Copyright (C) 1984-2025  Mark Nudelman
+ * Copyright (C) 1984-2024  Mark Nudelman
  *
  * You may distribute under the terms of either the GNU General Public
  * License or the Less License, as specified in the README file.
@@ -37,7 +38,7 @@ public POSITION start_attnpos = NULL_POSITION;
 public POSITION end_attnpos = NULL_POSITION;
 public int      wscroll;
 public constant char *progname;
-public lbool    quitting = FALSE;
+public int      quitting;
 public int      dohelp;
 public char *   init_header = NULL;
 static int      secure_allow_features;
@@ -59,24 +60,20 @@ extern char *   tagoption;
 extern int      jump_sline;
 #endif
 
-#if HAVE_TIME
-public time_type less_start_time;
-#endif
-
 #ifdef WIN32
 static wchar_t consoleTitle[256];
 #endif
 
 public int      one_screen;
 extern int      less_is_more;
-extern lbool    missing_cap;
+extern int      missing_cap;
 extern int      know_dumb;
 extern int      quit_if_one_screen;
 extern int      no_init;
 extern int      errmsgs;
 extern int      redraw_on_quit;
 extern int      term_init_done;
-extern lbool    first_time;
+extern int      first_time;
 
 #if MSDOS_COMPILER==WIN32C && (defined(MINGW) || defined(_MSC_VER))
 /* malloc'ed 0-terminated utf8 of 0-terminated wide ws, or null on errors */
@@ -156,7 +153,6 @@ cleanup:
 }
 #endif
 
-#if !SECURE
 static int security_feature_error(constant char *type, size_t len, constant char *name)
 {
 	PARG parg;
@@ -205,7 +201,6 @@ static int security_feature(constant char *name, size_t len)
 		return security_feature_error("invalid", len, name);
 	return features[match].sf_value;
 }
-#endif /* !SECURE */
 
 /*
  * Set the secure_allow_features bitmask, which controls
@@ -303,10 +298,9 @@ int main(int argc, constant char *argv[])
 	 * If the name of the executable program is "more",
 	 * act like LESS_IS_MORE is set.
 	 */
-	if (strcmp(last_component(progname), "more") == 0 &&
-			isnullenv(lgetenv("LESS_IS_MORE"))) {
+	if (strcmp(last_component(progname), "more") == 0) {
 		less_is_more = 1;
-		scan_option("-fG", FALSE);
+		scan_option("-fG");
 	}
 
 	init_prompt();
@@ -314,7 +308,7 @@ int main(int argc, constant char *argv[])
 	init_unsupport();
 	s = lgetenv(less_is_more ? "MORE" : "LESS");
 	if (s != NULL)
-		scan_option(s, TRUE);
+		scan_option(s);
 
 #define isoptstring(s)  less_is_more ? (((s)[0] == '-') && (s)[1] != '\0') : \
 			(((s)[0] == '-' || (s)[0] == '+') && (s)[1] != '\0')
@@ -324,7 +318,7 @@ int main(int argc, constant char *argv[])
 		argc--;
 		if (strcmp(s, "--") == 0)
 			break;
-		scan_option(s, FALSE);
+		scan_option(s);
 	}
 #undef isoptstring
 
@@ -346,7 +340,7 @@ int main(int argc, constant char *argv[])
 
 #if EDITOR
 	editor = lgetenv("VISUAL");
-	if (isnullenv(editor))
+	if (editor == NULL || *editor == '\0')
 	{
 		editor = lgetenv("EDITOR");
 		if (isnullenv(editor))
@@ -419,9 +413,6 @@ int main(int argc, constant char *argv[])
 	open_getchr();
 	raw_mode(1);
 	init_signals(1);
-#if HAVE_TIME
-	less_start_time = get_time();
-#endif
 
 	/*
 	 * Select the first file to examine.
@@ -596,7 +587,7 @@ public void quit(int status)
 		status = save_status;
 	else
 		save_status = status;
-	quitting = TRUE;
+	quitting = 1;
 	check_altpipe_error();
 	if (interactive())
 		clear_bot();
@@ -609,7 +600,7 @@ public void quit(int status)
 		 * alternate screen, which now (since deinit) cannot be seen.
 		 * redraw_on_quit tells us to redraw it on the main screen.
 		 */
-		first_time = TRUE; /* Don't print "skipping" or tildes */
+		first_time = 1; /* Don't print "skipping" or tildes */
 		repaint();
 		flush();
 	}

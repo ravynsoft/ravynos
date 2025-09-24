@@ -235,9 +235,6 @@ static uint_t zfs_resilver_defer_percent = 10;
 #define	DSL_SCAN_IS_SCRUB(scn)		\
 	((scn)->scn_phys.scn_func == POOL_SCAN_SCRUB)
 
-#define	DSL_SCAN_IS_RESILVER(scn) \
-	((scn)->scn_phys.scn_func == POOL_SCAN_RESILVER)
-
 /*
  * Enable/disable the processing of the free_bpobj object.
  */
@@ -1024,7 +1021,7 @@ dsl_scan(dsl_pool_t *dp, pool_scan_func_t func, uint64_t txgstart,
 			if (err == 0) {
 				spa_event_notify(spa, NULL, NULL,
 				    ESC_ZFS_ERRORSCRUB_RESUME);
-				return (0);
+				return (ECANCELED);
 			}
 			return (SET_ERROR(err));
 		}
@@ -1040,7 +1037,7 @@ dsl_scan(dsl_pool_t *dp, pool_scan_func_t func, uint64_t txgstart,
 		    POOL_SCRUB_NORMAL);
 		if (err == 0) {
 			spa_event_notify(spa, NULL, NULL, ESC_ZFS_SCRUB_RESUME);
-			return (0);
+			return (SET_ERROR(ECANCELED));
 		}
 		return (SET_ERROR(err));
 	}
@@ -1135,6 +1132,10 @@ dsl_scan_done(dsl_scan_t *scn, boolean_t complete, dmu_tx_t *tx)
 		}
 	}
 
+	scn->scn_phys.scn_state = complete ? DSS_FINISHED : DSS_CANCELED;
+
+	spa_notify_waiters(spa);
+
 	if (dsl_scan_restarting(scn, tx)) {
 		spa_history_log_internal(spa, "scan aborted, restarting", tx,
 		    "errors=%llu", (u_longlong_t)spa_approx_errlog_size(spa));
@@ -1172,7 +1173,7 @@ dsl_scan_done(dsl_scan_t *scn, boolean_t complete, dmu_tx_t *tx)
 			vdev_dtl_reassess(spa->spa_root_vdev, tx->tx_txg,
 			    scn->scn_phys.scn_max_txg, B_TRUE, B_FALSE);
 
-			if (DSL_SCAN_IS_RESILVER(scn)) {
+			if (scn->scn_phys.scn_min_txg) {
 				nvlist_t *aux = fnvlist_alloc();
 				fnvlist_add_string(aux, ZFS_EV_RESILVER_TYPE,
 				    "healing");
@@ -1193,9 +1194,6 @@ dsl_scan_done(dsl_scan_t *scn, boolean_t complete, dmu_tx_t *tx)
 		 * Don't clear flag until after vdev_dtl_reassess to ensure that
 		 * DTL_MISSING will get updated when possible.
 		 */
-		scn->scn_phys.scn_state = complete ? DSS_FINISHED :
-		    DSS_CANCELED;
-		scn->scn_phys.scn_end_time = gethrestime_sec();
 		spa->spa_scrub_started = B_FALSE;
 
 		/*
@@ -1225,13 +1223,9 @@ dsl_scan_done(dsl_scan_t *scn, boolean_t complete, dmu_tx_t *tx)
 		/* Clear recent error events (i.e. duplicate events tracking) */
 		if (complete)
 			zfs_ereport_clear(spa, NULL);
-	} else {
-		scn->scn_phys.scn_state = complete ? DSS_FINISHED :
-		    DSS_CANCELED;
-		scn->scn_phys.scn_end_time = gethrestime_sec();
 	}
 
-	spa_notify_waiters(spa);
+	scn->scn_phys.scn_end_time = gethrestime_sec();
 
 	if (spa->spa_errata == ZPOOL_ERRATA_ZOL_2094_SCRUB)
 		spa->spa_errata = 0;
@@ -1440,7 +1434,7 @@ dsl_scan_restart_resilver(dsl_pool_t *dp, uint64_t txg)
 	if (txg == 0) {
 		dmu_tx_t *tx;
 		tx = dmu_tx_create_dd(dp->dp_mos_dir);
-		VERIFY0(dmu_tx_assign(tx, DMU_TX_WAIT | DMU_TX_SUSPEND));
+		VERIFY(0 == dmu_tx_assign(tx, DMU_TX_WAIT));
 
 		txg = dmu_tx_get_txg(tx);
 		dp->dp_scan->scn_restart_txg = txg;

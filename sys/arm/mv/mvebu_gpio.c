@@ -810,6 +810,7 @@ mvebu_gpio_attach(device_t dev)
 		return (ENXIO);
 	}
 
+	bus_attach_children(dev);
 	return (0);
 }
 

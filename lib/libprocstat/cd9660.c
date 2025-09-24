@@ -52,8 +52,9 @@
 
 #include <err.h>
 
-#define _WANT_ISO_MNT
+#define _KERNEL
 #include <isofs/cd9660/iso.h>
+#undef _KERNEL
 #include <isofs/cd9660/cd9660_node.h>
 
 #include <kvm.h>

@@ -46,7 +46,6 @@ struct pl061_softc {
 	struct resource		*sc_mem_res;
 	struct resource		*sc_irq_res;
 	void			*sc_irq_hdlr;
-	intptr_t		sc_xref;
 	int			sc_mem_rid;
 	int			sc_irq_rid;
 	struct pl061_pin_irqsrc sc_isrcs[PL061_NUM_GPIO];

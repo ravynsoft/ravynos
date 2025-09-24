@@ -1,4 +1,4 @@
-/*	$NetBSD: chartype.c,v 1.37 2023/08/10 20:38:00 mrg Exp $	*/
+/*	$NetBSD: chartype.c,v 1.36 2022/10/30 19:11:31 christos Exp $	*/
 
 /*-
  * Copyright (c) 2009 The NetBSD Foundation, Inc.
@@ -31,7 +31,7 @@
  */
 #include "config.h"
 #if !defined(lint) && !defined(SCCSID)
-__RCSID("$NetBSD: chartype.c,v 1.37 2023/08/10 20:38:00 mrg Exp $");
+__RCSID("$NetBSD: chartype.c,v 1.36 2022/10/30 19:11:31 christos Exp $");
 #endif /* not lint && not SCCSID */
 
 #include <ctype.h>
@@ -235,17 +235,17 @@ ct_visual_string(const wchar_t *s, ct_buffer_t *conv)
 		}
 
 		/* failed to encode, need more buffer space */
-		uintptr_t sused = (uintptr_t)dst - (uintptr_t)conv->wbuff;
+		used = dst - conv->wbuff;
 		if (ct_conv_wbuff_resize(conv, conv->wsize + CT_BUFSIZ) == -1)
 			return NULL;
-		dst = conv->wbuff + sused;
+		dst = conv->wbuff + used;
 	}
 
 	if (dst >= (conv->wbuff + conv->wsize)) { /* sigh */
-		uintptr_t sused = (uintptr_t)dst - (uintptr_t)conv->wbuff;
+		used = dst - conv->wbuff;
 		if (ct_conv_wbuff_resize(conv, conv->wsize + CT_BUFSIZ) == -1)
 			return NULL;
-		dst = conv->wbuff + sused;
+		dst = conv->wbuff + used;
 	}
 
 	*dst = L'\0';

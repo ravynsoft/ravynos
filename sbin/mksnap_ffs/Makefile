@@ -2,10 +2,11 @@
 
 PACKAGE=ufs
 PROG=	mksnap_ffs
-LIBADD=	util
+SRCS=	mksnap_ffs.c getmntopts.c
 MAN=	mksnap_ffs.8
 
 WARNS?=	2
+CFLAGS+=-I${.CURDIR:H}/mount
 
 .if defined(NOSUID)
 BINMODE=554

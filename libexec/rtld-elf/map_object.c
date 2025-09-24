@@ -60,7 +60,7 @@ phdr_in_zero_page(const Elf_Ehdr *hdr)
  * for the shared object.  Returns NULL on failure.
  */
 Obj_Entry *
-map_object(int fd, const char *path, const struct stat *sb, bool ismain)
+map_object(int fd, const char *path, const struct stat *sb)
 {
 	Obj_Entry *obj;
 	Elf_Ehdr *hdr;
@@ -327,17 +327,13 @@ map_object(int fd, const char *path, const struct stat *sb, bool ismain)
 		obj->interp = (const char *)(obj->relocbase +
 		    phinterp->p_vaddr);
 	if (phtls != NULL) {
-		if (ismain)
-			obj->tlsindex = 1;
-		else {
-			tls_dtv_generation++;
-			obj->tlsindex = ++tls_max_index;
-		}
+		tls_dtv_generation++;
+		obj->tlsindex = ++tls_max_index;
 		obj->tlssize = phtls->p_memsz;
 		obj->tlsalign = phtls->p_align;
 		obj->tlspoffset = phtls->p_offset;
 		obj->tlsinitsize = phtls->p_filesz;
-		obj->tlsinit = obj->relocbase + phtls->p_vaddr;
+		obj->tlsinit = mapbase + phtls->p_vaddr;
 	}
 	obj->stack_flags = stack_flags;
 	if (note_start < note_end)

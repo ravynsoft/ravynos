@@ -918,6 +918,13 @@ secpolicy_zfs(const cred_t *cr)
 	return (0);
 }
 
+int
+secpolicy_zfs_proc(const cred_t *cr, proc_t *proc)
+{
+	(void) cr, (void) proc;
+	return (0);
+}
+
 ksiddomain_t *
 ksid_lookupdomain(const char *dom)
 {

@@ -47,6 +47,7 @@
 #
 
 verify_runnable "global"
+verify_block_cloning
 
 if ! is_linux; then
 	log_unsupported "cp --reflink is a GNU coreutils option"

@@ -36,7 +36,10 @@
 #include <sys/zfs_vfsops.h>
 #include <sys/zfs_vnops.h>
 #include <sys/zfs_project.h>
-#include <linux/pagemap_compat.h>
+#if defined(HAVE_VFS_SET_PAGE_DIRTY_NOBUFFERS) || \
+    defined(HAVE_VFS_FILEMAP_DIRTY_FOLIO)
+#include <linux/pagemap.h>
+#endif
 #include <linux/fadvise.h>
 #ifdef HAVE_VFS_FILEMAP_DIRTY_FOLIO
 #include <linux/writeback.h>
@@ -223,7 +226,7 @@ zpl_iter_read(struct kiocb *kiocb, struct iov_iter *to)
 	ssize_t count = iov_iter_count(to);
 	zfs_uio_t uio;
 
-	zfs_uio_iov_iter_init(&uio, to, kiocb->ki_pos, count);
+	zfs_uio_iov_iter_init(&uio, to, kiocb->ki_pos, count, 0);
 
 	crhold(cr);
 	cookie = spl_fstrans_mark();
@@ -273,7 +276,8 @@ zpl_iter_write(struct kiocb *kiocb, struct iov_iter *from)
 	if (ret)
 		return (ret);
 
-	zfs_uio_iov_iter_init(&uio, from, kiocb->ki_pos, count);
+	zfs_uio_iov_iter_init(&uio, from, kiocb->ki_pos, count,
+	    from->iov_offset);
 
 	crhold(cr);
 	cookie = spl_fstrans_mark();
@@ -552,7 +556,6 @@ zpl_writepages(struct address_space *mapping, struct writeback_control *wbc)
 	return (result);
 }
 
-#ifdef HAVE_VFS_WRITEPAGE
 /*
  * Write out dirty pages to the ARC, this function is only required to
  * support mmap(2).  Mapped pages may be dirtied by memory operations
@@ -569,7 +572,6 @@ zpl_writepage(struct page *pp, struct writeback_control *wbc)
 
 	return (zpl_putpage(pp, wbc, &for_sync));
 }
-#endif
 
 /*
  * The flag combination which matches the behavior of zfs_space() is
@@ -984,27 +986,6 @@ zpl_ioctl_setdosflags(struct file *filp, void __user *arg)
 	return (err);
 }
 
-static int
-zpl_ioctl_rewrite(struct file *filp, void __user *arg)
-{
-	struct inode *ip = file_inode(filp);
-	zfs_rewrite_args_t args;
-	fstrans_cookie_t cookie;
-	int err;
-
-	if (copy_from_user(&args, arg, sizeof (args)))
-		return (-EFAULT);
-
-	if (unlikely(!(filp->f_mode & FMODE_WRITE)))
-		return (-EBADF);
-
-	cookie = spl_fstrans_mark();
-	err = -zfs_rewrite(ITOZ(ip), args.off, args.len, args.flags, args.arg);
-	spl_fstrans_unmark(cookie);
-
-	return (err);
-}
-
 static long
 zpl_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
@@ -1023,8 +1004,12 @@ zpl_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		return (zpl_ioctl_getdosflags(filp, (void *)arg));
 	case ZFS_IOC_SETDOSFLAGS:
 		return (zpl_ioctl_setdosflags(filp, (void *)arg));
-	case ZFS_IOC_REWRITE:
-		return (zpl_ioctl_rewrite(filp, (void *)arg));
+	case ZFS_IOC_COMPAT_FICLONE:
+		return (zpl_ioctl_ficlone(filp, (void *)arg));
+	case ZFS_IOC_COMPAT_FICLONERANGE:
+		return (zpl_ioctl_ficlonerange(filp, (void *)arg));
+	case ZFS_IOC_COMPAT_FIDEDUPERANGE:
+		return (zpl_ioctl_fideduperange(filp, (void *)arg));
 	default:
 		return (-ENOTTY);
 	}
@@ -1062,9 +1047,7 @@ const struct address_space_operations zpl_address_space_operations = {
 #else
 	.readpage	= zpl_readpage,
 #endif
-#ifdef HAVE_VFS_WRITEPAGE
 	.writepage	= zpl_writepage,
-#endif
 	.writepages	= zpl_writepages,
 	.direct_IO	= zpl_direct_IO,
 #ifdef HAVE_VFS_SET_PAGE_DIRTY_NOBUFFERS
@@ -1075,7 +1058,7 @@ const struct address_space_operations zpl_address_space_operations = {
 #endif
 #ifdef HAVE_VFS_MIGRATE_FOLIO
 	.migrate_folio	= migrate_folio,
-#elif defined(HAVE_VFS_MIGRATEPAGE)
+#else
 	.migratepage	= migrate_page,
 #endif
 };

@@ -153,8 +153,6 @@ static volatile sig_atomic_t romeo_must_die = 0;
 
 static const char *configfile = CF;
 
-static	char	vm_guest[80];
-
 static void devdlog(int priority, const char* message, ...)
 	__printflike(2, 3);
 static void event_loop(void);
@@ -869,8 +867,6 @@ process_event(char *buffer)
 	cfg.set_variable("timestamp", timestr);
 	free(timestr);
 
-	cfg.set_variable("vm_guest", vm_guest);
-
 	// Match doesn't have a device, and the format is a little
 	// different, so handle it separately.
 	switch (type) {
@@ -1111,14 +1107,6 @@ event_loop(void)
 			err(1, "select");
 		} else if (rv == 0)
 			check_clients();
-		/*
-		 * Aside from the socket type, both sockets use the same
-		 * protocol, so we can process clients the same way.
-		 */
-		if (FD_ISSET(stream_fd, &fds))
-			new_client(stream_fd, SOCK_STREAM);
-		if (FD_ISSET(seqpacket_fd, &fds))
-			new_client(seqpacket_fd, SOCK_SEQPACKET);
 		if (FD_ISSET(fd, &fds)) {
 			rv = read(fd, buffer, sizeof(buffer) - 1);
 			if (rv > 0) {
@@ -1147,6 +1135,14 @@ event_loop(void)
 				break;
 			}
 		}
+		if (FD_ISSET(stream_fd, &fds))
+			new_client(stream_fd, SOCK_STREAM);
+		/*
+		 * Aside from the socket type, both sockets use the same
+		 * protocol, so we can process clients the same way.
+		 */
+		if (FD_ISSET(seqpacket_fd, &fds))
+			new_client(seqpacket_fd, SOCK_SEQPACKET);
 	}
 	cfg.remove_pidfile();
 	close(seqpacket_fd);
@@ -1326,7 +1322,6 @@ int
 main(int argc, char **argv)
 {
 	int ch;
-	size_t len;
 
 	check_devd_enabled();
 	while ((ch = getopt(argc, argv, "df:l:nq")) != -1) {
@@ -1349,12 +1344,6 @@ main(int argc, char **argv)
 		default:
 			usage();
 		}
-	}
-
-	len = sizeof(vm_guest);
-	if (sysctlbyname("kern.vm_guest", vm_guest, &len, NULL, 0) < 0) {
-		devdlog(LOG_ERR,
-		    "sysctlbyname(kern.vm_guest) failed: %d\n", errno);
 	}
 
 	cfg.parse();

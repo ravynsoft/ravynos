@@ -72,7 +72,6 @@ struct timehands {
 	uint64_t		th_scale;
 	u_int			th_large_delta;
 	u_int	 		th_offset_count;
-	long			th_tai_offset;
 	struct bintime		th_offset;
 	struct bintime		th_bintime;
 	struct timeval		th_microtime;
@@ -1067,7 +1066,6 @@ sysclock_getsnapshot(struct sysclock_snap *clock_snap, int fast)
 		th = timehands;
 		gen = atomic_load_acq_int(&th->th_generation);
 		fbi->th_scale = th->th_scale;
-		fbi->th_tai_offset = th->th_tai_offset;
 		fbi->tick_time = th->th_offset;
 #ifdef FFCLOCK
 		ffth = fftimehands;
@@ -1140,11 +1138,6 @@ sysclock_snap2bintime(struct sysclock_snap *cs, struct bintime *bt,
 		if ((flags & FBCLOCK_UPTIME) == 0) {
 			getboottimebin(&boottimebin);
 			bintime_add(bt, &boottimebin);
-		}
-		if (!(flags & FBCLOCK_LEAPSEC)) {
-			if (cs->fb_info.th_tai_offset == 0)
-				return (EINVAL);
-			bt->sec += cs->fb_info.th_tai_offset;
 		}
 		break;
 #ifdef FFCLOCK
@@ -1440,8 +1433,7 @@ tc_windup(struct bintime *new_boottimebin)
 
 		do {
 			t = bt.sec;
-			ntp_update_second(&th->th_adjustment, &bt.sec,
-			    &th->th_tai_offset);
+			ntp_update_second(&th->th_adjustment, &bt.sec);
 			if (bt.sec != t)
 				th->th_boottime.sec += bt.sec - t;
 			--i;

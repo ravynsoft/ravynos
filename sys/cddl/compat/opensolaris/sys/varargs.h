@@ -28,7 +28,7 @@
 #define	_OPENSOLARIS_SYS_VARARGS_H_
 
 #ifdef	_KERNEL
-#include <sys/stdarg.h>
+#include <machine/stdarg.h>
 #else
 #include <stdarg.h>
 #endif

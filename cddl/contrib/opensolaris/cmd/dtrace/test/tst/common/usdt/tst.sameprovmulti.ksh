@@ -35,8 +35,8 @@ cd $DIR
 cat > test.c <<EOF
 #include <unistd.h>
 
-int
-main(void)
+void
+main()
 {
 EOF
 
@@ -74,7 +74,6 @@ EOF
 	fi
 
 	objs="$objs $oogle.o $oogle.d.o"
-	echo "extern void $oogle(void);" >> test.c
 	echo $oogle'();' >> test.c
 done
 

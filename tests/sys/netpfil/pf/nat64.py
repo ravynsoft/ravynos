@@ -28,9 +28,22 @@ import pytest
 import selectors
 import socket
 import sys
-from utils import DelayedSend
+import threading
+import time
 from atf_python.sys.net.tools import ToolsHelper
 from atf_python.sys.net.vnet import VnetTestTemplate
+
+class DelayedSend(threading.Thread):
+    def __init__(self, packet):
+        threading.Thread.__init__(self)
+        self._packet = packet
+
+        self.start()
+
+    def run(self):
+        import scapy.all as sp
+        time.sleep(1)
+        sp.send(self._packet)
 
 class TestNAT64(VnetTestTemplate):
     REQUIRED_MODULES = [ "pf" ]
@@ -178,7 +191,7 @@ class TestNAT64(VnetTestTemplate):
 
         # Check the hop limit
         ip6 = reply.getlayer(sp.IPv6)
-        assert ip6.hlim == 61
+        assert ip6.hlim == 62
 
     @pytest.mark.require_user("root")
     @pytest.mark.require_progs(["scapy"])
@@ -236,7 +249,7 @@ class TestNAT64(VnetTestTemplate):
         ToolsHelper.print_output("/sbin/route -6 add default 2001:db8::1")
         import scapy.all as sp
 
-        packet = sp.IPv6(dst="64:ff9b::198.51.100.2", hlim=2) \
+        packet = sp.IPv6(dst="64:ff9b::198.51.100.2", hlim=1) \
             / sp.TCP(sport=1111, dport=2222, flags="S")
         self.common_test_source_addr(packet)
 
@@ -246,7 +259,7 @@ class TestNAT64(VnetTestTemplate):
         ToolsHelper.print_output("/sbin/route -6 add default 2001:db8::1")
         import scapy.all as sp
 
-        packet = sp.IPv6(dst="64:ff9b::198.51.100.2", hlim=2) \
+        packet = sp.IPv6(dst="64:ff9b::198.51.100.2", hlim=1) \
             / sp.UDP(sport=1111, dport=2222) / sp.Raw("foo")
         self.common_test_source_addr(packet)
 
@@ -256,7 +269,7 @@ class TestNAT64(VnetTestTemplate):
         ToolsHelper.print_output("/sbin/route -6 add default 2001:db8::1")
         import scapy.all as sp
 
-        packet = sp.IPv6(dst="64:ff9b::198.51.100.2", hlim=2) \
+        packet = sp.IPv6(dst="64:ff9b::198.51.100.2", hlim=1) \
             / sp.SCTP(sport=1111, dport=2222) \
             / sp.SCTPChunkInit(init_tag=1, n_in_streams=1, n_out_streams=1, a_rwnd=1500)
         self.common_test_source_addr(packet)
@@ -267,23 +280,8 @@ class TestNAT64(VnetTestTemplate):
         ToolsHelper.print_output("/sbin/route -6 add default 2001:db8::1")
         import scapy.all as sp
 
-        packet = sp.IPv6(dst="64:ff9b::198.51.100.2", hlim=2) \
+        packet = sp.IPv6(dst="64:ff9b::198.51.100.2", hlim=1) \
             / sp.ICMPv6EchoRequest() / sp.Raw("foo")
         reply = self.common_test_source_addr(packet)
         icmp = reply.getlayer(sp.ICMPv6EchoRequest)
         assert icmp
-
-    @pytest.mark.require_user("root")
-    @pytest.mark.require_progs(["scapy"])
-    def test_bad_len(self):
-        """
-            PR 288224: we can panic if the IPv6 plen is longer than the packet length.
-        """
-        ToolsHelper.print_output("/sbin/route -6 add default 2001:db8::1")
-        import scapy.all as sp
-
-        packet = sp.IPv6(dst="64:ff9b::198.51.100.2", hlim=2, plen=512) \
-            / sp.ICMPv6EchoRequest() / sp.Raw("foo")
-        reply = sp.sr1(packet, timeout=3)
-        # We don't expect a reply to a corrupted packet
-        assert not reply

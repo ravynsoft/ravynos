@@ -37,18 +37,8 @@
 
 struct pthread;
 
-struct dtv_slot {
-	char			*dtvs_tls;
-};
-
-struct dtv {
-	uintptr_t		dtv_gen;
-	uintptr_t		dtv_size;
-	struct dtv_slot		dtv_slots[];
-};
-
 struct tcb {
-	struct dtv		*tcb_dtv;	/* required by rtld */
+	uintptr_t		*tcb_dtv;	/* required by rtld */
 	struct pthread		*tcb_thread;
 };
 

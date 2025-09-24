@@ -323,6 +323,7 @@ lz4_filter_read(struct archive_read_filter *self, const void **p)
 		archive_set_error(&self->archive->archive,
 		    ARCHIVE_ERRNO_MISC, "Program error.");
 		return (ARCHIVE_FATAL);
+		break;
 	}
 
 	while (state->stage == SELECT_STREAM) {

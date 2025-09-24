@@ -52,7 +52,7 @@ class ifdstream : public std::istream, noncopyable
     struct impl;
 
     /// Pointer to the shared internal implementation.
-    std::unique_ptr< impl > _pimpl;
+    std::auto_ptr< impl > _pimpl;
 
 public:
     explicit ifdstream(const int);

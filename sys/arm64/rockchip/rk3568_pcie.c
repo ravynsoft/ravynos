@@ -139,43 +139,21 @@ rk3568_pcie_init_soc(device_t dev)
 	int err, count;
 	bool status;
 
-	/* Assert PCIe reset */
-	if (sc->reset_gpio != NULL) {
-		if (gpio_pin_setflags(sc->reset_gpio, GPIO_PIN_OUTPUT)) {
-			device_printf(dev, "Could not setup PCIe reset\n");
-			return (ENXIO);
-		}
-		if (gpio_pin_set_active(sc->reset_gpio, true)) {
-			device_printf(dev, "Could not set PCIe reset\n");
-			return (ENXIO);
-		}
-	}
-
 	/* Assert reset */
-	if (hwreset_assert(sc->hwreset)) {
+	if (hwreset_assert(sc->hwreset))
 		device_printf(dev, "Could not assert reset\n");
-		return (ENXIO);
-	}
 
 	/* Powerup PCIe */
-	if (sc->regulator != NULL) {
-		if (regulator_enable(sc->regulator)) {
-			device_printf(dev, "Cannot enable regulator\n");
-			return (ENXIO);
-		}
-	}
+	if (regulator_enable(sc->regulator))
+		device_printf(dev, "Cannot enable regulator\n");
 
 	/* Enable PHY */
-	if (phy_enable(sc->phy)) {
+	if (phy_enable(sc->phy))
 		device_printf(dev, "Cannot enable phy\n");
-		return (ENXIO);
-	}
 
 	/* Deassert reset */
-	if (hwreset_deassert(sc->hwreset)) {
+	if (hwreset_deassert(sc->hwreset))
 		device_printf(dev, "Could not deassert reset\n");
-		return (ENXIO);
-	}
 
 	/* Enable clocks */
 	if ((err = clk_enable(sc->aclk_mst))) {
@@ -205,7 +183,7 @@ rk3568_pcie_init_soc(device_t dev)
 	bus_write_4(sc->apb_res, PCIE_CLIENT_GENERAL_CON,
 	    (DEVICE_TYPE_MASK << 16) | DEVICE_TYPE_RC);
 
-	/* Deassert PCIe reset */
+	/* Assert reset PCIe */
 	if ((err = gpio_pin_set_active(sc->reset_gpio, false)))
 		device_printf(dev, "reset_gpio set failed\n");
 
@@ -215,13 +193,9 @@ rk3568_pcie_init_soc(device_t dev)
 	    (LINK_REQ_RST_GRT | LTSSM_ENABLE));
 	DELAY(100000);
 
-	/* Release PCIe reset */
-	if (sc->reset_gpio != NULL) {
-		if (gpio_pin_set_active(sc->reset_gpio, true)) {
-			device_printf(dev, "Could not release PCIe reset");
-			return (ENXIO);
-		}
-	}
+	/* Release reset */
+	if ((err = gpio_pin_set_active(sc->reset_gpio, true)))
+		device_printf(dev, "reset_gpio release failed\n");
 
 	/* Wait for link up/stable */
 	for (count = 20; count; count--) {
@@ -327,9 +301,8 @@ rk3568_pcie_attach(device_t dev)
 	}
 
 	/* Get regulator if present */
-	error = regulator_get_by_ofw_property(dev, 0, "vpcie3v3-supply",
-	    &sc->regulator);
-	if (error != 0 && error != ENOENT) {
+	if (regulator_get_by_ofw_property(dev, 0, "vpcie3v3-supply",
+	    &sc->regulator)) {
 		device_printf(dev, "Cannot get regulator\n");
 		goto fail;
 	}
@@ -341,11 +314,14 @@ rk3568_pcie_attach(device_t dev)
 	}
 
 	/* Get GPIO reset */
-	error = gpio_pin_get_by_ofw_property(dev, sc->node, "reset-gpios",
-		    &sc->reset_gpio);
-	if (error != 0 && error != ENOENT) {
-		device_printf(dev, "Cannot get reset-gpios\n");
-		goto fail;
+	if (OF_hasprop(sc->node, "reset-gpios")) {
+		if (gpio_pin_get_by_ofw_property(dev, sc->node, "reset-gpios",
+		    &sc->reset_gpio)) {
+			device_printf(dev, "Cannot get reset-gpios\n");
+			goto fail;
+		}
+		gpio_pin_setflags(sc->reset_gpio, GPIO_PIN_OUTPUT);
+		gpio_pin_set_active(sc->reset_gpio, true);
 	}
 
 	/* Get clocks */

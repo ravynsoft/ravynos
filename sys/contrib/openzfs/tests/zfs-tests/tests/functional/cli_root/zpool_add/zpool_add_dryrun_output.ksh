@@ -155,17 +155,11 @@ for (( i=0; i < ${#tests[@]}; i+=1 )); do
 
 	log_must eval zpool create "$TESTPOOL" $tree
 	log_must poolexists "$TESTPOOL"
-	typeset out
-	out="$(eval zpool add -n '$TESTPOOL' $add)"
-	if [[ $? -ne 0 ]]; then
-		log_fail eval "zpool add -n '$TESTPOOL' $add"
-	fi
+	typeset out="$(log_must eval "zpool add -n '$TESTPOOL' $add" | \
+	    sed /^SUCCESS/d)"
+
 	if [[ "$out" != "$want" ]]; then
-		log_note "Got:"
-		log_note "$out"
-		log_note "but expected:"
-		log_note "$want"
-		log_fail "Dry run does not display config correctly"
+		log_fail "Got:\n" "$out" "\nbut expected:\n" "$want"
 	fi
 	log_must destroy_pool "$TESTPOOL"
 done
@@ -176,11 +170,7 @@ log_must eval "zpool create '$TESTPOOL' '${dev[0]}' log '${dev[1]}' \
 
 # Create a hole vdev.
 log_must eval "zpool remove '$TESTPOOL' '${dev[1]}'"
-typeset out
-out="$(eval zpool add -n '$TESTPOOL' '${dev[1]}')"
-if [[ $? -ne 0 ]]; then
-    log_fail eval "zpool add -n '$TESTPOOL' '${dev[1]}'"
-fi
-log_mustnot grep -qE '[[:space:]]+hole' <<<"$out"
+log_mustnot eval "zpool add -n '$TESTPOOL' '${dev[1]}' | \
+    grep -qE '[[:space:]]+hole'"
 
 log_pass "'zpool add -n <pool> <vdev> ...' displays config correctly."

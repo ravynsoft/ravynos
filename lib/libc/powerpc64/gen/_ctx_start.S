@@ -34,16 +34,6 @@
 	ld	%r2,8(%r14)
 	ld	%r14,0(%r14)
 #else
-	/*
-	 * The stack frame was already set up in makecontext(),
-	 * so we can safely use the guaranteed fields here.
-	 *
-	 * Note we do step on the allocated stack frame's TOC,
-	 * but since we never return from this function (i.e.
-	 * never restore the stack frame) this should be safe.
-	 */
-	std	%r2,24(%r1)	/* save TOC */
-
 	/* Load global entry point */
 	mr	%r12,%r14
 #endif
@@ -51,10 +41,6 @@
 	blrl			/* branch to start function */
 	mr	%r3,%r15	/* pass pointer to ucontext as argument */
 	nop
-#if defined(_CALL_ELF) && _CALL_ELF != 1
-	/* Restore TOC */
-	ld	%r2,24(%r1)
-#endif
 	bl	CNAME(_ctx_done) /* branch to ctxt completion func */
 	/*
 	 * we should never return from the

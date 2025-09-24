@@ -70,8 +70,7 @@ errata_identify(driver_t *driver, device_t parent)
 {
 	int32_t version;
 
-	/* Check if Errata ABI is supported */
-	if (smccc_arch_features(EM_VERSION) != SMCCC_RET_SUCCESS)
+	if (smccc_get_version() < SMCCC_MAKE_VERSION(1, 1))
 		return;
 
 	/* Check we have Errata 1.0 or later */
@@ -79,7 +78,7 @@ errata_identify(driver_t *driver, device_t parent)
 	if (version < EM_VERSION_MIN)
 		return;
 
-	if (BUS_ADD_CHILD(parent, 0, "errata", DEVICE_UNIT_ANY) == NULL)
+	if (BUS_ADD_CHILD(parent, 0, "errata", -1) == NULL)
 		device_printf(parent, "add errata child failed\n");
 }
 

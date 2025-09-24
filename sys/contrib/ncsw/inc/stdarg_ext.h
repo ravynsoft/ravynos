@@ -40,7 +40,7 @@
 #elif defined(NCSW_FREEBSD)
 #include <sys/param.h>
 #include <sys/kernel.h>
-#include <sys/stdarg.h>
+#include <machine/stdarg.h>
 
 #else
 #include <stdarg.h>
