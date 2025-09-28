@@ -1,0 +1,16 @@
+#compdef strftime
+
+local expl two='epoch time'
+
+if (( words[(I)-r] )); then
+  two='date string'
+fi
+
+_arguments -S -A '-*' -s \
+  '-n[omit trailing newline]' \
+  '-q[run quietly]' \
+  '(3)-r[reverse lookup using strptime]' \
+  '-s+[assign result to parameter]:param:_parameters' \
+  '1:format: _date_formats zsh' \
+  "2:$two" \
+  '3:nanoseconds' \

@@ -1,0 +1,97 @@
+# deplibs-mingw.at --                         -*- Autotest -*-
+
+#   Copyright (C) 2010-2019, 2021-2022 Free Software Foundation, Inc.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+# Check that deplibs are detected correctly even if there is no 'file'
+# command installed.
+
+AT_SETUP([deplibs without file command])
+AT_KEYWORDS([libtool])
+
+cwd=`pwd`
+instdir=$cwd/inst
+libdir=$instdir/lib
+bindir=$instdir/bin
+save_LDFLAGS=$LDFLAGS
+LDFLAGS="$LDFLAGS -no-undefined"
+
+mkdir inst inst/bin inst/lib
+
+AT_DATA([a.c],
+[[int a () { return 0; }
+]])
+AT_DATA([b.c],
+[[extern int a ();
+int b () { return a (); }
+]])
+
+for file in a.c b.c; do
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c $file
+done
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la a.lo -rpath $libdir],
+	 [], [ignore], [ignore])
+AT_CHECK([library_names= && . ./liba.la && if test -z "$library_names"; then exit 77; fi ],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp liba.la $libdir], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=clean rm -f liba.la], [], [ignore], [ignore])
+rm -f $libdir/liba.la
+
+# check once with 'file' (if present) and once without, if on MinGW.
+for try in with-file without-file; do
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o libb.la b.lo -rpath $libdir ]dnl
+	   [-L$libdir -la],
+	   [], [ignore], [ignore])
+  AT_CHECK([library_names= && . ./libb.la && if test -z "$library_names"; then exit 99; fi ],
+	   [], [ignore], [ignore])
+
+  case $host_os in
+  mingw*)
+    if file /; then
+      mkdir bin new-libtool
+
+      cat >bin/file <<\EOF
+#! /bin/sh
+exit 1
+EOF
+      chmod +x bin/file
+      PATH=`pwd`/bin${PATH_SEPARATOR-:}$PATH
+      cd new-libtool
+      # configure might fail due to in-tree build of toplevel, or
+      # missing configure flags and other reasons.
+      LDFLAGS=$save_LDFLAGS
+      LT_AT_CONFIGURE([|| exit 77], ["$abs_top_srcdir"/configure])
+      LDFLAGS="$LDFLAGS -no-undefined"
+      cd ..
+      LIBTOOL=new-libtool/libtool
+      export LIBTOOL
+      # Check whether the generated script is usable; otherwise, skip.
+      AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o libunrelated.la a.lo -rpath $libdir] dnl
+	       [|| exit 77], [], [ignore], [ignore])
+    else
+      break;
+    fi;;
+  *)
+    break;;
+  esac
+done
+
+AT_CLEANUP

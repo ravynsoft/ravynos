@@ -1,0 +1,19 @@
+#compdef zsh-mime-handler
+
+# Given that the handler is likely to change the start of the command
+# line, we'll try to maintain the position from the end of the words
+# array.  Hence for example CURRENT gets decremented by one if the
+# handler drops off the start.
+integer end_offset=$(( ${#words} - CURRENT ))
+
+# zsh-mime-handler -l is supposed to print out the command line
+# with quoting to turn it into a full executable line.  So
+# we need to use shell splitting to turn it into words and
+# then unquoting on those words.
+words=(${(z)"$(zsh-mime-handler -l "${(@)words[2,-1]}")"})
+# Careful unquoting: we need to keep a '' as a separate word.
+words=("${(@Q)words}")
+
+(( CURRENT = ${#words} - end_offset ))
+
+_normal

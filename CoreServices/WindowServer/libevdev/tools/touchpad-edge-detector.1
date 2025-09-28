@@ -1,0 +1,44 @@
+.TH TOUCHPAD-EDGE-DETECTOR "1"
+.SH NAME
+touchpad-edge-detector \- print the axis ranges for a touchpad device
+.SH SYNOPSIS
+.B touchpad-edge-detector [--help] \fIWxH /dev/input/eventX\fR
+.SH DESCRIPTION
+.PP
+The
+.B touchpad-edge-detector
+tool reads touchpad events from the kernel and records the minimum and
+maximum coordinates based on user input. This is an interactive tool, the
+user must move a finger around the touchpad, attempting to trigger an
+event at all edges of the touchpad.
+.PP
+To terminate the event collection and print a summary, press Ctrl+C. It is
+recommended that the tool is run several times to guarantee a reliable
+result.
+.SH OPTIONS
+.TP 8
+.I WxH
+The width and height of the touchpad in mm. For a touchpad 100mm wide and
+75mm high, the argument is thus \fI100x75\fR. This is a required argument.
+.TP 8
+.I /dev/input/eventX
+The event node of the touchpad to read events from. A list of possible event
+nodes can be obtained with either one of the following commands: \fBlibinput
+record\fR, \fBevemu-record\fR, or \fBevtest\fR. Alternatively the event node
+for a device is listed in the \fBHandlers=\fR line \fI/proc/bus/input/devices\fR.
+This is a required argument.
+.TP 8
+.B --help
+Print a short help description
+.SH NOTES
+.PP
+On completion, this tool prints a summary of the collected events and a
+suggested udev rule. Due to rounding errors it is rare to get an exact match
+for the touchpad's dimensions, but any discrepancy of more than 5mm should
+be corrected with the suggested udev rule.
+.PP
+The udev rule should be simplified and submitted as a pull request to the
+system repository at \fIhttps://github.com/systemd/systemd\fR. For further
+guidance, see the file \fI/usr/lib/udev/hwdb.d/60-evdev.hwdb\fR.
+.SH SEE ALSO
+udev(7)

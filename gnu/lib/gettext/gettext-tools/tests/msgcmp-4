@@ -1,0 +1,152 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test comparison with PO files with previous msgids.
+# Test --use-fuzzy option.
+
+cat <<\EOF > mc-test4.pot
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:242
+#, c-format
+msgid "Too many arguments."
+msgstr ""
+
+#. TRANSLATORS: An error message.
+#: src/args.c:247
+#, c-format
+msgid "Too few arguments."
+msgstr ""
+
+# Oder besser "fehlende Argumente"?
+#. TRANSLATORS: An error message.
+#: src/args.c:273
+#, c-format
+msgid "Missing arguments."
+msgstr ""
+EOF
+
+cat <<\EOF > mc-test4.po1
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:242
+#, fuzzy, c-format
+#| msgid "too many arguments"
+msgid "Too many arguments."
+msgstr "zu viele Argumente"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:247
+#, fuzzy, c-format
+#| msgid "too many arguments"
+msgid "Too few arguments."
+msgstr "zu viele Argumente"
+
+# Oder besser "fehlende Argumente"?
+#. TRANSLATORS: An error message.
+#: src/args.c:273
+#, fuzzy, c-format
+#| msgid "missing arguments"
+msgid "Missing arguments."
+msgstr "Argumente fehlen"
+
+#: getopt.c:796 getopt.c:799
+#, fuzzy, c-format
+#| msgid "%s: invalid option -- %c\n"
+msgid "%s: illegal option -- %c\n"
+msgstr "%s: ungültige Option -- %c\n"
+
+#: getopt.c:805 getopt.c:808
+#, c-format
+msgid "%s: invalid option -- %c\n"
+msgstr "%s: ungültige Option -- %c\n"
+EOF
+
+# Verify that with fuzzies, all msgids of the POT file are covered.
+: ${MSGCMP=msgcmp}
+LC_MESSAGES=C LC_ALL= \
+${MSGCMP} --use-fuzzy mc-test4.po1 mc-test4.pot > mc-test4.out11 2>&1 || Exit 1
+if grep -v '^==' mc-test4.out11 | grep -v 'warning:' > /dev/null; then
+  Exit 1
+fi
+
+# Verify that without fuzzies, not all msgids of the POT file are covered.
+: ${MSGCMP=msgcmp}
+LC_MESSAGES=C LC_ALL= \
+${MSGCMP} mc-test4.po1 mc-test4.pot > mc-test4.out12 2>&1
+test $? = 1 || { Exit 1; }
+grep -v '^=='  mc-test4.out12 | grep -v 'warning:' > /dev/null || Exit 1
+
+cat <<\EOF > mc-test4.po2
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:242
+#, c-format
+#| msgid "too many arguments"
+msgid "Too many arguments."
+msgstr "Zu viele Argumente."
+
+#. TRANSLATORS: An error message.
+#: src/args.c:247
+#, c-format
+#| msgid "too many arguments"
+msgid "Too few arguments."
+msgstr "Zu wenige Argumente."
+
+# Oder besser "fehlende Argumente"?
+#. TRANSLATORS: An error message.
+#: src/args.c:273
+#, c-format
+#| msgid "missing arguments"
+msgid "Missing arguments."
+msgstr "Argumente fehlen."
+
+#: getopt.c:796 getopt.c:799
+#, fuzzy, c-format
+#| msgid "%s: invalid option -- %c\n"
+msgid "%s: illegal option -- %c\n"
+msgstr "%s: ungültige Option -- %c\n"
+
+#: getopt.c:805 getopt.c:808
+#, c-format
+msgid "%s: invalid option -- %c\n"
+msgstr "%s: ungültige Option -- %c\n"
+EOF
+
+# Verify that without fuzzies, all msgids of the POT file are covered.
+# Verify that previous msgids are ignored even when specified on non-fuzzy
+# messages.
+: ${MSGCMP=msgcmp}
+LC_MESSAGES=C LC_ALL= \
+${MSGCMP} mc-test4.po2 mc-test4.pot > mc-test4.out2 2>&1 || Exit 1
+if grep -v '^=='  mc-test4.out2 | grep -v 'warning:' > /dev/null; then
+  Exit 1
+fi
+
+exit $result

@@ -1,0 +1,69 @@
+#compdef attr getfattr setfattr xattr
+
+case $service in
+  attr)
+    local -a list
+    [[ $OSTYPE = irix* ]] &&
+        list=( '(-g -s -r -V)-l[list extended attributes associated with file]' )
+    _arguments -s -S "$list[@]" \
+      '(-l -r -s -V)-g[get extended attribute for file]:attribute name' \
+      '(-l -g -s -q -V)-r[remove given attribute from file]:attribute name' \
+      '(-l -g -r)-s[set named attribute for file]:attribute name' \
+      '(-r)-q[quiet output]' \
+      '(-g -r)-V[specify value of attribute]:value' \
+      '-L[dereference symbolic links]' \
+      '-R[operator in the root attribute namespace]' \
+      '1:file:_files'
+    return
+  ;;
+  getfattr)
+    _arguments -s -S \
+      '(-d --dump -n --name)'{-n+,--name=}'[dump the value of the named extended attribute]' \
+      '(-n --name -d --dump)'{-d,--dump}'[dump the values of all extended attributes]' \
+      '(-e --encoding)'{-e+,--encoding=}'[encode values after retrieving them]:encoding:(text hex base64)' \
+      '(-h --no-dereference)'{-h,--no-dereference}"[don't follow symbolic links]" \
+      '(-m --match)'{-m+,--match=}'[only include attributes with names matching regex]:regular expression' \
+      '--one-file-system[skip files on different filesystems]' \
+      "--absolute-names[don't strip leading slash characters]" \
+      '--only-values[dump only attribute values]' \
+      '(-R --recursive)'{-R,--recursive}'[list attributes of all files and directories recursively]' \
+      '(-P --physical -L --logical)'{-L,--logical}'[follow all symbolic links]' \
+      '(-L --logical -P --physical)'{-P,--physical}'[skip all symbolic links]' \
+      '(* -)--version[display version information]' \
+      '(* -)--help[display help information]' \
+      '*:file:_files'
+    return
+  ;;
+  setfattr)
+    _arguments -s -S \
+      '(-n --name)'{-n+,--name=}'[specify extended attribute to set]' \
+      '(-v --value)'{-v+,--value=}'[specify value for the attribute]' \
+      '(-x --remove)'{-x+,--remove=}'[remove specified extended attribute]' \
+      '(-n --name -v --value)--restore[restore extended attributes from dump file]:dump file:_files' \
+      '--raw[attribute value is not encoded]' \
+      '(-h --no-dereference)'{-h,--no-dereference}"[don't follow symbolic links]" \
+      '(* -)--version[display version information]' \
+      '(* -)--help[display help information]' \
+      '*:file:_files'
+    return
+  ;;
+  # The Python xattr module ships with a utility called xattr which might appear
+  # on some systems; it is not entirely compatible with the Darwin variant, but
+  # does seem inspired by it, to the degree that this is probably close enough
+  xattr)
+    _arguments -s -S -A '-*' : \
+      '(: -)'{-h,--help}'[display help information]' \
+      '(-c -d -w)-l[display in long format]' \
+      '-r[act recursively]' \
+      '-s[act on symbolic links]' \
+      '(-w)-v[always display file name]' \
+      '(-c -d)-x[use hexadecimal format for value input and output]' \
+      '*: :_files' \
+      + '(op)' \
+      '(-l -x)-c[remove all attributes]' \
+      '(-l -x)-d[remove specified attribute]:attribute name' \
+      '-p[display value of specified attribute]:attribute name' \
+      '(-l -v)-w[set value of specified attribute]:attribute name: :attribute value'
+    return
+    ;;
+esac

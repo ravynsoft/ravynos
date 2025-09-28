@@ -1,0 +1,37 @@
+#autoload
+
+# This completer function makes the other completer functions used
+# insert possible completions only after the list has been shown at
+# least once.
+
+[[ _matcher_num -gt 1 ]] && return 1
+
+local pre suf expr
+
+# Get the strings to compare.
+
+if zstyle -t ":completion:${curcontext}:" word; then
+  pre="$HISTNO$LBUFFER"
+  suf="$RBUFFER"
+else
+  pre="$PREFIX"
+  suf="$SUFFIX"
+fi
+
+# Should we only show a list now?
+
+if zstyle -T ":completion:${curcontext}:" condition &&
+   [[ "$pre" != "$_list_prefix" || "$suf" != "$_list_suffix" ]]; then
+
+  # Yes. Tell the completion code about it and save the new values
+  # to compare the next time.
+
+  compstate[insert]=''
+  compstate[list]='list force'
+  _list_prefix="$pre"
+  _list_suffix="$suf"
+fi
+
+# We always return one, because we don't really do any work here.
+
+return 1

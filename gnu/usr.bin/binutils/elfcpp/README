@@ -1,0 +1,16 @@
+elfcpp is a C++ library for reading and writing ELF information.  This
+was written to support gold, the ELF linker, and may not be generally
+useful.
+
+elfcpp does not do file I/O.  It deals only with offsets and memory
+data.
+
+For efficiency, most accessors are templates with two arguments: the
+ELF file class (32 or 64 bits) and the endianness.
+
+
+Copyright (C) 2012-2023 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

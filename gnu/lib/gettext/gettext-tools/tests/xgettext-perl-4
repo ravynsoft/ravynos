@@ -1,0 +1,111 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Tests for the general string extraction facilities of the Perl backend
+# (with option --extract-all).
+                                                                                
+cat <<\EOPERL > xg-pl-4.pl
+use strict;
+
+# A double quoted string.
+print "'Your command, please?', asked the waiter.\n";
+# A double quoted string with interpolations.
+my $polite = 'please';
+print "'Your recommendation, $polite?', answered the guest.\n";
+# A reference.
+my $ref1 = \$polite;
+my $ref2 = \$ref1;
+my $ref3 = \$ref2;
+print "Yes, $$$$ref3!\n";
+# The qq operator and some of the more esoteric string interpolation
+# features of Perl.
+print (qq {\uU\lp \LaNd\E \ldo\lWn, \Uoh\E, yeah\Q!!!\E\\!\n});
+# The q operator.
+print q<E-Mail: <no@spam.org>.  >;
+# Should not be found.
+{ $polite =~ qr?le? }
+
+# List interpolation.
+print "Your Perl include path starts with '$INC[0]' and it " .
+      "ends with '$INC[-1]'.  $#INC directories are searched.\n";
+# Here documents.
+print <<EOF, <<'EOF';
+Line 1\nLine 2
+EOF
+Line 1\nStill line 1
+EOF
+# Perl code inside strings.
+sub hello_func { return 'Hello' };
+print "@{[hello_func]} world!\n";
+# Backticks.
+print `ls $0`;
+print qx;ls $0;;
+
+if (!defined($size = -s $filename)) {
+  # The above s is part of the function -s, not 
+  # the substitution operator!    
+}
+
+# The rest requires a Unicode aware Perl.
+require 5.006;
+print "\U\x70\LO\154\x{69}\x{004E}a \Q\lRu\LLeS\E\041\n";
+# FIXME: The following should actually produce 'Polina4ka' in cyrillic letters.
+#print "\u\x{43f}\L\x{41E}\x{43b}\x{418}\E\x{43d}" .
+#      "\x{430}\x{447}\x{43a}\x{430}\n";
+EOPERL
+
+: ${XGETTEXT=xgettext}
+LC_MESSAGES=C LC_ALL= \
+${XGETTEXT} -a --omit-header --no-location -o xg-pl-4.tmp.pot xg-pl-4.pl || Exit 1
+LC_ALL=C tr -d '\r' < xg-pl-4.tmp.pot > xg-pl-4.pot || Exit 1
+
+cat <<\EOF > xg-pl-4.ok
+msgid "'Your command, please?', asked the waiter.\n"
+msgstr ""
+
+msgid "please"
+msgstr ""
+
+msgid "'Your recommendation, $polite?', answered the guest.\n"
+msgstr ""
+
+msgid "Yes, $$$$ref3!\n"
+msgstr ""
+
+msgid "Up and down, OH, yeah\\!\\!\\!\\!\n"
+msgstr ""
+
+msgid "E-Mail: <no@spam.org>.  "
+msgstr ""
+
+msgid ""
+"Your Perl include path starts with '$INC[0]' and it ends with '$INC[-1]'.  "
+"$#INC directories are searched.\n"
+msgstr ""
+
+msgid ""
+"Line 1\n"
+"Line 2\n"
+msgstr ""
+
+msgid "Line 1\\nStill line 1\n"
+msgstr ""
+
+msgid "Hello"
+msgstr ""
+
+msgid "@{[hello_func]} world!\n"
+msgstr ""
+
+msgid "ls $0"
+msgstr ""
+
+msgid "Polina rules!\n"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-pl-4.ok xg-pl-4.pot
+result=$?
+
+exit $result

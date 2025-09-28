@@ -1,0 +1,456 @@
+# Tests corresponding to the texinfo node `Conditional Expressions'
+
+%prep
+
+  umask 077
+
+  mkdir cond.tmp
+
+  cd cond.tmp
+
+  typeset -gi isnfs
+  [[ "$(find . -prune -fstype nfs 2>/dev/null)" == "." ]] && isnfs=1
+  if (( isnfs )) &&
+    (cd -q ${ZTST_tmp} >/dev/null 2>&1 &&
+     [[ "$(find . -prune -fstype nfs 2>/dev/null)" != "." ]]); then
+    filetmpprefix=${ZTST_tmp}/condtest-$$-
+    isnfs=0
+  else
+    filetmpprefix=
+  fi
+  newnewnew=${filetmpprefix}newnewnew
+  unmodified=${filetmpprefix}unmodified
+  zlnfs=${filetmpprefix}zlnfs
+
+  touch $unmodified
+
+  touch zerolength
+  chgrp $EGID zerolength
+
+  touch $zlnfs
+  chgrp $EGID $zlnfs
+
+  print 'Garbuglio' >nonzerolength
+
+  mkdir modish
+  chgrp $EGID modish
+
+  chmod 7710 modish  # g+xs,u+s,+t
+  chmod g+s modish   # two lines combined work around chmod bugs
+
+  touch unmodish
+  chmod 000 unmodish
+
+  print 'MZ' > cmd.exe
+  chmod +x cmd.exe
+%test
+
+  [[ -a zerolength && ! -a nonexistent ]]
+0:-a cond
+
+  # Find a block special file system.  This is a little tricky.
+  block=$(find /dev(|ices)/ -type b -print)
+  if [[ -n $block ]]; then
+    [[ -b $block[(f)1] && ! -b zerolength ]]
+  else
+    print -u$ZTST_fd 'Warning: Not testing [[ -b blockdevice ]] (no devices found)'
+    [[ ! -b zerolength ]]
+  fi
+0D:-b cond
+
+  # Use hardcoded /dev/tty because globbing inside /dev fails on Cygwin
+  char=/dev/tty
+  [[ -c $char && ! -c $zerolength ]]
+0:-c cond
+
+  [[ -d . && ! -d zerolength ]]
+0:-d cond
+
+  [[ -e zerolength && ! -e nonexistent ]]
+0:-e cond
+
+  if [[ -n $block ]]; then
+    [[ -f zerolength && ! -f cond && ! -f $char && ! -f $block[(f)1] && ! -f . ]]
+  else
+    print -u$ZTST_fd 'Warning: Not testing [[ -f blockdevice ]] (no devices found)'
+    [[ -f zerolength && ! -f cond && ! -f $char && ! -f . ]]
+  fi
+0:-f cond
+
+  [[ -g modish && ! -g zerolength ]]
+0:-g cond
+
+  ln -s zerolength link
+  [[ -h link && ! -h zerolength ]]
+0:-h cond
+
+  [[ -k modish && ! -k zerolength ]]
+0:-k cond
+
+  foo=foo
+  bar=
+  [[ -n $foo && ! -n $bar && ! -n '' ]]
+0:-n cond
+
+  [[ -o rcs && ! -o norcs && -o noerrexit && ! -o errexit ]]
+0:-o cond
+
+  if ! grep '#define HAVE_FIFOS' $ZTST_testdir/../config.h; then
+    print -u$ZTST_fd 'Warning: Not testing [[ -p pipe ]] (FIFOs not supported)'
+    [[ ! -p zerolength ]]
+  else
+    if whence mkfifo && mkfifo pipe || mknod pipe p; then
+      [[ -p pipe && ! -p zerolength ]]
+    else
+      print -u$ZTST_fd 'Warning: Not testing [[ -p pipe ]] (cannot create FIFO)'
+      [[ ! -p zerolength ]]
+    fi
+  fi
+0dD:-p cond
+
+  if (( EUID == 0 )); then
+    print -u$ZTST_fd 'Warning: Not testing [[ ! -r file ]] (root reads anything)'
+    [[ -r zerolength && -r unmodish ]]
+  elif [[ $OSTYPE = cygwin ]]; then
+    print -u$ZTST_fd 'Warning: Not testing [[ ! -r file ]]
+   (all files created by user may be readable)'
+   [[ -r zerolength ]]
+  else
+    [[ -r zerolength && ! -r unmodish ]]
+  fi
+0:-r cond
+
+  [[ -s nonzerolength && ! -s zerolength ]]
+0:-s cond
+
+# no simple way of guaranteeing test for -t
+
+  [[ -u modish && ! -u zerolength ]]
+0:-u cond
+
+  [[ -x cmd.exe && ! -x zerolength ]]
+0:-x cond
+
+  [[ -z $bar && -z '' && ! -z $foo ]]
+0:-z cond
+
+  [[ -L link && ! -L zerolength ]]
+0:-L cond
+
+# hard to guarantee a file not owned by current uid
+  [[ -O zerolength ]]
+0:-O cond
+
+  [[ -G zerolength ]]
+0:-G cond
+
+# can't be bothered with -S
+
+  print -ru $ZTST_fd 'This test may take two seconds...'
+  touch $newnewnew
+  if [[ $OSTYPE == "cygwin" ]]; then
+    ZTST_skip="[[ -N file ]] not supported on Cygwin"
+  elif (( isnfs )); then
+    ZTST_skip="[[ -N file ]] not supported with NFS"
+  elif ! zmodload -F zsh/stat b:zstat 2> /dev/null; then
+    ZTST_skip='[[ -N file ]] not tested; zsh/stat not available'
+  elif ! { sleep 2; touch -a $unmodified 2> /dev/null }; then
+    ZTST_skip='[[ -N file ]] not tested; touch failed'
+  elif [[ "$(zstat +atime $unmodified)" == "$(zstat +mtime $unmodified)" ]]; then
+    ZTST_skip='[[ -N file ]] not supported on this file system'
+  else
+    [[ -N $newnewnew && ! -N $unmodified ]]
+  fi
+0:-N cond
+F:This test relies on the file system supporting atime updates. It
+F:should automatically detect whether this is the case, and skip
+F:without failing if it isn't, but it's possible that some
+F:configurations may elude this detection. Please report this
+F:scenario if you encounter it.
+
+  [[ $newnewnew -nt $zlnfs && ! ($unmodified -nt $zlnfs) ]]
+0:-nt cond
+
+  [[ $zlnfs -ot $newnewnew && ! ($zlnfs -ot $unmodified) ]]
+0:-ot cond
+
+  [[ link -ef zerolength && ! (link -ef nonzerolength) ]]
+0:-ef cond
+
+  [[ foo = foo && foo != bar && foo == foo && foo != '' ]]
+0:=, == and != conds
+
+  [[ bar < foo && foo > bar ]]
+0:< and > conds
+
+  [[ $(( 3 + 4 )) -eq 0x07 && $(( 5 * 2 )) -ne 0x10 ]]
+0:-eq and -ne conds
+
+  [[ 3 -lt 04 && 05 -gt 2 ]]
+0:-lt and -gt conds
+
+  [[ 3 -le 3 && ! (4 -le 3) ]]
+0:-le cond
+
+  [[ 3 -ge 3 && ! (3 -ge 4) ]]
+0:-ge cond
+
+  [[ 1 -lt 2 || 2 -lt 2 && 3 -gt 4 ]]
+0:|| and && in conds
+
+  if ! grep '#define PATH_DEV_FD' $ZTST_testdir/../config.h; then
+    print -u$ZTST_fd "Warning: not testing [[ -e /dev/fd/0 ]] (/dev/fd not supported)"
+    true
+  else
+    [[ -e /dev/fd/0 ]]
+  fi
+0dD:/dev/fd support in conds handled by access
+
+  if ! grep '#define PATH_DEV_FD' $ZTST_testdir/../config.h; then
+    print -u$ZTST_fd "Warning: not testing [[ -O /dev/fd/0 ]] (/dev/fd not supported)"
+    true
+  else
+    [[ -O /dev/fd/0 ]]
+  fi
+0dD:/dev/fd support in conds handled by stat
+
+  [[ ( -z foo && -z foo ) || -z foo ]]
+1:complex conds with skipping
+
+  [ '' != bar -a '' = '' ]
+0:strings with `[' builtin
+
+  [ `echo 0` -lt `echo 1` ]
+0:substitution in `[' builtin
+
+  [ -n foo scrimble ]
+2:argument checking for [ builtin
+?(eval):[:1: too many arguments
+
+  test -n foo scramble
+2:argument checking for test builtin
+?(eval):test:1: too many arguments
+
+  [ -n foo scrimble scromble ]
+2:argument checking for [ builtin
+?(eval):[:1: too many arguments
+
+  test -n foo scramble scrumble
+2:argument checking for test builtin
+?(eval):test:1: too many arguments
+
+  [ -n foo -a -n bar scrimble ]
+2:argument checking for [ builtin
+?(eval):[:1: too many arguments
+
+  test -n foo -a -z "" scramble
+2:argument checking for test builtin
+?(eval):test:1: too many arguments
+
+  fn() {
+    # careful: first file must exist to trigger bug
+    [[ -e $unmodified ]] || print Where\'s my file\?
+    [[ $unmodified -nt NonExistentFile ]]
+    print status = $?
+  }
+  fn
+0:-nt shouldn't abort on non-existent files
+>status = 1
+
+  str='string' empty=''
+  [[ -v IFS && -v str && -v empty && ! -v str[3] && ! -v not_a_variable ]]
+0:-v cond
+
+  arr=( 1 2 3 4 ) empty=()
+  [[ -v arr && -v arr[1,4] && -v arr[1] && -v arr[4] && -v arr[-4] &&
+    -v arr[(i)3] && ! -v arr[(i)x] &&
+    ! -v arr[0] && ! -v arr[5] && ! -v arr[-5] && ! -v arr[2][1] &&
+    ! -v arr[3]extra && -v empty && ! -v empty[1] ]]
+0:-v cond with array
+
+  typeset -A assoc=( key val num 4 )
+  [[ -v assoc && -v assoc[key] && -v assoc[(i)*] && -v assoc[(I)*] &&
+    ! -v assoc[x] && ! -v assoc[key][1] ]]
+0:-v cond with association
+
+  () { [[ -v 0 && -v 1 && -v 2 && ! -v 3 ]] } arg ''
+0:-v cond with positional parameters
+
+# core dumps on failure
+  if zmodload zsh/regex 2>/dev/null; then
+     echo >regex_test.sh 'if [[ $# = 1 ]]; then
+	if [[ $1 =~ /?[^/]+:[0-9]+:$ ]]; then
+	  :
+	fi
+      fi
+      exit 0'
+      $ZTST_testdir/../Src/zsh -f ./regex_test.sh
+  fi
+0:regex tests shouldn't crash
+
+  if zmodload zsh/regex 2>/dev/null; then
+   ( # subshell in case coredump test failed
+    string="this has stuff in it"
+    bad_regex=0
+    if [[ $string =~ "h([a-z]*) s([a-z]*) " ]]; then
+      if [[ "$MATCH $MBEGIN $MEND" != "has stuff  6 15" ]]; then
+	print -r "regex variables MATCH MBEGIN MEND:
+  '$MATCH $MBEGIN $MEND'
+  should be:
+  'has stuff  6 15'"
+        bad_regex=1
+      else
+	results=("as 7 8" "tuff 11 14")
+	for i in 1 2; do
+	  if [[ "$match[$i] $mbegin[$i] $mend[$i]" != $results[i] ]]; then
+	    print -r "regex variables match[$i] mbegin[$i] mend[$i]:
+  '$match[$i] $mbegin[$i] $mend[$i]'
+  should be
+  '$results[$i]'"
+            bad_regex=1
+	    break
+	  fi
+	done
+      fi
+      (( bad_regex )) || print OK
+    else
+      print -r "regex failed to match '$string'"
+    fi
+   )
+  else
+    # if it didn't load, tough, but not a test error
+    ZTST_skip="regexp library not found."
+  fi
+0:MATCH, MBEGIN, MEND, match, mbegin, mend
+>OK
+
+  if zmodload zsh/regex 2>/dev/null; then
+   ( # subshell because regex module may dump core, see above
+    if [[ a =~ a && b == b ]]; then
+      print OK
+    else
+      print "regex =~ inverted following test"
+    fi
+   )
+  else
+    # not a test error
+    ZTST_skip="regexp library not found."
+  fi
+0:regex infix operator should not invert following conditions
+>OK
+
+  [[ -fail badly ]]
+2:Error message for unknown prefix condition
+?(eval):1: unknown condition: -fail
+
+  [[ really -fail badly ]]
+2:Error message for unknown infix condition
+?(eval):1: unknown condition: -fail
+
+  crashme() {
+    if [[ $1 =~ ^http:* ]]
+    then
+      url=${1#*=}
+    fi
+  }
+  which crashme
+0:Regression test for examining code with regular expression match
+>crashme () {
+>	if [[ $1 =~ ^http:* ]]
+>	then
+>		url=${1#*=} 
+>	fi
+>}
+
+  weirdies=(
+    '! -a !'
+    '! -o !'
+    '! -a'
+    '! -o'
+    '! -a ! -a !'
+    '! = !'
+    '! !'
+    '= -a o'
+    '! = -a o')
+  for w in $weirdies; do
+     eval test $w
+     print $?
+  done
+0:test compatibility weirdness: treat ! as a string sometimes
+>0
+>0
+>1
+>1
+>0
+>0
+>1
+>0
+>1
+
+  foo=''
+  [[ $foo ]] || print foo is empty
+  foo=full
+  [[ $foo ]] && print foo is full
+0:bash compatibility with single [[ ... ]] argument
+>foo is empty
+>foo is full
+
+  test -z \( || print Not zero 1
+  test -z \< || print Not zero 2
+  test -n \( && print Not zero 3
+  test -n \) && print Not zero 4
+  [ -n \> ] && print Not zero 5
+  [ -n \! ] && print Not zero 6
+0:test with two arguments and a token
+>Not zero 1
+>Not zero 2
+>Not zero 3
+>Not zero 4
+>Not zero 5
+>Not zero 6
+
+  [ '(' = ')' ] || print OK 1
+  [ '((' = '))' ] || print OK 2
+  [ '(' = '(' ] && print OK 3
+  [ '(' non-empty-string ')' ] && echo OK 4
+  [ '(' '' ')' ] || echo OK 5
+0:yet more old-fashioned test fix ups: prefer comparison to parentheses
+>OK 1
+>OK 2
+>OK 3
+>OK 4
+>OK 5
+
+  fn() { [[ 'a' == 'b' || 'b' = 'c' || 'c' != 'd' ]] }
+  which -x2 fn
+0: = and == appear as input
+>fn () {
+>  [[ 'a' == 'b' || 'b' = 'c' || 'c' != 'd' ]]
+>}
+
+  (setopt posixbuiltins; [[ -o invalidoption ]]; echo set: $?; echo "line 1: no warning" >&2)
+  (unsetopt posixbuiltins; [[ -o invalidoption ]]; echo unset: $?)
+  [[ -o invalidoption || -n nonempty ]]; echo "in disjunction, true: $?"
+  [[ -o invalidoption || -z nonempty ]]; echo "in disjunction, false: $?"
+  [[ ! -o invalidoption ]]; echo "negated: $?"
+  [[ -o invalidoption && -n nonempty ]] || echo "in conjunction: $?"
+0:-o invalidoption
+>set: 1
+?line 1: no warning
+>unset: 3
+?(eval):2: no such option: invalidoption
+>in disjunction, true: 0
+?(eval):3: no such option: invalidoption
+>in disjunction, false: 1
+?(eval):4: no such option: invalidoption
+>negated: 3
+?(eval):5: no such option: invalidoption
+>in conjunction: 3
+?(eval):6: no such option: invalidoption
+
+%clean
+  # This works around a bug in rm -f in some versions of Cygwin
+  chmod 644 unmodish
+  for tmpfile in $newnewnew $unmodified $zlnfs; do
+    [[ -f $tmpfile  ]] && rm -f $tmpfile
+  done

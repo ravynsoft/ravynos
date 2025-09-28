@@ -1,0 +1,244 @@
+# versioning.at -- test libtool versioning           -*- Autotest -*-
+#
+#   Copyright (C) 2009-2019, 2021-2022 Free Software Foundation, Inc.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([versioning])
+AT_KEYWORDS([libtool])
+
+eval "`$LIBTOOL --config | $EGREP '^(objdir|host_os|shared_archive_member_spec)='`"
+
+# Setup some library and program sources:
+# a library (a1), a new revision (a2), a compatible update (a3),
+# an incompatible update (a4).
+# Another library (libb) using liba, and a couple of programs,
+# using liba directly and indirectly through libb.
+
+AT_DATA([liba1.c], [[
+int a (void)
+{
+  return 0;
+}
+]])
+
+AT_DATA([liba2.c], [[
+/* The internal detail should be static.  It isn't static in this test,
+   so we can later find out that it's this revision of the library. */
+int internal_detail = 42;
+int a (void)
+{
+  return internal_detail - 42;
+}
+]])
+
+AT_DATA([liba3.c], [[
+int a (void)
+{
+  return 0;
+}
+int aa (void)
+{
+  return 0;
+}
+]])
+
+AT_DATA([liba4.c], [[
+int aa (void)
+{
+  return 0;
+}
+]])
+
+AT_DATA([libb.c], [[
+extern int a (void);
+int b (void)
+{
+  return a ();
+}
+]])
+
+AT_DATA([prog1.c], [[
+extern int a (void);
+int main (void)
+{
+  return a ();
+}
+]])
+
+AT_DATA([prog2.c], [[
+extern int b (void);
+int main (void)
+{
+  return b ();
+}
+]])
+
+
+inst=`pwd`/inst
+libdir=$inst/lib
+bindir=$inst/bin
+LDFLAGS="$LDFLAGS -no-undefined"
+mkdir $inst $libdir $bindir
+
+for file in liba1.c liba2.c liba3.c liba4.c libb.c; do
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c $file
+done
+for file in prog1.c prog2.c; do
+  $CC $CPPFLAGS $CFLAGS -c $file
+done
+
+# Setup is finished here.
+
+# Hypothesis: -version-info is ignored for convenience archives.
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la liba1.lo ]dnl
+	 [-version-info 0:0:0], [], [ignore], [stderr])
+AT_CHECK([$GREP 'version-info.*ignored for convenience' stderr], [], [ignore])
+
+# Hypothesis: the deprecated -version-number works.
+# Be sure not to use zero here, it's not portable.
+for version_number in 1 1:1 2:1 1:1:1 3:2:1; do
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la liba1.lo ]dnl
+	   [-version-number $version_number -rpath $libdir], [], [ignore], [ignore])
+done
+
+# Hypothesis: -version-info can be passed kinds of values, esp. zero ones
+# and large ones.
+# TODO: check something like 1001:2419:189 after fixing issues
+# for 'version_type's of 'irix', 'nonstopux', or 'osf'.
+for version_info in 1 1:2 0:0:0 1:1:1 13:241:7; do
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la liba1.lo ]dnl
+	   [-version-info $version_info -rpath $libdir], [], [ignore], [ignore])
+done
+
+# Hypothesis: we diagnose when AGE is higher than CURRENT.
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la liba1.lo ]dnl
+	 [-version-info 1:3:2 -rpath $libdir], [1], [ignore], [stderr])
+AT_CHECK([$GREP 'AGE.*is greater than' stderr], [], [ignore])
+
+# Hypothesis: we diagnose invalid values.
+for version_info in 1:2:3:4 -1 0:-1 0:0:-1; do
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la liba1.lo ]dnl
+	   [-version-info $version_info -rpath $libdir], [1], [ignore], [ignore])
+done
+
+
+# Now, create an original version of the library and associated users.
+# This setup will be reused for further hypotheses below, and these
+# functions will be used to test working programs.
+
+test_uninstalled ()
+{
+  # temporarily move installed libraries out of the way in order to avoid
+  # skewing test results:
+  mv $libdir temp-lib
+  mv $bindir temp-bin
+  LT_AT_EXEC_CHECK([./prog1])
+  LT_AT_EXEC_CHECK([./prog2])
+  mv temp-lib $libdir
+  mv temp-bin $bindir
+}
+
+test_installed ()
+{
+  # temporarily move uninstalled libraries out of the way in order to avoid
+  # skewing test results:
+  mv $objdir temp
+  LT_AT_EXEC_CHECK([$bindir/prog1])
+  LT_AT_EXEC_CHECK([$bindir/prog2])
+  mv temp $objdir
+}
+
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la liba1.lo ]dnl
+	 [-version-info 0:0:0 -rpath $libdir], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o libb.la libb.lo liba.la ]dnl
+	 [-version-info 0:0:0 -rpath $libdir], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o prog1$EXEEXT prog1.$OBJEXT ]dnl
+	 [liba.la], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o prog2$EXEEXT prog2.$OBJEXT ]dnl
+	 [libb.la], [], [ignore], [ignore])
+test_uninstalled
+AT_CHECK([$LIBTOOL --mode=install cp liba.la libb.la $libdir],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp prog1$EXEEXT prog2$EXEEXT $bindir],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=clean rm -f liba.la], [], [ignore], [ignore])
+test_installed
+AT_CHECK([$LIBTOOL --mode=uninstall rm -f $libdir/liba.la], [], [ignore], [ignore])
+
+
+# Hypothesis: library revision updates do not require (uninstalled
+# nor installed) programs or libraries to be relinked.
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la liba2.lo ]dnl
+	 [-version-info 0:1:0 -rpath $libdir], [], [ignore], [ignore])
+test_uninstalled
+AT_CHECK([$LIBTOOL --mode=install cp liba.la $libdir], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=clean rm -f liba.la], [], [ignore], [ignore])
+test_installed
+# do not uninstall here: the library may be reused in the next test.
+
+# Hypothesis: backward compatible library updates do not require
+# (uninstalled nor installed) programs or libraries to be relinked.
+# This can have one of several reasons:
+# - the soname is the difference between $current and $age, thus
+#   unchanged; in this case, the newly installed library will be used,
+# - the soname is only $current, or we are linking statically, in which case
+#   the old installed library code will be used,
+# - the numbers are not encoded at all, in which case the newly installed
+#   library will be used.
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la liba3.lo ]dnl
+	 [-version-info 1:0:1 -rpath $libdir], [], [ignore], [ignore])
+# Do not test the uninstalled program, it may be broken (in the second case).
+AT_CHECK([$LIBTOOL --mode=install cp liba.la $libdir], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=clean rm -f liba.la], [], [ignore], [ignore])
+test_installed
+# do not uninstall here: the library may be reused in the next test.
+
+
+# Hypothesis: with shared libraries, incompatible library updates
+# will not cause old installed programs or libraries (linked against the old
+# library version) to break.
+# This can have one of several reasons:
+# - the soname has changed, so the old installed library will still be
+#   available,
+# - we are linking statically, so the old library code will still be used.
+# In order to be sure we are still linking against the old library version,
+# we must ensure that libb is not relinked, so we must not reinstall libb here.
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la liba4.lo ]dnl
+	 [-version-info 2:0:0 -rpath $libdir], [], [ignore], [ignore])
+# We do not guarantee that old versions of an uninstalled library are still
+# available, so test_uninstalled will not necessarily work here any more.
+AT_CHECK([$LIBTOOL --mode=install cp liba.la $libdir], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=clean rm -f liba.la], [], [ignore], [ignore])
+
+# On AIX, this test only works when the 'aix-soname' feature is enabled and
+# active, which is reflected in shared_archive_member_spec being set and LDFLAGS
+# containing -brtl. Otherwise, even with runtime linking, the linker always
+# records the unversioned name as dependency.
+AT_CHECK([:; case $host_os,$shared_archive_member_spec,$LDFLAGS in
+aix*,,*) exit 77 ;;
+aix*,*,*-brtl*) ;;
+aix*,*) exit 77 ;;
+esac])
+
+test_installed
+
+
+AT_CLEANUP

@@ -1,0 +1,45 @@
+Changes in TIFF v3.4beta033
+===========================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.4beta033 (aka the v3.4 release) (no release tag)
+  Previous Version        :doc:`v3.4beta032 <v3.4beta032>`
+  Master Download Site    `<ftp://ftp.sgi.com/graphics/tiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Software configuration changes
+------------------------------
+
+* support was added for building the library as a DSO under OSF/1
+
+
+Library changes
+---------------
+
+* fixes to the Pixar codec
+* portability mods for VMS
+
+
+Tools changes
+-------------
+
+* fixes to :program:`gif2tiff` and :program:`ppm2tiff` for building under MS/DOS
+* portability mods to :program:`fax2ps` and :program:`ycbcr` for VMS
+
+
+Contributed software changes
+----------------------------
+
+* a new package from Alexander Lehmann
+  for building the library and tools under MS/DOS with DJGPP v2
+* updated VMS support from Karsten Spang

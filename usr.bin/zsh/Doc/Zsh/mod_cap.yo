@@ -1,0 +1,29 @@
+COMMENT(!MOD!zsh/cap
+Builtins for manipulating POSIX.1e (POSIX.6) capability (privilege) sets.
+!MOD!)
+The tt(zsh/cap) module is used for manipulating POSIX.1e (POSIX.6) capability
+sets.  If the operating system does not support this interface, the
+builtins defined by this module will do nothing.
+The builtins in this module are:
+
+startitem()
+findex(cap)
+cindex(capabilities, setting)
+item(tt(cap) [ var(capabilities) ])(
+Change the shell's process capability sets to the specified var(capabilities),
+otherwise display the shell's current capabilities.
+)
+findex(getcap)
+cindex(capabilities, getting from files)
+item(tt(getcap) var(filename) ...)(
+This is a built-in implementation of the POSIX standard utility.  It displays
+the capability sets on each specified var(filename).
+)
+findex(setcap)
+cindex(capabilities, setting on files)
+item(tt(setcap) var(capabilities) var(filename) ...)(
+This is a built-in implementation of the POSIX standard utility.  It sets
+the capability sets on each specified var(filename) to the specified
+var(capabilities).
+)
+enditem()

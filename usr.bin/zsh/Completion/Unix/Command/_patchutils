@@ -1,0 +1,107 @@
+#compdef combinediff interdiff filterdiff flipdiff grepdiff lsdiff splitdiff unwrapdiff
+
+local args
+args=(
+  '(-)--help[display help information]'
+  '(-)--version[display version information]'
+)
+
+case $service in
+  (inter|combine|filter|flip|ls|grep)diff)
+    args+=(
+      '(-p --strip-match=)'{-p,--strip-match=}'[specify number of path prefix components to strip]:number of path prefix components to strip'
+      '(-z --decompress)'{-z,--decompress}'[decompress .gz and .bz2 files]'
+    )
+  ;|
+  interdiff|combinediff|flipdiff)
+    args+=(
+      '(-q --quiet)'{-q,--quiet}'[quieter output]'
+      '(-U --unified)'{-U,--unified=}'[specify lines of context to include]:lines of context'
+      \*{-d,--drop-context=}"[don't include context on files matching pattern]:pattern:_files"
+      '(-w --ignore-all-space)'{-w,--ignore-all-space}'[ignore all whitespace changes in patches]'
+      '(-B --ignore-blank-lines)'{-B,--ignore-blank-lines}'[ignore changes whose lines are all blank]'
+      '(-i --ignore-case)'{-i,--ignore-case}'[ignore case differences]'
+      '(-b --ignore-space-change)'{-b,--ignore-space-change}'[ignore changes in the amount of whitespace]'
+      '!(--in-place)--interpolate' '!-h'
+      '!(--no-revert-omitted --in-place)--combinediff'
+      '!(--no-revert-omitted)--flip'
+      '1:diff 1:_files' '2:diff 2:_files'
+    )
+  ;|
+  interdiff)
+    args+=(
+      "--no-revert-omitted[don't revert files changed in only the first patch]"
+    )
+  ;;
+  flipdiff) args+=( '--in-place[write output to original input files]' ) ;;
+  filterdiff|grepdiff|lsdiff)
+    args+=(
+      '(-i --include)'{-i,--include}'[include only files matching pattern]:pattern:_files'
+      '(-x --exclude)'{-x,--exclude}'[exclude files matching pattern]:pattern:_files'
+      '(-# --hunks)'{-#+,--hunks=}'[only list hunks within specified range]:range'
+      '--lines=[only list hunks containing lines within specified range]:range'
+      '(-F --files)'{-F+,--files=}'[only list files within specified range]:range'
+      '--strip=[remove specified number of pathname components before displaying]:components'
+      '--addprefix=[insert specified path prefix before displaying path names]:prefix:_directories'
+      '*:diff file:_files'
+    )
+  ;|
+  grepdiff|lsdiff)
+    args+=(
+      '(-n --line-number)'{-n,--line-number}'[show line number at which each patch begins]'
+      '(-N --number-files)'{-N,--number-files}'[show file number before each filename]'
+      '(-s --status)'{-s,--status}'[mark added, modified and removed files]'
+    )
+  ;|
+  lsdiff)
+    args+=(
+      '(-E --empty-files-as-removed)'{-E,--empty-files-as-removed}'[treat empty files as absent]'
+      \*{-v,--verbose}'[verbose operation]' 
+      '(-H --with-filename -h --no-filename)'{-H,--with-filename}'[print the name of the patch file containing each patch]'
+      '!--filter' '!--grep'
+    )
+  ;;
+  grepdiff|filterdiff)
+    args+=(
+      '(-I --include-from-file)'{-I+,--include-from-file=}'[include only files matching pattern listed in specified file]:file:_files'
+      '--annotate[annotate each hunk with the filename and hunk number]'
+      '--format=[use specified output format]:format:(unified context)'
+      '--addnewprefix=[insert specified path prefix before new file path names]:prefix:_directories'
+      '--addoldprefix=[insert specified path prefix before original file path names]:prefix:_directories'
+      '--as-numbered-lines=[display lines of selected hunks]:line numbers:(before after)'
+      "--remove-timestamps[don't include timestamps in output]"
+    )
+  ;|
+  filterdiff)
+    args+=(
+      '(-X --exclude-from-file)'{-X+,--exclude-from-file=}'[exclude files matching any pattern listed in specified file]:file:_files'
+      '(-v --verbose --clean)'{-v,--verbose}'[always show non-diff lines in output]'
+      '(-v --verbose)--clean[always remove all non-diff lines from output]'
+    )
+  ;;
+  grepdiff)
+    args+=(
+      '(-E --extended-regexp)'{-E,--extended-regexp}'[use extended regular expressions]'
+      '(-H --with-filename -h --no-filename)'{-h,--no-filename}"[don't print the name of the patch file containing each patch]"
+      '(-f --file)'{-f+,--file=}'[read regular expressions from file]:file:_files'
+      '--output-matching=[display the matching hunk- or file-level diffs]:level:(hunk file)'
+      '--only-match=[restrict regex to matching removals, additions or modifications]:limit:(rem removals add additions mod modifications all)'
+    )
+  ;;
+  splitdiff)
+    args+=(
+      '-a[split every single file level patch]'
+      '-d[create file names such as a_b.c.patch for a patch that modifies a/b.c]'
+      '-D[write output files into specified directory]:_directories'
+      '-p[specify number of path prefix components to strip]:number of path prefix components to strip'
+      "-E[don't use .patch filename extension when writing output files]"
+      '1:diff file:_files'
+    )
+  ;;
+  unwrapdiff)
+    args+=( '-v[verbose operation]' '*:diff file:_files' )
+  ;;
+esac
+
+_arguments -s $args
+

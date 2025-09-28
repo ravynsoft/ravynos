@@ -1,0 +1,71 @@
+Changes in TIFF v3.4beta016
+===========================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.4beta016 (no release tag)
+  Previous Version        :doc:`v3.4beta007 <v3.4beta007>`
+  Master Download Site    `<ftp://ftp.sgi.com/graphics/tiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Software configuration changes
+------------------------------
+
+* support was added for configuring the Deflate codec
+* support was added for the HTML documentation
+* codecs that are not configured for inclusion in the library
+  are no longer compiled
+
+
+Library changes
+---------------
+
+* support was added for registering new codecs external to the library
+  and for overriding the codecs that are builtin to the library
+* emulation support for the old ``DataType`` tag was improved
+* support was added for the ``SMinSampleValue``
+  and ``SMaxSampleValue`` tags
+* the library no longer ignores ``TileWidth`` and ``TileLength``
+  tags whose values are not a multiple of 16 (per the spec); this
+  permits old, improperly written, images to be read
+* the support for the ``Predictor`` tag was placed in a reusable
+  module so that it can be shared by multiple codecs
+* experimental compression support was added for the Deflate algorithm
+  (using the freely available zlib package)
+* a new routine, :c:func:`TIFFWriteBufferSetup` was added à la the
+  routine :c:func:`TIFFReadBufferSetup`
+* the DSO version of the library is now statically linked with the
+  JPEG and Deflate libraries; this means applications that link against
+  the DSO do not also need to link against these ancillary libraries
+
+
+Tools changes
+-------------
+
+* all the tools now use common code to process compress-oriented arguments
+* :program:`tiffdump` should now compile on a Macintosh with MPW
+
+
+Documentation changes
+---------------------
+
+* everything was updated
+
+
+Contributed software changes
+----------------------------
+
+* :file:`contrib/dbs/xtiff` was made to compile
+* :file:`contrib/mac-mpw` is new support for compiling the software on
+  a Macintosh under MPW
+* :file:`contrib/tags` is information on how to use the tag extenion
+  facilities; consult :file:`contrib/tags/README` for details

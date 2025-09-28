@@ -1,0 +1,105 @@
+#autoload
+
+_arch_namespace () { #double as arch_namespace_categories
+  local ARCHCMD="$1"
+  shift
+# takes an integer argument specifying how many components:
+# 1: category
+# 2: branch
+# 3: version
+# 4: revision
+  local suffix expl archive=`$ARCHCMD my-default-archive 2> /dev/null`
+  local trailing_dashes=0
+  [[ -n $argv[(r)--trailing-dashes] ]] && trailing_dashes=1
+  local library
+  [[ -n $argv[(r)--library] ]] && library='library-';
+  local exclude_library_revisions=0
+  [[ -n $argv[(r)--exclude-library-revisions] ]] && exclude_library_revisions=1
+
+  if [ $1 -gt 1 ] || (( trailing_dashes )); then
+    suffix=(-q -S --)
+  fi
+  if [[ $PREFIX = */* ]]; then
+    compset -P '*/'
+    archive=${IPREFIX%/*}
+    _description -V categories expl "${library:-}categories in $archive"
+    compadd $suffix "$expl[@]" `$ARCHCMD ${library:-}categories $archive`
+  elif [ -z $IPREFIX ]; then
+    local index=$(( words[(i)-A] + 1 ))
+    (( index < CURRENT )) || index=$(( words[(i)--archive] + 1 ))
+    (( index < CURRENT )) && archive=$words[$index]
+
+    if [ $archive ]; then
+      _description -V categories expl "${library:-}categories in $archive"
+      compadd "$expl[@]" $suffix `$ARCHCMD ${library:-}categories $archive`
+    fi
+
+    _arch_archives "$ARCHCMD" -S / ${library:+--library}
+  fi
+  if [ $archive ] && [ $1 -gt 1 ] && [[ $PREFIX != *@* ]] \
+     && [[ $PREFIX = *--* ]]; then
+  #this match could be better
+    _arch_namespace_branches "$ARCHCMD" $(($1 - 1))
+  fi
+}
+
+(( $+functions[_arch_namespace_branches] )) ||
+_arch_namespace_branches () {
+  local ARCHCMD="$1"
+  shift
+  local suffix expl
+  if [ $1 -gt 1 ] || (( $trailing_dashes )); then
+    suffix=(-q -S --)
+  fi
+  if [[ $IPREFIX != *-- ]]; then
+    compset -P 1 '*--'
+    local category=${IPREFIX%--}
+    _description -V branches expl "${library:-}branches"
+    compadd $suffix "$expl[@]" \
+      ${${(@)$($ARCHCMD ${library:-}branches $category)}##*--}
+  fi
+  if [ $1 -gt 1 ] && [[ $IPREFIX = *-- ]] && [[ $PREFIX = *--* ]]; then
+    _arch_namespace_versions "${ARCHCMD}" $(($1 - 1))
+  fi
+}
+
+(( $+functions[_arch_namespace_versions] )) ||
+_arch_namespace_versions () {
+  local ARCHCMD="$1"
+  shift
+  local suffix expl
+  if [ $1 -gt 1 ]; then
+    suffix=(-q -S --)
+  fi
+  if [[ $IPREFIX != *--*-- ]] || [[ $IPREFIX != */*--*-- ]]; then
+    compset -P 1 '*--'
+    local branch=${IPREFIX%--}
+    _description -V versions expl "${library:-}versions"
+    compadd $suffix "$expl[@]" \
+      ${${(@)$($ARCHCMD ${library:-}versions $branch)}##*--}
+  fi
+  if [ $1 -gt 1 ] && [[ $IPREFIX = *--*-- ]] && ([[ $IPREFIX = */*--*-- ]] \
+    || [[ $PREFIX != */* ]]) && [[ $PREFIX = *--* ]]; then
+    _arch_namespace_revisions "${ARCHCMD}"
+  fi
+}
+
+(( $+functions[_arch_namespace_revisions] )) ||
+_arch_namespace_revisions () {
+  local ARCHCMD="$1"
+  local expl
+  if [[ $IPREFIX != *--*--*-- ]] || [[ $IPREFIX != */*--*--*-- ]]; then
+    compset -P 1 '*--'
+    local version=${IPREFIX%--}
+    _description -V revisions expl "${library:-}revisions"
+    local completions c
+    completions=(
+      ${${(@)$($ARCHCMD ${library:-}revisions $version)}##*--}
+    )
+    (( exclude_library_revisions )) && \
+        foreach c ($($ARCHCMD library-revisions $version)); do completions[(r)$c]=(); done
+    compadd "$expl[@]" -a completions
+  fi
+}
+
+_arch_namespace "$@"

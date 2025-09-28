@@ -1,0 +1,39 @@
+#compdef joe
+
+_arguments \
+  '-asis[characters with codes >127 will be displayed non-inverted]' \
+  '-backpath[backup file directory]:backup file directory:_files -/' \
+  '-baud[inserts delays for baud rates below 19200]:baud rate:_baudrates' \
+  '-beep[beep on command errors or when cursor goes past extremes]' \
+  '-columns[sets the number of screen columns]:num of columns' \
+  '-csmode[continued search mode]' \
+  '-dopadding[catch up after long terminal commands]' \
+  '-exask[^KX verify the file name that it is about to write]' \
+  '-force[make sure that last line of the file has a line-feed]' \
+  '-help[start editor with help screen on]' \
+  '-keepup[update column number and control-key prefix after each keystroke]' \
+  '-lightoff[make block highlighting go away after any block command]' \
+  '-lines[set the number of screen lines]:num of screen lines' \
+  '-marking[text between ^KB and the cursor is highlighted]' \
+  '-mid[scroll window and make cursor go to center after]' \
+  '-nobackups[prevents making backup files]' \
+  '-nonotice[prevents displaying copyright notice on startup]' \
+  '-nosta[eliminate top-most status line]' \
+  '-noxon[turn off ^S/^Q processing]' \
+  '-orphan[extra files get placed in orphaned buffers instead of new windows]' \
+  '-pg[specify the number of lines to keep after PgUp/PgDn]:num of lines to keep' \
+  '-skiptop[prevents use of top n screen lines]:num of top lines to skip' \
+  '+-[number of lines]:number of lines' \
+  '-crlf[use CR+LF as end of line sequence, instead of just LF]' \
+  '-wordwrap[wrap the previous word when you type past the right margin]' \
+  '-autoindent[indentation is duplicated onto the next line]' \
+  '-overwrite[typing overwrites existing characters]' \
+  '-lmargin[set the left margin]:left margin' \
+  '-rmargin[set the right margin]:right margin' \
+  '-tab[set the TAB character width]:tab width' \
+  '-indentc[set the indentation character for ^K, and ^K.]:indent char for ^K, and ^K.' \
+  '-istep[set the indentation step for ^K, and ^K.]:indent step for ^K, and ^K.' \
+  '-linums[display line numbers before each line]' \
+  '-rdonly[make file read-only]' \
+  '-keymap[use an alternate section of joerc for keybindings]:keymap name' \
+  '*:file:_files'

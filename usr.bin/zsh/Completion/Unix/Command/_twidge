@@ -1,0 +1,77 @@
+#compdef twidge
+## completion for twidge 1.0.8, based on twidge(1)
+
+function _twidge_command {
+	typeset -a twidge_commands
+	typeset -i skip=1
+
+	twidge lscommands | while read cmd desc; do
+		if [[ $cmd == ---* ]] {
+			skip=0
+			continue
+		}
+		if (( skip )) {
+			continue
+		}
+		twidge_commands+="${cmd}:${desc}"
+	done
+
+	_describe command twidge_commands
+}
+
+function _twidge_args {
+	typeset -a args_common args_more args_other args_update
+
+	args_common=(
+		'(-a --all)'{-a,--all}'[receive all content]'
+		'(-e --exec)'{-e,--exec}'[execute command for each retrieved item]:command'
+		'(-l --long)'{-l,--long}'[long output format]'
+		'(-m --mailto)'{-m,--mailto}'[mail retrieved items]:mail address'
+	)
+
+	args_more=(
+		'(-s --saveid)'{-s,--saveid}'[save ID of most recent message]'
+		'(-u --unseen)'{-u,--unseen}'[only show unseen messages]'
+	)
+
+	args_other=(
+		'(-U --username)'{-U,--username}'[show updates of different user]:username'
+	)
+
+	args_update=(
+		'(-i --inreplyto)'{-i,--inreplyto}'[update in reply to a message]:message id'
+		'(-i --inreplyto 1)-r[read RFC2822 Mail]'
+		':status'
+	)
+
+	case ${words[1]} in
+		lsarchive)
+			_arguments $args_common $args_more $args_other
+			;;
+		ls(dm(|archive)|recent|replies|rt(|archive|replies)))
+			_arguments $args_common $args_more
+			;;
+		lsfollow(ers|ing))
+			_arguments $args_common :username
+			;;
+		dmsend)
+			_arguments :recipient :status
+			;;
+		(un|)follow)
+			_message username
+			;;
+		update)
+			_arguments $args_update
+			;;
+	esac
+}
+
+function _twidge {
+	_arguments \
+	'(-c --config)'{-c,--config}'[config file]:file:_files' \
+	'(-d --debug)'{-d,--debug}'[enable debugging output]' \
+	'(-): :_twidge_command' \
+	'(-)*:: :_twidge_args'
+}
+
+_twidge "$@"

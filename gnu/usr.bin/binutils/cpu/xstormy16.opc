@@ -1,0 +1,168 @@
+/* XSTORMY16 opcode support.  -*- C -*-
+   Copyright 2011 Free Software Foundation, Inc.
+
+   Contributed by Red Hat Inc;
+
+   This file is part of the GNU Binutils.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+   MA 02110-1301, USA.  */
+
+/* This file is an addendum to xstormy16.cpu.  Heavy use of C code isn't
+   appropriate in .cpu files, so it resides here.  This especially applies
+   to assembly/disassembly where parsing/printing can be quite involved.
+   Such things aren't really part of the specification of the cpu, per se,
+   so .cpu files provide the general framework and .opc files handle the
+   nitty-gritty details as necessary.
+
+   Each section is delimited with start and end markers.
+
+   <arch>-opc.h additions use: "-- opc.h"
+   <arch>-opc.c additions use: "-- opc.c"
+   <arch>-asm.c additions use: "-- asm.c"
+   <arch>-dis.c additions use: "-- dis.c"
+   <arch>-ibd.h additions use: "-- ibd.h".  */
+
+/* -- opc.h */
+
+/* Allows reason codes to be output when assembler errors occur.  */
+#define CGEN_VERBOSE_ASSEMBLER_ERRORS
+
+/* We can't use the default hash size because many bits are used by
+   operands.  */
+#define CGEN_DIS_HASH_SIZE 1
+#define CGEN_DIS_HASH(buf, value) 0
+/* -- */
+
+/* -- asm.c */
+
+/* The machine-independent code doesn't know how to disambiguate
+     mov (foo),r3
+   and
+     mov (r2),r3
+   where 'foo' is a label.  This helps it out. */
+
+static const char *
+parse_mem8 (CGEN_CPU_DESC cd,
+	    const char **strp,
+	    int opindex,
+	    unsigned long *valuep)
+{
+  if (**strp == '(')
+    {
+      const char *s = *strp;
+      
+      if (s[1] == '-' && s[2] == '-')
+	return _("Bad register in preincrement");
+
+      while (ISALNUM (*++s))
+	;
+      if (s[0] == '+' && s[1] == '+' && (s[2] == ')' || s[2] == ','))
+	return _("Bad register in postincrement");
+      if (s[0] == ',' || s[0] == ')')
+	return _("Bad register name");
+    }
+  else if (cgen_parse_keyword (cd, strp, & xstormy16_cgen_opval_gr_names, 
+			       (long *) valuep) == NULL)
+    return _("Label conflicts with register name");
+  else if (strncasecmp (*strp, "rx,", 3) == 0
+	   || strncasecmp (*strp, "rxl,", 3) == 0
+	   || strncasecmp (*strp, "rxh,", 3) == 0)
+    return _("Label conflicts with `Rx'");
+  else if (**strp == '#')
+    return _("Bad immediate expression");
+  
+  return cgen_parse_unsigned_integer (cd, strp, opindex, valuep);
+}
+
+/* For the add and subtract instructions, there are two immediate forms,
+   one for small operands and one for large ones.  We want to use
+   the small one when possible, but we do not want to generate relocs
+   of the small size.  This is somewhat tricky.  */
+   
+static const char *
+parse_small_immediate (CGEN_CPU_DESC cd,
+		       const char **strp,
+		       int opindex,
+		       unsigned long *valuep)
+{
+  bfd_vma value;
+  enum cgen_parse_operand_result result;
+  const char *errmsg;
+
+  if (**strp == '@')
+    return _("No relocation for small immediate");
+
+  errmsg = (* cd->parse_operand_fn)
+    (cd, CGEN_PARSE_OPERAND_INTEGER, strp, opindex, BFD_RELOC_NONE,
+     & result, & value);
+  
+  if (errmsg)
+    return errmsg;
+
+  if (result != CGEN_PARSE_OPERAND_RESULT_NUMBER)
+    return _("Small operand was not an immediate number");
+
+  *valuep = value;
+  return NULL;
+}
+
+/* Literal scan be either a normal literal, a @hi() or @lo relocation.  */
+   
+static const char *
+parse_immediate16 (CGEN_CPU_DESC cd,
+		   const char **strp,
+		   int opindex,
+		   unsigned long *valuep)
+{
+  const char *errmsg;
+  enum cgen_parse_operand_result result;
+  bfd_reloc_code_real_type code = BFD_RELOC_NONE;
+  bfd_vma value;
+
+  if (strncmp (*strp, "@hi(", 4) == 0)
+    {
+      *strp += 4;
+      code = BFD_RELOC_HI16;
+    }
+  else
+  if (strncmp (*strp, "@lo(", 4) == 0)
+    {
+      *strp += 4;
+      code = BFD_RELOC_LO16;
+    }
+
+  if (code == BFD_RELOC_NONE)
+    errmsg = cgen_parse_unsigned_integer (cd, strp, opindex, valuep);
+  else
+    {
+      errmsg = cgen_parse_address (cd, strp, opindex, code, &result, &value);
+      if ((errmsg == NULL) &&
+	  (result != CGEN_PARSE_OPERAND_RESULT_QUEUED))
+	errmsg = _("Operand is not a symbol");
+
+      *valuep = value;
+      if ((code == BFD_RELOC_HI16 || code == BFD_RELOC_LO16)
+	  && **strp == ')')        
+	*strp += 1;
+      else
+        {
+	  errmsg = _("Syntax error: No trailing ')'");
+	  return errmsg;
+	}
+    }
+  return errmsg;
+}
+/* -- */

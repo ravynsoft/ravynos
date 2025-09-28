@@ -1,0 +1,602 @@
+/* config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define if building universal (internal helper macro) */
+#undef AC_APPLE_UNIVERSAL_BUILD
+
+/* Directory for installing the binaries */
+#undef DBUS_BINDIR
+
+/* Define to build X11 functionality */
+#undef DBUS_BUILD_X11
+
+/* whether -export-dynamic was passed to libtool */
+#undef DBUS_BUILT_R_DYNAMIC
+
+/* Use inotify */
+#undef DBUS_BUS_ENABLE_INOTIFY
+
+/* Use kqueue */
+#undef DBUS_BUS_ENABLE_KQUEUE
+
+/* Directory to check for pam_console/pam_foreground flag files, or undefined
+   */
+#undef DBUS_CONSOLE_AUTH_DIR
+
+/* File to check for console ownerhip */
+#undef DBUS_CONSOLE_OWNER_FILE
+
+/* Defined if we run on a cygwin API based system */
+#undef DBUS_CYGWIN
+
+/* Directory for installing the DBUS daemon */
+#undef DBUS_DAEMONDIR
+
+/* Name of executable */
+#undef DBUS_DAEMON_NAME
+
+/* Directory for installing DBUS data files */
+#undef DBUS_DATADIR
+
+/* Disable assertion checking */
+#undef DBUS_DISABLE_ASSERT
+
+/* Disable public API sanity checking */
+#undef DBUS_DISABLE_CHECKS
+
+/* Define to build test code into the library and binaries */
+#undef DBUS_ENABLE_EMBEDDED_TESTS
+
+/* Use launchd autolaunch */
+#undef DBUS_ENABLE_LAUNCHD
+
+/* Define to build independent test binaries */
+#undef DBUS_ENABLE_MODULAR_TESTS
+
+/* Define to enable bus daemon usage statistics */
+#undef DBUS_ENABLE_STATS
+
+/* Support a verbose mode */
+#undef DBUS_ENABLE_VERBOSE_MODE
+
+/* Define to enable X11 auto-launch */
+#undef DBUS_ENABLE_X11_AUTOLAUNCH
+
+/* Extension for executables, typically empty or .exe */
+#undef DBUS_EXEEXT
+
+/* Defined if gcov is enabled to force a rebuild due to config.h changing */
+#undef DBUS_GCOV_ENABLED
+
+/* Define to use epoll(4) on Linux */
+#undef DBUS_HAVE_LINUX_EPOLL
+
+/* Directory for installing the libexec binaries */
+#undef DBUS_LIBEXECDIR
+
+/* Prefix for installing DBUS */
+#undef DBUS_PREFIX
+
+/* Fallback address for session bus clients */
+#undef DBUS_SESSION_BUS_CONNECT_ADDRESS
+
+/* Where per-session bus puts its sockets */
+#undef DBUS_SESSION_SOCKET_DIR
+
+/* The default D-Bus address of the system bus */
+#undef DBUS_SYSTEM_BUS_DEFAULT_ADDRESS
+
+/* The name of the socket the system bus listens on by default */
+#undef DBUS_SYSTEM_SOCKET
+
+/* Full path to the launch helper test program in the builddir */
+#undef DBUS_TEST_LAUNCH_HELPER_BINARY
+
+/* Where to put test sockets */
+#undef DBUS_TEST_SOCKET_DIR
+
+/* Unprivileged user used in some regression tests */
+#undef DBUS_TEST_USER
+
+/* Defined if we run on a Unix-based system */
+#undef DBUS_UNIX
+
+/* User for running the system BUS daemon */
+#undef DBUS_USER
+
+/* Use the gcc __sync extension */
+#undef DBUS_USE_SYNC
+
+/* A 'va_copy' style function */
+#undef DBUS_VA_COPY
+
+/* Defined if we run on a W32 API based system */
+#undef DBUS_WIN
+
+/* Defined if we run on a W32 CE API based system */
+#undef DBUS_WINCE
+
+/* Define if GLib, GObject, GIO are available */
+#undef DBUS_WITH_GLIB
+
+/* Enable traditional activation without using systemd */
+#undef ENABLE_TRADITIONAL_ACTIVATION
+
+/* The maximum number of connections that can be handled at once */
+#undef FD_SETSIZE
+
+/* The name of the gettext domain */
+#undef GETTEXT_PACKAGE
+
+/* Prevent post-2.44 APIs */
+#undef GLIB_VERSION_MAX_ALLOWED
+
+/* Ignore post-2.38 deprecations */
+#undef GLIB_VERSION_MIN_REQUIRED
+
+/* Disable GLib public API sanity checking */
+#undef G_DISABLE_CHECKS
+
+/* Define to 1 if you have the `accept4' function. */
+#undef HAVE_ACCEPT4
+
+/* Adt audit API */
+#undef HAVE_ADT
+
+/* Define to 1 if you have the <alloca.h> header file. */
+#undef HAVE_ALLOCA_H
+
+/* AppArmor Support */
+#undef HAVE_APPARMOR
+
+/* Define if libapparmor is version 2.10 or later */
+#undef HAVE_APPARMOR_2_10
+
+/* Define to 1 if you have backtrace(). */
+#undef HAVE_BACKTRACE
+
+/* Define to 1 if you have the <byteswap.h> header file. */
+#undef HAVE_BYTESWAP_H
+
+/* Define to 1 if you have the `clearenv' function. */
+#undef HAVE_CLEARENV
+
+/* Have cmsgcred structure */
+#undef HAVE_CMSGCRED
+
+/* Have console owner file */
+#undef HAVE_CONSOLE_OWNER_FILE
+
+/* Define to 1 if you have the <crt_externs.h> header file. */
+#undef HAVE_CRT_EXTERNS_H
+
+/* Have the ddfd member of DIR */
+#undef HAVE_DDFD
+
+/* Define to 1 if you have the declaration of `environ', and to 0 if you
+   don't. */
+#undef HAVE_DECL_ENVIRON
+
+/* Define to 1 if you have the declaration of `LOG_PERROR', and to 0 if you
+   don't. */
+#undef HAVE_DECL_LOG_PERROR
+
+/* Define to 1 if you have the declaration of `MSG_NOSIGNAL', and to 0 if you
+   don't. */
+#undef HAVE_DECL_MSG_NOSIGNAL
+
+/* Define to 1 if you have the <dirent.h> header file. */
+#undef HAVE_DIRENT_H
+
+/* Have dirfd function */
+#undef HAVE_DIRFD
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <errno.h> header file. */
+#undef HAVE_ERRNO_H
+
+/* Define to 1 if you have the <execinfo.h> header file. */
+#undef HAVE_EXECINFO_H
+
+/* Define to 1 if you have the `fpathconf' function. */
+#undef HAVE_FPATHCONF
+
+/* Define to 1 if you have the `getgrouplist' function. */
+#undef HAVE_GETGROUPLIST
+
+/* Define to 1 if you have the `getpeereid' function. */
+#undef HAVE_GETPEEREID
+
+/* Define to 1 if you have the `getpeerucred' function. */
+#undef HAVE_GETPEERUCRED
+
+/* Define to 1 if you have the `getpwnam_r' function. */
+#undef HAVE_GETPWNAM_R
+
+/* Define to 1 if you have the `getrandom' function. */
+#undef HAVE_GETRANDOM
+
+/* Define to 1 if you have the `getresuid' function. */
+#undef HAVE_GETRESUID
+
+/* Define to 1 if you have the `getrlimit' function. */
+#undef HAVE_GETRLIMIT
+
+/* Define if you have gio-unix-2.0 */
+#undef HAVE_GIO_UNIX
+
+/* Define to 1 if you have the `inotify_init1' function. */
+#undef HAVE_INOTIFY_INIT1
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `issetugid' function. */
+#undef HAVE_ISSETUGID
+
+/* audit daemon SELinux support */
+#undef HAVE_LIBAUDIT
+
+/* Define to 1 if you have the `nsl' library (-lnsl). */
+#undef HAVE_LIBNSL
+
+/* Define to 1 if you have the `localeconv' function. */
+#undef HAVE_LOCALECONV
+
+/* Define to 1 if you have the <locale.h> header file. */
+#undef HAVE_LOCALE_H
+
+/* Define to 1 if you have the <minix/config.h> header file. */
+#undef HAVE_MINIX_CONFIG_H
+
+/* Define if we have CLOCK_MONOTONIC */
+#undef HAVE_MONOTONIC_CLOCK
+
+/* Define to 1 if you have the `nanosleep' function. */
+#undef HAVE_NANOSLEEP
+
+/* Define if your system needs _NSGetEnviron to set up the environment */
+#undef HAVE_NSGETENVIRON
+
+/* Define to 1 if you have the `pipe2' function. */
+#undef HAVE_PIPE2
+
+/* Define to 1 if you have the `poll' function. */
+#undef HAVE_POLL
+
+/* Define to 1 if you have the `prctl' function. */
+#undef HAVE_PRCTL
+
+/* Define to 1 if you have the `prlimit' function. */
+#undef HAVE_PRLIMIT
+
+/* Define to 1 if you have the `raise' function. */
+#undef HAVE_RAISE
+
+/* SELinux support */
+#undef HAVE_SELINUX
+
+/* Define to 1 if you have the `setenv' function. */
+#undef HAVE_SETENV
+
+/* Define to 1 if you have the `setlocale' function. */
+#undef HAVE_SETLOCALE
+
+/* Define to 1 if you have the `setresuid' function. */
+#undef HAVE_SETRESUID
+
+/* Define to 1 if you have the `setrlimit' function. */
+#undef HAVE_SETRLIMIT
+
+/* Define to 1 if you have the <signal.h> header file. */
+#undef HAVE_SIGNAL_H
+
+/* Define to 1 if you have the `socketpair' function. */
+#undef HAVE_SOCKETPAIR
+
+/* Have socklen_t type */
+#undef HAVE_SOCKLEN_T
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdio.h> header file. */
+#undef HAVE_STDIO_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strtoll' function. */
+#undef HAVE_STRTOLL
+
+/* Define to 1 if you have the `strtoull' function. */
+#undef HAVE_STRTOULL
+
+/* Define to 1 if you have the <syslog.h> header file. */
+#undef HAVE_SYSLOG_H
+
+/* Have systemd */
+#undef HAVE_SYSTEMD
+
+/* Define to 1 if you have the <sys/inotify.h> header file. */
+#undef HAVE_SYS_INOTIFY_H
+
+/* Define to 1 if you have the <sys/prctl.h> header file. */
+#undef HAVE_SYS_PRCTL_H
+
+/* Define to 1 if you have the <sys/random.h> header file. */
+#undef HAVE_SYS_RANDOM_H
+
+/* Define to 1 if you have the <sys/resource.h> header file. */
+#undef HAVE_SYS_RESOURCE_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <sys/uio.h> header file. */
+#undef HAVE_SYS_UIO_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Supports sending UNIX file descriptors */
+#undef HAVE_UNIX_FD_PASSING
+
+/* Have unpcbid structure */
+#undef HAVE_UNPCBID
+
+/* Define to 1 if you have the `unsetenv' function. */
+#undef HAVE_UNSETENV
+
+/* Define to 1 if you have the `usleep' function. */
+#undef HAVE_USLEEP
+
+/* Define to 1 or 0, depending whether the compiler supports simple visibility
+   declarations. */
+#undef HAVE_VISIBILITY
+
+/* Define to 1 if you have the <wchar.h> header file. */
+#undef HAVE_WCHAR_H
+
+/* Define to 1 if you have the `writev' function. */
+#undef HAVE_WRITEV
+
+/* Define to 1 if you have the <ws2tcpip.h> header file. */
+#undef HAVE_WS2TCPIP_H
+
+/* Define to 1 if you have X11 library */
+#undef HAVE_X11
+
+/* Define to 1 if you have the `XML_SetHashSalt' function. */
+#undef HAVE_XML_SETHASHSALT
+
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
+#undef LT_OBJDIR
+
+/* Define if debugging is disabled */
+#undef NDEBUG
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* The size of `char', as computed by sizeof. */
+#undef SIZEOF_CHAR
+
+/* The size of `int', as computed by sizeof. */
+#undef SIZEOF_INT
+
+/* The size of `long', as computed by sizeof. */
+#undef SIZEOF_LONG
+
+/* The size of `long long', as computed by sizeof. */
+#undef SIZEOF_LONG_LONG
+
+/* The size of `short', as computed by sizeof. */
+#undef SIZEOF_SHORT
+
+/* The size of `void *', as computed by sizeof. */
+#undef SIZEOF_VOID_P
+
+/* The size of `__int64', as computed by sizeof. */
+#undef SIZEOF___INT64
+
+/* Define to 1 if all of the C90 standard headers exist (not just the ones
+   required in a freestanding environment). This macro is provided for
+   backward compatibility; new code need not use it. */
+#undef STDC_HEADERS
+
+/* Listening address for regression tests */
+#undef TEST_LISTEN
+
+
+/* On Windows, we expect to be using msvcrt.dll-compatible printf
+ * (%I64u instead of %llu) unless otherwise specified */
+#ifndef __USE_MINGW_ANSI_STDIO
+#   define __USE_MINGW_ANSI_STDIO 0
+#endif
+
+
+/* Enable extensions on AIX 3, Interix.  */
+#ifndef _ALL_SOURCE
+# undef _ALL_SOURCE
+#endif
+/* Enable general extensions on macOS.  */
+#ifndef _DARWIN_C_SOURCE
+# undef _DARWIN_C_SOURCE
+#endif
+/* Enable general extensions on Solaris.  */
+#ifndef __EXTENSIONS__
+# undef __EXTENSIONS__
+#endif
+/* Enable GNU extensions on systems that have them.  */
+#ifndef _GNU_SOURCE
+# undef _GNU_SOURCE
+#endif
+/* Enable X/Open compliant socket functions that do not require linking
+   with -lxnet on HP-UX 11.11.  */
+#ifndef _HPUX_ALT_XOPEN_SOCKET_API
+# undef _HPUX_ALT_XOPEN_SOCKET_API
+#endif
+/* Identify the host operating system as Minix.
+   This macro does not affect the system headers' behavior.
+   A future release of Autoconf may stop defining this macro.  */
+#ifndef _MINIX
+# undef _MINIX
+#endif
+/* Enable general extensions on NetBSD.
+   Enable NetBSD compatibility extensions on Minix.  */
+#ifndef _NETBSD_SOURCE
+# undef _NETBSD_SOURCE
+#endif
+/* Enable OpenBSD compatibility extensions on NetBSD.
+   Oddly enough, this does nothing on OpenBSD.  */
+#ifndef _OPENBSD_SOURCE
+# undef _OPENBSD_SOURCE
+#endif
+/* Define to 1 if needed for POSIX-compatible behavior.  */
+#ifndef _POSIX_SOURCE
+# undef _POSIX_SOURCE
+#endif
+/* Define to 2 if needed for POSIX-compatible behavior.  */
+#ifndef _POSIX_1_SOURCE
+# undef _POSIX_1_SOURCE
+#endif
+/* Enable POSIX-compatible threading on Solaris.  */
+#ifndef _POSIX_PTHREAD_SEMANTICS
+# undef _POSIX_PTHREAD_SEMANTICS
+#endif
+/* Enable extensions specified by ISO/IEC TS 18661-5:2014.  */
+#ifndef __STDC_WANT_IEC_60559_ATTRIBS_EXT__
+# undef __STDC_WANT_IEC_60559_ATTRIBS_EXT__
+#endif
+/* Enable extensions specified by ISO/IEC TS 18661-1:2014.  */
+#ifndef __STDC_WANT_IEC_60559_BFP_EXT__
+# undef __STDC_WANT_IEC_60559_BFP_EXT__
+#endif
+/* Enable extensions specified by ISO/IEC TS 18661-2:2015.  */
+#ifndef __STDC_WANT_IEC_60559_DFP_EXT__
+# undef __STDC_WANT_IEC_60559_DFP_EXT__
+#endif
+/* Enable extensions specified by ISO/IEC TS 18661-4:2015.  */
+#ifndef __STDC_WANT_IEC_60559_FUNCS_EXT__
+# undef __STDC_WANT_IEC_60559_FUNCS_EXT__
+#endif
+/* Enable extensions specified by ISO/IEC TS 18661-3:2015.  */
+#ifndef __STDC_WANT_IEC_60559_TYPES_EXT__
+# undef __STDC_WANT_IEC_60559_TYPES_EXT__
+#endif
+/* Enable extensions specified by ISO/IEC TR 24731-2:2010.  */
+#ifndef __STDC_WANT_LIB_EXT2__
+# undef __STDC_WANT_LIB_EXT2__
+#endif
+/* Enable extensions specified by ISO/IEC 24747:2009.  */
+#ifndef __STDC_WANT_MATH_SPEC_FUNCS__
+# undef __STDC_WANT_MATH_SPEC_FUNCS__
+#endif
+/* Enable extensions on HP NonStop.  */
+#ifndef _TANDEM_SOURCE
+# undef _TANDEM_SOURCE
+#endif
+/* Enable X/Open extensions.  Define to 500 only if necessary
+   to make mbstate_t available.  */
+#ifndef _XOPEN_SOURCE
+# undef _XOPEN_SOURCE
+#endif
+
+
+/* Version number of package */
+#undef VERSION
+
+/* Define to add Valgrind instrumentation */
+#undef WITH_VALGRIND
+
+/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
+   significant byte first (like Motorola and SPARC, unlike Intel). */
+#if defined AC_APPLE_UNIVERSAL_BUILD
+# if defined __BIG_ENDIAN__
+#  define WORDS_BIGENDIAN 1
+# endif
+#else
+# ifndef WORDS_BIGENDIAN
+#  undef WORDS_BIGENDIAN
+# endif
+#endif
+
+
+			/* Use the compiler-provided endianness defines to allow universal compiling. */
+			#if defined(__BIG_ENDIAN__)
+			#define WORDS_BIGENDIAN 1
+			#endif
+		
+
+/* Define to enable BSD features */
+#undef _BSD_SOURCE
+
+
+#if defined(HAVE_NSGETENVIRON) && defined(HAVE_CRT_EXTERNS_H)
+# include <sys/time.h>
+# include <crt_externs.h>
+# define environ (*_NSGetEnviron())
+#endif
+
+
+/* Number of bits in a file offset, on hosts where this is settable. */
+#undef _FILE_OFFSET_BITS
+
+/* Define for large files, on AIX-style hosts. */
+#undef _LARGE_FILES
+
+/* Define to enable POSIX features */
+#undef _POSIX_C_SOURCE
+
+/* Defined to get newer W32 CE APIs */
+#undef _WIN32_WCE
+
+/* Define to the minimum supported Windows version (0x0600 is Vista) */
+#undef _WIN32_WINNT
+
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
+#undef inline
+#endif
+
+
+/* explicitly define these macros to get less confusing conditions */
+#ifndef DBUS_DISABLE_ASSERT
+#  define DBUS_ENABLE_ASSERT 1
+#endif
+#ifndef DBUS_DISABLE_CHECKS
+#  define DBUS_ENABLE_CHECKS 1
+#endif

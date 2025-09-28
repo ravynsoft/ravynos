@@ -1,0 +1,26 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test the gettext program with -e option.
+
+# Create binary test file in correct position.
+test -d gt-1 || mkdir gt-1
+test -d gt-1/LC_MESSAGES || mkdir gt-1/LC_MESSAGES
+cp "$abs_srcdir"/test.mo gt-1/LC_MESSAGES
+
+: ${GETTEXT=gettext}
+TEXTDOMAINDIR=. LANGUAGE=gt-1 \
+${GETTEXT} --env LC_ALL=en -e test 'SYS_(C)\n' | LC_ALL=C tr -d '\r' > gt-test1.out
+
+# Create correct file.
+cat <<EOF > gtmf-test1.ok
+MSGFMT(1) portable message object file compiler
+Copyright (C) 1995 Free Software Foundation
+Report bugs to <bug-gnu-utils@gnu.org>
+EOF
+
+: ${DIFF=diff}
+${DIFF} gtmf-test1.ok gt-test1.out
+result=$?
+
+exit $result

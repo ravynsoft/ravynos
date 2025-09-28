@@ -1,0 +1,85 @@
+#compdef locale
+
+local curcontext="$curcontext" state state_descr line expl ret=1
+typeset -A opt_args; local -a specs aopts
+
+if _pick_variant gnu='(Free Soft|GNU|GLIBC)' unix --version; then
+
+  local exargs="-? --help --usage -V --version"
+
+  aopts=( -A "-*" -C -S -s )
+  specs=(
+    '(- *)'{-\?,--help}'[display help information]'
+    '(- *)--usage[display a short usage message]'
+    '(- *)'{-V,--version}'[print program version]'
+    - set1
+    "(-a --all-locales $exargs)"{-a,--all-locales}'[list all available locales]'
+    "(-v --verbose $exargs)"{-v,--verbose}'[display additional information]'
+    - set2
+    "(-m --charmaps $exargs)"{-m,--charmaps}'[list all available charmaps]'
+    - set3
+    "(-c --category-name $exargs)"{-c,--category-name}'[print also locale category]'
+    "(-k --keyword-name $exargs)"{-k,--keyword-name}'[print also keyword of each value]'
+    '*:name:->catkey'
+  )
+
+elif [[ $OSTYPE == openbsd* ]]; then
+
+  specs=(
+    '(-m)-a[list all available locales]'
+    '(-a)-m[list all available charmaps]'
+    '(-a -m)1:name:(charmap)'
+  )
+
+else
+
+  aopts=( -C -A "-*" )
+  specs=(
+    - set1
+    '-a[list all available locales]'
+    - set2
+    '-m[list all available charmaps]'
+    - set3
+    '-c[print also locale category]'
+    '-k[print also keyword of each value]'
+    '*:name:->catkey'
+  )
+fi
+
+_arguments $aopts : $specs && ret=0
+
+if [[ $state == catkey ]]; then
+  typeset -aU cats keys
+
+  case $OSTYPE in
+    *bsd*)
+      # keywords from comparing locale -k list on netbsd and freebsd
+      # the additional keywords freebsd supports will be added via
+      # the reassignment of keys
+      keys+=(
+        charmap decimal_point thousands_sep grouping radixchar thousep int_curr_symbol
+        currency_symbol mon_decimal_point mon_thousands_sep mon_grouping positive_sign
+        negative_sign int_frac_digits frac_digits p_cs_precedes p_sep_by_space n_cs_precedes
+        n_sep_by_space p_sign_posn n_sign_posn int_p_cs_precedes int_p_sep_by_space
+        int_n_cs_precedes int_n_sep_by_space int_p_sign_posn int_n_sign_posn d_t_fmt d_fmt
+        t_fmt am_str pm_str t_fmt_ampm day_1 day_2 day_3 day_4 day_5 day_6 day_7 abday_1
+        abday_2 abday_3 abday_4 abday_5 abday_6 abday_7 mon_1 mon_2 mon_3 mon_4 mon_5 mon_6
+        mon_7 mon_8 mon_9 mon_10 mon_11 mon_12 abmon_1 abmon_2 abmon_3 abmon_4 abmon_5
+        abmon_6 abmon_7 abmon_8 abmon_9 abmon_10 abmon_11 abmon_12 era era_d_fmt era_d_t_fmt
+        era_t_fmt alt_digits yesexpr noexpr yesstr nostr
+      );|
+    (free|net|dragonfly)bsd*) (( words[(I)-k] )) && keys+=(list);;
+    *)
+      cats=( ${${${(f)"$(locale)"}%=*}%(LANG|LANGUAGE|LC_ALL)} )
+    ;;
+  esac
+
+  keys=( $keys ${${(f)"$(locale -k $cats 2>/dev/null)"}%=*} )
+  if [[ $OSTYPE == freebsd* ]] && (( words[(I)list] )); then
+    _message -e values prefix && ret=0
+  else
+    _wanted values expl name compadd "$@" -a - cats keys && ret=0
+  fi
+fi
+
+return ret

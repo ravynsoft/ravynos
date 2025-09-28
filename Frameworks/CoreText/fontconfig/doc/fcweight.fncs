@@ -1,0 +1,69 @@
+/*
+ * fontconfig/doc/fcweight.fncs
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name of the author(s) not be used in
+ * advertising or publicity pertaining to distribution of the software without
+ * specific, written prior permission.  The authors make no
+ * representations about the suitability of this software for any purpose.  It
+ * is provided "as is" without express or implied warranty.
+ *
+ * THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+@RET@           double
+@FUNC@          FcWeightFromOpenTypeDouble
+@TYPE1@         double                          @ARG1@          ot_weight
+@PURPOSE@       Convert from OpenType weight values to fontconfig ones
+@DESC@
+<function>FcWeightFromOpenTypeDouble</function> returns an double value
+to use with FC_WEIGHT, from an double in the 1..1000 range, resembling
+the numbers from OpenType specification's OS/2 usWeight numbers, which
+are also similar to CSS font-weight numbers.  If input is negative,
+zero, or greater than 1000, returns -1.  This function linearly interpolates
+between various FC_WEIGHT_* constants.  As such, the returned value does not
+necessarily match any of the predefined constants.
+@SINCE@         2.12.92
+@@
+
+@RET@           double
+@FUNC@          FcWeightToOpenTypeDouble
+@TYPE1@         double                          @ARG1@          ot_weight
+@PURPOSE@       Convert from fontconfig weight values to OpenType ones
+@DESC@
+<function>FcWeightToOpenTypeDouble</function> is the inverse of
+<function>FcWeightFromOpenType</function>.  If the input is less than
+FC_WEIGHT_THIN or greater than FC_WEIGHT_EXTRABLACK, returns -1.  Otherwise
+returns a number in the range 1 to 1000.
+@SINCE@         2.12.92
+@@
+
+@RET@           int
+@FUNC@          FcWeightFromOpenType
+@TYPE1@         int                             @ARG1@          ot_weight
+@PURPOSE@       Convert from OpenType weight values to fontconfig ones
+@DESC@
+<function>FcWeightFromOpenType</function> is like
+<function>FcWeightFromOpenTypeDouble</function> but with integer arguments.
+Use the other function instead.
+@SINCE@         2.11.91
+@@
+
+@RET@           int
+@FUNC@          FcWeightToOpenType
+@TYPE1@         int                             @ARG1@          ot_weight
+@PURPOSE@       Convert from fontconfig weight values to OpenType ones
+@DESC@
+<function>FcWeightToOpenType</function> is like
+<function>FcWeightToOpenTypeDouble</function> but with integer arguments.
+Use the other function instead.
+@SINCE@         2.11.91
+@@

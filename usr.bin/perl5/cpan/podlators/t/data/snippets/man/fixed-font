@@ -1,0 +1,18 @@
+[name]
+Options to set fixed fonts
+
+[options]
+fixed CR
+fixedbold CY
+fixeditalic CW
+fixedbolditalic CX
+
+[input]
+=head1 FIXED FONTS
+
+C<foo B<bar I<baz>> I<bay>>
+
+[output]
+.SH "FIXED FONTS"
+.IX Header "FIXED FONTS"
+\&\f(CR\*(C`foo \fR\f(CYbar \fR\f(CXbaz\fR\f(CR \fR\f(CWbay\fR\f(CR\*(C'\fR

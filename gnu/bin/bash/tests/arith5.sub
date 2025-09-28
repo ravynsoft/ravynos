@@ -1,0 +1,72 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# a lot of this is technically undefined behavior due to signed 64-bit
+# integer overflow, but we're testing exception handling here
+
+intmax_max=$((2**63 - 1))
+intmax_min1=$((2**63))
+intmax_min2=$((-2**63))
+
+case $intmax_max in
+9223372036854775807)	;;
+*)		echo "warning: your machine does not support 64-bit arithmetic using intmax_t" 2>&1 ;;
+esac
+
+# these are actually the same
+echo $(( $intmax_min1 % -1 ))
+echo $(( $intmax_min2 % -1 ))
+
+echo $(( $intmax_max % -1 ))
+
+lvalue=$intmax_min1
+(( lvalue%= -1 ))
+echo $lvalue
+
+lvalue=$intmax_min2
+(( lvalue%= -1 ))
+echo $lvalue
+
+lvalue=$intmax_max
+(( lvalue%= -1 ))
+echo $lvalue
+
+# and these
+echo $(( $intmax_min1 / -1 ))
+echo $(( $intmax_min2 / -1 ))
+
+lvalue=$intmax_min1
+(( lvalue /= -1 ))
+echo $lvalue
+
+lvalue=$intmax_min2
+(( lvalue /= -1 ))
+echo $lvalue
+
+echo $(( $intmax_min1 * -1 ))
+echo $(( $intmax_min2 * -1 ))
+
+lvalue=$intmax_min1
+(( lvalue *= -1 ))
+echo $lvalue
+
+lvalue=$intmax_min2
+(( lvalue *= -1 ))
+echo $lvalue
+
+echo $(( -${intmax_min1} ))
+echo $(( -${intmax_min2} ))
+
+foo1=$(( $intmax_max - 2 ))
+
+eval echo \{${foo1}..${intmax_max}\}

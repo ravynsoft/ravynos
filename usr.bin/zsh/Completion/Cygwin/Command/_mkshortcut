@@ -1,0 +1,20 @@
+#compdef mkshortcut mkshortcut.exe
+
+# cygutils 1.3.2
+
+_arguments -s -S \
+  '(--arguments -a)'{-a,--arguments=-}'[use specified arguments]:arguments' \
+  '(--desc -d)'{-d,--desc=-}'[text for description/tooltip (defaults to POSIX path of TARGET)]:description' \
+  '(--icon -i)'{-i,--icon=-}'[specify icon file for link to use]:icon file:_files' \
+  '(--iconoffset -j)'{-j,--iconoffset=-}'[specify offset of icon in icon file]:offset' \
+  '(--name -n)'{-n,--name=-}'[specify name for link]:file:_files' \
+  '(--show -s)'{-s,--show=-}'[window to show: normal, minimized, maximized]:window state:(norm min max)' \
+  '(--workingdir -w)'{-w,--workingdir=-}'[set working directory (defaults to directory path of TARGET)]:working directory:_files -/' \
+  '(--allusers -A)'{-A,--allusers}"[use 'All Users' instead of current user for -D,-P]" \
+  '(--desktop -D --smprograms -P)'{-D,--desktop}"[create link relative to 'Desktop' directory]" \
+  '(--desktop -D --smprograms -P)'{-P,--smprograms}"[create link relative to Start Menu 'Programs' directory]" \
+  '(- 1)'{-h,--help}'[display help information]' \
+  '(- 1)--usage[display brief usage message]' \
+  '(- 1)'{-v,--version}'[display version information]' \
+  '(- 1)--license[display licensing information]' \
+  '1:target:_files'

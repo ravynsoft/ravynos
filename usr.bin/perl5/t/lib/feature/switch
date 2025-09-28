@@ -1,0 +1,142 @@
+Check the lexical scoping of the switch keywords.
+(The actual behaviour is tested in t/op/switch.t)
+
+__END__
+# No switch; given should be a bareword.
+use warnings; no warnings 'deprecated';
+print STDOUT given;
+EXPECT
+Unquoted string "given" may clash with future reserved word at - line 3.
+given
+########
+# No switch; when should be a bareword.
+use warnings; no warnings 'deprecated';
+print STDOUT when;
+EXPECT
+Unquoted string "when" may clash with future reserved word at - line 3.
+when
+########
+# No switch; default should be a bareword.
+use warnings; no warnings 'deprecated';
+print STDOUT default;
+EXPECT
+Unquoted string "default" may clash with future reserved word at - line 3.
+default
+########
+# No switch; break should be a bareword.
+use warnings; no warnings 'deprecated';
+print STDOUT break;
+EXPECT
+Unquoted string "break" may clash with future reserved word at - line 3.
+break
+########
+# No switch; but continue is still a keyword
+print STDOUT continue;
+EXPECT
+Can't "continue" outside a when block at - line 2.
+########
+# Use switch; so given is a keyword
+use feature 'switch'; no warnings 'deprecated';
+given("okay\n") { print }
+EXPECT
+okay
+########
+# Use switch; so when is a keyword
+use feature 'switch'; no warnings 'deprecated';
+given(1) { when(1) { print "okay" } }
+EXPECT
+okay
+########
+# Use switch; so default is a keyword
+use feature 'switch'; no warnings 'deprecated';
+given(1) { default { print "okay" } }
+EXPECT
+okay
+########
+# Use switch; so break is a keyword
+use feature 'switch';
+break;
+EXPECT
+Can't "break" outside a given block at - line 3.
+########
+# switch out of scope; given should be a bareword.
+use warnings; no warnings 'deprecated';
+{ use feature 'switch';
+  given (1) {print "Okay here\n";}
+}
+print STDOUT given;
+EXPECT
+Unquoted string "given" may clash with future reserved word at - line 6.
+Okay here
+given
+########
+# switch out of scope; when should be a bareword.
+use warnings; no warnings 'deprecated';
+{ use feature 'switch';
+  given (1) { when(1) {print "Okay here\n";} }
+}
+print STDOUT when;
+EXPECT
+Unquoted string "when" may clash with future reserved word at - line 6.
+Okay here
+when
+########
+# switch out of scope; default should be a bareword.
+use warnings; no warnings 'deprecated';
+{ use feature 'switch';
+  given (1) { default {print "Okay here\n";} }
+}
+print STDOUT default;
+EXPECT
+Unquoted string "default" may clash with future reserved word at - line 6.
+Okay here
+default
+########
+# switch out of scope; break should be a bareword.
+use warnings; no warnings 'deprecated';
+{ use feature 'switch';
+  given (1) { break }  
+}
+print STDOUT break;
+EXPECT
+Unquoted string "break" may clash with future reserved word at - line 6.
+break
+########
+# C<no feature 'switch'> should work
+use warnings; no warnings 'deprecated';
+use feature 'switch';
+given (1) { when(1) {print "Okay here\n";} }
+no feature 'switch';
+print STDOUT when;
+EXPECT
+Unquoted string "when" may clash with future reserved word at - line 6.
+Okay here
+when
+########
+# C<no feature> should work too
+use warnings; no warnings 'deprecated';
+use feature 'switch';
+given (1) { when(1) {print "Okay here\n";} }
+no feature;
+print STDOUT when;
+EXPECT
+Unquoted string "when" may clash with future reserved word at - line 6.
+Okay here
+when
+########
+# Without the feature, no 'Unambiguous use of' warning:
+use warnings; no warnings 'deprecated';
+@break = ($break = "break");
+print ${break}, ${break[0]};
+EXPECT
+breakbreak
+########
+# With the feature, we get an 'Unambiguous use of' warning:
+use warnings; no warnings 'deprecated';
+use feature 'switch';
+@break = ($break = "break");
+print ${break}, ${break[0]};
+EXPECT
+Ambiguous use of ${break} resolved to $break at - line 5.
+Ambiguous use of ${break[...]} resolved to $break[...] at - line 5.
+breakbreak

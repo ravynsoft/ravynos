@@ -1,0 +1,91 @@
+limit [ -hs ] [ resource [ limit ] ] ...
+       Set  or  display  resource limits.  Unless the -s flag is given,
+       the limit applies only the children of  the  shell.   If  -s  is
+       given  without  other arguments, the resource limits of the cur-
+       rent shell is set to the previously set resource limits  of  the
+       children.
+
+       If limit is not specified, print the current limit placed on re-
+       source, otherwise set the limit to the specified value.  If  the
+       -h flag is given, use hard limits instead of soft limits.  If no
+       resource is given, print all limits.
+
+       When looping over multiple resources, the shell will abort imme-
+       diately  if  it detects a badly formed argument.  However, if it
+       fails to set a limit for some other reason it will continue try-
+       ing to set the remaining limits.
+
+       resource can be one of:
+
+       addressspace
+              Maximum amount of address space used.
+       aiomemorylocked
+              Maximum  amount  of  memory  locked in RAM for AIO opera-
+              tions.
+       aiooperations
+              Maximum number of AIO operations.
+       cachedthreads
+              Maximum number of cached threads.
+       coredumpsize
+              Maximum size of a core dump.
+       cputime
+              Maximum CPU seconds per process.
+       datasize
+              Maximum data size (including stack) for each process.
+       descriptors
+              Maximum value for a file descriptor.
+       filesize
+              Largest single file allowed.
+       kqueues
+              Maximum number of kqueues allocated.
+       maxproc
+              Maximum number of processes.
+       maxpthreads
+              Maximum number of threads per process.
+       memorylocked
+              Maximum amount of memory locked in RAM.
+       memoryuse
+              Maximum resident set size.
+       msgqueue
+              Maximum number of bytes in POSIX message queues.
+       posixlocks
+              Maximum number of POSIX locks per user.
+       pseudoterminals
+              Maximum number of pseudo-terminals.
+       resident
+              Maximum resident set size.
+       sigpending
+              Maximum number of pending signals.
+       sockbufsize
+              Maximum size of all socket buffers.
+       stacksize
+              Maximum stack size for each process.
+       swapsize
+              Maximum amount of swap used.
+       vmemorysize
+              Maximum amount of virtual memory.
+
+       Which of these resource limits are available depends on the sys-
+       tem.  resource can be abbreviated to any unambiguous prefix.  It
+       can also be an integer, which corresponds to the integer defined
+       for the resource by the operating system.
+
+       If argument corresponds to a number which is out of the range of
+       the resources configured into the shell, the shell will  try  to
+       read or write the limit anyway, and will report an error if this
+       fails.  As the shell does not store such  resources  internally,
+       an  attempt  to  set the limit will fail unless the -s option is
+       present.
+
+       limit is a number, with an optional scaling factor, as follows:
+
+       nh     hours
+       nk     kilobytes (default)
+       nm     megabytes or minutes
+       ng     gigabytes
+       [mm:]ss
+              minutes and seconds
+
+       The limit command is not made  available  by  default  when  the
+       shell  starts in a mode emulating another shell.  It can be made
+       available with the command `zmodload -F zsh/rlimits b:limit'.

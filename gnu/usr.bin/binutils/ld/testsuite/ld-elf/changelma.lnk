@@ -1,0 +1,11 @@
+PHDRS
+{
+  headers PT_PHDR PHDRS ;
+  text PT_LOAD FILEHDR PHDRS ;
+  dynamic PT_DYNAMIC ;
+}
+SECTIONS
+{
+  . = SIZEOF_HEADERS;
+  .dynamic : { *(*) } :text :dynamic
+}

@@ -1,0 +1,163 @@
+#compdef postconf postqueue postsuper
+
+# Last updated from postfix 3.1.0.
+
+local context state state_descr line
+typeset -A opt_args
+integer NORMARG
+
+_postfix_queue_id() {
+  local -a lines=( ${(f)"$(_call_program mailq 'mailq')"} )
+
+  # $enable_long_queue_ids = no
+  compadd "$@" -- ${${(M)lines:#(#s)([0-9A-F]##([*!]|) )*}/(#s)(#b)([0-9A-F]##)*/$match[1]}
+
+  # $enable_long_queue_ids = yes
+  compadd "$@" -- ${${${(M)lines:#(#s)[0-9bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ](#c10)z*}%% *}%[*!]}
+}
+
+# The first argument must be either 'd' or 'n', to complete parameters in
+# `postconf -d -H` or `postconf -n -H` output, respectively.
+_postfix_main_cf_parameter() {
+  local -a expl
+  local kind
+
+  kind=$1; shift
+  case $kind in
+    (d)
+      # Note for the future: if $mail_version >= 3.1, we can pass -H instead of
+      # stripping the = signs by hand.
+      #
+      # don't bother to add -c in this case: the defaults don't depend on the config dir.
+      _wanted parameters expl 'main.cf parameter' compadd "$@" -- \
+        ${${(f)"$(_call_program postconf_-d "${words[1]} -$kind")"}%% =*}
+      ;;
+    (n)
+      # Show the values too.
+      local -a kv=( ${${(f)"$(_call_program postconf_-n "${words[1]} ${opt_args[-c]+"-c ${opt_args[-c]}"} -$kind")"}/ = /:} )
+      _describe -t parameters 'main.cf parameter' kv
+      ;;
+    (*)
+      return 1 # can't happen due to the guard above
+      ;;
+  esac
+}
+
+_postfix_main_cf_parameter_and_value() {
+  # Note: be careful not to accidentally run 'postconf foo=bar' here.
+  #
+  # The '-P 1' syntax chooses the shortest match.  If the '1' were removed,
+  # completing «postconf foo=bar=<TAB>» would change main.cf.  So, don't remove
+  # it.
+  if compset -P 1 '*='; then
+    local value="`_call_program postconf-get-value-at-dir "${words[1]} ${opt_args[-c]+"-c ${opt_args[-c]}"} -h -- ${(q)IPREFIX%=}"`"
+    [[ -n $value ]] && compadd "$@" -- $value
+  else
+    _postfix_main_cf_parameter d -S=
+  fi
+}
+
+case $service in
+	(postsuper)
+	_arguments -C -s : \
+	'-p[purge old tempfiles]' \
+	'-s[structure check and repair]' \
+	'*-v[verbose]' \
+	'-c[configdir]:config dir:_files -/' \
+	'-d[delete]:queue id:_postfix_queue_id' \
+	'-h[hold]:queue id:_postfix_queue_id' \
+	'-H[release]:queue id:_postfix_queue_id' \
+	'*-r[requeue]:queue id, or "ALL":_postfix_queue_id' \
+	'1:queue:(hold incoming active deferred)'
+	;;
+        (postqueue)
+        _arguments -C -s : \
+          '*-v[enable verbose logging]' \
+          '-c[configdir]:config dir:_files -/' \
+          '(-f -i -j -p -s)-f[flush the queue]' \
+          '(-f -i -j -p -s)-i[immediately deliver one message]:queue id:_postfix_queue_id' \
+          '(-f -i -j -p -s)-j[print the queue in json]' \
+          '(-f -i -j -p -s)-p[print the queue in traditional format]' \
+          '(-f -i -j -p -s)-s[immediately deliver messages to specified site]:site:_hosts' 
+        ;;
+        (postconf)
+          local -a file_ops=(-b -t -a -A -l -m -T)
+          local -a modes=(-F -M -P $file_ops -p)
+          local -a only_for_p=(-C -d -h -n)
+          local -a only_for_asterisk_dot_cf=(-e -f -o -x)
+          local -a args=(
+              # global
+              '-c[configdir]:config dir:_files -/' \
+              '*-v[enable verbose logging]'
+
+              # mode selection
+              "($modes $only_for_p                              -X -#)"'-F[operate on master.cf entry fields]'
+              "($modes $only_for_p                           -H      )"'-M[operate on master.cf services entries]'
+              "($modes $only_for_p                                 -#)"'-P[operate on master.cf parameter settings]'
+              "($modes $only_for_p $only_for_asterisk_dot_cf -H -X -#)"'-b[display DSN text, expanded]'
+              "($modes $only_for_p $only_for_asterisk_dot_cf -H -X -#)"'-t[display DSN text, unexpanded]'
+              "($modes $only_for_p $only_for_asterisk_dot_cf -H -X -#)"'-a[list available SASL server plug-ins]'
+              "($modes $only_for_p $only_for_asterisk_dot_cf -H -X -#)"'-A[list available SASL client plug-ins]'
+              "($modes $only_for_p $only_for_asterisk_dot_cf -H -X -#)"'-l[list supported mailbox locking methods]'
+              "($modes $only_for_p $only_for_asterisk_dot_cf -H -X -#)"'-m[list supported lookup table types]'
+              "($modes                                               )"'-p[(default) print main.cf settings]'
+              "($modes $only_for_p $only_for_asterisk_dot_cf -H -X -#)"'-T[print TLS information]:mode:((
+                           compile-version\:"OpenSSL compile-time version"
+                           run-version\:"OpenSSL run-time version"
+                           public-key-algorithms\:"supported public-key algorithms"
+                           ))'
+
+              # other options; comments indicate modes:
+              # -p only
+              '-C[display parameters from the specified class]:parameter class:(builtin service user all)'
+              '-d[print default values]'
+              '-h[print value only]'
+              '-n[show parameters changed in main.cf]'
+
+              # all except $file_ops:
+              '-e[change parameter values]'
+              '-f[fold long output lines]'
+              '-o[set parameter value for this operation]: :_postfix_main_cf_parameter_and_value'
+              '-x[expand '\''$name'\'' in parameter values]'
+
+              # -p -F -P only
+              '-H[show parameter name only]'
+              # -p -M -P only
+              '-X[remove parameters from main.cf/master.cf]'
+              # -p -M only
+              '-#[comment out parameters in main.cf/master.cf]'
+
+              # $state
+              '*: :->positional'
+          )
+          _arguments -C -s -S -n : "$args[@]"
+
+          case $state in
+            (positional)
+              # Simulate the default
+              if [[ -z $opt_args[(i)${(j.|.)modes}] ]]; then
+                opt_args[-p]=""
+              fi
+              if [[ -n $opt_args[(i)(-b|-t)] ]]; then
+                local expl
+                if (( CURRENT == NORMARG )); then
+                  _wanted files expl 'template file, or "" for default' _files
+                else
+                  _nothing
+                fi
+              elif [[ -n $opt_args[(i)${(j.|.)file_ops}] ]]; then
+                _nothing
+              elif (( $+opt_args[-p] )); then
+                if (( $+opt_args[-e] )); then
+                  _postfix_main_cf_parameter_and_value
+                elif [[ -n $opt_args[(i)(-X|-[#])] ]]; then
+                  _postfix_main_cf_parameter n
+                else
+                  _postfix_main_cf_parameter d
+                fi
+              else # one of the master.cf modes: -M -F -P
+                _message "arguments for $opt_args[(i)${(j.|.)modes}] mode"
+              fi
+          esac
+        ;;
+esac

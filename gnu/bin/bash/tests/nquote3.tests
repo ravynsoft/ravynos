@@ -1,0 +1,98 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+a=$'a\001b'
+
+set $a
+
+b=$a
+c=$1
+d="$1"
+
+e=$'uv\001\001wx'
+f=$'uv\001w\001xy'
+
+set $e $e
+
+recho ${e%%??}
+recho "${e%%??}"
+
+recho ${e%%???}
+recho "${e%%???}"
+
+recho ${a#?}
+recho "${a#?}"
+
+# simple variables
+
+recho ${f##*$'\001'}
+recho "${f##*$'\001'}"
+recho ${f##*''}		# literal ^A
+recho "${f##*'^A'}"		# two characters, `^' and `A'
+
+recho ${e%$'\001'*}
+recho "${e%$'\001'*}"
+recho ${e#*$'\001'}
+recho "${e#*$'\001'}"
+
+# array members
+
+arr[0]=$e
+arr[1]=$f
+
+recho ${arr[1]##*$'\001'}
+recho "${arr[1]##*$'\001'}"
+recho ${arr[1]##*''}		# literal ^A
+recho "${arr[1]##*'^A'}"	# two characters, `^' and `A'
+
+recho ${arr[0]%$'\001'*}
+recho "${arr[0]%$'\001'*}"
+recho ${arr[0]#*$'\001'}
+recho "${arr[0]#*$'\001'}"
+
+recho ${arr%$'\001'*}
+recho "${arr%$'\001'*}"
+recho ${arr#*$'\001'}
+recho "${arr#*$'\001'}"
+
+# positional parameters
+
+set $e $f
+
+recho ${2##*$'\001'}
+recho "${2##*$'\001'}"
+recho ${2##*''}		# literal ^A
+recho "${2##*''}"		# literal ^A
+recho ${2##*'^A'}		# two characters, `^' and `A'
+recho "${2##*'^A'}"		# two characters, `^' and `A'
+
+recho ${1%$'\001'*}
+recho "${1%$'\001'*}"
+recho ${1#*$'\001'}
+recho "${1#*$'\001'}"
+
+recho ${@%$'\001'*}
+recho "${@%$'\001'*}"
+recho ${@#*$'\001'}
+recho "${@#*$'\001'}"
+recho ${@##*''}		# literal ^A
+recho "${@##*'^A'}"		# two characters, `^' and `A'
+
+# arrays treated as a whole
+
+recho ${arr[@]%$'\001'*}
+recho "${arr[@]%$'\001'*}"
+recho ${arr[@]#*$'\001'}
+recho "${arr[@]#*$'\001'}"
+recho ${arr[@]##*''}		# literal ^A
+recho "${arr[@]##*'^A'}"		# two characters, `^' and `A'

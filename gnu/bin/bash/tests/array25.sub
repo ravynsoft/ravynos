@@ -1,0 +1,83 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# tests with blank subscripts, indexed and associative
+
+echo 1. indexed:
+a[0]=0 a[1]=1
+
+v=" "
+
+echo reference:
+
+echo 1. ${a[ ]}
+echo 2. ${a[' ']}
+echo 3. "${a[ ]}"
+echo 4. ${a[$v]}
+echo 5. ${a["$v"]}
+echo 6. "${a[$v]}"
+
+echo assignment:
+
+echo -n 1. ; a[ ]=10 ; typeset -p a ; a[0]=0
+echo -n 2. ; a[" "]=11 ; typeset -p a ; a[0]=0
+echo -n 3. ; a[$v]=12 ; typeset -p a ; a[0]=0
+echo -n 4. ; a["$v"]=13 ; typeset -p a ; a[0]=0
+
+echo arithmetic:
+
+echo -n 1. ; (( a[ ]=10 )); typeset -p a ; a[0]=0
+echo -n 2. ; (( a[" "]=11 )); typeset -p a ; a[0]=0
+echo -n 3. ; (( a[$v]=12 )); typeset -p a ; a[0]=0
+echo -n 4. ; (( a["$v"]=13 )); typeset -p a ; a[0]=0
+echo -n 5. ; let "a[ ]=10" ; typeset -p a ; a[0]=0
+echo -n 6. ; let "a[\" \"]=11" ; typeset -p a ; a[0]=0
+echo -n 7. ; let "a[$v]=12" ; typeset -p a ; a[0]=0
+echo -n 8. ; let "a[\"$v\"]=13" ; typeset -p a ; a[0]=0
+
+unset -v a v
+
+echo 2. associative:
+shopt -s assoc_expand_once
+
+typeset -A a
+a[0]=0 a[1]=1
+
+v=" "
+
+echo reference:
+
+echo 1. ${a[ ]}
+echo 2. ${a[' ']}
+echo 3. "${a[ ]}"
+echo 4. ${a[$v]}
+echo 5. ${a["$v"]}
+echo 6. "${a[$v]}"
+
+echo assignment:
+
+echo -n 1. ; a[ ]=10 ; typeset -p a ; a[0]=0
+echo -n 2. ; a[" "]=11 ; typeset -p a ; a[0]=0
+echo -n 3. ; a[$v]=12 ; typeset -p a ; a[0]=0
+echo -n 4. ; a["$v"]=13 ; typeset -p a ; a[0]=0
+
+echo arithmetic:
+
+echo -n 1. ; (( a[ ]=10 )); typeset -p a ; a[0]=0
+echo -n 2. ; (( a[" "]=11 )); typeset -p a ; a[0]=0
+echo -n 3. ; (( a[$v]=12 )); typeset -p a ; a[0]=0
+echo -n 4. ; (( a["$v"]=13 )); typeset -p a ; a[0]=0
+echo -n 5. ; let "a[ ]=10" ; typeset -p a ; a[0]=0
+echo -n 6. ; let "a[\" \"]=11" ; typeset -p a ; a[0]=0
+echo -n 7. ; let "a[$v]=12" ; typeset -p a ; a[0]=0
+echo -n 8. ; let "a[\"$v\"]=13" ; typeset -p a ; a[0]=0

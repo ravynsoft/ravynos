@@ -1,0 +1,128 @@
+Revision history for constant
+
+1.33    2015.04.30    RJBS (Ricardo SIGNES)
+        [CODE] Updated from bleadperl:
+        - Stop using vars.pm
+        - Allow package name in ‘use constant’ constants
+        - Remove bug-inducing compile-time checking of constant values
+        - Make elements of list consts read-only
+
+1.27    2013.03.21    SAPER (Sébastien Aperghis-Tramoni)
+        [CODE] Updated from bleadperl:
+         - Remove a reference to a non-existent module (Karl Williamson)
+         - Make utf8 downgrading version dependent in order to avoid
+           unconditional loading of utf8_heavy.pl (Brad Gilbert)
+
+1.25    2013.01.19    SAPER (Sébastien Aperghis-Tramoni)
+        [CODE] Updated from bleadperl:
+         - Remove 5.6-isms (Sébastien Aperghis-Tramoni)
+
+1.24    2013.01.07    SAPER (Sébastien Aperghis-Tramoni)
+        [CODE] Updated from bleadperl:
+         - Disable the UTF8 downgrade when unnecessary (Father Chrysostomos)
+         - Restore compatibility with Perl 5.8 (Sébastien Aperghis-Tramoni)
+         - Skip t/utf8.t on Perl before 5.8.4 (Sébastien Aperghis-Tramoni)
+        [DIST] Perl-RT #114050: Added meta-information in Makefile.PL to
+        reflect that the module is maintained by P5P.
+
+1.21    2011.04.18    SAPER (Sébastien Aperghis-Tramoni) #PerlQA2011
+        [CODE] Updated from bleadperl:
+         - Make Unicode constants under use utf8 work again (Father Chrysostomos)
+        [TESTS] Make tests pass under old Perls.
+
+1.20    2011.04.16    SAPER (Sébastien Aperghis-Tramoni) #PerlQA2011
+        [CODE] Updated from bleadperl:
+         - [perl #68640] Wrong error for undef constant name (Zefram).
+        [DIST] CPAN-RT #66727: Add explicit configure_requires to Build.PL
+        (David Golden).
+
+1.19    2009.09.12    SAPER (Sébastien Aperghis-Tramoni)
+        [CODE] Optimisation: Avoid unnecessary flushing of the caller
+        package's MRO cache (Nicholas Clark).
+        [CODE] Optimisation: Use the internal constant _CAN_PCS to optimise
+        out things that can't happen pre 5.10 (Nicholas Clark).
+
+1.18    2009.08.18    SAPER (Sébastien Aperghis-Tramoni)
+        [CODE] Optimisation: Generate perl version-dependent regexps once,
+        rather than every call to import (Nicholas Clark).
+        [CODE] Optimisation: Convert perl version check in import() from
+        run time to compile time (Nicholas Clark).
+        [TESTS] Re-added pseudohashes tests that were removed at some point
+        from bleadperl (Nicholas Clark).
+
+1.17    2008.10.29    SAPER (Sébastien Aperghis-Tramoni)
+        [TESTS] Moved the TRAILING test from t/constant.t to t/more-tests.t
+        in order to avoid FAIL reports when executed with Test::More 0.82+
+
+1.16    2008.09.21    SAPER (Sébastien Aperghis-Tramoni)
+        [DOC] The copyright section is also the license.
+        [DOC] Added a SEE ALSO section.
+        [DOC] Converted files to UTF-8.
+        [DOC] Improved the description in README.
+
+1.15    2007.12.31    SAPER (Sébastien Aperghis-Tramoni)
+        [TEST] Adjusted t/constant.t to how empty prototypes are reported
+        among different versions of Perl (thus fixing the FAIL reports for
+        Perl 5.8.0 to 5.8.3).
+
+1.14    2007.12.27    SAPER (Sébastien Aperghis-Tramoni)
+        [DIST] CPAN-RT#31627: Specify core install dir in Build.PL.
+        Thanks to Michael G Schwern.
+
+1.13    2007.12.27    SAPER (Sébastien Aperghis-Tramoni)
+        [CODE] Merged changed blead@32338: UNITCHECK is only a keyword
+        post 5.009 (Nicholas Clark).
+        [DIST] Copied the sysnopsis into eg/
+
+1.12    2007.11.06    SAPER (Sébastien Aperghis-Tramoni)
+        [DIST] CPAN-RT#30460: The module must be installed in core, not in
+        site (because it get shadowed). Thanks to Imacat.
+
+1.11    2007.09.25    SAPER (Sébastien Aperghis-Tramoni)
+        [CODE] Fixed code and tests so everything work under Perl 5.005.
+        [DOC] Some Pod nits. Added information about current maintainers.
+
+1.10    2007.04.19
+        blead@30980: C3 MRO support (Brandon L Black).
+        blead@30824: Small fix for Symbian (Jarkko Hietaniemi).
+
+1.09    2007.03.13
+        blead@30561: Inform constant.pm about UNITCHECK (Joshua ben Jore).
+
+1.08    2007.02.13
+        blead@30255: Remove some debugging code (Nicholas Clark).
+        blead@26502: Use Internals::inc_sub_generation() to invalidate
+          cached methods (Nicholas Clark).
+
+1.07    2005.12.26
+        blead@26487: Rework constant.pm to take advantage of the space
+          savings of proxy constant subroutines whenever it can (Nicholas Clark).
+        blead@26485: Factore caller() call out of the loop (Nicholas Clark).
+
+1.06    2005.12.24
+        blead@26483: Using a hash reference rather than a hash can save a
+          hash copy (Nicholas Clark).
+
+1.05    2004.11.12
+        blead@23497: Silence an unnecessary warning (Anno Siegel).
+
+1.04    2001.07.29
+        blead@12097, 11473: Major POD rewrite (Ilmari Karonen).
+
+1.03    2001.06.29
+        blead@8240: Declare multiple constants at once (Casey West).
+
+1.02    2000.03.13
+        blead@5702: Use warnings::register (Paul Marquess).
+        blead@5463: Relax restrictions on constant names a bit (M J T Guy).
+        blead@4905: STOP blocks have been renamed to CHECK (Gurusamy Sarathy).
+
+1.01    1999.12.28
+        blead@4718: New version of constant.pm from Tom Phoenix; added Tom's
+          notes to perldelta; added STOP, DESTROY and AUTOLOAD to specials list
+        blead@2029: Restore sanity to "constant" references (Gurusamy Sarathy).
+
+
+Full history:
+    http://public.activestate.com/cgi-bin/perlbrowse/l/lib/constant.pm
+

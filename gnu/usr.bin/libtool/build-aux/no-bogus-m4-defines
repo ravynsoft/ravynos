@@ -1,0 +1,61 @@
+#! /bin/sh
+
+#   no-bogus-m4-defines - detect wrong m4 definitions
+#   -------------------------------------------------
+#   Try to catch the case where 'aclocal' pulls installed libtool
+#   macro file contents from another version of libtool into the
+#   current package 'aclocal.m4'.  Currently used by 'make dist'
+#   and by ./bootstrap (bootstrap.conf).
+#
+#   Copyright (C) 2015-2019, 2021-2022 Free Software Foundation, Inc.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+# Please report bugs or propose patches to bug-libtool@gnu.org.
+
+. `echo "$0" |${SED-sed} 's|[^/]*$||'`/funclib.sh
+# source this for "GNU m4" detection methods
+. `echo "$0" |${SED-sed} 's|[^/]*$||'`/extract-trace
+
+$require_gnu_m4
+
+bogus_macros='LT_INIT AC_PROG_LIBTOOL AM_PROG_LIBTOOL'
+
+bogus_macros_grep=''
+for macro in $bogus_macros; do
+  func_append bogus_macros_grep "/$macro/p;"
+done
+
+clean_false_alarms="pushdef(\`AC_BEFORE', \`')"
+
+bogus_macros_check_output=`$ECHO "$clean_false_alarms" \
+  |$M4 - aclocal.m4 libltdl/aclocal.m4 \
+  |$SED -n "$bogus_macros_grep"`
+
+exit_val=0
+for macro in $bogus_macros; do
+  case $bogus_macros_check_output in
+    *$macro*)
+      func_error "Bogus $macro macro definition in an aclocal.m4 file"
+      exit_val=1
+      ;;
+  esac
+done
+
+exit $exit_val

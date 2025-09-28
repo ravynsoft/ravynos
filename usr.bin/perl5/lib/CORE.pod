@@ -1,0 +1,94 @@
+=head1 NAME
+
+CORE - Namespace for Perl's core routines
+
+=head1 SYNOPSIS
+
+    BEGIN {
+        *CORE::GLOBAL::hex = sub { 1; };
+    }
+
+    print hex("0x50"),"\n";			# prints 1
+    print CORE::hex("0x50"),"\n";		# prints 80
+    CORE::say "yes";				# prints yes
+
+    BEGIN { *shove = \&CORE::push; }
+    shove @array, 1,2,3;			# pushes on to @array
+
+=head1 DESCRIPTION
+
+The C<CORE> namespace gives access to the original built-in functions of
+Perl.  The C<CORE> package is built into
+Perl, and therefore you do not need to use or
+require a hypothetical "CORE" module prior to accessing routines in this
+namespace.
+
+A list of the built-in functions in Perl can be found in L<perlfunc>.
+
+For all Perl keywords, a C<CORE::> prefix will force the built-in function
+to be used, even if it has been overridden or would normally require the
+L<feature> pragma.  Despite appearances, this has nothing to do with the
+CORE package, but is part of Perl's syntax.
+
+For many Perl functions, the CORE package contains real subroutines.  This
+feature is new in Perl 5.16.  You can take references to these and make
+aliases.  However, some can only be called as barewords; i.e., you cannot
+use ampersand syntax (C<&foo>) or call them through references.  See the
+C<shove> example above.  These subroutines exist for all keywords except the following:
+
+C<__DATA__>, C<__END__>, C<and>, C<cmp>, C<default>, C<do>, C<dump>,
+C<else>, C<elsif>, C<eq>, C<eval>, C<for>, C<foreach>, C<format>, C<ge>,
+C<given>, C<goto>, C<grep>, C<gt>, C<if>, C<last>, C<le>, C<local>, C<lt>,
+C<m>, C<map>, C<my>, C<ne>, C<next>, C<no>, C<or>, C<our>, C<package>,
+C<print>, C<printf>, C<q>, C<qq>, C<qr>, C<qw>, C<qx>, C<redo>, C<require>,
+C<return>, C<s>, C<say>, C<sort>, C<state>, C<sub>, C<tr>, C<unless>,
+C<until>, C<use>, C<when>, C<while>, C<x>, C<xor>, C<y>
+
+Calling with
+ampersand syntax and through references does not work for the following
+functions, as they have special syntax that cannot always be translated
+into a simple list (e.g., C<eof> vs C<eof()>):
+
+C<chdir>, C<chomp>, C<chop>, C<defined>, C<delete>, C<eof>, C<exec>,
+C<exists>, C<lstat>, C<split>, C<stat>, C<system>, C<truncate>, C<unlink>
+
+=head1 OVERRIDING CORE FUNCTIONS
+
+To override a Perl built-in routine with your own version, you need to
+import it at compile-time.  This can be conveniently achieved with the
+C<subs> pragma.  This will affect only the package in which you've imported
+the said subroutine:
+
+    use subs 'chdir';
+    sub chdir { ... }
+    chdir $somewhere;
+
+To override a built-in globally (that is, in all namespaces), you need to
+import your function into the C<CORE::GLOBAL> pseudo-namespace at compile
+time:
+
+    BEGIN {
+        *CORE::GLOBAL::hex = sub {
+            # ... your code here
+        };
+    }
+
+The new routine will be called whenever a built-in function is called
+without a qualifying package:
+
+    print hex("0x50"),"\n";			# prints 1
+
+In both cases, if you want access to the original, unaltered routine, use
+the C<CORE::> prefix:
+
+    print CORE::hex("0x50"),"\n";		# prints 80
+
+=head1 AUTHOR
+
+This documentation provided by Tels <nospam-abuse@bloodgate.com> 2007.
+
+=head1 SEE ALSO
+
+L<perlsub>, L<perlfunc>.
+
+=cut

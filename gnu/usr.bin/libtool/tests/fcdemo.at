@@ -1,0 +1,351 @@
+# fcdemo.at -- Fortran 90/95 language support.		-*- Autotest -*-
+#
+#   Copyright (C) 2003, 2005-2006, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Eric Lindahl, 2002
+#   Written by Gary V. Vaughan, 2003
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+
+AT_BANNER([Fortran language support.])
+
+
+# _LT_SETUP
+# ---------
+m4_define([_LT_SETUP],
+[LT_AT_TAG([FC])
+AT_KEYWORDS([libtool])
+
+AT_DATA([configure.ac],
+[[AC_INIT([fcdemo], ]AT_PACKAGE_VERSION[, ]AT_PACKAGE_BUGREPORT[)
+AC_CONFIG_AUX_DIR([build-aux])
+AM_INIT_AUTOMAKE
+AC_PROG_CC
+
+AC_LANG_PUSH([Fortran])
+AC_PROG_FC
+dnl Check the flags needed to link fc programs with ld (i.e. cc)
+AC_FC_LIBRARY_LDFLAGS
+dnl Check for underscoring of external names
+AC_FC_WRAPPERS
+dnl We need to use .f90 and not .f to enable Automake FC support
+dnl Some Intel ifc/ifort do not understand .f95.  :-/
+AC_FC_SRCEXT([f90])
+dnl Yes, we want free-form Fortran!
+AC_FC_FREEFORM
+AC_LANG_POP
+
+LT_INIT
+AC_SUBST([LIBTOOL_DEPS])
+AC_CONFIG_FILES([Makefile])
+AC_CONFIG_HEADERS([config.h:config.in.h])
+AC_OUTPUT
+]])
+
+AT_DATA([Makefile.am],
+[[AUTOMAKE_OPTIONS = no-dependencies foreign
+ACLOCAL_AMFLAGS = -I m4
+
+lib_LTLIBRARIES = libfoo.la libmix.la libfoo2.la libfoo3.la
+
+libfoo_la_SOURCES = foof.f90
+libfoo_la_LIBADD = libfoo2.la
+libfoo_la_LDFLAGS = -no-undefined
+
+libfoo2_la_SOURCES = foof2.f90
+libfoo2_la_LDFLAGS = -no-undefined
+
+libfoo3_la_SOURCES = foof3.f90
+libfoo3_la_LDFLAGS = -no-undefined
+
+libmix_la_SOURCES = foof.f90 foof2.f90 fooc.c
+libmix_la_LDFLAGS = -no-undefined
+
+noinst_HEADERS = foo.h
+
+bin_PROGRAMS = fprogram cprogram
+
+fprogram_SOURCES = fprogram.f90
+fprogram_LDADD = libfoo.la libfoo3.la
+
+cprogram_SOURCES = cprogram.c
+cprogram_LDADD = libmix.la $(FCLIBS)
+
+libtool: $(LIBTOOL_DEPS)
+	$(SHELL) ./config.status --recheck
+
+# Work around Automake bug, where FCFLAGS_f90 is not provided:
+.f90.o:
+	$(FCCOMPILE) -c -o @S|@@ $(FCFLAGS_f90) $<
+
+.f90.obj:
+	$(FCCOMPILE) -c -o @S|@@ $(FCFLAGS_f90) `$(CYGPATH_W) '$<'`
+
+.f90.lo:
+	$(LTFCCOMPILE) -c -o @S|@@ $(FCFLAGS_f90) $<
+]])
+
+AT_DATA([fprogram.f90],
+[[program fprogram
+  implicit none
+  integer arg,res
+
+  write(*,*) 'Welcome to GNU libtool Fortran demo!'
+  write(*,*) 'Real programmers write in FORTRAN.'
+  arg=2
+
+  call fsub(arg,res)
+
+  write(*,*) 'fsub returned, saying that 2 *',arg,' =',res
+
+  if (res.eq.4) then
+     write(*,*) 'fsub is ok!'
+  endif
+
+  call fsub3(arg,res)
+
+  write(*,*) 'fsub3 returned, saying that 4 *',arg,' =',res
+
+  if (res.eq.8) then
+     write(*,*) 'fsub3 is ok!'
+  endif
+
+  stop
+end
+]])
+
+AT_DATA([cprogram.c],
+[[#include <config.h>
+#include <stdio.h>
+
+#include "foo.h"
+
+int
+main ()
+{
+  int arg,cres,fres;
+
+  printf ("Welcome to GNU libtool mixed C/Fortran demo!\n");
+
+  arg=2;
+
+  cres=csub (arg);
+
+  printf ("The C subroutine returned, claiming that 2*%d = %d\n",arg,cres);
+
+  if (cres == 2*arg)
+    printf ("The C subroutine is ok!\n");
+
+  printf ("\nCalling the C wrapper routine...\n");
+  fres = fwrapper (arg);
+
+  printf ("The C wrapper to the fortran subroutine returned,\n"
+	  "claiming that 2*%d = %d\n",arg,fres);
+
+  if (fres == 2*arg)
+    printf ("The Fortran subroutine is ok!\n");
+
+  return 0;
+}
+]])
+
+AT_DATA([foo.h],
+[[#ifndef _FOO_H_
+#define _FOO_H_ 1
+
+/* config.h is necessary for the fortran name mangling */
+#include <config.h>
+
+/* csub is an extremely useful subroutine that
+ * returns the argument multiplied by two :-)
+ */
+extern int csub(int);
+
+/* This routine performs the same action, but
+ * calls the fortran subroutine fsub to do the
+ * real work.
+ */
+extern int fwrapper(int);
+
+/* fsub does the same thing as csub, i.e. res=arg*2.
+ * Use autoconf macro for fortran function names.
+ * Note that fortran passes args by reference, so
+ * you need to provide pointers to your ints.
+ */
+extern
+#ifdef __cplusplus
+"C"
+#endif
+void FC_FUNC(fsub,FSUB)(int *arg, int *res);
+
+#endif
+]])
+
+AT_DATA([fooc.c],
+[[#include <config.h>
+#include <stdio.h>
+
+#include "foo.h"
+
+int csub(int arg)
+{
+  return (2*arg);
+}
+
+
+int fwrapper(int arg)
+{
+  int res;
+  printf("Calling the Fortran subroutine from the C wrapper...\n");
+  FC_FUNC(fsub,FSUB)(&arg,&res);
+  printf("Returned from the Fortran subroutine...\n");
+  return res;
+}
+]])
+
+AT_DATA([foof.f90],
+[[subroutine fsub(arg,res)
+  write(*,*) 'fsub called'
+  call fsubf(arg,res)
+  return
+end
+]])
+
+AT_DATA([foof2.f90],
+[[subroutine fsubf(arg,res)
+  implicit none
+  integer arg,res
+  write(*,*) 'fsubf called'
+  res=arg*2
+  return
+end
+]])
+
+AT_DATA([foof3.f90],
+[[subroutine fsub3(arg,res)
+  implicit none
+  integer arg,res
+  write(*,*) 'fsub3 called'
+  res=arg*4
+  return
+end
+]])
+
+LT_AT_AUTOHEADER
+]) # _LT_SETUP
+
+
+# _LT_CHECK_EXECUTE
+# -----------------
+# Run the default make rule, and check that the built binaries work.
+m4_define([_LT_CHECK_EXECUTE],
+[LT_AT_MAKE
+
+# Due to differences in line-endings between C stdout and Fortran
+# stdout, as well as unpredictable output ordering between platforms
+# and runtimes, we can't reliably check the output here... although
+# it should be some variation of the following:
+LT_AT_HOST_DATA([expout],
+[[ Welcome to GNU libtool Fortran demo!
+ Real programmers write in FORTRAN.
+ fsub called
+ fsubf called
+ fsub returned, saying that 2 *           2  =           4
+ fsub is ok!
+ fsub3 called
+ fsub3 returned, saying that 4 *           2  =           8
+ fsub3 is ok!
+]])
+LT_AT_EXEC_CHECK([./fprogram], 0, [stdout])
+
+# A weaker output content check that is agnostic to the issues above.
+AT_CHECK([$GREP 'Welcome to GNU libtool Fortran demo!' stdout],
+         [0], [ignore])
+
+# Similarly, we can't reliably compare actual output with the following.
+LT_AT_HOST_DATA([expout],
+[[Welcome to GNU libtool mixed C/Fortran demo!
+The C subroutine returned, claiming that 2*2 = 4
+The C subroutine is ok!
+
+Calling the C wrapper routine...
+Calling the Fortran subroutine from the C wrapper...
+ fsub called
+ fsubf called
+Returned from the Fortran subroutine...
+The C wrapper to the fortran subroutine returned,
+claiming that 2*2 = 4
+The Fortran subroutine is ok!
+]])
+LT_AT_EXEC_CHECK([./cprogram], 0, [stdout])
+
+# A weaker output content check that is agnostic to the issues above.
+AT_CHECK([$GREP 'Welcome to GNU libtool mixed C/Fortran demo!' stdout],
+         [0], [ignore])
+])
+
+
+## -------------- ##
+## Fcdemo static. ##
+## -------------- ##
+
+AT_SETUP([static library])
+
+# Executing the static fprogram might be interactive on MSYS.
+AT_KEYWORDS([interactive])
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG([--disable-shared],
+                   [^build_old_libs=yes], [^build_libtool_libs=no])
+_LT_CHECK_EXECUTE
+
+AT_CLEANUP
+
+
+## -------------- ##
+## Fcdemo shared. ##
+## -------------- ##
+
+AT_SETUP([shared library])
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG([--disable-static],
+                   [^build_old_libs=no], [^build_libtool_libs=yes])
+_LT_CHECK_EXECUTE
+
+AT_CLEANUP
+
+
+## ------------ ##
+## Fcdemo conf. ##
+## ------------ ##
+
+AT_SETUP([shared and static together])
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG([],
+                   [^build_old_libs=yes], [^build_libtool_libs=yes])
+_LT_CHECK_EXECUTE
+
+AT_CLEANUP

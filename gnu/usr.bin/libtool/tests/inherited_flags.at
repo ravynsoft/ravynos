@@ -1,0 +1,114 @@
+# inherited_flags.at -- test inherited_linker_flags          -*- Autotest -*-
+#
+#   Copyright (C) 2005-2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Peter O'Garman, 2005
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+
+AT_SETUP([inherited_linker_flags])
+AT_KEYWORDS([libtool])
+
+AT_DATA([foo.c],
+[
+int foo() { return 1;}
+])
+
+AT_DATA([bar.c],
+[
+int bar() { return 1;}
+])
+
+AT_DATA([baz.c],
+[
+int baz() { return 1;}
+])
+
+AT_DATA([both.c],
+[
+int both() { return 1;}
+])
+
+AT_DATA([main.c],
+[
+int main() { return 0;}
+])
+
+$LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c -o foo.lo foo.c
+$LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c -o bar.lo bar.c
+$LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c -o baz.lo baz.c
+$LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c -o both.lo both.c
+$LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c -o main.lo main.c
+$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o libfoo.la foo.lo -rpath /nonexistent -no-undefined
+$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o libbar.la bar.lo -rpath /nonexistent -no-undefined
+$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o libboth.la both.lo -rpath /nonexistent -no-undefined
+
+
+mv libfoo.la libfoo.la.bak
+$SED -e 's/^inherited_linker_flags.*/inherited_linker_flags=-llt_inlikely_existing_lib/g' < libfoo.la.bak > libfoo.la
+rm libfoo.la.bak
+
+mv libbar.la libbar.la.bak
+$SED -e 's/^inherited_linker_flags.*/inherited_linker_flags=-llt_unlikely_existing_lib/g' < libbar.la.bak > libbar.la
+rm libbar.la.bak
+
+mv libboth.la libboth.la.bak
+$SED -e "s/^inherited_linker_flags.*/inherited_linker_flags='-llt_inlikely_existing_lib -llt_unlikely_existing_lib'/g" < libboth.la.bak > libboth.la
+rm libboth.la.bak
+
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o libbaz.la baz.lo -no-undefined -rpath /nonexistent ./libfoo.la ./libbar.la],
+	 [ignore],[stdout],[ignore])
+# We used to grep for
+# 'llt_[[ui]]nlikely_existing_lib.*llt_[[ui]]nlikely_existing_lib'
+# here.  This fails on win32/MSVC because the generated command lines have a
+# different syntax.  So drop the first 'l'.
+AT_CHECK([$LIBTOOL --features | $GREP 'disable shared libraries' && (exit 77)], [1], [ignore])
+AT_CHECK([$GREP 'lt_[[ui]]nlikely_existing_lib.*lt_[[ui]]nlikely_existing_lib' stdout],
+	 [0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.lo -no-undefined -rpath /nonexistent  ./libfoo.la ./libbar.la],
+	[ignore],[stdout],[ignore])
+AT_CHECK([$GREP 'lt_[[ui]]nlikely_existing_lib.*lt_[[ui]]nlikely_existing_lib' stdout],
+	 [0],[ignore],[ignore])
+
+# now check for duplicates
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o libbaz.la baz.lo -no-undefined -rpath /nonexistent ./libfoo.la ./libbar.la ./libboth.la],
+	 [ignore],[stdout],[ignore])
+AT_CHECK([$GREP 'lt_inlikely_existing_lib.*lt_inlikely_existing_lib' stdout],
+	 [1],[ignore],[ignore])
+AT_CHECK([$GREP 'lt_unlikely_existing_lib.*lt_unlikely_existing_lib' stdout],
+	 [1],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.lo -no-undefined -rpath /nonexistent  ./libfoo.la ./libbar.la ./libboth.la],
+	[ignore],[stdout],[ignore])
+AT_CHECK([$GREP 'lt_inlikely_existing_lib.*lt_inlikely_existing_lib' stdout],
+	 [1],[ignore],[ignore])
+AT_CHECK([$GREP 'lt_unlikely_existing_lib.*lt_unlikely_existing_lib' stdout],
+	 [1],[ignore],[ignore])
+
+mv libboth.la libboth.la.bak
+$SED "s/^inherited_linker_flags.*/inherited_linker_flags='-framework Cocoa -framework ApplicationServices'/" < libboth.la.bak > libboth.la
+rm libboth.la.bak
+
+AT_CHECK([$LIBTOOL -n --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -framework Cocoa -framework ApplicationServices -o libbaz.la baz.lo libboth.la -no-undefined -rpath /nonexistent],
+	 [], [stdout], [ignore])
+AT_CHECK([$GREP Cocoa.ltframework stdout], [1], [], [])
+AT_CHECK([$GREP ' -framework Cocoa' stdout], [0], [ignore], [])
+
+AT_CLEANUP

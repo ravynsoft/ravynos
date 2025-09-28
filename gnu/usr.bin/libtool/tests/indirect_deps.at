@@ -1,0 +1,118 @@
+# indirect_deps.at -- support for link_all_deplibs=no   -*- Autotest -*-
+
+#   Copyright (C) 2007-2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Ralf Wildenhues, 2007.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([indirect convenience])
+AT_KEYWORDS([libtool])
+
+AT_DATA([a.c], [[
+#include <math.h>
+int a () { return 0; }
+double ad (double x) { return sin (x); }
+]])
+AT_DATA([b.c], [[
+extern int a ();
+extern double ad (double);
+int b () { return a () + (int) ad (0.0); }
+]])
+AT_DATA([c.c], [[
+extern int b ();
+int c () { return b (); }
+]])
+AT_DATA([m.c], [[
+extern int c ();
+int main () { return c (); }
+]])
+
+LDFLAGS="$LDFLAGS -no-undefined"
+for file in a.c b.c c.c; do
+  $LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c $file
+done
+$CC $CPPFLAGS $CFLAGS -c m.c
+
+# liba is an indirect dependency of libd and of libconv.
+$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o liba.la a.lo -rpath /nowhere -lm
+$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o libb.la b.lo liba.la -rpath /nowhere
+$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o libconv.la c.lo libb.la
+$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o libd.la libconv.la -rpath /nowhere
+
+for st in '' -static; do
+  AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS $st -o m1$EXEEXT m.$OBJEXT libd.la],
+	   [], [ignore], [ignore])
+  AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS $st -o m2$EXEEXT m.$OBJEXT libconv.la],
+	   [], [ignore], [ignore])
+  LT_AT_EXEC_CHECK([./m1])
+  LT_AT_EXEC_CHECK([./m2])
+done
+
+AT_CLEANUP
+
+
+AT_SETUP([indirect uninstalled])
+AT_KEYWORDS([libtool])
+
+AT_DATA([a.c], [[
+int a () { return 0; }
+]])
+AT_DATA([b.c], [[
+extern int a ();
+int b () { return a (); }
+]])
+AT_DATA([c.c], [[
+extern int b ();
+int c () { return b (); }
+]])
+
+AT_DATA([m1.c], [[
+extern int b ();
+int main () { return b (); }
+]])
+AT_DATA([m2.c], [[
+extern int c ();
+int main () { return c (); }
+]])
+
+mkdir a b c
+LDFLAGS="$LDFLAGS -no-undefined"
+for file in a.c b.c c.c; do
+  $LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c $file
+done
+for file in m1.c m2.c; do
+  $CC $CPPFLAGS $CFLAGS -c $file
+done
+
+for st in '' -static; do
+  $LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o a/liba.la a.lo -rpath /nowherea
+  $LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o b/libb.la b.lo a/liba.la -rpath /nowhereb
+  $LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o c/libcee.la c.lo b/libb.la -rpath /nowherec
+
+  AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS $st -o m1$EXEEXT m1.$OBJEXT b/libb.la],
+	   [], [ignore], [ignore])
+  AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS $st -o m2$EXEEXT m2.$OBJEXT c/libcee.la],
+	   [], [ignore], [ignore])
+  LT_AT_EXEC_CHECK([./m1])
+  LT_AT_EXEC_CHECK([./m2])
+done
+
+AT_CLEANUP

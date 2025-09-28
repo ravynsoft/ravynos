@@ -1,0 +1,41 @@
+#compdef which whence where type
+
+local farg aarg xarg cargs args state line curcontext="$curcontext" ret=1
+
+cargs=( \
+  '(-v -c)-w[print command type]' \
+  '-p[always do a path search]' \
+  '-m[treat the arguments as patterns]' \
+  '(-S)-s[print symlink free path as well]' \
+  '(-s)-S[show steps in the resolution of symlinks]' \
+  '*:commands:->command' )
+farg='-f[output contents of functions]'
+aarg='-a[print all occurrences in path]'
+xarg='-x+[specify spaces to use for indentation in function expansion]:spaces'
+
+case ${service} in
+  whence)
+    _arguments -C -s -A "-*" -S \
+      '(-c -w)-v[verbose output]' \
+      '(-v -w)-c[csh-like output]' \
+      "${cargs[@]}" "$farg" "$aarg" && ret=0
+  ;;
+  where) _arguments -C -s -A "-*" -S "${cargs[@]}" "$xarg" && ret=0;;
+  which) _arguments -C -s -A "-*" -S "${cargs[@]}" "$aarg" "$xarg" && ret=0;;
+  type) _arguments -C -s -A "-*" -S "${cargs[@]}" "$aarg" "$farg" && ret=0;;
+esac
+
+if [[ "$state" = command ]]; then
+
+  args=( "$@" )
+
+  _alternative -O args \
+    'commands:external command:_path_commands' \
+    'builtins:builtin command:compadd -k builtins' \
+    'functions:shell function:compadd -k functions' \
+    'aliases:alias:compadd -k aliases' \
+    'reserved-words:reserved word:compadd -k reswords' && ret=0
+
+fi
+
+return ret

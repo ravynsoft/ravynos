@@ -1,0 +1,79 @@
+GNUstep Objective-C Runtime 1.4
+===============================
+
+This is the fifth official release of the GNUstep Objective-C runtime (a.k.a.
+libobjc2).  This runtime was designed to support the features of Objective-C 2
+for use with GNUstep and other Objective-C programs.  Highlights of this
+release include:
+
+- Support for the associated reference APIs introduced with OS X 10.6.  This
+  allows storing arbitrary objects associated with another object.
+
+- Concurrent, thread-safe, +initialize.  The runtime will now send +initialize
+  messages to different classes concurrently in multiple threads, but still
+  ensures that no class receives another message until it has returned from
+  +initialize.  This mirrors OS X behaviour.  Care must be taken that
+  +initialize methods do not deadlock - if two classes are simultaneously
+  initialised from two different threads, and there +initialize methods call
+  methods in the other class, then deadlock will result.
+  
+- Exceptions can now safely propagate out of +initialize methods.
+
+- Better hiding of local symbols.  Now the internal runtime functions are not
+  visible from outside of the runtime.  This may break code that attempts to
+  use private APIs, but means that it is now impossible to accidentally use
+  private APIs.
+
+- Dispatch table updates have been improved.  Category loading now longer
+  triggers dtable creation and partial dtable updates are faster.  
+
+- Improvements to the low memory profile.  Uses 5-10% less (total) memory
+  running Gorm, and now passes the entire GNUstep and EtoileFoundation test
+  suites.  Build with [g]make low_memory=yes to enable this mode.  Note that
+  the low memory profile trades some CPU time for memory usage, so don't use it
+  for CPU-bound tasks.
+
+- The class lookup cache optimisation (LLVM) now caches lookups irrespective of
+  the ABI.  It will insert direct references to the class structures if
+  possible (i.e. if the symbol is visible).  If not, then it will cache the
+  result of objc_class_lookup().  The cache is shared across the module (the
+  library, if run as a link-time optimisation), so the lookup only needs to be
+  run once.  This eliminates the need for explicit class lookup caching in the
+  source code (when using LLVM-based compilers, such as Clang, LanguageKit, or
+  DragonEgg).
+
+- Added some missing runtime API functions, such as those for setting and
+  getting instance variables.  These are required by some language bridges,
+  although using them safely is not actually possible with the non-fragile ABI
+  (also true on OS X), since instance variables are no longer uniquely
+  identified by name. 
+  
+- Added support for accessing property type encodings.  These are extended type
+  encodings, allowing code introspecting the properties to learn if they are
+  read-only, their assignment policy, the methods used to implement them, and
+  so on.
+
+You may obtain the code for this release from subversion at the following
+subversion branch:
+
+svn://svn.gna.org/svn/gnustep/libs/libobjc2/1.4
+
+Alternatively, a tarball is available from:
+
+http://download.gna.org/gnustep/libobjc2-1.4.tar.bz2
+
+The runtime library is responsible for implementing the core features of the
+object model, as well as exposing introspection features to the user.  The
+GNUstep runtime implements Apple's Objective-C Runtime APIs, and a small number
+of GCC APIs for legacy compatibility.
+
+This library is based on the Étoilé Objective-C Runtime, an earlier research
+prototype, and includes support for non-fragile instance variables,
+type-dependent dispatch, and object planes.  It is fully compatible with the
+FSF's GCC Objective-C ABI and also implements a new ABI that is supported by
+Clang and Étoilé's LanguageKit and is required for some of the newer features.
+
+Although the runtime has been tested by several people, and is being used
+extensively by the Étoilé project, it is entirely new (MIT licensed) code and
+may still contain bugs.  If you come across any problems, please report them to
+the GNUstep Developer mailing list <gnustep-dev@gnu.org>.  

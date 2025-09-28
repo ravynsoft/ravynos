@@ -1,0 +1,165 @@
+# lt_dlexit.at -- test libltdl functionality                  -*- Autotest -*-
+#
+#   Copyright (C) 2007-2008, 2010-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Dave Brolley & Ralf Wildenhues, 2007
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+# Try to keep the new interfaces of HEAD separate from those of
+# branch-1-5 to facilitate testing of older releases.
+
+AT_BANNER([Libltdl functionality.])
+
+AT_SETUP([lt_dlexit unloading libs])
+AT_KEYWORDS([libltdl])
+
+# Test for
+# http://lists.gnu.org/archive/html/bug-libtool/2007-01/msg00014.html
+# http://lists.gnu.org/archive/html/bug-libtool/2008-03/msg00013.html
+
+AT_DATA([main.c],
+[[#include <ltdl.h>
+#include <stdio.h>
+#include <string.h>
+
+typedef int (*pfun_T) (int);
+typedef int *pvar_T;
+
+/* lt_dlopen wrapper */
+static lt_dlhandle
+xdlopen (const char *filename)
+{
+  lt_dlhandle handle = lt_dlopen (filename);
+  if (!handle) {
+    fprintf (stderr, "can't open the module %s!\n", filename);
+    fprintf (stderr, "error was: %s\n", lt_dlerror());
+  }
+  return handle;
+}
+
+/* lt_dlsym wrapper: try one function and one variable */
+static int
+xdlsymtest (lt_dlhandle handle, const char *func, const char *var)
+{
+  pfun_T pf = (pfun_T) lt_dlsym (handle, func);
+  pvar_T pv = (pvar_T) lt_dlsym (handle, var);
+  if (pf == NULL) {
+    fprintf (stderr, "function '%s' not found\n", func);
+    return 1;
+  }
+  if (pv == NULL) {
+    fprintf (stderr, "variable '%s' not found\n", var);
+    return 1;
+  }
+  return (*pf) (*pv);
+}
+
+int
+main (void)
+{
+  lt_dlhandle b1;
+
+  LTDL_SET_PRELOADED_SYMBOLS();
+  if (lt_dlinit() != 0) {
+    fprintf (stderr, "error during initialization: %s\n", lt_dlerror());
+    return 1;
+  }
+  if (lt_dlexit() != 0) {
+    fprintf (stderr, "error during first lt_dlexit: %s\n", lt_dlerror());
+    return 1;
+  }
+  if (lt_dlinit() != 0) {
+    fprintf (stderr, "error during second initialization: %s\n", lt_dlerror());
+    return 1;
+  }
+  if (!(b1 = xdlopen ("modb1.la"))) return 1;
+  if (xdlsymtest (b1, "fb1", "vb1")) return 1;
+  /* do not lt_dlclose here on purpose.  */
+
+  if (lt_dlexit() != 0) {
+    fprintf (stderr, "error during exit: %s\n", lt_dlerror());
+    return 1;
+  }
+  return 0;
+}
+]])
+
+
+AT_DATA([a1.c],
+[[#ifdef __cplusplus
+extern "C" {
+#endif
+int f1 (int x) { return x - 1; }
+int v1 = 1;
+#ifdef __cplusplus
+}
+#endif
+]])
+
+AT_DATA([b1.c],
+[[#ifdef __cplusplus
+extern "C" {
+#endif
+#if defined DLL_EXPORT && defined _WIN32 && defined _MSC_VER
+#  define LIBA1_SCOPE extern __declspec (dllimport)
+#endif
+#if !defined LIBA1_SCOPE
+#  define LIBA1_SCOPE extern
+#endif
+LIBA1_SCOPE int f1 (int);
+LIBA1_SCOPE int v1;
+int fb1 (int x) { return f1 (v1) + x - 3; }
+int vb1 = 3;
+#ifdef __cplusplus
+}
+#endif
+]])
+
+
+: ${LTDLINCL="-I$abs_top_srcdir/libltdl"}
+: ${LIBLTDL="$abs_builddir/../libltdl/libltdlc.la"}
+
+# Skip this test when called from:
+#    make distcheck DISTCHECK_CONFIGURE_FLAGS=--disable-ltdl-install
+AT_CHECK([case $LIBLTDL in #(
+ */_inst/lib/*) test -f "$LIBLTDL" || (exit 77) ;;
+esac], [], [ignore])
+
+CPPFLAGS="$LTDLINCL $CPPFLAGS"
+LDFLAGS="$LDFLAGS -no-undefined"
+
+for file in a1 b1; do
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c $file.c
+done
+$CC $CPPFLAGS $CFLAGS -c main.c
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba1.la a1.lo \
+          -rpath /foo -avoid-version], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o modb1.la b1.lo \
+          -rpath /foo -module -avoid-version liba1.la], [], [ignore], [ignore])
+
+# TODO: test -dlpreopen
+for dlopen in -dlopen; do
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT \
+           $dlopen modb1.la $LIBLTDL], [], [ignore], [ignore])
+  LT_AT_NOINST_EXEC_CHECK([./main], [-dlopen modb1.la])
+done
+
+AT_CLEANUP

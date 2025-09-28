@@ -1,0 +1,12 @@
+export LANG=en_US.UTF-8	# make sure
+
+cd $TMPDIR	# try to avoid NFS artifacts
+payload=$'\065\247\100\063\231\053\306\123\070\237\242\352\263'
+"$payload"
+
+cd "$payload"
+printf %q "$payload"
+echo
+
+set -x ; : "$payload" ; set +x
+cd $OLDPWD

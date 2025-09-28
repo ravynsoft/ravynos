@@ -1,0 +1,33 @@
+$DragonFly: src/bin/cpdup/PORTING,v 1.2 2008/04/11 17:33:11 dillon Exp $
+
+				PORTING CPDUP
+
+    The manual page for cpdup is "cpdup.1".  This file describes how to
+    to port the program to other OS's.
+
+				PORTING TO BSD
+
+    cpdup was developed on BSD.  Most BSDs should just be able to compile
+    cpdup using the Makefile.
+
+				PORTING TO LINUX
+
+    This script should suffice when compiling under linux.  For some reason
+    that I cannot fathom, linux defaults to using a 32 bit off_t.  It makes
+    no sense at all to me why they would want to do this, BSDs went to
+    a 64 bit default off_t over 15 years ago.  In anycase, fixing it
+    requires a few -D options.
+
+    #!/bin/csh
+    #
+    cd cpdup
+    rm -f md5.c
+    rm -f *.o
+    cc -D__unused= -D_GNU_SOURCE -D__USE_FILE_OFFSET64 -DNOMD5 *.c -c
+    cc -D__unused= -D_GNU_SOURCE -D__USE_FILE_OFFSET64 -DNOMD5 *.o -o ~/bin/cpdup
+
+    BACKUP SCRIPT MODIFICATIONS - you will almost certainly have to adjust
+    the do_cleanup script to extract the proper field(s) from the df output.
+    You will probably have to use 'df' instead of 'df -i', and you may have
+    to adjust the script to not check the inode fields.
+

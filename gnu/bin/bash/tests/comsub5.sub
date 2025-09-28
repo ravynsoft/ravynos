@@ -1,0 +1,51 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# this is a new feature: expanding aliases when initially parsing command
+# substitutions. required by posix, so enabled in posix mode. default mode
+# stays backwards compatible.
+
+shopt -s expand_aliases
+set -o posix
+
+alias switch=case
+
+switch foo in foo) echo ok 1;; esac
+
+echo $( switch foo in foo) echo ok 2;; esac )
+echo "$( switch foo in foo) echo ok 3;; esac )"
+
+echo $( switch foo in (foo) echo ok 4;; esac )
+echo "$( switch foo in (foo) echo ok 5;; esac )"
+
+alias nest='('
+
+echo $( nest echo ok 6 ) )
+echo "$( nest echo ok 7 ) )"
+
+alias short='echo ok 8 )'
+
+alias DO='{ '
+alias DONE='}'
+got=$(DO
+echo ok 9; DONE)
+echo "$got" 
+
+echo $( short
+echo "$( short "
+
+# remember that short" won't work because you start a new quoting context
+# inside $( and the token (`short') won't be delimited by the ending double
+# quote, so there's no opportunity to perform the alias expansion that would
+# terminate the command substitution

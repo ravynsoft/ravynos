@@ -1,0 +1,56 @@
+#compdef socket
+
+# Style used:
+#
+#  hosts-ports
+#    The style that contains pairs `host:port'.
+
+local curcontext="$curcontext" state line expl ret=1
+typeset -A opt_args
+
+[[ $CURRENT -eq 2 ]] &&
+    { ! zstyle -T ":completion:${curcontext}:options" prefix-needed ||
+      [[ "$PREFIX" = -* ]] } &&
+    _wanted options expl option compadd - -version
+
+_arguments -C -s \
+  '-b[background]' \
+  '-c[crlf]' \
+  '-f[fork]' \
+  '-q[quit]' \
+  '-r[read only]' \
+  '-v[verbose]' \
+  '-w[write only]' \
+  '-s[server]' \
+  '-l[loop]' \
+  '-p[program]:command:->command' \
+  ':arg1:->arg1' \
+  ':arg2:->arg2' && ret=0
+
+case "$state" in
+command)
+  compset -q
+  if [[ $CURRENT -eq 1 ]]; then
+    _command_names -e "$@" && ret=0
+  else
+    _normal && ret=0
+  fi
+  ;;
+
+arg1)
+  if (( $+opt_args[-s] )); then
+    _ports && ret=0
+  else
+    _wanted hosts expl 'host' _combination '' hosts-ports hosts - && ret=0
+  fi
+  ;;
+
+arg2)
+  if (( ! $+opt_args[-s] )); then
+    _wanted ports expl 'port to connect' \
+        _combination '' hosts-ports hosts="${line[1]:q}" ports - && ret=0
+  fi
+  ;;
+esac
+
+return ret

@@ -1,0 +1,29 @@
+Defaults command_timeout=2d8h10m59s
+
+# sudoRole user0
+user0 ALL = TIMEOUT=619830 /usr/bin/id, /usr/bin/who, /bin/ls
+
+# sudoRole user1
+user1 ALL = TIMEOUT=619830 /usr/bin/id
+
+# sudoRole user2
+user2 ALL = TIMEOUT=15030 /usr/bin/id
+
+# sudoRole user3
+user3 ALL = TIMEOUT=630 /usr/bin/id
+
+# sudoRole user4
+user4 ALL = TIMEOUT=1209600 /usr/bin/id
+
+# sudoRole user5
+user5 ALL = TIMEOUT=300 /usr/bin/id
+
+# sudoRole user6
+user6 ALL = TIMEOUT=30 /usr/bin/id
+
+# sudoRole user7
+user7 ALL = TIMEOUT=45 /usr/bin/id
+
+# sudoRole user8
+user8 ALL = TIMEOUT=619830 /usr/bin/id, /usr/bin/id, /usr/bin/id, /usr/bin/id,\
+    /usr/bin/id, /usr/bin/id

@@ -1,0 +1,62 @@
+COMMENT(!MOD!zsh/db/gdbm
+Builtins for managing associative array parameters tied to GDBM databases.
+!MOD!)
+The tt(zsh/db/gdbm) module is used to create "tied" associative arrays
+that interface to database files.  If the GDBM interface is not available,
+the builtins defined by this module will report an error.  This module is
+also intended as a prototype for creating additional database interfaces,
+so the tt(ztie) builtin may move to a more generic module in the future.
+
+The builtins in this module are:
+
+startitem()
+findex(ztie)
+cindex(database tied array, creating)
+item(tt(ztie -d db/gdbm -f) var(filename) [ tt(-r) ] var(arrayname))(
+Open the GDBM database identified by var(filename) and, if successful,
+create the associative array var(arrayname) linked to the file.  To create
+a local tied array, the parameter must first be declared, so commands
+similar to the following would be executed inside a function scope:
+
+example(local -A sampledb
+ztie -d db/gdbm -f sample.gdbm sampledb)
+
+The tt(-r) option opens the database file for reading only, creating a
+parameter with the readonly attribute.  Without this option, using
+`tt(ztie)' on a file for which the user does not have write permission is
+an error.  If writable, the database is opened synchronously so fields
+changed in var(arrayname) are immediately written to var(filename).
+
+Changes to the file modes var(filename) after it has been opened do not
+alter the state of var(arrayname), but `tt(typeset -r) var(arrayname)'
+works as expected.
+)
+findex(zuntie)
+cindex(database tied array, destroying)
+item(tt(zuntie) [ tt(-u) ] var(arrayname) ...)(
+Close the GDBM database associated with each var(arrayname) and then
+unset the parameter.  The tt(-u) option forces an unset of parameters
+made readonly with `tt(ztie -r)'.
+
+This happens automatically if the parameter is explicitly unset or its
+local scope (function) ends.  Note that a readonly parameter may not be
+explicitly unset, so the only way to unset a global parameter created with
+`tt(ztie -r)' is to use `tt(zuntie -u)'.
+)
+findex(zgdbmpath)
+cindex(database file path, reading)
+item(tt(zgdbmpath) var(parametername))(
+Put path to database file assigned to var(parametername) into tt(REPLY)
+scalar.
+)
+findex(zgdbm_tied)
+cindex(database tied arrays, enumerating)
+item(tt(zgdbm_tied))(
+Array holding names of all tied parameters.
+)
+enditem()
+
+The fields of an associative array tied to GDBM are neither cached nor
+otherwise stored in memory, they are read from or written to the database
+on each reference.  Thus, for example, the values in a readonly array may
+be changed by a second writer of the same database file.

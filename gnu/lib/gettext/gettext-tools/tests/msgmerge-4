@@ -1,0 +1,52 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test handling of comments.
+
+cat <<EOF > mm-test4.in1.po
+msgid "one"
+msgstr "eins"
+# This comment should be copied.
+msgid "two"
+msgstr "zwei"
+
+
+# And this one, too.
+#~ msgid "four"
+#~ msgstr "vier"
+EOF
+
+cat <<EOF > mm-test4.in2.po
+msgid "one"
+msgstr ""
+# This is a comment in the POT file.
+msgid "three"
+msgstr ""
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-test4.tmp mm-test4.in1.po mm-test4.in2.po || Exit 1
+LC_ALL=C tr -d '\r' < mm-test4.tmp > mm-test4.out || Exit 1
+
+cat <<EOF > mm-test4.ok
+msgid "one"
+msgstr "eins"
+
+# This is a comment in the POT file.
+msgid "three"
+msgstr ""
+
+# This comment should be copied.
+#~ msgid "two"
+#~ msgstr "zwei"
+
+# And this one, too.
+#~ msgid "four"
+#~ msgstr "vier"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-test4.ok mm-test4.out
+result=$?
+
+exit $result

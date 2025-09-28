@@ -1,0 +1,37 @@
+#compdef zparseopts
+
+local ret=1
+local -a context line state state_descr alts opts
+local -A opt_args
+
+_arguments -A '-*' : \
+  '-a+[specify array in which to store parsed options]:array:_parameters -g "*array*~*readonly*"' \
+  '-A+[specify association in which to store parsed options]:association:_parameters -g "*association*~*readonly*"' \
+  '-D[remove parsed options from positional parameters]' \
+  "-E[don't stop parsing at first parameter not described by specs]" \
+  '-F[abort parsing and print error at first option-like parameter not described by specs]' \
+  '-K[preserve contents of arrays/associations when specs are not matched]' \
+  '-M[enable mapping among equivalent options with opt1=opt2 spec form]' \
+  '(-)-[end zparseopts options; specs follow]' \
+  '*: :->spec' \
+&& ret=0
+
+[[ $state == spec ]] &&
+if compset -P '*='; then
+  alts=()
+  (( $+opt_args[-M] )) && {
+    opts=( $line )
+    [[ $opts[1] == (-|--) ]] && shift opts
+    opts=( ${(@)opts%%(+|)(:|:-|::|)(=*|)} )
+    opts=( ${(@)opts:#${words[CURRENT]%%=*}} )
+    alts+=( "spec-opt-names:spec option name:(${(j< >)${(@q+)opts}})" )
+  }
+  alts+=( 'parameters:array:_parameters -g "*array*~*readonly*"' )
+  _alternative $alts && ret=0
+else
+  # Not great, but close enough for now
+  compset -S '=*'
+  _message -e spec-opts 'spec option (name[+][:|:-|::])' && ret=0
+fi
+
+return ret

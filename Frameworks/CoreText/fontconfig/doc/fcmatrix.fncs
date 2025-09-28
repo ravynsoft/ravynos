@@ -1,0 +1,125 @@
+/*
+ * fontconfig/doc/fcmatrix.fncs
+ *
+ * Copyright © 2003 Keith Packard
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name of the author(s) not be used in
+ * advertising or publicity pertaining to distribution of the software without
+ * specific, written prior permission.  The authors make no
+ * representations about the suitability of this software for any purpose.  It
+ * is provided "as is" without express or implied warranty.
+ *
+ * THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+
+@RET@           void
+@FUNC@          FcMatrixInit
+@PURPOSE@       initialize an FcMatrix structure
+@TYPE1@         FcMatrix *
+@ARG1@          matrix
+@DESC@
+<function>FcMatrixInit</function> initializes <parameter>matrix</parameter>
+to the identity matrix.
+@@
+
+@FUNC@          FcMatrixCopy
+@PURPOSE@       Copy a matrix
+@TYPE1@         const FcMatrix *
+@ARG1@          matrix
+@DESC@
+<function>FcMatrixCopy</function> allocates a new FcMatrix
+and copies <parameter>mat</parameter> into it.
+@@
+
+@FUNC@          FcMatrixEqual
+@PURPOSE@       Compare two matrices
+@TYPE1@         const FcMatrix *
+@ARG1@          matrix1
+@TYPE2@         const FcMatrix *
+@ARG2@          matrix2
+@DESC@
+<function>FcMatrixEqual</function> compares <parameter>matrix1</parameter>
+and <parameter>matrix2</parameter> returning FcTrue when they are equal and
+FcFalse when they are not.
+@@
+
+@FUNC@          FcMatrixMultiply
+@PURPOSE@       Multiply matrices
+@TYPE1@         FcMatrix *
+@ARG1@          result
+@TYPE2@         const FcMatrix *
+@ARG2@          matrix1
+@TYPE3@         const FcMatrix *
+@ARG3@          matrix2
+@DESC@
+<function>FcMatrixMultiply</function> multiplies
+<parameter>matrix1</parameter> and <parameter>matrix2</parameter> storing
+the result in <parameter>result</parameter>.
+@@
+
+@FUNC@          FcMatrixRotate
+@PURPOSE@       Rotate a matrix
+@TYPE1@         FcMatrix *
+@ARG1@          matrix
+@TYPE2@         double%
+@ARG2@          cos
+@TYPE3@         double%
+@ARG3@          sin
+@DESC@
+<function>FcMatrixRotate</function> rotates <parameter>matrix</parameter>
+by the angle who's sine is <parameter>sin</parameter> and cosine is
+<parameter>cos</parameter>.  This is done by multiplying by the
+matrix:
+<programlisting>
+  cos -sin
+  sin  cos
+</programlisting>
+@@
+
+@FUNC@          FcMatrixScale
+@PURPOSE@       Scale a matrix
+@TYPE1@         FcMatrix *
+@ARG1@          matrix
+@TYPE2@         double%
+@ARG2@          sx
+@TYPE3@         double%
+@ARG3@          dy
+@DESC@
+<function>FcMatrixScale</function> multiplies <parameter>matrix</parameter>
+x values by <parameter>sx</parameter> and y values by
+<parameter>dy</parameter>.  This is done by multiplying by
+the matrix:
+<programlisting>
+   sx  0
+   0   dy
+</programlisting>
+@@
+
+@FUNC@          FcMatrixShear
+@PURPOSE@       Shear a matrix
+@TYPE1@         FcMatrix *
+@ARG1@          matrix
+@TYPE2@         double%
+@ARG2@          sh
+@TYPE3@         double%
+@ARG3@          sv
+@DESC@
+<function>FcMatrixShare</function> shears <parameter>matrix</parameter>
+horizontally by <parameter>sh</parameter> and vertically by
+<parameter>sv</parameter>.  This is done by multiplying by
+the matrix:
+<programlisting>
+  1  sh
+  sv  1
+</programlisting>
+@@

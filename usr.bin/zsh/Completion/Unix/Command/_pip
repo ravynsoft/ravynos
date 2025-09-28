@@ -1,0 +1,213 @@
+#compdef -P pip[0-9.]#
+
+# To get completion of installable packages, do:
+#     pip install pip-cache
+# and then run:
+#     pip-cache update
+
+local curcontext="$curcontext" ret=1
+local -a state state_descr line
+local -A opt_args
+local python pip
+local -a args subcommands packages
+
+pip=${words[1]}
+python=${${pip}/pip/python}
+[[ $python == $pip ]] && python=python
+
+args=(
+  '(* : -)'{-h,--help}'[display usage information]'
+  '--isolated[ignore environment variables and user configuration]'
+  \*{-v,--verbose}'[give more output]'
+  \*{-q,--quiet}"[give less output]"
+  '--log=[specify log file where a complete record will be kept]:file:_files'
+  '--proxy=[specify a proxy]:proxy ([user\:passwd@]proxy.server\:port)'
+  '--retries=[specify maximum number of retries each connection should attempt]:retries [5]'
+  '--timeout=[set the socket timeout]:timeout (seconds) [15]'
+  '--exists-action=[specify action when a path already exists]:action:((s\:switch i\:ignore w\:wipe b\:backup a\:abort))'
+  '--cert=[specify path to alternate CA bundle]:path:_files'
+  '--client-cert=[specify path to SSL client certificate]:certificate file:_files'
+  '(--no-cache-dir)--cache-dir=[specify location to store the cache data]: :_directories'
+  '(--cache-dir)--no-cache-dir[disable the cache]'
+  "--disable-pip-version-check[don't check whether a new version of pip is available]"
+)
+
+subcommands=(
+  'install:install packages'
+  'download:download packages'
+  'uninstall:uninstall packages'
+  'freeze:output installed packages in requirements format'
+  'list:list installed packages'
+  'show:show information about installed packages'
+  'check:verify installed packages have compatible dependencies'
+  'search:search PyPI for packages'
+  'wheel:build wheels from your requirements'
+  'hash:compute hashes of package archives'
+  'help:show available commands'
+)
+
+_arguments -C $args \
+  '(* : -)'{-V,--version}'[display version information]' \
+  ':subcommand:->subcommand' \
+  '*::options:->options' && ret=0
+
+case $state in
+  subcommand)
+    _describe -t subcommands 'pip subcommand' subcommands && ret=0
+  ;;
+
+  options)
+    curcontext="${curcontext%:*}-$words[2]:"
+
+    case $words[1] in
+      download|install|list|wheel)
+        args+=(
+          '--pre[include pre-release and development versions]'
+          '(-i --index-url)'{-i+,--index-url=}'[base URL of Python Package Index]:url:_urls'
+          '--extra-index-url=[extra URLs of package indexes to use in addition to --index-url]:url:_urls'
+          '--no-index[ignore package index (only looking at --find-links URLs instead)]'
+          '(-f --find-links)'{-f+,--find-links=}'[parse specified URL or HTML file for links to packages]:URL or file:_files -g "*.htm(|l)(-.)"'
+          '--process-dependency-links[enable the processing of dependency links]'
+        )
+      ;|
+      download|(un|)install|freeze|wheel)
+        args+=(
+          '(-r --requirement)'{-r+,--requirement=}'[all the packages listed in the given requirements file]:requirements file:_files -g "(requirement*|*.txt)(-.)"'
+        )
+      ;|
+      download|install|wheel)
+        args+=(
+          '!--use-wheel' '!--no-use-wheel'
+          "*--no-binary=[don't use binary packages]: :->package_list"
+          "*--only-binary=[don't use source packages]: :->package_list"
+          \*{-c+,--constraint=}'[constrain versions using the given constraints file]:constraints file:_files'
+          '(-e --editable)'{-e+,--editable=}'[install a package directly from a checkout]:directory or VCS+REPOS_URL[@REV]#egg=PACKAGE:_files -/'
+          '--src=[check out --editable packages into given directory]: :_directories'
+          '--ignore-requires-python[ignore the Requires-Python information]'
+          "--no-deps[don't install package dependencies]"
+          '(-b --build)'{-https://cloud.kiddleb+,--build=}'[specify directory to unpack packages into]: :_directories'
+          '--global-option=[extra global options to be supplied to the setup.py call before the install command]:options'
+          "--no-clean[don't clean up build directories]"
+          '--require-hashes[require a hash to check each requirement against]'
+        )
+      ;|
+
+      download)
+        args+=(
+          '(-d --dest)'{-d+,--dest=}'[download packages into given directory]: :_directories'
+          '--platform=[only download wheels compatible with platform]::platform'
+          '--python-version=[only download wheels compatible with specified Python interpreter version]:version'
+          '--implementation=[only download wheels compatible with specified Python implementation]:implementation:(pp jy cp ip py)'
+        )
+      ;;
+
+      install)
+        args+=(
+          '(-t --target)'{-t+,--target=}'[specify directory to install packages into]: :_directories'
+          '(-d --download)'{-d+,--download=}'[download packages into directory instead of installing them]: :_directories'
+          '(-U --upgrade)'{-U,--upgrade}'[upgrade all packages to the newest available version]'
+          '--upgrade-strategy=[determine how dependency upgrading should be handled]:strategy:(eager only-if-needed)'
+          '--force-reinstall[when upgrading, reinstall all packages even if they are already up-to-date]'
+          '(-I --ignore-installed)'{-I,--ignore-installed}'[ignore installed packages]'
+          "--no-install[download and unpack all packages, but don't actually install them]"
+          "--no-download[don't download any packages, just install the ones already downloaded]"
+          '--install-option=[extra arguments to be supplied to the setup.py install command]:options'
+          '--user[install to the user install directory, typically ~/.local]'
+          '--egg[install as self contained egg file, like easy_install does]'
+          '--root=[install everything relative to this alternate root directory]: :_directories'
+          '--strip-file-prefix=[strip given prefix from script paths in wheel RECORD]:prefix'
+          '--prefix=[specify installation prefix where lib, bin and other top-level folders are placed]: :_directories'
+          '(--no-compile)--compile[compile py files to pyc]'
+          "(--compile)--no-compile[don't compile py files to pyc]"
+          '*:package name:->packages_or_dirs'
+        )
+      ;;
+
+      uninstall)
+        args+=(
+          '(-y --yes)'{-y,--yes}"[don't ask for confirmation of uninstall deletions]"
+          ':installed package:->installed_packages'
+        )
+      ;;
+
+      freeze)
+        args+=(
+          '(-f --find-links)'{-f+,--find-links=}'[specify URL to look for packages at]:url:_urls'
+          '(-l --local)'{-l,--local}"[if in a virtualenv that has global access, don't list globally-installed packages]"
+          '--user[only output packages installed in user-site]'
+          '--all[include pip, setuptools, distribute and wheel in output]'
+        )
+      ;;
+
+      hash)
+        args+=(
+          '(-a  --algorithm)'{-a+,--algorithm=}'[specify hash algorithm]:algorithm:(sha256 sha384 sha512)'
+          '*: :_files'
+        )
+      ;;
+
+      list)
+        args+=(
+          '(-o --outdated -u --uptodate)'{-o,--outdated}'[list outdated packages (excluding editables)]'
+          '(-u --uptodate -o --outdated)'{-u,--uptodate}'[list uptodated packages (excluding editables)]'
+          '(-e --editable)'{-e,--editable}'[list editable projects]'
+          '(-l --local)'{-l,--local}"[if in a virtualenv that has global access, don't list globally-installed packages]"
+          '--user[only output packages installed in user-site]'
+          '--format=[select the output format]:format [legacy]:(legacy columns freeze json)'
+          '--not-required[list packages that are not dependencies of installed packages]'
+        )
+      ;;
+
+      show)
+        args+=(
+          '(-f --files)'{-f,--files}'[show the full list of installed files for each package]'
+          ':installed package:->installed_packages'
+        )
+      ;;
+
+      search)
+        args+=(
+          '(-i --index)'{-i+,--index=}'[specify base URL of Python Package Index]:URL:_urls'
+        )
+      ;;
+
+      wheel)
+        args+=(
+          '(-w --wheel-dir)'{-w+,--wheel-dir=}"[build wheels into given directory]: :_directories"
+          "--build-option=[extra arguments to be supplied to 'setup.py bdist_wheel']:options"
+        )
+      ;;
+
+      help)
+        _describe -t subcommands 'pip subcommand' subcommands
+        return
+      ;;
+
+      *) args+=( '*: :_default' ) ;;
+    esac
+
+    _arguments -s -S $args && ret=0
+
+    case $state in
+      package_list)
+        packages=( ${(f)"$(_call_program packages pip-cache pkgnames)"} )
+        _sequence _wanted packages expl package compadd - -a packages && ret=0
+      ;;
+
+      packages_or_dirs)
+        [[ -prefix - ]] || packages=( ${(f)"$(_call_program packages pip-cache pkgnames)"} )
+        _alternative \
+          'all-packages:package:compadd -a packages' \
+          'directories:directory with setup.py:_directories' && ret=0
+      ;;
+
+      installed_packages)
+        packages=( $(_call_program fetch-installed \
+          "env COMP_WORDS='pip uninstall' COMP_CWORD=2 PIP_AUTO_COMPLETE=1 $pip") )
+        _wanted installed-packages expl 'installed package' compadd -a packages && ret=0
+      ;;
+    esac
+  ;;
+esac
+
+return ret

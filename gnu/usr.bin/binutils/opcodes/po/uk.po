@@ -1,0 +1,2534 @@
+# opcodes Ukrainian translation
+# Copyright (C) 2012 Free Software Foundation, Inc.
+# This file is distributed under the same license as the binutils package.
+#
+# Yuri Chornoivan <yurchor@ukr.net>, 2012, 2013, 2014, 2017, 2018, 2019, 2020, 2021, 2022, 2023.
+msgid ""
+msgstr ""
+"Project-Id-Version: opcodes 2.40.90\n"
+"Report-Msgid-Bugs-To: https://sourceware.org/bugzilla/\n"
+"POT-Creation-Date: 2023-07-03 11:31+0100\n"
+"PO-Revision-Date: 2023-07-03 21:36+0300\n"
+"Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
+"Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Lokalize 20.12.0\n"
+
+#: aarch64-asm.c:834
+msgid "specified register cannot be read from"
+msgstr "з вказаного регістра не можна читати дані"
+
+#: aarch64-asm.c:843
+msgid "specified register cannot be written to"
+msgstr "до вказаного регістра не можна записувати дані"
+
+#. Invalid option.
+#: aarch64-dis.c:103 arc-dis.c:807 arm-dis.c:12303
+#, c-format
+msgid "unrecognised disassembler option: %s"
+msgstr "невідомий параметр дизасемблювання: %s"
+
+#: aarch64-dis.c:3730
+#, c-format
+msgid "this `%s' should have an immediately preceding `%s'"
+msgstr "цьому «%s» має безпосередньо передувати «%s»"
+
+#: aarch64-dis.c:3737
+#, c-format
+msgid "expected `%s' after previous `%s'"
+msgstr "мало бути «%s» після попереднього «%s»"
+
+#: aarch64-dis.c:4156
+#, c-format
+msgid ""
+"\n"
+"The following AARCH64 specific disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"З перемикачем -M можна використовувати такі специфічні для AARCH64 параметри\n"
+"дизасемблера (декілька параметрів слід відокремлювати комами):\n"
+
+#: aarch64-dis.c:4160
+#, c-format
+msgid ""
+"\n"
+"  no-aliases         Don't print instruction aliases.\n"
+msgstr ""
+"\n"
+"  no-aliases         не виводити альтернативних назв інструкцій.\n"
+
+#: aarch64-dis.c:4163
+#, c-format
+msgid ""
+"\n"
+"  aliases            Do print instruction aliases.\n"
+msgstr ""
+"\n"
+"  aliases            вивести альтернативні назви інструкцій.\n"
+
+#: aarch64-dis.c:4166
+#, c-format
+msgid ""
+"\n"
+"  no-notes         Don't print instruction notes.\n"
+msgstr ""
+"\n"
+"  no-notes         не виводити нотатки щодо інструкції.\n"
+
+#: aarch64-dis.c:4169
+#, c-format
+msgid ""
+"\n"
+"  notes            Do print instruction notes.\n"
+msgstr ""
+"\n"
+"  notes            виводити нотатки щодо інструкції.\n"
+
+#: aarch64-dis.c:4173
+#, c-format
+msgid ""
+"\n"
+"  debug_dump         Temp switch for debug trace.\n"
+msgstr ""
+"\n"
+"  debug_dump         тимчасовий перемикач для діагностичного трасування.\n"
+
+#: aarch64-dis.c:4177 arc-dis.c:1607 arc-dis.c:1630 arc-dis.c:1633
+#: loongarch-dis.c:332 mips-dis.c:2903 mips-dis.c:2915 mips-dis.c:2918
+#: nfp-dis.c:2995 riscv-dis.c:1362 riscv-dis.c:1365
+#, c-format
+msgid "\n"
+msgstr "\n"
+
+#: aarch64-opc.c:1431
+msgid "immediate value"
+msgstr "константа"
+
+#: aarch64-opc.c:1441
+msgid "immediate offset"
+msgstr "сталий зсув"
+
+#: aarch64-opc.c:1451
+msgid "register number"
+msgstr "номер регістра"
+
+#: aarch64-opc.c:1461
+msgid "register element index"
+msgstr "індекс елемента регістра"
+
+#: aarch64-opc.c:1471
+msgid "shift amount"
+msgstr "величина зсуву"
+
+#: aarch64-opc.c:1483
+msgid "multiplier"
+msgstr "множник"
+
+#: aarch64-opc.c:1602
+msgid "expected a selection register in the range w12-w15"
+msgstr "мало бути вказано регістр вибору у діапазоні w12-w15"
+
+#: aarch64-opc.c:1606
+msgid "expected a selection register in the range w8-w11"
+msgstr "мало бути вказано регістр вибору у діапазоні w8-w11"
+
+#: aarch64-opc.c:1625
+msgid "starting offset is not a multiple of 2"
+msgstr "початковий зсув не є кратним до 2"
+
+#: aarch64-opc.c:1626
+msgid "starting offset is not a multiple of 4"
+msgstr "початковий зсув не є кратним до 4"
+
+#: aarch64-opc.c:1634
+msgid "expected a single offset rather than a range"
+msgstr "мало бути вказано одинарний зсув, а не діапазон"
+
+#: aarch64-opc.c:1638
+msgid "expected a range of two offsets"
+msgstr "мало бути вказано діапазон з двох зсувів"
+
+#: aarch64-opc.c:1641
+msgid "expected a range of four offsets"
+msgstr "мало бути вказано діапазон з чотирьох зсувів"
+
+#: aarch64-opc.c:1700
+msgid "reg pair must start from even reg"
+msgstr "пара регістрів має починатися із парного регістра"
+
+#: aarch64-opc.c:1706
+msgid "reg pair must be contiguous"
+msgstr "пара регістрів має бути послідовною"
+
+#: aarch64-opc.c:1720
+msgid "extraneous register"
+msgstr "сторонній регістр"
+
+#: aarch64-opc.c:1726
+msgid "missing register"
+msgstr "не вистачає регістра"
+
+#: aarch64-opc.c:1737
+msgid "stack pointer register expected"
+msgstr "мало бути використано регістр вказівника на стек"
+
+#: aarch64-opc.c:1840 aarch64-opc.c:1856
+msgid "start register out of range"
+msgstr "початковий регістр поза межами припустимого діапазону"
+
+#: aarch64-opc.c:1985 aarch64-opc.c:1993
+msgid "unexpected address writeback"
+msgstr "неочікуваний зворотний запис адрес"
+
+#: aarch64-opc.c:2004
+msgid "address writeback expected"
+msgstr "мало бути використано зворотний запис адрес"
+
+#: aarch64-opc.c:2051
+msgid "negative or unaligned offset expected"
+msgstr "мало бути використано від’ємне або невирівняне значення відступу"
+
+#: aarch64-opc.c:2108
+msgid "invalid register offset"
+msgstr "некоректний зсув регістра"
+
+#: aarch64-opc.c:2130
+msgid "invalid post-increment amount"
+msgstr "некоректна величина збільшення після виконання порівняння"
+
+#: aarch64-opc.c:2146 aarch64-opc.c:2665
+msgid "invalid shift amount"
+msgstr "некоректна величина зсуву"
+
+#: aarch64-opc.c:2159
+msgid "invalid extend/shift operator"
+msgstr "некоректний оператор розширення або зсуву"
+
+#: aarch64-opc.c:2205 aarch64-opc.c:2465 aarch64-opc.c:2500 aarch64-opc.c:2519
+#: aarch64-opc.c:2527 aarch64-opc.c:2618 aarch64-opc.c:2795 aarch64-opc.c:2895
+#: aarch64-opc.c:2908
+msgid "immediate out of range"
+msgstr "константа поза межами припустимого діапазону"
+
+#: aarch64-opc.c:2235 aarch64-opc.c:2277 aarch64-opc.c:2340 aarch64-opc.c:2374
+msgid "invalid addressing mode"
+msgstr "некоректний режим адресування"
+
+#: aarch64-opc.c:2332
+msgid "index register xzr is not allowed"
+msgstr "регістр xzr індексу не можна використовувати"
+
+#: aarch64-opc.c:2453 aarch64-opc.c:2475 aarch64-opc.c:2698 aarch64-opc.c:2706
+#: aarch64-opc.c:2772 aarch64-opc.c:2801
+msgid "invalid shift operator"
+msgstr "некоректний оператор зсуву"
+
+#: aarch64-opc.c:2459
+msgid "shift amount must be 0 or 12"
+msgstr "величина зсуву має бути 0 або 12"
+
+#: aarch64-opc.c:2482
+msgid "shift amount must be a multiple of 16"
+msgstr "зсув мав бути кратним до 16"
+
+#: aarch64-opc.c:2494
+msgid "negative immediate value not allowed"
+msgstr "використання від’ємних констант заборонено"
+
+#: aarch64-opc.c:2629
+msgid "immediate zero expected"
+msgstr "мало бути використано нульову константу"
+
+#: aarch64-opc.c:2643
+msgid "rotate expected to be 0, 90, 180 or 270"
+msgstr "для обертання мало бути значення 0, 90, 180 або 270"
+
+#: aarch64-opc.c:2654
+msgid "rotate expected to be 90 or 270"
+msgstr "для обертання мало бути значення 90 або 270"
+
+#: aarch64-opc.c:2714
+msgid "shift is not permitted"
+msgstr "зсув заборонено"
+
+#: aarch64-opc.c:2739
+msgid "invalid value for immediate"
+msgstr "некоректне значення константи"
+
+#: aarch64-opc.c:2764
+msgid "shift amount must be 0 or 16"
+msgstr "величина зсуву має бути 0 або 16"
+
+#: aarch64-opc.c:2785
+msgid "floating-point immediate expected"
+msgstr "мало бути використано константу з рухомою крапкою"
+
+#: aarch64-opc.c:2819
+msgid "no shift amount allowed for 8-bit constants"
+msgstr "для 8-бітових сталих не передбачено величини зсуву"
+
+#: aarch64-opc.c:2829
+msgid "shift amount must be 0 or 8"
+msgstr "величина зсуву має бути 0 або 8"
+
+#: aarch64-opc.c:2842
+msgid "immediate too big for element size"
+msgstr "стала велична є надто великою для розміру елемента"
+
+#: aarch64-opc.c:2849
+msgid "invalid arithmetic immediate"
+msgstr "некоректна арифметична стала"
+
+#: aarch64-opc.c:2863
+msgid "floating-point value must be 0.5 or 1.0"
+msgstr "числом із рухомою крапкою має бути 0.5 або 1.0"
+
+#: aarch64-opc.c:2873
+msgid "floating-point value must be 0.5 or 2.0"
+msgstr "числом із рухомою крапкою має бути 0.5 або 2.0"
+
+#: aarch64-opc.c:2883
+msgid "floating-point value must be 0.0 or 1.0"
+msgstr "числом із рухомою крапкою має бути 0.0 або 1.0"
+
+#: aarch64-opc.c:2914
+msgid "invalid replicated MOV immediate"
+msgstr "некоректно відтворена стала у MOV"
+
+#: aarch64-opc.c:2972
+msgid "byte index must be a multiple of 8"
+msgstr "байтовий індекс має бути кратним до 8"
+
+#: aarch64-opc.c:3002
+msgid "the register-index form of PRFM does not accept opcodes in the range 24-31"
+msgstr "форма регістр-індекс PRFM не приймає кодів операцій у діапазоні 24-31"
+
+#: aarch64-opc.c:3055
+msgid "extend operator expected"
+msgstr "мало бути використано оператор розширення"
+
+#: aarch64-opc.c:3068
+msgid "missing extend operator"
+msgstr "не вистачає оператора розширення"
+
+#: aarch64-opc.c:3074
+msgid "'LSL' operator not allowed"
+msgstr "Використання оператора «LSL» заборонено"
+
+#: aarch64-opc.c:3095
+msgid "W register expected"
+msgstr "мало бути використано регістр W"
+
+#: aarch64-opc.c:3106
+msgid "shift operator expected"
+msgstr "мало бути використано оператор зсуву"
+
+#: aarch64-opc.c:3113
+msgid "'ROR' operator not allowed"
+msgstr "Використання оператора «ROR» заборонено"
+
+#: aarch64-opc.c:4525
+msgid "reading from a write-only register"
+msgstr "читання із призначено лише для запису регістра"
+
+#: aarch64-opc.c:4527
+msgid "writing to a read-only register"
+msgstr "запис до призначеного лише для читання регістра"
+
+#: aarch64-opc.c:6166
+msgid "the three register operands must be distinct from one another"
+msgstr "три операнди регістрів має бути різними"
+
+#: aarch64-opc.c:6277
+msgid "destination register differs from preceding instruction"
+msgstr "регістр призначення відрізняється від регістра у попередній інструкції"
+
+#: aarch64-opc.c:6280
+msgid "source register differs from preceding instruction"
+msgstr "регістр джерела відрізняється від регістра у попередній інструкції"
+
+#: aarch64-opc.c:6283
+msgid "size register differs from preceding instruction"
+msgstr "регістр розміру відрізняється від регістра у попередній інструкції"
+
+#: aarch64-opc.c:6331
+msgid "instruction opens new dependency sequence without ending previous one"
+msgstr "інструкція відкриває нову послідовність залежностей без завершення попередньої"
+
+#: aarch64-opc.c:6360
+msgid "previous `movprfx' sequence not closed"
+msgstr "попередню послідовність «movprfx» не завершено"
+
+#: aarch64-opc.c:6379
+msgid "SVE instruction expected after `movprfx'"
+msgstr "після «movprfx» мала бути інструкція SVE"
+
+#: aarch64-opc.c:6392
+msgid "SVE `movprfx' compatible instruction expected"
+msgstr "мало бути вказано сумісну із «movprfx» інструкцію SVE"
+
+#: aarch64-opc.c:6480
+msgid "predicated instruction expected after `movprfx'"
+msgstr "після «movprfx» мала бути стверджувальна інструкція"
+
+#: aarch64-opc.c:6492
+msgid "merging predicate expected due to preceding `movprfx'"
+msgstr "мало бути об'єднання предикатів через попередню «movprfx»"
+
+#: aarch64-opc.c:6504
+msgid "predicate register differs from that in preceding `movprfx'"
+msgstr "предикативний регістр не збігається із визначеним для попереднього «movprfx»"
+
+#: aarch64-opc.c:6523
+msgid "output register of preceding `movprfx' not used in current instruction"
+msgstr "регістр виведення даних попереднього «movprfx» не використано у поточній інструкції."
+
+#: aarch64-opc.c:6536
+msgid "output register of preceding `movprfx' expected as output"
+msgstr "регістр виведення даних попереднього «movprfx» мало бути використано як вивід"
+
+#: aarch64-opc.c:6548
+msgid "output register of preceding `movprfx' used as input"
+msgstr "регістр виведення даних попереднього «movprfx» використано як вхідні дані"
+
+#: aarch64-opc.c:6564
+msgid "register size not compatible with previous `movprfx'"
+msgstr "розмір регістра є несумісним із попереднім «movprfx»"
+
+#: alpha-opc.c:154
+msgid "branch operand unaligned"
+msgstr "операнд розгалуження не вирівняно"
+
+#: alpha-opc.c:170 alpha-opc.c:186
+msgid "jump hint unaligned"
+msgstr "прив’язку переходу не вирівняно"
+
+#: arc-dis.c:380
+msgid ""
+"\n"
+"Warning: disassembly may be wrong due to guessed opcode class choice.\n"
+"Use -M<class[,class]> to select the correct opcode class(es).\n"
+"\t\t\t\t"
+msgstr ""
+"\n"
+"Попередження: дизасемблювання може бути помилковим через визначення варіанта класу кодів операцій.\n"
+"Скористайтеся параметром -M<клас[,клас]> для вибору правильних класів кодів операцій.\n"
+"\t\t\t\t"
+
+#: arc-dis.c:442
+msgid "An error occurred while generating the extension instruction operations"
+msgstr "Сталася помилка під час створення операцій інструкцій розширення"
+
+#: arc-dis.c:850
+#, c-format
+msgid "unrecognised disassembler CPU option: %s"
+msgstr "невідомий параметр дизасемблювання для процесора: %s"
+
+#: arc-dis.c:1323
+msgid ""
+"\n"
+"Warning: illegal use of double register pair.\n"
+msgstr ""
+"\n"
+"Попередження: некоректне використання пари регістрів подвійної точності.\n"
+
+#: arc-dis.c:1489
+msgid "Enforce the designated architecture while decoding."
+msgstr "Примусово встановити вказану архітектуру під час декодування."
+
+#: arc-dis.c:1491
+msgid "Recognize DSP instructions."
+msgstr "Розпізнавати інструкції DSP."
+
+#: arc-dis.c:1493
+msgid "Recognize FPX SP instructions."
+msgstr "Розпізнавати інструкції SP FPX."
+
+#: arc-dis.c:1495
+msgid "Recognize FPX DP instructions."
+msgstr "Розпізнавати інструкції DP FPX."
+
+#: arc-dis.c:1497
+msgid "Recognize FPU QuarkSE-EM instructions."
+msgstr "Розпізнавати інструкції QuarkSE-EM FPU."
+
+#: arc-dis.c:1499
+msgid "Recognize double assist FPU instructions."
+msgstr "Розпізнавати інструкції подвійної точності допоміжного FPU."
+
+#: arc-dis.c:1501
+msgid "Recognize single precision FPU instructions."
+msgstr "Розпізнавати інструкції FPU одинарної точності."
+
+#: arc-dis.c:1503
+msgid "Recognize double precision FPU instructions."
+msgstr "Розпізнавати інструкції FPU подвійної точності."
+
+#: arc-dis.c:1505
+msgid "Recognize NPS400 instructions."
+msgstr "Розпізнавати інструкції NPS400."
+
+#: arc-dis.c:1507
+msgid "Use only hexadecimal number to print immediates."
+msgstr "Використовувати лише шістнадцяткове значення для виведення проміжних."
+
+#: arc-dis.c:1582
+#, c-format
+msgid ""
+"\n"
+"The following ARC specific disassembler options are supported for use \n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"З перемикачем -M можна використовувати такі специфічні для ARC параметри\n"
+"дизасемблера (декілька параметрів слід відокремлювати комами):\n"
+
+#: arc-dis.c:1616 mips-dis.c:2910 riscv-dis.c:1357
+#, c-format
+msgid ""
+"\n"
+"  For the options above, the following values are supported for \"%s\":\n"
+"   "
+msgstr ""
+"\n"
+"  У вказаних вище параметрах використовуються такі значення для «%s»:\n"
+"   "
+
+#: arc-dis.c:1626
+#, c-format
+msgid ""
+"\n"
+"   "
+msgstr ""
+"\n"
+"   "
+
+#: arc-opc.c:41 arc-opc.c:64 arc-opc.c:90 arc-opc.c:114
+msgid "LP_COUNT register cannot be used as destination register"
+msgstr "Регістр LP_COUNT не можна використовувати як регістр призначення"
+
+#: arc-opc.c:88
+msgid "cannot use odd number destination register"
+msgstr "не можна використовувати регістр призначення із непарним номером"
+
+#: arc-opc.c:101 arc-opc.c:112
+msgid "cannot use odd number source register"
+msgstr "не можна використовувати регістр призначення із парним номером"
+
+#: arc-opc.c:127
+msgid "operand is not zero"
+msgstr "операнд є ненульовим"
+
+#: arc-opc.c:186
+msgid "register R30 is a limm indicator"
+msgstr "регістр R30 є індикатором limm"
+
+#: arc-opc.c:188
+msgid "register out of range"
+msgstr "регістр поза межами припустимого діапазону"
+
+#: arc-opc.c:207
+msgid "register must be R0"
+msgstr "регістром має бути R0"
+
+#: arc-opc.c:225
+msgid "register must be R1"
+msgstr "регістром має бути R1"
+
+#: arc-opc.c:242
+msgid "register must be R2"
+msgstr "регістром має бути R2"
+
+#: arc-opc.c:259
+msgid "register must be R3"
+msgstr "регістром має бути R3"
+
+#: arc-opc.c:276
+msgid "register must be SP"
+msgstr "регістром має бути SP"
+
+#: arc-opc.c:293
+msgid "register must be GP"
+msgstr "регістром має бути GP"
+
+#: arc-opc.c:310
+msgid "register must be PCL"
+msgstr "регістром має бути PCL"
+
+#: arc-opc.c:327
+msgid "register must be BLINK"
+msgstr "регістром має бути BLINK"
+
+#: arc-opc.c:344
+msgid "register must be ILINK1"
+msgstr "регістром має бути ILINK1"
+
+#: arc-opc.c:361
+msgid "register must be ILINK2"
+msgstr "регістром має бути ILINK2"
+
+#. ARC NPS400 Support: See comment near head of file.
+#: arc-opc.c:392 arc-opc.c:430 arc-opc.c:468 arc-opc.c:737
+msgid "register must be either r0-r3 or r12-r15"
+msgstr "регістром має бути r0-r3 або r12-r15"
+
+#: arc-opc.c:519
+msgid "accepted values are from -1 to 6"
+msgstr "прийнятним значенням є значення від -1 до 6"
+
+#: arc-opc.c:548
+msgid "first register of the range should be r13"
+msgstr "першим регістром діапазону має бути r13"
+
+#: arc-opc.c:550
+msgid "last register of the range doesn't fit"
+msgstr "останній регістр діапазону є невідповідним"
+
+#: arc-opc.c:570 arc-opc.c:585
+msgid "invalid register number, should be fp"
+msgstr "некоректний номер регістра, має бути fp"
+
+#: arc-opc.c:607
+msgid "invalid register number, should be blink"
+msgstr "некоректний номер регістра, має бути blink"
+
+#: arc-opc.c:629
+msgid "invalid register number, should be pcl"
+msgstr "некоректний номер регістра, має бути pcl"
+
+#: arc-opc.c:785
+msgid "invalid size, should be 1, 2, 4, or 8"
+msgstr "некоректний розмір, має бути 1, 2, 4 або 8"
+
+#: arc-opc.c:830
+msgid "invalid immediate, must be 1, 2, or 4"
+msgstr "некоректна стала, має бути 1, 2 або 4"
+
+#: arc-opc.c:869
+msgid "invalid value for CMEM ld/st immediate"
+msgstr "некоректне значення для константи ld/st CMEM"
+
+#: arc-opc.c:896
+msgid "invalid position, should be 0, 16, 32, 48 or 64."
+msgstr "некоректна позиція, має бути 0, 16, 32, 48 або 64."
+
+#: arc-opc.c:930
+msgid "invalid position, should be 16, 32, 64 or 128."
+msgstr "некоректна позиція, має бути 16, 32, 64 або 128."
+
+#: arc-opc.c:952
+msgid "invalid size value must be on range 1-64."
+msgstr "некоректне значення розміру, має бути у діапазоні від 1 до 64."
+
+#: arc-opc.c:983
+msgid "invalid position, should be 0, 8, 16, or 24"
+msgstr "некоректна позиція, має бути 0, 8, 16 або 24"
+
+#: arc-opc.c:1008
+msgid "invalid size, value must be "
+msgstr "некоректний розмір, значенням має бути "
+
+#: arc-opc.c:1082
+msgid "value out of range 1 - 256"
+msgstr "значення поза діапазоном від 1 до 256"
+
+#: arc-opc.c:1091
+msgid "value must be power of 2"
+msgstr "значення має бути степенем 2"
+
+#: arc-opc.c:1144
+msgid "value must be in the range 0 to 28"
+msgstr "значення має перебувати у діапазоні від 0 до 28"
+
+#: arc-opc.c:1166
+msgid "value must be in the range 1 to "
+msgstr "значення має перебувати у діапазоні від 1 до "
+
+#: arc-opc.c:1196
+msgid "value must be in the range 0 to 240"
+msgstr "значення має перебувати у діапазоні від 0 до 240"
+
+#: arc-opc.c:1198
+msgid "value must be a multiple of 16"
+msgstr "значення має бути кратним до 16"
+
+#: arc-opc.c:1218
+msgid "invalid address type for operand"
+msgstr "некоректний тип адреси для операнда"
+
+#: arc-opc.c:1252
+msgid "value must be in the range 0 to 31"
+msgstr "значення має перебувати у діапазоні від 0 до 31"
+
+#: arc-opc.c:1277
+msgid "invalid position, should be one of: 0,4,8,...124."
+msgstr "некоректна позиція, мало бути одне з таких значень: 0,4,8,...124."
+
+#: arm-dis.c:5204
+msgid "Select raw register names"
+msgstr "Вибрати прості назви регістрів"
+
+#: arm-dis.c:5206
+msgid "Select register names used by GCC"
+msgstr "Виберіть назви регістрів, які використовуватимуться GCC"
+
+#: arm-dis.c:5208
+msgid "Select register names used in ARM's ISA documentation"
+msgstr "Виберіть назви регістрів, які використовуються у документації з ISA ARM"
+
+#: arm-dis.c:5210
+msgid "Assume all insns are Thumb insns"
+msgstr "Припускати, що усі інструкції є інструкціями Thumb"
+
+#: arm-dis.c:5211
+msgid "Examine preceding label to determine an insn's type"
+msgstr "Вивчати попередню мітку для визначення типу інструкції"
+
+#: arm-dis.c:5212
+msgid "Select register names used in the APCS"
+msgstr "Вибрати назви регістрів, що використовуються в APCS"
+
+#: arm-dis.c:5214
+msgid "Select register names used in the ATPCS"
+msgstr "Вибрати назви регістрів, що використовуються в ATPCS"
+
+#: arm-dis.c:5216
+msgid "Select special register names used in the ATPCS"
+msgstr "Вибрати назви спеціальних регістрів, що використовуються в ATPCS"
+
+#: arm-dis.c:5218
+msgid "Enable CDE extensions for coprocessor N space"
+msgstr "Увімкнути розширення CDE для простору N співпроцесора"
+
+#: arm-dis.c:8530
+msgid "<illegal precision>"
+msgstr "<некоректна точність>"
+
+#: arm-dis.c:12264
+#, c-format
+msgid "unrecognised register name set: %s"
+msgstr "невідомий набір назв регістрів: %s"
+
+#: arm-dis.c:12278
+#, c-format
+msgid "cde coprocessor not between 0-7: %s"
+msgstr "Співпроцесор cde не у діапазоні 0-7: %s"
+
+#: arm-dis.c:12284
+#, c-format
+msgid "coproc must have an argument: %s"
+msgstr "coproc повинен мати аргумент: %s"
+
+#: arm-dis.c:12297
+#, c-format
+msgid "coprocN argument takes options \"generic\", \"cde\", or \"CDE\": %s"
+msgstr "Аргумент coprocN приймає параметри «generic», «cde» або «CDE»: %s"
+
+#: arm-dis.c:13016
+#, c-format
+msgid ""
+"\n"
+"The following ARM specific disassembler options are supported for use with\n"
+"the -M switch:\n"
+msgstr ""
+"\n"
+"З перемикачем -M можна використовувати такі специфічні для ARM параметри\n"
+"дизасемблера:\n"
+
+#: avr-dis.c:130 avr-dis.c:152
+#, c-format
+msgid "undefined"
+msgstr "не визначено"
+
+#: avr-dis.c:251
+#, c-format
+msgid "internal disassembler error"
+msgstr "внутрішня помилка дизасемблера"
+
+#: avr-dis.c:312
+#, c-format
+msgid "unknown constraint `%c'"
+msgstr "невідоме обмеження «%c»"
+
+#: bpf-asm.c:97
+msgid "expected 16, 32 or 64 in"
+msgstr "мало бути 16, 32 або 64 у"
+
+#: bpf-asm.c:181 epiphany-asm.c:456 fr30-asm.c:311 frv-asm.c:1264
+#: ip2k-asm.c:512 iq2000-asm.c:460 lm32-asm.c:350 m32c-asm.c:1585
+#: m32r-asm.c:329 mep-asm.c:1286 mt-asm.c:596 or1k-asm.c:576
+#: xstormy16-asm.c:277
+#, c-format
+msgid "internal error: unrecognized field %d while parsing"
+msgstr "внутрішня помилка: під час обробки виявлено нерозпізнане поле %d"
+
+#: bpf-asm.c:233 epiphany-asm.c:508 fr30-asm.c:363 frv-asm.c:1316
+#: ip2k-asm.c:564 iq2000-asm.c:512 lm32-asm.c:402 m32c-asm.c:1637
+#: m32r-asm.c:381 mep-asm.c:1338 mt-asm.c:648 or1k-asm.c:628
+#: xstormy16-asm.c:329
+msgid "missing mnemonic in syntax string"
+msgstr "не вистачає визначення символічного запису у рядку синтаксису"
+
+#. We couldn't parse it.
+#: bpf-asm.c:368 bpf-asm.c:372 bpf-asm.c:461 bpf-asm.c:568 epiphany-asm.c:643
+#: epiphany-asm.c:647 epiphany-asm.c:736 epiphany-asm.c:843 fr30-asm.c:498
+#: fr30-asm.c:502 fr30-asm.c:591 fr30-asm.c:698 frv-asm.c:1451 frv-asm.c:1455
+#: frv-asm.c:1544 frv-asm.c:1651 ip2k-asm.c:699 ip2k-asm.c:703 ip2k-asm.c:792
+#: ip2k-asm.c:899 iq2000-asm.c:647 iq2000-asm.c:651 iq2000-asm.c:740
+#: iq2000-asm.c:847 lm32-asm.c:537 lm32-asm.c:541 lm32-asm.c:630
+#: lm32-asm.c:737 m32c-asm.c:1772 m32c-asm.c:1776 m32c-asm.c:1865
+#: m32c-asm.c:1972 m32r-asm.c:516 m32r-asm.c:520 m32r-asm.c:609 m32r-asm.c:716
+#: mep-asm.c:1473 mep-asm.c:1477 mep-asm.c:1566 mep-asm.c:1673 mt-asm.c:783
+#: mt-asm.c:787 mt-asm.c:876 mt-asm.c:983 or1k-asm.c:763 or1k-asm.c:767
+#: or1k-asm.c:856 or1k-asm.c:963 xstormy16-asm.c:464 xstormy16-asm.c:468
+#: xstormy16-asm.c:557 xstormy16-asm.c:664
+msgid "unrecognized instruction"
+msgstr "нерозпізнана інструкція"
+
+#: bpf-asm.c:415 epiphany-asm.c:690 fr30-asm.c:545 frv-asm.c:1498
+#: ip2k-asm.c:746 iq2000-asm.c:694 lm32-asm.c:584 m32c-asm.c:1819
+#: m32r-asm.c:563 mep-asm.c:1520 mt-asm.c:830 or1k-asm.c:810
+#: xstormy16-asm.c:511
+#, c-format
+msgid "syntax error (expected char `%c', found `%c')"
+msgstr "синтаксична помилка (мало бути вказано символ «%c», виявлено ж символ «%c»)"
+
+#: bpf-asm.c:425 epiphany-asm.c:700 fr30-asm.c:555 frv-asm.c:1508
+#: ip2k-asm.c:756 iq2000-asm.c:704 lm32-asm.c:594 m32c-asm.c:1829
+#: m32r-asm.c:573 mep-asm.c:1530 mt-asm.c:840 or1k-asm.c:820
+#: xstormy16-asm.c:521
+#, c-format
+msgid "syntax error (expected char `%c', found end of instruction)"
+msgstr "синтаксична помилка (мало бути вказано символ «%c», виявлено ж завершення інструкції)"
+
+#: bpf-asm.c:455 epiphany-asm.c:730 fr30-asm.c:585 frv-asm.c:1538
+#: ip2k-asm.c:786 iq2000-asm.c:734 lm32-asm.c:624 m32c-asm.c:1859
+#: m32r-asm.c:603 mep-asm.c:1560 mt-asm.c:870 or1k-asm.c:850
+#: xstormy16-asm.c:551
+msgid "junk at end of line"
+msgstr "зайві символи наприкінці рядка"
+
+#: bpf-asm.c:567 epiphany-asm.c:842 fr30-asm.c:697 frv-asm.c:1650
+#: ip2k-asm.c:898 iq2000-asm.c:846 lm32-asm.c:736 m32c-asm.c:1971
+#: m32r-asm.c:715 mep-asm.c:1672 mt-asm.c:982 or1k-asm.c:962
+#: xstormy16-asm.c:663
+msgid "unrecognized form of instruction"
+msgstr "нерозпізнана форма інструкції"
+
+#: bpf-asm.c:581 epiphany-asm.c:856 fr30-asm.c:711 frv-asm.c:1664
+#: ip2k-asm.c:912 iq2000-asm.c:860 lm32-asm.c:750 m32c-asm.c:1985
+#: m32r-asm.c:729 mep-asm.c:1686 mt-asm.c:996 or1k-asm.c:976
+#: xstormy16-asm.c:677
+#, c-format
+msgid "bad instruction `%.50s...'"
+msgstr "помилкова інструкція «%.50s...»"
+
+#: bpf-asm.c:584 epiphany-asm.c:859 fr30-asm.c:714 frv-asm.c:1667
+#: ip2k-asm.c:915 iq2000-asm.c:863 lm32-asm.c:753 m32c-asm.c:1988
+#: m32r-asm.c:732 mep-asm.c:1689 mt-asm.c:999 or1k-asm.c:979
+#: xstormy16-asm.c:680
+#, c-format
+msgid "bad instruction `%.50s'"
+msgstr "помилкова інструкція «%.50s»"
+
+#: bpf-desc.c:1768
+#, c-format
+msgid "internal error: bpf_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "внутрішня помилка: bpf_cgen_rebuild_tables: конфлікт значень insn-chunk-bitsize: «%d» і «%d»"
+
+#: bpf-desc.c:1856
+#, c-format
+msgid "internal error: bpf_cgen_cpu_open: unsupported argument `%d'"
+msgstr "внутрішня помилка: bpf_cgen_cpu_open: непідтримуваний аргумент «%d»"
+
+#: bpf-desc.c:1875
+#, c-format
+msgid "internal error: bpf_cgen_cpu_open: no endianness specified"
+msgstr "внутрішня помилка: bpf_cgen_cpu_open: не визначено порядок байтів"
+
+#. Default text to print if an instruction isn't recognized.
+#: bpf-dis.c:41 epiphany-dis.c:41 fr30-dis.c:41 frv-dis.c:41 ip2k-dis.c:41
+#: iq2000-dis.c:41 lm32-dis.c:41 m32c-dis.c:41 m32r-dis.c:41 mep-dis.c:41
+#: mmix-dis.c:293 mt-dis.c:41 nds32-dis.c:64 or1k-dis.c:41 xstormy16-dis.c:41
+msgid "*unknown*"
+msgstr "*невідома*"
+
+#: bpf-dis.c:203 epiphany-dis.c:279 fr30-dis.c:300 frv-dis.c:397
+#: ip2k-dis.c:289 iq2000-dis.c:190 lm32-dis.c:148 m32c-dis.c:892
+#: m32r-dis.c:280 mep-dis.c:1202 mt-dis.c:288 or1k-dis.c:175
+#: xstormy16-dis.c:169
+#, c-format
+msgid "internal error: unrecognized field %d while printing insn"
+msgstr "внутрішня помилка: нерозпізнане поле %d під час виведення інструкції"
+
+#: bpf-ibld.c:166 epiphany-ibld.c:166 fr30-ibld.c:166 frv-ibld.c:166
+#: ip2k-ibld.c:166 iq2000-ibld.c:166 lm32-ibld.c:166 m32c-ibld.c:166
+#: m32r-ibld.c:166 mep-ibld.c:166 mt-ibld.c:166 or1k-ibld.c:166
+#: xstormy16-ibld.c:166
+#, c-format
+msgid "operand out of range (%ld not between %ld and %lu)"
+msgstr "операнд лежить поза межами діапазону (%ld не перебуває між %ld і %lu)"
+
+#: bpf-ibld.c:187 epiphany-ibld.c:187 fr30-ibld.c:187 frv-ibld.c:187
+#: ip2k-ibld.c:187 iq2000-ibld.c:187 lm32-ibld.c:187 m32c-ibld.c:187
+#: m32r-ibld.c:187 mep-ibld.c:187 mt-ibld.c:187 or1k-ibld.c:187
+#: xstormy16-ibld.c:187
+#, c-format
+msgid "operand out of range (0x%lx not between 0 and 0x%lx)"
+msgstr "операнд поза діапазоном (0x%lx не лежить між 0 і 0x%lx)"
+
+#: bpf-ibld.c:203 cgen-asm.c:351 epiphany-ibld.c:203 fr30-ibld.c:203
+#: frv-ibld.c:203 ip2k-ibld.c:203 iq2000-ibld.c:203 lm32-ibld.c:203
+#: m32c-ibld.c:203 m32r-ibld.c:203 mep-ibld.c:203 mt-ibld.c:203
+#: or1k-ibld.c:203 xstormy16-ibld.c:203
+#, c-format
+msgid "operand out of range (%ld not between %ld and %ld)"
+msgstr "операнд лежить поза межами діапазону (%ld не перебуває між %ld і %ld)"
+
+#: bpf-ibld.c:630 epiphany-ibld.c:885 fr30-ibld.c:740 frv-ibld.c:866
+#: ip2k-ibld.c:617 iq2000-ibld.c:723 lm32-ibld.c:644 m32c-ibld.c:1741
+#: m32r-ibld.c:675 mep-ibld.c:1218 mt-ibld.c:759 or1k-ibld.c:738
+#: xstormy16-ibld.c:688
+#, c-format
+msgid "internal error: unrecognized field %d while building insn"
+msgstr "внутрішня помилка: нерозпізнане поле %d під час побудови інструкції"
+
+#: bpf-ibld.c:714 epiphany-ibld.c:1180 fr30-ibld.c:946 frv-ibld.c:1184
+#: ip2k-ibld.c:693 iq2000-ibld.c:899 lm32-ibld.c:749 m32c-ibld.c:2903
+#: m32r-ibld.c:813 mep-ibld.c:1818 mt-ibld.c:980 or1k-ibld.c:897
+#: xstormy16-ibld.c:835
+#, c-format
+msgid "internal error: unrecognized field %d while decoding insn"
+msgstr "внутрішня помилка: нерозпізнане поле %d під час декодування інструкції"
+
+#: bpf-ibld.c:783 epiphany-ibld.c:1324 fr30-ibld.c:1093 frv-ibld.c:1463
+#: ip2k-ibld.c:768 iq2000-ibld.c:1031 lm32-ibld.c:839 m32c-ibld.c:3521
+#: m32r-ibld.c:927 mep-ibld.c:2289 mt-ibld.c:1181 or1k-ibld.c:993
+#: xstormy16-ibld.c:946
+#, c-format
+msgid "internal error: unrecognized field %d while getting int operand"
+msgstr "внутрішня помилка: помилкове поле %d під час отримання цілого операнда"
+
+#: bpf-ibld.c:834 epiphany-ibld.c:1450 fr30-ibld.c:1222 frv-ibld.c:1724
+#: ip2k-ibld.c:825 iq2000-ibld.c:1145 lm32-ibld.c:911 m32c-ibld.c:4121
+#: m32r-ibld.c:1023 mep-ibld.c:2742 mt-ibld.c:1364 or1k-ibld.c:1071
+#: xstormy16-ibld.c:1039
+#, c-format
+msgid "internal error: unrecognized field %d while getting vma operand"
+msgstr "внутрішня помилка: помилкове поле %d під час отримання операнда vma"
+
+#: bpf-ibld.c:892 epiphany-ibld.c:1583 fr30-ibld.c:1354 frv-ibld.c:1992
+#: ip2k-ibld.c:885 iq2000-ibld.c:1266 lm32-ibld.c:990 m32c-ibld.c:4709
+#: m32r-ibld.c:1125 mep-ibld.c:3156 mt-ibld.c:1554 or1k-ibld.c:1156
+#: xstormy16-ibld.c:1139
+#, c-format
+msgid "internal error: unrecognized field %d while setting int operand"
+msgstr "внутрішня помилка: некоректне поле %d під час встановлення цілого операнда"
+
+#: bpf-ibld.c:940 epiphany-ibld.c:1706 fr30-ibld.c:1476 frv-ibld.c:2250
+#: ip2k-ibld.c:935 iq2000-ibld.c:1377 lm32-ibld.c:1059 m32c-ibld.c:5287
+#: m32r-ibld.c:1217 mep-ibld.c:3560 mt-ibld.c:1734 or1k-ibld.c:1231
+#: xstormy16-ibld.c:1229
+#, c-format
+msgid "internal error: unrecognized field %d while setting vma operand"
+msgstr "внутрішня помилка: некоректне поле %d під час встановлення операнда vma"
+
+#: cgen-asm.c:373
+#, c-format
+msgid "operand out of range (%lu not between %lu and %lu)"
+msgstr "операнд лежить поза межами діапазону (%lu не перебуває між %lu і %lu)"
+
+#: cris-desc.c:2622
+#, c-format
+msgid "internal error: cris_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "внутрішня помилка: cris_cgen_rebuild_tables: конфлікт значень insn-chunk-bitsize: «%d» і «%d»"
+
+#: cris-desc.c:2710
+#, c-format
+msgid "internal error: cris_cgen_cpu_open: unsupported argument `%d'"
+msgstr "внутрішня помилка: cris_cgen_cpu_open: непідтримуваний аргумент «%d»"
+
+#: cris-desc.c:2729
+#, c-format
+msgid "internal error: cris_cgen_cpu_open: no endianness specified"
+msgstr "внутрішня помилка: cris_cgen_cpu_open: не визначено порядок байтів"
+
+#: d30v-dis.c:232
+#, c-format
+msgid "illegal id (%d)"
+msgstr "некоректний ідентифікатор (%d)"
+
+#: d30v-dis.c:259
+#, c-format
+msgid "<unknown register %d>"
+msgstr "<невідомий регістр %d>"
+
+#. Can't happen.
+#: dis-buf.c:61
+#, c-format
+msgid "Unknown error %d\n"
+msgstr "Невідома помилка %d\n"
+
+#: dis-buf.c:67
+#, c-format
+msgid "Address 0x%<PRIx64> is out of bounds.\n"
+msgstr "Адреса 0x%<PRIx64> лежить поза межами доступного діапазону.\n"
+
+#: disassemble.c:887
+#, c-format
+msgid "assertion fail %s:%d"
+msgstr "виявлено помилку %s:%d"
+
+#: disassemble.c:888
+msgid "Please report this bug"
+msgstr "Будь ласка, повідомте про цю ваду"
+
+#: epiphany-asm.c:68
+msgid "register unavailable for short instructions"
+msgstr "регістр недоступний для коротких інструкцій"
+
+#: epiphany-asm.c:115
+msgid "register name used as immediate value"
+msgstr "назву регістра використано як поточне значення"
+
+#. Don't treat "mov ip,ip" as a move-immediate.
+#: epiphany-asm.c:178 epiphany-asm.c:234
+msgid "register source in immediate move"
+msgstr "джерело у регістрі під час пересування поточного значення"
+
+#: epiphany-asm.c:187
+msgid "byte relocation unsupported"
+msgstr "підтримки пересування байтів не передбачено"
+
+#. -- assembler routines inserted here.
+#. -- asm.c
+#: epiphany-asm.c:193 frv-asm.c:972 iq2000-asm.c:56 lm32-asm.c:95
+#: lm32-asm.c:127 lm32-asm.c:157 lm32-asm.c:187 lm32-asm.c:217 lm32-asm.c:247
+#: m32c-asm.c:140 m32c-asm.c:235 m32c-asm.c:276 m32c-asm.c:334 m32c-asm.c:355
+#: m32r-asm.c:53 mep-asm.c:241 mep-asm.c:259 mep-asm.c:274 mep-asm.c:289
+#: mep-asm.c:301 or1k-asm.c:54
+msgid "missing `)'"
+msgstr "не вистачає «)»"
+
+#: epiphany-asm.c:270
+msgid "ABORT: unknown operand"
+msgstr "ABORT: невідомий операнд"
+
+#: epiphany-asm.c:296
+msgid "Not a pc-relative address."
+msgstr "Адреса, яка не є відносною щодо лічильника команд (pc)."
+
+#: epiphany-desc.c:2110
+#, c-format
+msgid "internal error: epiphany_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "внутрішня помилка: epiphany_cgen_rebuild_tables: конфлікт значень insn-chunk-bitsize: «%d» і «%d»"
+
+#: epiphany-desc.c:2198
+#, c-format
+msgid "internal error: epiphany_cgen_cpu_open: unsupported argument `%d'"
+msgstr "внутрішня помилка: epiphany_cgen_cpu_open: непідтримуваний аргумент «%d»"
+
+#: epiphany-desc.c:2217
+#, c-format
+msgid "internal error: epiphany_cgen_cpu_open: no endianness specified"
+msgstr "внутрішня помилка: epiphany_cgen_cpu_open: не вказано порядку байтів"
+
+#: fr30-asm.c:93 m32c-asm.c:872 m32c-asm.c:879
+msgid "Register number is not valid"
+msgstr "Номер регістра не є коректним"
+
+#: fr30-asm.c:95
+msgid "Register must be between r0 and r7"
+msgstr "Регістр має перебувати у діапазоні від r0 до r7"
+
+#: fr30-asm.c:97
+msgid "Register must be between r8 and r15"
+msgstr "Регістр має перебувати у діапазоні від r8 до r15"
+
+#: fr30-asm.c:116 m32c-asm.c:910
+msgid "Register list is not valid"
+msgstr "Список регістрів є некоректним"
+
+#: fr30-desc.c:1587
+#, c-format
+msgid "internal error: fr30_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "внутрішня помилка: fr30_cgen_rebuild_tables: конфлікт значень insn-chunk-bitsize: «%d» і «%d»"
+
+#: fr30-desc.c:1675
+#, c-format
+msgid "internal error: fr30_cgen_cpu_open: unsupported argument `%d'"
+msgstr "внутрішня помилка: fr30_cgen_cpu_open: непідтримуваний аргумент «%d»"
+
+#: fr30-desc.c:1694
+#, c-format
+msgid "internal error: fr30_cgen_cpu_open: no endianness specified"
+msgstr "внутрішня помилка: fr30_cgen_cpu_open: не визначено порядок байтів"
+
+#: frv-asm.c:608
+msgid "missing `]'"
+msgstr "не вистачає «]»"
+
+#: frv-asm.c:611 frv-asm.c:621
+msgid "Special purpose register number is out of range"
+msgstr "Номер регістра спеціального призначення лежить поза межами можливого діапазону"
+
+#: frv-asm.c:908
+msgid "Value of A operand must be 0 or 1"
+msgstr "Значенням операнда A має бути 0 або 1"
+
+#: frv-asm.c:944
+msgid "register number must be even"
+msgstr "номер регістра має бути парним"
+
+#: frv-desc.c:6327
+#, c-format
+msgid "internal error: frv_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "внутрішня помилка: frv_cgen_rebuild_tables: конфлікт значень insn-chunk-bitsize: «%d» і «%d»"
+
+#: frv-desc.c:6415
+#, c-format
+msgid "internal error: frv_cgen_cpu_open: unsupported argument `%d'"
+msgstr "внутрішня помилка: frv_cgen_cpu_open: непідтримуваний аргумент «%d»"
+
+#: frv-desc.c:6434
+#, c-format
+msgid "internal error: frv_cgen_cpu_open: no endianness specified"
+msgstr "внутрішня помилка: frv_cgen_cpu_open: не визначено порядок байтів"
+
+#: frv-opc.c:459
+#, c-format
+msgid "internal error: bad vliw->next_slot value"
+msgstr "внутрішня помилка: помилкове значення vliw->next_slot"
+
+#: frv-opc.c:769
+#, c-format
+msgid "internal error: bad major code"
+msgstr "внутрішня помилка: помилковий код major"
+
+#: frv-opc.c:819
+#, c-format
+msgid "internal error: bad insn unit"
+msgstr "внутрішня помилка: помилковий модуль insn"
+
+#: h8300-dis.c:309
+#, c-format
+msgid "Hmmmm 0x%x"
+msgstr "Г-м-м, 0x%x"
+
+#: h8300-dis.c:617
+#, c-format
+msgid "Don't understand 0x%x \n"
+msgstr "Незрозуміле 0x%x \n"
+
+#: i386-dis.c:8819
+msgid "<internal disassembler error>"
+msgstr "<помилка внутрішнього дизасемблера>"
+
+#: i386-dis.c:9047
+#, c-format
+msgid ""
+"\n"
+"The following i386/x86-64 specific disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"З перемикачем -M можна використовувати такі специфічні для i386/x86-64 параметри\n"
+"дизасемблера (декілька параметрів слід відокремлювати комами):\n"
+
+#: i386-dis.c:9051
+#, c-format
+msgid "  x86-64      Disassemble in 64bit mode\n"
+msgstr "  x86-64      дизасемблювання у 64-бітовому режимі\n"
+
+#: i386-dis.c:9052
+#, c-format
+msgid "  i386        Disassemble in 32bit mode\n"
+msgstr "  i386        дизасемблювання у 32-бітовому режимі\n"
+
+#: i386-dis.c:9053
+#, c-format
+msgid "  i8086       Disassemble in 16bit mode\n"
+msgstr "  i8086       дизасемблювання у 16-бітовому режимі\n"
+
+#: i386-dis.c:9054
+#, c-format
+msgid "  att         Display instruction in AT&T syntax\n"
+msgstr "  att         показати інструкцію у синтаксисі AT&T\n"
+
+#: i386-dis.c:9055
+#, c-format
+msgid "  intel       Display instruction in Intel syntax\n"
+msgstr "  intel       показати інструкцію у синтаксисі Intel\n"
+
+#: i386-dis.c:9056
+#, c-format
+msgid ""
+"  att-mnemonic\n"
+"              Display instruction in AT&T mnemonic\n"
+msgstr ""
+"  att-mnemonic\n"
+"              показати інструкцію у символах AT&T\n"
+
+#: i386-dis.c:9058
+#, c-format
+msgid ""
+"  intel-mnemonic\n"
+"              Display instruction in Intel mnemonic\n"
+msgstr ""
+"  intel-mnemonic\n"
+"              показати інструкцію у символах Intel\n"
+
+#: i386-dis.c:9060
+#, c-format
+msgid "  addr64      Assume 64bit address size\n"
+msgstr "  addr64      припускати 64-бітовий розмір адрес\n"
+
+#: i386-dis.c:9061
+#, c-format
+msgid "  addr32      Assume 32bit address size\n"
+msgstr "  addr32      припускати 32-бітовий розмір адрес\n"
+
+#: i386-dis.c:9062
+#, c-format
+msgid "  addr16      Assume 16bit address size\n"
+msgstr "  addr16      припускати 16-бітовий розмір адрес\n"
+
+#: i386-dis.c:9063
+#, c-format
+msgid "  data32      Assume 32bit data size\n"
+msgstr "  data32      припускати 32-бітовий розмір даних\n"
+
+#: i386-dis.c:9064
+#, c-format
+msgid "  data16      Assume 16bit data size\n"
+msgstr "  data16      припускати 16-бітовий розмір даних\n"
+
+#: i386-dis.c:9065
+#, c-format
+msgid "  suffix      Always display instruction suffix in AT&T syntax\n"
+msgstr "  suffix      завжди показувати суфікс інструкцій у синтаксисі AT&T\n"
+
+#: i386-dis.c:9066
+#, c-format
+msgid "  amd64       Display instruction in AMD64 ISA\n"
+msgstr "  amd64       показати інструкцію у синтаксисі ISA AMD64\n"
+
+#: i386-dis.c:9067
+#, c-format
+msgid "  intel64     Display instruction in Intel64 ISA\n"
+msgstr "  intel64     показати інструкцію у синтаксисі ISA Intel64\n"
+
+#: i386-dis.c:9760
+msgid "64-bit address is disabled"
+msgstr "64-бітову адресу вимкнено"
+
+#. We've been passed a w.  Return with an error message so that
+#. cgen will try the next parsing option.
+#: ip2k-asm.c:81
+msgid "W keyword invalid in FR operand slot."
+msgstr "Ключове слово W є некоректним у слоті операнда FR."
+
+#. Invalid offset present.
+#: ip2k-asm.c:106
+msgid "offset(IP) is not a valid form"
+msgstr "offset(IP) є не коректною формою"
+
+#. Found something there in front of (DP) but it's out
+#. of range.
+#: ip2k-asm.c:154
+msgid "(DP) offset out of range."
+msgstr "(DP) перевищення можливого зміщення."
+
+#. Found something there in front of (SP) but it's out
+#. of range.
+#: ip2k-asm.c:195
+msgid "(SP) offset out of range."
+msgstr "(SP) перевищення можливого зміщення."
+
+#: ip2k-asm.c:211
+msgid "illegal use of parentheses"
+msgstr "некоректне використання дужки"
+
+#: ip2k-asm.c:218
+msgid "operand out of range (not between 1 and 255)"
+msgstr "операнд поза діапазоном (не лежить між 1 і 255)"
+
+#. Something is very wrong. opindex has to be one of the above.
+#: ip2k-asm.c:242
+msgid "parse_addr16: invalid opindex."
+msgstr "parse_addr16: некоректний індекс операції."
+
+#: ip2k-asm.c:296
+msgid "Byte address required. - must be even."
+msgstr "Потрібна байтова адреса. - має бути парним."
+
+#: ip2k-asm.c:305
+msgid "cgen_parse_address returned a symbol. Literal required."
+msgstr "cgen_parse_address повернуто символ. Мало бути повернуто літерал."
+
+#: ip2k-asm.c:360
+msgid "percent-operator operand is not a symbol"
+msgstr "операнд оператора з відсотком не є символом"
+
+#: ip2k-asm.c:413
+msgid "Attempt to find bit index of 0"
+msgstr "Спроба знайти бітовий індекс 0"
+
+#: ip2k-desc.c:1016
+#, c-format
+msgid "internal error: ip2k_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "внутрішня помилка: ip2k_cgen_rebuild_tables: конфлікт значень insn-chunk-bitsize: «%d» і «%d»"
+
+#: ip2k-desc.c:1104
+#, c-format
+msgid "internal error: ip2k_cgen_cpu_open: unsupported argument `%d'"
+msgstr "внутрішня помилка: ip2k_cgen_cpu_open: непідтримуваний аргумент «%d»"
+
+#: ip2k-desc.c:1123
+#, c-format
+msgid "internal error: ip2k_cgen_cpu_open: no endianness specified"
+msgstr "внутрішня помилка: ip2k_cgen_cpu_open: не визначено порядок байтів"
+
+#: iq2000-asm.c:112 iq2000-asm.c:142
+msgid "immediate value cannot be register"
+msgstr "поточне значення не може бути регістровим"
+
+#: iq2000-asm.c:123 iq2000-asm.c:153 lm32-asm.c:70
+msgid "immediate value out of range"
+msgstr "поточне значення поза межами діапазону"
+
+#: iq2000-asm.c:182
+msgid "21-bit offset out of range"
+msgstr "21-бітовий зсув поза межами діапазону"
+
+#: iq2000-desc.c:2021
+#, c-format
+msgid "internal error: iq2000_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "внутрішня помилка: iq2000_cgen_rebuild_tables: конфлікт значень insn-chunk-bitsize: «%d» і «%d»"
+
+#: iq2000-desc.c:2109
+#, c-format
+msgid "internal error: iq2000_cgen_cpu_open: unsupported argument `%d'"
+msgstr "внутрішня помилка: iq2000_cgen_cpu_open: непідтримуваний аргумент «%d»"
+
+#: iq2000-desc.c:2128
+#, c-format
+msgid "internal error: iq2000_cgen_cpu_open: no endianness specified"
+msgstr "внутрішня помилка: iq2000_cgen_cpu_open: не визначено порядок байтів"
+
+#: lm32-asm.c:166
+msgid "expecting gp relative address: gp(symbol)"
+msgstr "мало бути вказано відносну адресу gp: gp(символ)"
+
+#: lm32-asm.c:196
+msgid "expecting got relative address: got(symbol)"
+msgstr "мало бути вказано відносну адресу got: got(символ)"
+
+#: lm32-asm.c:226
+msgid "expecting got relative address: gotoffhi16(symbol)"
+msgstr "мало бути вказано відносну адресу got: gotoffhi16(символ)"
+
+#: lm32-asm.c:256
+msgid "expecting got relative address: gotofflo16(symbol)"
+msgstr "мало бути вказано відносну адресу got: gotofflo16(символ)"
+
+#: lm32-desc.c:1003
+#, c-format
+msgid "internal error: lm32_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "внутрішня помилка: lm32_cgen_rebuild_tables: конфлікт значень insn-chunk-bitsize: «%d» і «%d»"
+
+#: lm32-desc.c:1091
+#, c-format
+msgid "internal error: lm32_cgen_cpu_open: unsupported argument `%d'"
+msgstr "внутрішня помилка: lm32_cgen_cpu_open: непідтримуваний аргумент «%d»"
+
+#: lm32-desc.c:1110
+#, c-format
+msgid "internal error: lm32_cgen_cpu_open: no endianness specified"
+msgstr "внутрішня помилка: lm32_cgen_cpu_open: не визначено порядок байтів"
+
+#: loongarch-dis.c:324
+#, c-format
+msgid ""
+"\n"
+"The following LoongArch disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"З перемикачем -M можна використовувати такі параметри дизасемблера\n"
+"LoongArch (декілька параметрів слід відокремлювати комами):\n"
+
+#: loongarch-dis.c:328
+#, c-format
+msgid ""
+"\n"
+"    no-aliases    Use canonical instruction forms.\n"
+msgstr ""
+"\n"
+"  no-aliases       використовувати канонічні форми інструкцій.\n"
+
+#: loongarch-dis.c:330
+#, c-format
+msgid ""
+"\n"
+"    numeric       Print numeric register names, rather than ABI names.\n"
+msgstr ""
+"\n"
+"   numeric        вивести числові назви регістрів, а не назви в ABI.\n"
+
+#: m10200-dis.c:151 m10300-dis.c:574
+#, c-format
+msgid "unknown\t0x%04lx"
+msgstr "невідоме\t0x%04lx"
+
+#: m10200-dis.c:321
+#, c-format
+msgid "unknown\t0x%02lx"
+msgstr "невідоме\t0x%02lx"
+
+#: m32c-asm.c:117
+msgid "imm:6 immediate is out of range"
+msgstr "imm:6 поточне значення поза діапазоном"
+
+#: m32c-asm.c:145
+#, c-format
+msgid "%dsp8() takes a symbolic address, not a number"
+msgstr "%dsp8() приймає символічну адресу, а не число"
+
+#: m32c-asm.c:159 m32c-asm.c:163 m32c-asm.c:253
+msgid "dsp:8 immediate is out of range"
+msgstr "dsp:8 поточне значення поза діапазоном"
+
+#: m32c-asm.c:184 m32c-asm.c:188
+msgid "Immediate is out of range -8 to 7"
+msgstr "Поточне значення поза діапазоном від -8 до 7"
+
+#: m32c-asm.c:209 m32c-asm.c:213
+msgid "Immediate is out of range -7 to 8"
+msgstr "Поточне значення поза діапазоном від -7 до 8"
+
+#: m32c-asm.c:281
+#, c-format
+msgid "%dsp16() takes a symbolic address, not a number"
+msgstr "%dsp16() приймає символічну адресу, а не число"
+
+#: m32c-asm.c:305 m32c-asm.c:312 m32c-asm.c:373
+msgid "dsp:16 immediate is out of range"
+msgstr "dsp:16 поточне значення поза діапазоном"
+
+#: m32c-asm.c:399
+msgid "dsp:20 immediate is out of range"
+msgstr "dsp:20 поточне значення поза діапазоном"
+
+#: m32c-asm.c:425 m32c-asm.c:445
+msgid "dsp:24 immediate is out of range"
+msgstr "dsp:24 поточне значення поза діапазоном"
+
+#: m32c-asm.c:478
+msgid "immediate is out of range 1-2"
+msgstr "Поточне значення поза діапазоном 1-2"
+
+#: m32c-asm.c:496
+msgid "immediate is out of range 1-8"
+msgstr "Поточне значення поза діапазоном 1-8"
+
+#: m32c-asm.c:514
+msgid "immediate is out of range 0-7"
+msgstr "Поточне значення поза діапазоном 0-7"
+
+#: m32c-asm.c:550
+msgid "immediate is out of range 2-9"
+msgstr "Поточне значення поза діапазоном 2-9"
+
+#: m32c-asm.c:568
+msgid "Bit number for indexing general register is out of range 0-15"
+msgstr "Номер біта для індексування загального регістра лежить поза межами діапазону 0-15"
+
+#: m32c-asm.c:606 m32c-asm.c:662
+msgid "bit,base is out of range"
+msgstr "набір біт,основа поза межами діапазону"
+
+#: m32c-asm.c:613 m32c-asm.c:618 m32c-asm.c:666
+msgid "bit,base out of range for symbol"
+msgstr "набір біт,основа поза межами діапазону для символу"
+
+#: m32c-asm.c:802
+msgid "not a valid r0l/r0h pair"
+msgstr "некоректна пара r0l/r0h"
+
+#: m32c-asm.c:832
+msgid "Invalid size specifier"
+msgstr "Некоректний специфікатор розміру"
+
+#: m32c-desc.c:63034
+#, c-format
+msgid "internal error: m32c_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "внутрішня помилка: m32c_cgen_rebuild_tables: конфлікт значень insn-chunk-bitsize: «%d» і «%d»"
+
+#: m32c-desc.c:63122
+#, c-format
+msgid "internal error: m32c_cgen_cpu_open: unsupported argument `%d'"
+msgstr "внутрішня помилка: m32c_cgen_cpu_open: непідтримуваний аргумент «%d»"
+
+#: m32c-desc.c:63141
+#, c-format
+msgid "internal error: m32c_cgen_cpu_open: no endianness specified"
+msgstr "внутрішня помилка: m32c_cgen_cpu_open: не визначено порядок байтів"
+
+#: m32r-desc.c:1366
+#, c-format
+msgid "internal error: m32r_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "внутрішня помилка: m32r_cgen_rebuild_tables: конфлікт значень insn-chunk-bitsize: «%d» і «%d»"
+
+#: m32r-desc.c:1454
+#, c-format
+msgid "internal error: m32r_cgen_cpu_open: unsupported argument `%d'"
+msgstr "внутрішня помилка: m32r_cgen_cpu_open: непідтримуваний аргумент «%d»"
+
+#: m32r-desc.c:1473
+#, c-format
+msgid "internal error: m32r_cgen_cpu_open: no endianness specified"
+msgstr "внутрішня помилка: m32r_cgen_cpu_open: не визначено порядок байтів"
+
+#: m68k-dis.c:1403
+#, c-format
+msgid "<function code %d>"
+msgstr "<код функції %d>"
+
+#: m68k-dis.c:1567
+#, c-format
+msgid "<internal error in opcode table: %s %s>\n"
+msgstr "<внутрішня помилка у таблиці кодів операцій: %s %s>\n"
+
+#: mep-asm.c:129
+msgid "Only $tp or $13 allowed for this opcode"
+msgstr "Для цього коду операції можна використовувати лише $tp або $13"
+
+#: mep-asm.c:143
+msgid "Only $sp or $15 allowed for this opcode"
+msgstr "Для цього коду операції можна використовувати лише $sp або $15"
+
+#: mep-asm.c:308 mep-asm.c:504
+#, c-format
+msgid "invalid %function() here"
+msgstr "%function() (функція з відсотком) тут є некоректною"
+
+#: mep-asm.c:336
+msgid "Immediate is out of range -32768 to 32767"
+msgstr "Поточне значення поза діапазоном від -32768 до 32767"
+
+#: mep-asm.c:356
+msgid "Immediate is out of range 0 to 65535"
+msgstr "Поточне значення поза діапазоном від 0 до 65535"
+
+#: mep-asm.c:549 mep-asm.c:562
+msgid "Immediate is out of range -512 to 511"
+msgstr "Поточне значення поза діапазоном від -512 до 511"
+
+#: mep-asm.c:554 mep-asm.c:563
+msgid "Immediate is out of range -128 to 127"
+msgstr "Поточне значення поза діапазоном від -128 до 127"
+
+#: mep-asm.c:558
+msgid "Value is not aligned enough"
+msgstr "Значення недостатньо вирівняно"
+
+#: mep-desc.c:6227
+#, c-format
+msgid "internal error: mep_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "внутрішня помилка: mep_cgen_rebuild_tables: конфлікт значень insn-chunk-bitsize: «%d» і «%d»"
+
+#: mep-desc.c:6315
+#, c-format
+msgid "internal error: mep_cgen_cpu_open: unsupported argument `%d'"
+msgstr "внутрішня помилка: mep_cgen_cpu_open: непідтримуваний аргумент «%d»"
+
+#: mep-desc.c:6334
+#, c-format
+msgid "internal error: mep_cgen_cpu_open: no endianness specified"
+msgstr "внутрішня помилка: mep_cgen_cpu_open: не визначено порядок байтів"
+
+#: mep-dis.c:662
+#, c-format
+msgid "illegal MEP INDEX setting '%x' in ELF header e_flags field"
+msgstr "некоректний параметр INDEX MEP «%x» у заголовку ELF поля e_flags"
+
+#: mips-dis.c:1907 mips-dis.c:2140
+#, c-format
+msgid "# internal error, undefined operand in `%s %s'"
+msgstr "# внутрішня помилка, невизначений операнд у «%s %s»"
+
+#: mips-dis.c:2745
+msgid "Use canonical instruction forms.\n"
+msgstr "використовувати канонічні форми інструкцій.\n"
+
+#: mips-dis.c:2747
+msgid "Recognize MSA instructions.\n"
+msgstr "розпізнавати інструкції MSA.\n"
+
+#: mips-dis.c:2749
+msgid "Recognize the virtualization ASE instructions.\n"
+msgstr "розпізнавати інструкції віртуалізації ASE.\n"
+
+#: mips-dis.c:2751
+msgid ""
+"Recognize the eXtended Physical Address (XPA) ASE\n"
+"                  instructions.\n"
+msgstr ""
+"розпізнавати інструкції eXtended Physical\n"
+"                           Address (XPA) ASE.\n"
+
+#: mips-dis.c:2754
+msgid "Recognize the Global INValidate (GINV) ASE instructions.\n"
+msgstr "розпізнавати інструкції Global INValidate (GINV) ASE.\n"
+
+#: mips-dis.c:2758
+msgid "Recognize the Loongson MultiMedia extensions Instructions (MMI) ASE instructions.\n"
+msgstr "Розпізнавати інструкції мультимедійних розширень Loongson (MMI) ASE.\n"
+
+#: mips-dis.c:2762
+msgid "Recognize the Loongson Content Address Memory (CAM)  instructions.\n"
+msgstr "розпізнавати інструкції Loongson Content Address Memory (CAM).\n"
+
+#: mips-dis.c:2766
+msgid "Recognize the Loongson EXTensions (EXT)  instructions.\n"
+msgstr "розпізнавати інструкції Loongson EXTensions (EXT).\n"
+
+#: mips-dis.c:2770
+msgid "Recognize the Loongson EXTensions R2 (EXT2)  instructions.\n"
+msgstr "розпізнавати інструкції Loongson EXTensions R2 (EXT2).\n"
+
+#: mips-dis.c:2773
+msgid ""
+"Print GPR names according to specified ABI.\n"
+"                  Default: based on binary being disassembled.\n"
+msgstr ""
+"виводити назви GPR відповідно до вказаного ABI.\n"
+"                           Типове значення: визначається на основі файла, що\n"
+"                           дизасемблюється.\n"
+
+#: mips-dis.c:2776
+msgid ""
+"Print FPR names according to specified ABI.\n"
+"                  Default: numeric.\n"
+msgstr ""
+"виводити назви FPR відповідно до вказаного ABI.\n"
+"                           Типове значення: numeric.\n"
+
+#: mips-dis.c:2779
+msgid ""
+"Print CP0 register names according to specified architecture.\n"
+"                  Default: based on binary being disassembled.\n"
+msgstr ""
+"виводити назви регістрів CP0 у\n"
+"                           вказаній архітектурі.\n"
+"                           Типове значення: визначається за файлом, який дизасемблюється.\n"
+
+#: mips-dis.c:2783
+msgid ""
+"Print HWR names according to specified architecture.\n"
+"                  Default: based on binary being disassembled.\n"
+msgstr ""
+"виводити назви GPR відповідно до вказаного ABI.\n"
+"                           Типове значення: визначається на основі файла, що\n"
+"                           дизасемблюється.\n"
+
+#: mips-dis.c:2786
+msgid "Print GPR and FPR names according to specified ABI.\n"
+msgstr "виводити назви GPR і FPR відповідно до вказаного ABI.\n"
+
+#: mips-dis.c:2788
+msgid ""
+"Print CP0 register and HWR names according to specified\n"
+"                  architecture."
+msgstr ""
+"виводити назви регістрів CP0 і HWR у\n"
+"                  вказаній архітектурі."
+
+#: mips-dis.c:2874
+#, c-format
+msgid ""
+"\n"
+"The following MIPS specific disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+"\n"
+msgstr ""
+"\n"
+"З перемикачем -M можна використовувати такі специфічні для MIPS параметри\n"
+"дизасемблера (декілька параметрів слід відокремлювати комами):\n"
+"\n"
+
+#: mmix-dis.c:33
+#, c-format
+msgid "bad case %d (%s) in %s:%d"
+msgstr "помилковий випадок %d (%s) у %s:%d"
+
+#: mmix-dis.c:42
+#, c-format
+msgid "internal: non-debugged code (test-case missing): %s:%d"
+msgstr "внутрішнє: недіагностований код (не вистачає прикладу для тестування): %s:%d"
+
+#: mmix-dis.c:52
+msgid "(unknown)"
+msgstr "(невідомо)"
+
+#: mmix-dis.c:247 mmix-dis.c:255
+msgid "*illegal*"
+msgstr "*заборонено*"
+
+#: mmix-dis.c:529
+#, c-format
+msgid "*unknown operands type: %d*"
+msgstr "*невідомий тип операндів: %d*"
+
+#: msp430-decode.opc:145 rl78-decode.opc:106
+#, c-format
+msgid "internal error: immediate() called with invalid byte count %d"
+msgstr "внутрішня помилка: immediate() викликано із некоректною кількістю байтів %d"
+
+#: msp430-dis.c:59
+#, c-format
+msgid "Warning: disassembly unreliable - not enough bytes available"
+msgstr "Попередження: дизасемблювання є ненадійним — надто мало доступних байтів"
+
+#: msp430-dis.c:65
+#, c-format
+msgid "Error: read from memory failed"
+msgstr "Помилка: не вдалося прочитати з пам’яті"
+
+#: msp430-dis.c:499
+msgid "Warning: illegal as emulation instr"
+msgstr "Попередження: некоректна інструкція під час емуляції"
+
+#. R2/R3 are illegal as dest: may be data section.
+#: msp430-dis.c:591
+msgid "Warning: illegal as 2-op instr"
+msgstr "Попередження: некоректне як 2-операторна інструкція"
+
+#: msp430-dis.c:1002
+msgid "Warning: unrecognised CALLA addressing mode"
+msgstr "Попередження: нерозпізнаний режим адресування CALLA"
+
+#: msp430-dis.c:1303 msp430-dis.c:1324 msp430-dis.c:1345
+#, c-format
+msgid "Warning: reserved use of A/L and B/W bits detected"
+msgstr "Попередження: виявлено зарезервоване використання бітів A/L і B/W"
+
+#: mt-asm.c:110 mt-asm.c:190
+msgid "Operand out of range. Must be between -32768 and 32767."
+msgstr "Операнд лежить поза межами можливого діапазону. Він має належати проміжку від -32768 до 32767."
+
+#: mt-asm.c:149
+msgid "Biiiig Trouble in parse_imm16!"
+msgstr "ВЕЛИКІ проблеми у parse_imm16!"
+
+#: mt-asm.c:157
+msgid "The percent-operator's operand is not a symbol"
+msgstr "Операнд оператора з відсотком не є символом"
+
+#: mt-asm.c:395
+msgid "invalid operand.  type may have values 0,1,2 only."
+msgstr "некоректний операнд. Тип може мати лише значення 0,1,2."
+
+#: mt-desc.c:1147
+#, c-format
+msgid "internal error: mt_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "внутрішня помилка: mt_cgen_rebuild_tables: конфлікт значень insn-chunk-bitsize: «%d» і «%d»"
+
+#: mt-desc.c:1235
+#, c-format
+msgid "internal error: mt_cgen_cpu_open: unsupported argument `%d'"
+msgstr "внутрішня помилка: mt_cgen_cpu_open: непідтримуваний аргумент «%d»"
+
+#: mt-desc.c:1254
+#, c-format
+msgid "internal error: mt_cgen_cpu_open: no endianness specified"
+msgstr "внутрішня помилка: mt_cgen_cpu_open: не визначено порядок байтів"
+
+#: nds32-asm.c:1760
+#, c-format
+msgid "internal error: unknown operand, %s"
+msgstr "внутрішня помилка: невідомий операнд, %s"
+
+#: nds32-asm.c:2396
+#, c-format
+msgid "internal error: don't know how to handle parsing results"
+msgstr "внутрішня помилка: невідомий спосіб роботи з результатами обробки"
+
+#: nds32-asm.c:2404
+#, c-format
+msgid "internal error: unknown hardware resource"
+msgstr "внутрішня помилка: невідомий апаратний ресурс"
+
+#: nds32-dis.c:1178
+msgid "insufficient data to decode instruction"
+msgstr "недостатньо даних для декодування інструкції"
+
+#: nfp-dis.c:930
+msgid "<invalid_instruction>:"
+msgstr "<некоректна_інструкція>:"
+
+#: nfp-dis.c:1334
+msgid ", <invalid CRC operator>, "
+msgstr ", <некоректний оператор CRC>, "
+
+#: nfp-dis.c:1686
+msgid "<invalid branch>["
+msgstr "<некоректна гілка>["
+
+#: nfp-dis.c:2055 nfp-dis.c:2326
+#, c-format
+msgid "<invalid cmd target %d:%d:%d>[]"
+msgstr "<некоректна ціль команди %d:%d:%d>[]"
+
+#: nfp-dis.c:2066 nfp-dis.c:2337
+#, c-format
+msgid "<invalid cmd action %d:%d:%d>[]"
+msgstr "<некоректна дія команди %d:%d:%d>[]"
+
+#: nfp-dis.c:2558
+msgid "File has no ME-Config section."
+msgstr "У файлі немає розділу ME-Config."
+
+#: nfp-dis.c:2572
+msgid "File has invalid ME-Config section."
+msgstr "У файлі некоректний розділ ME-Config."
+
+#: nfp-dis.c:2719
+#, c-format
+msgid "Error processing section %u "
+msgstr "Помилка під час обробки розділу %u "
+
+#: nfp-dis.c:2748
+#, c-format
+msgid "Invalid NFP option: %s"
+msgstr "Некоректний параметр NFP: %s"
+
+#: nfp-dis.c:2986
+#, c-format
+msgid ""
+"\n"
+"The following NFP specific disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"З перемикачем -M можна використовувати такі специфічні для NFP параметри\n"
+"дизасемблера (декілька параметрів слід відокремлювати комами):\n"
+
+#: nfp-dis.c:2990
+#, c-format
+msgid ""
+"\n"
+"  no-pc\t\t    Don't print program counter prefix.\n"
+"  ctx4\t\t    Force disassembly using 4-context mode.\n"
+"  ctx8\t\t    Force 8-context mode, takes precedence."
+msgstr ""
+"\n"
+"  no-pc\t\t    не виводити префікс лічильника програми.\n"
+"  ctx4\t\t    примусове дизасемблювання за допомогою 4-контекстного режиму.\n"
+"  ctx8\t\t    примусовий 8-контекстний режим, має пріоритет."
+
+#: nios2-dis.c:135
+#, c-format
+msgid "out of memory"
+msgstr "недостатньо пам'яті"
+
+#: nios2-dis.c:263
+#, c-format
+msgid "internal error: broken opcode descriptor for `%s %s'"
+msgstr "внутрішня помилка: пошкоджений дескриптор коду операції для «%s %s»"
+
+#. I and Z are output operands and can`t be immediate
+#. A is an address and we can`t have the address of
+#. an immediate either. We don't know how much to increase
+#. aoffsetp by since whatever generated this is broken
+#. anyway!
+#: ns32k-dis.c:533
+#, c-format
+msgid "$<undefined>"
+msgstr "$<не визначено>"
+
+#: or1k-asm.c:55
+msgid "relocation invalid for store"
+msgstr "некоректне пересування для сховища даних"
+
+#: or1k-asm.c:56
+msgid "internal relocation type invalid"
+msgstr "некоректний тип внутрішнього пересування"
+
+#: or1k-desc.c:2041
+#, c-format
+msgid "internal error: or1k_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "внутрішня помилка: or1k_cgen_rebuild_tables: конфлікт значень insn-chunk-bitsize: «%d» і «%d»"
+
+#: or1k-desc.c:2129
+#, c-format
+msgid "internal error: or1k_cgen_cpu_open: unsupported argument `%d'"
+msgstr "внутрішня помилка: or1k_cgen_cpu_open: непідтримуваний аргумент «%d»"
+
+#: or1k-desc.c:2148
+#, c-format
+msgid "internal error: or1k_cgen_cpu_open: no endianness specified"
+msgstr "внутрішня помилка: or1k_cgen_cpu_open: не визначено порядок байтів"
+
+#: ppc-dis.c:418
+#, c-format
+msgid "warning: ignoring unknown -M%s option"
+msgstr "попередження: ігноруємо невідомий параметр -M%s"
+
+#: ppc-dis.c:1256
+#, c-format
+msgid ""
+"\n"
+"The following PPC specific disassembler options are supported for use with\n"
+"the -M switch:\n"
+msgstr ""
+"\n"
+"З перемикачем -M можна використовувати такі специфічні для PPC параметри\n"
+"дизасемблера:\n"
+
+#: ppc-opc.c:52 ppc-opc.c:75 ppc-opc.c:101 ppc-opc.c:131
+msgid "invalid register"
+msgstr "некоректний регістр"
+
+#: ppc-opc.c:397
+msgid "invalid conditional option"
+msgstr "некоректна умова"
+
+#: ppc-opc.c:400
+msgid "invalid counter access"
+msgstr "некоректний доступ до лічильника"
+
+#: ppc-opc.c:464
+msgid "BO value implies no branch hint, when using + or - modifier"
+msgstr "значення BO вказує на те, що не буде підказки щодо розгалуження, якщо використано модифікатор + або -"
+
+#: ppc-opc.c:469
+msgid "attempt to set y bit when using + or - modifier"
+msgstr "спроба встановити біт y під час використання модифікатора + або -"
+
+#: ppc-opc.c:471
+msgid "attempt to set 'at' bits when using + or - modifier"
+msgstr "спроба встановити біт «at» під час використання модифікатора + або -"
+
+#: ppc-opc.c:575
+msgid "invalid offset: must be in the range [-512, -8] and be a multiple of 8"
+msgstr "некоректний зсув: має бути у діапазоні [-512, -8] і бути кратним до 8"
+
+#: ppc-opc.c:706
+msgid "invalid R operand"
+msgstr "некоректний операнд R"
+
+#: ppc-opc.c:761
+msgid "invalid mask field"
+msgstr "некоректне поле маски"
+
+#: ppc-opc.c:784
+msgid "invalid mfcr mask"
+msgstr "некоректна маска mfcr"
+
+#: ppc-opc.c:902 ppc-opc.c:920
+msgid "illegal L operand value"
+msgstr "некоректне значення операнда L"
+
+#: ppc-opc.c:943
+msgid "illegal WC operand value"
+msgstr "некоректне значення операнда WC"
+
+#: ppc-opc.c:1040
+msgid "incompatible L operand value"
+msgstr "несумісне значення операнда L"
+
+#: ppc-opc.c:1239 ppc-opc.c:1274
+msgid "illegal bitmask"
+msgstr "некоректна бітова маска"
+
+#: ppc-opc.c:1418
+msgid "address register in load range"
+msgstr "регістр адреси у діапазоні завантаження"
+
+#: ppc-opc.c:1458
+msgid "illegal PL operand value"
+msgstr "некоректне значення операнда PL"
+
+#: ppc-opc.c:1539
+msgid "index register in load range"
+msgstr "регістр індексу у діапазоні завантаження"
+
+#: ppc-opc.c:1568 ppc-opc.c:1654
+msgid "source and target register operands must be different"
+msgstr "регістрові операнди джерела і призначення мають бути різними"
+
+#: ppc-opc.c:1599
+msgid "invalid register operand when updating"
+msgstr "некоректний операнд регістра під час оновлення"
+
+#: ppc-opc.c:1717
+msgid "illegal immediate value"
+msgstr "некоректна константа"
+
+#: ppc-opc.c:2024
+msgid "invalid bat number"
+msgstr "некоректний номер bat"
+
+#: ppc-opc.c:2059
+msgid "invalid sprg number"
+msgstr "некоректний номер sprg"
+
+#: ppc-opc.c:2096
+msgid "invalid tbr number"
+msgstr "некоректний номер tbr"
+
+#: ppc-opc.c:2203 ppc-opc.c:2271
+msgid "VSR overlaps ACC operand"
+msgstr "VSR перекриває операнд ACC"
+
+#: ppc-opc.c:2380
+msgid "invalid constant"
+msgstr "некоректна константа"
+
+#: ppc-opc.c:2482 ppc-opc.c:2505 ppc-opc.c:2528 ppc-opc.c:2551
+msgid "UIMM = 00000 is illegal"
+msgstr "UIMM = 00000 є некоректним"
+
+#: ppc-opc.c:2574
+msgid "UIMM values >7 are illegal"
+msgstr "Значення UIMM > 7 є некоректними"
+
+#: ppc-opc.c:2597
+msgid "UIMM values >15 are illegal"
+msgstr "Значення UIMM > 15 є некоректними"
+
+#: ppc-opc.c:2620
+msgid "GPR odd is illegal"
+msgstr "Непарне GPR є некоректним"
+
+#: ppc-opc.c:2643 ppc-opc.c:2666
+msgid "invalid offset"
+msgstr "некоректний зсув"
+
+#: ppc-opc.c:2689
+msgid "invalid Ddd value"
+msgstr "некоректне значення Ddd"
+
+#: ppc-opc.c:2742 ppc-opc.c:2769
+msgid "invalid TH value"
+msgstr "некоректне значення TH"
+
+#. The option without '=' should be defined above.
+#: riscv-dis.c:120 riscv-dis.c:157
+#, c-format
+msgid "unrecognized disassembler option: %s"
+msgstr "невідомий параметр дизасемблювання: %s"
+
+#. Invalid options with '=', no option name before '=',
+#. and no value after '='.
+#: riscv-dis.c:128
+#, c-format
+msgid "unrecognized disassembler option with '=': %s"
+msgstr "невідомий параметр дизасемблювання з «=»: %s"
+
+#: riscv-dis.c:142
+#, c-format
+msgid "unknown privileged spec set by %s=%s"
+msgstr "невідома специфікація прав доступу, яку встановлено інструкцією %s=%s"
+
+#: riscv-dis.c:149
+#, c-format
+msgid "mis-matched privilege spec set by %s=%s, the elf privilege attribute is %s"
+msgstr "встановлено невідповідну специфікацію привілеїв за допомогою %s=%s, атрибут привілеїв elf дорівнює %s"
+
+#: riscv-dis.c:670
+#, c-format
+msgid "# internal error, undefined modifier (%c)"
+msgstr "# внутрішня помилка, невизначений модифікатор (%c)"
+
+#: riscv-dis.c:1238
+msgid "Print numeric register names, rather than ABI names."
+msgstr "вивести числові назви регістрів, а не назви в ABI."
+
+#: riscv-dis.c:1241
+msgid "Disassemble only into canonical instructions."
+msgstr "Виконати дизасемблювання лише до канонічних інструкцій."
+
+#: riscv-dis.c:1244
+msgid "Print the CSR according to the chosen privilege spec."
+msgstr "вивести CSR відповідно до вибраної специфікації прав доступу."
+
+#: riscv-dis.c:1320
+#, c-format
+msgid ""
+"\n"
+"The following RISC-V specific disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"З перемикачем -M можна використовувати такі специфічні для RISC-V параметри\n"
+"дизасемблера (декілька параметрів слід відокремлювати комами):\n"
+
+#: rx-dis.c:139 rx-dis.c:163 rx-dis.c:171 rx-dis.c:179 rx-dis.c:187
+msgid "<invalid register number>"
+msgstr "<некоректний номер регістра>"
+
+#: rx-dis.c:147 rx-dis.c:195
+msgid "<invalid condition code>"
+msgstr "<некоректний код умови>"
+
+#: rx-dis.c:155
+msgid "<invalid flag>"
+msgstr "<некоректний прапорець>"
+
+#: rx-dis.c:203
+msgid "<invalid opsize>"
+msgstr "<некоретний розмір операції>"
+
+#: rx-dis.c:211
+msgid "<invalid size>"
+msgstr "<некоректний розмір>"
+
+#: s12z-dis.c:239 s12z-dis.c:296 s12z-dis.c:307
+msgid "<illegal reg num>"
+msgstr "<некоректний номер регістра>"
+
+#: s12z-dis.c:370
+msgid "<bad>"
+msgstr "<помилка>"
+
+#: s12z-dis.c:380
+msgid ".<bad>"
+msgstr ".<помилка>"
+
+#: s390-dis.c:42
+msgid "Disassemble in ESA architecture mode"
+msgstr "дизасемблювати у режимі архітектури ESA"
+
+#: s390-dis.c:43
+msgid "Disassemble in z/Architecture mode"
+msgstr "дизасемблювати у режимі z/Architecture"
+
+#: s390-dis.c:44
+msgid "Print unknown instructions according to length from first two bits"
+msgstr "Вивести невідомі інструкції відповідно до довжини з перших двох бітів"
+
+#: s390-dis.c:76
+#, c-format
+msgid "unknown S/390 disassembler option: %s"
+msgstr "невідомий параметр дизасемблювання S/390: %s"
+
+#: s390-dis.c:471
+#, c-format
+msgid ""
+"\n"
+"The following S/390 specific disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"З перемикачем -M можна використовувати такі специфічні для S/390 параметри\n"
+"дизасемблера (декілька параметрів слід відокремлювати комами):\n"
+
+#: score-dis.c:653 score-dis.c:871 score-dis.c:1032 score-dis.c:1138
+#: score-dis.c:1146 score-dis.c:1153 score7-dis.c:691 score7-dis.c:854
+msgid "<illegal instruction>"
+msgstr "<некоректна інструкція>"
+
+#: sparc-dis.c:308 sparc-dis.c:318
+#, c-format
+msgid "internal error: bad sparc-opcode.h: \"%s\", %#.8lx, %#.8lx\n"
+msgstr "внутрішня помилка: помилка у файлі sparc-opcode.h: «%s», %#.8lx, %#.8lx\n"
+
+#: sparc-dis.c:377
+#, c-format
+msgid "internal error: bad sparc-opcode.h: \"%s\" == \"%s\"\n"
+msgstr "внутрішня помилка: помилка у sparc-opcode.h: «%s» == «%s»\n"
+
+#. Mark as non-valid instruction.
+#: sparc-dis.c:1094
+msgid "unknown"
+msgstr "невідома"
+
+#: v850-dis.c:190
+msgid "<invalid s-reg number>"
+msgstr "<некоректний номер s-регістра>"
+
+#: v850-dis.c:206
+msgid "<invalid reg number>"
+msgstr "<некоректний номер регістра>"
+
+#: v850-dis.c:222
+msgid "<invalid v-reg number>"
+msgstr "<некоректний номер v-регістра>"
+
+#: v850-dis.c:236
+msgid "<invalid CC-reg number>"
+msgstr "<некоректний номер CC-регістра>"
+
+#: v850-dis.c:250
+msgid "<invalid float-CC-reg number>"
+msgstr "<некоректний номер float-CC-регістра>"
+
+#: v850-dis.c:264
+msgid "<invalid cacheop number>"
+msgstr "<некоректний номер cacheop>"
+
+#: v850-dis.c:275
+msgid "<invalid prefop number>"
+msgstr "<некоректний номер prefop>"
+
+#: v850-dis.c:510
+#, c-format
+msgid "unknown operand shift: %x"
+msgstr "невідомий зсув операнда: %x"
+
+#: v850-dis.c:526
+#, c-format
+msgid "unknown reg: %d"
+msgstr "невідомий регістр: %d"
+
+#. The functions used to insert and extract complicated operands.
+#. Note: There is a conspiracy between these functions and
+#. v850_insert_operand() in gas/config/tc-v850.c.  Error messages
+#. containing the string 'out of range' will be ignored unless a
+#. specific command line option is given to GAS.
+#: v850-opc.c:53
+msgid "displacement value is not in range and is not aligned"
+msgstr "значення зсуву не перебуває у допустимому діапазоні, його також не вирівняно"
+
+#: v850-opc.c:54
+msgid "displacement value is out of range"
+msgstr "значення зсуву не перебуває у допустимому діапазоні"
+
+#: v850-opc.c:55
+msgid "displacement value is not aligned"
+msgstr "значення зсуву не вирівняно"
+
+#: v850-opc.c:57
+msgid "immediate value is out of range"
+msgstr "поточне значення поза межами діапазону"
+
+#: v850-opc.c:58
+msgid "branch value out of range"
+msgstr "значення відгалуження поза межами діапазону"
+
+#: v850-opc.c:59
+msgid "branch value not in range and to odd offset"
+msgstr "значення відгалуження поза межами діапазону і визначає непарне зміщення"
+
+#: v850-opc.c:60
+msgid "branch to odd offset"
+msgstr "відгалуження за непарним зміщенням"
+
+#: v850-opc.c:61
+msgid "position value is out of range"
+msgstr "значення позиції поза межами діапазону"
+
+#: v850-opc.c:62
+msgid "width value is out of range"
+msgstr "значення ширини поза межами припустимого діапазону"
+
+#: v850-opc.c:63
+msgid "SelID is out of range"
+msgstr "SelID поза межами припустимого діапазону"
+
+#: v850-opc.c:64
+msgid "vector8 is out of range"
+msgstr "vector8 поза межами припустимого діапазону"
+
+#: v850-opc.c:65
+msgid "vector5 is out of range"
+msgstr "vector5 поза межами припустимого діапазону"
+
+#: v850-opc.c:66
+msgid "imm10 is out of range"
+msgstr "imm10 поза межами припустимого діапазону"
+
+#: v850-opc.c:67
+msgid "SR/SelID is out of range"
+msgstr "SR/SelID поза межами припустимого діапазону"
+
+#: v850-opc.c:508
+msgid "invalid register for stack adjustment"
+msgstr "некоректний регістр для узгодження стека"
+
+#: v850-opc.c:526
+msgid "invalid register name"
+msgstr "некоректна назва регістра"
+
+#: wasm32-dis.c:93
+msgid "Disassemble \"register\" names"
+msgstr "Дизасемблювати назви «register»"
+
+#: wasm32-dis.c:94
+msgid "Name well-known globals"
+msgstr "Називати добре відомі загальні"
+
+#: wasm32-dis.c:549
+#, c-format
+msgid ""
+"The following WebAssembly-specific disassembler options are supported for use\n"
+"with the -M switch:\n"
+msgstr ""
+"З перемикачем -M можна використовувати такі специфічні для WebAssembly параметри\n"
+"дизасемблера:\n"
+
+#: xstormy16-asm.c:71
+msgid "Bad register in preincrement"
+msgstr "Помилковий регістр у передзбільшенні"
+
+#: xstormy16-asm.c:76
+msgid "Bad register in postincrement"
+msgstr "Помилковий регістр у післязбільшенні"
+
+#: xstormy16-asm.c:78
+msgid "Bad register name"
+msgstr "Помилкова назва регістра"
+
+#: xstormy16-asm.c:82
+msgid "Label conflicts with register name"
+msgstr "Мітка конфліктує з назвою регістра"
+
+#: xstormy16-asm.c:86
+msgid "Label conflicts with `Rx'"
+msgstr "Мітка конфліктує з «Rx»"
+
+#: xstormy16-asm.c:88
+msgid "Bad immediate expression"
+msgstr "Помилковий вираз поточного значення"
+
+#: xstormy16-asm.c:109
+msgid "No relocation for small immediate"
+msgstr "Немає пересування для малого поточного значення"
+
+#: xstormy16-asm.c:119
+msgid "Small operand was not an immediate number"
+msgstr "Малий операнд не був числовим поточним значенням"
+
+#: xstormy16-asm.c:157
+msgid "Operand is not a symbol"
+msgstr "Операнд не є символом"
+
+#: xstormy16-asm.c:165
+msgid "Syntax error: No trailing ')'"
+msgstr "Синтаксична помилка: не вистачає завершального «)»"
+
+#: xstormy16-desc.c:1318
+#, c-format
+msgid "internal error: xstormy16_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "внутрішня помилка: xstormy16_cgen_rebuild_tables: конфлікт значень insn-chunk-bitsize: «%d» і «%d»"
+
+#: xstormy16-desc.c:1406
+#, c-format
+msgid "internal error: xstormy16_cgen_cpu_open: unsupported argument `%d'"
+msgstr "внутрішня помилка: xstormy16_cgen_cpu_open: непідтримуваний аргумент «%d»"
+
+#: xstormy16-desc.c:1425
+#, c-format
+msgid "internal error: xstormy16_cgen_cpu_open: no endianness specified"
+msgstr "внутрішня помилка: xstormy16_cgen_cpu_open: не визначено порядок байтів"
+
+#~ msgid "z0-z15 expected"
+#~ msgstr "мало бути z0-z15"
+
+#~ msgid "z0-z7 expected"
+#~ msgstr "мало бути z0-z7"
+
+#~ msgid "invalid register list"
+#~ msgstr "некоректний список регістрів"
+
+#~ msgid "p0-p7 expected"
+#~ msgstr "мало бути p0-p7"
+
+#~ msgid "%s: error: "
+#~ msgstr "%s: помилка: "
+
+#~ msgid "%s: %d: unknown bitfield: %s\n"
+#~ msgstr "%s: %d: невідоме бітове поле: %s\n"
+
+#~ msgid "unknown bitfield: %s\n"
+#~ msgstr "невідоме бітове поле: %s\n"
+
+#~ msgid "%s: %d: missing `)' in bitfield: %s\n"
+#~ msgstr "%s: %d: не вистачає «)» у бітовому полі: %s\n"
+
+#~ msgid "%s: %d: no memory operand\n"
+#~ msgstr "%s: %d: немає операнда пам'яті\n"
+
+#~ msgid "%s: %d: unknown element size: %s\n"
+#~ msgstr "%s: %d: невідомий розмір елемента: %s\n"
+
+#~ msgid "%s:%d: Conflicting opcode space specifications\n"
+#~ msgstr "%s:%d: конфліктні специфікації простору коду операцій\n"
+
+#~ msgid "%s:%d: Warning: redundant opcode space specification\n"
+#~ msgstr "%s:%d: попередження: надлишкова специфікація простору кодів операцій\n"
+
+#~ msgid "%s:%d: Conflicting prefix specifications\n"
+#~ msgstr "%s:%d: конфлікт специфікацій префіксів\n"
+
+#~ msgid "%s:%d: Warning: redundant prefix specification\n"
+#~ msgstr "%s:%d: попередження: надлишкова специфікація префікса\n"
+
+#~ msgid "%s:%d: %s: unrecognized opcode encoding space\n"
+#~ msgstr "%s:%d: %s: нерозпізнаний простір кодування кодів операцій\n"
+
+#~ msgid "%s:%d: %s: residual opcode (0x%0*llx) too large\n"
+#~ msgstr "%s:%d: %s: залишковий код операції (0x%0*llx) є надто великим\n"
+
+#~ msgid "%s: %d: (continued) line too long\n"
+#~ msgstr "%s: %d: (продовження) надто довгий рядок\n"
+
+#~ msgid "can't find i386-reg.tbl for reading, errno = %s\n"
+#~ msgstr "не вдалося знайти i386-reg.tbl для читання, номер помилки = %s\n"
+
+#~ msgid "can't create i386-init.h, errno = %s\n"
+#~ msgstr "не вдалося створити i386-init.h, номер помилки = %s\n"
+
+#~ msgid "unable to change directory to \"%s\", errno = %s\n"
+#~ msgstr "не вдалося змінити каталог на «%s», номер помилки = %s\n"
+
+#~ msgid "CpuMax != %d!\n"
+#~ msgstr "CpuMax != %d!\n"
+
+#~ msgid "%d unused bits in i386_cpu_flags.\n"
+#~ msgstr "%d невикористаних бітів у i386_cpu_flags.\n"
+
+#~ msgid "%d unused bits in i386_operand_type.\n"
+#~ msgstr "%d невикористаних бітів у i386_operand_type.\n"
+
+#~ msgid "can't create i386-tbl.h, errno = %s\n"
+#~ msgstr "не вдалося створити i386-tbl.h, номер помилки = %s\n"
+
+#~ msgid "%s: Error: "
+#~ msgstr "%s: помилка: "
+
+#~ msgid "%s: Warning: "
+#~ msgstr "%s: попередження: "
+
+#~ msgid "multiple note %s not handled\n"
+#~ msgstr "обробки декількох нотаток %s не передбачено\n"
+
+#~ msgid "can't find ia64-ic.tbl for reading\n"
+#~ msgstr "не вдалося знайти ia64-ic.tbl для читання\n"
+
+#~ msgid "can't find %s for reading\n"
+#~ msgstr "не вдалося знайти %s для читання\n"
+
+#~ msgid ""
+#~ "most recent format '%s'\n"
+#~ "appears more restrictive than '%s'\n"
+#~ msgstr ""
+#~ "найсвіжіший формат, «%s»,\n"
+#~ "є більш обмежувальним ніж «%s»\n"
+
+#~ msgid "overlapping field %s->%s\n"
+#~ msgstr "перекриття у полі %s->%s\n"
+
+#~ msgid "overwriting note %d with note %d (IC:%s)\n"
+#~ msgstr "перезапис нотатки %d нотаткою %d (IC:%s)\n"
+
+#~ msgid "don't know how to specify %% dependency %s\n"
+#~ msgstr "невідомий спосіб визначення залежності %%, %s\n"
+
+#~ msgid "Don't know how to specify # dependency %s\n"
+#~ msgstr "Невідомий спосіб визначення залежності #, %s\n"
+
+#~ msgid "IC:%s [%s] has no terminals or sub-classes\n"
+#~ msgstr "IC:%s [%s] не має терміналів або підкласів\n"
+
+#~ msgid "IC:%s has no terminals or sub-classes\n"
+#~ msgstr "IC:%s не має терміналів або підкласів\n"
+
+#~ msgid "no insns mapped directly to terminal IC %s [%s]"
+#~ msgstr "немає інструкцій, які безпосередньо відображаються на термінал IC %s [%s]"
+
+#~ msgid "no insns mapped directly to terminal IC %s\n"
+#~ msgstr "немає інструкцій, які безпосередньо відображаються на термінал IC %s\n"
+
+#~ msgid "class %s is defined but not used\n"
+#~ msgstr "клас %s визначено, але не використано\n"
+
+#~ msgid "Warning: rsrc %s (%s) has no chks\n"
+#~ msgstr "Попередження: rsrc %s (%s) не має chks\n"
+
+#~ msgid "Warning: rsrc %s (%s) has no chks or regs\n"
+#~ msgstr "Попередження: rsrc %s (%s) не має chks або regs\n"
+
+#~ msgid "rsrc %s (%s) has no regs\n"
+#~ msgstr "rsrc %s (%s) не містить регістрів\n"
+
+#~ msgid "IC note %d in opcode %s (IC:%s) conflicts with resource %s note %d\n"
+#~ msgstr "IC-нотатка %d у коді операції %s (IC:%s) конфліктує з ресурсом %s, нотатка %d\n"
+
+#~ msgid "IC note %d for opcode %s (IC:%s) conflicts with resource %s note %d\n"
+#~ msgstr "IC-нотатка %d для коду операції %s (IC:%s) конфліктує з ресурсом %s, нотатка %d\n"
+
+#~ msgid "opcode %s has no class (ops %d %d %d)\n"
+#~ msgstr "код операції %s не має класу (операції %d %d %d)\n"
+
+#~ msgid "unknown broadcast operand: %s\n"
+#~ msgstr "невідомий операнд трансляції: %s\n"
+
+#~ msgid "Missing '#' prefix"
+#~ msgstr "Не вистачає префікса «#»"
+
+#~ msgid "Missing '.' prefix"
+#~ msgstr "Не вистачає префікса «.»"
+
+#~ msgid "Missing 'pof:' prefix"
+#~ msgstr "Не вистачає префікса «pof:»"
+
+#~ msgid "Missing 'pag:' prefix"
+#~ msgstr "Не вистачає префікса «pag:»"
+
+#~ msgid "Missing 'sof:' prefix"
+#~ msgstr "Не вистачає префікса «sof:»"
+
+#~ msgid "Missing 'seg:' prefix"
+#~ msgstr "Не вистачає префікса «seg:»"
+
+#~ msgid "internal error: xc16x_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+#~ msgstr "внутрішня помилка: xc16x_cgen_rebuild_tables: конфлікт значень insn-chunk-bitsize: «%d» і «%d»"
+
+#~ msgid "internal error: xc16x_cgen_cpu_open: unsupported argument `%d'"
+#~ msgstr "внутрішня помилка: xc16x_cgen_cpu_open: непідтримуваний аргумент «%d»"
+
+#~ msgid "internal error: xc16x_cgen_cpu_open: no endianness specified"
+#~ msgstr "внутрішня помилка: xc16x_cgen_cpu_open: не визначено порядок байтів"
+
+#~ msgid ""
+#~ "\n"
+#~ "  no-aliases      Disassemble only into canonical instructions, rather\n"
+#~ "                  than into pseudoinstructions.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "  no-aliases      дизасемблювати лише у канонічні інструкції, а не у\n"
+#~ "                  псевдоінструкції.\n"
+
+#~ msgid "  dsp             Recognize DSP instructions.\n"
+#~ msgstr "  dsp             розпізнавати інструкції DSP.\n"
+
+#~ msgid "  spfp            Recognize FPX SP instructions.\n"
+#~ msgstr "  spfp            розпізнавати інструкції SP FPX.\n"
+
+#~ msgid "  dpfp            Recognize FPX DP instructions.\n"
+#~ msgstr "  dpfp            розпізнавати інструкції DP FPX.\n"
+
+#~ msgid "  nps400          Recognize NPS400 instructions.\n"
+#~ msgstr "  nps400          розпізнавати інструкції NPS400.\n"
+
+#~ msgid "%s: %s: (base_opcode >> 24) != 0: %s\n"
+#~ msgstr "%s: %s: (базовий_код_операції >> 24) != 0: %s\n"
+
+#~ msgid "%s: %s: (base_opcode >> 16) != 0: %s\n"
+#~ msgstr "%s: %s: (базовий_код_операції >> 16) != 0: %s\n"
+
+#~ msgid "%s: %s: (base_opcode >> 8) != 0: %s\n"
+#~ msgstr "%s: %s: (базовий_код_операції >> 8) != 0: %s\n"
+
+#~ msgid "%s: %s: base_opcode != 0: %s\n"
+#~ msgstr "%s: %s: базовий_код_операції != 0: %s\n"

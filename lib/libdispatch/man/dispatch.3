@@ -1,0 +1,43 @@
+.\" Copyright (c) 2008-2012 Apple Inc. All rights reserved.
+.Dd May 1, 2009
+.Dt dispatch 3
+.Os Darwin
+.Sh NAME
+.Nm dispatch
+.Nd the dispatch framework
+.Sh SYNOPSIS
+.Fd #include <dispatch/dispatch.h>
+.Sh DESCRIPTION
+The dispatch framework allows blocks to be scheduled for asynchronous and
+concurrent execution via the core functions described in
+.Xr dispatch_async 3 and
+.Xr dispatch_apply 3 .
+.Pp
+Dispatch queues are the basic units of organization of blocks. Several queues
+are created by default, and applications may create additional queues for their
+own use. See
+.Xr dispatch_queue_create 3
+for more information.
+.Pp
+Dispatch groups allow applications to track the progress of blocks submitted to
+queues and take action when the blocks complete. See
+.Xr dispatch_group_create 3
+for more information.
+.Pp
+The dispatch framework also provides functions to monitor underlying system
+events and automatically submit event handler blocks to dispatch queues.
+.Sh SEE ALSO
+.Xr dispatch_after 3 ,
+.Xr dispatch_api 3 ,
+.Xr dispatch_apply 3 ,
+.Xr dispatch_async 3 ,
+.Xr dispatch_data_create 3 ,
+.Xr dispatch_group_create 3 ,
+.Xr dispatch_io_create 3 ,
+.Xr dispatch_io_read 3 ,
+.Xr dispatch_object 3 ,
+.Xr dispatch_once 3 ,
+.Xr dispatch_queue_create 3 ,
+.Xr dispatch_semaphore_create 3 ,
+.Xr dispatch_source_create 3 ,
+.Xr dispatch_time 3

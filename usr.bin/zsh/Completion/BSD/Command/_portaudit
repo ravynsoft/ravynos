@@ -1,0 +1,14 @@
+#compdef portaudit
+
+_arguments -s \
+    '-a[vulnerability report for all installed packages]' \
+    '-C[vulnerability report for the port in the current working directory]' \
+    '-d[print creation date of the database]' \
+    '-F[fetch the current database]' \
+    '-q[quiet mode]' \
+    '-V[show portaudit version number]' \
+    '-v[verbose mode]' \
+    '-X[download a fresh database from least days old]:days:' \
+    '-f[check the packages listed in file]:file:_files' \
+    '-r[restrict listed vulnerabilities with eregex pattern]:eregex:' \
+    ':pkg-name:'

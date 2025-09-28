@@ -1,0 +1,339 @@
+# Tests for completion system.
+
+%prep
+  unset -m LC_\*
+  ZSH_TEST_LANG=
+  langs=(en_{US,GB}.{UTF-,utf}8 en.UTF-8
+         $(locale -a 2>/dev/null | egrep 'utf8|UTF-8'))
+  for LANG in $langs; do
+    if [[ é = ? ]]; then
+      ZSH_TEST_LANG=$LANG
+      break;
+    fi
+  done
+  if ( zmodload zsh/zpty 2>/dev/null ); then
+    . $ZTST_srcdir/comptest
+    mkdir comp.tmp
+    cd comp.tmp
+    comptestinit -z $ZTST_testdir/../Src/zsh &&
+    {
+      comptesteval 'compdef _tst tst'
+      mkdir dir1 &&
+      mkdir dir2 &&
+      touch file1 &&
+      touch file2
+    }
+  else
+    ZTST_unimplemented="the zsh/zpty module is not available"
+  fi
+
+%test
+
+  comptest $': \t\t\t\t\t\t\t'
+0:directories and files
+>line: {: }{}
+>DESCRIPTION:{file}
+>DI:{dir1}
+>DI:{dir2}
+>FI:{file1}
+>FI:{file2}
+>line: {: dir1/}{}
+>line: {: dir2/}{}
+>line: {: file1}{}
+>line: {: file2}{}
+>line: {: dir1/}{}
+>line: {: dir2/}{}
+
+  comptest $': *\t\t\t\t\t\t'
+0:_expand shows file types
+>line: {: dir1/}{}
+>DESCRIPTION:{expansions}
+>DI:{dir1}
+>DI:{dir2}
+>FI:{file1}
+>FI:{file2}
+>DESCRIPTION:{all expansions}
+>NO:{dir1 dir2 file1 file2}
+>DESCRIPTION:{original}
+>NO:{*}
+>line: {: dir2/}{}
+>line: {: file1 }{}
+>line: {: file2 }{}
+>line: {: dir1 dir2 file1 file2 }{}
+>line: {: *}{}
+
+  comptesteval $'zstyle \'*\' glob no'
+  comptesteval $'typeset -g tst=(*)'
+  comptest $': $tst\C-D'
+0:_expand preserves array form
+>DESCRIPTION:{expansions}
+>NO:{dir1}
+>NO:{dir2}
+>NO:{file1}
+>NO:{file2}
+
+  comptesteval $'zstyle -d \'*\' glob'
+  comptesteval '_users () { compadd user1 user2 }'
+  comptest $': ~\t\t\t\t\t'
+0:tilde
+>line: {: ~user}{}
+>line: {: ~user}{}
+>NO:{user1}
+>NO:{user2}
+>line: {: ~user1}{}
+>line: {: ~user2}{}
+>line: {: ~user1}{}
+
+  comptest $'echo ;:\C-b\C-b\t'
+0:directories and files before separator
+>line: {echo }{;:}
+>DESCRIPTION:{file}
+>DI:{dir1}
+>DI:{dir2}
+>FI:{file1}
+>FI:{file2}
+
+  # Temporarily modify format set in comptest
+  comptesteval 'zstyle -s ":completion:*:descriptions" format oldfmt'
+  comptesteval 'zstyle ":completion:*:descriptions" format \
+    ${oldfmt/>*</>%5F123abc%f %B123abc%b<}'
+  comptest $': \t'
+  comptesteval 'zstyle ":completion:*:descriptions" format $oldfmt'
+0:custom description with formatting sequences
+>line: {: }{}
+*>DESCRIPTION:{*123abc*123abc*~*F123*}
+>DI:{dir1}
+>DI:{dir2}
+>FI:{file1}
+>FI:{file2}
+F:regression test workers/42164
+
+# Depends on path assignment in comptestinit
+  comptesteval "path=( $ZTST_srcdir:A )"
+  comptest $'zt\t'
+0:command
+>line: {ztst.zsh }{}
+
+  comptesteval "path=( $ZTST_srcdir:A )"
+  comptest $':;zt\t'
+0:command after separator
+>line: {:;ztst.zsh }{}
+F:regression test workers/32182
+
+  comptest $'for f in 1; do < x\C-b\C-b\t'
+0:redirection after "for ...; do"
+>line: {for f in 1; do <}{ x}
+>DESCRIPTION:{file}
+>DI:{dir1}
+>DI:{dir2}
+>FI:{file1}
+>FI:{file2}
+F:regression test workers/31611
+
+  {
+    mkdir 'A(B)' 'A(B)/C'
+    comptest $'cd "A(B)\t\t'
+    comptesteval 'cd "A(B)/C"'
+    comptest $'cd ../\t'
+  } always {
+    comptesteval 'cd -' # Reset CWD
+    rmdir 'A(B)/C' 'A(B)'
+  }
+0:directory name is not a glob qualifier
+>line: {cd "A(B)/}{}
+>line: {cd "A(B)/C/}{}
+>line: {cd ../C/}{}
+
+  comptesteval '_tst() { compset -p 1; _message "${(qq)IPREFIX} ${(qq)PREFIX}" }'
+  comptest $'tst .\t'
+0:remove exact number of characters from a prefix
+>line: {tst .}{}
+>MESSAGE:{'.' ''}
+
+  comptesteval '_tst() { compset -s 3; _message "${(qq)SUFFIX} ${(qq)ISUFFIX}" }'
+  comptest $'tst 123\eb\t'
+0:remove exact number of characters from a suffix
+>line: {tst }{123}
+>MESSAGE:{'' '123'}
+
+  comptesteval '_tst() { compset -p 2; compset -p 3;compset -s 2;compset -s 3; _message "${(qq)PREFIX} ${(qq)SUFFIX}" }'
+  comptest $'tst 12345678\e4\C-b\t'
+0:try to remove excess characters from prefix and suffix
+>line: {tst 1234}{5678}
+>MESSAGE:{'34' '56'}
+
+  if [[ -z $ZSH_TEST_LANG ]]; then
+    ZTST_skip="no UTF-8 locale for multibyte completion test"
+  else
+    comptesteval '_tst() { compset -p 1; _message "${(qq)IPREFIX} ${(qq)PREFIX}" }'
+    comptest $'tst €100\t'
+  fi
+0:remove multibyte character from a prefix
+>line: {tst €100}{}
+>MESSAGE:{'€' '100'}
+
+  comptesteval "_tst() { compadd -U -s : -S / -I . word; compstate[to_end]= }"
+  comptest $'tst .\C-b\t'
+0:allow for suffixes when moving cursor to end of match (with ignored suffix)
+>line: {tst word:/}{.}
+
+  comptesteval "_tst() { compadd -s : -S / word; compstate[to_end]= }"
+  comptest $'tst \t'
+0:allow for suffixes when moving cursor to end of match (without ignored suffix)
+>line: {tst word:/}{}
+
+# Test for regression introduced by workers/41242, raised in workers/43842
+  if [[ $OSTYPE = cygwin ]]; then
+    ZTST_skip="\\ is equivalent to / in pathname on cygwin"
+  else
+  {
+    mkdir sortnobslash
+    touch sortnobslash/{'!foo','#foo','\foo','|foo','~foo',Afoo,bfoo}
+    comptesteval 'old_LC_ALL=$LC_ALL; LC_ALL=C'
+    comptest $': sortnobslash/\t'
+  } always {
+    comptesteval 'LC_ALL=$old_LC_ALL'
+    rm -rf sortnobslash
+  }
+  fi
+0:ignore backslashes when sorting completion matches
+>line: {: sortnobslash/}{}
+>DESCRIPTION:{file}
+>FI:{\!foo}
+>FI:{\#foo}
+>FI:{Afoo}
+>FI:{\\foo}
+>FI:{bfoo}
+>FI:{\|foo}
+>FI:{\~foo}
+
+  comptesteval "_tst() { compadd -onum,rev -J versions r1.10 r1.1 r1.2 r2.3 r2.34 }"
+  comptest $'tst r\t'
+0:reverse numeric sorting of matches
+>line: {tst r}{}
+>NO:{r2.34}
+>NO:{r2.3}
+>NO:{r1.10}
+>NO:{r1.2}
+>NO:{r1.1}
+
+  comptesteval "_tst() { local expl; _wanted times expl time compadd -o match r1.10 r1.2 r2.3 r2.34 }"
+  comptesteval "zstyle ':completion:*:tst:*' sort reverse numeric"
+  comptest $'tst r\t'
+0:reverse numeric sorting of matches via a style
+>line: {tst r}{}
+>DESCRIPTION:{time}
+>NO:{r2.34}
+>NO:{r2.3}
+>NO:{r1.10}
+>NO:{r1.2}
+
+  comptesteval "_tst() { local disp=(a b c); compadd -o -J letters -d disp 3 2 1 }"
+  comptest $'tst \t'
+0:sort in match rather than display name order
+>line: {tst }{}
+>NO:{c}
+>NO:{b}
+>NO:{a}
+
+  comptesteval "_tst() { local expl; _wanted times expl time compadd 3am 12pm 3pm 10pm }"
+  comptesteval "zstyle ':completion:*:tst:*' sort false"
+  comptest $'tst \t'
+0:sorting disabled via the sort style
+>line: {tst }{}
+>DESCRIPTION:{time}
+>NO:{3am}
+>NO:{12pm}
+>NO:{3pm}
+>NO:{10pm}
+
+  comptesteval "_tst() { _arguments ':desc:_sequence compadd - 1 2 3' }"
+  comptesteval "zstyle ':completion:*:tst:*' ignored-patterns 2"
+  comptest $'tst 1,\t'
+  comptesteval "zstyle -d ':completion:*:tst:*' ignored-patterns"
+0:-F does not break _sequence
+>line: {tst 1,}{}
+>DESCRIPTION:{desc}
+>NO:{2}
+>NO:{3}
+
+ comptest $'a=() b=(\t'
+0:multiple envarrays
+>line: {a=() b=(}{}
+>DESCRIPTION:{file}
+>DI:{dir1}
+>DI:{dir2}
+>FI:{file1}
+>FI:{file2}
+
+  comptesteval "typeset -a bar=({$'\\0'..$'\\C-?'})"
+  comptesteval 'typeset -A bat=( "$bar[@]" )'
+  comptesteval 'typeset bay="$bar"'
+  comptesteval 'zstyle ":completion:*:parameters" extra-verbose yes'
+  comptesteval 'zstyle ":completion:*" fake-parameters bar bat bay'
+  comptest $': $ba\t'
+0:extra-verbose shows parameter values
+>line: {: $ba}{}
+>DESCRIPTION:{parameter}
+>NO:{bar  -- ( '^@' '^A' '^B' '^C' '^D' '^E' '^F' '^G' '^H' '\t' '\n' '^K' '^L' '}
+>NO:{bat  -- ( [' ']='!' ['"']='#' ['$']=% ['&']=\' ['(']=')' ['*']=+ [,]=- [.]=/}
+>NO:{bay  -- '^@ ^A ^B ^C ^D ^E ^F ^G ^H \t \n ^K ^L ^M ^N ^O ^P ^Q ^R ^S ^T ^U ^}
+
+  comptesteval "path=( $ZTST_srcdir:A )"
+  comptesteval 'typeset -H paths=HIDDEN'
+  comptest $': $path\t'
+0:extra-verbose doesn't show special or hidden parameter values
+>line: {: $path}{}
+>DESCRIPTION:{parameter}
+>NO:{path}
+>NO:{paths}
+
+  comptesteval 'zstyle -d ":completion:*:parameters" extra-verbose'
+  comptest $': $ba\t'
+0:parameter values not shown without extra-verbose
+>line: {: $ba}{}
+>DESCRIPTION:{parameter}
+>NO:{bar}
+>NO:{bat}
+>NO:{bay}
+
+  comptesteval '_tst() { local disp=( {a..z} ); compadd -ld disp $disp[@]; comppostfuncs=( _pst ) }'
+  comptesteval '_pst() { local disp=( "<INSERT>$compstate[insert]</INSERT>" ); compadd -Qld disp $disp }'
+  comptesteval "zstyle ':completion:*' menu select=long-list"
+  # This test is sensitive to sorting differences across platforms
+  comptesteval 'export LC_ALL=C'
+  comptest $'tst \C-d'
+  comptesteval "export LC_ALL=${(q)ZSH_TEST_LANG}"
+0: menu select=long-list starts menu selection for list widgets
+>NO:{<INSERT>menu</INSERT>}
+>NO:{a}
+>NO:{b}
+>NO:{c}
+>NO:{d}
+>NO:{e}
+>NO:{f}
+>NO:{g}
+>NO:{h}
+>NO:{i}
+>NO:{j}
+>NO:{k}
+>NO:{l}
+>NO:{m}
+>NO:{n}
+>NO:{o}
+>NO:{p}
+>NO:{q}
+>NO:{r}
+>NO:{s}
+>NO:{t}
+>NO:{u}
+>NO:{v}
+>NO:{w}
+>NO:{x}
+>NO:{y}
+>NO:{z}
+
+
+%clean
+
+  zmodload -ui zsh/zpty

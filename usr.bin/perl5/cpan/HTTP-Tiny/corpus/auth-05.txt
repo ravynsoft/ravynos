@@ -1,0 +1,20 @@
+url
+  http://foo:bar@example.com/index.html
+headers
+  authorization: Whatever
+expected
+  abcdefghijklmnopqrstuvwxyz1234567890abcdef
+----------
+GET /index.html HTTP/1.1
+Host: example.com
+Connection: close
+User-Agent: HTTP-Tiny/VERSION
+Authorization: Whatever
+
+----------
+HTTP/1.1 200 OK
+Date: Thu, 03 Feb 1994 00:00:00 GMT
+Content-Type: text/plain
+Content-Length: 42
+
+abcdefghijklmnopqrstuvwxyz1234567890abcdef

@@ -1,0 +1,125 @@
+#From: Mark Kennedy <mark.t.kennedy@gmail.com> (<mtk@ny.ubs.com>)
+#Message-ID: <35E2B899.63A02DF5@ny.ubs.com>
+#Date: Tue, 25 Aug 1998 09:14:01 -0400
+#To: chet@nike.ins.cwru.edu
+#Subject: a newer version of the ksh-style 'autoload'
+
+#enclosed you'll find 'autoload.v3',  a version of the autoloader
+#that emulates the ksh semantics of delaying the resolution (and loading) of the function
+#until its first use.  i took the liberty of simplifying the code a bit although it still uses the
+#same functional breakdown.  i recently went through the exercise of converting
+#my ksh-based environment to bash (a very, very pleasant experience)
+#and this popped out.
+
+# the psuedo-ksh autoloader.
+
+# The first cut of this was by Bill Trost, trost@reed.bitnet.
+# The second cut came from Chet Ramey, chet@ins.CWRU.Edu
+# The third cut came from Mark Kennedy, mtk@ny.ubs.com.  1998/08/25
+
+unset _AUTOLOADS
+
+_aload()
+{
+    local func
+    for func; do
+	eval $func '()
+		{
+		    local f=$(_autoload_resolve '$func')
+		    if [[ $f ]]; then
+			. $f
+			'$func' "$@"
+			return $?
+		    else
+			return 1
+		    fi
+		}'
+	_autoload_addlist $func
+    done
+}
+
+_autoload_addlist()
+{
+	local func
+
+	for func in ${_AUTOLOADS[@]}; do
+	    [[ $func = "$1" ]] && return
+	done
+
+	_AUTOLOADS[${#_AUTOLOADS[@]}]=$1
+}
+
+_autoload_dump()
+{
+    local func
+
+    for func in ${_AUTOLOADS[@]}; do
+	[[ $1 ]] && echo -n "autoload "
+	echo $func
+    done
+}
+
+_autoload_remove_one()
+{
+    local func
+    local -a NEW_AUTOLOADS
+
+    for func in ${_AUTOLOADS[@]}; do
+	[[ $func != "$1" ]] && NEW_AUTOLOADS[${#NEW_AUTOLOADS[@]}]=$func
+    done
+
+    _AUTOLOADS=( ${NEW_AUTOLOADS[@]} )
+}
+
+_autoload_remove()
+{
+    local victim func
+
+    for victim; do
+	for func in ${_AUTOLOADS[@]}; do
+	    [[ $victim = "$func" ]] && unset -f $func && continue 2
+	done
+	echo "autoload: $func: not an autoloaded function" >&2
+    done
+
+    for func; do
+	    _autoload_remove_one $func
+    done
+}
+
+_autoload_resolve()
+{
+    if [[ ! "$FPATH" ]]; then
+	    echo "autoload: FPATH not set or null" >&2
+	    return
+    fi
+
+    local p
+
+    for p in $( (IFS=':'; set -- ${FPATH}; echo "$@") ); do
+	p=${p:-.}
+	if [ -f $p/$1 ]; then echo $p/$1; return; fi
+    done
+
+    echo "autoload: $1: function source file not found" >&2
+}
+
+autoload()
+{
+    if (( $# == 0 )) ; then _autoload_dump; return; fi
+
+    local opt OPTIND
+
+    while getopts pu opt
+    do
+	case $opt in
+	    p) _autoload_dump printable; return;;
+	    u) shift $((OPTIND-1)); _autoload_remove "$@"; return;; 
+	    *) echo "autoload: usage: autoload [-pu] [function ...]" >&2; return;;
+	esac
+    done
+
+    shift $(($OPTIND-1))
+
+    _aload "$@"
+}

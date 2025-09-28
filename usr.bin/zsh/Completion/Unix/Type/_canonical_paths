@@ -1,0 +1,122 @@
+#autoload
+
+# This completion function completes all paths given to it, and also tries to
+# offer completions which point to the same file as one of the paths given
+# (relative path when an absolute path is given, and vice versa; when ..'s are
+# present in the word to be completed, and some paths got from symlinks).
+
+# Usage: _canonical_paths [-A var] [-N] [-MJV12onfX] tag desc [paths...]
+
+# -A, if specified, takes the paths from the array variable specified. Paths
+# can also be specified on the command line as shown above. -N, if specified,
+# prevents canonicalizing the paths given before using them for completion, in
+# case they are already so. `tag' and `desc' arguments are well, obvious :) In
+# addition, the options -M, -J, -V, -1, -2, -o, -n, -F, -x, -X are passed to
+# compadd.
+
+_canonical_paths_add_paths () {
+  # origpref = original prefix
+  # expref = expanded prefix
+  # curpref = current prefix
+  # canpref = canonical prefix
+  # rltrim = suffix to trim and readd
+  local origpref=$1 expref rltrim curpref canpref subdir
+  [[ $2 != add ]] && matches=()
+  expref=${~origpref} 2>/dev/null
+  [[ $origpref == (|*/). ]] && rltrim=.
+  curpref=${${expref%$rltrim}:-./}
+  canpref=$curpref:P
+  [[ $curpref == */ && $canpref == *[^/] ]] && canpref+=/
+  canpref+=$rltrim
+  [[ $expref == *[^/] && $canpref == */ ]] && origpref+=/
+
+  # Append to $matches the subset of $files that matches $canpref.
+  if [[ $canpref == $origpref ]]; then
+    # This codepath honours any -M matchspec parameters.
+    () {
+      local -a tmp_buffer
+      compadd -A tmp_buffer "$__gopts[@]" -a files
+      matches+=( "${(@)tmp_buffer/$canpref/$origpref}" )
+    }
+  else
+    # ### Ideally, this codepath would do what the 'if' above does,
+    # ### but telling compadd to pretend the "word on the command line"
+    # ### is ${"the word on the command line"/$origpref/$canpref}.
+    matches+=(${${(M)files:#$canpref*}/$canpref/$origpref})
+  fi
+
+  for subdir in $expref?*(@); do
+    _canonical_paths_add_paths ${subdir/$expref/$origpref} add
+  done
+}
+
+_canonical_paths() {
+  # The following parameters are used by callee functions:
+  #    __gopts
+  #    matches
+  #    files
+  #    (possibly others)
+
+  local __index
+  typeset -a __gopts __opts
+
+  zparseopts -D -a __gopts M+: J+: V+: o+: 1 2 n F: x+: X+: A:=__opts N=__opts
+
+  : ${1:=canonical-paths} ${2:=path}
+
+  __index=$__opts[(I)-A]
+  (( $__index )) && set -- $@ ${(P)__opts[__index+1]}
+
+  local expl ret=1 tag=$1 desc=$2
+
+  shift 2
+
+  if ! zmodload -F zsh/stat b:zstat 2>/dev/null; then
+    _wanted "$tag" expl "$desc" compadd $__gopts $@ && ret=0
+    return ret
+  fi
+
+  typeset REPLY
+  typeset -a matches files
+
+  if (( $__opts[(I)-N] )); then
+    files=($@)
+  else
+    files+=($@:P)
+  fi
+
+  local base=$PREFIX
+  typeset -i blimit
+
+  _canonical_paths_add_paths $base
+
+  if [[ -z $base ]]; then
+    _canonical_paths_add_paths / add
+  elif [[ $base == ..(/.(|.))#(|/) ]]; then
+
+    # This style controls how many parent directory links (..) to chase searching
+    # for possible completions. The default is 8. Note that this chasing is
+    # triggered only when the user enters at least a .. and the path completed
+    # contains only . or .. components. A value of 0 turns off .. link chasing
+    # altogether.
+
+    zstyle -s ":completion:${curcontext}:$tag" \
+      canonical-paths-back-limit blimit || blimit=8
+
+    if [[ $base != */ ]]; then
+      [[ $base != *.. ]] && base+=.
+      base+=/
+    fi
+    until [[ $base.. -ef $base || blimit -le 0 ]]; do
+      base+=../
+      _canonical_paths_add_paths $base add
+      blimit+=-1
+    done
+  fi
+
+  _wanted "$tag" expl "$desc" compadd $__gopts -Q -U -a matches && ret=0
+
+  return ret
+}
+
+_canonical_paths "$@"

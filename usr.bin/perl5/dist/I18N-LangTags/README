@@ -1,0 +1,78 @@
+README for I18N::LangTags
+                                        Time-stamp: "2004-10-06 23:19:39 ADT"
+
+			    I18N::LangTags
+
+I18N::LangTags - functions for dealing with RFC3066-style language
+tags
+
+Language tags are a formalism, described in RFC 3066 (obsoleting
+1766), for declaring what language form (language and possibly
+dialect) a given chunk of information is in.
+
+This library provides functions for common tasks involving language
+tags (notably the extraction of them, comparing them, and testing the
+formal validity of them) as is needed in a variety of protocols and
+applications.
+
+
+I18N::LangTags::List -- tags and names for human languages.  This
+module goes from known language tag names ("fr-CA") to their English
+names ("Canadian French").  Its documentation also lists the several
+hundred known tags and some common subforms.  You may find this useful
+as a reference.
+
+
+See the POD for more information.
+
+
+INSTALLATION
+
+You install I18N::LangTags and I18N::LangTags::List, as you would
+install any perl module library, by running these commands:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+If you want to install a private copy of I18N::LangTags in your home
+directory, then you should try to produce the initial Makefile with
+something like this command:
+
+  perl Makefile.PL LIB=~/perl
+
+See perldoc perlmodinstall for more information on installing modules.
+
+
+DOCUMENTATION
+
+POD-format documentation is included in LangTags.pm.  POD is readable
+with the 'perldoc' utility.  See ChangeLog for recent changes.
+
+
+SUPPORT
+
+Questions, bug reports, useful code bits, and suggestions for
+I18N::LangTags should just be sent to me at sburke@cpan.org
+
+
+AVAILABILITY
+
+The latest version of I18N::LangTags is available from the
+Comprehensive Perl Archive Network (CPAN).  Visit
+<http://www.perl.com/CPAN/> to find a CPAN site near you.
+
+
+COPYRIGHT
+
+Copyright 1998+, Sean M. Burke <sburke@cpan.org>, all rights
+reserved.
+
+The programs and documentation in this dist are distributed in
+the hope that they will be useful, but without any warranty; without
+even the implied warranty of merchantability or fitness for a
+particular purpose.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.

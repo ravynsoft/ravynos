@@ -1,0 +1,8 @@
+# To prevent the Ada static runtime library from using nearly the entire
+# TOC, we used to compile Ada files with minimal-toc in addition to -gnatg
+# (mandatory to compile language defined units).  This incured a performance
+# penalty and is not required with section anchors enabled by default so we
+# don't do it any more.
+BOOT_ADAFLAGS = -gnatapg
+BOOT_LDFLAGS = -Wl,-bbigtoc
+LDFLAGS = `case '$(CC)' in *gcc*) echo -Wl,-bbigtoc ;; esac;`

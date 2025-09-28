@@ -1,0 +1,90 @@
+<?xml version="1.0"?><!--*-nxml-*-->
+<!DOCTYPE manpage SYSTEM "xmltoman.dtd">
+<?xml-stylesheet type="text/xsl" href="xmltoman.xsl" ?>
+
+<!--
+  This file is part of avahi.
+
+  avahi is free software; you can redistribute it and/or modify it
+  under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; either version 2.1 of the
+  License, or (at your option) any later version.
+
+  avahi is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+  or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General
+  Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with avahi; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+  USA.
+-->
+
+  <manpage name="avahi-dnsconfd.action" section="8" desc="avahi-dnsconfd action script">
+
+	<synopsis>
+      <cmd>@pkgsysconfdir@/avahi-dnsconfd.action</cmd>
+	</synopsis>
+
+    <description>
+      <p><file>avahi-dnsconfd.action</file> is the action script that
+      is called whenever a new unicast DNS server is found or
+       removed by avahi-dnsconfd. The default script as shipped
+      with avahi patches <file>/etc/resolv.conf</file> to reflect the
+      changed unicast DNS server configuration.</p>
+	</description>
+
+	<section name="Parameters">
+
+      <option>
+        <p><opt>argv[1]</opt> Contains the character "+" if the DNS server is new, "-" when it shall be removed from the DNS server list.</p>
+      </option>
+
+      <option>
+        <p><opt>argv[2]</opt> The IP address of the DNS server.</p>
+      </option>
+
+      <option>
+        <p><opt>argv[3]</opt> Numerical network interface number this DNS server was found on.</p>
+      </option>
+
+      <option>
+        <p><opt>argv[4]</opt> Numerical protocol number this DNS server was found on. (usually 2 for IPv4 and 10 for IPv6) </p>
+      </option>
+
+	</section>
+
+	<section name="Environment">
+      <option>
+        <p><opt>AVAHI_INTERFACE</opt> Contains the textual interface name the corresponds with argv[3]. (e.g. "eth0")</p>
+      </option>
+
+      <option><p><opt>AVAHI_INTERFACE_DNS_SERVERS</opt> Contains a
+      list of all DNS servers that avahi-dnsconfd found on the
+      interface <opt>$AVAHI_INTERFACE</opt>, separated by
+      spaces.</p></option>
+
+      <option><p><opt>AVAHI_DNS_SERVERS</opt> Contains a list of all
+      DNS server that avahi-dnsconfd found on all interfaces,
+      separated by spaces.</p></option>
+
+    </section>
+
+	<section name="Authors">
+	  <p>The Avahi Developers &lt;@PACKAGE_BUGREPORT@&gt;; Avahi is
+	  available from <url href="@PACKAGE_URL@"/></p>
+	</section>
+
+	<section name="See also">
+	  <p>
+        <manref name="avahi-dnsconfd" section="8"/>, <manref name="avahi-daemon" section="8"/>
+	  </p>
+	</section>
+
+	<section name="Comments">
+	  <p>This man page was written using <manref name="xml2man" section="1"
+		  href="http://masqmail.cx/xml2man/"/> by Oliver Kurth.</p>
+	</section>
+
+  </manpage>

@@ -1,0 +1,5 @@
+#autoload
+
+local expl
+
+_wanted pgids expl 'process group ID' compadd "$@" - ${(un)$(_call_program pgids ps -A -o pgid=)}

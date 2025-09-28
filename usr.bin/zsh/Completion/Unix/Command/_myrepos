@@ -1,0 +1,126 @@
+#compdef mr
+
+#
+# A zsh completion script for myrepos (http://myrepos.branchable.com/)
+#
+
+# This script does not handle user defined alias nor user defined actions (lib,
+# plugins)
+
+
+local curcontext="$curcontext" state state_descr line ret=1
+local -a arguments
+typeset -A opt_args
+typeset -g mr_subcommands mr_alias
+
+arguments=(
+  '(-d --directory)'{-d,--directory}'[specify the topmost directory that mr should work in]:directory:_files -/'
+  '(-c --config)'{-c,--config}'[use the specified mrconfig file]:mrconfig:_files'
+  '(-f --force)'{-f,--force}'[force mr to act on repositories that would normally be skipped]'
+  '--force-env[force mr to execute even though potentially dangerous env variables]'
+  '(-v --verbose)'{-v,--verbose}'[be verbose]'
+  '(-m --minimal)'{-m,--minimal}'[minimise output]'
+  '(-q --quiet)'{-q,--quiet}"[suppress mr's usual output]"
+  '(-k --insecure)'{-k,--insecure}'[accept untrusted SSL certificates when bootstrapping]'
+  '(-s --stats)'{-s,--stats}'[expand the statistics line displayed at the end]'
+  '(-i --interactive)'{-i,--interactive}'[start a subshell if a repository fails to be processed]'
+  '(-n --no-recurse)'{-n,--no-recurse}'[specify the recursivity depth into repositories]::number'
+  '(-j --jobs)'{-j,--jobs}'[number of jobs run in parallel]::number'
+  '--cache[save the command result to ~/.mrcache/]'
+  '--cached[process cached commands]'
+  '--uncache[remove the cached output]'
+  '--top[cd to the top of the repo before running any commands]'
+  '(-t --trust-all)'{-t,--trust-all}'[trust all mrconfig files]'
+  \!{-p,--path} # this obsolete flag is ignored
+  ':mr commands:->subcommand'
+  '*::: := ->option-or-argument'
+)
+
+_arguments -C $arguments && ret=0
+
+case $state in
+  (subcommand)
+
+    mr_subcommands=(
+      "checkout:check out any repositories that are not already checked out"
+      "update:update each repository"
+      "status:display a status report for each repository"
+      "clean:print/remove ignored or untracked files and other cruft"
+      "commit:commit changes to each repository"
+      "record:record changes to the local repository"
+      "fetch:fetch from each repository's remote repository"
+      "push:push committed local changes to remote repository"
+      "diff:show a diff of uncommitted changes"
+      "log:show the commit log"
+      "grep:search for a pattern in each repository"
+      "run:run the specified command in each repository"
+      "bootstrap:use a 'source' as .mrconfig file"
+      "list:list the repositories that mr will act on"
+      "register:register an existing repository in a mrconfig file"
+      "config:get and set value from a mrconfig file"
+      "offline:advise mr that it is in offline mode"
+      "online:advise mr that it is in online mode"
+      "remember:remember a command to be run later"
+      "help:display this help."
+    )
+
+    mr_alias=(
+      "co:check out any repositories that are not already checked out"
+      "ci:commit changes to each repository"
+      "ls:list the repositories that mr will act on"
+    )
+
+    _describe -t commands 'command' mr_subcommands -- mr_alias && ret=0
+
+  ;;
+  (option-or-argument)
+    curcontext=${curcontext%:*}-$line[1]:
+    case $line[1] in
+      (clean)
+        _arguments \
+          '-f[allow removing the files]' \
+          '*: :' && ret=0
+      ;;
+      (commit|ci|record)
+        _arguments \
+          '-m[allow specifying a commit message]' \
+          '*: :' && ret=0
+      ;;
+      (grep)
+        _message 'search pattern'
+      ;;
+      (run)
+        _message 'command to run'
+      ;;
+      (bootstrap)
+        if [[ $CURRENT -eq 2 ]]; then
+          _alternative \
+            'urls:URL:_urls' \
+            'local:local file or stdin:_files'
+        elif [[ $CURRENT -eq 3 ]]; then
+          _directories
+        fi
+      ;;
+      (register)
+        _directories
+      ;;
+      (config)
+        case $CURRENT in
+          (2) _message -e section 'section name';&
+          (3) _message -e setting '"setting" or "setting=value"';&
+        esac
+      ;;
+      (remember)
+        _describe -t commands 'command' mr_subcommands -- mr_alias && ret=0
+      ;;
+      (checkout|co|update|status|fetch|push|diff|log|list|ls|offline|online|help)
+        _message 'no arguments'
+      ;;
+      (*)
+        _default && ret=0
+      ;;
+    esac
+  ;;
+esac
+
+return ret

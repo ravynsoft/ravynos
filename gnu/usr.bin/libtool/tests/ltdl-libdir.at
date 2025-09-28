@@ -1,0 +1,124 @@
+# ltdl-libdir.at -- test libltdl functionality             -*- Autotest -*-
+#
+#   Copyright (C) 2010-2019, 2021-2022 Free Software Foundation, Inc.
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([libdir of installed modules])
+AT_KEYWORDS([libltdl])
+
+# This test requires shared library support.
+AT_CHECK([$LIBTOOL --features | $GREP 'enable shared libraries' || exit 77],
+	 [], [ignore])
+
+# With MinGW, try Windows-style paths only.
+if pwd -W >/dev/null 2>&1; then
+  prefix=`pwd -W`/inst
+else
+  prefix=`pwd`/inst
+fi
+libdir=$prefix/lib
+bindir=$prefix/bin
+mkdir $prefix $libdir $bindir
+
+AT_DATA([a.c],
+[[#ifdef __cplusplus
+extern "C"
+#endif
+int f (void)
+{
+  return 42;
+}
+]])
+
+AT_DATA([m.c],
+[[
+#include <stdio.h>
+#include <ltdl.h>
+
+typedef int func_f(void);
+
+int
+main (int argc, const char *argv[])
+{
+  lt_dlhandle module = NULL;
+  func_f *f = NULL;
+
+  if (lt_dlinit()) {
+    fprintf(stderr, "lt_dlinit failed '%s'\n", lt_dlerror());
+    return 1;
+  }
+
+  module = lt_dlopen("./a.la");
+
+  if (!module) {
+    fprintf(stderr, "lt_dlopen failed '%s'\n", lt_dlerror());
+    return 1;
+  }
+
+  f = (func_f *)lt_dlsym(module, "f");
+
+  if (!f) {
+    fprintf(stderr, "lt_dlsym failed '%s'\n", lt_dlerror());
+    return 1;
+  }
+
+  if (f() != 42) {
+    fprintf(stderr, "f did not return 42\n");
+    return 1;
+  }
+
+  lt_dlclose(module);
+  lt_dlexit();
+  return 0;
+}
+]])
+
+: ${LTDLINCL="-I$abs_top_srcdir/libltdl"}
+: ${LIBLTDL="$abs_builddir/../libltdl/libltdlc.la"}
+
+# Skip installcheck if --disable-ltdl-install was used.
+AT_CHECK([test -f "$LIBLTDL" || exit 77])
+
+CPPFLAGS="$LTDLINCL $CPPFLAGS"
+LDFLAGS="$LDFLAGS -no-undefined"
+
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a.c],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o a.la ]dnl
+	 [a.lo -rpath $libdir -module -shared -avoid-version],
+	 [], [ignore], [ignore])
+AT_CHECK([$CC $CPPFLAGS $CFLAGS -c m.c],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m$EXEEXT ]dnl
+	 [m.$OBJEXT $LIBLTDL],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp a.la $libdir/a.la],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp m$EXEEXT $bindir/m$EXEEXT],
+	 [], [ignore], [ignore])
+
+# Try finding the module via the libdir entry in a misplaced .la file.
+
+mv $libdir/a.la $bindir/a.la
+cd $bindir
+LT_AT_EXEC_CHECK([./m],
+		 [], [ignore], [ignore])
+
+AT_CLEANUP

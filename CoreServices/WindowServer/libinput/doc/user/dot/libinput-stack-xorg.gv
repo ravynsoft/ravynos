@@ -1,0 +1,29 @@
+digraph stack
+{
+  compound=true;
+  rankdir="LR";
+  node [
+    shape="box";
+  ]
+
+  subgraph cluster_2 {
+	  label="Kernel";
+	  event0 [label="/dev/input/event0"]
+	  event1 [label="/dev/input/event1"]
+  }
+
+  subgraph cluster_0 {
+	  label="X server process";
+	  subgraph cluster_1 {
+		  label="xf86-input-libinput"
+		  libinput;
+	  }
+  }
+
+  libinput;
+  client [label="X11 client"];
+
+  event0 -> libinput;
+  event1 -> libinput;
+  libinput -> client [ltail=cluster_0 label="X protocol"];
+}

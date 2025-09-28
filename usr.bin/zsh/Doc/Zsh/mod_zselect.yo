@@ -1,0 +1,67 @@
+COMMENT(!MOD!zsh/zselect
+Block and return when file descriptors are ready.
+!MOD!)
+The tt(zsh/zselect) module makes available one builtin command:
+
+startitem()
+findex(zselect)
+cindex(select, system call)
+cindex(file descriptors, waiting for)
+item(tt(zselect) [ tt(-rwe) ] [ tt(-t) var(timeout) ] [ tt(-a) var(array) ] [ tt(-A) var(assoc) ] [ var(fd) ... ])(
+The tt(zselect) builtin is a front-end to the `select' system call, which
+blocks until a file descriptor is ready for reading or writing, or has an
+error condition, with an optional timeout.  If this is not available on
+your system, the command prints an error message and returns status 2
+(normal errors return status 1).  For more information, see your system's
+documentation for manref(select)(3).  Note there is no connection with the
+shell builtin of the same name.
+
+Arguments and options may be intermingled in any order.  Non-option
+arguments are file descriptors, which must be decimal integers.  By
+default, file descriptors are to be tested for reading, i.e. tt(zselect)
+will return when data is available to be read from the file descriptor, or
+more precisely, when a read operation from the file descriptor will not
+block.  After a tt(-r), tt(-w) and tt(-e), the given file descriptors are
+to be tested for reading, writing, or error conditions.  These options and
+an arbitrary list of file descriptors may be given in any order.
+
+(The presence of an `error condition' is not well defined in the
+documentation for many implementations of the select system call.
+According to recent versions of the POSIX specification, it is really an
+em(exception) condition, of which the only standard example is out-of-band
+data received on a socket.  So zsh users are unlikely to find the tt(-e)
+option useful.)
+
+The option `tt(-t) var(timeout)' specifies a timeout in hundredths of a
+second.  This may be zero, in which case the file descriptors will simply
+be polled and tt(zselect) will return immediately.  It is possible to call
+zselect with no file descriptors and a non-zero timeout for use as a
+finer-grained replacement for `sleep'; note, however, the return status is
+always 1 for a timeout.
+
+The option `tt(-a) var(array)' indicates that var(array) should be set to
+indicate the file descriptor+LPAR()s+RPAR() which are ready.  If the option
+is not
+given, the array tt(reply) will be used for this purpose.  The array will
+contain a string similar to the arguments for tt(zselect).  For example,
+
+example(zselect -t 0 -r 0 -w 1)
+
+might return immediately with status 0 and tt($reply) containing `tt(-r 0 -w
+1)' to show that both file descriptors are ready for the requested
+operations.
+
+The option `tt(-A) var(assoc)' indicates that the associative array
+var(assoc) should be set to indicate the file descriptor+LPAR()s+RPAR()
+which are ready.  This option overrides the option tt(-a), nor will
+tt(reply) be modified.  The keys of tt(assoc) are the file descriptors, and
+the corresponding values are any of the characters `tt(rwe)' to indicate
+the condition.
+
+The command returns status 0 if some file descriptors are ready for
+reading.  If the operation timed out, or a timeout of 0 was given and no
+file descriptors were ready, or there was an error, it returns status 1 and
+the array will not be set (nor modified in any way).  If there was an error
+in the select operation the appropriate error message is printed.
+)
+enditem()

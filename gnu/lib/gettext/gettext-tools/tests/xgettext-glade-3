@@ -1,0 +1,207 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of Glade 2 support.
+
+cat <<EOF > xg-gl-3-empty.glade
+<?xml version="1.0"?>
+<GTK-Interface/>
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o xg-gl-3.pot xg-gl-3-empty.glade 2>/dev/null
+test $? = 0 || {
+  echo "Skipping test: xgettext was built without Glade support"
+  Exit 77
+}
+
+cat <<EOF > xg-gl-3-asciitable.glade2
+<?xml version="1.0" standalone="no"?> <!--*- mode: xml -*-->
+<!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd" >
+
+<glade-interface>
+  <widget class="GtkDialog" id="dialog">
+    <property name="visible">no</property>
+    <property name="title" translatable="yes">gedit: ASCII table</property>
+    <property name="type">GTK_WINDOW_TOPLEVEL</property>
+    <property name="modal">no</property>
+    <property name="allow_shrink">yes</property>
+    <property name="allow_grow">yes</property>
+    <property name="window-position">GTK_WIN_POS_NONE</property>
+
+    <child internal-child="vbox">
+      <widget class="GtkVBox" id="dialog-vbox1">
+        <property name="homogeneous">no</property>
+        <property name="spacing">8</property>
+        <property name="visible">yes</property>
+
+        <child internal-child="action_area">
+          <widget class="GtkHButtonBox" id="dialog-action_area1">
+            <property name="layout_style">GTK_BUTTONBOX_END</property>
+            <property name="spacing">8</property>
+            <property name="visible">yes</property>
+
+            <child>
+              <widget class="GtkButton" id="insert_char_button">
+                <property name="can_default">yes</property>
+                <property name="can_focus">yes</property>
+                <property name="label" translatable="yes">Insert char</property>
+                <property name="visible">yes</property>
+              </widget>
+            </child>
+
+            <child>
+              <widget class="GtkButton" id="close_button">
+                <property name="can_default">yes</property>
+                <property name="can_focus">yes</property>
+                <property name="visible">yes</property>
+                <property name="label">gtk-close</property>
+                <property name="use_stock">yes</property>
+                <property name="use_underline">yes</property>
+              </widget>
+            </child>
+
+            <child>
+              <widget class="GtkButton" id="help_button">
+                <property name="can_default">yes</property>
+                <property name="can_focus">yes</property>
+                <property name="visible">yes</property>
+                <property name="label">gtk-help</property>
+                <property name="use_stock">yes</property>
+                <property name="use_underline">yes</property>
+              </widget>
+            </child>
+          </widget>
+          <packing>
+            <property name="padding">0</property>
+            <property name="expand">no</property>
+            <property name="fill">yes</property>
+            <property name="pack_type">GTK_PACK_END</property>
+          </packing>
+        </child>
+
+        <child>
+          <widget class="GtkVBox" id="asciitable_dialog_content">
+            <property name="border_width">6</property>
+            <property name="homogeneous">no</property>
+            <property name="spacing">8</property>
+            <property name="visible">yes</property>
+
+            <child>
+              <widget class="GtkLabel" id="label1">
+                <property name="label" translatable="yes">If you wish to insert any of the characters in to the active 
+document, select the character and click the &quot;Insert Char&quot; 
+button or double click the character in the table.</property>
+                <property name="justify">GTK_JUSTIFY_LEFT</property>
+                <property name="wrap">no</property>
+                <property name="xalign">0.0</property>
+                <property name="yalign">0.5</property>
+                <property name="xpad">0</property>
+                <property name="ypad">0</property>
+                <property name="visible">yes</property>
+              </widget>
+              <packing>
+                <property name="padding">0</property>
+                <property name="expand">no</property>
+                <property name="fill">no</property>
+              </packing>
+            </child>
+
+            <child>
+              <widget class="GtkScrolledWindow" id="scrolledwindow1">
+                <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
+                <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
+                <property name="shadow_type">GTK_SHADOW_IN</property>
+                <property name="height-request">350</property>
+                <property name="visible">yes</property>
+
+                <child>
+                  <widget class="GtkTreeView" id="ascii_table">
+                    <property name="can_focus">yes</property>
+                    <property name="headers-visible">yes</property>
+                    <property name="visible">yes</property>
+                  </widget>
+                </child>
+
+                <child internal-child="hscrollbar">
+                  <widget class="GtkHScrollbar" id="convertwidget1">
+                    <property name="update_policy">GTK_UPDATE_CONTINUOUS</property>
+                    <property name="visible">yes</property>
+                  </widget>
+                </child>
+
+                <child internal-child="vscrollbar">
+                  <widget class="GtkVScrollbar" id="convertwidget2">
+                    <property name="update_policy">GTK_UPDATE_CONTINUOUS</property>
+                    <property name="visible">yes</property>
+                  </widget>
+                </child>
+              </widget>
+              <packing>
+                <property name="padding">0</property>
+                <property name="expand">yes</property>
+                <property name="fill">yes</property>
+              </packing>
+            </child>
+          </widget>
+          <packing>
+            <property name="padding">0</property>
+            <property name="expand">yes</property>
+            <property name="fill">yes</property>
+          </packing>
+        </child>
+      </widget>
+      <packing>
+        <property name="padding">4</property>
+        <property name="expand">yes</property>
+        <property name="fill">yes</property>
+      </packing>
+    </child>
+  </widget>
+</glade-interface>
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o xg-gl-3.tmp xg-gl-3-asciitable.glade2  || Exit 1
+func_filter_POT_Creation_Date xg-gl-3.tmp xg-gl-3.pot
+
+cat <<\EOF > xg-gl-3.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: xg-gl-3-asciitable.glade2:7
+msgid "gedit: ASCII table"
+msgstr ""
+
+#: xg-gl-3-asciitable.glade2:30
+msgid "Insert char"
+msgstr ""
+
+#: xg-gl-3-asciitable.glade2:74
+msgid ""
+"If you wish to insert any of the characters in to the active \n"
+"document, select the character and click the \"Insert Char\" \n"
+"button or double click the character in the table."
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-gl-3.ok xg-gl-3.pot
+result=$?
+
+exit $result

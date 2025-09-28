@@ -1,0 +1,28 @@
+#compdef svcs
+
+local -a cols
+
+cols=(
+  ctid\:"contract id" desc\:"description" fmri\:"fmri"
+  inst\:"instance name" nsta\:"next state (abbr)" nstate\:"next state"
+  scope\:"scope name" svc\:"service name" sta\:"state (abbr)"
+  state\:"state" stime\:"start time" astate\:"name for current auxiliary state"
+  nrun\:"time of next scheduled run for periodic services"
+  lrun\:"time of the last run for periodic services"
+)
+
+_arguments -s \
+  '(-l -x -d -D)-a[list all instances]' \
+  '(-l -x -D -a -R)-d[list dependencies]' \
+  '(-l -x -d -a -R)-D[list dependents]' \
+  '(-l -x)-H[suppress header line]' \
+  '(-x -d -D -a -R -s)-l[print detailed status about services and instances]' \
+  '(-l -x)-o[display specific columns]:column:_values -s , "column" ${^cols/\:/[}\]' \
+  '(-l -x)-p[list processes]' \
+  '(-l -x -d -D)-R[list services with the given restarter]:instance FMRI:_svcs_fmri -i' \
+  '(-l -x)-s[sort by a column]:column:(($cols))' \
+  '(-l -x)-S[reverse sort by a column]:column:(($cols))' \
+  '-v[verbose columns]' \
+  '(-l)-x[display explanation for service states]' \
+  '(-l -x)-\?[print help]' \
+  '*:FMRI or pattern:_svcs_fmri -i'

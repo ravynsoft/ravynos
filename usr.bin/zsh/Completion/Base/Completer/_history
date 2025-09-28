@@ -1,0 +1,65 @@
+#autoload
+
+# Hm, this *can* sensibly be used as a completer. But it could also be used
+# as a utility function, so maybe it should be moved into another directory.
+# Or maybe not. Hm.
+#
+#
+# Complete words from the history
+#
+# Code taken from _history_complete_words.
+#
+# Available styles:
+#
+#   sort --  sort matches lexically (default is to sort by age)
+#   remove-all-dups --
+#            remove /all/ duplicate matches rather than just consecutives
+#   range -- range of history words to complete
+
+local opt expl max slice hmax=$#historywords beg=2
+
+if zstyle -t ":completion:${curcontext}:" remove-all-dups; then
+  opt=-
+else
+  opt=-1
+fi
+
+if zstyle -t ":completion:${curcontext}:" sort; then
+  opt="${opt}J"
+else
+  opt="${opt}V"
+fi
+
+if zstyle -s ":completion:${curcontext}:" range max; then
+  if [[ $max = *:* ]]; then
+    slice=${max#*:}
+    max=${max%:*}
+  else
+    slice=$max
+  fi
+  [[ max -gt hmax ]] && max=$hmax
+else
+  max=$hmax
+  slice=$max
+fi
+
+PREFIX="$IPREFIX$PREFIX"
+IPREFIX=
+SUFFIX="$SUFFIX$ISUFFIX"
+ISUFFIX=
+
+# We skip the first element of historywords so the current word doesn't
+# interfere with the completion
+
+local -a hslice
+while [[ $compstate[nmatches] -eq 0 && beg -lt max ]]; do
+  if [[ -n $compstate[quote] ]]
+  then hslice=( ${(Q)historywords[beg,beg+slice]} )
+  else hslice=( ${historywords[beg,beg+slice]} )
+  fi
+  _wanted "$opt" history-words expl 'history word' \
+      compadd -Q -a hslice
+  (( beg+=slice ))
+done
+
+(( $compstate[nmatches] ))

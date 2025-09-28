@@ -1,0 +1,44 @@
+	.text
+	.p2align 4,,15
+	.type	implementation1, @function
+implementation1:
+	movl	$1, %eax
+	ret
+	.size	implementation1, .-implementation1
+	.p2align 4,,15
+	.type	implementation2, @function
+implementation2:
+	movl	$2, %eax
+	ret
+	.size	implementation2, .-implementation2
+	.p2align 4,,15
+	.type	resolver2, @function
+resolver2:
+	movl	implementation2@GOT, %eax
+	ret
+	.size	resolver2, .-resolver2
+	.type	func2, @gnu_indirect_function
+	.set	func2,resolver2
+	.p2align 4,,15
+	.type	resolver1, @function
+resolver1:
+	movl	implementation1@GOT, %eax
+	ret
+	.size	resolver1, .-resolver1
+	.globl	func1
+	.type	func1, @gnu_indirect_function
+	.set	func1,resolver1
+	.p2align 4,,15
+	.globl	get_func2
+	.type	get_func2, @function
+get_func2:
+	movl	func2@GOT, %eax
+	ret
+	.size	get_func2, .-get_func2
+	.p2align 4,,15
+	.globl	call_func2
+	.type	call_func2, @function
+call_func2:
+	jmp	*func2@GOT
+	.size	call_func2, .-call_func2
+	.section	.note.GNU-stack,"",@progbits

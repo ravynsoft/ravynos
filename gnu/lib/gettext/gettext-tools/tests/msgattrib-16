@@ -1,0 +1,78 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgattrib on a PO file with previous msgids.
+
+cat <<\EOF > ma-test16.po
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:242
+#, fuzzy, c-format
+#| msgid "too many arguments"
+msgid "Too many arguments."
+msgstr "zu viele Argumente"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:247
+#, fuzzy, c-format
+#| msgid "too many arguments"
+msgid "Too few arguments."
+msgstr "zu viele Argumente"
+
+# Oder besser "fehlende Argumente"?
+#. TRANSLATORS: An error message.
+#: src/args.c:273
+#, c-format
+#| msgid "missing arguments"
+msgid "Missing arguments."
+msgstr "Argumente fehlen."
+
+#, fuzzy
+#~| msgid "%s: invalid option -- %c\n"
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "%s: ungültige Option -- %c\n"
+
+#~ msgid "%s: invalid option -- %c\n"
+#~ msgstr "%s: ungültige Option -- %c\n"
+EOF
+
+: ${MSGATTRIB=msgattrib}
+${MSGATTRIB} --fuzzy -o ma-test16.tmp ma-test16.po || Exit 1
+LC_ALL=C tr -d '\r' < ma-test16.tmp > ma-test16.out || Exit 1
+
+cat <<\EOF > ma-test16.ok
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:242
+#, c-format
+#| msgid "too many arguments"
+msgid "Too many arguments."
+msgstr "zu viele Argumente"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:247
+#, c-format
+#| msgid "too many arguments"
+msgid "Too few arguments."
+msgstr "zu viele Argumente"
+
+#~| msgid "%s: invalid option -- %c\n"
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "%s: ungültige Option -- %c\n"
+EOF
+
+: ${DIFF=diff}
+${DIFF} ma-test16.ok ma-test16.out
+result=$?
+
+exit $result

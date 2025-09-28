@@ -1,0 +1,118 @@
+# Tests for brace expansion
+
+%prep
+
+  foo=(a b c)
+  arr=(foo bar baz)
+
+%test
+
+  print X{1,2,{3..6},7,8}Y
+0:Basic brace expansion
+>X1Y X2Y X3Y X4Y X5Y X6Y X7Y X8Y
+
+  print ${foo}{one,two,three}$arr
+0:Brace expansion with arrays, no RC_EXPAND_PARAM
+>a b conefoo ctwofoo cthreefoo bar baz
+
+  print ${^foo}{one,two,three}$arr
+0:Brace expansion with arrays, with RC_EXPAND_PARAM (1)
+>aonefoo atwofoo athreefoo bonefoo btwofoo bthreefoo conefoo ctwofoo cthreefoo bar baz
+
+  print ${foo}{one,two,three}$^arr
+0:Brace expansion with arrays, with RC_EXPAND_PARAM (2)
+>a b conefoo ctwofoo cthreefoo conebar ctwobar cthreebar conebaz ctwobaz cthreebaz
+
+  print ${^foo}{one,two,three}$^arr
+0:Brace expansion with arrays, with RC_EXPAND_PARAM (3)
+>aonefoo atwofoo athreefoo aonebar atwobar athreebar aonebaz atwobaz athreebaz bonefoo btwofoo bthreefoo bonebar btwobar bthreebar bonebaz btwobaz bthreebaz conefoo ctwofoo cthreefoo conebar ctwobar cthreebar conebaz ctwobaz cthreebaz
+
+  print X{01..4}Y
+0:Numeric range expansion, padding (1)
+>X01Y X02Y X03Y X04Y
+
+  print X{1..04}Y
+0:Numeric range expansion, padding (2)
+>X01Y X02Y X03Y X04Y
+
+  print X{7..12}Y
+0:Numeric range expansion, padding (or not) (3)
+>X7Y X8Y X9Y X10Y X11Y X12Y
+
+  print X{07..12}Y
+0:Numeric range expansion, padding (4)
+>X07Y X08Y X09Y X10Y X11Y X12Y
+
+  print X{7..012}Y
+0:Numeric range expansion, padding (5)
+>X007Y X008Y X009Y X010Y X011Y X012Y
+
+  print X{4..1}Y
+0:Numeric range expansion, decreasing
+>X4Y X3Y X2Y X1Y
+
+  print X{1..4}{1..4}Y
+0:Numeric range expansion, combined braces
+>X11Y X12Y X13Y X14Y X21Y X22Y X23Y X24Y X31Y X32Y X33Y X34Y X41Y X42Y X43Y X44Y
+
+  print X{-4..4}Y
+0:Numeric range expansion, negative numbers (1)
+>X-4Y X-3Y X-2Y X-1Y X0Y X1Y X2Y X3Y X4Y
+
+  print X{4..-4}Y
+0:Numeric range expansion, negative numbers (2)
+>X4Y X3Y X2Y X1Y X0Y X-1Y X-2Y X-3Y X-4Y
+
+  print X{004..-4..2}Y
+0:Numeric range expansion, stepping and padding (1)
+>X004Y X002Y X000Y X-02Y X-04Y
+
+  print X{4..-4..02}Y
+0:Numeric range expansion, stepping and padding (1)
+>X04Y X02Y X00Y X-2Y X-4Y
+
+  print X{1..32..3}Y
+0:Numeric range expansion, step alignment (1)
+>X1Y X4Y X7Y X10Y X13Y X16Y X19Y X22Y X25Y X28Y X31Y
+
+  print X{1..32..-3}Y
+0:Numeric range expansion, step alignment (2)
+>X31Y X28Y X25Y X22Y X19Y X16Y X13Y X10Y X7Y X4Y X1Y
+
+  print X{32..1..3}Y
+0:Numeric range expansion, step alignment (3)
+>X32Y X29Y X26Y X23Y X20Y X17Y X14Y X11Y X8Y X5Y X2Y
+
+  print X{32..1..-3}Y
+0:Numeric range expansion, step alignment (4)
+>X2Y X5Y X8Y X11Y X14Y X17Y X20Y X23Y X26Y X29Y X32Y
+
+  setopt brace_ccl
+  print X{za-q521}Y
+  unsetopt brace_ccl
+0:BRACE_CCL on
+>X1Y X2Y X5Y XaY XbY XcY XdY XeY XfY XgY XhY XiY XjY XkY XlY XmY XnY XoY XpY XqY XzY
+
+  print X{za-q521}Y
+0:BRACE_CCL off
+>X{za-q521}Y
+
+  print -r hey{a..j}there
+0:{char..char} ranges, simple case
+>heyathere heybthere heycthere heydthere heyethere heyfthere heygthere heyhthere heyithere heyjthere
+
+  print -r gosh{1,{Z..a},2}cripes
+0:{char..char} ranges, ASCII ordering
+>gosh1cripes goshZcripes gosh[cripes gosh\cripes gosh]cripes gosh^cripes gosh_cripes gosh`cripes goshacripes gosh2cripes
+
+  print -r crumbs{y..p}ooh
+0:{char..char} ranges, reverse
+>crumbsyooh crumbsxooh crumbswooh crumbsvooh crumbsuooh crumbstooh crumbssooh crumbsrooh crumbsqooh crumbspooh
+
+  print -r left{[..]}right
+0:{char..char} ranges with tokenized characters
+>left[right left\right left]right
+
+  print -r {1..10}{..
+0:Unmatched braces after matched braces are left alone.
+>1{.. 2{.. 3{.. 4{.. 5{.. 6{.. 7{.. 8{.. 9{.. 10{..

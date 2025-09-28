@@ -1,0 +1,25 @@
+
+.*
+
+
+Disassembly of section \.iplt:
+
+00009000 <.iplt>:
+#------------------------------------------------------------------------------
+#------ appfunc1's .iplt entry
+#------------------------------------------------------------------------------
+    9000:	e28fc600 	add	ip, pc, #0, 12
+    9004:	e28cca08 	add	ip, ip, #8, 20	@ 0x8000
+    9008:	e5bcf004 	ldr	pc, \[ip, #4\]!
+
+Disassembly of section \.text:
+
+0000a000 <appfunc1>:
+    a000:	46f7      	mov	pc, lr
+
+0000a002 <appfunc2>:
+    a002:	46f7      	mov	pc, lr
+
+0000a004 <_start>:
+    a004:	f7fe effc 	blx	9000 <appfunc1-0x1000>
+    a008:	00000010 	\.word	0x00000010

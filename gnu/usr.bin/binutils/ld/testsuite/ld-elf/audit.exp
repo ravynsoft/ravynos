@@ -1,0 +1,69 @@
+# Expect script for various ELF tests.
+#   Copyright (C) 2009-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+# Exclude non-ELF targets.
+
+if ![is_elf_format] {
+    return
+}
+
+# Skip targets where -shared is not supported
+
+if ![check_shared_lib_support] {
+    return
+}
+
+# Check if compiler works
+if { ![check_compiler_available] } {
+    return
+}
+
+set build_tests {
+  {"Run with -paudit.so"
+     "-Wl,--audit=tmpdir/audit.so" ""
+     {main.c} {{"readelf" {-d} "audit.rd"}} "audit.out"}
+  {"Run with -Paudit.so"
+     "-Wl,-Ptmpdir/audit.so" ""
+     {main.c} {{"readelf" {-d} "depaudit.rd"}} "depaudit.out"}
+  {"Run with --depaudit=audit.so"
+     "-Wl,--depaudit=tmpdir/audit.so" ""
+     {main.c} {{"readelf" {-d} "depaudit.rd"}} "depaudit2.out"}
+  {"Run with shared with --audit"
+     "-shared -Wl,--audit=tmpdir/audit.so" "-fPIC"
+     {main.c} {} "libusesaudit.so"}
+  {"Run with shared with three --audit"
+     "-shared -Wl,--audit=tmpdir/audit.so -Wl,--audit=tmpdir/audit2.so \
+     -Wl,--audit=tmpdir/audit3.so"
+     "-fPIC"
+     {main.c} {} "libusesaudit2.so"}
+  {"Run with -lusesaudit"
+     "-Ltmpdir/ -lusesaudit" ""
+     {main.c} {{"readelf" {-d} "depaudit.rd"}} "useslibusesaudit.out"}
+  {"Run with -lusesaudit -lusesaudit2"
+     "-Ltmpdir/ -lusesaudit -lusesaudit2" ""
+     {main.c} {{"readelf" {-d} "depaudit2.rd"}} "useslibusesaudit2.out"}
+  {"Link with -z globalaudit"
+     "-Wl,-Paudit.so -Wl,-z,globalaudit" ""
+     {main.c} {{"readelf" {-d} "globalaudit.rd"}} "globalaudit.out"}	
+}
+
+run_cc_link_tests $build_tests
+

@@ -1,0 +1,51 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of Shell support: bash $(...) syntax.
+
+cat <<\EOF > xg-sh-5.sh
+echo $(gettext 'Simple string')
+echo "$(gettext 'Simple string inside double-quotes')"
+echo $(gettext 'Simple decorated string: "x" \"y\"')
+echo "$(gettext 'Simple decorated string: "x" \"y\" inside double-quotes')"
+echo $(gettext "Simple dstring")
+echo "$(gettext "Simple dstring inside double-quotes")"
+echo $(gettext "Simple decorated dstring: \"x\" \\\"y\\\"")
+echo "$(gettext "Simple decorated dstring: \"x\" \\\"y\\\" inside double-quotes")"
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-sh-5.tmp xg-sh-5.sh || Exit 1
+LC_ALL=C tr -d '\r' < xg-sh-5.tmp.po > xg-sh-5.po || Exit 1
+
+cat <<\EOF > xg-sh-5.ok
+msgid "Simple string"
+msgstr ""
+
+msgid "Simple string inside double-quotes"
+msgstr ""
+
+msgid "Simple decorated string: \"x\" \\\"y\\\""
+msgstr ""
+
+msgid "Simple decorated string: \"x\" \\\"y\\\" inside double-quotes"
+msgstr ""
+
+msgid "Simple dstring"
+msgstr ""
+
+msgid "Simple dstring inside double-quotes"
+msgstr ""
+
+msgid "Simple decorated dstring: \"x\" \\\"y\\\""
+msgstr ""
+
+msgid "Simple decorated dstring: \"x\" \\\"y\\\" inside double-quotes"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-sh-5.ok xg-sh-5.po
+result=$?
+
+exit $result

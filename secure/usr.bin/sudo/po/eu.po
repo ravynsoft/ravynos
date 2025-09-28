@@ -1,0 +1,742 @@
+# Basque translation of sudo.
+# Copyright (C) 2011 Free Software Foundation, Inc.
+# This file is distributed under the same license as the sudo package.
+# Mikel Olasagasti Uranga <mikel@olasagasti.info>, 2011.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sudo 1.8.2rc2\n"
+"Report-Msgid-Bugs-To: http://www.sudo.ws/bugs\n"
+"POT-Creation-Date: 2011-06-04 18:27-0400\n"
+"PO-Revision-Date: 2011-06-06 18:28+0100\n"
+"Last-Translator: Mikel Olasagasti Uranga <mikel@olasagasti.info>\n"
+"Language-Team: Basque <translation-team-eu@lists.sourceforge.net>\n"
+"Language: eu\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"\n"
+
+#: src/error.c:82 src/error.c:86
+msgid ": "
+msgstr ":"
+
+#: src/exec.c:125 src/exec_pty.c:573 src/exec_pty.c:880 src/tgetpass.c:224
+#, c-format
+msgid "unable to fork"
+msgstr "ezin da fork egin"
+
+#: src/exec.c:246
+#, c-format
+msgid "unable to create sockets"
+msgstr "ezin da socketik sortu"
+
+#: src/exec.c:253 src/exec_pty.c:526 src/exec_pty.c:534 src/exec_pty.c:541
+#: src/exec_pty.c:826 src/exec_pty.c:877 src/tgetpass.c:221
+#, c-format
+msgid "unable to create pipe"
+msgstr "ezin da pipe bat sortu"
+
+#: src/exec.c:319 src/exec_pty.c:944 src/exec_pty.c:1077
+#, c-format
+msgid "select failed"
+msgstr "select-ek huts egin du"
+
+#: src/exec.c:387
+#, c-format
+msgid "unable to restore tty label"
+msgstr ""
+
+#: src/exec_pty.c:136
+#, c-format
+msgid "unable to allocate pty"
+msgstr ""
+
+#: src/exec_pty.c:566
+#, c-format
+msgid "unable to set terminal to raw mode"
+msgstr ""
+
+#: src/exec_pty.c:858
+#, c-format
+msgid "unable to set controlling tty"
+msgstr ""
+
+#: src/exec_pty.c:952
+#, c-format
+msgid "error reading from signal pipe"
+msgstr "errorea seinale hoditik irakurtzean"
+
+#: src/exec_pty.c:971
+#, c-format
+msgid "error reading from pipe"
+msgstr "errorea hoditik irakurtzean"
+
+#: src/exec_pty.c:987
+#, c-format
+msgid "error reading from socketpair"
+msgstr "errorea socketpair-etik irakurtzean"
+
+#: src/exec_pty.c:991
+#, c-format
+msgid "unexpected reply type on backchannel: %d"
+msgstr "espero ez zen erantzun moeta backchannel-ean: %d"
+
+#: src/load_plugins.c:154
+#, c-format
+msgid "%s: %s"
+msgstr "%s: %s"
+
+#: src/load_plugins.c:160
+#, c-format
+msgid "%s%s: %s"
+msgstr "%s%s: %s"
+
+#: src/load_plugins.c:170
+#, c-format
+msgid "%s must be owned by uid %d"
+msgstr "%s-(r)en jabeak %d uid-a behar du"
+
+#: src/load_plugins.c:174
+#, c-format
+msgid "%s must be only be writable by owner"
+msgstr "%s jabeak bakarrik idazteko moduan behar du"
+
+#: src/load_plugins.c:181
+#, c-format
+msgid "unable to dlopen %s: %s"
+msgstr "ezin da %s-(r)engan dlopen egin: %s"
+
+#: src/load_plugins.c:186
+#, c-format
+msgid "%s: unable to find symbol %s"
+msgstr "%s: ezin da %s sinboloa aurkitu"
+
+#: src/load_plugins.c:192
+#, c-format
+msgid "%s: unknown policy type %d"
+msgstr "%s: %d arau moeta ezezaguna"
+
+#: src/load_plugins.c:196
+#, c-format
+msgid "%s: incompatible policy major version %d, expected %d"
+msgstr ""
+
+#: src/load_plugins.c:203
+#, c-format
+msgid "%s: only a single policy plugin may be loaded"
+msgstr ""
+
+#: src/load_plugins.c:221
+#, c-format
+msgid "%s: at least one policy plugin must be specified"
+msgstr ""
+
+#: src/load_plugins.c:226
+#, c-format
+msgid "policy plugin %s does not include a check_policy method"
+msgstr ""
+
+#: src/net_ifs.c:155 src/net_ifs.c:164 src/net_ifs.c:176 src/net_ifs.c:185
+#: src/net_ifs.c:295 src/net_ifs.c:319
+#, c-format
+msgid "load_interfaces: overflow detected"
+msgstr "load_interfaces: overflow-a atzeman da"
+
+#: src/net_ifs.c:224
+#, c-format
+msgid "unable to open socket"
+msgstr "ezin da socket-a ireki"
+
+#: src/parse_args.c:180
+#, c-format
+msgid "the argument to -C must be a number greater than or equal to 3"
+msgstr "-C argumentuak 3 edo zenbaki altuagoa behar du"
+
+#: src/parse_args.c:192
+#, c-format
+msgid "the argument to -D must be between 1 and 9 inclusive"
+msgstr "-D argumentua 1 eta 9 bitartean behar du, biak barne"
+
+#: src/parse_args.c:273
+#, c-format
+msgid "unknown user: %s"
+msgstr "erabiltzaile ezezaguna: %s"
+
+#: src/parse_args.c:332
+#, c-format
+msgid "you may not specify both the `-i' and `-s' options"
+msgstr "ez zenituzke `-i' eta `-s' aukerak batera erabili behar"
+
+#: src/parse_args.c:336
+#, c-format
+msgid "you may not specify both the `-i' and `-E' options"
+msgstr "ez zenitzuke `-i' eta `-E' aukerak batera erabili behar"
+
+#: src/parse_args.c:346
+#, c-format
+msgid "the `-E' option is not valid in edit mode"
+msgstr "`-E' aukera ez da onartzen edizio moduan"
+
+#: src/parse_args.c:348
+#, c-format
+msgid "you may not specify environment variables in edit mode"
+msgstr "ez zenuke ingurune aldagairik zehaztu beharko edizio moduan"
+
+#: src/parse_args.c:356
+#, c-format
+msgid "the `-U' option may only be used with the `-l' option"
+msgstr "`-U' aukera `-l' aukerarekin erabili beharko zenuke soilik"
+
+#: src/parse_args.c:360
+#, c-format
+msgid "the `-A' and `-S' options may not be used together"
+msgstr "`-A' eta `-S' aukerak ez lirateke batera erabili beharko"
+
+#: src/parse_args.c:418 src/sudo.c:398 src/sudo.c:418 src/sudo.c:426
+#: src/sudo.c:436 common/alloc.c:85 common/alloc.c:105 common/alloc.c:123
+#: common/alloc.c:145 common/alloc.c:203 common/alloc.c:217
+#, c-format
+msgid "unable to allocate memory"
+msgstr "ezin da memoria esleitu"
+
+#: src/parse_args.c:431
+#, c-format
+msgid "sudoedit is not supported on this platform"
+msgstr "sudoedit-ek ez du euskarririk plataforma hontan"
+
+#: src/parse_args.c:502
+#, c-format
+msgid "Only one of the -e, -h, -i, -K, -l, -s, -v or -V options may be specified"
+msgstr "Soilik -e, -h, -i, -K, -l, -s, -v edo -V aukeretako bat definitu beharko litzateke"
+
+#: src/parse_args.c:515
+#, c-format
+msgid ""
+"%s - edit files as another user\n"
+"\n"
+msgstr ""
+"%s - editatu fitxategia beste erabiltzaile bat bezala\n"
+"\n"
+
+#: src/parse_args.c:517
+#, c-format
+msgid ""
+"%s - execute a command as another user\n"
+"\n"
+msgstr ""
+"%s - exekutatu komandu bat beste erabiltzaile bat bezala\n"
+"\n"
+
+#: src/parse_args.c:522
+#, c-format
+msgid ""
+"\n"
+"Options:\n"
+msgstr ""
+"\n"
+"Aukerak:\n"
+
+#: src/parse_args.c:525
+msgid "use helper program for password prompting\n"
+msgstr ""
+
+#: src/parse_args.c:528
+msgid "use specified BSD authentication type\n"
+msgstr ""
+
+#: src/parse_args.c:530
+msgid "run command in the background\n"
+msgstr ""
+
+#: src/parse_args.c:532
+msgid "close all file descriptors >= fd\n"
+msgstr ""
+
+#: src/parse_args.c:535
+msgid "run command with specified login class\n"
+msgstr ""
+
+#: src/parse_args.c:538
+msgid "preserve user environment when executing command\n"
+msgstr ""
+
+#: src/parse_args.c:540
+msgid "edit files instead of running a command\n"
+msgstr ""
+
+#: src/parse_args.c:542
+msgid "execute command as the specified group\n"
+msgstr ""
+
+#: src/parse_args.c:544
+msgid "set HOME variable to target user's home dir.\n"
+msgstr ""
+
+#: src/parse_args.c:546
+msgid "display help message and exit\n"
+msgstr "laguntza mezua erakutsi eta irten\n"
+
+#: src/parse_args.c:548
+msgid "run a login shell as target user\n"
+msgstr "abiarazi login shell bat helburua den erabiltzaile moduan\n"
+
+#: src/parse_args.c:550
+msgid "remove timestamp file completely\n"
+msgstr "ezabatu guztiz data-zigilu fitxategia\n"
+
+#: src/parse_args.c:552
+msgid "invalidate timestamp file\n"
+msgstr "baliogabetu data-zigilu fitxategia\n"
+
+#: src/parse_args.c:554
+msgid "list user's available commands\n"
+msgstr "zerrendatu erabiltzaileak eskuragarri dituen komandoak\n"
+
+#: src/parse_args.c:556
+msgid "non-interactive mode, will not prompt user\n"
+msgstr ""
+
+#: src/parse_args.c:558
+msgid "preserve group vector instead of setting to target's\n"
+msgstr ""
+
+#: src/parse_args.c:560
+msgid "use specified password prompt\n"
+msgstr ""
+
+#: src/parse_args.c:563 src/parse_args.c:571
+msgid "create SELinux security context with specified role\n"
+msgstr ""
+
+#: src/parse_args.c:566
+msgid "read password from standard input\n"
+msgstr ""
+
+#: src/parse_args.c:568
+msgid "run a shell as target user\n"
+msgstr ""
+
+#: src/parse_args.c:574
+msgid "when listing, list specified user's privileges\n"
+msgstr ""
+
+#: src/parse_args.c:576
+msgid "run command (or edit file) as specified user\n"
+msgstr ""
+
+#: src/parse_args.c:578
+msgid "display version information and exit\n"
+msgstr ""
+
+#: src/parse_args.c:580
+msgid "update user's timestamp without running a command\n"
+msgstr ""
+
+#: src/parse_args.c:582
+msgid "stop processing command line arguments\n"
+msgstr ""
+
+#: src/selinux.c:75
+#, c-format
+msgid "unable to open audit system"
+msgstr ""
+
+#: src/selinux.c:85
+#, c-format
+msgid "unable to send audit message"
+msgstr ""
+
+#: src/selinux.c:112
+#, c-format
+msgid "unable to fgetfilecon %s"
+msgstr "ezin da %s-(r)engan fgetfilecon egin"
+
+#: src/selinux.c:117
+#, c-format
+msgid "%s changed labels"
+msgstr ""
+
+#: src/selinux.c:122
+#, c-format
+msgid "unable to restore context for %s"
+msgstr ""
+
+#: src/selinux.c:161
+#, c-format
+msgid "unable to open %s, not relabeling tty"
+msgstr ""
+
+#: src/selinux.c:170
+#, c-format
+msgid "unable to get current tty context, not relabeling tty"
+msgstr ""
+
+#: src/selinux.c:177
+#, c-format
+msgid "unable to get new tty context, not relabeling tty"
+msgstr ""
+
+#: src/selinux.c:184
+#, c-format
+msgid "unable to set new tty context"
+msgstr ""
+
+#: src/selinux.c:194 src/selinux.c:207 src/sudo.c:330
+#, c-format
+msgid "unable to open %s"
+msgstr ""
+
+#: src/selinux.c:249
+#, c-format
+msgid "you must specify a role for type %s"
+msgstr ""
+
+#: src/selinux.c:255
+#, c-format
+msgid "unable to get default type for role %s"
+msgstr ""
+
+#: src/selinux.c:273
+#, c-format
+msgid "failed to set new role %s"
+msgstr ""
+
+#: src/selinux.c:277
+#, c-format
+msgid "failed to set new type %s"
+msgstr ""
+
+#: src/selinux.c:286
+#, c-format
+msgid "%s is not a valid context"
+msgstr ""
+
+#: src/selinux.c:320
+#, c-format
+msgid "failed to get old_context"
+msgstr ""
+
+#: src/selinux.c:326
+#, c-format
+msgid "unable to determine enforcing mode."
+msgstr ""
+
+#: src/selinux.c:338
+#, c-format
+msgid "unable to setup tty context for %s"
+msgstr ""
+
+#: src/selinux.c:367
+#, c-format
+msgid "unable to set exec context to %s"
+msgstr ""
+
+#: src/selinux.c:374
+#, c-format
+msgid "unable to set key creation context to %s"
+msgstr ""
+
+#: src/sesh.c:48
+msgid "requires at least one argument"
+msgstr "gutxienez argumentu bat behar du"
+
+#: src/sesh.c:64
+#, c-format
+msgid "unable to execute %s"
+msgstr "ezin da %s exekutatu"
+
+#: src/sudo.c:192
+#, c-format
+msgid "must be setuid root"
+msgstr "root setuid-a behar du"
+
+#: src/sudo.c:210
+#, c-format
+msgid "Sudo version %s\n"
+msgstr "%s sudo bertsioa\n"
+
+#: src/sudo.c:212
+#, c-format
+msgid "Configure options: %s\n"
+msgstr "Konfigurazio aukerak: %s\n"
+
+#: src/sudo.c:217
+#, c-format
+msgid "fatal error, unable to load plugins"
+msgstr "errore larria, ezin dira gehigarriak gehitu"
+
+#: src/sudo.c:225
+#, c-format
+msgid "unable to initialize policy plugin"
+msgstr ""
+
+#: src/sudo.c:280
+#, c-format
+msgid "error initializing I/O plugin %s"
+msgstr "errorea %s I/O plugina abiaraztean"
+
+#: src/sudo.c:307
+#, c-format
+msgid "unexpected sudo mode 0x%x"
+msgstr ""
+
+#: src/sudo.c:356
+#, c-format
+msgid "unable to get group vector"
+msgstr ""
+
+#: src/sudo.c:394
+#, c-format
+msgid "unknown uid %u: who are you?"
+msgstr ""
+
+#: src/sudo.c:734
+#, c-format
+msgid "resource control limit has been reached"
+msgstr ""
+
+#: src/sudo.c:737
+#, c-format
+msgid "user \"%s\" is not a member of project \"%s\""
+msgstr ""
+
+#: src/sudo.c:741
+#, c-format
+msgid "the invoking task is final"
+msgstr ""
+
+#: src/sudo.c:744
+#, c-format
+msgid "could not join project \"%s\""
+msgstr "ezin izan da \"%s\" proiektura batu"
+
+#: src/sudo.c:749
+#, c-format
+msgid "no resource pool accepting default bindings exists for project \"%s\""
+msgstr ""
+
+#: src/sudo.c:753
+#, c-format
+msgid "specified resource pool does not exist for project \"%s\""
+msgstr ""
+
+#: src/sudo.c:757
+#, c-format
+msgid "could not bind to default resource pool for project \"%s\""
+msgstr ""
+
+#: src/sudo.c:763
+#, c-format
+msgid "setproject failed for project \"%s\""
+msgstr "setproject-ek huts egin du \"%s\" proiektuarentzat"
+
+#: src/sudo.c:765
+#, c-format
+msgid "warning, resource control assignment failed for project \"%s\""
+msgstr ""
+
+#: src/sudo.c:791
+#, c-format
+msgid "unable to remove PRIV_PROC_EXEC from PRIV_LIMIT"
+msgstr ""
+
+#: src/sudo.c:895
+#, c-format
+msgid "unknown login class %s"
+msgstr ""
+
+#: src/sudo.c:902 src/sudo.c:905
+#, c-format
+msgid "unable to set user context"
+msgstr ""
+
+#: src/sudo.c:916
+#, c-format
+msgid "unable to set effective gid to runas gid %u"
+msgstr ""
+
+#: src/sudo.c:921
+#, c-format
+msgid "unable to set gid to runas gid %u"
+msgstr ""
+
+#: src/sudo.c:929 src/sudo.c:935
+#, c-format
+msgid "unable to set supplementary group IDs"
+msgstr ""
+
+#: src/sudo.c:943
+#, c-format
+msgid "unable to set process priority"
+msgstr ""
+
+#: src/sudo.c:951
+#, c-format
+msgid "unable to change root to %s"
+msgstr ""
+
+#: src/sudo.c:961 src/sudo.c:967 src/sudo.c:973
+#, c-format
+msgid "unable to change to runas uid (%u, %u)"
+msgstr ""
+
+#: src/sudo.c:987
+#, c-format
+msgid "unable to change directory to %s"
+msgstr ""
+
+#: src/sudo.c:1078
+#, c-format
+msgid "unexpected child termination condition: %d"
+msgstr ""
+
+#: src/sudo.c:1118
+#, c-format
+msgid "policy plugin %s does not support listing privileges"
+msgstr ""
+
+#: src/sudo.c:1129
+#, c-format
+msgid "policy plugin %s does not support the -v option"
+msgstr ""
+
+#: src/sudo.c:1140
+#, c-format
+msgid "policy plugin %s does not support the -k/-K options"
+msgstr ""
+
+#: src/sudo_edit.c:108
+#, c-format
+msgid "unable to change uid to root (%u)"
+msgstr "ezin da uid-a root-era aldatu (%u)"
+
+#: src/sudo_edit.c:140
+#, c-format
+msgid "plugin error: missing file list for sudoedit"
+msgstr ""
+
+#: src/sudo_edit.c:172 src/sudo_edit.c:280
+#, c-format
+msgid "%s: not a regular file"
+msgstr "%s: ez da fitxategi normala"
+
+#: src/sudo_edit.c:206 src/sudo_edit.c:316
+#, c-format
+msgid "%s: short write"
+msgstr ""
+
+#: src/sudo_edit.c:281
+#, c-format
+msgid "%s left unmodified"
+msgstr ""
+
+#: src/sudo_edit.c:294
+#, c-format
+msgid "%s unchanged"
+msgstr "%s aldatugabea"
+
+#: src/sudo_edit.c:306 src/sudo_edit.c:327
+#, c-format
+msgid "unable to write to %s"
+msgstr "ezin da %s-(e)ra idatzi"
+
+#: src/sudo_edit.c:307 src/sudo_edit.c:325 src/sudo_edit.c:328
+#, c-format
+msgid "contents of edit session left in %s"
+msgstr ""
+
+#: src/sudo_edit.c:324
+#, c-format
+msgid "unable to read temporary file"
+msgstr "ezin da aldi baterako fitxategia irakurri"
+
+#: src/tgetpass.c:95
+#, c-format
+msgid "no tty present and no askpass program specified"
+msgstr "ez dago tty-rik eta askpass aplikazioa zehaztu gabe"
+
+#: src/tgetpass.c:104
+#, c-format
+msgid "no askpass program specified, try setting SUDO_ASKPASS"
+msgstr "ez da askpass aplikaziorik zehaztu, saiatu SUDO_ASKPASS ezartzen"
+
+#: src/tgetpass.c:234
+#, c-format
+msgid "unable to set gid to %u"
+msgstr "ezin da %u gid-a ezarri"
+
+#: src/tgetpass.c:238
+#, c-format
+msgid "unable to set uid to %u"
+msgstr "ezin da %u uid-a ezarri"
+
+#: src/tgetpass.c:243
+#, c-format
+msgid "unable to run %s"
+msgstr "ezin da %s exekutatu"
+
+#: src/utmp.c:263
+#, c-format
+msgid "unable to save stdin"
+msgstr "ezin da stdin-era gorde"
+
+#: src/utmp.c:265
+#, c-format
+msgid "unable to dup2 stdin"
+msgstr "ezin da stdin-era dup2 egin"
+
+#: src/utmp.c:268
+#, c-format
+msgid "unable to restore stdin"
+msgstr "ezin da stdin-era leheneratu"
+
+#: common/aix.c:144
+#, c-format
+msgid "unable to open userdb"
+msgstr "ezin da userdb-a ireki"
+
+#: common/aix.c:147
+#, c-format
+msgid "unable to switch to registry \"%s\" for %s"
+msgstr "ezin da \"%s\" erregistrora aldatu %s-(r)entzat"
+
+#: common/aix.c:161
+#, c-format
+msgid "unable to restore registry"
+msgstr "ezin da erregistroa leheneratu"
+
+#: common/alloc.c:82
+#, c-format
+msgid "internal error, tried to emalloc(0)"
+msgstr "barne errorea, emalloc(0) egiteko saiakera egon da"
+
+#: common/alloc.c:99
+#, c-format
+msgid "internal error, tried to emalloc2(0)"
+msgstr "barne errorea, emalloc2(0) egiteko saiakera egon da"
+
+#: common/alloc.c:101
+#, c-format
+msgid "internal error, emalloc2() overflow"
+msgstr "barne errorea, emalloc2() overflow-a"
+
+#: common/alloc.c:119
+#, c-format
+msgid "internal error, tried to erealloc(0)"
+msgstr "barne errorea, erealloc(0) egiteko saiakera egon da"
+
+#: common/alloc.c:138
+#, c-format
+msgid "internal error, tried to erealloc3(0)"
+msgstr "barne errorea, erealloc3(0) egiteko saiakera egon da"
+
+#: common/alloc.c:140
+#, c-format
+msgid "internal error, erealloc3() overflow"
+msgstr "barne errorea, erealloc3(0) overflow-a"
+
+#: compat/strsignal.c:47
+msgid "Unknown signal"
+msgstr "Seinale ezezaguna"

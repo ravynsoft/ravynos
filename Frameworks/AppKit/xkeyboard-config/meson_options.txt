@@ -1,0 +1,12 @@
+option('xkb-base',
+       type: 'string',
+       value: '',
+       description: 'XKB base path [default=$datadir/X11/xkb]')
+option('compat-rules',
+       type: 'boolean',
+       value: true,
+       description: 'create compatibility rules [default=true]')
+option('xorg-rules-symlinks',
+       type: 'boolean',
+       value: false,
+       description: 'create "xorg" symlinks to the "base" rules files [default=false]')

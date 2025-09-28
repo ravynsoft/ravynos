@@ -1,0 +1,47 @@
+#compdef otool llvm-otool
+#
+local opts args files variant curcontext=$context state state_descr line
+typeset -A opt_args
+
+_arguments \
+  '-a[display the archive header]' \
+  '-S[display the contents of the __.SYMDEF file]' \
+  '-f[display the universal headers]' \
+  '-h[display the Mach header]' \
+  '-l[display the load commands]' \
+  '-L[display names and versions of shared libs that the object file uses]' \
+  '-D[display just the internal name of shared lib]' \
+  '-s[display the contents of the specified section]:segment name: :section name: ' \
+  '-t[display the contents of (__TEXT,__text) section]' \
+  '-d[display the contents of (__DATA,__data) section]' \
+  '-o[display the contents of __OBJC segment]' \
+  '-r[display the relocation entries]' \
+  '-c[display the argument strings from a core file]' \
+  '-I[display the indirect symbol table]' \
+  '-T[display the table of contents for a dynamic shared library]' \
+  '-R[display the reference table of a dynamic shared library]' \
+  '-M[display the module table of dynamic shared library]' \
+  '-H[display the two-level namespace hints table]' \
+  '-G[display the data in code table]' \
+  '-C[display the linker optimization hints]' \
+  '-P[print the info_plist section as strings]' \
+  '-p[with -t and -v/V: start disassembly from the specified symbol]:symbol name: ' \
+  '-v[display verbosely (symbolically) when possible]' \
+  '-V[display disassembled operands symbolically]' \
+  "-X[don't print leading addresses/headers with disassembly]" \
+  '-q[use the llvm disassembler (default)]' \
+  '-mcpu=[use the specified cpu for the llvm disassembler]:target:->targets' \
+  '-function_offsets[with disassembly, print decimal offset from the last label]' \
+  '-j[with disassembly, print opcode bytes]' \
+  "-Q[use otool's disassembler]" \
+  '-arch[select the specified architecture from a universal file]:arch:(i386 x86_64)' \
+  '-m[object file names are not assumed to be in archive(member) syntax]' \
+  '(- *)--version[print version of otool]' \
+  '*:file:_object_files' && return 0
+
+case $state in
+  targets)
+    _values "target architecture" "${(z)${(@)${(f)$(_call_program targets
+      ${~words[1]} --version 2>/dev/null)##*Registered Targets:}/ -*}}"
+  ;;
+esac

@@ -1,0 +1,225 @@
+# vim: syntax=pod
+
+If you read this file _as_is_, just ignore the funny characters you
+see. It is written in the POD format (see perlpod manpage) which is
+specially designed to be readable as is.
+
+=head1 NAME
+
+perlamiga - Perl under AmigaOS 4.1
+
+=head1 NOTE
+
+This is a port of Perl 5.22.1, it is a fresh port and not in any way
+compatible with my previous ports of Perl 5.8 and 5.16.3. This means
+you will need to reinstall / rebuild any third party modules you have
+installed.
+
+newlib.library version 53.28 or greater is required.
+
+=head1 SYNOPSIS
+
+Once perl is installed you can read this document in the following way
+
+	sh -c "perldoc perlamiga"
+
+or you may read I<as is>: either as F<README.amiga>, or F<pod/perlamiga.pod>.
+
+=cut
+
+       NAME
+       SYNOPSIS
+       DESCRIPTION
+         -  Prerequisites
+         -  Starting Perl programs under AmigaOS
+         -  Shortcomings of Perl under AmigaOS
+       INSTALLATION
+       CHANGES
+
+=head1 DESCRIPTION
+
+=head2 Prerequisites for running Perl 5.22.1 under AmigaOS 4.1
+
+=over 6
+
+=item B<AmigaOS 4.1 update 6 with all updates applied as of 9th October 2013>
+
+The most important of which is:
+
+=item B<newlib.library version 53.28 or greater>
+
+=item B<AmigaOS SDK>
+
+Perl installs into the SDK directory structure and expects many of the
+build tools present in the SDK to be available. So for the best results
+install the SDK first.
+
+=item B<abc-shell>
+
+If you do not have the SDK installed you must at least have abc-shell
+installed or some other suitable sh port. This is required to run
+external commands and should be available as 'sh' in your path.
+
+=back
+
+=head2 Starting Perl programs under AmigaOS 4.1
+
+Perl may be run from the AmigaOS shell but for best results should be
+run under abc-shell.  (abc-shell handles file globbing, pattern
+expansion, and sets up environment variables in the UN*Xy way that
+Perl expects.)
+
+For example:
+
+	New Shell process 10
+	10.AmigaOS4:> sh
+	/AmigaOS4>perl path:to/myprog arg1 arrg2 arg3
+
+Abc-shell can also launch programs via the #! syntax at the start of
+the program file, it's best use the form #!SDK:Local/C/perl so that
+the AmigaOS shell may also find perl in the same way. AmigaOS requires
+the script bit to be set for this to work
+
+	10.AmigaOS4:> sh
+	/AmigaOS4>myprog arg1 arrg2 arg3
+
+=head2 Limitations of Perl under AmigaOS 4.1
+
+=over 6
+
+=item B<Nested Piped programs can crash when run from older abc-shells>
+
+abc-shell version 53.2 has a bug that can cause crashes in the
+subprocesses used to run piped programs, if a later version is
+available you should install it instead.
+
+=item B<Incorrect or unexpected command line unescaping>
+
+newlib.library 53.30 and earlier incorrectly unescape slashed escape
+sequences e.g. \" \n \t etc requiring unusual extra escaping.
+
+=item B<Starting subprocesses via open has limitations>
+
+	open FH, "command |"
+
+Subprocesses started with open use a minimal popen() routine and
+therefore they do not return pids usable with waitpid etc.
+
+=item If you find any other limitations or bugs then let me know.
+
+Please report bugs in this version of perl to andy@broad.ology.org.uk
+in the first instance.
+
+=back
+
+=head1 INSTALLATION
+
+This guide assumes you have obtained a prebuilt archive from os4depot.net.
+
+Unpack the main archive to a temporary location (RAM: is fine).
+
+Execute the provided install script from shell or via its icon.
+
+You B<must not> attempt to install by hand.
+
+Once installed you may delete the temporary archive.
+
+This approach will preserve links in the installation without creating
+duplicate binaries.
+
+If you have the earlier ports perl 5.16 or 5.8 installed you may like
+to rename your perl executable to perl516 or perl58 or something
+similar before the installation of 5.22.1, this will allow you to use
+both versions at the same time.
+
+=head1 Amiga Specific Modules
+
+=head2 Amiga::ARexx
+
+The Amiga::ARexx module allows you to easily create a perl based ARexx
+host or to send ARexx commands to other programs.
+
+Try C<perldoc Amiga::ARexx> for more info.
+
+=head2 Amiga::Exec
+
+The Amiga::Exec module introduces support for Wait().
+
+Try C<perldoc Amiga::Exec> for more info.
+
+=head1 BUILDING
+
+To build perl under AmigaOS from the patched sources you will need to
+have a recent version of the SDK. Version 53.29 is recommended,
+earlier versions will probably work too.
+
+With the help of Jarkko Hietaniemi the Configure system has been tweaked to
+run under abc-shell so the recommend build process is as follows.
+
+	stack 2000000
+	sh Configure -de
+	gmake
+
+This will build the default setup that installs under SDK:local/newlib/lib/
+
+=head1 CHANGES
+
+=over 6
+
+=item B<August 2015>
+
+=over 2
+
+=item Port to Perl 5.22
+
+=item Add handling of NIL: to afstat()
+
+=item Fix inheritance of environment variables by subprocesses.
+
+=item Fix exec, and exit in "forked" subprocesses.
+
+=item Fix issue with newlib's unlink, which could cause infinite loops.
+
+=item Add flock() emulation using IDOS->LockRecord thanks to Tony Cook
+for the suggestion.
+
+=item Fix issue where kill was using the wrong kind of process ID
+
+=back
+
+=item B<27th November 2013>
+
+=over 2
+
+=item Create new installation system based on installperl links
+and Amiga protection bits now set correctly.
+
+=item Pod now defaults to text.
+
+=item File::Spec should now recognise an Amiga style absolute path as well
+as an Unix style one. Relative paths must always be Unix style.
+
+=back
+
+=item B<20th November 2013>
+
+=over 2
+
+=item Configured to use SDK:Local/C/perl to start standard scripts
+
+=item Added Amiga::Exec module with support for Wait() and AmigaOS signal numbers.
+
+=back
+
+=item B<10th October 13>
+
+First release of port to 5.16.3.
+
+=back
+
+=head1 SEE ALSO
+
+You like this port?  See L<http://www.broad.ology.org.uk/amiga/>
+for how you can help.
+
+=cut

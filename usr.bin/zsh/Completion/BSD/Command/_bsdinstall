@@ -1,0 +1,46 @@
+#compdef bsdinstall
+
+local -a _bsdinstall_targets
+_bsdinstall_targets=(
+  'auto:standard interactive installation, including disk partitioning'
+  "entropy:stores a small amount of data from /dev/random in the new system's root"
+  'jail:sets up a new chroot system at destination, suitable for use with jail(8)'
+  'script:run an installation script'
+  "keymap:set the keymap and save to the new system's rc.conf"
+  'hostname:set the hostname for the new system'
+  'netconfig:configure networking'
+  'autopart:run the interactive guided disk partitioner'
+  'zfsboot:run the interactive/scriptable ZFS partitioner'
+  'scriptedpart:non-interactive partition setup'
+  'mount:mount the file systems previously configured by autopart, partedit, or scriptedpart'
+  'distfetch:fetches the distributions in DISTRIBUTIONS to BSDINSTALL_DISTDIR from BSDINSTALL_DISTSITE'
+  'checksum:verifies the checksums of the distributions listed in DISTRIBUTIONS'
+  'distextract:extracts the distributions listed in DISTRIBUTIONS into BSDINSTALL_CHROOT'
+  "rootpass:interactively invokes passwd(1) in the new system to set the root user's password"
+  'adduser:interactively invokes adduser(8) in the new system'
+  'time:interactively sets the time, date, and time zone of the new system'
+  'services:queries the user for the system daemons to begin at system startup'
+  'config:installs the configuration files destined for the new system'
+)
+
+local context state state_descr line
+typeset -A val_args
+_arguments -A '-*' : \
+  '-D[installation log file]: : _files' \
+  '1: :->targets' \
+  '*: :->args'
+
+case $state in
+  targets) _describe targets _bsdinstall_targets;;
+  args)
+    shift words
+    [[ $words[1] == '-D' ]] && shift 2 words
+
+    case $words[1] in
+      jail)         _files -/;;
+      script)       _files;;
+      scriptedpart) _message "$words[1] parameters";;
+      *)            _message "nothing to complete"; return 1;;
+    esac
+    ;;
+esac

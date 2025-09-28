@@ -1,0 +1,15 @@
+<%inherit file="base.html"/>
+
+    ${parent.greeting(user)}
+    ${parent.greeting('me')}
+    ${parent.greeting('world')}
+ 
+    <h2>Loop</h2>
+    % if list_items:
+      <ul>
+        % for list_item in list_items:
+          <li>${list_item}</li>
+        % endfor
+      </ul>
+    % endif
+

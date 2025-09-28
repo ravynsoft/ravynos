@@ -1,0 +1,55 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2020 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@node GCC-source
+@subsection GNU Compiler Collection sources
+@cindex GCC-source
+
+@table @asis
+@item RPMs
+gcc
+
+@item Ubuntu packages
+gcc
+
+@item File extension
+@code{c}, @code{h}.
+
+@item String syntax
+@code{"abc"}
+
+@item gettext shorthand
+@code{_("abc")}
+
+@item gettext/ngettext functions
+@code{gettext}, @code{dgettext}, @code{dcgettext}, @code{ngettext},
+@code{dngettext}, @code{dcngettext}
+
+@item textdomain
+@code{textdomain} function
+
+@item bindtextdomain
+@code{bindtextdomain} function
+
+@item setlocale
+Programmer must call @code{setlocale (LC_ALL, "")}
+
+@item Prerequisite
+@code{#include "intl.h"}
+
+@item Use or emulate GNU gettext
+Use
+
+@item Extractor
+@code{xgettext -k_}
+
+@item Formatting with positions
+---
+
+@item Portability
+Uses autoconf macros
+
+@item po-mode marking
+yes
+@end table

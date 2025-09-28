@@ -1,0 +1,2 @@
+${THIS_SH} ./dollar-at-star > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} dollar.right && rm -f ${BASH_TSTOUT}

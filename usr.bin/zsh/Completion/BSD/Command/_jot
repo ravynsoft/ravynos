@@ -1,0 +1,82 @@
+#compdef jot
+
+local curcontext="$curcontext" state state_descr line ret=1
+local -A opt_args
+
+_arguments -s -C : \
+  '(-b)-r[generate random data instead of the default sequential data]' \
+  '(-c -p -r -w)-b+[just print the specified word repeatedly]:word:' \
+  '(-b -c -p)-w+[specify output format as in printf]:output format:->format' \
+  '(-b -p -w)-c[same as -w %c]' \
+  '-s+[separate the data by the specified string instead of newline]:string:' \
+  '-n[do not print the final newline]' \
+  '(-b -c -w)-p+[specify number of digits after decimal point]:precision:' \
+  '(-)1: :_guard "^-*" "number of data"' \
+  '2::lower bound:' \
+  '3::upper bound:' \
+  '4:: :->lastarg' && ret=0
+
+case $state in
+  (format)
+    local -a flags digits conversions
+    flags=(
+      '#:alternative form'
+      ' :leave a blank before a positive number'
+      '+:always place a sign before a number'
+      '-:left adjust'
+    )
+    digits=(0 1 2 3 4 5 6 7 8 9 .)
+    conversions=(
+      {d,i}':signed decimal'
+      'o:unsigned octal'
+      'u:unsigned decimal'
+      {x,X}':unsigned hexadecimal'
+      'l'{d,i}':long signed decimal'
+      'lo:long unsigned octal'
+      'lu:long unsigned decimal'
+      'l'{x,X}':long unsigned hexadecimal'
+      'f:double number'
+      {e,E}':double number in scientific notation'
+      {g,G}':use %f or %e, whichever is more appropriate'
+      'c:character'
+    )
+
+    compset -P '([^%]#%%)#'
+    if compset -P '[^%]#%'; then
+      # flags: (|\#)(| )(|+|-)
+      compset -P '(\#|\\\#)' && flags=( ${(@)flags:#\#*} )
+      compset -P '( |\\ )' && flags=( ${(@)flags:#(\#| )*} )
+      compset -P '(+|-)' || compset -P '[0-9]##' && flags=()
+      # width.precision: [0-9]#(|.[0-9]#)
+      if compset -P '.'; then
+	flags=()
+	digits=( ${(@)digits:#.} )
+      fi
+      compset -P '[0-9]#'
+      # conversion specifier: ((|l)[diouxX]|[feEgGc])
+      if compset -P '((|l)[diouxX]|[feEgGc])'; then
+	_message -e format-rest 'rest of the format' && ret=0
+      else
+	local opts=( -S '' )
+	_alternative -O opts 'flags:flag:(( $flags ))' \
+	    "width-precision:width.precision:($digits)" \
+	    'conversion-specifiers:conversion specifier:(( $conversions ))' \
+	    && ret=0
+      fi
+    else
+      local expl
+      compset -P '*'
+      _wanted start-specification expl 'start specification' \
+				compadd -S '' % && ret=0
+    fi
+    ;;
+  (lastarg)
+    if (( $+opt_args[-r] )); then
+      _message -e seeds 'random number seed' && ret=0
+    else
+      _message -e steps 'step size' && ret=0
+    fi
+    ;;
+esac
+
+return ret

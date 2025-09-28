@@ -1,0 +1,49 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Verify that msgcat complains when it would need to change msgids.
+
+cat <<\EOF > mcat-test12.in1
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Denote a lock's state
+msgid "Open"
+msgstr "Ouverte"
+
+#. Denote a lock's state
+msgid "Closed"
+msgstr "Ferm√©e"
+EOF
+
+cat <<\EOF > mcat-test12.in2
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Denote a lock's state
+msgid "Open"
+msgstr "Ouvert"
+
+#. Denote a lock's state
+msgid "Closed"
+msgstr "FermÈ"
+
+#. A product
+msgid "Audi car"
+msgstr "voiture Audi"
+
+#. A product
+msgid "OcÈ copier"
+msgstr "photocopieur OcÈ"
+EOF
+
+rm -f mcat-test12.out
+: ${MSGCAT=msgcat}
+${MSGCAT} -o mcat-test12.out mcat-test12.in1 mcat-test12.in2 2>/dev/null
+test $? = 1 || { Exit 1; }
+
+Exit 0

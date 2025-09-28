@@ -1,0 +1,13 @@
+#compdef mii-tool
+
+_arguments -s -S \
+  '(- *)'{-V,--version}'[display version information]' \
+  '(-v --verbose)'{-v,--verbose}'[verbose output]' \
+  '(-R --reset)'{-R,--reset}'[reset MII to poweron state]' \
+  '(-r --restart)'{-r,--restart}'[restart autonegotiation]' \
+  '(-w --watch)'{-w,--watch}'[monitor for link status changes]' \
+  '(-l --log)'{-l,--log}'[write events to syslog]' \
+  '(-A --advertise)'{-A,--advertise=}'[advertise only specified media]:medium:_values -s , medium 1000baseTx-HD 1000baseTx-FD 100baseT4 100baseTx-FD 100baseTx-HD 10baseT-FD 10baseT-HD 1000baseTx 100baseTx 10baseT' \
+  '(-F --force)'{-F,--force=}'[force specified medium]:medium:(100baseT4 100baseTx-FD 100baseTx-HD 10baseT-FD 10baseT-HD 100baseTx 10baseT)' \
+  '(-p --phy)'{-p,--phy=}'[set PHY (MII address) to report]:MII address' \
+  '*:interface:_net_interfaces'

@@ -1,0 +1,32 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --more-than=0 option with Java .properties syntax.
+
+cat <<EOF > mcomm-test24.in1
+#: first.c:123
+1=1x
+EOF
+
+cat <<EOF > mcomm-test24.in2
+#: hunt.c:759
+2=2x
+EOF
+
+: ${MSGCOMM=msgcomm}
+${MSGCOMM} --more-than=0 --properties-input --properties-output -o mcomm-test24.tmp mcomm-test24.in1 mcomm-test24.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcomm-test24.tmp > mcomm-test24.out || Exit 1
+
+cat << EOF > mcomm-test24.ok
+#: first.c:123
+1=1x
+
+#: hunt.c:759
+2=2x
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcomm-test24.ok mcomm-test24.out
+result=$?
+
+exit $result

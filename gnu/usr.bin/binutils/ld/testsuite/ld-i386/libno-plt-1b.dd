@@ -1,0 +1,19 @@
+#objdump: -dwrj.text
+#target: i?86-*-*
+
+.*: +file format elf32-i386.*
+
+Disassembly of section .text:
+
+#...
+[0-9a-f]+ <get_func>:
+ +[a-f0-9]+:	e8 ([0-9a-f]{2} ){4}[ 	]+call +[a-f0-9]+ <__x86.get_pc_thunk.ax>
+ +[a-f0-9]+:	05 ([0-9a-f]{2} ){4}[ 	]+add +\$0x[a-f0-9]+,%eax
+ +[a-f0-9]+:	8b 80 ([0-9a-f]{2} ){4}[ 	]+mov +-0x[a-f0-9]+\(%eax\),%eax
+ +[a-f0-9]+:	c3                   	ret
+#...
+[0-9a-f]+ <call_func>:
+ +[a-f0-9]+:	e8 ([0-9a-f]{2} ){4}[ 	]+call +[a-f0-9]+ <__x86.get_pc_thunk.ax>
+ +[a-f0-9]+:	05 ([0-9a-f]{2} ){4}[ 	]+add +\$0x[a-f0-9]+,%eax
+ +[a-f0-9]+:	ff a0 ([0-9a-f]{2} ){4}[ 	]+jmp +\*-0x[0-9a-f]+\(%eax\)
+#pass

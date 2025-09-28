@@ -1,0 +1,21 @@
+#compdef jexec
+
+_jexec_normal() {
+  local PATH=$PATH
+  local -a _comp_priv_prefix
+  # relative paths are relative to the jail's root
+  path=( "$(_call_program paths jls -j $words[1] path)"/$^path )
+  shift 1 words; (( CURRENT-- ))
+  _normal
+}
+
+_jexec() {
+  _arguments -s -S -A "-*" : \
+    '-l[execute in a clean environment]' \
+    '(-U)-u[host environment user whom command runs as]:host user:_users' \
+    '(-u)-U[jail environment user whom command runs as]:jail user:_users' \
+    '1:jail:_jails' \
+    '*:: : _jexec_normal'
+}
+
+_jexec "$@"

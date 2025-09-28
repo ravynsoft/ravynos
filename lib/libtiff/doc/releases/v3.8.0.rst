@@ -1,0 +1,140 @@
+Changes in TIFF v3.8.0
+======================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.8.0 (:tag:`Release-v3-8-0`)
+  Previous Version        :doc:`v3.7.4 <v3.7.4>`
+  Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+Major changes
+-------------
+
+* Read-only support for custom directories (e.g. EXIF directory).
+
+* Preliminary support for MS MDI format.
+
+
+Software configuration changes
+------------------------------
+
+* Make the default strip size configurable via the
+  ``--with-default-strip-size`` and :c:macro:`STRIP_SIZE_DEFAULT` options.
+
+
+Library changes
+---------------
+
+* :file:`tiffio.h`: Added :c:macro:`VC_EXTRALEAN` definition before including
+  :file:`windows.h`, to reduce the compile time.
+
+* :file:`tif_jpeg.c`: Improve compilation under MinGW.
+
+* :file:`tif_aux.c`, :file:`tif_dir.c`, :file:`tif_dir.h`, :file:`tif_dirwrite.c`,
+  :file:`tif_print.c`, :file:`tif_getimage.c`: Make ``InkSet``, ``NumberOfInks``, ``DotRange`` and
+  ``StoNits`` tags custom.
+
+* :file:`tif_aux.c`, :file:`tif_dir.c`, :file:`tif_dir.h`, :file:`tif_print.c`: Make
+  ``WhitePoint`` tag custom.
+
+* :file:`tiffio.h`: fixed typo that potentially resulted in
+  redefininition of :c:macro:`USE_WIN32_FILEIO`
+
+* :file:`tif_dir.c`, :file:`tif_dir.h`, :file:`tif_print.c`: Make ``RichTIFFIPTC``,
+  ``Photoshop`` and ``ICCProfile`` tags custom.
+
+* :file:`libtiff/*`, :file:`contrib/*`: Added 'dual-mode' error handling, enabling
+  newer code to get context indicator in error handler and still
+  remain compatible with older code: Done :c:func:`TIFFError` calls everywhere
+  except in tools.
+
+* :file:`tiffinfo.c`: Print ``EXIF`` directory contents if exist.
+
+* :file:`tif_dirinfo.c`, :file:`tif_dirread.c`, :file:`tif_dir.h`, :file:`tif_dir.c`:
+  Custom directory read-only support.
+
+* :file:`tif_aux.c`, :file:`tif_dirinfo.c`, :file:`tif_dirread.c`, :file:`tif_dir.h`,
+  :file:`tif_dir.c`, :file:`tif_print.c`: Make ``YCbCrCoefficients`` and ``ReferenceBlackWhite``
+  tags custom.
+
+* :file:`tif_dirread.c`: One more workaround for broken ``StripByteCounts``
+  tag. Handle the case when ``StripByteCounts`` array filled with
+  completely wrong values.
+
+* :file:`tif_dirinfo.c`: Release file descriptor in case of failure
+  in the :c:func:`TIFFOpenW` function as per bug
+  :bugzilla-rs:`1003`
+
+* :file:`tif_dirinfo.c`: Correctly use :c:func:`bsearch` and :c:func:`lfind`
+  functions as per bug
+  :bugzilla-rs:`1008`
+
+* :file:`tif_open.c`, :file:`tiff.h`, :file:`tiffdump.c`: Incorporate preliminary support
+  for MS MDI format.
+  :bugzilla-rs:`1002`
+
+* libtiff.def, :file:`tiffiop.h`, :file:`tiffio.h`: Made :c:func:`TIFFFreeDirectory`
+  public.
+
+* :file:`/tif_dirinfo.c`: Make ``XResolution``, ``YResolution`` and
+  ``ResolutionUnit`` tags modifiable during write process. As per bug
+  :bugzilla-rs:`977`
+
+* :file:`if_dirread.c`: Don't try and split single strips into "0" strips
+  in :c:func:`ChopUpSingleUncompressedStrip`.  This happens in some degenerate
+  cases (like 1×1 files with ``stripbytecounts==0`` (:file:`gtsmall.jp2` embed tiff)
+
+* :file:`tif_fax3.c`: changed '`at scanline ...`' style warning/errors
+  with incorrect use of tif_row, to '`at line ... of
+  strip/tile ...`' style.
+
+
+Tools changes
+-------------
+
+* :file:`tiffcp.c`: Added many error reporting messages; fixed integer
+  overflow as per bug
+  :bugzilla-rs:`789`
+
+* :file:`tiffcp.c`: Return non-zero status when reading fails.
+
+* :file:`fax2tiff.c`: Properly calculate sizes of temporary arrays
+  as per bug
+  :bugzilla-rs:`943`
+
+* :file:`fax2tiff.c`: Added option `-r` to set RowsPerStrip parameter
+  as per bug
+  :bugzilla-rs:`944`
+
+* :file:`tiffdump.c`: Fixed :c:var:`typeshift` and :c:var:`typemask` arrays initialization
+  problem as per bug
+  :bugzilla-rs:`946`
+
+* :file:`bmp2tiff.c`: Fixed possible integer overflow error as per bug
+  :bugzilla-rs:`965`
+
+* :file:`tiffsplit.c`: Copy fax related fields over split parts
+  as per bug
+  :bugzilla-rs:`983`
+
+* :file:`tiffdump.c`: Fixed crash when reading malformed tags.
+
+* :file:`tiff2pdf.c`: Added missed ``break`` statement as per bug
+  :bugzilla-rs:`932`
+
+
+Contributed software changes
+----------------------------
+
+* :file:`contrib/addtiffo/*`: Major upgrade by Joris to support subsampled
+  YCbCr images in jpeg compressed TIFF files.

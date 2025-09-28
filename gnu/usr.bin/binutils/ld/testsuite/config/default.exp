@@ -1,0 +1,514 @@
+# Basic expect script for LD Regression Tests
+#   Copyright (C) 1993-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+# Written by Jeffrey Wheat (cassidy@cygnus.com)
+#
+
+if ![info exists ld] then {
+    set ld [findfile $base_dir/ld-new $base_dir/ld-new [transform ld]]
+}
+
+if ![info exists as] then {
+    set as [findfile $base_dir/../gas/as-new $base_dir/../gas/as-new [transform as]]
+}
+
+if ![info exists nm] then {
+    set nm [findfile $base_dir/../binutils/nm-new $base_dir/../binutils/nm-new [transform nm]]
+}
+
+if ![info exists objdump] then {
+    set objdump [findfile $base_dir/../binutils/objdump]
+}
+
+if ![info exists objcopy] then {
+    set objcopy [findfile $base_dir/../binutils/objcopy]
+}
+
+if ![info exists ar] then {
+    set ar [findfile $base_dir/../binutils/ar]
+}
+
+if ![info exists strip] then {
+    set strip [findfile $base_dir/../binutils/strip-new $base_dir/../binutils/strip-new [transform strip]]
+}
+
+if ![info exists size] then {
+    set size [findfile $base_dir/../binutils/size]
+}
+
+remote_exec host "mkdir -p tmpdir"
+
+# Make symlinks from tmpdir/ld to the linker and assembler in the
+# build tree, so that we can use a -B option to gcc to force it to use
+# the newly built linker and assembler.
+# The variable ld_testsuite_bindir allows to provide another directory
+# for -B option. This can be useful when launching the testsuite outside
+# the build tree as the symlinks will be wrong in this case.
+if {[info exists ld_testsuite_bindir]} {
+    set gcc_B_opt "-B$ld_testsuite_bindir/"
+} else {
+    if {![file isdirectory tmpdir/ld]} then {
+	catch "exec mkdir tmpdir/ld" status
+	catch "exec ln -s ../../ld-new tmpdir/ld/ld" status
+	catch "exec ln -s ld tmpdir/ld/collect-ld" status
+	catch "exec ln -s ../../../gas/as-new tmpdir/ld/as" status
+    }
+    set gcc_B_opt "-B[pwd]/tmpdir/ld/"
+}
+
+# load the linker path
+set ld_L_opt ""
+if {[file exists tmpdir/libpath.exp]} {
+    load_lib tmpdir/libpath.exp
+
+    foreach dir $libpath {
+	append ld_L_opt " -L$dir"
+    }
+}
+
+if {![info exists CC]} {
+    set CC gcc
+}
+if {![info exists CFLAGS]} {
+    set CFLAGS "-g -O2"
+}
+if {![info exists CC_FOR_TARGET]} {
+    set CC_FOR_TARGET [find_gcc]
+}
+if {![info exists CFLAGS_FOR_TARGET]} {
+    set CFLAGS_FOR_TARGET "-g -O2"
+}
+if {![info exists CXX_FOR_TARGET]} {
+    set CXX_FOR_TARGET [find_g++]
+}
+if {![info exists CXXFLAGS_FOR_TARGET]} {
+    set CXXFLAGS_FOR_TARGET ""
+}
+
+# This allows us to run the linker testsuite with clang as the compilation
+# driver instead of gcc.  The syntax of the overrides are as follows, one
+# per line:
+#
+#  '#': Silence information about the changes to the command line arguments.
+#
+#  '^': Add FOO as a new argument at the beginning of the command line.
+#
+#  '+': Add FOO as a new argument at the end of the command line.
+#
+#  's/XXX/YYY/': Substitute the regular expression XXX with YYY in the command
+#  line.
+#
+#  'xOPTION': Removes all instances of the literal argument OPTION.
+#
+#  'XOPTION': Removes all instances of the literal argument OPTION,
+#  and the following argument.
+#
+#  'Ox': Removes all flags matching 'O' or 'O[sz0-9]' and adds 'Ox'
+#  at the end of the command line.
+#
+# \param OS - The stream to write edit information to.
+# \param Args - The vector of command line arguments.
+# \param Edit - The override command to perform.
+# \param SavedStrings - Set to use for storing string representations.
+
+# Only set up the environment variable if the user has not already provided one.
+if {! [info exists env(CCC_OVERRIDE_OPTIONS)]} {
+    set env(CCC_OVERRIDE_OPTIONS) "#\
+  +-Wno-unused-command-line-argument \
+  +-Wno-unknown-attributes \
+  +-Wno-tautological-compare \
+  +-Wno-ignored-optimization-argument \
+  +-Wno-deprecated \
+  +-fuse-ld=$ld \
+  x-Wa,--elf-stt-common=yes \
+  x-Wa,-mx86-used-note=no \
+  x-Wa,-mx86-used-note=yes \
+  x-Wa,-madd-bnd-prefix \
+  x-fno-early-inlining \
+  x-fno-toplevel-reorder \
+  x-flto-partition=none \
+  x-feliminate-dwarf2-dups \
+  s/-Wa,-mrelax-relocations=yes,-mx86-used-note=yes/-Wa,-mrelax-relocations=yes/ \
+  s/-Wa,--compress-debug-sections=zlib/-Wa,-compress-debug-sections=zlib/ \
+  s/-Wa,--compress-debug-sections=zlib-gabi/-Wa,-compress-debug-sections=zlib-gabi/ \
+"
+}
+
+# The mips64-*-linux-gnu compiler defaults to the N32 ABI after
+# installed, but to the O32 ABI in the build tree, because of some
+# specs-file hacks.  Make sure we use an ABI that is compatible with
+# the one we expect.
+if {[istarget mips64*-*-linux*] &&
+    (![board_info [target_info name] exists multilib_flags] ||
+     ![string match "*-mabi" [board_info [target_info name] multilib_flags]])
+   } {
+    append gcc_B_opt " -mabi=n32"
+}
+
+if { [istarget rx-*-*] } {
+    global ASFLAGS
+    set ASFLAGS "-muse-conventional-section-names"
+}
+
+# Blackfin ELF targets require selection of an explicit CPU.  Use the sim.
+if {[istarget bfin*-elf*]} {
+    append gcc_B_opt " -msim"
+}
+
+# load the utility procedures
+load_lib ld-lib.exp
+
+proc get_target_emul {} {
+    global target_triplet
+    global srcdir
+    set status [catch "exec sh -c \"targ='$target_triplet' && . $srcdir/../configure.tgt && echo \\\$targ_emul\"" result]
+    if $status { error "Error getting emulation name: $result" }
+    return $result
+}
+
+if ![info exists HOSTING_EMU] { set HOSTING_EMU "-m [get_target_emul]" }
+
+#
+# ld_version -- extract and print the version number of ld compiler (GCC)
+#
+proc ld_version {} {
+    global ld
+    default_ld_version $ld
+}
+
+#
+# ld_exit -- just a stub for ld
+#
+proc ld_exit {} {
+}
+
+#
+# ld_start 
+#	relink the linker
+#
+proc ld_start { ld target } {
+	#
+}
+
+#
+# ld_relocate 
+#	link an object using relocation
+#
+proc ld_relocate { ld target objects } {
+	default_ld_relocate $ld $target $objects
+}
+
+#
+# ld_link 
+#	link a program using ld
+#
+proc ld_link { ld target objects } {
+	default_ld_link $ld $target $objects
+}
+
+#
+# ld_compile 
+#	compile an object using $cc
+#
+proc ld_compile { cc source object } {
+	default_ld_compile $cc $source $object 
+}
+
+#
+# ld_assemble
+#	assemble a file
+#
+proc ld_assemble { as source object } {
+	default_ld_assemble $as "" $source $object 
+}
+
+#
+# ld_assemble_flags
+#	assemble a file with extra flags
+#
+proc ld_assemble_flags { as flags source object } {
+	default_ld_assemble $as $flags $source $object 
+}
+
+#
+# ld_nm
+#	run nm on a file
+#
+proc ld_nm { nm nmflags object } {
+	default_ld_nm $nm $nmflags $object
+}
+
+#
+# ld_exec
+#	execute ithe target
+#
+proc ld_exec { target output } {
+	default_ld_exec $target $output
+}
+
+# From gas-defs.exp, to support run_dump_test.
+if ![info exists AS] then {
+    set AS $as
+}
+
+if ![info exists ASFLAGS] then {
+    set ASFLAGS ""
+}
+
+if ![info exists OBJDUMP] then {
+    set OBJDUMP $objdump
+}
+
+if ![info exists OBJDUMPFLAGS] then {
+    set OBJDUMPFLAGS {}
+}
+
+if ![info exists NM] then {
+    set NM $nm
+}
+
+if ![info exists NMFLAGS] then {
+    set NMFLAGS {}
+}
+
+if ![info exists OBJCOPY] then {
+    set OBJCOPY $objcopy
+}
+
+if ![info exists OBJCOPYFLAGS] then {
+    set OBJCOPYFLAGS {}
+}
+
+if ![info exists RANLIB] then {
+    set RANLIB [findfile $base_dir/../binutils/ranlib]
+}
+
+if ![info exists READELF] then {
+    set READELF [findfile $base_dir/../binutils/readelf]
+}
+
+if ![info exists READELFFLAGS] then {
+    set READELFFLAGS {}
+}
+
+if ![info exists SIZE] then {
+    set SIZE [findfile $base_dir/../binutils/size]
+}
+
+if ![info exists SIZEFLAGS] then {
+    set SIZEFLAGS ""
+}
+
+if ![info exists ELFEDIT] then {
+    set ELFEDIT [findfile $base_dir/../binutils/elfedit]
+}
+
+if ![info exists LD] then {
+    set LD [findfile $base_dir/ld-new ./ld-new [transform ld]]
+}
+
+if ![info exists LDFLAGS] then {
+    set LDFLAGS {}
+}
+
+if { ![info exists DT_RELR_LDFLAGS] } then {
+    if { [supports_dt_relr] } then {
+	set DT_RELR_LDFLAGS "-z pack-relative-relocs"
+    } else {
+	set DT_RELR_LDFLAGS {}
+    }
+}
+
+if { ![info exists DT_RELR_CC_LDFLAGS] } then {
+    if { [supports_dt_relr] } then {
+	set DT_RELR_CC_LDFLAGS "-Wl,-z,pack-relative-relocs"
+    } else {
+	set DT_RELR_CC_LDFLAGS {}
+    }
+}
+
+if { ![info exists NO_DT_RELR_LDFLAGS] } then {
+    if { [supports_dt_relr] } then {
+	set NO_DT_RELR_LDFLAGS "-z nopack-relative-relocs"
+    } else {
+	set NO_DT_RELR_LDFLAGS {}
+    }
+}
+
+if { ![info exists NO_DT_RELR_CC_LDFLAGS] } then {
+    if { [supports_dt_relr] } then {
+	set NO_DT_RELR_CC_LDFLAGS "-Wl,-z,nopack-relative-relocs"
+    } else {
+	set NO_DT_RELR_CC_LDFLAGS {}
+    }
+}
+
+# Set LD_CLASS to "64bit" for a 64-bit *host* linker.
+if { ![info exists LD_CLASS] } then {
+    set REAL_LD [findfile $base_dir/.libs/ld-new .libs/ld-new $LD [transform ld]]
+    set readelf_output [run_host_cmd "$READELF" "-h $REAL_LD"]
+    if { [regexp {[ \t]+Class:[ \t]+ELF64} $readelf_output] } then {
+	set LD_CLASS "64bit"
+    } else {
+	set LD_CLASS "32bit"
+    }
+}
+
+# Compiler tests
+proc compiler_supports { flag args } {
+    if { [check_compiler_available] } {
+	global CC_FOR_TARGET
+	set flags ""
+	if [board_info [target_info name] exists cflags] {
+	    append flags " [board_info [target_info name] cflags]"
+	}
+	if [board_info [target_info name] exists ldflags] {
+	    append flags " [board_info [target_info name] ldflags]"
+	}
+	set fn "cs[pid].c"
+	set rfno "cs[pid].exe"
+	set f [open $fn "w"]
+	if { [llength $args] > 0 } {
+	    puts $f [lindex $args 0]
+	} else {
+	    puts $f "int main (void) { return 0; }"
+	}
+	close $f
+	set rfn [remote_download host $fn]
+	set avail [run_host_cmd_yesno "$CC_FOR_TARGET" "$flags $flag $rfn -o $rfno"]
+	remote_file host delete $rfno
+	remote_file host delete $rfn
+	file delete $fn
+	return $avail
+    }
+    return 0
+}
+
+if { ![info exists PLT_CFLAGS] } then {
+    set PLT_CFLAGS ""
+    if [compiler_supports "-c -fplt"] {
+	set PLT_CFLAGS "-fplt"
+    }
+}
+
+if { ![info exists NOPIE_CFLAGS] || ![info exists NOPIE_LDFLAGS] } then {
+    set NOPIE_CFLAGS ""
+    set NOPIE_LDFLAGS ""
+    if [compiler_supports "-fno-PIE -no-pie"] {
+	set NOPIE_CFLAGS "-fno-PIE"
+	set NOPIE_LDFLAGS "-no-pie"
+    }
+}
+
+if { ![info exists NOCF_PROTECTION_CFLAGS] } then {
+    set NOCF_PROTECTION_CFLAGS ""
+    if [compiler_supports "-fcf-protection=none"] {
+	set NOCF_PROTECTION_CFLAGS "-fcf-protection=none"
+    }
+}
+
+if { ![info exists GNU2_CFLAGS] } then {
+    set GNU2_CFLAGS ""
+    if [compiler_supports "-c -mtls-dialect=gnu2" "__thread int y = 1;"] {
+	set GNU2_CFLAGS "-mtls-dialect=gnu2"
+    }
+}
+
+if { ![info exists INT128_CFLAGS] } then {
+    set INT128_CFLAGS ""
+    if [compiler_supports "-c" "__int128 a = 42;"] {
+	set INT128_CFLAGS "-DHAS_INT128"
+    }
+}
+
+if { ![info exists STATIC_LDFLAGS] } then {
+    set STATIC_LDFLAGS ""
+    if [compiler_supports "-static"] {
+	set STATIC_LDFLAGS "-static"
+    }
+}
+
+if { ![info exists STATIC_PIE_LDFLAGS] } then {
+    set STATIC_PIE_LDFLAGS ""
+    if [compiler_supports "-static-pie"] {
+	set STATIC_PIE_LDFLAGS "-static-pie"
+    }
+}
+
+if { ![info exists NOSANITIZE_CFLAGS] } then {
+    set NOSANITIZE_CFLAGS ""
+    if [compiler_supports "-fno-sanitize=all"] {
+	set NOSANITIZE_CFLAGS "-fno-sanitize=all"
+    }
+}
+
+if { ![info exists NOLTO_CFLAGS] } then {
+    set NOLTO_CFLAGS ""
+    if [compiler_supports "-fno-lto"] {
+	set NOLTO_CFLAGS "-fno-lto"
+    }
+}
+
+# Provide dummy libraries that alpha-vms-ld always loads
+if { [istarget alpha*-*-*vms*] } {
+    set src tmpdir/empty.s
+    set f [open $src "w"]
+    close $f
+    if { [ld_assemble $as $src tmpdir/empty.o]
+	 && ![ld_link $LD tmpdir/empty tmpdir/empty.o]
+	 && [regsub -all {[^\n]*: cannot find -l([^\n :]*)[^\n]*} $exec_output {tmpdir/lib\1.a } missing_libs] } {
+	regsub -all {\$} $missing_libs {\\\$} missing_libs
+	for { set i 0 } { $i < [llength $missing_libs] } { incr i } {
+	    set f [lindex $missing_libs $i]
+	    verbose -log "creating dummy $f"
+	    ar_simple_create $ar {} $f tmpdir/empty.o
+	}
+	append LDFLAGS " -Ltmpdir"
+	unset i missing_libs
+    }
+    unset f src
+}
+
+set plug_opt ""
+if { [check_compiler_available] } {
+    set plugin_names {
+	liblto_plugin.so
+	liblto_plugin-0.dll
+	cyglto_plugin-0.dll
+    }
+    foreach plug $plugin_names {
+	set plug_so [run_host_cmd $CC_FOR_TARGET "--print-prog-name $plug"]
+	if { $plug_so eq $plug } then {
+	    set plug_so [run_host_cmd $CC_FOR_TARGET "--print-file-name $plug"]
+	}
+	if { $plug_so ne $plug } then {
+	    set plug_opt "--plugin $plug_so"
+	    break
+	}
+    }
+}
+
+if {[file exists .libs/libdep.so]} {
+  set dep_plug_opt "--plugin .libs/libdep.so"
+} elseif {[file exists .libs/libdep.dll]} {
+  set dep_plug_opt "--plugin .libs/libdep.dll"
+} else {
+    set dep_plug_opt ""
+}

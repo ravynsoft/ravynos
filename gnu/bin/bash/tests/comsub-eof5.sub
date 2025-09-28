@@ -1,0 +1,15 @@
+echo $(
+cat <<\)
+hi
+))
+
+echo $(
+cat <<\EOF
+hi
+EOF)
+
+# this is currently an error; if I fix it it will show up here
+echo "$(
+cat <<\)
+hi
+))"

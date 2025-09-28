@@ -1,0 +1,34 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Test the substitution quoting characters (CTLESC and CTLNUL) in different
+# combinations
+
+recho `echo ''`
+recho `echo ""`
+recho `echo `
+
+# Test the unquoted special quoting characters
+recho 
+recho ""
+recho ''
+
+# This should give argv[1] = ^A argv[2] = ^?
+FOO=`echo ' ' | tr ' ' '\012'`
+recho $FOO
+
+# Test patterns that come up when the shell quotes funny character
+# combinations
+recho ''
+recho ''
+recho ''

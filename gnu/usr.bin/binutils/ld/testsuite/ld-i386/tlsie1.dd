@@ -1,0 +1,18 @@
+#source: tlsie1.s
+#as: --32
+#ld: -melf_i386 tmpdir/tlsld1
+#objdump: -drw
+#target: i?86-*-linux*
+
+.*: +file format .*
+
+Disassembly of section .text:
+
+[a-f0-9]+ <_start>:
+[ 	]*[a-f0-9]+:	81 c1 fc ff ff ff    	add    \$0xfffffffc,%ecx
+[ 	]*[a-f0-9]+:	81 c1 fc ff ff ff    	add    \$0xfffffffc,%ecx
+[ 	]*[a-f0-9]+:	c7 c0 fc ff ff ff    	mov    \$0xfffffffc,%eax
+[ 	]*[a-f0-9]+:	c7 c1 fc ff ff ff    	mov    \$0xfffffffc,%ecx
+[ 	]*[a-f0-9]+:	b8 fc ff ff ff       	mov    \$0xfffffffc,%eax
+[ 	]*[a-f0-9]+:	c7 c1 fc ff ff ff    	mov    \$0xfffffffc,%ecx
+#pass

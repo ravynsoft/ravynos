@@ -1,0 +1,9 @@
+#as:
+#source: variant_cc.s
+#readelf: -Ws
+
+#...
+[ 	]+[0-9a-f]+:[ 	]+0+[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+func
+#...
+[ 	]+[0-9a-f]+:[ 	]+0+[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+UND[ 	]+foo
+#...

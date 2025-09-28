@@ -1,0 +1,85 @@
+disable [ -afmprs ] name ...
+       Temporarily disable the named hash table elements  or  patterns.
+       The  default is to disable builtin commands.  This allows you to
+       use an external command with the same name as a builtin command.
+       The  -a  option  causes  disable  to  act  on  regular or global
+       aliases.  The -s option causes disable to act on suffix aliases.
+       The  -f option causes disable to act on shell functions.  The -r
+       options causes disable to act on reserved words.  Without  argu-
+       ments  all  disabled  hash table elements from the corresponding
+       hash table are printed.  With the  -m  flag  the  arguments  are
+       taken  as  patterns (which should be quoted to prevent them from
+       undergoing filename expansion), and all hash table elements from
+       the  corresponding  hash  table matching these patterns are dis-
+       abled.  Disabled objects can be enabled with the enable command.
+
+       With the option -p, name ... refer to elements  of  the  shell's
+       pattern  syntax  as  described  in the section `Filename Genera-
+       tion'.  Certain elements can be disabled  separately,  as  given
+       below.
+
+       Note  that  patterns not allowed by the current settings for the
+       options EXTENDED_GLOB, KSH_GLOB and SH_GLOB are  never  enabled,
+       regardless  of  the setting here.  For example, if EXTENDED_GLOB
+       is not active, the pattern ^ is ineffective even if `disable  -p
+       "^"'  has  not been issued.  The list below indicates any option
+       settings that restrict the use of the  pattern.   It  should  be
+       noted  that  setting SH_GLOB has a wider effect than merely dis-
+       abling patterns as certain expressions, in particular those  in-
+       volving parentheses, are parsed differently.
+
+       The  following  patterns  may  be disabled; all the strings need
+       quoting on the command line to prevent them  from  being  inter-
+       preted  immediately as patterns and the patterns are shown below
+       in single quotes as a reminder.
+
+       '?'    The pattern character ?  wherever  it  occurs,  including
+              when preceding a parenthesis with KSH_GLOB.
+
+       '*'    The pattern character * wherever it occurs, including re-
+              cursive globbing and when preceding  a  parenthesis  with
+              KSH_GLOB.
+
+       '['    Character classes.
+
+       '<' (NO_SH_GLOB)
+              Numeric ranges.
+
+       '|' (NO_SH_GLOB)
+              Alternation  in  grouped  patterns,  case  statements, or
+              KSH_GLOB parenthesised expressions.
+
+       '(' (NO_SH_GLOB)
+              Grouping using single parentheses.  Disabling  this  does
+              not  disable  the  use  of parentheses for KSH_GLOB where
+              they are introduced by a special character, nor for  glob
+              qualifiers  (use  `setopt  NO_BARE_GLOB_QUAL'  to disable
+              glob qualifiers that use parentheses only).
+
+       '~' (EXTENDED_GLOB)
+              Exclusion in the form A~B.
+
+       '^' (EXTENDED_GLOB)
+              Exclusion in the form A^B.
+
+       '#' (EXTENDED_GLOB)
+              The pattern character # wherever it occurs, both for rep-
+              etition of a previous pattern and for indicating globbing
+              flags.
+
+       '?(' (KSH_GLOB)
+              The grouping form ?(...).  Note this is also disabled  if
+              '?' is disabled.
+
+       '*(' (KSH_GLOB)
+              The  grouping form *(...).  Note this is also disabled if
+              '*' is disabled.
+
+       '+(' (KSH_GLOB)
+              The grouping form +(...).
+
+       '!(' (KSH_GLOB)
+              The grouping form !(...).
+
+       '@(' (KSH_GLOB)
+              The grouping form @(...).

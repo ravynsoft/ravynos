@@ -1,0 +1,13 @@
+[name]
+Rendering with unknown terminal type
+
+[input]
+=head1 UNKNOWN
+
+An unknown I<terminal type> B<should> C<suppress> all termcap-based
+formatting and still wrap successfully.
+
+[output]
+UNKNOWN
+    An unknown terminal type should "suppress" all termcap-based formatting
+    and still wrap successfully.

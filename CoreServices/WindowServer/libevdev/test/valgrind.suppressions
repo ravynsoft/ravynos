@@ -1,0 +1,27 @@
+{
+   <timer_create@@GLIBC_2.3.3>
+   Memcheck:Param
+   timer_create(evp)
+   fun:timer_create@@GLIBC_2.3.3
+}
+{
+   <ioctl_EVIOCGRAB_unaddressable_bytes>
+   Memcheck:Param
+   ioctl(generic)
+   fun:ioctl
+   fun:libevdev_grab
+}
+{
+   <ioctl_EVIOCREVOKE_unaddressable_bytes>
+   Memcheck:Param
+   ioctl(generic)
+   fun:ioctl
+   fun:test_revoke*
+}
+{
+   <bash_memleak>
+   Memcheck:Leak
+   ...
+   fun:reader_loop
+   fun:main
+}

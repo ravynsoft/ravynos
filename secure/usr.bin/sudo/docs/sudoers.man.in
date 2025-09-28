@@ -1,0 +1,8031 @@
+.\" Automatically generated from an mdoc input file.  Do not edit.
+.\"
+.\" SPDX-License-Identifier: ISC
+.\"
+.\" Copyright (c) 1994-1996, 1998-2005, 2007-2023
+.\"	Todd C. Miller <Todd.Miller@sudo.ws>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.\" Sponsored in part by the Defense Advanced Research Projects
+.\" Agency (DARPA) and Air Force Research Laboratory, Air Force
+.\" Materiel Command, USAF, under agreement number F39502-99-1-0512.
+.\"
+.nr SL @SEMAN@
+.nr BA @BAMAN@
+.nr LC @LCMAN@
+.nr PS @PSMAN@
+.TH "SUDOERS" "@mansectform@" "December 19, 2023" "Sudo @PACKAGE_VERSION@" "File Formats Manual"
+.nh
+.if n .ad l
+.SH "NAME"
+\fBsudoers\fR
+\- default sudo security policy plugin
+.SH "DESCRIPTION"
+The
+\fBsudoers\fR
+policy plugin determines a user's
+\fBsudo\fR
+privileges.
+It is the default
+\fBsudo\fR
+policy plugin.
+The policy is driven by
+the
+\fI@sysconfdir@/sudoers\fR
+file or, optionally, in LDAP.
+The policy format is described in detail in the
+\fISUDOERS FILE FORMAT\fR
+section.
+For information on storing
+\fBsudoers\fR
+policy information
+in LDAP, see
+sudoers.ldap(@mansectform@).
+.SS "Configuring sudo.conf for sudoers"
+\fBsudo\fR
+consults the
+sudo.conf(@mansectform@)
+file to determine which plugins to load.
+If no
+sudo.conf(@mansectform@)
+file is present, or if it contains no
+\fIPlugin\fR
+lines,
+\fBsudoers\fR
+will be used for auditing, policy decisions and I/O logging.
+To explicitly configure
+sudo.conf(@mansectform@)
+to use the
+\fBsudoers\fR
+plugin, the following configuration can be used.
+.nf
+.sp
+.RS 4n
+Plugin sudoers_audit @sudoers_plugin@
+Plugin sudoers_policy @sudoers_plugin@
+Plugin sudoers_io @sudoers_plugin@
+.RE
+.fi
+.PP
+Starting with
+\fBsudo\fR
+1.8.5, it is possible to specify optional arguments to the
+\fBsudoers\fR
+plugin in the
+sudo.conf(@mansectform@)
+file.
+Plugin arguments, if any, should be listed after the path to the plugin
+(i.e., after
+\fI@sudoers_plugin@\fR).
+The arguments are only effective for the plugin that opens (and parses) the
+\fIsudoers\fR
+file.
+.PP
+For
+\fBsudo\fR
+version 1.9.1 and higher, this is the
+\fIsudoers_audit\fR
+plugin.
+For older versions, it is the
+\fIsudoers_policy\fR
+plugin.
+Multiple arguments may be specified, separated by white space.
+For example:
+.nf
+.sp
+.RS 4n
+Plugin sudoers_audit @sudoers_plugin@ sudoers_mode=0400 error_recovery=false
+.RE
+.fi
+.PP
+The following plugin arguments are supported:
+.TP 6n
+error_recovery=bool
+The
+\fIerror_recovery\fR
+argument can be used to control whether
+\fBsudoers\fR
+should attempt to recover from syntax errors in the
+\fIsudoers\fR
+file.
+If set to
+\fItrue\fR
+(the default),
+\fBsudoers\fR
+will try to recover from a syntax error by discarding the portion
+of the line that contains the error until the end of the line.
+A value of
+\fIfalse\fR
+will disable error recovery.
+Prior to version 1.9.3, no error recovery was performed.
+.TP 6n
+ignore_perms=bool
+The
+\fIignore_perms\fR
+argument can be used to disable security checks when loading the
+\fIsudoers\fR
+file.
+If enabled, the
+\fIsudoers\fR
+file will be loaded regardless of the owner or file mode.
+This argument is intended to be used for testing purposes and
+should not be enabled on production systems.
+.TP 6n
+ldap_conf=pathname
+The
+\fIldap_conf\fR
+argument can be used to override the default path to the
+\fIldap.conf\fR
+file.
+.TP 6n
+ldap_secret=pathname
+The
+\fIldap_secret\fR
+argument can be used to override the default path to the
+\fIldap.secret\fR
+file.
+.TP 6n
+sudoers_file=pathname
+The
+\fIsudoers_file\fR
+argument can be used to override the default path to the
+\fIsudoers\fR
+file.
+.TP 6n
+sudoers_uid=user-ID
+The
+\fIsudoers_uid\fR
+argument can be used to override the default owner of the sudoers file.
+It should be specified as a numeric user-ID.
+.TP 6n
+sudoers_gid=group-ID
+The
+\fIsudoers_gid\fR
+argument can be used to override the default group of the sudoers file.
+It must be specified as a numeric group-ID (not a group name).
+.TP 6n
+sudoers_mode=mode
+The
+\fIsudoers_mode\fR
+argument can be used to override the default file mode for the sudoers file.
+It should be specified as an octal value.
+.PP
+For more information on configuring
+sudo.conf(@mansectform@),
+refer to its manual.
+.SS "User Authentication"
+The
+\fBsudoers\fR
+security policy requires that most users authenticate
+themselves before they can use
+\fBsudo\fR.
+A password is not required
+if the invoking user is
+\fBroot\fR,
+if the target user is the same as the invoking user, or if the
+policy has disabled authentication for the user or command.
+Unlike
+su(1),
+when
+\fBsudoers\fR
+requires
+authentication, it validates the invoking user's credentials, not
+the target user's (or
+\fB@runas_default@\fR's)
+credentials.
+This can be changed via
+the
+\fIrootpw\fR,
+\fItargetpw\fR
+and
+\fIrunaspw\fR
+flags, described later.
+.PP
+If a user who is not listed in the policy tries to run a command
+via
+\fBsudo\fR,
+mail is sent to the proper authorities.
+The address
+used for such mail is configurable via the
+\fImailto\fR
+Defaults entry
+(described later) and defaults to
+\fI@mailto@\fR.
+.PP
+No mail will be sent if an unauthorized user tries to run
+\fBsudo\fR
+with the
+\fB\-l\fR
+or
+\fB\-v\fR
+option unless there is an authentication error and
+either the
+\fImail_always\fR
+or
+\fImail_badpass\fR
+flags are enabled.
+This allows users to
+determine for themselves whether or not they are allowed to use
+\fBsudo\fR.
+By default, all attempts to run
+\fBsudo\fR
+(successful or not)
+are logged, regardless of whether or not mail is sent.
+.PP
+If
+\fBsudo\fR
+is run by
+\fBroot\fR
+and the
+\fRSUDO_USER\fR
+environment variable
+is set, the
+\fBsudoers\fR
+policy will use this value to determine who
+the actual user is.
+This can be used by a user to log commands
+through sudo even when a
+\fBroot\fR
+shell has been invoked.
+It also
+allows the
+\fB\-e\fR
+option to remain useful even when invoked via a
+sudo-run script or program.
+Note, however, that the
+\fIsudoers\fR
+file lookup is still done for
+\fBroot\fR,
+not the user specified by
+\fRSUDO_USER\fR.
+.PP
+\fBsudoers\fR
+uses per-user time stamp files for credential caching.
+Once a user has been authenticated, a record is written
+containing the user-ID that was used to authenticate, the
+terminal session ID, the start time of the session leader
+(or parent process) and a time stamp
+(using a monotonic clock if one is available).
+The user may then use
+\fBsudo\fR
+without a password for a short period of time (@timeout@ minutes
+unless overridden by the
+\fItimestamp_timeout\fR
+option).
+By default,
+\fBsudoers\fR
+uses a separate record for each terminal, which means that
+a user's login sessions are authenticated separately.
+The
+\fItimestamp_type\fR
+option can be used to select the type of time stamp record
+\fBsudoers\fR
+will use.
+.SS "Logging"
+By default,
+\fBsudoers\fR
+logs both successful and unsuccessful attempts (as well
+as errors).
+The
+\fIlog_allowed\fR
+and
+\fIlog_denied\fR
+flags can be used to control this behavior.
+Messages can be logged to
+syslog(3),
+a log file, or both.
+The default is to log to
+syslog(3)
+but this is configurable via the
+\fIsyslog\fR
+and
+\fIlogfile\fR
+settings.
+See
+\fIEVENT LOGGING\fR
+for a description of the log file format.
+.PP
+\fBsudoers\fR
+is also capable of running a command in a pseudo-terminal and logging
+input and/or output.
+The standard input, standard output, and standard error can be logged
+even when not associated with a terminal.
+For more information about I/O logging, see the
+\fII/O LOGGING\fR
+section.
+.PP
+Starting with version 1.9, the
+\fIlog_servers\fR
+setting may be used to send event and I/O log data to a remote server running
+\fBsudo_logsrvd\fR
+or another service that implements the protocol described by
+sudo_logsrv.proto(@mansectform@).
+.SS "Command environment"
+Since environment variables can influence program behavior,
+\fBsudoers\fR
+provides a means to restrict which variables from the user's
+environment are inherited by the command to be run.
+There are two
+distinct ways
+\fBsudoers\fR
+can deal with environment variables.
+.PP
+By default, the
+\fIenv_reset\fR
+flag is enabled.
+This causes commands
+to be executed with a new, minimal environment.
+On AIX (and Linux
+systems without PAM), the environment is initialized with the
+contents of the
+\fI/etc/environment\fR
+file.
+.if \n(LC \{\
+On
+BSD
+systems, if the
+\fIuse_loginclass\fR
+flag is enabled, the environment is initialized
+based on the
+\fIpath\fR
+and
+\fIsetenv\fR
+settings in
+\fI/etc/login.conf\fR.
+.\}
+The
+\fRHOME\fR,
+\fRMAIL\fR,
+\fRSHELL\fR,
+\fRLOGNAME\fR
+and
+\fRUSER\fR
+environment variables are initialized based on the target user
+and the
+\fRSUDO_*\fR
+variables are set based on the invoking user.
+Additional variables, such as
+\fRDISPLAY\fR,
+\fRPATH\fR
+and
+\fRTERM\fR,
+are preserved from the invoking user's environment if permitted by the
+\fIenv_check\fR,
+or
+\fIenv_keep\fR
+options.
+A few environment variables are treated specially.
+If the
+\fRPATH\fR
+and
+\fRTERM\fR
+variables are not preserved from the user's environment, they will be set
+to default values.
+The
+\fRLOGNAME\fR
+and
+\fRUSER\fR
+are handled as a single entity.
+If one of them is preserved (or removed) from the user's environment,
+the other will be as well.
+If
+\fRLOGNAME\fR
+and
+\fRUSER\fR
+are to be preserved but only one of them is present in the user's environment,
+the other will be set to the same value.
+This avoids an inconsistent environment where one of the variables
+describing the user name is set to the invoking user and one is
+set to the target user.
+Environment variables with a value beginning with
+\(oq()\(cq
+are removed unless both the name and value parts are matched by
+\fIenv_keep\fR
+or
+\fIenv_check\fR,
+as they may be interpreted as functions by the
+\fBbash\fR
+shell.
+Prior to version 1.8.11, such variables were always removed.
+.PP
+If, however, the
+\fIenv_reset\fR
+flag is disabled, any variables not
+explicitly denied by the
+\fIenv_check\fR
+and
+\fIenv_delete\fR
+options are allowed and their values are
+inherited from the invoking process.
+Prior to version 1.8.21, environment variables with a value beginning with
+\(oq()\(cq
+were always removed.
+Beginning with version 1.8.21, a pattern in
+\fIenv_delete\fR
+is used to match
+\fBbash\fR
+shell functions instead.
+Since it is not possible
+to block all potentially dangerous environment variables, use
+of the default
+\fIenv_reset\fR
+behavior is encouraged.
+.PP
+Environment variables specified by
+\fIenv_check\fR,
+\fIenv_delete\fR,
+or
+\fIenv_keep\fR
+may include one or more
+\(oq*\(cq
+characters which will match zero or more characters.
+No other wildcard characters are supported.
+.PP
+By default, environment variables are matched by name.
+However, if the pattern includes an equal sign
+(\(oq=\&\(cq),
+both the variables name and value must match.
+For example, a
+\fBbash\fR
+shell function could be matched as follows:
+.nf
+.sp
+.RS 4n
+env_keep += "BASH_FUNC_my_func%%=()*"
+.RE
+.fi
+.PP
+Without the
+\(oq=()*\(cq
+suffix, this would not match, as
+\fBbash\fR
+shell functions are not preserved by default.
+.PP
+The complete list of environment variables that are preserved or removed,
+as modified by global Defaults parameters in
+\fIsudoers\fR,
+is displayed when
+\fBsudo\fR
+is run by
+\fBroot\fR
+with the
+\fB\-V\fR
+option.
+The list of environment variables to remove
+varies based on the operating system
+\fBsudo\fR
+is running on.
+.PP
+Other settings may influence the command environment:
+.TP 3n
+\fB\(bu\fR
+\fBsudoers\fR
+options such as
+\fIalways_set_home\fR,
+\fIsecure_path\fR,
+\fIset_logname\fR,
+\fIset_home\fR,
+and
+\fIsetenv\fR.
+.TP 3n
+\fB\(bu\fR
+Command tags, such as
+\fRSETENV\fR
+and
+\fRNOSETENV\fR.
+Note that
+\fRSETENV\fR
+is implied if the command matched is
+\fBALL\fR.
+.TP 3n
+\fB\(bu\fR
+\fBsudo\fR
+options, such as
+\fB\-E\fR
+and
+\fB\-i\fR.
+.PP
+On systems that support PAM where the
+\fBpam_env\fR
+module is enabled for
+\fBsudo\fR,
+variables in the PAM environment may be merged in to the environment.
+If a variable in the PAM environment is already present in the
+user's environment, the value will only be overridden if the variable
+was not preserved by
+\fBsudoers\fR.
+When
+\fIenv_reset\fR
+is enabled, variables preserved from the invoking user's environment
+by the
+\fIenv_keep\fR
+list take precedence over those in the PAM environment.
+When
+\fIenv_reset\fR
+is disabled, variables present the invoking user's environment
+take precedence over those in the PAM environment unless they
+match a pattern in the
+\fIenv_delete\fR
+list.
+.PP
+The dynamic linker on most operating systems will remove variables
+that can control dynamic linking from the environment of set-user-ID
+executables, including
+\fBsudo\fR.
+Depending on the operating
+system this may include
+\fR_RLD*\fR,
+\fRDYLD_*\fR,
+\fRLD_*\fR,
+\fRLDR_*\fR,
+\fRLIBPATH\fR,
+\fRSHLIB_PATH\fR,
+and others.
+These type of variables are
+removed from the environment before
+\fBsudo\fR
+even begins execution
+and, as such, it is not possible for
+\fBsudo\fR
+to preserve them.
+.PP
+As a special case, if the
+\fB\-i\fR
+option (initial login) is
+specified,
+\fBsudoers\fR
+will initialize the environment regardless
+of the value of
+\fIenv_reset\fR.
+The
+\fRDISPLAY\fR,
+\fRPATH\fR
+and
+\fRTERM\fR
+variables remain unchanged;
+\fRHOME\fR,
+\fRMAIL\fR,
+\fRSHELL\fR,
+\fRUSER\fR,
+and
+\fRLOGNAME\fR
+are set based on the target user.
+On AIX (and Linux
+systems without PAM), the contents of
+\fI/etc/environment\fR
+are also
+included.
+.if \n(LC \{\
+On
+BSD
+systems, if the
+\fIuse_loginclass\fR
+flag is
+enabled, the
+\fIpath\fR
+and
+\fIsetenv\fR
+variables in
+\fI/etc/login.conf\fR
+are also applied.
+.\}
+All other environment variables are removed unless permitted by
+\fIenv_keep\fR
+or
+\fIenv_check\fR,
+described above.
+.PP
+Finally, the
+\fIrestricted_env_file\fR
+and
+\fIenv_file\fR
+files are applied, if present.
+The variables in
+\fIrestricted_env_file\fR
+are applied first and are subject to the same restrictions as the
+invoking user's environment, as detailed above.
+The variables in
+\fIenv_file\fR
+are applied last and are not subject to these restrictions.
+In both cases, variables present in the files will only be set to
+their specified values if they would not conflict with an existing
+environment variable.
+.SH "SUDOERS FILE FORMAT"
+The
+\fIsudoers\fR
+file is composed of two types of entries: aliases
+(basically variables) and user specifications (which specify who
+may run what).
+.PP
+When multiple entries match for a user, they are applied in order.
+Where there are multiple matches, the last match is used (which is
+not necessarily the most specific match).
+.PP
+The
+\fIsudoers\fR
+file grammar will be described below in Extended Backus-Naur
+Form (EBNF).
+Don't despair if you are unfamiliar with EBNF; it is fairly simple,
+and the definitions below are annotated.
+.SS "Resource limits"
+By default,
+\fBsudoers\fR
+uses the operating system's native method of setting resource limits
+for the target user.
+On Linux systems, resource limits are usually set by the
+\fIpam_limits.so\fR
+PAM module.
+On some BSD systems, the
+\fI/etc/login.conf\fR
+file specifies resource limits for the user.
+On AIX systems, resource limits are configured in the
+\fI/etc/security/limits\fR
+file.
+If there is no system mechanism to set per-user resource limits,
+the command will run with the same limits as the invoking user.
+The one exception to this is the core dump file size, which is set by
+\fBsudoers\fR
+to 0 by default.
+Disabling core dumps by default makes it possible to avoid potential
+security problems where the core file is treated as trusted input.
+.PP
+Resource limits may also be set in the
+\fIsudoers\fR
+file itself, in which case they override those set by the system.
+See the
+\fIrlimit_as,\fR
+\fIrlimit_core,\fR
+\fIrlimit_cpu,\fR
+\fIrlimit_data,\fR
+\fIrlimit_fsize,\fR
+\fIrlimit_locks,\fR
+\fIrlimit_memlock,\fR
+\fIrlimit_nofile,\fR
+\fIrlimit_nproc,\fR
+\fIrlimit_rss,\fR
+\fIrlimit_stack\fR
+options described below.
+Resource limits in
+\fBsudoers\fR
+may be specified in one of the following formats:
+.TP 8n
+\(lqvalue\(rq
+Both the soft and hard resource limits are set to the same value.
+The special value
+\(lqinfinity\(rq
+can be used to indicate that the value is unlimited.
+.TP 8n
+\(lqsoft,hard\(rq
+Two comma-separated values.
+The soft limit is set to the first value and the hard limit is set
+to the second.
+Both values must either be enclosed in a set of double quotes,
+or the comma must be escaped with a backslash
+(\(oq\e\(cq).
+The special value
+\(lqinfinity\(rq
+may be used in place of either value.
+.TP 8n
+\(lqdefault\(rq
+The default resource limit for the user will be used.
+This may be a user-specific value (see above) or the value of the
+resource limit when
+\fBsudo\fR
+was invoked for systems that don't support per-user limits.
+.TP 8n
+\(lquser\(rq
+The invoking user's resource limits will be preserved when running
+the command.
+.PP
+For example, to restore the historic core dump file size behavior,
+a line like the following may be used.
+.sp
+.RS 6n
+Defaults rlimit_core=default
+.RE
+.PP
+Resource limits in
+\fBsudoers\fR
+are only supported by version 1.8.7 or higher.
+.SS "Quick guide to EBNF"
+EBNF is a concise and exact way of describing the grammar of a language.
+Each EBNF definition is made up of
+\fIproduction rules\fR.
+For example:
+.nf
+.sp
+.RS 4n
+symbol ::= definition | alternate1 | alternate2 ...
+.RE
+.fi
+.PP
+Each
+\fIproduction rule\fR
+references others and thus makes up a
+grammar for the language.
+EBNF also contains the following
+operators, which many readers will recognize from regular
+expressions.
+Do not, however, confuse them with
+\(lqwildcard\(rq
+characters, which have different meanings.
+.TP 6n
+\&?
+Means that the preceding symbol (or group of symbols) is optional.
+That is, it may appear once or not at all.
+.TP 6n
+*
+Means that the preceding symbol (or group of symbols) may appear
+zero or more times.
+.TP 6n
++
+Means that the preceding symbol (or group of symbols) may appear
+one or more times.
+.PP
+Parentheses may be used to group symbols together.
+For clarity,
+we will use single quotes
+('')
+to designate what is a verbatim character string (as opposed to a symbol name).
+.SS "Aliases"
+There are four kinds of aliases:
+\fIUser_Alias\fR,
+\fIRunas_Alias\fR,
+\fIHost_Alias\fR
+and
+\fICmnd_Alias\fR.
+Beginning with
+\fBsudo\fR
+1.9.0,
+\fICmd_Alias\fR
+may be used in place of
+\fICmnd_Alias\fR
+if desired.
+.nf
+.sp
+.RS 0n
+Alias ::= 'User_Alias'  User_Alias_Spec (':' User_Alias_Spec)* |
+          'Runas_Alias' Runas_Alias_Spec (':' Runas_Alias_Spec)* |
+          'Host_Alias'  Host_Alias_Spec (':' Host_Alias_Spec)* |
+          'Cmnd_Alias'  Cmnd_Alias_Spec (':' Cmnd_Alias_Spec)* |
+          'Cmd_Alias'   Cmnd_Alias_Spec (':' Cmnd_Alias_Spec)*
+
+User_Alias ::= NAME
+
+User_Alias_Spec ::= User_Alias '=' User_List
+
+Runas_Alias ::= NAME
+
+Runas_Alias_Spec ::= Runas_Alias '=' Runas_List
+
+Host_Alias ::= NAME
+
+Host_Alias_Spec ::= Host_Alias '=' Host_List
+
+Cmnd_Alias ::= NAME
+
+Cmnd_Alias_Spec ::= Cmnd_Alias '=' Cmnd_List
+
+NAME ::= [A-Z]([A-Z][0-9]_)*
+.RE
+.fi
+.PP
+Each
+\fIalias\fR
+definition is of the form
+.nf
+.sp
+.RS 0n
+Alias_Type NAME = item1, item2, ...
+.RE
+.fi
+.PP
+where
+\fIAlias_Type\fR
+is one of
+\fIUser_Alias\fR,
+\fIRunas_Alias\fR,
+\fIHost_Alias\fR,
+or
+\fICmnd_Alias\fR.
+A
+\fRNAME\fR
+is a string of uppercase letters, numbers,
+and underscore characters
+(\(oq_\(cq).
+A
+\fRNAME\fR
+\fBmust\fR
+start with an
+uppercase letter.
+It is possible to put several alias definitions
+of the same type on a single line, joined by a colon
+(\(oq:\&\(cq).
+For example:
+.nf
+.sp
+.RS 0n
+Alias_Type NAME = item1, item2, item3 : NAME = item4, item5
+.RE
+.fi
+.PP
+It is a syntax error to redefine an existing
+\fIalias\fR.
+It is possible to use the same name for
+\fIaliases\fR
+of different types, but this is not recommended.
+.PP
+The definitions of what constitutes a valid
+\fIalias\fR
+member follow.
+.nf
+.sp
+.RS 0n
+User_List ::= User |
+              User ',' User_List
+
+User ::= '!'* user name |
+         '!'* #user-ID |
+         '!'* %group |
+         '!'* %#group-ID |
+         '!'* +netgroup |
+         '!'* %:nonunix_group |
+         '!'* %:#nonunix_gid |
+         '!'* User_Alias
+.RE
+.fi
+.PP
+A
+\fIUser_List\fR
+is made up of one or more user names, user-IDs
+(prefixed with
+\(oq#\(cq),
+system group names and IDs (prefixed with
+\(oq%\(cq
+and
+\(oq%#\(cq
+respectively), netgroups (prefixed with
+\(oq+\(cq),
+non-Unix group names and IDs (prefixed with
+\(oq%:\(cq
+and
+\(oq%:#\(cq
+respectively), and
+\fIUser_Alias\fRes.
+Each list item may be prefixed with zero or more
+\(oq\&!\(cq
+operators.
+An odd number of
+\(oq\&!\(cq
+operators negate the value of
+the item; an even number just cancel each other out.
+User netgroups are matched using the user and domain members only;
+the host member is not used when matching.
+.PP
+A
+\fIuser name\fR,
+\fIuser-ID\fR,
+\fIgroup\fR,
+\fIgroup-ID\fR,
+\fInetgroup\fR,
+\fInonunix_group\fR
+or
+\fInonunix_gid\fR
+may be enclosed in double quotes to avoid the
+need for escaping special characters.
+Alternately, special characters
+may be specified in escaped hex mode, e.g., \ex20 for space.
+When
+using double quotes, any prefix characters must be included inside
+the quotes.
+.PP
+The actual
+\fInonunix_group\fR
+and
+\fInonunix_gid\fR
+syntax depends on
+the underlying group provider plugin.
+For instance, the QAS AD plugin supports the following formats:
+.TP 3n
+\fB\(bu\fR
+Group in the same domain: "%:Group Name"
+.TP 3n
+\fB\(bu\fR
+Group in any domain: "%:Group Name@FULLY.QUALIFIED.DOMAIN"
+.TP 3n
+\fB\(bu\fR
+Group SID: "%:S-1-2-34-5678901234-5678901234-5678901234-567"
+.PP
+See
+\fIGROUP PROVIDER PLUGINS\fR
+for more information.
+.PP
+Quotes around group names are optional.
+Unquoted strings must use a backslash
+(\(oq\e\(cq)
+to escape spaces and special characters.
+See
+\fIOther special characters and reserved words\fR
+for a list of
+characters that need to be escaped.
+.nf
+.sp
+.RS 0n
+Runas_List ::= Runas_Member |
+               Runas_Member ',' Runas_List
+
+Runas_Member ::= '!'* user name |
+                 '!'* #user-ID |
+                 '!'* %group |
+                 '!'* %#group-ID |
+                 '!'* %:nonunix_group |
+                 '!'* %:#nonunix_gid |
+                 '!'* +netgroup |
+                 '!'* Runas_Alias |
+                 '!'* ALL
+.RE
+.fi
+.PP
+A
+\fIRunas_List\fR
+is similar to a
+\fIUser_List\fR
+except that instead
+of
+\fIUser_Alias\fRes
+it can contain
+\fIRunas_Alias\fRes.
+User names and groups are matched as strings.
+In other words, two users (groups) with the same user (group) ID
+are considered to be distinct.
+If you wish to match all user names with the same user-ID (e.g.,
+\fBroot\fR
+and
+\fBtoor\fR),
+you can use a user-ID instead of a name (#0 in the example given).
+The user-ID or group-ID specified in a
+\fIRunas_Member\fR
+need not be listed in the password or group database.
+.nf
+.sp
+.RS 0n
+Host_List ::= Host |
+              Host ',' Host_List
+
+Host ::= '!'* host name |
+         '!'* ip_addr |
+         '!'* network(/netmask)? |
+         '!'* +netgroup |
+         '!'* Host_Alias |
+         '!'* ALL
+.RE
+.fi
+.PP
+A
+\fIHost_List\fR
+is made up of one or more host names, IP addresses,
+network numbers, netgroups (prefixed with
+\(oq+\(cq),
+and other aliases.
+Again, the value of an item may be negated with the
+\(oq\&!\(cq
+operator.
+Host netgroups are matched using the host (both qualified and unqualified)
+and domain members only; the user member is not used when matching.
+If you specify a network number without a netmask,
+\fBsudo\fR
+will query each of the local host's network interfaces and,
+if the network number corresponds to one of the hosts's network
+interfaces, will use the netmask of that interface.
+The netmask may be specified either in standard IP address notation
+(e.g., 255.255.255.0 or ffff:ffff:ffff:ffff::),
+or CIDR notation (number of bits, e.g., 24 or 64).
+A host name may include shell-style wildcards (see the
+\fIWildcards\fR
+section below),
+but unless the
+\fIhostname\fR
+command on your machine returns the fully
+qualified host name, you'll need to use the
+\fIfqdn\fR
+flag for wildcards to be useful.
+\fBsudo\fR
+only inspects actual network interfaces; this means that IP address
+127.0.0.1 (localhost) will never match.
+Also, the host name
+\(lqlocalhost\(rq
+will only match if that is the actual host name, which is usually
+only the case for non-networked systems.
+.nf
+.sp
+.RS 0n
+digest ::= [A-Fa-f0-9]+ |
+           [A-Za-z0-9\e+/=]+
+
+Digest_Spec ::= "sha224" ':' digest |
+                "sha256" ':' digest |
+                "sha384" ':' digest |
+                "sha512" ':' digest
+
+Digest_List ::= Digest_Spec |
+                Digest_Spec ',' Digest_List
+
+Cmnd_List ::= Cmnd |
+              Cmnd ',' Cmnd_List
+
+command name ::= regex |
+                 file name
+
+command ::= command name |
+            command name args |
+            command name regex |
+            command name '""' |
+            ALL
+
+Edit_Spec ::= "sudoedit" file name+ |
+              "sudoedit" regex |
+              "sudoedit"
+
+List_Spec ::= "list"
+
+Cmnd ::= Digest_List? '!'* command |
+         '!'* directory |
+         '!'* Edit_Spec |
+         '!'* List_Spec |
+         '!'* Cmnd_Alias
+.RE
+.fi
+.PP
+A
+\fICmnd_List\fR
+is a list of one or more commands, directories, or aliases.
+A command is a fully qualified file name, which may include
+shell-style wildcards (see the
+\fIWildcards\fR
+section below),
+or a regular expression that starts with
+\(oq^\(cq
+and ends with
+\(oq$\(cq
+(see the
+\fIRegular expressions\fR
+section below).
+A directory is a
+fully qualified path name ending in a
+\(oq/\(cq.
+When you specify a directory in a
+\fICmnd_List\fR,
+the user will be able to run any file within that directory
+(but not in any sub-directories therein).
+If no command line arguments are specified, the user may run the
+command with any arguments they choose.
+Command line arguments can include wildcards or be a regular
+expression that starts with
+\(oq^\(cq
+and ends with
+\(oq$\(cq.
+If the command line arguments consist of
+\(oq\&""\(cq,
+the command may only be run with
+\fIno\fR
+arguments.
+.PP
+If a
+\fICmnd\fR
+has associated command line arguments, the arguments
+in the
+\fICmnd\fR
+must match those given by the user on the command line.
+If the arguments in a
+\fICmnd\fR
+begin with the
+\(oq^\(cq
+character, they will be interpreted as a regular expression
+and matched accordingly.
+Otherwise, shell-style wildcards are used when matching.
+Unless a regular expression is specified, the following characters must
+be escaped with a
+\(oq\e\(cq
+if they are used in command arguments:
+\(oq,\&\(cq,
+\(oq:\&\(cq,
+\(oq=\&\(cq,
+\(oq\e\(cq.
+To prevent arguments in a
+\fICmnd\fR
+that begin with a
+\(oq^\(cq
+character from being interpreted as a regular expression, the
+\(oq^\(cq
+must be escaped with a
+\(oq\e\(cq.
+.PP
+There are two commands built into
+\fBsudo\fR
+itself:
+\(lqlist\(rq
+and
+\(lqsudoedit\(rq.
+Unlike other commands, these two must be specified in the
+\fIsudoers\fR
+file
+\fIwithout\fR
+a leading path.
+.PP
+The
+\(lqlist\(rq
+built-in can be used to permit a user to list another user's privileges with
+\fBsudo\fR's
+\fB\-U\fR
+option.
+For example,
+\(lqsudo -l -U otheruser\(rq.
+A user with the
+\(lqlist\(rq
+privilege is able to list another user's privileges even if they
+don't have permission to run commands as that user.
+By default, only root or a user with the ability to run any command as
+either root or the specified
+\fIuser\fR
+on the current host may use the
+\fB\-U\fR
+option.
+No command line arguments may be specified with the
+\(lqlist\(rq
+built-in.
+.PP
+The
+\(lqsudoedit\(rq
+built-in is used to permit a user to run
+\fBsudo\fR
+with the
+\fB\-e\fR
+option (or as
+\fBsudoedit\fR).
+It may take command line arguments just as a normal command does.
+Unlike other commands,
+\(lqsudoedit\(rq
+is built into
+\fBsudo\fR
+itself and must be specified in the
+\fIsudoers\fR
+file
+\fIwithout\fR
+a leading path.
+If a leading path is present, for example
+\fI/usr/bin/sudoedit\fR,
+the path name will be silently converted to
+\(lqsudoedit\(rq.
+A fully-qualified path for
+\fBsudoedit\fR
+is treated as an error by
+\fBvisudo\fR.
+.PP
+A
+\fIcommand\fR
+may be preceded by a
+\fIDigest_List\fR,
+a comma-separated list of one or more
+\fIDigest_Spec\fR
+entries.
+If a
+\fIDigest_List\fR
+is present, the command will only match successfully if it can be verified
+using one of the SHA-2 digests in the list.
+Starting with version 1.9.0, the
+\fBALL\fR
+reserved word can be used in conjunction with a
+\fIDigest_List\fR.
+The following digest formats are supported: sha224, sha256, sha384, and sha512.
+The string may be specified in either hex or base64 format
+(base64 is more compact).
+There are several utilities capable of generating SHA-2 digests in hex
+format such as openssl, shasum, sha224sum, sha256sum, sha384sum, sha512sum.
+.PP
+For example, using openssl:
+.nf
+.sp
+.RS 0n
+$ openssl dgst -sha224 /bin/ls
+SHA224(/bin/ls)= 118187da8364d490b4a7debbf483004e8f3e053ec954309de2c41a25
+.RE
+.fi
+.PP
+It is also possible to use openssl to generate base64 output:
+.nf
+.sp
+.RS 0n
+$ openssl dgst -binary -sha224 /bin/ls | openssl base64
+EYGH2oNk1JC0p9679IMATo8+BT7JVDCd4sQaJQ==
+.RE
+.fi
+.PP
+Warning, if the user has write access to the command itself (directly or via a
+\fBsudo\fR
+command), it may be possible for the user to replace the command after the
+digest check has been performed but before the command is executed.
+A similar race condition exists on systems that lack the
+fexecve(2)
+system call when the directory in which the command is located
+is writable by the user.
+See the description of the
+\fIfdexec\fR
+setting for more information on how
+\fBsudo\fR
+executes commands that have an associated digest.
+.PP
+Command digests are only supported by version 1.8.7 or higher.
+.SS "Defaults"
+Certain configuration options may be changed from their default
+values at run-time via one or more
+\fIDefault_Entry\fR
+lines.
+These may affect all users on any host
+(\(oqDefaults\(cq),
+all users on a specific host
+(\(oqDefaults@host\(cq),
+a specific user
+(\(oqDefaults:user\(cq),
+a specific command
+(\(oqDefaults!cmnd\(cq),
+or commands being run as a specific user
+(\(oqDefaults>runasuser\(cq).
+.PP
+White space is not permitted between
+\(oqDefaults\(cq
+and the
+\(oq@\(cq,
+\(oq\&:\(cq,
+\(oq\&!\(cq,
+or
+\(oq>\(cq
+characters.
+While a comma-separated list may be used in place of a single value after the
+\(oq@\(cq,
+\(oq\&:\(cq,
+\(oq\&!\(cq,
+or
+\(oq>\(cq
+character, using an alias instead of a list is often improve readability.
+Per-command entries may not include command line arguments.
+If you need to specify arguments, define a
+\fICmnd_Alias\fR
+and reference that instead.
+.nf
+.sp
+.RS 0n
+Default_Type ::= 'Defaults' |
+                 'Defaults@' Host_List |
+                 'Defaults:' User_List |
+                 'Defaults!' Cmnd_List |
+                 'Defaults>' Runas_List
+
+Default_Entry ::= Default_Type Parameter_List
+
+Parameter_List ::= Parameter |
+                   Parameter ',' Parameter_List
+
+Parameter ::= Parameter '=' Value |
+              Parameter '+=' Value |
+              Parameter '-=' Value |
+              '!'* Parameter
+.RE
+.fi
+.PP
+Parameters may be
+\fBflags\fR,
+\fBinteger\fR
+values,
+\fBstrings\fR,
+or
+\fBlists\fR.
+Flags are implicitly boolean and can be turned off via the
+\(oq\&!\(cq
+operator.
+Some integer, string and list parameters may also be
+used in a boolean context to disable them.
+Values may be enclosed
+in double quotes
+(\&"")
+when they contain multiple words.
+Special characters may be escaped with a backslash
+(\(oq\e\(cq).
+.PP
+To include a literal backslash character in a command line argument
+you must escape the backslash twice.
+For example, to match
+\(oq\en\(cq
+as part of a command line argument, you must use
+\(oq\e\e\e\en\(cq
+in the
+\fIsudoers\fR
+file.
+This is due to there being two levels of escaping, one in the
+\fIsudoers\fR
+parser itself and another when command line arguments are matched by the
+fnmatch(3)
+or
+regexec(3)
+function.
+.PP
+Lists have two additional assignment operators,
+\(oq+=\(cq
+and
+\(oq-=\(cq.
+These operators are used to add to and delete from a list respectively.
+It is not an error to use the
+\(oq-=\(cq
+operator to remove an element
+that does not exist in a list.
+.PP
+Defaults entries are parsed in the following order: global, host,
+user, and runas Defaults first, then command defaults.
+If there are multiple Defaults settings of the same type, the last
+matching setting is used.
+The following Defaults settings are parsed before all others since
+they may affect subsequent entries:
+\fIfqdn\fR,
+\fIgroup_plugin\fR,
+\fIrunas_default\fR,
+\fIsudoers_locale\fR.
+.PP
+See
+\fISUDOERS OPTIONS\fR
+for a list of supported Defaults parameters.
+.SS "User specification"
+.nf
+.RS 0n
+User_Spec ::= User_List Host_List '=' Cmnd_Spec_List \e
+              (':' Host_List '=' Cmnd_Spec_List)*
+
+Cmnd_Spec_List ::= Cmnd_Spec |
+                   Cmnd_Spec ',' Cmnd_Spec_List
+
+Cmnd_Spec ::= Runas_Spec? Option_Spec* (Tag_Spec ':')* Cmnd
+
+Runas_Spec ::= '(' Runas_List? (':' Runas_List)? ')'
+
+.ie \n(SL \{\
+.ie \n(PS Option_Spec ::= (SELinux_Spec | Solaris_Priv_Spec | Date_Spec | Timeout_Spec)
+.el Option_Spec ::= (SELinux_Spec | Date_Spec | Timeout_Spec)
+.\}
+.el \{\
+.ie \n(PS Option_Spec ::= (Solaris_Priv_Spec | Date_Spec | Timeout_Spec)
+.el Option_Spec ::= (Date_Spec | Timeout_Spec)
+.\}
+
+.if \n(SL \{\
+SELinux_Spec ::= ('ROLE=role' | 'TYPE=type')
+
+.\}
+AppArmor_Spec ::= 'APPARMOR_PROFILE=profile'
+
+.if \n(PS \{\
+Solaris_Priv_Spec ::= ('PRIVS=privset' | 'LIMITPRIVS=privset')
+
+.\}
+Date_Spec ::= ('NOTBEFORE=timestamp' | 'NOTAFTER=timestamp')
+
+Timeout_Spec ::= 'TIMEOUT=timeout'
+
+Chdir_Spec ::= 'CWD=directory'
+
+Chroot_Spec ::= 'CHROOT=directory'
+
+Tag_Spec ::= ('EXEC' | 'NOEXEC' | 'FOLLOW' | 'NOFOLLOW' |
+              'LOG_INPUT' | 'NOLOG_INPUT' | 'LOG_OUTPUT' |
+              'NOLOG_OUTPUT' | 'MAIL' | 'NOMAIL' | 'INTERCEPT' |
+              'NOINTERCEPT' | 'PASSWD' | 'NOPASSWD' | 'SETENV' |
+              'NOSETENV')
+.RE
+.fi
+.PP
+A
+\fBuser specification\fR
+determines which commands a user may run
+(and as what user) on specified hosts.
+By default, commands are run as
+\fB@runas_default@\fR
+(unless
+\fIrunas_default\fR
+has been set to a different value)
+but this can also be changed on a per-command basis.
+.PP
+The basic structure of a user specification is
+\(lqwho where = (as_whom) what\(rq.
+Let's break that down into its constituent parts:
+.SS "Runas_Spec"
+A
+\fIRunas_Spec\fR
+determines the user and/or the group that a command
+may be run as.
+A fully-specified
+\fIRunas_Spec\fR
+consists of two
+\fIRunas_List\fRs
+(as defined above) separated by a colon
+(\(oq\&:\(cq)
+and enclosed in a set of parentheses.
+The first
+\fIRunas_List\fR
+indicates which users the command may be run as via the
+\fB\-u\fR
+option.
+The second defines a list of groups that may be specified via the
+\fB\-g\fR
+option (in addition to any of the target user's groups).
+If both
+\fIRunas_List\fRs
+are specified, the command may be run with any combination of users
+and groups listed in their respective
+\fIRunas_List\fRs.
+If only the first is specified, the command may be run as any user
+in the list and, optionally, with any group the target user belongs to.
+If the first
+\fIRunas_List\fR
+is empty but the
+second is specified, the command may be run as the invoking user
+with the group set to any listed in the
+\fIRunas_List\fR.
+If both
+\fIRunas_List\fRs
+are empty, the command may only be run as the invoking user and the
+group, if specified, must be one that the invoking user is a member of.
+If no
+\fIRunas_Spec\fR
+is specified, the command may only be run as the
+\fIrunas_default\fR
+user
+(\fB@runas_default@\fR
+by default) and the group,
+if specified, must be one that the
+\fIrunas_default\fR
+user is a member of.
+.PP
+A
+\fIRunas_Spec\fR
+sets the default for the commands that follow it.
+What this means is that for the entry:
+.nf
+.sp
+.RS 0n
+dgb	boulder = (operator) /bin/ls, /bin/kill, /usr/bin/lprm
+.RE
+.fi
+.PP
+The user
+\fBdgb\fR
+may run
+\fI/bin/ls\fR,
+\fI/bin/kill\fR,
+and
+\fI/usr/bin/lprm\fR
+on the host
+boulder\(embut
+only as
+\fBoperator\fR.
+For example:
+.nf
+.sp
+.RS 0n
+$ sudo -u operator /bin/ls
+.RE
+.fi
+.PP
+It is also possible to override a
+\fIRunas_Spec\fR
+later on in an entry.
+If we modify the entry like so:
+.nf
+.sp
+.RS 0n
+dgb	boulder = (operator) /bin/ls, (root) /bin/kill, /usr/bin/lprm
+.RE
+.fi
+.PP
+Then user
+\fBdgb\fR
+is now allowed to run
+\fI/bin/ls\fR
+as
+\fBoperator\fR,
+but
+\fI/bin/kill\fR
+and
+\fI/usr/bin/lprm\fR
+as
+\fBroot\fR.
+.PP
+We can extend this to allow
+\fBdgb\fR
+to run
+\fI/bin/ls\fR
+with either
+the user or group set to
+\fBoperator\fR:
+.nf
+.sp
+.RS 0n
+dgb	boulder = (operator : operator) /bin/ls, (root) /bin/kill,\e
+	/usr/bin/lprm
+.RE
+.fi
+.PP
+While the group portion of the
+\fIRunas_Spec\fR
+permits the
+user to run as command with that group, it does not force the user
+to do so.
+If no group is specified on the command line, the command
+will run with the group listed in the target user's password database
+entry.
+The following would all be permitted by the sudoers entry above:
+.nf
+.sp
+.RS 0n
+$ sudo -u operator /bin/ls
+$ sudo -u operator -g operator /bin/ls
+$ sudo -g operator /bin/ls
+.RE
+.fi
+.PP
+In the following example, user
+\fBtcm\fR
+may run commands that access
+a modem device file with the dialer group.
+.nf
+.sp
+.RS 0n
+tcm	boulder = (:dialer) /usr/bin/tip, /usr/bin/cu,\e
+	/usr/local/bin/minicom
+.RE
+.fi
+.PP
+In this example only the group will be set, the command still runs as user
+\fBtcm\fR.
+For example:
+.nf
+.sp
+.RS 0n
+$ sudo -g dialer /usr/bin/cu
+.RE
+.fi
+.PP
+Multiple users and groups may be present in a
+\fIRunas_Spec\fR,
+in which case the user may select any combination of users and groups via the
+\fB\-u\fR
+and
+\fB\-g\fR
+options.
+In this example:
+.nf
+.sp
+.RS 0n
+alan	ALL = (root, bin : operator, system) ALL
+.RE
+.fi
+.PP
+user
+\fBalan\fR
+may run any command as either user
+\fBroot\fR
+or
+\fBbin\fR,
+optionally setting the group to operator or system.
+.SS "Option_Spec"
+A
+\fICmnd\fR
+may have zero or more options associated with it.
+Options may consist of
+.if \n(SL \{\
+SELinux roles and/or types,
+.\}
+AppArmor profiles,
+.if \n(PS \{\
+Solaris privileges sets,
+.\}
+start and/or end dates and command timeouts.
+Once an option is set for a
+\fICmnd\fR,
+subsequent
+\fICmnd\fRs
+in the
+\fICmnd_Spec_List\fR,
+inherit that option unless it is overridden by another option.
+Option names are reserved words in
+\fIsudoers\fR.
+This means that none of the valid option names (see below) can be used
+when declaring an alias.
+.if \n(SL \{\
+.SS "SELinux_Spec"
+On systems with SELinux support,
+\fIsudoers\fR
+file entries may optionally have an SELinux role and/or type associated
+with a command.
+This can be used to implement a form of role-based access control (RBAC).
+If a role or
+type is specified with the command it will override any default values
+specified in
+\fIsudoers\fR.
+A role or type specified on the command line,
+however, will supersede the values in
+\fIsudoers\fR.
+.\}
+.SS "AppArmor_Spec"
+On systems supporting AppArmor,
+\fIsudoers\fR
+file entries may optionally specify an AppArmor profile that should be
+used to confine a command.
+If an AppArmor profile is specified with the command, it will override
+any default values specified in
+\fIsudoers\fR.
+Appropriate profile transition rules must be defined to support the
+profile change specified for a user.
+.PP
+AppArmor profiles can be specified in any way that complies with the
+rules of
+aa_change_profile(2).
+For instance, in the following
+\fIsudoers\fR
+entry
+.nf
+.sp
+.RS 0n
+alice	ALL = (root)	APPARMOR_PROFILE=my-profile	ALL
+.RE
+.fi
+.PP
+the user
+\fBalice\fR
+may run any command as
+\fBroot\fR
+under confinement by the profile
+\(oqmy-profile\(cq.
+You can also stack profiles, or allow a user to run commands unconfined by
+any profile.
+For example:
+.nf
+.sp
+.RS 0n
+bob	ALL = (root)	APPARMOR_PROFILE=foo//&bar	/usr/bin/vi
+cathy	ALL = (root)	APPARMOR_PROFILE=unconfined	/bin/ls
+.RE
+.fi
+.PP
+These
+\fIsudoers\fR
+entries allow user
+\fBbob\fR
+to run
+\fI/usr/bin/vi\fR
+as
+\fBroot\fR
+under the stacked profiles
+\(oqfoo\(cq
+and
+\(oqbar\(cq,
+and user
+\fBcathy\fR
+to run
+\fI/bin/ls\fR
+without any confinement at all.
+.if \n(PS \{\
+.SS "Solaris_Priv_Spec"
+On Solaris systems,
+\fIsudoers\fR
+file entries may optionally specify Solaris privilege set and/or limit
+privilege set associated with a command.
+If privileges or limit privileges are specified with the command
+it will override any default values specified in
+\fIsudoers\fR.
+.PP
+A privilege set is a comma-separated list of privilege names.
+The
+ppriv(1)
+command can be used to list all privileges known to the system.
+For example:
+.nf
+.sp
+.RS 0n
+$ ppriv -l
+.RE
+.fi
+.PP
+In addition, there are several
+\(lqspecial\(rq
+privilege strings:
+.TP 7n
+none
+the empty set
+.TP 7n
+all
+the set of all privileges
+.TP 7n
+zone
+the set of all privileges available in the current zone
+.TP 7n
+basic
+the default set of privileges normal users are granted at login time
+.PP
+Privileges can be excluded from a set by prefixing the privilege
+name with either an
+\(oq\&!\(cq
+or
+\(oq\-\(cq
+character.
+.\}
+.SS "Date_Spec"
+\fBsudoers\fR
+rules can be specified with a start and end date via the
+\fRNOTBEFORE\fR
+and
+\fRNOTAFTER\fR
+settings.
+The time stamp must be specified in
+\(lqGeneralized Time\(rq
+as defined by RFC 4517.
+The format is effectively
+\(oqyyyymmddHHMMSSZ\(cq
+where the minutes and seconds are optional.
+The
+\(oqZ\(cq
+suffix indicates that the time stamp is in Coordinated Universal Time (UTC).
+It is also possible to specify a timezone offset from UTC in hours
+and minutes instead of a
+\(oqZ\(cq.
+For example,
+\(oq-0500\(cq
+would correspond to Eastern Standard time in the US.
+As an extension, if no
+\(oqZ\(cq
+or timezone offset is specified, local time will be used.
+.PP
+The following are all valid time stamps:
+.nf
+.sp
+.RS 4n
+20170214083000Z
+2017021408Z
+20160315220000-0500
+20151201235900
+.RE
+.fi
+.SS "Timeout_Spec"
+A command may have a timeout associated with it.
+If the timeout expires before the command has exited, the
+command will be terminated.
+The timeout may be specified in combinations of days, hours,
+minutes, and seconds with a single-letter case-insensitive suffix
+that indicates the unit of time.
+For example, a timeout of 7 days, 8 hours, 30 minutes, and
+10 seconds would be written as
+\(oq7d8h30m10s\(cq.
+If a number is specified without a unit, seconds are assumed.
+Any of the days, minutes, hours, or seconds may be omitted.
+The order must be from largest to smallest unit and a unit
+may not be specified more than once.
+.PP
+The following are all
+\fIvalid\fR
+timeout values:
+\(oq7d8h30m10s\(cq,
+\(oq14d\(cq,
+\(oq8h30m\(cq,
+\(oq600s\(cq,
+\(oq3600\(cq.
+The following are
+\fIinvalid\fR
+timeout values:
+\(oq12m2w1d\(cq,
+\(oq30s10m4h\(cq,
+\(oq1d2d3h\(cq.
+.PP
+This setting is only supported by version 1.8.20 or higher.
+.SS "Chdir_Spec"
+The working directory that the command will be run in can be specified
+using the
+\fRCWD\fR
+setting.
+The
+\fIdirectory\fR
+must be a fully-qualified path name beginning with a
+\(oq/\(cq
+or
+\(oq~\(cq
+character, or the special value
+\(lq*\(rq.
+A value of
+\(lq*\(rq
+indicates that the user may specify the working directory by running
+\fBsudo\fR
+with the
+\fB\-D\fR
+option.
+By default, commands are run from the invoking user's current working
+directory, unless the
+\fB\-i\fR
+option is given.
+Path names of the form
+\fI~user/path/name\fR
+are interpreted as being relative to the named user's home directory.
+If the user name is omitted, the path will be relative to the runas
+user's home directory.
+.PP
+This setting is only supported by version 1.9.3 or higher.
+.SS "Chroot_Spec"
+The root directory that the command will be run in can be specified
+using the
+\fRCHROOT\fR
+setting.
+The
+\fIdirectory\fR
+must be a fully-qualified path name beginning with a
+\(oq/\(cq
+or
+\(oq~\(cq
+character, or the special value
+\(lq*\(rq.
+A value of
+\(lq*\(rq
+indicates that the user may specify the root directory by running
+\fBsudo\fR
+with the
+\fB\-R\fR
+option.
+This setting can be used to run the command in a
+chroot(2)
+\(lqsandbox\(rq
+similar to the
+chroot(@mansectsu@)
+utility.
+Path names of the form
+\fI~user/path/name\fR
+are interpreted as being relative to the named user's home directory.
+If the user name is omitted, the path will be relative to the runas
+user's home directory.
+.PP
+This setting is only supported by version 1.9.3 or higher.
+.SS "Tag_Spec"
+A command may have zero or more tags associated with it.
+The following tag values are supported:
+\fREXEC\fR,
+\fRNOEXEC\fR,
+\fRFOLLOW\fR,
+\fRNOFOLLOW\fR,
+\fRLOG_INPUT\fR,
+\fRNOLOG_INPUT\fR,
+\fRLOG_OUTPUT\fR,
+\fRNOLOG_OUTPUT\fR,
+\fRMAIL\fR,
+\fRNOMAIL\fR,
+\fRINTERCEPT\fR,
+\fRNOINTERCEPT\fR,
+\fRPASSWD\fR,
+\fRNOPASSWD\fR,
+\fRSETENV\fR,
+and
+\fRNOSETENV\fR.
+Once a tag is set on a
+\fICmnd\fR,
+subsequent
+\fICmnd\fRs
+in the
+\fICmnd_Spec_List\fR,
+inherit the tag unless it is overridden by the opposite tag (in other words,
+\fRPASSWD\fR
+overrides
+\fRNOPASSWD\fR
+and
+\fRNOEXEC\fR
+overrides
+\fREXEC\fR).
+.TP 2n
+\fREXEC\fR and \fRNOEXEC\fR
+.sp
+If
+\fBsudo\fR
+has been compiled with
+\fInoexec\fR
+support and the underlying operating system supports it, the
+\fRNOEXEC\fR
+tag can be used to prevent a dynamically-linked executable from
+running further commands itself.
+.sp
+In the following example, user
+\fBaaron\fR
+may run
+\fI/usr/bin/more\fR
+and
+\fI/usr/bin/vi\fR
+on the host shanty, but shell escapes will be disabled.
+.nf
+.sp
+.RS 2n
+aaron	shanty = NOEXEC: /usr/bin/more, /usr/bin/vi
+.RE
+.fi
+.RS 2n
+.sp
+See the
+\fIPreventing shell escapes\fR
+section below for more details on how
+\fRNOEXEC\fR
+works and whether or not it will work on your system.
+.RE
+.TP 2n
+\fRFOLLOW\fR and \fRNOFOLLOW\fR
+.sp
+Starting with version 1.8.15,
+\fBsudoedit\fR
+will not open a file that is a symbolic link unless the
+\fIsudoedit_follow\fR
+flag is enabled.
+The
+\fRFOLLOW\fR
+and
+\fRNOFOLLOW\fR
+tags override the value of
+\fIsudoedit_follow\fR
+and can be used to permit (or deny) the editing of symbolic links
+on a per-command basis.
+These tags are only effective for the
+\fIsudoedit\fR
+command and are ignored for all other commands.
+.TP 2n
+\fRLOG_INPUT\fR and \fRNOLOG_INPUT\fR
+.sp
+These tags override the value of the
+\fIlog_input\fR
+flag on a per-command basis.
+For more information, see
+\fII/O LOGGING\fR.
+.TP 2n
+\fRLOG_OUTPUT\fR and \fRNOLOG_OUTPUT\fR
+.sp
+These tags override the value of the
+\fIlog_output\fR
+flag on a per-command basis.
+For more information, see
+\fII/O LOGGING\fR.
+.TP 2n
+\fRMAIL\fR and \fRNOMAIL\fR
+.sp
+These tags provide fine-grained control over whether
+mail will be sent when a user runs a command by
+overriding the value of the
+\fImail_all_cmnds\fR
+flag on a per-command basis.
+They have no effect when
+\fBsudo\fR
+is run with the
+\fB\-l\fR
+or
+\fB\-v\fR
+options.
+A
+\fRNOMAIL\fR
+tag will also override the
+\fImail_always\fR
+and
+\fImail_no_perms\fR
+options.
+For more information, see the descriptions of
+\fImail_all_cmnds\fR,
+\fImail_always\fR,
+and
+\fImail_no_perms\fR
+in the
+\fISUDOERS OPTIONS\fR
+section below.
+.TP 2n
+\fRPASSWD\fR and \fRNOPASSWD\fR
+.sp
+By default,
+\fBsudo\fR
+requires that a user authenticate
+before running a command.
+This behavior can be modified via the
+\fRNOPASSWD\fR
+tag.
+Like a
+\fIRunas_Spec\fR,
+the
+\fRNOPASSWD\fR
+tag sets
+a default for the commands that follow it in the
+\fICmnd_Spec_List\fR.
+Conversely, the
+\fRPASSWD\fR
+tag can be used to reverse things.
+For example:
+.nf
+.sp
+.RS 2n
+ray	rushmore = NOPASSWD: /bin/kill, /bin/ls, /usr/bin/lprm
+.RE
+.fi
+.RS 2n
+.sp
+would allow the user
+\fBray\fR
+to run
+\fI/bin/kill\fR,
+\fI/bin/ls\fR,
+and
+\fI/usr/bin/lprm\fR
+as
+\fB@runas_default@\fR
+on the machine
+\(lqrushmore\(rq
+without authenticating himself.
+If we only want
+\fBray\fR
+to be able to
+run
+\fI/bin/kill\fR
+without a password the entry would be:
+.nf
+.sp
+.RS 2n
+ray	rushmore = NOPASSWD: /bin/kill, PASSWD: /bin/ls, /usr/bin/lprm
+.RE
+.fi
+.sp
+Note, however, that the
+\fRPASSWD\fR
+tag has no effect on users who are in the group specified by the
+\fIexempt_group\fR
+setting.
+.sp
+By default, if the
+\fRNOPASSWD\fR
+tag is applied to any of a user's entries for the current host,
+the user will be able to run
+\(oqsudo -l\(cq
+without a password.
+Additionally, a user may only run
+\(oqsudo -v\(cq
+without a password if all of the user's entries for the current
+host have the
+\fRNOPASSWD\fR
+tag.
+This behavior may be overridden via the
+\fIverifypw\fR
+and
+\fIlistpw\fR
+options.
+.RE
+.TP 2n
+\fRSETENV\fR and \fRNOSETENV\fR
+.sp
+These tags override the value of the
+\fIsetenv\fR
+flag on a per-command basis.
+If
+\fRSETENV\fR
+has been set for a command, the user may disable the
+\fIenv_reset\fR
+flag from the command line via the
+\fB\-E\fR
+option.
+Additionally, environment variables set on the command
+line are not subject to the restrictions imposed by
+\fIenv_check\fR,
+\fIenv_delete\fR,
+or
+\fIenv_keep\fR.
+As such, only trusted users should be allowed to set variables in this manner.
+If the command matched is
+\fBALL\fR,
+the
+\fRSETENV\fR
+tag is implied for that command; this default may be overridden by use of the
+\fRNOSETENV\fR
+tag.
+.TP 2n
+\fRINTERCEPT\fR and \fRNOINTERCEPT\fR
+.sp
+If
+\fBsudo\fR
+has been compiled with
+\fIintercept\fR
+support and the underlying operating system supports it, the
+\fRINTERCEPT\fR
+tag can be used to cause programs spawned by a command to be validated against
+\fIsudoers\fR
+and logged just like they would be if run through
+\fBsudo\fR
+directly.
+This is useful in conjunction with commands that allow shell escapes
+such as editors, shells, and paginators.
+There is additional overhead due to the policy check that may add
+latency when running commands such as shell scripts that execute a
+large number of sub-commands.
+For interactive commands, such as a shell or editor,
+the overhead is not usually noticeable.
+.sp
+In the following example, user
+\fBchuck\fR
+may run any command on the machine
+\(lqresearch\(rq
+in intercept mode.
+.nf
+.sp
+.RS 2n
+chuck	research = INTERCEPT: ALL
+.RE
+.fi
+.RS 2n
+.sp
+See the
+\fIPreventing shell escapes\fR
+section below for more details on how
+\fRINTERCEPT\fR
+works and whether or not it will work on your system.
+.RE
+.SS "Wildcards"
+\fBsudo\fR
+allows shell-style
+\fIwildcards\fR
+(aka meta or glob characters)
+to be used in host names, path names, and command line arguments in the
+\fIsudoers\fR
+file.
+Wildcard matching is done via the
+glob(3)
+and
+fnmatch(3)
+functions as specified by
+IEEE Std 1003.1 (\(lqPOSIX.1\(rq).
+.TP 8n
+*
+Matches any set of zero or more characters (including white space).
+.TP 8n
+\&?
+Matches any single character (including white space).
+.TP 8n
+[...]
+Matches any character in the specified range.
+.TP 8n
+[!...]
+Matches any character
+\fInot\fR
+in the specified range.
+.TP 8n
+\ex
+For any character
+\(oqx\(cq,
+evaluates to
+\(oqx\(cq.
+This is used to escape special characters such as:
+\(oq*\(cq,
+\(oq\&?\(cq,
+\(oq[\&\(cq,
+and
+\(oq]\&\(cq.
+.PP
+\fBThese are not regular expressions.\fR
+Unlike a regular expression there is no way to match one or more
+characters within a range.
+.PP
+Character classes may be used if your system's
+glob(3)
+and
+fnmatch(3)
+functions support them.
+However, because the
+\(oq:\&\(cq
+character has special meaning in
+\fIsudoers\fR,
+it must be
+escaped.
+For example:
+.nf
+.sp
+.RS 4n
+/bin/ls [[\e:\&alpha\e:\&]]*
+.RE
+.fi
+.PP
+Would match any file name beginning with a letter.
+.PP
+A forward slash
+(\(oq/\(cq)
+will
+\fInot\fR
+be matched by
+wildcards used in the file name portion of the command.
+This is to make a path like:
+.nf
+.sp
+.RS 4n
+/usr/bin/*
+.RE
+.fi
+.PP
+match
+\fI/usr/bin/who\fR
+but not
+\fI/usr/bin/X11/xterm\fR.
+.PP
+When matching the command line arguments, however, a slash
+\fIdoes\fR
+get matched by wildcards since command line arguments may contain
+arbitrary strings and not just path names.
+.PP
+\fBWildcards in command line arguments should be used with care.\fR
+.br
+Wildcards can match any character, including white space.
+In most cases, it is safer to use a regular expression to match
+command line arguments.
+For more information, see
+\fIWildcards in command arguments\fR
+below.
+.SS "Exceptions to wildcard rules"
+The following exceptions apply to the above rules:
+.TP 10n
+\&""
+If the empty string
+\(oq\&""\(cq
+is the only command line argument in the
+\fIsudoers\fR
+file entry it means that command is not allowed to be run with
+\fIany\fR
+arguments.
+.TP 10n
+sudoedit
+Command line arguments to the
+\fIsudoedit\fR
+built-in command should always be path names, so a forward slash
+(\(oq/\(cq)
+will not be matched by a wildcard.
+.SS "Regular expressions"
+Starting with version 1.9.10, it is possible to use
+regular expressions for path names and command line arguments.
+Regular expressions are more expressive than shell-style
+\fIwildcards\fR
+and are usually safer because they provide a greater degree of
+control when matching.
+The type of regular expressions supported by
+\fBsudoers\fR
+are POSIX extended regular expressions, similar to those used by the
+egrep(1)
+utility.
+They are usually documented in the
+regex(@mansectmisc@)
+or
+re_format(@mansectmisc@)
+manual, depending on the system.
+As an extension, if the regular expression begins with
+\(lq(?i)\(rq,
+it will be matched in a case-insensitive manner.
+.PP
+In
+\fIsudoers\fR,
+regular expressions must start with a
+\(oq^\(cq
+character and end with a
+\(oq$\(cq.
+This makes it explicit what is, or is not, a regular expression.
+Either the path name, the command line arguments or both may
+be regular expressions.
+Because the path name and arguments are matched separately, it is
+even possible to use wildcards for the path name and regular
+expressions for the arguments.
+It is not possible to use a single regular expression to match
+both the command and its arguments.
+Regular expressions in
+\fIsudoers\fR
+are limited to 1024 characters.
+.PP
+There is no need to escape
+\fIsudoers\fR
+special characters in a regular expression other than the pound sign
+(\(oq#\(cq).
+.PP
+In the following example, user
+\fBjohn\fR
+can run the
+passwd(1)
+command as
+\fB@runas_default@\fR
+on any host but is not allowed to change
+\fBroot\fR's
+password.
+This kind of rule is impossible to express safely using wildcards.
+.nf
+.sp
+.RS 4n
+john	ALL = /usr/bin/passwd ^[a-zA-Z0-9_]+$,\e
+              !/usr/bin/passwd root
+.RE
+.fi
+.PP
+It is also possible to use a regular expression in conjunction with
+\fBsudoedit\fR
+rules.
+The following rule would give user bob the ability to edit the
+\fI/etc/motd\fR,
+\fI/etc/issue\fR,
+and
+\fI/etc/hosts\fR
+files only.
+.nf
+.sp
+.RS 4n
+bob    ALL = sudoedit ^/etc/(motd|issue|hosts)$
+.RE
+.fi
+.PP
+Regular expressions may also be used to match the command itself.
+In this example, a regular expression is used to allow user
+\fBsid\fR
+to run the
+\fI/usr/sbin/groupadd\fR,
+\fI/usr/sbin/groupmod\fR,
+\fI/usr/sbin/groupdel\fR,
+\fI/usr/sbin/useradd\fR,
+\fI/usr/sbin/usermod\fR,
+and
+\fI/usr/sbin/userdel\fR
+commands as
+\fB@runas_default@\fR.
+.nf
+.sp
+.RS 4n
+sid    ALL = ^/usr/sbin/(group|user)(add|mod|del)$
+.RE
+.fi
+.PP
+One disadvantage of using a regular expression to match the command
+name is that it is not possible to match relative paths such as
+\fI./useradd\fR
+or
+\fI../sbin/useradd\fR.
+This has security implications when a regular expression is used
+for the command name in conjunction with the negation operator,
+\(oq!\&\(cq,
+as such rules can be trivially bypassed.
+Because of this, using a negated regular expression for the command name is
+\fBstrongly discouraged\fR.
+This does not apply to negated commands that only use a regular
+expression to match the command arguments.
+See
+\fIRegular expressions in command names\fR
+below for more information.
+.SS "Including other files from within sudoers"
+It is possible to include other
+\fIsudoers\fR
+files from within the
+\fIsudoers\fR
+file currently being parsed using the
+\fI@include\fR
+and
+\fI@includedir\fR
+directives.
+For compatibility with sudo versions prior to 1.9.1,
+\fI#include\fR
+and
+\fI#includedir\fR
+are also accepted.
+.PP
+An include file can be used, for example, to keep a site-wide
+\fIsudoers\fR
+file in addition to a local, per-machine file.
+For the sake of this example the site-wide
+\fIsudoers\fR
+file will be
+\fI/etc/sudoers\fR
+and the per-machine one will be
+\fI/etc/sudoers.local\fR.
+To include
+\fI/etc/sudoers.local\fR
+from within
+\fI/etc/sudoers\fR
+one would use the following line in
+\fI/etc/sudoers\fR:
+.nf
+.sp
+.RS 4n
+@include /etc/sudoers.local
+.RE
+.fi
+.PP
+When
+\fBsudo\fR
+reaches this line it will suspend processing of the current file
+(\fI/etc/sudoers\fR)
+and switch to
+\fI/etc/sudoers.local\fR.
+Upon reaching the end of
+\fI/etc/sudoers.local\fR,
+the rest of
+\fI/etc/sudoers\fR
+will be processed.
+Files that are included may themselves include other files.
+A hard limit of 128 nested include files is enforced to prevent include
+file loops.
+.PP
+Starting with version 1.9.1, the path to the include file may contain
+white space if it is escaped with a backslash
+(\(oq\e\(cq).
+Alternately, the entire path may be enclosed in double quotes
+(\&""),
+in which case no escaping is necessary.
+To include a literal backslash in the path,
+\(oq\e\e\(cq
+should be used.
+.PP
+If the path to the include file is not fully-qualified (does not
+begin with a
+\(oq/\(cq),
+it must be located in the same directory as the sudoers file it was
+included from.
+For example, if
+\fI/etc/sudoers\fR
+contains the line:
+.nf
+.sp
+.RS 4n
+@include sudoers.local
+.RE
+.fi
+.PP
+the file that will be included is
+\fI/etc/sudoers.local\fR.
+.PP
+The file name may also include the
+\(oq%h\(cq
+escape, signifying the short form of the host name.
+In other words, if the machine's host name is
+\(lqxerxes\(rq,
+then
+.nf
+.sp
+.RS 4n
+@include /etc/sudoers.%h
+.RE
+.fi
+.PP
+will cause
+\fBsudo\fR
+to include the file
+\fI/etc/sudoers.xerxes\fR.
+Any path name separator characters
+(\(oq/\(cq)
+present in the host name will be replaced with an underbar
+(\(oq_\(cq)
+during expansion.
+.PP
+The
+\fI@includedir\fR
+directive can be used to create a
+\fIsudoers.d\fR
+directory that the system package manager can drop
+\fIsudoers\fR
+file rules into as part of package installation.
+For example, given:
+.nf
+.sp
+.RS 4n
+@includedir /etc/sudoers.d
+.RE
+.fi
+.PP
+\fBsudo\fR
+will suspend processing of the current file and read each file in
+\fI/etc/sudoers.d\fR,
+skipping file names that end in
+\(oq~\(cq
+or contain a
+\(oq.\&\(cq
+character to avoid causing problems with package manager or editor
+temporary/backup files.
+.PP
+Files are parsed in sorted lexical order.
+That is,
+\fI/etc/sudoers.d/01_first\fR
+will be parsed before
+\fI/etc/sudoers.d/10_second\fR.
+Be aware that because the sorting is lexical, not numeric,
+\fI/etc/sudoers.d/1_whoops\fR
+would be loaded
+\fIafter\fR
+\fI/etc/sudoers.d/10_second\fR.
+Using a consistent number of leading zeroes in the file names can be used
+to avoid such problems.
+After parsing the files in the directory, control returns to the
+file that contained the
+\fI@includedir\fR
+directive.
+.PP
+Unlike files included via
+\fI@include\fR,
+\fBvisudo\fR
+will not edit the files in a
+\fI@includedir\fR
+directory unless one of them contains a syntax error.
+It is still possible to run
+\fBvisudo\fR
+with the
+\fB\-f\fR
+flag to edit the files directly, but this will not catch the
+redefinition of an
+\fIalias\fR
+that is also present in a different file.
+.SS "Other special characters and reserved words"
+The pound sign
+(\(oq#\(cq)
+is used to indicate a comment (unless it is part of a #include
+directive or unless it occurs in the context of a user name and is
+followed by one or more digits, in which case it is treated as a
+user-ID).
+Both the comment character and any text after it, up to the end of
+the line, are ignored.
+.PP
+The reserved word
+\fBALL\fR
+is a built-in
+\fIalias\fR
+that always causes a match to succeed.
+It can be used wherever one might otherwise use a
+\fICmnd_Alias\fR,
+\fIUser_Alias\fR,
+\fIRunas_Alias\fR,
+or
+\fIHost_Alias\fR.
+Attempting to define an
+\fIalias\fR
+named
+\fBALL\fR
+will result in a syntax error.
+Using
+\fBALL\fR
+can be dangerous since in a command context, it allows the user to run
+\fIany\fR
+command on the system.
+.PP
+The following option names permitted in an
+\fIOption_Spec\fR
+are also considered reserved words:
+\fRCHROOT\fR,
+.if \n(PS \{\
+\fRPRIVS\fR,
+.\}
+.if \n(PS \{\
+\fRLIMITPRIVS\fR,
+.\}
+.if \n(SL \{\
+\fRROLE\fR,
+.\}
+.if \n(SL \{\
+\fRTYPE\fR,
+.\}
+\fRTIMEOUT\fR,
+\fRCWD\fR,
+\fRNOTBEFORE\fR
+and
+\fRNOTAFTER\fR.
+Attempting to define an
+\fIalias\fR
+with the same name as one of the options will result in a syntax error.
+.PP
+An exclamation point
+(\(oq\&!\(cq)
+can be used as a logical
+\fInot\fR
+operator in a list or
+\fIalias\fR
+as well as in front of a
+\fICmnd\fR.
+This allows one to exclude certain values.
+For the
+\(oq\&!\(cq
+operator to be effective, there must be something for it to exclude.
+For example, to match all users except for
+\fBroot\fR
+one would use:
+.nf
+.sp
+.RS 4n
+ALL, !root
+.RE
+.fi
+.PP
+If the
+\fBALL\fR,
+is omitted, as in:
+.nf
+.sp
+.RS 4n
+!root
+.RE
+.fi
+.PP
+it would explicitly deny
+\fBroot\fR
+but not match any other users.
+This is different from a true
+\(lqnegation\(rq
+operator.
+.PP
+Note, however, that using a
+\(oq\&!\(cq
+in conjunction with the built-in
+\fBALL\fR
+alias to allow a user to run
+\(lqall but a few\(rq
+commands rarely works as intended (see
+\fISECURITY NOTES\fR
+below).
+.PP
+Long lines can be continued with a backslash
+(\(oq\e\(cq)
+as the last character on the line.
+.PP
+White space between elements in a list as well as special syntactic
+characters in a
+\fIUser Specification\fR
+(\(oq=\&\(cq,
+\(oq:\&\(cq,
+\(oq(\&\(cq,
+\(oq)\&\(cq)
+is optional.
+.PP
+The following characters must be escaped with a backslash
+(\(oq\e\(cq)
+when used as part of a word (e.g., a user name or host name):
+\(oq\&!\(cq,
+\(oq=\&\(cq,
+\(oq:\&\(cq,
+\(oq,\&\(cq,
+\(oq(\&\(cq,
+\(oq)\&\(cq,
+\(oq\e\(cq.
+.SH "SUDOERS OPTIONS"
+\fBsudo\fR's
+behavior can be modified by
+\fIDefault_Entry\fR
+lines, as explained earlier.
+A list of all supported Defaults parameters, grouped by type, are listed below.
+.PP
+\fBBoolean Flags\fR:
+.TP 18n
+always_query_group_plugin
+If a
+\fIgroup_plugin\fR
+is configured, use it to resolve groups of the form
+\(oq%group\(cq
+as long as there is not also a system group of the same name.
+Normally, only groups of the form
+\(oq%:group\(cq
+are passed to the
+\fIgroup_plugin\fR.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+always_set_home
+If enabled,
+\fBsudo\fR
+will set the
+\fRHOME\fR
+environment variable to the home directory of the target user
+(which is the
+\fIrunas_default\fR
+user unless the
+\fB\-u\fR
+option is used).
+This flag is largely obsolete and has no effect unless the
+\fIenv_reset\fR
+flag has been disabled or
+\fRHOME\fR
+is present in the
+\fIenv_keep\fR
+list, both of which are strongly discouraged.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+authenticate
+If set, users must authenticate themselves via a password (or other
+means of authentication) before they may run commands.
+This default may be overridden via the
+\fRPASSWD\fR
+and
+\fRNOPASSWD\fR
+tags.
+This flag is
+\fIon\fR
+by default.
+.TP 18n
+case_insensitive_group
+If enabled, group names in
+\fIsudoers\fR
+will be matched in a case insensitive manner.
+This may be necessary when users are stored in LDAP or AD.
+This flag is
+\fIon\fR
+by default.
+.TP 18n
+case_insensitive_user
+If enabled, user names in
+\fIsudoers\fR
+will be matched in a case insensitive manner.
+This may be necessary when groups are stored in LDAP or AD.
+This flag is
+\fIon\fR
+by default.
+.TP 18n
+closefrom_override
+If set, the user may use the
+\fB\-C\fR
+option which overrides the default starting point at which
+\fBsudo\fR
+begins closing open file descriptors.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+compress_io
+If set, and
+\fBsudo\fR
+is configured to log a command's input or output,
+the I/O logs will be compressed using
+\fBzlib\fR.
+This flag is
+\fIon\fR
+by default when
+\fBsudo\fR
+is compiled with
+\fBzlib\fR
+support.
+.TP 18n
+exec_background
+By default,
+\fBsudo\fR
+runs a command as the foreground process as long as
+\fBsudo\fR
+itself is running in the foreground.
+When the
+\fIexec_background\fR
+flag is enabled and the command is being run in a pseudo-terminal
+(due to I/O logging or the
+\fIuse_pty\fR
+flag), the command will be run as a background process.
+Attempts to read from the controlling terminal (or to change terminal
+settings) will result in the command being suspended with the
+\fRSIGTTIN\fR
+signal (or
+\fRSIGTTOU\fR
+in the case of terminal settings).
+If this happens when
+\fBsudo\fR
+is a foreground process, the command will be granted the controlling terminal
+and resumed in the foreground with no user intervention required.
+The advantage of initially running the command in the background is that
+\fBsudo\fR
+need not read from the terminal unless the command explicitly requests it.
+Otherwise, any terminal input must be passed to the command, whether it
+has required it or not (the kernel buffers terminals so it is not possible
+to tell whether the command really wants the input).
+This is different from historic
+\fIsudo\fR
+behavior or when the command is not being run in a pseudo-terminal.
+.sp
+For this to work seamlessly, the operating system must support the
+automatic restarting of system calls.
+Unfortunately, not all operating systems do this by default,
+and even those that do may have bugs.
+For example, macOS fails to restart the
+tcgetattr(3)
+and
+tcsetattr(3)
+functions (this is a bug in macOS).
+Furthermore, because this behavior depends on the command stopping with the
+\fRSIGTTIN\fR
+or
+\fRSIGTTOU\fR
+signals, programs that catch these signals and suspend themselves
+with a different signal (usually
+\fRSIGTOP\fR)
+will not be automatically foregrounded.
+Some versions of the linux
+su(1)
+command behave this way.
+This flag is
+\fIoff\fR
+by default.
+.sp
+This setting is only supported by version 1.8.7 or higher.
+It has no effect unless I/O logging is enabled or the
+\fIuse_pty\fR
+flag is enabled.
+.TP 18n
+env_editor
+If set,
+\fBvisudo\fR
+will use the value of the
+\fRSUDO_EDITOR\fR,
+\fRVISUAL\fR
+or
+\fREDITOR\fR
+environment variables before falling back on the default editor list.
+\fBvisudo\fR
+is typically run as
+\fBroot\fR
+so this flag may allow a user with
+\fBvisudo\fR
+privileges to run arbitrary commands as
+\fBroot\fR
+without logging.
+An alternative is to place a colon-separated list of
+\(lqsafe\(rq
+editors int the
+\fIeditor\fR
+setting.
+\fBvisudo\fR
+will then only use
+\fRSUDO_EDITOR\fR,
+\fRVISUAL\fR
+or
+\fREDITOR\fR
+if they match a value specified in
+\fIeditor\fR.
+If the
+\fIenv_reset\fR
+flag is enabled, the
+\fRSUDO_EDITOR\fR,
+\fRVISUAL\fR
+and/or
+\fREDITOR\fR
+environment variables must be present in the
+\fIenv_keep\fR
+list for the
+\fIenv_editor\fR
+flag to function when
+\fBvisudo\fR
+is invoked via
+\fBsudo\fR.
+This flag is
+\fI@env_editor@\fR
+by default.
+.TP 18n
+env_reset
+If set,
+\fBsudo\fR
+will run the command in a minimal environment containing the
+\fRTERM\fR,
+\fRPATH\fR,
+\fRHOME\fR,
+\fRMAIL\fR,
+\fRSHELL\fR,
+\fRLOGNAME\fR,
+\fRUSER\fR
+and
+\fRSUDO_*\fR
+variables.
+Any variables in the caller's environment or in the file specified
+by the
+\fIrestricted_env_file\fR
+setting that match the
+\fIenv_keep\fR
+and
+\fIenv_check\fR
+lists are then added, followed by any variables present in the file
+specified by the
+\fIenv_file\fR
+setting (if any).
+The contents of the
+\fIenv_keep\fR
+and
+\fIenv_check\fR
+lists, as modified by global Defaults parameters in
+\fIsudoers\fR,
+are displayed when
+\fBsudo\fR
+is run by
+\fBroot\fR
+with the
+\fB\-V\fR
+option.
+If the
+\fIsecure_path\fR
+setting is enabled, its value will be used for the
+\fRPATH\fR
+environment variable.
+This flag is
+\fI@env_reset@\fR
+by default.
+.TP 18n
+fast_glob
+Normally,
+\fBsudo\fR
+uses the
+glob(3)
+function to do shell-style globbing when matching path names.
+However, since it accesses the file system,
+glob(3)
+can take a long time to complete for some patterns, especially
+when the pattern references a network file system that is mounted
+on demand (auto mounted).
+The
+\fIfast_glob\fR
+flag causes
+\fBsudo\fR
+to use the
+fnmatch(3)
+function, which does not access the file system to do its matching.
+The disadvantage of
+\fIfast_glob\fR
+is that it is unable to match relative paths such as
+\fI./ls\fR
+or
+\fI../bin/ls\fR.
+This has security implications when path names that include globbing
+characters are used with the negation operator,
+\(oq!\&\(cq,
+as such rules can be trivially bypassed.
+As such, this flag should not be used when the
+\fIsudoers\fR
+file contains rules that contain negated path names which include globbing
+characters.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+log_passwords
+Most programs that require a user's password will disable echo before
+reading the password to avoid displaying the plaintext password on
+the screen.
+However, if terminal input is being logged (see
+\fII/O LOGGING\fR),
+the password will still be present in the I/O log.
+If the
+\fIlog_passwords\fR
+option is disabled,
+\fBsudoers\fR
+will attempt to prevent passwords from being logged.
+It does this by using the regular expressions in
+\fIpassprompt_regex\fR
+to match a password prompt in the terminal output buffer.
+When a match is found, input characters in the I/O log will be replaced with
+\(oq*\(cq
+until either a line feed or carriage return is found in the terminal input
+or a new terminal output buffer is received.
+If, however, a program displays characters as the user types
+(such as
+\fBsudo\fR
+when
+\fIpwfeedback\fR
+is set), only the
+first character of the password will be replaced in the I/O log.
+This option has no effect unless
+\fIlog_input\fR
+or
+\fIlog_ttyin\fR
+are also set.
+This flag is
+\fIon\fR
+by default.
+.sp
+This setting is only supported by version 1.9.10 or higher.
+.TP 18n
+fqdn
+Set this flag if you want to put fully qualified host names in the
+\fIsudoers\fR
+file when the local host name (as returned by the
+\(oqhostname\(cq
+command) does not contain the domain name.
+In other words, instead of myhost you would use myhost.mydomain.edu.
+You may still use the short form if you wish (and even mix the two).
+This flag is only effective when the
+\(lqcanonical\(rq
+host name, as returned by the
+getaddrinfo(3)
+or
+gethostbyname(3)
+function, is a fully-qualified domain name.
+This is usually the case when the system is configured to use DNS
+for host name resolution.
+.sp
+If the system is configured to use the
+\fI/etc/hosts\fR
+file in preference to DNS, the
+\(lqcanonical\(rq
+host name may not be fully-qualified.
+The order that sources are queried for host name resolution
+is usually specified in the
+\fI@nsswitch_conf@\fR,
+\fI@netsvc_conf@\fR,
+\fI/etc/host.conf\fR,
+or, in some cases,
+\fI/etc/resolv.conf\fR
+file.
+In the
+\fI/etc/hosts\fR
+file, the first host name of the entry is considered to be the
+\(lqcanonical\(rq
+name; subsequent names are aliases that are not used by
+\fBsudoers\fR.
+For example, the following hosts file line for the machine
+\(lqxyzzy\(rq
+has the fully-qualified domain name as the
+\(lqcanonical\(rq
+host name, and the short version as an alias.
+.sp
+.RS 24n
+192.168.1.1 xyzzy.sudo.ws xyzzy
+.RE
+.RS 18n
+.sp
+If the machine's hosts file entry is not formatted properly, the
+\fIfqdn\fR
+flag will not be effective if it is queried before DNS.
+.sp
+Beware that when using DNS for host name resolution, turning on
+\fIfqdn\fR
+requires
+\fBsudoers\fR
+to make DNS lookups which renders
+\fBsudo\fR
+unusable if DNS stops working (for example if the machine is disconnected
+from the network).
+Just like with the hosts file, you must use the
+\(lqcanonical\(rq
+name as DNS knows it.
+That is, you may not use a host alias (CNAME entry) due to performance
+issues and the fact that there is no way to get all aliases from DNS.
+.sp
+This flag is
+\fI@fqdn@\fR
+by default.
+.RE
+.TP 18n
+ignore_audit_errors
+Allow commands to be run even if
+\fBsudoers\fR
+cannot write to the audit log.
+If enabled, an audit log write failure is not treated as a fatal error.
+If disabled, a command may only be run after the audit event is successfully
+written.
+This flag is only effective on systems for which
+\fBsudoers\fR
+supports audit logging, including
+FreeBSD,
+Linux, macOS, and Solaris.
+This flag is
+\fIon\fR
+by default.
+.TP 18n
+ignore_dot
+If set,
+\fBsudo\fR
+will ignore "." or "" (both denoting the current directory) in the
+\fRPATH\fR
+environment variable; the
+\fRPATH\fR
+itself is not modified.
+This flag is
+\fI@ignore_dot@\fR
+by default.
+.TP 18n
+ignore_iolog_errors
+Allow commands to be run even if
+\fBsudoers\fR
+cannot write to the I/O log (local or remote).
+If enabled, an I/O log write failure is not treated as a fatal error.
+If disabled, the command will be terminated if the I/O log cannot be written to.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+ignore_logfile_errors
+Allow commands to be run even if
+\fBsudoers\fR
+cannot write to the log file.
+If enabled, a log file write failure is not treated as a fatal error.
+If disabled, a command may only be run after the log file entry is successfully
+written.
+This flag only has an effect when
+\fBsudoers\fR
+is configured to use file-based logging via the
+\fIlogfile\fR
+setting.
+This flag is
+\fIon\fR
+by default.
+.TP 18n
+ignore_local_sudoers
+If set via LDAP, parsing of
+\fI@sysconfdir@/sudoers\fR
+will be skipped.
+This is intended for sites that wish to prevent the usage of local
+sudoers files so that only LDAP is used.
+This thwarts the efforts of rogue operators who would attempt to add roles to
+\fI@sysconfdir@/sudoers\fR.
+When this flag is enabled,
+\fI@sysconfdir@/sudoers\fR
+does not even need to exist.
+Since this flag tells
+\fBsudo\fR
+how to behave when no specific LDAP entries have been matched, this
+sudoOption is only meaningful for the
+\(oqcn=defaults\(cq
+section.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+ignore_unknown_defaults
+If set,
+\fBsudo\fR
+will not produce a warning if it encounters an unknown Defaults entry
+in the
+\fIsudoers\fR
+file or an unknown sudoOption in LDAP.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+insults
+If set,
+\fBsudo\fR
+will insult users when they enter an incorrect password.
+This flag is
+\fI@insults@\fR
+by default.
+.TP 18n
+log_allowed
+If set,
+\fBsudoers\fR
+will log commands allowed by the policy to the system audit log
+(where supported) as well as to syslog and/or a log file.
+This flag is
+\fIon\fR
+by default.
+.sp
+This setting is only supported by version 1.8.29 or higher.
+.TP 18n
+log_denied
+If set,
+\fBsudoers\fR
+will log commands denied by the policy to the system audit log
+(where supported) as well as to syslog and/or a log file.
+This flag is
+\fIon\fR
+by default.
+.sp
+This setting is only supported by version 1.8.29 or higher.
+.TP 18n
+log_exit_status
+If set,
+\fBsudoers\fR
+will log the exit value of commands that are run to syslog and/or a log file.
+If a command was terminated by a signal, the signal name is logged as well.
+This flag is
+\fIoff\fR
+by default.
+.sp
+This setting is only supported by version 1.9.8 or higher.
+.TP 18n
+log_host
+If set, the host name will be included in log entries written to
+the file configured by the
+\fIlogfile\fR
+setting.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+log_input
+If set,
+\fBsudo\fR
+will run the command in a pseudo-terminal (if
+\fBsudo\fR
+was run from a terminal) and log all user input.
+If the standard input is not connected to the user's terminal, due
+to I/O redirection or because the command is part of a pipeline,
+that input is also logged.
+For more information about I/O logging, see the
+\fII/O LOGGING\fR
+section.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+log_output
+If set,
+\fBsudo\fR
+will run the command in a pseudo-terminal (if
+\fBsudo\fR
+was run from a terminal) and log all output that is sent to the
+user's terminal, the standard output or the standard error.
+If the standard output or standard error is not connected to the
+user's terminal, due to I/O redirection or because the command is
+part of a pipeline, that output is also logged.
+For more information about I/O logging, see the
+\fII/O LOGGING\fR
+section.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+log_server_keepalive
+If set,
+\fBsudo\fR
+will enable the TCP keepalive socket option on the connection to the log server.
+This enables the periodic transmission of keepalive messages to the server.
+If the server does not respond to a message, the connection will
+be closed and the running command will be terminated unless the
+\fIignore_iolog_errors\fR
+flag (I/O logging enabled) or the
+\fIignore_log_errors\fR
+flag (I/O logging disabled) is set.
+This flag is
+\fIon\fR
+by default.
+.sp
+This setting is only supported by version 1.9.0 or higher.
+.TP 18n
+log_server_verify
+.br
+If set, the server certificate received during the TLS handshake
+must be valid and it must contain either the server name (from
+\fIlog_servers\fR)
+or its IP address.
+If either of these conditions is not met, the TLS handshake will fail.
+This flag is
+\fIon\fR
+by default.
+.sp
+This setting is only supported by version 1.9.0 or higher.
+.TP 18n
+log_stderr
+If set,
+\fBsudo\fR
+will log the standard error if it is not connected to the user's terminal.
+This can be used to log output to a pipe or redirected to a file.
+This flag is
+\fIoff\fR
+by default but is enabled when either the
+\fIlog_output\fR
+flag or the
+\fRLOG_OUTPUT\fR
+command tag is set.
+.TP 18n
+log_stdin
+If set,
+\fBsudo\fR
+will log the standard input if it is not connected to the user's terminal.
+This can be used to log input from a pipe or redirected from a file.
+This flag is
+\fIoff\fR
+by default but is enabled when either the
+\fIlog_input\fR
+flag or the
+\fRLOG_INPUT\fR
+command tag is set.
+.TP 18n
+log_stdout
+If set,
+\fBsudo\fR
+will log the standard output if it is not connected to the user's terminal.
+This can be used to log output to a pipe or redirected to a file.
+This flag is
+\fIoff\fR
+by default but is enabled when either the
+\fIlog_output\fR
+flag or the
+\fRLOG_OUTPUT\fR
+command tag is set.
+.TP 18n
+log_subcmds
+If set,
+\fBsudoers\fR
+will log when a command spawns a child process and executes a program
+using the
+execve(2),
+execl(3),
+execle(3),
+execlp(3),
+execv(3),
+execvp(3),
+execvpe(3),
+or
+system(3)
+library functions.
+For example, if a shell is run by
+\fBsudo\fR,
+the individual commands run via the shell will be logged.
+This flag is
+\fIoff\fR
+by default.
+.sp
+The
+\fIlog_subcmds\fR
+flag uses the same underlying mechanism as the
+\fIintercept\fR
+setting.
+Some commands may not work properly when
+\fIlog_subcmds\fR
+is enabled, due to the way it intercepts sub-commands.
+See
+\fIPreventing shell escapes\fR
+for more information on what systems support this option and its limitations.
+This setting is only supported by version 1.9.8 or higher
+and is incompatible with SELinux RBAC support unless the system supports
+seccomp(2)
+filter mode.
+.TP 18n
+log_ttyin
+If set,
+\fBsudo\fR
+will run the command in a pseudo-terminal and log user keystrokes
+sent to the user's terminal, if one is present.
+This flag is
+\fIoff\fR
+by default but is enabled when either the
+\fIlog_input\fR
+flag or the
+\fRLOG_INPUT\fR
+command tag is set.
+If no terminal is present, for example when running a remote command using
+ssh(1),
+this flag will have no effect.
+.TP 18n
+log_ttyout
+If set,
+\fBsudo\fR
+will run the command in a pseudo-terminal and log all output displayed
+on the user's terminal, if one is present.
+This flag is
+\fIoff\fR
+by default but is enabled when either the
+\fIlog_output\fR
+flag or the
+\fRLOG_OUTPUT\fR
+command tag is set.
+If no terminal is present, for example when running a remote command using
+ssh(1),
+this flag will have no effect.
+.TP 18n
+log_year
+If set, the four-digit year will be logged in the (non-syslog)
+\fBsudo\fR
+log file.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+long_otp_prompt
+When validating with a One Time Password (OTP) scheme such as
+\fBS/Key\fR
+or
+\fBOPIE\fR,
+a two-line prompt is used to make it easier
+to cut and paste the challenge to a local window.
+It's not as pretty as the default but some people find it more convenient.
+This flag is
+\fI@long_otp_prompt@\fR
+by default.
+.TP 18n
+mail_all_cmnds
+Send mail to the
+\fImailto\fR
+user every time a user attempts to run a command via
+\fBsudo\fR
+(this includes
+\fBsudoedit\fR).
+No mail will be sent if the user runs
+\fBsudo\fR
+with the
+\fB\-l\fR
+or
+\fB\-v\fR
+option unless there is an authentication error and the
+\fImail_badpass\fR
+flag is also set.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+mail_always
+Send mail to the
+\fImailto\fR
+user every time a user runs
+\fBsudo\fR.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+mail_badpass
+Send mail to the
+\fImailto\fR
+user if the user running
+\fBsudo\fR
+does not enter the correct password.
+If the command the user is attempting to run is not permitted by
+\fBsudoers\fR
+and one of the
+\fImail_all_cmnds\fR,
+\fImail_always\fR,
+\fImail_no_host\fR,
+\fImail_no_perms\fR
+or
+\fImail_no_user\fR
+flags are set, this flag will have no effect.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+mail_no_host
+If set, mail will be sent to the
+\fImailto\fR
+user if the invoking user exists in the
+\fIsudoers\fR
+file, but is not allowed to run commands on the current host.
+This flag is
+\fI@mail_no_host@\fR
+by default.
+.TP 18n
+mail_no_perms
+If set, mail will be sent to the
+\fImailto\fR
+user if the invoking user is allowed to use
+\fBsudo\fR
+but the command they are trying is not listed in their
+\fIsudoers\fR
+file entry or is explicitly denied.
+This flag is
+\fI@mail_no_perms@\fR
+by default.
+.TP 18n
+mail_no_user
+If set, mail will be sent to the
+\fImailto\fR
+user if the invoking user is not in the
+\fIsudoers\fR
+file.
+This flag is
+\fI@mail_no_user@\fR
+by default.
+.TP 18n
+match_group_by_gid
+By default,
+\fBsudoers\fR
+will look up each group the user is a member of by group-ID to
+determine the group name (this is only done once).
+The resulting list of the user's group names is used when matching
+groups listed in the
+\fIsudoers\fR
+file.
+This works well on systems where the number of groups listed in the
+\fIsudoers\fR
+file is larger than the number of groups a typical user belongs to.
+On systems where group lookups are slow, where users may belong
+to a large number of groups, or where the number of groups listed
+in the
+\fIsudoers\fR
+file is relatively small, it may be prohibitively expensive and
+running commands via
+\fBsudo\fR
+may take longer than normal.
+On such systems it may be faster to use the
+\fImatch_group_by_gid\fR
+flag to avoid resolving the user's group-IDs to group names.
+In this case,
+\fBsudoers\fR
+must look up any group name listed in the
+\fIsudoers\fR
+file and use the group-ID instead of the group name when determining
+whether the user is a member of the group.
+.sp
+If
+\fImatch_group_by_gid\fR
+is enabled, group database lookups performed by
+\fBsudoers\fR
+will be keyed by group name as opposed to group-ID.
+On systems where there are multiple sources for the group database,
+it is possible to have conflicting group names or group-IDs in the local
+\fI/etc/group\fR
+file and the remote group database.
+On such systems, enabling or disabling
+\fImatch_group_by_gid\fR
+can be used to choose whether group database queries are performed
+by name (enabled) or ID (disabled), which may aid in working around
+group entry conflicts.
+.sp
+The
+\fImatch_group_by_gid\fR
+flag has no effect when
+\fIsudoers\fR
+data is stored in LDAP.
+This flag is
+\fIoff\fR
+by default.
+.sp
+This setting is only supported by version 1.8.18 or higher.
+.TP 18n
+intercept
+If set, all commands run via
+\fBsudo\fR
+will behave as if the
+\fRINTERCEPT\fR
+tag has been set, unless overridden by an
+\fRNOINTERCEPT\fR
+tag.
+Some commands may not work properly when
+\fIintercept\fR
+is enabled, due to the way it intercept sub-commands.
+See the description of
+\fRINTERCEPT and NOINTERCEPT\fR
+above as well as the
+\fIPreventing shell escapes\fR
+section at the end of this manual.
+This flag is
+\fIoff\fR
+by default.
+.sp
+This setting is only supported by version 1.9.8 or higher
+and is incompatible with SELinux RBAC support unless the system supports
+seccomp(2)
+filter mode.
+.TP 18n
+intercept_allow_setid
+On most systems, the dynamic loader will ignore
+\fRLD_PRELOAD\fR
+(or the equivalent) when running set-user-ID and set-group-ID
+programs, effectively disabling intercept mode.
+To prevent this from happening,
+\fBsudoers\fR
+will not permit a set-user-ID or set-group-ID program to be run in
+intercept mode unless
+\fIintercept_allow_setid\fR
+is enable.
+This flag has no effect unless the
+\fIintercept\fR
+flag is enabled or the
+\fRINTERCEPT\fR
+tag has been set for the command.
+This flag is
+\fIon\fR
+by default when the
+\fIintercept_type\fR
+option is set to
+\fItrace\fR,
+otherwise it default to
+\fIoff\fR.
+.sp
+This setting is only supported by version 1.9.8 or higher.
+.TP 18n
+intercept_authenticate
+If set, commands run by an intercepted process must be authenticated
+when the user's time stamp is not current.
+For example, if a shell is run with
+\fIintercept\fR
+enabled, as soon as the invoking user's time stamp is out of date,
+subsequent commands will need to be authenticated.
+This flag has no effect unless the
+\fIintercept\fR
+flag is enabled or the
+\fRINTERCEPT\fR
+tag has been set for the command.
+This flag is
+\fIoff\fR
+by default.
+.sp
+This setting is only supported by version 1.9.8 or higher.
+.TP 18n
+intercept_verify
+If set,
+\fBsudo\fR
+will attempt to verify that a command run in intercept mode has
+the expected path name, command line arguments and environment.
+.sp
+The process will be stopped after
+execve(2)
+has completed but before the new command has had a chance to run.
+To verify the command,
+\fBsudo\fR
+will read the command's path from
+\fI/proc/PID/exe\fR,
+the command line arguments and environment from the process's memory,
+and compare them against the arguments that were passed to
+execve(2).
+In the event of a mismatch, the command will be sent a
+\fRSIGKILL\fR
+signal and terminated.
+.sp
+This can help prevent a time of check versus time of use issue with
+intercept mode where the
+execve(2)
+arguments could be altered after the
+\fBsudoers\fR
+policy check.
+The checks can only be performed if the
+proc(@mansectform@)
+file system is available.
+This flag has no effect unless the
+\fIintercept\fR
+flag is enabled or the
+\fRINTERCEPT\fR
+tag has been set for the command and the
+\fIintercept_type\fR
+option is set to
+\fItrace\fR.
+.sp
+This setting is incompatible with programs that change their root directory via
+chroot(2).
+If a program changes its root directory, path names will no longer match
+those seen by the
+\fBsudo\fR
+parent process and sub-commands will be terminated before they have a chance
+to run.
+This flag is
+\fIon\fR
+by default.
+.sp
+This setting is only supported by version 1.9.12 or higher.
+.TP 18n
+netgroup_tuple
+If set, netgroup lookups will be performed using the full netgroup
+tuple: host name, user name, and domain (if one is set).
+Historically,
+\fBsudo\fR
+only matched the user name and domain for netgroups used in a
+\fIUser_List\fR
+and only matched the host name and domain for netgroups used in a
+\fIHost_List\fR.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+noexec
+If set, all commands run via
+\fBsudo\fR
+will behave as if the
+\fRNOEXEC\fR
+tag has been set, unless overridden by an
+\fREXEC\fR
+tag.
+See the description of
+\fREXEC and NOEXEC\fR
+above as well as the
+\fIPreventing shell escapes\fR
+section at the end of this manual.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+noninteractive_auth
+If set, authentication will be attempted even in non-interactive mode
+(when
+\fBsudo\fR's
+\fB\-n\fR
+option is specified).
+This allows authentication methods that don't require user interaction
+to succeed.
+Authentication methods that require input from the user's terminal
+will still fail.
+If disabled, authentication will not be attempted in non-interactive mode.
+This flag is
+\fIoff\fR
+by default.
+.sp
+This setting is only supported by version 1.9.10 or higher.
+.TP 18n
+pam_acct_mgmt
+On systems that use PAM for authentication,
+\fBsudo\fR
+will perform PAM account validation for the invoking user by default.
+The actual checks performed depend on which PAM modules are configured.
+If enabled, account validation will be performed regardless of whether
+or not a password is required.
+This flag is
+\fIon\fR
+by default.
+.sp
+This setting is only supported by version 1.8.28 or higher.
+.TP 18n
+pam_rhost
+On systems that use PAM for authentication,
+\fBsudo\fR
+will set the PAM remote host value to the name of the local host
+when the
+\fIpam_rhost\fR
+flag is enabled.
+On Linux systems, enabling
+\fIpam_rhost\fR
+may result in DNS lookups of the local host name when PAM is initialized.
+On Solaris versions prior to Solaris 8,
+\fIpam_rhost\fR
+must be enabled if
+\fIpam_ruser\fR
+is also enabled to avoid a crash in the Solaris PAM implementation.
+.sp
+This flag is
+\fIoff\fR
+by default on systems other than Solaris.
+.sp
+This setting is only supported by version 1.9.0 or higher.
+.TP 18n
+pam_ruser
+On systems that use PAM for authentication,
+\fBsudo\fR
+will set the PAM remote user value to the name of the user that invoked sudo
+when the
+\fIpam_ruser\fR
+flag is enabled.
+This flag is
+\fIon\fR
+by default.
+.sp
+This setting is only supported by version 1.9.0 or higher.
+.TP 18n
+pam_session
+On systems that use PAM for authentication,
+\fBsudo\fR
+will create a new PAM session for the command to be run in.
+Unless
+\fBsudo\fR
+is given the
+\fB\-i\fR
+or
+\fB\-s\fR
+options, PAM session modules are run with the
+\(lqsilent\(rq
+flag enabled.
+This prevents last login information from being displayed for every
+command on some systems.
+Disabling
+\fIpam_session\fR
+may be needed on older PAM implementations or on operating systems where
+opening a PAM session changes the utmp or wtmp files.
+If PAM session support is disabled, resource limits may not be updated
+for the command being run.
+If
+\fIpam_session\fR,
+\fIpam_setcred\fR,
+and
+\fIuse_pty\fR
+are disabled,
+\fIlog_servers\fR
+has not been set and I/O logging has not been configured,
+\fBsudo\fR
+will execute the command directly instead of running it as a child
+process.
+This flag is
+\fI@pam_session@\fR
+by default.
+.sp
+This setting is only supported by version 1.8.7 or higher.
+.TP 18n
+pam_setcred
+On systems that use PAM for authentication,
+\fBsudo\fR
+will attempt to establish credentials for the target user by default,
+if supported by the underlying authentication system.
+One example of a credential is a Kerberos ticket.
+If
+\fIpam_session\fR,
+\fIpam_setcred\fR,
+and
+\fIuse_pty\fR
+are disabled,
+\fIlog_servers\fR
+has not been set and I/O logging has not been configured,
+\fBsudo\fR
+will execute the command directly instead of running it as a child
+process.
+This flag is
+\fIon\fR
+by default.
+.sp
+This setting is only supported by version 1.8.8 or higher.
+.TP 18n
+passprompt_override
+If set, the prompt specified by
+\fIpassprompt\fR
+or the
+\fRSUDO_PROMPT\fR
+environment variable will always be used and will replace the
+prompt provided by a PAM module or other authentication method.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+path_info
+Normally,
+\fBsudo\fR
+will tell the user when a command could not be
+found in their
+\fRPATH\fR
+environment variable.
+Some sites may wish to disable this as it could be used to gather
+information on the location of executables that the normal user does
+not have access to.
+The disadvantage is that if the executable is simply not in the user's
+\fRPATH\fR,
+\fBsudo\fR
+will tell the user that they are not allowed to run it, which can be confusing.
+This flag is
+\fI@path_info@\fR
+by default.
+.TP 18n
+preserve_groups
+By default,
+\fBsudo\fR
+will initialize the group vector to the list of groups the target user is in.
+When
+\fIpreserve_groups\fR
+is set, the user's existing group vector is left unaltered.
+The real and effective group-IDs, however, are still set to match the
+target user.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+pwfeedback
+By default,
+\fBsudo\fR
+reads the password like most other Unix programs,
+by turning off echo until the user hits the return (or enter) key.
+Some users become confused by this as it appears to them that
+\fBsudo\fR
+has hung at this point.
+When
+\fIpwfeedback\fR
+is set,
+\fBsudo\fR
+will provide visual feedback when the user presses a key.
+This does have a security impact as an onlooker may be able to
+determine the length of the password being entered.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+requiretty
+If set,
+\fBsudo\fR
+will only run when the user is logged in to a real tty.
+When this flag is set,
+\fBsudo\fR
+can only be run from a login session and not via other means such as
+cron(@mansectsu@)
+or cgi-bin scripts.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+root_sudo
+If set,
+\fBroot\fR
+is allowed to run
+\fBsudo\fR
+too.
+Disabling this prevents users from
+\(lqchaining\(rq
+\fBsudo\fR
+commands to get a
+\fBroot\fR
+shell by doing something like
+\(oqsudo sudo /bin/sh\(cq.
+Note, however, that turning off
+\fIroot_sudo\fR
+will also prevent
+\fBroot\fR
+from running
+\fBsudoedit\fR.
+Disabling
+\fIroot_sudo\fR
+provides no real additional security; it exists purely for historical reasons.
+This flag is
+\fI@root_sudo@\fR
+by default.
+.TP 18n
+rootpw
+If set,
+\fBsudo\fR
+will prompt for the
+\fBroot\fR
+password instead of the password of the invoking user
+when running a command or editing a file.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+runas_allow_unknown_id
+If enabled, allow matching of runas user and group IDs that are
+not present in the password or group databases.
+In addition to explicitly matching unknown user or group IDs in a
+\fIRunas_List\fR,
+this option also allows the
+\fBALL\fR
+alias to match unknown IDs.
+This flag is
+\fIoff\fR
+by default.
+.sp
+This setting is only supported by version 1.8.30 or higher.
+Older versions of
+\fBsudo\fR
+always allowed matching of unknown user and group IDs.
+.TP 18n
+runas_check_shell
+.br
+If enabled,
+\fBsudo\fR
+will only run commands as a user whose shell appears in the
+\fI/etc/shells\fR
+file, even if the invoking user's
+\fIRunas_List\fR
+would otherwise permit it.
+If no
+\fI/etc/shells\fR
+file is present, a system-dependent list of built-in default shells is used.
+On many operating systems, system users such as
+\(lqbin\(rq,
+do not have a valid shell and this flag can be used to prevent
+commands from being run as those users.
+This flag is
+\fIoff\fR
+by default.
+.sp
+This setting is only supported by version 1.8.30 or higher.
+.TP 18n
+runaspw
+If set,
+\fBsudo\fR
+will prompt for the password of the user defined by the
+\fIrunas_default\fR
+option (defaults to
+\fB@runas_default@\fR)
+instead of the password of the invoking user
+when running a command or editing a file.
+This flag is
+\fIoff\fR
+by default.
+.if \n(SL \{\
+.TP 18n
+selinux
+If enabled, the user may specify an SELinux role and/or type to use
+when running the command, as permitted by the SELinux policy.
+If SELinux is disabled on the system, this flag has no effect.
+This flag is
+\fIon\fR
+by default.
+.\}
+.TP 18n
+set_home
+If enabled and
+\fBsudo\fR
+is invoked with the
+\fB\-s\fR
+option, the
+\fRHOME\fR
+environment variable will be set to the home directory of the target
+user (which is the
+\fIrunas_default\fR
+user unless the
+\fB\-u\fR
+option is used).
+This flag is largely obsolete and has no effect unless the
+\fIenv_reset\fR
+flag has been disabled or
+\fRHOME\fR
+is present in the
+\fIenv_keep\fR
+list, both of which are strongly discouraged.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+set_logname
+Normally,
+\fBsudo\fR
+will set the
+\fRLOGNAME\fR
+and
+\fRUSER\fR
+environment variables to the name of the target user (the user specified by
+\fIrunas_default\fR
+unless the
+\fB\-u\fR
+option is given).
+However, since some programs (including the RCS revision control system) use
+\fRLOGNAME\fR
+to determine the real identity of the user, it may be desirable to
+change this behavior.
+This can be done by negating the set_logname option.
+The
+\fIset_logname\fR
+option will have no effect
+if the
+\fIenv_reset\fR
+option has not been disabled and the
+\fIenv_keep\fR
+list contains
+\fRLOGNAME\fR
+or
+\fRUSER\fR.
+This flag is
+\fIon\fR
+by default.
+.TP 18n
+set_utmp
+When enabled,
+\fBsudo\fR
+will create an entry in the utmp (or utmpx) file when a pseudo-terminal
+is allocated.
+A pseudo-terminal is allocated by
+\fBsudo\fR
+when it is running in a terminal and one or more of the
+\fIlog_input\fR,
+\fIlog_output\fR,
+\fIlog_stdin\fR,
+\fIlog_stdout\fR,
+\fIlog_stderr\fR,
+\fIlog_ttyin\fR,
+\fIlog_ttyout\fR,
+or
+\fIuse_pty\fR
+flags is enabled.
+By default, the new entry will be a copy of the user's existing utmp
+entry (if any), with the tty, time, type, and pid fields updated.
+This flag is
+\fIon\fR
+by default.
+.TP 18n
+setenv
+Allow the user to disable the
+\fIenv_reset\fR
+option from the command line via the
+\fB\-E\fR
+option.
+Additionally, environment variables set via the command line are
+not subject to the restrictions imposed by
+\fIenv_check\fR,
+\fIenv_delete\fR,
+or
+\fIenv_keep\fR.
+As such, only trusted users should be allowed to set variables in this manner.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+shell_noargs
+If set and
+\fBsudo\fR
+is invoked with no arguments it acts as if the
+\fB\-s\fR
+option had been given.
+That is, it runs a shell as
+\fBroot\fR
+(the shell is determined by the
+\fRSHELL\fR
+environment variable if it is set, falling back on the shell listed
+in the invoking user's /etc/passwd entry if not).
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+stay_setuid
+Normally, when
+\fBsudo\fR
+executes a command the real and effective user-IDs are set to the target
+user
+(\fB@runas_default@\fR
+by default).
+This option changes that behavior such that the real user-ID is left
+as the invoking user's user-ID.
+In other words, this makes
+\fBsudo\fR
+act as a set-user-ID wrapper.
+This can be useful on systems that disable some potentially
+dangerous functionality when a program is run set-user-ID.
+This option is only effective on systems that support either the
+setreuid(2)
+or
+setresuid(2)
+system call.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+sudoedit_checkdir
+.br
+If set,
+\fBsudoedit\fR
+will check all directory components of the path to be edited for writability
+by the invoking user.
+Symbolic links will not be followed in writable directories and
+\fBsudoedit\fR
+will refuse to edit a file located in a writable directory.
+These restrictions are not enforced when
+\fBsudoedit\fR
+is run by
+\fBroot\fR.
+On some systems, if all directory components of the path to be edited
+are not readable by the target user,
+\fBsudoedit\fR
+will be unable to edit the file.
+This flag is
+\fIon\fR
+by default.
+.sp
+This setting was first introduced in version 1.8.15 but initially
+suffered from a race condition.
+The check for symbolic links in writable intermediate directories
+was added in version 1.8.16.
+.TP 18n
+sudoedit_follow
+By default,
+\fBsudoedit\fR
+will not follow symbolic links when opening files.
+The
+\fIsudoedit_follow\fR
+option can be enabled to allow
+\fBsudoedit\fR
+to open symbolic links.
+It may be overridden on a per-command basis by the
+\fRFOLLOW\fR
+and
+\fRNOFOLLOW\fR
+tags.
+This flag is
+\fIoff\fR
+by default.
+.sp
+This setting is only supported by version 1.8.15 or higher.
+.TP 18n
+syslog_pid
+When logging via
+syslog(3),
+include the process ID in the log entry.
+This flag is
+\fIoff\fR
+by default.
+.sp
+This setting is only supported by version 1.8.21 or higher.
+.TP 18n
+targetpw
+If set,
+\fBsudo\fR
+will prompt for the password of the user specified
+by the
+\fB\-u\fR
+option (defaults to the value of
+\fIrunas_default\fR)
+instead of the password of the invoking user
+when running a command or editing a file.
+This flag precludes the use of a user-ID not listed in the passwd
+database as an argument to the
+\fB\-u\fR
+option.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+tty_tickets
+If set, users must authenticate on a per-tty basis.
+With this flag enabled,
+\fBsudo\fR
+will use a separate record in the time stamp file for each terminal.
+If disabled, a single record is used for all login sessions.
+.sp
+This option has been superseded by the
+\fItimestamp_type\fR
+option.
+.TP 18n
+umask_override
+If set,
+\fBsudo\fR
+will set the umask as specified in the
+\fIsudoers\fR
+file without modification.
+This makes it possible to specify a umask in the
+\fIsudoers\fR
+file that is more permissive than the user's own umask and matches
+historical behavior.
+If
+\fIumask_override\fR
+is not set,
+\fBsudo\fR
+will set the umask to be the union of the user's umask and what is specified in
+\fIsudoers\fR.
+This flag is
+\fI@umask_override@\fR
+by default.
+.if \n(BA \{\
+.TP 18n
+use_loginclass
+If set,
+\fBsudo\fR
+will apply the defaults specified for the target user's login class
+if one exists.
+Only available if
+\fBsudo\fR
+is configured with the
+\fR--with-logincap\fR
+option.
+This flag is
+\fIoff\fR
+by default.
+.\}
+.TP 18n
+use_netgroups
+If set, netgroups (prefixed with
+\(oq+\(cq),
+may be used in place of a user or host.
+For LDAP-based sudoers, netgroup support requires an expensive
+sub-string match on the server unless the
+\fBNETGROUP_BASE\fR
+directive is present in the
+\fI@ldap_conf@\fR
+file.
+If netgroups are not needed, this option can be disabled to reduce the
+load on the LDAP server.
+This flag is
+\fIon\fR
+by default.
+.TP 18n
+use_pty
+If set, and
+\fBsudo\fR
+is running in a terminal, the command will be run in a new pseudo-terminal.
+If the
+\fBsudo\fR
+process is not attached to a terminal,
+\fIuse_pty\fR
+has no effect.
+.sp
+A malicious program run under
+\fBsudo\fR
+may be capable of injecting commands into the user's
+terminal or running a background process that retains access to the
+user's terminal device even after the main program has finished
+executing.
+By running the command in a separate pseudo-terminal, this attack is
+no longer possible.
+This flag is
+\fIon\fR
+by default for
+\fBsudo\fR
+1.9.14 and above.
+.TP 18n
+user_command_timeouts
+If set, the user may specify a timeout on the command line.
+If the timeout expires before the command has exited, the
+command will be terminated.
+If a timeout is specified both in the
+\fIsudoers\fR
+file and on the command line, the smaller of the two timeouts will be used.
+See the
+\fITimeout_Spec\fR
+section for a description of the timeout syntax.
+This flag is
+\fIoff\fR
+by default.
+.sp
+This setting is only supported by version 1.8.20 or higher.
+.TP 18n
+utmp_runas
+If set,
+\fBsudo\fR
+will store the name of the runas user when updating the utmp (or utmpx) file.
+By default,
+\fBsudo\fR
+stores the name of the invoking user.
+This flag is
+\fIoff\fR
+by default.
+.TP 18n
+visiblepw
+By default,
+\fBsudo\fR
+will refuse to run if the user must enter a password but it is not
+possible to disable echo on the terminal.
+If the
+\fIvisiblepw\fR
+flag is set,
+\fBsudo\fR
+will prompt for a password even when it would be visible on the screen.
+This makes it possible to run things like
+\(oqssh somehost sudo ls\(cq
+since by default,
+ssh(1)
+does
+not allocate a tty when running a command.
+This flag is
+\fIoff\fR
+by default.
+.PP
+\fBIntegers\fR:
+.TP 18n
+closefrom
+Before it executes a command,
+\fBsudo\fR
+will close all open file descriptors other than standard input,
+standard output, and standard error (file descriptors 0-2).
+The
+\fIclosefrom\fR
+option can be used to specify a different file descriptor at which
+to start closing.
+The default is 3.
+.TP 18n
+command_timeout
+The maximum amount of time a command is allowed to run before
+it is terminated.
+See the
+\fITimeout_Spec\fR
+section for a description of the timeout syntax.
+.sp
+This setting is only supported by version 1.8.20 or higher.
+.TP 18n
+log_server_timeout
+The maximum amount of time to wait when connecting to a log server
+or waiting for a server response.
+See the
+\fITimeout_Spec\fR
+section for a description of the timeout syntax.
+The default value is 30 seconds.
+.sp
+This setting is only supported by version 1.9.0 or higher.
+.TP 18n
+maxseq
+The maximum sequence number that will be substituted for the
+\(oq%{seq}\(cq
+escape in the I/O log file (see the
+\fIiolog_dir\fR
+description below for more information).
+While the value substituted for
+\(oq%{seq}\(cq
+is in base 36,
+\fImaxseq\fR
+itself should be expressed in decimal.
+Values larger than 2176782336 (which corresponds to the
+base 36 sequence number
+\(lqZZZZZZ\(rq)
+will be silently truncated to 2176782336.
+The default value is 2176782336.
+.sp
+Once the local sequence number reaches the value of
+\fImaxseq\fR,
+it will
+\(lqroll over\(rq
+to zero, after which
+\fBsudoers\fR
+will truncate and re-use any existing I/O log path names.
+.sp
+This setting is only supported by version 1.8.7 or higher.
+.TP 18n
+passwd_tries
+The number of tries a user gets to enter his/her password before
+\fBsudo\fR
+logs the failure and exits.
+The default is @passwd_tries@.
+.TP 18n
+syslog_maxlen
+On many systems,
+syslog(3)
+has a relatively small log buffer.
+IETF RFC 5424 states that syslog servers must support messages of
+at least 480 bytes and should support messages up to 2048 bytes.
+By default,
+\fBsudoers\fR
+creates log messages up to 980 bytes which corresponds to the
+historic
+BSD
+syslog implementation which used a 1024 byte buffer
+to store the message, date, hostname, and program name.
+To prevent syslog messages from being truncated,
+\fBsudoers\fR
+will split up log messages that are larger than
+\fIsyslog_maxlen\fR
+bytes.
+When a message is split, additional parts will include the string
+\(lq(command continued)\(rq
+after the user name and before the continued command line arguments.
+.sp
+This setting is only supported by version 1.8.19 or higher.
+.PP
+\fBIntegers that can be used in a boolean context\fR:
+.TP 18n
+loglinelen
+Number of characters per line for the file log.
+This value is used to decide when to wrap lines for nicer log files.
+This has no effect on the syslog log file, only the file log.
+The default is @loglen@ (use 0 or negate the option to disable word wrap).
+.TP 18n
+passwd_timeout
+Number of minutes before the
+\fBsudo\fR
+password prompt times out, or 0 for no timeout.
+The timeout may include a fractional component
+if minute granularity is insufficient, for example 2.5.
+The default is @password_timeout@.
+.TP 18n
+timestamp_timeout
+.br
+Number of minutes that can elapse before
+\fBsudo\fR
+will ask for a password again.
+The timeout may include a fractional component if
+minute granularity is insufficient, for example 2.5.
+The default is @timeout@.
+Set this to 0 to always prompt for a password.
+If set to a value less than 0 the user's time stamp will not expire
+until the system is rebooted.
+This can be used to allow users to create or delete their own time stamps via
+\(oqsudo -v\(cq
+and
+\(oqsudo -k\(cq
+respectively.
+.TP 18n
+umask
+File mode creation mask to use when running the command.
+Negate this option or set it to 0777 to prevent
+\fBsudoers\fR
+from changing the umask.
+Unless the
+\fIumask_override\fR
+flag is set, the actual umask will be the union of the
+user's umask and the value of the
+\fIumask\fR
+setting, which defaults to @sudo_umask@.
+This guarantees that
+\fBsudo\fR
+never lowers the umask when running a command.
+.sp
+If
+\fIumask\fR
+is explicitly set in
+\fIsudoers\fR,
+it will override any umask setting in PAM or login.conf.
+If
+\fIumask\fR
+is not set in
+\fIsudoers\fR,
+the umask specified by PAM or login.conf will take precedence.
+The umask setting in PAM is not used for
+\fBsudoedit\fR,
+which does not create a new PAM session.
+.PP
+\fBStrings\fR:
+.TP 18n
+apparmor_profile
+The default AppArmor profile to transition into when executing the
+command.
+The default
+\fIapparmor_profile\fR
+can be overridden for individual
+\fIsudoers\fR
+entries by specifying the
+\fRAPPARMOR_PROFILE\fR
+option.
+This option is only available when sudo is built with AppArmor
+support.
+.TP 18n
+authfail_message
+Message that is displayed after a user fails to authenticate.
+The message may include the
+\(oq%d\(cq
+escape which will expand to the number of failed password attempts.
+If set, it overrides the default message,
+\(lq%d incorrect password attempt(s)\(rq.
+.TP 18n
+badpass_message
+Message that is displayed if a user enters an incorrect password.
+The default is
+\(lq@badpass_message@\(rq
+unless insults are enabled.
+.TP 18n
+editor
+A colon
+(\(oq:\&\(cq)
+separated list of editor path names used by
+\fBsudoedit\fR
+and
+\fBvisudo\fR.
+For
+\fBsudoedit\fR,
+this list is used to find an editor when none of the
+\fRSUDO_EDITOR\fR,
+\fRVISUAL\fR
+or
+\fREDITOR\fR
+environment variables are set to an editor that exists and is executable.
+For
+\fBvisudo\fR,
+it is used as a white list of allowed editors;
+\fBvisudo\fR
+will choose the editor that matches the user's
+\fRSUDO_EDITOR\fR,
+\fRVISUAL\fR
+or
+\fREDITOR\fR
+environment variable if possible, or the first editor in the
+list that exists and is executable if not.
+Unless invoked as
+\fBsudoedit\fR,
+\fBsudo\fR
+does not preserve the
+\fRSUDO_EDITOR\fR,
+\fRVISUAL\fR
+or
+\fREDITOR\fR
+environment variables unless they are present in the
+\fIenv_keep\fR
+list or the
+\fIenv_reset\fR
+option is disabled.
+The default is
+\fI@editor@\fR.
+.TP 18n
+intercept_type
+The underlying mechanism used by the
+\fIintercept\fR
+and
+\fIlog_subcmds\fR
+options.
+It has the following possible values:
+.PP
+.RS 18n
+.PD 0
+.TP 8n
+dso
+Preload a dynamic shared object (shared library) that intercepts the
+execve(2),
+execl(3),
+execle(3),
+execlp(3),
+execv(3),
+execvp(3),
+execvpe(3),
+and
+system(3)
+library functions.
+A value of
+\fIdso\fR
+is incompatible with
+\fBsudo\fR's
+SELinux RBAC support.
+.PD
+.TP 8n
+trace
+Use
+ptrace(2)
+to intercept the
+execve(2)
+system call.
+This is only supported on Linux systems where
+seccomp(2)
+filtering is enabled.
+If the
+\fI/proc/sys/kernel/seccomp/actions_avail\fR
+file is missing or does not contain a
+\(lqtrap\(rq
+element, setting
+\fIintercept_type\fR
+to
+\fItrace\fR
+will have no effect and
+\fIdso\fR
+will be used instead.
+.PP
+The default is to use
+\fItrace\fR
+if it is supported by the system and
+\fIdso\fR
+if it is not.
+.RE
+.TP 18n
+iolog_dir
+The top-level directory to use when constructing the path name for
+the input/output log directory.
+Only used if the
+\fIlog_input\fR
+or
+\fIlog_output\fR
+options are enabled or when the
+\fRLOG_INPUT\fR
+or
+\fRLOG_OUTPUT\fR
+tags are present for a command.
+The session sequence number, if any, is stored in the directory.
+The default is
+\fI@iolog_dir@\fR.
+.sp
+The following percent
+(\(oq%\(cq)
+escape sequences are supported:
+.PP
+.RS 18n
+.PD 0
+.TP 6n
+%{seq}
+expanded to a monotonically increasing base-36 sequence number, such as 0100A5,
+where every two digits are used to form a new directory, e.g.,
+\fI01/00/A5\fR
+.PD
+.TP 6n
+%{user}
+expanded to the invoking user's login name
+.TP 6n
+%{group}
+expanded to the name of the invoking user's real group-ID
+.TP 6n
+%{runas_user}
+expanded to the login name of the user the command will
+be run as (e.g.,
+\fBroot\fR)
+.TP 6n
+%{runas_group}
+expanded to the group name of the user the command will
+be run as (e.g.,
+\fBwheel\fR)
+.TP 6n
+%{hostname}
+expanded to the local host name without the domain name
+.TP 6n
+%{command}
+expanded to the base name of the command being run
+.PP
+In addition, any escape sequences supported by the system's
+strftime(3)
+function will be expanded.
+.sp
+To include a literal
+\(oq%\(cq
+character, the string
+\(oq%%\(cq
+should be used.
+.sp
+Any path name separator characters
+(\(oq/\(cq)
+present in the user, group or host name will be replaced with an underbar
+(\(oq_\(cq)
+during expansion.
+.RE
+.TP 18n
+iolog_file
+The path name, relative to
+\fIiolog_dir\fR,
+in which to store input/output logs when the
+\fIlog_input\fR
+or
+\fIlog_output\fR
+options are enabled or when the
+\fRLOG_INPUT\fR
+or
+\fRLOG_OUTPUT\fR
+tags are present for a command.
+\fIiolog_file\fR
+may contain directory components.
+The default is
+\(oq%{seq}\(cq.
+.sp
+See the
+\fIiolog_dir\fR
+option above for a list of supported percent
+(\(oq%\(cq)
+escape sequences.
+.sp
+In addition to the escape sequences, path names that end in six or
+more
+\fIX\fRs
+will have the
+\fIX\fRs
+replaced with a unique combination of digits and letters, similar to the
+mktemp(3)
+function.
+.sp
+If the path created by concatenating
+\fIiolog_dir\fR
+and
+\fIiolog_file\fR
+already exists, the existing I/O log file will be truncated and
+overwritten unless
+\fIiolog_file\fR
+ends in six or
+more
+\fIX\fRs.
+.TP 18n
+iolog_flush
+If set,
+\fBsudo\fR
+will flush I/O log data to disk after each write instead of buffering it.
+This makes it possible to view the logs in real-time as the program
+is executing but may significantly reduce the effectiveness of I/O
+log compression.
+This flag is
+\fIoff\fR
+by default.
+.sp
+This setting is only supported by version 1.8.20 or higher.
+.TP 18n
+iolog_group
+The group name to look up when setting the group-ID on new I/O log
+files and directories.
+If
+\fIiolog_group\fR
+is not set,
+the primary group-ID of the user specified by
+\fIiolog_user\fR
+is used.
+If neither
+\fIiolog_group\fR
+nor
+\fIiolog_user\fR
+are set, I/O log files and directories are created with group-ID 0.
+.sp
+This setting is only supported by version 1.8.19 or higher.
+.TP 18n
+iolog_mode
+The file mode to use when creating I/O log files.
+Mode bits for read and write permissions for owner, group, or other
+are honored, everything else is ignored.
+The file permissions will always include the owner read and
+write bits, even if they are not present in the specified mode.
+When creating I/O log directories, search (execute) bits are added
+to match the read and write bits specified by
+\fIiolog_mode\fR.
+Defaults to 0600 (read and write by user only).
+.sp
+This setting is only supported by version 1.8.19 or higher.
+.TP 18n
+iolog_user
+The user name to look up when setting the user and group-IDs on new
+I/O log files and directories.
+If
+\fIiolog_group\fR
+is set, it will be used instead of the user's primary group-ID.
+By default, I/O log files and directories are created with user and
+group-ID 0.
+.sp
+This setting can be useful when the I/O logs are stored on a Network
+File System (NFS) share.
+Having a dedicated user own the I/O log files means that
+\fBsudoers\fR
+does not write to the log files as user-ID 0, which is usually
+not permitted by NFS.
+.sp
+This setting is only supported by version 1.8.19 or higher.
+.TP 18n
+lecture_status_dir
+The directory in which
+\fBsudo\fR
+stores per-user lecture status files.
+Once a user has received the lecture, a zero-length file is
+created in this directory so that
+\fBsudo\fR
+will not lecture the user again.
+This directory should
+\fInot\fR
+be cleared when the system reboots.
+The default is
+\fI@vardir@/lectured\fR.
+.if \n(PS \{\
+.TP 18n
+limitprivs
+The default Solaris limit privileges to use when constructing a new
+privilege set for a command.
+This bounds all privileges of the executing process.
+The default limit privileges may be overridden on a per-command basis in
+\fIsudoers\fR.
+This option is only available if
+\fBsudoers\fR
+is built on Solaris 10 or higher.
+.\}
+.TP 18n
+log_server_cabundle
+The path to a certificate authority bundle file, in PEM format,
+to use instead of the system's default certificate authority database
+when authenticating the log server.
+The default is to use the system's default certificate authority database.
+This setting has no effect unless
+\fIlog_servers\fR
+is set and the remote log server is secured with TLS.
+.sp
+This setting is only supported by version 1.9.0 or higher.
+.TP 18n
+log_server_peer_cert
+The path to the
+\fBsudo\fR
+client's certificate file, in PEM format.
+This setting is required when the remote log server is secured
+with TLS and client certificate validation is enabled.
+For
+\fBsudo_logsrvd\fR,
+client certificate validation is controlled by the
+\fItls_checkpeer\fR
+option, which defaults to
+\fIfalse\fR.
+.sp
+This setting is only supported by version 1.9.0 or higher.
+.TP 18n
+log_server_peer_key
+The path to the
+\fBsudo\fR
+client's private key file, in PEM format.
+This setting is required when the remote log server is secured
+with TLS and client certificate validation is enabled.
+For
+\fBsudo_logsrvd\fR,
+client certificate validation is controlled by the
+\fItls_checkpeer\fR
+flag, which defaults to
+\fIfalse\fR.
+.sp
+This setting is only supported by version 1.9.0 or higher.
+.TP 18n
+mailsub
+Subject of the mail sent to the
+\fImailto\fR
+user.
+The escape
+\(oq%h\(cq
+will expand to the host name of the machine.
+Default is
+\(lq@mailsub@\(rq.
+.TP 18n
+noexec_file
+As of
+\fBsudo\fR
+version 1.8.1 this option is no longer supported.
+The path to the noexec file should now be set in the
+sudo.conf(@mansectform@)
+file.
+.TP 18n
+pam_askpass_service
+On systems that use PAM for authentication, this is the service
+name used when the
+\fB\-A\fR
+option is specified.
+The default value is either
+\(oqsudo\(cq
+or
+\(oq@pam_login_service@\(cq,
+depending on whether or not the
+\fB\-i\fR
+option is also specified.
+See the description of
+\fIpam_service\fR
+for more information.
+.sp
+This setting is only supported by version 1.9.9 or higher.
+.TP 18n
+pam_login_service
+.br
+On systems that use PAM for authentication, this is the service
+name used when the
+\fB\-i\fR
+option is specified.
+The default value is
+\(oq@pam_login_service@\(cq.
+See the description of
+\fIpam_service\fR
+for more information.
+.sp
+This setting is only supported by version 1.8.8 or higher.
+.TP 18n
+pam_service
+On systems that use PAM for authentication, the service name
+specifies the PAM policy to apply.
+This usually corresponds to an entry in the
+\fIpam.conf\fR
+file or a file in the
+\fI/etc/pam.d\fR
+directory.
+The default value is
+\(oqsudo\(cq.
+.sp
+This setting is only supported by version 1.8.8 or higher.
+.TP 18n
+passprompt
+The default prompt to use when asking for a password; can be overridden via the
+\fB\-p\fR
+option or the
+\fRSUDO_PROMPT\fR
+environment variable.
+The following percent
+(\(oq%\(cq)
+escape sequences are supported:
+.PP
+.RS 18n
+.PD 0
+.TP 6n
+%H
+expanded to the local host name including the domain name
+(only if the machine's host name is fully qualified or the
+\fIfqdn\fR
+option is set)
+.PD
+.TP 6n
+%h
+expanded to the local host name without the domain name
+.TP 6n
+%p
+expanded to the user whose password is being asked for (respects the
+\fIrootpw\fR,
+\fItargetpw\fR
+and
+\fIrunaspw\fR
+flags in
+\fIsudoers\fR)
+.TP 6n
+\&%U
+expanded to the login name of the user the command will
+be run as (defaults to
+\fB@runas_default@\fR)
+.TP 6n
+%u
+expanded to the invoking user's login name
+.TP 6n
+%%
+two consecutive
+\(oq%\(cq
+characters are collapsed into a single
+\(oq%\(cq
+character
+.PP
+On systems that use PAM for authentication,
+\fIpassprompt\fR
+will only be used if the prompt provided by the PAM module matches the string
+\(lqPassword: \(rq
+or
+\(lqusername's Password: \(rq.
+This ensures that the
+\fIpassprompt\fR
+setting does not interfere with challenge-response style authentication.
+The
+\fIpassprompt_override\fR
+flag can be used to change this behavior.
+.sp
+The default value is
+\(oq@passprompt@\(cq.
+.RE
+.if \n(PS \{\
+.TP 18n
+privs
+The default Solaris privileges to use when constructing a new
+privilege set for a command.
+This is passed to the executing process via the inherited privilege set,
+but is bounded by the limit privileges.
+If the
+\fIprivs\fR
+option is specified but the
+\fIlimitprivs\fR
+option is not, the limit privileges of the executing process is set to
+\fIprivs\fR.
+The default privileges may be overridden on a per-command basis in
+\fIsudoers\fR.
+This option is only available if
+\fBsudoers\fR
+is built on Solaris 10 or higher.
+.\}
+.if \n(SL \{\
+.TP 18n
+role
+The default SELinux role to use when constructing a new security
+context to run the command.
+The default role may be overridden on a per-command basis in the
+\fIsudoers\fR
+file or via command line options.
+This option is only available when
+\fBsudo\fR
+is built with SELinux support.
+.\}
+.TP 18n
+runas_default
+The default user to run commands as if the
+\fB\-u\fR
+option is not specified on the command line.
+This defaults to
+\fB@runas_default@\fR.
+.TP 18n
+sudoers_locale
+Locale to use when parsing the sudoers file, logging commands, and
+sending email.
+Changing the locale may affect how sudoers is interpreted.
+Defaults to
+\(oqC\(cq.
+.TP 18n
+timestamp_type
+\fBsudoers\fR
+uses per-user time stamp files for credential caching.
+The
+\fItimestamp_type\fR
+option can be used to specify the type of time stamp record used.
+It has the following possible values:
+.PP
+.RS 18n
+.PD 0
+.TP 8n
+global
+A single time stamp record is used for all of a user's login sessions,
+regardless of the terminal or parent process ID.
+An additional record is used to serialize password prompts when
+\fBsudo\fR
+is used multiple times in a pipeline, but this does not affect authentication.
+.PD
+.TP 8n
+ppid
+A single time stamp record is used for all processes with the same parent
+process ID (usually the shell).
+Commands run from the same shell (or other common parent process)
+will not require a password for
+\fItimestamp_timeout\fR
+minutes (@timeout@ by default).
+Commands run via
+\fBsudo\fR
+with a different parent process ID, for example from a shell script,
+will be authenticated separately.
+.TP 8n
+tty
+One time stamp record is used for each terminal,
+which means that a user's login sessions are authenticated separately.
+If no terminal is present, the behavior is the same as
+\fIppid\fR.
+Commands run from the same terminal will not require a password for
+\fItimestamp_timeout\fR
+minutes (@timeout@ by default).
+.TP 8n
+kernel
+The time stamp is stored in the kernel as an attribute of the terminal
+device.
+If no terminal is present, the behavior is the same as
+\fIppid\fR.
+Negative
+\fItimestamp_timeout\fR
+values are not supported and positive values are limited to a maximum
+of 60 minutes.
+This is currently only supported on
+OpenBSD.
+.PP
+The default value is
+\fI@timestamp_type@\fR.
+.sp
+This setting is only supported by version 1.8.21 or higher.
+.RE
+.TP 18n
+timestampdir
+The directory in which
+\fBsudo\fR
+stores its time stamp files.
+This directory should be cleared when the system reboots.
+The default is
+\fI@rundir@/ts\fR.
+.TP 18n
+timestampowner
+The owner of the lecture status directory, time stamp directory and all
+files stored therein.
+The default is
+\fBroot\fR.
+.if \n(SL \{\
+.TP 18n
+type
+The default SELinux type to use when constructing a new security
+context to run the command.
+The default type may be overridden on a per-command basis in the
+\fIsudoers\fR
+file or via command line options.
+This option is only available when
+\fBsudo\fR
+is built with SELinux support.
+.PP
+\fBStrings that can be used in a boolean context\fR:
+.TP 14n
+admin_flag
+The
+\fIadmin_flag\fR
+option specifies the path to a file that is created the first time
+a user that is a member of the
+\fIsudo\fR
+or
+\fIadmin\fR
+groups runs
+\fBsudo\fR.
+Only available if
+\fBsudo\fR
+is configured with the
+\fR--enable-admin-flag\fR
+option.
+The default value is
+\fI~/.sudo_as_admin_successful\fR.
+.TP 14n
+env_file
+The
+\fIenv_file\fR
+option specifies the fully qualified path to a file containing variables
+to be set in the environment of the program being run.
+Entries in this file should either be of the form
+\(oqVARIABLE=value\(cq
+or
+\(oqexport VARIABLE=value\(cq.
+The value may optionally be enclosed in single or double quotes.
+Variables in this file are only added if the variable does not already
+exist in the environment.
+This file is considered to be part of the security policy,
+its contents are not subject to other
+\fBsudo\fR
+environment restrictions such as
+\fIenv_keep\fR
+and
+\fIenv_check\fR.
+.TP 14n
+exempt_group
+Users in this group are exempt from password and PATH requirements.
+The group name specified should not include a
+\(oq%\(cq
+prefix.
+This is not set by default.
+.TP 14n
+fdexec
+Determines whether
+\fBsudo\fR
+will execute a command by its path or by an open file descriptor.
+It has the following possible values:
+.PP
+.RS 14n
+.PD 0
+.TP 8n
+always
+Always execute by file descriptor.
+.PD
+.TP 8n
+never
+Never execute by file descriptor.
+.TP 8n
+digest_only
+Only execute by file descriptor if the command has an associated digest
+in the
+\fIsudoers\fR
+file.
+.PP
+The default value is
+\fIdigest_only\fR.
+This avoids a time of check versus time of use race condition when
+the command is located in a directory writable by the invoking user.
+.sp
+\fIfdexec\fR
+will change the first element of the argument vector for scripts
+($0 in the shell) due to the way the kernel runs script interpreters.
+Instead of being a normal path, it will refer to a file descriptor.
+For example,
+\fI/dev/fd/4\fR
+on Solaris and
+\fI/proc/self/fd/4\fR
+on Linux.
+A workaround is to use the
+\fRSUDO_COMMAND\fR
+environment variable instead.
+.sp
+The
+\fIfdexec\fR
+setting is only used when the command is matched by path name.
+It has no effect if the command is matched by the built-in
+\fBALL\fR
+alias.
+.sp
+This setting is only supported by version 1.8.20 or higher.
+If the operating system does not support the
+fexecve(2)
+system call, this setting has no effect.
+.RE
+.TP 14n
+group_plugin
+A string containing a
+\fBsudoers\fR
+group plugin with optional arguments.
+The string should consist of the plugin
+path, either fully-qualified or relative to the
+\fI@plugindir@\fR
+directory, followed by any configuration arguments the plugin requires.
+These arguments (if any) will be passed to the plugin's initialization function.
+If arguments are present, the string must be enclosed in double quotes
+(\&"").
+.sp
+On 64-bit systems, if the plugin is present but cannot be loaded,
+\fBsudoers\fR
+will look for a 64-bit version and, if it exists, load that as a fallback.
+The exact rules for this vary by system.
+On Solaris, if the plugin is stored in a directory ending in
+\(lqlib\(rq,
+\fBsudoers\fR
+will create a fallback path by appending
+\(lq/64\(rq
+to the directory name;
+\fI@prefix@/lib/group_plugin.so\fR
+becomes
+\fI@prefix@/lib/64/group_plugin.so\fR.
+On Linux, a directory ending in
+\(lqlib\(rq
+will be transformed to
+\(lqlib64\(rq
+as the fallback path;
+\fI@prefix@/lib/group_plugin.so\fR
+becomes
+\fI@prefix@/lib64/group_plugin.so\fR.
+On all other systems, the fallback path is generated by adding a
+\(lq64\(rq
+before the file extension;
+\fIgroup_plugin.so\fR
+becomes
+\fIgroup_plugin64.so\fR.
+.sp
+On AIX systems, the plugin may be either a shared object
+ending in
+\(oq.so\(cq
+or an archive file containing a shared object ending in
+\(oq.a\(cq
+with the name of the shared object in parentheses at the end.
+.sp
+For more information see
+\fIGROUP PROVIDER PLUGINS\fR.
+.TP 14n
+lecture
+This option controls when a short lecture will be printed along with
+the password prompt.
+It has the following possible values:
+.PP
+.RS 14n
+.PD 0
+.TP 8n
+always
+Always lecture the user.
+.PD
+.TP 8n
+never
+Never lecture the user.
+.TP 8n
+once
+Only lecture the user the first time they run
+\fBsudo\fR.
+.PP
+If no value is specified, a value of
+\fIonce\fR
+is implied.
+Negating the option results in a value of
+\fInever\fR
+being used.
+The default value is
+\fI@lecture@\fR.
+.RE
+.TP 14n
+lecture_file
+Path to a file containing an alternate
+\fBsudo\fR
+lecture that will be used in place of the standard lecture if the named
+file exists.
+By default,
+\fBsudo\fR
+uses a built-in lecture.
+.TP 14n
+listpw
+This option controls when a password will be required when a user runs
+\fBsudo\fR
+with the
+\fB\-l\fR
+option.
+It has the following possible values:
+.PP
+.RS 14n
+.PD 0
+.TP 6n
+all
+All the user's
+\fIsudoers\fR
+file entries for the current host must have
+the
+\fRNOPASSWD\fR
+flag set to avoid entering a password.
+.PD
+.TP 6n
+always
+The user must always enter a password to use the
+\fB\-l\fR
+option.
+.TP 6n
+any
+At least one of the user's
+\fIsudoers\fR
+file entries for the current host
+must have the
+\fRNOPASSWD\fR
+flag set to avoid entering a password.
+.TP 6n
+never
+.br
+The user need never enter a password to use the
+\fB\-l\fR
+option.
+.PP
+If no value is specified, a value of
+\fIany\fR
+is implied.
+Negating the option results in a value of
+\fInever\fR
+being used.
+The default value is
+\fIany\fR.
+.RE
+.TP 14n
+log_format
+The event log format.
+Supported log formats are:
+.PP
+.RS 14n
+.PD 0
+.TP 6n
+json
+Logs in JSON format.
+JSON log entries contain the full user details as well as the execution
+environment if the command was allowed.
+Due to limitations of the protocol, JSON events sent via
+\fIsyslog\fR
+may be truncated.
+.PD
+.TP 6n
+sudo
+Traditional sudo-style logs, see
+\fIEVENT LOGGING\fR
+for a description of the log file format.
+.PP
+This setting affects logs sent via
+syslog(3)
+as well as the file specified by the
+\fIlogfile\fR
+setting, if any.
+The default value is
+\fIsudo\fR.
+.RE
+.TP 14n
+logfile
+Path to the
+\fBsudo\fR
+log file (not the syslog log file).
+Setting a path turns on logging to a file;
+negating this option turns it off.
+By default,
+\fBsudo\fR
+logs via syslog.
+.TP 14n
+mailerflags
+Flags to use when invoking mailer.
+Defaults to
+\fB\-t\fR.
+.TP 14n
+mailerpath
+Path to mail program used to send warning mail (negate to prevent
+\fBsudo\fR
+from sending mail).
+Defaults to the path to sendmail found at configure time.
+.TP 14n
+mailfrom
+Address to use for the
+\(lqfrom\(rq
+address when sending warning and error mail.
+The address should be enclosed in double quotes
+(\&"")
+to protect against
+\fBsudo\fR
+interpreting the
+\(oq@\(cq
+sign.
+Defaults to the name of the user running
+\fBsudo\fR.
+.TP 14n
+mailto
+Address to send warning and error mail to (negate to prevent
+\fBsudo\fR
+from sending mail).
+The address should be enclosed in double quotes
+(\&"")
+to protect against
+\fBsudo\fR
+interpreting the
+\(oq@\(cq
+sign.
+Defaults to @mailto@.
+.TP 14n
+rlimit_as
+The maximum size to which the process's address space may grow (in bytes),
+if supported by the operating system.
+See
+\fIResource limits\fR
+for more information.
+.TP 14n
+rlimit_core
+The largest size core dump file that may be created (in bytes).
+See
+\fIResource limits\fR
+for more information.
+Defaults to 0 (no core dump created).
+.TP 14n
+rlimit_cpu
+The maximum amount of CPU time that the process may use (in seconds).
+See
+\fIResource limits\fR
+for more information.
+.TP 14n
+rlimit_data
+The maximum size of the data segment for the process (in bytes).
+See
+\fIResource limits\fR
+for more information.
+.TP 14n
+rlimit_fsize
+The largest size file that the process may create (in bytes).
+See
+\fIResource limits\fR
+for more information.
+.TP 14n
+rlimit_locks
+The maximum number of locks that the process may establish,
+if supported by the operating system.
+See
+\fIResource limits\fR
+for more information.
+.TP 14n
+rlimit_memlock
+The maximum size that the process may lock in memory (in bytes),
+if supported by the operating system.
+See
+\fIResource limits\fR
+for more information.
+.TP 14n
+rlimit_nofile
+.br
+The maximum number of files that the process may have open.
+See
+\fIResource limits\fR
+for more information.
+.TP 14n
+rlimit_nproc
+The maximum number of processes that the user may run simultaneously.
+See
+\fIResource limits\fR
+for more information.
+.TP 14n
+rlimit_rss
+The maximum size to which the process's resident set size may grow (in bytes).
+See
+\fIResource limits\fR
+for more information.
+.TP 14n
+rlimit_stack
+The maximum size to which the process's stack may grow (in bytes).
+See
+\fIResource limits\fR
+for more information.
+.TP 14n
+restricted_env_file
+The
+\fIrestricted_env_file\fR
+option specifies the fully qualified path to a file containing variables
+to be set in the environment of the program being run.
+Entries in this file should either be of the form
+\(oqVARIABLE=value\(cq
+or
+\(oqexport VARIABLE=value\(cq.
+The value may optionally be enclosed in single or double quotes.
+Variables in this file are only added if the variable does not already
+exist in the environment.
+Unlike
+\fIenv_file\fR,
+the file's contents are not trusted and are processed in a manner
+similar to that of the invoking user's environment.
+If
+\fIenv_reset\fR
+is enabled, variables in the file will only be added if they are
+matched by either the
+\fIenv_check\fR
+or
+\fIenv_keep\fR
+list.
+If
+\fIenv_reset\fR
+is disabled, variables in the file are added as long as they
+are not matched by the
+\fIenv_delete\fR
+list.
+In either case, the contents of
+\fIrestricted_env_file\fR
+are processed before the contents of
+\fIenv_file\fR.
+.TP 14n
+runchroot
+If set,
+\fBsudo\fR
+will use this value for the root directory when running a command.
+The special value
+\(lq*\(rq
+will allow the user to specify the root directory via
+\fBsudo\fR's
+\fB\-R\fR
+option.
+See the
+\fIChroot_Spec\fR
+section for more details.
+.sp
+It is only possible to use
+\fIrunchroot\fR
+as a command-specific Defaults setting if the command exists with
+the same path both inside and outside the chroot jail.
+This restriction does not apply to global, host, or user-based
+Defaults settings or to a
+\fICmnd_Spec\fR
+that includes a
+\fIChroot_Spec\fR.
+.sp
+This setting is only supported by version 1.9.3 or higher.
+.TP 14n
+runcwd
+If set,
+\fBsudo\fR
+will use this value for the working directory when running a command.
+The special value
+\(lq*\(rq
+will allow the user to specify the working directory via
+\fBsudo\fR's
+\fB\-D\fR
+option.
+See the
+\fIChdir_Spec\fR
+section for more details.
+.sp
+This setting is only supported by version 1.9.3 or higher.
+.TP 14n
+secure_path
+If set,
+\fBsudo\fR
+will use this value in place of the user's
+\fRPATH\fR
+environment variable.
+This option can be used to reset the
+\fRPATH\fR
+to a known good value that contains directories for system administrator
+commands such as
+\fI/usr/sbin\fR.
+.sp
+Users in the group specified by the
+\fIexempt_group\fR
+option are not affected by
+\fIsecure_path\fR.
+This option is @secure_path@ by default.
+.TP 14n
+syslog
+Syslog facility if syslog is being used for logging (negate to
+disable syslog logging).
+Defaults to @logfac@.
+.sp
+The following syslog facilities are supported:
+\fBauthpriv\fR
+(if your
+OS supports it),
+\fBauth\fR,
+\fBdaemon\fR,
+\fBuser\fR,
+\fBlocal0\fR,
+\fBlocal1\fR,
+\fBlocal2\fR,
+\fBlocal3\fR,
+\fBlocal4\fR,
+\fBlocal5\fR,
+\fBlocal6\fR,
+and
+\fBlocal7\fR.
+.TP 14n
+syslog_badpri
+.br
+Syslog priority to use when the user is not allowed to run a command or
+when authentication is unsuccessful.
+Defaults to @badpri@.
+.sp
+The following syslog priorities are supported:
+\fBalert\fR,
+\fBcrit\fR,
+\fBdebug\fR,
+\fBemerg\fR,
+\fBerr\fR,
+\fBinfo\fR,
+\fBnotice\fR,
+\fBwarning\fR,
+and
+\fBnone\fR.
+Negating the option or setting it to a value of
+\fBnone\fR
+will disable logging of unsuccessful commands.
+.TP 14n
+syslog_goodpri
+Syslog priority to use when the user is allowed to run a command and
+authentication is successful.
+Defaults to @goodpri@.
+.sp
+See
+\fIsyslog_badpri\fR
+for the list of supported syslog priorities.
+Negating the option or setting it to a value of
+\fBnone\fR
+will disable logging of successful commands.
+.TP 14n
+verifypw
+This option controls when a password will be required when a user runs
+\fBsudo\fR
+with the
+\fB\-v\fR
+option.
+It has the following possible values:
+.PP
+.RS 14n
+.PD 0
+.TP 8n
+all
+All the user's
+\fIsudoers\fR
+file entries for the current host must have the
+\fRNOPASSWD\fR
+flag set to avoid entering a password.
+.PD
+.TP 8n
+always
+The user must always enter a password to use the
+\fB\-v\fR
+option.
+.TP 8n
+any
+At least one of the user's
+\fIsudoers\fR
+file entries for the current host must have the
+\fRNOPASSWD\fR
+flag set to avoid entering a password.
+.TP 8n
+never
+The user need never enter a password to use the
+\fB\-v\fR
+option.
+.PP
+If no value is specified, a value of
+\fIall\fR
+is implied.
+Negating the option results in a value of
+\fInever\fR
+being used.
+The default value is
+\fIall\fR.
+.RE
+.PP
+\fBLists that can be used in a boolean context\fR:
+.\}
+.TP 18n
+env_check
+Environment variables to be removed from the user's environment
+unless they are considered
+\(lqsafe\(rq.
+For all variables except
+\fRTZ\fR,
+\(lqsafe\(rq
+means that the variable's value does not contain any
+\(oq%\(cq
+or
+\(oq/\(cq
+characters.
+This can be used to guard against printf-style format vulnerabilities
+in poorly-written programs.
+The
+\fRTZ\fR
+variable is considered unsafe if any of the following are true:
+.PP
+.RS 18n
+.PD 0
+.TP 3n
+\fB\(bu\fR
+It consists of a fully-qualified path name,
+optionally prefixed with a colon
+(\(oq:\&\(cq),
+that does not match the location of the
+\fIzoneinfo\fR
+directory.
+.PD
+.TP 3n
+\fB\(bu\fR
+It contains a
+\fI..\fR
+path element.
+.TP 3n
+\fB\(bu\fR
+It contains white space or non-printable characters.
+.TP 3n
+\fB\(bu\fR
+It is longer than the value of
+\fRPATH_MAX\fR.
+.PP
+The argument may be a double-quoted, space-separated list or a
+single value without double-quotes.
+The list can be replaced, added to, deleted from, or disabled by using
+the
+\(oq=\(cq,
+\(oq+=\(cq,
+\(oq-=\(cq,
+and
+\(oq\&!\(cq
+operators respectively.
+Regardless of whether the
+\fIenv_reset\fR
+option is enabled or disabled, variables specified by
+\fIenv_check\fR
+will be preserved in the environment if they pass the aforementioned check.
+The global list of environment variables to check is displayed when
+\fBsudo\fR
+is run by
+\fBroot\fR
+with the
+\fB\-V\fR
+option.
+.RE
+.TP 18n
+env_delete
+Environment variables to be removed from the user's environment when the
+\fIenv_reset\fR
+option is not in effect.
+The argument may be a double-quoted, space-separated list or a
+single value without double-quotes.
+The list can be replaced, added to, deleted from, or disabled by using the
+\(oq=\(cq,
+\(oq+=\(cq,
+\(oq-=\(cq,
+and
+\(oq\&!\(cq
+operators respectively.
+The global list of environment variables to remove is displayed when
+\fBsudo\fR
+is run by
+\fBroot\fR
+with the
+\fB\-V\fR
+option.
+Many operating systems will remove potentially dangerous variables
+from the environment of any set-user-ID process (such as
+\fBsudo\fR).
+.TP 18n
+env_keep
+Environment variables to be preserved in the user's environment when the
+\fIenv_reset\fR
+option is in effect.
+This allows fine-grained control over the environment
+\fBsudo\fR-spawned
+processes will receive.
+The argument may be a double-quoted, space-separated list or a
+single value without double-quotes.
+The list can be replaced, added to, deleted from, or disabled by using the
+\(oq=\(cq,
+\(oq+=\(cq,
+\(oq-=\(cq,
+and
+\(oq\&!\(cq
+operators respectively.
+The global list of variables to keep
+is displayed when
+\fBsudo\fR
+is run by
+\fBroot\fR
+with the
+\fB\-V\fR
+option.
+.sp
+Preserving the
+\fRHOME\fR
+environment variable has security implications since many programs use it
+when searching for configuration or data files.
+Adding
+\fRHOME\fR
+to
+\fIenv_keep\fR
+may enable a user to run unrestricted commands via
+\fBsudo\fR
+and is strongly discouraged.
+Users wishing to edit files with
+\fBsudo\fR
+should run
+\fBsudoedit\fR
+(or
+\fBsudo\fR \fB\-e\fR)
+to get their accustomed editor configuration instead of
+invoking the editor directly.
+.TP 18n
+log_servers
+A list of one or more servers to use for remote event and I/O log storage,
+separated by white space.
+Log servers must be running
+\fBsudo_logsrvd\fR
+or another service that implements the protocol described by
+sudo_logsrv.proto(@mansectform@).
+.sp
+Server addresses should be of the form
+\(lqhost[:port][(tls)]\(rq.
+The host portion may be a host name, an IPv4 address, or an IPv6 address
+in square brackets.
+.sp
+If the optional
+\fItls\fR
+flag is present, the connection will be secured
+with Transport Layer Security (TLS) version 1.2 or 1.3.
+Versions of TLS prior to 1.2 are not supported.
+.sp
+If a port is specified, it may either be a port number or a well-known
+service name as defined by the system service name database.
+If no port is specified, port 30343 will be used for plaintext
+connections and port 30344 will be used for TLS connections.
+.sp
+When
+\fIlog_servers\fR
+is set, event log data will be logged both locally (see the
+\fIsyslog\fR
+and
+\fIlog_file\fR
+settings) as well as remotely, but I/O log data will only be logged remotely.
+If multiple hosts are specified, they will be attempted in reverse order.
+If no log servers are available, the user will not be able to run
+a command unless either the
+\fIignore_iolog_errors\fR
+flag (I/O logging enabled) or the
+\fIignore_log_errors\fR
+flag (I/O logging disabled) is set.
+Likewise, if the connection to the log server is interrupted while
+\fBsudo\fR
+is running, the command will be terminated unless the
+\fIignore_iolog_errors\fR
+flag (I/O logging enabled) or the
+\fIignore_log_errors\fR
+flag (I/O logging disabled) is set.
+.sp
+This setting is only supported by version 1.9.0 or higher.
+.TP 18n
+passprompt_regex
+A list of POSIX extended regular expressions used to
+match password prompts in the terminal output.
+As an extension, if the regular expression begins with
+\(lq(?i)\(rq,
+it will be matched in a case-insensitive manner.
+Each regular expression is limited to 1024 characters.
+This option is only used when
+\fIlog_passwords\fR
+has been disabled.
+The default value is
+\(lq[Pp]assword[: ]*\(rq
+.sp
+This setting is only supported by version 1.9.10 or higher.
+.SH "GROUP PROVIDER PLUGINS"
+The
+\fBsudoers\fR
+plugin supports its own plugin interface to allow non-Unix
+group lookups which can query a group source other
+than the standard Unix group database.
+This can be used to implement support for the
+\fInonunix_group\fR
+syntax described earlier.
+.PP
+Group provider plugins are specified via the
+\fIgroup_plugin\fR
+setting.
+The argument to
+\fIgroup_plugin\fR
+should consist of the plugin path, either fully-qualified or relative to the
+\fI@plugindir@\fR
+directory, followed by any configuration options the plugin requires.
+These options (if specified) will be passed to the plugin's initialization
+function.
+If options are present, the string must be enclosed in double quotes
+(\&"").
+.PP
+The following group provider plugins are installed by default:
+.TP 6n
+group_file
+The
+\fIgroup_file\fR
+plugin supports an alternate group file that uses the same syntax as the
+\fI/etc/group\fR
+file.
+The path to the group file should be specified as an option
+to the plugin.
+For example, if the group file to be used is
+\fI/etc/sudo-group\fR:
+.nf
+.sp
+.RS 6n
+Defaults group_plugin="group_file.so /etc/sudo-group"
+.RE
+.fi
+.TP 6n
+system_group
+The
+\fIsystem_group\fR
+plugin supports group lookups via the standard C library functions
+getgrnam(3)
+and
+getgrid(3).
+This plugin can be used in instances where the user belongs to
+groups not present in the user's supplemental group vector.
+This plugin takes no options:
+.nf
+.sp
+.RS 6n
+Defaults group_plugin=system_group.so
+.RE
+.fi
+.PP
+The group provider plugin API is described in detail in
+sudo_plugin(@mansectform@).
+.SH "EVENT LOGGING"
+\fBsudoers\fR
+can log events in either JSON or
+\fIsudo\fR
+format,
+this section describes the
+\fIsudo\fR
+log format.
+Depending on
+\fIsudoers\fR
+configuration,
+\fBsudoers\fR
+can log events via
+syslog(3),
+to a local log file, or both.
+The log format is almost identical in both cases.
+Any control characters present in the log data are formatted in octal
+with a leading
+\(oq#\(cq
+character.
+For example, a horizontal tab is stored as
+\(oq#011\(cq
+and an embedded carriage return is stored as
+\(oq#015\(cq.
+In addition, space characters in the command path are stored as
+\(oq#040\(cq.
+Command line arguments that contain spaces are enclosed in single quotes
+('').
+This makes it possible to distinguish multiple command line arguments
+from a single argument that contains spaces.
+Literal single quotes and backslash characters
+(\(oq\e\(cq)
+in command line arguments are escaped with a backslash.
+.SS "Accepted command log entries"
+Commands that sudo runs are logged using the following format (split
+into multiple lines for readability):
+.nf
+.sp
+.RS 4n
+date hostname progname: username : TTY=ttyname ; CHROOT=chroot ; \e
+    PWD=cwd ; USER=runasuser ; GROUP=runasgroup ; TSID=logid ; \e
+    ENV=env_vars COMMAND=command
+.RE
+.fi
+.PP
+Where the fields are as follows:
+.TP 14n
+date
+The date the command was run.
+Typically, this is in the format
+\(lqMMM, DD, HH:MM:SS\(rq.
+If logging via
+syslog(3),
+the actual date format is controlled by the syslog daemon.
+If logging to a file and the
+\fIlog_year\fR
+option is enabled,
+the date will also include the year.
+.TP 14n
+hostname
+The name of the host
+\fBsudo\fR
+was run on.
+This field is only present when logging via
+syslog(3).
+.TP 14n
+progname
+The name of the program, usually
+\fIsudo\fR
+or
+\fIsudoedit\fR.
+This field is only present when logging via
+syslog(3).
+.TP 14n
+username
+The login name of the user who ran
+\fBsudo\fR.
+.TP 14n
+ttyname
+The short name of the terminal (e.g.,
+\(lqconsole\(rq,
+\(lqtty01\(rq,
+or
+\(lqpts/0\(rq)
+\fBsudo\fR
+was run on, or
+\(lqunknown\(rq
+if there was no terminal present.
+.TP 14n
+chroot
+The root directory that the command was run in, if one was specified.
+.TP 14n
+cwd
+The current working directory that
+\fBsudo\fR
+was run in.
+.TP 14n
+runasuser
+The user the command was run as.
+.TP 14n
+runasgroup
+The group the command was run as if one was specified on the command line.
+.TP 14n
+logid
+An I/O log identifier that can be used to replay the command's output.
+This is only present when the
+\fIlog_input\fR
+or
+\fIlog_output\fR
+option is enabled.
+.TP 14n
+env_vars
+A list of environment variables specified on the command line,
+if specified.
+.TP 14n
+command
+The actual command that was executed, including any command line arguments.
+.PP
+Messages are logged using the locale specified by
+\fIsudoers_locale\fR,
+which defaults to the
+\(oqC\(cq
+locale.
+.SS "Denied command log entries"
+If the user is not allowed to run the command, the reason for the denial
+will follow the user name.
+Possible reasons include:
+.TP 3n
+user NOT in sudoers
+The user is not listed in the
+\fIsudoers\fR
+file.
+.TP 3n
+user NOT authorized on host
+The user is listed in the
+\fIsudoers\fR
+file but is not allowed to run commands on the host.
+.TP 3n
+command not allowed
+The user is listed in the
+\fIsudoers\fR
+file for the host but they are not allowed to run the specified command.
+.TP 3n
+3 incorrect password attempts
+The user failed to enter their password after 3 tries.
+The actual number of tries will vary based on the number of
+failed attempts and the value of the
+\fIpasswd_tries\fR
+option.
+.TP 3n
+a password is required
+The
+\fB\-n\fR
+option was specified but a password was required.
+.TP 3n
+sorry, you are not allowed to set the following environment variables
+The user specified environment variables on the command line that
+were not allowed by
+\fIsudoers\fR.
+.SS "Error log entries"
+If an error occurs,
+\fBsudoers\fR
+will log a message and, in most cases, send a message to the
+administrator via email.
+Possible errors include:
+.TP 3n
+parse error in @sysconfdir@/sudoers near line N
+\fBsudoers\fR
+encountered an error when parsing the specified file.
+In some cases, the actual error may be one line above or below the
+line number listed, depending on the type of error.
+.TP 3n
+problem with defaults entries
+The
+\fIsudoers\fR
+file contains one or more unknown Defaults settings.
+This does not prevent
+\fBsudo\fR
+from running, but the
+\fIsudoers\fR
+file should be checked using
+\fBvisudo\fR.
+.TP 3n
+timestamp owner (username): \&No such user
+The time stamp directory owner, as specified by the
+\fItimestampowner\fR
+setting, could not be found in the password database.
+.TP 3n
+unable to open/read @sysconfdir@/sudoers
+The
+\fIsudoers\fR
+file could not be opened for reading.
+This can happen when the
+\fIsudoers\fR
+file is located on a remote file system that maps user-ID 0 to
+a different value.
+Normally,
+\fBsudoers\fR
+tries to open the
+\fIsudoers\fR
+file using group permissions to avoid this problem.
+Consider either changing the ownership of
+\fI@sysconfdir@/sudoers\fR
+or adding an argument like
+\(lqsudoers_uid=N\(rq
+(where
+\(oqN\(cq
+is the user-ID that owns the
+\fIsudoers\fR
+file) to the end of the
+\fBsudoers\fR
+\fIPlugin\fR
+line in the
+sudo.conf(@mansectform@)
+file.
+.TP 3n
+unable to open @sysconfdir@/sudoers
+The
+\fI@sysconfdir@/sudoers\fR
+file is missing.
+.TP 3n
+@sysconfdir@/sudoers is not a regular file
+The
+\fI@sysconfdir@/sudoers\fR
+file exists but is not a regular file or symbolic link.
+.TP 3n
+@sysconfdir@/sudoers is owned by uid N, should be 0
+The
+\fIsudoers\fR
+file has the wrong owner.
+If you wish to change the
+\fIsudoers\fR
+file owner, add
+\(lqsudoers_uid=N\(rq
+(where
+\(oqN\(cq
+is the user-ID that owns the
+\fIsudoers\fR
+file) to the
+\fBsudoers\fR
+\fIPlugin\fR
+line in the
+sudo.conf(@mansectform@)
+file.
+.TP 3n
+@sysconfdir@/sudoers is world writable
+The permissions on the
+\fIsudoers\fR
+file allow all users to write to it.
+The
+\fIsudoers\fR
+file must not be world-writable, the default file mode
+is 0440 (readable by owner and group, writable by none).
+The default mode may be changed via the
+\(lqsudoers_mode\(rq
+option to the
+\fBsudoers\fR
+\fIPlugin\fR
+line in the
+sudo.conf(@mansectform@)
+file.
+.TP 3n
+@sysconfdir@/sudoers is owned by gid N, should be 1
+The
+\fIsudoers\fR
+file has the wrong group ownership.
+If you wish to change the
+\fIsudoers\fR
+file group ownership, add
+\(lqsudoers_gid=N\(rq
+(where
+\(oqN\(cq
+is the group-ID that owns the
+\fIsudoers\fR
+file) to the
+\fBsudoers\fR
+\fIPlugin\fR
+line in the
+sudo.conf(@mansectform@)
+file.
+.TP 3n
+unable to open @rundir@/ts/user-ID
+\fBsudoers\fR
+was unable to read or create the user's time stamp file.
+This can happen when
+\fItimestampowner\fR
+is set to a user other than
+\fBroot\fR
+and the mode on
+\fI@rundir@\fR
+is not searchable by group or other.
+The default mode for
+\fI@rundir@\fR
+is 0711.
+.TP 3n
+unable to write to @rundir@/ts/user-ID
+\fBsudoers\fR
+was unable to write to the user's time stamp file.
+.TP 3n
+@rundir@/ts is owned by uid X, should be Y
+The time stamp directory is owned by a user other than
+\fItimestampowner\fR.
+This can occur when the value of
+\fItimestampowner\fR
+has been changed.
+\fBsudoers\fR
+will ignore the time stamp directory until the owner is corrected.
+.TP 3n
+@rundir@/ts is group writable
+The time stamp directory is group-writable; it should be writable only by
+\fItimestampowner\fR.
+The default mode for the time stamp directory is 0700.
+\fBsudoers\fR
+will ignore the time stamp directory until the mode is corrected.
+.SS "Notes on logging via syslog"
+By default,
+\fBsudoers\fR
+logs messages via
+syslog(3).
+The
+\fIdate\fR,
+\fIhostname\fR,
+and
+\fIprogname\fR
+fields are added by the system's
+syslog(3)
+function, not
+\fBsudoers\fR
+itself.
+As such, they may vary in format on different systems.
+.PP
+The maximum size of syslog messages varies from system to system.
+The
+\fIsyslog_maxlen\fR
+setting can be used to change the maximum syslog message size
+from the default value of 980 bytes.
+For more information, see the description of
+\fIsyslog_maxlen\fR.
+.SS "Notes on logging to a file"
+If the
+\fIlogfile\fR
+option is set,
+\fBsudoers\fR
+will log to a local file, such as
+\fI@log_dir@/sudo\fR.
+When logging to a file,
+\fBsudoers\fR
+uses a format similar to
+syslog(3),
+with a few important differences:
+.TP 5n
+1.\&
+The
+\fIprogname\fR
+field is not present.
+.TP 5n
+2.\&
+The
+\fIhostname\fR
+is only logged if the
+\fIlog_host\fR
+option is enabled.
+.TP 5n
+3.\&
+The date does not include the year unless the
+\fIlog_year\fR
+option is enabled.
+.TP 5n
+4.\&
+Lines that are longer than
+\fIloglinelen\fR
+characters (80 by default) are word-wrapped and continued on the
+next line with a four character indent.
+This makes entries easier to read for a human being, but makes it
+more difficult to use
+grep(1)
+on the log files.
+If the
+\fIloglinelen\fR
+option is set to 0 (or negated with a
+\(oq\&!\(cq),
+word wrap will be disabled.
+.SH "I/O LOGGING"
+When I/O logging is enabled,
+\fBsudo\fR
+will runs the command in a pseudo-terminal, logging user input
+and/or output, depending on which
+\fBsudoers\fR
+flags are enabled.
+There are five distinct types of I/O that can be logged, each with
+a corresponding
+\fBsudoers\fR
+flag.
+.TS
+l l l.
+.PP
+\fBType\fR	\fBFlag\fR	\fBDescription\fR
+.PP
+terminal input	log_ttyin	keystrokes entered by the user
+.PP
+terminal output	log_ttyout	command output displayed to the screen
+.PP
+standard input	log_stdin	input from a pipe or a file
+.PP
+standard output	log_stdout	output to a pipe or a file
+.PP
+standard error	log_stderr	output to a pipe or a file
+.TE
+.PP
+In addition to flags described the above, the
+\fIlog_input\fR
+flag and
+\fRLOG_INPUT\fR
+command tag set both
+\fIlog_ttyin\fR
+and
+\fIlog_stdin\fR.
+The
+\fIlog_output\fR
+flag and
+\fRLOG_OUTPUT\fR
+command tag set
+\fIlog_ttyout\fR,
+\fIlog_stdout\fR,
+and
+\fIlog_stderr\fR.
+.PP
+To capture terminal input and output,
+\fBsudo\fR
+run the command in a pseudo-terminal, logging the input and
+output before passing it on to the user.
+To capture the standard input, standard output or standard error,
+\fBsudo\fR
+uses a pipe to interpose itself between the input or output stream,
+logging the I/O before passing it to the other end of the pipe.
+.PP
+I/O can be logged either to the local machine or to a remote log server.
+For local logs, I/O is logged to the directory specified by the
+\fIiolog_dir\fR
+option
+(\fI@iolog_dir@\fR
+by default)
+using a unique session ID that is included in the
+\fBsudo\fR
+log line, prefixed with
+\(oqTSID=\(cq.
+The
+\fIiolog_file\fR
+option may be used to control the format of the session ID.
+For remote logs, the
+\fIlog_servers\fR
+setting is used to specify one or more log servers running
+\fBsudo_logsrvd\fR
+or another server that implements the protocol described by
+sudo_logsrv.proto(@mansectform@).
+.SS "I/O logging pitfals"
+When logging standard input, anything sent to the standard input
+will be consumed, regardless of whether or not the command run via
+\fBsudo\fR
+is actively reading the standard input.
+This may have unexpected results when using
+\fBsudo\fR
+in a shell script that expects to process the standard input.
+For example, given the following shell script:
+.nf
+.sp
+.RS 4n
+#!/bin/sh
+sudo echo testing
+echo done
+.RE
+.fi
+.PP
+It will behave as expected when the script is passed to the shell as a
+an argument:
+.nf
+.sp
+.RS 4n
+$ sh test.sh
+testing
+done
+.RE
+.fi
+.PP
+However, if the script is passed to the shell on the standard input, the
+\(oqsudo echo testing\(cq
+command will consume the rest of the script.
+This means that the
+\(oqecho done\(cq
+statement is never executed.
+.nf
+.sp
+.RS 4n
+$ sh -s < test.sh
+testing
+.RE
+.fi
+.PP
+There are several ways to work around this problem:
+.TP 5n
+1.\&
+Redirect the standard input from
+\fI/dev/null\fR
+when running a command via
+\fBsudo\fR
+that does not need to read the standard input.
+.nf
+.sp
+.RS 9n
+sudo echo testing < /dev/null
+.RE
+.fi
+.TP 5n
+2.\&
+Pass the script to the shell by path name instead of via the standard input.
+.nf
+.sp
+.RS 9n
+sh test.sh
+.RE
+.fi
+.TP 5n
+3.\&
+Disable logging the standard input for commands that do not need
+to read the standard input.
+.nf
+.sp
+.RS 9n
+Defaults!/bin/echo !log_stdin
+.RE
+.fi
+.PP
+Depending on the command, it may not be desirable to log the
+standard input or standard output.
+For example, I/O logging of commands that send or receive large
+amount of data via the standard output or standard input such as
+rsync(1)
+and
+tar(1)
+could fill up the log file system with superfluous data.
+It is possible to disable logging of the standard input and standard
+output for such commands as follows:
+.nf
+.sp
+.RS 4n
+Cmnd_Alias COPY_CMDS = /usr/bin/tar, /usr/bin/cpio, /usr/bin/rsync
+
+# Log input and output but omit stdin and stdout when copying files.
+Defaults log_input, log_output
+Defaults!COPY_CMDS !log_stdin, !log_stdout
+.RE
+.fi
+.PP
+However, be aware that using the
+\fIlog_input\fR
+flag or the
+\fRLOG_INPUT\fR
+command tag will also enable
+\fIlog_stdin\fR.
+Likewise, the
+\fIlog_ouput\fR
+flag or the
+\fRLOG_OUTPUT\fR
+command tag will enable
+\fIlog_stdout\fR
+and
+\fIlog_stderr.\fR
+Careful ordering of rules may be necessary to achieve the results
+that you expect.
+.SS "I/O log format"
+For both local and remote I/O logs, each log is stored in a separate
+directory that contains the following files:
+.TP 10n
+\fIlog\fR
+A text file containing information about the command.
+The first line consists of the following colon-delimited fields:
+the time the command was run, the name of the user
+who ran
+\fBsudo\fR,
+the name of the target user, the name of the target group (optional),
+the terminal that
+\fBsudo\fR
+was run from, and the number of lines and columns of the terminal.
+The second and third lines contain the working directory the command
+was run from and the path name of the command itself (with arguments
+if present).
+.TP 10n
+\fIlog.json\fR
+A JSON-formatted file containing information about the command.
+This is similar to the
+\fIlog\fR
+file but contains additional information and is easily extensible.
+The
+\fIlog.json\fR
+file will be used by
+sudoreplay(@mansectsu@)
+in preference to the
+\fIlog\fR
+file if it exists.
+The file may contain the following elements:
+.PP
+.RS 10n
+.PD 0
+.TP 6n
+timestamp
+A JSON object containing time the command was run.
+It consists of two values,
+\fIseconds\fR
+and
+\fInanoseconds\fR.
+.PD
+.TP 6n
+columns
+The number of columns of the terminal the command ran on, or zero
+if no terminal was present.
+.TP 6n
+command
+The fully-qualified path of the command that was run.
+.TP 6n
+lines
+.br
+The number of lines of the terminal the command ran on, or zero
+if no terminal was present.
+.TP 6n
+runargv
+A JSON array representing the command's argument vector as passed to the
+execve(2)
+system call.
+.TP 6n
+runenv
+A JSON array representing the command's environment as passed to the
+execve(2)
+system call.
+.TP 6n
+rungid
+The group ID the command ran as.
+This element is only present when the user specifies a group on the
+command line.
+.TP 6n
+rungroup
+The name of the group the command ran as.
+This element is only present when the user specifies a group on the
+command line.
+.TP 6n
+runuid
+The user ID the command ran as.
+.TP 6n
+runuser
+The name of the user the command ran as.
+.TP 6n
+submitcwd
+The current working directory at the time
+\fBsudo\fR
+was run.
+.TP 6n
+submithost
+The name of the host the command was run on.
+.TP 6n
+submituser
+The name of the user who ran the command via
+\fBsudo\fR.
+.TP 6n
+ttyname
+The path name of the terminal the user invoked
+\fBsudo\fR
+from.
+If the command was run in a pseudo-terminal,
+\fIttyname\fR
+will be different from the terminal the command actually ran in.
+.PD 0
+.PP
+.RE
+.PD
+.TP 10n
+\fItiming\fR
+Timing information used to replay the session.
+Each line consists of the I/O log entry type and amount of time
+since the last entry, followed by type-specific data.
+The I/O log entry types and their corresponding type-specific data are:
+.PP
+.RS 10n
+.PD 0
+.TP 6n
+0
+standard input, number of bytes in the entry
+.TP 6n
+1
+standard output, number of bytes in the entry
+.TP 6n
+2
+standard error, number of bytes in the entry
+.TP 6n
+3
+terminal input, number of bytes in the entry
+.TP 6n
+4
+terminal output, number of bytes in the entry
+.TP 6n
+5
+window change, new number lines and columns
+.TP 6n
+6
+bug compatibility for
+\fBsudo\fR
+1.8.7 terminal output
+.TP 6n
+7
+command suspend or resume, signal received
+.PP
+.RE
+.PD
+.TP 10n
+\fIttyin\fR
+Raw input from the user's terminal, exactly as it was received.
+This file is only present if the
+\fIlog_input\fR
+or
+\fIlog_ttyin\fR
+flags are set and
+\fBsudo\fR
+was run from a terminal.
+No post-processing is performed.
+For manual viewing, you may wish to convert carriage return characters
+in the log to line feeds.
+For example:
+\(oqgunzip -c ttyin | tr \&"\er\&" \&"\en\&"\(cq
+.TP 10n
+\fIstdin\fR
+The standard input when no terminal is present, or input redirected from
+a pipe or file.
+This file is only present if the
+\fIlog_input\fR
+or
+\fIlog_stdin\fR
+flags are set and the standard input is not connected to a terminal.
+.TP 10n
+\fIttyout\fR
+Output from the pseudo-terminal (what the command writes to the screen).
+Terminal-specific post-processing is performed before the data is logged.
+This means that, for example, line feeds are usually converted to
+line feed/carriage return pairs and tabs may be expanded to spaces.
+This file is only present if the
+\fIlog_output\fR
+or
+\fIlog_ttyout\fR
+flags are set and
+\fBsudo\fR
+was run from a terminal.
+.TP 10n
+\fIstdout\fR
+The standard output when no terminal is present, or output redirected to
+a pipe or file.
+This file is only present if the
+\fIlog_output\fR
+or
+\fIlog_stdout\fR
+flags are set and the standard output is not connected to a terminal.
+.TP 10n
+\fIstderr\fR
+The standard error when no terminal is present, or output redirected to
+a pipe or file.
+This file is only present if the
+\fIlog_output\fR
+or
+\fIlog_stderr\fR
+flags are set and the standard error is not connected to a terminal.
+.PP
+All files other than
+\fIlog\fR
+are compressed in gzip format unless the
+\fIcompress_io\fR
+flag has been disabled.
+Due to buffering, it is not normally possible to display the I/O logs in
+real-time as the program is executing.
+The I/O log data will not be complete until the program run by
+\fBsudo\fR
+has exited or has been terminated by a signal.
+The
+\fIiolog_flush\fR
+flag can be used to disable buffering, in which case I/O log data
+is written to disk as soon as it is available.
+The output portion of an I/O log file can be viewed with the
+sudoreplay(@mansectsu@)
+utility, which can also be used to list or search the available logs.
+.PP
+User input may contain sensitive information such as passwords (even
+if they are not echoed to the screen), which will be stored in the
+log file unencrypted.
+In most cases, logging the command output via
+\fIlog_output\fR
+or
+\fRLOG_OUTPUT\fR
+is all that is required.
+When logging input, consider disabling the
+\fIlog_passwords\fR
+flag.
+.PP
+Since each session's I/O logs are stored in a separate directory,
+traditional log rotation utilities cannot be used to limit the
+number of I/O logs.
+The simplest way to limit the number of I/O is by setting the
+\fImaxseq\fR
+option to the maximum number of logs you wish to store.
+Once the I/O log sequence number reaches
+\fImaxseq\fR,
+it will be reset to zero and
+\fBsudoers\fR
+will truncate and re-use any existing I/O logs.
+.SH "FILES"
+.TP 26n
+\fI@sysconfdir@/sudo.conf\fR
+Sudo front-end configuration
+.TP 26n
+\fI@sysconfdir@/sudoers\fR
+List of who can run what
+.TP 26n
+\fI/etc/group\fR
+Local groups file
+.TP 26n
+\fI/etc/netgroup\fR
+List of network groups
+.TP 26n
+\fI@iolog_dir@\fR
+I/O log files
+.TP 26n
+\fI@rundir@/ts\fR
+Directory containing time stamps for the
+\fBsudoers\fR
+security policy
+.TP 26n
+\fI@vardir@/lectured\fR
+Directory containing lecture status files for the
+\fBsudoers\fR
+security policy
+.TP 26n
+\fI/etc/environment\fR
+Initial environment for
+\fB\-i\fR
+mode on AIX and Linux systems
+.SH "EXAMPLES"
+Below are example
+\fIsudoers\fR
+file entries.
+Admittedly, some of these are a bit contrived.
+First, we allow a few environment variables to pass and then define our
+\fIaliases\fR:
+.nf
+.sp
+.RS 0n
+# Run X applications through sudo; HOME is used to find the
+# .Xauthority file.  Other programs use HOME to locate configuration
+# files and this may lead to privilege escalation!
+Defaults env_keep += "DISPLAY HOME"
+
+# User alias specification
+User_Alias	FULLTIMERS = millert, mikef, dowdy
+User_Alias	PARTTIMERS = bostley, jwfox, crawl
+User_Alias	WEBADMIN = will, wendy, wim
+
+# Runas alias specification
+Runas_Alias	OP = root, operator
+Runas_Alias	DB = oracle, sybase
+Runas_Alias	ADMINGRP = adm, oper
+
+# Host alias specification
+Host_Alias	SPARC = bigtime, eclipse, moet, anchor :\e
+		SGI = grolsch, dandelion, black :\e
+		ALPHA = widget, thalamus, foobar :\e
+		HPPA = boa, nag, python
+Host_Alias	CUNETS = 128.138.0.0/255.255.0.0
+Host_Alias	CSNETS = 128.138.243.0, 128.138.204.0/24, 128.138.242.0
+Host_Alias	SERVERS = primary, mail, www, ns
+Host_Alias	CDROM = orion, perseus, hercules
+
+# Cmnd alias specification
+Cmnd_Alias	DUMPS = /usr/bin/mt, /usr/sbin/dump, /usr/sbin/rdump,\e
+			/usr/sbin/restore, /usr/sbin/rrestore,\e
+			sha224:0GomF8mNN3wlDt1HD9XldjJ3SNgpFdbjO1+NsQ== \e
+			/home/operator/bin/start_backups
+Cmnd_Alias	KILL = /usr/bin/kill
+Cmnd_Alias	PRINTING = /usr/sbin/lpc, /usr/bin/lprm
+Cmnd_Alias	SHUTDOWN = /usr/sbin/shutdown
+Cmnd_Alias	HALT = /usr/sbin/halt
+Cmnd_Alias	REBOOT = /usr/sbin/reboot
+Cmnd_Alias	SHELLS = /usr/bin/sh, /usr/bin/csh, /usr/bin/ksh,\e
+			 /usr/local/bin/tcsh, /usr/bin/rsh,\e
+			 /usr/local/bin/zsh
+Cmnd_Alias	SU = /usr/bin/su
+Cmnd_Alias	PAGERS = /usr/bin/more, /usr/bin/pg, /usr/bin/less
+.RE
+.fi
+.PP
+Here we override some of the compiled in default values.
+We want
+\fBsudo\fR
+to log via
+syslog(3)
+using the
+\fIauth\fR
+facility in all cases and for commands to be run with
+the target user's home directory as the working directory.
+We don't want to subject the full time staff to the
+\fBsudo\fR
+lecture and we want to allow them to run commands in a
+chroot(2)
+\(lqsandbox\(rq
+via the
+\fB\-R\fR
+option.
+User
+\fBmillert\fR
+need not provide a password and we don't want to reset the
+\fRLOGNAME\fR
+or
+\fRUSER\fR
+environment variables when running commands as
+\fBroot\fR.
+Additionally, on the machines in the
+\fRSERVERS\fR
+\fIHost_Alias\fR,
+we keep an additional local log file and make sure we log the year
+in each log line since the log entries will be kept around for several years.
+Lastly, we disable shell escapes for the commands in the PAGERS
+\fICmnd_Alias\fR
+(\fI/usr/bin/more\fR,
+\fI/usr/bin/pg\fR
+and
+\fI/usr/bin/less\fR)
+\&.
+This will not effectively constrain users with
+\fBsudo\fR
+\fBALL\fR
+privileges.
+.nf
+.sp
+.RS 0n
+# Override built-in defaults
+Defaults		syslog=auth,runcwd=~
+Defaults>root		!set_logname
+Defaults:FULLTIMERS	!lecture,runchroot=*
+Defaults:millert	!authenticate
+Defaults@SERVERS	log_year, logfile=@log_dir@/sudo.log
+Defaults!PAGERS		noexec
+.RE
+.fi
+.PP
+The
+\fIUser specification\fR
+is the part that actually determines who may run what.
+.nf
+.sp
+.RS 0n
+root		ALL = (ALL) ALL
+%wheel		ALL = (ALL) ALL
+.RE
+.fi
+.PP
+We let
+\fBroot\fR
+and any user in group
+\fBwheel\fR
+run any command on any host as any user.
+.nf
+.sp
+.RS 0n
+FULLTIMERS	ALL = NOPASSWD: ALL
+.RE
+.fi
+.PP
+Full time sysadmins
+(\fBmillert\fR,
+\fBmikef\fR,
+and
+\fBdowdy\fR)
+may run any command on any host without authenticating themselves.
+.nf
+.sp
+.RS 0n
+PARTTIMERS	ALL = ALL
+.RE
+.fi
+.PP
+Part time sysadmins
+\fBbostley\fR,
+\fBjwfox\fR,
+and
+\fBcrawl\fR)
+may run any command on any host but they must authenticate themselves
+first (since the entry lacks the
+\fRNOPASSWD\fR
+tag).
+.nf
+.sp
+.RS 0n
+jack		CSNETS = ALL
+.RE
+.fi
+.PP
+The user
+\fBjack\fR
+may run any command on the machines in the
+\fRCSNETS\fR
+alias (the networks 128.138.243.0, 128.138.204.0, and 128.138.242.0).
+Of those networks, only 128.138.204.0 has an explicit netmask (in
+CIDR notation) indicating it is a class C network.
+For the other networks in
+\fRCSNETS\fR,
+the local machine's netmask will be used during matching.
+.nf
+.sp
+.RS 0n
+lisa		CUNETS = ALL
+.RE
+.fi
+.PP
+The user
+\fBlisa\fR
+may run any command on any host in the
+\fRCUNETS\fR
+alias (the class B network 128.138.0.0).
+.nf
+.sp
+.RS 0n
+operator	ALL = DUMPS, KILL, SHUTDOWN, HALT, REBOOT, PRINTING,\e
+		sudoedit /etc/printcap, /usr/oper/bin/
+.RE
+.fi
+.PP
+The
+\fBoperator\fR
+user may run commands limited to simple maintenance.
+Here, those are commands related to backups, killing processes, the
+printing system, shutting down the system, and any commands in the
+directory
+\fI/usr/oper/bin/\fR.
+One command in the
+\fRDUMPS\fR
+Cmnd_Alias includes a sha224 digest,
+\fI/home/operator/bin/start_backups\fR.
+This is because the directory containing the script is writable by the
+operator user.
+If the script is modified (resulting in a digest mismatch) it will no longer
+be possible to run it via
+\fBsudo\fR.
+.nf
+.sp
+.RS 0n
+joe		ALL = /usr/bin/su operator
+.RE
+.fi
+.PP
+The user
+\fBjoe\fR
+may only
+su(1)
+to operator.
+.nf
+.sp
+.RS 0n
+pete		HPPA = /usr/bin/passwd [A-Za-z]*, !/usr/bin/passwd *root*
+
+%opers		ALL = (: ADMINGRP) /usr/sbin/
+.RE
+.fi
+.PP
+Users in the
+\fBopers\fR
+group may run commands in
+\fI/usr/sbin/\fR
+as themselves
+with any group in the
+\fRADMINGRP\fR
+\fIRunas_Alias\fR
+(the
+\fBadm\fR
+and
+\fBoper\fR
+groups).
+.PP
+The user
+\fBpete\fR
+is allowed to change anyone's password except for
+\fBroot\fR
+on the
+\fRHPPA\fR
+machines.
+Because command line arguments are matched as a single,
+concatenated string, the
+\(oq*\(cq
+wildcard will match
+\fImultiple\fR
+words.
+This example assumes that
+passwd(1)
+does not take multiple user names on the command line.
+On systems with GNU
+getopt(3),
+options to
+passwd(1)
+may be specified after the user argument.
+As a result, this rule will also allow:
+.nf
+.sp
+.RS 4n
+passwd username --expire
+.RE
+.fi
+.PP
+which may not be desirable.
+.nf
+.sp
+.RS 0n
+bob		SPARC = (OP) ALL : SGI = (OP) ALL
+.RE
+.fi
+.PP
+The user
+\fBbob\fR
+may run anything on the
+\fRSPARC\fR
+and
+\fRSGI\fR
+machines as any user listed in the
+\fROP\fR
+\fIRunas_Alias\fR
+(\fBroot\fR
+and
+\fBoperator\fR.)
+.nf
+.sp
+.RS 0n
+jim		+biglab = ALL
+.RE
+.fi
+.PP
+The user
+\fBjim\fR
+may run any command on machines in the
+\fIbiglab\fR
+netgroup.
+\fBsudo\fR
+knows that
+\(lqbiglab\(rq
+is a netgroup due to the
+\(oq+\(cq
+prefix.
+.nf
+.sp
+.RS 0n
++secretaries	ALL = PRINTING, /usr/bin/adduser, /usr/bin/rmuser
+.RE
+.fi
+.PP
+Users in the
+\fBsecretaries\fR
+netgroup need to help manage the printers as well as add and remove users,
+so they are allowed to run those commands on all machines.
+.nf
+.sp
+.RS 0n
+fred		ALL = (DB) NOPASSWD: ALL
+.RE
+.fi
+.PP
+The user
+\fBfred\fR
+can run commands as any user in the
+\fRDB\fR
+\fIRunas_Alias\fR
+(\fBoracle\fR
+or
+\fBsybase\fR)
+without giving a password.
+.nf
+.sp
+.RS 0n
+john		ALPHA = /usr/bin/su [!-]*, !/usr/bin/su *root*
+.RE
+.fi
+.PP
+On the
+\fRALPHA\fR
+machines, user
+\fBjohn\fR
+may su to anyone except
+\fBroot\fR
+but he is not allowed to specify any options to the
+su(1)
+command.
+.nf
+.sp
+.RS 0n
+jen		ALL, !SERVERS = ALL
+.RE
+.fi
+.PP
+The user
+\fBjen\fR
+may run any command on any machine except for those in the
+\fRSERVERS\fR
+\fIHost_Alias\fR
+(primary, mail, www, and ns).
+.nf
+.sp
+.RS 0n
+jill		SERVERS = /usr/bin/, !SU, !SHELLS
+.RE
+.fi
+.PP
+For any machine in the
+\fRSERVERS\fR
+\fIHost_Alias\fR,
+\fBjill\fR
+may run
+any commands in the directory
+\fI/usr/bin/\fR
+except for those commands
+belonging to the
+\fRSU\fR
+and
+\fRSHELLS\fR
+\fICmnd_Aliases\fR.
+While not specifically mentioned in the rule, the commands in the
+\fRPAGERS\fR
+\fICmnd_Alias\fR
+all reside in
+\fI/usr/bin\fR
+and have the
+\fInoexec\fR
+option set.
+.nf
+.sp
+.RS 0n
+steve		CSNETS = (operator) /usr/local/op_commands/
+.RE
+.fi
+.PP
+The user
+\fBsteve\fR
+may run any command in the directory /usr/local/op_commands/
+but only as user operator.
+.nf
+.sp
+.RS 0n
+matt		valkyrie = KILL
+.RE
+.fi
+.PP
+On his personal workstation, valkyrie,
+\fBmatt\fR
+needs to be able to kill hung processes.
+.nf
+.sp
+.RS 0n
+WEBADMIN	www = (www) ALL, (root) /usr/bin/su www
+.RE
+.fi
+.PP
+On the host www, any user in the
+\fRWEBADMIN\fR
+\fIUser_Alias\fR
+(will, wendy, and wim), may run any command as user www (which owns the
+web pages) or simply
+su(1)
+to www.
+.nf
+.sp
+.RS 0n
+ALL		CDROM = NOPASSWD: /sbin/umount /CDROM,\e
+		/sbin/mount -o nosuid\e,nodev /dev/cd0a /CDROM
+.RE
+.fi
+.PP
+Any user may mount or unmount a CD-ROM on the machines in the CDROM
+\fIHost_Alias\fR
+(orion, perseus, hercules) without entering a password.
+This is a bit tedious for users to type, so it is a prime candidate
+for encapsulating in a shell script.
+.SH "SECURITY NOTES"
+.SS "Limitations of the \(oq!\&\(cq operator"
+It is generally not effective to
+\(lqsubtract\(rq
+commands from
+\fBALL\fR
+using the
+\(oq!\&\(cq
+operator.
+A user can trivially circumvent this by copying the desired command
+to a different name and then executing that.
+For example:
+.nf
+.sp
+.RS 0n
+bill	ALL = ALL, !SU, !SHELLS
+.RE
+.fi
+.PP
+Doesn't really prevent
+\fBbill\fR
+from running the commands listed in
+\fRSU\fR
+or
+\fRSHELLS\fR
+since he can simply copy those commands to a different name, or use
+a shell escape from an editor or other program.
+Therefore, these kind of restrictions should be considered
+advisory at best (and reinforced by policy).
+.PP
+In general, if a user has sudo
+\fBALL\fR
+there is nothing to prevent them from creating their own program that gives
+them a
+\fBroot\fR
+shell (or making their own copy of a shell) regardless of any
+\(oq!\&\(cq
+elements in the user specification.
+.SS "Security implications of \fIfast_glob\fR"
+If the
+\fIfast_glob\fR
+option is in use, it is not possible to reliably negate commands where the
+path name includes globbing (aka wildcard) characters.
+This is because the C library's
+fnmatch(3)
+function cannot resolve relative paths.
+While this is typically only an inconvenience for rules that grant privileges,
+it can result in a security issue for rules that subtract or revoke privileges.
+.PP
+For example, given the following
+\fIsudoers\fR
+file entry:
+.nf
+.sp
+.RS 0n
+john	ALL = /usr/bin/passwd [a-zA-Z0-9]*, /usr/bin/chsh [a-zA-Z0-9]*,\e
+              /usr/bin/chfn [a-zA-Z0-9]*, !/usr/bin/* root
+.RE
+.fi
+.PP
+User
+\fBjohn\fR
+can still run
+\(oq/usr/bin/passwd root\(cq
+if
+\fIfast_glob\fR
+is enabled by changing to
+\fI/usr/bin\fR
+and running
+\(oq./passwd root\(cq
+instead.
+.PP
+Another potential issue is that when
+\fBsudo\fR
+executes the command, it must use the command or path specified by
+the user instead of a path listed in the
+\fIsudoers\fR
+file.
+This may lead to a time of check versus time of use race condition.
+.SS "Wildcards in command arguments"
+Command line arguments are matched as a single, concatenated string.
+This mean a wildcard character such as
+\(oq\&?\(cq
+or
+\(oq*\(cq
+will match across word boundaries, which may be unexpected.
+For example, while a sudoers entry like:
+.nf
+.sp
+.RS 4n
+%operator ALL = /bin/cat @log_dir@/messages*
+.RE
+.fi
+.PP
+will allow command like:
+.nf
+.sp
+.RS 4n
+$ sudo cat @log_dir@/messages.1
+.RE
+.fi
+.PP
+It will also allow:
+.nf
+.sp
+.RS 4n
+$ sudo cat @log_dir@/messages /etc/shadow
+.RE
+.fi
+.PP
+which is probably not what was intended.
+A safer alternative is to use a regular expression for matching
+command line arguments.
+The above example can be rewritten as a regular expression:
+.nf
+.sp
+.RS 4n
+%operator ALL = /bin/cat ^@log_dir@/messages[^[:space:]]*$
+.RE
+.fi
+.PP
+The regular expression will only match a single file with a
+name that begins with
+\fI@log_dir@/messages\fR
+and does not include any white space in the name.
+It is often better to do command line processing outside of the
+\fIsudoers\fR
+file in a scripting language for anything non-trivial.
+.SS "Regular expressions in command names"
+Using a regular expression to match a command name has the same
+security implications as using the
+\fIfast_glob\fR
+option:
+.TP 3n
+\fB\(bu\fR
+It is not possible to reliably negate commands when the
+path name is a regular expression.
+.TP 3n
+\fB\(bu\fR
+When
+\fBsudo\fR
+executes the command, it must use the command or path specified by
+the user instead of a path listed in the
+\fIsudoers\fR
+file.
+This may lead to a time of check versus time of use race condition.
+.PP
+These issues do not apply to rules where only the command line
+options are matched using a regular expression.
+.SS "Preventing shell escapes"
+Once
+\fBsudo\fR
+executes a program, that program is free to do whatever
+it pleases, including run other programs.
+This can be a security issue since it is not uncommon for a program to
+allow shell escapes, which lets a user bypass
+\fBsudo\fR's
+access control and logging.
+Common programs that permit shell escapes include shells (obviously),
+editors, paginators, mail, and terminal programs.
+.PP
+There are four basic approaches to this problem:
+.TP 11n
+restrict
+Avoid giving users access to commands that allow the user to run
+arbitrary commands.
+Many editors have a restricted mode where shell
+escapes are disabled, though
+\fBsudoedit\fR
+is a better solution to
+running editors via
+\fBsudo\fR.
+Due to the large number of programs that
+offer shell escapes, restricting users to the set of programs that
+do not is often unworkable.
+.TP 11n
+intercept
+On most systems,
+\fBsudo\fR's
+\fIintercept\fR
+functionality can be used to transparently intercept an attempt to
+run a new command, allow or deny it based on
+\fIsudoers\fR
+rules, and log the result.
+For example, this can be used to restrict the commands run from
+within a privileged shell or editor.
+However, not all programs operate correctly when
+\fIintercept\fR
+is enabled.
+.sp
+There are two underlying mechanisms that may be used to implement
+\fIintercept\fR
+mode:
+\fIdso\fR
+and
+\fItrace\fR.
+The
+\fIintercept_type\fR
+setting can be used to select between them.
+.sp
+The first mechanism,
+\fIdso\fR,
+overrides the standard C library functions that are used to execute a
+command.
+It does this by setting an environment variable (usually
+\fRLD_PRELOAD\fR)
+to the path of a dynamic shared object, or shared library,
+containing custom versions of the
+execve(2),
+execl(3),
+execle(3),
+execlp(3),
+execv(3),
+execvp(3),
+execvpe(3),
+and
+system(3)
+library functions that connect back to
+\fBsudo\fR
+for a policy decision.
+Note, however, that this applies only to dynamically-linked
+executables.
+It is not possible to intercept commands for statically-linked executables
+or executables that run under binary emulation this way.
+Because most dynamic loaders ignore
+\fRLD_PRELOAD\fR
+(or the equivalent) when running set-user-ID and set-group-ID programs,
+\fBsudoers\fR
+will not permit such programs to be run in
+\fIintercept\fR
+mode by default.
+The
+\fIdso\fR
+mechanism is incompatible with
+\fBsudo\fR's
+SELinux RBAC support (but see below).
+SELinux disables
+\fRLD_PRELOAD\fR
+by default and interferes with file descriptor inheritance, which
+\fBsudo\fR
+relies on.
+.sp
+The second mechanism,
+\fItrace\fR,
+is available on Linux systems that support
+seccomp(2)
+filtering.
+It uses
+ptrace(2)
+and
+seccomp(2)
+to intercept the
+execve(2)
+system call instead of pre-loading a dynamic shared object.
+Both static and dynamic executables are supported and it is compatible with
+\fBsudo\fR's
+SELinux RBAC mode.
+Functions utilizing the
+execveat(2)
+system call, such as
+fexecve(3),
+are not currently intercepted.
+Programs that rely on
+ptrace(2)
+themselves, such as debuggers and system call tracers
+(such as
+strace(1)
+and
+truss(1))
+will be unable to function if
+\fIintercept\fR
+is enabled in
+\fItrace\fR
+mode.
+This same restriction applies to the
+\fIlog_subcmds\fR
+sudoers option.
+.sp
+The
+\fIintercept\fR
+feature is known to work on Solaris, *BSD, Linux, macOS, HP-UX 11.x
+and AIX 5.3 and above.
+It should be supported on most operating systems that support the
+\fRLD_PRELOAD\fR
+environment variable or an equivalent.
+It is not possible to intercept shell built-in commands or restrict
+the ability to read or write sensitive files from within a shell.
+.sp
+To enable intercept mode on a per-command basis, use the
+\fRINTERCEPT\fR
+tag as documented in the User Specification section above.
+Here is that example again:
+.nf
+.sp
+.RS 11n
+chuck	research = INTERCEPT: ALL
+.RE
+.fi
+.RS 11n
+.sp
+This allows user
+\fBchuck\fR
+to run any command on the machine
+\(lqresearch\(rq
+in intercept mode.
+Any commands run via shell escapes will be validated and logged by
+\fBsudo\fR.
+If you are unsure whether or not your system is capable of supporting
+\fIintercept\fR,
+you can always just try it out and check whether or not external
+commands run via a shell are logged when
+\fIintercept\fR
+is enabled.
+.sp
+There is an inherent race condition between when a command is checked against
+\fBsudoers\fR
+rules and when it is actually executed.
+If a user is allowed to run arbitrary commands, they may be able
+to change the
+execve(2)
+arguments in the program after the
+\fBsudoers\fR
+policy check has completed but before the new command is executed.
+Starting with version 1.9.12, the
+\fItrace\fR
+method will verify that the command and its arguments have not
+changed after
+execve(2)
+has completed but before execution of the new program has had a chance to run.
+This is not the case with the
+\fIdso\fR
+method.
+See the description of the
+\fIintercept_verify\fR
+setting for more information.
+.RE
+.TP 11n
+log
+There are two separate but related ways to log additional commands.
+The first is to enable I/O logging using the
+\fIlog_output\fR
+flag.
+This will log the command's output but will not create an event log
+entry when the additional command is run.
+The second is to enable the
+\fIlog_subcmds\fR
+flag in
+\fIsudoers\fR
+which will create an event log entry every time a new command is run.
+If I/O logging is also enabled, the log entry will include a time offset
+into the I/O log to indicate when the command was run.
+This offset can be passed to the
+sudoreplay(@mansectsu@)
+utility to replay the I/O log at the exact moment when the command was run.
+The
+\fIlog_subcmds\fR
+flag uses the same mechanism as
+\fIintercept\fR
+(see above) and has the same limitations.
+.TP 11n
+noexec
+\fBsudo\fR's
+\fInoexec\fR
+functionality can be used to prevent a program run by
+\fBsudo\fR
+from executing any other programs.
+On most systems, it uses the same
+\fRLD_PRELOAD\fR
+mechanism as
+\fIintercept\fR
+(see above) and thus the same caveats apply.
+The
+\fInoexec\fR
+functionality
+is capable of blocking execution of commands run via the
+execve(2),
+execl(3),
+execle(3),
+execlp(3),
+exect(3),
+execv(3),
+execveat(3),
+execvP(3),
+execvp(3),
+execvpe(3),
+fexecve(3),
+popen(3),
+posix_spawn(3),
+posix_spawnp(3),
+system(3),
+and
+wordexp(3)
+functions.
+On Linux, a
+seccomp(2)
+filter is used to implement
+\fInoexec\fR.
+On Solaris 10 and higher,
+\fInoexec\fR
+uses Solaris privileges instead of the
+\fRLD_PRELOAD\fR
+environment variable.
+.sp
+To enable
+\fInoexec\fR
+for a command, use the
+\fRNOEXEC\fR
+tag as documented in the User Specification section above.
+Here is that example again:
+.nf
+.sp
+.RS 11n
+aaron	shanty = NOEXEC: /usr/bin/more, /usr/bin/vi
+.RE
+.fi
+.RS 11n
+.sp
+This allows user
+\fBaaron\fR
+to run
+\fI/usr/bin/more\fR
+and
+\fI/usr/bin/vi\fR
+with
+\fInoexec\fR
+enabled.
+This will prevent those two commands from
+executing other commands (such as a shell).
+If you are unsure whether or not your system is capable of supporting
+\fInoexec\fR
+you can always just try it out and check whether shell escapes work when
+\fInoexec\fR
+is enabled.
+.RE
+.PP
+Restricting shell escapes is not a panacea.
+Programs running as
+\fBroot\fR
+are still capable of many potentially hazardous operations (such
+as changing or overwriting files) that could lead to unintended
+privilege escalation.
+In the specific case of an editor, a safer approach is to give the
+user permission to run
+\fBsudoedit\fR
+(see below).
+.SS "Secure editing"
+The
+\fBsudoers\fR
+plugin includes
+\fBsudoedit\fR
+support which allows users to securely edit files with the editor
+of their choice.
+As
+\fBsudoedit\fR
+is a built-in command, it must be specified in the
+\fIsudoers\fR
+file without a leading path.
+However, it may take command line arguments just as a normal command does.
+Wildcards used in
+\fIsudoedit\fR
+command line arguments are expected to be path names, so a forward slash
+(\(oq/\(cq)
+will not be matched by a wildcard.
+.PP
+Unlike other
+\fBsudo\fR
+commands, the editor is run with the permissions of the invoking
+user and with the environment unmodified.
+More information may be found in the description of the
+\fB\-e\fR
+option in
+sudo(@mansectsu@).
+.PP
+For example, to allow user operator to edit the
+\(lqmessage of the day\(rq
+file on any machine:
+.nf
+.sp
+.RS 4n
+operator ALL = sudoedit /etc/motd
+.RE
+.fi
+.PP
+The operator user then runs
+\fBsudoedit\fR
+as follows:
+.nf
+.sp
+.RS 4n
+$ sudoedit /etc/motd
+.RE
+.fi
+.PP
+The editor will run as the operator user, not
+\fB@runas_default@\fR,
+on a temporary copy of
+\fI/etc/motd\fR.
+After the file has been edited,
+\fI/etc/motd\fR
+will be updated with the contents of the temporary copy.
+.PP
+Users should
+\fInever\fR
+be granted
+\fBsudoedit\fR
+permission to edit a file that resides in a directory the user
+has write access to, either directly or via a wildcard.
+If the user has write access to the directory it is possible to
+replace the legitimate file with a link to another file,
+allowing the editing of arbitrary files.
+To prevent this, starting with version 1.8.16, symbolic links will
+not be followed in writable directories and
+\fBsudoedit\fR
+will refuse to edit a file located in a writable directory
+unless the
+\fIsudoedit_checkdir\fR
+option has been disabled or the invoking user is
+\fBroot\fR.
+Additionally, in version 1.8.15 and higher,
+\fBsudoedit\fR
+will refuse to open a symbolic link unless either the
+\fIsudoedit_follow\fR
+option is enabled or the
+\fIsudoedit\fR
+command is prefixed with the
+\fRFOLLOW\fR
+tag in the
+\fIsudoers\fR
+file.
+.SS "Time stamp file checks"
+\fBsudoers\fR
+will check the ownership of its time stamp directory
+(\fI@rundir@/ts\fR
+by default)
+and ignore the directory's contents if it is not owned by
+\fBroot\fR
+or if it is writable by a user other than
+\fBroot\fR.
+Older versions of
+\fBsudo\fR
+stored time stamp files in
+\fI/tmp\fR;
+this is no longer recommended as it may be possible for a user
+to create the time stamp themselves on systems that allow
+unprivileged users to change the ownership of files they create.
+.PP
+While the time stamp directory
+\fIshould\fR
+be cleared at reboot time, not all systems contain a
+\fI/run\fR
+or
+\fI/var/run\fR
+directory.
+To avoid potential problems,
+\fBsudoers\fR
+will ignore time stamp files that date from before the machine booted
+on systems where the boot time is available.
+.PP
+Some systems with graphical desktop environments allow unprivileged
+users to change the system clock.
+Since
+\fBsudoers\fR
+relies on the system clock for time stamp validation, it may be
+possible on such systems for a user to run
+\fBsudo\fR
+for longer than
+\fItimestamp_timeout\fR
+by setting the clock back.
+To combat this,
+\fBsudoers\fR
+uses a monotonic clock (which never moves backwards) for its time stamps
+if the system supports it.
+.PP
+\fBsudoers\fR
+will not honor time stamps set far in the future.
+Time stamps with a date greater than current_time + 2 *
+\fRTIMEOUT\fR
+will be ignored and
+\fBsudoers\fR
+will log and complain.
+.PP
+If the
+\fItimestamp_type\fR
+option is set to
+\(lqtty\(rq,
+the time stamp record includes the device number of the terminal
+the user authenticated with.
+This provides per-terminal granularity but time stamp records may still
+outlive the user's session.
+.PP
+Unless the
+\fItimestamp_type\fR
+option is set to
+\(lqglobal\(rq,
+the time stamp record also includes the session ID of the process
+that last authenticated.
+This prevents processes in different terminal sessions from using
+the same time stamp record.
+On systems where a process's start time can be queried,
+the start time of the session leader
+is recorded in the time stamp record.
+If no terminal is present or the
+\fItimestamp_type\fR
+option is set to
+\(lqppid\(rq,
+the start time of the parent process is used instead.
+In most cases this will prevent a time stamp record from being re-used
+without the user entering a password when logging out and back in again.
+.SH "DEBUGGING"
+Versions 1.8.4 and higher of the
+\fBsudoers\fR
+plugin support a flexible debugging framework that can help track
+down what the plugin is doing internally if there is a problem.
+This can be configured in the
+sudo.conf(@mansectform@)
+file.
+.PP
+The
+\fBsudoers\fR
+plugin uses the same debug flag format as the
+\fBsudo\fR
+front-end:
+\fIsubsystem\fR@\fIpriority\fR.
+.PP
+The priorities used by
+\fBsudoers\fR,
+in order of decreasing severity,
+are:
+\fIcrit\fR, \fIerr\fR, \fIwarn\fR, \fInotice\fR, \fIdiag\fR, \fIinfo\fR, \fItrace\fR,
+and
+\fIdebug\fR.
+Each priority, when specified, also includes all priorities higher
+than it.
+For example, a priority of
+\fInotice\fR
+would include debug messages logged at
+\fInotice\fR
+and higher.
+.PP
+The following subsystems are used by the
+\fBsudoers\fR
+plugin:
+.TP 10n
+\fIalias\fR
+\fIUser_Alias\fR,
+\fIRunas_Alias\fR,
+\fIHost_Alias\fR
+and
+\fICmnd_Alias\fR
+processing
+.TP 10n
+\fIall\fR
+matches every subsystem
+.TP 10n
+\fIaudit\fR
+BSM and Linux audit code
+.TP 10n
+\fIauth\fR
+user authentication
+.TP 10n
+\fIdefaults\fR
+\fIsudoers\fR
+file
+\fIDefaults\fR
+settings
+.TP 10n
+\fIenv\fR
+environment handling
+.TP 10n
+\fIldap\fR
+LDAP-based sudoers
+.TP 10n
+\fIlogging\fR
+logging support
+.TP 10n
+\fImatch\fR
+matching of users, groups, hosts, and netgroups in the
+\fIsudoers\fR
+file
+.TP 10n
+\fInetif\fR
+network interface handling
+.TP 10n
+\fInss\fR
+network service switch handling in
+\fBsudoers\fR
+.TP 10n
+\fIparser\fR
+\fIsudoers\fR
+file parsing
+.TP 10n
+\fIperms\fR
+permission setting
+.TP 10n
+\fIplugin\fR
+The equivalent of
+\fImain\fR
+for the plugin.
+.TP 10n
+\fIpty\fR
+pseudo-terminal related code
+.TP 10n
+\fIrbtree\fR
+redblack tree internals
+.TP 10n
+\fIsssd\fR
+SSSD-based sudoers
+.TP 10n
+\fIutil\fR
+utility functions
+.PP
+For example:
+.nf
+.sp
+.RS 0n
+Debug @sudoers_plugin@ @log_dir@/sudoers_debug match@info,nss@info
+.RE
+.fi
+.PP
+For more information, see the
+sudo.conf(@mansectform@)
+manual.
+.SH "SEE ALSO"
+ssh(1),
+su(1),
+fnmatch(3),
+glob(3),
+mktemp(3),
+strftime(3),
+sudo.conf(@mansectform@),
+sudo_plugin(@mansectform@),
+sudoers.ldap(@mansectform@),
+sudoers_timestamp(@mansectform@),
+sudo(@mansectsu@),
+visudo(@mansectsu@)
+.SH "AUTHORS"
+Many people have worked on
+\fBsudo\fR
+over the years; this version consists of code written primarily by:
+.sp
+.RS 6n
+Todd C. Miller
+.RE
+.PP
+See the CONTRIBUTORS.md file in the
+\fBsudo\fR
+distribution (https://www.sudo.ws/about/contributors/) for an
+exhaustive list of people who have contributed to
+\fBsudo\fR.
+.SH "CAVEATS"
+The
+\fIsudoers\fR
+file should
+\fBalways\fR
+be edited by the
+\fBvisudo\fR
+utility which locks the file and checks for syntax errors.
+If
+\fIsudoers\fR
+contains syntax errors,
+\fBsudo\fR
+may refuse to run, which is a serious problem if
+\fBsudo\fR
+is your only method of obtaining superuser privileges.
+Recent versions of
+\fBsudoers\fR
+will attempt to recover after a syntax error by ignoring the rest of
+the line after encountering an error.
+Older versions of
+\fBsudo\fR
+will not run if
+\fIsudoers\fR
+contains a syntax error.
+.PP
+When using netgroups of machines (as opposed to users), if you
+store fully qualified host name in the netgroup (as is usually the
+case), you either need to have the machine's host name be fully qualified
+as returned by the
+\fIhostname\fR
+command or use the
+\fIfqdn\fR
+option in
+\fIsudoers\fR.
+.SH "BUGS"
+If you believe you have found a bug in
+\fBsudo\fR,
+you can submit a bug report at https://bugzilla.sudo.ws/
+.SH "SUPPORT"
+Limited free support is available via the sudo-users mailing list,
+see https://www.sudo.ws/mailman/listinfo/sudo-users to subscribe or
+search the archives.
+.SH "DISCLAIMER"
+\fBsudo\fR
+is provided
+\(lqAS IS\(rq
+and any express or implied warranties, including, but not limited
+to, the implied warranties of merchantability and fitness for a
+particular purpose are disclaimed.
+See the LICENSE.md file distributed with
+\fBsudo\fR
+or https://www.sudo.ws/about/license/ for complete details.

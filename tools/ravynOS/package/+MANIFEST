@@ -1,0 +1,20 @@
+name = "ravynos-bin"
+version = "%%VERSION%%"
+origin = "ravynos/bin"
+comment = "System tools (/usr/bin) from ravynOS"
+licenses = [ "MIT" ]
+desc = <<EOD
+This package provides some system tools normally found
+in /usr/bin on ravynOS, an open-source BSD-derived
+operating system aiming for macOS compatibility.
+EOD
+deps : {
+  "ravynos-frameworks" : {
+    "version" : "%%VERSION%%",
+    "origin" : "ravynos/frameworks"
+  }
+}
+arch = "amd64"
+www = "https://ravynos.com"
+maintainer = "zoe@ravynos.com"
+prefix = "/"

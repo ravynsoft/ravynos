@@ -1,0 +1,43 @@
+#compdef git-buildpackage
+#description build Debian packages from a git repository
+
+_arguments \
+  '--version[show program version number and exit]' \
+  '--help[show help message and exit]' \
+  '--git-ignore-new[build with uncommitted changes in the source tree]' \
+  '--git-no-ignore-new[negates --git-ignore-new]' \
+  '--git-verbose[verbose command execution]' \
+  '--git-tag[create a tag after a successful build]' \
+  '--git-tag-only[do not build, only tag and run the posttag hook]' \
+  '--git-retag[do not fail if the tag already exists]' \
+  '--git-sign-tags[sign tags]' \
+  '--git-no-sign-tags[negates --git-sign-tags]' \
+  '--git-keyid=-[GPG keyid to sign tags with]:GPG key:' \
+  '--git-debian-tag=-[format string for debian tags]:format string [debian/%%(version)s]' \
+  '--git-upstream-tag=-[format string for upstream tags]:format string [upstream/%%(version)s]' \
+  '--git-pristine-tar[use pristine-tar to create .orig.tar.gz]' \
+  '--git-no-pristine-tar[negates --git-pristine-tar]' \
+  '--git-force-create[force creation of orig.tar.gz]' \
+  '--git-no-create-orig[do not create orig.tar.gz]' \
+  '--git-tarball-dir=-[location to look for external tarballs]:tarball directory:_files -/' \
+  '--git-compression=-[compression type]:compression type [auto]:(auto gzip bzip2 lzma xz)' \
+  '--git-compression-level=-[set compression level]:level:(1 2 3 4 5 6 7 8 9)' \
+  '--git-upstream-branch=-[upstream branch]::' \
+  '--git-debian-branch=-[branch the Debian package is being developed on]::' \
+  '--git-ignore-branch[build although debian-branch != current branch]' \
+  '--git-no-ignore-branch[negates --git-ignore-branch]' \
+  '--git-builder=-[command to build the Debian package]:command:' \
+  '--git-cleaner=-[command to clean the working copy]:command:' \
+  '--git-prebuild=-[command to run before a build]:command:' \
+  '--git-postbuild=-[hook run after a successful build]:command:' \
+  '--git-posttag=-[hook run after a successful tag operation]:command:' \
+  '--git-pbuilder[invoke git-pbuilder for building]' \
+  '--git-no-pbuilder[negates --git-pbuilder]' \
+  '--git-dist=-[build for this distribution when using git-pbuilder]:distribution:' \
+  '--git-arch=-[build for this architecture when using git-pbuilder]:architecture:' \
+  '--git-export-dir=-[before building the package export the source into this directory]:directory:_files -/' \
+  '--git-export=-[export treeish object instead of HEAD]:treeish:' \
+  '--git-dont-purge[retain exported package build directory]' \
+  '--git-overlay[extract orig tarball when using export-dir option]' \
+  '--git-no-overlay[negates --git-overlay]' \
+  '*:other options:_dpkg-buildpackage'

@@ -1,0 +1,14 @@
+[name]
+Hyphen in S<>
+
+[input]
+=head1 Hyphen in SE<lt>E<gt>
+
+Don't S<transform even-this hyphen>.  This "one's-fine!", as well.  However,
+$-0.13 should have a real hyphen.
+
+[output]
+.SH "Hyphen in S<>"
+.IX Header "Hyphen in S<>"
+Don't transform\ even-this\ hyphen.  This "one's-fine!", as well.  However,
+$\-0.13 should have a real hyphen.

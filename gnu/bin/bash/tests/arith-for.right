@@ -1,0 +1,86 @@
+0
+1
+2
+0
+1
+2
+0
+1
+2
+0
+2
+4
+fx is a function
+fx () 
+{ 
+    i=0;
+    for ((1; i < 3; i++ ))
+    do
+        echo $i;
+    done;
+    for ((i=0; 1; i++ ))
+    do
+        if (( i >= 3 )); then
+            break;
+        fi;
+        echo $i;
+    done;
+    for ((i=0; i<3; 1))
+    do
+        echo $i;
+        (( i++ ));
+    done;
+    i=0;
+    for ((1; 1; 1))
+    do
+        if (( i > 2 )); then
+            break;
+        fi;
+        echo $i;
+        (( i++ ));
+    done;
+    i=0;
+    for ((1; 1; 1))
+    do
+        if (( i > 2 )); then
+            break;
+        fi;
+        echo $i;
+        (( i++ ));
+    done
+}
+0
+1
+2
+0
+1
+2
+0
+1
+2
+0
+1
+2
+0
+1
+2
+bash: -c: line 1: syntax error: arithmetic expression required
+bash: -c: line 1: syntax error: `(( i=0; "i < 3" ))'
+2
+bash: -c: line 1: syntax error: `;' unexpected
+bash: -c: line 1: syntax error: `(( i=0; i < 3; i++; 7 ))'
+2
+20
+20
+12345678 987654321 012345678 987654321 012345678 987654321 012345678 987654321 012345678 987654321 012345678 
+12345678 987654321 012345678 987654321 012345678 987654321 012345678 987654321 012345678 987654321 012345678 
+4
+3
+2
+1
+0
+4
+3
+2
+1
+0

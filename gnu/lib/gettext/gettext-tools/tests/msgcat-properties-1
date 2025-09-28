@@ -1,0 +1,35 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --use-first option with Java .properties syntax.
+
+cat <<\EOF > mcat-p-1.in1
+#. Help text (HTML-like) START
+#: clients/inst_ask_config.ycp:119
+Congratulations\!=Gl\u00fcckwunsch\!
+EOF
+
+cat <<\EOF > mcat-p-1.in2
+#. Help text (HTML-like) START
+#: clients/inst_ask_config.ycp:119
+Congratulations\!=Herzlichen Gl\u00fcckwunsch\!
+EOF
+
+rm -f mcat-p-1.tmp
+
+: ${MSGCAT=msgcat}
+${MSGCAT} --use-first --more-than=0 --properties-input --properties-output \
+    -o mcat-p-1.tmp mcat-p-1.in1 mcat-p-1.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcat-p-1.tmp > mcat-p-1.out || Exit 1
+
+cat << \EOF > mcat-p-1.ok
+#. Help text (HTML-like) START
+#: clients/inst_ask_config.ycp:119
+Congratulations\!=Gl\u00fcckwunsch\!
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcat-p-1.ok mcat-p-1.out
+result=$?
+
+exit $result

@@ -1,0 +1,7 @@
+Example sudo python plugin will log to /some/not/writable/directory/sudo.log
+Traceback:
+  File "SRC_DIR/example_io_plugin.py", line 64, in __init__
+    self._open_log_file(path.join(log_path, "sudo.log"))
+  File "SRC_DIR/example_io_plugin.py", line 134, in _open_log_file
+    self._log_file = open(log_path, "a")
+

@@ -1,0 +1,485 @@
+# Expect script for simple native Linux/x86 tests.
+#   Copyright (C) 2018-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+# Linux/x86 tests.
+if { ![istarget "i?86-*-linux*"] \
+       && ![istarget "x86_64-*-linux*"] \
+       && ![istarget "amd64-*-linux*"] } {
+    return
+}
+
+run_ld_link_tests [list \
+    [list \
+	"Build pr24920.so" \
+	"-shared" \
+	"" \
+	"" \
+	{dummy.s} \
+	{} \
+	"pr24920.so" \
+    ] \
+    [list \
+	"Build pr24920" \
+	"-static " \
+	"-Bdynamic tmpdir/pr24920.so" \
+	"" \
+	{start.s} \
+	{{ld pr24920.err}} \
+	"pr24920" \
+    ] \
+]
+
+# Test very simple native Linux/x86 programs with linux-x86.S.
+run_ld_link_exec_tests [list \
+    [list \
+	"Run PR ld/23428 test" \
+	"--no-dynamic-linker -z separate-code -z noexecstack" \
+	"" \
+	{ linux-x86.S pr23428.c dummy.s } \
+	"pr23428" \
+	"pass.out" \
+	"$NOPIE_CFLAGS $NOSANITIZE_CFLAGS -fno-asynchronous-unwind-tables" \
+	"asm" \
+    ] \
+]
+
+run_ld_link_tests [list \
+    [list \
+	"Build x86-feature-1" \
+	"-z separate-code -z shstk" \
+	"" \
+	"-mx86-used-note=yes" \
+	{ start.s } \
+	{{readelf -n x86-feature-1a.rd}} \
+	"x86-feature-1" \
+    ] \
+]
+
+run_cc_link_tests [list \
+    [list \
+	"Build indirect-extern-access-1.so" \
+	"-shared -z noexecstack" \
+	"-fPIC" \
+	{ indirect-extern-access-1a.c } \
+	{} \
+	"indirect-extern-access-1.so" \
+    ] \
+    [list \
+	"Build indirect-extern-access-1a without PIE" \
+	"$NOPIE_LDFLAGS -Wl,--no-as-needed -z noexecstack \
+	 tmpdir/indirect-extern-access-1.so" \
+	"$NOPIE_CFLAGS" \
+	{ indirect-extern-access.S indirect-extern-access-1b.c } \
+	{{readelf -rn indirect-extern-access-1.rd}} \
+	"indirect-extern-access-1a" \
+    ] \
+    [list \
+	"Build indirect-extern-access-2.so" \
+	"-shared" \
+	"-fPIC" \
+	{ indirect-extern-access-2a.c } \
+	{} \
+	"indirect-extern-access-2.so" \
+    ] \
+    [list \
+	"Build indirect-extern-access-2a without PIE" \
+	"$NOPIE_LDFLAGS -Wl,--no-as-needed -z noexecstack \
+	 tmpdir/indirect-extern-access-2.so" \
+	"$NOPIE_CFLAGS" \
+	{ indirect-extern-access.S indirect-extern-access-1b.c } \
+	{{readelf -rn indirect-extern-access-2.rd}} \
+	"indirect-extern-access-2a" \
+    ] \
+    [list \
+	"Build indirect-extern-access-2b with PIE" \
+	"-pie -Wl,--no-as-needed -z noexecstack \
+	 tmpdir/indirect-extern-access-2.so" \
+	"-fpie" \
+	{ indirect-extern-access.S indirect-extern-access-2b.c } \
+	{{readelf -rn indirect-extern-access-3.rd}} \
+	"indirect-extern-access-2b" \
+    ] \
+    [list \
+	"Build pr28158.so" \
+	"-shared -Wl,-version-script,pr27128.t" \
+	"-fPIC" \
+	{ pr28158-1.c } \
+	{} \
+	"pr28158.so" \
+    ] \
+    [list \
+	"Build pr28158" \
+	"$NOPIE_LDFLAGS -Wl,--no-as-needed  \
+	 tmpdir/pr28158.so" \
+	"" \
+	{ pr28158-2.S } \
+	{{readelf {--dyn-syms -W} pr28158.rd} {nm -D pr28158.nd}} \
+	"pr28158" \
+    ] \
+    [list \
+	"Build pr29377.o" \
+	"-r -nostdlib -Wl,-z,noexecstack" \
+	"" \
+	{pr29377a.c indirect-extern-access.S} \
+	{} \
+	"pr29377.o" \
+    ] \
+    [list \
+	"Build pr29377" \
+	"$NOPIE_LDFLAGS tmpdir/pr29377.o" \
+	"-fPIC" \
+	{pr29377b.c} \
+	{} \
+	"pr29377" \
+    ] \
+]
+
+run_ld_link_exec_tests [list \
+    [list \
+	"Run indirect-extern-access-1a without PIE" \
+	"$NOPIE_LDFLAGS -z noexecstack" \
+	"" \
+	{ indirect-extern-access.S indirect-extern-access-1b.c } \
+	"indirect-extern-access-1a" \
+	"pass.out" \
+	"$NOPIE_CFLAGS" \
+	"" \
+	"" \
+	"tmpdir/indirect-extern-access-1.so" \
+    ] \
+    [list \
+	"Run indirect-extern-access-1b with PIE" \
+	"-pie -z noexecstack" \
+	"" \
+	{ indirect-extern-access.S indirect-extern-access-1b.c } \
+	"indirect-extern-access-1b" \
+	"pass.out" \
+	"-fpie" \
+	"" \
+	"" \
+	"tmpdir/indirect-extern-access-1.so" \
+    ] \
+    [list \
+	"Run indirect-extern-access-2a without PIE" \
+	"$NOPIE_LDFLAGS -z noexecstack" \
+	"" \
+	{ indirect-extern-access.S indirect-extern-access-2b.c } \
+	"indirect-extern-access-2a" \
+	"pass.out" \
+	"$NOPIE_CFLAGS" \
+	"" \
+	"" \
+	"tmpdir/indirect-extern-access-2.so" \
+    ] \
+    [list \
+	"Run indirect-extern-access-2b with PIE" \
+	"-pie -z noexecstack" \
+	"" \
+	{ indirect-extern-access.S indirect-extern-access-2b.c } \
+	"indirect-extern-access-2b" \
+	"pass.out" \
+	"-fpie" \
+	"" \
+	"" \
+	"tmpdir/indirect-extern-access-2.so" \
+    ] \
+]
+
+# Run-time tests which require working ifunc attribute support.
+if { [check_ifunc_attribute_available] } {
+    run_ld_link_exec_tests [list \
+	[list \
+	    "Run pr29797" \
+	    "-s" \
+	    "" \
+	    { pr29797.c } \
+	    "pr29797" \
+	    "pass.out" \
+	    "-O0" \
+	] \
+    ]
+}
+
+# Old gcc silently ignores __attribute__ ((aligned())) with too big alignment.
+proc compiler_honours_aligned { } {
+    global CC_FOR_TARGET READELF srcdir subdir
+    ld_compile $CC_FOR_TARGET $srcdir/$subdir/p_align-1.c tmpdir/p_align-1.o
+    set output [run_host_cmd "$READELF" "-SW tmpdir/p_align-1.o"]
+    if { [regexp { [.]data *PROGBITS .* 8388608[\n]} $output] } {
+	return 1
+    }
+    return 0
+}
+
+if { [check_compiler_available] && [compiler_honours_aligned] } {
+    run_ld_link_exec_tests [list \
+	[list \
+	    "Run p_align-1a without PIE" \
+	    "$NOPIE_LDFLAGS" \
+	    "" \
+	    { p_align-1.c } \
+	    "p_align-1a" \
+	    "pass.out" \
+	    "$NOPIE_CFLAGS" \
+	] \
+	[list \
+	    "Run p_align-1b with PIE" \
+	    "-pie" \
+	    "" \
+	    { p_align-1.c } \
+	    "p_align-1b" \
+	    "pass.out" \
+	    "-fpie" \
+	] \
+	[list \
+	    "Run p_align-1c with -Wl,-z,max-page-size=0x1000 without PIE" \
+	    "$NOPIE_LDFLAGS -Wl,-z,max-page-size=0x1000" \
+	    "" \
+	    { p_align-1.c } \
+	    "p_align-1c" \
+	    "pass.out" \
+	    "$NOPIE_CFLAGS" \
+	] \
+	[list \
+	    "Run p_align-1d with -Wl,-z,max-page-size=0x1000 with PIE" \
+	    "-pie -Wl,-z,max-page-size=0x1000" \
+	    "" \
+	    { p_align-1.c } \
+	    "p_align-1d" \
+	    "pass.out" \
+	    "-fpie" \
+	] \
+    ]
+} else {
+    unsupported "p_align-1"
+}
+
+proc elfedit_test { options test output } {
+    global ELFEDIT
+    global READELF
+    global srcdir
+    global subdir
+
+    set test_name "elfedit $options"
+    send_log "$ELFEDIT $options tmpdir/$test\n"
+    set got [remote_exec host "$ELFEDIT $options tmpdir/$test" "" "/dev/null"]
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	send_log "$got\n"
+	fail "$test_name"
+    }
+    send_log "$READELF -n $options tmpdir/$test > tmpdir/$output.out\n"
+    set got [remote_exec host "$READELF -n tmpdir/$test" "" "/dev/null" "tmpdir/$output.out"]
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	send_log "$got\n"
+	fail "$test_name"
+}
+    if { [regexp_diff tmpdir/$output.out $srcdir/$subdir/$output.rd] } then {
+	fail "$test_name"
+    } else {
+	pass "$test_name"
+    }
+}
+
+elfedit_test "--enable-x86-feature ibt --disable-x86-feature shstk" \
+		x86-feature-1 x86-feature-1b
+elfedit_test "--enable-x86-feature ibt" x86-feature-1 x86-feature-1b
+elfedit_test "--disable-x86-feature shstk" x86-feature-1 x86-feature-1c
+elfedit_test "--disable-x86-feature ibt" x86-feature-1 x86-feature-1d
+elfedit_test "--enable-x86-feature ibt --enable-x86-feature shstk" \
+		x86-feature-1 x86-feature-1e
+
+proc check_pr25749a {testname srcfilea srcfileb cflags ldflags lderror} {
+    global objcopy
+    global srcdir
+    global subdir
+
+    if { [istarget "i?86-*-linux*"] } {
+	set output_arch "i386:i386"
+	set output_target "elf32-i386"
+    } else {
+	set output_arch "i386:x86-64"
+	if {[istarget "x86_64-*-linux*-gnux32"]} {
+	    set output_target "elf32-x86-64"
+	} else {
+	    set output_target "elf64-x86-64"
+	}
+    }
+
+    # Suppress warning for unsupported attribute from older GCC.
+    append cflags " -w"
+
+    exec cp $srcdir/$subdir/$srcfilea $srcfilea
+    exec chmod +w $srcfilea
+    set pr25749_bin "$objcopy -B $output_arch -I binary -O $output_target $srcfilea tmpdir/pr25749-bin.o"
+    send_log "$pr25749_bin\n"
+    set got [remote_exec host "$pr25749_bin"]
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	send_log "$got\n"
+	fail "Convert $srcfilea to $output_target"
+	return
+    }
+
+    if {"$lderror" == ""} {
+	run_cc_link_tests [list \
+	    [list \
+		"Build $testname ($ldflags $cflags)" \
+		"$ldflags tmpdir/pr25749-bin.o -z noexecstack" \
+		"$cflags -I../bfd" \
+		[list $srcfilea $srcfileb]\
+		{{readelf {-Wr} pr25749.rd}}  \
+		"${testname}a" \
+	    ] \
+	]
+	run_ld_link_exec_tests [list \
+	    [list \
+		"Run ${testname}a ($ldflags $cflags)" \
+		"$ldflags tmpdir/pr25749-bin.o -z noexecstack" \
+		"" \
+		[list $srcfilea $srcfileb]\
+		"${testname}a" \
+		"pass.out" \
+		"$cflags -I../bfd" \
+	    ] \
+	]
+    } else {
+	run_cc_link_tests [list \
+	    [list \
+		"Build $testname ($ldflags $cflags)" \
+		"$ldflags tmpdir/pr25749-bin.o -z noexecstack" \
+		"$cflags -I../bfd" \
+		[list $srcfilea $srcfileb]\
+		[list [list error_output $lderror]] \
+		"$testname" \
+	    ] \
+	]
+    }
+}
+
+check_pr25749a "pr25749-1a" "pr25749-1.c" "pr25749-1a.c" "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS" ""
+check_pr25749a "pr25749-1a" "pr25749-1.c" "pr25749-1a.c" "-fPIE" "-pie" ""
+check_pr25749a "pr25749-1b" "pr25749-1.c" "pr25749-1b.c" "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS" ""
+if { [istarget "i?86-*-linux*"] || ![at_least_gcc_version 5 1] } {
+    check_pr25749a "pr25749-1b" "pr25749-1.c" "pr25749-1b.c" "-fPIE" "-pie" ""
+} else {
+    check_pr25749a "pr25749-1b" "pr25749-1.c" "pr25749-1b.c" "-fPIE" "-pie" "pr25749-1b.err"
+}
+check_pr25749a "pr25749-1c" "pr25749-1.c" "pr25749-1c.c" "-fPIC" "-shared" "pr25749-1b.err"
+check_pr25749a "pr25749-2a" "pr25749-2.c" "pr25749-2a.s" "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS" ""
+check_pr25749a "pr25749-2a" "pr25749-2.c" "pr25749-2a.s" "-fPIE" "-pie" ""
+check_pr25749a "pr25749-2b" "pr25749-2.c" "pr25749-2b.s" "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS" ""
+check_pr25749a "pr25749-2b" "pr25749-2.c" "pr25749-2b.s" "-fPIE" "-pie" ""
+check_pr25749a "pr25754-1a" "pr25754-1a.c" "pr25754-1b.s" "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS" ""
+check_pr25749a "pr25754-1b" "pr25754-1a.c" "pr25754-1b.s" "-fPIE" "$NOPIE_LDFLAGS" ""
+check_pr25749a "pr25754-1c" "pr25754-1a.c" "pr25754-1b.s" "-fPIC" "$NOPIE_LDFLAGS" ""
+check_pr25749a "pr25754-1d" "pr25754-1a.c" "pr25754-1b.s" "-fPIC" "-pie" ""
+if { [istarget "i?86-*-linux*"] || [istarget "x86_64-*-linux*-gnux32"]} {
+    check_pr25749a "pr25754-2a" "pr25754-2a.c" "pr25754-2b.s" "-fPIC" "$NOPIE_LDFLAGS" ""
+    check_pr25749a "pr25754-2b" "pr25754-2a.c" "pr25754-2b.s" "-fPIC" "-pie" ""
+} else {
+    check_pr25749a "pr25754-3a" "pr25754-3a.c" "pr25754-3b.s" "-fPIC" "$NOPIE_LDFLAGS" ""
+    check_pr25749a "pr25754-3b" "pr25754-3a.c" "pr25754-3b.s" "-fPIC" "-pie" ""
+}
+if { [istarget "i?86-*-linux*"] } {
+    check_pr25749a "pr25754-4a" "pr25754-4a.c" "pr25754-4b.s" "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS" ""
+    check_pr25749a "pr25754-4b" "pr25754-4a.c" "pr25754-4b.s" "-fpie" "-pie" ""
+    check_pr25749a "pr25754-5a" "pr25754-5a.c" "pr25754-5b.s" "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS" ""
+    check_pr25749a "pr25754-5b" "pr25754-5a.c" "pr25754-5b.s" "-fpie" "-pie" ""
+} else {
+    check_pr25749a "pr25754-4a" "pr25754-4a.c" "pr25754-4c.s" "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS" ""
+    check_pr25749a "pr25754-4b" "pr25754-4a.c" "pr25754-4c.s" "-fpie" "-pie" ""
+    check_pr25749a "pr25754-5a" "pr25754-5a.c" "pr25754-5c.s" "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS" ""
+    check_pr25749a "pr25754-5b" "pr25754-5a.c" "pr25754-5c.s" "-fpie" "-pie" ""
+    if { ![istarget "x86_64-*-linux*-gnux32"]} {
+	check_pr25749a "pr25754-6a" "pr25754-6a.c" "pr25754-6b.s" "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS" ""
+	check_pr25749a "pr25754-6b" "pr25754-6a.c" "pr25754-6b.s" "-fpie" "-pie" ""
+    }
+}
+
+proc check_pr25749b {testname srcfilea srcfileb cflags ldflags dsoldflags args} {
+    global objcopy
+    global srcdir
+    global subdir
+
+    if { [istarget "i?86-*-linux*"] } {
+	set output_arch "i386:i386"
+	set output_target "elf32-i386"
+    } else {
+	set output_arch "i386:x86-64"
+	if {[istarget "x86_64-*-linux*-gnux32"]} {
+	    set output_target "elf32-x86-64"
+	} else {
+	    set output_target "elf64-x86-64"
+	}
+    }
+
+    exec cp $srcdir/$subdir/$srcfilea $srcfilea
+    exec chmod +w $srcfilea
+    set pr25749_bin "$objcopy -B $output_arch -I binary -O $output_target $srcfilea tmpdir/pr25749-bin.o"
+    send_log "$pr25749_bin\n"
+    set got [remote_exec host "$pr25749_bin"]
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	send_log "$got\n"
+	fail "Convert $srcfilea to $output_target"
+	return
+    }
+
+    run_cc_link_tests [list \
+	[list \
+	    "Build lib${testname}.so ($dsoldflags)" \
+	    "-shared $dsoldflags tmpdir/pr25749-bin.o -z noexecstack" \
+	    "-fPIC -I../bfd" \
+	    [list $srcfileb] \
+	    {{readelf {-Wr} pr25749.rd}}  \
+	    "lib${testname}.so" \
+	] \
+    ]
+
+    set pass "pass.out"
+    if { [llength $args] > 0 } {
+	set pass [lindex $args 0]
+    }
+
+    run_ld_link_exec_tests [list \
+	[list \
+	    "Run ${testname}b ($ldflags $cflags)" \
+	    "$ldflags -Wl,--no-as-needed tmpdir/lib${testname}.so -z noexecstack" \
+	    "" \
+	    [list $srcfilea]\
+	    "${testname}b" \
+	    "$pass" \
+	    "$cflags -I../bfd" \
+	] \
+    ]
+}
+
+check_pr25749b "pr25749-1a" "pr25749-1.c" "pr25749-1a.c" "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS" ""
+check_pr25749b "pr25749-1a" "pr25749-1.c" "pr25749-1a.c" "-fPIE" "-pie" ""
+check_pr25749b "pr25749-1a" "pr25749-1.c" "pr25749-1a.c" "-fPIE" "-pie" "-Wl,-Bsymbolic"
+check_pr25749b "pr25749-1b" "pr25749-1.c" "pr25749-1b.c" "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS" "" "passall.out"
+check_pr25749b "pr25749-1b" "pr25749-1.c" "pr25749-1b.c" "-fPIE" "-pie" "" "passall.out"
+check_pr25749b "pr25749-1b" "pr25749-1.c" "pr25749-1b.c" "-fPIE" "-pie" "-Wl,-Bsymbolic"
+check_pr25749b "pr25749-1d" "pr25749-1.c" "pr25749-1d.c" "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS" "-Wl,-defsym=_begin=0"
+check_pr25749b "pr25749-1d" "pr25749-1.c" "pr25749-1d.c" "-fPIE" "-pie" "-Wl,-defsym=_begin=0"
+check_pr25749b "pr25749-1d" "pr25749-1.c" "pr25749-1d.c" "-fPIE" "-pie" "-Wl,-Bsymbolic -Wl,-defsym=_begin=0"
+check_pr25749b "pr25749-2a" "pr25749-2.c" "pr25749-2a.s" "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS" "" "passall.out"
+check_pr25749b "pr25749-2a" "pr25749-2.c" "pr25749-2a.s" "-fPIE" "-pie" "" "passall.out"
+check_pr25749b "pr25749-2b" "pr25749-2.c" "pr25749-2b.s" "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS" ""
+check_pr25749b "pr25749-2b" "pr25749-2.c" "pr25749-2b.s" "-fPIE" "-pie" ""

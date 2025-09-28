@@ -1,0 +1,420 @@
+{
+    "Defaults": [
+        {
+            "Binding": [
+                { "hostname": "somehost" }
+            ],
+            "Options": [
+                { "set_home": true }
+            ]
+        },
+        {
+            "Binding": [
+                { "hostname": "quoted\"" }
+            ],
+            "Options": [
+                { "set_home": true }
+            ]
+        },
+        {
+            "Binding": [
+                { "username": "you" }
+            ],
+            "Options": [
+                { "set_home": true }
+            ]
+        },
+        {
+            "Binding": [
+                { "username": "us\"" }
+            ],
+            "Options": [
+                { "set_home": true }
+            ]
+        },
+        {
+            "Binding": [
+                { "usergroup": "them" }
+            ],
+            "Options": [
+                { "set_home": true }
+            ]
+        },
+        {
+            "Binding": [
+                { "nonunixgroup": " non UNIX 0 c" }
+            ],
+            "Options": [
+                { "set_home": true }
+            ]
+        },
+        {
+            "Binding": [
+                { "netgroup": "net" }
+            ],
+            "Options": [
+                { "set_home": true }
+            ]
+        },
+        {
+            "Binding": [
+                { "username": "someone" }
+            ],
+            "Options": [
+                { "set_home": true }
+            ]
+        },
+        {
+            "Binding": [
+                { "username": "some one" }
+            ],
+            "Options": [
+                { "set_home": true }
+            ]
+        }
+    ],
+    "User_Aliases": {
+        "UA1": [
+            { "username": "foo" }
+        ],
+        "UA10": [
+            { "nonunixgroup": "C/non\"UNIX\"0 c" }
+        ],
+        "UA11": [
+            { "nonunixgroup": "C/non_UNIX_0 c" }
+        ],
+        "UA12": [
+            { "nonunixgroup": "C/non\\'UNIX_3 c" }
+        ],
+        "UA2": [
+            { "username": "foo.bar" }
+        ],
+        "UA3": [
+            { "username": "foo\"" }
+        ],
+        "UA4": [
+            { "username": "foo:bar" }
+        ],
+        "UA5": [
+            { "username": "foo:bar\"" }
+        ],
+        "UA6": [
+            { "usergroup": "baz" }
+        ],
+        "UA7": [
+            { "usergroup": "baz.biz" }
+        ],
+        "UA8": [
+            { "nonunixgroup": "C/non UNIX 0 c" }
+        ],
+        "UA9": [
+            { "nonunixgroup": "C/non\\'UNIX\\'1 c" }
+        ]
+    },
+    "Runas_Aliases": {
+        "RA1": [
+            { "username": "foo" }
+        ],
+        "RA2": [
+            { "username": "foo\"" }
+        ],
+        "RA3": [
+            { "username": "foo:bar" }
+        ],
+        "RA4": [
+            { "username": "foo:bar\"" }
+        ]
+    },
+    "User_Specs": [
+        {
+            "User_List": [
+                { "username": "foo" }
+            ],
+            "Host_List": [
+                { "hostname": "hosta" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "runasusers": [
+                        { "username": "root" }
+                    ],
+                    "Options": [
+                        { "setenv": true }
+                    ],
+                    "Commands": [
+                        { "command": "ALL" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "foo.bar" }
+            ],
+            "Host_List": [
+                { "hostname": "hostb" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "runasusers": [
+                        { "username": "root" }
+                    ],
+                    "Options": [
+                        { "setenv": true }
+                    ],
+                    "Commands": [
+                        { "command": "ALL" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "foo\"" }
+            ],
+            "Host_List": [
+                { "hostname": "hostc" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "runasusers": [
+                        { "username": "root" }
+                    ],
+                    "Options": [
+                        { "setenv": true }
+                    ],
+                    "Commands": [
+                        { "command": "ALL" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "foo:bar" }
+            ],
+            "Host_List": [
+                { "hostname": "hostd" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "runasusers": [
+                        { "username": "root" }
+                    ],
+                    "Options": [
+                        { "setenv": true }
+                    ],
+                    "Commands": [
+                        { "command": "ALL" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "foo:bar\"" }
+            ],
+            "Host_List": [
+                { "hostname": "hoste" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "runasusers": [
+                        { "username": "root" }
+                    ],
+                    "Options": [
+                        { "setenv": true }
+                    ],
+                    "Commands": [
+                        { "command": "ALL" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "usergroup": "baz" }
+            ],
+            "Host_List": [
+                { "hostname": "hosta" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "runasusers": [
+                        { "username": "root" }
+                    ],
+                    "Options": [
+                        { "setenv": true }
+                    ],
+                    "Commands": [
+                        { "command": "ALL" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "usergroup": "baz.biz" }
+            ],
+            "Host_List": [
+                { "hostname": "hostb" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "runasusers": [
+                        { "username": "root" }
+                    ],
+                    "Options": [
+                        { "setenv": true }
+                    ],
+                    "Commands": [
+                        { "command": "ALL" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "nonunixgroup": "C/non UNIX 0 c" }
+            ],
+            "Host_List": [
+                { "hostname": "hostc" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "runasusers": [
+                        { "username": "root" }
+                    ],
+                    "Options": [
+                        { "setenv": true }
+                    ],
+                    "Commands": [
+                        { "command": "ALL" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "nonunixgroup": "C/non\\'UNIX\\'1 c" }
+            ],
+            "Host_List": [
+                { "hostname": "hostd" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "runasusers": [
+                        { "username": "root" }
+                    ],
+                    "Options": [
+                        { "setenv": true }
+                    ],
+                    "Commands": [
+                        { "command": "ALL" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "nonunixgroup": "C/non\"UNIX\"0 c" }
+            ],
+            "Host_List": [
+                { "hostname": "hoste" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "runasusers": [
+                        { "username": "root" }
+                    ],
+                    "Options": [
+                        { "setenv": true }
+                    ],
+                    "Commands": [
+                        { "command": "ALL" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "nonunixgroup": "C/non_UNIX_0 c" }
+            ],
+            "Host_List": [
+                { "hostname": "hostf" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "runasusers": [
+                        { "username": "root" }
+                    ],
+                    "Options": [
+                        { "setenv": true }
+                    ],
+                    "Commands": [
+                        { "command": "ALL" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "nonunixgroup": "C/non\\'UNIX_3 c" }
+            ],
+            "Host_List": [
+                { "hostname": "hostg" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "runasusers": [
+                        { "username": "root" }
+                    ],
+                    "Options": [
+                        { "setenv": true }
+                    ],
+                    "Commands": [
+                        { "command": "ALL" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "netgroup": "netgr" }
+            ],
+            "Host_List": [
+                { "hostname": "hosth" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "runasusers": [
+                        { "username": "root" }
+                    ],
+                    "Options": [
+                        { "setenv": true }
+                    ],
+                    "Commands": [
+                        { "command": "ALL" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Commands": [
+                        { "command": "/bin/ls \"\"" },
+                        { "command": "/bin/echo \" \"" },
+                        { "command": "/bin/foo\"bar \"\"" }
+                    ]
+                }
+            ]
+        }
+    ]
+}

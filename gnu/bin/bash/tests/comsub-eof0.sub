@@ -1,0 +1,6 @@
+# it's only the space before the paren that makes this an error
+# when I fix it, it will show up here
+foo=$(cat <<EOF
+hi
+EOF )
+echo $foo

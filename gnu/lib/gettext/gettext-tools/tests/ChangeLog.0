@@ -1,0 +1,1451 @@
+2001-11-10  Karl Eichwalder  <ke@gnu.franken.de>
+2003-01-12  Bruno Haible  <bruno@clisp.org>
+
+	* msgcat-8: New file.
+	* msgcat-9: New file.
+	* msgcat-10: New file.
+	* Makefile.am (TESTS): Add them.
+
+2002-12-04  Bruno Haible  <bruno@clisp.org>
+
+	* msgmerge-22: New file, from Karl Eichwalder.
+	* Makefile.am (TESTS): Add it.
+
+2002-11-13  Bruno Haible  <bruno@clisp.org>
+
+	Assume ANSI C.
+	* format-c-3-prg.c (main): Use ANSI C function declarations and
+	preprocessor string concatenation.
+	* format-c-3: Don't test for return code 77.
+	* format-c-4-prg.c (main): Use ANSI C function declarations and
+	preprocessor string concatenation.
+	* format-c-4: Don't test for return code 77.
+	* plural-1-prg.c (main): Use ANSI C function declarations.
+	* setlocale.c (category_to_name, setlocale): Likewise.
+	* tstgettext.c (main, usage, expand_escape): Likewise.
+	* tstngettext.c (main, usage): Likewise.
+	* rpathlx/usex.c (rpathx_value): Likewise.
+	* rpathly/usey.c (rpathy_value): Likewise.
+	* rpathlyx/usey.c (rpathy_value): Likewise.
+	* rpathlz/usez.c (rpathz_value): Likewise.
+	* rpathlzyx/usez.c (rpathz_value): Likewise.
+	* rpathy/rpathy.c (rpathx_value): Likewise.
+	* rpathz/rpathz.c (rpathx_value, rpathy_value): Likewise.
+
+2002-11-11  Bruno Haible  <bruno@clisp.org>
+
+	* tstgettext.c (program_name): Declare as external.
+	* tstngettext.c (program_name): Likewise.
+
+2002-11-07  Bruno Haible  <bruno@clisp.org>
+
+	* msgcmp-2: Filter out valgrind's messages from the stderr output.
+	* msgfmt-7: Likewise.
+	* msgfmt-8: Likewise.
+	* msgfmt-9: Likewise.
+	* msgfmt-10: Likewise.
+	* msgmerge-2: Likewise.
+	* msgmerge-13: Likewise.
+
+2002-11-05  Bruno Haible  <bruno@clisp.org>
+
+	* xgettext-23: New file.
+	* msgmerge-21: New file.
+	* Makefile.am (TESTS): Add them.
+
+2002-11-01  Bruno Haible  <bruno@clisp.org>
+
+	* format-awk-1, format-awk-2, format-c-1, format-c-2, format-elisp-1,
+	format-elisp-2, format-java-1, format-java-2, format-librep-1,
+	format-librep-2, format-lisp-1, format-lisp-2, format-pascal-1,
+	format-pascal-2, format-php-1, format-php-2, format-python-1,
+	format-python-2, format-tcl-1, format-tcl-2, format-ycp-1,
+	format-ycp-2: Remove the temporary files immediately after each round.
+	Needed for Solaris /bin/sh.
+
+2002-10-31  Bruno Haible  <bruno@clisp.org>
+
+	* xgettext-20: Fix typo.
+
+2002-10-27  Bruno Haible  <bruno@clisp.org>
+
+	* lang-c++: Include "autosprintf.h". Do output to cout, not stdout.
+	Link with libasprintf. Link in two steps.
+
+2002-10-27  Bruno Haible  <bruno@clisp.org>
+
+	* msgmerge-16: Change expected result to match msgmerge behaviour
+	modified on 2002-10-03.
+
+2002-09-09  Bruno Haible  <bruno@clisp.org>
+
+	* lang-smalltalk: New file.
+	* Makefile.am (TESTS): Add it.
+
+2002-08-18  Bruno Haible  <bruno@clisp.org>
+
+	* format-php-1: New file.
+	* format-php-2: New file.
+	* lang-php: New file.
+	* Makefile.am (TESTS): Add them.
+
+2002-08-06  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.11.5 released.
+
+2002-08-06  Bruno Haible  <bruno@clisp.org>
+
+	* msgunfmt-2: Fix typo.
+
+2002-08-06  Bruno Haible  <bruno@clisp.org>
+
+	* format-c-3-prg.c: Make it work when builddir != srcdir.
+	* format-c-4-prg.c: Likewise.
+
+2002-08-02  Bruno Haible  <bruno@clisp.org>
+
+	* format-c-3-prg.c (PRId8): Redefine if PRI_MACROS_BROKEN is set.
+	* format-c-4-prg.c (PRId8): Likewise.
+
+2002-07-25  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.11.4 released.
+
+2002-07-24  Bruno Haible  <bruno@clisp.org>
+
+	* msgunfmt-2: Add the current directory to the CLASSPATH, so the
+	resource can be found.
+
+2002-07-23  Bruno Haible  <bruno@clisp.org>
+
+	* format-c-3: Add SKIP message.
+	* format-c-4: Likewise.
+
+2002-07-21  Bruno Haible  <bruno@clisp.org>
+
+	* format-c-3: New file.
+	* format-c-3-prg.c: New file.
+	* format-c-4: New file.
+	* format-c-4-prg.c: New file.
+	* msgfmt-12: New file.
+	* xgettext-22: New file.
+	* Makefile.am (TESTS): Add msgfmt-12, xgettext-22, format-c-3,
+	format-c-4.
+	(noinst_PROGRAMS): Add fc3, fc4.
+	(fc3_SOURCES, fc3_LDADD, fc4_SOURCES, fc4_LDADD): New variables.
+
+2002-07-17  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.11.3 released.
+
+2002-07-16  Bruno Haible  <bruno@clisp.org>
+
+	* msgunfmt-2: Set GETTEXTJEXEDIR.
+
+2002-06-14  Bruno Haible  <bruno@clisp.org>
+
+	* msgfmt-11: New file.
+	* Makefile.am (TESTS): Add it.
+
+2002-05-19  Bruno Haible  <bruno@clisp.org>
+
+	* rpath.README: Renamed from rpath-2.README.
+	* rpathz: New subdirectory.
+	* rpathlz: New subdirectory.
+	* rpathlzyx: New subdirectory.
+	* rpath-3_a, rpath-3_b, rpath-3[ab][ab][abcdefgh]: New files.
+	* Makefile.am (TESTS): Add rpath-3a[ab][abcdfh] and
+	rpath-3b[ab][abcdefgh].
+	(EXTRA_DIST): Add rpath{z,lz,lzyx}/{configure.in,aclocal.m4,configure},
+	rpath{z,lz,lzyx}/{Makefile.am,Makefile.in}, rpathz/rpathz.c,
+	rpath{lz,lzyx}/usez.c, rpath-3aae, rpath-3aag, rpath-3abe, rpath-3abg,
+	rpath.README. Remove rpath-2.README.
+
+2002-05-19  Bruno Haible  <bruno@clisp.org>
+
+	* lang-gawk: Fix SKIP message.
+
+2002-05-16  Bruno Haible  <bruno@clisp.org>
+
+	* lang-tcl: Explicitly invoke 'format', don't assume that ::msgcat::mc
+	does it when given more than one argument.
+
+2002-05-04  Bruno Haible  <bruno@clisp.org>
+
+	* lang-c++: Use <iostream> instead of <iostream.h> to avoid g++ 3.1
+	deprecation warnings.
+
+2002-04-27  Bruno Haible  <bruno@clisp.org>
+
+	* plural-1-prg.c: No need to redirect textdomain() etc., now done in
+	libgnuintl.h.
+	* tstgettext.c: Likewise.
+	* tstngettext.c: Likewise.
+
+2002-04-24  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.11.2 released.
+
+2002-03-14  Bruno Haible  <bruno@clisp.org>
+
+	* msgunfmt-3: Make it work when builddir != srcdir.
+
+2002-03-12  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.11.1 released.
+
+2002-03-10  Bruno Haible  <bruno@clisp.org>
+
+	* msgunfmt-2: New file.
+	* msgunfmt-3: New file.
+	* Makefile.am (TESTS): Add them.
+
+2002-03-07  Bruno Haible  <bruno@clisp.org>
+
+	* lang-gawk: Fix the version recognition, to work with gawk 2.xx.
+	* lang-tcl: Skip the test if tcl exists but has no msgcat extension.
+
+2002-03-05  Bruno Haible  <bruno@clisp.org>
+
+	* xgettext-19: When skipping the test, use exit code 77.
+	* xgettext-20: Likewise.
+
+2002-03-03  Bruno Haible  <bruno@clisp.org>
+
+	* format-tcl-1: New file.
+	* format-tcl-2: New file.
+	* lang-tcl: New file.
+	* xgettext-21: New file.
+	* Makefile.am (TESTS): Add them.
+
+2002-03-03  Bruno Haible  <bruno@clisp.org>
+
+	* lang-clisp: Create prog.ok only after testing presence of clisp.
+	* lang-gawk: Create prog.ok only after testing presence of gawk.
+	* lang-librep: Create prog.ok only after testing presence of rep.
+	* lang-python: Create prog.ok only after testing presence of python.
+
+2002-02-21  Bruno Haible  <bruno@clisp.org>
+
+	* msggrep-5: New file.
+	* Makefile.am (TESTS): Add it.
+
+2002-01-28  Bruno Haible  <bruno@clisp.org>
+
+	* xgettext-19: New file.
+	* xgettext-20: New file.
+	* Makefile.am (TESTS): Add them.
+
+2002-01-27  Bruno Haible  <bruno@clisp.org>
+
+	* format-awk-1: New file.
+	* format-awk-2: New file.
+	* lang-gawk: New file.
+	* Makefile.am (TESTS): Add format-awk-1, format-awk-2, lang-gawk.
+
+2002-02-02  Bruno Haible  <bruno@clisp.org>
+
+	* xgettext-18: New file.
+	* lang-python: New file.
+	* Makefile.am (TESTS): Add xgettext-18, lang-python.
+
+2002-02-02  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (INCLUDES): Add -I../lib. Needed for builds with
+	builddir != srcdir on platforms that don't have stdbool.h.
+
+2002-01-31  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.11 released.
+
+2002-01-24  Bruno Haible  <bruno@clisp.org>
+
+	* rpathlyx/configure.in: Don't use AC_LIB_APPENDTOVAR for LIB
+	variables.
+	* rpathy/Makefile.am (librpathy_la_LDFLAGS): Use @LTLIBRPATHX@
+	instead of @LIBRPATHX@.
+
+	* lang-c: Use $LTLIBINTL instead of $INTLLIBS.
+	* lang-c++: Likewise.
+	* lang-objc: Likewise.
+	* Makefile.am (TESTS_ENVIRONMENT): Set LTLIBINTL instead of INTLLIBS.
+	(LDADD_no): Use @LTLIBINTL@ instead of @INTLLIBS@.
+
+2002-01-20  Bruno Haible  <bruno@clisp.org>
+
+	* rpathx: New subdirectory.
+	* rpathy: New subdirectory.
+	* rpathlx: New subdirectory.
+	* rpathly: New subdirectory.
+	* rpathlyx: New subdirectory.
+	* rpath-1[ab], rpath-1: New files.
+	* rpath-2[ab][ab][abcd], rpath-2_[ab], rpath-2.README: New files.
+	* rpathcfg.sh: New file.
+	* Makefile.am (TESTS): Add rpath-1[ab], rpath-2[ab][ab][abcd].
+	(EXTRA_DIST): Add rpathx/*, rpathy/*, rpathlx/*, rpathly/*, rpathlyx/*,
+	rpath-2.README, rpathcfg.sh.
+	(TESTS_ENVIRONMENT): Also set CONFIG_SHELL.
+	(rpathcfg): New target.
+	(MOSTLYCLEANFILES): New variable.
+
+2002-01-12  Bruno Haible  <bruno@clisp.org>
+
+	* lang-c: Include config.h, needed by xsetenv.h.
+	* lang-c++: Likewise.
+	* lang-objc: Likewise.
+
+2002-01-12  Bruno Haible  <bruno@clisp.org>
+
+	* msgattrib-*: Use \EOF, not EOF, to create here documents containing
+	non-ASCII characters. Needed on FreeBSD.
+	* msgcat-*: Likewise.
+	* msgcomm-*: Likewise.
+	* msgconv-*: Likewise.
+	* msgexec-*: Likewise.
+	* msgfilter-*: Likewise.
+	* msgfmt-*: Likewise.
+	* msgmerge-*: Likewise.
+
+2002-01-12  Bruno Haible  <bruno@clisp.org>
+
+	* tstgettext.c (main): Update year in --version output.
+	* tstngettext.c (main): Likewise.
+
+2002-01-12  Bruno Haible  <bruno@clisp.org>
+
+	* msgexec-2: Make it work when builddir != srcdir.
+
+2002-01-12  Bruno Haible  <bruno@clisp.org>
+
+	* lang-librep: Skip the test if the 'rep' program is too old.
+
+2002-01-09  Bruno Haible  <bruno@clisp.org>
+
+	* lang-c: Use xsetenv before setlocale.
+	* lang-c++: Likewise.
+	* lang-objc: Likewise.
+	* plural-1-prg.c: Likewise.
+	* Makefile.am (cake_LDADD): New variable.
+
+2002-01-08  Bruno Haible  <bruno@clisp.org>
+
+	* msgattrib-*: Terminate the test immediately if the msg* program
+	fails.
+	* msgcat-*: Likewise.
+	* msgcomm-*: Likewise.
+	* msgconv-*: Likewise.
+	* msgen-*: Likewise.
+	* msgexec-*: Likewise.
+	* msgfilter-*: Likewise.
+	* msgfmt-*: Likewise.
+	* msggrep-*: Likewise.
+	* msgmerge-*: Likewise.
+	* msgunfmt-*: Likewise.
+	* msguniq-*: Likewise.
+	* xgettext-*: Likewise.
+
+2002-01-08  Bruno Haible  <bruno@clisp.org>
+
+	* format-elisp-1: New file.
+	* format-elisp-2: New file.
+	* lang-elisp: New file.
+	* Makefile.am (TESTS): Add format-elisp-1, format-elisp-2,
+	lang-elisp.
+
+2002-01-06  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (TESTS): Add msgconv-3.
+
+2001-07-02  Karl Eichwalder  <ke@suse.de>
+
+	* msgconv-3: New file.
+
+2002-01-05  Bruno Haible  <bruno@clisp.org>
+
+	* lang-java: If msgfmt fails (for example, due to missing iconv()
+	support), let the test fail immediately.
+
+2002-01-05  Bruno Haible  <bruno@clisp.org>
+
+	Avoid setting LC_ALL for random shell and utility commands, including
+	libtool generated shell scripts. It generates extraneous output on
+	Solaris and HP-UX.
+
+	* tstgettext.c: Copy code from ../src/gettext.c. Add --env option.
+	* gettext-1: Pass extra environment variables only to the tstgettext
+	program. Pass LC_ALL via --env option. No need to pass LC_MESSAGES and
+	LANG.
+	* gettext-2: Likewise.
+	* msgfmt-1: Likewise.
+	* msgfmt-2: Likewise.
+
+	* tstngettext.c: Add --env option.
+	* plural-2: Pass extra environment variables only to the tstngettext
+	program. Pass LC_ALL via --env option.
+
+	* plural-1-prg.c: Pass locale as first argument.
+	* plural-1: Pass extra environment variables only to the cake program.
+	Pass LC_ALL value to cake as an argument.
+
+	* msgcmp-2: Pass extra environment variables only to the msgcmp
+	program.
+
+	* msgmerge-2: Pass extra environment variables only to the msgmerge
+	program.
+
+	* lang-c: Pass LC_ALL value to prog as an argument.
+	* lang-c++: Likewise.
+	* lang-objc: Likewise.
+
+2002-01-05  Bruno Haible  <bruno@clisp.org>
+
+	* msgfilter-2: Skip the test if 'sed' adds extraneous newlines.
+
+2002-01-04  Bruno Haible  <bruno@clisp.org>
+
+	* msgcat-2: Avoid \" to " conversion in the here documents.
+	* msgcat-3: Likewise.
+	* msgcat-4: Likewise.
+	* msgcomm-16: Likewise.
+
+2001-12-22  Bruno Haible  <bruno@clisp.org>
+
+	* tstngettext.c: Include exit.h instead of system.h.
+
+2001-12-21  Bruno Haible  <bruno@clisp.org>
+
+	* msgfilter-1: Avoid failure on HP-UX, due to strange 'fold' program.
+
+2001-12-20  Bruno Haible  <bruno@clisp.org>
+
+	* lang-c: Pass --mode argument to libtool.
+	* lang-c++: Likewise.
+	* lang-objc: Likewise.
+
+2001-12-20  Bruno Haible  <bruno@clisp.org>
+
+	* xgettext-13: Change expected output.
+
+2001-12-15  Bruno Haible  <bruno@clisp.org>
+
+	* xgettext-14: Change expected output.
+
+2001-12-18  Bruno Haible  <bruno@clisp.org>
+
+	* msgfilter-1: Avoid failure on Solaris, due to broken 'fold' program.
+	* msgfilter-2: Avoid failure on Solaris, due to inferior 'sed' program.
+	* lang-clisp: Avoid spurious stderr output on SunOS4.
+	* lang-librep: Likewise.
+	* lang-pascal: Likewise.
+	* lang-rst: Likewise.
+
+2001-12-18  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-[12], msgcat-[1-7], msgcmp-[12], msgcomm-[1-9],
+	msgcomm-1[0-9], msgcomm-2[0-2], msgfmt-[1-9], msgfmt-10,
+	msgmerge-[1-9], msgmerge-1[0-3], msgunfmt-1, xgettext-[1-4]:
+	Unify tmpfiles handling.
+
+2001-12-17  Bruno Haible  <bruno@clisp.org>
+
+	* lang-objc: If the locale couldn't be set, skip the test.
+	* lang-pascal: Fix typo.
+
+2001-12-16  Bruno Haible  <bruno@clisp.org>
+
+	* lang-clisp: Also test reversal of arguments.
+
+2001-12-16  Bruno Haible  <bruno@clisp.org>
+
+	* format-librep-1: New file.
+	* format-librep-2: New file.
+	* lang-librep: New file.
+	* Makefile.am (TESTS): Add format-librep-1, format-librep-2,
+	lang-librep.
+
+2001-12-15  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (TESTS_ENVIRONMENT): Don't use $(transform) here.
+
+2001-12-17  Bruno Haible  <bruno@clisp.org>
+
+	* msgexec-2: Don't use 'tr'. It is broken on Solaris.
+	* mex-test2.ok: New file.
+	* Makefile.am (EXTRA_DIST): Add it.
+
+2001-12-15  Bruno Haible  <bruno@clisp.org>
+
+	* msgfmt-7: Write "8bit", not "8-bit".
+	* msgfmt-8: Likewise.
+	* msgfmt-9: Likewise.
+	* msguniq-a.in: Likewise.
+	* msguniq-a.out: Likewise.
+	* msguniq-2: Likewise.
+	* msguniq-3: Likewise.
+
+2001-12-15  Bruno Haible  <bruno@clisp.org>
+
+	* plural-1: Adapt for changed xgettext behaviour w.r.t. format strings
+	in plural forms.
+	* lang-c: Likewise.
+	* lang-c++: Likewise.
+	* lang-objc: Likewise.
+	* lang-clisp: Likewise.
+	* lang-java: Likewise.
+	* lang-ycp: Likewise.
+	* lang-po: Likewise.
+
+2001-12-15  Bruno Haible  <bruno@clisp.org>
+
+	* msgfmt-1: Remove temporary files in case of error.
+	* msgfmt-2: Likewise.
+
+2001-12-15  Bruno Haible  <bruno@clisp.org>
+
+	* msgfmt-10: New file.
+	* Makefile.am (TESTS): Add it.
+
+2001-12-11  Bruno Haible  <bruno@clisp.org>
+
+	* lang-c++: Don't use ostream::form, it's a g++ 2.x extension not
+	present in ISO C++ or g++ 3.x.
+	* lang-objc: Drop error messages that can result from attempting to
+	compile an ObjectiveC program.
+	* lang-java: Set the default locale by hand. Some systems, like
+	Solaris, are not capable of setting the locale according to LC_ALL
+	by themselves.
+	* lang-rst: Avoid using the 'type' builtin. It always reports success
+	with SunOS4 /bin/sh.
+	* lang-pascal: Likewise.
+
+2001-12-11  Bruno Haible  <bruno@clisp.org>
+
+	* lang-objc: If the locale couldn't be set, exit with code 77, not 1.
+
+2001-12-09  Bruno Haible  <bruno@clisp.org>
+
+	* lang-clisp: New file.
+	* Makefile.am (TESTS): Add it.
+	* format-lisp-1: Use real Lisp syntax.
+
+2001-12-08  Bruno Haible  <bruno@clisp.org>
+
+	* msgattrib-1: New file.
+	* msgattrib-2: New file.
+	* msgattrib-3: New file.
+	* msgattrib-4: New file.
+	* msgattrib-5: New file.
+	* msgattrib-6: New file.
+	* msgattrib-7: New file.
+	* msgattrib-8: New file.
+	* msgattrib-9: New file.
+	* msgattrib-10: New file.
+	* msgattrib-11: New file.
+	* msgattrib-12: New file.
+	* msgattrib-13: New file.
+	* msgattrib-14: New file.
+	* msgconv-1: New file.
+	* msgconv-2: New file.
+	* msgen-1: New file.
+	* msgexec-1: New file.
+	* msgexec-2: New file.
+	* msgfilter-1: New file.
+	* msgfilter-2: New file.
+	* msggrep-1: New file.
+	* msggrep-2: New file.
+	* msggrep-3: New file.
+	* msggrep-4: New file.
+	* Makefile.am (TESTS): Add them.
+	(TESTS_ENVIRONMENT): Pass MSGATTRIB, MSGCOMM, MSGCONV, MSGEN, MSGEXEC,
+	MSGFILTER, MSGGREP variables to the tests.
+
+2001-12-06  Bruno Haible  <bruno@clisp.org>
+
+	* msgmerge-20: New file.
+	* Makefile.am (TESTS): Add it.
+
+2001-12-03  Bruno Haible  <bruno@clisp.org>
+
+	* lang-java: Pass --omit-header --no-location to xgettext.
+
+2001-11-30  Bruno Haible  <bruno@clisp.org>
+
+	* msgmerge-14: Add the msgmerge-created backup file to tmpfiles.
+	* msgmerge-15: Likewise.
+	* msgmerge-16: Likewise.
+
+2001-11-30  Bruno Haible  <bruno@clisp.org>
+
+	* lang-c: Remove $tmpfiles before exiting with code 77.
+	* lang-c++: Likewise.
+	* lang-objc: Likewise.
+
+2001-11-30  Bruno Haible  <bruno@clisp.org>
+
+	* lang-c: Use $LIBTOOL.
+	* lang-c++: Likewise.
+	* lang-objc: Likewise.
+	* Makefile.am (TESTS_ENVIRONMENT): Pass LIBTOOL variable to the tests.
+
+2001-11-30  Bruno Haible  <bruno@clisp.org>
+
+	* msgmerge-17: New file.
+	* msgmerge-18: New file.
+	* msgmerge-19: New file.
+	* Makefile.am (TESTS): Add them.
+
+2001-11-27  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (TESTS): Add msgmerge-14, msgmerge-15, msgmerge-16.
+
+2001-11-25  Karl Eichwalder <ke@gnu.franken.de>
+
+	* msgmerge-14: New file.
+	* msgmerge-15: New file.
+	* msgmerge-16: New file.
+
+2001-11-25  Bruno Haible  <bruno@clisp.org>
+
+	* lang-c: New file.
+	* lang-c++: New file.
+	* lang-objc: New file.
+	* lang-java: New file.
+	* lang-pascal: New file.
+	* lang-ycp: New file.
+	* lang-po: New file.
+	* lang-rst: New file.
+	* Makefile.am (TESTS): Add them.
+	(TESTS_ENVIRONMENT): Pass OBJEXT, EXEEXT, CC, CFLAGS, CXX, CXXFLAGS,
+	CPPFLAGS, LDFLAGS, INTLLIBS, TESTJAVA variables to the tests.
+
+2001-11-17  Bruno Haible  <haible@clisp.cons.org>
+
+	* Makefile.am (TESTS); Add msgfmt-7, msgfmt-8, msgfmt-9, msgmerge-13.
+
+2001-11-12  Karl Eichwalder <ke@gnu.franken.de>
+
+	* msgfmt-7: New file.
+	* msgfmt-8: New file.
+	* msgfmt-9: New file.
+	* msgmerge-13: New file.
+
+2001-11-11  Bruno Haible  <haible@clisp.cons.org>
+
+	Avoid an implicit pattern rule ("%.out : %") in GNU make.
+	* msguniq-a.in: Renamed from msguniq-1.in.
+	* msguniq-a.out: Renamed from msguniq-1.out.
+	* Makefile.am (EXTRA_DIST): Distribute msguniq-a.in, msguniq-a.out
+	instead of msguniq-1.in, msguniq-1.out.
+	* msgcomm-23: Update.
+	* msguniq-1: Likewise.
+	* msguniq-2: Update. Make it work if $builddir != $srcdir.
+	* msguniq-3: Likewise.
+
+2001-11-11  Bruno Haible  <haible@clisp.cons.org>
+
+	* Makefile.am (xg-test1.ok.po): Pass --no-location to xgettext.
+
+2001-11-07  Bruno Haible  <haible@clisp.cons.org>
+
+	* Makefile.am (TESTS): Add msgcat-7.
+
+2001-11-07  Karl Eichwalder  <keichwa@gmx.net>
+
+	* msgcat-7: New file.
+
+2001-11-03  Bruno Haible  <haible@clisp.cons.org>
+
+	* plural-1: Add option --no-location to xgettext call, no longer
+	implied by --omit-header.
+	* xgettext-1: Likewise.
+	* xgettext-2: Likewise.
+	* xgettext-5: Likewise.
+	* xgettext-6: Likewise.
+	* xgettext-7: Likewise.
+	* xgettext-9: Likewise.
+	* xgettext-10: Likewise.
+	* xgettext-11: Likewise.
+	* xgettext-12: Likewise.
+	* xgettext-15: Likewise.
+	* xgettext-16: Likewise.
+
+2001-11-03  Bruno Haible  <haible@clisp.cons.org>
+
+	* Makefile.am (TESTS): Add xgettext-17.
+
+2001-11-01  Karl Eichwalder  <keichwa@gmx.net>
+
+	* xgettext-17: New file.
+
+2001-11-01  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgcat-6: Update expected output to match new msgcat behaviour.
+
+2001-10-31  Bruno Haible  <haible@clisp.cons.org>
+
+	* Makefile.am (EXTRA_DIST): Add msguniq-1.in, msguniq-1.out.
+
+2001-10-31  Bruno Haible  <haible@clisp.cons.org>
+
+	* Makefile.am (TESTS): Add msgcat-2, msgcat-3, msgcat-4, msgcat-5,
+	msgcat-6.
+
+2001-07-31  Karl Eichwalder  <keichwa@gmx.net>
+
+	* msgcat-2: New file.
+	* msgcat-3: New file.
+	* msgcat-4: New file.
+	* msgcat-5: New file.
+	* msgcat-6: New file.
+
+2001-10-31  Bruno Haible  <haible@clisp.cons.org>
+
+	* xgettext-13: Hide warning.
+
+2001-10-21  Bruno Haible  <haible@clisp.cons.org>
+
+	* Makefile.am (tstgettext_LDADD, tstngettext_LDADD): Replace
+	libnlsut.a with libgettextlib.la.
+
+2001-09-25  Bruno Haible  <haible@clisp.cons.org>
+
+	Upgrade to automake-1.5.
+	* Makefile.am (AUTOMAKE_OPTIONS): Add 'no-dependencies'.
+
+2001-09-23  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgfmt-6: New file.
+	* Makefile.am (TESTS): Add it.
+
+2001-10-22  Bruno Haible  <haible@clisp.cons.org>
+
+	* Makefile.am (TESTS): Add xgettext-15, xgettext-16.
+
+2001-10-04  Tommy Johansson  <tommy.johansson@kanalen.org>
+
+	* xgettext-15: New file.
+	* xgettext-16: New file.
+
+2001-09-20  Bruno Haible  <haible@clisp.cons.org>
+
+	* format-c-1: Fix two tests to really test something.
+
+2001-09-20  Bruno Haible  <haible@clisp.cons.org>
+
+	* format-pascal-1: New file.
+	* format-pascal-2: New file.
+	* Makefile.am (TESTS): Add them.
+
+2001-09-16  Bruno Haible  <haible@clisp.cons.org>
+
+	* format-ycp-1: Use real YCP syntax.
+
+2001-09-17  Bruno Haible  <haible@clisp.cons.org>
+
+	* tstngettext.c: Include basename.h.
+
+2001-09-22  Bruno Haible  <haible@clisp.cons.org>
+
+	* Makefile.am (TESTS): Add xgettext-12, xgettext-13, xgettext-14.
+
+2001-09-22  Karl Eichwalder  <keichwa@gmx.net>
+
+	* xgettext-12: New file.
+	* xgettext-13: New file.
+	* xgettext-14: New file.
+
+2001-09-21  Bruno Haible  <haible@clisp.cons.org>
+
+	* Makefile.am (TESTS): Add xgettext-10, xgettext-11.
+
+2001-09-21  Tommy Johansson  <tommy.johansson@kanalen.org>
+
+	* xgettext-10: New file.
+	* xgettext-11: New file.
+
+2001-08-30  Bruno Haible  <haible@clisp.cons.org>
+
+	* Makefile.am (TESTS_ENVIRONMENT): Define MSGCAT environment variable.
+	* format-c-2: Use --check-format, not -c, because the test snippets
+	don't have a header entry.
+	* format-java-2: Likewise.
+	* format-lisp-2: Likewise.
+	* format-python-2: Likewise.
+	* format-ycp-2: Likewise.
+	* msgcomm-16: Add ycp-format to expected output.
+	* msgfmt-1: Use msgcat --use-first to pass msgfmt's duplicate checking.
+	* msgfmt-2: Likewise.
+	* xg-test1.ok.po: Update.
+
+2001-08-26  Bruno Haible  <haible@clisp.cons.org>
+
+	* format-c-1: New file.
+	* format-c-2: New file.
+	* format-java-1: New file.
+	* format-java-2: New file.
+	* format-lisp-1: New file.
+	* format-lisp-2: New file.
+	* format-python-1: New file.
+	* format-python-2: New file.
+	* format-ycp-1: New file.
+	* format-ycp-2: New file.
+	* Makefile.am (TESTS): Add them all.
+
+2001-08-08  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgmerge-12: New file, from Karl Eichwalder.
+	* Makefile.am (TESTS): Add it.
+
+2001-08-02  Bruno Haible  <haible@clisp.cons.org>
+
+	* tstngettext.c (usage): Change bug report address to
+	<bug-gnu-gettext@gnu.org>.
+
+2001-07-22  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgcomm-16: Filter out charset related warning from msgcomm.
+
+2001-07-22  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgcomm-17: Fix expected output.
+
+2001-07-21  Bruno Haible  <haible@clisp.cons.org>
+
+	* msguniq-1.in: New file.
+	* msguniq-1.out: New file.
+	* msguniq-1: New file.
+	* msguniq-2: New file.
+	* msguniq-3: New file.
+	* msgcomm-23: New file.
+	* Makefile.am (TESTS): Add msguniq-1, msguniq-2, msguniq-3, msgcomm-23.
+	(TESTS_ENVIRONMENT): Set MSGUNIQ.
+
+2001-07-29  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgcat-1: New file, from Karl Eichwalder with modifications.
+	* Makefile.am (TESTS): Add it.
+	(TESTS_ENVIRONMENT): Set MSGCAT.
+
+2001-07-05  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgmerge-7: rm $tmpfiles.
+
+2001-07-05  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgcomm-22: New file, based on a report by Karl Eichwalder.
+	* Makefile.am (TESTS): Add msgcomm-22.
+	* msgcomm-12: Add the first header entry to the expected output.
+	* msgcomm-13: Likewise.
+	* msgcomm-14: Likewise.
+
+2001-06-23  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgcomm-18: New file, from Karl Eichwalder with modifications.
+	* msgcomm-19: New file, from Karl Eichwalder with modifications.
+	* msgcomm-20: New file, from Karl Eichwalder with modifications.
+	* msgcomm-21: New file, from Karl Eichwalder with modifications.
+	* Makefile.am (TESTS): Add them.
+
+2001-06-23  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgcomm-17: New file, from Karl Eichwalder.
+	* Makefile.am (TESTS): Add it.
+
+2001-06-15  Bruno Haible  <haible@clisp.cons.org>
+
+	* Makefile.am (noinst_PROGRAMS): New variable.
+	(EXTRA_PROGRAMS, CLEANFILES): Remove variables.
+	(all-local): Remove target.
+
+2001-06-10  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgmerge-10: New file.
+	* msgmerge-11: New file.
+	* Makefile.am (TESTS): Add them.
+
+2001-06-10  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgfmt-5: New file.
+	* Makefile.am (TESTS): Add it.
+
+2001-06-10  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgcmp-2: Add program name prefix to expected output.
+	* msgmerge-2: Likewise.
+
+2001-05-15  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgcomm-15: Use "test -f", not "test -e". For Solaris.
+
+2001-05-02  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgcomm-16: Change expected result.
+	* Makefile.am (TESTS): Add the new tests.
+
+2001-05-02  Karl Eichwalder  <keichwa@gmx.net>
+
+	* msgmerge-6: New file.
+	* msgmerge-7: New file.
+	* msgmerge-8: New file.
+	* msgmerge-9: New file.
+	* msgcomm-1: New file.
+	* msgcomm-2: New file.
+	* msgcomm-3: New file.
+	* msgcomm-4: New file.
+	* msgcomm-5: New file.
+	* msgcomm-6: New file.
+	* msgcomm-7: New file.
+	* msgcomm-8: New file.
+	* msgcomm-9: New file.
+	* msgcomm-10: New file.
+	* msgcomm-11: New file.
+	* msgcomm-12: New file.
+	* msgcomm-13: New file.
+	* msgcomm-14: New file.
+	* msgcomm-15: New file.
+	* msgcomm-16: New file.
+
+2001-04-28  Bruno Haible  <haible@clisp.cons.org>
+
+	* xg-test1.ok.po: Regenerated.
+
+2001-09-13  Bruno Haible  <haible@clisp.cons.org>
+
+	* gettext-0.10.40 released.
+
+2001-07-24  Bruno Haible  <haible@clisp.cons.org>
+
+	* gettext-0.10.39 released.
+
+2001-05-23  Bruno Haible  <haible@clisp.cons.org>
+
+	* gettext-0.10.38 released.
+
+2001-04-19  Bruno Haible  <haible@clisp.cons.org>
+
+	* gettext-0.10.37 released.
+
+2001-04-19  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgfmt-3: Use two grep invocations instead of a complex regexp that
+	only GNU grep understands.
+	* msgmerge-5: Likewise.
+	* xgettext-3: Likewise.
+
+2001-04-17  Bruno Haible  <haible@clisp.cons.org>
+
+	* plural-2: Change formula and result for sl. Add test for lt.
+
+2001-04-09  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgfmt-3: Update regexp to filter out specific warnings.
+	* msgmerge-5: Likewise.
+	* xgettext-3: Likewise.
+
+2001-04-06  Bruno Haible  <haible@clisp.cons.org>
+
+	* plural-2: Change formula and result for ru.
+
+2001-04-04  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgfmt-3: Set LC_MESSAGES=C, to filter out specific warnings.
+	* msgmerge-5: Likewise.
+	* xgettext-3: Likewise.
+
+2001-03-29  Bruno Haible  <haible@clisp.cons.org>
+
+	* gettext-0.10.36 released.
+
+2001-03-21  Bruno Haible  <haible@clisp.cons.org>
+
+	* plural-2: Use cat, not echo, to create ll.po.
+
+2001-03-18  Bruno Haible  <haible@clisp.cons.org>
+
+	* tstngettext.c: New file.
+	* plural-2: New file.
+	* Makefile.am (TESTS): Add plural-2.
+	(TESTS_ENVIRONMENT): Define NGETTEXT environment variable.
+	(EXTRA_PROGRAMS): Add tstngettext.
+	(tstngettext_SOURCES, tstngettext_LDADD): New variables.
+	* xg-test1.ok.po: Regenerated.
+
+2001-03-11  Bruno Haible  <haible@clisp.cons.org>
+
+	* plural-1-prg.c: Force inclusion of libgnuintl.h. On Solaris,
+	<locale.h> has already included libintl.h.
+
+2001-03-10  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgcmp-2: Expect a singular error message.
+	* msgmerge-2: Likewise.
+	* xg-test1.ok.po: Regenerated.
+
+2001-03-10  Bruno Haible  <haible@clisp.cons.org>
+
+	* Makefile.am (LDADD): Define depending on @USE_INCLUDED_LIBINTL@.
+	(LDADD_yes, LDADD_no): New variables. When @USE_INCLUDED_LIBINTL@ = no,
+	use both ../intl/libgnuintl.a and @INTLLIBS@ instead of
+	../intl/libintl.la. Needed on systems which have gettext() in
+	libintl.so, because: 1. getopt.c needs -lintl, 2. tstgettext.c needs
+	../intl/libintl, 3. it is impossible to link with two different shared
+	libraries that have the same soname.
+
+2001-03-03  Bruno Haible  <haible@clisp.cons.org>
+
+	* msgfmt-3: Filter out charset related warning from msgfmt.
+	* msgmerge-5: Filter out charset related warning from msgmerge.
+	* xgettext-3: Filter out charset related warning from xgettext.
+	* xg-test1.ok.po: Regenerated.
+
+2001-03-03  Bruno Haible  <haible@clisp.cons.org>
+
+	* test.mo: Change msgid so that it passes the newest msgfmt
+	verifications.
+	* gettext-1: Update.
+
+2001-01-21  Bruno Haible  <haible@clisp.cons.org>
+
+	Use libtool.
+	* Makefile.am (LDADD): Use libintl.la instead of libintl.a.
+
+2001-01-07  Bruno Haible  <haible@clisp.cons.org>
+
+	* setlocale.c: New file, moved here from ../src.
+	* tstgettext.c: New file.
+	* Makefile.am (TESTS_ENVIRONMENT): Add "." to the PATH.
+	(xg-test1.ok.po): Use src/gettext.c instead of src/gettextp.c.
+	(INCLUDES): Add more dirs.
+	(DEFS): Add defines needed for gettext.c.
+	(LDADD): New variable.
+	(EXTRA_PROGRAMS, all-local, CLEANFILES): Add tstgettext.
+	(tstgettext_SOURCES, tstgettext_LDADD): New variable.
+	(cake_SOURCES): Update.
+	* xgettext-1: Use src/gettext.c instead of src/gettextp.c.
+
+2001-01-07  Bruno Haible  <haible@clisp.cons.org>
+
+	* plural-1-prg.c: Include libgnuintl.h instead of libgettext.h.
+
+2001-01-07  Bruno Haible  <haible@clisp.cons.org>
+
+	* plural-1-prg.c: Assume <locale.h> exists.
+
+2001-01-06  Bruno Haible  <haible@clisp.cons.org>
+
+	Translations are now disabled in C locale.
+	* Makefile.am (TESTS_ENVIRONMENT): Use tstgettext for $GETTEXT.
+	(cake_LDADD): Add ../src/setlocale.o.
+	* gettext-1: Set LC_ALL to a nonempty value.
+	* gettext-2: Likewise.
+	* msgfmt-1: Likewise.
+	* msgfmt-2: Likewise.
+	* plural-1: Set LC_ALL, not LANGUAGE, to "fr".
+	* plural-1-prg.c: Include locale.h or declare setlocale.
+	(main): Call setlocale.
+
+2001-01-04  Bruno Haible  <haible@clisp.cons.org>
+
+	* plural-1-prg.c: Include config.h. Needed for C compilers lacking
+	"const", like SunOS4 cc.
+
+2001-01-01  Bruno Haible  <haible@clisp.cons.org>
+
+	Implement plural form handling.
+	* plural-1: New file.
+	* plural-1-prg.c: New file.
+	* Makefile.am (TESTS): Add plural-1.
+	(INCLUDES, EXTRA_PROGRAMS, cake_SOURCES, cake_LDADD, CLEANFILES): New
+	macros.
+	(all-local): New target.
+	* xg-test1.ok.po: Regenerated.
+
+1998-05-01 08:47  Ulrich Drepper  <drepper@cygnus.com>
+
+	* gettext-0.10.35 released.
+
+1997-08-01 15:46  Ulrich Drepper  <drepper@cygnus.com>
+
+	* Makefile.am (AUTOMAKE_OPTIONS): Require version 1.2.
+
+1997-05-01 03:30  Ulrich Drepper  <drepper@cygnus.com>
+
+	* msgmerge-2: Update message after last change of the program code.
+
+	* Makefile.am (TESTS_ENVIRONMENT): Define environment variable
+	specifying program names to take care of --program-prefix option
+	to configure.
+
+Fri Dec  6 14:10:05 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* Makefile.am (TESTS_ENVIRONMENT): Add $(SHELL) to explicitly use
+	the shell for starting the shell script.
+
+Fri Nov 22 00:35:58 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* Makefile.am (TESTS_ENVIRONMENT): Change references to checks/
+	into tests/.
+	* gettext-1: Likewise.
+	* gettext-2: Likewise.
+	* msgfmt-1: Likewise.
+	* msgfmt-2: Likewise.
+	* xgettext-1: Likewise.
+
+Tue Nov 12 17:36:50 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* msgmerge-1: Fix typo.
+	Reported by Guido Flohr <gufl0000@stud.uni-sb.de>.
+
+Tue Sep  3 18:03:54 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* Makefile.am (cmline_TESTS): Remove.  Not used in automake-1.1.
+
+	* Makefile.am (TESTS_ENVIRONMENT): Add definition of PATH to find
+	newly built programs.  Reported by Kaveh R. Ghazi.
+
+Sun Sep  1 04:43:56 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* gettext-1, gettext-2, msgcmp-1, msgcmp-2, msgfmt-1,
+	msgfmt-2, msgfmt-3, msgfmt-4, msgmerge-1, msgmerge-2,
+	msgmerge-3, msgmerge-4, msgmerge-5, msgunfmt-1,
+	xgettext-1, xgettext-2, xgettext-3, xgettext-4,
+	xgettext-5, xgettext-6, xgettext-7, xgettext-8,
+	xgettext-9: Correct file mode preservation script.
+
+Sat Aug 31 05:17:29 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* Makefile.am (TESTS_ENVIRONMENT): Define top_srcdir variable for
+	test files.
+
+	* xgettext-1: Don't define top_srcdir from argument.  Assume it in
+	environment.
+	* xgettext-3: Likewise.
+	* gettext-1: Likewise.
+	* gettext-2: Likewise.
+	* msgcmp-1: Likewise.
+	* msgcmp-2: Likewise.
+
+Sun Aug 18 18:53:02 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* Makefile.am (distdir): It's not anymore necessary to explicitely
+	mention the dependency.
+
+Mon Jul 15 22:16:03 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* gettext-1, gettext-2, msgcmp-1, msgcmp-2, msgfmt-1, msgfmt-2,
+	msgfmt-3, msgfmt-4, msgmerge-1, msgmerge-2, msgmerge-3,
+	msgmerge-4, msgmerge-5, msgunfmt-1, xgettext-1, xgettext-2,
+	xgettext-3, xgettext-4, xgettext-5, xgettext-6, xgettext-7,
+	xgettext-8, xgettext-9: Change all `${xxx:-yyy}' to (hopefully)
+	portable `: ${xxx=yyy}'.  Thank you, Ultrix.
+
+Sat Jul  6 02:01:56 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* msgfmt-1, msgfmt-2: Add \n to end of first message to prevent
+	error message of new msgfmt.
+
+	* msgfmt-1 (tmpfiles): Correct argument to gettext.
+
+Thu Jun 20 12:48:32 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* msgmerge-5: Correct result.
+
+Wed Jun 19 03:09:27 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* Makefile.am (TESTS): Add msgmerge-5.
+
+	* msgmerge-5: New file.
+
+Fri Jun 14 18:23:51 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* msgcmp-1: Correct again wrong kind of redirection: use >
+	instead of &>.  Reported by Kaveh R. Ghazi.
+
+Fri Jun 14 03:44:01 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* msgfmt-1, msgfmt-2, gettext-1, gettext-2: Don't set LANG to
+	`checks' but instead `LANGUAGE'.  Some systems warn about a
+	non-existing locale `checks', but LANGUAGE is a GNU extension.
+	Reported by Kaveh R. Ghazi.
+
+	* gettext-2, msgfmt-2: Work around echo's not knowing about
+	-n option.  Reported by Kaveh R. Ghazi.
+
+Tue Jun 11 15:29:28 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* Makefile.am (AUTOMAKE_OPTIONS): Add variable.  Must be defined
+	in all subdirs.
+
+Thu Jun  6 23:40:58 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* msgcmp-1: Use &> instead of >& for avoiding error messages on
+	screen.  Reported by Kaveh Ghazi.
+
+Wed Jun  5 03:51:47 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* gettext-1, gettext-2, msgcmp-1, msgcmp-2, msgfmt-1, msgfmt-2,
+	msgfmt-3, msgfmt-4, msgmerge-1, msgmerge-2, msgmerge-3,
+	msgmerge-4, msgunfmt-1, xgettext-1, xgettext-2, xgettext-3,
+	xgettext-4, xgettext-5, xgettext-6, xgettext-7, xgettext-8,
+	xgettext-9: Add Noah's ELisp trick to preserve the executable
+	bits.
+
+Tue Jun  4 23:56:41 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* msgmerge-1: Adjust ok file after enable wrapping.
+
+Tue Jun  4 01:00:14 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* msgmerge-3: Change for situation now that translator comments
+	are copied.
+
+Mon Jun  3 19:40:25 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* Makefile.am (distdir): Make sure xg-test1.ok.po file is up to
+	date before distributing.
+
+	* msgmerge-4: Initial revision.
+
+Mon Jun  3 01:11:03 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* Makefile.am: New file.
+
+Sun Jun  2 21:10:16 1996  Ulrich Drepper  <drepper@cygnus.com>
+
+	* msgfmt-2, xgettext-2, msgfmt-1 (tmpfiles): Correct file names.
+
+	* msgfmt-1, msgfmt-2, gettext-2, msgfmt-4, msgfmt-3, msgcmp-2,
+	msgmerge-2, msgmerge-1, msgmerge-3, msgunfmt-1, Makefile.am,
+	msgcmp-1, xgettext-2, xgettext-1, xgettext-3, xgettext-4,
+	xgettext-5, xgettext-6, xgettext-7, xgettext-8, xgettext-9,
+	gettext-1: Initial revision.  New test suite for use in automake
+	generated Makefiles.
+
+Fri Apr  5 19:48:53 1996  Ulrich Drepper  <drepper@myware>
+
+	* xg-test8.ok: Adapt for fuzzy flag normalization.
+
+	* xg-test8.in.po: Add text so that fuzzy gets copied.
+
+	* Makefile.in (msgmerge): Call msgmerge with -q parameter.
+
+	* mf-test4.in.po: Fill in fields in header entry because of checks
+	in msgfmt.
+
+Tue Apr  2 18:52:23 1996  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (DISTFILES): Add mf-test4.in.po.
+	(all-gettest): New goal.  Same as all.
+	(msgfmt-4): New test for msgfmt.
+
+Tue Apr  2 10:42:09 1996  Ulrich Drepper  <drepper@myware>
+
+	* xg-test2.po, xg-test4.ok, xg-test5.ok, xg-test6.ok, xg-test7.ok,
+	xg-test8.ok, xg-test9.ok: Adapt for recent xgettext.  No more
+	`possible' comments anymore.
+
+Sun Mar 31 23:49:14 1996  François Pinard  <pinard@iro.umontreal.ca>
+
+	* Makefile.in (xgettext-3): Add echo command.
+
+Thu Mar 28 18:45:29 1996  Ulrich Drepper  <drepper@myware>
+
+	* xg-test9.ok, xg-test8.ok, xg-test7.ok, xg-test6.ok, xg-test5.ok,
+	xg-test4.ok: Adopt for change in C format string detection.
+
+	* xg-test2.in.c: Add some no-c-format lines to test C format flag
+	handling.
+	* xg-test2.ok-po: Adopt result for above change.
+
+	* Makefile.in (DIFF): Define as `diff $(DIFFARGS)'.  This permits
+	to set DIFFARGS=-u in the environment and get rid of those
+	unreadable context diffs.
+
+Wed Mar 27 03:24:43 1996  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (xgettext-9): Add new test for xgettext.  This one
+	test extraction of comments.
+	(TESTSRCS): Add xg-test9.c
+	(OKFILES): Add xg-test9.ok
+
+	* xg-test9.c, xg-test9.ok: New files.  Input and expected result
+	for test 9 of xgettext.
+
+Tue Mar 26 00:00:34 1996  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in: Add test 3 for msgmerge.
+	* mm-test3.in1, mm-test3.in2, mm-test3.ok: New files.
+	Test 3 for msgmerge.  Tests handling of obsolete entries.
+
+	* Makefile.in: Use reasonable names for msgfmt tests.  Suggested
+	by François Pinard.
+
+	* Makefile.in (msgunfmt-1): New msgunfmt program interface
+	requires -o option.
+
+Mon Mar 25 03:27:12 1996  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (check): Rewritten by François Pinard.
+
+	* xg-test8.ok, xg-test8.in.po: Adopt for new implementation of
+	special comments.
+
+Sun Mar 24 01:51:42 1996  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in: Add check 8 for xgettext.  Adopt for input file
+	type recognision of xgettext by renaming files to *.c, *.cc, or
+	*.C.
+
+Fri Mar  1 13:32:53 1996  Ulrich Drepper  <drepper@myware>
+
+	* mm-test2.ok: New error message format.
+
+Tue Dec 19 22:13:03 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (Makefile): Explicitly use $(SHELL) for running
+	shell scripts.
+
+Sat Dec  9 12:18:07 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (clean): Correct xg-text2.po to xg-test2.po.
+	Reported by Eric Backus.
+
+Mon Dec  4 01:05:50 1995  Ulrich Drepper  <drepper@myware>
+
+	* mm-test1.ok:
+	For now we have long lines.  Undo this change when LINE_WIDTH in
+	acconfig.h is changed back.
+
+Sun Dec  3 03:09:43 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (clean): Add xg-test7.po.
+
+	* xg-test7.ok, xg-test7.in: Initial revision
+
+	* Makefile.in (check): Add another test for xgettext.
+
+Fri Nov 17 00:21:37 1995  Ulrich Drepper  <drepper@myware>
+
+	* mm-test1.in1, mm-test1.in2, mm-test1.ok, mm-test2.in1,
+	mm-test2.in2, mm-test2.ok, mu-test1.in, xg-test4.in, xg-test4.ok,
+	xg-test5.in, xg-test5.ok, xg-test6.in, xg-test6.ok:
+	Initial revision.
+
+	* Makefile.in: Add additional test by Peter Miller.
+
+Sat Nov 11 17:58:42 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (clean): Remove xg-text2.po.
+
+	* xg-test2.ok.po: Adapt for new xgettext.
+
+Thu Nov  9 00:56:57 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (dist):
+	Write newly created xg-test1.ok.po file to $(srcdir).
+
+Tue Nov  7 01:33:49 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (check):
+	Make message for successful completion more visible.
+
+Sun Nov  5 19:40:18 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (dist-gettext): Make synonym for dist.
+
+Sun Nov  5 11:37:20 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (dist): Suppress error message when ln failed.
+	Get files from $(srcdir) explicitly.
+
+Sun Oct 29 12:22:48 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (check):
+	In msgcmp test2 pipe result through sed to remove $(prefix).
+
+	* Makefile.in (check):
+	Add some missing $(srcdir)/.  Reported by François Pinard.
+
+Sat Oct 28 15:35:36 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in: Remove Emacs local variables setting.
+
+	* Makefile.in (check):
+	Don't print out command for msgcmp test 1 because it contains
+	the word `failed'.
+
+	* mc-test1.in1, mc-test1.in2, mc-test2.in1, mc-test2.in2,
+	 mc-test2.ok, test5.po, xg-test1.ok.po, xg-test2.in, xg-test2.ok.po:
+	Initial revision.
+
+	* Makefile.in (MSGCMP):
+	New variable. The file name includes actions on env.vars
+	because be test for the error messages we get.
+	(TESTSRCS, OKFILES): Add files for new tests.
+	(check): Add some test.  Taken from Peter Miller's version.
+
+Fri Oct 27 02:10:46 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (check): Buglix's sh workaround by Christian von Roques.
+
+Wed Sep 20 09:30:46 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (check): Add test for -x option of xgettext.
+	(clean): Remove test file for above test.
+
+Tue Aug 15 06:06:51 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (check):
+	Correct TEXTDOMAINDIR value for msgfmt tests: is really `..', but
+	$(top_srcdir) for the gettext tests.
+
+Mon Aug 14 23:51:53 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (install-src): New no-op goal.
+
+Wed Aug  9 00:48:08 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (check):
+	After extending the locale specification by processing `LANGUAGE'
+	it is necessary to clear this environment variable, too.
+
+Fri Aug  4 16:31:58 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (clean): Remove LC_MESSAGES/gen.mo.
+
+	* Makefile.in (dist): Change mode of LC_MESSAGE directory to 777.
+	Remove `copying instead' message.
+
+Wed Aug  2 23:35:08 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (check): Add check for msgfmt and gettext.
+
+	* test2.ok, test1.ok: Initial revision.
+
+Sat Jul 15 23:45:53 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in: Change head comment.
+	(check): Remove msgfmt tests for now (does not handle
+ 	big<->little endian difference).
+  	(check): Add success messages.
+	(install, uninstall): Add missing dummy goals.
+
+Sat Jul 15 00:24:55 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (OKFILES, check, clean):
+	Use shortened names for .mo files.
+
+	* module1.po (help_domain, error_domain):
+	Shorten names for file systems with 14 char limit.
+
+	* module2.po (error_domain, window_domain):
+	Shorten names for file systems with 14 char limit.
+
+Thu Jul 13 00:54:14 1995  Ulrich Drepper  <drepper@myware>
+
+	* Makefile.in (DISTFILES): Add ChangeLog and OKFILES.
+
+Wed Jul 12 22:12:05 1995  Ulrich Drepper  <drepper@myware>
+
+	* module2.po, module1.po, help_domain.ok, error_domain.ok,
+ 	window_domain.ok, messages.ok, Makefile.in: Initial revision.

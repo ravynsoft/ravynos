@@ -1,0 +1,24 @@
+#autoload
+
+# Test if $1 has glob qualifiers.  This is partly magic, partly guesswork,
+# wholly flakey.
+#
+# If $2 is "complete" test if the qualifiers are complete (up to the ")"
+# at the end of the word), else that they are incomplete.
+# Sets match, mbegin, mend to reflect their location.
+# $match[1] is everything up to the start of the qualifiers themselves;
+#   this may therefore end in "(" or "(#q".
+# $match[2] is everything at the start not counting the "(" or "(#q".
+# $match[5] is the set of qualifiers themselves, not including a trailing
+#   parenthesis.
+local complete
+
+[[ $2 = complete ]] && complete=")"
+
+[[ -z $compstate[quote] &&
+  ( $_comp_caller_options[bareglobqual] == on &&
+       $1 = (#b)(((*[^\\\$]|)(\\\\)#)\()([^\)\|\~]#)$complete &&
+       ${#match[1]} -gt 1 ||
+     $_comp_caller_options[extendedglob] == on &&
+       $1 = (#b)(((*[^\\\$]|)(\\\\)#)"(#q")([^\)]#)$complete
+    ) ]]

@@ -1,0 +1,263 @@
+163
+166
+4
+16
+8
+2
+4
+2
+2
+1
+0
+0
+0
+1
+1
+2
+-3
+-2
+1
+0
+2
+131072
+29
+33
+49
+1
+1
+0
+0
+1
+1
+1
+2
+3
+1
+58
+2
+60
+1
+256
+16
+62
+4
+29
+5
+-4
+4
+1
+32
+32
+1
+1
+32
+4
+20
+1,i+=2
+30
+1,j+=2
+20
+1,i+=2
+30
+1,j+=2
+./arith.tests: line 127: 1 ? 20 : x+=2: attempted assignment to non-variable (error token is "+=2")
+20
+6
+6,5,3
+263
+255
+255
+127
+36
+40
+10
+10
+10
+10
+10
+10
+36
+36
+62
+63
+./arith.tests: line 162: 3425#56: invalid arithmetic base (error token is "3425#56")
+./arith.tests: line 165: 2#: invalid integer constant (error token is "2#")
+./arith.tests: line 168: 7 = 43 : attempted assignment to non-variable (error token is "= 43 ")
+./arith.tests: line 169: 2#44: value too great for base (error token is "2#44")
+./arith.tests: line 170: 44 / 0 : division by 0 (error token is "0 ")
+./arith.tests: line 171: let: jv += $iv: syntax error: operand expected (error token is "$iv")
+./arith.tests: line 172: jv += $iv : syntax error: operand expected (error token is "$iv ")
+./arith.tests: line 173: let: rv = 7 + (43 * 6: missing `)' (error token is "6")
+./arith.tests: line 177: 0#4: invalid number (error token is "0#4")
+./arith.tests: line 178: 2#110#11: invalid number (error token is "2#110#11")
+abc
+def
+ghi
+ok
+6
+1
+0
+./arith.tests: line 196: 4 + : syntax error: operand expected (error token is "+ ")
+16
+./arith.tests: line 201: 4 ? : 3 + 5 : expression expected (error token is ": 3 + 5 ")
+./arith.tests: line 202: 1 ? 20 : `:' expected for conditional expression (error token is "20 ")
+./arith.tests: line 203: 4 ? 20 : : expression expected (error token is ": ")
+9
+./arith.tests: line 209: 0 && B=42 : attempted assignment to non-variable (error token is "=42 ")
+9
+./arith.tests: line 212: 1 || B=88 : attempted assignment to non-variable (error token is "=88 ")
+9
+0
+9
+0
+9
+1
+9
+7
+7
+4
+32767
+32768
+131072
+2147483647
+1
+4
+4
+5
+5
+4
+3
+3
+4
+4
+7
+./arith.tests: line 260: 7-- : syntax error: operand expected (error token is "- ")
+./arith.tests: line 262: --x=7 : attempted assignment to non-variable (error token is "=7 ")
+./arith.tests: line 263: ++x=7 : attempted assignment to non-variable (error token is "=7 ")
+./arith.tests: line 265: x++=7 : attempted assignment to non-variable (error token is "=7 ")
+./arith.tests: line 266: x--=7 : attempted assignment to non-variable (error token is "=7 ")
+4
+7
+-7
+7
+7
+2
+2
+./arith1.sub: line 15: 4-- : syntax error: operand expected (error token is "- ")
+./arith1.sub: line 16: 4++ : syntax error: operand expected (error token is "+ ")
+./arith1.sub: line 17: 4 -- : syntax error: operand expected (error token is "- ")
+./arith1.sub: line 18: 4 ++ : syntax error: operand expected (error token is "+ ")
+1
+2
+1
+2
+6
+3
+7
+4
+0
+3
+7
+2
+-2
+1
+./arith1.sub: line 48: ((: ++ : syntax error: operand expected (error token is "+ ")
+7
+7
+./arith1.sub: line 51: ((: -- : syntax error: operand expected (error token is "- ")
+7
+7
+7
+7
+1
+2
+1
+2
+1
+0
+5
+1
+6
+2
+3
+1
+4
+0
+./arith2.sub: line 46: ((: -- : syntax error: operand expected (error token is "- ")
+-7
+-7
+./arith2.sub: line 50: ((: ++ : syntax error: operand expected (error token is "+ ")
+7
+7
+-7
+-7
+7
+7
+1
+1
+4
+5
+-3
+2
+4
+5000
+5000
+1
+0
+0
+1
+2147483649
+0
+0
+0
+0
+0
+0
+-9223372036854775808
+-9223372036854775808
+-9223372036854775808
+-9223372036854775808
+-9223372036854775808
+-9223372036854775808
+-9223372036854775808
+-9223372036854775808
+-9223372036854775808
+-9223372036854775808
+9223372036854775805 9223372036854775806 9223372036854775807
+123 456
+123 456
+123 456
+123 456
+123 456
+123 456
+1
+1 2 3 4 5 6 7
+0 1 2 3 4 5 6 7
+0
+0, 0
+0, 1
+efg
+e
+efg
+e
+abcdefg
+efg
+0
+0
+0
+0
+0
+0
+0
+8 12
+./arith.tests: line 310: ((: x=9 y=41 : syntax error in expression (error token is "y=41 ")
+./arith.tests: line 314: a b: syntax error in expression (error token is "b")
+./arith.tests: line 315: ((: a b: syntax error in expression (error token is "b")
+42
+42
+42
+42
+42
+42
+./arith.tests: line 330: 'foo' : syntax error: operand expected (error token is "'foo' ")
+./arith.tests: line 333: b[c]d: syntax error in expression (error token is "d")

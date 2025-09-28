@@ -1,0 +1,35 @@
+[name]
+Tag width with formatting
+
+[input]
+=head1 TAG WIDTH
+
+=over 10
+
+=item 12345678
+
+A
+
+=item B<12345678>
+
+B
+
+=item 1Z<>
+
+C
+
+=item B<1>
+
+D
+
+=back
+
+[output]
+TTAAGG  WWIIDDTTHH
+    12345678  A
+
+    1122334455667788  B
+
+    1         C
+
+    11         D

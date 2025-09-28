@@ -1,0 +1,84 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of an external command with Java .properties syntax.
+
+cat <<\EOF > mex-test3.properties
+# HEADER.
+#
+!=Project-Id-Version\: Bonnie Tyler\n
+
+#: married-men:4
+#, fuzzy
+!The\ world\ is\ full\ of\ married\ men=So viele verheiratete M\u00e4nner
+
+#: married-men:5
+with\ wives\ who\ never\ understand=und ihre Frauen verstehen sie nicht
+
+#: married-men:6
+!They're\ looking\ for\ someone\ to\ share=
+
+# schwer zu \u00fcbersetzen...
+#: married-men:7
+!the\ excitement\ of\ a\ love\ affair=
+
+#: married-men:8
+!Just\ as\ soon\ as\ they\ find\ you=
+
+#: married-men:9
+!They\ warn\ you\ and\ darn\ you=
+EOF
+
+cat <<\EOF > mex-test3.sh
+#! /bin/sh
+echo "========================= $MSGEXEC_LOCATION =========================" | LC_ALL=C tr -d '\r'
+cat <<MEOF
+$MSGEXEC_MSGID
+---
+MEOF
+cat
+echo | LC_ALL=C tr -d '\r'
+exit 0
+EOF
+chmod a+x mex-test3.sh
+
+: ${MSGEXEC=msgexec}
+${MSGEXEC} --properties-input -i mex-test3.properties ./mex-test3.sh > mex-test3.out || Exit 1
+
+cat <<\EOF > mex-test3.ok
+========================= mex-test3.properties:3 =========================
+
+---
+Project-Id-Version: Bonnie Tyler
+
+========================= mex-test3.properties:7 =========================
+The world is full of married men
+---
+So viele verheiratete Männer
+========================= mex-test3.properties:10 =========================
+with wives who never understand
+---
+und ihre Frauen verstehen sie nicht
+========================= mex-test3.properties:13 =========================
+They're looking for someone to share
+---
+
+========================= mex-test3.properties:17 =========================
+the excitement of a love affair
+---
+
+========================= mex-test3.properties:20 =========================
+Just as soon as they find you
+---
+
+========================= mex-test3.properties:23 =========================
+They warn you and darn you
+---
+
+EOF
+
+: ${DIFF=diff}
+${DIFF} mex-test3.ok mex-test3.out
+result=$?
+
+exit $result

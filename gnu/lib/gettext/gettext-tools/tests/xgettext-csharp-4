@@ -1,0 +1,36 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Tests for C# plural keyword support
+
+cat <<EOF > xg-cs-4.cs
+class TestCase {
+  public static void Main (String[] args) {
+    GetPluralString("test 1", "plural test");
+    MyPluralString (context, "I've 1", "you've lost");
+  }
+}
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location --keyword=MyPluralString:2,3 \
+  -d xg-cs-4.tmp xg-cs-4.cs || Exit 1
+LC_ALL=C tr -d '\r' < xg-cs-4.tmp.po > xg-cs-4.po || Exit 1
+
+cat <<EOF > xg-cs-4.ok
+msgid "test 1"
+msgid_plural "plural test"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "I've 1"
+msgid_plural "you've lost"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-cs-4.ok xg-cs-4.po
+result=$?
+
+exit $result

@@ -1,0 +1,182 @@
+
+Welcome!
+========
+
+This is the OS/2 port of GNU gettext internationalization library.
+
+
+Compatibility
+=============
+
+The library has been compiled with -Zmt flag, but it doesn't matter as soon
+as you use the EMX single-threaded runtime fix (emx-strt-fix-0.0.2.zip).
+
+The library is fully compatible with the previous port of gettext library
+(0.10.35) which is largely used especialy by XFree86/2 programs. All the
+old programs that I have with gettext support run fine with the new version
+of the DLL.
+
+
+Installation
+============
+
+If you set the GNULOCALEDIR environment variable to point to your
+x:/xxx/share/locale directory, it will override any other setting. That is,
+unpack the binary distribution over /emx, set GNULOCALEDIR=x:/emx/share/locale
+(where x: is the drive letter of your EMX installation) and that's all.
+
+If you use the UNIXROOT environment variable, the default catalogue search
+paths will be like on Unices, e.g. $(UNIXROOT)/usr/lib and
+$(UNIXROOT)/usr/share/locale. GNULOCALEDIR always overrides this.
+
+Now if you haven't did it earlier, set the language identifier that you use.
+This is done by adding a "SET LANG=xxx" environment setting to your CONFIG.SYS,
+where xxx is the identifier of your language (example: en_UK for English in UK,
+ru_RU for Russian in Russia. Also you can use names like "russian", "italian"
+and so on - see the share/locale/locale.alias file).
+
+This port of gettext supports character set conversions. This means that if
+your .mo files were written using new gettext guidelines, e.g. they contain a
+message like this:
+
+msgid ""
+msgstr "Content-Type: text/plain; charset=koi8-r\n"
+
+the messages will be properly converted to your active codepage using OS/2
+Unicode API. For example, russian message catalog gettext.mo is in the
+KOI8-R (codepage 878) encoding while OS/2 uses codepage 866. Now when you
+run any of these tools it detects that the active OS/2 codepage is 866 and
+performs the translation from CP878 -> CP866 for every message.
+
+If you want to override the character set used to output messages (for example
+in XFree86 for Russian the KOI8-R encoding (codepage 878) is used) you can
+set the output character set by adding a postfix to the LANG environment
+variable, this way:
+
+set LANG=ru_RU.KOI8-R
+
+or (equivalent):
+
+set LANG=ru_RU.CP878
+
+or (same effect):
+
+set LANG=ru_RU.IBM-878
+
+If the output character set is ommited from the LANG variable, the default
+codepage is ALWAYS taken from the operating system (e.g. the codepage setting
+from locale.alias is always ignored, so "russian" stays just for "ru_RU" and
+not for "ru_RU.ISO-8859-5"); you may want to set it just if you want to
+override the active OS/2 codepage.
+
+
+XFree86 setup
+=============
+
+If you use XFree86 and the OS/2 default character set is different from the
+XFree86 default character set (e.g. for Russain CP866 vs KOI8-R), you can add
+the following (or similar) statement to your startx.cmd file (after the
+commands dealing with HOME and X11SHELL):
+
+call VALUE 'LANG', 'ru_RU.KOI8-R', env
+
+Otherwise you can get incorrect (wrong codepage) output from programs that
+previously worked (e.g. GIMP 1.22). This is because earlier versions of gettext
+didn't support character set translations.
+
+
+Implementation remarks
+======================
+
+The codepage conversion code uses OS/2 Unicode API, thus it falls under the
+limits that OS/2 Unicode API has. For example, OS/2 Unicode API does not
+support the BIG5 East Asian character set nor ISO-8859-X where X > 9 (at
+least with Warp4 with fixpack 14 that I have). If someone knows the
+OS/2 API identifiers for BIG5 or ISO8859-10,... encodings, please tell me!
+
+Since gettext 0.11 iconv emulation layer supports correctly UTF-8. Also
+I have added theoretical support for the following East Asian encodings:
+EUC-JP, EUC-KR, EUC-TW, EUC-CN. However, these encodings are (I believe)
+supported only on East Asian editions of OS/2. The code pages for them are
+listed in the \language\codepage\ucstbl.lst file but the codepage files
+themselves are missing; I believe they are ommited from European OS/2's
+due to their large size.
+
+Also I have added "support" for the BIG5 codeset as an alias for IBM-950
+codepage. However, I'm not very sure about this; in any case OS/2 does not
+support (as far as I know) anything closer to BIG5.
+
+
+Additional API
+==============
+
+This package provides additionaly the iconv() API that can be used by
+developers for doing more feature-full Unix ports. The iconv() API is used
+to convert text between various codepages. The intl.h header file contains
+the prototypes and definitions needed for iconv(); if you configure software
+with autoconf it possibly will find intl.h and set up the software accordingly.
+
+All these functions are exported from INTL.DLL. The iconv.a import library
+imports all the iconv* functions from INTL.DLL. So, like on Unix, now you can
+#include <iconv.h>, then link with -liconv and you will get a fully functional
+iconv implementation.
+
+
+Rebuilding the library
+======================
+
+The library is quite easy to rebuild. Since the OS/2 support is provided now
+out-of-the-box in gettext, you just have to download and unpack the source
+archive. Now there are two ways to rebuild the gettext library:
+
+1. If you're a masochist you can go the clumsy configure/make Unix way. This
+is not recommended however as I found no way to tell libtool to generate a
+slightly non-standard DLL which will be backward compatible with gettext
+0.10.35. The compatibility is achieved by prepending backward.def to the
+export definition file generated with emximp or somehow else. Thus it is
+highly recommended you build using the second way, if it is possible.
+
+2. Go to os2 and just run `make'. If you have all the required tools,
+it should painlessly compile. Finally, if you want a binary distribution
+archive, do `make distr'. The weak side of building this way is that makefile
+is somewhat fragile. This means that if the makefile is left unmodified and
+a new version of gettext is rolled out, it *may* not work. But every possible
+attempt was made to ensure that the makefile takes most important build
+parameters from their autoconf counterparts.
+
+WARNING: Due to bugs in GNU Make 3.76.1 (at least in its OS/2 port) you can
+get sometimes (depending on make version and makefile modification :) funny
+messages like these:
+
+zip warning: name not matched: emx/src/gettext-0.10.40/support/os2/iconv.h
+
+or even:
+
+*** No rule to make target `out/release/intl.a', needed by `all'.  Stop.
+
+Such messages are a bad joke. Ignore it, and re-run make. This is a
+long-standing bug in GNU make, alas.
+
+If you want a debug version of library, you can do `make DEBUG=1'.
+
+If you don't have the LxLite tool installed, do `make LXLITE=0'
+
+NB: For best results, it is highly recommended that you use at least emxbind.exe
+and ld.exe from gcc 3.0.2 or later, since they contain a number of fixes that
+will help you generate a more optimal DLL.
+
+
+Contributors
+============
+
+Hung-Chi Chu <hcchu@r350.ee.ntu.edu.tw>
+        the original port of gettext (0.10.35)
+
+Jun SAWATAISHI <jsawa@attglobal.net>
+        some more work on it and submitted the patches to GNU team, although
+        they were not completely integrated.
+
+Andrew Zabolotny <zap@cobra.ru>
+        Succeeded to remove almost all OS/2-specific #ifdef's from mainstream
+        source code, wrote the dedicated OS/2 makefile, wrote the iconv wrapper
+        around OS/2 Unicode API, added support for locale translations.

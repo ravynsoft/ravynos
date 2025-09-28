@@ -1,0 +1,81 @@
+#compdef ldconfig ldconfig.real
+
+local ret=1
+local -a args context line state state_descr
+local -A opt_args
+
+case $OSTYPE in
+  linux*)
+    args=(
+      '(x -v --verbose)'{-v,--verbose}'[output verbosely]' \
+      + x \
+      '(: -)'{-\?,--help}'[display help information]'
+      '(: -)'{-p,--print-cache}'[display libraries in current cache]'
+      '(: -)--usage[display brief usage information]'
+      '(: -)'{-V,--version}'[display version information]'
+      + l
+      '(x o)-l[manually link individual libraries (library mode)]'
+      + o
+      '(x l -c --format)'{-c+,--format=}'[specify cache format]:cache format:(old new compat)'
+      '(x l)-C+[specify cache file to use instead of /etc/ld.so.cache]:cache file:_files'
+      '(x l)-f+[specify configuration file to use instead of /etc/ld.so.conf]:configuration file:_files'
+      '(x l -i --ignore-aux-cache)'{-i,--ignore-aux-cache}'[ignore auxiliary cache file]'
+      '(x l -N)-n[process only directories specified on command line (implies -N)]'
+      '(x l)-N[do not rebuild cache]'
+      '(x l)-r+[specify root directory]:root directory:_directories'
+      '(x l)-X[do not update symbolic links]'
+    )
+    ;;
+  *bsd*|dragonfly*)
+    args=(
+      '(-U)-m[merge into the existing hints file]'
+      '(: -)-r[list the current contents of the hints file]'
+    );|
+  dragonfly*|freebsd*|openbsd*)
+    args+=(
+      '(-U)-R[rescan previously configured directories]'
+    );|
+  dragonfly*|freebsd*)
+    args+=(
+      '(-aout)-elf[generate hints for elf format shared libraries]'
+      '-f+[specify hints file]:hints file:_files'
+      '-i[run in insecure mode]'
+    );|
+  freebsd*|netbsd*|openbsd*)
+    args+=(
+      '-v[switch on verbose mode]'
+    );|
+  freebsd*|openbsd*)
+    args+=(
+      '-s[do not scan /usr/lib for shared libraries]'
+    );|
+  freebsd*)
+    args+=(
+      '-32[generate hints for 32-bit ABI shared libraries]'
+      '(-elf)-aout[generate hints for a.out format shared libraries]'
+    );|
+  netbsd*)
+    args+=(
+      '(-s)-c[do not scan directories in /etc/ls.so.conf]'
+      '(-s)-S[do not scan /usr/lib for shared libraries]'
+      '-s[do not scan /usr/lib or directories in /etc/ld.so.conf for shared libraries]'
+    );|
+  openbsd*)
+    args+=(
+      '(-m)-U[unconfigure specified directories or inaccessible directories if none specified]'
+    );|
+esac
+
+_arguments -s -S : \
+  '(x)*: :->files' \
+  $args \
+&& ret=0
+
+[[ $state == files ]] &&
+if [[ -n ${opt_args[(I)l--l]} ]]; then
+  _object_files && ret=0
+else
+  _directories && ret=0
+fi
+
+return ret

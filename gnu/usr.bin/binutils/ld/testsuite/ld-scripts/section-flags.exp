@@ -1,0 +1,43 @@
+# Test SECTION_FLAGS in a linker script.
+#
+# This file is part of the GNU Binutils.
+#
+# Copyright (C) 2012-2023 Free Software Foundation, Inc.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+# These tests only work for ELF targets
+if {! [is_elf_format]} {
+    return
+}
+
+set ldcmd $ld
+if { [istarget spu*-*-*] } {
+    set ldcmd "$ldcmd --local-store 0:0"
+}
+
+foreach test {"section-flags-1" "section-flags-2"} {
+    if ![ld_assemble $as $srcdir/$subdir/$test.s tmpdir/$test.o] {
+	unsupported $test
+    } else {
+	if ![ld_link $ldcmd tmpdir/$test \
+		"-T $srcdir/$subdir/$test.t tmpdir/$test.o"] {
+	    fail $test
+	} else {
+	    pass $test
+	}
+    }
+}

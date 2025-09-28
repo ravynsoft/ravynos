@@ -1,0 +1,36 @@
+#compdef sh ash csh dash ksh ksh88 ksh93 mksh oksh pdksh rc tcsh yash
+
+local bourne argv0
+local -a args all_opts=( -{{0..9},{A..Z},{a..z}} )
+
+[[ $service == (csh|?csh|fish|rc) ]] || bourne=1
+
+# Bourne-style shells support +x variants
+# @todo Uncomment when workers/45422 is fixed
+# (( bourne )) && all_opts+=( ${all_opts/#-/+} )
+# Bourne-style shells take argv[0] as the second argument to -c
+(( bourne )) && argv0=':argv[0]:'
+
+# All of the recognised shells support at least these arguments
+args=(
+  "(1 -)-c[execute specified command string]: :_cmdstring$argv0"
+  '-e[exit immediately on non-zero return]'
+  '-i[act as interactive shell]'
+  '-l[act as login shell]'
+  '-x[print command trace]'
+  '1:script file:_files'
+  '*:: :_files'
+)
+# Bourne-style shells support -o/+o option. Not all of them support -ooption in
+# the same argument, but we'll allow it here for those that do
+(( bourne )) && args+=(
+  '-o+[set specified option]:option:'
+  '+o+[unset specified option]:option:'
+)
+# Since this is a generic function we don't know what other options these shells
+# support, but we don't want them to break the ones listed above, so we'll just
+# ignore any other single-alphanumeric option. Obviously this doesn't account
+# for long options
+args+=( '!'${^${all_opts:#(${(~j<|>)${(@M)${(@M)args#(*[\*\)]|)[+-]?}%[+-]?}})}} )
+
+_arguments -s -S -A '-*' : $args

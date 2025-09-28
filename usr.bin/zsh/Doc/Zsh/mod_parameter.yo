@@ -1,0 +1,269 @@
+COMMENT(!MOD!zsh/parameter
+Access to internal hash tables via special associative arrays.
+!MOD!)
+cindex(parameters, special)
+The tt(zsh/parameter) module gives access to some of the internal hash
+tables used by the shell by defining some special parameters.
+
+startitem()
+vindex(options)
+item(tt(options))(
+The keys for this associative array are the names of the options that
+can be set and unset using the tt(setopt) and tt(unsetopt)
+builtins. The value of each key is either the string tt(on) if the
+option is currently set, or the string tt(off) if the option is unset.
+Setting a key to one of these strings is like setting or unsetting
+the option, respectively. Unsetting a key in this array is like
+setting it to the value tt(off).
+)
+vindex(commands)
+item(tt(commands))(
+This array gives access to the command hash table. The keys are the
+names of external commands, the values are the pathnames of the files
+that would be executed when the command would be invoked. Setting a
+key in this array defines a new entry in this table in the same way as
+with the tt(hash) builtin. Unsetting a key as in `tt(unset
+"commands[foo]")' removes the entry for the given key from the command 
+hash table.
+)
+vindex(functions)
+item(tt(functions))(
+This associative array maps names of enabled functions to their
+definitions. Setting a key in it is like defining a function with the
+name given by the key and the body given by the value. Unsetting a key
+removes the definition for the function named by the key.
+)
+vindex(dis_functions)
+item(tt(dis_functions))(
+Like tt(functions) but for disabled functions.
+)
+vindex(functions_source)
+item(tt(functions_source))(
+This readonly associative array maps names of enabled functions to the
+name of the file containing the source of the function.
+
+For an autoloaded function that has already been loaded, or marked for
+autoload with an absolute path, or that has had its path resolved with
+`tt(functions -r)', this is the file found for autoloading, resolved
+to an absolute path.
+
+For a function defined within the body of a script or sourced file,
+this is the name of that file.  In this case, this is the exact path
+originally used to that file, which may be a relative path.
+
+For any other function, including any defined at an interactive prompt or
+an autoload function whose path has not yet been resolved, this is
+the empty string.  However, the hash element is reported as defined
+just so long as the function is present:  the keys to this hash are
+the same as those to tt($functions).
+)
+vindex(dis_functions_source)
+item(tt(dis_functions_source))(
+Like tt(functions_source) but for disabled functions.
+)
+vindex(builtins)
+item(tt(builtins))(
+This associative array gives information about the builtin commands
+currently enabled. The keys are the names of the builtin commands and
+the values are either `tt(undefined)' for builtin commands that will
+automatically be loaded from a module if invoked or `tt(defined)' for
+builtin commands that are already loaded.
+)
+vindex(dis_builtins)
+item(tt(dis_builtins))(
+Like tt(builtins) but for disabled builtin commands.
+)
+vindex(reswords)
+item(tt(reswords))(
+This array contains the enabled reserved words.
+)
+vindex(dis_reswords)
+item(tt(dis_reswords))(
+Like tt(reswords) but for disabled reserved words.
+)
+vindex(patchars)
+item(tt(patchars))(
+This array contains the enabled pattern characters.
+)
+vindex(dis_patchars)
+item(tt(dis_patchars))(
+Like tt(patchars) but for disabled pattern characters.
+)
+vindex(aliases)
+item(tt(aliases))(
+This maps the names of the regular aliases currently enabled to their
+expansions.
+)
+vindex(dis_aliases)
+item(tt(dis_aliases))(
+Like tt(aliases) but for disabled regular aliases.
+)
+vindex(galiases)
+item(tt(galiases))(
+Like tt(aliases), but for global aliases.
+)
+vindex(dis_galiases)
+item(tt(dis_galiases))(
+Like tt(galiases) but for disabled global aliases.
+)
+vindex(saliases)
+item(tt(saliases))(
+Like tt(raliases), but for suffix aliases.
+)
+vindex(dis_saliases)
+item(tt(dis_saliases))(
+Like tt(saliases) but for disabled suffix aliases.
+)
+vindex(parameters)
+item(tt(parameters))(
+The keys in this associative array are the names of the parameters
+currently defined. The values are strings describing the type of the
+parameter, in the same format used by the tt(t) parameter flag, see
+ifzman(\
+zmanref(zshexpn)
+)\
+ifnzman(\
+noderef(Parameter Expansion)
+)\
+.
+Setting or unsetting keys in this array is not possible.
+)
+vindex(modules)
+item(tt(modules))(
+An associative array giving information about modules. The keys are the names
+of the modules loaded, registered to be autoloaded, or aliased. The
+value says which state the named module is in and is one of the
+strings `tt(loaded)', `tt(autoloaded)', or `tt(alias:)var(name)',
+where var(name) is the name the module is aliased to.
+
+Setting or unsetting keys in this array is not possible.
+)
+vindex(dirstack)
+item(tt(dirstack))(
+A normal array holding the elements of the directory stack. Note that
+the output of the tt(dirs) builtin command includes one more
+directory, the current working directory.
+)
+vindex(history)
+item(tt(history))(
+This associative array maps history event numbers to the full history lines.
+Although it is presented as an associative array, the array of all values
+(tt(${history[@]})) is guaranteed to be returned in order from most recent
+to oldest history event, that is, by decreasing history event number.
+)
+vindex(historywords)
+item(tt(historywords))(
+A special array containing the words stored in the history.  These also
+appear in most to least recent order.
+)
+vindex(jobdirs)
+item(tt(jobdirs))(
+This associative array maps job numbers to the directories from which the
+job was started (which may not be the current directory of the job).
+
+The keys of the associative arrays are usually valid job numbers,
+and these are the values output with, for example, tt(${(k)jobdirs}).
+Non-numeric job references may be used when looking up a value;
+for example, tt(${jobdirs[%+]}) refers to the current job.
+
+See the tt(jobs) builtin for how job information is provided in a subshell.
+)
+vindex(jobtexts)
+item(tt(jobtexts))(
+This associative array maps job numbers to the texts of the command lines
+that were used to start the jobs.
+
+Handling of the keys of the associative array is as described for
+tt(jobdirs) above.
+
+See the tt(jobs) builtin for how job information is provided in a subshell.
+)
+vindex(jobstates)
+item(tt(jobstates))(
+This associative array gives information about the states of the jobs
+currently known. The keys are the job numbers and the values are
+strings of the form
+`var(job-state)tt(:)var(mark)tt(:)var(pid)tt(=)var(state)...'. The
+var(job-state) gives the state the whole job is currently in, one of
+`tt(running)', `tt(suspended)', or `tt(done)'. The var(mark) is
+`tt(+)' for the current job, `tt(-)' for the previous job and empty
+otherwise. This is followed by one `tt(:)var(pid)tt(=)var(state)' for every
+process in the job. The var(pid)s are, of course, the process IDs and
+the var(state) describes the state of that process.
+
+Handling of the keys of the associative array is as described for
+tt(jobdirs) above.
+
+See the tt(jobs) builtin for how job information is provided in a subshell.
+)
+vindex(nameddirs)
+item(tt(nameddirs))(
+This associative array maps the names of named directories to the pathnames
+they stand for.
+)
+vindex(userdirs)
+item(tt(userdirs))(
+This associative array maps user names to the pathnames of their home
+directories.
+)
+vindex(usergroups)
+item(tt(usergroups))(
+This associative array maps names of system groups of which the current
+user is a member to the corresponding group identifiers.  The contents
+are the same as the groups output by the tt(id) command.
+)
+vindex(funcfiletrace)
+item(tt(funcfiletrace))(
+This array contains the absolute line numbers and corresponding file
+names for the point where the current function, sourced file, or (if
+tt(EVAL_LINENO) is set) tt(eval) command was
+called.  The array is of the same length as tt(funcsourcetrace) and
+tt(functrace), but differs from tt(funcsourcetrace) in that the line and
+file are the point of call, not the point of definition, and differs
+from tt(functrace) in that all values are absolute line numbers in
+files, rather than relative to the start of a function, if any.
+)
+vindex(funcsourcetrace)
+item(tt(funcsourcetrace))(
+This array contains the file names and line numbers of the
+points where the functions, sourced files, and (if tt(EVAL_LINENO) is set)
+tt(eval) commands currently being executed were
+defined.  The line number is the line where the `tt(function) var(name)'
+or `var(name) tt(LPAR()RPAR())' started.  In the case of an autoloaded
+function  the line number is reported as zero.
+The format of each element is var(filename)tt(:)var(lineno).
+
+For functions autoloaded from a file in native zsh format, where only the
+body of the function occurs in the file, or for files that have been
+executed by the tt(source) or `tt(.)' builtins, the trace information is
+shown as var(filename)tt(:)var(0), since the entire file is the
+definition.  The source file name is resolved to an absolute path when
+the function is loaded or the path to it otherwise resolved.
+
+Most users will be interested in the information in the
+tt(funcfiletrace) array instead.
+)
+vindex(funcstack)
+item(tt(funcstack))(
+This array contains the names of the functions, sourced files,
+and (if tt(EVAL_LINENO) is set) tt(eval) commands. currently being
+executed. The first element is the name of the function using the
+parameter.
+
+The standard shell array tt(zsh_eval_context) can be used to
+determine the type of shell construct being executed at each depth:
+note, however, that is in the opposite order, with the most recent
+item last, and it is more detailed, for example including an
+entry for tt(toplevel), the main shell code being executed
+either interactively or from a script, which is not present
+in tt($funcstack).
+)
+vindex(functrace)
+item(tt(functrace))(
+This array contains the names and line numbers of the callers
+corresponding to the functions currently being executed.
+The format of each element is var(name)tt(:)var(lineno).
+Callers are also shown for sourced files; the caller is the point
+where the tt(source) or `tt(.)' command was executed.
+)
+enditem()

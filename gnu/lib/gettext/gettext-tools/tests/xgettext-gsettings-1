@@ -1,0 +1,89 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of GSettings support.
+
+cat <<EOF > xg-gs-1-empty.gschema.xml
+<?xml version="1.0"?>
+<schemalist/>
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o xg-gs-1.pot xg-gs-1-empty.gschema.xml 2>/dev/null
+test $? = 0 || {
+  echo "Skipping test: xgettext was built without GSettings support"
+  Exit 77
+}
+
+cat <<EOF > xg-gs-1.gschema.xml
+<?xml version="1.0"?>
+<schemalist>
+  <schema id="org.gnome.example" path="/org/gnome/example/">
+    <key name="foo" type="i">
+      <default>0</default>
+      <!-- This is the first line.
+           This is the second line. -->
+      <summary>Example Integer Key</summary>
+      <description>
+        The example integer key to test that the default value is not
+        translated.
+      </description>
+    </key>
+    <key name="bar" type="s">
+      <default l10n="messages" context="Foo">
+        ' foo   bar   baz'
+      </default>
+    </key>
+    <key name="baz" type="s">
+      <default l10n="messages" context="Baz"></default>
+      <summary context="Baz"></summary>
+    </key>
+  </schema>
+</schemalist>
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-comments -o xg-gs-1.tmp xg-gs-1.gschema.xml || Exit 1
+func_filter_POT_Creation_Date xg-gs-1.tmp xg-gs-1.pot
+
+cat <<EOF > xg-gs-1.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. This is the first line.
+#. This is the second line.
+#: xg-gs-1.gschema.xml:8
+msgid "Example Integer Key"
+msgstr ""
+
+#: xg-gs-1.gschema.xml:9
+msgid ""
+"The example integer key to test that the default value is not translated."
+msgstr ""
+
+#: xg-gs-1.gschema.xml:15
+msgctxt "Foo"
+msgid "' foo   bar   baz'"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-gs-1.ok xg-gs-1.pot
+result=$?
+
+exit $result

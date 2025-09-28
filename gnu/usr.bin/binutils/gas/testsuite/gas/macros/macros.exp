@@ -1,0 +1,102 @@
+# Copyright (C) 2012-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+# Run some tests of gas macros.
+
+if { ![istarget hppa*-*-*] || [istarget *-*-linux*] } {
+    run_dump_test test1
+}
+
+if { ![istarget *c54x*-*-*] && ![istarget *c4x*-*-*] && ![istarget "nds32*-*-*"] } {
+    run_dump_test test2
+}
+
+run_dump_test test3
+
+if { ![istarget *c54x*-*-*] && ![istarget *c4x*-*-*] && ![istarget "nds32*-*-*"] } {
+    run_dump_test irp
+    run_dump_test rept
+    run_dump_test repeat
+    run_dump_test vararg
+}
+
+gas_test_error "err.s" "" "macro infinite recursion"
+
+# The tic4x-coff target fails the next test because it defines '&'
+# as its line separator character, so the expression "(0 & TFLAG_C)"
+# becomes divided up into two lines and the parser complains about
+# a missing closing parenthesis for the first line.
+setup_xfail "tic4x*-*"
+gas_test "and.s" "" "" "logical and in macro definition"
+
+switch -glob $target_triplet {
+    hppa*-*-* { if [istarget *-*-linux*] { run_dump_test semi } }
+    *c4x*-*-* { }
+    *c54x*-*-* { }
+    default {
+	run_dump_test semi
+    }
+}
+
+if { ![istarget hppa*-*-*] || [istarget *-*-linux*] } {
+    # FIXME: Due to macro mishandling of ONLY_STANDARD_ESCAPES.
+    setup_xfail "avr-*" "cris-*" "crisv32-*" "msp430-*"
+
+    # These fail due to NO_STRING_ESCAPES
+    setup_xfail "powerpc*-*-aix*" "powerpc*-*-beos*" "powerpc*-*-macos*"
+    setup_xfail "rs6000-*-*"
+    setup_xfail "z80-*-*"
+
+    # FIXME: Due to difference in what "consecutive octets" means.
+    setup_xfail "*c4x*-*-*" "*c54x*-*"
+    run_dump_test strings
+}
+
+run_dump_test app1
+run_dump_test app2
+run_dump_test app3
+remote_download host "$srcdir/$subdir/app4b.s"
+run_dump_test app4
+run_dump_test app5
+
+run_list_test badarg ""
+
+switch -glob $target_triplet {
+    *c54x*-*-* { }
+    *c4x*-*-* { }
+    mmix-* { }
+    ns32k-*-* { }
+    rl78-*-* { }
+    rx-*-* { }
+    vax-*-* { }
+    bpf-*-* { }
+    default { run_list_test dot "-alm" }
+}
+run_list_test end ""
+setup_xfail "ns32k-*-*" "vax-*-*"
+run_list_test purge "--hash-size=8000"
+run_list_test redef ""
+
+# This test is valid only when '!' is not a comment character
+# (it is allowed to be a line comment character).
+if [string match "" [lindex [gas_run ../all/excl.s "-o /dev/null" ""] 0]] {
+    run_dump_test paren
+}
+
+# PR 58925: A .exitm pseudo-op outside of a macro definition
+#  prevented the assembler from parsing the rest of the file,
+#  and hence catching an erroroneous instruction.
+gas_test_error "exit.s" "" ".exitm outside of a macro"

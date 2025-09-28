@@ -1,0 +1,44 @@
+#compdef _arguments
+
+# Dear reader: This function is called "__arguments" and is the completion
+# function for the completion function _arguments.  This function, however, is
+# not the completion function _arguments.  If you're looking for the function
+# _arguments, then you've come to the wrong place.
+#
+# _arguments is a completion utility function.  It is called by completion
+# functions for command-line tools.
+#
+# __arguments is a completion function for _arguments.  It runs when one does
+# `_arguments -<TAB>' at the shell prompt to jog one's memory about _arguments'
+# option flags.
+#
+# _arguments is in documented in the manual.  If you were looking for its
+# source code, that'd be either in ../../../Completion/Base/Utility/_arguments
+# or in ./_arguments, depending on where you're reading this file.
+#
+# __arguments takes no arguments.
+
+if (( ${words[(i)--]} < CURRENT )); then
+  # "Deriving spec forms from the help output"
+  _arguments : \
+    '*-i[specify option name exclude patterns]:option name exclude pattern' \
+    '*-s[specify option aliases]:pattern and replacement as "(this that)"' \
+    '*:helpspec (pattern\:message\:action)'
+else
+  _arguments -A '-([AMO]*|[0CRSWnsw])' : \
+    '!-n[set $NORMARG]' \
+    '-s[enable single-letter option stacking (-x -y == -xy)]' \
+    '-w[(rarely needed) enable single-letter option stacking with arguments (-x X -y == -xy X)]' \
+    '-W[(rarely needed) enable single-letter option stacking with arguments in the same word (-x X -y == -xXy)]' \
+    "-C[modify \$curcontext for \`->action' (instead of \$context)]" \
+    "-R[when \`->action' matches, return 300]" \
+    "-S[honour \`--' as end-of-options guard]" \
+    "-A[do not complete options after non-options]:pattern matching unknown options (e.g., '-*')" \
+    '-O[pass elements of array variable to function calls in actions]:array variable name:_parameters -g array' \
+    "-M[specify matchspec for completing option names and values]:matchspec for completing option names and values [ 'r\\:|[_-]=* r\\:|=*' ]" \
+    '-0[have ${(v)opt_args} be NUL-joined rather than colon-escaped and colon-joined]' \
+    "--[derive optspecs from \`\${command} --help' output]" \
+    '1::optional delimiter:(\:)' \
+    '*:spec (e.g., "(-t --to)"*{-t+,--to=}"[specify recipient]\:recipient'\''s address\:_email_addresses)'
+  # TODO: doesn't support "Specifying Multiple Sets of Arguments"
+fi

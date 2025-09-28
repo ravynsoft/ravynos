@@ -1,0 +1,1732 @@
+# Support routines for LD testsuite.
+#   Copyright (C) 1994-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+load_file $srcdir/../../binutils/testsuite/lib/binutils-common.exp
+
+# Returns 1 if the gcc for the target is at least version MAJOR.MINOR
+# Returns 0 otherwise.
+#
+proc at_least_gcc_version { major minor } {
+    global CC_FOR_TARGET
+
+    if {![info exists CC_FOR_TARGET]} {
+	set CC_FOR_TARGET [find_gcc]
+    }
+    if { $CC_FOR_TARGET == "" } {
+	return 0
+    }
+    # Filter out -Wl, options.
+    regsub -all -- "-Wl,\[^ ^\t\]+" $CC_FOR_TARGET "" cc_cmd
+    set state [remote_exec host $cc_cmd --version]
+    if { [lindex $state 0] != 0 } {
+	return 0;
+    }
+    set tmp "[lindex $state 1]\n"
+    # Look for (eg) 4.6.1 in the version output.
+    set ver_re "\[^\\.0-9\]+(\[1-9\]\[0-9\]*)\\.(\[0-9\]+)(?:\\.\[0-9\]+)?"
+    regexp $ver_re $tmp fred maj min
+    verbose "gcc version: $tmp"
+    if { ![info exists maj] || ![info exists min] } then {
+	perror "can't decipher gcc version number, fix the framework!"
+	return 0
+    }
+    verbose "major gcc version is $maj, want at least $major"
+    if { $maj == $major } then {
+	verbose "minor gcc version is $min, want at least $minor"
+	return [expr $min >= $minor]
+    } else {
+	return [expr $maj > $major]
+    }
+}
+
+# Extract and print the version number of ld.
+#
+proc default_ld_version { ld } {
+    global host_triplet
+
+    if { ![is_remote host] && [which $ld] == 0 } then {
+	perror "$ld does not exist"
+	exit 1
+    }
+
+    remote_exec host "$ld --version" "" "/dev/null" "ld.version"
+    remote_upload host "ld.version"
+    set tmp [prune_warnings [file_contents "ld.version"]]
+    remote_file build delete "ld.version"
+    remote_file host delete "ld.version"
+
+    regexp "\[^\n\]* (cygnus-|)(\[-0-9.a-zA-Z-\]+)\[\r\n\].*" $tmp version cyg number
+    if [info exists number] then {
+	clone_output "$ld $number\n"
+    }
+}
+
+proc run_host_cmd { prog command } {
+    global link_output
+    global gcc_B_opt
+    global ld_L_opt
+    global gcc_ld_B_opt_tested
+    global ld
+
+    if { ![is_remote host] && [which "$prog"] == 0 } then {
+	perror "$prog does not exist"
+	return 0
+    }
+
+    # If we are compiling with gcc, we want to add gcc_B_opt and
+    # ld_L_opt to flags.  However, if $prog already has -B options,
+    # which might be the case when running gcc out of a build
+    # directory, we want our -B options to come first.
+    set gccexe $prog
+    set gccparm [string first " " $gccexe]
+    set gccflags ""
+    if { $gccparm > 0 } then {
+	set gccflags [string range $gccexe $gccparm end]
+	set gccexe [string range $gccexe 0 $gccparm]
+	set prog $gccexe
+    }
+    set gccexe [string replace $gccexe 0 [string last "/" $gccexe] ""]
+    if {[string match "*cc*" $gccexe] ||
+	[string match "*++*" $gccexe] ||
+	[string match "clang*" $gccexe]} then {
+	set gccflags "$gcc_B_opt $gccflags $ld_L_opt"
+	if {![info exists gcc_ld_B_opt_tested]} {
+	    set gcc_ld_B_opt_tested 1
+	    set ld_version_message [run_host_cmd "$ld" "--version"]
+	    set ver "-Wl,--version"
+	    if [check_lto_available] {
+		set ver "-fno-lto $ver"
+	    }
+	    set gcc_ld_version_message [run_host_cmd "$prog" "$gccflags $ver"]
+	    if {[string first $ld_version_message $gcc_ld_version_message] < 0} {
+		perror "************************************************************************"
+		perror "Your compiler apparently ignores -B when choosing ld."
+		set gcc_v [run_host_cmd "$prog" "$gccflags -v"]
+		if { [string first "--with-ld=" $gcc_v] >= 0 } {
+		    perror "Hint: don't configure gcc using --with-ld (or --with-as)"
+		}
+		perror "You will not be testing the new ld in many of the following tests."
+		set gcc_ld_version [run_host_cmd "$prog" "$gccflags --print-prog-name=ld"]
+		if {![string match "" $gcc_ld_version] && ![string match "ld" $gcc_ld_version]} {
+		    perror "It seems you will be testing $gcc_ld_version instead."
+		}
+		perror "************************************************************************"
+	    }
+	}
+    }
+
+    verbose -log "$prog $gccflags $command"
+    set status [remote_exec host [concat sh -c [list "$prog $gccflags $command 2>&1"]] "" "/dev/null" "ld.tmp"]
+    remote_upload host "ld.tmp"
+    set link_output [file_contents "ld.tmp"]
+    regsub "\n$" $link_output "" link_output
+    if { [lindex $status 0] != 0 && [string match "" $link_output] } then {
+	append link_output "child process exited abnormally"
+    }
+    remote_file build delete ld.tmp
+    remote_file host delete ld.tmp
+
+    if [string match "" $link_output] then {
+	return ""
+    }
+
+    verbose -log "$link_output"
+    return "$link_output"
+}
+
+proc run_host_cmd_yesno { prog command } {
+    global exec_output
+    global errcnt warncnt
+
+    set exec_output [prune_warnings [run_host_cmd "$prog" "$command"]]
+    # Ignore error and warning.
+    set errcnt 0
+    set warncnt 0
+    if [string match "" $exec_output] then {
+	return 1;
+    }
+    return 0;
+}
+
+# Link an object using relocation.
+#
+proc default_ld_relocate { ld target objects } {
+    global HOSTING_EMU
+
+    remote_file host delete $target
+    return [run_host_cmd_yesno "$ld" "$HOSTING_EMU -o $target -r $objects"]
+}
+
+# Check to see if ld is being invoked with a non-endian output format
+#
+proc is_endian_output_format { object_flags } {
+
+    if {[string match "*-oformat binary*" $object_flags] ||      \
+	[string match "*-oformat ieee*" $object_flags] ||	 \
+	[string match "*-oformat ihex*" $object_flags] ||	 \
+	[string match "*-oformat netbsd-core*" $object_flags] || \
+	[string match "*-oformat srec*" $object_flags] ||	 \
+	[string match "*-oformat tekhex*" $object_flags] ||      \
+	[string match "*-oformat trad-core*" $object_flags] } then {
+	return 0
+    } else {
+	return 1
+    }
+}
+
+# Link a program using ld
+#
+proc default_ld_link { ld target objects } {
+    global host_triplet
+    global exec_output
+
+    set flags ""
+    if [is_endian_output_format $objects] then {
+	set flags [big_or_little_endian]
+    }
+
+    remote_file host delete $target
+    set exec_output [run_host_cmd "$ld" "$flags -o $target $objects"]
+    set exec_output [prune_warnings $exec_output]
+
+    # We don't care if we get a warning about a non-existent start
+    # symbol, since the default linker script might use ENTRY.
+    regsub -all "(^|\n)(\[^\n\]*: warning: cannot find entry symbol\[^\n\]*\n?)" $exec_output "\\1" exec_output
+
+    return [string match "" $exec_output]
+}
+
+# Compile an object using cc.
+#
+proc default_ld_compile { cc source object } {
+    global CFLAGS_FOR_TARGET
+    global CXXFLAGS_FOR_TARGET
+    global srcdir
+    global subdir
+    global host_triplet
+    global gcc_B_opt
+
+    set cc_prog $cc
+    if {[llength $cc_prog] > 1} then {
+	set cc_prog [lindex $cc_prog 0]
+    }
+    if {![is_remote host] && [which $cc_prog] == 0} then {
+	perror "$cc_prog does not exist"
+	return 0
+    }
+
+    remote_file build delete "$object"
+    remote_file host delete "$object"
+
+    set flags "$gcc_B_opt -I$srcdir/$subdir"
+
+    # If we are compiling with gcc, we want to add gcc_B_opt to flags.
+    # However, if $prog already has -B options, which might be the
+    # case when running gcc out of a build directory, we want our -B
+    # options to come first.
+    set ccexe $cc
+    set ccparm [string first " " $cc]
+    set ccflags ""
+    if { $ccparm > 0 } then {
+	set ccflags [string range $cc $ccparm end]
+	set ccexe [string range $cc 0 $ccparm]
+	set cc $ccexe
+    }
+
+    set ccexe [string replace $ccexe 0 [string last "/" $ccexe] ""]
+    if {[string match "*++*" $ccexe]} {
+	append flags " $CXXFLAGS_FOR_TARGET"
+    } else {
+	append flags " $CFLAGS_FOR_TARGET"
+    }
+
+    if [board_info [target_info name] exists cflags] {
+	append flags " [board_info [target_info name] cflags]"
+    }
+
+    if [board_info [target_info name] exists multilib_flags] {
+	append flags " [board_info [target_info name] multilib_flags]"
+    }
+
+    set cmd "$cc $flags $ccflags -c $source -o $object"
+    verbose -log "$cmd"
+
+    set status [remote_exec host [concat sh -c [list "$cmd 2>&1"]] "" "/dev/null" "ld.tmp"]
+    remote_upload host "ld.tmp"
+    set exec_output [file_contents "ld.tmp"]
+    remote_file build delete "ld.tmp"
+    remote_file host delete "ld.tmp"
+    set exec_output [prune_warnings $exec_output]
+    # Versions of gcc up to and including pre-release gcc-7, at least on
+    # some targets, generate .section directives with incorrect type.
+    # Ignore warnings from the assembler about this.
+    regsub -all "(^|\n)\[^\n\]*: ignoring incorrect section type \[^\n\]*" $exec_output "" exec_output
+    regsub -all "^\[^\n\]*: Assembler messages:\n" $exec_output "" exec_output
+    if [string match "" $exec_output] then {
+	if {![file exists $object]} then {
+	    regexp ".*/(\[^/\]*)$" $source all dobj
+	    regsub "\\.c" $dobj ".o" realobj
+	    verbose "looking for $realobj"
+	    if {[remote_file host exists $realobj]} then {
+		verbose -log "mv $realobj $object"
+		remote_upload "$realobj" "$object"
+	    } else {
+		perror "$object not found after compilation"
+		return 0
+	    }
+	}
+	return 1
+    } else {
+	verbose -log "$exec_output"
+	return 0
+    }
+}
+
+# Assemble a file.
+#
+proc default_ld_assemble { as in_flags source object } {
+    global ASFLAGS
+    global host_triplet
+    global srcdir
+    global subdir
+
+    if ![info exists ASFLAGS] { set ASFLAGS "" }
+
+    set flags [big_or_little_endian]
+    if [info exists subdir] {
+	append flags " -I$srcdir/$subdir"
+    }
+    set exec_output [run_host_cmd "$as" "$flags $in_flags $ASFLAGS -o $object $source"]
+    set exec_output [prune_warnings $exec_output]
+    if [string match "" $exec_output] then {
+	return 1
+    } else {
+	return 0
+    }
+}
+
+# Run nm on a file, putting the result in the array nm_output.
+#
+proc default_ld_nm { nm nmflags object } {
+    global NMFLAGS
+    global nm_output
+    global host_triplet
+
+    if {[info exists nm_output]} {
+      unset nm_output
+    }
+
+    if ![info exists NMFLAGS] { set NMFLAGS "" }
+
+    # Ensure consistent sorting of symbols
+    if {[info exists env(LC_ALL)]} {
+	set old_lc_all $env(LC_ALL)
+    }
+    set env(LC_ALL) "C"
+
+    verbose -log "$nm $NMFLAGS $nmflags $object >tmpdir/nm.out"
+
+    set status [remote_exec host [concat sh -c [list "$nm $NMFLAGS $nmflags $object 2>ld.stderr"]] "" "/dev/null" "tmpdir/nm.out"]
+    if {[info exists old_lc_all]} {
+	set env(LC_ALL) $old_lc_all
+    } else {
+	unset env(LC_ALL)
+    }
+    remote_upload host "ld.stderr"
+    remote_upload host "tmpdir/nm.out" "tmpdir/nm.out"
+    set exec_output [prune_warnings [file_contents "ld.stderr"]]
+    remote_file host delete "ld.stderr"
+    remote_file build delete "ld.stderr"
+    if [string match "" $exec_output] then {
+	set file [open tmpdir/nm.out r]
+	while { [gets $file line] != -1 } {
+	    verbose "$line" 2
+	    if [regexp "^(\[0-9a-fA-F\]+) \[a-zA-Z0-9\] \\.*(.+)$" $line whole value name] {
+		set name [string trimleft $name "_"]
+		verbose "Setting nm_output($name) to 0x$value" 2
+		set nm_output($name) 0x$value
+	    }
+	}
+	close $file
+	return 1
+    } else {
+	verbose -log "$exec_output"
+	return 0
+    }
+}
+
+# Define various symbols needed when not linking against all
+# target libs.
+proc ld_link_defsyms {} {
+
+    set flags "--defsym __stack_chk_fail=0"
+
+    # ARM targets call __gccmain
+    if {[istarget arm*-*-*]} {
+	append flags " --defsym __gccmain=0"
+    }
+
+    # Windows targets need __main, some prefixed with underscore.
+    if [is_pecoff_format] {
+	append flags " --defsym __main=main --defsym ___main=main"
+    }
+
+    # PowerPC EABI code calls __eabi.
+    if {[istarget powerpc*-*-eabi*] || [istarget powerpc*-*-rtems*]} {
+	append flags " --defsym __eabi=0"
+    }
+
+    # mn10200 code calls __truncsipsi2_d0_d2.
+    if {[istarget mn10200*-*-*]} then {
+	append flags " --defsym __truncsipsi2_d0_d2=0"
+    }
+
+    # m6811/m6812 code has references to soft registers.
+    if {[istarget m6811-*-*] || [istarget m6812-*-*] || [istarget m68hc1*-*-*]} {
+	append flags " --defsym _.frame=0 --defsym _.d1=0 --defsym _.d2=0"
+	append flags " --defsym _.d3=0 --defsym _.d4=0"
+	append flags " --defsym _.tmp=0 --defsym _.xy=0 --defsym _.z=0"
+    }
+
+    # Some OpenBSD targets have ProPolice and reference __guard and
+    # __stack_smash_handler.
+    if [istarget *-*-openbsd*] {
+	append flags " --defsym __guard=0"
+	append flags " --defsym __stack_smash_handler=0"
+    }
+
+    return $flags
+}
+
+# Create an archive using ar
+#
+proc ar_simple_create { ar aropts target objects } {
+    remote_file host delete $target
+
+    set exec_output [run_host_cmd "$ar" "$aropts rc $target $objects"]
+    set exec_output [prune_warnings $exec_output]
+
+    if [string match "" $exec_output] then {
+	send_log "$exec_output\n"
+	return 1
+    } else {
+	return 0
+    }
+}
+
+# List contains test-items with 3 items followed by 2 lists, one item and
+# one optional item:
+#  0:name
+#  1:ld/ar leading options, placed before object files
+#  2:ld/ar trailing options, placed after object files
+#  3:assembler options
+#  4:filenames of assembler files
+#  5:list of actions, options and expected outputs.
+#  6:name of output file
+#  7:compiler flags (optional)
+#
+# Actions: { command command-line-options file-containg-expected-output-regexps }
+# Commands:
+#   objdump: Apply objdump options on result.
+#   nm: Apply nm options on result.
+#   readelf: Apply readelf options on result.
+#   ld: Don't apply anything on result.  Compare output during linking with
+#     the file containing regexps (which is the second arg, not the third).
+#     Note that this *must* be the first action if it is to be used at all;
+#     in all other cases, any output from the linker during linking is
+#     treated as a sign of an error and FAILs the test.
+#
+# args is an optional list of target triplets to be xfailed.
+#
+proc run_ld_link_tests { ldtests args } {
+    global ld
+    global LDFLAGS
+    global as
+    global nm
+    global ar
+    global objdump
+    global READELF
+    global srcdir
+    global subdir
+    global env
+    global CC_FOR_TARGET
+    global runtests
+    global exec_output
+
+    set ld_extra_opt $LDFLAGS
+    if [check_relro_support] {
+	append ld_extra_opt " -z norelro"
+    }
+
+    foreach testitem $ldtests {
+	set testname [lindex $testitem 0]
+
+	if ![runtest_file_p $runtests $testname] then {
+	    continue
+	}
+
+	foreach target $args {
+	    if [match_target $target] {
+		setup_xfail "*-*-*"
+		break
+	    }
+	}
+
+	set ld_options [lindex $testitem 1]
+	set ld_after [lindex $testitem 2]
+	set as_options [lindex $testitem 3]
+	set src_files  [lindex $testitem 4]
+	set actions [lindex $testitem 5]
+	set binfile tmpdir/[lindex $testitem 6]
+	set cflags [lindex $testitem 7]
+	set objfiles {}
+	set is_unsupported 0
+	set failed 0
+	set maybe_failed 0
+	set ld_output ""
+
+	# Add -fno-lto.  LTO should be tested explicitly by $cflags.
+	if {[check_lto_available]} {
+	    set cflags "-fno-lto $cflags"
+	}
+
+#	verbose -log "Testname is $testname"
+#	verbose -log "ld_options is $ld_options"
+#	verbose -log "ld_after is $ld_after"
+#	verbose -log "as_options is $as_options"
+#	verbose -log "src_files is $src_files"
+#	verbose -log "actions is $actions"
+#	verbose -log "binfile is $binfile"
+
+	# Assemble each file in the test.
+	foreach src_file $src_files {
+	    set fileroot "[file rootname [file tail $src_file]]"
+
+	    if { [file extension $src_file] == ".bz2" } {
+		set objfile tmpdir/[file rootname $src_file]
+		set unbzip2 "system \"bzip2 -dc $srcdir/$subdir/$src_file > $objfile\""
+		send_log "$unbzip2\n"
+		catch "$unbzip2" exec_output
+		if ![string match "" $exec_output] then {
+		    send_log "$exec_output\n"
+		    set is_unsupported 1
+		    break
+		}
+	    } else {
+		set objfile "tmpdir/$fileroot.o"
+		if { [file extension $src_file] == ".c" } {
+		    set as_file "tmpdir/$fileroot.s"
+		    if ![ld_compile "$CC_FOR_TARGET -S $cflags" $srcdir/$subdir/$src_file $as_file] {
+			set is_unsupported 1
+			break
+		    }
+		} else {
+		    set as_file "$srcdir/$subdir/$src_file"
+		}
+		if ![ld_assemble $as "$as_options $as_file" $objfile] {
+		    set failed 1
+		    break
+		}
+	    }
+	    lappend objfiles $objfile
+	}
+
+	# Catch assembler errors.
+	if { $failed } {
+	    fail $testname
+	    continue
+	}
+	# Catch compiler errors.
+	if { $is_unsupported } {
+	    unsupported $testname
+	    continue
+	}
+
+	if { $binfile eq "tmpdir/" } {
+	    # compile only
+	} elseif { [regexp ".*\\.a$" $binfile] } {
+	    if { ![ar_simple_create $ar $ld_options $binfile "$objfiles $ld_after"] } {
+		set failed 1
+	    }
+	} elseif { ![ld_link $ld $binfile "$ld_extra_opt -L$srcdir/$subdir $ld_options $objfiles $ld_after"] } {
+	    set maybe_failed 1
+	    set ld_output "$exec_output"
+	}
+
+	set is_unresolved 0
+	if { !$failed } {
+	    foreach actionlist $actions {
+		set action [lindex $actionlist 0]
+		set progopts [lindex $actionlist 1]
+
+		# There are actions where we run regexp_diff on the
+		# output, and there are other actions (presumably).
+		# Handling of the former look the same.
+		set dump_prog ""
+		switch -- $action {
+		    objdump
+			{ set dump_prog $objdump }
+		    nm
+			{ set dump_prog $nm }
+		    readelf
+			{ set dump_prog $READELF }
+		    ld
+			{ set dump_prog "ld" }
+		    default
+			{
+			    perror "Unrecognized action $action"
+			    set is_unresolved 1
+			    break
+			}
+		    }
+
+		if { $action == "ld" } {
+		    set regexpfile $progopts
+		    verbose "regexpfile is $srcdir/$subdir/$regexpfile"
+		    set_file_contents "tmpdir/ld.messages" "$ld_output"
+		    verbose "ld.messages has '[file_contents tmpdir/ld.messages]'"
+		    if { [regexp_diff "tmpdir/ld.messages" "$srcdir/$subdir/$regexpfile"] } then {
+			verbose "output is $ld_output" 2
+			set failed 1
+			break
+		    }
+		    set maybe_failed 0
+		} elseif { !$maybe_failed && $dump_prog != "" } {
+		    set dumpfile [lindex $actionlist 2]
+		    set binary $dump_prog
+
+		    # Ensure consistent sorting of symbols
+		    if {[info exists env(LC_ALL)]} {
+			set old_lc_all $env(LC_ALL)
+		    }
+		    set env(LC_ALL) "C"
+		    set cmd "$binary $progopts $binfile"
+		    set status [remote_exec host [concat sh -c [list "$cmd >dump.out 2>ld.stderr"]] "" "/dev/null"]
+		    send_log "$cmd\n"
+		    remote_upload host "ld.stderr"
+		    set comp_output [prune_warnings [file_contents "ld.stderr"]]
+		    remote_file host delete "ld.stderr"
+		    remote_file build delete "ld.stderr"
+
+		    if {[info exists old_lc_all]} {
+			set env(LC_ALL) $old_lc_all
+		    } else {
+			unset env(LC_ALL)
+		    }
+
+		    if ![string match "" $comp_output] then {
+			send_log "$comp_output\n"
+			set failed 1
+			break
+		    }
+
+		    remote_upload host "dump.out"
+
+		    if { [regexp_diff "dump.out" "$srcdir/$subdir/$dumpfile"] } then {
+			verbose "output is [file_contents "dump.out"]" 2
+			set failed 1
+			remote_file build delete "dump.out"
+			remote_file host delete "dump.out"
+			break
+		    }
+		    remote_file build delete "dump.out"
+		    remote_file host delete "dump.out"
+		}
+	    }
+	}
+
+	if { $is_unresolved } {
+	    unresolved $testname
+	} elseif { $maybe_failed || $failed } {
+	    fail $testname
+	} else {
+	    pass $testname
+	}
+    }
+}
+
+# ldtests contains test-items with 3 items followed by 1 lists, 2 items
+# and 3 optional items:
+#   0:name
+#   1:ld leading options, placed before object files
+#   2:assembler options
+#   3:filenames of source files
+#   4:name of output file
+#   5:expected output
+#   6:compiler flags (optional)
+#   7:language (optional)
+#   8:linker warning (optional)
+#   9:ld trailing options, placed after object files (optional)
+# args is an optional list of target triplets to be xfailed.
+
+proc run_ld_link_exec_tests { ldtests args } {
+    global ld
+    global as
+    global srcdir
+    global subdir
+    global env
+    global CC_FOR_TARGET
+    global CXX_FOR_TARGET
+    global errcnt
+    global exec_output
+    global board_cflags
+    global board_ldflags
+    global STATIC_LDFLAGS
+
+    # When using GCC as the linker driver, we need to specify board cflags when
+    # linking because cflags may contain linker options.  For example when
+    # linker options are included in GCC spec files then we need the -specs
+    # option.
+    if [board_info [target_info name] exists cflags] {
+	set board_cflags " [board_info [target_info name] cflags]"
+    } else {
+	set board_cflags ""
+    }
+
+    if [board_info [target_info name] exists ldflags] {
+	set board_ldflags " [board_info [target_info name] ldflags]"
+    } else {
+	set board_ldflags ""
+    }
+
+    foreach testitem $ldtests {
+	set testname [lindex $testitem 0]
+	set ld_options [lindex $testitem 1]
+	set as_options [lindex $testitem 2]
+	set src_files  [lindex $testitem 3]
+	set binfile tmpdir/[lindex $testitem 4]
+	set expfile [lindex $testitem 5]
+	set cflags [lindex $testitem 6]
+	set lang [lindex $testitem 7]
+	set warning [lindex $testitem 8]
+	set ld_after [lindex $testitem 9]
+	set objfiles {}
+	set failed 0
+
+	if { ![check_compiler_available] } {
+	    unsupported $testname
+	    continue
+	}
+
+	# Add -fno-lto.  LTO should be tested explicitly by $cflags.
+	if {[check_lto_available]} {
+	    set cflags "-fno-lto $cflags"
+	}
+
+	foreach target $args {
+	    if [match_target $target] {
+		setup_xfail "*-*-*"
+		break
+	    }
+	}
+
+#	verbose -log "Testname is $testname"
+#	verbose -log "ld_options is $ld_options"
+#	verbose -log "as_options is $as_options"
+#	verbose -log "src_files is $src_files"
+#	verbose -log "binfile is $binfile"
+
+	# Assemble each file in the test.
+	foreach src_file $src_files {
+	    set fileroot "[file rootname [file tail $src_file]]"
+	    set objfile "tmpdir/$fileroot.o"
+	    lappend objfiles $objfile
+
+	    if { [ string match "c++" $lang ] } {
+		set cmd "$CXX_FOR_TARGET -c $cflags"
+	    } else {
+		set cmd "$CC_FOR_TARGET -c $cflags"
+	    }
+	    if ![ld_compile $cmd $srcdir/$subdir/$src_file $objfile] {
+		set failed 1
+		break
+	    }
+	}
+	if { $failed != 0 } {
+	    unsupported $testname
+	    continue
+	}
+
+	if { [ string match "asm" $lang ] } {
+	    set link_proc ld_link
+	    set link_cmd $ld
+	} elseif { [ string match "c++" $lang ] } {
+	    set link_proc ld_link
+	    set link_cmd $CXX_FOR_TARGET
+	} else {
+	    set link_proc ld_link
+	    set link_cmd $CC_FOR_TARGET
+	}
+
+	if { $binfile eq "tmpdir/" } {
+	    # compile only
+	    pass $testname
+	    continue;
+	} else {
+	    if { [string match "" $STATIC_LDFLAGS] \
+		 && [regexp -- ".* \[-\]+static .*" " $board_cflags $board_ldflags $ld_options $objfiles $ld_after "] } {
+		untested $testname
+		continue
+	    }
+	    if ![$link_proc $link_cmd $binfile "$board_cflags $board_ldflags -L$srcdir/$subdir $ld_options $objfiles $ld_after"] {
+		set failed 1
+	    }
+	}
+
+	# Check if exec_output is expected.
+	if { $warning != "" } then {
+	    verbose -log "returned with: <$exec_output>, expected: <$warning>"
+	    if { [regexp $warning $exec_output] } then {
+		set failed 0
+	    } else {
+		set failed 1
+	    }
+	}
+
+	if { $failed == 0 && [isnative] } {
+	    send_log "Running: $binfile > $binfile.out\n"
+	    verbose "Running: $binfile > $binfile.out"
+	    catch "exec $binfile > $binfile.out" exec_output
+
+	    if ![string match "" $exec_output] then {
+		send_log "$exec_output\n"
+		verbose "$exec_output" 1
+		set failed 1
+	    } else {
+		send_log [file_contents $binfile.out]
+		verbose [file_contents $binfile.out] 2
+		if [regexp_diff "$binfile.out" "$srcdir/$subdir/$expfile"] {
+		    set failed 1
+		}
+	    }
+	}
+
+	if { $failed != 0 } {
+	    fail $testname
+	} elseif ![isnative] {
+	    unsupported $testname
+	} else {
+	    set errcnt 0
+	    pass $testname
+	}
+    }
+}
+
+# List contains test-items with 3 items followed by 2 lists, one item and
+# one optional item:
+#  0:name
+#  1:ld or ar options
+#  2:compile options
+#  3:filenames of source files
+#  4:action and options.
+#  5:name of output file
+#  6:language (optional)
+#
+# Actions:
+# objdump: Apply objdump options on result.  Compare with regex (last arg).
+# nm: Apply nm options on result.  Compare with regex (last arg).
+# readelf: Apply readelf options on result.  Compare with regex (last arg).
+# warning: Check linker output against regex (last arg).
+# error: Like 'warning' but checking output in error case.
+# warning_output: Check linker output against regex in a file (last arg).
+# error_output: Like 'warning_output' but checking output in error case.
+#
+proc run_cc_link_tests { ldtests } {
+    global nm
+    global objdump
+    global READELF
+    global srcdir
+    global subdir
+    global env
+    global CC_FOR_TARGET
+    global CXX_FOR_TARGET
+    global ar
+    global exec_output
+    global board_cflags
+    global board_ldflags
+    global STATIC_LDFLAGS
+
+    if [board_info [target_info name] exists cflags] {
+	set board_cflags " [board_info [target_info name] cflags]"
+    } else {
+	set board_cflags ""
+    }
+
+    if [board_info [target_info name] exists ldflags] {
+	set board_ldflags " [board_info [target_info name] ldflags]"
+    } else {
+	set board_ldflags ""
+    }
+
+    foreach testitem $ldtests {
+	set testname [lindex $testitem 0]
+	set ldflags [lindex $testitem 1]
+	set cflags [lindex $testitem 2]
+	set src_files  [lindex $testitem 3]
+	set actions [lindex $testitem 4]
+	set binfile tmpdir/[lindex $testitem 5]
+	set lang [lindex $testitem 6]
+	set objfiles {}
+	set is_unresolved 0
+	set failed 0
+	set check_ld(terminal) 0
+	set check_ld(source) ""
+
+	if { ![check_compiler_available] } {
+	    unsupported $testname
+	    continue
+	}
+
+	# Add -fno-lto.  LTO should be tested explicitly by $cflags.
+	if {[check_lto_available]} {
+	    set cflags "-fno-lto $cflags"
+	}
+
+	#verbose -log "testname  is $testname"
+	#verbose -log "ldflags   is $ldflags"
+	#verbose -log "cflags    is $cflags"
+	#verbose -log "src_files is $src_files"
+	#verbose -log "actions   is $actions"
+	#verbose -log "binfile   is $binfile"
+	#verbose -log "lang      is $lang"
+
+	foreach actionlist $actions {
+	    set action [lindex $actionlist 0]
+	    set progopts [lindex $actionlist 1]
+
+	    # Find actions related to error/warning processing.
+	    switch -- $action {
+		error
+		{
+		    set check_ld(source) "regexp"
+		    set check_ld(regexp) $progopts
+		    set check_ld(terminal) 1
+		}
+		warning
+		{
+		    set check_ld(source) "regexp"
+		    set check_ld(regexp) $progopts
+		}
+		error_output
+		{
+		    set check_ld(source) "file"
+		    set check_ld(file) $progopts
+		    set check_ld(terminal) 1
+		}
+		warning_output
+		{
+		    set check_ld(source) "file"
+		    set check_ld(file) $progopts
+		}
+	    }
+	}
+
+	# Compile each file in the test.
+	foreach src_file $src_files {
+	    set fileroot "[file rootname [file tail $src_file]]"
+	    set objfile "tmpdir/$fileroot.o"
+	    lappend objfiles $objfile
+
+	    if { [ string match "c++" $lang ] } {
+		set cmd "$CXX_FOR_TARGET -c $cflags"
+	    } else {
+		set cmd "$CC_FOR_TARGET -c $cflags"
+	    }
+	    if ![ld_compile $cmd $srcdir/$subdir/$src_file $objfile] {
+		set failed 1
+		break
+	    }
+	}
+	if { $failed != 0 } {
+	    unsupported $testname
+	    continue
+	}
+
+	# Clear error and warning counts.
+	reset_vars
+
+	if { [ string match "c++" $lang ] } {
+	    set cc_cmd $CXX_FOR_TARGET
+	} else {
+	    set cc_cmd $CC_FOR_TARGET
+	}
+
+	if { $binfile eq "tmpdir/" } {
+	    # compile only
+	    set binfile $objfile
+	} elseif { [regexp ".*\\.a$" $binfile] } {
+	    if { ![ar_simple_create $ar $ldflags $binfile "$objfiles"] } {
+		set failed 1
+	    }
+	} else {
+	    if { [string match "" $STATIC_LDFLAGS] \
+		 && [regexp -- ".* \[-\]+static .*" " $board_cflags $board_ldflags $ldflags $objfiles "] } {
+		untested $testname
+		continue
+	    }
+	    ld_link $cc_cmd $binfile "$board_cflags $board_ldflags -L$srcdir/$subdir $ldflags $objfiles"
+	    set ld_output "$exec_output"
+
+	    if { $check_ld(source) == "regexp" } then {
+		# Match output against regexp argument.
+		verbose -log "returned with: <$ld_output>, expected: <$check_ld(regexp)>"
+		if { ![regexp $check_ld(regexp) $ld_output] } then {
+		    set failed 1
+		}
+	    } elseif { $check_ld(source) == "file" } then {
+		# Match output against patterns in a file.
+		set_file_contents "tmpdir/ld.messages" "$ld_output"
+		verbose "ld.messages has '[file_contents tmpdir/ld.messages]'"
+		if { [regexp_diff "tmpdir/ld.messages" "$srcdir/$subdir/$check_ld(file)"] } then {
+		    verbose "output is $ld_output" 2
+		    set failed 1
+		}
+	    }
+
+	    if { $check_ld(source) != "" } then {
+		if { $ld_output == "" } then {
+		    verbose -log "Linker was expected to give error or warning"
+		    set failed 1
+		}
+	    } else {
+		if { $ld_output != "" } then {
+		    verbose -log "Unexpected linker warning or error"
+		    set failed 1
+		}
+	    }
+	}
+
+	if { $failed == 0 } {
+	    foreach actionlist $actions {
+		set action [lindex $actionlist 0]
+		set progopts [lindex $actionlist 1]
+
+		# There are actions where we run regexp_diff on the
+		# output, and there are other actions (presumably).
+		# Handling of the former look the same.
+		set dump_prog ""
+		switch -- $action {
+		    objdump
+			{ set dump_prog $objdump }
+		    nm
+			{ set dump_prog $nm }
+		    readelf
+			{ set dump_prog $READELF }
+		    error {}
+		    warning {}
+		    error_output {}
+		    warning_output {}
+		    default
+			{
+			    perror "Unrecognized action $action"
+			    set is_unresolved 1
+			    break
+			}
+		    }
+
+		if { $dump_prog != "" } {
+		    set dumpfile [lindex $actionlist 2]
+		    set binary $dump_prog
+
+		    # Ensure consistent sorting of symbols
+		    if {[info exists env(LC_ALL)]} {
+			set old_lc_all $env(LC_ALL)
+		    }
+		    set env(LC_ALL) "C"
+		    set cmd "$binary $progopts $binfile > dump.out"
+		    send_log "$cmd\n"
+		    catch "exec $cmd" comp_output
+		    if {[info exists old_lc_all]} {
+			set env(LC_ALL) $old_lc_all
+		    } else {
+			unset env(LC_ALL)
+		    }
+		    set comp_output [prune_warnings $comp_output]
+
+		    if ![string match "" $comp_output] then {
+			send_log "$comp_output\n"
+			set failed 1
+			break
+		    }
+
+		    if { [regexp_diff "dump.out" "$srcdir/$subdir/$dumpfile"] } then {
+			verbose "output is [file_contents "dump.out"]" 2
+			set failed 1
+			break
+		    }
+		}
+	    }
+	}
+
+	if { $failed } {
+	    fail $testname
+	} elseif { $is_unresolved } {
+	    unresolved $testname
+	} else {
+	    pass $testname
+	}
+    }
+}
+
+# Returns true if --gc-sections is supported on the target.
+
+proc check_gc_sections_available { } {
+    global gc_sections_available_saved
+    global ld
+
+    if {![info exists gc_sections_available_saved]} {
+	# Some targets don't support gc-sections despite whatever's
+	# advertised by ld's options.
+	if {   [istarget alpha-*-*]
+	    || [istarget bpf-*-*]
+	    || [istarget d30v-*-*]
+	    || [istarget dlx-*-*]
+	    || [istarget hppa*64-*-*]
+	    || [istarget ia64-*-*]
+	    || [istarget mep-*-*]
+	    || [istarget mn10200-*-*]
+	    || [istarget pj*-*-*]
+	    || [istarget s12z-*-*]
+	    || [istarget xgate-*-*]
+	    || [istarget z80-*-*] } {
+	    set gc_sections_available_saved 0
+	    return 0
+	}
+
+	# elf2flt uses -q (--emit-relocs), which is incompatible with
+	# --gc-sections.
+	if { [board_info target exists ldflags]
+	     && [regexp " -elf2flt\[ =\]" " [board_info target ldflags] "] } {
+	    set gc_sections_available_saved 0
+	    return 0
+	}
+
+	# Check if the ld used by gcc supports --gc-sections.
+	# FIXME: this test is useless since ld --help always says
+	# --gc-sections is available
+	set ld_output [remote_exec host $ld "--help"]
+	if { [ string first "--gc-sections" $ld_output ] >= 0 } {
+	    set gc_sections_available_saved 1
+	} else {
+	    set gc_sections_available_saved 0
+	}
+    }
+    return $gc_sections_available_saved
+}
+
+# Return true if target uses genelf.em.
+proc uses_genelf { } {
+    if { [istarget "d30v-*-*"]
+	 || [istarget "dlx-*-*"]
+	 || [istarget "fr30-*-*"]
+	 || ([istarget "frv-*-*"] && ![istarget "frv-*-linux*"])
+	 || [istarget "ft32-*-*"]
+	 || [istarget "iq2000-*-*"]
+	 || [istarget "mn10200-*-*"]
+	 || [istarget "msp430-*-*"]
+	 || [istarget "mt-*-*"]
+	 || [istarget "pj*-*-*"]
+	 || [istarget "s12z-*-*"]
+	 || [istarget "xgate-*-*"] } {
+	return 1
+    }
+    return 0
+}
+
+proc is_underscore_target { } {
+    global is_underscore_target_saved
+    global target_triplet
+    global srcdir
+
+    if { ![info exists is_underscore_target_saved] } {
+	set cmd "targ=$target_triplet . $srcdir/../../bfd/config.bfd &&"
+	append cmd { echo "$targ_underscore"}
+	verbose -log "$cmd"
+	set status [catch {exec sh -c $cmd} result]
+	if { $status == 0 && [string match "yes" $result] } {
+	    set is_underscore_target_saved 1
+	} else {
+	    set is_underscore_target_saved 0
+	}
+    }
+    return $is_underscore_target_saved
+}
+
+# Returns true if the target ld supports the plugin API.
+proc check_plugin_api_available { } {
+    global plugin_api_available_saved
+    global ld
+    if {![info exists plugin_api_available_saved]} {
+	# Check if the ld used by gcc supports --plugin.
+	set ld_output [remote_exec host $ld "--help"]
+	if { [regexp -- "-plugin PLUGIN \[^\n\r\]*" $ld_output line]
+	     && ![regexp "ignored" $line] } {
+	    set plugin_api_available_saved 1
+	} else {
+	    set plugin_api_available_saved 0
+	}
+    }
+    return $plugin_api_available_saved
+}
+
+# Sets ld_sysroot to the current sysroot (empty if not supported) and
+# returns true if the target ld supports sysroot.
+proc check_sysroot_available { } {
+    global ld_sysroot_available_saved ld ld_sysroot
+    if {![info exists ld_sysroot_available_saved]} {
+	# Check if ld supports --sysroot *other* than empty.
+	set ld_sysroot [string trimright [lindex [remote_exec host $ld "--print-sysroot"] 1]]
+	if { $ld_sysroot == "" } {
+	    set ld_sysroot_available_saved 0
+	} else {
+	    set ld_sysroot_available_saved 1
+	}
+    }
+    return $ld_sysroot_available_saved
+}
+
+# Return true if we can build a program with the compiler.
+# On some targets, CC might be defined, but libraries and startup
+# code might be missing or require special options that the ld test
+# harness doesn't know about.
+
+proc check_compiler_available { } {
+    global compiler_available_saved
+    global CC_FOR_TARGET
+
+    if {![info exists compiler_available_saved]} {
+	if { [which $CC_FOR_TARGET] == 0 } {
+	    set compiler_available_saved 0
+	    return 0
+	}
+
+	set flags ""
+	if [board_info [target_info name] exists cflags] {
+	    append flags " [board_info [target_info name] cflags]"
+	}
+	if [board_info [target_info name] exists ldflags] {
+	    append flags " [board_info [target_info name] ldflags]"
+	}
+
+	set basename "tmpdir/compiler[pid]"
+	set src ${basename}.c
+	set output ${basename}.out
+	set f [open $src "w"]
+	puts $f "int main (void)"
+	puts $f "{"
+	puts $f "  return 0; "
+	puts $f "}"
+	close $f
+	if [is_remote host] {
+	    set src [remote_download host $src]
+	}
+	set compiler_available_saved [run_host_cmd_yesno "$CC_FOR_TARGET" "$flags $src -o $output"]
+	remote_file host delete $src
+	remote_file host delete $output
+	file delete $src
+    }
+    return $compiler_available_saved
+}
+
+# Returns 1 if plugin is enabled in gcc.  Returns 0 otherwise.
+proc check_gcc_plugin_enabled { } {
+    global CC_FOR_TARGET
+
+    if {![info exists CC_FOR_TARGET]} {
+	set CC_FOR_TARGET [find_gcc]
+    }
+    if { $CC_FOR_TARGET == ""} {
+	return 0
+    }
+    # Filter out -Wl, options.
+    regsub -all -- "-Wl,\[^ ^\t\]+" $CC_FOR_TARGET "" cc_cmd
+    set state [remote_exec host $cc_cmd -v]
+    if { [lindex $state 0] != 0 } {
+	return 0;
+    }
+    for { set i 1 } { $i < [llength $state] } { incr i } {
+	set v [lindex $state $i]
+	if { [ string match "*--disable-plugin*" $v ] } {
+	    verbose "plugin is disabled by $v"
+	    return 0;
+	}
+    }
+
+    return 1;
+}
+
+# Returns true if the target compiler supports LTO
+proc check_lto_available { } {
+    global lto_available_saved
+    global CC_FOR_TARGET
+
+    if {![info exists lto_available_saved]} {
+	if { ![check_gcc_plugin_enabled] } {
+	    set lto_available_saved 0
+	    return 0
+	}
+	# This test will hide LTO bugs in ld.  Since GCC 4.9 adds
+	# -ffat-lto-objects, we always run LTO tests on Linux with
+	# GCC 4.9 or newer.
+	if { [istarget "*-*-linux*"] && [at_least_gcc_version 4 9] } {
+	    set lto_available_saved 1
+	    return 1
+	}
+	# Check if gcc supports -flto -fuse-linker-plugin
+	set flags ""
+	if [board_info [target_info name] exists cflags] {
+	    append flags " [board_info [target_info name] cflags]"
+	}
+	if [board_info [target_info name] exists ldflags] {
+	    append flags " [board_info [target_info name] ldflags]"
+	}
+
+	set basename "tmpdir/lto[pid]"
+	set src ${basename}.c
+	set output ${basename}.out
+	set f [open $src "w"]
+	puts $f "int main() { return 0; }"
+	close $f
+	if [is_remote host] {
+	    set src [remote_download host $src]
+	}
+	set lto_available_saved [run_host_cmd_yesno "$CC_FOR_TARGET" "$flags -flto -fuse-linker-plugin $src -o $output"]
+	remote_file host delete $src
+	remote_file host delete $output
+	file delete $src
+    }
+    return $lto_available_saved
+}
+
+# Returns true if the target compiler supports LTO  -ffat-lto-objects
+proc check_lto_fat_available { } {
+    global lto_fat_available_saved
+    global CC_FOR_TARGET
+
+    if {![info exists lto_fat_available_saved]} {
+	if { ![check_gcc_plugin_enabled] } {
+	    set lto_fat_available_saved 0
+	    return 0
+	}
+	# This test will hide LTO bugs in ld.  Since GCC 4.9 adds
+	# -ffat-lto-objects, we always run LTO tests on Linux with
+	# GCC 4.9 or newer.
+	if { [istarget "*-*-linux*"] && [at_least_gcc_version 4 9] } {
+	    set lto_fat_available_saved 1
+	    return 1
+	}
+	# Check if gcc supports -flto -fuse-linker-plugin
+	set flags ""
+	if [board_info [target_info name] exists cflags] {
+	    append flags " [board_info [target_info name] cflags]"
+	}
+	if [board_info [target_info name] exists ldflags] {
+	    append flags " [board_info [target_info name] ldflags]"
+	}
+
+	set basename "tmpdir/lto[pid]"
+	set src ${basename}.c
+	set output ${basename}.out
+	set f [open $src "w"]
+	puts $f "int main() { return 0; }"
+	close $f
+	if [is_remote host] {
+	    set src [remote_download host $src]
+	}
+	set lto_fat_available_saved [run_host_cmd_yesno "$CC_FOR_TARGET" "$flags -flto -ffat-lto-objects -fuse-linker-plugin $src -o $output"]
+	remote_file host delete $src
+	remote_file host delete $output
+	file delete $src
+    }
+    return $lto_fat_available_saved
+}
+
+# Returns true if the target compiler supports LTO and -shared
+proc check_lto_shared_available { } {
+    global lto_shared_available_saved
+    global CC_FOR_TARGET
+
+    if {![info exists lto_shared_available_saved]} {
+	if { ![check_gcc_plugin_enabled] } {
+	    set lto_shared_available_saved 0
+	    return 0
+	}
+	# This test will hide LTO bugs in ld.  Since GCC 4.9 adds
+	# -ffat-lto-objects, we always run LTO tests on Linux with
+	# GCC 4.9 or newer.
+	if { [istarget "*-*-linux*"] && [at_least_gcc_version 4 9] } {
+	    set lto_shared_available_saved 1
+	    return 1
+	}
+	# Check if gcc supports -flto -fuse-linker-plugin -shared
+	set flags ""
+	if [board_info [target_info name] exists cflags] {
+	    append flags " [board_info [target_info name] cflags]"
+	}
+	if [board_info [target_info name] exists ldflags] {
+	    append flags " [board_info [target_info name] ldflags]"
+	}
+
+	set basename "tmpdir/lto_shared[pid]"
+	set src ${basename}.c
+	set output ${basename}.so
+	set f [open $src "w"]
+	puts $f ""
+	close $f
+	if [is_remote host] {
+	    set src [remote_download host $src]
+	}
+	set lto_shared_available_saved [run_host_cmd_yesno "$CC_FOR_TARGET" "$flags -shared -fPIC -flto -fuse-linker-plugin $src -o $output"]
+	remote_file host delete $src
+	remote_file host delete $output
+	file delete $src
+    }
+    return $lto_shared_available_saved
+}
+
+# Check if the assembler supports CFI statements.
+
+proc check_as_cfi { } {
+    global check_as_cfi_result
+    global as
+    if [info exists check_as_cfi_result] {
+	return $check_as_cfi_result
+    }
+    set as_file "tmpdir/check_as_cfi.s"
+    set as_fh [open $as_file w 0666]
+    puts $as_fh "# Generated file. DO NOT EDIT"
+    puts $as_fh "\t.cfi_startproc"
+    puts $as_fh "\t.cfi_endproc"
+    close $as_fh
+    remote_download host $as_file
+    verbose -log "Checking CFI support:"
+    set success [ld_assemble $as $as_file "/dev/null"]
+    #remote_file host delete $as_file
+    set check_as_cfi_result $success
+    return $success
+}
+
+# Returns true if IFUNC works.
+
+proc check_ifunc_available { } {
+    global ifunc_available_saved
+    global CC_FOR_TARGET
+
+    if {![info exists ifunc_available_saved]} {
+	if { ![check_compiler_available] } {
+	    set ifunc_available_saved 0
+	    return 0
+	}
+	# Check if gcc supports -flto -fuse-linker-plugin
+	set flags ""
+	if [board_info [target_info name] exists cflags] {
+	    append flags " [board_info [target_info name] cflags]"
+	}
+	if [board_info [target_info name] exists ldflags] {
+	    append flags " [board_info [target_info name] ldflags]"
+	}
+
+	set basename "tmpdir/ifunc[pid]"
+	set src ${basename}.c
+	set output ${basename}.out
+	set f [open $src "w"]
+	puts $f "extern int library_func2 (void);"
+	puts $f "int main (void)"
+	puts $f "{"
+	puts $f "  if (library_func2 () != 2) __builtin_abort ();"
+	puts $f "  return 0; "
+	puts $f "}"
+	puts $f "static int library_func1 (void) {return 2; }"
+	puts $f "void *foo (void) __asm__ (\"library_func2\");"
+	puts $f "void *foo (void) { return library_func1; }"
+	puts $f "__asm__(\".type library_func2, %gnu_indirect_function\");"
+	close $f
+	if [is_remote host] {
+	    set src [remote_download host $src]
+	}
+	set ifunc_available_saved [run_host_cmd_yesno "$CC_FOR_TARGET" "$flags $src -o $output"]
+	if { [isnative] && $ifunc_available_saved == 1 } {
+	  set ifunc_available_saved [run_host_cmd_yesno "$output" ""]
+	}
+	remote_file host delete $src
+	remote_file host delete $output
+	file delete $src
+    }
+    return $ifunc_available_saved
+}
+
+# Returns true if ifunc attribute works.
+
+proc check_ifunc_attribute_available { } {
+    global ifunc_attribute_available_saved
+    global CC_FOR_TARGET
+
+    if {![info exists ifunc_attribute_available_saved]} {
+	if { ![check_compiler_available] } {
+	    set ifunc_attribute_available_saved 0
+	    return 0
+	}
+	# Check if gcc supports -flto -fuse-linker-plugin
+	set flags ""
+	if [board_info [target_info name] exists cflags] {
+	    append flags " [board_info [target_info name] cflags]"
+	}
+	if [board_info [target_info name] exists ldflags] {
+	    append flags " [board_info [target_info name] ldflags]"
+	}
+
+	set basename "tmpdir/ifunc[pid]"
+	set src ${basename}.c
+	set output ${basename}.out
+	set f [open $src "w"]
+	puts $f "extern int library_func2 (void) __attribute__ ((ifunc (\"foo\")));"
+	puts $f "int main (void)"
+	puts $f "{"
+	puts $f "  if (library_func2 () != 2) __builtin_abort ();"
+	puts $f "  return 0; "
+	puts $f "}"
+	puts $f "static int library_func1 (void) {return 2; }"
+	puts $f "void *foo (void) { return library_func1; }"
+	close $f
+	if [is_remote host] {
+	    set src [remote_download host $src]
+	}
+	set ifunc_attribute_available_saved [run_host_cmd_yesno "$CC_FOR_TARGET" "$flags $src -o $output"]
+	if { [isnative] && $ifunc_attribute_available_saved == 1 } {
+	  set ifunc_attribute_available_saved [run_host_cmd_yesno "$output" ""]
+	}
+	remote_file host delete $src
+	remote_file host delete $output
+	file delete $src
+    }
+    return $ifunc_attribute_available_saved
+}
+
+# Return true if libdl is supported.
+
+proc check_libdl_available { } {
+    global libdl_available_saved
+    global CC_FOR_TARGET
+
+    if {![info exists libdl_available_saved]} {
+	if { ![check_compiler_available] } {
+	    set libdl_available_saved 0
+	    return 0
+	}
+
+	set basename "tmpdir/dl_avail_test[pid]"
+	set src ${basename}.c
+	set output ${basename}.out
+	set f [open $src "w"]
+	# Sample test file.
+	puts $f "#include <dlfcn.h>"
+	puts $f "int main (void)"
+	puts $f "{"
+	puts $f "  dlopen (\"dummy.so\", RTLD_NOW);"
+	puts $f "  return 0; "
+	puts $f "}"
+	close $f
+	if [is_remote host] {
+	    set src [remote_download host $src]
+	}
+	set libdl_available_saved [run_host_cmd_yesno "$CC_FOR_TARGET" "$src -o $output -ldl"]
+	remote_file host delete $src
+	remote_file host delete $output
+	file delete $src
+    }
+    return $libdl_available_saved
+}
+
+# Returns true if GNU2 TLS works.
+
+proc check_gnu2_tls_available { } {
+    global gnu2_tls_available_saved
+    global CC_FOR_TARGET
+    global GNU2_CFLAGS
+
+    if {![info exists gnu2_tls_available_saved]} {
+	if { ![check_compiler_available] || "$GNU2_CFLAGS" == "" } {
+	    set gnu2_tls_available_saved 0
+	    return 0
+	}
+	# Check if GNU2 TLS works.
+	set flags "$GNU2_CFLAGS"
+	if [board_info [target_info name] exists cflags] {
+	    append flags " [board_info [target_info name] cflags]"
+	}
+	if [board_info [target_info name] exists ldflags] {
+	    append flags " [board_info [target_info name] ldflags]"
+	}
+
+	set basename "tmpdir/gnu2_tls[pid]"
+	set src1 ${basename}1.c
+	set output1 ${basename}.so
+	set f [open $src1 "w"]
+	puts $f "extern __thread int zzz;"
+	puts $f "int foo (void)"
+	puts $f "{"
+	puts $f "  return zzz;"
+	puts $f "}"
+	close $f
+	if [is_remote host] {
+	    set src1 [remote_download host $src1]
+	}
+	set src2 ${basename}2.c
+	set output2 ${basename}.exe
+	set f [open $src2 "w"]
+	puts $f "__thread int zzz = 20;"
+	puts $f "extern int foo (void);"
+	puts $f "int main (void)"
+	puts $f "{"
+	puts $f "  if (foo () != 20) __builtin_abort ();"
+	puts $f "  return 0; "
+	puts $f "}"
+	close $f
+	if [is_remote host] {
+	    set src2 [remote_download host $src2]
+	}
+	set gnu2_tls_available_saved [run_host_cmd_yesno "$CC_FOR_TARGET" "-fPIC -shared $flags $src1 -o $output1"]
+	if { $gnu2_tls_available_saved == 1 } {
+	    set gnu2_tls_available_saved [run_host_cmd_yesno "$CC_FOR_TARGET" "$flags $src2 $output1 -o $output2"]
+	    if { $gnu2_tls_available_saved == 1 } {
+		set gnu2_tls_available_saved [run_host_cmd_yesno "$output2" ""]
+	    }
+	}
+	remote_file host delete $src1
+	remote_file host delete $output1
+	remote_file host delete $src2
+	remote_file host delete $output2
+	file delete $src1 $src2
+    }
+    return $gnu2_tls_available_saved
+}
+
+# Compile a C source file, with the specified additional_flags.
+proc compile_one_cc { src output additional_flags } {
+    global CC_FOR_TARGET
+    global CFLAGS_FOR_TARGET
+
+    set flags ""
+    if [board_info [target_info name] exists cflags] {
+	append flags " [board_info [target_info name] cflags]"
+    }
+    if [board_info [target_info name] exists ldflags] {
+	append flags " [board_info [target_info name] ldflags]"
+    }
+
+    if [is_remote host] {
+	set src [remote_download host $src]
+    }
+    return [run_host_cmd_yesno "$CC_FOR_TARGET" "$flags $CFLAGS_FOR_TARGET $additional_flags $src -o $output"]
+}
+
+# Returns true if the target compiler supports -gctf.
+proc check_ctf_available { } {
+    global ctf_available_saved
+
+    if {![info exists ctf_available_saved]} {
+	set ctf_available_saved 0
+
+	# Don't check for compiler availability, because that FNs if the
+	# compiler is available but emits warnings.  An unavailable
+	# compiler will fail this test anyway.
+
+	if ([check_compiler_available]) {
+	    set basename "tmpdir/ctf_available[pid]"
+	    set src ${basename}.c
+	    set output ${basename}.s
+	    set f [open $src "w"]
+	    puts $f "int main() { return 0; }"
+	    close $f
+	    compile_one_cc $src $output "-gctf -S -c"
+	    remote_file host delete $src
+	    if {! [remote_file host exists $output] } {
+		file delete $src
+		return 0
+	    }
+	    set status [remote_exec host fgrep ".ctf $output"]
+	    remote_file host delete $output
+	    file delete $src
+	    if { [lindex $status 0] == 0 } {
+		set ctf_available_saved 1
+	    }
+	}
+    }
+    return $ctf_available_saved
+}
+
+proc skip_ctf_tests { } {
+    global enable_libctf
+
+    if {$enable_libctf eq "no"} {
+	return 1
+    }
+
+    if [check_ctf_available] {
+	return 0
+    }
+
+    return 1
+}
+
+# Check if the assembler supports SFrame.
+
+proc check_as_sframe { } {
+    global check_as_sframe_result
+    global as
+    if [info exists check_as_sframe_result] {
+	return $check_as_sframe_result
+    }
+
+    # SFrame generation needs CFI support
+    if { ![check_as_cfi] } {
+	set check_as_sframe_result 0;
+	return 0
+    }
+
+    set as_file "tmpdir/check_as_sframe.s"
+    set as_fh [open $as_file w 0666]
+    puts $as_fh "# Generated file. DO NOT EDIT"
+    puts $as_fh "\t.cfi_sections \".sframe\""
+    puts $as_fh "\t.cfi_startproc"
+    puts $as_fh "\t.cfi_endproc"
+    close $as_fh
+    remote_download host $as_file
+    verbose -log "Checking SFrame:"
+    set success [ld_assemble $as $as_file "/dev/null"]
+    #remote_file host delete $as_file
+    set check_as_sframe_result $success
+    return $success
+}
+
+proc skip_sframe_tests { } {
+# FIXME TODO
+#    global enable_libsframe
+#
+#    if {$enable_libsframe eq "no"} {
+#	return 1
+#    }
+
+    if [check_as_sframe] {
+	return 0
+    }
+
+    return 1
+}

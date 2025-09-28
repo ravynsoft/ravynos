@@ -1,0 +1,40 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+echo $(( 0x7e ))
+echo $(( 0x7f ))
+echo $(( 0x80 ))
+
+a=$'\x80'
+recho "$a"
+
+a=( $'\x7e' $'\x7f' $'\x80' )
+
+recho "${a[@]}"
+
+unset a
+a[0]=$'\x7e'
+a[1]=$'\x7f'
+a[2]=$'\x80'
+
+recho "${a[@]}"
+
+b1=$'\x7e'
+b2=$'\x7f'
+b3=$'\x80'
+
+unset a
+a=( "$b1" "$b2" "$b3" )
+
+recho "${a[@]}"
+

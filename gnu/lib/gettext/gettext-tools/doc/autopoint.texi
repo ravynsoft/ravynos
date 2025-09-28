@@ -1,0 +1,73 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2019 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@pindex autopoint
+@cindex @code{autopoint} program, usage
+@example
+autopoint [@var{option}]...
+@end example
+
+The @code{autopoint} program copies standard gettext infrastructure files
+into a source package.  It extracts from a macro call of the form
+@code{AM_GNU_GETTEXT_VERSION(@var{version})}, found in the package's
+@file{configure.in} or @file{configure.ac} file, the gettext version
+used by the package, and copies the infrastructure files belonging to
+this version into the package.
+
+To extract the latest available infrastructure which satisfies a version
+requirement, then you can use the form
+@code{AM_GNU_GETTEXT_REQUIRE_VERSION(@var{version})} instead.  For
+example, if gettext @value{ARCHIVE-VERSION} is installed on your system
+and @code{0.19.1} is requested, then the infrastructure files of version
+@value{ARCHIVE-VERSION} will be copied into a source package.
+
+@subsubsection Options
+
+@table @samp
+@item -f
+@itemx --force
+@opindex -f@r{, @code{autopoint} option}
+@opindex --force@r{, @code{autopoint} option}
+Force overwriting of files that already exist.
+
+@item -n
+@itemx --dry-run
+@opindex -d@r{, @code{autopoint} option}
+@opindex --dry-run@r{, @code{autopoint} option}
+Print modifications but don't perform them.  All file copying actions that
+@code{autopoint} would normally execute are inhibited and instead only
+listed on standard output.
+
+@end table
+
+@subsubsection Informative output
+
+@table @samp
+@item --help
+@opindex --help@r{, @code{autopoint} option}
+Display this help and exit.
+
+@item --version
+@opindex --version@r{, @code{autopoint} option}
+Output version information and exit.
+
+@end table
+
+@code{autopoint} supports the GNU @code{gettext} versions from 0.10.35
+to the current one, @value{ARCHIVE-VERSION}.  In order to apply
+@code{autopoint} to a package using a @code{gettext} version newer than
+@value{ARCHIVE-VERSION}, you need to install this same version of GNU
+@code{gettext} at least.
+
+In packages using GNU @code{automake}, an invocation of @code{autopoint}
+should be followed by invocations of @code{aclocal} and then @code{autoconf}
+and @code{autoheader}.  The reason is that @code{autopoint} installs some
+autoconf macro files, which are used by @code{aclocal} to create
+@file{aclocal.m4}, and the latter is used by @code{autoconf} to create the
+package's @file{configure} script and by @code{autoheader} to create the
+package's @file{config.h.in} include file template.
+
+The name @samp{autopoint} is an abbreviation of @samp{auto-po-intl-m4};
+in earlier versions, the tool copied or updated mostly files in the @file{po},
+@file{intl}, @file{m4} directories.

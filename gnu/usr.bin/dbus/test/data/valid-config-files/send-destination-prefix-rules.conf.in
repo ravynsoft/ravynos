@@ -1,0 +1,121 @@
+<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+<busconfig>
+  <listen>@TEST_LISTEN@</listen>
+  <policy context="default">
+    <allow user="*"/>
+    <deny own="*"/>
+    <deny send_type="method_call"/>
+	<allow send_type="signal"/>
+    <allow send_requested_reply="true" send_type="method_return"/>
+    <allow send_requested_reply="true" send_type="error"/>
+    <allow receive_type="method_call"/>
+    <allow receive_type="method_return"/>
+    <allow receive_type="error"/>
+    <allow receive_type="signal"/>
+    <allow send_destination="org.freedesktop.DBus"
+           send_interface="org.freedesktop.DBus" />
+  </policy>
+
+  <policy context="default">
+    <!-- deny the whole namespace first -->
+    <deny send_destination_prefix="foo.bar.test"/>
+    <!-- foo.bar.test.dest_prefix as a base for testing names -->
+    <allow own_prefix="foo.bar.test.dest_prefix"/>
+
+	<!-- abbreviations:
+	a - allow
+	d - deny
+	p - prefix
+	o - other
+	f - filler, no meaning, just for longer names
+	x - it's a trap!
+	-->
+	<!-- base allow -->
+	<allow send_destination_prefix="foo.bar.test.dest_prefix.ap"/>
+	<!-- a neighbour -->
+	<allow send_destination="foo.bar.test.dest_prefix.ao"/>
+
+	<!-- cut out some part of allowed space -->
+	<deny send_destination="foo.bar.test.dest_prefix.ap.f1.d"/>
+	<deny send_destination_prefix="foo.bar.test.dest_prefix.ap.f1.dp"/>
+
+	<!-- punch holes in the cutout -->
+	<allow send_destination_prefix="foo.bar.test.dest_prefix.ap.f1.d.ap"/>
+	<allow send_destination_prefix="foo.bar.test.dest_prefix.ap.f1.dp.ap"/>
+	<allow send_destination="foo.bar.test.dest_prefix.ap.f1.dp.a"/>
+
+	<!-- define something but redefine other way -->
+	<allow send_destination_prefix="foo.bar.test.dest_prefix.ap.f2.apxdp"/>
+	<deny send_destination_prefix="foo.bar.test.dest_prefix.ap.f2.apxdp.dp"/>
+	<allow send_destination_prefix="foo.bar.test.dest_prefix.ap.f2.apxdp.dp.ap"/>
+	<deny send_destination="foo.bar.test.dest_prefix.ap.f2.apxdp.dp.ap.d"/>
+	<!-- redefine -->
+	<deny send_destination_prefix="foo.bar.test.dest_prefix.ap.f2.apxdp"/>
+	<allow send_destination="foo.bar.test.dest_prefix.ap.f2.apxdp.dp.a"/>
+	<allow send_destination="foo.bar.test.dest_prefix.ap.f2.apxdp.dp.ap.f.a"/>
+	<allow send_destination_prefix="foo.bar.test.dest_prefix.ap.f2.apxdp.f.f.f.ap"/>
+
+	<!-- make something complicated but allow it at the end -->
+	<deny send_destination_prefix="foo.bar.test.dest_prefix.ap.f3.dpxap"/>
+	<allow send_destination_prefix="foo.bar.test.dest_prefix.ap.f3.dpxap.ap"/>
+	<deny send_destination_prefix="foo.bar.test.dest_prefix.ap.f3.dpxap.ap.dp"/>
+	<allow send_destination_prefix="foo.bar.test.dest_prefix.ap.f3.dpxap.ap.dp.ap"/>
+	<allow send_destination="foo.bar.test.dest_prefix.ap.f3.dpxap.ap.dp.a"/>
+	<allow send_destination_prefix="foo.bar.test.dest_prefix.ap.f3.dpxap"/>
+
+	<!-- base deny -->
+	<deny send_destination_prefix="foo.bar.test.dest_prefix.dp"/>
+
+	<!-- neighbours for base deny -->
+	<deny send_destination="foo.bar.test.dest_prefix.do"/>
+	<deny send_destination="foo.bar.test.dest_prefix.do.f"/>
+	<deny send_destination="foo.bar.test.dest_prefix.do.f.f"/>
+	<allow send_destination="foo.bar.test.dest_prefix.ao.ao"/>
+
+	<!-- cut out some part of allowed space -->
+	<allow send_destination="foo.bar.test.dest_prefix.dp.f1.a"/>
+	<allow send_destination_prefix="foo.bar.test.dest_prefix.dp.f1.ap"/>
+
+	<!-- punch holes in the cutout -->
+	<deny send_destination_prefix="foo.bar.test.dest_prefix.dp.f1.a.dp"/>
+	<deny send_destination_prefix="foo.bar.test.dest_prefix.dp.f1.ap.dp"/>
+	<deny send_destination="foo.bar.test.dest_prefix.dp.f1.ap.d"/>
+
+	<!-- define something but redefine other way -->
+	<deny send_destination_prefix="foo.bar.test.dest_prefix.dp.f2.dpxap"/>
+	<allow send_destination_prefix="foo.bar.test.dest_prefix.dp.f2.dpxap.ap"/>
+	<deny send_destination_prefix="foo.bar.test.dest_prefix.dp.f2.dpxap.ap.dp"/>
+	<allow send_destination="foo.bar.test.dest_prefix.dp.f2.dpxap.ap.dp.a"/>
+	<!-- redefine -->
+	<allow send_destination_prefix="foo.bar.test.dest_prefix.dp.f2.dpxap"/>
+	<deny send_destination="foo.bar.test.dest_prefix.dp.f2.dpxap.ap.d"/>
+	<deny send_destination="foo.bar.test.dest_prefix.dp.f2.dpxap.ap.dp.f.d"/>
+	<deny send_destination_prefix="foo.bar.test.dest_prefix.dp.f2.dpxap.f.f.f.dp"/>
+
+	<!-- make something complicated but deny it at the end -->
+	<allow send_destination_prefix="foo.bar.test.dest_prefix.dp.f3.apxdp"/>
+	<deny send_destination_prefix="foo.bar.test.dest_prefix.dp.f3.apxdp.dp"/>
+	<allow send_destination_prefix="foo.bar.test.dest_prefix.dp.f3.apxdp.dp.ap"/>
+	<deny send_destination_prefix="foo.bar.test.dest_prefix.dp.f3.apxdp.dp.ap.dp"/>
+	<deny send_destination="foo.bar.test.dest_prefix.dp.f3.apxdp.dp.ap.d"/>
+	<deny send_destination_prefix="foo.bar.test.dest_prefix.dp.f3.apxdp"/>
+
+	<!-- test send_destination_prefix with interface and method -->
+	<deny send_destination_prefix="foo.bar.test.dest_prefix.ap.m"
+		  send_interface="foo.bar.a" send_member="CallDeny"/>
+	<deny send_destination_prefix="foo.bar.test.dest_prefix.ap.m"
+		  send_interface="foo.bar.d"/>
+	<allow send_destination_prefix="foo.bar.test.dest_prefix.ap.m"
+		   send_interface="foo.bar.d" send_member="CallAllow"/>
+
+	<allow send_destination_prefix="foo.bar.test.dest_prefix.dp.m"
+		   send_interface="foo.bar.a"/>
+	<deny send_destination_prefix="foo.bar.test.dest_prefix.dp.m"
+		  send_interface="foo.bar.a" send_member="CallDeny"/>
+	<allow send_destination_prefix="foo.bar.test.dest_prefix.dp.m"
+		   send_interface="foo.bar.d" send_member="CallAllow"/>
+  </policy>
+
+</busconfig>
+<!-- vim: set ft=xml: -->

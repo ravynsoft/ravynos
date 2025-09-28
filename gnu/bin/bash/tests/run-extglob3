@@ -1,0 +1,4 @@
+PATH=$PATH:`pwd`
+export PATH
+${THIS_SH} ./extglob3.tests > ${BASH_TSTOUT}
+diff ${BASH_TSTOUT} extglob3.right && rm -f ${BASH_TSTOUT}

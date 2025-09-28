@@ -1,0 +1,24 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Lisp support: lisp-format string with a ~V at an unknown position.
+
+cat <<EOF > xg-ls-5.lisp
+(gettext "~@?~v!")
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-ls-5.tmp xg-ls-5.lisp || Exit 1
+LC_ALL=C tr -d '\r' < xg-ls-5.tmp.po > xg-ls-5.po || Exit 1
+
+cat <<EOF > xg-ls-5.ok
+#, lisp-format
+msgid "~@?~v!"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-ls-5.ok xg-ls-5.po
+result=$?
+
+exit $result

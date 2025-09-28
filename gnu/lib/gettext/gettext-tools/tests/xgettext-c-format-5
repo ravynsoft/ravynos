@@ -1,0 +1,65 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C++ support: test boost-format.
+
+cat <<\EOF > xg-c-format-5.cc
+// These are recognized as boost-format because of the keyword 'format'.
+format(gettext("%s on, %s off"));
+format(gettext("%1$d on, %2$d off"));
+format(gettext("%|1$| on, %|2$| off"));
+format(gettext("%1% on, %2% off"));
+// These are recognized as boost-format only through the heuristics.
+gettext("heuristic %s on, %s off");
+gettext("heuristic %1$d on, %2$d off");
+gettext("heuristic %|1$| on, %|2$| off");
+gettext("heuristic %1% on, %2% off");
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-c-format-5.tmp --boost xg-c-format-5.cc || Exit 1
+LC_ALL=C tr -d '\r' < xg-c-format-5.tmp.po > xg-c-format-5.po || Exit 1
+
+# The first 4 are not marked as c-format, because they are known as
+# boost-format. The last 4 are governed by the heuristic. The first two
+# among them are valid c-format strings. The last one is a valid but unlikely
+# c-format string, therefore the heuristic doesn't mark it.
+cat <<\EOF > xg-c-format-5.ok
+#, boost-format
+msgid "%s on, %s off"
+msgstr ""
+
+#, boost-format
+msgid "%1$d on, %2$d off"
+msgstr ""
+
+#, boost-format
+msgid "%|1$| on, %|2$| off"
+msgstr ""
+
+#, boost-format
+msgid "%1% on, %2% off"
+msgstr ""
+
+#, c-format, boost-format
+msgid "heuristic %s on, %s off"
+msgstr ""
+
+#, c-format, boost-format
+msgid "heuristic %1$d on, %2$d off"
+msgstr ""
+
+#, boost-format
+msgid "heuristic %|1$| on, %|2$| off"
+msgstr ""
+
+#, boost-format
+msgid "heuristic %1% on, %2% off"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-c-format-5.ok xg-c-format-5.po
+result=$?
+
+exit $result

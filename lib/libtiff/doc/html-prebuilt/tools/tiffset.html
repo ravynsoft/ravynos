@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>tiffset &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tiffsplit" href="tiffsplit.html" />
+    <link rel="prev" title="tiffinfo" href="tiffinfo.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="tiffsplit.html" title="tiffsplit"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="tiffinfo.html" title="tiffinfo"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../tools.html" accesskey="U">TIFF Tools Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">tiffset</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tiffset">
+<h1>tiffset<a class="headerlink" href="#tiffset" title="Permalink to this heading">¶</a></h1>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
+<p><strong>tiffset</strong> [ <em>options</em> ] <em>filename.tif</em></p>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<p><strong class="program">tiffset</strong> sets the value of a TIFF header to a specified value
+or removes an existing setting.</p>
+</section>
+<section id="options">
+<h2>Options<a class="headerlink" href="#options" title="Permalink to this heading">¶</a></h2>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffset-d">
+<span class="sig-name descname"><span class="pre">-d</span></span><span class="sig-prename descclassname"> <span class="pre">dirnumber</span></span><a class="headerlink" href="#cmdoption-tiffset-d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the current directory (starting at 0).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffset-s">
+<span class="sig-name descname"><span class="pre">-s</span></span><span class="sig-prename descclassname"> <span class="pre">tagnumber</span> <span class="pre">[</span> <span class="pre">count</span> <span class="pre">]</span> <span class="pre">value</span> <span class="pre">…</span></span><a class="headerlink" href="#cmdoption-tiffset-s" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the value of the named tag to the value or values specified.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffset-sd">
+<span class="sig-name descname"><span class="pre">-sd</span></span><span class="sig-prename descclassname"> <span class="pre">diroffset</span></span><a class="headerlink" href="#cmdoption-tiffset-sd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the current directory by offset.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffset-sf">
+<span class="sig-name descname"><span class="pre">-sf</span></span><span class="sig-prename descclassname"> <span class="pre">tagnumber</span> <span class="pre">filename</span></span><a class="headerlink" href="#cmdoption-tiffset-sf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the value of the tag to the contents of filename.  This option is
+supported for ASCII tags only.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffset-u">
+<span class="sig-name descname"><span class="pre">-u</span></span><span class="sig-prename descclassname"> <span class="pre">tagnumber</span></span><a class="headerlink" href="#cmdoption-tiffset-u" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unset the tag.</p>
+</dd></dl>
+
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this heading">¶</a></h2>
+<p>The following example sets the image description tag (270) of <code class="file docutils literal notranslate"><span class="pre">a.tif</span></code> to
+the contents of the file <code class="file docutils literal notranslate"><span class="pre">descrip</span></code>:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tiffset<span class="w"> </span>-sf<span class="w"> </span><span class="m">270</span><span class="w"> </span>descrip<span class="w"> </span>a.tif
+</pre></div>
+</div>
+<p>The following example sets the artist tag (315) of <code class="file docutils literal notranslate"><span class="pre">a.tif</span></code> to the string
+<code class="docutils literal notranslate"><span class="pre">Anonymous</span></code>:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tiffset<span class="w"> </span>-s<span class="w"> </span><span class="m">315</span><span class="w"> </span>Anonymous<span class="w"> </span>a.tif
+</pre></div>
+</div>
+<p>This example sets the resolution of the file <code class="file docutils literal notranslate"><span class="pre">a.tif</span></code> to 300 dpi:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tiffset<span class="w"> </span>-s<span class="w"> </span><span class="m">296</span><span class="w"> </span><span class="m">2</span><span class="w"> </span>a.tif
+tiffset<span class="w"> </span>-s<span class="w"> </span><span class="m">282</span><span class="w"> </span><span class="m">300</span>.0<span class="w"> </span>a.tif
+tiffset<span class="w"> </span>-s<span class="w"> </span><span class="m">283</span><span class="w"> </span><span class="m">300</span>.0<span class="w"> </span>a.tif
+</pre></div>
+</div>
+<p>Set the photometric interpretation of the third page of <code class="file docutils literal notranslate"><span class="pre">a.tif</span></code> to
+min-is-black (ie. inverts it):</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tiffset<span class="w"> </span>-d<span class="w"> </span><span class="m">2</span><span class="w"> </span>-s<span class="w"> </span><span class="m">262</span><span class="w"> </span><span class="m">1</span><span class="w"> </span>a.tif
+</pre></div>
+</div>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="tiffdump.html"><span class="doc">tiffdump</span></a> (1),
+<a class="reference internal" href="tiffinfo.html"><span class="doc">tiffinfo</span></a> (1),
+<a class="reference internal" href="tiffcp.html"><span class="doc">tiffcp</span></a> (1),
+<a class="reference internal" href="../functions/libtiff.html"><span class="doc">libtiff</span></a> (3tiff)</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">tiffset</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#options">Options</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="tiffinfo.html"
+                          title="previous chapter">tiffinfo</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="tiffsplit.html"
+                          title="next chapter">tiffsplit</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/tools/tiffset.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="tiffsplit.html" title="tiffsplit"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="tiffinfo.html" title="tiffinfo"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../tools.html" >TIFF Tools Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">tiffset</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

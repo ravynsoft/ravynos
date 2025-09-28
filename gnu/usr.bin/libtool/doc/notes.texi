@@ -1,0 +1,79 @@
+@itemize
+
+@item
+You currently need GNU make to build the Libtool package itself.
+
+@item
+On AIX there are two different styles of shared linking, one where symbols
+are bound at link-time and one where symbols are bound at runtime only,
+similar to ELF@.  In case of doubt use @code{LDFLAGS=-Wl,-brtl} for the latter style.
+
+@item
+On AIX, native tools are to be preferred over binutils; especially for C++ code,
+if using the AIX Toolbox GCC 4.0 and binutils, configure with
+@code{AR=/usr/bin/ar LD=/usr/bin/ld NM='/usr/bin/nm -B'}.
+
+@item
+On AIX, the @command{/bin/sh} is very slow due to its inefficient handling
+of here-documents.  A modern shell is preferable:
+@example
+CONFIG_SHELL=/bin/bash; export $CONFIG_SHELL
+$CONFIG_SHELL ./configure [...]
+@end example
+
+@item
+For C++ code with templates, it may be necessary to specify the way the compiler
+will generate the instantiations.  For Portland pgCC version5, use
+@code{CXX='pgCC --one_instantiation_per_object'} and avoid parallel @command{make}.
+
+@item
+On Darwin, for C++ code with templates you need two level shared libraries.
+Libtool builds these by default if @env{MACOSX_DEPLOYMENT_TARGET} is set to
+10.3 or later at @command{configure} time.  See @url{rdar://problem/4135857}
+for more information on this issue.
+
+@c @item
+@c FreeBSD @command{make} does not conform to @sc{posix} in its handling
+@c of file modification times, which causes it to loop while building libtool.
+@c Consider using a different @command{such} as GNU make instead.
+
+@item
+The default shell on UNICOS 9, a ksh 88e variant, is too buggy to
+correctly execute the libtool script.  Users are advised to install a
+modern shell such as GNU bash.
+
+@item
+Some HP-UX @command{sed} programs are horribly broken, and cannot handle
+libtool's requirements, so users may report unusual problems.  There
+is no workaround except to install a working @command{sed} (such as GNU sed)
+on these systems.
+
+@item
+The vendor-distributed NCR MP-RAS @command{cc} programs emits copyright
+on standard error that confuse tests on size of @file{conftest.err}.  The
+workaround is to specify @env{CC} when run configure with
+@code{CC='cc -Hnocopyr'}.
+
+@item
+Any earlier DG/UX system with ELF executables, such as R3.10 or
+R4.10, is also likely to work, but hasn't been explicitly tested.
+
+@item
+On Reliant Unix libtool has only been tested with the Siemens C-compiler
+and an old version of @command{gcc} provided by Marco Walther.
+
+@item
+@file{libtool.m4}, @file{ltdl.m4} and the @file{configure.ac} files are marked
+to use autoconf-mode, which is distributed with GNU Emacs 21, Autoconf itself,
+and all recent releases of XEmacs.
+
+@item
+When building on some GNU/Linux systems for multilib targets @command{libtool}
+sometimes guesses the wrong paths that the linker and dynamic linker search by
+default. If this occurs for the dynamic library path, you may use the
+@code{LT_SYS_LIBRARY_PATH} environment variable to adjust. Otherwise, at
+@command{configure} time you may override libtool's guesses by setting the
+@command{autoconf} cache variables @code{lt_cv_sys_lib_search_path_spec} and
+@code{lt_cv_sys_lib_dlsearch_path_spec} respectively.
+
+@end itemize

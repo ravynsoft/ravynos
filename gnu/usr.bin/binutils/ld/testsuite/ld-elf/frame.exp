@@ -1,0 +1,91 @@
+# Expect script for frame section tests
+#   Copyright (C) 2004-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+# Written by H.J. Lu (hongjiu.lu@intel.com)
+#
+
+# Make sure that ld correctly handles frame sections in ELF.
+
+# This test can only be run on ELF platforms.
+if ![is_elf_format] {
+    return
+}
+
+# No shared lib support on this target.
+if ![check_shared_lib_support] {
+    return
+}
+
+# Too small MAXPAGESIZE on this target.
+if { [istarget "sh*-*-elf*"] } {
+    return
+}
+
+# ??? These targets have their own .tbss section, with different meaning
+# to the usual ELF .tbss.
+if { [istarget "hppa64-*-*"] || [istarget "v850*-*-*"] } {
+    return
+}
+
+set as_opt ""
+
+# This target requires extra as options when building code for shared
+# libraries.
+if { [istarget "tic6x-*-*"] } {
+    set as_opt "-mpic -mpid=near"
+}
+
+set test1	"read-only .eh_frame section"
+set test2	"read-only .gcc_except_table section"
+
+if { ![ld_assemble_flags $as $as_opt $srcdir/$subdir/tbss.s tmpdir/tbss.o ]
+     || ![ld_assemble_flags $as $as_opt $srcdir/$subdir/frame.s tmpdir/frame.o] } {
+    unsupported "$test1"
+    return
+}
+
+if { [ld_link $ld tmpdir/frame.so "-z noseparate-code --shared tmpdir/frame.o tmpdir/tbss.o"] } {
+    pass "$test1 -z noseparate-code"
+} else {
+   fail "$test1 -z noseparate-code"
+}
+
+if { [ld_link $ld tmpdir/frame.so "-z separate-code --shared tmpdir/frame.o tmpdir/tbss.o"] } {
+    pass "$test1 -z separate-code"
+} else {
+    fail "$test1 -z separate-code"
+}
+
+if ![ld_assemble_flags $as $as_opt $srcdir/$subdir/table.s tmpdir/table.o ] {
+    unsupported "$test2"
+    return
+}
+
+if { [ld_link $ld tmpdir/table.so "-z noseparate-code --shared tmpdir/table.o tmpdir/tbss.o"] } {
+    pass "$test2 -z noseparate-code"
+} else {
+    fail "$test2 -z noseparate-code"
+}
+
+if { [ld_link $ld tmpdir/table.so "-z separate-code --shared tmpdir/table.o tmpdir/tbss.o"] } {
+    pass "$test2 -z separate-code"
+} else {
+    fail "$test2 -z separate-code"
+}

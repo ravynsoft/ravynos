@@ -1,0 +1,116 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# tests for builtins handling associative array keys `*' and `@', with some
+# indexed array tests as well (backwards compatible)
+
+# derived from test cases posted to bug-bash by myoga.murase@gmail.com
+
+declare -A assoc
+declare -a array
+
+assoc[@]=at
+assoc[*]=star
+assoc[!]=bang
+
+key=@
+
+iref='array[@]'
+aref='assoc[@]'
+
+declare -p assoc
+
+unset assoc[@]
+declare -p assoc
+
+unset assoc[*]
+declare -p assoc
+
+unset assoc
+declare -p assoc
+
+declare -A assoc
+assoc[@]=at
+assoc[*]=star
+assoc[!]=bang
+
+declare -p assoc
+
+unset assoc["$key"]
+declare -p assoc
+
+unset assoc["*"]
+declare -p assoc
+
+assoc[@]=at assoc[*]=star
+
+unset assoc['@']
+declare -p assoc
+
+unset assoc['*']
+
+declare -p assoc
+
+assoc[@]=at assoc[*]=star
+echo ${!aref}
+
+declare -n nref=$aref
+echo ${nref}
+unset -n nref
+
+# for associative arrays, test -v treats @ and * as keys
+
+test -v 'assoc[@]'
+echo $?
+test -v assoc[$key]
+echo $?
+[[ -v assoc[$key] ]]
+echo $?
+
+unset -v 'assoc[@]'
+
+test -v 'assoc[@]'
+echo $?
+[[ -v assoc[@] ]]
+echo $?
+
+assoc[@]=at
+
+printf -v assoc[@] "%10s" key
+declare -p assoc
+
+echo ===
+array=()
+test -v array[@]
+echo $?
+[[ -v array[@] ]]
+echo $?
+
+array=(1 2 3)
+declare -p array
+
+echo ${!iref}
+declare -n nref=$iref
+
+echo $nref
+unset -n nref
+
+# but for indexed arrays, test -v treats @ and * as standing for the entire array
+test -v 'array[@]'
+echo $?
+[[ -v array[@] ]]
+echo $?
+
+printf -v array[@] "%-10s" key
+declare -p array

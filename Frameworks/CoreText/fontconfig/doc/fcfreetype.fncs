@@ -1,0 +1,135 @@
+/*
+ * fontconfig/doc/fcfreetype.fncs
+ *
+ * Copyright © 2003 Keith Packard
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name of the author(s) not be used in
+ * advertising or publicity pertaining to distribution of the software without
+ * specific, written prior permission.  The authors make no
+ * representations about the suitability of this software for any purpose.  It
+ * is provided "as is" without express or implied warranty.
+ *
+ * THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+
+@SYNOPSIS@
+#include &lt;fontconfig.h&gt;
+#include &lt;fcfreetype.h&gt;
+@RET@           FT_UInt
+@FUNC@          FcFreeTypeCharIndex
+@TYPE1@         FT_Face%                        @ARG1@          face
+@TYPE2@         FcChar32%                       @ARG2@          ucs4
+@PURPOSE@       map Unicode to glyph id
+@DESC@
+Maps a Unicode char to a glyph index.  This function uses information from
+several possible underlying encoding tables to work around broken fonts.
+As a result, this function isn't designed to be used in performance
+sensitive areas; results from this function are intended to be cached by
+higher level functions.
+@@
+
+@SYNOPSIS@
+#include &lt;fontconfig.h&gt;
+#include &lt;fcfreetype.h&gt;
+@RET@           FcCharSet *
+@FUNC@          FcFreeTypeCharSet
+@TYPE1@         FT_Face%                        @ARG1@          face
+@TYPE2@         FcBlanks *                      @ARG2@          blanks
+@PURPOSE@       compute Unicode coverage
+@DESC@
+Scans a FreeType face and returns the set of encoded Unicode chars.
+FcBlanks is deprecated, <parameter>blanks</parameter> is ignored and
+accepted only for compatibility with older code.
+@@
+
+@SYNOPSIS@
+#include &lt;fontconfig.h&gt;
+#include &lt;fcfreetype.h&gt;
+@RET@           FcCharSet *
+@FUNC@          FcFreeTypeCharSetAndSpacing
+@TYPE1@         FT_Face%                        @ARG1@          face
+@TYPE2@         FcBlanks *                      @ARG2@          blanks
+@TYPE3@         int *                           @ARG3@          spacing
+@PURPOSE@       compute Unicode coverage and spacing type
+@DESC@
+Scans a FreeType face and returns the set of encoded Unicode chars.
+FcBlanks is deprecated, <parameter>blanks</parameter> is ignored and
+accepted only for compatibility with older code.
+<parameter>spacing</parameter> receives the computed spacing type of the
+font, one of FC_MONO for a font where all glyphs have the same width,
+FC_DUAL, where the font has glyphs in precisely two widths, one twice as
+wide as the other, or FC_PROPORTIONAL where the font has glyphs of many
+widths.
+@@
+
+@SYNOPSIS@
+#include &lt;fontconfig.h&gt;
+#include &lt;fcfreetype.h&gt;
+@RET@           FcPattern *
+@FUNC@          FcFreeTypeQuery
+@TYPE1@         const FcChar8 *                 @ARG1@          file
+@TYPE2@         int%                            @ARG2@          id
+@TYPE3@         FcBlanks *                      @ARG3@          blanks
+@TYPE4@         int *                           @ARG4@          count
+@PURPOSE@       compute pattern from font file (and index)
+@DESC@
+Constructs a pattern representing the 'id'th face in 'file'.  The number
+of faces in 'file' is returned in 'count'.
+FcBlanks is deprecated, <parameter>blanks</parameter> is ignored and
+accepted only for compatibility with older code.
+@@
+
+unsigned int
+FcFreeTypeQueryAll(const FcChar8        *file,
+                   int                  id,
+                   FcBlanks             *blanks,
+                   int                  *count,
+                   FcFontSet            *set)
+@SYNOPSIS@
+#include &lt;fontconfig.h&gt;
+#include &lt;fcfreetype.h&gt;
+@RET@           unsigned int
+@FUNC@          FcFreeTypeQueryAll
+@TYPE1@         const FcChar8 *                 @ARG1@          file
+@TYPE2@         int%                            @ARG2@          id
+@TYPE3@         FcBlanks *                      @ARG3@          blanks
+@TYPE4@         int *                           @ARG4@          count
+@TYPE5@         FcFontSet *                     @ARG5@          set
+@PURPOSE@       compute all patterns from font file (and index)
+@DESC@
+Constructs patterns found in 'file'.
+If id is -1, then all patterns found in 'file' are added to 'set'.
+Otherwise, this function works exactly like FcFreeTypeQuery().
+The number of faces in 'file' is returned in 'count'.
+The number of patterns added to 'set' is returned.
+FcBlanks is deprecated, <parameter>blanks</parameter> is ignored and
+accepted only for compatibility with older code.
+@SINCE@         2.12.91
+@@
+
+@SYNOPSIS@
+#include &lt;fontconfig.h&gt;
+#include &lt;fcfreetype.h&gt;
+@RET@           FcPattern *
+@FUNC@          FcFreeTypeQueryFace
+@TYPE1@         const FT_Face%                  @ARG1@          face
+@TYPE2@         const FcChar8 *                 @ARG2@          file
+@TYPE3@         int%                            @ARG3@          id
+@TYPE4@         FcBlanks *                      @ARG4@          blanks
+@PURPOSE@       compute pattern from FT_Face
+@DESC@
+Constructs a pattern representing 'face'. 'file' and 'id' are used solely as
+data for pattern elements (FC_FILE, FC_INDEX and sometimes FC_FAMILY).
+FcBlanks is deprecated, <parameter>blanks</parameter> is ignored and
+accepted only for compatibility with older code.
+@@

@@ -1,0 +1,800 @@
+# vim: syntax=pod
+
+If you read this file _as_is_, just ignore the funny characters you
+see. It is written in the POD format (see pod/perlpod.pod) which is
+specially designed to be readable as is.
+
+=head1 NAME
+
+perlwin32 - Perl under Windows
+
+=head1 SYNOPSIS
+
+These are instructions for building Perl under Windows 7 and later.
+
+=head1 DESCRIPTION
+
+Before you start, you should glance through the README file
+found in the top-level directory to which the Perl distribution
+was extracted.  Make sure you read and understand the terms under
+which this software is being distributed.
+
+Also make sure you read L</BUGS AND CAVEATS> below for the
+known limitations of this port.
+
+The INSTALL file in the perl top-level has much information that is
+only relevant to people building Perl on Unix-like systems.  In
+particular, you can safely ignore any information that talks about
+"Configure".
+
+You may also want to look at one other option for building a perl that
+will work on Windows: the README.cygwin file, which give a different
+set of rules to build a perl for Windows.  This method will probably
+enable you to build a more Unix-compatible perl, but you will also
+need to download and use various other build-time and run-time support
+software described in that file.
+
+This set of instructions is meant to describe a so-called "native"
+port of Perl to the Windows platform.  This includes both 32-bit and
+64-bit Windows operating systems.  The resulting Perl requires no
+additional software to run (other than what came with your operating
+system).  Currently, this port is capable of using one of the
+following compilers on the Intel x86 and x86_64 architectures:
+
+      Microsoft Visual C++    version 12.0 or later
+      Intel C++ Compiler      (experimental)
+      Gcc by mingw.org        gcc version 3.4.5-5.3.0
+      Gcc by mingw-w64.org    gcc version 4.4.3 or later
+
+Note that the last two of these are actually competing projects both
+delivering complete gcc toolchain for MS Windows:
+
+=over 4
+
+=item L<https://osdn.net/projects/mingw/>
+
+Delivers gcc toolchain building 32-bit executables (which can be used both 32 and 64 bit Windows platforms)
+
+=item L<https://mingw-w64.org>
+
+Delivers gcc toolchain targeting both 64-bit Windows and 32-bit Windows
+platforms (despite the project name "mingw-w64" they are not only 64-bit
+oriented). They deliver the native gcc compilers and cross-compilers
+that are also supported by perl's makefile.
+
+=back
+
+The Microsoft Visual C++ compilers are also now being given away free. They
+are available as "Visual C++ 2013-2022 Community Edition" and are the same
+compilers that ship with "Visual C++ 2013-2022 Professional".
+
+Visual C++ 2013 is capable of B<targeting> XP and Windows Server 2003 but the
+build host requirement is Windows 7/Windows Server 2012. For more details see
+https://docs.microsoft.com/en-us/visualstudio/productinfo/vs2013-compatibility-vs
+and
+https://docs.microsoft.com/en-us/visualstudio/productinfo/vs2013-sysrequirements-vs
+
+The MinGW64 compiler is available at L<https://mingw-w64.org>.
+The latter is actually a cross-compiler targeting Win64. There's also a trimmed
+down compiler (no java, or gfortran) suitable for building perl available at:
+L<https://strawberryperl.com/package/kmx/64_gcctoolchain/>
+
+NOTE: If you're using a 32-bit compiler to build perl on a 64-bit Windows
+operating system, then you should set the WIN64 environment variable to "undef".
+Also, the trimmed down compiler only passes tests when USE_ITHREADS *= define
+(as opposed to undef) and when the CFG *= Debug line is commented out.
+
+This port fully supports MakeMaker (the set of modules that
+is used to build extensions to perl).  Therefore, you should be
+able to build and install most extensions found in the CPAN sites.
+See L</Usage Hints for Perl on Windows> below for general hints about this.
+
+=head2 Setting Up Perl on Windows
+
+=over 4
+
+=item Make
+
+You need a "make" program to build the sources.  If you are using
+Visual C++, you can use nmake supplied with Visual C++.
+You may also use gmake instead of nmake.  Builds using gcc need
+gmake. nmake is not supported for gcc builds.  Parallel building is only
+supported with gmake, not nmake.
+
+=item Command Shell
+
+Use the default "cmd" shell that comes with Windows.  Some versions of the
+popular 4DOS/NT shell have incompatibilities that may cause you trouble.
+If the build fails under that shell, try building again with the cmd
+shell.
+
+Make sure the path to the build directory does not contain spaces.  The
+build usually works in this circumstance, but some tests will fail.
+
+=item Microsoft Visual C++
+
+The nmake that comes with Visual C++ will suffice for building. Visual C++
+requires that certain things be set up in the console before Visual C++ will
+successfully run. To make a console box be able to run the C compiler, you will
+need to beforehand, run C<vcvarsall.bat x86> to compile for x86-32 and for
+x86-64 C<vcvarsall.bat amd64>. On a typical install of a Microsoft C++
+compiler product, these batch files will already be in your C<PATH>
+environment variable so you may just type them without an absolute path into
+your console. If you need to find the absolute path to the batch file, it is
+usually found somewhere like
+C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC.
+With some newer Microsoft C products (released after ~2004), the installer will
+put a shortcut in the start menu to launch a new console window with the
+console already set up for your target architecture (x86-32 or x86-64 or IA64).
+With the newer compilers, you may also use the older batch files if you choose
+so.
+
+=item Microsoft Visual C++ 2013-2022 Community Edition
+
+These free versions of Visual C++ 2013-2022 Professional contain the same
+compilers and linkers that ship with the full versions, and also contain
+everything necessary to build Perl.
+
+These packages can be downloaded from L<https://visualstudio.microsoft.com/>.
+
+Install Visual C++ 2013-2022 Community, then setup your environment
+using, e.g.
+
+F<C:\Program Files\Microsoft Visual Studio 12.0\Common7\Tools\vsvars32.bat>
+
+(assuming the default installation location was chosen).
+
+Perl should now build using the F<win32/Makefile>.  You will need to edit that
+file to set C<CCTYPE> to one of C<MSVC120>-C<MSVC143> first.
+
+=item Microsoft C++ Build Tools
+
+There's also a standalone (IDE-less) version of the build tools mentioned
+above containing the MSVC compiler available for download from
+L<https://visualstudio.microsoft.com/visual-cpp-build-tools/>.
+
+This is also referred to as I<Build Tools for Visual Studio>.
+
+=item GCC
+
+Perl can be compiled with gcc from MinGW (version 3.4.5 or later) or from
+MinGW64 (version 4.4.3 or later).  It can be downloaded here:
+
+L<https://osdn.net/projects/mingw/>
+L<https://www.mingw-w64.org/>
+
+You also need gmake. Usually it comes with MinGW but its executable may have
+a different name, such as mingw32-make.exe.
+
+Note that the MinGW build currently fails with version 6.3.0 or later.
+
+Note also that the C++ mode build currently fails with MinGW 3.4.5 and 4.7.2
+or later, and with MinGW64 64-bit 6.3.0 or later.
+
+=item Intel C++ Compiler
+
+Experimental support for using Intel C++ Compiler has been added. Edit
+F<win32/Makefile> and pick the correct C<CCTYPE> for the Visual C that Intel C
+was installed into. Also uncomment C<__ICC> to enable Intel C on Visual C support.
+To set up the build environment, from the Start Menu run
+IA-32 Visual Studio 20__ mode or Intel 64 Visual Studio 20__ mode as
+appropriate. Then run C<nmake> as usual in that prompt box.
+
+Only Intel C++ Compiler v12.1 has been tested. Other versions probably will
+work. Using Intel C++ Compiler instead of Visual C has the benefit of C99
+compatibility which is needed by some CPAN XS modules, while maintaining
+compatibility with Visual C object code and Visual C debugging infrastructure
+unlike GCC.
+
+=back
+
+=head2 Building
+
+=over 4
+
+=item *
+
+Make sure you are in the F<win32> subdirectory under the perl toplevel.
+This directory contains a F<Makefile> that will work with
+versions of C<nmake> that come with Visual C++, and
+a GNU make F<GNUmakefile> that will work for all supported compilers.
+The defaults in the C<gmake> makefile are set up to build with MinGW/gcc.
+
+=item *
+
+Edit the F<GNUmakefile> (or F<Makefile>, if you're using F<nmake>) and change
+the values of I<INST_DRV> and C<INST_TOP>. You can also enable various build
+flags. These are explained in the makefiles.
+
+Note that it is generally not a good idea to try to build a C<perl> with
+C<INST_DRV> and C<INST_TOP> set to a path that already exists from a previous
+build.  In particular, this may cause problems with the
+F<lib/ExtUtils/t/Embed.t> test, which attempts to build a test program and
+may end up building against the installed C<perl>'s F<lib/CORE> directory
+rather than the one being tested.
+
+You will have to make sure that C<CCTYPE> is set correctly and that
+C<CCHOME> points to wherever you installed your compiler.  For GCC this
+should be the directory that contains the F<bin>, F<include> and
+F<lib> directories.
+
+If building with the cross-compiler provided by
+mingw-w64.org you'll need to uncomment the line that sets
+C<GCCCROSS> in the F<GNUmakefile>. Do this only if it's the cross-compiler,
+ie. only if the F<bin> folder doesn't contain a F<gcc.exe>. (The cross-compiler
+does not provide a F<gcc.exe>, F<g++.exe>, F<ar.exe>, etc. Instead, all of these
+executables are prefixed with C<x86_64-w64-mingw32->.)
+
+The default value for C<CCHOME> in the makefiles for Visual C++
+may not be correct for some versions.  Make sure the default exists
+and is valid.
+
+If you want build some core extensions statically into C<perl>'s DLL,
+specify them in the C<STATIC_EXT> macro.
+
+Be sure to read the instructions near the top of the makefiles carefully.
+
+=item *
+
+Type C<gmake> (or C<nmake> if you are using that version of C<make>).
+
+This should build everything.  Specifically, it will create F<perl.exe>,
+F<perl538.dll> at the perl toplevel, and various other extension DLL's
+under the F<lib\auto> directory.  If the build fails for any reason, make
+sure you have done the previous steps correctly.
+
+To try C<gmake>'s parallel mode, type C<gmake -j2> where C<2> is the maximum number
+of parallel jobs you want to run. A number of things in the build process will
+run in parallel, but there are serialization points where you will see just 1
+CPU maxed out. This is normal.
+
+If you are advanced enough with building C code, here is a suggestion to speed
+up building C<perl>, and the later C<make test>. Try to keep your C<PATH> environment
+variable with the least number of folders possible (remember to keep your C
+compiler's folders there). F<C:\WINDOWS\system32> or F<C:\WINNT\system32>
+depending on your OS version should be first folder in C<PATH>, since C<cmd.exe>
+is the most commonly launched program during the build and later testing.
+
+=back
+
+=head2 Testing Perl on Windows
+
+Type "gmake test" (or "nmake test").  This will run most
+of the tests from the testsuite (many tests will be skipped).
+
+There should be no test failures.
+
+If you build with Visual C++ 2013 then three tests currently may fail with
+Daylight Saving Time related problems: F<t/io/fs.t>,
+F<cpan/HTTP-Tiny/t/110_mirror.t> and F<lib/File/Copy.t>. The failures are
+caused by bugs in the CRT in VC++ 2013 which are fixed in VC++2015 and
+later, as explained by Microsoft here:
+L<https://connect.microsoft.com/VisualStudio/feedback/details/811534/utime-sometimes-fails-to-set-the-correct-file-times-in-visual-c-2013>. In the meantime,
+if you need fixed C<stat> and C<utime> functions then have a look at the
+CPAN distribution Win32::UTCFileTime.
+
+If you build with Visual C++ 2015 or later then F<ext/XS-APItest/t/locale.t>
+may crash (after all its tests have passed). This is due to a regression in the
+Universal CRT introduced in the Windows 10 April 2018 Update, and will be fixed
+in the May 2019 Update, as explained here: L<https://developercommunity.visualstudio.com/content/problem/519486/setlocalelc-numeric-iso-latin-16-fails-then-succee.html>.
+
+If you build with certain versions (e.g. 4.8.1) of gcc from mingw then
+F<ext/POSIX/t/time.t> may fail test 17 due to a known bug in those gcc builds:
+see L<https://sourceforge.net/p/mingw/bugs/2152/>.
+
+Some test failures may occur if you use a command shell other than the
+native "cmd.exe", or if you are building from a path that contains
+spaces.  So don't do that.
+
+If you are running the tests from a emacs shell window, you may see
+failures in op/stat.t.  Run "gmake test-notty" in that case.
+
+Furthermore, you should make sure that during C<make test> you do not
+have any GNU tool packages in your path: some toolkits like Unixutils
+include some tools (C<type> for instance) which override the Windows
+ones and makes tests fail. Remove them from your path while testing to
+avoid these errors.
+
+To see the output of specific failing tests run the harness from the t
+directory:
+
+  # assuming you're starting from the win32 directory
+  cd ..\win32
+  .\perl harness <list of tests>
+
+Please report any other failures as described under L</BUGS AND CAVEATS>.
+
+=head2 Installation of Perl on Windows
+
+Type "gmake install" ("nmake install").  This will
+put the newly built perl and the libraries under whatever C<INST_TOP>
+points to in the Makefile.  It will also install the pod documentation
+under C<$INST_TOP\$INST_VER\lib\pod> and HTML versions of the same
+under C<$INST_TOP\$INST_VER\lib\pod\html>.
+
+To use the Perl you just installed you will need to add a new entry to
+your PATH environment variable: C<$INST_TOP\bin>, e.g.
+
+    set PATH=c:\perl\bin;%PATH%
+
+If you opted to uncomment C<INST_VER> and C<INST_ARCH> in the makefile
+then the installation structure is a little more complicated and you will
+need to add two new PATH components instead: C<$INST_TOP\$INST_VER\bin> and
+C<$INST_TOP\$INST_VER\bin\$ARCHNAME>, e.g.
+
+    set PATH=c:\perl\5.6.0\bin;c:\perl\5.6.0\bin\MSWin32-x86;%PATH%
+
+=head2 Usage Hints for Perl on Windows
+
+=over 4
+
+=item Environment Variables
+
+The installation paths that you set during the build get compiled
+into perl, so you don't have to do anything additional to start
+using that perl (except add its location to your PATH variable).
+
+If you put extensions in unusual places, you can set PERL5LIB
+to a list of paths separated by semicolons where you want perl
+to look for libraries.  Look for descriptions of other environment
+variables you can set in L<perlrun>.
+
+You can also control the shell that perl uses to run system() and
+backtick commands via PERL5SHELL.  See L<perlrun>.
+
+Perl does not depend on the registry, but it can look up certain default
+values if you choose to put them there unless disabled at build time with
+USE_NO_REGISTRY.  On Perl process start Perl checks if
+C<HKEY_CURRENT_USER\Software\Perl> and C<HKEY_LOCAL_MACHINE\Software\Perl>
+exist.  If the keys exists, they will be checked for remainder of the Perl
+process's run life for certain entries.  Entries in
+C<HKEY_CURRENT_USER\Software\Perl> override entries in
+C<HKEY_LOCAL_MACHINE\Software\Perl>.  One or more of the following entries
+(of type REG_SZ or REG_EXPAND_SZ) may be set in the keys:
+
+ lib-$]        version-specific standard library path to add to @INC
+ lib           standard library path to add to @INC
+ sitelib-$]    version-specific site library path to add to @INC
+ sitelib       site library path to add to @INC
+ vendorlib-$]  version-specific vendor library path to add to @INC
+ vendorlib     vendor library path to add to @INC
+ PERL*         fallback for all %ENV lookups that begin with "PERL"
+
+Note the C<$]> in the above is not literal.  Substitute whatever version
+of perl you want to honor that entry, e.g. C<5.6.0>.  Paths must be
+separated with semicolons, as usual on Windows.
+
+=item File Globbing
+
+By default, perl handles file globbing using the File::Glob extension,
+which provides portable globbing.
+
+If you want perl to use globbing that emulates the quirks of DOS
+filename conventions, you might want to consider using File::DosGlob
+to override the internal glob() implementation.  See L<File::DosGlob> for
+details.
+
+=item Using perl from the command line
+
+If you are accustomed to using perl from various command-line
+shells found in UNIX environments, you will be less than pleased
+with what Windows offers by way of a command shell.
+
+The crucial thing to understand about the Windows environment is that
+the command line you type in is processed twice before Perl sees it.
+First, your command shell (usually CMD.EXE) preprocesses the command
+line, to handle redirection, environment variable expansion, and
+location of the executable to run. Then, the perl executable splits
+the remaining command line into individual arguments, using the
+C runtime library upon which Perl was built.
+
+It is particularly important to note that neither the shell nor the C
+runtime do any wildcard expansions of command-line arguments (so
+wildcards need not be quoted).  Also, the quoting behaviours of the
+shell and the C runtime are rudimentary at best (and may, if you are
+using a non-standard shell, be inconsistent).  The only (useful) quote
+character is the double quote (").  It can be used to protect spaces
+and other special characters in arguments.
+
+The Windows documentation describes the shell parsing rules here:
+L<https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/cmd>
+and the C runtime parsing rules here:
+L<https://msdn.microsoft.com/en-us/library/17w5ykft%28v=VS.100%29.aspx>.
+
+Here are some further observations based on experiments: The C runtime
+breaks arguments at spaces and passes them to programs in argc/argv.
+Double quotes can be used to prevent arguments with spaces in them from
+being split up.  You can put a double quote in an argument by escaping
+it with a backslash and enclosing the whole argument within double quotes.
+The backslash and the pair of double quotes surrounding the argument will
+be stripped by the C runtime.
+
+The file redirection characters "E<lt>", "E<gt>", and "|" can be quoted by
+double quotes (although there are suggestions that this may not always
+be true).  Single quotes are not treated as quotes by the shell or
+the C runtime, they don't get stripped by the shell (just to make
+this type of quoting completely useless).  The caret "^" has also
+been observed to behave as a quoting character, but this appears
+to be a shell feature, and the caret is not stripped from the command
+line, so Perl still sees it (and the C runtime phase does not treat
+the caret as a quote character).
+
+Here are some examples of usage of the "cmd" shell:
+
+This prints two doublequotes:
+
+    perl -e "print '\"\"' "
+
+This does the same:
+
+    perl -e "print \"\\\"\\\"\" "
+
+This prints "bar" and writes "foo" to the file "blurch":
+
+    perl -e "print 'foo'; print STDERR 'bar'" > blurch
+
+This prints "foo" ("bar" disappears into nowhereland):
+
+    perl -e "print 'foo'; print STDERR 'bar'" 2> nul
+
+This prints "bar" and writes "foo" into the file "blurch":
+
+    perl -e "print 'foo'; print STDERR 'bar'" 1> blurch
+
+This pipes "foo" to the "less" pager and prints "bar" on the console:
+
+    perl -e "print 'foo'; print STDERR 'bar'" | less
+
+This pipes "foo\nbar\n" to the less pager:
+
+    perl -le "print 'foo'; print STDERR 'bar'" 2>&1 | less
+
+This pipes "foo" to the pager and writes "bar" in the file "blurch":
+
+    perl -e "print 'foo'; print STDERR 'bar'" 2> blurch | less
+
+
+Discovering the usefulness of the "command.com" shell on Windows 9x
+is left as an exercise to the reader :)
+
+One particularly pernicious problem with the 4NT command shell for
+Windows is that it (nearly) always treats a % character as indicating
+that environment variable expansion is needed.  Under this shell, it is
+therefore important to always double any % characters which you want
+Perl to see (for example, for hash variables), even when they are
+quoted.
+
+=item Building Extensions
+
+The Comprehensive Perl Archive Network (CPAN) offers a wealth
+of extensions, some of which require a C compiler to build.
+Look in L<https://www.cpan.org/> for more information on CPAN.
+
+Note that not all of the extensions available from CPAN may work
+in the Windows environment; you should check the information at
+L<https://www.cpantesters.org/> before investing too much effort into
+porting modules that don't readily build.
+
+Most extensions (whether they require a C compiler or not) can
+be built, tested and installed with the standard mantra:
+
+    perl Makefile.PL
+    $MAKE
+    $MAKE test
+    $MAKE install
+
+where $MAKE is whatever 'make' program you have configured perl to
+use.  Use "perl -V:make" to find out what this is.  Some extensions
+may not provide a testsuite (so "$MAKE test" may not do anything or
+fail), but most serious ones do.
+
+It is important that you use a supported 'make' program, and
+ensure Config.pm knows about it.
+
+Note that MakeMaker actually emits makefiles with different syntax
+depending on what 'make' it thinks you are using.  Therefore, it is
+important that one of the following values appears in Config.pm:
+
+    make='nmake'	# MakeMaker emits nmake syntax
+    any other value	# MakeMaker emits generic make syntax
+    			    (e.g GNU make, or Perl make)
+
+If the value doesn't match the 'make' program you want to use,
+edit Config.pm to fix it.
+
+If a module implements XSUBs, you will need one of the supported
+C compilers.  You must make sure you have set up the environment for
+the compiler for command-line compilation before running C<perl Makefile.PL>
+or any invocation of make.
+
+If a module does not build for some reason, look carefully for
+why it failed, and report problems to the module author.  If
+it looks like the extension building support is at fault, report
+that with full details of how the build failed using the GitHub
+issue tracker at L<https://github.com/Perl/perl5/issues>.
+
+=item Command-line Wildcard Expansion
+
+The default command shells on DOS descendant operating systems (such
+as they are) usually do not expand wildcard arguments supplied to
+programs.  They consider it the application's job to handle that.
+This is commonly achieved by linking the application (in our case,
+perl) with startup code that the C runtime libraries usually provide.
+However, doing that results in incompatible perl versions (since the
+behavior of the argv expansion code differs depending on the
+compiler, and it is even buggy on some compilers).  Besides, it may
+be a source of frustration if you use such a perl binary with an
+alternate shell that *does* expand wildcards.
+
+Instead, the following solution works rather well. The nice things
+about it are 1) you can start using it right away; 2) it is more
+powerful, because it will do the right thing with a pattern like
+*/*/*.c; 3) you can decide whether you do/don't want to use it; and
+4) you can extend the method to add any customizations (or even
+entirely different kinds of wildcard expansion).
+
+ C:\> copy con c:\perl\lib\Wild.pm
+ # Wild.pm - emulate shell @ARGV expansion on shells that don't
+ use File::DosGlob;
+ @ARGV = map {
+	      my @g = File::DosGlob::glob($_) if /[*?]/;
+	      @g ? @g : $_;
+	    } @ARGV;
+ 1;
+ ^Z
+ C:\> set PERL5OPT=-MWild
+ C:\> perl -le "for (@ARGV) { print }" */*/perl*.c
+ p4view/perl/perl.c
+ p4view/perl/perlio.c
+ p4view/perl/perly.c
+ perl5.005/win32/perlglob.c
+ perl5.005/win32/perllib.c
+ perl5.005/win32/perlglob.c
+ perl5.005/win32/perllib.c
+ perl5.005/win32/perlglob.c
+ perl5.005/win32/perllib.c
+
+Note there are two distinct steps there: 1) You'll have to create
+Wild.pm and put it in your perl lib directory. 2) You'll need to
+set the PERL5OPT environment variable.  If you want argv expansion
+to be the default, just set PERL5OPT in your default startup
+environment.
+
+If you are using the Visual C compiler, you can get the C runtime's
+command line wildcard expansion built into perl binary.  The resulting
+binary will always expand unquoted command lines, which may not be
+what you want if you use a shell that does that for you.  The expansion
+done is also somewhat less powerful than the approach suggested above.
+
+=item Notes on 64-bit Windows
+
+Windows .NET Server supports the LLP64 data model on the Intel Itanium
+architecture.
+
+The LLP64 data model is different from the LP64 data model that is the
+norm on 64-bit Unix platforms.  In the former, C<int> and C<long> are
+both 32-bit data types, while pointers are 64 bits wide.  In addition,
+there is a separate 64-bit wide integral type, C<__int64>.  In contrast,
+the LP64 data model that is pervasive on Unix platforms provides C<int>
+as the 32-bit type, while both the C<long> type and pointers are of
+64-bit precision.  Note that both models provide for 64-bits of
+addressability.
+
+64-bit Windows running on Itanium is capable of running 32-bit x86
+binaries transparently.  This means that you could use a 32-bit build
+of Perl on a 64-bit system.  Given this, why would one want to build
+a 64-bit build of Perl?  Here are some reasons why you would bother:
+
+=over
+
+=item *
+
+A 64-bit native application will run much more efficiently on
+Itanium hardware.
+
+=item *
+
+There is no 2GB limit on process size.
+
+=item *
+
+Perl automatically provides large file support when built under
+64-bit Windows.
+
+=item *
+
+Embedding Perl inside a 64-bit application.
+
+=back
+
+=back
+
+=head2 Running Perl Scripts
+
+Perl scripts on UNIX use the "#!" (a.k.a "shebang") line to
+indicate to the OS that it should execute the file using perl.
+Windows has no comparable means to indicate arbitrary files are
+executables.
+
+Instead, all available methods to execute plain text files on
+Windows rely on the file "extension".  There are three methods
+to use this to execute perl scripts:
+
+=over 8
+
+=item 1
+
+There is a facility called "file extension associations".  This can be
+manipulated via the two commands "assoc" and "ftype" that come
+standard with Windows.  Type "ftype /?" for a complete example of how
+to set this up for perl scripts (Say what?  You thought Windows
+wasn't perl-ready? :).
+
+=item 2
+
+Since file associations don't work everywhere, and there are
+reportedly bugs with file associations where it does work, the
+old method of wrapping the perl script to make it look like a
+regular batch file to the OS, may be used.  The install process
+makes available the "pl2bat.bat" script which can be used to wrap
+perl scripts into batch files.  For example:
+
+	pl2bat foo.pl
+
+will create the file "FOO.BAT".  Note "pl2bat" strips any
+.pl suffix and adds a .bat suffix to the generated file.
+
+If you use the 4DOS/NT or similar command shell, note that
+"pl2bat" uses the "%*" variable in the generated batch file to
+refer to all the command line arguments, so you may need to make
+sure that construct works in batch files.  As of this writing,
+4DOS/NT users will need a "ParameterChar = *" statement in their
+4NT.INI file or will need to execute "setdos /p*" in the 4DOS/NT
+startup file to enable this to work.
+
+=item 3
+
+Using "pl2bat" has a few problems:  the file name gets changed,
+so scripts that rely on C<$0> to find what they must do may not
+run properly; running "pl2bat" replicates the contents of the
+original script, and so this process can be maintenance intensive
+if the originals get updated often.  A different approach that
+avoids both problems is possible.
+
+A script called "runperl.bat" is available that can be copied
+to any filename (along with the .bat suffix).  For example,
+if you call it "foo.bat", it will run the file "foo" when it is
+executed.  Since you can run batch files on Windows platforms simply
+by typing the name (without the extension), this effectively
+runs the file "foo", when you type either "foo" or "foo.bat".
+With this method, "foo.bat" can even be in a different location
+than the file "foo", as long as "foo" is available somewhere on
+the PATH.  If your scripts are on a filesystem that allows symbolic
+links, you can even avoid copying "runperl.bat".
+
+Here's a diversion:  copy "runperl.bat" to "runperl", and type
+"runperl".  Explain the observed behavior, or lack thereof. :)
+Hint: .gnidnats llits er'uoy fi ,"lrepnur" eteled :tniH
+
+=back
+
+=head2 Miscellaneous Things
+
+A full set of HTML documentation is installed, so you should be
+able to use it if you have a web browser installed on your
+system.
+
+C<perldoc> is also a useful tool for browsing information contained
+in the documentation, especially in conjunction with a pager
+like C<less> (recent versions of which have Windows support).  You may
+have to set the PAGER environment variable to use a specific pager.
+"perldoc -f foo" will print information about the perl operator
+"foo".
+
+One common mistake when using this port with a GUI library like C<Tk>
+is assuming that Perl's normal behavior of opening a command-line
+window will go away.  This isn't the case.  If you want to start a copy
+of C<perl> without opening a command-line window, use the C<wperl>
+executable built during the installation process.  Usage is exactly
+the same as normal C<perl> on Windows, except that options like C<-h>
+don't work (since they need a command-line window to print to).
+
+If you find bugs in perl, you can report them to
+L<https://github.com/Perl/perl5/issues>.
+
+=head1 BUGS AND CAVEATS
+
+Norton AntiVirus interferes with the build process, particularly if
+set to "AutoProtect, All Files, when Opened". Unlike large applications
+the perl build process opens and modifies a lot of files. Having the
+AntiVirus scan each and every one slows build the process significantly.
+Worse, with PERLIO=stdio the build process fails with peculiar messages
+as the virus checker interacts badly with miniperl.exe writing configure
+files (it seems to either catch file part written and treat it as suspicious,
+or virus checker may have it "locked" in a way which inhibits miniperl
+updating it). The build does complete with
+
+   set PERLIO=perlio
+
+but that may be just luck. Other AntiVirus software may have similar issues.
+
+A git GUI shell extension for Windows such as TortoiseGit will cause the build
+and later C<make test> to run much slower since every file is checked for its
+git status as soon as it is created and/or modified. TortoiseGit doesn't cause
+any test failures or build problems unlike the antivirus software described
+above, but it does cause similar slowness. It is suggested to use Task Manager
+to look for background processes which use high CPU amounts during the building
+process.
+
+Some of the built-in functions do not act exactly as documented in
+L<perlfunc>, and a few are not implemented at all.  To avoid
+surprises, particularly if you have had prior exposure to Perl
+in other operating environments or if you intend to write code
+that will be portable to other environments, see L<perlport>
+for a reasonably definitive list of these differences.
+
+Not all extensions available from CPAN may build or work properly
+in the Windows environment.  See L</"Building Extensions">.
+
+Most C<socket()> related calls are supported, but they may not
+behave as on Unix platforms.  See L<perlport> for the full list.
+
+Signal handling may not behave as on Unix platforms (where it
+doesn't exactly "behave", either :).  For instance, calling C<die()>
+or C<exit()> from signal handlers will cause an exception, since most
+implementations of C<signal()> on Windows are severely crippled.
+Thus, signals may work only for simple things like setting a flag
+variable in the handler.  Using signals under this port should
+currently be considered unsupported.
+
+Please report detailed descriptions of any problems and solutions that
+you may find at E<lt>L<https://github.com/Perl/perl5/issues>E<gt>,
+along with the output produced by C<perl -V>.
+
+=head1 ACKNOWLEDGEMENTS
+
+The use of a camel with the topic of Perl is a trademark
+of O'Reilly and Associates, Inc. Used with permission.
+
+=head1 AUTHORS
+
+=over 4
+
+=item Gary Ng E<lt>71564.1743@CompuServe.COME<gt>
+
+=item Gurusamy Sarathy E<lt>gsar@activestate.comE<gt>
+
+=item Nick Ing-Simmons E<lt>nick@ing-simmons.netE<gt>
+
+=item Jan Dubois E<lt>jand@activestate.comE<gt>
+
+=item Steve Hay E<lt>steve.m.hay@googlemail.comE<gt>
+
+=back
+
+This document is maintained by Jan Dubois.
+
+=head1 SEE ALSO
+
+L<perl>
+
+=head1 HISTORY
+
+This port was originally contributed by Gary Ng around 5.003_24,
+and borrowed from the Hip Communications port that was available
+at the time.  Various people have made numerous and sundry hacks
+since then.
+
+GCC/mingw32 support was added in 5.005 (Nick Ing-Simmons).
+
+Support for PERL_OBJECT was added in 5.005 (ActiveState Tool Corp).
+
+Support for fork() emulation was added in 5.6 (ActiveState Tool Corp).
+
+Win9x support was added in 5.6 (Benjamin Stuhl).
+
+Support for 64-bit Windows added in 5.8 (ActiveState Corp).
+
+Last updated: 06 October 2021
+
+=cut

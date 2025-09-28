@@ -1,0 +1,82 @@
+#compdef sqlite sqlite3
+
+local opt display_opt sqlite3 ign
+local -a options output_modes exclusive dashes
+
+[[ $service = sqlite3 ]] && sqlite3=true || unset sqlite3
+
+# sqlite options require a single hyphen, but
+# sqlite3 allows options with one or two
+dashes=( '' )
+(( $+sqlite3 )) && dashes+=( - )
+
+options=(
+  '(-init --init)'$^dashes'-init[startup file]:file containing SQLite commands:_files'
+  $^dashes'-echo[echo commands]'
+)
+
+exclusive=( {,-}-{no,}header )
+options+=(
+  "($exclusive)"$^dashes'-header[turn headers on]'
+  "($exclusive)"$^dashes'-noheader[turn headers off]'
+)
+
+output_modes=( column HTML line list )
+(( $+sqlite3 )) && output_modes+=( ascii box csv json markdown quote table tabs )
+exclusive=( $^dashes-${^output_modes:l} )
+for display_opt in $output_modes ; do
+  # finagle the description to match the way SQLite's -help formats them
+  opt=$display_opt:l
+  [[ $opt = $display_opt ]] && display_opt="'$display_opt'"
+  options+=( "($exclusive)"$^dashes"-${opt}[set output mode to $display_opt]" )
+done
+
+(( $#words == 2 )) || ign='!'
+options+=(
+  $^dashes'-separator[set output field separator]:output field separator [|]'
+  $^dashes'-nullvalue[set text string for null values]:string'
+  "$ign(- :)"$^dashes'-version[show SQLite version]'
+  "$ign(- :)"$^dashes'-help[show help]'
+  '1:SQLite database file:_files'
+  '(- :)2: :_guard "^-*" "SQL to run"'
+)
+
+(( $+sqlite3 )) && options+=(
+  $^dashes'-A+[run .archive with arguments and exit]'
+  $^dashes'-append[append the database to the end of the file]'
+  $^dashes'-bail[stop after hitting an error]'
+  $^dashes'-cmd[run specified command before reading stdin]:sqlite meta-command'
+  $^dashes'-deserialize[open the database using sqlite3_deserialize()]'
+  '(-*batch -*interactive)'$^dashes'-batch[force batch I/O]'
+  '(-*batch -*interactive)'$^dashes'-interactive[force interactive I/O]'
+  $^dashes'-lookaside[specify size and number of entries for lookaside memory]:size (bytes): :entries'
+  $^dashes'-maxsize[specify maximum size for a --deserialize database]:size'
+  $^dashes'-memtrace[trace all memory allocations and deallocations]'
+  $^dashes'-mmap[set default mmap size]:size'
+  $^dashes'-newline[set output row separator]:separator [\n]'
+  $^dashes'-nofollow[refuse to open symbolic links to database files]'
+  $^dashes'-pagecache[specify size and number of slots for page cache memory]:size (bytes): :slots'
+  $^dashes'-readonly[open the database read-only]'
+  $^dashes'-stats[print memory stats before each finalize]'
+  $^dashes'-vfs[use specified default VFS]:vfs:(unix-dotfile unix-excl unix-none unix-namedsem)'
+  $^dashes'-zip[open the file as a ZIP Archive]'
+)
+
+if [[ -n $words[(r)-A*] ]]; then
+  options=( -s -w : '(-A --A)'${^dashes}-A "(-f --file -a --append)"${(M)options:#1:*}
+    '(-v --verbose)'{-v,--verbose}'[print each filename as it is processed]'
+    '(1 -a --append -f --file)'{-f+,--file=}'[specify archive file]:archive file:_files'
+    '(1 -a --append -f --file)'{-a,--append=}'[operate on specified file opened using the apndvfs VFS]:archive file:_files'
+    '(-C --directory)'{-C+,--directory=}'[change to specified directory to read/extract files]:directory:_directories'
+    '(-n --dryrun)'{-n,--dryrun}'[show the SQL that would have occurred]'
+    '*:file:_files'
+    + '(commands)' \
+    '(-c --create)'{-c,--create}'[create a new archive]'
+    '(-u --update)'{-u,--update}'[update or add files to an existing archive]'
+    '(-i --insert)'{-i,--insert}'[like -u but always add even if mtime unchanged]'
+    '(-t --list)'{-t,--list}'[list contents of archive]'
+    '(-x --extract)'{-x,--extract}'[extract files from archive]'
+  )
+fi
+
+_arguments $options

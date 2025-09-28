@@ -1,0 +1,53 @@
+#compdef chroot gchroot
+
+local variant ret=1
+local -a context line state state_descr args
+local -A opt_args
+
+_pick_variant -r variant gnu='Free Soft' unix --version
+
+variant+=-$OSTYPE
+
+case $variant in
+  gnu-*)
+    args=(
+      '(: -)--help[display help information]'
+      '(: -)--version[display version information]'
+      '--groups=[specify supplemental group memberships]: :_sequence -s , _groups'
+      '--userspec=[specify user and group to run process as]: :->userspecs'
+      '--skip-chdir[do not change working directory to /]'
+    )
+    ;;
+  *-openbsd*)
+    args=(
+      '-u+[specify user to run process as]: :_users'
+      '-g+[specify group to run process as, and supplemental group memberships]: :_sequence -s , _groups'
+    )
+    ;;
+  *-(darwin|dragonfly|freebsd|netbsd)*)
+    args=(
+      '-u+[specify user to run process as]: :_users'
+      '-g+[specify group to run process as]: :_groups'
+      '-G+[specify supplemental group memberships]: :_sequence -s , _groups'
+    )
+    ;;
+esac
+
+args+=( '1:new root directory:_directories' '*:::command:_normal' )
+
+_arguments -s -S : $args && ret=0
+
+# @todo user:group specs are probably used often enough to justify making a type
+# function for this (see also `chown`, `cpio`, `rsync`, ...)
+[[ $state == userspecs ]] &&
+if compset -P '*:*:'; then
+  ret=1
+elif compset -P '*:'; then
+  _groups && ret=0
+elif compset -S ':*'; then
+  _users && ret=0
+else
+  _users -qS : && ret=0
+fi
+
+return ret

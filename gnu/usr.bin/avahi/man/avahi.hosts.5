@@ -1,0 +1,16 @@
+.TH avahi.hosts 5 User Manuals
+.SH NAME
+avahi.hosts \- avahi-daemon static host name file
+.SH SYNOPSIS
+\fB/etc/avahi/hosts
+\f1
+.SH DESCRIPTION
+\fI/etc/avahi/hosts\f1 is a file which may be used to define static host name to IP address mappings for multicast DNS. This is especially useful when publishing DNS-SD services on behalf of other hosts. See \fBavahi.service(5)\f1 for more information.
+
+The file format is similar to the one of \fI/etc/hosts\f1: on each line an IP address and the corresponding host name. The host names should be in FQDN form, i.e. with appended .local suffix.
+.SH AUTHORS
+The Avahi Developers <avahi (at) lists (dot) freedesktop (dot) org>; Avahi is available from \fBhttp://avahi.org/\f1
+.SH SEE ALSO
+\fBavahi-daemon(8)\f1, \fBavahi.service(5)\f1
+.SH COMMENTS
+This man page was written using \fBxml2man(1)\f1 by Oliver Kurth.

@@ -1,0 +1,62 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# inconsistency with quoted pattern substitution patterns through bash-4.2
+# fixed in a ksh93-compatible (and Posix-compatible, in general) way
+# NOT backwards compatible
+
+test="weferfds'dsfsdf"
+
+# why does this work, this list was born of frustration, I tried
+# everything I could think of.
+echo \'${test//"'"/\'\\\'\'}\'" "
+
+#but none of the following
+
+echo "'${test//"'"/}'"
+
+echo "'${test//"'"/"'\\''"}'"
+
+printf "%s\n" "'${test//"'"/\'\\'\'}'"
+
+#echo "'${test//'/}'"   # hangs waiting for '
+#echo "'${test//"'"/'\\''}'" # hangs waiting for '
+
+unset test
+test=teststrtest
+echo "${test//str/"dd dd"}"
+echo ${test//str/"dd '\''dd"}
+
+unset test
+test=teststring
+
+echo "${test//str/"dddd"}"
+
+echo ${test//str/"dddd"}
+
+echo ${test//str/"'"}
+
+echo "${test//str/"'"}"
+
+#echo "${test//str/'}"   # hangs
+
+test=test\'string
+echo "${test//"'"/"'"}"
+
+x="a'b'c"; echo "${x//\'/\'}"
+
+printf '%s\n' "foo ${IFS+"b   c"} baz"
+
+# this is where the default behavior differs from posix
+set -o posix
+echo "foo ${IFS+'bar} baz"

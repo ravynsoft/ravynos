@@ -1,0 +1,23 @@
+COMMENT(!MOD!zsh/termcap
+Interface to the termcap database.
+!MOD!)
+The tt(zsh/termcap) module makes available one builtin command:
+
+startitem()
+findex(echotc)
+cindex(termcap value, printing)
+item(tt(echotc) var(cap) [ var(arg) ... ])(
+Output the termcap value corresponding to the capability
+var(cap), with optional arguments.
+)
+enditem()
+
+The tt(zsh/termcap) module makes available one parameter:
+
+startitem()
+vindex(termcap)
+item(tt(termcap))(
+An associative array that maps termcap capability codes to
+their values.
+)
+enditem()

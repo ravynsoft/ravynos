@@ -1,0 +1,36 @@
+#compdef cygrunsrv cygrunsrv.exe
+
+# cygrunsrv 1.34
+
+_arguments -s -S \
+  '(-I --install)'{-I,--install}'[install a new service]:service' \
+  '(-R --remove)'{-R,--remove}'[remove specified service]:service' \
+  '(-S --start)'{-S,--start}'[start specified service]:service' \
+  '(-E --stop)'{-E,--stop}'[stop specified service]:service' \
+  '(-Q --query)'{-Q,--query}'[query specified service]:service' \
+  '(-L --list)'{-L,--list}'[lists services that have been installed with cygrunsrv]:server:' \
+  '(-p --path)'{-p,--path}'[specify application path which is run as a service]:application path' \
+  '(-P --crs-path)'{-P,--crs-path}'[path to cygrunsrv]:path:_files' \
+  '(-a --args)'{-a,--args}'[specify options to give service on startup]:args' \
+  '(-c --chdir)'{-c,--chdir}'[specify working directory for the application]:directory:_directories' \
+  '(-e --env)'{-e,--env}'[specify environment strings exported to service]:var=value' \
+  '(-d --disp)'{-d,--disp}'[specify display name for service]:display name' \
+  '(-f --desc)'{-f,--desc}'[specify service description]:description' \
+  '(-t --type)'{-t,--type}'[specify service start type]:start type:(auto manual)' \
+  '(-u --user)'{-u,--user}'[specify user to start service under]:user:_users' \
+  '(-w --passwd)'{-w,--passwd}'[specify password for user]:password' \
+  '(-s --termsig)'{-s,--termsig}'[specify signal to use to stop service]:signal:_signals' \
+  '(-z --shutsig)'{-z,--shutsig}'[specify signal to send to service application when shutdown has been initiated]:signal:_signals' \
+  '(-y --dep)'{-y,--dep}'[specify name of service that must be started]:service' \
+  '(-0 --stdin)'{-0,--stdin}'[specify file for stdin redirection]:stdin file:_files' \
+  '(-1 --stdout)'{-1,--stdout}'[specify file for stdout redirection]:stdout file:_files' \
+  '(-2 --stderr)'{-2,--stderr}'[specify file for stderr redirection]:stderr file:_files' \
+  '(-x --pidfile)'{-x,--pidfile}'[optional path for .pid file written by application after fork()]:pid file:_files -g "*.pid(-.)"' \
+  '(-n --neverexits)'{-n,--neverexits}'[service should never exit by itself]' \
+  '(-O --preshutdown -o --shutdown)'{-O,--preshutdown}'[stop service application during system preshutdown]' \
+  '(-O --preshutdown -o --shutdown)'{-o,--shutdown}'[stop service application during system shutdown]' \
+  '(-i --interactive)'{-i,--interactive}'[allow service to interact with the desktop (No effect since Windows Vista/Longhorn)]' \
+  '(-j --nohide )'{-j,--nohide}"[don't hide console window when service interacts with desktop]" \
+  '(-V --verbose)'{-V,--verbose}'[when used with --query or --list, causes extra information to be printed]' \
+  '(- *)'{-h,--help}'[print help information]' \
+  '(- *)'{-v,--version}'[print version information]'

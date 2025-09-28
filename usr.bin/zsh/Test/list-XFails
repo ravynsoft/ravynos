@@ -1,0 +1,5 @@
+#!/bin/sh
+# This script lists tests that are currently expected to fail.  (I.e., tests
+# for bugs that haven't been fixed yet.)
+
+grep --color -E -n '^[-0-9.dDqf]*f[-0-9.dDqf]*:' -- "$(dirname -- "$0")"/*.ztst

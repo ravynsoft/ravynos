@@ -1,0 +1,33 @@
+echo [ -neE ] [ arg ... ]
+       Write each arg on the standard output, with a  space  separating
+       each one.  If the -n flag is not present, print a newline at the
+       end.  echo recognizes the following escape sequences:
+
+       \a     bell character
+       \b     backspace
+       \c     suppress subsequent characters and final newline
+       \e     escape
+       \f     form feed
+       \n     linefeed (newline)
+       \r     carriage return
+       \t     horizontal tab
+       \v     vertical tab
+       \\     backslash
+       \0NNN  character code in octal
+       \xNN   character code in hexadecimal
+       \uNNNN unicode character code in hexadecimal
+       \UNNNNNNNN
+              unicode character code in hexadecimal
+
+       The -E flag, or the BSD_ECHO option,  can  be  used  to  disable
+       these escape sequences.  In the latter case, -e flag can be used
+       to enable them.
+
+       Note that for standards compliance a double dash does not termi-
+       nate  option  processing; instead, it is printed directly.  How-
+       ever, a single dash does terminate  option  processing,  so  the
+       first  dash, possibly following options, is not printed, but ev-
+       erything following it is printed as  an  argument.   The  single
+       dash  behaviour is different from other shells.  For a more por-
+       table way of printing text, see printf, and for a more  control-
+       lable way of printing text within zsh, see print.

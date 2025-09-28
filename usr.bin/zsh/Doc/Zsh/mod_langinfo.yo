@@ -1,0 +1,37 @@
+COMMENT(!MOD!zsh/langinfo
+Interface to locale information.
+!MOD!)
+The tt(zsh/langinfo) module makes available one parameter:
+
+startitem()
+vindex(langinfo)
+item(tt(langinfo))(
+An associative array that maps langinfo elements to
+their values.
+
+Your implementation may support a number of the following keys:
+
+tt(CODESET),
+tt(D_T_FMT),
+tt(D_FMT),
+tt(T_FMT),
+tt(RADIXCHAR),
+tt(THOUSEP),
+tt(YESEXPR),
+tt(NOEXPR),
+tt(CRNCYSTR),
+tt(ABDAY_{1..7}),
+tt(DAY_{1..7}),
+tt(ABMON_{1..12}),
+tt(MON_{1..12}),
+tt(T_FMT_AMPM),
+tt(AM_STR),
+tt(PM_STR),
+tt(ERA),
+tt(ERA_D_FMT),
+tt(ERA_D_T_FMT),
+tt(ERA_T_FMT),
+tt(ALT_DIGITS)
+
+)
+enditem()

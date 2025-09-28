@@ -1,0 +1,334 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		FE3B34AA0D55939B009E0AA5 /* glext.h in Headers */ = {isa = PBXBuildFile; fileRef = FE3B34A90D55939B009E0AA5 /* glext.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FE92E41E1342721400919549 /* wglext.h in Headers */ = {isa = PBXBuildFile; fileRef = FE92E41D1342721400919549 /* wglext.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FEAEFF7111E4D09900CA0912 /* glweak.h in Headers */ = {isa = PBXBuildFile; fileRef = FEAEFF7011E4D09900CA0912 /* glweak.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FED35B67104DF7F80038ED7C /* CGLCurrent.h in Headers */ = {isa = PBXBuildFile; fileRef = FED35B65104DF7F80038ED7C /* CGLCurrent.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FED35B68104DF7F80038ED7C /* CGLTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = FED35B66104DF7F80038ED7C /* CGLTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FEF2EB230C878C88001FC5A8 /* OpenGL.h in Headers */ = {isa = PBXBuildFile; fileRef = FEF2EB220C878C88001FC5A8 /* OpenGL.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FEF2EB5E0C87B894001FC5A8 /* gl.h in Headers */ = {isa = PBXBuildFile; fileRef = FEF2EB5D0C87B894001FC5A8 /* gl.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FEF2EB680C87B8BA001FC5A8 /* glu.h in Headers */ = {isa = PBXBuildFile; fileRef = FEF2EB670C87B8BA001FC5A8 /* glu.h */; settings = {ATTRIBUTES = (Public, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0867D69BFE84028FC02AAC07 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		8DC2EF5A0486A6940098B216 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		8DC2EF5B0486A6940098B216 /* OpenGL.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = OpenGL.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FE06B4221430E93F0071169B /* darwin-i386.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "darwin-i386.xcconfig"; sourceTree = "<group>"; };
+		FE06B4231430E93F0071169B /* darwin-ppc.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "darwin-ppc.xcconfig"; sourceTree = "<group>"; };
+		FE06B4241430E93F0071169B /* darwin-x86_64.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "darwin-x86_64.xcconfig"; sourceTree = "<group>"; };
+		FE06B4251430E93F0071169B /* darwin.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = darwin.xcconfig; sourceTree = "<group>"; };
+		FE06B4261430E93F0071169B /* freebsd-i386.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "freebsd-i386.xcconfig"; sourceTree = "<group>"; };
+		FE06B4271430E93F0071169B /* freebsd.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = freebsd.xcconfig; sourceTree = "<group>"; };
+		FE06B4281430E93F0071169B /* linux-arm.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "linux-arm.xcconfig"; sourceTree = "<group>"; };
+		FE06B4291430E93F0071169B /* linux-i386.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "linux-i386.xcconfig"; sourceTree = "<group>"; };
+		FE06B42A1430E93F0071169B /* linux-ppc.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "linux-ppc.xcconfig"; sourceTree = "<group>"; };
+		FE06B42B1430E93F0071169B /* linux.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = linux.xcconfig; sourceTree = "<group>"; };
+		FE06B42C1430E93F0071169B /* platform.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = platform.xcconfig; sourceTree = "<group>"; };
+		FE06B42D1430E93F0071169B /* solaris-sparc.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "solaris-sparc.xcconfig"; sourceTree = "<group>"; };
+		FE06B42E1430E93F0071169B /* solaris.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = solaris.xcconfig; sourceTree = "<group>"; };
+		FE06B42F1430E93F0071169B /* windows-i386.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "windows-i386.xcconfig"; sourceTree = "<group>"; };
+		FE06B4301430E93F0071169B /* windows.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = windows.xcconfig; sourceTree = "<group>"; };
+		FE3B34A90D55939B009E0AA5 /* glext.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = glext.h; sourceTree = "<group>"; };
+		FE7087041431184D00B99A95 /* windows-i386-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "windows-i386-framework.xcconfig"; sourceTree = "<group>"; };
+		FE92E41D1342721400919549 /* wglext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wglext.h; sourceTree = "<group>"; };
+		FEAEFF7011E4D09900CA0912 /* glweak.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glweak.h; sourceTree = "<group>"; };
+		FEC0A3D3170935A2002A60B7 /* darwin-i386-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "darwin-i386-framework.xcconfig"; sourceTree = "<group>"; };
+		FEC0A3D4170935A2002A60B7 /* darwin-ppc-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "darwin-ppc-framework.xcconfig"; sourceTree = "<group>"; };
+		FEC0A3D5170935A2002A60B7 /* darwin-x86_64-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "darwin-x86_64-framework.xcconfig"; sourceTree = "<group>"; };
+		FEC0A3D6170935A2002A60B7 /* freebsd-i386-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "freebsd-i386-framework.xcconfig"; sourceTree = "<group>"; };
+		FEC0A3D7170935A2002A60B7 /* linux-arm-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "linux-arm-framework.xcconfig"; sourceTree = "<group>"; };
+		FEC0A3D8170935A2002A60B7 /* linux-i386-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "linux-i386-framework.xcconfig"; sourceTree = "<group>"; };
+		FEC0A3D9170935A2002A60B7 /* linux-ppc-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "linux-ppc-framework.xcconfig"; sourceTree = "<group>"; };
+		FEC0A3DA170935A2002A60B7 /* solaris-sparc-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "solaris-sparc-framework.xcconfig"; sourceTree = "<group>"; };
+		FED35B65104DF7F80038ED7C /* CGLCurrent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CGLCurrent.h; sourceTree = "<group>"; };
+		FED35B66104DF7F80038ED7C /* CGLTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CGLTypes.h; sourceTree = "<group>"; };
+		FEF2EB220C878C88001FC5A8 /* OpenGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenGL.h; sourceTree = "<group>"; };
+		FEF2EB5D0C87B894001FC5A8 /* gl.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = gl.h; sourceTree = "<group>"; };
+		FEF2EB670C87B8BA001FC5A8 /* glu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glu.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		034768DFFF38A50411DB9C8B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8DC2EF5B0486A6940098B216 /* OpenGL.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0867D691FE84028FC02AAC07 /* OpenGL */ = {
+			isa = PBXGroup;
+			children = (
+				FE06B4211430E93F0071169B /* xcconfig */,
+				FE92E41D1342721400919549 /* wglext.h */,
+				FEAEFF7011E4D09900CA0912 /* glweak.h */,
+				FED35B65104DF7F80038ED7C /* CGLCurrent.h */,
+				FED35B66104DF7F80038ED7C /* CGLTypes.h */,
+				FE3B34A90D55939B009E0AA5 /* glext.h */,
+				08FB77AEFE84172EC02AAC07 /* Classes */,
+				32C88DFF0371C24200C91783 /* Other Sources */,
+				089C1665FE841158C02AAC07 /* Resources */,
+				0867D69AFE84028FC02AAC07 /* External Frameworks and Libraries */,
+				034768DFFF38A50411DB9C8B /* Products */,
+				FEF2EB220C878C88001FC5A8 /* OpenGL.h */,
+				FEF2EB5D0C87B894001FC5A8 /* gl.h */,
+				FEF2EB670C87B8BA001FC5A8 /* glu.h */,
+			);
+			indentWidth = 4;
+			name = OpenGL;
+			sourceTree = "<group>";
+			tabWidth = 4;
+			usesTabs = 0;
+		};
+		0867D69AFE84028FC02AAC07 /* External Frameworks and Libraries */ = {
+			isa = PBXGroup;
+			children = (
+				1058C7B0FEA5585E11CA2CBB /* Linked Frameworks */,
+				1058C7B2FEA5585E11CA2CBB /* Other Frameworks */,
+			);
+			name = "External Frameworks and Libraries";
+			sourceTree = "<group>";
+		};
+		089C1665FE841158C02AAC07 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				8DC2EF5A0486A6940098B216 /* Info.plist */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		08FB77AEFE84172EC02AAC07 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Classes;
+			sourceTree = "<group>";
+		};
+		1058C7B0FEA5585E11CA2CBB /* Linked Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "Linked Frameworks";
+			sourceTree = "<group>";
+		};
+		1058C7B2FEA5585E11CA2CBB /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0867D69BFE84028FC02AAC07 /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		32C88DFF0371C24200C91783 /* Other Sources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "Other Sources";
+			sourceTree = "<group>";
+		};
+		FE06B4211430E93F0071169B /* xcconfig */ = {
+			isa = PBXGroup;
+			children = (
+				FEC0A3D3170935A2002A60B7 /* darwin-i386-framework.xcconfig */,
+				FEC0A3D4170935A2002A60B7 /* darwin-ppc-framework.xcconfig */,
+				FEC0A3D5170935A2002A60B7 /* darwin-x86_64-framework.xcconfig */,
+				FEC0A3D6170935A2002A60B7 /* freebsd-i386-framework.xcconfig */,
+				FEC0A3D7170935A2002A60B7 /* linux-arm-framework.xcconfig */,
+				FEC0A3D8170935A2002A60B7 /* linux-i386-framework.xcconfig */,
+				FEC0A3D9170935A2002A60B7 /* linux-ppc-framework.xcconfig */,
+				FEC0A3DA170935A2002A60B7 /* solaris-sparc-framework.xcconfig */,
+				FE06B4221430E93F0071169B /* darwin-i386.xcconfig */,
+				FE06B4231430E93F0071169B /* darwin-ppc.xcconfig */,
+				FE06B4241430E93F0071169B /* darwin-x86_64.xcconfig */,
+				FE06B4251430E93F0071169B /* darwin.xcconfig */,
+				FE06B4261430E93F0071169B /* freebsd-i386.xcconfig */,
+				FE06B4271430E93F0071169B /* freebsd.xcconfig */,
+				FE06B4281430E93F0071169B /* linux-arm.xcconfig */,
+				FE06B4291430E93F0071169B /* linux-i386.xcconfig */,
+				FE06B42A1430E93F0071169B /* linux-ppc.xcconfig */,
+				FE06B42B1430E93F0071169B /* linux.xcconfig */,
+				FE06B42C1430E93F0071169B /* platform.xcconfig */,
+				FE06B42D1430E93F0071169B /* solaris-sparc.xcconfig */,
+				FE06B42E1430E93F0071169B /* solaris.xcconfig */,
+				FE06B42F1430E93F0071169B /* windows-i386.xcconfig */,
+				FE06B4301430E93F0071169B /* windows.xcconfig */,
+				FE7087041431184D00B99A95 /* windows-i386-framework.xcconfig */,
+			);
+			name = xcconfig;
+			path = ../xcconfig;
+			sourceTree = SOURCE_ROOT;
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		8DC2EF500486A6940098B216 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FEF2EB230C878C88001FC5A8 /* OpenGL.h in Headers */,
+				FEF2EB5E0C87B894001FC5A8 /* gl.h in Headers */,
+				FEF2EB680C87B8BA001FC5A8 /* glu.h in Headers */,
+				FE3B34AA0D55939B009E0AA5 /* glext.h in Headers */,
+				FED35B67104DF7F80038ED7C /* CGLCurrent.h in Headers */,
+				FED35B68104DF7F80038ED7C /* CGLTypes.h in Headers */,
+				FEAEFF7111E4D09900CA0912 /* glweak.h in Headers */,
+				FE92E41E1342721400919549 /* wglext.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		8DC2EF4F0486A6940098B216 /* OpenGL */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1DEB91AD08733DA50010E9CD /* Build configuration list for PBXNativeTarget "OpenGL" */;
+			buildPhases = (
+				8DC2EF500486A6940098B216 /* Headers */,
+				8DC2EF520486A6940098B216 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = OpenGL;
+			productInstallPath = "$(HOME)/Library/Frameworks";
+			productName = OpenGL;
+			productReference = 8DC2EF5B0486A6940098B216 /* OpenGL.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0867D690FE84028FC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+			};
+			buildConfigurationList = 1DEB91B108733DA50010E9CD /* Build configuration list for PBXProject "OpenGL" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 0867D691FE84028FC02AAC07 /* OpenGL */;
+			productRefGroup = 034768DFFF38A50411DB9C8B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8DC2EF4F0486A6940098B216 /* OpenGL */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8DC2EF520486A6940098B216 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1DEB91AE08733DA50010E9CD /* Windows-i386 */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = FE7087041431184D00B99A95 /* windows-i386-framework.xcconfig */;
+			buildSettings = {
+				INFOPLIST_FILE = Info.plist;
+				PRODUCT_NAME = OpenGL;
+			};
+			name = "Windows-i386";
+		};
+		1DEB91B208733DA50010E9CD /* Windows-i386 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = "Windows-i386";
+		};
+		CFF0A1431AF4723A00160EAA /* Darwin-i386 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = "Darwin-i386";
+		};
+		CFF0A1441AF4723A00160EAA /* Darwin-i386 */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = FEC0A3D3170935A2002A60B7 /* darwin-i386-framework.xcconfig */;
+			buildSettings = {
+				INFOPLIST_FILE = Info.plist;
+				PRODUCT_NAME = OpenGL;
+			};
+			name = "Darwin-i386";
+		};
+		CFF0A1481AF4724100160EAA /* FreeBSD-i386 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = "FreeBSD-i386";
+		};
+		CFF0A1491AF4724100160EAA /* FreeBSD-i386 */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = FEC0A3D6170935A2002A60B7 /* freebsd-i386-framework.xcconfig */;
+			buildSettings = {
+				INFOPLIST_FILE = Info.plist;
+				PRODUCT_NAME = OpenGL;
+			};
+			name = "FreeBSD-i386";
+		};
+		CFF0A14D1AF4724A00160EAA /* Linux-i386 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = "Linux-i386";
+		};
+		CFF0A14E1AF4724A00160EAA /* Linux-i386 */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = FEC0A3D8170935A2002A60B7 /* linux-i386-framework.xcconfig */;
+			buildSettings = {
+				INFOPLIST_FILE = Info.plist;
+				PRODUCT_NAME = OpenGL;
+			};
+			name = "Linux-i386";
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1DEB91AD08733DA50010E9CD /* Build configuration list for PBXNativeTarget "OpenGL" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB91AE08733DA50010E9CD /* Windows-i386 */,
+				CFF0A1441AF4723A00160EAA /* Darwin-i386 */,
+				CFF0A14E1AF4724A00160EAA /* Linux-i386 */,
+				CFF0A1491AF4724100160EAA /* FreeBSD-i386 */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Windows-i386";
+		};
+		1DEB91B108733DA50010E9CD /* Build configuration list for PBXProject "OpenGL" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB91B208733DA50010E9CD /* Windows-i386 */,
+				CFF0A1431AF4723A00160EAA /* Darwin-i386 */,
+				CFF0A14D1AF4724A00160EAA /* Linux-i386 */,
+				CFF0A1481AF4724100160EAA /* FreeBSD-i386 */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Windows-i386";
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0867D690FE84028FC02AAC07 /* Project object */;
+}

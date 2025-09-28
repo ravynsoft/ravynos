@@ -1,0 +1,3162 @@
+#compdef p4 p4d -value-,P4CLIENT,-default- -value-,P4PORT,-default- -value-,P4MERGE,-default- -value-,P4USER,-default-
+
+# Maintainer: Peter Stephenson <pws@csr.com>.
+
+# Increasingly loosely based on _cvs version 1.17.
+# Completions currently based on Perforce release 2016.1.
+
+# Styles, tags and contexts
+# =========================
+#
+# If the `verbose' style is set (it is assumed by default), verbose
+# descriptions are provided for many completed quantities derived
+# dynamically such as subcommand names, labels, changes -- in fact,
+# just about anything for which Perforce itself produces a verbose,
+# one-line description.  It may be turned off in the context of each
+# subcommand e.g.
+#   zstyle ':completion:*:p4-labelsync:*' verbose false
+# or for a particular tag, e.g. changes,
+#   zstyle ':completion:*:changes' verbose false
+# or just for top-level completion (i.e. up to and including completion
+# of the subcommand):
+#   zstyle ':completion:*:p4:*' verbose false
+# or for p4 as a whole,
+#   zstyle  ':completion:*:p4(-*|):*' verbose false
+# This is actually handled by the `_describe' function underneath the
+# Perforce completion system; it's mentioned here as verbosity adds
+# significantly to a lot of the Perforce completions.
+#
+# Note that completing change numbers is not very useful if `verbose' is
+# turned off.  There is no speed advantage for turning it off, either.
+# (Changes are also known as changelists or changesets.  The functions
+# and tags here all consistently use `changes'.)
+#
+# The style `max' can be set to a number which limits how many
+# possibilities can be shown when selecting changes or jobs.  This is
+# handled within Perforce, so the completion code may limit the number even
+# further.  If not set explicitly, the value is taken to be 20 to avoid a
+# huge database being output.  Set it to a larger number if necessary.
+# Setting it explicitly to zero removes the maximum.  Because you see only
+# the most recent, changes and jobs are shown in the order given by
+# Perforce without further sorting.
+#
+# Completion of jobs can also be controlled by the `jobview' style.
+# This uses the standard Perforce JobView syntax, and is applied
+# in connection with the `max' style.  In other words,
+# if you set
+#   zstyle ':completion:*:p4-*:jobs' max 0
+#   zstyle ':completion:*:p4-*:jobs' jobview 'user=pws'
+# then jobs to be completed will be those from the output of
+#   p4 jobs -e 'user=pws'
+# i.e. those assigned to Perforce user `pws'.
+#
+# Completion of changes can be controlled by the `changes' style.
+# This takes additional arguments to be passed to `p4 changes'.
+# An obvious example is:
+#   zstyle ':completion:*:p4-*:changes' changes -u $USER
+# to limit changes to the present user.
+#
+# The style `all-files' is used to tell the completion system to
+# complete any file in a given context.  This is for use in places
+# where it would, for example, only complete files opened for editing.
+# See the next section for more.
+#
+# The style `depot-files' tells the system to complete files by asking
+# Perforce for a list where it would otherwise complete files locally by
+# the standard mechanism --- basically any time you don't use // notation
+# and there is no restriction e.g. to opened files only.  There is likely
+# to be a significant speed penalty for this; it is turned off by default
+# in all contexts.  The advantage is that it cuts out files not maintained
+# by Perforce.  (Again, note this is a style, not a tag.)  Contexts
+# where this might be particularly useful include p4-diff or p4-diff2.
+#
+# The tags depot-files and depot-dirs also exist; they are used whenever
+# the system is completing files or directories by asking Perforce
+# to list them, rather than by using normal file completion.
+#
+# The tag subdirs is used to complete the special `...' which tells
+# Perforce to search all subdirectories.  Hence you can turn this
+# feature off by suitably manipulating your tags.
+#
+# The function will usually try to limit the files it lists by
+# context; for example, to just opened files.  By default it does
+# this by retrieving the complete list from Perforce and then
+# relying on the completion system to do the matching.  If this is
+# slow, it is possible to set the style "glob", in which case the
+# matching is done within Perforce, potentially reducing the amount of
+# searching of Perforce's internal database.  The tag used for
+# this is the same as the command used to retrieve the file name:
+# integrated, opened, resolved, dirs, files.  The disadvantage
+# of doing the matching within Perforce is that no matcher specification
+# is applied; for example, it's not possible to match a_u.c against
+# admin_utils.c.
+#
+# Actually, a hybrid strategy is used when the glob style is not set: the
+# directory is passed literally to Perforce, but the file or directory
+# being matched is passed as "*", so that matching on the contents of the
+# directory is performed by the completion system.
+#
+# Experiment suggests that the glob style isn't usually needed: only
+# "p4 integrated" is likely to be significantly slowed if no limiting
+# pattern is applied, and completing only integrated files is uncommon.
+#
+# Completion of files and their revisions
+# =======================================
+#
+# File completion handles @ and # suffixes.  If the filename is completed,
+# typing @ or # removes the space which was automatically added.
+# The context used has `at-suffix' or `hash-suffix' in the position
+# before the tag to indicate suffix completion (as always, ^Xh will
+# show you all possible contexts).  This makes it possible
+# to select changes, dates, labels and clients using the tag-order
+# style.  For example,
+#    zstyle ':completion:*:p4-*:at-suffix:*' tag-order changes '*'
+# will force all completion after `@' to show changes first.  Executing
+# _next_tags (usually ^x^n) will cycle between that and the remaining
+# tags (dates, labels, clients).  I recommend, at least, keeping labels
+# later than changes since the former are less useful and can take a long
+# time to complete.
+#
+# A # is automatically quoted when handled in this way; if the file is
+# typed by hand or the completion didn't finish (e.g. you typed a character
+# in the middle of menu completion), you probably need to type `\#' by
+# hand.  The problem is that the completion system uses extended globbing
+# and hence a pattern of the form `filename#' always matches `filename'
+# (since e# matches any number of e's including one).  Hence this can look
+# like an expansion which expands to `filename'.
+#
+# After @, you can complete changes (note the use of the style `max'
+# above), labels, clients or even dates, while after `#' you can
+# complete numeric revisions or the special revision names head, none,
+# have.  These are available whether or not you completed the filename; if
+# the file doesn't exist, numeric revisions won't work, but the rest will
+# (though what Perforce will do with the resulting command is another matter).
+#
+# In addition, when completing after `file@', only changes specific to `file'
+# will be shown (exactly the list of changes Perforce shows from the
+# command `p4 changes file').  If this doesn't work, chances are that
+# `file' does not exist.  Having a multi-directory match (literal `...')
+# in `file' should work fine, since `p4 changes' recognises all normal
+# Perforce file syntax.
+#
+# Some perforce commands allow you to specify a range of revisions or
+# changes as `file@1,@2' or `file#1,#2'.  Currently, the second part of the
+# revision range can always be completed (whether the command accepts them
+# or not), but the comma after the first part of the range is only added
+# automatically if the documentation suggests the command accepts ranges at
+# that point.  This is an auto-removable suffix, so it will disappear if
+# you hit space or return.  Typing a `#' at this point will insert a
+# backslash, as before.  The # and @ are never added automatically; you
+# have to select one by hand.
+#
+# Perforce allows change and revision numbers to be preceded by =, <, <=, >
+# or >=.  See `p4 help undoc' for details.  (In particular, `=' is
+# an extremely useful shortcut when integrating single changes.)
+# This syntax is handled, but currently the < and > must be quoted
+# with a backslash, not by any other mechanism.  For example,
+#   p4 files myfile@\>=3<TAB>
+# will complete a change number.  The valid syntax where the second
+# change or revision in a range does not have the @ or # in front
+# (for example `file@32183,32185') is not currently handled; the @
+# must be repeated.
+#
+# File completion for some functions is restricted by the Perforce
+# status of the file; for example, `p4 opened' only completes opened
+# files (surprised?)  However, you can set the style (N.B. not tag)
+# `all-files'; so, for example, you can turn off the limit in this case by
+#   zstyle ':completion:*:p4-opened:*' all-files true
+# Normally the `file-patterns' style would be used to control matching,
+# but as the file types are not selected by globbing it doesn't work here
+# However, if you set the all-files style, all filename completion is done
+# by the standard mechanism; in this case, the `file-patterns' style works
+# as usual.  The style `ignored-patterns' is available in any case, even
+# without `all-files'; this is therefore generally the one to use.
+#
+# The style `whole-path' allows you complete the entire path to a file
+# at once.  This is useful in cases such as opened files where the
+# list of files is likely to be short but may include files with
+# widely different paths.  As with the `glob' style, the tag is the
+# Perforce disposition of the file: integrated, opened, resolved, dirs,
+# files.  For example, with
+#   zstyle ':completion:*:p4-revert:*:opened' whole-path true
+# completion after `p4 revert' will offer you the entire depot path
+# to a file rather than just part of the path at once (with the
+# usual methods of disambiguation).  Directory completion is turned
+# off during a `whole-path' completion.  The `whole-path' style can
+# also take the value `absolute'; this means that an initial `/'
+# activates `whole-path' completion, otherwise a relative file path
+# will be completed in the normal way.  For example, with
+#   zstyle ':completion:*:p4-revert:*:opened' whole-path absolute
+# then after `p4 revert <TAB>' you are offered open files in the
+# current directory plus directories; after `p4 revert /<TAB>' you
+# are offered all open files in depot syntax.
+#
+# With `p4 diff', the shell will spot if you have used an option that
+# allows you to diff unopened files (such as -f) and in that case offer
+# all files; otherwise, it just offers opened files.
+#
+# Completion of changes
+# =====================
+#
+# There is various extra magic available any time change numbers
+# are completed, regardless of how this was reached, i.e.
+# `p4 fixes -c ...' and `p4 diff filename.c@...' are treated the same way.
+# Note, however, these only work if you are at the point where a change
+# number would be completed.
+#
+# Firstly, as mentioned above there is a maximum for the number of
+# changes which will be shown, given by the style max, or defaulting to 20.
+# Only the most recent changes will be shown.  This is to avoid a speed
+# penalty or clumsy output.  If a positive numeric argument is given
+# when changes are being completed, the maximum is set (unconditionally)
+# to that number instead.
+#
+# It is also possible to give a negative numeric prefix to a listing widget
+# (i.e. typically whatever is bound to ^D).  If there is already a change
+# number on the line, e.g. from cycling through a menu of choices, the full
+# description for that change is shown in the format of a completion
+# listing.  [TODO: this could be made configurable with a style.]
+#
+# It may be necessary to abandon the current completion attempt before
+# typing this to force the completion system to display the new text.
+# Replacing delete-char-or-list with the following user defined widget
+# (create with `zle -N ...') will force this for any negative prefix argument.
+#    (( ${NUMERIC:-0} < 0 )) && (( CURSOR = CURSOR ))
+#    zle delete-char-or-list
+#
+# Completion of jobs
+# =================
+#
+# Completing jobs uses the same logic for the numeric prefix as completing
+# changes: a positive prefix changes the maximum number of jobs which
+# will be shown, and a negative prefix when listing shows the full
+# text for the job whose name is currently inserted on the command line.
+# In this case, the entire text of the word being completed is assumed
+# to constitute the job name (which is almost certainly correct).
+#
+# Completion of dates
+# ===================
+#
+# In a file revision specification it is possible to give a date
+# in the form file@YYYY/MM/DD:hh:mm:ss, which may be completed.  This
+# is ever so slightly less silly than it sounds.  Any component entered
+# by hand with the appropriate suffix will be ignored; any component
+# completed will be set to the current value.  Hence you can easily
+# specify, say, one month ago by using the completed value for all
+# components except the month and setting that to one less.  The shell
+# will also happily append the appropriate suffix if you try to complete
+# after anything which is already the appropriate width.  (Perforce
+# supports two-digit years, but these are confusing and no longer
+# particularly useful as they refer to the twentieth century, so
+# the shell does not.)
+#
+# Calls to p4
+# ===========
+#
+# Much of the information from Perforce is provided by calls to p4
+# commands.  This is done via the _call_program interface, as described
+# in the zshcompsys manual page.  Hence a suitable context with the
+# `command' style allows the user to take control of this call.
+# The tags used are the name of the p4 command, or in the case of
+# calls to help subcommands, `help-<subcommand>'.  Note that if the
+# value of the style begins with `-', the arguments to the perforce
+# command are appended to the remaining words of the style before calling
+# the command.
+#
+# Programmes taking p4-style arguments
+# ====================================
+#
+# It is possible to use the _perforce completion with other commands
+# which behave like a subcommand of p4 by setting the service type
+# to p4-<subcommand>.  For example,
+#   compdef _perforce p4cvsmap=p4-files
+# says that the command `p4cvsmap' takes arguments like `p4 files'.
+# Often the options will be different; if this is a problem, you
+# will need to write your own completer which loads _perforce and
+# calls its functions directly.  You can add -global to the end
+# of the service to say that the command also handles global
+# Perforce options, comme ca:
+#   compdef _perforce p4reopen=p4-job-global
+#
+# Anything more complicated should be modelled on one of the
+# _perforce_cmd_* handlers below.  To get this to work, the full
+# set of _perforce functions must be loaded; because of the way
+# autoloading works, a trick is required:  call "_perforce -l" which
+# causes the function to be executed, loading all the associated
+# functions as a side effect, but tells _perforce to return without
+# generating any completions.  For example, here is the completion
+# for my `p4desc' function which is an enhanced version of `p4 describe'
+# (without any handling for global Perforce arguments):
+#
+#  #compdef p4desc
+#
+#  _perforce -l
+#
+#  _arguments -s : \
+#    '-d-[select diff option]:diff option:((b\:ignore\ blanks c\:context d\:basic\ diff n\:RCS s\:summary u\:unified w\:ignore\ all\ whitespace))' \
+#    '-s[short form]' \
+#    '-j[select by job]:job:_perforce_jobs' \
+#    '*::change:_perforce_changes'
+#
+# To add handling of global options to this, see the end of the _perforce
+# function below.  Something like:
+#
+#   local -a _perforce_global_options _perforce_option_dispatch
+#   if _perforce_global_options; then
+#     _arguments -s : $_perforce_option_dispatch \
+#       '<other stuff>'
+#   fi
+#
+# TODO
+# ====
+#
+# No mechanism is provided for completely ignoring certain files not
+# handled by Perforce as with .cvsignore.  This could be done ad hoc.
+# However, the ignored-patterns style and the parameter $fignore are
+# of course applied as usual, so setting ignored-patterns for the
+# context `:completion:*:p4[-:]*' should work.
+
+_perforce() {
+  # rely on localoptions
+  setopt nonomatch
+  local p4cmd==p4 match mbegin mend
+  integer _perforce_cmd_ind
+
+  # Localise variables used at different levels of the hierarchy.
+  local _perforce_exclude_change
+
+  if [[ $1 = -l ]]; then
+    # Run to load _perforce and associated functions but do
+    # nothing else.
+    return
+  fi
+
+  if [[ $service = -value-* ]]; then
+    # Completing parameter value.
+    # Some of these --- in particular P4PORT --- don't need
+    # the perforce server.
+    case $compstate[parameter] in
+      (P4PORT)
+      _perforce_hosts_ports
+      ;;
+
+      (P4CLIENT)
+      _perforce_clients
+      ;;
+
+      (P4MERGE)
+      _command_names -e
+      ;;
+
+      (P4USER)
+      _perforce_users
+      ;;
+    esac
+    # We do not handle values anywhere else.
+    return
+  fi
+
+  if [[ $p4cmd = '=p4' ]]; then
+    _message "p4 executable not found: completion not available"
+    return
+  fi
+
+  # If we are at or after the command word, remember the
+  # global arguments to p4 as we will need to pass these down
+  # when generating completion lists.
+  # This is both an array and a function, but luckily I never
+  # get confused...
+  local -a _perforce_global_options
+  local -a _perforce_option_dispatch
+
+  # If we are given a service of the form p4-cmd, treat this
+  # as if it was after `p4 cmd'.  This provides an easy way in
+  # for scripts and functions that emulate the behaviour of
+  # p4 subcommands.  Note we don't shorten the command line arguments.
+  if [[ $service = p4-(#b)(*) ]]; then
+    local curcontext="$curcontext"
+    local p4cmd=$words[1] cmd=$match[1] gbl
+
+    if [[ $cmd = (#b)(*)-global ]]; then
+      # Handles global options.
+      cmd=$match[1]
+      _perforce_global_options && gbl=1
+    fi
+    if (( $+functions[_perforce_cmd_$cmd] )); then
+      curcontext="${curcontext%:*:*}:p4-${cmd}:"
+      if [[ -n $gbl ]]; then
+	# We are handling global Perforce options as well as the
+	# arguments to the specific command.
+	# To handle the latter, we need the command name, plus
+	# all the arguments for the command with the global options
+	# removed.  The function _perforce_service_dispatch handles
+	# this by unshifting the command ($p4cmd) into words,
+	# then dispatching for the Perforce subcommand $cmd.
+	#
+	# Has anyone noticed this is getting rather complicated?
+	_arguments -s : $_perforce_option_dispatch \
+	"*::p4-$cmd arguments: _perforce_service_dispatch $p4cmd $cmd"
+      else
+	_perforce_cmd_$cmd
+      fi
+      # Don't try to do full command handling.
+      return
+    else
+      _message "unhandled _perforce service: $service"
+      return 1
+    fi
+  fi
+
+  if [[ $service = p4d ]]; then
+    _arguments -s : \
+      '-d[run as daemon]' \
+      '-f[run as single threaded server]' \
+      '-i[run for inetd using sockets]' \
+      '-q[suppress startup message]' \
+      '-s[run as NT service]' \
+      '-xi[switch server database to unicode mode and quit]' \
+      '-xu[run database upgrade and quit]' \
+      '-c[run command and exit]:command of some sort: ' \
+      '-Id[specify description]:description: ' \
+      '-In[specify unique name]:name: ' \
+      '-jc[checkpoint, save and truncate journal]::optional prefix: ' \
+      '-jd[checkpoint, not saving journal]::optional file:_files' \
+      '-jj[save and truncate journal]::optional prefix: ' \
+      '-jr[incremental restore from checkpoint/journal]:'\
+'file:_files:file:_files' \
+      '-z[gzip checkpoint and journal files]' \
+      '-h[show help]' \
+      '-V[print server version]' \
+      '-A[set audit log ($P4AUDIT)]:audit file:_files' \
+      '-J[set journal file ($P4JOURNAL) or "off"]:journal file:_files' \
+      '-L[set error log ($P4LOG or stderr)]:error log:_files' \
+      '-p[set port ($P4PORT o perforce:1666)]:port:_perforce_hosts_ports' \
+      '-r[set root directory ($P4ROOT)]:root directory:_path_files -g "*(/)"' \
+      '-v[debug level]:level: '
+  elif _perforce_global_options; then
+    _arguments -s : $_perforce_option_dispatch \
+    '1:perforce command:_perforce_commands'
+  else
+    (( _perforce_cmd_ind-- ))
+    (( CURRENT -= _perforce_cmd_ind ))
+    shift $_perforce_cmd_ind words
+    _perforce_command_args
+  fi
+}
+
+
+#
+# Command and argument dispatchers
+#
+
+# Front end to _call_program to add in the global arguments
+# passed to p4.  The first argument is the tag, the remaining
+# arguments are passed to p4.  Typically the tag is the same
+# as the first p4 argument.
+(( $+functions[_perforce_call_p4] )) ||
+_perforce_call_p4() {
+  local cp_tag=$1
+  shift
+  # This is for our own use for parsing, and we need English output,
+  # so...
+  local +x P4LANGUAGE
+  _call_program $cp_tag command p4 "${_perforce_global_options[@]}" "$@"
+}
+
+
+# The list of commands is cached in _perforce_cmd_list, but we
+# only generate it via this function when we need it.
+(( $+functions[_perforce_gen_cmd_list] )) ||
+_perforce_gen_cmd_list() {
+  (( ${+_perforce_cmd_list} )) || typeset -ga _perforce_cmd_list
+  local hline line match mbegin mend
+  # Output looks like <tab>command-name<space>description in words...
+  # Ignore blank lines and the heading line beginning `Perforce...'
+  # Just gets run once, then cached, so don't bother optimising
+  # this to a grossly unreadable parameter substitution.
+  _perforce_cmd_list=()
+  _perforce_call_p4 help-commands help commands | while read -A hline; do
+    if (( ${#hline} < 2 )); then
+      if (( ${#_perforce_cmd_list} )); then
+	# Ignore comments after the main list of commands, separate by blank
+	# line.
+	break
+      else
+	continue
+      fi
+    fi
+    [[ $hline[1] = (#i)perforce ]] && continue
+    _perforce_cmd_list+=("${hline[1]}:${hline[2,-1]}")
+  done
+  # Also cache the server version for nefarious purposes.
+  _perforce_call_p4 info info | while read line; do
+    if [[ $line = (#b)"Server version: "*/*/(<->.<->)(.[^/]|)/*" "* ]]; then
+      _perforce_server_version=$match[1]
+    fi
+  done
+
+  # Unsupported commands: we could look through p4 help undoc, I suppose.
+  # I can't be bothered to check the date when they appeared any more,
+  # but let's at least check they're not already there.
+  local -a unsup
+  unsup=(
+    "attribute:set attributes for open file (EXPERIMENTAL)"
+    "dbschema:report meta database information"
+    "export:extract journal or checkpoint records"
+    "interchanges:report changes not yet integrated between branches"
+    "replicate:poll for journal changes and apply to another server"
+    "spec:allows limited changes to form specifications (admin)"
+  )
+  for line in $unsup; do
+    if [[ ${_perforce_cmd_list[(r)${line%%:*}:*]} = '' ]]; then
+      _perforce_cmd_list+=($line)
+    fi
+  done
+}
+
+
+(( $+functions[_perforce_commands] )) ||
+_perforce_commands() {
+  (( ${#_perforce_cmd_list} )) || _perforce_gen_cmd_list
+  _describe -t p4-commands 'Perforce command' _perforce_cmd_list
+}
+
+
+(( $+functions[_perforce_command_args] )) ||
+_perforce_command_args() {
+  local curcontext="$curcontext" cmd=${words[1]}
+  if (( $+functions[_perforce_cmd_$cmd] )); then
+    curcontext="${curcontext%:*:*}:p4-${cmd}:"
+    _perforce_cmd_$cmd
+  else
+    _message "unhandled perforce command: $cmd"
+  fi
+}
+
+
+(( $+functions[_perforce_service_dispatch] )) ||
+_perforce_service_dispatch() {
+  # Put the original command name back, then dispatch for
+  # our Perforce handler.
+  words=($1 "$words[@]")
+  (( CURRENT++ ))
+  _perforce_cmd_$2
+}
+
+
+#
+# Helper functions
+#
+
+(( $+functions[_perforce_global_options] )) ||
+_perforce_global_options() {
+  # Options with arguments we need to pass down when calling
+  # p4 from completers.  There are no options without arguments
+  # we need to pass.  (Don't pass down -L language since we
+  # parse based on English output.)
+  local argopts_pass="cCdHpPu"
+  # Other options which have arguments but we shouldn't pass down.
+  # There are some debugging options, but they tend to get used
+  # with the argument in the same word as the option, in which
+  # case they will be handled OK anyway.
+  local argopts_ignore="Lx"
+
+  # The options we support in the form for _arguments.
+  # This is here for modularity and convenience, but note that since the
+  # actual dispatch takes place later, this is not local to this
+  # function and so must be made local in the caller.
+  _perforce_option_dispatch=(
+    '-c+[client]:client:_perforce_clients' \
+    '-C+[charset]:charset:_perforce_charsets' \
+    '-d+[current directory]:directory:_path_files -g "*(/)"' \
+    '-H+[hostname]:host:_perforce_hosts' \
+    '-G[python output]' \
+    '-L+[message language]:language: ' \
+    '-p+[server port]:port:_perforce_hosts_ports' \
+    '-P+[password on server]:password: ' \
+    '-s[output script tags]' \
+    '-u+[user]:user name:_perforce_users' \
+    '-x+[filename or -]:file:_perforce_files_or_minus' \
+    '-z+[select output format]:output format:(tag)'
+  )
+
+  integer i
+
+  # We need to try and check if we are before or after the
+  # subcommand, since some of the options with arguments, in particular -c,
+  # work differently.  It didn't work if I just added '*::...' to the
+  # end of the arguments list, anyway.
+  for (( i = 2; i < CURRENT; i++ )); do
+    if [[ $words[i] = -[$argopts_pass$argopts_ignore] ]]; then
+      # word with following argument --- check this
+      # is less than the current word, else we are completing
+      # this and shouldn't pass it down
+      if [[ $(( i + 1 )) -lt $CURRENT && \
+	$words[i] = -[$argopts_pass] ]]; then
+	_perforce_global_options+=(${words[i,i+1]})
+      fi
+      (( i++ ))
+    elif [[ $words[i] = -[$argopts_pass]* ]]; then
+      # word including argument which we want to keep
+      _perforce_global_options+=(${words[i]})
+    elif [[ $words[i] != -* ]]; then
+      break
+    fi
+  done
+
+  (( _perforce_cmd_ind = i ))
+  (( _perforce_cmd_ind >= CURRENT ))
+}
+
+(( $+functions[_perforce_branches] )) ||
+_perforce_branches() {
+  local bline match mbegin mend
+  local -a bl
+  bl=(${${${${(f)"$(_perforce_call_p4 branches branches 2>/dev/null)"}##Branch }//:/\\:}/ /:})
+  [[ $#bl -eq 1 && $bl[1] = '' ]] && bl=()
+  (( $#bl )) && _describe -t branches 'Perforce branch' bl
+}
+
+
+(( $+functions[_perforce_changes] )) ||
+_perforce_changes() {
+  local cline match mbegin mend max ctype num comma file
+  local -a cl cstatus amax xargs
+
+  zstyle -s ":completion:${curcontext}:changes" max max || max=20
+  zstyle -a ":completion:${curcontext}:changes" changes xargs
+  if [[ ${NUMERIC:-0} -lt 0 && -z $compstate[insert] ]]; then
+    # Not inserting (i.e. just listing) and given a negative
+    # prefix argument.  Instead of listing possible completions,
+    # show the full description for the change number on the line at
+    # the moment.
+    [[ $PREFIX = (|*[^[:digit:]])(#b)(<->) ]] && num+=$match[1]
+    [[ $SUFFIX = (#b)(<->)* ]] && num+=$match[1]
+    if [[ -n $num ]]; then
+      _message -r "$(_perforce_call_p4 describe describe $num)"
+      return 0
+    fi
+  elif [[ ${NUMERIC:-0} -gt 0 ]]; then
+    max=$NUMERIC
+  fi
+
+  (( max )) && amax=(-m $max)
+
+  # Hack: assume the arguments we want are at the end.
+  while [[ $argv[-1] = -t? ]]; do
+    case $argv[-1] in
+      # Change embedded in filename; extract that and remove
+      # the corresponding prefix.  Remove possible `#'s, too,
+      # in case we are looking at a range.
+      (-tf)
+      file=${${(Q)PREFIX}%%[\#@]*}
+      compset -P '*@(|\\\<|\\\>)(|=)'
+      ;;
+
+      # Changes already submitted
+      (-ts)
+      cstatus=(-s submitted)
+      ctype="submitted "
+      ;;
+
+      # Changes still pending
+      (-tp)
+      cstatus=(-s pending)
+      ctype="pending "
+      ;;
+
+      # Changes still pending and on the current client.
+      # Many uses of pending changes must be on the current client
+      # to be meaningful, in particular submitting a change or
+      # associating a file or operation with a particular change.
+      (-tc)
+      # Don't like this way of extracting the client to use,
+      # but I don't see a simpler one.  We do at least make sure
+      # we call p4 with the same arguments as we will use with p4 changes.
+      cstatus=(-s pending -c "$(_perforce_call_p4 client client -o |
+awk '/^Client:/ { print $2 }')")
+      ctype="local pending "
+      ;;
+
+      # Changes that were shelved
+      (-tS)
+      cstatus=(-s shelved)
+      ctype="shelved "
+      ;;
+
+      # Range allowed: append comma and supply rules for
+      # removing and handling subsequent `#'.
+      (-tR)
+      comma=(-S, -R _perforce_file_suffix)
+    esac
+    argv=($argv[1,-2])
+  done
+  # Limit to the 20 most recent changes by default to avoid huge
+  # output.
+  cl=(
+${${${${${(f)"$(_perforce_call_p4 changes changes $amax $xargs $cstatus \$file)"}##Change\ }//:/\\:}//\ on\ /:}/\ by\ /\ }
+  )
+  # "default" can't have shelved files in it...
+  [[ $ctype = shelved* ]] || cl+=("default:change not yet numbered")
+  [[ $#cl -eq 1 && $cl[1] = '' ]] && cl=()
+  _describe -t changes "${ctype}change" cl -V changes-unsorted $comma
+}
+
+
+(( $+functions[_perforce_charsets] )) ||
+_perforce_charsets() {
+  local expl
+  _wanted charset expl 'character set' \
+    compadd eucjp iso8859-1 shiftjis utf8 winansi
+}
+
+
+(( $+functions[_perforce_clients] )) ||
+_perforce_clients() {
+  local -a slash cl
+
+  # Are we completing after an @, or a client view in a filespec?
+  if ! compset -P '*@'; then
+    compset -P '//' && slash=(-S/ -q)
+  fi
+
+  cl=(${${${${(f)"$(_perforce_call_p4 clients clients)"}##Client\ }//:/\\:}/\ /:})
+  [[ $#cl -eq 1 && $cl[1] = '' ]] && cl=()
+  _describe -t clients 'Perforce client' cl $slash
+}
+
+
+(( $+functions[_perforce_counters] )) ||
+_perforce_counters() {
+  local cline match mbegin mend
+  local -a cl
+
+  cl=(${${${${(f)"$(_perforce_call_p4 counters counters)"}//:/\\:}/\ /:}/\=/current value})
+  [[ $#cl -eq 1 && $cl[1] = '' ]] && cl=()
+  _describe -t counters 'Perforce counter' cl
+}
+
+
+(( $+functions[_perforce_counter_values] )) ||
+_perforce_counter_values() {
+  if [[ -n $words[CURRENT-1] ]]; then
+    local value="$(_perforce_call_p4 counter counter $words[CURRENT-1] 2>/dev/null)"
+    if [[ -n $value ]]; then
+      # No space.  This allows stuff like incarg and decarg.
+      compstate[insert]=1
+      _wanted value expl 'counter value' compadd $value
+    fi
+  fi
+}
+
+
+(( $+functions[_perforce_dates] )) ||
+_perforce_dates() {
+  # Only useful in a file spec after `@'.
+  compset -P '*@(|\\\<|\\\>)(|=)'
+
+  # Date/time now in format required by Perforce.
+  local now="$(date +%Y:%m:%d:%T)" name prefix
+  local -a nowarray offer opts matchpats suffixes names
+  nowarray=(${(s.:.)now})
+
+  names=(   year month day\ of\ month hour minute second)
+  suffixes=(  /    /    :               :     :     ''  )
+
+  integer i
+  prefix=${(Q)PREFIX}
+  for (( i = 6; i >= 1; i-- )); do
+    # Match from the most specific back.
+    # The following is one of those occasions where zsh
+    # substitution skips to the right answer without ever
+    # passing through the real world on the way.
+    if [[ $prefix = *${(j.*.)~suffixes[1,i-1]}* ]]; then
+      (( i > 1 )) && compset -P "*$suffixes[i-1]"
+      # If what's there already is the right length,
+      # just accept it and add the suffix.
+      prefix=${(Q)PREFIX}
+      if [[ ${#prefix} = ${#nowarray[i]} ]]; then
+	offer=($prefix)
+      else
+	offer=($nowarray[i])
+      fi
+      [[ -n $suffixes[i] ]] && opts=(-S $suffixes[i] -q)
+      name=$names[i]
+      break
+    fi
+  done
+
+  _describe -t dates $name offer $opts
+}
+
+
+(( $+functions[_perforce_dbtables] )) ||
+_perforce_dbtables() {
+  local -a tables
+  tables=(archmap bodtext change changex counters depot domain have integ
+    integed ixtext label locks resolve rev revcx revdx revhx revsx trigger
+    user view working)
+  _describe -t db-table "DB table" tables
+}
+
+
+(( $+functions[_perforce_depots] )) ||
+_perforce_depots() {
+  local dline match mbegin mend
+  local -a dl
+
+  dl=(${${${${(f)"$(_perforce_call_p4 depots depots)"}##Depot\ }//:/\\:}/\ /:})
+  [[ $#dl -eq 1 && $dl[1] = '' ]] && dl=()
+  _describe -t depots 'depot name' dl
+}
+
+
+(( $+functions[_perforce_files_or_minus] )) ||
+_perforce_files_or_minus() {
+  _alternative 'minus:minus sign:(-)' 'files:file name:_files'
+}
+
+
+(( $+functions[_perforce_file_suffix] )) ||
+_perforce_file_suffix() {
+  # Used with compadd -R to handle @ or # after a file name.
+  # Differs from compadd -r '...' in that it quotes `#' if typed.
+  [[ $1 = 1 ]] || return
+
+  if [[ $LBUFFER[-1] = [\ ,] ]]; then
+    if [[ $KEYS = '#' ]]; then
+      if [[ $LBUFFER[-1] = , ]]; then
+	# Range: no suffix removal but add a backslash
+	LBUFFER+=\\
+	  else
+	# Suffix removal with an added backslash
+	LBUFFER="$LBUFFER[1,-2]\\"
+      fi
+    elif [[ $KEYS = (*[^[:print:]]*|[[:blank:]\;\&\|]) || \
+      ( $KEYS = @ && $LBUFFER[-1] = ' ' ) ]] ; then
+      # Normal suffix removal
+      LBUFFER="$LBUFFER[1,-2]"
+    fi
+  elif [[ $LBUFFER[-1] = / ]]; then
+    # Normal suffix removal for directories.
+    if [[ $KEYS = (*[^[:print:]]*|[[:blank:]\;\&\|/]) ]]; then
+      LBUFFER="$LBUFFER[1,-2]"
+    fi
+  fi
+}
+
+
+# Helper function for the helper function for the helper functions
+# for the helper function _perforce_files.
+#
+# Check if we should do whole-path completion.
+# The argument is the Perforce disposition of files are looking at.
+_perforce_whole_path() {
+  local wp
+
+  zstyle -s ":completion:${curcontext}:$1" whole-path wp
+  case $wp in
+    (true|yes|on|1)
+    return 0
+    ;;
+
+    (absolute)
+    [[ ${(Q)PREFIX} = /* ]] && return 0
+    ;;
+  esac
+
+  return 1
+}
+
+#
+# Helper function for the helper function _perforce_retreive_files
+# for the helper functions for the helper function _perforce files.
+#
+# This code retrieves the list of files with a glob filter and
+# possibly a line filter specified by the caller.  The line filter
+# must match the entire line.
+#
+# Result returned in $files.
+#
+(( $+functions[_perforce_filter_files] )) ||
+_perforce_filter_files() {
+  local call="$1"
+  local globfilter="$2"
+  local linefilter="$3"
+  local line
+
+  if [[ -n $linefilter ]]; then
+    files=(
+      ${${${(f)"$(_perforce_call_p4 $call $call $globfilter 2>/dev/null)"}:#${~linefilter}}%%\#*}
+    )
+  else
+    files=(
+      ${${(f)"$(_perforce_call_p4 $call $call $globfilter 2>/dev/null)"}%%\#*}
+    )
+  fi
+}
+
+#
+# Helper function for the helper functions for the helper function
+# _perforce_files.  This is common code to retrieve a list of files
+# from Perforce.
+#
+# First argument is the p4 subcommand used to list the files.
+# This is also used as a tag for the style to decide whether
+# to limit the list within Perforce. It may have a colon
+# followed by a shell pattern to match lines to be excluded
+# from the match.
+#
+# Remaining arguments are additional arguments to compadd.
+#
+(( $+functions[_perforce_retrieve_files] )) ||
+_perforce_retrieve_files() {
+  local pfx exclude
+  local -a files match mbegin mend
+
+  if [[ $1 = (#b)([^:]##):(*) ]]; then
+    1=$match[1]
+    exclude=$match[2]
+  fi
+
+  if _perforce_whole_path $1; then
+    _perforce_filter_files $1 '' $exclude
+  elif zstyle -t ":completion:${curcontext}:$1" glob; then
+    # Limit the list by using Perforce to glob the pattern.
+    # This may be faster, but won't use matcher specs etc.
+    pfx=${(Q)PREFIX}
+    compset -P '*/'
+    _perforce_filter_files $1 '"$pfx*${(Q)SUFFIX}"' $exclude
+    files=(${files##*/})
+  else
+    # We need to limit the list to a directory.
+    if [[ $PREFIX = */* ]]; then
+      pfx="${(Q)${PREFIX%/*}}/*"
+    else
+      pfx="*"
+    fi
+    compset -P '*/'
+    _perforce_filter_files $1 '$pfx' $exclude
+    files=(${files##*/})
+  fi
+  [[ $#files -eq 1 && $files[1] = '' ]] && files=()
+  shift
+  compadd "$@" -a files
+}
+
+
+#
+# Helper functions for the helper function _perforce_files.  These files
+# are low-level enough that they don't handle tags; this is done
+# by the _alternative handler in _perforce_files.
+#
+
+(( $+functions[_perforce_integrated_files] )) ||
+_perforce_integrated_files() {
+  local pfx=${(Q)PREFIX} type
+  local -a files
+
+  _perforce_retrieve_files integrated "$@"
+}
+
+
+(( $+functions[_perforce_opened_files] )) ||
+_perforce_opened_files() {
+  local csuf
+
+  if [[ -n $_perforce_exclude_change ]]; then
+    if [[ $_perforce_exclude_change = default ]]; then
+      csuf=":* default change [^#]#"
+    else
+      csuf=":* change $_perforce_exclude_change [^#]#"
+    fi
+  fi
+
+  _perforce_retrieve_files opened$csuf "$@"
+}
+
+
+(( $+functions[_perforce_resolved_files] )) ||
+_perforce_resolved_files() {
+  _perforce_retrieve_files resolved "$@"
+}
+
+
+# This has no other function than to offer to add the `...' used
+# by Perforce to indicate a recursive search of directories.
+# Bit pathetic, really.
+#
+# This has been causing odd effects with prefixes so is turned off.
+#(( $+functions[_perforce_subdirs] )) ||
+#_perforce_subdirs() {
+#  if [[ $PREFIX = */* ]]; then
+#    local dir=${PREFIX%%[^/]#}
+#    compadd "$@" -J subdirs -p $dir ...
+#  else
+#    compadd "$@" -J subdirs ...
+#  fi
+#}
+
+
+(( $+functions[_perforce_depot_dirs] )) ||
+_perforce_depot_dirs() {
+  # Normal completion of directories in depots
+
+  _perforce_retrieve_files dirs "$@" -S / -q
+}
+
+
+(( $+functions[_perforce_depot_files] )) ||
+_perforce_depot_files() {
+  # Normal completion of files in depots
+
+  _perforce_retrieve_files files "$@" -R _perforce_file_suffix
+}
+
+
+(( $+functions[_perforce_client_dirs] )) ||
+_perforce_client_dirs() {
+  # This is a slightly odd addition which isn't often necessary.
+  # When completing directories in a client specification, Perforce
+  # doesn't tell you about intermediate directories which are in
+  # the client, but not in the depot.  (Well... sometimes.  I've
+  # had some odd results with this.  I suspect there may be a bug
+  # but I don't really know enough to be sure.)
+  #
+  # For example, if my view contains
+  #   //depot/branches/rev1.2/...   //pws_client/branches/rev1.2/...
+  # then `p4 dirs "//pws_client/*"' won't mention the `branches'
+  # directory because the view actually starts lower down.  So
+  # we add it by hand when necessary.
+  #
+  # We don't want to waste time on this, since it's not the usual
+  # case, so we cache the results where necessary.  This means
+  # recording all the clients that we can later ask about if necessary.
+  # To flush the cache, `unset _perforce_client_list _perforce_client_dirs'.
+  if (( ! ${+_perforce_client_list} )); then
+    # Retrieve the list of clients.
+    typeset -gA _perforce_client_list
+    local -a tmplist
+    local tmpelt
+    tmplist=(${${${(f)"$(_perforce_call_p4 clients clients)"}##Client\ }%%\ *})
+    [[ $#tmplist -eq 1 && $tmplist[1] = '' ]] && tmplist=()
+    for tmpelt in $tmplist; do
+      _perforce_client_list[$tmpelt]=1
+    done
+  fi
+
+  # See if the first path element is a client.  Very often it
+  # will actually be a depot, so we test this as quickly as possible.
+  local client=${${PREFIX##//}%%/*}
+  [[ -z ${_perforce_client_list[$client]} ]] && return 1
+
+  local oldifs=$IFS IFS= type dir line dirs
+
+  (( ${+_perforce_client_dirs} )) || typeset -gA _perforce_client_dirs
+
+  if (( ${+_perforce_client_dirs[$client]} )); then
+    # Already cached, although may be empty.
+    dirs=${_perforce_client_dirs[$client]}
+  else
+    # We need to look at the View stanza of the client record
+    # to see what directories exist in the client view.
+    _perforce_call_p4 client "client -o $client" 2>/dev/null | while read line
+    do
+      case $line in
+	([[:blank:]]##)
+	type=
+	;;
+
+	((#b)([[:alpha:]]##):*)
+	type=${match[1]}
+	;;
+
+	(*)
+	if [[ $type = View ]]; then
+	  dir=${${line##[[:blank:]]##//*[[:blank:]]//$client}%%/...(/*|)}
+	  if [[ $#dir -gt 1 ]]; then
+	    dirs+="${dirs:+ }${(q)dir##/}"
+	  fi
+	fi
+	;;
+      esac
+    done
+  fi
+
+  (( ${#dirs} )) || return 1
+
+  # Turn our string of space-separated backquoted elements into an array.
+  dirs=(${(z)dirs})
+  # Get the current prefix also as an array of elements
+  compset -P '//[^/]##/'
+  pfx=(${(s./.)${(Q)PREFIX}})
+
+  local -a ndirs
+  local match mbegin mend
+  # Check matching path segments
+  while (( ${#pfx} > 1 )); do
+    ndirs=()
+    for dir in $dirs; do
+      if [[ $dir = $pfx/(#b)(*) ]]; then
+	ndirs+=($match[1])
+      fi
+    done
+    (( ${#ndirs} )) || return 1
+    dirs=($ndirs)
+    shift pfx
+    compset -P '[^/]'
+  done
+  compadd -S / -q "$@" -- ${dirs%%/*}
+}
+
+(( $+functions[_perforce_files] )) ||
+_perforce_files() {
+  local pfx fline expl opt match mbegin mend range type
+  local -a files types
+
+  local dodirs unmaintained
+  # Suffix operations can modify context
+  local curcontext="$curcontext"
+  # Used to inhibit directory completion
+  local nodirs
+
+  while (( $# )); do
+    if [[ $1 = -t(#b)(?) ]]; then
+      case $match[1] in
+	(d)
+	dodirs=-/
+	;;
+
+	(u)
+	unmaintained=1
+	;;
+
+	(i)
+	types+=(integrated)
+	;;
+
+	(o)
+	types+=(opened)
+	;;
+
+	(r)
+	types+=(resolved)
+	;;
+
+	(R)
+	range="-tR"
+	;;
+      esac
+    fi
+    shift
+  done
+
+  # Remove the quotes present in the word on the command line,
+  # since we will treat this as a literal string from now on.
+  # We might get into problems with characters recognised as
+  # special by p4 files and p4 dirs, but worry about that later.
+  pfx=${(Q)PREFIX}
+
+  if [[ -prefix *@ ]]; then
+    # Modify context to indicate we are in a suffix.
+    curcontext="${curcontext%:*}:at-suffix"
+    # Check for existing range syntax
+    [[ $PREFIX = *[@\#]*,* ]] && range=
+    # After @ you can specify changes, clients, labels or dates.
+    # Note we don't remove the prefix here; we leave it to the
+    # subcommand.  This is in case it needs information from
+    # the prefix; _perforce_changes uses this to limit the
+    # output to relevant changes.
+    _alternative \
+      "changes:change:_perforce_changes $range -tf" \
+      clients:client:_perforce_clients \
+      "labels:label:_perforce_labels -tf" \
+      'dates:date (+ time):_perforce_dates'
+  elif [[ -prefix *\# ]]; then
+    # Modify context to indicate we are in a suffix.
+    curcontext="${curcontext%:*}:hash-suffix"
+    # Check for existing range syntax
+    [[ $PREFIX = *[@\#]*,* ]] && range=
+    # Remove longest possible tail match to get name --- this
+    # automatically handles filenames in ranges e.g. `foo#1,#3'.
+    # (Note the compset removes the maximum possible head match,
+    # so we only complete the second part of the range in that case.)
+    _perforce_revisions $range
+  elif [[ $PREFIX = //* ]]; then
+    # This specifies files already handled by Perforce, so there's
+    # no point trying to look for unmaintained files.  Assume
+    # the user knows what they're doing.
+    local -a altfiles
+    integer whole_path
+
+    for type in $types; do
+      _perforce_whole_path $type && whole_path=1
+    done
+
+    # If we're doing whole-path completion, and the user starts
+    # a completion early, assume they want just those files,
+    # rather than a client spec.  This isn't necessarily the case,
+    # but there's an excellent chance it does fit the user's intention
+    # in a case where it's not really worth adding a special option.
+    # A client list can be huge and they're not actually used very
+    # often to refer to files.  In fact, this whole completion
+    # probably ought to be optional (you can do it with tags if
+    # you really want).
+    if [[ $PREFIX = //[^/]# && $whole_path -eq 0 ]]; then
+      # Complete //clientname or //depot spec.
+      # Don't complete non-directories...
+      # I don't actually know if they are valid here.
+      altfiles+=("clients:Perforce client:_perforce_clients"
+	"depots:Perforce depot:_perforce_depots")
+    else
+      local donefiles=1
+      if [[ -z $dodirs ]]; then
+	if [[ ${#types} -gt 0 ]] &&
+	  ! zstyle -t ":completion:${curcontext}:" all-files; then
+	  for type in $types; do
+	    altfiles+=("$type-files:$type file:_perforce_${type}_files")
+	  done
+	  (( whole_path )) && nodirs=1
+	else
+	  altfiles+=("depot-files:file in depot:_perforce_depot_files")
+	fi
+      fi
+      if [[ -z $nodirs ]]; then
+	# Intermediate directories in a client view.
+	# See function for notes.
+	altfiles+=("client-dirs:client directory:_perforce_client_dirs")
+      fi
+    fi
+    altfiles+=("depot-dirs:directory in depot:_perforce_depot_dirs"
+#      "subdirs:subdirectory search:_perforce_subdirs"
+    )
+    _alternative $altfiles
+  elif [[ -n $unmaintained ]]; then
+    # As directories are always umaintained, but may contain files
+    # we want to add, we'll always complete directories here.  That's
+    # neater than the alternative of excluding them here and requesting
+    # them separately in the caller.  The only client for this
+    # branch is currently 'p4 add'.
+    #
+    # Unmaintained files can't be integrated, opened
+    # or resolved, so treat as exclusive to other options (just as well, since
+    # this bit's messy).
+    local MATCH MBEGIN MEND
+    local -a omitpats
+
+    match=()
+    : ${PREFIX:#(#b)(*/)(*)}
+    pfx="$match[1]"
+    pfx=${(e)~pfx}
+    # Exclude both files already known to perforce, plus
+    # those opened.  There will be some overlap but we need
+    # to exclude files that are already opened for add.
+    omitpats=(
+      ${${${${(f)"$(_perforce_call_p4 files files \"\$pfx\*\$\{\(Q\)SUFFIX\}\" 2>/dev/null)"}%\#*}##*/}//(#m)[][*?()<|^~#\\]/\\$MATCH}
+      ${${${${(f)"$(_perforce_call_p4 opened opened \"\$pfx\*\$\{\(Q\)SUFFIX\}\" 2>/dev/null)"}%\#*}##*/}//(#m)[][*?()<|^~#\\]/\\$MATCH}
+	)
+
+    [[ $#omitpats -eq 1 && $omitpats[1] = '' ]] && omitpats=()
+    if (( ${#omitpats} )); then
+      _path_files -g "*~(*/|)(${(j:|:)~omitpats})(D)"
+    else
+      _path_files
+    fi
+    # Don't handle suffixes for non-entried files
+  elif (( ${#types} )) && ! zstyle -t ":completion:${curcontext}:" all-files
+    then
+    local -a altfiles
+
+    for type in $types; do
+      altfiles+=("$type-files:$type file:_perforce_${type}_files")
+      _perforce_whole_path $type && nodirs=1
+    done
+
+    if [[ -z $nodirs ]]; then
+#      altfiles+=("subdirs:subdirectory search:_perforce_subdirs")
+      if zstyle -t ":completion:${curcontext}:" depot-files; then
+	altfiles+=("depot-dirs:directory in depot:_perforce_depot_dirs")
+      else
+	altfiles+=("directories:directory:_path_files -/")
+      fi
+    fi
+    _alternative $altfiles
+  elif zstyle -t ":completion:${curcontext}:" depot-files; then
+    local -a altfiles
+    if [[ -z $dodirs ]]; then
+      altfiles+=("depot-files:file in depot:_perforce_depot_files")
+    fi
+    altfiles+=("depot-dirs:directory in depot:_perforce_depot_dirs"
+#      "subdirs:subdirectory search:_perforce_subdirs"
+    )
+    _alternative $altfiles
+  else
+    # Look locally.
+#   _alternative \
+#      "files:file:_path_files -R _perforce_file_suffix $dodirs" \
+#      "subdirs:subdirectory search:_perforce_subdirs"
+    _path_files -R _perforce_file_suffix $dodirs
+  fi
+}
+
+
+#
+# Remaining helpers for other types of Perforce metadata.
+#
+
+(( $+functions[_perforce_filetypes] )) ||
+_perforce_filetypes() {
+  local -a values
+  if compset -P '*+*'; then
+    # That second `*' is deliberate --- only complete the last
+    # letter since we can have a whole string of them.
+    values=(
+      "m:always set modtime on client"
+      "w:always writeable on client"
+      "x:set exec bit on client"
+      "k:full RCS keyword expansion"
+      "ko:RCS expansion only for Id, Header"
+      "l:exclusive open, disallow multiple opens"
+      "C:server stores compress file per revision"
+      "D:server stores deltas in RCS format"
+      "F:server stores full file per revision"
+      "S:server stores only head revision"
+      "X:externally archived file"
+    )
+    _describe -t file-modifiers 'Perforce file modifier' values
+  else
+    values=(
+      "text:text, translate newlines"
+      "binary:raw bytes"
+      "symlink:symbolic link"
+      "apple:Mac resource + data"
+      "unicode:text, translate newlines, store as UTF-8")
+    _describe -t file-types 'Perforce file type' values -S+ -q
+  fi
+}
+
+
+(( $+functions[_perforce_fstat_fields] )) ||
+_perforce_fstat_fields() {
+  local sep
+  if [[ $argv[-1] = -tv ]]; then
+    # jobview, space is separator
+    sep=' '
+  else
+    sep=','
+  fi
+  local -a values
+  # yes, "phew", sorry.
+  # output from "p4 help fstat" gives fields like
+  #    digest               -- MD5 digest (fingerprint)
+  # etc. etc.
+  values=(
+    ${${${${(M)${(f)"$(_perforce_call_p4 help-fstat help fstat)"}:#[[:blank:]]#[a-zA-Z]##(|\#)[[:blank:]]##--*}##[[:blank:]]#}:#fstat *}//[[:blank:]]##--[[:blank:]]##/:}
+  )
+  compset -P '*[,[:blank:]]'
+  _describe -t fstat-fields 'Perforce fstat field' values -S, -q
+}
+
+
+(( $+functions[_perforce_groups] )) ||
+_perforce_groups() {
+  local -a values
+  values=($(_perforce_call_p4 groups groups))
+  _describe -t groups 'Perforce group' values
+}
+
+
+(( $+functions[_perforce_hosts] )) ||
+_perforce_hosts() {
+  local expl host
+  # Completion for p4 -H; other forms of host completion
+  # go through _perforce_hosts_ports.
+  # From Felix: if the client specifies a hostname, there's
+  # no point using any other host, since it won't work.
+  host=$(_perforce_call_p4 client client -o |
+    awk '$1 ~ /^Host:/ {print $2}' )
+  if [[ -n $host ]]; then
+    _wanted hosts expl host compadd "$@" $host
+  else
+    _hosts
+  fi
+}
+
+
+(( $+functions[_perforce_hosts_ports] )) ||
+_perforce_hosts_ports() {
+  if compset -P '*:'; then
+    _ports
+    local expl
+    _wanted ports expl port compadd "$@" 1666
+  else
+    # is this -q-able?
+    _hosts -S :
+  fi
+}
+
+(( $+functions[_perforce_jobs] )) ||
+_perforce_jobs() {
+  # Optional argument is jobview for limiting jobs.
+  local jline match mbegin mend max jobview
+  local -a jl amax ajobview
+
+  zstyle -s ":completion:${curcontext}:jobs" max max || max=20
+  # Hack: if there is a job view, it is at the end.
+  # This is nasty, it's really unnecessarily difficult to
+  # pass arguments within completion functions...
+  if [[ $argv[-2] = -e ]]; then
+    ajobview=(-e "${(q)argv[-1]}")
+    argv=("${(@)argv[1,-3]}")
+  elif zstyle -s ":completion:${curcontext}:jobs" jobview jobview; then
+    ajobview=(-e "'$jobview'")
+  elif [[ -n $PREFIX ]]; then
+    # Extra quotes for the benefit of _call_program which does an "eval".
+    ajobview=(-e "'job=$PREFIX\\*$SUFFIX'")
+  fi
+  if [[ ${NUMERIC:-0} -lt 0 && -z $compstate[insert] ]]; then
+  # Not inserting (i.e. just listing) and given a negative
+  # prefix argument.  Instead of listing possible completions,
+  # show the full description for the job which is on the line at
+  # the moment.
+    _message -r "$(_perforce_call_p4 jobs jobs -e \"'Job=\$PREFIX\$SUFFIX'\" -l 2>/dev/null)"
+    return 0
+  elif [[ ${NUMERIC:-0} -gt 0 ]]; then
+    max=$NUMERIC
+  fi
+
+  (( max )) && amax=(-m $max)
+
+  _perforce_call_p4 jobs jobs $ajobview $amax | while read jline; do
+    if [[ $jline = (#b)([^[:blank:]]##)' '[^[:blank:]]##' '(*) ]]; then
+      jl+=("${match[1]}:${match[2]}")
+    fi
+  done
+  _describe -t jobs 'Perforce job' jl -V jobs-unsorted
+}
+
+(( $+functions[_perforce_jobviews] )) ||
+_perforce_jobviews() {
+  # Jobviews (see `p4 help jobview') are ways of interrogating the
+  # jobs/fixes database.  It's basically either a set of strings,
+  # or a set of key=value pairs, or some combination, separated
+  # by various logical operators.  The `=' could be a comparison,
+  # but we don't currently bother with that here; it's a bit cumbersome
+  # to complete.
+  local line type oldifs=$IFS IFS= key value slash=/
+  local match mbegin mend
+  # This is simply to split out two space-delimited words a backreferences.
+  local m2words
+  m2words='(#b)[[:blank:]]##([[:alnum:]]##)[[:blank:]]##([^[:blank:]]##)'
+
+  local -a valuespec
+  local -A p4fields p4values
+
+  # All the characters which can separate multiple match attempts.
+  # Ignore up to the last one.  We don't try to complete these.
+  compset -P '*[[:blank:]\^\&\|\(\)]'
+
+  # According to the manual, `p4 jobspec' requires admin privileges.
+  # If this is true even of `p4 jobspec -o', we are a bit screwed.
+  _perforce_call_p4 jobspec jobspec -o 2>/dev/null | while read line; do
+    case $line in
+      ([[:blank:]]##)
+      type=
+      ;;
+
+      ((#b)([[:alpha:]]##):*)
+      type=${match[1]}
+      ;;
+
+      (*)
+      case $type in
+	# This stanza tells us all the allowed fields.
+	(Fields)
+	if [[ $line = [[:blank:]]##<->${~m2words}* ]]; then
+	  p4fields[${(L)match[1]}]=${match[2]}
+	fi
+	;;
+
+	# This stanza gives allowed values for the `select' types.
+	(Values)
+	if [[ $line = ${~m2words}* ]]; then
+	  p4values[${(L)match[1]}]=${match[2]}
+	fi
+	;;
+      esac
+
+      ;;
+    esac
+  done
+
+  IFS=$oldifs
+
+  if (( ! ${#p4fields} )); then
+    # We didn't get anything; add the defaults.
+    p4fields=(
+      date		date
+      description	text
+      job		word
+      status		select
+      user		word
+    )
+    p4values=(
+	    status	open/suspended/closed
+	)
+  fi
+
+  for key in ${(k)p4fields}; do
+    if [[ -n ${p4values[$key]} ]]; then
+      valuespec+=("${key}:${p4fields[$key]}:(${p4values[$key]//$slash/ })")
+    elif [[ $key = job ]]; then
+      # Nothing special for jobs; add our own completion.
+      valuespec+=("${key}:Perforce job:_perforce_jobs")
+    elif [[ $key = user ]]; then
+      # Nothing provided for user; add our own completion.
+      valuespec+=("${key}:user:_perforce_users")
+    else
+      valuespec+=("${key}:${p4fields[$key]}: ")
+    fi
+  done
+
+  _values 'Job specification parameter' $valuespec
+}
+
+(( $+functions[_perforce_labels] )) ||
+_perforce_labels() {
+    local lline file
+    local -a ll match mbegin mend
+
+    if [[ $argv[-1] = -tf ]]; then
+      argv=($argv[1,-2])
+      # Completing after `@'.
+      file=${${(Q)PREFIX}%%@*}
+      compset -P '*@(|\\\<|\\\>)(|=)'
+    fi
+
+    ll=(${${(f)"$(_perforce_call_p4 labels labels ${file:+\$file})"}//(#b)Label\ ([^[:blank:]]##)\ (*)/$match[1]:$match[2]})
+    _describe -t labels 'Perforce label' ll
+}
+
+
+(( $+functions[_perforce_revisions] )) ||
+_perforce_revisions() {
+  # Doesn't handle standard completion options; requires space
+  # in front if used as action in _arguments.
+
+  local rline match mbegin mend comma expl pfx
+  local -a rl
+
+  if [[ $1 = -tR ]]; then
+    # handle ranges
+    comma=(-S, -R _perforce_file_suffix)
+	shift
+  fi
+
+  # Beware of @foo,#bar; stupid but valid.
+  pfx=${${(Q)PREFIX}%%[\#@]*}
+  compset -P '*\#(|\\\<|\\\>)(|=)'
+
+  # Numerical revision numbers, possibly with text.
+  if [[ -z $PREFIX || $PREFIX = <-> ]]; then
+    # always allowed (same as none)
+    rl+=(0)
+    _perforce_call_p4 filelog 'filelog $pfx' 2>/dev/null | while read rline; do
+      if [[ $rline = (#b)'... #'(<->)' change '(*) ]]; then
+	rl+=("${match[1]}:${match[2]}")
+      fi
+    done
+  fi
+  # Non-numerical (special) revision names.
+  if [[ -z $PREFIX || $PREFIX != <-> ]]; then
+    rl+=('head:head revision' 'none:empty revision'
+      'have:current synced revision')
+  fi
+  _describe -t revisions 'revision' rl -V revisions-unsorted $comma
+}
+
+
+(( $+functions[_perforce_statuses] )) ||
+_perforce_statuses() {
+  # Perforce statuses are usually limited to a set of values
+  # given by the jobspec.
+  local jline match mbegin mend
+  local -a statuses
+
+  _perforce_call_p4 jobspec jobspec -o | while read jline; do
+    if [[ $jline = (#b)Status[[:blank:]]##(*/*) ]]; then
+      statuses=(${(s./.)match[1]})
+      break
+    fi
+  done
+  if (( !${#statuses} )); then
+    # Couldn't find anything from the jobspec; add defaults.
+    statuses=(closed open suspended)
+  fi
+  _describe -t statuses 'job status' statuses
+}
+
+
+(( $+functions[_perforce_submit_options] )) ||
+_perforce_submit_options() {
+  local -a soptions
+  soptions=('submitunchanged:submit all open files (default)'
+	    'revertunchanged:revert unchanged files'
+	    'leaveunchanged:move unchanged files to default changelist')
+  soptions+=(${^${soptions//:/+reopen:}}", leave submitted open")
+  _describe -t submit-options 'submit option' soptions
+}
+
+
+(( $+functions[_perforce_pids] )) ||
+_perforce_pids() {
+  local -a ul
+
+  ul=(${${${${(f)"$(_perforce_call_p4 monitor monitor show 2>/dev/null)"}# *}//:/\\:}/\ /:})
+  [[ $#ul -eq 1 && $ul[1] = '' ]] && ul=()
+  _describe -t id 'process ID' ul
+}
+
+
+(( $+functions[_perforce_users] )) ||
+_perforce_users() {
+  local -a ul
+
+  ul=(${${${(f)"$(_perforce_call_p4 users users)"}//:/\\:}/\ /:})
+  [[ $#ul -eq 1 && $ul[1] = '' ]] && ul=()
+  _describe -t users 'Perforce user' ul
+}
+
+
+(( $+functions[_perforce_users_or_groups] )) ||
+_perforce_users_or_groups() {
+    _alternative 'groups:Perforce group:_perforce_groups' \
+      'users:Perforce user:_perforce_users'
+}
+
+(( $+functions[_perforce_variables] )) ||
+_perforce_variables() {
+  local line match mbegin mend expl
+  local -a vars
+
+  _perforce_call_p4 help-environment help environment | while IFS= read line
+  do
+    if [[ $line = $'\t'(#b)([A-Z][A-Z0-9_]##)* ]]; then
+      vars+=($match[1])
+    fi
+  done
+
+  _wanted variable expl 'environment variable' compadd -S= -q $vars
+}
+
+#
+# Completions for p4 commands
+#
+
+(( $+functions[_perforce_cmd_add] )) ||
+_perforce_cmd_add() {
+  _arguments -s : \
+    '-c[add files to change]:change:_perforce_changes -tc' \
+    '-d[reopen files for add]' \
+    '-f[allow filenames with wild cards]' \
+    '-I[do not perform ignore checking]' \
+    '-n[preview add]' \
+    '-t[set file type]:file type:_perforce_filetypes' \
+    '*:file:_perforce_files -tu'
+}
+
+
+(( $+functions[_perforce_cmd_admin] )) ||
+_perforce_cmd_admin() {
+  if (( CURRENT == 2 )); then
+    local -a adcmds
+    adcmds=(
+      "checkpoint:checkpoint, save copy of journal file"
+      "dbstat:db tables"
+      "journal:save and truncate journal file"
+      "logstat:report sizes of log files"
+      "stop:stop the server")
+    _describe -t commands 'Perforce admin command' adcmds
+  else
+    case $words[2] in
+      (checkpoint|journal)
+      shift words
+      (( CURRENT-- ))
+      _arguments -s : \
+        '-z[gzip journal file]' \
+        '1::journal file prefix: '
+      ;;
+
+      (dbstat)
+      shift words
+      (( CURRENT -- ))
+      _arguments -s : \
+        '-s[show sizes]'
+    esac
+  fi
+}
+
+
+(( $+functions[_perforce_cmd_annotate] )) ||
+_perforce_cmd_annotate() {
+  # New in release 2002.2.
+  # -c was new in about 2003.2.
+  _arguments -s : \
+    '-a[include deleted files and lines]' \
+    '-c[output change numbers]' \
+    '-d-[select whitespace option]:whitespace option:((
+b\:ignore\ whitespace\ changes
+w\:ignore\ whitespace
+l\:ignore\ line\ endings))' \
+    '-i[follow branches]' \
+    '-I[follow all integrations]' \
+    '-q[suppress one-line header]' \
+    '-t[display binary files]' \
+    '-u[output user and date]' \
+    '*::file:_perforce_files -tR'
+}
+
+
+(( $+functions[_perforce_cmd_attribute] )) ||
+_perforce_cmd_attribute() {
+  # This is currently (2005.1) an unsupported command.
+  # See "p4 help undoc".
+  local limit
+  # If -f is present, search unopened files, else don't
+  [[ ${words[(I)-f]} -eq 0 ]] && limit=" -to"
+  _arguments -s : \
+    '-n[attribute name]:name: ' \
+    '-v[attribute value]:value: ' \
+    '-e[use hex value]' \
+    '-f[set attribute on submitted file]' \
+    '-p[propagate attribute when opened]' \
+    '(-v)-i[read attribute from standard input]' \
+    "*::file:_perforce_files$limit"
+}
+
+
+(( $+functions[_perforce_cmd_branch] )) ||
+_perforce_cmd_branch() {
+  _arguments -s : \
+    '(-o -S -P)-f[force operation]' \
+    '(-o -i -S -P)-d[delete branch]' \
+    '(-d -i -f)-o[write branch spec to standard output]' \
+    '(-d -o -S -P)-i[read branch spec from standard input]' \
+    '(-f -d -i)-S[expose internally generated mapping]:stream: ' \
+    '(-f -d -i)-P[treat stream as a child of parent stream]:parent stream: ' \
+    '(-i)*::branch name:_perforce_branches'
+}
+
+
+(( $+functions[_perforce_cmd_branches] )) ||
+_perforce_cmd_branches() {
+  _arguments -s : \
+    '(-E)-e[list branches that match pattern]:pattern: ' \
+    '(-e)-E[list branches that match case-insensitive pattern]:case-insensitive pattern: ' \
+    '-u[list branches owned by user]:user:_perforce_users' \
+    '-m[limit output to max branches]:max branches: ' \
+    '-t[display time and date]'
+}
+
+
+(( $+functions[_perforce_cmd_change] )) ||
+_perforce_cmd_change() {
+  local ctype
+  # Unless forcing or outputting, we don't
+  # complete committed changes since they can't be altered.
+  # If deleting and not forcing, the change must be on the current client.
+  if [[ ${words[(I)-*(f|o)*]} -eq 0 ]]; then
+    if [[ ${words[(I)-d]} -gt 0 ]]; then
+      ctype=" -tc"
+    else
+      ctype=" -tp"
+    fi
+  fi
+  _arguments -s : \
+    '-f[force update of change]' \
+    '-s[include fix status in job list]' \
+    '(-u -I -o -i -t -U)-d[delete change]' \
+    '(-u -d -o -i -t -U --serverid)-o[write change spec to the standard output]' \
+    '(-O -I -d -o -i -t -U --serverid)-i[read change spec from the standard input]' \
+    '(-s -d -o -i --serverid)-t[set type of change]:type:(public restricted)' \
+    '-U[set user of empty change]:user:_perforce_users' \
+    '-O[change is original number before submit]' \
+    '-I[change is number of Identity field]' \
+    '-u[force update of submitted change]' \
+    '(-s -u -O -I -o -i -t -U)--serverid[specify server]:server ID: ' \
+    "(-i)1::change:_perforce_changes$ctype"
+}
+
+
+(( $+functions[_perforce_cmd_changelist] )) ||
+_perforce_cmd_changelist() {
+  _perforce_cmd_change "$@"
+}
+
+
+(( $+functions[_perforce_cmd_changes] )) ||
+_perforce_cmd_changes() {
+  _arguments -s : \
+    '-i[include integrated changes]' \
+    '-t[display time and date]' \
+    '-l[display full change text]' \
+    '-L[display truncated change text]' \
+    '-f[view restricted changes]' \
+    '-c[display changes submitted by client]:client:_perforce_clients' \
+    '-e[display changes above this change]:change:_perforce_changes' \
+    '-m[limit to max changes]:max changes: ' \
+    '-s[limit output to changes with status]:status:(pending shelved submitted)' \
+    '-u[display changes owned by user]:user:_perforce_users' \
+    '*::file:_perforce_files -tR'
+}
+
+
+(( $+functions[_perforce_cmd_changelists] )) ||
+_perforce_cmd_changelists() {
+  _perforce_cmd_changes "$@"
+}
+
+
+(( $+functions[_perforce_cmd_clean] )) ||
+_perforce_cmd_clean() {
+  _arguments -s : \
+    '-e[clean modified files]' \
+    '-a[clean added files]' \
+    '-d[clean deleted files]' \
+    '-I[do not perform ignore checking]' \
+    '-l[output relative paths]' \
+    '-n[preview clean]' \
+    '*:file:_perforce_files -tu'
+}
+
+
+
+(( $+functions[_perforce_cmd_client] )) ||
+_perforce_cmd_client() {
+  _arguments -s : \
+    '-f[force update of client]' \
+    '-Fs[force delete with shelved changes]' \
+    '(-t -o -S -c -s -i)-d[delete client]' \
+    '(-f -d -Fs -s -i --serverid)-o[write client spec to standard output]' \
+    '(-t -d -Fs -i --serverid)-S[create new client dedicated to stream]:stream: ' \
+    '(-d -Fs -o -c -i --serverid)-s[switch client view without opening editor]' \
+    '(-t -d -Fs -o -S -c -s --serverid)-i[read client spec from standard input]' \
+    '-t[use client as template]:client:_perforce_clients' \
+    '(-f -t -d -Fs -s -i --serverid)-c[yield client spec for stream at moment change was recorded]:change:_perforce_changes -ts' \
+    '--serverid[specify server]:server ID: ' \
+    '1::file:_perforce_clients'
+}
+
+
+(( $+functions[_perforce_cmd_clients] )) ||
+_perforce_cmd_clients() {
+  _arguments -s : \
+    '-t[display time and date]' \
+    '-u[list clients owned by user]:user:_perforce_users' \
+    '(-E)-e[list clients that match pattern]:pattern: ' \
+    '(-e)-E[list clients that match case-insensitive pattern]:case-insensitive pattern: ' \
+    '-m[limit to max clients]:max clients: ' \
+    '-S[limit output to clients dedicated to stream]:stream: ' \
+    '-U[list unloaded clients]' \
+    '(-s)-a[display all clients]' \
+    '(-a)-s[display clients dedicated to server]:server ID: '
+}
+
+
+(( $+functions[_perforce_cmd_copy] )) ||
+_perforce_cmd_copy() {
+  local -a fileargs
+  if [[ ${words[(I)-b*]} -ne 0 ]]; then
+    if [[ ${words[(I)-*s*]} -eq 0 ]]; then
+      # with -b and no -s, all files are to-files (but -s may come later)
+      fileargs=('*::to file:_perforce_files -tR')
+    else
+      # with -b and -s we have one from-file and any number of to-files
+      fileargs=('*::to file:_perforce_files')
+    fi
+  elif [[ ${words[(I)-(S|P)]} -ne 0 ]]; then
+      fileargs=('*::file:_perforce_files -tR')
+  else
+    # with no -b we have one from-file and one to-file
+    fileargs=('1::from file:_perforce_files -tR'
+              '2::to file:_perforce_files')
+  fi
+  _arguments -s : \
+    '-b[use branch view'\''s source and target]:branch:_perforce_branches' \
+    '-s[select source file, use branch view as target]:source file:_perforce_files -tR' \
+    '-r[reverse direction of copy]' \
+    '-c[open files in change]:change:_perforce_changes -tc' \
+    '-f[force creation of extra revisions]' \
+    '-n[preview copy]' \
+    '-m[limit copy to max files]:max files: ' \
+    '-q[suppress normal output messages]' \
+    '-v[do not modify client files]' \
+    '(-b -s)-S[copy from stream to its parent]:stream: ' \
+    '(-b -s)-P[generate branch view using a parent stream]:parent stream: ' \
+    '(-b -s)-F[copy against stream'\''s expected flow]' \
+    $fileargs
+}
+
+(( $+functions[_perforce_cmd_counter] )) ||
+_perforce_cmd_counter() {
+  _arguments -s : \
+    '-d[delete counter]' \
+    '-f[set or delete internal counter]' \
+    '-i[increment counter by 1]' \
+    '-m[allow multiple operations]' \
+    '1:counter:_perforce_counters' \
+    '(-d -i)2::numeric value:_perforce_counter_values'
+}
+
+
+(( $+functions[_perforce_cmd_counters] )) ||
+_perforce_cmd_counters() {
+  _arguments -s : \
+    '-e[list counters that match pattern]:pattern: ' \
+    '-m[limit to max counters]:max counters: '
+}
+
+
+(( $+functions[_perforce_cmd_cstat] )) ||
+_perforce_cmd_cstat() {
+  _arguments -s : \
+  '*::file:_perforce_files'
+}
+
+
+(( $+functions[_perforce_cmd_dbschema] )) ||
+_perforce_cmd_dbschema() {
+  if [[ $PREFIX = *:* ]]; then
+    _message 'table version'
+  else
+    _perforce_dbtables
+  fi
+}
+
+
+(( $+functions[_perforce_cmd_dbstat] )) ||
+_perforce_cmd_dbstat() {
+  _arguments -s : \
+  '(-s)-h[histogram of leaf pages in DB table]' \
+  '(-s)-a[all tables]' \
+  '(-h -a)-s[report sizes of tables]' \
+  '(-s -a)*::DB table:_perforce_dbtable'
+}
+
+
+(( $+functions[_perforce_cmd_delete] )) ||
+_perforce_cmd_delete() {
+  _arguments -s : \
+    '-c[delete files for change]:change:_perforce_changes -tc' \
+    '-n[preview delete]' \
+    '-k[perform delete on server]' \
+    '-v[delete unsynced files]' \
+    '*::file:_perforce_files'
+}
+
+
+(( $+functions[_perforce_cmd_depot] )) ||
+_perforce_cmd_depot() {
+  _arguments -s : \
+    '(-t -o -i)-d[delete depot]' \
+    '(-t -o -i)-f[force delete]' \
+    '(-d -o -i)-t[insert value into type]:type: ' \
+    '(-t -d -i -f)-o[write depot spec to standard output]' \
+    '(-t -d -o -f)-i[read depot spec from standard input]' \
+    '(-i)*::depot name:_perforce_depots'
+}
+
+
+(( $+functions[_perforce_cmd_depots] )) ||
+_perforce_cmd_depots() {
+  # No arguments
+  _arguments -s :
+}
+
+
+(( $+functions[_perforce_cmd_describe] )) ||
+_perforce_cmd_describe() {
+  _arguments -s : \
+    '-d-[diff options]:diff options:((
+n\:RCS
+c\:context
+s\:summary
+u\:unified
+b\:ignore\ whitespace\ changes
+w\:ignore\ whitespace
+l\:ignore\ line\ endings))' \
+    '-s[omit diffs]' \
+    '-S[list shelved files]' \
+    '-f[force display of restricted change]' \
+    '-O[change is original number before submit]' \
+    '-I[change is number of Identity field]' \
+    '-m[limit output to max files]:max files: ' \
+    '*::change:_perforce_changes'
+}
+
+
+(( $+functions[_perforce_cmd_diff] )) ||
+_perforce_cmd_diff() {
+  local limit
+  [[ ${words[(I)-(f|sd|se|sl)]} -eq 0 ]] && limit=" -to"
+  _arguments -s : \
+    '-d-[diff options]:diff options:((
+n\:RCS
+c\:context
+s\:summary
+u\:unified
+b\:ignore\ whitespace\ changes
+w\:ignore\ whitespace
+l\:ignore\ line\ endings))' \
+    '-f[diff every file]' \
+    '-m[limit output to max files]:max files: ' \
+    '-Od[limit output to files that differ]' \
+    '-s-[filter options]:filter options:((
+a\:list\ opened\ files\ that\ differ\ from\ depot
+b\:list\ modified\ integrated\ files
+d\:list\ unopened\ missing\ files
+e\:list\ unopened\ files\ that\ differ\ from\ depot
+l\:list\ all\ unopened\ files\ with\ status
+r\:list\ opened\ files\ that\ do\ not\ differ\ from\ depot))' \
+    '-t[diff binary files]' \
+    "*::file:_perforce_files$limit"
+}
+
+
+(( $+functions[_perforce_cmd_diff2] )) ||
+_perforce_cmd_diff2() {
+  _arguments -s : \
+    '-b[use branch view'\''s source and target]:branch:_perforce_branches' \
+    '-d-[diff options]:diff options:((
+n\:RCS
+c\:context
+s\:summary
+u\:unified
+b\:ignore\ whitespace\ changes
+w\:ignore\ whitespace
+l\:ignore\ line\ endings))' \
+    '-Od[limit output to files that differ]' \
+    '-q[omit identical files]' \
+    '-t[diff binary files]' \
+    '-u[use GNU diff -u format]' \
+    '(-b)-S[use generated branch view from stream]:stream: ' \
+    '(-b)-P[use generated branch view from parent stream]:parent stream: ' \
+    '1::from file:_perforce_files' \
+    '2::to file:_perforce_files'
+}
+
+
+(( $+functions[_perforce_cmd_dirs] )) ||
+_perforce_cmd_dirs() {
+  _arguments -s : \
+    '-C[list only directories in current client]' \
+    '-D[include directories with only deleted files]' \
+    '-H[list directories with synced files]' \
+    '-S[limit output to depot directories mapped to stream'\''s client]:stream: ' \
+    '*::directory:_perforce_files -td'
+}
+
+
+(( $+functions[_perforce_cmd_edit] )) ||
+_perforce_cmd_edit() {
+  _arguments -s : \
+    '-c[edit files for change]:change:_perforce_changes -tc' \
+    '-t[specify filetype]:filetype:_perforce_filetypes' \
+    '-n[preview edit]' \
+    '-k[edit files on server]' \
+    '*::file:_perforce_files'
+}
+
+
+(( $+functions[_perforce_cmd_export] )) ||
+_perforce_cmd_export() {
+  _arguments -s : \
+    '(-j)-c[specify checkpoint number (/ position)]:checkpoint number: ' \
+    '(-c)-j[specify journal number (/ position)]:journal number: ' \
+    '(-j)-f[reformat non-textual data types]' \
+    '(-j)-l[specify number of lines]:number of lines: ' \
+    '(-j)-F[specify filter]:filter pattern: ' \
+    '(-c)-r[raw format]' \
+    '-J[specify file prefix]:file prefix: ' \
+    '-T[space-separated list of tables not to export]'
+}
+
+
+(( $+functions[_perforce_cmd_filelog] )) ||
+_perforce_cmd_filelog() {
+  _arguments -s : \
+    '-c[display files at change]:change:_perforce_changes -ts' \
+    '-i[include inherited file history]' \
+    '-h[display file content history]' \
+    '-t[display time and date]' \
+    '-l[display full change text]' \
+    '-L[display truncated change text]' \
+    '-m[display max number of revisions]:max revisions: ' \
+    '-p[do not follow content of promoted task streams]' \
+    '-s[display shortened form]' \
+    '*::file:_perforce_files'
+}
+
+
+(( $+functions[_perforce_cmd_files] )) ||
+_perforce_cmd_files() {
+  _arguments -s : \
+    '-a[display all revisions in range]' \
+    '-A[display files in archive depots]' \
+    '-e[do not display deleted, purged or archived files]' \
+    '-m[limit output to max files]:max files: ' \
+    '-U[display files in unload depot]' \
+    '*::file:_perforce_files -tR'
+}
+
+
+(( $+functions[_perforce_cmd_fix] )) ||
+_perforce_cmd_fix() {
+  local job
+  local -a jobs
+
+  if [[ -n $words[(R)-d] && -n $words[(R)-c] && -n $words[$words[(i)-c]+1] ]]
+  then
+    # Deleting a fix from a change.  We can find out which fixes
+    # are present.
+    local -a jobs
+    jobs=(${${(f)"$(_perforce_call_p4 fixes fixes -c $words[$words[(i)-c]+1])"}%" fixed by change "*})
+    if (( ${#jobs} )); then
+      jobs=("Job="${^jobs})
+      job=" -e \"${(j.|.)jobs}\""
+    fi
+  fi
+
+  _arguments -s : \
+    '-d[delete fix]' \
+    '-s[set status]:status:_perforce_statuses' \
+    '-c[display jobs fixed by change]:change:_perforce_changes -ts' \
+    "*::job:_perforce_jobs$job"
+}
+
+
+(( $+functions[_perforce_cmd_fixes] )) ||
+_perforce_cmd_fixes() {
+  _arguments -s : \
+    '-j[list fixes for job]:job:_perforce_jobs' \
+    '-c[list fixes for change]:change:_perforce_changes -tR' \
+    '-i[include integrated changes]' \
+    '-m[limit output to max fixes]:max fixes: ' \
+    '*::fixed file:_perforce_files -tR'
+}
+
+
+(( $+functions[_perforce_cmd_flush] )) ||
+_perforce_cmd_flush() {
+  _arguments -s : \
+    '-f[force resynchronisation]' \
+    '-L[use full depot syntax, including revision number]' \
+    '-n[preview flush]' \
+    '-N[preview flush with summary]' \
+    '-q[suppress normal output messages]' \
+    '-r[reopen moved files in new location]' \
+    '-m[limit sync to max files]:max files: ' \
+    '*::file:_perforce_files -tR'
+}
+
+
+(( $+functions[_perforce_cmd_fstat] )) ||
+_perforce_cmd_fstat() {
+  local Oattr Aattr
+  if [[ ${_perforce_cmd_list[(r)attribute:*]} != '' ]]; then
+    # Unsupported feature, try not to show if not present
+    Oattr=' a\:output\ attributes d\:output\ digest e\:output\ values\ in\ hex'
+    Aattr='-A[restrict attributes by pattern]:attribute pattern: '
+  fi
+  _arguments -s : \
+    $Aattr \
+    '-F[list only files satisfying filter]:filter:_perforce_fstat_fields -tv' \
+    '-L[use full depot syntax, including revision number]' \
+    '-T[return specified fields]:output field:_perforce_fstat_fields' \
+    '-m[limits output to max files]:max files: ' \
+    '-r[sort output in reverse order]' \
+    '-c[display files modified by or after change]:change:_perforce_changes -ts' \
+    '-e[list files modified by change]:change:_perforce_changes -ts' \
+    "-O-[output options]:output options:((
+f\:all\ revisions
+l\:fileSize\ and\ digest
+p\:local\ file\ path
+r\:pending\ integration
+s\:exclude\ local\ path
+$Oattr))" \
+    '-R-[restrict files]:file restrictions:((
+c\:mapped\ in\ client
+h\:synced\ to\ client
+n\:opened\ not\ at\ head\ revision
+o\:opened
+r\:resolved
+s\:shelved
+u\:unresolved))' \
+    '-S-[sort order]:sort by:((
+t\:filetype
+d\:date
+r\:head\ revision
+h\:have\ revision
+s\:filesize))' \
+    '-U[display info about unload files in unload depot]' \
+    '-C[limit output to mapped files (-Rc)]' \
+    '-H[limit output to synced files (-Rh)]' \
+    '-W[limit output to opened files (-Ro)]' \
+    '-l[output fileSize and digest (-Ol)]' \
+    '-P[output local file paths (-Op)]' \
+    '-s[exclude local file paths (-Os)]' \
+    '*::file:_perforce_files'
+}
+
+
+(( $+functions[_perforce_cmd_grep] )) ||
+_perforce_cmd_grep() {
+  _arguments -s : \
+    '-e[search pattern]:pattern: ' \
+    '-a[search all revisions]' \
+    '-i[case insensitive match]' \
+    '-n[display matching line number]' \
+    '-v[display files with non-matching lines]' \
+    '-F[interpret pattern as fixed string]' \
+    '-G[interpret pattern as regexp]' \
+    '-L[display non-matching files]' \
+    '-l[display matching files]' \
+    '-s[suppress errors on long lines]' \
+    '-t[search binary files]' \
+    '-A[display N lines of trailing context]:lines: ' \
+    '-B[display N lines of leading context]:lines: ' \
+    '-C[display N lines of output context]:lines: ' \
+    '*::file:_perforce_files -tR'
+}
+
+
+(( $+functions[_perforce_cmd_group] )) ||
+_perforce_cmd_group() {
+  _arguments -s : \
+    '-d[delete group]' \
+    '-o[write group spec to standard output]' \
+    '-i[read group spec from standard input]' \
+    '(-o -A)-a[allow owner to modify group]' \
+    '(-a -d)-A[allow admin user to add new group]' \
+    '1::perforce group:_perforce_groups'
+}
+
+
+(( $+functions[_perforce_cmd_groups] )) ||
+_perforce_cmd_groups() {
+  _arguments -s : \
+    '-i[display indirect membership by subgroups]' \
+    '-m[limit output to max groups]:max groups: ' \
+    '-v[display group data]' \
+    '(-u -o)-g[display group with name]:group:_perforce_groups' \
+    '(-g -o)-u[display all groups for user]:user:_perforce_users' \
+    '(-g -u)-o[display all groups for owner]:owner:_perforce_users' \
+    '(-g -u -o)1::user or group name:_perforce_users_or_groups'
+}
+
+
+(( $+functions[_perforce_cmd_have] )) ||
+_perforce_cmd_have() {
+  _perforce_files
+}
+
+
+(( $+functions[_perforce_cmd_help] )) ||
+_perforce_cmd_help() {
+  local hline
+  if (( ! ${#_perforce_help_list} )); then
+    (( ${+_perforce_help_list} )) || typeset -ga _perforce_help_list
+    # All commands have help.
+    (( ${#_perforce_cmd_list} )) || _perforce_gen_cmd_list
+    _perforce_help_list=($_perforce_cmd_list)
+    _perforce_call_p4 help help | while read -A hline; do
+      if [[ $hline[1] = p4 && $hline[2] = help ]]; then
+        _perforce_help_list+=("$hline[3]:${hline[4,-1]}")
+      fi
+    done
+    if [[ -z ${_perforce_help_list[(r)undoc:*]} ]]; then
+      _perforce_help_list+=("undoc:help for otherwise undocumented features")
+    fi
+  fi
+  _describe -t help-options 'Perforce help option' _perforce_help_list
+}
+
+
+(( $+functions[_perforce_cmd_info] )) ||
+_perforce_cmd_info() {
+  _arguments -s : \
+    '-s[short output]'
+}
+
+
+(( $+functions[_perforce_cmd_integrate] )) ||
+_perforce_cmd_integrate() {
+  local range
+  # If -s is present, the first normal argument can't have revRange.
+  [[ ${words[(I)-s]} -eq 0 ]] && range=" -tR"
+  _arguments -s : \
+    '-b[use branch view'\''s source and target]:branch:_perforce_branches' \
+    '(-r)-s[select source file, use branch view as target]:source file:_perforce_files -tR' \
+    '-f[force integration]' \
+    '-O-[output more information]:output options:((
+b\:show\ base\ revision\ for\ merge
+r\:show\ scheduled\ resolves))' \
+    '-R-[specify resolve schedule]:schedule:((
+b\:branch\ resolves
+d\:delete\ resolves
+s\:skip\ cherry-picked\ revisions\ already\ integrated))' \
+    '-Di[retain revisions of deleted files]' \
+    '-h[leave files at revision currently synced]' \
+    '-m[limit integration to max files]:max files: ' \
+    '-n[preview integration]' \
+    '-q[suppress normal output messages]' \
+    '-c[open in change]:change:_perforce_changes -tc' \
+    '-v[do not modify client files]' \
+    '-r[reverse direction of mapping]' \
+    '-S[use generated branch view from stream]:stream: ' \
+    '-P[use generated branch view from parent stream]:parent stream: ' \
+    "1:file:_perforce_files$range" \
+    '*::file:_perforce_files'
+}
+
+
+(( $+functions[_perforce_cmd_integ] )) ||
+_perforce_cmd_integ() {
+  _perforce_cmd_integrate "$@"
+}
+
+(( $+functions[_perforce_cmd_integrated] )) ||
+_perforce_cmd_integrated() {
+  _arguments -s : \
+    '-r[reverse mapping in branch view]' \
+    '-b[list files integrated from branch view]:branch:_perforce_branches' \
+    '*::file:_perforce_files -ti'
+}
+
+
+# interchanges is an unsupported but useful command that reports
+# changes that haven't been integrated between source and target;
+# see "p4 help undoc".
+(( $+functions[_perforce_cmd_interchanges] )) ||
+_perforce_cmd_interchanges() {
+  local -a fileargs
+  if [[ ${words[(I)-b*]} -ne 0 ]]; then
+    if [[ ${words[(I)-*s*]} -eq 0 ]]; then
+      # with -b and no -s, all files are to-files (but -s may come later)
+      fileargs=('*::to file:_perforce_files -tR')
+    else
+      # with -b and -s we have one from-file and any number of to-files
+      fileargs=('*::to file:_perforce_files')
+    fi
+  elif [[ ${words[(I)-(S|P)]} -ne 0 ]]; then
+      fileargs=('*::file:_perforce_files -tR')
+  else
+    # with no -b we have one from-file and one to-file
+    fileargs=('1::from file:_perforce_files -tR'
+              '2::to file:_perforce_files')
+  fi
+  _arguments -s : \
+    '-f[list files that require integration]' \
+    '-l[display full change text]' \
+    '-t[display time and date]' \
+    '(-S -P)-b[use branch view'\''s source and target]:branch:_perforce_branches' \
+    '(-S -P)-s[select source file, use branch view as target]:source file:_perforce_files -tR' \
+    '-u[limit files submitted by user]:user:_perforce_users' \
+    '-r[reverse mapping direction]' \
+    '-S[use generated branch view from stream]:stream: ' \
+    '-P[use generated branch view from parent stream]:parent stream: ' \
+    '-F[ignore stream'\''s expected flow]' \
+    $fileargs
+}
+
+
+(( $+functions[_perforce_cmd_istat] )) ||
+_perforce_cmd_istat() {
+  _arguments -s : \
+    '-a[show status of integration in both directions]' \
+    '-c[assume cache is stale]' \
+    '-r[show status of integration from parent]' \
+    '-s[show cached state without refreshing stale data]' \
+    '1::stream: '
+}
+
+
+(( $+functions[_perforce_cmd_job] )) ||
+_perforce_cmd_job() {
+  _arguments -s : \
+    '(-d -o -i)-f[force setting of readonly fields]' \
+    '(-f -o -i)-d[delete job]' \
+    '(-f -d -i)-o[write job spec to standard output]' \
+    '(-d -o)-i[read job spec from standard input]' \
+    '(-i)1::job:_perforce_jobs'
+}
+
+
+(( $+functions[_perforce_cmd_jobs] )) ||
+_perforce_cmd_jobs() {
+  _arguments -s : \
+    '-e[list jobs matching parameter]::_perforce_jobviews' \
+    '-i[include integrated changes]' \
+    '-l[display full job text]' \
+    '-m[limit output to max jobs]:max jobs: ' \
+    '-r[sort in reverse order]' \
+    '(-e -i -l -m)-R[rebuild jobs table]' \
+    '*::file:_perforce_files -tR'
+}
+
+
+(( $+functions[_perforce_cmd_jobspec] )) ||
+_perforce_cmd_jobspec() {
+  _arguments -s : \
+    '-i[read form from stdin]' \
+    '-o[write form from to stdout]'
+}
+
+
+(( $+functions[_perforce_cmd_key] )) ||
+_perforce_cmd_key() {
+  local -a keyargs
+  if [[ ${words[(I)-(d|i)]} -ne 0 ]]; then
+    keyargs=('1::name: ')
+  elif [[ ${words[(I)-m]} -ne 0 ]]; then
+    keyargs=('*::name value pairs: ')
+  else
+    keyargs=('1::name: ' '2::value: ')
+  fi
+  _arguments -s : \
+    '(-i -m)-d[delete key]' \
+    '(-d -m)-i[increment key value by 1]' \
+    '(-d -i)-m[allow multiple operations]' \
+    $keyargs
+}
+
+
+(( $+functions[_perforce_cmd_keys] )) ||
+_perforce_cmd_keys() {
+  _arguments -s : \
+    '-e[list keys that match pattern]:pattern: ' \
+    '-m[limit output to max keys]:max keys: '
+}
+
+
+(( $+functions[_perforce_cmd_label] )) ||
+_perforce_cmd_label() {
+  _arguments -s : \
+    '-f[force operation]' \
+    '-t[copy view and options from label]:label:_perforce_labels' \
+    '(-o -i -t)-d[delete label]' \
+    '(-d -f -i -g)-o[write label spec to standard output]' \
+    '(-o -d -t)-i[read label spec from standard input]' \
+    '-g[update global label]' \
+    '*::label:_perforce_labels'
+}
+
+
+(( $+functions[_perforce_cmd_labels] )) ||
+_perforce_cmd_labels() {
+  _arguments -s : \
+    '-t[display time and date]' \
+    '-u[list labels owned by user]:user:_perforce_users' \
+    '(-E)-e[list labels that match pattern]:pattern: ' \
+    '(-e)-E[list labels that match case-insensitive pattern]:case-insensitive pattern: ' \
+    '-m[limit output to max labels]:max labels: ' \
+    '(-s)-a[display all labels]' \
+    '(-a)-s[display labels from server]:server ID: ' \
+    '-U[list unloaded labels]' \
+    '1::file or revisions which must contain label:_perforce_files -tR'
+}
+
+
+(( $+functions[_perforce_cmd_labelsync] )) ||
+_perforce_cmd_labelsync() {
+  _arguments -s : \
+    '-l[specify label]:label:_perforce_labels' \
+    '-a[add files to label]' \
+    '-d[delete files from label]' \
+    '-n[preview labelsync]' \
+    '-q[suppress normal output messages]' \
+    '-g[update global label]' \
+    '*::file:_perforce_files -tR'
+}
+
+
+(( $+functions[_perforce_cmd_list] )) ||
+_perforce_cmd_list() {
+  _arguments -s : \
+    '-l[use temporary list name]:list name: ' \
+    '(-C)-d[delete list]' \
+    '-C[limit files to client]' \
+    '-M[forward list to master server]' \
+    '*::file:_perforce_files -tR'
+}
+
+
+(( $+functions[_perforce_cmd_license] )) ||
+_perforce_cmd_license() {
+  _arguments -s : \
+    '-o[write license to stdout]' \
+    '-i[read license from stdin]'
+}
+
+
+(( $+functions[_perforce_cmd_lock] )) ||
+_perforce_cmd_lock() {
+  _arguments -s : \
+    '-c[lock files for change]:change:_perforce_changes -tc' \
+    '-g[lock files globally]' \
+    '*::file:_perforce_files -to'
+}
+
+
+(( $+functions[_perforce_cmd_lockstat] )) ||
+_perforce_cmd_lockstat() {
+  _message 'no arguments'
+}
+
+
+(( $+functions[_perforce_cmd_logger] )) ||
+_perforce_cmd_logger() {
+  _arguments -s : \
+    '-c[list events after sequence]:sequence: ' \
+    '-t[list events after counter]:counter:_perforce_counters'
+}
+
+
+
+(( $+functions[_perforce_cmd_login] )) ||
+_perforce_cmd_login() {
+  _arguments -s : \
+    '-a[issue ticket on all host machines]' \
+    '-h[issue ticket on host]:host: ' \
+    '-p[display ticket, do not store]' \
+    '-r[forward login to server]:remote spec: ' \
+    '(-a -p -h)-s[display status of current ticket]' \
+    '(-s)1::user:_perforce_users'
+}
+
+
+(( $+functions[_perforce_cmd_logout] )) ||
+_perforce_cmd_logout() {
+  _arguments -s : \
+    '-a[invalidate ticket on server]'
+}
+
+
+(( $+functions[_perforce_cmd_logstat] )) ||
+_perforce_cmd_logstat() {
+  _message 'no arguments'
+}
+
+
+(( $+functions[_perforce_cmd_logtail] )) ||
+_perforce_cmd_logtail() {
+  _arguments -s : \
+    '-b[specify block size]:block size [8192]' \
+    '-s[specify start offset]:offset: ' \
+    '-m[specify max blocks]:max blocks: '
+}
+
+
+(( $+functions[_perforce_cmd_merge] )) ||
+_perforce_cmd_merge() {
+  local -a fileargs
+  if [[ ${words[(I)--from]} -ne 0 ]]; then
+    fileargs=('1:to file:_perforce_files -tR')
+  else
+    fileargs=('1:from file:_perforce_files -tR'
+              '2:to file:_perforce_files')
+  fi
+  _arguments -s : \
+    '-F[merge against stream'\''s expected flow]' \
+    '-Ob[show base revision for merge]' \
+    '-q[suppress normal output messages]' \
+    '--from[merge from stream other than the parent stream]:stream: ' \
+    '-m[limit merge to max files]:max files: ' \
+    '-n[preview merge]' \
+    '-c[open in change]:change:_perforce_changes -tc' \
+    $fileargs
+}
+
+
+(( $+functions[_perforce_cmd_monitor] )) ||
+_perforce_cmd_monitor() {
+  if (( CURRENT > 2 )); then
+    case $words[2] in
+      (show)
+      shift words
+      (( CURRENT-- ))
+      _arguments -s : \
+        '-a[show command arguments]' \
+        '-e[show command environment]' \
+        '-l[long output format]'
+      ;;
+
+      (terminate)
+      _perforce_pids
+      ;;
+
+      (clear)
+      _alternative 'pids:pid:_perforce_pids' 'all:all processes:(all)'
+      ;;
+
+      (*)
+      _message "no such monitor command: $words[1]"
+      ;;
+    esac
+  else
+    local expl
+    _wanted monitor-command expl 'monitor command' compadd show terminate clear
+  fi
+}
+
+
+(( $+functions[_perforce_cmd_move] )) ||
+_perforce_cmd_move() {
+  _arguments -s : \
+    '-c[reopen in change]:change:_perforce_changes -tc' \
+    '-f[force move]' \
+    '-t[specify new file type]:filetype:_perforce_filetypes' \
+    '-n[preview move]' \
+    '-k[perform move on server]' \
+    '1::from file:_perforce_files -to' \
+    '2::to file:_perforce_files -tu'
+}
+
+
+(( $+functions[_perforce_cmd_obliterate] )) ||
+_perforce_cmd_obliterate() {
+    if [[ ${words[(I)-y]} -gt 0 ]]; then
+      _message \
+": don't complete after -y; run obliterate without, then add the -y"
+    else
+      _arguments -s : \
+        '-y[actually perform the operation]' \
+        '*::file:_perforce_files -tR'
+    fi
+}
+
+
+(( $+functions[_perforce_cmd_opened] )) ||
+_perforce_cmd_opened() {
+  # You might think you could check for files opened on another
+  # client, and hence the -c completion should have the argument
+  # -tp, but currently Perforce doesn't allow that, so -tc is correct.
+  # This is true even if -a is also given.
+  _arguments -s : \
+    '-a[list files for all clients]' \
+    '-c[list files opened in change]:change:_perforce_changes -tc' \
+    '-C[list files open in client]:client:_perforce_clients' \
+    '-u[list files opened by user]:user name:_perforce_users' \
+    '-m[limit output to max files]:max files: ' \
+    '-s[short output]' \
+    '-x[list exclusive files]' \
+    '-g[list files opened on Commit Server]' \
+    '*::file:_perforce_files -to'
+}
+
+
+(( $+functions[_perforce_cmd_passwd] )) ||
+_perforce_cmd_passwd() {
+  _arguments -s : \
+    '-O[explicit old password]:old password: ' \
+    '-P[explicit new password]:new password: ' \
+    '1::user name:_perforce_users'
+}
+
+
+(( $+functions[_perforce_cmd_ping] )) ||
+_perforce_cmd_ping() {
+  _arguments -s : \
+    '-c[specify count of messages]:count of messages: ' \
+    '-t[specify total time of test]:time (seconds)' \
+    '-i[specify iterations for test]:number of iterations: ' \
+    '-f[transmit continuously without waiting for responses]' \
+    '-p[specify pause between tests]:pause (seconds)' \
+    '-s[specify send size]:send size (octets)' \
+    '-r[specify receive size]:receive size (octets)'
+}
+
+
+(( $+functions[_perforce_cmd_populate] )) ||
+_perforce_cmd_populate() {
+  local -a fileargs
+  if [[ ${words[(I)-b*]} -ne 0 ]]; then
+    if [[ ${words[(I)-*s*]} -eq 0 ]]; then
+      # with -b and no -s, all files are to-files (but -s may come later)
+      fileargs=('*::to file:_perforce_files -tR')
+    else
+      # with -b and -s we have one from-file and any number of to-files
+      fileargs=('*::to file:_perforce_files')
+    fi
+  elif [[ ${words[(I)-(S|P)]} -ne 0 ]]; then
+      fileargs=('*::file:_perforce_files -tR')
+  else
+    # with no -b we have one from-file and one to-file
+    fileargs=('1::from file:_perforce_files -tR'
+              '2::to file:_perforce_files')
+  fi
+  _arguments -s : \
+    '(-S -P)-b[use branch view'\''s source and target]:branch:_perforce_branches' \
+    '(-S -P)-s[select source file, use branch view as target]:source file:_perforce_files -tR' \
+    '-r[reverse mapping direction]' \
+    '-S[use generated branch view from stream]:stream: ' \
+    '-P[use generated branch view from parent stream]:parent stream: ' \
+    '-d[description for submitted change]:description: ' \
+    '-f[force deleted files to branch into target]' \
+    '-n[preview populate]' \
+    '-o[display files created by populate]' \
+    '-m[limit max actions]:max actions: ' \
+    $fileargs
+}
+
+
+(( $+functions[_perforce_cmd_print] )) ||
+_perforce_cmd_print() {
+  _arguments -s : \
+    '-a[print all revisions in range]' \
+    '-A[print files in archive depots]' \
+    '-k[suppress keyword expansion]' \
+    '-o[redirect output to file]:file:_files' \
+    '-q[suppress header]' \
+    '-m[limit max files]:max files: ' \
+    '-U[print files in unload depot]:unload file:_perforce_files' \
+    '*::file:_perforce_files -tR'
+}
+
+
+(( $+functions[_perforce_cmd_protect] )) ||
+_perforce_cmd_protect() {
+  _arguments -s : \
+    '-o[write protection table to standard output]' \
+    '-i[read protection table from standard input]'
+}
+
+
+(( $+functions[_perforce_cmd_protects] )) ||
+_perforce_cmd_protects() {
+  _arguments -s : \
+    '(-g -u)-a[display protection lines for all users]' \
+    '(-a -u)-g[display protection lines for group]:perforce group:_perforce_groups' \
+    '(-a -g)-u[display protection lines for user]:perforce user:_perforce_users' \
+    '-h[display protection lines for host]:host:_perforce_hosts' \
+    '-m[report single word summary]' \
+    '*:file:_perforce_files'
+}
+
+
+(( $+functions[_perforce_cmd_prune] )) ||
+_perforce_cmd_prune() {
+  _arguments -s : \
+    '-y[execute prune]' \
+    '-S[stream to prune]:stream: '
+}
+
+
+(( $+functions[_perforce_cmd_pull] )) ||
+_perforce_cmd_pull() {
+  _arguments -s : \
+    '-i[repeat as specified]:seconds between repeats: ' \
+    '-u[retrieve file content rather than journal]' \
+    '-p[display information about pending transfers]' \
+    '-J[specify prefix for journal file]:journal file prefix: '
+}
+
+
+(( $+functions[_perforce_cmd_reconcile] )) ||
+_perforce_cmd_reconcile() {
+  _arguments -s : \
+    '-n[preview reconcile]' \
+    '-c[open files for change]:change:_perforce_changes -tc' \
+    '-e[open modified files for edit]' \
+    '-a[open new files for add]' \
+    '-d[open removed files for delete]' \
+    '-f[reformat filenames with wildcard characters]' \
+    '-I[do not perform ignore checking]' \
+    '-l[output relative paths]' \
+    '-m[check file modification times]' \
+    '-w[force client files to be updated to match depot]' \
+    '-k[reconcile have list with client]' \
+    '*:file:_perforce_files -tu'
+}
+
+
+(( $+functions[_perforce_cmd_rec] )) ||
+_perforce_cmd_rec() {
+  _perforce_cmd_reconcile "$@"
+}
+
+
+(( $+functions[_perforce_cmd_rename] )) ||
+_perforce_cmd_rename() {
+  _perforce_cmd_move "$@"
+}
+
+
+(( $+functions[_perforce_cmd_reopen] )) ||
+_perforce_cmd_reopen() {
+  # Assume user doesn't want to reopen to same changelist.
+  integer pos=${words[(I)-c]}
+  if (( pos )); then
+    _perforce_exclude_change=${words[pos+1]}
+  elif [[ -n ${words[(R)-c?*]} ]]; then
+    _perforce_exclude_change=${${words[(R)-c?*]}##-c}
+  fi
+
+  _arguments -s : \
+    '-c[reopen files for change]:change:_perforce_changes -tc' \
+    '-t[specify new file type]:filetype:_perforce_filetypes' \
+    '*::file:_perforce_files -to'
+}
+
+
+(( $+functions[_perforce_cmd_replicate] )) ||
+_perforce_cmd_replicate() {
+  _arguments -s : \
+    '-i[specify interval in seconds]:interval: ' \
+    '-j[specify journal number (/ position)]:journal number: ' \
+    '-J[specify file prefix]:file prefix: ' \
+    '-k[keep pipe open]' \
+    '-o[specify output file]:output file:_files' \
+    '-R[reconnect on failure, needs -i]' \
+    '-s[specify file to track state]:state file:_files' \
+    '-T[space-separate list of tables not to transfer]' \
+    '-x[terminate when journal rotates]' \
+    '*::->_command'
+}
+
+
+(( $+functions[_perforce_cmd_resolve] )) ||
+_perforce_cmd_resolve() {
+  _arguments -s : \
+    '-A-[limit resolve attempts]:resolve attempts:((
+a\:resolve\ attributes
+b\:resolve\ file\ branching
+c\:resolve\ file\ content\ changes
+d\:resolve\ file\ deletions
+m\:resolve\ moved\ and\ renamed\ files
+t\:resolve\ filetype\ changes
+Q\:resolve\ charset\ changes
+))' \
+    '-a-[set automatic resolve]:resolve:((
+s\:skip\ files\ that\ need\ merging
+m\:skip\ files\ with\ conflicts
+f\:accept\ merged\ files\ with\ conflicts
+t\:use\ theirs
+y\:use\ yours))' \
+    '-d-[control whitespace merging]:whitespace option:((
+b\:ignore\ whitespace\ changes
+w\:ignore\ whitespace\ altogether
+l\:ignores\ line\ endings))' \
+    '-f[re-resolve files]' \
+    '-n[preview resolve]' \
+    '-N[preview resolve with summary]' \
+    '-o[display base file name and revision for merge]' \
+    '-t[force textual merge]' \
+    '-v[insert markers for all changes]' \
+    '-c[limit resolve to change]:change:_perforce_changes -tc' \
+    '*::file:_perforce_files -to'
+}
+
+
+(( $+functions[_perforce_cmd_resolved] )) ||
+_perforce_cmd_resolved() {
+  _arguments -s : \
+    '-o[report revision used as base for resolve]' \
+    '*::file:_perforce_files -tr'
+}
+
+
+(( $+functions[_perforce_cmd_revert] )) ||
+_perforce_cmd_revert() {
+  _arguments -s : \
+    '-a[revert open unchanged files]' \
+    '-n[preview revert]' \
+    '-k[mark files as reverted on server]' \
+    '-w[delete new files]' \
+    '-c[revert files opened in change]:change:_perforce_changes -tc' \
+    '-C[specify client]:client:_perforce_clients' \
+    '*::file:_perforce_files -to'
+}
+
+
+(( $+functions[_perforce_cmd_review] )) ||
+_perforce_cmd_review() {
+  _arguments -s : \
+    '-c[specify change]:change:_perforce_changes -ts' \
+    '-t[specify counter]:counter:_perforce_counters'
+}
+
+
+(( $+functions[_perforce_cmd_reviews] )) ||
+_perforce_cmd_reviews() {
+  _arguments -s : \
+    '-c[limit files submitted in change]:change:_perforce_changes -ts' \
+    '-C[limit files opened in client]:client:_perforce_clients' \
+    '*::file:_perforce_files'
+}
+
+
+(( $+functions[_perforce_cmd_set] )) ||
+_perforce_cmd_set() {
+  # Only works under Windoze but maybe we are on Cygwin.
+  _arguments -s : \
+    '-q[remove origin]' \
+    '-s[set for whole system]' \
+    '-S[specify service]:service: ' \
+    "*::environment variable:_perforce_variables"
+}
+
+
+(( $+functions[_perforce_cmd_shelve] )) ||
+_perforce_cmd_shelve() {
+  _arguments -s : \
+    '-i[read change spec from standard input]' \
+    '(-i)-c[shelve files in change]:change:_perforce_changes -tc' \
+    '-f[overwrite existing shelved files]' \
+    '-r[replace shelved files in change]' \
+    '-a[handle unchanged files]:option:(submitunchanged leaveunchanged)' \
+    '(-p -a -i -r)-d[delete shelved files]' \
+    '-p[promote shelved change to commit server]' \
+    '(-i -r)*::file:_perforce_files -to'
+}
+
+
+(( $+functions[_perforce_cmd_status] )) ||
+_perforce_cmd_status() {
+  _arguments -s : \
+    '-c[list files in change]:change:_perforce_changes -tc' \
+    '-A[list all new, modified, and removed files]' \
+    '-e[list modified files]' \
+    '-a[list new files]' \
+    '-d[list removed files]' \
+    '-f[reformat filenames with wildcard characters]' \
+    '-s[summarize output for new files]' \
+    '-I[do not perform ignore checking]' \
+    '-m[check file modification times]' \
+    '-k[reconcile have list with client]' \
+    '*:file:_perforce_files -tuo'
+}
+
+
+(( $+functions[_perforce_cmd_sizes] )) ||
+_perforce_cmd_sizes() {
+  _arguments -s : \
+    '-a[list all revisions in range]' \
+    '-b[specify blocksize]:blocksize (bytes)' \
+    '(-H)-h[print sizes in human-readable form (GiB)]' \
+    '(-h)-H[print sizes in human-readable form (GB)]' \
+    '-m[limit max files]:max files: ' \
+    '-s[sum the file sizes]' \
+    '-S[display sizes for shelved files]' \
+    '-z[omit lazy copies]' \
+    '(-z -S)-A[display files in archive depots]' \
+    '-U[display sizes for unload files]' \
+    '*:file:_perforce_files -tR'
+}
+
+
+# TODO Add more logic for subcommands
+#p4 stream edit
+#p4 stream resolve [-a<flag>] [-n] [-o]
+#p4 stream revert
+(( $+functions[_perforce_cmd_stream] )) ||
+_perforce_cmd_stream() {
+  _arguments -s : \
+    '(-o -v)-d[delete stream]' \
+    '(-f)-o[write stream spec to standard output]' \
+    '(-o -v)-P[insert value into parent field]:parent stream: ' \
+    '(-o -v)-t[insert value into type field]:type: ' \
+    '(-o -v)-i[read stream spec from standard input]' \
+    '(-o -v)-f[force modification]' \
+    '(-f)-v[expose client view]' \
+    '1:stream name: '
+}
+
+
+(( $+functions[_perforce_cmd_streams] )) ||
+_perforce_cmd_streams() {
+  _arguments -s : \
+    '-F[limit files to pattern]:file pattern: ' \
+    '-T[limit fields to list]:field list: ' \
+    '-m[limit max streams]:max streams: ' \
+    '-U[list unloaded task streams]' \
+    '*:stream path: '
+}
+
+
+(( $+functions[_perforce_cmd_spec] )) ||
+_perforce_cmd_spec() {
+  _arguments -s : \
+    '-d[delete a custom spec]' \
+    '-i[read spec from stdin]' \
+    '-o[write spec to stdout]' \
+    "*::spec type:(branch change client depot group job
+label spec trigger typemap user)"
+}
+
+
+# TODO Figure out how --parallel will work
+#p4 submit -i [-r -s -f option] --parallel=threads=N[,batch=N][,min=N]
+(( $+functions[_perforce_cmd_submit] )) ||
+_perforce_cmd_submit() {
+  _arguments -s : \
+    '(-s -d -e -i)-c[submit change]:change:_perforce_changes -tc' \
+    '(-r -s -f -d -c -i --noretransfer)-e[submit shelved change]:change:_perforce_changes -tS' \
+    '(-s -c -e -i --noretransfer)-d[specify description]:description: ' \
+    '(-d -c -e --noretransfer)-i[read change spec from standard input]' \
+    '-f[override submit option]:submit option:_perforce_submit_options' \
+    '-r[reopen submitted files]' \
+    '(-d -c)-s[include fix status in list]' \
+    '--parallel[parallel file transfer options]:parallel options: ' \
+    '--noretransfer[do not re-transfer submitted files]:no re-transfer?:(0 1)' \
+    '*::file:_perforce_files -to -tr'
+}
+
+
+# TODO Figure out how --parallel will work
+#--parallel=threads=N[,batch=N][,batchsize=N][,min=N][,minsize=N]
+(( $+functions[_perforce_cmd_sync] )) ||
+_perforce_cmd_sync() {
+  _arguments -s : \
+    '-f[force resynchronisation]' \
+    '-L[use full depot syntax]' \
+    '-n[preview sync]' \
+    '-N[preview sync with summary]' \
+    '(-s -p)-k[update server without syncing files]' \
+    '(-f -k -r -s)-p[sync client without updating server]' \
+    '-q[suppress normal output messages]' \
+    '(-s -p)-r[reopen moved files in new location]' \
+    '(-f -k -r -p)-s[do not clobber modified files]' \
+    '-m[limit max files to sync]:max files: ' \
+    '--parallel[parallel file transfer options]:parallel options: ' \
+    '*::file:_perforce_files -tR'
+}
+
+
+(( $+functions[_perforce_cmd_tag] )) ||
+_perforce_cmd_tag() {
+  _arguments -s : \
+    '-d[delete association between label and files]' \
+    '-n[preview tag]' \
+    '-g[update global label]' \
+    '-U[create label with autoreload option]' \
+    '-l[specify label]:label:_perforce_labels' \
+    '*::file:_perforce_files -tR'
+}
+
+
+(( $+functions[_perforce_cmd_tickets] )) ||
+_perforce_cmd_tickets() {
+  # No arguments.
+  _arguments -s :
+}
+
+
+(( $+functions[_perforce_cmd_triggers] )) ||
+_perforce_cmd_triggers() {
+  _arguments -s : \
+    '-o[output form to stdout]' \
+    '-i[read from stdin]'
+}
+
+
+(( $+functions[_perforce_cmd_typemap] )) ||
+_perforce_cmd_typemap() {
+  _arguments -s : \
+    '-o[output table to stdout]' \
+    '-i[read table from stdin]'
+}
+
+
+(( $+functions[_perforce_cmd_unlock] )) ||
+_perforce_cmd_unlock() {
+  _arguments -s : \
+    '-s[unlock files from shelved change]:change:_perforce_changes -tS' \
+    '-c[unlock files from change]:change:_perforce_changes -tc' \
+    '-x[unlock exclusive files]' \
+    '-f[unlock files owned by other users]' \
+    '*::file:_perforce_files'
+}
+
+
+(( $+functions[_perforce_cmd_unshelve] )) ||
+_perforce_cmd_unshelve() {
+  _arguments -s : \
+    '-s[unshelve files from change]:change:_perforce_changes -tS' \
+    '-c[unshelve files to change]:change:_perforce_changes -tc' \
+    '-f[force clobbering of writeable files]' \
+    '-n[preview unshelve]' \
+    '-b[use branch view for unshelve]:branch:_perforce_branches' \
+    '-S[use generated branch view from stream]:stream: ' \
+    '-P[use generated branch view from parent stream]:parent stream: ' \
+    '*::file, pattern allowed:_perforce_files'
+}
+
+
+(( $+functions[_perforce_cmd_update] )) ||
+_perforce_cmd_update() {
+  _arguments -s : \
+    '-f[force resynchronisation]' \
+    '-L[use full depot syntax]' \
+    '-n[preview update]' \
+    '-N[preview update with summary]' \
+    '-q[suppress normal output messages]' \
+    '-m[limit max files to update]:max files: ' \
+    '*::file:_perforce_files -tR'
+}
+
+
+(( $+functions[_perforce_cmd_user] )) ||
+_perforce_cmd_user() {
+  _arguments -s : \
+    '(-o -i)-d[delete user]' \
+    '(-f -i -d)-o[write user spec to standard output]' \
+    '(-o -d)-i[read user spec from standard input]' \
+    '(-o)-f[force edit of user]' \
+    '(-i)1::username:_perforce_users'
+}
+
+
+(( $+functions[_perforce_cmd_users] )) ||
+_perforce_cmd_users() {
+  _arguments -s : \
+    '-m[limit output to max users]:max users: ' \
+    '-a[output service and operator users]' \
+    '-l[long output]' \
+    '-r[list only replica users]' \
+    '-c[list only central server users]' \
+    '*::username:_perforce_users'
+}
+
+
+(( $+functions[_perforce_cmd_verify] )) ||
+_perforce_cmd_verify() {
+  _arguments -s : \
+    '-m[limit revisions]:max revisions: ' \
+    '-q[operate quietly]' \
+    '-u[compute and save digest if missing]' \
+    '-v[compute and save all digets]' \
+    '-z[skip duplicates]' \
+    '*::file:_perforce_files -tR'
+}
+
+
+(( $+functions[_perforce_cmd_where] )) ||
+_perforce_cmd_where() {
+  _perforce_files
+}
+
+
+(( $+functions[_perforce_cmd_workspace] )) ||
+_perforce_cmd_workspace() {
+  _perforce_cmd_client "$@"
+}
+
+
+(( $+functions[_perforce_cmd_workspaces] )) ||
+_perforce_cmd_workspaces() {
+  _perforce_cmd_clients "$@"
+}
+
+
+_perforce "$@"

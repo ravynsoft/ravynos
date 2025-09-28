@@ -1,0 +1,95 @@
+.TH libinput-test-suite "1" "" "libinput @LIBINPUT_VERSION@" "libinput Manual"
+.SH NAME
+libinput\-test\-suite \- run the libinput test suite
+.SH SYNOPSIS
+.B libinput test\-suite [OPTIONS]
+.PP
+.SH DESCRIPTION
+.PP
+The
+.B "libinput test\-suite"
+command runs the libinput test suite.
+Its primary purpose is to verify distribution composes after package updates. Test
+suite failures usually indicate missing patches and/or incompatible lower
+system layers.
+.PP
+.B The test suite should not be run by users. Data loss is possible.
+.PP
+The test suite must be run as root. The test suite installs several files
+on the host system (see section \fBFILES\fR), runs system commands and
+creates virtual kernel devices via uinput. These devices will interfere with
+any active session and may cause data loss.
+.PP
+It is recommended that the test suite is run in a virtual machine and/or on
+a system not otherwise in use. A graphical environment is not required to
+run the test suite.
+
+.SH OPTIONS
+Note that the options may change in future releases of libinput. Test names,
+test device names and test group names may change at any time.
+.TP 8
+.B \-\-filter\-test \fI"testname"\fB
+A glob limiting the tests to run. Specifying a filter sets the
+\fB\-\-jobs\fR default to 1.
+.TP 8
+.B \-\-filter\-device \fI"devicename"\fB
+A glob limiting the devices to run tests for. Specifying a filter sets the
+\fB\-\-jobs\fR default to 1.
+.TP 8
+.B \-\-filter\-group \fI"groupname"\fB
+A glob limiting the tests to (arbitrarily named) groups. Specifying a filter sets the
+\fB\-\-jobs\fR default to 1.
+.TP 8
+.B \-\-filter\-deviceless
+\fBFOR INTERNAL USE ONLY\fR
+.TP 8
+.B \-h, \-\-help
+Print help
+.TP 8
+.B \-j, \-\-jobs 8
+Number of parallel processes to run. Default: 8.
+.TP 8
+.B \-\-list
+List all test cases and the devices they are run for. Test names, test device
+names and test group names may change at any time.
+.TP 8
+.B \-\-verbose
+Enable verbose output, including libinput debug messages.
+.SH FILES
+The following directories are modified:
+
+.TP 8
+.B @LIBINPUT_DATA_DIR@
+Test device-specific quirks are installed in this directory with a custom
+prefix. Files in this directory are untouched but new files are installed
+and removed on exit. Existing files (e.g. from a previous aborted run) with
+the same name will be silently overwritten and removed.
+.TP 8
+.B /run/udev/rules.d
+Test-specific udev rules are installed in this directory and removed on
+exit.
+.PP
+.SH SYSTEM SETUP
+The \fBxorg.conf.d(5)\fR snippet below ensures the X server ignores the test
+devices created by this test suite:
+.PP
+.RS 4
+.nf
+.B "Section ""InputClass""
+.B "        Identifier ""Ignore libinput test suite devices""
+.B "        MatchProduct ""litest""
+.B "        Option ""Ignore"" ""on""
+.B "EndSection"
+.fi
+.RE
+.PP
+No configuration is required for Wayland compositors. libinput's default
+mode will ignore test devices from this test suite.
+.SH BUGS
+Some tests are sensitive to timing. Where a system is under heavy load,
+a test may fail. Re-running the test with \fB\-\-filter-test\fR can help
+verify whether a test case failure was a true failure.
+.SH LIBINPUT
+Part of the
+.B libinput(1)
+suite

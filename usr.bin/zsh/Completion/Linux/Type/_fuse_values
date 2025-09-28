@@ -1,0 +1,70 @@
+#autoload
+
+local ret stateset fvals cvalsvar cvalind
+typeset -a fvals opts
+
+if [[ $1 = -O* ]]; then
+  opts+=$1
+  shift
+fi
+opts+=(-s , -S =)
+
+cvalind=$argv[(I)-A*]
+
+while (( cvalind )); do
+  if [[ ${(P)cvalind} = -A?* ]]; then
+    cvalsvar=${(P)cvalind[3,-1]}
+    argv[cvalind]=()
+  else
+    cvalsvar=$argv[cvalind+1]
+    argv[cvalind,cvalind+1]=()
+  fi
+  cvalind=$argv[(I)-A*]
+done
+
+fvals=(
+  'ro[mount filesystem read-only]'
+  'allow_other[allow access to other users]'
+  'allow_root[allow access to root]'
+  'nonempty[allow mounts over non-empty file/dir]'
+  'default_permissions[enable permission checking by kernel]'
+  'fsname[set filesystem name]:name'
+  'large_read[issue large read requests (linux v2.4 only)]'
+  'max_read[set maximum size of read requests]:size'
+  'hard_remove[immediate removal (do not hide files)]'
+  'use_ino[let filesystem set inode numbers]'
+  'readdir_ino[try to fill in d_ino in readdir]'
+  'direct_io[use direct I/O]'
+  'kernel_cache[cache files in kernel]'
+  'umask[set file permissions]:permission mask (octal)'
+  'uid[set file owner]:user id:'
+  'gid[set file group]:group id:'
+  'entry_timeout[cache timeout for names]:timeout (s)'
+  'negative_timeout[cache timeout for deleted names]:timeout (s)'
+  'attr_timeout[cache timeout for attributes]:timeout (s)'
+)
+
+[[ -n $cvalsvar ]] && set -- "$@" ${(P)cvalsvar}
+
+if [[ $# -eq 0 ]]; then
+  set -- 'mount option' $fvals
+else
+  set -- "$@" $fvals
+fi
+
+if [[ -n $state ]]; then
+  stateset=$state
+  state=
+fi
+
+_values $opts "$@" && ret=0
+
+if [[ -n $state ]]; then
+  compstate[restore]=
+elif [[ -n $stateset ]]; then
+  state=$stateset
+else
+  unset state
+fi
+
+return $ret

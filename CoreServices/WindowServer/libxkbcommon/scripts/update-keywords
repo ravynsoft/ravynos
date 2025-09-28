@@ -1,0 +1,4 @@
+#!/bin/sh
+# Run this if you add/remove a new keyword to the xkbcomp scanner,
+# or just want to regenerate the gperf file.
+gperf < src/xkbcomp/keywords.gperf > src/xkbcomp/keywords.c

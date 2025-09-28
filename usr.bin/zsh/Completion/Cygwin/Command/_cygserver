@@ -1,0 +1,21 @@
+#compdef cygserver cygserver.exe
+
+# cygwin 1.5.25
+
+_arguments -s -S \
+  '(--config-file -f)'{-f,--config-file}'[use specified config file]:config file [/etc/cygserver.conf]:_files -g "*.conf(-.)"' \
+  '(--cleanup-threads -c)'{-c,--cleanup-threads}'[number of cleanup threads to use]:number of threads [2]' \
+  '(--process-cache -p)'{-p,--process-cache}'[size of process cache]:cache size:' \
+  '(--request-threads -r)'{-r,--request-threads}'[number of request threads to use]:number of threads [10]' \
+  '(--debug -d)'{-d,--debug}'[log debug messages to stderr]' \
+  '(--stderr -e --no-stderr -E)'{-e,--stderr}'[log to stderr (default if stderr is a tty)]' \
+  '(--stderr -e --no-stderr -E)'{-E,--no-stderr}"[don't log to stderr (see -y, -Y options)]" \
+  '(--log-level -l)'{-l,--log-level}'[specify log verbosity]:verbosity level [6]:({1..7})' \
+  '(--syslog -y --no-syslog -Y)'{-y,--syslog}'[log to syslog (default if stderr is no tty)]' \
+  '(--syslog -y --no-syslog -Y)'{-Y,--no-syslog}"[don't log to syslog (see -e, -E options)]" \
+  '(--no-sharedmem -m)'{-m,--no-sharedmem}"[don't start XSI Shared Memory support]" \
+  '(--no-msgqueues -q)'{-q,--no-msgqueues}"[don't start XSI Message Queue support]" \
+  '(--no-semaphores -s)'{-s,--no-semaphores}"[don't start XSI Semaphore support]" \
+  '(--shutdown -S)'{-S,--shutdown}'[shutdown the daemon]' \
+  '(--help -h)'{-h,--help}'[output usage information and exit]' \
+  '(--version -v)'{-v,--version}'[output version information and exit]'

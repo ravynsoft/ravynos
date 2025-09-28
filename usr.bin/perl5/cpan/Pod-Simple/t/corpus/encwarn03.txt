@@ -1,0 +1,12 @@
+package MyPackage;
+
+use strict;
+
+# Comment here contains āccénted characters but should not generate any
+# parse warning since they do not occur in a POD section
+
+sub main {
+    print "This file contains no POD\n";
+}
+
+1;

@@ -1,0 +1,41 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# test out the export behavior of variable assignments preceding `eval', `.'
+# and shell functions
+
+func()
+{
+	printenv var
+}
+
+export var=10
+echo expect 20
+var=20 eval printenv var
+
+: ${TMPDIR:=/tmp}
+TMPFILE=$TMPDIR/evalsub.$$
+
+rm -f $TMPFILE
+echo 'printenv var' > $TMPFILE
+
+echo expect 30
+var=30 . $TMPFILE
+
+rm -f $TMPFILE
+
+echo expect 40
+var=40 func
+
+echo expect 50
+var=50 command printenv var

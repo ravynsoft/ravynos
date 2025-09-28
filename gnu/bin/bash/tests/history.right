@@ -1,0 +1,299 @@
+./history.tests: line 17: history: -x: invalid option
+history: usage: history [-c] [-d offset] [n] or history -anrw [filename] or history -ps arg [arg...]
+./history.tests: line 19: history: cannot use more than one of -anrw
+./history.tests: line 22: fc: -v: invalid option
+fc: usage: fc [-e ename] [-lnr] [first] [last] or fc -s [pat=rep] [command]
+    1  for i in one two three; do echo $i; done
+    2  /bin/sh -c 'echo this is $0'
+    3  ls
+    4  echo $BASH_VERSION
+1	 for i in one two three; do echo $i; done
+2	 /bin/sh -c 'echo this is $0'
+3	 ls
+4	 echo $BASH_VERSION
+	 for i in one two three; do echo $i; done
+	 /bin/sh -c 'echo this is $0'
+	 ls
+	 echo $BASH_VERSION
+4	 echo $BASH_VERSION
+3	 ls
+2	 /bin/sh -c 'echo this is $0'
+1	 for i in one two three; do echo $i; done
+	 echo $BASH_VERSION
+	 ls
+	 /bin/sh -c 'echo this is $0'
+	 for i in one two three; do echo $i; done
+    1  for i in one two three; do echo $i; done
+    2  /bin/sh -c 'echo this is $0'
+    3  ls
+    4  echo $BASH_VERSION
+    5  echo line for history
+echo line for history
+	 for i in one two three; do echo $i; done
+	 /bin/sh -c 'echo this is $0'
+	 ls
+	 echo $BASH_VERSION
+	 echo line for history
+displaying $HISTFILE after history -a
+echo line for history
+HISTFILE=$TMPDIR/newhistory
+    1  for i in one two three; do echo $i; done
+    2  /bin/sh -c 'echo this is $0'
+    3  ls
+    4  echo $BASH_VERSION
+    5  echo line for history
+    6  HISTFILE=$TMPDIR/newhistory
+    7  echo displaying \$HISTFILE after history -a
+    8  cat $HISTFILE
+for i in one two three; do echo $i; done
+/bin/sh -c 'echo this is $0'
+ls
+echo $BASH_VERSION
+echo line for history
+HISTFILE=$TMPDIR/newhistory
+echo displaying \$HISTFILE after history -a
+cat $HISTFILE
+    1  for i in one two three; do echo $i; done
+    2  /bin/sh -c 'echo this is $0'
+    3  ls
+    4  echo $BASH_VERSION
+    5  echo line for history
+    6  HISTFILE=$TMPDIR/newhistory
+    7  echo displaying \$HISTFILE after history -a
+    8  cat $HISTFILE
+    9  echo line 2 for history
+echo line 2 for history
+echo line 2 for history
+    1  for i in one two three; do echo $i; done
+    2  /bin/sh -c 'echo this is $0'
+    3  ls
+    4  echo $BASH_VERSION
+    5  echo line for history
+    6  HISTFILE=$TMPDIR/newhistory
+    7  echo displaying \$HISTFILE after history -a
+    8  cat $HISTFILE
+    9  echo line 2 for history
+   10  # this should show up as one history entry
+   11  for x in one two three; do 	:; done
+set -H
+echo line 2 for history
+line 2 for history
+4	 echo $BASH_VERSION
+5	 echo line for history
+6	 HISTFILE=$TMPDIR/newhistory
+7	 echo displaying \$HISTFILE after history -a
+8	 cat $HISTFILE
+9	 echo line 2 for history
+10	 # this should show up as one history entry
+11	 for x in one two three; do 	:; done
+12	 # just a basic test.  a full test suite for history expansion should be
+13	 # created
+14	 set -H
+15	 echo line 2 for history
+16	 unset HISTSIZE
+17	 unset HISTFILE
+4	 echo $BASH_VERSION
+5	 echo line for history
+6	 HISTFILE=$TMPDIR/newhistory
+7	 echo displaying \$HISTFILE after history -a
+8	 cat $HISTFILE
+./history.tests: line 90: fc: no command found
+   15  echo line 2 for history
+   16  unset HISTSIZE
+   17  unset HISTFILE
+   18  # now an out-of-range error because of the one=two not found in history
+aa ab ac
+echo xx xb xc
+xx xb xc
+echo 44 48 4c
+44 48 4c
+./history.tests: line 105: fc: no command found
+aa
+bb
+cc
+echo cc
+echo cc
+cc
+aa
+bb
+cc
+echo cc
+echo cc
+cc
+1
+one
+two
+three
+    1  cat <<!
+one
+two
+three
+!
+
+    2  history
+cat <<!
+one
+two
+three
+!
+
+one
+two
+three
+5.2
+echo ${BASH_VERSION%\.*}
+5.2
+	 echo ${BASH_VERSION%\.*}
+a
+b
+c
+d
+e
+    1  echo a
+    2  echo b
+    3  echo c
+    4  echo d
+    5  echo e
+
+    1  echo a
+    2  echo e
+f
+g
+h
+i
+    1  echo a
+    2  echo e
+    3  echo f
+    4  echo g
+    5  echo h
+
+./history3.sub: line 40: history: 16: history position out of range
+./history3.sub: line 41: history: 200: history position out of range
+./history3.sub: line 42: history: -20: history position out of range
+./history3.sub: line 43: history: -50: history position out of range
+./history3.sub: line 44: history: 5-0xaf: history position out of range
+    1  echo a
+    2  echo e
+    3  echo f
+    4  echo g
+    5  echo h
+
+
+0
+1
+2
+(left
+mid
+right)
+A
+B
+
+(left
+mid
+right)
+A
+B
+
+(left
+mid
+right)
+A
+B
+
+0
+1
+2
+(left
+mid
+right)
+A
+B
+(left
+mid
+right)
+A
+B
+
+0
+1
+2
+(left
+mid
+right)
+A
+B
+(left
+mid
+right)
+A
+B
+a
+b
+./history5.sub: line 24: fc: history specification out of range
+./history5.sub: line 25: fc: no command found
+1	 echo a
+2	 echo b
+3	 fc -0	# error
+4	 fc -s -0	# error
+c
+6	 echo c
+8	 fc -l -0
+d
+echo d
+d
+a
+b
+c
+d
+e
+f
+4	 echo d
+5	 echo e
+6	 echo f
+out of range 1
+6	 echo f
+7	 fc -l
+8	 echo out of range 1
+out of range 2
+8	 echo out of range 1
+9	 fc -l 502 498
+10	 echo out of range 2
+out of range 3
+10	 echo out of range 2
+11	 fc -l 498 502
+12	 echo out of range 3
+out of range 4
+13	 fc -l 1 99
+1
+2
+3
+4
+5
+6
+    3  echo 3
+    4  echo 4
+    5  echo 5
+    6  echo 6
+    3  echo 3
+    4  echo 4
+    5  echo 5
+6
+7
+    4  echo 4
+    5  echo 5
+    6  echo 6
+    7  echo 7
+    4  echo 4
+    5  echo 5
+    6  echo 6
+7
+8
+    5  echo 5
+    6  echo 6
+9
+10
+    5  echo 5
+    6  echo 6
+    7  echo 9
+    8  echo 10
+    5  echo 10

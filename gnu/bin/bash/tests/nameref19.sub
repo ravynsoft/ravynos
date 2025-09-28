@@ -1,0 +1,73 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# can we unset the nameref attribute on variables with values that reference
+# unset variables?
+
+unset bar
+declare -n foo="bar"
+declare -p foo
+
+declare +n foo
+declare -p foo bar
+
+declare -n foo
+declare -p foo
+
+# let's try removing the nameref attribute -- other attributes and assignments
+# apply to the nameref target
+
+declare +n -i foo=7+4
+declare -p foo bar
+
+unset foo bar
+
+# but if the nameref variable doesn't have a value, the attributes apply to
+# the nameref variable itself. thanks ksh93
+
+declare -n foo6
+declare -xi foo6
+declare -p foo6
+
+# and when we remove the nameref attribute, the other attributes remain
+
+declare +n foo6
+declare -p foo6
+
+unset foo6
+
+# make sure these cases continue to work
+
+# nameref referencing an existing, set variable
+declare -n foo=bar
+bar='Hello World!'
+declare -p foo bar
+declare +n foo
+declare -p foo bar
+unset foo bar
+
+# nameref referencing an existing, unset variable
+declare -n foo=bar
+declare bar
+declare -p foo bar
+declare +n foo
+declare -p foo bar
+
+# but when we add the nameref attribute, we remove other attributes
+
+declare -i ivar
+ivar=4+4
+echo $ivar
+
+declare -n ivar=foo
+declare -p ivar

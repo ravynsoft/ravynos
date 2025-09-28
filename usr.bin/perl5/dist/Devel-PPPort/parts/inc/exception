@@ -1,0 +1,68 @@
+################################################################################
+##
+##  Version 3.x, Copyright (C) 2004-2013, Marcus Holland-Moritz.
+##  Version 2.x, Copyright (C) 2001, Paul Marquess.
+##  Version 1.x, Copyright (C) 1999, Kenneth Albanowski.
+##
+##  This program is free software; you can redistribute it and/or
+##  modify it under the same terms as Perl itself.
+##
+################################################################################
+
+=provides
+
+dXCPT
+XCPT_TRY_START
+XCPT_TRY_END
+XCPT_CATCH
+XCPT_RETHROW
+
+=implementation
+
+#ifdef NO_XSLOCKS
+#  ifdef dJMPENV
+#    define dXCPT             dJMPENV; int rEtV = 0
+#    define XCPT_TRY_START    JMPENV_PUSH(rEtV); if (rEtV == 0)
+#    define XCPT_TRY_END      JMPENV_POP;
+#    define XCPT_CATCH        if (rEtV != 0)
+#    define XCPT_RETHROW      JMPENV_JUMP(rEtV)
+#  else
+#    define dXCPT             Sigjmp_buf oldTOP; int rEtV = 0
+#    define XCPT_TRY_START    Copy(top_env, oldTOP, 1, Sigjmp_buf); rEtV = Sigsetjmp(top_env, 1); if (rEtV == 0)
+#    define XCPT_TRY_END      Copy(oldTOP, top_env, 1, Sigjmp_buf);
+#    define XCPT_CATCH        if (rEtV != 0)
+#    define XCPT_RETHROW      Siglongjmp(top_env, rEtV)
+#  endif
+#endif
+
+=xsmisc
+
+/* defined in module3.c */
+int exception(int throw_e);
+
+=xsubs
+
+int
+exception(throw_e)
+  int throw_e
+  OUTPUT:
+    RETVAL
+
+=tests plan => 7
+
+my $rv;
+
+$Devel::PPPort::exception_caught = undef;
+
+$rv = eval { &Devel::PPPort::exception(0) };
+is($@, '');
+ok(defined $rv);
+is($rv, 42);
+is($Devel::PPPort::exception_caught, 0);
+
+$Devel::PPPort::exception_caught = undef;
+
+$rv = eval { &Devel::PPPort::exception(1) };
+is($@, "boo\n");
+ok(not defined $rv);
+is($Devel::PPPort::exception_caught, 1);

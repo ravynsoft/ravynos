@@ -1,0 +1,403 @@
+<?xml version="1.0"?><!--*-nxml-*-->
+<!DOCTYPE manpage SYSTEM "xmltoman.dtd">
+<?xml-stylesheet type="text/xsl" href="xmltoman.xsl" ?>
+
+<!--
+  This file is part of avahi.
+
+  avahi is free software; you can redistribute it and/or modify it
+  under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; either version 2.1 of the
+  License, or (at your option) any later version.
+
+  avahi is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+  or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General
+  Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with avahi; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+  USA.
+-->
+
+<manpage name="avahi-daemon.conf" section="5" desc="avahi-daemon configuration file">
+
+  <synopsis>
+    <cmd>@pkgsysconfdir@/avahi-daemon.conf</cmd>
+  </synopsis>
+
+  <description>
+    <p><file>avahi-daemon.conf</file> is the configuration file for avahi-daemon.</p>
+  </description>
+
+  <section name="Section [Server]">
+
+    <option>
+      <p><opt>host-name=</opt> Set the host name avahi-daemon tries
+      to register on the LAN. If omited defaults to the system host
+      name as set with the sethostname() system call.</p>
+    </option>
+
+    <option>
+      <p><opt>host-name-from-machine-id=</opt> Takes a boolean
+      value ("yes" or "no"). If set to "yes" avahi-daemon
+      will use the machine-id as name on the LAN.</p>
+    </option>
+
+    <option>
+      <p><opt>domain-name=</opt> Set the default domain name avahi-daemon
+      tries to register its host name and services on the LAN in. If
+      omitted defaults to ".local".</p>
+    </option>
+
+    <option>
+      <p><opt>browse-domains=</opt> Set a comma separated list of
+      browsing domains (in addition to the default one and those
+      announced inside the default browsing domain). Please note
+      that the user may specify additional browsing domains on the
+      client side, either by setting $AVAHI_BROWSE_DOMAINS to a list
+      of colon separated domains or by adding them to the XDG config
+      file <file>~/.config/avahi/browse-domains</file> (separated by
+      newlines).</p>
+
+    </option>
+
+    <option>
+      <p><opt>use-ipv4=</opt> Takes a boolean value ("yes" or
+      "no"). If set to "no" avahi-daemon will not use IPv4
+      sockets. Default is "yes".</p>
+    </option>
+
+    <option>
+      <p><opt>use-ipv6=</opt> Takes a boolean value ("yes" or
+      "no"). If set to "no" avahi-daemon will not use IPv6
+      sockets. Default is "yes".</p>
+    </option>
+
+    <option>
+      <p><opt>allow-interfaces=</opt> Set a comma separated list of
+      allowed network interfaces that should be used by the
+      avahi-daemon. Traffic on other interfaces will be ignored. If
+      set to an empty list all local interfaces except loopback and
+      point-to-point will be used.</p>
+    </option>
+
+    <option>
+      <p><opt>deny-interfaces=</opt> Set a comma separated list of
+      network interfaces that should be ignored by avahi-daemon.
+      Other not specified interfaces will be used, unless
+      <opt>allow-interfaces=</opt> is set. This option takes
+      precedence over <opt>allow-interfaces=</opt>.</p>
+    </option>
+
+    <option>
+      <p><opt>check-response-ttl=</opt> Takes a boolean value ("yes"
+      or "no"). If set to "yes", an additional security check is
+      activated: incoming IP packets will be ignored unless the IP
+      TTL is 255. Earlier mDNS specifications required this
+      check. Since this feature may be incompatible with newer
+      implementations of mDNS it defaults to "no". On the other hand
+      it provides extra security.</p>
+    </option>
+
+    <option>
+      <p><opt>use-iff-running=</opt> Takes a boolean value ("yes" or
+      "no"). If set to "yes" avahi-daemon monitors the IFF_RUNNING
+      flag bit which is used by some (modern) network drivers to
+      tell user space if a network cable is plugged in (in case of
+      copper ethernet), or the network card is associated with some
+      kind of network (in case of WLAN). If IFF_RUNNING is set
+      avahi-daemon will automatically announce its services on that
+      network. Unfortunately far too many network drivers do not
+      support this flag or support it in a broken way. Therefore
+      this option defaults to "no".</p>
+    </option>
+
+    <option>
+      <p><opt>enable-dbus=</opt> Takes either "yes", "no" or
+      "warn". If set to "yes" avahi-daemon connects to D-Bus,
+      offering an object oriented client API. It is only available
+      if Avahi has been compiled with <opt>--enable-dbus</opt> in
+      which case it defaults to "yes". "warn" behaves like "yes",
+      but the daemon starts up even when it fails to connect to a
+      D-Bus daemon. In addition, if the connection to the D-Bus
+      daemon is terminated we try to reconnect. (Unless we are in a
+      chroot() environment where this definitely will fail.) </p>
+    </option>
+
+    <option>
+      <p><opt>disallow-other-stacks=</opt> Takes a boolean value
+      ("yes" or "no"). If set to "yes" no other process is allowed
+      to bind to UDP port 5353. This effectively impedes other mDNS
+      stacks from running on the host. Use this as a security
+      measure to make sure that only Avahi is responsible for mDNS
+      traffic. Please note that we do not recommend running multiple
+      mDNS stacks on the same host simultaneously. This hampers
+      reliability and is a waste of resources. However, to not annoy
+      people this option defaults to "no".</p>
+    </option>
+
+    <option>
+      <p><opt>allow-point-to-point=</opt> Takes a boolean value
+      ("yes" or "no"). If set to "yes" avahi-daemon will make use of
+      interfaces with the POINTOPOINT flag set. This option defaults
+      to "no" as it might make mDNS unreliable due to usually large
+      latencies with such links and opens a potential security hole
+      by allowing mDNS access from Internet connections. Use with
+      care and YMMV!</p>
+    </option>
+
+    <option>
+      <p><opt>cache-entries-max=</opt> Takes an unsigned integer
+      specifying how many resource records are cached per
+      interface. Bigger values allow mDNS work correctly in large LANs
+      but also increase memory consumption.</p>
+    </option>
+
+    <option>
+      <p><opt>clients-max=</opt> Takes an unsigned integer. The
+      maximum number of concurrent D-Bus clients allowed. If the
+      maximum number is reached further clients will be refused until
+      at least one existing client disconnects.</p>
+    </option>
+
+    <option>
+      <p><opt>objects-per-client-max=</opt> Takes an unsigned
+      integer. The maximum number of objects (entry groups, browsers,
+      resolvers) that may be registered per D-Bus client at a time. If the
+      maximum number is reached further object creation will be
+      refused until at least one object is freed.</p>
+    </option>
+
+    <option>
+      <p><opt>entries-per-entry-group-max=</opt> Takes an unsigned
+      integer. The maximum number of entries (resource records) per
+      entry group registered by a D-Bus client at a time. If the
+      maximum number is reached further resource records may not be
+      added to an entry group.</p>
+    </option>
+
+    <option>
+      <p><opt>ratelimit-interval-usec=</opt> Takes an unsigned
+      integer. Sets the per-interface packet rate-limiting interval
+      parameter. Together with <opt>ratelimit-burst=</opt> this may be
+      used to control the maximum number of packets Avahi will
+      generated in a specific period of time on an interface.</p>
+    </option>
+
+    <option>
+      <p><opt>ratelimit-burst=</opt> Takes an unsigned
+      integer. Sets the per-interface packet rate-limiting burst
+      parameter. Together with <opt>ratelimit-interval-usec=</opt> this may be
+      used to control the maximum number of packets Avahi will
+      generated in a specific period of time on an interface.</p>
+    </option>
+  </section>
+
+  <section name="Section [wide-area]">
+    <option>
+      <p><opt>enable-wide-area=</opt> Takes a boolean value
+      ("yes" or "no"). Enable wide-area DNS-SD, aka
+      DNS-SD over unicast DNS. If this is enabled only domains
+      ending in .local will be resolved on mDNS, all other domains
+      are resolved via unicast DNS. If you want to maintain multiple
+      different multicast DNS domains even with this option enabled
+      we encourage you to use subdomains of .local, such as
+      "kitchen.local". This option defaults to "yes".</p>
+    </option>
+
+  </section>
+
+  <section name="Section [publish]">
+
+    <option><p><opt>disable-publishing=</opt> Takes a boolean value
+    ("yes" or "no"). If set to "yes", no record will be published by
+    Avahi, not even address records for the local host. Avahi will
+    be started in a querying-only mode. Use this is a security
+    measure. This option defaults to "no"</p></option>
+
+    <option><p><opt>disable-user-service-publishing=</opt> Takes a boolean value
+    ("yes" or "no"). If set to "yes", Avahi will still publish
+    address records and suchlike but will not allow user
+    applications to publish services. Use this is a security
+    measure. This option defaults to "no"</p></option>
+
+    <option>
+      <p><opt>add-service-cookie=</opt> Takes a boolean value ("yes"
+      or "no"). If set to "yes" an implicit TXT entry will be added
+      to all locally registered services, containing a cookie value
+      which is chosen randomly on daemon startup. This can be used
+      to detect if two services on two different
+      interfaces/protocols are actually identical. Defaults to
+      "no".</p>
+    </option>
+
+    <option>
+      <p><opt>publish-addresses=</opt> Takes a boolean value ("yes"
+      or "no"). If set to "yes" avahi-daemon will register mDNS
+      address records for all local IP addresses. Unless you want to
+      use avahi-daemon exclusively for browsing it's recommended to
+      enable this. If you plan to register local services you need
+      to enable this option. Defaults to "yes".</p>
+    </option>
+
+    <option>
+      <p><opt>publish-hinfo=</opt> Takes a boolean value ("yes" or
+      "no"). If set to "yes" avahi-daemon will register an mDNS
+      HINFO record on all interfaces which contains information
+      about the local operating system and CPU, which might be
+      useful for administrative purposes. This is recommended by the
+      mDNS specification but not required. For the sake of privacy
+      you might choose to disable this feature. Defaults to
+      "no".</p>
+    </option>
+
+    <option>
+      <p><opt>publish-workstation=</opt> Takes a boolean value
+      ("yes" or "no"). If set to "yes" avahi-daemon will register a
+      service of type "_workstation._tcp" on the local LAN. This
+      might be useful for administrative purposes (i.e. browse for
+      all PCs on the LAN), but is not required or recommended by any
+      specification. Newer MacOS X releases register a service of
+      this type. Defaults to "no".</p>
+    </option>
+
+    <option>
+      <p><opt>publish-domain=</opt> Takes a boolean value ("yes" or
+      "no"). If set to "yes" avahi-daemon will announce the locally
+      used domain name (see above) for browsing by other
+      hosts. Defaults to "yes".</p>
+    </option>
+
+    <option>
+      <p><opt>publish-dns-servers=</opt> Takes a comma separated
+      list of IP addresses for unicast DNS servers. You can use this
+      to announce unicast DNS servers via mDNS. When used in
+      conjunction with avahi-dnsconfd on the client
+      side this allows DHCP-like configuration of unicast DNS
+      servers.</p>
+    </option>
+
+    <option>
+      <p><opt>publish-resolv-conf-dns-servers=</opt> Takes a boolean
+      value ("yes" or "no"). If set to "yes" avahi-daemon will
+      publish the unicast DNS servers specified in
+      <file>/etc/resolv.conf</file> in addition to those specified
+      with <opt>publish-dns-servers</opt>. Send avahi-daemon a
+      SIGHUP to have it reload this file. Defaults to "no".</p>
+    </option>
+
+    <option>
+      <p><opt>publish-aaaa-on-ipv4=</opt> Takes a boolean value
+      ("yes" or "no"). If set to "yes" avahi-daemon will publish an
+      IPv6 AAAA record via IPv4, i.e. the local IPv6 addresses can be
+      resolved using an IPv4 transport. Only useful when IPv4 is
+      enabled with <opt>use-ipv4=true</opt>. Defaults to "yes".</p>
+    </option>
+
+    <option>
+      <p><opt>publish-a-on-ipv6=</opt> Takes a boolean value
+      ("yes" or "no"). If set to "yes" avahi-daemon will publish an
+      IPv4 A record via IPv6, i.e. the local IPv4 addresses can be
+      resolved using an IPv6 transport. Only useful when IPv6 is
+      enabled with <opt>use-ipv6=true</opt>. Defaults to "no".</p>
+    </option>
+
+  </section>
+
+  <section name="Section [reflector]">
+    <option>
+      <p><opt>enable-reflector=</opt> Takes a boolean value ("yes"
+      or "no"). If set to "yes" avahi-daemon will reflect incoming
+      mDNS requests to all local network interfaces, effectively
+      allowing clients to browse mDNS/DNS-SD services on all
+      networks connected to the gateway. The gateway is somewhat
+      intelligent and should work with all kinds of mDNS traffic,
+      though some functionality is lost (specifically the unicast
+      reply bit, which is used rarely anyway). Make sure to not run
+      multiple reflectors between the same networks, this might
+      cause them to play Ping Pong with mDNS packets. Defaults to
+      "no".</p>
+    </option>
+
+    <option>
+      <p><opt>reflect-ipv=</opt> Takes a boolean value ("yes" or
+      "no"). If set to "yes" and <opt>enable-reflector</opt> is
+      enabled, avahi-daemon will forward mDNS traffic between IPv4
+      and IPv6, which is usually not recommended. Defaults to "no".</p>
+    </option>
+
+    <option>
+      <p><opt>reflect-filters=</opt> Set a comma separated list of
+      allowed service names to be reflected. Each service that is
+      seen must match an entry in this list to be reflected to other
+      networks. This list can match the type of service or the name
+      of the machine providing the service. Defaults to allowing all
+      services.</p>
+
+    </option>
+  </section>
+
+  <section name="Section [rlimits]">
+    <p>This section is used to define system resource limits for the
+    daemon. See <manref section="2" name="setrlimit"/> for more
+    information. If any of the options is not specified in the configuration
+    file, avahi-daemon does not change it from the system
+    defaults.</p>
+
+    <option>
+      <p><opt>rlimit-as=</opt> Value in bytes for RLIMIT_AS (maximum size of the process's virtual memory). Sensible values are heavily system dependent.</p>
+    </option>
+
+    <option>
+      <p><opt>rlimit-core=</opt> Value in bytes for RLIMIT_CORE (maximum core file size). Unless you want to debug avahi-daemon, it is safe to set this to 0.</p>
+    </option>
+
+    <option>
+      <p><opt>rlimit-data=</opt> Value in bytes for RLIMIT_DATA (maximum size of the process's data segment). Sensible values are heavily system dependent.</p>
+    </option>
+
+    <option>
+      <p><opt>rlimit-fsize=</opt> Value for RLIMIT_FSIZE (maximum size of files the process may create). Since avahi-daemon shouldn't write any files to disk, it is safe to set this to 0.</p>
+    </option>
+
+    <option>
+      <p><opt>rlimit-nofile=</opt> Value for RLIMIT_NOFILE (open file descriptors). avahi-daemon shouldn't need more than 15 to 20 open file descriptors concurrently.</p>
+    </option>
+
+    <option>
+      <p><opt>rlimit-stack=</opt> Value in bytes for RLIMIT_STACK (maximum size of the process stack). Sensible values are heavily system dependent.</p>
+    </option>
+
+		<option>
+			<p><opt>rlimit-nproc=</opt> Value for RLIMIT_NPROC (max number of
+				processes a user can launch). avahi-daemon forks of a helper process on
+				systems where <manref name="chroot" section="2"/> is available
+				therefore this value should not be set below 2. Note that while the
+				process limit only applies to this process, the total count of
+				processes to reach that limit includes all processes on the system with
+				the same UID, including any containers without UID remapping (such as
+				lxd containers with security.privileged=true).  The default
+				configuration of 3 was removed to prevent problems in this
+				scenario.</p>
+		</option>
+  </section>
+
+  <section name="Authors">
+    <p>The Avahi Developers &lt;@PACKAGE_BUGREPORT@&gt;; Avahi is
+    available from <url href="@PACKAGE_URL@"/></p>
+  </section>
+
+  <section name="See also">
+    <p>
+      <manref name="avahi-daemon" section="8"/>, <manref name="avahi-dnsconfd" section="8"/>
+    </p>
+  </section>
+
+  <section name="Comments">
+    <p>This man page was written using <manref name="xml2man" section="1"
+    href="http://masqmail.cx/xml2man/"/> by Oliver Kurth.</p>
+  </section>
+
+</manpage>

@@ -1,0 +1,220 @@
+.\" Copyright (c) 2010-2012 Apple Inc. All rights reserved.
+.Dd December 1, 2010
+.Dt dispatch_data_create 3
+.Os Darwin
+.Sh NAME
+.Nm dispatch_data_create ,
+.Nm dispatch_data_create_concat ,
+.Nm dispatch_data_create_subrange ,
+.Nm dispatch_data_create_map ,
+.Nm dispatch_data_apply ,
+.Nm dispatch_data_copy_region ,
+.Nm dispatch_data_get_size
+.Nd create and manipulate dispatch data objects
+.Sh SYNOPSIS
+.Fd #include <dispatch/dispatch.h>
+.Ft dispatch_data_t
+.Fo dispatch_data_create
+.Fa "const void* buffer"
+.Fa "size_t size"
+.Fa "dispatch_queue_t queue"
+.Fa "dispatch_block_t destructor"
+.Fc
+.Ft dispatch_data_t
+.Fo dispatch_data_create_concat
+.Fa "dispatch_data_t data1"
+.Fa "dispatch_data_t data2"
+.Fc
+.Ft dispatch_data_t
+.Fo dispatch_data_create_subrange
+.Fa "dispatch_data_t data"
+.Fa "size_t offset"
+.Fa "size_t length"
+.Fc
+.Ft dispatch_data_t
+.Fo dispatch_data_create_map
+.Fa "dispatch_data_t data"
+.Fa "const void **buffer_ptr"
+.Fa "size_t *size_ptr"
+.Fc
+.Ft bool
+.Fo dispatch_data_apply
+.Fa "dispatch_data_t data"
+.Fa "bool (^applier)(dispatch_data_t, size_t, const void *, size_t)"
+.Fc
+.Ft dispatch_data_t
+.Fo dispatch_data_copy_region
+.Fa "dispatch_data_t data"
+.Fa "size_t location"
+.Fa "size_t *offset_ptr"
+.Fc
+.Ft size_t
+.Fo dispatch_data_get_size
+.Fa "dispatch_data_t data"
+.Fc
+.Vt dispatch_data_t dispatch_data_empty ;
+.Sh DESCRIPTION
+Dispatch data objects are opaque containers of bytes that represent one or more
+regions of memory. They are created either from memory buffers managed by the
+application or the system or from other dispatch data objects. Dispatch data
+objects are immutable and the memory regions they represent are required to
+remain unchanged for the lifetime of all data objects that reference them.
+Dispatch data objects avoid copying the represented memory as much as possible.
+Multiple data objects can represent the same memory regions or subsections
+thereof.
+.Sh CREATION
+The
+.Fn dispatch_data_create
+function creates a new dispatch data object of given
+.Fa size
+from a
+.Fa buffer .
+The provided
+.Fa destructor
+block will be submitted to the specified
+.Fa queue
+when the object reaches the end of its lifecycle, indicating that the system no
+longer references the
+.Fa buffer .
+This allows the application to deallocate
+the associated storage. The
+.Fa queue
+argument is ignored if one of the following predefined destructors is passed:
+.Bl -tag -width DISPATCH_DATA_DESTRUCTOR_DEFAULT -compact -offset indent
+.It DISPATCH_DATA_DESTRUCTOR_FREE
+indicates that the provided buffer can be deallocated with
+.Xr free 3
+directly.
+.It DISPATCH_DATA_DESTRUCTOR_DEFAULT
+indicates that the provided buffer is not managed by the application and should
+be copied into memory managed and automatically deallocated by the system.
+.El
+.Pp
+The
+.Fn dispatch_data_create_concat
+function creates a new data object representing the concatenation of the memory
+regions represented by the provided data objects.
+.Pp
+The
+.Fn dispatch_data_create_subrange
+function creates a new data object representing the sub-region of the provided
+.Fa data
+object specified by the
+.Fa offset
+and
+.Fa length
+parameters.
+.Pp
+The
+.Fn dispatch_data_create_map
+function creates a new data object by mapping the memory represented by the
+provided
+.Fa data
+object as a single contiguous memory region (moving or copying memory as
+necessary). If the
+.Fa buffer_ptr
+and
+.Fa size_ptr
+references are not
+.Dv NULL ,
+they are filled with the location and extent of the contiguous region, allowing
+direct read access to the mapped memory. These values are valid only as long as
+the newly created object has not been released.
+.Sh ACCESS
+The
+.Fn dispatch_data_apply
+function provides read access to represented memory without requiring it to be
+mapped as a single contiguous region. It traverses the memory regions
+represented by the
+.Fa data
+argument in logical order, invokes the specified
+.Fa applier
+block for each region and returns a boolean indicating whether traversal
+completed successfully. The
+.Fa applier
+block is passed the following arguments for each memory region and returns a
+boolean indicating whether traversal should continue:
+.Bl -tag -width "dispatch_data_t rgn" -compact -offset indent
+.It Fa "dispatch_data_t rgn"
+data object representing the region
+.It Fa "size_t offset"
+logical position of the region in
+.Fa data
+.It Vt "const void *loc"
+memory location of the region
+.It Vt "size_t size"
+extent of the region
+.El
+The
+.Fa rgn
+data object is released by the system when the
+.Fa applier
+block returns.
+The associated memory location
+.Fa loc
+is valid only as long as
+.Fa rgn
+has not been deallocated; if
+.Fa loc
+is needed outside of the
+.Fa applier
+block, the
+.Fa rgn
+object must be retained in the block.
+.Pp
+The
+.Fn dispatch_data_copy_region
+function finds the contiguous memory region containing the logical position
+specified by the
+.Fa location
+argument among the regions represented by the provided
+.Fa data
+object and returns a newly created copy of the data object representing that
+region. The variable specified by the
+.Fa offset_ptr
+argument is filled with the logical position where the returned object starts
+in the
+.Fa data
+object.
+.Pp
+The
+.Fn dispatch_data_get_size
+function returns the logical size of the memory region or regions represented
+by the provided
+.Fa data
+object.
+.Sh EMPTY DATA OBJECT
+The
+.Vt dispatch_data_empty
+object is the global singleton object representing a zero-length memory region.
+It is a valid input to any dispatch_data functions that take data object
+parameters.
+.Sh MEMORY MODEL
+Dispatch data objects are retained and released via calls to
+.Fn dispatch_retain
+and
+.Fn dispatch_release .
+Data objects passed as arguments to a dispatch data
+.Sy create
+or
+.Sy copy
+function can be released when the function returns. The newly created object
+holds implicit references to their constituent memory regions as necessary.
+.Pp
+The functions
+.Fn dispatch_data_create_map
+and
+.Fn dispatch_data_apply
+return an interior pointer to represented memory that is only valid as long as
+an associated object has not been released. When Objective-C Automated
+Reference Counting is enabled, care needs to be taken if that object is held in
+a variable with automatic storage. It may need to be annotated with the
+.Li objc_precise_lifetime
+attribute, or stored in a
+.Li __strong
+instance variable instead, to ensure that the object is not released
+prematurely before memory accesses via the interor pointer have been completed.
+.Sh SEE ALSO
+.Xr dispatch 3 ,
+.Xr dispatch_object 3 ,
+.Xr dispatch_io_read 3

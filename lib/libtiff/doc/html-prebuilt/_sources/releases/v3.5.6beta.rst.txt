@@ -1,0 +1,135 @@
+Changes in TIFF v3.5.6beta
+==========================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.5.6beta (no release tag)
+  Previous Version        :doc:`v3.5.5 <v3.5.5>`
+  Master Download Site    `<ftp://ftp.onshore.com/pub/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Software configuration changes
+------------------------------
+
+* Added ``GNULDdso`` target and switched linux and freebsd to use it.
+* :file:`tools/Makefile.in`: Modified to install properly on SGI.
+* :file:`configure`: Fixed DSO test for Linux as per patch from
+  `Jan Van Buggenhout <chipzz@Ace.ULYSSIS.Student.KULeuven.Ac.Be>`_.
+
+
+Library changes
+---------------
+
+* :file:`tif_dir.c`: Clear :c:macro:`TIFF_ISTILED` flag in :c:macro:`TIFFDefaultDirectory`
+  as per :bugzilla-rs:`18`
+  from `<vandrove@vc.cvut.cz>`_.
+
+* Modified :file:`tif_packbits.c` decoding to avoid overrunning the
+  output buffer, and to issue a warning if data needs to be
+  discarded.  See :bugzilla-rs:`18`
+
+* Modified :c:func:`TIFFClientOpen` to emit an error on an attempt to
+  open a compressed file for update (``O_RDWR``/"``r+``") access.  This is
+  because the compressor/decompressor code gets very confused when
+  the mode is ``O_RDWR``, assuming this means writing only.  See
+  bug :bugzilla-rs:`13`
+
+* Applied patch for 0x0000 sequences in :file:`tif_fax3.h` definition
+  of :c:macro:`EXPAND1D` as per bug :bugzilla-rs:`11` (from Roman).
+
+* Fixed :file:`tiffcomp.h` to avoid win32 stuff if unix ``#defined``, to improve
+  cygwin compatibility.
+
+* Applied patch from Roman Shpount to :file:`tif_fax3.c`.  This seems to
+  be a proper fix to the buffer sizing problem.  See 
+  :bugzilla-rs:`11`
+
+* Fixed :file:`tif_getimage.c` to fix overrun bug with YCbCr images without
+  downsampling.  :bugzilla-rs:`10`
+  Thanks to `Nick Lamb <njl98r@ecs.soton.ac.uk>`_ for reporting the
+  bug and proving the patch.
+  
+* Fixed :file:`tif_jpeg.c` to avoid destroying the decompressor before
+  we are done access data thanks to bug report from:
+  `Michael Eckstein <eckstein@gepro.cz>`_.
+
+* :file:`tif_open.c`: Don't set ``MMAP`` for ``O_RDWR`` files.
+
+* :file:`tif_open.c`: Set :c:macro:`STRIPCHOP_DEFAULT` for ``O_RDWR`` as well as ``O_RDONLY``
+  so that files opened for update can be strip chopped too.
+
+* :file:`tif_read.c`: fixed up bug with files missing rowsperstrip and
+  the strips per separation fix done a few weeks ago.
+
+* Tentatively added support for :c:macro:`SAMPLEFORMAT_COMPLEXIEEEFP`, and
+  :c:macro:`SAMPLEFORMAT_COMPLEXINT`.
+
+* :file:`index.html`, :file:`bugs.html`: added bugzilla info.
+
+* :file:`tif_read.c`: fix subtle bug with determining the number of
+  rows for strips that are the last strip in a separation but
+  not the last strip of all in :c:func:`TIFFReadEncodedStrip`.
+
+* Applied 16/32 bit fix to :file:`tif_fax3.c`.  Fix supplied by
+  `Peter Skarpetis <peters@serendipity-software.com.au>`_.
+
+* Modified :file:`tiffio.h` logic with regard to including :file:`windows.h`.  It
+  won't include it when building with :c:macro:`__CYGWIN__`.
+
+* :file:`README`: update to mention {REDACTED - defunct web site}, don't list Sam's old
+  email address.
+
+* :file:`libtiff/tif_dirread.c`: Don't use estimate strip byte count for
+  one tile/strip images with an offset, and byte count of zero. These
+  could be "unpopulated" images. 
+
+* :file:`tif_win32.c`: Applied patch to fix overreads and ovverwrites
+  caught by BoundsChecker.  From `Arvan Pritchard <arvan.pritchard@infomatix.co.uk>`_ (untested).
+  
+* :file:`tif_getimage.c`: Applied patch to silence VC6 warnings.  From
+  `Arvan Pritchard <arvan.pritchard@informatix.co.uk>`__.
+  
+* :file:`tif_lzw.c`: Applied patch to silence VC6 warnings.  From
+  `Arvan Pritchard <arvan.pritchard@informatix.co.uk>`__.
+
+* :file:`libtiff/tif_apple.c`: Applied "Carbon" support patches supplied by
+  `Leonard Rosenthol <leonardr@lazerware.com>`_.  May interfere
+  with correct building on older systems.  If so, please let me know.
+
+
+Tools changes
+-------------
+
+* :file:`tools/rgb2ycbcr.c`: fixed output strip size to account for vertical
+  roundup if rows_per_strip not a multiple of vertical sample size.
+
+* :file:`tools/tiffsplit.c`: Copy :c:macro:`TIFFTAG_SAMPLEFORMAT`.
+
+*  Modified :program:`tiff2bw` to ensure portions add to 100%, and that
+   white is properly recovered.  See bug
+   :bugzilla-rs:`15` Patch
+   c/o `Stanislav Brabec <utx@penguin.cz>`_
+
+
+Contributed software changes
+----------------------------
+
+* :file:`contrib/addtiffo`: Added "averaging" resampling option.
+
+* Added :file:`contrib/stream` (stream io) code submitted by Avi Bleiweiss.
+
+
+LZW compression kit changes
+---------------------------
+
+* updated :file:`tif_dir.c` to reflect changes to no-lzw :file:`tif_dir.c`.

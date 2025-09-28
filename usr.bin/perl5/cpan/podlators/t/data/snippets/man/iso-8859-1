@@ -1,0 +1,31 @@
+[name]
+ISO-8859-1 encoding
+
+[options]
+encoding iso-8859-1
+
+[input]
+=encoding iso-8859-1
+
+=head1 ACCENTS
+
+Beyoncé!  Beyoncé!  Beyoncé!!
+
+    Beyoncé!  Beyoncé!
+      Beyoncé!  Beyoncé!
+        Beyoncé!  Beyoncé!
+
+Older versions didn't convert Beyoncé in verbatim.
+
+[output]
+.SH ACCENTS
+.IX Header "ACCENTS"
+Beyoncé!  Beyoncé!  Beyoncé!!
+.PP
+.Vb 3
+\&    Beyoncé!  Beyoncé!
+\&      Beyoncé!  Beyoncé!
+\&        Beyoncé!  Beyoncé!
+.Ve
+.PP
+Older versions didn't convert Beyoncé in verbatim.

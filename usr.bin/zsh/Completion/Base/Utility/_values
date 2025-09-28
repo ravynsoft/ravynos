@@ -1,0 +1,160 @@
+#autoload
+
+local subopts opt usecc garbage keep
+
+subopts=()
+zparseopts -D -a garbage s+:=keep S+:=keep w+=keep C=usecc O:=subopts \
+    M: J: V: 1 2 o+: n F: X:
+
+(( $#subopts )) && subopts=( "${(@P)subopts[2]}" )
+
+if compvalues -i "$keep[@]" "$@"; then
+
+  local noargs args opts descr action expl sep argsep subc test='*'
+  local oldcontext="$curcontext"
+
+  compvalues -S argsep
+  compvalues -s sep && [[ -n "$sep" ]] && test="[^${(q)sep}]#"
+
+  if ! compvalues -D descr action; then
+
+    _tags values || return 1
+
+    curcontext="${oldcontext%:*}:values"
+
+    compvalues -V noargs args opts
+
+    if [[ -n "$argsep" && "$PREFIX" = *${argsep}${~test} ]]; then
+      local name
+
+      name="${PREFIX%%${argsep}*}"
+      if compvalues -L "$name" descr action; then
+        IPREFIX="${IPREFIX}${name}${argsep}"
+        PREFIX="${PREFIX#*${argsep}}"
+      else
+        local prefix suffix
+
+	prefix="${PREFIX#*${argsep}}"
+	suffix="$SUFFIX"
+	PREFIX="$name"
+	SUFFIX=''
+	args=( "$args[@]" "$opts[@]" )
+	compadd -M 'r:|[_-]=* r:|=*' -D args - "${(@)args[@]%%:*}"
+
+	[[ $#args -ne 1 ]] && return 1
+
+        PREFIX="$prefix"
+	SUFFIX="$suffix"
+        IPREFIX="${IPREFIX}${args[1]%%:*}${argsep}"
+	compvalues -L "${args[1]%%:*}" descr action subc
+	curcontext="${oldcontext%:*}:$subc"
+      fi
+    else
+      compvalues -d descr
+      if compvalues -s sep; then
+        sep=( "-qS" "$sep" )
+      else
+        sep=()
+      fi
+
+      _describe "$descr" \
+        noargs "$sep[@]" -M 'r:|[_-]=* r:|=*' -- \
+        args -S "${argsep}" -M 'r:|[_-]=* r:|=*' -- \
+        opts -qS "${argsep}" -r "${argsep}${sep[2]} \\t\\n\\-" -M 'r:|[_-]=* r:|=*'
+
+      curcontext="$oldcontext"
+
+      return
+    fi
+  else
+    compvalues -C subc
+    curcontext="${oldcontext%:*}:$subc"
+  fi
+
+  if ! _tags arguments; then
+    curcontext="$oldcontext"
+    return 1
+  fi
+
+  _description arguments expl "$descr"
+
+  # We add the separator character as a autoremovable suffix unless
+  # we have only one possible value left.
+
+  sep=()
+  [[ ${#snames}+${#names}+${#onames} -ne 1 ]] && compvalues -s sep &&
+      expl=( "-qS$sep" "$expl[@]" ) sep=( "-qS$sep" )
+
+  if [[ "$action" = -\>* ]]; then
+    compvalues -v val_args
+    state="${${action[3,-1]##[ 	]#}%%[ 	]#}"
+    state_descr="$descr"
+    if [[ -n "$usecc" ]]; then
+      curcontext="${oldcontext%:*}:$subc"
+    else
+      context="$subc"
+    fi
+    compstate[restore]=''
+    return 1
+  else
+    typeset -A val_args
+
+    compvalues -v val_args
+
+    if [[ "$action" = \ # ]]; then
+
+      # An empty action means that we should just display a message.
+
+      _message -e arguments "$descr"
+      return 1
+
+    elif [[ "$action" = \(\(*\)\) ]]; then
+      local ws
+
+      # ((...)) contains literal strings with descriptions.
+
+      eval ws\=\( "${action[3,-3]}" \)
+
+      _describe "$descr" ws -M 'r:|[_-]=* r:|=*' "$subopts[@]" "$sep[@]"
+
+    elif [[ "$action" = \(*\) ]]; then
+
+      # Anything inside `(...)' is added directly.
+
+      eval ws\=\( "${action[2,-2]}" \)
+
+      _all_labels arguments expl "$descr" compadd "$subopts[@]" "$sep[@]" -a - ws
+    elif [[ "$action" = \{*\} ]]; then
+
+      # A string in braces is evaluated.
+
+      while _next_label arguments expl "$descr"; do
+        eval "$action[2,-2]"
+      done
+    elif [[ "$action" = \ * ]]; then
+
+      # If the action starts with a space, we just call it.
+
+      eval "action=( $action )"
+      while _next_label arguments expl "$descr"; do
+        "$action[@]"
+      done
+    else
+
+      # Otherwise we call it with the description-arguments built above.
+
+      eval "action=( $action )"
+      while _next_label arguments expl "$descr"; do
+        "$action[1]" "$subopts[@]" "$expl[@]" "${(@)action[2,-1]}"
+      done
+    fi
+  fi
+
+  curcontext="$oldcontext"
+
+  [[ nm -ne "$compstate[nmatches]" ]]
+else
+  curcontext="$oldcontext"
+
+  return 1;
+fi

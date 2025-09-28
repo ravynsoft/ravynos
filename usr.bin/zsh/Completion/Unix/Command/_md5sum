@@ -1,0 +1,53 @@
+#compdef md5sum gmd5sum b2sum gb2sum sha1sum gsha1sum sha224sum gsha224sum sha256sum gsha256sum sha384sum gsha384sum sha512sum gsha512sum
+
+# This function covers the various digest utilities (which are all essentially
+# the same program) from GNU Coreutils. It does NOT cover GNU `cksum` and `sum`,
+# nor the various BSD digest utilities like `md5` and `sha1` — see `_cksum` for
+# all of those. See `_shasum` for the `shasum` Perl script.
+#
+# @todo Support BusyBox?
+
+local type ign
+local -a args
+
+case $service in
+  *md5*) type=MD5 ;;
+  *b2*)  type=BLAKE2 ;;
+  *sha*) type=SHA${service//[^0-9]/} ;;
+esac
+
+# General options
+(( $#words > 2 )) && ign='!'
+args=(
+  '(: -)--help[display help information]'
+  '(: -)--version[display version information]'
+)
+# Summing options
+args=( ${ign}${^args}
+  + sum
+  '(chk)--tag[create BSD-style checksums]'
+  '(chk -b -t --binary --text)'{-b,--binary}'[read in binary mode]'
+  '(chk -b -t --binary --text)'{-t,--text}'[read in text mode]'
+  '(chk -z --zero)'{-z,--zero}'[end each output line with NUL and disable filename escaping]'
+)
+# This is the only option that differs amongst all of these tools
+[[ $service == *b2* ]] && args+=(
+  '(chk -l --length)'{-l+,--length=}'[specify digest length]:digest length (bits, multiples of 8)'
+)
+# Verification options
+args+=(
+  + chk
+  '(sum -c --check)'{-c,--check}"[verify $type checksums from input files]"
+  "(sum)--ignore-missing[don't fail or report status for missing files]"
+  "(sum)--quiet[don't print OK for each verified file]"
+  '(sum -w --warn)--status[suppress all output]'
+  '(sum)--strict[exit non-zero for improperly formatted checksum lines]'
+  '(sum -w --status --warn)'{-w,--warn}'[warn about each improperly formatted checksum line]'
+)
+# Operands
+args+=(
+  + operand
+  '*: :_files'
+)
+
+_arguments -s -S : $args

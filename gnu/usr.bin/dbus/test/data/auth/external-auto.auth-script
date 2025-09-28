@@ -1,0 +1,18 @@
+# Test that we can authenticate with an empty authorization identity
+SERVER
+EXPECT_HAVE_NO_CREDENTIALS
+
+# C: "I want to use EXTERNAL, I decline to specify an initial response"
+SEND 'AUTH EXTERNAL'
+# S: "OK, who do you claim to be?"
+EXPECT_COMMAND DATA
+EXPECT_STATE WAITING_FOR_INPUT
+EXPECT_HAVE_NO_CREDENTIALS
+# C: "I am whoever the kernel says I am"
+SEND 'DATA'
+# S: "I suppose I can't argue with that"
+EXPECT_COMMAND OK
+EXPECT_STATE WAITING_FOR_INPUT
+SEND 'BEGIN'
+EXPECT_STATE AUTHENTICATED
+EXPECT_HAVE_SOME_CREDENTIALS

@@ -1,0 +1,89 @@
+#autoload
+
+# Complete history-style modifiers; the first : will have
+# been matched and compset -p 1'd.
+# The single argument is the type of context:
+#   h  history
+#   q  glob qualifier
+#   p  parameter
+
+local -a list
+
+local type=$1 delim expl
+integer global
+
+while true; do
+  if [[ -n $PREFIX ]]; then
+    local char=$PREFIX[1]
+
+    global=0
+    compset -p 1
+    case $char in
+      ([hretpqQxlu\&])
+      # single character modifiers
+      ;;
+
+      (s)
+      # match delimiter string delimiter string delimiter
+      if [[ -z $PREFIX ]]; then
+	_delimiters modifier-s
+	return
+      fi
+      delim=$PREFIX[1]
+      compset -p 1
+      if ! compset -P "[^${delim}]#${delim}[^${delim}]#${delim}"; then
+	if compset -P "[^${delim}]#${delim}"; then
+	  _message "replacement string"
+	else
+	  _message "original string"
+	fi
+	return
+      fi
+      ;;
+
+      (g)
+      global=1
+      continue
+      ;;
+    esac
+
+    # modifier completely matched, see what's next.
+    compset -P : && continue
+    # if there's something other than colon next, bummer
+    [[ -n $PREFIX ]] && return 1
+
+    list=("\::modifier")
+    [[ $type = q ]] && list+=("):end of qualifiers")
+    # strictly we want a normal suffix if end of qualifiers
+    _describe -t delimiters "delimiter" list -Q -S ''
+    return
+  else
+    list=(
+      "s:substitute string"
+      "&:repeat substitution"
+      )
+    if (( ! global )); then
+      list+=(
+	"a:absolute path, resolve '..' lexically"
+	"A:as ':a', then resolve symlinks"
+	"c:PATH search for command"
+	"g:globally apply s or &"
+	"h:head - strip trailing path element"
+	"t:tail - strip directories"
+	"r:root - strip suffix"
+	"e:leave only extension"
+	"Q:strip quotes"
+	"P:realpath, resolve '..' physically"
+	"l:lower case all words"
+	"u:upper case all words"
+	)
+      [[ $type = h ]] && list+=(
+	"p:print without executing"
+	"x:quote words, breaking on whitespace"
+	)
+      [[ $type = [hp] ]] && list+=("q:quote to escape further substitutions")
+    fi
+    _describe -t modifiers "modifier" list -Q -S ''
+    return
+  fi
+done

@@ -1,0 +1,14 @@
+#compdef -math- let
+
+if [[ "$PREFIX" = *[^a-zA-Z0-9_]* ]]; then
+  IPREFIX="$IPREFIX${PREFIX%%[a-zA-Z0-9_]#}"
+  PREFIX="${PREFIX##*[^a-zA-Z0-9_]}"
+fi
+if [[ "$SUFFIX" = *[^a-zA-Z0-9_]* ]]; then
+  ISUFFIX="${SUFFIX##[a-zA-Z0-9_]#}$ISUFFIX"
+  SUFFIX="${SUFFIX%%[^a-zA-Z0-9_]*}"
+fi
+
+_alternative 'math-parameters:math parameter: _math_params' \
+    'user-math-functions:user math function: _user_math_func' \
+    'module-math-functions:math function from zsh/mathfunc: _module_math_func'

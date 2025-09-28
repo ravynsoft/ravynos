@@ -1,0 +1,29 @@
+There are .* section headers, starting at offset .*:
+
+Section Headers:
+ +\[Nr\] Name +Type +Address +Offset
+ +Size +EntSize +Flags +Link +Info +Align
+ +\[ 0\] +NULL +0000000000000000 +00000000
+ +0000000000000000 +0000000000000000 +0 +0 +0
+ +\[ 1\] .text +PROGBITS +0000000000000000 +00000040
+ +00000000000000.. +0000000000000000 +AX +0 +0 +.*
+ +\[ 2\] .rel.+text +REL. +0+ +0+.*
+ +000000000000001. +000000000000001. +I +. +1 +8
+ +\[ 3\] .data +PROGBITS +0000000000000000 +000000(48|50)
+ +000000000000000[48] +0000000000000000 +WA +0 +0 +.*
+ +\[ 4\] .bss +NOBITS +0000000000000000 +000000(4c|50|54|58|68)
+ +0000000000000000 +0000000000000000 +WA +0 +0 +.*
+# x86 targets may put .note.gnu.property here.
+# riscv targets put .riscv.attributes here.
+#...
+ +\[ .\] .symtab +SYMTAB +0000000000000000 +0+.*
+# aarch64-elf targets have one more data symbol.
+# x86 targets may have .note.gnu.property.
+# riscv targets have two more symbols, data symbol and .riscv.attributes.
+ +0+.* +0000000000000018 +(6|7) +(3|4|5) +8
+ +\[ .\] .strtab +STRTAB +0000000000000000 +0+.*
+ +0+.* +0000000000000000 .* +0 +0 +1
+ +\[ .\] .shstrtab +STRTAB +0000000000000000 +[0-9a-f]+
+ +00000000000000.. +0000000000000000 .* +0 +0 +.*
+Key to Flags:
+#...

@@ -1,0 +1,164 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# a set of tests for associative arrays in arithmetic contexts
+
+declare -A assoc
+key='x],b[$(echo uname >&2)'
+
+(( assoc[$key]++ ))
+declare -p assoc
+
+(( assoc['$key']++ ))
+declare -p assoc
+
+(( assoc["$key"]++ ))
+declare -p assoc
+
+declare -A assoc
+
+(( 'assoc[$key]++' ))
+declare -p assoc
+
+(( 'assoc[$key]'++ ))
+declare -p assoc
+
+(( "assoc[$key]++" ))
+declare -p assoc
+
+unset assoc
+
+typeset -A a
+b="80's"
+
+((++a[$b]))
+
+((++a["$b"]))
+[[ $((++a[$b])) ]]
+[[ $((++a["$b"])) ]]
+
+echo ${a[$b]}
+unset a
+
+declare -A A
+
+string=abcdefghijklmnopqrstuvwxyz
+
+echo ${string:10:10}
+k1='%'
+k2='$(echo %)'
+
+A[%]=10
+A[']']=10
+A[$k2]=5
+
+k3=']'
+
+echo ${string:A[%]:A[$k1]}
+echo ${string:A[%]:A[$k2]}
+echo ${string:A[%]:A[$k3]}
+
+declare -p A
+
+unset A string key
+
+key='~'
+
+declare -A A
+A[$key]=42
+
+declare -p A
+
+echo $(( A[$key]++ ))
+declare -p A
+
+key='~0'
+A[$key]=42
+echo $(( A[$key]++ ))
+declare -p A
+
+declare -a a
+key='~-2'
+a[0]=12
+a[$key]=42
+echo $(( a[7<(4+2)] ))
+
+declare -p a
+
+unset A a key
+
+declare -A A
+declare -a a
+
+sString="devel packager's guide"
+i=2
+
+A["$sString"]=$i
+a[$i]=$sString
+
+echo "${A[${a[i]}]}"
+echo ${A["${a[i]}"]}
+
+unset A a
+
+#LANG=C
+unset var assoc
+var=\'\]
+declare -Ai assoc
+assoc[$var]=1
+assoc[$var]+=1
+((assoc['$var']++))
+((assoc[$var]++))
+typeset -p assoc
+
+unset assoc
+
+declare -A assoc
+key1='` echo >&2 foo`'
+key2='$( echo >&2 bar)'
+
+assoc[$key1]=42
+assoc[$key2]=63
+
+echo $(( assoc[$key1] + assoc[$key2] ))
+declare -p assoc
+unset assoc
+
+declare -a a
+key='x],b[$(echo uname >&2)'
+a[$key]=42
+
+expr='a[$key]'
+
+(( $expr ))
+echo $?
+
+echo $(( $expr ))
+echo $?
+
+echo $(( expr ))
+echo $?
+
+(( expr ))
+echo $?
+
+${THIS_SH} ./quotearray1.sub
+${THIS_SH} ./quotearray2.sub
+${THIS_SH} ./quotearray3.sub
+
+# behavior of builtins with array subscripts @ and *
+${THIS_SH} ./quotearray4.sub
+
+# behavior of unset with quoted and unquoted array arguments
+${THIS_SH} ./quotearray5.sub

@@ -1,0 +1,24 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C support: out-of-range hexadecimal escape sequences.
+
+: ${XGETTEXT=xgettext}
+
+cat <<\EOF > xg-c-7.c
+gettext("\x678888");
+EOF
+
+${XGETTEXT} --omit-header --no-location -o xg-c-7.tmp xg-c-7.c || Exit 1
+func_filter_POT_Creation_Date xg-c-7.tmp xg-c-7.po
+
+cat <<\EOF > xg-c-7.ok
+msgid "g"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-c-7.ok xg-c-7.po
+result=$?
+
+exit $result

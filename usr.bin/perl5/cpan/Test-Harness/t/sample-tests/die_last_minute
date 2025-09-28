@@ -1,0 +1,10 @@
+print <<DUMMY_TEST;
+ok 1
+ok 2
+ok 3
+ok 4
+1..4
+DUMMY_TEST
+
+eval "use vmsish 'hushed'" if ($^O eq 'VMS');
+exit 1;

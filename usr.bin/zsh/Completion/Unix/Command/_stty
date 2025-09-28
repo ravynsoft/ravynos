@@ -1,0 +1,18 @@
+#compdef stty gstty
+
+local expl
+
+if [[ "$words[CURRENT-1]" = \
+  (*erase|discard|status|dsusp|intr|kill|lnext|quit|reprint|start|s*p) ]]; then
+  _wanted characters expl 'control character' compadd '^-' '^h' '^?' '^c' '^u'
+else
+  compset -P '[-+]'
+  _wanted values expl setting \
+      compadd rows columns intr quit erase kill eof eol eol2 start stop \
+              susp dsusp reprint discard werase lnext parenb parodd cs8 \
+              cstopb hupcl cread clocal parext ignbrk brkint ignpar \
+	      parmrk inpck istrip inlcr igncr icrnl iuclc ixon ixany ixoff \
+              imaxbel isig icanon xcase echo echoe echok echonl noflsh \
+              tostop echoctl echoprt echoke flusho pending iexten opost \
+	      olcuc onlcr ocrnl onocr onlret ofill ofdel raw sane
+fi

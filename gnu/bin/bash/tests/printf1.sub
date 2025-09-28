@@ -1,0 +1,348 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+LC_ALL=C
+LC_NUMERIC=C
+
+unset vv
+
+# this should expand escape sequences in the format string, nothing else
+printf -v vv "\tone\n"
+printf "%s"  "$vv"
+
+# this should not cut off output after the \c
+printf -v vv "one\ctwo\n"
+printf "%s"  "$vv"
+
+# and unrecognized backslash escapes should have the backslash preserved
+printf -v vv "4\.2\n"
+printf "%s"  "$vv"
+
+printf -v vv "no newline " ; printf "%s" "$vv" ; printf -v vv "now newline\n"
+printf "%s"  "$vv"
+
+# %% -> %
+printf -v vv "%%\n"
+printf "%s"  "$vv"
+
+# this was a bug caused by pre-processing the string for backslash escapes
+# before doing the `%' format processing -- all versions before bash-2.04
+printf -v vv "\045"
+printf "%s"  "$vv"
+echo
+printf -v vv "\045d\n"
+printf "%s"  "$vv"
+
+# simple character output
+printf -v vv "%c\n" ABCD
+printf "%s"  "$vv"
+
+# test simple string output
+printf -v vv "%s\n" unquoted
+printf "%s"  "$vv"
+
+# test quoted string output
+printf -v vv "%s %q\n" unquoted quoted
+printf "%s"  "$vv"
+printf -v vv "%s%10q\n" unquoted quoted
+printf "%s"  "$vv"
+
+printf -v vv "%q\n" 'this&that'
+printf "%s"  "$vv"
+
+# make sure the format string is reused to use up arguments
+printf -v vv "%d " 1 2 3 4 5
+printf "%s"  "$vv"
+echo
+
+# make sure that extra format characters get null arguments
+printf -v vv "%s %d %d %d\n" onestring
+printf "%s"  "$vv"
+
+printf -v vv "%s %d %u %4.2f\n" onestring
+printf "%s"  "$vv"
+
+printf -v vv -- "--%s %s--\n" 4.2 ''
+printf "%s"  "$vv"
+printf -v vv -- "--%s %s--\n" 4.2
+printf "%s"  "$vv"
+
+# test %b escapes
+
+# 8 is a non-octal digit, so the `81' should be output
+#printf -v vv -- "--%b--\n" '\n\081'
+#printf "%s"  "$vv"
+
+printf -v vv -- "--%b--\n" '\t\0101'
+printf "%s"  "$vv"
+printf -v vv -- "--%b--\n" '\t\101'
+printf "%s"  "$vv"
+
+# these should all display `A7'
+printf -v vv "%b\n" '\01017'
+printf "%s"  "$vv"
+printf -v vv "%b\n" '\1017'
+printf "%s"  "$vv"
+printf -v vv "%b\n" '\x417'
+printf "%s"  "$vv"
+
+printf -v vv -- "--%b--\n" '\"abcd\"'
+printf "%s"  "$vv"
+printf -v vv -- "--%b--\n" "\'abcd\'"
+printf "%s"  "$vv"
+
+printf -v vv -- "--%b--\n" 'a\\x'
+printf "%s"  "$vv"
+
+printf -v vv -- "--%b--\n" '\x'
+printf "%s"  "$vv"
+
+Z1=$(printf -- "%b\n" '\a\b\e\f\r\v')
+Z2=$'\a\b\e\f\r\v'
+
+if [ "$Z1" != "$Z2" ]; then
+	printf "%s"  "whoops: printf -v vv %b and $'' differ" >&2
+fi
+unset Z1 Z2
+
+printf -v vv -- "--%b--\n" ''
+printf "%s"  "$vv"
+printf -v vv -- "--%b--\n"
+printf "%s"  "$vv"
+
+# the stuff following the \c should be ignored, as well as the rest
+# of the format string
+printf -v vv -- "--%b--\n" '4.2\c5.4\n'
+printf "%s"  "$vv"
+echo
+
+# unrecognized escape sequences should by displayed unchanged
+printf -v vv -- "--%b--\n" '4\.2'
+printf "%s"  "$vv"
+
+# a bare \ should not be processed as an escape sequence
+printf -v vv -- "--%b--\n" '\'
+printf "%s"  "$vv"
+
+# make sure extra arguments are ignored if the format string doesn't
+# actually use them
+printf -v vv "\n" 4.4 BSD
+printf "%s"  "$vv"
+printf -v vv " " 4.4 BSD
+printf "%s"  "$vv"
+echo
+
+# make sure that a fieldwidth and precision of `*' are handled right
+printf -v vv "%10.8s\n" 4.4BSD
+printf "%s"  "$vv"
+printf -v vv "%*.*s\n" 10 8 4.4BSD
+printf "%s"  "$vv"
+
+printf -v vv "%10.8q\n" 4.4BSD
+printf "%s"  "$vv"
+printf -v vv "%*.*q\n" 10 8 4.4BSD
+printf "%s"  "$vv"
+
+printf -v vv "%6b\n" 4.4BSD
+printf "%s"  "$vv"
+printf -v vv "%*b\n" 6 4.4BSD
+printf "%s"  "$vv"
+
+# we handle this crap with homemade code in printf -v vv.def
+printf -v vv "%10b\n" 4.4BSD
+printf "%s"  "$vv"
+printf -v vv -- "--%-10b--\n" 4.4BSD
+printf "%s"  "$vv"
+printf -v vv "%4.2b\n" 4.4BSD
+printf "%s"  "$vv"
+printf -v vv "%.3b\n" 4.4BSD
+printf "%s"  "$vv"
+printf -v vv -- "--%-8b--\n" 4.4BSD
+printf "%s"  "$vv"
+
+# test numeric conversions -- these four lines should printf "%s"  identically
+printf -v vv "%d %u %i 0%o 0x%x 0x%X\n" 255 255 255 255 255 255
+printf "%s"  "$vv"
+printf -v vv "%d %u %i %#o %#x %#X\n" 255 255 255 255 255 255
+printf "%s"  "$vv"
+
+printf -v vv "%ld %lu %li 0%o 0x%x 0x%X\n" 255 255 255 255 255 255
+printf "%s"  "$vv"
+printf -v vv "%ld %lu %li %#o %#x %#X\n" 255 255 255 255 255 255
+printf "%s"  "$vv"
+
+printf -v vv "%10d\n" 42
+printf "%s"  "$vv"
+printf -v vv "%10d\n" -42
+printf "%s"  "$vv"
+
+printf -v vv "%*d\n" 10 42
+printf "%s"  "$vv"
+printf -v vv "%*d\n" 10 -42
+printf "%s"  "$vv"
+
+# test some simple floating point formats
+printf -v vv "%4.2f\n" 4.2
+printf "%s"  "$vv"
+printf -v vv "%#4.2f\n" 4.2
+printf "%s"  "$vv"
+printf -v vv "%#4.1f\n" 4.2
+printf "%s"  "$vv"
+
+printf -v vv "%*.*f\n" 4 2 4.2
+printf "%s"  "$vv"
+printf -v vv "%#*.*f\n" 4 2 4.2
+printf "%s"  "$vv"
+printf -v vv "%#*.*f\n" 4 1 4.2
+printf "%s"  "$vv"
+
+printf -v vv "%E\n" 4.2
+printf "%s"  "$vv"
+printf -v vv "%e\n" 4.2
+printf "%s"  "$vv"
+printf -v vv "%6.1E\n" 4.2
+printf "%s"  "$vv"
+printf -v vv "%6.1e\n" 4.2
+printf "%s"  "$vv"
+
+printf -v vv "%G\n" 4.2
+printf "%s"  "$vv"
+printf -v vv "%g\n" 4.2
+printf "%s"  "$vv"
+printf -v vv "%6.2G\n" 4.2
+printf "%s"  "$vv"
+printf -v vv "%6.2g\n" 4.2
+printf "%s"  "$vv"
+
+# test some of the more esoteric features of POSIX.1 printf -v vv
+printf -v vv "%d\n" "'string'"
+printf "%s"  "$vv"
+printf -v vv "%d\n" '"string"'
+printf "%s"  "$vv"
+
+printf -v vv "%#o\n" "'string'"
+printf "%s"  "$vv"
+printf -v vv "%#o\n" '"string"'
+printf "%s"  "$vv"
+
+printf -v vv "%#x\n" "'string'"
+printf "%s"  "$vv"
+printf -v vv "%#X\n" '"string"'
+printf "%s"  "$vv"
+
+printf -v vv "%6.2f\n" "'string'"
+printf "%s"  "$vv"
+printf -v vv "%6.2f\n" '"string"'
+printf "%s"  "$vv"
+
+# output from these two lines had better be the same
+printf -v vv -- "--%6.4s--\n" abcdefghijklmnopqrstuvwxyz
+printf "%s"  "$vv"
+printf -v vv -- "--%6.4b--\n" abcdefghijklmnopqrstuvwxyz
+printf "%s"  "$vv"
+
+# and these two also
+printf -v vv -- "--%12.10s--\n" abcdefghijklmnopqrstuvwxyz
+printf "%s"  "$vv"
+printf -v vv -- "--%12.10b--\n" abcdefghijklmnopqrstuvwxyz
+printf "%s"  "$vv"
+
+# tests for translating \' to ' and \\ to \
+# printf -v vv translates \' to ' in the format string...
+printf -v vv "\'abcd\'\n"
+printf "%s"  "$vv"
+
+# but not when the %b format specification is used
+printf -v vv "%b\n" \\\'abcd\\\'
+printf "%s"  "$vv"
+
+# but both translate \\ to \
+printf -v vv '\\abcd\\\n'
+printf "%s"  "$vv"
+printf -v vv "%b\n" '\\abcd\\'
+printf "%s"  "$vv"
+
+# this was reported as a bug in bash-2.03
+# these three lines should all printf "%s"  `26'
+printf -v vv "%d\n" 0x1a
+printf "%s"  "$vv"
+printf -v vv "%d\n" 032
+printf "%s"  "$vv"
+printf -v vv "%d\n" 26
+printf "%s"  "$vv"
+
+# error messages
+
+# this should be an overflow, but error messages vary between systems
+# printf -v vv "%lu\n" 4294967296
+
+# ...but we cannot use this because some systems (SunOS4, for example),
+# happily ignore overflow conditions in strtol(3)
+#printf -v vv "%ld\n" 4294967296
+
+printf -v vv "%10"
+printf -v vv "ab%Mcd\n"
+
+# this caused an infinite loop in older versions of printf -v vv
+printf -v vv "%y" 0
+
+# these should print a warning and `0', according to POSIX.2
+printf -v vv "%d\n" GNU
+printf "%s"  "$vv"
+printf -v vv "%o\n" GNU
+printf "%s"  "$vv"
+
+# failures in all bash versions through bash-2.05
+printf -v vv "%.0s" foo
+printf "%s"  "$vv"
+printf -v vv "%.*s" 0 foo
+printf "%s"  "$vv"
+
+printf -v vv '%.0b-%.0s\n' foo bar
+printf "%s"  "$vv"
+printf -v vv '(%*b)(%*s)\n' -4 foo -4 bar
+printf "%s"  "$vv"
+
+format='%'`printf '%0100384d' 0`'d\n' 
+printf -v vv $format 0
+printf "%s"  "$vv"
+
+# failures in all bash versions through bash-3.0 - undercounted characters
+unset vv
+printf -v vv "  %s %s %s  \n%n" ab cd ef vvv
+printf "%s" "$vv"
+echo $vvv
+
+# this doesn't work with printf -v vv(3) on all systems
+#printf -v vv "%'s\n" foo
+
+# test cases from an austin-group list discussion
+# prints ^G as an extension
+printf -v vv '%b\n' '\7'
+printf "%s"  "$vv"
+
+# prints ^G
+printf -v vv '%b\n' '\0007'
+printf "%s"  "$vv"
+
+# prints NUL then 7
+#printf -v vv '\0007\n'
+#printf "%s"  "$vv"
+
+# prints no more than two hex digits
+printf -v vv '\x07e\n'
+printf "%s"  "$vv"
+
+# additional backslash escapes
+printf -v vv '\"\?\n'
+printf "%s"  "$vv"

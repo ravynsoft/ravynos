@@ -1,0 +1,61 @@
+COMMENT(!MOD!zsh/zprof
+A module allowing profiling for shell functions.
+!MOD!)
+cindex(functions, profiling)
+When loaded, the tt(zsh/zprof) causes shell functions to be profiled.
+The profiling results can be obtained with the tt(zprof)
+builtin command made available by this module.  There is no way to turn 
+profiling off other than unloading the module.
+
+startitem()
+findex(zprof)
+item(tt(zprof) [ tt(-c) ])(
+Without the tt(-c) option, tt(zprof) lists profiling results to
+standard output.  The format is comparable to that of commands like
+tt(gprof).
+
+At the top there is a summary listing all functions that were called
+at least once.  This summary is sorted in decreasing order of the
+amount of time spent in each.  The lines contain
+the number of the function in order, which is used in 
+other parts of the list in suffixes of the form
+`tt([)var(num)tt(])', then the number of calls made to the function.
+The next three columns list the time in
+milliseconds spent in the function and its descendants, the average
+time in milliseconds spent in the function and its descendants per
+call and the percentage of time spent in all shell functions used in
+this function and its descendants.  The following three columns give
+the same information, but counting only the time spent in the function 
+itself.  The final column shows the name of the function.
+
+After the summary, detailed information about every function that was
+invoked is listed, sorted in decreasing order of the amount of time spent
+in each function and its descendants.  Each of these entries consists of
+descriptions for the functions that called the function described, the
+function itself, and the functions that were called from it.  The
+description for the function itself has the same format as in the summary
+(and shows the same information).  The other lines don't show the number of
+the function at the beginning and have their function named indented to
+make it easier to distinguish the line showing the function described in
+the section from the surrounding lines.
+
+The information shown in this case is almost the same as in the summary,
+but only refers to the call hierarchy being displayed.  For example, for a
+calling function the column showing the total running time lists the time
+spent in the described function and its descendants only for the times when
+it was called from that particular calling function.  Likewise, for a
+called function, this columns lists the total time spent in the called
+function and its descendants only for the times when it was called from the
+function described.
+
+Also in this case, the column showing the number of calls to a function
+also shows a slash and then the total number of invocations made to the
+called function.
+
+As long as the tt(zsh/zprof) module is loaded, profiling will be done and
+multiple invocations of the tt(zprof) builtin command will show the
+times and numbers of calls since the module was loaded.  With the
+tt(-c) option, the tt(zprof) builtin command will reset its internal
+counters and will not show the listing.
+)
+enditem()

@@ -1,0 +1,278 @@
+2023-07-30  Nick Clifton  <nickc@redhat.com>
+
+	This is the 2.41 release.
+	* po/gold.pot: Regenerate.
+
+2023-07-03  Nick Clifton  <nickc@redhat.com>
+
+	2.41 Branch Point.
+
+2023-06-28  Nick Clifton  <nickc@redhat.com>
+
+	* po/fr.po: Updated French translation.
+
+2023-03-27  Nick Clifton  <nickc@redhat.com>
+
+	PR 30187
+	* options.h (class General_options): Add enable-linker-version.
+	* layout.cc (Layout::create_gold_note): If linker-version is
+	enabled put the version string into the .comment section.
+
+2023-01-03  Nick Clifton  <nickc@redhat.com>
+
+	* po/ro.po: Updated Romainian translation.
+	* po/uk.po: Updated Ukrainian translation.
+
+2022-12-31  Nick Clifton  <nickc@redhat.com>
+
+	* 2.40 branch created.
+
+2022-12-19  Nick Clifton  <nickc@redhat.com>
+
+	* po/ro.po: New file: Romainian translation.
+
+2022-07-08  Nick Clifton  <nickc@redhat.com>
+
+	* 2.39 branch created.
+
+2022-06-27  Nick Clifton  <nickc@redhat.com>
+
+	PR 23765
+	* fileread.cc (File_read::do_read): Check start parameter before
+	computing number of bytes to read.
+
+2022-05-18  Nick Clifton  <nickc@redhat.com>
+
+	* int_encoding.cc (get_length_as_unsigned_LEB_128): Remove
+	current_length variable.
+
+2022-02-17  Nick Clifton  <nickc@redhat.com>
+
+	* po/sr.po: Updated Serbian translation.
+
+2022-02-02  Nick Clifton  <nickc@redhat.com>
+
+	* po/fr.po: Updated French translation.
+
+2022-01-24  Nick Clifton  <nickc@redhat.com>
+
+	* po/ro.po: Updated Romanian translation.
+
+2022-01-22  Nick Clifton  <nickc@redhat.com>
+
+	* configure: Regenerate.
+	* po/gold.pot: Regenerate.
+	* Makefile.in: Regenerate.
+	* testsuite/Makefile.in: Regenerate.
+
+2022-01-22  Nick Clifton  <nickc@redhat.com>
+
+	* 2.38 release branch created.
+
+2021-08-10  Nick Clifton  <nickc@redhat.com>
+
+	* po/sr.po: Updated Serbian translation.
+
+2021-07-20  Alan Modra  <amodra@gmail.com>
+
+	PR gold/28106
+	PR gold/27815
+	* gc.h (gc_process_relocs): Use static_cast in Section_id constructor.
+
+2021-07-17  Michael Krasnyk  <michael.krasnyk@gmail.com>
+
+	PR gold/28098
+	* reloc.cc (Track_relocs::advance): Skip R_*_NONE relocation entries
+	with r_sym of zero without counting in advance method.
+
+2021-07-03  Nick Clifton  <nickc@redhat.com>
+
+	* po/gold.pot: Regenerate.
+
+2021-07-03  Nick Clifton  <nickc@redhat.com>
+
+	* 2.37 release branch created.
+
+2021-05-25  Alan Modra  <amodra@gmail.com>
+
+	PR gold/27815
+	* gc.h (gc_process_relocs): Use cast in Section_id constructor.
+
+2021-05-22  Alan Modra  <amodra@gmail.com>
+
+	PR gold/27815
+	* gc.h (gc_process_relocs): Use nullptr in Section_id constructor.
+
+2021-05-15  Alan Modra  <amodra@gmail.com>
+
+	PR 27834
+	* options.cc (General_options::General_options): Init bsymbolic_.
+
+2021-05-04  Fangrui Song  <maskray@google.com>
+
+	PR 27834
+	* options.h (General_options): Make -Bsymbolic and
+	-Bsymbolic-functions special and adjust the help messages. Add
+	enum Bsymbolic_kind and -Bno-symbolic.
+	* options.cc (General_options): Define parse_Bno_symbolic,
+	parse_Bsymbolic_functions, and parse_Bsymbolic.
+
+2021-03-30  Alan Modra  <amodra@gmail.com>
+
+	PR gold/27625
+	* powerpc.cc (Powerpc_relobj): Add no_tls_marker_, tls_marker_,
+	and tls_opt_error_ variables and accessors.
+	(Target_powerpc::Scan::local, global): Call set_tls_marker and
+	set_no_tls_marker for GD and LD code sequence relocations.
+	(Target_powerpc::Relocate::relocate): Downgrade the "lacks marker
+	reloc" error to a warning when safe to do so, and omit the error
+	entirely if not optimising TLS sequences.  Do not optimise GD and
+	LD sequences for objects lacking marker relocs.
+	(Target_powerpc::relocate_relocs): Heed no_tls_marker here too.
+
+2021-03-19  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/27615
+	* errors.cc (Errors::trace): New method.
+	(gold_trace): New function.
+	* errors.h (Errors::trace): New method.
+	* gold.h (gold_trace): New function.
+	* object.cc (Input_objects::add_object): Use gold_trace to print
+	object file names.
+
+2021-03-19  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/pr23870
+	* testsuite/aarch64_pr23870_bar.c: Return a magic value.
+	* testsuite/aarch64_pr23870_foo.c: Check the magic value and return
+	success or failure.
+
+2021-03-19  Holger Berger  <holger.berger@googlemail.com>
+
+	PR gold/26541
+	* output.cc (gold_fallocate): Use errno when calling system fallocate.
+
+2021-03-19  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/26585
+	* main.cc (main): Fix typo in previous patch.
+
+2021-03-19  Duncan Simpson  <dr.duncan.p.simpson@gmail.com>
+
+	PR gold/26585
+	* configure.ac: Add check for mallinfo2.
+	* configure: Regenerate.
+	* config.in: Regenerate from previous commit.
+	* main.cc (main): Use mallinfo2 if available.
+
+2021-03-19  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/27246
+	* dwarf_reader.cc (Dwarf_abbrev_table::do_get_abbrev): Handle
+	DW_FORM_implicit_const.
+	(Dwarf_ranges_table::read_ranges_table): Add version parameter;
+	Adjust all callers.  Look for .debug_rnglists section if DWARF 5.
+	(Dwarf_ranges_table::read_range_list_v5): New method.
+	(Dwarf_die::read_attributes): Handle new DWARF 5 DW_FORM codes.
+	(Dwarf_die::skip_attributes): Likewise.
+	(Dwarf_info_reader::do_parse): Support DWARF 5 unit header format.
+	(Dwarf_info_reader::read_3bytes_from_pointer): New method.
+	(Sized_dwarf_line_info::Sized_dwarf_line_info): Initialize
+	str_buffer_, str_buffer_start, reloc_map_, line_number_map_.
+	Look for .debug_line_str section.
+	(Sized_dwarf_line_info::read_header_prolog): Support DWARF 5 prolog.
+	(Sized_dwarf_line_info::read_header_tables): Rename to...
+	(Sized_dwarf_line_info::read_header_tables_v2): ... this.
+	(Sized_dwarf_line_info::read_header_tables_v5): New method.
+	(Sized_dwarf_line_info::process_one_opcode): Insert missing "this->".
+	Change advance_line to signed int64_t.
+	(Sized_dwarf_line_info::read_lines): Add endptr parameter; adjust
+	callers.  Insert missing "this->".
+	(Sized_dwarf_line_info::read_line_mappings): Support DWARF 5.
+	(Sized_dwarf_line_info::do_addr2line): Add debug code.
+	* dwarf_reader.h (Dwarf_abbrev_table::Attribute): Add implicit_const
+	field. Adjust constructor.
+	(Dwarf_abbrev_table::add_sttribute): Add implicit_const parameter.
+	(Dwarf_ranges_table::read_ranges_table): Add version parameter.
+	(Dwarf_ranges_table::read_range_list_v5): New method.
+	(Dwarf_die): Remove unused attr_off field.
+	(Dwarf_info_reader::Dwarf_info_reader): Initialize unit_type_ field.
+	(Dwarf_info_reader::is_type_unit): New method.
+	(Dwarf_info_reader::read_3bytes_from_pointer): New method.
+	(Dwarf_info_reader::read_range_list): Call read_range_list_v5 for
+	DWARF 5 range lists.
+	(Dwarf_info_reader::is_type_unit_): Remove.
+	(Dwarf_info_reader::unit_type_): New field.
+	(Sized_dwarf_line_info::~Sized_dwarf_line_info): Delete
+	str_buffer_start_.
+	(Sized_dwarf_line_info::read_header_tables): Rename to...
+	(Sized_dwarf_line_info::read_header_tables_v2): ... this.
+	(Sized_dwarf_line_info::read_header_tables_v5): New method.
+	(Sized_dwarf_line_info::read_lines): Add endptr parameter.
+	(Sized_dwarf_line_info::Dwarf_line_infoHeader): Add address_size field.
+	(Sized_dwarf_line_info::str_buffer_): New field.
+	(Sized_dwarf_line_info::str_buffer_end_): New field.
+	(Sized_dwarf_line_info::str_buffer_start_): New field.
+	(Sized_dwarf_line_info::end_of_header_length_): New field.
+	(Sized_dwarf_line_info::end_of_unit_): New field.
+
+2021-01-28  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/27246
+	* dwarf_reader.cc (Sized_dwarf_line_info::read_header_prolog):
+	Skip address size and segment selector for DWARF5.
+
+2021-01-19  Alan Modra  <amodra@gmail.com>
+
+	PR 27203
+	* powerpc.cc (do_plt_fde_location): Remove doing_static_link
+	assertion.
+
+2021-01-17  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* testsuite/ifuncmain6pie.c: Remove non-JUMP_SLOT relocations
+	against foo in ifuncmod6.so.
+	* testsuite/ifuncmod6.c: Likewise.
+
+2021-01-14  Nick Clifton  <nickc@redhat.com>
+
+	* po/fr.po: Updated French translation.
+
+2021-01-11  Nick Clifton  <nickc@redhat.com>
+
+	* po/sr.po: Updated Serbian translation.
+	* po/uk.po: Updated Ukranian translation.
+
+2021-01-09  Nick Clifton  <nickc@redhat.com>
+
+	* 2.36 release branch crated.
+
+2021-01-03  Alan Modra  <amodra@gmail.com>
+
+	PR 27140
+	* powerpc.cc (Target_powerpc::Branch_info::make_stub): Only access
+	object->st_other() when 64-bit.
+	(Stub_table::add_long_branch_entry): Ignore "other" when 32-bit.
+
+2021-01-01  Nicolas Boulenguez  <nicolas@debian.org>
+
+	* tilegx.cc: Correct comment spelling.
+
+2021-01-01  Alan Modra  <amodra@gmail.com>
+
+	Update year range in copyright notice of all files.
+
+For older changes see ChangeLog-2020
+
+Copyright (C) 2021-2023 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 74
+version-control: never
+End:

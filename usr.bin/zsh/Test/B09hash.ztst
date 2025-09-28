@@ -1,0 +1,79 @@
+# The hash builtin is most used for the command hash table, which is
+# populated automatically.  This is therefore highly system specific,
+# so mostly we'll test with the directory hash table: the logic is
+# virtually identical but with the different table, and furthermore
+# the shell doesn't care whether the directory exists unless you refer
+# to it in a context that needs one.
+
+%prep
+  populate_hash() {
+    hash -d one=/first/directory
+    hash -d two=/directory/the/second
+    hash -d three=/noch/ein/verzeichnis
+    hash -d four=/bored/with/this/now
+  }
+
+%test
+
+  hash -d
+0:Directory hash initially empty
+
+  populate_hash
+  hash -d
+0:Populating directory hash and output with sort
+>four=/bored/with/this/now
+>one=/first/directory
+>three=/noch/ein/verzeichnis
+>two=/directory/the/second
+  
+  hash -rd
+  hash -d
+0:Empty hash
+
+  populate_hash
+  hash -d
+0:Refill hash
+>four=/bored/with/this/now
+>one=/first/directory
+>three=/noch/ein/verzeichnis
+>two=/directory/the/second
+ 
+  hash -dL
+0:hash -L option
+>hash -d four=/bored/with/this/now
+>hash -d one=/first/directory
+>hash -d three=/noch/ein/verzeichnis
+>hash -d two=/directory/the/second
+
+  hash -dm 't*'
+0:hash -m option
+>three=/noch/ein/verzeichnis
+>two=/directory/the/second
+
+  hash -d five=/yet/more six=/here/we/go seven=/not/yet/eight
+  hash -d
+0:Multiple assignments
+>five=/yet/more
+>four=/bored/with/this/now
+>one=/first/directory
+>seven=/not/yet/eight
+>six=/here/we/go
+>three=/noch/ein/verzeichnis
+>two=/directory/the/second
+
+  hash -d one two three
+0:Multiple arguments with no assignment not in verbose mode
+
+  hash -vd one two three
+0:Multiple arguments with no assignment in verbose mode
+>one=/first/directory
+>two=/directory/the/second
+>three=/noch/ein/verzeichnis
+
+  hash -d t-t=/foo
+  i="~t-t"
+  print ~t-t/bar
+  print ${~i}/rab
+0:Dashes are untokenized in directory hash names
+>/foo/bar
+>/foo/rab

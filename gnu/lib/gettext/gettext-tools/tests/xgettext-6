@@ -1,0 +1,259 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of position dependent recognition of format strings.
+
+cat <<\EOF > xg-test6.c
+fprintf (fp, gettext ("c-format positive1"), gettext ("c-format negative1"));
+printk (gettext ("c-format negative2"));
+EOF
+
+cat <<\EOF > xg-test6.sh
+eval_gettext "sh-format positive1" "`gettext \"sh-format negative1\"`"
+echo "`gettext \"sh-format negative2\"`"
+EOF
+
+cat <<\EOF > xg-test6.py
+my_printf (gettext ("python-format positive1"),
+           gettext ("python-format negative1"));
+printk (gettext ("python-format negative2"));
+EOF
+
+cat <<\EOF > xg-test6.lisp
+(format t (gettext "lisp-format positive1") (gettext "lisp-format negative1"))
+(prin1 (gettext "lisp-format negative2"))
+EOF
+
+cat <<\EOF > xg-test6.el
+(format (_ "elisp-format positive1") (_ "elisp-format negative1"))
+(printk (_ "elisp-format negative2"))
+EOF
+
+cat <<\EOF > xg-test6.jl
+(format stream (_ "librep-format positive1") (_ "librep-format negative1"))
+(printk (_ "librep-format negative2"))
+EOF
+
+cat <<\EOF > xg-test6.java
+MessageFormat.format(gettext("java-format positive1"),
+                     gettext("java-format negative1"));
+String.format(gettext("java-printf-format positive1"),
+              gettext("java-printf-format negative1"));
+System.err.printf(gettext("java-printf-format positive2"),
+                  gettext("java-printf-format negative2"));
+System.err.println(gettext("both java-format, java-printf-format negative3"));
+EOF
+
+cat <<\EOF > xg-test6.awk
+printf dcgettext ("awk-format positive1"), dcgettext ("awk-format negative1");
+printf (dcgettext ("awk-format positive2"), dcgettext ("awk-format negative2"));
+printf dcgettext ("awk-format positive3"); dcgettext ("awk-format negative3");
+printk dcgettext ("awk-format negative4");
+EOF
+
+cat <<\EOF > xg-test6.ycp
+sformat (_("ycp-format positive1"), _("ycp-format negative1"));
+printk (_("ycp-format negative2"));
+EOF
+
+cat <<\EOF > xg-test6.tcl
+[format [::msgcat::mc "tcl-format positive1"]
+        [::msgcat::mc "tcl-format negative1"]]
+[print [::msgcat::mc "tcl-format negative2"]]
+EOF
+
+cat <<\EOF > xg-test6.pl
+printf gettext "perl-format positive1", gettext ("perl-format negative1");
+gettext ("perl-format negative2");
+printf gettext "perl-format positive2"; gettext ("perl-format negative3");
+gettext ("perl-format negative4");
+print sprintf gettext "perl-format positive3";
+print kprintf gettext "perl-format negative5";
+EOF
+
+cat <<\EOF > xg-test6.php
+<? php
+printf (_ ("php-format positive1"), _ ("php-format negative1"));
+printk (_ ("php-format negative2"));
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-test6.tmp \
+  --flag=my_printf:1:python-format \
+  xg-test6.c xg-test6.sh xg-test6.py xg-test6.lisp xg-test6.el \
+  xg-test6.jl xg-test6.java xg-test6.awk xg-test6.ycp xg-test6.tcl \
+  xg-test6.pl xg-test6.php  || Exit 1
+LC_ALL=C tr -d '\r' < xg-test6.tmp.po > xg-test6.po || Exit 1
+
+cat <<\EOF > xg-test6.ok
+#, c-format
+msgid "c-format positive1"
+msgstr ""
+
+msgid "c-format negative1"
+msgstr ""
+
+msgid "c-format negative2"
+msgstr ""
+
+#, sh-format
+msgid "sh-format positive1"
+msgstr ""
+
+msgid "sh-format negative1"
+msgstr ""
+
+msgid "sh-format negative2"
+msgstr ""
+
+#, python-format
+msgid "python-format positive1"
+msgstr ""
+
+msgid "python-format negative1"
+msgstr ""
+
+msgid "python-format negative2"
+msgstr ""
+
+#, lisp-format
+msgid "lisp-format positive1"
+msgstr ""
+
+msgid "lisp-format negative1"
+msgstr ""
+
+msgid "lisp-format negative2"
+msgstr ""
+
+#, elisp-format
+msgid "elisp-format positive1"
+msgstr ""
+
+msgid "elisp-format negative1"
+msgstr ""
+
+msgid "elisp-format negative2"
+msgstr ""
+
+#, librep-format
+msgid "librep-format positive1"
+msgstr ""
+
+msgid "librep-format negative1"
+msgstr ""
+
+msgid "librep-format negative2"
+msgstr ""
+
+#, java-format
+msgid "java-format positive1"
+msgstr ""
+
+msgid "java-format negative1"
+msgstr ""
+
+#, java-printf-format
+msgid "java-printf-format positive1"
+msgstr ""
+
+msgid "java-printf-format negative1"
+msgstr ""
+
+#, java-printf-format
+msgid "java-printf-format positive2"
+msgstr ""
+
+msgid "java-printf-format negative2"
+msgstr ""
+
+msgid "both java-format, java-printf-format negative3"
+msgstr ""
+
+#, awk-format
+msgid "awk-format positive1"
+msgstr ""
+
+msgid "awk-format negative1"
+msgstr ""
+
+#, awk-format
+msgid "awk-format positive2"
+msgstr ""
+
+msgid "awk-format negative2"
+msgstr ""
+
+#, awk-format
+msgid "awk-format positive3"
+msgstr ""
+
+msgid "awk-format negative3"
+msgstr ""
+
+msgid "awk-format negative4"
+msgstr ""
+
+#, ycp-format
+msgid "ycp-format positive1"
+msgstr ""
+
+msgid "ycp-format negative1"
+msgstr ""
+
+msgid "ycp-format negative2"
+msgstr ""
+
+#, tcl-format
+msgid "tcl-format positive1"
+msgstr ""
+
+msgid "tcl-format negative1"
+msgstr ""
+
+msgid "tcl-format negative2"
+msgstr ""
+
+#, perl-format
+msgid "perl-format positive1"
+msgstr ""
+
+msgid "perl-format negative1"
+msgstr ""
+
+msgid "perl-format negative2"
+msgstr ""
+
+#, perl-format
+msgid "perl-format positive2"
+msgstr ""
+
+msgid "perl-format negative3"
+msgstr ""
+
+msgid "perl-format negative4"
+msgstr ""
+
+#, perl-format
+msgid "perl-format positive3"
+msgstr ""
+
+msgid "perl-format negative5"
+msgstr ""
+
+#, php-format
+msgid "php-format positive1"
+msgstr ""
+
+msgid "php-format negative1"
+msgstr ""
+
+msgid "php-format negative2"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-test6.ok xg-test6.po
+result=$?
+
+exit $result

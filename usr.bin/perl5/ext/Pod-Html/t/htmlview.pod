@@ -1,0 +1,174 @@
+=head1 NAME
+
+Test HTML Rendering
+
+=head1 SYNOPSIS
+
+    use My::Module;
+
+    my $module = My::Module->new();
+
+=head1 DESCRIPTION
+
+This is the description.
+
+    Here is a verbatim section.
+
+This is some more regular text.
+
+Here is some B<bold> text, some I<italic> and something that looks 
+like an E<lt>htmlE<gt> tag. This is some C<$code($arg1)>.
+
+This C<text contains embedded B<bold> and I<italic> tags>. These can 
+be nested, allowing B<bold and I<bold E<amp> italic> text>. The module also
+supports the extended B<< syntax >> and permits I<< nested tags E<amp>
+other B<<< cool >>> stuff >>
+
+=head1 METHODS =E<gt> OTHER STUFF
+
+Here is a list of methods
+
+=head2 new()
+
+Constructor method. Accepts the following config options:
+
+=over 4
+
+=item foo
+
+The foo item.
+
+=item bar
+
+The bar item.
+
+=over 4
+
+This is a list within a list 
+
+=item *
+
+The wiz item.
+
+=item *
+
+The waz item.
+
+=back
+
+=item baz
+
+The baz item.
+
+=over 4
+
+=item * 
+
+A correct list within a list
+
+=item * Boomerang
+
+=back
+
+=back
+
+Title on the same line as the =item + * bullets
+
+=over
+
+=item * C<Black> Cat
+
+=item * Sat S<I<on> the>
+
+=item * MatE<lt>!E<gt>
+
+=back
+
+Title on the same line as the =item + numerical bullets
+
+=over
+
+=item 1
+
+Cat
+
+=item 2
+
+Sat
+
+=item 3
+
+Mat
+
+=back
+
+Numbered list with text on the same line
+
+=over
+
+=item 1 Cat
+
+=item 2 Sat
+
+=item 3 Mat
+
+=back
+
+No bullets, no title
+
+=over
+
+=item
+
+Cat
+
+=item
+
+Sat
+
+=item
+
+Mat
+
+=back
+
+=head2 old()
+
+Destructor method
+
+=head1 TESTING FOR AND BEGIN
+
+=for html    <br />
+<p>
+blah blah
+</p>
+
+intermediate text
+
+=begin html
+
+<more>
+HTML
+</more>
+
+some text
+
+=end html
+
+=head1 TESTING URLs hyperlinking
+
+This is an href link1: http://example.com
+
+This is an href link2: http://example.com/foo/bar.html
+
+This is an email link: mailto:foo@bar.com
+
+    This is a link in a verbatim block <a href="http://perl.org"> Perl </a>
+
+=head1 SEE ALSO
+
+See also L<Test Page 2|htmlescp>, the L<Your::Module> and L<Their::Module>
+manpages and the other interesting file F</usr/local/my/module/rocks>
+as well.
+
+=cut

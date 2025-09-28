@@ -1,0 +1,90 @@
+#compdef stat gstat zstat
+
+# Notes:
+# - @todo It would be nice to complete the -c/-f format strings some day
+# - @todo It should be possible to complete NFS file handles on FreeBSD and
+#   Dragonfly by parsing the output of `lsof -N`, but it's not available by
+#   default — is there another way?
+
+local expl variant ret=1
+local -a context line state state_descr args aopts=( -A '-*' )
+local -A opt_args
+
+_pick_variant -r variant -b zsh gnu='Free Soft' $OSTYPE --version
+
+case $variant in
+  zsh)
+    args=(
+      "(-H)-A[assign the results to array, don't print]:array variable:_parameters -g '*array*'"
+      - set1
+      +device +inode +mode +nlink +uid +gid +rdev
+      +size +atime +mtime +ctime +blksize +block +link
+      "(-A)-H[assign the results to associative array, don't print]:associative array variable:_parameters -g '*association*'"
+      '(:)-f[stat the specified file descriptor]:file descriptor:_file_descriptors'
+      '(-s)-F[specify strftime(3) format string]: :_date_formats zsh'
+      '(-s)-g[show times in GMT/UTC]'
+      # Note that this has the *opposite* effect of other variants' -L option!
+      "-L[don't dereference symbolic links; use lstat(2)]"
+      '(-N)-n[always show names of files]'
+      '(-n)-N[never show names of files]'
+      '-o[print file modes in octal rather than decimal]'
+      '-r[print raw data]'
+      '(-o)-s[print mode, UID, GID, and times as strings]'
+      '(-T)-t[always show type names]'
+      '(-t)-T[never show type names]'
+      '*: :_files'
+      - set2
+      '-l[list stat types]'
+    )
+    ;;
+  gnu)
+    aopts=( )
+    args=(
+      '*: :_files'
+      '(: * -)--help[display help information]'
+      '(: * -)--version[display version information]'
+      '(-L --dereference)'{-L,--dereference}'[dereference symbolic links]'
+      + '(d)' # Display options
+      {-c+,--format=}'[display per the specified format string]:format string'
+      {-f,--file-system}'[display file-system status instead of file status]'
+      '--printf=[display as with -c, but interpret backslash escapes like printf(3)]'
+      {-t,--terse}'[display in terse format]'
+    )
+    ;;
+  darwin*|dragonfly*|*bsd*)
+    args=(
+      '*: :->files-or-handles'
+      '(-H)-L[dereference symbolic links]'
+      '-q[suppress error messages about lstat(2)/stat(2) failure]'
+      + '(d)' # Primary display options
+      '(-F)-f+[display per the specified format string]:format string'
+      '-l[display in `ls -lT` format]'
+      '(-F -t)-r[display in raw (numerical) format]'
+      '(-F -t)-s[display in shell variable-assignment format]'
+      '(-F)-x[display in verbose (Linux-style) format]'
+      + D # Secondary display options
+      '(-f -r -s -x)-F[append file type indicators (implies -l)]'
+      '-n[suppress terminating newlines]'
+      '(-r -s)-t+[specify strftime(3) format string]: :_date_formats'
+    )
+    ;| # MATCH AGAIN
+  dragonfly*|freebsd*)
+    args+=(
+      + df
+      '(-L)-H[treat arguments as hexadecimal-formatted NFS file handles]'
+    )
+    ;;
+esac
+
+(( $#args )) || args=( '*: :_files' )
+
+_arguments -s -S $aopts : $args && ret=0
+
+[[ $state == files-or-handles ]] &&
+if [[ -n ${opt_args[(i)*--H]} ]]; then
+  _message -e nfs-handles 'NFS file handle'
+else
+  _files && ret=0
+fi
+
+return ret

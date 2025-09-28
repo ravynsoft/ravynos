@@ -1,0 +1,26 @@
+#compdef dscverify
+
+# $ dscverify --version
+# This is dscverify, from the Debian devscripts package, version 2.20.2
+# ...
+
+local all_opts=(
+  '--help[show the help message and exit]'
+  '--version[show the version + copyright and exit]'
+  '--no-default-keyrings[do not check against the default keyrings]'
+  '*--keyring[add keyring to the list of keyrings used]:keyring:_files -g "*.(kbx|gpg)(-.)"'
+  '(--nosigcheck --no-sig-check -u)'{--nosigcheck,--no-sig-check,-u}"[don't verify the GPG signature]"
+  "--verbose[don't suppress GPG output]"
+  '*:dsc file:_files -g "*.(changes|dsc|buildinfo)(-.)"'
+)
+
+local first_only=(
+  '(--no-conf --noconf)'{--no-conf,--noconf}"[don't read the devscripts config file]"
+)
+
+if (( CURRENT == 2 )); then
+  all_opts+=( $first_only )
+fi
+
+_arguments \
+  "$all_opts[@]"

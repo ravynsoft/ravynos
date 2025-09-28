@@ -1,0 +1,12 @@
+
+Symbol table '\.dynsym' contains .*:
+# The order of the next two symbols is not important.
+#...
+.*: 000a2000 +8 +OBJECT +GLOBAL +DEFAULT +[0-9]+ +obj1
+#...
+.*: 000a2008 +4 +OBJECT +GLOBAL +DEFAULT +[0-9]+ +obj2
+# The index on the next line should correspond to MIPS_GOTSYM.
+#...
+ *5: 0+ +0 +OBJECT +GLOBAL +DEFAULT +UND +obj3
+
+#pass

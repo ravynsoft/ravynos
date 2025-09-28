@@ -1,0 +1,34 @@
+#compdef cmp gcmp
+
+local args variant
+_pick_variant -r variant gnu=GNU $OSTYPE --version
+
+case $variant in
+  gnu)
+    args=(
+      '(-b --print-bytes)'{-b,--print-bytes}'[print differing bytes]'
+      '(-i --ignore-initial)'{-i+,--ignore-initial}'[skip specified number of bytes]:bytes'
+      '(-l --verbose -s --silent --quiet)'{-l,--verbose}'[output all differences]'
+      '(-n --bytes)'{-n+,--bytes=}'[specify maximum bytes to compare]:bytes'
+      '(-s --quiet --silent -l --verbose)'{-s,--quiet,--silent}'[return status alone signifies differences]'
+      '(- *)'{-v,--version}'[display version information]'
+      '(- *)--help[display help information]'
+    )
+  ;;
+  netbsd*) args+=( "-c[don't use mmap]" ) ;|
+  freebsd*|openbsd*)
+    args=(
+      "-h[don't follow symbolic links]"
+      '-x[hexadecimal output and zero based offset index]'
+      '-z[compare file sizes first]'
+    )
+  ;&
+  *)
+    args+=(
+      '(-s)-l[output all differences]'
+      '(-l)-s[silent: return status alone signifies differences]'
+    )
+  ;;
+esac
+
+_arguments -s $args '1:file 1:_files' '2:file 2:_files' '::byte offset' '::byte offset'

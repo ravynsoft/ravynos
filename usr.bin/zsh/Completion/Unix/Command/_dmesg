@@ -1,0 +1,39 @@
+#compdef dmesg
+
+local -a args
+
+case $OSTYPE in
+  linux*) args=( -S --  ) ;;
+  darwin*|dragonfly*|*bsd*)
+    args=(
+      '-M[extract values from core]:core file:_files'
+      '-N[extract name list from kernel image]:system:_files'
+    )
+  ;|
+  dragonfly*|freebsd*)
+    args=(
+      '-a[show all data, including syslog and console]'
+      '-c[clear the buffer after printing]'
+    )
+  ;|
+  openbsd*)
+    args+=(
+      '-s[show console message buffer instead]'
+    )
+  ;;
+  dragonfly*)
+    args+=(
+      '\*-f[follow buffer, displaying new data as it arrives]'
+      '-n[use specified kernel core]:number'
+    )
+  ;;
+  netbsd*)
+    args+=(
+      '-d[show timestamp deltas]'
+      '(-t)-T[format uptime timestamps in a human readable form]'
+      '(-T)-t[suppress printing uptime timestamps]'
+    )
+  ;;
+esac
+
+_arguments -s : $args

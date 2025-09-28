@@ -1,0 +1,1809 @@
+.\" Man page generated from reStructuredText.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "LIBTIFF" "3tiff" "Sep 08, 2023" "4.6" "LibTIFF"
+.SH NAME
+libtiff \- introduction to libtiff, a library for reading and writing TIFF files
+.SH SYNOPSIS
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <tiffio.h>
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+cc file.c \-ltiff
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH DESCRIPTION
+.sp
+\fBlibtiff\fP is a library for reading and writing data files encoded with the
+\fI“Tag Image File”\fP format, Revision 6.0 (or revision 5.0 or revision 4.0). This file
+format is suitable for archiving multi\-color and monochromatic image data.
+.sp
+The library supports several compression algorithms, as indicated by the
+\fBCompression\fP field, including:
+no compression (1),
+CCITT 1D Huffman compression (2),
+CCITT Group 3 Facsimile compression (3),
+CCITT Group 4 Facsimile compression (4),
+Lempel\-Ziv & Welch compression (5),
+baseline JPEG compression (7),
+word\-aligned 1D Huffman compression (32771),
+PackBits compression (32773).
+In addition, several nonstandard compression algorithms are supported: the
+4\-bit compression algorithm used by the
+\fIThunderScan\fP program (32809) (decompression only),
+NeXT’s 2\-bit compression algorithm (32766) (decompression only),
+an experimental LZ\-style algorithm known as Deflate (32946),
+and an experimental CIE LogLuv compression scheme designed
+for images with high dynamic range (32845 for LogL and 32845 for LogLuv).
+Directory information may be in either little\- or big\-endian byte order; byte
+swapping is automatically done by the library. Data bit ordering may be either
+Most Significant Bit (\fBMSB\fP) to Least Significant Bit (\fBLSB\fP) or
+LSB to MSB.
+Finally, the library does not support files in which the
+\fBBitsPerSample\fP ,
+\fBCompression\fP ,
+\fBMinSampleValue\fP ,
+or
+\fBMaxSampleValue\fP
+fields are defined differently on a per\-sample basis
+(in Rev. 6.0 the
+\fBCompression\fP
+tag is not defined on a per\-sample basis, so this is immaterial).
+.SH DATA TYPES
+.sp
+The library makes extensive use of C typedefs to promote portability.
+Two sets of typedefs are used, one for communication with clients
+of the library and one for internal data structures and parsing of the
+TIFF format.
+The following typedefs are exposed to users either through function
+definitions or through parameters passed through the varargs interfaces.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef uint32_t ttag_t;    // directory tag
+typedef uint32_t tdir_t;    // directory index
+typedef uint16_t tsample_t; // sample number
+typedef uint32_t tstrip_t;  // strip number
+typedef uint32_t ttile_t;   // tile number
+typedef int64_t tmsize_t;   // signed size type (int32_t on 32\-bit platforms)
+typedef tmsize_t tsize_t;   // i/o size in bytes
+typedef void* tdata_t;      // image data ref
+typedef void* thandle_t;    // client data handle
+typedef uint64_t toff_t;    // file offset
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Note that
+\fBtstrip_t\fP,
+\fBttile_t\fP,
+and
+\fBtsize_t\fP
+are constrained to be no more than 32\-bit quantities by 32\-bit fields they are
+stored in in the
+TIFF
+image.
+Likewise
+\fBtsample_t\fP
+is limited by the 16\-bit field used to store the
+\fBSamplesPerPixel\fP
+tag.
+.sp
+\fBtdir_t\fP
+constrains the maximum number of
+IFDs
+that may appear in an image and may be an arbitrary size (w/o penalty).
+Starting with libtiff 4.5.0, tdir_t is a 32\-bit unsigned integer. Previously,
+it was a 16\-bit unsigned integer.
+.sp
+\fBttag_t\fP
+must be either int, unsigned int, pointer, or double because the library uses
+a varargs interface and
+C restricts the type of the parameter before an ellipsis to be a promoted type.
+\fBtoff_t\fP
+is defined as \fBuint64_t\fP because TIFF file offsets are (unsigned) 32\-bit
+quantities, and BigTIFF file offsets are unsigned 64\-bit quantities.
+A signed value is used because some interfaces return \-1 on
+error. Finally, note that user\-specified data references are passed as opaque
+handles and only cast at the lowest layers where their type is presumed.
+.SH LIST OF ROUTINES
+.sp
+The following routines are part of the library. Consult specific manual pages
+for details on their operation; on most systems doing \fBman function\-name\fP
+will work.
+.SH LIBTIFF FUNCTIONS
+.TS
+center;
+|l|l|.
+_
+T{
+Name
+T}	T{
+Description
+T}
+_
+T{
+\fI\%TIFFAccessTagMethods()\fP
+T}	T{
+provides read/write access to the TIFFTagMethods within the TIFF structure
+to application code without giving access to the private TIFF structure
+T}
+_
+T{
+\fI\%TIFFCheckpointDirectory()\fP
+T}	T{
+writes the current state of the directory
+T}
+_
+T{
+\fI\%TIFFCheckTile()\fP
+T}	T{
+very x,y,z,sample is within image
+T}
+_
+T{
+\fI\%TIFFCIELabToRGBInit()\fP
+T}	T{
+initialize CIE L*a*b* 1976 to RGB conversion state
+T}
+_
+T{
+\fI\%TIFFCIELabToXYZ()\fP
+T}	T{
+perform CIE L*a*b* 1976 to CIE XYZ conversion
+T}
+_
+T{
+\fI\%TIFFCleanup()\fP
+T}	T{
+auxiliary function to free the TIFF structure
+T}
+_
+T{
+\fI\%TIFFClientdata()\fP
+T}	T{
+return open file’s clientdata handle, which represents
+the file descriptor used within \fBlibtiff\fP\&.
+T}
+_
+T{
+\fI\%TIFFClientOpen()\fP
+T}	T{
+open a file for reading or writing
+T}
+_
+T{
+\fI\%TIFFClientOpenExt()\fP
+T}	T{
+open a file for reading or writing with options,
+such as re\-entrant error and warning handlers may be passed
+T}
+_
+T{
+\fI\%TIFFClose()\fP
+T}	T{
+close a previously opened TIFF file
+T}
+_
+T{
+\fI\%TIFFComputeStrip()\fP
+T}	T{
+return strip containing y,sample
+T}
+_
+T{
+\fI\%TIFFComputeTile()\fP
+T}	T{
+return tile containing x,y,z,sample
+T}
+_
+T{
+\fI\%TIFFCreateCustomDirectory()\fP
+T}	T{
+setup for a \fIcustom\fP directory in a open TIFF file
+T}
+_
+T{
+\fI\%TIFFCreateDirectory()\fP
+T}	T{
+setup for a directory in a open TIFF file
+T}
+_
+T{
+\fI\%TIFFCreateEXIFDirectory()\fP
+T}	T{
+setup for a \fIEXIF\fP custom directory in a open TIFF file within a TIFF tag
+T}
+_
+T{
+\fI\%TIFFCreateGPSDirectory()\fP
+T}	T{
+setup for a \fIGPS\fP custom directory in a open TIFF file within a TIFF tag
+T}
+_
+T{
+\fI\%TIFFCurrentDirectory()\fP
+T}	T{
+return index of current directory
+T}
+_
+T{
+\fI\%TIFFCurrentDirOffset()\fP
+T}	T{
+return file offset of the current directory (instead of an index)
+T}
+_
+T{
+\fI\%TIFFCurrentRow()\fP
+T}	T{
+return index of current scanline
+T}
+_
+T{
+\fI\%TIFFCurrentStrip()\fP
+T}	T{
+return index of current strip
+T}
+_
+T{
+\fI\%TIFFCurrentTile()\fP
+T}	T{
+return index of current tile
+T}
+_
+T{
+\fI\%TIFFDataWidth()\fP
+T}	T{
+return the size of TIFF data types
+T}
+_
+T{
+\fI\%TIFFDefaultStripSize()\fP
+T}	T{
+return number of rows for a reasonable\-sized strip according to the
+current settings of the ImageWidth, BitsPerSample and SamplesPerPixel,
+tags and any compression\-specific requirements
+T}
+_
+T{
+\fI\%TIFFDefaultTileSize()\fP
+T}	T{
+return pixel width and height of a reasonable\-sized tile;
+suitable for setting up the TileWidth and TileLength tags
+T}
+_
+T{
+\fI\%TIFFDeferStrileArrayWriting()\fP
+T}	T{
+is an advanced writing function to control when/where the
+[Strip/Tile][Offsets/ByteCounts] arrays are written into the file,
+and must be used in a particular sequence together with
+TIFFForceStrileArrayWriting() (see description)
+T}
+_
+T{
+\fI\%TIFFError()\fP
+T}	T{
+library\-wide error handling function printing to \fBstderr\fP
+T}
+_
+T{
+\fI\%TIFFErrorExt()\fP
+T}	T{
+user\-specific library\-wide error handling function that can be passed
+a file handle, which is set to the open TIFF file within \fBlibtiff\fP
+T}
+_
+T{
+\fI\%TIFFErrorExtR()\fP
+T}	T{
+user\-specific re\-entrant library error handling function,
+to which its TIFF structure is passed
+containing the pointer to a user\-specific data object
+T}
+_
+T{
+\fI\%TIFFFdOpen()\fP
+T}	T{
+open a file for reading or writing
+T}
+_
+T{
+\fI\%TIFFFdOpenExt()\fP
+T}	T{
+open a file for reading or writing with options,
+such as re\-entrant error and warning handlers may be passed
+T}
+_
+T{
+\fI\%TIFFFieldDataType()\fP
+T}	T{
+get data type from field information
+T}
+_
+T{
+\fI\%TIFFFieldIsAnonymous()\fP
+T}	T{
+returns if field was unknown to \fBlibtiff\fP and has been auto\-registered
+T}
+_
+T{
+\fI\%TIFFFieldName()\fP
+T}	T{
+get field name from field information
+T}
+_
+T{
+\fI\%TIFFFieldPassCount()\fP
+T}	T{
+get whether to pass a value count to Get/SetField
+T}
+_
+T{
+\fI\%TIFFFieldReadCount()\fP
+T}	T{
+get number of values to be read from field
+T}
+_
+T{
+\fI\%TIFFFieldSetGetCountSize()\fP
+T}	T{
+returns size of \fBcount\fP parameter of \fI\%TIFFSetField()\fP and
+\fI\%TIFFGetField()\fP
+T}
+_
+T{
+\fI\%TIFFFieldSetGetSize()\fP
+T}	T{
+return data size in bytes of the field data type used for \fBlibtiff\fP
+internal storage.
+T}
+_
+T{
+\fI\%TIFFFieldTag()\fP
+T}	T{
+get tag value from field information
+T}
+_
+T{
+\fI\%TIFFFieldWithName()\fP
+T}	T{
+get field information given field name
+T}
+_
+T{
+\fI\%TIFFFieldWithTag()\fP
+T}	T{
+get field information given tag
+T}
+_
+T{
+\fI\%TIFFFieldWriteCount()\fP
+T}	T{
+get number of values to be written to field
+T}
+_
+T{
+\fI\%TIFFFileName()\fP
+T}	T{
+return name of open file
+T}
+_
+T{
+\fI\%TIFFFileno()\fP
+T}	T{
+return open file descriptor
+T}
+_
+T{
+\fI\%TIFFFindCODEC()\fP
+T}	T{
+find standard codec for the specific scheme
+T}
+_
+T{
+\fI\%TIFFFindField()\fP
+T}	T{
+get field information given tag and data type
+T}
+_
+T{
+\fI\%TIFFFlush()\fP
+T}	T{
+flush all pending writes
+T}
+_
+T{
+\fI\%TIFFFlushData()\fP
+T}	T{
+flush pending data writes
+T}
+_
+T{
+\fI\%TIFFForceStrileArrayWriting()\fP
+T}	T{
+is an advanced writing function that writes the
+[Strip/Tile][Offsets/ByteCounts] arrays at the end of the file (see description)
+T}
+_
+T{
+\fI\%TIFFFreeDirectory()\fP
+T}	T{
+release storage associated with a directory
+T}
+_
+T{
+\fI\%TIFFGetBitRevTable()\fP
+T}	T{
+return bit reversal table
+T}
+_
+T{
+\fI\%TIFFGetClientInfo()\fP
+T}	T{
+returns a pointer to the data of the named entry in the clientinfo\-list
+T}
+_
+T{
+\fI\%TIFFGetCloseProc()\fP
+T}	T{
+returns a pointer to file close method
+T}
+_
+T{
+\fI\%TIFFGetConfiguredCODECs()\fP
+T}	T{
+gets list of configured codecs, both built\-in and registered by user
+T}
+_
+T{
+\fI\%TIFFGetField()\fP
+T}	T{
+return tag value in current directory
+T}
+_
+T{
+\fI\%TIFFGetFieldDefaulted()\fP
+T}	T{
+return tag value in current directory with default value set if the
+value is not already set and a default is defined
+T}
+_
+T{
+\fI\%TIFFGetMapFileProc()\fP
+T}	T{
+returns a pointer to memory mapping method
+T}
+_
+T{
+\fI\%TIFFGetMode()\fP
+T}	T{
+return open file mode
+T}
+_
+T{
+\fI\%TIFFGetReadProc()\fP
+T}	T{
+returns a pointer to file read method
+T}
+_
+T{
+\fI\%TIFFGetSeekProc()\fP
+T}	T{
+returns a pointer to file seek method
+T}
+_
+T{
+\fI\%TIFFGetSizeProc()\fP
+T}	T{
+returns a pointer to file size requesting method
+T}
+_
+T{
+\fI\%TIFFGetStrileByteCount()\fP
+T}	T{
+return value of the TileByteCounts/StripByteCounts array for the
+specified tile/strile
+T}
+_
+T{
+\fI\%TIFFGetStrileByteCountWithErr()\fP
+T}	T{
+same as \fITIFFGetStrileByteCount()\fP and additionally provides an error return
+T}
+_
+T{
+\fI\%TIFFGetStrileOffset()\fP
+T}	T{
+return value of the TileOffsets/StripOffsets array for the specified tile/strile
+T}
+_
+T{
+\fI\%TIFFGetStrileOffsetWithErr()\fP
+T}	T{
+same as \fITIFFGetStrileOffset()\fP and additionally provides an error return
+T}
+_
+T{
+\fI\%TIFFGetTagListCount()\fP
+T}	T{
+return number of entries in the custom tag list
+T}
+_
+T{
+\fI\%TIFFGetTagListEntry()\fP
+T}	T{
+return tag number of the (n.th \- 1) entry within the custom tag list
+T}
+_
+T{
+\fI\%TIFFGetUnmapFileProc()\fP
+T}	T{
+returns a pointer to memory unmapping method
+T}
+_
+T{
+\fI\%TIFFGetVersion()\fP
+T}	T{
+return library version string
+T}
+_
+T{
+\fI\%TIFFGetWriteProc()\fP
+T}	T{
+returns a pointer to file write method
+T}
+_
+T{
+\fI\%TIFFIsBigEndian()\fP
+T}	T{
+returns a non\-zero value if the file is BigEndian and zero if the file is
+LittleEndian
+T}
+_
+T{
+\fI\%TIFFIsBigTIFF()\fP
+T}	T{
+returns a non\-zero value if the file is in BigTIFF style
+T}
+_
+T{
+\fI\%TIFFIsByteSwapped()\fP
+T}	T{
+return true if image data is byte\-swapped
+T}
+_
+T{
+\fI\%TIFFIsCODECConfigured()\fP
+T}	T{
+check, whether we have working codec
+T}
+_
+T{
+\fI\%TIFFIsMSB2LSB()\fP
+T}	T{
+return true if image data is being returned with bit 0 as the most significant bit
+T}
+_
+T{
+\fI\%TIFFIsTiled()\fP
+T}	T{
+return true if image data is tiled
+T}
+_
+T{
+\fI\%TIFFIsUpSampled()\fP
+T}	T{
+returns a non\-zero value if image data returned through the read interface
+Routines is being up\-sampled
+T}
+_
+T{
+\fI\%TIFFLastDirectory()\fP
+T}	T{
+returns a non\-zero value if the current directory is the last directory
+in the file; otherwise zero is returned
+T}
+_
+T{
+\fI\%TIFFMergeFieldInfo()\fP
+T}	T{
+adds application defined TIFF tags to the list of known \fBlibtiff\fP tags
+T}
+_
+T{
+\fI\%TIFFNumberOfDirectories()\fP
+T}	T{
+return number of directories in a file
+T}
+_
+T{
+\fI\%TIFFNumberOfStrips()\fP
+T}	T{
+return number of strips in an image
+T}
+_
+T{
+\fI\%TIFFNumberOfTiles()\fP
+T}	T{
+return number of tiles in an image
+T}
+_
+T{
+\fI\%TIFFOpen()\fP
+T}	T{
+open a file for reading or writing
+T}
+_
+T{
+\fI\%TIFFOpenExt()\fP
+T}	T{
+open a file for reading or writing  with options,
+such as re\-entrant error and warning handlers may be passed
+T}
+_
+T{
+\fI\%TIFFOpenW()\fP
+T}	T{
+opens a TIFF file with a Unicode filename, for read/writing
+T}
+_
+T{
+\fI\%TIFFOpenWExt()\fP
+T}	T{
+opens a TIFF file with a Unicode filename, for read/writing
+with options, such as re\-entrant error and warning handlers may be passed
+T}
+_
+T{
+\fI\%TIFFOpenOptionsAlloc()\fP
+T}	T{
+allocates memory for \fI\%TIFFOpenOptions\fP opaque structure
+T}
+_
+T{
+\fI\%TIFFOpenOptionsFree()\fP
+T}	T{
+releases the allocated memory for \fI\%TIFFOpenOptions\fP
+T}
+_
+T{
+\fI\%TIFFOpenOptionsSetMaxSingleMemAlloc()\fP
+T}	T{
+limits the maximum single memory allocation within \fBlibtiff\fP
+T}
+_
+T{
+\fI\%TIFFOpenOptionsSetErrorHandlerExtR()\fP
+T}	T{
+setup of a user\-specific and per\-TIFF handle (re\-entrant) error handler
+T}
+_
+T{
+\fI\%TIFFOpenOptionsSetWarningHandlerExtR()\fP
+T}	T{
+setup of a user\-specific and per\-TIFF handle (re\-entrant) warning handler
+T}
+_
+T{
+\fI\%TIFFPrintDirectory()\fP
+T}	T{
+print description of the current directory
+T}
+_
+T{
+\fI\%TIFFRasterScanlineSize()\fP
+T}	T{
+returns the size in bytes of a complete decoded and packed raster scanline
+T}
+_
+T{
+\fI\%TIFFRasterScanlineSize64()\fP
+T}	T{
+return size as \fBuint64_t\fP
+T}
+_
+T{
+\fI\%TIFFRawStripSize()\fP
+T}	T{
+return number of bytes in a raw strip
+T}
+_
+T{
+\fI\%TIFFRawStripSize64()\fP
+T}	T{
+return number of bytes in a raw strip as \fBuint64_t\fP
+T}
+_
+T{
+\fI\%TIFFReadBufferSetup()\fP
+T}	T{
+specify i/o buffer for reading
+T}
+_
+T{
+\fI\%TIFFReadCustomDirectory()\fP
+T}	T{
+read the custom directory from the given offset
+and set the context of the TIFF\-handle tif to that custom directory
+T}
+_
+T{
+\fI\%TIFFReadDirectory()\fP
+T}	T{
+read the next directory
+T}
+_
+T{
+\fI\%TIFFReadEncodedStrip()\fP
+T}	T{
+read and decode a strip of data
+T}
+_
+T{
+\fI\%TIFFReadEncodedTile()\fP
+T}	T{
+read and decode a tile of data
+T}
+_
+T{
+\fI\%TIFFReadEXIFDirectory()\fP
+T}	T{
+read the EXIF directory from the given offset
+and set the context of the TIFF\-handle tif to that EXIF directory
+T}
+_
+T{
+\fI\%TIFFReadFromUserBuffer()\fP
+T}	T{
+replaces the use of \fI\%TIFFReadEncodedStrip()\fP / \fI\%TIFFReadEncodedTile()\fP
+when the user can provide the buffer for the input data
+T}
+_
+T{
+\fI\%TIFFReadGPSDirectory()\fP
+T}	T{
+read the GPS directory from the given offset
+and set the context of the TIFF\-handle tif to that GPS directory
+T}
+_
+T{
+\fI\%TIFFReadRawStrip()\fP
+T}	T{
+read a raw strip of data
+T}
+_
+T{
+\fI\%TIFFReadRawTile()\fP
+T}	T{
+read a raw tile of data
+T}
+_
+T{
+\fI\%TIFFReadRGBAImage()\fP
+T}	T{
+read an image into a fixed format raster
+T}
+_
+T{
+\fI\%TIFFReadRGBAImageOriented()\fP
+T}	T{
+works like \fI\%TIFFReadRGBAImage()\fP except that the user can specify
+the raster origin position
+T}
+_
+T{
+\fI\%TIFFReadRGBAStrip()\fP
+T}	T{
+reads a single strip of a strip\-based image into memory, storing the
+result in the user supplied RGBA raster
+T}
+_
+T{
+\fI\%TIFFReadRGBAStripExt()\fP
+T}	T{
+same as \fI\%TIFFReadRGBAStrip()\fP but providing the parameter \fIstop_on_error\fP
+T}
+_
+T{
+\fI\%TIFFReadRGBATile()\fP
+T}	T{
+reads a single tile of a tile\-based image into memory, storing the
+result in the user supplied RGBA raster
+T}
+_
+T{
+\fI\%TIFFReadRGBATileExt()\fP
+T}	T{
+same as \fI\%TIFFReadRGBATile()\fP but providing the parameter \fIstop_on_error\fP
+T}
+_
+T{
+\fI\%TIFFReadScanline()\fP
+T}	T{
+read and decode a row of data
+T}
+_
+T{
+\fI\%TIFFReadTile()\fP
+T}	T{
+read and decode a tile of data
+T}
+_
+T{
+\fI\%TIFFRegisterCODEC()\fP
+T}	T{
+override standard codec for the specific scheme
+T}
+_
+T{
+\fI\%TIFFReverseBits()\fP
+T}	T{
+reverse bits in an array of bytes
+T}
+_
+T{
+\fI\%TIFFRewriteDirectory()\fP
+T}	T{
+operates similarly to \fI\%TIFFWriteDirectory()\fP, but can be called
+with directories previously read or written that already have an established
+location in the file and places it at the end of the file
+T}
+_
+T{
+\fI\%TIFFRGBAImageBegin()\fP
+T}	T{
+setup decoder state for TIFFRGBAImageGet
+T}
+_
+T{
+\fI\%TIFFRGBAImageEnd()\fP
+T}	T{
+release TIFFRGBAImage decoder state
+T}
+_
+T{
+\fI\%TIFFRGBAImageGet()\fP
+T}	T{
+read and decode an image
+T}
+_
+T{
+\fI\%TIFFRGBAImageOK()\fP
+T}	T{
+is image readable by TIFFRGBAImageGet
+T}
+_
+T{
+\fI\%TIFFScanlineSize()\fP
+T}	T{
+return size of a scanline
+T}
+_
+T{
+\fI\%TIFFScanlineSize64()\fP
+T}	T{
+return size of a scanline as \fBuint64_t\fP
+T}
+_
+T{
+\fI\%TIFFSetClientdata()\fP
+T}	T{
+set open file’s clientdata (file descriptor/handle),
+and return previous value
+T}
+_
+T{
+\fI\%TIFFSetClientInfo()\fP
+T}	T{
+adds or replaces an entry in the clientinfo\-list
+T}
+_
+T{
+\fI\%TIFFSetCompressionScheme()\fP
+T}	T{
+set compression scheme
+T}
+_
+T{
+\fI\%TIFFSetDirectory()\fP
+T}	T{
+set the current directory
+T}
+_
+T{
+\fI\%TIFFSetErrorHandler()\fP
+T}	T{
+set error handler function
+T}
+_
+T{
+\fI\%TIFFSetErrorHandlerExt()\fP
+T}	T{
+set error handler function with a file handle as parameter
+T}
+_
+T{
+\fI\%TIFFSetField()\fP
+T}	T{
+set a tag’s value in the current directory
+T}
+_
+T{
+\fI\%TIFFSetFileName()\fP
+T}	T{
+sets the file name in the TIFF\-structure and returns the old file name
+T}
+_
+T{
+\fI\%TIFFSetFileno()\fP
+T}	T{
+overwrites a copy of the open file’s I/O descriptor, and return previous value
+(refer to detailed description)
+T}
+_
+T{
+\fI\%TIFFSetMode()\fP
+T}	T{
+sets the \fBlibtiff\fP open mode in the TIFF\-structure and returns the old mode
+T}
+_
+T{
+\fI\%TIFFSetSubDirectory()\fP
+T}	T{
+set the current directory
+T}
+_
+T{
+\fI\%TIFFSetTagExtender()\fP
+T}	T{
+is used to register the merge function for user defined tags as an
+extender callback with \fBlibtiff\fP
+T}
+_
+T{
+\fI\%TIFFSetupStrips()\fP
+T}	T{
+setup  or reset strip parameters and strip array memory
+T}
+_
+T{
+\fI\%TIFFSetWarningHandler()\fP
+T}	T{
+set warning handler function
+T}
+_
+T{
+\fI\%TIFFSetWarningHandlerExt()\fP
+T}	T{
+set warning handler function with a file handle as parameter
+T}
+_
+T{
+\fI\%TIFFSetWriteOffset()\fP
+T}	T{
+set current write offset
+T}
+_
+T{
+\fI\%TIFFStripSize()\fP
+T}	T{
+return size of a strip
+T}
+_
+T{
+\fI\%TIFFStripSize64()\fP
+T}	T{
+return equivalent size for a strip of data as \fBuint64_t\fP
+T}
+_
+T{
+\fI\%TIFFSwabArrayOfDouble()\fP
+T}	T{
+swap bytes of an array of doubles
+T}
+_
+T{
+\fI\%TIFFSwabArrayOfFloat()\fP
+T}	T{
+swap bytes of an array of floats
+T}
+_
+T{
+\fI\%TIFFSwabArrayOfLong()\fP
+T}	T{
+swap bytes of an array of longs
+T}
+_
+T{
+\fI\%TIFFSwabArrayOfLong8()\fP
+T}	T{
+swap bytes of an array of uint64_t
+T}
+_
+T{
+\fI\%TIFFSwabArrayOfShort()\fP
+T}	T{
+swap bytes of an array of shorts
+T}
+_
+T{
+\fI\%TIFFSwabArrayOfTriples()\fP
+T}	T{
+swap the first and third byte of each triple within an array of bytes
+T}
+_
+T{
+\fI\%TIFFSwabDouble()\fP
+T}	T{
+swap bytes of double
+T}
+_
+T{
+\fI\%TIFFSwabFloat()\fP
+T}	T{
+swap bytes of float
+T}
+_
+T{
+\fI\%TIFFSwabLong()\fP
+T}	T{
+swap bytes of long
+T}
+_
+T{
+\fI\%TIFFSwabLong8()\fP
+T}	T{
+swap bytes of long long (uint64_t)
+T}
+_
+T{
+\fI\%TIFFSwabShort()\fP
+T}	T{
+swap bytes of short
+T}
+_
+T{
+\fI\%TIFFTileRowSize()\fP
+T}	T{
+return size of a row in a tile
+T}
+_
+T{
+\fI\%TIFFTileRowSize64()\fP
+T}	T{
+return size of a row in a tile as \fBuint64_t\fP
+T}
+_
+T{
+\fI\%TIFFTileSize()\fP
+T}	T{
+return size of a tile
+T}
+_
+T{
+\fI\%TIFFTileSize64()\fP
+T}	T{
+return size of a tile as \fBuint64_t\fP
+T}
+_
+T{
+\fI\%TIFFUnlinkDirectory()\fP
+T}	T{
+unlink the specified directory from the directory chain
+T}
+_
+T{
+\fI\%TIFFUnRegisterCODEC()\fP
+T}	T{
+unregisters the codec
+T}
+_
+T{
+\fI\%TIFFUnsetField()\fP
+T}	T{
+clear the contents of the field in the internal structure
+T}
+_
+T{
+\fI\%TIFFVGetField()\fP
+T}	T{
+return tag value in current directory
+T}
+_
+T{
+\fI\%TIFFVGetFieldDefaulted()\fP
+T}	T{
+return tag value in current directory
+T}
+_
+T{
+\fI\%TIFFVSetField()\fP
+T}	T{
+set a tag’s value in the current directory
+T}
+_
+T{
+\fI\%TIFFVStripSize()\fP
+T}	T{
+return number of bytes in a strip
+T}
+_
+T{
+\fI\%TIFFVStripSize64()\fP
+T}	T{
+return number of bytes in a strip with \fInrows\fP rows of data as \fBuint64_t\fP
+T}
+_
+T{
+\fI\%TIFFVTileSize()\fP
+T}	T{
+returns the number of bytes in a row\-aligned tile with \fInrows\fP of data
+T}
+_
+T{
+\fI\%TIFFVTileSize64()\fP
+T}	T{
+returns the number of bytes in a row\-aligned tile with \fInrows\fP of data
+a \fBuint64_t\fP number
+T}
+_
+T{
+\fI\%TIFFWarning()\fP
+T}	T{
+library\-wide warning handling function printing to \fBstderr\fP
+T}
+_
+T{
+\fI\%TIFFWarningExt()\fP
+T}	T{
+user\-specific library\-wide warning handling function that can be passed
+a file handle, which is set to the open TIFF file within \fBlibtiff\fP
+T}
+_
+T{
+\fI\%TIFFWarningExtR()\fP
+T}	T{
+user\-specific re\-entrant library warning handling function,
+to which its TIFF structure is passed
+containing the pointer to a user\-specific data object
+T}
+_
+T{
+\fI\%TIFFWriteBufferSetup()\fP
+T}	T{
+sets up the data buffer used to write raw (encoded) data to a file
+T}
+_
+T{
+\fI\%TIFFWriteCheck()\fP
+T}	T{
+verify file is writable and that the directory information is setup properly
+T}
+_
+T{
+\fI\%TIFFWriteCustomDirectory()\fP
+T}	T{
+write the current custom directory (also EXIF or GPS) to file
+T}
+_
+T{
+\fI\%TIFFWriteDirectory()\fP
+T}	T{
+write the current directory
+T}
+_
+T{
+\fI\%TIFFWriteEncodedStrip()\fP
+T}	T{
+compress and write a strip of data
+T}
+_
+T{
+\fI\%TIFFWriteEncodedTile()\fP
+T}	T{
+compress and write a tile of data
+T}
+_
+T{
+\fI\%TIFFWriteRawStrip()\fP
+T}	T{
+write a raw strip of data
+T}
+_
+T{
+\fI\%TIFFWriteRawTile()\fP
+T}	T{
+write a raw tile of data
+T}
+_
+T{
+\fI\%TIFFWriteScanline()\fP
+T}	T{
+write a scanline of data
+T}
+_
+T{
+\fI\%TIFFWriteTile()\fP
+T}	T{
+compress and write a tile of data
+T}
+_
+T{
+\fI\%TIFFXYZToRGB()\fP
+T}	T{
+perform CIE XYZ to RGB conversion
+T}
+_
+T{
+\fI\%TIFFYCbCrtoRGB()\fP
+T}	T{
+perform YCbCr to RGB conversion
+T}
+_
+T{
+\fI\%TIFFYCbCrToRGBInit()\fP
+T}	T{
+initialize YCbCr to RGB conversion state
+T}
+_
+.TE
+.SH LIBTIFF AUXILLARY FUNCTIONS
+.TS
+center;
+|l|l|.
+_
+T{
+Name
+T}	T{
+Description
+T}
+_
+T{
+\fI\%_TIFFCheckMalloc()\fP
+T}	T{
+checking for integer overflow before dynamically allocate memory buffer
+T}
+_
+T{
+\fI\%_TIFFCheckRealloc()\fP
+T}	T{
+checking for integer overflow before dynamically reallocate memory buffer
+T}
+_
+T{
+\fI\%_TIFFClampDoubleToUInt32()\fP
+T}	T{
+clamps double values into the range of \fBuint32_t\fP (i.e. 0 .. 0xFFFFFFFF)
+T}
+_
+T{
+\fI\%_TIFFfree()\fP
+T}	T{
+free memory buffer
+T}
+_
+T{
+\fI\%_TIFFGetExifFields()\fP
+T}	T{
+return a pointer to the \fBlibtiff\fP internal definition list of the EXIF tags
+T}
+_
+T{
+\fI\%_TIFFGetGpsFields()\fP
+T}	T{
+return a pointer to the \fBlibtiff\fP internal definition list of the GPS tags
+T}
+_
+T{
+\fI\%_TIFFmalloc()\fP
+T}	T{
+dynamically allocate memory buffer
+T}
+_
+T{
+\fI\%_TIFFmemcmp()\fP
+T}	T{
+compare contents of the memory buffers
+T}
+_
+T{
+\fI\%_TIFFmemcpy()\fP
+T}	T{
+copy contents of the one buffer to another
+T}
+_
+T{
+\fI\%_TIFFmemset()\fP
+T}	T{
+fill memory buffer with a constant byte
+T}
+_
+T{
+\fI\%_TIFFMultiply32()\fP
+T}	T{
+checks for an integer overflow of the multiplication result of \fIuint32_t\fP and
+return the multiplication result or \fI0\fP if an overflow would happen
+T}
+_
+T{
+\fI\%_TIFFMultiply64()\fP
+T}	T{
+checks for an integer overflow of the multiplication result of \fIuint64_t\fP and
+return the multiplication result or \fI0\fP if an overflow would happen
+T}
+_
+T{
+\fI\%_TIFFrealloc()\fP
+T}	T{
+dynamically reallocate memory buffer
+T}
+_
+T{
+\fI\%_TIFFRewriteField()\fP
+T}	T{
+Rewrite a field in the directory on disk without regard
+to updating the TIFF directory structure in memory
+T}
+_
+.TE
+.SH TAG USAGE
+.sp
+For a table of TIFF tags recognized by the library refer to
+\fI\%LibTIFF Coverage of the TIFF 6.0 Specification\fP\&.
+.SH “PSEUDO TAGS”
+.sp
+In addition to the normal TIFF
+tags the library supports a collection of
+tags whose values lie in a range outside the valid range of TIFF
+tags. These tags are termed \fIpseudo\-tags\fP
+and are used to control various codec\-specific functions within the library.
+The table below summarizes the defined pseudo\-tags.
+.SH LIBTIFF SUPPORTED TAGS
+.TS
+center;
+|l|l|l|l|.
+_
+T{
+Tag name
+T}	T{
+Codec
+T}	T{
+R/W
+T}	T{
+Library Use/Notes
+T}
+_
+T{
+\fBTIFFTAG_FAXMODE\fP
+T}	T{
+G3
+T}	T{
+R/W
+T}	T{
+general codec operation
+T}
+_
+T{
+\fBTIFFTAG_FAXFILLFUNC\fP
+T}	T{
+G3/G4
+T}	T{
+R/W
+T}	T{
+bitmap fill function
+T}
+_
+T{
+\fBTIFFTAG_JPEGQUALITY\fP
+T}	T{
+JPEG
+T}	T{
+R/W
+T}	T{
+compression quality control
+T}
+_
+T{
+\fBTIFFTAG_JPEGCOLORMODE\fP
+T}	T{
+JPEG
+T}	T{
+R/W
+T}	T{
+control colorspace conversions
+T}
+_
+T{
+\fBTIFFTAG_JPEGTABLESMODE\fP
+T}	T{
+JPEG
+T}	T{
+R/W
+T}	T{
+control contents of \fBJPEGTables\fP tag
+T}
+_
+T{
+\fBTIFFTAG_ZIPQUALITY\fP
+T}	T{
+Deflate
+T}	T{
+R/W
+T}	T{
+compression quality level
+T}
+_
+T{
+\fBTIFFTAG_PIXARLOGDATAFMT\fP
+T}	T{
+PixarLog
+T}	T{
+R/W
+T}	T{
+user data format
+T}
+_
+T{
+\fBTIFFTAG_PIXARLOGQUALITY\fP
+T}	T{
+PixarLog
+T}	T{
+R/W
+T}	T{
+compression quality level
+T}
+_
+T{
+\fBTIFFTAG_SGILOGDATAFMT\fP
+T}	T{
+SGILog
+T}	T{
+R/W
+T}	T{
+user data format
+T}
+_
+.TE
+.sp
+\fBTIFFTAG_FAXMODE\fP:
+.INDENT 0.0
+.INDENT 3.5
+Control the operation of the Group 3 codec.
+Possible values (independent bits that can be combined by
+or’ing them together) are:
+.sp
+\fBFAXMODE_CLASSIC\fP:
+.INDENT 0.0
+.INDENT 3.5
+(enable old\-style format in which the \fBRTC\fP
+is written at the end of the last strip),
+.UNINDENT
+.UNINDENT
+.sp
+\fBFAXMODE_NORTC\fP:
+.INDENT 0.0
+.INDENT 3.5
+(opposite of \fBFAXMODE_CLASSIC\fP; also called
+\fBFAXMODE_CLASSF\fP),
+.UNINDENT
+.UNINDENT
+.sp
+\fBFAXMODE_NOEOL\fP:
+.INDENT 0.0
+.INDENT 3.5
+(do not write \fBEOL\fP codes at the start of each row of data),
+.UNINDENT
+.UNINDENT
+.sp
+\fBFAXMODE_BYTEALIGN\fP:
+.INDENT 0.0
+.INDENT 3.5
+(align each encoded row to an 8\-bit boundary),
+.UNINDENT
+.UNINDENT
+.sp
+\fBFAXMODE_WORDALIGN\fP:
+.INDENT 0.0
+.INDENT 3.5
+(align each encoded row to an 16\-bit boundary),
+.UNINDENT
+.UNINDENT
+.sp
+The default value is dependent on the compression scheme; this
+pseudo\-tag is used by the various G3 and G4 codecs to share code.
+.UNINDENT
+.UNINDENT
+.sp
+\fBTIFFTAG_FAXFILLFUNC\fP:
+.INDENT 0.0
+.INDENT 3.5
+Control the function used to convert arrays of black and white
+runs to packed bit arrays.
+This hook can be used to image decoded scanlines in multi\-bit
+depth rasters (e.g. for display in colormap mode)
+or for other purposes.
+The default value is a pointer to a builtin function that images
+packed bilevel data.
+.UNINDENT
+.UNINDENT
+.sp
+\fBTIFFTAG_IPTCNEWSPHOTO\fP:
+.INDENT 0.0
+.INDENT 3.5
+Tag contains image metadata per the IPTC newsphoto spec: Headline,
+captioning, credit, etc… Used by most wire services.
+.UNINDENT
+.UNINDENT
+.sp
+\fBTIFFTAG_PHOTOSHOP\fP:
+.INDENT 0.0
+.INDENT 3.5
+Tag contains Photoshop captioning information and metadata. Photoshop
+uses in parallel and redundantly alongside \fBIPTCNEWSPHOTO\fP information.
+.UNINDENT
+.UNINDENT
+.sp
+\fBTIFFTAG_JPEGQUALITY\fP:
+.INDENT 0.0
+.INDENT 3.5
+Control the compression quality level used in the baseline algorithm.
+Note that quality levels are in the range 0\-100 with a default value of 75.
+.UNINDENT
+.UNINDENT
+.sp
+\fBTIFFTAG_JPEGCOLORMODE\fP:
+.INDENT 0.0
+.INDENT 3.5
+Control whether or not conversion is done between
+RGB and YCbCr colorspaces.
+Possible values are:
+.sp
+\fBJPEGCOLORMODE_RAW\fP:
+.INDENT 0.0
+.INDENT 3.5
+(do not convert), and
+.UNINDENT
+.UNINDENT
+.sp
+\fBJPEGCOLORMODE_RGB\fP:
+.INDENT 0.0
+.INDENT 3.5
+(convert to/from RGB)
+.UNINDENT
+.UNINDENT
+.sp
+The default value is \fBJPEGCOLORMODE_RAW\fP\&.
+.UNINDENT
+.UNINDENT
+.sp
+\fBTIFFTAG_JPEGTABLESMODE\fP:
+.INDENT 0.0
+.INDENT 3.5
+Control the information written in the \fBJPEGTables\fP tag.
+Possible values (independent bits that can be combined by
+or’ing them together) are:
+.sp
+\fBJPEGTABLESMODE_QUANT\fP:
+.INDENT 0.0
+.INDENT 3.5
+(include quantization tables), and
+.UNINDENT
+.UNINDENT
+.sp
+\fBJPEGTABLESMODE_HUFF\fP:
+.INDENT 0.0
+.INDENT 3.5
+(include Huffman encoding tables).
+.UNINDENT
+.UNINDENT
+.sp
+The default value is JPEGTABLESMODE_QUANT  |  JPEGTABLESMODE_HUFF\&.
+.UNINDENT
+.UNINDENT
+.sp
+\fBTIFFTAG_ZIPQUALITY\fP:
+.INDENT 0.0
+.INDENT 3.5
+Control the compression technique used by the Deflate codec.
+Quality levels are in the range 1\-9 with larger numbers yielding better
+compression at the cost of more computation.
+The default quality level is 6 which yields a good time\-space tradeoff.
+.UNINDENT
+.UNINDENT
+.sp
+\fBTIFFTAG_PIXARLOGDATAFMT\fP:
+.INDENT 0.0
+.INDENT 3.5
+Control the format of user data passed \fIin\fP
+to the PixarLog codec when encoding and passed
+\fIout\fP from when decoding. Possible values are:
+.sp
+\fBPIXARLOGDATAFMT_8BIT\fP:
+.INDENT 0.0
+.INDENT 3.5
+for 8\-bit unsigned pixels,
+.UNINDENT
+.UNINDENT
+.sp
+\fBPIXARLOGDATAFMT_8BITABGR\fP:
+.INDENT 0.0
+.INDENT 3.5
+for 8\-bit unsigned ABGR\-ordered pixels,
+.UNINDENT
+.UNINDENT
+.sp
+\fBPIXARLOGDATAFMT_11BITLOG\fP:
+.INDENT 0.0
+.INDENT 3.5
+for 11\-bit log\-encoded raw data,
+.UNINDENT
+.UNINDENT
+.sp
+\fBPIXARLOGDATAFMT_12BITPICIO\fP:
+.INDENT 0.0
+.INDENT 3.5
+for 12\-bit PICIO\-compatible data,
+.UNINDENT
+.UNINDENT
+.sp
+\fBPIXARLOGDATAFMT_16BIT\fP:
+.INDENT 0.0
+.INDENT 3.5
+for 16\-bit signed samples, and
+.UNINDENT
+.UNINDENT
+.sp
+\fBPIXARLOGDATAFMT_FLOAT\fP:
+.INDENT 0.0
+.INDENT 3.5
+for 32\-bit IEEE floating point samples.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fBTIFFTAG_PIXARLOGQUALITY\fP:
+.INDENT 0.0
+.INDENT 3.5
+Control the compression technique used by the PixarLog codec.
+This value is treated identically to \fBTIFFTAG_ZIPQUALITY\fP; see the
+above description.
+.UNINDENT
+.UNINDENT
+.sp
+\fBTIFFTAG_SGILOGDATAFMT\fP:
+.INDENT 0.0
+.INDENT 3.5
+Control the format of client data passed \fIin\fP
+to the SGILog codec when encoding and passed
+\fIout\fP from when decoding.  Possible values are:
+.sp
+\fBSGILOGDATAFMT_FLTXYZ\fP:
+.INDENT 0.0
+.INDENT 3.5
+for converting between LogLuv and 32\-bit IEEE floating valued XYZ pixels,
+.UNINDENT
+.UNINDENT
+.sp
+\fBSGILOGDATAFMT_16BITLUV\fP:
+.INDENT 0.0
+.INDENT 3.5
+for 16\-bit encoded Luv pixels,
+.UNINDENT
+.UNINDENT
+.sp
+\fBSGILOGDATAFMT_32BITRAW\fP:
+\fBSGILOGDATAFMT_24BITRAW\fP:
+.INDENT 0.0
+.INDENT 3.5
+for no conversion of data,
+.UNINDENT
+.UNINDENT
+.sp
+\fBSGILOGDATAFMT_8BITRGB\fP:
+.INDENT 0.0
+.INDENT 3.5
+for returning 8\-bit RGB data (valid only when decoding LogLuv\-encoded data),
+.UNINDENT
+.UNINDENT
+.sp
+\fBSGILOGDATAFMT_FLTY\fP:
+.INDENT 0.0
+.INDENT 3.5
+for converting between LogL and 32\-bit IEEE floating valued Y pixels,
+.UNINDENT
+.UNINDENT
+.sp
+\fBSGILOGDATAFMT_16BITL\fP:
+.INDENT 0.0
+.INDENT 3.5
+for 16\-bit encoded L pixels, and
+.UNINDENT
+.UNINDENT
+.sp
+\fBSGILOGDATAFMT_8BITGRY\fP:
+.INDENT 0.0
+.INDENT 3.5
+for returning 8\-bit greyscale data
+(valid only when decoding LogL\-encoded data).
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SH DIAGNOSTICS
+.sp
+All error messages are directed through the \fI\%TIFFErrorExtR()\fP routine.
+By default messages are directed to \fBstderr\fP in the form:
+\fBmodule: message\en\fP\&.
+Warning messages are likewise directed through the
+\fI\%TIFFWarningExtR()\fP routine.
+.SH SEE ALSO
+.sp
+\fI\%tiffdump\fP,
+\fI\%tiffcp\fP,
+\fI\%tiffinfo\fP,
+\fI\%tiffsplit\fP,
+.sp
+\fB“Tag Image File Format Specification *Revision 6.0*”\fP,
+an Aldus Technical Memorandum.
+.sp
+\fB“The Spirit of TIFF Class F”\fP ,
+an appendix to the TIFF 5.0 specification prepared by Cygnet Technologies.
+.SH BUGS
+.INDENT 0.0
+.IP \(bu 2
+The library does not support multi\-sample images
+where some samples have different bits/sample.
+.IP \(bu 2
+The library does not support random access to compressed data
+that is organized with more than one row per tile or strip.
+.UNINDENT
+.SH AUTHOR
+LibTIFF contributors
+.SH COPYRIGHT
+1988-2022, LibTIFF contributors
+.\" Generated by docutils manpage writer.
+.

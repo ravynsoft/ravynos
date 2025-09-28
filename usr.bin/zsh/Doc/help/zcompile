@@ -1,0 +1,122 @@
+zcompile [ -U ] [ -z | -k ] [ -R | -M ] file [ name ... ]
+zcompile -ca [ -m ] [ -R | -M ] file [ name ... ]
+zcompile -t file [ name ... ]
+       This  builtin  command  can  be  used  to  compile  functions or
+       scripts, storing the compiled form in a  file,  and  to  examine
+       files  containing  the  compiled  form.   This allows faster au-
+       toloading of functions and sourcing of scripts by avoiding pars-
+       ing of the text when the files are read.
+
+       The first form (without the -c, -a or -t options) creates a com-
+       piled file.  If only the file argument is given, the output file
+       has the name `file.zwc' and will be placed in the same directory
+       as the file.  The shell will load the compiled file  instead  of
+       the  normal  function  file when the function is autoloaded; see
+       the section `Autoloading Functions' in zshmisc(1) for a descrip-
+       tion  of  how  autoloaded functions are searched.  The extension
+       .zwc stands for `zsh word code'.
+
+       If there is at least one name argument, all the named files  are
+       compiled  into  the output file given as the first argument.  If
+       file does not end in .zwc, this extension is  automatically  ap-
+       pended.  Files containing multiple compiled functions are called
+       `digest' files, and are intended to be used as elements  of  the
+       FPATH/fpath special array.
+
+       The  second form, with the -c or -a options, writes the compiled
+       definitions for all the named functions into file.  For -c,  the
+       names  must  be  functions  currently  defined in the shell, not
+       those marked for  autoloading.   Undefined  functions  that  are
+       marked for autoloading may be written by using the -a option, in
+       which case the fpath is searched and the contents of the defini-
+       tion  files  for  those  functions,  if found, are compiled into
+       file.  If both -c and -a are given, names of both defined  func-
+       tions and functions marked for autoloading may be given.  In ei-
+       ther case, the functions in files written with the -c or -a  op-
+       tion  will  be autoloaded as if the KSH_AUTOLOAD option were un-
+       set.
+
+       The reason for handling loaded and not-yet-loaded functions with
+       different  options is that some definition files for autoloading
+       define multiple functions, including the function with the  same
+       name  as the file, and, at the end, call that function.  In such
+       cases the output of `zcompile -c' does  not  include  the  addi-
+       tional  functions defined in the file, and any other initializa-
+       tion code in the file is lost.  Using `zcompile -a' captures all
+       this extra information.
+
+       If  the  -m option is combined with -c or -a, the names are used
+       as patterns and all functions whose names  match  one  of  these
+       patterns  will  be written. If no name is given, the definitions
+       of all functions currently defined or marked as autoloaded  will
+       be written.
+
+       Note the second form cannot be used for compiling functions that
+       include redirections as  part  of  the  definition  rather  than
+       within the body of the function; for example
+
+              fn1() { { ... } >~/logfile }
+
+       can be compiled but
+
+              fn1() { ... } >~/logfile
+
+       cannot.   It  is  possible  to use the first form of zcompile to
+       compile autoloadable functions that include  the  full  function
+       definition instead of just the body of the function.
+
+       The  third  form,  with the -t option, examines an existing com-
+       piled file.  Without further arguments, the names of the  origi-
+       nal files compiled into it are listed.  The first line of output
+       shows the version of the shell which compiled the file  and  how
+       the file will be used (i.e. by reading it directly or by mapping
+       it into memory).  With arguments, nothing is output and the  re-
+       turn  status  is  set  to zero if definitions for all names were
+       found in the compiled file, and non-zero if the  definition  for
+       at least one name was not found.
+
+       Other options:
+
+       -U     Aliases are not expanded when compiling the named files.
+
+       -R     When  the  compiled file is read, its contents are copied
+              into the shell's memory, rather than  memory-mapped  (see
+              -M).   This  happens automatically on systems that do not
+              support memory mapping.
+
+              When compiling scripts instead of autoloadable functions,
+              it  is  often desirable to use this option; otherwise the
+              whole file, including the code to define functions  which
+              have  already  been  defined,  will remain mapped, conse-
+              quently wasting memory.
+
+       -M     The compiled file is mapped into the shell's memory  when
+              read.  This is done in such a way that multiple instances
+              of the shell running on the same  host  will  share  this
+              mapped file.  If neither -R nor -M is given, the zcompile
+              builtin decides what to do based on the size of the  com-
+              piled file.
+
+       -k
+       -z     These  options  are  used when the compiled file contains
+              functions which are to be autoloaded. If -z is given, the
+              function will be autoloaded as if the KSH_AUTOLOAD option
+              is not set, even if it is set at the  time  the  compiled
+              file is read, while if the -k is given, the function will
+              be loaded as if KSH_AUTOLOAD is set.  These options  also
+              take  precedence  over  any -k or -z options specified to
+              the autoload builtin. If  neither  of  these  options  is
+              given,  the  function will be loaded as determined by the
+              setting of the KSH_AUTOLOAD option at the time  the  com-
+              piled file is read.
+
+              These  options may also appear as many times as necessary
+              between the listed names to specify the loading style  of
+              all following functions, up to the next -k or -z.
+
+              The created file always contains two versions of the com-
+              piled format, one for big-endian  machines  and  one  for
+              small-endian  machines.   The  upshot of this is that the
+              compiled file is machine independent and if it is read or
+              mapped,  only  one half of the file is actually used (and
+              mapped).

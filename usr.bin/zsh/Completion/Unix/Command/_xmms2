@@ -1,0 +1,211 @@
+#compdef xmms2
+
+_xmms2_command() {
+    local xmms2_cmds
+
+    xmms2_cmds=(
+	add:"adds a URL to the playlist"
+	addarg:"adds one URL with arguments to the playlist"
+	addid:"adds a Medialib id to the playlist"
+	insert:"inserts one URL at a specific position"
+	insertid:"inserts one Medialib id at a specific position"
+	radd:"adds a directory recursively to the playlist"
+	clear:"clears the playlist"
+	shuffle:"shuffles the playlist"
+	sort:"sort the playlist; use a space delimiter for multiple properties"
+	remove:"removes something from the playlist"
+	list:"lists the playlist"
+	addpls:"Adds the contents of a playlist file to the playlist"
+	play:"starts playback"
+	stop:"stops playback"
+	toggleplay:"toggles playback status between play/pause"
+	pause:"pause playback"
+	next:"play next song"
+	prev:"play previous song"
+	seek:"seek to a specific place in current song"
+	jump:"take a leap in the playlist"
+	move:"move a entry in the playlist"
+	volume:"set volume for a channel"
+	volume_list:"list volume levels for each channel"
+	mlib:"medialib manipulation - type 'xmms2 mlib' for more extensive help"
+	playlist:"playlist manipulation - type 'xmms2 playlist' for more extensive help"
+	coll:"collection manipulation - type 'xmms2 coll' for more extensive help"
+	browse:"browse server file lists"
+	status:"go into status mode"
+	info:"information about current entry"
+	current:"formatted information about the current entry"
+	config:"set a config value"
+	config_list:"list all config values"
+	plugin_list:"list all plugins loaded in the server"
+	stats:"get statistics from server"
+	quit:"make the server quit"
+	help:"print help about a command"
+	)
+
+    if (( CURRENT == 1 )); then
+	_describe -t command "xmms2 command" xmms2_cmds
+    else
+	local curcontext="$curcontext"
+    fi
+
+    local cmd=$words[1]
+
+    local curcontext="${curcontext%:*}:xmms2-${cmd}"
+    _call_function ret _xmms2_$cmd
+}
+
+ _xmms2_jump() {
+     songlist=(${"$(xmms2 list)"})
+     playlistitems=()
+     for song ($songlist); do 
+	 if [[ $song = (#b)'  '\[(<->)/(<->)\]' '(*)' '\((*)\) ]]; then
+		    playlistitems+=("$match[1][$match[3]]")
+	 fi
+     done
+     
+     _values -s ' ' 'playlist item' ${(On)playlistitems}
+
+}
+
+_xmms2_mlib() {
+    local mlib_cmds
+    mlib_cmds=(
+	add:"Add 'url' to medialib"
+	loadall:"Load everything from the mlib to the playlist"
+	searchadd:"Search for, and add songs to playlist"
+	search:"Search for songs matching criteria"
+	addpath:"Import metadata from all media files under 'path'"
+	rehash:"Force the medialib to check whether its data is up to date"
+	remove:"Remove an entry from medialib"
+	setstr:"Set a string property together with a medialib entry."
+	setint:"Set a int property together with a medialib entry."
+	rmprop:"Remove a property from a medialib entry"
+	addcover:"Add a cover image on id(s)."
+
+	)
+    if (( CURRENT == 2 )); then
+	_describe -t command "xmms2 mlib command" mlib_cmds
+    else
+	local curcontext="$curcontext"
+    fi
+
+    local cmd=$words[2]
+
+    local curcontext="${curcontext%:*}:xmms2-${cmd}"
+    _call_function ret _xmms2_$cmd
+
+}
+
+
+_xmms2_playlist() {
+    local playlist_cmds
+    playlist_cmds=(
+	list:"List all available playlists"
+	create:"Create a playlist"
+	type:"Set the type of the playlist (list, queue, pshuffle)"
+	load:"Load 'playlistname' stored in medialib"
+	remove:"Remove a playlist"
+	)
+    if (( CURRENT == 2 )); then
+	_describe -t command "xmms2 playlist command" playlist_cmds
+    else
+	local curcontext="$curcontext"
+    fi
+
+    local cmd=$words[2]
+
+    local curcontext="${curcontext%:*}:xmms2-${cmd}"
+    _call_function ret _xmms2_playlist_$cmd
+}
+
+_xmms2_playlist_load() {
+    local list
+    list=($(xmms2 playlist list))
+    _describe -t command "xmms2 playlist" list
+}
+
+
+_xmms2_playlist_remove() {
+    local list
+    list=($(xmms2 playlist list))
+    _describe -t command "xmms2 playlist" list
+}
+
+
+_xmms2_coll() {
+    local coll_cmds
+    coll_cmds=(
+	save:"Save a pattern as a collection"
+	rename:"Rename a collection"
+	list:"List all collections in a given namespace"
+	query:"Display all the media in a collection"
+	queryadd:"Add all media in a collection to active playlist"
+	find:"Find all collections that contain the given media"
+	get:"Display the structure of a collection"
+	remove:"Remove a saved collection"
+	attr:"Get/set an attribute for a saved collection"
+	)
+    if (( CURRENT == 2 )); then
+	_describe -t command "xmms2 collection command" coll_cmds
+    else
+	local curcontext="$curcontext"
+    fi
+
+    local cmd=$words[2]
+
+    local curcontext="${curcontext%:*}:xmms2-${cmd}"
+    _call_function ret _xmms2_coll_$cmd
+}
+
+_xmms2_coll_helper() {
+    local list
+    list=($(xmms2 coll list))
+    _describe -t command "xmms2 playlist" list
+}
+
+_xmms2_coll_rename() {
+    _xmms2_coll_helper
+}
+
+_xmms2_coll_remove() {
+    _xmms2_coll_helper
+}
+
+_xmms2_coll_get() {
+    _xmms2_coll_helper
+}
+
+_xmms2_coll_query() {
+    _xmms2_coll_helper
+}
+
+_xmms2_coll_queryadd() {
+    _xmms2_coll_helper
+}
+
+_xmms2_coll_attr() {
+    _xmms2_coll_helper
+}
+
+_xmms2_add() {
+  _files
+}
+
+_xmms2_radd() {
+  _dirs
+}
+
+_xmms2_addpls() {
+  local expl
+  _description files expl 'playlist'
+  _files "$expl[@]" -g '*.([mM]3[uU]|[pP][lL][sS])(-.)'
+}
+
+_xmms2() {
+_arguments \
+    '--format[specify the format of song display]:format string' \
+    '--no-status[prevent printing song status on completion]' \
+    '*::xmms2 command:_xmms2_command'
+}
+
+_xmms2 "$@"

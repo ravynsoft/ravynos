@@ -1,0 +1,113 @@
+#compdef smbcontrol smbclient nmblookup smbstatus
+
+local curcontext="$curcontext" ret=1
+local -a state line expl msgs args ign
+
+(( CURRENT == 2 )) || ign='!'
+args=(
+  '(-d --debuglevel)'{-d+,--debuglevel=}'[set debug level]:debug level (1..10) [1]'
+  '(-s --configfile)'{-s+,--configfile=}'[specify alternate smb.conf file]:config file:_files'
+  '(-l --log-basename)'{-l+,--log-basename=}'[specify base name for log files]:base name:_files'
+  '*--option=[set smb.conf option from command line]:option=value'
+  "${ign}(1 2 3 -)"{-\?,--help}'[display usage information]'
+  "${ign}(1 2 3 -)--usage[display brief usage information]"
+  "${ign}(1 2 3 - *)"{-V,--version}'[display version information]'
+)
+
+case $service in
+  smbcontrol)
+    _arguments -C -S $args \
+      '(-t --timeout)'{-t+,--timeout=}'[set timeout]:timeout (seconds)' \
+      ':destination:(all nmbd smbd winbindd)' \
+      ':message type:->message-types' \
+      ':parameter:->parameters' && ret=0
+
+    case $state in
+      message-types)
+        msgs=( ${${${${${(f)"$(_call_program message-types smbcontrol -\? 2>&1)"}[(r)<message-type*,-1]}[2,-1]#?}/ ##(#b)(?)/:$match:l}%:( |\(null\))} )
+        _describe -t message-types 'message type' msgs -M 'r:|-=* r:|=*' && ret=0
+      ;;
+      parameters)
+        case $line[2] in
+          profile)
+            _wanted parameter expl 'parameter' compadd on off flush count && ret=0
+          ;;
+          debug) _message -e levels 'debug level' ;;
+          ping) _message -e numbers 'number of ping messages' ;;
+        esac
+      ;;
+    esac
+    return ret
+  ;;
+  smbclient)
+    args+=(
+      '(-N -A)2: :_guard "^-*" password'
+      '(2 -R --name-resolve)'{-R+,--name-resolve=}'[specify name resolution order]:name resolution order:_values -s " " "name resolution order" lmhosts host wins bcast'
+      '(2 -M --message -L --list -D --directory -T --tar)'{-M+,--message=}'[send message]:host:_hosts'
+      '(2 -I --ip-address)'{-I+,--ip-address=}'[specify IP address of server]:IP address'
+      '(2 -E --stderr)'{-E,--stderr}'[output messages to stderr]'
+      '(2 -M --message -D --directory -T --tar)'{-L+,--list=}'[list services on server]:host:_hosts'
+      '(-m --max-protocol)'{-m+,--max-protocol=}'[set the max protocol level]:level'
+      '(2 -T --tar -M --message -L --list)'{-T+,--tar=}'[specify tar options]:tar options'
+      '(2 -D --directory -M --message -L --list)'{-D+,--directory=}'[specify initial directory]:initial directory'
+      '(2 -c --command)'{-c,--command=}'[specify commands]:command string'
+      '(2 -b --send-buffer)'{-b+,--send-buffer=}'[change transmit/send buffer]:buffer size (bytes) [65520]'
+      '(-t --timeout)'{-t+,--timeout=}'[change the per-operation timeout]:timeout (seconds)'
+      '(2 -p --port)'{-p+,--port=}'[specify tcp port]:tcp port'
+      '(-g --grepable)'{-g,--grepable}'[produce grepable output]'
+      '(-q --quiet)'{-q,--quiet}'[suppress help message]'
+      '(-B --browse)'{-B,--browse}'[browse SMB servers using DNS]'
+      '(2 -d --debuglevel)'{-d+,--debuglevel=}'[specify debug level]:debug level:(0 1 2 3 4 5 6 7 8 9 10)'
+      '(2 -O --socket-options)'{-O+,--socket-options=}'[specify socket options]:socket options'
+      '(2 -n --netbiosname)'{-n+,--netbiosname=}'[specify local NetBIOS name]:local machine name'
+      '(2 -W --workgroup)'{-W+,--workgroup=}'[specify workgroup]:workgroup'
+      '(2 -i --scope)'{-i+,--scope=}'[specify NetBIOS scope]:scope'
+      '(2 -U --user)'{-U+,--user=}'[specify username]:username:_users'
+      '(2 -N --no-pass)'{-N,--no-pass}'[suppress password prompt]'
+      '(-k --kerberos)'{-k,--kerberos}'[use kerberos (active directory) authentication]'
+      '(2 -A --authentication-file)'{-A+,--authentication-file=}'[specify file containing username/password]:file:_files'
+      '(-S --signing)'{-S+,--signing=}'[set the client signing state]:state:(on off required)'
+      '(-P --machine-pass)'{-P,--machine-pass}'[use stored machine account password]'
+      '(-e --encrypt)'{-e,--encrypt}'[encrypt SMB transport]'
+      '(-C --use-ccache)'{-C,--use-ccache}'[use the winbind ccache for authentication]'
+      '--pw-nt-hash[the supplied password is the NT hash]'
+    )
+    (( CURRENT == 2 )) && args+=( '1:service name:_hosts -P // -S /' )
+    _arguments -s -S $args
+  ;;
+  nmblookup)
+    _arguments -s -S $args \
+      '(-B --broadcast)'{-B+,--broadcast=}'[specify broadcast address]:broadcast address' \
+      '(-f --flags)'{-f,--flags}'[list NMB flags returned]' \
+      '(-U --unicast)'{-U+,--unicast=}'[specify unicast address]:unicast address' \
+      '(-M --master-browser)'{-M,--master-browser}'[search for a master browser]' \
+      '(-R --recursion)'{-R,--recursion}'[set recursion desired in packet]' \
+      '(-S --status)'{-S,--status}'[lookup node status as well]' \
+      '(-T --translate)'{-T,--translate}'[perform reverse DNS on IP addresses]' \
+      '(-r --root-port)'{-r,--root-port}'[use root port 137]' \
+      '(-A --lookup-by-ip)'{-A,--lookup-by-ip}'[query node status on IP address]' \
+      '(-d --debuglevel)'{-d+,--debuglevel=}'[specify debug level]:debug level:(0 1 2 3 4 5 6 7 8 9 10)' \
+      '(-O --socket-options)'{-O+,--socket-options=}'[specify socket options to use]:socket option' \
+      '(-n --netbiosname)'{-n+,--netbiosname=}'[specify primary netbios name]:netbios name' \
+      '(-W --workgroup)'{-W+,--workgroup=}'[specify workgroup name]:workgroup name' \
+      '(-i --scope)'{-i+,--scope=}'[specify NetBIOS scope]:scope' \
+      '(h)*:NetBIOS name:_hosts'
+  ;;
+  smbstatus)
+    _arguments -s -S $args \
+      {-b,--brief}'[brief output]' \
+      '(-v --verbose)'{-v,--verbose}'[be verbose]' \
+      '(-d --debuglevel)'{-d+,--debuglevel=}'[specify debug level]:debug level:(0 1 2 3 4 5 6 7 8 9 10)' \
+      '(-u --user)'{-u+,--user=}'[specify user to restrict information to]:user:_users' \
+      '(-B --byterange)'{-B,--byterange}'[include byte range locks]' \
+      '(-n --numeric)'{-n,--numeric}'[numeric uid/gid]' \
+      '(-f --fast)'{-f,--fast}'[skip checks if processes still exist]' \
+      + '(output)' \
+      {-P,--profile}'[do profiling]' \
+      {-R,--profile-rates}'[show call rates]' \
+      {-L,--locks}'[list only locks]' \
+      {-p,--processes}'[list smbd(8) processes]' \
+      {-S,--shares}'[list only shares]' \
+      {-N,--notify}'[list only notifies]'
+  ;;
+esac

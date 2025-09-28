@@ -1,0 +1,65 @@
+#!/bin/sh
+
+set -e
+set -x
+
+mkdir -p /tmp/system-overlay 
+cd /tmp/system-overlay
+
+# Install our standard app bundles
+mkdir -p "${uzip}/Applications/Utilities"
+
+curl -Lo - https://github.com/ravynsoft/Terminal_app/releases/download/v0.9.1/Terminal.txz | \
+    tar -xf - -C "${uzip}/Applications/Utilities/"
+
+# Silence late boot messages
+cat > /tmp/rc <<\EOF
+#!/bin/sh
+
+# Silence messages if boot_mute="YES" is set
+if [ "$(kenv boot_mute)" = "YES" ] ; then
+        conscontrol delete ttyv0 >/dev/null 2>&1
+        exec 1>>/dev/null 2>&1
+fi
+#
+EOF
+cat "${uzip}/etc/rc" >> /tmp/rc
+mv /tmp/rc "${uzip}/etc/rc"
+
+# Silence shutdown messages
+cat > /tmp/rc.shutdown <<\EOF
+#!/bin/sh
+
+# Silence messages if boot_mute="YES" is set
+if [ "$(kenv boot_mute)" = "YES" ] ; then
+        exec 1>>/dev/null 2>&1
+fi
+#
+EOF
+cat "${uzip}/etc/rc.shutdown" >> /tmp/rc.shutdown
+mv /tmp/rc.shutdown "${uzip}/etc/rc.shutdown"
+
+# Prevent boot from being visually interrupted by vidcontrol related errors
+mv "${uzip}/usr/sbin/vidcontrol" "${uzip}/usr/sbin/vidcontrol.original"
+cat > "${uzip}/usr/sbin/vidcontrol" <<\EOF
+#!/bin/sh
+exit 0
+EOF
+chmod +x "${uzip}/usr/sbin/vidcontrol"
+
+# Disable most text-based consoles, especially ttyv0,
+# to prevent boot from being visually interrupted by login prompts
+mv "${uzip}/etc/ttys" "${uzip}/etc/ttys.original"
+cat > "${uzip}/etc/ttys" <<\EOF
+ttyv1   "/usr/libexec/getty Pc"         xterm   on  secure
+EOF
+
+# Prevent boot from being visually interrupted by syslog messages
+# by commenting out the line that ends in '/dev/console'
+sed -i -e 's|^\(.*/dev/console\)|# \1|g' "${uzip}/etc/syslog.conf"
+rm "${uzip}/etc/syslog.conf-e"
+
+# https://github.com/helloSystem/hello/issues/50#issuecomment-753237990
+# Workaround to allow unmounting as normal user
+# setuid root
+chmod +s "${uzip}/sbin/umount"

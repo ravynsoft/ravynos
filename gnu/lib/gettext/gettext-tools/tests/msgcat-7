@@ -1,0 +1,37 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Verify 'msgcat --sort-output'
+
+cat <<EOF > mcat-test7.in1
+#: clients/inst_language.ycp:119
+msgid "two"
+msgstr "2"
+
+#: clients/inst_language.ycp:108
+msgid ""
+"one"
+msgstr ""
+"1"
+EOF
+
+rm -f mcat-test7.tmp
+: ${MSGCAT=msgcat}
+${MSGCAT} --sort-output -o mcat-test7.tmp mcat-test7.in1 || Exit 1
+LC_ALL=C tr -d '\r' < mcat-test7.tmp > mcat-test7.out || Exit 1
+
+cat << EOF > mcat-test7.ok
+#: clients/inst_language.ycp:108
+msgid "one"
+msgstr "1"
+
+#: clients/inst_language.ycp:119
+msgid "two"
+msgstr "2"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcat-test7.ok mcat-test7.out
+result=$?
+
+exit $result

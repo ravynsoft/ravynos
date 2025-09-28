@@ -1,0 +1,222 @@
+2009-12-11  Nick Clifton  <nickc@redhat.com>
+
+	* Makefile.in: Regenerate.
+	* cg_arcs.c: Fix shadowed variable warnings.
+	* cg_dfn.c: Likewise.
+	* cg_print.c: Likewise.
+	* configure: Likewise.
+	* hist.c: Likewise.
+
+2009-11-30  Joseph Myers  <joseph@codesourcery.com>
+
+	* configure: Regenerate.
+
+2009-11-17  Nick Clifton  <nickc@redhat.com>
+
+	* po/bg.po: New Bulgarian translation.
+	* configure.in (ALL_LINGUAS): Add bg.po.
+	* configure: Regenerate.
+
+2009-11-11  Nick Clifton  <nickc@redhat.com>
+
+	* po/id.po: Updated Indonesian translation.
+
+2009-11-11  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* configure.in: Call ACX_LARGEFILE.  Stop calling AC_SYS_LARGEFILE.
+	* aclocal.m4: Regenerate.
+	* configure: Regenerate.
+
+2009-09-25  Dmitry Gorbachev  <d.g.gorbachev@gmail.com>
+
+	PR 10656
+	* hist.h: Move declaration of histograms and num_histograms
+	variables from here to...
+	* hist.c: ...here.
+
+2009-09-23  Nick Clifton  <nickc@redhat.com>
+
+	* po/vi.po: Updated Vietnamese translation.
+
+2009-09-18  Nick Clifton  <nickc@redhat.com>
+
+	* po/es.po: Updated Spanish translation.
+	* po/fi.po: Updated Finnish translation.
+
+2009-09-14  Nick Clifton  <nickc@redhat.com>
+
+	* po/de.po: Updated German translation.
+	* po/nl.po: Update Dutch translation.
+
+2009-09-11  Nick Clifton  <nickc@redhat.com>
+
+	* po/gprof.pot: Updated by the Translation project.
+	* po/sv.po: Updated Swedish translation.
+
+2009-09-11  Martin Thuresson  <martint@google.com>
+
+	Updated sources to compile cleanly with -Wc++-compat:
+	* basic_blocks.c: Add casts.
+	* cg_dfn.c: Add cast.
+	* corefile.c: Add casts.
+	* gmon_io.c: Add casts.
+	* hist.c: Add cast.
+	* source.c: Add cast.
+	* sym_ids.c (struct match): Moved to top level.
+
+2009-09-07  Tristan Gingold  <gingold@adacore.com>
+
+	* po/gprof.pot: Regenerate.
+
+2009-09-05  Martin Thuresson  <martin@mtme.org>
+
+	* corefile.c (core_create_function_syms): Rename variable
+	class to cxxclass.
+
+2009-08-22  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* Makefile.am (AM_CPPFLAGS): Renamed from ...
+	(INCLUDES): ... this.
+	* Makefile.in: Regenerate.
+
+	* Makefile.am (AUTOMAKE_OPTIONS): Remove cygnus, add 1.11,
+	foreign, no-dist, no-texinfo.tex.
+	(TEXINFO_TEX): New variable.
+	(MKDEP, CLEANFILES): Remove:
+	(DEP, DEP1, dep.sed, dep, dep-in, dep-am): Remove rules.
+	(install-data-local): Remove now-unneeded dependency on
+	install-info.
+	(mkdep section): Remove.
+	* Makefile.in: Regenerate.
+
+	* Makefile.am (pdf__strip_dir, install-pdf, install-pdf-am)
+	(install-pdf-recursive, html__strip_dir, install-html)
+	(install-html-am, install-html-recursive): Remove.
+	* Makefile.in: Regenerate.
+
+	* Makefile.in: Regenerate.
+	* aclocal.m4: Likewise.
+	* configure: Likewise.
+	* gconfig.in: Likewise.
+
+2009-06-16  Homer Xing  <homer.xing@yahoo.com>
+
+	* corefile.c (cmp_symbol_map): New function.
+	(read_function_mappins): Use qsort to sort the symbols.
+	(search_mapped_symbol): New function.
+	(core_create_function_syms): Use bsearch to find symbols.
+	* corefile.h (struct function_map): Add new bit-field: is_first.
+	* cg_print.c (cmp_symbol_map): New function.
+	(cg_print_file_ordering): Sort the symbol map.
+
+2009-06-15  Homer Xing  <homer.xing@yahoo.com>
+
+	* corefile.c (core_create_syms_from): Use BFD_VMA_FMT when
+	scanning in an address.
+
+2009-06-12  Homer Xing  <homer.xing@yahoo.com>
+
+	* corefile.c (num_of_syms_in): New function - computes the number
+	of symbols in a given file.
+	(core_create_syms_from): New function - populates a symbol table
+	from the symbols found in a specified file.
+	* corefile.h: Prototype core_create_syms_from.
+	* gprof.c (long_options): Add --external-symbol-table.
+	(usage): Mention it.
+	(main): Initiailize external_symbol_table from
+	--external-symbol-table option.  If set use it.
+	* gprof.texi: Document the new option.
+
+2009-06-04  Alan Modra  <amodra@bigpond.net.au>
+
+	* dep-in.sed: Don't use \n in replacement part of s command.
+	* Makefile.am (DEP1): LC_ALL for uniq.
+	* Makefile.in: Regenerate.
+
+2009-05-26  Nick Clifton  <nickc@redhat.com>
+
+	* po/id.po: Updated Indonesian translation.
+	* po/gprof.pot: Updated template file.
+
+2009-05-26  Alan Modra  <amodra@bigpond.net.au>
+
+	* dep-in.sed: Output one filename per line with all lines having
+	continuation backslash.  Prefix first line with "A", following
+	lines with "B".
+	* Makefile.am (DEP): Don't use dep.sed here.
+	(DEP1): Run $MKDEP on single files, use dep.sed here on dependencies,
+	sort and uniq.
+	* Makefile.in: Regenerate.
+
+2009-05-22  Alan Modra  <amodra@bigpond.net.au>
+
+	* Makefile.am: Run "make dep-am".
+	* Makefile.in: Regenerate.
+
+2009-04-15  Kazu Hirata  <kazu@codesourcery.com>
+
+	* gprof.h: Include gconfig.h.  #undef PACKAGE.
+
+2009-04-09  Philippe Biondi  <phil@secdev.org>
+
+	* corefile.c (core_create_function_syms): Initialise a symbol's
+	is_func field based on the setting of the BSF_FUNCTION flag.
+
+2009-03-06  Nick Clifton  <nickc@redhat.com>
+
+	* po/es.po: Updated Spanish translation.
+
+2009-03-03  Alan Modra  <amodra@bigpond.net.au>
+
+	* Makefile.am: Run "make dep-am".
+	* Makefile.in: Regenerate.
+
+2009-03-01  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* configure: Regenerate.
+
+2009-02-12  Ken Werner  <ken.werner@de.ibm.com>
+
+        * corefile.c (core_create_function_syms): Remove "<locore>" and
+        "<hicore>" sentinels.
+        * gprof.c: Likewise.
+        * cg_print.c (cg_print_function_ordering): Likewise.
+        * alpha.c (alpha_find_call): Add check for return value of sym_lookup.
+        * mips.c (mips_find_call): Likewise.
+        * sparc.c (sparc_find_call): Likewise.
+        * tahoe.c (tahoe_find_call): Likewise.
+        * vax.c (vax_find_call): Likewise.
+
+2009-02-03  Carlos O'Donell  <carlos@codesourcery.com>
+
+	* configure.in: AC_SUBST pdfdir.
+	* Makefile.am: Add install-pdf, install-pdf-am,
+	and install-pdf-recursive targets. Define pdf__strip_dir.
+	* po/Make-in: Add install-pdf target.
+	* configure: Regenerate.
+	* Makefile.in: Regenerate.
+
+2009-01-03  Nick Clifton  <nickc@redhat.com>
+
+	PR 7099
+	* gprof.texi (Compiling): Mention the need for using
+	-static-libgcc on shared library systems.
+
+2009-01-02  Nick Clifton  <nickc@redhat.com>
+
+	* po/id.po: Updated Indonesian translation.
+
+For older changes see ChangeLog-2008
+
+Copyright (C) 2009 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 74
+version-control: never
+End:

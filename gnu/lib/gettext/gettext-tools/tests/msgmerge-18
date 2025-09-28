@@ -1,0 +1,194 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgmerge and msgcmp on a PO file with contexts.
+
+cat <<\EOF > mm-test18.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. A menu item
+msgctxt "File|"
+msgid "Open"
+msgstr "Ouvrir"
+
+#. A menu item
+msgctxt "File|"
+msgid "New"
+msgstr "Nouveau"
+
+#. A menu item
+msgctxt "File|"
+msgid "Save As"
+msgstr "Enregistrer sous"
+
+msgid "Save As"
+msgstr "Enregistrer l'as"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Open"
+msgstr "Ouvert"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Closed"
+msgstr "Fermé"
+
+#. A product
+msgctxt "Audi"
+msgid "car"
+msgstr "voiture"
+
+#. A product
+msgctxt "Océ"
+msgid "copier"
+msgstr "photocopieur"
+EOF
+
+cat <<\EOF > mm-test18.pot
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. A menu item
+msgctxt "File|"
+msgid "Open"
+msgstr ""
+
+#. A menu item
+msgctxt "File|"
+msgid "New"
+msgstr ""
+
+#. A menu item
+msgctxt "File|"
+msgid "Close"
+msgstr ""
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Open"
+msgstr ""
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Closed"
+msgstr ""
+
+#. Denote a door's state
+msgctxt "Door state"
+msgid "Open"
+msgstr ""
+
+#. Denote a door's state
+msgctxt "Door state"
+msgid "Closed"
+msgstr ""
+
+#. A product
+msgctxt "Audi"
+msgid "car"
+msgstr ""
+
+#. A product
+msgctxt "Océ"
+msgid "copier"
+msgstr ""
+EOF
+
+: ${MSGCMP=msgcmp}
+${MSGCMP} --use-fuzzy --use-untranslated mm-test18.po mm-test18.pot 2>/dev/null
+test $? = 1 || { Exit 1; }
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-test18.tmp.po mm-test18.po mm-test18.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-test18.tmp.po > mm-test18.new.po || Exit 1
+
+# Note that the fuzzy guess for "Open" in context "Door state" could be either
+# "Ouvrir" (from context "File|") or "Ouvert" (from context "Lock state").
+cat <<\EOF > mm-test18.ok
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. A menu item
+msgctxt "File|"
+msgid "Open"
+msgstr "Ouvrir"
+
+#. A menu item
+msgctxt "File|"
+msgid "New"
+msgstr "Nouveau"
+
+#. A menu item
+#, fuzzy
+msgctxt "File|"
+msgid "Close"
+msgstr "Fermé"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Open"
+msgstr "Ouvert"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Closed"
+msgstr "Fermé"
+
+#. Denote a door's state
+#, fuzzy
+msgctxt "Door state"
+msgid "Open"
+msgstr "Ouvrir"
+
+#. Denote a door's state
+#, fuzzy
+msgctxt "Door state"
+msgid "Closed"
+msgstr "Fermé"
+
+#. A product
+msgctxt "Audi"
+msgid "car"
+msgstr "voiture"
+
+#. A product
+msgctxt "Océ"
+msgid "copier"
+msgstr "photocopieur"
+
+#~ msgctxt "File|"
+#~ msgid "Save As"
+#~ msgstr "Enregistrer sous"
+
+#~ msgid "Save As"
+#~ msgstr "Enregistrer l'as"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-test18.ok mm-test18.new.po || Exit 1
+
+: ${MSGCMP=msgcmp}
+${MSGCMP} --use-fuzzy --use-untranslated mm-test18.new.po mm-test18.pot || Exit 1
+
+Exit 0

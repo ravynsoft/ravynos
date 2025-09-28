@@ -1,0 +1,61 @@
+
+.*:     file format coff-z8k
+
+
+Disassembly of section \.text:
+
+00011000 <this_start>:
+   11000:	8d07           	nop	
+   11002:	e8fe           	jr	t,0x11000
+   11004:	e826           	jr	t,0x11052
+   11006:	5e08 8100 1000 	jp	t,0x1001000
+   1100c:	5e08 8100 1052 	jp	t,0x1001052
+   11012:	5f00 8100 1052 	call	0x1001052
+   11018:	5f00 8100 109c 	call	0x100109c
+   1101e:	5f00 8100 1000 	call	0x1001000
+   11024:	5f00 8100 1046 	call	0x1001046
+   1102a:	dfed           	calr	0x11052
+   1102c:	dfc9           	calr	0x1109c
+   1102e:	d018           	calr	0x11000
+   11030:	dff6           	calr	0x11046
+   11032:	6101 8200 200e 	ld	r1,0x200200e
+   11038:	6101 8200 2004 	ld	r1,0x2002004
+   1103e:	2101 200e      	ld	r1,#0x200e
+   11042:	2101 2004      	ld	r1,#0x2004
+
+00011046 <this_label>:
+   11046:	ca04           	ldb	rl2,#0x4
+   11048:	ca14           	ldb	rl2,#0x14
+   1104a:	ca0e           	ldb	rl2,#0xe
+   1104c:	ca1e           	ldb	rl2,#0x1e
+   1104e:	a6b3           	bitb	rl3,#0x3
+   11050:	8d07           	nop	
+
+00011052 <other_start>:
+   11052:	8d07           	nop	
+   11054:	f182           	djnz	r1,0x11052
+   11056:	f809           	dbjnz	rl0,0x11046
+   11058:	e8d3           	jr	t,0x11000
+   1105a:	e8fb           	jr	t,0x11052
+   1105c:	5e08 8100 1000 	jp	t,0x1001000
+   11062:	5e08 8100 1052 	jp	t,0x1001052
+   11068:	5f00 8100 1052 	call	0x1001052
+   1106e:	5f00 8100 109c 	call	0x100109c
+   11074:	5f00 8100 1000 	call	0x1001000
+   1107a:	5f00 8100 1046 	call	0x1001046
+   11080:	d018           	calr	0x11052
+   11082:	dff4           	calr	0x1109c
+   11084:	d043           	calr	0x11000
+   11086:	d021           	calr	0x11046
+   11088:	6101 8200 200e 	ld	r1,0x200200e
+   1108e:	6101 8200 2004 	ld	r1,0x2002004
+   11094:	2101 200e      	ld	r1,#0x200e
+   11098:	2101 2004      	ld	r1,#0x2004
+
+0001109c <other_label>:
+   1109c:	ca04           	ldb	rl2,#0x4
+   1109e:	ca14           	ldb	rl2,#0x14
+   110a0:	ca0e           	ldb	rl2,#0xe
+   110a2:	ca1e           	ldb	rl2,#0x1e
+   110a4:	bd5a           	ldk	r5,#0xa
+   110a6:	8d07           	nop	

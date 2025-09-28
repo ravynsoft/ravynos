@@ -1,0 +1,95 @@
+#                                                                    -*-perl-*-
+
+$description = "Test the behaviour of the .POSIX target.";
+
+$details = "";
+
+
+# Ensure turning on .POSIX enables the -e flag for the shell
+
+run_make_test(q!
+.POSIX:
+all: ; @#HELPER# -q fail 1; #HELPER# out hello
+!,
+              '', "#MAKE#: *** [#MAKEFILE#:3: all] Error 1\n", 512);
+
+# But explicit settings must still take precedence
+
+run_make_test(q!
+.POSIX:
+all: ; @-#HELPER# -q fail 1; #HELPER# out hello
+.SHELLFLAGS = -c
+!,
+              '', "hello");
+
+run_make_test(q!
+.POSIX:
+all: ; @-#HELPER# -q fail 1; #HELPER# out hello
+all: .SHELLFLAGS = -c
+!,
+              '', "hello");
+
+# SV 63667: We shouldn't add -e to sh if errors are ignored
+
+run_make_test(q!
+.POSIX:
+all: ; @-#HELPER# -q fail 1; #HELPER# out hello
+!,
+              '', "hello\n");
+
+# But explicit settings must still take precedence
+
+run_make_test(q!
+.POSIX:
+all: ; @-#HELPER# -q fail 1; #HELPER# out hello
+.SHELLFLAGS = -ec
+!,
+              '', "#MAKE#: [#MAKEFILE#:3: all] Error 1 (ignored)\n");
+
+run_make_test(q!
+.POSIX:
+all: ; @-#HELPER# -q fail 1; #HELPER# out hello
+all: .SHELLFLAGS = -ec
+!,
+              '', "#MAKE#: [#MAKEFILE#:3: all] Error 1 (ignored)\n");
+
+# User settings must override .POSIX
+# In the standard .POSIX must be the first thing in the makefile
+# but we relax that rule in GNU Make.
+
+# Different versions of sh generate different output for -x so check it
+my $script = subst_make_string('#HELPER# -q fail 1; true');
+my $flags = '-xc';
+my $out = `$sh_name $flags '$script' 2>&1`;
+
+run_make_test(qq!
+.SHELLFLAGS = $flags
+.POSIX:
+all: ; \@$script
+!,
+              '', $out);
+
+# Test the default value of various POSIX-specific variables
+my %POSIX = (AR => 'ar', ARFLAGS => '-rv',
+             YACC => 'yacc', YFLAGS => '',
+             LEX => 'lex', LFLAGS => '',
+             LDFLAGS => '',
+             CC => 'c99', CFLAGS => '-O1',
+             FC => 'fort77', FFLAGS => '-O1',
+             SCCSFLAGS => '', SCCSGETFLAGS => '-s');
+my $make = join('', map { "\t\@echo '$_=\$($_)'\n" } sort keys %POSIX);
+my $r = join('', map { "$_=$POSIX{$_}\n"} sort keys %POSIX);
+run_make_test(qq!
+.POSIX:
+all:
+$make
+!,
+              '', $r);
+
+# Make sure that local settings take precedence
+%ENV = (%ENV, map { $_ => "xx-$_" } keys %POSIX);
+$r = join('', map { "$_=xx-$_\n"} sort keys %POSIX);
+run_make_test(undef, '', $r);
+
+# This tells the test driver that the perl test script executed properly.
+1;

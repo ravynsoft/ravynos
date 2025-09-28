@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Contributed TIFF Software &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="LibTIFF Project" href="project/index.html" />
+    <link rel="prev" title="tiffsplit" href="tools/tiffsplit.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="project/index.html" title="LibTIFF Project"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="tools/tiffsplit.html" title="tiffsplit"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Contributed TIFF Software</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="contributed-tiff-software">
+<h1>Contributed TIFF Software<a class="headerlink" href="#contributed-tiff-software" title="Permalink to this heading">¶</a></h1>
+<a class="reference internal image-reference" href="_images/smallliz.jpg"><img alt="smallliz" src="_images/smallliz.jpg" style="width: 108px;" /></a>
+<p>The <code class="file docutils literal notranslate"><span class="pre">contrib</span></code> directory has contributed software that
+uses the TIFF library or which is associated with the library
+(typically glue and guidance for ports to non-UNIX platforms, or tools that
+aren’t directly TIFF related).</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Contributed software</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 80.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Location</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">contrib/dbs</span></code></p></td>
+<td><p>various tools from Dan &amp; Chris Sears, including a simple X-based viewer</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">contrib/ras</span></code></p></td>
+<td><p>two programs by Patrick Naughton for converting
+between Sun rasterfile format and TIFF (these
+require <code class="file docutils literal notranslate"><span class="pre">libpixrect.a</span></code>, as opposed to the one in
+tools that doesn’t)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">contrib/mac-mpw</span></code></p>
+<p><code class="file docutils literal notranslate"><span class="pre">contrib/mac-cw</span></code></p>
+</td>
+<td><p>scripts and files from Niles Ritter for building
+the library and tools under Macintosh/MPW C and
+code warrior.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">contrib/acorn</span></code></p></td>
+<td><p>scripts and files from Peter Greenham for building
+the library and tools on an Acorn RISC OS system.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">contrib/win32</span></code></p></td>
+<td><p>scripts and files from Scott Wagner for building
+the library under Windows NT and Windows 95. (The makefile.vc in the
+libtiff/libtiff directory may be sufficient for most users.)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">contrib/win_dib</span></code></p></td>
+<td><p>two separate implementations of TIFF to DIB code suitable for any Win32
+platform.  Contributed by Mark James, and Philippe Tenenhaus.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">contrib/ojpeg</span></code></p></td>
+<td><p>Patch for IJG JPEG library related to support for some Old JPEG in TIFF files.
+Contributed by Scott Marovich.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">contrib/dosdjgpp</span></code></p></td>
+<td><p>scripts and files from Alexander Lehmann for building
+the library under MSDOS with the DJGPP v2 compiler.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">contrib/tags</span></code></p></td>
+<td><p>scripts and files from Niles Ritter for adding private
+tag support at runtime, without changing libtiff.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">contrib/mfs</span></code></p></td>
+<td><p>code from Mike Johnson to read+write images in memory
+without modifying the library</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">contrib/pds</span></code></p></td>
+<td><p>various routines from Conrad Poelman; a TIFF image iterator and
+code to support “private sub-directories”</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">contrib/iptcutil</span></code></p></td>
+<td><p>A utility by <a class="reference external" href="mailto:billr&#37;&#52;&#48;corbis&#46;com">Bill Radcliffe</a> to
+convert an extracted IPTC Newsphoto caption from a binary blob to
+ASCII text, and vice versa. IPTC binary blobs can be extracted from
+images via the <a class="reference external" href="http://www.ImageMagick.org/">ImageMagick</a> convert(1)
+utility.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">contrib/addtiffo</span></code></p></td>
+<td><p>A utility (and supporting subroutine) for building
+one or more reduce resolution
+overviews to an existing TIFF file.  Supplied by
+<a class="reference external" href="http://pobox.com/~warmerdam">Frank Warmerdam</a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">contrib/stream</span></code></p></td>
+<td><p>A class (TiffStream) for accessing TIFF files through a C++ stream
+interface.  Supplied by <a class="reference external" href="mailto:avi&#37;&#52;&#48;shutterfly&#46;com">Avi Bleiweiss</a>.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Questions regarding these packages are usually best directed toward
+their authors.</p>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="tools/tiffsplit.html"
+                          title="previous chapter">tiffsplit</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="project/index.html"
+                          title="next chapter">LibTIFF Project</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/contrib.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="project/index.html" title="LibTIFF Project"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="tools/tiffsplit.html" title="tiffsplit"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Contributed TIFF Software</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

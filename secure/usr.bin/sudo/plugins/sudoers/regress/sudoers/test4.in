@@ -1,0 +1,7 @@
+# Test line continuation with anchored matches
+User_Alias FOO = foo \
+: BAR = bar
+
+# This used to pass for sudo < 1.8.1 (though it should not have)
+User_Alias FOO = foo \
+User_Alias BAR = bar

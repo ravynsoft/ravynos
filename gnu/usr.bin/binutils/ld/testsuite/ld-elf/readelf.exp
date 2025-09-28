@@ -1,0 +1,50 @@
+# Expect script for `readelf' tests that depend on LD.
+#   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+# These tests really belong to the `binutils' testsuite as they verify
+# `readelf' rather than LD, however they require LD to be run and we have
+# no infrastructure in the `binutils' testsuite to run LD, so we place
+# them here.
+
+# Exclude non-ELF targets.
+
+if ![is_elf_format] {
+    return
+}
+
+# This target requires a non-default emulation for successful shared
+# library/executable builds.
+set LFLAGS ""
+if [istarget "tic6x-*-*"] {
+    append LFLAGS " -melf32_tic6x_le"
+}
+
+if [check_shared_lib_support] {
+    run_ld_link_tests [list \
+	[list \
+	    "readelf version information" \
+	    "$LFLAGS --no-dynamic-linker -e 0 --export-dynamic -T ver_def.ld\
+	      --hash-style=sysv --version-script=ver_def.ver" \
+	    "" "" \
+	    {ver_def.s} \
+	    [list [list readelf --version-info ver_def.vd]] \
+	    "ver_def"]]
+}

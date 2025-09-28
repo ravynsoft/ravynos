@@ -1,0 +1,9 @@
+SECTIONS
+{
+  . = SIZEOF_HEADERS;
+  .text : { *(.text) }
+  . = . + 0x2000000 + 32 - 4 * SIZEOF (.text);
+  .far1 : { *(.far1) }
+  . = . + 0x2000000 + 32 - 4 * SIZEOF (.far1);
+  .far2 : { *(.far2) }
+}

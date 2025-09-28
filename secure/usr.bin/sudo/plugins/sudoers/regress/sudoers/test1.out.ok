@@ -1,0 +1,6 @@
+Parses OK
+
+user1 ALL = LOG_INPUT: LOG_OUTPUT: /usr/bin/su - : ALL = NOLOG_INPUT: NOLOG_OUTPUT: /usr/bin/id
+user2 ALL = SETENV: NOEXEC: NOPASSWD: /usr/bin/vi : ALL = NOSETENV: EXEC: PASSWD: /usr/bin/echo
+user3 ALL = MAIL: /bin/sh : ALL = NOMAIL: /usr/bin/id
+user4 ALL = FOLLOW: sudoedit /etc/motd : ALL = NOFOLLOW: sudoedit /home/*/*

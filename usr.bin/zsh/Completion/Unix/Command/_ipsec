@@ -1,0 +1,179 @@
+#compdef ipsec strongswan
+
+# Completion for the ipsec script (aka strongswan on some systems) provided by
+# FreeS/WAN, Openswan, Libreswan, and strongSwan. See also strongSwan's swanctl.
+#
+# As with swanctl, elevated privileges are usually required to complete SA names
+# and the like; consider setting the gain-privileges style as follows:
+# zstyle ':completion:*:(ipsec|strongswan)/*' gain-privileges yes
+#
+# @todo We don't complete pool names or virtual IPs
+
+# Complete connection (IKE SA) names and optionally SA/instance names
+# --instances => also complete SA/instance names
+(( $+functions[_ipsec_connections] )) ||
+_ipsec_connections() {
+  local -a instances tmp ipsec_conns ipsec_insts
+
+  zparseopts -D -E -a instances - -instances
+
+  tmp=( ${(f)${"$(
+    _call_program -p ipsec-status ${_ipsec_cmd:-$words[1]} statusall
+  )"#*$'\n'[[:space:]]#[Cc]onnections:[[:space:]]#$'\n'}} )
+  tmp=( ${(@M)tmp:#[[:space:]]#[^[:space:]]##:[[:space:]]##?*} )
+  tmp=( ${(@)${(@)tmp##[[:space:]]##}%%:*} )
+
+  ipsec_conns=( ${(@)tmp%%['[{']<->['}]']} )
+  ipsec_insts=( ${(@M)tmp:#*['[{']<->['}]']} )
+
+  (( $#ipsec_conns )) || {
+    _message -e connections 'connection name'
+    return
+  }
+
+  tmp=( 'connections:connection name:compadd -a - ipsec_conns' )
+  (( $#instances && $#ipsec_insts )) &&
+  tmp+=( 'instances:connection SA/instance name:compadd -a - ipsec_insts' )
+
+  _alternative $tmp
+}
+
+# Complete arguments to /usr/lib/ipsec/starter. This is rarely invoked directly,
+# and there is almost no documentation on it, but the start/restart commands
+# pass options to it
+(( $+functions[_ipsec_starter] )) ||
+_ipsec_starter() {
+  _arguments : \
+    '(--nofork)--attach-gdb[start daemon under gdb (implies --nofork)]' \
+    '--auto-update[specify select time-out]:select time-out (seconds)' \
+    '--conf[specify path to ipsec.conf]:ipsec.conf file:_files' \
+    '--daemon[specify daemon name]:daemon name' \
+    '--nofork[do not fork daemon]' \
+    + '(d)' \
+    '--debug[set log level 2]' \
+    '--debug-more[set log level 3]' \
+    '--debug-all[set log level 4]' \
+    '--nolog[set log level 0]'
+}
+
+_ipsec() {
+  local ret=1 variant _ipsec_cmd=$words[1]
+  local -a context line state state_descr tmp
+  local -A opt_args
+
+  _pick_variant -r variant \
+    freeswan='(#i)frees/#wan' \
+    libreswan='(#i)libreswan' \
+    openswan='(#i)openswan' \
+    strongswan='(#i)strongswan' \
+    unix \
+  --version
+
+  # Provide only basic completion for non-strongSwan implementations
+  if [[ $variant == unix ]]; then
+    _default
+    return
+  elif [[ $variant == (free|libre|open)* ]]; then
+    tmp=( ${(f)"$( _call_program ipsec-help $words[1] --help )"} )
+    tmp=( ${(@M)tmp:#($'  '|$'\t')*} )
+    tmp=( ${(@)tmp:#*[':/<>()[]']*} )
+    tmp=( ${(f)${(F)tmp//[[:space:]]##/$'\n'}} )
+
+    _arguments -S -A '-*' : \
+      '(: * -)--help[display help information]' \
+      '(: * -)--version[display version information]' \
+      "(-)1:command:(${(j< >)${(@q-)tmp}})" \
+      '(-)2: :_default'
+    return
+  fi
+
+  _arguments -A '-*' \
+    '(: * -)--confdir[display path to configuration directory (IPSEC_CONFDIR)]' \
+    '(: * -)--copyright[display copyright information]' \
+    '(: * -)--directory[display path to libexec/utility directory (IPSEC_DIR)]' \
+    '(: * -)--help[display help information]' \
+    '(: * -)--piddir[display path to PID directory (IPSEC_PIDDIR)]' \
+    '(: * -)--version[display version information]' \
+    '(: * -)--versioncode[display brief version information]' \
+    '1:command:((
+      down\:"terminate IPsec connection/SA"
+      down-srcip\:"terminate IKE SAs by client virtual IP"
+      leases\:"display IP address/pool status"
+      listaacerts\:"display X.509 authorization authority certificates"
+      listacerts\:"display X.509 attribute certificates"
+      listalgs\:"display loaded algorithms"
+      listall\:"execute all list commands"
+      listcacerts\:"display X.509 certificate authority certificates"
+      listcainfos\:"display certificate authority information"
+      listcerts\:"display X.509/OpenPGP certificates"
+      listcounters\:"display IKE counter information"
+      listcrls\:"display certificate revocation lists"
+      listgroups\:"display groups for user authorization profiles"
+      listocsp\:"display OCSP revocation information"
+      listocspcerts\:"display X.509 OCSP signer certificates"
+      listplugins\:"display loaded plug-in features"
+      listpubkeys\:"display RSA public keys"
+      purgecerts\:"purge cached certificates"
+      purgecrl\:"purge cached certificate revocation lists"
+      purgeike\:"purge IKE SAs without a quick mode or CHILD_SA"
+      purgeocsp\:"purge cached OCSP information"
+      reload\:"reload entire configuration (send SIGUSR1)"
+      rereadacerts\:"re-read attribute certificates"
+      rereadaacerts\:"flush and re-read authorization authority certificates"
+      rereadall\:"execute all re-read commands"
+      rereadcacerts\:"flush and re-read certificate authority certificates"
+      rereadcrls\:"re-read certificate revocation lists"
+      rereadocspcerts\:"re-read OCSP certificates"
+      rereadsecrets\:"flush and re-read secrets"
+      resetcounters\:"reset IKE counter information"
+      restart\:"equivalent to stop + start"
+      route\:"insert kernel IPsec policy for connection"
+      start\:"start IKE daemon"
+      status\:"display concise connection status"
+      statusall\:"display detailed connection status"
+      stop\:"terminate all IPsec connections and stop IKE daemon"
+      stroke\:"issue stroke command"
+      unroute\:"remove kernel IPsec policy for connection"
+      up\:"bring up IPsec connection"
+      update\:"reload changes in configuration (send SIGHUP)"
+    ))' \
+    '*:: :->next' \
+  && ret=0
+
+  [[ $state == next ]] &&
+  case $words[1] in
+    down)
+      _arguments : '1: :_ipsec_connections --instances' && ret=0
+      ;;
+    listcounters|resetcounters|route|status|statusall|unroute|up)
+      _arguments : '1: :_ipsec_connections' && ret=0
+      ;;
+    down-srcip)
+      _arguments : \
+        '1:virtual IP address (start)' \
+        '2::virtual IP address (end)' \
+      && ret=0
+      ;;
+    leases)
+      _arguments : '1:pool name' '2::virtual IP address' && ret=0
+      ;;
+    list*~list(counters|plugins))
+      _arguments : '--utc[use UTC for time fields]' && ret=0
+      ;;
+    start|restart)
+      _ipsec_starter && ret=0
+      ;;
+    stroke)
+      _arguments -s -S -A '-*' \
+        '(: * -)'{-h,--help}'[display help information]' \
+        '(-d --daemon)'{-d+,--daemon=}'[specify daemon name]:daemon name' \
+        '1: :_guard "^-*" "stroke command"' \
+        '*:stroke command argument:_default' \
+      && ret=0
+      ;;
+  esac
+
+  return ret
+}
+
+_ipsec "$@"

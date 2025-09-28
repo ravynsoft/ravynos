@@ -1,0 +1,587 @@
+################################################################################
+##
+##  Copyright (C) 2017, Pali <pali@cpan.org>
+##
+##  This program is free software; you can redistribute it and/or
+##  modify it under the same terms as Perl itself.
+##
+################################################################################
+
+=provides
+
+croak_sv
+die_sv
+mess_sv
+warn_sv
+
+vmess
+mess_nocontext
+mess
+
+warn_nocontext
+
+croak_nocontext
+PERL_ARGS_ASSERT_CROAK_XS_USAGE
+
+croak_no_modify
+Perl_croak_no_modify
+
+croak_memory_wrap
+croak_xs_usage
+
+=dontwarn
+
+NEED_mess
+NEED_mess_nocontext
+NEED_vmess
+
+=implementation
+
+#ifdef NEED_mess_sv
+#define NEED_mess
+#endif
+
+#ifdef NEED_mess
+#define NEED_mess_nocontext
+#define NEED_vmess
+#endif
+
+#ifndef croak_sv
+#if { VERSION >= 5.7.3 } || ( { VERSION >= 5.6.1 } && { VERSION < 5.7.0 } )
+#  if ( { VERSION >= 5.8.0 } && { VERSION < 5.8.9 } ) || ( { VERSION >= 5.9.0 } && { VERSION < 5.10.1 } )
+#    define D_PPP_FIX_UTF8_ERRSV_FOR_SV(sv)                    \
+        STMT_START {                                           \
+            SV *_errsv = ERRSV;                                \
+            SvFLAGS(_errsv) = (SvFLAGS(_errsv) & ~SVf_UTF8) |  \
+                              (SvFLAGS(sv) & SVf_UTF8);        \
+        } STMT_END
+#  else
+#    define D_PPP_FIX_UTF8_ERRSV_FOR_SV(sv) STMT_START {} STMT_END
+#  endif
+PERL_STATIC_INLINE void D_PPP_croak_sv(SV *sv) {
+    dTHX;
+    SV *_sv = (sv);
+    if (SvROK(_sv)) {
+        sv_setsv(ERRSV, _sv);
+        croak(NULL);
+    } else {
+        D_PPP_FIX_UTF8_ERRSV_FOR_SV(_sv);
+        croak("%" SVf, SVfARG(_sv));
+    }
+}
+#  define croak_sv(sv) D_PPP_croak_sv(sv)
+#elif { VERSION >= 5.4.0 }
+#  define croak_sv(sv) croak("%" SVf, SVfARG(sv))
+#else
+#  define croak_sv(sv) croak("%s", SvPV_nolen(sv))
+#endif
+#endif
+
+#ifndef die_sv
+#if { NEED die_sv }
+OP *
+die_sv(pTHX_ SV *baseex)
+{
+    croak_sv(baseex);
+    return (OP *)NULL;
+}
+#endif
+#endif
+
+#ifndef warn_sv
+#if { VERSION >= 5.4.0 }
+#  define warn_sv(sv) warn("%" SVf, SVfARG(sv))
+#else
+#  define warn_sv(sv) warn("%s", SvPV_nolen(sv))
+#endif
+#endif
+
+#if ! defined vmess && { VERSION >= 5.4.0 }
+#  if { NEED vmess }
+
+SV*
+vmess(pTHX_ const char* pat, va_list* args)
+{
+    mess(pat, args);
+    return PL_mess_sv;
+}
+#  endif
+#endif
+
+#if { VERSION < 5.6.0 } && { VERSION >= 5.4.0 }
+#undef mess
+#endif
+
+#if !defined(mess_nocontext) && !defined(Perl_mess_nocontext) && { VERSION >= 5.4.0 }
+#if { NEED mess_nocontext }
+SV*
+mess_nocontext(const char* pat, ...)
+{
+    dTHX;
+    SV *sv;
+    va_list args;
+    va_start(args, pat);
+    sv = vmess(pat, &args);
+    va_end(args);
+    return sv;
+}
+#endif
+#endif
+
+#ifndef mess
+#if { NEED mess }
+SV*
+mess(pTHX_ const char* pat, ...)
+{
+    SV *sv;
+    va_list args;
+    va_start(args, pat);
+    sv = vmess(pat, &args);
+    va_end(args);
+    return sv;
+}
+#ifdef mess_nocontext
+#define mess mess_nocontext
+#else
+#define mess Perl_mess_nocontext
+#endif
+#endif
+#endif
+
+#if ! defined mess_sv && { VERSION >= 5.4.0 }
+#if { NEED mess_sv }
+SV *
+mess_sv(pTHX_ SV *basemsg, bool consume)
+{
+    SV *tmp;
+    SV *ret;
+
+    if (SvPOK(basemsg) && SvCUR(basemsg) && *(SvEND(basemsg)-1) == '\n') {
+        if (consume)
+            return basemsg;
+        ret = mess("");
+        SvSetSV_nosteal(ret, basemsg);
+        return ret;
+    }
+
+    if (consume) {
+        sv_catsv(basemsg, mess(""));
+        return basemsg;
+    }
+
+    ret = mess("");
+    tmp = newSVsv(ret);
+    SvSetSV_nosteal(ret, basemsg);
+    sv_catsv(ret, tmp);
+    sv_dec(tmp);
+    return ret;
+}
+#endif
+#endif
+
+#ifndef warn_nocontext
+#define warn_nocontext warn
+#endif
+
+#ifndef croak_nocontext
+#define croak_nocontext croak
+#endif
+
+#ifndef croak_no_modify
+#define croak_no_modify() croak_nocontext("%s", PL_no_modify)
+#define Perl_croak_no_modify() croak_no_modify()
+#endif
+
+#ifndef croak_memory_wrap
+#if { VERSION >= 5.9.2 } || ( { VERSION >= 5.8.6 } && { VERSION < 5.9.0 } )
+#  define croak_memory_wrap() croak_nocontext("%s", PL_memory_wrap)
+#else
+#  define croak_memory_wrap() croak_nocontext("panic: memory wrap")
+#endif
+#endif
+
+#ifndef croak_xs_usage
+#if { NEED croak_xs_usage }
+#ifndef PERL_ARGS_ASSERT_CROAK_XS_USAGE
+#define PERL_ARGS_ASSERT_CROAK_XS_USAGE assert(cv); assert(params)
+
+void
+croak_xs_usage(const CV *const cv, const char *const params)
+{
+    dTHX;
+    const GV *const gv = CvGV(cv);
+
+    PERL_ARGS_ASSERT_CROAK_XS_USAGE;
+
+    if (gv) {
+        const char *const gvname = GvNAME(gv);
+        const HV *const stash = GvSTASH(gv);
+        const char *const hvname = stash ? HvNAME(stash) : NULL;
+
+        if (hvname)
+            croak("Usage: %s::%s(%s)", hvname, gvname, params);
+        else
+            croak("Usage: %s(%s)", gvname, params);
+    } else {
+        /* Pants. I don't think that it should be possible to get here. */
+        croak("Usage: CODE(0x%" UVxf ")(%s)", PTR2UV(cv), params);
+    }
+}
+#endif
+#endif
+#endif
+
+=xsinit
+
+#define NEED_die_sv
+#define NEED_mess_sv
+#define NEED_croak_xs_usage
+
+=xsmisc
+
+static IV counter;
+static void reset_counter(void) { counter = 0; }
+static void inc_counter(void) { counter++; }
+
+=xsubs
+
+void
+croak_sv(sv)
+    SV *sv
+CODE:
+    croak_sv(sv);
+
+void
+croak_sv_errsv()
+CODE:
+    croak_sv(ERRSV);
+
+void
+croak_sv_with_counter(sv)
+    SV *sv
+CODE:
+    reset_counter();
+    croak_sv((inc_counter(), sv));
+
+IV
+get_counter()
+CODE:
+    RETVAL = counter;
+OUTPUT:
+    RETVAL
+
+void
+die_sv(sv)
+    SV *sv
+CODE:
+    (void)die_sv(sv);
+
+void
+warn_sv(sv)
+    SV *sv
+CODE:
+    warn_sv(sv);
+
+#if { VERSION >= 5.4.0 }
+
+SV *
+mess_sv(sv, consume)
+    SV *sv
+    bool consume
+CODE:
+    RETVAL = newSVsv(mess_sv(sv, consume));
+OUTPUT:
+    RETVAL
+
+#endif
+
+void
+croak_no_modify()
+CODE:
+    croak_no_modify();
+
+void
+croak_memory_wrap()
+CODE:
+    croak_memory_wrap();
+
+void
+croak_xs_usage(params)
+    char *params
+CODE:
+    croak_xs_usage(cv, params);
+
+=tests plan => 102
+
+BEGIN { if (ivers($]) < ivers('5.006')) { $^W = 0; } }
+
+my $warn;
+my $die;
+local $SIG{__WARN__} = sub { $warn = $_[0] };
+local $SIG{__DIE__} = sub { $die = $_[0] };
+
+my $scalar_ref = \do {my $tmp = 10};
+my $array_ref = [];
+my $hash_ref = {};
+my $obj = bless {}, 'Package';
+
+undef $die;
+ok !defined eval { Devel::PPPort::croak_sv("\xE1\n") };
+is $@, "\xE1\n";
+is $die, "\xE1\n";
+
+undef $die;
+ok !defined eval { Devel::PPPort::croak_sv(10) };
+ok $@ =~ /^10 at \Q$0\E line /;
+ok $die =~ /^10 at \Q$0\E line /;
+
+undef $die;
+$@ = 'should not be visible (1)';
+ok !defined eval {
+    $@ = 'should not be visible (2)';
+    Devel::PPPort::croak_sv('');
+};
+ok $@ =~ /^ at \Q$0\E line /;
+ok $die =~ /^ at \Q$0\E line /;
+
+undef $die;
+$@ = 'should not be visible';
+ok !defined eval {
+    $@ = 'this must be visible';
+    Devel::PPPort::croak_sv($@)
+};
+ok $@ =~ /^this must be visible at \Q$0\E line /;
+ok $die =~ /^this must be visible at \Q$0\E line /;
+
+undef $die;
+$@ = 'should not be visible';
+ok !defined eval {
+    $@ = "this must be visible\n";
+    Devel::PPPort::croak_sv($@)
+};
+is $@, "this must be visible\n";
+is $die, "this must be visible\n";
+
+undef $die;
+$@ = 'should not be visible';
+ok !defined eval {
+    $@ = 'this must be visible';
+    Devel::PPPort::croak_sv_errsv()
+};
+ok $@ =~ /^this must be visible at \Q$0\E line /;
+ok $die =~ /^this must be visible at \Q$0\E line /;
+
+undef $die;
+$@ = 'should not be visible';
+ok !defined eval {
+    $@ = "this must be visible\n";
+    Devel::PPPort::croak_sv_errsv()
+};
+is $@, "this must be visible\n";
+is $die, "this must be visible\n";
+
+undef $die;
+ok !defined eval { Devel::PPPort::croak_sv_with_counter("message\n") };
+is $@, "message\n";
+is Devel::PPPort::get_counter(), 1;
+
+undef $die;
+ok !defined eval { Devel::PPPort::croak_sv('') };
+ok $@ =~ /^ at \Q$0\E line /;
+ok $die =~ /^ at \Q$0\E line /;
+
+undef $die;
+ok !defined eval { Devel::PPPort::croak_sv("\xE1") };
+ok $@ =~ /^\xE1 at \Q$0\E line /;
+ok $die =~ /^\xE1 at \Q$0\E line /;
+
+undef $die;
+ok !defined eval { Devel::PPPort::croak_sv("\xC3\xA1") };
+ok $@ =~ /^\xC3\xA1 at \Q$0\E line /;
+ok $die =~ /^\xC3\xA1 at \Q$0\E line /;
+
+undef $warn;
+Devel::PPPort::warn_sv("\xE1\n");
+is $warn, "\xE1\n";
+
+undef $warn;
+Devel::PPPort::warn_sv(10);
+ok $warn =~ /^10 at \Q$0\E line /;
+
+undef $warn;
+Devel::PPPort::warn_sv('');
+ok $warn =~ /^ at \Q$0\E line /;
+
+undef $warn;
+Devel::PPPort::warn_sv("\xE1");
+ok $warn =~ /^\xE1 at \Q$0\E line /;
+
+undef $warn;
+Devel::PPPort::warn_sv("\xC3\xA1");
+ok $warn =~ /^\xC3\xA1 at \Q$0\E line /;
+
+is Devel::PPPort::mess_sv("\xE1\n", 0), "\xE1\n";
+is Devel::PPPort::mess_sv(do {my $tmp = "\xE1\n"}, 1), "\xE1\n";
+
+ok Devel::PPPort::mess_sv(10, 0) =~ /^10 at \Q$0\E line /;
+ok Devel::PPPort::mess_sv(do {my $tmp = 10}, 1) =~ /^10 at \Q$0\E line /;
+
+ok Devel::PPPort::mess_sv('', 0) =~ /^ at \Q$0\E line /;
+ok Devel::PPPort::mess_sv(do {my $tmp = ''}, 1) =~ /^ at \Q$0\E line /;
+
+ok Devel::PPPort::mess_sv("\xE1", 0) =~ /^\xE1 at \Q$0\E line /;
+ok Devel::PPPort::mess_sv(do {my $tmp = "\xE1"}, 1) =~ /^\xE1 at \Q$0\E line /;
+
+ok Devel::PPPort::mess_sv("\xC3\xA1", 0) =~ /^\xC3\xA1 at \Q$0\E line /;
+ok Devel::PPPort::mess_sv(do {my $tmp = "\xC3\xA1"}, 1) =~ /^\xC3\xA1 at \Q$0\E line /;
+
+if (ivers($]) >= ivers('5.006')) {
+    BEGIN { if (ivers($]) >= ivers('5.006') && ivers($]) < ivers('5.008')) { require utf8; utf8->import(); } }
+
+    undef $die;
+    ok !defined eval { Devel::PPPort::croak_sv("\x{100}\n") };
+    if (ivers($]) < ivers('5.007001') || ivers($]) > ivers('5.007003')) {
+        is $@, "\x{100}\n";
+    } else {
+        skip 'skip: broken utf8 support in die hook', 1;
+    }
+    if (ivers($]) < ivers('5.007001') || ivers($]) > ivers('5.008')) {
+        is $die, "\x{100}\n";
+    } else {
+        skip 'skip: broken utf8 support in die hook', 1;
+    }
+
+    undef $die;
+    ok !defined eval { Devel::PPPort::croak_sv("\x{100}") };
+    if (ivers($]) < ivers('5.007001') || ivers($]) > ivers('5.007003')) {
+        ok $@ =~ /^\x{100} at \Q$0\E line /;
+    } else {
+        skip 'skip: broken utf8 support in die hook', 1;
+    }
+    if (ivers($]) < ivers('5.007001') || ivers($]) > ivers('5.008')) {
+        ok $die =~ /^\x{100} at \Q$0\E line /;
+    } else {
+        skip 'skip: broken utf8 support in die hook', 1;
+    }
+
+    if (ivers($]) < ivers('5.007001') || ivers($]) > ivers('5.008')) {
+        undef $warn;
+        Devel::PPPort::warn_sv("\x{100}\n");
+        is $warn, "\x{100}\n";
+
+        undef $warn;
+        Devel::PPPort::warn_sv("\x{100}");
+        ok (my $tmp = $warn) =~ /^\x{100} at \Q$0\E line /;
+    } else {
+        skip 'skip: broken utf8 support in warn hook', 2;
+    }
+
+    is Devel::PPPort::mess_sv("\x{100}\n", 0), "\x{100}\n";
+    is Devel::PPPort::mess_sv(do {my $tmp = "\x{100}\n"}, 1), "\x{100}\n";
+
+    ok Devel::PPPort::mess_sv("\x{100}", 0) =~ /^\x{100} at \Q$0\E line /;
+    ok Devel::PPPort::mess_sv(do {my $tmp = "\x{100}"}, 1) =~ /^\x{100} at \Q$0\E line /;
+} else {
+    skip 'skip: no utf8 support', 12;
+}
+
+if (ord('A') != 65) {
+    skip 'skip: no ASCII support', 24;
+} elsif (      ivers($]) >= ivers('5.008')
+         &&    ivers($]) != ivers('5.013000')     # Broken in these ranges
+         && ! (ivers($]) >= ivers('5.011005') && ivers($]) <= ivers('5.012000')))
+{
+    undef $die;
+    ok !defined eval { Devel::PPPort::croak_sv(eval '"\N{U+E1}\n"') };
+    is $@, "\xE1\n";
+    is $die, "\xE1\n";
+
+    undef $die;
+    ok !defined eval { Devel::PPPort::croak_sv(eval '"\N{U+E1}"') };
+    ok $@ =~ /^\xE1 at \Q$0\E line /;
+    ok $die =~ /^\xE1 at \Q$0\E line /;
+
+    {
+        undef $die;
+        my $expect = eval '"\N{U+C3}\N{U+A1}\n"';
+        ok !defined eval { Devel::PPPort::croak_sv("\xC3\xA1\n") };
+        is $@, $expect;
+        is $die, $expect;
+    }
+
+    {
+        undef $die;
+        my $expect = eval 'qr/^\N{U+C3}\N{U+A1} at \Q$0\E line /';
+        ok !defined eval { Devel::PPPort::croak_sv("\xC3\xA1") };
+        ok $@ =~ $expect;
+        ok $die =~ $expect;
+    }
+
+    undef $warn;
+    Devel::PPPort::warn_sv(eval '"\N{U+E1}\n"');
+    is $warn, "\xE1\n";
+
+    undef $warn;
+    Devel::PPPort::warn_sv(eval '"\N{U+E1}"');
+    ok $warn =~ /^\xE1 at \Q$0\E line /;
+
+    undef $warn;
+    Devel::PPPort::warn_sv("\xC3\xA1\n");
+    is $warn, eval '"\N{U+C3}\N{U+A1}\n"';
+
+    undef $warn;
+    Devel::PPPort::warn_sv("\xC3\xA1");
+    ok $warn =~ eval 'qr/^\N{U+C3}\N{U+A1} at \Q$0\E line /';
+
+    if (ivers($]) < ivers('5.004')) {
+        skip 'skip: no support for mess_sv', 8;
+    }
+    else {
+      is Devel::PPPort::mess_sv(eval('"\N{U+E1}\n"'), 0), eval '"\N{U+E1}\n"';
+      is Devel::PPPort::mess_sv(do {my $tmp = eval '"\N{U+E1}\n"'}, 1), eval '"\N{U+E1}\n"';
+
+      ok Devel::PPPort::mess_sv(eval('"\N{U+E1}"'), 0) =~ eval 'qr/^\N{U+E1} at \Q$0\E line /';
+      ok Devel::PPPort::mess_sv(do {my $tmp = eval '"\N{U+E1}"'}, 1) =~ eval 'qr/^\N{U+E1} at \Q$0\E line /';
+
+      is Devel::PPPort::mess_sv("\xC3\xA1\n", 0), eval '"\N{U+C3}\N{U+A1}\n"';
+      is Devel::PPPort::mess_sv(do {my $tmp = "\xC3\xA1\n"}, 1), eval '"\N{U+C3}\N{U+A1}\n"';
+
+      ok Devel::PPPort::mess_sv("\xC3\xA1", 0) =~ eval 'qr/^\N{U+C3}\N{U+A1} at \Q$0\E line /';
+      ok Devel::PPPort::mess_sv(do {my $tmp = "\xC3\xA1"}, 1) =~ eval 'qr/^\N{U+C3}\N{U+A1} at \Q$0\E line /';
+    }
+} else {
+    skip 'skip: no support for \N{U+..} syntax', 24;
+}
+
+if (ivers($]) >= ivers('5.007003') or (ivers($]) >= ivers('5.006001') and ivers($]) < ivers('5.007'))) {
+    undef $die;
+    ok !defined eval { Devel::PPPort::croak_sv($scalar_ref) };
+    ok $@ == $scalar_ref;
+    ok $die == $scalar_ref;
+
+    undef $die;
+    ok !defined eval { Devel::PPPort::croak_sv($array_ref) };
+    ok $@ == $array_ref;
+    ok $die == $array_ref;
+
+    undef $die;
+    ok !defined eval { Devel::PPPort::croak_sv($hash_ref) };
+    ok $@ == $hash_ref;
+    ok $die == $hash_ref;
+
+    undef $die;
+    ok !defined eval { Devel::PPPort::croak_sv($obj) };
+    ok $@ == $obj;
+    ok $die == $obj;
+} else {
+    skip 'skip: no support for exceptions', 12;
+}
+
+ok !defined eval { Devel::PPPort::croak_no_modify() };
+ok $@ =~ /^Modification of a read-only value attempted at \Q$0\E line /;
+
+ok !defined eval { Devel::PPPort::croak_memory_wrap() };
+ok $@ =~ /^panic: memory wrap at \Q$0\E line /;
+
+ok !defined eval { Devel::PPPort::croak_xs_usage("params") };
+ok $@ =~ /^Usage: Devel::PPPort::croak_xs_usage\(params\) at \Q$0\E line /;

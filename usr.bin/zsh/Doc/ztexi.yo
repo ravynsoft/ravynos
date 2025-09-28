@@ -1,0 +1,283 @@
+IFDEF(INCWSLEVEL)(\
+INCWSLEVEL()\
+DEFINESYMBOL(ztexi)()\
+)(\
+STARTDEF()
+DEFINESYMBOL(ztexi)
+)
+
+TYPEOUT(Zsh Yodl-to-TeXinfo converter)
+
+INCLUDEFILE(zmacros)
+redef(ifztexi)(1)(ARG1)
+redef(ifnztexi)(1)()
+
+def(CMT)(0)(NOTRANS(@c))
+
+ATEXIT(\
+  NL()\
+  NOTRANS(@bye)NL()\
+)
+
+COMMENT(--- character translation ---)
+
+DEFINECHARTABLE(standard)(
+  '' = "@c (avoiding a yodl bug)"
+  '@' = "@@"
+  '{' = "@{"
+  '}' = "@}"
+)
+USECHARTABLE(standard)
+SUBST('')(+NOTRANS(@value{dsq}))
+SUBST(``)(+NOTRANS(@value{dsbq}))
+
+def(STDPAR)(0)(redef(PARAGRAPH)(0)(NL()NL()NOTRANS(@noindent)+NL()))
+
+COMMENT(--- emphasised text ---)
+
+def(em)(1)(+NOTRANS(@emph{)ARG1+NOTRANS(}))
+def(bf)(1)(+NOTRANS(@cite{)ARG1+NOTRANS(}))
+def(tt)(1)(+NOTRANS(@t{)ARG1+NOTRANS(}))
+def(uref)(1)(+NOTRANS(@t{@uref{)ARG1+NOTRANS(}}))
+def(var)(1)(+NOTRANS(@var{)ARG1+NOTRANS(}))
+
+COMMENT(--- man page headers ---)
+
+def(manpage)(4)(STDPAR())
+def(manpagename)(2)()
+
+COMMENT(--- TeXinfo headers and conditionals ---)
+
+def(texinfo)(2)(\
+  STDPAR()\
+  NOTRANS(\input texinfo.tex)+NL()\
+  NOTRANS(@c %**start of header)+NL()\
+  NOTRANS(@iftex)+NL()\
+  NOTRANS(@setchapternewpage off)+NL()\
+  NOTRANS(@end iftex)+NL()\
+  NOTRANS(@setfilename )ARG1+NL()\
+  NOTRANS(@settitle )ARG2+NL()\
+  NOTRANS(@c %**end of header)+NL()\
+  +NL()\
+  NOTRANS(@ifinfo)+NL()\
+  NOTRANS(@set dsq '@:')+NL()\
+  NOTRANS(@set dsbq `@:`)+NL()\
+  NOTRANS(@end ifinfo)+NL()\
+  NOTRANS(@iftex)+NL()\
+  NOTRANS(@set dsq '{}')+NL()\
+  NOTRANS(@set dsbq `{}`)+NL()\
+  NOTRANS(@end iftex)+NL()\
+  NOTRANS(@ifinfo)+NL()\
+  NOTRANS(@dircategory Utilities)+NL()\
+  NOTRANS(@direntry)+NL()\
+  NOTRANS(* ZSH: (zsh).                     The Z Shell Manual.)+NL()\
+  NOTRANS(@end direntry)+NL()\
+  NOTRANS(@end ifinfo)+NL()\
+)
+
+def(texiifinfo)(1)(\
+  NOTRANS(@ifinfo)+NL()\
+  ARG1\
+  +NOTRANS(@end ifinfo)+NL()\
+)
+def(texiiftex)(1)(\
+  NOTRANS(@iftex)+NL()\
+  ARG1\
+  +NOTRANS(@end iftex)+NL()\
+)
+def(texiifnottex)(1)(\
+  NOTRANS(@ifnottex)+NL()\
+  ARG1\
+  +NOTRANS(@end ifnottex)+NL()\
+)
+
+def(texipage)(0)(\
+  NOTRANS(@page)\
+)
+def(texititlepage)(0)(\
+  NOTRANS(@titlepage)\
+)
+def(texiendtitlepage)(0)(\
+  NOTRANS(@end titlepage)\
+)
+def(texititle)(1)(\
+  NOTRANS(@title )ARG1\
+)
+def(texisubtitle)(1)(\
+  NOTRANS(@subtitle )ARG1\
+)
+def(texiauthor)(1)(\
+  NOTRANS(@author )ARG1\
+)
+
+COMMENT(Arguments are node identifiers: this, next, previous, up)
+def(texinode)(4)(\
+  NOTRANS(@node )ARG1, ARG2, ARG3, ARG4\
+)
+def(texitop)(1)(\
+  NOTRANS(@top )ARG1\
+)
+
+COMMENT(--- section divisions ---)
+
+def(chapter)(1)(\
+  NL()\
+  NOTRANS(@chapter )ARG1+NL()\
+  NOTRANS(@noindent)\
+)
+
+def(sect)(1)(\
+  NL()\
+  NOTRANS(@section )ARG1+NL()\
+  NOTRANS(@noindent)\
+)
+
+def(subsect)(1)(\
+  NL()\
+  NOTRANS(@subsection )ARG1+NL()\
+  NOTRANS(@noindent)\
+)
+
+COMMENT(--- comment output ---)
+
+DEFINECHARTABLE(texicomment)(
+  '\n' = "\n@c "
+)
+def(comment)(1)(\
+  USECHARTABLE(texicomment)\
+  NOTRANS(@c )ARG1\
+  +USECHARTABLE(standard)\
+)
+
+COMMENT(--- cross-references ---)
+
+def(manref)(2)(ARG1+LPAR()ARG2+RPAR())
+def(zmanref)(1)(manref(ARG1)(1))
+def(noderef)(1)(\
+  NOTRANS(@ref{)ARG1+NOTRANS(})\
+)
+
+COMMENT(--- lists ---)
+
+def(startitem)(0)(\
+  NOTRANS(@table @asis)\
+  +redef(ITEMX)(0)()\
+)
+def(enditem)(0)(\
+  NOTRANS(@end table)\
+)
+def(item)(2)(\
+  NOTRANS(@item)ITEMX() ARG1\
+  ARG2\
+  +redef(ITEMX)(0)()\
+)
+def(xitem)(1)(\
+  NOTRANS(@item)ITEMX() ARG1\
+  +redef(ITEMX)(0)(x)\
+)
+
+def(startsitem)(0)(\
+  startitem()\
+)
+def(endsitem)(0)(\
+  enditem()\
+)
+def(sitem)(2)(\
+  item(ARG1)(+NL()ARG2)\
+)
+def(sxitem)(1)(\
+  xitem(ARG1)\
+)
+
+def(startlist)(0)(\
+  startitem()\
+)
+def(endlist)(0)(\
+  enditem()+NL()\
+  NOTRANS(@sp 1)\
+)
+def(list)(1)(\
+  item(ARG1)()\
+)
+
+def(startitemize)(0)(\
+  NOTRANS(@itemize @bullet)+NL()\
+)
+def(enditemize)(0)(\
+  NOTRANS(@end itemize)\
+)
+def(itemiz)(1)(\
+  sitem()(ARG1)\
+)
+  
+COMMENT(--- special effects ---)
+
+DEFINECHARTABLE(nofillchars)(
+  '@' = "@@"
+  '{' = "@{"
+  '}' = "@}"
+  '\n' = "@*\n"
+)
+def(nofill)(1)(\
+  USECHARTABLE(nofillchars)\
+  ARG1\
+  +USECHARTABLE(standard)\
+)
+
+def(example)(1)(\
+  undef(PARAGRAPH)\
+  NOTRANS(@example)+NL()\
+  ARG1\
+  +NL()NOTRANS(@end example)\
+  STDPAR()\
+)
+
+def(indent)(1)(\
+  NOTRANS(@quotation)+NL()\
+  ARG1\
+  +NL()NOTRANS(@end quotation)\
+)
+
+COMMENT(--- hyperlink menus ---)
+
+def(startmenu)(0)(\
+  NOTRANS(@menu)\
+)
+def(endmenu)(0)(\
+  NOTRANS(@end menu)\
+)
+def(menu)(1)(\
+  * ARG1+NOTRANS(::)\
+)
+
+COMMENT(--- indices ---)
+
+def(cindex)(1)(\
+  NOTRANS(@cindex )ARG1\
+)
+
+def(findex)(1)(\
+  NOTRANS(@findex )ARG1\
+)
+
+def(kindex)(1)(\
+  NOTRANS(@kindex )ARG1\
+)
+
+def(pindex)(1)(\
+  NOTRANS(@pindex )ARG1\
+)
+
+def(tindex)(1)(\
+  NOTRANS(@tindex )ARG1\
+)
+
+def(vindex)(1)(\
+  NOTRANS(@vindex )ARG1\
+)
+
+IFDEF(DECWSLEVEL)(\
+DECWSLEVEL()\
+)(\
+ENDDEF()\
+)\

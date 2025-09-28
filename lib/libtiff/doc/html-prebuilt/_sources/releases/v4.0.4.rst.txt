@@ -1,0 +1,191 @@
+Changes in TIFF v4.0.4
+======================
+
+.. table:: References
+    :widths: auto
+
+    ======================  ==========================================
+    Current Version         v4.0.4 (:tag:`Release-v4-0-4`)
+    Previous Version        :doc:`v4.0.4beta <v4.0.4beta>`
+    Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+    Master HTTP Site        `<https://download.osgeo.org/libtiff/>`_
+    ======================  ==========================================
+
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).  If you don't
+find something listed here, then it was not done in this timeframe, or
+it was not considered important enough to be mentioned.  The following
+information is located here:
+
+
+Major changes
+-------------
+
+* None
+
+
+Software configuration changes
+------------------------------
+
+* :bugzilla:`2405`: Correct shell equality operator.
+* :bugzilla:`2498`: Adds an option to select the file I/O style on Windows hosts.
+
+
+Library changes
+---------------
+
+* :c:func:`TIFFNumberOfDirectories`: Coverity 1134470 "Logically dead code"
+
+* :file:`tif_dirread.c`:
+
+  * :c:func:`TIFFReadDirEntryDoubleArray`: Coverity 298626 "Logically dead code".
+  * :c:func:`TIFFReadDirEntryFloatArray`: Coverity 298627 "Logically dead code".
+  * :c:func:`TIFFReadDirEntryIfd8Array`: Coverity 298628 "Logically dead code".
+  * :c:func:`TIFFReadDirEntrySlong8Array`: Coverity 298629 "Logically dead code"
+
+* :file:`tif_dirwrite.c`
+
+  * :c:func:`_TIFFRewriteField`: Coverity 1024310 "Resource leak".
+
+* :file:`tif_jpeg.c`
+
+  * :c:func:`JPEGCleanup`: Coverity 298624 "Dereference before null check".
+  * :c:func:`JPEGDecode`: Coverity 602597 "Operands don't affect result".
+
+* :file:`tif_getimage.c`
+
+  * :bugzilla:`2409`: Correct reading of certain tiled TIFFs.
+
+* :file:`tif_luv.c`
+
+  * :c:func:`LogLuvDecodeStrip`: Coverity 991239 "Division or modulo by zero".
+  * :c:func:`LogLuvDecodeTile`: Coverity 991227 "Division or modulo by zero".
+  * :c:func:`LogLuvEncodeStrip`: Coverity 991240 "Division or modulo by zero".
+  * :c:func:`LogLuvEncodeTile`: Coverity 991241 "Division or modulo by zero".
+
+* :file:`tif_lzw.c`
+
+  * Decode files that contain consecutive :c:macro:`CODE_CLEAR` codes.
+
+* :file:`tif_ojpeg.c`
+
+  * :c:func:`OJPEGReadBufferFill`: Coverity 603400 "Missing break in switch".
+  * :c:func:`OJPEGReadHeaderInfoSecStreamDht`: Coverity 601720 "Resource leak".
+
+* :file:`tif_read.c`
+
+  * :c:func:`TIFFStartTile`: Coverity 715973 and 715974 "Division or modulo by zero".
+
+* :file:`tif_unix.c`
+
+  * :bugzilla:`2510`: Fix several harmless but still annoying warnings.
+
+* :file:`tif_write`
+
+  * :c:func:`TIFFWriteEncodedStrip`: Coverity 715975 "Division or modulo by zero".
+  * :c:func:`TIFFWriteEncodedTile`: Coverity 715976 and 715977 "Division or modulo by zero".
+  * :c:func:`TIFFWriteRawStrip`: Coverity 715978 "Division or modulo by zero".
+  * :c:func:`TIFFWriteScanline`: Coverity 715979 "Division or modulo by zero".
+
+
+Tools changes
+-------------
+
+* :program:`bmp2tiff`
+
+  * Coverity 1024225 "Untrusted value as argument".
+  * Coverity 1024678 "Unchecked return value from library".
+  * Coverity 1024679 "Unchecked return value from library".
+  * Coverity 1214160 "Ignoring number of bytes read".
+
+* :program:`gif2tiff`
+
+  * Coverity 1024222 "Untrusted value as argument".
+  * Coverity 1024890 "Ignoring number of bytes read".
+  * Coverity 1024891 "Ignoring number of bytes read".
+  * Coverity 1024892 "Ignoring number of bytes read".
+  * Coverity 1024893 "Ignoring number of bytes read".
+  * Coverity 1024894 "Ignoring number of bytes read".
+
+* :program:`ras2tiff`
+
+  * Corrected Sun Raster header definition to be safe for
+    64-bit systems.  Add some header validations.  Fixes many
+    (unspecified) Coverity issues.
+  * Coverity 1024223 "Untrusted value as argument".
+  * Coverity 1301206: "Integer handling issues  (BAD_SHIFT)".
+
+* :program:`raw2tiff`
+
+  * Coverity 1024887 "Unchecked return value from library".
+  * Coverity 1024888 "Unchecked return value from library".
+  * Coverity 1024889 "Unchecked return value from library".
+  * Coverity 1214162 "Ignoring number of bytes read".
+
+
+* :program:`tiff2pdf`
+
+  * :bugzilla:`2078`: Suppress initial output of the header.
+  * :bugzilla:`2150`: Change ColorTransform from "0" to "1".
+  * Take care in using the return value from :c:func:`snprintf`.
+  * Coverity 1024181 "Structurally dead code".
+  * Coverity 1024181 "Structurally dead code".
+  * Coverity 1227690 "Unused value".
+  * Coverity 298621 "Resource leak".
+
+* :program:`tiff2ps`
+
+  * Correct sizing and scaling problems with output document.
+
+* :program:`tiffcp`
+
+  * Coverity 1024306, 1024307, 1024308, 1024309 "Resource leak".
+
+* :program:`tiffcrop`
+
+  * Correctly copy the compression tag from the source TIFF.
+  * Coverity 1024545 "Division or modulo by zero".
+  * Coverity 1024586 "Logically dead code".
+  * Coverity 1024796 "Nesting level does not match indentation".
+  * Coverity 1024797 "Nesting level does not match indentation".
+  * Coverity 1294542 "Logical vs. bitwise operator".
+  * Coverity 1299740 "Out-of-bounds write".
+  * Coverity 1299741 "Dereference before null check".
+
+* :program:`tiffdither`
+
+  * Check memory allocations for failure.  Also check
+    multiplication overflow. (Fixes #2501, :cve:`2014-8128`)
+
+* :program:`tiffgt.c`
+
+  * :bugzilla:`2401`: Appropriately call :c:func:`glFlush`.
+
+* :program:`tiffmedian`
+
+  * Coverity 1024386 "Out-of-bounds read".
+  * Coverity 1024386 "Out-of-bounds read".
+  * Coverity 1024795 "Nesting level does not match indentation".
+  * Coverity 1024795 "Nesting level does not match indentation".
+
+:program:`tiffsplit`
+
+  * Coverity 1024304 "Resource leak".
+  * Coverity 1024305 "Resource leak".
+
+
+Contributed software changes
+----------------------------
+
+* :program:`addtiffo`
+
+  * Check buffer size calculation for overflow.
+  * Coverity  298615 "Resource leak".
+  * Coverity 1024649 "Unintended sign extension".
+
+* :program:`iptcutil`
+
+  * Coverity 1024468 "Infinite loop".
+  * Coverity 1024727 "Truncated stdio return value".
+  * Coverity 1214240 "Untrusted loop bound".

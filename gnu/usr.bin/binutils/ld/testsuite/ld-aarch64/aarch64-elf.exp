@@ -1,0 +1,472 @@
+# Expect script for various AARCH64 ELF tests.
+# Copyright (C) 2009-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+# Exclude non-aarch64-ELF targets.
+if { ![is_elf_format] || ![istarget "aarch64*-*-*"] } {
+    return
+}
+
+# List contains test-items with 3 items followed by 2 lists:
+# 0:name 1:ld early options 2:ld late options 3:assembler options
+# 4:filenames of assembler files 5: action and options. 6: name of output file
+
+# Actions:
+# objdump: Apply objdump options on result.  Compare with regex (last arg).
+# nm: Apply nm options on result.  Compare with regex (last arg).
+# readelf: Apply readelf options on result.  Compare with regex (last arg).
+
+set aarch64elftests {
+    {"Erratum 835769 dump test"
+     "--fix-cortex-a53-835769" "" "" {erratum835769.s}
+     {{objdump -dr erratum835769.d}}
+     "erratum835769"}
+}
+set tmp {
+    {"Erratum 835769 dump test -shared"
+     "--fix-cortex-a53-835769 -shared" "" "" {erratum835769.s}
+     {{objdump -dr erratum835769.d}}
+     "erratum835769"}
+}
+if [check_shared_lib_support] { append aarch64elftests $tmp }
+
+proc aarch64_choose_ilp32_emul {} {
+    if [istarget *linux*] then {
+	if [istarget aarch64_be-*] {
+	    return "aarch64linux32b"
+	}
+	return "aarch64linux32"
+    }
+    if [istarget aarch64_be-*] {
+        return "aarch64elf32b"
+    }
+    return "aarch64elf32"
+}
+
+proc aarch64_choose_lp64_emul {} {
+    if [istarget *linux*] then {
+	if [istarget aarch64_be-*] {
+	    return "aarch64linuxb"
+	}
+	return "aarch64linux"
+    }
+    if [istarget *nto*] then {
+	return "aarch64nto"
+    }
+    if [istarget aarch64_be-*] {
+        return "aarch64elfb"
+    }
+    return "aarch64elf"
+}
+
+proc run_dump_test_lp64 { testname } {
+  run_dump_test $testname \
+		[list [list as "-mabi=lp64"] \
+		      [list ld [concat "-m " [aarch64_choose_lp64_emul]]]]
+}
+
+set eh-frame-merge-lp64 [list [list "EH Frame merge" \
+			      [concat "-m " [aarch64_choose_lp64_emul] \
+				      " -Ttext 0x8000"] \
+			      "" "-mabi=lp64" {eh-frame-bar.s eh-frame-foo.s} \
+			      {{objdump --dwarf=frames eh-frame.d}} \
+			      "eh-frame"]]
+
+run_ld_link_tests $aarch64elftests
+run_ld_link_tests eh-frame-merge-lp64
+
+run_dump_test "erratum843419"
+run_dump_test "erratum843419_tls_ie"
+run_dump_test "erratum843419-adr"
+run_dump_test "erratum843419-adrp"
+run_dump_test "erratum843419-far-adr"
+run_dump_test "erratum843419-far-full"
+run_dump_test "erratum843419-full"
+run_dump_test "erratum843419-no-args"
+run_dump_test "erratum835769-843419"
+
+# Relocation Tests
+run_dump_test_lp64 "weak-undefined"
+run_dump_test "emit-relocs-22"
+run_dump_test "emit-relocs-23"
+run_dump_test "emit-relocs-28"
+run_dump_test "emit-relocs-86"
+run_dump_test "emit-relocs-86-overflow"
+run_dump_test "emit-relocs-87"
+run_dump_test "emit-relocs-88"
+run_dump_test "emit-relocs-88-overflow"
+run_dump_test "emit-relocs-89"
+run_dump_test "emit-relocs-90"
+run_dump_test "emit-relocs-90-overflow"
+run_dump_test "emit-relocs-92"
+
+run_dump_test "emit-relocs-112"
+run_dump_test "emit-relocs-112-overflow"
+run_dump_test "emit-relocs-113"
+run_dump_test "emit-relocs-114"
+run_dump_test "emit-relocs-114-overflow"
+run_dump_test "emit-relocs-115"
+run_dump_test "emit-relocs-116"
+run_dump_test "emit-relocs-116-overflow"
+run_dump_test "emit-relocs-117"
+run_dump_test "emit-relocs-118"
+run_dump_test "emit-relocs-118-overflow"
+run_dump_test "emit-relocs-119"
+
+run_dump_test "emit-relocs-257"
+run_dump_test "emit-relocs-257-be"
+# 258 is tested in 257
+# 259 is tested in 257
+run_dump_test_lp64 "emit-relocs-258-dyn-bad"
+run_dump_test_lp64 "emit-relocs-259-dyn-bad"
+run_dump_test_lp64 "emit-relocs-260"
+run_dump_test_lp64 "emit-relocs-260-be"
+# 261 is tested by 260
+run_dump_test_lp64 "emit-relocs-262"
+run_dump_test_lp64 "emit-relocs-263"
+run_dump_test_lp64 "emit-relocs-264"
+run_dump_test_lp64 "emit-relocs-264-bad"
+run_dump_test_lp64 "emit-relocs-265"
+run_dump_test_lp64 "emit-relocs-266"
+run_dump_test_lp64 "emit-relocs-266-bad"
+run_dump_test_lp64 "emit-relocs-267"
+run_dump_test_lp64 "emit-relocs-268"
+run_dump_test_lp64 "emit-relocs-268-bad"
+run_dump_test_lp64 "emit-relocs-269"
+run_dump_test_lp64 "emit-relocs-269-bad"
+run_dump_test_lp64 "emit-relocs-270"
+run_dump_test_lp64 "emit-relocs-270-bad"
+run_dump_test_lp64 "emit-relocs-270-overflow"
+run_dump_test_lp64 "emit-relocs-271"
+run_dump_test_lp64 "emit-relocs-271-overflow"
+run_dump_test_lp64 "emit-relocs-272"
+run_dump_test_lp64 "emit-relocs-272-overflow"
+run_dump_test_lp64 "emit-relocs-273"
+run_dump_test_lp64 "emit-relocs-274"
+run_dump_test_lp64 "emit-relocs-275"
+run_dump_test_lp64 "emit-relocs-276"
+run_dump_test_lp64 "emit-relocs-277"
+run_dump_test_lp64 "emit-relocs-278"
+run_dump_test_lp64 "emit-relocs-279"
+run_dump_test_lp64 "emit-relocs-279-bad"
+run_dump_test_lp64 "emit-relocs-280"
+# 281 is unused
+run_dump_test_lp64 "emit-relocs-282"
+run_dump_test_lp64 "emit-relocs-283"
+run_dump_test_lp64 "emit-relocs-284"
+run_dump_test_lp64 "emit-relocs-285"
+run_dump_test_lp64 "emit-relocs-286"
+run_dump_test_lp64 "emit-relocs-286-bad"
+run_dump_test_lp64 "emit-relocs-287"
+run_dump_test_lp64 "emit-relocs-287-overflow"
+run_dump_test_lp64 "emit-relocs-288"
+run_dump_test_lp64 "emit-relocs-289"
+run_dump_test_lp64 "emit-relocs-289-overflow"
+run_dump_test_lp64 "emit-relocs-290"
+run_dump_test_lp64 "emit-relocs-291"
+run_dump_test_lp64 "emit-relocs-291-overflow"
+run_dump_test_lp64 "emit-relocs-292"
+run_dump_test_lp64 "emit-relocs-293"
+# 294-298 are not done yet
+run_dump_test_lp64 "emit-relocs-299"
+# 300 is not done yet
+run_dump_test_lp64 "emit-relocs-301"
+run_dump_test_lp64 "emit-relocs-301-be"
+run_dump_test_lp64 "emit-relocs-302"
+run_dump_test_lp64 "emit-relocs-302-be"
+# 303-308 are not done yet
+run_dump_test_lp64 "emit-relocs-309-up"
+run_dump_test_lp64 "emit-relocs-309-low"
+run_dump_test_lp64 "emit-relocs-309-up-bad"
+run_dump_test_lp64 "emit-relocs-309-low-bad"
+run_dump_test_lp64 "emit-relocs-310"
+run_dump_test_lp64 "emit-relocs-310-be"
+run_dump_test_lp64 "emit-relocs-311"
+run_dump_test_lp64 "emit-relocs-312"
+run_dump_test_lp64 "emit-relocs-313"
+run_dump_test_lp64 "emit-relocs-515"
+run_dump_test_lp64 "emit-relocs-515-be"
+run_dump_test_lp64 "emit-relocs-516"
+run_dump_test_lp64 "emit-relocs-516-be"
+run_dump_test_lp64 "emit-relocs-523"
+run_dump_test_lp64 "emit-relocs-524"
+run_dump_test_lp64 "emit-relocs-525"
+run_dump_test_lp64 "emit-relocs-526"
+run_dump_test_lp64 "emit-relocs-526-overflow"
+run_dump_test_lp64 "emit-relocs-527"
+run_dump_test_lp64 "emit-relocs-528"
+run_dump_test_lp64 "emit-relocs-528-overflow"
+run_dump_test_lp64 "emit-relocs-529"
+run_dump_test_lp64 "emit-relocs-529-overflow"
+run_dump_test_lp64 "emit-relocs-530"
+run_dump_test_lp64 "emit-relocs-531"
+run_dump_test_lp64 "emit-relocs-531-overflow"
+run_dump_test_lp64 "emit-relocs-532"
+run_dump_test_lp64 "emit-relocs-533"
+run_dump_test_lp64 "emit-relocs-533-overflow"
+run_dump_test_lp64 "emit-relocs-534"
+run_dump_test_lp64 "emit-relocs-535"
+run_dump_test_lp64 "emit-relocs-535-overflow"
+run_dump_test_lp64 "emit-relocs-536"
+run_dump_test_lp64 "emit-relocs-537"
+run_dump_test_lp64 "emit-relocs-537-overflow"
+run_dump_test_lp64 "emit-relocs-538"
+run_dump_test_lp64 "emit-relocs-552"
+run_dump_test_lp64 "emit-relocs-552-overflow"
+run_dump_test_lp64 "emit-relocs-553"
+run_dump_test_lp64 "emit-relocs-554"
+run_dump_test_lp64 "emit-relocs-554-overflow"
+run_dump_test_lp64 "emit-relocs-555"
+run_dump_test_lp64 "emit-relocs-556"
+run_dump_test_lp64 "emit-relocs-556-overflow"
+run_dump_test_lp64 "emit-relocs-557"
+run_dump_test_lp64 "emit-relocs-558"
+run_dump_test_lp64 "emit-relocs-558-overflow"
+run_dump_test_lp64 "emit-relocs-559"
+run_dump_test_lp64 "emit-relocs-560"
+
+run_dump_test "reloc-overflow-bad"
+
+# test addend correctness when --emit-relocs specified for non-relocatable obj.
+run_dump_test_lp64 "emit-relocs-local-addend"
+# test addend correctness when -r specified.
+run_dump_test_lp64 "local-addend-r"
+
+# test error handling on pcrel relocation for shared libraries.
+run_dump_test_lp64 "pcrel_pic_undefined"
+run_dump_test_lp64 "pcrel_pic_defined"
+run_dump_test_lp64 "pcrel_pic_protected"
+
+run_dump_test "limit-b"
+run_dump_test "limit-bl"
+run_dump_test "farcall-back"
+run_dump_test "farcall-b-defsym"
+run_dump_test "farcall-bl-defsym"
+run_dump_test "farcall-b-gsym"
+run_dump_test "farcall-b-plt"
+run_dump_test "farcall-bl-plt"
+run_dump_test "farcall-bl"
+run_dump_test "farcall-b"
+run_dump_test "farcall-b-none-function"
+run_dump_test "farcall-bl-none-function"
+run_dump_test "farcall-b-section"
+run_dump_test "farcall-bl-section"
+run_dump_test "farcall-group"
+
+run_dump_test "tls-relax-all"
+run_dump_test "tls-relax-all-ilp32"
+run_dump_test "tls-relax-gd-le"
+run_dump_test "tls-relax-gd-le-ilp32"
+run_dump_test "tls-relax-gdesc-le"
+run_dump_test "tls-relax-gdesc-le-now"
+run_dump_test "tls-relax-gdesc-le-ilp32"
+run_dump_test_lp64 "tls-relax-large-gd-le"
+run_dump_test_lp64 "tls-relax-large-gd-le-be"
+run_dump_test "tls-relax-ie-le"
+run_dump_test "tls-relax-ie-le-ilp32"
+run_dump_test "tls-relax-ld-le-small"
+run_dump_test "tls-relax-ld-le-small-ilp32"
+run_dump_test "tls-relax-ld-le-tiny"
+run_dump_test "tls-relax-ld-le-tiny-ilp32"
+run_dump_test "tls-desc-ie"
+run_dump_test "tls-desc-ie-ilp32"
+run_dump_test "tls-relax-gdesc-le-2"
+run_dump_test "tls-relax-gdesc-le-2-ilp32"
+run_dump_test "tls-relax-ie-le-2"
+run_dump_test "tls-relax-ie-le-2-ilp32"
+run_dump_test "tls-relax-ie-le-3"
+run_dump_test "tls-relax-ie-le-3-ilp32"
+run_dump_test "tls-tiny-gd"
+run_dump_test "tls-tiny-gd-le"
+run_dump_test "tls-tiny-gd-le-ilp32"
+run_dump_test "tls-tiny-desc"
+run_dump_test "tls-tiny-desc-le"
+run_dump_test "tls-tiny-desc-le-ilp32"
+run_dump_test "tls-tiny-ie"
+run_dump_test_lp64 "tls-large-ie"
+run_dump_test_lp64 "tls-large-ie-be"
+run_dump_test_lp64 "tls-large-desc"
+run_dump_test_lp64 "tls-large-desc-be"
+run_dump_test "tls-tiny-ld"
+run_dump_test "tls-small-ld"
+run_dump_test_lp64 "tlsle"
+run_dump_test "tlsle-symbol-offset"
+run_dump_test "gc-got-relocs"
+run_dump_test "gc-tls-relocs"
+run_dump_test_lp64 "gc-plt-relocs"
+run_dump_test_lp64 "gc-relocs-257-dyn"
+run_dump_test_lp64 "gc-relocs-257"
+run_dump_test "implicit_got_section_1"
+run_dump_test "pr17415"
+run_dump_test_lp64 "tprel_g2_overflow"
+run_dump_test "tprel_add_lo12_overflow"
+run_dump_test "protected-data"
+run_dump_test_lp64 "pr22764"
+run_dump_test_lp64 "pr20402"
+
+if {[check_shared_lib_support]
+    && [ld_assemble $as $srcdir/$subdir/tls-sharedlib.s tmpdir/tls-sharedlib.o]
+    && [ld_link $ld tmpdir/tls-sharedlib.so "-shared tmpdir/tls-sharedlib.o"] } {
+      run_dump_test "tls-relax-gd-ie"
+      run_dump_test_lp64 "tls-relax-large-gd-ie"
+      run_dump_test_lp64 "tls-relax-large-gd-ie-be"
+      run_dump_test_lp64 "tls-relax-large-desc-ie"
+      run_dump_test_lp64 "tls-relax-large-desc-ie-be"
+      run_dump_test_lp64 "tls-relax-large-desc-le"
+      run_dump_test_lp64 "tls-relax-large-desc-le-be"
+      run_dump_test "tls-relax-gdesc-ie"
+      run_dump_test "tls-relax-gdesc-ie-2"
+      run_dump_test "tls-tiny-gd-ie"
+      run_dump_test "tls-tiny-desc-ie"
+}
+if {[check_shared_lib_support]
+    && [ld_assemble_flags $as -mabi=ilp32 $srcdir/$subdir/tls-sharedlib.s tmpdir/tls-sharedlib.o]
+    && [ld_link $ld tmpdir/tls-sharedlib-ilp32.so "-shared tmpdir/tls-sharedlib.o -m [aarch64_choose_ilp32_emul]"] } {
+      run_dump_test "tls-relax-gd-ie-ilp32"
+      run_dump_test "tls-tiny-gd-ie-ilp32"
+      run_dump_test "tls-tiny-desc-ie-ilp32"
+}
+run_dump_test "tls-relax-gd-ie-2"
+run_dump_test "tls-relax-gd-ie-3"
+run_dump_test "tls-relax-ie-le-4"
+run_dump_test "tls-gd-symbolic"
+
+# ifunc tests
+run_dump_test "ifunc-1"
+run_dump_test "ifunc-1-local"
+run_dump_test "ifunc-2"
+run_dump_test "ifunc-2-local"
+run_dump_test "ifunc-3a"
+run_dump_test "ifunc-3b"
+run_dump_test "ifunc-4"
+run_dump_test "ifunc-4a"
+run_dump_test "ifunc-5a"
+run_dump_test "ifunc-5b"
+run_dump_test "ifunc-5a-local"
+run_dump_test "ifunc-5b-local"
+run_dump_test "ifunc-5r-local"
+run_dump_test "ifunc-6a"
+run_dump_test "ifunc-6b"
+run_dump_test "ifunc-7a"
+run_dump_test "ifunc-7b"
+run_dump_test "ifunc-7c"
+run_dump_test "ifunc-8"
+run_dump_test_lp64 "ifunc-9"
+run_dump_test_lp64 "ifunc-10"
+run_dump_test_lp64 "ifunc-11"
+run_dump_test_lp64 "ifunc-12"
+run_dump_test_lp64 "ifunc-13"
+run_dump_test "ifunc-14a"
+run_dump_test "ifunc-14b"
+run_dump_test "ifunc-14c"
+run_dump_test "ifunc-14d"
+run_dump_test "ifunc-14e"
+run_dump_test "ifunc-14f"
+run_dump_test "ifunc-15"
+run_dump_test "ifunc-16"
+run_dump_test "ifunc-17a"
+run_dump_test "ifunc-17b"
+run_dump_test_lp64 "ifunc-18a"
+run_dump_test_lp64 "ifunc-18b"
+run_dump_test_lp64 "ifunc-19a"
+run_dump_test_lp64 "ifunc-19b"
+run_dump_test_lp64 "ifunc-20"
+run_dump_test_lp64 "ifunc-21"
+run_dump_test_lp64 "ifunc-22"
+
+run_dump_test "relasz"
+run_dump_test_lp64 "relocs-1027-symbolic-func"
+
+run_dump_test_lp64 "dt_textrel"
+
+run_dump_test "plt_mapping_symbol"
+
+run_dump_test_lp64 "rela-abs-relative"
+run_dump_test_lp64 "rela-abs-relative-be"
+run_dump_test_lp64 "rela-abs-relative-opt"
+
+run_dump_test_lp64 "rela-idempotent"
+
+run_dump_test_lp64 "pie-bind-locally"
+
+run_dump_test "property-bti-pac1"
+run_dump_test "property-bti-pac2"
+run_dump_test "property-bti-pac3"
+run_dump_test "property-bti-pac4-a"
+run_dump_test "property-bti-pac4-b"
+run_dump_test "bti-plt-1"
+run_dump_test "bti-plt-2"
+
+run_dump_test_lp64 "variant_pcs-r"
+run_dump_test_lp64 "variant_pcs-shared"
+run_dump_test_lp64 "variant_pcs-now"
+
+set aarch64elflinktests {
+  {"ld-aarch64/so with global symbol" "-shared" "" "" {copy-reloc-so.s}
+    {} "copy-reloc-so.so"}
+  {"ld-aarch64/exe with copy relocation" "-e0 tmpdir/copy-reloc-so.so" "" ""
+    {copy-reloc-exe.s} {{objdump -R copy-reloc.d}} "copy-reloc"}
+  {"ld-aarch64/exe with copy relocation 2" "-e0 tmpdir/copy-reloc-so.so" "" ""
+    {copy-reloc-exe-2.s} {{objdump -R copy-reloc-2.d}} "copy-reloc-2"}
+  {"ld-aarch64/exe with copy relocation elimination" "-e0 tmpdir/copy-reloc-so.so" "" ""
+    {copy-reloc-exe-eliminate.s} {{objdump -R copy-reloc-eliminate.d}} "copy-reloc-elimination"}
+  {"Build .so with protected data" "-shared" "" "" {protected.s}
+    {} "protected.so"}
+  {"ld-aarch64/so with global func" "-shared" "" "" {func-in-so.s}
+    {} "func-in-so.so"}
+  {"ld-aarch64/func sym hash opt for exe"
+   "-e0 --hash-style=gnu tmpdir/func-in-so.so" "" ""
+    {func-sym-hash-opt.s} {{readelf --dyn-sym func-sym-hash-opt.d}} "hash-opt"}
+  {"Build bti-plt-so for PLT tests" "-shared" "" "" {bti-plt-so.s}
+    {} "libbti-plt-so.so"}
+}
+
+set aarch64elfcclinktests [list \
+  [list "copy relocation on protected data" \
+    "-no-pie tmpdir/copy-reloc-exe.o tmpdir/protected.so" "" \
+    {} {{error_output copy-reloc-protected.d}} "copy-reloc-protected"]
+]
+
+if [check_shared_lib_support] {
+    run_ld_link_tests $aarch64elflinktests
+    run_cc_link_tests $aarch64elfcclinktests
+}
+
+run_dump_test "bti-plt-3"
+run_dump_test "bti-plt-4"
+run_dump_test "bti-plt-5"
+run_dump_test "bti-plt-6"
+run_dump_test "bti-plt-7"
+
+run_dump_test "pac-plt-1"
+run_dump_test "pac-plt-2"
+run_dump_test "bti-pac-plt-1"
+run_dump_test "bti-pac-plt-2"
+
+run_dump_test "bti-warn"
+run_dump_test "weak-tls"
+run_dump_test "undef-tls"
+
+run_dump_test "bti-far-1"
+run_dump_test "bti-far-2"
+run_dump_test "bti-far-opt"
+
+if { ![skip_sframe_tests] } {
+  run_dump_test "sframe-simple-1"
+}

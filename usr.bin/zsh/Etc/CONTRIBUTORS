@@ -1,0 +1,341 @@
+----------------
+ZSH CONTRIBUTORS
+----------------
+
+Zsh was originally written by Paul Falstad.  Zsh is now maintained
+by the members of the zsh-workers mailing list <zsh-workers@zsh.org>.
+The development is currently coordinated by Peter Stephenson
+<pws@zsh.org>.
+
+This file credits only the major contributors to the current release.
+See the ChangeLog files for a complete list of people who have submitted
+patches.  Note that email addresses below and in the ChangeLog file
+are included for disambiguation purposes only, and are not guaranteed
+to be currently accurate.  If you feel that you or someone else have
+been unfairly omitted from this list please mail the list
+<zsh-workers@zsh.org>.
+
+Version 4.3
+-----------
+
+Contributors to the main shell include Clint Adams, Rocky Bernstein, Andrey
+Borzenkov, Dan Bullok, Marc Chantreux, Thorsten Dahlheimer, Wayne Davison,
+Lionel Flandrin, Michael Hwang, Oliver Kiddle, Greg Klanderman, Matthias
+Kopferman, Mikael Magnusson, Dan Nelson, Phil Pennock, Toby Peterson,
+R. Ramkumar, François Revol, Bart Schaefer, Tomáš Smetana, Joerg
+Sonnenberger, Peter Stephenson, Jon Strait, Takimoto Jun, River Tarnell,
+Frank Terbeck, Philippe Troin, Geoff Wing, Matt Wozniski.
+
+The VCS_Info function system was written by Frank Terbeck with
+contributions from Julien Langer.
+
+Contributors to documentation and to completion and other shell
+functions include those above plus Nuno Alexandre, Ralph Amissah, Micah
+Anderson, arno, Frank Benkstein, Jay Berkenbilt, Frank Blendinger, Zack
+Cerza, Brendan Cully, Baptiste Daroussin, Danek Duvall, Ryan F, Sean
+Finney, Daniel Friesel, Alexey I. Froloff, Tobias Gruetzmacher, Pierre
+Habouzit, Richard Hartmann, Benjamin R. Haskell, Ag. D. Hatzimanikas,
+Pete Hollobon, Erik Johansson, Kohsuke Kawaguchi, Dough Kearns, Hannu
+Koivisto, Henryk Konsek, Chris Lamb, Vincent Lefevre, Roger Leigh, Eric
+Mangold, Max Mikhanosha, Arkadiusz Miskiewicz, Matthieu Moy, Scott
+Murray, Alexander Myodov, Štěpán Němec, Kalle Olavi Niemitalo, Kazuhiro
+NISHIYAMA, Omari Norman, Mustafa Oezkan, Tomasz Pala, Peter Palfrader,
+Carlos Phillips, Daniel Qarras, Jean-Baptiste Quenot, David Riebenbauer,
+Haakon Riiser, Ingo Rohlfs, Felix Rosencrantz, Simon Ruderich, Stephen
+Rüger, William Scott, Kris Shannon, Jörg Sommer, Travis Spencer, Vincent
+Steman, Mårten Svantesson, Evgenii Terechkov, Magnus Therning, Bernhard
+Tittelbach, Ingmar Vanhassel, Markus Waldeck, Motoi Washida, Nikolai
+Weibull, Jesse Weinstein.
+
+Version 4.2
+-----------
+
+The contributor list is similar to that for 4.1.1.
+
+Version 4.1.1
+-------------
+
+Clint Adams <clint@zsh.org>: termcap/terminfo, completion, configuration,
+various modules, networking, prompts
+
+Andrey Borzenkov <bor@zsh.org>: configuration, completion functions, cygwin
+support
+
+Chmouel Boudjnah <chmouel@mandrakesoft.com>: Linux completion support
+
+Wayne Davison <wayned@users.sourceforge.net>: shell history mechanism,
+arithmetic
+
+Zvi Har'El <rl@math.technion.ac.il>: completion functions
+
+Doug Kearns  <djkea2@mugca.its.monash.edu.au>: completion functions
+
+Oliver Kiddle <opk@zsh.org>: builtins, completion, parameters, prompts,
+standards support, tests
+
+Andrew Main <zefram@zsh.org>: zle keymaps, games
+
+Akinori Musha: BSD completion support
+
+Felix Rosencrantz <f_rosenkrantz@yahoo.com>: completion, zle
+
+Bart Schaefer <schaefer@zsh.org>: configuration, parameters, prompts,
+signals, syntax, tests, functions, sanity checking
+
+Adam Spiers <adam@spiers.net>: completion and other functions
+
+Peter Stephenson <pws@zsh.org>: configuration, zle, networking, syntax,
+completion
+
+Tanaka Akira <akr@zsh.org>: completion functions
+
+Philippe Troin <phil@fifi.org>: signals, process groups.
+
+Geoff Wing <gcw@zsh.org>: archiving and distribution network, line editor
+display, configuration
+
+Sven Wischnowsky <wischnow@zsh.org>: internal completion mechanism and
+low-level functions, line editor internals, syntax, wordcode mechanism,
+
+
+Version 4.0.1
+-------------
+
+Clint Adams <schizo@debian.org>: Completion functions, general
+configuration and module issues.
+
+Andrej Borsenkow <bor@zsh.org>: Cygwin support,
+configuration, completion functions.
+
+Chmouel Boudjnah <chmouel@mandrakesoft.com>: configuration support.
+
+Wayne Davison <wayned@users.sourceforge.net>: History code.
+
+Alexandre Duret-Lutz: completion functions and substitution code.
+
+Oliver Kiddle <opk@zsh.org>: Modules and completion functions, AIX support.
+
+Andrew Main <zefram@zsh.org>: Parameters and arithmetic, configuration.
+
+Felix Rosencrantz <f_rosencrantz@yahoo.com>: Test code and shell functions.
+
+Bart Schaefer <schaefer@zsh.org>: bits of everything in all parts of code;
+general sanity control.
+
+Adam Spiers <adam@spiers.net>: Completion and other functions, completion
+caching.
+
+Peter Stephenson <pws@zsh.org>: configuration and installation, parameters,
+completion functions and configuration.
+
+Tanaka Akira <akr@zsh.org>: Completion and test functions.
+
+Geoff Wing <gcw@zsh.org>: FTP and mailing list archive
+
+Sven Wischnowsky <wischnow@zsh.org>: Most of the completion code, zpty,
+signal queueing, parameters, builtins, builtouts, built-here-and-theres;
+mend garden shed, rewire electricity, reinstall shutters, fix TV aerial in
+howling gale...
+
+Other patches from E. Jay Birkenbilt, Jan Fedak, Ulrik Haugen, Paul
+Johnson, Fr. Br. George (George V Kouryachy).
+
+Versions 3.1.7 to 3.1.9
+-----------------------
+
+* Clint Adams <schizo@debian.org>: configuration, various fixes esp. in
+  completion
+
+* Andrej Borsenkow <Andrej.Borsenkow@mow.siemens.ru>:design, testing and
+  patches for completion system, documentation, various other fixes
+
+* Chmouel Boudjnah <chmouel@mandrakesoft.com>: design, testing and patches
+  for completion system, documentation, various other fixes
+
+* Wayne Davison <wayne@clari.net>: History code
+
+* Alexandre Duret-Lutz <duret_g@epita.fr>: design, testing and patches for
+  completion system, documentation, various other fixes
+
+* Oliver Kiddle <opk@zsh.org>: AIX dynamic library support, various
+  completion functions, web page maintenance, documentation fixes
+
+* Andrew Main <zefram@zsh.org>: configuration and module/DLL code, IPv6
+  support, various other bits
+
+* Felix Rosencrantz <f_rosencrantz@yahoo.com>: design, testing and patches
+  for completion system, documentation, various other fixes
+
+* Bart Schaefer <schaefer@zsh.org>: documentation and many other bits,
+  archive maintenance
+
+* Adam Spiers <adam@spiers.net>: various completion functions, source code
+  archive maintenance, documentation fixes, prompt themes
+
+* Peter Stephenson <pws@zsh.org>: pattern matching code rewrite and
+  enhancements, typeset and local variables, zftp maintenance, general
+  configuration, floating point support
+
+* Tanaka Akira <akr@zsh.org>: CVS archive, numerous completion functions
+  for common commands, regex shell function state machine
+
+* Geoff Wing <gcw@zsh.org>: mailing list and FTP archive, various other
+  bits
+
+* Sven Wischnowsky <wischnow@zsh.org>: almost all completion code including
+  all comp* libraries, all core functions in completion function system;
+  styles; job control code; rewrite of internal shell code structures and
+  parsing and execution code to use word code; parameter code; repair roof,
+  fix guttering, put up shelves in study, recarpet hall, ...
+
+Other patches were submitted by Will Day, Irving Wolfe, John Williams, Vin
+Shelton, Akim Demaille, Helmut Jarausch, Gene Cohler, Johan Sundström.
+
+Version 3.1.6
+-------------
+
+* Sven Wischnowsky <wischnow@informatik.hu-berlin.de>: completion code,
+  major rewrite and enhancements, including matching control, completion
+  widgets and function system, complist module; zle code additions; job
+  control code changes; parameters code changes; parameter module;
+  additional autoloading code; general code changes for extra efficiency;
+  subscripting and ordering of globbing lists.
+
+* Peter Stephenson <pws@zsh.org>: zftp and mapfile modules and zf*
+  functions; local parameters and typeset changes; changes in autoconf
+  system; case-independent and approximate pattern matching; various
+  options; a few completion modules; some zle changes; FAQ.
+
+* Bart Schaefer <schaefer@zsh.org>: associative array implementation; other
+  parameter changes; keeping track of missing patches; function autoloading
+  changes.
+
+* Wayne Davison <wayne@clari.net>:  History code novelties and improvements
+  with new options.
+
+* Geoff Wing <gcw@zsh.org>:  Zle display code fixes, mailing list and patch
+  archive.
+
+* Zoltán Hidvégi <hzoli@cs.elte.hu>: AIX dynamic loading code.
+
+* Matt Armstrong: cygwin configuration changes.
+
+Other improvements, bug fixes and design suggestions from all the above
+plus Andrej Borsenkow, Oliver Kiddle, Tanaka Akira, Naoki Wakamatsu, Tatuso
+Furukawa, Ville Herva, Will Day, Lehti Rahmi, Larry P. Schrof, Helmut
+Jarausch, Phil Pennock, Wilfredo Sanchez, Bruce Stephens, Gene Cohler,
+Ollivier Robert, Felix Rosencrantz.
+
+Previous versions of zsh 3 were maintained by Zoltán Hidvégi and Andrew
+Main (Zefram).
+
+Version 3.0
+-----------
+
+* Richard Coleman <coleman@math.gatech.edu> maintained the code till the
+  release of zsh-2.6-beta16.  Converted zsh to use autoconf thus greatly
+  improving the portability.  Rewrote signal handling code.  Reorganized
+  internal hash tables and rewrote the related builtins (enable, disable,
+  hash, unhash).  Made some cleanups in exec.c.
+
+* Zoltán Hidvégi <hzoli@cs.elte.hu> maintained zsh from version
+  2.6-beta16.  Rewrote most of the lexer and substitution and the related
+  completion code.  Improved sh/ksh/POSIX compatibility.  Fixed lots
+  of bugs in completion, parameter and history code.  Made zsh fully
+  8-bit clean.  Made some reorganizations in exec.c.  Fixed signal
+  handling bugs.  Fixed lots of bugs in various places.
+
+* Peter W. Stephenson <pws@zsh.org> the maintainer of the zsh FAQ.
+  Reorganizations in exec.c.  Rewrote and reorganized the history code.
+  Rewrote the zshcompctl manual page.  Fixed several bugs related to
+  programmable completion.  Fixed several signal handling bugs.  Rewrote
+  test and read builtins.  Lots of other bugfixes.
+
+* Andrew Main (Zefram) <zefram@zsh.org> reorganized builtin.c.
+  Rewrote large parts of the zle vi mode.  Redirection fixes.  Reorganized
+  parts of the completion code, added some enhancements and fixed lots of
+  bugs.  Made zle fully 8-bit clean.  Fixed several zle bugs.  Reorganized
+  zsh option handling.  Lots of other bugfixes.
+
+* Sven Wischnowsky <wischnow@informatik.hu-berlin.de> wrote most of the
+  programmable completion code in zsh-2.5.0.  Several bugfixes in exec.c
+  and jobs.c.  Lots of completion bugfixes and enhancements.
+
+* Geoff Wing <gcw@zsh.org> rewrote most of zle_refresh.c.  Some
+  other bugfixes.
+
+* Clive Messer <clive@epos.demon.co.uk> brought the texinfo documentation
+  up-to-date.
+
+* Mark Borges <mdb@cdc.noaa.gov> contributed several documentation fixes
+  including further texinfo documentation updates and maintained the zsh
+  web pages during their tenure at www.mal.com.
+
+* Wayne Davison <wayne@clari.net> improved the zle search functions
+  and made them 8-bit clean.  Some other little bugfixes.
+
+* Bart Schaefer <schaefer@zsh.org> submitted several bugfixes, reported
+  lots of bugs and gave many very useful suggestions.
+
+Version 2.5
+-----------
+
+Bas de Bakker maintained zsh till the release of zsh-2.5.0.  People who
+have contributed to zsh-2.5.0 are (in lexical order):
+
+Chris.Moore@src.bae.co.uk (Chris Moore)
+Harald.Eikrem@delab.sintef.no
+Irving_Wolfe@happy-man.com (Irving Wolfe)
+Jarkko.Hietaniemi@hut.fi (Jarkko Hietanimi)
+P.Stephenson@swansea.ac.uk (Peter Stephenson)
+Richard.Sharman@software.mitel.com (Richard Sharman)
+Tero_Kivinen@hut.FI (Tero Kivinen)
+arf@maths.nott.ac.uk (Anthony Iano-Fletcher)
+bas@phys.uva.nl (Bas de Bakker)
+benson@odi.com (Benson Margulies)
+billb@bedford.progress.com (Bill Burton)
+brown@wi.extrel.com (M. Brown)
+carlos@snfep1.if.usp.br (Carlos Carvalho)
+cedman@capitalist.princeton.edu (Carl Edman)
+chip%fin@myrddin.sybus.com (Chip Salzenberg)
+chs@apu.fi (Hannu Strang)
+coleman@math.gatech.edu (Richard Coleman)
+cross@eng.umd.edu (Chris Ross)
+dm@cs.brown.edu (Dimitris Michailidis)
+dmm0t@rincewind.mech.virginia.edu (David M. Meyer)
+esky@CS.UCLA.EDU (Eskandar Ensafi)
+franl@centerline.com (Fran Litterio)
+gansevle@cs.utwente.nl (Fred Gansevles)
+gnohmon@ssiny.com (Ralph Betza)
+guillaum@clipper.ens.fr (Florent Guillaume)
+guthrie@math.upenn.edu (John Guthrie)
+hegedus@celeste.eng.yale.edu (Peter Hegedus)
+henryg@tusc.com.au (Henry Guillaume)
+hoh@approve.se (Goran Larsson)
+hooft@chem.ruu.nl (Rob Hooft)
+hsw1@papa.attmail.com (Stephen Harris)
+irving@happy-man.com (Irving Wolfe)
+jch@cs.cmu.edu (Jonathan Hardwick)
+jos@oce.nl (Jos Backus)
+liblit@cs.psu.edu (Benjamin Liblit)
+marc@cam.org (Marc Boucher)
+mason@werple.apana.org.au (Geoff Wing)
+mycroft@gnu.ai.mit.edu (Charles Hannum)
+mystic@axposf.pa.dec.com (D. Hall)
+norbert@i3.informatik.rwth-aachen.de (Norbert Kiesel)
+oberon@cs.tu-berlin.de (Sven Wischnowsky)
+pclink@qld.tne.oz.au (Rick)
+pem@aaii.oz.au (Paul Maisano)
+per@efd.lth.se (Per Foreby)
+pf@z-code.com (Paul Falstad)
+roderick@ibcinc.com (Roderick Schertler)
+schaefer@z-code.com (Bart Schaefer)
+schlangm@informatik.uni-muenchen.de (Harald Schlangmann)
+seniorr@teleport.com (Russell Senior)
+sinclair@dcs.gla.ac.uk (Duncan Sinclair)
+sterling@oldcolo.com (Bruce Sterling Woodcock)
+suzuki@otsl.oki.co.jp (Hisao Suzuki)
+tsm@cs.brown.edu (Timothy Miller)
+vogelke@c17mis.wpafb.af.mil (Karl E. Vogel)
+wacker@physik.uni-dortmund.de (Klaus Wacker)
+wacren@cis10.ens-cachan.fr (Laurent Wacrenier)

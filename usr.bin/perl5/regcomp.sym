@@ -1,0 +1,347 @@
+# regcomp.sym
+#
+# File has two sections, divided by a line of dashes '-'. 
+#
+# Lines beginning with # are ignored, except for those that start with #*
+# which are included in pod/perldebguts.pod.  # within a line may be part
+# of a description.
+#
+# First section is for regops, second section is for regmatch-states
+#
+# Note that the order in this file is important.
+#
+# Format for first section: 
+# NAME \s+ TYPE, arg-description [struct regnode suffix] [flags] [longjump] ; DESCRIPTION
+#   arg-description is currently unused
+#   suffix is appended to 'struct_regnode_' giving which one to use.  If empty,
+#       it means plain 'struct regnode'.  If the regnode is a string one, this
+#       should instead refer to the base regnode, without the char[1] element
+#       of the structure
+#   flag <S> means is REGNODE_SIMPLE; flag <V> means is REGNODE_VARIES; <.> is
+#       a placeholder
+#   longjump is 1 if the (first) argument holds the next offset (instead of the
+#       usual 'next_offset' field
+#
+# run perl regen.pl after editing this file
+
+#                             +- suffix of which struct regnode to use e.g.,
+#                             | +- flags  (S or V)               struct regnode_1
+#                         un- | | +- longjmp (0, blank, or 1)  blank means 0
+# Name        Type       used | | | ; comment
+# --------------------------------------------------------------------------
+# IFMATCH     BRANCHJ,    off 1 . 1 ; Succeeds if the following matches.
+# UNLESSM     BRANCHJ,    off 1 . 1 ; Fails if the following matches.
+# SUSPEND     BRANCHJ,    off 1 V 1 ; "Independent" sub-RE.
+# IFTHEN      BRANCHJ,    off 1 V 1 ; Switch, should be preceded by switcher.
+# GROUPP      GROUPP,     num 1     ; Whether the group matched.
+#
+# If we were to start running out of regnodes, many of the ones that are
+# complements could be combined with their non-complement mates.  For example,
+# POSIXU could have the flags field have the bottom bit mean do we complement
+# or not, and the type be shifted left 1 bit.  Then all that would be needed to
+# extract which to do is a mask for the complement bit, and a right shift for
+# the other, an inconsequential increase in instructions.  It might actually be
+# clearer and slightly faster given the case statement and assignment are
+# removed.  Note that not everything could be collapsed: NPOSIXA, for example,
+# would require special handling for performance.
+
+
+#* Exit points
+
+END         END,        no        ; End of program.
+SUCCEED     END,        no        ; Return from a subroutine, basically.
+
+#* Line Start Anchors:
+#Note flags field for SBOL indicates if it is a /^/ or a /\A/
+SBOL        BOL,        no        ; Match "" at beginning of line: /^/, /\A/
+MBOL        BOL,        no        ; Same, assuming multiline: /^/m
+
+#* Line End Anchors:
+SEOL        EOL,        no        ; Match "" at end of line: /$/
+MEOL        EOL,        no        ; Same, assuming multiline: /$/m
+EOS         EOL,        no        ; Match "" at end of string: /\z/
+
+#* Match Start Anchors:
+GPOS        GPOS,       no        ; Matches where last m//g left off.
+
+#* Word Boundary Opcodes:
+# The regops that have varieties that vary depending on the character set regex
+# modifiers have to ordered thusly: /d, /l, /u, /a, /aa.  This is because code
+# in regcomp.c uses the enum value of the modifier as an offset from the /d
+# version.  The complements must come after the non-complements.
+# BOUND, POSIX and their complements are affected, as well as EXACTF.
+BOUND       BOUND,      no        ; Like BOUNDA for non-utf8, otherwise like BOUNDU
+BOUNDL      BOUND,      no        ; Like BOUND/BOUNDU, but \w and \W are defined by current locale
+BOUNDU      BOUND,      no        ; Match "" at any boundary of a given type using /u rules.
+BOUNDA      BOUND,      no        ; Match "" at any boundary between \w\W or \W\w, where \w is [_a-zA-Z0-9]
+# All NBOUND nodes are required by code in regexec.c to be greater than all BOUND ones
+NBOUND      NBOUND,     no        ; Like NBOUNDA for non-utf8, otherwise like BOUNDU
+NBOUNDL     NBOUND,     no        ; Like NBOUND/NBOUNDU, but \w and \W are defined by current locale
+NBOUNDU     NBOUND,     no        ; Match "" at any non-boundary of a given type using using /u rules.
+NBOUNDA     NBOUND,     no        ; Match "" betweeen any \w\w or \W\W, where \w is [_a-zA-Z0-9]
+
+#* [Special] alternatives:
+REG_ANY     REG_ANY,    no 0 S    ; Match any one character (except newline).
+SANY        REG_ANY,    no 0 S    ; Match any one character.
+ANYOF       ANYOF,      sv charclass S    ; Match character in (or not in) this class, single char match only
+ANYOFD      ANYOF,      sv charclass S    ; Like ANYOF, but /d is in effect
+ANYOFL      ANYOF,      sv charclass S    ; Like ANYOF, but /l is in effect
+ANYOFPOSIXL ANYOF,      sv charclass_posixl S    ; Like ANYOFL, but matches [[:posix:]] classes
+
+# Must be sequential
+ANYOFH      ANYOFH,     sv 1 S    ; Like ANYOF, but only has "High" matches, none in the bitmap; the flags field contains the lowest matchable UTF-8 start byte
+ANYOFHb     ANYOFH,     sv 1 S    ; Like ANYOFH, but all matches share the same UTF-8 start byte, given in the flags field
+ANYOFHr     ANYOFH,     sv 1 S    ; Like ANYOFH, but the flags field contains packed bounds for all matchable UTF-8 start bytes.
+ANYOFHs     ANYOFH,     sv:str 1 S    ; Like ANYOFHb, but has a string field that gives the leading matchable UTF-8 bytes; flags field is len
+ANYOFR      ANYOFR,     packed 1  S  ; Matches any character in the range given by its packed args: upper 12 bits is the max delta from the base lower 20; the flags field contains the lowest matchable UTF-8 start byte
+ANYOFRb     ANYOFR,     packed 1  S ; Like ANYOFR, but all matches share the same UTF-8 start byte, given in the flags field
+# There is no ANYOFRr because khw doesn't think there are likely to be
+# real-world cases where such a large range is used.
+#
+# And khw doesn't believe an ANYOFRs (which would behave like ANYOFHs) is
+# actually worth it.  On two-byte UTF-8, the first byte alone is all we need,
+# and ANYOFR already does that.  And we don't consider non-Unicode code points
+# or EBCDIC for performance decisions.  If we had it, we would be comparing the
+# strings, and if they are equal convert to UV and then test to see if it is in
+# the range.  The fast DFA we now use to do the conversion is slower than
+# comparing the strings, but not by much, and negligible in 2 or 3 byte
+# operations.  (We don't have to compare the final byte as it has to be
+# different or else this wouldn't be a range.)  So we might as well displense
+# with the comparisons that ANYOFRs would do, and go directly to do the
+# conversion .
+
+ANYOFHbbm   ANYOFHbbm   none bbm S ; Like ANYOFHb, but only for 2-byte UTF-8 characters; uses a bitmap to match the continuation byte
+
+ANYOFM      ANYOFM,     byte 1 S  ; Like ANYOF, but matches an invariant byte as determined by the mask and arg
+NANYOFM     ANYOFM,     byte 1 S  ; complement of ANYOFM
+
+#* POSIX Character Classes:
+# Order of the below is important.  See ordering comment above.
+POSIXD      POSIXD,     none 0 S   ; Some [[:class:]] under /d; the FLAGS field gives which one
+POSIXL      POSIXD,     none 0 S   ; Some [[:class:]] under /l; the FLAGS field gives which one
+POSIXU      POSIXD,     none 0 S   ; Some [[:class:]] under /u; the FLAGS field gives which one
+POSIXA      POSIXD,     none 0 S   ; Some [[:class:]] under /a; the FLAGS field gives which one
+NPOSIXD     NPOSIXD,    none 0 S   ; complement of POSIXD, [[:^class:]]
+NPOSIXL     NPOSIXD,    none 0 S   ; complement of POSIXL, [[:^class:]]
+NPOSIXU     NPOSIXD,    none 0 S   ; complement of POSIXU, [[:^class:]]
+NPOSIXA     NPOSIXD,    none 0 S   ; complement of POSIXA, [[:^class:]]
+# End of order is important
+
+CLUMP       CLUMP,      no 0 V    ; Match any extended grapheme cluster sequence
+
+#* Alternation
+
+#* BRANCH        The set of branches constituting a single choice are
+#*               hooked together with their "next" pointers, since
+#*               precedence prevents anything being concatenated to
+#*               any individual branch.  The "next" pointer of the last
+#*               BRANCH in a choice points to the thing following the
+#*               whole choice.  This is also where the final "next"
+#*               pointer of each individual branch points; each branch
+#*               starts with the operand node of a BRANCH node.
+#*
+BRANCH      BRANCH,     node 1 V  ; Match this alternative, or the next...
+
+#*Literals
+# NOTE: the relative ordering of these types is important do not change it
+# By convention, folding nodes begin with EXACTF; A digit 8 is in the name if
+# and only if it it requires a UTF-8 target string in order to successfully
+# match.
+
+EXACT       EXACT,      str       ; Match this string (flags field is the length).
+
+#* In a long string node, the U32 argument is the length, and is
+#* immediately followed by the string.
+LEXACT      EXACT,  len:str 1; Match this long string (preceded by length; flags unused).
+EXACTL      EXACT,      str       ; Like EXACT, but /l is in effect (used so locale-related warnings can be checked for)
+EXACTF      EXACT,      str       ; Like EXACT, but match using /id rules; (string not UTF-8, ASCII folded; non-ASCII not)
+EXACTFL     EXACT,      str       ; Like EXACT, but match using /il rules; (string not likely to be folded)
+EXACTFU     EXACT,      str	  ; Like EXACT, but match using /iu rules; (string folded)
+
+# The reason MICRO and SHARP S aren't folded in non-UTF8 patterns is because
+# they would fold to something that requires UTF-8.  SHARP S would normally
+# fold to 'ss', but because of /aa, it instead folds to a pair of LATIN SMALL
+# LETTER LONG S characters (U+017F)
+EXACTFAA    EXACT,      str	  ; Like EXACT, but match using /iaa rules; (string folded except MICRO in non-UTF8 patterns; doesn't contain SHARP S unless UTF-8; folded length <= unfolded)
+# must immediately follow EXACTFAA
+EXACTFAA_NO_TRIE  EXACT, str	  ; Like EXACTFAA, (string not UTF-8, folded except: MICRO, SHARP S; folded length <= unfolded, not currently trie-able)
+
+# End of important relative ordering.
+
+EXACTFUP    EXACT,      str	  ; Like EXACT, but match using /iu rules; (string not UTF-8, folded except MICRO: hence Problematic)
+# In order for a non-UTF-8 EXACTFAA to think the pattern is pre-folded when
+# matching a UTF-8 target string, there would have to be something like an
+# EXACTFAA_MICRO which would not be considered pre-folded for UTF-8 targets,
+# since the fold of the MICRO SIGN would not be done, and would be
+# representable in the UTF-8 target string.
+
+EXACTFLU8   EXACT,      str	  ; Like EXACTFU, but use /il, UTF-8, (string is folded, and everything in it is above 255
+EXACT_REQ8   EXACT,      str      ; Like EXACT, but only UTF-8 encoded targets can match
+LEXACT_REQ8  EXACT,  len:str 1    ; Like LEXACT, but only UTF-8 encoded targets can match
+EXACTFU_REQ8 EXACT,    str        ; Like EXACTFU, but only UTF-8 encoded targets can match
+# One could add EXACTFAA8 and something that has the same effect for /l,
+# but these would be extremely uncommon
+
+EXACTFU_S_EDGE EXACT,   str       ; /di rules, but nothing in it precludes /ui, except begins and/or ends with [Ss]; (string not UTF-8; compile-time only)
+
+#*New charclass like patterns
+LNBREAK     LNBREAK,    none      ; generic newline pattern
+
+#*Trie Related
+
+#* Behave the same as A|LIST|OF|WORDS would. The '..C' variants
+#* have inline charclass data (ascii only), the 'C' store it in the
+#* structure.
+# NOTE: the relative order of the TRIE-like regops  is significant
+
+TRIE        TRIE,       trie 1    ; Match many EXACT(F[ALU]?)? at once. flags==type
+TRIEC       TRIE,trie charclass   ; Same as TRIE, but with embedded charclass data
+
+# For start classes, contains an added fail table.
+AHOCORASICK     TRIE,   trie 1    ; Aho Corasick stclass. flags==type
+AHOCORASICKC    TRIE,trie charclass   ; Same as AHOCORASICK, but with embedded charclass data
+
+#*Do nothing types
+
+NOTHING     NOTHING,    no        ; Match empty string.
+#*A variant of above which delimits a group, thus stops optimizations
+TAIL        NOTHING,    no        ; Match empty string. Can jump here from outside.
+
+#*Loops
+
+#* STAR,PLUS    '?', and complex '*' and '+', are implemented as
+#*               circular BRANCH structures.  Simple cases
+#*               (one character per match) are implemented with STAR
+#*               and PLUS for speed and to minimize recursive plunges.
+#*
+STAR        STAR,       node 0 V  ; Match this (simple) thing 0 or more times: /A{0,}B/ where A is width 1 char
+PLUS        PLUS,       node 0 V  ; Match this (simple) thing 1 or more times: /A{1,}B/ where A is width 1 char
+
+CURLY       CURLY,      sv 3 V    ; Match this (simple) thing {n,m} times: /A{m,n}B/ where A is width 1 char
+CURLYN      CURLY,      no 3 V    ; Capture next-after-this simple thing: /(A){m,n}B/ where A is width 1 char
+CURLYM      CURLY,      no 3 V    ; Capture this medium-complex thing {n,m} times: /(A){m,n}B/ where A is fixed-length
+CURLYX      CURLY,      sv 3 V    ; Match/Capture this complex thing {n,m} times.
+
+#*This terminator creates a loop structure for CURLYX
+WHILEM      WHILEM,     no 0 V    ; Do curly processing and see if rest matches.
+
+#*Buffer related
+
+#*OPEN,CLOSE,GROUPP     ...are numbered at compile time.
+OPEN        OPEN,       num 1     ; Mark this point in input as start of #n.
+CLOSE       CLOSE,      num 1     ; Close corresponding OPEN of #n.
+SROPEN      SROPEN,     none      ; Same as OPEN, but for script run
+SRCLOSE     SRCLOSE,    none      ; Close preceding SROPEN
+
+REF         REF,        num 2 V   ; Match some already matched string
+REFF        REF,        num 2 V   ; Match already matched string, using /di rules.
+REFFL       REF,        num 2 V   ; Match already matched string, using /li rules.
+# N?REFF[AU] could have been implemented using the FLAGS field of the
+# regnode, but by having a separate node type, we can use the existing switch
+# statement to avoid some tests
+REFFU       REF,        num 2 V   ; Match already matched string, usng /ui.
+REFFA       REF,        num 2 V   ; Match already matched string, using /aai rules.
+
+#*Named references.  Code in regcomp.c assumes that these all are after
+#*the numbered references
+REFN        REF,        no-sv 2 V ; Match some already matched string
+REFFN       REF,        no-sv 2 V ; Match already matched string, using /di rules.
+REFFLN      REF,        no-sv 2 V ; Match already matched string, using /li rules.
+REFFUN      REF,        num   2 V ; Match already matched string, using /ui rules.
+REFFAN      REF,        num   2 V ; Match already matched string, using /aai rules.
+
+#*Support for long RE
+LONGJMP     LONGJMP,    off 1 . 1 ; Jump far away.
+BRANCHJ     BRANCHJ,    off 2 V 1 ; BRANCH with long offset.
+
+#*Special Case Regops
+IFMATCH     BRANCHJ,    off 1 . 1 ; Succeeds if the following matches; non-zero flags "f", next_off "o" means lookbehind assertion starting "f..(f-o)" characters before current
+UNLESSM     BRANCHJ,    off 1 . 1 ; Fails if the following matches; non-zero flags "f", next_off "o" means lookbehind assertion starting "f..(f-o)" characters before current
+SUSPEND     BRANCHJ,    off 1 V 1 ; "Independent" sub-RE.
+IFTHEN      BRANCHJ,    off 1 V 1 ; Switch, should be preceded by switcher.
+GROUPP      GROUPP,     num 1     ; Whether the group matched.
+
+#*The heavy worker
+
+EVAL        EVAL,       evl/flags 2 ; Execute some Perl code.
+
+#*Modifiers
+
+MINMOD      MINMOD,     no        ; Next operator is not greedy.
+LOGICAL     LOGICAL,    no        ; Next opcode should set the flag only.
+
+#*This is not used yet
+RENUM       BRANCHJ,    off 1 . 1 ; Group with independently numbered parens.
+
+#*Regex Subroutines
+GOSUB       GOSUB,      num/ofs 2    ; recurse to paren arg1 at (signed) ofs arg2
+
+#*Special conditionals
+GROUPPN     GROUPPN,    no-sv 1   ; Whether the group matched.
+INSUBP      INSUBP,     num 1     ; Whether we are in a specific recurse.  
+DEFINEP     DEFINEP,    none 1    ; Never execute directly.               
+
+#*Backtracking Verbs
+ENDLIKE     ENDLIKE,    none      ; Used only for the type field of verbs
+OPFAIL      ENDLIKE,    no-sv 1   ; Same as (?!), but with verb arg
+ACCEPT      ENDLIKE,    no-sv/num 2   ; Accepts the current matched string, with verbar
+
+#*Verbs With Arguments
+VERB        VERB,       no-sv 1   ; Used only for the type field of verbs
+PRUNE       VERB,       no-sv 1   ; Pattern fails at this startpoint if no-backtracking through this 
+MARKPOINT   VERB,       no-sv 1   ; Push the current location for rollback by cut.
+SKIP        VERB,       no-sv 1   ; On failure skip forward (to the mark) before retrying
+COMMIT      VERB,       no-sv 1   ; Pattern fails outright if backtracking through this
+CUTGROUP    VERB,       no-sv 1   ; On failure go to the next alternation in the group
+
+#*Control what to keep in $&.
+KEEPS       KEEPS,      no        ; $& begins here.
+
+#*Validate that lookbehind IFMATCH and UNLESSM end at the right place
+LOOKBEHIND_END   END,        no        ; Return from lookbehind (IFMATCH/UNLESSM) and validate position
+
+# NEW STUFF SOMEWHERE ABOVE THIS LINE.  Stuff that regexec.c: find_byclass()
+# and regrepeat() use should go way above, near LNBREAK to allow a more compact
+# jump table to be generated for their switch() statements
+
+################################################################################
+
+#*SPECIAL  REGOPS
+
+#* This is not really a node, but an optimized away piece of a "long"
+#* node.  To simplify debugging output, we mark it as if it were a node
+OPTIMIZED   NOTHING,    off       ; Placeholder for dump.
+
+#* Special opcode with the property that no opcode in a compiled program
+#* will ever be of this type. Thus it can be used as a flag value that
+#* no other opcode has been seen. END is used similarly, in that an END
+#* node cant be optimized. So END implies "unoptimizable" and PSEUDO
+#* mean "not seen anything to optimize yet".
+PSEUDO      PSEUDO,     off       ; Pseudo opcode for internal use.
+
+REGEX_SET   REGEX_SET,  depth p S ; Regex set, temporary node used in pre-optimization compilation
+
+-------------------------------------------------------------------------------
+# Format for second section:
+# REGOP \t typelist [ \t typelist]
+# typelist= namelist
+#         = namelist:FAIL
+#         = name:count
+
+# Anything below is a state
+#
+#
+TRIE            next:FAIL
+EVAL            B,postponed_AB:FAIL
+CURLYX          end:FAIL
+WHILEM          A_pre,A_min,A_max,B_min,B_max:FAIL
+BRANCH          next:FAIL
+CURLYM          A,B:FAIL
+IFMATCH         A:FAIL
+CURLY           B_min,B_max:FAIL
+COMMIT          next:FAIL
+MARKPOINT       next:FAIL
+SKIP            next:FAIL
+CUTGROUP        next:FAIL
+KEEPS           next:FAIL
+REF             next:FAIL

@@ -1,0 +1,83 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --only-fuzzy option.
+
+cat <<\EOF > ma-test4.po
+# HEADER.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Bonnie Tyler\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: married-men:4
+#, fuzzy
+msgid "The world is full of married men"
+msgstr "So viele verheiratete Männer"
+
+#: married-men:5
+msgid "with wives who never understand"
+msgstr "und ihre Frauen verstehen sie nicht"
+
+#: married-men:6
+msgid "They're looking for someone to share"
+msgstr ""
+
+# schwer zu übersetzen...
+#: married-men:7
+msgid "the excitement of a love affair"
+msgstr ""
+
+#: married-men:8
+msgid "Just as soon as they find you"
+msgstr ""
+
+#: married-men:9
+msgid "They warn you and darn you"
+msgstr ""
+
+#~ msgid "You fly on the wings of romance"
+#~ msgstr "Die Flügel der frischen Liebe heben dich zum Himmel"
+
+#, fuzzy
+#~ msgid "In the eyes of the world"
+#~ msgstr "Für die anderen"
+
+# Etwas freie Übersetzung.
+#~ msgid "You're just another crazy girl"
+#~ msgstr "bist du bloß ein verrücktes dummes Ding"
+
+#~ msgid "Who loves a married man"
+#~ msgstr "das einen verheirateten Mann liebt"
+EOF
+
+: ${MSGATTRIB=msgattrib}
+${MSGATTRIB} --only-fuzzy -o ma-test4.tmp ma-test4.po || Exit 1
+LC_ALL=C tr -d '\r' < ma-test4.tmp > ma-test4.out || Exit 1
+
+cat <<\EOF > ma-test4.ok
+# HEADER.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Bonnie Tyler\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: married-men:4
+#, fuzzy
+msgid "The world is full of married men"
+msgstr "So viele verheiratete Männer"
+
+#, fuzzy
+#~ msgid "In the eyes of the world"
+#~ msgstr "Für die anderen"
+EOF
+
+: ${DIFF=diff}
+${DIFF} ma-test4.ok ma-test4.out
+result=$?
+
+exit $result

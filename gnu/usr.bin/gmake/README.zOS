@@ -1,0 +1,83 @@
+                                                                     -*-text-*-
+GNU Make has been ported to z/OS, tested on z/OS V2R4.
+
+
+PREREQUISITES
+-------------
+Building GNU Make requires certain tools be installed on your z/OS system.
+These tools can be downloaded from: https://github.com/ZOSOpenTools
+For detailed instructions on how to set up these tools, visit
+https://zosopentools.github.io/meta/#/Guides/Pre-req
+
+You will need curl, tar, and gzip to download and unpack the GNU Make release
+package, but presumably you've already worked this out if you're reading this
+document!
+
+You will need the IBM C/C++ compiler.  You can download a web deliverable
+add-on feature to your XL C/C++ compiler here:
+https://www-40.ibm.com/servers/resourcelink/svc00100.nsf/pages/xlCC++V241ForZOsV24
+
+Alternatively, you can install and manage C/C++ for Open Enterprise Languages
+on z/OS using RedHat OpenShift Container Platform and IBM Z and Cloud
+Modernization Stack.
+
+GNU Make has a dependency on the ZOSLIB library, which is documented here:
+https://zosopentools.github.io/meta/#/Guides/Zoslib.
+
+To obtain the latest release of zoslib, you can download it from here:
+https://github.com/ZOSOpenTools/zoslibport/releases.
+
+
+BUILDING
+--------
+If you are trying to build from a checked-out Git workspace, see README.git.
+
+Before building GNU Make, you will need to ensure that the following
+environment variables are set, to turn on z/OS enhanced ASCII support:
+
+  export _BPXK_AUTOCVT=ON
+  export _CEE_RUNOPTS="$_CEE_RUNOPTS FILETAG(AUTOCVT,AUTOTAG) POSIX(ON)"
+  export _TAG_REDIR_ERR=txt
+  export _TAG_REDIR_IN=txt
+  export _TAG_REDIR_OUT=txt
+
+To ensure proper functioning of xlclang, set the following environment
+variables before building:
+
+  export _CC_CCMODE=1
+  export _C89_CCMODE=1
+  export _CXX_CCMODE=1
+
+Set PATH_TO_ZOSLIB to the location of your zoslib installation; e.g.:
+
+  PATH_TO_ZOSLIB=$HOME/zopen/prod/zoslib
+
+Invoke ./configure as follows:
+
+  ./configure \
+      CC=xlclang \
+      CPPFLAGS="-DNSIG=42 -D_XOPEN_SOURCE=600 -D_ALL_SOURCE -D_OPEN_SYS_FILE_EXT=1 -D_AE_BIMODAL=1 -D_ENHANCED_ASCII_EXT=0xFFFFFFF -DZOSLIB_OVERRIDE_CLIB=1" \
+      CFLAGS="-qascii -std=gnu11 -qnocsect -qenum=int -I$PATH_TO_ZOSLIB/include" \
+      LDFLAGS="-L$PATH_TO_ZOSLIB/lib" \
+      LIBS="-lzoslib $PATH_TO_ZOSLIB/lib/CXXRT64.x"
+
+If you have an instance of make already available you can build with:
+
+  make
+
+If not, you can build with:
+
+  ./build.sh
+
+
+TESTING
+-------
+To run the regression tests you'll need to install Perl and enable it.
+Then you can run:
+
+  ./make check
+
+
+INSTALLING
+----------
+Copy the "make" program to wherever you want it to be installed, on your PATH.

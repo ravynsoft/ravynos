@@ -1,0 +1,66 @@
+#compdef lintian lintian-info
+
+local curcontext="$curcontext" state line expl cmds ret=1
+
+case "$service" in
+   (lintian)
+      _arguments -s \
+      '(-c -r -u -C -R -S -X --check --check-part --dont-check-part --remove --remove-lab --setup-lab --unpack)'{-S,--setup-lab}'[setup or update the laboratory]' \
+      '(-c -r -u -C -R -S -X --check --check-part --dont-check-part --remove --remove-lab --setup-lab --unpack)'{-R,--remove-lab}'[remove the laboratory directory]' \
+      '(-c -r -u -C -R -S -X --check --check-part --dont-check-part --remove --remove-lab --setup-lab --unpack)'{-c,--check}'[run all checks over the specified packages]' \
+      '(-c -r -u -C -R -S -X --check --check-part --dont-check-part --remove --remove-lab --setup-lab --unpack)'{-C,--check-part}'[run only the specified checks]: :_values -s , "lintian check" binaries bin changelog-file chg conffiles cnf control-file dctrl control-files ctl copyright-file cpy cruft deb deb-format dfmt debconf dc debdiff dif debian-readme drm debhelper dh description des etcfiles etc fields fld files fil huge-usr-share hus infofiles info init.d ini manpages man md5sums md5 menus men menu-format mnf perl prl po-debconf pd scripts scr shared-libs shl spelling splr standards-version std' \
+      '(-c -r -u -C -R -S -X --check --check-part --dont-check-part --remove --remove-lab --setup-lab --unpack)'{-X,--dont-check-part}'[run only the specified checks]: :_values -s , "lintian check" binaries bin changelog-file chg conffiles cnf control-file dctrl control-files ctl copyright-file cpy cruft deb deb-format dfmt debconf dc debdiff dif debian-readme drm debhelper dh description des etcfiles etc fields fld files fil huge-usr-share hus infofiles info init.d ini manpages man md5sums md5 menus men menu-format mnf perl prl po-debconf pd scripts scr shared-libs shl spelling splr standards-version std' \
+      '(-c -r -u -C -R -S -X --check --check-part --dont-check-part --remove --remove-lab --setup-lab --unpack)'{-u,--unpack}'[unpack up to unpack level]' \
+      '(-c -r -u -C -R -S -X --check --check-part --dont-check-part --remove --remove-lab --setup-lab --unpack)'{-r,--remove}'[clean packages up to current unpack level]' \
+      '(-h --help)'{-h,--help}'[help]' \
+      '(-v --verbose)'{-v,--verbose}'[verbose]' \
+      '(-V --version)'{-V,--version}'[version]' \
+      '(-d --debug)'{-d,--debug}'[debug]' \
+      '--print-version[print unadorned version number]' \
+      '(-i --info)'{-i,--info}'[print info about violations]' \
+      '(-I --display-info)'{-I,--display-info}'[also display informational tags]' \
+      '(-l --unpack-level)'{-l,--unpack-level}'[unpack level]:default unpack level:(0 1 2 none basic contents)' \
+      '(-o --no-override)'{-o,--no-override}'[do not use the overrides file]' \
+      '--show-overrides[output tags that have been overridden]' \
+      '--color:when:(never always auto)' \
+      '(-U --unpack-info)'{-U,--unpack-info}'[collect information]:info:_values -s , "collectible" changelog-file copyright-file debfiles debian-readme diffstat doc-base-files file-info init.d md5sums menu-files objdump-info override-file scripts source-control-file' \
+      '(-m --md5sums)'{-m,--md5sums}'[check md5sums when processing a .changes file]' \
+      '--allow-root[override warning when run with superuser privileges]' \
+      '--cfg:config file:_files' \
+      '--lab:laboratory dir:_files -/' \
+      '--archivedir:archive directory:_files -/' \
+      '--dist:distribution:(woody sarge sid)' \
+      '--section:release:(main contrib non-free)' \
+      '--arch:architecture:_deb_architectures' \
+      '--root:root directory:_files -/' \
+      '(-a --all)'{-a,--all}'[check all packages in the distribution]' \
+      '(-b --binary)'{-b,--binary}'[the following packages are binary]' \
+      '(-s --source)'{-s,--source}'[the following packages are source]' \
+      '--udeb[the following packages are udebs]' \
+      '(-p --packages-file)'{-p,--packages-file}'[process packages listed in file]:list:_files' \
+      '*: :_deb_files -c' && return 0
+      ;;
+
+   (lintian-info)
+      _arguments -C '1: :->cmds' '*: :->args' && ret=0
+
+      case $state in
+        (cmds)
+          cmds=(
+             {-t,--tags}':print long description of arguments'
+             {-a,--annotate}':annotate override entries from stdin'
+          )
+          _describe -t commands 'lintian-info command' cmds && ret=0
+        ;;
+        (args)
+          case $line[1] in
+            -t|--tags)
+              _wanted tags expl 'tag' compadd $(command awk '/^Tag:/ { print $2 }' /usr/share/lintian/checks/*.desc) && ret=0
+            ;;
+          esac
+        ;;
+      esac
+      ;;
+esac
+
+return ret

@@ -1,0 +1,137 @@
+1.07 - 2023-02-20 - Todd Rinaldo
+ - t/29a_upcopy.t - under parallel builds allow more time for test
+ - t/29_downcopy.t: Correct typo in inline comment
+
+What's new in version 1.06
+ - Correct misleading entries in SYNOPSIS
+ - undef Tie::File objects before untie-ing arrays
+ - Tie-File: report test timeouts to STDERR
+ - t/29a_upcopy.t add test descriptions
+ - t/29a_upcopy.t: double timeout to 10
+ - t/29_downcopy.t: Correct typo in inline comment
+
+What's new in version 1.05
+ - Remove unnecessary version change test
+
+What's new in version 1.04
+ - Bump to add Changelog to source control.
+
+What's new in version 1.03
+ - Rebreak lines to achieve <80 recommended line length.
+ - Fix various pod errors.
+ - RT #116250: Fail the right number of tests on timeout.
+ - Switch most open() calls to three-argument form.
+ - Add L<> around link in pod.
+ - Use L</Foo>, not L<"Foo"> in pod.
+ - Use unique tmp filenames in test files.
+
+What's new in version 1.01:
+ - Change documentation for line numbering.
+ - Switch to github for issue tracking.
+
+What's new in version 1.00:
+ - typo fixes for Tie::File
+
+What's new in version 0.99:
+ - Minor POD link fix.
+
+What's new in version 0.98:
+ - No changes. Production release after CPAN testers cleared.
+
+What's new in version 0.97_01:
+All changes in this release are from perl 5 porters:
+ - Update address for FSF in POD
+ - z/OS: CPAN-ized ext/ and lib/
+ - Missing ; in Tie::File
+ - Typos in comments
+ - BeOS specific Updates
+ - turn the alarm off in the tests (was Re: maint @ 20617 (on VMS))
+ - fix for VMS - last if $last_read_was_short
+
+What's new in version 0.96:
+
+  Minor bug fixes only.
+
+What's new in version 0.95:
+
+  Flushing out the deferred-write buffer is now done in a single pass,
+  regardless of whether the records in the buffer are contiguous.
+
+  Various time and memory performance enhancements courtesy of Tels.
+  (<tels@bloodgate.com>)
+
+  ->flock method now discards read cache and offsets table when
+  successful.
+
+  Miscellaneous minor bugs fixes and test suite enhancements.
+
+  New ->offset method for recovering offset table data.  (Tels again.)
+
+What's new in version 0.93:
+
+  No significant changes.  (Release was mainly to correct an error in
+  one of the test files.)
+
+What's new in version 0.92:
+
+  Bug fixes:  Negative 'nrecs' argument to 'splice' is now handled
+  correctly.  Tie::File now behaves correctly even if you change $\.
+
+  More tests and (very) minor performance enhancements.
+
+What's new in version 0.91:
+
+  Tie::File now correctly handles attempts to store undefined values
+  in the array: they are silently converted to defined empty strings.
+
+  If the last record of the file is not properly terminated with the
+  record terminator string, and if the file was opened for writing,
+  Tie::File will silently repair it.  Formerly, it would mangle the file.
+
+  More unit tests.
+
+  Performance enhancements.
+
+What's new in version 0.90:
+
+  AUTODEFERMENT: Tie::File will now turn deferred writing on and off
+  automatically when it thinks it would be good to do so.  You may
+  disable this feature by calling ->autodefer(0) or by supplying the
+  'autodefer => 0' option with 'tie'.
+
+  The read cache now uses a heap instead of an array.  This yields
+  much better performance for large caches.
+
+  Other performance improvements.
+
+What's new in version 0.51:
+
+  Minor fixes in the test suite.
+
+What's new in version 0.50:
+
+  DEFERRED WRITING:  You may now use the ->defer method to request
+  that changes to the array *not* be written to the file immediately.
+  Changes will be written when the memory limit for deferred writes is
+  exceeded, or when you invoke the ->flush method.  You may discard
+  pending writes with the ->discard method.  You may set the limit of
+  discarded data with the 'dw_size' option.
+
+  The DELETE method now returns the correct values.
+
+What's new in version 0.20:
+
+  MAJOR INCOMPATIBLE CHANGE: Records read from the tied array now have
+  the record separator REMOVED by default.  This is to provide
+  do-what-I-meant behavior for expressions like
+
+        $tied[3] .= "more text";
+
+  Formerly, this would have appended "more text" *after* the newline character.
+
+  You may obtain the old behavior by supplying the 'autochomp => 0'
+  option in the 'tie' call, or by invoking the new 'autochomp'
+  accessor method.
+
+  Tests for this new feature.
+

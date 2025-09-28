@@ -1,0 +1,33 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test that bind_textdomain_codeset() works, even when the same message
+# was already looked up for a different codeset.
+
+test -d in-4 || mkdir in-4
+test -d in-4/fr || mkdir in-4/fr
+test -d in-4/fr/LC_MESSAGES || mkdir in-4/fr/LC_MESSAGES
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o in-4/fr/LC_MESSAGES/tstprog.mo "$wabs_srcdir"/intl-4.po
+
+# This test works only on systems that have a traditional french locale
+# installed.
+# intl-4.po is actually a German PO file, but only the encoding of the
+# locale matters, not the language. configure has already checked whether
+# a traditional french locale is installed; no need to check also for a
+# traditional german locale.
+: ${LOCALE_FR=fr_FR}
+if test $LOCALE_FR != none; then
+  prepare_locale_ in-4/fr in-4/$LOCALE_FR
+  ../intl-4-prg $LOCALE_FR || Exit 1
+else
+  if test -f /usr/bin/localedef; then
+    echo "Skipping test: no traditional french locale is installed"
+  else
+    echo "Skipping test: no traditional french locale is supported"
+  fi
+  Exit 77
+fi
+
+Exit 0

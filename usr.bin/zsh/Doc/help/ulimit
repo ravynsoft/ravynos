@@ -1,0 +1,59 @@
+ulimit [ -HSa ] [ { -bcdfiklmnpqrsTtvwx | -N resource } [ limit ] ... ]
+       Set or display resource limits of the shell  and  the  processes
+       started by the shell.  The value of limit can be a number in the
+       unit specified below or one of the values `unlimited', which re-
+       moves  the limit on the resource, or `hard', which uses the cur-
+       rent value of the hard limit on the resource.
+
+       By default, only soft limits are manipulated. If the -H flag  is
+       given use hard limits instead of soft limits.  If the -S flag is
+       given together with the -H flag set both hard and soft limits.
+
+       If no options are used, the file size limit (-f) is assumed.
+
+       If limit is omitted the current value of the specified resources
+       are  printed.  When more than one resource value is printed, the
+       limit name and unit is printed before each value.
+
+       When looping over multiple resources, the shell will abort imme-
+       diately  if  it detects a badly formed argument.  However, if it
+       fails to set a limit for some other reason it will continue try-
+       ing to set the remaining limits.
+
+       Not  all  the  following resources are supported on all systems.
+       Running ulimit -a will show which are supported.
+
+       -a     Lists all of the current resource limits.
+       -b     Socket buffer size in bytes (N.B. not kilobytes)
+       -c     512-byte blocks on the size of core dumps.
+       -d     Kilobytes on the size of the data segment.
+       -f     512-byte blocks on the size of files written.
+       -i     The number of pending signals.
+       -k     The number of kqueues allocated.
+       -l     Kilobytes on the size of locked-in memory.
+       -m     Kilobytes on the size of physical memory.
+       -n     open file descriptors.
+       -p     The number of pseudo-terminals.
+       -q     Bytes in POSIX message queues.
+       -r     Maximum real time priority.  On some systems  where  this
+              is  not  available, such as NetBSD, this has the same ef-
+              fect as -T for compatibility with sh.
+       -s     Kilobytes on the size of the stack.
+       -T     The number of simultaneous threads available to the user.
+       -t     CPU seconds to be used.
+       -u     The number of processes available to the user.
+       -v     Kilobytes on the size of virtual memory.  On some systems
+              this refers to the limit called `address space'.
+       -w     Kilobytes on the size of swapped out memory.
+       -x     The number of locks on files.
+
+       A  resource may also be specified by integer in the form `-N re-
+       source', where resource corresponds to the integer  defined  for
+       the  resource  by the operating system.  This may be used to set
+       the limits for resources known to the shell which do not  corre-
+       spond to option letters.  Such limits will be shown by number in
+       the output of `ulimit -a'.
+
+       The number may alternatively be out of the range of limits  com-
+       piled  into  the shell.  The shell will try to read or write the
+       limit anyway, and will report an error if this fails.

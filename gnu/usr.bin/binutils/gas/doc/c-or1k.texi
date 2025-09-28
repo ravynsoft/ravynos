@@ -1,0 +1,300 @@
+@c Copyright (C) 1991-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@ifset GENERIC
+@page
+@node OpenRISC-Dependent
+@chapter OPENRISC Dependent Features
+@end ifset
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter OPENRISC Dependent Features
+@end ifclear
+
+@cindex OPENRISC support
+@menu
+* OpenRISC-Syntax::		Syntax
+* OpenRISC-Float::		Floating Point
+* OpenRISC-Directives::		OpenRISC Machine Directives
+* OpenRISC-Opcodes::		Opcodes
+@end menu
+
+@cindex OPENRISC syntax
+@cindex syntax, OPENRISC
+@node OpenRISC-Syntax
+@section OpenRISC Syntax
+The assembler syntax follows the OpenRISC 1000 Architecture Manual.
+
+@menu
+* OpenRISC-Chars::		Special Characters
+* OpenRISC-Regs::		Register Names
+* OpenRISC-Relocs::		Relocations
+@end menu
+
+@node OpenRISC-Chars
+@subsection Special Characters
+
+@cindex line comment character, OpenRISC
+@cindex OpenRISC line comment character
+A @samp{#} character appearing anywhere on a line indicates the start
+of a comment that extends to the end of that line.
+
+@cindex line separator, OpenRISC
+@cindex statement separator, OpenRISC
+@cindex OpenRISC line separator
+@samp{;} can be used instead of a newline to separate statements.
+
+@node OpenRISC-Regs
+@subsection Register Names
+@cindex OpenRISC registers
+@cindex register names, OpenRISC
+
+The OpenRISC register file contains 32 general pupose registers.
+
+@itemize @bullet
+@item
+The 32 general purpose registers are referred to as @samp{r@var{n}}.
+
+@item
+The stack pointer register @samp{r1} can be referenced using the alias
+@samp{sp}.
+
+@item
+The frame pointer register @samp{r2} can be referenced using the alias
+@samp{fp}.
+
+@item
+The link register @samp{r9} can be referenced using the alias @samp{lr}.
+@end itemize
+
+Floating point operations use the same general purpose registers.  The
+instructions @code{lf.itof.s} (single precision) and @code{lf.itof.d} (double
+precision) can be used to convert integer values to floating point.
+Likewise, instructions @code{lf.ftoi.s} (single precision) and
+@code{lf.ftoi.d} (double precision) can be used to convert floating point to
+integer.
+
+OpenRISC also contains privileged special purpose registers (SPRs).  The
+SPRs are accessed using the @code{l.mfspr} and @code{l.mtspr} instructions.
+
+@node OpenRISC-Relocs
+@subsection Relocations
+@cindex OpenRISC relocations
+@cindex relocations, OpenRISC
+
+ELF relocations are available as defined in the OpenRISC architecture
+specification.
+
+@code{R_OR1K_HI_16_IN_INSN} is obtained using @samp{hi} and
+@code{R_OR1K_LO_16_IN_INSN} and @code{R_OR1K_SLO16} are obtained using
+@samp{lo}.  For signed offsets @code{R_OR1K_AHI16} is obtained from
+@samp{ha}.  For example:
+
+@example
+l.movhi r5, hi(symbol)
+l.ori   r5, r5, lo(symbol)
+
+l.movhi r5, ha(symbol)
+l.addi  r5, r5, lo(symbol)
+@end example
+
+These ``high'' mnemonics extract bits 31:16 of their operand,
+and the ``low'' mnemonics extract bits 15:0 of their operand.
+
+The PC relative relocation @code{R_OR1K_GOTPC_HI16} can be obtained by
+enclosing an operand inside of @samp{gotpchi}.  Likewise, the
+@code{R_OR1K_GOTPC_LO16} relocation can be obtained using @samp{gotpclo}.
+These are mostly used when assembling PIC code.  For example, the
+standard PIC sequence on OpenRISC to get the base of the global offset
+table, PC relative, into a register, can be performed as:
+
+@example
+l.jal   0x8
+ l.movhi r17, gotpchi(_GLOBAL_OFFSET_TABLE_-4)
+l.ori   r17, r17, gotpclo(_GLOBAL_OFFSET_TABLE_+0)
+l.add   r17, r17, r9
+@end example
+
+Several relocations exist to allow the link editor to perform GOT data
+references.  The @code{R_OR1K_GOT16} relocation can obtained by enclosing an
+operand inside of @samp{got}.  For example, assuming the GOT base is in
+register @code{r17}.
+
+@example
+l.lwz   r19, got(a)(r17)
+l.lwz   r21, 0(r19)
+@end example
+
+Also, several relocations exist for local GOT references.  The
+@code{R_OR1K_GOTOFF_AHI16} relocation can obtained by enclosing an operand
+inside of @samp{gotoffha}.  Likewise, @code{R_OR1K_GOTOFF_LO16} and
+@code{R_OR1K_GOTOFF_SLO16} can be obtained by enclosing an operand inside of
+@samp{gotofflo}.  For example, assuming the GOT base is in register
+@code{rl7}:
+
+@example
+l.movhi r19, gotoffha(symbol)
+l.add   r19, r19, r17
+l.lwz   r19, gotofflo(symbol)(r19)
+@end example
+
+The above PC relative relocations use a @code{l.jal} (jump) instruction
+and reading of the link register to load the PC.  OpenRISC also supports
+page offset PC relative locations without a jump instruction using the
+@code{l.adrp} instruction.  By default the @code{l.adrp} instruction will
+create an @code{R_OR1K_PCREL_PG21} relocation.
+Likewise, @code{BFD_RELOC_OR1K_LO13} and @code{BFD_RELOC_OR1K_SLO13} can
+be obtained by enclosing an operand inside of @samp{po}.  For example:
+
+@example
+l.adrp  r3, symbol
+l.ori   r4, r3, po(symbol)
+l.lbz   r5, po(symbol)(r3)
+l.sb    po(symbol)(r3), r6
+@end example
+
+Likewise the page offset relocations can be used with GOT references.  The
+relocation @code{R_OR1K_GOT_PG21} can be obtained by enclosing an
+@code{l.adrp} immediate operand inside of @samp{got}.  Likewise,
+@code{R_OR1K_GOT_LO13} can be obtained by enclosing an operand inside of
+@samp{gotpo}.  For example to load the value of a GOT symbol into register
+@samp{r5} we can do:
+
+@example
+l.adrp  r17, got(_GLOBAL_OFFSET_TABLE_)
+l.lwz   r5, gotpo(symbol)(r17)
+@end example
+
+There are many relocations that can be requested for access to
+thread local storage variables.  All of the OpenRISC TLS mnemonics
+are supported:
+
+@itemize @bullet
+@item
+@code{R_OR1K_TLS_GD_HI16} is requested using @samp{tlsgdhi}.
+@item
+@code{R_OR1K_TLS_GD_LO16} is requested using @samp{tlsgdlo}.
+@item
+@code{R_OR1K_TLS_GD_PG21} is requested using @samp{tldgd}.
+@item
+@code{R_OR1K_TLS_GD_LO13} is requested using @samp{tlsgdpo}.
+
+@item
+@code{R_OR1K_TLS_LDM_HI16} is requested using @samp{tlsldmhi}.
+@item
+@code{R_OR1K_TLS_LDM_LO16} is requested using @samp{tlsldmlo}.
+@item
+@code{R_OR1K_TLS_LDM_PG21} is requested using @samp{tldldm}.
+@item
+@code{R_OR1K_TLS_LDM_LO13} is requested using @samp{tlsldmpo}.
+
+@item
+@code{R_OR1K_TLS_LDO_HI16} is requested using @samp{dtpoffhi}.
+@item
+@code{R_OR1K_TLS_LDO_LO16} is requested using @samp{dtpofflo}.
+
+@item
+@code{R_OR1K_TLS_IE_HI16} is requested using @samp{gottpoffhi}.
+@item
+@code{R_OR1K_TLS_IE_AHI16} is requested using @samp{gottpoffha}.
+@item
+@code{R_OR1K_TLS_IE_LO16} is requested using @samp{gottpofflo}.
+@item
+@code{R_OR1K_TLS_IE_PG21} is requested using @samp{gottp}.
+@item
+@code{R_OR1K_TLS_IE_LO13} is requested using @samp{gottppo}.
+
+@item
+@code{R_OR1K_TLS_LE_HI16} is requested using @samp{tpoffhi}.
+@item
+@code{R_OR1K_TLS_LE_AHI16} is requested using @samp{tpoffha}.
+@item
+@code{R_OR1K_TLS_LE_LO16} is requested using @samp{tpofflo}.
+@item
+@code{R_OR1K_TLS_LE_SLO16} also is requested using @samp{tpofflo}
+depending on the instruction format.
+@end itemize
+
+Here are some example TLS model sequences.
+
+First, General Dynamic:
+
+@example
+l.movhi r17, tlsgdhi(symbol)
+l.ori   r17, r17, tlsgdlo(symbol)
+l.add   r17, r17, r16
+l.or    r3, r17, r17
+l.jal   plt(__tls_get_addr)
+ l.nop
+@end example
+
+Initial Exec:
+
+@example
+l.movhi r17, gottpoffhi(symbol)
+l.add   r17, r17, r16
+l.lwz   r17, gottpofflo(symbol)(r17)
+l.add   r17, r17, r10
+l.lbs   r17, 0(r17)
+@end example
+
+And finally, Local Exec:
+
+@example
+l.movhi r17, tpoffha(symbol)
+l.add   r17, r17, r10
+l.addi  r17, r17, tpofflo(symbol)
+l.lbs   r17, 0(r17)
+@end example
+
+@node OpenRISC-Float
+@section Floating Point
+
+@cindex floating point, OPENRISC (@sc{ieee})
+@cindex OPENRISC floating point (@sc{ieee})
+OpenRISC uses @sc{ieee} floating-point numbers.
+
+@node OpenRISC-Directives
+@section OpenRISC Machine Directives
+
+@cindex OPENRISC machine directives
+@cindex machine directives, OPENRISC
+The OpenRISC version of @code{@value{AS}} supports the following additional
+machine directives:
+
+@table @code
+@cindex @code{align} directive, OpenRISC
+@item .align
+This must be followed by the desired alignment in bytes.
+
+@cindex @code{word} directive, OpenRISC
+@item .word
+On the OpenRISC, the @code{.word} directive produces a 32 bit value.
+
+@cindex @code{nodelay} directive, OpenRISC
+@item .nodelay
+On the OpenRISC, the @code{.nodelay} directive sets a flag in elf binaries
+indicating that the binary is generated catering for no delay slots.
+
+@cindex @code{proc} directive, OpenRISC
+@item .proc
+This directive is ignored.  Any text following it on the same
+line is also ignored.
+
+@cindex @code{endproc} directive, OpenRISC
+@item .endproc
+This directive is ignored.  Any text following it on the same
+line is also ignored.
+@end table
+
+@node OpenRISC-Opcodes
+@section Opcodes
+
+@cindex OpenRISC opcode summary
+@cindex opcode summary, OpenRISC
+@cindex mnemonics, OpenRISC
+@cindex instruction summary, LM32
+For detailed information on the OpenRISC machine instruction set, see
+@url{http://www.openrisc.io/architecture/}.
+
+@code{@value{AS}} implements all the standard OpenRISC opcodes.

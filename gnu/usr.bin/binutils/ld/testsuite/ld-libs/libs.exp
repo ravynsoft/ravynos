@@ -1,0 +1,42 @@
+# Expect script for the linker's -l command line option
+#   Copyright (C) 2007-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+if { [istarget sh*-*-pe]
+     || [istarget tic30-*-*]
+     || [istarget tic54x-*-*] } {
+    # These all complain about a zero vma .text and other sections
+    return
+}
+
+if { [istarget alpha*-*-*vms*] } {
+    # relocatable link is not supported
+    return
+}
+
+file mkdir tmpdir/libtmp
+
+# Check that -l: works.  The first "test" just creates an object file
+# for the second one.
+run_ld_link_tests {
+    {"-l: test (preparation)" "-r" "" "" {lib-1.s} {} "libtmp/anobject"}
+    {"-l: test" "-r -Ltmpdir/libtmp -l:anobject" "" "" {lib-2.s}
+     {{nm -C lib-2.d}} "lib-2"}
+}

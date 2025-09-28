@@ -1,0 +1,34 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test a failing comparison.
+
+cat <<EOF > mc-test2.in1
+msgid "one" msgstr "first"
+msgid "two" msgstr "second"
+msgid "three" msgstr "third"
+msgid "four" msgstr "fourth"
+EOF
+
+cat <<EOF > mc-test2.in2
+msgid "thre" msgstr "" #i.e. pretend a typo in the program
+msgid "one" msgstr ""
+msgid "two" msgstr ""
+EOF
+
+: ${MSGCMP=msgcmp}
+LC_MESSAGES=C LC_ALL= \
+${MSGCMP} mc-test2.in1 mc-test2.in2 2>&1 | grep -v '^==' | sed -e 's|[^ ]*\\msgcmp\.exe|msgcmp|' -e 's|^msgcmp\.exe|msgcmp|' -e 's|^/cygdrive/[^ ]*/msgcmp|msgcmp|' | LC_ALL=C tr -d '\r' > mc-test2.out
+
+cat <<EOF > mc-test2.ok
+mc-test2.in2:1: this message is used but not defined...
+mc-test2.in1:3: ...but this definition is similar
+mc-test2.in1:4: warning: this message is not used
+msgcmp: found 1 fatal error
+EOF
+
+: ${DIFF=diff}
+${DIFF} mc-test2.ok mc-test2.out
+result=$?
+
+exit $result

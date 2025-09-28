@@ -1,0 +1,10 @@
+.*: +file format .*mips.*
+
+Disassembly of section \.text:
+[0-9a-f]+ <[^>]*> lui	gp,0x1
+[0-9a-f]+ <[^>]*> addiu	gp,gp,-32736
+[0-9a-f]+ <[^>]*> addu	gp,gp,t9
+[0-9a-f]+ <[^>]*> lwl	v0,-32744\(gp\)
+[0-9a-f]+ <[^>]*> jr	ra
+[0-9a-f]+ <[^>]*> addiu	v0,v0,4
+	\.\.\.

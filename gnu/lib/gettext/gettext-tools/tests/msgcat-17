@@ -1,0 +1,51 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgcat with --width option. Check that format strings are not broken.
+
+cat <<\EOF > mcat-test17.in
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "write error of a large result on a too small disk% s% s"
+msgstr "Fehler beim Schreiben eines großen Ergebnisses auf eine zu kleine Platte% s% smit der jederzeitigen Möglichkeit eines Fehlers in jedem Moment und an jeder Stelle"
+
+#, c-format
+msgid "write error of a big result on a too small disk% s% s"
+msgstr "Fehler beim Schreiben eines großen Ergebnisses auf eine zu kleine Platte% s% smit der jederzeitigen Möglichkeit eines Fehlers in jedem Moment und an jeder Stelle"
+EOF
+
+rm -f mcat-test17.tmp
+: ${MSGCAT=msgcat}
+${MSGCAT} -o mcat-test17.tmp --width=80 mcat-test17.in || Exit 1
+LC_ALL=C tr -d '\r' < mcat-test17.tmp > mcat-test17.out || Exit 1
+
+cat <<\EOF > mcat-test17.ok
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "write error of a large result on a too small disk% s% s"
+msgstr ""
+"Fehler beim Schreiben eines großen Ergebnisses auf eine zu kleine Platte% s% "
+"smit der jederzeitigen Möglichkeit eines Fehlers in jedem Moment und an jeder "
+"Stelle"
+
+#, c-format
+msgid "write error of a big result on a too small disk% s% s"
+msgstr ""
+"Fehler beim Schreiben eines großen Ergebnisses auf eine zu kleine "
+"Platte% s% smit der jederzeitigen Möglichkeit eines Fehlers in jedem Moment "
+"und an jeder Stelle"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcat-test17.ok mcat-test17.out
+result=$?
+
+exit $result

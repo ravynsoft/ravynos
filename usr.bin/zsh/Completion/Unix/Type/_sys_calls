@@ -1,0 +1,20 @@
+#autoload
+
+# Options:
+#
+# -a    add "all" as an additional match
+# -n    add "none" as an additional match
+
+local expl all none
+local ifile=/usr/include/sys/syscall.h
+local -au syscalls
+
+zparseopts -D -K -E a=all n=none
+
+[[ $OSTYPE = linux* ]] && ifile=/usr/include/bits/syscall.h
+syscalls=( ${${${(M)${(f)"$(<$ifile)"}:#\#[[:blank:]]#define[[:blank:]]##SYS_*}#*[[:blank:]]SYS_}%%[[:blank:]]*} ) 2>/dev/null
+[[ -n $all ]] && syscalls+=( all )
+[[ -n $none ]] && syscalls+=( none )
+
+_description syscalls expl 'system call'
+compadd "$@" "$expl[@]" -a syscalls

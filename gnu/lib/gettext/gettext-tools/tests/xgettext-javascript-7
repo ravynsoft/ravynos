@@ -1,0 +1,91 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of JavaScript template literal support.
+
+cat <<\EOF > xg-js-7.js
+var s0 = _(`A template literal without substitutions`);
+var s1 = _(`A template literal with
+embedded
+newlines`);
+var s2 = _(`A template literal with ${n} substitutions`);
+var s3 = _(`A template literal with several substitutions: ${a} and ${b} and ${c} and so on`);
+var s4 = `/${looks_like_regex}`;
+var s5 = _('not part of a regex');
+var s6 = `that's a valid string. ` + _('This too');
+var s7 = _(tag`A template literal with a tag`);
+var s8 = `a${`b${`c`+d}`}e`;
+var s9 = _("a normal string");
+var s10 = `abc${foo({},_('should be extracted'))}xyz`;
+var f1 = function () {
+  return _("first normal string") + `${foo}` + _("second normal string");
+};
+var s11 = _("another normal string");
+var s12 = { property: `A template literal with ${n} substitution` };
+var s13 = _("yet another normal string");
+
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-comments --no-location -o xg-js-7.tmp xg-js-7.js 2>xg-js-7.err
+test $? = 0 || { cat xg-js-7.err; Exit 1; }
+func_filter_POT_Creation_Date xg-js-7.tmp xg-js-7.pot
+
+cat <<\EOF > xg-js-7.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "A template literal without substitutions"
+msgstr ""
+
+msgid ""
+"A template literal with\n"
+"embedded\n"
+"newlines"
+msgstr ""
+
+msgid "not part of a regex"
+msgstr ""
+
+msgid "This too"
+msgstr ""
+
+msgid "a normal string"
+msgstr ""
+
+msgid "should be extracted"
+msgstr ""
+
+msgid "first normal string"
+msgstr ""
+
+msgid "second normal string"
+msgstr ""
+
+msgid "another normal string"
+msgstr ""
+
+msgid "yet another normal string"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-js-7.ok xg-js-7.pot
+result=$?
+
+exit $result

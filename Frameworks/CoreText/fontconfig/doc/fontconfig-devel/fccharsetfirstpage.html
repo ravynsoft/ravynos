@@ -1,0 +1,323 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML
+><HEAD
+><TITLE
+>FcCharSetFirstPage</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
+REL="HOME"
+HREF="t1.html"><LINK
+REL="UP"
+TITLE="FcCharSet"
+HREF="x103.html#AEN1869"><LINK
+REL="PREVIOUS"
+TITLE="FcCharSetIsSubset"
+HREF="fccharsetissubset.html"><LINK
+REL="NEXT"
+TITLE="FcCharSetNextPage"
+HREF="fccharsetnextpage.html"></HEAD
+><BODY
+CLASS="REFENTRY"
+BGCOLOR="#FFFFFF"
+TEXT="#000000"
+LINK="#0000FF"
+VLINK="#840084"
+ALINK="#0000FF"
+><DIV
+CLASS="NAVHEADER"
+><TABLE
+SUMMARY="Header navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TH
+COLSPAN="3"
+ALIGN="center"
+></TH
+></TR
+><TR
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="bottom"
+><A
+HREF="fccharsetissubset.html"
+ACCESSKEY="P"
+>&#60;&#60;&#60; Previous</A
+></TD
+><TD
+WIDTH="80%"
+ALIGN="center"
+VALIGN="bottom"
+></TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="bottom"
+><A
+HREF="fccharsetnextpage.html"
+ACCESSKEY="N"
+>Next &#62;&#62;&#62;</A
+></TD
+></TR
+></TABLE
+><HR
+ALIGN="LEFT"
+WIDTH="100%"></DIV
+><H1
+><A
+NAME="FCCHARSETFIRSTPAGE"
+></A
+>FcCharSetFirstPage</H1
+><DIV
+CLASS="REFNAMEDIV"
+><A
+NAME="AEN2219"
+></A
+><H2
+>Name</H2
+>FcCharSetFirstPage&nbsp;--&nbsp;Start enumerating charset contents</DIV
+><DIV
+CLASS="REFSYNOPSISDIV"
+><A
+NAME="AEN2222"
+></A
+><H2
+>Synopsis</H2
+><DIV
+CLASS="FUNCSYNOPSIS"
+><P
+></P
+><A
+NAME="AEN2223"
+></A
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="FUNCSYNOPSISINFO"
+>#include &#60;fontconfig/fontconfig.h&#62;
+        </PRE
+></TD
+></TR
+></TABLE
+><P
+><CODE
+><CODE
+CLASS="FUNCDEF"
+>FcChar32 <TT
+CLASS="FUNCTION"
+>FcCharSetFirstPage</TT
+></CODE
+>(const FcCharSet *<TT
+CLASS="PARAMETER"
+><I
+>a</I
+></TT
+>, FcChar32[FC_CHARSET_MAP_SIZE] <TT
+CLASS="PARAMETER"
+><I
+>map</I
+></TT
+>, FcChar32 *<TT
+CLASS="PARAMETER"
+><I
+>next</I
+></TT
+>);</CODE
+></P
+><P
+></P
+></DIV
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN2234"
+></A
+><H2
+>Description</H2
+><P
+>Builds an array of bits in <TT
+CLASS="PARAMETER"
+><I
+>map</I
+></TT
+> marking the
+first page of Unicode coverage of <TT
+CLASS="PARAMETER"
+><I
+>a</I
+></TT
+>.
+<TT
+CLASS="PARAMETER"
+><I
+>*next</I
+></TT
+> is set to contains the base code point
+for the next page in <TT
+CLASS="PARAMETER"
+><I
+>a</I
+></TT
+>.  Returns the base code
+point for the page, or <CODE
+CLASS="CONSTANT"
+>FC_CHARSET_DONE</CODE
+> if
+<TT
+CLASS="PARAMETER"
+><I
+>a</I
+></TT
+> contains no pages.  As an example, if
+<TT
+CLASS="FUNCTION"
+>FcCharSetFirstPage</TT
+> returns
+<TT
+CLASS="LITERAL"
+>0x300</TT
+> and fills <TT
+CLASS="PARAMETER"
+><I
+>map</I
+></TT
+> with
+<TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="LITERALLAYOUT"
+>0xffffffff 0xffffffff 0x01000008 0x44300002 0xffffd7f0 0xfffffffb 0xffff7fff 0xffff0003</PRE
+></TD
+></TR
+></TABLE
+>
+Then the page contains code points <TT
+CLASS="LITERAL"
+>0x300</TT
+> through
+<TT
+CLASS="LITERAL"
+>0x33f</TT
+> (the first 64 code points on the page)
+because <TT
+CLASS="PARAMETER"
+><I
+>map[0]</I
+></TT
+> and
+<TT
+CLASS="PARAMETER"
+><I
+>map[1]</I
+></TT
+> both have all their bits set.  It also
+contains code points <TT
+CLASS="LITERAL"
+>0x343</TT
+> (<TT
+CLASS="PARAMETER"
+><I
+>0x300 + 32*2
++ (4-1)</I
+></TT
+>) and <TT
+CLASS="LITERAL"
+>0x35e</TT
+> (<TT
+CLASS="PARAMETER"
+><I
+>0x300 +
+32*2 + (31-1)</I
+></TT
+>) because <TT
+CLASS="PARAMETER"
+><I
+>map[2]</I
+></TT
+> has
+the 4th and 31st bits set.  The code points represented by
+<TT
+CLASS="LITERAL"
+>map[3]</TT
+> and later are left as an exercise for the
+reader ;).
+            </P
+></DIV
+><DIV
+CLASS="NAVFOOTER"
+><HR
+ALIGN="LEFT"
+WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="fccharsetissubset.html"
+ACCESSKEY="P"
+>&#60;&#60;&#60; Previous</A
+></TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="t1.html"
+ACCESSKEY="H"
+>Home</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="fccharsetnextpage.html"
+ACCESSKEY="N"
+>Next &#62;&#62;&#62;</A
+></TD
+></TR
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+>FcCharSetIsSubset</TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="x103.html#AEN1869"
+ACCESSKEY="U"
+>Up</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+>FcCharSetNextPage</TD
+></TR
+></TABLE
+></DIV
+></BODY
+></HTML
+>

@@ -1,0 +1,17 @@
+name=zsh/termcap
+
+link='if test "x$ac_cv_func_tgetent" = xyes; then
+          if test "x$zsh_cv_shared_tgetent" = xyes; then
+	      echo either
+	  else
+	      echo static
+	  fi
+      else
+          echo either;
+      fi
+'
+load=yes
+
+autofeatures="b:echotc p:termcap"
+
+objects="termcap.o"

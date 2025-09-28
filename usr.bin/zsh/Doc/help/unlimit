@@ -1,0 +1,10 @@
+unlimit [ -hs ] resource ...
+       The  resource  limit for each resource is set to the hard limit.
+       If the -h flag is given and the  shell  has  appropriate  privi-
+       leges,  the  hard  resource  limit for each resource is removed.
+       The resources of the shell process are only changed  if  the  -s
+       flag is given.
+
+       The  unlimit  command  is not made available by default when the
+       shell starts in a mode emulating another shell.  It can be  made
+       available with the command `zmodload -F zsh/rlimits b:unlimit'.

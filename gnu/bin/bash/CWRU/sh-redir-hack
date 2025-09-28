@@ -1,0 +1,15 @@
+Add to `subshell' production in parse.y and recompile -DREDIRECTION_HACK to
+get `< xx (command)' sh compatibility.
+
+	|	redirections '(' list ')'
+			{
+#if defined (REDIRECTION_HACK)
+			  /* XXX - C News sh compatibility hack - XXX */
+			  $3->redirects = $1;
+			  $3->flags |= CMD_WANT_SUBSHELL;
+			  $$ = $3;
+#else
+			  yyerror ();
+			  YYABORT;
+#endif
+			}

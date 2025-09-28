@@ -1,0 +1,19 @@
+#compdef unalias
+
+local expl sel args opts
+
+zparseopts -E -D s:=sel
+
+[[ -z $sel ]] && sel=rgs
+
+opts=( "$@" )
+
+args=()
+[[ $sel = *r* ]] && args=( $args 'aliases:regular alias:compadd -k aliases' )
+[[ $sel = *g* ]] && args=( $args 'global-aliases:global alias:compadd -k galiases' )
+[[ $sel = *s* ]] && args=( $args 'suffix-aliases:suffix alias:compadd -k saliases' )
+[[ $sel = *R* ]] && args=( $args 'disabled-aliases:disabled regular alias:compadd -k dis_aliases' )
+[[ $sel = *G* ]] && args=( $args 'disabled-global-aliases:disabled global alias:compadd -k dis_galiases' )
+[[ $sel = *S* ]] && args=( $args 'disabled-suffix-aliases:disabled suffix alias:compadd -k dis_saliases' )
+
+_alternative -O opts $args

@@ -1,0 +1,57 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# these should be errors
+typeset -n x=x
+#echo $x -- $?
+
+typeset -n x[3]=x
+#echo $x -- $?
+
+x=(the browns suck)
+y=(one two three)
+# should be an error but not disturb the current contents of x
+# maybe rethink that later
+typeset -n x=y
+echo $x -- $?
+
+typeset -n
+
+unset x y
+
+y=42
+typeset -i x=1
+
+# the integer attribute causes arithmetic eval to be done
+# we should not allow namerefs to non-identifiers
+typeset -n x=y
+echo $x -- $?
+
+typeset +n x
+echo $x -- $?
+
+# same kind of thing
+
+unset -n x
+unset y
+
+set -- first second third
+y=2
+typeset -i x=1
+
+typeset -n x=y
+echo $x -- $?
+echo ${x} -- $?
+
+typeset +n x
+echo $x -- $?

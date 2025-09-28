@@ -1,0 +1,149 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --msgid and --msgstr options with Java .properties syntax.
+
+cat <<\EOF > mg-test6.properties
+#: argmatch.c:141
+#, c-format
+invalid\ argument\ `%s'\ for\ `%s'=ung\u00fcltiges Argument \u00bb%s\u00ab f\u00fcr \u00bb%s\u00ab
+
+#: argmatch.c:142
+#, c-format
+ambiguous\ argument\ `%s'\ for\ `%s'=mehrdeutiges Argument \u00bb%s\u00ab f\u00fcr \u00bb%s\u00ab
+
+#: argmatch.c:162
+Valid\ arguments\ are\:=G\u00fcltige Argumente sind\:
+
+#: copy-file.c:60
+#, c-format
+error\ while\ opening\ "%s"\ for\ reading=\u00d6ffnen der Datei \u00bb%s\u00ab zum Lesen fehlgeschlagen
+
+#: copy-file.c:67
+#, c-format
+cannot\ open\ backup\ file\ "%s"\ for\ writing=\u00d6ffnen der Sicherungsdatei \u00bb%s\u00ab zum Schreiben fehlgeschlagen
+
+#: copy-file.c:80
+#, c-format
+error\ reading\ "%s"=Fehler beim Lesen von \u00bb%s\u00ab
+
+#: copy-file.c:86 copy-file.c:90
+#, c-format
+error\ writing\ "%s"=Fehler beim Schreiben von \u00bb%s\u00ab
+
+#: copy-file.c:92
+#, c-format
+error\ after\ reading\ "%s"=Fehler nach dem Lesen von \u00bb%s\u00ab
+
+#: error.c:115
+Unknown\ system\ error=Unbekannter Systemfehler
+
+#: execute.c:170 execute.c:205 pipe-bidi.c:156 pipe-bidi.c:191 pipe-in.c:169
+#: pipe-in.c:205 pipe-out.c:169 pipe-out.c:205 wait-process.c:136
+#, c-format
+%s\ subprocess\ failed=Subprozess %s fehlgeschlagen
+
+#: getopt.c:691
+#, c-format
+%s\:\ option\ `%s'\ is\ ambiguous\n=%s\: Option \u00bb%s\u00ab ist mehrdeutig\n
+
+#: getopt.c:716
+#, c-format
+%s\:\ option\ `--%s'\ doesn't\ allow\ an\ argument\n=%s\: Option \u00bb--%s\u00ab erwartet kein Argument\n
+
+#: getopt.c:721
+#, c-format
+%s\:\ option\ `%c%s'\ doesn't\ allow\ an\ argument\n=%s\: Option \u00bb%c%s\u00ab erwartet kein Argument\n
+
+#: getopt.c:739 getopt.c:912
+#, c-format
+%s\:\ option\ `%s'\ requires\ an\ argument\n=%s\: Option \u00bb%s\u00ab erwartet ein Argument\n
+
+#: getopt.c:768
+#, c-format
+%s\:\ unrecognized\ option\ `--%s'\n=%s\: unbekannte Option \u00bb--%s\u00ab\n
+
+#: getopt.c:772
+#, c-format
+%s\:\ unrecognized\ option\ `%c%s'\n=%s\: unbekannte Option \u00bb%c%s\u00ab\n
+
+#: getopt.c:798
+#, c-format
+%s\:\ illegal\ option\ --\ %c\n=%s\: unzul\u00e4ssige Option -- %c\n
+
+#: getopt.c:801
+#, c-format
+%s\:\ invalid\ option\ --\ %c\n=%s\: ung\u00fcltige Option -- %c\n
+
+#: getopt.c:831 getopt.c:961
+#, c-format
+%s\:\ option\ requires\ an\ argument\ --\ %c\n=%s\: Option erwartet ein Argument -- %c\n
+
+#: getopt.c:878
+#, c-format
+%s\:\ option\ `-W\ %s'\ is\ ambiguous\n=%s\: Option \u00bb-W %s\u00ab ist mehrdeutig\n
+
+#: getopt.c:896
+#, c-format
+%s\:\ option\ `-W\ %s'\ doesn't\ allow\ an\ argument\n=%s\: Option \u00bb-W %s\u00ab erwartet kein Argument\n
+
+#: javacomp.c:465
+Java\ compiler\ not\ found,\ try\ installing\ gcj\ or\ set\ $JAVAC=Java-Compiler nicht gefunden; bitte \u00bbgcj\u00ab installieren oder $JAVAC setzen
+
+#: javaexec.c:404
+Java\ virtual\ machine\ not\ found,\ try\ installing\ gij\ or\ set\ $JAVA=Virtuelle Java-Maschine nicht gefunden; bitte \u00bbgcj\u00ab installieren oder\n$JAVA setzen
+
+#: obstack.c:474 xerror.c:75 xmalloc.c:56
+memory\ exhausted=virtueller Speicher ersch\u00f6pft
+
+#: pipe-bidi.c:119 pipe-bidi.c:121 pipe-in.c:136 pipe-out.c:136
+cannot\ create\ pipe=Es ist nicht m\u00f6glich, eine Pipe zu erzeugen
+
+#: wait-process.c:117
+#, c-format
+%s\ subprocess=Subprozess %s
+
+#: wait-process.c:129
+#, c-format
+%s\ subprocess\ got\ fatal\ signal=Subprozess %s hat ein fatales Signal erhalten
+
+# A pattern specified for the msgid only must not be matched with the msgstr.
+GSG-9=Antiterror-Einheit
+EOF
+
+: ${MSGGREP=msggrep}
+LC_MESSAGES=C LC_ALL= \
+${MSGGREP} --properties-input --properties-output -K -e error -T -e Speicher -o mg-test6.tmp mg-test6.properties
+result=$?
+test $result = 0 || { Exit 1; }
+LC_ALL=C tr -d '\r' < mg-test6.tmp > mg-test6.out || Exit 1
+
+cat <<\EOF > mg-test6.ok
+#: copy-file.c:60
+#, c-format
+error\ while\ opening\ "%s"\ for\ reading=\u00d6ffnen der Datei \u00bb%s\u00ab zum Lesen fehlgeschlagen
+
+#: copy-file.c:80
+#, c-format
+error\ reading\ "%s"=Fehler beim Lesen von \u00bb%s\u00ab
+
+#: copy-file.c:86 copy-file.c:90
+#, c-format
+error\ writing\ "%s"=Fehler beim Schreiben von \u00bb%s\u00ab
+
+#: copy-file.c:92
+#, c-format
+error\ after\ reading\ "%s"=Fehler nach dem Lesen von \u00bb%s\u00ab
+
+#: error.c:115
+Unknown\ system\ error=Unbekannter Systemfehler
+
+#: obstack.c:474 xerror.c:75 xmalloc.c:56
+memory\ exhausted=virtueller Speicher ersch\u00f6pft
+EOF
+
+: ${DIFF=diff}
+${DIFF} mg-test6.ok mg-test6.out
+result=$?
+
+exit $result

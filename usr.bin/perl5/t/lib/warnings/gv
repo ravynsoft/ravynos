@@ -1,0 +1,294 @@
+  gv.c AOK
+
+     Can't locate package %s for @%s::ISA
+	@ISA = qw(Fred); joe()
+
+     Name "main::a" used only once: possible typo
+
+  Mandatory Warnings ALL TODO
+  ------------------
+
+    Had to create %SVf unexpectedly		[gv_fetchpv]
+    Attempt to free unreferenced glob pointers	[gp_free]
+    
+__END__
+# gv.c
+use warnings 'syntax' ;
+@ISA = qw(Fred); joe()
+EXPECT
+Undefined subroutine &main::joe called at - line 3.
+########
+# gv.c
+no warnings 'syntax' ;
+@ISA = qw(Fred); joe()
+EXPECT
+Undefined subroutine &main::joe called at - line 3.
+########
+# gv.c
+use warnings 'syntax' ;
+@ISA = qw(Fred); __PACKAGE__->joe()
+EXPECT
+While trying to resolve method call main->joe() can not locate package "Fred" yet it is mentioned in @main::ISA (perhaps you forgot to load "Fred"?) at - line 3.
+Can't locate object method "joe" via package "main" at - line 3.
+########
+# gv.c
+no warnings 'syntax' ;
+@ISA = qw(Fred); __PACKAGE__->joe()
+EXPECT
+Can't locate object method "joe" via package "main" at - line 3.
+########
+# gv.c
+use warnings 'syntax' ;
+{
+    package AA;    # this is a deliberate error
+#   package A;     # should be this
+    sub foo {
+       print STDERR "I'm in A's foo\n";
+    }
+}
+{
+   package B;
+   sub foo {
+       print STDERR "I'm in B's foo\n";
+   }
+}
+@C::ISA = qw(A B);
+$a = bless [], 'C';
+$a->foo();
+__END__
+EXPECT
+While trying to resolve method call C->foo() can not locate package "A" yet it is mentioned in @C::ISA (perhaps you forgot to load "A"?) at - line 18.
+I'm in B's foo
+########
+# gv.c
+no warnings 'syntax' ;
+{
+    package AA;    # this is a deliberate error
+#   package A;     # should be this
+    sub foo {
+       print STDERR "I'm in A's foo\n";
+    }
+}
+{
+   package B;
+   sub foo {
+       print STDERR "I'm in B's foo\n";
+   }
+}
+@C::ISA = qw(A B);
+$a = bless [], 'C';
+$a->foo();
+__END__
+EXPECT
+I'm in B's foo
+########
+# gv.c
+use warnings 'syntax' ;
+{
+#   package AA;    # this would be an error
+    package A;     # the right thing
+    sub foo {
+       print STDERR "I'm in A's foo\n";
+    }
+}
+{
+   package B;
+   sub foo {
+       print STDERR "I'm in B's foo\n";
+   }
+}
+@C::ISA = qw(A B);
+$a = bless [], 'C';
+$a->foo();
+__END__
+EXPECT
+I'm in A's foo
+########
+# gv.c
+$a = ${^ENCODING};
+$a = ${^E_NCODING};
+${^E_NCODING} = 1; # We pretend this variable never existed.
+EXPECT
+########
+# gv.c
+use warnings 'syntax' ;
+use utf8;
+use open qw( :utf8 :std );
+package Ｙ;
+@ISA = qw(Fred); joe()
+EXPECT
+Undefined subroutine &Ｙ::joe called at - line 6.
+########
+# gv.c
+use warnings;
+$x = 1;
+if ($x) {
+    print $y;
+}
+$a++; # These two should
+$b++; # be exempt.
+$Foo::a++;
+$Foo::b++;
+EXPECT
+Name "main::y" used only once: possible typo at - line 5.
+Use of uninitialized value $y in print at - line 5.
+########
+# gv.c
+use warnings;
+$x = 1;
+if ($x) {
+    $x++;
+    print $y;
+}
+EXPECT
+Name "main::y" used only once: possible typo at - line 6.
+Use of uninitialized value $y in print at - line 6.
+########
+# gv.c
+use warnings;
+$x = 0;
+if ($x) {
+    print "1\n";
+} elsif (!$x) {
+    print $y;
+} else {
+    print "0\n";
+}
+EXPECT
+Name "main::y" used only once: possible typo at - line 7.
+Use of uninitialized value $y in print at - line 7.
+########
+# gv.c
+use warnings;
+$x = 0;
+if ($x) {
+    print "1\n";
+} elsif (!$x) {
+    $x++;
+    print $y;
+} else {
+    print "0\n";
+}
+EXPECT
+Name "main::y" used only once: possible typo at - line 8.
+Use of uninitialized value $y in print at - line 8.
+########
+# gv.c
+use utf8;
+use open qw( :utf8 :std );
+use warnings;
+$ㄒ = 1;
+if ($ㄒ) {
+    print $ʎ;
+}
+EXPECT
+Name "main::ʎ" used only once: possible typo at - line 7.
+Use of uninitialized value $ʎ in print at - line 7.
+########
+# gv.c
+use utf8;
+use open qw( :utf8 :std );
+use warnings;
+$ㄒ = 1;
+if ($ㄒ) {
+    $ㄒ++;
+    print $ʎ;
+}
+EXPECT
+Name "main::ʎ" used only once: possible typo at - line 8.
+Use of uninitialized value $ʎ in print at - line 8.
+########
+# gv.c
+use utf8;
+use open qw( :utf8 :std );
+use warnings;
+$ㄒ = 0;
+if ($ㄒ) {
+    print "1\n";
+} elsif (!$ㄒ) {
+    print $ʎ;
+} else {
+    print "0\n";
+}
+EXPECT
+Name "main::ʎ" used only once: possible typo at - line 9.
+Use of uninitialized value $ʎ in print at - line 9.
+########
+# gv.c
+use utf8;
+use open qw( :utf8 :std );
+use warnings;
+$ㄒ = 0;
+if ($ㄒ) {
+    print "1\n";
+} elsif (!$ㄒ) {
+    $ㄒ++;
+    print $ʎ;
+} else {
+    print "0\n";
+}
+EXPECT
+Name "main::ʎ" used only once: possible typo at - line 10.
+Use of uninitialized value $ʎ in print at - line 10.
+########
+# gv.c
+use utf8;
+use open qw( :utf8 :std );
+use warnings;
+package 팣칵ぇ;
+$ㄒ = 1;
+if ($ㄒ) {
+    print $ʎ;
+}
+EXPECT
+Name "팣칵ぇ::ʎ" used only once: possible typo at - line 8.
+Use of uninitialized value $팣칵ぇ::ʎ in print at - line 8.
+########
+# gv.c
+use utf8;
+use open qw( :utf8 :std );
+use warnings;
+package 팣칵ぇ;
+$ㄒ = 1;
+if ($ㄒ) {
+    $ㄒ++;
+    print $ʎ;
+}
+EXPECT
+Name "팣칵ぇ::ʎ" used only once: possible typo at - line 9.
+Use of uninitialized value $팣칵ぇ::ʎ in print at - line 9.
+########
+# gv.c
+use utf8;
+use open qw( :utf8 :std );
+use warnings;
+package 팣칵ぇ;
+$ㄒ = 0;
+if ($ㄒ) {
+    print "1\n";
+} elsif (!$ㄒ) {
+    print $ʎ;
+} else {
+    print "0\n";
+}
+EXPECT
+Name "팣칵ぇ::ʎ" used only once: possible typo at - line 10.
+Use of uninitialized value $팣칵ぇ::ʎ in print at - line 10.
+########
+# gv.c
+use utf8;
+use open qw( :utf8 :std );
+use warnings;
+package 팣칵ぇ;
+$ㄒ = 0;
+if ($ㄒ) {
+    print "1\n";
+} elsif (!$ㄒ) {
+    $ㄒ++;
+    print $ʎ;
+} else {
+    print "0\n";
+}
+EXPECT
+Name "팣칵ぇ::ʎ" used only once: possible typo at - line 11.
+Use of uninitialized value $팣칵ぇ::ʎ in print at - line 11.

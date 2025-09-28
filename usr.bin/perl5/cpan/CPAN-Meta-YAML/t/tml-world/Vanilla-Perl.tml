@@ -1,0 +1,221 @@
+=== vanilla_perl
+# VanillaPerl YAML config file
+--- yaml
+# package info
+package_name:       VanillaPerl
+package_version:    5
+
+# directories
+download_dir:   c:\temp\vp_sources
+build_dir:      c:\temp\vp_build
+image_dir:      c:\vanilla-perl
+
+# Binary components
+binary:
+    -   name: dmake
+        url: http://search.cpan.org/CPAN/authors/id/S/SH/SHAY/dmake-4.5-20060619-SHAY.zip
+        license:
+            dmake/COPYING : dmake/COPYING
+            dmake/readme/license.txt: dmake/license.txt
+        install_to:
+            dmake/dmake.exe: dmake/bin/dmake.exe
+            dmake/startup: dmake/bin/startup
+
+    -   name: gcc-core
+        url: http://umn.dl.sourceforge.net/mingw/gcc-core-3.4.5-20060117-1.tar.gz
+        license:
+            COPYING: gcc/COPYING
+            COPYING.lib: gcc/COPYING.lib
+        install_to: mingw
+    
+    -   name: gcc-g++
+        url: http://umn.dl.sourceforge.net/mingw/gcc-g++-3.4.5-20060117-1.tar.gz
+        license:
+        install_to: mingw
+
+    -   name: binutils
+        url: http://umn.dl.sourceforge.net/mingw/binutils-2.16.91-20060119-1.tar.gz
+        license:
+            Copying: binutils/Copying
+            Copying.lib: binutils/Copying.lib
+        install_to: mingw
+
+    -   name: mingw-runtime
+        url: http://umn.dl.sourceforge.net/mingw/mingw-runtime-3.10.tar.gz
+        license:
+            doc/mingw-runtime/Contributors: mingw/Contributors
+            doc/mingw-runtime/Disclaimer: mingw/Disclaimer
+        install_to: mingw
+
+    -   name: w32api
+        url: http://umn.dl.sourceforge.net/mingw/w32api-3.6.tar.gz
+        license:
+        install_to: mingw
+        extra:
+            extra\README.w32api:  licenses\win32api\README.w32api
+
+# Source components
+source:
+    -   name: perl
+        url: http://mirrors.kernel.org/CPAN/src/perl-5.8.8.tar.gz
+        license: 
+            perl-5.8.8/Readme: perl/Readme
+            perl-5.8.8/Artistic: perl/Artistic
+            perl-5.8.8/Copying: perl/Copying
+        unpack_to: perl
+        install_to: perl
+        after:
+            extra\Config.pm:  lib\CPAN\Config.pm
+
+# Additional modules to bundle in site\lib
+modules:
+        # i.e. not used, but gets us the libwin32 dist
+    -   name: Win32::Job
+        unpack_to:
+            APIFile: Win32API-File
+    -   name: IO
+        force: 1
+    -   name: Compress::Zlib
+    -   name: IO::Zlib
+    -   name: Archive::Tar
+    -   name: Net::FTP
+        extra: 
+            extra\libnet.cfg: libnet.cfg
+
+# Extra files to be placed
+#    Signature.pm: perl\site\lib\Module\Signature.pm
+extra:
+    README:  README.txt
+    LICENSE.txt: LICENSE.txt
+    Changes: Release-Notes.txt
+    extra\Config.pm:  perl\lib\CPAN\Config.pm
+                      # reset this again
+
+    extra\links\Perl-Documentation.url: links\Perl Documentation.url
+    extra\links\Perl-Homepage.url: links\Perl Homepage.url
+    extra\links\Perl-Mailing-Lists.url: links\Perl Mailing Lists.url
+    extra\links\Perlmonks-Community-Forum.url: links\Perlmonks Community Forum.url
+    extra\links\Search-CPAN-Modules.url: links\Search CPAN Modules.url
+    extra\links\Vanilla-Perl-Homepage.url: links\Vanilla Perl Homepage.url
+
+--- perl
+[ {
+    package_name    => 'VanillaPerl',
+    package_version => 5,
+    download_dir    => 'c:\temp\vp_sources',
+    build_dir       => 'c:\temp\vp_build',
+    image_dir       => 'c:\vanilla-perl',
+    binary          => [
+        {
+            name    => 'dmake',
+            url     => 'http://search.cpan.org/CPAN/authors/id/S/SH/SHAY/dmake-4.5-20060619-SHAY.zip',
+            license => {
+                'dmake/COPYING' => 'dmake/COPYING',
+                'dmake/readme/license.txt' => 'dmake/license.txt',
+            },
+            install_to => {
+                'dmake/dmake.exe' => 'dmake/bin/dmake.exe',
+                'dmake/startup' => 'dmake/bin/startup',
+            },
+        },
+        {
+            name       => 'gcc-core',
+            url        => 'http://umn.dl.sourceforge.net/mingw/gcc-core-3.4.5-20060117-1.tar.gz',
+            license    => {
+                'COPYING'     => 'gcc/COPYING',
+                'COPYING.lib' => 'gcc/COPYING.lib',
+            },
+            install_to => 'mingw',
+        },
+        {
+            name       => 'gcc-g++',
+            url        => 'http://umn.dl.sourceforge.net/mingw/gcc-g++-3.4.5-20060117-1.tar.gz',
+            license    => undef,
+            install_to => 'mingw',
+        },
+        {
+            name       => 'binutils',
+            url        => 'http://umn.dl.sourceforge.net/mingw/binutils-2.16.91-20060119-1.tar.gz',
+            license    => {
+                'Copying'     => 'binutils/Copying',
+                'Copying.lib' => 'binutils/Copying.lib',
+            },
+            install_to => 'mingw',
+        },
+        {
+            name       => 'mingw-runtime',
+            url        => 'http://umn.dl.sourceforge.net/mingw/mingw-runtime-3.10.tar.gz',
+            license    => {
+                'doc/mingw-runtime/Contributors' => 'mingw/Contributors',
+                'doc/mingw-runtime/Disclaimer'   => 'mingw/Disclaimer',
+            },
+            install_to => 'mingw',
+        },
+        {
+            name       => 'w32api',
+            url        => 'http://umn.dl.sourceforge.net/mingw/w32api-3.6.tar.gz',
+            license    => undef,
+            install_to => 'mingw',
+            extra      => {
+                'extra\README.w32api' => 'licenses\win32api\README.w32api',
+            },
+        }
+    ],
+    source => [
+        {
+            name       => 'perl',
+            url        => 'http://mirrors.kernel.org/CPAN/src/perl-5.8.8.tar.gz',
+            license    => {
+                'perl-5.8.8/Readme'   => 'perl/Readme',
+                'perl-5.8.8/Artistic' => 'perl/Artistic',
+                'perl-5.8.8/Copying'  => 'perl/Copying',
+            },
+            unpack_to  => 'perl',
+            install_to => 'perl',
+            after      => {
+                'extra\Config.pm' => 'lib\CPAN\Config.pm',
+            },
+        }
+    ],
+    modules => [
+        {
+            name      => 'Win32::Job',
+            unpack_to => {
+                APIFile => 'Win32API-File',
+            },
+        },
+        {
+            name  => 'IO',
+            force => 1,
+        },
+        {
+            name => 'Compress::Zlib',
+        },
+        {
+            name => 'IO::Zlib',
+        },
+        {
+            name => 'Archive::Tar',
+        },
+        {
+            name  => 'Net::FTP',
+            extra => {
+                'extra\libnet.cfg' => 'libnet.cfg',
+            },
+        },
+    ],
+    extra => {
+        'README' => 'README.txt',
+        'LICENSE.txt' => 'LICENSE.txt',
+        'Changes' => 'Release-Notes.txt',
+        'extra\Config.pm' => 'perl\lib\CPAN\Config.pm',
+        'extra\links\Perl-Documentation.url' => 'links\Perl Documentation.url',
+        'extra\links\Perl-Homepage.url' => 'links\Perl Homepage.url',
+        'extra\links\Perl-Mailing-Lists.url' => 'links\Perl Mailing Lists.url',
+        'extra\links\Perlmonks-Community-Forum.url' => 'links\Perlmonks Community Forum.url',
+        'extra\links\Search-CPAN-Modules.url' => 'links\Search CPAN Modules.url',
+        'extra\links\Vanilla-Perl-Homepage.url' => 'links\Vanilla Perl Homepage.url',
+    },
+} ]
+
+--- nosyck

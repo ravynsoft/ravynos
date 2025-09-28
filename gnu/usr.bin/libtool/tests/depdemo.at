@@ -1,0 +1,431 @@
+# depdemo.at -- Library interdependencies		 -*- Autotest -*-
+#
+#   Copyright (C) 2003-2004, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Gary V. Vaughan, 2003
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+
+AT_BANNER([Library interdependencies.])
+
+## ------------------------------------------- ##
+## Some functions shared by later tests cases. ##
+## ------------------------------------------- ##
+
+func_restore_files ()
+{
+    test "`echo _fnord/temp/libs/*`" = "_fnord/temp/libs/*" \
+      || mv -f _fnord/temp/libs/* "l3/$objdir"
+    mv -f "_fnord/temp/libl3.la" "l3"
+    test -f "_fnord/temp/lt-depdemo$EXEEXT" \
+      && mv -f "_fnord/temp/lt-depdemo$EXEEXT" "$objdir"
+    test -f "_fnord/temp/depdemo$EXEEXT" \
+      && mv -f "_fnord/temp/depdemo$EXEEXT" "$objdir"
+    rm -rf "_fnord"
+}
+
+func_save_files ()
+{
+    test -n "$objdir" || exit 1
+    $lt_INSTALL -d "_fnord/temp/libs"
+    test -f "$objdir/lt-depdemo$EXEEXT" \
+      && cp -f "$objdir/lt-depdemo$EXEEXT" "_fnord/temp"
+    test -f "$objdir/depdemo$EXEEXT" \
+      && cp -f "$objdir/depdemo$EXEEXT" "_fnord/temp"
+    cp -f l3/libl3.la "_fnord/temp"
+    cp -f l3/"$objdir"/* "_fnord/temp/libs"
+}
+
+
+# _LT_SETUP
+# ---------
+m4_define([_LT_SETUP],
+[AT_DATA([configure.ac],
+[[AC_INIT([depdemo], ]AT_PACKAGE_VERSION[, ]AT_PACKAGE_BUGREPORT[)
+AC_CONFIG_AUX_DIR([build-aux])
+AC_CONFIG_MACRO_DIRS([m4])
+AM_INIT_AUTOMAKE
+AC_PROG_CC
+
+LT_INIT([win32-dll])
+AC_SUBST([LIBTOOL_DEPS])
+STATIC=
+test yes = "$enable_static" && STATIC=-static
+AC_SUBST([STATIC])
+
+LT_LIB_M
+AC_CONFIG_FILES([Makefile l1/Makefile l2/Makefile l3/Makefile l4/Makefile])
+AC_CONFIG_HEADERS([config.h:config.in.h])
+AC_OUTPUT
+]])
+
+AT_DATA([Makefile.am],
+[[AUTOMAKE_OPTIONS = no-dependencies foreign
+ACLOCAL_AMFLAGS = -I m4
+
+SUBDIRS = l1 l2 l3 l4
+
+bin_PROGRAMS = depdemo depdemo_static
+
+depdemo_SOURCES = main.c
+depdemo_LDADD = $(top_builddir)/l1/libl1.la $(top_builddir)/l2/libl2.la \
+		$(top_builddir)/l4/libl4.la
+depdemo_DEPENDENCIES = $(top_builddir)/l1/libl1.la \
+		$(top_builddir)/l2/libl2.la $(top_builddir)/l4/libl4.la
+
+depdemo_static_SOURCES = $(depdemo_SOURCES)
+depdemo_static_LDADD = $(depdemo_LDADD)
+depdemo_static_DEPENDENCIES = $(depdemo_DEPENDENCIES)
+depdemo_static_LDFLAGS = $(STATIC)
+
+libtool: $(LIBTOOL_DEPS)
+	$(SHELL) ./config.status --recheck
+]])
+
+AT_DATA([main.c],
+[[#include <config.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "l1/l1.h"
+#include "l2/l2.h"
+#include "l4/l4.h"
+
+#define STREQ !strcmp
+
+int main (int argc, char **argv)
+{
+  printf("dependencies:\n");
+  func_l1(0);
+  func_l2(0);
+  func_l4(0);
+  if (argc == 2 && STREQ (argv[1], "-alt")
+      && var_l1 + var_l2 + var_l4 == 8)
+	return 0;
+  printf("var_l1(%d) + var_l2(%d) + var_l4(%d) == %d\n",
+         var_l1,var_l2,var_l4, var_l1 + var_l2 + var_l4);
+  if (var_l1 + var_l2 + var_l4 != 19)
+    {
+	printf("var_l1(%d) + var_l2(%d) + var_l4(%d) != 19\n",
+               var_l1,var_l2,var_l4);
+	return 1;
+    }
+  return 0;
+}
+]])
+
+# Create 4 directorys of mostly identical files.
+for i in 1 2 3 4; do
+  mkdir l$i
+
+  # l$i/Makefile.am:
+  {
+    $ECHO     'AUTOMAKE_OPTIONS = no-dependencies foreign'
+    $ECHO     'AM_CPPFLAGS = -I$(top_srcdir) -DBUILDING_LIBL'$i
+    $ECHO     'lib_LTLIBRARIES = libl'$i'.la'
+    $ECHO     'libl'$i'_la_SOURCES = l'$i'.c l'$i'.h'
+    $ECHO     'libl'$i'_la_LDFLAGS = -no-undefined'
+    $ECHO     'libl'$i'_la_LIBADD ='
+    if test 4 != $i; then
+      j=1; while test "$j" -lt "$i"; do
+        $ECHO 'libl'$i'_la_LIBADD += $(top_builddir)/l'$j'/libl'$j'.la'
+        j=`expr 1 + $j`
+      done
+    else
+      j=3
+      $ECHO   'libl'$i'_la_LIBADD += $(top_builddir)/l'$j'/libl'$j'.la $(LIBM)'
+    fi
+  } > l$i/Makefile.am
+
+  # l$i/l$i.h
+  [{
+    $ECHO '#ifndef L'$i'_H'
+    $ECHO '#define L'$i'_H'
+    $ECHO
+    $ECHO '#if (defined _WIN32 || defined _WIN32_WCE) && !defined __GNUC__'
+    $ECHO '#  ifdef BUILDING_LIBL'$i
+    $ECHO '#    ifdef DLL_EXPORT'
+    $ECHO '#      define LIBL'$i'_SCOPE extern __declspec (dllexport)'
+    $ECHO '#    endif'
+    $ECHO '#  else'
+    $ECHO '#    define LIBL'$i'_SCOPE extern __declspec (dllimport)'
+    $ECHO '#  endif'
+    $ECHO '#endif'
+    $ECHO '#ifndef LIBL'$i'_SCOPE'
+    $ECHO '#  define LIBL'$i'_SCOPE extern'
+    $ECHO '#endif'
+    $ECHO
+    $ECHO '#ifdef __cplusplus'
+    $ECHO 'extern "C" {'
+    $ECHO '#endif'
+    $ECHO
+    $ECHO '  LIBL'$i'_SCOPE int var_l'$i';'
+    $ECHO '  int func_l'$i' (int);'
+    $ECHO
+    $ECHO '#ifdef __cplusplus'
+    $ECHO '}'
+    $ECHO '#endif'
+    $ECHO '#endif'
+  }] > l$i/l$i.h
+
+  # l$i/l$i.c:
+  {
+    if test 4 -ne $i; then
+      $ECHO     '#include <config.h>'
+      $ECHO     '#include <stdio.h>'
+      $ECHO
+      $ECHO     '#include "l'$i'/l'$i'.h"'
+      j=1; while test "$j" -lt "$i"; do
+        $ECHO   '#include "l'$j'/l'$j'.h"'
+        j=`expr 1 + $j`
+      done
+      $ECHO
+      $ECHO     'int var_l'$i' = 0;'
+      $ECHO     'int func_l'$i' (int indent) {'
+      $ECHO     '  int i;'
+      $ECHO     '  for (i = 0; i < indent; i++)'
+      $ECHO     "    putchar (' ');"
+      $ECHO     '  printf ("l'$i' (%i)\n", var_l'$i');'
+      if test 1 -eq $i; then
+        $ECHO   '  var_l1++;'
+      else
+        j=1; while test "$j" -lt "$i"; do
+          $ECHO '  func_l'$j'(indent+1);'
+          $ECHO '  var_l'$i' += var_l'$j';'
+          j=`expr 1 + $j`
+        done
+      fi
+      $ECHO     '  return 0;'
+      $ECHO     '}'
+    else
+      j=3
+      $ECHO     '#include <config.h>'
+      $ECHO     '#include <stdio.h>'
+      $ECHO     '#include <math.h>'
+      $ECHO     '#include "l'$i'/l'$i'.h"'
+      $ECHO     '#include "l'$j'/l'$j'.h"'
+      $ECHO
+      $ECHO     'int var_l'$i' = 0;'
+      $ECHO     'int func_l'$i' (int indent) {'
+      $ECHO     '  int i;'
+      $ECHO     '  for (i = 0; i < indent; i++)'
+      $ECHO     "    putchar (' ');"
+      $ECHO     '  printf ("l'$i' (%i)\n", var_l'$i');'
+      $ECHO     '  func_l'$j'(indent+1);'
+      $ECHO     '  for (i = 0; i < indent; i++)'
+      $ECHO     "    putchar (' ');"
+      $ECHO     '  printf("libm [cos (0.0) = %g]\n", (double) cos ((double) 0.0));'
+      $ECHO     '  var_l'$i' += var_l'$j';'
+      $ECHO     '  return 0;'
+      $ECHO     '}'
+    fi
+  } > l$i/l$i.c
+done
+
+
+LT_AT_HOST_DATA([expout],
+[[dependencies:
+l1 (0)
+l2 (0)
+ l1 (1)
+l4 (0)
+ l3 (0)
+  l1 (2)
+  l2 (2)
+   l1 (3)
+libm cos (0.0) = 1
+var_l1(4) + var_l2(6) + var_l4(9) == 19
+]])
+
+prefix=`pwd`/_inst
+]) # _LT_SETUP
+
+
+
+# _LT_CHECK_EXECUTE([TARGETS])
+# ----------------------------
+# Run the listed make rules, and check that the built binaries work.
+m4_define([_LT_CHECK_EXECUTE],
+[LT_AT_CHECK_EXECUTE([$1],
+        [./depdemo_static], [./depdemo])
+])
+
+# _LT_CHECK_INSTALL
+# -----------------
+# Run the make install rule, and check that installed binaries work too.
+m4_define([_LT_CHECK_INSTALL],
+[# Windows hosts search for dlls in the command path.
+PATH=$prefix/lib:$PATH
+LT_AT_CHECK_EXECUTE([install],
+        [$prefix/bin/depdemo_static], [$prefix/bin/depdemo])
+])
+
+
+## --------------- ##
+## Depdemo static. ##
+## --------------- ##
+
+AT_SETUP([static library interdependencies])
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG([--disable-shared],
+                   [^build_old_libs=yes], [^build_libtool_libs=no])
+_LT_CHECK_EXECUTE
+_LT_CHECK_INSTALL
+LT_AT_CHECK_UNINSTALL
+
+AT_CLEANUP
+
+
+## --------------- ##
+## Depdemo shared. ##
+## --------------- ##
+
+AT_SETUP([shared library interdependencies])
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG([--disable-static],
+                   [^build_old_libs=no], [^build_libtool_libs=yes])
+_LT_CHECK_EXECUTE
+_LT_CHECK_INSTALL
+LT_AT_CHECK_UNINSTALL
+
+AT_CLEANUP
+
+
+## ------------- ##
+## Depdemo conf. ##
+## ------------- ##
+
+AT_SETUP([shared and static interdependencies])
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG([],
+                   [^build_old_libs=yes], [^build_libtool_libs=yes])
+_LT_CHECK_EXECUTE
+_LT_CHECK_INSTALL
+LT_AT_CHECK_UNINSTALL
+
+AT_CLEANUP
+
+
+## --------------- ##
+## Depdemo nofast. ##
+## --------------- ##
+
+AT_SETUP([disable fast install])
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG([--enable-fast-install=no])
+AT_CHECK([$EGREP '^hardcode_action=relink' libtool && (exit 77)], 1)
+
+_LT_CHECK_EXECUTE
+_LT_CHECK_INSTALL
+LT_AT_CHECK_UNINSTALL
+
+AT_CLEANUP
+
+
+## --------------- ##
+## Depdemo relink. ##
+## --------------- ##
+
+AT_SETUP([binary relinking at install time])
+AT_KEYWORDS([interactive])dnl This test causes a popup on Windows
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG
+_LT_CHECK_EXECUTE
+_LT_CHECK_INSTALL
+
+# Check to make sure we have a dynamic library.
+eval `$EGREP '^library_names=' l3/libl3.la`
+AT_CHECK([test -n "$library_names" || (exit 77)])
+
+func_save_files
+
+# AIX 5.3 '/bin/sh' will invoke the trap for 0 at the end of a
+# function, so we set the trap outside of a function to be portable.
+trap func_restore_files 0 1 2 13 15
+
+eval "`$LIBTOOL --config | $EGREP '^shlibpath_overrides_runpath='`"
+eval "`$LIBTOOL --config | $EGREP '^hardcode_(action|direct|into_libs)='`"
+
+# Can't finish these tests reliably when cross-compiling.
+AT_CHECK([test "X$host" = "X$build" || (exit 77)])
+
+# Allow the binary to link on-demand if need be.
+./depdemo$EXEEXT >/dev/null || :
+
+# Remove l3/libl3.la from build tree.
+rm -f l3/libl3.la "l3/$objdir"/libl3.*
+
+# Either:
+#  - uninstalled ./depdem will run using the just installed libraries
+#    when the uninstalled libs are missing;
+#  - on AIX 4.1, when the installed copy of libl3 is loaded, it brings
+#    with it the installed copies of libl1 and libl2, with disjoint
+#    counters var_l1 and var_l2.  This is arguably unacceptable behaviour
+#    but definitely not enough of a reason for the test to fail;
+#  - or relinking at install time is necessary, and the uninstalled
+#    depdemo has only the uninstalled library paths hardcoded.
+AT_CHECK([./depdemo$EXEEXT >/dev/null ||
+    ./depdemo$EXEEXT -alt ||
+    test relink,yes = "$hardcode_action,$hardcode_direct"])
+
+# Link an incomplete l3/libl3.la.
+(cd l3 &&
+ LT_AT_MAKE([libl3.la], [libl3_la_OBJECTS=../l2/l2.lo])
+)
+AT_CHECK([test -f l3/libl3.la])
+
+# Try running uninstalled ./depdemo with only broken libl3.la in build tree.
+# If the following has normal exit status, shlibpath_overrides_runpath is
+# wrong, and should be set to 'no' on this host.
+# The unusual '|| (exit 1)' is to normalize all non-zero exit statuses.
+AT_CHECK([./depdemo$EXEEXT || (exit 1)], 1, [ignore], [ignore])
+
+test relink = "$hardcode_action" ||
+test yes = "$shlibpath_overrides_runpath" ||
+{
+    AT_CHECK([rm -f $objdir/lt-depdemo$EXEEXT])
+    AT_CHECK([cp $objdir/depdemo$EXEEXT $objdir/lt-depdemo$EXEEXT])
+
+    # Running depdemo with installed libl3.la.
+    # If the following check fails, then shlibpath_overrides_runpath is
+    # wrong, and should be set to 'yes' on this host.
+    LT_AT_CHECK([./depdemo], 0, [expout])
+}
+
+# Undo the effect of the previous 'trap' command. Some shellology:
+# We cannot use "trap - 0 1 2 3 13 15", because Solaris sh would attempt to
+# execute the command "-". "trap '' ..." is fine only for signal 0 (= normal
+# exit); for the others we need to call 'exit' explicitly. The value of $? is
+# 128 + signal number and is set before the trap-registered command is run.
+trap '' 0
+trap 'func_exit $?' 1 2 3 13 15
+
+AT_CLEANUP

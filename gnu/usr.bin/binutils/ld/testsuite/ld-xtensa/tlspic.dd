@@ -1,0 +1,81 @@
+#source: tlspic1.s
+#source: tlspic2.s
+#as:
+#ld: -shared -melf32xtensa
+#objdump: -drj.text --start-address=0x350
+#target: xtensa*-*-linux*
+
+.*: +file format elf32-xtensa-.e
+
+Disassembly of section \.text:
+
+0+350 <_start>:
+ [0-9a-f]+:	[0-9a-f]+[ 	]+entry	a1, 32
+#  GD
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a8, 2e0 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a10, 2e4 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+callx8	a8
+#  GD -> IE because variable is referenced through IE too
+ [0-9a-f]+:	[0-9a-f]+[ 	]+rur.threadptr	a8
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a10, 2ec <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a10, a10, a8
+#  GD against local variable
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a8, 2f0 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a10, 2f4 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+callx8	a8
+#  GD -> IE against local variable referenced through IE too
+ [0-9a-f]+:	[0-9a-f]+[ 	]+rur.threadptr	a8
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a10, 2fc <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a10, a10, a8
+#  GD against hidden and local variable
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a8, 300 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a10, 304 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+callx8	a8
+#  GD -> IE against hidden and local variable referenced through IE too
+ [0-9a-f]+:	[0-9a-f]+[ 	]+rur.threadptr	a8
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a10, 30c <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a10, a10, a8
+#  GD against hidden but not local variable
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a8, 310 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a10, 314 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+callx8	a8
+#  GD -> IE against hidden but not local variable referenced through IE too
+ [0-9a-f]+:	[0-9a-f]+[ 	]+rur.threadptr	a8
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a10, 31c <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a10, a10, a8
+#  LD
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a8, 320 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a10, 324 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+callx8	a8
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a12, 328 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a12, a12, a10
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a13, 32c <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a13, a13, a10
+#  LD against hidden and local variables
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a12, 330 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a12, a12, a10
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a13, 334 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a13, a13, a10
+#  LD against hidden but not local variables
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a12, 338 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a12, a12, a10
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a13, 33c <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a13, a13, a10
+#  IE against global var
+ [0-9a-f]+:	[0-9a-f]+[ 	]+rur.threadptr	a2
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a3, 340 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a3, a3, a2
+#  IE against local var
+ [0-9a-f]+:	[0-9a-f]+[ 	]+rur.threadptr	a4
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a5, 344 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a5, a5, a4
+#  IE against hidden and local var
+ [0-9a-f]+:	[0-9a-f]+[ 	]+rur.threadptr	a6
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a7, 348 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a7, a7, a6
+#  IE against hidden but not local var
+ [0-9a-f]+:	[0-9a-f]+[ 	]+rur.threadptr	a8
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a9, 34c <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a9, a9, a8
+#
+ [0-9a-f]+:	[0-9a-f]+[ 	]+retw.*

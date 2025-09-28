@@ -1,0 +1,566 @@
+.\" Copyright (c) 2008-2013 Apple Inc. All rights reserved.
+.Dd May 1, 2009
+.Dt dispatch_source_create 3
+.Os Darwin
+.Sh NAME
+.Nm dispatch_source_create
+.Nd dispatch event sources
+.Sh SYNOPSIS
+.Fd #include <dispatch/dispatch.h>
+.Ft dispatch_source_t
+.Fo dispatch_source_create
+.Fa "dispatch_source_type_t type"
+.Fa "uintptr_t handle"
+.Fa "unsigned long mask"
+.Fa "dispatch_queue_t queue"
+.Fc
+.Ft void
+.Fo dispatch_source_set_event_handler
+.Fa "dispatch_source_t source"
+.Fa "void (^block)(void)"
+.Fc
+.Ft void
+.Fo dispatch_source_set_event_handler_f
+.Fa "dispatch_source_t source"
+.Fa "void (*function)(void *)"
+.Fc
+.Ft void
+.Fo dispatch_source_set_registration_handler
+.Fa "dispatch_source_t source"
+.Fa "void (^block)(void)"
+.Fc
+.Ft void
+.Fo dispatch_source_set_registration_handler_f
+.Fa "dispatch_source_t source"
+.Fa "void (*function)(void *)"
+.Fc
+.Ft void
+.Fo dispatch_source_set_cancel_handler
+.Fa "dispatch_source_t source"
+.Fa "void (^block)(void)"
+.Fc
+.Ft void
+.Fo dispatch_source_set_cancel_handler_f
+.Fa "dispatch_source_t source"
+.Fa "void (*function)(void *)"
+.Fc
+.Ft void
+.Fo dispatch_source_cancel
+.Fa "dispatch_source_t source"
+.Fc
+.Ft long
+.Fo dispatch_source_testcancel
+.Fa "dispatch_source_t source"
+.Fc
+.Ft uintptr_t
+.Fo dispatch_source_get_handle
+.Fa "dispatch_source_t source"
+.Fc
+.Ft "unsigned long"
+.Fo dispatch_source_get_mask
+.Fa "dispatch_source_t source"
+.Fc
+.Ft "unsigned long"
+.Fo dispatch_source_get_data
+.Fa "dispatch_source_t source"
+.Fc
+.Ft void
+.Fo dispatch_source_merge_data
+.Fa "dispatch_source_t source"
+.Fa "unsigned long data"
+.Fc
+.Ft void
+.Fo dispatch_source_set_timer
+.Fa "dispatch_source_t source"
+.Fa "dispatch_time_t start"
+.Fa "uint64_t interval"
+.Fa "uint64_t leeway"
+.Fc
+.Sh DESCRIPTION
+Dispatch event sources may be used to monitor a variety of system objects and
+events including file descriptors, mach ports, processes, virtual filesystem
+nodes, signal delivery and timers.
+.Pp
+When a state change occurs, the dispatch source will submit its event handler
+block to its target queue.
+.Pp
+The
+.Fn dispatch_source_create
+function creates a new dispatch source object that may be retained and released
+with calls to
+.Fn dispatch_retain
+and
+.Fn dispatch_release
+respectively. The
+.Fa queue
+parameter specifies the target queue of the new source object, it will
+be retained by the source object. Pass the
+.Dv DISPATCH_TARGET_QUEUE_DEFAULT
+constant to use the default target queue (the default priority global
+concurrent queue).
+.Pp
+Newly created sources are created in a suspended state. After the source has
+been configured by setting an event handler, cancellation handler, registration
+handler, context,
+etc., the source must be activated by a call to
+.Fn dispatch_resume
+before any events will be delivered.
+.Pp
+Dispatch sources may be one of the following types:
+.Bl -bullet -compact -offset indent
+.It
+DISPATCH_SOURCE_TYPE_DATA_ADD
+.It
+DISPATCH_SOURCE_TYPE_DATA_OR
+.It
+DISPATCH_SOURCE_TYPE_MACH_SEND
+.It
+DISPATCH_SOURCE_TYPE_MACH_RECV
+.It
+DISPATCH_SOURCE_TYPE_MEMORYPRESSURE
+.It
+DISPATCH_SOURCE_TYPE_PROC
+.It
+DISPATCH_SOURCE_TYPE_READ
+.It
+DISPATCH_SOURCE_TYPE_SIGNAL
+.It
+DISPATCH_SOURCE_TYPE_TIMER
+.It
+DISPATCH_SOURCE_TYPE_VNODE
+.It
+DISPATCH_SOURCE_TYPE_WRITE
+.El
+.Pp
+The
+.Fa handle
+and
+.Fa mask
+arguments to
+.Fn dispatch_source_create
+and the return values of the
+.Fn dispatch_source_get_handle ,
+.Fn dispatch_source_get_mask ,
+and
+.Fn dispatch_source_get_data
+functions should be interpreted according to the type of the dispatch source.
+.Pp
+The
+.Fn dispatch_source_get_handle
+function
+returns the underlying handle to the dispatch source (i.e. file descriptor,
+mach port, process identifer, etc.). The result of this function may be cast
+directly to the underlying type.
+.Pp
+The
+.Fn dispatch_source_get_mask
+function
+returns the set of flags that were specified at source creation time via the
+.Fa mask
+argument.
+.Pp
+The
+.Fn dispatch_source_get_data
+function returns the currently pending data for the dispatch source.
+This function should only be called from within the source's event handler.
+The result of calling this function from any other context is undefined.
+.Pp
+The
+.Fn dispatch_source_merge_data
+function is intended for use with the
+.Vt DISPATCH_SOURCE_TYPE_DATA_ADD
+and
+.Vt DISPATCH_SOURCE_TYPE_DATA_OR
+source types. The result of using this function with any other source type is
+undefined. Calling this function will atomically add or bitwise OR the data
+into the source's data, and trigger the delivery of the source's event handler.
+.Pp
+.Sh SOURCE EVENT HANDLERS
+In order to receive events from the dispatch source, an event handler should be
+specified via
+.Fn dispatch_source_set_event_handler .
+The event handler block is submitted to the source's target queue when the state
+of the underlying system handle changes, or when an event occurs. If a source
+is resumed with no event handler block set, events will be quietly ignored.
+If the event handler block is changed while the source is suspended, or from a
+block running on a serial queue that is the source's target queue, then the next
+event handler invocation will use the new block.
+.Pp
+Dispatch sources may be suspended or resumed independently of their target
+queues using
+.Fn dispatch_suspend
+and
+.Fn dispatch_resume
+on the dispatch source directly. The data describing events which occur while a
+source is suspended are coalesced and delivered once the source is resumed.
+.Pp
+The
+.Fa handler
+block
+need not be reentrant safe, as it is not resubmitted to the target
+.Fa queue
+until any prior invocation for that dispatch source has completed.
+When the handler is set, the dispatch source will perform a
+.Fn Block_copy
+on the
+.Fa handler
+block.
+.Pp
+To unset the event handler, call
+.Fn dispatch_source_set_event_handler_f
+and pass NULL as
+.Fa function .
+This unsets the event handler regardless of whether the handler
+was a function pointer or a block. Registration and cancellation handlers
+(see below) may be unset in the same way, but as noted below, a cancellation
+handler may be required.
+.Sh REGISTRATION
+When 
+.Fn dispatch_resume
+is called on a suspended or newly created source, there may be a brief delay
+before the source is ready to receive events from the underlying system handle.
+During this delay, the event handler will not be invoked, and events will be
+missed.
+.Pp
+Once the dispatch source is registered with the underlying system and is ready
+to process all events its optional registration handler will be submitted to
+its target queue. This registration handler may be specified via
+.Fn dispatch_source_set_registration_handler .
+.Pp
+The event handler will not be called until the registration handler finishes.
+If the source is canceled (see below) before it is registered,
+its registration handler will not be called.
+.Pp
+.Sh CANCELLATION
+The
+.Fn dispatch_source_cancel
+function asynchronously cancels the dispatch source, preventing any further
+invocation of its event handler block. Cancellation does not interrupt a
+currently executing handler block (non-preemptive). If a source is canceled
+before the first time it is resumed, its event handler will never be called.
+(In this case, note that the source must be resumed before it can be released.)
+.Pp
+The
+.Fn dispatch_source_testcancel
+function may be used to determine whether the specified source has been
+canceled. A non-zero value will be returned if the source is canceled.
+.Pp
+When a dispatch source is canceled its optional cancellation handler will be
+submitted to its target queue. The cancellation handler may be specified via
+.Fn dispatch_source_set_cancel_handler .
+This cancellation handler is invoked only once, and only as a direct consequence
+of calling
+.Fn dispatch_source_cancel .
+.Pp
+.Em Important:
+a cancellation handler is required for file descriptor and mach port based
+sources in order to safely close the descriptor or destroy the port. Closing the
+descriptor or port before the cancellation handler has run may result in a race
+condition: if a new descriptor is allocated with the same value as the recently
+closed descriptor while the source's event handler is still running, the event
+handler may read/write data to the wrong descriptor.
+.Pp
+.Sh DISPATCH SOURCE TYPES
+The following section contains a summary of supported dispatch event types and
+the interpretation of their parameters and returned data.
+.Pp
+.Vt DISPATCH_SOURCE_TYPE_DATA_ADD ,
+.Vt DISPATCH_SOURCE_TYPE_DATA_OR
+.Pp
+Sources of this type allow applications to manually trigger the source's event
+handler via a call to
+.Fn dispatch_source_merge_data .
+The data will be merged with the source's pending data via an atomic add or
+logic OR (based on the source's type), and the event handler block will be
+submitted to the source's target queue. The
+.Fa data
+is application defined. These sources have no
+.Fa handle
+or
+.Fa mask
+and zero should be used.
+.Pp
+.Vt DISPATCH_SOURCE_TYPE_MACH_SEND
+.Pp
+Sources of this type monitor a mach port with a send right for state changes.
+The
+.Fa handle
+is the mach port (mach_port_t) to monitor and the
+.Fa mask
+may be:
+.Bl -tag -width "XXDISPATCH_PROC_SIGNAL" -compact -offset indent
+.It \(bu DISPATCH_MACH_SEND_DEAD
+The port's corresponding receive right has been destroyed
+.El
+.Pp
+The data returned by
+.Fn dispatch_source_get_data
+indicates which of the events in the
+.Fa mask
+were observed.
+.Pp
+.Vt DISPATCH_SOURCE_TYPE_MACH_RECV
+.Pp
+Sources of this type monitor a mach port with a receive right for state changes.
+The
+.Fa handle
+is the mach port (mach_port_t) to monitor and the
+.Fa mask
+is unused and should be zero.
+The event handler block will be submitted to the target queue when a message
+on the mach port is waiting to be received.
+.Pp
+.Vt DISPATCH_SOURCE_TYPE_MEMORYPRESSURE
+.Pp
+Sources of this type monitor the system memory pressure condition for state changes.
+The
+.Fa handle
+is unused and should be zero. The
+.Fa mask
+may be one or more of the following:
+.Bl -tag -width "XXDISPATCH_MEMORYPRESSURE_CRITICAL" -compact -offset indent
+.It \(bu DISPATCH_MEMORYPRESSURE_NORMAL
+The system memory pressure condition has returned to normal.
+.It \(bu DISPATCH_MEMORYPRESSURE_WARN
+The system memory pressure condition has changed to warning.
+.It \(bu DISPATCH_MEMORYPRESSURE_CRITICAL
+The system memory pressure condition has changed to critical.
+.El
+.Pp
+The data returned by
+.Fn dispatch_source_get_data
+indicates which of the events in the
+.Fa mask
+were observed.
+.Pp
+Elevated memory pressure is a system-wide condition that applications
+registered for this source should react to by changing their future memory use
+behavior, e.g. by reducing cache sizes of newly initiated operations until
+memory pressure returns back to normal.
+.Pp
+However, applications should
+.Em NOT
+traverse and discard existing caches for past operations when the system memory
+pressure enters an elevated state, as that is likely to trigger VM operations
+that will further aggravate system memory pressure.
+.Pp
+.Vt DISPATCH_SOURCE_TYPE_PROC
+.Pp
+Sources of this type monitor processes for state changes.
+The
+.Fa handle
+is the process identifier (pid_t) of the process to monitor and the
+.Fa mask
+may be one or more of the following:
+.Bl -tag -width "XXDISPATCH_PROC_SIGNAL" -compact -offset indent
+.It \(bu DISPATCH_PROC_EXIT
+The process has exited and is available to
+.Xr wait 2 .
+.It \(bu DISPATCH_PROC_FORK
+The process has created one or more child processes.
+.It \(bu DISPATCH_PROC_EXEC
+The process has become another executable image via a call to
+.Xr execve 2
+or
+.Xr posix_spawn 2 .
+.It \(bu DISPATCH_PROC_SIGNAL
+A signal was delivered to the process.
+.El
+.Pp
+The data returned by
+.Fn dispatch_source_get_data
+indicates which of the events in the
+.Fa mask
+were observed.
+.Pp
+.Vt DISPATCH_SOURCE_TYPE_READ
+.Pp
+Sources of this type monitor file descriptors for pending data.
+The
+.Fa handle
+is the file descriptor (int) to monitor and the
+.Fa mask
+is unused and should be zero.
+.Pp
+The data returned by
+.Fn dispatch_source_get_data
+is an estimated number of bytes available to be read from the descriptor. This
+estimate should be treated as a suggested
+.Em minimum
+read buffer size. There are no guarantees that a complete read of this size
+will be performed.
+.Pp
+Users of this source type are strongly encouraged to perform non-blocking I/O
+and handle any truncated reads or error conditions that may occur. See
+.Xr fcntl 2
+for additional information about setting the
+.Vt O_NONBLOCK
+flag on a file descriptor.
+.Pp
+.Vt DISPATCH_SOURCE_TYPE_SIGNAL
+.Pp
+Sources of this type monitor signals delivered to the current process. The
+.Fa handle
+is the signal number to monitor (int) and the
+.Fa mask
+is unused and should be zero.
+.Pp
+The data returned by
+.Fn dispatch_source_get_data
+is the number of signals received since the last invocation of the event handler
+block.
+.Pp
+Unlike signal handlers specified via
+.Fn sigaction ,
+the execution of the event handler block does not interrupt the current thread
+of execution; therefore the handler block is not limited to the use of signal
+safe interfaces defined in
+.Xr sigaction 2 .
+Furthermore, multiple observers of a given signal are supported; thus allowing
+applications and libraries to cooperate safely. However, a dispatch source
+.Em does not
+install a signal handler or otherwise alter the behavior of signal delivery.
+Therefore, applications must ignore or at least catch any signal that terminates
+a process by default. For example, near the top of
+.Fn main :
+.Bd -literal -offset ident
+signal(SIGTERM, SIG_IGN);
+.Ed
+.Pp
+.Vt DISPATCH_SOURCE_TYPE_TIMER
+.Pp
+Sources of this type periodically submit the event handler block to the target
+queue. The
+.Fa handle
+argument is unused and should be zero.
+.Pp
+The data returned by
+.Fn dispatch_source_get_data
+is the number of times the timer has fired since the last invocation of the
+event handler block.
+.Pp
+The timer parameters are configured with the
+.Fn dispatch_source_set_timer
+function. Once this function returns, any pending source data accumulated for
+the previous timer parameters has been cleared; the next fire of the timer will
+occur at
+.Fa start ,
+and every
+.Fa interval
+nanoseconds thereafter until the timer source is canceled.
+.Pp
+Any fire of the timer may be delayed by the system in order to improve power
+consumption and system performance. The upper limit to the allowable delay may
+be configured with the
+.Fa leeway
+argument, the lower limit is under the control of the system.
+.Pp
+For the initial timer fire at
+.Fa start ,
+the upper limit to the allowable delay is set to
+.Fa leeway
+nanoseconds. For the subsequent timer fires at
+.Fa start
+.Li "+ N *"
+.Fa interval ,
+the upper limit is
+.Li MIN(
+.Fa leeway ,
+.Fa interval
+.Li "/ 2 )" .
+.Pp
+The lower limit to the allowable delay may vary with process state such as
+visibility of application UI. If the specified timer source was created with a
+.Fa mask
+of
+.Vt DISPATCH_TIMER_STRICT ,
+the system will make a best effort to strictly observe the provided
+.Fa leeway
+value even if it is smaller than the current lower limit. Note that a minimal
+amount of delay is to be expected even if this flag is specified.
+.Pp
+The
+.Fa start
+argument also determines which clock will be used for the timer: If
+.Fa start
+is
+.Vt DISPATCH_TIME_NOW
+or was created with
+.Xr dispatch_time 3 ,
+the timer is based on
+.Fn mach_absolute_time .
+If
+.Fa start
+was created with
+.Xr dispatch_walltime 3 ,
+the timer is based on
+.Xr gettimeofday 3 .
+.Pp
+.Em Note :
+Under the C language, untyped numbers default to the
+.Vt int
+type. This can lead to truncation bugs when arithmetic operations with other
+numbers are expected to generate a
+.Vt uint64_t
+sized result. When in doubt, use
+.Vt ull
+as a suffix. For example:
+.Bd -literal -offset indent
+3ull * NSEC_PER_SEC
+.Ed
+.Pp
+.Vt DISPATCH_SOURCE_TYPE_VNODE
+.Pp
+Sources of this type monitor the virtual filesystem nodes for state changes.
+The
+.Fa handle
+is a file descriptor (int) referencing the node to monitor, and
+the
+.Fa mask
+may be one or more of the following:
+.Bl -tag -width "XXDISPATCH_VNODE_ATTRIB" -compact -offset indent
+.It \(bu DISPATCH_VNODE_DELETE
+The referenced node was removed from the filesystem namespace via
+.Xr unlink 2 .
+.It \(bu DISPATCH_VNODE_WRITE
+A write to the referenced file occurred
+.It \(bu DISPATCH_VNODE_EXTEND
+The referenced file was extended
+.It \(bu DISPATCH_VNODE_ATTRIB
+The metadata attributes of the referenced node have changed
+.It \(bu DISPATCH_VNODE_LINK
+The link count on the referenced node has changed
+.It \(bu DISPATCH_VNODE_RENAME
+The referenced node was renamed
+.It \(bu DISPATCH_VNODE_REVOKE
+Access to the referenced node was revoked via
+.Xr revoke 2
+or the underlying fileystem was unmounted.
+.El
+.Pp
+The data returned by
+.Fn dispatch_source_get_data
+indicates which of the events in the
+.Fa mask
+were observed.
+.Pp
+.Vt DISPATCH_SOURCE_TYPE_WRITE
+.Pp
+Sources of this type monitor file descriptors for available write buffer space.
+The
+.Fa handle
+is the file descriptor (int) to monitor and the
+.Fa mask
+is unused and should be zero.
+.Pp
+Users of this source type are strongly encouraged to perform non-blocking I/O
+and handle any truncated reads or error conditions that may occur. See
+.Xr fcntl 2
+for additional information about setting the
+.Vt O_NONBLOCK
+flag on a file descriptor.
+.Pp
+.Sh SEE ALSO
+.Xr dispatch 3 ,
+.Xr dispatch_object 3 ,
+.Xr dispatch_queue_create 3

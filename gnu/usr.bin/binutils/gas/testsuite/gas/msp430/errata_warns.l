@@ -1,0 +1,44 @@
+[^:]*: Assembler messages:
+[^:]*:5: Warning: cpu4: not converting PUSH #4 to shorter form
+[^:]*:6: Warning: cpu4: not converting PUSH #8 to shorter form
+[^:]*:11: Warning: CPU8: Stack pointer accessed with an odd offset
+[^:]*:12: Warning: CPU8: Stack pointer accessed with an odd offset
+[^:]*:13: Warning: CPU8: Stack pointer accessed with an odd offset
+[^:]*:14: Warning: CPU8: Stack pointer accessed with an odd offset
+[^:]*:15: Warning: CPU8: Stack pointer accessed with an odd offset
+[^:]*:18: Warning: CPU11: PC is destination of SR altering instruction
+[^:]*:19: Warning: CPU11: PC is destination of SR altering instruction
+[^:]*:20: Warning: CPU11: PC is destination of SR altering instruction
+[^:]*:21: Warning: CPU12: CMP/BIT with PC destination ignores next instruction
+[^:]*:21: Warning: CPU11: PC is destination of SR altering instruction
+[^:]*:22: Warning: CPU11: PC is destination of SR altering instruction
+[^:]*:23: Warning: CPU11: PC is destination of SR altering instruction
+[^:]*:24: Warning: CPU11: PC is destination of SR altering instruction
+[^:]*:25: Warning: CPU11: PC is destination of SR altering instruction
+[^:]*:26: Warning: CPU11: PC is destination of SR altering instruction
+[^:]*:30: Warning: CPU11: PC is destination of SR altering instruction
+[^:]*:31: Warning: CPU12: CMP/BIT with PC destination ignores next instruction
+[^:]*:31: Warning: CPU11: PC is destination of SR altering instruction
+[^:]*:34: Warning: CPU12: CMP/BIT with PC destination ignores next instruction
+[^:]*:34: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:35: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:36: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:37: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:38: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:39: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:40: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:41: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:42: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:43: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:44: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:45: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:46: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:47: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:48: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:49: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:50: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:51: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:52: Warning: CPU13: SR is destination of SR altering instruction
+[^:]*:56: Warning: CPU19: Instruction setting CPUOFF must be followed by a NOP
+[^:]*:57: Warning: CPU19: Instruction setting CPUOFF must be followed by a NOP
+[^:]*:57: Warning: CPU13: SR is destination of SR altering instruction

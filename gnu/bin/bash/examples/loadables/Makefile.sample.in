@@ -1,0 +1,44 @@
+#
+# Sample makefile for bash loadable builtin development
+#
+# Copyright (C) 2022 Free Software Foundation, Inc.
+
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# these should match the ones in Makefile.in (for the make install target)
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libdir = @libdir@
+
+# ${loadablesdir} is where the example loadable builtins and data files
+# are installed (make install target in Makefile.in)
+
+loadablesdir = @loadablesdir@
+DESTDIR =
+
+# include Makefile.inc for all boilerplate definitions
+
+include $(DESTDIR)$(loadablesdir)/Makefile.inc
+
+# here, `example' is the name of the shared object
+# replace `example' with the appropriate filename
+
+all:	example
+
+example:	example.o
+	$(SHOBJ_LD) $(SHOBJ_LDFLAGS) $(SHOBJ_XLDFLAGS) -o $@ example.o $(SHOBJ_LIBS)
+
+example.o: example.c

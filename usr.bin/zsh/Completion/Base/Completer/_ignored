@@ -1,0 +1,68 @@
+#autoload
+
+# Use ignored matches.
+
+[[ _matcher_num -gt 1 || $compstate[ignored] -eq 0 ]] && return 1
+
+local comp
+integer ind
+
+if ! zstyle -a ":completion:${curcontext}:" completer comp; then
+  comp=( "${(@)_completers[1,_completer_num-1]}" )
+  ind=${comp[(I)_ignored(|:*)]}
+  (( ind )) && comp=("${(@)comp[ind,-1]}")
+fi
+
+local _comp_no_ignore=yes tmp expl \
+      _completer _completer_num \
+      _matcher _c_matcher _matchers _matcher_num
+
+_completer_num=1
+
+for tmp in "$comp[@]"; do
+  if [[ "$tmp" = *:-* ]]; then
+    _completer="${${tmp%:*}[2,-1]//_/-}${tmp#*:}"
+    tmp="${tmp%:*}"
+  elif [[ $tmp = *:* ]]; then
+    _completer="${tmp#*:}"
+    tmp="${tmp%:*}"
+  else
+    _completer="${tmp[2,-1]//_/-}"
+  fi
+  curcontext="${curcontext/:[^:]#:/:${_completer}:}"
+
+  zstyle -a ":completion:${curcontext}:" matcher-list _matchers ||
+      _matchers=( '' )
+
+  _matcher_num=1
+  _matcher=''
+  for _c_matcher in "$_matchers[@]"; do
+    if [[ "$_c_matcher" == +* ]]; then
+      _matcher="$_matcher $_c_matcher[2,-1]"
+    else
+      _matcher="$_c_matcher"
+    fi
+    if [[ "$tmp" != _ignored ]] && "$tmp"; then
+      if zstyle -s ":completion:${curcontext}:" single-ignored tmp &&
+         [[ $compstate[old_list] != shown &&
+            $compstate[nmatches] -eq 1 ]]; then
+        case "$tmp" in
+        show) compstate[insert]='' compstate[list]='list force' tmp='' ;;
+        menu)
+          compstate[insert]=menu
+          _description original expl original    
+          compadd "$expl[@]" -S '' - "$PREFIX$SUFFIX"
+          ;;
+        esac
+      fi
+
+      return 0
+    fi
+
+    (( _matcher_num++ ))
+  done
+
+  (( _completer_num++ ))
+done
+
+return 1

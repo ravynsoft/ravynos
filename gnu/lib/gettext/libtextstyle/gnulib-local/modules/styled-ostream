@@ -1,0 +1,43 @@
+Description:
+Abstract output stream for CSS styled text.
+
+Files:
+lib/styled-ostream.oo.h
+lib/styled-ostream.oo.c
+
+Depends-on:
+ostream
+
+configure.ac:
+
+Makefile.am:
+lib_SOURCES += styled-ostream.c
+# This is a Makefile rule that generates multiple files at once; see the
+# automake documentation, node "Multiple Outputs", for details.
+$(srcdir)/styled-ostream.h : $(top_srcdir)/build-aux/moopp styled-ostream.oo.h styled-ostream.oo.c ostream.oo.h
+	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/styled-ostream.oo.c $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h
+$(srcdir)/styled-ostream.c $(srcdir)/styled_ostream.priv.h $(srcdir)/styled_ostream.vt.h : styled-ostream.h
+	@test -f $@ || { \
+	  trap 'rm -rf styled-ostream.lock' 1 2 13 15; \
+	  if mkdir styled-ostream.lock 2>/dev/null; then \
+	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/styled-ostream.oo.c $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h"; \
+	    $(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/styled-ostream.oo.c $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h; \
+	    result=$$?; rm -rf styled-ostream.lock; exit $$result; \
+	  else \
+	    while test -d styled-ostream.lock; do sleep 1; done; \
+	    test -f $(srcdir)/styled-ostream.h; \
+	  fi; \
+	}
+BUILT_SOURCES += styled-ostream.h styled-ostream.c styled_ostream.priv.h styled_ostream.vt.h
+MAINTAINERCLEANFILES += styled-ostream.h styled-ostream.c styled_ostream.priv.h styled_ostream.vt.h
+EXTRA_DIST += styled-ostream.h styled-ostream.c styled_ostream.priv.h styled_ostream.vt.h
+
+Include:
+"styled-ostream.h"
+
+License:
+GPL
+
+Maintainer:
+Bruno Haible
+

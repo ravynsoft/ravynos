@@ -1,0 +1,10 @@
+#compdef -value-,TZ,-default-
+
+local expl
+
+if (( ! $+_zoneinfo_dirs )); then
+  _zoneinfo_dirs=( /usr/{share,lib,share/lib}/{zoneinfo*,locale/TZ}(/) )
+fi
+
+_wanted time-zones expl 'time zone' \
+  _files -g '[A-Z]*' -M 'm:{a-z}={A-Z}' -W _zoneinfo_dirs "$@" -

@@ -1,0 +1,65 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+x=$'\\a\\b\\c\\\001\\d\\e\\f'
+y='\a\b\c\\d\e\f'
+z=$'abc\001def'
+
+recho "$x"
+recho "$y"
+recho "$z"
+
+case $'abc\001def' in
+$x) echo ok 1 ;;
+*) echo oops 1;;
+esac
+
+case $z in
+$x) echo ok 2 ;;
+*) echo oops 2;;
+esac
+
+case $'abc\001def' in
+$y) echo ok 3 ;;
+*) echo oops 3;;
+esac
+
+case $z in
+$y) echo ok 4 ;;
+*) echo oops 4;;
+esac
+
+# no backslash before \001
+x=$'\\a\\b\\c\001\\d\\e\\f'
+y='\a\b\c\d\e\f'
+
+case $'abc\001def' in
+$x) echo ok 5 ;;
+*) echo oops 5;;
+esac
+
+case $z in
+$x) echo ok 6 ;;
+*) echo oops 6;;
+esac
+
+case $'abc\001def' in
+$y) echo ok 7 ;;
+*) echo oops 7;;
+esac
+
+case $z in
+$y) echo ok 8 ;;
+*) echo oops 8;;
+esac
+

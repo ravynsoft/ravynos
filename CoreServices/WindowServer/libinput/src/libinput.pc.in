@@ -1,0 +1,14 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+datarootdir=@datarootdir@
+pkgdatadir=@datadir@/@PACKAGE@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: Libinput
+Description: Input device library
+Version: @LIBINPUT_VERSION@
+Cflags: -I${includedir}
+Libs: -L${libdir} -linput
+Libs.private: -lm -lrt
+Requires.private: libudev

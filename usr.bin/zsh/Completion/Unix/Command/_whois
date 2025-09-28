@@ -1,0 +1,225 @@
+#compdef whois fwhois
+
+_whois () {
+  local _whois_comp
+  _whois_setup
+  case "$0" in
+  fwhois) _whois_fwhois;;
+  *) $_whois_comp;;
+  esac
+}
+
+(( $+functions[_whois_setup] )) ||
+_whois_setup () {
+  (( $+_whois_defaultserver )) ||
+    _whois_defaultserver='whois.internic.net'
+
+  (( $+_whois_servers )) || {
+    typeset -gUa _whois_servers
+    _whois_servers=(
+      $_whois_defaultserver
+      domain-registry.nl
+      is.nic.pw
+      whois.apnic.net:p
+      whois.arin.net:a
+      whois.aunic.net
+      whois.berkeley.edu
+      whois.cdnnet.ca
+      whois.dns.pt
+      whois.funet.fi
+      whois.gb.com
+      whois.gb.net
+      whois.internic.net
+      whois.jpl.nasa.gov
+      whois.nic-se.se
+      whois.nic.ad.jp
+      whois.nic.af
+      whois.nic.as
+      whois.nic.br
+      whois.nic.bt
+      whois.nic.ch
+      whois.nic.cx
+      whois.nic.fr
+      whois.nic.gov:g
+      whois.nic.hm
+      whois.nic.it
+      whois.nic.li
+      whois.nic.lk
+      whois.nic.mil:d
+      whois.nic.mx
+      whois.nic.nu
+      whois.nic.or.kr
+      whois.nic.sh
+      whois.nic.tj
+      whois.nic.tm
+      whois.nic.uk
+      whois.ripe.net:r
+      whois.ripn.net:R
+      whois.sics.se
+      whois.stanford.edu
+      whois.uk.com
+      www.nic.at
+      $(functions -m '_whois:*' |
+	awk '/^undefined _whois:/ {print substr($2,8,length($2)-7)}
+	     /^_whois:/ {print substr($1,8,length($1)-7)}')
+    )
+  }
+
+  (( $+_whois_arguments )) || {
+    local help="$(whois </dev/null 2>&1)"
+    local tmp opt opts
+    local hostopt=-h+
+
+    if [[ $help = *"user[@<whois.server>]"* ]]; then
+      _whois_comp=_whois_fwhois
+    elif [[ $help = *(name\ ...|OBJECT...)* ]]; then
+      _whois_comp=_whois_multi
+    else
+      _whois_comp=_whois_single
+      hostopt=-h
+    fi
+
+    _whois_arguments=()
+
+    if [[ $help = *"-p PORT"* ]]; then
+      _whois_arguments=("$_whois_arguments[@]"
+        '-p[port]:port:_whois_ports'
+      )
+    fi
+
+    tmp="${(j::)${(@)${(@M)_whois_servers:#*:?}##*:}}" 
+    if [[ $help = (#b)*\[-([$tmp]##)\]* ]]; then
+      tmp=(${(s::)match[1]})
+    else
+      tmp=()
+    fi
+
+    if [[ $help = *"-h host"* ]]; then
+      tmp=($tmp h)
+    fi
+
+    for opt in $tmp; do
+      opts=(-${^tmp:#$opt})
+      if (( $#opts )); then opts="($opts)"; else opts=; fi
+      if [[ $opt = h ]]; then
+	_whois_arguments=("$_whois_arguments[@]"
+	  "${opts}${hostopt}:host:_whois_hosts")
+      else
+	_whois_arguments=("$_whois_arguments[@]"
+	  "${opts}-${opt}[${${(@M)_whois_servers:#*:$opt}%:?}]")
+      fi
+    done
+  }
+}
+
+_whois_single () {
+  local curcontext="$curcontext" state line expl
+  typeset -A opt_args
+  local tmp host
+
+  _arguments -C \
+    "$_whois_arguments[@]" \
+    ':identifier:->identifier' && return 0
+
+  case "$state" in
+  identifier)
+    if [[ -z "$QIPREFIX" && -z "$PREFIX" ]]; then
+      compadd -QS '' \'
+      return
+    fi
+    compset -q
+    host="${opt_args[-h]:-$_whois_defaultserver}"
+    for tmp in $_whois_servers; do
+      if [[ $tmp = *:? && $+opt_args[-${tmp##*:}] -ne 0 ]]; then
+	host="${tmp%:?}"
+        break
+      fi
+    done
+    if (( $+functions[_whois:$host] )); then
+      "_whois:$host" "$expl[@]"
+    else
+      _message -e identifiers "identifier"
+    fi
+    ;;
+  esac
+}
+
+_whois_multi () {
+  local curcontext="$curcontext" state line expl
+  typeset -A opt_args
+  local tmp host
+
+  _arguments -C \
+    "$_whois_arguments[@]" \
+    '*::identifier:->identifier' && return 0
+
+  case "$state" in
+  identifier)
+    host="${opt_args[-h]:-$_whois_defaultserver}"
+    for tmp in $_whois_servers; do
+      if [[ $tmp = *:? && $+opt_args[-${tmp##*:}] -ne 0 ]]; then
+	host="${tmp%:?}"
+        break
+      fi
+    done
+    if (( $+functions[_whois:$host] )); then
+      "_whois:$host" "$expl[@]"
+    else
+      _message -e identifiers "identifier"
+    fi
+    ;;
+  esac
+}
+
+_whois_fwhois () {
+  if compset -P '*@'; then
+    _whois_hosts "$@"
+  else
+    if [[ -z "$QIPREFIX" && -z "$PREFIX" ]]; then
+      compadd -QS '' \'
+      return
+    fi
+    compset -q
+    host="$_whois_defaultserver"
+    if (( $+functions[_whois:$host] )); then
+      "_whois:$host" "$@"
+    else
+      _message -e identifiers "identifier"
+    fi
+  fi
+}
+
+_whois_hosts () {
+  _tags hosts &&
+    compadd "$@" \
+      -M 'm:{a-zA-Z}={A-Za-z} r:|.=* r:|=*' \
+      - ${_whois_servers%:?} || _hosts "$@"
+}
+
+_whois_ports () {
+  _tags ports && compadd "$@" - whois || _ports "$@"
+}
+
+(( $+functions[_whois:whois.internic.net] )) ||
+_whois:whois.internic.net () {
+  if (( CURRENT == 1 )); then
+    local expl
+
+    _wanted strings expl string compadd HELP DOMAIN HOST
+  else
+    _message -e strings 'string'
+  fi
+}
+
+(( $+functions[_whois:whois.nic.ad.jp] )) ||
+_whois:whois.nic.ad.jp () {
+  if (( CURRENT == 1 )); then
+    local expl
+
+    _wanted strings expl string compadd HELP DOM NET HOST PERSON CONN COM
+  else
+    _message -e strings 'string'
+  fi
+}
+
+_whois "$@"

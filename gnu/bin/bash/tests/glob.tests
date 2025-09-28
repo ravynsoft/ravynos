@@ -1,0 +1,410 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+export LC_COLLATE=C
+#
+# test the shell globbing
+#
+expect()
+{
+:	# if needed, change me to echo expect "$@"
+}
+
+# First, a test that bash-2.01.1 fails
+${THIS_SH} ./glob1.sub
+${THIS_SH} ./glob2.sub
+${THIS_SH} ./glob3.sub
+${THIS_SH} ./glob4.sub
+${THIS_SH} ./glob5.sub
+${THIS_SH} ./glob6.sub
+${THIS_SH} ./glob7.sub
+${THIS_SH} ./glob8.sub
+${THIS_SH} ./glob9.sub
+${THIS_SH} ./glob10.sub
+
+MYDIR=$PWD	# save where we are
+
+TESTDIR=$TMPDIR/glob-test-$$
+mkdir $TESTDIR
+builtin cd $TESTDIR || { echo $0: cannot cd to $TESTDIR >&2 ; exit 1; }
+rm -rf *
+
+touch a b c d abc abd abe bb bcd ca cb dd de Beware
+mkdir bdir
+
+# see if `regular' globbing works right
+expect '<a> <abc> <abd> <abe> <X*>'
+recho a* X*
+
+expect '<a> <abc> <abd> <abe>'
+recho \a*
+
+# see if null glob expansion works
+shopt -s nullglob
+
+expect '<a> <abc> <abd> <abe>'
+recho a* X*
+
+shopt -u nullglob
+
+# see if the failglob option works
+
+mkdir tmp
+touch tmp/l1 tmp/l2 tmp/l3
+builtin echo tmp/l[12] tmp/*4 tmp/*3
+shopt -s failglob
+builtin echo tmp/l[12] tmp/*4 tmp/*3
+rm -r tmp
+shopt -u failglob
+
+# see if the code that expands directories only works
+expect '<bdir/>'
+recho b*/
+
+# Test quoted and unquoted globbing characters
+expect '<*>'
+recho \*
+
+expect '<a*>'
+recho 'a*'
+
+expect '<a*>'
+recho a\*
+
+expect '<c> <ca> <cb> <a*> <*q*>'
+recho c* a\* *q*
+
+expect '<**>'
+recho "*"*
+
+expect '<**>'
+recho \**
+
+expect '<\.\./*/>'
+recho "\.\./*/"
+
+expect '<s/\..*//>'
+recho 's/\..*//'
+
+# Pattern from Larry Wall's Configure that caused bash to blow up
+expect '</^root:/{s/^[^:]*:[^:]*:\([^:]*\).*$/\1/>'
+recho "/^root:/{s/^[^:]*:[^:]*:\([^:]*\).*"'$'"/\1/"
+
+# Make sure character classes work properly
+
+expect '<abc> <abd> <abe> <bb> <cb>'
+recho [a-c]b*
+
+expect '<abd> <abe> <bb> <bcd> <bdir> <ca> <cb> <dd> <de>'
+recho [a-y]*[^c]
+
+expect '<abd> <abe>'
+recho a*[^c]
+
+touch a-b aXb
+expect '<a-b> <aXb>'
+recho a[X-]b
+
+touch .x .y
+expect '<Beware> <d> <dd> <de>'
+recho [^a-c]*
+
+# Make sure that filenames with embedded globbing characters are handled
+# properly
+mkdir a\*b
+> a\*b/ooo
+
+expect '<a*b/ooo>'
+recho a\*b/*
+
+expect '<a*b/ooo>'
+recho a\*?/*
+
+expect '<no match>'
+cmd='echo !7'
+case "$cmd" in
+*\\!*) echo match ;;
+*) echo no match ;;
+esac
+
+expect '<not there>'
+file='r.*'
+case $file in
+*.\*) echo not there ;;
+*) echo there ;;
+esac
+
+# examples from the Posix.2 spec (d11.2, p. 243)
+expect '<abc>'
+recho a[b]c
+
+expect '<abc>'
+recho a["b"]c
+
+expect '<abc>'
+recho a[\b]c
+
+expect '<abc>'
+recho a?c
+
+expect '<match 1>'
+case abc in
+a"b"c)	echo 'match 1' ;;
+*)	echo 'BAD match 1' ;;
+esac
+
+expect '<match 2>'
+case abc in
+a*c)	echo 'match 2' ;;
+*)	echo 'BAD match 2' ;;
+esac
+
+expect '<ok 1>'
+case abc in
+"a?c")	echo 'bad 1' ;;
+*)	echo 'ok 1' ;;
+esac
+
+expect '<ok 2>'
+case abc in
+a\*c)	echo 'bad 2' ;;
+*)	echo 'ok 2' ;;
+esac
+
+expect '<ok 3>'
+case abc in
+a\[b]c)	echo 'bad 3' ;;
+*)	echo 'ok 3' ;;
+esac
+
+expect '<ok 4>'
+case "$nosuchvar" in
+"") 	echo 'ok 4' ;;
+*)	echo 'bad 4' ;;
+esac
+
+# This is very odd, but sh and ksh seem to agree
+expect '<ok 5>'
+case abc in
+a["\b"]c) echo 'ok 5' ;;
+*)	echo 'bad 5' ;;
+esac
+
+mkdir man
+mkdir man/man1
+touch man/man1/bash.1
+expect '<man/man1/bash.1>'
+recho */man*/bash.*
+expect '<man/man1/bash.1>'
+recho $(echo */man*/bash.*)
+expect '<man/man1/bash.1>'
+recho "$(echo */man*/bash.*)"
+
+# tests with multiple `*'s
+case abc in
+a***c)	echo ok 1;;
+esac
+
+case abc in
+a*****?c)	echo ok 2;;
+esac
+
+case abc in
+?*****??)	echo ok 3;;
+esac
+
+case abc in
+*****??)	echo ok 4;;
+esac
+
+case abc in
+*****??c)	echo ok 5;;
+esac
+
+case abc in
+?*****?c)	echo ok 6;;
+esac
+
+case abc in
+?***?****c)	echo ok 7;;
+esac
+
+case abc in
+?***?****?)	echo ok 8;;
+esac
+
+case abc in
+?***?****)	echo ok 9;;
+esac
+
+case abc in
+*******c)	echo ok 10;;
+esac
+
+case abc in
+*******?)	echo ok 11;;
+esac
+
+case abcdecdhjk in
+a*cd**?**??k)	echo ok 20;;
+esac
+
+case abcdecdhjk in
+a**?**cd**?**??k)	echo ok 21;;
+esac
+
+case abcdecdhjk in
+a**?**cd**?**??k***)	echo ok 22;;
+esac
+
+case abcdecdhjk in
+a**?**cd**?**??***k)	echo ok 23;;
+esac
+
+case abcdecdhjk in
+a**?**cd**?**??***k**)	echo ok 24;;
+esac
+
+case abcdecdhjk in
+a****c**?**??*****)	echo ok 25;;
+esac
+
+case '-' in
+[-abc])	echo ok 26 ;;
+esac
+
+case '-' in
+[abc-]) echo ok 27 ;;
+esac
+
+case '\' in
+\\)	echo ok 28 ;;
+esac
+
+case '\' in
+[\\])	echo ok 29 ;;
+esac
+
+case '\' in
+'\')	echo ok 30 ;;
+esac
+
+case '[' in
+[[])	echo ok 31 ;;
+esac
+
+# a `[' without a closing `]' is just another character to match, in the
+# bash implementation
+case '[' in
+[)	echo ok 32 ;;
+esac
+
+case '[abc' in
+[*)	echo 'ok 33';;
+esac
+
+# a right bracket shall lose its special meaning and represent itself in
+# a bracket expression if it occurs first in the list.  -- POSIX.2 2.8.3.2
+case ']' in
+[]])	echo ok 34 ;;
+esac
+
+case '-' in
+[]-])	echo ok 35 ;;
+esac
+
+# a backslash should just escape the next character in this context
+case p in
+[a-\z])	echo ok 36 ;;
+esac
+
+# this was a bug in all versions up to bash-2.04-release
+case "/tmp" in
+[/\\]*) echo ok 37 ;;
+esac
+
+# none of these should output anything
+
+case abc in
+??**********?****?)	echo bad 1;;
+esac
+
+case abc in
+??**********?****c)	echo bad 2;;
+esac
+
+case abc in
+?************c****?****)	echo bad 3;;
+esac
+
+case abc in
+*c*?**)	echo bad 4;;
+esac
+
+case abc in
+a*****c*?**)	echo bad 5;;
+esac
+
+case abc in
+a********???*******)	echo bad 6;;
+esac
+
+case 'a' in
+[])	echo bad 7 ;;
+esac
+
+case '[' in
+[abc)	echo bad 8;;
+esac
+
+# let's start testing the case-insensitive globbing code
+recho b*
+
+shopt -s nocaseglob
+recho b*
+
+recho [b]*
+shopt -u nocaseglob
+
+# make sure set -f works right
+set -f
+recho *
+set +f
+
+# test out the GLOBIGNORE code
+GLOBIGNORE='.*:*c:*e:?'
+recho *
+
+GLOBIGNORE='.*:*b:*d:?'
+recho *
+
+# see if GLOBIGNORE can substitute for `set -f'
+GLOBIGNORE='.*:*'
+recho *
+
+unset GLOBIGNORE
+expect '<man/man1/bash.1>'
+recho */man*/bash.*
+
+# make sure null values for GLOBIGNORE have no effect
+GLOBIGNORE=
+expect '<man/man1/bash.1>'
+recho */man*/bash.*
+
+# this is for the benefit of pure coverage, so it writes the pcv file
+# in the right place, and for gprof
+builtin cd $MYDIR
+
+rm -rf $TESTDIR
+
+exit 0

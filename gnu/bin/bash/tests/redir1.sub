@@ -1,0 +1,8 @@
+#
+# Test the effect of input buffering on the shell's input
+#
+echo this is redir1.sub
+
+exec 0< redir2.sub
+
+echo BUG: after exec in redir1.sub

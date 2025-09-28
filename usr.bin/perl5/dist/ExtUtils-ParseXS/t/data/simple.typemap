@@ -1,0 +1,15 @@
+TYPEMAP
+unsigned int	T_UV
+int	T_IV
+
+INPUT
+T_UV
+	$var = ($type)SvUV($arg);
+T_IV
+	$var = ($type)SvIV($arg);
+
+OUTPUT
+T_UV
+	sv_setuv($arg, (UV)$var);
+T_IV
+	sv_setiv($arg, (IV)$var);

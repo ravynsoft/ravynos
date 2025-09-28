@@ -1,0 +1,28 @@
+if { ! [istarget nios2-*-*] } {
+    return 
+}
+
+foreach test [lsort [glob -nocomplain $srcdir/$subdir/*.d]] {
+    run_dump_test [file rootname $test]
+}
+
+set test_name "NIOS2 Mixed R1 and R2 objects"
+set test mixed1
+
+if ![ld_assemble $as "-march=r1 $srcdir/$subdir/${test}a.s" tmpdir/${test}a.o] {
+    fail "Build mixed1a.o"
+    return
+}
+
+if ![ld_assemble $as "-march=r2 $srcdir/$subdir/${test}b.s" tmpdir/${test}b.o] {
+    fail "Build mixed1b.o"
+    return
+}
+
+if { ![ld_link $ld tmpdir/$test "tmpdir/${test}a.o tmpdir/${test}b.o"] } {
+    if [string match "*architecture * is incompatible*" $link_output] {
+	pass "$test_name"
+    } {
+	fail "$test_name"
+    }
+}

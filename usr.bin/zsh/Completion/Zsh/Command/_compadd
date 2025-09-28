@@ -1,0 +1,103 @@
+#compdef compadd -P _*
+
+local curcontext="$curcontext" ret=1
+local -a state line args
+typeset -A opt_args
+
+args=(
+  '-P+[specify prefix]:prefix'
+  '-S+[specify suffix]:suffix'
+  '-p+[specify hidden prefix]:hidden prefix'
+  '-s+[specify hidden suffix]:hidden suffix'
+  '-i+[specify ignored prefix]:ignored prefix'
+  '-I+[specify ignored suffix]:ignored suffix'
+  '-o[specify order for matches by match string not by display string]:: : _values -s , order
+    "match[order by match not by display string]"
+    "nosort[matches are pre-ordered]"
+    "numeric[order numerically]"
+    "reverse[order backwards]"'
+  '(-1 -E)-J+[specify match group]:group'
+  '!-V+:group'
+  '(-J -E)-1[remove only consecutive duplicates from group]'
+  '-2[preserve all duplicates]'
+  '(-x)-X[specify explanation]:explanation'
+  '(-X)-x[specify unconditional explanation]:explanation'
+  '-q[make suffix autoremovable]'
+  '-r+[specify character class for suffix autoremoval]:character class'
+  '-R+[specify function for suffix autoremoval]:function:_functions'
+  '-F+[specify array of ignore patterns]:array:_parameters -g "*array*"'
+  '-Q[disable quoting of possible completions]'
+  '*-M[specify matching specifications]'
+  '-n[hide matches in completion listing]'
+  '-O+[populate array with matches instead of adding them]:array:_parameters -g "*array*"'
+  '-A+[populate array with expanded matches instead of adding them]:array:_parameters -g "*array*"'
+  '*-D+[delete elements from array corresponding to non-matching candidates]:array:_parameters -g "*array*"'
+)
+
+case $service in
+  compadd|_(path_|)files)
+    args+=(
+      '-W[specify location for matches marked as files]'
+    )
+  ;|
+  compadd)
+    args+=(
+      '(-k)-a[matches are elements of specified arrays]'
+      '(-a)-k[matches are keys of specified associative arrays]'
+      '-d+[specify display strings]:array:_parameters -g "*array*"'
+      '-l[list display strings one per line, not in columns]'
+      '-f[mark matches as being files]'
+      '-e[mark matches as being parameters]'
+      '-C[add special match that expands to all other matches]'
+      '(-1 -J)-E+[add specified number of display only matches]:number'
+      '-U[disable internal matching of completion candidates]'
+      '*:candidate:->candidates'
+    )
+  ;;
+  _dates)
+    args=( ${args:#([(][^)]##\)|)-[12noOAD]*}
+      '-f[specify format for matches]:format:_date_formats'
+      '-F[select a future rather than past date]'
+    )
+  ;;
+  _(path_|)files)
+    args=( ${args:#([(][^)]##\)|)-[OAD]*}
+      '-g+[specify file glob pattern]:glob pattern'
+      '-/[complete only directories]'
+    )
+  ;;
+  _parameters)
+    args+=(
+      '-g+[specify pattern to filter parameter type by]:pattern'
+    )
+  ;;
+  _pids)
+    args+=( '-m+[pattern to filter process command line by]:pattern' )
+  ;;
+  _process_names)
+    args+=(
+      '-a[include all processes]'
+      '-t[use truncated process names]'
+    )
+  ;;
+  _sys_calls)
+    args+=(
+      '-a[add "all" as an additional match]'
+      '-n[add "none" as an additional match]'
+    )
+  ;;
+esac
+
+_arguments -C -s -S -A "-*" $args && ret=0
+
+if [[ -n $state ]]; then
+  if (( $+opt_args[-a] )); then
+    _parameters -g "*array*" && ret=0
+  elif (( $+opt_args[-k] )); then
+    _parameters -g "*assoc*" && ret=0
+  else
+    _message -e candidates candidate
+  fi
+fi
+
+return ret

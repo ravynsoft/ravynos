@@ -1,0 +1,31 @@
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <title>${title}</title>
+  </head>
+  <body>
+
+<%def name="greeting(name)">
+      <p>hello ${name}!</p>
+</%def>
+ 
+ <%include file="header.html"/>
+
+    ${greeting(user)}
+    ${greeting('me')}
+    ${greeting('world')}
+ 
+    <h2>Loop</h2>
+    % if list_items:
+      <ul>
+        % for i, list_item in enumerate(list_items):
+	<li ${i+1==len(list_items) and "class='last'" or ""}>${list_item}</li>
+        % endfor
+      </ul>
+    % endif
+
+    <%include file="footer.html"/>
+  </body>
+</html>

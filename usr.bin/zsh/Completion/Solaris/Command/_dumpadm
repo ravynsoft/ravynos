@@ -1,0 +1,22 @@
+#compdef dumpadm
+
+local -a content
+
+content=(
+  'kernel:kernel memory pages only'
+  'all:all memory pages'
+  'curproc:kernel memory pages plus curproc pages'
+  'allproc:kernel memory pages and all process pages'
+)
+_arguments -s \
+  '-e[print estimate of disk space required to store compressed crash dump]' \
+  "-n[don't run savecore on reboot]" \
+  '-p[produce machine parseable output]' \
+  '-u[update dump configuration from dumpadm.conf]' \
+  '-y[run savecore on reboot]' \
+  '-c[set dump content]:dump content:(($content))' \
+  '-d[set dump device]: : _alternative "tokens\:token\:(swap none)" "files\:block device\:_files -g \*\(-%b\)"' \
+  '-m[set minfree size]:size' \
+  '-s[set the savecore directory]:directory:_files -/' \
+  '-r[alternate root directory]:directory:_files -/' \
+  '-z[enable saving core files in a compressed format]:compression:(on off)'

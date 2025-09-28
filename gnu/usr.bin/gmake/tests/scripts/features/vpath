@@ -1,0 +1,114 @@
+#                                                                     -*-perl-*-
+
+$description = "Test vpath for particular classes of filenames.";
+
+$details = "";
+
+@files_to_touch = ("$workdir${pathsep}main.c","$workdir${pathsep}defs.h",
+                   "$workdir${pathsep}kbd.c","$workdir${pathsep}command.h",
+                   "$workdir${pathsep}commands.c","$workdir${pathsep}display.c",
+                   "$workdir${pathsep}buffer.h","$workdir${pathsep}insert.c",
+                   "$workdir${pathsep}command.c");
+
+&touch(@files_to_touch);
+
+run_make_test(q!
+vpath %.c foo
+vpath %.c #WORK#
+vpath %.h #WORK#
+objects = main.o kbd.o commands.o display.o insert.o
+edit: $(objects) ; @echo cc -o $@ $^
+main.o : main.c defs.h ; @echo cc -c $(firstword $^)
+kbd.o : kbd.c defs.h command.h ; @echo cc -c kbd.c
+commands.o : command.c defs.h command.h ; @echo cc -c commands.c
+display.o : display.c defs.h buffer.h ; @echo cc -c display.c
+insert.o : insert.c defs.h buffer.h ; @echo cc -c insert.c
+!,
+    '', "cc -c $workdir${pathsep}main.c\ncc -c kbd.c\ncc -c commands.c\n"
+        ."cc -c display.c\ncc -c insert.c\n"
+        ."cc -o edit main.o kbd.o commands.o display.o insert.o\n");
+
+unlink(@files_to_touch);
+
+# TEST 2: after vpath lookup ensure we don't get incorrect circular dependency
+# warnings due to change of struct file ptr.  Savannah bug #13529.
+
+mkdir('vpath-d', 0777);
+
+run_make_test(q!
+vpath %.te vpath-d/
+.SECONDARY:
+default: vpath-d/a vpath-d/b
+vpath-d/a: fail.te
+vpath-d/b : fail.te
+vpath-d/fail.te:
+!,
+              '', "#MAKE#: Nothing to be done for 'default'.\n");
+
+rmdir('vpath-d');
+
+# Test VPATH vs vpath
+
+run_make_test(q!
+VPATH = #WORK#:#PWD#
+vpath %.c foo
+vpath %.c #WORK#
+vpath %.c #PWD#
+vpath %.h #WORK#
+vpath %.c
+vpath
+all: ; @echo ALL IS WELL
+!,
+              '', "ALL IS WELL\n");
+
+# Test interaction of -lfoo and vpath
+
+my @dirs_to_make = qw(a1 b1 a2 b2 b3);
+for my $d (@dirs_to_make) {
+    mkdir($d, 0777);
+}
+
+my @files_to_touch = ("a1${pathsep}lib1.a",
+                      "a1${pathsep}libc.a",
+                      "b1${pathsep}lib1.so",
+                      "a2${pathsep}lib2.a",
+                      "b2${pathsep}lib2.so",
+                      "lib3.a",
+                      "b3${pathsep}lib3.so");
+&touch(@files_to_touch);
+
+my $answer = "a1${pathsep}lib1.a a1${pathsep}libc.a " .
+             "a2${pathsep}lib2.a lib3.a\n";
+if ($port_type eq 'VMS-DCL') {
+    $answer =~ s/ /,/g;
+}
+
+run_make_test('
+vpath %.h b3
+vpath %.a a1
+vpath %.so b1
+vpath % a2 b2
+vpath % b3
+all: -l1 -lc -l2 -l3; @echo $^
+',
+              '', $answer);
+
+unlink(@files_to_touch);
+for my $d (@dirs_to_make) {
+    rmdir($d);
+}
+
+# Check that if we find find files with VPATH, we don't do pattern search
+
+mkdir("vpa");
+
+run_make_test(q!
+VPATH = vpa
+%.x: ; @echo pattern $@
+vpa/foo.x: ; @echo vpath $@
+!,
+              'foo.x', "vpath vpa/foo.x\n");
+
+rmdir("vpa");
+
+1;

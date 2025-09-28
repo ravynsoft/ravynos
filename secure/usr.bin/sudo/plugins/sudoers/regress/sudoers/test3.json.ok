@@ -1,0 +1,45 @@
+{
+    "Defaults": [
+        {
+            "Binding": [
+                { "useralias": "FOO" }
+            ],
+            "Options": [
+                { "env_reset": true }
+            ]
+        },
+        {
+            "Binding": [
+                { "username": "foo" },
+                { "username": "bar" }
+            ],
+            "Options": [
+                { "env_reset": true }
+            ]
+        },
+        {
+            "Binding": [
+                { "username": "foo" },
+                { "username": " bar" }
+            ],
+            "Options": [
+                { "env_reset": true }
+            ]
+        },
+        {
+            "Binding": [
+                { "username": "foo" },
+                { "username": "bar" }
+            ],
+            "Options": [
+                { "env_reset": true }
+            ]
+        }
+    ],
+    "User_Aliases": {
+        "FOO": [
+            { "username": "foo" },
+            { "username": "bar" }
+        ]
+    }
+}

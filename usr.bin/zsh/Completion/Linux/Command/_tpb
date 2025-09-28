@@ -1,0 +1,20 @@
+#compdef tpb
+
+_arguments \
+  '(-h --help)'{-h,--help}'[help]' \
+  '(-d --daemon)'{-d,--daemon}'[start up as daemon]' \
+  '(-c --config)'{-c,--config=}':config file:_files' \
+  '(-A --apm)'{-A,--apm=}':state:(on off)' \
+  '(-P --powermgt)'{-P,--powermgt=}':state:(on off)' \
+  '(-x --xevents)'{-x,--xevents=}':state:(on off)' \
+  '(-m --mixer)'{-m,--mixer=}':state:(on off)' \
+  '(-o --osd)'{-o,--osd=}':state:(on off)' \
+  '(-p --poll)'{-p,--poll=}':delay (microseconds)' \
+  '(-t --thinkpad)'{-t,--thinkpad=}':command to execute:_command_names' \
+  '(-H --home)'{-H,--home=}':command to execute:_command_names' \
+  '(-S --search)'{-S,--search=}':command to execute:_command_names' \
+  '(-M --mail)'{-M,--mail=}':command to execute:_command_names' \
+  '(-W --wireless)'{-W,--wireless=}':command to execute:_command_names' \
+  '(-C --callback)'{-C,--callback=}':command to execute:_command_names' \
+  '(-v --verbose)'{-v,--verbose=}'[print information about pressed keys]'
+

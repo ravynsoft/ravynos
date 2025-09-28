@@ -1,0 +1,78 @@
+Changes in TIFF v3.7.0
+======================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.7.0 (:tag:`Release-v3-7-0`)
+  Previous Version        :doc:`v3.7.0beta2 <v3.7.0beta2>`
+  Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Major changes
+-------------
+
+
+* Several bugs found after 3.7.0beta2 release were fixed.
+
+
+Software configuration changes
+------------------------------
+
+* :file:`ltmain.sh`: Fix for MinGW compilation.
+
+
+Library changes
+---------------
+
+* :file:`libtiff/tif_dirread.c`, :file:`libtiff/tif_jpeg.c`, :file:`libtiff/tif_luv.c`,
+  :file:`libtiff/tif_ojpeg.c`, :file:`libtiff/tif_pixarlog.c`, :file:`libtiff/tif_write.c`:
+  Handle the zero strip/tile sizes properly (Dmitry V. Levin, Marcus Meissner).
+
+* :file:`libtiff/tif_dirinfo.c`: Type of the :c:macro:`TIFFTAG_SUBIFD` field changed
+  to :c:enumerator:`TIFF_IFD`.
+  
+* Preliminary support for BigTIFF files: now libtiff can
+  recognize and reject to open such images. ;-)
+
+* :file:`libtiff/tif_dir.c`: Initialize :c:member:`td_tilewidth` and :c:member:`td_tilelength` fields
+  of the :c:struct:`TIFFDirectory` structure with the 0 instead of -1 to avoid
+  confusing integer overflows in :c:func:`TIFFTileRowSize` for striped images.
+
+* :file:`libtiff/tif_dirinfo.c`: Fix bug with ``tif_foundfield`` and reallocation
+  of ``tif_fieldinfo`` as per bug
+  :bugzilla-rs:`630`
+
+* :file:`libtiff/tif_compress.c`: Improved error reporting in
+  :c:func:`TIFFGetConfiguredCODECs` (Dmitry V. Levin).
+
+
+Tools changes
+-------------
+
+* :file:`tiffcmp.c` (:c:func:`leof`): Renamed from "``eof``" in order to avoid
+  conflict noticed under MinGW.
+
+* :file:`tiff2pdf.c`: Fixed ``TransferFunction`` tag handling reported
+  by Ross A. Finlayson.
+
+
+Contributed software changes
+----------------------------
+
+* None.
+
+
+LZW compression kit changes
+---------------------------
+
+* This one is not longer needed.

@@ -1,0 +1,67 @@
+#autoload
+
+local prev
+
+# A `--' as the first argument says that we should tell comptags to use
+# the preceding function nesting level. This is only documented here because
+# if everything goes well, users won't have to worry about it and should
+# not mess with it.
+
+if [[ "$1" = -- ]]; then
+  prev=-
+  shift
+fi
+
+if (( $# )); then
+
+  # We have arguments: the tags supported in this context.
+
+  local curcontext="$curcontext" order tag nodef tmp
+
+  if [[ "$1" = -C?* ]]; then
+    curcontext="${curcontext%:*}:${1[3,-1]}"
+    shift
+  elif [[ "$1" = -C ]]; then
+    curcontext="${curcontext%:*}:${2}"
+    shift 2
+  fi
+
+  [[ "$1" = -(|-) ]] && shift
+
+  zstyle -a ":completion:${curcontext}:" group-order order &&
+      compgroups "$order[@]"
+
+  # Set and remember offered tags.
+
+  comptags "-i$prev" "$curcontext" "$@"
+
+  # Sort the tags.
+
+  if [[ -n "$_sort_tags" ]]; then
+    "$_sort_tags" "$@"
+  else
+    zstyle -a ":completion:${curcontext}:" tag-order order ||
+        (( ! ${@[(I)options]} )) ||
+        order=('(|*-)argument-* (|*-)option[-+]* values' options)
+
+    for tag in $order; do
+      case $tag in
+      -)     nodef=yes;;
+      \!*)   comptry "${(@)argv:#(${(j:|:)~${=~tag[2,-1]}})}";;
+      ?*)    comptry -m "$tag";;
+      esac
+    done
+
+    [[ -z "$nodef" ]] && comptry "$@"
+  fi
+
+  # Return non-zero if at least one set of tags should be used.
+
+  comptags "-T$prev"
+
+  return
+fi
+
+# The other mode: switch to the next set of tags.
+
+comptags "-N$prev"

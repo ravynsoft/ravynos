@@ -1,0 +1,19 @@
+# Test FPCMP{ULE8,UGT8,EQ8,NE,DE,UR}{8,16,32}SHL instructions.
+        fpcmpule8shl	%f32, %f48, 0, %g1
+        fpcmpugt8shl	%f34, %f50, 1, %g2
+        fpcmpeq8shl	%f36, %f52, 2, %g3
+        fpcmpne8shl	%f38, %f62, 3, %g4
+        fpcmpule16shl	%f32, %f48, 0x0, %g1
+        fpcmpugt16shl	%f34, %f50, 0x1, %g2
+        fpcmpeq16shl	%f36, %f52, 0x2, %g3
+        fpcmpne16shl	%f38, %f62, 0x3, %g4
+        fpcmpule32shl	%f32, %f48, 0, %g1
+        fpcmpugt32shl	%f34, %f50, 2-1, %g2
+        fpcmpeq32shl	%f36, %f52, 4/2, %g3
+        fpcmpne32shl	%f38, %f62, 3*1, %g4
+        fpcmpde8shl	%f32, %f48, 0, %g1
+        fpcmpde16shl	%f34, %f50, 1, %g2
+        fpcmpde32shl	%f36, %f52, 2, %g3
+        fpcmpur8shl	%f32, %f48, 0, %g1
+        fpcmpur16shl	%f34, %f50, 1, %g2
+        fpcmpur32shl	%f36, %f52, 2, %g3

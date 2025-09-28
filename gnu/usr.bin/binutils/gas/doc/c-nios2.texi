@@ -1,0 +1,267 @@
+@c Copyright (C) 2012-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@c man end
+@ifset GENERIC
+@page
+@node NiosII-Dependent
+@chapter Nios II Dependent Features
+@end ifset
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter Nios II Dependent Features
+@end ifclear
+
+@cindex Altera Nios II support
+@cindex Nios support
+@cindex Nios II support
+@menu
+* Nios II Options::              Options
+* Nios II Syntax::               Syntax
+* Nios II Relocations::          Relocations
+* Nios II Directives::           Nios II Machine Directives
+* Nios II Opcodes::              Opcodes
+@end menu
+
+@node Nios II Options
+@section Options
+@cindex Nios II options
+@cindex options for Nios II
+
+@c man begin OPTIONS
+@table @gcctabopt
+
+@cindex @code{relax-section} command-line option, Nios II
+@item -relax-section
+Replace identified out-of-range branches with PC-relative @code{jmp}
+sequences when possible.  The generated code sequences are suitable
+for use in position-independent code, but there is a practical limit
+on the extended branch range because of the length of the sequences.
+This option is the default.
+
+@cindex @code{relax-all} command-line option, Nios II
+@item -relax-all
+Replace branch instructions not determinable to be in range
+and all call instructions with @code{jmp} and @code{callr} sequences
+(respectively).  This option generates absolute relocations against the
+target symbols and is not appropriate for position-independent code.
+
+@cindex @code{no-relax} command-line option, Nios II
+@item -no-relax
+Do not replace any branches or calls.
+
+@cindex @code{EB} command-line option, Nios II
+@item -EB
+Generate big-endian output.
+
+@cindex @code{EL} command-line option, Nios II
+@item -EL
+Generate little-endian output.  This is the default.
+
+@cindex @code{march} command-line option, Nios II
+@item -march=@var{architecture}
+This option specifies the target architecture.  The assembler issues
+an error message if an attempt is made to assemble an instruction which
+will not execute on the target architecture.  The following architecture
+names are recognized:
+@code{r1},
+@code{r2}.  
+The default is @code{r1}.
+
+@end table
+@c man end
+
+@node Nios II Syntax
+@section Syntax
+@menu
+* Nios II Chars::                Special Characters
+@end menu
+
+
+@node Nios II Chars
+@subsection Special Characters
+
+@cindex line comment character, Nios II
+@cindex Nios II line comment character
+@cindex line separator character, Nios II
+@cindex Nios II line separator character
+@samp{#} is the line comment character.
+@samp{;} is the line separator character.
+
+
+@node Nios II Relocations
+@section Nios II Machine Relocations
+
+@cindex machine relocations, Nios II
+@cindex Nios II machine relocations
+
+@table @code
+@cindex @code{hiadj} directive, Nios II
+@item %hiadj(@var{expression})
+Extract the upper 16 bits of @var{expression} and add 
+one if the 15th bit is set. 
+
+The value of @code{%hiadj(@var{expression})} is:
+@smallexample
+((@var{expression} >> 16) & 0xffff) + ((@var{expression} >> 15) & 0x01)
+@end smallexample
+
+The @code{%hiadj} relocation is intended to be used with
+the @code{addi}, @code{ld} or @code{st} instructions
+along with a @code{%lo}, in order to load a 32-bit constant.
+
+@smallexample
+movhi r2, %hiadj(symbol)
+addi r2, r2, %lo(symbol)
+@end smallexample
+
+@cindex @code{hi} directive, Nios II
+@item %hi(@var{expression})
+Extract the upper 16 bits of @var{expression}.
+
+@cindex @code{lo} directive, Nios II
+@item %lo(@var{expression})
+Extract the lower 16 bits of @var{expression}.
+
+@cindex @code{gprel} directive, Nios II
+@item %gprel(@var{expression})
+Subtract the value of the symbol @code{_gp} from
+@var{expression}. 
+
+The intention of the @code{%gprel} relocation is
+to have a fast small area of memory which only
+takes a 16-bit immediate to access.
+
+@smallexample
+	.section .sdata
+fastint:
+	.int 123
+	.section .text
+	ldw r4, %gprel(fastint)(gp)
+@end smallexample
+
+@cindex @code{call} directive, Nios II
+@cindex @code{call_lo} directive, Nios II
+@cindex @code{call_hiadj} directive, Nios II
+@cindex @code{got} directive, Nios II
+@cindex @code{got_lo} directive, Nios II
+@cindex @code{got_hiadj} directive, Nios II
+@cindex @code{gotoff} directive, Nios II
+@cindex @code{gotoff_lo} directive, Nios II
+@cindex @code{gotoff_hiadj} directive, Nios II
+@cindex @code{tls_gd} directive, Nios II
+@cindex @code{tls_ie} directive, Nios II
+@cindex @code{tls_le} directive, Nios II
+@cindex @code{tls_ldm} directive, Nios II
+@cindex @code{tls_ldo} directive, Nios II
+@item %call(@var{expression})
+@item %call_lo(@var{expression})
+@item %call_hiadj(@var{expression})
+@itemx %got(@var{expression})
+@itemx %got_lo(@var{expression})
+@itemx %got_hiadj(@var{expression})
+@itemx %gotoff(@var{expression})
+@itemx %gotoff_lo(@var{expression})
+@itemx %gotoff_hiadj(@var{expression})
+@itemx %tls_gd(@var{expression})
+@itemx %tls_ie(@var{expression})
+@itemx %tls_le(@var{expression})
+@itemx %tls_ldm(@var{expression})
+@itemx %tls_ldo(@var{expression})
+
+These relocations support the ABI for Linux Systems documented in the
+@cite{Nios II Processor Reference Handbook}.
+@end table
+
+
+@node Nios II Directives
+@section Nios II Machine Directives
+
+@cindex machine directives, Nios II
+@cindex Nios II machine directives
+
+@table @code
+
+@cindex @code{align} directive, Nios II
+@item .align @var{expression} [, @var{expression}]
+This is the generic @code{.align} directive, however
+this aligns to a power of two.
+
+@cindex @code{half} directive, Nios II
+@item .half @var{expression}
+Create an aligned constant 2 bytes in size.
+
+@cindex @code{word} directive, Nios II
+@item .word @var{expression}
+Create an aligned constant 4 bytes in size.
+
+@cindex @code{dword} directive, Nios II
+@item .dword @var{expression}
+Create an aligned constant 8 bytes in size.
+
+@cindex @code{2byte} directive, Nios II
+@item .2byte @var{expression}
+Create an unaligned constant 2 bytes in size.
+
+@cindex @code{4byte} directive, Nios II
+@item .4byte @var{expression}
+Create an unaligned constant 4 bytes in size.
+
+@cindex @code{8byte} directive, Nios II
+@item .8byte @var{expression}
+Create an unaligned constant 8 bytes in size.
+
+@cindex @code{16byte} directive, Nios II
+@item .16byte @var{expression}
+Create an unaligned constant 16 bytes in size.
+
+@cindex @code{set noat} directive, Nios II
+@item .set noat
+Allows assembly code to use @code{at} register without 
+warning.  Macro or relaxation expansions
+generate warnings.
+
+@cindex @code{set at} directive, Nios II
+@item .set at
+Assembly code using @code{at} register generates
+warnings, and macro expansion and relaxation are
+enabled.
+
+@cindex @code{set nobreak} directive, Nios II
+@item .set nobreak
+Allows assembly code to use @code{ba} and @code{bt}
+registers without warning. 
+
+@cindex @code{set break} directive, Nios II
+@item .set break
+Turns warnings back on for using @code{ba} and @code{bt}
+registers.
+
+@cindex @code{set norelax} directive, Nios II
+@item .set norelax
+Do not replace any branches or calls.
+
+@cindex @code{set relaxsection} directive, Nios II
+@item .set relaxsection
+Replace identified out-of-range branches with 
+@code{jmp} sequences (default).
+
+@cindex @code{set relaxall} directive, Nios II
+@item .set relaxsection
+Replace all branch and call instructions with
+@code{jmp} and @code{callr} sequences.
+
+@cindex @code{set} directive, Nios II
+@item .set @dots{}
+All other @code{.set} are the normal use.
+
+@end table
+
+@node Nios II Opcodes
+@section Opcodes
+
+@cindex Nios II opcodes
+@cindex opcodes for Nios II
+@code{@value{AS}} implements all the standard Nios II opcodes documented in the
+@cite{Nios II Processor Reference Handbook}, including the assembler
+pseudo-instructions.

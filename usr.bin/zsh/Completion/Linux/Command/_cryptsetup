@@ -1,0 +1,166 @@
+#compdef cryptsetup
+
+local curcontext="$curcontext" ign ret=1
+local -a actions state line expl
+
+(( $#words > 2 )) && ign='!'
+_arguments -s \
+  '(-v --verbose)'{-v,--verbose}'[enable verbose mode]' \
+  '--debug[show debug messages]' \
+  '--debug-json[show debug messages including JSON metadata]' \
+  '(-c --cipher)'{-c+,--cipher=}'[set cipher]:cipher specification' \
+  '(-h --hash)'{-h+,--hash=}'[hash algorithm]:hash algorithm' \
+  '(-y --verify-passphrase)'{-y,--verify-passphrase}'[query for password twice]' \
+  '(-d --key-file)'{-d+,--key-file=}'[set keyfile]:key file:_files' \
+  '--master-key-file=[set master key]:key file:_files' \
+  '--dump-master-key[dump luks master key]' \
+  '(-s --key-size)'{-s+,--key-size=}'[set key size]:size (bits)' \
+  '(-l --keyfile-size)'{-l+,--keyfile-size=}'[set keyfile size]:size (bytes)' \
+  '--keyfile-offset=[specify number of bytes to skip in keyfile]:offset (bytes)' \
+  '--new-keyfile-size=[set new keyfile size (luksAddKey)]:size (bytes)' \
+  '--new-keyfile-offset=[specify number of bytes to skip in newly added keyfile]:offset (bytes)' \
+  '(-S --key-slot)'{-S+,--key-slot=}'[select key slot]:key slot' \
+  '(-b --size)'{-b+,--size=}'[force device size]:sectors' \
+  '--device-size=[use only specified device size (ignore rest of device)]:size (bytes)' \
+  '(-o --offset)'{-o+,--offset=}'[set start offset]:sectors' \
+  '(-p --skip)'{-p+,--skip=}'[data to skip at beginning]:sectors' \
+  '(-r --readonly)'{-r,--readonly}'[create a read-only mapping]' \
+  '(-i --iter-time)'{-i+,--iter-time=}'[set password processing duration]:duration (milliseconds)' \
+  '(-q --batch-mode)'{-q,--batch-mode}"[don't ask for confirmation]" \
+  '(-t --timeout)'{-t+,--timeout=}'[set password prompt timeout]:timeout (seconds)' \
+  '--progress-frequency=[specify progress line update interval]:interval (seconds)' \
+  '(-T --tries)'{-T+,--tries=}'[set maximum number of retries]:number of retries' \
+  '--align-payload=[set payload alignment]:sectors' \
+  '--header-backup-file=[specify file with LUKS header and keyslots backup]:file:_files' \
+  '(--use-urandom)--use-random[use /dev/random to generate volume key]' \
+  '(--use-random)--use-urandom[use /dev/urandom to generate volume key]' \
+  '--shared[share device with another non-overlapping crypt segment]' \
+  '--uuid=[set device UUID]:uuid' \
+  '--allow-discards[allow discard (aka TRIM) requests for device]' \
+  '--header=[device or file with separated LUKS header]:file:_files' \
+  '--test-passphrase[do not activate device, just check passphrase]' \
+  '--tcrypt-hidden[use hidden header (hidden TCRYPT device)]' \
+  '--tcrypt-system[device is system TCRYPT drive (with bootloader)]' \
+  '--tcrypt-backup[use backup (secondary) TCRYPT header]' \
+  '--veracrypt[scan also for VeraCrypt compatible device]' \
+  '--veracrypt-pim=[specify personal iteration multiplier for VeraCrypt compatible device]:multiplier' \
+  '--veracrypt-query-pim[query personal iteration multiplier for VeraCrypt compatible device]' \
+  '(-M --type)'{-M+,--type=}'[specify type of device metadata]:type:(luks luks1 luks2 plain loopaes tcrypt bitlk)' \
+  '--force-password[disable password quality check (if enabled)]' \
+  '--perf-same_cpu_crypt[use dm-crypt same_cpu_crypt performance compatibility option]' \
+  '--perf-submit_from_crypt_cpus[use dm-crypt submit_from_crypt_cpus performance compatibility option]' \
+  '--perf-no_read_workqueue[bypass dm-crypt workqueue and process read requests synchronously]' \
+  '--perf-no_write_workqueue[bypass dm-crypt workqueue and process write requests synchronously]' \
+  '--deferred[device removal is deferred until the last user closes it]' \
+  '--serialize-memory-hard-pbkdf[use global lock to serialize memory]' \
+  '--pbkdf=[specify PBKDF algorithm for LUKS2]:algorithm:(argon2i argon2id pbkdf2)' \
+  '--pbkdf-memory=[specify PBKDF memory cost limit]:limit (kilobytes)' \
+  '--pbkdf-parallel=[specify PBKDF parallel cost]:threads' \
+  '--pbkdf-force-iterations=[specify PBKDF iterations cost]:cost' \
+  '--priority=[specify keyslot priority]:priority:(ignore normal prefer)' \
+  '--disable-locks[disable locking of on-disk metadata]' \
+  '--disable-keyring[disable loading volume keys via kernel keyring]' \
+  '(-I --integrity)'{-I+,--integrity=}'[specify data integrity algorithm (LUKS2 only)]:algorithm' \
+  '--integrity-no-journal[disable journal for integrity device]' \
+  "--integrity-no-wipe[don't wipe device after format]" \
+  '--integrity-legacy-padding[use inefficient legacy padding (old kernels)]' \
+  "--token-only[don't ask for passphrase if activation by token fails]" \
+  '--token-id=[specify token number]:number [any]' \
+  '--key-description=[specify key description]:description' \
+  '--sector-size=[specify encryption sector size]:size [512 bytes]' \
+  '--iv-large-sectors[use IV counted in sector size (not in 512 bytes)]' \
+  '--persistent[set activation flags persistent for device]' \
+  '--label=[set label for the LUKS2 device]:label' \
+  '--subsystem=[set subsystem label for the LUKS2 device]:subsystem' \
+  '--unbound[create or dump unbound (no assigned data segment) LUKS2 keyslot]' \
+  '--json-file=[read or write token to json file]:json file:_files -g "*.json(-.)"' \
+  '--luks2-metadata-size=[specify LUKS2 header metadata area size]:size (bytes)' \
+  '--luks2-keyslots-size=[specify LUKS2 header keyslots area size]:size (bytes)' \
+  '--refresh[refresh (reactivate) device with new parameters]' \
+  '--keyslot-key-size=[specify size of the encryption key]:size (bits)' \
+  '--keyslot-cipher=[specify cipher used for LUKS2 keyslot encryption]:cipher' \
+  '--encrypt[Encrypt LUKS2 device (in-place encryption)]' \
+  '--decrypt[decrypt LUKS2 device (remove encryption)]' \
+  '--init-only[initialize LUKS2 reencryption in metadata only]' \
+  '--resume-only[resume initialized LUKS2 reencryption only]' \
+  '--reduce-device-size=[reduce data device size (move data offset)]:size (bytes)' \
+  '--hotzone-size=[specify maximal reencryption hotzone size]:size (bytes)' \
+  '--resilience=[specify reencryption hotzone resilience type]:resilience type:(checksum journal none)' \
+  '--resilience-hash=[specify reencryption hotzone checksums hash]:string' \
+  '--active-name=[override device autodetection of dm device to be reencrypted]:string' \
+  "${ign}(- : *)"{-V,--version}'[show version information]' \
+  "${ign}(- : *)"{-\?,--help}'[display help information]' \
+  "${ign}(- : *)--usage[display brief usage]" \
+  ':action:->actions' \
+  '*::arguments:->action-arguments' && ret=0
+
+case $state in
+  actions)
+    actions=(
+      'open:open device with named mapping'
+      'close:close device (remove mapping)'
+      'status:report mapping status'
+      'resize:resize an active mapping'
+      'benchmark:benchmark cipher'
+      'repair:try to repair on-disk metadata'
+      'reencrypt:reencrypt LUKS2 device'
+      'erase:erase all keyslots'
+      'convert:convert LUKS from/to LUKS2 format'
+      'config:set permanent configuration options for LUKS2'
+      'luksFormat:initialize a LUKS partition'
+      'luksAddKey:add a new key'
+      'luksRemoveKey:remove a key'
+      'luksChangeKey:change a key'
+      'luksConvertKey:convert a key to new pbkdf parameters'
+      'luksKillSlot:wipe key from slot'
+      'luksUUID:print/change device UUID'
+      'isLuks:check if device is a LUKS partition'
+      'luksDump:dump header information'
+      'tcryptDump:dump TCRYPT device information'
+      'bitlkDump:dump BITLK device information'
+      'luksSuspend:suspend LUKS device and wipe key'
+      'luksResume:resume suspended LUKS device'
+      'luksHeaderBackup:store binary backup of headers'
+      'luksHeaderRestore:restore header backup'
+      'token:manipulate auto-activation token of the device'
+    )
+    _describe action actions && ret=0
+  ;;
+  action-arguments)
+    local -a args
+    local mapping=':mapping:_path_files -W /dev/mapper'
+    local device=':device:_files'
+    case ${words[1]} in
+      create) args=( $mapping $device '--type=:type' );;
+      open) args=( $device $mapping '--type=:type' );;
+      (plain|luks|loopaes|tcrypt)Open) args=( $device $mapping '--type=:type' );;
+      benchmark) args=( '--cipher=:cipher' );;
+      luksKillSlot) args=( $device ':key slot number' );;
+      remove|status|resize|*lose|luksSuspend|luksResume) args=( $mapping );;
+      erase|convert|config|repair|reencrypt|(luks(AddKey|Erase|RemoveKey|DelKey|UUID|Dump)|isLuks))
+	args=( $device )
+      ;;
+      luks(Format|AddKey|RemoveKey|ChangeKey|ConvertKey))
+	args=( $device ':key file:_files' )
+      ;;
+      luksHeader*) args=( $device '--header-backup-file:file:_files' );;
+      token)
+	args=(
+	  ':action:((
+	    add\:create\ a\ new\ keyring
+	    remove\:remove\ any\ token\ from\ slot
+	    import\:store\ arbitrary\ valid\ token\ json\ in\ LUKS2\ header
+	    export\:write\ requested\ token\ json\ to\ a\ file
+	  ))'
+	  $device
+	)
+      ;;
+      *)
+        _default && ret=0
+      ;;
+    esac
+    _arguments $args && ret=0
+  ;;
+esac
+
+return ret

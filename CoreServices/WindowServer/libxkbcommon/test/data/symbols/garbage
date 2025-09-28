@@ -1,0 +1,14 @@
+default alphanumeric_keys
+xkb_symbols "garbage" {
+    include "us"
+
+    name[Group1]= "My garbage Layout";
+
+    // The garbage keysym will *not* override the corresponding symbol from the
+    // 'us' layout
+    key <TLDE> { [ keysym_is_garbage, exclam ] };
+
+    // AE13 is unused by 'us', use it to avoid fallback to the 'us' definition.
+    // Define with 2 levels but first level is a garbage symbol.
+    key <AE13> { [ keysym_is_garbage, asciitilde ] };
+};

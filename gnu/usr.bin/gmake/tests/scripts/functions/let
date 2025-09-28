@@ -1,0 +1,111 @@
+#                                                                    -*-perl-*-
+# $Id$
+
+$description = "Test the let function.";
+
+$details = "This is a test of the let function in gnu make.
+This function destructures a list of values and binds each
+value to a variable name in a list of variable names.
+Superfluous variable names are assigned the empty string and
+the remaining values are assigned to the last variable name.
+The binding holds for the duration of the evaluation of the
+given text and no longer.  The general form of the command
+is $(let \$vars,\$list,\$text).  Several types of let
+assignments are tested\n";
+
+# check for mismatched var and list word counts
+run_make_test(q!
+a = bad
+b = news
+x = $(let a b,1 2,$a $b)
+y = $(let a,1 2,$a)
+z = $(let a b,1,$a $b)
+all:;@echo 'a=,$a,' 'b=,$b,' 'x=,$x,' 'y=,$y,' 'z=,$z,'
+!,
+    '', "a=,bad, b=,news, x=,1 2, y=,1 2, z=,1 ,\n");
+
+# check for whitespace
+run_make_test(q!
+a = bad
+b = news
+x = $(let a b,   1   2   ,+$a+$b+)
+y = $(let a,   1  2   ,+$a+)
+z = $(let a b,  1   ,+$a+$b+)
+all:;@echo 'a=,$a,' 'b=,$b,' 'x=,$x,' 'y=,$y,' 'z=,$z,'
+!,
+    '', "a=,bad, b=,news, x=,+1+2   +, y=,+1  2   +, z=,+1++,\n");
+
+# Allow empty variable names and empty value list.
+# We still expand the list and body.
+run_make_test('
+null =
+v = $(let    ,$(info blankvar),abc)
+x = $(let $(null),$(info side-effect),abc)
+y = $(let y,,$ydef)
+
+all: ; @echo $v/$x/$y',
+              '', "blankvar\nside-effect\nabc/abc/def\n");
+
+# The example macro from the manual.
+run_make_test('
+reverse = $(let first rest,$1,$(if $(rest),$(call reverse,$(rest)) )$(first))
+
+all: ; @echo $(call reverse, \
+                 moe   miny  meeny eeny \
+              )',
+              '', "eeny meeny miny moe\n");
+
+
+# Set an environment variable that we can test in the makefile.
+$ENV{FOOFOO} = 'foo foo';
+
+# Verify masking: expansion outside the scope of let is unaffected.
+run_make_test('
+auto_var = \
+  udef \
+  CC \
+  FOOFOO \
+  MAKE \
+  foo \
+  CFLAGS \
+  WHITE \
+  @ \
+  <
+av = $(foreach var, $(auto_var), $(origin $(var)) )
+foo = bletch null @ garf
+override WHITE := BLACK
+
+define mktarget
+target: foo := $(foo)
+target: ; @echo $(AR)_$(foo)_
+endef
+
+all: auto target
+auto: ; @echo $(let $(auto_var),,$(av)) $(av)
+$(let AR foo,bar foo ,$(eval $(value mktarget)))',
+              '-e WHITE=WHITE CFLAGS=',
+              "automatic automatic automatic automatic automatic automatic automatic automatic automatic undefined default environment default file command line override automatic automatic
+ar_foo _
+");
+
+
+# Check some error conditions.
+run_make_test('
+x = $(let )
+y = $x
+
+all: ; @echo $y',
+              '',
+              "#MAKEFILE#:2: *** insufficient number of arguments (1) to function 'let'.  Stop.",
+              512);
+
+run_make_test('
+x = $(let x,y)
+y := $x
+
+all: ; @echo $y',
+              '',
+              "#MAKEFILE#:2: *** insufficient number of arguments (2) to function 'let'.  Stop.",
+              512);
+
+1;

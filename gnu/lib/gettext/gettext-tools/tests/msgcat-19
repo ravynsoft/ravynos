@@ -1,0 +1,66 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --add-location=file option.
+
+cat <<EOF > mcat-test19.in1
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: first.c:123
+msgid "1"
+msgstr "eins"
+EOF
+
+cat <<EOF > mcat-test19.in2
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: hunt.c:759
+msgid "1"
+msgstr "eins"
+EOF
+
+: ${MSGCAT=msgcat}
+${MSGCAT} --add-location=file \
+          -o mcat-test19.tmp mcat-test19.in1 mcat-test19.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcat-test19.tmp > mcat-test19.out || Exit 1
+
+cat << EOF > mcat-test19.ok
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: first.c hunt.c
+msgid "1"
+msgstr "eins"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcat-test19.ok mcat-test19.out
+result=$?
+
+exit $result

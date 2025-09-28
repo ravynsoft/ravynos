@@ -1,0 +1,2 @@
+print '1..', scalar(@ARGV), "\n";
+print "ok $_ ", $ARGV[ $_ - 1 ], "\n" for 1 .. @ARGV;

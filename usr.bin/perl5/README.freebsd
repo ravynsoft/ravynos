@@ -1,0 +1,43 @@
+# vim: syntax=pod
+
+If you read this file _as_is_, just ignore the funny characters you
+see.  It is written in the POD format (see pod/perlpod.pod) which is
+specifically designed to be readable as is.
+
+=head1 NAME
+
+perlfreebsd - Perl version 5 on FreeBSD systems
+
+=head1 DESCRIPTION
+
+This document describes various features of FreeBSD that will affect how Perl
+version 5 (hereafter just Perl) is compiled and/or runs.
+
+=head2 FreeBSD core dumps from readdir_r with ithreads
+
+When perl is configured to use ithreads, it will use re-entrant library calls
+in preference to non-re-entrant versions.  There is a bug in FreeBSD's
+C<readdir_r> function in versions 4.5 and earlier that can cause a SEGV when
+reading large directories. A patch for FreeBSD libc is available
+(see L<https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=30631>)
+which has been integrated into FreeBSD 4.6.
+
+=head2 C<$^X> doesn't always contain a full path in FreeBSD
+
+perl sets C<$^X> where possible to a full path by asking the operating
+system. On FreeBSD the full path of the perl interpreter is found by using
+C<sysctl> with C<KERN_PROC_PATHNAME> if that is supported, else by reading
+the symlink F</proc/curproc/file>. FreeBSD 7 and earlier has a bug where
+either approach sometimes returns an incorrect value
+(see L<https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=35703>).
+In these cases perl will fall back to the old behaviour of using C's
+C<argv[0]> value for C<$^X>.
+
+=head1 AUTHOR
+
+Nicholas Clark <nick@ccl4.org>, collating wisdom supplied by Slaven Rezic
+and Tim Bunce.
+
+Please report any errors, updates, or suggestions to
+L<https://github.com/Perl/perl5/issues>.
+

@@ -1,0 +1,39 @@
+@c Copyright (C) 2021-2023 Free Software Foundation, Inc.
+@c This is part of the GAS anual.
+@c For copying conditions, see the file as.texinfo
+@c man end
+
+@ifset GENERIC
+@page
+@node LoongArch-Dependent
+@chapter LoongArch Dependent Features
+@end ifset
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter LoongArch Dependent Features
+@end ifclear
+
+@cindex LoongArch support
+@menu
+* LoongArch-Options::        LoongArch Options
+@end menu
+
+@node LoongArch-Options
+@section LoongArch Options
+
+The following table lists all available LoongArch specific options.
+
+@c man begin OPTIONS
+@table @gcctabopt
+
+@cindex @samp{-fpic} option, LoongArch
+@item -fpic
+@itemx -fPIC
+Generate position-independent code
+
+@cindex @samp{-fno-pic} option, LoongArch
+@item -fno-pic
+Don't generate position-independent code (default)
+
+@end table
+@c man end

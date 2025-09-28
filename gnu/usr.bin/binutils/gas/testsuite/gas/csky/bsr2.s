@@ -1,0 +1,3 @@
+.text
+lable:
+   bsr hello

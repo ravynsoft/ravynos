@@ -1,0 +1,2 @@
+EXTERN (bar)
+INCLUDE pr21233.ld

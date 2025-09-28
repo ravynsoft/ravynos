@@ -1,0 +1,57 @@
+# Copyright (C) 2012-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+#
+# msp430 tests
+#
+
+if [expr [istarget "msp430-*-*"]]  then {
+    run_dump_test "opcode"
+    run_dump_test "msp430x"
+    run_dump_test "bad"
+    run_dump_test "errata_warns"
+    run_dump_test "errata_fixes"
+    run_dump_test "low-data-bss-sym"
+    run_dump_test "either-data-bss-sym"
+    run_dump_test "high-data-bss-sym" { { as "-ml -mdata-region=upper" } }
+    run_dump_test "high-data-bss-sym" { { as "-ml -mdata-region=either" } }
+    run_dump_test "pr22133"
+    run_dump_test "nop-int-430"
+    run_dump_test "nop-int-430x"
+    run_dump_test "nop-int-430x-silent"
+    run_dump_test "nop-eint-430"
+    run_dump_test "nop-eint-430x"
+    run_dump_test "nop-eint-430x-silent"
+    run_dump_test "nop-eint-430x-ignore"
+    run_dump_test "nop-dint-430"
+    run_dump_test "nop-dint-430x"
+    run_dump_test "nop-dint-430x-silent"
+    run_dump_test "nop-dint-430x-ignore"
+    run_dump_test "nop-unknown-intr-430"
+    run_dump_test "nop-unknown-intr-430x"
+    run_dump_test "nop-unknown-intr-430x-ignore"
+    run_dump_test "preinit-array"
+    run_dump_test "init-array"
+    run_dump_test "fini-array"
+    run_dump_test "attr-430-small-bad"
+    run_dump_test "attr-430-small-good"
+    run_dump_test "attr-430x-large-lower-bad"
+    run_dump_test "attr-430x-large-lower-good"
+    run_dump_test "attr-430x-large-any-bad"
+    run_dump_test "attr-430x-large-any-good"
+    run_dump_test "reloc-lo-430x"
+    run_dump_test "ignore-md"
+}

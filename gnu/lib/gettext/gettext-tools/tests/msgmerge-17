@@ -1,0 +1,86 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test that untranslated messages that are brought over from the .pot file
+# get the right number of msgstrs.
+
+cat <<\EOF > mm-test17.po
+# Irish translations.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : n==2 ? 1 : 2;\n"
+
+#, c-format
+msgid "'Your command, please?', asked the waiter."
+msgstr ""
+EOF
+
+cat <<\EOF > mm-test17.pot
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#, c-format
+msgid "'Your command, please?', asked the waiter."
+msgstr ""
+
+#, c-format
+msgid "a piece of cake"
+msgid_plural "%d pieces of cake"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format
+msgid "%s is replaced by %s."
+msgstr ""
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-test17.tmp.po mm-test17.po mm-test17.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-test17.tmp.po > mm-test17.new.po || Exit 1
+
+cat <<\EOF > mm-test17.ok
+# Irish translations.
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : n==2 ? 1 : 2;\n"
+
+#, c-format
+msgid "'Your command, please?', asked the waiter."
+msgstr ""
+
+#, c-format
+msgid "a piece of cake"
+msgid_plural "%d pieces of cake"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#, c-format
+msgid "%s is replaced by %s."
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-test17.ok mm-test17.new.po
+result=$?
+
+exit $result

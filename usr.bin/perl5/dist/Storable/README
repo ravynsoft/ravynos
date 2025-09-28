@@ -1,0 +1,114 @@
+                         Storable 3.05c
+               Copyright (c) 1995-2000, Raphael Manfredi
+               Copyright (c) 2001-2004, Larry Wall
+               Copyright (c) 2016,2017 cPanel Inc
+
+------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the same terms as Perl 5 itself.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    Perl 5 License schemes for more details.
+------------------------------------------------------------------------
+
++=======================================================================
+| Storable is distributed as a module, but is also part of the official
+| Perl core distribution, as of perl 5.8. 
+| Maintenance is partially done by the perl5-porters, and for cperl by cPanel.
+| We thank Raphael Manfredi for providing us with this very useful module.
++=======================================================================
+
+The Storable extension brings persistence to your data.
+
+You may recursively store to disk any data structure, no matter how
+complex and circular it is, provided it contains only SCALAR, ARRAY,
+HASH (possibly tied) and references (possibly blessed) to those items.
+
+At a later stage, or in another program, you may retrieve data from
+the stored file and recreate the same hiearchy in memory. If you
+had blessed references, the retrieved references are blessed into
+the same package, so you must make sure you have access to the
+same perl class than the one used to create the relevant objects.
+
+There is also a dclone() routine which performs an optimized mirroring
+of any data structure, preserving its topology.
+
+Objects (blessed references) may also redefine the way storage and
+retrieval is performed, and/or what deep cloning should do on those
+objects.
+
+To compile this extension, run:
+
+    perl Makefile.PL [PERL_SRC=...where you put perl sources...]
+    make
+    make install
+
+There is an embedded POD manual page in Storable.pm.
+
+Storable was written by Raphael Manfredi <Raphael_Manfredi@pobox.com>
+Maintenance is now done by cperl, https://github.com/rurban/Storable/
+Note that p5p still ships an old broken version, without stack overflow
+protection and large object support. As long as you don't store overlarge
+objects, they are compatible.
+
+Please e-mail us with problems, bug fixes, comments and complaints,
+although if you have complements you should send them to Raphael.
+Please don't e-mail Raphael with problems, as he no longer works on
+Storable, and your message will be delayed while he forwards it to us.
+
+------------------------------------------------------------------------
+Thanks to (in chronological order):
+
+    Jarkko Hietaniemi <jhi@iki.fi>
+    Ulrich Pfeifer <pfeifer@charly.informatik.uni-dortmund.de>
+    Benjamin A. Holzman <bholzman@earthlink.net>
+    Andrew Ford <A.Ford@ford-mason.co.uk>
+    Gisle Aas <gisle@aas.no>
+    Jeff Gresham <gresham_jeffrey@jpmorgan.com>
+    Murray Nesbitt <murray@activestate.com>
+    Albert N. Micheev <Albert.N.Micheev@f80.n5049.z2.fidonet.org>
+    Marc Lehmann <pcg@opengroup.org>
+    Justin Banks <justinb@wamnet.com>
+    Jarkko Hietaniemi <jhi@iki.fi> (AGAIN, as perl 5.7.0 Pumpkin!)
+    Todd Rinaldo <toddr@cpanel.net> and JD Lightsey <jd@cpanel.net>
+      for optional disabling tie and bless for increased security.
+    Reini Urban <rurban@cpanel.net> for the 3.0x >2G support and rewrite
+    JD Lightsey <jd@cpanel.net>
+
+for their contributions.
+
+A Japanese translation of this man page is available at the Japanized
+Perl Resources Project <https://sourceforge.jp/projects/perldocjp/>.
+------------------------------------------------------------------------
+
+The perl5-porters would like to thank
+
+    Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+According to the perl5.8 Changes file, the following people have helped
+bring you this Storable release:
+
+    Abhijit Menon-Sen <ams@wiw.org>
+    Andreas J. Koenig <andreas.koenig@anima.de>
+    Archer Sully <archer@meer.net>
+    Craig A. Berry <craig.berry@psinetcs.com>
+    Dan Kogai <dankogai@dan.co.jp>
+    Doug MacEachern <dougm@covalent.net>
+    Gurusamy Sarathy <gsar@ActiveState.com>
+    H.Merijn Brand <h.m.brand@xs4all.nl>
+    Jarkko Hietaniemi <jhi@iki.fi>
+    Mark Bixby
+    Michael Stevens <michael@etla.org>
+    Mike Guy <mjtg@cam.ac.uk>
+    Nicholas Clark <nick@unfortu.net>
+    Peter J. Farley III <pjfarley@banet.net>
+    Peter Prymmer <pvhp@forte.com>
+    Philip Newton <pne@cpan.org>
+    Raphael Manfredi <Raphael_Manfredi@pobox.com>
+    Robin Barker <rmb1@cise.npl.co.uk>
+    Radu Greab <radu@netsoft.ro>
+    Tim Bunce <Tim.Bunce@pobox.com>
+    VMSperlers
+    Yitzchak Scott-Thoennes <sthoenna@efn.org>

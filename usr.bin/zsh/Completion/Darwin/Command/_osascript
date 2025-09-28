@@ -1,0 +1,34 @@
+#compdef osascript
+
+local ret=1
+local -a context line state state_descr tmp
+local -A opt_args val_args
+
+_arguments -s -S : \
+  '-l+[specify script language]: :->languages' \
+  '(:)*-e+[execute specified line of script]:script' \
+  '-i[run interactively]' \
+  '*-s+[specify output style]: :->modifiers' \
+  '(-e)1:script file:_files' \
+&& ret=0
+
+case $state in
+  languages)
+    # So far, the three languages specified here are the only ones supported,
+    # but adding the output of osalang makes this future-proof
+    _values 'script language' \
+      AppleScript JavaScript 'Generic Scripting System' \
+      ${(f)"$( _call_program languages command osalang )"} \
+    && ret=0
+    ;;
+  modifiers)
+    _values -S '' 'output modifier flag' \
+      'h[print values in human-readable form]' \
+      's[print values in recompilable source form]' \
+      'e[print script errors to stderr]' \
+      'o[print script errors to stdout]' \
+    && ret=0
+    ;;
+esac
+
+return ret

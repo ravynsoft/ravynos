@@ -1,0 +1,87 @@
+#compdef stow chkstow
+
+#
+# A zsh completion script for GNU stow (https://www.gnu.org/software/stow/)
+#
+
+(( $+functions[__stow_packages] )) ||
+__stow_packages() {
+  local stow_dir=${(Q)1}
+  local -a stow_pkg_list=( $stow_dir/*(-/N:t) )
+
+  if [[ ${#stow_pkg_list} -gt 0 ]]; then
+    _values -C "package from $stow_dir" ${${stow_pkg_list//\\/\\\\}//:/\\:}
+  else
+    _message "no package found in $stow_dir"
+  fi
+}
+
+case $service in
+  stow)
+    local state line curcontext="$curcontext" ret=1
+    typeset -A opt_args
+    # Others local variables
+    local stow_dir arguments
+
+    arguments=(
+      '(- *)'{--help,-h}'[show help]'
+      '(- *)'{--version,-V}'[show version number]'
+      '(-d --dir)'{-d+,--dir=}'[set the stow dir (default is current dir)]:stow dir [$PWD]:_files -/'
+      '(-t --target)'{-t+,--target=}'[set the target dir (default is parent of stow dir)]:target dir [../$PWD]:_files -/'
+      # Several distinct actions can be specified in a single invocation
+      # of the stow command (stow/unstow/restow). However, neither the
+      # stow command nor this script will prevent you from using
+      # different actions on the same package.
+      '*'{-S,--stow}'[stow the package names that follow]: :->stow_package'
+      '*'{-D,--delete}'[unstow the package names that follow]: :->stow_package'
+      '*'{-R,--restow}'[restow (unstow and stow again) the package names that follow]: :->stow_package'
+      '--adopt[adopt already existing plain file]'
+      '--ignore=[ignore files ending with this perl regex]:regexp:'
+      "--defer=[don't stow files beginning with this perl regex]:regexp:"
+      '--override=[force stowing files beginning with this perl regex]:regexp:'
+      '--no-folding[disable any further tree folding or tree refolding]'
+      '--dotfiles[enable special handling for dotfiles]'
+      '(-p --compat)'{-p,--compat}'[use legacy algorithm for unstowing]'
+      '(-n -no --simulate)'{-n,--no,--simulate}'[do not actually make any filesystem changes]'
+      '*-v[increase verbosity]'
+      '*--verbose=-[increase verbosity]::level:(0 1 2 3 4 5)'
+      '*:stow package:->stow_package'
+    )
+
+    _arguments -s -C $arguments && ret=0
+
+    case $state in
+      (stow_package)
+        if (( $+opt_args[-d] )) ; then
+          stow_dir="$opt_args[-d]"
+        elif (( $+opt_args[--dir] )) ; then
+          stow_dir="$opt_args[--dir]"
+        elif [[ ${(t)STOW_DIR} == *export* ]] && [[ -n "$STOW_DIR" ]]; then
+          # if not provided from the command line, for the stow command, the stow
+          # directory is assumed to be the value of the "STOW_DIR" environment
+          # variable...
+          stow_dir="$STOW_DIR"
+        else
+          # ...if unset, the stow directory is assumed to be the current directory
+          stow_dir="$PWD"
+        fi
+
+        __stow_packages "$stow_dir" && ret=0
+
+        ;;
+    esac
+
+    return ret
+    ;;
+  chkstow)
+    local arguments
+    arguments=(
+      '(-t --target)'{-t+,--target=}'[set the target directory (default is /usr/local/)]:target dir:_files -/'
+      '(-b --badlinks)'{-b,--badlinks}'[report symlinks that point to non-existent files (default mode)]'
+      '(-a --aliens)'{-a,--aliens}'[report non-symlinks in the target directory]'
+      '(-l --list)'{-l,--list}'[list packages in the target directory]'
+    )
+    _arguments $arguments
+    ;;
+esac
+

@@ -1,0 +1,10 @@
+command [ -pvV ] simple command
+       The  simple command argument is taken as an external command in-
+       stead  of  a  function  or  builtin  and  is  executed.  If  the
+       POSIX_BUILTINS option is set, builtins will also be executed but
+       certain special properties of them are suppressed. The  -p  flag
+       causes  a  default path to be searched instead of that in $path.
+       With the -v flag, command is similar to whence and with  -V,  it
+       is equivalent to whence -v.
+
+       See also the section `Precommand Modifiers' in zshmisc(1).

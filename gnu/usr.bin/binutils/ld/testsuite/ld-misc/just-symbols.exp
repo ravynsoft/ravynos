@@ -1,0 +1,68 @@
+# Expect script for ld --just-symbols tests.
+#   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+# SH/PE targets complain about zero VMA.
+# i386-msdos doesn't have .data
+# tic30-coff has a weird 32-bit reloc that divides sym value by four
+# alpha-dec-vms wants a bunch of libs to link
+if { [istarget sh-*-pe]
+     || [istarget *-*-msdos]
+     || [istarget *c30-*-*]
+     || [istarget alpha-*-vms] } {
+    return
+}
+
+set saved_LDFLAGS "$LDFLAGS"
+if { [is_pecoff_format] } then {
+    # Avoid auto image-basing.
+    set LDFLAGS "$LDFLAGS --image-base 0"
+} elseif { [is_xcoff_format] } then {
+    set LDFLAGS "$LDFLAGS -bnogc"
+}
+
+run_ld_link_tests [list \
+    [list "Object for --just-symbols test" \
+     "$LDFLAGS -r -T just-symbols.ld" "" \
+     "" \
+     {just-symbols-0.s} \
+     {} \
+     "just-symbols-r"] \
+    [list "Executable for --just-symbols test" \
+     "$LDFLAGS -e 0 -T just-symbols.ld" "" \
+     "" \
+     {just-symbols-0.s} \
+     {} \
+     "just-symbols-0"] \
+    [list "Object with --just-symbols test" \
+     "$LDFLAGS -e 0 -T just-symbols.ld --just-symbols=tmpdir/just-symbols-0.o" "" \
+     "" \
+     {just-symbols-1.s} \
+     {{objdump {-s -j .data} just-symbols-1.dd}} \
+     "just-symbols-1obj"] \
+    [list "Executable with --just-symbols test" \
+     "$LDFLAGS -e 0 -T just-symbols.ld --just-symbols=tmpdir/just-symbols-0" "" \
+     "" \
+     {just-symbols-1.s} \
+     {{objdump {-s -j .data} just-symbols-1.dd}} \
+     "just-symbols-1exe"] \
+]
+
+set LDFLAGS "$saved_LDFLAGS"

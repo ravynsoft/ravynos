@@ -1,0 +1,21 @@
+#compdef sched
+
+local expl lines disp
+
+if [[ CURRENT -eq 2 ]]; then
+  if compset -P -; then
+    lines=(${(f)"$(sched)"})
+    if zstyle -T ":completion:${curcontext}:jobs" verbose; then
+      disp=( -ld lines )
+    else
+      disp=()
+    fi
+    [[ -z $lines ]] || _wanted jobs expl 'scheduled job' \
+                           compadd "$disp[@]" - {1..$#lines}
+    return
+  else
+    _message -e times 'time specification'
+    return 1
+  fi
+fi
+compset -n 3 && _normal

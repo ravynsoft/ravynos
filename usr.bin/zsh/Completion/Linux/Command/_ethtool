@@ -1,0 +1,347 @@
+#compdef ethtool
+
+local curcontext="$curcontext"
+local -a state line expl cmds
+local -A opt_args
+
+_arguments -C \
+  '--debug[turn on debugging messages]:mask:((1\:parser\ information))' \
+  '--json[output results in JSON]' \
+  '(-I --include-statistics)'{-I,--include-statistics}'[include command-related statistics in the output]' \
+  '(cmds)'{-Q,--per-queue}'[apply per-queue command]: :(queue_mask):queue mask' \
+  "1:interface:_net_interfaces" \
+  '*:: :->args' \
+  + '(cmdc)' \
+  '(cmds)'{-c,--show-coalesce}'[query the specified ethernet device for coalescing information]' \
+  '(cmds)'{-C,--coalesce}'[change the coalescing settings of the specified ethernet device]' \
+  + '(cmds)' \
+  '(1)'{-h,--help}'[display help information]' \
+  '(1)--version[display version information]' \
+  {-s,--change}'[allow changing some or all settings of the specified ethernet device]' \
+  {-a,--show-pause}'[query the specified ethernet device for pause parameter information]' \
+  {-A,--pause}'[change the pause parameters of the specified ethernet device]' \
+  {-g,--show-ring}'[query the specified ethernet device for RX/TX ring parameter information]' \
+  {-G,--set-ring}'[change the RX/TX ring parameters of the specified ethernet device]' \
+  {-k,--show-features,--show-offload}'[query the specified ethernet device for offload information]' \
+  {-K,--features,--offload}'[change the offload parameters of the specified ethernet device]' \
+  {-i,--driver}'[query the specified ethernet device for associated driver information]' \
+  {-d,--register-dump}'[retrieve and prints a register dump for the specified ethernet device]' \
+  {-e,--eeprom-dump}'[retrieve and prints an EEPROM dump for the specified ethernet device]' \
+  {-E,--change-eeprom}'[change EEPROM byte for the specified ethernet device]' \
+  {-r,--negotiate}'[restart auto-negotiation on the specified ethernet device]' \
+  {-p,--identify}'[initiate adapter-specific action intended to identify the adapter by sight]' \
+  {-t,--test}'[execute adapter selftest on the specified ethernet device]' \
+  {-S,--statistics}'[query specified ethernet device for NIC- and driver-specific statistics]' \
+  '--phy-statistics[show phy statistics]' \
+  {-n,--show-nfc,-u,--show-ntuple}'[retrieve receive network flow classification options or rules]' \
+  {-N,--config-nfc,-U,--config-ntuple}'[configure receive network flow classification options or rules]' \
+  {-T,--show-time-stamping}"[show device's time stamping capabilities]" \
+  {-x,--show-rxfh-indir,--show-rxfh}'[show Rx flow hash indirection table and/or RSS hash key]' \
+  {-X,--set-rxfh-indir,--rxfh}'[set Rx flow hash indirection table and/or RSS hash key]' \
+  {-f,--flash}'[flash firmware image from the specified file]' \
+  {-P,--show-permaddr}'[show permanent hardware address]' \
+  {-w,--get-dump}'[get dump flag, data]' \
+  {-W,--set-dump}'[set device dump flag]' \
+  {-l,--show-channels}'[query channels]' \
+  {-L,--set-channels}'[set channels]' \
+  '--show-priv-flags[query private flags]' \
+  '--set-priv-flags[set private flags]' \
+  {-m,--dump-module-eeprom,--module-info}'[show module EEPROM information]' \
+  '--show-eee[show EEE settings]' \
+  '--set-eee[set EEE settings]' \
+  '--set-phy-tunable[set PHY tunable]' \
+  '--get-phy-tunable[get PHY tunable]' \
+  '--get-tunable[get tunable parameters]' \
+  "--set-tunable[set driver's tunable parameters]" \
+  '--reset[reset hardware components]' \
+  '--show-fec[query device for forward error correction support]' \
+  '--set-fec[configure forward error correction for device]' \
+  '--cable-test[perform cable test and report the results]' \
+  '--cable-test-tdr[perform cable test and report Time Domain Reflectometer data]' \
+  '--show-tunnels[show tunnel-related device capabilities and state]' \
+  '--monitor[listen to netlink notifications and displays them]::command:(
+    --all -s --change -k --show-features --show-offload -K
+    --features --offload  --show-priv-flags --set-priv-flags -g --show-ring
+    -G --set-ring -l --show-channels -L --set-channels -c --show-coalesce
+    -C --coalesce -a --show-pause -A --pause --show-eee --set-eee
+    --cable-test --cable-test-tdr
+  )' && return
+
+if [[ -n $state ]]; then
+  case $words[CURRENT-1] in
+  rx|tx)
+    if (( $+opt_args[cmds--G] + $+opt_args[cmds---set-ring] )); then
+      _message -e numbers 'number of ring entries'
+    elif (( $+opt_args[cmds--L] + $+opt_args[cmds---set-channels] )); then
+      _message -e numbers 'number of channels'
+    else
+      _wanted onoff expl 'enabled' compadd off on
+    fi
+  ;;
+  autoneg|adaptive-[rt]x|raw|hex|sg|tso|ufo|gso|lro|eee|tx-lpi|downshift) ;&
+  fast-link-down|energy-detect-power-down|mode)
+    _wanted onoff expl 'enabled' compadd off on
+  ;;
+  rx-usecs|rx-frames|rx-usecs-irq|rx-frames-irq|tx-usecs|tx-frames) ;&
+  tx-usecs-irq|tx-frames-irq|stats-block-usecs|pkt-rate-low|rx-usecs-low) ;&
+  rx-frames-low|tx-usecs-low|tx-frames-low|pkt-rate-high|rx-usecs-high) ;&
+  rx-frames-high|tx-usecs-high|tx-frames-high|sample-interval|dmac|rx-mini) ;&
+  rx-jumbo|offset|length|magic|value|phyad|proto|tos|tclass|l4proto|src-port) ;&
+  dst-port|spi|l4data|vlan-etype|vlan|user-def|action|vf|queue|loc) ;&
+  page|bank|i2c|first|last|step|pair|lanes) ;&
+  rx-copybreak|tx-copybreak|pfc-prevention-tout) ;&
+  other|combined|tx-timer|count|msecs)
+    _message -e numbers 'number'
+  ;;
+  speed)
+        _wanted -x speed expl 'speed' compadd 10 100 1000
+  ;;
+  duplex)
+    _wanted duplex expl 'duplex mode' compadd half full
+  ;;
+  port)
+    _wanted port expl 'device port' compadd tp aui bnc mii fibre da
+  ;;
+  master-slave)
+    _wanted roles expl role compadd {preferred,forced}-{master,slave}
+  ;;
+  advertise)
+    _values 'hexadecimal value (or a combination of the following)' \
+      '0x001[10 half]' \
+      '0x002[10 full]' \
+      '0x004[100 half]' \
+      '0x008[100 full]' \
+      '0x010[1000 half(not supported by IEEE standards)]' \
+      '0x020[1000 full]' \
+      '0x8000[2500 full(not supported by IEEE standards)]' \
+      '0x800[10000 full]' \
+      '0x03F[auto]' \
+      'mode[set mode]'
+  ;;
+  xcvr)
+    _wanted xcvr expl 'transceiver type' compadd internal external
+  ;;
+  wol)
+    _values -s '' 'Wake-on-LAN option' \
+      '(d)p[wake on phy activity]' \
+      '(d)u[wake on unicast messages]' \
+      '(d)m[wake on multicast messages]' \
+      '(d)b[wake on broadcast messages]' \
+      '(d)a[wake on ARP]' \
+      '(d)g[wake on MagicPacket(tm)]' \
+      '(d)s[enable SecureOn(tm) password for MagicPacket(tm)]' \
+      '(d)f[wake on filter(s)]' \
+      '(p u m b a g s)d[disable (wake on nothing)]'
+  ;;
+  sopass)
+    _message -e secureon 'password - 6 bytes in ethernet MAC hex format (xx:yy:zz:aa:bb:cc)'
+  ;;
+  data|file)
+    _wanted files expl 'file' _files
+  ;;
+  rx-flow-hash)
+    _wanted flow-types expl 'flow type' compadd {tcp,udp,ah,esp,sctp}{4,6}
+  ;;
+  rule)
+    _message -e ids 'rule id'
+  ;;
+  flow-type)
+    _wanted flow-types expl 'flow type' compadd ether {tcp,udp,ah,esp,sctp}{4,6}
+  ;;
+  src|src-ip|dst|dst-ip|dst-mac)
+    _message -e addresses address
+  ;;
+  m)
+    _message -e masks mask
+  ;;
+  hkey)
+    _message -e keys 'hash key'
+  ;;
+  hfunc)
+    _message -e functions 'hash function'
+  ;;
+  flags)
+    _message -e masks mask
+  ;;
+  context)
+    _message -e contexts 'RSS context'
+  ;;
+  *)
+    case ${${(Mk)opt_args:#cmd?*}[1]#cmd?-} in
+    -A|--pause)
+      _values -S ' ' -w 'pause parameter' \
+        'autoneg[specify if pause autonegotiation is enabled]' \
+        'rx[specify if RX pause is enabled]' \
+        'tx[specify if TX pause is enabled]'
+    ;;
+    -C|--coalesce)
+      _wanted settings expl 'coalescing setting' compadd -F line -M 'r:|-=* r:|=*' - \
+        adaptive-{r,t}x {r,t}x-{usecs,frames}{,-irq,-high,-low} \
+        stats-block-usecs pkt-rate-{low,high} sample-interval
+    ;;
+    -G|--set-ring)
+      _values -S ' ' -w 'ring parameter' \
+        'rx[change number of ring entries for the RX ring]' \
+        'rx-mini[change number of ring entries for the RX Mini ring]' \
+        'rx-jumbo[change number of ring entries for the RX Jumbo ring]' \
+        'tx[change number of ring entries for the TX ring]'
+    ;;
+    -d|--register-dump)
+      _values -S ' ' -w 'option' \
+        'hex[dump hex register data]' \
+        'raw[dump raw register data]' \
+        'file[use contents from file rather than device]'
+    ;;
+    -e|--eeprom-dump)
+      _values -S ' ' -w 'option' \
+        'raw[dump raw EEPROM data]' \
+        'offset' 'length'
+    ;;
+    -E|--change-eeprom)
+      _values -S ' ' -w 'option' \
+        'magic[device-specific key]' \
+        'offset' 'length'
+        'value[new value]'
+    ;;
+    -K|--features|--offload)
+      if (( CURRENT % 2 )); then
+        _wanted values expl enable compadd on off
+      else
+        _wanted features expl feature compadd -F line - \
+            ${${${${(f)"$(_call_program features $words[1] -k $line[1])"}%%:*}#$'\t'}[2,-1]} \
+            rx tx sg tso ufo gso gro rxvlan txvlan ntuple rxhash
+      fi
+    ;;
+    -p|--identify)
+      (( CURRENT = 4 )) && _message -e length 'duration (seconds)'
+    ;;
+    -S|--statistics)
+      _arguments '(-)--all-groups' '(-)--groups:eth-phy: :eth-mac: :eth-ctrl: :rmon'
+    ;;
+    -t|--test)
+      _values -S ' ' -w 'test mode' \
+        '(online)offline:perform full set of tests possibly causing normal operation interruption (default)]' \
+        '(offline)online:perform limited set of tests without interrupting normal adapter operation]' \
+        'external_lb[perform full set of tests plus external-loopback test]'
+    ;;
+    -s|--change)
+      if (( ! $words[(I)msglvl] )); then
+        _values -S ' ' -w 'generic option' \
+          'speed[set speed in Mb/s]' \
+          'lanes[set number of lanes]' \
+          'duplex[set full or half duplex mode]' \
+          'port[select device port]' \
+          'master-slave[configure interface role]' \
+          'autoneg[specify if autonegotiation is enabled]' \
+          'advertise[set the speed and duplex advertised by autonegotiation]' \
+          'phyad[PHY address]' \
+          'xcvr[select transceiver type]' \
+          'wol[set Wake-on-LAN options]' \
+          'sopass[set the SecureOn(tm) password]' \
+          'msglvl[set the driver message level]'
+      elif (( (CURRENT - $words[(I)msglvl]) % 2 )); then
+        [[ -prefix [^0-9]## ]] || _message -e numbers number
+        _wanted flags expl 'message type flag' compadd drv probe link timer \
+            if{down,up} rx_{err,status} tx_{err,queued,done} intr pktdata hw wol
+      else
+        _wanted onoff expl 'enabled' compadd off on
+      fi
+          ;;
+    -n|-u|--show-nfc|--show-ntuple)
+      _wanted options expl option compadd -F line - rx-flow-hash context rule
+    ;;
+    -N|-U|--config-nfc|--config-ntuple)
+      if [[ $words[CURRENT-2] = rx-flow-hash ]]; then
+        _values -S ' ' 'rx packet hash' \
+          'm[layer 2 destination address]' \
+          'v[VLAN tag]' \
+          't[layer 3 protocol field]' \
+          's[IP source address]' \
+          'd[IP destination address]' \
+          'f[bytes 0 and 1 of the Layer 4 header]' \
+          'n[bytes 2 and 3 of the Layer 4 header]' \
+          'r[discard all packets of this flow type]'
+      elif [[ $words[CURRENT-1] = delete ]]; then
+        _message -e numbers 'number'
+      else
+        _wanted options expl option compadd -F line - rx-flow-hash context flow-type \
+            delete src dst proto src-ip dst-ip tos m tclass l4proto src-port \
+            dst-port spi l4data vlan-etype vlan user-def dst-mac action vf \
+            queue context loc
+      fi
+    ;;
+    -x|--show-rxfh-indir|--show-rxfh)
+      _wanted options expl option compadd -F line - context
+    ;;
+    -X|--set-rxfh-indir|--rxfh)
+      _values -S ' ' -w 'option' \
+        context \
+        '(weight default)equal' \
+        '(equal default)weight' \
+        '(equal weight)default' \
+        hkey hfunc delete
+    ;;
+    -f|--flash)
+      if (( CURRENT == 4 )); then
+        _files
+      else
+        _message -e regions region
+      fi
+    ;;
+    -w|--get-dump)
+      _wanted options expl option compadd data
+    ;;
+    -L|--set-channels)
+      _wanted options expl option compadd -F line - rx tx other combined
+    ;;
+    --set-priv-flags)
+      if (( CURRENT % 2 )); then
+        _wanted values expl enable compadd on off
+      else
+        _message -e flags 'private flag'
+      fi
+    ;;
+    -m|--dump-module-eeprom|--module-info)
+      _wanted options expl option compadd -F line - raw hex offset \
+          length page bank i2c
+    ;;
+    --set-eee)
+      _wanted behaviours expl behaviour compadd -F line - eee advertise tx-lpi tx-timer
+    ;;
+    --set-phy-tunable)
+      _wanted options expl tunable compadd -F line - downshift count \
+	  fast-link-down msecs energy-detect-power-down
+    ;;
+    --get-phy-tunable)
+      _wanted options expl tunable compadd downshift fast-link-down \
+	  energy-detect-power-down
+    ;;
+    --[gs]et-tunable)
+      _wanted options expl tunable compadd rx-copybreak tx-copybreak \
+          pfc-prevention-tout
+    ;;
+    --reset)
+      _wanted components expl component compadd flags dedicated all \
+          {mgmt,irq,dma,filter,offload,mac,phy,ram,ap}{,-shared}
+    ;;
+    --set-fec)
+      if (( CURRENT == 4 )); then
+        _wanted options expl tunable compadd - encoding
+      else
+        _wanted encodings expl encoding compadd -F line auto off rs baser
+      fi
+    ;;
+    -Q|--pre-queue)
+      if (( CURRENT == 4 )); then
+        _wanted options expl option compadd - queue_mask
+      elif (( CURRENT == 6)); then
+        _wanted options expl option compadd -c --show-coalescing -C --coalesce
+      fi
+    ;;
+    --cable-test-tdr)
+      _wanted options expl 'distance options' compadd first last step pair
+    ;;
+    esac
+  ;;
+  esac
+fi

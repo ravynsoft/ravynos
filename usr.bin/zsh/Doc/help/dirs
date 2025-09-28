@@ -1,0 +1,17 @@
+dirs [ -c ] [ arg ... ]
+dirs [ -lpv ]
+       With no arguments, print the contents of  the  directory  stack.
+       Directories  are added to this stack with the pushd command, and
+       removed with the cd or popd commands.  If arguments  are  speci-
+       fied,  load  them  onto  the directory stack, replacing anything
+       that was there, and push the current directory onto the stack.
+
+       -c     clear the directory stack.
+
+       -l     print directory names in full instead of using of using ~
+              expressions  (see Dynamic and Static named directories in
+              zshexpn(1)).
+
+       -p     print directory entries one per line.
+
+       -v     number the directories in the stack when printing.

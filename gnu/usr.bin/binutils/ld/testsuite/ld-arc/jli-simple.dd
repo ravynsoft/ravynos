@@ -1,0 +1,26 @@
+
+.*:     file format .*
+architecture: ARCv2, flags 0x00000113:
+HAS_RELOC, EXEC_P, HAS_SYMS, D_PAGED
+start address 0x00010000
+
+
+Disassembly of section .text:
+
+00010054 <test>:
+   10054:	5800                	jli_s	0
+   10056:	5801                	jli_s	0x1
+
+00010058 <foo>:
+   10058:	2000 0000           	add	r0,r0,r0
+
+0001005c <bar>:
+   1005c:	2100 0080           	add	r0,r1,r2
+
+Disassembly of section .jlitab:
+
+00010060 <__jli.foo>:
+   10060:	07f9 ffcf           	b	-8	;10058 <foo>
+
+00010064 <__jli.bar>:
+   10064:	07f9 ffcf           	b	-8	;1005c <bar>

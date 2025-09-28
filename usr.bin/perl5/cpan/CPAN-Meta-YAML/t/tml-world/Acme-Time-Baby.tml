@@ -1,0 +1,27 @@
+=== Acme-Time-Baby
+--- yaml
+\# http://module-build.sourceforge.net/META-spec.html
+\#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         Acme-Time-Baby
+version:      2.106
+version_from: Baby.pm
+installdirs:  site
+requires:
+    warnings:
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.17
+
+--- perl
+[ {
+    name => 'Acme-Time-Baby',
+    version => '2.106',
+    version_from => 'Baby.pm',
+    installdirs => 'site',
+    requires => {
+        warnings => undef,
+    },
+    distribution_type => 'module',
+    generated_by => 'ExtUtils::MakeMaker version 6.17',
+} ]
+

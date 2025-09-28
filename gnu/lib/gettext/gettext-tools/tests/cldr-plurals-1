@@ -1,0 +1,63 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+: ${DIFF=diff}
+
+# Test conversion from CLDR to gettext, for Arabic and Russian
+
+LC_ALL=C "$top_builddir/src/cldr-plurals" ru /dev/null 2>&1 | grep 'extraction is not supported' > /dev/null 2>&1
+test $? = 0 && {
+  echo "Skipping test: cldr-plurals was built without XML support"
+  Exit 77
+}
+
+cat > ar.ok <<\EOF
+nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5);
+EOF
+
+"$top_builddir/src/cldr-plurals" > ar.tmp <<\EOF
+zero: n = 0 @integer 0 @decimal 0.0, 0.00, 0.000, 0.0000; one: n = 1 @integer 1 @decimal 1.0, 1.00, 1.000, 1.0000; two: n = 2 @integer 2 @decimal 2.0, 2.00, 2.000, 2.0000; few: n % 100 = 3..10 @integer 3~10, 103~110, 1003, … @decimal 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 103.0, 1003.0, …; many: n % 100 = 11..99 @integer 11~26, 111, 1011, … @decimal 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 111.0, 1011.0, …; other:  @integer 100~102, 200~202, 300~302, 400~402, 500~502, 600, 1000, 10000, 100000, 1000000, … @decimal 0.1~0.9, 1.1~1.7, 10.1, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, …
+EOF
+LC_ALL=C tr -d '\r' < ar.tmp > ar.out || Exit 1
+
+${DIFF} ar.ok ar.out || Exit 1
+
+cat > ru.ok <<\EOF
+nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);
+EOF
+
+"$top_builddir/src/cldr-plurals" > ru.tmp <<\EOF
+one: v = 0 and i % 10 = 1 and i % 100 != 11 @integer 1, 21, 31, 41, 51, 61, 71, 81, 101, 1001, …; few: v = 0 and i % 10 = 2..4 and i % 100 != 12..14 @integer 2~4, 22~24, 32~34, 42~44, 52~54, 62, 102, 1002, …; many: v = 0 and i % 10 = 0 or v = 0 and i % 10 = 5..9 or v = 0 and i % 100 = 11..14 @integer 0, 5~19, 100, 1000, 10000, 100000, 1000000, …; other:    @decimal 0.0~1.5, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, …
+EOF
+LC_ALL=C tr -d '\r' < ru.tmp > ru.out || Exit 1
+
+${DIFF} ru.ok ru.out || Exit 1
+
+# Test extraction from CLDR
+
+cat > foo.in <<\EOF
+<supplementalData>
+  <plurals type="cardinal">
+    <pluralRules locales="foo">
+      <pluralRule count="one">i = 1 and v = 0 @integer 1</pluralRule>
+      <pluralRule count="other"> @integer 0, 2~16, 100, 1000, 10000, 100000, 1000000, … @decimal 0.0~1.5, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, …</pluralRule>
+    </pluralRules>
+  </plurals>
+</supplementalData>
+EOF
+
+"$top_builddir/src/cldr-plurals" foo foo.in > foo.tmp
+cat > foo.ok <<\EOF
+nplurals=2; plural=(n != 1);
+EOF
+LC_ALL=C tr -d '\r' < foo.tmp > foo.out || Exit 1
+${DIFF} foo.ok foo.out || Exit 1
+
+"$top_builddir/src/cldr-plurals" -c foo foo.in > foo.cldr.tmp
+cat > foo.cldr.ok <<\EOF
+one: i = 1 and v = 0 @integer 1; other:  @integer 0, 2~16, 100, 1000, 10000, 100000, 1000000, … @decimal 0.0~1.5, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, …
+EOF
+LC_ALL=C tr -d '\r' < foo.cldr.tmp > foo.cldr.out || Exit 1
+${DIFF} foo.cldr.ok foo.cldr.out || Exit 1
+
+Exit 0

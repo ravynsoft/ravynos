@@ -1,0 +1,25 @@
+#compdef freebsd-update
+
+local flags
+flags=(
+  '(cron)fetch[fetch a compressed snapshot or update existing one]'
+  '(fetch)cron[sleep rand(3600) seconds, and then fetch updates]'
+  '(install rollback)upgrade[fetch files necessary for upgrading to a new release]'
+  'updatesready[check if there are fetched updates ready to install]'
+  '(upgrade rollback)install[install the most recently fetched updates or upgrade]'
+  '(upgrade install)rollback[uninstall the most recently installed updates]'
+  'IDS[compare the system against an index of "known good" files]'
+  'showconfig[show configuration options after parsing conffile and command line options]'
+)
+
+_arguments \
+  '-b[operate on a system mounted at basedir]:basedir:_files -/' \
+  '-d[store working files in workdir]:workdir:_files -/' \
+  '-f[read configuration options from conffile]:conf file:_files' \
+  '-F[force freebsd-update fetch to proceed where it normally would not]' \
+  '-k[trust an RSA key with SHA256 of KEY]:RSA key' \
+  '-r[specify the new release]:new release' \
+  '-s[fetch files from the specified server or server pool]:server:_hosts' \
+  '-t[mail output of cron command, if any, to address]:address' \
+  '--currently-running[assume specified release as current]:release' \
+  '*:command:_values -S " " -w "commands" $flags[@]'

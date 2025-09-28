@@ -1,0 +1,21 @@
+#compdef cssh crsh
+
+_arguments \
+  '-h[help]' \
+  '-H[show man page]' \
+  '-v[show version]' \
+  '-d[enable basic debugging mode]' \
+  '-D[enable extended debugging mode]' \
+  '-q[enable automatic quit after last window is closed]' \
+  '-Q[disable automatic quit after last window is closed]' \
+  '-u[output configuration]' \
+  '-g[enable window tiling]' \
+  '-G[disable window tiling]' \
+  '-c[use additional cluster file]:cluster file:_files' \
+  '-l:username:_users' \
+  '-T:window title prefix:' \
+  '-o:arguments to ssh or rsh:' \
+  '-t:arguments to terminals:' \
+  '-i[ignore errors from unresolvable hostnames]' \
+  '-e[evaluate arguments to identify potential errors]:userhostport:_user_at_host' \
+  '*:userhostport: _alternative hosts:host:_hosts usersathosts:userathost:_user_at_host'

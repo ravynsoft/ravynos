@@ -1,0 +1,73 @@
+# localization.at -- libtool and locales                -*- Autotest -*-
+#
+#   Copyright (C) 2008-2019, 2021-2022 Free Software Foundation, Inc.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([localized compiler messages])
+AT_KEYWORDS([libtool])
+
+# Let's try German locale.  :-)
+m4_pushdef([lt_localize],
+[LANG=de_DE LANGUAGE=de_DE LC_ALL=de_DE])
+
+AT_DATA([a.c],
+[[int x[-1];
+]])
+AT_DATA([b.c],
+[[int y;
+]])
+
+# First see if setting a locale is accepted at all.
+AT_CHECK([(lt_localize $CC $CPPFLAGS $CFLAGS -c b.c) || exit 77],
+	 [], [stdout], [stderr])
+
+# Find out about expected output.
+AT_CHECK([(lt_localize $CC $CPPFLAGS $CFLAGS -c a.c) || exit 1],
+	 [1], [stdout], [stderr])
+LT_AT_NORMALIZE_COMPILER_OUTPUT([stdout], [expected-stdout])
+LT_AT_NORMALIZE_COMPILER_OUTPUT([stderr], [expected-stderr])
+AT_CHECK([(lt_localize $LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c a.c) || exit 1],
+	 [1], [stdout], [stderr])
+LT_AT_NORMALIZE_COMPILER_OUTPUT([stdout], [libtool-stdout])
+LT_AT_NORMALIZE_COMPILER_OUTPUT([stderr], [libtool-stderr])
+# Avoid these errors:
+# GNU/Linux:
+#   /bin/sh: warning: setlocale: LC_ALL: cannot change locale (de_DE)
+# HP-UX:
+#   Warning! One or more of your selected locales are not available.
+#   Please invoke the commands "locale" and "locale -a" to verify your
+#   selections and the available locales.
+#
+#   Continuing processing using the "C" locale.
+AT_CHECK([$GREP locale stdout stderr && exit 77], [1])
+AT_CHECK([diff expected-stderr libtool-stderr])
+AT_CHECK([diff expected-stdout libtool-stdout])
+
+# check that we get our quoting right.
+m4_define([lt_localize],
+[[LANGUAGE='a; nosuchprogram " '\''  & $x /#+*(){}|,:`\ !%']])
+AT_CHECK([(lt_localize $LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c b.c)],
+	 [0], [stdout], [stderr])
+AT_CHECK([$GREP nosuchprogram stdout stderr], [1])
+
+m4_popdef([lt_localize])
+
+AT_CLEANUP

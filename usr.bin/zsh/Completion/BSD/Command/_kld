@@ -1,0 +1,46 @@
+#compdef kldload kldunload
+
+(( $+functions[_kld_module] )) ||
+_kld_module() {
+  local ret=1
+
+  compadd "$@" - /boot/{kernel,modules}/*.ko(-.:t) && ret=0
+  _files "$@" -g '*.ko(-.)' && ret=0
+
+  return ret
+}
+
+(( $+functions[_kld_unload] )) ||
+_kld_unload() {
+  compadd "$@" - $( /sbin/kldstat | awk '($1 ~ /^[0-9]/) { print $5 }' )
+}
+
+(( $+functions[_kld_unload_id] )) ||
+_kld_unload_id() {
+  compadd "$@" - $( /sbin/kldstat | awk '($1 ~ /^[0-9]/) { print $1 }' )
+}
+
+_kld() {
+  unset _cache_sysctlvars
+
+  case "$service" in
+    kldload)
+      _arguments -s -S -A "-*" \
+        "-n[don't try to load module if already loaded]" \
+        '-v[be verbose]' \
+        '-q[silence any extraneous warnings]' \
+        '*:module to load:_kld_module'
+    ;;
+
+    kldunload)
+      _arguments -s -S -A "-*" \
+        '-f[force the unload]' \
+        '-v[be verbose]' \
+        '(-n)-i:module id to unload:_kld_unload_id' \
+        '(-i)-n:module to unload:_kld_unload' \
+        '*:module to unload:_kld_unload'
+    ;;
+  esac
+}
+
+_kld "$@"

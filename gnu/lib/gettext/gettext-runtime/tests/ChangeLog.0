@@ -1,0 +1,148 @@
+2015-09-11  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.6 released.
+
+2015-07-10  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.5 released.
+
+2014-12-24  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.4 released.
+
+2014-10-15  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.3 released.
+
+2014-07-14  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.2 released.
+
+2014-06-10  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.1 released.
+
+2014-06-02  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19 released.
+
+2014-04-22  Roumen Petrov  <bugtrack@roumenpetrov.info>  (tiny change)
+
+	build: Use Automake 'subdir-objects' option
+	* Makefile.am (AUTOMAKE_OPTIONS): Add 'subdir-objects'.
+
+2012-12-25  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext-0.18.2 released.
+
+2012-12-17  Daiki Ueno  <ueno@unixuser.org>
+
+	test-lock: work around pthread-win32
+	* test-lock.c (gl_thread_self_pointer): Renamed from
+	gl_thread_self; all callers changed.  Work around pthread-win32.
+	(gl_thread_join): Add extra RETVALP argument; all callers changed.
+
+	test-lock: merge gnulib changes
+	2011-06-09  Bruno Haible  <bruno@clisp.org>
+	* test-lock.c: Use gl_thread_self_pointer instead of
+	gl_thread_self.
+
+	2010-03-25  Bruno Haible  <bruno@clisp.org>
+	Minor formatting changes.
+	* test-lock.c: Insert space before function argument list.
+	Reported by Jim Meyering.
+
+	2008-12-07  Bruno Haible  <bruno@clisp.org>
+	* test-lock.c (test_lock, test_rwlock, test_recursive_lock)
+	(test_once): Mark functions as static.
+
+	2008-09-30  Yoann Vandoorselaere  <yoann.v@prelude-ids.com>
+		    Bruno Haible  <bruno@clisp.org>
+	* test-lock.c (test_lock, test_rwlock, test_recursive_lock)
+	(test_once): Pass an additional NULL argument to gl_thread_join.
+
+	2008-09-21  Bruno Haible  <bruno@clisp.org>
+	* test-lock.c (main): Tweak skip message.
+
+	2008-08-22  Eric Blake  <ebb9@byu.net>
+	test-lock: mention why a test is skipped
+	* test-lock.c (main) [!USE_*_THREADS]: Print why test is skipped.
+
+	2007-05-28  Eric Blake  <ebb9@byu.net>
+	Unconditionally include <config.h> in unit tests.
+	test-lock.c: Remove #ifdef HAVE_CONFIG_H.
+
+2012-02-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* test-lock.c: Spelling fixes.
+
+2012-01-06  Bruno Haible  <bruno@clisp.org>
+
+	Talk about "native Windows API", not "Woe32".
+	* test-lock.c (USE_WINDOWS_THREADS): Renamed from USE_WIN32_THREADS.
+	(TEST_WINDOWS_THREADS): Renamed from TEST_WIN32_THREADS.
+
+2011-06-03  Bruno Haible  <bruno@clisp.org>
+
+	Copyright: Use LGPL 2.1 instead of LGPL 2.0.
+	* test-lock.c: Update copyright header.
+
+2010-06-04  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.18.1 released.
+
+2010-05-09  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.18 released.
+
+2009-12-12  Bruno Haible  <bruno@clisp.org>
+
+	* test-lock.c: Untabify.
+
+2009-05-21  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (AUTOMAKE_OPTIONS): Add 1.11 and color-tests.
+
+2008-09-28  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (test_lock_SOURCES): Add threadlib.c.
+
+2007-11-07  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.17 released.
+
+2006-11-27  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.16.1 released.
+
+2006-10-26  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.16 released.
+
+2006-07-25  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.msvc: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove Makefile.msvc.
+
+2006-07-25  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.vms: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove Makefile.vms.
+
+2006-07-21  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.15 released.
+
+2005-07-16  Bruno Haible  <bruno@clisp.org>
+
+	* test-lock.c (DO_TEST_ONCE): New macro.
+	(once_execute, once_contender_thread, test_once): New functions.
+	(main): Also call test_once.
+
+2005-07-16  Bruno Haible  <bruno@clisp.org>
+
+	* tests-lock.c: New file.
+	* Makefile.am: New file.
+	* Makefile.msvc: New file.
+	* Makefile.vms: New file.
+

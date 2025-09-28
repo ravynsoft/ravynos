@@ -1,0 +1,28 @@
+dn: cn=defaults,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: defaults
+description: Default sudoOption's go here
+sudoOption: lecture
+sudoOption: !lecture
+sudoOption: lecture=never
+sudoOption: lecture=once
+sudoOption: lecture=always
+sudoOption: listpw
+sudoOption: !listpw
+sudoOption: listpw=never
+sudoOption: listpw=any
+sudoOption: listpw=all
+sudoOption: listpw=always
+sudoOption: verifypw
+sudoOption: !verifypw
+sudoOption: verifypw=never
+sudoOption: verifypw=any
+sudoOption: verifypw=all
+sudoOption: verifypw=always
+sudoOption: fdexec
+sudoOption: !fdexec
+sudoOption: fdexec=never
+sudoOption: fdexec=digest_only
+sudoOption: fdexec=always
+

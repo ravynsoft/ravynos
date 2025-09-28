@@ -1,0 +1,152 @@
+#compdef dtrace
+
+local curcontext="$curcontext" ret=1
+local -a state line args xopts
+
+case $OSTYPE in
+  ^darwin*)
+    args=(
+      '-32[generate 32-bit D programs and ELF files]'
+      '-64[generate 64-bit D programs and ELF files]'
+      '(-A -h -l -V)-G[generate an ELF file containing embedded dtrace program]'
+      '-X+[specify ISO C conformance settings for preprocessor]:ISO C conformance:((a\:"ISO plus K&R extensions (default)" c\:"Strictly conformant ISO C" s\:"K&R C only" t\:"ISO plus K&R extensions"))'
+    )
+    xopts=(
+      'errexit[exit on error with specified status code]::status [1]'
+      'noresolve[do not perform user address symbol resolution]'
+      'uresolve[specify resolution of user addresses]:how:(no symbol basename absolute)'
+    )
+  ;;
+  darwin*)
+    args=(
+      '*-W[wait for the named process to launch]:name'
+    )
+    xopts=(
+      'amin[set minimum stability attributes]:attribute'
+      'arch[set target data model]:arch'
+      'argref[ignore additional positional command-line args]'
+      'core[create core dump when exiting dtrace]'
+      'cpp[run C preprocessor over D programs before compiling]'
+      'cpphdrs[print each header file name used]'
+      'ctypes[write all CTF definitions into a file]:file:_file'
+      'debug[enable DTrace debug messages]'
+      'define[add preprocessor define]:var[=val]'
+      'disallow_dsym[do not use dSYM files]'
+      'droptags[print drop tags to stderr]'
+      'empty[allow empty D files]'
+      'encoding[set encoding used for output]:encoding:(ascii utf8)'
+      'errtags[prefix error message with error tags]'
+      'evaltime[when to start instrumenting a new process]:when:(preinit postinit)'
+      'incdir[add include file search directory]:directory:_files -/'
+      'ireg[specify size of DIF integer register set]:size'
+      'late[set whether references to dynamic translators are allowed]: :(dynamic static)'
+      'libdir[add library search directory]:directory:_files -/'
+      'mangled[show mangled symbols for C++/Swift probes]'
+      'nolibs[do not include D system libraries]'
+      'nojtanalysis[disable jump table analysis]'
+      'noerror[do not show error messages]'
+      'pgmax[set maximum number of processes DTrace can grab at the same time]:number'
+      'preallocate[preallocate memory in dtrace before running the script]:size'
+      'pspec[interpret ambiguous specifications as probe names]'
+      'strip[strip non-loadable sections from D program]'
+      'tree[show dtrace compiler parse tree at different stages]:bitmap:(1 2 4)'
+      'tregs[specify size of DIF tuple register set]:size'
+      'undef[add #undef into preprocessor predefines]:var name'
+      'verbose[show D compiler intermediate code]'
+      'version[request specific version of DTrace scripting language]:version'
+      'zdefs[permit probe descriptions that match zero probes]'
+      'buflimit[specify threshold percentage for early buffer switches]:percentage (1-99)'
+      'temporal[whether to sort events in time order]:bool:(true false)'
+      'stacksymbols[whether to symbolicate stack symbols]:bool:(true false)'
+    )
+  ;;
+esac
+
+xopts+=(
+  'aggrate[rate of aggregation reading]:time'
+  'aggsize[aggregation buffer size]:size'
+  'ustackframes[number of user stack frames]:scalar'
+  'bufpolicy[specify the buffer policy for the principal buffer]:policy:(fill switch ring)'
+  'bufresize[buffer resizing policy]:policy:(auto manual)'
+  'bufsize[size of the per-CPU principal buffer]:size'
+  'cleanrate[cleaning rate (hz)]:time'
+  'cpu[specify the CPU on which to enable tracing]:scalar'
+  'defaultargs[allow references to unspecified macro arguments]'
+  'destructive[allow destructive actions]'
+  'dynvarsize[size of the dynamic variable space]:size'
+  'flowindent[turn on flow indentation]'
+  'grabanon[claim anonymous state]'
+  'jstackframes[number of default stack frames for jstack()]:scalar'
+  'jstackstrsize[default string space size for jstack()]:scalar'
+  'nspec[number of speculations]:scalar'
+  'quiet[set quiet mode]'
+  'specsize[size of the speculation buffer]:size'
+  'strsize[maximum size of strings]:size'
+  'stackframes[maximum number of kernelspace stack frames to unwind for stack()]:scalar'
+  'stackindent[whitespace characters to use when indenting stack() and ustack() output]:scalar'
+  'statusrate[rate of status checking]:time'
+  'switchrate[rate of buffer switching]:time'
+  'ustackframes[maximum number of userspace stack frames to unwind for ustack()]:scalar'
+  'agghist[whether to show histogram for all aggregations]:bool:(true false)'
+  'aggpack[pack aggregations together]'
+  'aggsortkey[sort aggregation by key]'
+  'aggsortkeypos[position of aggregate key used for sorting]:position'
+  'aggsortpos[position of the aggregate variable used for sorting]:position'
+  'aggsortrev[sort aggregations in reverse order]'
+  'aggzoom[zoom aggregation histogram to the maximum value]'
+  'rawbytes[always print tracemem output in hexadecimal]'
+)
+
+_arguments -C -s $args \
+  '-a[claim anonymous tracing state]' \
+  '(-G -h -l -V)-A[generate driver.conf(4) directives for anonymous tracing]' \
+  '-b+[set trace buffer size]:size' \
+  '*-c+[run specified command and exit upon its completion]:command' \
+  '-C[run cpp(1) preprocessor on script files]' \
+  '*-D+[define symbol when invoking preprocessor]:name' \
+  '-e[exit after compiling request but prior to enabling probes]' \
+  '-f+[enable or list probes matching the specified function name]:function:->functions' \
+  '-F[coalesce trace output by function]' \
+  '-H[print included files when invoking preprocessor]' \
+  '(-A -G -l -V)-h[generate a header file]' \
+  '*-i+[enable or list probes matching the specified probe id]:probe-id' \
+  '-I+[add include directory to preprocessor search path]:path:_directories' \
+  '(-A -G -h -V)-l[list probes instead of enabling them]' \
+  '-L+[add directory to search path for DTrace libraries]:path:_directories' \
+  '*-m+[trace or list probes matching the specified module name]:module:->modules' \
+  '*-n+[trace or list probes matching the specified probe name]:name:->probes' \
+  '-o+[set output file]:output file:_files' \
+  '-p+[grab specified process-ID and cache its symbol tables]:pid:_pids' \
+  '*-P+[trace or list probes matching the specified provider name]:provider:->providers' \
+  '-q[set quiet mode (only output explicitly traced data)]' \
+  '*-s+[enable or list probes according to the specified D script]:script file:_files' \
+  '-S[print D compiler intermediate code]' \
+  '*-U+[undefine symbol when invoking preprocessor]:name' \
+  '-v[set verbose mode (report program stability attributes)]' \
+  '(-A -G -h -l)-V[report DTrace API version]' \
+  '-w[permit destructive actions]' \
+  '*-x+[enable or modify compiler and tracing options]: : _values option $xopts' \
+  '-Z[permit probe descriptions that match zero probes]' && return
+
+if [[ -n $state ]]; then
+  local -a fields=( providers modules functions probes )
+  local -a suf=( : : : )
+  typeset -ga _cache_dtrace_probes
+  (( $#_cache_dtrace_probes )) || _cache_dtrace_probes=(
+      ${${${${(f)"$(_call_program dtrace-probes dtrace -l)"}[2,-1]}:#*[:[#]*}/(#b) #<-> #([^ ]#) #([^ ]#) #([^ ]#) ##([^ ]##)/${match[1]}:${match[3]:+$match[2]}:${match[3]:-$match[2]}:$match[4]}
+  ) # filtering out those containing : and [, they occur on macos but may just be unmangled forms and not directly usable
+  suf[${fields[(i)$state]}]=( "${compstate[quote][-1]} " ) # field matching the state gets a space suffix
+  while compset -P 1 '*:'; do
+    shift fields # each already listed field reduces one being possible
+  done
+  _tags dtrace-${^fields[1,(r)$state]}
+  while _tags; do
+    _requested dtrace-probes expl 'probe name' compadd -S "$suf[4]" - ${${(M)_cache_dtrace_probes:#((#s)|*:)${IPREFIX}[^:]#(#e)}##*:} && ret=0
+    _requested dtrace-functions expl 'function' compadd -S "$suf[3]" - ${${${(M)_cache_dtrace_probes:#((#s)|*:)${IPREFIX}[^:]#:[^:]#(#e)}%:*}##*:} && ret=0
+    _requested dtrace-modules expl 'module' compadd -S "$suf[2]" - ${${${(M)_cache_dtrace_probes:#((#s)|*:)${IPREFIX}[^:]#:[^:]#:[^:]#(#e)}#*:}%%:*} && ret=0
+    _requested dtrace-providers expl 'provider' compadd -S "$suf[1]" - ${_cache_dtrace_probes%%:*} && ret=0
+    (( ret )) || return 0
+  done
+fi
+
+return 1

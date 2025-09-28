@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>TIFFCustomDirectory &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TIFFCustomTagList" href="TIFFCustomTagList.html" />
+    <link rel="prev" title="TIFFCreateDirectory" href="TIFFCreateDirectory.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="TIFFCustomTagList.html" title="TIFFCustomTagList"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="TIFFCreateDirectory.html" title="TIFFCreateDirectory"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" accesskey="U">TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFCustomDirectory</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tiffcustomdirectory">
+<h1>TIFFCustomDirectory<a class="headerlink" href="#tiffcustomdirectory" title="Permalink to this heading">¶</a></h1>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;tiffio.h&gt;</span>
+</pre></div>
+</div>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFCreateCustomDirectory">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFCreateCustomDirectory</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TIFFFieldArray</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">infoarray</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFCreateCustomDirectory" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFCreateEXIFDirectory">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFCreateEXIFDirectory</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFCreateEXIFDirectory" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFCreateGPSDirectory">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFCreateGPSDirectory</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFCreateGPSDirectory" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFWriteCustomDirectory">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFWriteCustomDirectory</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span>, <span class="n"><span class="pre">uint64</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pdiroff</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFWriteCustomDirectory" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFReadCustomDirectory">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFReadCustomDirectory</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span>, <span class="n"><span class="pre">toff_t</span></span><span class="w"> </span><span class="n"><span class="pre">diroff</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TIFFFieldArray</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">infoarray</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFReadCustomDirectory" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFReadEXIFDirectory">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFReadEXIFDirectory</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span>, <span class="n"><span class="pre">toff_t</span></span><span class="w"> </span><span class="n"><span class="pre">diroff</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFReadEXIFDirectory" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFReadGPSDirectory">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFReadGPSDirectory</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span>, <span class="n"><span class="pre">toff_t</span></span><span class="w"> </span><span class="n"><span class="pre">diroff</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFReadGPSDirectory" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c._TIFFGetExifFields">
+<span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TIFFFieldArray</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">_TIFFGetExifFields</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c._TIFFGetExifFields" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c._TIFFGetGpsFields">
+<span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TIFFFieldArray</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">_TIFFGetGpsFields</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c._TIFFGetGpsFields" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<p>The following routines create a custom directory and retrieve information
+about directories in an open TIFF file.</p>
+<p><a class="reference internal" href="#c.TIFFCreateCustomDirectory" title="TIFFCreateCustomDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCreateCustomDirectory()</span></code></a>, <a class="reference internal" href="#c.TIFFCreateEXIFDirectory" title="TIFFCreateEXIFDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCreateEXIFDirectory()</span></code></a>,
+<a class="reference internal" href="#c.TIFFCreateGPSDirectory" title="TIFFCreateGPSDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCreateGPSDirectory()</span></code></a> will setup a custom directory or one
+of the predefined EXIF or GPS directories and set the context of the
+TIFF-handle <code class="docutils literal notranslate"><span class="pre">tif</span></code> to that custom directory for functions
+like <a class="reference internal" href="TIFFSetField.html#c.TIFFSetField" title="TIFFSetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetField()</span></code></a>.</p>
+<p><a class="reference internal" href="#c.TIFFWriteCustomDirectory" title="TIFFWriteCustomDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteCustomDirectory()</span></code></a> will write the contents of the
+current custom directory to the file and return the offset to that
+directory in <code class="xref c c-var docutils literal notranslate"><span class="pre">pdiroff</span></code>. That offset has to be written to the main-IFD:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="cm">/* Go back to the first directory, and add the EXIFIFD pointer. */</span>
+<span class="n">TIFFSetDirectory</span><span class="p">(</span><span class="n">tif</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="n">TIFFSetField</span><span class="p">(</span><span class="n">tif</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_EXIFIFD</span><span class="p">,</span><span class="w"> </span><span class="n">pdiroff</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#c.TIFFReadCustomDirectory" title="TIFFReadCustomDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadCustomDirectory()</span></code></a> will read the custom directory from the
+arbitrary offset into the <code class="xref c c-var docutils literal notranslate"><span class="pre">infoarray</span></code> and sets the context of the
+TIFF-handle <code class="xref c c-var docutils literal notranslate"><span class="pre">tif</span></code> to that custom directory for functions like
+<code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadField()</span></code>. The <code class="xref c c-type docutils literal notranslate"><span class="pre">TIFFFieldArray</span></code> <code class="xref c c-var docutils literal notranslate"><span class="pre">infoarray</span></code>
+has to be according the layout of the custom directory. For the predefined
+EXIF and GPS directories, the relevant <code class="xref c c-type docutils literal notranslate"><span class="pre">TIFFFieldArray</span></code> definitions
+are hidden within the functions <a class="reference internal" href="#c.TIFFReadEXIFDirectory" title="TIFFReadEXIFDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadEXIFDirectory()</span></code></a> and
+<a class="reference internal" href="#c.TIFFReadGPSDirectory" title="TIFFReadGPSDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadGPSDirectory()</span></code></a> The code is very similar to <a class="reference internal" href="TIFFReadDirectory.html#c.TIFFReadDirectory" title="TIFFReadDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadDirectory()</span></code></a>.
+The offset to the custom directory diroff has to be read from the
+relative TIFF tag first.</p>
+<p><a class="reference internal" href="#c._TIFFGetExifFields" title="_TIFFGetExifFields"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFGetExifFields()</span></code></a> and <a class="reference internal" href="#c._TIFFGetGpsFields" title="_TIFFGetGpsFields"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFGetGpsFields()</span></code></a>  will
+return a pointer to the <code class="docutils literal notranslate"><span class="pre">libtiff</span></code> internal definition list of the
+EXIF and GPS tags, respectively.</p>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Permalink to this heading">¶</a></h2>
+<p>Be aware</p>
+<ul class="simple">
+<li><p>that until a directory is not written to file AND read back, the query
+functions won’t retrieve the correct information!</p></li>
+<li><p>that the newly created directory will not exist on the file till
+<a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a>, <a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFCheckpointDirectory" title="TIFFCheckpointDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCheckpointDirectory()</span></code></a>,
+<a class="reference internal" href="TIFFFlush.html#c.TIFFFlush" title="TIFFFlush"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFlush()</span></code></a> or <a class="reference internal" href="TIFFClose.html#c.TIFFClose" title="TIFFClose"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClose()</span></code></a> has been called.</p></li>
+<li><p>that <a class="reference internal" href="TIFFCreateDirectory.html#c.TIFFCreateDirectory" title="TIFFCreateDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCreateDirectory()</span></code></a> and <a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a>
+create a new directory, free the <code class="docutils literal notranslate"><span class="pre">*tif</span></code> structure and set up a new one.</p></li>
+<li><p>that unlike <a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a>, <a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFCheckpointDirectory" title="TIFFCheckpointDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCheckpointDirectory()</span></code></a>
+does not free up the directory data structures in memory.</p></li>
+<li><p>that LibTiff does not support custom directory chains
+(NextIFD pointing to another IFD).
+NextIFD of custom directories is always set to zero
+and should be zero when reading.</p></li>
+</ul>
+<p>Unfortunately to create or read custom directories with predefined fields
+it is necessary to include the private tif_dir.h. However, for EXIF and
+GPS directories, which have a predefined schema within <code class="docutils literal notranslate"><span class="pre">libtiff</span></code>, this
+is not necessary. There are some test programmes that briefly demonstrate
+the creation and reading of EXIF, GPS and custom directories.
+See test/custom_dir.c and test/custom_dir_EXIF_231.c</p>
+</section>
+<section id="hints-and-detailed-instructions">
+<h2>Hints and detailed instructions<a class="headerlink" href="#hints-and-detailed-instructions" title="Permalink to this heading">¶</a></h2>
+<p>Writing TIFF files with more than one directory (IFD) is not easy because
+some side effects need to be known.</p>
+<p>The main point here is that there can only be one <code class="docutils literal notranslate"><span class="pre">tif</span></code> structure in
+the main memory for a file, which can only hold the tags of one directory
+at a time. It is useless to work with two different tiffOut1, tiffOut2
+pointers, because there is only ONE TIFF object (TIFF directory) within
+the <code class="docutils literal notranslate"><span class="pre">libtiff</span></code>. If you want to address a second directory in the file,
+the tags of the current directory must first be saved in the file,
+otherwise they will be lost (overwritten or mixed). Then the <code class="docutils literal notranslate"><span class="pre">tif</span></code>
+structure in the main memory must be tidied up, otherwise the old tags
+will beincluded in the new directory.
+This can be done either by creating a new, empty <code class="docutils literal notranslate"><span class="pre">tif</span></code> structure or by
+reading in an directory previously saved in the file.</p>
+<p>A sequence to handle a second (or third) TIFF directory - in this case
+the GPS IFD - is as follows:</p>
+<ol class="arabic simple">
+<li><p>Create TIFF file</p></li>
+<li><p>Complete the “normal” metadata</p></li>
+<li><p>Set the tag for the custom directory with a “dummy” value in order to
+get the tag reserved. The final value will be inserted lateron. This
+prevents the main directory from being written to the file again at an
+additional area, leaving the first memory area unused:</p></li>
+</ol>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">TIFFSetField</span><span class="p">(</span><span class="n">tiffOut</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_GPSIFD</span><span class="p">,</span><span class="w"> </span><span class="n">dir_offset</span><span class="p">);</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>Save current TIFF-directory to file. Otherwise, it will be lost.
+Remember also the number of the current directory:</p></li>
+</ol>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">TIFFWriteDirectory</span><span class="p">(</span><span class="n">tiffOut</span><span class="p">);</span>
+<span class="n">dirNum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TIFFCurrentDirectory</span><span class="p">(</span><span class="n">tiffOut</span><span class="p">);</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="5">
+<li><p>Create the second TIFF-directory (e.g. custom directory) and set its
+fields. The TIFFFieldArray infoarray has to be specified beforehand
+somewhere in your private include files.
+An example is given for the EXIF directory in tif_dirinfo.c</p></li>
+</ol>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">TIFFCreateCustomDirectory</span><span class="p">(</span><span class="n">tiffOut</span><span class="p">,</span><span class="w"> </span><span class="n">infoarray</span><span class="p">);</span><span class="w">        </span><span class="cm">/* for a real custom directory */</span>
+<span class="cm">/* or alternatively, use GPS or EXIF with pre-defined TIFFFieldArray IFD field structure */</span>
+<span class="n">TIFFCreateGPSDirectory</span><span class="p">(</span><span class="n">tiffOut</span><span class="p">);</span>
+<span class="n">TIFFSetField</span><span class="p">(</span><span class="n">tiffOut</span><span class="p">,</span><span class="w"> </span><span class="n">GPSTAG_VERSIONID</span><span class="p">,</span><span class="w"> </span><span class="n">gpsVersion</span><span class="p">);</span><span class="w">  </span><span class="cm">/* set fields of the custom directory */</span>
+</pre></div>
+</div>
+<p>Be aware that every <a class="reference internal" href="TIFFCreateDirectory.html#c.TIFFCreateDirectory" title="TIFFCreateDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCreateDirectory()</span></code></a> or <a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a>
+apparently frees the <code class="docutils literal notranslate"><span class="pre">*tif</span></code> structure and sets up a new one!</p>
+<ol class="arabic simple" start="6">
+<li><p>Write custom directory to file. The offset to that directory in the file
+is returned in <code class="xref c c-var docutils literal notranslate"><span class="pre">dir_offset</span></code>.</p></li>
+</ol>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">TIFFWriteCustomDirectory</span><span class="p">(</span><span class="n">tiffOut</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">dir_offset</span><span class="p">);</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="7">
+<li><p>Reload the first directory (i.e. the original TIFF directory).
+Apparently, this reads the data back from file.</p></li>
+</ol>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">TIFFSetDirectory</span><span class="p">(</span><span class="n">tiffOut</span><span class="p">,</span><span class="w"> </span><span class="n">dirNum</span><span class="p">);</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="8">
+<li><p>Set the correct offset value of the custom directory IFD tag and save
+that changes to file.</p></li>
+</ol>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">TIFFSetField</span><span class="p">(</span><span class="n">tiffOut</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_GPSIFD</span><span class="p">,</span><span class="w"> </span><span class="n">dir_offset</span><span class="p">);</span>
+<span class="n">TIFFWriteDirectory</span><span class="p">(</span><span class="n">tiffOut</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="return-values">
+<h2>RETURN VALUES<a class="headerlink" href="#return-values" title="Permalink to this heading">¶</a></h2>
+<p>1 is returned when the contents are successfully written to the file.
+Otherwise, 0 is returned if an error was encountered when writing the
+directory contents.</p>
+</section>
+<section id="diagnostics">
+<h2>Diagnostics<a class="headerlink" href="#diagnostics" title="Permalink to this heading">¶</a></h2>
+<p>All error messages are directed to the <a class="reference internal" href="TIFFError.html#c.TIFFErrorExtR" title="TIFFErrorExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExtR()</span></code></a> routine.
+Likewise, warning messages are directed to the <a class="reference internal" href="TIFFWarning.html#c.TIFFWarningExtR" title="TIFFWarningExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningExtR()</span></code></a> routine.</p>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="libtiff.html"><span class="doc">libtiff</span></a> (3tiff),
+<a class="reference internal" href="TIFFCreateDirectory.html"><span class="doc">TIFFCreateDirectory</span></a> (3tiff),
+<a class="reference internal" href="TIFFquery.html"><span class="doc">TIFFquery</span></a> (3tiff),
+<a class="reference internal" href="TIFFSetDirectory.html"><span class="doc">TIFFSetDirectory</span></a> (3tiff),
+<a class="reference internal" href="TIFFWriteDirectory.html"><span class="doc">TIFFWriteDirectory</span></a> (3tiff)</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">TIFFCustomDirectory</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#notes">Notes</a></li>
+<li><a class="reference internal" href="#hints-and-detailed-instructions">Hints and detailed instructions</a></li>
+<li><a class="reference internal" href="#return-values">RETURN VALUES</a></li>
+<li><a class="reference internal" href="#diagnostics">Diagnostics</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="TIFFCreateDirectory.html"
+                          title="previous chapter">TIFFCreateDirectory</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="TIFFCustomTagList.html"
+                          title="next chapter">TIFFCustomTagList</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/functions/TIFFCustomDirectory.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="TIFFCustomTagList.html" title="TIFFCustomTagList"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="TIFFCreateDirectory.html" title="TIFFCreateDirectory"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" >TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFCustomDirectory</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

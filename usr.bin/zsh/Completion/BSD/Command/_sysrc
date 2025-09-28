@@ -1,0 +1,94 @@
+#compdef sysrc
+
+_sysrc_caching_policy() {
+  local -a oldp
+  oldp=( "$1"(Nm+1) )
+  (( $#oldp ))
+}
+
+_sysrc() {
+  local curcontext="$curcontext" state line ret=1
+  typeset -A opt_args
+  local -a rc_conf_vars
+
+  _arguments -C -s -A '-*' : \
+    '(-l)-e[print variables as sh(1) compatible syntax]' \
+    '-E[list only existing files]' \
+    '(-l)-q[quiet mode]' \
+    '(-L)-s+[process additional rc.conf.d entries for specified service name]:service name:_services' \
+    '(-L)*-f+[operate on specified file(s), not \`rc_conf_files'\'']: : _files' \
+    '(-l)-v[verbose mode]' \
+    '*:configuration variable:->confvars' \
+    - set \
+    '(-A)-a[list all non-default configuration variables]' \
+    '(-a)-A[list all configuration variables]' \
+    '-c[check only, return success if vars are set]' \
+    '-d[print variable(s) description]' \
+    '-D[print default value(s) only]' \
+    '-F[print only the last rc.conf(5) file each directive is in]' \
+    '(- *)-h[print short usage message]' \
+    '(- *)--help[print full usage message]' \
+    '-i[ignore unknown variables]' \
+    '-j+[jail to operate within]:jail:_jails' \
+    '-n[print only variable values]' \
+    '-N[print only variable names]' \
+    '-R+[specify an alternative root]:alternative root:_files -/' \
+    '(- *)--version[print version information]' \
+    '-x[remove specified variables from specified file(s)]' \
+    - lists \
+    '(-e -q -v)-l[list config files used at startup]' \
+    - lista \
+    '(-s -f)-L[list all configuration files including rc.conf.d entries]' && ret=0
+
+  if [[ $state  == confvars ]]; then
+    local k v opt
+    if (( $+opt_args[lista--L] )); then
+      _services && ret=0
+    elif compset -P 1 '*='; then
+      case $IPREFIX in
+	*_enable=) _wanted values expl value compadd YES NO && ret=0 ;;
+	*_program=) _files -g "*(-*)" && ret=0 ;;
+	*_interface(|s)=) _net_interfaces && ret=0 ;;
+	*) _message -e values value ;;
+      esac
+    else
+      if zstyle -T ":completion:${curcontext%:*}:values" verbose; then
+        opt=d
+      else
+        opt=N
+      fi
+      
+      if ! zstyle -m ":completion:${curcontext%:*}:values" cache-policy '*'; then
+        zstyle ":completion:${curcontext%:*}:values" cache-policy _sysrc_caching_policy
+      fi
+
+      if _cache_invalid sysrc/rc_conf_vars ||
+         ! _retrieve_cache sysrc/rc_conf_vars; then
+ 
+        _call_program sysrc-cmd sysrc -A$opt | while read -r k v; do
+          [[ $k = DEBUG* ]] && continue
+          if [[ -z $v ]]; then
+            rc_conf_vars+=( ${k%:} )
+          else
+            rc_conf_vars+=( "${k%:}[${${v//]/\\]}//:/\\:}]" )
+          fi
+          v=
+        done
+
+        _store_cache sysrc/rc_conf_vars rc_conf_vars
+      fi
+
+      if (( $#rc_conf_vars )); then
+        if [[ $opt == N ]]; then
+          _values -w variable ${^rc_conf_vars%%\[*}'::value' && ret=0
+        else
+          _values -w variable ${^rc_conf_vars}'::value' && ret=0
+        fi
+      fi
+    fi
+  fi
+
+  return ret
+}
+
+_sysrc "$@"

@@ -1,0 +1,73 @@
+// Keyboard layouts for Ethiopia.
+
+// Designed as a part of OLPC project.
+//
+// 2007 Sergey Udaltsov <svu@gnome.org>
+
+default partial alphanumeric_keys
+xkb_symbols "basic" {
+    include "et(olpc)"
+    name[Group1]="Amharic";
+};
+
+partial alphanumeric_keys
+xkb_symbols "olpc" {
+
+    // #HW-SPECIFIC
+
+    name[Group1]="Amharic";
+
+    key <AE01>	{[  U1369,  U1372  ]}; // 1
+    key <AE02>	{[  U136a,  U1373  ]}; // 2
+    key <AE03>	{[  U136b,  U1374  ]}; // 3
+    key <AE04>	{[  U136c,  U1375  ]}; // 4
+    key <AE05>	{[  U136d,  U1376  ]}; // 5
+    key <AE06>	{[  U136e,  U1377  ]}; // 6
+    key <AE07>	{[  U136f,  U1378  ]}; // 7
+    key <AE08>	{[  U1370,  U1379  ]}; // 8
+    key <AE09>	{[  U1371,  U137a  ]}; // 9
+    key <AE10>	{[  U137b,  U137c  ]}; // 0
+    key <AE11>	{[  minus, underscore ]}; // -_
+    key <AE12>	{[  equal,   plus  ]}; // =+
+
+    key <AD01>	{[  U1240,  U1250  ]}; // q
+    key <AD02>	{[  U12C8,   none  ]}; // w
+    key <AD03>	{[ dead_e, dead_E  ]};
+    key <AD04>	{[  U1228,   none  ]}; // r
+    key <AD05>	{[  U1270,  U1320  ]}; // t
+    key <AD06>	{[  U12E8,   none  ]}; // y
+    key <AD07>	{[ dead_u, dead_U  ]};
+    key <AD08>	{[ dead_i, dead_I  ]};
+    key <AD09>	{[ dead_o, dead_O  ]};
+    key <AD10>	{[  U1350,  U1330  ]}; // p
+    key <AD11>	{[  U1340,  U1338  ]}; // [
+    key <AD12>	{[  U1328,  U1280  ]}; // ]
+
+    key <AC01>	{[ dead_a, dead_A  ]};
+    key <AC02>	{[  U1230,  U1220  ]}; // s
+    key <AC03>	{[  U12F0,  U12F8  ]}; // d
+    key <AC04>	{[  U1348,   none  ]}; // f
+    key <AC05>	{[  U1308,  U1318  ]}; // g
+    key <AC06>	{[  U1200,  U1210  ]}; // h
+    key <AC07>	{[  U1300,   none  ]}; // j
+    key <AC08>	{[  U12A8,  U12B8  ]}; // k
+    key <AC09>	{[  U1208,   none  ]}; // l
+
+    key <AC10>	{[  U1362,  U1361  ]}; // :
+    key <AC11>	{[  U1366,  U1365  ]}; // '
+    key <BKSL>	{[   none,  U2010  ]}; // \
+
+    key <AB01>	{[  U12D8,  U12E0  ]}; // z
+    key <AB02>	{[  U12A0,  U12D0  ]}; // x
+    key <AB03>	{[  U1278, dead_capital_schwa ]};
+    key <AB04>	{[  U1238,  U1268  ]}; // v
+    key <AB05>	{[  U1260,   none  ]}; // b
+    key <AB06>	{[  U1290,  U1298  ]}; // n
+    key <AB07>	{[  U1218,   none  ]}; // m
+
+    key <AB08>	{[  U1363,   none  ]}; // <
+    key <AB09>	{[  U1364,   none  ]}; // >
+    key <AB10>	{[  U1367, question ]}; // ?
+
+    include "group(olpc)"
+};

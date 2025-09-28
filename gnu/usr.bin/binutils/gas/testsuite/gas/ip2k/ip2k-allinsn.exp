@@ -1,0 +1,5 @@
+# IP2K assembler testsuite. -*- Tcl -*-
+
+if [istarget ip2k*-*-*] {
+    run_dump_test "allinsn"
+}

@@ -1,0 +1,96 @@
+#! /bin/sh
+
+#   edit-readme-alpha - edit README file for alpha releases
+#   Copyright (C) 2010-2019, 2021-2022 Free Software Foundation, Inc.
+#   Written by Gary V. Vaughan, 2010
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+# We used to maintain separate (but extremely similiar!) README and
+# README.alpha files, and had 'make dist' include the right one in a
+# distribution based on the contests of '$(VERSION)'.
+#
+# Now, we have 'make dist' call this script to tweak the first paragraph
+# of README in situ, to be more suitable for an alpha quality release.
+
+EXIT_SUCCESS=0
+EXIT_FAILURE=1
+
+# Work around backward compatibility issue on IRIX 6.5. On IRIX 6.4+, sh
+# is ksh but when the shell is invoked as "sh" and the current value of
+# the _XPG environment variable is not equal to 1 (one), the special
+# positional parameter $0, within a function call, is the name of the
+# function.
+progpath=$0
+
+# The name of this program:
+progname=`echo "$progpath" |sed 's|^.*/||'`
+
+
+# func_fatal_error ARG...
+# -----------------------
+# Echo program name prefixed message to standard error, and exit.
+func_fatal_error ()
+{
+    echo "$progname: $*" >&2
+    exit $EXIT_FAILURE
+}
+
+
+for file in "$@"; do
+  # Assume that read-only README indicates that we are running inside
+  # the latter part of a 'make distcheck'.
+  test -w "$file" || {
+    echo "$progname: not editing non-writeable '$file' (distcheck?)" >&2
+    continue
+  }
+
+  # Did we already in-place edited this file?
+  matched=`sed -n -e '/^This is an alpha testing release/,/a consistent, portable interface\.$/p' $file \
+           |wc -l |sed 's|^ *||'`
+  test 3 = "$matched" && {
+    echo "$progname: $file already edited" >&2
+    continue
+  }
+
+  # Make sure the paragraph we are matching has not been edited since
+  # this script was written.
+  matched=`sed -n -e '/^\[GNU Libtool\]\[libtool\] is/,/^consistent, portable interface\.$/p' $file \
+           |wc -l |sed 's|^ *||'`
+  test 3 = "$matched" \
+      || func_fatal_error "$file format has changed, please fix '$0'"
+
+  # Don't leave file droppings.
+  trap 'x=$?; rm $file.T; exit $x' 1 2 13 15
+
+  # Edit the first paragraph to be suitable for an alpha release.
+  sed '/^\[GNU Libtool\]\[libtool\] is/,/^consistent, portable interface\.$/c\
+This is an alpha testing release of [GNU Libtool][libtool], a generic\
+library support script.  [Libtool][] hides the complexity of using shared\
+libraries behind a consistent, portable interface.' $file > $file.T
+
+  # Diagnose redirection failure.
+  test -f "$file.T" || func_fatal_error "Unable to write $file.T"
+
+  # Overwrite the original file with our edited version.
+  mv $file.T $file || func_fatal_error "Unable to edit $file"
+done
+
+exit $EXIT_SUCCESS

@@ -1,0 +1,179 @@
+# Tests for command substitution.
+
+%prep
+  mkdir cmdsubst.tmp
+  touch cmdsubst.tmp/file{1,2}.txt
+
+%test
+  foo="two words"
+  print -l `echo $foo bar`
+0:Basic `...` substitution
+>two
+>words
+>bar
+
+  foo="two words"
+  print -l $(echo $foo bar)
+0:Basic $(...) substitution
+>two
+>words
+>bar
+
+  foo='intricate buffoonery'
+  print -l "`echo $foo and licentiousness`"
+0:Quoted `...` substitution
+>intricate buffoonery and licentiousness
+
+  foo="more words"
+  print -l "$(echo $foo here)"
+0:Quoted $(...) substitution
+>more words here
+
+# we used never to get this one right, but I think it is now...
+  print -r "`print -r \\\\\\\\`"
+0:Stripping of backslasshes in quoted `...`
+>\\
+
+  print -r "$(print -r \\\\\\\\)"
+0:Stripping of backslashes in quoted $(...)
+>\\\\
+
+  fnify() { print \"$*\"; }
+  print `fnify \`fnify understatement\``
+0:Nested `...`
+>""understatement""
+
+  print $(fnify $(fnify overboard))
+0:Nested $(...)
+>""overboard""
+
+  fructify() { print \'$*\'; }
+  print "`fructify \`fructify indolence\``"
+0:Nested quoted `...`
+>''indolence''
+
+  print "$(fructify $(fructify obtuseness))"
+0:Nested quoted $(...)
+>''obtuseness''
+
+  gesticulate() { print \!$*\!; }
+  print $((gesticulate wildly); gesticulate calmly)
+0:$(( ... ) ... ) is not arithmetic
+>!wildly! !calmly!
+
+  commencify() { print +$*+; }
+  print "$((commencify output); commencify input)"
+0:quoted $(( ... ) .. ) is not arithmetic
+>+output+
+>+input+
+
+  (
+  cd cmdsubst.tmp
+  print first: ${$(print \*)}
+  print second: ${~$(print \*)}
+  print third: ${$(print *)}
+  print fourth: "${~$(print \*)}"
+  print fifth: ${~"$(print \*)"}
+  )
+0:mixing $(...) with parameter substitution and globbing
+>first: *
+>second: file1.txt file2.txt
+>third: file1.txt file2.txt
+>fourth: *
+>fifth: file1.txt file2.txt
+
+  $(exit 0) $(exit 3) || print $?
+0:empty command uses exit value of last substitution
+>3
+
+  X=$(exit 2) $(exit 0) || print $?
+0:variable assignments processed after other substitutions
+>2
+
+ false
+ ``
+0:Empty command substitution resets status
+
+ false
+ echo `echo $?`
+0:Non-empty command substitution inherits status
+>1
+
+ echo $(( ##\" ))
+ echo $(echo \")
+ echo $((echo \"); echo OK)
+0:Handling of backslash double quote in parenthesised substitutions
+>34
+>"
+>" OK
+
+ echo $(case foo in
+ foo)
+ echo This test worked.
+ ;;
+ bar)
+ echo This test failed in a rather bizarre way.
+ ;;
+ *)
+ echo This test failed.
+ ;;
+ esac)
+0:Parsing of command substitution with unmatched parentheses: case, basic
+>This test worked.
+
+ echo "$(case bar in
+ foo)
+ echo This test spoobed.
+ ;;
+ bar)
+ echo This test plurbled.
+ ;;
+ *)
+ echo This test bzonked.
+ ;;
+ esac)"
+0:Parsing of command substitution with unmatched parentheses: case with quotes
+>This test plurbled.
+
+ echo before $(
+ echo start; echo unpretentious |
+ while read line; do
+   case $line in
+   u*)
+   print Word began with u
+   print and ended with a crunch
+   ;;
+   esac
+ done | sed -e 's/Word/Universe/'; echo end
+ ) after
+0:Parsing of command substitution with ummatched parentheses: with frills
+>before start Universe began with u and ended with a crunch end after
+
+  alias foo='echo $('
+  eval 'foo echo this just works, OK\?)'
+0:backtracking within command string parsing with alias still pending
+>this just works, OK?
+
+  (
+    set errexit
+    show_nargs() { print $#; }
+    print a $() b
+    print c "$()" d
+  )
+0:Empty $() is a valid empty substitution.
+>a b
+>c  d
+
+  empty=$() && print "'$empty'"
+0:Empty $() is a valid assignment
+>''
+
+  (
+    setopt ignoreclosebraces
+    alias OPEN='{' CLOSE='};'
+    eval '{ OPEN print hi; CLOSE }
+    var=$({ OPEN print bye; CLOSE}) && print $var'
+  )
+0:Alias expansion needed in parsing substitutions
+>hi
+>bye

@@ -1,0 +1,36 @@
+COMMENT(!MOD!zsh/nearcolor
+Map colours to the nearest colour in the available palette.
+!MOD!)
+The tt(zsh/nearcolor) module replaces colours specified as hex triplets
+with the nearest colour in the 88 or 256 colour palettes that are widely
+used by terminal emulators.  By default, 24-bit true colour escape codes
+are generated when colours are specified using hex triplets.  These are
+not supported by all terminals.  The purpose of this module is to make
+it easier to define colour preferences in a form that can work across a
+range of terminal emulators.
+
+Aside from the default colour, the ANSI standard for terminal escape
+codes provides for eight colours. The bright attribute brings this to
+sixteen. These basic colours are commonly used in terminal applications
+due to being widely supported. Expanded 88 and 256 colour palettes are
+also common and, while the first sixteen colours vary somewhat between
+terminals and configurations, these add a generally consistent and
+predictable set of colours.
+
+In order to use the tt(zsh/nearcolor) module, it only needs to be
+loaded. Thereafter, whenever a colour is specified using a hex triplet,
+it will be compared against each of the available colours and the
+closest will be selected. The first sixteen colours are never matched in
+this process due to being unpredictable.
+
+It isn't possible to reliably detect support for true colour in the
+terminal emulator. It is therefore recommended to be selective in
+loading the tt(zsh/nearcolor) module. For example, the following
+checks the tt(COLORTERM) environment variable:
+
+example([[ $COLORTERM = *LPAR()24bit|truecolor+RPAR()* ]] || \
+    zmodload zsh/nearcolor)
+
+Note that some terminals accept the true color escape codes but map
+them internally to a more limited palette in a similar manner to the
+tt(zsh/nearcolor) module.

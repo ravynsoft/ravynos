@@ -1,0 +1,291 @@
+# stresstest.at -- Libtool stress test                       -*- Autotest -*-
+#
+#   Copyright (C) 2005-2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Ralf Wildenhues, 2005
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+# Test various flag and option combinations.
+# Test linkage against objects in various sections.
+
+# Note: This test is experimental, and might be too strict for some systems.
+
+AT_BANNER([Libtool stress test.])
+AT_SETUP([Link option thorough search test])
+AT_KEYWORDS([libtool expensive])
+eval `$LIBTOOL --config | $EGREP '^(CC|objdir|allow_undefined_flag)='`
+
+mkdir sub sub2 sub3 2>/dev/null
+
+AT_DATA(a.c,
+[[/* all kinds of data items */
+#ifdef __cplusplus
+extern "C" {
+#endif
+int v1;
+static int v2;
+int v3 = 0;
+int v4 = 1;
+extern const int v5, v6;
+extern const char *v7;
+extern const char v8[];
+extern int (*const v12) (void);
+const int v5 = 0;
+const int v6 = 1;
+const char* v7 = "\01foo";
+const char v8[] = "\01bar";
+int v9(void) { return v2 + 1; }
+int (*v10) (void);
+int (*v11) (void) = v9;
+int (*const v12) (void) = v9;
+
+typedef struct { int arr[1000]; } large;
+large v13;
+large v14 = { { 0 } };
+large v15 = { { 1 } };
+#ifdef __cplusplus
+}
+#endif
+]])
+
+AT_DATA(asyms,
+[[v1
+v3
+v4
+v5
+v6
+v7
+v8
+v9
+v10
+v11
+v12
+v13
+v14
+v15
+]])
+
+AT_DATA(b.c,
+[[int b = 42;
+int b3 = 1;
+int ab = 1;
+]])
+
+AT_DATA(main.c,
+[[
+#if defined LIBA_DLL_IMPORT
+#  if defined _WIN32 || defined WIN32 || defined __CYGWIN__
+#    define LIBA_SCOPE extern __declspec(dllimport)
+#    if defined _MSC_VER
+#      define LIBA_SCOPE_VAR LIBA_SCOPE
+#    endif
+#  endif
+#endif
+#if !defined LIBA_SCOPE
+#  define LIBA_SCOPE extern
+#endif
+#if !defined LIBA_SCOPE_VAR
+#  define LIBA_SCOPE_VAR extern
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+LIBA_SCOPE_VAR int v1;
+LIBA_SCOPE_VAR int v3, v4;
+LIBA_SCOPE const int v5, v6;
+LIBA_SCOPE_VAR const char* v7;
+LIBA_SCOPE_VAR const char v8[];
+extern int v9(void);
+LIBA_SCOPE_VAR int (*v10) (void);
+LIBA_SCOPE_VAR int (*v11) (void);
+LIBA_SCOPE int (*const v12) (void);
+#ifdef __cplusplus
+}
+#endif
+
+typedef struct { int arr[1000]; } large;
+LIBA_SCOPE_VAR large v13, v14, v15;
+
+int main(void)
+{
+  char s = v7[0] + v8[0];
+  return s + v1 + v3 + v4 + v5 + v6 + v9() + v11() + v12()
+	   + v13.arr[0] + v14.arr[0] + v15.arr[0]
+           - 8;
+}
+]])
+
+AT_DATA(dlself.c,
+[[
+#if defined LIBA_DLL_IMPORT
+#  if defined _WIN32 || defined WIN32 || defined __CYGWIN__
+#    define LIBA_SCOPE extern __declspec(dllimport)
+#    if defined _MSC_VER
+#      define LIBA_SCOPE_VAR LIBA_SCOPE
+#    endif
+#  endif
+#endif
+#if !defined LIBA_SCOPE
+#  define LIBA_SCOPE extern
+#endif
+#if !defined LIBA_SCOPE_VAR
+#  define LIBA_SCOPE_VAR extern
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+LIBA_SCOPE_VAR int v1;
+LIBA_SCOPE_VAR int v3, v4;
+LIBA_SCOPE const int v5, v6;
+LIBA_SCOPE_VAR const char* v7;
+LIBA_SCOPE_VAR const char v8[];
+extern int v9(void);
+LIBA_SCOPE_VAR int (*v10) (void);
+LIBA_SCOPE_VAR int (*v11) (void);
+LIBA_SCOPE int (*const v12) (void);
+
+typedef struct { int arr[1000]; } large;
+LIBA_SCOPE_VAR large v13, v14, v15;
+
+extern int w1;
+extern int w3, w4;
+extern const int w5, w6;
+extern const char* w7;
+extern const char w8[];
+extern int w9(void);
+extern int (*w10) (void);
+extern int (*w11) (void);
+extern int (*const w12) (void);
+extern large w13, w14, w15;
+#ifdef __cplusplus
+}
+#endif
+
+int main(void)
+{
+  char s = v7[0] + v8[0] + w7[0] + w8[0];
+  return s + v1 + v3 + v4 + v5 + v6 + v9() + v11() + v12()
+	   + v13.arr[0] + v14.arr[0] + v15.arr[0]
+	   + w1 + w3 + w4 + w5 + w6 + w9() + w11() + w12()
+	   + w13.arr[0] + w14.arr[0] + w15.arr[0]
+           - 16;
+}
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+int w1;
+static int w2;
+int w3 = 0;
+int w4 = 1;
+const int w5 = 0;
+const int w6 = 1;
+const char* w7 = "\01foo";
+const char w8[] = "\01bar";
+int w9(void) { return w2 + 1; }
+int (*w10) (void);
+int (*w11) (void) = w9;
+int (*const w12) (void) = w9;
+large w13;
+large w14 = { { 0 } };
+large w15 = { { 1 } };
+#ifdef __cplusplus
+}
+#endif
+]])
+
+AT_DATA(dlselfsyms,
+[[w1
+w3
+w4
+w5
+w6
+w7
+w8
+w9
+w10
+w11
+w12
+w13
+w14
+w15
+]])
+
+
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a.c -o sub/a.lo],
+	 [0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c b.c -o sub/b.lo],
+	 [0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS -DLIBA_DLL_IMPORT $CFLAGS -c main.c],
+	 [0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c main.c -o main-static.lo],
+	 [0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS -DLIBA_DLL_IMPORT $CFLAGS -c dlself.c -o sub3/dlself.lo],
+	 [0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c dlself.c -o sub3/dlself-static.lo],
+	 [0],[ignore],[ignore])
+
+case $allow_undefined_flag in
+  unsupported) undef_opts=-no-undefined ;;
+  *)           undef_opts='"" -no-undefined' ;;
+esac
+
+# expose problems with the regex:
+touch vfoo v.bar
+
+for l1 in $undef_opts
+do
+  for l2 in '' '-export-symbols-regex "v.*"' '-export-symbols asyms'
+  do
+    for l3 in '' '-rpath /nonexistent'
+    do
+      linkargs="$l1 $l2 $l3"
+      for rel in '' ./ `pwd`/
+      do
+	LT_AT_CHECK([eval '$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o "$rel"sub2/liba.la "$rel"sub/a.lo' $linkargs],
+	         [0],[ignore],[ignore])
+	for st in '' '-static' '-no-install'
+	do
+	  # if '-static' is not passed, and the library is shared, then we have
+	  # to use -DLIBA_DLL_IMPORT, thus main.lo (and not main-static.lo).
+	  case $st,$l3 in
+	  -static,*) mst=-static ;;
+	  *,-rpath*) mst= ;;
+	  *) mst=-static ;;
+	  esac
+
+	  LT_AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS $st -o "$rel"main$EXEEXT "$rel"main$mst.lo "$rel"sub2/liba.la],
+		   [0],[ignore],[ignore])
+	  LT_AT_EXEC_CHECK([./main],[0])
+	  for l10 in '' '-export-symbols dlselfsyms'
+	  do
+	    LT_AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS $st -o "$rel"sub3/dlself$EXEEXT "$rel"sub3/dlself$mst.lo "$rel"sub2/liba.la sub/b.lo -dlopen self $l10],
+		     [0],[ignore],[ignore])
+	    LT_AT_EXEC_CHECK([./sub3/dlself],[0])
+	  done
+	done
+      done
+    done
+  done
+done
+
+AT_CLEANUP

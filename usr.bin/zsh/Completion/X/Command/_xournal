@@ -1,0 +1,6 @@
+#compdef xournal
+
+local expl
+
+_description files expl 'PDF or Xournal file'
+_files "$@" "$expl[@]" -g '*.(#i){xoj,pdf}(-.)'

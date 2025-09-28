@@ -1,0 +1,411 @@
+=encoding utf8
+
+=head1 NAME
+
+perl5121delta - what is new for perl v5.12.1
+
+=head1 DESCRIPTION
+
+This document describes differences between the 5.12.0 release and
+the 5.12.1 release.
+
+If you are upgrading from an earlier release such as 5.10.1, first read
+L<perl5120delta>, which describes differences between 5.10.0 and
+5.12.0.
+
+=head1 Incompatible Changes
+
+There are no changes intentionally incompatible with 5.12.0. If any
+incompatibilities with 5.12.0 exist, they are bugs. Please report them.
+
+=head1 Core Enhancements
+
+Other than the bug fixes listed below, there should be no user-visible
+changes to the core language in this release.
+
+=head1 Modules and Pragmata
+
+=head2 Pragmata Changes
+
+=over 
+
+=item *
+
+We fixed exporting of C<is_strict> and C<is_lax> from L<version>.
+
+These were being exported with a wrapper that treated them as method
+calls, which caused them to fail.  They are just functions, are
+documented as such, and should never be subclassed, so this patch
+just exports them directly as functions without the wrapper.
+
+=back
+
+=head2 Updated Modules
+
+=over 
+
+=item *
+
+We upgraded L<CGI> to version 3.49 to incorporate fixes for regressions
+introduced in the release we shipped with Perl 5.12.0.
+
+=item *
+
+We upgraded L<Pod::Simple> to version 3.14 to get an improvement to \C\<\< \>\>
+parsing.
+
+=item *
+
+We made a small fix to the L<CPANPLUS> test suite to fix an occasional spurious test failure.
+
+=item *
+
+We upgraded L<Safe> to version 2.27 to wrap coderefs returned by C<reval()> and C<rdo()>.
+
+=back
+
+=head1 Changes to Existing Documentation
+
+=over
+
+=item *
+
+We added the new maintenance release policy to L<perlpolicy>
+
+=item *
+
+We've clarified the multiple-angle-bracket construct in the spec for POD
+in L<perlpodspec>
+
+=item *
+
+We added a missing explanation for a warning about C<:=> to L<perldiag>
+
+=item *
+
+We removed a false claim in L<perlunitut> that all text strings are Unicode strings in Perl.
+
+=item *
+
+We updated the GitHub mirror link in L<perlrepository> to mirrors/perl, not github/perl
+
+=item *
+
+We fixed a minor error in L<perl5114delta>.
+
+=item * 
+
+We replaced a mention of the now-obsolete L<Switch> with F<given>/F<when>.
+
+=item *
+
+We improved documentation about F<$sitelibexp/sitecustomize.pl> in L<perlrun>.
+
+=item * 
+
+We corrected L<perlmodlib> which had unintentionally omitted a number of modules.
+
+=item * 
+
+We updated the documentation for 'require' in L<perlfunc> relating to putting Perl code in @INC.
+
+=item *
+
+We reinstated some erroneously-removed documentation about quotemeta in L<perlfunc>.
+
+=item *
+
+We fixed an F<a2p> example in L<perlutil>.
+
+=item  *
+
+We filled in a blank in L<perlport> with the release date of Perl 5.12.
+
+=item  *
+
+We fixed broken links in a number of perldelta files.
+
+=item * 
+
+The documentation for L<Carp> incorrectly stated that the $Carp::Verbose
+variable makes cluck generate stack backtraces.
+
+=item *
+
+We fixed a number of typos in L<Pod::Functions>
+
+=item *
+
+We improved documentation of case-changing functions in L<perlfunc>
+
+=item *
+
+We corrected L<perlgpl> to contain the correct version of the GNU
+General Public License.
+
+
+
+=back
+
+=head1 Testing
+
+=head2 Testing Improvements
+
+=over
+
+=item *
+
+F<t/op/sselect.t> is now less prone to clock jitter during timing checks
+on Windows.
+
+sleep() time on Win32 may be rounded down to multiple of
+the clock tick interval.
+
+=item *
+
+F<lib/blib.t> and F<lib/locale.t>: Fixes for test failures on Darwin/PPC
+
+=item *
+
+F<perl5db.t>: Fix for test failures when C<Term::ReadLine::Gnu> is installed.
+
+=back
+
+=head1 Installation and Configuration Improvements
+
+=head2 Configuration improvements
+
+=over 
+
+=item * 
+
+We updated F<INSTALL> with notes about how to deal with broken F<dbm.h>
+on OpenSUSE (and possibly other platforms)
+
+=back
+
+=head1 Bug Fixes
+
+=over 4
+
+=item *
+
+A bug in how we process filetest operations could cause a segfault.
+Filetests don't always expect an op on the stack, so we now use
+TOPs only if we're sure that we're not stat'ing the _ filehandle.
+This is indicated by OPf_KIDS (as checked in ck_ftst).
+
+See also: L<https://github.com/Perl/perl5/issues/10335>
+
+=item *
+
+When deparsing a nextstate op that has both a change of package (relative
+to the previous nextstate) and a label, the package declaration is now
+emitted first, because it is syntactically impermissible for a label to
+prefix a package declaration.
+
+=item * 
+
+XSUB.h now correctly redefines fgets under PERL_IMPLICIT_SYS
+
+See also: L<http://rt.cpan.org/Public/Bug/Display.html?id=55049>
+
+=item * 
+
+utf8::is_utf8 now respects GMAGIC (e.g. $1)
+
+=item * 
+
+XS code using C<fputc()> or C<fputs()>: on Windows could cause an error
+due to their arguments being swapped.
+
+See also: L<https://github.com/Perl/perl5/issues/10156>
+
+=item *
+
+We fixed a small bug in lex_stuff_pvn() that caused spurious syntax errors
+in an obscure situation.  It happened when stuffing was performed on the
+last line of a file and the line ended with a statement that lacked a
+terminating semicolon.  
+
+See also: L<https://github.com/Perl/perl5/issues/10273>
+
+=item *
+
+We fixed a bug that could cause \N{} constructs followed by a single . to
+be parsed incorrectly.
+
+See also: L<https://github.com/Perl/perl5/issues/10367>
+
+=item *
+
+
+We fixed a bug that caused when(scalar) without an argument not to be
+treated as a syntax error.
+
+See also: L<https://github.com/Perl/perl5/issues/10287>
+
+=item *
+
+We fixed a regression in the handling of labels immediately before string
+evals that was introduced in Perl 5.12.0.
+
+See also: L<https://github.com/Perl/perl5/issues/10301>
+
+=item *
+
+We fixed a regression in case-insensitive matching of folded characters
+in regular expressions introduced in Perl 5.10.1.
+
+See also: L<https://github.com/Perl/perl5/issues/10193>
+
+=back
+
+=head1 Platform Specific Notes
+
+=head2 HP-UX
+
+=over 
+
+=item *
+
+Perl now allows -Duse64bitint without promoting to use64bitall on HP-UX
+
+=back
+
+=head2 AIX
+
+=over
+
+=item * 
+
+Perl now builds on AIX 4.2
+
+The changes required work around AIX 4.2s' lack of support for IPv6,
+and limited support for POSIX C<sigaction()>.
+
+=back
+
+=head2 FreeBSD 7
+
+=over
+
+=item * 
+
+FreeBSD 7 no longer contains F</usr/bin/objformat>. At build time,
+Perl now skips the F<objformat> check for versions 7 and higher and
+assumes ELF.
+
+=back
+
+=head2 VMS
+
+=over
+
+=item *
+
+It's now possible to build extensions on older (pre 7.3-2) VMS systems.
+
+DCL symbol length was limited to 1K up until about seven years or
+so ago, but there was no particularly deep reason to prevent those
+older systems from configuring and building Perl.
+
+=item *
+
+We fixed the previously-broken C<-Uuseperlio> build on VMS.
+
+We were checking a variable that doesn't exist in the non-default
+case of disabling perlio.  Now we only look at it when it exists.
+
+=item *
+
+We fixed the -Uuseperlio command-line option in configure.com.
+
+Formerly it only worked if you went through all the questions
+interactively and explicitly answered no.
+
+=back
+
+=head1 Known Problems
+
+=over
+
+=item *
+
+C<List::Util::first> misbehaves in the presence of a lexical C<$_>
+(typically introduced by C<my $_> or implicitly by C<given>). The variable
+which gets set for each iteration is the package variable C<$_>, not the
+lexical C<$_>.
+
+A similar issue may occur in other modules that provide functions which
+take a block as their first argument, like
+
+    foo { ... $_ ...} list
+
+See also: L<https://github.com/Perl/perl5/issues/9798>
+
+=item *
+
+C<Module::Load::Conditional> and C<version> have an unfortunate
+interaction which can cause C<CPANPLUS> to crash when it encounters
+an unparseable version string.  Upgrading to C<CPANPLUS> 0.9004 or
+C<Module::Load::Conditional> 0.38 from CPAN will resolve this issue.
+
+=back
+
+
+=head1 Acknowledgements
+
+Perl 5.12.1 represents approximately four weeks of development since
+Perl 5.12.0 and contains approximately 4,000 lines of changes
+across 142 files from 28 authors.
+
+Perl continues to flourish into its third decade thanks to a vibrant
+community of users and developers.  The following people are known to
+have contributed the improvements that became Perl 5.12.1:
+
+Ævar Arnfjörð Bjarmason, Chris Williams, chromatic, Craig A. Berry,
+David Golden, Father Chrysostomos, Florian Ragwitz, Frank Wiegand,
+Gene Sullivan, Goro Fuji, H.Merijn Brand, James E Keenan, Jan Dubois,
+Jesse Vincent, Josh ben Jore, Karl Williamson, Leon Brocard, Michael
+Schwern, Nga Tang Chan, Nicholas Clark, Niko Tyni, Philippe Bruhat,
+Rafael Garcia-Suarez, Ricardo Signes, Steffen Mueller, Todd Rinaldo,
+Vincent Pit and Zefram.
+
+=head1 Reporting Bugs
+
+If you find what you think is a bug, you might check the articles
+recently posted to the comp.lang.perl.misc newsgroup and the perl
+bug database at http://rt.perl.org/perlbug/ .  There may also be
+information at http://www.perl.org/ , the Perl Home Page.
+
+If you believe you have an unreported bug, please run the B<perlbug>
+program included with your release.  Be sure to trim your bug down
+to a tiny but sufficient test case.  Your bug report, along with the
+output of C<perl -V>, will be sent off to perlbug@perl.org to be
+analysed by the Perl porting team.
+
+If the bug you are reporting has security implications, which make it
+inappropriate to send to a publicly archived mailing list, then please send
+it to perl5-security-report@perl.org. This points to a closed subscription
+unarchived mailing list, which includes
+all the core committers, who will be able
+to help assess the impact of issues, figure out a resolution, and help
+co-ordinate the release of patches to mitigate or fix the problem across all
+platforms on which Perl is supported. Please only use this address for
+security issues in the Perl core, not for modules independently
+distributed on CPAN.
+
+=head1 SEE ALSO
+
+The F<Changes> file for an explanation of how to view exhaustive details
+on what changed.
+
+The F<INSTALL> file for how to build Perl.
+
+The F<README> file for general stuff.
+
+The F<Artistic> and F<Copying> files for copyright information.
+
+=cut
+

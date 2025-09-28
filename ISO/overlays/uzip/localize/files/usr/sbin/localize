@@ -1,0 +1,213 @@
+#!/usr/bin/python3
+# Unfortunately #!/usr/bin/env python3.7 does not seem to work for rc.d
+# maybe because /usr/local/bin is not in the $PATH at that point yet?
+
+# localize
+# Use different signals to automatically determine country, language, and timezone
+# and set up the system accordingly without user intervention.
+# Progress from strong (explicit) to weak (implicit) signals.
+
+# Chapter 22. Localization - i18n/L10n Usage and Setup:
+# https://www.freebsd.org/doc/en_US.ISO8859-1/books/handbook/using-localization.html
+
+# TODO: Ideally we would run this whenever a signal is triggered, e.g.,
+# * A new USB keyboard with a known VID has been attached
+# * The IP address has changed
+# But no way is known to set $LANG in an already-running graphical session
+
+# Copyright (c) 2020-2021, Simon Peter <probono@puredarwin.org>
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+#    list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+import os, sys, subprocess
+
+if os.geteuid() != 0:
+    exit("You need to have root privileges. Exiting.")
+
+
+def run(args):
+    "Print, then run a command and print its output"
+    print("--> " + " ".join(args))
+    try:
+        for line in subprocess.check_output(args).split(b'\n'):
+            if line:
+                print("    " + line.decode('utf-8'))
+    except:
+        print("Could not run %s", " ".join(args))
+
+
+template = """LANG="%locale%"
+MM_CHARSET="%locale%"
+TZ="%timezone%"
+"""
+
+# Define default values
+default_country = "US"
+default_language = "en"
+default_locale = "%s_%s.UTF-8" % (default_language, default_country)
+default_timezone = "America/New_York"
+
+# Set initial values before autodetection begins
+country = default_country
+language = default_language
+locale = default_locale
+timezone = default_timezone
+
+# Exit without action if LANG or LOCALE are already set in env
+# if "LANG" in os.environ.keys() or "LOCALE" in os.environ.keys():
+#     exit(0)
+
+
+# Raspberry Pi keyboards have a different iProduct string
+# depending on the keyboard layout
+# https://github.com/raspberrypi-ui/piwiz/blob/861eb61156d4fc83c1871ec427cf806132e55ad2/src/piwiz.c#L226-L279
+# https://gist.github.com/probonopd/9646c69f876ff2b4b879aeb1c1cbc532
+countries = ["GB", "GB", "FR", "ES", "US", "DE", "IT", "JP", "PT", "NO", "SE",
+             "DK", "RU", "TR", "IL"]
+languages = ["en", "en", "fr", "es", "en", "de", "it", "jp", "pt", "nn", "se",
+             "fi", "ru", "tr", "he"]
+timezones = ["Europe/London", "Europe/London", "Europe/Paris", "Europe/Madrid",
+             "America/New_York", "Europe/Berlin", "Europe/Rome", "Asia/Tokyo", "Europe/Lisbon", "Europe/Oslo",
+             "Europe/Stockholm", "Europe/Helsinki", "Europe/Moscow", "Europe/Istanbul", "Europe/Jerusalem"]
+
+# Apple prev-lang EFI variable
+# https://github.com/furybsd/furybsd-livecd/issues/182
+apple_langs = ["en_GB", "en_GB", "fr", "es", "en_US", "de", "it", "", "pt_PT", "nb", "se",
+             "fi", "ru", "tr", "he"]
+           
+# Check for UEFI PlatformLang variable as documented in
+# https://uefi.org/sites/default/files/resources/UEFI%20Spec%202_6.pdf p.84
+
+efi_lang = str()
+try:
+    for line in subprocess.check_output(["efivar", "-l", "8be4df61-93ca-11d2-aa0d-00e098032b8c-PlatformLang"]).split(b'\n'):
+        line = line.decode('utf-8')
+        if ":" in line:
+            bytes = line.split(":")[1]
+            for byte in bytes.split(" "):
+                bstr = str(byte)
+                if bstr == "" or bstr == "00":
+                    continue
+                efi_lang = efi_lang + chr(int(bstr, 16))
+    print("PlatformLang is %s" % efi_lang)
+    efi_lang = efi_lang.replace("-", "_")
+    (language, country) = efi_lang.split("_")
+    locale = "%s.UTF-8" % efi_lang
+    try:
+        idx = countries.index(country)
+    except ValueError:
+        print("Unknown country code %s - using default time zone" % country)
+    else:
+        timezone = timezones[idx]
+except:
+    print("Could not read EFI variable PlatformLang")
+
+# Check Apple prev-lang EFI variable
+             
+relevant_line = False
+apple_lang = None
+try:
+    for line in subprocess.check_output(["efivar", "-Alp"]).split(b'\n'):
+        line = line.decode('utf-8')
+        if relevant_line == True:
+            print("EFI prev-lang: %s" % line)
+            if ":" in line:
+                apple_lang = line.split(":")[0]
+                index = apple_langs.index(apple_lang)
+                # print(index)
+                country = countries[index]
+                # print(country)
+                language = languages[index]
+                # print(language)
+                locale = "%s_%s.UTF-8" % (language, country)
+                timezone = timezones[index]
+                break
+        if "prev-lang" in line:
+            relevant_line = True # The next line after this one is the one we are after
+except:
+    print("Could not read EFI variable prev-lang")
+    
+# Check whether a Raspberry Pi keyboard is attached and if it is,
+# use its keyboard layout
+
+is_apple_keyboard = False
+
+if sys.platform.startswith('freebsd'):
+    usbtool = "usbconfig"
+else:
+    usbtool = "lsusb"
+for line in subprocess.check_output(usbtool).split(b'\n'):
+    # print(line)
+    line = line.decode('utf-8')
+    if ("Apple" in line and "Keyboard" in line):
+        is_apple_keyboard = True
+    if "RPI Wired Keyboard" in line:
+        if sys.platform.startswith('freebsd'):
+            iProduct = line.split("<")[1].split(">")[0]
+        else:
+            iProduct = line.split("[")[1].split("]")[0]
+        print(str(iProduct))
+        index = (int(iProduct.split(" ")[-1]))
+        # print(index)
+        country = countries[index]
+        # print(country)
+        language = languages[index]
+        # print(language)
+        locale = "%s_%s.UTF-8" % (language, country)
+        timezone = timezones[index]
+        # print(timezone)
+    
+# TODO: As a last resort, use network localization
+
+# After all methods of localization are exhausted, apply/export our findings
+
+if "DISPLAY" in os.environ.keys():
+    run(["setxkbmap", "-layout", country.lower()])  # Works only if called as the user from within Xorg
+    if is_apple_keyboard == False:
+        run(["setxkbmap", "-variant", "nodeadkeys"])
+    else:
+        run(["setxkbmap", "-variant", "mac"])
+        run(["setxkbmap", "-model", "mac"])
+        # FIXME: Make the left alt key work so that e.g., alt-L produces @ on a German keyboard (it works with the right alt key)
+    run(["setxkbmap", "-query"])
+else:
+    print("setxkbmap needs to be run from within a graphical user session")
+
+run(["tzsetup", timezone])
+
+# Write a shell file that can be sourced at session startup time to export
+# the environment variables
+target_file = "/var/localize/include"
+os.makedirs(os.path.dirname(target_file), exist_ok=True)
+f = open(target_file, "w+")
+f.write(template.replace("%locale%", locale).replace("%timezone%", timezone))
+f.close()
+print("--> Wrote", target_file)
+
+# It looks like this:
+# LANG="de_DE.UTF-8"
+# MM_CHARSET="de_DE.UTF-8"
+# TZ="Europe/Berlin"
+
+# Better than nothing, which defaults to English all the time.
+# FIXME: However, this is too simplistic. How can we set the keyboard model and layout per keyboard device?

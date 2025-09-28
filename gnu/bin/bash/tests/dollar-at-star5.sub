@@ -1,0 +1,66 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# testing various combinations of quoted and unquoted expansions of $@, and
+# whether they generate empty words after expansion
+
+n() { echo "$#"; }
+
+n "$@"
+n ${foo-"$@"}
+n "${foo-$@}"
+
+n ""$@
+n """$@"
+
+n $(true)$@
+n "$(true)$@"
+n "$(true)$@"
+n "$(true)""$@"
+
+n $xxx$@
+n "$xxx$@"
+n $xxx"$@"
+n "$xxx""$@"
+
+recho $xxx"$@"
+echo after 1
+
+recho "$xxx$@"
+echo after 2
+
+recho ${foo:-$xxx"$@"}
+echo after 3
+
+# this is where these things start to differ
+echo same as 1
+recho "${foo:-$xxx"$@"}"
+echo same as 2
+recho "${foo:-$xxx$@}"
+
+echo null fields
+recho ""$@
+recho """$@"
+
+echo null fields in rhs
+echo null string with unquoted '$@'
+recho ${foo:-""$@}
+echo null string with quoted '$@'
+recho ${foo:-"""$@"}
+
+echo assignment
+recho "${foo=$@}"
+echo variable
+recho "$foo"
+echo dollar-at
+recho "${@}"

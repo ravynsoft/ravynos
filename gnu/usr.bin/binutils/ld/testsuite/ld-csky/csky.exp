@@ -1,0 +1,15 @@
+if { ! [istarget csky-*-*] } {
+    return
+}
+
+set linux_gnu [expr [istarget csky*-*-linux*]]
+
+foreach test [lsort [glob -nocomplain $srcdir/$subdir/*.d]] {
+
+    if { ! $linux_gnu && ([string match "$srcdir/$subdir/tls-*.d" $test]
+			  || [string match "$srcdir/$subdir/got*.d" $test]) } {
+	continue
+    }
+
+    run_dump_test [file rootname $test]
+}

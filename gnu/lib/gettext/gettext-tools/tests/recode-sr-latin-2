@@ -1,0 +1,41 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recode-sr-latin on some input in EUC-JP encoding.
+# (Apart from UTF-8 and GB18030, EUC-JP is the only common encoding that is
+# a superset of both ISO-8859-5 and ISO-8859-2.)
+
+# Note: This test fails on AIX 4 with libiconv < 1.12, due to an interaction
+# between libiconv and the setlocale() function. It is fixed in libiconv-1.12.
+
+# Test whether a specific EUC-JP locale is installed.
+: ${LOCALE_JA=ja_JP}
+if test $LOCALE_JA = none; then
+  if test -f /usr/bin/localedef; then
+    echo "Skipping test: no japanese EUC-JP locale is installed"
+  else
+    echo "Skipping test: no japanese EUC-JP locale is supported"
+  fi
+  Exit 77
+fi
+
+cat <<\EOF > rec-srl-2.in
+§ª§ã§á§â§Ñ§Ó§ß§Ú §Ñ§â§Ô§å§Ş§Ö§ß§ä§Ú §ã§å
+§ß§Ö§ø§Ö§Õ§ß§à§Ù§ß§Ñ§é§Ñ§ß §Ñ§â§Ô§å§Ş§Ö§ß§ä
+EOF
+
+: ${RECODE=recode}
+LC_ALL=$LOCALE_JA \
+${RECODE}-sr-latin < rec-srl-2.in > rec-srl-2.out \
+  || { Exit 1; }
+
+cat <<\EOF > rec-srl-2.ok
+Ispravni argumenti su
+nejednozna«­an argument
+EOF
+
+: ${DIFF=diff}
+${DIFF} rec-srl-2.ok rec-srl-2.out
+result=$?
+
+exit $result

@@ -1,0 +1,66 @@
+# vim: syntax=pod
+
+If you read this file _as_is_, just ignore the funny characters you see.
+It is written in the POD format (see pod/perlpod.pod) which is specially
+designed to be readable as is.
+
+=head1 NAME
+
+perlhaiku - Perl version 5.10+ on Haiku
+
+=head1 DESCRIPTION
+
+This file contains instructions how to build Perl for Haiku and lists
+known problems.
+
+=head1 BUILD AND INSTALL
+
+The build procedure is completely standard:
+
+  ./Configure -de
+  make
+  make install
+
+Make perl executable and create a symlink for libperl:
+
+  chmod a+x /boot/common/bin/perl
+  cd /boot/common/lib; ln -s perl5/5.38.2/BePC-haiku/CORE/libperl.so .
+
+Replace C<5.38.2> with your respective version of Perl.
+
+=head1 KNOWN PROBLEMS
+
+The following problems are encountered with Haiku revision 28311:
+
+=over 4
+
+=item *
+
+Perl cannot be compiled with threading support ATM.
+
+=item *
+
+The F<cpan/Socket/t/socketpair.t> test fails. More precisely: the subtests
+using datagram sockets fail. Unix datagram sockets aren't implemented in
+Haiku yet.
+
+=item *
+
+A subtest of the F<cpan/Sys-Syslog/t/syslog.t> test fails. This is due to Haiku
+not implementing F</dev/log> support yet.
+
+=item *
+
+The tests F<dist/Net-Ping/t/450_service.t> and F<dist/Net-Ping/t/510_ping_udp.t>
+fail. This is due to bugs in Haiku's network stack implementation.
+
+=back
+
+=head1 CONTACT
+
+For Haiku specific problems contact the HaikuPorts developers:
+L<http://ports.haiku-files.org/>
+
+The initial Haiku port was done by Ingo Weinhold <ingo_weinhold@gmx.de>.
+
+Last update: 2008-10-29

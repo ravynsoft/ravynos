@@ -1,0 +1,14 @@
+Parses OK
+
+Defaults passprompt_regex="(?i)password: *"
+
+user ALL = /bin/ls ^/etc/(hosts|motd|issue)$
+user ALL = /usr/bin/c* ^/etc/(hosts|motd|issue)$
+user ALL = ^/usr/bin/(who|w|id|whoami)$
+user ALL = ^/usr/bin/(who|w|id|whoami)$ ""
+user ALL = ^/usr/bin/(who|w|id|whoami)$ root
+user ALL = ^/usr/bin/(who|w|id|whoami)$ -*
+user ALL = ^/usr/bin/(who|w|id|whoami)$ ^(-[ahi] ?)+$
+user ALL = sudoedit ^/etc/(hosts|motd|issue)$
+user ALL = ^/usr/bin/\$tree$
+user host1 = /bin/ls ^/etc/(hosts|motd|issue)$, /usr/bin/c* ^/etc/(hosts|motd|issue)$ : host2 = ^/usr/bin/(who|w|id|whoami)$ "", ^/usr/bin/(who|w|id|whoami)$ root : host3 = /bin/echo ^\$foo$

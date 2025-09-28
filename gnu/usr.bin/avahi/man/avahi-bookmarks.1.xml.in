@@ -1,0 +1,99 @@
+<?xml version="1.0"?><!--*-nxml-*-->
+<!DOCTYPE manpage SYSTEM "xmltoman.dtd">
+<?xml-stylesheet type="text/xsl" href="xmltoman.xsl" ?>
+
+<!--
+  This file is part of avahi.
+
+  avahi is free software; you can redistribute it and/or modify it
+  under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; either version 2.1 of the
+  License, or (at your option) any later version.
+
+  avahi is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+  or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General
+  Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with avahi; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+  USA.
+-->
+
+  <manpage name="avahi-bookmarks" section="1" desc="Web service showing mDNS/DNS-SD announced HTTP services using the Avahi daemon">
+
+	<synopsis>
+      <cmd>avahi-bookmarks</cmd>
+	</synopsis>
+
+    <description>
+      <p>A web service for listing HTTP services that are announced
+      via mDNS/DNS-SD using the Avahi daemon. avahi-bookmarks opens a
+      TCP socket on port 8080 and waits for incoming HTTP connections
+      returning a dynamic web site containing links to all services of
+      type _http._tcp on the LAN. Point your browser to
+      http://localhost:8080/ to make use of avahi-bookmarks.</p>
+
+	</description>
+
+    <options>
+      <option>
+        <p><opt>-p | --port=</opt> <arg>PORT</arg></p>
+        <optdesc><p>Specify a TCP port number to listen on. If omitted defaults to 8080.</p></optdesc>
+      </option>
+
+      <option>
+        <p><opt>-a | --address=</opt> <arg>address</arg></p>
+        <optdesc><p>Specify an IP address to listen on. If omitted defaults to 127.0.0.1. Specify 0.0.0.0 if you want to allow remote access.</p></optdesc>
+      </option>
+
+      <option>
+        <p><opt>-H | --host-names</opt></p>
+        <optdesc><p>Create links pointing to mDNS host names instead
+        of resolved IP addreses. This is only compatible with your
+        browser if you run some kind of local NSS module to resolve
+        mDNS host names (e.g. nss-mdns). If both -A and -H are ommited
+        avahi-bookmarks detects whether NSS support is available
+        locally. This option conflicts with -A.</p></optdesc>
+      </option>
+
+      <option>
+        <p><opt>-A | --addresses</opt></p>
+        <optdesc><p>Create links pointing to numeric IP addresses
+        instead of mDNS host names. This will break access to hosts
+        running virtual servers. If both -A and -H are ommited
+        avahi-bookmarks detects whether NSS support is available
+        locally. This option conflicts with -H.</p></optdesc>
+      </option>
+
+
+      <option>
+        <p><opt>-d | --domain</opt>=<arg>DOMAIN</arg></p>
+        <optdesc><p>The domain to browse for services in.</p></optdesc>
+      </option>
+
+	  <option>
+		<p><opt>-h | --help</opt></p>
+		<optdesc><p>Show help</p></optdesc>
+	  </option>
+
+    </options>
+
+	<section name="Authors">
+	  <p>The Avahi Developers &lt;@PACKAGE_BUGREPORT@&gt;; Avahi is
+	  available from <url href="@PACKAGE_URL@"/></p>
+	</section>
+
+	<section name="See also">
+	  <p>
+        <manref name="avahi-browse" section="1"/>, <manref name="avahi-daemon" section="8"/>
+	  </p>
+	</section>
+
+	<section name="Comments">
+	  <p>This man page was written using <manref name="xml2man" section="1"
+		  href="http://masqmail.cx/xml2man/"/> by Oliver Kurth.</p>
+	</section>
+
+  </manpage>

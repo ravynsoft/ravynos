@@ -1,0 +1,81 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+f1()
+{
+	echo f1
+}
+
+f2()
+{
+	echo f2
+}
+
+v1=one
+v2=two
+
+echo all set:
+
+echo ${v1-unset1}
+echo ${v2-unset2}
+
+declare -f -p f1 f2
+
+unset v1 f1 v2 f2
+
+echo all unset:
+
+echo ${v1-unset1}
+echo ${v2-unset2}
+
+declare -f -p f1 f2
+
+f1()
+{
+	echo f1
+}
+
+f2()
+{
+	echo f2
+}
+
+v1=one-one
+v2=two-one
+
+echo all reset:
+echo ${v1-unset1}
+echo ${v2-unset2}
+
+declare -f -p f1 f2
+
+unset -v v1 f1 v2 f2
+
+echo vars unset:
+
+echo ${v1-unset1}
+echo ${v2-unset2}
+
+declare -f -p f1 f2
+
+v1=one-two
+v2=two-two
+
+unset -f v1 f1 v2 f2
+
+echo funcs unset:
+
+echo ${v1-unset1}
+echo ${v2-unset2}
+
+declare -f f1 f2

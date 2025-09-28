@@ -1,0 +1,51 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# variable attribute inheritance problems without specifying -a or -A
+
+function aaa() {
+        local x='1 2 3'
+        echo "aaa ${x}"
+}
+
+function bbb {
+        local x
+        x=(4 5 6)
+        echo "bbb ${x[*]}"
+}
+
+ccc()
+{
+        local x=(7 8 9)
+        echo "ccc ${x[*]}"
+}
+
+function ddd
+{
+        local -r x='0'
+        echo "ddd ${x}"
+        aaa
+        bbb
+        ccc
+}
+
+ddd
+
+f()
+{
+	local x=(one two three)
+	declare -p x
+}
+f
+declare -p x

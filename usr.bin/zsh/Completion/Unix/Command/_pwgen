@@ -1,0 +1,19 @@
+#compdef pwgen
+
+_arguments -s -S \
+  '(-h --help -c --capitalize -A --no-capitalize)'{-c,--capitalize}'[include at least one capital letter in the password]' \
+  '(-h --help -c --capitalize -A --no-capitalize)'{-A,--no-capitalize}"[don't include capital letters in the password]" \
+  '(-h --help -n --numerals -0 --no-numerals)'{-n,--numerals}'[include at least one number in the password]' \
+  '(-h --help -n --numerals -0 --no-numerals)'{-0,--no-numerals}"[don't include numbers in the password]" \
+  '(-h --help -y --symbols)'{-y,--symbols}'[include at least one special symbol in the password]' \
+  '(-h --help -r --remove-chars)'{-r+,--remove-chars=}'[remove characters from the set of characters to generate passwords]:characters' \
+  '(-h --help -s --secure)'{-s,--secure}'[generate completely random passwords]' \
+  '(-h --help -B --ambiguous)'{-B,--ambiguous}"[don't include ambiguous characters in the password]" \
+  '(- 1 2)'{-h,--help}'[print a help message]' \
+  '(-h --help -H --sha1)'{-H+,--sha1=}'[use sha1 hash of given file as a (not so) random generator]:file:_files -S \# -qr "/ \t\n\-"' \
+  '(-h --help -1)-C[print the generated passwords in columns]' \
+  "(-h --help -C)-1[don't print the generated passwords in columns]" \
+  '(-h --help -v --no-vowels)'{-v,--no-vowels}"[don't use any vowels so as to avoid accidental nasty words]" \
+  '(-N --num-passwords 2)'{-N,--num-passwords}'[specify number of passwords to generate]' \
+  '!-a' '!--alt-phonics' \
+  '1: :_guard "^-*" "length"' '(-N --num-passwords)2: :_guard "^-*" "number of passwords"'

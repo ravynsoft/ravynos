@@ -1,0 +1,5086 @@
+# gettext-tools 软件包的简体中文翻译
+# Copyright (C) 2010 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gettext package.
+# Funda Wang <fundawang@linux.net.cn>, 2004.
+# Ji ZhengYu <zhengyuji@gmail.com>, 2015.
+# Boyuan Yang <073plan@gmail.com>, 2018, 2020, 2022, 2023.
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tools 0.22\n"
+"Report-Msgid-Bugs-To: bug-gettext@gnu.org\n"
+"POT-Creation-Date: 2023-11-17 22:41+0100\n"
+"PO-Revision-Date: 2023-06-18 12:14-0400\n"
+"Last-Translator: Boyuan Yang <073plan@gmail.com>\n"
+"Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#: gnulib-lib/argmatch.c:145
+#, c-format
+msgid "invalid argument %s for %s"
+msgstr "%2$s 的参数 %1$s 无效"
+
+#: gnulib-lib/argmatch.c:146
+#, c-format
+msgid "ambiguous argument %s for %s"
+msgstr "%2$s 的参数 %1$s 有歧义"
+
+#: gnulib-lib/argmatch.c:165
+msgid "Valid arguments are:"
+msgstr "有效的参数为："
+
+#: gnulib-lib/clean-temp.c:234
+#, c-format
+msgid "cannot find a temporary directory, try setting $TMPDIR"
+msgstr "无法找到临时目录，请尝试设置 $TMPDIR 变量"
+
+#: gnulib-lib/clean-temp.c:249
+#, c-format
+msgid "cannot create a temporary directory using template \"%s\""
+msgstr "无法用“%s”模板创建临时目录"
+
+#: gnulib-lib/clean-temp.c:370
+#, c-format
+msgid "cannot remove temporary directory %s"
+msgstr "无法删除临时目录 %s"
+
+#: gnulib-lib/clean-temp-simple.c:296
+#, c-format
+msgid "cannot remove temporary file %s"
+msgstr "无法删除临时文件 %s"
+
+#: gnulib-lib/closeout.c:66
+msgid "write error"
+msgstr "写错误"
+
+#: gnulib-lib/copy-file.c:192
+#, c-format
+msgid "error while opening %s for reading"
+msgstr "读取 %s 时出错"
+
+#: gnulib-lib/copy-file.c:196
+#, c-format
+msgid "cannot open backup file %s for writing"
+msgstr "无法写入备份文件 %s"
+
+#: gnulib-lib/copy-file.c:200
+#, c-format
+msgid "error reading %s"
+msgstr "读取 %s 出错"
+
+#: gnulib-lib/copy-file.c:204
+#, c-format
+msgid "error writing %s"
+msgstr "写入 %s 出错"
+
+#: gnulib-lib/copy-file.c:208
+#, c-format
+msgid "error after reading %s"
+msgstr "读取 %s 后出错"
+
+#: gnulib-lib/copy-file.c:215
+#, c-format
+msgid "preserving permissions for %s"
+msgstr "保存 %s 的权限"
+
+#: gnulib-lib/csharpcomp.c:203 gnulib-lib/javacomp.c:356
+#: gnulib-lib/javaversion.c:77 src/msginit.c:955 src/msginit.c:1038
+#: src/msginit.c:1207 src/msginit.c:1314 src/msginit.c:1488
+#: src/read-csharp.c:73 src/read-java.c:72 src/read-resources.c:74
+#: src/read-tcl.c:111 src/write-resources.c:79 src/x-ruby.c:135
+#, c-format
+msgid "fdopen() failed"
+msgstr "fdopen() 失败"
+
+#: gnulib-lib/csharpcomp.c:444
+#, c-format
+msgid "C# compiler not found, try installing mono"
+msgstr "未找到 C# 编译器，尝试安装 mono"
+
+#: gnulib-lib/csharpexec.c:259
+#, c-format
+msgid "C# virtual machine not found, try installing mono"
+msgstr "未找到 C# 虚拟机，尝试安装 mono"
+
+#: gnulib-lib/error.c:194 libgettextpo/error.c:194
+msgid "Unknown system error"
+msgstr "未知的系统错误"
+
+#: gnulib-lib/execute.c:347 gnulib-lib/spawn-pipe.c:596
+#: gnulib-lib/wait-process.c:291 gnulib-lib/wait-process.c:365
+#, c-format
+msgid "%s subprocess failed"
+msgstr "%s 子进程失败"
+
+#: gnulib-lib/gai_strerror.c:57
+msgid "Address family for hostname not supported"
+msgstr "不支持的主机名地址族"
+
+#: gnulib-lib/gai_strerror.c:58
+msgid "Temporary failure in name resolution"
+msgstr "域名解析暂时失败"
+
+#: gnulib-lib/gai_strerror.c:59
+msgid "Bad value for ai_flags"
+msgstr "错误的 ai_flags 的值"
+
+#: gnulib-lib/gai_strerror.c:60
+msgid "Non-recoverable failure in name resolution"
+msgstr "域名解析中出现不可修复的失败"
+
+#: gnulib-lib/gai_strerror.c:61
+msgid "ai_family not supported"
+msgstr "不支持 ai_family"
+
+#: gnulib-lib/gai_strerror.c:62
+msgid "Memory allocation failure"
+msgstr "内存分配失败"
+
+#: gnulib-lib/gai_strerror.c:63
+msgid "No address associated with hostname"
+msgstr "没有与主机名关联的地址"
+
+#: gnulib-lib/gai_strerror.c:64
+msgid "Name or service not known"
+msgstr "未知的名称或服务"
+
+#: gnulib-lib/gai_strerror.c:65
+msgid "Servname not supported for ai_socktype"
+msgstr "不支持 ai_socktype 的伺服名称"
+
+#: gnulib-lib/gai_strerror.c:66
+msgid "ai_socktype not supported"
+msgstr "不支持 ai_socktype"
+
+#: gnulib-lib/gai_strerror.c:67
+msgid "System error"
+msgstr "系统错误"
+
+#: gnulib-lib/gai_strerror.c:68
+msgid "Argument buffer too small"
+msgstr "参数缓冲区太小"
+
+#: gnulib-lib/gai_strerror.c:70
+msgid "Processing request in progress"
+msgstr "此项请求已经在处理当中"
+
+#: gnulib-lib/gai_strerror.c:71
+msgid "Request canceled"
+msgstr "请求已取消"
+
+#: gnulib-lib/gai_strerror.c:72
+msgid "Request not canceled"
+msgstr "请求未取消"
+
+#: gnulib-lib/gai_strerror.c:73
+msgid "All requests done"
+msgstr "完成所有请求"
+
+#: gnulib-lib/gai_strerror.c:74
+msgid "Interrupted by a signal"
+msgstr "被信号中断"
+
+#: gnulib-lib/gai_strerror.c:75
+msgid "Parameter string not correctly encoded"
+msgstr "参数字串无法正确编码"
+
+#: gnulib-lib/gai_strerror.c:87
+msgid "Unknown error"
+msgstr "未知误"
+
+#: gnulib-lib/getopt.c:278
+#, c-format
+msgid "%s: option '%s%s' is ambiguous\n"
+msgstr "%s：选项“%s%s”有歧义\n"
+
+#: gnulib-lib/getopt.c:284
+#, c-format
+msgid "%s: option '%s%s' is ambiguous; possibilities:"
+msgstr "%s：选项“%s%s”有歧义；可能是："
+
+#: gnulib-lib/getopt.c:319
+#, c-format
+msgid "%s: unrecognized option '%s%s'\n"
+msgstr "%s：无法识别的选项“%s%s”\n"
+
+#: gnulib-lib/getopt.c:345
+#, c-format
+msgid "%s: option '%s%s' doesn't allow an argument\n"
+msgstr "%s：选项“%s%s”不允许带参数\n"
+
+#: gnulib-lib/getopt.c:360
+#, c-format
+msgid "%s: option '%s%s' requires an argument\n"
+msgstr "%s：选项“%s%s”需要参数\n"
+
+#: gnulib-lib/getopt.c:621
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s：无效选项 -- '%c'\n"
+
+#: gnulib-lib/getopt.c:636 gnulib-lib/getopt.c:682
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s：选项需要参数 -- '%c'\n"
+
+#: gnulib-lib/javacomp.c:103
+#, c-format
+msgid ""
+"The java program is too old. Cannot compile Java code for this old version "
+"any more."
+msgstr "找到的 java 程序过旧。已无法为该旧版本编译 Java 代码。"
+
+#: gnulib-lib/javacomp.c:147
+#, c-format
+msgid "invalid source_version argument to compile_java_class"
+msgstr "compile_java_class 中有无效的 source_version 参数"
+
+#: gnulib-lib/javacomp.c:168
+#, c-format
+msgid "invalid target_version argument to compile_java_class"
+msgstr "compile_java_class 中有无效的 target_version 参数"
+
+#: gnulib-lib/javacomp.c:364 gnulib-lib/javaversion.c:85 src/msginit.c:963
+#: src/msginit.c:1046 src/msginit.c:1215 src/msginit.c:1496
+#, c-format
+msgid "%s subprocess I/O error"
+msgstr "%s 子进程 I/O 错误"
+
+#: gnulib-lib/javacomp.c:459 src/write-csharp.c:745 src/write-java.c:1150
+#: src/write-java.c:1158 src/write-java.c:1186 src/write-java.c:1198
+#, c-format
+msgid "failed to create \"%s\""
+msgstr "创建“%s”失败"
+
+#: gnulib-lib/javacomp.c:466 src/write-catalog.c:256 src/write-catalog.c:329
+#: src/write-csharp.c:754 src/write-desktop.c:183 src/write-java.c:1166
+#: src/write-java.c:1207 src/write-mo.c:1214 src/write-mo.c:1236
+#: src/write-qt.c:751 src/write-tcl.c:228 src/write-xml.c:76
+#, c-format
+msgid "error while writing \"%s\" file"
+msgstr "写入“%s”出错"
+
+#: gnulib-lib/javacomp.c:1134
+#, c-format
+msgid "Java compiler not found, try setting $JAVAC"
+msgstr "未找到 Java 编译器，请尝试置 $JAVAC"
+
+#: gnulib-lib/javaexec.c:309
+#, c-format
+msgid "Java virtual machine not found, try setting $JAVA"
+msgstr "未找到 Java 虚拟机，请尝试设置 $JAVA"
+
+#: gnulib-lib/obstack.c:317 gnulib-lib/obstack.c:319 gnulib-lib/xalloc-die.c:34
+#: gnulib-lib/xsetenv.c:37 src/msgl-check.c:563 src/po-lex.c:83
+#: src/po-lex.c:102 libgettextpo/gettext-po.c:1340 libgettextpo/obstack.c:317
+#: libgettextpo/obstack.c:319 libgettextpo/xalloc-die.c:34
+#, c-format
+msgid "memory exhausted"
+msgstr "内存耗尽"
+
+#: gnulib-lib/openat-die.c:38
+#, c-format
+msgid "unable to record current working directory"
+msgstr "无法记录当前目录"
+
+#: gnulib-lib/openat-die.c:57
+#, c-format
+msgid "failed to return to initial working directory"
+msgstr "返回初始工作目录失败"
+
+#: gnulib-lib/os2-spawn.c:45
+#, c-format
+msgid "_open_osfhandle failed"
+msgstr "_open_osfhandle 失败"
+
+#: gnulib-lib/os2-spawn.c:82
+#, c-format
+msgid "cannot restore fd %d: dup2 failed"
+msgstr "无法还原文件描述符 %d: dup2 错误"
+
+#: gnulib-lib/pipe-filter-ii.c:313
+#, c-format
+msgid "creation of threads failed"
+msgstr "线程创建失败"
+
+#: gnulib-lib/pipe-filter-ii.c:345 gnulib-lib/pipe-filter-ii.c:502
+#: src/msgexec.c:428
+#, c-format
+msgid "write to %s subprocess failed"
+msgstr "写入 %s 子进程失败"
+
+#: gnulib-lib/pipe-filter-ii.c:366 gnulib-lib/pipe-filter-ii.c:545
+#, c-format
+msgid "read from %s subprocess failed"
+msgstr "由 %s 子进程读入数据时出现错误"
+
+#: gnulib-lib/pipe-filter-ii.c:419
+#, c-format
+msgid "cannot set up nonblocking I/O to %s subprocess"
+msgstr "无法为 %s 子进程创建非专用的 I/O"
+
+#: gnulib-lib/pipe-filter-ii.c:457
+#, c-format
+msgid "communication with %s subprocess failed"
+msgstr "和 %s 子进程通讯时出现错误"
+
+#: gnulib-lib/pipe-filter-ii.c:577
+#, c-format
+msgid "%s subprocess terminated with exit code %d"
+msgstr "%s 子进程已终止，错误码为 %d"
+
+#. TRANSLATORS:
+#. Get translations for open and closing quotation marks.
+#. The message catalog should translate "`" to a left
+#. quotation mark suitable for the locale, and similarly for
+#. "'".  For example, a French Unicode local should translate
+#. these to U+00AB (LEFT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), and U+00BB (RIGHT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), respectively.
+#.
+#. If the catalog has no translation, we will try to
+#. use Unicode U+2018 (LEFT SINGLE QUOTATION MARK) and
+#. Unicode U+2019 (RIGHT SINGLE QUOTATION MARK).  If the
+#. current locale is not Unicode, locale_quoting_style
+#. will quote 'like this', and clocale_quoting_style will
+#. quote "like this".  You should always include translations
+#. for "`" and "'" even if U+2018 and U+2019 are appropriate
+#. for your locale.
+#.
+#. If you don't know what to put here, please see
+#. <https://en.wikipedia.org/wiki/Quotation_marks_in_other_languages>
+#. and use glyphs suitable for your language.
+#: gnulib-lib/quotearg.c:354
+msgid "`"
+msgstr "“"
+
+#: gnulib-lib/quotearg.c:355
+msgid "'"
+msgstr "”"
+
+#: gnulib-lib/spawn-pipe.c:216 gnulib-lib/spawn-pipe.c:219
+#, c-format
+msgid "cannot create pipe"
+msgstr "无法创建管道"
+
+#: gnulib-lib/wait-process.c:232 gnulib-lib/wait-process.c:264
+#: gnulib-lib/wait-process.c:326
+#, c-format
+msgid "%s subprocess"
+msgstr "%s 子进程"
+
+#: gnulib-lib/wait-process.c:283 gnulib-lib/wait-process.c:355
+#, c-format
+msgid "%s subprocess got fatal signal %d"
+msgstr "%s 子进程收到致命信号 %d"
+
+#: src/cldr-plurals.c:61
+#, c-format
+msgid "Could not parse file %s as XML"
+msgstr "无法以 XML 格式解析 %s 文件"
+
+#: src/cldr-plurals.c:69
+#, c-format
+msgid "The root element must be <%s>"
+msgstr "根元素必须为 <%s>"
+
+#: src/cldr-plurals.c:82
+#, c-format
+msgid "The element <%s> does not contain a <%s> element"
+msgstr "元素 <%s> 不含有 <%s> 元素"
+
+#: src/cldr-plurals.c:104 src/cldr-plurals.c:144
+#, c-format
+msgid "The element <%s> does not have attribute <%s>"
+msgstr "元素 <%s> 不含有 <%s> 属性"
+
+#: src/cldr-plurals.c:188 src/hostname.c:220 src/msgattrib.c:414
+#: src/msgcat.c:360 src/msgcmp.c:205 src/msgcomm.c:352 src/msgconv.c:300
+#: src/msgen.c:297 src/msgexec.c:256 src/msgfilter.c:407 src/msgfmt.c:899
+#: src/msggrep.c:505 src/msginit.c:405 src/msgmerge.c:533 src/msgunfmt.c:420
+#: src/msguniq.c:319 src/recode-sr-latin.c:139 src/urlget.c:168
+#: src/xgettext.c:1061
+#, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "试试“%s --help”查看帮助信息。\n"
+
+#: src/cldr-plurals.c:192
+#, c-format
+msgid "Usage: %s [OPTION...] [LOCALE RULES]...\n"
+msgstr "用法：%s [选项...] [LOCALE 规则]...\n"
+
+#: src/cldr-plurals.c:197
+#, c-format, no-wrap
+msgid ""
+"Extract or convert Unicode CLDR plural rules.\n"
+"\n"
+"If both LOCALE and RULES are specified, it reads CLDR plural rules for\n"
+"LOCALE from RULES and print them in a form suitable for gettext use.\n"
+"If no argument is given, it reads CLDR plural rules from the standard input.\n"
+msgstr ""
+"提取或转换 Unicode CLDR 复数规则。\n"
+"\n"
+"如果同时指定了<LOCALE>和<规则>，程序将从给定<规则>中读取指定<LOCALE>的\n"
+"CLDR 复数规则，并将其输出为适合 gettext 使用的表格。\n"
+"如果没有给定参数，程序将从标准输入读取 CLDR 复数规则。\n"
+
+#: src/cldr-plurals.c:206 src/msgfmt.c:912 src/xgettext.c:1074
+#, c-format, no-wrap
+msgid ""
+"Mandatory arguments to long options are mandatory for short options too.\n"
+"Similarly for optional arguments.\n"
+msgstr ""
+"长选项必须用的参数在使用短选项时也是必须的。\n"
+"可选参数也是如此。\n"
+
+#: src/cldr-plurals.c:211
+#, c-format
+msgid "  -c, --cldr                  print plural rules in the CLDR format\n"
+msgstr "  -c, --cldr                  以 CLDR 格式输出复数规则\n"
+
+#: src/cldr-plurals.c:213 src/hostname.c:243 src/msgattrib.c:533
+#: src/msgcat.c:468 src/msgcmp.c:256 src/msgcomm.c:454 src/msgconv.c:384
+#: src/msgen.c:380 src/msgexec.c:305 src/msgfilter.c:507 src/msgfmt.c:1070
+#: src/msggrep.c:623 src/msginit.c:469 src/msgmerge.c:663 src/msgunfmt.c:526
+#: src/msguniq.c:416 src/recode-sr-latin.c:160 src/urlget.c:184
+#: src/xgettext.c:1249
+#, c-format, no-wrap
+msgid "  -h, --help                  display this help and exit\n"
+msgstr "  -h, --help                  显示此帮助并退出\n"
+
+#: src/cldr-plurals.c:215 src/hostname.c:245 src/msgattrib.c:535
+#: src/msgcat.c:470 src/msgcmp.c:258 src/msgcomm.c:456 src/msgconv.c:386
+#: src/msgen.c:382 src/msgexec.c:307 src/msgfilter.c:509 src/msgfmt.c:1072
+#: src/msggrep.c:625 src/msginit.c:471 src/msgmerge.c:665 src/msgunfmt.c:528
+#: src/msguniq.c:418 src/recode-sr-latin.c:163 src/urlget.c:186
+#: src/xgettext.c:1251
+#, c-format, no-wrap
+msgid "  -V, --version               output version information and exit\n"
+msgstr "  -V, --version               输出版本信息并退出\n"
+
+#. TRANSLATORS: The first placeholder is the web address of the Savannah
+#. project of this package.  The second placeholder is the bug-reporting
+#. email address for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: src/cldr-plurals.c:223 src/hostname.c:253 src/msgattrib.c:543
+#: src/msgcat.c:478 src/msgcmp.c:266 src/msgcomm.c:464 src/msgconv.c:394
+#: src/msgen.c:390 src/msgexec.c:315 src/msgfilter.c:517 src/msgfmt.c:1084
+#: src/msggrep.c:633 src/msginit.c:479 src/msgmerge.c:677 src/msgunfmt.c:538
+#: src/msguniq.c:426 src/recode-sr-latin.c:171 src/urlget.c:196
+#: src/xgettext.c:1261
+#, c-format
+msgid ""
+"Report bugs in the bug tracker at <%s>\n"
+"or by email to <%s>.\n"
+msgstr ""
+"请将软件错误提交至 bug 跟踪系统 <%s>\n"
+"或发送电子邮件到 <%s>。\n"
+"请将翻译错误报告至简体中文邮件列表 <i18n-zh@googlegroups.com>。\n"
+
+#: src/cldr-plurals.c:292 src/hostname.c:191 src/msgattrib.c:352
+#: src/msgcat.c:291 src/msgcmp.c:168 src/msgcomm.c:282 src/msgconv.c:241
+#: src/msgen.c:238 src/msgexec.c:183 src/msgfilter.c:286 src/msgfmt.c:444
+#: src/msggrep.c:412 src/msginit.c:269 src/msgmerge.c:369 src/msgunfmt.c:259
+#: src/msguniq.c:261 src/recode-sr-latin.c:106 src/urlget.c:139
+#: src/xgettext.c:691
+#, c-format, no-wrap
+msgid ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"License GPLv3+: GNU GPL version 3 or later <%s>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"版权所有 (C) %s Free Software Foundation, Inc.\n"
+"授权协议 GPLv3+: GNU GPL 版本 3 或之后版本 <%s>\n"
+"这是自由软件: 您有修改和再发布的自由。\n"
+"本软件在法律允许的范围内不提供任何担保。\n"
+
+#: src/cldr-plurals.c:298 src/hostname.c:197 src/msgattrib.c:358
+#: src/msgcat.c:297 src/msgcmp.c:174 src/msgcomm.c:288 src/msgconv.c:247
+#: src/msgen.c:244 src/msgexec.c:189 src/msgfilter.c:292 src/msgfmt.c:450
+#: src/msggrep.c:418 src/msginit.c:275 src/msgmerge.c:375 src/msgunfmt.c:265
+#: src/msguniq.c:267 src/urlget.c:145 src/xgettext.c:697
+#, c-format
+msgid "Written by %s.\n"
+msgstr "由 %s 编写。\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/cldr-plurals.c:298
+msgid "Daiki Ueno"
+msgstr "Daiki Ueno"
+
+#: src/cldr-plurals.c:318
+#, c-format
+msgid "%s cannot be read"
+msgstr "无法读取 %s"
+
+#: src/cldr-plurals.c:324
+#, c-format
+msgid "cannot extract rules for %s"
+msgstr "无法为 %s 提取规则"
+
+#: src/cldr-plurals.c:334
+#, c-format
+msgid "cannot parse CLDR rule"
+msgstr "无法解析 CLDR 规则"
+
+#: src/cldr-plurals.c:369
+#, c-format
+msgid "extra operand %s"
+msgstr "额外的操作数 %s"
+
+#: src/file-list.c:53 src/msggrep.c:240 src/open-catalog.c:124
+#: src/read-mo.c:270 src/read-tcl.c:126 src/urlget.c:216
+#: src/write-desktop.c:173 src/xgettext.c:1826 src/xgettext.c:1838
+#: src/xgettext.c:1854 src/xgettext.c:1887 src/xgettext.c:1897
+#: src/xgettext.c:1914
+#, c-format
+msgid "error while opening \"%s\" for reading"
+msgstr "打开“%s”读取时出错"
+
+#: src/format-awk.c:510 src/format-boost.c:619 src/format-c++-brace.c:955
+#: src/format-elisp.c:348 src/format-gcc-internal.c:628
+#: src/format-java-printf.c:579 src/format-javascript.c:356
+#: src/format-kde.c:223 src/format-librep.c:312 src/format-lua.c:228
+#: src/format-pascal.c:395 src/format-perl.c:582 src/format-php.c:348
+#: src/format-qt.c:173 src/format-smalltalk.c:147 src/format-tcl.c:391
+#, c-format
+msgid ""
+"a format specification for argument %u, as in '%s', doesn't exist in '%s'"
+msgstr "参数\"%u\"(如同\"%s\")的格式指定在\"%s\"中不存在"
+
+#: src/format-awk.c:521 src/format-boost.c:630 src/format-c++-brace.c:966
+#: src/format-elisp.c:359 src/format-gcc-internal.c:639
+#: src/format-java-printf.c:590 src/format-javascript.c:367
+#: src/format-kde.c:234 src/format-librep.c:323 src/format-lua.c:235
+#: src/format-pascal.c:406 src/format-perl.c:593 src/format-php.c:359
+#: src/format-qt.c:170 src/format-smalltalk.c:144 src/format-tcl.c:402
+#, c-format
+msgid "a format specification for argument %u doesn't exist in '%s'"
+msgstr "参数 %u 的格式指定符在“%s”中不存在"
+
+#: src/format-awk.c:541 src/format-boost.c:650 src/format-c.c:149
+#: src/format-elisp.c:379 src/format-gcc-internal.c:659
+#: src/format-gfc-internal.c:372 src/format-java-printf.c:610
+#: src/format-javascript.c:390 src/format-librep.c:343 src/format-lua.c:242
+#: src/format-pascal.c:426 src/format-perl.c:613 src/format-php.c:379
+#: src/format-python.c:527 src/format-ruby.c:960 src/format-tcl.c:422
+#, c-format
+msgid "format specifications in '%s' and '%s' for argument %u are not the same"
+msgstr "参数 %3$u 的指定格式在“%1$s”和“%2$s”中不同"
+
+#: src/format-boost.c:451
+#, c-format
+msgid "The directive number %u starts with | but does not end with |."
+msgstr "第 %u 条指令以“|”开始但并不以“|”。"
+
+#: src/format.c:155
+#, c-format
+msgid "'%s' is not a valid %s format string, unlike '%s'. Reason: %s"
+msgstr "不像“%3$s”，“%1$s”不是有效的 %2$s 格式字符串。原因: %4$s"
+
+#: src/format-c++-brace.c:270
+#, c-format
+msgid "In the directive number %u, the arg-id is too large."
+msgstr "第 %u 条指令中，参数 ID 过大。"
+
+#: src/format-c++-brace.c:383 src/format-c++-brace.c:477
+#, c-format
+msgid "In the directive number %u, the width's arg-id is too large."
+msgstr "第 %u 条指令中，宽度的参数 ID 过大。"
+
+#: src/format-c++-brace.c:438
+#, c-format
+msgid ""
+"In the directive number %u, the width's arg-id is not terminated through '}'."
+msgstr "第 %u 条指令中，宽度的参数 ID 没有使用“}”结尾。"
+
+#: src/format-c++-brace.c:532
+#, c-format
+msgid ""
+"In the directive number %u, the precision's arg-id is not terminated through "
+"'}'."
+msgstr "第 %u 条指令中，精度的参数 ID 没有使用“}”结尾。"
+
+#: src/format-c++-brace.c:593
+#, c-format
+msgid ""
+"In the directive number %u, the character '%c' is not a standard type "
+"specifier."
+msgstr "第 %u 条指令中，字符“%c”不是有效的标准类型指定符。"
+
+#: src/format-c++-brace.c:594
+#, c-format
+msgid ""
+"The character that terminates the directive number %u is not a standard type "
+"specifier."
+msgstr "终止第 %u 条指令的字符不是有效的标准类型指定符。"
+
+#: src/format-c++-brace.c:602
+#, c-format
+msgid ""
+"In the directive number %u, the sign specification is incompatible with the "
+"type specifier '%c'."
+msgstr "第 %u 条指令中，符号指定符与类型指定符“%c”不兼容。"
+
+#: src/format-c++-brace.c:610
+#, c-format
+msgid ""
+"In the directive number %u, the '#' option is incompatible with the type "
+"specifier '%c'."
+msgstr "第 %u 条指令中，“#”选项与类型指定符“%c”不兼容。"
+
+#: src/format-c++-brace.c:618
+#, c-format
+msgid ""
+"In the directive number %u, the '0' option is incompatible with the type "
+"specifier '%c'."
+msgstr "第 %u 条指令中，“0”选项与类型指定符“%c”不兼容。"
+
+#: src/format-c++-brace.c:626
+#, c-format
+msgid ""
+"In the directive number %u, the precision specification is incompatible with "
+"the type specifier '%c'."
+msgstr "第 %u 条指令中，精度指定符与类型指定符“%c”不兼容。"
+
+#: src/format-c++-brace.c:634
+#, c-format
+msgid ""
+"In the directive number %u, the 'L' option is incompatible with the type "
+"specifier '%c'."
+msgstr "第 %u 条指令中，“L”选项与类型指定符“%c”不兼容。"
+
+#: src/format-c++-brace.c:735
+#, c-format
+msgid ""
+"The directive number %u, with all of its options, is not applicable to any "
+"type."
+msgstr "第 %u 条指令，以及其所有选项，不可应用于任何类型。"
+
+#: src/format-c++-brace.c:747
+#, c-format
+msgid "The string ends in the middle of the directive number %u."
+msgstr "字符串在第 %u 条指令中间结束。"
+
+#: src/format-c++-brace.c:755
+#, c-format
+msgid "The directive number %u is not terminated through '}'."
+msgstr "第 %u 条指令没有使用“}”结束。"
+
+#: src/format-c++-brace.c:777 src/format-csharp.c:158 src/format-java.c:347
+msgid ""
+"The string starts in the middle of a directive: found '}' without matching "
+"'{'."
+msgstr "指令中间开始字符串：发现了“}”但没有匹配的“{”。"
+
+#: src/format-c++-brace.c:778 src/format-csharp.c:159
+#, c-format
+msgid "The string contains a lone '}' after directive number %u."
+msgstr "第 %u 条指令之后的字符串包含独立的“}”。"
+
+#: src/format-c++-brace.c:991
+#, c-format
+msgid ""
+"The format specification for argument %u in '%s' is applicable to the types "
+"%s, but the format specification for argument %u in '%s' is not."
+msgstr ""
+"第 %u 个参数（在“%s”内）的格式指定符可应用于类型 %s，但第 %u 个参数"
+"（在“%s”内）的格式指定符不可应用。"
+
+#: src/format-c++-brace.c:1003
+#, c-format
+msgid ""
+"The format specification for argument %u in '%s' uses a different "
+"presentation than the format specification for argument %u in '%s'."
+msgstr ""
+"第 %u 个参数（在“%s”内）的格式指定符相较第 %u 个参数（在“%s”内）的格式指定符"
+"使用了不同的展示方式。"
+
+#: src/format-c.c:36
+#, c-format
+msgid ""
+"In the directive number %u, the token after '<' is not the name of a format "
+"specifier macro. The valid macro names are listed in ISO C 99 section 7.8.1."
+msgstr ""
+"第 %u 条指令中，“<”后的记号并不是格式指定符宏的名称。有效的宏名列在 ISO C 99 "
+"章节 7.8.1 中。"
+
+#: src/format-c.c:39
+#, c-format
+msgid "In the directive number %u, the token after '<' is not followed by '>'."
+msgstr "第 %u 条指令中，没有与“<”匹配的“>”。"
+
+#: src/format-c.c:42
+#, c-format
+msgid "In the directive number %u, the argument size specifier is invalid."
+msgstr "第 %u 条指令中，参数大小的指定无效。"
+
+#: src/format-c.c:45 src/format-gfc-internal.c:289
+#, c-format
+msgid "The string refers to argument number %u but ignores argument number %u."
+msgstr "字符串引用了第 %u 个参数但是却忽略了第 %u 个参数。"
+
+#: src/format-c.c:140 src/format-csharp.c:203 src/format-gfc-internal.c:363
+#: src/format-python.c:515 src/format-qt-plural.c:110 src/format-ruby.c:951
+#, c-format
+msgid "number of format specifications in '%s' and '%s' does not match"
+msgstr "“%s”和“%s”中的指定格式数量不匹配"
+
+#: src/format-csharp.c:85 src/format-java.c:206
+#, c-format
+msgid "In the directive number %u, '{' is not followed by an argument number."
+msgstr "第 %u 条指令中，“{”后没有参数编号。"
+
+#: src/format-csharp.c:106
+#, c-format
+msgid "In the directive number %u, ',' is not followed by a number."
+msgstr "第 %u 条指令中，“,”后没有参数编号。"
+
+#: src/format-csharp.c:127 src/format-java.c:192
+msgid ""
+"The string ends in the middle of a directive: found '{' without matching '}'."
+msgstr "指令中间字符串发生中断：发现了“{”但没有匹配的“}”。"
+
+#: src/format-csharp.c:136
+#, c-format
+msgid ""
+"The directive number %u ends with an invalid character '%c' instead of '}'."
+msgstr "第 %u 条指令中以无效的字符“%c”而非“}”结束。"
+
+#: src/format-csharp.c:137
+#, c-format
+msgid "The directive number %u ends with an invalid character instead of '}'."
+msgstr "第 %u 条指令以无效的字符而非“}”结束。"
+
+#: src/format-gcc-internal.c:256
+#, c-format
+msgid "In the directive number %u, the flags combination is invalid."
+msgstr "第 %u 条指令中，标志组合无效。"
+
+#: src/format-gcc-internal.c:293
+#, c-format
+msgid "In the directive number %u, a precision is not allowed before '%c'."
+msgstr "第 %u 条指令中，“%c”前不允许有精度。"
+
+#: src/format-gcc-internal.c:335
+#, c-format
+msgid ""
+"In the directive number %u, the argument number for the precision must be "
+"equal to %u."
+msgstr "第 %u 条指令中，精度的参数个数必须是 %u 个。"
+
+#: src/format-gcc-internal.c:399
+#, c-format
+msgid ""
+"In the directive number %u, a precision specification is not allowed before "
+"'%c'."
+msgstr "第 %u 条指令中，‘%c’前不允许指定精度。"
+
+#: src/format-gcc-internal.c:407
+#, c-format
+msgid "In the directive number %u, the precision specification is invalid."
+msgstr "第 %u 条指令中，精度指定无效。"
+
+#: src/format-gcc-internal.c:464
+#, c-format
+msgid "In the directive number %u, flags are not allowed before '%c'."
+msgstr "第 %u 条指令中，“%c”前不允许有标志。"
+
+#: src/format-gcc-internal.c:678
+#, c-format
+msgid "'%s' uses %%m but '%s' doesn't"
+msgstr "“%s”使用了 %%m，但“%s”没有使用"
+
+#: src/format-gcc-internal.c:681
+#, c-format
+msgid "'%s' does not use %%m but '%s' uses %%m"
+msgstr "“%s”没有使用 %%m，但“%s”要用 %%m"
+
+#: src/format-gfc-internal.c:383
+#, c-format
+msgid "'%s' uses %%C but '%s' doesn't"
+msgstr "“%s”要用 %%C，但“%s”没有"
+
+#: src/format-gfc-internal.c:386
+#, c-format
+msgid "'%s' does not use %%C but '%s' uses %%C"
+msgstr "“%s”没有使用 %%C，但“%s”要用 %%C"
+
+#: src/format-invalid.h:22
+msgid "The string ends in the middle of a directive."
+msgstr "字符串于指令中间结束。"
+
+#: src/format-invalid.h:25
+msgid ""
+"The string refers to arguments both through absolute argument numbers and "
+"through unnumbered argument specifications."
+msgstr "字符串同时使用两种方式引用了参数：绝对参数编号和未编号参数指定符。"
+
+#: src/format-invalid.h:28
+#, c-format
+msgid ""
+"In the directive number %u, the argument number 0 is not a positive integer."
+msgstr "第 %u 条指令中，第 0 个参数不是正整数。"
+
+#: src/format-invalid.h:30
+#, c-format
+msgid ""
+"In the directive number %u, the width's argument number 0 is not a positive "
+"integer."
+msgstr "第 %u 条指令中，宽度的第 0 个参数不是正整数。"
+
+#: src/format-invalid.h:32
+#, c-format
+msgid ""
+"In the directive number %u, the precision's argument number 0 is not a "
+"positive integer."
+msgstr "第 %u 条指令中，精度的第 0 个参数不是正整数。"
+
+#: src/format-invalid.h:36
+#, c-format
+msgid ""
+"In the directive number %u, the character '%c' is not a valid conversion "
+"specifier."
+msgstr "第 %u 条指令中，字符“%c”不是有效的对话指定符。"
+
+#: src/format-invalid.h:37
+#, c-format
+msgid ""
+"The character that terminates the directive number %u is not a valid "
+"conversion specifier."
+msgstr "终止第 %u 条指令的字符不是有效的转换指示符。"
+
+#: src/format-invalid.h:40
+#, c-format
+msgid "The string refers to argument number %u in incompatible ways."
+msgstr "字符串引用第 %u 个参数的方法不兼容。"
+
+#: src/format-java.c:241
+#, c-format
+msgid ""
+"In the directive number %u, the substring \"%s\" is not a valid date/time "
+"style."
+msgstr "第 %u 条指令中，子字符串“%s”不是有效的日期/时间风格。"
+
+#: src/format-java.c:252 src/format-java.c:286 src/format-java.c:315
+#, c-format
+msgid "In the directive number %u, \"%s\" is not followed by a comma."
+msgstr "第 %u 条指令中，“%s”后面没有逗号。"
+
+#: src/format-java.c:275
+#, c-format
+msgid ""
+"In the directive number %u, the substring \"%s\" is not a valid number style."
+msgstr "第 %u 条指令中，子字符串“%s”不是有效的数字格式。"
+
+#: src/format-java.c:324
+#, c-format
+msgid ""
+"In the directive number %u, the argument number is not followed by a comma "
+"and one of \"%s\", \"%s\", \"%s\", \"%s\"."
+msgstr "第 %u 条指令中，参数编号后面没有逗号和“%s”、“%s”、“%s”、“%s”之一。"
+
+#: src/format-java.c:573
+#, c-format
+msgid "In the directive number %u, a choice contains no number."
+msgstr "第 %u 条指令中，选择不包含数字。"
+
+#: src/format-java.c:584
+#, c-format
+msgid ""
+"In the directive number %u, a choice contains a number that is not followed "
+"by '<', '#' or '%s'."
+msgstr "第 %u 条指令中，选择包含的数字后面没有“<”、“#”或“%s”。"
+
+#: src/format-java.c:746
+#, c-format
+msgid ""
+"a format specification for argument {%u}, as in '%s', doesn't exist in '%s'"
+msgstr "参数{%u}(如同\"%s\")的格式指定在\"%s\"中不存在"
+
+#: src/format-java.c:757
+#, c-format
+msgid "a format specification for argument {%u} doesn't exist in '%s'"
+msgstr "参数 {%u} 中未在“%s”中找到"
+
+#: src/format-java.c:777
+#, c-format
+msgid ""
+"format specifications in '%s' and '%s' for argument {%u} are not the same"
+msgstr "参数 {%3$u} 在“%1$s”和“%2$s”中的格式指定不相同"
+
+#: src/format-java-printf.c:138
+#, c-format
+msgid ""
+"In the directive number %u, the reference to the argument of the previous "
+"directive is invalid."
+msgstr "第 %u 条指令中，对先前指令参数的引用无效。"
+
+#: src/format-java-printf.c:141
+#, c-format
+msgid "In the directive number %u, the precision is missing."
+msgstr "第 %u 条指令中，缺失精度指定。"
+
+#: src/format-java-printf.c:144
+#, c-format
+msgid ""
+"In the directive number %u, the flag '%c' is invalid for the conversion '%c'."
+msgstr "第 %u 条指令中，标志“%c”对于对话“%c”无效。"
+
+#: src/format-java-printf.c:147
+#, c-format
+msgid "In the directive number %u, a width is invalid for the conversion '%c'."
+msgstr "第 %u 条指令中，宽度对会话“%c”无效。"
+
+#: src/format-java-printf.c:150
+#, c-format
+msgid ""
+"In the directive number %u, a precision is invalid for the conversion '%c'."
+msgstr "第 %u 条指令中，精度对会话“%c”无效。"
+
+#: src/format-java-printf.c:154
+#, c-format
+msgid ""
+"In the directive number %u, for the conversion '%c', the character '%c' is "
+"not a valid conversion suffix."
+msgstr "第 %u 条指令中，对于会话“%c”，字符“%c”不是有效的对话后缀。"
+
+#: src/format-java-printf.c:155
+#, c-format
+msgid ""
+"The character that terminates the directive number %u, for the conversion "
+"'%c', is not a valid conversion suffix."
+msgstr "终止第 %u 条指令的字符对会话“%c”不是有效的转换后缀。"
+
+#: src/format-kde.c:158
+#, c-format
+msgid ""
+"The string refers to argument number %u but ignores the arguments %u and %u."
+msgstr "字符串引用了第 %u 个参数但是却忽略了第 %u 个和第 %u 个参数。"
+
+#: src/format-kde.c:242
+#, c-format
+msgid ""
+"a format specification for arguments %u and %u doesn't exist in '%s', only "
+"one argument may be ignored"
+msgstr "参数%u 和%u 的格式定义在“%s”中不存在，仅可忽略一个参数"
+
+#: src/format-kde-kuit.c:244 src/format-kde-kuit.c:264
+#: src/format-kde-kuit.c:274
+#, c-format
+msgid "error while parsing: %s"
+msgstr "错误，正处理: %s"
+
+#: src/format-lisp.c:2355 src/format-lisp.c:2367 src/format-scheme.c:2382
+#: src/format-scheme.c:2394
+#, c-format
+msgid ""
+"In the directive number %u, parameter %u is of type '%s' but a parameter of "
+"type '%s' is expected."
+msgstr "第 %u 条指令中，第 %u 个参数类型为“%s”，但应为“%s”。"
+
+#: src/format-lisp.c:2390 src/format-scheme.c:2417
+#, c-format
+msgid ""
+"In the directive number %u, too many parameters are given; expected at most "
+"%u parameter."
+msgid_plural ""
+"In the directive number %u, too many parameters are given; expected at most "
+"%u parameters."
+msgstr[0] "第 %u 条指令中，给出的参数太多；最多只需要 %u 个参数。"
+
+#: src/format-lisp.c:2515 src/format-scheme.c:2518
+#, c-format
+msgid "In the directive number %u, '%c' is not followed by a digit."
+msgstr "第 %u 条指令中，“%c”后面没有数字。"
+
+#: src/format-lisp.c:2755 src/format-scheme.c:2773
+#, c-format
+msgid "In the directive number %u, the argument %d is negative."
+msgstr "第 %u 条指令中，参数 %d 为负数。"
+
+#: src/format-lisp.c:2824
+msgid "The string ends in the middle of a ~/.../ directive."
+msgstr "字符串在 ~/.../ 指令中间中断。"
+
+#: src/format-lisp.c:2862 src/format-lisp.c:3127 src/format-lisp.c:3244
+#: src/format-lisp.c:3304 src/format-lisp.c:3416 src/format-scheme.c:2859
+#: src/format-scheme.c:3124 src/format-scheme.c:3241 src/format-scheme.c:3339
+#, c-format
+msgid "Found '~%c' without matching '~%c'."
+msgstr "发现了“~%c”但没有匹配的“~%c”。"
+
+#: src/format-lisp.c:2882 src/format-scheme.c:2879
+#, c-format
+msgid "In the directive number %u, both the @ and the : modifiers are given."
+msgstr "第 %u 条指令中，同时给出了 @ 和 : 修饰符。"
+
+#: src/format-lisp.c:2995 src/format-scheme.c:2992
+#, c-format
+msgid ""
+"In the directive number %u, '~:[' is not followed by two clauses, separated "
+"by '~;'."
+msgstr "第 %u 条指令中，“~:[”后面没有两个用“~;”分隔的子句。"
+
+#: src/format-lisp.c:3345 src/format-scheme.c:3282
+#, c-format
+msgid "In the directive number %u, '~;' is used in an invalid position."
+msgstr "第 %u 条指令中，“~;”的位置无效。"
+
+#: src/format-lisp.c:3451 src/format-scheme.c:3374
+msgid "The string refers to some argument in incompatible ways."
+msgstr "字符串引用某些参数的方式不兼容。"
+
+#: src/format-lisp.c:3493 src/format-scheme.c:3416
+#, c-format
+msgid "format specifications in '%s' and '%s' are not equivalent"
+msgstr "“%s”和“%s”中的格式指定符不同"
+
+#: src/format-lisp.c:3509 src/format-scheme.c:3432
+#, c-format
+msgid "format specifications in '%s' are not a subset of those in '%s'"
+msgstr "“%s”中的格式指定符不是“%s”格式指定符的子集"
+
+#: src/format-perl-brace.c:199 src/format-python-brace.c:478
+#: src/format-python-brace.c:491 src/format-python.c:471 src/format-ruby.c:910
+#: src/format-sh.c:308
+#, c-format
+msgid "a format specification for argument '%s' doesn't exist in '%s'"
+msgstr "参数“%s”的格式指定符未在“%s”中找到"
+
+#: src/format-perl.c:432
+#, c-format
+msgid ""
+"In the directive number %u, the size specifier is incompatible with the "
+"conversion specifier '%c'."
+msgstr "第 %u 条指令中，大小指定符与转换指定符“%c”不兼容。"
+
+#: src/format-python-brace.c:160
+#, c-format
+msgid "In the directive number %u, '%c' cannot start a field name."
+msgstr "第 %u 条指令中，“%c”不可以field name 开始。"
+
+#: src/format-python-brace.c:180
+#, c-format
+msgid "In the directive number %u, '%c' cannot start a getattr argument."
+msgstr "第 %u 条指令中，“%c”不可以getattr 参数开始。"
+
+#: src/format-python-brace.c:195
+#, c-format
+msgid "In the directive number %u, '%c' cannot start a getitem argument."
+msgstr "第 %u 条指令中，“%c”不可以getitem 参数开始。"
+
+#: src/format-python-brace.c:204
+#, c-format
+msgid "In the directive number %u, there is an unterminated getitem argument."
+msgstr "第 %u 条指令中，存在未终止的 getitem 参数。"
+
+#: src/format-python-brace.c:221
+#, c-format
+msgid ""
+"In the directive number %u, no more nesting is allowed in a format specifier."
+msgstr "第 %u 条指令中，格式定义中不允许过多嵌套。"
+
+#: src/format-python-brace.c:260 src/format-python-brace.c:313
+#, c-format
+msgid "In the directive number %u, there is an unterminated format directive."
+msgstr "第 %u 条指令中，格式指令中无终止符。"
+
+#: src/format-python.c:114 src/format-ruby.c:131
+msgid ""
+"The string refers to arguments both through argument names and through "
+"unnamed argument specifications."
+msgstr "字符串同时使用两种方式引用了参数：通过参数名称和未命名参数指定符。"
+
+#: src/format-python.c:354 src/format-ruby.c:793
+#, c-format
+msgid "The string refers to the argument named '%s' in incompatible ways."
+msgstr "字符串对名为“%s”的参数引用方式不兼容。"
+
+#: src/format-python.c:430
+#, c-format
+msgid ""
+"format specifications in '%s' expect a mapping, those in '%s' expect a tuple"
+msgstr "“%s”中的格式指定符需要映射，而“%s”中的格式指定符需要元组"
+
+#: src/format-python.c:437
+#, c-format
+msgid ""
+"format specifications in '%s' expect a tuple, those in '%s' expect a mapping"
+msgstr "“%s”中的格式指定符需要元组，而“%s”中的格式指定符需要映射"
+
+#: src/format-python.c:460 src/format-ruby.c:899 src/format-sh.c:297
+#, c-format
+msgid ""
+"a format specification for argument '%s', as in '%s', doesn't exist in '%s'"
+msgstr "参数\"%s\"(如同\"%s\")的格式指定在\"%s\"中不存在"
+
+#: src/format-python.c:494 src/format-ruby.c:930
+#, c-format
+msgid ""
+"format specifications in '%s' and '%s' for argument '%s' are not the same"
+msgstr "“%s”和“%s”中对参数“%s”的格式指定不同"
+
+#: src/format-qt.c:152
+#, c-format
+msgid ""
+"'%s' is a simple format string, but '%s' is not: it contains an 'L' flag or "
+"a double-digit argument number"
+msgstr ""
+"'%s' 仅仅是个格式字符串，但‘%s’不是：它包含一个‘L’标记或是一个两位数的参数值"
+
+#: src/format-ruby.c:134
+#, c-format
+msgid "In the directive number %u, two names are given for the same argument."
+msgstr "第 %u 条指令中，为相同参数给出了两个名称。"
+
+#: src/format-ruby.c:137
+#, c-format
+msgid ""
+"In the directive number %u, two numbers are given for the same argument."
+msgstr "第 %u 条指令中，为相同参数给出了两个数字。"
+
+#: src/format-ruby.c:140
+#, c-format
+msgid "In the directive number %u, a flag is given after the width."
+msgstr "第 %u 条指令中，标志在宽度之后给出。"
+
+#: src/format-ruby.c:143
+#, c-format
+msgid "In the directive number %u, a flag is given after the precision."
+msgstr "第 %u 条指令中，标志在精度之后给出。"
+
+#: src/format-ruby.c:146
+#, c-format
+msgid "In the directive number %u, the width is given after the precision."
+msgstr "第 %u 条指令中，宽度在精度之后给出。"
+
+#: src/format-ruby.c:149
+#, c-format
+msgid "In the directive number %u, a width is given twice."
+msgstr "第 %u 条指令中，宽度信息给定了两次。"
+
+#: src/format-ruby.c:152
+#, c-format
+msgid "In the directive number %u, a precision is given twice."
+msgstr "第 %u 条指令中，精度信息给定了两次。"
+
+#: src/format-ruby.c:869
+#, c-format
+msgid ""
+"format specifications in '%s' expect a hash table, those in '%s' expect "
+"individual arguments"
+msgstr "“%s”中的格式指定符需要散列表，而“%s”中的格式指定符需要独立参数"
+
+#: src/format-ruby.c:876
+#, c-format
+msgid ""
+"format specifications in '%s' expect individual arguments, those in '%s' "
+"expect a hash table"
+msgstr "“%s”中的格式指定符需要独立参数，而“%s”中的格式指定符需要散列表"
+
+#: src/format-sh.c:78
+msgid "The string refers to a shell variable with a non-ASCII name."
+msgstr "字符串以非 ASCII 名称引用 shell 变量。"
+
+#: src/format-sh.c:80
+msgid ""
+"The string refers to a shell variable with complex shell brace syntax. This "
+"syntax is unsupported here due to security reasons."
+msgstr ""
+"字符串引用的 shell 变量中大括号语法过于复杂。为安全起见，此语法不被支持。"
+
+#: src/format-sh.c:82
+msgid ""
+"The string refers to a shell variable whose value may be different inside "
+"shell functions."
+msgstr "字符串引用的 shell 变量值可能在 shell 函数中有所不同。"
+
+#: src/format-sh.c:84
+msgid "The string refers to a shell variable with an empty name."
+msgstr "字符串以空名称引用 shell 变量。"
+
+#: src/format-smalltalk.c:90
+#, c-format
+msgid ""
+"In the directive number %u, the character '%c' is not a digit between 1 and "
+"9."
+msgstr "第 %u 条指令中，字符“%c”不是介于 1 和 9 之间的数字。"
+
+#: src/format-smalltalk.c:91
+#, c-format
+msgid ""
+"The character that terminates the directive number %u is not a digit between "
+"1 and 9."
+msgstr "终止第 %u 条指令的字符不是介于 1 和 9 之间的数字。"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/hostname.c:197 src/msgattrib.c:358 src/msgcat.c:297 src/msgconv.c:247
+#: src/msgen.c:244 src/msgexec.c:189 src/msgfilter.c:292 src/msggrep.c:418
+#: src/msginit.c:275 src/msguniq.c:267 src/recode-sr-latin.c:117
+#: src/urlget.c:145
+msgid "Bruno Haible"
+msgstr "Bruno Haible"
+
+#: src/hostname.c:207 src/msginit.c:285 src/recode-sr-latin.c:126
+#, c-format
+msgid "too many arguments"
+msgstr "参数太多"
+
+#: src/hostname.c:224 src/msginit.c:409 src/recode-sr-latin.c:144
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION]\n"
+msgstr "用法：%s [选项]\n"
+
+#: src/hostname.c:228
+#, c-format
+msgid "Print the machine's hostname.\n"
+msgstr "打印机器的主机名。\n"
+
+#: src/hostname.c:231
+#, c-format
+msgid "Output format:\n"
+msgstr "输出格式：\n"
+
+#: src/hostname.c:233
+#, c-format
+msgid "  -s, --short                 short host name\n"
+msgstr "  -s, --short                 短主机名\n"
+
+#: src/hostname.c:235
+#, c-format
+msgid ""
+"  -f, --fqdn, --long          long host name, includes fully qualified "
+"domain\n"
+"                                name, and aliases\n"
+msgstr "  -f, --fqdn, --long          长主机名，包括全称域名和别名\n"
+
+#: src/hostname.c:238
+#, c-format
+msgid "  -i, --ip-address            addresses for the hostname\n"
+msgstr "  -i, --ip-address            主机名地址\n"
+
+#: src/hostname.c:241 src/msgattrib.c:531 src/msgcat.c:466 src/msgcmp.c:254
+#: src/msgcomm.c:452 src/msgconv.c:382 src/msgen.c:378 src/msgexec.c:303
+#: src/msgfilter.c:505 src/msgfmt.c:1068 src/msggrep.c:621 src/msginit.c:467
+#: src/msgmerge.c:661 src/msgunfmt.c:524 src/msguniq.c:414
+#: src/recode-sr-latin.c:157 src/urlget.c:182 src/xgettext.c:1247
+#, c-format, no-wrap
+msgid "Informative output:\n"
+msgstr "信息性输出：\n"
+
+#: src/hostname.c:272 src/hostname.c:278 src/hostname.c:285
+#, c-format
+msgid "could not get host name"
+msgstr "无法获得主机名"
+
+#: src/its.c:318
+#, c-format
+msgid "selector is not specified"
+msgstr "未指定选择器"
+
+#: src/its.c:325 src/its.c:1634
+#, c-format
+msgid "cannot create XPath context"
+msgstr "无法创建 XPath 上下文"
+
+#: src/its.c:343
+#, c-format
+msgid "cannot evaluate XPath expression: %s"
+msgstr "无法计算 XPath 表达式：%s"
+
+#: src/its.c:696
+#, c-format
+msgid "\"%s\" node does not contain \"%s\""
+msgstr "“%s”节点不含有“%s”"
+
+#: src/its.c:1087
+#, c-format
+msgid "invalid attribute value \"%s\" for \"%s\""
+msgstr "无效的属性值“%s”（用于“%s”）"
+
+#: src/its.c:1419
+#, c-format
+msgid "the root element is not \"rules\" under namespace %s"
+msgstr "根元素不是 %s 命名空间下的“规则”（“rules”）"
+
+#: src/its.c:1462 src/its.c:1488 src/its.c:1885 src/its.c:2006
+#: src/locating-rule.c:182
+#, c-format
+msgid "cannot read %s: %s"
+msgstr "无法读取 %s：%s"
+
+#: src/its.c:1661
+#, c-format
+msgid "cannot evaluate XPath location path: %s"
+msgstr "无法计算 XPath 地址路径：%s"
+
+#: src/locating-rule.c:94
+#, c-format
+msgid "cannot find attribute %s on %s"
+msgstr "无法找到属性 %s（在 %s 上）"
+
+#: src/locating-rule.c:113 src/locating-rule.c:328
+#, c-format
+msgid "cannot locate root element"
+msgstr "无法定位根元素"
+
+#: src/locating-rule.c:250
+#, c-format
+msgid "\"%s\" node does not have \"%s\""
+msgstr "“%s”节点不含有“%s”"
+
+#: src/locating-rule.c:321
+#, c-format
+msgid "cannot read XML file %s"
+msgstr "无法读取 XML 文件 %s"
+
+#: src/locating-rule.c:340
+#, c-format
+msgid "the root element is not \"locatingRules\""
+msgstr "根元素不是“locatingRules”"
+
+#: src/msgattrib.c:373 src/msgconv.c:262 src/msgexec.c:150 src/msgfilter.c:193
+#: src/msggrep.c:433 src/msginit.c:197 src/msguniq.c:282
+#, c-format
+msgid "at most one input file allowed"
+msgstr "允许最多一个输入文件"
+
+#: src/msgattrib.c:379 src/msgcat.c:313 src/msgcomm.c:298 src/msgconv.c:268
+#: src/msgen.c:266 src/msgfilter.c:307 src/msgfmt.c:503 src/msgfmt.c:511
+#: src/msgfmt.c:526 src/msgfmt.c:548 src/msggrep.c:439 src/msgmerge.c:400
+#: src/msgmerge.c:405 src/msgmerge.c:410 src/msgmerge.c:415 src/msgmerge.c:436
+#: src/msgunfmt.c:296 src/msguniq.c:288 src/xgettext.c:707 src/xgettext.c:714
+#: src/xgettext.c:717 src/xgettext.c:720 src/xgettext.c:744
+#, c-format
+msgid "%s and %s are mutually exclusive"
+msgstr "%s 和 %s 互斥"
+
+#: src/msgattrib.c:418 src/msgconv.c:304 src/msggrep.c:509 src/msguniq.c:323
+#, c-format
+msgid "Usage: %s [OPTION] [INPUTFILE]\n"
+msgstr "用法：%s [选项] [输入文件]\n"
+
+#: src/msgattrib.c:423
+#, c-format, no-wrap
+msgid ""
+"Filters the messages of a translation catalog according to their attributes,\n"
+"and manipulates the attributes.\n"
+msgstr "根据消息的属性过滤一个翻译库里的消息，并处理消息的属性。\n"
+
+#: src/msgattrib.c:427 src/msgcat.c:381 src/msgcmp.c:223 src/msgcomm.c:372
+#: src/msgconv.c:312 src/msgen.c:313 src/msgexec.c:284 src/msgfilter.c:419
+#: src/msggrep.c:519 src/msginit.c:419 src/msgmerge.c:554 src/msgunfmt.c:432
+#: src/msguniq.c:339
+#, c-format
+msgid ""
+"Mandatory arguments to long options are mandatory for short options too.\n"
+msgstr "长选项必须用的参数在使用短选项时也是必须的。\n"
+
+#: src/msgattrib.c:430 src/msgcat.c:384 src/msgcmp.c:226 src/msgcomm.c:375
+#: src/msgconv.c:315 src/msgen.c:316 src/msgexec.c:287 src/msgfilter.c:422
+#: src/msgfmt.c:917 src/msggrep.c:522 src/msginit.c:422 src/msgmerge.c:557
+#: src/msgunfmt.c:446 src/msguniq.c:342 src/xgettext.c:1079
+#, c-format
+msgid "Input file location:\n"
+msgstr "输入文件的位置：\n"
+
+#: src/msgattrib.c:432 src/msgconv.c:317 src/msggrep.c:524 src/msguniq.c:344
+#, c-format
+msgid "  INPUTFILE                   input PO file\n"
+msgstr "  输入文件                    做为输入的 PO 文件\n"
+
+#: src/msgattrib.c:434 src/msgcat.c:390 src/msgcmp.c:232 src/msgcomm.c:381
+#: src/msgconv.c:319 src/msgen.c:320 src/msgexec.c:291 src/msgfilter.c:426
+#: src/msgfmt.c:921 src/msggrep.c:526 src/msgmerge.c:563 src/msguniq.c:346
+#: src/xgettext.c:1085
+#, c-format
+msgid ""
+"  -D, --directory=DIRECTORY   add DIRECTORY to list for input files search\n"
+msgstr "  -D, --directory=目录        在<目录>中查找输入文件\n"
+
+#: src/msgattrib.c:436 src/msgconv.c:321 src/msgexec.c:293 src/msgfilter.c:428
+#: src/msggrep.c:528 src/msgunfmt.c:450 src/msguniq.c:348
+#, c-format
+msgid "If no input file is given or if it is -, standard input is read.\n"
+msgstr "如果没有指定输入文件或输入文件是 -，则读取标准输入。\n"
+
+#: src/msgattrib.c:439 src/msgcat.c:395 src/msgcomm.c:386 src/msgconv.c:324
+#: src/msgen.c:325 src/msgfilter.c:431 src/msgfmt.c:945 src/msggrep.c:531
+#: src/msginit.c:430 src/msgmerge.c:575 src/msgunfmt.c:486 src/msguniq.c:351
+#: src/xgettext.c:1090
+#, c-format
+msgid "Output file location:\n"
+msgstr "输出文件位置：\n"
+
+#: src/msgattrib.c:441 src/msgcat.c:397 src/msgcomm.c:388 src/msgconv.c:326
+#: src/msgen.c:327 src/msgfilter.c:433 src/msgfmt.c:947 src/msgfmt.c:996
+#: src/msgfmt.c:1015 src/msggrep.c:533 src/msgmerge.c:577 src/msgunfmt.c:488
+#: src/msguniq.c:353
+#, c-format
+msgid "  -o, --output-file=FILE      write output to specified file\n"
+msgstr "  -o, --output-file=文件      将输出写入指定文件\n"
+
+#: src/msgattrib.c:443 src/msgcat.c:399 src/msgcomm.c:390 src/msgconv.c:328
+#: src/msgen.c:329 src/msgfilter.c:435 src/msggrep.c:535 src/msgmerge.c:579
+#: src/msgunfmt.c:490 src/msguniq.c:355
+#, c-format
+msgid ""
+"The results are written to standard output if no output file is specified\n"
+"or if it is -.\n"
+msgstr "如果没有指定输出文件或输出文件是 -，则将结果写入至标准输出。\n"
+
+#: src/msgattrib.c:447 src/msgcat.c:403 src/msgcomm.c:394 src/msguniq.c:359
+#, c-format
+msgid "Message selection:\n"
+msgstr "消息选择：\n"
+
+#: src/msgattrib.c:449
+#, c-format
+msgid ""
+"      --translated            keep translated, remove untranslated messages\n"
+msgstr "      --translated            保留已翻译的，去掉未翻译的消息\n"
+
+#: src/msgattrib.c:451
+#, c-format
+msgid ""
+"      --untranslated          keep untranslated, remove translated messages\n"
+msgstr "      --untranslated          保留未翻译的，去掉已翻译的消息\n"
+
+#: src/msgattrib.c:453
+#, c-format
+msgid "      --no-fuzzy              remove 'fuzzy' marked messages\n"
+msgstr "      --no-fuzzy              删除标为模糊的消息\n"
+
+#: src/msgattrib.c:455
+#, c-format
+msgid "      --only-fuzzy            keep 'fuzzy' marked messages\n"
+msgstr "      --only-fuzzy            保留标为模糊的消息\n"
+
+#: src/msgattrib.c:457
+#, c-format
+msgid "      --no-obsolete           remove obsolete #~ messages\n"
+msgstr "      --no-obsolete           移除过时 #~ 的消息\n"
+
+#: src/msgattrib.c:459
+#, c-format
+msgid "      --only-obsolete         keep obsolete #~ messages\n"
+msgstr "      --only-obsolete         保留过时 #~ 的消息\n"
+
+#: src/msgattrib.c:462
+#, c-format
+msgid "Attribute manipulation:\n"
+msgstr "属性操纵：\n"
+
+#: src/msgattrib.c:464
+#, c-format
+msgid "      --set-fuzzy             set all messages 'fuzzy'\n"
+msgstr "      --set-fuzzy             全部消息设为“模糊”\n"
+
+#: src/msgattrib.c:466
+#, c-format
+msgid "      --clear-fuzzy           set all messages non-'fuzzy'\n"
+msgstr "      --clear-fuzzy           全部消息清除“模糊”属性\n"
+
+#: src/msgattrib.c:468
+#, c-format
+msgid "      --set-obsolete          set all messages obsolete\n"
+msgstr "      --set-obsolete          全部消息设为过时\n"
+
+#: src/msgattrib.c:470
+#, c-format
+msgid "      --clear-obsolete        set all messages non-obsolete\n"
+msgstr "      --clear-obsolete        全部消息清除过时属性\n"
+
+#: src/msgattrib.c:472
+#, c-format
+msgid ""
+"      --previous              when setting 'fuzzy', keep previous msgids\n"
+"                              of translated messages.\n"
+msgstr ""
+"      --previous              设置“fuzzy”标记时，\n"
+"                              保留原翻译信息前的msgids。\n"
+
+#: src/msgattrib.c:475
+#, c-format
+msgid ""
+"      --clear-previous        remove the \"previous msgid\" from all "
+"messages\n"
+msgstr "      --clear-previous        从所有条目中删除“previous msgid”\n"
+
+#: src/msgattrib.c:477
+#, c-format
+msgid ""
+"      --empty                 when removing 'fuzzy', also set msgstr empty\n"
+msgstr "      --empty                 删除“fuzzy”标记时，总是清空msgstr\n"
+
+#: src/msgattrib.c:479
+#, c-format
+msgid ""
+"      --only-file=FILE.po     manipulate only entries listed in FILE.po\n"
+msgstr "      --only-file=文件.po     只处理列在 文件.po 中的项\n"
+
+#: src/msgattrib.c:481
+#, c-format
+msgid ""
+"      --ignore-file=FILE.po   manipulate only entries not listed in FILE.po\n"
+msgstr "      --ignore-file=文件.po   只处理未列在 文件.po 中的项\n"
+
+#: src/msgattrib.c:483
+#, c-format
+msgid "      --fuzzy                 synonym for --only-fuzzy --clear-fuzzy\n"
+msgstr "      --fuzzy                 等于 --only-fuzzy --clear-fuzzy\n"
+
+#: src/msgattrib.c:485
+#, c-format
+msgid ""
+"      --obsolete              synonym for --only-obsolete --clear-obsolete\n"
+msgstr "      --obsolete              等于 --only-obsolete --clear-obsolete\n"
+
+#: src/msgattrib.c:488 src/msgcat.c:415 src/msgcmp.c:246 src/msgcomm.c:406
+#: src/msgconv.c:339 src/msgen.c:333 src/msgexec.c:296 src/msgfilter.c:460
+#: src/msgfmt.c:1025 src/msggrep.c:578 src/msginit.c:438 src/msgmerge.c:615
+#: src/msguniq.c:366
+#, c-format
+msgid "Input file syntax:\n"
+msgstr "输入文件的语法：\n"
+
+#: src/msgattrib.c:490 src/msgconv.c:341 src/msgen.c:335 src/msgexec.c:298
+#: src/msgfilter.c:462 src/msggrep.c:580 src/msginit.c:440 src/msguniq.c:368
+#, c-format
+msgid ""
+"  -P, --properties-input      input file is in Java .properties syntax\n"
+msgstr "  -P, --properties-input      输入文件以 Java .properties 语法给出\n"
+
+#: src/msgattrib.c:492 src/msgconv.c:343 src/msgen.c:337 src/msgexec.c:300
+#: src/msgfilter.c:464 src/msggrep.c:582 src/msginit.c:442 src/msguniq.c:370
+#, c-format
+msgid ""
+"      --stringtable-input     input file is in NeXTstep/GNUstep .strings "
+"syntax\n"
+msgstr ""
+"      --stringtable-input     输入文件以 NeXTstep/GNUstep .strings 语法给出\n"
+
+#: src/msgattrib.c:495 src/msgcat.c:423 src/msgcomm.c:414 src/msgconv.c:346
+#: src/msgen.c:340 src/msgfilter.c:467 src/msgfmt.c:1053 src/msggrep.c:585
+#: src/msginit.c:445 src/msgmerge.c:623 src/msgunfmt.c:494 src/msguniq.c:373
+#: src/xgettext.c:1191
+#, c-format
+msgid "Output details:\n"
+msgstr "输出细节：\n"
+
+#: src/msgattrib.c:497 src/msgcat.c:432 src/msgcomm.c:416 src/msgconv.c:348
+#: src/msgen.c:344 src/msgfilter.c:469 src/msggrep.c:587 src/msginit.c:451
+#: src/msgmerge.c:627 src/msgunfmt.c:496 src/msguniq.c:380 src/xgettext.c:1193
+#, c-format
+msgid ""
+"      --color                 use colors and other text attributes always\n"
+"      --color=WHEN            use colors and other text attributes if WHEN.\n"
+"                              WHEN may be 'always', 'never', 'auto', or "
+"'html'.\n"
+msgstr ""
+"      --color                 总是使用颜色及其它文本属性\n"
+"      --color=WHEN            如果符合 WHEN，就使用颜色及其它文本属性。\n"
+"                              WHEN 可以"
+"是‘always’，‘never’，‘auto’或‘html’。\n"
+
+#: src/msgattrib.c:501 src/msgcat.c:436 src/msgcomm.c:420 src/msgconv.c:352
+#: src/msgen.c:348 src/msgfilter.c:473 src/msggrep.c:591 src/msginit.c:455
+#: src/msgmerge.c:631 src/msgunfmt.c:500 src/msguniq.c:384 src/xgettext.c:1197
+#, c-format
+msgid "      --style=STYLEFILE       specify CSS style rule file for --color\n"
+msgstr "      --style=STYLEFILE       为 --color 参数指定 CSS 样式文件\n"
+
+#: src/msgattrib.c:503 src/msgcat.c:438 src/msgcomm.c:422 src/msgconv.c:354
+#: src/msgen.c:350 src/msgmerge.c:633 src/msgunfmt.c:502 src/msguniq.c:386
+#: src/xgettext.c:1199
+#, c-format
+msgid ""
+"  -e, --no-escape             do not use C escapes in output (default)\n"
+msgstr "  -e, --no-escape             不在输出中使用 C 转码序列(默认)\n"
+
+#: src/msgattrib.c:505 src/msgcat.c:440 src/msgcomm.c:424 src/msgconv.c:356
+#: src/msgen.c:352 src/msgfilter.c:477 src/msgmerge.c:635 src/msgunfmt.c:504
+#: src/msguniq.c:388 src/xgettext.c:1201
+#, c-format
+msgid ""
+"  -E, --escape                use C escapes in output, no extended chars\n"
+msgstr "  -E, --escape                在输出中使用 C 转码序列，没有扩展字符\n"
+
+#: src/msgattrib.c:507 src/msgcat.c:442 src/msgcomm.c:426 src/msgconv.c:358
+#: src/msgen.c:354 src/msgfilter.c:479 src/msggrep.c:597 src/msgmerge.c:637
+#: src/msgunfmt.c:506 src/msguniq.c:390 src/xgettext.c:1203
+#, c-format
+msgid "      --force-po              write PO file even if empty\n"
+msgstr "      --force-po              就算为空也写入 PO 文件\n"
+
+#: src/msgattrib.c:509 src/msgcat.c:444 src/msgcomm.c:428 src/msguniq.c:392
+#: src/xgettext.c:1205
+#, c-format
+msgid "  -i, --indent                write the .po file using indented style\n"
+msgstr "  -i, --indent                使用缩进风格写入 .po 文件\n"
+
+#: src/msgattrib.c:511 src/msgcat.c:446 src/msgcomm.c:430 src/msguniq.c:394
+#: src/xgettext.c:1207
+#, c-format
+msgid "      --no-location           do not write '#: filename:line' lines\n"
+msgstr "      --no-location           不写入“#: 文件名:行号”位置行\n"
+
+#: src/msgattrib.c:513 src/msgcat.c:448 src/msgcomm.c:432 src/msguniq.c:396
+#: src/xgettext.c:1209
+#, c-format
+msgid ""
+"  -n, --add-location          generate '#: filename:line' lines (default)\n"
+msgstr "  -n, --add-location          生成“#: 文件名:行号”位置行(默认)\n"
+
+#: src/msgattrib.c:515 src/msgcat.c:450 src/msgcomm.c:434 src/msguniq.c:398
+#: src/xgettext.c:1211
+#, c-format
+msgid ""
+"      --strict                write out strict Uniforum conforming .po file\n"
+msgstr ""
+"      --strict                写入极为严格的 Uniforum 使 .po 文件保持一致\n"
+
+#: src/msgattrib.c:517 src/msgcat.c:452 src/msgcomm.c:436 src/msgconv.c:368
+#: src/msgen.c:364 src/msgfilter.c:491 src/msggrep.c:607 src/msginit.c:457
+#: src/msgmerge.c:647 src/msgunfmt.c:512 src/msguniq.c:400
+#, c-format
+msgid "  -p, --properties-output     write out a Java .properties file\n"
+msgstr "  -p, --properties-output     写出 Java .properties 文件\n"
+
+#: src/msgattrib.c:519 src/msgcat.c:454 src/msgcomm.c:438 src/msgconv.c:370
+#: src/msgen.c:366 src/msgfilter.c:493 src/msggrep.c:609 src/msginit.c:459
+#: src/msgmerge.c:649 src/msgunfmt.c:514 src/msguniq.c:402 src/xgettext.c:1215
+#, c-format
+msgid ""
+"      --stringtable-output    write out a NeXTstep/GNUstep .strings file\n"
+msgstr "      --stringtable-output    写出 NeXTstep/GNUstep .strings 文件\n"
+
+#: src/msgattrib.c:521 src/msgcat.c:456 src/msgcomm.c:440 src/msgconv.c:372
+#: src/msgen.c:368 src/msgfilter.c:495 src/msggrep.c:611 src/msginit.c:461
+#: src/msgmerge.c:651 src/msgunfmt.c:516 src/msguniq.c:404 src/xgettext.c:1219
+#, c-format
+msgid "  -w, --width=NUMBER          set output page width\n"
+msgstr "  -w, --width=数字            设置输出页面宽度\n"
+
+#: src/msgattrib.c:523 src/msgcat.c:458 src/msgcomm.c:442 src/msgconv.c:374
+#: src/msgen.c:370 src/msgfilter.c:497 src/msggrep.c:613 src/msginit.c:463
+#: src/msgmerge.c:653 src/msgunfmt.c:518 src/msguniq.c:406 src/xgettext.c:1221
+#, c-format
+msgid ""
+"      --no-wrap               do not break long message lines, longer than\n"
+"                              the output page width, into several lines\n"
+msgstr "      --no-wrap               不将超过输出页宽度的长消息行断为多行\n"
+
+#: src/msgattrib.c:526 src/msgcat.c:461 src/msgcomm.c:445 src/msgconv.c:377
+#: src/msgen.c:373 src/msgfilter.c:500 src/msgmerge.c:656 src/msgunfmt.c:521
+#: src/msguniq.c:409
+#, c-format
+msgid "  -s, --sort-output           generate sorted output\n"
+msgstr "  -s, --sort-output           输出前排序\n"
+
+#: src/msgattrib.c:528 src/msgcat.c:463 src/msgcomm.c:447 src/msgconv.c:379
+#: src/msgen.c:375 src/msgfilter.c:502 src/msgmerge.c:658 src/msguniq.c:411
+#: src/xgettext.c:1226
+#, c-format
+msgid "  -F, --sort-by-file          sort output by file location\n"
+msgstr "  -F, --sort-by-file          按文件位置排序输出\n"
+
+#: src/msgcat.c:319 src/msgcomm.c:324
+#, c-format
+msgid "impossible selection criteria specified (%d < n < %d)"
+msgstr "不可能出现的选择条件 (%d < n < %d)"
+
+#: src/msgcat.c:364 src/msgcomm.c:356 src/xgettext.c:1065
+#, c-format
+msgid "Usage: %s [OPTION] [INPUTFILE]...\n"
+msgstr "用法：%s [选项] [输入文件]...\n"
+
+#: src/msgcat.c:369
+#, c-format, no-wrap
+msgid ""
+"Concatenates and merges the specified PO files.\n"
+"Find messages which are common to two or more of the specified PO files.\n"
+"By using the --more-than option, greater commonality may be requested\n"
+"before messages are printed.  Conversely, the --less-than option may be\n"
+"used to specify less commonality before messages are printed (i.e.\n"
+"--less-than=2 will only print the unique messages).  Translations,\n"
+"comments, extracted comments, and file positions will be cumulated, except\n"
+"that if --use-first is specified, they will be taken from the first PO file\n"
+"to define them.\n"
+msgstr ""
+"连接并合并指定的 PO 文件。\n"
+"在两个或多个指定的 PO 文件中找出共同的翻译消息。\n"
+"利用 --more-than 选项，可以令消息在不同文件中\n"
+"出现的次数较多时才打印。\n"
+"相反地，--less-than 选项则会令消息在不同文件中\n"
+"出现的次数较少时才打印\n"
+"(例如 --less-than=2 表示打印只出现一次的消息)。\n"
+"翻译内容、自行加上的批注和源程序代码批注，以及文件中的位置等都会累积，\n"
+"除非使用了 --use-first选项，那样则会由第一个包含该翻译条目的文件获取数据。\n"
+
+#: src/msgcat.c:386 src/msgcomm.c:377 src/xgettext.c:1081
+#, c-format
+msgid "  INPUTFILE ...               input files\n"
+msgstr "  输入文件 ...                输入文件\n"
+
+#: src/msgcat.c:388 src/msgcomm.c:379 src/xgettext.c:1083
+#, c-format
+msgid "  -f, --files-from=FILE       get list of input files from FILE\n"
+msgstr "  -f, --files-from=文件       由<文件>读入输入文件的列表\n"
+
+#: src/msgcat.c:392 src/msgcomm.c:383 src/msgen.c:322 src/msgfmt.c:923
+#: src/xgettext.c:1087
+#, c-format
+msgid "If input file is -, standard input is read.\n"
+msgstr "如果输入文件为 -，则将读取标准输入。\n"
+
+#: src/msgcat.c:405 src/msgcomm.c:396
+#, c-format
+msgid ""
+"  -<, --less-than=NUMBER      print messages with less than this many\n"
+"                              definitions, defaults to infinite if not set\n"
+msgstr ""
+"  -<, --less-than=数字        只打印出现次数少于指定次数的消息，若没有\n"
+"                              指定次数则默认值为无穷大\n"
+
+#: src/msgcat.c:408
+#, c-format
+msgid ""
+"  ->, --more-than=NUMBER      print messages with more than this many\n"
+"                              definitions, defaults to 0 if not set\n"
+msgstr ""
+"  ->, --more-than=数字        只打印出现次数多于指定次数的消息，若没有\n"
+"                              指定次数则默认值为 0\n"
+
+#: src/msgcat.c:411 src/msgcomm.c:402
+#, c-format
+msgid ""
+"  -u, --unique                shorthand for --less-than=2, requests\n"
+"                              that only unique messages be printed\n"
+msgstr ""
+"  -u, --unique                --less-than=2 的缩写，要求只列出出现一次\n"
+"                              的消息\n"
+
+#: src/msgcat.c:417 src/msgcmp.c:248 src/msgcomm.c:408 src/msgfmt.c:1027
+#: src/msgmerge.c:617
+#, c-format
+msgid ""
+"  -P, --properties-input      input files are in Java .properties syntax\n"
+msgstr "  -P, --properties-input      输入文件以 Java .properties 语法给出\n"
+
+#: src/msgcat.c:419 src/msgcmp.c:250 src/msgcomm.c:410 src/msgfmt.c:1029
+#: src/msgmerge.c:619
+#, c-format
+msgid ""
+"      --stringtable-input     input files are in NeXTstep/GNUstep .strings\n"
+"                              syntax\n"
+msgstr ""
+"      --stringtable-input     输入文件以 NeXTstep/GNUstep .strings 语法给出\n"
+
+#: src/msgcat.c:425 src/msgconv.c:334 src/msguniq.c:375
+#, c-format
+msgid "  -t, --to-code=NAME          encoding for output\n"
+msgstr "  -t, --to-code=名称          输出的编码\n"
+
+#: src/msgcat.c:427 src/msguniq.c:377
+#, c-format
+msgid ""
+"      --use-first             use first available translation for each\n"
+"                              message, don't merge several translations\n"
+msgstr ""
+"      --use-first             对每条消息均使用第一个可用的翻译，不合并若干\n"
+"                              种翻译\n"
+
+#: src/msgcat.c:430 src/msgen.c:342 src/msgmerge.c:625
+#, c-format
+msgid ""
+"      --lang=CATALOGNAME      set 'Language' field in the header entry\n"
+msgstr "      --lang=CATALOGNAME      在文件头中设定 'Language'\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/msgcmp.c:174 src/msgcomm.c:288 src/msgmerge.c:375
+msgid "Peter Miller"
+msgstr "Peter Miller"
+
+#: src/msgcmp.c:185 src/msgmerge.c:386
+#, c-format
+msgid "no input files given"
+msgstr "没有给出输入文件"
+
+#: src/msgcmp.c:190 src/msgmerge.c:391
+#, c-format
+msgid "exactly 2 input files required"
+msgstr "需要两个输入文件"
+
+#: src/msgcmp.c:209 src/msgmerge.c:537
+#, c-format
+msgid "Usage: %s [OPTION] def.po ref.pot\n"
+msgstr "用法：%s [选项] def.po ref.pot\n"
+
+#: src/msgcmp.c:214
+#, c-format, no-wrap
+msgid ""
+"Compare two Uniforum style .po files to check that both contain the same\n"
+"set of msgid strings.  The def.po file is an existing PO file with the\n"
+"translations.  The ref.pot file is the last created PO file, or a PO Template\n"
+"file (generally created by xgettext).  This is useful for checking that\n"
+"you have translated each and every message in your program.  Where an exact\n"
+"match cannot be found, fuzzy matching is used to produce better diagnostics.\n"
+msgstr ""
+"比较两个 Uniforum 格式的 .po 文件，检查两者是否包含相同的 msgid 字段。\n"
+"def.po 是翻译过的现有的 PO 文件，ref.pot 则是新创建的 PO 文件或者 POT\n"
+"模板文件(通常由 xgettext 生成)。\n"
+"此程序可用来检查程序中的所有的消息是否都已经翻译好了。比较时如果\n"
+"有不完全匹配的字符串出现，程序会以模糊配对的方式得出较好的结果。\n"
+
+#: src/msgcmp.c:228
+#, c-format
+msgid "  def.po                      translations\n"
+msgstr "  def.po                      翻译\n"
+
+#: src/msgcmp.c:230
+#, c-format
+msgid "  ref.pot                     references to the sources\n"
+msgstr "  ref.pot                     对源文件的引用\n"
+
+#: src/msgcmp.c:235 src/msgmerge.c:603
+#, c-format
+msgid "Operation modifiers:\n"
+msgstr "操作修饰：\n"
+
+#: src/msgcmp.c:237 src/msgmerge.c:605
+#, c-format
+msgid ""
+"  -m, --multi-domain          apply ref.pot to each of the domains in def."
+"po\n"
+msgstr "  -m, --multi-domain          将 ref.pot 应用到 def.po 的每个域上\n"
+
+#: src/msgcmp.c:239 src/msgmerge.c:610
+#, c-format
+msgid "  -N, --no-fuzzy-matching     do not use fuzzy matching\n"
+msgstr "  -N, --no-fuzzy-matching     不使用模糊匹配\n"
+
+#: src/msgcmp.c:241
+#, c-format
+msgid "      --use-fuzzy             consider fuzzy entries\n"
+msgstr "      --use-fuzzy             使用标记为 fuzzy 的条目\n"
+
+#: src/msgcmp.c:243
+#, c-format
+msgid "      --use-untranslated      consider untranslated entries\n"
+msgstr "      --use-untranslated      使用未翻译的条目\n"
+
+#: src/msgcmp.c:326
+#, c-format
+msgid "this message is untranslated"
+msgstr "此条目未翻译"
+
+#: src/msgcmp.c:332
+#, c-format
+msgid "this message needs to be reviewed by the translator"
+msgstr "此条目需要由翻译者复审"
+
+#: src/msgcmp.c:371 src/msgmerge.c:1594
+#, c-format
+msgid "this message is used but not defined..."
+msgstr "此消息使用了但却未定义..."
+
+#: src/msgcmp.c:374 src/msgmerge.c:1597
+#, c-format
+msgid "...but this definition is similar"
+msgstr "...但此定义十分类似"
+
+#: src/msgcmp.c:379 src/msgmerge.c:1626
+#, c-format
+msgid "this message is used but not defined in %s"
+msgstr "此消息已使用，但未定义于 %s 中"
+
+#: src/msgcmp.c:548
+#, c-format
+msgid "warning: this message is not used"
+msgstr "警告：此消息未使用"
+
+#: src/msgcmp.c:555 src/msgfmt.c:775 src/msgfmt.c:1609 src/xgettext.c:1034
+#, c-format
+msgid "found %d fatal error"
+msgid_plural "found %d fatal errors"
+msgstr[0] "发现 %d 处致命错误"
+
+#: src/msgcomm.c:313
+#, c-format
+msgid "at least two files must be specified"
+msgstr "需要至少指定两个文件"
+
+#: src/msgcomm.c:361
+#, c-format, no-wrap
+msgid ""
+"Find messages which are common to two or more of the specified PO files.\n"
+"By using the --more-than option, greater commonality may be requested\n"
+"before messages are printed.  Conversely, the --less-than option may be\n"
+"used to specify less commonality before messages are printed (i.e.\n"
+"--less-than=2 will only print the unique messages).  Translations,\n"
+"comments and extracted comments will be preserved, but only from the first\n"
+"PO file to define them.  File positions from all PO files will be\n"
+"cumulated.\n"
+msgstr ""
+"在两个或多个指定的 PO 文件 中找出共同的翻译消息。\n"
+"利用 --more-than 选项，可以令消息在不同文件出现的次数较多时才会打印。\n"
+"相反地，--less-than 选项则会令消息在不同文件出现的次数较少时才打印\n"
+"（例如 --less-than=2 表示打印只出现一次的消息）。\n"
+"翻译内容、自行加上的注释和源程序注释的批注都会保留，\n"
+"但只会保留最先定义这些信息的 PO 文件中的内容。\n"
+"所有 PO 文件中的翻译条目的文件位置都会累积下来。\n"
+
+#: src/msgcomm.c:399
+#, c-format
+msgid ""
+"  ->, --more-than=NUMBER      print messages with more than this many\n"
+"                              definitions, defaults to 1 if not set\n"
+msgstr ""
+"  ->, --more-than=数字        只打印出现次数多于指定次数的消息，若没有\n"
+"                              指定次数则默认值为 1\n"
+
+#: src/msgcomm.c:449 src/xgettext.c:1228
+#, c-format
+msgid ""
+"      --omit-header           don't write header with 'msgid \"\"' entry\n"
+msgstr "      --omit-header           不写入带有“msgid \"\"”项的文件头项\n"
+
+#: src/msgconv.c:308
+#, c-format
+msgid "Converts a translation catalog to a different character encoding.\n"
+msgstr "将一个翻译库的编码转换为另一种文字编码。\n"
+
+#: src/msgconv.c:332
+#, c-format
+msgid "Conversion target:\n"
+msgstr "转换目标：\n"
+
+#: src/msgconv.c:336
+#, c-format
+msgid "The default encoding is the current locale's encoding.\n"
+msgstr "默认编码为当前区域设置的编码。\n"
+
+#: src/msgconv.c:360 src/msgen.c:356 src/msgmerge.c:639
+#, c-format
+msgid "  -i, --indent                indented output style\n"
+msgstr "  -i, --indent                缩进的输出风格\n"
+
+#: src/msgconv.c:362 src/msgen.c:358 src/msgfilter.c:485 src/msggrep.c:601
+#: src/msgmerge.c:641
+#, c-format
+msgid "      --no-location           suppress '#: filename:line' lines\n"
+msgstr "      --no-location           排除“#: filename:line”行\n"
+
+#: src/msgconv.c:364 src/msgen.c:360 src/msgfilter.c:487 src/msggrep.c:603
+#: src/msgmerge.c:643
+#, c-format
+msgid ""
+"  -n, --add-location          preserve '#: filename:line' lines (default)\n"
+msgstr "  -n, --add-location          保留“#: filename:line”行(默认)\n"
+
+#: src/msgconv.c:366 src/msgen.c:362 src/msgfilter.c:489 src/msggrep.c:605
+#: src/msgmerge.c:645
+#, c-format
+msgid "      --strict                strict Uniforum output style\n"
+msgstr "      --strict                严格的 Uniforum 输出风格\n"
+
+#: src/msgen.c:255 src/msgfmt.c:463 src/xgettext.c:737
+#, c-format
+msgid "no input file given"
+msgstr "没有给出输入文件"
+
+#: src/msgen.c:260
+#, c-format
+msgid "exactly one input file required"
+msgstr "需要一个输入文件"
+
+#: src/msgen.c:301
+#, c-format
+msgid "Usage: %s [OPTION] INPUTFILE\n"
+msgstr "用法：%s [选项] 输入文件\n"
+
+#: src/msgen.c:306
+#, c-format, no-wrap
+msgid ""
+"Creates an English translation catalog.  The input file is the last\n"
+"created English PO file, or a PO Template file (generally created by\n"
+"xgettext).  Untranslated entries are assigned a translation that is\n"
+"identical to the msgid.\n"
+msgstr ""
+"创建一个英文翻译库。输入文件是最近创建的英文 PO 文件或 POT 模板文件\n"
+"(通常由 xgettext 创建)。未翻译的条目会填上和 msgid 一样的字符串，\n"
+"并标记为模糊。\n"
+
+#: src/msgen.c:318
+#, c-format
+msgid "  INPUTFILE                   input PO or POT file\n"
+msgstr "  输入文件                    输入 PO 或 POT 文件\n"
+
+#: src/msgexec.c:199
+#, c-format
+msgid "missing command name"
+msgstr "丢失命令名"
+
+#: src/msgexec.c:260
+#, c-format
+msgid "Usage: %s [OPTION] COMMAND [COMMAND-OPTION]\n"
+msgstr "用法：%s [选项] 命令 [命令选项]\n"
+
+#: src/msgexec.c:265
+#, c-format, no-wrap
+msgid ""
+"Applies a command to all translations of a translation catalog.\n"
+"The COMMAND can be any program that reads a translation from standard\n"
+"input.  It is invoked once for each translation.  Its output becomes\n"
+"msgexec's output.  msgexec's return code is the maximum return code\n"
+"across all invocations.\n"
+msgstr ""
+"以翻译库的所有翻译条目作为某命令的输入数据。\n"
+"<命令>可以是任何由标准输入读入翻译条目的程序。\n"
+"对于每个翻译条目命令都会运行一次。它的输出结果\n"
+"即是 msgexec 的输出结果。msgexec 的返回值是所有\n"
+"命令调用产生的返回值的最大值。\n"
+
+#: src/msgexec.c:274
+#, c-format, no-wrap
+msgid ""
+"A special builtin command called '0' outputs the translation, followed by a\n"
+"null byte.  The output of \"msgexec 0\" is suitable as input for \"xargs -0\".\n"
+msgstr ""
+"有一个称为“0”的特殊内置命令，它会输出翻译条目，并随后加上一个 null\n"
+"字节。“msgexec 0”的输出适用于作为“xargs -0”的输入。\n"
+
+#: src/msgexec.c:279
+#, c-format
+msgid "Command input:\n"
+msgstr "命令输入:\n"
+
+#: src/msgexec.c:281
+#, c-format
+msgid "  --newline                   add newline at the end of input\n"
+msgstr "  --newline                   在输入末尾添加换行符\n"
+
+#: src/msgexec.c:289 src/msgfilter.c:424
+#, c-format
+msgid "  -i, --input=INPUTFILE       input PO file\n"
+msgstr "  -i, --input=输入文件        输入的 PO 文件\n"
+
+#: src/msgexec.c:358
+#, c-format
+msgid "write to stdout failed"
+msgstr "写入 stdout 失败"
+
+#: src/msgfilter.c:302
+#, c-format
+msgid "missing filter name"
+msgstr "缺少过滤器名称"
+
+#: src/msgfilter.c:322
+#, c-format
+msgid "at least one sed script must be specified"
+msgstr "必须指定至少一个 sed 脚本"
+
+#: src/msgfilter.c:411
+#, c-format
+msgid "Usage: %s [OPTION] FILTER [FILTER-OPTION]\n"
+msgstr "用法：%s [选项] FILTER [FILTER-OPTION]\n"
+
+#: src/msgfilter.c:415
+#, c-format
+msgid "Applies a filter to all translations of a translation catalog.\n"
+msgstr "对于翻译库中的所有翻译条目进行过滤。\n"
+
+#: src/msgfilter.c:439
+#, c-format
+msgid ""
+"The FILTER can be any program that reads a translation from standard input\n"
+"and writes a modified translation to standard output.\n"
+msgstr ""
+"FILTER 可以是任何由标准输入读入翻译条目\n"
+"并将修改后的翻译写进标准输出的程序。\n"
+
+#: src/msgfilter.c:444
+#, c-format
+msgid "Filter input and output:\n"
+msgstr "Filter 输入与输出:\n"
+
+#: src/msgfilter.c:446
+#, c-format
+msgid ""
+"  --newline                   add a newline at the end of input and\n"
+"                                remove a newline from the end of output"
+msgstr ""
+"  --newline                   在输入流结尾添加一个换行符\n"
+"                                并移除输出流结尾的换行符"
+
+#: src/msgfilter.c:450
+#, c-format
+msgid "Useful FILTER-OPTIONs when the FILTER is 'sed':\n"
+msgstr "FILTER设为“sed”是有用的FILTER-OPTION:\n"
+
+#: src/msgfilter.c:452
+#, c-format
+msgid ""
+"  -e, --expression=SCRIPT     add SCRIPT to the commands to be executed\n"
+msgstr "  -e, --expression=SCRIPT       将<SCRIPT>添加到欲执行的命令中\n"
+
+#: src/msgfilter.c:454
+#, c-format
+msgid ""
+"  -f, --file=SCRIPTFILE       add the contents of SCRIPTFILE to the "
+"commands\n"
+"                                to be executed\n"
+msgstr ""
+"  -f, --file=SCRIPTFILE         将<SCRIPTFILE>的内容添加到欲执行的命令中\n"
+
+#: src/msgfilter.c:457
+#, c-format
+msgid ""
+"  -n, --quiet, --silent       suppress automatic printing of pattern space\n"
+msgstr "  -n, --quiet, --silent       禁用对模式空白的自动打印\n"
+
+#: src/msgfilter.c:475 src/msggrep.c:593
+#, c-format
+msgid ""
+"      --no-escape             do not use C escapes in output (default)\n"
+msgstr "      --no-escape             在输出中不使用 C 转义字符(默认)\n"
+
+#: src/msgfilter.c:481 src/msggrep.c:599
+#, c-format
+msgid "      --indent                indented output style\n"
+msgstr "      --indent                缩进的输出风格\n"
+
+#: src/msgfilter.c:483
+#, c-format
+msgid ""
+"      --keep-header           keep header entry unmodified, don't filter it\n"
+msgstr "      --keep-header           保持文件头项不变，不过滤它\n"
+
+#: src/msgfilter.c:667
+#, c-format
+msgid "filter output is not terminated with a newline"
+msgstr "filter 输出未以换行符终止"
+
+#: src/msgfmt.c:365
+#, c-format
+msgid "the argument to %s should be a single punctuation character"
+msgstr "%s 的参数应该是一个标点符号"
+
+#: src/msgfmt.c:412
+#, c-format
+msgid "invalid endianness: %s"
+msgstr "无效的 endianness：%s"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/msgfmt.c:450 src/msgunfmt.c:265 src/xgettext.c:697
+msgid "Ulrich Drepper"
+msgstr "Ulrich Drepper"
+
+#: src/msgfmt.c:471
+#, c-format
+msgid "no input file should be given if %s and %s are specified"
+msgstr "若指定了%s 和%s，则无需指定输入文件"
+
+#: src/msgfmt.c:517 src/msgfmt.c:539 src/msgfmt.c:561 src/msgunfmt.c:327
+#: src/msgunfmt.c:350
+#, c-format
+msgid "%s requires a \"-d directory\" specification"
+msgstr "%s 需要指定“-d 目录”选项"
+
+#: src/msgfmt.c:532 src/msgfmt.c:554 src/msgfmt.c:589 src/msgfmt.c:617
+#: src/msgunfmt.c:320 src/msgunfmt.c:343
+#, c-format
+msgid "%s requires a \"-l locale\" specification"
+msgstr "%s 需要指定“-l locale”选项"
+
+#: src/msgfmt.c:571 src/msgfmt.c:599
+#, c-format
+msgid "%s requires a \"--template template\" specification"
+msgstr "%s 需要指定“--template template”选项"
+
+#: src/msgfmt.c:578 src/msgfmt.c:606
+#, c-format
+msgid "%s requires a \"-o file\" specification"
+msgstr "%s 需要指定“-o file”选项"
+
+#: src/msgfmt.c:584 src/msgfmt.c:612
+#, c-format
+msgid "%s and %s are mutually exclusive in %s"
+msgstr "在%3$s 中%1$s 和 %2$s 互斥"
+
+#: src/msgfmt.c:626 src/msgunfmt.c:359 src/msgunfmt.c:365
+#, c-format
+msgid "%s is only valid with %s or %s"
+msgstr "%s 只能配合 %s 或 %s 一起使用才有效"
+
+#: src/msgfmt.c:632 src/msgfmt.c:638
+#, c-format
+msgid "%s is only valid with %s, %s or %s"
+msgstr "%s 只能配合 %s、%s 或 %s 一起使用才有效"
+
+#: src/msgfmt.c:711
+#, c-format
+msgid "cannot locate ITS rules for %s"
+msgstr "无法定位 %s 的 ITS 规则"
+
+#. TRANSLATORS: The prefix before a statistics message.  The argument
+#. is a file name or a comma separated list of file names.
+#: src/msgfmt.c:870
+#, c-format
+msgid "%s: "
+msgstr "%s: "
+
+#: src/msgfmt.c:873
+#, c-format
+msgid "%d translated message"
+msgid_plural "%d translated messages"
+msgstr[0] "%d 条已翻译消息"
+
+#: src/msgfmt.c:878
+#, c-format
+msgid ", %d fuzzy translation"
+msgid_plural ", %d fuzzy translations"
+msgstr[0] "，%d 条模糊消息"
+
+#: src/msgfmt.c:883
+#, c-format
+msgid ", %d untranslated message"
+msgid_plural ", %d untranslated messages"
+msgstr[0] "，%d 条未翻译消息"
+
+#: src/msgfmt.c:903
+#, c-format
+msgid "Usage: %s [OPTION] filename.po ...\n"
+msgstr "用法：%s [选项] filename.po ...\n"
+
+#: src/msgfmt.c:907
+#, c-format
+msgid "Generate binary message catalog from textual translation description.\n"
+msgstr "由文字模式描述生成二进制消息文件。\n"
+
+#: src/msgfmt.c:919
+#, c-format
+msgid "  filename.po ...             input files\n"
+msgstr "  文件名.po ...               输入文件\n"
+
+#: src/msgfmt.c:926 src/msgmerge.c:569 src/msgunfmt.c:435 src/xgettext.c:1123
+#, c-format
+msgid "Operation mode:\n"
+msgstr "操作模式：\n"
+
+#: src/msgfmt.c:928
+#, c-format
+msgid ""
+"  -j, --java                  Java mode: generate a Java ResourceBundle "
+"class\n"
+msgstr "  -j, --java                  Java 模式：生成 Java 资源包类\n"
+
+#: src/msgfmt.c:930
+#, c-format
+msgid ""
+"      --java2                 like --java, and assume Java2 (JDK 1.2 or "
+"higher)\n"
+msgstr ""
+"      --java2                 类似 --java，但假设是 Java2 (JDK 1.2 或较新\n"
+"                              的版本)\n"
+
+#: src/msgfmt.c:932
+#, c-format
+msgid "      --csharp                C# mode: generate a .NET .dll file\n"
+msgstr "      --csharp                C# 模式：生成 .NET .dll 文件\n"
+
+#: src/msgfmt.c:934
+#, c-format
+msgid ""
+"      --csharp-resources      C# resources mode: generate a .NET .resources "
+"file\n"
+msgstr "      --csharp-resources      C# 资源模式：生成 .NET .resources 文件\n"
+
+#: src/msgfmt.c:936
+#, c-format
+msgid ""
+"      --tcl                   Tcl mode: generate a tcl/msgcat .msg file\n"
+msgstr "      --tcl                   Tcl 模式：生成 tcl/msgcat .msg 文件\n"
+
+#: src/msgfmt.c:938
+#, c-format
+msgid "      --qt                    Qt mode: generate a Qt .qm file\n"
+msgstr "      --qt                    Qt 模式：生成 Qt .qm 文件\n"
+
+#: src/msgfmt.c:940
+#, c-format
+msgid ""
+"      --desktop               Desktop Entry mode: generate a .desktop file\n"
+msgstr "      --desktop               桌面访问模式: 生成 .desktop 文件\n"
+
+#: src/msgfmt.c:942
+#, c-format
+msgid "      --xml                   XML mode: generate XML file\n"
+msgstr "      --xml                   XML 模式：生成 XML 文件\n"
+
+#: src/msgfmt.c:949
+#, c-format
+msgid "      --strict                enable strict Uniforum mode\n"
+msgstr "      --strict                使用严格的 Uniforum 模式\n"
+
+#: src/msgfmt.c:951 src/xgettext.c:1098
+#, c-format
+msgid "If output file is -, output is written to standard output.\n"
+msgstr "如果输出文件是 -，则会将结果写入至标准输出。\n"
+
+#: src/msgfmt.c:954
+#, c-format
+msgid "Output file location in Java mode:\n"
+msgstr "以 Java 模式输出文件位置：\n"
+
+#: src/msgfmt.c:956 src/msgfmt.c:972 src/msgunfmt.c:455 src/msgunfmt.c:466
+#, c-format
+msgid "  -r, --resource=RESOURCE     resource name\n"
+msgstr "  -r, --resource=资源         资源名称\n"
+
+#: src/msgfmt.c:958 src/msgfmt.c:974 src/msgfmt.c:984 src/msgfmt.c:994
+#: src/msgfmt.c:1011 src/msgunfmt.c:457 src/msgunfmt.c:468 src/msgunfmt.c:478
+#, c-format
+msgid ""
+"  -l, --locale=LOCALE         locale name, either language or "
+"language_COUNTRY\n"
+msgstr ""
+"  -l, --locale=语系           语系名称，必须是“语言”或“语言_国家”的格式\n"
+
+#: src/msgfmt.c:960
+#, c-format
+msgid ""
+"      --source                produce a .java file, instead of a .class "
+"file\n"
+msgstr "      --source                生成 .java 文件，而非 .class 文件\n"
+
+#: src/msgfmt.c:962
+#, c-format
+msgid ""
+"  -d DIRECTORY                base directory of classes directory hierarchy\n"
+msgstr "  -d 目录                     类目录层次的基本目录\n"
+
+#: src/msgfmt.c:964
+#, c-format
+msgid ""
+"The class name is determined by appending the locale name to the resource "
+"name,\n"
+"separated with an underscore.  The -d option is mandatory.  The class is\n"
+"written under the specified directory.\n"
+msgstr ""
+"类名称是由资源名称连同语系名称共同决定的，两者之间会用下划线分隔。\n"
+"-d 选项是必须的。class 文件会存放在指定的目录。\n"
+
+#: src/msgfmt.c:970
+#, c-format
+msgid "Output file location in C# mode:\n"
+msgstr "以 C# 模式输出文件位置：\n"
+
+#: src/msgfmt.c:976 src/msgunfmt.c:470
+#, c-format
+msgid ""
+"  -d DIRECTORY                base directory for locale dependent .dll "
+"files\n"
+msgstr "  -d 目录                     依赖语系的 .dll 文件的的基本目录\n"
+
+#: src/msgfmt.c:978
+#, c-format
+msgid ""
+"The -l and -d options are mandatory.  The .dll file is written in a\n"
+"subdirectory of the specified directory whose name depends on the locale.\n"
+msgstr ""
+"-l 和 -d 选项是必要的。.dll 文件会写入指定目录的子目录，而子目录的名称取决于"
+"语系。\n"
+
+#: src/msgfmt.c:982
+#, c-format
+msgid "Output file location in Tcl mode:\n"
+msgstr "以 Tcl 模式输出文件位置：\n"
+
+#: src/msgfmt.c:986 src/msgunfmt.c:480
+#, c-format
+msgid "  -d DIRECTORY                base directory of .msg message catalogs\n"
+msgstr "  -d DIRECTORY                    .msg 消息库的基本目录\n"
+
+#: src/msgfmt.c:988
+#, c-format
+msgid ""
+"The -l and -d options are mandatory.  The .msg file is written in the\n"
+"specified directory.\n"
+msgstr "-l 和 -d 选项是必要的。所生成的 .msg 文件会存放在指定的目录。\n"
+
+#: src/msgfmt.c:992
+#, c-format
+msgid "Desktop Entry mode options:\n"
+msgstr "桌面访问模式选项:\n"
+
+#: src/msgfmt.c:998
+#, c-format
+msgid "  --template=TEMPLATE         a .desktop file used as a template\n"
+msgstr "  --template=TEMPLATE         .desktop 文件用作模版\n"
+
+#: src/msgfmt.c:1000 src/msgfmt.c:1019
+#, c-format
+msgid "  -d DIRECTORY                base directory of .po files\n"
+msgstr "  -d DIRECTORY                    .po文件的基本目录\n"
+
+#: src/msgfmt.c:1002 src/xgettext.c:1152
+#, c-format
+msgid ""
+"  -kWORD, --keyword=WORD      look for WORD as an additional keyword\n"
+"  -k, --keyword               do not to use default keywords\n"
+msgstr ""
+"  -kWORD, --keyword=WORD      查找 WORD 作为一个额外的关键字\n"
+"  -k, --keyword               不使用默认关键字\n"
+
+#: src/msgfmt.c:1005 src/msgfmt.c:1021
+#, c-format
+msgid ""
+"The -l, -o, and --template options are mandatory.  If -D is specified, "
+"input\n"
+"files are read from the directory instead of the command line arguments.\n"
+msgstr ""
+"-l，-o 及--temmplate 选项是必须的。若指定了-D，\n"
+"则输入文件从目录读取，而非命令行参数。\n"
+
+#: src/msgfmt.c:1009
+#, c-format
+msgid "XML mode options:\n"
+msgstr "XML 模式选项：\n"
+
+#: src/msgfmt.c:1013
+#, c-format
+msgid "  -L, --language=NAME         recognise the specified XML language\n"
+msgstr "  -L, --language=NAME         识别指定的 XML 语言\n"
+
+#: src/msgfmt.c:1017
+#, c-format
+msgid "  --template=TEMPLATE         an XML file used as a template\n"
+msgstr "  --template=TEMPLATE         将指定的 XML 文件用作模板\n"
+
+#: src/msgfmt.c:1033 src/xgettext.c:1115
+#, c-format
+msgid "Input file interpretation:\n"
+msgstr "输入文件的处理：\n"
+
+#: src/msgfmt.c:1035
+#, c-format
+msgid ""
+"  -c, --check                 perform all the checks implied by\n"
+"                                --check-format, --check-header, --check-"
+"domain\n"
+msgstr ""
+"  -c, --check                 同时进行 --check-format、--check-header 和\n"
+"                                --check-domain 三种检查\n"
+
+#: src/msgfmt.c:1038
+#, c-format
+msgid "      --check-format          check language dependent format strings\n"
+msgstr "      --check-format          检查和语言有关的格式字符串\n"
+
+#: src/msgfmt.c:1040
+#, c-format
+msgid ""
+"      --check-header          verify presence and contents of the header "
+"entry\n"
+msgstr "      --check-header          检查文件头项是否存在及检查其内容\n"
+
+#: src/msgfmt.c:1042
+#, c-format
+msgid ""
+"      --check-domain          check for conflicts between domain directives\n"
+"                                and the --output-file option\n"
+msgstr ""
+"      --check-domain          检查 domain 指令和 --output-file 选项之间\n"
+"                                是否冲突\n"
+
+#: src/msgfmt.c:1045
+#, c-format
+msgid ""
+"  -C, --check-compatibility   check that GNU msgfmt behaves like X/Open "
+"msgfmt\n"
+msgstr ""
+"  -C, --check-compatibility   让 GNU msgfmt 以 X/Open msgfmt 的方式检查文件\n"
+
+#: src/msgfmt.c:1047
+#, c-format
+msgid ""
+"      --check-accelerators[=CHAR]  check presence of keyboard accelerators "
+"for\n"
+"                                menu items\n"
+msgstr ""
+"      --check-accelerators[=CHAR]  检查菜单项目中的快捷键标记是否存在\n"
+
+#: src/msgfmt.c:1050
+#, c-format
+msgid "  -f, --use-fuzzy             use fuzzy entries in output\n"
+msgstr "  -f, --use-fuzzy             在输出中使用模糊的翻译条目\n"
+
+#: src/msgfmt.c:1055
+#, c-format
+msgid ""
+"      --no-convert            don't convert the messages to UTF-8 encoding\n"
+msgstr "      --no-convert            不要将消息转换为 UTF-8 编码\n"
+
+#: src/msgfmt.c:1057
+#, c-format
+msgid ""
+"      --no-redundancy         don't pre-expand ISO C 99 <inttypes.h>\n"
+"                                format string directive macros\n"
+msgstr ""
+"      --no-redundancy         不要预展开 ISO C 99 <inttypes.h>\n"
+"                                格式字符串指示宏\n"
+
+#: src/msgfmt.c:1060
+#, c-format
+msgid ""
+"  -a, --alignment=NUMBER      align strings to NUMBER bytes (default: %d)\n"
+msgstr ""
+"  -a, --alignment=数字        以<数字>个字节为单位对齐字符串(默认：%d)\n"
+
+#: src/msgfmt.c:1062
+#, c-format
+msgid ""
+"      --endianness=BYTEORDER  write out 32-bit numbers in the given byte "
+"order\n"
+"                                (big or little, default depends on "
+"platform)\n"
+msgstr ""
+"      --endianness=BYTEORDER  以指定字节序输出 32位数\n"
+"                                (big 还是 little 是系统平台默认的)\n"
+
+#: src/msgfmt.c:1065
+#, c-format
+msgid ""
+"      --no-hash               binary file will not include the hash table\n"
+msgstr "      --no-hash               二进制文件将不包含哈希表\n"
+
+#: src/msgfmt.c:1074
+#, c-format
+msgid "      --statistics            print statistics about translations\n"
+msgstr "      --statistics            打印关于翻译的统计\n"
+
+#: src/msgfmt.c:1076 src/msgmerge.c:667 src/msgunfmt.c:530 src/xgettext.c:1253
+#, c-format
+msgid "  -v, --verbose               increase verbosity level\n"
+msgstr "  -v, --verbose               增加输出的详细程度\n"
+
+#: src/msgfmt.c:1192
+#, c-format
+msgid "warning: PO file header missing or invalid\n"
+msgstr "警告：PO 文件头丢失或无效\n"
+
+#: src/msgfmt.c:1194
+#, c-format
+msgid "warning: charset conversion will not work\n"
+msgstr "警告：字符集转换无法工作\n"
+
+#: src/msgfmt.c:1218
+#, c-format
+msgid "domain name \"%s\" not suitable as file name"
+msgstr "域名“%s”无法用于文件名"
+
+#: src/msgfmt.c:1223
+#, c-format
+msgid "domain name \"%s\" not suitable as file name: will use prefix"
+msgstr "域名“%s”无法用于文件名：将使用前缀"
+
+#: src/msgfmt.c:1237
+#, c-format
+msgid "'domain %s' directive ignored"
+msgstr "忽略了“domain %s”命令"
+
+#: src/msgfmt.c:1297
+#, c-format
+msgid "empty 'msgstr' entry ignored"
+msgstr "忽略了空的“msgstr”项"
+
+#: src/msgfmt.c:1298
+#, c-format
+msgid "fuzzy 'msgstr' entry ignored"
+msgstr "忽略了模糊的“msgstr”项"
+
+#: src/msgfmt.c:1346
+#, c-format
+msgid "%s: warning: source file contains fuzzy translation"
+msgstr "%s：警告：源文件包含模糊的翻译条目"
+
+#: src/msgfmt.c:1461
+#, c-format
+msgid "%s does not exist"
+msgstr "%s 不存在"
+
+#: src/msgfmt.c:1468
+#, c-format
+msgid "%s exists but cannot read"
+msgstr "%s 存在但不可读"
+
+#: src/msggrep.c:251 src/po-lex.c:655 src/read-desktop.c:124 src/read-mo.c:88
+#: src/read-properties.c:609 src/read-stringtable.c:99 src/x-awk.c:139
+#: src/x-c.c:608 src/x-csharp.c:165 src/x-elisp.c:147 src/x-java.c:201
+#: src/x-javascript.c:179 src/x-librep.c:149 src/x-lisp.c:214 src/x-lua.c:176
+#: src/x-perl.c:260 src/x-perl.c:335 src/x-perl.c:428 src/x-php.c:164
+#: src/x-python.c:179 src/x-rst.c:242 src/x-rst.c:296 src/x-scheme.c:173
+#: src/x-sh.c:165 src/x-smalltalk.c:86 src/x-tcl.c:154 src/x-vala.c:179
+#: src/x-ycp.c:91
+#, c-format
+msgid "error while reading \"%s\""
+msgstr "读取“%s”出错"
+
+#: src/msggrep.c:494
+#, c-format
+msgid ""
+"option '%c' cannot be used before 'J' or 'K' or 'T' or 'C' or 'X' has been "
+"specified"
+msgstr "未指定“J”、“K”、“T”、“C”或“X”前不能使用选项“%c”"
+
+#: src/msggrep.c:514
+#, c-format, no-wrap
+msgid ""
+"Extracts all messages of a translation catalog that match a given pattern\n"
+"or belong to some given source files.\n"
+msgstr "提取翻译库中的消息，这些消息符合某个给出的模式或属于某个给出的源文件。\n"
+
+#: src/msggrep.c:540
+#, c-format, no-wrap
+msgid ""
+"Message selection:\n"
+"  [-N SOURCEFILE]... [-M DOMAINNAME]...\n"
+"  [-J MSGCTXT-PATTERN] [-K MSGID-PATTERN] [-T MSGSTR-PATTERN]\n"
+"  [-C COMMENT-PATTERN] [-X EXTRACTED-COMMENT-PATTERN]\n"
+"A message is selected if it comes from one of the specified source files,\n"
+"or if it comes from one of the specified domains,\n"
+"or if -J is given and its context (msgctxt) matches MSGCTXT-PATTERN,\n"
+"or if -K is given and its key (msgid or msgid_plural) matches MSGID-PATTERN,\n"
+"or if -T is given and its translation (msgstr) matches MSGSTR-PATTERN,\n"
+"or if -C is given and the translator's comment matches COMMENT-PATTERN,\n"
+"or if -X is given and the extracted comment matches EXTRACTED-COMMENT-PATTERN.\n"
+"\n"
+"When more than one selection criterion is specified, the set of selected\n"
+"messages is the union of the selected messages of each criterion.\n"
+"\n"
+"MSGCTXT-PATTERN or MSGID-PATTERN or MSGSTR-PATTERN or COMMENT-PATTERN or\n"
+"EXTRACTED-COMMENT-PATTERN syntax:\n"
+"  [-E | -F] [-e PATTERN | -f FILE]...\n"
+"PATTERNs are basic regular expressions by default, or extended regular\n"
+"expressions if -E is given, or fixed strings if -F is given.\n"
+"\n"
+"  -N, --location=SOURCEFILE   select messages extracted from SOURCEFILE\n"
+"  -M, --domain=DOMAINNAME     select messages belonging to domain DOMAINNAME\n"
+"  -J, --msgctxt               start of patterns for the msgctxt\n"
+"  -K, --msgid                 start of patterns for the msgid\n"
+"  -T, --msgstr                start of patterns for the msgstr\n"
+"  -C, --comment               start of patterns for the translator's comment\n"
+"  -X, --extracted-comment     start of patterns for the extracted comment\n"
+"  -E, --extended-regexp       PATTERN is an extended regular expression\n"
+"  -F, --fixed-strings         PATTERN is a set of newline-separated strings\n"
+"  -e, --regexp=PATTERN        use PATTERN as a regular expression\n"
+"  -f, --file=FILE             obtain PATTERN from FILE\n"
+"  -i, --ignore-case           ignore case distinctions\n"
+"  -v, --invert-match          output only the messages that do not match any\n"
+"                              selection criterion\n"
+msgstr ""
+"消息选择：\n"
+"  [-N 源文件]... [-M 域名]...\n"
+"  [-J MSGCTXT-模式] [-K MSGID-模式] [-T MSGSTR-模式]\n"
+"  [-C 注释-模式] [-X 提取的注释模式]\n"
+"一个消息将被选出，如果它来自指定的源文件之一，\n"
+"或者如果它来自指定的域之一，\n"
+"或者如果给出 -J 并且它的环境(msgctxt)符合<MSGCTXT-模式>，\n"
+"或者如果给出 -K 并且它的关键字(msgid 或 msgid_plural)符合<MSGID-模式>，\n"
+"或者如果给出 -T 并且它的翻译(msgstr)符合<MSGSTR-模式>，\n"
+"或者如果给出 -C 并且译者的注释符合<注释-模式>，\n"
+"或者如果给出 -X 并且提取的注释符合<提取的注释模式>。\n"
+"\n"
+"如果指定了多余一种选择标准，最后所选择的消息将是每个标准所选择\n"
+"消息的集合。\n"
+"\n"
+"<MSGCTXT-模式>、<MSGID-模式> 或 <MSGSTR-模式>、<注释-模式>、\n"
+"<提取的注释模式> 所使用的语法：\n"
+"  [-E | -F] [-e 模式 | -f 文件]...\n"
+"<模式>默认是指基本的正规表达式，或扩展正规表达式\n"
+"(如果给出 -E 的话)，或者固定的字符串(如果给出 -F 的话)。\n"
+"\n"
+"  -N, --location=源文件       选择的消息提取自<源文件>\n"
+"  -M, --domain=域名           选择的消息属于名为<域名>的域\n"
+"  -J, --msgctxt               msgctxt 的起始\n"
+"  -K, --msgid                 msgid 的起始\n"
+"  -T, --msgstr                msgstr 的起始\n"
+"  -C, --comment               翻译者注释的起始\n"
+"  -X, --extracted-comment     提取的注释的起始\n"
+"  -E, --extended-regexp       <模式>是一个扩展的正规表达式\n"
+"  -F, --fixed-strings         <模式>是一系列互相分开的新字符串行\n"
+"  -e, --regexp=模式           以<模式>作为正规表达式\n"
+"  -f, --file=文件             从<文件>获取<模式>\n"
+"  -i, --ignore-case           忽略大小写区别\n"
+"  -v, --invert-match          仅输出不符合任何条件的消息\n"
+
+#: src/msggrep.c:595
+#, c-format
+msgid ""
+"      --escape                use C escapes in output, no extended chars\n"
+msgstr "      --escape                在输出中使用 C 转义字符，没有扩展字符\n"
+
+#: src/msggrep.c:616
+#, c-format
+msgid "      --sort-output           generate sorted output\n"
+msgstr "      --sort-output           生成排序输出\n"
+
+#: src/msggrep.c:618
+#, c-format
+msgid "      --sort-by-file          sort output by file location\n"
+msgstr "      --sort-by-file          根据文件位置排序输出\n"
+
+#: src/msginit.c:300
+#, c-format
+msgid ""
+"You are in a language indifferent environment.  Please set\n"
+"your LANG environment variable, as described in\n"
+"<%s>.\n"
+"This is necessary so you can test your translations.\n"
+msgstr ""
+"系统环境没有任何和语言有关的设置。请根据\n"
+"<%s> 文件所述，设置 LANG 环境变量。\n"
+"这是测试翻译前的必要步骤。\n"
+
+#: src/msginit.c:326
+#, c-format
+msgid ""
+"Output file %s already exists.\n"
+"Please specify the locale through the --locale option or\n"
+"the output .po file through the --output-file option.\n"
+msgstr ""
+"输出文件 %s 已经存在。\n"
+"请通过 --locale 选项指定语系或\n"
+"--output-file 选项指定输出的 .po 文件。\n"
+
+#: src/msginit.c:394
+#, c-format
+msgid "Created %s.\n"
+msgstr "已创建 %s。\n"
+
+#: src/msginit.c:414
+#, c-format, no-wrap
+msgid ""
+"Creates a new PO file, initializing the meta information with values from the\n"
+"user's environment.\n"
+msgstr "创建新的 PO 文件，即根据用户环境取值初始化文件头。\n"
+
+#: src/msginit.c:424
+#, c-format
+msgid "  -i, --input=INPUTFILE       input POT file\n"
+msgstr "  -i, --input=输入文件        输入的 POT 文件\n"
+
+#: src/msginit.c:426
+#, c-format
+msgid ""
+"If no input file is given, the current directory is searched for the POT "
+"file.\n"
+"If it is -, standard input is read.\n"
+msgstr ""
+"如果没有给出输入文件，将会搜索当前目录中的 POT 文件。\n"
+"如果为 - 的话，将会读取标准输入。\n"
+
+#: src/msginit.c:432
+#, c-format
+msgid "  -o, --output-file=FILE      write output to specified PO file\n"
+msgstr "  -o, --output-file=文件      将输出写入至指定的 PO 文件\n"
+
+#: src/msginit.c:434
+#, c-format
+msgid ""
+"If no output file is given, it depends on the --locale option or the user's\n"
+"locale setting.  If it is -, the results are written to standard output.\n"
+msgstr ""
+"如果没有指定输出文件，输出文件的名称将会由 --locale 选项或者用户的语系决"
+"定。\n"
+"如果输出文件是“-”，则会将结果写入至标准输出。\n"
+
+#: src/msginit.c:447
+#, c-format
+msgid "  -l, --locale=LL_CC[.ENCODING]  set target locale\n"
+msgstr "  -l, --locale=LL_CC[.编码]      设置目标语系\n"
+
+#: src/msginit.c:449
+#, c-format
+msgid ""
+"      --no-translator         assume the PO file is automatically generated\n"
+msgstr "      --no-translator         假定 PO 文件是自动生成的\n"
+
+#: src/msginit.c:519
+msgid ""
+"Found more than one .pot file.\n"
+"Please specify the input .pot file through the --input option.\n"
+msgstr ""
+"找到多于一个的 .pot 文件。\n"
+"请通过 --input 选项指定作为输入文件的 .pot 文件。\n"
+
+#: src/msginit.c:527 src/msginit.c:532
+#, c-format
+msgid "error reading current directory"
+msgstr "读取当前的目录时发生错误"
+
+#: src/msginit.c:540
+msgid ""
+"Found no .pot file in the current directory.\n"
+"Please specify the input .pot file through the --input option.\n"
+msgstr ""
+"在当前目录中找不到任何 .pot 文件。\n"
+"请通过 --input 选项指定作为输入文件的 .pot 文件。\n"
+
+#: src/msginit.c:976 src/msginit.c:1059 src/msginit.c:1228 src/msginit.c:1335
+#: src/msginit.c:1516 src/read-csharp.c:84 src/read-java.c:83
+#: src/read-resources.c:85 src/read-tcl.c:128 src/write-resources.c:106
+#: src/x-ruby.c:147
+#, c-format
+msgid "%s subprocess failed with exit code %d"
+msgstr "%s 子进程失败，错误码为 %d"
+
+#: src/msginit.c:1193
+msgid ""
+"The new message catalog should contain your email address, so that users "
+"can\n"
+"give you feedback about the translations, and so that maintainers can "
+"contact\n"
+"you in case of unexpected technical problems.\n"
+msgstr ""
+"新的翻译库应该包含您的电子邮件地址，这样用户就可以对您的翻译提出意见，\n"
+"同时软件维护者也可以在出现技术问题时联络您。\n"
+
+#. TRANSLATORS: "English" needs to be replaced by your language.
+#. For example in it.po write "Traduzioni italiani ...",
+#. *not* "Traduzioni inglesi ...".
+#: src/msginit.c:1711
+#, c-format
+msgid "English translations for %s package"
+msgstr "%s 软件包的简体中文翻译"
+
+#: src/msgl-cat.c:181 src/msgl-charset.c:86 src/msgl-iconv.c:265
+#, c-format
+msgid "present charset \"%s\" is not a portable encoding name"
+msgstr "当前的字符集编码“%s”不是通用的编码名称"
+
+#: src/msgl-cat.c:191 src/msgl-iconv.c:276
+#, c-format
+msgid "two different charsets \"%s\" and \"%s\" in input file"
+msgstr "输入文件中出现了两种不同的字符集“%s”和“%s”"
+
+#: src/msgl-cat.c:206
+#, c-format
+msgid ""
+"input file '%s' doesn't contain a header entry with a charset specification"
+msgstr "输入文件“%s”不包含指定字符集的文件头项"
+
+#: src/msgl-cat.c:210
+#, c-format
+msgid ""
+"domain \"%s\" in input file '%s' doesn't contain a header entry with a "
+"charset specification"
+msgstr "输入文件“%2$s”的域“%1$s”不包含指定字符集的文件头项"
+
+#: src/msgl-cat.c:308 src/xg-message.c:342
+#, c-format
+msgid "msgid '%s' is used without plural and with plural."
+msgstr "msgid“%s”用于无复数和复数场景。"
+
+#: src/msgl-cat.c:416 src/msgl-iconv.c:384
+#, c-format
+msgid "target charset \"%s\" is not a portable encoding name."
+msgstr "目标字符集编码“%s”不是通用的编码名称。"
+
+#: src/msgl-cat.c:424 src/msgl-iconv.c:393
+#, c-format
+msgid ""
+"Cannot write the control characters that protect file names with spaces in "
+"the %s encoding"
+msgstr "无法在 %s 编码下写入控制字符来使用空白保护文件名"
+
+#: src/msgl-cat.c:476 src/msgl-cat.c:482 src/msgl-cat.c:499
+#: src/msgl-charset.c:91 src/msgl-charset.c:126 src/po-xerror.c:126
+#: src/po-xerror.c:151 src/xgettext.c:589 src/xgettext.c:2073
+#: src/xg-message.c:340
+#, c-format
+msgid "warning: "
+msgstr "警告："
+
+#: src/msgl-cat.c:477
+#, c-format
+msgid ""
+"Input files contain messages in different encodings, UTF-8 among others.\n"
+"Converting the output to UTF-8.\n"
+msgstr ""
+"输入文件所用的编码不同，其中包含 UTF-8。\n"
+"输出将转换为 UTF-8。\n"
+
+#: src/msgl-cat.c:483
+#, c-format
+msgid ""
+"Input files contain messages in different encodings, %s and %s among "
+"others.\n"
+"Converting the output to UTF-8.\n"
+"To select a different output encoding, use the --to-code option.\n"
+msgstr ""
+"输入文件包含不同编码的消息，其中包含 %s 和 %s。会将输出的编码转换为 UTF-8。\n"
+"若要选择另一种输出编码，请使用 --to-code 选项。\n"
+
+#: src/msgl-cat.c:500
+#, c-format
+msgid ""
+"Input files contain messages referenced in file names with spaces.\n"
+"Converting the output to %s.\n"
+msgstr ""
+"输入文件包含引用了带空白的文件名的消息。\n"
+"将转换输出为 %s。\n"
+
+#: src/msgl-cat.c:538
+#, c-format
+msgid ""
+"Conversion of file %s from %s encoding to %s encoding\n"
+"changes some msgids or msgctxts.\n"
+"Either change all msgids and msgctxts to be pure ASCII, or ensure they are\n"
+"UTF-8 encoded from the beginning, i.e. already in your source code files.\n"
+msgstr ""
+"将文件 %s 由 %s 编码转换为 %s 编码将更改某些 msgid 或 msgctxt。\n"
+"请将全部的 msgid 和 msgctxt 都转换为纯 ASCII，或者从源代码上保证这些字符串\n"
+"都是 UTF-8 编码的。\n"
+
+#: src/msgl-charset.c:92
+#, c-format
+msgid ""
+"Locale charset \"%s\" is different from\n"
+"input file charset \"%s\".\n"
+"Output of '%s' might be incorrect.\n"
+"Possible workarounds are:\n"
+msgstr ""
+"当前语系的字符集“%s”和输入文件的字符集“%s”不同。\n"
+"“%s”的输出可能有误。可行的解决方法包含：\n"
+
+#: src/msgl-charset.c:99
+#, c-format
+msgid "- Set LC_ALL to a locale with encoding %s.\n"
+msgstr "- 将 LC_ALL 设为编码 %s 对应的语系。\n"
+
+#: src/msgl-charset.c:104
+#, c-format
+msgid ""
+"- Convert the translation catalog to %s using 'msgconv',\n"
+"  then apply '%s',\n"
+"  then convert back to %s using 'msgconv'.\n"
+msgstr ""
+"-  用“msgconv”将翻译库的字符集转换为 %s，\n"
+"   然后应用“%s”命令，\n"
+"   最后用“msgconv”将翻译库的字符集还原为 %s。\n"
+
+#: src/msgl-charset.c:113
+#, c-format
+msgid ""
+"- Set LC_ALL to a locale with encoding %s,\n"
+"  convert the translation catalog to %s using 'msgconv',\n"
+"  then apply '%s',\n"
+"  then convert back to %s using 'msgconv'.\n"
+msgstr ""
+"-  设置 LC_ALL 环境变量为使用编码 %s 的语系，\n"
+"   用“msgconv”将翻译库的字符集转换为 %s，\n"
+"   然后应用“%s”命令，\n"
+"   最后用“msgconv”将翻译库的字符集还原为 %s。\n"
+
+#: src/msgl-charset.c:127
+#, c-format
+msgid ""
+"Locale charset \"%s\" is not a portable encoding name.\n"
+"Output of '%s' might be incorrect.\n"
+"A possible workaround is to set LC_ALL=C.\n"
+msgstr ""
+"语系的字符集编码“%s”不是通用的编码名称。\n"
+"“%s”的输出可能有误。\n"
+"设置 LC_ALL=C 是一个可行的解决方法。\n"
+
+#: src/msgl-check.c:134
+msgid "plural expression can produce negative values"
+msgstr "复数表达式将导致负值"
+
+#: src/msgl-check.c:145
+#, c-format
+msgid "nplurals = %lu but plural expression can produce values as large as %lu"
+msgstr "nplurals = %lu，但复数表达式的最大值可能等于 %lu"
+
+#: src/msgl-check.c:191
+msgid "plural expression can produce division by zero"
+msgstr "复数表达式将导致被零除"
+
+#: src/msgl-check.c:196
+msgid "plural expression can produce integer overflow"
+msgstr "复数表达式将引起整数溢出"
+
+#: src/msgl-check.c:201
+msgid ""
+"plural expression can produce arithmetic exceptions, possibly division by "
+"zero"
+msgstr "复数表达式将引起算术异常，可能被零除"
+
+#: src/msgl-check.c:270
+#, c-format
+msgid "Try using the following, valid for %s:"
+msgstr "请尝试使用下面的，对 %s 是有效的："
+
+#: src/msgl-check.c:362 src/msgl-check.c:386
+msgid "message catalog has plural form translations"
+msgstr "消息库有复数形式的翻译"
+
+#: src/msgl-check.c:364
+msgid "but header entry lacks a \"plural=EXPRESSION\" attribute"
+msgstr "但是文件头项中缺少“plural=表达式”属性"
+
+#: src/msgl-check.c:388
+msgid "but header entry lacks a \"nplurals=INTEGER\" attribute"
+msgstr "但是文件头项中缺少“nplural=整数”属性"
+
+#: src/msgl-check.c:424
+msgid "invalid nplurals value"
+msgstr "nplurals 值无效"
+
+#: src/msgl-check.c:446
+msgid "invalid plural expression"
+msgstr "plural 表达式无效"
+
+#: src/msgl-check.c:476 src/msgl-check.c:492
+#, c-format
+msgid "nplurals = %lu"
+msgstr "nplurals = %lu"
+
+#: src/msgl-check.c:478
+#, c-format
+msgid "but some messages have only one plural form"
+msgid_plural "but some messages have only %lu plural forms"
+msgstr[0] "但是某些消息只有 %lu 种复数形式"
+
+#: src/msgl-check.c:494
+#, c-format
+msgid "but some messages have one plural form"
+msgid_plural "but some messages have %lu plural forms"
+msgstr[0] "但是某些消息有 %lu 种复数形式"
+
+#: src/msgl-check.c:518
+msgid ""
+"message catalog has plural form translations, but lacks a header entry with "
+"\"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\""
+msgstr ""
+"翻译库包含复数形式的翻译，但缺少以下的文件头项：\n"
+"“Plural-Forms: nplurals=<整数>; plural=<表达式>;”"
+
+#: src/msgl-check.c:616
+msgid "'msgid' and 'msgid_plural' entries do not both begin with '\\n'"
+msgstr "“msgid”和“msgid_plural”项并非都以“\\n”开始"
+
+#: src/msgl-check.c:623
+#, c-format
+msgid "'msgid' and 'msgstr[%u]' entries do not both begin with '\\n'"
+msgstr "“msgid”和“msgstr[%u]”项并非都以“\\n”开始"
+
+#: src/msgl-check.c:639
+msgid "'msgid' and 'msgstr' entries do not both begin with '\\n'"
+msgstr "“msgid”和“msgstr”项并非都以“\\n”开始"
+
+#: src/msgl-check.c:657
+msgid "'msgid' and 'msgid_plural' entries do not both end with '\\n'"
+msgstr "“msgid”和“msgid_plural”项并非都以“\\n”结束"
+
+#: src/msgl-check.c:664
+#, c-format
+msgid "'msgid' and 'msgstr[%u]' entries do not both end with '\\n'"
+msgstr "“msgid”和“msgstr[%u]”项并非都以“\\n”结束"
+
+#: src/msgl-check.c:680
+msgid "'msgid' and 'msgstr' entries do not both end with '\\n'"
+msgstr "“msgid”和“msgstr”项并非都以“\\n”结束"
+
+#: src/msgl-check.c:692
+msgid "plural handling is a GNU gettext extension"
+msgstr "复数处理是 GNU gettext 的扩展功能"
+
+#: src/msgl-check.c:733
+#, c-format
+msgid "msgstr lacks the keyboard accelerator mark '%c'"
+msgstr "msgstr 缺少快捷键标记“%c”"
+
+#: src/msgl-check.c:744
+#, c-format
+msgid "msgstr has too many keyboard accelerator marks '%c'"
+msgstr "msgstr 包含过多的快捷键标记“%c”"
+
+#: src/msgl-check.c:818
+#, c-format
+msgid "header field '%s' still has the initial default value\n"
+msgstr "文件头“%s”仍然是默认值未改变\n"
+
+#: src/msgl-check.c:835
+#, c-format
+msgid "header field '%s' missing in header\n"
+msgstr "头部缺少文件头“%s”\n"
+
+#: src/msgl-check.c:940
+msgid "ASCII ellipsis ('...') instead of Unicode"
+msgstr "ASCII 省略号（'...'）而非其 Unicode 版本"
+
+#: src/msgl-check.c:1013
+msgid "space before ellipsis found in user visible strings"
+msgstr "在用户可见字符串中的省略号前发现了空格"
+
+#: src/msgl-check.c:1041
+msgid "ASCII double quote used instead of Unicode"
+msgstr "ASCII 双引号代替了Unicode"
+
+#: src/msgl-check.c:1047
+msgid "ASCII single quote used instead of Unicode"
+msgstr "ASCII 单引号代替了Unicode"
+
+#: src/msgl-check.c:1162
+#, c-format
+msgid "ASCII bullet ('%c') instead of Unicode"
+msgstr "ASCII 圆点（'%c'）而非其 Unicode 版本"
+
+#: src/msgl-iconv.c:64
+#, c-format
+msgid "%s: input is not valid in \"%s\" encoding"
+msgstr "%s：在“%s”编码中输入无效"
+
+#: src/msgl-iconv.c:68
+#, c-format
+msgid "%s: error while converting from \"%s\" encoding to \"%s\" encoding"
+msgstr "%s：从“%s”编码转换到“%s”编码时出错"
+
+#: src/msgl-iconv.c:306
+msgid "input file doesn't contain a header entry with a charset specification"
+msgstr "输入文件不包含指定字符集的文件头项"
+
+#: src/msgl-iconv.c:320 src/recode-sr-latin.c:290 src/recode-sr-latin.c:294
+#: src/xgettext.c:820 src/x-python.c:629
+#, c-format
+msgid ""
+"Cannot convert from \"%s\" to \"%s\". %s relies on iconv(), and iconv() does "
+"not support this conversion."
+msgstr "无法从“%s”转换为“%s”。%s 需要 iconv()，但 iconv() 不支持此种转换方式。"
+
+#: src/msgl-iconv.c:348
+#, c-format
+msgid ""
+"Conversion from \"%s\" to \"%s\" introduces duplicates: some different "
+"msgids become equal."
+msgstr "从“%s”转换为“%s”出现了重复项：某些原本不同的 msgid 变成了相同项。"
+
+#: src/msgl-iconv.c:352 src/recode-sr-latin.c:302 src/xgettext.c:826
+#: src/x-python.c:635
+#, c-format
+msgid ""
+"Cannot convert from \"%s\" to \"%s\". %s relies on iconv(). This version was "
+"built without iconv()."
+msgstr "无法从“%s”转换为“%s”。%s 需要 iconv()。此版本创建时未包含 iconv()。"
+
+#: src/msgmerge.c:423 src/msgmerge.c:429
+#, c-format
+msgid "%s is only valid with %s"
+msgstr "%s 只能和 %s 配合一起使用才有效"
+
+#: src/msgmerge.c:505
+msgid "backup type"
+msgstr "备份类型"
+
+#: src/msgmerge.c:542
+#, c-format, no-wrap
+msgid ""
+"Merges two Uniforum style .po files together.  The def.po file is an\n"
+"existing PO file with translations which will be taken over to the newly\n"
+"created file as long as they still match; comments will be preserved,\n"
+"but extracted comments and file positions will be discarded.  The ref.pot\n"
+"file is the last created PO file with up-to-date source references but\n"
+"old translations, or a PO Template file (generally created by xgettext);\n"
+"any translations or comments in the file will be discarded, however dot\n"
+"comments and file positions will be preserved.  Where an exact match\n"
+"cannot be found, fuzzy matching is used to produce better results.\n"
+msgstr ""
+"将两个格式统一的 .po 文件合并在一起。def.po 文件是先前进行的翻译，并且将\n"
+"作为基准对新创建的文件进行填充，只要对应的文字能够匹配；该文件中的注释将\n"
+"被保留，但是程序提取的注释和文件位置将被忽略。ref.pot 文件是根据最新的源\n"
+"文件创建的 PO 文件但翻译很旧，或者根本就是 PO 模板文件(由 xgettext 生成)；\n"
+"此文件中的任何翻译或注释都将被忽略，但是点注释和文件位置都将被保留。如果\n"
+"在程序执行的过程中找不到完全匹配的文字，则会使用模糊的匹配以求达到较好的\n"
+"效果。\n"
+
+#: src/msgmerge.c:559
+#, c-format
+msgid "  def.po                      translations referring to old sources\n"
+msgstr "  def.po                      根据旧源文件进行的翻译成果\n"
+
+#: src/msgmerge.c:561
+#, c-format
+msgid "  ref.pot                     references to new sources\n"
+msgstr "  ref.pot                     对新源文件的引用\n"
+
+#: src/msgmerge.c:565
+#, c-format
+msgid ""
+"  -C, --compendium=FILE       additional library of message translations,\n"
+"                              may be specified more than once\n"
+msgstr "  -C, --compendium=文件       消息翻译的额外库，可指定多个\n"
+
+#: src/msgmerge.c:571
+#, c-format
+msgid ""
+"  -U, --update                update def.po,\n"
+"                              do nothing if def.po already up to date\n"
+msgstr ""
+"  -U, --update                更新 def.po,\n"
+"                              如果 def.po 已经是最新则不作任何事\n"
+
+#: src/msgmerge.c:583
+#, c-format
+msgid "Output file location in update mode:\n"
+msgstr "以更新模式输出文件位置：\n"
+
+#: src/msgmerge.c:585
+#, c-format
+msgid "The result is written back to def.po.\n"
+msgstr "结果将写回 def.po 中。\n"
+
+#: src/msgmerge.c:587
+#, c-format
+msgid "      --backup=CONTROL        make a backup of def.po\n"
+msgstr "      --backup=备份方法       备份 def.po\n"
+
+#: src/msgmerge.c:589
+#, c-format
+msgid "      --suffix=SUFFIX         override the usual backup suffix\n"
+msgstr "      --suffix=后缀           覆盖默认备份后缀\n"
+
+#: src/msgmerge.c:591
+#, c-format
+msgid ""
+"The version control method may be selected via the --backup option or "
+"through\n"
+"the VERSION_CONTROL environment variable.  Here are the values:\n"
+"  none, off       never make backups (even if --backup is given)\n"
+"  numbered, t     make numbered backups\n"
+"  existing, nil   numbered if numbered backups exist, simple otherwise\n"
+"  simple, never   always make simple backups\n"
+msgstr ""
+"版本控制方式可以通过 --backup 选项或者 VERSION_CONTROL 环境变量选择。\n"
+"以下列出了所有的值：\n"
+"  none, off       从不备份(就算给出了 --backup 选项也不备份)\n"
+"  numbered, t     制作编号的备份\n"
+"  existing, nil   如果编号备份存在则继续编号，否则执行简单备份\n"
+"  simple, never   总是制作简单的备份\n"
+
+#: src/msgmerge.c:598
+#, c-format
+msgid ""
+"The backup suffix is '~', unless set with --suffix or the "
+"SIMPLE_BACKUP_SUFFIX\n"
+"environment variable.\n"
+msgstr ""
+"除非以 --suffix 或 SIMPLE_BACKUP_SUFFIX 环境变量设置, 备份文件后缀总是\"~\"\n"
+
+#: src/msgmerge.c:607
+#, c-format
+msgid ""
+"      --for-msgfmt            produce output for '%s', not for a translator\n"
+msgstr "      --for-msgfmt            为“%s”而非翻译人员产生输出\n"
+
+#: src/msgmerge.c:612
+#, c-format
+msgid ""
+"      --previous              keep previous msgids of translated messages\n"
+msgstr "      --previous              保留已翻译条目的 msgids\n"
+
+#: src/msgmerge.c:669 src/urlget.c:188
+#, c-format
+msgid "  -q, --quiet, --silent       suppress progress indicators\n"
+msgstr "  -q, --quiet, --silent       隐藏进度指示\n"
+
+#: src/msgmerge.c:1705
+#, c-format
+msgid "this message should define plural forms"
+msgstr "此消息应定义复数形式"
+
+#: src/msgmerge.c:1726
+#, c-format
+msgid "this message should not define plural forms"
+msgstr "此消息不应定义复数形式"
+
+#: src/msgmerge.c:2134
+#, c-format
+msgid ""
+"%sRead %ld old + %ld reference, merged %ld, fuzzied %ld, missing %ld, "
+"obsolete %ld.\n"
+msgstr ""
+"%s读取了 %ld 条旧的 + %ld 条引用，合并了 %ld 条，模糊的 %ld 条，缺少 %ld 条，"
+"过时的 %ld 条。\n"
+
+#: src/msgmerge.c:2142 src/urlget.c:299 src/urlget.c:347 src/urlget.c:390
+#: src/urlget.c:433
+#, c-format
+msgid " done.\n"
+msgstr " 完成。\n"
+
+#: src/msgunfmt.c:305 src/msgunfmt.c:314 src/msgunfmt.c:337
+#, c-format
+msgid "%s and explicit file names are mutually exclusive"
+msgstr "%s 和明确给定的文件名互相冲突"
+
+#: src/msgunfmt.c:424
+#, c-format
+msgid "Usage: %s [OPTION] [FILE]...\n"
+msgstr "用法：%s [选项] [文件]...\n"
+
+#: src/msgunfmt.c:428
+#, c-format
+msgid "Convert binary message catalog to Uniforum style .po file.\n"
+msgstr "将二进制消息库转换为 Uniforum 风格的 .po 文件。\n"
+
+#: src/msgunfmt.c:437
+#, c-format
+msgid ""
+"  -j, --java                  Java mode: input is a Java ResourceBundle "
+"class\n"
+msgstr "  -j, --java                  Java 模式：输入为 Java 资源包类\n"
+
+#: src/msgunfmt.c:439
+#, c-format
+msgid "      --csharp                C# mode: input is a .NET .dll file\n"
+msgstr "      --csharp                C# 模式：输入为 .NET .dll 文件\n"
+
+#: src/msgunfmt.c:441
+#, c-format
+msgid ""
+"      --csharp-resources      C# resources mode: input is a .NET .resources "
+"file\n"
+msgstr ""
+"      --csharp-resources      C# 资源模式：输入为 .NET .resources 文件\n"
+
+#: src/msgunfmt.c:443
+#, c-format
+msgid ""
+"      --tcl                   Tcl mode: input is a tcl/msgcat .msg file\n"
+msgstr "      --tcl                   Tcl 模式：输入为 tcl/msgcat .msg 文件\n"
+
+#: src/msgunfmt.c:448
+#, c-format
+msgid "  FILE ...                    input .mo files\n"
+msgstr "  文件 ...                    输入的 .mo 文件\n"
+
+#: src/msgunfmt.c:453
+#, c-format
+msgid "Input file location in Java mode:\n"
+msgstr "以 Java 模式输入文件位置：\n"
+
+#: src/msgunfmt.c:459
+#, c-format
+msgid ""
+"The class name is determined by appending the locale name to the resource "
+"name,\n"
+"separated with an underscore.  The class is located using the CLASSPATH.\n"
+msgstr ""
+"类名称是由资源名称连同语系名称共同决定的，两者之间会用下划线分隔。\n"
+"类会使用 CLASSPATH 定位。\n"
+
+#: src/msgunfmt.c:464
+#, c-format
+msgid "Input file location in C# mode:\n"
+msgstr "C# 模式下的输入文件位置：\n"
+
+#: src/msgunfmt.c:472
+#, c-format
+msgid ""
+"The -l and -d options are mandatory.  The .dll file is located in a\n"
+"subdirectory of the specified directory whose name depends on the locale.\n"
+msgstr ""
+"-l 和 -d 选项是必要的。.dll 文件位于指定目录的子目录，而子目录的名称取决于语"
+"系。\n"
+
+#: src/msgunfmt.c:476
+#, c-format
+msgid "Input file location in Tcl mode:\n"
+msgstr "Tcl 模式下的输入文件位置：\n"
+
+#: src/msgunfmt.c:482
+#, c-format
+msgid ""
+"The -l and -d options are mandatory.  The .msg file is located in the\n"
+"specified directory.\n"
+msgstr "-l 和 -d 选项是必要的。所生成的 .msg 文件会存放在指定的目录。\n"
+
+#: src/msgunfmt.c:508
+#, c-format
+msgid "  -i, --indent                write indented output style\n"
+msgstr "  -i, --indent                写出缩进的输出风格\n"
+
+#: src/msgunfmt.c:510
+#, c-format
+msgid "      --strict                write strict uniforum style\n"
+msgstr "      --strict                写出严格的 Uniforum 风格\n"
+
+#: src/msguniq.c:328
+#, c-format, no-wrap
+msgid ""
+"Unifies duplicate translations in a translation catalog.\n"
+"Finds duplicate translations of the same message ID.  Such duplicates are\n"
+"invalid input for other programs like msgfmt, msgmerge or msgcat.  By\n"
+"default, duplicates are merged together.  When using the --repeated option,\n"
+"only duplicates are output, and all other messages are discarded.  Comments\n"
+"and extracted comments will be cumulated, except that if --use-first is\n"
+"specified, they will be taken from the first translation.  File positions\n"
+"will be cumulated.  When using the --unique option, duplicates are discarded.\n"
+msgstr ""
+"统一翻译库中重复的翻译。\n"
+"查找消息 ID 相同的重复翻译。这样的重复项对于其它像 msgfmt，msgmerge 或 msgcat\n"
+"这样的程序来说是无效的输入。默认情况下，会对重复项进行合并。如果使用了命令行\n"
+"选项 --repeated，则只会输出重复项，所有其它消息都将被忽略。注释和提取的注释将\n"
+"累积起来，但如果指定了 --use-first 选项，则会从第一个翻译中取得注释。文件位置\n"
+"将会累积。如果使用了 --unique 选项，重复项将会被忽略。\n"
+
+#: src/msguniq.c:361
+#, c-format
+msgid "  -d, --repeated              print only duplicates\n"
+msgstr "  -d, --repeated              只打印重复项\n"
+
+#: src/msguniq.c:363
+#, c-format
+msgid ""
+"  -u, --unique                print only unique messages, discard "
+"duplicates\n"
+msgstr "  -u, --unique                只打印唯一的消息，忽略重复项\n"
+
+#: src/open-catalog.c:56 libgettextpo/gettext-po.c:116
+#: libgettextpo/gettext-po.c:164 libgettextpo/gettext-po.c:212
+msgid "<stdin>"
+msgstr "<stdin>"
+
+#: src/po-charset.c:500
+#, c-format
+msgid ""
+"Charset \"%s\" is not a portable encoding name.\n"
+"Message conversion to user's charset might not work.\n"
+msgstr ""
+"字符集“%s”不是可移植的编码名称。\n"
+"将消息转换为用户字符集可能不工作。\n"
+
+#: src/po-charset.c:593
+#, c-format
+msgid ""
+"Charset \"%s\" is not supported. %s relies on iconv(),\n"
+"and iconv() does not support \"%s\".\n"
+msgstr ""
+"不支持“%s”字符集。%s 依赖 iconv()，而 iconv() 不支持\n"
+"“%s”。\n"
+
+#: src/po-charset.c:599 src/po-charset.c:654
+msgid ""
+"Installing GNU libiconv and then reinstalling GNU gettext\n"
+"would fix this problem.\n"
+msgstr "安装 GNU libiconv，然后重新安装 GNU gettext 将修复此问题。\n"
+
+#: src/po-charset.c:613 src/po-charset.c:658
+msgid "Continuing anyway, expect parse errors."
+msgstr "仍然继续，预期会出现解析错误。"
+
+#: src/po-charset.c:615
+msgid "Continuing anyway."
+msgstr "仍然继续。"
+
+#: src/po-charset.c:649
+#, c-format
+msgid ""
+"Charset \"%s\" is not supported. %s relies on iconv().\n"
+"This version was built without iconv().\n"
+msgstr ""
+"不支持“%s”字符集。%s 依赖 iconv()。\n"
+"此版本创建时未包含 iconv()。\n"
+
+#: src/po-charset.c:686
+msgid ""
+"Charset missing in header.\n"
+"Message conversion to user's charset will not work.\n"
+msgstr ""
+"文件头缺少字符集。\n"
+"将消息转换为用户的字符集无法工作。\n"
+
+#: src/po-gram-gen.y:47
+#, c-format
+msgid "inconsistent use of #~"
+msgstr "#~ 使用不一致"
+
+#: src/po-gram-gen.y:200
+#, c-format
+msgid "missing 'msgstr[]' section"
+msgstr "缺少“msgstr[]”区"
+
+#: src/po-gram-gen.y:209
+#, c-format
+msgid "missing 'msgid_plural' section"
+msgstr "缺少“msgid_plural”区"
+
+#: src/po-gram-gen.y:217
+#, c-format
+msgid "missing 'msgstr' section"
+msgstr "缺少“msgstr”区"
+
+#: src/po-gram-gen.y:356
+#, c-format
+msgid "first plural form has nonzero index"
+msgstr "复数格式的第一项索引非零"
+
+#: src/po-gram-gen.y:358
+#, c-format
+msgid "plural form has wrong index"
+msgstr "复数形式的索引出错"
+
+#: src/po-lex.c:90 src/po-lex.c:109
+#, c-format
+msgid "too many errors, aborting"
+msgstr "错误太多，中止"
+
+#: src/po-lex.c:437 src/po-lex.c:505 src/write-po.c:846 src/write-po.c:983
+#, c-format
+msgid "invalid multibyte sequence"
+msgstr "无效的多字节序列"
+
+#: src/po-lex.c:465
+#, c-format
+msgid "incomplete multibyte sequence at end of file"
+msgstr "在文件尾发现不完整的多字节序列"
+
+#: src/po-lex.c:474
+#, c-format
+msgid "incomplete multibyte sequence at end of line"
+msgstr "在行尾发现不完整的多字节序列"
+
+#: src/po-lex.c:485
+msgid "iconv failure"
+msgstr "iconv 失败"
+
+#: src/po-lex.c:742
+#, c-format
+msgid "keyword \"%s\" unknown"
+msgstr "关键字“%s”未知"
+
+#: src/po-lex.c:852
+#, c-format
+msgid "invalid control sequence"
+msgstr "无效的控制序列"
+
+#: src/po-lex.c:979
+#, c-format
+msgid "end-of-file within string"
+msgstr "字符串内遇到文件尾"
+
+#: src/po-lex.c:985
+#, c-format
+msgid "end-of-line within string"
+msgstr "字符串内遇到行尾"
+
+#: src/po-lex.c:1006
+#, c-format
+msgid "context separator <EOT> within string"
+msgstr "上下文分隔符 <EOT> 出现于字符串中"
+
+#: src/read-catalog.c:324 src/xgettext.c:1276
+#, c-format
+msgid "this file may not contain domain directives"
+msgstr "此文件可能不包含域指令"
+
+#: src/read-catalog.c:369
+msgid "duplicate message definition"
+msgstr "重复的消息定义"
+
+#: src/read-catalog.c:371
+msgid "this is the location of the first definition"
+msgstr "这是第一次定义的位置"
+
+#: src/read-desktop.c:258
+msgid "unterminated group name"
+msgstr "未终止的组名称"
+
+#: src/read-desktop.c:279
+msgid "invalid non-blank character"
+msgstr "无效的非空白字符"
+
+#: src/read-desktop.c:386
+#, c-format
+msgid "missing '=' after \"%s\""
+msgstr "“%s”后缺少“=”"
+
+#: src/read-desktop.c:449
+msgid "invalid non-blank line"
+msgstr "无效的非空白行"
+
+#: src/read-mo.c:108 src/read-mo.c:130 src/read-mo.c:168 src/read-mo.c:192
+#, c-format
+msgid "file \"%s\" is truncated"
+msgstr "文件“%s”被截断"
+
+#: src/read-mo.c:133
+#, c-format
+msgid "file \"%s\" contains a not NUL terminated string"
+msgstr "文件“%s”包含非 NUL 结束的字符串"
+
+#: src/read-mo.c:178
+#, c-format
+msgid "file \"%s\" contains a not NUL terminated system dependent string"
+msgstr "文件“%s”包含非 NUL 结束的依赖系统的字符串"
+
+#: src/read-mo.c:184 src/read-mo.c:292
+#, c-format
+msgid "file \"%s\" is not in GNU .mo format"
+msgstr "文件“%s”不是 GNU .mo 格式"
+
+#: src/read-mo.c:198
+#, c-format
+msgid "file \"%s\" contains a not NUL terminated string, at %s"
+msgstr "文件“%s”包含非 NUL 结尾的字符串，位于 %s"
+
+#: src/read-mo.c:331
+#, c-format
+msgid ""
+"file \"%s\" is not in GNU .mo format: The array of messages is not sorted."
+msgstr "文件“%s”不是 GNU .mo 格式：消息列表未排序。"
+
+#: src/read-mo.c:346
+#, c-format
+msgid "file \"%s\" is not in GNU .mo format: The hash table size is invalid."
+msgstr "文件“%s”不是 GNU .mo 格式：散列表大小无效。"
+
+#: src/read-mo.c:362
+#, c-format
+msgid ""
+"file \"%s\" is not in GNU .mo format: The hash table contains invalid "
+"entries."
+msgstr "文件“%s”不是 GNU .mo 格式：散列表包含无效条目。"
+
+#: src/read-mo.c:369
+#, c-format
+msgid ""
+"file \"%s\" is not in GNU .mo format: Some messages are not present in the "
+"hash table."
+msgstr "文件“%s”不是 GNU .mo 格式：一些消息在散列表中不存在。"
+
+#: src/read-mo.c:390
+#, c-format
+msgid ""
+"file \"%s\" is not in GNU .mo format: Some messages are at a wrong index in "
+"the hash table."
+msgstr "文件“%s”不是 GNU .mo 格式：一些消息位于散列表的错误索引位置。"
+
+#: src/read-properties.c:357
+msgid "warning: invalid \\uxxxx syntax for Unicode character"
+msgstr "警告：Unicode 字符语法 \\uxxxx 无效"
+
+#: src/read-properties.c:429
+#, c-format
+msgid "warning: lone surrogate U+%04X"
+msgstr "警告：出现单独代理（lone surrogate）U+%04X"
+
+#: src/read-properties.c:499 src/read-properties.c:534
+msgid "warning: invalid Unicode character"
+msgstr "警告：无效的 Unicode 字符"
+
+#: src/read-stringtable.c:803
+msgid "warning: unterminated string"
+msgstr "警告：未结束的字符串"
+
+# c-format
+#: src/read-stringtable.c:811
+msgid "warning: syntax error"
+msgstr "警告：语法错误"
+
+#: src/read-stringtable.c:872 src/read-stringtable.c:894
+msgid "warning: unterminated key/value pair"
+msgstr "警告：未结束的关键字/值对"
+
+#: src/read-stringtable.c:941
+msgid "warning: syntax error, expected ';' after string"
+msgstr "警告：语法错误，字符串后预期有“;”"
+
+#: src/read-stringtable.c:949
+msgid "warning: syntax error, expected '=' or ';' after string"
+msgstr "警告：语法错误，字符串后预期有“=”或“;”"
+
+#: src/recode-sr-latin.c:112
+#, c-format
+msgid "Written by %s and %s.\n"
+msgstr "由 %s 和 %s 编写。\n"
+
+#. TRANSLATORS: This is a proper name. The last name is
+#. (with Unicode escapes) "\u0160egan" or (with HTML entities)
+#. "&Scaron;egan".
+#. This is a proper name. See the gettext manual, section Names.
+#: src/recode-sr-latin.c:116
+msgid "Danilo Segan"
+msgstr "Danilo Segan"
+
+#: src/recode-sr-latin.c:149
+#, c-format, no-wrap
+msgid "Recode Serbian text from Cyrillic to Latin script.\n"
+msgstr "将塞尔维亚语由西里尔文转换为拉丁文。\n"
+
+#: src/recode-sr-latin.c:152
+#, c-format, no-wrap
+msgid ""
+"The input text is read from standard input.  The converted text is output to\n"
+"standard output.\n"
+msgstr "输入文本从标准输入读取。转换后的文本输出到标准输出。\n"
+
+#: src/recode-sr-latin.c:337
+#, c-format
+msgid "input is not valid in \"%s\" encoding"
+msgstr "输入无法用“%s”编码表示"
+
+#: src/recode-sr-latin.c:365
+#, c-format
+msgid "error while converting from \"%s\" encoding to \"%s\" encoding"
+msgstr "从“%s”转换为“%s”编码时出错"
+
+#: src/urlget.c:155
+#, c-format
+msgid "expected two arguments"
+msgstr "需要两个参数"
+
+#: src/urlget.c:172
+#, c-format
+msgid "Usage: %s [OPTION] URL FILE\n"
+msgstr "用法：%s [选项] URL 文件\n"
+
+#: src/urlget.c:177
+#, c-format, no-wrap
+msgid ""
+"Fetches and outputs the contents of an URL.  If the URL cannot be accessed,\n"
+"the locally accessible FILE is used instead.\n"
+msgstr "获取 URL 并输出其内容。如果无法访问 URL，则换用指定的本地文件。\n"
+
+#: src/urlget.c:228
+#, c-format
+msgid "error reading \"%s\""
+msgstr "读取“%s”出错"
+
+#: src/urlget.c:234
+#, c-format
+msgid "error writing stdout"
+msgstr "写入 stdout 出错"
+
+#: src/urlget.c:238
+#, c-format
+msgid "error after reading \"%s\""
+msgstr "读取“%s”后出错"
+
+#: src/urlget.c:268
+#, c-format
+msgid "Retrieving %s..."
+msgstr "取回 %s..."
+
+#: src/urlget.c:301
+#, c-format
+msgid " timed out.\n"
+msgstr " 超时。\n"
+
+#: src/urlget.c:441
+#, c-format
+msgid " failed.\n"
+msgstr " 失败。\n"
+
+#: src/write-catalog.c:125
+msgid ""
+"Cannot output multiple translation domains into a single file with the "
+"specified output format. Try using PO file syntax instead."
+msgstr ""
+"无法通过指定输出格式，将多个待译稿输出为单个文件。试着用 PO 文件语法代替。"
+
+#: src/write-catalog.c:128
+msgid ""
+"Cannot output multiple translation domains into a single file with the "
+"specified output format."
+msgstr "无法通过指定输出格式，将多个待译稿输出为单个文件。"
+
+#: src/write-catalog.c:161
+msgid ""
+"message catalog has context dependent translations, but the output format "
+"does not support them."
+msgstr "消息库有依赖上下文的翻译，但是输出格式不支持上下文。"
+
+#: src/write-catalog.c:196
+msgid ""
+"message catalog has plural form translations, but the output format does not "
+"support them. Try generating a Java class using \"msgfmt --java\", instead "
+"of a properties file."
+msgstr ""
+"消息库有复数翻译，但输出格式不支持复数。试着使用“msgfmt --java”生成 Java 类，"
+"而不是 properties 文件。"
+
+#: src/write-catalog.c:201
+msgid ""
+"message catalog has plural form translations, but the output format does not "
+"support them."
+msgstr "消息库有复数翻译，但是输出格式不支持复数处理。"
+
+#: src/write-catalog.c:231 src/write-catalog.c:276 src/write-xml.c:59
+#, c-format
+msgid "cannot create output file \"%s\""
+msgstr "无法创建输出文件“%s”"
+
+#: src/write-catalog.c:239 src/write-catalog.c:284
+msgid "standard output"
+msgstr "标准输出"
+
+#: src/write-csharp.c:709
+#, c-format
+msgid "failed to create directory \"%s\""
+msgstr "创建目录“%s”失败"
+
+#: src/write-csharp.c:772
+#, c-format
+msgid "compilation of C# class failed, please try --verbose"
+msgstr "编译 C# 类失败，试试 --verbose"
+
+#: src/write-csharp.c:774
+#, c-format
+msgid "compilation of C# class failed"
+msgstr "编译 C# 类失败"
+
+#: src/write-desktop.c:163 src/write-mo.c:1227 src/write-qt.c:741
+#: src/write-tcl.c:218
+#, c-format
+msgid "error while opening \"%s\" for writing"
+msgstr "打开“%s”写入出错"
+
+#: src/write-java.c:1098
+#, c-format
+msgid "not a valid Java class name: %s"
+msgstr "不是有效的 Java 类名：%s"
+
+#: src/write-java.c:1221
+#, c-format
+msgid "compilation of Java class failed, please try --verbose or set $JAVAC"
+msgstr "编译 Java 类失败，试试 --verbose 或设置 $JAVAC 变量"
+
+#: src/write-java.c:1224
+#, c-format
+msgid "compilation of Java class failed, please try to set $JAVAC"
+msgstr "编译 Java 类失败，请尝试设置 $JAVAC 变量"
+
+#: src/write-po.c:855
+msgid "incomplete multibyte sequence"
+msgstr "不完整的多字节序列"
+
+#: src/write-po.c:918
+#, c-format
+msgid ""
+"internationalized messages should not contain the '\\%c' escape sequence"
+msgstr "国际化的消息不应包含“\\%c”转码序列"
+
+#: src/write-po.c:1368 src/write-po.c:1536
+#, c-format
+msgid ""
+"The following msgctxt contains non-ASCII characters.\n"
+"This will cause problems to translators who use a character encoding\n"
+"different from yours. Consider using a pure ASCII msgctxt instead.\n"
+"%s\n"
+msgstr ""
+"下列 msgctxt 包含非 ASCII 字符。\n"
+"对于与您使用不同字符编码的翻译者来说，这些字符可能造成障碍。请考虑使\n"
+"用纯 ASCII 的 msgctxt。\n"
+"%s\n"
+
+#: src/write-po.c:1380 src/write-po.c:1548
+#, c-format
+msgid ""
+"The following msgid contains non-ASCII characters.\n"
+"This will cause problems to translators who use a character encoding\n"
+"different from yours. Consider using a pure ASCII msgid instead.\n"
+"%s\n"
+msgstr ""
+"下列 msgid 包含非 ASCII 字符。\n"
+"对于与您使用不同字符编码的翻译者来说，这些字符可能造成障碍。请考虑使\n"
+"用纯 ASCII 的 msgid。\n"
+"%s\n"
+
+#: src/write-qt.c:668
+msgid ""
+"message catalog has plural form translations\n"
+"but the Qt message catalog format doesn't support plural handling\n"
+msgstr ""
+"消息库有复数翻译\n"
+"但是 Qt 消息库不支持复数处理\n"
+
+#: src/write-qt.c:694
+msgid ""
+"message catalog has msgctxt strings containing characters outside "
+"ISO-8859-1\n"
+"but the Qt message catalog format supports Unicode only in the translated\n"
+"strings, not in the context strings\n"
+msgstr ""
+"消息库中的 msgctxt 字符串包含超出 ISO-8859-1 的字符，但 Qt 消息库格式仅在翻"
+"译\n"
+"后的字符串中支持 Unicode，在翻译前的字符串中不支持\n"
+
+#: src/write-qt.c:718
+msgid ""
+"message catalog has msgid strings containing characters outside ISO-8859-1\n"
+"but the Qt message catalog format supports Unicode only in the translated\n"
+"strings, not in the untranslated strings\n"
+msgstr ""
+"消息库中的 msgid 字符串包含超出 ISO-8859-1 的字符，但 Qt 消息库格式仅在翻译\n"
+"后的字符串中支持 Unicode，在翻译前的字符串中不支持\n"
+
+#: src/write-resources.c:96
+#, c-format
+msgid "error while writing to %s subprocess"
+msgstr "写入 %s 子进程出错"
+
+#: src/write-resources.c:133
+msgid ""
+"message catalog has context dependent translations\n"
+"but the C# .resources format doesn't support contexts\n"
+msgstr ""
+"消息库有依赖上下文的翻译\n"
+"但是 C# .resources 格式不支持上下文\n"
+
+#: src/write-resources.c:152
+msgid ""
+"message catalog has plural form translations\n"
+"but the C# .resources format doesn't support plural handling\n"
+msgstr ""
+"消息库有复数翻译\n"
+"但是 C# .resources 格式不支持复数处理\n"
+
+#: src/write-tcl.c:159
+msgid ""
+"message catalog has context dependent translations\n"
+"but the Tcl message catalog format doesn't support contexts\n"
+msgstr ""
+"消息库有依赖上下文的翻译\n"
+"但是 Tcl 消息库不支持上下文\n"
+
+#: src/write-tcl.c:178
+msgid ""
+"message catalog has plural form translations\n"
+"but the Tcl message catalog format doesn't support plural handling\n"
+msgstr ""
+"消息库有复数翻译\n"
+"但是 Tcl 消息库不支持复数处理\n"
+
+#: src/x-awk.c:341 src/x-javascript.c:766 src/x-python.c:896
+#, c-format
+msgid "%s:%d: warning: unterminated string"
+msgstr "%s:%d：警告：未结束的字符串"
+
+#: src/x-awk.c:592
+#, c-format
+msgid "%s:%d: warning: unterminated regular expression"
+msgstr "%s:%d：警告：未结束的正规表达式"
+
+#: src/x-awk.c:769 src/x-c.c:2347 src/x-csharp.c:1946 src/x-java.c:1581
+#: src/x-javascript.c:1689 src/x-lua.c:1099 src/x-php.c:1487
+#: src/x-python.c:1602 src/x-vala.c:1322 src/x-ycp.c:698 src/x-ycp.c:773
+#, c-format
+msgid "%s:%d: error: too many open parentheses"
+msgstr "%s:%d：错误：过多未闭合的左括号"
+
+#: src/x-c.c:1117 src/x-vala.c:509
+#, c-format
+msgid "%s:%d: warning: hexadecimal escape sequence out of range"
+msgstr "%s:%d：警告：十六进制转义序列超出范围"
+
+#: src/x-c.c:1206 src/x-csharp.c:1333 src/x-python.c:1103 src/x-tcl.c:804
+#: src/x-vala.c:597
+#, c-format
+msgid "%s:%d: warning: invalid Unicode character"
+msgstr "%s:%d：警告：无效的 Unicode 字符"
+
+#: src/x-c.c:1407
+#, c-format
+msgid ""
+"%s:%d: warning: a double-quote in the delimiter of a raw string literal is "
+"unsupported"
+msgstr "%s:%d：警告：不支持出现在原始字符串字面量定界符内的双引号"
+
+#: src/x-c.c:1485
+#, c-format
+msgid "%s:%d: warning: unterminated raw string literal"
+msgstr "%s:%d：警告：未终止的原始字符串字面量"
+
+#: src/x-c.c:1495
+#, c-format
+msgid "%s:%d: warning: invalid raw string literal syntax"
+msgstr "%s:%d：警告：无效的原始字符串字面量语法"
+
+#: src/x-c.c:1704 src/x-csharp.c:1452 src/x-java.c:682 src/x-vala.c:839
+#, c-format
+msgid "%s:%d: warning: unterminated character constant"
+msgstr "%s:%d：警告：未结束的字符常量"
+
+#: src/x-c.c:1741 src/x-vala.c:940
+#, c-format
+msgid "%s:%d: warning: unterminated string literal"
+msgstr "%s:%d：警告：未结束的字符串字面"
+
+#: src/x-csharp.c:226 src/xg-encoding.c:160 src/xg-encoding.c:173
+#: src/xg-encoding.c:217 src/xg-encoding.c:232
+msgid "Please specify the source encoding through --from-code."
+msgstr "请用 --from-code 指定源编码。"
+
+#: src/x-csharp.c:273
+#, c-format
+msgid ""
+"%s:%d: Invalid multibyte sequence.\n"
+"Please specify the correct source encoding through --from-code.\n"
+msgstr ""
+"%s:%d：出现了无效的多字节序列。\n"
+"请通过 --from-code 指定源文件的编码。\n"
+
+#: src/x-csharp.c:289
+#, c-format
+msgid ""
+"%s:%d: Long incomplete multibyte sequence.\n"
+"Please specify the correct source encoding through --from-code.\n"
+msgstr ""
+"%s:%d：较长的不完整多字节序列。\n"
+"请通过 --from-code 指定源文件的编码。\n"
+
+#: src/x-csharp.c:301
+#, c-format
+msgid ""
+"%s:%d: Incomplete multibyte sequence at end of file.\n"
+"Please specify the correct source encoding through --from-code.\n"
+msgstr ""
+"%s:%d：文件结尾处出现了不完整的多字节序列。\n"
+"请通过 --from-code 指定源文件的编码。\n"
+
+#: src/x-csharp.c:310
+#, c-format
+msgid ""
+"%s:%d: Incomplete multibyte sequence at end of line.\n"
+"Please specify the correct source encoding through --from-code.\n"
+msgstr ""
+"%s:%d：文件结尾处出现了不完整的多字节序列。\n"
+"请通过 --from-code 指定源文件的编码。\n"
+
+#: src/x-csharp.c:319 src/x-javascript.c:331 src/x-python.c:358
+#, c-format
+msgid "%s:%d: iconv failure"
+msgstr "%s:%d：iconv 失败"
+
+#: src/x-csharp.c:342
+#, c-format
+msgid ""
+"%s:%d: Invalid multibyte sequence.\n"
+"Please specify the source encoding through --from-code.\n"
+msgstr ""
+"%s:%d：无效的多字节序列。\n"
+"请通过 --from-code 指定源文件的编码。\n"
+
+#: src/x-csharp.c:1455 src/x-java.c:685
+#, c-format
+msgid "%s:%d: warning: unterminated string constant"
+msgstr "%s:%d：警告：未结束的字符串常量"
+
+#: src/x-csharp.c:1972 src/x-java.c:1607
+#, c-format
+msgid "%s:%d: warning: ')' found where '}' was expected"
+msgstr "%s:%d：警告：预期为“}”却得到了“)”"
+
+#: src/x-csharp.c:1984 src/x-java.c:1619 src/x-javascript.c:1758
+#: src/x-tcl.c:898
+#, c-format
+msgid "%s:%d: error: too many open braces"
+msgstr "%s:%d：错误：过多未闭合的左括号"
+
+#: src/x-csharp.c:2009 src/x-java.c:1644
+#, c-format
+msgid "%s:%d: warning: '}' found where ')' was expected"
+msgstr "%s:%d：警告：预期为“)”却得到了“}”"
+
+#: src/x-elisp.c:452
+#, c-format
+msgid "%s:%d: error: too deeply nested escape sequence"
+msgstr "%s:%d：错误：嵌套的转义序列过深"
+
+#: src/x-elisp.c:649 src/x-librep.c:606 src/x-lisp.c:949 src/x-scheme.c:690
+#, c-format
+msgid "%s:%d: error: too deeply nested objects"
+msgstr "%s:%d：错误：嵌套的对象过深"
+
+#: src/xg-arglist-parser.c:388
+#, c-format
+msgid "ambiguous argument specification for keyword '%.*s'"
+msgstr "关键字“%.*s”的参数指定含糊"
+
+#: src/xg-arglist-parser.c:450
+#, c-format
+msgid "warning: missing context for keyword '%.*s'"
+msgstr "警告：关键字“%.*s”缺少上下文"
+
+#: src/xg-arglist-parser.c:475
+#, c-format
+msgid "warning: missing context for plural argument of keyword '%.*s'"
+msgstr "警告：关键字“%.*s”缺少复数参数上下文"
+
+#: src/xg-arglist-parser.c:496
+#, c-format
+msgid "context mismatch between singular and plural form"
+msgstr "单数和复数的上下文不匹配"
+
+#: src/xg-encoding.c:78
+#, c-format
+msgid "Non-ASCII character at %s%s."
+msgstr "%s%s 处有非 ASCII 码字符。"
+
+#: src/xg-encoding.c:82
+#, c-format
+msgid "Non-ASCII comment at or before %s%s."
+msgstr "%s%s 处或之前位置有非 ASCII 码注释。"
+
+#: src/xg-encoding.c:87
+#, c-format
+msgid "Non-ASCII string at %s%s."
+msgstr "%s%s 处有非 ASCII 字符串。"
+
+#: src/xg-encoding.c:92
+#, c-format
+msgid "Non-ASCII XML tag at %s%s."
+msgstr "%s%s 处有非 ASCII XML 标签。"
+
+#: src/xg-encoding.c:118
+#, c-format
+msgid "Character at %s%s is not UTF-8 encoded."
+msgstr "%s%s 处的字符不是 UTF-8 编码。"
+
+#: src/xg-encoding.c:123
+#, c-format
+msgid "Comment at or before %s%s is not UTF-8 encoded."
+msgstr "%s%s 处或之前位置有非 ASCII 码注释。"
+
+#: src/xg-encoding.c:128
+#, c-format
+msgid "String at %s%s is not UTF-8 encoded."
+msgstr "%s%s 处的字符串未使用 UTF-8 编码。"
+
+#: src/xg-encoding.c:134
+#, c-format
+msgid "XML tag at %s%s is not UTF-8 encoded."
+msgstr "%s%s 处的 XML 标签未使用 UTF-8 编码。"
+
+#: src/xgettext.c:590
+#, c-format
+msgid "'%s' is not a valid encoding name.  Using ASCII as fallback.\n"
+msgstr "“%s”不是个有效的编码名。正使用ASCII 作为替换。\n"
+
+#: src/xgettext.c:660
+#, c-format
+msgid "syntax check '%s' unknown"
+msgstr "语法检查“%s”未知"
+
+#: src/xgettext.c:669
+#, c-format
+msgid "sentence end type '%s' unknown"
+msgstr "句子结尾类型“%s”未知"
+
+#: src/xgettext.c:725
+#, c-format
+msgid "--join-existing cannot be used when output is written to stdout"
+msgstr "输出写到 stdout 时无法使用 --join-existing"
+
+#: src/xgettext.c:729
+#, c-format
+msgid "xgettext cannot work without keywords to look for"
+msgstr "没有指定关键字 xgettext 将无法工作"
+
+#: src/xgettext.c:749
+#, c-format
+msgid "The option '%s' is deprecated."
+msgstr "选项“%s”已弃用。"
+
+#: src/xgettext.c:873
+#, c-format
+msgid "warning: ITS rule file '%s' does not exist"
+msgstr "警告：ITS 规则文件“%s”不存在"
+
+#: src/xgettext.c:951
+#, c-format
+msgid ""
+"warning: a fallback ITS rule file '%s' is used; it may not be in sync with "
+"the upstream"
+msgstr "警告：使用了备用 ITS 规则文件“%s”；它可能和上游不一致"
+
+#: src/xgettext.c:961
+#, c-format
+msgid ""
+"warning: ITS rule file '%s' does not exist; check your gettext installation"
+msgstr "警告：ITS 规则文件“%s”不存在；请检查您的 gettext 安装情况"
+
+#: src/xgettext.c:979
+#, c-format
+msgid "warning: file '%s' extension '%s' is unknown; will try C"
+msgstr "警告：文件“%s”扩展名“%s”未知; 将尝试 C"
+
+#: src/xgettext.c:1069
+#, c-format
+msgid "Extract translatable strings from given input files.\n"
+msgstr "从给定的输入文件中提取可翻译的字符串。\n"
+
+#: src/xgettext.c:1092
+#, c-format
+msgid ""
+"  -d, --default-domain=NAME   use NAME.po for output (instead of messages."
+"po)\n"
+msgstr "  -d, --default-domain=名称   使用<名称.po>输出(而不是 messages.po)\n"
+
+#: src/xgettext.c:1094
+#, c-format
+msgid "  -o, --output=FILE           write output to specified file\n"
+msgstr "  -o, --output=文件           将输出写入指定文件\n"
+
+#: src/xgettext.c:1096
+#, c-format
+msgid ""
+"  -p, --output-dir=DIR        output files will be placed in directory DIR\n"
+msgstr "  -p, --output-dir=目录       输出文件将会存放在<目录>中\n"
+
+#: src/xgettext.c:1101
+#, c-format
+msgid "Choice of input file language:\n"
+msgstr "选择输入文件所用的语言：\n"
+
+#: src/xgettext.c:1103
+#, c-format
+msgid ""
+"  -L, --language=NAME         recognise the specified language\n"
+"                                (C, C++, ObjectiveC, PO, Shell, Python, "
+"Lisp,\n"
+"                                EmacsLisp, librep, Scheme, Smalltalk, Java,\n"
+"                                JavaProperties, C#, awk, YCP, Tcl, Perl, "
+"PHP,\n"
+"                                Ruby, GCC-source, NXStringTable, RST, RSJ,\n"
+"                                Glade, Lua, JavaScript, Vala, Desktop)\n"
+msgstr ""
+"  -L, --language=NAME         识别指定的语言\n"
+"                                (C, C++, ObjectiveC, PO, Shell, Python, "
+"Lisp,\n"
+"                                EmacsLisp, librep, Scheme, Smalltalk, Java,\n"
+"                                JavaProperties, C#, awk, YCP, Tcl, Perl, "
+"PHP,\n"
+"                                Ruby, GCC-source, NXStringTable, RST, RSJ,\n"
+"                                Glade, Lua, JavaScript, Vala, Desktop)\n"
+
+#: src/xgettext.c:1110
+#, c-format
+msgid "  -C, --c++                   shorthand for --language=C++\n"
+msgstr "  -C, --c++                   --language=C++ 的简写\n"
+
+#: src/xgettext.c:1112
+#, c-format
+msgid ""
+"By default the language is guessed depending on the input file name "
+"extension.\n"
+msgstr "默认情况下，所使用的语言是根据输入文件的扩展名猜测的。\n"
+
+#: src/xgettext.c:1117
+#, c-format
+msgid ""
+"      --from-code=NAME        encoding of input files\n"
+"                                (except for Python, Tcl, Glade)\n"
+msgstr ""
+"      --from-code=名称        输入文件的编码\n"
+"                                (除了 Python, Tcl, Glade)\n"
+
+#: src/xgettext.c:1120
+#, c-format
+msgid "By default the input files are assumed to be in ASCII.\n"
+msgstr "默认情况下，输入文件都认为是纯 ASCII 文件。\n"
+
+#: src/xgettext.c:1125
+#, c-format
+msgid "  -j, --join-existing         join messages with existing file\n"
+msgstr "  -j, --join-existing         将消息加入已有文件\n"
+
+#: src/xgettext.c:1127
+#, c-format
+msgid "  -x, --exclude-file=FILE.po  entries from FILE.po are not extracted\n"
+msgstr "  -x, --exclude-file=文件.po  文件.po中的项不提取\n"
+
+#: src/xgettext.c:1129
+#, c-format
+msgid ""
+"  -cTAG, --add-comments=TAG   place comment blocks starting with TAG and\n"
+"                                preceding keyword lines in output file\n"
+"  -c, --add-comments          place all comment blocks preceding keyword "
+"lines\n"
+"                                in output file\n"
+msgstr ""
+"  -cTAG, --add-comments=TAG   以 TAG 开始放置注释块\n"
+"                              并在输出文件中以关键词开启一行\n"
+"  -c, --add-comments          在输出文件中以关键词开启一行，\n"
+"                              并放置所有注释块\n"
+
+#: src/xgettext.c:1134
+#, c-format
+msgid ""
+"      --check=NAME            perform syntax check on messages\n"
+"                                (ellipsis-unicode, space-ellipsis,\n"
+"                                 quote-unicode, bullet-unicode)\n"
+msgstr ""
+"      --check=NAME            对信息文本做语法检查\n"
+"                                （Unicode省略号ellipsis-unicode、空格加省略号"
+"space-ellipsis、\n"
+"                                 Unicode引号quote-unicode、Unicode圆点bullet-"
+"unicode）\n"
+
+#: src/xgettext.c:1138
+#, c-format
+msgid ""
+"      --sentence-end=TYPE     type describing the end of sentence\n"
+"                                (single-space, which is the default, \n"
+"                                 or double-space)\n"
+msgstr ""
+"      --sentence-end=TYPE     句子结尾类型描述\n"
+"                                (默认单空格single-space \n"
+"                                 或双空格double-space)\n"
+
+#: src/xgettext.c:1143
+#, c-format
+msgid "Language specific options:\n"
+msgstr "语言特定选项:\n"
+
+#: src/xgettext.c:1145
+#, c-format
+msgid "  -a, --extract-all           extract all strings\n"
+msgstr "  -a, --extract-all           提取所有字符串\n"
+
+#: src/xgettext.c:1147
+#, c-format
+msgid ""
+"                                (only languages C, C++, ObjectiveC, Shell,\n"
+"                                Python, Lisp, EmacsLisp, librep, Scheme, "
+"Java,\n"
+"                                C#, awk, Tcl, Perl, PHP, GCC-source, Glade,\n"
+"                                Lua, JavaScript, Vala)\n"
+msgstr ""
+"                                (仅支持 C, C++, ObjectiveC, Shell,\n"
+"                                Python, Lisp, EmacsLisp, librep, Scheme, "
+"Java,\n"
+"                                C#, awk, Tcl, Perl, PHP, GCC-source, Glade,\n"
+"                                Lua, JavaScript, Vala)\n"
+
+#: src/xgettext.c:1155
+#, c-format
+msgid ""
+"                                (only languages C, C++, ObjectiveC, Shell,\n"
+"                                Python, Lisp, EmacsLisp, librep, Scheme, "
+"Java,\n"
+"                                C#, awk, Tcl, Perl, PHP, GCC-source, Glade,\n"
+"                                Lua, JavaScript, Vala, Desktop)\n"
+msgstr ""
+"                                (仅支持 C, C++, ObjectiveC, Shell,\n"
+"                                Python, Lisp, EmacsLisp, librep, Scheme, "
+"Java,\n"
+"                                C#, awk, Tcl, Perl, PHP, GCC-source, Glade,\n"
+"                                Lua, JavaScript, Vala, Desktop)\n"
+
+#: src/xgettext.c:1160
+#, c-format
+msgid ""
+"      --flag=WORD:ARG:FLAG    additional flag for strings inside the "
+"argument\n"
+"                              number ARG of keyword WORD\n"
+msgstr ""
+"      --flag=WORD:ARG:FLAG    在关键字WORD 的参数个数ARG 中\n"
+"                              字符串的额外flag\n"
+
+#: src/xgettext.c:1163
+#, c-format
+msgid ""
+"                                (only languages C, C++, ObjectiveC, Shell,\n"
+"                                Python, Lisp, EmacsLisp, librep, Scheme, "
+"Java,\n"
+"                                C#, awk, YCP, Tcl, Perl, PHP, GCC-source,\n"
+"                                Lua, JavaScript, Vala)\n"
+msgstr ""
+"                                (仅支持 C, C++, ObjectiveC, Shell,\n"
+"                                Python, Lisp, EmacsLisp, librep, Scheme, "
+"Java,\n"
+"                                C#, awk, YCP, Tcl, Perl, PHP, GCC-source,\n"
+"                                Lua, JavaScript, Vala)\n"
+
+#: src/xgettext.c:1168
+#, c-format
+msgid "  -T, --trigraphs             understand ANSI C trigraphs for input\n"
+msgstr "  -T, --trigraphs             理解输入时的 ANSI C 分段\n"
+
+#: src/xgettext.c:1170
+#, c-format
+msgid "                                (only languages C, C++, ObjectiveC)\n"
+msgstr "                                (仅支持 C, C++, ObjectiveC 语言)\n"
+
+#: src/xgettext.c:1172
+#, c-format
+msgid "      --its=FILE              apply ITS rules from FILE\n"
+msgstr "      --its=文件              读取指定<文件>并应用其中的 ITS 规则\n"
+
+#: src/xgettext.c:1174
+#, c-format
+msgid "                                (only XML based languages)\n"
+msgstr "                                （仅支持基于 XML 的语言）\n"
+
+#: src/xgettext.c:1176
+#, c-format
+msgid "      --qt                    recognize Qt format strings\n"
+msgstr "      --qt                    识别 Qt 格式字符串\n"
+
+#: src/xgettext.c:1178 src/xgettext.c:1182 src/xgettext.c:1186
+#, c-format
+msgid "                                (only language C++)\n"
+msgstr "                                (仅 C++ 语言)\n"
+
+#: src/xgettext.c:1180
+#, c-format
+msgid "      --kde                   recognize KDE 4 format strings\n"
+msgstr "      --kde                   识别 KDE 4 格式字符串\n"
+
+#: src/xgettext.c:1184
+#, c-format
+msgid "      --boost                 recognize Boost format strings\n"
+msgstr "      --boost                 识别 Boost 格式字符串\n"
+
+#: src/xgettext.c:1188
+#, c-format
+msgid ""
+"      --debug                 more detailed formatstring recognition result\n"
+msgstr "      --debug                 更详细的格式字符串识别结果\n"
+
+#: src/xgettext.c:1213
+#, c-format
+msgid "      --properties-output     write out a Java .properties file\n"
+msgstr "      --properties-output     写出 Java .properties 文件\n"
+
+#: src/xgettext.c:1217
+#, c-format
+msgid "      --itstool               write out itstool comments\n"
+msgstr "      --itstool               输出 itstool 注释\n"
+
+#: src/xgettext.c:1224
+#, c-format
+msgid "  -s, --sort-output           generate sorted output (deprecated)\n"
+msgstr "  -s, --sort-output           输出前排序（已弃用）\n"
+
+#: src/xgettext.c:1230
+#, c-format
+msgid "      --copyright-holder=STRING  set copyright holder in output\n"
+msgstr "      --copyright-holder=字符串  在输出中设置版权占位符\n"
+
+#: src/xgettext.c:1232
+#, c-format
+msgid ""
+"      --foreign-user          omit FSF copyright in output for foreign user\n"
+msgstr "      --foreign-user          为外语用户省略 FSF 版权\n"
+
+#: src/xgettext.c:1234
+#, c-format
+msgid "      --package-name=PACKAGE  set package name in output\n"
+msgstr "      --package-name=PACKAGE  输出时设定软件包名字\n"
+
+#: src/xgettext.c:1236
+#, c-format
+msgid "      --package-version=VERSION  set package version in output\n"
+msgstr "      --package-version=VERSION  输出时设定软件包版本\n"
+
+#: src/xgettext.c:1238
+#, c-format
+msgid ""
+"      --msgid-bugs-address=EMAIL@ADDRESS  set report address for msgid bugs\n"
+msgstr "      --msgid-bugs-address=EMAIL@ADDRESS  设置报告 msgid 错误的地址\n"
+
+#: src/xgettext.c:1240
+#, c-format
+msgid ""
+"  -m[STRING], --msgstr-prefix[=STRING]  use STRING or \"\" as prefix for "
+"msgstr\n"
+"                                values\n"
+msgstr ""
+"  -m[STRING], --msgstr-prefix[=STRING]  使用 STRING 或 \"\" 作为\n"
+"                                         msgstr 内容的前缀\n"
+
+#: src/xgettext.c:1243
+#, c-format
+msgid ""
+"  -M[STRING], --msgstr-suffix[=STRING]  use STRING or \"\" as suffix for "
+"msgstr\n"
+"                                values\n"
+msgstr ""
+"  -M[STRING], --msgstr-suffix[=字符串]  使用<字符串>或\"\"作为 msgstr 项的后"
+"缀\n"
+
+#: src/xgettext.c:1706
+#, c-format
+msgid ""
+"A --flag argument doesn't have the <keyword>:<argnum>:[pass-]<flag> syntax: "
+"%s"
+msgstr "--flag 参数并非以 <关键字>:<参数编号>:[遍数-]<标志> 的语法给出：%s"
+
+#: src/xgettext.c:1873
+msgid "standard input"
+msgstr "标准输入"
+
+#: src/xgettext.c:2074
+msgid ""
+"The option --msgid-bugs-address was not specified.\n"
+"If you are using a 'Makevars' file, please specify\n"
+"the MSGID_BUGS_ADDRESS variable there; otherwise please\n"
+"specify an --msgid-bugs-address command line option.\n"
+msgstr ""
+"未指定选项 --msgid-bugs-address。\n"
+"如果您正在使用“Makevars”文件，请指定\n"
+" MSGID_BUGS_ADDRESS 变量；\n"
+"否则，请指定 --msgid-bugs-address 命令行选项。\n"
+
+#: src/xgettext.c:2291
+#, c-format
+msgid "language '%s' unknown"
+msgstr "语言“%s”未知"
+
+#: src/xg-message.c:96 src/xg-message.c:233 src/xg-message.c:301
+#, c-format
+msgid "%s%s: warning: "
+msgstr "%s%s：警告："
+
+#: src/xg-message.c:99
+#, c-format
+msgid ""
+"Although being used in a format string position, the %s is not a valid %s "
+"format string. Reason: %s\n"
+msgstr ""
+"尽管在格式字符串的位置使用，但 %s 仍不是有效的 %s 格式字符串。原因：%s\n"
+
+#: src/xg-message.c:100
+#, c-format
+msgid ""
+"Although declared as such, the %s is not a valid %s format string. Reason: "
+"%s\n"
+msgstr "以所声明的语言 %2$s 来看，%1$s 不是有效的格式字符串。原因：%3$s\n"
+
+#: src/xg-message.c:235
+#, c-format
+msgid ""
+"'%s' format string with unnamed arguments cannot be properly localized:\n"
+"The translator cannot reorder the arguments.\n"
+"Please consider using a format string with named arguments,\n"
+"and a mapping instead of a tuple for the arguments.\n"
+msgstr ""
+"带有未命名参数的“%s”格式字符串无法正确本地化：\n"
+"翻译者无法重新编排参数的顺序。\n"
+"请考虑使用带有命名参数和映射的格式字符串，而不是使用参数数组。\n"
+
+#: src/xg-message.c:303
+msgid ""
+"Empty msgid.  It is reserved by GNU gettext:\n"
+"gettext(\"\") returns the header entry with\n"
+"meta information, not the empty string.\n"
+msgstr ""
+"空的 msgid，由 GNU gettext 保留：\n"
+"gettext(\"\") 将返回文件头项，而不\n"
+"是空字符串。\n"
+
+#: src/xg-message.c:344
+#, c-format
+msgid "%s%s: Here is the occurrence without plural."
+msgstr "%s%s：此处是无复数的出现场景。"
+
+#: src/xg-message.c:346
+#, c-format
+msgid "%s%s: Here is the occurrence with plural."
+msgstr "%s%s：此处是复数的出现场景。"
+
+#: src/xg-message.c:348
+msgid ""
+"Workaround: If the msgid is a sentence, change the wording of the sentence; "
+"otherwise, use contexts for disambiguation."
+msgstr ""
+"解决方法：如果 msgid 是一个句子，请考虑修改语句用词；否则，请使用上下文来避免"
+"歧义。"
+
+#: src/xg-mixed-string.c:496
+#, c-format
+msgid "%s:%d: warning: lone surrogate U+%04X"
+msgstr "%s%d：警告：出现单独代理（lone surrogate）U+%04X"
+
+#: src/x-java.c:1208 src/x-java.c:1252
+#, c-format
+msgid "%s:%d: warning: unterminated text block"
+msgstr "%s:%d：警告：未结束的文本块"
+
+#: src/x-java.c:1221
+#, c-format
+msgid "%s:%d: warning: invalid syntax in text block"
+msgstr "%s:%d：警告：文本块中的无效语法"
+
+#: src/x-javascript.c:238
+msgid "Please specify the source encoding through --from-code\n"
+msgstr "请用 --from-code 指定源编码\n"
+
+#: src/x-javascript.c:285
+#, c-format
+msgid ""
+"%s:%d: Invalid multibyte sequence.\n"
+"Please specify the correct source encoding through --from-code\n"
+msgstr ""
+"%s:%d：出现了无效的多字节序列。\n"
+"请通过 --from-code 指定源文件的编码\n"
+
+#: src/x-javascript.c:301
+#, c-format
+msgid ""
+"%s:%d: Long incomplete multibyte sequence.\n"
+"Please specify the correct source encoding through --from-code\n"
+msgstr ""
+"%s:%d：较长的不完整多字节序列。\n"
+"请通过 --from-code 指定源文件的编码\n"
+
+#: src/x-javascript.c:313
+#, c-format
+msgid ""
+"%s:%d: Incomplete multibyte sequence at end of file.\n"
+"Please specify the correct source encoding through --from-code\n"
+msgstr ""
+"%s:%d：文件结尾处出现了不完整的多字节序列。\n"
+"请通过 --from-code 指定源文件的编码\n"
+
+#: src/x-javascript.c:322
+#, c-format
+msgid ""
+"%s:%d: Incomplete multibyte sequence at end of line.\n"
+"Please specify the correct source encoding through --from-code\n"
+msgstr ""
+"%s:%d：文件结尾处出现了不完整的多字节序列。\n"
+"请通过 --from-code 指定源文件的编码\n"
+
+#: src/x-javascript.c:354
+#, c-format
+msgid ""
+"%s:%d: Invalid multibyte sequence.\n"
+"Please specify the source encoding through --from-code\n"
+msgstr ""
+"%s:%d：无效的多字节序列。\n"
+"请通过 --from-code 指定源文件的编码\n"
+
+#: src/x-javascript.c:981
+#, c-format
+msgid "%s:%d: warning: RegExp literal terminated too early"
+msgstr "%s:%d：警告：RegExp 正则表达式过早结束"
+
+#: src/x-javascript.c:1110
+#, c-format
+msgid "%s:%d: warning: %s is not allowed"
+msgstr "%s:%d：警告：不允许使用 %s"
+
+#: src/x-javascript.c:1125
+#, c-format
+msgid "%s:%d: warning: unterminated XML markup"
+msgstr "%s:%d：警告：未终止的 XML 标记"
+
+#: src/x-javascript.c:1370
+#, c-format
+msgid "%s:%d: warning: ignoring CDATA section"
+msgstr "%s:%d：警告：将忽略 CDATA 段落"
+
+#: src/x-javascript.c:1729 src/x-lua.c:1130 src/x-php.c:1527
+#: src/x-python.c:1642 src/x-tcl.c:772
+#, c-format
+msgid "%s:%d: error: too many open brackets"
+msgstr "%s:%d：错误：未闭合的左花括号过多"
+
+#: src/x-javascript.c:1814
+#, c-format
+msgid "%s:%d: error: too many open XML elements"
+msgstr "%s:%d：错误：未闭合的 XML 元素过多"
+
+#: src/x-perl.c:342
+#, c-format
+msgid "%s:%d: can't find string terminator \"%s\" anywhere before EOF"
+msgstr "%s:%d：在文件结束符前的任何位置都找不到字符串结束符“%s”"
+
+#: src/x-perl.c:1084
+#, c-format
+msgid "%s:%d: missing right brace on \\x{HEXNUMBER}"
+msgstr "%s:%d：在 \\x{十六进制数} 处缺少右大括号"
+
+#: src/x-perl.c:1205
+#, c-format
+msgid "%s:%d: invalid interpolation (\"\\l\") of 8bit character \"%c\""
+msgstr "%s:%d：8位字符“%c”转义无效(“\\l”)"
+
+#: src/x-perl.c:1225
+#, c-format
+msgid "%s:%d: invalid interpolation (\"\\u\") of 8bit character \"%c\""
+msgstr "%s:%d：8位字符“%c”转义无效(“\\u”)"
+
+#: src/x-perl.c:1259
+#, c-format
+msgid "%s:%d: invalid variable interpolation at \"%c\""
+msgstr "%s:%d：“%c”处有无效的变量转义"
+
+#: src/x-perl.c:1272
+#, c-format
+msgid "%s:%d: invalid interpolation (\"\\L\") of 8bit character \"%c\""
+msgstr "%s:%d：8位字符“%c”转义无效(“\\L”)"
+
+#: src/x-perl.c:1289
+#, c-format
+msgid "%s:%d: invalid interpolation (\"\\U\") of 8bit character \"%c\""
+msgstr "%s:%d：8位字符“%c”转义无效(“\\U”)"
+
+#: src/x-perl.c:1746 src/x-perl.c:2801 src/x-perl.c:3153
+#, c-format
+msgid "%s:%d: error: too deeply nested expressions"
+msgstr "%s:%d：错误：嵌套的表达式过深"
+
+#: src/x-po.c:228
+#, c-format
+msgid ""
+"%s: input file doesn't contain a header entry with a charset specification"
+msgstr "%s：输入文件不包含指定字符集的文件头项"
+
+#: src/x-python.c:281
+msgid ""
+"Please specify the source encoding through --from-code or through a comment\n"
+"as specified in https://www.python.org/peps/pep-0263.html.\n"
+msgstr ""
+"请通过 --from-code 或是注释指定源文件的编码，\n"
+"详见 https://www.python.org/peps/pep-0263.html。\n"
+
+#: src/x-python.c:341
+#, c-format
+msgid ""
+"%s:%d: Long incomplete multibyte sequence.\n"
+"Please specify the correct source encoding through --from-code or through a\n"
+"comment as specified in https://www.python.org/peps/pep-0263.html.\n"
+msgstr ""
+"%s:%d：较长的不完整多字节序列。\n"
+"请通过 --from-code 或是注释指定源文件的编码，详见\n"
+"https://www.python.org/peps/pep-0263.html。\n"
+
+#: src/x-python.c:493
+#, c-format
+msgid ""
+"%s:%d: Invalid multibyte sequence.\n"
+"Please specify the correct source encoding through --from-code or through a\n"
+"comment as specified in https://www.python.org/peps/pep-0263.html.\n"
+msgstr ""
+"%s:%d：出现了无效的多字节序列。\n"
+"请通过 --from-code 或是注释指定源文件的编码，详见\n"
+"https://www.python.org/peps/pep-0263.html。\n"
+
+#: src/x-python.c:502
+#, c-format
+msgid ""
+"%s:%d: Incomplete multibyte sequence at end of file.\n"
+"Please specify the correct source encoding through --from-code or through a\n"
+"comment as specified in https://www.python.org/peps/pep-0263.html.\n"
+msgstr ""
+"%s:%d：文件结尾处出现了不完整的多字节序列。\n"
+"请通过 --from-code 或是注释指定源文件的编码，详见\n"
+"https://www.python.org/peps/pep-0263.html。\n"
+
+#: src/x-python.c:511
+#, c-format
+msgid ""
+"%s:%d: Incomplete multibyte sequence at end of line.\n"
+"Please specify the correct source encoding through --from-code or through a\n"
+"comment as specified in https://www.python.org/peps/pep-0263.html.\n"
+msgstr ""
+"%s:%d：文件结尾处出现了不完整的多字节序列。\n"
+"请通过 --from-code 或是注释指定源文件的编码，详见\n"
+"https://www.python.org/peps/pep-0263.html。\n"
+
+#: src/x-python.c:684
+#, c-format
+msgid "Unknown encoding \"%s\". Proceeding with ASCII instead."
+msgstr "未知编码“%s”。先按照 ASCII 处理。"
+
+#: src/x-rst.c:116
+#, c-format
+msgid "%s:%d: invalid string definition"
+msgstr "%s:%d：无效的字符串定义"
+
+#: src/x-rst.c:180
+#, c-format
+msgid "%s:%d: missing number after #"
+msgstr "%s:%d：# 后面缺失数字"
+
+#: src/x-rst.c:215
+#, c-format
+msgid "%s:%d: invalid string expression"
+msgstr "%s:%d：无效的字符串表达式"
+
+#: src/x-rst.c:677
+#, c-format
+msgid "%s:%d: invalid JSON syntax"
+msgstr "%s:%d：无效的 JSON 语法"
+
+#: src/x-rst.c:684
+#, c-format
+msgid "%s:%d: invalid RSJ syntax"
+msgstr "%s:%d：无效的 RSJ 语法"
+
+#: src/x-rst.c:692
+#, c-format
+msgid "%s:%d: invalid RSJ version. Only version 1 is supported."
+msgstr "%s:%d：无效的 RSJ 版本。只支持第 1 版。"
+
+#: src/x-ruby.c:89
+#, c-format
+msgid "(output from '%s')"
+msgstr "（来自“%s”的输出）"
+
+#: src/x-sh.c:1151
+#, c-format
+msgid ""
+"%s:%lu: warning: the syntax $\"...\" is deprecated due to security reasons; "
+"use eval_gettext instead"
+msgstr "%s:%lu：警告：为安全起见，语法 $“...”不被推荐；请换用 eval_gettext"
+
+#: src/x-sh.c:1512
+#, c-format
+msgid "%s:%d: error: too deeply nested command list"
+msgstr "%s:%d：错误：嵌套的命令列表过深"
+
+#: src/x-vala.c:647
+#, c-format
+msgid "%s:%d: warning: regular expression literal terminated too early"
+msgstr "%s:%d：警告：正则表达式过早终止"
+
+#: libgettextpo/gettext-po.c:98
+msgid "<unnamed>"
+msgstr "<未命名>"
+
+#: libgettextpo/markup.c:366 libgettextpo/markup.c:449
+msgid "invalid UTF-8 sequence"
+msgstr "无效的 UTF-8 序列"
+
+#: libgettextpo/markup.c:377
+#, c-format
+msgid "'%s' is not a valid name: %c"
+msgstr "“%s”不是有效的名称：%c"
+
+#: libgettextpo/markup.c:397
+#, c-format
+msgid "'%s' is not a valid name: '%c'"
+msgstr "“%s”不是有效的名称：“%c”"
+
+#: libgettextpo/markup.c:523 libgettextpo/markup.c:534
+#: libgettextpo/markup.c:559
+#, c-format
+msgid "invalid character reference: %s"
+msgstr "无效的字符引用：%s"
+
+#: libgettextpo/markup.c:526
+msgid "not a valid number specification"
+msgstr "并非有效的数字规格"
+
+#: libgettextpo/markup.c:535 libgettextpo/markup.c:606
+msgid "no ending ';'"
+msgstr "没有结尾的“;”"
+
+#: libgettextpo/markup.c:560
+msgid "non-permitted character"
+msgstr "不允许的字符"
+
+#: libgettextpo/markup.c:599
+msgid "empty"
+msgstr "（空）"
+
+#: libgettextpo/markup.c:604
+msgid "unknown"
+msgstr "未知"
+
+#: libgettextpo/markup.c:608
+#, c-format
+msgid "invalid entity reference: %s"
+msgstr "无效的实体引用：%s"
+
+#: libgettextpo/markup.c:959
+msgid "document must begin with an element"
+msgstr "文档必须以一个元素起始"
+
+#: libgettextpo/markup.c:994 libgettextpo/markup.c:1301
+#: libgettextpo/markup.c:1332
+#, c-format
+msgid "invalid character after '%s'"
+msgstr "“%s”后的无效字符"
+
+#: libgettextpo/markup.c:1031 libgettextpo/markup.c:1107
+#, c-format
+msgid "missing '%c'"
+msgstr "缺少“%c”"
+
+#: libgettextpo/markup.c:1140 libgettextpo/markup.c:1176
+#, c-format
+msgid "missing '%c' or '%c'"
+msgstr "缺少“%c”或“%c”"
+
+#: libgettextpo/markup.c:1333
+msgid "a close element name"
+msgstr "闭合元素名称"
+
+#: libgettextpo/markup.c:1339 libgettextpo/markup.c:1344
+msgid "element is closed"
+msgstr "元素已闭合"
+
+#: libgettextpo/markup.c:1475
+msgid "empty document"
+msgstr "空文档"
+
+#: libgettextpo/markup.c:1488
+msgid "after '<'"
+msgstr "在“<”之后"
+
+#: libgettextpo/markup.c:1495 libgettextpo/markup.c:1527
+msgid "elements still open"
+msgstr "元素未闭合"
+
+#: libgettextpo/markup.c:1500
+msgid "missing '>'"
+msgstr "缺少“>”"
+
+#: libgettextpo/markup.c:1504
+msgid "inside an element name"
+msgstr "在元素名中"
+
+#: libgettextpo/markup.c:1509
+msgid "inside an attribute name"
+msgstr "在属性名中"
+
+#: libgettextpo/markup.c:1513
+msgid "inside an open tag"
+msgstr "在未闭合标签中"
+
+#: libgettextpo/markup.c:1517
+msgid "after '='"
+msgstr "“=”后"
+
+#: libgettextpo/markup.c:1522
+msgid "inside an attribute value"
+msgstr "在属性值中"
+
+#: libgettextpo/markup.c:1533
+msgid "inside the close tag"
+msgstr "在闭合标签中"
+
+#: libgettextpo/markup.c:1537
+msgid "inside a comment or processing instruction"
+msgstr "在注释或处理指令中"
+
+#: libgettextpo/markup.c:1548
+#, c-format
+msgid "document ended unexpectedly: %s"
+msgstr "文档意外结束：%s"
+
+#~ msgid "setting permissions for %s"
+#~ msgstr "设置 %s 的权限"
+
+#~ msgid "Report bugs to <bug-gnu-gettext@gnu.org>.\n"
+#~ msgstr "将错误报告至 <bug-gnu-gettext@gnu.org>。\n"
+
+#~ msgid ""
+#~ "%s:%d: Invalid multibyte sequence.\n"
+#~ "Please specify the source encoding through --from-code or through a "
+#~ "comment\n"
+#~ "as specified in https://www.python.org/peps/pep-0263.html.\n"
+#~ msgstr ""
+#~ "%s:%d：无效的多字节序列。\n"
+#~ "请通过 --from-code 或是注释来指定源文件的编码，详见\n"
+#~ "https://www.python.org/peps/pep-0263.html。\n"
+
+#~ msgid "%s: option '--%s' doesn't allow an argument\n"
+#~ msgstr "%s: 选项“--%s”不允许有参数\n"
+
+#~ msgid "%s: unrecognized option '--%s'\n"
+#~ msgstr "%s: 无法识别的选项“--%s”\n"
+
+#~ msgid "%s: option '-W %s' is ambiguous\n"
+#~ msgstr "%s: 选项“-W %s”歧义\n"
+
+#~ msgid "%s: option '-W %s' doesn't allow an argument\n"
+#~ msgstr "%s: 选项“-W %s”不允许参数\n"
+
+#~ msgid "%s: option '-W %s' requires an argument\n"
+#~ msgstr "%s: 选项“-W %s”需要参数\n"
+
+#~ msgid "warning: PO file header fuzzy\n"
+#~ msgstr "警告：PO 文件头模糊\n"
+
+#~ msgid "warning: older versions of msgfmt will give an error on this\n"
+#~ msgstr "警告：旧版本的 msgfmt 将在此时给出错误\n"
+
+#~ msgid "Missing context for the string extracted from '%s' element"
+#~ msgstr "从元素“%s”中解开的字符串缺少上下文"
+
+#~ msgid "%s:%lu:%lu: %s"
+#~ msgstr "%s:%lu:%lu：%s"
+
+#~ msgid ""
+#~ "Language \"glade\" is not supported. %s relies on expat.\n"
+#~ "This version was built without expat.\n"
+#~ msgstr ""
+#~ "不支持“glade”。%s 依赖 expat。\n"
+#~ "此版本创建时未包含 expat。\n"
+
+#~ msgid "header field '%s' should start at beginning of line\n"
+#~ msgstr "文件头项“%s”应该位于行首\n"
+
+#~ msgid "some header fields still have the initial default value\n"
+#~ msgstr "某些文件头项仍然是默认值\n"
+
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "%s：非法选项 -- %c\n"
+
+#~ msgid "DuplicateHandle failed with error code 0x%08x"
+#~ msgstr "DuplicateHandle 失败，错误码为 0x%08x"
+
+#~ msgid "Not yet implemented."
+#~ msgstr "尚未实现。"
+
+#~ msgid "field `%s' still has initial default value\n"
+#~ msgstr "文件头项“%s”仍然是默认值\n"
+
+#~ msgid "Multiple references to %%%c."
+#~ msgstr "对 %%%c 的多重引用。"
+
+#~ msgid ""
+#~ "Copyright (C) %s Free Software Foundation, Inc.\n"
+#~ "This is free software; see the source for copying conditions.  There is "
+#~ "NO\n"
+#~ "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR "
+#~ "PURPOSE.\n"
+#~ msgstr ""
+#~ "版权 (C) %s Free Software Foundation, Inc.\n"
+#~ "本软件是自由软件；请参看源代码中的复制条件。不提供任何形式的担保；对于特"
+#~ "定\n"
+#~ "用途也没有商用性或任何保全。\n"
+
+#~ msgid ""
+#~ "message catalog has context dependent translations\n"
+#~ "but the C# .dll format doesn't support contexts\n"
+#~ msgstr ""
+#~ "消息库有依赖上下文的翻译\n"
+#~ "但是 C# .dll 格式不支持上下文\n"
+
+#~ msgid ""
+#~ "message catalog has context dependent translations\n"
+#~ "but the Java ResourceBundle format doesn't support contexts\n"
+#~ msgstr ""
+#~ "消息库有依赖上下文的翻译\n"
+#~ "但是 Java ResourceBundle 格式不支持上下文\n"

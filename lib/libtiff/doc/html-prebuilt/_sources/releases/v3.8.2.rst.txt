@@ -1,0 +1,76 @@
+Changes in TIFF v3.8.2
+======================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.8.2 (:tag:`Release-v3-8-2`)
+  Previous Version        :doc:`v3.8.1 <v3.8.1>`
+  Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+Major changes
+-------------
+
+* Bug-fix release.
+
+
+Software configuration changes
+------------------------------
+
+* :file:`tools/Makefile.am`: Use runtime paths linker flags when rpath
+  option enabled.
+
+* Makefiles improvements as per bug :bugzilla-rs:`1128`
+
+* Fixed win32 I/O functions usage as per bug :bugzilla-rs:`1127`
+
+
+Library changes
+---------------
+
+* :file:`tif_strip.c`: Take subsampling in account when calculating
+  :c:func:`TIFFScanlineSize`.
+
+* :file:`tif_jpeg.c`, :file:`tif_fax3.c`, :file:`tif_zip.c`, :file:`tif_pixarlog.c`,
+  :file:`tif_lzw.c`, :file:`tif_luv.c`: Use :c:func:`_TIFFSetDefaultCompressionState` in all
+  codec cleanup methods. As per bug :bugzilla-rs:`1120`
+  
+* :file:`tif_jpeg.c`: Do not cleanup codec state in :c:func:`TIFFInitJPEG`. As
+  per bug :bugzilla-rs:`1119`
+
+* :file:`tif_dir.c`: Use :c:expr:`double` type instead of :c:type:`dblparam_t`.
+
+* :file:`tif_dirread.c`: Do not check the ``PlanarConfig`` tag presence
+  in :c:func:`TIFFReadDirectory`, because it is always set at the start of
+  function and we allow TIFFs without that tag set.
+
+
+Tools changes
+-------------
+
+* :file:`tiffcp.c`: Do not set ``RowsPerStrip`` bigger than image length.
+
+* :file:`fax2tiff.c`: Fixed wrong :c:func:`TIFFerror` invocations as per bug
+  :bugzilla-rs:`1125`
+
+* :file:`fax2ps.c`: Fixed reading the input stream from stdin as per bug
+  :bugzilla-rs:`1124`
+
+* :file:`raw2tiff.c`: Do not set ``RowsPerStrip`` larger than ``ImageLength``.
+  As per bug :bugzilla-rs:`1110`
+
+
+Contributed software changes
+----------------------------
+
+None.

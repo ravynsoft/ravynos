@@ -1,0 +1,14 @@
+#!/bin/sh -x
+
+## This script contains an rm -rf.  This may alarm you.
+## These directories need to be recursively deleted.
+## I don't see any method of making "Bad Things"[tm]
+## Happen.  But we don't run buildroot as root do we? :-)
+
+for f in `find lib -name install_me_here`;do
+cp -r $f/* ./install_me_here/
+done
+
+for f in `find lib -name install_me_here`;do
+rm -rf $f
+done

@@ -1,0 +1,25 @@
+# Comments are (aix-weak-1a.s type) wins over/loses to (aix-weak-1b.s type)
+# (strong common) loses to (strong data)
+20000110 d a
+20000110 D a
+# (strong common) wins over (weak data)
+20000120 B b
+20000114 d b
+# (strong data) wins over (strong common)
+20000100 d c
+20000100 D c
+# (weak data) loses to (strong common)
+20000104 d d
+20000128 B d
+# (weak common) loses to (strong data)
+20000118 d e
+20000118 D e
+# (weak common) wins over (weak data)
+20000124 W f
+2000011c d f
+# (strong data) wins over (weak common)
+20000108 d g
+20000108 D g
+# (weak data) wins over (weak common)
+2000010c d h
+2000010c W h

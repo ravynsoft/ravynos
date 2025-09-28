@@ -1,0 +1,18 @@
+# make sure history expansion doesn't take place while parsing command
+# substitutions
+
+set -o history
+set -o histexpand
+echo a
+
+echo $( cat <<EOF
+echo !!
+EOF
+)
+
+echo --between--
+
+cat <( cat <<'EOF'
+echo !!
+EOF
+)

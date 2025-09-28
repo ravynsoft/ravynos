@@ -1,0 +1,46 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test librep support: --add-comments option.
+
+cat <<EOF > xg-lr-1.jl
+; This comment will not be extracted.
+(princ (_ "help"))
+;;  TRANSLATORS: This is an extracted comment.
+(princ (_ "me"))
+#| Not extracted either. |#
+(princ (_ "Hey Jude"))
+#|  TRANSLATORS:
+     Nickname of the Beatles
+|#
+(princ (_ "The Fabulous Four"))
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location --add-comments=TRANSLATORS: \
+  -d xg-lr-1.tmp xg-lr-1.jl || Exit 1
+LC_ALL=C tr -d '\r' < xg-lr-1.tmp.po > xg-lr-1.po || Exit 1
+
+cat <<EOF > xg-lr-1.ok
+msgid "help"
+msgstr ""
+
+#. TRANSLATORS: This is an extracted comment.
+msgid "me"
+msgstr ""
+
+msgid "Hey Jude"
+msgstr ""
+
+#. TRANSLATORS:
+#. Nickname of the Beatles
+#.
+msgid "The Fabulous Four"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-lr-1.ok xg-lr-1.po
+result=$?
+
+exit $result

@@ -1,0 +1,147 @@
+#autoload
+
+# This completer function is an addition to the _expand completer that
+# allows the user to define their own expansions.  It does not replace
+# the _expand completer.
+#
+# This function will allow other completer functions to be called if
+# the expansions done produce no result or do not change the original
+# word from the line.
+
+setopt localoptions nonomatch
+
+[[ _matcher_num -gt 1 ]] && return 1
+
+local exp word sort expr expl subd suf=" " asp tmp spec REPLY
+local -a specs reply
+
+if [[ "$funcstack[2]" = _prefix ]]; then
+  word="$IPREFIX$PREFIX$SUFFIX"
+else
+  word="$IPREFIX$PREFIX$SUFFIX$ISUFFIX"
+fi
+
+# In exp we will collect the expansions.
+
+exp=("$word")
+
+# Now look for user completions.
+
+zstyle -a ":completion:${curcontext}:" user-expand specs || return 1
+
+for spec in $specs; do
+  REPLY=
+  case $spec in
+    ('$'[[:IDENT:]]##)
+    # Spec is an associative array with explicit keys.
+    # Surely there's a better way of doing an associative array
+    # lookup from its name?
+    eval tmp='${'$spec[2,-1]'[$word]}'
+    if [[ -n $tmp ]]; then
+      exp=("$tmp")
+      break
+    fi
+    ;;
+
+    ('_'*)
+    reply=()
+    $spec $word
+    if (( ${#reply} )); then
+      exp=("${reply[@]}")
+      break
+    fi
+    ;;
+  esac
+done
+
+[[ $#exp -eq 1 && "$exp[1]" = "$word" ]] && return 1
+
+# Now add as matches whatever the user requested.
+
+zstyle -s ":completion:${curcontext}:" sort sort
+
+[[ "$sort" = (yes|true|1|on) ]] && exp=( "${(@o)exp}" )
+
+if zstyle -s ":completion:${curcontext}:" add-space tmp; then
+  if [[ "$tmp" != *subst* || "$word" != *\$* || "$exp[1]" = *\$* ]]; then
+    [[ "$tmp" = *file* ]] && asp=file
+    [[ "$tmp" = *(yes|true|1|on|subst)* ]] && asp="yes$asp"
+  fi
+else
+  asp=file
+fi
+
+# If there is only one expansion, add a suitable suffix
+
+if (( $#exp == 1 )); then
+  if [[ -d ${exp[1]} && "$exp[1]" != */ ]]; then
+    suf=/
+  elif [[ "$asp" = yes* ||
+          ( "$asp" = *file && -f "${exp[1]}" ) ]]; then
+    suf=' '
+  else
+    suf=
+  fi
+fi
+
+if [[ -z "$compstate[insert]" ]] ;then
+  if [[ "$sort" = menu ]]; then
+    _description expansions expl "expansions${REPLY:+: $REPLY}" "o:$word"
+  else
+    _description -V expansions expl "expansions${REPLY:+: $REPLY}" "o:$word"
+  fi
+
+  compadd "$expl[@]" -UQ -qS "$suf" -a exp
+else
+  _tags all-expansions expansions original
+
+  if [[ $#exp -ge 1 ]] && _requested expansions; then
+    local i j normal space dir
+
+    if [[ "$sort" = menu ]]; then
+      _description expansions expl "expansions${REPLY:+: $REPLY}" "o:$word"
+    else
+      _description -V expansions expl "expansions${REPLY:+: $REPLY}" "o:$word"
+    fi
+    normal=()
+    space=()
+    dir=()
+
+    for i in "$exp[@]"; do
+      j="${i}"
+      if [[ -d "$j" && "$i" != */ ]]; then
+        dir=( "$dir[@]" "$i" )
+      elif [[ "$asp" = yes* || ( "$asp" = *file && -f "$j" ) ]]; then
+        space=( "$space[@]" "$i" )
+      else
+	normal=( "$normal[@]" "$i" )
+      fi
+    done
+    (( $#dir ))    && compadd "$expl[@]" -UQ -qS/ -a dir
+    (( $#space ))  && compadd "$expl[@]" -UQ -qS " " -a space
+    (( $#normal )) && compadd "$expl[@]" -UQ -qS "" -a normal
+  fi
+  if _requested all-expansions; then
+    local disp dstr
+
+    if [[ "$sort" = menu ]]; then
+      _description all-expansions expl "all expansions${REPLY:+: $REPLY}" "o:$word"
+    else
+      _description -V all-expansions expl "all expansions${REPLY:+: $REPLY}" "o:$word"
+    fi
+    if [[ "${#${exp}}" -ge COLUMNS ]]; then
+      disp=( -ld dstr )
+      dstr=( "${(r:COLUMNS-5:)exp} ..." )
+    else
+      disp=()
+    fi
+    [[ -o multios ]] && exp=($exp[1] $compstate[redirect]${^exp[2,-1]})
+    compadd "$disp[@]" "$expl[@]" -UQ -qS "$suf" - "$exp"
+  fi
+
+  _requested original expl original && compadd "$expl[@]" -UQ - "$word"
+
+  compstate[insert]=menu
+fi
+
+return 0

@@ -1,0 +1,372 @@
+Changes in TIFF v3.6.0
+======================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.6.0 (:tag:`Release-v3-6-0`)
+  Previous Version        :doc:`v3.5.7 <v3.5.7>`
+  Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Major changes
+-------------
+
+* New utility :program:`raw2tiff` for converting raw rasters into TIFF files.
+* Lots of new :program:`tiff2ps` options.
+* Lots of new :program:`fax2tiff` options.
+* Lots of bug fixes for LZW, JPEG and OJPEG compression.
+
+Custom Tag Support
+^^^^^^^^^^^^^^^^^^
+
+The approach to extending libtiff with custom tags has changed radically.
+Previously, all internally supported TIFF tags had a place in the 
+private :c:struct:`TIFFDirectory` structure within libtiff to hold the values (if read),
+and a "field number" (ie. :c:macro:`FIELD_SUBFILETYPE`) used to identify that tag. 
+However, every time a new tag was added to the core, the size of the
+:c:struct:`TIFFDirectory` structure would change, breaking any dynamically linked
+software that used the private data structures.
+
+Also, any tag not recognised
+by libtiff would not be read and accessible to applications without some
+fairly complicated work on the applications part to pre-register the tags
+as exemplified by the support for "Geo"TIFF tags by libgeotiff layered on
+libtiff.
+
+Among other things this approach required the extension code
+to access the private libtiff structures ... which made the higher level
+non-libtiff code be locked into a specific version of libtiff at compile time.
+This caused no end of bug reports!
+
+The new approach is for libtiff to read all tags from TIFF files.  Those that
+aren't recognised as "core tags" (those having an associated ``FIELD_`` value, 
+and place for storage in the :c:struct:`TIFFDirectory` structure) are now read into a 
+dynamic list of extra tags (:c:member:`td_customValues` in :c:struct:`TIFFDirectory`).  When a new
+tag code is encountered for the first time in a given TIFF file, a new 
+anonymous tag definition is created for the tag in the tag definition list. 
+The type, and some other metadata is worked out from the instance encountered.
+These fields are known as "custom tags".
+
+Custom tags can be set and fetched normally using :c:func:`TIFFSetField` and 
+:c:func:`TIFFGetField`, and appear pretty much like normal tags to application code.
+However, they have no impact on internal libtiff processing (such as
+compression).  Some utilities, such as :program:`tiffcp` will now copy these custom
+tags to the new output files.
+
+As well as the internal work with custom tags, new C API entry points
+were added so that extension libraries, such as libgeotiff, could 
+define new tags more easily without accessing internal data structures.  
+Because tag handling of extension tags is done via the "custom fields" 
+mechanism as well, the definition provided externally mostly serves to provide
+a meaningful name for the tag.
+
+The addition of "custom tags" and the altered approach to extending libtiff
+with externally defined tags is the primary reason for the shift to the 
+3.6.x version number from 3.5.x.
+
+Software configuration changes
+------------------------------
+
+* :file:`configure`, :file:`config.site`: Fix for large files (>2GiB) support. New
+  option in the config.site: ``LARGEFILE="yes"``. Should be enough for the large
+  files I/O.
+
+* :file:`configure`: Set ``-DPIXARLOG_SUPPORT`` option along with ``-DZIP_SUPPORT``.
+
+* :file:`html/Makefile.in`: Updated to use :program:`groffhtml` for generating html pages
+  from man pages.
+
+* :file:`configure`, :file:`libtiff/Makefile.in`: Added SCO OpenServer 5.0.6 support
+  from John H. DuBois III.
+
+* :file:`libtiff/Makefile.vc`, :file:`libtiff/libtiff.def`: Missed declarations added.
+
+* :file:`libtiff/Makefile.in`, :file:`tools/Makefile.in`: Shared library will not be
+  stripped when installing, utility binaries will do be stripped. As per bug :bugzilla-rs:`93`.
+
+* :file:`man/Makefile.in`: Patch ``DESTDIR`` handling as per bug :bugzilla-rs:`95`.
+
+* :file:`configure`: OpenBSD changes for Sparc64 and DSO version as per bug :bugzilla-rs:`96`.
+
+* :file:`config.site/configure`: added support for ``OJPEG=yes`` option to enable
+  OJPEG support from :file:`config.site`.
+
+* :file:`config.gues`, :file:`config.sub`: Updated from `<ftp.gnu.org/pub/config>`_.
+
+* :file:`configure`: Modify ``CheckForBigEndian`` so it can work in a cross
+  compiled situation.
+
+* :file:`configure`, :file:`libtiff/Makefile.in`: Changes for building on MacOS 10.1
+  as per bug :bugzilla-rs:`94`.
+
+* :file:`html/Makefile.in`: added missing images per bug :bugzilla-rs:`92`.
+
+* :file:`port/Makefile.in`: fixed clean target per bug :bugzilla-rs:`92`.
+
+
+Library changes
+---------------
+
+* :file:`libtiff/tif_getimage.c`: New function :c:func:`TIFFReadRGBAImageOriented`
+  implemented to retrieve raster array with user-specified origin position.
+
+* :file:`libtiff/tif_fax3.c`: Fix wrong line numbering.
+
+* :file:`libtiff/tif_dirread.c`: Check field counter against number of fields.
+
+* Store a list of opened IFD to prevent directory looping.
+
+* :file:`libtiff/tif_jpeg.c`: modified segment_height calculation to always
+  be a full height tile for tiled images.  Also changed error to just
+  be a warning.
+
+* :file:`libtiff/tif_lzw.c`: fixed so that decoder state isn't allocated till
+  :c:func:`LZWSetupDecode`.  Needed to read LZW files in "``r+``" mode.
+  
+* :file:`libtiff/tif_dir.c`: fixed up the :c:member:`tif_postdecode` settings responsible
+  for byte swapping complex image data.
+  
+* :file:`libtiff/tif_open.c`: Removed error if opening a compressed file
+  in update mode bug (:bugzilla-rs:`198`).
+
+* :file:`libtiff/tif_write.c`: :c:func:`TIFFWriteCheck` now fails if the image is
+  a pre-existing compressed image.  That is, image writing to pre-existing
+  compressed images is not allowed.
+
+* :file:`html/man/*.html`: Web pages regenerated from man pages.
+
+* :file:`libtiff/tif_jpeg.c`: Hack to ensure that "boolean" is defined properly
+  on Windows so as to avoid the structure size mismatch error from libjpeg
+  (bug :bugzilla-rs:`188`).
+
+* :file:`libtiff/tiff.h`: ``#ifdef USING_VISUALAGE`` around previous Visual Age
+  AIX porting hack as it screwed up gcc. (bug :bugzilla-rs:`39`)
+
+* :file:`libtiff/tiff.h`: added :c:macro:`COMPRESSION_JP2000` (34712) for LEAD tools
+  custom compression.
+
+* :file:`libtiff/tif_dirread.c`: Another fix for the fetching ``SBYTE`` arrays
+  by the :c:func:`TIFFFetchByteArray` function. (bug :bugzilla-rs:`52`)
+
+* :file:`libtiff/tif_dirread.c`: Expand ``v[2]`` to ``v[4]`` in :c:func:`TIFFFetchShortPair`
+  as per bug :bugzilla-rs:`196`.
+
+* :file:`libtiff/tif_lzw.c`: Additional consistency checking added in
+  :c:func:`LZWDecode` and :c:func:`LZWDecodeCompat` fixing bugs
+  :bugzilla-rs:`190` and :bugzilla-rs:`100`.
+
+* :file:`libtiff/tif_lzw.c`: Added check for valid code lengths in :c:func:`LZWDecode`
+  and :c:func:`LZWDecodeCompat`. Fixes bug :bugzilla-rs:`115`.
+
+* :file:`tif_getimage.c`: Ensure that :c:func:`TIFFRGBAImageBegin` returns the
+  return code from the underlying pick function as per bug :bugzilla-rs:`177`.
+
+* :file:`libtiff/tif_jpeg.c`, :file:`libtiff/tif_strip.c`, :file:`libtiff/tif_print.c`:
+  Hacked :file:`tif_jpeg.c` to fetch :c:macro:`TIFFTAG_YCBCRSUBSAMPLING` from the jpeg
+  data stream if it isn't present in the tiff tags as per bug :bugzilla-rs:`168`.
+
+* :file:`libtiff/tif_jpeg.c`: Fixed problem with setting of :c:var:`nrows` in
+  :c:func:`JPEGDecode` as per bug :bugzilla-rs:`129`.
+
+* :file:`libtiff/tif_read.c`, :file:`libtiff/tif_write.c`: :c:func:`TIFFReadScanline` and
+  :c:func:`TIFFWriteScanline` now set :c:member:`tif_row` explicitly in case the codec has
+  fooled with the value as per bug :bugzilla-rs:`129`.
+
+* :file:`libtiff/tif_ojpeg.c`: Major upgrade from Scott.  Details in bug :bugzilla-rs:`156`.
+
+* :file:`libtiff/tif_open.c`: Pointers to custom procedures
+  in :c:func:`TIFFClientOpen` are checked to be not :c:macro:`NULL` pointers.
+
+* :file:`libtiff/tif_lzw.c`: Assertions in :c:func:`LZWDecode` and :c:func:`LZWDecodeCompat`
+  replaced by warnings. Now libtiff should read corrupted LZW-compressed
+  files by skipping bad strips as per bug :bugzilla-rs:`100`.
+  
+* :file:`libtiff/tif_dirwrite.c`, :file:`libtiff/tif_write.c`, :file:`libtiff/tiffio.h`:
+  :c:func:`TIFFCheckpointDirectory` routine added as per bug :bugzilla-rs:`124`.
+  The :doc:`/functions/TIFFWriteDirectory` man page discusses this new function as well as the related
+  :c:func:`TIFFRewriteDirectory`.
+
+* :file:`libtiff/tif_codec.c`, :file:`libtiff/tif_compress.c`,
+  :file:`libtiff/tiffiop.h`, :file:`libtiff/tif_getimage.c`:
+  Introduced additional members ``tif->tif_decodestatus`` and ``tif->tif_encodestatus``
+  for correct handling of unconfigured codecs (we should not try to read
+  data or to define data size without correct codecs). See bug :bugzilla-rs:`119`.
+
+* :file:`tif_dirread.c`: avoid div-by-zero if :c:var:`rowbytes` is zero in chop func as
+  per bug :bugzilla-rs:`111`.
+
+* :file:`libtiff/tiff.h`, :file:`libtiff/tif_dir.c`, :file:`libtiff/tif_dir.h`,
+  :file:`libtiff/tif_dirinfo.c`, :file:`libtiff/tif_dirread.c`, :file:`libtiff/tif_dirwrite.c`:
+  Dwight Kelly added get/put code for new tag ``XMLPACKET`` as
+  defined in Adobe XMP Technote. Added missing ``INKSET`` tag value from TIFF 6.0
+  spec ``INKSET_MULTIINK`` (=2). Added missing tags from Adobe TIFF technotes:
+  ``CLIPPATH``, ``XCLIPPATHUNITS``, ``YCLIPPATHUNITS``, ``OPIIMAGEID``, ``OPIPROXY`` and
+  ``INDEXED``. Added ``PHOTOMETRIC`` tag value from TIFF technote 4 ``ICCLAB`` (=9).
+
+* :file:`libtiff/tif_getimage.c`: Additional check for supported codecs added in
+  :c:func:`TIFFRGBAImageOK`, :c:func:`TIFFReadRGBAImage`, :c:func:`TIFFReadRGBAStrip` and
+  :c:func:`TIFFReadRGBATile` now use :c:func:`TIFFRGBAImageOK` before reading a per bug
+  :bugzilla-rs:`110`.
+
+* :file:`libtiff/tif_dir.c`, :file:`libtiff/tif_dir.h`, :file:`libtiff/tif_dirinfo.c`,
+  :file:`libtiff/tif_dirread.c`, :file:`libtiff/tif_dirwrite.c`:
+  Added routine :c:func:`TIFFDataWidth` for determining
+  :c:enum:`TIFFDataType` sizes instead of working with :c:var:`tiffDataWidth` array
+  directly as per bug :bugzilla-rs:`109`.
+
+* :file:`libtiff/tif_dirinfo.c`, :file:`libtiff/tif_dirwrite.c`: Added possibility to
+  read broken TIFFs with ``LONG`` type used for :c:macro:`TIFFTAG_COMPRESSION`,
+  :c:macro:`TIFFTAG_BITSPERSAMPLE`, :c:macro:`TIFFTAG_PHOTOMETRIC` as per bug
+  :bugzilla-rs:`99`.
+
+* :file:`libtiff/tiff.h`, :file:`libtiff/tif_fax3.c`: Add support for
+  :c:macro:``__arch64__`` as per bug :bugzilla-rs:`94`.
+
+* :file:`libtiff/tif_read.c`: Fixed :c:func:`TIFFReadEncodedStrip` to fail if the
+  decodestrip function returns anything not greater than zero as per bug
+  :bugzilla-rs:`97`.
+
+* :file:`libtiff/tif_jpeg.c`: fixed computation of :c:var:`segment_width` for
+  tiled files to avoid error about it not matching the
+  ``cinfo.d.image_width`` values ("JPEGPreDecode: Improper JPEG strip/tile
+  size.") for ITIFF files.  Apparently the problem was incorporated since
+  3.5.5, presumably during the OJPEG/JPEG work recently.
+
+* :file:`libtiff/tif_getimage.c`: If :c:macro:`DEFAULT_EXTRASAMPLE_AS_ALPHA` is 1
+  (defined in :file:`tiffconf.h` - 1 by default) then the RGBA interface
+  will assume that a fourth extra sample is ``ASSOCALPHA`` if the
+  ``EXTRASAMPLE`` value isn't set for it.  This changes the behaviour of
+  the library, but makes it work better with RGBA files produced by
+  lots of applications that don't mark the alpha values properly.
+  As per bugs :bugzilla-rs:`93` and :bugzilla-rs:`65`.
+
+* :file:`libtiff/tif_jpeg.c`: allow jpeg data stream sampling values to
+  override those from tiff directory.  This makes this work with
+  ImageGear generated files.
+
+
+Tools changes
+-------------
+  
+* :program:`tiff2ps`:
+
+  * Added page size setting when creating PS Level 2.
+
+  * Fixed PS comment emitted when FlateDecode is being used.
+
+* :program:`tiffsplit`: increased the maximum number of pages that can be split.
+
+* :program:`raw2tiff`:
+
+  * New utility for turning raw raster images into TIFF files
+    written by Andrey Kiselev.
+
+  * Added option "``-p``" to explicitly select color  space of input image data.
+
+* :program:`tiffmedian`: Support for large (> 2GB) images.
+
+* :program:`ppm2tiff`: Fixed possible endless loop.
+
+* :program:`tiff2rgba`: Switched to use :c:func:TIFFReadRGBAImageOriented
+  instead of :c:func:`TIFFReadRGBAImage`.
+
+* :program:`tiffcmp`: Fixed problem with unused data comparing (bug :bugzilla-rs:`349`).
+  "``-z``" option now can be used to set the number of reported different bytes.
+
+* :program:`tiffcp`:
+
+  * Added possibility to specify value -1 to "``-r``" option to get the entire image as one strip
+    (bug :bugzilla-rs:`343`).
+
+  * Set the correct ``RowsPerStrip`` and ``PageNumber`` values (bug :bugzilla-rs:`343`).
+  
+  * Fixed problem with colorspace conversion for JPEG encoded images (bugs :bugzilla-rs:`23`
+    and :bugzilla-rs:`275`)
+
+  * Added support for ``Orientation`` tag.
+
+* :program:`fax2tiff`:
+
+  * Page numbering fixed (bug :bugzilla-rs:`341`).
+
+  * Applied patch from Julien Gaulmin. More switches for :program:`fax2tiff` tool for better control
+    of input and output (bugs :bugzilla-rs:`272` and :bugzilla-rs:`293`).
+
+  * Updated to reflect latest changes in libtiff per bug :bugzilla-rs:`125`.
+
+* :program:`ppm2tiff`: PPM header parser improved: now able to skip comments.
+
+* :program:`tiff2ps`:
+
+  * Sebastian Eken provided patches (bug :bugzilla-rs:`200`) to add new these new switches:
+
+    "``-b #``":
+      for a bottom margin of # inches
+    "``-c``":
+      center image
+    "``-l #``":
+      for a left margin of # inches
+    "``-r``":
+      rotate the image by 180 degrees
+
+    Also, new features merged with code for shrinking/overlapping.
+
+  * Force deadzone printing when EPS output specified (bug :bugzilla-rs:`325`).
+
+  * Add ability to generate PS Level 3. It basically allows one to use the ``/flateDecode``
+    filter for ZIP compressed TIFF images. Patch supplied by Tom Kacvinsky
+    (bug :bugzilla-rs:`328`).
+  
+  * Don't emit ``BeginData``/``EndData`` DSC comments since we are unable to properly
+    include the amount to skip as per bug :bugzilla-rs:`80`.
+
+  * Added workaround for some software that may crash when last strip of image contains fewer
+    number of scanlines than specified by the ``/Height`` variable as per bug :bugzilla-rs:`164`.
+
+  * Patch from John Williams to add new functionality for splitting long images in several pages as
+    per bug :bugzilla-rs:`142`. New switches:
+
+    "``-H #``":
+      split image if height is more than # inches
+    "``-L #``":
+      overLap split images by # inches
+
+  * New commandline switches to override resolution units obtained from the input file per
+    bug :bugzilla-rs:`131`:
+
+    "``-x``":
+      override resolution units as centimeters
+    "``-y``":
+     override resolution units as inches
+
+  * tiff2ps: Division by zero fixed as per bug :bugzilla-rs:`88`.
+
+* :program:`tiffdump`: include :c:macro:`TIFFTAG_JPEGTABLES` in tag list.
+
+* :program:`tiffset`: fix bug in error reporting.
+
+
+Contributed software changes
+----------------------------
+
+* Fixed distribution to include :file:`contrib/addtiffo/tif_ovrcache.c`, :file:`contrib/addtiffo/tif_ovrcache.h`.
+
+* :file:`libtiff/contrib/win95`: renamed to :file:`contrib/win_dib`.  Added new
+  :file:`Tiffile.cpp` example of converting TIFF files into a DIB on Win32 as per
+  bug :bugzilla-rs:`143`.
+
+
+LZW compression kit changes
+---------------------------
+
+* LZW compression kit synchronized with actual libtiff version.

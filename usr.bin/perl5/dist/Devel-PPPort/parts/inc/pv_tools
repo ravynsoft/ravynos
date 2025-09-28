@@ -1,0 +1,284 @@
+################################################################################
+##
+##  Version 3.x, Copyright (C) 2004-2013, Marcus Holland-Moritz.
+##  Version 2.x, Copyright (C) 2001, Paul Marquess.
+##  Version 1.x, Copyright (C) 1999, Kenneth Albanowski.
+##
+##  This program is free software; you can redistribute it and/or
+##  modify it under the same terms as Perl itself.
+##
+################################################################################
+
+=provides
+
+__UNDEFINED__
+pv_escape
+pv_pretty
+pv_display
+
+=implementation
+
+__UNDEFINED__ PERL_PV_ESCAPE_QUOTE              0x0001
+__UNDEFINED__ PERL_PV_PRETTY_QUOTE              PERL_PV_ESCAPE_QUOTE
+__UNDEFINED__ PERL_PV_PRETTY_ELLIPSES           0x0002
+__UNDEFINED__ PERL_PV_PRETTY_LTGT               0x0004
+__UNDEFINED__ PERL_PV_ESCAPE_FIRSTCHAR          0x0008
+__UNDEFINED__ PERL_PV_ESCAPE_UNI                0x0100
+__UNDEFINED__ PERL_PV_ESCAPE_UNI_DETECT         0x0200
+__UNDEFINED__ PERL_PV_ESCAPE_ALL                0x1000
+__UNDEFINED__ PERL_PV_ESCAPE_NOBACKSLASH        0x2000
+__UNDEFINED__ PERL_PV_ESCAPE_NOCLEAR            0x4000
+__UNDEFINED__ PERL_PV_ESCAPE_RE                 0x8000
+__UNDEFINED__ PERL_PV_PRETTY_NOCLEAR            PERL_PV_ESCAPE_NOCLEAR
+
+__UNDEFINED__ PERL_PV_PRETTY_DUMP               PERL_PV_PRETTY_ELLIPSES|PERL_PV_PRETTY_QUOTE
+__UNDEFINED__ PERL_PV_PRETTY_REGPROP            PERL_PV_PRETTY_ELLIPSES|PERL_PV_PRETTY_LTGT|PERL_PV_ESCAPE_RE
+
+/* Hint: pv_escape
+ * Note that unicode functionality is only backported to
+ * those perl versions that support it. For older perl
+ * versions, the implementation will fall back to bytes.
+ */
+
+#ifndef pv_escape
+#if { NEED pv_escape }
+
+char *
+pv_escape(pTHX_ SV *dsv, char const * const str,
+  const STRLEN count, const STRLEN max,
+  STRLEN * const escaped, const U32 flags)
+{
+    const char esc = flags & PERL_PV_ESCAPE_RE ? '%' : '\\';
+    const char dq = flags & PERL_PV_ESCAPE_QUOTE ? '"' : esc;
+    char octbuf[32] = "%123456789ABCDF";
+    STRLEN wrote = 0;
+    STRLEN chsize = 0;
+    STRLEN readsize = 1;
+#if defined(is_utf8_string) && defined(utf8_to_uvchr_buf)
+    bool isuni = flags & PERL_PV_ESCAPE_UNI ? 1 : 0;
+#endif
+    const char *pv  = str;
+    const char * const end = pv + count;
+    octbuf[0] = esc;
+
+    if (!(flags & PERL_PV_ESCAPE_NOCLEAR))
+        sv_setpvs(dsv, "");
+
+#if defined(is_utf8_string) && defined(utf8_to_uvchr_buf)
+    if ((flags & PERL_PV_ESCAPE_UNI_DETECT) && is_utf8_string((U8*)pv, count))
+        isuni = 1;
+#endif
+
+    for (; pv < end && (!max || wrote < max) ; pv += readsize) {
+        const UV u =
+#if defined(is_utf8_string) && defined(utf8_to_uvchr_buf)
+                     isuni ? utf8_to_uvchr_buf((U8*)pv, end, &readsize) :
+#endif
+                             (U8)*pv;
+        const U8 c = (U8)u & 0xFF;
+
+        if (u > 255 || (flags & PERL_PV_ESCAPE_ALL)) {
+            if (flags & PERL_PV_ESCAPE_FIRSTCHAR)
+                chsize = my_snprintf(octbuf, sizeof octbuf,
+                                      "%" UVxf, u);
+            else
+                chsize = my_snprintf(octbuf, sizeof octbuf,
+                                      "%cx{%" UVxf "}", esc, u);
+        } else if (flags & PERL_PV_ESCAPE_NOBACKSLASH) {
+            chsize = 1;
+        } else {
+            if (c == dq || c == esc || !isPRINT(c)) {
+                chsize = 2;
+                switch (c) {
+                case '\\' : /* fallthrough */
+                case '%'  : if (c == esc)
+                                octbuf[1] = esc;
+                            else
+                                chsize = 1;
+                            break;
+                case '\v' : octbuf[1] = 'v'; break;
+                case '\t' : octbuf[1] = 't'; break;
+                case '\r' : octbuf[1] = 'r'; break;
+                case '\n' : octbuf[1] = 'n'; break;
+                case '\f' : octbuf[1] = 'f'; break;
+                case '"'  : if (dq == '"')
+                                octbuf[1] = '"';
+                            else
+                                chsize = 1;
+                            break;
+                default:    chsize = my_snprintf(octbuf, sizeof octbuf,
+                                pv < end && isDIGIT((U8)*(pv+readsize))
+                                ? "%c%03o" : "%c%o", esc, c);
+                }
+            } else {
+                chsize = 1;
+            }
+        }
+        if (max && wrote + chsize > max) {
+            break;
+        } else if (chsize > 1) {
+            sv_catpvn(dsv, octbuf, chsize);
+            wrote += chsize;
+        } else {
+            char tmp[2];
+            my_snprintf(tmp, sizeof tmp, "%c", c);
+            sv_catpvn(dsv, tmp, 1);
+            wrote++;
+        }
+        if (flags & PERL_PV_ESCAPE_FIRSTCHAR)
+            break;
+    }
+    if (escaped != NULL)
+        *escaped= pv - str;
+    return SvPVX(dsv);
+}
+
+#endif
+#endif
+
+#ifndef pv_pretty
+#if { NEED pv_pretty }
+
+char *
+pv_pretty(pTHX_ SV *dsv, char const * const str, const STRLEN count,
+  const STRLEN max, char const * const start_color, char const * const end_color,
+  const U32 flags)
+{
+    const U8 dq = (flags & PERL_PV_PRETTY_QUOTE) ? '"' : '%';
+    STRLEN escaped;
+
+    if (!(flags & PERL_PV_PRETTY_NOCLEAR))
+        sv_setpvs(dsv, "");
+
+    if (dq == '"')
+        sv_catpvs(dsv, "\"");
+    else if (flags & PERL_PV_PRETTY_LTGT)
+        sv_catpvs(dsv, "<");
+
+    if (start_color != NULL)
+        sv_catpv(dsv, D_PPP_CONSTPV_ARG(start_color));
+
+    pv_escape(dsv, str, count, max, &escaped, flags | PERL_PV_ESCAPE_NOCLEAR);
+
+    if (end_color != NULL)
+        sv_catpv(dsv, D_PPP_CONSTPV_ARG(end_color));
+
+    if (dq == '"')
+        sv_catpvs(dsv, "\"");
+    else if (flags & PERL_PV_PRETTY_LTGT)
+        sv_catpvs(dsv, ">");
+
+    if ((flags & PERL_PV_PRETTY_ELLIPSES) && escaped < count)
+        sv_catpvs(dsv, "...");
+
+    return SvPVX(dsv);
+}
+
+#endif
+#endif
+
+#ifndef pv_display
+#if { NEED pv_display }
+
+char *
+pv_display(pTHX_ SV *dsv, const char *pv, STRLEN cur, STRLEN len, STRLEN pvlim)
+{
+    pv_pretty(dsv, pv, cur, pvlim, NULL, NULL, PERL_PV_PRETTY_DUMP);
+    if (len > cur && pv[cur] == '\0')
+        sv_catpvs(dsv, "\\0");
+    return SvPVX(dsv);
+}
+
+#endif
+#endif
+
+=xsinit
+
+#define NEED_pv_escape
+#define NEED_pv_pretty
+#define NEED_pv_display
+
+=xsubs
+
+void
+pv_escape_can_unicode()
+        PPCODE:
+#if defined(is_utf8_string) && defined(utf8_to_uvchr_buf)
+                XSRETURN_YES;
+#else
+                XSRETURN_NO;
+#endif
+
+void
+pv_pretty()
+        PREINIT:
+                char *rv;
+        PPCODE:
+                EXTEND(SP, 8);
+                ST(0) = sv_newmortal();
+                rv = pv_pretty(ST(0), "foobarbaz",
+                                9, 40, NULL, NULL, 0);
+                ST(1) = sv_2mortal(newSVpv(rv, 0));
+                ST(2) = sv_newmortal();
+                rv = pv_pretty(ST(2), "pv_p\retty\n",
+                                10, 40, "left", "right", PERL_PV_PRETTY_LTGT);
+                ST(3) = sv_2mortal(newSVpv(rv, 0));
+                ST(4) = sv_newmortal();
+                rv = pv_pretty(ST(4), "N\303\275 Batter\303\255",
+                                12, 20, NULL, NULL, PERL_PV_ESCAPE_UNI_DETECT);
+                ST(5) = sv_2mortal(newSVpv(rv, 0));
+                ST(6) = sv_newmortal();
+                rv = pv_pretty(ST(6), "\303\201g\303\246tis Byrjun",
+                                15, 18, NULL, NULL, PERL_PV_ESCAPE_UNI_DETECT|PERL_PV_PRETTY_ELLIPSES);
+                ST(7) = sv_2mortal(newSVpv(rv, 0));
+                XSRETURN(8);
+
+void
+pv_display()
+        PREINIT:
+                char *rv;
+        PPCODE:
+                EXTEND(SP, 4);
+                ST(0) = sv_newmortal();
+                rv = pv_display(ST(0), "foob\0rbaz", 9, 10, 20);
+                ST(1) = sv_2mortal(newSVpv(rv, 0));
+                ST(2) = sv_newmortal();
+                rv = pv_display(ST(2), "pv_display", 10, 11, 5);
+                ST(3) = sv_2mortal(newSVpv(rv, 0));
+                XSRETURN(4);
+
+=tests plan => 13
+
+my $uni = &Devel::PPPort::pv_escape_can_unicode();
+
+# sanity check
+ok($uni ? ivers($]) >= ivers("5.006") : ivers($]) < ivers("5.008"));
+
+my @r;
+
+@r = &Devel::PPPort::pv_pretty();
+is($r[0], $r[1]);
+is($r[0], "foobarbaz");
+is($r[2], $r[3]);
+is($r[2], '<leftpv_p\retty\nright>');
+is($r[4], $r[5]);
+if(ord("A") == 65) {
+    is($r[4], $uni ? 'N\375 Batter\355' : 'N\303\275 Batter\303');
+}
+else {
+    skip("Skip for non-ASCII platform");
+}
+is($r[6], $r[7]);
+if(ord("A") == 65) {
+    is($r[6], $uni ? '\301g\346tis Byrju...' : '\303\201g\303\246t...');
+}
+else {
+    skip("Skip for non-ASCII platform");
+}
+
+@r = &Devel::PPPort::pv_display();
+is($r[0], $r[1]);
+is($r[0], '"foob\0rbaz"\0');
+is($r[2], $r[3]);
+ok($r[2] eq '"pv_di"...\0' ||
+   $r[2] eq '"pv_d"...\0');  # some perl implementations are broken... :(

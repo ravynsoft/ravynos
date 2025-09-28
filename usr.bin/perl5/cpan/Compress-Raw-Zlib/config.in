@@ -1,0 +1,27 @@
+# Filename:	config.in
+#
+# written by Paul Marquess <pmqs@cpan.org>
+# last modified 28th October 2003
+# version 2.000
+#
+#
+# This file is used to control which zlib library will be used by
+# Compress::Zlib
+#
+# See to the sections below in the README file for details of how to
+# use this file.
+#
+#    Controlling the version of zlib used by Compress::Zlib
+#
+#    Setting the Gzip OS Code
+#
+
+BUILD_ZLIB      = True
+INCLUDE         = ./zlib-src
+LIB             = ./zlib-src
+OLD_ZLIB        = False
+GZIP_OS_CODE    = AUTO_DETECT
+USE_ZLIB_NG     = False
+
+
+# end of file config.in

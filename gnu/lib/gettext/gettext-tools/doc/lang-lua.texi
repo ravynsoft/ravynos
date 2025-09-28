@@ -1,0 +1,74 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2020 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@node Lua
+@subsection Lua
+
+@table @asis
+@item RPMs
+lua
+
+@item Ubuntu packages
+lua, lua-gettext
+@*
+You need to install the @code{lua-gettext} package from
+@url{https://gitlab.com/sukhichev/lua-gettext/blob/master/README.us.md}.
+Debian and Ubuntu packages of it are available.  Download the
+appropriate one, and install it through
+@samp{sudo dpkg -i lua-gettext_0.0_amd64.deb}.
+
+@item File extension
+@code{lua}
+
+@item String syntax
+@itemize @bullet
+
+@item @code{"abc"}
+
+@item @code{'abc'}
+
+@item @code{[[abc]]}
+
+@item @code{[=[abc]=]}
+
+@item @code{[==[abc]==]}
+
+@item ...
+
+@end itemize
+
+@item gettext shorthand
+@code{_("abc")}
+
+@item gettext/ngettext functions
+@code{gettext.gettext}, @code{gettext.dgettext}, @code{gettext.dcgettext},
+@code{gettext.ngettext}, @code{gettext.dngettext}, @code{gettext.dcngettext}
+
+@item textdomain
+@code{textdomain} function
+
+@item bindtextdomain
+@code{bindtextdomain} function
+
+@item setlocale
+automatic
+
+@item Prerequisite
+@code{require 'gettext'} or running lua interpreter with @code{-l gettext} option
+
+@item Use or emulate GNU gettext
+use
+
+@item Extractor
+@code{xgettext}
+
+@item Formatting with positions
+---
+
+@item Portability
+On platforms without gettext, the functions are not available.
+
+@item po-mode marking
+---
+@end table

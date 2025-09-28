@@ -1,0 +1,118 @@
+#compdef cd chdir pushd
+
+# Handling of cd.
+#  - Normally just completes directories.  Uses cdpath if that's set
+#    and the string doesn't begin with ~, /, ./ or ../.
+#  - In the second argument to cd for the form `cd old new', completes
+#    possible `new' strings by examining `old' and $PWD.
+#  - After - or +, _directory_stack completes numbers, but the listing
+#    gives you the list of directories to complete.  This turns on
+#    menu-completion and lists the possibilities automatically, otherwise
+#    it's not a lot of use.  If you don't type the + or - it will
+#    complete directories as normal.
+
+_cd_options() {
+  _arguments -s \
+  '-q[quiet, no output or use of hooks]' \
+  '-s[refuse to use paths with symlinks]' \
+  '(-P)-L[retain symbolic links ignoring CHASE_LINKS]' \
+  '(-L)-P[resolve symbolic links as CHASE_LINKS]'
+}
+
+setopt localoptions nonomatch
+
+local expl ret=1 curarg
+integer argstart=2 noopts match mbegin mend
+
+if (( CURRENT > 1 )); then
+  # if not in command position, may have options.
+  # Careful: -<-> is not an option.
+  while [[ $words[$argstart] = -* && argstart -lt CURRENT ]]; do
+    curarg=$words[$argstart]
+    [[ $curarg = -<-> ]] && break
+    (( argstart++ ))
+    [[ $curarg = -- ]] && noopts=1 && break
+  done
+fi
+
+if [[ CURRENT -eq $((argstart+1)) ]]; then
+  # cd old new: look for old in $PWD and see what can replace it
+  local rep
+  # Get possible completions using word in position 2
+  rep=(${~PWD/$words[$argstart]/*}~$PWD(-/))
+  # Now remove all the common parts of $PWD and the completions from this
+  rep=(${${rep#${PWD%%$words[$argstart]*}}%${PWD#*$words[$argstart]}})
+  (( $#rep )) && _wanted -C replacement strings expl replacement compadd -a rep
+else
+  # Complete directory stack entries with ~ or when not in command position
+  # (the rest of this test is optimization for the _tilde call below)
+  if [[ "$PREFIX" == (#b)(\~|)[^/]# &&
+      ( -n "$match[1]" || ( CURRENT -gt 1 && ! -o cdablevars ) ) ]]; then
+    _directory_stack && ret=0
+  fi
+
+  local -a tmpWpath
+  if [[ $PREFIX = (|*/)../* ]]; then
+    local tmpprefix
+    # Use cd in a subshell to properly [not] resolve symlinks
+    tmpprefix=$(cd ${PREFIX%/*} >&/dev/null && print $PWD)
+    if [[ -n $tmpprefix ]]; then
+      tmpWpath=(-W $tmpprefix)
+      IPREFIX=${IPREFIX}${PREFIX%/*}/
+      PREFIX=${PREFIX##*/}
+    fi
+  fi
+
+  if [[ $PREFIX != (\~|/|./|../)* && $IPREFIX != ../* ]]; then
+    local tmpcdpath alt
+
+    alt=()
+
+    tmpcdpath=(${${(@)cdpath:#.}:#$PWD})
+
+    (( $#tmpcdpath )) &&
+      alt=( 'path-directories:directory in cdpath:_path_files -W tmpcdpath -/' )
+
+    # With cdablevars, we can complete foo as if ~foo/
+    if [[ -o cdablevars && -n "$PREFIX" && "$PREFIX" != <-> ]]; then
+      if [[ "$PREFIX" != */* ]]; then
+        alt=( "$alt[@]" 'named-directories: : _tilde' )
+      else
+        local oipre="$IPREFIX" opre="$PREFIX" dirpre dir
+
+	# Note we need a tilde because cdablevars also allows user home
+	# directories, hence nonomatch (above) to suppress error messages.
+
+        dirpre="${PREFIX%%/*}/"
+        IPREFIX="$IPREFIX$dirpre"
+        eval "dir=( ~$dirpre )"
+        PREFIX="${PREFIX#*/}"
+
+        [[ $#dir -eq 1 && "$dir[1]" != "~$dirpre" ]] &&
+          _wanted named-directories expl 'directory after cdablevar' \
+	      _path_files -W dir -/ && ret=0
+
+        PREFIX="$opre"
+        IPREFIX="$oipre"
+      fi
+    fi
+    # Don't complete local directories in command position, that's
+    # already handled by _command_names (see _autocd)
+
+    [[ CURRENT -ne 1 || ( -z "$path[(r).]" && $PREFIX != */* ) ]] &&
+        alt=( "${cdpath+local-}directories:${cdpath+local }directory:_path_files ${(j: :)${(@q)tmpWpath}} -/" "$alt[@]" )
+
+    if [[ CURRENT -eq argstart && noopts -eq 0 && $PREFIX = -* ]] &&
+      zstyle -t ":completion:${curcontext}:options" complete-options; then
+      alt=("$service-options:$service option:_cd_options" "$alt[@]")
+    fi
+
+    _alternative "$alt[@]" && ret=0
+
+    return ret
+  fi
+  [[ CURRENT -ne 1 ]] && _wanted directories expl directory \
+      _path_files $tmpWpath -/ && ret=0
+
+  return ret
+fi

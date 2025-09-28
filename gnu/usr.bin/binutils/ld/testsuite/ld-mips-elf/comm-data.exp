@@ -1,0 +1,174 @@
+# Expect script for common symbol override, MIPS variation.
+#
+#   Copyright (C) 2011-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+#
+# Written by Maciej W. Rozycki <macro@codesourcery.com>
+#
+
+# This test is for MIPS shared-library targets.
+if { ![istarget mips*-*-*]
+     || ![is_elf_format]
+     || ![check_shared_lib_support] } {
+    return
+}
+
+set has_o32abi [expr ![istarget *-*-openbsd*] \
+		     && ![istarget mips64*-ps2-elf*]]
+set has_n32abi [expr [istarget *-img-elf*] \
+		     || [istarget *-mti-elf*] \
+		     || [istarget *-ps2-elf*] \
+		     || [istarget *-sde-elf*] \
+		     || [istarget *-*-freebsd*] \
+		     || [istarget *-*-irix6*] \
+		     || [istarget *-*-kfreebsd*-gnu] \
+		     || [istarget *-*-linux*]]
+set has_n64abi [expr [istarget *-*-freebsd*] \
+		     || [istarget *-*-irix6*] \
+		     || [istarget *-*-kfreebsd*-gnu] \
+		     || [istarget *-*-linux*] \
+		     || [istarget *-*-netbsd*] \
+		     || [istarget *-*-openbsd*]]
+
+if {[istarget *-img-elf*] \
+     || [istarget *-mti-elf*] \
+     || [istarget *-sde-elf*] \
+     || [istarget *-*-netbsd*] \
+     || [istarget *-*-linux*] \
+     || [istarget *-*-openbsd*] \
+     || [istarget *-*-sysv4*] } {
+    if [istarget *el-*-*] {
+	set abi_ldemul(o32) elf32ltsmip
+	set abi_ldemul(n32) elf32ltsmipn32
+	set abi_ldemul(n64) elf64ltsmip
+    } else {
+	set abi_ldemul(o32) elf32btsmip
+	set abi_ldemul(n32) elf32btsmipn32
+	set abi_ldemul(n64) elf64btsmip
+    }
+} elseif { [istarget *-*-freebsd*] \
+	   || [istarget *-*-kfreebsd*-gnu] } {
+    if [istarget *el-*-*] {
+	set abi_ldemul(o32) elf32ltsmip_fbsd
+	set abi_ldemul(n32) elf32ltsmipn32_fbsd
+	set abi_ldemul(n64) elf64ltsmip_fbsd
+    } else {
+	set abi_ldemul(o32) elf32btsmip_fbsd
+	set abi_ldemul(n32) elf32btsmipn32_fbsd
+	set abi_ldemul(n64) elf64btsmip_fbsd
+    }
+} elseif { [istarget *vr4100*-*-elf*] \
+	   || [istarget *vr4300*-*-elf*] \
+	   || [istarget *vr5000*-*-elf*] } {
+    if [istarget *el-*-*] {
+	set abi_ldemul(o32) elf32l4300
+    } else {
+	set abi_ldemul(o32) elf32b4300
+    }
+} elseif { [istarget *-ps2-elf*] } {
+    set abi_ldemul(o32) elf32lr5900
+    set abi_ldemul(n32) elf32lr5900n32
+} elseif { [istarget *-*-elf*] \
+	   || [istarget *-*-rtems*] } {
+    if [istarget *el-*-*] {
+	set abi_ldemul(o32) elf32elmip
+    } else {
+	set abi_ldemul(o32) elf32ebmip
+    }
+} else {
+    if [istarget *el-*-*] {
+	set abi_ldemul(o32) elf32lsmip
+	set abi_ldemul(n32) elf32lmipn32
+	set abi_ldemul(n64) elf64lmip
+    } else {
+	set abi_ldemul(o32) elf32bsmip
+	set abi_ldemul(n32) elf32bmipn32
+	set abi_ldemul(n64) elf64bmip
+    }
+}
+
+proc mips_comm_data_test { abi flag emul reloc } {
+
+    set testname "MIPS $abi/$reloc common symbol override test"
+
+    # There's no "-z copyreloc" option, deal with it.
+    set ZFLAG [string map [list copyreloc "" nocopyreloc "-z $reloc"] $reloc]
+    set AFLAGS "$flag"
+    set LDFLAGS "-m$emul"
+
+    # Define a global symbol.
+    run_ld_link_tests [list \
+	[list \
+	    "$testname (auxiliary shared object build)" \
+	    "$LDFLAGS -shared" "" \
+	    "$AFLAGS -call_shared" \
+	    { ../ld-elf/comm-data1.s } \
+	    { \
+		{ readelf -s ../ld-elf/comm-data1.sd } \
+	    } \
+	  "libmips-$abi-$reloc-comm-data.so" \
+	] \
+    ]
+
+    # Set the pointer size according to the ABI.
+    if { $abi == "n64" } {
+	append AFLAGS " --defsym ELF64=1"
+    }
+
+    # Verify that a common symbol has been converted to an undefined
+    # reference to the global symbol of the same name defined above
+    # and that the debug reference has been dropped.
+    run_ld_link_tests [list \
+	[list \
+	    "$testname" \
+	    "$LDFLAGS -call_shared $ZFLAG -T ../ld-elf/comm-data2.ld -Ltmpdir\
+	     -lmips-$abi-$reloc-comm-data" "" \
+	    "$AFLAGS -call_nonpic" \
+	    { ../ld-elf/comm-data2.s } \
+	    { \
+		{ readelf -s ../ld-elf/comm-data2.sd } \
+		{ readelf -r ../ld-elf/comm-data2.rd } \
+		{ readelf "-x .debug_foo" ../ld-elf/comm-data2.xd } \
+	    } \
+	    "mips-$abi-$reloc-comm-data" \
+	] \
+    ]
+}
+
+# For targets that default to a specific ISA (instead of "from-abi"),
+# the 64-bit -march option is required to override it, like for
+# "mipsisa32r2el-*-*".
+set abis ""
+if $has_o32abi {
+    lappend abis o32 -32 $abi_ldemul(o32)
+}
+if $has_n32abi {
+    lappend abis n32 "-n32 -march=mips3" $abi_ldemul(n32)
+}
+if $has_n64abi {
+    lappend abis n64 "-64 -march=mips3" $abi_ldemul(n64)
+}
+set relocs { copyreloc nocopyreloc }
+foreach { abi flag emul } $abis {
+    foreach reloc $relocs {
+	mips_comm_data_test $abi $flag $emul $reloc
+    }
+}

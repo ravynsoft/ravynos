@@ -1,0 +1,19 @@
+#compdef paste gpaste
+
+local -a args
+local dopt='[specify delimiter list]:delimiter list [tab]'
+local sopt='[paste one file at a time instead of in parallel]'
+
+if _pick_variant gnu=GNU unix --version; then
+  args=(
+    '(-z --zero-terminated)'{-z,--zero-terminated}'[use NUL as line delimiter instead of newline]'
+    "(-d)--delimiters=$dopt"
+    "(-s)--serial$sopt"
+    '(- *)--help[display help information]'
+    '(- *)--version[display version information]'
+  )
+else
+  args=( -A "-?*" )
+fi
+
+_arguments -s $args "(--delimiters)-d+$dopt" "(--serial)-s$sopt" '*:file:_files'

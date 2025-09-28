@@ -1,0 +1,126 @@
+default partial xkb_types "default" {
+
+    // Some types that are necessary
+    // for a full implementation of
+    // a PC-compatible keyboard.
+
+    virtual_modifiers Alt;
+    virtual_modifiers LevelThree;
+    virtual_modifiers LAlt;
+    virtual_modifiers RAlt;
+    virtual_modifiers RControl;
+    virtual_modifiers LControl;
+
+    type "PC_SUPER_LEVEL2" {
+       modifiers = Mod4;
+       map[None] = Level1;
+       map[Mod4] = Level2;
+       level_name[Level1] = "Base";
+       level_name[Level2] = "Super";
+    };
+
+    type "PC_CONTROL_LEVEL2" {
+	modifiers = Control;
+	map[None] = Level1;
+	map[Control] = Level2;
+	level_name[Level1] = "Base";
+	level_name[Level2] = "Control";
+    };
+
+    type "PC_LCONTROL_LEVEL2" {
+	modifiers = LControl;
+	map[None] = Level1;
+	map[LControl] = Level2;
+	level_name[Level1] = "Base";
+	level_name[Level2] = "LControl";
+    };
+
+    type "PC_RCONTROL_LEVEL2" {
+	modifiers = RControl;
+	map[None] = Level1;
+	map[RControl] = Level2;
+	level_name[Level1] = "Base";
+	level_name[Level2] = "RControl";
+    };
+
+    type "PC_ALT_LEVEL2" {
+	modifiers = Alt;
+	map[None] = Level1;
+	map[Alt] = Level2;
+	level_name[Level1] = "Base";
+	level_name[Level2] = "Alt";
+    };
+
+    type "PC_LALT_LEVEL2" {
+	modifiers = LAlt;
+	map[None] = Level1;
+	map[LAlt] = Level2;
+	level_name[Level1] = "Base";
+	level_name[Level2] = "LAlt";
+    };
+
+    type "PC_RALT_LEVEL2" {
+	modifiers = RAlt;
+	map[None] = Level1;
+	map[RAlt] = Level2;
+	level_name[Level1] = "Base";
+	level_name[Level2] = "RAlt";
+    };
+
+    type "CTRL+ALT" {
+        modifiers = Control+Alt+Shift+LevelThree;
+        map[None] = Level1;
+        map[Shift] = Level2;
+        map[LevelThree] = Level3;
+        map[Shift+LevelThree] = Level4;
+        map[Control+Alt] = Level5;
+        preserve[Shift] = Shift;
+        preserve[Shift+LevelThree] = Shift;
+        level_name[Level1] = "Base";
+        level_name[Level2] = "Shift";
+        level_name[Level3] = "Alt Base";
+        level_name[Level4] = "Shift Alt";
+        level_name[Level5] = "Ctrl+Alt";
+    };
+
+   // Local eight level.
+   // Needed when you want part of your layout eight-level but cannot use
+   // LevelFive as modifier, as this will take over the right Ctrl by default
+   // for the whole layout and is too invasive for the average four-level user.
+   // Needed to fix bug #9529.
+   // FIXME: Should really use RControl but it seems not to be enabled by
+   // default and touching this requires a lot of testing.
+   type "LOCAL_EIGHT_LEVEL" {
+	modifiers = Shift+Lock+LevelThree+Control;
+
+	map[None]       = Level1;
+	map[Lock+Shift] = Level1;
+	map[Shift] = Level2;
+	map[Lock]  = Level2;
+
+	map[LevelThree]            = Level3;
+	map[Lock+Shift+LevelThree] = Level3;
+	map[Shift+LevelThree] = Level4;
+	map[Lock+LevelThree]  = Level4;
+
+	map[Control]            = Level5;
+	map[Lock+Shift+Control] = Level5;
+	map[Shift+Control] = Level6;
+	map[Lock+Control]  = Level6;
+
+	map[LevelThree+Control]            = Level7;
+	map[Lock+Shift+LevelThree+Control] = Level7;
+	map[Shift+LevelThree+Control] = Level8;
+	map[Lock+LevelThree+Control]  = Level8;
+
+	level_name[Level1] = "Base";
+	level_name[Level2] = "Shift";
+	level_name[Level3] = "Level3";
+	level_name[Level4] = "Shift Level3";
+	level_name[Level5] = "Ctrl";
+	level_name[Level6] = "Shift Ctrl";
+	level_name[Level7] = "Level3 Ctrl";
+	level_name[Level8] = "Shift Level3 Ctrl";
+    };
+
+};

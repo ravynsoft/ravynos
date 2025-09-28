@@ -1,0 +1,41 @@
+.TH OWNERSHIP 8 "February 2005" "dmidecode"
+.\"
+.SH NAME
+ownership \- Compaq ownership tag retriever
+.\"
+.SH SYNOPSIS
+.B ownership
+.RI [ OPTIONS ]
+.\"
+.SH DESCRIPTION
+.B ownership
+retrieves and prints the "ownership tag" that can be set on Compaq
+computers. Contrary to all other programs of the
+.B dmidecode
+package,
+.B ownership
+doesn't print any version information, nor labels, but only the raw
+ownership tag. This should help its integration in scripts.
+.\"
+.SH OPTIONS
+.TP
+.BR "-d" ", " "--dev-mem \fIFILE\fP"
+Read memory from device \fIFILE\fP (default: \fI/dev/mem\fP)
+.TP
+.BR "-h" ", " "--help"
+Display usage information and exit
+.TP
+.BR "-V" ", " "--version"
+Display the version and exit
+.\"
+.SH FILES
+.I /dev/mem
+.\"
+.SH AUTHOR
+Jean Delvare
+.\"
+.SH "SEE ALSO"
+.BR biosdecode (8),
+.BR dmidecode (8),
+.BR mem (4),
+.BR vpddecode (8)

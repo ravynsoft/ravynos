@@ -1,0 +1,29 @@
+.*: +file format .*mips.*
+
+Disassembly of section \.text:
+
+[0-9a-f]+ <foo>:
+ *[0-9a-f]+:	0c04      	move	zero,a0
+ *[0-9a-f]+:	41a4 0001 	lui	a0,0x1
+ *[0-9a-f]+:	3084 806f 	addiu	a0,a0,-32657
+ *[0-9a-f]+:	0324 2150 	addu	a0,a0,t9
+ *[0-9a-f]+:	3040 0000 	li	v0,0
+ *[0-9a-f]+:	3060 0000 	li	v1,0
+ *[0-9a-f]+:	3042 0004 	addiu	v0,v0,4
+ *[0-9a-f]+:	459f      	jr	ra
+ *[0-9a-f]+:	6db2      	addiu	v1,v1,4
+	\.\.\.
+
+[0-9a-f]+ <bar>:
+ *[0-9a-f]+:	0c04      	move	zero,a0
+ *[0-9a-f]+:	41a4 0001 	lui	a0,0x1
+ *[0-9a-f]+:	3084 802f 	addiu	a0,a0,-32721
+ *[0-9a-f]+:	0324 2150 	addu	a0,a0,t9
+ *[0-9a-f]+:	3024 801c 	addiu	at,a0,-32740
+ *[0-9a-f]+:	6041 0000 	lwl	v0,0\(at\)
+ *[0-9a-f]+:	3024 801c 	addiu	at,a0,-32740
+ *[0-9a-f]+:	6061 1000 	lwr	v1,0\(at\)
+ *[0-9a-f]+:	3042 0004 	addiu	v0,v0,4
+ *[0-9a-f]+:	459f      	jr	ra
+ *[0-9a-f]+:	6db2      	addiu	v1,v1,4
+	\.\.\.

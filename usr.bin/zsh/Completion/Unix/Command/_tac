@@ -1,0 +1,15 @@
+#compdef tac gtac
+
+# NetBSD (at least) has its own bare-bones version of this tool
+_pick_variant gnu='Free Soft' unix --version || {
+  _default
+  return
+}
+
+_arguments -s -S : \
+  '(: -)--help[display help information]' \
+  '(: -)--version[display version information]' \
+  '(-b --before)'{-b,--before}'[attach separator before instead of after]' \
+  '(-r --regex)'{-r,--regex}'[treat separator as regular expression (with -s)]' \
+  '(-s --separator)'{-s+,--separator=}'[use specified separator instead of newline]:separator' \
+  '*: :_files'

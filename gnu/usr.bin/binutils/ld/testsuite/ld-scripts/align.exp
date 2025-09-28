@@ -1,0 +1,55 @@
+# Test ALIGN in a linker script.
+# By Nathan Sidwell, CodeSourcery LLC
+#   Copyright (C) 2004-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+set testname "align1"
+
+if ![ld_assemble $as $srcdir/$subdir/align.s tmpdir/align.o] {
+    unsupported $testname
+    return
+}
+
+# Avoid auto image-basing.
+set saved_LDFLAGS "$LDFLAGS"
+if { [is_pecoff_format] } then {
+    set LDFLAGS "$LDFLAGS --image-base 0"
+} elseif { [is_xcoff_format] } then {
+    set LDFLAGS "$LDFLAGS -bnogc"
+}
+
+if ![ld_link $ld tmpdir/align "$LDFLAGS -T $srcdir/$subdir/align.t tmpdir/align.o"] {
+    fail $testname
+} else {
+    pass $testname
+}
+
+if ![is_aout_format] {
+    run_dump_test align2a
+    run_dump_test align2b
+    run_dump_test align3
+    run_dump_test align4
+    run_dump_test align5
+}
+run_dump_test align2c
+set LDFLAGS "$saved_LDFLAGS"
+
+if { [is_elf_format] && ![uses_genelf] } {
+    run_dump_test pr23571
+}

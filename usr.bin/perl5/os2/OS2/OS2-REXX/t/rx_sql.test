@@ -1,0 +1,97 @@
+BEGIN {
+    chdir 't' if -d 't/lib';
+    @INC = '../lib';
+    require Config; import Config;
+    if ($Config{'extensions'} !~ /\bOS2(::|\/)REXX\b/) {
+	print "1..0\n";
+	exit 0;
+    }
+}
+
+use OS2::REXX;
+
+sub stmt
+{
+	my ($s) = @_;
+	$s =~ s/\s*\n\s*/ /g;
+	$s =~ s/^\s+//;
+	$s =~ s/\s+$//;
+	return $s;
+}
+
+sub sqlcode
+{
+	OS2::REXX::_fetch("SQLCA.SQLCODE");
+}
+
+sub sqlstate
+{
+	OS2::REXX::_fetch("SQLCA.SQLSTATE");
+}
+
+sub sql
+{
+	my ($stmt) = stmt(@_);
+	return 0 if OS2::REXX::_call("sqlexec", $sqlexec, "", $stmt);
+	return sqlcode() >= 0;
+}
+
+sub dbs
+{
+	my ($stmt) = stmt(@_);
+	return 0 if OS2::REXX::_call("sqldbs", $sqldbs, "", $stmt);
+	return sqlcode() >= 0;
+}
+
+sub error
+{
+	my ($where) = @_;
+	print "ERROR in $where: sqlcode=", sqlcode(), " sqlstate=", sqlstate(), "\n";
+	dbs("GET MESSAGE INTO :MSG LINEWIDTH 75");
+	my $msg = OS2::REXX::_fetch("MSG");
+	print "\n", $msg;
+	exit 1;
+}
+
+REXX_call {
+
+  $sqlar   = DynaLoader::dl_load_file("h:/sqllib/dll/sqlar.dll") or die "load";
+  $sqldbs  = DynaLoader::dl_find_symbol($sqlar, "SQLDBS")  or die "find sqldbs"; 
+  $sqlexec = DynaLoader::dl_find_symbol($sqlar, "SQLEXEC") or die "find sqlexec";
+
+  sql(<<) or error("connect");
+     CONNECT TO sample IN SHARE MODE
+
+  OS2::REXX::_set("STMT" => stmt(<<));
+     SELECT name FROM sysibm.systables
+
+  sql(<<) or error("prepare");
+     PREPARE s1 FROM :stmt
+
+  sql(<<) or error("declare");
+     DECLARE c1 CURSOR FOR s1
+
+  sql(<<) or error("open");
+     OPEN c1
+
+  while (1) {
+     sql(<<) or error("fetch");
+          FETCH c1 INTO :name
+
+     last if sqlcode() == 100;
+
+     print "Table name is ", OS2::REXX::_fetch("NAME"), "\n";
+  }
+	
+  sql(<<) or error("close");
+     CLOSE c1
+
+  sql(<<) or error("rollback");
+     ROLLBACK
+
+  sql(<<) or error("disconnect");
+     CONNECT RESET
+
+};
+
+exit 0;

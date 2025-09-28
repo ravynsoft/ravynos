@@ -1,0 +1,192 @@
+#compdef tar gtar star bsdtar
+
+# Tar completion.  Features:
+#  - Tries to collect tar commands from second position, single letter
+#    option, and long options.
+#  - `tar' can be called anything, will use the correct name
+#  - Uses the function `_tar_archive' to complete archive files.
+#  - Tries to find out if compressed archives should be used.
+#  - Completes files inside archive.  This is supposed to look pretty
+#    much as if the files are in an ordinary directory hierarchy.
+#    Handles extraction from compressed archives (GNU tar).
+#  - Anywhere -- appears, gets a list of long options to complete from
+#    tar itself (GNU tar)
+#  - Things like --directory=... are also completed correctly.
+
+local _tar_cmd tf tmp tmpb del index
+
+# First we collect in `_tar_cmd' single letter options describing what
+# should be done with the archive and if it is compressed. This
+# collected from options arguments that start with only one hyphen,
+# from some of the possible long options, and from the second word if
+# that does not start with a hyphen.
+
+if _pick_variant gnu=GNU libarchive=libarchive unix --version; then
+  case "$($service --version)" in
+    ("tar (GNU tar) "(#b)([0-9.-]##)*)
+    autoload -z is-at-least
+    is-at-least 1.14.91 "$match[1]" || _cmd_variant[$service]="gnu-old"
+    ;;
+  esac
+fi
+
+tmp=("${(@M)words:#-[^-]*}")
+_tar_cmd="${(j::)tmp#-}"
+
+(( $words[(I)--(un|)gzip] ))     && _tar_cmd="z$_tar_cmd"
+(( $words[(I)--(un|)compress] )) && _tar_cmd="Z$_tar_cmd"
+(( $words[(I)--bzip2] ))         && _tar_cmd="j$_tar_cmd"
+(( $words[(I)--xz] ))            && _tar_cmd="J$_tar_cmd"
+(( $words[(I)--list] ))          && _tar_cmd="t$_tar_cmd"
+(( $words[(I)--(extract|get)] )) && _tar_cmd="x$_tar_cmd"
+(( $words[(I)--create] ))        && _tar_cmd="c$_tar_cmd"
+
+# Other ways of finding out what we're doing:  first
+# look in the first argument if it's not an option
+if [[ "$words[2]" = *[txcdruA]*~-* ]]; then
+  _tar_cmd="$words[2]$_tar_cmd"
+elif [[ $_tar_cmd != *[txcdruA]* && CURRENT -gt 2 ]]; then
+  # look for more obscure long options: these aren't all handled.
+  (( $words[(I)--(diff|compare)] )) && _tar_cmd="d$_tar_cmd"
+  (( $words[(I)--append] ))         && _tar_cmd="r$_tar_cmd"
+  (( $words[(I)--update] ))         && _tar_cmd="u$_tar_cmd"
+  (( $words[(I)--(con|)catenate] )) && _tar_cmd="A$_tar_cmd"
+  (( $words[(I)--delete] ))         && del=1
+fi
+
+# Next, we try to find the archive name and store it in `tf'. The name 
+# is searched after a `--file=' long option, in the third word if the
+# second one didn't start with a hyphen but contained a `f', and after 
+# an option argument starting with only one hyphen and containing a `f'.
+# unless that option argument also contains a `C'.
+
+tmp="$words[(I)--file=*]"
+tmpb="$words[(I)-*Cf*~--*]"
+
+if (( tmp )); then
+  tf=${~words[tmp][8,-1]}
+  _tar_cmd="f$_tar_cmd"
+elif [[ "$words[2]" != -* && "$words[2]" = *f* ]]; then
+  tf=${~words[3]}
+  _tar_cmd="f$_tar_cmd"
+elif (( tmpb )); then
+  tf=${~words[tmpb+2]}
+  wdir=${~words[tmpb+1]}
+  _tar_cmd="Cf$_tar_cmd"
+else
+  tmp="${words[(I)-*f*~--*]}"
+  if (( tmp )); then
+    tf=${~words[tmp+1]}
+    _tar_cmd="f$_tar_cmd"
+  fi
+fi 2>/dev/null
+
+# See if we should use a path prefix.  We have to use eval as the dir can
+# be any unevaluated thing which appears on the command line, including a
+# parameter.
+
+# This isn't used right now.
+
+tmp=${words[(r)--dir[a-z]#=*]}
+
+if [[ -n $tmp ]]; then
+  eval "wdir=(${tmp#*=})"
+fi
+
+# Now we complete...
+
+if [[ "$PREFIX" = --* ]]; then
+
+  # ...long options after `--'.
+
+  _arguments '-f+:' '-C+:' '*: : true' -- -l '--owner=*:user:_users' \
+		 '--group=*:group:_groups' \
+		 '--atime-preserve*::method:(replace system)' \
+		 '--*-script=NAME:script file:_files' \
+		 '--format=*:format:(gnu oldgnu pax posix ustar v7)' \
+		 '--quoting-style=*:quoting style:(literal shell shell-always c c-maybe escape locale clocale)' \
+		 '--totals*=SIGNAL*::signal:(HUP QUIT INT USR1 USR2)' \
+                 '*=(PROG|COMMAND)*:program:_command_names -e' \
+		 '*=ARCHIVE*:archive: _tar_archive' \
+		 '*=FILE*:file:_files' \
+		 '*=DIR*:directory:_files -/' \
+		 '*=CONTROL*::version control:(t numbered nil existing never simple)'
+
+elif [[ ( CURRENT -gt 2 && "$words[CURRENT-1]" = -[^C]#f* &&
+          "$words[CURRENT-1]" != --* ) ||
+        ( CURRENT -eq 3 && "$words[2]" = [^C]#f* && "$words[2]" != -* ) ||
+        ( CURRENT -gt 2 && "$words[CURRENT-2]" = -*C*f* &&
+          "$words[CURRENT-2]" != --* && "$words[CURRENT-1]" != --* ) ||
+        ( CURRENT -eq 4 && "$words[2]" = *C*f* && "$words[2]" != -* ) ]]; then
+
+  # ...archive files if we think they are wanted here.
+
+  _tar_archive
+
+elif [[ ( CURRENT -gt 2 && "$words[CURRENT-1]" = -[^f]#C*) ||
+        ( CURRENT -eq 3 && "$words[2]" = [^f]#C* ) ]]; then
+
+  # a directory for -C
+
+  _directories
+
+elif [[ ( "$_tar_cmd" = *[xt]* || -n $del ) && -n "$tf" ]]; then
+
+  # ...and files from the archive if we found an archive name and tar
+  # commands. We run `tar t...' on the file, keeping the list of
+  # filenames cached, plus the name of the tarfile so we know if it
+  # changes.  We skip this test if the alleged archive is not a file.
+
+  local largs=-tf expl
+
+  if [[ $_tar_cmd = *z* ]]; then
+    largs=-tzf
+  elif [[ $_tar_cmd = *j* ]]; then
+    largs=-tjf
+  elif [[ $_tar_cmd = *y* ]]; then
+    largs=-tyf
+  elif [[ $_tar_cmd = *Z* ]]; then
+    largs=-tZf
+  elif [[ $_tar_cmd = *I* ]]; then
+    largs=-tIf
+  elif [[ $_tar_cmd = *J* ]]; then
+    largs=-tJf
+  else
+    # Some random compression program
+    tmp="${words[(r)--use-comp*]}"
+    [[ -n $tmp ]] && largs=($tmp -tf)
+  fi
+
+  if [[ $tf != $_tar_cache_name && -f $tf ]]; then
+    _tar_cache_list=("${(@f)$($words[1] $largs $tf)}")
+    _tar_cache_name=$tf
+  fi
+
+  _wanted files expl 'file from archive' _multi_parts / _tar_cache_list
+elif (( CURRENT == 2 )); then
+  # ignore leading - since we complete option letters anyway
+  compset -P -
+  _values -s '' 'tar function' \
+    '(c t u x)A[append to an archive]' \
+    '(A t u x)c[create a new archive]' \
+    '(A c u x)t[list archive contents]' \
+    '(A c t x)u[update archive]' \
+    '(A c t u)x[extract files from an archive]' \
+    'v[verbose output]' \
+    'f[specify archive file or device]'
+else
+  if ! (( index=$words[(I)-*C*] )); then
+    if [[ $words[2] = [^f]#C* ]]; then
+      index=1
+    elif [[ $words[2] = *f*C* ]]; then
+      index=2
+    fi
+  fi
+  if (( index )); then
+    index=${~${(Q)words[index+1]}}
+    [[ $index = (.|..|)/* ]] || index=~+/$index
+    _files -W $index
+  else
+    _files
+  fi
+fi

@@ -1,0 +1,58 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test ObjectiveC extractor.
+
+cat <<\EOF > xg-ob-1.m
+id str = _(@
+"conca" /* comment */
+@
+// another comment
+ "tenated");
+
+_(@"foo") _ ( @"foo2" /* test */ )
+
+"_()"
+
+"  \" _(foo) \" /* comment "
+
+_ // test
+(@ /* comment " */ "test"
+@
+" test2"
+)
+
+NSLocalizedString(@"Information", @"")
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header -k_ -kNSLocalizedString -d xg-ob-1.tmp xg-ob-1.m || Exit 1
+LC_ALL=C tr -d '\r' < xg-ob-1.tmp.po > xg-ob-1.po || Exit 1
+
+cat <<\EOF > xg-ob-1.ok
+#: xg-ob-1.m:2
+msgid "concatenated"
+msgstr ""
+
+#: xg-ob-1.m:7
+msgid "foo"
+msgstr ""
+
+#: xg-ob-1.m:7
+msgid "foo2"
+msgstr ""
+
+#: xg-ob-1.m:14
+msgid "test test2"
+msgstr ""
+
+#: xg-ob-1.m:19
+msgid "Information"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-ob-1.ok xg-ob-1.po
+result=$?
+
+exit $result

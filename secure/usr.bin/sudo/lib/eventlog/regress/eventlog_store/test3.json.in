@@ -1,0 +1,49 @@
+{
+    "uuid": "54e6806305-0f50-44bf-fe6a-c8fa7a65ac",
+    "server_time": {
+	"seconds": 1678475729,
+	"nanoseconds": 286796437,
+	"iso8601": "20230310191529Z",
+	"localtime": "Fri Mar 10 12:15:29 MST 2023"
+    },
+    "submit_time": {
+	"seconds": 1633116433,
+	"nanoseconds": 682537651,
+	"iso8601": "20211001192713Z",
+	"localtime": "Fri Oct  1 13:27:13 MDT 2021"
+    },
+    "peeraddr": "172.30.200.50",
+    "iolog_path": "/var/log/sudo-logsrvd/millert/00/00/5H",
+    "iolog_file": "00/00/5H",
+    "columns": 80,
+    "command": "/usr/bin/find",
+    "lines": 24,
+    "runargv": [
+	"find",
+	"build/out/sudoers/"
+    ],
+    "runenv": [
+	"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+	"TERM=tmux",
+	"LANG=en_US.UTF-8",
+	"MAIL=/var/mail/root",
+	"LOGNAME=root",
+	"USER=root",
+	"HOME=/root",
+	"SHELL=/bin/bash",
+	"SUDO_COMMAND=/usr/bin/find build/out/sudoers/",
+	"SUDO_USER=millert",
+	"SUDO_UID=8036",
+	"SUDO_GID=20"
+    ],
+    "runuid": 0,
+    "runuser": "root",
+    "source": "/etc/sudoers:89:24",
+    "submitcwd": "/home/millert/sudo/oss-fuzz",
+    "submithost": "linux-build",
+    "submituser": "millert",
+    "ttyname": "/dev/pts/1",
+    "exit_value": 131,
+    "signal": "QUIT",
+    "dumped_core": true
+}

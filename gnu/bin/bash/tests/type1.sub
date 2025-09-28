@@ -1,0 +1,10 @@
+foo()
+{
+	echo $(<x1)
+}
+
+type foo
+
+eval "$(declare -f foo | sed 's:foo:bar:')"
+
+type bar

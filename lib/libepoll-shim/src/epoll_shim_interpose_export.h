@@ -1,0 +1,42 @@
+
+#ifndef EPOLL_SHIM_INTERPOSE_EXPORT_H
+#define EPOLL_SHIM_INTERPOSE_EXPORT_H
+
+#ifdef EPOLL_SHIM_INTERPOSE_STATIC_DEFINE
+#  define EPOLL_SHIM_INTERPOSE_EXPORT
+#  define EPOLL_SHIM_INTERPOSE_NO_EXPORT
+#else
+#  ifndef EPOLL_SHIM_INTERPOSE_EXPORT
+#    ifdef epoll_shim_interpose_EXPORTS
+        /* We are building this library */
+#      define EPOLL_SHIM_INTERPOSE_EXPORT __attribute__((visibility("default")))
+#    else
+        /* We are using this library */
+#      define EPOLL_SHIM_INTERPOSE_EXPORT __attribute__((visibility("default")))
+#    endif
+#  endif
+
+#  ifndef EPOLL_SHIM_INTERPOSE_NO_EXPORT
+#    define EPOLL_SHIM_INTERPOSE_NO_EXPORT __attribute__((visibility("hidden")))
+#  endif
+#endif
+
+#ifndef EPOLL_SHIM_INTERPOSE_DEPRECATED
+#  define EPOLL_SHIM_INTERPOSE_DEPRECATED __attribute__ ((__deprecated__))
+#endif
+
+#ifndef EPOLL_SHIM_INTERPOSE_DEPRECATED_EXPORT
+#  define EPOLL_SHIM_INTERPOSE_DEPRECATED_EXPORT EPOLL_SHIM_INTERPOSE_EXPORT EPOLL_SHIM_INTERPOSE_DEPRECATED
+#endif
+
+#ifndef EPOLL_SHIM_INTERPOSE_DEPRECATED_NO_EXPORT
+#  define EPOLL_SHIM_INTERPOSE_DEPRECATED_NO_EXPORT EPOLL_SHIM_INTERPOSE_NO_EXPORT EPOLL_SHIM_INTERPOSE_DEPRECATED
+#endif
+
+#if 0 /* DEFINE_NO_DEPRECATED */
+#  ifndef EPOLL_SHIM_INTERPOSE_NO_DEPRECATED
+#    define EPOLL_SHIM_INTERPOSE_NO_DEPRECATED
+#  endif
+#endif
+
+#endif /* EPOLL_SHIM_INTERPOSE_EXPORT_H */

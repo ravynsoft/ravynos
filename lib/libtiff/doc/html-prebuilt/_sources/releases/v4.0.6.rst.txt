@@ -1,0 +1,77 @@
+Changes in TIFF v4.0.6
+======================
+
+.. table:: References
+    :widths: auto
+
+    ======================  ==========================================
+    Current Version         v4.0.6 (:tag:`Release-v4-0-6`)
+    Previous Version        :doc:`v4.0.5 <v4.0.5>`
+    Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+    Master HTTP Site        `<https://download.osgeo.org/libtiff/>`_
+    ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).  If you don't
+find something listed here, then it was not done in this timeframe, or
+it was not considered important enough to be mentioned.  The following
+information is located here:
+
+
+Major changes
+-------------
+
+* Now builds with CMake 2.8.9 and newer (previously required 3.0.0)
+
+
+Software configuration changes
+------------------------------
+
+* :file:`CMakeLists.txt` / CMake
+
+  * Supports CMake 2.8.9 and later.
+  * Add missing file which wasn't being distributed, causing
+    unit tests to fail.
+  * Make shared/static library building configurable.
+  * CMake reads all version information directly from
+    :file:`configure.ac` to avoid duplication of values.
+  * CMake builds are now included in ``distcheck`` target.
+
+* :file:`Makefile.am`
+
+  * Autotools `make distcheck` now tests the CMake-based build
+    if CMake is available.
+
+
+Library changes
+---------------
+
+* Fixes to avoid undefined behaviour of signed types (C
+  standard compliance).
+* Fixes to avoid possible isses when casting to unsigned char.
+* Fixes to avoid undefined behaviour with shifts.
+* Fix generation of output with 16 bit or 32 bit integer, when
+  byte swapping is needed, in horizontal predictor (:bugzilla:`2521`).
+* Fix decoding when there is a single pixel to decode (unlikely
+  case...) and byte swapping is involved.
+* Add add explicit masking with ``0xff`` before casting to :c:type:`uchar` in
+  floating-point horizontal differencing and accumulation routines.
+* Eliminate requirement for and use of 64-bit constant values.
+
+
+Tools changes
+-------------
+
+* :program:`tiffgt`
+
+  * Silence glut API deprecation warnings on MacOS X.
+
+* :program:`fax2ps`
+
+  * Detect failure to write to temporary file.
+
+
+Contributed software changes
+----------------------------
+
+None

@@ -1,0 +1,34 @@
+%prep
+
+  mkdir whence.tmp
+  ln -s . whence.tmp/cwd
+  # cd through the symlink in order to test the case that ${prefix} and
+  # ${prefix:P} are different
+  pushd whence.tmp/cwd
+  ln -s real step3
+  ln -s step3 step2
+  ln -s step2 step1
+  ln -s loop loop
+  ln -s flip flop
+  ln -s flop flip
+  touch real
+  chmod +x real
+  prefix=$PWD
+  popd
+
+%test
+
+  (
+    path=( ${PWD:P}/whence.tmp $path )
+    whence -S step1
+    whence -s step1
+  )
+0q:whence symlink resolution
+>${prefix:P}/step1 -> ${prefix:P}/step2 -> ${prefix:P}/step3 -> ${prefix:P}/real
+>${prefix:P}/step1 -> ${prefix:P}/real
+
+  (
+    path=( $PWD/whence.tmp $path )
+    whence -S flip || whence -S loop || whence -s flip || whence -s loop
+  )
+1:whence deals with symlink loops gracefully

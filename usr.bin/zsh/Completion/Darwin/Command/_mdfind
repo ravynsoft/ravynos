@@ -1,0 +1,29 @@
+#compdef mdfind
+
+local ret=1
+local -a context line state state_descr tmp
+local -A opt_args val_args
+
+_arguments -s -S : \
+  '(-count)-0[separate result paths by NUL]' \
+  '(-0)-count[display count of results instead of paths]' \
+  '(-literal)-interpret[interpret query as if entered in Spotlight search field]' \
+  '(-interpret)-literal[interpret query as literal query string]' \
+  '-live[provide live updates to query results]' \
+  '-onlyin[limit search to specified directory]: :_directories' \
+  '(: -s)*-name[search for files with names matching specified string]:file name string' \
+  '-reprint[reprint -live results on update]' \
+  '(: -name)-s[show contents of specified smart folder]: :->smart-folders' \
+  '(-s -name)1: :_guard "^-*" "query"' \
+&& ret=0
+
+[[ $state == smart-folders ]] && {
+  tmp=( "$HOME/Library/Saved Searches/"*.savedSearch(-.N:r:t) )
+  if (( $#tmp )); then
+    _values 'smart folder' $tmp && ret=0
+  else
+    _message 'smart folder' && ret=0
+  fi
+}
+
+return ret

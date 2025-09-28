@@ -1,0 +1,50 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of JavaScript escape sequences in string literals.
+
+cat <<\EOF > xg-js-4.js
+var s1 = _("Unicode escape \u3042");
+var s2 = _("Surrogate pair \uD835\uDC9C");
+var s3 = _("Escape sequence \1411 \x622 \xxx \y");
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-comments --no-location -o xg-js-4.tmp xg-js-4.js 2>xg-js-4.err
+test $? = 0 || { cat xg-js-4.err; Exit 1; }
+func_filter_POT_Creation_Date xg-js-4.tmp xg-js-4.pot
+
+cat <<\EOF > xg-js-4.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Unicode escape あ"
+msgstr ""
+
+msgid "Surrogate pair 𝒜"
+msgstr ""
+
+msgid "Escape sequence a1 b2 xxx y"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-js-4.ok xg-js-4.pot
+result=$?
+
+exit $result

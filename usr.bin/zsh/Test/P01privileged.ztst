@@ -1,0 +1,205 @@
+# This file contains tests related to the PRIVILEGED option. In order to run,
+# it requires that the test process itself have super-user privileges (or that
+# one of the environment variables described below be set). This can be achieved
+# via, e.g., `sudo make check TESTNUM=P`.
+#
+# Optionally, the environment variables ZSH_TEST_UNPRIVILEGED_UID and/or
+# ZSH_TEST_UNPRIVILEGED_GID may be set to UID:EUID or GID:EGID pairs, where the
+# two IDs in each pair are different, non-0 IDs valid on the system being used
+# to run the tests. (The UIDs must both be non-0 to effectively test downgrading
+# of privileges, and they must be non-matching to test auto-enabling of
+# PRIVILEGED and to ensure that disabling PRIVILEGED correctly resets the saved
+# UID. Technically GID 0 is not special, but for simplicity's sake we apply the
+# same requirements here.)
+#
+# If either of the aforementioned environment variables is not set, the test
+# script will try to use the UID/GID of the test directory, if not 0, for the
+# two effective IDs. (This is intended to work around issues that might occur
+# when e.g. the test directory lives under a home directory with mode 0700.
+# Unfortunately, if this is the case, it will not be possible to use anything
+# besides the directory owner or root as the test shell's EUID -- maintainers
+# take note.) Otherwise, the script will pick the first >0 ID(s) from the
+# passwd/group databases on the current system.
+#
+# If either variable is set, the tests will run, but they will likely fail
+# without super-user privileges.
+
+%prep
+
+  # If ZTST_unimplemented is set to non-null in a chunk then all the
+  # remaining chunks (and all of %test and %clean sections) will be skipped.
+  [[ $EUID == 0 || -n $ZSH_TEST_UNPRIVILEGED_UID$ZSH_TEST_UNPRIVILEGED_GID ]] || {
+    ZTST_unimplemented='PRIVILEGED tests require super-user privileges (or env var)'
+    return 0
+  }
+
+  (( $+commands[perl] )) || { # @todo Eliminate this dependency with a C wrapper?
+    ZTST_unimplemented='PRIVILEGED tests require Perl'
+    return 0
+  }
+
+  grep -qE '#define HAVE_SETRES?UID' $ZTST_testdir/../config.h || {
+    ZTST_unimplemented='PRIVILEGED tests require setreuid()/setresuid()'
+    return 0
+  }
+
+  ruid= euid= rgid= egid=
+  #
+  if [[ -n $ZSH_TEST_UNPRIVILEGED_UID ]]; then
+    ruid=${ZSH_TEST_UNPRIVILEGED_UID%%:*}
+    euid=${ZSH_TEST_UNPRIVILEGED_UID##*:}
+  else
+    print -ru$ZTST_fd 'Selecting unprivileged UID:EUID pair automatically'
+    # See above for why we do this
+    zmodload -sF zsh/stat b:zstat && euid=${"$( zstat +uid -- $ZTST_testdir )":#0}
+    local tmp=$( getent passwd 2> /dev/null || < /etc/passwd )
+    # Note: Some awks require -v and its argument to be separate
+    ruid=$( awk -F: -v u=${euid:-0} '$3 > 0 && $3 != u { print $3; exit; }' <<< $tmp )
+    euid=${euid:-"$( awk -F: -v u=$ruid '$3 > u { print $3; exit; }' <<< $tmp )"}
+  fi
+  #
+  if [[ -n $ZSH_TEST_UNPRIVILEGED_GID ]]; then
+    rgid=${ZSH_TEST_UNPRIVILEGED_GID%%:*}
+    egid=${ZSH_TEST_UNPRIVILEGED_GID##*:}
+  else
+    print -ru$ZTST_fd 'Selecting unprivileged GID:EGID pair automatically'
+    # See above again -- this shouldn't have the same impact as the UID, though
+    zmodload -sF zsh/stat b:zstat && egid=${"$( zstat +gid -- $ZTST_testdir )":#0}
+    local tmp=$( getent group 2> /dev/null || < /etc/group )
+    # Note: Some awks require -v and its argument to be separate
+    rgid=$( awk -F: -v g=${egid:-0} '$3 > 0 && $3 != g { print $3; exit; }' <<< $tmp )
+    egid=${egid:="$( awk -F: -v g=$rgid '$3 > g { print $3; exit; }' <<< $tmp )"}
+  fi
+  #
+  [[ $ruid/$euid == <1->/<1-> && $ruid != $euid ]] || ruid= euid=
+  [[ $rgid/$egid == <1->/<1-> && $rgid != $egid ]] || rgid= egid=
+  #
+  [[ -n $ruid && -n $euid ]] || {
+    ZTST_unimplemented='PRIVILEGED tests require unprivileged UID:EUID'
+    return 0
+  }
+
+  [[ -n $rgid || -n $egid ]] || {
+    ZTST_unimplemented='PRIVILEGED tests require unprivileged GID:EGID'
+    return 0
+  }
+
+  print -ru$ZTST_fd \
+    "Using unprivileged UID $ruid, EUID $euid, GID $rgid, EGID $egid"
+  #
+  # Execute process with specified UID and EUID
+  # $1     => Real UID
+  # $2     => Effective UID
+  # $3     => Real GID
+  # $4     => Effective GID
+  # $5 ... => Command + args to execute (must NOT be a shell command string)
+  re_exec() {
+    perl -e '
+      die("re_exec: not enough arguments") unless (@ARGV >= 5);
+      my ($ruid, $euid, $rgid, $egid, @cmd) = @ARGV;
+      foreach my $id ($ruid, $euid, $rgid, $egid) {
+        die("re_exec: invalid ID: $id") unless ($id =~ /^(-1|\d+)$/a);
+      }
+      $< = 0 + $ruid if ($ruid >= 0);
+      $> = 0 + $euid if ($euid >= 0);
+      $( = 0 + $rgid if ($rgid >= 0);
+      $) = 0 + $egid if ($egid >= 0);
+      exec(@cmd);
+      die("re_exec: exec failed: $!");
+    ' -- "$@"
+  }
+  #
+  # Convenience wrapper for re_exec to call `zsh -c`
+  # -* ... => (optional) Command-line options to zsh
+  # $1     => Real UID
+  # $2     => Effective UID
+  # $3     => Real GID
+  # $4     => Effective GID
+  # $5 ... => zsh command string; multiple strings are joined by \n
+  re_zsh() {
+    local -a opts
+    while [[ $1 == -[A-Za-z-]* ]]; do
+      opts+=( $1 )
+      shift
+    done
+    re_exec "$1" "$2" "$3" "$4" $ZTST_exe $opts -fc \
+      "MODULE_PATH=${(q)MODULE_PATH}; ${(F)@[5,-1]}"
+  }
+  #
+  # Return one or more random unused UIDs
+  # $1 ... => Names of parameters to store UIDs in
+  get_unused_uid() {
+    while (( $# )); do
+      local i_=0 uid_=
+      until [[ -n $uid_ ]]; do
+        (( ++i_ > 99 )) && return 1
+        uid_=$RANDOM
+        id $uid_ &> /dev/null || break
+        uid_=
+      done
+      : ${(P)1::=$uid_}
+      shift
+    done
+  }
+
+%test
+
+  re_zsh $euid $euid -1 -1 'echo $UID/$EUID $options[privileged]'
+  re_zsh $ruid $euid -1 -1 'echo $UID/$EUID $options[privileged]'
+0q:PRIVILEGED automatically enabled when RUID != EUID
+>$euid/$euid off
+>$ruid/$euid on
+
+  re_zsh -1 -1 $rgid $rgid 'echo $GID/$EGID $options[privileged]'
+  re_zsh -1 -1 $egid $egid 'echo $GID/$EGID $options[privileged]'
+  re_zsh -1 -1 $rgid $egid 'echo $GID/$EGID $options[privileged]'
+0q:PRIVILEGED automatically enabled when RGID != EGID
+>$rgid/$rgid off
+>$egid/$egid off
+>$rgid/$egid on
+
+  re_zsh $ruid $euid -1 -1 'unsetopt privileged; echo $UID/$EUID'
+0q:EUID set to RUID after disabling PRIVILEGED
+*?zsh:unsetopt:1: PRIVILEGED: supplementary group list not changed *
+*?zsh:unsetopt:1: can't change option: privileged
+>$ruid/$ruid
+
+  re_zsh 0 $euid -1 -1 'unsetopt privileged && echo $UID/$EUID'
+0:RUID/EUID set to 0/0 when privileged after disabling PRIVILEGED
+>0/0
+
+  re_zsh $ruid $euid -1 -1 "unsetopt privileged; UID=$euid" ||
+  re_zsh $ruid $euid -1 -1 "unsetopt privileged; EUID=$euid"
+1:not possible to regain EUID when unprivileged after disabling PRIVILEGED
+*?zsh:unsetopt:1: PRIVILEGED: supplementary group list not changed *
+*?zsh:unsetopt:1: can't change option: privileged
+*?zsh:1: failed to change user ID: *
+*?zsh:unsetopt:1: PRIVILEGED: supplementary group list not changed *
+*?zsh:unsetopt:1: can't change option: privileged
+*?zsh:1: failed to change effective user ID: *
+
+  re_zsh -1 -1 $rgid $egid 'unsetopt privileged && echo $GID/$EGID'
+0q:EGID set to RGID after disabling PRIVILEGED
+>$rgid/$rgid
+
+# This test also confirms that we can't revert to the original EUID's primary
+# GID, which initgroups() may reset the EGID to on some systems
+  re_zsh $ruid 0 $rgid 0 'unsetopt privileged; GID=0' ||
+  re_zsh $ruid 0 $rgid 0 'unsetopt privileged; EGID=0'
+1:not possible to regain EGID when unprivileged after disabling PRIVILEGED
+*?zsh:1: failed to change group ID: *
+*?zsh:1: failed to change effective group ID: *
+
+  local rruid
+  grep -qF '#define HAVE_INITGROUPS' $ZTST_testdir/../config.h || {
+    ZTST_skip='initgroups() not available'
+    return 1
+  }
+  get_unused_uid rruid || {
+    ZTST_skip="Can't get unused UID"
+    return 1
+  }
+  re_zsh $rruid 0 -1 -1 'unsetopt privileged'
+1:getpwuid() fails with non-existent RUID and 0 EUID
+*?zsh:unsetopt:1: can't drop privileges; failed to get user information *
+*?zsh:unsetopt:1: can't change option: privileged

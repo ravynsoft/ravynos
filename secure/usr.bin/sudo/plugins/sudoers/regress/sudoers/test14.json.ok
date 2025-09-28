@@ -1,0 +1,62 @@
+{
+    "Command_Aliases": {
+        "LS": [
+            {
+                "command": "/bin/ls",
+                "sha224": "d06a2617c98d377c250edd470fd5e576327748d82915d6e33b5f8db1",
+                "sha224": "d7910e1967342b4605cb73a550944044c631cd3514001900966962ac"
+            }
+        ],
+        "SH": [
+            {
+                "command": "/bin/sh",
+                "sha256": "hOtoe/iK6SlGg7w4BfZBBdSsXjUmTJ5+ts51yjh7vkM=",
+                "sha256": "1IXHRCxXgSnIEnb+xBz4PAfWaPdXIBWKFF0QCwxJ5G4="
+            }
+        ]
+    },
+    "User_Specs": [
+        {
+            "User_List": [
+                { "username": "millert" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Commands": [
+                        { "cmndalias": "LS" },
+                        { "cmndalias": "SH" },
+                        {
+                            "command": "/bin/kill",
+                            "sha512": "srzYEQ2aqzm+it3f74opTMkIImZRLxBARVpb0g9RSouJYdLt7DTRMEY4Ry9NyaOiDoUIplpNjqYH0JMYPVdFnw"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "operator" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Options": [
+                        { "setenv": true }
+                    ],
+                    "Commands": [
+                        {
+                            "command": "ALL",
+                            "sha384": "knMlCLkJ71K6uRrKo5C1CAvZ5kq+mRpjKDD/RofGosFjiGcYhiYYZORVyiRHgBnu",
+                            "sha256": "1IXHRCxXgSnIEnb+xBz4PAfWaPdXIBWKFF0QCwxJ5G4="
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

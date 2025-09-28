@@ -1,0 +1,4 @@
+echo "warning: the text of a system error message may vary between systems and" >&2
+echo "warning: produce diff output." >&2
+${THIS_SH} ./vredir.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} vredir.right && rm -f ${BASH_TSTOUT}

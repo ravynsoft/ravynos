@@ -1,0 +1,2 @@
+${THIS_SH} ./alias.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} alias.right && rm -f ${BASH_TSTOUT}

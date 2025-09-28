@@ -1,0 +1,18 @@
+#compdef lsns
+
+local ign
+
+(( $#words > 2 )) && ign='!'
+_arguments -s -S \
+  '(-J --json)'{-J,--json}'[use JSON output format]' \
+  '(-l --list)'{-l,--list}'[use list format output]' \
+  '(-n --noheadings)'{-n,--noheadings}"[don't print headings]" \
+  '(-o --output)'{-o,--output}'[define which output columns to use]:column:_sequence compadd -M "m\:{a-z}={A-Z}" - NS TYPE PATH NPROCS PID PPID COMMAND UID USER NETNSID NSFS' \
+  '(-p --task)'{-p+,--task=}'[print process namespaces]:process id:_pids' \
+  '(-r --raw)'{-r,--raw}'[use the raw output format]' \
+  '(-u --notruncate)'{-u,--notruncate}"[don't truncate text in columns]" \
+  '(-W --nowrap)'{-W,--nowrap}"[don't use multi-line representation]" \
+  '(-t --type)'{-t+,--type=}'[filter by namespace type]:namespace type:(mnt net ipc user pid uts cgroup)' \
+  "$ign(- *)"{-h,--help}'[display usage information]' \
+  "$ign(- *)"{-V,--version}'[display version information]' \
+  '*: :_guard "^-*" namespace'

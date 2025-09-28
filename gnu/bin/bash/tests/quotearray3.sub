@@ -1,0 +1,117 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# assoc_expand_once and unset builtin, which is treated specially
+
+declare -A assoc
+
+var=x123
+assoc['$var']=value
+declare -p assoc 
+
+shopt -u assoc_expand_once
+unset "assoc[$var]"
+declare -p assoc
+
+unset 'assoc[$var]'
+declare -p assoc
+
+assoc['$var']=value
+shopt -s assoc_expand_once
+unset 'assoc[$var]'
+declare -p assoc
+
+unset assoc
+shopt -u assoc_expand_once
+
+declare -A a
+a['$(echo foo)']=1
+
+unset 'a[$(echo foo)]'
+declare -p a
+
+key='$(echo foo)'
+a[$key]=1
+
+unset 'a[$key]'
+declare -p a
+
+a[$key]=1
+unset "a[$key]"
+declare -p a
+
+a[$key]=1
+unset a[$key]
+declare -p a
+
+unset a
+
+typeset -A assoc
+key=@
+
+assoc[@]=at
+assoc[!]=bang
+
+# this should only unset the element with key `@'
+unset -v assoc[$key]
+typeset -p assoc
+
+# this should check for assoc[@] and return 1
+test -v assoc[$key]
+echo $?
+
+# this should too
+[[ -v assoc[$key] ]]
+echo $?
+
+unset assoc array
+
+declare -A assoc
+declare -a array
+
+assoc=([@]=at [!]=bang)
+declare -p assoc
+
+unset assoc[@]
+declare -p assoc
+
+array=(1 2 3)
+declare -p array
+
+# right now, this still unsets the entire array
+unset array[@]
+declare -p array
+
+BASH_COMPAT=51
+unset array[@]
+declare -p array
+
+declare -A map; key='foo$(uname >/dev/tty)bar'; map[$key]=1
+declare -p map
+echo ${map["$key"]}
+
+unset map["$key"]
+declare -p map
+unset map
+
+declare -A blah
+blah['$(DOESNOTEXIST)']=broken
+for i in "${!blah[@]}"; do echo "$i"; done
+
+for i in "${!blah[@]}"; do unset blah["$i"]; done
+declare -p blah
+unset blah
+
+
+

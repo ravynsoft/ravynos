@@ -1,0 +1,30 @@
+# -*- conf -*-
+#
+# Default options for perltidy for proper Perl code reformatting.
+#
+# The canonical version of this file is maintained in the rra-c-util package,
+# which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
+#
+# Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2021-2022 Russ Allbery <eagle@eyrie.org>
+# Copyright 2012-2013
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and
+# this notice are preserved.  This file is offered as-is, without any
+# warranty.
+#
+# SPDX-License-Identifier: FSFAP
+
+-bbao           # put line breaks before any operator
+-nbbc           # don't force blank lines before comments (bad for else blocks)
+-boc            # do not re-break lists, since perltidy is awful at this
+-ce             # cuddle braces around else
+-l=79           # usually use 78, but don't want 79-long lines reformatted
+-nlop           # disable vertical alignment of logical and ternary expressions
+-pt=2           # don't add extra whitespace around parentheses
+-sbt=2          # ...or square brackets
+-nsfs           # no space before semicolon in for (not that I use this form)
+-nvc            # disable vertical alignment of = and similar symbols
+-xci            # improve indentation of nested structures

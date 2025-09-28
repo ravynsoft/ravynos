@@ -1,0 +1,660 @@
+.TH "ZSHZFTPSYS" "1" "May 14, 2022" "zsh 5\&.9"
+.SH "NAME"
+zshzftpsys \- zftp function front\-end
+.\" Yodl file: Zsh/zftpsys.yo
+.SH "DESCRIPTION"
+.PP
+This describes the set of shell functions supplied with the source
+distribution as an interface to the \fBzftp\fP builtin command, allowing you
+to perform FTP operations from the shell command line or within functions
+or scripts\&.  The interface is similar to a traditional FTP client (e\&.g\&. the
+\fBftp\fP command itself, see \fIftp\fP(1)), but as it is entirely done
+within the shell all the familiar completion, editing and globbing features,
+and so on, are present, and macros are particularly simple to write as they
+are just ordinary shell functions\&.
+.PP
+The prerequisite is that the \fBzftp\fP command, as described in
+\fIzshmodules\fP(1)
+, must be available in the
+version of \fBzsh\fP installed at your site\&.  If the shell is configured to
+load new commands at run time, it probably is: typing `\fBzmodload zsh/zftp\fP\&'
+will make sure (if that runs silently, it has worked)\&.  If this is not the
+case, it is possible \fBzftp\fP was linked into the shell anyway: to test
+this, type `\fBwhich zftp\fP\&' and if \fBzftp\fP is available you will get the
+message `\fBzftp: shell built\-in command\fP\&'\&.
+.PP
+Commands given directly with \fBzftp\fP builtin may be interspersed between
+the functions in this suite; in a few cases, using \fBzftp\fP directly may
+cause some of the status information stored in shell parameters to become
+invalid\&.  Note in particular the description of the variables
+\fB$ZFTP_TMOUT\fP, \fB$ZFTP_PREFS\fP and \fB$ZFTP_VERBOSE\fP for \fBzftp\fP\&.
+.PP
+.PP
+.SH "INSTALLATION"
+.PP
+You should make sure all the functions from the \fBFunctions/Zftp\fP
+directory of the source distribution are available; they all begin with the
+two letters `\fBzf\fP\&'\&.  They may already have been installed on your system;
+otherwise, you will need to find them and copy them\&.  The directory should
+appear as one of the elements of the \fB$fpath\fP array (this should already
+be the case if they were installed), and at least the function \fBzfinit\fP
+should be autoloaded; it will autoload the rest\&.  Finally, to initialize
+the use of the system you need to call the \fBzfinit\fP function\&.  The
+following code in your \fB\&.zshrc\fP will arrange for this; assume the
+functions are stored in the directory \fB~/myfns\fP:
+.PP
+.RS
+.nf
+\fBfpath=(~/myfns $fpath)
+autoload \-U zfinit
+zfinit\fP
+.fi
+.RE
+.PP
+Note that \fBzfinit\fP assumes you are using the \fBzmodload\fP method to
+load the \fBzftp\fP command\&.  If it is already built into the shell, change
+\fBzfinit\fP to \fBzfinit \-n\fP\&.  It is helpful (though not essential) if the
+call to \fBzfinit\fP appears after any code to initialize the new completion
+system, else unnecessary \fBcompctl\fP commands will be given\&.
+.PP
+.SH "FUNCTIONS"
+.PP
+The sequence of operations in performing a file transfer is essentially the
+same as that in a standard FTP client\&.  Note that, due to a quirk of the
+shell\&'s \fBgetopts\fP builtin, for those functions that handle options you
+must use `\fB\-\fP\fB\-\fP\&' rather than `\fB\-\fP' to ensure the remaining arguments
+are treated literally (a single `\fB\-\fP\&' is treated as an argument)\&.
+.PP
+.SS "Opening a connection"
+.PD 0
+.TP
+.PD
+\fBzfparams\fP [ \fIhost\fP [ \fIuser\fP [ \fIpassword\fP \&.\&.\&. ] ] ]
+Set or show the parameters for a future \fBzfopen\fP with no arguments\&.  If
+no arguments are given, the current parameters are displayed (the password
+will be shown as a line of asterisks)\&.  If a \fIhost\fP is given, and either the
+\fIuser\fP or \fIpassword\fP is not, they will be prompted for; also, any
+parameter given as `\fB?\fP\&' will be prompted for, and if the `\fB?\fP' is
+followed by a string, that will be used as the prompt\&.  As \fBzfopen\fP calls
+\fBzfparams\fP to store the parameters, this usually need not be called
+directly\&.
+.RS
+.PP
+A single argument `\fB\-\fP\&' will delete the stored parameters\&.  This will
+also cause the memory of the last directory (and so on) on the other host
+to be deleted\&.
+.RE
+.TP
+\fBzfopen\fP [ \fB\-1\fP ] [ \fIhost\fP [ \fIuser\fP [ \fIpassword\fP [ \fIaccount\fP ] ] ] ]
+If \fIhost\fP is present, open a connection to that host under username
+\fIuser\fP with password \fIpassword\fP (and, on the rare occasions when it
+is necessary, account \fIaccount\fP)\&.  If a necessary parameter is missing or
+given as `\fB?\fP\&' it will be prompted for\&.  If \fIhost\fP is not present, use
+a previously stored set of parameters\&.
+.RS
+.PP
+If the command was successful, and the terminal is compatible with
+\fBxterm\fP or is \fBsun\-cmd\fP, a summary will appear in the title bar,
+giving the local \fBhost:directory\fP and the remote \fBhost:directory\fP;
+this is handled by the function \fBzftp_chpwd\fP, described below\&.
+.PP
+Normally, the \fIhost\fP, \fIuser\fP and \fIpassword\fP are internally
+recorded for later re\-opening, either by a \fBzfopen\fP with no arguments, or
+automatically (see below)\&.  With the option `\fB\-1\fP\&', no information is
+stored\&.  Also, if an open command with arguments failed, the parameters
+will not be retained (and any previous parameters will also be deleted)\&.
+A \fBzfopen\fP on its own, or a \fBzfopen \-1\fP, never alters the stored
+parameters\&.
+.PP
+Both \fBzfopen\fP and \fBzfanon\fP (but not \fBzfparams\fP) understand URLs of
+the form \fBftp://\fP\fIhost\fP/\fIpath\&.\&.\&.\fP as meaning to connect to the
+\fIhost\fP, then change directory to \fIpath\fP (which must be a directory,
+not a file)\&.  The `\fBftp://\fP\&' can be omitted; the trailing `\fB/\fP' is enough
+to trigger recognition of the \fIpath\fP\&.  Note prefixes other than
+`\fBftp:\fP\&' are not recognized, and that all characters after the first
+slash beyond \fIhost\fP are significant in \fIpath\fP\&.
+.RE
+.TP
+\fBzfanon\fP [ \fB\-1\fP ] \fIhost\fP
+Open a connection \fIhost\fP for anonymous FTP\&.  The username used is
+`\fBanonymous\fP\&'\&.  The password (which will be reported the first time) is
+generated as \fIuser\fP\fB@\fP\fIhost\fP; this is then stored in the shell
+parameter \fB$EMAIL_ADDR\fP which can alternatively be set manually to a
+suitable string\&.
+.PP
+.SS "Directory management"
+.PD 0
+.TP
+.PD 0
+\fBzfcd\fP [ \fIdir\fP ]
+.TP
+.PD 0
+\fBzfcd \-\fP
+.TP
+.PD
+\fBzfcd\fP \fIold\fP \fInew\fP
+Change the current directory on the remote server:  this is implemented to
+have many of the features of the shell builtin \fBcd\fP\&.
+.RS
+.PP
+In the first form with \fIdir\fP present, change to the directory \fIdir\fP\&.
+The command `\fBzfcd \&.\&.\fP\&' is treated specially, so is guaranteed to work on
+non\-UNIX servers (note this is handled internally by \fBzftp\fP)\&.  If \fIdir\fP
+is omitted, has the effect of `\fBzfcd ~\fP\&'\&.
+.PP
+The second form changes to the directory previously current\&.
+.PP
+The third form attempts to change the current directory by replacing the
+first occurrence of the string \fIold\fP with the string \fInew\fP in the
+current directory\&.
+.PP
+Note that in this command, and indeed anywhere a remote filename is
+expected, the string which on the local host corresponds to `\fB~\fP\&' is
+converted back to a `\fB~\fP\&' before being passed to the remote machine\&.
+This is convenient because of the way expansion is performed on the command
+line before \fBzfcd\fP receives a string\&.  For example, suppose the command
+is `\fBzfcd ~/foo\fP\&'\&.  The shell will expand this to a full path such as
+`\fBzfcd /home/user2/pws/foo\fP\&'\&.  At this stage, \fBzfcd\fP recognises the
+initial path as corresponding to `\fB~\fP\&' and will send the directory to
+the remote host as \fB~/foo\fP, so that the `\fB~\fP\&' will be expanded by the
+server to the correct remote host directory\&.  Other named directories of
+the form `\fB~name\fP\&' are not treated in this fashion\&.
+.RE
+.TP
+\fBzfhere\fP
+Change directory on the remote server to the one corresponding to the
+current local directory, with special handling of `\fB~\fP\&' as in \fBzfcd\fP\&.
+For example, if the current local directory is \fB~/foo/bar\fP, then
+\fBzfhere\fP performs the effect of `\fBzfcd ~/foo/bar\fP\&'\&.
+.TP
+\fBzfdir\fP [ \fB\-rfd\fP ] [ \fB\-\fP ] [ \fIdir\-options\fP ] [ \fIdir\fP ]
+Produce a long directory listing\&.  The arguments \fIdir\-options\fP and
+\fIdir\fP are passed directly to the server and their effect is
+implementation dependent, but specifying a particular remote directory
+\fIdir\fP is usually possible\&.  The output is passed through a pager
+given by the environment variable \fB$PAGER\fP, or `\fBmore\fP\&' if that is not
+set\&.
+.RS
+.PP
+The directory is usually cached for re\-use\&.  In fact, two caches are
+maintained\&.  One is for use when there is no \fIdir\-options\fP or \fIdir\fP,
+i\&.e\&. a full listing of the current remote directory; it is flushed
+when the current remote directory changes\&.  The other is
+kept for repeated use of \fBzfdir\fP with the same arguments; for example,
+repeated use of `\fBzfdir /pub/gnu\fP\&' will only require the directory to be
+retrieved on the first call\&.  Alternatively, this cache can be re\-viewed with
+the \fB\-r\fP option\&.  As relative directories will confuse
+\fBzfdir\fP, the \fB\-f\fP option can be used to force the cache to be flushed
+before the directory is listed\&.  The option \fB\-d\fP will delete both
+caches without showing a directory listing; it will also delete the cache
+of file names in the current remote directory, if any\&.
+.RE
+.TP
+\fBzfls\fP [ \fIls\-options\fP ] [ \fIdir\fP ]
+List files on the remote server\&.  With no arguments, this will produce a
+simple list of file names for the current remote directory\&.  Any arguments
+are passed directly to the server\&.  No pager and no caching is used\&.
+.PP
+.SS "Status commands"
+.PD 0
+.TP
+.PD
+\fBzftype\fP [ \fItype\fP ]
+With no arguments, show the type of data to be transferred, usually ASCII
+or binary\&.  With an argument, change the type: the types `\fBA\fP\&' or
+`\fBASCII\fP\&' for ASCII data and `\fBB\fP' or `\fBBINARY\fP', `\fBI\fP' or
+`\fBIMAGE\fP\&' for binary data are understood case\-insensitively\&.
+.TP
+\fBzfstat\fP [ \fB\-v\fP ]
+Show the status of the current or last connection, as well as the status of
+some of \fBzftp\fP\&'s status variables\&.  With the \fB\-v\fP option, a more
+verbose listing is produced by querying the server for its version of
+events, too\&.
+.PP
+.SS "Retrieving files"
+The commands for retrieving files all take at least two options\&. \fB\-G\fP
+suppresses remote filename expansion which would otherwise be performed
+(see below for a more detailed description of that)\&.  \fB\-t\fP attempts
+to set the modification time of the local file to that of the remote file:
+see the description of the function \fBzfrtime\fP below for more information\&.
+.PP
+.PD 0
+.TP
+.PD
+\fBzfget\fP [ \fB\-Gtc\fP ] \fIfile1\fP \&.\&.\&.
+Retrieve all the listed files \fIfile1\fP \&.\&.\&. one at a time from the remote
+server\&.  If a file contains a `\fB/\fP\&', the full name is passed to the
+remote server, but the file is stored locally under the name given by the
+part after the final `\fB/\fP\&'\&.  The option \fB\-c\fP (cat) forces all files to
+be sent as a single stream to standard output; in this case the \fB\-t\fP
+option has no effect\&.
+.TP
+\fBzfuget\fP [ \fB\-Gvst\fP ] \fIfile1\fP \&.\&.\&.
+As \fBzfget\fP, but only retrieve files where the version on the remote
+server is newer (has a later modification time), or where the local file
+does not exist\&.  If the remote file is older but the files have different
+sizes, or if the sizes are the same but the remote file is newer, the user
+will usually be queried\&.  With the option \fB\-s\fP, the command runs silently
+and will always retrieve the file in either of those two cases\&.  With the
+option \fB\-v\fP, the command prints more information about the files while it
+is working out whether or not to transfer them\&.
+.TP
+\fBzfcget\fP [ \fB\-Gt\fP ] \fIfile1\fP \&.\&.\&.
+As \fBzfget\fP, but if any of the local files exists, and is shorter than
+the corresponding remote file, the command assumes that it is the result of
+a partially completed transfer and attempts to transfer the rest of the
+file\&.  This is useful on a poor connection which keeps failing\&.
+.RS
+.PP
+Note that this requires a commonly implemented, but non\-standard, version
+of the FTP protocol, so is not guaranteed to work on all servers\&.
+.RE
+.TP
+.PD 0
+\fBzfgcp\fP [ \fB\-Gt\fP ] \fIremote\-file\fP \fIlocal\-file\fP
+.TP
+.PD
+\fBzfgcp\fP [ \fB\-Gt\fP ] \fIrfile1\fP \&.\&.\&. \fIldir\fP
+This retrieves files from the remote server with arguments behaving
+similarly to the \fBcp\fP command\&.
+.RS
+.PP
+In the first form, copy \fIremote\-file\fP from the server to the local file
+\fIlocal\-file\fP\&.
+.PP
+In the second form, copy all the remote files \fIrfile1\fP \&.\&.\&. into the
+local directory \fIldir\fP retaining the same basenames\&.  This assumes UNIX
+directory semantics\&.
+.RE
+.PP
+.SS "Sending files"
+.PD 0
+.TP
+.PD
+\fBzfput\fP [ \fB\-r\fP ] \fIfile1\fP \&.\&.\&.
+Send all the \fIfile1\fP \&.\&.\&. given separately to the remote server\&.  If a
+filename contains a `\fB/\fP\&', the full filename is used locally to find the
+file, but only the basename is used for the remote file name\&.
+.RS
+.PP
+With the option \fB\-r\fP, if any of the \fIfiles\fP are directories they are
+sent recursively with all their subdirectories, including files beginning
+with `\fB\&.\fP\&'\&.  This requires that the remote machine understand UNIX file
+semantics, since `\fB/\fP\&' is used as a directory separator\&.
+.RE
+.TP
+\fBzfuput\fP [ \fB\-vs\fP ] \fIfile1\fP \&.\&.\&.
+As \fBzfput\fP, but only send files which are newer than their remote
+equivalents, or if the remote file does not exist\&.  The logic is the same
+as for \fBzfuget\fP, but reversed between local and remote files\&.
+.TP
+\fBzfcput\fP \fIfile1\fP \&.\&.\&.
+As \fBzfput\fP, but if any remote file already exists and is shorter than the
+local equivalent, assume it is the result of an incomplete transfer and
+send the rest of the file to append to the existing part\&.  As the FTP
+append command is part of the standard set, this is in principle more
+likely to work than \fBzfcget\fP\&.
+.TP
+.PD 0
+\fBzfpcp\fP \fIlocal\-file\fP \fIremote\-file\fP
+.TP
+.PD
+\fBzfpcp\fP \fIlfile1\fP \&.\&.\&. \fIrdir\fP
+This sends files to the remote server with arguments behaving similarly to
+the \fBcp\fP command\&.
+.RS
+.PP
+With two arguments, copy \fIlocal\-file\fP to the server as
+\fIremote\-file\fP\&.
+.PP
+With more than two arguments, copy all the local files \fIlfile1\fP \&.\&.\&. into
+the existing remote directory \fIrdir\fP retaining the same basenames\&.  This
+assumes UNIX directory semantics\&.
+.PP
+A problem arises if you attempt to use \fBzfpcp\fP \fIlfile1\fP \fIrdir\fP,
+i\&.e\&. the second form of copying but with two arguments, as the command has
+no simple way of knowing if \fIrdir\fP corresponds to a directory or a
+filename\&.  It attempts to resolve this in various ways\&.  First, if the
+\fIrdir\fP argument is `\fB\&.\fP\&' or `\fB\&.\&.\fP' or ends in a slash, it is assumed
+to be a directory\&.  Secondly, if the operation of copying to a remote file
+in the first form failed, and the remote server sends back the expected
+failure code 553 and a reply including the string `\fBIs a directory\fP\&',
+then \fBzfpcp\fP will retry using the second form\&.
+.RE
+.PP
+.SS "Closing the connection"
+.PD 0
+.TP
+.PD
+\fBzfclose\fP
+Close the connection\&.
+.PP
+.SS "Session management"
+.PD 0
+.TP
+.PD
+\fBzfsession\fP [ \fB\-lvod\fP ] [ \fIsessname\fP ]
+Allows you to manage multiple FTP sessions at once\&.  By default,
+connections take place in a session called `\fBdefault\fP\&'; by giving the
+command `\fBzfsession\fP \fIsessname\fP\&' you can change to a new or existing
+session with a name of your choice\&.  The new session remembers its own
+connection, as well as associated shell parameters, and also the host/user
+parameters set by \fBzfparams\fP\&.  Hence you can have different sessions set
+up to connect to different hosts, each remembering the appropriate host,
+user and password\&.
+.RS
+.PP
+With no arguments, \fBzfsession\fP prints the name of the current session;
+with the option \fB\-l\fP it lists all sessions which currently exist, and
+with the option \fB\-v\fP it gives a verbose list showing the host and
+directory for each session, where the current session is marked with an
+asterisk\&.  With \fB\-o\fP, it will switch to the most recent previous session\&.
+.PP
+With \fB\-d\fP, the given session (or else the current one) is removed;
+everything to do with it is completely forgotten\&.  If it was the only
+session, a new session called `\fBdefault\fP\&' is created and made current\&.
+It is safest not to delete sessions while background commands using
+\fBzftp\fP are active\&.
+.RE
+.TP
+\fBzftransfer\fP \fIsess1\fP\fB:\fP\fIfile1\fP \fIsess2\fP\fB:\fP\fIfile2\fP
+Transfer files between two sessions; no local copy is made\&.  The file
+is read from the session \fIsess1\fP as \fIfile1\fP and written to session
+\fIsess2\fP as file \fIfile2\fP; \fIfile1\fP and \fIfile2\fP may be relative to
+the current directories of the session\&.  Either \fIsess1\fP or \fIsess2\fP
+may be omitted (though the colon should be retained if there is a
+possibility of a colon appearing in the file name) and defaults to the
+current session; \fIfile2\fP may be omitted or may end with a slash, in
+which case the basename of \fIfile1\fP will be added\&.  The sessions
+\fIsess1\fP and \fIsess2\fP must be distinct\&.
+.RS
+.PP
+The operation is performed using pipes, so it is required that the
+connections still be valid in a subshell, which is not the case under 
+versions of some operating systems, presumably due to a system bug\&.
+.RE
+.PP
+.SS "Bookmarks"
+The two functions \fBzfmark\fP and \fBzfgoto\fP allow you to `bookmark\&' the
+present location (host, user and directory) of the current FTP connection
+for later use\&.  The file to be used for storing and retrieving bookmarks is
+given by the parameter \fB$ZFTP_BMFILE\fP; if not set when one of the two
+functions is called, it will be set to the file \fB\&.zfbkmarks\fP in the
+directory where your zsh startup files live (usually \fB~\fP)\&.
+.PP
+.PD 0
+.TP
+.PD
+\fBzfmark\fP [ \fIbookmark\fP ]
+If given an argument, mark the current host, user and directory under the
+name \fIbookmark\fP for later use by \fBzfgoto\fP\&.  If there is no connection
+open, use the values for the last connection immediately before it was
+closed; it is an error if there was none\&.  Any existing bookmark
+under the same name will be silently replaced\&.
+.RS
+.PP
+If not given an argument, list the existing bookmarks and the points to
+which they refer in the form \fIuser\fP\fB@\fP\fIhost\fP\fB:\fP\fIdirectory\fP;
+this is the format in which they are stored, and the file may be edited
+directly\&.
+.RE
+.TP
+\fBzfgoto\fP [ \fB\-n\fP ] \fIbookmark\fP
+Return to the location given by \fIbookmark\fP, as previously set by
+\fBzfmark\fP\&.  If the location has user `\fBftp\fP\&' or `\fBanonymous\fP', open
+the connection with \fBzfanon\fP, so that no password is required\&.  If the
+user and host parameters match those stored for the current session, if
+any, those will be used, and again no password is required\&.  Otherwise a
+password will be prompted for\&.
+.RS
+.PP
+With the option \fB\-n\fP, the bookmark is taken to be a nickname stored by
+the \fBncftp\fP program in its bookmark file, which is assumed to be
+\fB~/\&.ncftp/bookmarks\fP\&.  The function works identically in other ways\&.
+Note that there is no mechanism for adding or modifying \fBncftp\fP bookmarks
+from the zftp functions\&.
+.RE
+.PP
+.SS "Other functions"
+Mostly, these functions will not be called directly (apart from
+\fBzfinit\fP), but are described here for completeness\&.  You may wish to
+alter \fBzftp_chpwd\fP and \fBzftp_progress\fP, in particular\&.
+.PP
+.PD 0
+.TP
+.PD
+\fBzfinit\fP [ \fB\-n\fP ]
+As described above, this is used to initialize the zftp function system\&.
+The \fB\-n\fP option should be used if the zftp command is already built into
+the shell\&.
+.TP
+\fBzfautocheck\fP [ \fB\-dn\fP ]
+This function is called to implement automatic reopening behaviour, as
+described in more detail below\&.  The options must appear in the first
+argument; \fB\-n\fP prevents the command from changing to the old directory,
+while \fB\-d\fP prevents it from setting the variable \fBdo_close\fP, which it
+otherwise does as a flag for automatically closing the connection after a
+transfer\&.  The host and directory for the last session are stored in the
+variable \fB$zflastsession\fP, but the internal host/user/password parameters
+must also be correctly set\&.
+.TP
+\fBzfcd_match \fIprefix\fP \fIsuffix\fP\fP
+This performs matching for completion of remote directory names\&.  If the
+remote server is UNIX, it will attempt to persuade the server to list the
+remote directory with subdirectories marked, which usually works but is not
+guaranteed\&.  On other hosts it simply calls \fBzfget_match\fP and hence
+completes all files, not just directories\&.  On some systems, directories
+may not even look like filenames\&.
+.TP
+\fBzfget_match \fIprefix\fP \fIsuffix\fP\fP
+This performs matching for completion of remote filenames\&.  It caches files
+for the current directory (only) in the shell parameter \fB$zftp_fcache\fP\&.
+It is in the form to be called by the \fB\-K\fP option of \fBcompctl\fP, but
+also works when called from a widget\-style completion function with
+\fIprefix\fP and \fIsuffix\fP set appropriately\&.
+.TP
+\fBzfrglob \fIvarname\fP\fP
+Perform remote globbing, as describes in more detail below\&.  \fIvarname\fP
+is the name of a variable containing the pattern to be expanded; if there
+were any matches, the same variable will be set to the expanded set of
+filenames on return\&.
+.TP
+\fBzfrtime\fP \fIlfile\fP \fIrfile\fP [ \fItime\fP ]
+Set the local file \fIlfile\fP to have the same modification time as the
+remote file \fIrfile\fP, or the explicit time \fItime\fP in FTP format
+\fBCCYYMMDDhhmmSS\fP for the GMT timezone\&.  This uses the shell\&'s
+\fBzsh/datetime\fP module to perform the conversion from
+GMT to local time\&.
+.TP
+\fBzftp_chpwd\fP
+This function is called every time a connection is opened, or closed, or
+the remote directory changes\&.  This version alters the title bar of an
+\fBxterm\fP\-compatible or \fBsun\-cmd\fP terminal emulator to reflect the 
+local and remote hostnames and current directories\&.  It works best when
+combined with the function \fBchpwd\fP\&.  In particular, a function of 
+the form
+.RS
+.PP
+.RS
+.nf
+\fBchpwd() {
+  if [[ \-n $ZFTP_USER ]]; then
+    zftp_chpwd
+  else
+    # usual chpwd e\&.g put host:directory in title bar
+  fi
+}\fP
+.fi
+.RE
+.PP
+fits in well\&.
+.RE
+.TP
+\fBzftp_progress\fP
+This function shows the status of the transfer\&.  It will not write anything
+unless the output is going to a terminal; however, if you transfer files in
+the background, you should turn off progress reports by hand using
+`\fBzstyle \&':zftp:*' progress none\fP'\&.  Note also that if you alter it, any
+output \fImust\fP be to standard error, as standard output may be a file
+being received\&.  The form of the progress meter, or whether it is used at
+all, can be configured without altering the function, as described in the
+next section\&.
+.TP
+\fBzffcache\fP
+This is used to implement caching of files in the current directory for
+each session separately\&.  It is used by \fBzfget_match\fP and \fBzfrglob\fP\&.
+.PP
+.SH "MISCELLANEOUS FEATURES"
+.PP
+.SS "Configuration"
+.PP
+Various styles are available using the standard shell style mechanism,
+described in
+\fIzshmodules\fP(1)\&. Briefly, the
+command `\fBzstyle \&':zftp:*'\fP \fIstyle\fP \fIvalue\fP \&.\&.\&.'\&.
+defines the \fIstyle\fP to have value \fIvalue\fP; more than one value may be
+given, although that is not useful in the cases described here\&.  These
+values will then be used throughout the zftp function system\&.  For more
+precise control, the first argument, which gives a pattern that matches \fIcontexts\fP in which the
+style applies, can be modified to include a particular function, as for
+example `\fB:zftp:zfget\fP\&': the style will then have the given value only
+in the \fBzfget\fP function, and will override styles set under `\fB:zftp:*\fP\&'\&.
+Note that only the top level function name, as called by
+the user, is used; calling of lower level functions is transparent to the
+user\&.  Hence modifications to the title bar in \fBzftp_chpwd\fP use the
+contexts \fB:zftp:zfopen\fP, \fB:zftp:zfcd\fP, etc\&., depending where it was
+called from\&.  The following styles are understood:
+.PP
+.PD 0
+.TP
+.PD
+\fBprogress\fP
+Controls the way that \fBzftp_progress\fP reports on the progress of a
+transfer\&.  If empty, unset, or `\fBnone\fP\&', no progress report is made; if
+`\fBbar\fP\&' a growing bar of inverse video is shown; if `\fBpercent\fP' (or any
+other string, though this may change in future), the percentage of the file
+transferred is shown\&.  The bar meter requires that the width of the
+terminal be available via the \fB$COLUMNS\fP parameter (normally this is set
+automatically)\&.  If the size of the file being transferred is not
+available, \fBbar\fP and \fBpercent\fP meters will simply show the number of
+bytes transferred so far\&.
+.RS
+.PP
+When \fBzfinit\fP is run, if this style is not defined for the context
+\fB:zftp:*\fP, it will be set to `bar\&'\&.
+.RE
+.TP
+\fBupdate\fP
+Specifies the minimum time interval between updates of the progress meter
+in seconds\&.  No update is made unless new data has been received, so the
+actual time interval is limited only by \fB$ZFTP_TIMEOUT\fP\&.
+.RS
+.PP
+As described for \fBprogress\fP, \fBzfinit\fP will force this to default to 1\&.
+.RE
+.TP
+\fBremote\-glob\fP
+If set to `\fB1\fP\&', `\fByes\fP' or `\fBtrue\fP', filename generation (globbing) is
+performed on the remote machine instead of by zsh itself; see below\&.
+.TP
+\fBtitlebar\fP
+If set to `\fB1\fP\&', `\fByes\fP' or `\fBtrue\fP', \fBzftp_chpwd\fP will put the remote host and
+remote directory into the titlebar of terminal emulators such as xterm or
+sun\-cmd that allow this\&.
+.RS
+.PP
+As described for \fBprogress\fP, \fBzfinit\fP will force this to default to 1\&.
+.RE
+.TP
+\fBchpwd\fP
+If set to `\fB1\fP\&' `\fByes\fP' or `\fBtrue\fP', \fBzftp_chpwd\fP will call the function
+\fBchpwd\fP when a connection is closed\&.  This is useful if the remote host
+details were put into the terminal title bar by \fBzftp_chpwd\fP and your
+usual \fBchpwd\fP also modifies the title bar\&.
+.RS
+.PP
+When \fBzfinit\fP is run, it will determine whether \fBchpwd\fP exists and if
+so it will set the default value for the style to 1 if none exists
+already\&.
+.RE
+.PP
+Note that there is also an associative array \fBzfconfig\fP which contains
+values used by the function system\&.  This should not be modified or
+overwritten\&.
+.PP
+.SS "Remote globbing"
+.PP
+The commands for retrieving files usually perform filename generation
+(globbing) on their arguments; this can be turned off by passing the option
+\fB\-G\fP to each of the commands\&.  Normally this operates by retrieving a
+complete list of files for the directory in question, then matching these
+locally against the pattern supplied\&.  This has the advantage that the full
+range of zsh patterns (respecting the setting of the option
+\fBEXTENDED_GLOB\fP) can be used\&.  However, it means that the directory part
+of a filename will not be expanded and must be given exactly\&.  If the
+remote server does not support the UNIX directory semantics, directory
+handling is problematic and it is recommended that globbing only be used
+within the current directory\&.  The list of files in the current directory,
+if retrieved, will be cached, so that subsequent globs in the same
+directory without an intervening \fBzfcd\fP are much faster\&.
+.PP
+If the \fBremote\-glob\fP style (see above) is set, globbing is instead
+performed on the remote host: the server is asked for a list of matching
+files\&.  This is highly dependent on how the server is implemented, though
+typically UNIX servers will provide support for basic glob patterns\&.  This
+may in some cases be faster, as it avoids retrieving the entire list of
+directory contents\&.
+.PP
+.SS "Automatic and temporary reopening"
+.PP
+As described for the \fBzfopen\fP command, a subsequent \fBzfopen\fP with no
+parameters will reopen the connection to the last host (this includes
+connections made with the \fBzfanon\fP command)\&.  Opened in this fashion, the
+connection starts in the default remote directory and will remain open
+until explicitly closed\&.
+.PP
+Automatic re\-opening is also available\&.  If a connection is not currently
+open and a command requiring a connection is given, the last connection is
+implicitly reopened\&.  In this case the directory which was current when the
+connection was closed again becomes the current directory (unless, of
+course, the command given changes it)\&.  Automatic reopening will also take
+place if the connection was close by the remote server for whatever reason
+(e\&.g\&. a timeout)\&.  It is not available if the \fB\-1\fP option to \fBzfopen\fP
+or \fBzfanon\fP was used\&.
+.PP
+Furthermore, if the command issued is a file transfer, the connection will
+be closed after the transfer is finished, hence providing a one\-shot mode
+for transfers\&.  This does not apply to directory changing or listing
+commands; for example a \fBzfdir\fP may reopen a connection but will leave it
+open\&.  Also, automatic closure will only ever happen in the same command as
+automatic opening, i\&.e a \fBzfdir\fP directly followed by a \fBzfget\fP will
+never close the connection automatically\&.
+.PP
+Information about the previous connection is given by the \fBzfstat\fP
+function\&.  So, for example, if that reports:
+.PP
+.RS
+.nf
+\fBSession:        default
+Not connected\&.
+Last session:   ftp\&.bar\&.com:/pub/textfiles\fP
+.fi
+.RE
+.PP
+then the command \fBzfget file\&.txt\fP will attempt to reopen a connection to
+\fBftp\&.bar\&.com\fP, retrieve the file \fB/pub/textfiles/file\&.txt\fP, and
+immediately close the connection again\&.  On the other hand, \fBzfcd \&.\&.\fP
+will open the connection in the directory \fB/pub\fP and leave it open\&.
+.PP
+Note that all the above is local to each session; if you return to a
+previous session, the connection for that session is the one which will be
+reopened\&.
+.PP
+.SS "Completion"
+.PP
+Completion of local and remote files, directories, sessions and bookmarks
+is supported\&.  The older, \fBcompctl\fP\-style completion is defined when
+\fBzfinit\fP is called; support for the new widget\-based completion system is
+provided in the function \fBCompletion/Zsh/Command/_zftp\fP, which should be
+installed with the other functions of the completion system and hence
+should automatically be available\&.

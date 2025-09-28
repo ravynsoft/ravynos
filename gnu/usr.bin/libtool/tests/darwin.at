@@ -1,0 +1,447 @@
+# darwin.at - tests specific to Mac OS X
+#
+#   Copyright (C) 2008-2009, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Peter O'Gorman, 2008
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_BANNER([Mac OS X tests])
+AT_SETUP([darwin fat compile])
+noskip=:
+case $host_os in
+darwin*) ;;
+*) noskip=false ;;
+esac
+
+AT_DATA([simple.c] ,[[
+int main() { return 0;}
+]])
+
+$noskip && {
+$CC $CPPFLAGS $CFLAGS -arch x86_64 -arch i386 -o simple simple.c 2>&1 > /dev/null || noskip=false
+rm -f simple
+}
+
+AT_CHECK([$noskip || (exit 77)])
+
+AT_DATA([foo.c],[[
+int x=0;
+]])
+
+AT_DATA([baz.c],[[
+int y=0;
+]])
+
+AT_DATA([bar.c],[[
+extern int x;
+int bar(void);
+int bar() { return x;}
+]])
+
+AT_DATA([main.c],[[
+extern int x;
+extern int y;
+
+int main() {
+return x+y;
+}
+]])
+
+mkdir bin
+AT_DATA([bin/basename],[[
+#! /bin/sh
+
+usage="usage: $0 argument"
+if test $# != 1; then
+                  echo $usage >&2
+                  exit 1
+fi
+
+echo $1 | $SED "s|^.*/||"
+]])
+
+chmod +x bin/basename
+save_PATH=$PATH
+PATH=`pwd`/bin:$PATH
+export PATH
+
+AT_CHECK([$LIBTOOL --mode=compile --tag=CC $CC -c -o foo.lo $CPPFLAGS $CFLAGS -arch x86_64 -arch i386 foo.c],[0],[ignore],[ignore])
+
+AT_CHECK([$LIBTOOL --mode=compile --tag=CC $CC -c -o baz.lo $CPPFLAGS $CFLAGS -arch x86_64 -arch i386 baz.c],[0],[ignore],[ignore])
+
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC -o libfoo.la $CPPFLAGS $CFLAGS $LDFLAGS -arch x86_64 -arch i386 foo.lo baz.lo],[0],[ignore],[ignore])
+
+AT_CHECK([$LIBTOOL --mode=compile --tag=CC $CC -c -o bar.lo $CPPFLAGS $CFLAGS -arch x86_64 -arch i386 bar.c],[0],[ignore],[ignore])
+
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC  -o libbar.la $CPPFLAGS $CFLAGS $LDFLAGS -arch x86_64 -arch i386 bar.lo libfoo.la -rpath /nonexistent],[0],[ignore],[ignore])
+
+AT_CHECK([$LIBTOOL --mode=compile --tag=CC $CC -c -o main.lo $CPPFLAGS $CFLAGS -arch x86_64 -arch i386 main.c],[0],[ignore],[ignore])
+
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC  -o main$EXEEXT $CPPFLAGS $CFLAGS $LDFLAGS -arch x86_64 -arch i386 main.lo libbar.la],[0],[ignore],[ignore])
+
+PATH=$save_PATH
+AT_CLEANUP
+
+
+AT_SETUP([darwin concurrent library extraction])
+
+AT_DATA([foo.c], [[
+int foo (void) { return 0; }
+]])
+
+AT_DATA([bar.c], [[
+extern int foo1 (void);
+int bar (void) { return foo1 (); }
+]])
+cp bar.c baz.c
+
+objects=
+for obj in 1 2 3 4 5 6 7 8; do
+  $SED "s/foo/foo$obj/" < foo.c > foo$obj.c
+  AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c foo$obj.c],
+	   [], [ignore], [ignore])
+  objects="$objects foo$obj.lo"
+done
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c bar.c],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c baz.c],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o libfoo.la $objects],
+	 [], [ignore], [ignore])
+
+# Hypothesis: concurrent convenience archive extraction works.
+for i in 1 2 3 4 5; do
+  rm -f libbar.la libbaz.la
+  AT_CHECK([($LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS ]dnl
+	   [  -o libbar.la bar.lo -rpath /foo libfoo.la) & ]dnl
+	   [($LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS ]dnl
+	   [  -o libbaz.la baz.lo -rpath /foo libfoo.la) & ]dnl
+	   [wait; test -f libbar.la && test -f libbaz.la],
+	   [], [ignore], [ignore])
+done
+
+# Hypothesis: the lock is not used in dry run mode.
+eval "`$LIBTOOL --config | $EGREP '^(objdir)='`"
+# Next line is internal detail.
+lockfile=$objdir/libfoo.a.lock
+echo stamp > $lockfile
+AT_CHECK([$LIBTOOL --dry-run --mode=link $CC $CFLAGS $LDFLAGS ]dnl
+	 [ -o libbar.la bar.lo -rpath /foo libfoo.la],
+	 [], [ignore], [ignore])
+AT_CHECK([$GREP stamp $lockfile], [], [ignore])
+
+AT_CLEANUP
+
+AT_SETUP([darwin gdb debug information])
+
+AT_CHECK([gdb --version || (exit 77)],[ignore],[ignore],[ignore])
+
+AT_DATA([foo.c], [[
+int foo (void) { return 0; }
+]])
+
+AT_DATA([bar.c], [[
+extern int foo (void);
+int bar (void) { return foo (); }
+]])
+
+AT_DATA([main.c], [[
+extern int bar(void);
+
+int main() { return bar();}
+]])
+
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c bar.c],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c foo.c],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c main.c],
+	 [], [ignore], [ignore])
+
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o libfoo.la foo.lo],
+	 [], [ignore], [ignore])
+
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS ]dnl
+	 [  -o libbar.la bar.lo -rpath /foo libfoo.la ],
+	 [], [ignore], [ignore])
+
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS ]dnl
+	 [  -o main main.lo libbar.la],[], [ignore], [ignore])
+AT_CHECK([echo quit | $LIBTOOL --mode=execute gdb main],
+	 [ignore], [ignore], [stderr])
+
+AT_CHECK([$GREP 'Could not find object file' stderr],[1],[ignore],[ignore])
+
+AT_XFAIL_IF([
+eval "`$LIBTOOL --config | $EGREP '^(whole_archive_flag_spec)='`"
+case $whole_archive_flag_spec:$host_os in
+:darwin*) : ;;
+*) false ;;
+esac ])
+
+# Remove any dSYM bundle
+rm -rf .libs/*.dSYM
+
+AT_CHECK([echo quit | $LIBTOOL --mode=execute gdb main],
+	 [ignore], [ignore], [stderr])
+AT_CHECK([$GREP 'Could not find object file' stderr],[1],[ignore],[ignore])
+
+AT_CLEANUP
+
+AT_SETUP([darwin ld warnings changing configure results])
+
+AT_DATA([configure.ac],
+[[AC_INIT([ld-stderr], ]AT_PACKAGE_VERSION[, ]AT_PACKAGE_BUGREPORT[)
+AC_CONFIG_MACRO_DIRS([m4])
+AM_INIT_AUTOMAKE([foreign])
+AC_PROG_CC
+LT_INIT
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+]])
+
+AT_DATA([Makefile.am],[
+ACLOCAL_AMFLAGS = -I m4
+])
+LT_AT_LIBTOOLIZE([--copy --force])
+LT_AT_AUTORECONF([--force --install])
+LT_AT_CONFIGURE
+AT_CHECK([./libtool --config],[ignore],[stdout],[ignore])
+mv stdout expout
+LT_AT_CONFIGURE([LDFLAGS=-L/there/is/no/dir/here])
+AT_CHECK([./libtool --config],[ignore],[expout],[ignore])
+AT_CLEANUP
+
+AT_SETUP([darwin can lt_dlopen .dylib and .so files])
+
+AT_KEYWORDS([libltdl dylib])
+
+# This test requires shared library support.
+AT_CHECK([$LIBTOOL --features | $GREP 'enable shared libraries' || exit 77],
+	 [], [ignore])
+
+eval `$LIBTOOL --config | $EGREP '^shrext_cmds='`
+
+module=no
+eval shared_ext=\"$shrext_cmds\"
+module=yes
+eval module_ext=\"$shrext_cmds\"
+
+# Only bother with this test if module extension is different from
+# shared extension
+AT_CHECK([test "$shared_ext" != "$module_ext" || exit 77])
+
+# Skip this test when called from:
+#    make distcheck DISTCHECK_CONFIGURE_FLAGS=--disable-ltdl-install
+AT_CHECK([case $LIBLTDL in #(
+ */_inst/lib/*) test -f "$LIBLTDL" || (exit 77) ;;
+esac], [], [ignore])
+
+prefix=`pwd`/inst
+libdir=$prefix/lib
+bindir=$prefix/bin
+mkdir $prefix $libdir $bindir
+
+# This code is copied from the Autobook:
+# <http://sources.redhat.com/autobook/autobook/autobook_169.html>
+# so if it needs changes, be sure to notify the Autobook authors
+# about them.
+
+AT_DATA([simple-module.c],
+[[
+#include <stdio.h>
+
+#ifdef __cplusplus
+extern "C"
+#endif
+int
+run (const char *argument)
+{
+  printf ("Hello, %s!\n", argument);
+  return 0;
+}
+]])
+
+AT_DATA([ltdl-loader.c],
+[[
+#include <stdio.h>
+#include <stdlib.h>
+#ifndef EXIT_FAILURE
+#  define EXIT_FAILURE        1
+#  define EXIT_SUCCESS        0
+#endif
+
+#include <limits.h>
+#ifndef PATH_MAX
+#  define PATH_MAX 255
+#endif
+
+#include <string.h>
+#include <ltdl.h>
+
+#ifndef MODULE_PATH_ENV
+#  define MODULE_PATH_ENV        "MODULE_PATH"
+#endif
+
+typedef int entrypoint (const char *argument);
+
+/* Save and return a copy of the dlerror() error  message,
+   since the next API call may overwrite the original. */
+static char *dlerrordup (char *errormsg);
+
+int
+main (int argc, const char *argv[])
+{
+  char *errormsg = NULL;
+  lt_dlhandle module = NULL;
+  entrypoint *run = NULL;
+  int errors = 0;
+
+  if (argc != 3)
+    {
+      fprintf (stderr, "USAGE: main MODULENAME ARGUMENT\n");
+      exit (EXIT_FAILURE);
+    }
+
+  /* Initialise libltdl. */
+  errors = lt_dlinit ();
+
+  /* Set the module search path. */
+  if (!errors)
+    {
+      const char *path = getenv (MODULE_PATH_ENV);
+
+      if (path != NULL)
+        errors = lt_dlsetsearchpath (path);
+    }
+
+  /* Load the module. */
+  if (!errors)
+    module = lt_dlopenext (argv[1]);
+
+  /* Find the entry point. */
+  if (module)
+    {
+      run = (entrypoint *) lt_dlsym (module, "run");
+
+      /* In principle, run might legitimately be NULL, so
+         I don't use run == NULL as an error indicator
+         in general. */
+      errormsg = dlerrordup (errormsg);
+      if (errormsg != NULL)
+        {
+          errors = lt_dlclose (module);
+          module = NULL;
+        }
+    }
+  else
+    errors = 1;
+
+  /* Call the entry point function. */
+  if (!errors)
+    {
+      int result = (*run) (argv[2]);
+      if (result < 0)
+        errormsg = strdup ("module entry point execution failed");
+      else
+        printf ("\t=> %d\n", result);
+    }
+
+  /* Unload the module, now that we are done with it. */
+  if (!errors)
+    errors = lt_dlclose (module);
+
+  if (errors)
+    {
+      /* Diagnose the encountered error. */
+      errormsg = dlerrordup (errormsg);
+
+      if (!errormsg)
+        {
+          fprintf (stderr, "%s: dlerror() failed.\n", argv[0]);
+          return EXIT_FAILURE;
+        }
+    }
+
+  /* Finished with ltdl now. */
+  if (!errors)
+    if (lt_dlexit () != 0)
+      errormsg = dlerrordup (errormsg);
+
+  if (errormsg)
+    {
+      fprintf (stderr, "%s: %s.\n", argv[0], errormsg);
+      free (errormsg);
+      exit (EXIT_FAILURE);
+    }
+
+  return EXIT_SUCCESS;
+}
+
+/* Be careful to save a copy of the error message,
+   since the  next API call may overwrite the original. */
+static char *
+dlerrordup (char *errormsg)
+{
+  char *error = (char *) lt_dlerror ();
+  if (error && !errormsg)
+    errormsg = strdup (error);
+  return errormsg;
+}
+]])
+
+: ${LTDLINCL="-I$abs_top_srcdir/libltdl"}
+: ${LIBLTDL="$abs_builddir/../libltdl/libltdlc.la"}
+
+CPPFLAGS="$LTDLINCL $CPPFLAGS"
+LDFLAGS="$LDFLAGS -no-undefined"
+
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c simple-module.c],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o simple-module.la ]dnl
+	 [simple-module.lo -rpath $libdir -module -avoid-version],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o libsimple-dylib.la ]dnl
+	 [simple-module.lo -rpath $libdir -avoid-version],
+	 [], [ignore], [ignore])
+AT_CHECK([$CC $CPPFLAGS $CFLAGS -c ltdl-loader.c],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o ltdl-loader$EXEEXT ]dnl
+	 [ltdl-loader.$OBJEXT -dlopen self $LIBLTDL],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp simple-module.la $libdir/simple-module.la], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp libsimple-dylib.la $libdir/libsimple-dylib.la], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=clean rm -f simple-module.la], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=clean rm -f libsimple-dylib.la], [], [ignore], [ignore])
+
+rm $libdir/simple-module.la
+rm $libdir/libsimple-dylib.la
+
+for dir in inst/lib "$libdir"; do
+  LT_AT_EXEC_CHECK([./ltdl-loader], [], [stdout], [ignore],
+	    [$dir/simple-module World])
+  AT_CHECK([$GREP "Hello, World" stdout], [], [ignore])
+  LT_AT_EXEC_CHECK([./ltdl-loader], [], [stdout], [ignore],
+	    [$dir/libsimple-dylib World])
+  AT_CHECK([$GREP "Hello, World" stdout], [], [ignore])
+done
+
+AT_CLEANUP

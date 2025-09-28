@@ -1,0 +1,584 @@
+// Keyboard layouts for Turkey.
+
+// This file distributed without any expressed or implied warranty.
+// Nilgün Belma Bugüner <nilgun@belgeler.org>, 2005
+
+// Turkish Q layout.
+default partial
+xkb_symbols "basic" {
+
+    include "latin"
+
+    name[Group1]="Turkish";
+
+    key <TLDE>	{[  quotedbl,     eacute,          less,        degree ]};
+    key <AE01>	{[         1,    exclam,        greater,    exclamdown ]};
+    key <AE02>	{[         2, apostrophe,      sterling,   twosuperior ]};
+    key <AE03>	{[         3,asciicircum,    numbersign, threesuperior ]};
+    key <AE04>	{[         4,       plus,        dollar,    onequarter ]};
+    key <AE06>	{[         6,  ampersand, threequarters,          none ]};
+    key <AE07>	{[         7,      slash,     braceleft,          none ]};
+    key <AE08>	{[         8,  parenleft,   bracketleft,          none ]};
+    key <AE09>	{[         9, parenright,  bracketright,     plusminus ]};
+    key <AE10>	{[         0,      equal,    braceright,        degree ]};
+    key <AE11>	{[  asterisk,   question,     backslash,  questiondown ]};
+    key <AE12>	{[     minus, underscore,           bar,          none ]};
+
+    key <AD02>	{[         w,          W,          none,          none ]};
+    key <AD03>	{[         e,          E,      EuroSign,          none ]};
+    key <AD05>	{[         t,          T,         U20BA,          none ]};
+    key <AD07>	{[         u,          U,   ucircumflex,   Ucircumflex ]};
+    key <AD08>  { type[group1] = "FOUR_LEVEL_ALPHABETIC",
+                 [  idotless,          I,   icircumflex,   Icircumflex ]};
+    key <AD09>	{[         o,          O,   ocircumflex,   Ocircumflex ]};
+    key <AD10>	{[         p,          P,          none,          none ]};
+    key <AD11>	{[    gbreve,     Gbreve                               ]};
+    key <AD12>	{[udiaeresis, Udiaeresis,    asciitilde,   dead_macron ]};
+
+    key <AC01>	{[         a,          A,   acircumflex,   Acircumflex ]};
+    key <AC02>	{[         s,          S,        ssharp,          none ]};
+    key <AC03>	{[         d,          D,          none,          none ]};
+    key <AC04>	{[         f,          F,   ordfeminine,          none ]};
+    key <AC05>	{[         g,          G,          none,          none ]};
+    key <AC06>	{[         h,          H,          none,          none ]};
+    key <AC08>	{[         k,          K,          none,          none ]};
+    key <AC09>	{[         l,          L,          none,          none ]};
+    key <AC10>	{[  scedilla,   Scedilla,         acute,    dead_acute ]};
+    key <AC11>  { type[group1] = "FOUR_LEVEL_SEMIALPHABETIC",
+                 [         i,  Iabovedot,    apostrophe,    dead_caron ]};
+    key <BKSL>	{[     comma,  semicolon,         grave,    dead_grave ]};
+
+    key <LSGT>	{[      less,    greater,           bar,     brokenbar ]};
+    key <AB08>	{[odiaeresis, Odiaeresis,      multiply,          none ]};
+    key <AB09>	{[  ccedilla,   Ccedilla,periodcentered,      division ]};
+    key <AB10>	{[    period,      colon, dead_abovedot, dead_abovedot ]};
+
+    include "kpdl(comma)"
+    include "level3(ralt_switch)"
+};
+
+
+// Turkish F layout.
+partial
+xkb_symbols "f" {
+
+    include "latin"
+
+    name[Group1]="Turkish (F)";
+
+    key <TLDE>	{[      plus,   asterisk,       notsign,     plusminus ]};
+    key <AE01>	{[         1,     exclam,   onesuperior,    exclamdown ]};
+    key <AE02>	{[         2,   quotedbl,   twosuperior,          none ]};
+    key <AE03>	{[         3,asciicircum,    numbersign, threesuperior ]};
+    key <AE04>	{[         4,     dollar,    onequarter,          none ]};
+    key <AE06>	{[         6,  ampersand, threequarters,          none ]};
+    key <AE07>	{[         7, apostrophe,     braceleft,          none ]};
+    key <AE08>	{[         8,  parenleft,   bracketleft,          none ]};
+    key <AE09>	{[         9, parenright,  bracketright,     plusminus ]};
+    key <AE10>	{[         0,      equal,    braceright,        degree ]};
+    key <AE11>	{[     slash,   question,     backslash,  questiondown ]};
+    key <AE12>	{[     minus, underscore,           bar,          none ]};
+
+    key <AD01>	{[         f,          F,            at,          none ]};
+    key <AD02>	{[         g,          G,          none,          none ]};
+    key <AD03>	{[    gbreve,     Gbreve,          none,          none ]};
+    key <AD04>  { type[group1] = "FOUR_LEVEL_SEMIALPHABETIC",
+                 [  idotless,          I,     paragraph,          none ]};
+    key <AD05>	{[         o,          O,   ocircumflex,   Ocircumflex ]};
+    key <AD06>	{[         d,          D,           yen,          none ]};
+    key <AD07>	{[         r,          R,    registered,          none ]};
+    key <AD08>	{[         n,          N,          none,          none ]};
+    key <AD09>	{[         h,          H,        degree,          none ]};
+    key <AD10>	{[         p,          P,      sterling,          none ]};
+    key <AD11>	{[         q,          Q,dead_diaeresis,dead_abovering ]};
+    key <AD12>	{[         w,          W,    asciitilde,    dead_breve ]};
+
+    key <AC01>	{[         u,          U,   ucircumflex,   Ucircumflex ]};
+    key <AC02>  { type[group1] = "FOUR_LEVEL_ALPHABETIC",
+                 [         i,  Iabovedot,   icircumflex,   Icircumflex ]};
+    key <AC03>	{[         e,          E,      EuroSign,          none ]};
+    key <AC04>	{[         a,          A,   acircumflex,   Acircumflex ]};
+    key <AC05>	{[udiaeresis, Udiaeresis,   ucircumflex,   Ucircumflex ]};
+    key <AC06>	{[         t,          T,         U20BA,          none ]};
+    key <AC07>	{[         k,          K,          none,          none ]};
+    key <AC08>	{[         m,          M,            mu,          none ]};
+    key <AC09>	{[         l,          L,          none,          none ]};
+    key <AC10>	{[         y,          Y,         acute,    dead_acute ]};
+    key <AC11>	{[  scedilla,   Scedilla,    numbersign,    dead_caron ]};
+    key <BKSL>	{[         x,          X,         grave,    dead_grave ]};
+
+    key <LSGT>	{[     less,     greater,           bar,     brokenbar ]};
+    key <AB01>	{[         j,          J, guillemotleft,          less ]};
+    key <AB02>	{[odiaeresis, Odiaeresis, guillemotright,      greater ]};
+    key <AB03>	{[         v,          V, leftdoublequotemark,    none ]};
+    key <AB04>	{[         c,          C,          cent,     copyright ]};
+    key <AB05>	{[  ccedilla,   Ccedilla,rightdoublequotemark,    none ]};
+    key <AB06>	{[         z,          Z,          none,          none ]};
+    key <AB07>	{[         s,          S,       section,          none ]};
+    key <AB08>	{[         b,          B,      multiply,  nobreakspace ]};
+    key <AB09>	{[    period,      colon,      division, dead_abovedot ]};
+    key <AB10>	{[     comma,  semicolon,periodcentered,          none ]};
+
+    include "kpdl(comma)"
+    include "level3(ralt_switch)"
+};
+
+// Turkish E layout.
+partial
+xkb_symbols "e" {
+
+    include "latin"
+
+    name[Group1]="Turkish (E)";
+
+    key <TLDE>	{[      plus,   asterisk,       notsign,     plusminus ]};
+    key <AE01>	{[         1,     exclam,   onesuperior,    exclamdown ]};
+    key <AE02>	{[         2,   quotedbl,   twosuperior,          none ]};
+    key <AE03>	{[         3,asciicircum,    numbersign, threesuperior ]};
+    key <AE04>	{[         4,     dollar,    onequarter,          none ]};
+    key <AE06>	{[         6,  ampersand, threequarters,          none ]};
+    key <AE07>	{[         7, apostrophe,     braceleft,          none ]};
+    key <AE08>	{[         8,  parenleft,   bracketleft,          none ]};
+    key <AE09>	{[         9, parenright,  bracketright,     plusminus ]};
+    key <AE10>	{[         0,      equal,    braceright,        degree ]};
+    key <AE11>	{[     slash,   question,     backslash,  questiondown ]};
+    key <AE12>	{[     minus, underscore,           bar,          none ]};
+
+    key <AD01>	{[         q,          Q,dead_diaeresis,dead_abovering ]};
+    key <AD02>	{[         j,          J, guillemotleft,          less ]};
+    key <AD03>	{[udiaeresis, Udiaeresis,   ucircumflex,   Ucircumflex ]};
+    key <AD04>	{[         o,          O,   ocircumflex,   Ocircumflex ]};
+    key <AD05>	{[         f,          F,            at,          none ]};
+    key <AD06>	{[         c,          C,          cent,     copyright ]};
+    key <AD07>	{[         t,          T,         U20BA,          none ]};
+    key <AD08>	{[         m,          M,            mu,          none ]};
+    key <AD09>	{[         k,          K,          none,          none ]};
+    key <AD10>	{[         b,          B,      multiply,  nobreakspace ]};
+    key <AD11>	{[         s,          S,       section,          none ]};
+    key <AD12>	{[         p,          P,      sterling,          none ]};
+
+    key <AC01>	{[         e,          E,      EuroSign,          none ]};
+    key <AC02>	{[         a,          A,   acircumflex,   Acircumflex ]};
+    key <AC03>  { type[group1] = "FOUR_LEVEL_ALPHABETIC",
+                 [         i,  Iabovedot,   icircumflex,   Icircumflex ]};
+    key <AC04>  { type[group1] = "FOUR_LEVEL_SEMIALPHABETIC",
+                 [  idotless,          I,     paragraph,          none ]};
+    key <AC05>	{[         g,          G,          none,          none ]};
+    key <AC06>	{[    gbreve,     Gbreve,          none,          none ]};
+    key <AC07>	{[         l,          L,          none,          none ]};
+    key <AC08>	{[         n,          N,          none,          none ]};
+    key <AC09>	{[         r,          R,    registered,          none ]};
+    key <AC10>	{[         d,          D,           yen,          none ]};
+    key <AC11>	{[         v,          V, leftdoublequotemark,    none ]};
+    key <BKSL>	{[     comma,  semicolon,periodcentered,          none ]};
+
+    key <LSGT>	{[     less,     greater,           bar,     brokenbar ]};
+    key <AB01>	{[         x,          X,         grave,    dead_grave ]};
+    key <AB02>	{[         w,          W,    asciitilde,    dead_breve ]};
+    key <AB03>	{[odiaeresis, Odiaeresis, guillemotright,      greater ]};
+    key <AB04>	{[         u,          U,   ucircumflex,   Ucircumflex ]};
+    key <AB05>	{[         h,          H,        degree,          none ]};
+    key <AB06>	{[         z,          Z,          none,          none ]};
+    key <AB07>	{[  ccedilla,   Ccedilla,rightdoublequotemark,    none ]};
+    key <AB08>	{[         y,          Y,         acute,    dead_acute ]};
+    key <AB09>	{[  scedilla,   Scedilla,    numbersign,    dead_caron ]};
+    key <AB10>	{[    period,      colon,      division, dead_abovedot ]};
+
+    include "kpdl(comma)"
+    include "level3(ralt_switch)"
+};
+
+// Turkish Alt-Q layout.
+partial
+xkb_symbols "alt" {
+
+    include "latin"
+
+    name[Group1]="Turkish (Alt-Q)";
+
+    key <AE07>	{[         7,   ampersand,  lowleftcorner,  upleftcorner ]};
+    key <AE08>	{[         8,    asterisk,          leftt,          topt ]};
+    key <AE09>	{[         9,   parenleft,         rightt,          bott ]};
+    key <AE10>	{[         0,  parenright, lowrightcorner, uprightcorner ]};
+    key <AE11>	{[     minus,  underscore, horizlinescan5,       vertbar ]};
+    key <AE12>	{[     equal,        plus,  crossinglines                ]};
+
+    key <AD03>	{[         e,           E,       EuroSign,          none ]};
+    key <AD07>	{[         u,           U,     udiaeresis,    Udiaeresis ]};
+    key <AD08>	{[         i,           I,       idotless,     Iabovedot ]};
+    key <AD09>	{[         o,           O,     odiaeresis,    Odiaeresis ]};
+    key <AC01>	{[         a,           A,    acircumflex,   Acircumflex ]};
+    key <AC02>	{[         s,           S,       scedilla,      Scedilla ]};
+    key <AC05>	{[         g,           G,         gbreve,        Gbreve ]};
+
+    key <AB03>	{[         c,           C,       ccedilla,      Ccedilla ]};
+
+    include "level3(ralt_switch)"
+};
+
+
+// Kurdish Q layout.
+// Originally by Erdal Ronahi <erdal.ronahi@gmail.com>, 2006.
+partial
+xkb_symbols "ku" {
+
+   include "tr(basic)"
+
+   name[Group1]="Kurdish (Turkey, Latin Q)";
+
+    key <AD08>	{[          i,           I,     idotless,            I ]};
+    key <AD11>	{[          x,           X,       gbreve,       Gbreve ]};
+    key <AD12>	{[ucircumflex, Ucircumflex,   asciitilde,  dead_macron ]};
+    key <AC11>	{[icircumflex, Icircumflex,   apostrophe,   dead_caron ]};
+    key <AB08>	{[ecircumflex, Ecircumflex,   odiaeresis,   Odiaeresis ]};
+};
+
+// Kurdish F layout.
+partial
+xkb_symbols "ku_f" {
+
+    include "tr(f)"
+
+    name[Group1]="Kurdish (Turkey, F)";
+
+    key <AD03>	{[          x,           X,       gbreve,       Gbreve ]};
+    key <AD04>	{[          i,           I,    paragraph,         none ]};
+    key <AD05>	{[          o,           O,  ocircumflex,  Ocircumflex ]};
+
+    key <AC01>	{[ucircumflex, Ucircumflex,   udiaeresis,   Udiaeresis ]};
+    key <AC02>	{[icircumflex, Icircumflex,            i,    Iabovedot ]};
+    key <AC05>	{[          u,           U,   udiaeresis,   Udiaeresis ]};
+    key <AB02>	{[ecircumflex, Ecircumflex,   odiaeresis,   Odiaeresis ]};
+};
+
+// Kurdish Alt-Q layout.
+partial
+xkb_symbols "ku_alt" {
+
+    include "tr(alt)"
+
+    name[Group1]="Kurdish (Turkey, Latin Alt-Q)";
+
+    key <AD03>	{[          e,           E,  ecircumflex,  Ecircumflex ]};
+    key <AD07>	{[          u,           U,  ucircumflex,  Ucircumflex ]};
+    key <AD08>	{[          i,           I,  icircumflex,  Icircumflex ]};
+    key <AD09>	{[          o,           O,   odiaeresis,   Odiaeresis ]};
+};
+
+
+// Turkish international Q layout.
+// Originally by Alexis Pellicier <alexis.pellicier@nds.k12.tr>, 2007.
+partial
+xkb_symbols "intl" {
+
+    include "latin"
+
+    name[Group1]="Turkish (intl., with dead keys)";
+
+    key <TLDE>	{[  quotedbl,     eacute,       plusminus,        degree ]};
+    key <AE01>	{[         1,     exclam,     onesuperior,    exclamdown ]};
+    key <AE02>	{[         2, apostrophe,        sterling,   twosuperior ]};
+    key <AE03>	{[         3, dead_circumflex, numbersign, threesuperior ]};
+    key <AE04>	{[         4,       plus,          dollar,    onequarter ]};
+    key <AE06>	{[         6,  ampersand,   threequarters,          none ]};
+    key <AE07>	{[         7,      slash,       braceleft,          none ]};
+    key <AE08>	{[         8,  parenleft,     bracketleft,          none ]};
+    key <AE09>	{[         9, parenright,    bracketright,     plusminus ]};
+    key <AE10>	{[         0,      equal,      braceright,        degree ]};
+    key <AE11>	{[  asterisk,   question,       backslash,  questiondown ]};
+    key <AE12>	{[     minus, underscore,        division,          none ]};
+
+    key <AD02>	{[         w,          W,            none,          none ]};
+    key <AD03>	{[         e,          E,        EuroSign,          cent ]};
+    key <AD05>	{[         t,          T,           U20BA,          none ]};
+    key <AD07>	{[         u,          U,     ucircumflex,   Ucircumflex ]};
+    key <AD08>	{[  idotless,          I,     icircumflex,   Icircumflex ]};
+    key <AD09>	{[         o,          O,     ocircumflex,   Ocircumflex ]};
+    key <AD10>	{[         p,          P,            none,          none ]};
+    key <AD11>	{[    gbreve,     Gbreve,  dead_diaeresis                ]};
+    key <AD12>	{[udiaeresis, Udiaeresis,      dead_tilde,   dead_macron ]};
+
+    key <AC01>	{[         a,          A,     acircumflex,   Acircumflex ]};
+    key <AC02>	{[         s,          S,         section,          none ]};
+    key <AC03>	{[         d,          D,            none,          none ]};
+    key <AC04>	{[         f,          F,     ordfeminine,          none ]};
+    key <AC05>	{[         g,          G,            none,          none ]};
+    key <AC06>	{[         h,          H,            none,          none ]};
+    key <AC08>	{[         k,          K,            none,          none ]};
+    key <AC09>	{[         l,          L,            none,          none ]};
+    key <AC10>	{[  scedilla,   Scedilla,      dead_acute,    dead_acute ]};
+    key <AC11>	{[         i,  Iabovedot,      apostrophe,    dead_caron ]};
+    key <BKSL>	{[     comma,  semicolon,      dead_grave,    dead_grave ]};
+
+    key <LSGT>	{[      less,    greater,             bar,     brokenbar ]};
+    key <AB08>	{[odiaeresis, Odiaeresis,        multiply,          none ]};
+    key <AB09>	{[  ccedilla,   Ccedilla,  periodcentered,      division ]};
+    key <AB10>	{[    period,      colon,   dead_abovedot, dead_abovedot ]};
+
+    include "nbsp(level3)"
+    include "level3(ralt_switch)"
+};
+
+
+partial alphanumeric_keys
+xkb_symbols "olpc" {
+
+    // #HW-SPECIFIC
+
+    include "tr(intl)"
+
+    name[Group1]= "Turkish";
+
+    key <AE01>	{[         1,     exclam,                 none,          none ]};
+    key <AE06>	{[         6,  ampersand,                 none,          none ]};
+    key <AE12>	{[     minus, underscore,                  bar,          none ]};
+
+    key <AB03>	{[         c,          C,  leftdoublequotemark,          none ]};
+    key <AB04>	{[         v,          V, rightdoublequotemark,          none ]};
+    key <AB05>	{[         b,          B,                 none,          none ]};
+    key <AB08>	{[odiaeresis, Odiaeresis,                 none,          none ]};
+    key <AB09>	{[  ccedilla,   Ccedilla,             multiply,          none ]};
+    key <AB10>	{[    period,      colon,             division, dead_abovedot ]};
+
+    key <I219>	{[      less,    greater,                 none,          none ]};
+};
+
+
+// EXTRAS:
+
+partial alphanumeric_keys
+	xkb_symbols "sun_type6" {
+	include "sun_vndr/tr(sun_type6)"
+};
+
+// The basic Turkish layout with "i" and "ı" swapped.
+// Originally by Ali Riza KESKIN <parduscix@yandex.ru>, 2021.
+partial
+xkb_symbols "us" {
+
+    include "tr(basic)"
+
+    name[Group1]="Turkish (i and ı swapped)";
+
+    key <AC11>  { type[group1] = "FOUR_LEVEL_SEMIALPHABETIC",
+                  [          i,         I,     paragraph,          none ]};
+    key <AD08>  { type[group1] = "FOUR_LEVEL_SEMIALPHABETIC",
+                  [  idotless,  Iabovedot,    apostrophe,    dead_caron ]};
+};
+
+
+// Layout for Old Turkic (Orkhon script).
+// Originally by Emir SARI <bitigchi@me.com>, 2020.
+partial alphanumeric_keys
+xkb_symbols "otk" {
+
+    name[Group1]="Old Turkic";
+
+    key <TLDE>	{[quotedbl, guillemotleft, guillemotright, any ]};
+    key <AE01>	{[ U10C48,       any,      1,      exclam ]};
+    key <AE02>	{[ U10C05,       any,      2,    quotedbl ]};
+    key <AE03>	{[ U10C02,       any,      3, asciicircum ]};
+    key <AE04>	{[ U10C47,       any,      4,      dollar ]};
+    key <AE05>	{[ U10C21,       any,      5,     percent ]};
+    key <AE06>	{[ U10C26,    U10C27,      6,   ampersand ]};
+    key <AE07>	{[ U10C36,    U10C37,      7,  apostrophe ]};
+    key <AE08>	{[ U10C38,    U10C39,      8,   parenleft ]};
+    key <AE09>	{[ U10C1C,    U10C1D,      9,  parenright ]};
+    key <AE10>	{[ U10C31,     U2E2E,      0,       equal ]};
+    key <AE11>	{[backslash,   colon,  slash,    question ]};
+    key <AE12>	{[  comma, semicolon,  minus,  underscore ]};
+
+    key <AD01>	{[ U10C13,       any,           at,   any ]};
+    key <AD02>	{[ U10C11,    U10C12,   numbersign,   any ]};
+    key <AD03>	{[ U10C0F,    U10C10,       dollar,   any ]};
+    key <AD04>	{[ U10C0D,    U10C0E,    braceleft,   any ]};
+    key <AD05>	{[ U10C23,       any,   braceright,   any ]};
+    key <AD06>	{[ U10C14,    U10C15,  bracketleft,   any ]};
+    key <AD07>	{[ U10C43,    U10C44, bracketright,   any ]};
+    key <AD08>	{[ U10C3A,    U10C3B,    parenleft,   any ]};
+    key <AD09>	{[ U10C3C,       any,   parenright,   any ]};
+    key <AD10>	{[ U10C2F,    U10C30,    backslash,   any ]};
+    key <AD11>	{[ U10C32,    U10C33,          bar,   any ]};
+    key <AD12>	{[ U10C2A,    U10C2B,   asciitilde,   any ]};
+
+    key <AC01>	{[ U10C00,    U10C01,          any,   any ]};
+    key <AC02>	{[ U10C07,    U10C08,          any,   any ]};
+    key <AC03>	{[ U10C06,       any,     EuroSign,   any ]};
+    key <AC04>	{[ U10C03,    U10C04,   dead_breve,   any ]};
+    key <AC05>	{[ U10C24,    U10C25,   dead_acute,   any ]};
+    key <AC06>	{[ U10C45,    U10C46,        U20BA,   any ]};
+    key <AC07>	{[ U10C34,    U10C35,          any,   any ]};
+    key <AC08>	{[ U10C22,       any,          any,   any ]};
+    key <AC09>	{[ U10C1E,    U10C1F,     sterling,   any ]};
+    key <AC10>	{[ U10C16,    U10C17,          yen,   any ]};
+    key <AC11>	{[ U10C41,    U10C42,       endash,   any ]};
+    key <BKSL>	{[ U10C3F,    U10C40,       emdash,   any ]};
+
+    key <LSGT>	{[   less,   greater,         plus,   any ]};
+    key <AB01>	{[ U10C28,    U10C29,          any,   less           ]};
+    key <AB02>	{[ U10C2D,    U10C2E,       U10C2C,   greater        ]};
+    key <AB03>	{[ U10C3D,       any,    copyright,   guillemotleft  ]};
+    key <AB04>	{[ U10C09,    U10C0A,   registered,   guillemotright ]};
+    key <AB05>	{[ U10C0B,    U10C0C,          any,   any ]};
+    key <AB06>	{[ U10C1A,    U10C1B,          any,   any ]};
+    key <AB07>	{[ U10C3E,       any,          any,   any ]};
+    key <AB08>	{[ U10C20,       any,     multiply,   any ]};
+    key <AB09>	{[ U10C18,    U10C19,     division,   any ]};
+    key <AB10>	{[  U2E31,    period,        minus,   any ]};
+
+    include "kpdl(comma)"
+    include "level3(ralt_switch)"
+};
+
+partial alphanumeric_keys
+xkb_symbols "otkf" {
+
+    include "tr(otk)"
+
+    name[Group1]="Old Turkic (F)";
+
+    key <AD01>	{[ U10C03,  U10C04,   dead_breve,  none ]};
+    key <AD02>	{[ U10C24,  U10C25,   dead_acute,  none ]};
+    key <AD03>	{[ U10C32,  U10C33,          bar,  none ]};
+    key <AD04>	{[ U10C3A,  U10C3B,    parenleft,  none ]};
+    key <AD05>	{[ U10C3C,    none,   parenright,  none ]};
+    key <AD06>	{[ U10C06,    none,     EuroSign,  none ]};
+    key <AD07>	{[ U10C0D,  U10C0E,    braceleft,  none ]};
+    key <AD08>	{[ U10C1A,  U10C1B,         none,  none ]};
+    key <AD09>	{[ U10C45,  U10C46,        U20BA,  none ]};
+    key <AD10>	{[ U10C2F,  U10C30,    backslash,  none ]};
+    key <AD11>	{[ U10C13,    none,           at,  none ]};
+    key <AD12>	{[ U10C11,  U10C12,   numbersign,  none ]};
+
+    key <AC01>	{[ U10C43,  U10C44, bracketright,  none ]};
+    key <AC02>	{[ U10C41,  U10C42,       endash,  none ]};
+    key <AC03>	{[ U10C0F,  U10C10,       dollar,  none ]};
+    key <AC04>	{[ U10C00,  U10C01,         none,  none ]};
+    key <AC05>	{[ U10C2A,  U10C2B,   asciitilde,  none ]};
+    key <AC06>	{[ U10C23,    none,   braceright,  none ]};
+    key <AC07>	{[ U10C22,    none,         none,  none ]};
+    key <AC08>	{[ U10C3E,    none,         none,  none ]};
+    key <AC09>	{[ U10C1E,  U10C1F,     sterling,  none ]};
+    key <AC10>	{[ U10C14,  U10C15,  bracketleft,  none ]};
+    key <AC11>	{[ U10C16,  U10C17,          yen,  none ]};
+    key <BKSL>	{[ U10C2D,  U10C2E,       U10C2C,  none ]};
+
+    key <AB01>	{[ U10C34,  U10C35,         none,  less           ]};
+    key <AB02>	{[ U10C20,    none,     multiply,  greater        ]};
+    key <AB03>	{[ U10C09,  U10C0A,   registered,  guillemotleft  ]};
+    key <AB04>	{[ U10C3D,    none,    copyright,  guillemotright ]};
+    key <AB05>	{[ U10C18,  U10C19,     division,  none ]};
+    key <AB06>	{[ U10C28,  U10C29,         none,  none ]};
+    key <AB07>	{[ U10C07,  U10C08,         none,  none ]};
+    key <AB08>	{[ U10C0B,  U10C0C,         none,  none ]};
+    key <AB09>	{[  U2E31,  period,        minus,  none ]};
+    key <AB10>	{[ U10C3F,  U10C40,       emdash,  none ]};
+};
+
+
+// Layout for Ottoman Turkish (Arabic script).
+partial alphanumeric_keys
+xkb_symbols "ot" {
+
+    name[Group1]= "Ottoman (Q)";
+
+    key <TLDE>	{[ quotedbl,	division,	none			]};
+    key <AE01>	{[ U06f1,	exclam,		grave			]};
+    key <AE02>	{[ U06f2,	U066c,		at			]};
+    key <AE03>	{[ U06f3,	U066b,		numbersign		]};
+    key <AE04>	{[ U06f4,	Ufdfc,		dollar			]};
+    key <AE05>	{[ U06f5,	U066a,		percent			]};
+    key <AE06>	{[ U06f6,	multiply,	asciicircum		]};
+    key <AE07>	{[ U06f7,	Arabic_comma,	ampersand		]};
+    key <AE08>	{[ U06f8,	asterisk,	enfilledcircbullet	]};
+    key <AE09>	{[ U06f9,	parenright,	U200e			]}; // LRM
+    key <AE10>	{[ U06f0,	parenleft,	U200f			]}; // RLM
+    key <AE11>	{[ minus,	Arabic_tatweel,	none			]};
+    key <AE12>	{[ equal,	plus,		none			]};
+
+    key <AD01>	{[ Arabic_qaf,		U0670,			none	]};
+    key <AD02>	{[ Arabic_thal,		U0656,			none	]};
+    key <AD03>	{[ Arabic_heh,		Arabic_fatha,		none	]};
+    key <AD04>	{[ Arabic_ra,		none,			none	]};
+    key <AD05>	{[ Arabic_teh,		Arabic_tehmarbuta,	none	]};
+    key <AD06>	{[ U06CC,		Arabic_yeh,		none	]};
+    key <AD07>	{[ Arabic_sad,		Arabic_damma,		none	]};
+    key <AD08>	{[ Arabic_ain,		none,			none	]};
+    key <AD09>	{[ Arabic_tah,		none,			none	]};
+    key <AD10>	{[ Arabic_peh,		none,			none	]};
+    key <AD11>	{[ Arabic_ghain,	none,			none	]};
+    key <AD12>	{[ Arabic_hah,		none,			none	]};
+
+    key <AC01>	{[ Arabic_alef,		none,			none	]};
+    key <AC02>	{[ Arabic_seen,		Arabic_sukun,		none	]};
+    key <AC03>	{[ Arabic_dal,		Arabic_dammatan,	none	]};
+    key <AC04>	{[ Arabic_feh,		Arabic_fathatan,	none	]};
+    key <AC05>	{[ Arabic_gaf,		none,			none	]};
+    key <AC06>	{[ Arabic_heh,		Arabic_hamzaonyeh,	none	]};
+    key <AC07>	{[ Arabic_jeh,		none,			none	]};
+    key <AC08>	{[ Arabic_keheh,	Arabic_kasratan,	none	]};
+    key <AC09>	{[ Arabic_lam,		none,			none	]};
+    key <AC10>	{[ Arabic_sheen,	Arabic_shadda,		none	]};
+    key <AC11>	{[ Arabic_dad,		Arabic_kasra,		none	]};
+    key <AC12>	{[ U2018,		Arabic_semicolon,	none	]};
+
+    key <AB01>	{[ Arabic_zain,		Arabic_zah,		none	]};
+    key <AB02>	{[ Arabic_khah,		Arabic_hamza,		none	]};
+    key <AB03>	{[ Arabic_jeem,		Arabic_hamzaonalef,	none	]};
+    key <AB04>	{[ Arabic_waw,		Arabic_hamzaonwaw,	none	]};
+    key <AB05>	{[ Arabic_beh,		Arabic_hamzaunderalef,	none	]};
+    key <AB06>	{[ Arabic_noon,		U06AD,			none	]};
+    key <AB07>	{[ Arabic_meem,		U0653,			none	]};
+    key <AB08>	{[ Arabic_theh,		Arabic_maddaonalef,	none	]};
+    key <AB09>	{[ Arabic_tcheh,	none,			none	]};
+    key <AB10>	{[ period,		colon,			none	]};
+
+    key <SPCE>	{[ space,		U200C,			none	]}; // ZWNJ
+
+    include "level3(ralt_switch)"
+};
+
+partial alphanumeric_keys
+xkb_symbols "otf" {
+
+    include "tr(ot)"
+
+    name[Group1]= "Ottoman (F)";
+
+    key <AD01>	{[ Arabic_feh,		Arabic_fathatan,	none	]};
+    key <AD02>	{[ Arabic_gaf,		none,			none	]};
+    key <AD03>	{[ Arabic_ghain,	Arabic_fatha,		none	]};
+    key <AD04>	{[ Arabic_ain,		none,			none	]};
+    key <AD05>	{[ Arabic_tah,		none,			none	]};
+    key <AD06>	{[ Arabic_dal,		Arabic_dammatan,	none	]};
+    key <AD07>	{[ Arabic_ra,		none,			none	]};
+    key <AD08>	{[ Arabic_noon,		U06AD,			none	]};
+    key <AD09>	{[ Arabic_heh,		Arabic_hamzaonyeh,	none	]};
+    key <AD10>	{[ Arabic_peh,		none,			none	]};
+    key <AD11>	{[ Arabic_qaf,		U0670,			none	]};
+    key <AD12>	{[ Arabic_thal,		U0656,			none	]};
+
+    key <AC01>	{[ Arabic_sad,		Arabic_damma,		none	]};
+    key <AC02>	{[ Arabic_dad,		Arabic_kasra,		none	]};
+    key <AC03>	{[ Arabic_heh,		Arabic_fatha,		none	]};
+    key <AC04>	{[ Arabic_alef,		none,			none	]};
+    key <AC05>	{[ Arabic_hah,		none,			none	]};
+    key <AC06>	{[ Arabic_teh,		Arabic_tehmarbuta,	none	]};
+    key <AC07>	{[ Arabic_keheh,	Arabic_kasratan,	none	]};
+    key <AC08>	{[ Arabic_meem,		U0653,			none	]};
+    key <AC09>	{[ Arabic_lam,		none,			none	]};
+    key <AC10>	{[ U06cc,		Arabic_yeh,		none	]};
+    key <AC11>	{[ Arabic_sheen,	Arabic_shadda,		none	]};
+    key <AC12>	{[ Arabic_khah,		Arabic_hamza,		none	]};
+
+    key <AB01>	{[ Arabic_jeh,		none,			none	]};
+    key <AB02>	{[ Arabic_theh,		Arabic_maddaonalef,	none	]};
+    key <AB03>	{[ Arabic_waw,		Arabic_hamzaonwaw,	none	]};
+    key <AB04>	{[ Arabic_jeem,		Arabic_hamzaonalef,	none	]};
+    key <AB05>	{[ Arabic_tcheh,	none,			none	]};
+    key <AB06>	{[ Arabic_zain,		Arabic_zah,		none	]};
+    key <AB07>	{[ Arabic_seen,		Arabic_sukun,		none	]};
+    key <AB08>	{[ Arabic_beh,		Arabic_hamzaunderalef,	none	]};
+    key <AB09>	{[ period,		colon,			none	]};
+    key <AB10>	{[ U2018,		Arabic_semicolon,	none	]};
+};

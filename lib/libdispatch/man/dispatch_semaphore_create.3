@@ -1,0 +1,106 @@
+.\" Copyright (c) 2008-2012 Apple Inc. All rights reserved.
+.Dd May 1, 2009
+.Dt dispatch_semaphore_create 3
+.Os Darwin
+.Sh NAME
+.Nm dispatch_semaphore_create ,
+.Nm dispatch_semaphore_signal ,
+.Nm dispatch_semaphore_wait
+.Nd synchronized counting semaphore
+.Sh SYNOPSIS
+.Fd #include <dispatch/dispatch.h>
+.Ft dispatch_semaphore_t
+.Fo dispatch_semaphore_create
+.Fa "long count"
+.Fc
+.Ft long
+.Fo dispatch_semaphore_signal
+.Fa "dispatch_semaphore_t semaphore"
+.Fc
+.Ft long
+.Fo dispatch_semaphore_wait
+.Fa "dispatch_semaphore_t semaphore" "dispatch_time_t timeout"
+.Fc
+.Sh DESCRIPTION
+Dispatch semaphores are used to synchronize threads.
+The
+.Fa timeout
+parameter is creatable with the
+.Xr dispatch_time 3
+or
+.Xr dispatch_walltime 3
+functions.
+.Sh COMPLETION SYNCHRONIZATION
+If the
+.Fa count
+parameter is equal to zero, then the semaphore is useful for synchronizing
+completion of work.
+For example:
+.Bd -literal -offset indent
+sema = dispatch_semaphore_create(0);
+
+dispatch_async(queue, ^{
+	foo();
+	dispatch_semaphore_signal(sema);
+});
+
+bar();
+
+dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+.Ed
+.Sh FINITE RESOURCE POOL
+If the
+.Fa count
+parameter is greater than zero, then the semaphore is useful for managing a
+finite pool of resources.
+For example, a library that wants to limit Unix descriptor usage:
+.Bd -literal -offset indent
+sema = dispatch_semaphore_create(getdtablesize() / 4);
+.Ed
+.Pp
+At each Unix FD allocation:
+.Bd -literal -offset indent
+dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+fd = open("/etc/services", O_RDONLY);
+.Ed
+.Pp
+When each FD is closed:
+.Bd -literal -offset indent
+close(fd);
+dispatch_semaphore_signal(sema);
+.Ed
+.Sh RETURN VALUES
+The
+.Fn dispatch_semaphore_create
+function returns NULL if no memory is available or if the
+.Fa count
+parameter is less than zero.
+.Pp
+The
+.Fn dispatch_semaphore_signal
+function returns non-zero when a thread is woken.
+Otherwise, zero is returned.
+.Pp
+The
+.Fn dispatch_semaphore_wait
+function returns zero upon success and non-zero after the timeout expires. If
+the timeout is DISPATCH_TIME_FOREVER, then
+.Fn dispatch_semaphore_wait
+waits forever and always returns zero.
+.Sh MEMORY MODEL
+Dispatch semaphores are retained and released via calls to
+.Fn dispatch_retain
+and
+.Fn dispatch_release .
+.Sh CAVEATS
+Unbalanced dispatch semaphores cannot be released.
+For a given semaphore, calls to
+.Fn dispatch_semaphore_signal
+and
+.Fn dispatch_semaphore_wait
+must be balanced before
+.Fn dispatch_release
+is called on it.
+.Sh SEE ALSO
+.Xr dispatch 3 ,
+.Xr dispatch_object 3

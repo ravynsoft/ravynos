@@ -1,0 +1,23 @@
+# Copyright 2022 Collabora Ltd.
+# SPDX-License-Identifier: MIT
+#
+# To output as binary:
+# sed -e 's/#.*//' test/data/invalid-messages/truncated-variant-sig.message-raw.hex |
+# xxd -p -r - test/data/invalid-messages/truncated-variant-sig.message-raw
+
+# Offset % 0x10:
+# 0001 0203 0405 0607 0809 0a0b 0c0d 0e0f
+
+  6c                                       # little-endian
+    ff                                     # an undefined message type
+       00                                  # flags
+         01                                # major protocol version 1
+            0000 0000                      # message body is 0 bytes
+                      0100 0000            # serial number 1
+                                0400 0000  # header is an array of 4 bytes of struct (yv)
+  ff                                       # header field code 0xff
+    ff                                     # signature is 0xff = 255 bytes
+       0000                                # truncated (invalid!)
+            0000 0000                      # padding to 8-byte boundary
+
+#sha1 be4640e0bc1534ddf1667ced6a5e2a59c447dbdd

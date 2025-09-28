@@ -1,0 +1,1109 @@
+
+
+
+
+
+
+
+
+
+                   Bash - The GNU shell*
+
+
+                         Chet Ramey
+              Case Western Reserve University
+                      chet@po.cwru.edu
+
+
+
+
+
+
+_1.  _I_n_t_r_o_d_u_c_t_i_o_n
+
+     _B_a_s_h is the shell,  or  command  language  interpreter,
+that  will  appear in the GNU operating system.  The name is
+an acronym for the "Bourne-Again  SHell",  a  pun  on  Steve
+Bourne,  the  author  of  the direct ancestor of the current
+UNIX|- shell /_b_i_n/_s_h, which appeared in the  Seventh  Edition
+Bell Labs Research version of UNIX.
+
+     Bash is an sh-compatible shell that incorporates useful
+features  from  the  Korn shell (ksh) and the C shell (csh),
+described later in this article.  It is ultimately  intended
+to  be  a  conformant implementation of the IEEE POSIX Shell
+and Utilities specification (IEEE Working Group 1003.2).  It
+offers  functional improvements over sh for both interactive
+and programming use.
+
+     While the GNU operating system will most likely include
+a  version  of  the  Berkeley  shell  csh,  Bash will be the
+default shell.  Like other GNU software, Bash is quite port-
+able.  It currently runs on nearly every version of UNIX and
+a few other operating systems -  an  independently-supported
+port  exists  for OS/2, and there are rumors of ports to DOS
+and Windows NT.  Ports to UNIX-like systems such as QNX  and
+Minix are part of the distribution.
+
+     The original author of Bash was Brian Fox, an  employee
+of  the Free Software Foundation.  The current developer and
+maintainer is Chet Ramey, a  volunteer  who  works  at  Case
+Western Reserve University.
+
+_2.  _W_h_a_t'_s _P_O_S_I_X, _a_n_y_w_a_y?
+
+     _P_O_S_I_X is a name originally coined by  Richard  Stallman
+_________________________
+*An earlier version of this  article  appeared  in  The
+Linux Journal.
+|- UNIX is a trademark of Bell Laboratories.
+
+
+
+
+                      October 28, 1994
+
+
+
+
+
+                           - 2 -
+
+
+for a family of open system standards based on UNIX.   There
+are  a  number  of  aspects  of UNIX under consideration for
+standardization, from the basic system services at the  sys-
+tem  call  and  C library level to applications and tools to
+system administration and management.  Each  area  of  stan-
+dardization  is  assigned  to  a  working  group in the 1003
+series.
+
+     The  POSIX  Shell  and  Utilities  standard  has   been
+developed by IEEE Working Group 1003.2 (POSIX.2).|=  It  con-
+centrates  on  the command interpreter interface and utility
+programs commonly executed from the command line or by other
+programs.   An  initial  version  of  the  standard has been
+approved and published by the IEEE, and  work  is  currently
+underway to update it.  There are four primary areas of work
+in the 1003.2 standard:
+
+o+    Aspects of the shell's syntax and command language.   A
+     number  of  special  builtins  such  as _c_d and _e_x_e_c are
+     being specified as part of the shell, since their func-
+     tionality  usually  cannot be implemented by a separate
+     executable;
+
+o+    A set of utilities to be called by  shell  scripts  and
+     applications.   Examples are programs like _s_e_d, _t_r, and
+     _a_w_k.  Utilities commonly implemented as shell  builtins
+     are  described  in this section, such as _t_e_s_t and _k_i_l_l.
+     An expansion of this section's scope, termed  the  User
+     Portability   Extension,   or   UPE,  has  standardized
+     interactive programs such as _v_i and _m_a_i_l_x;
+
+o+    A group of functional interfaces to  services  provided
+     by  the  shell,  such  as  the  traditional  system() C
+     library function.  There are functions to perform shell
+     word expansions, perform filename expansion (_g_l_o_b_b_i_n_g),
+     obtain values of  POSIX.2  system  configuration  vari-
+     ables,   retrieve   values   of  environment  variables
+     (getenv()), _a_n_d _o_t_h_e_r _s_e_r_v_i_c_e_s;
+
+o+    A suite of "development" utilities  such  as  _c_8_9  (the
+     POSIX.2 version of _c_c), and _y_a_c_c.
+
+     Bash is concerned  with  the  aspects  of  the  shell's
+behavior defined by POSIX.2.  The shell command language has
+of course been standardized, including the basic  flow  con-
+trol  and  program execution constructs, I/O redirection and
+pipelining, argument handling, variable expansion, and quot-
+ing.   The  _s_p_e_c_i_a_l  builtins,  which must be implemented as
+part of the shell to provide the desired functionality,  are
+_________________________
+|=IEEE, _I_E_E_E  _S_t_a_n_d_a_r_d  _f_o_r  _I_n_f_o_r_m_a_t_i_o_n  _T_e_c_h_n_o_l_o_g_y  --
+_P_o_r_t_a_b_l_e  _O_p_e_r_a_t_i_n_g  _S_y_s_t_e_m  _I_n_t_e_r_f_a_c_e  (_P_O_S_I_X) _P_a_r_t _2:
+_S_h_e_l_l _a_n_d _U_t_i_l_i_t_i_e_s, 1992.
+
+
+
+
+                      October 28, 1994
+
+
+
+
+
+                           - 3 -
+
+
+specified as being part of the shell; examples of these  are
+_e_v_a_l  and _e_x_p_o_r_t.  Other utilities appear in the sections of
+POSIX.2 not devoted to the shell which are commonly (and  in
+some cases must be) implemented as builtin commands, such as
+_r_e_a_d and  _t_e_s_t.   POSIX.2  also  specifies  aspects  of  the
+shell's  interactive  behavior as part of the UPE, including
+job control and command line editing.  Interestingly enough,
+only  _v_i-style line editing commands have been standardized;
+_e_m_a_c_s editing commands were left out due to objections.
+
+     While POSIX.2 includes much of what the shell has trad-
+itionally  provided, some important things have been omitted
+as being "beyond its scope."  There  is,  for  instance,  no
+mention  of a difference between a _l_o_g_i_n shell and any other
+interactive shell (since POSIX.2 does not  specify  a  login
+program).   No fixed startup files are defined, either - the
+standard does not mention ._p_r_o_f_i_l_e.
+
+_3.  _B_a_s_i_c _B_a_s_h _f_e_a_t_u_r_e_s
+
+     Since the Bourne shell provides Bash with most  of  its
+philosophical  underpinnings,  Bash  inherits  most  of  its
+features and functionality from sh.  Bash implements all  of
+the  traditional sh flow control constructs (_f_o_r, _i_f, _w_h_i_l_e,
+etc.).  All of the Bourne shell  builtins,  including  those
+not  specified  in  the  POSIX.2  standard,  appear in Bash.
+Shell _f_u_n_c_t_i_o_n_s, introduced  in  the  SVR2  version  of  the
+Bourne  shell, are similar to shell scripts, but are defined
+using a special syntax and are executed in the same  process
+as the calling shell.  Bash has shell functions which behave
+in a fashion upward-compatible with sh functions.  There are
+certain shell variables that Bash interprets in the same way
+as sh, such as _P_S_1, _I_F_S, and _P_A_T_H.  Bash  implements  essen-
+tially  the  same  grammar, parameter and variable expansion
+semantics, redirection, and quoting  as  the  Bourne  shell.
+Where  differences  appear  between the POSIX.2 standard and
+traditional sh behavior, Bash follows POSIX.
+
+     The Korn Shell (ksh) is  a  descendent  of  the  Bourne
+shell  written at AT&T Bell Laboratories by David Korn|-.  It
+provides a number of useful features  that  POSIX  and  Bash
+have adopted.  Many of the interactive facilities in POSIX.2
+have their roots in the ksh: for example, the POSIX and  ksh
+job  control  facilities are nearly identical. Bash includes
+features from the Korn Shell for both  interactive  use  and
+shell programming.  For programming, Bash provides variables
+such as _R_A_N_D_O_M and _R_E_P_L_Y, the _t_y_p_e_s_e_t builtin,  the  ability
+to  remove  substrings from variables based on patterns, and
+shell arithmetic.  _R_A_N_D_O_M expands to a  random  number  each
+time it is referenced; assigning a value to _R_A_N_D_O_M seeds the
+_________________________
+|-Morris Bolsky and David Korn,  _T_h_e  _K_o_r_n_S_h_e_l_l  _C_o_m_m_a_n_d
+_a_n_d _P_r_o_g_r_a_m_m_i_n_g _L_a_n_g_u_a_g_e, Prentice Hall, 1989.
+
+
+
+
+                      October 28, 1994
+
+
+
+
+
+                           - 4 -
+
+
+random number generator.  _R_E_P_L_Y is the default variable used
+by  the  _r_e_a_d builtin when no variable names are supplied as
+arguments.  The _t_y_p_e_s_e_t builtin is used to define  variables
+and  give them attributes such as readonly.  Bash arithmetic
+allows the evaluation of an expression and the  substitution
+of the result.  Shell variables may be used as operands, and
+the result of an expression may be assigned to  a  variable.
+Nearly  all  of the operators from the C language are avail-
+able, with the same precedence rules:
+9     $ echo $((3 + 5 * 32))
+     163
+9
+For interactive use, Bash implements ksh-style  aliases  and
+builtins  such  as  _f_c  (discussed  below)  and  _j_o_b_s.  Bash
+aliases allow a string to be substituted for a command name.
+They  can  be  used  to create a mnemonic for a UNIX command
+name (alias del=rm), to expand a single word  to  a  complex
+command (alias news='xterm -g 80x45 -title trn -e trn -e -S1
+-N &'), or to ensure that a command is invoked with a  basic
+set of options (alias ls="/bin/ls -F").
+
+     The C shell (csh)|-,  originally  written  by  Bill  Joy
+while  at Berkeley, is widely used and quite popular for its
+interactive facilities.  Bash includes a csh-compatible his-
+tory  expansion  mechanism  ("!  history"), brace expansion,
+access to a stack of directories via the  _p_u_s_h_d,  _p_o_p_d,  and
+_d_i_r_s  builtins, and tilde expansion, to generate users' home
+directories.  Tilde expansion has also been adopted by  both
+the Korn Shell and POSIX.2.
+
+     There were certain areas in which  POSIX.2  felt  stan-
+dardization  was  necessary,  but no existing implementation
+provided the proper behavior.  The  working  group  invented
+and  standardized  functionality  in these areas, which Bash
+implements.  The _c_o_m_m_a_n_d builtin was invented so that  shell
+functions could be written to replace builtins; it makes the
+capabilities of the builtin available to the function.   The
+reserved  word "!" was added to negate the return value of a
+command or pipeline; it was nearly impossible to express "if
+not  x" cleanly using the sh language.  There exist multiple
+incompatible implementations  of  the  _t_e_s_t  builtin,  which
+tests  files  for  type  and  other  attributes and performs
+arithmetic and string comparisons.  POSIX considered none of
+these  correct,  so  the  standard behavior was specified in
+terms of the number of arguments to  the  command.   POSIX.2
+dictates  exactly  what will happen when four or fewer argu-
+ments are given to _t_e_s_t, and leaves the  behavior  undefined
+when  more  arguments  are  supplied.  Bash uses the POSIX.2
+_________________________
+|-Bill Joy, An Introduction to the C Shell, _U_N_I_X  _U_s_e_r'_s
+_S_u_p_p_l_e_m_e_n_t_a_r_y  _D_o_c_u_m_e_n_t_s,  University  of California at
+Berkeley, 1986.
+
+
+
+
+                      October 28, 1994
+
+
+
+
+
+                           - 5 -
+
+
+algorithm, which was conceived by David Korn.
+
+_3._1.  _F_e_a_t_u_r_e_s _n_o_t _i_n _t_h_e _B_o_u_r_n_e _S_h_e_l_l
+
+     There are a number of minor  differences  between  Bash
+and  the  version  of  sh  present on most other versions of
+UNIX.  The majority of these are due to the POSIX  standard,
+but some are the result of Bash adopting features from other
+shells.  For instance, Bash includes the  new  "!"  reserved
+word,  the  _c_o_m_m_a_n_d builtin, the ability of the _r_e_a_d builtin
+to correctly return a line ending with a backslash, symbolic
+arguments  to the _u_m_a_s_k builtin, variable substring removal,
+a way to get the length of a variable, and the new algorithm
+for  the  _t_e_s_t  builtin  from  the POSIX.2 standard, none of
+which appear in sh.
+
+     Bash also implements the "$(...)" command  substitution
+syntax,  which  supersedes  the  sh  `...`  construct.   The
+"$(...)" construct expands to the output of the command con-
+tained   within  the  parentheses,  with  trailing  newlines
+removed.  The sh syntax is accepted for  backwards  compati-
+bility, but the "$(...)" form is preferred because its quot-
+ing rules are much simpler and it is easier to nest.
+
+     The Bourne shell does  not  provide  such  features  as
+brace  expansion,  the  ability  to  define a variable and a
+function with the same name, local variables in shell  func-
+tions, the ability to enable and disable individual builtins
+or write a function to replace a  builtin,  or  a  means  to
+export a shell function to a child process.
+
+     Bash has closed a long-standing shell security hole  by
+not  using  the $_I_F_S variable to split each word read by the
+shell, but splitting only the results of expansion (ksh  and
+the  4.4  BSD  sh have fixed this as well).  Useful behavior
+such as a means to abort execution of a script read with the
+"."  command  using  the  return  builtin  or  automatically
+exporting variables in the shell's environment  to  children
+is  also  not  present in the Bourne shell.  Bash provides a
+much more powerful environment for both interactive use  and
+programming.
+
+_4.  _B_a_s_h-_s_p_e_c_i_f_i_c _F_e_a_t_u_r_e_s
+
+     This section details a few of the features  which  make
+Bash unique.  Most of them provide improved interactive use,
+but a few programming  improvements  are  present  as  well.
+Full descriptions of these features can be found in the Bash
+documentation.
+
+_4._1.  _S_t_a_r_t_u_p _F_i_l_e_s
+
+     Bash executes  startup  files  differently  than  other
+shells.   The  Bash behavior is a compromise between the csh
+
+
+
+                      October 28, 1994
+
+
+
+
+
+                           - 6 -
+
+
+principle of startup files with  fixed  names  executed  for
+each shell and the sh "minimalist" behavior.  An interactive
+instance of Bash started as a login shell reads and executes
+~/._b_a_s_h__p_r_o_f_i_l_e  (the  file .bash_profile in the user's home
+directory), if it exists.  An  interactive  non-login  shell
+reads  and executes ~/._b_a_s_h_r_c.  A non-interactive shell (one
+begun to execute a shell script, for example) reads no fixed
+startup  file,  but  uses the value of the variable $_E_N_V, if
+set, as the name of a startup file.   The  ksh  practice  of
+reading  $_E_N_V  for every shell, with the accompanying diffi-
+culty of defining the proper  variables  and  functions  for
+interactive  and  non-interactive  shells or having the file
+read only for interactive shells, was  considered  too  com-
+plex.   Ease  of  use won out here.  Interestingly, the next
+release of ksh will change to reading $_E_N_V only for interac-
+tive shells.
+
+_4._2.  _N_e_w _B_u_i_l_t_i_n _C_o_m_m_a_n_d_s
+
+     There are a few builtins which are  new  or  have  been
+extended  in  Bash.   The _e_n_a_b_l_e builtin allows builtin com-
+mands to be turned on and off arbitrarily.  To use the  ver-
+sion  of  _e_c_h_o found in a user's search path rather than the
+Bash builtin, enable -n echo  suffices.   The  _h_e_l_p  builtin
+provides  quick  synopses  of  the  shell facilities without
+requiring access to a manual page.  _B_u_i_l_t_i_n  is  similar  to
+_c_o_m_m_a_n_d  in  that  it  bypasses shell functions and directly
+executes builtin commands.  Access to a csh-style  stack  of
+directories  is provided via the _p_u_s_h_d, _p_o_p_d, and _d_i_r_s buil-
+tins.  _P_u_s_h_d and _p_o_p_d insert and remove directories from the
+stack,  respectively, and _d_i_r_s lists the stack contents.  On
+systems that allow fine-grained control  of  resources,  the
+_u_l_i_m_i_t  builtin  can be used to tune these settings.  _U_l_i_m_i_t
+allows a user to control, among other things,  whether  core
+dumps  are  to  be generated, how much memory the shell or a
+child process is allowed to allocate, and how large  a  file
+created  by  a  child process can grow.  The _s_u_s_p_e_n_d command
+will stop the shell process when job control is active; most
+other  shells  do  not  allow  themselves to be stopped like
+that.  _T_y_p_e, the Bash answer to _w_h_i_c_h and _w_h_e_n_c_e, shows what
+will happen when a word is typed as a command:
+9     $ type export
+     export is a shell builtin
+     $ type -t export
+     builtin
+     $ type bash
+     bash is /bin/bash
+     $ type cd
+     cd is a function
+     cd ()
+     {
+         builtin cd ${1+"$@"} && xtitle $HOST: $PWD
+     }
+9
+
+
+                      October 28, 1994
+
+
+
+
+
+                           - 7 -
+
+
+Various modes tell what a command word  is  (reserved  word,
+alias,  function,  builtin,  or  file) or which version of a
+command will be executed based  on  a  user's  search  path.
+Some  of  this functionality has been adopted by POSIX.2 and
+folded into the _c_o_m_m_a_n_d utility.
+
+_4._3.  _E_d_i_t_i_n_g _a_n_d _C_o_m_p_l_e_t_i_o_n
+
+     One area in which Bash shines is command line  editing.
+Bash  uses  the _r_e_a_d_l_i_n_e library to read and edit lines when
+interactive.  Readline is  a  powerful  and  flexible  input
+facility that a user can configure to individual tastes.  It
+allows lines to be edited using either emacs or vi commands,
+where  those  commands are appropriate.  The full capability
+of emacs is not present - there is no way to execute a named
+command  with  M-x, for instance - but the existing commands
+are more than adequate.  The vi mode is compliant  with  the
+command line editing standardized by POSIX.2.
+
+     Readline is fully customizable.   In  addition  to  the
+basic commands and key bindings, the library allows users to
+define additional key bindings using a  startup  file.   The
+_i_n_p_u_t_r_c file, which defaults to the file ~/._i_n_p_u_t_r_c, is read
+each time readline initializes, permitting users to maintain
+a  consistent  interface across a set of programs.  Readline
+includes an extensible interface, so each program using  the
+library  can  add  its  own  bindable  commands and program-
+specific key bindings.  Bash uses this facility to add bind-
+ings that perform history expansion or shell word expansions
+on the current input line.
+
+     Readline interprets a number of variables which further
+tune  its  behavior.   Variables exist to control whether or
+not eight-bit characters are directly read as input or  con-
+verted  to  meta-prefixed key sequences (a meta-prefixed key
+sequence consists of  the  character  with  the  eighth  bit
+zeroed,  preceded  by  the  _m_e_t_a-_p_r_e_f_i_x  character,  usually
+escape,  which  selects  an  alternate  keymap),  to  decide
+whether  to  output  characters  with  the  eighth  bit  set
+directly or as a meta-prefixed key sequence, whether or  not
+to  wrap  to  a  new screen line when a line being edited is
+longer than the screen width, the keymap to which subsequent
+key  bindings  should apply, or even what happens when read-
+line wants to ring the terminal's bell.  All of these  vari-
+ables can be set in the inputrc file.
+
+     The startup file understands a set of  C  preprocessor-
+like  conditional  constructs  which  allow variables or key
+bindings to be assigned based on the application using read-
+line,  the  terminal  currently  being  used, or the editing
+mode.  Users can add program-specific bindings to make their
+lives easier:  I have bindings that let me edit the value of
+$_P_A_T_H and double-quote the current or previous word:
+9     # Macros that are convenient for shell interaction
+
+
+9                      October 28, 1994
+
+
+
+
+
+                           - 8 -
+
+
+     $if Bash
+     # edit the path
+     "\C-xp": "PATH=${PATH}\e\C-e\C-a\ef\C-f"
+     # prepare to type a quoted word -- insert open and close double
+     # quotes and move to just after the open quote
+     "\C-x\"": "\"\"\C-b"
+     # Quote the current or previous word
+     "\C-xq": "\eb\"\ef\""
+     $endif
+9
+There is a readline command to re-read the  file,  so  users
+can  edit  the  file, change some bindings, and begin to use
+them almost immediately.
+
+     Bash implements the _b_i_n_d builtin for more  dyamic  con-
+trol  of  readline  than  the startup file permits.  _B_i_n_d is
+used in several ways.  In _l_i_s_t  mode,  it  can  display  the
+current  key  bindings, list all the readline editing direc-
+tives available for binding, list which keys invoke a  given
+directive,  or  output  the current set of key bindings in a
+format that can be incorporated  directly  into  an  inputrc
+file.   In  _b_a_t_c_h  mode,  it  reads a series of key bindings
+directly from a file and passes them to  readline.   In  its
+most  common usage, _b_i_n_d takes a single string and passes it
+directly to readline, which interprets the line as if it had
+just been read from the inputrc file.  Both key bindings and
+variable assignments may appear in the string given to _b_i_n_d.
+
+     The readline library also  provides  an  interface  for
+_w_o_r_d  _c_o_m_p_l_e_t_i_o_n.   When  the  _c_o_m_p_l_e_t_i_o_n character (usually
+TAB) is typed, readline looks at the  word  currently  being
+entered  and  computes  the  set  of  filenames of which the
+current word is a valid prefix.  If there is only one possi-
+ble  completion,  the  rest  of  the characters are inserted
+directly,  otherwise  the  common  prefix  of  the  set   of
+filenames  is added to the current word.  A second TAB char-
+acter entered  immediately  after  a  non-unique  completion
+causes  readline  to list the possible completions; there is
+an option to have the list displayed immediately.   Readline
+provides  hooks  so  that  applications can provide specific
+types of completion before the default  filename  completion
+is attempted.  This is quite flexible, though it is not com-
+pletely user-programmable.  Bash, for example, can  complete
+filenames, command names (including aliases, builtins, shell
+reserved words, shell functions, and  executables  found  in
+the file system), shell variables, usernames, and hostnames.
+It uses a set of heuristics that, while not perfect, is gen-
+erally  quite good at determining what type of completion to
+attempt.
+
+_4._4.  _H_i_s_t_o_r_y
+
+     Access to the list of commands previously entered  (the
+_c_o_m_m_a_n_d  _h_i_s_t_o_r_y)  is  provided  jointly  by  Bash  and  the
+
+
+9                      October 28, 1994
+
+
+
+
+
+                           - 9 -
+
+
+readline  library.   Bash  provides  variables   ($HISTFILE,
+$HISTSIZE, and $HISTCONTROL) and the _h_i_s_t_o_r_y and _f_c builtins
+to manipulate the history  list.   The  value  of  $_H_I_S_T_F_I_L_E
+specifies the  file where Bash writes the command history on
+exit and reads it on startup.  $_H_I_S_T_S_I_Z_E is  used  to  limit
+the  number  of commands saved in the history.  $_H_I_S_T_C_O_N_T_R_O_L
+provides a crude form of control  over  which  commands  are
+saved  on  the history list: a value of _i_g_n_o_r_e_s_p_a_c_e means to
+not save commands which begin  with  a  space;  a  value  of
+_i_g_n_o_r_e_d_u_p_s  means to not save commands identical to the last
+command saved.  $HISTCONTROL was named  $history_control  in
+earlier versions of Bash; the old name is still accepted for
+backwards compatibility.  The _h_i_s_t_o_r_y command  can  read  or
+write  files  containing  the  history  list and display the
+current list contents.  The _f_c builtin, adopted from POSIX.2
+and  the  Korn  Shell, allows display and re-execution, with
+optional editing, of commands from the  history  list.   The
+readline library offers a set of commands to search the his-
+tory list for a portion of  the  current  input  line  or  a
+string  typed  by  the  user.  Finally, the _h_i_s_t_o_r_y library,
+generally incorporated directly into the  readline  library,
+implements  a  facility  for  history recall, expansion, and
+re-execution of previous commands very similar to csh ("bang
+history", so called because the exclamation point introduces
+a history substitution):
+9     $ echo a b c d e
+     a b c d e
+     $ !! f g h i
+     echo a b c d e f g h i
+     a b c d e f g h i
+     $ !-2
+     echo a b c d e
+     a b c d e
+     $ echo !-2:1-4
+     echo a b c d
+     a b c d
+9
+The command history is only saved when the shell is interac-
+tive, so it is not available for use by shell scripts.
+
+_4._5.  _N_e_w _S_h_e_l_l _V_a_r_i_a_b_l_e_s
+
+     There are a number of convenience variables  that  Bash
+interprets  to  make  life  easier.   These include _F_I_G_N_O_R_E,
+which is a set of filename  suffixes  identifying  files  to
+exclude   when  completing  filenames;  _H_O_S_T_T_Y_P_E,  which  is
+automatically  set  to  a  string  describing  the  type  of
+hardware    on    which   Bash   is   currently   executing;
+_c_o_m_m_a_n_d__o_r_i_e_n_t_e_d__h_i_s_t_o_r_y, which directs  Bash  to  save  all
+lines of a multiple-line command such as a _w_h_i_l_e or _f_o_r loop
+in a single history entry,  allowing  easy  re-editing;  and
+_I_G_N_O_R_E_E_O_F,  whose  value indicates the number of consecutive
+EOF characters that an interactive shell  will  read  before
+
+
+
+                      October 28, 1994
+
+
+
+
+
+                           - 10 -
+
+
+exiting - an easy way to keep yourself from being logged out
+accidentally.  The _a_u_t_o__r_e_s_u_m_e variable alters the  way  the
+shell treats simple command names: if job control is active,
+and  this  variable  is  set,  single-word  simple  commands
+without  redirections  cause the shell to first look for and
+restart a suspended job with that name before starting a new
+process.
+
+_4._6.  _B_r_a_c_e _E_x_p_a_n_s_i_o_n
+
+     Since sh offers no convenient way to generate arbitrary
+strings  that  share  a  common  prefix  or suffix (filename
+expansion requires that the filenames  exist),  Bash  imple-
+ments  _b_r_a_c_e  _e_x_p_a_n_s_i_o_n,  a  capability  picked up from csh.
+Brace expansion is similar to filename  expansion,  but  the
+strings  generated need not correspond to existing files.  A
+brace expression consists of an optional _p_r_e_a_m_b_l_e,  followed
+by  a  pair  of braces enclosing a series of comma-separated
+strings,  and  an  optional  _p_o_s_t_a_m_b_l_e.   The  preamble   is
+prepended  to each string within the braces, and the postam-
+ble is then appended to each resulting string:
+9     $ echo a{d,c,b}e
+     ade ace abe
+9
+As this example demonstrates, the results of brace expansion
+are not sorted, as they are by filename expansion.
+
+_4._7.  _P_r_o_c_e_s_s _S_u_b_s_t_i_t_u_t_i_o_n
+
+     On systems that can support it, Bash provides a  facil-
+ity  known as _p_r_o_c_e_s_s _s_u_b_s_t_i_t_u_t_i_o_n.  Process substitution is
+similar to command substitution in  that  its  specification
+includes  a  command to execute, but the shell does not col-
+lect the command's output and insert  it  into  the  command
+line.   Rather,  Bash  opens a pipe to the command, which is
+run in the background.  The shell uses named  pipes  (FIFOs)
+or  the  /_d_e_v/_f_d  method  of naming open files to expand the
+process substitution to a filename  which  connects  to  the
+pipe  when  opened.  This filename becomes the result of the
+expansion.  Process substitution can be used to compare  the
+outputs  of two different versions of an application as part
+of a regression test:
+9     $ cmp <(old_prog) <(new_prog)
+9
+_4._8.  _P_r_o_m_p_t _C_u_s_t_o_m_i_z_a_t_i_o_n
+
+     One of the more popular interactive features that  Bash
+provides  is the ability to customize the prompt.  Both $_P_S_1
+and $_P_S_2, the primary and secondary  prompts,  are  expanded
+before being displayed.  Parameter and variable expansion is
+performed when the prompt string is expanded, so  any  shell
+variable  can  be  put  into the prompt (e.g., $_S_H_L_V_L, which
+
+
+
+                      October 28, 1994
+
+
+
+
+
+                           - 11 -
+
+
+indicates how deeply the current  shell  is  nested).   Bash
+specially  interprets  characters  in the prompt string pre-
+ceded by a backslash.  Some of these backslash  escapes  are
+replaced  with the current time, the date, the current work-
+ing directory, the username, and the command number or  his-
+tory  number  of the command being entered.  There is even a
+backslash escape to cause the shell  to  change  its  prompt
+when running as root after an _s_u.  Before printing each pri-
+mary prompt, Bash expands the variable $_P_R_O_M_P_T__C_O_M_M_A_N_D  and,
+if it has a value, executes the expanded value as a command,
+allowing additional prompt customization.  For example, this
+assignment  causes  the  current user, the current host, the
+time, the last component of the current  working  directory,
+the  level  of  shell nesting, and the history number of the
+current command to be embedded into the primary prompt:
+9     $ PS1='\u@\h [\t] \W($SHLVL:\!)\$ '
+     chet@odin [21:03:44] documentation(2:636)$ cd ..
+     chet@odin [21:03:54] src(2:637)$
+9
+The string being assigned is surrounded by single quotes  so
+that  if it is exported, the value of $_S_H_L_V_L will be updated
+by a child shell:
+9     chet@odin [21:17:35] src(2:638)$ export PS1
+     chet@odin [21:17:40] src(2:639)$ bash
+     chet@odin [21:17:46] src(3:696)$
+9
+The \$ escape is displayed as "$" when running as  a  normal
+user, but as "#" when running as root.
+
+_4._9.  _F_i_l_e _S_y_s_t_e_m _V_i_e_w_s
+
+     Since Berkeley introduced symbolic links  in  4.2  BSD,
+one of their most annoying properties has been the "warping"
+to a completely different area of the file system when using
+_c_d,  and  the  resultant  non-intuitive behavior of "cd ..".
+The UNIX kernel treats symbolic links _p_h_y_s_i_c_a_l_l_y.  When  the
+kernel is translating a pathname in which one component is a
+symbolic link, it replaces all or part of the pathname while
+processing  the  link.  If the contents of the symbolic link
+begin  with  a  slash,  the  kernel  replaces  the  pathname
+entirely; if not, the link contents replace the current com-
+ponent.  In either case, the symbolic link is  visible.   If
+the  link value is an absolute pathname, the user finds him-
+self in a completely different part of the file system.
+
+     Bash provides a _l_o_g_i_c_a_l view of the  file  system.   In
+this default mode, command and filename completion and buil-
+tin commands such as _c_d and _p_u_s_h_d which change  the  current
+working  directory transparently follow symbolic links as if
+they were directories.  The $_P_W_D variable, which  holds  the
+shell's  idea  of  the current working directory, depends on
+the path  used  to  reach  the  directory  rather  than  its
+
+
+
+                      October 28, 1994
+
+
+
+
+
+                           - 12 -
+
+
+physical  location  in the local file system hierarchy.  For
+example:
+9     $ cd /usr/local/bin
+     $ echo $PWD
+     /usr/local/bin
+     $ pwd
+     /usr/local/bin
+     $ /bin/pwd
+     /net/share/sun4/local/bin
+     $ cd ..
+     $ pwd
+     /usr/local
+     $ /bin/pwd
+     /net/share/sun4/local
+     $ cd ..
+     $ pwd
+     /usr
+     $ /bin/pwd
+     /usr
+9
+One problem with this, of course, arises when programs  that
+do  not  understand  the  shell's logical notion of the file
+system interpret ".." differently.  This  generally  happens
+when Bash completes filenames containing ".." according to a
+logical hierarchy which does not correspond to their  physi-
+cal  location.  For  users  who  find  this  troublesome,  a
+corresponding _p_h_y_s_i_c_a_l view of the file system is available:
+9     $ cd /usr/local/bin
+     $ pwd
+     /usr/local/bin
+     $ set -o physical
+     $ pwd
+     /net/share/sun4/local/bin
+9
+_4._1_0.  _I_n_t_e_r_n_a_t_i_o_n_a_l_i_z_a_t_i_o_n
+
+     One of the most  significant  improvements  in  version
+1.13  of  Bash  was  the  change to "eight-bit cleanliness".
+Previous versions used the eighth bit of characters to  mark
+whether  or not they were quoted when performing word expan-
+sions.  While this did not affect  the  majority  of  users,
+most  of  whom  used  only  seven-bit ASCII characters, some
+found it  confining.   Beginning  with  version  1.13,  Bash
+implemented a different quoting mechanism that did not alter
+the eighth bit of characters.  This allowed Bash to  manipu-
+late  files  with  "odd"  characters in their names, but did
+nothing to help users enter those  names,  so  version  1.13
+introduced  changes to readline that made it eight-bit clean
+as well.  Options exist that force  readline  to  attach  no
+special  significance  to characters with the eighth bit set
+(the default behavior is  to  convert  these  characters  to
+meta-prefixed  key sequences) and to output these characters
+
+
+
+                      October 28, 1994
+
+
+
+
+
+                           - 13 -
+
+
+without  conversion  to  meta-prefixed   sequences.    These
+changes, along with the expansion of keymaps to a full eight
+bits, enable readline to work with most of the ISO-8859 fam-
+ily of character sets, used by many European countries.
+
+_4._1_1.  _P_O_S_I_X _M_o_d_e
+
+     Although Bash is intended  to  be  POSIX.2  conformant,
+there  are areas in which the default behavior is not compa-
+tible with the standard.  For users who wish to operate in a
+strict  POSIX.2  environment,  Bash implements a _P_O_S_I_X _m_o_d_e.
+When this mode is active, Bash modifies its  default  opera-
+tion  where  it  differs from POSIX.2 to match the standard.
+POSIX mode is entered when Bash is started with  the  -_p_o_s_i_x
+option.   This feature is also available as an option to the
+set builtin, set -o posix.  For compatibility with other GNU
+software  that  attempts  to be POSIX.2 compliant, Bash also
+enters POSIX mode if the variable  $_P_O_S_I_X_L_Y__C_O_R_R_E_C_T  is  set
+when  Bash  is started or assigned a value during execution.
+$_P_O_S_I_X__P_E_D_A_N_T_I_C is accepted as well, to be  compatible  with
+some  older  GNU  utilities.   When Bash is started in POSIX
+mode, for example, it sources the file named by the value of
+$_E_N_V  rather  than  the "normal" startup files, and does not
+allow reserved words to be aliased.
+
+_5.  _N_e_w _F_e_a_t_u_r_e_s _a_n_d _F_u_t_u_r_e _P_l_a_n_s
+
+     There are several features introduced  in  the  current
+version of Bash, version 1.14, and a number under considera-
+tion for future releases.  This section will briefly  detail
+the  new  features  in  version  1.14  and  describe several
+features that may appear in later versions.
+
+_5._1.  _N_e_w _F_e_a_t_u_r_e_s _i_n _B_a_s_h-_1._1_4
+
+     The new features available in Bash-1.14 answer  several
+of the most common requests for enhancements.  Most notably,
+there is a mechanism  for  including  non-visible  character
+sequences  in  prompts, such as those which cause a terminal
+to print characters in different colors or in standout mode.
+There  was  nothing preventing the use of these sequences in
+earlier  versions,  but  the  readline  redisplay  algorithm
+assumed  each  character  occupied physical screen space and
+would wrap lines prematurely.
+
+     Readline has a few new variables, several new  bindable
+commands,  and  some additional emacs mode default key bind-
+ings.  A new history search mode has  been  implemented:  in
+this mode, readline searches the history for lines beginning
+with the characters between the  beginning  of  the  current
+line  and  the  cursor.   The  existing readline incremental
+search commands no longer match identical  lines  more  than
+once.   Filename  completion now expands variables in direc-
+tory names.  The history expansion facilities are now nearly
+
+
+
+                      October 28, 1994
+
+
+
+
+
+                           - 14 -
+
+
+completely csh-compatible: missing modifiers have been added
+and history substitution has been extended.
+
+     Several of the features described earlier, such as  _s_e_t
+-_o  _p_o_s_i_x  and  $_P_O_S_I_X__P_E_D_A_N_T_I_C,  are  new  in version 1.14.
+There is a new shell variable, _O_S_T_Y_P_E, to which Bash assigns
+a  value that identifies the version of UNIX it's running on
+(great for putting architecture-specific binary  directories
+into the $PATH).  Two variables have been renamed: $_H_I_S_T_C_O_N_-
+_T_R_O_L  replaces  $_h_i_s_t_o_r_y__c_o_n_t_r_o_l,  and  $_H_O_S_T_F_I_L_E   replaces
+$_h_o_s_t_n_a_m_e__c_o_m_p_l_e_t_i_o_n__f_i_l_e.  In both cases, the old names are
+accepted for backwards compatibility.  The ksh  _s_e_l_e_c_t  con-
+struct,  which  allows  the  generation of simple menus, has
+been implemented.   New  capabilities  have  been  added  to
+existing  variables:  $_a_u_t_o__r_e_s_u_m_e  can  now  take values of
+_e_x_a_c_t or _s_u_b_s_t_r_i_n_g, and $_H_I_S_T_C_O_N_T_R_O_L understands  the  value
+_i_g_n_o_r_e_b_o_t_h,  which  combines  the  two previously acceptable
+values.  The _d_i_r_s builtin has acquired options to print  out
+specific members of the directory stack.  The $_n_o_l_i_n_k_s vari-
+able, which forces a physical view of the file  system,  has
+been  superseded  by  the  -_P  option  to  the  _s_e_t  builtin
+(equivalent to set -o physical); the  variable  is  retained
+for  backwards  compatibility.  The version string contained
+in $_B_A_S_H__V_E_R_S_I_O_N now includes an  indication  of  the  patch
+level  as  well  as  the  "build version".  Some little-used
+features have been removed:  the _b_y_e synonym  for  _e_x_i_t  and
+the  $_N_O__P_R_O_M_P_T__V_A_R_S  variable  are  gone.   There is now an
+organized test suite that can be run as  a  regression  test
+when building a new version of Bash.
+
+     The documentation has been thoroughly overhauled: there
+is  a  new  manual page on the readline library and the _i_n_f_o
+file has been updated to reflect the  current  version.   As
+always,  as  many bugs as possible have been fixed, although
+some surely remain.
+
+_5._2.  _O_t_h_e_r _F_e_a_t_u_r_e_s
+
+     There are a few features that  I  hope  to  include  in
+later Bash releases.  Some are based on work already done in
+other shells.
+
+     In addition to simple variables, a  future  release  of
+Bash  will  include  one-dimensional  arrays,  using the ksh
+implementation of arrays as a model.  Additions to  the  ksh
+syntax,  such  as  _v_a_r_n_a_m_e=( ... ) to assign a list of words
+directly to an array and a mechanism to allow the _r_e_a_d buil-
+tin  to  read a list of values directly into an array, would
+be desirable.  Given those extensions, the ksh _s_e_t -_A syntax
+may not be worth supporting (the -_A option assigns a list of
+values to an array, but is a rather peculiar special case).
+
+     Some shells include a means of _p_r_o_g_r_a_m_m_a_b_l_e  word  com-
+pletion, where the user specifies on a per-command basis how
+
+
+
+                      October 28, 1994
+
+
+
+
+
+                           - 15 -
+
+
+the arguments of the command are to be treated when  comple-
+tion  is  attempted:  as  filenames,  hostnames,  executable
+files, and so on.  The other aspects  of  the  current  Bash
+implementation  could  remain as-is; the existing heuristics
+would still be valid.  Only when completing the arguments to
+a  simple  command  would  the programmable completion be in
+effect.
+
+     It would also be nice to give  the  user  finer-grained
+control over which commands are saved onto the history list.
+One proposal is for a variable,  tentatively  named  _H_I_S_T_I_G_-
+_N_O_R_E,  which  would  contain  a colon-separated list of com-
+mands.  Lines beginning with these commands, after the  res-
+trictions  of  $_H_I_S_T_C_O_N_T_R_O_L  have been applied, would not be
+placed onto the history list.   The  shell  pattern-matching
+capabilities  could  also  be  available when specifying the
+contents of $_H_I_S_T_I_G_N_O_R_E.
+
+     One thing that newer shells such as _w_k_s_h (also known as
+_d_t_k_s_h)  provide is a command to dynamically load code imple-
+menting additional builtin commands into  a  running  shell.
+This new builtin would take an object file or shared library
+implementing the "body" of the  builtin  (_x_x_x__b_u_i_l_t_i_n()  for
+those familiar with Bash internals) and a structure contain-
+ing the name of the new command, the function to  call  when
+the new builtin is invoked (presumably defined in the shared
+object specified as an argument), and the  documentation  to
+be  printed  by  the  _h_e_l_p  command (possibly present in the
+shared object as well).  It  would  manage  the  details  of
+extending the internal table of builtins.
+
+     A few other builtins would also be desirable:  two  are
+the POSIX.2 _g_e_t_c_o_n_f command, which prints the values of sys-
+tem configuration variables defined by POSIX.2, and a _d_i_s_o_w_n
+builtin,  which  causes  a  shell  running  with job control
+active to "forget about" one or more background jobs in  its
+internal  jobs  table.   Using  _g_e_t_c_o_n_f, for example, a user
+could retrieve a value for $_P_A_T_H guaranteed to find  all  of
+the POSIX standard utilities, or find out how long filenames
+may be in the file system containing a specified directory.
+
+     There are no implementation timetables for any of these
+features,  nor are there concrete plans to include them.  If
+anyone has comments on these proposals, feel free to send me
+electronic mail.
+
+_6.  _R_e_f_l_e_c_t_i_o_n_s _a_n_d _L_e_s_s_o_n_s _L_e_a_r_n_e_d
+
+     The lesson that has been  repeated  most  often  during
+Bash  development  is  that  there  are  dark corners in the
+Bourne shell, and people use all of them.  In  the  original
+description of the Bourne shell, quoting and the shell gram-
+mar are both poorly  specified  and  incomplete;  subsequent
+descriptions have not helped much.  The grammar presented in
+
+
+
+                      October 28, 1994
+
+
+
+
+
+                           - 16 -
+
+
+Bourne's paper describing the  shell  distributed  with  the
+Seventh  Edition  of  UNIX|-  is  so far off that it does not
+allow the command who|wc.  In fact, as Tom Duff states:
+
+     Nobody really knows what the Bourne shell's  gram-
+     mar  is.   Even  examination of the source code is
+     little help.|=
+
+The POSIX.2 standard includes  a  _y_a_c_c  grammar  that  comes
+close  to  capturing  the  Bourne  shell's  behavior, but it
+disallows some constructs which sh accepts without complaint
+-  and there are scripts out there that use them.  It took a
+few versions and several bug reports before Bash implemented
+sh-compatible  quoting,  and there are still some "legal" sh
+constructs which Bash flags as syntax errors.   Complete  sh
+compatibility is a tough nut.
+
+     The shell is bigger  and  slower  than  I  would  like,
+though the current version is substantially faster than pre-
+viously.  The readline library  could  stand  a  substantial
+rewrite.   A  hand-written  parser  to  replace  the current
+_y_a_c_c-generated one would probably result in a  speedup,  and
+would solve one glaring problem:  the shell could parse com-
+mands in "$(...)" constructs as  they  are  entered,  rather
+than reporting errors when the construct is expanded.
+
+     As always, there is some chaff to go  with  the  wheat.
+Areas  of  duplicated  functionality  need to be cleaned up.
+There are several cases where Bash treats  a  variable  spe-
+cially   to   enable  functionality  available  another  way
+($notify vs.  set -o notify and $nolinks vs. set  -o  physi-
+cal,  for  instance);  the special treatment of the variable
+name should probably be removed.  A few  more  things  could
+stand    removal;    the    $_a_l_l_o_w__n_u_l_l__g_l_o_b__e_x_p_a_n_s_i_o_n   and
+$_g_l_o_b__d_o_t__f_i_l_e_n_a_m_e_s variables are of particularly  question-
+able  value.   The  $[...]  arithmetic  evaluation syntax is
+redundant now that the POSIX-mandated $((...)) construct has
+been implemented, and could be deleted.  It would be nice if
+the text output by the _h_e_l_p builtin  were  external  to  the
+shell rather than compiled into it.  The behavior enabled by
+$_c_o_m_m_a_n_d__o_r_i_e_n_t_e_d__h_i_s_t_o_r_y, which causes the shell to attempt
+to  save  all lines of a multi-line command in a single his-
+tory entry, should be made  the  default  and  the  variable
+removed.
+
+
+_________________________
+|-S. R. Bourne, "UNIX  Time-Sharing  System:   The  UNIX
+Shell",  _B_e_l_l  _S_y_s_t_e_m  _T_e_c_h_n_i_c_a_l  _J_o_u_r_n_a_l, 57(6), July-
+August, 1978, pp. 1971-1990.
+|=Tom Duff, "Rc - A Shell for Plan 9 and UNIX  systems",
+_P_r_o_c. _o_f _t_h_e _S_u_m_m_e_r _1_9_9_0 _E_U_U_G _C_o_n_f_e_r_e_n_c_e, London, July,
+1990, pp. 21-33.
+
+
+
+
+                      October 28, 1994
+
+
+
+
+
+                           - 17 -
+
+
+_7.  _A_v_a_i_l_a_b_i_l_i_t_y
+
+     As with all other GNU software, Bash is  available  for
+anonymous  FTP  from _p_r_e_p._a_i._m_i_t._e_d_u:/_p_u_b/_g_n_u and from other
+GNU software mirror sites.  The current version is in  _b_a_s_h-
+_1._1_4._1._t_a_r._g_z  in  that  directory.   Use _a_r_c_h_i_e to find the
+nearest archive site.  The latest version is  always  avail-
+able  for FTP from _b_a_s_h._C_W_R_U._E_d_u:/_p_u_b/_d_i_s_t.  Bash documenta-
+tion is available for FTP from _b_a_s_h._C_W_R_U._E_d_u:/_p_u_b/_b_a_s_h.
+
+     The Free Software Foundation sells  tapes  and  CD-ROMs
+containing Bash; send electronic mail to gnu@prep.ai.mit.edu
+or call +1-617-876-3296 for more information.
+
+     Bash is  also  distributed  with  several  versions  of
+UNIX-compatible  systems.   It  is  included  as /bin/sh and
+/bin/bash on several Linux  distributions  (more  about  the
+difference  in  a  moment),  and  as contributed software in
+BSDI's BSD/386* and FreeBSD.
+
+     The Linux distribution deserves special mention.  There
+are two configurations included in the standard Bash distri-
+bution: a "normal" configuration, in which all of the  stan-
+dard  features  are included, and a "minimal" configuration,
+which omits job control, aliases, history and  command  line
+editing,  the  directory  stack and _p_u_s_h_d/_p_o_p_d/_d_i_r_s, process
+substitution, prompt string special character decoding,  and
+the  _s_e_l_e_c_t  construct.  This minimal version is designed to
+be a drop-in replacement for the traditional  UNIX  /bin/sh,
+and is included as the Linux /bin/sh in several packagings.
+
+_8.  _C_o_n_c_l_u_s_i_o_n
+
+     Bash is a worthy successor to sh.  It  is  sufficiently
+portable to run on nearly every version of UNIX from 4.3 BSD
+to SVR4.2, and several UNIX workalikes.  It is robust enough
+to  replace  sh  on most of those systems, and provides more
+functionality.  It has several thousand regular  users,  and
+their  feedback has helped to make it as good as it is today
+- a testament to the benefits of free software.
+
+
+
+
+
+
+
+
+
+
+_________________________
+*BSD/386 is a trademark of  Berkeley  Software  Design,
+Inc.
+
+
+
+
+                      October 28, 1994

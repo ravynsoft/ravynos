@@ -1,0 +1,151 @@
+# am-subdir.at -- libtool subdir-objects support              -*- Autotest -*-
+
+#   Copyright (C) 2004, 2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Gary V. Vaughan, 2004
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+
+AT_BANNER([Libtool subdir-objects support.])
+
+
+## ----------- ##
+## C Language. ##
+## ----------- ##
+
+AT_SETUP([C subdir-objects])
+
+AT_DATA([[configure.ac]],
+[[AC_INIT([subdir-demo], ]]AT_PACKAGE_VERSION[[, ]]AT_PACKAGE_BUGREPORT[[)
+AM_INIT_AUTOMAKE
+LT_INIT([win32-dll])
+AC_PROG_CC
+AM_PROG_CC_C_O
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+]])
+
+AT_DATA([[Makefile.am]],
+[[ACLOCAL_AMFLAGS = -I m4
+AUTOMAKE_OPTIONS = subdir-objects foreign 1.6
+AM_CPPFLAGS	= -I$(top_srcdir)/../..
+
+lib_LTLIBRARIES		= subdir/libsub.la
+subdir_libsub_la_SOURCES= subdir/sub.c
+
+bin_PROGRAMS		= subdir/subdemo
+subdir_subdemo_SOURCES	= subdir/main.c
+subdir_subdemo_LDADD	= subdir/libsub.la
+]])
+
+test -d subdir || { rm -f subdir && mkdir subdir; }
+
+AT_DATA([[subdir/main.c]],
+[[#include <stdio.h>
+
+extern void sub (void);
+
+int main (void)
+{
+  printf ("Welcome to GNU Libtool subdir-objects test!\n");
+  sub();
+  return 0;
+}
+]])
+
+AT_DATA([[subdir/sub.c]],
+[[#include <stdio.h>
+void sub (void) { printf ("** This is libsub **\n"); }
+]])
+
+LT_AT_BOOTSTRAP([--copy], [-I m4], [ignore], [--add-missing])
+
+LT_AT_EXEC_CHECK([subdir/subdemo], 0, stdout)
+AT_CHECK([$GREP 'Welcome to GNU Libtool subdir-objects test' stdout],
+	 [], [ignore])
+AT_CHECK([$GREP 'This is libsub' stdout],
+	 [], [ignore])
+
+AT_CLEANUP
+
+
+## ------------- ##
+## C++ Language. ##
+## ------------- ##
+
+AT_SETUP([C++ subdir-objects])
+LT_AT_TAG([CXX])
+
+AT_DATA([[configure.ac]],
+[[AC_INIT([subdir-demo], ]]AT_PACKAGE_VERSION[[, ]]AT_PACKAGE_BUGREPORT[[)
+AM_INIT_AUTOMAKE
+AC_PROG_CC
+AM_PROG_CC_C_O
+AC_PROG_CXX
+AC_PROG_CXXCPP
+
+AC_LANG([C++])
+LT_INIT([win32-dll])
+
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+]])
+
+AT_DATA([[Makefile.am]],
+[[ACLOCAL_AMFLAGS = -I m4
+AUTOMAKE_OPTIONS = subdir-objects foreign 1.6
+AM_CPPFLAGS	= -I$(top_srcdir)/../..
+
+lib_LTLIBRARIES		= subdir/libsub.la
+subdir_libsub_la_SOURCES= subdir/sub.cxx subdir/sub.hxx
+
+bin_PROGRAMS		= subdir/subdemo
+subdir_subdemo_SOURCES	= subdir/main.cxx
+subdir_subdemo_LDADD	= subdir/libsub.la
+]])
+
+test -d subdir || { rm -f subdir && mkdir subdir; }
+
+AT_DATA([[subdir/sub.hxx]],
+[[class libsub { public: int sub (void); };
+]])
+
+AT_DATA([[subdir/main.cxx]],
+[[#include "sub.hxx"
+
+int main (void)
+{
+  libsub SUB;
+  return SUB.sub() != 27;
+}
+]])
+
+AT_DATA([[subdir/sub.cxx]],
+[[#include "sub.hxx"
+
+int libsub::sub (void) { return 27; }
+]])
+
+LT_AT_BOOTSTRAP([--copy], [-I m4], [ignore], [--add-missing])
+
+LT_AT_EXEC_CHECK([subdir/subdemo], 0)
+
+AT_CLEANUP

@@ -1,0 +1,10 @@
+# GNU ld version script to hide boehm-gc, libffi and fdlibm
+# symbols in libgcj.so.
+
+TEST_1_0 {
+  local: *;
+};
+
+TEST_1_1 {
+  global: Jv*; _Jv_*; __gcj_personality_v0; __gcj_personality_sj0; _Z*;
+};

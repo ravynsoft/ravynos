@@ -1,0 +1,380 @@
+# static.at -- test flags for static/dynamic linking          -*- Autotest -*-
+#
+#   Copyright (C) 2006-2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Ralf Wildenhues, 2006
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+##### NOTES #####
+#
+# - How do we test whether a library was linked statically?
+#   We could
+#   - try $NM on the program to see whether it includes the symbol definitions.
+#     disadvantage: for uninstalled programs, we may need to find out the name
+#     of the _real_ linked-against-uninstalled executable
+#     (.libs/prog vs .libs/lt-prog etc).
+#   - simply remove the libraries before execution.  If the program still works,
+#     then the library was linked statically.
+#     -Does this work on all systems?
+#     -No, it will fail on AIX with non-rtl-created libraries: plain '-static'
+#     will only cause the linker not to consider '*.so' libraries, but only
+#     '*.a'.  The latter, however, may still be shared images.  :-/
+#     '-all-static' still works, however.
+#
+#     It will not work with dlpreloading until we fix its related bug.
+#
+#   Let's try the latter until we know better.
+
+# - Test -Bstatic/-Bdynamic.  It should work with all of:
+#   - (un)installed libtool libraries
+#   - non-libtool libraries
+#   - direct or pulled-in libraries
+#   - libraries of which there are only one kind available (TODO)
+#     (in the static case, should having only the shared one provoke failure?)
+
+# - Check no extraneous run paths have been added.
+
+# - make sure -Bstatic/-Bdynamic cannot be mixed with -all-static (TODO)
+
+# - should -Bstatic/-Bdynamic be mixable with -static or -static-libtool-libs?
+#   Semantics could be as follows:
+#   - '-static'/'-static-libtool-libs' set the default, which is the initial
+#     value, then '-Bstatic'/'-Bdynamic' override that
+#   - '-Bdefault' resets to the default value given by the other switches.
+
+# - TODO: test exposure for dlopened and dlpreopened modules,
+#   without and with diverse static flag combinations.
+
+# - TODO: test other tags: C++ etc.
+#   (most likely the Sun compiler suite will be the only problem child).
+
+AT_SETUP([static linking flags for programs])
+AT_KEYWORDS([libtool])
+AT_KEYWORDS([interactive])dnl Some of the exec_fail test cause popups with MinGW.
+
+LDFLAGS="$LDFLAGS -no-undefined"
+prefix=`pwd`/inst
+bindir=$prefix/bin
+prefix1=`pwd`/inst1
+prefix2=`pwd`/inst2
+prefix3=`pwd`/inst3
+libdir1=$prefix1/lib
+libdir2=$prefix2/lib
+libdir3=$prefix3/lib
+srcdir_broken=`pwd`/broken-src
+prefix_broken=`pwd`/broken
+libdir_broken=$prefix_broken/lib
+bindir_broken=$prefix_broken/bin
+
+have_static=false
+have_shared=false
+per_deplib=false
+$LIBTOOL --features | $GREP 'enable static libraries' >/dev/null && have_static=:
+$LIBTOOL --features | $GREP 'enable shared libraries' >/dev/null && have_shared=:
+eval `$LIBTOOL --config |
+        $EGREP '^(per_deplib_(static|dynamic)_flag|shlibpath_var|link_static_flag)='`
+if test -n "$per_deplib_static_flag" && test -n "$per_deplib_dynamic_flag"; then
+  per_deplib=:
+fi
+# On GNU/Linux with --disable-static, m-all-static fails to link.
+# What we'd like to state here is: if the user actively passed
+# --disable-static (as opposed to: the libtool.m4 macros set
+# enable_static=no), then they cannot expect -all-static to work.
+# So we punt, knowing that we mangle enable_static on AIX only.
+can_link_all_static=-all-static
+case $host_os,$have_static,$link_static_flag in
+  aix*) ;;
+  *,false,?*) can_link_all_static= ;;
+esac
+
+# Create broken libraries.  They will later be moved to those
+# directories where the respective libraries should be linked
+# statically from.  This detects both failure to link statically
+# and failure to omit extraneous run paths.
+mkdir $srcdir_broken $prefix_broken $libdir_broken
+(
+  cd $srcdir_broken
+  echo 'int this_should_not_be_linked_against() { return 0; }' > a.c
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a.c
+  for i in 1 1dep 2 2dep 3 3dep; do
+    $LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba$i.la a.lo -rpath $libdir_broken
+    $LIBTOOL --mode=install cp liba$i.la $libdir_broken/liba$i.la
+  done
+)
+
+func_fix_path ()
+{
+  # For w32, hardcoding cannot work, but $libdir/../bin is where binaries
+  # usually are installed.  Since we use several prefixes for testing
+  # convenience -- it allows us to replace the good libraries easily with
+  # broken ones and vice versa -- we have to set PATH to find them.
+  # Since OTOH we put broken libs of all names in the "moved" prefixes,
+  # we have to ensure that this prefix comes last: otherwise we may link
+  # against a broken library but the good one would come later in the PATH.
+  # So we let the caller of this function set the order: the "other" two
+  # come first.
+  if test PATH = "$shlibpath_var"; then
+    save_PATH=$PATH
+    sep=
+    test -z "$PATH" || sep=:
+    PATH=$2/bin:$3/bin:$1/bin$sep$PATH
+  fi
+
+}
+
+func_restore_path ()
+{
+  test PATH = "$shlibpath_var" && PATH=$save_PATH
+}
+
+# func_move_libs srcdir_to_move prefix_to_move other_prefix other_prefix
+func_move_libs ()
+{
+  LT_AT_MVDIR(["$1"], ["$1-moved"])
+  LT_AT_MVDIR(["$2"], ["$2-moved"])
+  LT_AT_MVDIR(["$srcdir_broken"], ["$1"])
+  LT_AT_MVDIR(["$prefix_broken"], ["$2"])
+  func_fix_path "$2" "$3" "$4"
+}
+
+# func_restore_libs srcdir_to_restore prefix_to_restore
+func_restore_libs ()
+{
+  func_restore_path
+  LT_AT_MVDIR(["$2"], ["$prefix_broken"])
+  LT_AT_MVDIR(["$1"], ["$srcdir_broken"])
+  LT_AT_MVDIR(["$2-moved"], ["$2"])
+  LT_AT_MVDIR(["$1-moved"], ["$1"])
+}
+
+# make sure the program can be run.
+func_test_exec ()
+{
+  # On AIX without runtimelinking, this does not make sense.
+  if $have_static; then
+    echo "## The following should succeed:"
+    for st
+    do
+      echo "# m$st"
+      LT_AT_EXEC_CHECK([./m$st])
+      # For some per-deplib flag combinations there may be no installed program,
+      # because liba2 is not yet installed.
+      if test -f "$bindir/m$st$EXEEXT"; then
+	LT_AT_EXEC_CHECK([$bindir/m$st])
+      fi
+    done
+  fi
+}
+
+# make sure the program cannot be run.
+func_test_exec_fail ()
+{
+  # No point in testing if we're linking statically anyway.
+  # TODO: Maybe in the 'else' case we could test for success?
+  if $have_shared; then
+    echo "## The following should fail:"
+    for st
+    do
+      echo "# m$st"
+      LT_AT_EXEC_CHECK([./m$st], [1], [], [ignore], [|| (exit 1)])
+      # For some per-deplib flag combinations there may be no installed program,
+      # because liba2 is not yet installed.
+      if test -f "$bindir/m$st$EXEEXT"; then
+	LT_AT_EXEC_CHECK([$bindir/m$st], [1], [], [ignore], [|| (exit 1)])
+      fi
+    done
+  fi
+}
+
+
+# Try three independent libraries,
+#   one installed libtool library,
+#   one uninstalled libtool library,
+#   one non-libtool library,
+# the libtool libraries each having a dependency, or not.
+# Try both an uninstalled and the corresponding installed program.
+
+for withdep in no yes; do
+  echo
+  echo "### libraries with dependencies: $withdep"
+  rm -rf src $prefix $prefix1 $prefix2 $prefix3
+  mkdir src $prefix $bindir $prefix1 $prefix2 $prefix3
+  cd src
+
+  ### build the libraries.
+  for i in 1 2 3; do
+    eval ldir=\$libdir$i
+    mkdir a$i $ldir
+    cd a$i
+    case $withdep,$i in
+    no,* | yes,3)
+      echo "int a$i() { return 0; }" > a$i.c
+      $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a$i.c
+      $LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba$i.la a$i.lo -rpath $ldir
+      ;;
+    *)
+      echo "int a${i}dep() { return 0; }" > a${i}dep.c
+      $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a${i}dep.c
+      $LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba${i}dep.la a${i}dep.lo -rpath $ldir
+      echo "extern int a${i}dep(); int a$i() { return a${i}dep(); }" > a$i.c
+      $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a$i.c
+      $LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba$i.la a$i.lo -rpath $ldir ./liba${i}dep.la
+      ;;
+    esac
+    cd ..
+  done
+
+  ### install the libraries.
+  test yes = "$withdep" && $LIBTOOL --mode=install cp a1/liba1dep.la $libdir1/liba1dep.la
+  $LIBTOOL --mode=install cp a1/liba1.la $libdir1/liba1.la
+  $LIBTOOL --mode=install cp a3/liba3.la $libdir3/liba3.la
+  $LIBTOOL --mode=clean rm -f a1/liba1.la a3/liba3.la
+  test yes = "$withdep" && $LIBTOOL --mode=clean rm -f a1/liba1dep.la
+  # simulate a non-libtool lib:
+  rm -f $libdir3/liba3.la
+
+
+  ### build the programs.
+  echo 'extern int a1(), a2(), a3();
+  int main() { return a1() + a2() + a3(); }' > m.c
+  $CC $CPPFLAGS $CFLAGS -c m.c
+
+  # global static flags.
+  for st in -static -static-libtool-libs $can_link_all_static; do
+    AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS $st -o m$st$EXEEXT m.$OBJEXT \
+	-L$libdir1 -la1 a2/liba2.la -L$libdir3 -R$libdir3 -la3],
+       [0], [ignore], [ignore])
+  done
+
+  # per-deplib static/shared flags.
+  # also try a bit redundant flags, and shuffled order (for run paths check).
+  if $per_deplib; then
+    AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m1$EXEEXT m.$OBJEXT \
+	      -L$libdir1 -Bstatic -la1 -Bdynamic a2/liba2.la -L$libdir3 -R$libdir3 -la3],
+	     [0], [ignore], [ignore])
+    AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m2$EXEEXT m.$OBJEXT \
+	      -L$libdir1 -la1 -Bstatic a2/liba2.la -Bdynamic -L$libdir3 -R$libdir3 -la3],
+	     [0], [ignore], [ignore])
+    AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m3$EXEEXT m.$OBJEXT \
+	      -L$libdir1 -la1 a2/liba2.la -L$libdir3 -Bstatic -la3 -Bdynamic],
+	     [0], [ignore], [ignore])
+    AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m12$EXEEXT m.$OBJEXT \
+	      -L$libdir1 -Bstatic -la1 a2/liba2.la -Bdynamic -L$libdir3 -R$libdir3 -la3],
+	      [0], [ignore], [ignore])
+    AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m13$EXEEXT m.$OBJEXT \
+	      -L$libdir1 -Bstatic -la1 -Bdynamic a2/liba2.la \
+	      -L$libdir3 -Bstatic -la3 -Bdynamic],
+	      [0], [ignore], [ignore])
+    AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m31$EXEEXT m.$OBJEXT \
+	      -L$libdir3 -Bstatic -la3 -Bdynamic a2/liba2.la \
+	      -L$libdir1 -Bstatic -la1 -Bdynamic],
+	      [0], [ignore], [ignore])
+    AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m23$EXEEXT m.$OBJEXT \
+	      -L$libdir1 -la1 -Bstatic a2/liba2.la -Bdynamic \
+	      -L$libdir3 -Bstatic -la3 -Bdynamic],
+	      [0], [ignore], [ignore])
+    AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m123$EXEEXT m.$OBJEXT \
+	      -L$libdir1 -Bstatic -la1 a2/liba2.la -L$libdir3 -la3 -Bdynamic],
+	      [0], [ignore], [ignore])
+    AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m123a$EXEEXT m.$OBJEXT \
+	      -L$libdir1 -Bstatic -la1 -Bdynamic -Bstatic a2/liba2.la -Bdynamic \
+	      -Bstatic -L$libdir3 -la3 -Bdynamic],
+	      [0], [ignore], [ignore])
+    dnl # This usually fails.  So don't do it.
+    dnl AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m123b$EXEEXT m.$OBJEXT \
+    dnl		 -L$libdir1 -Bstatic -la1 a2/liba2.la -L$libdir3 -la3],
+    dnl		 [0], [ignore], [ignore])
+  fi
+
+  ### install the programs.
+  # We can't install any program that links dynamically against liba2.
+  for st in -static -static-libtool-libs $can_link_all_static `$per_deplib && echo 2 12 23 123 123a`; do
+    echo "# m$st"
+    AT_CHECK([$LIBTOOL --mode=install cp m$st$EXEEXT $bindir/m$st$EXEEXT], [0], [ignore], [stderr])
+    if $have_static; then
+      AT_CHECK([$EGREP 'relinking|has not been installed' stderr], [1], [], [])
+    fi
+  done
+  dnl AT_CHECK([$LIBTOOL --mode=install cp m123b$EXEEXT $bindir/m123b$EXEEXT], [0], [ignore], [ignore])
+
+
+  ### Run each program once so that relinking has happened.
+
+  func_fix_path $prefix1 $prefix2 $prefix3
+  func_test_exec -static -static-libtool-libs -all-static `$per_deplib && echo 1 2 3 12 13 23 31 123 123a`
+  func_restore_path
+
+  # For each library:
+  # - remove the library images to catch failure to link statically/dynamically,
+  # - add false other deplibs in the paths to catch (some) wrongly added run paths.
+
+  # if '-all-static' does not work, do not exercise it any more.
+  all_static=-all-static
+  test -z "$link_static_flag" && all_static=
+
+  echo "### test whether installed libtool library liba2 was linked statically"
+  func_move_libs a2 $prefix2 $prefix3 $prefix1
+  func_test_exec -static -static-libtool-libs $all_static `$per_deplib && echo 2 12 23 123 123a`
+  $per_deplib && func_test_exec_fail 1 3 13 31
+  func_restore_libs a2 $prefix2
+
+  echo "### test whether uninstalled libtool library liba1 was linked statically"
+  func_move_libs a1 $prefix1 $prefix2 $prefix3
+  func_test_exec -static-libtool-libs $all_static `$per_deplib && echo 1 12 13 31 123 123a`
+  $per_deplib && func_test_exec_fail -static 2 3 23
+  func_restore_libs a1 $prefix1
+
+  echo "### test whether non-libtool library liba3 was linked statically"
+  func_move_libs a3 $prefix3 $prefix1 $prefix2
+  func_test_exec $all_static `$per_deplib && echo 3 13 23 31 123 123a`
+  # no '-static-libtool-libs' flag below, because some hosts such as
+  # Cray prefer static libs by default.
+  # and doesn't exercise anything not already tested above:
+  func_test_exec_fail -static `$per_deplib && echo 1 2 12`
+  func_restore_libs a3 $prefix3
+
+  cd ..
+done
+
+AT_CLEANUP
+
+
+AT_SETUP([ccache -all-static])
+
+AT_DATA([ccache],
+[[#! /bin/sh
+# poor man's ccache clone
+case $1 in
+-*) echo "bogus argument: $1" >&2; exit 1 ;;
+esac
+exec "$@"
+]])
+chmod +x ./ccache
+
+AT_DATA([a.c],
+[[int main(void) { return 0; }
+]])
+
+AT_CHECK([$CC $CPPFLAGS $CFLAGS -c a.c], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link --tag=CC ./ccache $CC $CFLAGS $LDFLAGS -all-static a.$OBJEXT -o a$EXEEXT],
+	 [], [ignore], [ignore])
+
+AT_CLEANUP

@@ -1,0 +1,170 @@
+- Documentation extraction program for chew.
+-  Copyright (C) 1990-2023 Free Software Foundation, Inc.
+-  This file is part of BFD, the Binary File Descriptor library.
+
+-  This program is free software; you can redistribute it and/or modify
+-  it under the terms of the GNU General Public License as published by
+-  the Free Software Foundation; either version 3 of the License, or
+-  (at your option) any later version.
+
+-  This program is distributed in the hope that it will be useful,
+-  but WITHOUT ANY WARRANTY; without even the implied warranty of
+-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-  GNU General Public License for more details.
+
+-  You should have received a copy of the GNU General Public License
+-  along with this program; if not, write to the Free Software
+-  Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.
+
+- chew.c keywords defined here put output into doc/*.texi files
+- from comments in the source.  See also proto.str.
+
+-  True if SYNOPSIS was seen.
+variable synopsis_seen
+
+: DOCDD
+	skip_past_newline
+	get_stuff_in_command kill_bogus_lines catstr
+	;
+
+: ENDDD
+	skip_past_newline
+	;
+
+: EXAMPLE
+	skip_past_newline	
+	get_stuff_in_command kill_bogus_lines do_fancy_stuff translatecomments 
+	courierize catstr
+	;
+
+: INODE 
+	"@node " catstr skip_past_newline copy_past_newline catstr 
+	;
+
+: CODE_FRAGMENT
+	EXAMPLE 
+	;
+
+: COMMENT
+	skip_past_newline
+	get_stuff_in_command
+	drop
+	;
+
+: SYNOPSIS
+	skip_past_newline
+	1 synopsis_seen !
+	"@deftypefn {Function} " catstr
+	get_stuff_in_command  
+	kill_bogus_lines
+	collapse_whitespace
+	indent
+	catstr
+	"\n" catstr
+	;
+
+: func
+	"@findex "	- a
+	skip_past_newline
+	copy_past_newline
+	dup		- a x x 
+	"@subsubsection @code{" - a x x b 
+	swap
+	remchar
+	"}\n" - a x b x c
+	catstr 	catstr 	catstr 	catstr 	catstr 
+	;
+
+: bodytext
+	get_stuff_in_command 
+	bulletize
+	kill_bogus_lines
+	do_fancy_stuff
+	courierize
+	catstr
+	"\n" catstr
+	;
+
+: asection
+	skip_past_newline
+	catstr
+	copy_past_newline 	
+	do_fancy_stuff catstr 	
+	bodytext	
+	;
+
+: SECTION 
+	"@section " asection  ;
+
+: SUBSECTION
+	"@subsection " asection  ;
+
+: SUBSUBSECTION
+	"@subsubsection " asection  ;
+
+: subhead
+	skip_past_newline
+	bodytext
+	;
+
+: DESCRIPTION 
+	subhead
+	"@end deftypefn\n" synopsis_seen @ catstrif
+	0 synopsis_seen !
+	;
+
+: FUNCTION
+	func ;
+
+: INTERNAL_FUNCTION
+	func ;
+
+: DEFINITION
+	func ;
+
+: INTERNAL_DEFINITION
+	func ;
+
+: EXTERNAL
+	COMMENT ;
+
+: INTERNAL
+	COMMENT ;
+
+: SENUM
+	skip_past_newline
+	"Here are the possible values for @code{enum "
+	copy_past_newline remchar catstr
+	"}:\n\n" catstr catstr
+	;
+: ENUM
+	skip_past_newline
+	"@deffn {} "
+	copy_past_newline catstr catstr
+	;
+: ENUMX
+	skip_past_newline
+	"@deffnx {} "
+	copy_past_newline catstr
+	catstr
+	;
+: ENUMEQ
+	skip_past_newline
+	"@deffn {} "
+	copy_past_newline catstr catstr
+	skip_past_newline
+	;
+: ENUMEQX
+	skip_past_newline
+	"@deffnx {} "
+	copy_past_newline catstr
+	catstr
+	skip_past_newline
+	;
+: ENUMDOC
+	skip_past_newline
+	get_stuff_in_command
+	strip_trailing_newlines
+	catstr
+	"\n@end deffn\n" catstr
+	;

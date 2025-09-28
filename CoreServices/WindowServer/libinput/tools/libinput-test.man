@@ -1,0 +1,36 @@
+
+.TH libinput-test "1" "" "libinput @LIBINPUT_VERSION@" "libinput Manual"
+.SH NAME
+libinput\-test \- test various components of libinput itself
+.SH SYNOPSIS
+.B libinput test [\-\-help] \fI<feature> [<args>]\fR
+.SH DESCRIPTION
+.PP
+The
+.B "libinput test"
+tool runs tests against libinput itself. There is usually no need for a user
+to use this tool, it is provided for distribution vendors.
+@HAVE_INSTALLED_TESTS@.B This tool was disabled at build time!
+.PP
+This is a testing tool only, its output may change at any time. Do not
+rely on the output.
+.PP
+This tool may need to be run as root to have access to the
+/dev/input/eventX nodes and/or create /dev/uinput devices.
+.SH OPTIONS
+.TP 8
+.B \-\-help
+Print help
+.SH FEATURES
+Tests that can be run are
+.TP 8
+.B libinput\-test\-suite(1)
+Run the full test suite. This is the most complete set of tests to run in
+libinput.
+.TP 8
+.B libinput\-test\-utils
+Run the test suite suite for internal utility functions.
+.SH LIBINPUT
+Part of the
+.B libinput(1)
+suite

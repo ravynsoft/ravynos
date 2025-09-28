@@ -1,0 +1,11 @@
+# problem in bash-5.1 running lastpipe in subshell if fd 0 is closed
+
+shopt -s lastpipe
+exec 0<&-
+
+echo x | read x
+echo x=$x
+unset x
+
+echo x | cat | read x
+echo x=$x

@@ -1,0 +1,290 @@
+# convenience.at -- testing C convenience archives            -*- Autotest -*-
+
+#   Copyright (C) 2005, 2007-2019, 2021-2022 Free Software Foundation,
+#   Inc.
+#   Written by Ralf Wildenhues, 2005
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+# Test that convenience archives work.
+# for each TAG, test:
+# - adding one or multiple convenience archives
+# - with or without additional objects on the cmdline
+
+AT_SETUP([C convenience archives])
+AT_KEYWORDS([libtool])
+
+cat >main1.c <<EOF
+extern int a1(void);
+int main(void) { return a1() != 1; }
+EOF
+cat >main2.c <<EOF
+extern int a1(void), a2(void);
+int main(void) { return a1() + a2() != 3; }
+EOF
+cat >main3.c <<EOF
+extern int a1(void), a2(void), a3(void);
+int main(void) { return a1() + a2() + a3() != 6; }
+EOF
+for i in 1 2 3; do
+  echo "int a$i(void) { return $i; }" > a$i.c
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c main$i.c
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a$i.c
+  $LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba$i.la a$i.lo
+done
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba12.la liba1.la liba2.la -rpath /notexist],
+	 [0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba123.la a3.lo liba1.la liba2.la -rpath /notexist],
+	 [0],[ignore],[ignore])
+
+conv=
+for i in 1 2 3; do
+  conv=$conv$i
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -static -o main_static$EXEEXT main$i.lo liba$conv.la],
+	   [0],[ignore],[ignore])
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT main$i.lo liba$conv.la],
+	   [0],[ignore],[ignore])
+  LT_AT_EXEC_CHECK([./main_static])
+  LT_AT_EXEC_CHECK([./main])
+done
+AT_CLEANUP
+
+
+AT_SETUP([C++ convenience archives])
+LT_AT_TAG([CXX])
+AT_KEYWORDS([libtool])
+
+cat >main1.cpp <<EOF
+extern int a1(void);
+int main(void) { return a1() != 1; }
+EOF
+cat >main2.cpp <<EOF
+extern int a1(void), a2(void);
+int main(void) { return a1() + a2() != 3; }
+EOF
+cat >main3.cpp <<EOF
+extern int a1(void), a2(void), a3(void);
+int main(void) { return a1() + a2() + a3() != 6; }
+EOF
+for i in 1 2 3; do
+  echo "int a$i(void) { return $i; }" > a$i.cpp
+  $LIBTOOL --tag=CXX --mode=compile $CXX $CXXFLAGS -c main$i.cpp
+  $LIBTOOL --tag=CXX --mode=compile $CXX $CXXFLAGS -c a$i.cpp
+  $LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o liba$i.la a$i.lo
+done
+AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o liba12.la liba1.la liba2.la -rpath /notexist],
+	 [0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o liba123.la a3.lo liba1.la liba2.la -rpath /notexist],
+	 [0],[ignore],[ignore])
+
+conv=
+for i in 1 2 3; do
+  conv=$conv$i
+  AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -static -o main_static$EXEEXT main$i.lo liba$conv.la],
+	   [0],[ignore],[ignore])
+  AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o main$EXEEXT main$i.lo liba$conv.la],
+	   [0],[ignore],[ignore])
+  LT_AT_EXEC_CHECK([./main_static])
+  LT_AT_EXEC_CHECK([./main])
+done
+AT_CLEANUP
+
+
+AT_SETUP([F77 convenience archives])
+LT_AT_TAG([F77])
+AT_KEYWORDS([libtool])
+
+cat >main1.f <<EOF
+      program main
+      implicit none
+      integer*4 res
+      call a1(res)
+      end
+EOF
+cat >main2.f <<EOF
+      program main
+      implicit none
+      integer*4 res
+      call a1(res)
+      call a2(res)
+      end
+EOF
+cat >main3.f <<EOF
+      program main
+      implicit none
+      integer*4 res
+      call a1(res)
+      call a2(res)
+      call a3(res)
+      end
+EOF
+
+for i in 1 2 3; do
+  cat >a$i.f <<EOF
+      subroutine a$i(res)
+      implicit none
+      integer*4 res
+      res=$i
+      return
+      end
+EOF
+  $LIBTOOL --tag=F77 --mode=compile $F77 $FFLAGS -c main$i.f
+  $LIBTOOL --tag=F77 --mode=compile $F77 $FFLAGS -c a$i.f
+  $LIBTOOL --tag=F77 --mode=link $F77 $FFLAGS $LDFLAGS -o liba$i.la a$i.lo
+done
+AT_CHECK([$LIBTOOL --tag=F77 --mode=link $F77 $FFLAGS $LDFLAGS -o liba12.la liba1.la liba2.la -rpath /notexist],
+	 [0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --tag=F77 --mode=link $F77 $FFLAGS $LDFLAGS -o liba123.la a3.lo liba1.la liba2.la -rpath /notexist],
+	 [0],[ignore],[ignore])
+
+conv=
+for i in 1 2 3; do
+  conv=$conv$i
+  AT_CHECK([$LIBTOOL --tag=F77 --mode=link $F77 $FFLAGS $LDFLAGS -static -o main_static$EXEEXT main$i.lo liba$conv.la],
+	   [0],[ignore],[ignore])
+  AT_CHECK([$LIBTOOL --tag=F77 --mode=link $F77 $FFLAGS $LDFLAGS -o main$EXEEXT main$i.lo liba$conv.la],
+	   [0],[ignore],[ignore])
+  LT_AT_EXEC_CHECK([./main_static])
+  LT_AT_EXEC_CHECK([./main])
+done
+AT_CLEANUP
+
+
+AT_SETUP([FC convenience archives])
+LT_AT_TAG([FC])
+AT_KEYWORDS([libtool])
+
+cat >main1.f <<EOF
+      program main
+      implicit none
+      integer*4 res
+      call a1(res)
+      end
+EOF
+cat >main2.f <<EOF
+      program main
+      implicit none
+      integer*4 res
+      call a1(res)
+      call a2(res)
+      end
+EOF
+cat >main3.f <<EOF
+      program main
+      implicit none
+      integer*4 res
+      call a1(res)
+      call a2(res)
+      call a3(res)
+      end
+EOF
+
+for i in 1 2 3; do
+  cat >a$i.f <<EOF
+      subroutine a$i(res)
+      implicit none
+      integer*4 res
+      res=$i
+      return
+      end
+EOF
+  $LIBTOOL --tag=FC --mode=compile $FC $FCFLAGS -c main$i.f
+  $LIBTOOL --tag=FC --mode=compile $FC $FCFLAGS -c a$i.f
+  $LIBTOOL --tag=FC --mode=link $FC $FCFLAGS $LDFLAGS -o liba$i.la a$i.lo
+done
+AT_CHECK([$LIBTOOL --tag=FC --mode=link $FC $FCFLAGS $LDFLAGS -o liba12.la liba1.la liba2.la -rpath /notexist],
+	 [0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --tag=FC --mode=link $FC $FCFLAGS $LDFLAGS -o liba123.la a3.lo liba1.la liba2.la -rpath /notexist],
+	 [0],[ignore],[ignore])
+
+conv=
+for i in 1 2 3; do
+  conv=$conv$i
+  AT_CHECK([$LIBTOOL --tag=FC --mode=link $FC $FCFLAGS $LDFLAGS -static -o main_static$EXEEXT main$i.lo liba$conv.la],
+	   [0],[ignore],[ignore])
+  AT_CHECK([$LIBTOOL --tag=FC --mode=link $FC $FCFLAGS $LDFLAGS -o main$EXEEXT main$i.lo liba$conv.la],
+	   [0],[ignore],[ignore])
+  LT_AT_EXEC_CHECK([./main_static])
+  LT_AT_EXEC_CHECK([./main])
+done
+AT_CLEANUP
+
+
+AT_SETUP([Java convenience archives])
+LT_AT_EXEC_TAG([GCJ])
+AT_KEYWORDS([libtool])
+
+cat >foo1.java <<EOF
+public class foo1 {
+  public static void main(String[[]] argv) {
+    A1 a1 = new A1();
+  }
+}
+EOF
+cat >foo2.java <<EOF
+public class foo2 {
+  public static void main(String[[]] argv) {
+    A1 a1 = new A1(); A2 a2 = new A2();
+  }
+}
+EOF
+cat >foo3.java <<EOF
+public class foo3 {
+  public static void main(String[[]] argv) {
+    A1 a1 = new A1(); A2 a2 = new A2(); A3 a3 = new A3();
+  }
+}
+EOF
+for i in 1 2 3; do
+  cat >A$i.java <<EOF
+public class A$i {
+  private int a;
+  public A$i () { a = 0; }
+};
+EOF
+
+  # Workaround http://gcc.gnu.org/bugzilla/show_bug.cgi?id=42143
+  # Some 4.3.x and 4.4.x releases of gcj insert a spurious dummy symbol
+  # into every object file when compiling directly from .java to .o, so
+  # we have to make .class files first, and then compile those to native
+  # objects:
+  $GCJ $GCJFLAGS -C foo$i.java
+  $GCJ $GCJFLAGS -C A$i.java
+
+  $LIBTOOL --tag=GCJ --mode=compile $GCJ $GCJFLAGS -c foo$i.class
+  $LIBTOOL --tag=GCJ --mode=compile $GCJ $GCJFLAGS -c A$i.class
+  $LIBTOOL --tag=GCJ --mode=link $GCJ $GCJFLAGS $LDFLAGS -o liba$i.la A$i.lo
+done
+AT_CHECK([$LIBTOOL --tag=GCJ --mode=link $GCJ $GCJFLAGS $LDFLAGS -o liba12.la liba1.la liba2.la -rpath /notexist],
+	 [0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --tag=GCJ --mode=link $GCJ $GCJFLAGS $LDFLAGS -o liba123.la A3.lo liba1.la liba2.la -rpath /notexist],
+	 [0],[ignore],[ignore])
+
+conv=
+for i in 1 2 3; do
+  conv=$conv$i
+  AT_CHECK([$LIBTOOL --tag=GCJ --mode=link $GCJ $GCJFLAGS $LDFLAGS -static --main=foo$i -o main_static$EXEEXT foo$i.lo liba$conv.la],
+	   [0],[ignore],[ignore])
+  AT_CHECK([$LIBTOOL --tag=GCJ --mode=link $GCJ $GCJFLAGS $LDFLAGS --main=foo$i -o main$EXEEXT foo$i.lo liba$conv.la],
+	   [0],[ignore],[ignore])
+  LT_AT_EXEC_CHECK([./main_static])
+  LT_AT_EXEC_CHECK([./main])
+done
+AT_CLEANUP

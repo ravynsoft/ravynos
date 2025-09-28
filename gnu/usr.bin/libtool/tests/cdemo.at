@@ -1,0 +1,194 @@
+# cdemo.at -- Using Automake to build a program and library -*- Autotest -*-
+#
+#   Copyright (C) 2003-2004, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Gary V. Vaughan, 2003
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+
+AT_BANNER([Convenience libraries.])
+
+
+# _LT_SETUP
+# ---------
+m4_define([_LT_SETUP],
+[AT_DATA([configure.ac],
+[[AC_INIT([cdemo], ]AT_PACKAGE_VERSION[, ]AT_PACKAGE_BUGREPORT[)
+AC_CONFIG_AUX_DIR([build-aux])
+AC_CONFIG_MACRO_DIRS([m4])
+AM_INIT_AUTOMAKE
+AC_PROG_CC
+LT_INIT
+AC_SUBST([LIBTOOL_DEPS])
+LT_LIB_M
+AC_CONFIG_FILES([Makefile])
+AC_CONFIG_HEADERS([config.h:config.in.h])
+AC_OUTPUT
+]])
+
+AT_DATA([Makefile.am],
+[[AUTOMAKE_OPTIONS = no-dependencies foreign
+ACLOCAL_AMFLAGS = -I m4
+
+noinst_LTLIBRARIES = libfoo.la
+libfoo_la_SOURCES = foo.c
+libfoo_la_LIBADD = $(LIBM)
+libfoo_la_LDFLAGS = -no-undefined
+noinst_HEADERS = foo.h
+
+bin_PROGRAMS = cdemo
+cdemo_SOURCES = main.c
+cdemo_LDADD = libfoo.la
+
+libtool: $(LIBTOOL_DEPS)
+	 $(SHELL) ./config.status --recheck
+]])
+
+AT_DATA([foo.h],
+[[#ifndef FOO_H
+#define FOO_H 1
+
+/* Silly constants that the functions return. */
+#define HELLO_RET 0xe110
+#define FOO_RET 0xf00
+
+extern int foo();
+
+extern int hello();
+
+#endif
+]])
+
+AT_DATA([foo.c],
+[[#include <config.h>
+#include <stdio.h>
+#include <math.h>
+
+#include "foo.h"
+
+int foo() {
+  printf ("cos (0.0) = %g\n", (double) cos ((double) 0.0));
+  return FOO_RET;
+}
+
+int hello() {
+  printf ("** This is libfoo **\n");
+  return HELLO_RET;
+}
+]])
+
+AT_DATA([main.c],
+[[#include <config.h>
+#include <stdio.h>
+#include "foo.h"
+
+int main ()
+{
+  int value;
+
+  printf ("Welcome to GNU libtool cdemo!\n");
+
+  value = hello();
+  printf ("hello returned: %i\n", value);
+  if (value == HELLO_RET)
+    printf("hello is ok!\n");
+
+  if (foo () == FOO_RET)
+    printf("foo is ok!\n");
+
+  return 0;
+}
+]])
+
+LT_AT_HOST_DATA([expout],
+[[Welcome to GNU libtool cdemo!
+** This is libfoo **
+hello returned: 57616
+hello is ok!
+cos (0.0) = 1
+foo is ok!
+]])
+]) # _LT_SETUP
+
+
+## ------------- ##
+## Cdemo static. ##
+## ------------- ##
+
+AT_SETUP([build and link against a static library])
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG([--disable-shared],
+                   [^build_old_libs=yes], [^build_libtool_libs=no])
+LT_AT_CHECK_EXECUTE([], [./cdemo])
+
+AT_CLEANUP
+
+
+## ------------- ##
+## Cdemo shared. ##
+## ------------- ##
+
+AT_SETUP([build and link against a dynamic library])
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG([--disable-static],
+                   [^build_old_libs=no], [^build_libtool_libs=yes])
+LT_AT_CHECK_EXECUTE([], [./cdemo])
+
+AT_CLEANUP
+
+
+## ----------- ##
+## Cdemo conf. ##
+## ----------- ##
+
+AT_SETUP([build both static and dynamic])
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG([],
+                   [^build_old_libs=yes], [^build_libtool_libs=yes])
+LT_AT_CHECK_EXECUTE([], [./cdemo])
+
+AT_CLEANUP
+
+
+## ------------ ##
+## Cdemo undef. ##
+## ------------ ##
+
+AT_SETUP([allow_undefined_flag])
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG([--disable-static])
+
+AT_CHECK([$EGREP "^allow_undefined_flag=.\{0,1\}unsupported.\{0,1\}$" libtool && (exit 77)],
+          1, [ignore])
+
+$SED 's|allow_undefined=no|allow_undefined=yes|g' libtool > ltnew && mv -f ltnew libtool
+
+LT_AT_CHECK_EXECUTE([], [./cdemo])
+
+AT_CLEANUP

@@ -1,0 +1,27 @@
+#compdef -default-
+
+local ctl
+
+if { zstyle -s ":completion:${curcontext}:" use-compctl ctl ||
+     zmodload -e zsh/compctl } && [[ "$ctl" != (no|false|0|off) ]]; then
+  local opt
+
+  opt=()
+  [[ "$ctl" = *first* ]] && opt=(-T)
+  [[ "$ctl" = *default* ]] && opt=("$opt[@]" -D)
+  compcall "$opt[@]" || return 0
+fi
+
+_files "$@" && return 0
+
+# magicequalsubst allows arguments like <any-old-stuff>=~/foo to do
+# file name expansion after the =.  In that case, it's natural to
+# allow completion to handle file names after any equals sign.
+
+if [[ -o magicequalsubst && "$PREFIX" = *\=* ]]; then
+  compstate[parameter]="${PREFIX%%\=*}"
+  compset -P 1 '*='
+  _value "$@"
+else
+  return 1
+fi

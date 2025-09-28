@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Changes in TIFF v4.0.4 &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Changes in TIFF v4.0.4beta" href="v4.0.4beta.html" />
+    <link rel="prev" title="Changes in TIFF v4.0.5" href="v4.0.5.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="v4.0.4beta.html" title="Changes in TIFF v4.0.4beta"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="v4.0.5.html" title="Changes in TIFF v4.0.5"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v4.0.4</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="changes-in-tiff-v4-0-4">
+<h1>Changes in TIFF v4.0.4<a class="headerlink" href="#changes-in-tiff-v4-0-4" title="Permalink to this heading">¶</a></h1>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">References</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Current Version</p></td>
+<td><p>v4.0.4 (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/tags/Release-v4-0-4">tag Release-v4-0-4</a>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Previous Version</p></td>
+<td><p><a class="reference internal" href="v4.0.4beta.html"><span class="doc">v4.0.4beta</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Master Download Site</p></td>
+<td><p><a class="reference external" href="https://download.osgeo.org/libtiff/">https://download.osgeo.org/libtiff/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Master HTTP Site</p></td>
+<td><p><a class="reference external" href="https://download.osgeo.org/libtiff/">https://download.osgeo.org/libtiff/</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>This document describes the changes made to the software between the
+<em>previous</em> and <em>current</em> versions (see above).  If you don’t
+find something listed here, then it was not done in this timeframe, or
+it was not considered important enough to be mentioned.  The following
+information is located here:</p>
+<section id="major-changes">
+<h2>Major changes<a class="headerlink" href="#major-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>None</p></li>
+</ul>
+</section>
+<section id="software-configuration-changes">
+<h2>Software configuration changes<a class="headerlink" href="#software-configuration-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2405">MapTools bugzilla #2405</a>: Correct shell equality operator.</p></li>
+<li><p><a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2498">MapTools bugzilla #2498</a>: Adds an option to select the file I/O style on Windows hosts.</p></li>
+</ul>
+</section>
+<section id="library-changes">
+<h2>Library changes<a class="headerlink" href="#library-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="../functions/TIFFquery.html#c.TIFFNumberOfDirectories" title="TIFFNumberOfDirectories"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFNumberOfDirectories()</span></code></a>: Coverity 1134470 “Logically dead code”</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_dirread.c</span></code>:</p>
+<ul>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadDirEntryDoubleArray()</span></code>: Coverity 298626 “Logically dead code”.</p></li>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadDirEntryFloatArray()</span></code>: Coverity 298627 “Logically dead code”.</p></li>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadDirEntryIfd8Array()</span></code>: Coverity 298628 “Logically dead code”.</p></li>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadDirEntrySlong8Array()</span></code>: Coverity 298629 “Logically dead code”</p></li>
+</ul>
+</li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_dirwrite.c</span></code></p>
+<ul>
+<li><p><a class="reference internal" href="../functions/_TIFFRewriteField.html#c._TIFFRewriteField" title="_TIFFRewriteField"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFRewriteField()</span></code></a>: Coverity 1024310 “Resource leak”.</p></li>
+</ul>
+</li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_jpeg.c</span></code></p>
+<ul>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">JPEGCleanup()</span></code>: Coverity 298624 “Dereference before null check”.</p></li>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">JPEGDecode()</span></code>: Coverity 602597 “Operands don’t affect result”.</p></li>
+</ul>
+</li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_getimage.c</span></code></p>
+<ul>
+<li><p><a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2409">MapTools bugzilla #2409</a>: Correct reading of certain tiled TIFFs.</p></li>
+</ul>
+</li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_luv.c</span></code></p>
+<ul>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">LogLuvDecodeStrip()</span></code>: Coverity 991239 “Division or modulo by zero”.</p></li>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">LogLuvDecodeTile()</span></code>: Coverity 991227 “Division or modulo by zero”.</p></li>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">LogLuvEncodeStrip()</span></code>: Coverity 991240 “Division or modulo by zero”.</p></li>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">LogLuvEncodeTile()</span></code>: Coverity 991241 “Division or modulo by zero”.</p></li>
+</ul>
+</li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_lzw.c</span></code></p>
+<ul>
+<li><p>Decode files that contain consecutive <code class="xref c c-macro docutils literal notranslate"><span class="pre">CODE_CLEAR</span></code> codes.</p></li>
+</ul>
+</li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_ojpeg.c</span></code></p>
+<ul>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">OJPEGReadBufferFill()</span></code>: Coverity 603400 “Missing break in switch”.</p></li>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">OJPEGReadHeaderInfoSecStreamDht()</span></code>: Coverity 601720 “Resource leak”.</p></li>
+</ul>
+</li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_read.c</span></code></p>
+<ul>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFStartTile()</span></code>: Coverity 715973 and 715974 “Division or modulo by zero”.</p></li>
+</ul>
+</li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_unix.c</span></code></p>
+<ul>
+<li><p><a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2510">MapTools bugzilla #2510</a>: Fix several harmless but still annoying warnings.</p></li>
+</ul>
+</li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_write</span></code></p>
+<ul>
+<li><p><a class="reference internal" href="../functions/TIFFWriteEncodedStrip.html#c.TIFFWriteEncodedStrip" title="TIFFWriteEncodedStrip"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteEncodedStrip()</span></code></a>: Coverity 715975 “Division or modulo by zero”.</p></li>
+<li><p><a class="reference internal" href="../functions/TIFFWriteEncodedTile.html#c.TIFFWriteEncodedTile" title="TIFFWriteEncodedTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteEncodedTile()</span></code></a>: Coverity 715976 and 715977 “Division or modulo by zero”.</p></li>
+<li><p><a class="reference internal" href="../functions/TIFFWriteRawStrip.html#c.TIFFWriteRawStrip" title="TIFFWriteRawStrip"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteRawStrip()</span></code></a>: Coverity 715978 “Division or modulo by zero”.</p></li>
+<li><p><a class="reference internal" href="../functions/TIFFWriteScanline.html#c.TIFFWriteScanline" title="TIFFWriteScanline"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteScanline()</span></code></a>: Coverity 715979 “Division or modulo by zero”.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="tools-changes">
+<h2>Tools changes<a class="headerlink" href="#tools-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong class="program">bmp2tiff</strong></p>
+<ul>
+<li><p>Coverity 1024225 “Untrusted value as argument”.</p></li>
+<li><p>Coverity 1024678 “Unchecked return value from library”.</p></li>
+<li><p>Coverity 1024679 “Unchecked return value from library”.</p></li>
+<li><p>Coverity 1214160 “Ignoring number of bytes read”.</p></li>
+</ul>
+</li>
+<li><p><strong class="program">gif2tiff</strong></p>
+<ul>
+<li><p>Coverity 1024222 “Untrusted value as argument”.</p></li>
+<li><p>Coverity 1024890 “Ignoring number of bytes read”.</p></li>
+<li><p>Coverity 1024891 “Ignoring number of bytes read”.</p></li>
+<li><p>Coverity 1024892 “Ignoring number of bytes read”.</p></li>
+<li><p>Coverity 1024893 “Ignoring number of bytes read”.</p></li>
+<li><p>Coverity 1024894 “Ignoring number of bytes read”.</p></li>
+</ul>
+</li>
+<li><p><strong class="program">ras2tiff</strong></p>
+<ul>
+<li><p>Corrected Sun Raster header definition to be safe for
+64-bit systems.  Add some header validations.  Fixes many
+(unspecified) Coverity issues.</p></li>
+<li><p>Coverity 1024223 “Untrusted value as argument”.</p></li>
+<li><p>Coverity 1301206: “Integer handling issues  (BAD_SHIFT)”.</p></li>
+</ul>
+</li>
+<li><p><strong class="program">raw2tiff</strong></p>
+<ul>
+<li><p>Coverity 1024887 “Unchecked return value from library”.</p></li>
+<li><p>Coverity 1024888 “Unchecked return value from library”.</p></li>
+<li><p>Coverity 1024889 “Unchecked return value from library”.</p></li>
+<li><p>Coverity 1214162 “Ignoring number of bytes read”.</p></li>
+</ul>
+</li>
+<li><p><strong class="program">tiff2pdf</strong></p>
+<ul>
+<li><p><a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2078">MapTools bugzilla #2078</a>: Suppress initial output of the header.</p></li>
+<li><p><a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2150">MapTools bugzilla #2150</a>: Change ColorTransform from “0” to “1”.</p></li>
+<li><p>Take care in using the return value from <code class="xref c c-func docutils literal notranslate"><span class="pre">snprintf()</span></code>.</p></li>
+<li><p>Coverity 1024181 “Structurally dead code”.</p></li>
+<li><p>Coverity 1024181 “Structurally dead code”.</p></li>
+<li><p>Coverity 1227690 “Unused value”.</p></li>
+<li><p>Coverity 298621 “Resource leak”.</p></li>
+</ul>
+</li>
+<li><p><strong class="program">tiff2ps</strong></p>
+<ul>
+<li><p>Correct sizing and scaling problems with output document.</p></li>
+</ul>
+</li>
+<li><p><strong class="program">tiffcp</strong></p>
+<ul>
+<li><p>Coverity 1024306, 1024307, 1024308, 1024309 “Resource leak”.</p></li>
+</ul>
+</li>
+<li><p><strong class="program">tiffcrop</strong></p>
+<ul>
+<li><p>Correctly copy the compression tag from the source TIFF.</p></li>
+<li><p>Coverity 1024545 “Division or modulo by zero”.</p></li>
+<li><p>Coverity 1024586 “Logically dead code”.</p></li>
+<li><p>Coverity 1024796 “Nesting level does not match indentation”.</p></li>
+<li><p>Coverity 1024797 “Nesting level does not match indentation”.</p></li>
+<li><p>Coverity 1294542 “Logical vs. bitwise operator”.</p></li>
+<li><p>Coverity 1299740 “Out-of-bounds write”.</p></li>
+<li><p>Coverity 1299741 “Dereference before null check”.</p></li>
+</ul>
+</li>
+<li><p><strong class="program">tiffdither</strong></p>
+<ul>
+<li><p>Check memory allocations for failure.  Also check
+multiplication overflow. (Fixes #2501, <a class="reference external" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-8128">CVE-2014-8128</a>)</p></li>
+</ul>
+</li>
+<li><p><strong class="program">tiffgt.c</strong></p>
+<ul>
+<li><p><a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2401">MapTools bugzilla #2401</a>: Appropriately call <code class="xref c c-func docutils literal notranslate"><span class="pre">glFlush()</span></code>.</p></li>
+</ul>
+</li>
+<li><p><strong class="program">tiffmedian</strong></p>
+<ul>
+<li><p>Coverity 1024386 “Out-of-bounds read”.</p></li>
+<li><p>Coverity 1024386 “Out-of-bounds read”.</p></li>
+<li><p>Coverity 1024795 “Nesting level does not match indentation”.</p></li>
+<li><p>Coverity 1024795 “Nesting level does not match indentation”.</p></li>
+</ul>
+</li>
+</ul>
+<p><strong class="program">tiffsplit</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Coverity 1024304 “Resource leak”.</p></li>
+<li><p>Coverity 1024305 “Resource leak”.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="contributed-software-changes">
+<h2>Contributed software changes<a class="headerlink" href="#contributed-software-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong class="program">addtiffo</strong></p>
+<ul>
+<li><p>Check buffer size calculation for overflow.</p></li>
+<li><p>Coverity  298615 “Resource leak”.</p></li>
+<li><p>Coverity 1024649 “Unintended sign extension”.</p></li>
+</ul>
+</li>
+<li><p><strong class="program">iptcutil</strong></p>
+<ul>
+<li><p>Coverity 1024468 “Infinite loop”.</p></li>
+<li><p>Coverity 1024727 “Truncated stdio return value”.</p></li>
+<li><p>Coverity 1214240 “Untrusted loop bound”.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Changes in TIFF v4.0.4</a><ul>
+<li><a class="reference internal" href="#major-changes">Major changes</a></li>
+<li><a class="reference internal" href="#software-configuration-changes">Software configuration changes</a></li>
+<li><a class="reference internal" href="#library-changes">Library changes</a></li>
+<li><a class="reference internal" href="#tools-changes">Tools changes</a></li>
+<li><a class="reference internal" href="#contributed-software-changes">Contributed software changes</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="v4.0.5.html"
+                          title="previous chapter">Changes in TIFF v4.0.5</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="v4.0.4beta.html"
+                          title="next chapter">Changes in TIFF v4.0.4beta</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/releases/v4.0.4.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="v4.0.4beta.html" title="Changes in TIFF v4.0.4beta"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="v4.0.5.html" title="Changes in TIFF v4.0.5"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v4.0.4</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

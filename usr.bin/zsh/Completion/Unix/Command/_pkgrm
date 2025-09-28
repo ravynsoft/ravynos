@@ -1,0 +1,16 @@
+#compdef pkgrm
+
+_arguments -s \
+  '-Y[select packages by category]:category' \
+  - set1 \
+  '-n[non-interactive mode]' \
+  '-v[trace all scripts]' \
+  '-a[admin file]:admin file:_files' \
+  "-A[force removal of all files]" \
+  "-M[don't use vfstab file]" \
+  '-R[root path]:root path:_files -/' \
+  '-V[alternate vfstab file]:vfstab file:_files' \
+  '*:package instance:_pkg_instance --_opts installed:set1--R' \
+  - set2 \
+  '-s[spool package]:spool directory:_files -/' \
+  '*:package instance:_pkg_instance --_opts spooled:set2--s'

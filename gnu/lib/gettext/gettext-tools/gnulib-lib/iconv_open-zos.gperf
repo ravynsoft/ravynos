@@ -1,0 +1,76 @@
+/* Character set conversion.
+   Copyright (C) 2019-2023 Free Software Foundation, Inc.
+
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
+
+   This file is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
+
+struct mapping { int standard_name; const char vendor_name[10 + 1]; };
+%struct-type
+%language=ANSI-C
+%define slot-name standard_name
+%define hash-function-name mapping_hash
+%define lookup-function-name mapping_lookup
+%readonly-tables
+%global-table
+%define word-array-name mappings
+%pic
+%%
+ASCII, "00367"
+ISO-8859-1, "ISO8859-1"
+ISO-8859-2, "ISO8859-2"
+ISO-8859-3, "00913"
+ISO-8859-4, "ISO8859-4"
+ISO-8859-5, "ISO8859-5"
+ISO-8859-6, "ISO8859-6"
+ISO-8859-7, "ISO8859-7"
+ISO-8859-8, "05012"
+ISO-8859-9, "ISO8859-9"
+ISO-8859-13, "ISO8859-13"
+ISO-8859-15, "ISO8859-15"
+KOI8-R, "00878"
+KOI8-U, "01168"
+CP437, "IBM-437"
+CP775, "00775"
+CP850, "09042"
+CP852, "IBM-852"
+CP855, "13143"
+CP856, "IBM-856"
+CP857, "00857"
+CP861, "IBM-861"
+CP862, "IBM-862"
+CP864, "IBM-864"
+CP865, "00865"
+CP866, "04962"
+CP869, "IBM-869"
+CP874, "TIS-620"
+CP922, "IBM-922"
+CP932, "IBM-943"
+CP943, "IBM-943"
+CP949, "IBM-1363"
+CP1046, "IBM-1046"
+CP1124, "IBM-1124"
+CP1125, "IBM-1125"
+CP1129, "01129"
+CP1131, "01131"
+CP1250, "IBM-5346"
+CP1251, "IBM-5347"
+CP1252, "IBM-5348"
+CP1253, "IBM-5349"
+CP1254, "IBM-5350"
+CP1255, "09447"
+CP1256, "09448"
+CP1257, "09449"
+GB2312, "IBM-eucCN"
+EUC-JP, "01350"
+EUC-KR, "IBM-eucKR"
+GBK, "IBM-1386"

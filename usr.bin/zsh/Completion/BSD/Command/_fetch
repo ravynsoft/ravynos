@@ -1,0 +1,43 @@
+#compdef fetch
+
+# Deprecated arguments are prefixed with ! so they aren't listed but their arguments are completed
+_arguments -s -S \
+  '(-1 --one-file)'{-1,--one-file}'[stop and return exit code 0 at the first successfully retrieved file]' \
+  '(-4 --ipv4-only)'{-4,--ipv4-only}'[forces fetch to use IPv4 addresses only]' \
+  '(-6 --ipv6-only)'{-6,--ipv6-only}'[forces fetch to use IPv6 addresses only]' \
+  '(-A --no-redirect)'{-A,--no-redirect}"[don't automatically follow "temporary" (302) redirects]" \
+  '(-a --retry)'{-a,--retry}'[automatically retry the transfer upon soft failures]' \
+  '(-B --buffer-size)'{-B+,--buffer-size=}'[specify the read buffer size in bytes]:buffer size (bytes)' \
+  '--bind-address=[specify address to which outgoing connections will be bound]:host:_hosts' \
+  '--ca-cert=[specify certificate bundle containing trusted CA certificates]:file:_files' \
+  '--ca-path=[specify directory containing trusted CA hashes]:path:_directories' \
+  '--cert=[specify PEM encoded client key for authentication]:file:_files -g "*.pem(-.)"' \
+  '--crl=[specify certificate revocation list file]:file:_files' \
+  '(-d --direct)'{-d,--direct}'[use a direct connection even if a proxy is configured]' \
+  '(-F --force-restart)'{-F,--force-restart}'[in combination with the -r flag, forces a restart]' \
+  '(-i --if-modified-since)'{-i+,--if-modified-since=}'[only retrieve if remote file newer than specified local file]:file:_files' \
+  '--key=[specify PEM encoded client key]:key file:_files -g "*.pem(-.)"' \
+  '(-l --symlink)'{-l,--symlink}'[if the target is a file-scheme URL, make a symbolic link to the target]' \
+  '-M' \
+  '(-m --mirror -r --restart)'{-m,--mirror}'[mirror mode]' \
+  '(-N --netrc)'{-N+,--netrc=}'[use file instead of ~/.netrc to look up login names and pass- words for FTP sites]' \
+  '(-n --no-mtime)'{-n,--no-mtime}"[don't preserve the modification time]" \
+  '--no-passive[force FTP code to use active mode]' \
+  '--no-proxy=[hosts on which to disable proxies]:host:_sequence _hosts' \
+  '--no-sslv3' '--no-tlsv1' --no-verify-hostname --no-verify-peer \
+  '(-o --output)'{-o+,--output=}'[set the output file name]:file:_files' \
+  '-P' \
+  '(-p --passive)'{-p,--passive}'[use passive FTP]' \
+  '--referer=:URL:_urls' \
+  '(-q --quiet)'{-q,--quiet}'[quiet mode]' \
+  '(-R --keep-output)'{-R,--keep-output}"[don't delete the output file in any circumstances]" \
+  '(-r --restart -m --mirror)'{-r,--restart}'[restart a previously interrupted transfer]' \
+  '(-S --require-size)'{-S+,--require-size=}'[require the file size reported by the server to match the specified value]' \
+  '(-s --print-size)'{-s,--print-size}'[print the size in bytes, without fetching it]' \
+  '(-T --timeout)'{-T+,--timeout=}'[set timeout value]:seconds:' \
+  '(-U --passive-portrange-default)'{-U,--passive-portrange-default}'[when using passive FTP, allocate the port for the data connection from the low port range]' \
+  '--user-agent=:user agent' \
+  '(-v --verbose)'{-v,--verbose}'[increase verbosity level]' \
+  '(-w --retry-delay)'{-w+,--retry-delay=}'[wait successive retries]:delay (seconds)' \
+  '!(*)-h+:host:_hosts' '!(*)-f+:file:_files' '!(*)-c+:remote directory:_directories' \
+  '*:URL to fetch:_urls'

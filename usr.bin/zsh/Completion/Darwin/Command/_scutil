@@ -1,0 +1,56 @@
+#compdef scutil
+
+local ret=1
+local -a context line state state_descr
+local -A opt_args val_args
+
+# Don't complete host names unless we have -r (this is weird, but the obvious
+# alternative (exclusion sets) currently doesn't work properly with option
+# stacking)
+(( ! $words[(I)-*] || ($words[(I)-W] && ! $words[(I)-r]) )) &&
+: ${PREFIX:=-}
+
+# @todo We could complete nc-cmd arguments better if we wanted to
+_arguments -s -S -A '-*' : \
+  + '(g1)' \
+  '(: -)--dns[display current DNS configuration]' \
+  '(: -)--get[display specified preference]: :->prefs' \
+  '(: -)--nc[interact with VPN connections]: :->nc-cmd:*:argument' \
+  '(: -)--prefs[interface with raw preference data]:preference file:_files' \
+  '(: -)--proxy[display current proxy configuration]' \
+  '(: -)--set[set specified preference]: :->prefs:value' \
+  + g2 \
+  '(g1 g3)-r[check network reachability]' \
+  '(g1 g3)-W[monitor (watch) network reachability]' \
+  '(g1 g3)1:host:_hosts' \
+  '(g1 g3)2::host:_hosts' \
+  + g3 \
+  '(g1 g2)-w[wait for key to exist in dynamic store]' \
+  '(g1 g2)-t+[specify timeout]:timeout (seconds)' \
+&& ret=0
+
+case $state in
+  nc-cmd)
+    _values command \
+      'disablevpn[disable specified service or VPN application type]' \
+      'enablevpn[enable specified service or VPN application type]' \
+      'help[display command help]' \
+      'list[list services]' \
+      'ondemand[display VPN on-demand information]' \
+      'resume[resume specified service]' \
+      'select[make specified service active]' \
+      'show[display configuration information for specified service]' \
+      'start[start specified service]' \
+      'statistics[display statistics for specified service]' \
+      'status[display status for specified service]' \
+      'stop[stop specified service]' \
+      'suspend[suspend specified service]' \
+      'trigger[trigger VPN on-demand with specified host]' \
+    && ret=0
+    ;;
+  prefs)
+    _values preference ComputerName HostName LocalHostName && ret=0
+    ;;
+esac
+
+return ret

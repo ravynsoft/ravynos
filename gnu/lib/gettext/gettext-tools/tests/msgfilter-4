@@ -1,0 +1,142 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgfilter on a PO file with contexts.
+
+if (echo "testing\c"; echo 1,2,3) | grep c >/dev/null; then
+  # Stardent Vistra SVR4 grep lacks -e, says ghazi@caip.rutgers.edu.
+  if (echo -n testing; echo 1,2,3) | sed s/-n/xn/ | grep xn >/dev/null; then
+    ac_n= ac_c='
+' ac_t='        '
+  else
+    ac_n=-n ac_c= ac_t=
+  fi
+else
+  ac_n= ac_c='\c' ac_t=
+fi
+
+# Some sed programs (Solaris etc.) omit the last line if it ended without
+# a newline. We must skip this test when we encounter such a broken sed.
+sedoutput=`echo $ac_n "abc$ac_c" | sed -e s/x/x/`
+test -n "$sedoutput" || {
+  echo "Skipping test: sed program is broken"
+  Exit 77
+}
+
+# Some sed programs (IRIX, OSF/1 etc.) add a newline to the last line if it
+# doesn't end with a newline.
+sedoutputcount=`echo $ac_n "abc$ac_c" | sed -e s/x/x/ | wc -c`
+sedoutputcount=`echo "$sedoutputcount" | sed -e 's/[ 	]//g'`
+test "$sedoutputcount" = 3 || {
+  echo "Skipping test: sed program inserts extra newline"
+  Exit 77
+}
+
+cat <<\EOF > mfi-test4.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. A menu item
+msgctxt "File|"
+msgid "Open"
+msgstr "Ouvrir"
+
+#. A menu item
+msgctxt "File|"
+msgid "New"
+msgstr "Nouveau"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Open"
+msgstr "Ouvert"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Closed"
+msgstr "Fermé"
+
+#. A product
+msgctxt "Audi"
+msgid "car"
+msgstr "voiture"
+
+#. A product
+msgctxt "Océ"
+msgid "copier"
+msgstr "photocopieur"
+
+#~ msgid "Save As"
+#~ msgstr "Enregistrer l'as"
+
+#. A menu item
+#~ msgctxt "File|"
+#~ msgid "Save As"
+#~ msgstr "Enregistrer sous"
+EOF
+
+: ${MSGFILTER=msgfilter}
+sedexpr1='1{
+s/^/\[\[/
+}'
+sedexpr2='${
+s/$/\]\]/
+}'
+LC_ALL=C \
+${MSGFILTER} -i mfi-test4.po -o mfi-test4.out sed -e "$sedexpr1" -e "$sedexpr2" >mfi-test4.err 2>&1
+result=$?
+cat mfi-test4.err | grep -v 'warning: Locale charset' | grep -v '^ '
+test $result = 0 || { Exit 1; }
+
+cat <<\EOF > mfi-test4.ok
+msgid ""
+msgstr ""
+"[[Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit]]\n"
+
+#. A menu item
+msgctxt "File|"
+msgid "Open"
+msgstr "[[Ouvrir]]"
+
+#. A menu item
+msgctxt "File|"
+msgid "New"
+msgstr "[[Nouveau]]"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Open"
+msgstr "[[Ouvert]]"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Closed"
+msgstr "[[Fermé]]"
+
+#. A product
+msgctxt "Audi"
+msgid "car"
+msgstr "[[voiture]]"
+
+#. A product
+msgctxt "Océ"
+msgid "copier"
+msgstr "[[photocopieur]]"
+
+#~ msgid "Save As"
+#~ msgstr "[[Enregistrer l'as]]"
+
+#. A menu item
+#~ msgctxt "File|"
+#~ msgid "Save As"
+#~ msgstr "[[Enregistrer sous]]"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mfi-test4.ok mfi-test4.out
+result=$?
+
+exit $result

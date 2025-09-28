@@ -1,0 +1,28 @@
+// NOTE: This file has been generated automatically by “{{script}}”.
+//       Do not edit manually!
+
+#ifndef MESSAGES_H
+#define MESSAGES_H
+
+#include <stdint.h>
+
+/**
+ * Special case when no message identifier is defined.
+ */
+#define XKB_LOG_MESSAGE_NO_ID 0
+
+/**
+ * @name Codes of the log messages
+ */
+enum xkb_message_code {
+    _XKB_LOG_MESSAGE_MIN_CODE = {{ entries[0].code }},
+    {% for entry in entries %}
+    /** {{ entry.description }} */
+    {{ entry.message_code_constant }} = {{ entry.code }},
+    {% endfor %}
+    _XKB_LOG_MESSAGE_MAX_CODE = {{ entries[-1].code }}
+};
+
+typedef uint32_t xkb_message_code_t;
+
+#endif

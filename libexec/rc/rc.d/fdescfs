@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# $FreeBSD$
+#
+
+# PROVIDE: fdescfs
+# REQUIRE: mountcritlocal
+# KEYWORD: nojail shutdown
+
+. /etc/rc.subr
+
+name="fdescfs"
+desc="Mount fdescfs filesystem"
+start_cmd="fdescfs_start"
+stop_cmd=sync
+
+fdescfs_start()
+{
+	check_startmsgs && echo -n 'Mounting fdescfs:'
+	mount -t fdescfs fdesc /dev/fd
+	check_startmsgs && echo '.'
+}
+
+load_rc_config $name
+run_rc_command "$1"

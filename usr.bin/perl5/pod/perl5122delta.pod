@@ -1,0 +1,347 @@
+=encoding utf8
+
+=head1 NAME
+
+perl5122delta - what is new for perl v5.12.2
+
+=head1 DESCRIPTION
+
+This document describes differences between the 5.12.1 release and
+the 5.12.2 release.
+
+If you are upgrading from an earlier major version, such as 5.10.1,
+first read L<perl5120delta>, which describes differences between 5.10.0
+and 5.12.0, as well as L<perl5121delta>, which describes earlier changes
+in the 5.12 stable release series.
+
+=head1 Incompatible Changes
+
+There are no changes intentionally incompatible with 5.12.1. If any exist, they
+are bugs and reports are welcome.
+
+=head1 Core Enhancements
+
+Other than the bug fixes listed below, there should be no user-visible
+changes to the core language in this release.
+
+=head1 Modules and Pragmata
+
+=head2 New Modules and Pragmata
+
+This release does not introduce any new modules or pragmata.
+
+=head2 Pragmata Changes
+
+In the previous release, C<no I<VERSION>;> statements triggered a bug
+which could cause L<feature> bundles to be loaded and L<strict> mode to
+be enabled unintentionally.
+
+=head2 Updated Modules
+
+=over 4
+
+=item C<Carp>
+
+Upgraded from version 1.16 to 1.17.
+
+L<Carp> now detects incomplete L<caller()|perlfunc/"caller EXPR">
+overrides and avoids using bogus C<@DB::args>. To provide backtraces, Carp
+relies on particular behaviour of the caller built-in. Carp now detects
+if other code has overridden this with an incomplete implementation, and
+modifies its backtrace accordingly. Previously incomplete overrides would
+cause incorrect values in backtraces (best case), or obscure fatal errors
+(worst case)
+
+This fixes certain cases of C<Bizarre copy of ARRAY> caused by modules
+overriding C<caller()> incorrectly.
+
+=item C<CPANPLUS>
+
+A patch to F<cpanp-run-perl> has been backported from CPANPLUS C<0.9004>. This
+resolves L<RT #55964|http://rt.cpan.org/Public/Bug/Display.html?id=55964>
+and L<RT #57106|http://rt.cpan.org/Public/Bug/Display.html?id=57106>, both
+of which related to failures to install distributions that use
+C<Module::Install::DSL>.
+
+=item C<File::Glob>
+
+A regression which caused a failure to find C<CORE::GLOBAL::glob> after
+loading C<File::Glob> to crash has been fixed.  Now, it correctly falls back
+to external globbing via C<pp_glob>.
+
+=item C<File::Copy>
+
+C<File::Copy::copy(FILE, DIR)> is now documented.
+
+=item C<File::Spec>
+
+Upgraded from version 3.31 to 3.31_01.
+
+Several portability fixes were made in C<File::Spec::VMS>: a colon is now
+recognized as a delimiter in native filespecs; caret-escaped delimiters are
+recognized for better handling of extended filespecs; C<catpath()> returns
+an empty directory rather than the current directory if the input directory
+name is empty; C<abs2rel()> properly handles Unix-style input.
+
+=back
+
+=head1 Utility Changes
+
+=over
+
+=item *
+
+F<perlbug> now always gives the reporter a chance to change the email address it
+guesses for them.
+
+=item *
+
+F<perlbug> should no longer warn about uninitialized values when using the C<-d>
+and C<-v> options.
+
+=back
+
+=head1 Changes to Existing Documentation
+
+=over
+
+=item *
+
+The existing policy on backward-compatibility and deprecation has
+been added to L<perlpolicy>, along with definitions of terms like
+I<deprecation>.
+
+=item *
+
+L<perlfunc/srand>'s usage has been clarified.
+
+=item *
+
+The entry for L<perlfunc/die> was reorganized to emphasize its
+role in the exception mechanism.
+
+=item *
+
+Perl's L<INSTALL> file has been clarified to explicitly state that Perl
+requires a C89 compliant ANSI C Compiler.
+
+=item *
+
+L<IO::Socket>'s C<getsockopt()> and C<setsockopt()> have been documented.
+
+=item *
+
+F<alarm()>'s inability to interrupt blocking IO on Windows has been documented.
+
+=item *
+
+L<Math::TrulyRandom> hasn't been updated since 1996 and has been removed
+as a recommended solution for random number generation.
+
+=item *
+
+L<perlrun> has been updated to clarify the behaviour of octal flags to F<perl>.
+
+=item *
+
+To ease user confusion, C<$#> and C<$*>, two special variables that were
+removed in earlier versions of Perl have been documented.
+
+=item *
+
+The version of L<perlfaq> shipped with the Perl core has been updated from the
+official FAQ version, which is now maintained in the C<briandfoy/perlfaq>
+branch of the Perl repository at L<git://perl5.git.perl.org/perl.git>.
+
+=back
+
+=head1 Installation and Configuration Improvements
+
+=head2 Configuration improvements
+
+=over
+
+=item *
+
+The C<d_u32align> configuration probe on ARM has been fixed.
+
+=back
+
+=head2 Compilation improvements
+
+=over
+
+=item *
+
+An "C<incompatible operand types>" error in ternary expressions when building
+with C<clang> has been fixed.
+
+=item *
+
+Perl now skips setuid C<File::Copy> tests on partitions it detects to be mounted
+as C<nosuid>.
+
+=back
+
+=head1 Selected Bug Fixes
+
+=over 4
+
+=item *
+
+A possible segfault in the C<T_PRTOBJ> default typemap has been fixed.
+
+=item *
+
+A possible memory leak when using L<caller()|perlfunc/"caller EXPR"> to set
+C<@DB::args> has been fixed.
+
+=item *
+
+Several memory leaks when loading XS modules were fixed.
+
+=item *
+
+C<unpack()> now handles scalar context correctly for C<%32H> and C<%32u>,
+fixing a potential crash.  C<split()> would crash because the third item
+on the stack wasn't the regular expression it expected.  C<unpack("%2H",
+...)> would return both the unpacked result and the checksum on the stack,
+as would C<unpack("%2u", ...)>.
+L<[GH #10257]|https://github.com/Perl/perl5/issues/10257>
+
+=item *
+
+Perl now avoids using memory after calling C<free()> in F<pp_require>
+when there are CODEREFs in C<@INC>.
+
+=item *
+
+A bug that could cause "C<Unknown error>" messages when
+"C<call_sv(code, G_EVAL)>" is called from an XS destructor has been fixed.
+
+=item *
+
+The implementation of the C<open $fh, 'E<gt>' \$buffer> feature
+now supports get/set magic and thus tied buffers correctly.
+
+=item *
+
+The C<pp_getc>, C<pp_tell>, and C<pp_eof> opcodes now make room on the
+stack for their return values in cases where no argument was passed in.
+
+=item *
+
+When matching unicode strings under some conditions inappropriate backtracking would
+result in a C<Malformed UTF-8 character (fatal)> error. This should no longer occur.
+See  L<[GH #10434]|https://github.com/Perl/perl5/issues/10434>
+
+=back
+
+=head1 Platform Specific Notes
+
+=head2 AIX
+
+=over
+
+=item *
+
+F<README.aix> has been updated with information about the XL C/C++ V11 compiler
+suite.
+
+=back
+
+=head2 Windows
+
+=over
+
+=item *
+
+When building Perl with the mingw64 x64 cross-compiler C<incpath>,
+C<libpth>, C<ldflags>, C<lddlflags> and C<ldflags_nolargefiles> values
+in F<Config.pm> and F<Config_heavy.pl> were not previously being set
+correctly because, with that compiler, the include and lib directories
+are not immediately below C<$(CCHOME)>.
+
+=back
+
+=head2 VMS
+
+=over
+
+=item *
+
+F<git_version.h> is now installed on VMS. This was an oversight in v5.12.0 which
+caused some extensions to fail to build.
+
+=item *
+
+Several memory leaks in L<stat()|perlfunc/"stat FILEHANDLE"> have been fixed.
+
+=item *
+
+A memory leak in C<Perl_rename()> due to a double allocation has been
+fixed.
+
+=item *
+
+A memory leak in C<vms_fid_to_name()> (used by C<realpath()> and
+C<realname()>) has been fixed.
+
+=back
+
+=head1 Acknowledgements
+
+Perl 5.12.2 represents approximately three months of development since
+Perl 5.12.1 and contains approximately 2,000 lines of changes across
+100 files from 36 authors.
+
+Perl continues to flourish into its third decade thanks to a vibrant
+community of users and developers.  The following people are known to
+have contributed the improvements that became Perl 5.12.2:
+
+Abigail, Ævar Arnfjörð Bjarmason, Ben Morrow, brian d foy, Brian
+Phillips, Chas. Owens, Chris 'BinGOs' Williams, Chris Williams,
+Craig A. Berry, Curtis Jewell, Dan Dascalescu, David Golden, David
+Mitchell, Father Chrysostomos, Florian Ragwitz, George Greer, H.Merijn
+Brand, Jan Dubois, Jesse Vincent, Jim Cromie, Karl Williamson, Lars
+Dɪᴇᴄᴋᴏᴡ 迪拉斯, Leon Brocard, Maik Hentsche, Matt S Trout,
+Nicholas Clark, Rafael Garcia-Suarez, Rainer Tammer, Ricardo Signes,
+Salvador Ortiz Garcia, Sisyphus, Slaven Rezic, Steffen Mueller, Tony Cook,
+Vincent Pit and Yves Orton.
+
+=head1 Reporting Bugs
+
+If you find what you think is a bug, you might check the articles
+recently posted to the comp.lang.perl.misc newsgroup and the perl
+bug database at http://rt.perl.org/perlbug/ .  There may also be
+information at http://www.perl.org/ , the Perl Home Page.
+
+If you believe you have an unreported bug, please run the B<perlbug>
+program included with your release.  Be sure to trim your bug down
+to a tiny but sufficient test case.  Your bug report, along with the
+output of C<perl -V>, will be sent off to perlbug@perl.org to be
+analysed by the Perl porting team.
+
+If the bug you are reporting has security implications, which make it
+inappropriate to send to a publicly archived mailing list, then please send
+it to perl5-security-report@perl.org. This points to a closed subscription
+unarchived mailing list, which includes
+all the core committers, who will be able
+to help assess the impact of issues, figure out a resolution, and help
+co-ordinate the release of patches to mitigate or fix the problem across all
+platforms on which Perl is supported. Please only use this address for
+security issues in the Perl core, not for modules independently
+distributed on CPAN.
+
+=head1 SEE ALSO
+
+The F<Changes> file for an explanation of how to view exhaustive details
+on what changed.
+
+The F<INSTALL> file for how to build Perl.
+
+The F<README> file for general stuff.
+
+The F<Artistic> and F<Copying> files for copyright information.
+
+=cut

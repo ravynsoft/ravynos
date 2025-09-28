@@ -1,0 +1,20 @@
+url
+  http://example.com/modified.txt
+headers
+  if-modified-since: Tue, 01 Feb 1994 12:00:00 GMT
+----------
+GET /modified.txt HTTP/1.1
+Host: example.com
+Connection: close
+If-Modified-Since: Tue, 01 Feb 1994 12:00:00 GMT
+User-Agent: HTTP-Tiny/VERSION
+
+----------
+HTTP/1.1 200 OK
+Date: Thu, 03 Feb 1994 00:00:00 GMT
+Last-Modified: Wed, 02 Feb 1994 00:00:00 GMT
+Content-Type: text/plain
+Content-Length: 42
+
+abcdefghijklmnopqrstuvwxyz1234567890abcdef
+

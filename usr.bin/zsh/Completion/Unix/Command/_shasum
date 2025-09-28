@@ -1,0 +1,24 @@
+#compdef shasum -P shasum(|5).*
+
+# This function covers the `shasum` script included with Perl (and notably the
+# primary SHA digest tool on macOS). See `_md5sum` for the GNU digest utilities
+# and `_cksum` for the BSD ones.
+#
+# @todo It's possible that someone could symlink this script to `sha1sum` or
+# whatever; we might want to detect that some day.
+
+_arguments -s -S : \
+  '(: -)'{-h,--help}'[display help information]' \
+  '(: -)'{-v,--version}'[display version information]' \
+  + '(sum)' \
+  '(chk)'{-0,--01}'[read in BITS mode]' \
+  '(chk)'{-b,--binary}'[read in binary mode]' \
+  '(chk)'{-p,--portable}'[read in portable mode]' \
+  '(chk)'{-t,--text}'[read in text mode]' \
+  + 'chk' \
+  '(sum)'{-c,--check}'[verify checksums from input files]' \
+  '(sum -s -w --status --warn)'{-s,--status}'[suppress all output]' \
+  '(sum -s -w --status --warn)'{-w,--warn}'[warn about each improperly formatted checksum line]' \
+  + misc \
+  '(-a --algorithm)'{-a+,--algorithm=}'[specify algorithm]:algorithm:(1 224 256 384 512 512224 512256)' \
+  '*: :_files'

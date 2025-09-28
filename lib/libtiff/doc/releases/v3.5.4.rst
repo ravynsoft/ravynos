@@ -1,0 +1,45 @@
+Changes in TIFF v3.5.4
+======================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.5.4 (:tag:`Release-v3-5-4`)
+  Previous Version        :doc:`v3.5.3 <v3.5.3>`
+  Master Download Site    `<ftp://ftp.onshore.com/pub/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Software configuration changes
+------------------------------
+
+* None.
+
+
+Library changes
+---------------
+
+* Added Pixar tag support.  Contributed by `Phil Beffery <phil@pixar.com>`_.
+* Made one more change to :file:`tif_dir.c` for removal of LZW compression. Also added notice
+  when LZW compression invoked. 
+* Fixed bug that caused LZW (non) compression to segfault. Added 
+  warning about LZW compression removed being removed, and why. 
+
+
+Tools changes
+-------------
+
+* Changed default compression in tools to :c:macro:`TIFF_PACKBITS`, and changed usage descriptions
+  in tools to reflect removal of LZW compression
+* Added ``nostrip`` to install in :file:`tools/Makefile.in` so that debugging
+  symbols are kept. 
+* Made Packbits the default compression in :file:`tools/tiff2rgba.c` instead
+  of LZW.

@@ -1,0 +1,184 @@
+#compdef initctl start stop restart reload status
+# Written by Bernhard Tittelbach
+# based on completion script by Mildred
+
+typeset -g -a -U _initctl_events_list _initctl_eventargs_list
+
+# run show-config -e and if possible parse out all events and KEY= arguments
+# otherwise provide some common values
+_initctl_fillarray_events_args ()
+{
+  setopt extendedglob
+  local showconfig="$(initctl show-config -e 2>| /dev/null)"
+  if [[ -n "$showconfig" ]]; then
+    _initctl_events_list=()
+    _initctl_eventargs_list=()
+    for cline in "${(f)showconfig}"; do
+      if [[ "$cline" == (#s)\ \ (stop\ on|start\ on|emit)\ (#b)([[:alpha:]-_]##)(*)(#e) ]]; then
+        _initctl_events_list+=($match[1])
+        # this is a bit tricky, we take the string right of the matched event
+        # and parse for \sUPPERCASE=\S (in perl-re syntax) substrings until there are no more matches
+        # since we can't do multiple matches, we concatenated the remaining strings and try again
+        local stml="$match[2]"
+        while [[ "$stml" == (#b)(*)\ ([[:upper:]_]##\=)[^[:space:]](#b)(*) ]]; do
+          _initctl_eventargs_list+=($match[2])
+          stml="$match[1] $match[3]"
+        done
+        unset stml
+      fi
+    done
+  else
+    _initctl_events_list=( socket login-session-start desktop-session-start virtual-filesystems local-filesystems remote-filesystems all-swaps filesystem mounting mounted net-device-up start-portmap runlevel unmounted-remote-filesystems )
+    _initctl_eventargs_list=( PRIMARY_DEVICE_FOR_DISPLAY= EXIT_STATUS= EXIT_SIGNAL= RUNLEVEL= MOUNTPOINT= TYPE= INTERFACE= )
+  fi
+  return 0
+}
+
+# list all upstart jobs, i.e. all files in /etc/init/
+_initctl_helper_jobs()
+{
+    _path_files -W "/etc/init/" -g "*.conf(-.:r)"
+}
+
+# list events, generate array if necessary
+_initctl_known_events()
+{
+  [[ ${#_initctl_events_list} -eq 0 ]] && _initctl_fillarray_events_args
+  _values "Event" "$_initctl_events_list[@]"
+}
+
+# list events, allow multiple choices, generate array if necessary
+_initctl_multiple_known_events()
+{
+  [[ ${#_initctl_events_list} -eq 0 ]] && _initctl_fillarray_events_args
+  _values -s "," "event" "$_initctl_events_list[@]"
+}
+
+# list KEY= arguments, generate array if necessary
+_initctl_known_eventargs()
+{
+  [[ ${#_initctl_eventargs_list} -eq 0 ]] && _initctl_fillarray_events_args
+  _values "argument key" "$_initctl_eventargs_list[@]"
+}
+
+# describe and offer commands for initctl, then call matching completion function
+_initctl_command()
+{
+    local cmds
+    cmds=(
+        start:"Start jobs"
+        stop:"Stop jobs"
+        restart:"Restart jobs"
+        reload:"Send SIGHUP to process instance"
+        status:"Query status of jobs"
+        list:"List known jobs"
+        emit:"Emit an event"
+        reload-configuration:"tell init to reload config files (generally inotify is used)"
+        version:"Request the version of the init daemon"
+        log-priority:"Change the minimum priority of log messages from the init daemon"
+        show-config:"Show start/stop/emit for processes"
+        check-config:"Find jobs than can't be started"
+        help:"display list of commands"
+    )
+
+    if (( CURRENT == 1 )); then
+        _describe -t command "initctl command" cmds
+    fi
+
+    local cmd=$words[1]
+
+    local curcontext="${curcontext%:*}:initctl-${cmd}"
+    _call_function ret _initctl_${cmd_completion_funcs[${cmd}]-${cmd_completion_default}}
+}
+
+# completion for start/stop/restart/reload i.e. anything that take one job and multiple KEY= arguments's
+_initctl_startstop()
+{
+    _arguments \
+        '--no-wait[do not wait for operation to complete before exiting]' \
+        "${common_args[@]}" \
+        ':upstart job:_initctl_helper_jobs' \
+        '*::argument key:_initctl_known_eventargs'
+}
+
+# completion for anything that takes one job
+_initctl_argjob()
+{
+    _arguments \
+        "${common_args[@]}" \
+        ':upstart job:_initctl_helper_jobs' \
+        '*::'
+}
+
+# completion for emit, providing options,  one event and multiple KEY= arguments's
+_initctl_emit()
+{
+    _arguments \
+        '--no-wait[do not wait for event to finish before exiting]' \
+        "${common_args[@]}" \
+        ':event:_initctl_known_events' \
+        '*::argument key:_initctl_known_eventargs'
+}
+
+# the fallback, just the options
+_initctl_basic()
+{
+    _arguments \
+        "${common_args[@]}"
+}
+
+# completion for show-config, additional option and one job
+_initctl_show-config()
+{
+    _arguments \
+      "(-e --enumerate)"{-e,--enumerate}"[enumerate emit lines]" \
+        "${common_args[@]}" \
+        '::upstart job:_initctl_helper_jobs' \
+        '*::'
+}
+
+# completion for show-config, additional options and one job
+_initctl_check-config()
+{
+    _arguments \
+      "(-i --ignore-events)"{-i,--ignore-events}"[list of comma-separated events to ignore]:Events:_initctl_multiple_known_events" \
+      "(-w --warn)"{-w,--warn}"[treat any unknown jobs or events as error]" \
+        "${common_args[@]}" \
+        '::upstart job:_initctl_helper_jobs' \
+        '*::'
+}
+
+# after defining above functions, overwrite _initctl function so helper-functions are loaded only once
+_initctl()
+{
+  local -a common_args
+  common_args=(
+    '--session[use D-Bus session bus to connect to init daemon (for testing)]'
+    '--system[talk via DBUS system bus instead of socket]'
+    '(-q --quiet)'{-q,--quiet}'[reduce output to errors only]'
+    '(-v --verbose)'{-v,--verbose}'[increase output to include informational messages]'
+    '--dest=[specify D-Bus name for init]:D-Bus name [com.ubuntu.Upstart]'
+    '--help[display help and exit]'
+    '--version[output version information and exit]'
+  )
+
+  # map each initctl function to a completion function
+  local -A cmd_completion_funcs
+  cmd_completion_funcs=( start startstop stop startstop restart startstop reload startstop show-config show-config status argjob emit emit check-config check-config )
+
+  # define fallback completion function
+  local cmd_completion_default=basic
+
+  # depending on which command was used, call different completion functions
+  case $service in
+    initctl)
+      _arguments "${common_args[@]}" '*::initctl command:_initctl_command'
+    ;;
+    start|stop|restart|reload|status)
+      _call_function ret _initctl_${cmd_completion_funcs[${service}]-${cmd_completion_default}}
+    ;;
+    *)  return 1  ;;
+  esac
+}
+
+_initctl "$@"

@@ -1,0 +1,215 @@
+libudev-compatible interface for devd
+=====================================
+
+Intended to work with xorg-server and libinput
+
+Installation:
+
+1. Install multimedia/v4l_compat port. In case of evdev-enabled kernels it
+   can be patched to use system evdev headers instead of webcamd-supplied
+
+
+2. Build and install libudev-devd
+
+export CFLAGS=-I/usr/local/include
+export CPPFLAGS=-I/usr/local/include
+cd libudev-devd
+./autogen.sh
+./configure
+make && sudo make install
+
+
+3. recompile x11-servers/xorg-server with DEVD port option disabled and
+following configure args added: --enable-config-udev=yes \
+    --disable-config-udev-kms --disable-systemd-logind
+
+If you are going to use /dev/kbdmux0 as keyboard input device patch[1] should
+be applied to config/udev.c file in xorg distribution
+
+
+4. Apply changes to xorg.conf
+
+Remove all InputDevice from "ServerLayout" section of xorg.conf
+
+For gsoc2014 evdev-enabled kernels add following lines to xorg.conf
+
+<<< CUT
+
+# Use the libinput driver for all event devices
+Section "InputClass"
+	Identifier	"evdev"
+	Driver		"libinput"
+#	Driver		"evdev"
+	MatchDevicePath	"/dev/input/event*"
+EndSection
+
+# Explicitly set xkb_rules to evdev for keyboards
+Section "InputClass"
+	Identifier	"evdev keyboard"
+	MatchIsKeyboard	"on"
+	MatchDevicePath	"/dev/input/event*"
+        Option		"XkbRules" "evdev"
+EndSection
+
+# Disable kbdmux to not receive keyboard events twice
+Section "InputClass"
+	Identifier	"evdev disable kbdmux"
+	MatchIsKeyboard	"on"
+	MatchProduct	"System keyboard multiplexer"
+	MatchDevicePath	"/dev/input/event*"
+	Option		"Ignore" "true"
+EndSection
+
+<<<CUT
+
+For stock kernels add following lines to xorg.conf
+
+<<<CUT
+
+# Use the libinput driver for all event devices
+Section "InputClass"
+	Identifier	"evdev"
+	MatchDevicePath	"/dev/input/event*"
+	Driver		"evdev"
+EndSection
+
+Section "InputClass"
+	Identifier	"kbdmux"
+	MatchDevicePath	"/dev/kbdmux*"
+	Driver		"kbd"
+EndSection
+
+Section "InputClass"
+	Identifier	"System mouse"
+	MatchDevicePath	"/dev/sysmouse"
+	Driver		"mouse"
+EndSection
+
+Section "InputClass"
+	Identifier	"PS/2 mouse"
+	MatchDevicePath	"/dev/psm*"
+	Driver		"mouse"
+EndSection
+
+Section "InputClass"
+	Identifier	"USB mouses"
+	MatchDevicePath	"/dev/ums*"
+	Driver		"mouse"
+EndSection
+
+Section "InputClass"
+	Identifier	"Joystick"
+	MatchDevicePath "/dev/joy*"
+	Driver		"mouse"
+EndSection
+
+Section "InputClass"
+	Identifier	"Apple touchpad"
+	MatchDevicePath	"/dev/atp*"
+	Driver		"mouse"
+EndSection
+
+Section "InputClass"
+	Identifier	"Wellspring touchpad"
+	MatchDevicePath	"/dev/wsp*"
+	Driver		"mouse"
+EndSection
+
+Section "InputClass"
+	Identifier	"eGalax touchscreen"
+	MatchDevicePath	"/dev/uep*"
+	Driver		"egalax"
+EndSection
+
+<<<CUT
+
+
+5. Fetch and install libinput port by Jan Kokemuller???
+
+For gsoc2014 evdev-enabled kernels only:
+
+fetch https://github.com/wulf7/libinput/archive/master.tar.gz
+tar zxvf master.tar.gz
+cd libinput-master
+./autogen.sh
+make && sudo make install
+
+
+6. Fetch and install xf86-input-libinput
+
+For gsoc2014 evdev-enabled kernels only:
+
+fetch http://xorg.freedesktop.org/releases/individual/driver/xf86-input-libinput-0.14.0.tar.bz2
+..
+..
+..
+
+
+7. Build and install libudev-devd for Linuxolator
+
+install devel/linux-c7-devtools, devel/autoconf and devel/automake
+than compile libudev.so library and install it somewhere under /compat/linux.
+
+To build and install 64-bit library:
+
+cd libudev-devd
+./autogen.sh
+env CC="/compat/linux/bin/gcc" CFLAGS="--sysroot /compat/linux" ./configure --libdir=/usr/lib64/shims
+make
+sudo make install-exec DESTDIR=/compat/linux
+
+To build and install 32-bit library:
+
+cd libudev-devd
+./autogen.sh
+env CC="/compat/linux/bin/gcc" CFLAGS="--sysroot /compat/linux -m32" ./configure --libdir=/usr/lib/shims
+make
+sudo make install-exec DESTDIR=/compat/linux
+
+To run my_64bit_app or my_32bit_app with libudev overloaded with libudev-devd use
+
+LD_PRELOAD=/usr/lib64/shims/libudev.so my_64bit_app
+
+or
+
+LD_PRELOAD=/usr/lib/shims/libudev.so my_32bit_app
+
+
+8. Appendix
+
+[1] config/udev.c patch. Just place content between two <<<CUTs as
+/usr/ports/x11-servers/xorg-server/files/patch-config_udev.c file
+
+<<<CUT
++--- config/udev.c.orig	2015-05-21 17:23:54.000000000 +0300
+++++ config/udev.c	2015-10-13 17:37:05.063290000 +0300
++@@ -29,6 +29,7 @@
++ 
++ #include <libudev.h>
++ #include <ctype.h>
+++#include <fcntl.h>
++ #include <unistd.h>
++ 
++ #include "input.h"
++@@ -188,6 +189,20 @@ device_added(struct udev_device *udev_de
++         attrs.product = strdup(name);
++     input_options = input_option_new(input_options, "name", name);
++     input_options = input_option_new(input_options, "path", path);
+++    if(strstr(path, "kbdmux") != NULL) {
+++        /*
+++         * Don't pass "device" option if the keyboard is already attached
+++         * to the console (ie. open() fails). This would activate a special
+++         * logic in xf86-input-keyboard. Prevent any other attached to console
+++         * keyboards being processed. There can be only one such device.
+++         */
+++        int fd = open(path, O_RDONLY);
+++        if (fd > -1) {
+++            close(fd);
+++            input_options = input_option_new(input_options, "device", path);
+++        }
+++    }
+++    else
++     input_options = input_option_new(input_options, "device", path);
++     input_options = input_option_new(input_options, "major", itoa(major(devnum)));
++     input_options = input_option_new(input_options, "minor", itoa(minor(devnum)));
+<<<CUT

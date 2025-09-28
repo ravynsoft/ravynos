@@ -1,0 +1,1007 @@
+.TH "ZSHCALSYS" "1" "May 14, 2022" "zsh 5\&.9"
+.SH "NAME"
+zshcalsys \- zsh calendar system
+.\" Yodl file: Zsh/calsys.yo
+.SH "DESCRIPTION"
+.PP
+The shell is supplied with a series of functions to replace and enhance the
+traditional Unix \fBcalendar\fP programme, which warns the user of imminent
+or future events, details of which are stored in a text file (typically
+\fBcalendar\fP in the user\&'s home directory)\&.  The version provided here
+includes a mechanism for alerting the user when an event is due\&.
+.PP
+In addition functions \fBage\fP, \fBbefore\fP and \fBafter\fP are provided
+that can be used in a glob qualifier; they allow files to be selected
+based on their modification times\&.
+.PP
+The format of the \fBcalendar\fP file and the dates used there in and in
+the \fBage\fP function are described first, then the functions that can
+be called to examine and modify the \fBcalendar\fP file\&.
+.PP
+The functions here depend on the availability of the \fBzsh/datetime\fP
+module which is usually installed with the shell\&.  The library function
+\fBstrptime()\fP must be available; it is present on most recent
+operating systems\&.
+.PP
+.PP
+.SH "FILE AND DATE FORMATS"
+.PP
+.SS "Calendar File Format"
+.PP
+The calendar file is by default \fB~/calendar\fP\&.  This can be configured
+by the \fBcalendar\-file\fP style, see
+the section STYLES below\&.  The basic format consists
+of a series of separate lines, with no indentation, each including
+a date and time specification followed by a description of the event\&.
+.PP
+Various enhancements to this format are supported, based on the syntax
+of Emacs calendar mode\&.  An indented line indicates a continuation line
+that continues the description of the event from the preceding line
+(note the date may not be continued in this way)\&.  An initial ampersand
+(\fB&\fP) is ignored for compatibility\&.
+.PP
+An indented line on which the first non\-whitespace character is \fB#\fP
+is not displayed with the calendar entry, but is still scanned for
+information\&.  This can be used to hide information useful to the
+calendar system but not to the user, such as the unique identifier
+used by \fBcalendar_add\fP\&.
+.PP
+The Emacs extension that a date with no description may refer to a number
+of succeeding events at different times is not supported\&.
+.PP
+Unless the \fBdone\-file\fP style has been altered, any events which
+have been processed are appended to the file with the same name as the
+calendar file with the suffix \fB\&.done\fP, hence \fB~/calendar\&.done\fP by
+default\&.
+.PP
+An example is shown below\&.
+.PP
+.SS "Date Format"
+.PP
+The format of the date and time is designed to allow flexibility without
+admitting ambiguity\&.  (The words `date\&' and `time' are both used in the
+documentation below; except where specifically noted this implies a string
+that may include both a date and a time specification\&.)  Note that there is
+no localization support; month and day names must be in English and
+separator characters are fixed\&.  Matching is case insensitive, and only the
+first three letters of the names are significant, although as a special
+case a form beginning "month" does not match "Monday"\&.  Furthermore, time
+zones are not handled; all times are assumed to be local\&.
+.PP
+It is recommended that, rather than exploring the intricacies of the
+system, users find a date format that is natural to them and stick to it\&.
+This will avoid unexpected effects\&.  Various key facts should be noted\&.
+.PP
+.PD 0
+.TP
+.PD
+\(bu
+In particular, note the confusion between
+\fImonth\fP\fB/\fP\fIday\fP\fB/\fP\fIyear\fP and
+\fIday\fP\fB/\fP\fImonth\fP\fB/\fP\fIyear\fP when the month is numeric; these
+formats should be avoided if at all possible\&.  Many alternatives are
+available\&.
+.TP
+\(bu
+The year must be given in full to avoid confusion, and only years
+from 1900 to 2099 inclusive are matched\&.
+.PP
+The following give some obvious examples; users finding here
+a format they like and not subject to vagaries of style may skip
+the full description\&.  As dates and times are matched separately
+(even though the time may be embedded in the date), any date format
+may be mixed with any format for the time of day provide the
+separators are clear (whitespace, colons, commas)\&.
+.PP
+.RS
+.nf
+\fB2007/04/03 13:13
+2007/04/03:13:13
+2007/04/03 1:13 pm
+3rd April 2007, 13:13
+April 3rd 2007 1:13 p\&.m\&.
+Apr 3, 2007 13:13
+Tue Apr 03 13:13:00 2007
+13:13 2007/apr/3\fP
+.fi
+.RE
+.PP
+More detailed rules follow\&.
+.PP
+Times are parsed and extracted before dates\&.  They must use colons
+to separate hours and minutes, though a dot is allowed before seconds
+if they are present\&.  This limits time formats to the following:
+.PP
+.PD 0
+.TP
+.PD
+\(bu
+\fIHH\fP\fB:\fP\fIMM\fP[\fB:\fP\fISS\fP[\fB\&.\fP\fIFFFFF\fP]] [\fBam\fP|\fBpm\fP|\fBa\&.m\&.\fP|\fBp\&.m\&.\fP]
+.TP
+\(bu
+\fIHH\fP\fB:\fP\fIMM\fP\fB\&.\fP\fISS\fP[\fB\&.\fP\fIFFFFF\fP] [\fBam\fP|\fBpm\fP|\fBa\&.m\&.\fP|\fBp\&.m\&.\fP]
+.PP
+Here, square brackets indicate optional elements, possibly with
+alternatives\&.  Fractions of a second are recognised but ignored\&.  For
+absolute times (the normal format require by the \fBcalendar\fP file and the
+\fBage\fP, \fBbefore\fP and \fBafter\fP functions) a date is mandatory but a
+time of day is not; the time returned is at the start of the date\&.  One
+variation is allowed: if \fBa\&.m\&.\fP or \fBp\&.m\&.\fP or one of their variants
+is present, an hour without a minute is allowed, e\&.g\&. \fB3 p\&.m\&.\fP\&.
+.PP
+Time zones are not handled, though if one is matched following a time
+specification it will be removed to allow a surrounding date to be
+parsed\&.  This only happens if the format of the timezone is not too
+unusual\&.  The following are examples of forms that are understood:
+.PP
+.RS
+.nf
+\fB+0100
+GMT
+GMT\-7
+CET+1CDT\fP
+.fi
+.RE
+.PP
+Any part of the timezone that is not numeric must have exactly three
+capital letters in the name\&.
+.PP
+Dates suffer from the ambiguity between \fIDD\fP\fB/\fP\fIMM\fP\fB/\fP\fIYYYY\fP
+and \fIMM\fP\fB/\fP\fIDD\fP\fB/\fP\fIYYYY\fP\&.  It is recommended this form is
+avoided with purely numeric dates, but use of ordinals,
+eg\&. \fB3rd/04/2007\fP, will resolve the ambiguity as the ordinal is always
+parsed as the day of the month\&.  Years must be four digits (and the first
+two must be \fB19\fP or \fB20\fP); \fB03/04/08\fP is not recognised\&.  Other
+numbers may have leading zeroes, but they are not required\&.  The following
+are handled:
+.PP
+.PD 0
+.TP
+.PD
+\(bu
+\fIYYYY\fP\fB/\fP\fIMM\fP\fB/\fP\fIDD\fP
+.TP
+\(bu
+\fIYYYY\fP\fB\-\fP\fIMM\fP\fB\-\fP\fIDD\fP
+.TP
+\(bu
+\fIYYYY\fP\fB/\fP\fIMNM\fP\fB/\fP\fIDD\fP
+.TP
+\(bu
+\fIYYYY\fP\fB\-\fP\fIMNM\fP\fB\-\fP\fIDD\fP
+.TP
+\(bu
+\fIDD\fP[\fBth\fP|\fBst\fP|\fBrd\fP] \fIMNM\fP[\fB,\fP] [ \fIYYYY\fP ]
+.TP
+\(bu
+\fIMNM\fP \fIDD\fP[\fBth\fP|\fBst\fP|\fBrd\fP][\fB,\fP] [ \fIYYYY\fP ]
+.TP
+\(bu
+\fIDD\fP[\fBth\fP|\fBst\fP|\fBrd\fP]\fB/\fP\fIMM\fP[\fB,\fP] \fIYYYY\fP
+.TP
+\(bu
+\fIDD\fP[\fBth\fP|\fBst\fP|\fBrd\fP]\fB/\fP\fIMM\fP\fB/\fP\fIYYYY\fP
+.TP
+\(bu
+\fIMM\fP\fB/\fP\fIDD\fP[\fBth\fP|\fBst\fP|\fBrd\fP][\fB,\fP] \fIYYYY\fP
+.TP
+\(bu
+\fIMM\fP\fB/\fP\fIDD\fP[\fBth\fP|\fBst\fP|\fBrd\fP]\fB/\fP\fIYYYY\fP
+.PP
+Here, \fIMNM\fP is at least the first three letters of a month name,
+matched case\-insensitively\&.  The remainder of the month name may appear but
+its contents are irrelevant, so janissary, febrile, martial, apricot,
+maybe, junta, etc\&. are happily handled\&.
+.PP
+Where the year is shown as optional, the current year is assumed\&.  There
+are only two such cases, the form \fBJun 20\fP or \fB14 September\fP (the only
+two commonly occurring forms, apart from a "the" in some forms of English,
+which isn\&'t currently supported)\&.  Such dates will of course become
+ambiguous in the future, so should ideally be avoided\&.
+.PP
+Times may follow dates with a colon, e\&.g\&. \fB1965/07/12:09:45\fP; this is in
+order to provide a format with no whitespace\&.  A comma and whitespace are
+allowed, e\&.g\&. \fB1965/07/12, 09:45\fP\&.  Currently the order of these
+separators is not checked, so illogical formats such as \fB1965/07/12, :
+,09:45\fP will also be matched\&.  For simplicity such variations are not shown
+in the list above\&.  Otherwise, a time is only recognised as being
+associated with a date if there is only whitespace in between, or if the
+time was embedded in the date\&.
+.PP
+Days of the week are not normally scanned, but will be ignored if they
+occur at the start of the date pattern only\&.  However, in contexts where it
+is useful to specify dates relative to today, days of the week with no
+other date specification may be given\&.  The day is assumed to be either
+today or within the past week\&.  Likewise, the words \fByesterday\fP,
+\fBtoday\fP and \fBtomorrow\fP are handled\&.  All matches are case\-insensitive\&.
+Hence if today is Monday, then \fBSunday\fP is equivalent to \fByesterday\fP,
+\fBMonday\fP is equivalent to \fBtoday\fP, but \fBTuesday\fP gives a date six
+days ago\&.  This is not generally useful within the calendar file\&.
+Dates in this format may be combined with a time specification; for
+example \fBTomorrow, 8 p\&.m\&.\fP\&.
+.PP
+For example, the standard date format:
+.PP
+.RS
+.nf
+\fBFri Aug 18 17:00:48 BST 2006\fP
+.fi
+.RE
+.PP
+is handled by matching \fIHH\fP\fB:\fP\fIMM\fP\fB:\fP\fISS\fP and removing it
+together with the matched (but unused) time zone\&.  This leaves the following:
+.PP
+.RS
+.nf
+\fBFri Aug 18 2006\fP
+.fi
+.RE
+.PP
+\fBFri\fP is ignored and the rest is matched according to the standard rules\&.
+.PP
+.SS "Relative Time Format"
+.PP
+In certain places relative times are handled\&.  Here, a date is not allowed;
+instead a combination of various supported periods are allowed, together
+with an optional time\&.  The periods must be in order from most to
+least significant\&.
+.PP
+In some cases, a more accurate calculation is possible when there is an
+anchor date:  offsets of months or years pick the correct day, rather than
+being rounded, and it is possible to pick a particular day in a month as
+`(1st Friday)\&', etc\&., as described in more detail below\&.
+.PP
+Anchors are available in the following cases\&.  If one or two times are
+passed to the function \fBcalendar\fP, the start time acts an anchor for the
+end time when the end time is relative (even if the start time is
+implicit)\&.  When examining calendar files, the scheduled event being
+examined anchors the warning time when it is given explicitly by means of
+the \fBWARN\fP keyword; likewise, the scheduled event anchors a repetition
+period when given by the \fBRPT\fP keyword, so that specifications such as
+\fBRPT 2 months, 3rd Thursday\fP are handled properly\&.  Finally, the \fB\-R\fP
+argument to \fBcalendar_scandate\fP directly provides an anchor for relative
+calculations\&.
+.PP
+The periods handled, with possible abbreviations are:
+.PP
+.PD 0
+.TP
+.PD
+Years
+\fByears\fP, \fByrs\fP, \fBys\fP, \fByear\fP, \fByr\fP, \fBy\fP, \fByearly\fP\&.
+A year is 365\&.25 days unless there is an anchor\&.
+.TP
+Months
+\fBmonths\fP, \fBmons\fP, \fBmnths\fP, \fBmths\fP, \fBmonth\fP, \fBmon\fP,
+\fBmnth\fP, \fBmth\fP, \fBmonthly\fP\&.  Note that \fBm\fP, \fBms\fP, \fBmn\fP, \fBmns\fP
+are ambiguous and are \fInot\fP handled\&.  A month is a period
+of 30 days rather than a calendar month unless there is an anchor\&.
+.TP
+Weeks
+\fBweeks\fP, \fBwks\fP, \fBws\fP, \fBweek\fP, \fBwk\fP, \fBw\fP, \fBweekly\fP
+.TP
+Days
+\fBdays\fP, \fBdys\fP, \fBds\fP, \fBday\fP, \fBdy\fP, \fBd\fP, \fBdaily\fP
+.TP
+Hours
+\fBhours\fP, \fBhrs\fP, \fBhs\fP, \fBhour\fP, \fBhr\fP, \fBh\fP, \fBhourly\fP
+.TP
+Minutes
+\fBminutes\fP, \fBmins\fP, \fBminute\fP, \fBmin\fP, but \fInot\fP \fBm\fP,
+\fBms\fP, \fBmn\fP or \fBmns\fP
+.TP
+Seconds
+\fBseconds\fP, \fBsecs\fP, \fBss\fP, \fBsecond\fP, \fBsec\fP, \fBs\fP
+.PP
+Spaces between the numbers are optional, but are required between items,
+although a comma may be used (with or without spaces)\&.
+.PP
+The forms \fByearly\fP to \fBhourly\fP allow the number to be omitted; it is
+assumed to be 1\&.  For example, \fB1 d\fP and \fBdaily\fP are equivalent\&.  Note
+that using those forms with plurals is confusing; \fB2 yearly\fP is the same
+as \fB2 years\fP, \fInot\fP twice yearly, so it is recommended they only
+be used without numbers\&.
+.PP
+When an anchor time is present, there is an extension to handle regular
+events in the form of the \fIn\fPth \fIsome\fPday of the month\&.  Such a
+specification must occur immediately after any year and month
+specification, but before any time of day, and must be in the form
+\fIn\fP(\fBth\fP|\fBst\fP|\fBrd\fP) \fIday\fP, for example \fB1st Tuesday\fP or
+\fB3rd Monday\fP\&.  As in other places, days are matched case insensitively,
+must be in English, and only the first three letters are significant except
+that a form beginning `month\&' does not match `Monday'\&.  No attempt is made
+to sanitize the resulting date; attempts to squeeze too many occurrences
+into a month will push the day into the next month (but in the obvious
+fashion, retaining the correct day of the week)\&.
+.PP
+Here are some examples:
+.PP
+.RS
+.nf
+\fB30 years 3 months 4 days 3:42:41
+14 days 5 hours
+Monthly, 3rd Thursday
+4d,10hr\fP
+.fi
+.RE
+.PP
+.SS "Example"
+.PP
+Here is an example calendar file\&.  It uses a consistent date format,
+as recommended above\&.
+.PP
+.RS
+.nf
+\fBFeb 1, 2006 14:30 Pointless bureaucratic meeting
+Mar 27, 2006 11:00 Mutual recrimination and finger pointing
+  Bring water pistol and waterproofs
+Mar 31, 2006 14:00 Very serious managerial pontification
+  # UID 12C7878A9A50
+Apr 10, 2006 13:30 Even more pointless blame assignment exercise WARN 30 mins
+May 18, 2006 16:00 Regular moaning session RPT monthly, 3rd Thursday\fP
+.fi
+.RE
+.PP
+The second entry has a continuation line\&.  The third entry has a
+continuation line that will not be shown when the entry is displayed, but
+the unique identifier will be used by the \fBcalendar_add\fP function when
+updating the event\&.  The fourth entry will produce a warning 30 minutes
+before the event (to allow you to equip yourself appropriately)\&.  The fifth
+entry repeats after a month on the 3rd Thursday, i\&.e\&. June 15, 2006, at the
+same time\&.
+.PP
+.SH "USER FUNCTIONS"
+.PP
+This section describes functions that are designed to be called
+directly by the user\&.  The first part describes those functions
+associated with the user\&'s calendar; the second part describes
+the use in glob qualifiers\&.
+.PP
+.SS "Calendar system functions"
+.PP
+.PD 0
+
+.TP
+.PD 0
+\fBcalendar \fP[ \fB\-abdDsv\fP ] [ \fB\-C\fP \fIcalfile\fP ] [ \fB\-n\fP \fInum\fP ] [ \fB\-S\fP \fIshowprog\fP ]
+.TP
+.PD 0
+\fB         \fP[ [ \fIstart\fP ] \fIend\fP ]
+.TP
+.PD 0
+\fBcalendar \-r\fP [ \fB\-abdDrsv\fP ] [ \fB\-C\fP \fIcalfile\fP ] [ \fB\-n\fP \fInum\fP ] [ \fB\-S\fP \fIshowprog\fP ]
+.TP
+.PD
+\fB         \fP[ \fIstart\fP ]
+Show events in the calendar\&.
+.RS
+.PP
+With no arguments, show events from the start of today until the end of
+the next working day after today\&.  In other words, if today is Friday,
+Saturday, or Sunday, show up to the end of the following Monday, otherwise
+show today and tomorrow\&.
+.PP
+If \fIend\fP is given, show events from the start of today up to the time
+and date given, which is in the format described in the previous section\&.
+Note that if this is a date the time is assumed to be midnight at the
+start of the date, so that effectively this shows all events before
+the given date\&.
+.PP
+\fIend\fP may start with a \fB+\fP, in which case the remainder of the
+specification is a relative time format as described in the previous
+section indicating the range of time from the start time that is to
+be included\&.
+.PP
+If \fIstart\fP is also given, show events starting from that time and date\&.
+The word \fBnow\fP can be used to indicate the current time\&.
+.PP
+To implement an alert when events are due, include \fBcalendar \-s\fP in your
+\fB~/\&.zshrc\fP file\&.
+.PP
+Options:
+.PP
+.PD 0
+.TP
+.PD
+\fB\-a\fP
+Show all items in the calendar, regardless of the \fBstart\fP and
+\fBend\fP\&.
+.TP
+\fB\-b\fP
+Brief:  don\&'t display continuation lines (i\&.e\&. indented lines following
+the line with the date/time), just the first line\&.
+.TP
+\fB\-B\fP \fIlines\fP
+Brief: display at most the first \fIlines\fP lines of the calendar
+entry\&.  `\fB\-B 1\fP\&' is equivalent to `\fB\-b\fP'\&.
+.TP
+\fB\-C\fP \fIcalfile\fP
+Explicitly specify a calendar file instead of the value of
+the \fBcalendar\-file\fP style or the default \fB~/calendar\fP\&.
+.TP
+\fB\-d\fP
+Move any events that have passed from the calendar file to the
+"done" file, as given by the \fBdone\-file\fP style or the default
+which is the calendar file with \fB\&.done\fP appended\&.  This option
+is implied by the \fB\-s\fP option\&.
+.TP
+\fB\-D\fP
+Turns off the option \fB\-d\fP, even if the \fB\-s\fP option is also present\&.
+.TP
+\fB\-n\fP \fInum\fP, \fB\-\fP\fInum\fP
+Show at least \fInum\fP events, if present in the calendar file, regardless
+of the \fBstart\fP and \fBend\fP\&.
+.TP
+\fB\-r\fP
+Show all the remaining options in the calendar, ignoring the given \fIend\fP
+time\&.  The \fIstart\fP time is respected; any argument given is treated
+as a \fIstart\fP time\&.
+.TP
+\fB\-s\fP
+Use the shell\&'s \fBsched\fP command to schedule a timed event that
+will warn the user when an event is due\&.  Note that the \fBsched\fP command
+only runs if the shell is at an interactive prompt; a foreground task
+blocks the scheduled task from running until it is finished\&.
+.RS
+.PP
+The timed event usually runs the programme \fBcalendar_show\fP to show
+the event, as described in
+the section UTILITY FUNCTIONS below\&.
+.PP
+By default, a warning of the event is shown five minutes before it is due\&.
+The warning period can be configured by the style \fBwarn\-time\fP or
+for a single calendar entry by including \fBWARN\fP \fIreltime\fP in the first
+line of the entry, where \fIreltime\fP is one of the usual relative time
+formats\&.
+.PP
+A repeated event may be indicated by including \fBRPT\fP \fIreldate\fP in the
+first line of the entry\&.  After the scheduled event has been displayed
+it will be re\-entered into the calendar file at a time \fIreldate\fP
+after the existing event\&.  Note that this is currently the only use
+made of the repeat count, so that it is not possible to query the schedule
+for a recurrence of an event in the calendar until the previous event
+has passed\&.
+.PP
+If \fBRPT\fP is used, it is also possible to specify that certain
+recurrences of an event are rescheduled or cancelled\&.  This is
+done with the \fBOCCURRENCE\fP keyword, followed by whitespace and the
+date and time of the occurrence in the regular sequence, followed by
+whitespace and either the date and time of the rescheduled event or
+the exact string \fBCANCELLED\fP\&.  In this case the date and time must
+be in exactly the "date with local time" format used by the
+\fBtext/calendar\fP MIME type (RFC 2445),
+\fI<YYYY><MM><DD>\fP\fBT\fP\fI<hh><mm><ss>\fP (note the presence of the literal
+character \fBT\fP)\&.  The first word (the regular recurrence) may be
+something other than a proper date/time to indicate that the event
+is additional to the normal sequence; a convention that retains
+the formatting appearance is \fBXXXXXXXXTXXXXXX\fP\&.
+.PP
+Furthermore, it is useful to record the next regular recurrence
+(as then the displayed date may be for a rescheduled event so cannot
+be used for calculating the regular sequence)\&.  This is specified by
+\fBRECURRENCE\fP and a time or date in the same format\&.  \fBcalendar_add\fP
+adds such an indication when it encounters a recurring event that does not
+include one, based on the headline date/time\&.
+.PP
+If \fBcalendar_add\fP is used to update occurrences the \fBUID\fP keyword
+described there should be present in both the existing entry and the added
+occurrence in order to identify recurring event sequences\&.
+.PP
+For example,
+.PP
+.RS
+.nf
+\fBThu May 6, 2010 11:00 Informal chat RPT 1 week
+  # RECURRENCE 20100506T110000
+  # OCCURRENCE 20100513T110000 20100513T120000
+  # OCCURRENCE 20100520T110000 CANCELLED\fP
+.fi
+.RE
+.PP
+The event that occurs at 11:00 on 13th May 2010 is rescheduled an hour
+later\&.  The event that occurs a week later is cancelled\&.  The occurrences
+are given on a continuation line starting with a \fB#\fP character so will
+not usually be displayed as part of the event\&.  As elsewhere, no account of
+time zones is taken with the times\&. After the next event occurs the headline
+date/time will be `\fBThu May 13, 2010 12:00\fP\&' while the \fBRECURRENCE\fP
+date/time will be `\fB20100513T110000\fP\&' (note that cancelled and
+moved events are not taken account of in the \fBRECURRENCE\fP, which
+records what the next regular recurrence is, but they are accounted for in
+the headline date/time)\&.
+.PP
+It is safe to run \fBcalendar \-s\fP to reschedule an existing event
+(if the calendar file has changed, for example), and also to have it
+running in multiples instances of the shell since the calendar file
+is locked when in use\&.
+.PP
+By default, expired events are moved to the "done" file; see the \fB\-d\fP
+option\&.  Use \fB\-D\fP to prevent this\&.
+.RE
+.TP
+\fB\-S\fP \fIshowprog\fP
+Explicitly specify a programme to be used for showing events instead
+of the value of the \fBshow\-prog\fP style or the default \fBcalendar_show\fP\&.
+.TP
+\fB\-v\fP
+Verbose:  show more information about stages of processing\&.  This
+is useful for confirming that the function has successfully parsed
+the dates in the calendar file\&.
+.RE
+.TP
+\fBcalendar_add\fP [ \fB\-BL\fP ] \fIevent\fP \&.\&.\&.
+Adds a single event to the calendar in the appropriate location\&.
+The event can contain multiple lines, as described in
+the section `Calendar File Format\&' above\&.
+Using this function ensures that the calendar file is sorted in date
+and time order\&.  It also makes special arrangements for locking
+the file while it is altered\&.  The old calendar is left in a file
+with the suffix \fB\&.old\fP\&.
+.RS
+.PP
+The option \fB\-B\fP indicates that backing up the calendar file will be
+handled by the caller and should not be performed by \fBcalendar_add\fP\&.  The
+option \fB\-L\fP indicates that \fBcalendar_add\fP does not need to lock the
+calendar file as it is already locked\&.  These options will not usually be
+needed by users\&.
+.PP
+If the style \fBreformat\-date\fP is true, the date and time of the
+new entry will be rewritten into the standard date format:  see
+the descriptions of this style and the style \fBdate\-format\fP\&.
+.PP
+The function can use a unique identifier stored with each event to ensure
+that updates to existing events are treated correctly\&.  The entry
+should contain the word \fBUID\fP, followed by whitespace, followed by
+a word consisting entirely of hexadecimal digits of arbitrary length
+(all digits are significant, including leading zeroes)\&.  As the UID
+is not directly useful to the user, it is convenient to hide it on
+an indented continuation line starting with a \fB#\fP, for example:
+.PP
+.RS
+.nf
+\fBAug 31, 2007 09:30  Celebrate the end of the holidays
+  # UID 045B78A0\fP
+.fi
+.RE
+.PP
+The second line will not be shown by the \fBcalendar\fP function\&.
+.PP
+It is possible to specify the \fBRPT\fP keyword followed by \fBCANCELLED\fP
+instead of a relative time\&.  This causes any matched event or series
+of events to be cancelled (the original event does not have to be marked
+as recurring in order to be cancelled by this method)\&.  A \fBUID\fP is
+required in order to match an existing event in the calendar\&.
+.PP
+\fBcalendar_add\fP will attempt to manage recurrences and occurrences of
+repeating events as described for event scheduling by \fBcalendar \-s\fP
+above\&.  To reschedule or cancel a single event \fBcalendar_add\fP should be
+called with an entry that includes the correct \fBUID\fP but does \fInot\fP
+include the \fBRPT\fP keyword as this is taken to mean the entry applies to a
+series of repeating events and hence replaces all existing information\&.
+Each rescheduled or cancelled occurrence must have an \fBOCCURRENCE\fP
+keyword in the entry passed to \fBcalendar_add\fP which will be merged into
+the calendar file\&.  Any existing reference to the occurrence is replaced\&.
+An occurrence that does not refer to a valid existing event is added as a
+one\-off occurrence to the same calendar entry\&.
+.RE
+.TP
+\fBcalendar_edit\fP
+This calls the user\&'s editor to edit the calendar file\&.  If
+there are arguments, they are taken as the editor to use (the file name
+is appended to the commands); otherwise, the editor is given by the
+variable \fBVISUAL\fP, if set, else the variable \fBEDITOR\fP\&.
+.RS
+.PP
+If the calendar scheduler was running, then after editing the file
+\fBcalendar \-s\fP is called to update it\&.
+.PP
+This function locks out the calendar system during the edit\&.
+Hence it should be used to edit the calendar file if there is any
+possibility of a calendar event occurring meanwhile\&.  Note this
+can lead to another shell with calendar functions enabled hanging waiting
+for a lock, so it is necessary to quit the editor as soon as possible\&.
+.RE
+.TP
+\fBcalendar_parse\fP \fIcalendar\-entry\fP
+This is the internal function that analyses the parts of a calendar
+entry, which is passed as the only argument\&.  The function returns
+status 1 if the argument could not be parsed as a calendar entry
+and status 2 if the wrong number of arguments were passed; it also sets the
+parameter \fBreply\fP to an empty associative array\&.  Otherwise,
+it returns status 0 and sets elements of the associative
+array \fBreply\fP as follows:
+.RS
+.PP
+.PD 0
+.TP
+\fBtime\fP
+The time as a string of digits in the same units as
+\fB$EPOCHSECONDS\fP
+.TP
+\fBschedtime\fP
+The regularly scheduled time\&.  This may differ from
+the actual event time \fBtime\fP if this is a recurring event and the next
+occurrence has been rescheduled\&.  Then \fBtime\fP gives the actual time
+and \fBschedtime\fP the time of the regular recurrence before modification\&.
+.TP
+\fBtext1\fP
+The text from the line not including the date and time of the
+event, but including any \fBWARN\fP or \fBRPT\fP keywords and values\&.
+.TP
+\fBwarntime\fP
+Any warning time given by the \fBWARN\fP keyword as a string
+of digits containing the time at which to warn in the same units as
+\fB$EPOCHSECONDS\fP\&.  (Note this is an absolute time, not the relative time
+passed down\&.)  Not set no \fBWARN\fP keyword and value were
+matched\&.
+.TP
+\fBwarnstr\fP
+The raw string matched after the \fBWARN\fP keyword, else unset\&.
+.TP
+\fBrpttime\fP
+Any recurrence time given by the \fBRPT\fP keyword as a string
+of digits containing the time of the recurrence in the same units
+as \fB$EPOCHSECONDS\fP\&.  (Note this is an absolute time\&.)  Not set if
+no \fBRPT\fP keyword and value were matched\&.
+.TP
+\fBschedrpttime\fP
+The next regularly scheduled occurrence of a recurring
+event before modification\&.  This may differ from \fBrpttime\fP, which is the
+actual time of the event that may have been rescheduled from the regular
+time\&.
+.TP
+\fBrptstr\fP
+The raw string matched after the \fBRPT\fP keyword, else unset\&.
+.TP
+\fBtext2\fP
+The text from the line after removal of the date and any
+keywords and values\&.
+.RE
+.PD
+.PP
+.TP
+\fBcalendar_showdate\fP [ \fB\-r\fP ] [ \fB\-f\fP \fIfmt\fP ] \fIdate\-spec\fP \&.\&.\&.
+The given \fIdate\-spec\fP is interpreted and the corresponding date and
+time printed\&.  If the initial \fIdate\-spec\fP begins with a \fB+\fP or
+\fB\-\fP it is treated as relative to the current time; \fIdate\-spec\fPs after
+the first are treated as relative to the date calculated so far and
+a leading \fB+\fP is optional in that case\&.  This allows one to
+use the system as a date calculator\&.  For example, \fBcalendar_showdate \&'+1
+month, 1st Friday\&'\fP shows the date of the first Friday of next month\&.
+.RS
+.PP
+With the option \fB\-r\fP nothing is printed but the value of the date and
+time in seconds since the epoch is stored in the parameter \fBREPLY\fP\&.
+.PP
+With the option \fB\-f\fP \fIfmt\fP the given date/time conversion format
+is passed to \fBstrftime\fP; see notes on the \fBdate\-format\fP style below\&.
+.PP
+In order to avoid ambiguity with negative relative date specifications,
+options must occur in separate words; in other words, \fB\-r\fP and \fB\-f\fP
+should not be combined in the same word\&.
+.RE
+.TP
+\fBcalendar_sort\fP
+Sorts the calendar file into date and time order\&.    The old calendar is
+left in a file with the suffix \fB\&.old\fP\&.
+.PP
+.SS "Glob qualifiers"
+.PP
+.PD 0
+.TP
+.PD
+\fBage\fP
+The function \fBage\fP can be autoloaded and use separately from
+the calendar system, although it uses the function \fBcalendar_scandate\fP
+for date formatting\&.  It requires the \fBzsh/stat\fP builtin, but uses
+only the builtin \fBzstat\fP\&.
+.RS
+.PP
+\fBage\fP selects files having a given modification time for use
+as a glob qualifier\&.  The format of the date is the same as that
+understood by the calendar system, described in
+the section FILE AND DATE FORMATS above\&.
+.PP
+The function can take one or two arguments, which can be supplied either
+directly as command or arguments, or separately as shell parameters\&.
+.PP
+.RS
+.nf
+\fBprint *(e:age 2006/10/04 2006/10/09:)\fP
+.fi
+.RE
+.PP
+The example above matches all files modified between the start of those
+dates\&.  The second argument may alternatively be a relative time
+introduced by a \fB+\fP:
+.PP
+.RS
+.nf
+\fBprint *(e:age 2006/10/04 +5d:)\fP
+.fi
+.RE
+.PP
+The example above is equivalent to the previous example\&.
+.PP
+In addition to the special use of days of the week, \fBtoday\fP and
+\fByesterday\fP, times with no date may be specified; these apply to today\&.
+Obviously such uses become problematic around midnight\&.
+.PP
+.RS
+.nf
+\fBprint *(e\-age 12:00 13:30\-)\fP
+.fi
+.RE
+.PP
+The example above shows files modified between 12:00 and 13:00 today\&.
+.PP
+.RS
+.nf
+\fBprint *(e:age 2006/10/04:)\fP
+.fi
+.RE
+.PP
+The example above matches all files modified on that date\&.  If the second
+argument is omitted it is taken to be exactly 24 hours after the first
+argument (even if the first argument contains a time)\&.
+.PP
+.RS
+.nf
+\fBprint *(e\-age 2006/10/04:10:15 2006/10/04:10:45\-)\fP
+.fi
+.RE
+.PP
+The example above supplies times\&.  Note that whitespace within the time and
+date specification must be quoted to ensure \fBage\fP receives the correct
+arguments, hence the use of the additional colon to separate the date and
+time\&.
+.PP
+.RS
+.nf
+\fBAGEREF=2006/10/04:10:15
+AGEREF2=2006/10/04:10:45
+print *(+age)\fP
+.fi
+.RE
+.PP
+This shows the same example before using another form of argument
+passing\&.  The dates and times in the parameters \fBAGEREF\fP and \fBAGEREF2\fP
+stay in effect until unset, but will be overridden if any argument is
+passed as an explicit argument to age\&.  Any explicit argument
+causes both parameters to be ignored\&.
+.PP
+Instead of an explicit date and time, it\&'s possible to use the
+modification time of a file as the date and time for either argument
+by introducing the file name with a colon:
+.PP
+.RS
+.nf
+\fBprint *(e\-age :file1\-)\fP
+.fi
+.RE
+.PP
+matches all files created on the same day (24 hours starting from
+midnight) as \fBfile1\fP\&.
+.PP
+.RS
+.nf
+\fBprint *(e\-age :file1 :file2\-)\fP
+.fi
+.RE
+.PP
+matches all files modified no earlier than \fBfile1\fP and
+no later than \fBfile2\fP; precision here is to the nearest second\&.
+.RE
+.TP
+.PD 0
+\fBafter\fP
+.TP
+.PD
+\fBbefore\fP
+The functions \fBafter\fP and \fBbefore\fP are simpler versions of \fBage\fP
+that take just one argument\&.  The argument is parsed similarly to an
+argument of \fBage\fP; if it is not given the variable \fBAGEREF\fP is
+consulted\&.  As the names of the functions suggest, a file matches if its
+modification time is after or before the time and date specified\&.  If
+a time only is given the date is today\&.
+.RS
+.PP
+The two following examples are therefore equivalent:
+.RS
+.nf
+\fBprint *(e\-after 12:00\-)
+print *(e\-after today:12:00\-)\fP
+.fi
+.RE
+.RE
+.PP
+.SH "STYLES"
+.PP
+The zsh style mechanism using the \fBzstyle\fP command is describe in
+\fIzshmodules\fP(1)\&.  This is the same mechanism
+used in the completion system\&.
+.PP
+The styles below are all examined in the context
+\fB:datetime:\fP\fIfunction\fP\fB:\fP, for example \fB:datetime:calendar:\fP\&.
+.PP
+.PD 0
+.TP
+.PD
+\fBcalendar\-file\fP
+The location of the main calendar\&.  The default is \fB~/calendar\fP\&.
+.TP
+\fBdate\-format\fP
+A \fBstrftime\fP format string (see \fIstrftime\fP(3)) with the zsh
+extensions providing various numbers with no leading zero or space
+if the number is a single digit as described for the
+\fB%D{\fP\fIstring\fP\fB}\fP prompt format in
+the section EXPANSION OF PROMPT SEQUENCES in \fIzshmisc\fP(1)\&.
+.RS
+.PP
+This is used for outputting dates in \fBcalendar\fP, both to support
+the \fB\-v\fP option and when adding recurring events back to the calendar
+file, and in \fBcalendar_showdate\fP as the final output format\&.
+.PP
+If the style is not set, the default used is similar the standard system
+format as output by the \fBdate\fP command (also known as `ctime format\&'):
+`\fB%a %b %d %H:%M:%S %Z %Y\fP\&'\&.
+.RE
+.TP
+\fBdone\-file\fP
+The location of the file to which events which have passed are appended\&.
+The default is the calendar file location with the suffix \fB\&.done\fP\&.
+The style may be set to an empty string in which case a "done" file
+will not be maintained\&.
+.TP
+\fBreformat\-date\fP
+Boolean, used by \fBcalendar_add\fP\&.  If it is true, the date and time
+of new entries added to the calendar will be reformatted to the format
+given by the style \fBdate\-format\fP or its default\&.  Only the date and
+time of the event itself is reformatted; any subsidiary dates and times
+such as those associated with repeat and warning times are left alone\&.
+.TP
+\fBshow\-prog\fP
+The programme run by \fBcalendar\fP for showing events\&.  It will
+be passed the start time and stop time of the events requested in seconds
+since the epoch followed by the event text\&.  Note that \fBcalendar \-s\fP uses
+a start time and stop time equal to one another to indicate alerts
+for specific events\&.
+.RS
+.PP
+The default is the function \fBcalendar_show\fP\&.
+.RE
+.TP
+\fBwarn\-time\fP
+The time before an event at which a warning will be displayed, if the
+first line of the event does not include the text \fBEVENT\fP \fIreltime\fP\&.
+The default is 5 minutes\&.
+.PP
+.SH "UTILITY FUNCTIONS"
+.PP
+.PD 0
+.TP
+.PD
+\fBcalendar_lockfiles\fP
+Attempt to lock the files given in the argument\&.  To prevent
+problems with network file locking this is done in an ad hoc fashion
+by attempting to create a symbolic link to the file with the name
+\fIfile\fP\fB\&.lockfile\fP\&.  No other system level functions are used
+for locking, i\&.e\&. the file can be accessed and modified by any
+utility that does not use this mechanism\&.  In particular, the user is not
+prevented from editing the calendar file at the same time unless
+\fBcalendar_edit\fP is used\&.
+.RS
+.PP
+Three attempts are made to lock the file before giving up\&.  If the module
+\fBzsh/zselect\fP is available, the times of the attempts are jittered so that
+multiple instances of the calling function are unlikely to retry at the
+same time\&.
+.PP
+The files locked are appended to the array \fBlockfiles\fP, which should
+be local to the caller\&.
+.PP
+If all files were successfully locked, status zero is returned, else status one\&.
+.PP
+This function may be used as a general file locking function, although
+this will only work if only this mechanism is used to lock files\&.
+.RE
+.TP
+\fBcalendar_read\fP
+This is a backend used by various other functions to parse the
+calendar file, which is passed as the only argument\&.  The array
+\fBcalendar_entries\fP is set to the list of events in the file; no
+pruning is done except that ampersands are removed from the start of
+the line\&.  Each entry may contain multiple lines\&.
+.TP
+\fBcalendar_scandate\fP
+This is a generic function to parse dates and times that may be
+used separately from the calendar system\&.  The argument is a date
+or time specification as described in
+the section FILE AND DATE FORMATS above\&.  The parameter \fBREPLY\fP
+is set to the number of seconds since the epoch corresponding to that date
+or time\&.  By default, the date and time may occur anywhere within the given
+argument\&.
+.RS
+.PP
+Returns status zero if the date and time were successfully parsed,
+else one\&.
+.PP
+Options:
+.PD 0
+.TP
+.PD
+\fB\-a\fP
+The date and time are anchored to the start of the argument; they
+will not be matched if there is preceding text\&.
+.TP
+\fB\-A\fP
+The date and time are anchored to both the start and end of the argument;
+they will not be matched if the is any other text in the argument\&.
+.TP
+\fB\-d\fP
+Enable additional debugging output\&.
+.TP
+\fB\-m\fP
+Minus\&.  When \fB\-R\fP \fIanchor_time\fP is also given the relative time is
+calculated backwards from \fIanchor_time\fP\&.
+.TP
+\fB\-r\fP
+The argument passed is to be parsed as a relative time\&.
+.TP
+\fB\-R\fP \fIanchor_time\fP
+The argument passed is to be parsed as a relative time\&.  The time is
+relative to \fIanchor_time\fP, a time in seconds since the epoch,
+and the returned value is the absolute time corresponding to advancing
+\fIanchor_time\fP by the relative time given\&.
+This allows lengths of months to be correctly taken into account\&.  If
+the final day does not exist in the given month, the last day of the
+final month is given\&.  For example, if the anchor time is during 31st
+January 2007 and the relative time is 1 month, the final time is the
+same time of day during 28th February 2007\&.
+.TP
+\fB\-s\fP
+In addition to setting \fBREPLY\fP, set \fBREPLY2\fP to the remainder of
+the argument after the date and time have been stripped\&.  This is
+empty if the option \fB\-A\fP was given\&.
+.TP
+\fB\-t\fP
+Allow a time with no date specification\&.  The date is assumed to be
+today\&.  The behaviour is unspecified if the iron tongue of midnight
+is tolling twelve\&.
+.RE
+.TP
+\fBcalendar_show\fP
+The function used by default to display events\&.  It accepts a start time
+and end time for events, both in epoch seconds, and an event description\&.
+.RS
+.PP
+The event is always printed to standard output\&.  If the command line editor
+is active (which will usually be the case) the command line will be
+redisplayed after the output\&.
+.PP
+If the parameter \fBDISPLAY\fP is set and the start and end times are
+the same (indicating a scheduled event), the function uses the
+command \fBxmessage\fP to display a window with the event details\&.
+.RE
+.PP
+.SH "BUGS"
+.PP
+As the system is based entirely on shell functions (with a little support
+from the \fBzsh/datetime\fP module) the mechanisms used are not as robust as
+those provided by a dedicated calendar utility\&.  Consequently the user
+should not rely on the shell for vital alerts\&.
+.PP
+There is no \fBcalendar_delete\fP function\&.
+.PP
+There is no localization support for dates and times, nor any support
+for the use of time zones\&.
+.PP
+Relative periods of months and years do not take into account the variable
+number of days\&.
+.PP
+The \fBcalendar_show\fP function is currently hardwired to use \fBxmessage\fP
+for displaying alerts on X Window System displays\&.  This should be
+configurable and ideally integrate better with the desktop\&.
+.PP
+\fBcalendar_lockfiles\fP hangs the shell while waiting for a lock on a file\&.
+If called from a scheduled task, it should instead reschedule the event
+that caused it\&.

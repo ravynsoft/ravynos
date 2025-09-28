@@ -1,0 +1,82 @@
+#compdef truss
+
+local curcontext="$curcontext" state line expl ret=1
+typeset -A opt_args
+local args faults
+
+args=(
+  '(-c)-a[show argument strings with exec system call]'
+  '(-a -d -D -e -E -l -r -v -w -x)-c[count traced system calls, signals etc]'
+  '(-c)-d[include timestamps in output]'
+  '(-c)-D[include delta timestamps in output]'
+  '(-c)-e[show environment strings with exec system call]'
+  '-f[follow child processes created after a fork]'
+  '-o+[specify trace output file]:output file:_files'
+)
+
+case $OSTYPE in
+  solaris2.<11->)
+    args+=( '(-c)-A[include absolute timestamps in output]' )
+  ;|
+  aix*|solaris*)
+    args+=(
+      '(-c)-E[include delta timestamps of time spent within the system call]'
+      "-i[don't display interruptible sleeping system calls]"
+      '(-c)-l[include LWP id in each line of output]'
+      '-m+[specify machine faults to trace]: :->faults'
+      '(-c)-r+[show full contents of the I/O buffer for each read()]:file descriptor'
+      '-s+[specify signals to trace]:signal:_sequence _signals -M "B\:!="'
+      '-S+[specify signals at which process should be stopped and abandoned]:signal:_sequence _signals -M "B\:!="'
+      '-t+[specify system calls to trace or exclude]:system call:_sequence _sys_calls -a -M "B\:!="'
+      '-T+[specify system calls at which process should be stopped and abandoned]:system call:_sequence _sys_calls -a -M "B\:!="'
+      '*-u+[user-level function call tracing]: :->userfuncs'
+      '-U+[specify user-level functions at which process should be stopped and abandoned]: :->userfuncs'
+      '(-c)-v+[enable verbose output of structures for specified system calls]:system call:_sequence _sys_calls -a -M "B\:!="'
+      '(-c)-w+[show full contents of the I/O buffer for each write()]:file descriptor'
+      '(-c)-x+[enable raw output of structures for specified system calls]:system call:_sequence _sys_calls -a'
+      '-p[trace specified existing processes]'
+    )
+  ;;
+  dragonfly*|freebsd*)
+    args+=(
+      '-s+[specify the maximum string size to print]:maximum string size [32]'
+      "(-c)-S[don't report signals received by the process]"
+      '(*)-p[trace specified existing processes]:pid:_pids'
+    )
+  ;|
+  freebsd<10->.*)
+    args+=( '-H[include thread ID in the output of each event]' )
+  ;;
+esac
+
+_arguments -C -s : $args \
+  '*::arguments:->args' && ret=0
+
+case $state in
+  faults)
+    faults=( all ${${${(M)${(f)"$(</usr/include/sys/fault.h)"}:#?define[[:blank:]]##FLT*}#*[[:blank:]]FLT}%%[[:blank:]]*} ) 2>/dev/null
+    _sequence _wanted faults expl fault compadd - -M 'B:!=' -M 'B:[Ff][Ll][Tt]=' -M 'm:{a-z}={A-Z}' -a faults && ret=0
+  ;;
+  args)
+    if [[ $OSTYPE = solaris* ]] && (( $+opt_args[-p] )); then
+      _pids && ret=0
+    elif (( CURRENT == 1 )); then
+      _command_names -e && ret=0
+    else
+      _normal && ret=0
+    fi
+  ;;
+  userfuncs)
+    if [[ -prefix *: ]]; then
+      _message -e functions function
+    else
+      compset -P '*,'
+      compset -S '[,:]*'
+      _description -x libs expl lib
+      compadd "$expl[@]" -S '' lib && ret=0
+      compadd "$expl[@]" -qS, a.out && ret=0
+    fi
+  ;;
+esac
+
+return ret

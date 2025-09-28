@@ -1,0 +1,64 @@
+# This is a set of bugbot commands for issues and merge requests - setting any of the
+# bugbot::foo labels will trigger gitlab-triage to run with this ruleset (well, the
+# one we have on the main branch at the time)
+#
+# Note that for adding labels, the label must first created in the project.
+resource_rules:
+  issues:
+    rules:
+      - name: "Close kernel bugs"
+        conditions:
+          labels:
+            - "bugbot::kernel"
+        actions:
+          labels:
+            - "kernel"
+          remove_labels:
+            - "bugbot::kernel"
+          comment: |
+            This bug looks like a kernel issue and it cannot be fixed
+            in libinput directly. I'm closing this bug but do feel free
+            to continue discussing the issue here.
+
+            Kernel bugs are usually best sent to the [`linux-input` list](https://lore.kernel.org/linux-input/).
+          status: "close"
+      - name: "Request hid-recorder output"
+        conditions:
+          labels:
+            - "bugbot::hid-recorder"
+        actions:
+          remove_labels:
+            - "bugbot::hid-recorder"
+          comment: |
+            Looks like we may need some extra information that isn't yet available in this issue.
+            Please **attach** (do not paste) the output of `hid-recorder` from [hid-tools](https://gitlab.freedesktop.org/libevdev/hid-tools/)
+            for this device (run `sudo hid-recorder` without argument and it will let you pick the device).
+            This should show the data the kernel receives from the device and may provide a hint on what's going on here.
+      - name: "Request libinput record output"
+        conditions:
+          labels:
+            - "bugbot::libinput-record"
+        actions:
+          remove_labels:
+            - "bugbot::libinput-record"
+          comment: |
+            Looks like we may need some extra information. Please **attach** (do not paste) the full output
+            of `libinput record` and `libinput debug-events --verbose` (if you haven't yet).
+            The [documentation](https://wayland.freedesktop.org/libinput/doc/latest/tools.html#libinput-record-and-libinput-replay)
+            has some information on what we're looking for to be able to triage bugs.
+  merge_requests:
+    rules:
+      - name: "Remind contributor of commit rules"
+        conditions:
+          labels:
+            - "bugbot::commit-rules"
+        actions:
+          remove_labels:
+            - "bugbot::commit-rules"
+          comment: |
+            Hi. Looks like the pipeline failed because one or more of the commits in this MR do not meet our requirements.
+            Most commonly this the format of the commit message itself. The "Test summary" above has the details.
+
+            Please see [our docs for commit messages](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html#commit-messages)
+            and [our docs for submitting code](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html#submitting-code)
+            that explain how to amend and force-push to this repo.

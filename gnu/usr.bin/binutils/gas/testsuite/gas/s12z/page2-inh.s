@@ -1,0 +1,5 @@
+	RTI
+	SYS
+	STOP
+	WAI
+

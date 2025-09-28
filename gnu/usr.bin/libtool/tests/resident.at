@@ -1,0 +1,148 @@
+# resident.at -- test resident modules              -*- Autotest -*-
+
+#   Copyright (C) 2010-2019, 2021-2022 Free Software Foundation, Inc.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+# Ensure resident modules are not unloaded at program exit:
+# they need to be able to invoke atexit handlers.
+
+AT_SETUP([resident modules])
+AT_KEYWORDS([libltdl])
+
+AT_DATA([main.c],
+[[#include <ltdl.h>
+#include <stdio.h>
+
+int
+main (int argc, char* argv[])
+{
+  int err = 0;
+  lt_dlhandle plugin_handle;
+  lt_dladvise advise;
+
+  LTDL_SET_PRELOADED_SYMBOLS();
+
+  if (argc < 2)
+    {
+      fprintf (stderr, "usage: %s plugin\n", argv[0]);
+      return 1;
+    }
+
+  lt_dlinit ();
+  if (lt_dladvise_init (&advise) != 0
+      || lt_dladvise_ext (&advise) != 0
+      || lt_dladvise_resident (&advise) != 0)
+    {
+      printf ("advise failure: %s\n", lt_dlerror ());
+      err = 1;
+    }
+  else
+    {
+      plugin_handle = lt_dlopenadvise (argv[1], advise);
+      if (NULL != plugin_handle)
+	{
+	  int (*pf) (void);
+	  printf ("plugin opened successfully!\n");
+	  pf = (int (*) (void)) lt_dlsym (plugin_handle, "setup_plugin");
+	  if (pf)
+	    pf ();
+	  else
+	    {
+	      printf ("dlsym failure: %s\n", lt_dlerror ());
+	      err = 1;
+	    }
+	  if (!lt_dlisresident (plugin_handle))
+	    {
+	      printf ("module wrongly not marked resident\n");
+	      err = 1;
+	    }
+	  if (lt_dlclose (plugin_handle) != 0)
+	    {
+	      printf ("close failure (expected): %s\n", lt_dlerror ());
+	    }
+	  else
+	    {
+	      printf ("wrongly closed resident module\n");
+	      err = 1;
+	    }
+	}
+      else
+	{
+	  printf ("plugin failed to open: %s\n", lt_dlerror ());
+	  err = 1;
+	}
+      if (lt_dladvise_destroy (&advise) != 0)
+	{
+	  printf ("advise destroy failure: %s\n", lt_dlerror ());
+	  err = 1;
+	}
+    }
+  lt_dlexit ();
+  return err;
+}
+]])
+
+AT_DATA([plugin.c],
+[[#include <stdlib.h>
+#include <stdio.h>
+
+void
+bye (void)
+{
+  puts ("called from atexit handler");
+}
+
+#ifdef __cplusplus
+extern "C"
+#endif
+int
+setup_plugin (void)
+{
+  atexit (bye);
+}
+]])
+
+: ${LTDLINCL="-I$abs_top_srcdir/libltdl"}
+: ${LIBLTDL="$abs_builddir/../libltdl/libltdlc.la"}
+
+# Skip this test when called from:
+#    make distcheck DISTCHECK_CONFIGURE_FLAGS=--disable-ltdl-install
+AT_CHECK([case $LIBLTDL in #(
+ */_inst/lib/*) test -f "$LIBLTDL" || (exit 77) ;;
+esac], [], [ignore])
+
+CPPFLAGS="$LTDLINCL $CPPFLAGS"
+LDFLAGS="$LDFLAGS -no-undefined"
+inst=`pwd`/inst
+libdir=$inst/lib
+
+AT_CHECK([$CC $CPPFLAGS $CFLAGS -c main.c], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c plugin.c],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o plugin.la -rpath $libdir ]dnl
+	 [-module -avoid-version plugin.lo], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT ]dnl
+	 [-dlopen plugin.la $LIBLTDL],
+	 [], [ignore], [ignore])
+LT_AT_EXEC_CHECK([./main], [], [stdout], [ignore], [./plugin.la])
+AT_CHECK([$GREP 'called from atexit handler' stdout], [], [ignore])
+
+AT_CLEANUP

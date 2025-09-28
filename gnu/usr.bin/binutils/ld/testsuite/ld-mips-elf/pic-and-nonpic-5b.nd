@@ -1,0 +1,10 @@
+
+Symbol table '\.dynsym' contains .*:
+#...
+.*: 00043060 +0 +FUNC +GLOBAL +DEFAULT +\[MIPS PLT\] +UND +foo
+# The index on the next line should correspond to MIPS_GOTSYM.
+#...
+ *6: 0+ +0 +OBJECT +GLOBAL +DEFAULT +UND +obj2
+ *7: 0+ +0 +FUNC +GLOBAL +DEFAULT +UND +bar
+
+#pass

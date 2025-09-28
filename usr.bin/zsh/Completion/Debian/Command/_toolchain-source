@@ -1,0 +1,9 @@
+#compdef tpkg-install tpkg-make tpkg-debarch tpkg-update tpkg-install-libc
+
+local expl
+
+(( CURRENT == 2 )) &&
+_wanted target expl 'target platform' \
+   compadd alpha-linux arm-linux hppa-linux i{3..6}86-linux ia32-linux ia64-linux m68k-linux \
+           mipsel-linux mips-linux ppc-linux powerpc-linux sparc-linux s390-linux
+

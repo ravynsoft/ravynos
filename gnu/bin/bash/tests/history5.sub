@@ -1,0 +1,57 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+trap 'rm -f "$OUT"' 0 1 2 3 6 15
+
+HISTFILE=$TMPDIR/fchist-$$ ; OUT=$HISTFILE
+unset HISTIGNORE HISTCONTROL
+set -o history
+
+echo a
+echo b
+
+fc -0	# error
+fc -s -0	# error
+
+fc -l
+
+echo c
+fc -l 0
+fc -l -0
+
+echo d
+fc -s 0
+
+HISTSIZE=4
+history -c
+
+echo a
+echo b
+echo c
+echo d
+echo e
+echo f
+fc -l
+
+echo out of range 1
+fc -l 502 498
+echo out of range 2
+fc -l 498 502
+echo out of range 3
+fc -l 1 99
+# other out-of-range behavior for future work
+echo out of range 4
+fc -l -20 -40
+
+unset HISTFILE	# suppress writing history file

@@ -1,0 +1,2013 @@
+# Configure the completion system.
+
+emulate -L zsh
+setopt extendedglob
+
+zmodload -F zsh/files b:zf_ln || return 1
+
+local key
+local compcontext=-default-
+
+__ci_tidyup() {
+  unfunction -m __ci_\* 2>/dev/null
+  unfunction compinstall
+  autoload -Uz compinstall
+}
+
+__ci_newline() {
+  read -k \
+    key"?${1:---- Hit newline to continue or \`q' to exit without saving --- }"
+  print
+  if [[ $key = [qQ] ]]; then
+    print "compinstall aborted."
+    __ci_tidyup
+    return 1
+  else
+    return 0
+  fi
+}
+
+typeset startline='# The following lines were added by compinstall'
+typeset endline='# End of lines added by compinstall'
+typeset ifile line fpath_line compinit_args opt detect basic line2
+typeset -A styles
+typeset match mbegin mend warn_unknown warn_old warn_comment output
+integer lines_found
+
+while getopts "do" opt; do
+  case $opt in
+    (d)
+    # Detect an existing compinstall setup.
+    detect=1
+    ;;
+
+    (o)
+    # Output basic setup information only.
+    basic=1
+    ;;
+  esac
+done
+
+#
+# Check the user's .zshrc, if any.
+#
+# This relies on the stuff we find being only minimally edited from
+# the stuff we originally saved.  A better way of doing this would
+# almost certainly be to use the style mechanism directly:  save the
+# current styles in a variable, delete all styles, read in and evaluate
+# any styles found, manipulate styles directly using zstyle, write out
+# using zstyle -L, and if necessary restore the original styles.  One
+# day I may even do that.
+#
+
+__ci_test_ifile() {
+  [[ -f $1 ]] && grep "$endline" $1 >/dev/null 2>&1
+}
+
+local foundold=false
+if zstyle -s :compinstall filename ifile &&
+  __ci_test_ifile $ifile; then
+  foundold=true
+else
+  ifile=${ZDOTDIR:-~}/.zshrc
+  if __ci_test_ifile ${ZDOTDIR:-~}/.compinstall; then
+    ifile=${ZDOTDIR:-~}/.compinstall
+    foundold=true
+  elif __ci_test_ifile $ifile; then
+    foundold=true
+  fi
+fi
+
+
+if [[ -n $detect ]]; then
+  __ci_tidyup
+  [[ $foundold = true ]]
+  return
+fi
+
+
+__ci_output() {
+  print -r "$startline"
+  [[ -n $output ]] && print -r "$output"
+  if [[ -n $ifile ]]; then
+    line="zstyle :compinstall filename ${(qq)ifile}"
+    print -r "$line"
+    eval "$line"
+  fi
+
+  [[ -n $fpath_line ]] && print -r "$fpath_line"
+
+  print -r "
+autoload -Uz compinit
+compinit${compinit_args:+ $compinit_args}"
+
+  print -r "$endline"
+}
+
+
+if [[ -n $basic ]]; then
+  __ci_output
+  __ci_tidyup
+  return
+fi
+
+local newifile=$ifile
+if [[ $foundold = true ]]; then
+  if [[ $newifile != [~/]* ]]; then
+    newifile=${ZDOTDIR:-~}/$newifile
+    print "[Existing completion definition file is not absolute path:
+updating to $newifile]"
+  fi
+  print "I have found completion definitions in $newifile.
+If you want me to read these, just hit return.  Otherwise, edit the file
+name to look for definitions somewhere else, or delete the whole line
+in order not to use existing definitions."
+  vared -ch -p 'file> ' newifile
+  if [[ -n $newifile && $newifile != [/~]* ]]; then
+    newifile=$PWD/$newifile
+    print "[Not absolute path: updating to $newifile]"
+  fi
+  [[ -z $newifile || ! -f $newifile ]] && foundold=false
+else
+  print "I haven't found any existing completion definitions.
+If you have some already defined by compinstall, edit the name of the
+file where these can be found.  Note that this will only work if they
+are exactly the form in which compinstall inserted them.  If you leave
+the line as it is, or empty, I won't search."
+  while true;  do
+    vared -ch -p 'file> ' newifile || break
+    if [[ -n $newifile && $newifile != [/~]* ]]; then
+      newifile=$PWD/$newifile
+      print "[Not absolute path: updating to $newifile]"
+    fi
+    if [[ -n $newifile && $ifile != $newifile ]]; then
+      if __ci_test_ifile $newifile; then
+        foundold=true
+	break
+      fi
+      print "I couldn't find any definitions there.  Edit a new filename, or
+leave the line blank to ignore it."
+    else
+      break
+    fi
+  done
+fi
+ifile=${~newifile}
+
+if [[ $foundold = true ]]; then
+  sed -n "/^[ 	]*$startline/,/^[ 	]*$endline/p" $ifile |
+  # We can't use the default read behaviour to handle continuation lines
+  # since it messes up internal backslashes.
+  while read -r line; do
+    # detect real continuation backslashes by checking there are an
+    # odd number together.  i think this is reliable since the only
+    # other way of quoting a backslash involves following it with
+    # a closing quote.
+    while [[ $line = *\\ ]]; do
+      line2=${(M)line%%\\##}
+      (( ${#line2} & 1 )) || break
+      read -r line2 || break
+      line="${line[1,-2]}$line2"
+    done
+    (( lines_found++ ))
+    if [[ $line = *'$fpath'* ]]; then
+      fpath_line=$line
+      if [[ $line != *\) ]]; then
+        while read -r line; do
+          fpath_line="$fpath_line
+$line"
+          [[ $line = *\) ]] && break
+        done
+      fi
+    elif [[ $line = (#b)[[:blank:]]#zstyle[[:blank:]]##(\'[^\']#\')\
+[[:blank:]]##([^[:blank:]]##)[[:blank:]]##(*) ]]; then
+      styles[$match[2]]="${styles[$match[2]]:+${styles[$match[2]]}
+}${(Q)match[1]}
+${match[3]}"
+    elif [[ $line = [[:blank:]]#compconf* ]]; then
+      warn_old=1
+    elif [[ $line == $startline || $line == $endline ]]; then
+      # no-op
+    elif [[ $line = [[:blank:]]#\#* ]]; then
+      warn_comment=1
+    elif [[ $line = [[:blank:]]#compinit[[:blank:]]##(#b)([^[:blank:]]*) ]]
+    then
+      compinit_args=$match[1]
+    elif [[ $line != [[:blank:]]# &&
+      $line != [[:blank:]]#'autoload '*' compinit' &&
+      $line != [[:blank:]]#compinit &&
+      $line != [[:blank:]]#zstyle[[:blank:]]#:compinstall* ]]; then
+      warn_unknown="${warn_unknown:+$warn_unknown
+}$line"
+    fi
+  done
+fi
+
+#
+# Print warnings about what we found in .zshrc.
+#
+
+if [[ -n $warn_old ]]; then
+  print "\
+WARNING: your configuration appears to contain commands for the 3.1.6
+configuration system.  You will have to reconfigure from scratch and the
+existing configuration commands will be overwritten.  If you wish to preserve
+the old commands, you should quit, copy them somewhere else, then rerun
+compinstall.  Sorry."
+elif [[ -n $warn_unknown ]]; then
+  print "\
+WARNING: your configuration contains bits not understood by compinstall,
+which will not be retained (shown below).  If you wish to retain these, you
+should quit, copy them somewhere else, and then rerun compinstall.
+
+$warn_unknown"
+elif [[ -n $warn_comment ]]; then
+  print "All the comments in your configuration section will be lost.
+If you want to keep them, you should copy them somewhere else first."
+elif (( ! $lines_found )); then
+  print "Starting a new completion configuration from scratch."
+  if [[ -n $ifile && ! -d $ifile ]]; then
+    print -n "This will be "
+    if [[ ! -f $ifile ]]; then
+      print "written to the new file $ifile."
+    elif [[ ! -w $ifile ]]; then
+      print "written to the file ~/.compinstall for copying to $ifile."
+      ifile=$HOME/.compinstall
+    else
+      print "appended to the file $ifile.  It is up to you to ensure
+that these lines are actually executed.  They will not be if your .zshrc
+usually returns before the end."
+    fi
+  fi
+fi
+print "Note that you will be given a chance to save the new setup
+somewhere else at the end."
+
+
+__ci_newline || return 1
+
+
+typeset d compdir subdirs lines
+
+#
+# Make sure we have the completion functions in $fpath.
+#
+
+__ci_set_compdir() {
+  for d in $*; do
+    # If we find both the functions more than once, assume the later
+    # one is the standard set.
+    if [[ -f $d/compinit && -f $d/compdump ]]; then
+      compdir=$d
+    fi
+  done
+}
+
+__ci_set_compdir $fpath
+
+if [[ -d $compdir/Base/Core ]]; then
+  subdirs=2
+elif [[ -d $compdir/Base ]]; then
+  subdirs=1
+  ### compdir=${compdir:h}
+fi
+
+if [[ -z $compdir ]]; then
+  # Start up a new zsh and get its default fpath.  If some swine has
+  # tinkered with this in /etc/zshenv we're out of luck.
+  lines=(${(f)"$(zsh -fc 'print -l $ZSH_VERSION $fpath')"})
+  line=$lines[1]
+  shift lines
+  # If the zsh in that path isn't right, maybe the user's shell is elsewhere.
+  if [[ $line != $ZSH_VERSION && -x $SHELL ]]; then
+    lines=(${(f)"$($SHELL -fc 'print -l $ZSH_VERSION $fpath' 2>/dev/null)"})
+    line=$lines[1]
+    shift lines
+  fi
+  if [[ $line != $ZSH_VERSION ]]; then
+    print "Hmmm, the zsh in your path is not what's running, nor is \$SHELL.
+That's bad.
+"
+  fi
+  __ci_set_compdir $lines
+  if [[ -n $compdir ]]; then
+    print "\
+I've found the completion directories and will add them to your \$fpath,
+but they should already be there at shell startup, so something (probably
+an unconditional assignment in a startup file) is taking them out.  You
+might want to check this, although what I'm doing should work."
+    if [[ -n $fpath_line ]]; then
+      print "\
+
+What's more, there is already an \$fpath assignment in your completion
+setup.  This gives me cause for concern.  I will override this, but don't
+be surprised if it doesn't go according to plan.  If you have not
+initialised completion in this shell, you should do so, then run
+compinstall again."
+    fi
+  fi
+  if [[ $subdirs = 2 ]]; then
+    fpath_line=($compdir/[A-Z]*/[A-Z]*)
+    fpath_line="fpath=($fpath ${(F)fpath_line})"
+  elif [[ -n $subdirs ]]; then
+    fpath_line=($compdir/[A-Z]*)
+    fpath_line="fpath=($fpath ${(F)fpath_line})"
+  fi
+else
+  if [[ $subdirs = 2 ]]; then
+    print "Completion directories $compdir/*/*
+are already in your \$fpath, good."
+  elif [[ -n $subdirs ]]; then
+    print "Completion directories $compdir/*
+are already in your \$fpath, good."
+  else
+    print "Completion directory $compdir
+is already in your \$fpath, good."
+  fi
+  if [[ -n $fpath_line ]]; then
+    print "I shall keep the existing \$fpath=( ... ) assignment."
+  fi
+fi
+
+if [[ -z $compdir ]]; then
+  print "\
+The zsh in your path doesn't seem to have completion directories in the
+function autoload path (\$fpath).  This suggests the shell wasn't installed
+for completion.  If you want to use it, you will need to locate all the
+completion functions yourself and install them in your \$fpath.  I will
+continue, but don't expect this to have much effect until you do.
+
+If you are planning to continue using the old compctl system for
+completion, compinstall won't do you any good anyway."
+fi
+
+__ci_newline || return 1
+
+
+#
+# Code for changing styles
+#
+
+typeset defcontext=":completion:*"
+typeset curcontext=$defcontext
+
+#
+# Utility functions
+#
+
+#
+# Get the style $1 for $curcontext into $2.
+#
+__ci_get_this_style() {
+  typeset -A tassoc
+  local style=$1 scalar=$2
+
+  tassoc=(${(f)styles[$style]})
+  eval "$scalar=\${tassoc[\$curcontext]}"
+}
+
+#
+# Set the style $1 for $curcontext using scalar $2 for the value for this
+# context.  If $2 is null, delete the context (this may not be correct for
+# all styles).  Don't do any extra quotation.
+# $2 gives the name of the scalar for symmetry with __ci_get_this_style.
+#
+__ci_set_this_style() {
+  local style=$1 scalar=$2 k
+  typeset -A tassoc
+  tassoc=(${(f)styles[$style]})
+
+  if [[ -n ${(P)scalar} ]]; then
+    tassoc[$curcontext]=${(P)scalar}
+  else
+    unset "tassoc[$curcontext]"
+  fi
+
+  styles[$style]=
+  for k in ${(ko)tassoc}; do
+    styles[$style]="${styles[$style]:+$styles[$style]
+}$k
+${tassoc[$k]}"
+  done
+}
+
+#
+# Functions displaying menus
+#
+
+__ci_change_context() {
+  clear
+  print "\
+             *** compinstall: change context ***
+
+The context tells the completion system under what circumstances your
+value will be used.  It has this form:
+  :completion:<function-name>:<completer>:<command>:<argument>:<tag>
+See the documentation for more detail on each of these components.  The
+default context \`$defcontext' matches everywhere in completion, unless you
+define a more specific pattern which matches the completion context being
+used. \`More specific' means either a string instead of a pattern, or a
+longer pattern instead of a shorter pattern.
+
+Edit a new context, or leave the line blank to reset the context to the
+default value.  Note that you do not require quotes around the context,
+which will automatically be added later.  Line editing and history are
+available.
+"
+
+  vared -eh -p 'context> ' curcontext
+  [[ -z $curcontext ]] && curcontext=$defcontext
+}
+
+
+__ci_toggle_completer() {
+  # used locally within __ci_do_completers
+  if [[ -n $completers[$1] ]]; then
+    completers[$1]=
+  else
+    completers[$1]=1
+  fi
+}
+
+__ci_do_minor_completer_options() {
+  # Set the options for the minor completers.
+  local key cond word olist omenu moriginal aspace tmparr
+  __ci_get_this_style condition cond
+  [[ -n $cond ]] && cond=${(Q)cond}
+  __ci_get_this_style word word
+  __ci_get_this_style old-list olist
+  __ci_get_this_style old-menu omenu
+  __ci_get_this_style match-original moriginal
+  __ci_get_this_style add-space aspace
+
+  while true; do
+
+    # insert-unambiguous can be handled somewhere else.
+    clear
+    print "\
+              *** compinstall: minor completer options ***
+
+Current context: $curcontext
+
+l.     Set options for _list: condition for delay and comparison.
+o.     Set options for _oldlist: when to keep old list.
+m.     Set options for _match: whether to assume a \`*' at the cursor.
+p.     Set options for _prefix: whether to add a space before the suffix.
+
+q.     Return to the previous menu without saving.
+0.     Done setting completer options.
+"
+
+    read -k key'?--- Hit selection --- '
+    print
+
+    [[ $key = 0 ]] && break
+
+    case $key in
+      [lL]) print "\
+You can set a condition under which the _list completer will delay completion
+until the second keypress.  It should evaluate to a number; a non-zero value
+turns this behaviour on.  It can include parameters, in particular NUMERIC
+to refer to a numeric argument.  For example, \`NUMERIC != 1' forces the
+delay unless you give an argument 1 to the command.  Leave it blank to
+assume the condition is true."
+            vared -eh -c -p 'condition> ' cond
+	    print -n "
+_list will usually compare the contents of the entire line with its previous
+contents to decided if it has been changed since the last keypress.  You
+can instead perform this comparison on just the current word, ignoring
+the rest of the command line.  Do you want to do this? (y/n) [n] "
+	    word=
+            read -q key && word=true
+	    print
+	    ;;
+      [oO]) print "\
+_oldlist can keep a generated completion list for reshowing in the usual
+way, e.g. with ^D, even if the list was generated by some special completion
+command.  The default behaviour of _oldlist is to show this list if it was
+not already visible, otherwise to generate the standard completion listing,
+but you can force it always to be shown, or make it never shown.
+Alternatively, you can specify a list of completers for which _oldlist will
+be used.  Choose:
+
+d.    Default behaviour.
+a.    Always show old list.
+n.    Never show old list.
+s.    Specify a list of completers.
+"
+
+            while true; do
+	      read -k key'?--- Hit selection --- '
+	      print
+	      case $key in
+		[dD]) olist=
+		   ;;
+		[aA]) olist=always
+		      ;;
+		[nN]) olist=never
+		      ;;
+		[sS]) olist=
+		      tmparr=(_complete _approximate _correct _match _expand)
+		      while true; do
+			clear
+			print "\
+     *** compinstall:  choosing completers to have _oldlist behaviour ***
+
+Type any of:
+
+1.  _complete
+2.  _approximate
+3.  _correct
+4.  _match
+5.  _expand
+
+or 0 to end, or - to delete the last choice."
+			if [[ -n $olist ]]; then
+			  print "\
+Current choices:
+  $olist"
+			fi
+			read -k key'?--- Hit selection --- '
+			print
+			case $key in
+			  0) break
+			     ;;
+			  -) olist=(${olist[1,-2]})
+			     ;;
+			  [1-5]) olist=($olist $tmparr[$key])
+			         ;;
+			esac
+                      done
+		      ;;
+		*) print "Type one of d, a, n or s."
+		   continue
+		   ;;
+	      esac
+	      break
+	    done
+
+	    print -n "
+_oldlist can keep the old completion list for use in menu completion, e.g. by
+repeatedly hitting tab, even if the list was generated by some special
+completion command.  This is the default behaviour of _oldlist, but
+you can turn it off, so that hitting tab would use the standard completion
+list.
+
+Do you want to turn it off? (y/n) [n] "
+            omenu=
+	    read -q key && omenu=false
+	    ;;
+      [mM]) print "\
+The _match completer will usually assume there is a \`*' at the cursor
+position when trying pattern matches.  For example, \`f*n<TAB>e' would
+be able to complete to \`filename', not just to patterns matching \`f*ne'.
+(Note that this assumes you have the option COMPLETE_IN_WORD set, else all
+completion takes place at the end of the word.)  You can tell _match not
+to assume there is a \`*', or to try first without the \`*', then with it.
+Type one of:
+
+a.     Always assume \`*' at cursor position.
+n.     Never assume \`*' at cursor position.
+w.     Try without the \`*', then with it if that fails."
+            while true; do
+	      read -k key'?--- Hit selection --- '
+	      print
+	      case $key in
+		a) moriginal=
+		   ;;
+		n) moriginal=only
+		   ;;
+		w) moriginal=both
+		   ;;
+		*) print "Type one of a, n or w."
+		   continue
+		   ;;
+	      esac
+	      break
+	    done
+            ;;
+      [pP]) print -n "\
+The _prefix completer completes only what is behind the cursor, ignoring
+completely what is after, even if there is no space at the cursor position.
+However, you can force it to add a space between the resulting completion
+and the part ignored.  For example, \`f<TAB>bar' might expand to \`filebar'
+without this, and to \`file bar' with it.  Do wish _prefix to add the
+space? (y/n) [n] "
+            aspace=
+            read -q key && aspace=true
+	    ;;
+      [qQ]) return 1
+	    ;;
+    esac
+
+  done
+
+  [[ -n $cond && $cond != [[:alnum:]]## ]] && cond=${(qq)cond}
+  __ci_set_this_style condition cond
+  __ci_set_this_style word word
+  __ci_set_this_style old-list olist
+  __ci_set_this_style old-menu omenu
+  __ci_set_this_style match-original moriginal
+  __ci_set_this_style add-space aspace
+
+  return 0
+}
+
+__ci_do_minor_completers() {
+  # Set the minor completers not handled by __ci_do_completers.
+  # Called within __ci_do_completers, so inherits the environment.
+  # It's only divided off to keep the menus short.
+
+  local key
+
+  while true; do
+
+    clear
+    print "\
+              *** compinstall: minor completer menu ***
+
+Current context: $curcontext
+
+The following completers are available.  Those marked \`(*)' are already
+set for the context shown above.  Note none of these are required for
+normal completion behaviour.
+
+1. ${${completers[_ignored]:+(*)}:-   } _ignored: $ckeys[_ignored]
+2. ${${completers[_list]:+(*)}:-   } _list:    $ckeys[_list]
+3. ${${completers[_oldlist]:+(*)}:-   } _oldlist: $ckeys[_oldlist]
+4. ${${completers[_match]:+(*)}:-   } _match:   $ckeys[_match]
+5. ${${completers[_prefix]:+(*)}:-   } _prefix:  $ckeys[_prefix]
+
+o.     Set options for the completers above.
+q.     Return without saving.
+0.     Done setting minor completers.
+"
+    read -k key'?--- Hit selection --- '
+    print
+
+    [[ $key = 0 ]] && break
+
+    case $key in
+      1) __ci_toggle_completer _ignored
+	 if [[ -n $completers[_ignored] ]]; then
+	   print "\
+I am inserting the \`ignored' completer immediately after normal
+completion.  You can move it later in the list by hand, if you prefer, so
+that ignored completions are only used after, for example, approximations.
+To do this, edit $ifile, look for the zstyle ... completers line, and
+move \`_ignored' to where you want it.  This will be retained if you use
+compinstall again provided you don't go into the completers menu.
+"
+	   # TODO: we could be more careful about keeping the user's
+	   # order, particularly with multiple completers.
+           read -k key'?--- Hit any key to continue --- '
+	   print
+	 fi
+	 ;;
+      2) __ci_toggle_completer _list
+	 ;;
+      3) __ci_toggle_completer _oldlist
+	 ;;
+      4) __ci_toggle_completer _match
+	 ;;
+      5) __ci_toggle_completer _prefix
+	 ;;
+      o) __ci_do_minor_completer_options
+	 ;;
+      q) return 1
+	 ;;
+    esac
+
+  done
+
+  return 0
+}
+
+__ci_do_completer_options() {
+  # Set options for the main completers; called from __ci_do_completers.
+
+  local maxe errors prompt glob subst compl cond
+
+  __ci_get_this_style max-errors errors
+  __ci_get_this_style prompt prompt
+  [[ -n $prompt ]] && prompt=${(Q)prompt}
+  __ci_get_this_style glob glob
+  [[ -n $glob ]] && glob=${(Q)glob}
+  __ci_get_this_style substitute subst
+  [[ -n $subst ]] && subst=${(Q)subst}
+  __ci_get_this_style completions compl
+  [[ -n $compl ]] && compl=${(Q)compl}
+
+  while true; do
+
+    clear
+    print "\
+              *** compinstall: completer options ***
+
+Current context: $curcontext
+
+The following options are available.  Note that these require the relevant
+completers to be present, as set in the menu above this one.
+
+a.     Set options for approximation or correction.
+e.     Set options for expansion.
+q.     Return without saving.
+
+0.     Done setting options.
+"
+
+    read -k key'?--- Hit selection --- '
+    print
+
+    # We handle approximation and correction together to avoid having
+    # to be too particular about context.
+    case $key in
+      a) clear
+         print "\
+Approximation and correction can correct the errors in what you have typed,
+up to a maximum number of errors which you can specify.  Each \`error'
+is the omission of a character, the addition of a superfluous character,
+the substitution of one character by an incorrect one, or transposition of
+two different characters.
+
+Current context: $curcontext
+
+To have different values for approximation and correction, you should
+change the context appropriately.  For approximation, use
+\`:completion:*:approximate:*' and for correction use
+\`:completion:*:correct:*'.
+
+Enter maximum number of errors allowed:
+"
+         maxe=
+	 while true; do
+	   vared -eh -c -p "number> " maxe
+	   [[ $maxe = [[:digit:]]## ]] && break
+	   print "Please enter a number"
+	   maxe=
+	 done
+	 while true; do
+	   print "\nSelect behaviour of numeric prefix.
+
+1.     Numeric prefix is not used by approximation or completion.
+2.     Numeric prefix, if provided, gives max number of errors allowed,
+       replacing the number you just typed for that one completion.
+3.     Numeric prefix, if provided, prevents approximation or completion
+       from taking place at all for that one completion.
+"
+           read -k -- key'?--- Hit selection --- '
+	   print
+	   [[ $key = [123] ]] || continue
+	   case $key in
+             2) maxe="$maxe numeric"
+		;;
+	     3) maxe="$maxe not-numeric"
+		;;
+	   esac
+	   print "
+You can edit a prompt which will appear above lists of corrections.  The
+string \`%e' inside the prompt will be replaced with the number of errors
+found.  Leave blank for no prompt.  Quotation marks will be added
+automatically."
+	   vared -eh -c -p "prompt> " prompt
+	   break
+	 done
+	 errors=$maxe
+	 ;;
+      e) while true; do
+           clear
+           print "\
+The _expand completer can be tuned to perform any of globbing (filename
+generation), substitution (anything with a \`\$' or backquote), or
+normal completion (which is useful for inserting all possible completions
+into the command line).  For each feature, a 1 turns it on, while a 0 turns
+it off; if the feature is unset, that expansion will *not* be performed.
+
+You can also give more complicated mathematical expressions, which can use
+the parameter NUMERIC to refer to the numeric argument.  For example, the
+expression \`NUMERIC == 2' means that the expansion takes effect if you
+type ESC-2 (Emacs mode) or 2 (Vi command mode) before the expansion.
+Quotes will be added automatically as needed.
+
+g.     Set condition to perform globbing: ${glob:-unset}
+s.     Set condition to perform substitution: ${subst:-unset}
+c.     Set condition to perform completion: ${compl:-unset}
+0.     Done setting conditions (will not be saved until you leave options)
+"
+           read -k key'?--- Enter selection --- '
+	   print
+
+	   case $key in
+	     g) vared -eh -c -p 'globbing condition> ' glob
+		;;
+	     s) vared -eh -c -p 'substitution condition> ' subst
+		;;
+	     c) vared -eh -c -p 'completion condition> ' compl
+		;;
+	   esac
+
+	   [[ $key = 0 ]] && break
+
+         done
+	 ;;
+      q) return 1
+	 ;;
+    esac
+
+    [[ $key = 0 ]] && break
+  done
+
+  __ci_set_this_style max-errors errors
+  [[ -n $prompt ]] && prompt=${(qq)prompt}
+  __ci_set_this_style prompt prompt
+  [[ -n $glob && $glob != [[:alnum:]]## ]] && glob=${(qq)glob}
+  __ci_set_this_style glob glob
+  [[ -n $subst && $subst != [[:alnum:]]## ]] && subst=${(qq)subst}
+  __ci_set_this_style substitute subst
+  [[ -n $compl && $compl != [[:alnum:]]## ]] && compl=${(qq)compl}
+  __ci_set_this_style completions compl
+
+  key=
+  return 0
+}
+
+__ci_do_completers() {
+  # Set the completers for the current context.
+  # This is mostly done via a series of toggles.
+
+  typeset -A completers ckeys
+  local c clist newc
+  __ci_get_this_style completer newc
+  for c in ${=newc}; do
+    completers[$c]=1
+  done
+  if (( ${#completers} == 0 )); then
+    completers[_complete]=1
+    completers[_ignored]=1
+  fi
+  clist=(_list _oldlist _menu _expand _complete _ignored
+         _match _correct _approximate _prefix)
+
+  # TODO: these are a bit brief, so could provide some more detailed help.
+  ckeys=(_complete 'Basic completion.'
+         _approximate
+'Approximate completion:  completion with correction of existing word.'
+         _correct
+'Correction:  correct existing word, no completion.'
+         _expand
+'Expansion: use globbing and parameter substitution, if possible.'
+
+	 _ignored
+'Use patterns that were previously ignored if no matches so far.'
+         _list
+'Only list matches until the second time you hit TAB.'
+         _oldlist
+'Keep matches generated by special completion functions.'
+        _match
+'If completion fails, retry with pattern matching.'
+         _prefix
+'If completion fails, retry ignoring the part after the cursor.'
+         )
+
+  # TODO: You'll need to handle the bindkey to make _expand work.
+  # TODO: _prefix completer should make sure completeinword is set.
+
+  while true; do
+
+    clear
+    print "\
+              *** compinstall: completer menu ***
+
+Current context: $curcontext
+
+The following completers are available.  Those marked \`(*)' are already
+set for the context shown above.  If none are selected, the completers will
+not be set for this context at all.
+
+1. ${${completers[_complete]:+(*)}:-   } $ckeys[_complete]
+2. ${${completers[_approximate]:+(*)}:-   } $ckeys[_approximate]
+3. ${${completers[_correct]:+(*)}:-   } $ckeys[_correct]
+4. ${${completers[_expand]:+(*)}:-   } $ckeys[_expand]
+
+o.     Set options for the completers above.
+m.     Set completers that modify the behaviour of the four main ones above.
+q.     Return without saving.
+0.     Done setting completers.
+"
+    read -k key'?--- Hit selection --- '
+    print
+
+    case $key in
+      1) __ci_toggle_completer _complete
+	 ;;
+      2) __ci_toggle_completer _approximate
+	 ;;
+      3) __ci_toggle_completer _correct
+	 ;;
+      4) __ci_toggle_completer _expand
+	 ;;
+      [mM]) __ci_do_minor_completers || return
+            continue
+	    ;;
+      [oO]) __ci_do_completer_options || return
+            continue
+	    ;;
+      q) return 1
+	 ;;
+    esac
+
+    [[ $key = 0 ]] && break
+  done
+
+  newc=
+  for c in $clist; do
+    [[ -n $completers[$c] ]] && newc="${newc:+$newc }$c"
+  done
+  [[ -z $newc ]] && newc="''"
+  __ci_set_this_style completer newc
+}
+
+__ci_toggle_matcher() {
+  # Toggle on/off the matcher in array $1 for element $2
+  if [[ ${${(P)1}[$2]} = ' ' ]]; then
+    # toggle on
+    eval "${1}[$2]=$2"
+    if [[ $1 = n* ]]; then
+      # no matcher turned on, turn off the others
+      c_list[$2]=' '
+      C_list[$2]=' '
+      p_list[$2]=' '
+      s_list[$2]=' '
+    else
+      # something else turned on, turn off no matcher
+      n_list[$2]=' '
+    fi
+    return 0
+  else
+    # toggle off
+    eval "${1}[$2]=' '"
+    if [[ $c_list[$2] == ' ' && $C_list[$2] == ' ' && \
+	  $p_list[$2] == ' ' && $s_list[$2] == ' ' ]]; then
+      a_or_r[$2]=' '
+    fi
+    return 1
+  fi
+}
+
+__ci_do_matchers() {
+  # Set matchers via the matcher-list style.
+  # We just offer a pre-programmed set of possible matchers, but these
+  # cover the most common usages for matchers in a general context.
+  # More specific use of matchers is usually covered by completion functions.
+
+  local mlist m_ci m_pw m_sub c_list C_list p_list s_list pw_seps key key2 elt
+  local pw_dstar a_or_r i
+  integer eltcnt lastnz
+
+  __ci_get_this_style matcher-list mlist
+  # $mlist is the once and future list of matchers.  We don't quote it
+  # until the end; the eval effectively does de-quoting.
+  eval "mlist=($mlist)"
+  # ?_list say whether the four possible matchers are set for passes 1,
+  # 2, 3, 4, in an easy-to-read manner, i.e. the Nth part of the string
+  # is one of N (on) or space (off).
+  a_or_r="    "                 # replace by default
+  n_list="    "			# null completion, i.e. standard
+  c_list="    "			# case match one way
+  C_list="    "			# case match both ways
+  p_list="    "			# partial word completion
+  s_list="    "			# substring completion
+  # $pw_seps gives the separators used for partial-word completion
+  # by element of the matcher list; these can be edited separately.
+  pw_seps=('._-' '._-' '._-' '._-')
+  pw_dstar=('' '' '' '')
+
+  # See what's in the matcher initially.  If these have been edited,
+  # we're in trouble, but that's pretty much true of everything.
+  for (( eltcnt = 1; eltcnt <= $#mlist; eltcnt++ )); do
+    [[ $mlist[eltcnt] == "+"* ]] && a_or_r[$eltcnt]='+'
+    [[ -z $mlist[$eltcnt] ]] && n_list[$eltcnt]=$eltcnt
+    # Accept the old form of lower/upper correspondence, but we'll
+    # output the new one instead.
+    [[ $mlist[$eltcnt] = *"m:{a-z}={A-Z}"* ]] && c_list[$eltcnt]=$eltcnt
+    [[ $mlist[$eltcnt] = *"m:{[:lower:]}={[:upper:]}"* ]] &&
+      c_list[$eltcnt]=$eltcnt
+    [[ $mlist[$eltcnt] = *"m:{a-zA-Z}={A-Za-z}"* ]] && C_list[$eltcnt]=$eltcnt
+    [[ $mlist[$eltcnt] = *"m:{[:lower:][:upper:]}={[:upper:][:lower:]}"* ]] &&
+      C_list[$eltcnt]=$eltcnt
+    # For partial word stuff, we use backreferences to find out what
+    # the set of separators was.
+    if [[ $mlist[$eltcnt] = (#b)*"r:|["([^\]]#)"]=*"#" r:|=*"* ]]; then
+      p_list[$eltcnt]=$eltcnt
+      pw_seps[$eltcnt]=${match[1]}
+      [[ $mlist[$eltcnt] = *"=**"* ]] && pw_dstar[$eltcnt]='*'
+    fi
+    # Just look for the left matcher for substring, since the right matcher
+    # might have been handled as part of a partial-word spec.
+    [[ $mlist[$eltcnt] = *"l:|=*"* ]] && s_list[$eltcnt]=$eltcnt
+  done
+
+  while true; do
+    clear
+    print "\
+              *** compinstall: matcher menu ***
+
+\`Matchers' compare the completion code with the possible matches in some
+special way.  Numbers in parentheses show matchers to be tried and the order.
+The same number can be assigned to different matchers, meaning apply at the
+same time.  Omit a sequence number to try normal matching at that point.
+A \`+' in the first line indicates the element is added to preceding matchers
+instead of replacing them; toggle this with \`t'.  You don't need to set
+all four, or indeed any matchers --- then the style will not be set.
+
+   ($a_or_r)\
+   \`+' indicates add to previous matchers, else replace
+n. ($n_list)\
+ No matchers; you may want to try this as the first choice.
+c. ($c_list)\
+ Case-insensitive completion (lowercase matches uppercase)
+C. ($C_list)\
+ Case-insensitive completion (lower/uppercase match each other)
+p. ($p_list)\
+ Partial-word completion:  expand 'f.b' to 'foo.bar', etc., in one go.
+          You can choose the separators (here \`.') used each time.
+s. ($s_list)\
+ Substring completion:  complete on substrings, not just initial
+          strings.  Warning: it is recommended this not be used for element 1.
+
+t.        Toggle replacing previous matchers (\` ' at top) or add (\`+')
+q.        Return without saving.
+0.        Done setting matchers.
+"
+
+    read -k key'?--- Hit selection --- '
+    print
+
+    if [[ $key = [nNcCpPsS] ]]; then
+      while true; do
+	read -k key2'?Set/unset for element number (1234)? '
+	print
+	[[ $key2 = [1234] ]] && break
+	print "Only 1, 2, 3 and 4 are handled."
+      done
+    fi
+
+    case $key in
+      [nN]) __ci_toggle_matcher n_list $key2
+         if [[ $n_list[$key2] != ' ' ]]; then
+	 fi
+         ;;
+      c) __ci_toggle_matcher c_list $key2
+	 ;;
+      C) __ci_toggle_matcher C_list $key2
+	 ;;
+      [pP]) if __ci_toggle_matcher p_list $key2; then
+	      print "\
+Edit the set of characters which terminate partial words.  Typically
+these are punctuation characters, such as \`.', \`_' and \`-'.
+The expression will automatically be quoted.
+"
+              vared -eh -p 'characters> ' -c 'pw_seps['$key2']'
+	      # Paranoia: we don't know if there's a ']' in that string,
+	      # which will wreck the spec unless it's at the start.  Other
+	      # quotes are OK, since they are picked up at the ${(qq)...}
+	      # step.
+	      if [[ $pw_seps[$key2] = *']'* ]]; then
+		pw_seps[$key2]="]${pw_seps[$key2]//\\\]}"
+	      fi
+	      print -n "
+You can allow the partial-word terminators to be matched in the pattern,
+too:  then  for example \`c.u' would expand to \`comp.source.unix', whereas
+usually you would need to type an extra intervening dot.  Do you wish the
+terminators to be matched in this way? (y/n) [n] "
+              pw_dstar[$key2]=
+	      read -q key && pw_dstar[$key2]='*'
+	    fi
+	    ;;
+      [tT])
+	    read -k key2'?Toggle augment/replace for elements number (1234)? '
+	    if [[ $key2 == [1234] ]]; then
+	      if [[ $a_or_r[$key2] == ' ' ]]; then
+	        a_or_r[$key2]='+'
+	      else
+	        a_or_r[$key2]=' '
+	      fi
+	    else
+	      print "Only 1, 2, 3 and 4 are handled."
+	    fi
+	    ;;
+      [sS]) __ci_toggle_matcher s_list $key2
+	    ;;
+      [qQ]) return 1
+	 ;;
+    esac
+
+    [[ $key = 0 ]] && break
+  done
+
+  # Keep track of the last element which was non-empty; all the rest
+  # are junked.
+  lastnz=0
+
+  # Now we just reverse the first for-loop, looking for set matchers
+  # and reconstructing the elements of the matcher array.
+  for (( eltcnt = 1; eltcnt <= 4; eltcnt++ )); do
+    elt=
+    [[ $c_list[$eltcnt] != ' ' ]] &&
+      elt="${elt:+$elt }m:{[:lower:]}={[:upper:]}"
+    [[ $C_list[$eltcnt] != ' ' ]] &&
+      elt="${elt:+$elt }m:{[:lower:][:upper:]}={[:upper:][:lower:]}"
+    [[ $p_list[$eltcnt] != ' ' ]] &&
+      elt="${elt:+$elt }r:|[${pw_seps[$eltcnt]}]=*${pw_dstar[$eltcnt]}\
+ r:|=*${pw_dstar[$eltcnt]}"
+    if [[ $s_list[$eltcnt] != ' ' ]]; then
+      if [[ $elt = *"r:|=*"* ]]; then
+	elt="${elt:+$elt }l:|=*"
+      else
+	elt="${elt:+$elt }l:|=* r:|=*"
+      fi
+    fi
+    [[ $a_or_r[$eltcnt] != ' ' ]] && elt="+$elt"
+    [[ -n $elt || $n_list[$eltcnt] != ' ' ]] && lastnz=$eltcnt
+    mlist[$eltcnt]=$elt
+  done
+
+  if (( ! $lastnz )); then
+    # No matchers set, so just make the style empty: __ci_set_this_style
+    # will omit it completely.
+    mlist=
+  else
+    # Quote the entire list: this correctly quotes element by element,
+    # praise be to Sven.
+    mlist=(${(qq)mlist[1,$lastnz]})
+    # Make it a scalar just for safety's sake.
+    mlist="$mlist"
+  fi
+  __ci_set_this_style matcher-list mlist
+
+  return 0
+}
+
+__ci_do_list_format() {
+  local key format groupn verbose listp autod haslistp
+  __ci_get_this_style format format
+  [[ -n $format ]] && format=${(Q)format}
+  __ci_get_this_style group-name groupn
+  __ci_get_this_style verbose verbose
+  __ci_get_this_style list-prompt listp
+  [[ -n $listp ]] && haslistp=1
+  listp=${(Q)listp}
+  __ci_get_this_style auto-description autod
+  [[ -n $autod ]] && autod=${(Q)autod}
+
+  while true; do
+    clear
+    print "\
+       *** compinstall: order and descriptions in completion lists ***
+Type the appropriate number for more information on how this would affect
+listings.
+
+1.  Print a message above completion lists describing what is being
+    completed.
+
+2.  Make different types of completion appear in separate lists.
+
+3.  Make completion verbose, using option descriptions etc. (on by default).
+
+4.  Make single-valued options display the value's description as
+    part of the option's description.
+
+q.  Return without saving.
+0.  Done setting options for formatting of completion lists.
+"
+
+    read -k key'?--- Hit selection --- '
+    print
+
+    [[ $key = 0 ]] && break
+
+    case $key in
+      1) print "\
+You can set a string which is displayed on a line above the list of matches
+for completions.  A \`%d' in this string will be replaced by a brief
+description of the type of completion.  For example, if you set the
+string to \`Completing %d', and type ^D to show a list of files, the line
+\`Completing files' will appear above that list.  Enter an empty line to
+turn this feature off.  If you enter something which doesn't include \`%d',
+then \`%d' will be appended.  Quotation will be added automatically.
+"
+         vared -eh -p 'description> ' -c format
+	 if [[ -n $format && $format != *%d* ]]; then
+	   [[ $format = *[[:blank:]] ]] || format="$format "
+	   format="$format%d"
+	 fi
+	 ;;
+      2) print "\
+Normally, all possible completions are listed together in a single list, and
+if you have set a description with 1) above, the descriptions are listed
+together above that.  However, you can specify that different types of
+completion appear in separate lists; any description appears above its
+own list.  For example, external commands and shell functions would appear
+in separate lists when you are completing a command name.  Do you
+want to turn this on?
+"
+         while true; do
+           read -k key'?[y]es, [n]o, [k]eep old setting? '
+	   print
+	   [[ $key = [yYnNkK] ]] && break
+	 done
+	 case $key in
+	   [yY]) groupn="''"
+		 ;;
+	   [nN]) groupn=
+		 ;;
+	 esac
+	 ;;
+      3) print "By default, completion uses a \`verbose' setting.  This
+affects different completions in different ways.  For example,  many
+well-known commands have short, uninformative option names; in some cases,
+completion will indicate what the options do when offering to complete them.
+If you prefer shorter listings you can turn this off.  What setting to
+you want?
+"
+          while true; do
+            read -k key'?[v]erbose, [n]ot verbose, [k]eep old setting? '
+            print
+            [[ $key = [vVnNkK] ]] && break
+          done
+          case $key in
+	    # might as well be explicit, particularly since it's
+	    # the only way to override an existing `false' value.
+	    [vV]) verbose=true
+		  ;;
+	    [nN]) verbose=false
+		  ;;
+          esac
+	 ;;
+      4) print "\
+Many commands have options which take a single argument.  In some cases,
+completion is not set up to describe the option even though it has a
+description for the argument.  You can enter a string containing \`%d',
+which will be replaced by the description for the option.  For
+example, if you enter the string \`specify: %d', and an option -ifile
+exists which has an argument whose description is \`input file', then the
+description \`specify: input file' will appear when the option itself
+is listed.  As this long explanation suggests, this is only occasionally
+useful.  Enter an empty line to turn this feature off.  If you enter
+something which doesn't include \`%d', then \`%d' will be appended.
+Quotation will be added automatically.
+"
+         vared -eh -p 'auto-description> ' -c autod
+         if [[ -n $autod && $autod != *%d* ]]; then
+	   [[ $autod = *[[:blank:]] ]] || autod="$autod "
+	   autod="$autod%d"
+         fi
+	 ;;
+      q) return 1
+	 ;;
+    esac
+  done
+
+  [[ -n $format ]] && format=${(qq)format}
+  __ci_set_this_style format format
+  __ci_set_this_style group-name groupn
+  __ci_set_this_style verbose verbose
+  [[ -n $autod ]] && autod=${(qq)autod}
+  __ci_set_this_style auto-description autod
+}
+
+__ci_do_insertion() {
+  local key insertu original # sort
+
+  __ci_get_this_style insert-unambiguous insertu
+  __ci_get_this_style original original
+
+  while true; do
+    clear
+    print "\
+          *** compinstall: options for inserting completions ***
+
+1.   In completers that change what you have already typed, insert any
+     unambiguous prefix rather than go straight to menu completion.
+
+2.   In completers which correct what you have typed, keep what you
+     originally typed as one of the list of possible completions.
+
+q.   Return without saving.
+0.   Done setting options for insertion.
+"
+    read -k key'?-- Hit selection --- '
+    print
+
+    [[ $key = 0 ]] && break
+
+    case $key in
+      1) print "\
+The completers which do pattern matching and correction often alter the
+string which is already on the line, in the first case because it was a
+pattern and in the second case because what you typed was wrong.
+Since the possible completions can bear little or no resemblance to one
+another in those cases, so that typing extra characters to resolve the
+completion doesn't make much sense, menu completion is usually turned on
+straight away to allow you to pick the completion you want.  This style
+tells completion that if there is a common, unambiguous prefix in this
+case, you would prefer that to be inserted rather than going straight
+to menu completion.  Do you want this?
+"
+         while true; do
+           read -k key'?[y]es, [n]o, [k]eep old setting? '
+	   print
+	   [[ $key = [yYnNkK] ]] && break
+	 done
+	 case $key in
+	   [yY]) insertu=true
+	         ;;
+	   [nN]) insertu=false
+		 ;;
+	 esac
+	 ;;
+      2) print "\
+For completers which correct what you have typed, you sometimes want
+to keep the original string instead, so if the correction was ambiguous
+the original string is always listed as a possible completion.  However,
+if there was just one completion it is usually accepted.  You can
+force completion to offer the original string as a possibility even in
+this case.  Do you want this?
+"
+         while true; do
+	   read -k key'?[y]es, [n]o, [k]eep old setting? '
+	   print
+	   [[ $key = [yYnNkK] ]] && break
+	 done
+	 case $key in
+	   [yY]) original=true
+	         ;;
+           [nN]) original=false
+	         ;;
+	 esac
+	 ;;
+      [qQ]) return 1
+	      ;;
+    esac
+
+  done
+
+  __ci_set_this_style insert-unambiguous insertu
+  __ci_set_this_style original original
+  # __ci_set_this_style sort sort
+
+  return 0;
+}
+
+
+__ci_do_selection() {
+  local key listc menu select amenu elt listp selectp haslistp hasselectp
+  integer num
+
+  __ci_get_this_style list-colors listc
+  __ci_get_this_style menu menu
+  __ci_get_this_style list-prompt listp
+  [[ -n $listp ]] && haslistp=1
+  listp=${(Q)listp}
+  __ci_get_this_style select-prompt selectp
+  [[ -n $selectp ]] && hasselectp=1
+  selectp=${(Q)selectp}
+
+  while true; do
+    clear
+    print "\
+     *** compinstall: options for colouring and selecting in lists ***
+
+1.   Use coloured lists for listing completions.
+
+2.   Use cursor keys to select completions from completion lists.
+
+3.   Allow scrolling of long selection lists and set the prompt.
+
+q.   Return without saving.
+0.   Done setting options for insertion.
+"
+    read -k key'?--- Hit selection --- '
+    print
+
+    [[ $key = 0 ]] && break
+
+    case $key in
+      1) print "\
+Zsh can produce coloured completion listings where different file types
+etc. appear in different colours.  If you want to tailor that to your
+own needs, you will have to edit ~/.zshrc.  Here you have the choice of:
+
+1.  Using the default colours.
+2.  Using the colours already set up for GNU ls via the \$LS_COLORS
+    environment variable.  Note this must be set before the completion
+    configuration code is executed.
+3.  Turn colouring off.
+0.  Leave the setting the way it is.  Choose this if you have a custom
+    setting and you don't want to lose it.
+"
+         while true; do
+	   read -k key'?Enter 1, 2, 3, 0: '
+	   print
+	   [[ $key = [1230] ]] && break
+	 done
+	 case $key in
+	   1) listc="''"
+	      ;;
+	   2) listc='${(s.:.)LS_COLORS}'
+	      ;;
+	   3) listc=
+	      ;;
+	 esac
+	 ;;
+      2) print "\
+If you use zsh's menu completion and the feature that all short completion
+lists appear below the line on which you are editing, you can enable
+\`menu selection', which lets you pick a completion with the cursor keys:
+the choice is highlighted, and hitting return accepts it.  Note that
+this only happens when you are already using menu completion.  This
+feature can be set so that it is only enabled when there are a certain
+number of completions.  Please enter:
+
+- 0 or 1, to turn this feature on unconditionally
+- a higher number to turn this feature on when there are that many
+  completions
+- an \`l' for \`long' to turn it on for listings which don't fit on the
+  screen.
+- an \`ll' for \`long list' to turn it on for completions which don't fit
+  on the screen, even for commands which only do listing of completions.
+  This may be combined with a number which will be used in ordinary selection.
+- a negative number to turn this feature off
+- an empty line to leave the setting the way it is.
+"
+	 # Better to parse and display the current setting.
+         while true; do
+           vared -eh -p 'value> ' select
+	   [[ -z $select || $select = ((-|)<->|l|<->#ll<->#) ]] && break;
+	   print "Type a number, l, ll, ll<num>, or an empty line." >&2
+	 done
+	 amenu=(${=menu})
+	 elt=${amenu[(i)*select*]}
+	 [[ $elt -eq 0 || $elt -gt $#amenu ]] && elt=
+	 case $select in
+	   <->) if [[ -n $elt ]]; then
+		  amenu[$elt]="select=$select"
+		else
+		  amenu=($amenu "select=$select")
+	        fi
+		menu="$amenu"
+		;;
+	   *ll*) num=${(RS)select##ll}
+	         select="select=long-list"
+		 [[ -n $num ]] && select="$select select=$num"
+		 if [[ -n $elt ]]; then
+		   amenu[$elt]=$select
+		 else
+		   amenu=($amenu $select)
+		 fi
+		 menu="$amenu"
+		 ;;
+	   l#) if [[ -n $elt ]]; then
+                 amenu[$elt]="select=long"
+               else
+                 amenu=($amenu "select=long")
+               fi
+	       menu="$amenu"
+               ;;
+	   -<->) if [[ -n $elt ]]; then
+		    # i never liked the way indexing was done anyway
+		    if [[ $elt -eq 1 ]]; then
+		      amenu=($amenu[$elt+1,-1])
+		    else
+		      amenu=($amenu[1,$elt-1] $amenu[$elt+1,-1])
+		    fi
+		 fi
+		 menu="$amenu"
+		 ;;
+	 esac
+	 if [[ $menu = *select* ]]; then
+	   print "\
+You can also set a prompt to use for menu selection when it would scroll
+off the screen.  Unless this is set, you won't see a prompt, but the feature
+is still enabled.
+
+Edit a prompt below.  It can contain \`%l' to show the number of matches
+as \`current_number/total_number', \`%p' to show the fraction of
+the way down the list, or font-control sequences such as %B, %U, %S and
+the corresponding %b, %u, %s; quotes will be added automatically.  Delete
+the whole line to turn it off.  Hit return to keep the current value.
+"
+	   [[ -z $hasselectp ]] &&
+	     selectp='%SScrolling active: current selection at %p%s'
+	   vared -eh -p 'prompt> ' -c selectp
+	   [[ -z $selectp ]] && hasselectp=
+	 fi
+         ;;
+      3) print "\
+You can make completion lists scroll when they don't fit on the screen.
+Note this is different from scrolling in menu selection --- a more basic
+pager is used which should work even with fairly stupid terminals.
+
+To enable this, edit a prompt to show when scrolling is active; an empty 
+string turns this feature off.  It can contain \`%l' to show the number of
+matches as \`current_number/total_number', \`%p' to show the fraction of
+the way down the list, or font-control sequences such as %B, %U, %S and the
+corresponding %b, %u, %s; quotes will be added automatically.  Delete the
+whole line to turn this behaviour off, in which case the display of
+completions which don't fit on the screen is controlled by the LISTMAX
+parameter (currently ${LISTMAX:-unset}), which specifies the maximum number
+to show without asking.  Hit return to keep the current value.
+"
+         [[ -z $haslistp ]] &&
+	   listp='%SAt %p: Hit TAB for more, or the character to insert%s'
+	 vared -eh -p 'prompt> ' -c listp
+	 [[ -z $listp ]] && haslistp=
+	 ;;
+      q) return 1
+         ;;
+    esac
+  done
+
+  __ci_set_this_style list-colors listc
+  __ci_set_this_style menu menu
+  [[ -n $haslistp ]] && listp=${(qq)listp}
+  __ci_set_this_style list-prompt listp
+  [[ -n $hasselectp ]] && selectp=${(qq)selectp}
+  __ci_set_this_style select-prompt selectp
+
+  return 0
+}
+
+
+__ci_do_display() {
+  local key usec
+
+  __ci_get_this_style use-compctl usec
+
+  while true; do
+    clear
+    print "\
+         *** compinstall: display and insertion options ***
+
+1.  Change appearance of completion lists:  allows descriptions of
+    completions to appear and sorting of different types of completions.
+
+2.  Change how completions are inserted: includes options for sorting,
+    and keeping the original or an unambiguous prefix with correction etc.
+
+3.  Configure coloured/highlighted completion lists, selection of items
+    and scrolling.
+
+4.  Change whether old-style \`compctl' completions will be used.
+
+q.  Return without saving.
+0.  Done setting display and insertion options.
+"
+
+    read -k key'?--- Hit selection --- '
+    print
+
+    [[ $key = 0 ]] && break
+
+    case $key in
+      1) __ci_do_list_format
+	 ;;
+      2) __ci_do_insertion
+	 ;;
+      3)  __ci_do_selection
+	 ;;
+      4) print "\
+Completions defined by the new completion system (the one you are
+configuring) always take precedence over the old sort defined with compctl.
+You can choose whether or not you want to search for a compctl-defined
+completion if no new completion was found for a command.  The default
+behaviour is only to check for compctl-defined completions if the required
+library, zsh/compctl, is already loaded.  (If not, this implies that
+compctl has not been called.)  Do you want to test for compctl-defined
+completions?
+"
+         while true; do
+	   read -k key'?[y]es, [n]o, if [l]oaded, [k]eep old setting? '
+	   print
+	   [[ $key = [yYnNlLkK] ]] && break
+	 done
+	 case $key in
+	   [yY]) usec=true
+	         ;;
+	   [nN]) usec=false
+	         ;;
+	   [lL]) usec=
+	         ;;
+	 esac
+	 ;;
+      q) return 1
+	 ;;
+    esac
+
+  done
+
+  __ci_set_this_style use-compctl usec
+
+  return 0
+}
+
+
+#       file-sort, special-dirs, ignore-parents,
+#       squeeze-slashes,
+__ci_do_file_styles() {
+  local key files cursor expand speciald ignorep squeezes select
+  local prefon suffon lssuffixes preserve
+
+  __ci_get_this_style file-sort files
+  __ci_get_this_style ignore-parents ignorep
+  __ci_get_this_style special-dirs speciald
+  __ci_get_this_style squeeze-slashes squeezes
+  __ci_get_this_style expand expand
+  __ci_get_this_style list-suffixes lssuffixes
+  __ci_get_this_style preserve-prefix preserve
+  [[ -n $preserve ]] && preserve=${(Q)preserve}
+
+  while true; do
+    clear
+    print "\
+      *** compinstall: options for filename completion ***
+
+1.  Choose how to sort the displayed list of filename matches.
+
+2.  In expressions with .., don't include directories already implied.
+
+3.  Allow completion of . and .. for the bone idle.
+
+4.  When expanding paths, \`foo//bar' is treated as \`foo/bar'.
+
+5.  Configure how multiple paths are expanded and displayed, 
+    e.g. /f/b -> /foo/bar
+
+6.  Keep certain prefixes unchanged, such as \`//resource/'.
+
+q.  Return without saving.
+0.  Done setting options for filename completion.
+"
+    read -k key'?--- Hit selection --- '
+    print
+
+    [[ $key = 0 ]] && break
+
+    case $key in
+      (1) print "\
+Filenames listed as possible completions are usually displayed in
+alphabetical order.  You can alternatively choose:
+  s  File size
+  l  Number of (hard) links
+  m  Modification time
+  a  Access time
+  i  Inode change time
+  n  File name
+  k  Keep the current setting
+You can also specify the reverse of any of the above orders (except \`k'):  to
+do this, type the appropriate letter in upper case.
+"
+         while true; do
+           read -k key'?--- Hit selection --- '
+	   print
+	   [[ $key = [sSlLmMaAiInNkK] ]] && break
+	 done
+	 case $key in
+	   ([sS]) files=size;;
+	   ([lL]) files=links;;
+	   ([mM]) files=modification;;
+	   ([aA]) files=access;;
+	   ([iI]) files=inode;;
+	   ([nN]) files=name;;
+	 esac
+	 if [[ $key = [SLAMIN] ]]; then
+	   # slam it into reverse
+	   files="$files reverse"
+	 fi
+	 ;;
+      (2) print "\
+When you type an expression containing \`..', you may usually not want to
+be offered certain directories for completion.
+  p   Don't offer parents:  in \`foo/bar/../', don't make \`bar' a completion.
+  c   Don't offer the current directory, e.g. after \`../'.
+  o   Only perform the two tests if there is a real \`..' in the word so far.
+  d   Only perform the two tests when completing directory names.
+  0   None of the above; use normal completion.
+  k   Keep the current settings.
+You may specify any combination of p, c, o, d including at least one of p
+and c, or you may specify either 0 or k.  Note that the _ignored completer
+functions in the normal way, i.e. you would be able to complete the
+directories in question if nothing else matched.
+"
+          while true; do
+	    vared -eh -p 'selection> ' select
+	    [[ ( $select = [pPcCoOdD]# && $select = *[pPcC]* )
+		    || $select = [0kK] ]] && break
+	    print "Type any combination of p, c, o, d, or type 0 or k"
+	  done
+	  case $select in
+	    (0) ignorep=
+		;;
+	    ([pPcCoOdD]#)
+		ignorep=()
+		[[ $select = *[pP]* ]] && ignorep=($ignorep parent)
+		[[ $select = *[cC]* ]] && ignorep=($ignorep pwd)
+		[[ $select = *[oO]* ]] && ignorep=($ignorep ..)
+		[[ $select = *[dD]* ]] && ignorep=($ignorep directory)
+		;;
+	  esac
+	  ;;
+      (3) print "\
+Filename completion does not usually offer the directory names \`.' and
+\`..' as choices.  However, some immensely lazy people can't even be
+bothered to type these.  Do you wish to be offered \`.' and \`..' as
+choices ([y]es, [n]o, [k]eep current setting)?
+"
+          while true; do
+            read -k key'?--- Hit selection --- '
+	    [[ $key = [yYnNkK] ]] && break
+	    print "Type y, n or k."
+	  done
+	  case $key in
+	    ([yY]) speciald=true;;
+	    ([nN]) speciald=;;
+	  esac
+	  ;;
+      (4) print "\
+Filename completion can complete sets of path segments at once, for example
+\`/u/X/l/X' to \`/usr/X11R6/lib/X11'.  Normally this means that multiple
+slashes in filenames are treated as matching multiple directories.  For
+example, \`foo//bar' could expand to \`foo/datthe/bar'.  You can, however,
+stick to the usual UNIX convention that multiple slashes are treated as
+a single slash.  Do you wish to treat multiple slashes the same as just
+one ([y]es, [n]o, [k]eep current setting)?
+"
+          while true; do
+	    read -k key'?--- Hit selection --- '
+	    [[ $key = [yYnNkK] ]] && break
+	    print "Type one of y, n or k."
+	  done
+	  case $key in
+	    ([yY]) squeezes=true;;
+	    ([nN]) squeezes=;;
+	  esac
+          ;;
+      (5) if [[ $expand = *prefix* ]]; then
+             prefon=prefix
+	  else
+	     prefon=
+	  fi
+	  if [[ $expand = *suffix* ]]; then
+	     suffon=suffix
+	  else
+	     suffon=
+	  fi
+          print "
+When expanding /f/b, the shell will attempt to match /f*/b* (e.g. /foo/bar), 
+and so on to any depth.  If the first part of the expansion fails, by default
+the shell will not expand the remainder.  However, you can force it always
+to expand the first part.  Currently this feature is ${${prefon:+on}:-off}.
+Do you want it on ([y]es, [n]o, [k]eep current setting)?
+"
+	  while true; do
+	    read -k key'?--- Hit selection --- '
+	    [[ $key = [yYnNkK] ]] && break
+	    print "Type one of y, n or k."
+	  done
+	  case $key in
+	    ([yY]) prefon=prefix;;
+	    ([nN]) prefon=prefix;;
+	  esac
+	  print "
+Further, if /f*/b* is ambiguous, the shell will usually only expand
+as far as the part that is unambiguous; for example, if /foo/bar and
+/food/basket exist, it will wait for you to choose either /foo or /food,
+and not attempt to expand the rest of the match.  However, you can force
+it to add all possible completions for you to resolve conflicts in the
+normal way.  Currently this feature is ${${suffon:+on}:-off}.
+Do you want it on ([y]es, [n]o, [k]eep current setting)?
+"
+	  while true; do
+	    read -k key'?--- Hit selection --- '
+	    [[ $key = [yYnNkK] ]] && break
+	    print "Type one of y, n or k."
+	  done
+	  case $key in
+	    ([yY]) suffon=suffix;;
+	    ([nN]) suffon=suffix;;
+	  esac
+	  expand=${prefon:+$prefon${suffon:+ }}${suffon}
+
+	  if [[ $lssuffixes = (1|[tT]|[yY]|[oO])* ]]; then
+	     lssuffixes=true
+	  else
+	     lssuffixes=
+	  fi
+	  print "
+When listing expansions of /f/b such as /foo/bar, /foo/bad, /failed/bag,
+the shell will usually only show the first part of the path if it is
+ambiguous, hence /foo will appear twice.  It is possible to show the
+full path in this case.  Currently this feature is ${${lssuffixes:+on}:-off}.
+Do you want this behaviour ([y]es, [n]o, [k]eep current setting)?
+"
+	  while true; do
+	    read -k key'?--- Hit selection --- '
+	    [[ $key = [yYnNkK] ]] && break
+	    print "Type one of y, n or k."
+	  done
+	  case $key in
+	    ([yY]) lssuffixes=true;;
+	    ([nN]) lssuffixes=;;
+	  esac
+	  ;;
+      (6) print "\
+On some systems, there are special forms for the start of a filename
+which should be left alone by the completion system.  For example, Cygwin
+uses a double slash to indicate a network resource, hence a prefix of
+the form \`//resource/' should be left alone.  This style gives a pattern
+to match any such prefixes; alternatives separated by \`|' are therefore
+possible.  Edit the pattern as you like.  If this is empty, the shell will not
+handle any prefixes specially."
+          if [[ -z $preserve ]]; then
+	      preserve="//[^/]##/"
+	      print "
+Accept the default to handle network resources as just described."
+	  fi
+	  vared -eh -p "pattern> " preserve
+	  ;;
+      (q) return 1
+	 ;;
+    esac
+
+  done
+
+  __ci_set_this_style file-sort files
+  __ci_set_this_style ignore-parents ignorep
+  __ci_set_this_style special-dirs speciald
+  __ci_set_this_style squeeze-slashes squeezes
+  __ci_set_this_style expand expand
+  __ci_set_this_style list-suffixes lssuffixes
+  # pattern, always quote
+  [[ -n $preserve ]] && preserve=${(qq)preserve}
+  __ci_set_this_style preserve-prefix preserve
+
+  return 0
+}
+
+
+# TODO: history completion, jobs, prefix-needed 'n' stuff.
+__ci_do_misc() {
+  local key
+
+  while true; do
+    clear
+    print "\
+      *** compinstall: options for particular types of completion ***
+
+1.  Options for file completion.
+
+q.  Return without saving.
+0.  Done setting options for particular completions.
+"
+    read -k key'?--- Hit selection --- '
+    print
+
+    [[ $key = 0 ]] && break
+
+    case $key in
+      1) __ci_do_file_styles
+	 ;;
+      q) return 1
+	 ;;
+    esac
+
+  done
+
+  return 0;
+}
+
+
+# TODO: it should probably be possible to set completion options via
+#         compinstall, even though they've been around for years.
+
+while true; do
+  clear
+  print "\
+               *** compinstall: main menu ***
+Note that hitting \`q' in menus does not abort the set of changes from
+lower level menus.  However, quitting at top level will ensure that nothing
+at all is actually written out.
+
+1.  Completers:  choose completion behaviour for tasks such as
+    approximation, spell-checking, expansion.
+
+2.  Matching control: set behaviour for case-insensitive matching,
+    extended (partial-word) matching and substring matching.
+
+3.  Styles for changing the way completions are displayed and inserted.
+
+4.  Styles for particular completions.
+
+c.  Change context (plus more information on contexts).
+
+q.  Return without saving.
+0.  Save and exit.
+"
+
+  __ci_newline \
+    "--- Hit choice --- " || return 1
+
+  # note this is a string test:  we require the `0' to have been typed.
+  [[ $key = 0 ]] && break
+
+  case $key in
+    1) __ci_do_completers
+       ;;
+    2) __ci_do_matchers
+       ;;
+    3) __ci_do_display
+       ;;
+    4) __ci_do_misc
+       ;;
+    c) __ci_change_context
+       ;;
+  esac
+done
+
+
+if (( $#styles )); then
+  typeset style stylevals context values
+  for style in ${(ko)styles}; do
+    stylevals=(${(f)styles[$style]})
+    while (( $#stylevals )); do
+      output="$output
+zstyle ${(qq)stylevals[1]} $style ${stylevals[2]}"
+      shift 2 stylevals
+    done
+  done
+fi
+
+if [[ -z $ifile || -d $ifile ]] ||
+  ! read -q key"?Save new settings to $ifile ([y]es, [n]o)? "; then
+   print "Enter file to save in (~ will be expanded), or return to abort:"
+   ifile=
+   vared -ch -p 'file> ' ifile
+   if [[ $ifile != [/~]* ]]; then
+     ifile=$PWD/$ifile
+     print "[Not absolute path; updating to $ifile]"
+   fi
+   ifile=${~ifile}
+fi
+
+local tmpout=${TMPPREFIX:-/tmp/zsh}compinstall$$
+zf_ln -fn =(<<<'') $tmpout &&	# safe tempfile creation
+zf_ln -fn =(<<<'') ${tmpout}x || return 1
+
+#
+# Assemble the complete set of lines to
+# insert.
+#
+__ci_output >>$tmpout
+
+if [[ -n $ifile ]]; then
+  if [[ $ifile != *(zshrc|zlogin|zshenv) ]]; then 
+    print "\
+If you want this file to be run automatically, you should add
+  . $ifile
+to your .zshrc.  compinstall will remember the name of this file for
+future use."
+    __ci_newline || return 1
+  fi
+  #
+  # Now use sed to update the file.
+  #
+  if [[ -f $ifile ]]; then
+    cp $ifile ${ifile}\~ &&
+    print "Copied old file to ${ifile}~."
+  else
+    touch $ifile
+  fi
+  if { { grep "$endline" $ifile >/dev/null 2>&1 &&
+         sed -e "/^[ 	]*$endline/r $tmpout
+/^[ 	]*$startline/,/^[ 	]*$endline/d" $ifile >>${tmpout}x } || 
+        { cp $ifile ${tmpout}x && cat $tmpout >>${tmpout}x } } &&
+  cp ${tmpout}x $ifile && rm -f ${tmpout}x; then
+    print "\nSuccessfully added compinstall lines to $ifile."
+    rm -f $tmpout
+  else
+    print "\nFailure adding lines to $ifile.  Lines left in \`$tmpout'"
+  fi
+  rm -f ${tmpout}x
+elif read -q key'?Print them to stdout instead ([y]es, [n]o)? '; then
+  cat $tmpout
+  rm -f $tmpout
+fi
+
+if read -q key'?Set new styles for immediate use ([y]es, [n]o)? '; then
+  eval $output
+  print "The new settings are now in effect.  Note this will not remove old
+styles you have deleted until you restart the shell."
+fi
+
+__ci_tidyup
+return 0

@@ -1,0 +1,53 @@
+# exeext.at -- ensure that exeext handling works  -*- Autotest -*-
+#
+#   Copyright (C) 2010-2019, 2021-2022 Free Software Foundation, Inc.
+#   Written by Peter Rosin
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+
+AT_SETUP([both of -o prog and -o prog$EXEEXT work])
+AT_KEYWORDS([libtool])
+
+AT_CHECK([test -n "$EXEEXT" || exit 77])
+
+bin=`pwd`/bin
+binext=`pwd`/binext
+mkdir src $bin srcext $binext
+
+AT_DATA(src/prog.c,
+[[
+int main(void) { return 0; }
+]])
+
+$CC $CPPFLAGS $CFLAGS -c src/prog.c -o src/prog.$OBJEXT
+
+AT_CHECK($LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o src/prog src/prog.$OBJEXT,
+	 [0], [ignore], [ignore])
+AT_CHECK($LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o srcext/prog$EXEEXT src/prog.$OBJEXT,
+	 [0], [ignore], [ignore])
+
+$LIBTOOL --mode=install cp src/prog $bin/prog
+$LIBTOOL --mode=install cp srcext/prog$EXEEXT $binext/prog$EXEEXT
+
+LT_AT_EXEC_CHECK([$bin/prog])
+LT_AT_EXEC_CHECK([$binext/prog$EXEEXT])
+
+AT_CLEANUP

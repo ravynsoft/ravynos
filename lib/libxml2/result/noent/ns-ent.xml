@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!DOCTYPE doc [
+<!ENTITY ent1 "<elem/>">
+<!ENTITY ent2 "<ns:elem/>">
+]>
+<doc>
+    <a xmlns="urn:a"><elem/></a>
+    <b xmlns="urn:b"><elem/></b>
+    <a xmlns:ns="urn:a"><elem/></a>
+    <b xmlns:ns="urn:b"><elem/></b>
+</doc>

@@ -1,0 +1,7 @@
+#...
+Disassembly of section .plt.got:
+
+[a-f0-9]+ <[_a-z]+@plt>:
+[ 	]*[a-f0-9]+:	f3 0f 1e fa          	endbr64
+[ 	]*[a-f0-9]+:	ff 25 .. .. 3f 00    	jmp +\*0x3f....\(%rip\)        # ...... <.*>
+#pass

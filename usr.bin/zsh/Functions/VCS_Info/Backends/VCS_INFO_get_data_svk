@@ -1,0 +1,14 @@
+## vim:ft=zsh
+## svk support by: Frank Terbeck <ft@bewatermyfriend.org>
+## Distributed under the same BSD-ish license as zsh itself.
+
+setopt localoptions NO_shwordsplit
+local svkbranch svkbase
+local -A hook_com
+
+svkbase=${vcs_comm[basedir]}
+rrn=${svkbase:t}
+VCS_INFO_set-branch-format "${vcs_comm[branch]}" "${vcs_comm[revision]}" &&
+    svkbranch="${REPLY}"
+VCS_INFO_formats '' "${svkbranch}" "${svkbase}" '' '' "${vcs_comm[revision]}" ''
+return 0

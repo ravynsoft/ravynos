@@ -1,0 +1,16 @@
+.*: Assembler messages:
+.*:6: Warning: .*
+.*:8: Warning: .*
+.*:9: Warning: .*
+.*:11: Warning: .*
+.*:12: Warning: .*
+.*:14: Warning: .*
+.*:18: Warning: .*
+.*:20: Warning: .*
+.*:22: Warning: .*
+.*:24: Warning: .*
+.*:26: Warning: .*
+.*:28: Warning: .*
+.*:30: Warning: .*
+.*:32: Warning: .*
+.*:34: Warning: .*

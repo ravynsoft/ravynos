@@ -1,0 +1,6 @@
+SECTIONS
+{
+  . = 0x8000000000000000;
+  .text.ext : { tmpdir/ext.o(.text) }
+}
+INSERT BEFORE .stab;

@@ -1,0 +1,13 @@
+default alphanumeric_keys
+xkb_symbols "numeric keysyms" {
+    name[Group1]= "My Awesome Layout";
+
+    key <AD01> { [ 536870909 ] };
+    key <AD02> { [ 0x1ffffffe ] };
+    key <AD03> { [ 0x1fffffff, 0xffffffff ] };
+
+    modMap Mod1 { 536870909 };
+    modMap Mod2 { 0x1ffffffe };
+    modMap Mod3 { 0x1fffffff };
+    modMap Mod4 { 0xffffffff };
+};

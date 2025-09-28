@@ -1,0 +1,14 @@
+#compdef zsocket
+
+_arguments -s -w -A "-*" \
+  '-v[verbose output]' \
+  '-d[target file descriptor]:fd:_file_descriptors' \
+  - outbound \
+  '1: :_files' \
+  - listen \
+  '-l[open a socket listening]' \
+  '1: :_files' \
+  - accept \
+  '-a[accept an incoming connection]' \
+  '-t[return if no incoming connections are pending]' \
+  '1:fd:{ (( words[(I)-*a*] )) && _file_descriptors }'

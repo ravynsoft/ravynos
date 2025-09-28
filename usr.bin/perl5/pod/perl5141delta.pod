@@ -1,0 +1,361 @@
+=encoding utf8
+
+=head1 NAME
+
+perl5141delta - what is new for perl v5.14.1
+
+=head1 DESCRIPTION
+
+This document describes differences between the 5.14.0 release and
+the 5.14.1 release.
+
+If you are upgrading from an earlier release such as 5.12.0, first read
+L<perl5140delta>, which describes differences between 5.12.0 and
+5.14.0.
+
+=head1 Core Enhancements
+
+No changes since 5.14.0.
+
+=head1 Security
+
+No changes since 5.14.0.
+
+=head1 Incompatible Changes
+
+There are no changes intentionally incompatible with 5.14.0. If any
+exist, they are bugs and reports are welcome.
+
+=head1 Deprecations
+
+There have been no deprecations since 5.14.0.
+
+=head1 Modules and Pragmata
+
+=head2 New Modules and Pragmata
+
+None
+
+=head2 Updated Modules and Pragmata
+
+=over 4
+
+=item *
+
+L<B::Deparse> has been upgraded from version 1.03 to 1.04, to address two
+regressions in Perl 5.14.0:
+
+Deparsing of the C<glob> operator and its diamond (C<< <> >>) form now
+works again. [perl #90898]
+
+The presence of subroutines named C<::::> or C<::::::> no longer causes
+B::Deparse to hang.
+
+=item *
+
+L<Pod::Perldoc> has been upgraded from version 3.15_03 to 3.15_04.
+
+It corrects the search paths on VMS. [perl #90640]
+
+=back
+
+=head2 Removed Modules and Pragmata
+
+None
+
+=head1 Documentation
+
+=head2 New Documentation
+
+None
+
+=head2 Changes to Existing Documentation
+
+=head3 L<perlfunc>
+
+=over
+
+=item *
+
+C<given>, C<when> and C<default> are now listed in L<perlfunc>.
+
+=item *
+
+Documentation for C<use> now includes a pointer to F<if.pm>.
+
+=back
+
+=head3 L<perllol>
+
+=over
+
+=item *
+
+L<perllol> has been expanded with examples using the new C<push $scalar>
+syntax introduced in Perl 5.14.0.
+
+=back
+
+=head3 L<perlop>
+
+=over 4
+
+=item *
+
+The explanation of bitwise operators has been expanded to explain how they
+work on Unicode strings.
+
+=item *
+
+The section on the triple-dot or yada-yada operator has been moved up, as
+it used to separate two closely related sections about the comma operator.
+
+=item *
+
+More examples for C<m//g> have been added.
+
+=item *
+
+The C<<< <<\FOO >>> here-doc syntax has been documented.
+
+=back
+
+=head3 L<perlrun>
+
+=over
+
+=item *
+
+L<perlrun> has undergone a significant clean-up.  Most notably, the
+B<-0x...> form of the B<-0> flag has been clarified, and the final section
+on environment variables has been corrected and expanded.
+
+=back
+
+=head3 L<POSIX>
+
+=over 
+
+=item *
+
+The invocation documentation for C<WIFEXITED>, C<WEXITSTATUS>,
+C<WIFSIGNALED>, C<WTERMSIG>, C<WIFSTOPPED>, and C<WSTOPSIG> was corrected.
+
+=back
+
+
+=head1 Diagnostics
+
+The following additions or changes have been made to diagnostic output,
+including warnings and fatal error messages.  For the complete list of
+diagnostic messages, see L<perldiag>.
+
+=head2 New Diagnostics
+
+None
+
+=head2 Changes to Existing Diagnostics
+
+None
+
+=head1 Utility Changes
+
+None
+
+=head1 Configuration and Compilation
+
+=over 4
+
+=item *
+
+F<regexp.h> has been modified for compatibility with GCC's C<-Werror>
+option, as used by some projects that include perl's header files.
+
+=back
+
+=head1 Testing
+
+=over 4
+
+=item *
+
+Some test failures in F<dist/Locale-Maketext/t/09_compile.t> that could
+occur depending on the environment have been fixed. [perl #89896]
+
+=item * 
+
+A watchdog timer for F<t/re/re.t> was lengthened to accommodate SH-4 systems
+which were unable to complete the tests before the previous timer ran out.
+
+
+=back
+
+=head1 Platform Support
+
+=head2 New Platforms
+
+None
+
+=head2 Discontinued Platforms
+
+None
+
+=head2 Platform-Specific Notes
+
+=head3 Solaris
+
+=over 
+
+=item *
+
+Documentation listing the Solaris packages required to build Perl on
+Solaris 9 and Solaris 10 has been corrected.
+
+=back
+
+=head3 Mac OS X
+
+=over
+
+=item * 
+
+The F<lib/locale.t> test script has been updated to work on the upcoming
+Lion release.
+
+=item * 
+
+Mac OS X specific compilation instructions have been clarified.
+
+=back
+
+=head3 Ubuntu Linux
+
+=over 
+
+=item *
+
+The L<ODBM_File> installation process has been updated with the new library
+paths on Ubuntu natty.
+
+=back
+
+=head1 Internal Changes
+
+=over 
+
+=item *
+
+The compiled representation of formats is now stored via the mg_ptr of
+their PERL_MAGIC_fm. Previously it was stored in the string buffer,
+beyond SvLEN(), the regular end of the string. SvCOMPILED() and
+SvCOMPILED_{on,off}() now exist solely for compatibility for XS code.
+The first is always 0, the other two now no-ops.
+
+=back
+
+=head1 Bug Fixes
+
+=over 4
+
+=item *
+
+A bug has been fixed that would cause a "Use of freed value in iteration"
+error if the next two hash elements that would be iterated over are
+deleted. [perl #85026]
+
+=item *
+
+Passing the same constant subroutine to both C<index> and C<formline> no
+longer causes one or the other to fail. [perl #89218]
+
+=item *
+
+5.14.0 introduced some memory leaks in regular expression character
+classes such as C<[\w\s]>, which have now been fixed.
+
+=item *
+
+An edge case in regular expression matching could potentially loop.
+This happened only under C</i> in bracketed character classes that have
+characters with multi-character folds, and the target string to match
+against includes the first portion of the fold, followed by another
+character that has a multi-character fold that begins with the remaining
+portion of the fold, plus some more.
+
+ "s\N{U+DF}" =~ /[\x{DF}foo]/i
+
+is one such case.  C<\xDF> folds to C<"ss">.
+
+=item * 
+
+Several Unicode case-folding bugs have been fixed.
+
+=item *
+
+The new (in 5.14.0) regular expression modifier C</a> when repeated like
+C</aa> forbids the characters outside the ASCII range that match
+characters inside that range from matching under C</i>.  This did not
+work under some circumstances, all involving alternation, such as:
+
+ "\N{KELVIN SIGN}" =~ /k|foo/iaa;
+
+succeeded inappropriately.  This is now fixed.
+
+=item *
+
+Fixed a case where it was possible that a freed buffer may have been read
+from when parsing a here document.
+
+=back
+
+=head1 Acknowledgements
+
+Perl 5.14.1 represents approximately four weeks of development since
+Perl 5.14.0 and contains approximately 3500 lines of changes
+across 38 files from 17 authors.
+
+Perl continues to flourish into its third decade thanks to a vibrant
+community of users and developers.  The following people are known to
+have contributed the improvements that became Perl 5.14.1:
+
+Bo Lindbergh, Claudio Ramirez, Craig A. Berry, David Leadbeater, Father
+Chrysostomos, Jesse Vincent, Jim Cromie, Justin Case, Karl Williamson,
+Leo Lapworth, Nicholas Clark, Nobuhiro Iwamatsu, smash, Tom Christiansen,
+Ton Hospel, Vladimir Timofeev, and Zsbán Ambrus.
+
+
+=head1 Reporting Bugs
+
+If you find what you think is a bug, you might check the articles
+recently posted to the comp.lang.perl.misc newsgroup and the perl
+bug database at http://rt.perl.org/perlbug/ .  There may also be
+information at http://www.perl.org/ , the Perl Home Page.
+
+If you believe you have an unreported bug, please run the L<perlbug>
+program included with your release.  Be sure to trim your bug down
+to a tiny but sufficient test case.  Your bug report, along with the
+output of C<perl -V>, will be sent off to perlbug@perl.org to be
+analysed by the Perl porting team.
+
+If the bug you are reporting has security implications, which make it
+inappropriate to send to a publicly archived mailing list, then please send
+it to perl5-security-report@perl.org. This points to a closed subscription
+unarchived mailing list, which includes all the core committers, who be able
+to help assess the impact of issues, figure out a resolution, and help
+co-ordinate the release of patches to mitigate or fix the problem across all
+platforms on which Perl is supported. Please only use this address for
+security issues in the Perl core, not for modules independently
+distributed on CPAN.
+
+=head1 SEE ALSO
+
+The F<Changes> file for an explanation of how to view exhaustive details
+on what changed.
+
+The F<INSTALL> file for how to build Perl.
+
+The F<README> file for general stuff.
+
+The F<Artistic> and F<Copying> files for copyright information.
+
+=cut

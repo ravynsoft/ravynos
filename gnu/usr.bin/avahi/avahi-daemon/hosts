@@ -1,0 +1,27 @@
+# This file is part of avahi.
+# 
+# avahi is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 2 of the
+# License, or (at your option) any later version.
+#
+# avahi is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+# License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with avahi; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+
+# This file contains static ip address <-> host name mappings.  These
+# can be useful to publish services on behalf of a non-avahi enabled
+# device. Please bear in mind that host names are expected to be
+# fully qualified domain names, i.e. ending in .local!
+
+# See avahi.hosts(5) for more information on this configuration file!
+
+# Examples:
+# 192.168.0.1 router.local
+# 2001::81:1 test.local

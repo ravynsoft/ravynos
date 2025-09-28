@@ -1,0 +1,35 @@
+#compdef tune2fs
+
+_arguments -s -S \
+  '-c+[set max mounts between checks]:number of mounts' \
+  '-C+[set mount count]:number of mounts' \
+  '-e+[set error behavior]:error behavior:(continue remount-ro panic)' \
+  '-E+[set extended options]: :_values -s , "extended option"
+    clearmmp
+    "mmp_update_interval\:interval (seconds)"
+    "stride\:stride size (blocks)"
+    "stripe_width\:stipe width (blocks)"
+    "hash_alg\:hash algorithm\:(legacy half_md4 tea)"
+    "mount_opts\:mount option"
+    "(^test_fs)test_fs"
+    "(test_fs)^test_fs"' \
+  '-f[force tune2fs to complete even in the face of errors]' \
+  '-g+[set the group which can use reserved filesystem blocks]:group:_groups' \
+  '-i+[interval between checks]:duration' \
+  '-I+[set inode size]:inode size' \
+  '-j[add an ext3 journal to the filesystem]' \
+  '-J+[journal options]: :_values -s , option "size[specify journal size]\:size" "location\:location" "device[use external journal]\:block device\:_files"' \
+  '-l[list the contents of the filesystem superblock]' \
+  '-L+[set the volume label of the filesystem]:label' \
+  '-m+[set the percentage of reserved filesystem blocks]:percentage' \
+  '-M+[set the last-mounted directory for the filesystem]:directory:_files -/' \
+  '-o+[mount options]:options:_values -s , debug bsdgroups user_xattr acl uid16 journal_data journal_data_ordered journal_data_writeback nobarrier block_validity discard nodelalloc' \
+  '-O+[set or clear filesystem features]: :_values -s , feature 64bit dir_index dir_nlink ea_inode encrypt extent extra_isize filetype flex_bg has_journal large_dir huge_file large_file metadata_csum metadata_csum_seed mmp project quota read-only resize_inode sparse_super uninit_bg' \
+  '-r+[set the number of reserved filesystem blocks]:number' \
+  '-Q+[set quota feature on the superblock]: :_values -s , "quota option" usrquota grpquota prjquota' \
+  '-s+[set sparse super feature]:state:((0\:off 1\:on))' \
+  '-T+[set time last checked]:time specifier (YYYYMMDD[HH[MM[SS]]])' \
+  '-u+[set user who can use reserved filesystem blocks]:user:_users' \
+  '-U+[set filesystem UUID]:UUID or special:(clear random time)' \
+  '-z+[save old contents of file system block to undo file]:undo file:_files' \
+  ':device:_files'

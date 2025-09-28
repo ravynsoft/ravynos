@@ -1,0 +1,43 @@
+#compdef mktemp gmktemp
+
+local variant
+local args
+
+_pick_variant -r variant busybox=BusyBox gnu='Free Soft' unix --version
+
+args=(
+  '(-d --directory)'{-d,--directory}'[make directory instead of file]'
+  '(: -)--help[display help information]'
+  '(-p --tmpdir)'{-p+,--tmpdir=}'[make relative to specified directory]: :_directories'
+  '(-q --quiet)'{-q,--quiet}'[suppress error messages]'
+  '--suffix=[append specified suffix to template]:template suffix'
+  '-t[interpret template as single path component relative to temp dir]'
+  '(-u --dry-run)'{-u,--dry-run}'[print file name only]'
+  '(: -)'{-V,--version}'[display version information]'
+  '1: :_guard "^-*" "template name"'
+)
+
+# Non-GNU variants don't support long options (except BusyBox's --help)
+if [[ $variant == *busybox* ]]; then # See also: _busybox
+  args=( ${args:#((#s)|*\))(\*|)--^help*} )
+elif [[ $variant != gnu ]]; then
+  args=( ${args:#((#s)|*\))(\*|)--*} )
+fi
+
+[[ $variant == gnu ]] || {
+  # BusyBox, OpenBSD, and Solaris have -p, but -t doesn't take an argument
+  if [[ $variant == *busybox* ]] || [[ $OSTYPE == (openbsd|solaris)* ]]; then
+    args=( ${args:#((#s)|*\))(\*|)-t*} )
+    args+=( '-t[generate template relative to temp dir]' )
+  # Dragonfly, FreeBSD, and Darwin take an argument to -t and support any number
+  # of template files. These OSes do not have -p and -V.
+  else
+    args=( ${args:#((#s)|*\))(1:*|(\*|)-[ptV]*)} )
+    args+=(
+      '-t[generate template relative to temp dir using specified prefix]:template prefix'
+      '*: :_guard "^-*" "template name"'
+    )
+  fi
+}
+
+_arguments -s -S : $args

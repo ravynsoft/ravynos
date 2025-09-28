@@ -1,0 +1,573 @@
+# Initialisation for new style completion. This mainly contains some helper
+# functions and setup. Everything else is split into different files that
+# will automatically be made autoloaded (see the end of this file).  The
+# names of the files that will be considered for autoloading are those that
+# begin with an underscores (like `_condition).
+#
+# The first line of each of these files is read and must indicate what
+# should be done with its contents:
+#
+#   `#compdef <names ...>'
+#     If the first line looks like this, the file is autoloaded as a
+#     function and that function will be called to generate the matches
+#     when completing for one of the commands whose <names> are given.
+#     The names may also be interspersed with `-T <assoc>' options
+#     specifying for which set of functions this should be added.
+#
+#   `#compdef -[pP] <patterns ...>'
+#     This defines a function that should be called to generate matches
+#     for commands whose name matches <pattern>. Note that only one pattern
+#     may be given.
+#
+#   `#compdef -k <style> [ <key-sequence> ... ]'
+#     This is used to bind special completions to all the given
+#     <key-sequence>(s). The <style> is the name of one of the built-in
+#     completion widgets (complete-word, delete-char-or-list,
+#     expand-or-complete, expand-or-complete-prefix, list-choices,
+#     menu-complete, menu-expand-or-complete, or reverse-menu-complete).
+#     This creates a widget behaving like <style> so that the
+#     completions are chosen as given in the rest of the file,
+#     rather than by the context.  The widget has the same name as
+#     the autoload file and can be bound using bindkey in the normal way.
+#
+#   `#compdef -K <widget-name> <style> <key-sequence> [ ... ]'
+#     This is similar to -k, except it takes any number of sets of
+#     three arguments.  In each set, the widget <widget-name> will
+#     be defined, which will behave as <style>, as with -k, and will
+#     be bound to <key-sequence>, exactly one of which must be defined.
+#     <widget-name> must be different for each:  this must begin with an
+#     underscore, else one will be added, and should not clash with other
+#     completion widgets (names based on the name of the function are the
+#     clearest), but is otherwise arbitrary.  It can be tested in the
+#     function by the parameter $WIDGET.
+#
+#   `#autoload [ <options> ]'
+#     This is for helper functions that are not used to
+#     generate matches, but should automatically be loaded
+#     when they are called. The <options> will be given to the
+#     autoload builtin when making the function autoloaded. Note
+#     that this need not include `-U' and `-z'.
+#
+# Note that no white space is allowed between the `#' and the rest of
+# the string.
+#
+# Functions that are used to generate matches should return zero if they
+# were able to add matches and non-zero otherwise.
+#
+# See the file `compdump' for how to speed up initialisation.
+
+# If we got the `-d'-flag, we will automatically dump the new state (at
+# the end).  This takes the dumpfile as an argument.  -d (with the
+# default dumpfile) is now the default; to turn off dumping use -D.
+
+# If the dumpfile is being regenerated and you don't know why, you can use
+# the -w flag to see if it was because -D was passed, zsh version mismatched,
+# or number of files in $fpath differed.
+
+# The -C flag bypasses both the check for rebuilding the dump file and the
+# usual call to compaudit; the -i flag causes insecure directories found by
+# compaudit to be ignored, and the -u flag causes all directories found by
+# compaudit to be used (without security checking).  Otherwise the user is
+# queried for whether to use or ignore the insecure directories (which
+# means compinit should not be called from non-interactive shells).
+
+emulate -L zsh
+setopt extendedglob
+
+typeset _i_dumpfile _i_files _i_line _i_done _i_dir _i_autodump=1
+typeset _i_tag _i_file _i_addfiles _i_fail=ask _i_check=yes _i_name _i_why
+
+while [[ $# -gt 0 && $1 = -[dDiuCw] ]]; do
+  case "$1" in
+  -d)
+    _i_autodump=1
+    shift
+    if [[ $# -gt 0 && "$1" != -[dfQC] ]]; then
+      _i_dumpfile="$1"
+      shift
+    fi
+    ;;
+  -D)
+    _i_autodump=0
+    shift
+    ;;
+  -i)
+    _i_fail=ign
+    shift
+    ;;
+  -u)
+    _i_fail=use
+    shift
+    ;;
+  -C)
+    _i_check=
+    shift
+    ;;
+  -w)
+    _i_why=1
+    shift
+    ;;
+  esac
+done
+
+# The associative arrays containing the definitions for the commands and
+# services.
+
+typeset -gHA _comps _services _patcomps _postpatcomps
+
+# `_compautos' contains the names and options for autoloaded functions
+# that get options.
+
+typeset -gHA _compautos
+
+# The associative array use to report information about the last
+# completion to the outside.
+
+typeset -gHA _lastcomp
+
+# Remember dumpfile.
+if [[ -n $_i_dumpfile ]]; then
+  # Explicitly supplied dumpfile.
+  typeset -g _comp_dumpfile="$_i_dumpfile"
+else
+  typeset -g _comp_dumpfile="${ZDOTDIR:-$HOME}/.zcompdump"
+fi
+
+# The standard options set in completion functions.
+
+typeset -gHa _comp_options
+_comp_options=(
+       bareglobqual
+       extendedglob
+       glob
+       multibyte
+       multifuncdef
+       nullglob
+       rcexpandparam
+       unset
+    NO_allexport
+    NO_aliases
+    NO_cshnullglob
+    NO_cshjunkiequotes
+    NO_errexit
+    NO_errreturn
+    NO_globassign
+    NO_globsubst
+    NO_histsubstpattern
+    NO_ignorebraces
+    NO_ignoreclosebraces
+    NO_kshglob
+    NO_ksharrays
+    NO_kshtypeset
+    NO_markdirs
+    NO_octalzeroes
+    NO_posixbuiltins
+    NO_posixidentifiers
+    NO_shwordsplit
+    NO_shglob
+    NO_typesettounset
+    NO_warnnestedvar
+    NO_warncreateglobal
+)
+
+# And this one should be `eval'ed at the beginning of every entry point
+# to the completion system.  It sets up what we currently consider a
+# sane environment.  That means we set the options above, make sure we
+# have a valid stdin descriptor (zle closes it before calling widgets)
+# and don't get confused by user's ZERR trap handlers.
+
+typeset -gH _comp_setup='local -A _comp_caller_options;
+             _comp_caller_options=(${(kv)options[@]});
+             setopt localoptions localtraps localpatterns ${_comp_options[@]};
+             local IFS=$'\'\ \\t\\r\\n\\0\'';
+             builtin enable -p \| \~ \( \? \* \[ \< \^ \# 2>&-;
+             exec </dev/null;
+             trap - ZERR;
+             local -a reply;
+             local REPLY;
+             local REPORTTIME;
+             unset REPORTTIME'
+
+# These can hold names of functions that are to be called before/after all
+# matches have been generated.
+
+typeset -ga compprefuncs comppostfuncs
+compprefuncs=()
+comppostfuncs=()
+
+# Loading it now ensures that the `funcstack' parameter is always correct.
+
+: $funcstack
+
+# This function is used to register or delete completion functions. For
+# registering completion functions, it is invoked with the name of the
+# function as it's first argument (after the options). The other
+# arguments depend on what type of completion function is defined. If
+# none of the `-p' and `-k' options is given a function for a command is
+# defined. The arguments after the function name are then interpreted as
+# the names of the command for which the function generates matches.
+# With the `-p' option a function for a name pattern is defined. This 
+# function will be invoked when completing for a command whose name 
+# matches the pattern given as argument after the function name (in this
+# case only one argument is accepted).
+# The option `-P' is like `-p', but the function will be called after
+# trying to find a function defined for the command on the line if no
+# such function could be found.
+# With the `-k' option a function for a special completion keys is 
+# defined and immediately bound to those keys. Here, the extra arguments
+# are the name of one of the builtin completion widgets and any number
+# of key specifications as accepted by the `bindkey' builtin.
+# In any case the `-a' option may be given which makes the function
+# whose name is given as the first argument be autoloaded. When defining
+# a function for command names the `-n' option may be given and keeps
+# the definitions from overriding any previous definitions for the
+# commands; with `-k', the `-n' option prevents compdef from rebinding
+# a key sequence which is already bound.
+# For deleting definitions, the `-d' option must be given. Without the
+# `-p' option, this deletes definitions for functions for the commands
+# whose names are given as arguments. If combined with the `-p' option
+# it deletes the definitions for the patterns given as argument.
+# The `-d' option may not be combined with the `-k' option, i.e.
+# definitions for key function can not be removed.
+#
+# Examples:
+#
+#  compdef -a foo bar baz
+#    make the completion for the commands `bar' and `baz' use the
+#    function `foo' and make this function be autoloaded
+#
+#  compdef -p foo 'c*'
+#    make completion for all command whose name begins with a `c'
+#    generate matches by calling the function `foo' before generating
+#    matches defined for the command itself
+#
+#  compdef -k foo list-choices '^X^M' '\C-xm'
+#    make the function `foo' be invoked when typing `Control-X Control-M'
+#    or `Control-X m'; the function should generate matches and will
+#    behave like the `list-choices' builtin widget
+#
+#  compdef -d bar baz
+#   delete the definitions for the command names `bar' and `baz'
+
+compdef() {
+  local opt autol type func delete eval new i ret=0 cmd svc
+  local -a match mbegin mend
+
+  emulate -L zsh
+  setopt extendedglob
+
+  # Get the options.
+
+  if (( ! $# )); then
+    print -u2 "$0: I need arguments"
+    return 1
+  fi
+
+  while getopts "anpPkKde" opt; do
+    case "$opt" in
+    a)    autol=yes;;
+    n)    new=yes;;
+    [pPkK]) if [[ -n "$type" ]]; then
+            # Error if both `-p' and `-k' are given (or one of them
+	    # twice).
+            print -u2 "$0: type already set to $type"
+	    return 1
+	  fi
+	  if [[ "$opt" = p ]]; then
+	    type=pattern
+	  elif [[ "$opt" = P ]]; then
+	    type=postpattern
+	  elif [[ "$opt" = K ]]; then
+	    type=widgetkey
+	  else
+	    type=key
+	  fi
+	  ;;
+    d) delete=yes;;
+    e) eval=yes;;
+    esac
+  done
+  shift OPTIND-1
+
+  if (( ! $# )); then
+    print -u2 "$0: I need arguments"
+    return 1
+  fi
+
+  if [[ -z "$delete" ]]; then
+    # If the first word contains an equal sign, all words must contain one
+    # and we define which services to use for the commands.
+
+    if [[ -z "$eval" ]] && [[ "$1" = *\=* ]]; then
+      while (( $# )); do
+        if [[ "$1" = *\=* ]]; then
+	  cmd="${1%%\=*}"
+	  svc="${1#*\=}"
+          func="$_comps[${_services[(r)$svc]:-$svc}]"
+          [[ -n ${_services[$svc]} ]] &&
+              svc=${_services[$svc]}
+	  [[ -z "$func" ]] &&
+	      func="${${_patcomps[(K)$svc][1]}:-${_postpatcomps[(K)$svc][1]}}"
+          if [[ -n "$func" ]]; then
+	    _comps[$cmd]="$func"
+	    _services[$cmd]="$svc"
+	  else
+	    print -u2 "$0: unknown command or service: $svc"
+	    ret=1
+	  fi
+	else
+	  print -u2 "$0: invalid argument: $1"
+	  ret=1
+	fi
+        shift
+      done
+
+      return ret
+    fi
+
+    # Adding definitions, first get the name of the function name
+    # and probably do autoloading.
+
+    func="$1"
+    [[ -n "$autol" ]] && autoload -rUz "$func"
+    shift
+
+    case "$type" in
+    widgetkey)
+      while [[ -n $1 ]]; do
+	if [[ $# -lt 3 ]]; then
+	  print -u2 "$0: compdef -K requires <widget> <comp-widget> <key>"
+	  return 1
+	fi
+	[[ $1 = _* ]] || 1="_$1"
+	[[ $2 = .* ]] || 2=".$2"
+        [[ $2 = .menu-select ]] && zmodload -i zsh/complist
+	zle -C "$1" "$2" "$func"
+	if [[ -n $new ]]; then
+	  bindkey "$3" | IFS=$' \t' read -A opt
+	  [[ $opt[-1] = undefined-key ]] && bindkey "$3" "$1"
+	else
+	  bindkey "$3" "$1"
+	fi
+	shift 3
+      done
+      ;;
+    key)
+      if [[ $# -lt 2 ]]; then
+        print -u2 "$0: missing keys"
+	return 1
+      fi
+
+      # Define the widget.
+      if [[ $1 = .* ]]; then
+        [[ $1 = .menu-select ]] && zmodload -i zsh/complist
+	zle -C "$func" "$1" "$func"
+      else
+        [[ $1 = menu-select ]] && zmodload -i zsh/complist
+	zle -C "$func" ".$1" "$func"
+      fi
+      shift
+
+      # And bind the keys...
+      for i; do
+        if [[ -n $new ]]; then
+	   bindkey "$i" | IFS=$' \t' read -A opt
+	   [[ $opt[-1] = undefined-key ]] || continue
+	fi
+        bindkey "$i" "$func"
+      done
+      ;;
+    *)
+      # For commands store the function name in the
+      # associative array, command names as keys.
+      while (( $# )); do
+        if [[ "$1" = -N ]]; then
+          type=normal
+        elif [[ "$1" = -p ]]; then
+          type=pattern
+        elif [[ "$1" = -P ]]; then
+          type=postpattern
+        else
+          case "$type" in
+          pattern)
+	    if [[ $1 = (#b)(*)=(*) ]]; then
+	      _patcomps[$match[1]]="=$match[2]=$func"
+	    else
+	      _patcomps[$1]="$func"
+	    fi
+            ;;
+          postpattern)
+	    if [[ $1 = (#b)(*)=(*) ]]; then
+	      _postpatcomps[$match[1]]="=$match[2]=$func"
+	    else
+	      _postpatcomps[$1]="$func"
+	    fi
+            ;;
+          *)
+            if [[ "$1" = *\=* ]]; then
+	      cmd="${1%%\=*}"
+	      svc=yes
+            else
+	      cmd="$1"
+	      svc=
+            fi
+            if [[ -z "$new" || -z "${_comps[$1]}" ]]; then
+              _comps[$cmd]="$func"
+	      [[ -n "$svc" ]] && _services[$cmd]="${1#*\=}"
+	    fi
+            ;;
+          esac
+        fi
+        shift
+      done
+      ;;
+    esac
+  else
+    # Handle the `-d' option, deleting.
+
+    case "$type" in
+    pattern)
+      unset "_patcomps[$^@]"
+      ;;
+    postpattern)
+      unset "_postpatcomps[$^@]"
+      ;;
+    key)
+      # Oops, cannot do that yet.
+
+      print -u2 "$0: cannot restore key bindings"
+      return 1
+      ;;
+    *)
+      unset "_comps[$^@]"
+    esac
+  fi
+}
+
+# Now we automatically make the definition files autoloaded.
+
+typeset _i_wdirs _i_wfiles
+
+_i_wdirs=()
+_i_wfiles=()
+
+autoload -RUz compaudit
+if [[ -n "$_i_check" ]]; then
+  typeset _i_q
+  if ! eval compaudit; then
+    if [[ -n "$_i_q" ]]; then
+      if [[ "$_i_fail" = ask ]]; then
+        if ! read -q \
+"?zsh compinit: insecure $_i_q, run compaudit for list.
+Ignore insecure $_i_q and continue [y] or abort compinit [n]? "; then
+	  print -u2 "$0: initialization aborted"
+          unfunction compinit compdef
+          unset _comp_dumpfile _comp_secure compprefuncs comppostfuncs \
+                _comps _patcomps _postpatcomps _compautos _lastcomp
+
+          return 1
+        fi
+      fi
+      fpath=(${fpath:|_i_wdirs})
+      (( $#_i_wfiles )) && _i_files=( "${(@)_i_files:#(${(j:|:)_i_wfiles%.zwc})}"  )
+      (( $#_i_wdirs ))  && _i_files=( "${(@)_i_files:#(${(j:|:)_i_wdirs%.zwc})/*}" )
+    fi
+    typeset -g _comp_secure=yes
+  fi
+fi
+
+# Make sure compdump is available, even if we aren't going to use it.
+autoload -RUz compdump compinstall
+
+# If we have a dump file, load it.
+
+_i_done=''
+
+if [[ -f "$_comp_dumpfile" ]]; then
+  if [[ -n "$_i_check" ]]; then
+    IFS=$' \t' read -rA _i_line < "$_comp_dumpfile"
+    if [[ _i_autodump -eq 1 && $_i_line[2] -eq $#_i_files &&
+        $ZSH_VERSION = $_i_line[4] ]]
+    then
+      builtin . "$_comp_dumpfile"
+      _i_done=yes
+    elif [[ _i_why -eq 1 ]]; then
+      print -nu2 "Loading dump file skipped, regenerating"
+      local pre=" because: "
+      if [[ _i_autodump -ne 1 ]]; then
+        print -nu2 $pre"-D flag given"
+        pre=", "
+      fi
+      if [[ $_i_line[2] -ne $#_i_files ]]; then
+        print -nu2 $pre"number of files in dump $_i_line[2] differ from files found in \$fpath $#_i_files"
+        pre=", "
+      fi
+      if [[ $ZSH_VERSION != $_i_line[4] ]]; then
+        print -nu2 $pre"zsh version changed from $_i_line[4] to $ZSH_VERSION"
+      fi
+      print -u2
+    fi
+  else
+    builtin . "$_comp_dumpfile"
+    _i_done=yes
+  fi
+elif [[ _i_why -eq 1 ]]; then
+  print -u2 "No existing compdump file found, regenerating"
+fi
+if [[ -z "$_i_done" ]]; then
+  typeset -A _i_test
+
+  for _i_dir in $fpath; do
+    [[ $_i_dir = . ]] && continue
+    (( $_i_wdirs[(I)$_i_dir] )) && continue
+    for _i_file in $_i_dir/^([^_]*|*~|*.zwc)(N); do
+      _i_name="${_i_file:t}"
+      (( $+_i_test[$_i_name] + $_i_wfiles[(I)$_i_file] )) && continue
+      _i_test[$_i_name]=yes
+      IFS=$' \t' read -rA _i_line < $_i_file
+      _i_tag=$_i_line[1]
+      shift _i_line
+      case $_i_tag in
+      (\#compdef)
+	if [[ $_i_line[1] = -[pPkK](n|) ]]; then
+	  compdef ${_i_line[1]}na "${_i_name}" "${(@)_i_line[2,-1]}"
+	else
+	  compdef -na "${_i_name}" "${_i_line[@]}"
+	fi
+	;;
+      (\#autoload)
+	autoload -rUz "$_i_line[@]" ${_i_name}
+	[[ "$_i_line" != \ # ]] && _compautos[${_i_name}]="$_i_line"
+	;;
+      esac
+    done
+  done
+
+  # If autodumping was requested, do it now.
+
+  if [[ $_i_autodump = 1 ]]; then
+    compdump
+  fi
+fi
+
+# Rebind the standard widgets
+for _i_line in complete-word delete-char-or-list expand-or-complete \
+  expand-or-complete-prefix list-choices menu-complete \
+  menu-expand-or-complete reverse-menu-complete; do
+  zle -C $_i_line .$_i_line _main_complete
+done
+zle -la menu-select && zle -C menu-select .menu-select _main_complete
+
+# If the default completer set includes _expand, and tab is bound
+# to expand-or-complete, rebind it to complete-word instead.
+bindkey '^i' | IFS=$' \t' read -A _i_line
+if [[ ${_i_line[2]} = expand-or-complete ]] &&
+  zstyle -a ':completion:' completer _i_line &&
+  (( ${_i_line[(i)_expand]} <= ${#_i_line} )); then
+  bindkey '^i' complete-word
+fi
+
+unfunction compinit compaudit
+autoload -RUz compinit compaudit
+
+return 0

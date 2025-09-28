@@ -1,0 +1,52 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test PHP support: string concatenation.
+
+cat <<EOF > xg-ph-4.php
+<?
+echo _("foo"."bar");
+echo _("hello " .
+"world");
+echo _("1" + "2" . "3");
+echo _("4" . "5" + "6");
+echo _("7" . "8" . "9");
+?>
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location --extract-all \
+  -d xg-ph-4.tmp xg-ph-4.php || Exit 1
+LC_ALL=C tr -d '\r' < xg-ph-4.tmp.po > xg-ph-4.po || Exit 1
+
+cat <<EOF > xg-ph-4.ok
+msgid "foobar"
+msgstr ""
+
+msgid "hello world"
+msgstr ""
+
+msgid "1"
+msgstr ""
+
+msgid "2"
+msgstr ""
+
+msgid "3"
+msgstr ""
+
+msgid "45"
+msgstr ""
+
+msgid "6"
+msgstr ""
+
+msgid "789"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-ph-4.ok xg-ph-4.po
+result=$?
+
+exit $result

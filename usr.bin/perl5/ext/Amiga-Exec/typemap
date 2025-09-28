@@ -1,0 +1,118 @@
+APTR                   T_PTR
+intArray *             T_ARRAY
+UWORD                  T_UV
+ULONG                  T_UV
+WORD                   T_IV
+LONG                   T_IV
+BOOL                   T_IV
+TagList *              T_TAGLIST
+TAGRET                 T_TAGRET
+STRPTR                 T_PV
+int32                  T_IV
+uint32                 T_UV
+
+#############################################################################
+INPUT
+T_TAGLIST
+        U32 ix_$var = $argoff;
+        U32 _tag_type;
+        /* allocate taglist struct, +2 as tags lists end in a TAG_DONE by tradition */
+        /* if by some chance someone  adds something after the TAG_DONE it will just*/
+        /* result in harmless empty space */
+        $var = $ntype((items -= $argoff) +2);
+        while(items > 0)
+        {
+            int __index = (ix_$var - $argoff)/3;
+            $var\[__index\].ti_Tag = (ULONG)SvUV(ST(ix_$var));
+            ix_$var++;
+            items--;
+            /* the last is a tag_done and usualy has no followers so check for > 1 */
+            if(items > 1 && ($var\[__index\].ti_Tag != TAG_DONE))
+            {
+                _tag_type = (ULONG)SvUV(ST(ix_$var));
+                ix_$var++;
+                switch(_tag_type)
+                {
+                    case TT_APTR:
+                            $var\[__index\].ti_Data = (ULONG)INT2PTR(APTR,SvIV(ST(ix_$var)));
+                        break;
+                    case TT_WORD:
+                            $var\[__index\].ti_Data = (WORD)SvIV(ST(ix_$var));
+                        break;
+                    case TT_LONG:
+                            $var\[__index\].ti_Data = (LONG)SvIV(ST(ix_$var));
+                        break;
+                    case TT_UWORD:
+                            $var\[__index\].ti_Data = (UWORD)SvUV(ST(ix_$var));
+                        break;
+                    case TT_ULONG:
+                            $var\[__index\].ti_Data = (ULONG)SvUV(ST(ix_$var));
+                        break;
+                    case TT_STRPTR:
+                    case TT_UBYTE:
+                            $var\[__index\].ti_Data = (ULONG)(STRPTR)SvPV_nolen(ST(ix_$var));
+                        break;
+                    default:
+                        Perl_croak(aTHX_ \"Unknown TAGTYPE \%d\",_tag_type);
+                }
+                ix_$var++;
+                items -=2;
+            }
+        }
+
+T_TAGRET
+        /* Allocate variable type according to preceding var tagtype */
+        switch(tagtype)
+        {
+            case TT_APTR:
+                $var.tr_aptr = INT2PTR(APTR,SvIV($arg));
+                break;
+            case TT_WORD:
+                $var.tr_word = (WORD)SvIV($arg);
+                break;
+            case TT_LONG:
+                $var.tr_long = (LONG)SvIV($arg);
+            case TT_UWORD:
+                $var.tr_uword = (UWORD)SvUV($arg);
+                break;
+            case TT_ULONG:
+                $var.tr_ulong = (ULONG)SvUV($arg);
+                break;
+            case TT_STRPTR:
+            case TT_UBYTE:
+                $var.tr_strptr = (STRPTR)SvPV_nolen($arg);
+                break;
+            default:
+                Perl_croak(aTHX_ \"Unknown TAGTYPE \%d\",tagtype);
+        }
+
+####################################################################################
+OUTPUT
+T_TAGRET
+        /* Allocate variable type according to preceding var tagtype */
+        switch(tagtype)
+        {
+            case TT_APTR:
+                sv_setiv($arg, PTR2IV($var.tr_aptr));
+                break;
+            case TT_WORD:
+                sv_setiv($arg, (IV)$var.tr_word);
+                break;
+            case TT_LONG:
+                sv_setiv($arg, (IV)$var.tr_long);
+                break;
+            case TT_UWORD:
+                sv_setuv($arg, (UV)$var.tr_uword);
+                break;
+            case TT_ULONG:
+                sv_setuv($arg, (UV)$var.tr_ulong);
+                break;
+            case TT_STRPTR:
+            case TT_UBYTE:
+                sv_setpv((SV*)$arg, $var.tr_strptr);
+                break;
+            default:
+                Perl_croak(aTHX_ \"Unknown TAGTYPE \%d\",tagtype);
+        }
+
+

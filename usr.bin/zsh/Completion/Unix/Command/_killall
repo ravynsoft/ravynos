@@ -1,0 +1,71 @@
+#compdef killall killall5
+
+if [[ $service = killall5 || $OSTYPE != (linux|*bsd|dragonfly|darwin)* ]]; then
+  _signals -p
+  return
+fi
+
+typeset -a opts args
+[[ $EUID = 0 || $_comp_priv_prefix[1] = sudo ]] && opts=( -a )
+
+if _pick_variant psmisc=PSmisc unix --version; then
+
+  local curcontext=$curcontext state state_descr line ret=1
+  typeset -A opt_args
+  args=(
+    '(-e --exact)'{-e,--exact}'[require exact match for names longer than 15 chars]'
+    '(-I --ignore-case)'{-I,--ignore-case}'[do case insensitive process name match]'
+    '(-g --process-group)'{-g,--process-group}'[kill the process group to which the process belongs]'
+    '(-i --interactive)'{-i,--interactive}'[interactively ask for confirmation before killing]'
+    '(- : *)'{-l,--list}'[list all known signal names]'
+    '(-n --ns)'{-n+,--ns=}'[match against the PID namespace of the given PID]: : _pids'
+    '(-o --older-than)'{-o+,--older-than=}'[match only processes older than the specified time]:time:->time'
+    '(-q --quiet)'{-q,--quiet}'[do not complain if no processes were killed]'
+    '(-r --regexp)'{-r,--regexp}'[interpret process name as extended regular expression]'
+    '(1 -s --signal)'{-s+,--signal=}'[send the specified signal]: : _signals'
+    '(-u --user)'{-u+,--user=}'[kill only processes owned by specified user]: : _users'
+    '(-v --verbose)'{-v,--verbose}'[report if the signal was successfully sent]'
+    '(-w --wait)'{-w,--wait}'[wait for all killed processes to die]'
+    '(- : *)'{-V,--version}'[display version information]'
+    '(-y --younger-than)'{-y+,--younger-than=}'[match only processes younger than the specified time]:time:->time'
+    "1: : _alternative 'signals: :_signals -p' 'processes-names: :_process_names $opts'"
+    "*: :_process_names $opts"
+  )
+  [[ $CURRENT = 2 || ( $CURRENT = 3 && $words[2] = (-Z|--context) ) ]] && \
+    args+=( '(-Z --context)'{-Z+,--context=}'[specify SELinux security context]:regex pattern:_selinux_contexts' )
+
+  _arguments -s -S -C : $args && ret=0
+
+  case $state in
+    (time)
+      _numbers -fN age 's:seconds' 'm:minutes' 'h:hours' 'd:days' \
+          'w:weeks' 'M:months' 'y:years'
+    ;;
+  esac
+
+  return ret
+
+else # bsd and darwin
+
+  if [[ $OSTYPE == (freebsd|dragonfly)* ]]; then
+    args=( '-j+[kill processes in specified jail]: :_jails -0' )
+    opts+=( -t )  # long process names must be truncated
+  fi
+  args+=(
+    '-v[be more verbose about what will be done]'
+    '-e[use effective user ID for -u option]'
+    '(- : *)-help[give a help on command usage and exit]'
+    '(- : *)-l[list names of available signals and exit]'
+    '-m[interpret specified name as a regular expression]'
+    '-s[show only what will be done, but do not send any signal]'
+    '-d[print info about processes matched, but do not send any signal]'
+    '-u+[limit to processes belonging to specified user]: : _users'
+    '-t+[limit to processes running on specified tty]: :_ttys -od'
+    "-c+[with -u or -t, limit to processes matching specified name]: :_process_names $opts"
+    '-z[do not skip zombies]'
+    "*: :_process_names $opts"
+    + '(signal)' -$signals[2,-3]
+  )
+  _arguments -s -S -A '-*' : $args
+
+fi

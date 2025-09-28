@@ -1,0 +1,72 @@
+trap [ arg ] [ sig ... ]
+       arg  is  a series of commands (usually quoted to protect it from
+       immediate evaluation by the shell) to be read and executed  when
+       the  shell  receives any of the signals specified by one or more
+       sig args.  Each sig can be given as a number, or as the name  of
+       a signal either with or without the string SIG in front (e.g. 1,
+       HUP, and SIGHUP are all the same signal).
+
+       If arg is `-', then the specified signals are reset to their de-
+       faults, or, if no sig args are present, all traps are reset.
+
+       If  arg  is  an empty string, then the specified signals are ig-
+       nored by the shell (and by the commands it invokes).
+
+       If arg is omitted but one or more sig args  are  provided  (i.e.
+       the first argument is a valid signal number or name), the effect
+       is the same as if arg had been specified as `-'.
+
+       The trap command with no arguments prints a list of commands as-
+       sociated with each signal.
+
+       If sig is ZERR then arg will be executed after each command with
+       a nonzero exit status.  ERR is an alias for ZERR on systems that
+       have no SIGERR signal (this is the usual case).
+
+       If sig is DEBUG then arg will be executed before each command if
+       the option DEBUG_BEFORE_CMD is set (as it is by  default),  else
+       after each command.  Here, a `command' is what is described as a
+       `sublist' in the shell grammar, see the section SIMPLE  COMMANDS
+       &  PIPELINES  in zshmisc(1).  If DEBUG_BEFORE_CMD is set various
+       additional features are available.  First,  it  is  possible  to
+       skip  the  next  command by setting the option ERR_EXIT; see the
+       description of the ERR_EXIT option in zshoptions(1).  Also,  the
+       shell parameter ZSH_DEBUG_CMD is set to the string corresponding
+       to the command to be executed following  the  trap.   Note  that
+       this  string  is  reconstructed from the internal format and may
+       not be formatted the same way as the original text.  The parame-
+       ter is unset after the trap is executed.
+
+       If  sig  is  0 or EXIT and the trap statement is executed inside
+       the body of a function, then the command arg is  executed  after
+       the  function completes.  The value of $? at the start of execu-
+       tion is the exit status of the shell or the return status of the
+       function exiting.  If sig is 0 or EXIT and the trap statement is
+       not executed inside the body of a function, then the command arg
+       is  executed when the shell terminates; the trap runs before any
+       zshexit hook functions.
+
+       ZERR, DEBUG, and EXIT traps are not executed inside other traps.
+       ZERR  and  DEBUG  traps  are  kept within subshells, while other
+       traps are reset.
+
+       Note that traps defined with the trap builtin are slightly  dif-
+       ferent from those defined as `TRAPNAL () { ... }', as the latter
+       have their own function environment (line numbers,  local  vari-
+       ables, etc.) while the former use the environment of the command
+       in which they were called.  For example,
+
+              trap 'print $LINENO' DEBUG
+
+       will print the line number of a command executed  after  it  has
+       run, while
+
+              TRAPDEBUG() { print $LINENO; }
+
+       will always print the number zero.
+
+       Alternative  signal  names  are  allowed as described under kill
+       above.  Defining a trap under either name causes any trap  under
+       an  alternative  name to be removed.  However, it is recommended
+       that for consistency users stick exclusively to one name or  an-
+       other.

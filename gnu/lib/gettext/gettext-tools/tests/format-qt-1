@@ -1,0 +1,71 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of Qt format strings.
+
+cat <<\EOF > f-qt-1.data
+# Unrecognized: no argument
+"abc%%def"
+# Valid: one argument
+"abc%1def"
+# Valid: one argument
+"abc%9def"
+# Valid: one argument specified by two digits
+"abc%09def"
+# Valid: one argument specified by two digits
+"abc%99def"
+# Valid: unterminated
+"abc%1def%"
+# Valid: unterminated
+"abc%1def%L"
+# Valid: non-digit
+"abc%1def%x"
+# Valid: zero
+"abc%1def%0"
+# Valid: zero specified by two digits
+"abc%1def%00"
+# Valid: permutation
+"abc%2def%1"
+# Valid: multiple uses of same argument
+"abc%2def%1ghi%2"
+# Valid: an argument with locale-dependency flag
+"abc%L1def"
+# Valid: an argument with locale-dependency flag and two digits
+"abc%L12def"
+EOF
+
+: ${XGETTEXT=xgettext}
+n=0
+while read comment; do
+  read string
+  n=`expr $n + 1`
+  cat <<EOF > f-qt-1-$n.in
+_(${string});
+EOF
+  ${XGETTEXT} -L C++ --qt -k_ -o f-qt-1-$n.po f-qt-1-$n.in || Exit 1
+  test -f f-qt-1-$n.po || Exit 1
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if grep qt-format f-qt-1-$n.po > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    if grep qt-format f-qt-1-$n.po > /dev/null; then
+      fail=yes
+    else
+      :
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string recognition error:" 1>&2
+    cat f-qt-1-$n.in 1>&2
+    echo "Got:" 1>&2
+    cat f-qt-1-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-qt-1-$n.in f-qt-1-$n.po
+done < f-qt-1.data
+
+Exit 0

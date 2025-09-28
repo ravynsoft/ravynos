@@ -1,0 +1,14 @@
+(AUDIT1)  -- Started by user default (1000) --
+(AUDIT1)  Requested command: id --help
+(AUDIT2)  -- Started by user default (1000) --
+(AUDIT2)  Requested command: id --help
+(AUDIT1)  Accepted command: /sbin/id --help
+(AUDIT1)    By the plugin: accepter plugin name (type=POLICY)
+(AUDIT1)    Environment: KEY1=VALUE1 KEY2=VALUE2
+(AUDIT2)  Accepted command: /sbin/id --help
+(AUDIT2)    By the plugin: accepter plugin name (type=POLICY)
+(AUDIT2)    Environment: KEY1=VALUE1 KEY2=VALUE2
+(AUDIT1)  Command exited due to signal 11
+(AUDIT1)  -- Finished --
+(AUDIT2)  Command exited due to signal 11
+(AUDIT2)  -- Finished --

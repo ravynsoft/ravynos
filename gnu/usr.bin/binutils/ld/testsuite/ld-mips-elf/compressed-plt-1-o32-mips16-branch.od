@@ -1,0 +1,69 @@
+
+.* file format .*
+
+
+Disassembly of section \.plt:
+
+# Only _bc (branch from compressed code) functions should have a
+# MIPS16 PLT.
+10100000 <_PROCEDURE_LINKAGE_TABLE_>:
+.*:	3c1c1020 	lui	\$28,0x1020
+.*:	8f990000 	lw	\$25,0\(\$28\)
+.*:	279c0000 	addiu	\$28,\$28,0
+.*:	031cc023 	subu	\$24,\$24,\$28
+.*:	03e07825 	move	\$15,\$31
+.*:	0018c082 	srl	\$24,\$24,0x2
+.*:	0320f809 	jalr	\$25
+.*:	2718fffe 	addiu	\$24,\$24,-2
+
+10100020 <f_bu_bc@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90008 	lw	\$25,8\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80008 	addiu	\$24,\$15,8
+
+10100030 <f_bu@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df9000c 	lw	\$25,12\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f8000c 	addiu	\$24,\$15,12
+
+10100040 <f_bu_bc@mips16plt>:
+.*:	b203      	lw	\$2,1010004c <f_bu_bc@mips16plt\+0xc>
+.*:	9a60      	lw	\$3,0\(\$2\)
+.*:	651a      	move	\$24,\$2
+.*:	eb00      	jr	\$3
+.*:	653b      	move	\$25,\$3
+.*:	6500      	nop
+.*:	.... .... 	\.word	0x10200008
+
+10100050 <f_bc@mips16plt>:
+.*:	b203      	lw	\$2,1010005c <f_bc@mips16plt\+0xc>
+.*:	9a60      	lw	\$3,0\(\$2\)
+.*:	651a      	move	\$24,\$2
+.*:	eb00      	jr	\$3
+.*:	653b      	move	\$25,\$3
+.*:	6500      	nop
+.*:	.... .... 	\.word	0x10200010
+
+Disassembly of section \.text\.a:
+
+10101000 <testc>:
+.*:	f03f 1006 	b	10100050 <f_bc@mips16plt>
+.*:	6500      	nop
+.*:	f01f 101b 	b	10100040 <f_bu_bc@mips16plt>
+.*:	6500      	nop
+.*:	e820      	jr	\$31
+
+Disassembly of section \.text\.b:
+
+10102000 <testu>:
+.*:	0411f80b 	bal	10100030 <f_bu@plt>
+.*:	00000000 	nop
+.*:	1000f809 	b	10100030 <f_bu@plt>
+.*:	00000000 	nop
+.*:	0411f803 	bal	10100020 <f_bu_bc@plt>
+.*:	00000000 	nop
+.*:	1000f801 	b	10100020 <f_bu_bc@plt>
+.*:	00000000 	nop
+.*:	03e00008 	jr	\$31

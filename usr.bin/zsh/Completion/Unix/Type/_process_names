@@ -1,0 +1,44 @@
+#autoload
+#
+# complete names of running processes
+#
+# options:
+#   -a: include all processes (owned by others, no tty, etc.)
+#   -t: use truncated process names (e.g., those in /proc/PID/stat)
+#				    (only on Linux and BSDs)
+#
+# this name has been used in _killall and documented in zshcompsys(1)
+local tagname='processes-names'
+typeset -a expl opts names all truncate
+
+zparseopts -E -D 'a=all' 't=truncate'
+(( $#all )) && opts=( -A )
+
+local hyphen='-'
+# on Linux, use BSD-style option to include processes on other ttys
+[[ $OSTYPE == linux* ]] && hyphen=''
+
+case $OSTYPE in
+  (linux*|freebsd*|openbsd*|netbsd*)
+    if (( $#truncate )); then
+      if [[ $OSTYPE == netbsd* ]]; then
+	opts+=(-co args=)
+      else
+	opts+=(${hyphen}o comm=)
+      fi
+      names=( ${${(f)"$(_call_program $tagname ps $opts 2>/dev/null)"}#-} )
+    else
+      opts+=(${hyphen}o args=)
+      names=( ${(f)"$(_call_program $tagname ps $opts 2>/dev/null )"} )
+      names=( ${${${${${names:#\[*]}%% *}%:}#-}:t}
+	       ${${${(M)names:#\[*]}#\[}%]} )
+    fi
+    ;;
+  (*)
+    # ignore -t option
+    opts+=(-o comm=)
+    names=( ${${${(f)"$(_call_program $tagname ps $opts 2>/dev/null)"}#-}:t} )
+    ;;
+esac
+
+_wanted $tagname expl 'process name' compadd "$@" -F '(ps)' -a - names

@@ -1,0 +1,51 @@
+# cmdline_wrap.at -- run tests with low max_cmd_len           -*- Autotest -*-
+
+#   Copyright (C) 2007, 2009, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Ralf Wildenhues, 2007
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+# Make sure libtool works when it needs to wrap command lines.
+# We simulate this by setting max_cmd_len very low.
+
+AT_SETUP([Run tests with low max_cmd_len])
+AT_KEYWORDS([recursive expensive])
+dnl If we already have failures, then reruns will fail too!
+fail_list=`for f in ?/fail ??/fail ???/fail ????/fail; do test -f "$f" && echo "$f"; done`
+echo "DEBUG: fail_list='$fail_list'"
+AT_CHECK([test -z "$fail_list" || (exit 77)])
+m4_ifdef([AT_CAPTURE_FILE],
+[AT_CAPTURE_FILE([testsuite.log])])
+
+$SED 's|max_cmd_len=.*|max_cmd_len="24"|' < $LIBTOOL > libtool
+chmod +x libtool
+LIBTOOL=`pwd`/libtool
+export LIBTOOL
+# run the suite in a subdirectory, otherwise the two suites will compete
+# for the output file 'testsuite.log'.
+mkdir tests
+cd tests
+INNER_TESTSUITEFLAGS="$INNER_TESTSUITEFLAGS abs_top_srcdir=$abs_top_srcdir \
+  abs_builddir=$abs_builddir"
+AT_CHECK([$CONFIG_SHELL $abs_srcdir/testsuite -k libtool$INNER_TESTSUITEFLAGS],
+	 [], [ignore], [ignore])
+
+AT_CLEANUP

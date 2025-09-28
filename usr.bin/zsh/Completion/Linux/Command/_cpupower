@@ -1,0 +1,120 @@
+#compdef cpupower
+
+local curcontext="$curcontext" ret=1
+local -a state line expl cmds args
+typeset -A opt_args
+
+_arguments -C \
+  '(- :)'{-h,--help}'[print help information]' \
+  '(- :)'{-v,--version}'[print version information]' \
+  '(-d --debug)'{-d,--debug}'[enable debug output]' \
+  '(-c --cpu)'{-c,--cpu}'[limit values to specific processor cores]:cpu' \
+  ':cmd:->cmds' \
+  '*::arg:->args' && ret=0
+
+cmds=(
+  'frequency-info:show current frequency info'
+  'frequency-set:set frequency parameters'
+  'idle-info:show current idle state info'
+  'idle-set:set idle state parameters'
+  'info:show global power parameters'
+  'set:set global power parameters'
+  'monitor:report frequency and idle statistics'
+  'powercap-info:show powercapping related kernel and hardware configurations'
+  'help:print usage information'
+)
+case $state in
+  cmds)
+    _describe command cmds -M 'r:|-=* r:|=*' && ret=0
+  ;;
+  args)
+    curcontext="${curcontext%:*}-$words[1]"
+    case ${words[1]} in
+      help)
+        _describe command cmds
+        return
+      ;;
+      frequency-info)
+        args=(
+          '(-m --human)'{-m,--human}'[use human readable output]'
+          '(-n --no-rounding)'{-n,--no-rounding}'[disable rounding of values]'
+          - '(info)'
+          {-e,--debug}'[print debug info]'
+          {-f,--freq}'[show current frequency]'
+          {-w,--hwfreq}'[show current hardware frequency]'
+          {-l,--hwlimits}'[show min/max frequency allowed]'
+          {-d,--driver}'[show the kernel driver in use]'
+          {-p,--policy}'[show the current cpufreq policy]'
+          {-g,--governors}'[show available governors]'
+          {-r,--related-cpus}'[show cpus that run at the same frequency]'
+          {-a,--affected-cpus}'[show software controlled cpus]'
+          {-s,--stats}'[show cpufreq statistics]'
+          {-y,--latency}'[show frequency change latency]'
+        )
+        [[ -n $opt_args[(i)-(c|-cpu)] ]] || args+=(
+          {-o,--proc}'[print old style proc info]'
+        )
+      ;;
+      frequency-set)
+        args=(
+          '(-d --min)'{-d+,--min}'[new minimum frequency]:frequency:->frequencies'
+          '(-u --max)'{-u+,--max}'[new maximum frequency]:frequency:->frequencies'
+          '(-g --governor)'{-g+,--governor}'[new cpufreq governor]:governor:->governors'
+          '(-)'{-f+,--freq}'[new frequency for userspace governor]:frequency:->frequencies'
+          '(-r --related)'{-r,--related}'[modify all hardware related cpus]'
+        )
+      ;;
+      idle-info)
+        args=(
+          '(-f --silent)'{-f,--silent}'[print summary only]'
+          '(-e --proc)'{-e,--proc}'[print old style proc info (deprecated)]'
+        )
+      ;;
+      idle-set)
+        args=(
+          '(-d --disable)'{-d+,--disable}'[disable specific sleep state]:state no'
+          '(-e --enable)'{-e+,--enable}'[enable specific sleep state]:state no'
+          '(-D --disable-by-latency)'{-D+,--disable-by-latency}'[disable state based on latency]:latency'
+          '(-E --enable-all)'{-E,--enable-all}'[enable all idle states]'
+        )
+      ;;
+      info)
+        args=(
+          '(-b --perf-bias)'{-b,--perf-bias}'[show intel performance bias value]'
+        )
+      ;;
+      set)
+        args=(
+          '(-b --perf-bias)'{-b+,--perf-bias}'[set intel performance bias value]:performance bias'
+        )
+      ;;
+      monitor)
+        args=(
+          '(-)-l[list available monitors]'
+          '-m+[display specified monitors]:monitor:->monitors'
+          '-i+[measurement interval]:interval (seconds)'
+          '-c[schedule on every core]'
+          '-v[increase verbosity]'
+          '*:::command: _normal'
+        )
+      ;;
+    esac
+    _arguments -C -s "$args[@]" && ret=0
+    case $state in
+      frequencies)
+        _wanted -x frequencies expl frequency compadd $(cpupower frequency-info |
+               sed -n 's/ //g; s/,/ /g; s/availablefrequencysteps://p') && ret=0
+      ;;
+      governors)
+        _wanted governors expl 'scaling governor' compadd \
+            ${=${"$(_call_program governors cpupower frequency-info -g)"}##*:} && ret=0
+      ;;
+      monitors)
+        _sequence _wanted monitors expl 'monitor' compadd - ${${${(M)${(f)"$(_call_program monitors \
+            cpupower monitor -l)"}:#Monitor *}#*\"}%%\"*} && ret=0
+      ;;
+    esac
+  ;;
+esac
+
+return ret

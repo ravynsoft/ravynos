@@ -1,0 +1,43 @@
+use strict;
+use warnings;
+
+package MyClass;
+
+sub new
+{
+    my $class = shift;
+
+    my $self = bless {}, $class;
+
+    $self->_init(@_);
+
+    return $self;
+}
+
+sub _init
+{
+    my $self = shift;
+
+    $self->{foo} = 'bar';
+
+    return;
+}
+
+sub greet
+{
+    my ($self, $msg) = @_;
+
+    print "$msg - $self->{foo}\n";
+
+    return;
+}
+
+1;
+
+package main;
+
+my $obj = MyClass->new;
+
+$obj->greet("Hello");
+
+1;

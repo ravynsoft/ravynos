@@ -1,0 +1,29 @@
+#!/sbin/openrc-run
+# Copyright 1999-2016 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+
+extra_started_commands="reload"
+
+depend() {
+	before netmount nfsmount
+	use net
+	need dbus
+}
+
+start() {
+	ebegin "Starting avahi-daemon"
+	@sbindir@/avahi-daemon -D
+	eend $?
+}
+
+stop() {
+	ebegin "Stopping avahi-daemon"
+	@sbindir@/avahi-daemon -k
+	eend $?
+}
+
+reload() {
+	ebegin "Reloading avahi-daemon"
+	@sbindir@/avahi-daemon -r
+	eend $?
+}

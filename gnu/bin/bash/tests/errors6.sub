@@ -1,0 +1,56 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# problems with non-fatal expansion errors through bash-4.3
+: ${THIS_SH:=./bash}
+
+${THIS_SH} -c 'echo ${x!y} second
+echo after 1: $?' 2>/dev/null
+
+${THIS_SH} -c 'echo ${#+} second
+echo after 2: $?' 2>/dev/null
+
+${THIS_SH} -c 'echo ${#foo%} second
+echo after 3: $?' 2>/dev/null
+
+${THIS_SH} -c 'b[0]=4 ; echo ${b[   ]}
+echo array after 1: $?'  2>/dev/null
+${THIS_SH} -c 'typeset -A v ; v["0"]=one ; echo ${v[   ]}
+echo array after 2: $?'  2>/dev/null
+
+${THIS_SH} -c 'echo ${uvar?}' ./errors6.sub
+${THIS_SH} -c 'echo ${uvar:?}' ./errors6.sub
+export uvar=
+${THIS_SH} -c 'echo ${uvar?}' ./errors6.sub
+${THIS_SH} -c 'echo ${uvar:?}' ./errors6.sub
+unset uvar
+
+echo "${-3:-${-3}}"
+echo ${-3}
+x=-3; echo ${!x}
+echo after indir: $?
+
+function ivar() { echo -n "${!1:-${1}}"; }
+ivar -3
+
+foo=bar
+echo ${!foo}
+echo ${!foo:-unset}
+
+echo ${!var:-unset}
+echo ${!var+unset}
+
+foo=invalid-ident
+echo ${!foo}
+echo ${!foo:-unset}
+echo ${!foo+unset}

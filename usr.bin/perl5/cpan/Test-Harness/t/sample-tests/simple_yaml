@@ -1,0 +1,27 @@
+print <<DUMMY_TEST;
+TAP version 13
+1..5
+ok 1
+ok 2
+  ---
+  -
+    fnurk: skib
+    ponk: gleeb
+  -
+    bar: krup
+    foo: plink
+  ...
+ok 3
+ok 4
+  ---
+  expected:
+    - 1
+    - 2
+    - 4
+  got:
+    - 1
+    - pong
+    - 4
+  ...
+ok 5
+DUMMY_TEST

@@ -1,0 +1,176 @@
+#compdef xwit
+
+local word=$'[^\0]#\0'
+local nul=$'\0'
+
+local guard='-_xwit_guard ${match[1]%?}'
+
+_xwit_guard () {
+  local opt="$1" o
+  (( no[$opt]-- ))
+  for o in ${=eo[$opt]}; do
+    no[$o]=0
+  done 
+  :
+}
+
+_xwit_compopts () {
+  local expl
+  local opt tmp
+
+  tmp=()
+  for opt in ${(k)no[(R)*~0]}
+  do
+    if (( $+desc[$opt] )); then
+      tmp=("$tmp[@]" "$opt:$desc[$opt]")
+    else
+      tmp=("$tmp[@]" "$opt")
+    fi
+  done
+  _describe -o options tmp -- ||
+  _describe -o options allopts --
+
+#  compadd "$expl[@]" - ${(k)no[(R)*~0]} ||
+#    compadd "$expl[@]" - ${(k)no}
+}
+
+_regex_arguments _xwit_parse \
+  "/$word/" \
+  \( "/-display$nul/" "$guard" "/$word/" ':option-display:display:_x_display' \
+  \| "/-(sync|pop|open|iconify|unmap|root|current|select|(no|)(save|backingstore|saveunder))$nul/" "$guard" \
+  \| "/-resize$nul/" "$guard" \
+     "/$word/" ':option-resize-width:width:' \
+     "/$word/" ':option-resize-height:height:' \
+  \| "/-rows$nul/" "$guard" "/$word/" ':option-rows:rows:' \
+  \| "/-columns$nul/" "$guard" "/$word/" ':option-columns:columns:' \
+  \| "/-move$nul/" "$guard" \
+     "/$word/" ':option-move-x:x:' \
+     "/$word/" ':option-move-y:y:' \
+  \| "/-rmove$nul/" "$guard" \
+     "/$word/" ':option-rmove-x:x:' \
+     "/$word/" ':option-rmove-y:y:' \
+  \| "/-warp$nul/" "$guard" \
+     "/$word/" ':option-warp-x:x:' \
+     "/$word/" ':option-warp-y:y:' \
+  \| "/-rwarp$nul/" "$guard" \
+     "/$word/" ':option-rwarp-x:x:' \
+     "/$word/" ':option-rwarp-y:y:' \
+  \| "/-colormap$nul/" "$guard" \
+     "/$word/" ':option-colormap:colormapid:_x_colormapid' \
+  \| "/-(name|label)$nul/" "$guard" \
+     "/$word/" ':option-name:name:_x_name' \
+  \| "/-iconname$nul/" "$guard" \
+     "/$word/" ':option-name:iconname:_x_name' \
+  \| "/-bitmap$nul/" "$guard" \
+     "/$word/" ':option-bitmap:bitmap file:_files -g *.xbm\(-.\)' \
+  \| "/-mask$nul/" "$guard" \
+     "/$word/" ':option-mask:mask file:_files -g *.xbm\(-.\)' \
+  \| "/-iconmove$nul/" "$guard" \
+     "/$word/" ':option-iconmove-x:x:' \
+     "/$word/" ':option-iconmove-y:y:' \
+  \| "/-id$nul/" "$guard" "/$word/" ':option-id:window id:_x_window' \
+  \| "/-(no|)keyrepeat$nul/" "$guard" \
+      \( "/[0-9]##$nul/" ':option-keyrepeat-keycode:keycode:{[[ -prefix [0-9]# ]] && _message -e keycodes keycode}' \
+	\( "/-$nul/" "/[0-9]##$nul/" \
+	   ':option-keyrepeat-last-keycode:last keycode:{[[ -prefix [0-9]# ]] && _message -e keycodes "last keycode"}' \| \) \) \# \
+  \| "/-names$nul/" "$guard" \
+     "/$word/" ':option-names:window name:_x_window -n' \# \
+  \| "/[]/" ':options:option:_xwit_compopts' \
+  \) \#
+
+_xwit () {
+  local expl allopts
+  typeset -A desc no eo
+
+  desc=(
+    -display 'specify display'
+    -sync 'synchronous mode'
+    -pop 'pop up window'
+    -open 'pop up window'
+    -iconify 'iconify window'
+    -unmap 'iconify window by unmapping'
+    -root 'select the root window'
+    -current 'select the window under current pointer'
+    -select 'select the window interactively'
+    -save 'activate screen saver'
+    -backingstore 'enable backingstore'
+    -saveunder 'enable saveunder'
+    -nosave 'reset screen saver'
+    -nobackingstore 'disable backingstore'
+    -nosaveunder 'disable saveunder'
+    -resize 'resize window'
+    -rows 'resize window rows'
+    -columns 'resize window columns'
+    -move 'move window'
+    -rmove 'move window relatively'
+    -warp 'warp pointer'
+    -rwarp 'warp pointer relatively'
+    -colormap 'install colormap'
+    -name 'specify window name'
+    -label 'specify window name'
+    -iconname 'specify icon name'
+    -bitmap 'specify icon bitmap'
+    -mask 'specify icon mask'
+    -iconmove 'move icon'
+    -id 'select the window by window-ID'
+    -keyrepeat 'enable keyrepeat'
+    -nokeyrepeat 'disable keyrepeat'
+    -names 'select the window by name'
+  )
+
+  no=(
+    -display 1
+    -sync 1
+    -pop 1 -open 0
+    -iconify 1
+    -unmap 1
+    -root 1
+    -current 1
+    -select 1
+    -save 1
+    -backingstore 1
+    -saveunder 1
+    -nosave 1
+    -nobackingstore 1
+    -nosaveunder 1
+    -resize 1
+    -rows 1
+    -columns 1
+    -move 1
+    -rmove 1
+    -warp 1
+    -rwarp 1
+    -colormap 1
+    -name 1 -label 0
+    -iconname 1
+    -bitmap 1
+    -mask 1
+    -iconmove 1
+    -id 1
+    -keyrepeat 1
+    -nokeyrepeat 1
+    -names 1
+  )
+
+  allopts=()
+  for opt in ${(k)no}
+  do
+    if (( $+desc[$opt] )); then
+      allopts=("$allopts[@]" "$opt:$desc[$opt]")
+    else
+      allopts=("$allopts[@]" "$opt")
+    fi
+  done
+
+  eo=(
+    -root    '-root -current -select -id -names'
+    -current '-root -current -select -id -names'
+    -select  '-root -current -select -id -names'
+    -id      '-root -current -select -id -names'
+    -names   '-root -current -select -id -names'
+  )
+
+  _xwit_parse
+}
+
+_xwit "$@"

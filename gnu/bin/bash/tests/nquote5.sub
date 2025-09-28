@@ -1,0 +1,36 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+. test-glue-functions
+
+recho $( echo a$'\01)'b )
+recho $( echo ab )
+recho $( echo \ )
+recho $( echo \\ )
+
+LC_CTYPE=C
+od -c <<EOF | _intl_normalize_spaces
+a$'\01'b
+ab
+EOF
+
+od -c <<EOF | _intl_normalize_spaces
+${none-a$'\01'b}
+${none-ab}
+EOF
+
+V=Aa$'\01'b
+od -c <<EOF | _intl_normalize_spaces
+${V%a$'\01'b}
+${V%ab}
+EOF

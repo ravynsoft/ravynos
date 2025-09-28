@@ -1,0 +1,14 @@
+<html>
+  <body>
+    <div>
+      <h3>
+        <a href="https://html.spec.whatwg.org/multipage/parsing.html#parse-error-incorrectly-closed-comment">
+          Incorrectly closed comment without a correctly closed comment
+        </a>
+      </h3>
+      <div>
+        <!--incorrectly closed comment--!><span id=under-test>whatwg guidance is that this should be a DOM node</span>
+      </div>
+    </div>
+  </body>
+</html>

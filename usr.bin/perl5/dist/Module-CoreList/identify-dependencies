@@ -1,0 +1,28 @@
+#!/usr/local/perl5.6.1/bin/perl -w
+use strict;
+use warnings;
+use Module::CoreList;
+
+our %modules;
+
+my @files = @ARGV;
+unless (@files) {
+    print "$0: using test scripts\n";
+    @files = grep { -e $_ } 'test.pl', glob 't/*.t';
+}
+
+print "$0: checking ", join(', ', @files), "\n";
+
+my @used;
+for (@files) {
+    open my $fh, "$^X -Mblib -MModule::CoreList=dumpinc $_|"
+      or die "couldn't fork $!";
+    while (<$fh>) { last if /^---INC---/ }
+    push @used, map { chomp; s{/}{::}g; s{\.pm$}{}; $_ } <$fh>;
+}
+
+*modules = \%Module::CoreList::version;
+my %uniq = map { $_ => 0 } grep { !exists $modules{$]}{$_} } @used;
+
+use Data::Dumper;
+print Dumper \%uniq;

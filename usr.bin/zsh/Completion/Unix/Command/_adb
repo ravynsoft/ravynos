@@ -1,0 +1,624 @@
+#compdef adb -value-,ADB_TRACE,-default- -value-,ANDROID_SERIAL,-default- -value-,ANDROID_LOG_TAGS,-default-
+
+_adb() {
+  # rely on localoptions
+  setopt nonomatch
+
+  local -a ADB_DEVICE_SPECIFICATION
+  local LOG_REDIRECT
+
+  if [[ $1 = -l ]]; then
+    # Run to load _adb and associated functions but do
+    # nothing else.
+    return
+  fi
+
+  if [[ $service = -value-* ]]; then
+    #_message compstate=$compstate[parameter]
+    case $compstate[parameter] in
+      (ADB_TRACE)
+      _adb_trace_opts
+      ;;
+
+      (ANDROID_SERIAL)
+      _adb_device_serial
+      ;;
+
+      (ANDROID_LOG_TAGS)
+      _adb_logcat_filter_specification
+      ;;
+
+    esac
+    # We do not handle values anywhere else.
+    return
+  fi
+
+  local -a ALL_ADB_COMMANDS
+  ALL_ADB_COMMANDS=(
+          "backup"
+          "bugreport"
+          "connect"
+          "devices"
+          "disable-verity"
+          "disconnect"
+          "emu"
+          "enable-verity"
+          "exec-out"
+          "forward"
+          "get-devpath"
+          "get-serialno"
+          "get-state"
+          "help"
+          "install"
+          "install-multiple"
+          "jdwp"
+          "keygen"
+          "kill-server"
+          "logcat"
+          "ppp"
+          "pull"
+          "push"
+          "reboot"
+          "reboot-bootloader"
+          "remount"
+          "restore"
+          "reverse"
+          "root"
+          "shell"
+          "sideload"
+          "start-server"
+          "status-window"
+          "sync"
+          "tcpip"
+          "uninstall"
+          "unroot"
+          "usb"
+          "version"
+          "wait-for-device"
+  )
+
+  (( $+functions[_adb_device_specification] )) && _adb_device_specification
+
+  if ! adb ${ADB_DEVICE_SPECIFICATION} shell exit 2>/dev/null; then
+      # early bail-out until a single valid device/emulator is specified and up-and-running
+      [[ $words[CURRENT-1] = -s ]] || _message -r "No (started) device specified, completions do not yet work"
+      #TODO handle -t transport-id
+      _arguments \
+	'-s[serial]: :_adb_device_serial' \
+	'(   -e)-d[device]' \
+	'(-d   )-e[emulator]' \
+	'1:option:_adb_options_handler' \
+	'*: : _default'
+      
+      return
+  fi
+  
+  (( $+functions[_adb_check_log_redirect] )) && _adb_check_log_redirect
+
+  (( $+functions[_adb_dispatch_command] )) && _adb_dispatch_command
+}
+
+(( $+functions[_adb_dispatch_command] )) ||
+_adb_dispatch_command () {
+  local curcontext="${curcontext}"
+  local integer last_command_pos=-1
+
+  (( $+functions[_adb_sanitize_context] )) && _adb_sanitize_context
+  if [[ ${last_command_pos} -gt 0 ]]
+  then
+    shift ${last_command_pos}-1 words  
+    CURRENT=$(( ${CURRENT} - ${last_command_pos} + 1 ))
+  fi
+
+  case ${curcontext} in
+    (*:adb-shell:|*:adb-exec-out:)
+      (( $+functions[_adb_dispatch_shell] )) && _adb_dispatch_shell
+      ;;
+    (*:adb-backup:)
+      (( $+functions[_adb_dispatch_backup] )) && _adb_dispatch_backup
+      ;;
+    (*:adb-connect:|*:adb-disconnect:)
+      (( $+functions[_adb_dispatch_connection_handling] )) && _adb_dispatch_connection_handling
+      ;;
+    (*:adb-logcat:)
+      (( $+functions[_adb_dispatch_logcat] )) && _adb_dispatch_logcat
+      ;;
+    (*:adb-push:)
+      (( $+functions[_adb_dispatch_push] )) && _adb_dispatch_push
+      ;;
+    (*:adb-pull:)
+      (( $+functions[_adb_dispatch_pull] )) && _adb_dispatch_pull
+      ;;
+    (*:adb-install:)
+      (( $+functions[_adb_dispatch_install] )) && _adb_dispatch_install
+      ;;
+    (*:adb-uninstall:)
+      (( $+functions[_adb_dispatch_uninstall] )) && _adb_dispatch_uninstall
+      ;;
+    (*:adb-*)
+      _default
+      ;;
+    (*)
+      _arguments \
+	'(-d -e)-s[serial]: :_adb_device_serial' \
+	'(-s -e)-d[device]' \
+	'(-d -s)-e[emulator]' \
+	'*:option:_adb_options_handler'
+      ;;
+  esac
+}
+
+(( $+functions[_adb_sanitize_context] )) ||
+_adb_sanitize_context () {
+  local -a mywords
+  for adbcommand in "${ALL_ADB_COMMANDS[@]}"
+  do
+    if [[ -n "${adbcommand}" ]] && [[ ${words[(I)${adbcommand}]} -gt 0 ]]
+    then
+      last_command_pos=${words[(I)${adbcommand}]}
+      mywords[${last_command_pos}]=${adbcommand}
+    fi
+  done
+  ##expand unquoted to remove sparse elements
+  mywords=( ${mywords[@]} )
+  (( $#mywords )) && curcontext="${curcontext%:*}-${mywords[-1]}:"
+}
+
+(( $+functions[_adb_device_specification] )) ||
+_adb_device_specification () {
+  if [[ $words[2] == -[de] ]]; then
+    ADB_DEVICE_SPECIFICATION=($words[2])
+  elif [[ $words[2] == -[st] ]]; then
+    ADB_DEVICE_SPECIFICATION=($words[2,3])
+  fi
+}
+
+(( $+functions[_adb_dispatch_shell] )) ||
+_adb_dispatch_shell () {
+  if [[ $CURRENT -le 2 ]]
+  then
+    (( $+functions[_adb_shell_commands_handler] )) && _adb_shell_commands_handler
+    return
+  fi
+  
+  case ${words[2]} in
+    (am)
+      (( $+functions[_adb_activity_manager_handler] )) && _adb_activity_manager_handler
+      ;;
+    (pm)
+      (( $+functions[_adb_package_manager_handler] )) && _adb_package_manager_handler
+      ;;
+    (cmd)
+      (( $+functions[_adb_cmd_handler] )) && _adb_cmd_handler
+      ;;
+    (dumpsys)
+      (( $+functions[_adb_dumpsys_handler] )) && _adb_dumpsys_handler
+      ;;
+    (start|stop)
+      (( $+functions[_adb_startstop] )) && _adb_startstop ${words[2]}
+      ;;
+    (*)
+      _arguments '*: :_adb_remote_folder'
+      ;;
+  esac
+}
+
+(( $+functions[_adb_dispatch_backup] )) ||
+_adb_dispatch_backup() {
+  _arguments \
+    '-f[specify backup file]:backup file:_files' \
+    '-apk[backup .apk files]' '!(-apk)-noapk' \
+    '-obb[backup .obb files]' '!(-obb)-noobb' \
+    '-shared[backup shared storage]' '!(-shared)-noshared' \
+    '-all[backup all installed apps]' \
+    '-nosystem[include system apps when backing up all apps]' '!(-nosystem)-system' \
+    '*:package name:_adb_installed_packages'
+}
+
+(( $+functions[_adb_pm_list] )) ||
+_adb_pm_list () {
+  case ${words[4]} in
+    (packages)
+      _arguments -s '-f[see their associated file]' \
+      			':'
+      ;;
+    (permissions)
+      _arguments -s '-g[organize by group]' \
+      		    '-f[print all information]' \
+		    '-d[only list dangerous permissions]' \
+      		    '-u[only list user visible permissions]' \
+      		    '-s[short summary]' \
+      		    ':'
+      ;;
+    (permission-groups)
+      ;;
+    (instrumentation)
+      _arguments -s '-f[see their associated file]' \
+      			':'
+      ;;
+    (features)
+      ;;
+    (users)
+      ;;
+    (*)
+      _wanted pm_list_argument expl 'pm list argument' compadd packages permission-groups permissions instrumentation features users
+      ;;
+  esac
+}
+
+(( $+functions[_adb_intent_handler] )) ||
+_adb_intent_handler () {
+  _message -r "<INTENT> specifications include these flags:
+        [-a <ACTION>] [-d <DATA_URI>] [-t <MIME_TYPE>]
+        [-c <CATEGORY> [-c <CATEGORY>] ...]
+        [-e|--es <EXTRA_KEY> <EXTRA_STRING_VALUE> ...]
+        [--esn <EXTRA_KEY> ...]
+        [--ez <EXTRA_KEY> <EXTRA_BOOLEAN_VALUE> ...]
+        [-e|--ei <EXTRA_KEY> <EXTRA_INT_VALUE> ...]
+        [-n <COMPONENT>] [-f <FLAGS>]
+        [--grant-read-uri-permission] [--grant-write-uri-permission]
+        [--debug-log-resolution]
+        [--activity-brought-to-front] [--activity-clear-top]
+        [--activity-clear-when-task-reset] [--activity-exclude-from-recents]
+        [--activity-launched-from-history] [--activity-multiple-task]
+        [--activity-no-animation] [--activity-no-history]
+        [--activity-no-user-action] [--activity-previous-is-top]
+        [--activity-reorder-to-front] [--activity-reset-task-if-needed]
+        [--activity-single-top]
+        [--receiver-registered-only] [--receiver-replace-pending]
+        [<URI>]"
+}
+
+(( $+functions[_adb_activity_manager_handler] )) ||
+_adb_activity_manager_handler () {
+  if [[ $CURRENT -le 3 ]]
+  then
+    _wanted am_argument expl 'am argument' compadd start startservice broadcast instrument profile
+    return
+  fi
+  case ${words[3]} in
+    (start)
+      _arguments -s '-D[enable debugging]' \
+      		    '-W[wait for launch to complete]' \
+      		    '*:intent:_adb_intent_handler'
+      ;;
+    (startservice)
+      _arguments -s '*:intent:_adb_intent_handler'
+      ;;
+    (broadcast)
+      _arguments -s '*:intent:_adb_intent_handler'
+      ;;
+    (instrument)
+      _arguments -s '-r[print raw results]' \
+      		    '-e[set argument NAME to VALUE]:<NAME> <VALUE>:' \
+      		    '-p[write profiling data to FILE]:<FILE>:' \
+		    '-w[wait for instrumentation to finish]' \
+      		    ':'
+      ;;
+    (profile)
+      _message -r "<PROCESS> start/stop <FILE>"
+      ;;
+  esac
+}
+
+(( $+functions[_adb_package_manager_handler] )) ||
+_adb_package_manager_handler () {
+  case ${words[3]} in
+    (list)
+      (( $+functions[_adb_pm_list] )) && _adb_pm_list
+      ;;
+    (path)
+      (( $+functions[_adb_installed_packages] )) && _adb_installed_packages
+      ;;
+    (enable)
+      (( $+functions[_adb_installed_packages] )) && _adb_installed_packages
+      ;;
+    (disable)
+      (( $+functions[_adb_installed_packages] )) && _adb_installed_packages
+      ;;
+    (setInstallLocation)
+      _wanted install-locations expl 'install location' compadd -d "(0:auto 1:internal 2:external)" 0 1 2
+      ;;
+    (getInstallLocation)
+      ;;
+    (*)
+      _wanted pm_argument expl 'pm argument' compadd list path install uninstall enable disable setInstallLocation getInstallLocation
+      ;;
+  esac
+}
+
+(( $+functions[_adb_cmd_handler] )) ||
+_adb_cmd_handler () {
+  local -a cmds
+  cmds=(${${${(f)"$(adb ${ADB_DEVICE_SPECIFICATION} exec-out cmd -l)"}[2,-1]}##[[:space:]]##})
+  _wanted dumpsys expl 'cmd command' compadd ${cmds%$'\r'}
+}
+
+(( $+functions[_adb_dumpsys_handler] )) ||
+_adb_dumpsys_handler () {
+  if [[ $CURRENT -eq 3 ]]; then
+    local -a services
+    services=(${${${(f)"$(adb ${ADB_DEVICE_SPECIFICATION} exec-out dumpsys -l)"}[2,-1]}##[[:space:]]##})
+    _wanted dumpsys expl 'dumpsys service' compadd - ${services%$'\r'}
+  elif [[ $CURRENT -ge 4 && $words[3] == SurfaceFlinger ]]; then
+    (( CURRENT -= 2 ))
+    shift 2 words
+    typeset -A opt_args
+    local context state state_descr line
+    _arguments -R \
+      '--file[start/stop continuous dumpsys to file]' \
+      '--no-limit[disable wrapping around continuous dumpsys at ~20MB]' \
+      '--full-dump[set fullDump = true]' \
+      '--allocated_buffers[show allocated buffers dump]' \
+      '--display-id[show display id dump]' \
+      '--dispsync[show dispsync dump]' \
+      '--edid[raw edid dump for specified hwc display (binary output)]:*:hwc display:->hwcdisplay' \
+      '--latency[show latency stats]:*:layer:->layer' \
+      '--latency-clear[clear latency stats]:*:layer:->layer' \
+      '--list[list all layers]' \
+      '--planner[pass planner dump arguments]:*:planner arguments:->planner' \
+      '--static-screen[show static screen stats]' \
+      '--timestats[pass time stats arguments]:*:timestats arguments:->timestats' \
+      '--vsync[show vsync dump]' \
+      '--wide-color[show wide color info]' \
+      '--frametimeline[pass frametimeline arguments]:*:frametimeline arguments:->frametimeline' \
+      '--mini[show mini dump]'
+    if [[ $? == 300 ]]; then
+      case $state in
+        layer)
+          typeset -a layers
+          layers=(${${(f)"$(adb ${ADB_DEVICE_SPECIFICATION} exec-out dumpsys SurfaceFlinger --list)"}[2,-1]})
+          _wanted dumpsys expl 'layers' compadd - ${layers%$'\r'}
+          ;;
+        planner)
+          _arguments \
+            {--compare,-c}'[compare predictions of two hashes]:left: :right: :' \
+            {--describe,-d}'[describe hash]:hash: :' \
+            {--help,-h}'[help]' \
+            {--similar,-s}'[show similar stacks matching given plan]:plan: :' \
+            {--layers,-l}'[show current layers]'
+          ;;
+        timestats)
+          _arguments -disable -enable -clear -dump -maxlayers'[only with -dump]:int:'
+          ;;
+        frametimeline)
+          _arguments -jank -all
+          ;;
+      esac
+    fi
+  fi
+}
+
+(( $+functions[_adb_startstop] )) ||
+_adb_startstop () {
+  local -a services
+  local -A service_status
+  services=(${(f)"$(adb ${ADB_DEVICE_SPECIFICATION} exec-out getprop)"})
+  service_status=( ${(s,: ,)${(j,: ,)${(M)services:#\[init.svc.*}}} )
+  local -A map=(start stopped stop running)
+  services=( ${(k)service_status[(R)*$map[$1]*]} )
+  _wanted services expl "$map[$1] services" compadd - ${${${services#\[}%\]}#init.svc.}
+}
+
+(( $+functions[_adb_dispatch_uninstall] )) ||
+_adb_dispatch_uninstall () {
+  _arguments \
+	'-k[keep data and cache]' \
+  '--user[uninstall for user id]:user id:_adb_users' \
+        '1:installed package:_adb_installed_packages'
+}
+
+(( $+functions[_adb_dispatch_install] )) ||
+_adb_dispatch_install () {
+  argcount=${#${(M)words#-*}}
+  if [[ $CURRENT -gt (( argcount + 2 )) ]]
+  then
+    _message -r "Notice: you can only install one package at a time" 
+     return
+  fi
+
+  _arguments \
+	'-l[forward lock]' \
+	'-r[reinstall]' \
+	'-s[install on sd]' \
+	'*:apk file:_path_files -g "*(/)|*.apk"'
+}
+
+(( $+functions[_adb_dispatch_push] )) ||
+_adb_dispatch_push () {
+  if [[ $CURRENT -gt 3 ]] 
+  then
+    _message -r "Notice: you can only push a single item at a time"
+    return
+  fi 
+  if [[ $CURRENT -gt 2 ]]
+  then
+    _arguments '*: :_adb_remote_folder'
+  else
+    _arguments '*:local file/folder:_files'
+  fi
+}
+
+(( $+functions[_adb_dispatch_pull] )) ||
+_adb_dispatch_pull () {
+  if [[ $CURRENT -gt 3 ]] 
+  then
+    _message -r "Notice: you can only pull a single item at a time"
+    return
+  fi 
+  if [[ $CURRENT -gt 2 ]]
+  then
+    _arguments '*:local file/folder:_files'
+  else
+    _arguments '*: :_adb_remote_folder'
+  fi
+}
+
+(( $+functions[_adb_dispatch_connection_handling] )) ||
+_adb_dispatch_connection_handling () {
+  if compset -P '*:'
+  then
+    local expl
+    _wanted ports expl port compadd "$@" 5555
+  else
+   _hosts -qS:
+  fi
+}
+
+(( $+functions[_adb_check_log_redirect] )) ||
+_adb_check_log_redirect () {
+  LOG_REDIRECT=${$(adb ${ADB_DEVICE_SPECIFICATION} shell getprop log.redirect-stdio 2>/dev/null)//
+/}
+  [[ ${LOG_REDIRECT[1,4]} == "true" ]] &&  _message -r "Notice: stdio log redirection enabled on the device, so some completions will not work"
+}
+
+(( $+functions[_adb_trace_opts] )) ||
+_adb_trace_opts() {
+  _values -s , 'adb trace option' \
+	'(1 adb sockets packets rwx usb sync sysdeps transport jdwp)all' \
+	'(all adb sockets packets rwx usb sync sysdeps transport jdwp)1' \
+	'adb' \
+	'sockets' \
+	'packets' \
+	'rwx' \
+	'usb' \
+	'sync' \
+	'sysdeps' \
+	'transport' \
+	'jdwp'
+}
+
+(( $+functions[_adb_device_serial] )) ||
+_adb_device_serial() {
+  local expl
+  local -a devices device_desc
+  local device
+  devices=( $(adb devices -l | sed -n -e 's/:/\\:/' -e 's/^\([^[:space:]]*\)[[:space:]]*.*product:\([^[:space:]]*\).*$/\1:\2/p') )
+  zstyle -a :completion:${curcontext} device-names device_desc
+  for device in $device_desc; do
+    if [[ -n $devices[(r)${device%:*}:*] ]]; then
+      devices[(i)${device%:*}:*]=$device
+    elif [[ -n $devices[(r)*:${device%:*}] ]]; then
+      devices[(i)*:${device%:*}]=${${devices[(r)*:${device%:*}]}%:*}:${device#*:}
+    fi
+  done
+  _describe -t dev_serial 'available device' devices
+}
+
+(( $+functions[_adb_logcat_filter_specification] )) ||
+_adb_logcat_filter_specification() {
+  zstyle ":completion:${curcontext}:" cache-policy _adb_cache_policy_single_command
+
+  local cacheid=logcat_filter_cache_${$(adb ${ADB_DEVICE_SPECIFICATION} get-serialno)}
+  typeset -a logcat_filter_tags
+  if _cache_invalid "$cacheid" || ! _retrieve_cache "$cacheid"
+  then
+    logcat_filter_tags=( $(command adb ${ADB_DEVICE_SPECIFICATION} logcat -d -v brief | sed -n 's#^[VDIWEF]/\([^[:space:](]*\).*#\1#p' |sort | uniq) )
+    _store_cache "$cacheid" logcat_filter_tags
+  fi
+  local expl
+  if compset -P '*:'
+  then
+    _wanted filter expl filter compadd W S E I D V \*
+  else
+    _wanted filtertags expl filtertags compadd -qS: ${logcat_filter_tags[@]} \*
+  fi
+}
+
+(( $+functions[_adb_dispatch_logcat] )) ||
+_adb_dispatch_logcat() {
+   _arguments \
+     '(-c -g)-s[set default filter to silent]' \
+     '(-c -g)-f[log output to file (defaults to stdout)]:logfile:_files' \
+     '(-c -g -d)-r[rotate log at specified size, requires -f]:log size (kbytes) [16]' \
+     '(-c -g -d)-n[specify max number of rotated logs]:number [4]' \
+     '(-c -g -d)-v[log format]:format: _values "format" brief process tag thread raw time threadtime long' \
+     '(-d -t -g)-c[clear log]' \
+     '(-c -g)-d[dump log]' \
+     '(-c -g)-t[print only recent lines (implies -d)]:linecount:_guard "[0-9]#" "numeric value"' \
+     '(-c -g)-B[output log in binary]' \
+     '(-c -g)*:filtering:_adb_logcat_filter_specification'
+}
+
+(( $+functions[_adb_options_handler] )) ||
+_adb_options_handler() {
+  local expl
+  _wanted adb_options expl 'adb option' compadd "${ALL_ADB_COMMANDS[@]}"
+}
+
+(( $+functions[_adb_shell_commands_handler] )) ||
+_adb_shell_commands_handler() {
+  local expl
+  _wanted adb_shell_commands expl 'adb shell command' compadd ls pm am mkdir rmdir rm cat cmd dumpsys start stop
+}
+
+(( $+functions[_adb_device_available] )) ||
+_adb_device_available() {
+  [[ $(adb ${ADB_DEVICE_SPECIFICATION} get-state 2>&1) == "device" ]] && return 0
+  return 1
+}
+
+(( $+functions[_adb_remote_folder] )) ||
+_adb_remote_folder () {
+  typeset -a files dirs
+  local pref=${PREFIX}
+  if [[ $pref != */* ]]; then
+    pref=
+  elif [[ $pref != */ ]]; then
+    pref=${pref%/*}/
+  fi
+  # yes, this ls is sickening to look at, but android doesn't have printf or find
+  files=(${${(f)"$(adb ${ADB_DEVICE_SPECIFICATION} shell 'ls -1d 2> /dev/null '$pref'*/ '$pref'*')"}%$'\r'})
+  dirs=(${${(M)files:#*/}%/})
+  files=(${${files:|dirs}:#*\*(/|)})
+  _adb_device_available && \
+    _wanted adb_remote_folder expl 'file/folder on device' _multi_parts $@ / files
+}
+
+(( $+functions[_adb_installed_packages] )) ||
+_adb_installed_packages() {
+  local update_policy
+  zstyle -s ":completion:${curcontext}:" cache-policy update_policy
+  if [[ -z "$update_policy" ]]; then
+    zstyle ":completion:${curcontext}:" cache-policy _adb_cache_policy_single_command
+  fi
+
+  local cacheid=package_cache_${$(adb ${ADB_DEVICE_SPECIFICATION} get-serialno)}
+  typeset -a installed_packages
+  if _cache_invalid "$cacheid" || ! _retrieve_cache "$cacheid"
+  then
+    installed_packages=(${$( adb ${ADB_DEVICE_SPECIFICATION} shell pm list packages )//#package:/})
+    _store_cache "$cacheid" installed_packages
+  fi
+ 
+  _wanted adb_installed_packages expl 'packages that are installed' compadd ${installed_packages}
+}
+
+(( $+functions[_adb_users] )) ||
+_adb_users() {
+  local -a users
+  users=( ${${${(M)${(f)"$(adb shell pm list users)"}:#*UserInfo*}#*UserInfo\{}%:*} )
+  _describe -t users 'user' users
+}
+
+(( $+functions[_adb_cache_policy_single_command] )) ||
+_adb_cache_policy_single_command () {
+  typeset -a old
+
+  # cache is valid for 1 minute
+  old=( "$1"(mm+1) )
+  (( $#old )) 
+}
+
+(( $+functions[_adb_cache_policy_daily] )) ||
+_adb_cache_policy_daily () {
+  typeset -a old
+
+  # cache is valid for a day
+  old=( "$1"(mh+12) )
+  (( $#old ))
+}
+
+
+
+_adb $@

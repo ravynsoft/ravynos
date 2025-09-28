@@ -1,0 +1,207 @@
+#                                                                    -*-perl-*-
+
+$description = "This test is about grouped multiple targets indicated by &:";
+$details = "Here we test for requirements like\n"
+          ."- if multiple such targets are updated, the recipe is run once\n"
+          ."- parsing issues related to the &: syntax itself\n";
+
+# Parsing: &: allowed without any targets.
+run_make_test(q{
+.PHONY: all
+&:;
+all: ;@printf ''
+},
+'', "");
+
+# Parsing: &: works not preceded by whitespace.
+run_make_test(q{
+foo&:;@echo foo
+},
+'foo', "foo");
+
+# Ordinary rule runs recipe four times for t1 t2 t3 t4.
+# Grouped target rule runs recipe once; others are considered updated.
+run_make_test(q{
+.PHONY: t1 t2 t3 t4 g1 g2 g3 g4
+t1 t2 t3 t4: ; @echo $@
+g1 g2 g3 g4 &: ; @echo $@
+},
+'t1 t2 t3 t4 g1 g2 g3 g4',
+"t1\n"
+."t2\n"
+."t3\n"
+."t4\n"
+."g1\n"
+."#MAKE#: Nothing to be done for 'g2'.\n"
+."#MAKE#: Nothing to be done for 'g3'.\n"
+."#MAKE#: Nothing to be done for 'g4'.");
+
+# Similar to previous test, but targets come from m1 phony
+# rather than from the command line. We don't see "Nothing to
+# be done for" messages. Also, note reversed order g4 g3 ...
+# Thus the auto variable $@ is "g4" when that rule fires.
+run_make_test(q{
+.PHONY: m1 t1 t2 t3 t4 g1 g2 g3 g4
+m1: t1 t2 t3 t4 g4 g3 g2 g1
+t1 t2 t3 t4: ; @echo $@
+g1 g2 g3 g4&: ; @echo $@
+},
+'',
+"t1\nt2\nt3\nt4\ng4");
+
+# Set a grouped target recipe for existing targets
+run_make_test(q{
+.PHONY: M a b
+M: a b
+a:
+a b&: ; @echo Y
+b:
+},
+'',
+"Y");
+
+# grouped targets require a recipe
+run_make_test(q{
+.PHONY: M a b
+M: a b
+a b&:
+},
+'',
+"#MAKEFILE#:4: *** grouped targets must provide a recipe.  Stop.", 512);
+
+# Pattern rules use grouped targets anyway so it's a no-op
+run_make_test(q{
+.PHONY: M
+M: a.q b.q
+a.% b.%&: ; @echo Y
+},
+'',
+"Y");
+
+# Double-colon grouped target rules.
+run_make_test(q{
+.PHONY: M a b c d e f g h
+M: a b
+a b c&:: ; @echo X
+c d e&:: ; @echo Y
+f g h&:: ; @echo Z
+},
+'',
+"X");
+
+run_make_test(q{
+.PHONY: M a b c d e f g h
+M: c
+a b c&:: ; @echo X
+c d e&:: ; @echo Y
+f g h&:: ; @echo Z
+},
+'',
+"X\nY");
+
+run_make_test(q{
+.PHONY: M a b c d e f g h
+M: a b c d e
+a b c&:: ; @echo X
+c d e&:: ; @echo Y
+f g h&:: ; @echo Z
+},
+'',
+"X\nY");
+
+run_make_test(q{
+.PHONY: M a b c d e f g h
+M: d e
+a b c&:: ; @echo X
+c d e&:: ; @echo Y
+f g h&:: ; @echo Z
+},
+'',
+"Y");
+
+run_make_test(q{
+.PHONY: M a b c d e f g h
+M: f g h
+a b c&:: ; @echo X
+c d e&:: ; @echo Y
+f g h&:: ; @echo Z
+},
+'',
+"Z");
+
+# sv 60188.
+# Test that a file explicitly mentioned by the user and made by an implicit
+# rule is not considered intermediate.
+
+touch('hello.z');
+touch('hello.q');
+
+# subtest 1
+# hello.x is not explicitly mentioned and thus is an intermediate file.
+run_make_test(q!
+all: hello.z
+%.z %.q: %.x ; touch $*.z $*.q
+%.x: ;
+!, '', "#MAKE#: Nothing to be done for 'all'.\n");
+
+# subtest 2
+# test.x is explicitly mentioned and thus is not an intermediate file.
+run_make_test(q!
+all: hello.z
+%.z %.q: %.x test.x ; @echo $*.z $*.q
+%.x: ;
+!, '', "hello.z hello.q\n");
+
+# subtest 3
+# hello.x is explicitly mentioned on an unrelated rule and thus is not an
+# intermediate file.
+run_make_test(q!
+all: hello.z
+%.z %.q: %.x; @echo $*.z $*.q
+%.x: ;
+unrelated: hello.x
+!, '', "hello.z hello.q\n");
+
+unlink('hello.z');
+unlink('hello.q');
+
+# SV 62809: Missing grouped target peer causes remake regardless of which
+# target caused the rule to run.
+touch(qw(gta));  # but not gtb
+run_make_test(q!
+gta gtb &: ; touch gta gtb
+!,
+              'gta', "touch gta gtb\n");
+unlink(qw(gta gtb));
+
+# Ensure both goal targets are built if they depend on a grouped prereq
+touch(qw(gta));  # but not gtb
+run_make_test(q!
+x1 x2: ; touch $@
+
+x1: gta
+x2: gtb
+
+gta gtb &: ; touch gta gtb
+!,
+              'x1 x2', "touch gta gtb\ntouch x1\ntouch x2\n");
+
+# Now everything should be up to date
+run_make_test(undef, 'x1 x2',
+              "#MAKE#: 'x1' is up to date.\n#MAKE#: 'x2' is up to date.");
+
+unlink(qw(x1 x2 gta gtb));
+
+# If an also-make file is older than a prerequisite build both
+
+utouch(-20, 'gtb');
+utouch(-10, 'pre');
+touch(qw(gta));
+run_make_test(q!
+gta gtb &: pre ; touch gta gtb
+!,
+              'gta', "touch gta gtb\n");
+unlink(qw(pre gta gtb));
+
+# This tells the test driver that the perl test script executed properly.
+1;

@@ -1,0 +1,498 @@
+#!./perl
+
+# We suppose that perl _mostly_ works at this moment, so may use
+# sophisticated testing.
+
+BEGIN {
+    chdir 't' if -d 't';
+    @INC = '../lib';              # pick up only this build's lib
+}
+
+##############################################################################
+# Test files which cannot be executed at the same time.
+#
+# List all files which might fail when executed at the same time as another
+# test file from the same test directory. Being listed here does not mean
+# the test will be run by itself, it just means it won't be run at the same
+# time as any other file in the same test directory, it might be run at the
+# same time as a file from a different test directory.
+#
+# Ideally this is always empty.
+#
+# Example: ../cpan/IO-Zlib/t/basic.t
+#
+my @_must_be_executed_serially = qw(
+);
+my %must_be_executed_serially = map { $_ => 1 } @_must_be_executed_serially;
+##############################################################################
+
+##############################################################################
+# Test files which must be executed alone.
+#
+# List files which cannot be run at the same time as any other test. Typically
+# this is used to handle tests which are sensitive to load and which might
+# fail if they were run at the same time as something load intensive.
+#
+# Example: ../dist/threads-shared/t/waithires.t
+#
+my @_must_be_executed_alone = qw();
+my %must_be_executed_alone = map { $_ => 1 } @_must_be_executed_alone;
+
+my $OS = $ENV{FAKE_OS} || $^O;
+my $is_linux = $OS eq "linux";
+my $is_win32 = $OS eq "MSWin32";
+
+if (!$is_linux) {
+    $must_be_executed_alone{"../dist/threads-shared/t/waithires.t"} = 1;
+}
+##############################################################################
+
+my $torture; # torture testing?
+
+use TAP::Harness 3.13;
+use strict;
+use Config;
+
+$::do_nothing = $::do_nothing = 1;
+require './TEST';
+our $Valgrind_Log;
+
+my $Verbose = 0;
+$Verbose++ while @ARGV && $ARGV[0] eq '-v' && shift;
+
+# For valgrind summary output
+my $htoolnm;
+my $hgrind_ct;
+
+my $dump_tests = 0;
+if ($ARGV[0] && $ARGV[0] =~ /^-?-dumptests$/) {
+    shift;
+    $dump_tests = 1;
+}
+
+if ($ARGV[0] && $ARGV[0] =~ /^-?-torture$/) {
+    shift;
+    $torture = 1;
+}
+
+# Let tests know they're running in the perl core.  Useful for modules
+# which live dual lives on CPAN.
+$ENV{PERL_CORE} = 1;
+
+my (@tests, @re, @anti_re);
+
+# [.VMS]TEST.COM calls harness with empty arguments, so clean-up @ARGV
+@ARGV = grep $_ && length( $_ ) => @ARGV;
+
+while ($ARGV[0] && $ARGV[0]=~/^-?-(n?)re/) {
+    my $ary= $1 ? \@anti_re : \@re;
+
+    if ( $ARGV[0] !~ /=/ ) {
+        shift @ARGV;
+        while (@ARGV and $ARGV[0] !~ /^-/) {
+            push @$ary, shift @ARGV;
+        }
+    } else {
+        push @$ary, (split/=/,shift @ARGV)[1];
+    }
+}
+
+my $jobs = $ENV{TEST_JOBS};
+my ($rules, $state, $color);
+
+if ($ENV{HARNESS_OPTIONS}) {
+    for my $opt ( split /:/, $ENV{HARNESS_OPTIONS} ) {
+        if ( $opt =~ /^j(\d*)$/ ) {
+            $jobs ||= $1 || 9;
+        }
+        elsif ( $opt eq 'c' ) {
+            $color = 1;
+        }
+        else {
+            die "Unknown HARNESS_OPTIONS item: $opt\n";
+        }
+    }
+}
+
+$jobs ||= 1;
+
+my %total_time;
+sub _compute_tests_and_ordering($) {
+    my @tests = $_[0]->@*;
+
+    my %dir;
+    my %all_dirs;
+    my %map_file_to_dir;
+
+    if (!$dump_tests) {
+        require App::Prove::State;
+        if (!$state) {
+            # silence unhelpful warnings from App::Prove::State about not having
+            # a save state, unless we actually set the PERL_TEST_STATE we don't care
+            # and we don't need to know if its fresh or not.
+            local $SIG{__WARN__} = $ENV{PERL_TEST_STATE} ? $SIG{__WARN__} : sub {
+                return if $_[0] and $_[0]=~/No saved state/;
+                warn $_[0];
+            };
+            my $state_file = $ENV{PERL_TEST_STATE_FILE} // 'test_state';
+            if ($state_file) { # set PERL_TEST_STATE_FILE to 0 to skip this
+                $state = App::Prove::State->new({ store => $state_file });
+                $state->apply_switch('save');
+                $state->apply_switch('slow') if $jobs > 1;
+            }
+        }
+        # For some reason get_tests returns *all* the tests previously run,
+        # (in the right order), not simply the selection in @tests
+        # (in the right order). Not sure if this is a bug or a feature.
+        # Whatever, *we* are only interested in the ones that are in @tests
+        my %seen;
+        @seen{@tests} = ();
+        @tests = grep {exists $seen{$_} } $state->get_tests(0, @tests);
+    }
+
+    my %times;
+    if ($state) {
+        # Where known, collate the elapsed times by test name
+        foreach ($state->results->tests()) {
+            $times{$_->name} = $_->elapsed();
+        }
+    }
+
+    my %partial_serials;
+    # Preprocess the list of tests
+    for my $file (@tests) {
+        if ($is_win32) {
+            $file =~ s,\\,/,g; # canonicalize path
+        };
+
+        # Keep a list of the distinct directory names, and another list of
+        if ($file =~ m! \A ( (?: \.\. / )?
+                                .*?
+                            )             # $1 is the directory path name
+                            /
+                            ( [^/]* \. (?: t | pl ) ) # $2 is the test name
+                        \z !x)
+        {
+            my $path = $1;
+            my $name = $2;
+
+            $all_dirs{$path} = 1;
+            $map_file_to_dir{$file} = $path;
+            # is this is a file that requires we do special processing
+            # on the directory as a whole?
+            if ($must_be_executed_serially{$file}) {
+                $partial_serials{$path} = 1;
+            }
+        }
+    }
+
+    my %split_partial_serials;
+
+    my @alone_files;
+    # Ready to figure out the timings.
+    for my $file (@tests) {
+        my $file_dir = $map_file_to_dir{$file};
+
+        # if this is a file which must be processed alone
+        if ($must_be_executed_alone{$file}) {
+            push @alone_files, $file;
+            next;
+        }
+
+        # Special handling is needed for a directory that has some test files
+        # to execute serially, and some to execute in parallel.  This loop
+        # gathers information that a later loop will process.
+        if (defined $partial_serials{$file_dir}) {
+            if ($must_be_executed_serially{$file}) {
+                # This is a file to execute serially.  Its time contributes
+                # directly to the total time for this directory.
+                $total_time{$file_dir} += $times{$file} || 0;
+
+                # Save the sequence number with the file for now; below we
+                # will come back to it.
+                push $split_partial_serials{$file_dir}{seq}->@*, [ $1, $file ];
+            }
+            else {
+                # This is a file to execute in parallel after all the
+                # sequential ones are done.  Save its time in the hash to
+                # later calculate its time contribution.
+                push $split_partial_serials{$file_dir}{par}->@*, $file;
+                $total_time{$file} = $times{$file} || 0;
+            }
+        }
+        else {
+            # Treat every file in each non-serial directory as its own
+            # "directory", so that it can be executed in parallel
+            $dir{$file} = { seq => $file };
+            $total_time{$file} = $times{$file} || 0;
+        }
+    }
+
+    undef %all_dirs;
+
+    # Here, everything is complete except for the directories that have both
+    # serial components and parallel components.  The loop just above gathered
+    # the information required to finish setting those up, which we now do.
+    for my $partial_serial_dir (keys %split_partial_serials) {
+
+        # Look at just the serial portion for now.
+        my @seq_list = $split_partial_serials{$partial_serial_dir}{seq}->@*;
+
+        # The 0th element contains the sequence number; the 1th element the
+        # file name.  Get the name, sorted first by the number, then by the
+        # name.  Doing it this way allows sequence numbers to be varying
+        # length, and still get a numeric sort
+        my @sorted_seq_list = map { $_->[1] }
+                                sort {    $a->[0] <=>    $b->[0]
+                                    or lc $a->[1] cmp lc $b->[1] } @seq_list;
+
+        # Now look at the tests to run in parallel.  Sort in descending order
+        # of execution time.
+        my @par_list = sort sort_by_execution_order
+                        $split_partial_serials{$partial_serial_dir}{par}->@*;
+
+        # The total time to execute this directory is the serial time (already
+        # calculated in the previous loop) plus the parallel time.  To
+        # calculate an approximate parallel time, note that the minimum
+        # parallel time is the maximum of each of the test files run in
+        # parallel.  If the number of parallel jobs J is more than the number
+        # of such files, N, it could be that all N get executed in parallel,
+        # so that maximum is the actual value.  But if N > J, a second, or
+        # third, ...  round will be required.  The code below just takes the
+        # longest-running time for each round and adds that to the previous
+        # total.  It is an imperfect estimate, but not unreasonable.
+        my $par_time = 0;
+        for (my $i = 0; $i < @par_list; $i += $jobs) {
+            $par_time += $times{$par_list[$i]} || 0;
+        }
+        $total_time{$partial_serial_dir} += $par_time;
+
+        # Now construct the rules.  Each of the parallel tests is made into a
+        # single element 'seq' structure, like is done for all the other
+        # parallel tests.
+        @par_list = map { { seq => $_ } } @par_list;
+
+        # Then the directory is ordered to have the sequential tests executed
+        # first (serially), then the parallel tests (in parallel)
+
+        $dir{$partial_serial_dir} =
+                                { 'seq' => [ { seq => \@sorted_seq_list },
+                                             { par => \@par_list        },
+                                           ],
+                                };
+    }
+
+    #print STDERR __LINE__, join "\n", sort sort_by_execution_order keys %dir
+
+    # Generate T::H schedule rules that run the contents of each directory
+    # sequentially.
+    my @seq = { par => [ map { $dir{$_} } sort sort_by_execution_order
+                                                                    keys %dir
+                        ]
+               };
+
+    # and lastly add in the files which must be run by themselves without
+    # any other tests /at all/ running at the same time.
+    push @seq, map { +{ seq => $_ } } sort @alone_files if @alone_files;
+
+    return \@seq;
+}
+
+sub sort_by_execution_order {
+    # Directories, ordered by total time descending then name ascending
+    return $total_time{$b} <=> $total_time{$a} || lc $a cmp lc $b;
+}
+
+if (@ARGV) {
+    # If you want these run in speed order, just use prove
+
+    # Note: we use glob even on *nix and not just on Windows
+    # because arguments might be passed in via the TEST_ARGS
+    # env var where they wont be expanded by the shell.
+    @tests = map(glob($_),@ARGV);
+    # This is a hack to force config_heavy.pl to be loaded, before the
+    # prep work for running a test changes directory.
+    1 if $Config{d_fork};
+} else {
+    # Ideally we'd get somewhere close to Tux's Oslo rules
+    # my $rules = {
+    #     par => [
+    #         { seq => '../ext/DB_File/t/*' },
+    #         { seq => '../ext/IO_Compress_Zlib/t/*' },
+    #         { seq => '../lib/ExtUtils/t/*' },
+    #         '*'
+    #     ]
+    # };
+
+    # but for now, run all directories in sequence.
+
+    unless (@tests) {
+        my @seq = <base/*.t>;
+        push @tests, @seq;
+
+        my (@next, @last);
+
+        # The remaining core tests are either intermixed with the non-core for
+        # more parallelism (if PERL_TEST_HARNESS_ASAP is set non-zero) or done
+        # after the above basic sanity tests, before any non-core ones.
+        my $which = $ENV{PERL_TEST_HARNESS_ASAP} ? \@last : \@next;
+
+        push @$which, qw(comp run cmd);
+        push @$which, qw(io re opbasic op op/hook uni mro lib class porting perf test_pl);
+        push @$which, 'japh' if $torture or $ENV{PERL_TORTURE_TEST};
+        push @$which, 'win32' if $is_win32;
+        push @$which, 'benchmark' if $ENV{PERL_BENCHMARK};
+        push @$which, 'bigmem' if $ENV{PERL_TEST_MEMORY};
+
+        if (@next) {
+            @next = map { glob ("$_/*.t") } @next;
+            push @tests, @next;
+            push @seq, _compute_tests_and_ordering(\@next)->@*;
+        }
+
+        @last = map { glob ("$_/*.t") } @last;
+
+        my ($non_ext, @ext_from_manifest)=
+            _tests_from_manifest($Config{extensions}, $Config{known_extensions}, "all");
+        push @last, @ext_from_manifest;
+
+        push @seq, _compute_tests_and_ordering(\@last)->@*;
+        push @tests, @last;
+
+        $rules = { seq => \@seq };
+
+        foreach my $test (@tests) {
+            delete $non_ext->{$test};
+        }
+
+        my @in_manifest_but_not_found = sort keys %$non_ext;
+        if (@in_manifest_but_not_found) {
+            die "There are test files which are in MANIFEST but are not found by the t/harness\n",
+                 "directory scanning rules. You should update t/harness line 339 or so.\n",
+                 "Files:\n", map { "    $_\n" } @in_manifest_but_not_found;
+        }
+    }
+}
+if ($is_win32) {
+    s,\\,/,g for @tests;
+}
+if (@re or @anti_re) {
+    my @keepers;
+    foreach my $test (@tests) {
+        my $keep = 0;
+        if (@re) {
+            foreach my $re (@re) {
+                $keep = 1 if $test=~/$re/;
+            }
+        } else {
+            $keep = 1;
+        }
+        if (@anti_re) {
+            foreach my $anti_re (@anti_re) {
+                $keep = 0 if $test=~/$anti_re/;
+            }
+        }
+        if ($keep) {
+            push @keepers, $test;
+        }
+    }
+    @tests= @keepers;
+}
+
+# Allow e.g., ./perl t/harness t/op/lc.t
+for (@tests) {
+    if (! -f $_ && !/^\.\./ && -f "../$_") {
+        $_ = "../$_";
+        s{^\.\./t/}{};
+    }
+}
+
+dump_tests(\@tests) if $dump_tests;
+
+filter_taint_tests(\@tests);
+
+my %options;
+
+my $type = 'perl';
+
+# Load TAP::Parser now as otherwise it could be required in the short time span
+# in which the harness process chdirs into ext/Dist
+require TAP::Parser;
+
+my $h = TAP::Harness->new({
+    rules       => $rules,
+    color       => $color,
+    jobs        => $jobs,
+    verbosity   => $Verbose,
+    timer       => $ENV{HARNESS_TIMER},
+    exec        => sub {
+        my ($harness, $test) = @_;
+
+        my $options = $options{$test};
+        if (!defined $options) {
+            $options = $options{$test} = _scan_test($test, $type);
+        }
+
+        (local $Valgrind_Log = "$test.valgrind-current") =~ s/^.*\///;
+
+        return [ split ' ', _cmd($options, $type) ];
+    },
+});
+
+# Print valgrind output after test completes
+if ($ENV{PERL_VALGRIND}) {
+    $h->callback(
+                 after_test => sub {
+                     my ($job) = @_;
+                     my $test = $job->[0];
+                     my $vfile = "$test.valgrind-current";
+                     $vfile =~ s/^.*\///;
+
+                     if ( (! -z $vfile) && open(my $voutput, '<', $vfile)) {
+                        print "$test: Valgrind output:\n";
+                        print "$test: $_" for <$voutput>;
+                        close($voutput);
+                     }
+
+                     (local $Valgrind_Log = "$test.valgrind-current") =~ s/^.*\///;
+
+                     _check_valgrind(\$htoolnm, \$hgrind_ct, \$test);
+                 }
+                 );
+}
+
+if ($state) {
+    $h->callback(
+                 after_test => sub {
+                     $state->observe_test(@_);
+                 }
+                 );
+    $h->callback(
+                 after_runtests => sub {
+                     $state->commit(@_);
+                 }
+                 );
+}
+
+$h->callback(
+             parser_args => sub {
+                 my ($args, $job) = @_;
+                 my $test = $job->[0];
+                 _before_fork($options{$test});
+                 push @{ $args->{switches} }, "-I../../lib";
+             }
+             );
+
+$h->callback(
+             made_parser => sub {
+                 my ($parser, $job) = @_;
+                 my $test = $job->[0];
+                 my $options = delete $options{$test};
+                 _after_fork($options);
+             }
+             );
+
+my $agg = $h->runtests(@tests);
+_cleanup_valgrind(\$htoolnm, \$hgrind_ct);
+printf "Finished test run at %s.\n", scalar(localtime);
+exit $agg->has_errors ? 1 : 0;

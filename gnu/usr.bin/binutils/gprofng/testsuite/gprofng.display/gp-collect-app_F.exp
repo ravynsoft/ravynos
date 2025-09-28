@@ -1,0 +1,68 @@
+# Copyright (C) 2021-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+
+# gp-collect-app should follow descendants, which names match specified regular expressions
+#
+# This script tests the following cases:
+# 1. collect -F off
+# 2. collect -F on
+# 3. collect -F =<REGULAR EXPRESSION>
+
+set gprofng $::env(GPROFNG)
+set tdir "tmpdir/gp-collect-app_F"
+
+proc run_gp_collect_app { subExpCnt F_opt } {
+  global tdir gprofng
+  set output [run_native_host_cmd "cd $tdir && \
+    $gprofng collect app -p on -a off -F '$F_opt' -O exp.er \
+      sh -c 'mkdir t && touch t/x; rm -rf t' "]
+  if { [lindex $output 0] != 0 } then {
+    set out [lindex $output 1]
+    send_log "Experiment is not created in $tdir\n"
+    fail $tdir
+    return -code break
+  }
+  if {[regexp "ERROR:.*LD_PRELOAD" [lindex $output 1] match]} {
+    set out [lindex $output 1]
+    send_log "Experiment is not created in $tdir\n"
+    xfail $tdir
+    return -code break
+  }
+
+  set output [run_native_host_cmd "find $tdir -name '*x1.er' | wc -l"]
+  set subExp [lindex $output 1]
+  if { $subExp != $subExpCnt } then {
+    set out [lindex $output 1]
+    send_log "Test failed for -F $F_opt. subExp=$subExp. Shold be $subExpCnt\n"
+    fail $tdir
+    return -code break
+  }
+  return $output
+}
+
+run_native_host_cmd "mkdir -p $tdir"
+
+run_gp_collect_app 0 "off"
+run_gp_collect_app 3 "on"
+run_gp_collect_app 1 "=mkd.r"
+run_gp_collect_app 2 "=mkdir|touch"
+
+pass $tdir
+

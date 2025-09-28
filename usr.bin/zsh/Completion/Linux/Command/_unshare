@@ -1,0 +1,40 @@
+#compdef unshare
+
+local ign
+(( $#words > 2 )) && ign='!'
+
+# a different unshare exists on some systems
+if [[ $OSTYPE != linux* ]]; then
+  _default
+  return
+fi
+
+_arguments -S -s \
+  '(-m --mount)'{-m-,--mount=-}'[enter mount namespace]::file:_files' \
+  '(-u --uts)'{-u-,--uts=-}'[enter UTS namespace (hostname etc)]::file:_files' \
+  '(-i --ipc)'{-i-,--ipc=-}'[enter System V IPC namespace]::file:_files' \
+  '(-n --net)'{-n-,--net=-}'[enter network namespace]::file:_files' \
+  '(-p --pid)'{-p-,--pid=-}'[enter pid namespace]::file:_files' \
+  '(-U --user)'{-U-,--user=-}'[enter user namespace]::file:_files' \
+  '(-C --cgroup)'{-C-,--cgroup=-}'[enter cgroup namespace]::file:_files' \
+  '(-T --time)'{-T-,--time=-}'[enter time namespace]::file:_files' \
+  '(-f --fork)'{-f,--fork}"[fork before launching]" \
+  '(-r --map-root-user)--map-user=[map current user to uid (implies --user)]:user:_users' \
+  '--map-group=[map current group to gid (implies --user)]:group:_groups' \
+  '(-r --map-root-user -c --map-current-user --map-user)'{-r,--map-root-user}'[map current user to root (implies --user)]' \
+  '(-c --map-current-user)'{-c,--map-current-user}'[map current user to itself (implies --user)]' \
+  '(-f --fork)--kill-child=-[when dying, kill the forked child (implies --fork)]::signal [KILL]:_signals' \
+  '--mount-proc=-[mount proc filesystem first (implies --mount)]::mount point [/proc]:_directories' \
+  '--propagation=[modify mount propagation in mount namespace]:propagation flag:(slave shared private unchanged)' \
+  '--setgroups=[control the setgroups syscall in user namespaces]:grant setgroups:(allow deny)' \
+  '--keep-caps[retain capabilities granted in user namespaces]' \
+  '(-R --root)'{-R+,--root=}'[set the root directory]:directory:_directories' \
+  '(-w --wd)'{-w+,--wd=}'[set the working directory]:directory:_directories' \
+  '(-S --setuid)'{-S+,--setuid=}'[set uid in entered namespace]:uid [0]' \
+  '(-G --setgid)'{-G+,--setgid=}'[set gid in entered namespace]:gid [0]' \
+  '--monotonic=[set clock monotonic offset in time namespaces]:offset (seconds)' \
+  '--boottime=[set clock boottime offset in time namespaces]:offset (seconds)' \
+  "${ign}(- 1 *)"{-h,--help}'[display usage information]' \
+  "${ign}(- 1 *)"{-V,--version}'[display version information]' \
+  '1: : _command_names -e' \
+  '*::args :_normal'

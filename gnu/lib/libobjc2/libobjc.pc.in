@@ -1,0 +1,13 @@
+prefix=@PC_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/@LIB_INSTALL_PATH@
+includedir=${prefix}/@HEADER_INSTALL_PATH@
+
+Name: libobjc
+Description: GNUstep Objective-C runtime library
+Version: @CPACK_PACKAGE_VERSION_MAJOR@.@CPACK_PACKAGE_VERSION_MINOR@.@CPACK_PACKAGE_VERSION_PATCH@
+
+Cflags: -I${includedir}
+Libs: -L${libdir} -lobjc
+@PC_REQUIRES_PRIVATE_BOEHM_GC@
+@PC_LIBS_PRIVATE@

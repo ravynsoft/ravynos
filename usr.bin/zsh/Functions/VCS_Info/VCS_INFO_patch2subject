@@ -1,0 +1,82 @@
+## vim:ft=zsh
+#
+# This function takes as an argument a filename of a patch and sets $REPLY to
+# a single-line "subject", or unsets it if no subject could be extracted.
+{
+    setopt localoptions extendedglob
+    integer i
+    integer -r LIMIT=10
+    local -a lines
+    local needle
+    readonly svn_log_pattern='^r[0-9]* [|] .*'
+    if [[ -f "$1" ]]; then
+        # Extract the first LIMIT lines, or up to the first empty line or the start of the unidiffs,
+        # whichever comes first.
+        while (( i++ < LIMIT )); do
+            IFS= read -r "lines[$i]"
+            if [[ -z ${lines[$i]} ]] || [[ ${lines[$i]} == (#b)(---[^-]|Index:)* ]]; then
+                lines[$i]=()
+                break
+            fi
+        done < "$1"
+        
+        if needle=${lines[(i)Subject:*]}; (( needle <= $#lines )); then
+            # "Subject: foo" line, plus rfc822 whitespace unfolding.
+            #
+            # Example: 'git format-patch' patches.
+            REPLY=${lines[needle]}
+            REPLY=${REPLY#*: }
+            REPLY=${REPLY#\[PATCH\] }
+            while [[ ${${lines[++needle]}[1]} == ' ' ]]; do
+                REPLY+=${lines[needle]}
+            done
+        elif needle=${lines[(r)Description:*]}; [[ -n $needle ]]; then
+            # "Description: foo" line.
+            #
+            # Example: DEP-3 patches.
+            REPLY=${needle#*: }
+        elif [[ ${lines[1]} == '# HG changeset patch' ]] && { needle=${${lines:#([#]*)}[1]}; [[ -n $needle ]] }; then
+            # Mercurial patch
+            REPLY=$needle
+        elif [[ ${lines[1]} == "commit "[0-9a-f](#c40) ]] &&
+             [[ ${lines[2]} == "Author:"* && ${lines[3]} == "Date:"* ]] &&
+             (( ! ${+lines[4]} )); then
+            # `git show` output.
+            #
+            # The log message is after the first blank line, so open() the file
+            # again.  Also check whether the following line (second line of the
+            # log message itself) is empty.
+            {
+              repeat 4 { IFS= read -r }
+              IFS= read -r needle; needle=${needle#'    '}
+              if IFS= read -r; REPLY=${REPLY#'    '}; [[ -n $REPLY ]]; then
+                needle+='...'
+              fi
+            } < "$1"
+            REPLY=$needle
+        elif [[ $lines[1] =~ $svn_log_pattern ]] || [[ $lines[2] =~ $svn_log_pattern ]]; then
+            # Read up to the next blank line, and the first two lines after it.
+            integer multiline=0
+            {
+              while read -r needle; [[ -n $needle ]]; do done
+              # Read the first line of the second paragraph, which is the first
+              # line of the log message.
+              read -r needle
+              read -r && [[ -n $REPLY ]] && multiline=1
+            } < "$1"
+            REPLY=$needle
+            if (( multiline )); then REPLY+='...'; fi
+        elif (( ${+lines[1]} )); then
+            # The first line of the file is not part of the diff.
+            REPLY=${lines[1]}
+        else
+            # The patch has no subject.
+            unset REPLY
+            return 0
+        fi
+    else
+        # The patch cannot be examined, or invalid arguments.
+        unset REPLY
+        return 1
+    fi
+}

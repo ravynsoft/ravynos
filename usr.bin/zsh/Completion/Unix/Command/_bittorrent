@@ -1,0 +1,100 @@
+#compdef btdownloadcurses btdownloadheadless btdownloadgui btlaunchmany btlaunchmanycurses bttrack btshowmetainfo btreannounce btmakemetafile btrename
+
+# Bittorrent completion commands. Originally written by Jussi
+# Pakkanen, 2004. Most of the command descriptions are from the Debian
+# project's man pages.
+
+# Modified by R.Ramkumar, 2006 to conform to zsh completion standards and
+# enhance completion for certain options.
+
+case $service in
+
+# Start with the clients.
+
+ btdownloadcurses)
+   ;&
+ btdownloadheadless)
+   ;&
+ btdownloadgui)
+   ;&
+ btlaunchmany)
+   ;&
+ btlaunchmanycurses)
+  _arguments -s -S \
+      '(--responsefile)--responsefile+[specify file for server response]:file:_files'\
+      "--url+[specify URL of torrent file]:URL:_urls"\
+      '(-i --ip)'{-i+,--ip+}'[specify ip address to report as]:ip address'\
+      "--bind+[specify ip to bind to instead of default]:ip:_bind_addresses"\
+      "--minport+[specify minimum port to listen to]:port:"\
+      "--maxport+[specify maximum port to listen to]:port:"\
+      "--saveas+[specify file to save to]:file:_files -/"\
+      "--max_uploads+[specify maximum amount of uploads]:uploads:"\
+      "--max_upload_rate+[specify maximum upload rate]:rate (kb):"\
+      "--keepalive_interval+[specify pause between keepalives]:time (s):"\
+      "--download_slice_size+[specify bytes to query per request]:size (b):"\
+      "--request_backlog+[specify number of requests to keep in a single pipe]:requests:"\
+      "--max_message_length+[specify maximum length of prefix encoding]:size (b):"\
+      "--timeout+[specify timeout before closing sockets on receiving nothing]:timeout (s):"\
+      "--timeout_check_interval+[specify interval to check for connection time]:time interval (s):"\
+      "--max_slice_length+[specify maximum size of requests accepted from peers]:size (b):"\
+      "--max_rate_recalculate_interval+[specify length of pauses leading to reduced rate]:time (s):"\
+      "--max_rate_period+[specify maximum time taken to guess the current rate estimate]:time (s):"\
+      "--upload_rate_fudge+[specify time equivalent of writing to kernel TCP buffer]:time (s):"\
+      "--display_interval+[specify time between updates to displayed information]:time (s):"\
+      "--rerequest_interval+[specify time between requests for more peers]:time (s)"\
+      "--min_peers+[specify peers needed before stopping or delaying requests for peers]:peers:"\
+      "--http_timeout+[specify timeout for http connections]:timeout (s):"\
+      "--snub_time+[specify timeout to decide that connection is semi-permanently choked]:timeout (s):"\
+      "--spew+[display diagnostic info to stdout]:enable:(0 1)"\
+      "--check_hashes+[check hashes on disk]:enable:(0 1)"\
+      "--max_initiate+[specify peers needed before stopping initiating new connections]:peers:"\
+      "--report_hash_failures+[report hash failures to user]:enable:(0 1)"\
+      "--rarest_first_priority_cutoff+[specify peers which need to have a piece before other partials take priority over rarest first]:peers:"\
+      ':torrent file:_files -g "*.torrent(-.)"'
+    return
+  ;;
+
+# Next up are the torrent file manipulation programs.
+
+  btshowmetainfo)
+    _files -g "*.torrent(-.)" && return
+  ;;
+
+  btrename)
+    _files -g '*.torrent(-.)' && return
+  ;;
+
+  btmakemetafile)
+    _arguments -s -S \
+      '--piece_size_pow2+[specify power of 2 to set the piece size to]:power:' \
+      "--comment+[specify human-readable comment to put in .torrent]:comment:"\
+      "--target+[specify target file for the torrent]:file:_files"\
+      ':file:_files'
+    return
+  ;;
+
+  btreannounce)
+    _files -g '*.torrent(-.)' && return
+  ;;
+
+# Lastly the tracker.
+
+  bttrack)
+    _arguments -s -S \
+      "--port+[specify port to listen on]:port number:" \
+      "--dfile+[specify file to store recent downloader info]:file:_files" \
+      "--bind+[specify ip to bind to]:bind address:_bind_addresses" \
+      "--socket_timeout+[specify timeout for closing connections]:timeout (s):"\
+      "--save_dfile_interval+[specify interval between saving dfile]:time (s):"\
+      "--timeout_downloaders_interval+[timeout for expiring downloaders]:time (s):" \
+      "--reannounce_interval+[specify interval downloaders should wait between reannouncements]:time (s):" \
+      "--response_size+[specify peers to send in an info message]:peers:" \
+      "--timeout_check_interval+[specify connection timeout]:timeout (s):"\
+      "--nat_check=[check back and ban downloaders behind NAT]:enable:(0 1)" \
+      "--min_time_between_log_flushes+[specify minimum time between log flushes]:time (s):" \
+      "--allowed_dir+[specify directory having downloadable torrents]:directory:_files -/" \
+      "--parse_allowed_interval+[specify interval between reloading allowed_dir]:time (min):" \
+      "--show_names+[display names from allowed dir]:enable:(0 1)"
+    return
+  ;;
+esac

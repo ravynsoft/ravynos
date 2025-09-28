@@ -1,0 +1,31 @@
+pushd [ -qsLP ] [ arg ]
+pushd [ -qsLP ] old new
+pushd [ -qsLP ] {+|-}n
+       Change the current directory, and push the old current directory
+       onto the directory stack.  In the first form, change the current
+       directory to arg.  If arg is not specified, change to the second
+       directory on the stack (that is, exchange the top two  entries),
+       or  change  to  $HOME  if  the PUSHD_TO_HOME option is set or if
+       there is only one entry on the stack.  Otherwise, arg is  inter-
+       preted  as it would be by cd.  The meaning of old and new in the
+       second form is also the same as for cd.
+
+       The third form of pushd changes directory by rotating the direc-
+       tory  list.  An argument of the form `+n' identifies a stack en-
+       try by counting from the left of the list shown by the dirs com-
+       mand,  starting  with zero.  An argument of the form `-n' counts
+       from the right.  If the PUSHD_MINUS option is set, the  meanings
+       of `+' and `-' in this context are swapped.
+
+       If  the  -q (quiet) option is specified, the hook function chpwd
+       and the functions in the array $chpwd_functions are not  called,
+       and  the new directory stack is not printed.  This is useful for
+       calls to pushd that do not change the environment seen by an in-
+       teractive user.
+
+       If  the  option  -q  is  not  specified  and  the  shell  option
+       PUSHD_SILENT is not set, the directory stack will be printed af-
+       ter a pushd is performed.
+
+       The  options  -s, -L and -P have the same meanings as for the cd
+       builtin.

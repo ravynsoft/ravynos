@@ -1,0 +1,70 @@
+texinode(Files)(Shell Grammar)(Invocation)(Top)
+chapter(Files)
+sect(Startup/Shutdown Files)
+cindex(files, startup)
+cindex(startup files)
+cindex(files, shutdown)
+cindex(shutdown files)
+pindex(RCS, use of)
+pindex(GLOBAL_RCS, use of)
+pindex(NO_RCS, use of)
+pindex(NO_GLOBAL_RCS, use of)
+vindex(ZDOTDIR, use of)
+cindex(zshenv)
+Commands are first read from tt(zshenv()); this cannot be overridden.
+Subsequent behaviour is modified by the tt(RCS) and
+tt(GLOBAL_RCS) options; the former affects all startup files, while the
+second only affects global startup files (those shown here with an
+path starting with a tt(/)).  If one of the options
+is unset at any point, any subsequent startup file+LPAR()s+RPAR()
+of the corresponding
+type will not be read.  It is also possible for a file in tt($ZDOTDIR) to
+re-enable tt(GLOBAL_RCS). Both tt(RCS) and tt(GLOBAL_RCS) are set by
+default.
+
+Commands are then read from tt($ZDOTDIR/.zshenv).
+pindex(LOGIN, use of)
+cindex(zprofile)
+If the shell is a login shell, commands
+are read from tt(zprofile()) and then tt($ZDOTDIR/.zprofile).
+cindex(zshrc)
+Then, if the shell is interactive,
+commands are read from tt(zshrc()) and then tt($ZDOTDIR/.zshrc).
+cindex(zlogin)
+Finally, if the shell is a login shell, tt(zlogin()) and
+tt($ZDOTDIR/.zlogin) are read.
+
+cindex(zlogout)
+When a login shell exits, the files tt($ZDOTDIR/.zlogout) and then
+tt(zlogout()) are read.  This happens with either an explicit exit
+via the tt(exit) or tt(logout) commands, or an implicit exit by reading
+end-of-file from the terminal.  However, if the shell terminates due
+to tt(exec)'ing another process, the logout files are not read.
+These are also affected by the tt(RCS) and tt(GLOBAL_RCS) options.
+Note also that the tt(RCS) option affects the saving of history files,
+i.e. if tt(RCS) is unset when the shell exits, no history file will be
+saved.
+
+vindex(HOME, use of)
+If tt(ZDOTDIR) is unset, tt(HOME) is used instead.
+Files listed above as being in tt(/etc) may be in another
+directory, depending on the installation.
+
+As tt(zshenv()) is run for all instances of zsh, it is important that
+it be kept as small as possible.  In particular, it is a good idea to
+put code that does not need to be run for every single shell behind
+a test of the form `tt(if [[ -o rcs ]]; then ...)' so that it will not
+be executed when zsh is invoked with the `tt(-f)' option.
+ifnzman(includefile(Zsh/filelist.yo))
+
+Any of these files may be pre-compiled with the tt(zcompile) builtin
+command (\
+ifzman(\
+see zmanref(zshbuiltins)\
+)\
+ifnzman(\
+noderef(Shell Builtin Commands)\
+)\
+).  If a compiled file exists (named for the original file plus the
+tt(.zwc) extension) and it is newer than the original file, the compiled
+file will be used instead.

@@ -1,0 +1,19 @@
+url
+  http://example.com/new.txt
+content
+  abcdefghijklmnopqrstuvwxyz1234567890abcdef
+----------
+PUT /new.txt HTTP/1.1
+Host: example.com
+Connection: close
+User-Agent: HTTP-Tiny/VERSION
+Content-Type: application/octet-stream
+Content-Length: 42
+
+abcdefghijklmnopqrstuvwxyz1234567890abcdef
+----------
+HTTP/1.1 201 Created
+Date: Thu, 03 Feb 1994 00:00:00 GMT
+Location: http://example.com/new.txt
+Content-Length: 0
+

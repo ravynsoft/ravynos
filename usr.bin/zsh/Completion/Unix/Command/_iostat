@@ -1,0 +1,159 @@
+#compdef iostat
+
+local -a args parser
+parser=( -s -S -A '-*' )
+
+case $OSTYPE:l in
+  *bsd*|dragonfly*)
+    args+=(
+      '-c+[repeat the display N times]:count'
+      '-C[display CPU statistics]'
+      '-d[display only device statistics]'
+      '-I[display total statistics for a given period, rather than average]'
+      '-T[display TTY statistics]'
+      '-w+[specify the duration of pauses between each display]:duration'
+      '*: :_bsd_disks'
+    )
+    ;|
+  freebsd*|openbsd*|dragonfly*)
+    args+=(
+      '-M+[extract values of the name list from specified file]:core:_files'
+      '-N+[extract the name list from the specified file]:system:_files'
+    )
+    ;|
+  freebsd*|dragonfly*)
+    args+=(
+      '-h[top mode]'
+      '-K[display block count in kilobytes, not block size]'
+      '-n+[display up to the specified number fo devices]:number of disks'
+      '-o[display old-style iostat device statistics]'
+      '*-t+[specify which type of device to display]: :_fbsd_device_types'
+    )
+    ;|
+  freebsd*)
+    args+=(
+      '-x[show extended disk statistics]'
+      '-z[omit lines for devices with no activity]'
+      '(* -)-?[display a usage statement and exit]'
+    )
+    ;;
+  dragonfly*)
+    args+=(
+      '-D[display more details]'
+    )
+    ;;
+  openbsd*|netbsd*)
+    args+=(
+      '-D[display alternate disk statistics]'
+    )
+    ;|
+  netbsd*)
+    args+=(
+      '-x[show extended disk statistics]'
+      '-y[report data on waiting and active requests]'
+    )
+    ;;
+  aix*)
+    args=(
+      '(-b -q -Q -f -F)-a[displays the adapter throughput report]'
+      '(-b)-A[displays the legacy asynchronous IO utilization report, and turns off the display of TTY utilization report]'
+      '-b[displays the block I/O device utilization statistics]'
+      '(-b)-d[turns off the display of TTY utilization report or CPU utilization report]'
+      '(-b -f -F)-D[displays the extended tape/drive utilization report]'
+      '(-a -b -D)-f[displays the file system utilization report]'
+      '(-a -b -D)-F[displays the file system utilization report, and turns off other utilization reports]'
+      '(-b)-l[displays the output in long listing mode]'
+      '(-b -t)-m[displays the path utilization report]'
+      '(-b)-p[displays the tape utilization report]'
+      '(-b)-P[displays the POSIX asynchronous IO utilization report]'
+      '(-b)-q[specifies AIO queues and their request counts]'
+      '(-b)-Q[displays a list of all the mounted file systems and the associated queue numbers with their request counts]'
+      '(-b)-R[specifies that the reset of min* and max* values should happen at each interval]'
+      '(-b)-s[specifies the system throughput report]'
+      '(-b)-S[displays the processor statistics that are multiplied by a value of 10]:power'
+      '(-b -m)-t[turns off the display of disk utilization report]'
+      '-T[displays the time stamp]'
+      '(-b)-V[displays valid nonzero statistics]'
+      '(-b)-z[resets the disk input/output statistics]'
+      '(-b)-@[reports I/O activities of a workload partition]:workload:(ALL Global)'
+      '*:drives:_files' # not sure how to enumerate drives on aix
+    )
+    ;;
+  solaris*)
+    args=(
+      '-c[report percentage of time the system spent in user/system mode, dtrace probes and idling]'
+      '-C[report extended disk statistics aggregated by controller id, when used with -x]'
+      '-d[report kilobytes transferred per second, transfers per second and average service time]'
+      '-D[report reads/writes per second and percentage disk utilization]'
+      '-e[display device error summary statistics]'
+      '-E[display all device error statistics]'
+      '-i[display Device ID instead of the Serial No, when used with -E]'
+      '-I[report counts in each interval]'
+      '-l[limit the number of disks included in the report]:number of disks'
+      '-m[report file system mount points]'
+      '-M[display data throughput in MB/sec instead of KB/sec]'
+      '-n[display names in descriptive format]'
+      '-p[report per-partition statistics]'
+      '-P[report per-partition statistics only]'
+      '-r[display data in comma-separated format]'
+      '-s[suppress message related to state changes]'
+      '-t[report the number of characters read and written to terminals per second]'
+      '-T[display a timestamp]:format:(( "u\:internal representation of time" "d\:standard date format" ))'
+      '-X[report statistics for lun.controller, for disks under scsi_vhci(7D) control]'
+      '-x[report extended disk statistics]'
+      '-Y[report statistics for lun.targetport and lun.targetport.controller, for disks under scsi_vhci(7D) control]'
+      '-z[ignore lines where data values are all zeros]'
+      '::device:( ${${${(f)"$(iostat -rx 1 1)"}[3,-1]}%%,*} )'
+    )
+    ;;
+  darwin*)
+    args=(
+      '(- *)-?[display usage statement and exit]'
+      '-C[display CPU statistics]'
+      '-c+[number of times to display statistics]:count'
+      '-d[display only device statistics]'
+      '-I[display total statistics for a given period, rather than average]'
+      '-K[display block count in kilobytes]'
+      '-n+[limit the number of disks included in the report]:number of disks'
+      '-o[display old-style iostat device statistics]'
+      '-T[display TTY statistics]'
+      '-U[display system load averages]'
+      '-w+[specify the duration of pauses between each display]:duration'
+      '*::device:_files -W /dev -g "disk*"'
+    )
+    ;;
+  *linux*)
+    parser=( -s )
+    args=(
+      '-c[display CPU utilization report]'
+      '-d[display device utilization report]'
+      '--dec=-[specify the number of decimal places to use]:decimal places [2]:(0 1 2)'
+      '-f[specify alternative directory to read device statistics from]:directory:_directories'
+      '+f[specify additional directory to read device statistics from]:directory:_directories'
+      '*-g[display statistics for a group of devices]:group name'
+      '-H[only display global statistics for group]'
+      '(--human)-h[human readable device utilization report]'
+      '--human[print sizes in human readable format]'
+      '--pretty[make report easier to read by a human]'
+      '-j[display persistent device name]:name type:(ID LABEL PATH UUID)'
+      '(-m)-k[display statistics in kB/s]'
+      '(-k)-m[display statistics in MB/s]'
+      '-N[display registered device mapper names]'
+      '-o[display statistics in JSON]:format:(JSON)'
+      '-p[display statistics for block devices]'
+      '-t[display the time for each report]'
+      '(- *)-V[display version information]'
+      '-x[display extended statistics]'
+      '-y[omit first statistics report following system boot]'
+      '-z[omit output for devices lacking activity]'
+      '*::device:_files -W /dev -g "*(-%)"'
+    )
+    ;;
+esac
+
+if (( $#args )); then
+  _arguments $parser : $args
+  return
+fi
+
+_default

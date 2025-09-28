@@ -1,0 +1,41 @@
+#import <CoreFoundation/CFNumberFormatter.h>
+#import <Foundation/NSString.h>
+
+const CFStringRef kCFNumberFormatterCurrencyCode=(CFStringRef)@"kCFNumberFormatterCurrencyCode";
+const CFStringRef kCFNumberFormatterDecimalSeparator=(CFStringRef)@"kCFNumberFormatterDecimalSeparator";
+const CFStringRef kCFNumberFormatterCurrencyDecimalSeparator=(CFStringRef)@"kCFNumberFormatterCurrencyDecimalSeparator";
+const CFStringRef kCFNumberFormatterAlwaysShowDecimalSeparator=(CFStringRef)@"kCFNumberFormatterAlwaysShowDecimalSeparator";
+const CFStringRef kCFNumberFormatterGroupingSeparator=(CFStringRef)@"kCFNumberFormatterGroupingSeparator";
+const CFStringRef kCFNumberFormatterUseGroupingSeparator=(CFStringRef)@"kCFNumberFormatterUseGroupingSeparator";
+const CFStringRef kCFNumberFormatterPercentSymbol=(CFStringRef)@"kCFNumberFormatterPercentSymbol";
+const CFStringRef kCFNumberFormatterZeroSymbol=(CFStringRef)@"kCFNumberFormatterZeroSymbol";
+const CFStringRef kCFNumberFormatterNaNSymbol=(CFStringRef)@"kCFNumberFormatterNaNSymbol";
+const CFStringRef kCFNumberFormatterInfinitySymbol=(CFStringRef)@"kCFNumberFormatterInfinitySymbol";
+const CFStringRef kCFNumberFormatterMinusSign=(CFStringRef)@"kCFNumberFormatterMinusSign";
+const CFStringRef kCFNumberFormatterPlusSign=(CFStringRef)@"kCFNumberFormatterPlusSign";
+const CFStringRef kCFNumberFormatterCurrencySymbol=(CFStringRef)@"kCFNumberFormatterCurrencySymbol";
+const CFStringRef kCFNumberFormatterExponentSymbol=(CFStringRef)@"kCFNumberFormatterExponentSymbol";
+const CFStringRef kCFNumberFormatterMinIntegerDigits=(CFStringRef)@"kCFNumberFormatterMinIntegerDigits";
+const CFStringRef kCFNumberFormatterMaxIntegerDigits=(CFStringRef)@"kCFNumberFormatterMaxIntegerDigits";
+const CFStringRef kCFNumberFormatterMinFractionDigits=(CFStringRef)@"kCFNumberFormatterMinFractionDigits";
+const CFStringRef kCFNumberFormatterMaxFractionDigits=(CFStringRef)@"kCFNumberFormatterMaxFractionDigits";
+const CFStringRef kCFNumberFormatterGroupingSize=(CFStringRef)@"kCFNumberFormatterGroupingSize";
+const CFStringRef kCFNumberFormatterSecondaryGroupingSize=(CFStringRef)@"kCFNumberFormatterSecondaryGroupingSize";
+const CFStringRef kCFNumberFormatterRoundingMode=(CFStringRef)@"kCFNumberFormatterRoundingMode";
+const CFStringRef kCFNumberFormatterRoundingIncrement=(CFStringRef)@"kCFNumberFormatterRoundingIncrement";
+const CFStringRef kCFNumberFormatterFormatWidth=(CFStringRef)@"kCFNumberFormatterFormatWidth";
+const CFStringRef kCFNumberFormatterPaddingPosition=(CFStringRef)@"kCFNumberFormatterPaddingPosition";
+const CFStringRef kCFNumberFormatterPaddingCharacter=(CFStringRef)@"kCFNumberFormatterPaddingCharacter";
+const CFStringRef kCFNumberFormatterDefaultFormat=(CFStringRef)@"kCFNumberFormatterDefaultFormat";
+const CFStringRef kCFNumberFormatterMultiplier=(CFStringRef)@"kCFNumberFormatterMultiplier";
+const CFStringRef kCFNumberFormatterPositivePrefix=(CFStringRef)@"kCFNumberFormatterPositivePrefix";
+const CFStringRef kCFNumberFormatterPositiveSuffix=(CFStringRef)@"kCFNumberFormatterPositiveSuffix";
+const CFStringRef kCFNumberFormatterNegativePrefix=(CFStringRef)@"kCFNumberFormatterNegativePrefix";
+const CFStringRef kCFNumberFormatterNegativeSuffix=(CFStringRef)@"kCFNumberFormatterNegativeSuffix";
+const CFStringRef kCFNumberFormatterPerMillSymbol=(CFStringRef)@"kCFNumberFormatterPerMillSymbol";
+const CFStringRef kCFNumberFormatterInternationalCurrencySymbol=(CFStringRef)@"kCFNumberFormatterInternationalCurrencySymbol";
+const CFStringRef kCFNumberFormatterCurrencyGroupingSeparator=(CFStringRef)@"kCFNumberFormatterCurrencyGroupingSeparator";
+const CFStringRef kCFNumberFormatterIsLenient=(CFStringRef)@"kCFNumberFormatterIsLenient";
+const CFStringRef kCFNumberFormatterUseSignificantDigits=(CFStringRef)@"kCFNumberFormatterUseSignificantDigits";
+const CFStringRef kCFNumberFormatterMinSignificantDigits=(CFStringRef)@"kCFNumberFormatterMinSignificantDigits";
+const CFStringRef kCFNumberFormatterMaxSignificantDigits=(CFStringRef)@"kCFNumberFormatterMaxSignificantDigits";

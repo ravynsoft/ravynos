@@ -1,0 +1,31 @@
+Files:
+tests/test-term-ostream.c
+tests/test-term-ostream-xterm.sh
+tests/test-term-ostream-xterm-r6.out
+tests/test-term-ostream-xterm-xf86-v32.out
+tests/test-term-ostream-xterm-basic.out
+tests/test-term-ostream-xterm-basic-italic.out
+tests/test-term-ostream-xterm-freebsd101.out
+tests/test-term-ostream-xterm-freebsd-italic.out
+tests/test-term-ostream-xterm-8bit.out
+tests/test-term-ostream-xterm-linux-debian.out
+tests/test-term-ostream-xterm-linux-mandriva.out
+tests/test-term-ostream-xterm-netbsd3.out
+tests/test-term-ostream-xterm-solaris10.out
+tests/test-term-ostream-xterm-aix51.out
+tests/test-term-ostream-xterm-osf51.out
+tests/test-term-ostream-xterm-irix65.out
+tests/test-term-ostream-xterm-mingw.out
+tests/test-term-ostream-xterm-16color.out
+tests/test-term-ostream-xterm-88color.out
+tests/test-term-ostream-xterm-256color.out
+
+Depends-on:
+
+configure.ac:
+
+Makefile.am:
+TESTS += test-term-ostream-xterm.sh
+TESTS_ENVIRONMENT += srcdir='$(srcdir)'
+check_PROGRAMS += test-term-ostream
+test_term_ostream_LDADD = $(LIBTERMCAP) $(LDADD)

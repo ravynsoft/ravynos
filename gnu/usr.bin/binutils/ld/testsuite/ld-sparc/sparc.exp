@@ -1,0 +1,186 @@
+# Expect script for ld-sparc tests
+#   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+# Test SPARC linking; all types of relocs.  This tests the assembler and
+# tools like objdump as well as the linker.
+
+if {[istarget "sparc-*-vxworks"]} {
+    set sparcvxworkstests {
+	{"VxWorks shared library test 1"
+	 "-shared -Tvxworks1.ld --hash-style=sysv" ""
+	 "-KPIC" {vxworks1-lib.s}
+	 {{readelf --relocs vxworks1-lib.rd} {objdump -dr vxworks1-lib.dd}
+	  {readelf --symbols vxworks1-lib.nd} {readelf -d vxworks1-lib.td}}
+	 "libvxworks1.so"}
+	{"VxWorks executable test 1 (dynamic)" \
+	 "tmpdir/libvxworks1.so -Tvxworks1.ld --hash-style=sysv -q --force-dynamic" ""
+	 "" {vxworks1.s}
+	 {{readelf {--relocs --wide} vxworks1.rd} {objdump -dr vxworks1.dd}}
+	 "vxworks1"}
+	{"VxWorks executable test 2 (dynamic)" \
+	 "-Tvxworks1.ld --hash-style=sysv -q --force-dynamic" ""
+	 "" {vxworks2.s}
+	 {{readelf --segments vxworks2.sd}}
+	 "vxworks2"}
+	{"VxWorks executable test 2 (static)"
+	 "-Tvxworks1.ld --hash-style=sysv" ""
+	 "" {vxworks2.s}
+	 {{readelf --segments vxworks2-static.sd}}
+	 "vxworks2"}
+    }
+    run_ld_link_tests $sparcvxworkstests
+    run_dump_test "vxworks1-static"
+}
+
+if { !([istarget "sparc*-*-elf*"]
+       || [istarget "sparc*-sun-solaris*"]
+       || [istarget "sparc*-*-linux*"]) } {
+    return
+}
+
+# List contains test-items with 3 items followed by 2 lists:
+# 0:name 1:ld early options 2:ld late options 3:assembler options
+# 4:filenames of assembler files 5: action and options. 6: name of output file
+
+# Actions:
+# objdump: Apply objdump options on result.  Compare with regex (last arg).
+# nm: Apply nm options on result.  Compare with regex (last arg).
+# readelf: Apply readelf options on result.  Compare with regex (last arg).
+
+set sparctests {
+    {"32-bit: TLS -fpic -shared transitions"
+     "-shared -melf32_sparc --hash-style=sysv" ""
+     "--32 -K PIC" {tlssunpic32.s tlspic.s}
+     {{readelf -WSsrl tlssunpic32.rd} {objdump -drj.text tlssunpic32.dd}
+      {objdump -sj.got tlssunpic32.sd} {objdump -sj.tdata tlssunpic32.td}}
+      "libtlssunpic32.so"}
+    {"32-bit: Helper shared library"
+     "-shared -melf32_sparc -version-script tlslib.ver" ""
+     "--32 -K PIC" {tlslib.s} {} "libtlslib32.so"}
+    {"32-bit: Another helper shared library" "-shared -melf32_sparc" ""
+     "--32 -K PIC" {tlssunbinpic32.s} {} "libtlssunbinpic32.so"}
+    {"32-bit: TLS -fpic and -fno-pic exec transitions"
+     "-melf32_sparc --hash-style=sysv tmpdir/libtlslib32.so tmpdir/tlssunbinpic32.o" ""
+     "--32" {tlssunbin32.s}
+     {{readelf -WSsrl tlssunbin32.rd} {objdump -drj.text tlssunbin32.dd}
+      {objdump -sj.got tlssunbin32.sd} {objdump -sj.tdata tlssunbin32.td}}
+      "tlssunbin32"}
+    {"32-bit: TLS -fno-pic -shared"
+     "-shared -melf32_sparc --hash-style=sysv" ""
+     "--32" {tlssunnopic32.s tlsnopic.s}
+     {{readelf -WSsrl tlssunnopic32.rd} {objdump -drj.text tlssunnopic32.dd}
+      {objdump -sj.got tlssunnopic32.sd}} "libtlssunnopic32.so"}
+    {"32-bit: TLS in debug sections" "-melf32_sparc" ""
+     "--32" {tlsg32.s}
+     {{objdump -sj.debug_foobar tlsg32.sd}} "tlsg32"}
+    {"32-bit: TLS -fpie" "-melf32_sparc -pie tmpdir/libtlslib32.so" ""
+     "--32 -K PIC" {tlspie32.s}
+     {{objdump -drj.text tlspie32.dd}} "tlspie32"}
+    {"32-bit: GOTDATA relocations"
+     "-shared -melf32_sparc --hash-style=sysv" ""
+     "--32 -K PIC" {gotop32.s}
+     {{readelf -WSsrl gotop32.rd} {objdump -drj.text gotop32.dd}
+      {objdump -sj.got gotop32.sd} {objdump -sj.data gotop32.td}}
+     "libgotop32.so"}
+    {"relaxed call WDISP30 relocation" "-static -melf32_sparc -relax" ""
+     "--32" {wdispcall.s}
+     {{objdump -dj.wdispcall wdispcall.dd}} "wdispcall"}
+}
+set sparc64tests {
+    {"64-bit: TLS -fpic -shared transitions"
+     "-shared -melf64_sparc --hash-style=sysv" ""
+     "--64 -Av9 -K PIC" {tlssunpic64.s tlspic.s}
+     {{readelf -WSsrl tlssunpic64.rd} {objdump -drj.text tlssunpic64.dd}
+      {objdump -sj.got tlssunpic64.sd} {objdump -sj.tdata tlssunpic64.td}}
+      "libtlssunpic64.so"}
+    {"64-bit: Helper shared library"
+     "-shared -melf64_sparc -version-script tlslib.ver" ""
+     "--64 -Av9 -K PIC" {tlslib.s} {} "libtlslib64.so"}
+    {"64-bit: Another helper shared library" "-shared -melf64_sparc" ""
+     "--64 -Av9 -K PIC" {tlssunbinpic64.s} {} "libtlssunbinpic64.so"}
+    {"64-bit: TLS -fpic and -fno-pic exec transitions"
+     "-melf64_sparc -Ttext-segment=0x100000 --hash-style=sysv tmpdir/libtlslib64.so tmpdir/tlssunbinpic64.o" ""
+     "--64 -Av9" {tlssunbin64.s}
+     {{readelf -WSsrl tlssunbin64.rd} {objdump -drj.text tlssunbin64.dd}
+      {objdump -sj.got tlssunbin64.sd} {objdump -sj.tdata tlssunbin64.td}}
+      "tlssunbin64"}
+    {"64-bit: TLS -fno-pic -shared"
+     "-shared -melf64_sparc --hash-style=sysv" ""
+     "--64 -Av9" {tlssunnopic64.s tlsnopic.s}
+     {{readelf -WSsrl tlssunnopic64.rd} {objdump -drj.text tlssunnopic64.dd}
+      {objdump -sj.got tlssunnopic64.sd}} "libtlssunnopic64.so"}
+    {"64-bit: TLS in debug sections" "-melf64_sparc" ""
+     "--64 -Av9" {tlsg64.s}
+     {{objdump -sj.debug_foobar tlsg64.sd}} "tlsg64"}
+    {"64-bit: TLS -fpie"
+     "-melf64_sparc -pie -Ttext-segment=0x100000 tmpdir/libtlslib64.so" ""
+     "--64 -Av9 -K PIC" {tlspie64.s}
+     {{objdump -drj.text tlspie64.dd}} "tlspie64"}
+    {"64-bit: GOTDATA relocations"
+     "-shared -melf64_sparc --hash-style=sysv" ""
+     "--64 -Av9 -K PIC" {gotop64.s}
+     {{readelf -WSsrl gotop64.rd} {objdump -drj.text gotop64.dd}
+      {objdump -sj.got gotop64.sd} {objdump -sj.data gotop64.td}}
+     "libgotop64.so"}
+}
+
+# The solaris2 targets do not support the generic SPARC ELF targets,
+# ie -melf32_sparc and -melf64_sparc, so we skip the next set of
+# tests for them.  Support could be added, but this then breaks the
+# creation of archives for those targets.  See PR 27666 for more
+# details.
+if { ![istarget "*-*-solaris2*"] } {
+    if { ![istarget "sparc64-*-elf*"] } {
+        run_ld_link_tests $sparctests
+    }
+
+    if { ![istarget "sparc-*-elf*"] } {
+        run_ld_link_tests $sparc64tests
+    }
+}
+
+if { [istarget "sparc*-*-linux*"] && [isnative] } {
+    run_ld_link_exec_tests [list \
+	[list \
+	    "32-bit: mixed GOTDATA/GOT relocations" \
+	    "-pie -m32" \
+	    "" \
+	    { gotop-hidden.c got-hidden32.s } \
+	    "gotop-hidden32" \
+	    "pass.out" \
+	    "-fPIE -m32" \
+	] \
+    ]
+}
+
+if { [istarget "sparc64-*-linux*"] && [isnative] } {
+    run_ld_link_exec_tests [list \
+	[list \
+	    "64-bit: mixed GOTDATA/GOT relocations" \
+	    "-pie -m64" \
+	    "" \
+	    { gotop-hidden.c got-hidden64.s } \
+	    "gotop-hidden64" \
+	    "pass.out" \
+	    "-fPIE -m64" \
+	] \
+    ]
+}

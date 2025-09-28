@@ -1,0 +1,24 @@
+#compdef a2ensite a2dissite a2enmod a2dismod
+
+local -a expl mods
+
+case "$service" in
+    a2ensite)
+	_wanted sites expl sites \
+	  _files -W /etc/apache2/sites-available
+	;;
+    a2dissite)
+	_wanted sites expl sites \
+	  _files -W /etc/apache2/sites-enabled
+	;;
+    a2enmod)
+	mods=( /etc/apache2/mods-available/*.load(N:r:t) )
+	_wanted mods expl mods compadd -a mods
+	;;
+    a2dismod)
+	mods=( /etc/apache2/mods-enabled/*.load(N:r:t) )
+	_wanted mods expl mods compadd -a mods
+	;;
+esac
+
+return

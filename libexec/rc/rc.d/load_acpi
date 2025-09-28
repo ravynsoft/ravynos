@@ -1,0 +1,71 @@
+#!/bin/sh
+
+# PROVIDE: load_acpi
+# REQUIRE: FILESYSTEMS
+# KEYWORD: nojail
+#
+# Add these lines to /etc/rc.conf.local or /etc/rc.conf
+# to enable this service:
+#
+# load_acpi_enable (bool):      Set to YES by default.
+#                               Set to NO to disable.
+#
+
+. /etc/rc.subr
+
+name=load_acpi
+rcvar=load_acpi_enable
+start_cmd="load_acpi_start"
+stop_cmd=":"
+
+load_rc_config $name
+
+: ${load_acpi_enable:="YES"}
+
+vendors="asus fujitsu hp ibm panasonic sony toshiba wmi"
+
+asus_hids="ATK0100 ASUS010"
+toshiba_hids="TOS6200 TOS6207 TOS6208"
+ibm_hids="IBM0068 LEN0068"
+sony_hids="SNY5001"
+wmi_hids="PNP0C14"
+fujitsu_hids="FUJ02B1"
+panasonic_hids="MAT0019"
+
+asus_kmod="acpi_asus"
+toshiba_kmod="acpi_toshiba"
+ibm_kmod="acpi_ibm"
+sony_kmod="acpi_sony"
+wmi_kmod="acpi_wmi"
+fujitsu_kmod="acpi_fujitsu"
+panasonic_kmod="acpi_panasonic"
+
+load_acpi_start()
+{
+	config=$(devinfo -rv)
+	found=0
+	for i in ${vendors}; do
+		[ ${found} -gt 0 ] && break
+		eval hids=\$${i}_hids
+		for j in ${hids}; do
+			if echo "${config}" | grep -q -i _HID=${j}; then
+				eval kmod=\$${i}_kmod
+				kldload ${kmod}
+				found=1; break
+			fi
+		done
+	done
+	sysfam=$(kenv smbios.system.family)
+	load_acpi_video=1
+	case ${sysfam} in
+	*ThinkPad*T450*|*ThinkPad*x260*|*ThinkPad*x230*)
+		# The Fn keys of the ThinkPad T450 for controlling the
+		# brightness will not work if the acpi_video(4) module
+		# is loaded.
+		load_acpi_video=0
+		;;
+	esac
+	[ ${load_acpi_video} -eq 1 ] && kldload acpi_video
+}
+
+run_rc_command "$1"

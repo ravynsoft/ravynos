@@ -1,0 +1,52 @@
+#compdef prove
+#
+# prove(1) of TAP::Harness v3.25. Consider also:
+#
+# zstyle ':completion:*:*:prove:*' file-patterns '*.t:test\ files *(-/):directories'
+
+_arguments \
+  '(- *)'{-h,--help}'[display help and exit]' \
+  '(- *)'{-H,--man}'[display longer help and exit]' \
+  '(- *)'{-V,--version}'[display version and exit]' \
+  '(--quiet -q -Q --QUIET)'{-v,--verbose}'[print all test lines]' \
+  {-l,--lib}'[add lib to path]' \
+  {-b,--blib}'[add blib to path]' \
+  '(--reverse)'{-s,--shuffle}'[run tests in random order]' \
+  '(--nocolor)'{-c,--color}'[colored test output]' \
+  '(--color -c)--nocolor[do not color test output]' \
+  '(--nocount)--count[show x/y test count when not verbose]' \
+  '(--count)--nocount[disable x/y test count]' \
+  {-D,--dry}'[dry run]' \
+  '--ext=[set extension for tests]:extension:' \
+  {-f,--failures}'[show failed tests]' \
+  {-o,--comments}'[show comments]' \
+  '--ignore-exit[ignore exit status from test scripts]' \
+  {-m,--merge}'[merge STDERR with STDOUT]' \
+  {-r,--recurse}'[recurse into directories]' \
+  '(-s --shuffle)--reverse[run tests in reverse order]' \
+  '(-v --verbose)'{-q,--quiet}'[suppress some test output]' \
+  '(-v --verbose)'{-Q,--QUIET}'[only print summary results]' \
+  {-p,--parse}'[show full list of TAP parse errors]' \
+  '--directives[only show results for which TODO or SKIP set]' \
+  '--timer[print elapsed time]' \
+  '--trap[trap ctrl-c and print summary on interrupt]' \
+  '--normalize[normalize TAP output in verbose mode]' \
+  '-T[enable tainting checks]' \
+  '-t[enable tainting warnings]' \
+  '-W[enable fatal warnings]' \
+  '-w[enable warnings]' \
+  '--norc[do not process .proverc]' \
+  '*-I=[library paths to include]:libdir:_directories' \
+  '*-P=[load plugin]:plugin:' \
+  '*-M=[load a module]:module:_perl_m_opt' \
+  {-e,--exec}'[interpreter to run the tests]:program: _command_names '{-e,--exec}':*::program arguments: _normal' \
+  '--harness=[define test harness]:harness:' \
+  '--formatter=[result formatter]:formatter:' \
+  '--source=[load or configure a SourceHandler]:source:' \
+  {-a,--archive}'[store output in archive file]:file:_files' \
+  {-j,--jobs}'[run N jobs in parallel]:jobs:' \
+  '*--state=[control persistent state]: :_values -s , state last failed passed all hot todo slow fast new old fresh save' \
+  '--statefile=[specify file to use instead of .prove]:state file:_files' \
+  '--rc=[custom rcfile]:file:_files' \
+  '*--rules=[limit tests run (or not) in parallel]:rules' \
+  '*:file or directory:_files'

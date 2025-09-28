@@ -1,0 +1,192 @@
+#compdef enscript
+
+local curcontext="$curcontext" state line match
+typeset -A opt_args
+local -a libpath
+
+_arguments -C -s -S \
+  '(   -2 --columns)-1' \
+  '(-1    --columns)-2' \
+  '(-1 -2          )--columns=:columns:' \
+  '(--pages)-a+:pages:(even odd)' \
+  '(-a)--pages=:pages:(even odd)' \
+  '(--file-align)-A+:align:' \
+  '(-A)--file-align=:align:' \
+  '(--header -b -B --no-header --lineprinter -l)'{-b+,--header=}':page header:->formats' \
+  '(--header -b -B --no-header --lineprinter -l)'{-B,--no-header} \
+  '(--truncate-lines)-c' \
+  '(-c)--truncate-lines' \
+  '(--line-numbers -C)'{-C-,--line-numbers=-}'::start line [1]' \
+  '(--printer -d   )-P+:printer name: _printers' \
+  '(--printer    -P)-d+:printer name: _printers' \
+  '(          -d -P)--printer=:printer name: _printers' \
+  '*-D+:key\:value:' \
+  '*--setpagedevice=:key\:value:' \
+  '(--escapes)-e-:escape character:' \
+  '(-e)--escapes=-:escape character:' \
+  '(-E --highlight)'{-E-,--highlight=-}':input language:->inputlang' \
+  '(--font -f)'{-f+,--font=}':fontname:->fonts' \
+  '(--header-font -F)'{-F+,--header-font=}':fontname:->fonts' \
+  '(--print-anyway)-g' \
+  '(-g)--print-anyway' \
+  '(--fancy-header)-G' \
+  '(-G)--fancy-header=:header:->headers' \
+  '(--no-job-header)-h' \
+  '(-h)--no-job-header' \
+  '(--highlight-bars -H)'{-H-,--highlight-bars=-}'::height (lines) [2]' \
+  '(--indent -i)'{-i+,--indent=}':indent width' \
+  '(--filter -I)'{-I+,--filter=}':input filter:_cmdstring' \
+  '(--borders)-j' \
+  '(-j)--borders' \
+  '(-k --page-prefeed -K --no-page-prefeed)'{-k,--page-prefeed} \
+  '!(-k --page-prefeed -K --no-page-prefeed)'{-K,--no-page-prefeed} \
+  '(--lineprinter -l --lines-per-page -L --header -b -B --no-header)'{-l,--lineprinter} \
+  '(--lines-per-page -L --lineprinter -l)'{-L+,--lines-per-page=}':lines per page' \
+  '(--mail)-m' \
+  '(-m)--mail' \
+  '(--media)-M+:media name:(A4)' \
+  '(-M)--media=:media name:(A4)' \
+  '(--copies -n   )-#+:number of copies:' \
+  '(--copies    -#)-n+:number of copies:' \
+  '(         -n -#)--copies=:number of copies:' \
+  '(--newline)-N+:newline type:((n\:unix r\:mac))' \
+  '(-N)--newline=:newline type:((n\:unix r\:mac))' \
+  '(-o -p --output -p)'{-o+,-p+,--output=}':output file:_files' \
+  '(--missing-characters)-O' \
+  '(-O)--missing-characters' \
+  '(--quiet --silent)-q' \
+  '(-q --silent)--quiet' \
+  '(-q --quiet)--silent' \
+  '(-r --landscape -R --portrait)'{-r,--landscape} \
+  '(-r --landscape -R --portrait)'{-R,--portrait} \
+  '(--baselineskip -s)'{-s+,--baselineskip=}':baseline skip (PostScript points) [1]' \
+  '*-S+:key\:value:' \
+  '*--statusdict=:key\:value:' \
+  '(--title -t   )-J+:banner title:' \
+  '(--title    -J)-t+:banner title:' \
+  '(        -t -J)--title=:banner title:' \
+  '(--tabsize -T)'{-T+,--tabsize=}':tabsize [8]' \
+  '(--underlay)-u-:underlay text:' \
+  '(-u)--underlay=-:underlay text:' \
+  '(--nup)-U+:pages:(4)' \
+  '(-U)--nup=:pages:(4)' \
+  '(--verbose)-v' \
+  '(-v)--verbose=-:level:' \
+  '(- *)'{-V,--version} \
+  '(-w --language)'{-w-,--language=}':output language:(PostScript html overstrike rtf)' \
+  '(-W --option)'{-W-,--option=}':helper option' \
+  '(--encoding)-X+:character encoding:(88591 latin1 88592 latin2 88593 latin3 88594 latin4 88595 cyrillic 88597 greek 88599 latin5 885910 latin6 ascii asciifise asciifi asciise asciidkno asciidk asciino ibmpc pc dos mac vms hp8 koi8 ps PS pslatin1 ISOLatin1Encoding)' \
+  '(-X)--encoding=:character encoding:(88591 latin1 88592 latin2 88593 latin3 88594 latin4 88595 cyrillic 88597 greek 88599 latin5 885910 latin6 ascii asciifise asciifi asciise asciidkno asciidk asciino ibmpc pc dos mac vms hp8 koi8 ps PS pslatin1 ISOLatin1Encoding)' \
+  '(--no-formfeed)-z' \
+  '(-z)--no-formfeed' \
+  '(--pass-through)-Z' \
+  '(-Z)--pass-through' \
+  '--color=-:use color:(false true)' \
+  '--continuous-page-numbers' \
+  '--download-font=:fontname:' \
+  '--extended-return-values' \
+  '--filter-stdin=:stdin name:(-)' \
+  '--footer=:page footer:->formats' \
+  '--h-column-height=:horizontal column height:' \
+  '(- *)--help' \
+  '(- *)--help-highlight' \
+  '--highlight-bar-gray=:gray level (0-1):' \
+  '--list-media' \
+  '--margins=:left\:right\:top\:bottom:' \
+  '--mark-wrapped-lines=-:wrapped line style [none]:(none plus box arrow)' \
+  '--non-printable-format=:rendering of non-printable characters:(caret octal questionmark space)' \
+  '--nup-columnwise' \
+  '--nup-xpad=:x-padding [10]' \
+  '--nup-ypad=:y-padding [10]' \
+  '--page-label-format=:page label format:(short long)' \
+  '--ps-level=:PostScript language level:(1 2)' \
+  '--printer-options=:extra options:' \
+  '--rotate-even-pages' \
+  '--slice=:vertical slice number' \
+  '--style=:highlighting style:(a2ps emacs emacs_verbose ifh msvc)' \
+  '--swap-even-page-margins' \
+  '--toc' \
+  '--word-wrap' \
+  '--ul-angle=:angle' \
+  '--ul-font=:fontname [Times-Roman200]:->fonts' \
+  '--ul-gray=:gray level (0..1) [.8]' \
+  '--ul-position=:position [+0+0 -0-0]' \
+  '--ul-style=:style [outline]:(outline filled)' \
+  '*:filename:_files' && return 0
+
+case "$state" in
+  fonts)
+    if compset -P 1 '*@'; then
+      _message -e size 'pointsize, optionally width/height'
+    else
+      libpath=( {${commands[enscript]:h:h},/usr}/share/enscript/afm/font.map(N) )
+      _wanted fonts expl font compadd -qS @ - ${${(f)"$(<$libpath[1])"}%% *}
+    fi
+  ;;
+  formats)
+    local -a specs
+    local suf='{'
+    compquote suf
+    if [[ ${PREFIX} = *[%$]D${suf}[^}]# ]]; then
+      _strftime
+    elif [[ ${(Q)PREFIX} = *\$\([^\)]# ]]; then
+      compset -P '*\('
+      _parameters -g '*export*' -S '\)'
+    elif [[ ${(Q)PREFIX} = *\$ ]]; then
+      specs=(
+	'$:a dollar symbol'
+	'%:current page number'
+	'=:number of pages in the current file'
+	'p:number of pages processed so far'
+	{C,\*}':file modification time (hh:mm:ss)'
+	'n:basename of the input file name'
+	'N:full input file name'
+	'E:file modification date (yy/mm/dd)'
+	'F:file modification date (dd.mm.yyyy)'
+	't:file modification time (12-hour)'
+	'T:file modification time (24-hour)'
+	'v:sequence number of current input file'
+	'V:sequence number of current input file in table of contents format'
+	'W:file modification date (mm/dd/yy)'
+	'\(:environment variable'
+      )
+      compset -P "*"
+      _describe -t format-specifiers 'format specifier' specs -S '' -- '( D:modification\ date )' -qS $suf
+    elif [[ ${(Q)PREFIX} = *% ]]; then
+      specs=(
+	'c:trailing component of the current working directory'
+	{C,\*}':current time (hh:mm:ss)'
+	'E:current date (yy/mm/dd)'
+	'F:current date (dd.mm.yyyy)'
+	'H:document title'
+	'L:lines in the input file'
+	'm:hostname in short form'
+        'M:hostname in fully qualified form'
+	'n:user login name'
+	'N:user gecos field first component'
+	't:current time (12-hour)'
+	'T:current time (24-hour)'
+	'W:current date (mm/dd/yy)'
+      )
+      compset -P "*"
+      _describe -t format-specifiers 'format specifier' specs -S '' -- '( D:current\ time )' -qS $suf
+    else
+      compset -P "*"
+      _wanted format-specifiers expl 'format specifier' compadd -S '' % \$
+    fi
+  ;;
+  headers)
+    libpath=( {${commands[enscript]:h:h},/usr}/share/enscript(N/) ~/.enscript(N/) )
+    _wanted headers expl header compadd $^libpath/*.hdr(N:r:t)
+  ;;
+  inputlang)
+    if (( ! $+_cache_enscript_languages )); then
+      typeset -ga _cache_enscript_languages
+      _cache_enscript_languages=(${${(f)${(F)${(M)${(f)"$(_call_program languages enscript --help-pretty-print)"}:#(Name|Description):*}}//(#b)Name: ([^
+]##)(
+Description: ([^
+]##)|)/$match[1]:$match[3]}%:})
+    fi
+    _describe -t languages 'input language' _cache_enscript_languages
+  ;;
+esac

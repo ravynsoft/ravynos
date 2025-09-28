@@ -1,0 +1,8 @@
+name=zsh/regex
+link=`if test x$ac_cv_func_regcomp = xyes && \
+         test x$ac_cv_func_regexec = xyes && \
+         test x$ac_cv_func_regerror = xyes && \
+         test x$ac_cv_func_regfree = xyes; then echo dynamic; else echo no; fi`
+load=no
+
+objects="regex.o"

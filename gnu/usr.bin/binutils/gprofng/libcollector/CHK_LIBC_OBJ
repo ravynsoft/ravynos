@@ -1,0 +1,82 @@
+#!/bin/sh
+#
+#   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; see the file COPYING3.  If not see
+# <http://www.gnu.org/licenses/>.
+
+#
+# CHK_LIBC_OBJ  -- a script to scan the .o's in an output directory,
+#	which is one of ../{intel-S2,sparc-S2,intel-Linux,sparc-Linux}
+#	
+#	usage: cd to the output directory, and invoke ../src/CHK_LIBC_OBJ
+
+
+check_obj() {
+    logF="nm.`basename $1`.log"
+    if [ `uname` = 'Linux' ]; then 
+        nm $1 | grep -v GLIBC_ > ${logF}
+    else
+        nm $1 > ${logF}
+    fi
+
+    FUNC_LIST="strcpy strlcpy strncpy strcat strlcat strncat strncmp strlen \
+               strerror strchr strrchr strpbrk strstr strtok strtok_r \
+               printf fprintf sprintf snprintf asprintf  wsprintf \
+               vprintf vfprintf vsprintf vsnprintf vasprintf \
+               memset memcmp memcpy strtol strtoll strtoul strtoull \
+               getcpuid calloc malloc free strdup"
+    res=0
+    echo " -- Checking Object file '$1' for functions from libc"
+    for j in `echo ${FUNC_LIST}` ; do
+        grep -w ${j} ${logF} | grep UNDEF> grep.log 2>&1
+        if [ $? -eq 0 ]; then
+            grep -w ${j} ${logF}
+            res=1
+        fi
+    done
+    return ${res}
+}
+
+STATUS=0
+
+for i in *.o ; do
+    echo ""
+    check_obj ${i}
+    res=$?
+    if [ ${res} -eq 0 ]; then
+	echo "Object file ${i} does not reference functions in libc"
+    else
+	echo "======Object file: ${i} DOES reference functions in libc"
+    fi
+    if [ ${STATUS} -eq 0 ]; then 
+	STATUS=${res}
+    fi
+done
+
+for i in *.so ; do
+    echo ""
+    check_obj ${i}
+    res=$?
+    if [ ${res} -eq 0 ]; then
+	echo "Object file ${i} does not reference functions in libc"
+    else
+	echo "======Object file: ${i} DOES reference functions in libc"
+    fi
+    if [ ${STATUS} -eq 0 ]; then 
+	STATUS=${res}
+    fi
+done
+
+exit $STATUS

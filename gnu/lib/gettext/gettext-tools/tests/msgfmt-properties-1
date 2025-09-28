@@ -1,0 +1,50 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test basic functioning with Java .properties syntax.
+
+test -d mf-p-1 || mkdir mf-p-1
+test -d mf-p-1/LC_MESSAGES || mkdir mf-p-1/LC_MESSAGES
+
+cat <<\EOF > mf-p-1-1.properties
+SYS_(C)\n=MSGFMT(3) portable message object file compiler\nCopyright (C) 1995 Free Software Foundation\nReport bugs to <bug-gnu-utils@gnu.org>\n
+msg\ 1=msg 1 translation
+help\ 2\ %d=help 2 translation
+error\ 3=error 3 translation
+EOF
+
+cat <<\EOF > mf-p-1-2.properties
+# ---
+mesg\ 4=mesg 4 translation
+error\ 3=alternate error 3 translation
+error\ 5=error 5 translation
+window\ 6=window 6 translation
+EOF
+
+# Without use of msgcat, expect a "duplicate message definition" error.
+: ${MSGFMT=msgfmt}
+if ${MSGFMT} --properties-input -o mf-p-1/LC_MESSAGES/gen.mo mf-p-1-1.properties mf-p-1-2.properties 2> /dev/null; then
+  Exit 1
+fi
+
+# With msgcat, it should work.
+: ${MSGCAT=msgcat} ${MSGFMT=msgfmt}
+${MSGCAT} --properties-input --properties-output --use-first -o mf-p-1-s.properties mf-p-1-1.properties mf-p-1-2.properties || Exit 1
+${MSGFMT} --properties-input -o mf-p-1/LC_MESSAGES/gen.mo mf-p-1-s.properties || Exit 1
+
+: ${GETTEXT=gettext}
+TEXTDOMAINDIR=. LANGUAGE=mf-p-1 \
+${GETTEXT} --env LC_ALL=en gen 'SYS_(C)
+' | LC_ALL=C tr -d '\r' > mf-p-test1.out
+
+cat <<EOF > gtmf-p-test1.ok
+MSGFMT(3) portable message object file compiler
+Copyright (C) 1995 Free Software Foundation
+Report bugs to <bug-gnu-utils@gnu.org>
+EOF
+
+: ${DIFF=diff}
+${DIFF} gtmf-p-test1.ok mf-p-test1.out
+result=$?
+
+exit $result

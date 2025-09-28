@@ -1,0 +1,37 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+. ./test-glue-functions
+
+export LANG=en_US.UTF-8
+
+printf '%s\n' "$(printf '\uff')" | od -b | _intl_normalize_spaces
+printf '%s\n' $'\uff' | od -b | _intl_normalize_spaces
+
+printf '\uff'\\n | od -b | _intl_normalize_spaces
+echo $'\uff' | od -b | _intl_normalize_spaces
+
+printf '\uffff'\\n | od -b | _intl_normalize_spaces
+echo $'\uffff' | od -b | _intl_normalize_spaces
+
+printf '\Ufffffffe'\\n | od -b | _intl_normalize_spaces
+echo $'\Ufffffffe' | od -b | _intl_normalize_spaces
+
+printf '\Uffffffff'\\n | od -b | _intl_normalize_spaces
+echo $'\Uffffffff' | od -b | _intl_normalize_spaces
+
+LC_CTYPE=C printf '\uff'\\n | od -b | _intl_normalize_spaces
+LC_CTYPE=ru_RU.CP1251 printf '\uff'\\n | od -b | _intl_normalize_spaces
+LC_CTYPE=en_US.UTF-8 printf '\uff'\\n | od -b | _intl_normalize_spaces
+
+echo -e '\u0041 \u00a3 \u0152' | od -b | _intl_normalize_spaces

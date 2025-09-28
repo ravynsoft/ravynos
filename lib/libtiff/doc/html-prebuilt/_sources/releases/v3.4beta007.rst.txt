@@ -1,0 +1,75 @@
+Changes in TIFF v3.4beta016
+===========================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.4beta016 (no release tag)
+  Previous Version        v3.4beta004 (no references to earlier releases exist)
+  Master Download Site    `<ftp://ftp.sgi.com/graphics/tiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Software configuration changes
+------------------------------
+
+* bit order was corrected for Pentium systems
+* a new define, :c:macro:`HOST_BIGENDIAN`, was added for code that
+  wants to statically use information about native cpu byte order
+
+
+Library changes
+---------------
+
+* the G3/G4 decoder was replaced by a new one that is faster and
+  has smaller state tables
+* Niles Ritter's client tag extension hooks were added
+* a new routine :c:func:`TIFFCurrentDirOffset` was added for
+  applications that want to find out the file offset of a TIFF directory
+* the calculation of the number of strips in an image was corrected
+  for images with certain esoteric configurations
+* a potential memory leak (very unlikely) was plugged
+* the ``TIFFReadRGBAImage`` support was completely rewritten
+  and new, more flexible support was added for reading images into
+  a fixed-format raster
+* YCbCr to RGB conversion done in the :c:func:`TIFFReadRGBAImage` support
+  was optimized
+* a bug in JPEG support calculation of strip size was corrected
+* the LZW decoder was changed to initialize the code table to zero
+  to lessen potential problems that arise when invalid data is decoded
+* :c:func:`tiffcomp.h` is now aware of OS/2
+* some function prototypes in :file:`tiffio.h` and :file:`tiffiop.h`
+  that contained parameter names have been changed to avoid complaints
+  from certain compilers
+
+
+Portability support changes
+---------------------------
+
+* :file:`Makefile.in` has been corrected to use the parameters
+  chosen by the :program:`configure` script
+
+
+Tools changes
+-------------
+
+* :program:`fax2ps` has been rewritten and moved over from the user
+  contributed software
+* an uninitialized variable in :program:`pal2rgb` has been fixed
+* :program:`ras2tiff` now converts 24-bit RGB raster data so that
+  samples are written in the proper order
+* :program:`tiff2ps` has been updated to include fixes
+  and enhancements from Alberto Accomazzi
+* :program:`tiffcp` now has a "``-o``" option to select a directory
+  by file offset
+* :program:`tiffinfo` is now capable of displaying the raw undecoded
+  image data in a file
+* :program:`tiffgt` has been rewritten to use the new ``TIFFRGBAImage``
+  support and to handle multiple files

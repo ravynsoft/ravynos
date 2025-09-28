@@ -1,0 +1,23 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Python support: a python-brace-format string with a NUL byte.
+
+tr X '\0' <<\EOF > xg-py-6.py
+_("{0:X>}")
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-py-6.tmp xg-py-6.py || Exit 1
+LC_ALL=C tr -d '\r' < xg-py-6.tmp.po > xg-py-6.po || Exit 1
+
+cat <<EOF > xg-py-6.ok
+msgid "{0:"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-py-6.ok xg-py-6.po
+result=$?
+
+exit $result

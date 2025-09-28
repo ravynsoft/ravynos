@@ -1,0 +1,662 @@
+
+\IR{w-all} warning class, \c{all}
+\IR{w-bad-pragma} warning class, \c{bad-pragma}
+\IR{w-bnd} warning class, \c{bnd}
+\IR{w-db-empty} warning class, \c{db-empty}
+\IR{w-ea} warning class, \c{ea}
+\IR{w-ea-absolute} warning class, \c{ea-absolute}
+\IR{w-ea-dispsize} warning class, \c{ea-dispsize}
+\IR{w-environment} warning class, \c{environment}
+\IR{w-float} warning class, \c{float}
+\IR{w-float-denorm} warning class, \c{float-denorm}
+\IR{w-float-overflow} warning class, \c{float-overflow}
+\IR{w-float-toolong} warning class, \c{float-toolong}
+\IR{w-float-underflow} warning class, \c{float-underflow}
+\IR{w-forward} warning class, \c{forward}
+\IR{w-hle} warning class, \c{hle}
+\IR{w-label} warning class, \c{label}
+\IR{w-label-orphan} warning class, \c{label-orphan}
+\IR{w-label-redef} warning class, \c{label-redef}
+\IR{w-label-redef-late} warning class, \c{label-redef-late}
+\IR{w-lock} warning class, \c{lock}
+\IR{w-macro-def-case-single} warning class, \c{macro-def-case-single}
+\IR{w-macro-def-greedy-single} warning class, \c{macro-def-greedy-single}
+\IR{w-macro-def-param-single} warning class, \c{macro-def-param-single}
+\IR{w-macro-defaults} warning class, \c{macro-defaults}
+\IR{w-macro-params-legacy} warning class, \c{macro-params-legacy}
+\IR{w-macro-params-multi} warning class, \c{macro-params-multi}
+\IR{w-macro-params-single} warning class, \c{macro-params-single}
+\IR{w-negative-rep} warning class, \c{negative-rep}
+\IR{w-not-my-pragma} warning class, \c{not-my-pragma}
+\IR{w-number-overflow} warning class, \c{number-overflow}
+\IR{w-obsolete} warning class, \c{obsolete}
+\IR{w-obsolete-nop} warning class, \c{obsolete-nop}
+\IR{w-obsolete-removed} warning class, \c{obsolete-removed}
+\IR{w-obsolete-valid} warning class, \c{obsolete-valid}
+\IR{w-orphan-labels} warning class, \c{orphan-labels}
+\IR{w-other} warning class, \c{other}
+\IR{w-phase} warning class, \c{phase}
+\IR{w-pp} warning class, \c{pp}
+\IR{w-pp-else} warning class, \c{pp-else}
+\IR{w-pp-else-elif} warning class, \c{pp-else-elif}
+\IR{w-pp-else-else} warning class, \c{pp-else-else}
+\IR{w-pp-empty-braces} warning class, \c{pp-empty-braces}
+\IR{w-pp-environment} warning class, \c{pp-environment}
+\IR{w-pp-macro} warning class, \c{pp-macro}
+\IR{w-pp-macro-def} warning class, \c{pp-macro-def}
+\IR{w-pp-macro-def-case-single} warning class, \c{pp-macro-def-case-single}
+\IR{w-pp-macro-def-greedy-single} warning class, \c{pp-macro-def-greedy-single}
+\IR{w-pp-macro-def-param-single} warning class, \c{pp-macro-def-param-single}
+\IR{w-pp-macro-defaults} warning class, \c{pp-macro-defaults}
+\IR{w-pp-macro-params} warning class, \c{pp-macro-params}
+\IR{w-pp-macro-params-legacy} warning class, \c{pp-macro-params-legacy}
+\IR{w-pp-macro-params-multi} warning class, \c{pp-macro-params-multi}
+\IR{w-pp-macro-params-single} warning class, \c{pp-macro-params-single}
+\IR{w-pp-macro-redef-multi} warning class, \c{pp-macro-redef-multi}
+\IR{w-pp-open} warning class, \c{pp-open}
+\IR{w-pp-open-braces} warning class, \c{pp-open-braces}
+\IR{w-pp-open-brackets} warning class, \c{pp-open-brackets}
+\IR{w-pp-open-string} warning class, \c{pp-open-string}
+\IR{w-pp-rep-negative} warning class, \c{pp-rep-negative}
+\IR{w-pp-sel-range} warning class, \c{pp-sel-range}
+\IR{w-pp-trailing} warning class, \c{pp-trailing}
+\IR{w-pragma} warning class, \c{pragma}
+\IR{w-pragma-bad} warning class, \c{pragma-bad}
+\IR{w-pragma-empty} warning class, \c{pragma-empty}
+\IR{w-pragma-na} warning class, \c{pragma-na}
+\IR{w-pragma-unknown} warning class, \c{pragma-unknown}
+\IR{w-prefix} warning class, \c{prefix}
+\IR{w-prefix-bnd} warning class, \c{prefix-bnd}
+\IR{w-prefix-hle} warning class, \c{prefix-hle}
+\IR{w-prefix-lock} warning class, \c{prefix-lock}
+\IR{w-prefix-opsize} warning class, \c{prefix-opsize}
+\IR{w-prefix-seg} warning class, \c{prefix-seg}
+\IR{w-ptr} warning class, \c{ptr}
+\IR{w-regsize} warning class, \c{regsize}
+\IR{w-unknown-pragma} warning class, \c{unknown-pragma}
+\IR{w-unknown-warning} warning class, \c{unknown-warning}
+\IR{w-user} warning class, \c{user}
+\IR{w-warn-stack-empty} warning class, \c{warn-stack-empty}
+\IR{w-zeroing} warning class, \c{zeroing}
+\IR{w-zext-reloc} warning class, \c{zext-reloc}
+
+\b \I{w-all} \c{all}: all possible warnings
+
+\> \c{all} is an group alias for \e{all} warning classes.  Thus, \c{-w+all}
+enables all available warnings, and \c{-w-all} disables warnings
+entirely (since NASM 2.13).
+
+\b \I{w-bad-pragma} \c{bad-pragma}: malformed %pragma
+
+\> \c{bad-pragma} is a backwards compatibility alias for \c{pragma-bad}.
+
+\b \I{w-bnd} \c{bnd}: invalid BND prefix
+
+\> \c{bnd} is a backwards compatibility alias for \c{prefix-bnd}.
+
+\b \I{w-db-empty} \c{db-empty}: no operand for data declaration
+
+\> \c{db-empty} warns about a \c{DB}, \c{DW}, etc declaration
+with no operands, producing no output.
+This is permitted, but often indicative of an error.
+See \k{db}.
+
+\> Enabled by default.
+
+\b \I{w-ea} \c{ea}: all \c{ea-} warnings
+
+\> \c{ea} is a group alias for all warning classes
+prefixed by \c{ea-}; currently
+\c{ea-absolute} and \c{ea-dispsize}.
+
+\b \I{w-ea-absolute} \c{ea-absolute}: absolute address cannot be RIP-relative
+
+\> \c{ea-absolute} warns that an address that is inherently absolute cannot
+be generated with RIP-relative encoding using \c{REL},
+see \k{REL & ABS}.
+
+\> Enabled by default.
+
+\b \I{w-ea-dispsize} \c{ea-dispsize}: displacement size ignored on absolute address
+
+\> \c{ea-dispsize} warns that NASM does not support generating displacements for
+inherently absolute addresses that do not match the address size
+of the instruction.
+
+\> Enabled by default.
+
+\b \I{w-environment} \c{environment}: nonexistent environment variable
+
+\> \c{environment} is a backwards compatibility alias for \c{pp-environment}.
+
+\b \I{w-float} \c{float}: all \c{float-} warnings
+
+\> \c{float} is a group alias for all warning classes
+prefixed by \c{float-}; currently
+\c{float-denorm}, \c{float-overflow}, \c{float-toolong}, \c{float-underflow}.
+
+\b \I{w-float-denorm} \c{float-denorm}: floating point denormal
+
+\> \c{float-denorm} warns about denormal floating point constants.
+
+\> Disabled by default.
+
+\b \I{w-float-overflow} \c{float-overflow}: floating point overflow
+
+\> \c{float-overflow} warns about floating point underflow.
+
+\> Enabled by default.
+
+\b \I{w-float-toolong} \c{float-toolong}: too many digits in floating-point number
+
+\> \c{float-toolong} warns about too many digits in floating-point numbers.
+
+\> Enabled by default.
+
+\b \I{w-float-underflow} \c{float-underflow}: floating point underflow
+
+\> \c{float-underflow} warns about floating point underflow (a nonzero
+constant rounded to zero.)
+
+\> Disabled by default.
+
+\b \I{w-forward} \c{forward}: forward reference may have unpredictable results
+
+\> \c{forward} warns that a forward reference is used which may have
+unpredictable results, notably in a \c{RESB}-type
+pseudo-instruction. These would be \i\e{critical
+expressions} (see \k{crit}) but are permitted in a
+handful of cases for compatibility with older
+versions of NASM. This warning should be treated as a
+severe programming error as the code could break at
+any time for any number of reasons.
+
+\> Enabled by default.
+
+\b \I{w-hle} \c{hle}: invalid HLE prefix
+
+\> \c{hle} is a backwards compatibility alias for \c{prefix-hle}.
+
+\b \I{w-label} \c{label}: all \c{label-} warnings
+
+\> \c{label} is a group alias for all warning classes
+prefixed by \c{label-}; currently
+\c{label-orphan}, \c{label-redef}, \c{label-redef-late}.
+
+\b \I{w-label-orphan} \c{label-orphan}: labels alone on lines without trailing `:'
+
+\> \c{label-orphan} warns about source lines which contain no instruction but define
+a label without a trailing colon. This is most likely indicative
+of a typo, but is technically correct NASM syntax (see \k{syntax}.)
+
+\> Enabled by default.
+
+\b \I{w-label-redef} \c{label-redef}: label redefined to an identical value
+
+\> \c{label-redef} warns if a label is defined more than once, but the
+value is identical. It is an unconditional error to
+define the same label more than once to \e{different} values.
+
+\> Disabled by default.
+
+\b \I{w-label-redef-late} \c{label-redef-late}: label (re)defined during code generation
+
+\> \c{label-redef-late} the value of a label changed during the final, code-generation
+pass. This may be the result of strange use of the
+preprocessor. This is very likely to produce incorrect code and
+may end up being an unconditional error in a future
+version of NASM.
+
+\> Enabled and promoted to error by default.
+
+\b \I{w-lock} \c{lock}: LOCK prefix on unlockable instructions
+
+\> \c{lock} is a backwards compatibility alias for \c{prefix-lock}.
+
+\b \I{w-macro-def-case-single} \c{macro-def-case-single}: single-line macro defined both case sensitive and insensitive
+
+\> \c{macro-def-case-single} is a backwards compatibility alias for \c{pp-macro-def-case-single}.
+
+\b \I{w-macro-def-greedy-single} \c{macro-def-greedy-single}: single-line macro
+
+\> \c{macro-def-greedy-single} is a backwards compatibility alias for \c{pp-macro-def-greedy-single}.
+
+\b \I{w-macro-def-param-single} \c{macro-def-param-single}: single-line macro defined with and without parameters
+
+\> \c{macro-def-param-single} is a backwards compatibility alias for \c{pp-macro-def-param-single}.
+
+\b \I{w-macro-defaults} \c{macro-defaults}: macros with more default than optional parameters
+
+\> \c{macro-defaults} is a backwards compatibility alias for \c{pp-macro-defaults}.
+
+\b \I{w-macro-params-legacy} \c{macro-params-legacy}: improperly calling multi-line macro for legacy support
+
+\> \c{macro-params-legacy} is a backwards compatibility alias for \c{pp-macro-params-legacy}.
+
+\b \I{w-macro-params-multi} \c{macro-params-multi}: multi-line macro calls with wrong parameter count
+
+\> \c{macro-params-multi} is a backwards compatibility alias for \c{pp-macro-params-multi}.
+
+\b \I{w-macro-params-single} \c{macro-params-single}: single-line macro calls with wrong parameter count
+
+\> \c{macro-params-single} is a backwards compatibility alias for \c{pp-macro-params-single}.
+
+\b \I{w-negative-rep} \c{negative-rep}: regative %rep count
+
+\> \c{negative-rep} is a backwards compatibility alias for \c{pp-rep-negative}.
+
+\b \I{w-not-my-pragma} \c{not-my-pragma}: %pragma not applicable to this compilation
+
+\> \c{not-my-pragma} is a backwards compatibility alias for \c{pragma-na}.
+
+\b \I{w-number-overflow} \c{number-overflow}: numeric constant does not fit
+
+\> \c{number-overflow} covers warnings about numeric constants which
+don't fit in 64 bits.
+
+\> Enabled by default.
+
+\b \I{w-obsolete} \c{obsolete}: all \c{obsolete-} warnings
+
+\> \c{obsolete} is a group alias for all warning classes
+prefixed by \c{obsolete-}; currently
+\c{obsolete-nop}, \c{obsolete-removed}, \c{obsolete-valid}.
+
+\b \I{w-obsolete-nop} \c{obsolete-nop}: instruction obsolete and is a noop on the target CPU
+
+\> \c{obsolete-nop} warns for an instruction which has been removed
+from the architecture, but has been architecturally
+defined to be a noop for future CPUs.
+
+\> Enabled by default.
+
+\b \I{w-obsolete-removed} \c{obsolete-removed}: instruction obsolete and removed on the target CPU
+
+\> \c{obsolete-removed} warns for an instruction which has been removed
+from the architecture, and is no longer included
+in the CPU definition given in the \c{[CPU]}
+directive, for example \c{POP CS}, the opcode for
+which, \c{0Fh}, instead is an opcode prefix on
+CPUs newer than the first generation 8086.
+
+\> Enabled by default.
+
+\b \I{w-obsolete-valid} \c{obsolete-valid}: instruction obsolete but valid on the target CPU
+
+\> \c{obsolete-valid} warns for an instruction which has been removed
+from the architecture, but is still valid on the
+specific CPU given in the \c{CPU} directive. Code
+using these instructions is most likely not
+forward compatible.
+
+\> Enabled by default.
+
+\b \I{w-orphan-labels} \c{orphan-labels}: labels alone on lines without trailing `:'
+
+\> \c{orphan-labels} is a backwards compatibility alias for \c{label-orphan}.
+
+\b \I{w-other} \c{other}: any warning not specifically mentioned above
+
+\> \c{other} specifies any warning not included in any specific warning class.
+
+\> Enabled by default.
+
+\b \I{w-phase} \c{phase}: phase error during stabilization
+
+\> \c{phase} warns about symbols having changed values during
+the second-to-last assembly pass. This is not
+inherently fatal, but may be a source of bugs.
+
+\> Disabled by default.
+
+\b \I{w-pp} \c{pp}: all \c{pp-} warnings
+
+\> \c{pp} is a group alias for all warning classes
+prefixed by \c{pp-}; currently
+\c{pp-else-elif}, \c{pp-else-else}, \c{pp-empty-braces}, \c{pp-environment}, \c{pp-macro-def-case-single}, \c{pp-macro-def-greedy-single}, \c{pp-macro-def-param-single}, \c{pp-macro-defaults}, \c{pp-macro-params-legacy}, \c{pp-macro-params-multi}, \c{pp-macro-params-single}, \c{pp-macro-redef-multi}, \c{pp-open-braces}, \c{pp-open-brackets}, \c{pp-open-string}, \c{pp-rep-negative}, \c{pp-sel-range}, \c{pp-trailing}.
+
+\b \I{w-pp-else} \c{pp-else}: all \c{pp-else-} warnings
+
+\> \c{pp-else} is a group alias for all warning classes
+prefixed by \c{pp-else-}; currently
+\c{pp-else-elif} and \c{pp-else-else}.
+
+\b \I{w-pp-else-elif} \c{pp-else-elif}: %elif after %else
+
+\> \c{pp-else-elif} warns that an \c{%%elif}-type directive was encountered
+after \c[%%else} has already been encounted. As a result, the
+content of the \c{%%elif} will never be expanded.
+
+\> Enabled by default.
+
+\b \I{w-pp-else-else} \c{pp-else-else}: %else after %else
+
+\> \c{pp-else-else} warns that a second \c{%else} clause was found for
+the same \c{%if} statement. The content of this \c{%else}
+clause will never be expanded.
+
+\> Enabled by default.
+
+\b \I{w-pp-empty-braces} \c{pp-empty-braces}: empty %{} construct
+
+\> \c{pp-empty-braces} warns that an empty \c{%\{\}} was encountered.
+This expands to a single \c{%} character, which
+is normally the \c{%} arithmetic operator.
+
+\> Enabled by default.
+
+\b \I{w-pp-environment} \c{pp-environment}: nonexistent environment variable
+
+\> \c{pp-environment} warns if a nonexistent environment variable
+is accessed using the \c{%!} preprocessor
+construct (see \k{getenv}.)  Such environment
+variables are treated as empty (with this
+warning issued) starting in NASM 2.15;
+earlier versions of NASM would treat this as
+an error.
+
+\> Enabled by default.
+
+\b \I{w-pp-macro} \c{pp-macro}: all \c{pp-macro-} warnings
+
+\> \c{pp-macro} is a group alias for all warning classes
+prefixed by \c{pp-macro-}; currently
+\c{pp-macro-def-case-single}, \c{pp-macro-def-greedy-single}, \c{pp-macro-def-param-single}, \c{pp-macro-defaults}, \c{pp-macro-params-legacy}, \c{pp-macro-params-multi}, \c{pp-macro-params-single}, \c{pp-macro-redef-multi}.
+
+\b \I{w-pp-macro-def} \c{pp-macro-def}: all \c{pp-macro-def-} warnings
+
+\> \c{pp-macro-def} is a group alias for all warning classes
+prefixed by \c{pp-macro-def-}; currently
+\c{pp-macro-def-case-single}, \c{pp-macro-def-greedy-single}, \c{pp-macro-def-param-single}.
+
+\b \I{w-pp-macro-def-case-single} \c{pp-macro-def-case-single}: single-line macro defined both case sensitive and insensitive
+
+\> \c{pp-macro-def-case-single} warns when a single-line macro is defined both case
+sensitive and case insensitive.
+The new macro
+definition will override (shadow) the original one,
+although the original macro is not deleted, and will
+be re-exposed if the new macro is deleted with
+\c{%undef}, or, if the original macro is the case
+insensitive one, the macro call is done with a
+different case.
+
+\> Enabled by default.
+
+\b \I{w-pp-macro-def-greedy-single} \c{pp-macro-def-greedy-single}: single-line macro
+
+\> \c{pp-macro-def-greedy-single} definition shadows greedy macro warns when a
+single-line macro is defined which would match a
+previously existing greedy definition.  The new macro
+definition will override (shadow) the original one,
+although the original macro is not deleted, and will
+be re-exposed if the new macro is deleted with
+\c{%undef}, and will be invoked if called with a
+parameter count that does not match the new definition.
+
+\> Enabled by default.
+
+\b \I{w-pp-macro-def-param-single} \c{pp-macro-def-param-single}: single-line macro defined with and without parameters
+
+\> \c{pp-macro-def-param-single} warns if the same single-line macro is defined with and
+without parameters.
+The new macro
+definition will override (shadow) the original one,
+although the original macro is not deleted, and will
+be re-exposed if the new macro is deleted with
+\c{%undef}.
+
+\> Enabled and promoted to error by default.
+
+\b \I{w-pp-macro-defaults} \c{pp-macro-defaults}: macros with more default than optional parameters
+
+\> \c{pp-macro-defaults} warns when a macro has more default parameters than optional parameters.
+See \k{mlmacdef} for why might want to disable this warning.
+
+\> Enabled by default.
+
+\b \I{w-pp-macro-params} \c{pp-macro-params}: all \c{pp-macro-params-} warnings
+
+\> \c{pp-macro-params} is a group alias for all warning classes
+prefixed by \c{pp-macro-params-}; currently
+\c{pp-macro-params-legacy}, \c{pp-macro-params-multi}, \c{pp-macro-params-single}.
+
+\b \I{w-pp-macro-params-legacy} \c{pp-macro-params-legacy}: improperly calling multi-line macro for legacy support
+
+\> \c{pp-macro-params-legacy} warns about \i{multi-line macros} being invoked
+with the wrong number of parameters, but for bug-compatibility
+with NASM versions older than 2.15, NASM tried to fix up the
+parameters to match the legacy behavior and call the macro anyway.
+This can happen in certain cases where there are empty arguments
+without braces, sometimes as a result of macro expansion.
+
+\> The legacy behavior is quite strange and highly context-dependent,
+and can be disabled with:
+
+\c      %pragma preproc sane_empty_expansion true
+
+\> It is highly recommended to use this option in new code.
+
+\> Enabled by default.
+
+\b \I{w-pp-macro-params-multi} \c{pp-macro-params-multi}: multi-line macro calls with wrong parameter count
+
+\> \c{pp-macro-params-multi} warns about \i{multi-line macros} being invoked
+with the wrong number of parameters. See \k{mlmacover} for an
+example of why you might want to disable this warning.
+
+\> Enabled by default.
+
+\b \I{w-pp-macro-params-single} \c{pp-macro-params-single}: single-line macro calls with wrong parameter count
+
+\> \c{pp-macro-params-single} warns about \i{single-line macros} being invoked
+with the wrong number of parameters.
+
+\> Enabled by default.
+
+\b \I{w-pp-macro-redef-multi} \c{pp-macro-redef-multi}: redefining multi-line macro
+
+\> \c{pp-macro-redef-multi} warns that a multi-line macro is being redefined,
+without first removing the old definition with
+\c{%unmacro}.
+
+\> Enabled by default.
+
+\b \I{w-pp-open} \c{pp-open}: all \c{pp-open-} warnings
+
+\> \c{pp-open} is a group alias for all warning classes
+prefixed by \c{pp-open-}; currently
+\c{pp-open-braces}, \c{pp-open-brackets}, \c{pp-open-string}.
+
+\b \I{w-pp-open-braces} \c{pp-open-braces}: unterminated %{...}
+
+\> \c{pp-open-braces} warns that a preprocessor parameter
+enclosed in braces \c{%\{...\}} lacks the
+terminating \c{\}} character.
+
+\> Enabled by default.
+
+\b \I{w-pp-open-brackets} \c{pp-open-brackets}: unterminated %[...]
+
+\> \c{pp-open-brackets} warns that a preprocessor \c{%[...]} construct
+lacks the terminating \c{]} character.
+
+\> Enabled by default.
+
+\b \I{w-pp-open-string} \c{pp-open-string}: unterminated string
+
+\> \c{pp-open-string} warns that a quoted string without a closing quotation
+mark was encountered during preprocessing.
+
+\> Enabled by default.
+
+\b \I{w-pp-rep-negative} \c{pp-rep-negative}: regative %rep count
+
+\> \c{pp-rep-negative} warns about a negative count given to the \c{%rep}
+preprocessor directive.
+
+\> Enabled by default.
+
+\b \I{w-pp-sel-range} \c{pp-sel-range}: %sel() argument out of range
+
+\> \c{pp-sel-range} warns that the %sel() preprocessor function was passed
+a value less than 1 or larger than the number of available
+arguments.
+
+\> Enabled by default.
+
+\b \I{w-pp-trailing} \c{pp-trailing}: trailing garbage ignored
+
+\> \c{pp-trailing} warns that the preprocessor encountered additional text
+where no such text was expected. This can
+sometimes be the result of an incorrectly written expression,
+or arguments that are inadvertently separated.
+
+\> Enabled by default.
+
+\b \I{w-pragma} \c{pragma}: all \c{pragma-} warnings
+
+\> \c{pragma} is a group alias for all warning classes
+prefixed by \c{pragma-}; currently
+\c{pragma-bad}, \c{pragma-empty}, \c{pragma-na}, \c{pragma-unknown}.
+
+\b \I{w-pragma-bad} \c{pragma-bad}: malformed %pragma
+
+\> \c{pragma-bad} warns about a malformed or otherwise unparsable
+\c{%pragma} directive.
+
+\> Disabled by default.
+
+\b \I{w-pragma-empty} \c{pragma-empty}: empty %pragma directive
+
+\> \c{pragma-empty} warns about a \c{%pragma} directive containing nothing.
+This is treated identically to \c{%pragma ignore} except
+for this optional warning.
+
+\> Disabled by default.
+
+\b \I{w-pragma-na} \c{pragma-na}: %pragma not applicable to this compilation
+
+\> \c{pragma-na} warns about a \c{%pragma} directive which is not applicable to
+this particular assembly session.  This is not yet implemented.
+
+\> Disabled by default.
+
+\b \I{w-pragma-unknown} \c{pragma-unknown}: unknown %pragma facility or directive
+
+\> \c{pragma-unknown} warns about an unknown \c{%pragma} directive.
+This is not yet implemented for most cases.
+
+\> Disabled by default.
+
+\b \I{w-prefix} \c{prefix}: all \c{prefix-} warnings
+
+\> \c{prefix} is a group alias for all warning classes
+prefixed by \c{prefix-}; currently
+\c{prefix-bnd}, \c{prefix-hle}, \c{prefix-lock}, \c{prefix-opsize}, \c{prefix-seg}.
+
+\b \I{w-prefix-bnd} \c{prefix-bnd}: invalid BND prefix
+
+\> \c{prefix-bnd} warns about ineffective use of the \c{BND} prefix when the
+\c{JMP} instruction is converted to the \c{SHORT} form.
+This should be extremely rare since the short \c{JMP} only
+is applicable to jumps inside the same module, but if
+it is legitimate, it may be necessary to use
+\c{bnd jmp dword}.
+
+\> Enabled by default.
+
+\b \I{w-prefix-hle} \c{prefix-hle}: invalid HLE prefix
+
+\> \c{prefix-hle} warns about invalid use of the HLE \c{XACQUIRE} or \c{XRELEASE}
+prefixes.
+
+\> Enabled by default.
+
+\b \I{w-prefix-lock} \c{prefix-lock}: LOCK prefix on unlockable instructions
+
+\> \c{prefix-lock} warns about \c{LOCK} prefixes on unlockable instructions.
+
+\> Enabled by default.
+
+\b \I{w-prefix-opsize} \c{prefix-opsize}: invalid operand size prefix
+
+\> \c{prefix-opsize} warns that an operand prefix (\c{o16}, \c{o32}, \c{o64},
+\c{osp}) invalid for the specified instruction has been specified.
+The operand prefix will be ignored by the assembler.
+
+\> Enabled by default.
+
+\b \I{w-prefix-seg} \c{prefix-seg}: segment prefix ignored in 64-bit mode
+
+\> \c{prefix-seg} warns that an \c{es}, \c{cs}, \c{ss} or \c{ds} segment override
+prefix has no effect in 64-bit mode. The prefix will still be
+generated as requested.
+
+\> Enabled by default.
+
+\b \I{w-ptr} \c{ptr}: non-NASM keyword used in other assemblers
+
+\> \c{ptr} warns about keywords used in other assemblers that might
+indicate a mistake in the source code.  Currently only the MASM
+\c{PTR} keyword is recognized. See also \k{pkg_masm}.
+
+\> Enabled by default.
+
+\b \I{w-regsize} \c{regsize}: register size specification ignored
+
+\> \c{regsize} warns about a register with implicit size (such as \c{EAX}, which is always 32 bits)
+been given an explicit size specification which is inconsistent with the size
+of the named register, e.g. \c{WORD EAX}. \c{DWORD EAX} or \c{WORD AX} are
+permitted, and do not trigger this warning. Some registers which \e{do not} imply
+a specific size, such as \c{K0}, may need this specification unless the instruction
+itself implies the instruction size:
+
+\c      KMOVW K0,[foo]          ; Permitted, KMOVW implies 16 bits
+\c      KMOV  WORD K0,[foo]     ; Permitted, WORD K0 specifies instruction size
+\c      KMOV  K0,WORD [foo]     ; Permitted, WORD [foo] specifies instruction size
+\c      KMOV  K0,[foo]          ; Not permitted, instruction size ambiguous
+
+\> Enabled by default.
+
+\b \I{w-unknown-pragma} \c{unknown-pragma}: unknown %pragma facility or directive
+
+\> \c{unknown-pragma} is a backwards compatibility alias for \c{pragma-unknown}.
+
+\b \I{w-unknown-warning} \c{unknown-warning}: unknown warning in -W/-w or warning directive
+
+\> \c{unknown-warning} warns about a \c{-w} or \c{-W} option or a \c{[WARNING]} directive
+that contains an unknown warning name or is otherwise not possible to process.
+
+\> Disabled by default.
+
+\b \I{w-user} \c{user}: %warning directives
+
+\> \c{user} controls output of \c{%warning} directives (see \k{pperror}).
+
+\> Enabled by default.
+
+\b \I{w-warn-stack-empty} \c{warn-stack-empty}: warning stack empty
+
+\> \c{warn-stack-empty} a [WARNING POP] directive was executed when
+the warning stack is empty. This is treated
+as a [WARNING *all] directive.
+
+\> Enabled by default.
+
+\b \I{w-zeroing} \c{zeroing}: RESx in initialized section becomes zero
+
+\> \c{zeroing} a \c{RESx} directive was used in a section which contains
+initialized data, and the output format does not support
+this. Instead, this will be replaced with explicit zero
+content, which may produce a large output file.
+
+\> Enabled by default.
+
+\b \I{w-zext-reloc} \c{zext-reloc}: relocation zero-extended to match output format
+
+\> \c{zext-reloc} warns that a relocation has been zero-extended due
+to limitations in the output format.
+
+\> Enabled by default.
+

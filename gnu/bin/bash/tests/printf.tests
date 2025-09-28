@@ -1,0 +1,334 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+LC_ALL=C
+LC_NUMERIC=C
+
+# these should output error messages -- the format is required
+printf
+printf --
+
+# these should output nothing
+printf ""
+printf -- ""
+
+# in the future this may mean to put the output into VAR, but for
+# now it is an error
+# 2005-03-15 no longer an error
+unset var
+printf -v var "%10d" $RANDOM
+echo ${#var}
+
+# this should expand escape sequences in the format string, nothing else
+printf "\tone\n"
+
+# this should not cut off output after the \c
+printf "one\ctwo\n"
+
+# and unrecognized backslash escapes should have the backslash preserverd
+printf "4\.2\n"
+
+printf "no newline " ; printf "now newline\n"
+
+# %% -> %
+printf "%%\n"
+
+# this was a bug caused by pre-processing the string for backslash escapes
+# before doing the `%' format processing -- all versions before bash-2.04
+printf "\045" ; echo
+printf "\045d\n"
+
+# simple character output
+printf "%c\n" ABCD
+
+# test simple string output
+printf "%s\n" unquoted
+
+# test quoted string output
+printf "%s %q\n" unquoted quoted
+printf "%s%10q\n" unquoted quoted
+
+printf "%q\n" 'this&that'
+
+# make sure the format string is reused to use up arguments
+printf "%d " 1 2 3 4 5; printf "\n"
+
+# make sure that extra format characters get null arguments
+printf "%s %d %d %d\n" onestring
+
+printf "%s %d %u %4.2f\n" onestring
+
+printf -- "--%s %s--\n" 4.2 ''
+printf -- "--%s %s--\n" 4.2
+
+# test %b escapes
+
+# 8 is a non-octal digit, so the `81' should be output
+printf -- "--%b--\n" '\n\081'
+
+printf -- "--%b--\n" '\t\0101'
+printf -- "--%b--\n" '\t\101'
+
+# these should all display `A7'
+echo -e "\01017"
+echo -e "\x417"
+
+printf "%b\n" '\01017'
+printf "%b\n" '\1017'
+printf "%b\n" '\x417'
+
+printf -- "--%b--\n" '\"abcd\"'
+printf -- "--%b--\n" "\'abcd\'"
+
+printf -- "--%b--\n" 'a\\x'
+
+printf -- "--%b--\n" '\x'
+
+Z1=$(printf -- "%b\n" '\a\b\e\f\r\v')
+Z2=$'\a\b\e\f\r\v'
+
+if [ "$Z1" != "$Z2" ]; then
+	echo "whoops: printf %b and $'' differ" >&2
+fi
+unset Z1 Z2
+
+printf -- "--%b--\n" ''
+printf -- "--%b--\n"
+
+# the stuff following the \c should be ignored, as well as the rest
+# of the format string
+printf -- "--%b--\n" '4.2\c5.4\n'; printf "\n"
+
+# unrecognized escape sequences should by displayed unchanged
+printf -- "--%b--\n" '4\.2'
+
+# a bare \ should not be processed as an escape sequence
+printf -- "--%b--\n" '\'
+
+# make sure extra arguments are ignored if the format string doesn't
+# actually use them
+printf "\n" 4.4 BSD
+printf " " 4.4 BSD ; printf "\n"
+
+# make sure that a fieldwidth and precision of `*' are handled right
+printf "%10.8s\n" 4.4BSD
+printf "%*.*s\n" 10 8 4.4BSD
+
+printf "%10.8q\n" 4.4BSD
+printf "%*.*q\n" 10 8 4.4BSD
+
+printf "%6b\n" 4.4BSD
+printf "%*b\n" 6 4.4BSD
+
+# we handle this crap with homemade code in printf.def
+printf "%10b\n" 4.4BSD
+printf -- "--%-10b--\n" 4.4BSD
+printf "%4.2b\n" 4.4BSD
+printf "%.3b\n" 4.4BSD
+printf -- "--%-8b--\n" 4.4BSD
+
+# test numeric conversions -- these four lines should echo identically
+printf "%d %u %i 0%o 0x%x 0x%X\n" 255 255 255 255 255 255
+printf "%d %u %i %#o %#x %#X\n" 255 255 255 255 255 255
+
+printf "%ld %lu %li 0%o 0x%x 0x%X\n" 255 255 255 255 255 255
+printf "%ld %lu %li %#o %#x %#X\n" 255 255 255 255 255 255
+
+printf "%10d\n" 42
+printf "%10d\n" -42
+
+printf "%*d\n" 10 42
+printf "%*d\n" 10 -42
+
+# test some simple floating point formats
+printf "%4.2f\n" 4.2
+printf "%#4.2f\n" 4.2
+printf "%#4.1f\n" 4.2
+
+printf "%*.*f\n" 4 2 4.2
+printf "%#*.*f\n" 4 2 4.2
+printf "%#*.*f\n" 4 1 4.2
+
+printf "%E\n" 4.2
+printf "%e\n" 4.2
+printf "%6.1E\n" 4.2
+printf "%6.1e\n" 4.2
+
+printf "%G\n" 4.2
+printf "%g\n" 4.2
+printf "%6.2G\n" 4.2
+printf "%6.2g\n" 4.2
+
+# test some of the more esoteric features of POSIX.1 printf
+printf "%d\n" "'string'"
+printf "%d\n" '"string"'
+
+printf "%#o\n" "'string'"
+printf "%#o\n" '"string"'
+
+printf "%#x\n" "'string'"
+printf "%#X\n" '"string"'
+
+printf "%6.2f\n" "'string'"
+printf "%6.2f\n" '"string"'
+
+# output from these two lines had better be the same
+printf -- "--%6.4s--\n" abcdefghijklmnopqrstuvwxyz
+printf -- "--%6.4b--\n" abcdefghijklmnopqrstuvwxyz
+
+# and these two also
+printf -- "--%12.10s--\n" abcdefghijklmnopqrstuvwxyz
+printf -- "--%12.10b--\n" abcdefghijklmnopqrstuvwxyz
+
+# tests for translating \' to ' and \\ to \
+# printf translates \' to ' in the format string...
+printf "\'abcd\'\n"
+
+# but not when the %b format specification is used
+printf "%b\n" \\\'abcd\\\'
+
+# but both translate \\ to \
+printf '\\abcd\\\n'
+printf "%b\n" '\\abcd\\'
+
+# this was reported as a bug in bash-2.03
+# these three lines should all echo `26'
+printf "%d\n" 0x1a
+printf "%d\n" 032
+printf "%d\n" 26
+
+# error messages
+
+# this should be an overflow, but error messages vary between systems
+# printf "%lu\n" 4294967296
+
+# ...but we cannot use this because some systems (SunOS4, for example),
+# happily ignore overflow conditions in strtol(3)
+#printf "%ld\n" 4294967296
+
+printf "%10"
+printf "ab%Mcd\n"
+
+# this caused an infinite loop in older versions of printf
+printf "%y" 0
+
+# these should print a warning and `0', according to POSIX.2
+printf "%d\n" GNU
+printf "%o\n" GNU
+
+# failures in all bash versions through bash-2.05
+printf "%.0s" foo
+printf "%.*s" 0 foo
+
+printf '%.0b-%.0s\n' foo bar
+printf '(%*b)(%*s)\n' -4 foo -4 bar
+
+format='%'`printf '%0100384d' 0`'d\n' 
+printf $format 0
+
+# failures in all bash versions through bash-3.0 - undercounted characters
+unset vv
+printf "  %s %s %s  \n%n" ab cd ef vv
+echo "$vv"
+
+# this doesn't work with printf(3) on all systems
+#printf "%'s\n" foo
+
+# test cases from an austin-group list discussion
+# prints ^G as an extension
+printf '%b\n' '\7'
+
+# prints ^G
+printf '%b\n' '\0007'
+
+# prints NUL then 7
+printf '\0007\n'
+
+# prints no more than two hex digits
+printf '\x07e\n'
+
+# additional backslash escapes
+printf '\"\?\n'
+
+# failures with decimal precisions until after bash-3.1
+printf '%0.5d\n' 1
+
+printf '%05d\n' 1
+printf '%5d\n' 1
+printf '%0d\n' 1
+
+# failures with various floating point formats and 0 after bash-3.2
+
+printf "%G\n" 0
+printf "%g\n" 0
+printf "%4.2G\n" 0
+printf "%4.2g\n" 0
+
+printf "%G\n" 4
+printf "%g\n" 4
+printf "%4.2G\n" 4
+printf "%4.2g\n" 4
+
+printf "%F\n" 0
+printf "%f\n" 0
+printf "%4.2F\n" 0
+printf "%4.2f\n" 0
+
+printf "%F\n" 4
+printf "%f\n" 4
+printf "%4.2F\n" 4
+printf "%4.2f\n" 4
+
+printf "%E\n" 0
+printf "%e\n" 0
+printf "%4.2E\n" 0
+printf "%4.2e\n" 0
+
+printf "%E\n" 4
+printf "%e\n" 4
+printf "%4.2E\n" 4
+printf "%4.2e\n" 4
+
+printf "%08X\n" 2604292517
+
+# make sure these format specifiers all output '' for empty string arguments
+echo q
+printf "%q\n" ""
+printf "%q\n"
+
+echo s
+printf "%s\n" ''
+printf "%s\n"
+
+echo b
+printf "%b\n" ''
+printf "%b\n"
+
+# bug in bash versions up to and including bash-3.2
+v=yyy
+printf -v var "%s" '/current/working/directory/*.@(m3|i3|ig|mg)'
+shopt -s nullglob extglob
+echo "x$(printf "%b" @(hugo))x"
+printf -v var "%b" @(hugo); echo "x${var}x"
+
+# make sure that missing arguments are always handled like the empty string
+printf "<%3s><%3b>\n"
+
+# tests variable assignment with -v
+${THIS_SH} ./printf1.sub
+
+${THIS_SH} ./printf2.sub
+
+${THIS_SH} ./printf3.sub
+
+${THIS_SH} ./printf4.sub

@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.5)
+if(NOT NoProject)
+  project(${RunCMake_TEST} NONE)
+endif()
+include(${RunCMake_TEST}.cmake)

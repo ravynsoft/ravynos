@@ -1,0 +1,52 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test compendium option.  Use it there was no "old" PO file at all
+# (merely use /dev/null).
+
+
+cat <<\EOF > mm-c-4.com
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: file.c:345
+msgid "5"
+msgstr "fünf"
+EOF
+
+cat <<EOF > mm-c-4.pot
+#: file.c:123
+msgid "1"
+msgstr ""
+
+#: file.c:345
+msgid "5"
+msgstr ""
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q --compendium mm-c-4.com -o mm-c-4.tmp /dev/null mm-c-4.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-c-4.tmp > mm-c-4.out || Exit 1
+
+cat << \EOF > mm-c-4.ok
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: file.c:123
+msgid "1"
+msgstr ""
+
+#: file.c:345
+msgid "5"
+msgstr "fünf"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-c-4.ok mm-c-4.out
+result=$?
+
+exit $result

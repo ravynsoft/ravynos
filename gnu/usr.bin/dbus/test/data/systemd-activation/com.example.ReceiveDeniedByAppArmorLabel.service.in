@@ -1,0 +1,5 @@
+[D-BUS Service]
+Name=com.example.ReceiveDeniedByAppArmorLabel
+Exec=/bin/false ReceiveDeniedByAppArmorLabel
+SystemdService=dbus-com.example.ReceiveDeniedByAppArmorLabel.service
+AssumedAppArmorLabel=@DBUS_TEST_EXEC@/test-apparmor-activation//com.example.ReceiveDeniedByAppArmorLabel

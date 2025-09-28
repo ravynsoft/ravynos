@@ -1,0 +1,79 @@
+#compdef hwinfo
+
+_arguments \
+  '--help[show usage info]' \
+  '--version[show libhd version]' \
+  '--short[just a short listing]' \
+  '--log[write info to logfile]:logfile:_files' \
+  '--debug[set debuglevel]:debug level:(1 2 3 4 5 6 7 8 9)' \
+  '--dump-db[dump hardware data base, 0: external, 1: internal]:dumpdb:(0 1)' \
+  '--bios' \
+  '--block' \
+  '--bluetooth' \
+  '--braille' \
+  '--bridge' \
+  '--camera' \
+  '--cdrom' \
+  '--chipcard' \
+  '--cpu' \
+  '--disk' \
+  '--dsl' \
+  '--dvb' \
+  '--floppy' \
+  '--framebuffer' \
+  '--gfxcard' \
+  '--hub' \
+  '--ide' \
+  '--isapnp' \
+  '--isdn' \
+  '--joystick' \
+  '--keyboard' \
+  '--memory' \
+  '--modem' \
+  '--monitor' \
+  '--mouse' \
+  '--netcard' \
+  '--network' \
+  '--partition' \
+  '--pci' \
+  '--pcmcia' \
+  '--pcmcia-ctrl' \
+  '--pppoe' \
+  '--printer' \
+  '--scanner' \
+  '--scsi' \
+  '--smp' \
+  '--sound' \
+  '--storage-ctrl' \
+  '--sys' \
+  '--tape' \
+  '--tv' \
+  '--usb' \
+  '--usb-ctrl' \
+  '--vbe' \
+  '--wlan' \
+  '--zip' \
+  '--all' \
+  '--reallyall' && return 0
+
+
+# hwinfo-9.31-1.1
+#
+# Usage: hwinfo [options]
+# Probe for hardware.
+#   --short        just a short listing
+#   --log logfile  write info to logfile
+#   --debug level  set debuglevel
+#   --version      show libhd version
+#   --dump-db n    dump hardware data base, 0: external, 1: internal
+#   --hw_item      probe for hw_item
+#   hw_item is one of:
+#     all, bios, block, bluetooth, braille, bridge, camera, cdrom, chipcard, cpu,
+#     disk, dsl, dvb, floppy, framebuffer, gfxcard, hub, ide, isapnp, isdn,
+#     joystick, keyboard, memory, modem, monitor, mouse, netcard, network,
+#     partition, pci, pcmcia, pcmcia-ctrl, pppoe, printer, scanner, scsi, smp,
+#     sound, storage-ctrl, sys, tape, tv, usb, usb-ctrl, vbe, wlan, zip
+# 
+#   Note: debug info is shown only in the log file. (If you specify a
+#   log file the debug level is implicitly set to a reasonable value.)
+

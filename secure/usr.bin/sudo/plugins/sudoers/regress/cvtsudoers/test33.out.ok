@@ -1,0 +1,7 @@
+Defaults log_output
+
+# sudoRole root
+root ALL = (ALL : ALL) NOPASSWD: ALL
+
+# sudoRole millert
+millert ALL = (ALL, !bin, !root : ALL, !wheel) ALL

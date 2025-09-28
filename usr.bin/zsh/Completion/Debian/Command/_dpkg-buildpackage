@@ -1,0 +1,28 @@
+#compdef dpkg-buildpackage
+
+_arguments \
+  '-b[binary-only build, no source]' \
+  '-B[binary-only build, no source or arch-indep binaries]' \
+  '-S[source-only build, no binaries]' \
+  '-s-:source generation:((i\:default a\:force\ inclusion\ of\ original\ source d\:force\ exclusion\ of\ original\ source))' \
+  '-a-:architecture:_deb_architectures' \
+  '-v-:version:' \
+  '-C-:changes description:_files' \
+  '-m-:maintainer address:_email_addresses' \
+  '-e-:maintainer address:_email_addresses' \
+  '(-d)-D[check build dependencies and conflicts]' \
+  '(-D)-d[do not check build dependencies and conflicts]' \
+  '-W[turn certain errors into warnings]' \
+  '-E[negates previously-set -W]' \
+  '-nc[do not clean source tree]' \
+  '-tc[clean the source tree after build]' \
+  '-r-:gain-root command: _command_names -e' \
+  '-p-:sign command: _command_names -e' \
+  '-k-:key ID:' \
+  '-us[do not sign source package]' \
+  '-uc[do not sign .changes file]' \
+  '*-i-:ignore regexp:' \
+  '*-I-:ignore filename:_files' \
+  '--admindir=:dpkg database dir:_files -/' \
+  '(-h --help)'{-h,--help}'[show usage message]' \
+  '--version[show version]'

@@ -1,0 +1,30 @@
+#compdef cygstart cygstart.exe
+
+# cygwin 1.5.25
+
+_arguments -s -S \
+  '(--action -a)'{-a,--action=-}'[use specified action instead of default]:action:(open edit explore print find)' \
+  '(--open -o)'{-o,--open}'[short for: --action open]' \
+  '(--explore -x)'{-x,--explore}'[short for: --action explore]' \
+  '(--edit -e)'{-e,--edit}'[short for: --action edit]' \
+  '(--find -f)'{-f,--find}'[short for: --action find]' \
+  '(--print -p)'{-p,--print}'[short for: --action print]' \
+  '(--directory -d)'{-d,--directory=-}'[set working directory]:directory:_directories' \
+  '--hide[hides the window and activates another window]' \
+  '--maximize[maximizes the specified window]' \
+  '--minimize[minimizes the specified window and activates the next top-level window in the z-order]' \
+  '--restore[activates and displays the window. If the window is minimized or maximized, Windows restores it to its original size and position. An application should specify this flag when restoring a minimized window]' \
+  '--show[activates the window and displays it in its current size and position]' \
+  '--showmaximized[activates the window and displays it as a maximized window]' \
+  '--showminimized[activates the window and displays it as a minimized window]' \
+  '--showminnoactive[displays the window as a minimized window. The active window remains active]' \
+  '--showna[displays the window in its current state. The active window remains active]' \
+  '--shownoactivate[displays a window in its most recent size and position. The active window remains active]' \
+  '--shownormal[activates and displays a window. If the window is minimized or maximized, Windows restores it to its original size and position. An application should specify this flag when displaying the window for the first time]' \
+  '(--help -?)'{-\?,--help}'[display help information]' \
+  '--usage[display brief usage message]' \
+  '--version[display version information]' \
+  '--license[display licensing information]' \
+  '--reference[open MSDN reference for ShellExecute]' \
+  '1:file: _alternative "programs:program: _command_names -e" "files:file:_files" "urls:URL:_urls"' \
+  '*::program arguments: _normal'

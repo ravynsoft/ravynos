@@ -1,0 +1,60 @@
+Check the lexical scoping of the say keyword.
+(The actual behaviour is tested in t/op/say.t)
+
+__END__
+# No say; should be a syntax error.
+use warnings;
+say "Hello", "world";
+EXPECT
+Unquoted string "say" may clash with future reserved word at - line 3.
+String found where operator expected (Do you need to predeclare "say"?) at - line 3, near "say "Hello""
+syntax error at - line 3, near "say "Hello""
+Execution of - aborted due to compilation errors.
+########
+# With say, should work
+use warnings;
+use feature "say";
+say "Hello", "world";
+EXPECT
+Helloworld
+########
+# With say, should work in eval too
+use warnings;
+use feature "say";
+eval q(say "Hello", "world");
+EXPECT
+Helloworld
+########
+# feature out of scope; should be a syntax error.
+use warnings;
+{ use feature 'say'; }
+say "Hello", "world";
+EXPECT
+Unquoted string "say" may clash with future reserved word at - line 4.
+String found where operator expected (Do you need to predeclare "say"?) at - line 4, near "say "Hello""
+syntax error at - line 4, near "say "Hello""
+Execution of - aborted due to compilation errors.
+########
+# 'no feature' should work
+use warnings;
+use feature 'say';
+say "Hello", "world";
+no feature;
+say "Hello", "world";
+EXPECT
+Unquoted string "say" may clash with future reserved word at - line 6.
+String found where operator expected (Do you need to predeclare "say"?) at - line 6, near "say "Hello""
+syntax error at - line 6, near "say "Hello""
+Execution of - aborted due to compilation errors.
+########
+# 'no feature "say"' should work too
+use warnings;
+use feature 'say';
+say "Hello", "world";
+no feature 'say';
+say "Hello", "world";
+EXPECT
+Unquoted string "say" may clash with future reserved word at - line 6.
+String found where operator expected (Do you need to predeclare "say"?) at - line 6, near "say "Hello""
+syntax error at - line 6, near "say "Hello""
+Execution of - aborted due to compilation errors.

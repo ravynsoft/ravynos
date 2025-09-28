@@ -1,0 +1,50 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# nameref requires changes to unset
+bar=one
+typeset -n foo=bar
+
+# normal unset unsets only variable nameref references
+# need unset -n to unset nameref itself
+unset foo
+echo "expect <unset>"
+recho ${bar-unset}
+echo "expect <unset>"
+recho ${foo-unset}
+echo "expect <bar>"
+recho ${!foo}
+unset -n foo
+echo "expect <unset>"
+recho "${!foo-unset}"
+
+readonly bar=two
+typeset -n foo=bar
+
+unset foo	# this should fail because bar is readonly
+
+echo "expect <two>"
+echo ${bar-unset}
+echo "expect <two>"
+echo ${foo-unset}
+
+# one question is what happens when you unset the underlying variable
+qux=three
+typeset -n ref
+ref=qux
+
+echo $ref
+unset qux
+echo ${ref-unset}
+qux=four
+echo ${ref-unset}

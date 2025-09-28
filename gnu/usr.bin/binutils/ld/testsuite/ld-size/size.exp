@@ -1,0 +1,308 @@
+# Expect script for linker support of size relocations.
+#
+#   Copyright (C) 2013-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+
+# Size relocations have only been implemented for the ix86 and x86_64,
+# so far.
+if {!(([istarget "i?86-*-*"]
+       || [istarget "x86_64-*-*"])
+      && ([istarget "*-*-elf*"]
+	  || [istarget "*-*-nacl*"]
+	  || [istarget "*-*-linux*"]
+	  || [istarget "*-*-gnu*"])) } {
+    verbose "Size relocations tests not run - no target support"
+    return
+}
+
+# Skip when -shared is not supported
+if { ![check_shared_lib_support] } {
+    verbose "Size relocation tests not run - shared support disabled"
+    return
+}
+
+# So as to avoid rewriting every last test case here in a nacl variant,
+# we use black magic to massage the generic cases into nacl-variant cases.
+if [istarget "*-*-nacl*"] {
+    # Change all the -melf_i386 to -melf_i386_nacl so linking can succeed.
+    set options_regsub(ld) {-m(\\S+) -m\\1_nacl}
+}
+
+set test_list [lsort [glob -nocomplain $srcdir/$subdir/*.d]]
+foreach t $test_list {
+    # We need to strip the ".d", but can leave the dirname.
+    verbose [file rootname $t]
+    run_dump_test [file rootname $t]
+}
+
+# We need a working compiler.
+if { ![check_compiler_available] } {
+    verbose "Native size relocation tests not run - no compiler available"
+    return
+}
+
+run_cc_link_tests [list \
+    [list \
+	"Build libsize-1.so" \
+	"-shared" \
+	"-fPIC" \
+	{size-1a.c size-1b.c} \
+	{} \
+	"libsize-1.so" \
+    ] \
+    [list \
+	"Build libsize-2.so" \
+	"-shared" \
+	"-fPIC" \
+	{size-2a.c size-2b.c} \
+	{} \
+	"libsize-2.so" \
+    ] \
+    [list \
+	"Build libsize-3a.so" \
+	"-shared" "-fPIC" \
+	{size-3a.c} \
+	{} \
+	"libsize-3a.so" \
+    ] \
+    [list \
+	"Build libsize-3b.so" \
+	"-shared" \
+	"-fPIC" \
+	{size-3b.c} \
+	{} \
+	"libsize-3b.so" \
+    ] \
+    [list \
+	"Build libsize-3c.so" \
+	"-shared" \
+	"-fPIC" \
+	{size-3c.c} \
+	{} \
+	"libsize-3c.so" \
+    ] \
+    [list \
+	"Build libsize-6b.so" \
+	"-shared" \
+	"-fPIC" \
+	{size-6b.c} \
+	{} \
+	"libsize-6b.so" \
+    ] \
+    [list \
+	"Build libsize-7.so" \
+	"-shared" \
+	"-fPIC" \
+	{size-7b.c} \
+	{} \
+	"libsize-7.so" \
+    ] \
+    [list \
+	"Build size-7" \
+	"$NOPIE_LDFLAGS -Wl,--no-as-needed,-z,notext tmpdir/libsize-7.so" \
+	"$NOPIE_CFLAGS" \
+	{size-7a.c} \
+	{{readelf -rW size-7.rd}} \
+	"size-7.exe" \
+    ] \
+    [list \
+	"Build libsize-8.so" \
+	"-shared" "-fPIC" \
+	{size-8b.c} \
+	{} \
+	"libsize-8.so" \
+    ] \
+    [list \
+	"Build size-8" \
+	"$NOPIE_LDFLAGS -Wl,--no-as-needed,-z,notext tmpdir/libsize-8.so" \
+	"$NOPIE_CFLAGS" \
+	{size-8a.c} \
+	{{readelf -rW size-8.rd}} \
+	"size-8.exe" \
+    ] \
+    [list \
+	"Build libsize-9.so" \
+	"-shared $NOSANITIZE_CFLAGS" \
+	"-fPIC $NOSANITIZE_CFLAGS" \
+	{size-9b.c} \
+	{{readelf -rW size-9.rd}} \
+	"libsize-9.so" \
+    ] \
+    [list \
+	"Build libsize-10.so" \
+	"-shared" \
+	"-fPIC" \
+	{size-10b.c} \
+	{{readelf -rW size-10.rd}} \
+	"libsize-10.so" \
+    ] \
+]
+
+# Check if size relocation works at run-time.
+catch "exec tmpdir/size-7.exe > tmpdir/dump.out" exec_output
+if ![string match "" $exec_output] then {
+    send_log "No run-time size relocation support: $exec_output\n"
+    verbose "No run-time size relocation support: $exec_output" 1
+    return
+}
+
+if { [regexp_diff "tmpdir/dump.out" "$srcdir/$subdir/size-7.out" ] } then {
+    verbose "output is [file_contents "tmpdir/dump.out"]" 2
+    fail "Run-time size relocation"
+    return
+}
+
+# Run-time size relocation tests.
+run_ld_link_exec_tests [list \
+    [list \
+	"Run size-1" \
+	"-Wl,--no-as-needed tmpdir/libsize-1.so" \
+	"" \
+	{size-1.c} \
+	"size-1" \
+	"size-1.out" \
+    ] \
+    [list \
+	"Run size-2" \
+	"-Wl,--no-as-needed tmpdir/libsize-2.so" \
+	"" \
+	{size-2.c} \
+	"size-2" \
+	"size-2.out" \
+    ] \
+    [list \
+	"Run size-3a" \
+	"" \
+	"" \
+	{size-3.c size-3a.c} \
+	"size-3a" \
+	"size-3.out" \
+    ] \
+    [list \
+	"Run size-3b" \
+	"-Wl,--no-as-needed tmpdir/libsize-3a.so" \
+	"" \
+	{size-3.c} \
+	"size-3b" \
+	"size-3.out" \
+    ] \
+    [list \
+	"Run size-3c" \
+	"" \
+	"" \
+	{size-3.c size-3b.c} \
+	"size-3c" \
+	"size-3.out" \
+    ] \
+    [list \
+	"Run size-3d (1)" \
+	"-Wl,--no-as-needed tmpdir/libsize-3b.so" \
+	"" \
+	{size-3.c} \
+	"size-3d1" \
+	"size-3.out" \
+    ] \
+    [list \
+	"Run size-3d (2)" \
+	"" \
+	"" \
+	{size-3.c size-3c.c} \
+	"size-3d2" \
+	"size-3.out" \
+    ] \
+    [list \
+    {"Run size-3e" \
+     "-Wl,--no-as-needed tmpdir/libsize-3c.so" "" \
+     {size-3.c} "size-3e" "size-3.out"} \
+    ] \
+    [list \
+	"Run size-4a" \
+	"$NOPIE_LDFLAGS" \
+	"" \
+	{size-4a.c size-4b.c} \
+	"size-4a" \
+	"size-4.out" \
+	"$NOPIE_CFLAGS" \
+    ] \
+    [list \
+	"Run size-4b" \
+	"$NOPIE_LDFLAGS" \
+	"" \
+	{size-4b.c size-4a.c} \
+	"size-4b" \
+	"size-4.out" \
+	"$NOPIE_CFLAGS" \
+    ] \
+    [list \
+	"Run size-5a" \
+	"$NOPIE_LDFLAGS" \
+	"" \
+	{size-5a.c size-5b.c} \
+	"size-5a" \
+	"size-5.out" \
+	"$NOPIE_CFLAGS" \
+    ] \
+    [list \
+	"Run size-5b" \
+	"$NOPIE_LDFLAGS" \
+	"" \
+	{size-5b.c size-5a.c} \
+	"size-5b" \
+	"size-5.out" \
+	"$NOPIE_CFLAGS" \
+    ] \
+    [list \
+	"Run size-6" \
+	"$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libsize-6b.so" \
+	"" \
+	{size-6a.c} \
+	"size-6" \
+	"size-6.out" \
+	"$NOPIE_CFLAGS" \
+    ] \
+    [list \
+	"Run size-8" \
+	"$NOPIE_LDFLAGS -Wl,--no-as-needed,--hash-style=gnu,-z,notext \
+	 tmpdir/libsize-8.so" \
+	"" \
+	{size-8a.c} \
+	"size-8" \
+	"size-8.out" \
+	"$NOPIE_CFLAGS" \
+    ] \
+    [list \
+	"Run size-9" \
+	"-Wl,--no-as-needed tmpdir/libsize-9.so $NOSANITIZE_CFLAGS" \
+	"" \
+	{size-9a.c} \
+	"size-9" \
+	"size-9.out" \
+	"$NOSANITIZE_CFLAGS" \
+    ] \
+    [list \
+	"Run size-10" \
+	"-Wl,--no-as-needed tmpdir/libsize-10.so" \
+	"" \
+	{size-10a.c} \
+	"size-10" \
+	"size-10.out" \
+    ] \
+]

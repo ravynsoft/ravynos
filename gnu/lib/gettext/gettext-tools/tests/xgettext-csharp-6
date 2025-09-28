@@ -1,0 +1,33 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C# support: --add-comments option.
+
+cat <<\EOF > xg-cs-6.cs
+/* a */
+/* b */ string s = /* c */
+/* d */
+/* e */ _( /* f */ "hello " /* g */ + /* h */ "world" /* i */ );
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-comments --omit-header --no-location --keyword=_ \
+  -d xg-cs-6.tmp xg-cs-6.cs || Exit 1
+LC_ALL=C tr -d '\r' < xg-cs-6.tmp.po > xg-cs-6.po || Exit 1
+
+cat <<EOF > xg-cs-6.ok
+#. a
+#. b
+#. c
+#. d
+#. e
+#. f
+msgid "hello world"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-cs-6.ok xg-cs-6.po
+result=$?
+
+exit $result

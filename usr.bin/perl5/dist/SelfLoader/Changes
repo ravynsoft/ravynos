@@ -1,0 +1,43 @@
+Revision history for Perl extension SelfLoader
+
+1.24    Thu Aug  3 18:00 2017
+  - Fix minor POD issues.
+
+1.20    Mon Dec 19 20:03 2011
+  - Update FSF address also in separate license file, duh.
+
+1.19    Mon Dec 19 20:00 2011
+  - Update FSF address.
+
+1.18    Sat Nov 20 01:30 2010
+  - port commit a3a44df66ac2cb0beb603b3dd9697fd81cfcfb30
+    from core:
+     [perl #72062] Untaint DATA after it's reopened
+     DATA handle is untainted on startup, but as we close and reopen it it
+     gets the taint flag. It's safe to untaint it though, since we still hold
+     the file descriptor open and don't reassign it to another file.
+     
+     This was probably broken by changeset 29606, (c96b2385 in perl git).
+
+1.17     Thu Oct 23 20:12 2008
+  - Tiny fix in error messages: Use $! instead of $1.
+
+1.16     Sat Aug  2 17:29 2008
+  - Report the location of warnings and errors. (perl ticket #5298,
+    Marc Gauthier)
+
+1.15     Thu Jan 17 17:43 2008
+  - Fix non-critical warning in the test suite. (Jerry D. Hedden)
+
+1.14     Wed Jan 16 16:26 2008
+  - No failures reported, promote to stable version.
+
+1.13_03  Fri Dec 28 11:28 2007
+  - Doc patch. This is SelfLoader, not AutoLoader.
+
+1.13_02  Wed Dec 26 16:03 2007
+  - Fixed the README.
+
+1.13_01  Wed Dec 26 12:38 2007
+  - Initial dual-lived CPAN release
+

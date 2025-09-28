@@ -1,0 +1,21 @@
+xkb_keymap {
+	xkb_keycodes {
+		 <ESC> = 1;
+	};
+
+	xkb_types {
+		virtual_modifiers NumLock;
+	};
+
+	xkb_compatibility {
+		virtual_modifiers NumLock;
+		interpret KP_1+AnyOfOrNone(all) {
+			repeat= True;
+			action= MovePtr(x=(1/0),y=+1);
+		};
+	};
+
+	xkb_symbols {
+		key <HYPR> {	[        NoSymbol,         Hyper_L ] };
+	};
+};

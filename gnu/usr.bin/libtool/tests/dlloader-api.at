@@ -1,0 +1,441 @@
+# dlloader.at -- test dlloader functionality                -*- Autotest -*-
+#
+#   Copyright (C) 2010-2019, 2021-2022 Free Software Foundation, Inc.
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([dlloader API])
+AT_KEYWORDS([libltdl])
+
+AT_DATA([main.c],
+[[#include <ltdl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+static int
+first_init (lt_user_data data)
+{
+  const char *ctx = (const char *) data;
+
+  printf ("first_init: %s\n", ctx);
+
+  return 0;
+}
+
+static lt_module
+first_open (lt_user_data data, const char *filename, lt_dladvise advise)
+{
+  static const char *first_module = "first";
+  const char *ctx = (const char *) data;
+
+  /* Use a magic string to avoid possible interactions with file system
+   * objects.  Prepend '/' to short-circuit libltdl's search of
+   * $shlibpath_var (e.g. PATH, LD_LIBRARY_PATH, or similar).
+   */
+  if (!filename || strcmp (filename, "/libltdl_dlloader_api_test_first"))
+    {
+      printf ("first_open denies a request\n");
+      lt_dlseterror (LT_ERROR_FILE_NOT_FOUND);
+      return NULL;
+    }
+
+  printf ("first_open (\"%s\"): %s\n", filename, ctx);
+
+  return (lt_module) first_module;
+}
+
+static const char *
+first_symbol (void)
+{
+  return "first_symbol";
+}
+
+static void *
+first_sym (lt_user_data data, lt_module module, const char *symbolname)
+{
+  const char *ctx = (const char *) data;
+  const char *filename = (const char *) module;
+
+  printf ("first_sym (%s): %s\n", filename, ctx);
+
+  return (void *) first_symbol;
+}
+
+static int
+first_close (lt_user_data data, lt_module module)
+{
+  const char *ctx = (const char *) data;
+  const char *filename = (const char *) module;
+
+  printf ("first_close (%s): %s\n", filename, ctx);
+
+  return 0;
+}
+
+static int
+first_exit (lt_user_data data)
+{
+  const char *ctx = (const char *) data;
+
+  printf ("first_exit: %s\n", ctx);
+
+  return 0;
+}
+
+static int
+last_init (lt_user_data data)
+{
+  const char *ctx = (const char *) data;
+
+  printf ("last_init: %s\n", ctx);
+
+  return 0;
+}
+
+static lt_module
+last_open (lt_user_data data, const char *filename, lt_dladvise advise)
+{
+  static const char *last_module = "last";
+  const char *ctx = (const char *) data;
+
+  /* Use a magic string to avoid possible interactions with file system
+   * objects.  Prepend '/' to short-circuit libltdl's search of
+   * $shlibpath_var (e.g. PATH, LD_LIBRARY_PATH, or similar).
+   */
+  if (!filename || strcmp (filename, "/libltdl_dlloader_api_test_last"))
+    {
+      printf ("last_open denies a request\n");
+      lt_dlseterror (LT_ERROR_FILE_NOT_FOUND);
+      return NULL;
+    }
+
+  printf ("last_open (\"%s\"): %s\n", filename, ctx);
+
+  return (lt_module) last_module;
+}
+
+static const char *
+last_symbol (void)
+{
+  return "last_symbol";
+}
+
+static void *
+last_sym (lt_user_data data, lt_module module, const char *symbolname)
+{
+  const char *ctx = (const char *) data;
+  const char *filename = (const char *) module;
+
+  printf ("last_sym (%s): %s\n", filename, ctx);
+
+  return (void *) last_symbol;
+}
+
+static int
+last_close (lt_user_data data, lt_module module)
+{
+  const char *ctx = (const char *) data;
+  const char *filename = (const char *) module;
+
+  printf ("last_close (%s): %s\n", filename, ctx);
+
+  return 0;
+}
+
+static int
+last_exit (lt_user_data data)
+{
+  const char *ctx = (const char *) data;
+
+  printf ("last_exit: %s\n", ctx);
+
+  return 0;
+}
+
+typedef const char *module_func (void);
+
+int
+main (int argc, char* argv[])
+{
+  int err = 0;
+  lt_dlvtable *first;
+  lt_dlvtable *last;
+  lt_dlhandle module = NULL;
+  module_func *symbol;
+  const char *first_ctx = "first_ctx";
+  const char *last_ctx = "last_ctx";
+  const lt_dlvtable *finder;
+
+  LTDL_SET_PRELOADED_SYMBOLS ();
+
+  if (lt_dlinit ())
+    {
+      printf ("lt_dlinit failed\n");
+      return 1;
+    }
+
+  first = (lt_dlvtable *) malloc (sizeof (*first));
+  if (!first)
+    {
+      printf ("malloc failed\n");
+      err = 1;
+      goto cleanup;
+    }
+
+  first->name = "first";
+  first->sym_prefix = NULL;
+  first->module_open = first_open;
+  first->module_close = first_close;
+  first->find_sym = first_sym;
+  first->dlloader_init = first_init; /* test that it isn't called twice */
+  first->dlloader_exit = first_exit;
+  first->dlloader_data = (lt_user_data) first_ctx;
+  first->priority = LT_DLLOADER_PREPEND;
+
+  if (first_init (first->dlloader_data))
+    {
+      printf ("first_init failed\n");
+      err = 1;
+      goto cleanup;
+    }
+
+  if (lt_dlloader_add (first))
+    {
+      printf ("lt_dlloader_add failed: %s\n", lt_dlerror ());
+      err = 1;
+      goto cleanup;
+    }
+
+  finder = lt_dlloader_find ("first");
+
+  if (!finder)
+    {
+      printf ("lt_dlloader_find failed: %s\n", lt_dlerror ());
+      err = 1;
+      goto cleanup;
+    }
+
+  printf ("Found loader \"%s\"\n", finder->name);
+
+  last = (lt_dlvtable *) malloc (sizeof (*last));
+  if (!last)
+    {
+      printf ("malloc failed\n");
+      err = 1;
+      goto cleanup;
+    }
+
+  last->name = "last";
+  last->sym_prefix = NULL;
+  last->module_open = last_open;
+  last->module_close = last_close;
+  last->find_sym = last_sym;
+  last->dlloader_init = last_init; /* test that it isn't called twice */
+  last->dlloader_exit = last_exit;
+  last->dlloader_data = (lt_user_data) last_ctx;
+  last->priority = LT_DLLOADER_APPEND;
+
+  if (last_init (last->dlloader_data))
+    {
+      printf ("last_init failed\n");
+      err = 1;
+      goto cleanup;
+    }
+
+  if (lt_dlloader_add (last))
+    {
+      printf ("lt_dlloader_add failed: %s\n", lt_dlerror ());
+      err = 1;
+      goto cleanup;
+    }
+
+  finder = lt_dlloader_find ("last");
+
+  if (!finder)
+    {
+      printf ("lt_dlloader_find failed: %s\n", lt_dlerror ());
+      err = 1;
+      goto cleanup;
+    }
+
+  printf ("Found loader \"%s\"\n", finder->name);
+
+  /* Use a magic string to avoid possible interactions with file system
+   * objects.  Prepend '/' to short-circuit libltdl's search of
+   * $shlibpath_var (e.g. PATH, LD_LIBRARY_PATH, or similar).
+   */
+  module = lt_dlopen ("/libltdl_dlloader_api_test_first");
+
+  if (!module)
+    {
+      printf ("lt_dlopen failed: %s\n", lt_dlerror ());
+      err = 1;
+      goto cleanup;
+    }
+
+  symbol = (module_func *) lt_dlsym (module, "symbol");
+
+  if (!symbol)
+    {
+      printf ("lt_dlsym failed: %s\n", lt_dlerror ());
+      err = 1;
+      goto cleanup;
+    }
+
+  printf ("result: %s\n", symbol ());
+
+  lt_dlclose (module);
+  module = lt_dlopen ("./module.la");
+
+  if (!module)
+    {
+      printf ("lt_dlopen failed: %s\n", lt_dlerror ());
+      err = 1;
+      goto cleanup;
+    }
+
+  symbol = (module_func *) lt_dlsym (module, "symbol");
+
+  if (!symbol)
+    {
+      printf ("lt_dlsym failed: %s\n", lt_dlerror ());
+      err = 1;
+      goto cleanup;
+    }
+
+  printf ("result: %s\n", symbol ());
+
+  lt_dlclose (module);
+
+  /* Use a magic string to avoid possible interactions with file system
+   * objects.  Prepend '/' to short-circuit libltdl's search of
+   * $shlibpath_var (e.g. PATH, LD_LIBRARY_PATH, or similar).
+   */
+  module = lt_dlopen ("/libltdl_dlloader_api_test_last");
+
+  if (!module)
+    {
+      printf ("lt_dlopen failed: %s\n", lt_dlerror ());
+      err = 1;
+      goto cleanup;
+    }
+
+  symbol = (module_func *) lt_dlsym (module, "symbol");
+
+  if (!symbol)
+    {
+      printf ("lt_dlsym failed: %s\n", lt_dlerror ());
+      err = 1;
+      goto cleanup;
+    }
+
+  printf ("result: %s\n", symbol ());
+
+  if (lt_dlopen ("no-module"))
+    {
+      printf ("lt_dlopen unexpectedly opened \"no-module\"\n");
+      err = 1;
+      goto cleanup;
+    }
+
+  if (lt_dlloader_remove ("first") != first)
+    {
+      printf ("vtable of first loader has changed\n");
+      err = 1;
+      goto cleanup;
+    }
+
+  free (first);
+
+cleanup:
+  if (module)
+    {
+      lt_dlclose (module);
+    }
+  lt_dlexit ();
+  return err;
+}
+]])
+
+AT_DATA([module.c],
+[[
+#ifdef __cplusplus
+extern "C"
+#endif
+const char *symbol (void);
+const char *
+symbol (void)
+{
+  return "module_symbol";
+}
+]])
+
+LT_AT_HOST_DATA(expout,
+[[first_init: first_ctx
+Found loader "first"
+last_init: last_ctx
+Found loader "last"
+first_open ("/libltdl_dlloader_api_test_first"): first_ctx
+first_sym (first): first_ctx
+result: first_symbol
+first_close (first): first_ctx
+first_open denies a request
+result: module_symbol
+first_open denies a request
+last_open ("/libltdl_dlloader_api_test_last"): last_ctx
+last_sym (last): last_ctx
+result: last_symbol
+first_open denies a request
+last_open denies a request
+first_exit: first_ctx
+last_close (last): last_ctx
+last_exit: last_ctx
+]])
+
+: ${LTDLINCL="-I$abs_top_srcdir/libltdl"}
+: ${LIBLTDL="$abs_builddir/../libltdl/libltdlc.la"}
+
+# Skip this test when called from:
+#    make distcheck DISTCHECK_CONFIGURE_FLAGS=--disable-ltdl-install
+AT_CHECK([case $LIBLTDL in #(
+ */_inst/lib/*) test -f "$LIBLTDL" || (exit 77) ;;
+esac], [], [ignore])
+
+CPPFLAGS="$LTDLINCL $CPPFLAGS"
+
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c module.c],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o module.la ]dnl
+	 [-rpath /nowhere -module -avoid-version -no-undefined ]dnl
+	 [module.lo],
+	 [], [ignore], [ignore])
+
+dnl Not possible to override the preopen loader, so skip if not shared.
+. ./module.la
+AT_CHECK([test -n "$dlname" || (exit 77)])
+
+AT_CHECK([$CC $CPPFLAGS $CFLAGS -c main.c], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT ]dnl
+	 [main.$OBJEXT -dlopen module.la $LIBLTDL],
+	 [], [ignore], [ignore])
+
+LT_AT_EXEC_CHECK([./main], [], [expout], [ignore], [])
+
+AT_CLEANUP

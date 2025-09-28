@@ -1,0 +1,118 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# new framework for parameter transformations, post bash-4.3
+
+printf "<%s>" "${x@Q}" ; echo
+printf "<%s>" "${x@E}" ; echo
+printf "<%s>" "${x@P}" ; echo
+printf "<%s>" "${x@A}" ; echo
+
+x="ab 'cd' ef"
+printf "<%s> " "${x@Q}" ; echo 
+
+# this needs to be run in a subshell because invalid transformation operators
+# are now treated as substitution errors, fatal in non-interactive shells
+${THIS_SH} -c 'x=abcdef ; printf "<%s>" "${x@C}"' bash
+
+# if unquoted, normal word splitting happens
+set -- ab 'cd ef' '' gh
+printf "<%s> " "${@@Q}" ; echo
+printf "<%s> " "${*@Q}" ; echo
+printf "<%s> " ${@@Q} ; echo
+printf "<%s> " ${*@Q} ; echo
+
+y[0]=4
+y[1]='ab cd'
+
+printf "<%s> " "${y[1]@Q}" ; echo
+printf "<%s> " "${y[@]@Q}" ; echo	# mksh doesn't like @ or * or arrays subscripted with them
+
+printf "<%s> " "${z@Q}"	; echo	# empty string?
+
+recho ${z@Q}		# this disappears
+
+#
+HOST=host
+SHELL_LEVEL=2
+NPS1='\[\]${HOST}($SHELL_LEVEL)[\v]\$ '
+
+recho "${NPS1@P}"
+
+#
+D=' \t\n'
+printf "<%s>" "${D@E}" ; echo
+printf "<%s>" "${D@Q}" ; echo
+
+E=$' \t\n'
+printf "<%s>" "${E@E}" ; echo
+printf "<%s>" "${E@Q}" ; echo
+
+declare x
+declare -r x="ab 'cd' ef"
+printf "%s" "${x@A}" ; echo 
+
+set -- ab 'cd ef' '' gh
+printf "%s " "${@@A}" ; echo
+
+A=( "$@" )
+printf "%s " "${A[@]@A}" ; echo
+B=()
+printf "%s " "${B[@]@A}" ; echo
+
+unset A
+declare -A A
+A=( [one]=1 [two]='b c' [three]='' [four]=de )
+printf "%s " "${A[@]@A}" ; echo
+
+unset X
+declare X
+declare -r X="ab 'cd' ef"
+printf "%s" "${X@a}" ; echo 
+
+set -- 1 2 3 4
+
+unset A
+A=( "$@" )
+printf "%s " "${A@a}" ; echo
+
+unset A
+declare -A A
+A=( [one]=1 [two]='b c' [three]='' [four]=de )
+printf "%s " "${A@a}" ; echo
+
+declare -ir Y=0
+printf "%s" "${Y@a}" ; echo 
+
+# make sure we still handle ${#@} and ${@} as posix requires
+set -- a b c d e
+echo ${@}
+echo ${#@}
+echo a${#@}b
+
+# new feature in bash-5.0: display attributes of even unset variables
+unset -v foo
+
+declare -i foo
+echo ${foo@a}
+
+declare -p foo
+
+unset foo
+declare -A foo
+echo ${foo@a}
+
+declare -p foo
+
+V=42
+echo ${V@}	# error

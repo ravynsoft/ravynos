@@ -1,0 +1,34 @@
+---
+name: Test-Harness-Straps
+author:
+  - 'Michael G Schwern <schwern@pobox.com>'
+abstract: detailed analysis of test results
+license: perl
+resources:
+  license: http://dev.perl.org/licenses/
+requires:
+  File::Spec: 0.6
+provides:
+  Test::Harness::Assert:
+    file: lib/Test/Harness/Assert.pm
+    version: 0.02
+  Test::Harness::Iterator:
+    file: lib/Test/Harness/Iterator.pm
+    version: 0.02
+  Test::Harness::Iterator::ARRAY:
+    file: lib/Test/Harness/Iterator.pm
+  Test::Harness::Iterator::FH:
+    file: lib/Test/Harness/Iterator.pm
+  Test::Harness::Point:
+    file: lib/Test/Harness/Point.pm
+    version: 0.01
+  Test::Harness::Results:
+    file: lib/Test/Harness/Results.pm
+    version: 0.01
+  Test::Harness::Straps:
+    file: lib/Test/Harness/Straps.pm
+    version: 0.30
+generated_by: Module::Build version 0.280801
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.2.html
+  version: 1.2

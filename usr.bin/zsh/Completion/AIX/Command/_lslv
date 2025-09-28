@@ -1,0 +1,8 @@
+#compdef lslv
+
+_arguments -C -s \
+  '(-l -m)-p[display logical volume allocation map for the physical volume]:pv:_physical_volumes' \
+  '(-p)-l[list physical volumes in logical volume]' \
+  '(-p)-m[list partition numbers]' \
+  '-n[accesses information from the descriptor area of physical volume]:pv:_physical_volumes' \
+  '1:lv: _logical_volumes'

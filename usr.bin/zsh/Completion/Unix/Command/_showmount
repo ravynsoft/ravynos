@@ -1,0 +1,10 @@
+#compdef showmount
+
+_arguments \
+	'(-a --all)'{-a,--all}'[list both hostname and mounted dir in host:dir format]' \
+	'(-d --directories)'{-d,--directories}'[list only the directories mounted by some client]' \
+	'(-e --exports)'{-e,--exports}'[show server export list]' \
+	'(-h --help)'{-h,--help}'[help]' \
+	'(-v --version)'{-v,--version}'[version]' \
+	'--no-headers[suppress descriptive headers from output]' \
+	':host:_hosts'

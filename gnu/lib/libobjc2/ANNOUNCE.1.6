@@ -1,0 +1,64 @@
+GNUstep Objective-C Runtime 1.6
+===============================
+
+This is the seventh official release of the GNUstep Objective-C runtime (a.k.a.
+libobjc2).  This runtime was designed to support the features of Objective-C 2
+for use with GNUstep and other Objective-C programs.  Highlights of this
+release include:
+
+- Compatibility with the new runtime APIs introduced with Mac OS X 10.7 / iOS 5.
+
+- Support for small objects (ones hidden inside a pointer).  On 32-bit systems,
+  the runtime permits one small object class, on 64-bit systems it permits 4.
+  This is used by GNUstep for small NSNumber and NSString instances, and these
+  are used by LanguageKit for message sending to small integers. 
+
+- Support for prototype-style object orientation.  You can now add methods, as
+  well as associated references, to individual objects, and clone them.  The
+  runtime now supports everything required for the JavaScript object model,
+  including the ability to use blocks as methods on x86, x86-64 and ARM.
+
+- Support for Apple-compatible objc_msgSend() functions for x86, x86-64, and
+  ARM.  Using these approximately halves the cost of message sending operations
+  and results in a 10% smaller total binary size.  
+
+- A fully maintained POSIX Makefile to make bootstrapping builds and packaging
+  easier.  This will be used automatically if GNUstep Make is not installed.
+
+- Improvements to the included LLVM optimisation passes.  Testing on a 2.8GHz
+  Xeon, a loop of 200,000,000 class messages took 0.8 seconds with all
+  optimisations enabled (including speculative inlining).  With -Os, the test
+  took 2 seconds.  With explicit IMP caching in the source code, the test took
+  1.2 seconds.  For reference, the same test using the GCC Objective-C runtime
+  took 11 seconds (when compiled with either Clang/LLVM or GCC).
+
+Various features of this release required some per-platform assembly code.  For
+the 1.6.0 release, ARM, x86 and x86-64 (with the SysV ABI, not with the Win64
+ABI) are supported.  Future releases in the 1.6.x series will extend this to
+other architectures.  
+
+You may obtain the code for this release from subversion at the following
+subversion branch:
+
+svn://svn.gna.org/svn/gnustep/libs/libobjc2/1.6
+
+Alternatively, a tarball is available from:
+
+http://download.gna.org/gnustep/libobjc2-1.6.tar.bz2
+
+The runtime library is responsible for implementing the core features of the
+object model, as well as exposing introspection features to the user.  The
+GNUstep runtime implements Apple's Objective-C Runtime APIs, and a small number
+of GCC APIs for legacy compatibility.
+
+This library is based on the Étoilé Objective-C Runtime, an earlier research
+prototype, and includes support for non-fragile instance variables,
+type-dependent dispatch, and object planes.  It is fully backwards compatible
+with the FSF's GCC 4.2.1 Objective-C ABI and also implements a new ABI that is
+supported by Clang and Étoilé's LanguageKit and is required for some of the
+newer features.
+
+Although the runtime has been tested by several people, and is being used
+extensively by the Étoilé project, it is relatively new code and may still
+contain bugs.  If you come across any problems, please report them to the
+GNUstep Developer mailing list <gnustep-dev@gnu.org>.  

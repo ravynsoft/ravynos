@@ -1,0 +1,2896 @@
+=head1 NAME
+
+POSIX - Perl interface to IEEE Std 1003.1
+
+=head1 SYNOPSIS
+
+    use POSIX ();
+    use POSIX qw(setsid);
+    use POSIX qw(:errno_h :fcntl_h);
+
+    printf "EINTR is %d\n", EINTR;
+
+    my $sess_id = POSIX::setsid();
+
+    my $fd = POSIX::open($path, O_CREAT|O_EXCL|O_WRONLY, 0644);
+	# note: that's a filedescriptor, *NOT* a filehandle
+
+=head1 DESCRIPTION
+
+The POSIX module permits you to access all (or nearly all) the standard
+POSIX 1003.1 identifiers.  Many of these identifiers have been given Perl-ish
+interfaces.
+
+This document gives a condensed list of the features available in the POSIX
+module.  Consult your operating system's manpages for general information on
+most features.  Consult L<perlfunc> for functions which are noted as being
+identical or almost identical to Perl's builtin functions.
+
+The first section describes POSIX functions from the 1003.1 specification.
+The second section describes some classes for signal objects, TTY objects,
+and other miscellaneous objects.  The remaining sections list various
+constants and macros in an organization which roughly follows IEEE Std
+1003.1b-1993.
+
+The notation C<[C99]> indicates functions that were added in the ISO/IEC
+9899:1999 version of the C language standard.  Some may not be available
+on your system if it adheres to an earlier standard.  Attempts to use
+any missing one will result in a fatal runtime error message.
+
+=head1 CAVEATS
+
+I<Everything is exported by default> (with a handful of exceptions).
+This is an unfortunate backwards compatibility feature and its use is
+B<strongly L<discouraged|perlpolicy/discouraged>>.
+You should either prevent the exporting (by saying S<C<use POSIX ();>>,
+as usual) and then use fully qualified names (e.g. C<POSIX::SEEK_END>),
+or give an explicit import list.
+If you do neither and opt for the default (as in S<C<use POSIX;>>), you
+will import I<hundreds and hundreds> of symbols into your namespace.
+
+A few functions are not implemented because they are C specific.  If you
+attempt to call these, they will print a message telling you that they
+aren't implemented, and suggest using the Perl equivalent, should one
+exist.  For example, trying to access the C<setjmp()> call will elicit the
+message "C<setjmp() is C-specific: use eval {} instead>".
+
+Furthermore, some evil vendors will claim 1003.1 compliance, but in fact
+are not so: they will not pass the PCTS (POSIX Compliance Test Suites).
+For example, one vendor may not define C<EDEADLK>, or the semantics of the
+errno values set by C<open(2)> might not be quite right.  Perl does not
+attempt to verify POSIX compliance.  That means you can currently
+successfully say "use POSIX",  and then later in your program you find
+that your vendor has been lax and there's no usable C<ICANON> macro after
+all.  This could be construed to be a bug.
+
+=head1 FUNCTIONS
+
+=over 8
+
+=item C<_exit>
+
+This is identical to the C function C<_exit()>.  It exits the program
+immediately which means among other things buffered I/O is B<not> flushed.
+
+Note that when using threads and in Linux this is B<not> a good way to
+exit a thread because in Linux processes and threads are kind of the
+same thing (Note: while this is the situation in early 2003 there are
+projects under way to have threads with more POSIXly semantics in Linux).
+If you want not to return from a thread, detach the thread.
+
+=item C<abort>
+
+This is identical to the C function C<abort()>.  It terminates the
+process with a C<SIGABRT> signal unless caught by a signal handler or
+if the handler does not return normally (it e.g.  does a C<longjmp>).
+
+=item C<abs>
+
+This is identical to Perl's builtin C<abs()> function, returning the absolute
+value of its numerical argument (except that C<POSIX::abs()> must be provided
+an explicit value (rather than relying on an implicit C<$_>):
+
+    $absolute_value = POSIX::abs(42);   # good
+
+    $absolute_value = POSIX::abs();     # throws exception
+
+=item C<access>
+
+Determines the accessibility of a file.
+
+	if( POSIX::access( "/", &POSIX::R_OK ) ){
+		print "have read permission\n";
+	}
+
+Returns C<undef> on failure.  Note: do not use C<access()> for
+security purposes.  Between the C<access()> call and the operation
+you are preparing for the permissions might change: a classic
+I<race condition>.
+
+=item C<acos>
+
+This is identical to the C function C<acos()>, returning
+the arcus cosine of its numerical argument.  See also L<Math::Trig>.
+
+=item C<acosh>
+
+This is identical to the C function C<acosh()>, returning the
+hyperbolic arcus cosine of its numerical argument [C99].  See also
+L<Math::Trig>.  Added in Perl v5.22.
+
+=item C<alarm>
+
+This is identical to Perl's builtin C<alarm()> function, either for arming or
+disarming the C<SIGARLM> timer, except that C<POSIX::alarm()> must be provided
+an explicit value (rather than relying on an implicit C<$_>):
+
+    POSIX::alarm(3)     # good
+
+    POSIX::alarm()      # throws exception
+
+=item C<asctime>
+
+This is identical to the C function C<asctime()>.  It returns
+a string of the form
+
+	"Fri Jun  2 18:22:13 2000\n\0"
+
+and it is called thusly
+
+	$asctime = asctime($sec, $min, $hour, $mday, $mon,
+			   $year, $wday, $yday, $isdst);
+
+The C<$mon> is zero-based: January equals C<0>.  The C<$year> is
+1900-based: 2001 equals C<101>.  C<$wday> and C<$yday> default to zero
+(and are usually ignored anyway), and C<$isdst> defaults to -1.
+
+Note the result is always in English.  Use C<L</strftime>> instead to
+get a result suitable for the current locale.  That function's C<%c>
+format yields the locale's preferred representation.
+
+=item C<asin>
+
+This is identical to the C function C<asin()>, returning
+the arcus sine of its numerical argument.  See also L<Math::Trig>.
+
+=item C<asinh>
+
+This is identical to the C function C<asinh()>, returning the
+hyperbolic arcus sine of its numerical argument [C99].  See also
+L<Math::Trig>.  Added in Perl v5.22.
+
+=item C<assert>
+
+Unimplemented, but you can use L<perlfunc/die> and the L<Carp> module
+to achieve similar things.
+
+=item C<atan>
+
+This is identical to the C function C<atan()>, returning the
+arcus tangent of its numerical argument.  See also L<Math::Trig>.
+
+=item C<atanh>
+
+This is identical to the C function C<atanh()>, returning the
+hyperbolic arcus tangent of its numerical argument [C99].  See also
+L<Math::Trig>.  Added in Perl v5.22.
+
+=item C<atan2>
+
+This is identical to Perl's builtin C<atan2()> function, returning
+the arcus tangent defined by its two numerical arguments, the I<y>
+coordinate and the I<x> coordinate.  See also L<Math::Trig>.
+
+=item C<atexit>
+
+Not implemented.  C<atexit()> is C-specific: use C<END {}> instead, see L<perlmod>.
+
+=item C<atof>
+
+Not implemented.  C<atof()> is C-specific.  Perl converts strings to numbers transparently.
+If you need to force a scalar to a number, add a zero to it.
+
+=item C<atoi>
+
+Not implemented.  C<atoi()> is C-specific.  Perl converts strings to numbers transparently.
+If you need to force a scalar to a number, add a zero to it.
+If you need to have just the integer part, see L<perlfunc/int>.
+
+=item C<atol>
+
+Not implemented.  C<atol()> is C-specific.  Perl converts strings to numbers transparently.
+If you need to force a scalar to a number, add a zero to it.
+If you need to have just the integer part, see L<perlfunc/int>.
+
+=item C<bsearch>
+
+C<bsearch()> not supplied.  For doing binary search on wordlists,
+see L<Search::Dict>.
+
+=item C<calloc>
+
+Not implemented.  C<calloc()> is C-specific.  Perl does memory management transparently.
+
+=item C<cbrt>
+
+The cube root [C99].  Added in Perl v5.22.
+
+=item C<ceil>
+
+This is identical to the C function C<ceil()>, returning the smallest
+integer value greater than or equal to the given numerical argument.
+
+=item C<chdir>
+
+This is identical to Perl's builtin C<chdir()> function, allowing one to
+change the working (default) directory -- see L<perlfunc/chdir> -- with the
+exception that C<POSIX::chdir()> must be provided an explicit value (rather
+than relying on an implicit C<$_>):
+
+    $rv = POSIX::chdir('path/to/dir');      # good
+
+    $rv = POSIX::chdir();                   # throws exception
+
+=item C<chmod>
+
+This is identical to Perl's builtin C<chmod()> function, allowing
+one to change file and directory permissions -- see L<perlfunc/chmod> -- with
+the exception that C<POSIX::chmod()> can only change one file at a time
+(rather than a list of files):
+
+    $c = chmod 0664, $file1, $file2;          # good
+
+    $c = POSIX::chmod 0664, $file1;           # throws exception
+
+    $c = POSIX::chmod 0664, $file1, $file2;   # throws exception
+
+As with the built-in C<chmod()>, C<$file> may be a filename or a file
+handle.
+
+=item C<chown>
+
+This is identical to Perl's builtin C<chown()> function, allowing one
+to change file and directory owners and groups, see L<perlfunc/chown>.
+
+=item C<clearerr>
+
+Not implemented.  Use the method C<IO::Handle::clearerr()> instead, to reset the error
+state (if any) and EOF state (if any) of the given stream.
+
+=item C<clock>
+
+This is identical to the C function C<clock()>, returning the
+amount of spent processor time in microseconds.
+
+=item C<close>
+
+Close the file.  This uses file descriptors such as those obtained by calling
+C<POSIX::open>.
+
+	$fd = POSIX::open( "foo", &POSIX::O_RDONLY );
+	POSIX::close( $fd );
+
+Returns C<undef> on failure.
+
+See also L<perlfunc/close>.
+
+=item C<closedir>
+
+This is identical to Perl's builtin C<closedir()> function for closing
+a directory handle, see L<perlfunc/closedir>.
+
+=item C<cos>
+
+This is identical to Perl's builtin C<cos()> function, for returning
+the cosine of its numerical argument, see L<perlfunc/cos>.
+See also L<Math::Trig>.
+
+=item C<cosh>
+
+This is identical to the C function C<cosh()>, for returning
+the hyperbolic cosine of its numeric argument.  See also L<Math::Trig>.
+
+=item C<copysign>
+
+Returns C<x> but with the sign of C<y> [C99].  Added in Perl v5.22.
+
+ $x_with_sign_of_y = POSIX::copysign($x, $y);
+
+See also L</signbit>.
+
+=item C<creat>
+
+Create a new file.  This returns a file descriptor like the ones returned by
+C<POSIX::open>.  Use C<POSIX::close> to close the file.
+
+	$fd = POSIX::creat( "foo", 0611 );
+	POSIX::close( $fd );
+
+See also L<perlfunc/sysopen> and its C<O_CREAT> flag.
+
+=item C<ctermid>
+
+Generates the path name for the controlling terminal.
+
+	$path = POSIX::ctermid();
+
+=item C<ctime>
+
+This is identical to the C function C<ctime()> and equivalent
+to C<asctime(localtime(...))>, see L</asctime> and L</localtime>.
+
+=item C<cuserid> [POSIX.1-1988]
+
+Get the login name of the owner of the current process.
+
+	$name = POSIX::cuserid();
+
+Note: this function has not been specified by POSIX since 1990 and is included
+only for backwards compatibility. New code should use L<C<getlogin()>|perlfunc/getlogin> instead.
+
+=item C<difftime>
+
+This is identical to the C function C<difftime()>, for returning
+the time difference (in seconds) between two times (as returned
+by C<time()>), see L</time>.
+
+=item C<div>
+
+Not implemented.  C<div()> is C-specific, use L<perlfunc/int> on the usual C</> division and
+the modulus C<%>.
+
+=item C<dup>
+
+This is similar to the C function C<dup()>, for duplicating a file
+descriptor.
+
+This uses file descriptors such as those obtained by calling
+C<POSIX::open>.
+
+Returns C<undef> on failure.
+
+=item C<dup2>
+
+This is similar to the C function C<dup2()>, for duplicating a file
+descriptor to an another known file descriptor.
+
+This uses file descriptors such as those obtained by calling
+C<POSIX::open>.
+
+Returns C<undef> on failure.
+
+=item C<erf>
+
+The error function [C99].  Added in Perl v5.22.
+
+=item C<erfc>
+
+The complementary error function [C99].  Added in Perl v5.22.
+
+=item C<errno>
+
+Returns the value of errno.
+
+	$errno = POSIX::errno();
+
+This identical to the numerical values of the C<$!>, see L<perlvar/$ERRNO>.
+
+=item C<execl>
+
+Not implemented.  C<execl()> is C-specific, see L<perlfunc/exec>.
+
+=item C<execle>
+
+Not implemented.  C<execle()> is C-specific, see L<perlfunc/exec>.
+
+=item C<execlp>
+
+Not implemented.  C<execlp()> is C-specific, see L<perlfunc/exec>.
+
+=item C<execv>
+
+Not implemented.  C<execv()> is C-specific, see L<perlfunc/exec>.
+
+=item C<execve>
+
+Not implemented.  C<execve()> is C-specific, see L<perlfunc/exec>.
+
+=item C<execvp>
+
+Not implemented.  C<execvp()> is C-specific, see L<perlfunc/exec>.
+
+=item C<exit>
+
+This is identical to Perl's builtin C<exit()> function for exiting the
+program, see L<perlfunc/exit>.
+
+=item C<exp>
+
+This is identical to Perl's builtin C<exp()> function for
+returning the exponent (I<e>-based) of the numerical argument,
+see L<perlfunc/exp>.
+
+=item C<expm1>
+
+Equivalent to C<exp(x) - 1>, but more precise for small argument values [C99].
+Added in Perl v5.22.
+
+See also L</log1p>.
+
+=item C<fabs>
+
+This is identical to Perl's builtin C<abs()> function for returning
+the absolute value of the numerical argument, see L<perlfunc/abs>.
+
+=item C<fclose>
+
+Not implemented.  Use method C<IO::Handle::close()> instead, or see L<perlfunc/close>.
+
+=item C<fcntl>
+
+This is identical to Perl's builtin C<fcntl()> function,
+see L<perlfunc/fcntl>.
+
+=item C<fdopen>
+
+Not implemented.  Use method C<IO::Handle::new_from_fd()> instead, or see L<perlfunc/open>.
+
+=item C<feof>
+
+Not implemented.  Use method C<IO::Handle::eof()> instead, or see L<perlfunc/eof>.
+
+=item C<ferror>
+
+Not implemented.  Use method C<IO::Handle::error()> instead.
+
+=item C<fflush>
+
+Not implemented.  Use method C<IO::Handle::flush()> instead.
+See also C<L<perlvar/$OUTPUT_AUTOFLUSH>>.
+
+=item C<fgetc>
+
+Not implemented.  Use method C<IO::Handle::getc()> instead, or see L<perlfunc/read>.
+
+=item C<fgetpos>
+
+Not implemented.  Use method C<IO::Seekable::getpos()> instead, or see L<perlfunc/seek>.
+
+=item C<fgets>
+
+Not implemented.  Use method C<IO::Handle::gets()> instead.  Similar to E<lt>E<gt>, also known
+as L<perlfunc/readline>.
+
+=item C<fileno>
+
+Not implemented.  Use method C<IO::Handle::fileno()> instead, or see L<perlfunc/fileno>.
+
+=item C<floor>
+
+This is identical to the C function C<floor()>, returning the largest
+integer value less than or equal to the numerical argument.
+
+=item C<fdim>
+
+"Positive difference", S<C<x - y>> if S<C<x E<gt> y>>, zero otherwise [C99].
+Added in Perl v5.22.
+
+=item C<fegetround>
+
+Returns the current floating point rounding mode, one of
+
+  FE_TONEAREST FE_TOWARDZERO FE_UPWARD FE_DOWNWARD
+
+C<FE_TONEAREST> is like L</round>, C<FE_TOWARDZERO> is like L</trunc> [C99].
+Added in Perl v5.22.
+
+=item C<fesetround>
+
+Sets the floating point rounding mode, see L</fegetround> [C99].  Added in
+Perl v5.22.
+
+=item C<fma>
+
+"Fused multiply-add", S<C<x * y + z>>, possibly faster (and less lossy)
+than the explicit two operations [C99].  Added in Perl v5.22.
+
+ my $fused = POSIX::fma($x, $y, $z);
+
+=item C<fmax>
+
+Maximum of C<x> and C<y>, except when either is C<NaN>, returns the other [C99].
+Added in Perl v5.22.
+
+ my $max = POSIX::fmax($x, $y);
+
+=item C<fmin>
+
+Minimum of C<x> and C<y>, except when either is C<NaN>, returns the other [C99].
+Added in Perl v5.22.
+
+ my $min = POSIX::fmin($x, $y);
+
+=item C<fmod>
+
+This is identical to the C function C<fmod()>.
+
+	$r = fmod($x, $y);
+
+It returns the remainder S<C<$r = $x - $n*$y>>, where S<C<$n = trunc($x/$y)>>.
+The C<$r> has the same sign as C<$x> and magnitude (absolute value)
+less than the magnitude of C<$y>.
+
+=item C<fopen>
+
+Not implemented.  Use method C<IO::File::open()> instead, or see L<perlfunc/open>.
+
+=item C<fork>
+
+This is identical to Perl's builtin C<fork()> function
+for duplicating the current process, see L<perlfunc/fork>
+and L<perlfork> if you are in Windows.
+
+=item C<fpathconf>
+
+Retrieves the value of a configurable limit on a file or directory.  This
+uses file descriptors such as those obtained by calling C<POSIX::open>.
+
+The following will determine the maximum length of the longest allowable
+pathname on the filesystem which holds F</var/foo>.
+
+	$fd = POSIX::open( "/var/foo", &POSIX::O_RDONLY );
+	$path_max = POSIX::fpathconf($fd, &POSIX::_PC_PATH_MAX);
+
+Returns C<undef> on failure.
+
+=item C<fpclassify>
+
+Returns one of
+
+  FP_NORMAL FP_ZERO FP_SUBNORMAL FP_INFINITE FP_NAN
+
+telling the class of the argument [C99].  C<FP_INFINITE> is positive
+or negative infinity, C<FP_NAN> is not-a-number.  C<FP_SUBNORMAL>
+means subnormal numbers (also known as denormals), very small numbers
+with low precision. C<FP_ZERO> is zero.  C<FP_NORMAL> is all the rest.
+Added in Perl v5.22.
+
+=item C<fprintf>
+
+Not implemented.  C<fprintf()> is C-specific, see L<perlfunc/printf> instead.
+
+=item C<fputc>
+
+Not implemented.  C<fputc()> is C-specific, see L<perlfunc/print> instead.
+
+=item C<fputs>
+
+Not implemented.  C<fputs()> is C-specific, see L<perlfunc/print> instead.
+
+=item C<fread>
+
+Not implemented.  C<fread()> is C-specific, see L<perlfunc/read> instead.
+
+=item C<free>
+
+Not implemented.  C<free()> is C-specific.  Perl does memory management transparently.
+
+=item C<freopen>
+
+Not implemented.  C<freopen()> is C-specific, see L<perlfunc/open> instead.
+
+=item C<frexp>
+
+Return the mantissa and exponent of a floating-point number.
+
+	($mantissa, $exponent) = POSIX::frexp( 1.234e56 );
+
+=item C<fscanf>
+
+Not implemented.  C<fscanf()> is C-specific, use E<lt>E<gt> and regular expressions instead.
+
+=item C<fseek>
+
+Not implemented.  Use method C<IO::Seekable::seek()> instead, or see L<perlfunc/seek>.
+
+=item C<fsetpos>
+
+Not implemented.  Use method C<IO::Seekable::setpos()> instead, or seek L<perlfunc/seek>.
+
+=item C<fstat>
+
+Get file status.  This uses file descriptors such as those obtained by
+calling C<POSIX::open>.  The data returned is identical to the data from
+Perl's builtin C<stat> function.
+
+	$fd = POSIX::open( "foo", &POSIX::O_RDONLY );
+	@stats = POSIX::fstat( $fd );
+
+=item C<fsync>
+
+Not implemented.  Use method C<IO::Handle::sync()> instead.
+
+=item C<ftell>
+
+Not implemented.  Use method C<IO::Seekable::tell()> instead, or see L<perlfunc/tell>.
+
+=item C<fwrite>
+
+Not implemented.  C<fwrite()> is C-specific, see L<perlfunc/print> instead.
+
+=item C<getc>
+
+This is identical to Perl's builtin C<getc()> function,
+see L<perlfunc/getc>.
+
+=item C<getchar>
+
+Returns one character from STDIN.  Identical to Perl's C<getc()>,
+see L<perlfunc/getc>.
+
+=item C<getcwd>
+
+Returns the name of the current working directory.
+See also L<Cwd>.
+
+=item C<getegid>
+
+Returns the effective group identifier.  Similar to Perl' s builtin
+variable C<$(>, see L<perlvar/$EGID>.
+
+=item C<getenv>
+
+Returns the value of the specified environment variable.
+The same information is available through the C<%ENV> array.
+
+=item C<geteuid>
+
+Returns the effective user identifier.  Identical to Perl's builtin C<$E<gt>>
+variable, see L<perlvar/$EUID>.
+
+=item C<getgid>
+
+Returns the user's real group identifier.  Similar to Perl's builtin
+variable C<$)>, see L<perlvar/$GID>.
+
+=item C<getgrgid>
+
+This is identical to Perl's builtin C<getgrgid()> function for
+returning group entries by group identifiers, see
+L<perlfunc/getgrgid>.
+
+=item C<getgrnam>
+
+This is identical to Perl's builtin C<getgrnam()> function for
+returning group entries by group names, see L<perlfunc/getgrnam>.
+
+=item C<getgroups>
+
+Returns the ids of the user's supplementary groups.  Similar to Perl's
+builtin variable C<$)>, see L<perlvar/$GID>.
+
+=item C<getlogin>
+
+This is identical to Perl's builtin C<getlogin()> function for
+returning the user name associated with the current session, see
+L<perlfunc/getlogin>.
+
+=item C<getpayload>
+
+	use POSIX ':nan_payload';
+	getpayload($var)
+
+Returns the C<NaN> payload.  Added in Perl v5.24.
+
+Note the API instability warning in L</setpayload>.
+
+See L</nan> for more discussion about C<NaN>.
+
+=item C<getpgrp>
+
+This is identical to Perl's builtin C<getpgrp()> function for
+returning the process group identifier of the current process, see
+L<perlfunc/getpgrp>.
+
+=item C<getpid>
+
+Returns the process identifier.  Identical to Perl's builtin
+variable C<$$>, see L<perlvar/$PID>.
+
+=item C<getppid>
+
+This is identical to Perl's builtin C<getppid()> function for
+returning the process identifier of the parent process of the current
+process , see L<perlfunc/getppid>.
+
+=item C<getpwnam>
+
+This is identical to Perl's builtin C<getpwnam()> function for
+returning user entries by user names, see L<perlfunc/getpwnam>.
+
+=item C<getpwuid>
+
+This is identical to Perl's builtin C<getpwuid()> function for
+returning user entries by user identifiers, see L<perlfunc/getpwuid>.
+
+=item C<gets>
+
+Returns one line from C<STDIN>, similar to E<lt>E<gt>, also known
+as the C<readline()> function, see L<perlfunc/readline>.
+
+B<NOTE>: if you have C programs that still use C<gets()>, be very
+afraid.  The C<gets()> function is a source of endless grief because
+it has no buffer overrun checks.  It should B<never> be used.  The
+C<fgets()> function should be preferred instead.
+
+=item C<getuid>
+
+Returns the user's identifier.  Identical to Perl's builtin C<$E<lt>> variable,
+see L<perlvar/$UID>.
+
+=item C<gmtime>
+
+This is identical to Perl's builtin C<gmtime()> function for
+converting seconds since the epoch to a date in Greenwich Mean Time,
+see L<perlfunc/gmtime>.
+
+=item C<hypot>
+
+Equivalent to C<S<sqrt(x * x + y * y)>> except more stable on very large
+or very small arguments [C99].  Added in Perl v5.22.
+
+=item C<ilogb>
+
+Integer binary logarithm [C99].  Added in Perl v5.22.
+
+For example C<ilogb(20)> is 4, as an integer.
+
+See also L</logb>.
+
+=item C<Inf>
+
+The infinity as a constant:
+
+   use POSIX qw(Inf);
+   my $pos_inf = +Inf;  # Or just Inf.
+   my $neg_inf = -Inf;
+
+See also L</isinf>, and L</fpclassify>.
+
+=item C<isalnum>
+
+This function has been removed as of Perl v5.24.  It was very similar to
+matching against S<C<qr/ ^ [[:alnum:]]+ $ /x>>, which you should convert
+to use instead.  See L<perlrecharclass/POSIX Character Classes>.
+
+=item C<isalpha>
+
+This function has been removed as of Perl v5.24.  It was very similar to
+matching against S<C<qr/ ^ [[:alpha:]]+ $ /x>>, which you should convert
+to use instead.  See L<perlrecharclass/POSIX Character Classes>.
+
+=item C<isatty>
+
+Returns a boolean indicating whether the specified filehandle is connected
+to a tty.  Similar to the C<-t> operator, see L<perlfunc/-X>.
+
+=item C<iscntrl>
+
+This function has been removed as of Perl v5.24.  It was very similar to
+matching against S<C<qr/ ^ [[:cntrl:]]+ $ /x>>, which you should convert
+to use instead.  See L<perlrecharclass/POSIX Character Classes>.
+
+=item C<isdigit>
+
+This function has been removed as of Perl v5.24.  It was very similar to
+matching against S<C<qr/ ^ [[:digit:]]+ $ /x>>, which you should convert
+to use instead.  See L<perlrecharclass/POSIX Character Classes>.
+
+=item C<isfinite>
+
+Returns true if the argument is a finite number (that is, not an
+infinity, or the not-a-number) [C99].  Added in Perl v5.22.
+
+See also L</isinf>, L</isnan>, and L</fpclassify>.
+
+=item C<isgraph>
+
+This function has been removed as of Perl v5.24.  It was very similar to
+matching against S<C<qr/ ^ [[:graph:]]+ $ /x>>, which you should convert
+to use instead.  See L<perlrecharclass/POSIX Character Classes>.
+
+=item C<isgreater>
+
+(Also C<isgreaterequal>, C<isless>, C<islessequal>, C<islessgreater>,
+C<isunordered>)
+
+Floating point comparisons which handle the C<NaN> [C99].  Added in Perl
+v5.22.
+
+=item C<isinf>
+
+Returns true if the argument is an infinity (positive or negative) [C99].
+Added in Perl v5.22.
+
+See also L</Inf>, L</isnan>, L</isfinite>, and L</fpclassify>.
+
+=item C<islower>
+
+This function has been removed as of Perl v5.24.  It was very similar to
+matching against S<C<qr/ ^ [[:lower:]]+ $ /x>>, which you should convert
+to use instead.  See L<perlrecharclass/POSIX Character Classes>.
+
+=item C<isnan>
+
+Returns true if the argument is C<NaN> (not-a-number) [C99].  Added in
+Perl v5.22.
+
+Note that you can also test for "C<NaN>-ness" with
+L<equality operators|perlop/"Equality Operators"> (C<==> or C<!=>), as in
+
+    print "x is not a NaN\n" if $x == $x;
+
+since the C<NaN> is not equal to anything, B<including itself>.
+
+See also L</nan>, L</NaN>, L</isinf>, and L</fpclassify>.
+
+=item C<isnormal>
+
+Returns true if the argument is normal (that is, not a subnormal/denormal,
+and not an infinity, or a not-a-number) [C99].  Added in Perl v5.22.
+
+See also L</isfinite>, and L</fpclassify>.
+
+=item C<isprint>
+
+This function has been removed as of Perl v5.24.  It was very similar to
+matching against S<C<qr/ ^ [[:print:]]+ $ /x>>, which you should convert
+to use instead.  See L<perlrecharclass/POSIX Character Classes>.
+
+=item C<ispunct>
+
+This function has been removed as of Perl v5.24.  It was very similar to
+matching against S<C<qr/ ^ [[:punct:]]+ $ /x>>, which you should convert
+to use instead.  See L<perlrecharclass/POSIX Character Classes>.
+
+=item C<issignaling>
+
+	use POSIX ':nan_payload';
+	issignaling($var, $payload)
+
+Return true if the argument is a I<signaling> NaN.  Added in Perl v5.24.
+
+Note the API instability warning in L</setpayload>.
+
+See L</nan> for more discussion about C<NaN>.
+
+=item C<isspace>
+
+This function has been removed as of Perl v5.24.  It was very similar to
+matching against S<C<qr/ ^ [[:space:]]+ $ /x>>, which you should convert
+to use instead.  See L<perlrecharclass/POSIX Character Classes>.
+
+=item C<isupper>
+
+This function has been removed as of Perl v5.24.  It was very similar to
+matching against S<C<qr/ ^ [[:upper:]]+ $ /x>>, which you should convert
+to use instead.  See L<perlrecharclass/POSIX Character Classes>.
+
+=item C<isxdigit>
+
+This function has been removed as of Perl v5.24.  It was very similar to
+matching against S<C<qr/ ^ [[:xdigit:]]+ $ /x>>, which you should
+convert to use instead.  See L<perlrecharclass/POSIX Character Classes>.
+
+=item C<j0>
+
+=item C<j1>
+
+=item C<jn>
+
+=item C<y0>
+
+=item C<y1>
+
+=item C<yn>
+
+The Bessel function of the first kind of the order zero.
+
+=item C<kill>
+
+This is identical to Perl's builtin C<kill()> function for sending
+signals to processes (often to terminate them), see L<perlfunc/kill>.
+
+=item C<labs>
+
+Not implemented.  (For returning absolute values of long integers.)
+C<labs()> is C-specific, see L<perlfunc/abs> instead.
+
+=item C<lchown>
+
+This is identical to the C function, except the order of arguments is
+consistent with Perl's builtin C<chown()> with the added restriction
+of only one path, not a list of paths.  Does the same thing as the
+C<chown()> function but changes the owner of a symbolic link instead
+of the file the symbolic link points to.
+
+ POSIX::lchown($uid, $gid, $file_path);
+
+=item C<ldexp>
+
+This is identical to the C function C<ldexp()>
+for multiplying floating point numbers with powers of two.
+
+	$x_quadrupled = POSIX::ldexp($x, 2);
+
+=item C<ldiv>
+
+Not implemented.  (For computing dividends of long integers.)
+C<ldiv()> is C-specific, use C</> and C<int()> instead.
+
+=item C<lgamma>
+
+The logarithm of the Gamma function [C99].  Added in Perl v5.22.
+
+See also L</tgamma>.
+
+=item C<log1p>
+
+Equivalent to S<C<log(1 + x)>>, but more stable results for small argument
+values [C99].  Added in Perl v5.22.
+
+=item C<log2>
+
+Logarithm base two [C99].  Added in Perl v5.22.
+
+See also L</expm1>.
+
+=item C<logb>
+
+Integer binary logarithm [C99].  Added in Perl v5.22.
+
+For example C<logb(20)> is 4, as a floating point number.
+
+See also L</ilogb>.
+
+=item C<link>
+
+This is identical to Perl's builtin C<link()> function
+for creating hard links into files, see L<perlfunc/link>.
+
+=item C<localeconv>
+
+Get numeric formatting information.  Returns a reference to a hash
+containing the formatting values of the locale that currently underlies
+the program, regardless of whether or not it is called from within the
+scope of a S<C<use locale>>.  Users of this function should also read
+L<perllocale>, which provides a comprehensive discussion of Perl locale
+handling, including
+L<a section devoted to this function|perllocale/The localeconv function>.
+Prior to Perl 5.28, or when operating in a non thread-safe environment,
+it should not be used in a threaded application unless it's certain that
+the underlying locale is C or POSIX.  This is because it otherwise
+changes the locale, which globally affects all threads simultaneously.
+Windows platforms starting with Visual Studio 2005 are mostly
+thread-safe, but use of this function in those prior to Visual Studio
+2015 can have a race with a thread that has called
+L<perlapi/switch_to_global_locale>.
+
+Here is how to query the database for the B<de> (Deutsch or German) locale.
+
+	my $loc = POSIX::setlocale( &POSIX::LC_ALL, "de" );
+	print "Locale: \"$loc\"\n";
+	my $lconv = POSIX::localeconv();
+	foreach my $property (qw(
+		decimal_point
+		thousands_sep
+		grouping
+		int_curr_symbol
+		currency_symbol
+		mon_decimal_point
+		mon_thousands_sep
+		mon_grouping
+		positive_sign
+		negative_sign
+		int_frac_digits
+		frac_digits
+		p_cs_precedes
+		p_sep_by_space
+		n_cs_precedes
+		n_sep_by_space
+		p_sign_posn
+		n_sign_posn
+		int_p_cs_precedes
+		int_p_sep_by_space
+		int_n_cs_precedes
+		int_n_sep_by_space
+		int_p_sign_posn
+		int_n_sign_posn
+	))
+	{
+		printf qq(%s: "%s",\n),
+			$property, $lconv->{$property};
+	}
+
+The members whose names begin with C<int_p_> and C<int_n_> were added by
+POSIX.1-2008 and are only available on systems that support them.
+
+A value of -1 returned for numeric entries indicates that the field is
+not applicable to the locale.  This is rare except in the C and related
+locales, which don't have most monetary values defined.  It can also
+happen, quirkily, in fields that are otherwise boolean to indicate that
+the value is kind of neither true nor false.  This happens in C<p_cs_precedes>
+and C<int_p_cs_precedes> when the currency symbol neither precedes nor
+succeeds a positive value but is infixed, by replacing the radix
+character.
+
+Prior to Perl v5.37.7, empty string fields and numeric fields with value
+-1 were omittted from the returned hash.
+
+=item C<localtime>
+
+This is identical to Perl's builtin C<localtime()> function for
+converting seconds since the epoch to a date see L<perlfunc/localtime> except
+that C<POSIX::localtime()> must be provided an explicit value (rather than
+relying on an implicit C<$_>):
+
+    @localtime = POSIX::localtime(time);    # good
+
+    @localtime = localtime();               # good
+
+    @localtime = POSIX::localtime();        # throws exception
+
+=item C<log>
+
+This is identical to Perl's builtin C<log()> function,
+returning the natural (I<e>-based) logarithm of the numerical argument,
+see L<perlfunc/log>.
+
+=item C<log10>
+
+This is identical to the C function C<log10()>,
+returning the 10-base logarithm of the numerical argument.
+You can also use
+
+    sub log10 { log($_[0]) / log(10) }
+
+or
+
+    sub log10 { log($_[0]) / 2.30258509299405 }
+
+or
+
+    sub log10 { log($_[0]) * 0.434294481903252 }
+
+=item C<longjmp>
+
+Not implemented.  C<longjmp()> is C-specific: use L<perlfunc/die> instead.
+
+=item C<lseek>
+
+Move the file's read/write position.  This uses file descriptors such as
+those obtained by calling C<POSIX::open>.
+
+	$fd = POSIX::open( "foo", &POSIX::O_RDONLY );
+	$off_t = POSIX::lseek( $fd, 0, &POSIX::SEEK_SET );
+
+Returns C<undef> on failure.
+
+=item C<lrint>
+
+Depending on the current floating point rounding mode, rounds the
+argument either toward nearest (like L</round>), toward zero (like
+L</trunc>), downward (toward negative infinity), or upward (toward
+positive infinity) [C99].  Added in Perl v5.22.
+
+For the rounding mode, see L</fegetround>.
+
+=item C<lround>
+
+Like L</round>, but as integer, as opposed to floating point [C99].  Added
+in Perl v5.22.
+
+See also L</ceil>, L</floor>, L</trunc>.
+
+Owing to an oversight, this is not currently exported by default, or as part of
+the C<:math_h_c99> export tag; importing it must therefore be done by explicit
+name.
+
+=item C<malloc>
+
+Not implemented.  C<malloc()> is C-specific.  Perl does memory management transparently.
+
+=item C<mblen>
+
+This is the same as the C function C<mblen()> on unthreaded perls.  On
+threaded perls, it transparently (almost) substitutes the more
+thread-safe L<C<mbrlen>(3)>, if available, instead of C<mblen>.
+
+Core Perl does not have any support for wide and multibyte locales,
+except Unicode UTF-8 locales.  This function, in conjunction with
+L</mbtowc> and L</wctomb> may be used to roll your own decoding/encoding
+of other types of multi-byte locales.
+
+Use C<undef> as the first parameter to this function to get the effect
+of passing NULL as the first parameter to C<mblen>.  This resets any
+shift state to its initial value.  The return value is undefined if
+C<mbrlen> was substituted, so you should never rely on it.
+
+When the first parameter is a scalar containing a value that either is a
+PV string or can be forced into one, the return value is the number of
+bytes occupied by the first character of that string; or 0 if that first
+character is the wide NUL character; or negative if there is an error.
+This is based on the locale that currently underlies the program,
+regardless of whether or not the function is called from Perl code that
+is within the scope of S<C<use locale>>.  Perl makes no attempt at
+hiding from your code any differences in the C<errno> setting between
+C<mblen> and C<mbrlen>.  It does set C<errno> to 0 before calling them.
+
+The optional second parameter is ignored if it is larger than the
+actual length of the first parameter string.
+
+=item C<mbtowc>
+
+This is the same as the C function C<mbtowc()> on unthreaded perls.  On
+threaded perls, it transparently (almost) substitutes the more
+thread-safe L<C<mbrtowc>(3)>, if available, instead of C<mbtowc>.
+
+Core Perl does not have any support for wide and multibyte locales,
+except Unicode UTF-8 locales.  This function, in conjunction with
+L</mblen> and L</wctomb> may be used to roll your own decoding/encoding
+of other types of multi-byte locales.
+
+The first parameter is a scalar into which, upon success, the wide
+character represented by the multi-byte string contained in the second
+parameter is stored.  The optional third parameter is ignored if it is
+larger than the actual length of the second parameter string.
+
+Use C<undef> as the second parameter to this function to get the effect
+of passing NULL as the second parameter to C<mbtowc>.  This ignores the
+first parameter, and resets any shift state to its initial value.  The
+return value is undefined if C<mbrtowc> was substituted, so you should
+never rely on it.
+
+When the second parameter is a scalar containing a value that either is
+a PV string or can be forced into one, the return value is the number of
+bytes occupied by the first character of that string; or 0 if that first
+character is the wide NUL character; or negative if there is an error.
+This is based on the locale that currently underlies the program,
+regardless of whether or not the function is called from Perl code that
+is within the scope of S<C<use locale>>.  Perl makes no attempt at
+hiding from your code any differences in the C<errno> setting between
+C<mbtowc> and C<mbrtowc>.  It does set C<errno> to 0 before calling
+them.
+
+=item C<memchr>
+
+Not implemented.  C<memchr()> is C-specific, see L<perlfunc/index> instead.
+
+=item C<memcmp>
+
+Not implemented.  C<memcmp()> is C-specific, use C<eq> instead, see L<perlop>.
+
+=item C<memcpy>
+
+Not implemented.  C<memcpy()> is C-specific, use C<=>, see L<perlop>, or see L<perlfunc/substr>.
+
+=item C<memmove>
+
+Not implemented.  C<memmove()> is C-specific, use C<=>, see L<perlop>, or see L<perlfunc/substr>.
+
+=item C<memset>
+
+Not implemented.  C<memset()> is C-specific, use C<x> instead, see L<perlop>.
+
+=item C<mkdir>
+
+This is identical to Perl's builtin C<mkdir()> function
+for creating directories, see L<perlfunc/mkdir>.
+
+=item C<mkfifo>
+
+This is similar to the C function C<mkfifo()> for creating
+FIFO special files.
+
+	if (mkfifo($path, $mode)) { ....
+
+Returns C<undef> on failure.  The C<$mode> is similar to the
+mode of C<mkdir()>, see L<perlfunc/mkdir>, though for C<mkfifo>
+you B<must> specify the C<$mode>.
+
+=item C<mktime>
+
+Convert date/time info to a calendar time.
+
+Synopsis:
+
+	mktime(sec, min, hour, mday, mon, year, wday = 0,
+	       yday = 0, isdst = -1)
+
+The month (C<mon>), weekday (C<wday>), and yearday (C<yday>) begin at zero,
+I<i.e.>, January is 0, not 1; Sunday is 0, not 1; January 1st is 0, not 1.  The
+year (C<year>) is given in years since 1900; I<i.e.>, the year 1995 is 95; the
+year 2001 is 101.  Consult your system's C<mktime()> manpage for details
+about these and the other arguments.
+
+Calendar time for December 12, 1995, at 10:30 am.
+
+	$time_t = POSIX::mktime( 0, 30, 10, 12, 11, 95 );
+	print "Date = ", POSIX::ctime($time_t);
+
+Returns C<undef> on failure.
+
+=item C<modf>
+
+Return the integral and fractional parts of a floating-point number.
+
+	($fractional, $integral) = POSIX::modf( 3.14 );
+
+See also L</round>.
+
+=item C<NaN>
+
+The not-a-number as a constant:
+
+   use POSIX qw(NaN);
+   my $nan = NaN;
+
+See also L</nan>, C</isnan>, and L</fpclassify>.
+
+=item C<nan>
+
+   my $nan = nan();
+
+Returns C<NaN>, not-a-number [C99].  Added in Perl v5.22.
+
+The returned NaN is always a I<quiet> NaN, as opposed to I<signaling>.
+
+With an argument, can be used to generate a NaN with I<payload>.
+The argument is first interpreted as a floating point number,
+but then any fractional parts are truncated (towards zero),
+and the value is interpreted as an unsigned integer.
+The bits of this integer are stored in the unused bits of the NaN.
+
+The result has a dual nature: it is a NaN, but it also carries
+the integer inside it.  The integer can be retrieved with L</getpayload>.
+Note, though, that the payload is not propagated, not even on copies,
+and definitely not in arithmetic operations.
+
+How many bits fit in the NaN depends on what kind of floating points
+are being used, but on the most common platforms (64-bit IEEE 754,
+or the x86 80-bit long doubles) there are 51 and 61 bits available,
+respectively.  (There would be 52 and 62, but the quiet/signaling
+bit of NaNs takes away one.)  However, because of the floating-point-to-
+integer-and-back conversions, please test carefully whether you get back
+what you put in.  If your integers are only 32 bits wide, you probably
+should not rely on more than 32 bits of payload.
+
+Whether a "signaling" NaN is in any way different from a "quiet" NaN,
+depends on the platform.  Also note that the payload of the default
+NaN (no argument to nan()) is not necessarily zero, use C<setpayload>
+to explicitly set the payload.  On some platforms like the 32-bit x86,
+(unless using the 80-bit long doubles) the signaling bit is not supported
+at all.
+
+See also L</isnan>, L</NaN>, L</setpayload> and L</issignaling>.
+
+=item C<nearbyint>
+
+Returns the nearest integer to the argument, according to the current
+rounding mode (see L</fegetround>) [C99].  Added in Perl v5.22.
+
+=item C<nextafter>
+
+Returns the next representable floating point number after C<x> in the
+direction of C<y> [C99].  Added in Perl v5.22.
+
+ my $nextafter = POSIX::nextafter($x, $y);
+
+Like L</nexttoward>, but potentially less accurate.
+
+=item C<nexttoward>
+
+Returns the next representable floating point number after C<x> in the
+direction of C<y> [C99].  Added in Perl v5.22.
+
+ my $nexttoward = POSIX::nexttoward($x, $y);
+
+Like L</nextafter>, but potentially more accurate.
+
+=item C<nice>
+
+This is similar to the C function C<nice()>, for changing
+the scheduling preference of the current process.  Positive
+arguments mean a more polite process, negative values a more
+needy process.  Normal (non-root) user processes can only change towards
+being more polite.
+
+Returns C<undef> on failure.
+
+=item C<offsetof>
+
+Not implemented.  C<offsetof()> is C-specific, you probably want to see L<perlfunc/pack> instead.
+
+=item C<open>
+
+Open a file for reading for writing.  This returns file descriptors, not
+Perl filehandles.  Use C<POSIX::close> to close the file.
+
+Open a file read-only with mode 0666.
+
+	$fd = POSIX::open( "foo" );
+
+Open a file for read and write.
+
+	$fd = POSIX::open( "foo", &POSIX::O_RDWR );
+
+Open a file for write, with truncation.
+
+	$fd = POSIX::open(
+		"foo", &POSIX::O_WRONLY | &POSIX::O_TRUNC
+	);
+
+Create a new file with mode 0640.  Set up the file for writing.
+
+	$fd = POSIX::open(
+		"foo", &POSIX::O_CREAT | &POSIX::O_WRONLY, 0640
+	);
+
+Returns C<undef> on failure.
+
+See also L<perlfunc/sysopen>.
+
+=item C<opendir>
+
+Open a directory for reading.
+
+	$dir = POSIX::opendir( "/var" );
+	@files = POSIX::readdir( $dir );
+	POSIX::closedir( $dir );
+
+Returns C<undef> on failure.
+
+=item C<pathconf>
+
+Retrieves the value of a configurable limit on a file or directory.
+
+The following will determine the maximum length of the longest allowable
+pathname on the filesystem which holds C</var>.
+
+	$path_max = POSIX::pathconf( "/var",
+				      &POSIX::_PC_PATH_MAX );
+
+Returns C<undef> on failure.
+
+=item C<pause>
+
+This is similar to the C function C<pause()>, which suspends
+the execution of the current process until a signal is received.
+
+Returns C<undef> on failure.
+
+=item C<perror>
+
+This is identical to the C function C<perror()>, which outputs to the
+standard error stream the specified message followed by C<": "> and the
+current error string.  Use the C<warn()> function and the C<$!>
+variable instead, see L<perlfunc/warn> and L<perlvar/$ERRNO>.
+
+=item C<pipe>
+
+Create an interprocess channel.  This returns file descriptors like those
+returned by C<POSIX::open>.
+
+	my ($read, $write) = POSIX::pipe();
+	POSIX::write( $write, "hello", 5 );
+	POSIX::read( $read, $buf, 5 );
+
+See also L<perlfunc/pipe>.
+
+=item C<pow>
+
+Computes C<$x> raised to the power C<$exponent>.
+
+	$ret = POSIX::pow( $x, $exponent );
+
+You can also use the C<**> operator, see L<perlop>.
+
+=item C<printf>
+
+Formats and prints the specified arguments to C<STDOUT>.
+See also L<perlfunc/printf>.
+
+=item C<putc>
+
+Not implemented.  C<putc()> is C-specific, see L<perlfunc/print> instead.
+
+=item C<putchar>
+
+Not implemented.  C<putchar()> is C-specific, see L<perlfunc/print> instead.
+
+=item C<puts>
+
+Not implemented.  C<puts()> is C-specific, see L<perlfunc/print> instead.
+
+=item C<qsort>
+
+Not implemented.  C<qsort()> is C-specific, see L<perlfunc/sort> instead.
+
+=item C<raise>
+
+Sends the specified signal to the current process.
+See also L<perlfunc/kill> and the C<$$> in L<perlvar/$PID>.
+
+=item C<rand>
+
+Not implemented.  C<rand()> is non-portable, see L<perlfunc/rand> instead.
+
+=item C<read>
+
+Read from a file.  This uses file descriptors such as those obtained by
+calling C<POSIX::open>.  If the buffer C<$buf> is not large enough for the
+read then Perl will extend it to make room for the request.
+
+	$fd = POSIX::open( "foo", &POSIX::O_RDONLY );
+	$bytes = POSIX::read( $fd, $buf, 3 );
+
+Returns C<undef> on failure.
+
+See also L<perlfunc/sysread>.
+
+=item C<readdir>
+
+This is identical to Perl's builtin C<readdir()> function
+for reading directory entries, see L<perlfunc/readdir>.
+
+=item C<realloc>
+
+Not implemented.  C<realloc()> is C-specific.  Perl does memory management transparently.
+
+=item C<remainder>
+
+Given C<x> and C<y>, returns the value S<C<x - n*y>>, where C<n> is the integer
+closest to C<x>/C<y> [C99].  Added in Perl v5.22.
+
+ my $remainder = POSIX::remainder($x, $y)
+
+See also L</remquo>.
+
+=item C<remove>
+
+Deletes a name from the filesystem.  Calls L<perlfunc/unlink> for
+files and L<perlfunc/rmdir> for directories.
+
+=item C<remquo>
+
+Like L</remainder> but also returns the low-order bits of the quotient (n)
+[C99].  Added in Perl v5.22.
+
+(This is quite esoteric interface, mainly used to implement numerical
+algorithms.)
+
+=item C<rename>
+
+This is identical to Perl's builtin C<rename()> function
+for renaming files, see L<perlfunc/rename>.
+
+=item C<rewind>
+
+Seeks to the beginning of the file.
+
+=item C<rewinddir>
+
+This is identical to Perl's builtin C<rewinddir()> function for
+rewinding directory entry streams, see L<perlfunc/rewinddir>.
+
+=item C<rint>
+
+Identical to L</lrint>.
+
+=item C<rmdir>
+
+This is identical to Perl's builtin C<rmdir()> function
+for removing (empty) directories, see L<perlfunc/rmdir>.
+
+=item C<round>
+
+Returns the integer (but still as floating point) nearest to the
+argument [C99].  Added in Perl v5.22.
+
+See also L</ceil>, L</floor>, L</lround>, L</modf>, and L</trunc>.
+
+=item C<scalbn>
+
+Returns S<C<x * 2**y>> [C99].  Added in Perl v5.22.
+
+See also L</frexp> and L</ldexp>.
+
+=item C<scanf>
+
+Not implemented.  C<scanf()> is C-specific, use E<lt>E<gt> and regular expressions instead,
+see L<perlre>.
+
+=item C<setgid>
+
+Sets the real group identifier and the effective group identifier for
+this process.  Similar to assigning a value to the Perl's builtin
+C<$)> variable, see L<perlvar/$EGID>, except that the latter
+will change only the real user identifier, and that the setgid()
+uses only a single numeric argument, as opposed to a space-separated
+list of numbers.
+
+=item C<setjmp>
+
+Not implemented.  C<setjmp()> is C-specific: use C<eval {}> instead,
+see L<perlfunc/eval>.
+
+=item C<setlocale>
+
+WARNING!  Prior to Perl 5.28 or on a system that does not support
+thread-safe locale operations, do NOT use this function in a
+L<thread|threads>.  The locale will change in all other threads at the
+same time, and should your thread get paused by the operating system,
+and another started, that thread will not have the locale it is
+expecting.  On some platforms, there can be a race leading to segfaults
+if two threads call this function nearly simultaneously.  This warning
+does not apply on unthreaded builds, or on perls where
+C<${^SAFE_LOCALES}> exists and is non-zero; namely Perl 5.28 and later
+compiled to be locale-thread-safe.
+
+This function
+modifies and queries the program's underlying locale.  Users of this
+function should read L<perllocale>, whch provides a comprehensive
+discussion of Perl locale handling, knowledge of which is necessary to
+properly use this function.  It contains
+L<a section devoted to this function|perllocale/The setlocale function>.
+The discussion here is merely a summary reference for C<setlocale()>.
+Note that Perl itself is almost entirely unaffected by the locale
+except within the scope of S<C<"use locale">>.  (Exceptions are listed
+in L<perllocale/Not within the scope of "use locale">, and
+locale-dependent functions within the POSIX module ARE always affected
+by the current locale.)
+
+The following examples assume
+
+	use POSIX qw(setlocale LC_ALL LC_CTYPE);
+
+has been issued.
+
+The following will set the traditional UNIX system locale behavior
+(the second argument C<"C">).
+
+	$loc = setlocale( LC_ALL, "C" );
+
+The following will query the current C<LC_CTYPE> category.  (No second
+argument means 'query'.)
+
+	$loc = setlocale( LC_CTYPE );
+
+The following will set the C<LC_CTYPE> behaviour according to the locale
+environment variables (the second argument C<"">).
+Please see your system's C<setlocale(3)> documentation for the locale
+environment variables' meaning or consult L<perllocale>.
+
+	$loc = setlocale( LC_CTYPE, "" );
+
+The following will set the C<LC_COLLATE> behaviour to Argentinian
+Spanish. B<NOTE>: The naming and availability of locales depends on
+your operating system. Please consult L<perllocale> for how to find
+out which locales are available in your system.
+
+	$loc = setlocale( LC_COLLATE, "es_AR.ISO8859-1" );
+
+=item C<setpayload>
+
+	use POSIX ':nan_payload';
+	setpayload($var, $payload);
+
+Sets the C<NaN> payload of var.  Added in Perl v5.24.
+
+NOTE: the NaN payload APIs are based on the latest (as of June 2015)
+proposed ISO C interfaces, but they are not yet a standard.  Things
+may change.
+
+See L</nan> for more discussion about C<NaN>.
+
+See also L</setpayloadsig>, L</isnan>, L</getpayload>, and L</issignaling>.
+
+=item C<setpayloadsig>
+
+	use POSIX ':nan_payload';
+	setpayloadsig($var, $payload);
+
+Like L</setpayload> but also makes the NaN I<signaling>.  Added in Perl
+v5.24.
+
+Depending on the platform the NaN may or may not behave differently.
+
+Note the API instability warning in L</setpayload>.
+
+Note that because how the floating point formats work out, on the most
+common platforms signaling payload of zero is best avoided,
+since it might end up being identical to C<+Inf>.
+
+See also L</nan>, L</isnan>, L</getpayload>, and L</issignaling>.
+
+=item C<setpgid>
+
+This is similar to the C function C<setpgid()> for
+setting the process group identifier of the current process.
+
+Returns C<undef> on failure.
+
+=item C<setsid>
+
+This is identical to the C function C<setsid()> for
+setting the session identifier of the current process.
+
+=item C<setuid>
+
+Sets the real user identifier and the effective user identifier for
+this process.  Similar to assigning a value to the Perl's builtin
+C<$E<lt>> variable, see L<perlvar/$UID>, except that the latter
+will change only the real user identifier.
+
+=item C<sigaction>
+
+Detailed signal management.  This uses C<POSIX::SigAction> objects for
+the C<action> and C<oldaction> arguments (the oldaction can also be
+just a hash reference).  Consult your system's C<sigaction> manpage
+for details, see also L</POSIX::SigRt>.
+
+Synopsis:
+
+	sigaction(signal, action, oldaction = 0)
+
+Returns C<undef> on failure.  The C<signal> must be a number (like
+C<SIGHUP>), not a string (like C<"SIGHUP">), though Perl does try hard
+to understand you.
+
+If you use the C<SA_SIGINFO> flag, the signal handler will in addition to
+the first argument, the signal name, also receive a second argument, a
+hash reference, inside which are the following keys with the following
+semantics, as defined by POSIX/SUSv3:
+
+    signo       the signal number
+    errno       the error number
+    code        if this is zero or less, the signal was sent by
+                a user process and the uid and pid make sense,
+                otherwise the signal was sent by the kernel
+
+The constants for specific C<code> values can be imported individually
+or using the C<:signal_h_si_code> tag, since Perl v5.24.
+
+The following are also defined by POSIX/SUSv3, but unfortunately
+not very widely implemented:
+
+    pid         the process id generating the signal
+    uid         the uid of the process id generating the signal
+    status      exit value or signal for SIGCHLD
+    band        band event for SIGPOLL
+    addr        address of faulting instruction or memory
+                reference for SIGILL, SIGFPE, SIGSEGV or SIGBUS
+
+A third argument is also passed to the handler, which contains a copy
+of the raw binary contents of the C<siginfo> structure: if a system has
+some non-POSIX fields, this third argument is where to C<unpack()> them
+from.
+
+Note that not all C<siginfo> values make sense simultaneously (some are
+valid only for certain signals, for example), and not all values make
+sense from Perl perspective, you should to consult your system's
+C<sigaction> and possibly also C<siginfo> documentation.
+
+=item C<siglongjmp>
+
+Not implemented.  C<siglongjmp()> is C-specific: use L<perlfunc/die> instead.
+
+=item C<signbit>
+
+Returns zero for positive arguments, non-zero for negative arguments [C99].
+Added in Perl v5.22.
+
+=item C<sigpending>
+
+Examine signals that are blocked and pending.  This uses C<POSIX::SigSet>
+objects for the C<sigset> argument.  Consult your system's C<sigpending>
+manpage for details.
+
+Synopsis:
+
+	sigpending(sigset)
+
+Returns C<undef> on failure.
+
+=item C<sigprocmask>
+
+Change and/or examine calling process's signal mask.  This uses
+C<POSIX::SigSet> objects for the C<sigset> and C<oldsigset> arguments.
+Consult your system's C<sigprocmask> manpage for details.
+
+Synopsis:
+
+	sigprocmask(how, sigset, oldsigset = 0)
+
+Returns C<undef> on failure.
+
+Note that you can't reliably block or unblock a signal from its own signal
+handler if you're using safe signals. Other signals can be blocked or unblocked
+reliably.
+
+=item C<sigsetjmp>
+
+Not implemented.  C<sigsetjmp()> is C-specific: use C<eval {}> instead,
+see L<perlfunc/eval>.
+
+=item C<sigsuspend>
+
+Install a signal mask and suspend process until signal arrives.  This uses
+C<POSIX::SigSet> objects for the C<signal_mask> argument.  Consult your
+system's C<sigsuspend> manpage for details.
+
+Synopsis:
+
+	sigsuspend(signal_mask)
+
+Returns C<undef> on failure.
+
+=item C<sin>
+
+This is identical to Perl's builtin C<sin()> function
+for returning the sine of the numerical argument,
+see L<perlfunc/sin>.  See also L<Math::Trig>.
+
+=item C<sinh>
+
+This is identical to the C function C<sinh()>
+for returning the hyperbolic sine of the numerical argument.
+See also L<Math::Trig>.
+
+=item C<sleep>
+
+This is functionally identical to Perl's builtin C<sleep()> function
+for suspending the execution of the current for process for certain
+number of seconds, see L<perlfunc/sleep>.  There is one significant
+difference, however: C<POSIX::sleep()> returns the number of
+B<unslept> seconds, while the C<CORE::sleep()> returns the
+number of slept seconds.
+
+=item C<sprintf>
+
+This is similar to Perl's builtin C<sprintf()> function
+for returning a string that has the arguments formatted as requested,
+see L<perlfunc/sprintf>.
+
+=item C<sqrt>
+
+This is identical to Perl's builtin C<sqrt()> function.
+for returning the square root of the numerical argument,
+see L<perlfunc/sqrt>.
+
+=item C<srand>
+
+Give a seed the pseudorandom number generator, see L<perlfunc/srand>.
+
+=item C<sscanf>
+
+Not implemented.  C<sscanf()> is C-specific, use regular expressions instead,
+see L<perlre>.
+
+=item C<stat>
+
+This is identical to Perl's builtin C<stat()> function
+for returning information about files and directories.
+
+=item C<strcat>
+
+Not implemented.  C<strcat()> is C-specific, use C<.=> instead, see L<perlop>.
+
+=item C<strchr>
+
+Not implemented.  C<strchr()> is C-specific, see L<perlfunc/index> instead.
+
+=item C<strcmp>
+
+Not implemented.  C<strcmp()> is C-specific, use C<eq> or C<cmp> instead, see L<perlop>.
+
+=item C<strcoll>
+
+This is identical to the C function C<strcoll()>
+for collating (comparing) strings transformed using
+the C<strxfrm()> function.  Not really needed since
+Perl can do this transparently, see L<perllocale>.
+
+Beware that in a UTF-8 locale, anything you pass to this function must
+be in UTF-8; and when not in a UTF-8 locale, anything passed must not be
+UTF-8 encoded.
+
+Note also that it doesn't make sense for a string to be encoded in one
+locale (say, ISO-8859-6, Arabic) and to collate it based on another
+(like ISO-8859-7, Greek).  The results will be essentially meaningless.
+
+=item C<strcpy>
+
+Not implemented.  C<strcpy()> is C-specific, use C<=> instead, see L<perlop>.
+
+=item C<strcspn>
+
+Not implemented.  C<strcspn()> is C-specific, use regular expressions instead,
+see L<perlre>.
+
+=item C<strerror>
+
+Returns the error string for the specified errno.
+Identical to the string form of C<$!>, see L<perlvar/$ERRNO>.
+
+=item C<strftime>
+
+Convert date and time information to string.  Returns the string.
+
+Synopsis:
+
+	strftime(fmt, sec, min, hour, mday, mon, year,
+		 wday = -1, yday = -1, isdst = -1)
+
+The month (C<mon>), weekday (C<wday>), and yearday (C<yday>) begin at zero,
+I<i.e.>, January is 0, not 1; Sunday is 0, not 1; January 1st is 0, not 1.  The
+year (C<year>) is given in years since 1900, I<i.e.>, the year 1995 is 95; the
+year 2001 is 101.  Consult your system's C<strftime()> manpage for details
+about these and the other arguments.
+
+If you want your code to be portable, your format (C<fmt>) argument
+should use only the conversion specifiers defined by the ANSI C
+standard (C99, to play safe).  These are C<aAbBcdHIjmMpSUwWxXyYZ%>.
+But even then, the B<results> of some of the conversion specifiers are
+non-portable.  For example, the specifiers C<aAbBcpZ> change according
+to the locale settings of the user, and both how to set locales (the
+locale names) and what output to expect are non-standard.
+The specifier C<c> changes according to the timezone settings of the
+user and the timezone computation rules of the operating system.
+The C<Z> specifier is notoriously unportable since the names of
+timezones are non-standard. Sticking to the numeric specifiers is the
+safest route.
+
+The given arguments are made consistent as though by calling
+C<mktime()> before calling your system's C<strftime()> function,
+except that the C<isdst> value is not affected.
+
+The string for Tuesday, December 12, 1995.
+
+	$str = POSIX::strftime( "%A, %B %d, %Y",
+				 0, 0, 0, 12, 11, 95, 2 );
+	print "$str\n";
+
+=item C<strlen>
+
+Not implemented.  C<strlen()> is C-specific, use C<length()> instead, see L<perlfunc/length>.
+
+=item C<strncat>
+
+Not implemented.  C<strncat()> is C-specific, use C<.=> instead, see L<perlop>.
+
+=item C<strncmp>
+
+Not implemented.  C<strncmp()> is C-specific, use C<eq> instead, see L<perlop>.
+
+=item C<strncpy>
+
+Not implemented.  C<strncpy()> is C-specific, use C<=> instead, see L<perlop>.
+
+=item C<strpbrk>
+
+Not implemented.  C<strpbrk()> is C-specific, use regular expressions instead,
+see L<perlre>.
+
+=item C<strrchr>
+
+Not implemented.  C<strrchr()> is C-specific, see L<perlfunc/rindex> instead.
+
+=item C<strspn>
+
+Not implemented.  C<strspn()> is C-specific, use regular expressions instead,
+see L<perlre>.
+
+=item C<strstr>
+
+This is identical to Perl's builtin C<index()> function,
+see L<perlfunc/index>.
+
+=item C<strtod>
+
+String to double translation. Returns the parsed number and the number
+of characters in the unparsed portion of the string.  Truly
+POSIX-compliant systems set C<$!> (C<$ERRNO>) to indicate a translation
+error, so clear C<$!> before calling C<strtod>.  However, non-POSIX systems
+may not check for overflow, and therefore will never set C<$!>.
+
+C<strtod> respects any POSIX C<setlocale()> C<LC_NUMERIC> settings,
+regardless of whether or not it is called from Perl code that is within
+the scope of S<C<use locale>>.  Prior to Perl 5.28, or when operating in
+a non thread-safe environment, it should not be used in a threaded
+application unless it's certain that the underlying locale is C
+or POSIX.  This is because it otherwise changes the locale, which
+globally affects all threads simultaneously.
+
+To parse a string C<$str> as a floating point number use
+
+    $! = 0;
+    ($num, $n_unparsed) = POSIX::strtod($str);
+
+The second returned item and C<$!> can be used to check for valid input:
+
+    if (($str eq '') || ($n_unparsed != 0) || $!) {
+        die "Non-numeric input $str" . ($! ? ": $!\n" : "\n");
+    }
+
+When called in a scalar context C<strtod> returns the parsed number.
+
+=item C<strtok>
+
+Not implemented.  C<strtok()> is C-specific, use regular expressions instead, see
+L<perlre>, or L<perlfunc/split>.
+
+=item C<strtol>
+
+String to (long) integer translation.  Returns the parsed number and
+the number of characters in the unparsed portion of the string.  Truly
+POSIX-compliant systems set C<$!> (C<$ERRNO>) to indicate a translation
+error, so clear C<$!> before calling C<strtol>.  However, non-POSIX systems
+may not check for overflow, and therefore will never set C<$!>.
+
+C<strtol> should respect any POSIX I<setlocale()> settings.
+
+To parse a string C<$str> as a number in some base C<$base> use
+
+    $! = 0;
+    ($num, $n_unparsed) = POSIX::strtol($str, $base);
+
+The base should be zero or between 2 and 36, inclusive.  When the base
+is zero or omitted C<strtol> will use the string itself to determine the
+base: a leading "0x" or "0X" means hexadecimal; a leading "0" means
+octal; any other leading characters mean decimal.  Thus, "1234" is
+parsed as a decimal number, "01234" as an octal number, and "0x1234"
+as a hexadecimal number.
+
+The second returned item and C<$!> can be used to check for valid input:
+
+    if (($str eq '') || ($n_unparsed != 0) || !$!) {
+        die "Non-numeric input $str" . $! ? ": $!\n" : "\n";
+    }
+
+When called in a scalar context C<strtol> returns the parsed number.
+
+=item C<strtold>
+
+Like L</strtod> but for long doubles.  Defined only if the
+system supports long doubles.
+
+=item C<strtoul>
+
+String to unsigned (long) integer translation.  C<strtoul()> is identical
+to C<strtol()> except that C<strtoul()> only parses unsigned integers.  See
+L</strtol> for details.
+
+Note: Some vendors supply C<strtod()> and C<strtol()> but not C<strtoul()>.
+Other vendors that do supply C<strtoul()> parse "-1" as a valid value.
+
+=item C<strxfrm>
+
+String transformation.  Returns the transformed string.
+
+	$dst = POSIX::strxfrm( $src );
+
+Used with C<eq> or C<cmp> as an alternative to C<L</strcoll>>.
+
+Not really needed since Perl can do this transparently, see
+L<perllocale>.
+
+Unlike the libc C<strxfrm>, this allows NUL characters in the input
+C<$src>.
+
+It doesn't make sense for a string to be encoded in one locale (say,
+ISO-8859-6, Arabic) and to collate it based on another (like ISO-8859-7,
+Greek).  Perl assumes that the current C<LC_CTYPE> locale correctly
+represents the encoding of C<$src>, and ignores the value of
+C<LC_COLLATE>.
+
+=item C<sysconf>
+
+Retrieves values of system configurable variables.
+
+The following will get the machine's clock speed.
+
+	$clock_ticks = POSIX::sysconf( &POSIX::_SC_CLK_TCK );
+
+Returns C<undef> on failure.
+
+=item C<system>
+
+This is identical to Perl's builtin C<system()> function, see
+L<perlfunc/system>.
+
+=item C<tan>
+
+This is identical to the C function C<tan()>, returning the
+tangent of the numerical argument.  See also L<Math::Trig>.
+
+=item C<tanh>
+
+This is identical to the C function C<tanh()>, returning the
+hyperbolic tangent of the numerical argument.   See also L<Math::Trig>.
+
+=item C<tcdrain>
+
+This is similar to the C function C<tcdrain()> for draining
+the output queue of its argument stream.
+
+Returns C<undef> on failure.
+
+=item C<tcflow>
+
+This is similar to the C function C<tcflow()> for controlling
+the flow of its argument stream.
+
+Returns C<undef> on failure.
+
+=item C<tcflush>
+
+This is similar to the C function C<tcflush()> for flushing
+the I/O buffers of its argument stream.
+
+Returns C<undef> on failure.
+
+=item C<tcgetpgrp>
+
+This is identical to the C function C<tcgetpgrp()> for returning the
+process group identifier of the foreground process group of the controlling
+terminal.
+
+=item C<tcsendbreak>
+
+This is similar to the C function C<tcsendbreak()> for sending
+a break on its argument stream.
+
+Returns C<undef> on failure.
+
+=item C<tcsetpgrp>
+
+This is similar to the C function C<tcsetpgrp()> for setting the
+process group identifier of the foreground process group of the controlling
+terminal.
+
+Returns C<undef> on failure.
+
+=item C<tgamma>
+
+The Gamma function [C99].  Added in Perl v5.22.
+
+See also L</lgamma>.
+
+=item C<time>
+
+This is identical to Perl's builtin C<time()> function
+for returning the number of seconds since the epoch
+(whatever it is for the system), see L<perlfunc/time>.
+
+=item C<times>
+
+The C<times()> function returns elapsed realtime since some point in the past
+(such as system startup), user and system times for this process, and user
+and system times used by child processes.  All times are returned in clock
+ticks.
+
+    ($realtime, $user, $system, $cuser, $csystem)
+	= POSIX::times();
+
+Note: Perl's builtin C<times()> function returns four values, measured in
+seconds.
+
+=item C<tmpfile>
+
+Not implemented.  Use method C<IO::File::new_tmpfile()> instead, or see L<File::Temp>.
+
+=item C<tmpnam>
+
+For security reasons, which are probably detailed in your system's
+documentation for the C library C<tmpnam()> function, this interface
+is no longer available since Perl v5.26; instead use L<File::Temp>.
+
+=item C<tolower>
+
+This function has been removed as of Perl v5.26.
+This is identical to the C function, except that it can apply to a single
+character or to a whole string, and currently operates as if the locale
+always is "C".  Consider using the C<lc()> function, see L<perlfunc/lc>,
+see L<perlfunc/lc>, or the equivalent C<\L> operator inside doublequotish
+strings.
+
+=item C<toupper>
+
+This function has been removed as of Perl v5.26.
+This is similar to the C function, except that it can apply to a single
+character or to a whole string, and currently operates as if the locale
+always is "C".  Consider using the C<uc()> function, see L<perlfunc/uc>,
+or the equivalent C<\U> operator inside doublequotish strings.
+
+=item C<trunc>
+
+Returns the integer toward zero from the argument [C99].  Added in Perl
+v5.22.
+
+See also L</ceil>, L</floor>, and L</round>.
+
+=item C<ttyname>
+
+This is identical to the C function C<ttyname()> for returning the
+name of the current terminal.
+
+=item C<tzname>
+
+Retrieves the time conversion information from the C<tzname> variable.
+
+	POSIX::tzset();
+	($std, $dst) = POSIX::tzname();
+
+=item C<tzset>
+
+This is identical to the C function C<tzset()> for setting
+the current timezone based on the environment variable C<TZ>,
+to be used by C<ctime()>, C<localtime()>, C<mktime()>, and C<strftime()>
+functions.
+
+=item C<umask>
+
+This is identical to Perl's builtin C<umask()> function
+for setting (and querying) the file creation permission mask,
+see L<perlfunc/umask>.
+
+=item C<uname>
+
+Get name of current operating system.
+
+	($sysname, $nodename, $release, $version, $machine)
+		= POSIX::uname();
+
+Note that the actual meanings of the various fields are not
+that well standardized, do not expect any great portability.
+The C<$sysname> might be the name of the operating system,
+the C<$nodename> might be the name of the host, the C<$release>
+might be the (major) release number of the operating system,
+the C<$version> might be the (minor) release number of the
+operating system, and the C<$machine> might be a hardware identifier.
+Maybe.
+
+=item C<ungetc>
+
+Not implemented.  Use method C<IO::Handle::ungetc()> instead.
+
+=item C<unlink>
+
+This is identical to Perl's builtin C<unlink()> function
+for removing files, see L<perlfunc/unlink>.
+
+=item C<utime>
+
+This is identical to Perl's builtin C<utime()> function
+for changing the time stamps of files and directories,
+see L<perlfunc/utime>.
+
+=item C<vfprintf>
+
+Not implemented.  C<vfprintf()> is C-specific, see L<perlfunc/printf> instead.
+
+=item C<vprintf>
+
+Not implemented.  C<vprintf()> is C-specific, see L<perlfunc/printf> instead.
+
+=item C<vsprintf>
+
+Not implemented.  C<vsprintf()> is C-specific, see L<perlfunc/sprintf> instead.
+
+=item C<wait>
+
+This is identical to Perl's builtin C<wait()> function,
+see L<perlfunc/wait>.
+
+=item C<waitpid>
+
+Wait for a child process to change state.  This is identical to Perl's
+builtin C<waitpid()> function, see L<perlfunc/waitpid>.
+
+	$pid = POSIX::waitpid( -1, POSIX::WNOHANG );
+	print "status = ", ($? / 256), "\n";
+
+See L</mblen>.
+
+=item C<wctomb>
+
+This is the same as the C function C<wctomb()> on unthreaded perls.  On
+threaded perls, it transparently (almost) substitutes the more
+thread-safe L<C<wcrtomb>(3)>, if available, instead of C<wctomb>.
+
+Core Perl does not have any support for wide and multibyte locales,
+except Unicode UTF-8 locales.  This function, in conjunction with
+L</mblen> and L</mbtowc> may be used to roll your own decoding/encoding
+of other types of multi-byte locales.
+
+Use C<undef> as the first parameter to this function to get the effect
+of passing NULL as the first parameter to C<wctomb>.  This ignores the
+second parameter, and resets any shift state to its initial value.  The
+return value is undefined if C<wcrtomb> was substituted, so you should
+never rely on it.
+
+When the first parameter is a scalar, the code point contained in the
+scalar second parameter is converted into a multi-byte string and stored
+into the first parameter scalar.  This is based on the locale that
+currently underlies the program, regardless of whether or not the
+function is called from Perl code that is within the scope of S<C<use
+locale>>.  The return value is the number of bytes stored; or negative
+if the code point isn't representable in the current locale.  Perl makes
+no attempt at hiding from your code any differences in the C<errno>
+setting between C<wctomb> and C<wcrtomb>.  It does set C<errno> to 0
+before calling them.
+
+=item C<write>
+
+Write to a file.  This uses file descriptors such as those obtained by
+calling C<POSIX::open>.
+
+	$fd = POSIX::open( "foo", &POSIX::O_WRONLY );
+	$buf = "hello";
+	$bytes = POSIX::write( $fd, $buf, 5 );
+
+Returns C<undef> on failure.
+
+See also L<perlfunc/syswrite>.
+
+=back
+
+=head1 CLASSES
+
+=head2 C<POSIX::SigAction>
+
+=over 8
+
+=item C<new>
+
+Creates a new C<POSIX::SigAction> object which corresponds to the C
+C<struct sigaction>.  This object will be destroyed automatically when
+it is no longer needed.  The first parameter is the handler, a sub
+reference.  The second parameter is a C<POSIX::SigSet> object, it
+defaults to the empty set.  The third parameter contains the
+C<sa_flags>, it defaults to 0.
+
+	$sigset = POSIX::SigSet->new(SIGINT, SIGQUIT);
+	$sigaction = POSIX::SigAction->new(
+			\&handler, $sigset, &POSIX::SA_NOCLDSTOP
+		     );
+
+This C<POSIX::SigAction> object is intended for use with the C<POSIX::sigaction()>
+function.
+
+=back
+
+=over 8
+
+=item C<handler>
+
+=item C<mask>
+
+=item C<flags>
+
+accessor functions to get/set the values of a SigAction object.
+
+	$sigset = $sigaction->mask;
+	$sigaction->flags(&POSIX::SA_RESTART);
+
+=item C<safe>
+
+accessor function for the "safe signals" flag of a SigAction object; see
+L<perlipc> for general information on safe (a.k.a. "deferred") signals.  If
+you wish to handle a signal safely, use this accessor to set the "safe" flag
+in the C<POSIX::SigAction> object:
+
+	$sigaction->safe(1);
+
+You may also examine the "safe" flag on the output action object which is
+filled in when given as the third parameter to C<POSIX::sigaction()>:
+
+	sigaction(SIGINT, $new_action, $old_action);
+	if ($old_action->safe) {
+	    # previous SIGINT handler used safe signals
+	}
+
+=back
+
+=head2 C<POSIX::SigRt>
+
+=over 8
+
+=item C<%SIGRT>
+
+A hash of the POSIX realtime signal handlers.  It is an extension of
+the standard C<%SIG>, the C<$POSIX::SIGRT{SIGRTMIN}> is roughly equivalent
+to C<$SIG{SIGRTMIN}>, but the right POSIX moves (see below) are made with
+the C<POSIX::SigSet> and C<POSIX::sigaction> instead of accessing the C<%SIG>.
+
+You can set the C<%POSIX::SIGRT> elements to set the POSIX realtime
+signal handlers, use C<delete> and C<exists> on the elements, and use
+C<scalar> on the C<%POSIX::SIGRT> to find out how many POSIX realtime
+signals there are available S<C<(SIGRTMAX - SIGRTMIN + 1>>, the C<SIGRTMAX> is
+a valid POSIX realtime signal).
+
+Setting the C<%SIGRT> elements is equivalent to calling this:
+
+  sub new {
+    my ($rtsig, $handler, $flags) = @_;
+    my $sigset = POSIX::SigSet($rtsig);
+    my $sigact = POSIX::SigAction->new($handler,$sigset,$flags);
+    sigaction($rtsig, $sigact);
+  }
+
+The flags default to zero, if you want something different you can
+either use C<local> on C<$POSIX::SigRt::SIGACTION_FLAGS>, or you can
+derive from POSIX::SigRt and define your own C<new()> (the tied hash
+STORE method of the C<%SIGRT> calls C<new($rtsig, $handler, $SIGACTION_FLAGS)>,
+where the C<$rtsig> ranges from zero to S<C<SIGRTMAX - SIGRTMIN + 1)>>.
+
+Just as with any signal, you can use C<sigaction($rtsig, undef, $oa)> to
+retrieve the installed signal handler (or, rather, the signal action).
+
+B<NOTE:> whether POSIX realtime signals really work in your system, or
+whether Perl has been compiled so that it works with them, is outside
+of this discussion.
+
+=item C<SIGRTMIN>
+
+Return the minimum POSIX realtime signal number available, or C<undef>
+if no POSIX realtime signals are available.
+
+=item C<SIGRTMAX>
+
+Return the maximum POSIX realtime signal number available, or C<undef>
+if no POSIX realtime signals are available.
+
+=back
+
+=head2 C<POSIX::SigSet>
+
+=over 8
+
+=item C<new>
+
+Create a new SigSet object.  This object will be destroyed automatically
+when it is no longer needed.  Arguments may be supplied to initialize the
+set.
+
+Create an empty set.
+
+	$sigset = POSIX::SigSet->new;
+
+Create a set with C<SIGUSR1>.
+
+	$sigset = POSIX::SigSet->new( &POSIX::SIGUSR1 );
+
+Throws an error if any of the signals supplied cannot be added to the
+set.
+
+=item C<addset>
+
+Add a signal to a SigSet object.
+
+	$sigset->addset( &POSIX::SIGUSR2 );
+
+Returns C<undef> on failure.
+
+=item C<delset>
+
+Remove a signal from the SigSet object.
+
+	$sigset->delset( &POSIX::SIGUSR2 );
+
+Returns C<undef> on failure.
+
+=item C<emptyset>
+
+Initialize the SigSet object to be empty.
+
+	$sigset->emptyset();
+
+Returns C<undef> on failure.
+
+=item C<fillset>
+
+Initialize the SigSet object to include all signals.
+
+	$sigset->fillset();
+
+Returns C<undef> on failure.
+
+=item C<ismember>
+
+Tests the SigSet object to see if it contains a specific signal.
+
+	if( $sigset->ismember( &POSIX::SIGUSR1 ) ){
+		print "contains SIGUSR1\n";
+	}
+
+=back
+
+=head2 C<POSIX::Termios>
+
+=over 8
+
+=item C<new>
+
+Create a new Termios object.  This object will be destroyed automatically
+when it is no longer needed.  A Termios object corresponds to the C<termios>
+C struct.  C<new()> mallocs a new one, C<getattr()> fills it from a file descriptor,
+and C<setattr()> sets a file descriptor's parameters to match Termios' contents.
+
+	$termios = POSIX::Termios->new;
+
+=item C<getattr>
+
+Get terminal control attributes.
+
+Obtain the attributes for C<stdin>.
+
+	$termios->getattr( 0 ) # Recommended for clarity.
+	$termios->getattr()
+
+Obtain the attributes for stdout.
+
+	$termios->getattr( 1 )
+
+Returns C<undef> on failure.
+
+=item C<getcc>
+
+Retrieve a value from the C<c_cc> field of a C<termios> object.  The C<c_cc> field is
+an array so an index must be specified.
+
+	$c_cc[1] = $termios->getcc(1);
+
+=item C<getcflag>
+
+Retrieve the C<c_cflag> field of a C<termios> object.
+
+	$c_cflag = $termios->getcflag;
+
+=item C<getiflag>
+
+Retrieve the C<c_iflag> field of a C<termios> object.
+
+	$c_iflag = $termios->getiflag;
+
+=item C<getispeed>
+
+Retrieve the input baud rate.
+
+	$ispeed = $termios->getispeed;
+
+=item C<getlflag>
+
+Retrieve the C<c_lflag> field of a C<termios> object.
+
+	$c_lflag = $termios->getlflag;
+
+=item C<getoflag>
+
+Retrieve the C<c_oflag> field of a C<termios> object.
+
+	$c_oflag = $termios->getoflag;
+
+=item C<getospeed>
+
+Retrieve the output baud rate.
+
+	$ospeed = $termios->getospeed;
+
+=item C<setattr>
+
+Set terminal control attributes.
+
+Set attributes immediately for stdout.
+
+	$termios->setattr( 1, &POSIX::TCSANOW );
+
+Returns C<undef> on failure.
+
+=item C<setcc>
+
+Set a value in the C<c_cc> field of a C<termios> object.  The C<c_cc> field is an
+array so an index must be specified.
+
+	$termios->setcc( &POSIX::VEOF, 1 );
+
+=item C<setcflag>
+
+Set the C<c_cflag> field of a C<termios> object.
+
+	$termios->setcflag( $c_cflag | &POSIX::CLOCAL );
+
+=item C<setiflag>
+
+Set the C<c_iflag> field of a C<termios> object.
+
+	$termios->setiflag( $c_iflag | &POSIX::BRKINT );
+
+=item C<setispeed>
+
+Set the input baud rate.
+
+	$termios->setispeed( &POSIX::B9600 );
+
+Returns C<undef> on failure.
+
+=item C<setlflag>
+
+Set the C<c_lflag> field of a C<termios> object.
+
+	$termios->setlflag( $c_lflag | &POSIX::ECHO );
+
+=item C<setoflag>
+
+Set the C<c_oflag> field of a C<termios> object.
+
+	$termios->setoflag( $c_oflag | &POSIX::OPOST );
+
+=item C<setospeed>
+
+Set the output baud rate.
+
+	$termios->setospeed( &POSIX::B9600 );
+
+Returns C<undef> on failure.
+
+=item Baud rate values
+
+C<B38400> C<B75> C<B200> C<B134> C<B300> C<B1800> C<B150> C<B0> C<B19200> C<B1200> C<B9600> C<B600> C<B4800> C<B50> C<B2400> C<B110>
+
+=item Terminal interface values
+
+C<TCSADRAIN> C<TCSANOW> C<TCOON> C<TCIOFLUSH> C<TCOFLUSH> C<TCION> C<TCIFLUSH> C<TCSAFLUSH> C<TCIOFF> C<TCOOFF>
+
+=item C<c_cc> field values
+
+C<VEOF> C<VEOL> C<VERASE> C<VINTR> C<VKILL> C<VQUIT> C<VSUSP> C<VSTART> C<VSTOP> C<VMIN> C<VTIME> C<NCCS>
+
+=item C<c_cflag> field values
+
+C<CLOCAL> C<CREAD> C<CSIZE> C<CS5> C<CS6> C<CS7> C<CS8> C<CSTOPB> C<HUPCL> C<PARENB> C<PARODD>
+
+=item C<c_iflag> field values
+
+C<BRKINT> C<ICRNL> C<IGNBRK> C<IGNCR> C<IGNPAR> C<INLCR> C<INPCK> C<ISTRIP> C<IXOFF> C<IXON> C<PARMRK>
+
+=item C<c_lflag> field values
+
+C<ECHO> C<ECHOE> C<ECHOK> C<ECHONL> C<ICANON> C<IEXTEN> C<ISIG> C<NOFLSH> C<TOSTOP>
+
+=item C<c_oflag> field values
+
+C<OPOST>
+
+=back
+
+=head1 PATHNAME CONSTANTS
+
+=over 8
+
+=item Constants
+
+C<_PC_CHOWN_RESTRICTED> C<_PC_LINK_MAX> C<_PC_MAX_CANON> C<_PC_MAX_INPUT> C<_PC_NAME_MAX>
+C<_PC_NO_TRUNC> C<_PC_PATH_MAX> C<_PC_PIPE_BUF> C<_PC_VDISABLE>
+
+=back
+
+=head1 POSIX CONSTANTS
+
+=over 8
+
+=item Constants
+
+C<_POSIX_ARG_MAX> C<_POSIX_CHILD_MAX> C<_POSIX_CHOWN_RESTRICTED> C<_POSIX_JOB_CONTROL>
+C<_POSIX_LINK_MAX> C<_POSIX_MAX_CANON> C<_POSIX_MAX_INPUT> C<_POSIX_NAME_MAX>
+C<_POSIX_NGROUPS_MAX> C<_POSIX_NO_TRUNC> C<_POSIX_OPEN_MAX> C<_POSIX_PATH_MAX>
+C<_POSIX_PIPE_BUF> C<_POSIX_SAVED_IDS> C<_POSIX_SSIZE_MAX> C<_POSIX_STREAM_MAX>
+C<_POSIX_TZNAME_MAX> C<_POSIX_VDISABLE> C<_POSIX_VERSION>
+
+=back
+
+=head1 RESOURCE CONSTANTS
+
+Imported with the C<:sys_resource_h> tag.
+
+=over 8
+
+=item Constants
+
+Added in Perl v5.28:
+
+C<PRIO_PROCESS> C<PRIO_PGRP> C<PRIO_USER>
+
+=back
+
+=head1 SYSTEM CONFIGURATION
+
+=over 8
+
+=item Constants
+
+C<_SC_ARG_MAX> C<_SC_CHILD_MAX> C<_SC_CLK_TCK> C<_SC_JOB_CONTROL> C<_SC_NGROUPS_MAX>
+C<_SC_OPEN_MAX> C<_SC_PAGESIZE> C<_SC_SAVED_IDS> C<_SC_STREAM_MAX> C<_SC_TZNAME_MAX>
+C<_SC_VERSION>
+
+=back
+
+=head1 ERRNO
+
+=over 8
+
+=item Constants
+
+C<E2BIG> C<EACCES> C<EADDRINUSE> C<EADDRNOTAVAIL> C<EAFNOSUPPORT> C<EAGAIN> C<EALREADY> C<EBADF> C<EBADMSG>
+C<EBUSY> C<ECANCELED> C<ECHILD> C<ECONNABORTED> C<ECONNREFUSED> C<ECONNRESET> C<EDEADLK> C<EDESTADDRREQ>
+C<EDOM> C<EDQUOT> C<EEXIST> C<EFAULT> C<EFBIG> C<EHOSTDOWN> C<EHOSTUNREACH> C<EIDRM> C<EILSEQ> C<EINPROGRESS>
+C<EINTR> C<EINVAL> C<EIO> C<EISCONN> C<EISDIR> C<ELOOP> C<EMFILE> C<EMLINK> C<EMSGSIZE> C<ENAMETOOLONG>
+C<ENETDOWN> C<ENETRESET> C<ENETUNREACH> C<ENFILE> C<ENOBUFS> C<ENODATA> C<ENODEV> C<ENOENT> C<ENOEXEC>
+C<ENOLCK> C<ENOLINK> C<ENOMEM> C<ENOMSG> C<ENOPROTOOPT> C<ENOSPC> C<ENOSR> C<ENOSTR> C<ENOSYS> C<ENOTBLK>
+C<ENOTCONN> C<ENOTDIR> C<ENOTEMPTY> C<ENOTRECOVERABLE> C<ENOTSOCK> C<ENOTSUP> C<ENOTTY> C<ENXIO>
+C<EOPNOTSUPP> C<EOTHER> C<EOVERFLOW> C<EOWNERDEAD> C<EPERM> C<EPFNOSUPPORT> C<EPIPE> C<EPROCLIM> C<EPROTO>
+C<EPROTONOSUPPORT> C<EPROTOTYPE> C<ERANGE> C<EREMOTE> C<ERESTART> C<EROFS> C<ESHUTDOWN>
+C<ESOCKTNOSUPPORT> C<ESPIPE> C<ESRCH> C<ESTALE> C<ETIME> C<ETIMEDOUT> C<ETOOMANYREFS> C<ETXTBSY> C<EUSERS>
+C<EWOULDBLOCK> C<EXDEV>
+
+=back
+
+=head1 FCNTL
+
+=over 8
+
+=item Constants
+
+C<FD_CLOEXEC> C<F_DUPFD> C<F_GETFD> C<F_GETFL> C<F_GETLK> C<F_OK> C<F_RDLCK> C<F_SETFD> C<F_SETFL> C<F_SETLK>
+C<F_SETLKW> C<F_UNLCK> C<F_WRLCK> C<O_ACCMODE> C<O_APPEND> C<O_CREAT> C<O_EXCL> C<O_NOCTTY> C<O_NONBLOCK>
+C<O_RDONLY> C<O_RDWR> C<O_TRUNC> C<O_WRONLY>
+
+=back
+
+=head1 FLOAT
+
+=over 8
+
+=item Constants
+
+C<DBL_DIG> C<DBL_EPSILON> C<DBL_MANT_DIG> C<DBL_MAX> C<DBL_MAX_10_EXP> C<DBL_MAX_EXP> C<DBL_MIN>
+C<DBL_MIN_10_EXP> C<DBL_MIN_EXP> C<FLT_DIG> C<FLT_EPSILON> C<FLT_MANT_DIG> C<FLT_MAX>
+C<FLT_MAX_10_EXP> C<FLT_MAX_EXP> C<FLT_MIN> C<FLT_MIN_10_EXP> C<FLT_MIN_EXP> C<FLT_RADIX>
+C<FLT_ROUNDS> C<LDBL_DIG> C<LDBL_EPSILON> C<LDBL_MANT_DIG> C<LDBL_MAX> C<LDBL_MAX_10_EXP>
+C<LDBL_MAX_EXP> C<LDBL_MIN> C<LDBL_MIN_10_EXP> C<LDBL_MIN_EXP>
+
+=back
+
+=head1 FLOATING-POINT ENVIRONMENT
+
+=over 8
+
+=item Constants
+
+C<FE_DOWNWARD> C<FE_TONEAREST> C<FE_TOWARDZERO> C<FE_UPWARD>
+on systems that support them.
+
+=back
+
+=head1 LIMITS
+
+=over 8
+
+=item Constants
+
+C<ARG_MAX> C<CHAR_BIT> C<CHAR_MAX> C<CHAR_MIN> C<CHILD_MAX> C<INT_MAX> C<INT_MIN> C<LINK_MAX> C<LONG_MAX>
+C<LONG_MIN> C<MAX_CANON> C<MAX_INPUT> C<MB_LEN_MAX> C<NAME_MAX> C<NGROUPS_MAX> C<OPEN_MAX> C<PATH_MAX>
+C<PIPE_BUF> C<SCHAR_MAX> C<SCHAR_MIN> C<SHRT_MAX> C<SHRT_MIN> C<SSIZE_MAX> C<STREAM_MAX> C<TZNAME_MAX>
+C<UCHAR_MAX> C<UINT_MAX> C<ULONG_MAX> C<USHRT_MAX>
+
+=back
+
+=head1 LOCALE
+
+=over 8
+
+=item Constants
+
+C<LC_ALL> C<LC_COLLATE> C<LC_CTYPE> C<LC_MONETARY> C<LC_NUMERIC> C<LC_TIME> C<LC_MESSAGES>
+on systems that support them.
+
+=back
+
+=head1 MATH
+
+=over 8
+
+=item Constants
+
+C<HUGE_VAL>
+
+Added in Perl v5.22:
+
+C<FP_ILOGB0> C<FP_ILOGBNAN> C<FP_INFINITE> C<FP_NAN> C<FP_NORMAL> C<FP_SUBNORMAL> C<FP_ZERO>
+C<INFINITY> C<NAN> C<Inf> C<NaN>
+C<M_1_PI> C<M_2_PI> C<M_2_SQRTPI> C<M_E> C<M_LN10> C<M_LN2> C<M_LOG10E> C<M_LOG2E> C<M_PI>
+C<M_PI_2> C<M_PI_4> C<M_SQRT1_2> C<M_SQRT2>
+on systems with C99 support.
+
+=back
+
+=head1 SIGNAL
+
+=over 8
+
+=item Constants
+
+C<SA_NOCLDSTOP> C<SA_NOCLDWAIT> C<SA_NODEFER> C<SA_ONSTACK> C<SA_RESETHAND> C<SA_RESTART>
+C<SA_SIGINFO> C<SIGABRT> C<SIGALRM> C<SIGCHLD> C<SIGCONT> C<SIGFPE> C<SIGHUP> C<SIGILL> C<SIGINT>
+C<SIGKILL> C<SIGPIPE> C<SIGQUIT> C<SIGSEGV> C<SIGSTOP> C<SIGTERM> C<SIGTSTP> C<SIGTTIN> C<SIGTTOU>
+C<SIGUSR1> C<SIGUSR2> C<SIG_BLOCK> C<SIG_DFL> C<SIG_ERR> C<SIG_IGN> C<SIG_SETMASK>
+C<SIG_UNBLOCK>
+
+Added in Perl v5.24:
+
+C<ILL_ILLOPC> C<ILL_ILLOPN> C<ILL_ILLADR> C<ILL_ILLTRP> C<ILL_PRVOPC> C<ILL_PRVREG> C<ILL_COPROC>
+C<ILL_BADSTK> C<FPE_INTDIV> C<FPE_INTOVF> C<FPE_FLTDIV> C<FPE_FLTOVF> C<FPE_FLTUND> C<FPE_FLTRES>
+C<FPE_FLTINV> C<FPE_FLTSUB> C<SEGV_MAPERR> C<SEGV_ACCERR> C<BUS_ADRALN> C<BUS_ADRERR>
+C<BUS_OBJERR> C<TRAP_BRKPT> C<TRAP_TRACE> C<CLD_EXITED> C<CLD_KILLED> C<CLD_DUMPED> C<CLD_TRAPPED>
+C<CLD_STOPPED> C<CLD_CONTINUED> C<POLL_IN> C<POLL_OUT> C<POLL_MSG> C<POLL_ERR> C<POLL_PRI>
+C<POLL_HUP> C<SI_USER> C<SI_QUEUE> C<SI_TIMER> C<SI_ASYNCIO> C<SI_MESGQ>
+
+=back
+
+=head1 STAT
+
+=over 8
+
+=item Constants
+
+C<S_IRGRP> C<S_IROTH> C<S_IRUSR> C<S_IRWXG> C<S_IRWXO> C<S_IRWXU> C<S_ISGID> C<S_ISUID> C<S_IWGRP> C<S_IWOTH>
+C<S_IWUSR> C<S_IXGRP> C<S_IXOTH> C<S_IXUSR>
+
+=item Macros
+
+C<S_ISBLK> C<S_ISCHR> C<S_ISDIR> C<S_ISFIFO> C<S_ISLNK> C<S_ISREG> C<S_ISSOCK>
+
+=back
+
+=head1 STDLIB
+
+=over 8
+
+=item Constants
+
+C<EXIT_FAILURE> C<EXIT_SUCCESS> C<MB_CUR_MAX> C<RAND_MAX>
+
+=back
+
+=head1 STDIO
+
+=over 8
+
+=item Constants
+
+C<BUFSIZ> C<EOF> C<FILENAME_MAX> C<L_ctermid> C<L_cuserid> C<TMP_MAX>
+
+=back
+
+=head1 TIME
+
+=over 8
+
+=item Constants
+
+C<CLK_TCK> C<CLOCKS_PER_SEC>
+
+=back
+
+=head1 UNISTD
+
+=over 8
+
+=item Constants
+
+C<R_OK> C<SEEK_CUR> C<SEEK_END> C<SEEK_SET> C<STDIN_FILENO> C<STDOUT_FILENO> C<STDERR_FILENO> C<W_OK> C<X_OK>
+
+=back
+
+=head1 WAIT
+
+=over 8
+
+=item Constants
+
+C<WNOHANG> C<WUNTRACED>
+
+=over 16
+
+=item C<WNOHANG>
+
+Do not suspend the calling process until a child process
+changes state but instead return immediately.
+
+=item C<WUNTRACED>
+
+Catch stopped child processes.
+
+=back
+
+=item Macros
+
+C<WIFEXITED> C<WEXITSTATUS> C<WIFSIGNALED> C<WTERMSIG> C<WIFSTOPPED> C<WSTOPSIG>
+
+=over 16
+
+=item C<WIFEXITED>
+
+C<WIFEXITED(${^CHILD_ERROR_NATIVE})> returns true if the child process
+exited normally (C<exit()> or by falling off the end of C<main()>)
+
+=item C<WEXITSTATUS>
+
+C<WEXITSTATUS(${^CHILD_ERROR_NATIVE})> returns the normal exit status of
+the child process (only meaningful if C<WIFEXITED(${^CHILD_ERROR_NATIVE})>
+is true)
+
+=item C<WIFSIGNALED>
+
+C<WIFSIGNALED(${^CHILD_ERROR_NATIVE})> returns true if the child process
+terminated because of a signal
+
+=item C<WTERMSIG>
+
+C<WTERMSIG(${^CHILD_ERROR_NATIVE})> returns the signal the child process
+terminated for (only meaningful if
+C<WIFSIGNALED(${^CHILD_ERROR_NATIVE})>
+is true)
+
+=item C<WIFSTOPPED>
+
+C<WIFSTOPPED(${^CHILD_ERROR_NATIVE})> returns true if the child process is
+currently stopped (can happen only if you specified the WUNTRACED flag
+to C<waitpid()>)
+
+=item C<WSTOPSIG>
+
+C<WSTOPSIG(${^CHILD_ERROR_NATIVE})> returns the signal the child process
+was stopped for (only meaningful if
+C<WIFSTOPPED(${^CHILD_ERROR_NATIVE})>
+is true)
+
+=back
+
+=back
+
+=head1 WINSOCK
+
+(Windows only.)
+
+=over 8
+
+=item Constants
+
+Added in Perl v5.24:
+
+C<WSAEINTR> C<WSAEBADF> C<WSAEACCES> C<WSAEFAULT> C<WSAEINVAL> C<WSAEMFILE> C<WSAEWOULDBLOCK>
+C<WSAEINPROGRESS> C<WSAEALREADY> C<WSAENOTSOCK> C<WSAEDESTADDRREQ> C<WSAEMSGSIZE>
+C<WSAEPROTOTYPE> C<WSAENOPROTOOPT> C<WSAEPROTONOSUPPORT> C<WSAESOCKTNOSUPPORT>
+C<WSAEOPNOTSUPP> C<WSAEPFNOSUPPORT> C<WSAEAFNOSUPPORT> C<WSAEADDRINUSE>
+C<WSAEADDRNOTAVAIL> C<WSAENETDOWN> C<WSAENETUNREACH> C<WSAENETRESET> C<WSAECONNABORTED>
+C<WSAECONNRESET> C<WSAENOBUFS> C<WSAEISCONN> C<WSAENOTCONN> C<WSAESHUTDOWN>
+C<WSAETOOMANYREFS> C<WSAETIMEDOUT> C<WSAECONNREFUSED> C<WSAELOOP> C<WSAENAMETOOLONG>
+C<WSAEHOSTDOWN> C<WSAEHOSTUNREACH> C<WSAENOTEMPTY> C<WSAEPROCLIM> C<WSAEUSERS>
+C<WSAEDQUOT> C<WSAESTALE> C<WSAEREMOTE> C<WSAEDISCON> C<WSAENOMORE> C<WSAECANCELLED>
+C<WSAEINVALIDPROCTABLE> C<WSAEINVALIDPROVIDER> C<WSAEPROVIDERFAILEDINIT>
+C<WSAEREFUSED>
+
+=back
+

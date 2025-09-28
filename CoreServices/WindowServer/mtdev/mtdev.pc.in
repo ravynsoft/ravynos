@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: mtdev
+Description: Multitouch Protocol Translation Library
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lmtdev
+Cflags: -I${includedir}

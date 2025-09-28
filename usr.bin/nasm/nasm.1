@@ -1,0 +1,429 @@
+'\" t
+.\"     Title: nasm
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 12/21/2022
+.\"    Manual: The Netwide Assembler Project
+.\"    Source: NASM
+.\"  Language: English
+.\"
+.TH "NASM" "1" "12/21/2022" "NASM" "The Netwide Assembler Project"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+nasm \- the Netwide Assembler, a portable 80x86 assembler
+.SH "SYNOPSIS"
+.sp
+\fBnasm\fR [\fB\-@\fR response file] [\fB\-f\fR format] [\fB\-o\fR outfile] [\fB\-l\fR listfile] [\fIoptions\fR\&...] filename
+.SH "DESCRIPTION"
+.sp
+The \fBnasm\fR command assembles the file \fIfilename\fR and directs output to the file \fIoutfile\fR if specified\&. If \fIoutfile\fR is not specified, \fBnasm\fR will derive a default output file name from the name of its input file, usually by appending \(oq\&.o\(cq or \(oq\&.obj\(cq, or by removing all extensions for a raw binary file\&. Failing that, the output file name will be \(oqnasm\&.out\(cq\&.
+.SH "OPTIONS"
+.PP
+\fB\-@\fR \fIfilename\fR
+.RS 4
+Causes
+\fBnasm\fR
+to process options from filename as if they were included on the command line\&.
+.RE
+.PP
+\fB\-a\fR
+.RS 4
+Causes
+\fBnasm\fR
+to assemble the given input file without first applying the macro preprocessor\&.
+.RE
+.PP
+\fB\-D\fR|\fB\-d\fR \fImacro[=value]\fR
+.RS 4
+Pre\-defines a single\-line macro\&.
+.RE
+.PP
+\fB\-E\fR|\fB\-e\fR
+.RS 4
+Causes
+\fBnasm\fR
+to preprocess the given input file, and write the output to
+\fIstdout\fR
+(or the specified output file name), and not actually assemble anything\&.
+.RE
+.PP
+\fB\-f\fR \fIformat\fR
+.RS 4
+Specifies the output file format\&. To see a list of valid output formats, use the
+\fB\-hf\fR
+option\&.
+.RE
+.PP
+\fB\-F\fR \fIformat\fR
+.RS 4
+Specifies the debug information format\&. To see a list of valid output formats, use the
+\fB\-y\fR
+option (for example
+\fB\-felf \-y\fR)\&.
+.RE
+.PP
+\fB\-g\fR
+.RS 4
+Causes
+\fBnasm\fR
+to generate debug information\&.
+.RE
+.PP
+\fB\-g\fR\fIformat\fR
+.RS 4
+Equivalent to
+\fB\-g \-F\fR\fI format\fR\&.
+.RE
+.PP
+\fB\-h\fR
+.RS 4
+Causes
+\fBnasm\fR
+to exit immediately, after giving a summary of its invocation options\&.
+.RE
+.PP
+\fB\-hf\fR
+.RS 4
+Same as
+\fB\-h\fR
+, but also lists all valid output formats\&.
+.RE
+.PP
+\fB\-I\fR|\fB\-i\fR \fIdirectory\fR
+.RS 4
+Adds a directory to the search path for include files\&. The directory specification must include the trailing slash, as it will be directly prepended to the name of the include file\&.
+.RE
+.PP
+\fB\-l\fR \fIlistfile\fR
+.RS 4
+Causes an assembly listing to be directed to the given file, in which the original source is displayed on the right hand side (plus the source for included files and the expansions of multi\-line macros) and the generated code is shown in hex on the left\&.
+.RE
+.PP
+\fB\-M\fR
+.RS 4
+Causes
+\fBnasm\fR
+to output Makefile\-style dependencies to stdout; normal output is suppressed\&.
+.RE
+.PP
+\fB\-MG\fR \fIfile\fR
+.RS 4
+Same as
+\fB\-M\fR
+but assumes that missing Makefile dependencies are generated and added to dependency list without a prefix\&.
+.RE
+.PP
+\fB\-MF\fR \fIfile\fR
+.RS 4
+Output Makefile\-style dependencies to the specified file\&.
+.RE
+.PP
+\fB\-MD\fR \fIfile\fR
+.RS 4
+Same as a combination of
+\fB\-M\fR
+and
+\fB\-MF\fR
+options\&.
+.RE
+.PP
+\fB\-MT\fR \fIfile\fR
+.RS 4
+Override the default name of the dependency target dependency target name\&. This is normally the same as the output filename, specified by the
+\fB\-o\fR
+option\&.
+.RE
+.PP
+\fB\-MQ\fR \fIfile\fR
+.RS 4
+The same as
+\fB\-MT\fR
+except it tries to quote characters that have special meaning in Makefile syntax\&. This is not foolproof, as not all characters with special meaning are quotable in Make\&.
+.RE
+.PP
+\fB\-MP\fR
+.RS 4
+Emit phony target\&.
+.RE
+.PP
+\fB\-O\fR \fInumber\fR
+.RS 4
+Optimize branch offsets\&.
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fB\-O0\fR: No optimization
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fB\-O1\fR: Minimal optimization
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fB\-Ox\fR: Multipass optimization (default)
+.RE
+.RE
+.PP
+\fB\-o\fR \fIoutfile\fR
+.RS 4
+Specifies a precise name for the output file, overriding
+\fBnasm\fR\*(Aqs default means of determining it\&.
+.RE
+.PP
+\fB\-P\fR|\fB\-p\fR \fIfile\fR
+.RS 4
+Specifies a file to be pre\-included, before the main source file starts to be processed\&.
+.RE
+.PP
+\fB\-s\fR
+.RS 4
+Causes
+\fBnasm\fR
+to send its error messages and/or help text to stdout instead of stderr\&.
+.RE
+.PP
+\fB\-t\fR
+.RS 4
+Causes
+\fBnasm\fR
+to assemble in SciTech TASM compatible mode\&.
+.RE
+.PP
+\fB\-U\fR|\fB\-u\fR \fImacro\fR
+.RS 4
+Undefines a single\-line macro\&.
+.RE
+.PP
+\fB\-v\fR
+.RS 4
+Causes
+\fBnasm\fR
+to exit immediately, after displaying its version number\&.
+.RE
+.PP
+*\-W[no\-]foo\*(Aq
+.RS 4
+Causes
+\fBnasm\fR
+to enable or disable certain classes of warning messages, in gcc\-like style, for example
+\fB\-Wlabel\-orphan\fR
+or
+\fB\-Wno\-orphan\-labels\fR\&.
+.RE
+.PP
+\fB\-w\fR\fI[+\-]foo\fR
+.RS 4
+Causes
+\fBnasm\fR
+to enable or disable certain classes of warning messages, for example
+\fB\-w+label\-orphan\fR
+or
+\fB\-w\-macro\-params\fR\&.
+.RE
+.PP
+\fB\-X\fR \fIformat\fR
+.RS 4
+Specifies error reporting format (gnu or vc)\&.
+.RE
+.PP
+\fB\-y\fR
+.RS 4
+Causes
+\fBnasm\fR
+to list supported debug formats\&.
+.RE
+.PP
+\fB\-Z\fR \fIfilename\fR
+.RS 4
+Causes
+\fBnasm\fR
+to redirect error messages to
+\fIfilename\fR\&. This option exists to support operating systems on which stderr is not easily redirected\&.
+.RE
+.PP
+\-\-prefix, \-\-postfix
+.RS 4
+Prepend or append (respectively) the given argument to all global or extern variables\&.
+.RE
+.SH "SYNTAX"
+.sp
+This man page does not fully describe the syntax of \fBnasm\fR\*(Aqs assembly language, but does give a summary of the differences from other assemblers\&.
+.sp
+\fIRegisters\fR have no leading \(oq%\(cq sign, unlike \fBgas\fR, and floating\-point stack registers are referred to as \fIst0\fR, \fIst1\fR, and so on\&.
+.sp
+\fIFloating\-point instructions\fR may use either the single\-operand form or the double\&. A \fITO\fR keyword is provided; thus, one could either write
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+fadd st0,st1
+fadd st1,st0
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+or one could use the alternative single\-operand forms
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+fadd st1
+fadd to st1
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+\fIUninitialised storage\fR is reserved using the \fIRESB\fR, \fIRESW\fR, \fIRESD\fR, \fIRESQ\fR, \fIREST\fR and \fIRESO\fR pseudo\-opcodes, each taking one parameter which gives the number of bytes, words, doublewords, quadwords or ten\-byte words to reserve\&.
+.sp
+\fIRepetition\fR of data items is not done by the \fIDUP\fR keyword as seen in DOS assemblers, but by the use of the \fITIMES\fR prefix, like this:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+message: times 3 db \*(Aqabc\*(Aq
+         times 64\-$+message db 0
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+which defines the string abcabcabc, followed by the right number of zero bytes to make the total length up to 64 bytes\&.
+.sp
+\fISymbol references\fR are always understood to be immediate (i\&.e\&. the address of the symbol), unless square brackets are used, in which case the contents of the memory location are used\&. Thus:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+mov ax,wordvar
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+loads AX with the address of the variable wordvar, whereas
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+mov ax,[wordvar]
+mov ax,[wordvar+1]
+mov ax,[es:wordvar+bx]
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+all refer to the \fIcontents\fR of memory locations\&. The syntaxes
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+mov ax,es:wordvar[bx]
+es mov ax,wordvar[1]
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+are not legal at all, although the use of a segment register name as an instruction prefix is valid, and can be used with instructions such as \fILODSB\fR which can\(cqt be overridden any other way\&.
+.sp
+\fIConstants\fR may be expressed numerically in most formats: a trailing H, Q or B denotes hex, octal or binary respectively, and a leading \(oq0x\(cq or \(oq$\(cq denotes hex as well\&. Leading zeros are not treated specially at all\&. Character constants may be enclosed in single or double quotes; there is no escape character\&. The ordering is little\-endian (reversed), so that the character constant \fI\*(Aqabcd\fR\*(Aq denotes 0x64636261 and not 0x61626364\&.
+.sp
+Local labels begin with a period, and their \(oqlocality\(cq is granted by the assembler prepending the name of the previous non\-local symbol\&. Thus declaring a label \(oq\&.loop\(cq after a label \(oqlabel\(cq has actually defined a symbol called \(oqlabel\&.loop\(cq\&.
+.SH "DIRECTIVES"
+.sp
+\fISECTION\fR \fIname\fR or \fISEGMENT\fR \fIname\fR causes \fBnasm\fR to direct all following code to the named section\&. Section names vary with output file format, although most formats support the names \fI\&.text\fR, \fI\&.data\fR and \fI\&.bss\fR\&. (The exception is the \fIobj\fR format, in which all segments are user\-definable\&.)
+.sp
+\fIABSOLUTE\fR \fIaddress\fR causes \fBnasm\fR to position its notional assembly point at an absolute address: so no code or data may be generated, but you can use \fIRESB\fR, \fIRESW\fR and \fIRESD\fR to move the assembly point further on, and you can define labels\&. So this directive may be used to define data structures\&. When you have finished doing absolute assembly, you must issue another \fISECTION\fR directive to return to normal assembly\&.
+.sp
+\fIBITS\fR \fI16\fR, \fIBITS\fR \fI32\fR or \fIBITS\fR \fI64\fR switches the default processor mode for which \fBnasm\fR is generating code: it is equivalent to \fIUSE16\fR or \fIUSE32\fR in DOS assemblers\&.
+.sp
+\fIEXTERN\fR \fIsymbol\fR and \fIGLOBAL\fR \fIsymbol\fR import and export symbol definitions, respectively, from and to other modules\&. Note that the \fIGLOBAL\fR directive must appear before the definition of the symbol it refers to\&.
+.sp
+\fISTRUC\fR \fIstrucname\fR and \fIENDSTRUC\fR, when used to bracket a number of \fIRESB\fR, \fIRESW\fR or similar instructions, define a data structure\&. In addition to defining the offsets of the structure members, the construct also defines a symbol for the size of the structure, which is simply the structure name with \fIsize\fR tacked on to the end\&.
+.SH "FORMAT\-SPECIFIC DIRECTIVES"
+.sp
+\fIORG\fR \fIaddress\fR is used by the \fIbin\fR flat\-form binary output format, and specifies the address at which the output code will eventually be loaded\&.
+.sp
+\fIGROUP\fR \fIgrpname\fR \fIseg1\fR \fIseg2\fR\&... is used by the obj (Microsoft 16\-bit) output format, and defines segment groups\&. This format also uses \fIUPPERCASE\fR, which directs that all segment, group and symbol names output to the object file should be in uppercase\&. Note that the actual assembly is still case sensitive\&.
+.sp
+\fILIBRARY\fR \fIlibname\fR is used by the \fIrdf\fR output format, and causes a dependency record to be written to the output file which indicates that the program requires a certain library in order to run\&.
+.SH "MACRO PREPROCESSOR"
+.sp
+Single\-line macros are defined using the \fI%define\fR or \fI%idefine\fR commands, in a similar fashion to the C preprocessor\&. They can be overloaded with respect to number of parameters, although defining a macro with no parameters prevents the definition of any macro with the same name taking parameters, and vice versa\&. \fI%define\fR defines macros whose names match case\-sensitively, whereas \fI%idefine\fR defines case\-insensitive macros\&.
+.sp
+Multi\-line macros are defined using \fI%macro\fR and \fI%imacro\fR (the distinction is the same as that between \fI%define\fR and \fI%idefine\fR), whose syntax is as follows
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+%macro name minprm[\-maxprm][+][\&.nolist] [defaults]
+        <some lines of macro expansion text>
+%endmacro
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+Again, these macros may be overloaded\&. The trailing plus sign indicates that any parameters after the last one get subsumed, with their separating commas, into the last parameter\&. The \fIdefaults\fR part can be used to specify defaults for unspecified macro parameters after \fIminparam\fR\&. \fI%endm\fR is a valid synonym for \fI%endmacro\fR\&.
+.sp
+To refer to the macro parameters within a macro expansion, you use \fI%1\fR, \fI%2\fR and so on\&. You can also enforce that a macro parameter should contain a condition code by using \fI%+1\fR, and you can invert the condition code by using \fI%\-1\fR\&. You can also define a label specific to a macro invocation by prefixing it with a double \(oq%\(cq sign\&.
+.sp
+Files can be included using the \fI%include\fR directive, which works like C\&.
+.sp
+The preprocessor has a \(oqcontext stack\(cq, which may be used by one macro to store information that a later one will retrieve\&. You can push a context on the stack using \fI%push\fR, remove one using \fI%pop\fR, and change the name of the top context (without disturbing any associated definitions) using \fI%repl\fR\&. Labels and \fI%define\fR macros specific to the top context may be defined by prefixing their names with %$, and things specific to the next context down with %$$, and so on\&.
+.sp
+Conditional assembly is done by means of \fI%ifdef\fR, \fI%ifndef\fR, \fI%else\fR and \fI%endif\fR as in C\&. (Except that \fI%ifdef\fR can accept several putative macro names, and will evaluate TRUE if any of them is defined\&.) In addition, the directives \fI%ifctx\fR and \fI%ifnctx\fR can be used to condition on the name of the top context on the context stack\&. The obvious set of \(oqelse\-if\(cq directives, \fI%elifdef\fR, \fI%elifndef\fR, \fI%elifctx\fR and \fI%elifnctx\fR are also supported\&.
+.SH "BUGS"
+.sp
+Please report bugs through the bug tracker function at \m[blue]\fBhttp://nasm\&.us\fR\m[]\&.
+.SH "SEE ALSO"
+.sp
+\fBas\fR(1), \fBld\fR(1)\&.

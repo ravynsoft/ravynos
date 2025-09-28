@@ -1,0 +1,49 @@
+#compdef mkdir gmkdir zf_mkdir
+
+local curcontext="$curcontext" variant ret=1
+local -a state line expl args aopts=( -A '-*' )
+typeset -A opt_args
+
+args=(
+  '(-m --mode)'{-m,--mode=}'[set permission mode]: :_file_modes'
+  '(-p --parents)'{-p,--parents}'[make parent directories as needed]'
+  '*: :->directories'
+)
+
+_pick_variant -r variant -b zsh gnu=gnu $OSTYPE --help
+
+case $variant in
+  gnu|freebsd*|dragonfly*|darwin*)
+    args+=(
+      '(-v --verbose)'{-v,--verbose}'[print message for each created directory]'
+    )
+  ;|
+  gnu)
+    aopts=()
+    if [[ $OSTYPE == linux* ]]; then
+      args+=(
+        '(--context)-Z[set SELinux context]'
+        '(-Z)--context=-[set SELinux context]::SELinux context:_selinux_contexts'
+      )
+    fi
+    args+=(
+      '(- :)--help[display help information]'
+      '(- :)--version[display version information]'
+    )
+  ;;
+  *) # non-GNU: remove long options
+    args=( ${${${args:#(|*\))--*}//--[^ )]#/}/\( #\)/} )
+  ;;
+esac
+
+_arguments -C -s -S $aopts $args && ret=0
+
+case "$state" in
+  directories)
+    _wanted directories expl \
+      'parent directory or name of directory to create' \
+      _path_files -/ && ret=0
+  ;;
+esac
+
+return ret

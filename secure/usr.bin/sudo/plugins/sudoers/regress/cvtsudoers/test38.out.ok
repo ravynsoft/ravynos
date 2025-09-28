@@ -1,0 +1,14 @@
+Defaults@xerxes\
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+Defaults@xyzzy\
+    secure_path=/opt/sudo/bin\:/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User_Alias ADMINS = millert, dowdy, mikef
+Cmnd_Alias PROCESSES = /usr/bin/nice, /bin/kill, /usr/bin/renice,\
+    /usr/bin/pkill, /usr/bin/top
+Cmnd_Alias REBOOT = /sbin/halt, /sbin/reboot, /sbin/poweroff
+Host_Alias WEBSERVERS_1 = www1, www2, www3, www5
+
+root ALL = (ALL) ALL
+
+ALL ALL = (ALL) /usr/bin/id

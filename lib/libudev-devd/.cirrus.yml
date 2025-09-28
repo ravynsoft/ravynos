@@ -1,0 +1,18 @@
+env:
+  CIRRUS_CLONE_DEPTH: 1
+  ARCH: amd64
+
+task:
+  freebsd_instance:
+    matrix:
+      image_family: freebsd-13-0-snap
+      image_family: freebsd-12-1
+      image: freebsd-11-3-stable-amd64-v20190801
+  install_script:
+    - sed -i.bak -e 's,quarterly,latest,' /etc/pkg/FreeBSD.conf
+    - env ASSUME_ALWAYS_YES=yes pkg bootstrap -f
+    - pkg upgrade -y
+    - pkg install -y evdev-proto meson ninja pkgconf
+  script: 
+    - env CPPFLAGS='-isystem /usr/local/include' CFLAGS='-isystem /usr/local/include' meson _build
+    - ninja -v -C _build

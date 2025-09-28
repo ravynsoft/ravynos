@@ -1,0 +1,16 @@
+^CMake Error at .*/Internal/CMakeCUDAArchitecturesValidate\.cmake:[0-9]+ \(message\):
+  CMAKE_CUDA_ARCHITECTURES:
+
+    invalid
+
+  is not one of the following:
+
+    \* a semicolon-separated list of integers, each optionally
+      followed by '-real' or '-virtual'
+    \* a special value: all, all-major, native
+
+Call Stack \(most recent call first\):
+  [^
+]*/Modules/CMakeDetermineCUDACompiler.cmake:[0-9]+ \(cmake_cuda_architectures_validate\)
+  architectures-invalid\.cmake:2 \(enable_language\)
+  CMakeLists\.txt:3 \(include\)$

@@ -1,0 +1,42 @@
+COMMENT(!MOD!zsh/regex
+Interface to the POSIX regex library.
+!MOD!)
+cindex(regular expressions)
+cindex(regex)
+The tt(zsh/regex) module makes available the following test condition:
+
+startitem()
+findex(regex-match)
+item(var(expr) tt(-regex-match) var(regex))(
+Matches a string against a POSIX extended regular expression.
+On successful match,
+matched portion of the string will normally be placed in the tt(MATCH)
+variable.  If there are any capturing parentheses within the regex, then
+the tt(match) array variable will contain those.
+If the match is not successful, then the variables will not be altered.
+
+For example,
+
+example([[ alphabetical -regex-match ^a+LPAR()[^a]PLUS()+RPAR()a+LPAR()[^a]+PLUS()+RPAR()a ]] &&
+print -l $MATCH X $match)
+
+If the option tt(REMATCH_PCRE) is not set, then the tt(=~) operator will
+automatically load this module as needed and will invoke the
+tt(-regex-match) operator.
+
+If tt(BASH_REMATCH) is set, then the array tt(BASH_REMATCH) will be set
+instead of tt(MATCH) and tt(match).
+
+Note that the tt(zsh/regex) module logic relies on the host system. The 
+same var(expr) and var(regex) pair could produce different results on different
+platforms if a var(regex) with non-standard syntax is given.
+
+For example, no syntax for matching a word boundary is defined in the POSIX
+extended regular expression standard. GNU tt(libc) and BSD tt(libc) both provide 
+such syntaxes as extensions (tt(\b) and tt([[:<:]])/tt([[:>:]]) respectively), 
+but neither of these syntaxes is supported by both of these implementations.
+
+Refer to the manref(regcomp)(3) and manref(re_format)(7) manual pages on your
+system for locally-supported syntax.
+)
+enditem()

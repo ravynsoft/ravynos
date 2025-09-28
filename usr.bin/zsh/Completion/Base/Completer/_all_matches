@@ -1,0 +1,47 @@
+#autoload
+
+_all_matches() {
+  local old
+
+  zstyle -s ":completion:${curcontext}:" old-matches old
+
+  if [[ "$old" = (only|true|yes|1|on) ]]; then
+
+    if [[ -n "$compstate[old_list]" ]]; then
+      compstate[insert]=all
+      compstate[old_list]=keep
+      return 0
+    fi
+
+    [[ "$old" = *only* ]] && return 1
+  fi
+
+  (( $comppostfuncs[(I)_all_matches_end] )) ||
+      comppostfuncs=( "$comppostfuncs[@]" _all_matches_end )
+
+  _all_matches_context=":completion:${curcontext}:"
+
+  return 1
+}
+
+_all_matches_end() {
+  local not
+
+  zstyle -s "$_all_matches_context" avoid-completer not ||
+      not=( _expand _old_list _correct _approximate )
+
+  if [[ "$compstate[nmatches]" -gt 1 && $not[(I)(|_)$_completer] -eq 0 ]]; then
+    local expl
+
+    if zstyle -t "$_all_matches_context" insert; then
+      compstate[insert]=all
+    else
+      _description all-matches expl 'all matches'
+      compadd "$expl[@]" -C
+    fi
+  fi
+
+  unset _all_matches_context
+}
+
+_all_matches "$@"

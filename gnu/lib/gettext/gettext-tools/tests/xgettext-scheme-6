@@ -1,0 +1,24 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Scheme support: scheme-format string with a complex nested loop.
+
+cat <<EOF > xg-sc-6.scm
+(_ "A~0{B~0b~,v*C~:*D~,v*E~,v*F~0{G~0{H~}I~}J~^~}K")
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -k_ --omit-header --no-location -d xg-sc-6.tmp xg-sc-6.scm || Exit 1
+LC_ALL=C tr -d '\r' < xg-sc-6.tmp.po > xg-sc-6.po || Exit 1
+
+cat <<EOF > xg-sc-6.ok
+#, scheme-format
+msgid "A~0{B~0b~,v*C~:*D~,v*E~,v*F~0{G~0{H~}I~}J~^~}K"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-sc-6.ok xg-sc-6.po
+result=$?
+
+exit $result

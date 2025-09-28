@@ -1,0 +1,121 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# process substitution constructs that have caused problems in the past
+. ./test-glue-functions
+
+eval cat <(echo test1)
+eval "echo foo;cat" <(echo test2)
+
+# this doesn't work, and it never should have
+#unset f
+#f=<(echo test3); cat "$f"
+
+unset f
+eval f=<(echo test4) "; cat \$f"
+
+unset f
+
+FN=$TMPDIR/bashtest-procsub-$$
+cat >"$FN" <<EOF
+echo "test 12" | wc -c | _cut_leading_spaces
+cat "\$1"
+EOF
+
+source "$FN" <(echo test5)
+rm -f "$FN"
+unset FN
+
+cat <( echo test6 ) <( echo test7 )
+cat <( echo test8 ; sleep 2; echo test8a ) <( echo test9 )
+
+# Zev Weiss 11/7/2012
+fn() { cat | cat "$1"; }
+fn <(:) < /dev/null
+
+unset -f fn
+
+f1(){
+  cat $1
+  date >/dev/null
+}
+f2(){
+  date >/dev/null
+  cat $1
+}
+cat <(echo hi)
+f1 <(echo bye)
+f2 <(echo l8r)
+
+unset -f f1 f2
+
+# set up conditions for test
+ulimit -n 256
+
+bug()
+{
+c=$(ulimit -n)
+let c+=100
+while let c--
+do
+	while read -ru3 x
+	do
+		echo -n :
+	done 3< <(echo x)
+done
+echo
+}
+
+bug
+unset -f bug
+
+count_lines()
+{
+    wc -l < $1
+
+    case "$1" in
+    *sh-np*)	[ -e "$1" ] || { echo 0; echo 0; echo 0; echo 0; return; } ;;
+    *) ;;
+    esac
+
+    wc -l < $1
+    wc -l < $1
+    true | wc -l < $1
+    wc -l < $1
+}
+
+echo intern
+count_lines <(date) | _cut_leading_spaces
+unset -f count_lines
+
+echo extern
+FN=$TMPDIR/bashtest-$$
+cat >$FN << \EOF
+wc -l < $1
+case $1 in *sh-np*) [ -e $1 ] || { echo 0; echo 0; echo 0; echo 0; return; } ;; esac
+wc -l < $1
+wc -l < $1
+true | wc -l < $1
+wc -l < $1
+EOF
+
+${THIS_SH} -c "source $FN <(date)" | _cut_leading_spaces
+rm -f $FN
+
+moo() { ls -l "$1" >/dev/null; ls -l "$1" >/dev/null; }; moo >(true)
+moo() { ls -al "$1" >/dev/null; (true); ls -al "$1" >/dev/null; }; moo >(true)
+
+unset -f moo
+
+${THIS_SH} ./procsub1.sub
+${THIS_SH} ./procsub2.sub

@@ -1,0 +1,177 @@
+# -*- Makefile -*- for gperf on VMS using the MMS utility
+
+# Copyright (C) 2003 Free Software Foundation, Inc.
+# Written by Bruno Haible <bruno@clisp.org>.
+#
+# This file is part of GNU GPERF.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#### Start of system configuration section. ####
+
+# Directories used by "make install":
+prefix = SYS$DATA:[
+exec_prefix = $(prefix)
+datadir = $(prefix).share
+bindir = $(exec_prefix).bin
+mandir = $(datadir).man
+man1dir = $(mandir).man1
+docdir = $(datadir).doc.gperf
+
+# Programs used by "make":
+
+CC = cc
+CXX = cxx
+
+# These flags affect binary compatibility. GNU gperf does not need them,
+# but other packages do.
+ABIFLAGS = /name=(as_is,short) /float=ieee
+
+WARN_CFLAGS = /warning
+
+OPTIMFLAGS = /optimize
+
+CFLAGS = $(ABIFLAGS) $(WARN_CFLAGS) $(OPTIMFLAGS)
+CXXFLAGS = $(ABIFLAGS) $(WARN_CFLAGS) $(OPTIMFLAGS)
+DEFS = "VMS=1","HAVE_CONFIG_H=1"
+
+INCLUDES = /include=([],[.lib],[.src])
+
+LN = copy
+RM = delete
+
+# Programs used by "make install":
+INSTALL = copy
+INSTALL_PROGRAM = copy
+INSTALL_DATA = copy
+
+#### End of system configuration section. ####
+
+LIB_OBJECTS = [.lib]getopt.obj,[.lib]getopt1.obj,[.lib]getline.obj,[.lib]hash.obj
+SRC_OBJECTS = [.src]version.obj,[.src]positions.obj,[.src]options.obj,[.src]keyword.obj,[.src]keyword-list.obj,[.src]input.obj,[.src]bool-array.obj,[.src]hash-table.obj,[.src]search.obj,[.src]output.obj,[.src]main.obj
+OBJECTS = $(LIB_OBJECTS),$(SRC_OBJECTS)
+
+all : gperf.exe
+	write sys$output "Nothing else to be done for 'all'."
+
+[.src]config.h : [.src]config.h_vms
+	$(LN) [.src]config.h_vms [.src]config.h
+
+[.lib]getopt.obj : [.lib]getopt.c
+	$(CC) $(INCLUDES) $(CFLAGS) /define=("VMS=1") [.lib]getopt.c /obj=[.lib]getopt.obj
+
+[.lib]getopt1.obj : [.lib]getopt1.c
+	$(CC) $(INCLUDES) $(CFLAGS) /define=("VMS=1") [.lib]getopt1.c /obj=[.lib]getopt1.obj
+
+[.lib]getline.obj : [.lib]getline.cc
+	$(CXX) $(INCLUDES) $(CXXFLAGS) /define=("VMS=1") [.lib]getline.cc /obj=[.lib]getline.obj
+
+[.lib]hash.obj : [.lib]hash.cc
+	$(CXX) $(INCLUDES) $(CXXFLAGS) /define=("VMS=1") [.lib]hash.cc /obj=[.lib]hash.obj
+
+# Dependencies.
+CONFIG_H = [.src]config.h
+VERSION_H = [.src]version.h
+POSITIONS_H = [.src]positions.h,[.src]positions.icc
+OPTIONS_H = [.src]options.h,[.src]options.icc,$(POSITIONS_H)
+KEYWORD_H = [.src]keyword.h,[.src]keyword.icc
+KEYWORD_LIST_H = [.src]keyword-list.h,[.src]keyword-list.icc,$(KEYWORD_H)
+INPUT_H = [.src]input.h,$(KEYWORD_LIST_H)
+BOOL_ARRAY_H = [.src]bool-array.h,[.src]bool-array.icc,$(OPTIONS_H)
+HASH_TABLE_H = [.src]hash-table.h,$(KEYWORD_H)
+SEARCH_H = [.src]search.h,$(KEYWORD_LIST_H),$(POSITIONS_H),$(BOOL_ARRAY_H)
+OUTPUT_H = [.src]output.h,$(KEYWORD_LIST_H),$(POSITIONS_H)
+
+[.src]version.obj : [.src]version.cc,$(VERSION_H)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) /define=($(DEFS)) [.src]version.cc /obj=[.src]version.obj
+
+[.src]positions.obj : [.src]positions.cc,$(POSITIONS_H)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) /define=($(DEFS)) [.src]positions.cc /obj=[.src]positions.obj
+
+[.src]options.obj : [.src]options.cc,$(OPTIONS_H),$(VERSION_H)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) /define=($(DEFS)) [.src]options.cc /obj=[.src]options.obj
+
+[.src]keyword.obj : [.src]keyword.cc,$(KEYWORD_H),$(POSITIONS_H)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) /define=($(DEFS)) [.src]keyword.cc /obj=[.src]keyword.obj
+
+[.src]keyword-list.obj : [.src]keyword-list.cc,$(KEYWORD_LIST_H)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) /define=($(DEFS)) [.src]keyword-list.cc /obj=[.src]keyword-list.obj
+
+[.src]input.obj : [.src]input.cc,$(INPUT_H),$(OPTIONS_H)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) /define=($(DEFS)) [.src]input.cc /obj=[.src]input.obj
+
+[.src]bool-array.obj : [.src]bool-array.cc,$(BOOL_ARRAY_H),$(OPTIONS_H)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) /define=($(DEFS)) [.src]bool-array.cc /obj=[.src]bool-array.obj
+
+[.src]hash-table.obj : [.src]hash-table.cc,$(HASH_TABLE_H),$(OPTIONS_H)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) /define=($(DEFS)) [.src]hash-table.cc /obj=[.src]hash-table.obj
+
+[.src]search.obj : [.src]search.cc,$(SEARCH_H),$(OPTIONS_H),$(HASH_TABLE_H),$(CONFIG_H)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) /define=($(DEFS)) [.src]search.cc /obj=[.src]search.obj
+
+[.src]output.obj : [.src]output.cc,$(OUTPUT_H),$(OPTIONS_H),$(VERSION_H)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) /define=($(DEFS)) [.src]output.cc /obj=[.src]output.obj
+
+[.src]main.obj : [.src]main.cc,$(OPTIONS_H),$(INPUT_H),$(SEARCH_H),$(OUTPUT_H)
+	$(CXX) $(INCLUDES) $(CXXFLAGS) /define=($(DEFS)) [.src]main.cc /obj=[.src]main.obj
+
+gperf.exe : $(OBJECTS)
+	link /executable=gperf.exe $(OBJECTS)
+
+install : all force
+	create /directory $(prefix)]
+	create /directory $(exec_prefix)]
+	create /directory $(bindir)]
+	$(INSTALL_PROGRAM) gperf.exe $(bindir)]gperf.exe
+	create /directory $(datadir)]
+	create /directory $(mandir)]
+	create /directory $(man1dir)]
+	$(INSTALL_DATA) [.doc]gperf.1 $(man1dir)]gperf.1
+	create /directory $(datadir).doc]
+	create /directory $(docdir)]
+	$(INSTALL_DATA) [.doc]gperf.html $(docdir)]gperf.html
+
+installdirs : force
+	create /directory $(prefix)]
+	create /directory $(exec_prefix)]
+	create /directory $(bindir)]
+	create /directory $(datadir)]
+	create /directory $(mandir)]
+	create /directory $(man1dir)]
+	create /directory $(datadir).doc]
+	create /directory $(docdir)]
+
+uninstall : force
+	$(RM) $(bindir)]gperf.exe;
+	$(RM) $(man1dir)]gperf.1;
+	$(RM) $(docdir)]gperf.html;
+
+check : all
+	write sys$output "Nothing else to be done for 'check'."
+
+mostlyclean : clean
+	write sys$output "Nothing else to be done for 'mostlyclean'."
+
+clean :
+	$(RM) [.lib]*.obj;*
+	$(RM) [.src]*.obj;*
+	$(RM) gperf.exe;*
+	$(RM) [.src]config.h;*
+
+distclean : clean
+	write sys$output "Nothing else to be done for 'distclean'."
+
+maintainer-clean : distclean
+	write sys$output "Nothing else to be done for 'maintainer-clean'."
+

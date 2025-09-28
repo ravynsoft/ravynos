@@ -1,0 +1,3 @@
+set -e
+trap 'echo $?' EXIT
+echo ${$NO_SUCH_VAR}    # Bad substitution expected here

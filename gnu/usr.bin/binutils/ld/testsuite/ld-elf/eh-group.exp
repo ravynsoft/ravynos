@@ -1,0 +1,72 @@
+# Expect script for .eh_frame entries to a removed section.
+#   Copyright (C) 2008-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+#
+# Written by Jan Kratochvil (jan.kratochvil@redhat.com)
+#
+# .eh_frame with relocations to a removed (group) section did result to:
+# error in tmpdir/eh-group.o(.eh_frame); no .eh_frame_hdr table will be created.
+# The purpose of this test is to merge two .o files with -r and then link this
+# merged file (containing a discarded R_X86_64_NONE relocation) to the final
+# executable trying to create .eh_frame_hdr.  It needs a separate .exp file due
+# to the requirement of two `ld' runs.
+
+# Exclude non-CFI (such as ia64) targets.
+
+if {![check_as_cfi]} {
+    return
+}
+
+# The test uses ELF .section directive
+if ![is_elf_format] {
+    return
+}
+
+# alpha-linux-gnu does not support 64-bit relocations:
+#   relocation truncated to fit: REFLONG against `.gcc_except_table'
+# arm-eabi does not support 64-bit relocations:
+#   bad relocation fixup type (1)
+set testname "Guess the target size from eh-group1size.o"
+if [ld_assemble $as "$srcdir/$subdir/eh-group1.s" "tmpdir/eh-group1size.o"] {
+    pass $testname
+} else {
+    fail $testname
+}
+
+set as_options ""
+if [is_elf64 "tmpdir/eh-group1size.o"] {
+    set as_options "$as_options --defsym ELF64=1"
+}
+
+set build_tests_ld [list			\
+  [list "Build eh-group1.o"			\
+   "-r" "" "$as_options"			\
+   {eh-group1.s eh-group2.s} {} "eh-group.o"]	\
+]
+
+run_ld_link_tests $build_tests_ld
+
+set testname "Link eh-group.o to eh-group"
+if [ld_link $ld "tmpdir/eh-group" "-e _start tmpdir/eh-group.o"] {
+    pass $testname
+} else {
+    fail $testname
+}

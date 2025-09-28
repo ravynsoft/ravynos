@@ -1,0 +1,86 @@
+# Tests for the kill builtin.
+#
+# The exit codes 11 and 19 in this file don't mean anything special; they're
+# just exit codes which are specific enough that the failure of `kill` itself
+# can be differentiated from exiting due to executing a trap.
+
+%test
+
+# Correct invocation
+
+  if zmodload zsh/system &>/dev/null; then
+    (
+      trap 'exit 19' TERM
+      kill $sysparams[pid]
+    )
+  else
+    ZTST_skip='Cannot zmodload zsh/system, skipping kill with no sigspec'
+  fi
+19:kill with no sigspec
+
+
+  if zmodload zsh/system &>/dev/null; then
+    (
+      trap 'exit 11' USR1
+      kill -USR1 $sysparams[pid]
+    )
+  else
+    ZTST_skip='Cannot zmodload zsh/system, skipping kill with sigspec'
+  fi
+11:kill with sigspec
+
+# Incorrect invocation
+
+  (
+    kill a b c
+  )
+3:kill with multiple wrong inputs should increment status
+?(eval):kill:2: illegal pid: a
+?(eval):kill:2: illegal pid: b
+?(eval):kill:2: illegal pid: c
+
+  (
+    kill -INT a b c
+  )
+3:kill with sigspec and wrong inputs should increment status
+?(eval):kill:2: illegal pid: a
+?(eval):kill:2: illegal pid: b
+?(eval):kill:2: illegal pid: c
+
+  (
+    kill
+  )
+1:kill with no arguments
+?(eval):kill:2: not enough arguments
+
+  (
+    kill -INT
+  )
+1:kill with sigspec only
+?(eval):kill:2: not enough arguments
+
+# Regression tests: `kill ''` should not result in `kill 0`.
+#
+# We use SIGURG where an explicit sigspec can be provided as:
+#
+# 1. By default it's non-terminal, so even if we regress, we won't kill the
+#    test runner and other processes in the process group since we'll stop
+#    running this test before we get to the plain kill (and thus SIGTERM)
+#    cases;
+# 2. It's also unlikely to be sent for any other reason during the process
+#    lifetime, so the test shouldn't be flaky.
+
+  (
+    trap 'exit 11' URG
+    kill -URG ''
+  )
+1:kill with empty pid and sigspec should not send signal to current process group
+?(eval):kill:3: illegal pid: 
+
+  (
+    trap 'exit 19' TERM
+    kill ''
+  )
+1:Plain kill with empty pid should not send signal to current process group
+?(eval):kill:3: illegal pid: 
+

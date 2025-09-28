@@ -1,0 +1,361 @@
+texinode(Redirection)(Command Execution)(Shell Grammar)(Top)
+chapter(Redirection)
+cindex(redirection)
+ifzman(\
+sect(Redirection)
+)\
+cindex(file descriptors)
+cindex(descriptors, file)
+If a command is followed by tt(&)
+and job control is not active,
+then the default standard input
+for the command is the empty file tt(/dev/null).
+Otherwise, the environment for the execution of a command contains the
+file descriptors of the invoking shell as modified by
+input/output specifications.
+
+The following may appear anywhere in a simple command
+or may precede or follow a complex command.
+Expansion occurs before var(word) or var(digit)
+is used except as noted below.
+If the result of substitution on var(word)
+produces more than one filename,
+redirection occurs for each
+separate filename in turn.
+
+startitem()
+item(tt(<) var(word))(
+Open file var(word) for reading as standard input.
+It is an error to open a file in this fashion if it does not exist.
+)
+item(tt(<>) var(word))(
+Open file var(word) for reading and writing as standard input.
+If the file does not exist then it is created.
+)
+item(tt(>) var(word))(
+Open file var(word) for writing as standard output.
+If the file does not exist then it is created.
+If the file exists, and the tt(CLOBBER) option is unset,
+this causes an error;
+otherwise, it is truncated to zero length.
+)
+xitem(tt(>|) var(word))
+item(tt(>!) var(word))(
+Same as tt(>), except that the file is truncated to zero length
+if it exists, regardless of tt(CLOBBER).
+)
+item(tt(>>) var(word))(
+Open file var(word) for writing in append mode as standard output.
+If the file does not exist, and the tt(CLOBBER) and tt(APPEND_CREATE)
+options are both unset, this causes an error;
+otherwise, the file is created.
+)
+xitem(tt(>>|) var(word))
+item(tt(>>!) var(word))(
+Same as tt(>>), except that the file is created if it does not
+exist, regardless of tt(CLOBBER) and tt(APPEND_CREATE).
+)
+item(tt(<<)[tt(-)] var(word))(
+The shell input is read up to a line that is the same as
+var(word), or to an end-of-file.
+No parameter expansion, command substitution or
+filename generation is performed on var(word).
+The resulting document, called a
+em(here-document), becomes the standard input.
+
+If any character of var(word) is quoted with
+single or double quotes or a `tt(\)',
+no interpretation is placed upon the characters of the document.
+Otherwise, parameter and command substitution
+occurs, `tt(\)' followed by a newline is removed,
+and `tt(\)' must be used to quote the characters
+`tt(\)', `tt($)', `tt(`)' and the first character of var(word).
+
+Note that var(word) itself does not undergo shell expansion.  Backquotes
+in var(word) do not have their usual effect; instead they behave
+similarly to double quotes, except that the backquotes themselves are
+passed through unchanged.  (This information is given for completeness
+and it is not recommended that backquotes be used.)  Quotes in the form
+tt($')var(...)tt(') have their standard effect of expanding backslashed
+references to special characters.
+
+If tt(<<-) is used, then all leading
+tabs are stripped from var(word) and from the document.
+)
+item(tt(<<<) var(word))(
+Perform shell expansion on var(word) and pass the result
+to standard input.  This is known as a em(here-string).
+Compare the use of var(word) in here-documents above, where var(word)
+does not undergo shell expansion.  The result will have a trailing newline
+after it.
+)
+xitem(tt(<&) var(number))
+item(tt(>&) var(number))(
+The standard input/output is duplicated from file descriptor
+var(number) (see manref(dup2)(2)).
+)
+xitem(tt(<& -))
+item(tt(>& -))(
+Close the standard input/output.
+)
+xitem(tt(<& p))
+item(tt(>& p))(
+The input/output from/to the coprocess is moved to the standard input/output.
+)
+xitem(tt(>&) var(word))
+item(tt(&>) var(word))(
+(Except where `tt(>&) var(word)' matches one of the above syntaxes;
+`tt(&>)' can always be used to avoid this ambiguity.)
+Redirects both standard output and standard error (file descriptor 2)
+in the manner of `tt(>) var(word)'.
+Note that this does em(not) have the same effect as `tt(>) var(word) tt(2>&1)'
+in the presence of multios (see the section below).
+)
+xitem(tt(>&|) var(word))
+xitem(tt(>&!) var(word))
+xitem(tt(&>|) var(word))
+item(tt(&>!) var(word))(
+Redirects both standard output and standard error (file descriptor 2)
+in the manner of `tt(>|) var(word)'.
+)
+xitem(tt(>>&) var(word))
+item(tt(&>>) var(word))(
+Redirects both standard output and standard error (file descriptor 2)
+in the manner of `tt(>>) var(word)'.
+)
+xitem(tt(>>&|) var(word))
+xitem(tt(>>&!) var(word))
+xitem(tt(&>>|) var(word))
+item(tt(&>>!) var(word))(
+Redirects both standard output and standard error (file descriptor 2)
+in the manner of `tt(>>|) var(word)'.
+)
+enditem()
+
+If one of the above is preceded by a digit, then the file
+descriptor referred to is that specified by the digit
+instead of the default 0 or 1.
+The order in which redirections are specified is significant.
+The shell evaluates each redirection in terms of the
+(em(file descriptor), em(file))
+association at the time of evaluation.
+For example:
+
+indent(... tt(1>)var(fname) tt(2>&1))
+
+first associates file descriptor 1 with file var(fname).
+It then associates file descriptor 2 with the file associated with file
+descriptor 1 (that is, var(fname)).
+If the order of redirections were reversed,
+file descriptor 2 would be associated
+with the terminal (assuming file descriptor 1 had been)
+and then file descriptor 1 would be associated with file var(fname).
+
+The `tt(|&)' command separator described in
+ifzman(em(Simple Commands & Pipelines) in zmanref(zshmisc))\
+ifnzman(noderef(Simple Commands & Pipelines))
+is a shorthand for `tt(2>&1 |)'.
+
+The various forms of process substitution, `tt(<LPAR())var(list)tt(RPAR())',
+and `tt(=LPAR())var(list)tt(RPAR())' for input and
+`tt(>LPAR())var(list)tt(RPAR())' for output, are often used together with
+redirection.  For example, if var(word) in an output redirection is of the
+form `tt(>LPAR())var(list)tt(RPAR())' then the output is piped to the
+command represented by var(list).  See
+ifzman(\
+em(Process Substitution) in zmanref(zshexpn))\
+ifnzman(\
+noderef(Process Substitution)).
+sect(Opening file descriptors using parameters)
+cindex(file descriptors, use with parameters)
+cindex(parameters, for using file descriptors)
+
+When the shell is parsing arguments to a command, and the shell option
+tt(IGNORE_BRACES) is not set, a different form of redirection is allowed:
+instead of a digit before the operator there is a valid shell identifier
+enclosed in braces.  The shell will open a new file descriptor that
+is guaranteed to be at least 10 and set the parameter named by the
+identifier to the file descriptor opened.  No whitespace is allowed
+between the closing brace and the redirection character.  For example:
+
+indent(... tt({myfd}>&1))
+
+This opens a new file descriptor that is a duplicate of file descriptor
+1 and sets the parameter tt(myfd) to the number of the file descriptor,
+which will be at least 10.  The new file descriptor can be written to using
+the syntax tt(>&$myfd).  The file descriptor remains open in subshells
+and forked external executables.
+
+The syntax tt({)var(varid)tt(}>&-), for example tt({myfd}>&-), may be used
+to close a file descriptor opened in this fashion.  Note that the
+parameter given by var(varid) must previously be set to a file descriptor
+in this case.
+
+It is an error to open or close a file descriptor in this fashion when the
+parameter is readonly.  However, it is not an error to read or write a file
+descriptor using tt(<&$)var(param) or tt(>&$)var(param) if var(param) is
+readonly.
+
+If the option tt(CLOBBER) is unset, it is an error to open a file
+descriptor using a parameter that is already set to an open file descriptor
+previously allocated by this mechanism.  Unsetting the parameter before
+using it for allocating a file descriptor avoids the error.
+
+Note that this mechanism merely allocates or closes a file descriptor; it
+does not perform any redirections from or to it.  It is usually convenient
+to allocate a file descriptor prior to use as an argument to tt(exec).
+The syntax does not in any case work when used around complex commands
+such as parenthesised subshells or loops, where the opening brace is
+interpreted as part of a command list to be executed in the current shell.
+
+The following shows a typical sequence of allocation, use, and closing of a
+file descriptor:
+
+example(integer myfd
+exec {myfd}>~/logs/mylogfile.txt
+print This is a log message. >&$myfd
+exec {myfd}>&-)
+
+Note that the expansion of the variable in the expression tt(>&$myfd)
+occurs at the point the redirection is opened.  This is after the expansion
+of command arguments and after any redirections to the left on the command
+line have been processed.
+sect(Multios)
+cindex(multios)
+pindex(MULTIOS, use of)
+If the user tries to open a file descriptor for writing more than once,
+the shell opens the file descriptor as a pipe to a process that copies
+its input to all the specified outputs, similar to bf(tee),
+provided the tt(MULTIOS) option is set, as it is by default.  Thus:
+
+example(date >foo >bar)
+
+writes the date to two files, named `tt(foo)' and `tt(bar)'.
+Note that a pipe is an implicit redirection; thus
+
+example(date >foo | cat)
+
+writes the date to the file `tt(foo)', and also pipes it to cat.
+
+Note that the shell opens all the files to be used in the multio process
+immediately, not at the point they are about to be written.
+
+Note also that redirections are always expanded in order.  This happens
+regardless of the setting of the tt(MULTIOS) option, but with the option
+in effect there are additional consequences. For example,
+the meaning of the expression tt(>&1) will change after a previous
+redirection:
+
+example(date >&1 >output)
+
+In the case above, the tt(>&1) refers to the standard output at the
+start of the line; the result is similar to the tt(tee) command.
+However, consider:
+
+example(date >output >&1)
+
+As redirections are evaluated in order, when the tt(>&1) is encountered
+the standard output is set to the file tt(output) and another copy of
+the output is therefore sent to that file.  This is unlikely to be what
+is intended.
+
+If the tt(MULTIOS)
+option is set, the word after a redirection operator is also subjected
+to filename generation (globbing).  Thus
+
+example(: > *)
+
+will truncate all files in the current directory,
+assuming there's at least one.  (Without the tt(MULTIOS)
+option, it would create an empty file called `tt(*)'.)
+Similarly, you can do
+
+example(echo exit 0 >> *.sh)
+
+If the user tries to open a file descriptor for reading more than once,
+the shell opens the file descriptor as a pipe to a process that copies
+all the specified inputs to its output in the order specified, provided
+the tt(MULTIOS) option is set.  It should be noted that each file is
+opened immediately, not at the point where it is about to be read:
+this behaviour differs from tt(cat), so if strictly standard behaviour
+is needed, tt(cat) should be used instead.
+
+Thus
+
+example(sort <foo <fubar)
+
+or even
+
+example(sort <f{oo,ubar})
+
+is equivalent to `tt(cat foo fubar | sort)'.
+
+Expansion of the redirection argument occurs at the point the redirection
+is opened, at the point described above for the expansion of the variable
+in tt(>&$myfd).
+
+Note that a pipe is an implicit redirection; thus
+
+example(cat bar | sort <foo)
+
+is equivalent to `tt(cat bar foo | sort)' (note the order of the inputs).
+
+If the tt(MULTIOS) option is em(un)set,
+each redirection replaces the previous redirection for that file descriptor.
+However, all files redirected to are actually opened, so
+
+example(echo Hello > bar > baz)
+
+when tt(MULTIOS) is unset will truncate `tt(bar)', and write `tt(Hello)'
+into `tt(baz)'.
+
+There is a problem when an output multio is attached to an external
+program.  A simple example shows this:
+
+example(cat file >file1 >file2
+cat file1 file2)
+
+Here, it is possible that the second `tt(cat)' will not display the full
+contents of tt(file1) and tt(file2) (i.e. the original contents of
+tt(file) repeated twice).
+
+The reason for this is that the multios are spawned after the tt(cat)
+process is forked from the parent shell, so the parent shell does not
+wait for the multios to finish writing data.  This means the command as
+shown can exit before tt(file1) and tt(file2) are completely written.
+As a workaround, it is possible to run the tt(cat) process as part of a
+job in the current shell:
+
+example({ cat file } >file >file2)
+
+Here, the tt({)var(...)tt(}) job will pause to wait for both files to be
+written.
+
+sect(Redirections with no command)
+When a simple command consists of one or more redirection operators
+and zero or more parameter assignments, but no command name, zsh can
+behave in several ways.
+
+vindex(NULLCMD, use of)
+pindex(CSH_NULLCMD, use of)
+If the parameter tt(NULLCMD) is not set or the option tt(CSH_NULLCMD) is
+set, an error is caused.  This is the bf(csh) behavior and tt(CSH_NULLCMD)
+is set by default when emulating bf(csh).
+
+pindex(SH_NULLCMD, use of)
+If the option tt(SH_NULLCMD) is set, the builtin `tt(:)' is inserted as a
+command with the given redirections.  This is the default when emulating
+bf(sh) or bf(ksh).
+
+vindex(READNULLCMD, use of)
+Otherwise, if the parameter tt(NULLCMD) is set, its value will be used as a
+command with the given redirections.  If both tt(NULLCMD) and
+tt(READNULLCMD) are set, then the value of the latter will be used instead
+of that of the former when the redirection is an input.  The default for
+tt(NULLCMD) is `tt(cat)' and for tt(READNULLCMD) is `tt(more)'. Thus
+
+example(< file)
+
+shows the contents of tt(file) on standard output, with paging if that is a
+terminal.  tt(NULLCMD) and tt(READNULLCMD) may refer to shell functions.
+

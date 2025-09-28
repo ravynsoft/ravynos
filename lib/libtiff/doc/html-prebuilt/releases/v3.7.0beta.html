@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Changes in TIFF v3.7.0beta &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Changes in TIFF v3.7.0alpha" href="v3.7.0alpha.html" />
+    <link rel="prev" title="Changes in TIFF v3.7.0beta2" href="v3.7.0beta2.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="v3.7.0alpha.html" title="Changes in TIFF v3.7.0alpha"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="v3.7.0beta2.html" title="Changes in TIFF v3.7.0beta2"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="historical.html" accesskey="U">Old release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v3.7.0beta</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="changes-in-tiff-v3-7-0beta">
+<h1>Changes in TIFF v3.7.0beta<a class="headerlink" href="#changes-in-tiff-v3-7-0beta" title="Permalink to this heading">¶</a></h1>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">References</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Current Version</p></td>
+<td><p>v3.7.0beta (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/tags/Release-v3-7-0beta">tag Release-v3-7-0beta</a>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Previous Version</p></td>
+<td><p><a class="reference internal" href="v3.7.0alpha.html"><span class="doc">v3.7.0alpha</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Master Download Site</p></td>
+<td><p><a class="reference external" href="https://download.osgeo.org/libtiff/">https://download.osgeo.org/libtiff/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Master HTTP Site</p></td>
+<td><p><a class="reference external" href="http://www.simplesystems.org/libtiff/">http://www.simplesystems.org/libtiff/</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>This document describes the changes made to the software between the
+<em>previous</em> and <em>current</em> versions (see above).
+If you don’t find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:</p>
+<section id="major-changes">
+<h2>Major changes<a class="headerlink" href="#major-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>LZW compression enabled by default. You don’t need the separate
+compression kit anymore.</p></li>
+<li><p><strong class="program">bmp2tiff</strong>: Added new utility to convert Windows BMP files
+into TIFFs.</p></li>
+<li><p>The first attempt to implement a test suite.</p></li>
+</ul>
+</section>
+<section id="software-configuration-changes">
+<h2>Software configuration changes<a class="headerlink" href="#software-configuration-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Many portability fixes in the new autotooled build suite.</p></li>
+</ul>
+</section>
+<section id="library-changes">
+<h2>Library changes<a class="headerlink" href="#library-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_luv.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_next.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_thunder.c</span></code>:
+Several buffer overruns fixed, as noted by Chris Evans.</p></li>
+<li><p>BSD data types (<code class="xref c c-type docutils literal notranslate"><span class="pre">u_char</span></code>, <code class="xref c c-type docutils literal notranslate"><span class="pre">u_short</span></code>, <code class="xref c c-type docutils literal notranslate"><span class="pre">u_int</span></code>, <code class="xref c c-type docutils literal notranslate"><span class="pre">u_long</span></code>)
+is no longer used internally in the libtiff. Should result in simpler configuration
+and better portability.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tiff.h</span></code>: Fix column tagging. Reference current Adobe XMP
+specification. Reference libtiff bug tracking system to submit
+private tag additions.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirread.c</span></code>: Don’t reject to read tags of the
+<code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span></code> size when the tag count is greater than number of
+samples as per bug
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=576">Remote Sensing bugzilla #576 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tiffio.h</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_open.c</span></code>: Applied patches from
+Joris Van Damme  to avoid requirement for <code class="file docutils literal notranslate"><span class="pre">tiffiop.h</span></code> inclusion in
+some applications. Look for details here:
+<a class="reference external" href="http://www.asmail.be/msg0054799560.html">http://www.asmail.be/msg0054799560.html</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tiffiop.h</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirinfo.c</span></code>: Fixed problem with the static
+variable as per bug
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=593">Remote Sensing bugzilla #593 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_lzw.c</span></code>: LZW compression code is merged back from the
+separate package. All libtiff tools are updated to not advertise an
+absence of LZW support.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dir.c</span></code>: Call <a class="reference internal" href="../functions/TIFFError.html#c.TIFFError" title="TIFFError"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFError()</span></code></a> instead of producing warnings
+when setting custom tags by value. Reported by Eric Fieleke.</p></li>
+</ul>
+</section>
+<section id="tools-changes">
+<h2>Tools changes<a class="headerlink" href="#tools-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong class="program">tiff2ps</strong>: Avoid zero division in <code class="xref c c-func docutils literal notranslate"><span class="pre">setupPageState()</span></code> function;
+properly initialize array in <code class="xref c c-func docutils literal notranslate"><span class="pre">PSDataBW()</span></code>.</p></li>
+<li><p><strong class="program">tiff2pdf</strong>: Multiple bugfixes.</p></li>
+<li><p><strong class="program">ras2tiff</strong>:  Fixed issue with missed big-endian checks as per bug
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=586">Remote Sensing bugzilla #586 [no longer available]</a>.</p></li>
+<li><p><strong class="program">bmp2tiff</strong>: Added new utility to convert Windows BMP files
+into TIFFs.</p></li>
+</ul>
+</section>
+<section id="contributed-software-changes">
+<h2>Contributed software changes<a class="headerlink" href="#contributed-software-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>No changes.</p></li>
+</ul>
+</section>
+<section id="lzw-compression-kit-changes">
+<h2>LZW compression kit changes<a class="headerlink" href="#lzw-compression-kit-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>This one is not longer needed.</p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Changes in TIFF v3.7.0beta</a><ul>
+<li><a class="reference internal" href="#major-changes">Major changes</a></li>
+<li><a class="reference internal" href="#software-configuration-changes">Software configuration changes</a></li>
+<li><a class="reference internal" href="#library-changes">Library changes</a></li>
+<li><a class="reference internal" href="#tools-changes">Tools changes</a></li>
+<li><a class="reference internal" href="#contributed-software-changes">Contributed software changes</a></li>
+<li><a class="reference internal" href="#lzw-compression-kit-changes">LZW compression kit changes</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="v3.7.0beta2.html"
+                          title="previous chapter">Changes in TIFF v3.7.0beta2</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="v3.7.0alpha.html"
+                          title="next chapter">Changes in TIFF v3.7.0alpha</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/releases/v3.7.0beta.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="v3.7.0alpha.html" title="Changes in TIFF v3.7.0alpha"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="v3.7.0beta2.html" title="Changes in TIFF v3.7.0beta2"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="historical.html" >Old release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v3.7.0beta</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

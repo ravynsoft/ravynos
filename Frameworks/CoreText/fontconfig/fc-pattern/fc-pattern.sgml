@@ -1,0 +1,204 @@
+<!doctype refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+
+<!-- Process this file with docbook-to-man to generate an nroff manual
+     page: `docbook-to-man manpage.sgml > manpage.1'.  You may view
+     the manual page with: `docbook-to-man manpage.sgml | nroff -man |
+     less'.  A typical entry in a Makefile or Makefile.am is:
+
+manpage.1: manpage.sgml
+        docbook-to-man $< > $@
+
+
+        The docbook-to-man binary is found in the docbook-to-man package.
+        Please remember that if you create the nroff version in one of the
+        debian/rules file targets (such as build), you will need to include
+        docbook-to-man in your Build-Depends control field.
+
+  -->
+
+  <!-- Fill in your name for FIRSTNAME and SURNAME. -->
+  <!ENTITY dhfirstname "<firstname>Behdad</firstname>">
+  <!ENTITY dhsurname   "<surname>Esfahbod</surname>">
+  <!-- Please adjust the date whenever revising the manpage. -->
+  <!ENTITY dhdate      "<date>Apr 20, 2010</date>">
+  <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
+       allowed: see man(7), man(1). -->
+  <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
+  <!ENTITY dhemail     "<email>behdad@behdad.org</email>">
+  <!ENTITY dhusername  "Behdad Esfahbod">
+  <!ENTITY dhucpackage "<refentrytitle>fc-pattern</refentrytitle>">
+  <!ENTITY dhpackage   "fc-pattern">
+
+  <!ENTITY debian      "<productname>Debian</productname>">
+  <!ENTITY gnu         "<acronym>GNU</acronym>">
+  <!ENTITY gpl         "&gnu; <acronym>GPL</acronym>">
+]>
+
+<refentry>
+  <refentryinfo>
+    <address>
+      &dhemail;
+    </address>
+    <author>
+      &dhfirstname;
+      &dhsurname;
+    </author>
+    <copyright>
+      <year>2010</year>
+      <holder>&dhusername;</holder>
+    </copyright>
+    &dhdate;
+  </refentryinfo>
+  <refmeta>
+    &dhucpackage;
+
+    &dhsection;
+  </refmeta>
+  <refnamediv>
+    <refname>&dhpackage;</refname>
+
+    <refpurpose>parse and show pattern</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>&dhpackage;</command>
+
+      <arg><option>-cdVh</option></arg>
+      <arg><option>--config</option></arg>
+      <arg><option>--default</option></arg>
+      <group>
+        <arg><option>-f</option> <option><replaceable>format</replaceable></option></arg>
+        <arg><option>--format</option> <option><replaceable>format</replaceable></option></arg>
+      </group>
+      <arg><option>--version</option></arg>
+      <arg><option>--help</option></arg>
+      <sbr>
+      <arg><option><replaceable>pattern</replaceable></option> <arg rep="repeat"><option><replaceable>element</replaceable></option></arg> </arg>
+
+     </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+    <title>DESCRIPTION</title>
+
+    <para><command>&dhpackage;</command> parses
+    <replaceable>pattern</replaceable> (empty
+pattern by default) and shows the parsed result.
+If <option>--config</option> is given, config substitution is performed on the
+pattern before being displayed.
+If <option>--default</option> is given, default substitution is performed on the
+pattern before being displayed.</para>
+<para>If any elements are specified, only those are printed.</para>
+  </refsect1>
+  <refsect1>
+    <title>OPTIONS</title>
+
+    <para>This program follows the usual &gnu; command line syntax,
+      with long options starting with two dashes (`-').  A summary of
+      options is included below.</para>
+
+    <variablelist>
+      <varlistentry>
+        <term><option>-c</option>
+          <option>--config</option>
+        </term>
+        <listitem>
+          <para>Perform config substitution on pattern.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-d</option>
+          <option>--default</option>
+        </term>
+        <listitem>
+          <para>Perform default substitution on pattern.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-f</option>
+          <option>--format</option>
+          <option><replaceable>format</replaceable></option>
+        </term>
+        <listitem>
+          <para>Format output according to the format specifier
+          <replaceable>format</replaceable>.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-V</option>
+          <option>--version</option>
+        </term>
+        <listitem>
+          <para>Show version of the program and exit.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-h</option>
+          <option>--help</option>
+        </term>
+        <listitem>
+          <para>Show summary of options.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option><replaceable>pattern</replaceable></option>
+        </term>
+        <listitem>
+          <para>Parses and displays <replaceable>pattern</replaceable> (uses empty pattern by default).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option><replaceable>element</replaceable></option>
+        </term>
+        <listitem>
+          <para>If set, the <replaceable>element</replaceable> property
+                is displayed for parsed pattern.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>SEE ALSO</title>
+
+    <para>
+      <function>FcNameParse</function>(3)
+      <function>FcConfigSubstitute</function>(3)
+      <function>FcDefaultSubstitute</function>(3)
+      <function>FcPatternPrint</function>(3)
+      <function>FcPatternFormat</function>(3)
+      <command>fc-cat</command>(1)
+      <command>fc-cache</command>(1)
+      <command>fc-list</command>(1)
+      <command>fc-match</command>(1)
+      <command>fc-query</command>(1)
+      <command>fc-scan</command>(1)
+    </para>
+
+    <para>The fontconfig user's guide, in HTML format:
+      <filename>/usr/share/doc/fontconfig/fontconfig-user.html</filename>.</para>
+
+ </refsect1>
+  <refsect1>
+    <title>AUTHOR</title>
+
+    <para>This manual page was updated by &dhusername; &dhemail;.</para>
+
+  </refsect1>
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->

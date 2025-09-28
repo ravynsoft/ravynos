@@ -1,0 +1,131 @@
+Installing the GNUstep Objective-C Runtime
+==========================================
+
+This file describes how to configure, install, and package the Objective-C
+runtime.  Note that although this runtime should build with gcc, it is strongly
+recommended that you compile it with clang and clang++ as your [Objective-]C and
+[Objective-]C++ compilers.
+
+Basic Building
+--------------
+
+The runtime uses cmake to build.  CMake performs configuration and generates
+things that can be used by other programs that actually perform the building.
+I recommend that you use Ninja for building if you are compiling regularly, but
+these instructions will use Make to avoid the need for an extra dependency.
+
+When checking out the code make sure you check out git submodules as well
+either by using
+
+	$ git checkout --recursive <URL>
+	
+or by getting submodules after checkout using
+
+	$ git submodule update --init
+
+After checking out the code, build as follows:
+
+	$ mkdir Build
+	$ cd Build
+	$ cmake ..
+	-- { Lots of cmake output }
+	-- Build files have been written to: /build_path/libobjc/Build
+	$ make -j8
+	{ lots of make output }
+	[100%]...
+	$ sudo -E make install
+
+This will build the runtime with the default options for your platform, which
+may or may not be what you want, but hopefully are.  You can see the list of
+configurable options, and short explanations of each one, with this command
+from the build directory:
+
+	$ ccmake .
+
+This will also allow you to make changes.  If you prefer a GUI, then there is
+almost certainly a CMake GUI for your platform, but documenting them all is
+beyond the scope of this quick guide.
+
+If you have gcc and clang both installed, then cmake currently defaults to
+selecting gcc.  You should override this by adding `-DCMAKE_C_COMPILER=clang
+-DCMAKE_CXX_COMPILER=clang++` to your Objective-C flags.
+
+
+Running the Tests
+-----------------
+
+By default, a load of test cases will be built.  If you are compiling with gcc,
+you probably want to turn them off: most of them will fail, and a lot won't
+even compile.  At present, they all should pass with clang 3.3 and most with
+clang 3.2.  If you have built the tests, you can run them with the test target,
+like this:
+
+	$ make test
+	...
+	100% tests passed, 0 tests failed out of 28
+
+	Total Test time (real) =   4.23 sec
+
+
+If your compiler can't build the tests, or you are building a package and don't
+want to bother running the tests then add `-DTESTS=OFF` to your `cmake` command
+line.
+
+C++ Runtime Integration
+-----------------------
+
+The runtime will attempt to link against the C++ runtime library, if it is
+available as a shared library on your platform.  The two supported
+implementations are libcxxrt (shipped with FreeBSD and written by the author of
+this Objective-C runtime) and libsupc++ from the GNU project.  If these are
+available, then you will get a single libobjc.so, which links to either
+libcxxrt or libsupc++.  This linkage is required so that we can interoperate
+with C++ exceptions, in particular catching Objective-C objects thrown from
+Objective-C libraries in Objective-C++ `catch` blocks. 
+
+On most GNU/Linux systems, libstdc++ is statically linked to libsupc++.  In
+this configuration, we provide a separate libobjcxx.so, which avoids the need
+for the Objective-C runtime to depend on the STL implementation just to be able
+to interoperate with C++ exceptions.
+
+Installation Location
+---------------------
+
+There are two ways of installing the runtime.  It can either be treated as a
+system library or a GNUstep library.  It is recommended for packagers to use
+the former, but people building GNUstep systems to do the latter.
+
+If the build system detects the presence of the `gnustep-config` utility, it
+will default to a GNUstep install, in the installation domain specified by this
+utility.  You can explicitly specify the installation domain by setting the
+`GNUSTEP_INSTALL_TYPE` property to either `LOCAL`, `SYSTEM`, `NETWORK`, or
+`NONE`.  If you select `NONE` then the library will be installed in the
+standard system location for libraries.  This is configured by setting the
+`CMAKE_INSTALL_PREFIX` variable, and typically defaults to either `/usr/` or
+`/usr/local`.
+
+LLVM Optimisations
+------------------
+
+The library comes with an LLVM plugin that provides a number of optimisations
+that are specific to code compiled for this runtime.  This is built by default
+if the LLVM CMake modules are found.  To disable building these optimisations,
+run cmake with the `-DLLVM_OPTS=OFF` flag.
+
+Packaging
+---------
+
+The build system support CPack, and so can build RPM and DEB packages out of
+the box.  Select the packaging system by setting the `CPACK_GENERATOR` property
+and then build with the package target.  For example, to build a .deb:
+
+	$ mkdir Deb
+	$ cd Deb
+	$ cmake .. -DCPACK_GENERATOR=DEB
+	$ make -j8
+	$ make package
+
+Note that you almost certainly want to set CMAKE_BUILD_TYPE to Release when
+packaging.  Debug builds are slower and will print extra messages to help with
+development.  This is useful when writing Objective-C code, but not as useful
+for end users.

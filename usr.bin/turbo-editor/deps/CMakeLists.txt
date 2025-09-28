@@ -1,0 +1,30 @@
+# 'find_package' exports information through environment variables.
+# So, for this to work properly, this file has to be imported with 'include'
+# rather than 'add_subdirectory'.
+
+function(turbo_find_library name header)
+    find_library(${name}_LIB ${name})
+    if (NOT ${name}_LIB)
+        message(FATAL_ERROR "Library '${name}' not found")
+    else()
+        message(STATUS "Found '${name}': ${${name}_LIB}")
+    endif()
+    find_path(${name}_INCLUDE ${header})
+    if (NOT ${name}_INCLUDE)
+        message(FATAL_ERROR "'${name}' development headers not found")
+    endif()
+    add_library(${name} INTERFACE)
+    target_link_libraries(${name} INTERFACE ${${name}_LIB})
+    target_include_directories(${name} INTERFACE ${${name}_INCLUDE})
+endfunction()
+
+if (TURBO_USE_SYSTEM_TVISION)
+    find_package(tvision CONFIG REQUIRED)
+    add_library(tvision ALIAS tvision::tvision)
+    get_target_property(_TVISION tvision LOCATION)
+    message(STATUS "Found 'tvision': ${_TVISION}")
+else()
+    set(TV_OPTIMIZE_BUILD ${TURBO_OPTIMIZE_BUILD})
+    set(TV_BUILD_TESTS ${TURBO_BUILD_TESTS})
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/tvision" EXCLUDE_FROM_ALL)
+endif()

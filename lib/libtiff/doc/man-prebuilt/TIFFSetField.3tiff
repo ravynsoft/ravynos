@@ -1,0 +1,872 @@
+.\" Man page generated from reStructuredText.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "TIFFSETFIELD" "3tiff" "Sep 08, 2023" "4.6" "LibTIFF"
+.SH NAME
+TIFFSetField \- set the value(s) of a tag in a TIFF file open for writing
+.SH SYNOPSIS
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <tiffio.h>
+#include <stdarg.h>\(dq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFSetField(TIFF  *tif, ttag_t  tag, \&...) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFVSetField(TIFF  *tif, ttag_t  tag, va_list  ap) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFUnsetField(TIFF  *tif, uint32_t  tag) 
+.UNINDENT
+.SH DESCRIPTION
+.sp
+\fI\%TIFFSetField()\fP sets the value of a field or pseudo\-tag in the
+current directory associated with the open TIFF file \fItif\fP\&.
+(A \fIpseudo\-tag\fP is a parameter that is used to control the operation of
+the TIFF library but whose value is not read or written to the underlying
+file.)  To set the value of a field the file must have been previously
+opened for writing with \fI\%TIFFOpen()\fP\&.
+Pseudo\-tags can be set whether the file was opened for reading or writing.
+The field is identified by \fItag\fP, one of the values defined in the include
+file \fBtiff.h\fP (see also the table below).
+The actual value is specified using a variable argument list, as
+prescribed by the \fBstdarg.h\fP interface.
+.sp
+\fI\%TIFFVSetField()\fP is functionally equivalent to \fI\%TIFFSetField()\fP
+except that it takes a pointer to a variable argument list.
+\fI\%TIFFVSetField()\fP is useful for writing routines that are layered on
+top of the functionality provided by \fI\%TIFFSetField()\fP\&.
+.sp
+\fI\%TIFFUnsetField()\fP clears the contents of the field in the internal
+structure. If it is a custom field, it is removed from the list of known tags.
+.sp
+The tags understood by \fBlibtiff\fP, the number of parameter values,
+and the expected types for the parameter values are shown below.
+The data types are:
+.SH TAG DATA TYPES
+.TS
+center;
+|l|l|.
+_
+T{
+Type
+T}	T{
+Description
+T}
+_
+T{
+char*
+T}	T{
+a null\-terminated string corresponding to the \fBASCII\fP data type
+T}
+_
+T{
+uint16_t
+T}	T{
+an unsigned 16\-bit value
+T}
+_
+T{
+uint32_t
+T}	T{
+an unsigned 32\-bit value;
+T}
+_
+T{
+uint16_t*
+T}	T{
+an array of unsigned 16\-bit values.
+T}
+_
+T{
+void*
+T}	T{
+an array of data values of unspecified type.
+T}
+_
+.TE
+.sp
+Consult the TIFF specification for information on the meaning of each tag.
+.INDENT 0.0
+.INDENT 3.5
+.SH TAG PROPERTIES
+.TS
+center;
+|l|l|l|l|.
+_
+T{
+Tag name
+T}	T{
+Count
+T}	T{
+Types
+T}	T{
+Notes
+T}
+_
+T{
+\fBTIFFTAG_ARTIST\fP
+T}	T{
+1
+T}	T{
+char*
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_BADFAXLINES\fP
+T}	T{
+1
+T}	T{
+uint32_t
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_BITSPERSAMPLE\fP
+T}	T{
+1
+T}	T{
+uint16_t
+T}	T{
+\(dg
+T}
+_
+T{
+\fBTIFFTAG_CLEANFAXDATA\fP
+T}	T{
+1
+T}	T{
+uint16_t
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_COLORMAP\fP
+T}	T{
+3
+T}	T{
+uint16_t*
+T}	T{
+1  <<  BitsPerSample arrays
+T}
+_
+T{
+\fBTIFFTAG_COMPRESSION\fP
+T}	T{
+1
+T}	T{
+uint16_t
+T}	T{
+\(dg
+T}
+_
+T{
+\fBTIFFTAG_CONSECUTIVEBADFAXLINES\fP
+T}	T{
+1
+T}	T{
+uint32_t
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_COPYRIGHT\fP
+T}	T{
+1
+T}	T{
+char*
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_DATETIME\fP
+T}	T{
+1
+T}	T{
+char*
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_DOCUMENTNAME\fP
+T}	T{
+1
+T}	T{
+char*
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_DOTRANGE\fP
+T}	T{
+2
+T}	T{
+uint16_t
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_EXTRASAMPLES\fP
+T}	T{
+2
+T}	T{
+uint16_t, uint16_t*
+T}	T{
+\(dg count, types array
+T}
+_
+T{
+\fBTIFFTAG_FAXFILLFUNC\fP
+T}	T{
+1
+T}	T{
+TIFFFaxFillFunc
+T}	T{
+G3/G4 compression pseudo\-tag
+T}
+_
+T{
+\fBTIFFTAG_FAXMODE\fP
+T}	T{
+1
+T}	T{
+int
+T}	T{
+\(dg G3/G4 compression pseudo\-tag
+T}
+_
+T{
+\fBTIFFTAG_FILLORDER\fP
+T}	T{
+1
+T}	T{
+uint16_t
+T}	T{
+\(dg
+T}
+_
+T{
+\fBTIFFTAG_GROUP3OPTIONS\fP
+T}	T{
+1
+T}	T{
+uint32_t
+T}	T{
+\(dg
+T}
+_
+T{
+\fBTIFFTAG_GROUP4OPTIONS\fP
+T}	T{
+1
+T}	T{
+uint32_t
+T}	T{
+\(dg
+T}
+_
+T{
+\fBTIFFTAG_HALFTONEHINTS\fP
+T}	T{
+2
+T}	T{
+uint16_t
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_HOSTCOMPUTER\fP
+T}	T{
+1
+T}	T{
+char*
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_ICCPROFILE\fP
+T}	T{
+2
+T}	T{
+uint32_t, void*
+T}	T{
+count, profile data*
+T}
+_
+T{
+\fBTIFFTAG_IMAGEDEPTH\fP
+T}	T{
+1
+T}	T{
+uint32_t
+T}	T{
+\(dg
+T}
+_
+T{
+\fBTIFFTAG_IMAGEDESCRIPTION\fP
+T}	T{
+1
+T}	T{
+char*
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_IMAGELENGTH\fP
+T}	T{
+1
+T}	T{
+uint32_t
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_IMAGEWIDTH\fP
+T}	T{
+1
+T}	T{
+uint32_t
+T}	T{
+\(dg
+T}
+_
+T{
+\fBTIFFTAG_INKNAMES\fP
+T}	T{
+2
+T}	T{
+uint16_t, char*
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_INKSET\fP
+T}	T{
+1
+T}	T{
+uint16_t
+T}	T{
+\(dg
+T}
+_
+T{
+\fBTIFFTAG_JPEGCOLORMODE\fP
+T}	T{
+1
+T}	T{
+int
+T}	T{
+\(dg JPEG pseudo\-tag
+T}
+_
+T{
+\fBTIFFTAG_JPEGQUALITY\fP
+T}	T{
+1
+T}	T{
+int
+T}	T{
+JPEG pseudo\-tag
+T}
+_
+T{
+\fBTIFFTAG_JPEGTABLES\fP
+T}	T{
+2
+T}	T{
+uint32_t*, void*
+T}	T{
+\(dg count, tables
+T}
+_
+T{
+\fBTIFFTAG_JPEGTABLESMODE\fP
+T}	T{
+1
+T}	T{
+int
+T}	T{
+\(dg JPEG pseudo\-tag
+T}
+_
+T{
+\fBTIFFTAG_MAKE\fP
+T}	T{
+1
+T}	T{
+char*
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_MATTEING\fP
+T}	T{
+1
+T}	T{
+uint16_t
+T}	T{
+\(dg
+T}
+_
+T{
+\fBTIFFTAG_MAXSAMPLEVALUE\fP
+T}	T{
+1
+T}	T{
+uint16_t
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_MINSAMPLEVALUE\fP
+T}	T{
+1
+T}	T{
+uint16_t
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_MODEL\fP
+T}	T{
+1
+T}	T{
+char*
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_ORIENTATION\fP
+T}	T{
+1
+T}	T{
+uint16_t
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_PAGENAME\fP
+T}	T{
+1
+T}	T{
+char*
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_PAGENUMBER\fP
+T}	T{
+2
+T}	T{
+uint16_t
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_PHOTOMETRIC\fP
+T}	T{
+1
+T}	T{
+uint16_t
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_PHOTOSHOP\fP
+T}	T{
+?
+T}	T{
+uint32_t, void*
+T}	T{
+count, data
+T}
+_
+T{
+\fBTIFFTAG_PLANARCONFIG\fP
+T}	T{
+1
+T}	T{
+uint16_t
+T}	T{
+\(dg
+T}
+_
+T{
+\fBTIFFTAG_PREDICTOR\fP
+T}	T{
+1
+T}	T{
+uint16_t
+T}	T{
+\(dg
+T}
+_
+T{
+\fBTIFFTAG_PRIMARYCHROMATICITIES\fP
+T}	T{
+1
+T}	T{
+float*
+T}	T{
+6\-entry array
+T}
+_
+T{
+\fBTIFFTAG_REFERENCEBLACKWHITE\fP
+T}	T{
+1
+T}	T{
+float*
+T}	T{
+\(dg 6\-entry array
+T}
+_
+T{
+\fBTIFFTAG_RESOLUTIONUNIT\fP
+T}	T{
+1
+T}	T{
+uint16_t
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_RICHTIFFIPTC\fP
+T}	T{
+2
+T}	T{
+uint32_t, void*
+T}	T{
+count, data
+T}
+_
+T{
+\fBTIFFTAG_ROWSPERSTRIP\fP
+T}	T{
+1
+T}	T{
+uint32_t
+T}	T{
+\(dg must be > 0
+T}
+_
+T{
+\fBTIFFTAG_SAMPLEFORMAT\fP
+T}	T{
+1
+T}	T{
+uint16_t
+T}	T{
+\(dg
+T}
+_
+T{
+\fBTIFFTAG_SAMPLESPERPIXEL\fP
+T}	T{
+1
+T}	T{
+uint16_t
+T}	T{
+\(dg value must be ≤ 4
+T}
+_
+T{
+\fBTIFFTAG_SMAXSAMPLEVALUE\fP
+T}	T{
+1
+T}	T{
+double
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_SMINSAMPLEVALUE\fP
+T}	T{
+1
+T}	T{
+double
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_SOFTWARE\fP
+T}	T{
+1
+T}	T{
+char*
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_STONITS\fP
+T}	T{
+1
+T}	T{
+double
+T}	T{
+\(dg
+T}
+_
+T{
+\fBTIFFTAG_SUBFILETYPE\fP
+T}	T{
+1
+T}	T{
+uint32_t
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_SUBIFD\fP
+T}	T{
+2
+T}	T{
+uint16_t, uint64_t*
+T}	T{
+count, offsets array
+T}
+_
+T{
+\fBTIFFTAG_TARGETPRINTER\fP
+T}	T{
+1
+T}	T{
+char*
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_THRESHHOLDING\fP
+T}	T{
+1
+T}	T{
+uint16_t
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_TILEDEPTH\fP
+T}	T{
+1
+T}	T{
+uint32_t
+T}	T{
+\(dg
+T}
+_
+T{
+\fBTIFFTAG_TILELENGTH\fP
+T}	T{
+1
+T}	T{
+uint32_t
+T}	T{
+\(dg must be a multiple of 8
+T}
+_
+T{
+\fBTIFFTAG_TILEWIDTH\fP
+T}	T{
+1
+T}	T{
+uint32_t
+T}	T{
+\(dg must be a multiple of 8
+T}
+_
+T{
+\fBTIFFTAG_TRANSFERFUNCTION\fP
+T}	T{
+1 or 3‡
+T}	T{
+uint16_t*
+T}	T{
+1  <<  BitsPerSample entry arrays
+T}
+_
+T{
+\fBTIFFTAG_WHITEPOINT\fP
+T}	T{
+1
+T}	T{
+float*
+T}	T{
+2\-entry array
+T}
+_
+T{
+\fBTIFFTAG_XMLPACKET\fP
+T}	T{
+2
+T}	T{
+uint32_t, void*
+T}	T{
+count, data
+T}
+_
+T{
+\fBTIFFTAG_XPOSITION\fP
+T}	T{
+1
+T}	T{
+float
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_XRESOLUTION\fP
+T}	T{
+1
+T}	T{
+float
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_YCBCRCOEFFICIENTS\fP
+T}	T{
+1
+T}	T{
+float*
+T}	T{
+\(dg 3\-entry array
+T}
+_
+T{
+\fBTIFFTAG_YCBCRPOSITIONING\fP
+T}	T{
+1
+T}	T{
+uint16_t
+T}	T{
+\(dg
+T}
+_
+T{
+\fBTIFFTAG_YCBCRSAMPLING\fP
+T}	T{
+2
+T}	T{
+uint16_t
+T}	T{
+\(dg
+T}
+_
+T{
+\fBTIFFTAG_YPOSITION\fP
+T}	T{
+1
+T}	T{
+float
+T}	T{
+T}
+_
+T{
+\fBTIFFTAG_YRESOLUTION\fP
+T}	T{
+1
+T}	T{
+float
+T}	T{
+T}
+_
+.TE
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \(dg:
+Tag may not have its values changed once data is written.
+.UNINDENT
+.sp
+‡:
+.INDENT 0.0
+.INDENT 3.5
+If \fBSamplesPerPixel\fP is one, then a single array is passed;
+otherwise three arrays should be passed.
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B *:
+The contents of this field are quite complex.  See
+“The ICC Profile Format Specification”,
+Annex B.3 “Embedding ICC Profiles in TIFF Files”
+(available at \fI\%http://www.color.org\fP) for an explanation.
+.UNINDENT
+.SH RETURN VALUES
+.sp
+1 is returned if the operation was successful.
+Otherwise, 0 is returned if an error was detected.
+.SH DIAGNOSTICS
+.sp
+All error messages are directed to the \fI\%TIFFErrorExtR()\fP routine.
+.sp
+\fB%s: Cannot modify tag \(dq%s\(dq while writing\fP:
+.INDENT 0.0
+.INDENT 3.5
+Data has already been written to the file, so the
+specified tag’s value can not be changed.
+This restriction is applied to all tags that affect
+the format of written data.
+.UNINDENT
+.UNINDENT
+.sp
+\fB%d: Bad value for \(dq%s\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+An invalid value was supplied for the named tag.
+.UNINDENT
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fI\%TIFFOpen\fP (3tiff),
+\fI\%TIFFGetField\fP (3tiff),
+\fI\%TIFFSetDirectory\fP (3tiff),
+\fI\%TIFFWriteDirectory\fP (3tiff),
+\fI\%TIFFReadDirectory\fP (3tiff),
+\fI\%libtiff\fP (3tiff)
+.SH AUTHOR
+LibTIFF contributors
+.SH COPYRIGHT
+1988-2022, LibTIFF contributors
+.\" Generated by docutils manpage writer.
+.

@@ -1,0 +1,13 @@
+
+.*
+
+
+Disassembly of section \.text:
+
+00000000100001c0 <.f1>:
+    100001c0:	e8 22 80 10 	ld      r1,-32752\(r2\)
+			.*2: R_TOC	sym0-.*
+#...
+    100081b4:	e8 22 7f f8 	ld      r1,32760\(r2\)
+			.*6: R_TOC	asym4094-.*
+#pass

@@ -1,0 +1,52 @@
+cmake-use-cmstrlen.cxx:26:9: warning: use cmStrLen() for string literals [cmake-use-cmstrlen]
+   26 |   (void)strlen("Hello");
+      |         ^~~~~~
+      |         cmStrLen
+cmake-use-cmstrlen.cxx:26:9: note: FIX-IT applied suggested code changes
+cmake-use-cmstrlen.cxx:27:9: warning: use cmStrLen() for string literals [cmake-use-cmstrlen]
+   27 |   (void)::strlen("Goodbye");
+      |         ^~~~~~~~
+      |         cmStrLen
+cmake-use-cmstrlen.cxx:27:9: note: FIX-IT applied suggested code changes
+cmake-use-cmstrlen.cxx:28:9: warning: use cmStrLen() for string literals [cmake-use-cmstrlen]
+   28 |   (void)std::strlen("Hola");
+      |         ^~~~~~~~~~~
+      |         cmStrLen
+cmake-use-cmstrlen.cxx:28:9: note: FIX-IT applied suggested code changes
+cmake-use-cmstrlen.cxx:29:9: warning: use cmStrLen() for string literals [cmake-use-cmstrlen]
+   29 |   (void)ns1::strlen("Bonjour");
+      |         ^~~~~~~~~~~
+      |         cmStrLen
+cmake-use-cmstrlen.cxx:29:9: note: FIX-IT applied suggested code changes
+cmake-use-cmstrlen.cxx:30:10: warning: use cmStrLen() for string literals [cmake-use-cmstrlen]
+   30 |   (void)(sizeof("Hallo") - 1);
+      |          ^~~~~~          ~~~
+      |          cmStrLen
+cmake-use-cmstrlen.cxx:30:10: note: FIX-IT applied suggested code changes
+cmake-use-cmstrlen.cxx:30:26: note: FIX-IT applied suggested code changes
+   30 |   (void)(sizeof("Hallo") - 1);
+      |                          ^
+cmake-use-cmstrlen.cxx:31:14: warning: use cmStrLen() for string literals [cmake-use-cmstrlen]
+   31 |   (void)(4 + sizeof("Hallo") - 1);
+      |              ^~~~~~          ~~~
+      |              cmStrLen
+cmake-use-cmstrlen.cxx:31:14: note: FIX-IT applied suggested code changes
+cmake-use-cmstrlen.cxx:31:30: note: FIX-IT applied suggested code changes
+   31 |   (void)(4 + sizeof("Hallo") - 1);
+      |                              ^
+cmake-use-cmstrlen.cxx:32:10: warning: use cmStrLen() for string literals [cmake-use-cmstrlen]
+   32 |   (void)(sizeof "Hallo" - 1);
+      |          ^~~~~~         ~~~
+      |          cmStrLen(      )
+cmake-use-cmstrlen.cxx:32:10: note: FIX-IT applied suggested code changes
+cmake-use-cmstrlen.cxx:32:25: note: FIX-IT applied suggested code changes
+   32 |   (void)(sizeof "Hallo" - 1);
+      |                         ^
+cmake-use-cmstrlen.cxx:33:14: warning: use cmStrLen() for string literals [cmake-use-cmstrlen]
+   33 |   (void)(4 + sizeof "Hallo" - 1);
+      |              ^~~~~~         ~~~
+      |              cmStrLen(      )
+cmake-use-cmstrlen.cxx:33:14: note: FIX-IT applied suggested code changes
+cmake-use-cmstrlen.cxx:33:29: note: FIX-IT applied suggested code changes
+   33 |   (void)(4 + sizeof "Hallo" - 1);
+      |                             ^

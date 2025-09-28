@@ -1,0 +1,131 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# these should produce the same results
+a=(aa bb)
+set -- aa bb
+
+IFS=+
+
+recho ${a[@]} 
+recho ${a[@]:0} 
+
+recho $@
+recho ${@:1} 
+
+A=${a[*]} B=${a[*]:0}
+recho $* ${*:1}
+recho ${a[*]} ${a[*]:0}
+recho "$A" "$B"
+recho $A $B
+
+unset A B
+
+recho ${@/a/x} 
+recho ${a[@]/a/x} 
+recho "${@/a/x}"
+recho "${a[@]/a/x}"
+
+recho ${*/a/x} 
+recho ${a[*]/a/x} 
+recho "${*/a/x}"
+recho "${a[*]/a/x}"
+
+A=${*/a/x}
+B=${a[*]/a/x}
+
+recho "$A" "$B"
+
+unset A B
+declare -A A
+A[0]=aa
+A[1]=bb
+
+recho ${A[@]/a/x}
+recho "${A[@]/a/x}"
+recho ${A[*]/a/x}
+recho "${A[*]/a/x}"
+
+unset A
+IFS=
+
+recho ${@/a/x}
+recho ${a[@]/a/x}
+recho "${@/a/x}"
+recho "${a[@]/a/x}"
+
+recho ${*/a/x}
+recho ${a[*]/a/x}
+recho "${*/a/x}"
+recho "${a[*]/a/x}"
+
+A=${*/a/x}
+B=${a[*]/a/x}
+
+recho "$A" "$B"
+
+unset A B
+declare -A A
+A[0]=aa
+A[1]=bb
+
+recho ${A[@]/a/x}  
+recho "${A[@]/a/x}" 
+recho ${A[*]/a/x}   
+recho "${A[*]/a/x}"
+
+unset A
+
+IFS=+
+
+recho ${a[@]}
+recho ${a[@],,} 
+recho "${a[@]}"
+recho "${a[@],,}"
+
+A=${a[*]} B=${a[*],,}
+recho $* ${*,,}
+recho ${a[*]} ${a[*],,}
+recho "${a[*]}" "${a[*],,}"
+recho "$A" "$B"
+recho $A $B
+
+unset A B
+declare -A A
+A[0]=aa
+A[1]=bb
+
+recho ${A[@],,}
+recho "${A[@],,}"
+recho ${A[*],,}
+recho "${A[*],,}"
+
+unset A
+
+recho ${a[@]#?}
+recho ${@#?}
+
+A=${a[*]#?} B=${a[*]#?}
+recho ${*#?} ${a[*]#?}
+recho "$A" "$B"
+recho $A $B
+
+unset A B
+declare -A A
+A[0]=aa
+A[1]=bb
+
+recho ${A[@]#?}  
+recho "${A[@]#?}"   
+recho ${A[*]#?}  
+recho "${A[*]#?}" 

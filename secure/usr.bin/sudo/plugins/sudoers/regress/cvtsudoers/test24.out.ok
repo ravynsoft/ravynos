@@ -1,0 +1,89 @@
+dn: cn=defaults,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: defaults
+description: Default sudoOption's go here
+sudoOption: logfile=/var/log/sudo
+
+dn: cn=root,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: root
+sudoUser: root
+sudoHost: ALL
+sudoRunAsUser: ALL
+sudoCommand: ALL
+sudoOrder: 1
+
+dn: cn=%wheel,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: %wheel
+sudoUser: %wheel
+sudoHost: ALL
+sudoRunAsUser: ALL
+sudoCommand: ALL
+sudoOrder: 2
+
+dn: cn=\+admins,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: \+admins
+sudoUser: +admins
+sudoHost: ALL
+sudoOption: !authenticate
+sudoCommand: ALL
+sudoOrder: 3
+
+dn: cn=jack,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: jack
+sudoUser: jack
+sudoHost: 128.138.204.0/24
+sudoHost: 128.138.242.0
+sudoHost: 128.138.243.0
+sudoCommand: ALL
+sudoOrder: 4
+
+dn: cn=lisa,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: lisa
+sudoUser: lisa
+sudoHost: 128.138.0.0/255.255.0.0
+sudoCommand: ALL
+sudoOrder: 5
+
+dn: cn=operator,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: operator
+sudoUser: operator
+sudoHost: ALL
+sudoCommand: /usr/sbin/dump
+sudoCommand: /usr/sbin/rdump
+sudoCommand: /usr/sbin/restore
+sudoCommand: /usr/sbin/rrestore
+sudoCommand: /usr/bin/mt
+sudoCommand: sha224:0GomF8mNN3wlDt1HD9XldjJ3SNgpFdbjO1+NsQ== /home/operator/bin/start_backups
+sudoCommand: /usr/bin/kill
+sudoCommand: /usr/bin/top
+sudoCommand: /usr/sbin/shutdown
+sudoCommand: /usr/sbin/halt
+sudoCommand: /usr/sbin/reboot
+sudoCommand: /usr/sbin/lpc
+sudoCommand: /usr/bin/lprm
+sudoCommand: sudoedit /etc/printcap
+sudoCommand: /usr/oper/bin/
+sudoOrder: 6
+
+dn: cn=joe,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: joe
+sudoUser: joe
+sudoHost: ALL
+sudoCommand: /usr/bin/su operator
+sudoOrder: 7
+

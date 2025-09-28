@@ -1,0 +1,206 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2019 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@pindex msguniq
+@cindex @code{msguniq} program, usage
+@example
+msguniq [@var{option}] [@var{inputfile}]
+@end example
+
+@cindex unify duplicate translations
+@cindex duplicate removal
+The @code{msguniq} program unifies duplicate translations in a translation
+catalog.  It finds duplicate translations of the same message ID.  Such
+duplicates are invalid input for other programs like @code{msgfmt},
+@code{msgmerge} or @code{msgcat}.  By default, duplicates are merged
+together.  When using the @samp{--repeated} option, only duplicates are
+output, and all other messages are discarded.  Comments and extracted
+comments will be cumulated, except that if @samp{--use-first} is
+specified, they will be taken from the first translation.  File positions
+will be cumulated.  When using the @samp{--unique} option, duplicates are
+discarded.
+
+@subsection Input file location
+
+@table @samp
+@item @var{inputfile}
+Input PO file.
+
+@item -D @var{directory}
+@itemx --directory=@var{directory}
+@opindex -D@r{, @code{msguniq} option}
+@opindex --directory@r{, @code{msguniq} option}
+Add @var{directory} to the list of directories.  Source files are
+searched relative to this list of directories.  The resulting @file{.po}
+file will be written relative to the current directory, though.
+
+@end table
+
+If no @var{inputfile} is given or if it is @samp{-}, standard input is read.
+
+@subsection Output file location
+
+@table @samp
+@item -o @var{file}
+@itemx --output-file=@var{file}
+@opindex -o@r{, @code{msguniq} option}
+@opindex --output-file@r{, @code{msguniq} option}
+Write output to specified file.
+
+@end table
+
+The results are written to standard output if no output file is specified
+or if it is @samp{-}.
+
+@subsection Message selection
+
+@table @samp
+@item -d
+@itemx --repeated
+@opindex -d@r{, @code{msguniq} option}
+@opindex --repeated@r{, @code{msguniq} option}
+Print only duplicates.
+
+@item -u
+@itemx --unique
+@opindex -u@r{, @code{msguniq} option}
+@opindex --unique@r{, @code{msguniq} option}
+Print only unique messages, discard duplicates.
+
+@end table
+
+@subsection Input file syntax
+
+@table @samp
+@item -P
+@itemx --properties-input
+@opindex -P@r{, @code{msguniq} option}
+@opindex --properties-input@r{, @code{msguniq} option}
+Assume the input file is a Java ResourceBundle in Java @code{.properties}
+syntax, not in PO file syntax.
+
+@item --stringtable-input
+@opindex --stringtable-input@r{, @code{msguniq} option}
+Assume the input file is a NeXTstep/GNUstep localized resource file in
+@code{.strings} syntax, not in PO file syntax.
+
+@end table
+
+@subsection Output details
+
+@c --no-escape and --escape omitted on purpose.  They are not useful.
+
+@table @samp
+@item -t
+@itemx --to-code=@var{name}
+@opindex -t@r{, @code{msguniq} option}
+@opindex --to-code@r{, @code{msguniq} option}
+Specify encoding for output.
+
+@item --use-first
+@opindex --use-first@r{, @code{msguniq} option}
+Use first available translation for each message.  Don't merge several
+translations into one.
+
+@item --color
+@itemx --color=@var{when}
+@opindex --color@r{, @code{msguniq} option}
+Specify whether or when to use colors and other text attributes.
+See @ref{The --color option} for details.
+
+@item --style=@var{style_file}
+@opindex --style@r{, @code{msguniq} option}
+Specify the CSS style rule file to use for @code{--color}.
+See @ref{The --style option} for details.
+
+@item --force-po
+@opindex --force-po@r{, @code{msguniq} option}
+Always write an output file even if it contains no message.
+
+@item -i
+@itemx --indent
+@opindex -i@r{, @code{msguniq} option}
+@opindex --indent@r{, @code{msguniq} option}
+Write the .po file using indented style.
+
+@item --no-location
+@opindex --no-location@r{, @code{msguniq} option}
+Do not write @samp{#: @var{filename}:@var{line}} lines.
+
+@item -n
+@itemx --add-location=@var{type}
+@opindex -n@r{, @code{msguniq} option}
+@opindex --add-location@r{, @code{msguniq} option}
+Generate @samp{#: @var{filename}:@var{line}} lines (default).
+
+The optional @var{type} can be either @samp{full}, @samp{file}, or
+@samp{never}.  If it is not given or @samp{full}, it generates the
+lines with both file name and line number.  If it is @samp{file}, the
+line number part is omitted.  If it is @samp{never}, it completely
+suppresses the lines (same as @code{--no-location}).
+
+@item --strict
+@opindex --strict@r{, @code{msguniq} option}
+Write out a strict Uniforum conforming PO file.  Note that this
+Uniforum format should be avoided because it doesn't support the
+GNU extensions.
+
+@item -p
+@itemx --properties-output
+@opindex -p@r{, @code{msguniq} option}
+@opindex --properties-output@r{, @code{msguniq} option}
+Write out a Java ResourceBundle in Java @code{.properties} syntax.  Note
+that this file format doesn't support plural forms and silently drops
+obsolete messages.
+
+@item --stringtable-output
+@opindex --stringtable-output@r{, @code{msguniq} option}
+Write out a NeXTstep/GNUstep localized resource file in @code{.strings} syntax.
+Note that this file format doesn't support plural forms.
+
+@item -w @var{number}
+@itemx --width=@var{number}
+@opindex -w@r{, @code{msguniq} option}
+@opindex --width@r{, @code{msguniq} option}
+Set the output page width.  Long strings in the output files will be
+split across multiple lines in order to ensure that each line's width
+(= number of screen columns) is less or equal to the given @var{number}.
+
+@item --no-wrap
+@opindex --no-wrap@r{, @code{msguniq} option}
+Do not break long message lines.  Message lines whose width exceeds the
+output page width will not be split into several lines.  Only file reference
+lines which are wider than the output page width will be split.
+
+@item -s
+@itemx --sort-output
+@opindex -s@r{, @code{msguniq} option}
+@opindex --sort-output@r{, @code{msguniq} option}
+Generate sorted output.  Note that using this option makes it much harder
+for the translator to understand each message's context.
+
+@item -F
+@itemx --sort-by-file
+@opindex -F@r{, @code{msguniq} option}
+@opindex --sort-by-file@r{, @code{msguniq} option}
+Sort output by file location.
+
+@end table
+
+@subsection Informative output
+
+@table @samp
+@item -h
+@itemx --help
+@opindex -h@r{, @code{msguniq} option}
+@opindex --help@r{, @code{msguniq} option}
+Display this help and exit.
+
+@item -V
+@itemx --version
+@opindex -V@r{, @code{msguniq} option}
+@opindex --version@r{, @code{msguniq} option}
+Output version information and exit.
+
+@end table

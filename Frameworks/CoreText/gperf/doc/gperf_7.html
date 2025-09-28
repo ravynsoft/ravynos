@@ -1,0 +1,57 @@
+<HTML>
+<HEAD>
+<!-- This HTML file has been created by texi2html 1.52b
+     from gperf.texi on 2 January 2017 -->
+
+<META HTTP-EQUIV="content-type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Perfect Hash Function Generator - 6  Known Bugs and Limitations with gperf</TITLE>
+</HEAD>
+<BODY>
+Go to the <A HREF="gperf_1.html">first</A>, <A HREF="gperf_6.html">previous</A>, <A HREF="gperf_8.html">next</A>, <A HREF="gperf_10.html">last</A> section, <A HREF="gperf_toc.html">table of contents</A>.
+<P><HR><P>
+
+
+<H1><A NAME="SEC25" HREF="gperf_toc.html#TOC25">6  Known Bugs and Limitations with <CODE>gperf</CODE></A></H1>
+
+<P>
+The following are some limitations with the current release of
+<CODE>gperf</CODE>:
+
+</P>
+
+<UL>
+<LI>
+
+The <CODE>gperf</CODE> utility is tuned to execute quickly, and works quickly
+for small to medium size data sets (around 1000 keywords).  It is
+extremely useful for maintaining perfect hash functions for compiler
+keyword sets.  Several recent enhancements now enable <CODE>gperf</CODE> to
+work efficiently on much larger keyword sets (over 15,000 keywords).
+When processing large keyword sets it helps greatly to have over 8 megs
+of RAM.
+
+<LI>
+
+The size of the generate static keyword array can get <EM>extremely</EM>
+large if the input keyword file is large or if the keywords are quite
+similar.  This tends to slow down the compilation of the generated C
+code, and <EM>greatly</EM> inflates the object code size.  If this
+situation occurs, consider using the <SAMP>&lsquo;-S&rsquo;</SAMP> option to reduce data
+size, potentially increasing keyword recognition time a negligible
+amount.  Since many C compilers cannot correctly generate code for
+large switch statements it is important to qualify the <VAR>-S</VAR> option
+with an appropriate numerical argument that controls the number of
+switch statements generated.
+
+<LI>
+
+The maximum number of selected byte positions has an
+arbitrary limit of 255.  This restriction should be removed, and if
+anyone considers this a problem write me and let me know so I can remove
+the constraint.
+</UL>
+
+<P><HR><P>
+Go to the <A HREF="gperf_1.html">first</A>, <A HREF="gperf_6.html">previous</A>, <A HREF="gperf_8.html">next</A>, <A HREF="gperf_10.html">last</A> section, <A HREF="gperf_toc.html">table of contents</A>.
+</BODY>
+</HTML>

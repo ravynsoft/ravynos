@@ -1,0 +1,77 @@
+# Expect script for ld --export-dynamic-symbol tests
+#   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+if ![is_elf_format] {
+    return
+}
+
+# Skip targets where -shared or -pie is not supported
+if { ![check_shared_lib_support] || ![check_pie_support] } {
+    return
+}
+
+# Skip targets that have poor PIE support, resulting in failures due to
+# PHDR segment not covered by LOAD segment errors.
+if { ([istarget "bfin-*-*"] && ![istarget "bfin-*-linux*"])
+     || [istarget "mn10300-*-*"]
+     || [istarget "score-*-*"] } {
+    return
+}
+
+set old_ASFLAGS $ASFLAGS
+
+# These targets require extra GAS options when building code for shared
+# libraries.
+if [istarget "nds32*-*"] {
+    append ASFLAGS " -mpic"
+}
+if [istarget "tic6x-*-*"] {
+    append ASFLAGS " -mpic -mpid=near"
+}
+if [istarget "sparc*-*-*"] {
+    append ASFLAGS " -K PIC -Av9"
+}
+
+set old_LDFLAGS $LDFLAGS
+
+# These targets require a non-default emulation for successful shared
+# library/executable builds.
+if [istarget "tic6x-*-*"] {
+    append LDFLAGS " -melf32_tic6x_le"
+}
+
+set build_tests {
+  {"Build libpr25910.a"
+   "" "" ""
+   {foo.s} {} "libpr25910.a"}
+}
+
+run_ld_link_tests $build_tests
+
+set test_list [lsort [glob -nocomplain $srcdir/$subdir/export-dynamic-symbol-*.d]]
+foreach test_file $test_list {
+    set test_name [file rootname $test_file]
+    verbose $test_name
+    run_dump_test $test_name
+}
+
+set ASFLAGS $old_ASFLAGS
+set LDFLAGS $old_LDFLAGS

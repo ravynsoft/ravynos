@@ -1,0 +1,17 @@
+#compdef setopt unsetopt
+
+local expl ret=1
+local -a onopts offopts
+onopts=( ${(k)_comp_caller_options[(R)on]} printexitvalue )
+offopts=( ${(k)_comp_caller_options[(R)off]} printexitvalue )
+typeset -U onopts offopts
+case $service in
+  setopt) onopts=(no$onopts) ;;
+  unsetopt) offopts=(no$offopts) ;;
+esac
+_wanted zsh-options expl 'zsh options (set)' \
+    compadd -J 'enabled options' -M 'M:_= M:{A-Z}={a-z}' -k - onopts && ret=0
+_wanted zsh-options expl 'zsh options (unset)' \
+    compadd -J 'disabled options' -M 'M:_= M:{A-Z}={a-z}' -k - offopts && ret=0
+
+return ret

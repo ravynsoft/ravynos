@@ -1,0 +1,110 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+set +o posix
+
+hash -r
+unalias -a
+
+# this should echo nothing
+type
+# this should be a usage error
+type -r ${THIS_SH}
+
+# these should behave identically
+type notthere
+command -v notthere
+
+alias m=more
+
+unset -f func 2>/dev/null
+func() { echo this is func; }
+
+type -t func
+type -t while
+type -t builtin
+type -t /bin/sh
+type -t ${THIS_SH}
+type -t mv
+
+type func
+# the following two should produce identical output
+type while
+type -a while
+type builtin
+type /bin/sh
+
+command -v func
+command -V func
+command -v while
+command -V while
+
+# the following two lines should produce the same output
+# post-3.0 patch makes command -v silent, as posix specifies
+# first test with alias expansion off (should all fail or produce no output)
+type -t m
+type m
+command -v m
+alias -p
+alias m
+
+# then test with alias expansion on 
+shopt -s expand_aliases
+type m
+type -t m
+command -v m
+alias -p
+alias m
+
+command -V m
+shopt -u expand_aliases
+
+command -v builtin
+command -V builtin
+command -v /bin/sh
+command -V /bin/sh
+
+unset -f func
+type func
+unalias m
+type m
+
+hash -r
+
+hash -p /bin/sh sh
+type -p sh
+
+SHBASE=${THIS_SH##*/}
+hash -p /tmp/$SHBASE $SHBASE
+type -p $SHBASE
+type $SHBASE
+
+type -t $SHBASE
+
+# make sure the hash table looks right
+hash
+
+# bug in versions of bash up to and including bash-3.2
+f() {
+        v=$'\001'
+    }
+
+type f | cat -v
+
+${THIS_SH} type1.sub
+
+${THIS_SH} type2.sub
+
+${THIS_SH} type3.sub
+
+${THIS_SH} type4.sub

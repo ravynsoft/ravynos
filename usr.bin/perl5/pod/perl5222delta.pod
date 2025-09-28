@@ -1,0 +1,386 @@
+=encoding utf8
+
+=head1 NAME
+
+perl5222delta - what is new for perl v5.22.2
+
+=head1 DESCRIPTION
+
+This document describes differences between the 5.22.1 release and the 5.22.2
+release.
+
+If you are upgrading from an earlier release such as 5.22.0, first read
+L<perl5221delta>, which describes differences between 5.22.0 and 5.22.1.
+
+=head1 Security
+
+=head2 Fix out of boundary access in Win32 path handling
+
+This is CVE-2015-8608.  For more information see
+L<[GH #15067]|https://github.com/Perl/perl5/issues/15067>.
+
+=head2 Fix loss of taint in C<canonpath()>
+
+This is CVE-2015-8607.  For more information see
+L<[GH #15084]|https://github.com/Perl/perl5/issues/15084>.
+
+=head2 Set proper umask before calling C<mkstemp(3)>
+
+In 5.22.0 perl started setting umask to C<0600> before calling C<mkstemp(3)>
+and restoring it afterwards.  This wrongfully tells C<open(2)> to strip the
+owner read and write bits from the given mode before applying it, rather than
+the intended negation of leaving only those bits in place.
+
+Systems that use mode C<0666> in C<mkstemp(3)> (like old versions of glibc)
+create a file with permissions C<0066>, leaving world read and write permissions
+regardless of current umask.
+
+This has been fixed by using umask C<0177> instead.
+
+L<[GH #15135]|https://github.com/Perl/perl5/issues/15135>
+
+=head2 Avoid accessing uninitialized memory in Win32 C<crypt()>
+
+Validation that will detect both a short salt and invalid characters in the
+salt has been added.
+
+L<[GH #15091]|https://github.com/Perl/perl5/issues/15091>
+
+=head2 Remove duplicate environment variables from C<environ>
+
+Previously, if an environment variable appeared more than once in C<environ[]>,
+L<C<%ENV>|perlvar/%ENV> would contain the last entry for that name, while a
+typical C<getenv()> would return the first entry.  We now make sure C<%ENV>
+contains the same as what C<getenv()> returns.
+
+Secondly, we now remove duplicates from C<environ[]>, so if a setting with that
+name is set in C<%ENV> we won't pass an unsafe value to a child process.
+
+This is CVE-2016-2381.
+
+=head1 Incompatible Changes
+
+There are no changes intentionally incompatible with Perl 5.22.1.  If any
+exist, they are bugs, and we request that you submit a report.  See
+L</Reporting Bugs> below.
+
+=head1 Modules and Pragmata
+
+=head2 Updated Modules and Pragmata
+
+=over 4
+
+=item *
+
+L<File::Spec> has been upgraded from version 3.56 to 3.56_01.
+
+C<canonpath()> now preserves taint.  See L</"Fix loss of taint in
+C<canonpath()>">.
+
+=item *
+
+L<Module::CoreList> has been upgraded from version 5.20151213 to 5.20160429.
+
+The version number of L<Digest::SHA> listed for Perl 5.18.4 was wrong and has
+been corrected.  Likewise for the version number of L<Config> in 5.18.3 and
+5.18.4.
+L<[GH #15202]|https://github.com/Perl/perl5/issues/15202>
+
+=back
+
+=head1 Documentation
+
+=head2 Changes to Existing Documentation
+
+=head3 L<perldiag>
+
+=over 4
+
+=item *
+
+The explanation of the warning "unable to close filehandle %s properly: %s"
+which can occur when doing an implicit close of a filehandle has been expanded
+and improved.
+
+=back
+
+=head3 L<perlfunc>
+
+=over 4
+
+=item *
+
+The documentation of L<C<hex()>|perlfunc/hex> has been revised to clarify valid
+inputs.
+
+=back
+
+=head1 Configuration and Compilation
+
+=over 4
+
+=item *
+
+Dtrace builds now build successfully on systems with a newer dtrace that
+require an input object file that uses the probes in the F<.d> file.
+
+Previously the probe would fail and cause a build failure.
+
+L<[GH #13985]|https://github.com/Perl/perl5/issues/13985>
+
+=item *
+
+F<Configure> no longer probes for F<libnm> by default.  Originally this was the
+"New Math" library, but the name has been re-used by the GNOME NetworkManager.
+
+L<[GH #15115]|https://github.com/Perl/perl5/issues/15115>
+
+=item *
+
+F<Configure> now knows about gcc 5.
+
+=item *
+
+Compiling perl with B<-DPERL_MEM_LOG> now works again.
+
+=back
+
+=head1 Platform Support
+
+=head2 Platform-Specific Notes
+
+=over 4
+
+=item Darwin
+
+Compiling perl with B<-Dusecbacktrace> on Darwin now works again.
+
+L<[GH #15245]|https://github.com/Perl/perl5/issues/15245>
+
+=item OS X/Darwin
+
+Builds with both B<-DDEBUGGING> and threading enabled would fail with a "panic:
+free from wrong pool" error when built or tested from Terminal on OS X.  This
+was caused by perl's internal management of the environment conflicting with an
+atfork handler using the libc C<setenv()> function to update the environment.
+
+Perl now uses C<setenv()>/C<unsetenv()> to update the environment on OS X.
+
+L<[GH #14955]|https://github.com/Perl/perl5/issues/14955>
+
+=item ppc64el
+
+The floating point format of ppc64el (Debian naming for little-endian PowerPC)
+is now detected correctly.
+
+=item Tru64
+
+A test failure in F<t/porting/extrefs.t> has been fixed.
+
+=back
+
+=head1 Internal Changes
+
+=over 4
+
+=item *
+
+An unwarranted assertion in C<Perl_newATTRSUB_x()> has been removed.  If a stub
+subroutine definition with a prototype has been seen, then any subsequent stub
+(or definition) of the same subroutine with an attribute was causing an
+assertion failure because of a null pointer.
+
+L<[GH #15081]|https://github.com/Perl/perl5/issues/15081>
+
+=back
+
+=head1 Selected Bug Fixes
+
+=over 4
+
+=item *
+
+Calls to the placeholder C<&PL_sv_yes> used internally when an C<import()> or
+C<unimport()> method isn't found now correctly handle scalar context.
+L<[GH #14902]|https://github.com/Perl/perl5/issues/14902>
+
+=item *
+
+The L<C<pipe()>|perlfunc/pipe> operator would assert for C<DEBUGGING> builds
+instead of producing the correct error message.  The condition asserted on is
+detected and reported on correctly without the assertions, so the assertions
+were removed.
+L<[GH #15015]|https://github.com/Perl/perl5/issues/15015>
+
+=item *
+
+In some cases, failing to parse a here-doc would attempt to use freed memory.
+This was caused by a pointer not being restored correctly.
+L<[GH #15009]|https://github.com/Perl/perl5/issues/15009>
+
+=item *
+
+Perl now reports more context when it sees an array where it expects to see an
+operator, and avoids an assertion failure.
+L<[GH #14472]|https://github.com/Perl/perl5/issues/14472>
+
+=item *
+
+If a here-doc was found while parsing another operator, the parser had already
+read end of file, and the here-doc was not terminated, perl could produce an
+assertion or a segmentation fault.  This now reliably complains about the
+unterminated here-doc.
+L<[GH #14789]|https://github.com/Perl/perl5/issues/14789>
+
+=item *
+
+Parsing beyond the end of the buffer when processing a C<#line> directive with
+no filename is now avoided.
+L<[GH #15139]|https://github.com/Perl/perl5/issues/15139>
+
+=item *
+
+Perl 5.22.0 added support for the C99 hexadecimal floating point notation, but
+sometimes misparsed hex floats.  This has been fixed.
+L<[GH #15120]|https://github.com/Perl/perl5/issues/15120>
+
+=item *
+
+Certain regex patterns involving a complemented posix class in an inverted
+bracketed character class, and matching something else optionally would
+improperly fail to match.  An example of one that could fail is
+C<qr/_?[^\Wbar]\x{100}/>.  This has been fixed.
+L<[GH #15181]|https://github.com/Perl/perl5/issues/15181>
+
+=item *
+
+Fixed an issue with L<C<pack()>|perlfunc/pack> where C<< pack "H" >> (and
+C<< pack "h" >>) could read past the source when given a non-utf8 source and a
+utf8 target.
+L<[GH #14977]|https://github.com/Perl/perl5/issues/14977>
+
+=item *
+
+Fixed some cases where perl would abort due to a segmentation fault, or a
+C-level assert.
+L<[GH #14941]|https://github.com/Perl/perl5/issues/14941>
+L<[GH #14962]|https://github.com/Perl/perl5/issues/14962>
+L<[GH #14963]|https://github.com/Perl/perl5/issues/14963>
+L<[GH #14997]|https://github.com/Perl/perl5/issues/14997>
+L<[GH #15039]|https://github.com/Perl/perl5/issues/15039>
+L<[GH #15247]|https://github.com/Perl/perl5/issues/15247>
+L<[GH #15251]|https://github.com/Perl/perl5/issues/15251>
+
+=item *
+
+A memory leak when setting C<$ENV{foo}> on Darwin has been fixed.
+L<[GH #14955]|https://github.com/Perl/perl5/issues/14955>
+
+=item *
+
+Perl now correctly raises an error when trying to compile patterns with
+unterminated character classes while there are trailing backslashes.
+L<[GH #14919]|https://github.com/Perl/perl5/issues/14919>
+
+=item *
+
+C<NOTHING> regops and C<EXACTFU_SS> regops in C<make_trie()> are now handled
+properly.
+L<[GH #14945]|https://github.com/Perl/perl5/issues/14945>
+
+=item *
+
+Perl now only tests C<semctl()> if we have everything needed to use it.  In
+FreeBSD the C<semctl()> entry point may exist, but it can be disabled by
+policy.
+L<[GH #15180]|https://github.com/Perl/perl5/issues/15180>
+
+=item *
+
+A regression that allowed undeclared barewords as hash keys to work despite
+strictures has been fixed.
+L<[GH #15099]|https://github.com/Perl/perl5/issues/15099>
+
+=item *
+
+As an optimization (introduced in Perl 5.20.0), L<C<uc()>|perlfunc/uc>,
+L<C<lc()>|perlfunc/lc>, L<C<ucfirst()>|perlfunc/ucfirst> and
+L<C<lcfirst()>|perlfunc/lcfirst> sometimes modify their argument in-place
+rather than returning a modified copy.  The criteria for this optimization has
+been made stricter to avoid these functions accidentally modifying in-place
+when they should not, which has been happening in some cases, e.g. in
+L<List::Util>.
+
+=item *
+
+Excessive memory usage in the compilation of some regular expressions involving
+non-ASCII characters has been reduced.  A more complete fix is forthcoming in
+Perl 5.24.0.
+
+=back
+
+=head1 Acknowledgements
+
+Perl 5.22.2 represents approximately 5 months of development since Perl 5.22.1
+and contains approximately 3,000 lines of changes across 110 files from 24
+authors.
+
+Excluding auto-generated files, documentation and release tools, there were
+approximately 1,500 lines of changes to 52 .pm, .t, .c and .h files.
+
+Perl continues to flourish into its third decade thanks to a vibrant community
+of users and developers.  The following people are known to have contributed
+the improvements that became Perl 5.22.2:
+
+Aaron Crane, Abigail, Andreas König, Aristotle Pagaltzis, Chris 'BinGOs'
+Williams, Craig A. Berry, Dagfinn Ilmari Mannsåker, David Golden, David
+Mitchell, H.Merijn Brand, James E Keenan, Jarkko Hietaniemi, Karen Etheridge,
+Karl Williamson, Matthew Horsfall, Niko Tyni, Ricardo Signes, Sawyer X, Stevan
+Little, Steve Hay, Todd Rinaldo, Tony Cook, Vladimir Timofeev, Yves Orton.
+
+The list above is almost certainly incomplete as it is automatically generated
+from version control history.  In particular, it does not include the names of
+the (very much appreciated) contributors who reported issues to the Perl bug
+tracker.
+
+Many of the changes included in this version originated in the CPAN modules
+included in Perl's core.  We're grateful to the entire CPAN community for
+helping Perl to flourish.
+
+For a more complete list of all of Perl's historical contributors, please see
+the F<AUTHORS> file in the Perl source distribution.
+
+=head1 Reporting Bugs
+
+If you find what you think is a bug, you might check the articles recently
+posted to the comp.lang.perl.misc newsgroup and the perl bug database at
+https://rt.perl.org/ .  There may also be information at http://www.perl.org/ ,
+the Perl Home Page.
+
+If you believe you have an unreported bug, please run the L<perlbug> program
+included with your release.  Be sure to trim your bug down to a tiny but
+sufficient test case.  Your bug report, along with the output of C<perl -V>,
+will be sent off to perlbug@perl.org to be analysed by the Perl porting team.
+
+If the bug you are reporting has security implications, which make it
+inappropriate to send to a publicly archived mailing list, then please send it
+to perl5-security-report@perl.org.  This points to a closed subscription
+unarchived mailing list, which includes all the core committers, who will be
+able to help assess the impact of issues, figure out a resolution, and help
+co-ordinate the release of patches to mitigate or fix the problem across all
+platforms on which Perl is supported.  Please only use this address for
+security issues in the Perl core, not for modules independently distributed on
+CPAN.
+
+=head1 SEE ALSO
+
+The F<Changes> file for an explanation of how to view exhaustive details on
+what changed.
+
+The F<INSTALL> file for how to build Perl.
+
+The F<README> file for general stuff.
+
+The F<Artistic> and F<Copying> files for copyright information.
+
+=cut

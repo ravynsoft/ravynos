@@ -1,0 +1,34 @@
+#objdump: -dwrj.text
+#target: i?86-*-*
+
+.*: +file format elf32-i386.*
+
+Disassembly of section .text:
+
+#...
+[0-9a-f]+ <check>:
+ +[a-f0-9]+:	53                   	push   %ebx
+ +[a-f0-9]+:	e8 ([0-9a-f]{2} ){4}[ 	]+call   [a-f0-9]+ <__x86.get_pc_thunk.bx>
+ +[a-f0-9]+:	81 c3 ([0-9a-f]{2} ){4}[ 	]+add +\$0x[a-f0-9]+,%ebx
+ +[a-f0-9]+:	83 ec 08             	sub    \$0x8,%esp
+ +[a-f0-9]+:	ff 93 ([0-9a-f]{2} ){4}[ 	]+call +\*-0x[0-9a-f]+\(%ebx\)
+ +[a-f0-9]+:	3b 83 ([0-9a-f]{2} ){4}[ 	]+cmp +-0x[a-f0-9]+\(%ebx\),%eax
+ +[a-f0-9]+:	75 39                	jne    [0-9a-f]+ <check\+0x[0-9a-f]+>
+ +[a-f0-9]+:	8b 93 ([0-9a-f]{2} ){4}[ 	]+mov +-0x[0-9a-f]+\(%ebx\),%edx
+ +[a-f0-9]+:	39 02                	cmp    %eax,\(%edx\)
+ +[a-f0-9]+:	75 2f                	jne    [0-9a-f]+ <check\+0x[0-9a-f]+>
+ +[a-f0-9]+:	67 e8 ([0-9a-f]{2} ){4}[ 	]+addr16 call [0-9a-f]+ <func>
+ +[a-f0-9]+:	3d 78 56 34 12       	cmp    \$0x12345678,%eax
+ +[a-f0-9]+:	75 22                	jne +[0-9a-f]+ <check\+0x[0-9a-f]+>
+ +[a-f0-9]+:	ff 93 ([0-9a-f]{2} ){4}[ 	]+call +\*-0x[0-9a-f]+\(%ebx\)
+ +[a-f0-9]+:	3d 78 56 34 12       	cmp    \$0x12345678,%eax
+ +[a-f0-9]+:	75 15                	jne +[0-9a-f]+ <check\+0x[0-9a-f]+>
+ +[a-f0-9]+:	8d 83 ([0-9a-f]{2} ){4}[ 	]+lea +-0x[a-f0-9]+\(%ebx\),%eax
+ +[a-f0-9]+:	83 ec 0c             	sub    \$0xc,%esp
+ +[a-f0-9]+:	50                   	push   %eax
+ +[a-f0-9]+:	ff 93 ([0-9a-f]{2} ){4}[ 	]+call +\*-0x[0-9a-f]+\(%ebx\)
+ +[a-f0-9]+:	83 c4 18             	add    \$0x18,%esp
+ +[a-f0-9]+:	5b                   	pop    %ebx
+ +[a-f0-9]+:	c3                   	ret
+ +[a-f0-9]+:	ff 93 ([0-9a-f]{2} ){4}[ 	]+call +\*-0x[0-9a-f]+\(%ebx\)
+#pass

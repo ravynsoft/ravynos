@@ -1,0 +1,11 @@
+: ${TMPDIR:=/tmp}
+FILE=$TMPDIR/file
+
+trap 'rm -f $FILE' 0 1 2 3 6 15
+printf "%d\n" {1..20} > $FILE
+
+mapfile -n 5 array < $FILE
+echo ${array[@]}
+
+mapfile -n 5 -c 1 -C "echo foo" array  < $FILE
+mapfile -n 5 -c 1 -C "echo foo" array  < /dev/null

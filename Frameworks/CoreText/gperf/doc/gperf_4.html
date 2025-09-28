@@ -1,0 +1,99 @@
+<HTML>
+<HEAD>
+<!-- This HTML file has been created by texi2html 1.52b
+     from gperf.texi on 2 January 2017 -->
+
+<META HTTP-EQUIV="content-type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Perfect Hash Function Generator - 3  Static search structures and GNU gperf</TITLE>
+</HEAD>
+<BODY>
+Go to the <A HREF="gperf_1.html">first</A>, <A HREF="gperf_3.html">previous</A>, <A HREF="gperf_5.html">next</A>, <A HREF="gperf_10.html">last</A> section, <A HREF="gperf_toc.html">table of contents</A>.
+<P><HR><P>
+
+
+<H1><A NAME="SEC4" HREF="gperf_toc.html#TOC4">3  Static search structures and GNU <CODE>gperf</CODE></A></H1>
+<P>
+<A NAME="IDX2"></A>
+
+</P>
+<P>
+A <EM>static search structure</EM> is an Abstract Data Type with certain
+fundamental operations, e.g., <EM>initialize</EM>, <EM>insert</EM>,
+and <EM>retrieve</EM>.  Conceptually, all insertions occur before any
+retrievals.  In practice, <CODE>gperf</CODE> generates a <EM>static</EM> array
+containing search set keywords and any associated attributes specified
+by the user.  Thus, there is essentially no execution-time cost for the
+insertions.  It is a useful data structure for representing <EM>static
+search sets</EM>.  Static search sets occur frequently in software system
+applications.  Typical static search sets include compiler reserved
+words, assembler instruction opcodes, and built-in shell interpreter
+commands.  Search set members, called <EM>keywords</EM>, are inserted into
+the structure only once, usually during program initialization, and are
+not generally modified at run-time.
+
+</P>
+<P>
+Numerous static search structure implementations exist, e.g.,
+arrays, linked lists, binary search trees, digital search tries, and
+hash tables.  Different approaches offer trade-offs between space
+utilization and search time efficiency.  For example, an <VAR>n</VAR> element
+sorted array is space efficient, though the average-case time
+complexity for retrieval operations using binary search is
+proportional to log <VAR>n</VAR>.  Conversely, hash table implementations
+often locate a table entry in constant time, but typically impose
+additional memory overhead and exhibit poor worst case performance.
+
+</P>
+<P>
+<A NAME="IDX3"></A>
+<EM>Minimal perfect hash functions</EM> provide an optimal solution for a
+particular class of static search sets.  A minimal perfect hash
+function is defined by two properties:
+
+</P>
+
+<UL>
+<LI>
+
+It allows keyword recognition in a static search set using at most
+<EM>one</EM> probe into the hash table.  This represents the “perfect”
+property.
+<LI>
+
+The actual memory allocated to store the keywords is precisely large
+enough for the keyword set, and <EM>no larger</EM>.  This is the
+“minimal” property.
+</UL>
+
+<P>
+For most applications it is far easier to generate <EM>perfect</EM> hash
+functions than <EM>minimal perfect</EM> hash functions.  Moreover,
+non-minimal perfect hash functions frequently execute faster than
+minimal ones in practice.  This phenomena occurs since searching a
+sparse keyword table increases the probability of locating a “null”
+entry, thereby reducing string comparisons.  <CODE>gperf</CODE>'s default
+behavior generates <EM>near-minimal</EM> perfect hash functions for
+keyword sets.  However, <CODE>gperf</CODE> provides many options that permit
+user control over the degree of minimality and perfection.
+
+</P>
+<P>
+Static search sets often exhibit relative stability over time.  For
+example, Ada's 63 reserved words have remained constant for nearly a
+decade.  It is therefore frequently worthwhile to expend concerted
+effort building an optimal search structure <EM>once</EM>, if it
+subsequently receives heavy use multiple times.  <CODE>gperf</CODE> removes
+the drudgery associated with constructing time- and space-efficient
+search structures by hand.  It has proven a useful and practical tool
+for serious programming projects.  Output from <CODE>gperf</CODE> is currently
+used in several production and research compilers, including GNU C, GNU
+C++, GNU Java, GNU Pascal, and GNU Modula 3.  The latter two compilers are
+not yet part of the official GNU distribution.  Each compiler utilizes
+<CODE>gperf</CODE> to automatically generate static search structures that
+efficiently identify their respective reserved keywords.
+
+</P>
+<P><HR><P>
+Go to the <A HREF="gperf_1.html">first</A>, <A HREF="gperf_3.html">previous</A>, <A HREF="gperf_5.html">next</A>, <A HREF="gperf_10.html">last</A> section, <A HREF="gperf_toc.html">table of contents</A>.
+</BODY>
+</HTML>

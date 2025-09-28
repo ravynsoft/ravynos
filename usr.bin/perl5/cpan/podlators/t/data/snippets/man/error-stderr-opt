@@ -1,0 +1,24 @@
+[name]
+Errors to standard error with stderr option
+
+[options]
+stderr 1
+
+[input]
+=over 4
+
+=item Foo
+
+Bar.
+
+=head1 NEXT
+
+[output]
+.IP Foo 4
+.IX Item "Foo"
+Bar.
+.SH NEXT
+.IX Header "NEXT"
+
+[errors]
+Pod input around line 7: You forgot a '=back' before '=head1'

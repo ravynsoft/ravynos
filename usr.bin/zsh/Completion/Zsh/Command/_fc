@@ -1,0 +1,92 @@
+#compdef fc history r
+
+local curcontext="$curcontext" state state_descr line expl ret=1
+local num cmd sep
+local -a events
+typeset -A opt_args
+local fc_common fc_hist fc_r
+
+# hide any replacements from _arguments
+local cur=${(M)#words[1,CURRENT-1]:#*=*}
+words=( "${(@)words[1,CURRENT-1]:#*=*}" "${(@)words[CURRENT,-1]}" )
+(( CURRENT -= cur ))
+
+fc_common=(
+  -s -S
+  '(-A -R -W -p -P)-I[include internal (new) events only]'
+  '(-A -R -W -p -P)-L[include local events only]'
+  '(-A -R -W -p -P)-r[reverse order of the events]'
+  '(-A -R -W -e -p -P)-n[suppress line numbers]'
+)
+
+if [[ -n ${words[(r)-[pa](|[ap])]} ]]; then
+  fc_common+=(
+    ':history file:_files'
+    ':history size:'
+    ':saved history size:'
+  )
+  [[ -n ${words[(r)-(|a)p(|a)]} ]] || fc_common+='!-a:option:(-p)'
+elif [[ -n ${words[(r)-*[ARWI]*]} ]]; then
+  fc_common+=( ':history file:_files' )
+else
+  fc_common=( -C "$fc_common[@]"
+    '(-)1:first event:->events' '2:last event:->events'
+  )
+fi
+
+fc_hist=(
+  '(-A -R -W -a -p -P 2)-m[treat argument as a pattern]'
+  '(-A -R -W -e -f -E -i -t -a -p -P)-d[print time-stamps]'
+  '(-A -R -W -e -d -E -i -t -a -p -P)-f[mm/dd/yyyy format time-stamps]'
+  '(-A -R -W -e -d -f -i -t -a -p -P)-E[dd.mm.yyyy format time-stamps]'
+  '(-A -R -W -e -d -f -E -t -a -p -P)-i[yyyy-mm-dd format time-stamps]'
+  '(-A -R -W -e -d -f -E -i -a -p -P)-t[print time-stamps in specified format]:date format'
+  '(-A -R -W -e -a -p -P)-D[print elapsed times]'
+
+  '(-A -R -W -I -e -d -f -i -l -m -n -r -D -E -t -P)-a[with -p, automatically pop history on function return]'
+  '(-A -R -W -I -e -d -f -i -l -m -n -r -D -E -t -P)-p[push current history to stack]'
+  '(- *)-P[pop history from stack]'
+)
+
+fc_r='(-A -R -W -e)-l[list resulting commands on stdout]'
+
+case $service in
+  history)
+    _arguments "$fc_common[@]" "$fc_hist[@]" && ret=0
+  ;;
+  r)
+    _arguments "$fc_common[@]" "$fc_r" && ret=0
+  ;;
+  *)
+    _arguments "$fc_common[@]" "$fc_hist[@]" "$fc_r" \
+      '(-A -R -W -a -l -n -d -f -E -i -r -t -D -p -P -s)-e+[specify editor to invoke]:editor to invoke:_command_names -e' \
+      '(-A -R -W -a -l -n -d -f -E -i -r -t -D -p -P -e)-s[re-execute command without invoking editor (like -e-)]' \
+      '(-a -l -L -m -e -r -n -d -f -t -E -i -R -D -A -W -p -P *)-'{\
+'R[read history from file]',\
+'A[append history to file]',\
+'W[write history to file]'} && ret=0
+  ;;
+esac
+
+if [[ -n $state ]]; then
+  zstyle -s ":completion:${curcontext}:" list-separator sep || sep=--
+  if [[ -z ${line:#*=*} ]] && compset -P 1 '*='; then
+    _message -e replacements 'replacement'
+  elif [[ -prefix [0-9] ]]; then
+    print -v events -f "%-${#HISTNO}.${#HISTNO}s $sep %s" "${(kv)history[@]}"
+    _wanted -2V events expl "$state_descr" compadd -M "B:0=" -ld events - \
+        "${events[@]%% *}"
+  elif [[ -prefix - ]]; then
+    for num cmd in "${(kv@)history}"; do
+      (( num=num - HISTNO ))
+      events+=( "${(r.1+$#HISTNO.)num} $sep $cmd" )
+    done
+    _wanted -2V events expl "$state_descr" compadd -ld events - \
+        "${events[@]%% *}"
+  else
+    _wanted events expl "$state_descr" compadd -S '' - \
+        ${${history%%[=[:IFS:]]*}:#[0-9-]*} || _guard "[0-9]#" event
+  fi
+fi && ret=0
+
+return ret

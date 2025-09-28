@@ -1,0 +1,92 @@
+.TH BIOSDECODE 8 "February 2007" "dmidecode"
+.\"
+.SH NAME
+biosdecode \- \s-1BIOS\s0 information decoder
+.\"
+.SH SYNOPSIS
+.B biosdecode
+.RI [ OPTIONS ]
+.\"
+.SH DESCRIPTION
+.B biosdecode
+parses the \s-1BIOS\s0 memory and prints information about all structures (or
+entry points) it knows of. Currently known entry point types are:
+.IP \(bu "\w'\(bu'u+1n"
+\s-1SMBIOS\s0 (System Management \s-1BIOS\s0)
+.br
+Use
+.B dmidecode
+for a more detailed output.
+.IP \(bu
+\s-1DMI\s0 (Desktop Management Interface, a legacy version of \s-1SMBIOS\s0)
+.br
+Use
+.B dmidecode
+for a more detailed output.
+.IP \(bu
+\s-1SYSID\s0
+.IP \(bu
+\s-1PNP\s0 (Plug and Play)
+.IP \(bu
+\s-1ACPI\s0 (Advanced Configuration and Power Interface)
+.IP \(bu
+\s-1BIOS32\s0 (\s-1BIOS32\s0 Service Directory)
+.IP \(bu
+\s-1PIR\s0 (\s-1PCI\s0 \s-1IRQ\s0 Routing)
+.IP \(bu
+\s-132OS\s0 (\s-1BIOS32\s0 Extension, Compaq-specific)
+.br
+See
+.B ownership
+for a Compaq ownership tag retrieval tool.
+.IP \(bu
+\s-1SNY\s0 (Sony-specific, not decoded)
+.IP \(bu
+\s-1VPD\s0 (Vital Product Data, IBM-specific)
+.br
+Use
+.B vpddecode
+for a more detailed output.
+.IP \(bu
+\s-1FJKEYINF\s0 (Application Panel, Fujitsu-specific)
+
+.PP
+.B biosdecode
+started its life as a part of
+.B dmidecode
+but as more entry point types were added, it was moved to a different
+program.
+.\"
+.SH OPTIONS
+.TP
+.BR "-d" ", " "--dev-mem \fIFILE\fP"
+Read memory from device \fIFILE\fP (default: \fI/dev/mem\fP)
+.TP
+.BR "  " "  " "--pir \fBfull\fP"
+Decode the details of the PCI IRQ routing table.
+Only \fBfull\fP mode is supported.
+.TP
+.BR "-h" ", " "--help"
+Display usage information and exit
+.TP
+.BR "-V" ", " "--version"
+Display the version and exit
+.\"
+.SH FILES
+.I /dev/mem
+.\"
+.SH BUGS
+Most of the time,
+.B biosdecode
+prints too much information (you don't really care about addresses)
+or not enough (because it doesn't follow pointers and has no lookup
+tables).
+.\"
+.SH AUTHORS
+Alan Cox, Jean Delvare
+.\"
+.SH "SEE ALSO"
+.BR dmidecode (8),
+.BR mem (4),
+.BR ownership (8),
+.BR vpddecode (8)

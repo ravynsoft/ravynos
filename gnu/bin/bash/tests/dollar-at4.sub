@@ -1,0 +1,10 @@
+set 'a  b' 'c  d'
+
+recho "$@"
+recho $@
+
+quoted="$@"
+unquoted=$@
+
+recho "$quoted"
+recho "$unquoted"

@@ -1,0 +1,44 @@
+#   Copyright (C) 2018-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.
+
+proc test_cxxfilt {options mangled_string demangled_string} {
+    global CXXFILT
+    global CXXFILTFLAGS
+    
+    set testname "cxxfilt: demangling $mangled_string"
+    set got [binutils_run $CXXFILT "$options $CXXFILTFLAGS $mangled_string"]
+
+    if ![regexp $demangled_string $got] then {
+	fail "$testname"
+	verbose 0 "expected: $demangled_string"
+	return
+    }
+
+    pass $testname
+}
+
+# Mangled and demangled strings stolen from libiberty/testsuite/demangle-expected.
+test_cxxfilt {--no-strip-underscores} \
+    "_Z1fIvJiELb0EEvPDOT1_EFT_DpT0_E" \
+    "void f.void, int, false.(void (.)(int) noexcept(false))*"
+
+test_cxxfilt {--format=gnu-v3 --no-strip-underscores} \
+    "_Z14int_if_addableI1YERiP1AIXszpldecvPT_Li0EdecvS4_Li0EEE" \
+    "int& int_if_addable.Y.(A.sizeof ((.((Y.)(0))).(.((Y.)(0))))..)*"
+
+test_cxxfilt {--no-recurse-limit} \
+    "Z3fooiPiPS_PS0_PS1_PS2_PS3_PS4_PS5_PS6_PS7_PS8_PS9_PSA_PSB_PSC_" \
+    "foo(int, int., int.., int..., int...., int....., int......, int......., int........, int........., int.........., int..........., int............, int............., int.............., int...............)*"

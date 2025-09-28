@@ -1,0 +1,5 @@
+MODULE libraryModuleB
+CONTAINS
+        SUBROUTINE libB
+        END SUBROUTINE
+END MODULE

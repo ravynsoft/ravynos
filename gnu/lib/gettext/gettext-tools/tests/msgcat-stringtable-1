@@ -1,0 +1,66 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test reading in NeXTstep/GNUstep .strings syntax.
+
+cat <<\EOF > mcat-s-1.in
+/* This is an example of a string table file. Everything inside a comment
+is completely ignored, even if in "quotes", or \escape characters, etc.
+*/
+
+"title"	= "pattern II target 1";
+
+/* This is an example of excape codes in the string table, codes */
+/* that are not one of abfnrtv are stripped of the \ character */
+"escapes"    = "This is a tab \t and a return \n or a \a but not a \p";
+"escapes2"    = "Well how about a \0? Guess not.";
+
+/* more parameters, white space between tokens is ignored */
+"actualSize"	
+	= 
+		"0.000250 0.000250";
+
+/* a key with no value assumes the value is the empty string */
+"hoe322070.element";
+EOF
+
+rm -f mcat-s-1.tmp
+: ${MSGCAT=msgcat}
+LC_MESSAGES=C LC_ALL= \
+${MSGCAT} --stringtable-input -o mcat-s-1.tmp mcat-s-1.in >mcat-s-1.err 2>&1
+result=$?
+cat mcat-s-1.err | grep -v ': internationalized messages'
+test $result = 0 || { Exit 1; }
+LC_ALL=C tr -d '\r' < mcat-s-1.tmp > mcat-s-1.out || Exit 1
+
+cat << \EOF > mcat-s-1.ok
+# This is an example of a string table file. Everything inside a comment
+# is completely ignored, even if in "quotes", or \escape characters, etc.
+#
+msgid "title"
+msgstr "pattern II target 1"
+
+# This is an example of excape codes in the string table, codes
+# that are not one of abfnrtv are stripped of the \ character
+msgid "escapes"
+msgstr ""
+"This is a tab \t and a return \n"
+" or a \a but not a p"
+
+msgid "escapes2"
+msgstr "Well how about a "
+
+# more parameters, white space between tokens is ignored
+msgid "actualSize"
+msgstr "0.000250 0.000250"
+
+# a key with no value assumes the value is the empty string
+msgid "hoe322070.element"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcat-s-1.ok mcat-s-1.out
+result=$?
+
+exit $result

@@ -1,0 +1,59 @@
+#!/bin/rc
+# This is an rc shell script puts files where they belong and does a bit of
+# patching in order not to modify some perl core code which might impact other
+# OSes. To use, just run it from within the plan9 subdirectory with the
+# appropriate permissions.
+# First modified 6/30/96 by:
+# Luther Huffman, Strategic Computer Solutions, Inc., lutherh@stratcom.com
+# Last modified May 2020 by:
+# David Romano, unobe@cpan.org
+
+# Get the Perl version information
+awk -f versnum ../patchlevel.h
+. buildinfo
+
+builddir = `{ cd .. ; pwd }
+ 
+# 'typestr' is used by /sys/src/cmd/cc/lex.c, but not sure when/if it is ever used.
+# Patch sv.c from afar, which uses 'typestr' as a variable name, and uses bit-fields.
+# Also patch some other things:
+status=`{cd $builddir; ape/patch -p1 <plan9/9front.patch}
+
+if (~ $#* 0) platforms = $objtype
+if not switch($1) {
+	case -a ; platforms = (386 68000 68020 arm arm amd64 mips power power64 sparc sparc64 spim)
+	case * ; echo 'Usage: setup.rc [-a]' >[1=2] ; exit
+}
+
+# Update some files
+cp plan9.c plan9ish.h mkfile $builddir
+
+exit;
+# Why is this done during setup and not during 'mk install'?
+# Build library directories
+echo Building library directories ...
+privroot=/sys/lib/perl
+privlib=$privroot/$p9pvers
+sitelib=$privlib/site_perl
+
+if (test ! -d $privroot) mkdir $privroot
+if (test ! -d $privlib) mkdir $privlib
+if (test ! -d $privlib/auto) mkdir $privlib/auto
+if (test ! -d $sitelib) mkdir $sitelib
+for(i in $platforms){
+	archroot=/$i/lib/perl
+	archlib=$archroot/$p9pvers
+	sitearch=$archlib/site_perl
+	corelib=$archlib/CORE
+	arpalib=$corelib/arpa
+	if (test ! -d $archroot) mkdir $archroot
+	if (test ! -d $archlib) mkdir $archlib
+	if (test ! -d $sitearch) mkdir $sitearch
+	if (test ! -d $corelib) mkdir $corelib
+	if (test ! -d $arpalib) mkdir $arpalib
+	cp $builddir/*.h *.h  $corelib
+	cp arpa/*.h  $arpalib
+}
+
+# Populate library directories
+{cd $builddir/lib ; tar c . } | {cd $privlib ; tar x }

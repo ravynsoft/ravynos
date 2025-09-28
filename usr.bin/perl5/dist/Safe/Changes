@@ -1,0 +1,185 @@
+2.39 xxxxx
+    - reval was not propagating void context properly.
+      The fix is partly in Opcode, so it requires 5.21.8 or higher.
+
+2.38 Mon Aug 04 2014
+    - critical bugfix: outside packages could be replaced (fix in Opcode)
+
+2.37 Sat Jun 22 2013
+    - Doc and presentation nits
+
+2.36 Thu May 23 18:08:48 2013
+    - Doc and test fixes for newer perls
+
+2.35 Thu Feb 21 2013
+    - localize %SIG in the Safe compartment
+    - actually check that we call execution methods on a Safe object
+
+2.34
+    - Test bug #111462, Safe + %^H + disallowed ops (Father Chrysostomos)
+      cf Perl 5 change 42440e3c68e8bafb7e2a74763360939de0fad6be
+
+2.33 Tue Apr  3 2012
+      Don't eval code under "no strict" (Father Chrysostomos)
+      cf. Perl 5 change 25dc25e774abbe993644899cf4d9f9925a9fb9a8
+
+2.32 Sat Mar 31 2012
+    - Make Safe play nice with Devel::Cover
+
+2.31 Fri Jan 20 2012
+    - Now need to use code points above 255 to get SWASHNEW to load
+
+2.30 Tue Dec  6 2011
+    - Fix bad interaction with loading Tie::Hash::NamedCapture
+      on perls >= 5.14.0 [rt.cpan.org #72872]
+
+2.29 Sun Oct 31 2010
+    - Add &version::vxs::VCMP to Safe's default share
+
+2.28 Mon Sep 13 2010
+    - Avoid infinite loop in _find_code_refs.
+      Patch by Yasushi Nakajima (rt.cpan.org #61262)
+
+2.27 Thu Apr 29 2010
+    - Wrap coderefs returned by reval() and rdo()
+    - Add even more version::vxs routines to the default share
+
+2.26 Mon Mar  9 2010
+    - Restore compatibility with perls < 5.8.9
+
+2.25 Sun Mar  7 2010
+    - More security fixes by Nick Cleaton
+
+2.24 Sat Mar  6 2010
+    - Clean the stashes from the Safe compartment after evaluation of code.
+      (Nick Cleaton, Tim Bunce, Rafael Garcia-Suarez)
+    - Add methods wrap_code_ref and wrap_code_refs_within (Tim Bunce)
+    - Share SWASHGET in perls < 5.10 (R.G-S)
+    - Add more version::vxs routines to the default share (Tatsuhiko Miyagawa)
+
+2.23 Mon Feb 22 2010
+    - Install Safe in "site" instead of "perl" for perls > 5.10
+    - [perl #72942] Can't perform unicode operations in Safe compartment
+      (Tim Bunce)
+    - Add some symbols from version::vxs to the default share
+
+2.22 Thu Feb 11 2010
+    fix [perl #72700]: An exception thrown from a closure was getting lost.
+    (Tim Bunce)
+
+2.21 Thu Jan 14 2010
+    fix [perl #72068]: An anonymous sub created by the Safe container will have
+    bogus arguments passed to it.
+
+2.20 Tue Dec 1 2009
+    fix [rt.cpan.org #51574] Safe.pm sort {} bug accessing $a and $b with
+        -Dusethreads (Tim Bunce)
+
+2.19 Tue Aug 25 2009
+    t/safeuniversal.t failure under 5.8.9 (Jerry D. Hedden)
+
+2.18 released with perl 5.10.1
+    [perl #68530] "version::CLASS" warning in Safe.pm (Dave Mitchell)
+
+2.17 Sun Jun 28 2009
+    Sync with code reorganisation in bleadperl
+    Plus new tests
+
+2.16 Thu Mar 13 2008
+    Fix a few backcompat issues:
+
+    Change 33503 on 2008/03/13 by rgs@stcosmo
+	Regexp::DESTROY was only added in 5.8.1
+
+    Change 33278 on 2008/02/11 by rgs@stcosmo
+	Fix test to pass en 5.6.2 (unpack is needed by version.pm there)
+
+2.15 Wed Feb  6 2008
+    Change 33238 on 2008/02/05 by rgs@stcosmo
+	Adapt Safe innards to older (XS) versions of version.pm
+
+    Change 33237 on 2008/02/05 by rgs@stcosmo
+	Add a new test for Safe
+
+    Change 33236 on 2008/02/05 by rgs@stcosmo
+	Fix CPAN bug #32896: make version.pm loadable in a Safe compartment
+
+    Change 33170 on 2008/02/01 by nicholas@nicholas-bouvard
+	Break apart the list of functions defined in universal.c by perl
+	version (from 5.8.8 upwards)
+
+2.14 Mon Jan 30 2008
+	- Make Safe work with Perl 5.6 (changes 33102 and 33105 to perl)
+
+2.13 Mon Jan 28 2008
+	- Backport the bleadperl version to CPAN. Changes:
+
+    Change 33096 on 2008/01/28 by rgs@stcosmo
+
+	    Bump the version of Safe
+
+    Change 33093 on 2008/01/28 by rgs@stcosmo
+
+	    In Safe, load Carp::Heavy only if it exists (to remain
+	    compatible with older perls)
+
+    Change 32597 on 2007/12/08 by rgs@counterfly
+
+	    Change maintainer address for Safe.
+
+    Change 32103 on 2007/10/12 by rgs@counterfly
+
+	    Funny symbol table names can be shared, too
+
+    Change 32102 on 2007/10/12 by rgs@counterfly
+
+	    Share the internal XS functions defined in universal.c
+	    to Safe compartments
+
+    Change 31610 on 2007/07/13 by rgs@stcosmo
+
+	    Use new style L<> links in POD
+
+    Change 26814 on 2006/01/13 by rgs@stencil
+
+	    Add a link to the Opcode doc in Safe.
+	    (see RT CPAN ticket #8579)
+
+2.11 Fri Jul  2 2004
+	- Backport the bleadperl version to CPAN. Changes:
+
+    Change 22898 by rgs@valis on 2004/06/03 09:02:31
+
+	Carp was mostly unusable with Safe because it may require
+	Carp::Heavy at run-time (while require() is forbidden.)
+	Have Safe load Carp::Heavy.
+
+    Change 21063 by rgs@rgs-home on 2003/09/07 18:25:23
+
+	Subject: [PATCH] Re: [perl #23656] Safe reval bleeds local variable values
+	From: Dave Mitchell <davem@fdgroup.com>
+	Date: Sun, 7 Sep 2003 19:14:44 +0100
+	Message-ID: <20030907181444.GA7058@fdgroup.com>
+
+2.09 Sun Oct  6 14:12:40 CEST 2002
+	- Upgraded the Makefile.PL to install Safe.pm to the correct place.
+	- Made it work on 5.6 at least, maybe even on 5.005?
+
+2.08 Sat Oct  5 18:05:32 CEST 2002
+	- First CPAN release, prompted by bug number 17744 on rt.perl.org.
+	  http://bugs6.perl.org/rt2/Ticket/Display.html?id=17744	
+	- Change 17977 by rgs@rgs-home on 2002/10/04 20:01:54
+	  Complement to change #17976 :
+	  there was a similar bug on rdo().
+	  Increment $Safe::VERSION.
+	- Change 17976 by rgs@rgs-home on 2002/10/04 19:44:48
+	  Fix bug #17744, suggested by Andreas Jurenda,
+	  tweaked by rgs (security hole in Safe).
+	- Change 17973 by rgs@rgs-home on 2002/10/03 20:34:13
+	  Change the warning message "%s trapped by operation mask"
+	  to include '' around the op name. Document it in perldiag.
+	- Change 17729 by hv@hv-star.knots.net on 2002/08/17 02:33:15
+	  Subject: [PATCH] Safe.pm documentation
+          From: Slaven Rezic <slaven.rezic@berlin.de>
+          Date: Sat, 10 Aug 2002 19:30:38 +0200 (CEST)
+          Message-id: <200208101730.g7AHUc9p001668@vran.herceg.de>

@@ -1,0 +1,23 @@
+SAX.setDocumentLocator()
+SAX.startDocument()
+SAX.internalSubset(doc, , )
+SAX.attributeDecl(e, a1, 1, 3, NULL, ...)
+SAX.attributeDecl(e, a2, 1, 3, NULL, ...)
+SAX.attributeDecl(e, a3, 1, 3, NULL, ...)
+SAX.attributeDecl(e, a4, 1, 3, NULL, ...)
+SAX.attributeDecl(e, a5, 1, 3, NULL, ...)
+SAX.attributeDecl(e, a6, 1, 3, NULL, ...)
+SAX.externalSubset(doc, , )
+SAX.startElementNs(doc, NULL, NULL, 0, 0, 0)
+SAX.characters(
+    , 5)
+SAX.comment( This tests whether xmlCleanSpecialAttr works. The attribute values
+         must not be normalized. )
+SAX.characters(
+    , 5)
+SAX.startElementNs(e, NULL, NULL, 0, 6, 0, a1=' x  ...', 6, a2=' x  ...', 6, a3=' x  ...', 6, a4=' x  ...', 6, a5=' x  ...', 6, a6=' x  ...', 6)
+SAX.endElementNs(e, NULL, NULL)
+SAX.characters(
+, 1)
+SAX.endElementNs(doc, NULL, NULL)
+SAX.endDocument()

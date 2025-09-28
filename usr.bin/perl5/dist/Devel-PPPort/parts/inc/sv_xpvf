@@ -1,0 +1,306 @@
+################################################################################
+##
+##  Version 3.x, Copyright (C) 2004-2013, Marcus Holland-Moritz.
+##  Version 2.x, Copyright (C) 2001, Paul Marquess.
+##  Version 1.x, Copyright (C) 1999, Kenneth Albanowski.
+##
+##  This program is free software; you can redistribute it and/or
+##  modify it under the same terms as Perl itself.
+##
+################################################################################
+
+=provides
+
+vnewSVpvf
+sv_vcatpvf
+sv_vsetpvf
+
+sv_catpvf_mg
+sv_catpvf_mg_nocontext
+sv_vcatpvf_mg
+
+sv_setpvf_mg
+sv_setpvf_mg_nocontext
+sv_vsetpvf_mg
+
+=implementation
+
+#if { VERSION >= 5.004 } && !defined(vnewSVpvf)
+#if defined(PERL_USE_GCC_BRACE_GROUPS)
+#  define vnewSVpvf(pat, args) ({ SV *_sv = newSV(0); sv_vsetpvfn(_sv, (pat), strlen((pat)), (args), Null(SV**), 0, Null(bool*)); _sv; })
+#else
+#  define vnewSVpvf(pat, args) ((PL_Sv = newSV(0)), sv_vsetpvfn(PL_Sv, (pat), strlen((pat)), (args), Null(SV**), 0, Null(bool*)), PL_Sv)
+#endif
+#endif
+
+#if { VERSION >= 5.004 } && !defined(sv_vcatpvf)
+#  define sv_vcatpvf(sv, pat, args)  sv_vcatpvfn(sv, pat, strlen(pat), args, Null(SV**), 0, Null(bool*))
+#endif
+
+#if { VERSION >= 5.004 } && !defined(sv_vsetpvf)
+#  define sv_vsetpvf(sv, pat, args)  sv_vsetpvfn(sv, pat, strlen(pat), args, Null(SV**), 0, Null(bool*))
+#endif
+
+#if { VERSION >= 5.004 } && !defined(sv_catpvf_mg)
+#if { NEED sv_catpvf_mg }
+
+void
+sv_catpvf_mg(pTHX_ SV * const sv, const char * const pat, ...)
+{
+  va_list args;
+  va_start(args, pat);
+  sv_vcatpvfn(sv, pat, strlen(pat), &args, Null(SV**), 0, Null(bool*));
+  SvSETMAGIC(sv);
+  va_end(args);
+}
+
+#endif
+#endif
+
+#ifdef PERL_IMPLICIT_CONTEXT
+#if { VERSION >= 5.004 } && !defined(sv_catpvf_mg_nocontext)
+#if { NEED sv_catpvf_mg_nocontext }
+
+void
+sv_catpvf_mg_nocontext(SV * const sv, const char * const pat, ...)
+{
+  dTHX;
+  va_list args;
+  va_start(args, pat);
+  sv_vcatpvfn(sv, pat, strlen(pat), &args, Null(SV**), 0, Null(bool*));
+  SvSETMAGIC(sv);
+  va_end(args);
+}
+
+#endif
+#endif
+#endif
+
+/* sv_catpvf_mg depends on sv_catpvf_mg_nocontext */
+#ifndef sv_catpvf_mg
+#  ifdef PERL_IMPLICIT_CONTEXT
+#    define sv_catpvf_mg   Perl_sv_catpvf_mg_nocontext
+#  else
+#    define sv_catpvf_mg   Perl_sv_catpvf_mg
+#  endif
+#endif
+
+#if { VERSION >= 5.004 } && !defined(sv_vcatpvf_mg)
+#  define sv_vcatpvf_mg(sv, pat, args)                                     \
+   STMT_START {                                                            \
+     sv_vcatpvfn(sv, pat, strlen(pat), args, Null(SV**), 0, Null(bool*));  \
+     SvSETMAGIC(sv);                                                       \
+   } STMT_END
+#endif
+
+#if { VERSION >= 5.004 } && !defined(sv_setpvf_mg)
+#if { NEED sv_setpvf_mg }
+
+void
+sv_setpvf_mg(pTHX_ SV * const sv, const char * const pat, ...)
+{
+  va_list args;
+  va_start(args, pat);
+  sv_vsetpvfn(sv, pat, strlen(pat), &args, Null(SV**), 0, Null(bool*));
+  SvSETMAGIC(sv);
+  va_end(args);
+}
+
+#endif
+#endif
+
+#ifdef PERL_IMPLICIT_CONTEXT
+#if { VERSION >= 5.004 } && !defined(sv_setpvf_mg_nocontext)
+#if { NEED sv_setpvf_mg_nocontext }
+
+void
+sv_setpvf_mg_nocontext(SV * const sv, const char * const pat, ...)
+{
+  dTHX;
+  va_list args;
+  va_start(args, pat);
+  sv_vsetpvfn(sv, pat, strlen(pat), &args, Null(SV**), 0, Null(bool*));
+  SvSETMAGIC(sv);
+  va_end(args);
+}
+
+#endif
+#endif
+#endif
+
+/* sv_setpvf_mg depends on sv_setpvf_mg_nocontext */
+#ifndef sv_setpvf_mg
+#  ifdef PERL_IMPLICIT_CONTEXT
+#    define sv_setpvf_mg   Perl_sv_setpvf_mg_nocontext
+#  else
+#    define sv_setpvf_mg   Perl_sv_setpvf_mg
+#  endif
+#endif
+
+#if { VERSION >= 5.004 } && !defined(sv_vsetpvf_mg)
+#  define sv_vsetpvf_mg(sv, pat, args)                                     \
+   STMT_START {                                                            \
+     sv_vsetpvfn(sv, pat, strlen(pat), args, Null(SV**), 0, Null(bool*));  \
+     SvSETMAGIC(sv);                                                       \
+   } STMT_END
+#endif
+
+=xsinit
+
+#define NEED_sv_catpvf_mg
+#define NEED_sv_catpvf_mg_nocontext
+#define NEED_sv_setpvf_mg
+#define NEED_sv_setpvf_mg_nocontext
+
+=xsmisc
+
+static SV * test_vnewSVpvf(pTHX_ const char *pat, ...)
+{
+  SV *sv;
+  va_list args;
+  va_start(args, pat);
+#if { VERSION >= 5.004 }
+  sv = vnewSVpvf(pat, &args);
+#else
+  sv = newSVpv((char *) pat, 0);
+#endif
+  va_end(args);
+  return sv;
+}
+
+static void test_sv_vcatpvf(pTHX_ SV *sv, const char *pat, ...)
+{
+  va_list args;
+  va_start(args, pat);
+#if { VERSION >= 5.004 }
+  sv_vcatpvf(sv, pat, &args);
+#else
+  sv_catpv(sv, (char *) pat);
+#endif
+  va_end(args);
+}
+
+static void test_sv_vsetpvf(pTHX_ SV *sv, const char *pat, ...)
+{
+  va_list args;
+  va_start(args, pat);
+#if { VERSION >= 5.004 }
+  sv_vsetpvf(sv, pat, &args);
+#else
+  sv_setpv(sv, (char *) pat);
+#endif
+  va_end(args);
+}
+
+=xsubs
+
+SV *
+vnewSVpvf()
+        CODE:
+                RETVAL = test_vnewSVpvf(aTHX_ "%s-%d", "Perl", 42);
+        OUTPUT:
+                RETVAL
+
+SV *
+sv_vcatpvf(sv)
+        SV *sv
+        CODE:
+                RETVAL = newSVsv(sv);
+                test_sv_vcatpvf(aTHX_ RETVAL, "%s-%d", "Perl", 42);
+        OUTPUT:
+                RETVAL
+
+SV *
+sv_vsetpvf(sv)
+        SV *sv
+        CODE:
+                RETVAL = newSVsv(sv);
+                test_sv_vsetpvf(aTHX_ RETVAL, "%s-%d", "Perl", 42);
+        OUTPUT:
+                RETVAL
+
+void
+sv_catpvf_mg(sv)
+        SV *sv
+        CODE:
+#if { VERSION >= 5.004 }
+                sv_catpvf_mg(sv, "%s-%d", "Perl", 42);
+#endif
+
+void
+Perl_sv_catpvf_mg(sv)
+        SV *sv
+        CODE:
+#if { VERSION >= 5.004 }
+                Perl_sv_catpvf_mg(aTHX_ sv, "%s-%d", "-Perl", 43);
+#endif
+
+void
+sv_catpvf_mg_nocontext(sv)
+        SV *sv
+        CODE:
+#if { VERSION >= 5.004 }
+#ifdef PERL_IMPLICIT_CONTEXT
+                sv_catpvf_mg_nocontext(sv, "%s-%d", "-Perl", 44);
+#else
+                sv_catpvf_mg(sv, "%s-%d", "-Perl", 44);
+#endif
+#endif
+
+void
+sv_setpvf_mg(sv)
+        SV *sv
+        CODE:
+#if { VERSION >= 5.004 }
+                sv_setpvf_mg(sv, "%s-%d", "mhx", 42);
+#endif
+
+void
+Perl_sv_setpvf_mg(sv)
+        SV *sv
+        CODE:
+#if { VERSION >= 5.004 }
+                Perl_sv_setpvf_mg(aTHX_ sv, "%s-%d", "foo", 43);
+#endif
+
+void
+sv_setpvf_mg_nocontext(sv)
+        SV *sv
+        CODE:
+#if { VERSION >= 5.004 }
+#ifdef PERL_IMPLICIT_CONTEXT
+                sv_setpvf_mg_nocontext(sv, "%s-%d", "bar", 44);
+#else
+                sv_setpvf_mg(sv, "%s-%d", "bar", 44);
+#endif
+#endif
+
+=tests plan => 9
+
+use Tie::Hash;
+my %h;
+tie %h, 'Tie::StdHash';
+$h{foo} = 'foo-';
+$h{bar} = '';
+
+is(&Devel::PPPort::vnewSVpvf(), ivers($]) >= ivers("5.004") ? 'Perl-42' : '%s-%d');
+is(&Devel::PPPort::sv_vcatpvf('1-2-3-'), ivers($]) >= ivers("5.004") ? '1-2-3-Perl-42' : '1-2-3-%s-%d');
+is(&Devel::PPPort::sv_vsetpvf('1-2-3-'), ivers($]) >= ivers("5.004") ? 'Perl-42' : '%s-%d');
+
+&Devel::PPPort::sv_catpvf_mg($h{foo});
+is($h{foo}, ivers($]) >= ivers("5.004") ? 'foo-Perl-42' : 'foo-');
+
+&Devel::PPPort::Perl_sv_catpvf_mg($h{foo});
+is($h{foo}, ivers($]) >= ivers("5.004") ? 'foo-Perl-42-Perl-43' : 'foo-');
+
+&Devel::PPPort::sv_catpvf_mg_nocontext($h{foo});
+is($h{foo}, ivers($]) >= ivers("5.004") ? 'foo-Perl-42-Perl-43-Perl-44' : 'foo-');
+
+&Devel::PPPort::sv_setpvf_mg($h{bar});
+is($h{bar}, ivers($]) >= ivers("5.004") ? 'mhx-42' : '');
+
+&Devel::PPPort::Perl_sv_setpvf_mg($h{bar});
+is($h{bar}, ivers($]) >= ivers("5.004") ? 'foo-43' : '');
+
+&Devel::PPPort::sv_setpvf_mg_nocontext($h{bar});
+is($h{bar}, ivers($]) >= ivers("5.004") ? 'bar-44' : '');

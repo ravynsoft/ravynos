@@ -1,0 +1,24 @@
+Description:
+Use of program name in error-reporting functions.
+
+Files:
+lib/error-progname.h
+lib/error-progname.c
+
+Depends-on:
+progname
+
+configure.ac:
+
+Makefile.am:
+lib_SOURCES += error-progname.h error-progname.c
+
+Include:
+"error-progname.h"
+
+License:
+GPL
+
+Maintainer:
+Bruno Haible
+

@@ -1,0 +1,69 @@
+.TH LIBEVDEV-TWEAK-DEVICE "1"
+.SH NAME
+libevdev-tweak-device \- modify an evdev kernel device
+.SH SYNOPSIS
+.B libevdev-tweak-device
+--abs ABS_X [--min a] [--max b] [--res c] [--fuzz d] [--flat e]
+/dev/input/eventX
+.B libevdev-tweak-device
+--resolution res[,yres] /dev/input/eventX
+.PP
+.B libevdev-tweak-device
+--led LED_NUML --on|--off /dev/input/eventX
+.SH DESCRIPTION
+.PP
+The
+.I libevdev-tweak-device
+tool changes the properties of the evdev kernel device at
+.I /dev/input/eventX.
+Currently this may be used to force an LED on or off, or to change the
+properties of an absolute axis (e.g. its minimum/maximum range or
+resolution). Changes are permanent until the device is removed.
+.SH OPTIONS
+.SS Changing absolute axes
+.TP 8
+.B --abs axis
+Change the given named ABS_ kernel axis, e.g. ABS_X. For a full list, see linux/input.h.
+Each of the options
+.B min, max, res, fuzz, flat
+may be given.
+.TP 8
+.B --min v
+Set the absinfo minimum to the value v
+.TP 8
+.B --max v
+Set the absinfo maximum to the value v
+.TP 8
+.B --res v
+Set the absinfo resolution to the value v
+.TP 8
+.B --fuzz v
+Set the absinfo fuzz to the value v
+.TP 8
+.B --flat v
+Set the absinfo flat to the value v
+.PP
+.SS Changing the x/y resolution
+.TP 8
+.B --resolution res[,yres]
+Changes the resolution of the ABS_X, ABS_MT_POSITION_X, ABS_Y, and
+ABS_MT_POSITION_Y axis to the given resolution. If only one resolution value
+is provided, both x and y axis are set to the same resolution, otherwise the
+first resolution value is applied to the x axes and the second value to the
+y axes.
+.SS Toggling LEDs
+.TP 8
+.B --led led
+Change the given LED, e.g. LED_NUML. For a full list, see linux/input.h.
+.TP 8
+.B --on
+Change the LED state to on
+.TP 8
+.B --off
+Change the LED state to off
+.SH NOTES
+.PP
+The kernel does not notify processes about absinfo property changes. Any
+process that has previously obtained the absinfo from the device will remain
+on the old information. This makes using this tool potentially racy, use
+with caution.

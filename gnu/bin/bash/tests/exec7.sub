@@ -1,0 +1,36 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# make sure that bash really checks the right things when deciding what
+# constitutes an executable file
+
+[ $UID -eq 0 ] && { echo "exec7.sub: the test suite should not be run as root" >&2 ; }
+
+: ${TMPDIR:=/tmp}
+
+cd $TMPDIR || { echo "cannot cd to $TMPDIR" >&2 ; exit 2; }
+
+mkdir testa testb
+
+echo 'echo "testa"' > testa/foo
+echo 'echo "testb"' > testb/foo
+
+chmod 655 testa/foo
+chmod 755 testb/foo
+
+PATH=$TMPDIR/testa:$TMPDIR/testb $THIS_SH -c foo
+
+rm -rf testa testb
+
+cd $OLDPWD
+exit 0

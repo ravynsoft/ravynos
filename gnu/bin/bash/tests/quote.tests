@@ -1,0 +1,139 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+echo "Single Quote"
+echo 'foo
+bar'
+echo 'foo
+bar'
+echo 'foo\
+bar'
+
+echo "Double Quote"
+echo "foo
+bar"
+echo "foo
+bar"
+echo "foo\
+bar" 
+
+echo "Backslash Single Quote"
+echo `echo 'foo
+bar'`   
+echo `echo 'foo  
+bar'`   
+echo `echo 'foo\
+bar'`  
+
+echo "Backslash Double Quote"
+echo `echo "foo
+bar"`
+echo `echo "foo
+bar"`
+echo `echo "foo\
+bar"`
+
+echo "Double Quote Backslash Single Quote"
+echo "`echo 'foo
+bar'`"
+echo "`echo 'foo
+bar'`"
+echo "`echo 'foo\
+bar'`"
+
+echo "Dollar Paren Single Quote"
+echo $(echo 'foo
+bar')
+echo $(echo 'foo
+bar')
+echo $(echo 'foo\
+bar')
+
+echo "Dollar Paren Double Quote"
+echo $(echo "foo
+bar")
+echo $(echo "foo
+bar")
+echo $(echo "foo\
+bar")
+
+echo "Double Quote Dollar Paren Single Quote"
+echo "$(echo 'foo
+bar')"
+echo "$(echo 'foo
+bar')"
+echo "$(echo 'foo\
+bar')"
+
+# old-style command substitution parsing compatibility tests -- post bash-3.1
+recho 'foo \\
+bar'
+
+recho 'foo \
+bar'
+
+echo `recho sed -e 's/[	:]/\\
+/g'`
+
+echo `recho sed -e 's/[	:]/\
+/g'`
+
+echo `recho 'foo\\
+bar'`
+
+echo `recho 'foo\
+bar'`  
+
+echo $(recho 'foo\
+bar')
+
+a=`echo 'a b c' | sed 's/ /\\
+/g' | grep 'b'`
+echo $a
+a=`echo 'a b c' | sed 's/ /\\
+/g'`
+echo "$a"
+
+recho `echo 'a\' b`
+
+recho `echo '\$' bab`
+recho `echo '\$foo' bab`
+recho `echo '$foo' bab`
+
+recho `echo '\`' ab`
+
+recho `echo '\\' ab`
+
+echo `echo '${'`
+
+recho `echo "(\\")"`
+# produces no output
+: `: "\\""`
+# ultimate workaround
+recho `echo "(\")"`
+
+# various strings ending in backslashes
+
+echo 'string \'
+echo "string \\"
+
+echo string\ \\
+
+echo ${foo:-'string \'}
+echo "${foo:-string \\}"
+echo ${foo:-string \\\}}
+
+${THIS_SH} ./quote1.sub
+${THIS_SH} ./quote2.sub
+${THIS_SH} ./quote3.sub
+${THIS_SH} ./quote4.sub

@@ -1,0 +1,25 @@
+# Tests of fc command
+%prep
+
+ mkdir fc.tmp 
+ cd fc.tmp
+ print 'fc -l foo' >fcl
+ 
+%test
+  $ZTST_testdir/../Src/zsh -f ./fcl
+1:Checking that fc -l foo doesn't core dump when history is empty
+?./fcl:fc:1: event not found: foo
+
+  PS1='%% ' $ZTST_testdir/../Src/zsh +Z -fsi <<< $'fc -p /dev/null 0 0\n:'
+0:Checking that fc -p doesn't core dump when history size is zero
+*?*%*
+
+  PS1='%% ' $ZTST_testdir/../Src/zsh +Z -fsi <<< 'fc -p /dev/null a 0'
+1:Checking that fc -p rejects non-integer history size
+*?*% fc: HISTSIZE must be an integer
+*?*%*
+
+  PS1='%% ' $ZTST_testdir/../Src/zsh +Z -fsi <<< 'fc -p /dev/null 0 a'
+1:Checking that fc -p rejects non-integer history save size
+*?*% fc: SAVEHIST must be an integer
+*?*%*

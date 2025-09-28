@@ -1,0 +1,52 @@
+new_args
+  max_redirect: 0
+url
+  http://example.com/index.html
+expected
+  <a href="http://example.com/index2.html">redirect</a>
+expected_url
+  http://example.com/index.html
+----------
+GET /index.html HTTP/1.1
+Host: example.com
+Connection: close
+User-Agent: HTTP-Tiny/VERSION
+
+----------
+HTTP/1.1 302 Found
+Date: Thu, 03 Feb 1994 00:00:00 GMT
+Content-Type: text/html
+Content-Length: 53
+Location: http://example.com/index2.html
+
+<a href="http://example.com/index2.html">redirect</a>
+
+----------
+GET /index2.html HTTP/1.1
+Host: example.com
+Connection: close
+User-Agent: HTTP-Tiny/VERSION
+
+----------
+HTTP/1.1 302 Found
+Date: Thu, 03 Feb 1994 00:00:00 GMT
+Content-Type: text/html
+Content-Length: 53
+Location: http://example.com/index3.html
+
+<a href="http://example.com/index3.html">redirect</a>
+
+----------
+GET /index3.html HTTP/1.1
+Host: example.com
+Connection: close
+User-Agent: HTTP-Tiny/VERSION
+
+----------
+HTTP/1.1 200 OK
+Date: Thu, 03 Feb 1994 00:00:00 GMT
+Content-Type: text/plain
+Content-Length: 42
+
+abcdefghijklmnopqrstuvwxyz1234567890abcdef
+

@@ -1,0 +1,30 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test that an empty header entry is OK.
+
+cat <<EOF >mf-test3.po
+#
+#       xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#       xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#       xxxxxxxxxxxxxxxxxxxx
+#
+#       xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#       xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#       xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#       xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+msgid   ""
+msgstr  ""
+EOF
+
+: ${MSGFMT=msgfmt}
+LC_MESSAGES=C LC_ALL= \
+${MSGFMT} -o mftest3.mo mf-test3.po >mftest3.err 2>&1
+result=$?
+cat mftest3.err | grep -v 'warning: Charset' | grep -v '^ '
+test $result = 0 || { Exit 1; }
+
+test ! -f mftest3.mo
+result=$?
+
+exit $result

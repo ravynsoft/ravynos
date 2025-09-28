@@ -1,0 +1,7 @@
+ld e, ~0xe6
+ld e, -0xe6
+ld e, 0xe6
+ld e, ~0
+ld e, !0xe6
+ld e, -7
+ld e, ~0x1234

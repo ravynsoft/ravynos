@@ -1,0 +1,54 @@
+texinode(Introduction)(Roadmap)(The Z Shell Manual)(Top)
+chapter(Introduction)
+cindex(introduction)
+ifzman(\
+sect(Overview)
+Because zsh contains many features, the zsh manual has been split into
+a number of section+CHAR(s)\
+ifzshall(\
+.  This manual page includes all the separate manual pages in the
+following order\
+)\
+:
+
+startlist()
+ifzshone(\
+list(em(zsh)          Zsh overview (this section))
+)\
+ifzshall(\
+list(em(zsh)          Zsh overview)
+)\
+list(em(zshroadmap)   Informal introduction to the manual)
+list(em(zshmisc)      Anything not fitting into the other sections)
+list(em(zshexpn)      Zsh command and parameter expansion)
+list(em(zshparam)     Zsh parameters)
+list(em(zshoptions)   Zsh options)
+list(em(zshbuiltins)  Zsh built-in functions)
+list(em(zshzle)       Zsh command line editing)
+list(em(zshcompwid)   Zsh completion widgets)
+list(em(zshcompsys)   Zsh completion system)
+list(em(zshcompctl)   Zsh completion control)
+list(em(zshmodules)   Zsh loadable modules)
+list(em(zshcalsys)    Zsh built-in calendar functions)
+list(em(zshtcpsys)    Zsh built-in TCP functions)
+list(em(zshzftpsys)   Zsh built-in FTP client)
+list(em(zshcontrib)   Additional zsh functions and utilities)
+ifzshone(\
+list(em(zshall)       Meta-man page containing all of the above)
+)\
+endlist()
+sect(Description)
+)\
+Zsh is a UNIX command interpreter (shell) usable as an interactive
+login shell and as a shell script command processor.  Of the standard shells,
+zsh most closely resembles bf(ksh) but includes many enhancements.  It
+does not provide compatibility with POSIX or other shells in its
+default operating mode:  see
+ifnzman(the section noderef(Compatibility))\
+ifzman(the section `Compatibility' below).
+
+Zsh has command line editing, builtin spelling correction, programmable
+command completion, shell functions (with autoloading), a history
+mechanism, and a host of other features.
+includefile(Zsh/metafaq.yo)
+ifnzman(includefile(Zsh/seealso.yo))

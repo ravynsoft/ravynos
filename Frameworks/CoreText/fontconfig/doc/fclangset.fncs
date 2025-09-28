@@ -1,0 +1,201 @@
+/*
+ * Copyright © 2007 Keith Packard
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that copyright
+ * notice and this permission notice appear in supporting documentation, and
+ * that the name of the copyright holders not be used in advertising or
+ * publicity pertaining to distribution of the software without specific,
+ * written prior permission.  The copyright holders make no representations
+ * about the suitability of this software for any purpose.  It is provided "as
+ * is" without express or implied warranty.
+ *
+ * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ */
+
+@RET@           FcLangSet *
+@FUNC@          FcLangSetCreate
+@TYPE1@         void
+@PURPOSE@       create a langset object
+@DESC@
+<function>FcLangSetCreate</function> creates a new FcLangSet object.
+@@
+
+@RET@           void
+@FUNC@          FcLangSetDestroy
+@TYPE1@         FcLangSet *                     @ARG1@          ls
+@PURPOSE@       destroy a langset object
+@DESC@
+<function>FcLangSetDestroy</function> destroys a FcLangSet object, freeing
+all memory associated with it.
+@@
+
+@RET@           FcLangSet *
+@FUNC@          FcLangSetCopy
+@TYPE1@         const FcLangSet *               @ARG1@          ls
+@PURPOSE@       copy a langset object
+@DESC@
+<function>FcLangSetCopy</function> creates a new FcLangSet object and
+populates it with the contents of <parameter>ls</parameter>.
+@@
+
+@RET@           FcBool
+@FUNC@          FcLangSetAdd
+@TYPE1@         FcLangSet *                     @ARG1@          ls
+@TYPE2@         const FcChar8 *                 @ARG2@          lang
+@PURPOSE@       add a language to a langset
+@DESC@
+<parameter>lang</parameter> is added to <parameter>ls</parameter>.
+<parameter>lang</parameter> should be of the form Ll-Tt where Ll is a
+two or three letter language from ISO 639 and Tt is a territory from ISO
+3166.
+@@
+
+@RET@           FcBool
+@FUNC@          FcLangSetDel
+@TYPE1@         FcLangSet *                     @ARG1@          ls
+@TYPE2@         const FcChar8 *                 @ARG2@          lang
+@PURPOSE@       delete a language from a langset
+@DESC@
+<parameter>lang</parameter> is removed from <parameter>ls</parameter>.
+<parameter>lang</parameter> should be of the form Ll-Tt where Ll is a
+two or three letter language from ISO 639 and Tt is a territory from ISO
+3166.
+@SINCE@         2.9.0
+@@
+
+@RET@           FcLangSet *
+@FUNC@          FcLangSetUnion
+@TYPE1@         const FcLangSet *               @ARG1@          ls_a
+@TYPE2@         const FcLangSet *               @ARG2@          ls_b
+@PURPOSE@       Add langsets
+@DESC@
+Returns a set including only those languages found in either <parameter>ls_a</parameter> or <parameter>ls_b</parameter>.
+@SINCE@         2.9.0
+@@
+
+@RET@           FcLangSet *
+@FUNC@          FcLangSetSubtract
+@TYPE1@         const FcLangSet *               @ARG1@          ls_a
+@TYPE2@         const FcLangSet *               @ARG2@          ls_b
+@PURPOSE@       Subtract langsets
+@DESC@
+Returns a set including only those languages found in <parameter>ls_a</parameter> but not in <parameter>ls_b</parameter>.
+@SINCE@         2.9.0
+@@
+
+@RET@           FcLangResult
+@FUNC@          FcLangSetCompare
+@TYPE1@         const FcLangSet *               @ARG1@          ls_a
+@TYPE2@         const FcLangSet *               @ARG2@          ls_b
+@PURPOSE@       compare language sets
+@DESC@
+<function>FcLangSetCompare</function> compares language coverage for
+<parameter>ls_a</parameter> and <parameter>ls_b</parameter>. If they share
+any language and territory pair, this function returns FcLangEqual. If they
+share a language but differ in which territory that language is for, this
+function returns FcLangDifferentTerritory. If they share no languages in
+common, this function returns FcLangDifferentLang.
+@@
+
+@RET@           FcBool
+@FUNC@          FcLangSetContains
+@TYPE1@         const FcLangSet *               @ARG1@          ls_a
+@TYPE2@         const FcLangSet *               @ARG2@          ls_b
+@PURPOSE@       check langset subset relation
+@DESC@
+<function>FcLangSetContains</function> returns FcTrue if
+<parameter>ls_a</parameter> contains every language in
+<parameter>ls_b</parameter>. <parameter>ls_a</parameter> will 'contain' a
+language from <parameter>ls_b</parameter> if <parameter>ls_a</parameter>
+has exactly the language, or either the language or
+<parameter>ls_a</parameter> has no territory.
+@@
+
+@RET@           FcBool
+@FUNC@          FcLangSetEqual
+@TYPE1@         const FcLangSet *               @ARG1@          ls_a
+@TYPE2@         const FcLangSet *               @ARG2@          ls_b
+@PURPOSE@       test for matching langsets
+@DESC@
+Returns FcTrue if and only if <parameter>ls_a</parameter> supports precisely
+the same language and territory combinations as <parameter>ls_b</parameter>.
+@@
+
+@RET@           FcChar32
+@FUNC@          FcLangSetHash
+@TYPE1@         const FcLangSet *               @ARG1@          ls
+@PURPOSE@       return a hash value for a langset
+@DESC@
+This function returns a value which depends solely on the languages
+supported by <parameter>ls</parameter>. Any language which equals
+<parameter>ls</parameter> will have the same result from
+<function>FcLangSetHash</function>. However, two langsets with the same hash
+value may not be equal.
+@@
+
+@RET@           FcLangResult
+@FUNC@          FcLangSetHasLang
+@TYPE1@         const FcLangSet *               @ARG1@          ls
+@TYPE2@         const FcChar8 *                 @ARG2@          lang
+@PURPOSE@       test langset for language support
+@DESC@
+<function>FcLangSetHasLang</function> checks whether
+<parameter>ls</parameter> supports <parameter>lang</parameter>. If
+<parameter>ls</parameter> has a matching language and territory pair,
+this function returns FcLangEqual. If <parameter>ls</parameter> has
+a matching language but differs in which territory that language is for, this
+function returns FcLangDifferentTerritory. If <parameter>ls</parameter>
+has no matching language, this function returns FcLangDifferentLang.
+@@
+
+@RET@           FcStrSet *
+@FUNC@          FcGetDefaultLangs
+@TYPE1@         void
+@PURPOSE@       Get the default languages list
+@DESC@
+Returns a string set of the default languages according to the environment variables on the system.
+This function looks for them in order of FC_LANG, LC_ALL, LC_CTYPE and LANG then.
+If there are no valid values in those environment variables, "en" will be set as fallback.
+@SINCE@         2.9.91
+@@
+
+@RET@           FcStrSet *
+@FUNC@          FcLangSetGetLangs
+@TYPE1@         const FcLangSet *               @ARG1@          ls
+@PURPOSE@       get the list of languages in the langset
+@DESC@
+Returns a string set of all languages in <parameter>langset</parameter>.
+@@
+
+@RET@           FcStrSet *
+@FUNC@          FcGetLangs
+@TYPE1@         void
+@PURPOSE@       Get list of languages
+@DESC@
+Returns a string set of all known languages.
+@@
+
+@RET@           FcChar8 *
+@FUNC@          FcLangNormalize
+@TYPE1@         const FcChar8 *                 @ARG1@          lang
+@PURPOSE@       Normalize the language string
+@DESC@
+Returns a string to make <parameter>lang</parameter> suitable on fontconfig.
+@SINCE@         2.10.91
+@@
+
+@RET@           const FcCharSet *
+@FUNC@          FcLangGetCharSet
+@TYPE1@         const FcChar8 *                 @ARG1@          lang
+@PURPOSE@       Get character map for a language
+@DESC@
+Returns the FcCharMap for a language.
+@@

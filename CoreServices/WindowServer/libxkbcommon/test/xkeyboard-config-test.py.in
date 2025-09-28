@@ -1,0 +1,339 @@
+#!/usr/bin/env python3
+import argparse
+import multiprocessing
+import sys
+import subprocess
+import os
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+
+verbose = False
+
+DEFAULT_RULES_XML = "@XKB_CONFIG_ROOT@/rules/evdev.xml"
+
+# Meson needs to fill this in so we can call the tool in the buildir.
+EXTRA_PATH = "@MESON_BUILD_ROOT@"
+os.environ["PATH"] = ":".join([EXTRA_PATH, os.getenv("PATH")])
+
+
+def escape(s):
+    return s.replace('"', '\\"')
+
+
+# The function generating the progress bar (if any).
+def create_progress_bar(verbose):
+    def noop_progress_bar(x, total, file=None):
+        return x
+
+    progress_bar = noop_progress_bar
+    if not verbose and os.isatty(sys.stdout.fileno()):
+        try:
+            from tqdm import tqdm
+
+            progress_bar = tqdm
+        except ImportError:
+            pass
+
+    return progress_bar
+
+
+class Invocation:
+    def __init__(self, r, m, l, v, o):
+        self.command = ""
+        self.rules = r
+        self.model = m
+        self.layout = l
+        self.variant = v
+        self.option = o
+        self.exitstatus = 77  # default to skipped
+        self.error = None
+        self.keymap = None  # The fully compiled keymap
+
+    @property
+    def rmlvo(self):
+        return self.rules, self.model, self.layout, self.variant, self.option
+
+    def __str__(self):
+        s = []
+        rmlvo = [x or "" for x in self.rmlvo]
+        rmlvo = ", ".join([f'"{x}"' for x in rmlvo])
+        s.append(f"- rmlvo: [{rmlvo}]")
+        s.append(f'  cmd: "{escape(self.command)}"')
+        s.append(f"  status: {self.exitstatus}")
+        if self.error:
+            s.append(f'  error: "{escape(self.error.strip())}"')
+        return "\n".join(s)
+
+    def run(self):
+        raise NotImplementedError
+
+
+class XkbCompInvocation(Invocation):
+    def run(self):
+        r, m, l, v, o = self.rmlvo
+        args = ["setxkbmap", "-print"]
+        if r is not None:
+            args.append("-rules")
+            args.append("{}".format(r))
+        if m is not None:
+            args.append("-model")
+            args.append("{}".format(m))
+        if l is not None:
+            args.append("-layout")
+            args.append("{}".format(l))
+        if v is not None:
+            args.append("-variant")
+            args.append("{}".format(v))
+        if o is not None:
+            args.append("-option")
+            args.append("{}".format(o))
+
+        xkbcomp_args = ["xkbcomp", "-xkb", "-", "-"]
+
+        self.command = " ".join(args + ["|"] + xkbcomp_args)
+
+        setxkbmap = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+        )
+        stdout, stderr = setxkbmap.communicate()
+        if "Cannot open display" in stderr:
+            self.error = stderr
+            self.exitstatus = 90
+        else:
+            xkbcomp = subprocess.Popen(
+                xkbcomp_args,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+            )
+            stdout, stderr = xkbcomp.communicate(stdout)
+            if xkbcomp.returncode != 0:
+                self.error = "failed to compile keymap"
+                self.exitstatus = xkbcomp.returncode
+            else:
+                self.keymap = stdout
+                self.exitstatus = 0
+
+
+class XkbcommonInvocation(Invocation):
+    UNRECOGNIZED_KEYSYM_ERROR = "XKB-107"
+
+    def run(self):
+        r, m, l, v, o = self.rmlvo
+        args = [
+            "xkbcli-compile-keymap",  # this is run in the builddir
+            "--verbose",
+            "--rules",
+            r,
+            "--model",
+            m,
+            "--layout",
+            l,
+        ]
+        if v is not None:
+            args += ["--variant", v]
+        if o is not None:
+            args += ["--options", o]
+
+        self.command = " ".join(args)
+        try:
+            output = subprocess.check_output(
+                args, stderr=subprocess.STDOUT, universal_newlines=True
+            )
+            if self.UNRECOGNIZED_KEYSYM_ERROR in output:
+                for line in output.split("\n"):
+                    if self.UNRECOGNIZED_KEYSYM_ERROR in line:
+                        self.error = line
+                self.exitstatus = 99  # tool doesn't generate this one
+            else:
+                self.exitstatus = 0
+                self.keymap = output
+        except subprocess.CalledProcessError as err:
+            self.error = "failed to compile keymap"
+            self.exitstatus = err.returncode
+
+
+def xkbcommontool(rmlvo):
+    try:
+        r = rmlvo.get("r", "evdev")
+        m = rmlvo.get("m", "pc105")
+        l = rmlvo.get("l", "us")
+        v = rmlvo.get("v", None)
+        o = rmlvo.get("o", None)
+        tool = XkbcommonInvocation(r, m, l, v, o)
+        tool.run()
+        return tool
+    except KeyboardInterrupt:
+        pass
+
+
+def xkbcomp(rmlvo):
+    try:
+        r = rmlvo.get("r", "evdev")
+        m = rmlvo.get("m", "pc105")
+        l = rmlvo.get("l", "us")
+        v = rmlvo.get("v", None)
+        o = rmlvo.get("o", None)
+        tool = XkbCompInvocation(r, m, l, v, o)
+        tool.run()
+        return tool
+    except KeyboardInterrupt:
+        pass
+
+
+def parse(path):
+    root = ET.fromstring(open(path).read())
+    layouts = root.findall("layoutList/layout")
+
+    options = [e.text for e in root.findall("optionList/group/option/configItem/name")]
+
+    combos = []
+    for l in layouts:
+        layout = l.find("configItem/name").text
+        combos.append({"l": layout})
+
+        variants = l.findall("variantList/variant")
+        for v in variants:
+            variant = v.find("configItem/name").text
+
+            combos.append({"l": layout, "v": variant})
+            for option in options:
+                combos.append({"l": layout, "v": variant, "o": option})
+
+    return combos
+
+
+def run(combos, tool, njobs, keymap_output_dir):
+    if keymap_output_dir:
+        keymap_output_dir = Path(keymap_output_dir)
+        try:
+            keymap_output_dir.mkdir()
+        except FileExistsError as e:
+            print(e, file=sys.stderr)
+            return False
+
+    keymap_file = None
+    keymap_file_fd = None
+
+    failed = False
+    with multiprocessing.Pool(njobs) as p:
+        results = p.imap_unordered(tool, combos)
+        for invocation in progress_bar(results, total=len(combos), file=sys.stdout):
+            if invocation.exitstatus != 0:
+                failed = True
+                target = sys.stderr
+            else:
+                target = sys.stdout if verbose else None
+
+            if target:
+                print(invocation, file=target)
+
+            if keymap_output_dir:
+                # we're running through the layouts in a somewhat sorted manner,
+                # so let's keep the fd open until we switch layouts
+                layout = invocation.layout
+                if invocation.variant:
+                    layout += f"({invocation.variant})"
+                fname = keymap_output_dir / layout
+                if fname != keymap_file:
+                    keymap_file = fname
+                    if keymap_file_fd:
+                        keymap_file_fd.close()
+                    keymap_file_fd = open(keymap_file, "a")
+
+                rmlvo = ", ".join([x or "" for x in invocation.rmlvo])
+                print(f"// {rmlvo}", file=keymap_file_fd)
+                print(invocation.keymap, file=keymap_file_fd)
+                keymap_file_fd.flush()
+
+    return failed
+
+
+def main(args):
+    global progress_bar
+    global verbose
+
+    tools = {
+        "libxkbcommon": xkbcommontool,
+        "xkbcomp": xkbcomp,
+    }
+
+    parser = argparse.ArgumentParser(
+        description="""
+                    This tool compiles a keymap for each layout, variant and
+                    options combination in the given rules XML file. The output
+                    of this tool is YAML, use your favorite YAML parser to
+                    extract error messages. Errors are printed to stderr.
+                    """
+    )
+    parser.add_argument(
+        "path",
+        metavar="/path/to/evdev.xml",
+        nargs="?",
+        type=str,
+        default=DEFAULT_RULES_XML,
+        help="Path to xkeyboard-config's evdev.xml",
+    )
+    parser.add_argument(
+        "--tool",
+        choices=tools.keys(),
+        type=str,
+        default="libxkbcommon",
+        help="parsing tool to use",
+    )
+    parser.add_argument(
+        "--jobs",
+        "-j",
+        type=int,
+        default=os.cpu_count() * 4,
+        help="number of processes to use",
+    )
+    parser.add_argument("--verbose", "-v", default=False, action="store_true")
+    parser.add_argument(
+        "--keymap-output-dir",
+        default=None,
+        type=str,
+        help="Directory to print compiled keymaps to",
+    )
+    parser.add_argument(
+        "--layout", default=None, type=str, help="Only test the given layout"
+    )
+    parser.add_argument(
+        "--variant", default=None, type=str, help="Only test the given variant"
+    )
+    parser.add_argument(
+        "--option", default=None, type=str, help="Only test the given option"
+    )
+
+    args = parser.parse_args()
+
+    verbose = args.verbose
+    keymapdir = args.keymap_output_dir
+    progress_bar = create_progress_bar(verbose)
+
+    tool = tools[args.tool]
+
+    if any([args.layout, args.variant, args.option]):
+        combos = [
+            {
+                "l": args.layout,
+                "v": args.variant,
+                "o": args.option,
+            }
+        ]
+    else:
+        combos = parse(args.path)
+    failed = run(combos, tool, args.jobs, keymapdir)
+    sys.exit(failed)
+
+
+if __name__ == "__main__":
+    try:
+        main(sys.argv)
+    except KeyboardInterrupt:
+        print("# Exiting after Ctrl+C")

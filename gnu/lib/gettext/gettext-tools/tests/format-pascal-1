@@ -1,0 +1,123 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of Object Pascal format strings.
+
+cat <<\EOF > f-op-1.data
+# Valid: no argument
+"abc%%"
+# Valid: one string argument
+"abc%s"
+# Valid: one integer argument
+"abc%d"
+# Valid: one integer argument
+"abc%X"
+# Valid: one floating-point argument
+"abc%e"
+# Valid: one floating-point argument
+"abc%f"
+# Valid: one floating-point argument
+"abc%g"
+# Valid: one floating-point argument
+"abc%n"
+# Valid: one floating-point argument
+"abc%m"
+# Valid: one pointer argument
+"abc%p"
+# Valid: one argument with flags
+"abc%-g"
+# Valid: one argument with width
+"abc%2g"
+# Valid: one argument with width
+"abc%*g"
+# Valid: one argument with precision
+"abc%.4g"
+# Valid: one argument with precision
+"abc%.*g"
+# Valid: one argument with width and precision
+"abc%14.4g"
+# Valid: one argument with width and precision
+"abc%14.*g"
+# Valid: one argument with width and precision
+"abc%*.4g"
+# Valid: one argument with width and precision
+"abc%*.*g"
+# Invalid: unterminated
+"abc%"
+# Invalid: unknown format specifier
+"abc%y"
+# Invalid: flags after width
+"abc%*-g"
+# Invalid: twice precision
+"abc%.4.2g"
+# Valid: three arguments
+"abc%d%x%x"
+# Valid: a numbered argument
+"abc%0:d"
+# Valid: a numbered argument with omitted number
+"abc%:d"
+# Valid: two-digit numbered arguments
+"abc%10:def%9:dgh%8:dij%7:dkl%6:dmn%5:dop%4:dqr%3:dst%2:duv%1:dwx%0:dyz"
+# Invalid: unterminated number
+"abc%1"
+# Invalid: flags before number
+"abc%-0:d"
+# Valid: three arguments, two with same number
+"abc%0:4e,%1:p,%0:g"
+# Invalid: argument with conflicting types
+"abc%0:4x,%1:p,%0:s"
+# Invalid: argument with conflicting types
+"abc%0:4e,%1:p,%0:d"
+# Valid: argument with different but not conflicting types
+"abc%0:4x,%1:p,%0:d"
+# Valid: mixing of numbered and unnumbered arguments
+"abc%d%1:x"
+# Valid: numbered argument with constant precision
+"abc%0:.9x"
+# Valid: mixing of numbered and unnumbered arguments
+"abc%3:.*x"
+# Valid: missing non-final argument
+"abc%1:x%3:s"
+# Valid: permutation
+"abc%1:ddef%0:d"
+# Valid: multiple uses of same argument
+"abc%2:xdef%1:pghi%2:x"
+# Valid: one argument with width
+"abc%1:*g"
+# Valid: one argument with width and precision
+"abc%2:*.*g"
+EOF
+
+: ${XGETTEXT=xgettext}
+n=0
+while read comment; do
+  read string
+  n=`expr $n + 1`
+  echo "x.y=${string}" | sed -e "s/\"/'/g" > f-op-1-$n.in
+  ${XGETTEXT} -L RST -o f-op-1-$n.po f-op-1-$n.in || Exit 1
+  test -f f-op-1-$n.po || Exit 1
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if grep object-pascal-format f-op-1-$n.po > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    if grep object-pascal-format f-op-1-$n.po > /dev/null; then
+      fail=yes
+    else
+      :
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string recognition error:" 1>&2
+    cat f-op-1-$n.in 1>&2
+    echo "Got:" 1>&2
+    cat f-op-1-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-op-1-$n.in f-op-1-$n.po
+done < f-op-1.data
+
+Exit 0

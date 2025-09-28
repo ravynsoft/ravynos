@@ -1,0 +1,534 @@
+.\" Automatically generated from an mdoc input file.  Do not edit.
+.\"
+.\" SPDX-License-Identifier: ISC
+.\"
+.\" Copyright (c) 2009-2023 Todd C. Miller <Todd.Miller@sudo.ws>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.TH "SUDOREPLAY" "@mansectsu@" "January 16, 2023" "Sudo @PACKAGE_VERSION@" "System Manager's Manual"
+.nh
+.if n .ad l
+.SH "NAME"
+\fBsudoreplay\fR
+\- replay sudo session logs
+.SH "SYNOPSIS"
+.HP 11n
+\fBsudoreplay\fR
+[\fB\-FhnRS\fR]
+[\fB\-d\fR\ \fIdir\fR]
+[\fB\-f\fR\ \fIfilter\fR]
+[\fB\-m\fR\ \fInum\fR]
+[\fB\-s\fR\ \fInum\fR]
+ID[\fI@offset\fR]
+.HP 11n
+\fBsudoreplay\fR
+[\fB\-h\fR]
+[\fB\-d\fR\ \fIdir\fR]
+\fB\-l\fR
+[search\ expression]
+.SH "DESCRIPTION"
+\fBsudoreplay\fR
+plays back or lists the output logs created by
+\fBsudo\fR.
+When replaying,
+\fBsudoreplay\fR
+can play the session back in real-time, or the playback speed may be
+adjusted (faster or slower) based on the command line options.
+.PP
+The
+\fIID\fR
+should either be a six character sequence of digits and
+upper case letters, e.g.,
+\(lq0100A5\(rq
+or a path name.
+The
+\fIID\fR
+may include an optional
+\fI@offset\fR
+suffix which may be used to start replaying at a specific time offset.
+The
+\fI@offset\fR
+is specified as a number in seconds since the start of the session
+with an optional decimal fraction.
+.PP
+Path names may be relative to the I/O log directory
+\fI@iolog_dir@\fR
+(unless overridden by the
+\fB\-d\fR
+option) or fully qualified, beginning with a
+\(oq/\(cq
+character.
+When a command is run via
+\fBsudo\fR
+with
+\fIlog_output\fR
+enabled in the
+\fIsudoers\fR
+file, a
+\(lqTSID=ID\(rq
+string is logged via
+syslog(3)
+or to the
+\fBsudo\fR
+log file.
+The
+\fIID\fR
+may also be determined using
+\fBsudoreplay\fR's
+list mode.
+.PP
+In list mode,
+\fBsudoreplay\fR
+can be used to find the ID of a session based on a number of criteria
+such as the user, tty, or command run.
+.PP
+In replay mode, if the standard input and output are connected to a terminal
+and the
+\fB\-n\fR
+option is not specified,
+\fBsudoreplay\fR
+will operate interactively.
+In interactive mode,
+\fBsudoreplay\fR
+will attempt to adjust the terminal size to match that of the session and
+write directly to the terminal (not all terminals support this).
+Additionally, it will poll the keyboard and act on the following keys:
+.TP 14n
+\(oq\fR\en\fR\(cq or \(oq\fR\er\fR\(cq
+Skip to the next replay event; useful for long pauses.
+.TP 14n
+\(oq\fR\ \fR\(cq (space)
+Pause output; press any key to resume.
+.TP 14n
+\(oq<\(cq
+Reduce the playback speed by one half.
+.TP 14n
+\(oq>\(cq
+Double the playback speed.
+.PP
+The session can be interrupted via control-C.
+When the session has finished, the terminal is restored to its
+original size if it was changed during playback.
+.PP
+The options are as follows:
+.TP 8n
+\fB\-d\fR \fIdir\fR, \fB\--directory\fR=\fIdir\fR
+Store session logs in
+\fIdir\fR
+instead of the default,
+\fI@iolog_dir@\fR.
+.TP 8n
+\fB\-f\fR \fIfilter\fR, \fB\--filter\fR=\fIfilter\fR
+Select which I/O type(s) to display.
+By default,
+\fBsudoreplay\fR
+will display the command's standard output, standard error, and tty output.
+The
+\fIfilter\fR
+argument is a comma-separated list, consisting of one or more of following:
+\fIstdin\fR,
+\fIstdout\fR,
+\fIstderr\fR,
+\fIttyin\fR,
+and
+\fIttyout\fR.
+.TP 8n
+\fB\-F\fR, \fB\--follow\fR
+Enable
+\(lqfollow mode\(rq.
+When replaying a session,
+\fBsudoreplay\fR
+will ignore end-of-file and keep replaying until the log is complete.
+This can be used to replay a session that is still in progress,
+similar to
+\(lqtail -f\(rq.
+An I/O log file is considered to be complete when the write bits
+have been cleared on the session's timing file.
+Versions of
+\fBsudo\fR
+prior to 1.9.1 do not clear the write bits upon completion.
+.TP 8n
+\fB\-h\fR, \fB\--help\fR
+Display a short help message to the standard output and exit.
+.TP 8n
+\fB\-l\fR, \fB\--list\fR [\fIsearch expression\fR]
+Enable
+\(lqlist mode\(rq.
+In this mode,
+\fBsudoreplay\fR
+will list available sessions in a format similar to the
+\fBsudo\fR
+log file format, sorted by file name (or sequence number).
+Any control characters present in the log data are formated in octal
+with a leading
+\(oq#\(cq
+character.
+For example, a horizontal tab is displayed as
+\(oq#011\(cq
+and an embedded carriage return is displayed as
+\(oq#015\(cq.
+.sp
+If a
+\fIsearch expression\fR
+is specified, it will be used to restrict the IDs that are displayed.
+An expression is composed of the following predicates:
+.PP
+.RS 8n
+.PD 0
+.TP 8n
+command \fIpattern\fR
+Evaluates to true if the command run matches the POSIX extended
+regular expression
+\fIpattern\fR.
+.PD
+.TP 8n
+cwd \fIdirectory\fR
+Evaluates to true if the command was run with the specified current
+working directory.
+.TP 8n
+fromdate \fIdate\fR
+Evaluates to true if the command was run on or after
+\fIdate\fR.
+See
+\fIDate and time format\fR
+for a description of supported date and time formats.
+.TP 8n
+group \fIrunas_group\fR
+Evaluates to true if the command was run with the specified
+\fIrunas_group\fR.
+Unless a
+\fIrunas_group\fR
+was explicitly specified when
+\fBsudo\fR
+was run this field will be empty in the log.
+.TP 8n
+host \fIhostname\fR
+Evaluates to true if the command was run on the specified
+\fIhostname\fR.
+.TP 8n
+runas \fIrunas_user\fR
+Evaluates to true if the command was run as the specified
+\fIrunas_user\fR.
+By default,
+\fBsudo\fR
+runs commands as the
+\fBroot\fR
+user.
+.TP 8n
+todate \fIdate\fR
+Evaluates to true if the command was run on or prior to
+\fIdate\fR.
+See
+\fIDate and time format\fR
+for a description of supported date and time formats.
+.TP 8n
+tty \fItty name\fR
+Evaluates to true if the command was run on the specified terminal device.
+The
+\fItty name\fR
+should be specified without the
+\fI/dev/\fR
+prefix, e.g.,
+\fItty01\fR
+instead of
+\fI/dev/tty01\fR.
+.TP 8n
+user \fIuser name\fR
+Evaluates to true if the ID matches a command run by
+\fIuser name\fR.
+.PP
+Predicates may be abbreviated to the shortest unique string.
+.sp
+Predicates may be combined using
+\fIand\fR,
+\fIor\fR,
+and
+\fI\&!\fR
+operators as well as
+\(oq\&(\(cq
+and
+\(oq\&)\(cq
+grouping (parentheses must generally be escaped from the shell).
+The
+\fIand\fR
+operator is optional, adjacent predicates have an implied
+\fIand\fR
+unless separated by an
+\fIor\fR.
+.RE
+.TP 8n
+\fB\-m\fR, \fB\--max-wait\fR \fImax_wait\fR
+Specify an upper bound on how long to wait between key presses or output data.
+By default,
+\fBsudoreplay\fR
+will accurately reproduce the delays between key presses or program output.
+However, this can be tedious when the session includes long pauses.
+When the
+\fB\-m\fR
+option is specified,
+\fBsudoreplay\fR
+will limit these pauses to at most
+\fImax_wait\fR
+seconds.
+The value may be specified as a floating point number, e.g.,
+\fI2.5\fR.
+A
+\fImax_wait\fR
+of zero or less will eliminate the pauses entirely.
+.TP 8n
+\fB\-n\fR, \fB\--non-interactive\fR
+Do not prompt for user input or attempt to re-size the terminal.
+The session is written to the standard output, not directly to
+the user's terminal.
+.TP 8n
+\fB\-R\fR, \fB\--no-resize\fR
+Do not attempt to re-size the terminal to match the terminal size
+of the session.
+.TP 8n
+\fB\-S\fR, \fB\--suspend-wait\fR
+Wait while the command was suspended.
+By default,
+\fBsudoreplay\fR
+will ignore the time interval between when the command was suspended
+and when it was resumed.
+If the
+\fB\-S\fR
+option is specified,
+\fBsudoreplay\fR
+will wait instead.
+.TP 8n
+\fB\-s\fR, \fB\--speed\fR \fIspeed_factor\fR
+This option causes
+\fBsudoreplay\fR
+to adjust the number of seconds it will wait between key presses or
+program output.
+This can be used to slow down or speed up the display.
+For example, a
+\fIspeed_factor\fR
+of
+\fI2\fR
+would make the output twice as fast whereas a
+\fIspeed_factor\fR
+of
+\fI.5\fR
+would make the output twice as slow.
+.TP 8n
+\fB\-V\fR, \fB\--version\fR
+Print the
+\fBsudoreplay\fR
+versions version number and exit.
+.SS "Date and time format"
+The time and date may be specified multiple ways, common formats include:
+.TP 8n
+HH:MM:SS am MM/DD/CCYY timezone
+24 hour time may be used in place of am/pm.
+.TP 8n
+HH:MM:SS am Month, Day Year timezone
+24 hour time may be used in place of am/pm, and month and day names
+may be abbreviated.
+Month and day of the week names must be specified in English.
+.TP 8n
+CCYY-MM-DD HH:MM:SS
+ISO time format
+.TP 8n
+DD Month CCYY HH:MM:SS
+The month name may be abbreviated.
+.PP
+Either time or date may be omitted, the am/pm and timezone are optional.
+If no date is specified, the current day is assumed; if no time is
+specified, the first second of the specified date is used.
+The less significant parts of both time and date may also be omitted,
+in which case zero is assumed.
+.PP
+The following are all valid time and date specifications:
+.TP 8n
+now
+The current time and date.
+.TP 8n
+tomorrow
+Exactly one day from now.
+.TP 8n
+yesterday
+24 hours ago.
+.TP 8n
+2 hours ago
+2 hours ago.
+.TP 8n
+next Friday
+The first second of the Friday in the next (upcoming) week.
+Not to be confused with
+\(lqthis Friday\(rq
+which would match the Friday of the current week.
+.TP 8n
+last week
+The current time but 7 days ago.
+This is equivalent to
+\(lqa week ago\(rq.
+.TP 8n
+a fortnight ago
+The current time but 14 days ago.
+.TP 8n
+10:01 am 9/17/2009
+10:01 am, September 17, 2009.
+.TP 8n
+10:01 am
+10:01 am on the current day.
+.TP 8n
+10
+10:00 am on the current day.
+.TP 8n
+9/17/2009
+00:00 am, September 17, 2009.
+.TP 8n
+10:01 am Sep 17, 2009
+10:01 am, September 17, 2009.
+.PP
+Relative time specifications do not always work as expected.
+For example, the
+\(lqnext\(rq
+qualifier is intended to be used in conjunction with a day such as
+\(lqnext Monday\(rq.
+When used with units of weeks, months, years, etc
+the result will be one more than expected.
+For example,
+\(lqnext week\(rq
+will result in a time exactly two weeks from now, which is probably
+not what was intended.
+This will be addressed in a future version of
+\fBsudoreplay\fR.
+.SS "Debugging sudoreplay"
+\fBsudoreplay\fR
+versions 1.8.4 and higher support a flexible debugging framework
+that is configured via
+\fIDebug\fR
+lines in the
+sudo.conf(@mansectform@)
+file.
+.PP
+For more information on configuring
+sudo.conf(@mansectform@),
+refer to its manual.
+.SH "FILES"
+.TP 26n
+\fI@sysconfdir@/sudo.conf\fR
+Debugging framework configuration
+.TP 26n
+\fI@iolog_dir@\fR
+The default I/O log directory.
+.TP 26n
+\fI@iolog_dir@/00/00/01/log\fR
+Example session log info.
+.TP 26n
+\fI@iolog_dir@/00/00/01/log.json\fR
+Example session log info (JSON format).
+.TP 26n
+\fI@iolog_dir@/00/00/01/stdin\fR
+Example session standard input log.
+.TP 26n
+\fI@iolog_dir@/00/00/01/stdout\fR
+Example session standard output log.
+.TP 26n
+\fI@iolog_dir@/00/00/01/stderr\fR
+Example session standard error log.
+.TP 26n
+\fI@iolog_dir@/00/00/01/ttyin\fR
+Example session tty input file.
+.TP 26n
+\fI@iolog_dir@/00/00/01/ttyout\fR
+Example session tty output file.
+.TP 26n
+\fI@iolog_dir@/00/00/01/timing\fR
+Example session timing file.
+.PP
+The
+\fIstdin\fR,
+\fIstdout\fR
+and
+\fIstderr\fR
+files will be empty unless
+\fBsudo\fR
+was used as part of a pipeline for a particular command.
+.SH "EXAMPLES"
+List sessions run by user
+\fImillert\fR:
+.nf
+.sp
+.RS 4n
+# sudoreplay -l user millert
+.RE
+.fi
+.PP
+List sessions run by user
+\fIbob\fR
+with a command containing the string vi:
+.nf
+.sp
+.RS 4n
+# sudoreplay -l user bob command vi
+.RE
+.fi
+.PP
+List sessions run by user
+\fIjeff\fR
+that match a regular expression:
+.nf
+.sp
+.RS 4n
+# sudoreplay -l user jeff command '/bin/[a-z]*sh'
+.RE
+.fi
+.PP
+List sessions run by jeff or bob on the console:
+.nf
+.sp
+.RS 4n
+# sudoreplay -l ( user jeff or user bob ) tty console
+.RE
+.fi
+.SH "SEE ALSO"
+script(1),
+sudo.conf(@mansectform@),
+sudo(@mansectsu@)
+.SH "AUTHORS"
+Many people have worked on
+\fBsudo\fR
+over the years; this version consists of code written primarily by:
+.sp
+.RS 6n
+Todd C. Miller
+.RE
+.PP
+See the CONTRIBUTORS.md file in the
+\fBsudo\fR
+distribution (https://www.sudo.ws/about/contributors/) for an
+exhaustive list of people who have contributed to
+\fBsudo\fR.
+.SH "BUGS"
+If you believe you have found a bug in
+\fBsudoreplay\fR,
+you can submit a bug report at https://bugzilla.sudo.ws/
+.SH "SUPPORT"
+Limited free support is available via the sudo-users mailing list,
+see https://www.sudo.ws/mailman/listinfo/sudo-users to subscribe or
+search the archives.
+.SH "DISCLAIMER"
+\fBsudoreplay\fR
+is provided
+\(lqAS IS\(rq
+and any express or implied warranties, including, but not limited
+to, the implied warranties of merchantability and fitness for a
+particular purpose are disclaimed.
+See the LICENSE.md file distributed with
+\fBsudo\fR
+or https://www.sudo.ws/about/license/ for complete details.

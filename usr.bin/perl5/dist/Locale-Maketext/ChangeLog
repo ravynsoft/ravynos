@@ -1,0 +1,280 @@
+Revision history for Perl suite Locale::Maketext
+
+2022-08-22
+   * Release 1.32 to CPAN
+   * Fix Makefile.PL logic for default install destination on 5.008 up to 5.011
+
+2022-04-14
+   * Release 1.31 to CPAN
+   * White space cleanup.
+
+2022-01-14
+   * Release 1.30 to CPAN
+   * Provide alternate methods allowlist and denylist for
+     whitelist and blacklist, respectively
+
+2020-01-19
+    * Release 1.29 to CPAN
+    * Replace multiple 'use vars' by 'our'
+    * Sentences ending with a parenthetical phrase that ends
+      with an abbreviation such as 'etc.' still require a period
+      outside of the parentheses.
+    * Add L<> around links in pod
+
+2016-07-25
+    * Release of 1.28 to CPAN
+    * Fix optional runtime load for CVE-2016-1238
+
+2016-06-22
+    * Release of 1.27 to CPAN
+
+2016-04-20
+    * perl #127923: note priority between the white and blacklist
+
+2016-03-17
+    * Add blacklist and whitelist support to Locale::Maketext.
+
+2014-06-17
+    * Correct two subtle typos in Locale::Maketext POD.
+
+
+2013-04-13
+    * No changes. Switch to version 1.25 for release to CPAN.
+
+2013-04-13
+    * Update to 1.25_01 from upstream blead for release testing
+
+2013-11-08
+    * Fix for case when lexicon translations contain substitionand literals with eval-non-safe characters.
+	RT #120457
+
+2013-08-21
+    * Swap out base for parent (bowtie) For: RT #119403
+
+2013-05-21
+    * typo fixes for Locale::Maketext
+
+2013-01-04
+    * POD fixes uncovered by the new Pod::Checker, not yet in core.
+
+2012-12-04
+    * Fix misparsing of maketext strings.
+
+2012-11-22
+    * Fix hash order dependency bug in tests
+
+2012-01-14
+    * Minor POD documentation update to sync with upstream blead.
+
+2011-12-23
+    * No changes. Production release after CPAN testers cleared.
+
+2011-12-14
+    * Update to 1.19_01 from upstream blead for release testing
+
+    Fix broken URLs in dist/Locale-Maketext/lib/Locale/Maketext/TPJ13.pod for RFCs
+
+    Keep verbatim pod in various dist/* pods within 79 cols
+
+2011-05-25
+    * Update to 1.19 from upstream blead
+
+    [perl #89896] Locale::Maketext test failure
+    when environment has variable containing unbalanced brackets
+
+    Suppress "Name used only once" warnings.
+
+    [perl #81888] Fix typos (spelling errors) in dist/*
+
+2010-10-20
+    * Release 1.17
+
+    Test release of 1.16_01, versioning even deprecated Guts modules.
+    This prevents CPAN upgrade circular heck. Thanks BinGOs
+
+    Tested version fix for CPAN by BinGOs. Bump to stable version and release to public
+
+2010-10-07
+    * Release 1.16
+
+    Blead commit bac7bf8 - Copy @_ to @_ to de-alias passed variables
+    to assure that the aliases cannot be altered during maketext calls.
+
+    Fix for CPAN RT #40727: infinite loop in
+    Locale::Maketext::Guts::_compile() when working with tainted values
+
+    Fix for CPAN RT #34182: Don't localize $@.
+    ->maketext calls will now backup and restore $@ so that die messages are not suppressed.
+
+    Fix for CPAN RT #55461
+    %hash deprecated messages cleaned up with perl 5.12
+
+    Fix for CPAN RT #48118. Perl 76674
+    Speed and efficiency tweaks in _compile calls when string has no ~][ in it.
+
+    Fix for CPAN RT #48808. Perl 76668
+    I18N::LangTags use() fixups.
+
+2010-06-22
+    * Release 1.15 (included in perl 5.13.3; not released separately)
+
+    Locale::Maketext guts have been merged back into the main module
+
+    Fix for CPAN RT #46738. Perl 76354
+    Support for RO Lexicon hashes (External cache support)
+
+2009-11-20
+    * Release 1.14 (included in perl 5.11.2; not released separately)
+
+    In Locale::Maketext, avoid using defined @array and defined %hash.
+
+    Convert the odd Locale::Maketext test out from Test to Test::More.
+
+2009-06-23  Adriano Ferreira
+    * Development release 1.13_82
+
+    One more recipe: on [numf,...] with decimal precision
+
+2009-06-23  Adriano Ferreira
+    * Development release 1.13_81
+
+    Change a few straggling 'DEBUG and print' to 'DEBUG and warn' (thanks Dan Muey)
+
+    A start of a cookbook.
+
+2009-06-23  Adriano Ferreira
+    * Development release 1.13_80
+
+    Fixes CPAN RT #25877 (thanks imacat)
+
+    Add a test for failure_handler_auto()
+
+2008-05-28  Adriano Ferreira
+    * Release 1.13
+
+    New maintainer. No noteworthy changes.
+
+    When debugging is turned on, "DEBUG and warn" is now
+    used instead of "DEBUG and print". It makes web applications
+    happier. CPAN RT #36238
+
+2007-11-17
+    * Release 1.12
+
+    Many doc changes from RT.
+
+    Silenced some "used only once" warnings under Perl 5.10.
+
+    $@ is now localized in case it gets interpolated.  This was added
+    a while ago, but now there's a test for it, too.
+
+    Added warnings and strict to tests.
+
+    Cleaning up some Perl::Critic gripes.
+
+2007-05-07  Andy Lester
+    * Release 1.11_01
+
+    Fixed perlbug #33938
+    https://github.com/Perl/perl5/issues/2103
+
+    Started cleaning up source per Perl::Critic.
+
+
+2005-11-10  Andy Lester
+    * Release 1.10:
+
+    New maintainer.  No changes at all.  Bumped up the version number
+    and released it so that I can get the RT queue and any future mail.
+
+
+2004-03-30  Sean M. Burke  sburke@cpan.org
+    * Release 1.09:
+
+    * Moved the language-preference-detecting code into new module
+    I18N::LangTags::Detect.
+
+    Thanks to Autrijus Tang for catching some errors in the dist!
+
+
+2004-01-19  Sean M. Burke  sburke@cpan.org
+
+    * Release 1.08:
+
+    * Corrected a one-line code bug in v1.07 that accidentally demoted
+    all en-* tags in cases of lexicon-groups that had an en.pm but no
+    en_*.pm.  Thanks to Robert Spier for spotting this.  Test added.
+    So don't use v1.07!
+
+    * Autrijus found some typos in the TPJ article.  Fixed.
+
+2004-01-11  Sean M. Burke  sburke@cpan.org
+
+    * Release 1.07:  Now uses a new and different rule for implicating
+    superordinate language tags in accept-language lists.  Previously,
+    superordinates were just tacked onto the, so "en-US, ja", turned
+    into "en-US, ja, en".  However, this turned out to be suboptimal
+    for many users of RT, a popular system using Maketext.  The new
+    rule is that a tag implicates superordinate forms right after it,
+    unless those tags are explicitly stated elsewhere in the
+    accept-languages list.  So "en-US ja" becomes "en-US en ja".  If
+    you want "en" to be really lower, you have to actually state it
+    there: "en-US ja en" is left as-is.
+
+    The 04super.t and 05super.t tests in t/ have many many examples of
+    this, including some strange corner cases.
+
+    (In implementing this change, I also refactored some code in
+    Maketext.pm, for hopefully improved readability.  However,
+    the above is the only actual change in behavior.)
+
+2003-06-21  Sean M. Burke  sburke@cpan.org
+    * Release 1.06:  Now has "use utf8" to make the things work
+    happily.  Some fancy footwork is required to make this work under
+    pre-utf8 perl versions.
+
+2003-04-18  Sean M. Burke  sburke@cpan.org
+    * Release 1.05:  Different Makefile.PL, same .pm code.
+
+    Jesse Vincent, Hugo van der Sanden, and Jarkko Hietaniemi
+    encourage me to add this to the makefile:
+     ($] < 5.008) ? () : ( INSTALLDIRS => 'perl'),
+    so that when you install this on a recent version of perl (5.8 or
+    later), the installation will overwrite the Maketext.pm in your
+    core library directory.  Email me if this produces trouble for any
+    of you folks out there, okay?
+
+2003-04-02  Sean M. Burke  sburke@cpan.org
+    * Release 1.04: Implementing proper HTTP "tag;q=rank" parsing for
+    get_handle.  This should make all the difference for users/victims
+    of the current version of Safari, which uses that syntax as well
+    as inserts random languages with low q numbers.
+    Thanks to Jesse Vincent and the whole RT junta for finding this.
+
+    * Added more tests, now in t/
+
+    * Lots of typo fixes to Maketext.pm.  Thanks to Evan A. Zacks for
+    patient help in finding them all.
+
+2001-06-21  Sean M. Burke  sburke@cpan.org
+    * Release 1.03: basically cosmetic tweaks to the docs and the
+    test.pl.
+
+2001-06-20  Sean M. Burke  sburke@cpan.org
+    * Release 1.02:  EBCDIC-compatibility changes courtesy of Peter
+    Prymmer.  Added [*,...] as alias for [quant,...] and [#,...] as an
+    alias for [numf,...].  Added some more things to test.pl
+
+2001-05-25  Sean M. Burke  sburke@cpan.org
+    * Release 1.01:  total rewrite.  Docs are massive now.
+    Including TPJ13 article now.
+
+2000-05-14  Sean M. Burke  sburke@cpan.org
+
+    * Release 0.18:  only change, regrettably, is a better makefile,
+    and it my email address has changed.
+
+1999-03-15  Sean M. Burke  sburke@netadventure.net
+
+    * Release 0.17:  Public alpha release
+    Underdocumented.

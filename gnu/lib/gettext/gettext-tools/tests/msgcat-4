@@ -1,0 +1,97 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test handling of input files with different charsets:
+# 1. UTF-8, 2. ISO-8859-1; plus --use-first
+
+cat <<\EOF > mcat-test4.in1
+# German message file for xyz.
+# Copyright (C) 1999, 2000, 2001 xyz.
+# Kab Def <ke@zzz.uucp>, 2000.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xyz\n"
+"POT-Creation-Date: 2001-04-24 12:51:34+0200\n"
+"PO-Revision-Date: 2001-04-24 13:02+02:00\n"
+"Last-Translator: Kab Def <ke@zzz.uucp>\n"
+"Language-Team: German <i18n@zzz.uucp>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Remind user of the login name he chose
+#: clients/inst_ask_config.ycp:72
+#, ycp-format
+msgid "You can log in as \"%1\"."
+msgstr "Sie können sich als \"%1\" einloggen."
+EOF
+
+cat <<\EOF > mcat-test4.in2
+# German message file for xyz.
+# Copyright (C) 1999, 2000, 2001 xyz.
+# Kab Def <ke@zzz.uucp>, 2000.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xyz\n"
+"POT-Creation-Date: 2001-04-24 12:51:34+0200\n"
+"PO-Revision-Date: 2001-04-24 13:02+02:00\n"
+"Last-Translator: Kab Def <ke@zzz.uucp>\n"
+"Language-Team: German <i18n@zzz.uucp>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Help text (HTML-like) START
+#: clients/inst_ask_config.ycp:119
+msgid ""
+"Congratulations!"
+msgstr ""
+"Gl�ckwunsch!"
+EOF
+
+rm -f mcat-test4.tmp
+
+: ${MSGCAT=msgcat}
+LC_MESSAGES=C LC_ALL= \
+${MSGCAT} --use-first --more-than=0 -o mcat-test4.tmp \
+    mcat-test4.in1 mcat-test4.in2 >mcat-test4.err 2>&1
+result=$?
+cat mcat-test4.err | grep -v 'warning: .* encodings' | grep -v '^ '
+test $result = 0 || { Exit 1; }
+LC_ALL=C tr -d '\r' < mcat-test4.tmp > mcat-test4.out || Exit 1
+
+cat << \EOF > mcat-test4.ok
+# German message file for xyz.
+# Copyright (C) 1999, 2000, 2001 xyz.
+# Kab Def <ke@zzz.uucp>, 2000.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xyz\n"
+"POT-Creation-Date: 2001-04-24 12:51:34+0200\n"
+"PO-Revision-Date: 2001-04-24 13:02+02:00\n"
+"Last-Translator: Kab Def <ke@zzz.uucp>\n"
+"Language-Team: German <i18n@zzz.uucp>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Remind user of the login name he chose
+#: clients/inst_ask_config.ycp:72
+#, ycp-format
+msgid "You can log in as \"%1\"."
+msgstr "Sie können sich als \"%1\" einloggen."
+
+#. Help text (HTML-like) START
+#: clients/inst_ask_config.ycp:119
+msgid "Congratulations!"
+msgstr "Glückwunsch!"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcat-test4.ok mcat-test4.out
+result=$?
+
+exit $result

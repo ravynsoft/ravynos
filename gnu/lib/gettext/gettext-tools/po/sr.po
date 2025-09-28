@@ -1,0 +1,5340 @@
+# Serbian translation of gettext-tools, 2003—2021.
+# Copyright © 2020 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gettext package.
+# Danilo Segan <dsegan@gmx.net>, 2003—2004.
+# Мирослав Николић <miroslavnikolic@rocketmail.com>, 2013-2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tools-0.22\n"
+"Report-Msgid-Bugs-To: bug-gettext@gnu.org\n"
+"POT-Creation-Date: 2023-11-17 22:41+0100\n"
+"PO-Revision-Date: 2023-07-31 06:05+0200\n"
+"Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
+"Language-Team: Serbian <(nothing)>\n"
+"Language: sr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Gtranslator 41.0\n"
+
+#: gnulib-lib/argmatch.c:145
+#, c-format
+msgid "invalid argument %s for %s"
+msgstr "неисправан аргумент „%s“ за „%s“"
+
+#: gnulib-lib/argmatch.c:146
+#, c-format
+msgid "ambiguous argument %s for %s"
+msgstr "нејасан аргумент „%s“ за „%s“"
+
+#: gnulib-lib/argmatch.c:165
+msgid "Valid arguments are:"
+msgstr "Исправни аргументи су:"
+
+#: gnulib-lib/clean-temp.c:234
+#, c-format
+msgid "cannot find a temporary directory, try setting $TMPDIR"
+msgstr ""
+"не могу да пронађем привремени директоријум, покушавам да подесим „$TMPDIR“"
+
+#: gnulib-lib/clean-temp.c:249
+#, c-format
+msgid "cannot create a temporary directory using template \"%s\""
+msgstr "не могу да направим привремени директоријум користећи шаблон „%s“"
+
+#: gnulib-lib/clean-temp.c:370
+#, c-format
+msgid "cannot remove temporary directory %s"
+msgstr "не могу да уклоним привремени директоријум „%s“"
+
+#: gnulib-lib/clean-temp-simple.c:296
+#, c-format
+msgid "cannot remove temporary file %s"
+msgstr "не могу да уклоним привремену датотеку „%s“"
+
+#: gnulib-lib/closeout.c:66
+msgid "write error"
+msgstr "грешка писања"
+
+#: gnulib-lib/copy-file.c:192
+#, c-format
+msgid "error while opening %s for reading"
+msgstr "грешка приликом отварања „%s“ за читање"
+
+#: gnulib-lib/copy-file.c:196
+#, c-format
+msgid "cannot open backup file %s for writing"
+msgstr "не могу да отворим датотеку резерве „%s“ за упис"
+
+#: gnulib-lib/copy-file.c:200
+#, c-format
+msgid "error reading %s"
+msgstr "грешка читања „%s“"
+
+#: gnulib-lib/copy-file.c:204
+#, c-format
+msgid "error writing %s"
+msgstr "грешка писања „%s“"
+
+#: gnulib-lib/copy-file.c:208
+#, c-format
+msgid "error after reading %s"
+msgstr "грешка након читања „%s“"
+
+#: gnulib-lib/copy-file.c:215
+#, c-format
+msgid "preserving permissions for %s"
+msgstr "причувавам овлашћења за %s"
+
+#: gnulib-lib/csharpcomp.c:203 gnulib-lib/javacomp.c:356
+#: gnulib-lib/javaversion.c:77 src/msginit.c:955 src/msginit.c:1038
+#: src/msginit.c:1207 src/msginit.c:1314 src/msginit.c:1488
+#: src/read-csharp.c:73 src/read-java.c:72 src/read-resources.c:74
+#: src/read-tcl.c:111 src/write-resources.c:79 src/x-ruby.c:135
+#, c-format
+msgid "fdopen() failed"
+msgstr "није успела функција „fdopen()“"
+
+#: gnulib-lib/csharpcomp.c:444
+#, c-format
+msgid "C# compiler not found, try installing mono"
+msgstr "нисам нашао Ц# преводиоца, покушајте да инсталирате моно"
+
+#: gnulib-lib/csharpexec.c:259
+#, c-format
+msgid "C# virtual machine not found, try installing mono"
+msgstr "нисам нашао Ц# виртуелну машину, покушајте да инсталирате моно"
+
+#: gnulib-lib/error.c:194 libgettextpo/error.c:194
+msgid "Unknown system error"
+msgstr "Непозната грешка система"
+
+#: gnulib-lib/execute.c:347 gnulib-lib/spawn-pipe.c:596
+#: gnulib-lib/wait-process.c:291 gnulib-lib/wait-process.c:365
+#, c-format
+msgid "%s subprocess failed"
+msgstr "%s потпроцес није успео"
+
+#: gnulib-lib/gai_strerror.c:57
+msgid "Address family for hostname not supported"
+msgstr "Фамилија адресе за назив домаћина није подржана"
+
+#: gnulib-lib/gai_strerror.c:58
+msgid "Temporary failure in name resolution"
+msgstr "Привремени неуспех у решавању назива"
+
+#: gnulib-lib/gai_strerror.c:59
+msgid "Bad value for ai_flags"
+msgstr "Лоша вредност за „ai_flags“"
+
+#: gnulib-lib/gai_strerror.c:60
+msgid "Non-recoverable failure in name resolution"
+msgstr "Непоправљиви неуспех у решавању назива"
+
+#: gnulib-lib/gai_strerror.c:61
+msgid "ai_family not supported"
+msgstr "„ai_family“ није подржано"
+
+#: gnulib-lib/gai_strerror.c:62
+msgid "Memory allocation failure"
+msgstr "Нуспех доделе меморије"
+
+#: gnulib-lib/gai_strerror.c:63
+msgid "No address associated with hostname"
+msgstr "Ниједна адреса није придружена називу домаћина"
+
+#: gnulib-lib/gai_strerror.c:64
+msgid "Name or service not known"
+msgstr "Назив или услуга није познат"
+
+#: gnulib-lib/gai_strerror.c:65
+msgid "Servname not supported for ai_socktype"
+msgstr "Назив услуге није подржан за „ai_socktype“"
+
+#: gnulib-lib/gai_strerror.c:66
+msgid "ai_socktype not supported"
+msgstr "„ai_socktype“ није подржано"
+
+#: gnulib-lib/gai_strerror.c:67
+msgid "System error"
+msgstr "Грешка система"
+
+#: gnulib-lib/gai_strerror.c:68
+msgid "Argument buffer too small"
+msgstr "Међумеморија аргумента је премала"
+
+#: gnulib-lib/gai_strerror.c:70
+msgid "Processing request in progress"
+msgstr "Захтев обраде је у току"
+
+#: gnulib-lib/gai_strerror.c:71
+msgid "Request canceled"
+msgstr "Захтев је отказан"
+
+#: gnulib-lib/gai_strerror.c:72
+msgid "Request not canceled"
+msgstr "Захтев није отказан"
+
+#: gnulib-lib/gai_strerror.c:73
+msgid "All requests done"
+msgstr "Сви захтеви су готови"
+
+#: gnulib-lib/gai_strerror.c:74
+msgid "Interrupted by a signal"
+msgstr "Прекинуто је сигналом"
+
+#: gnulib-lib/gai_strerror.c:75
+msgid "Parameter string not correctly encoded"
+msgstr "Ниска параметра није исправно кодирана"
+
+#: gnulib-lib/gai_strerror.c:87
+msgid "Unknown error"
+msgstr "Непозната грешка"
+
+#: gnulib-lib/getopt.c:278
+#, c-format
+msgid "%s: option '%s%s' is ambiguous\n"
+msgstr "%s: опција „%s%s“ је нејасна\n"
+
+#: gnulib-lib/getopt.c:284
+#, c-format
+msgid "%s: option '%s%s' is ambiguous; possibilities:"
+msgstr "%s: опција „%s%s“ је нејасна; могућности:"
+
+#: gnulib-lib/getopt.c:319
+#, c-format
+msgid "%s: unrecognized option '%s%s'\n"
+msgstr "%s: непозната опција „%s%s“\n"
+
+#: gnulib-lib/getopt.c:345
+#, c-format
+msgid "%s: option '%s%s' doesn't allow an argument\n"
+msgstr "%s: опција „%s%s“ не дозвољава аргумент\n"
+
+#: gnulib-lib/getopt.c:360
+#, c-format
+msgid "%s: option '%s%s' requires an argument\n"
+msgstr "%s: опција „%s%s“ захтева аргумент\n"
+
+#: gnulib-lib/getopt.c:621
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: неисправна опција -- „%c“\n"
+
+#: gnulib-lib/getopt.c:636 gnulib-lib/getopt.c:682
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: опција захтева аргумент -- „%c“\n"
+
+#: gnulib-lib/javacomp.c:103
+#, c-format
+msgid ""
+"The java program is too old. Cannot compile Java code for this old version "
+"any more."
+msgstr ""
+"Програм јава је превише стар. Више не могу да преведем Јава код за ово старо "
+"издање."
+
+#: gnulib-lib/javacomp.c:147
+#, c-format
+msgid "invalid source_version argument to compile_java_class"
+msgstr "неисправан аргумент издања_извора за преведи_јава_разред"
+
+#: gnulib-lib/javacomp.c:168
+#, c-format
+msgid "invalid target_version argument to compile_java_class"
+msgstr "неисправан аргумент издања_мете за преведи_јава_разред"
+
+#: gnulib-lib/javacomp.c:364 gnulib-lib/javaversion.c:85 src/msginit.c:963
+#: src/msginit.c:1046 src/msginit.c:1215 src/msginit.c:1496
+#, c-format
+msgid "%s subprocess I/O error"
+msgstr "У/И грешка %s потпроцеса"
+
+#: gnulib-lib/javacomp.c:459 src/write-csharp.c:745 src/write-java.c:1150
+#: src/write-java.c:1158 src/write-java.c:1186 src/write-java.c:1198
+#, c-format
+msgid "failed to create \"%s\""
+msgstr "нисам успео да направим „%s“"
+
+#: gnulib-lib/javacomp.c:466 src/write-catalog.c:256 src/write-catalog.c:329
+#: src/write-csharp.c:754 src/write-desktop.c:183 src/write-java.c:1166
+#: src/write-java.c:1207 src/write-mo.c:1214 src/write-mo.c:1236
+#: src/write-qt.c:751 src/write-tcl.c:228 src/write-xml.c:76
+#, c-format
+msgid "error while writing \"%s\" file"
+msgstr "грешка приликом писања датотеке „%s“"
+
+#: gnulib-lib/javacomp.c:1134
+#, c-format
+msgid "Java compiler not found, try setting $JAVAC"
+msgstr "Нисам нашао Јава преводиоца, покушајте да поставите „$JAVAC“"
+
+#: gnulib-lib/javaexec.c:309
+#, c-format
+msgid "Java virtual machine not found, try setting $JAVA"
+msgstr "Нисам нашао виртуелну машину Јаве, покушајте да поставите „$JAVA“"
+
+#: gnulib-lib/obstack.c:317 gnulib-lib/obstack.c:319 gnulib-lib/xalloc-die.c:34
+#: gnulib-lib/xsetenv.c:37 src/msgl-check.c:563 src/po-lex.c:83
+#: src/po-lex.c:102 libgettextpo/gettext-po.c:1340 libgettextpo/obstack.c:317
+#: libgettextpo/obstack.c:319 libgettextpo/xalloc-die.c:34
+#, c-format
+msgid "memory exhausted"
+msgstr "меморија је потрошена"
+
+#: gnulib-lib/openat-die.c:38
+#, c-format
+msgid "unable to record current working directory"
+msgstr "не могу да снимим текући радни директоријум"
+
+#: gnulib-lib/openat-die.c:57
+#, c-format
+msgid "failed to return to initial working directory"
+msgstr "нисам успео да се вратим у почетни радни директоријум"
+
+#: gnulib-lib/os2-spawn.c:45
+#, c-format
+msgid "_open_osfhandle failed"
+msgstr "„_open_osfhandle“ није успело"
+
+#: gnulib-lib/os2-spawn.c:82
+#, c-format
+msgid "cannot restore fd %d: dup2 failed"
+msgstr "не могу да повратим фд %d: „dup2“ није успело"
+
+#: gnulib-lib/pipe-filter-ii.c:313
+#, c-format
+msgid "creation of threads failed"
+msgstr "стварање нити није успело"
+
+#: gnulib-lib/pipe-filter-ii.c:345 gnulib-lib/pipe-filter-ii.c:502
+#: src/msgexec.c:428
+#, c-format
+msgid "write to %s subprocess failed"
+msgstr "писање у %s потпроцес није успело"
+
+#: gnulib-lib/pipe-filter-ii.c:366 gnulib-lib/pipe-filter-ii.c:545
+#, c-format
+msgid "read from %s subprocess failed"
+msgstr "читање из %s потпроцеса није успело"
+
+#: gnulib-lib/pipe-filter-ii.c:419
+#, c-format
+msgid "cannot set up nonblocking I/O to %s subprocess"
+msgstr "не могу да поставим неблокирајући У/И за потпроцес %s"
+
+#: gnulib-lib/pipe-filter-ii.c:457
+#, c-format
+msgid "communication with %s subprocess failed"
+msgstr "комуницирање са %s потпроцесом није успело"
+
+#: gnulib-lib/pipe-filter-ii.c:577
+#, c-format
+msgid "%s subprocess terminated with exit code %d"
+msgstr "%s потпроцес је окончан са излазном шифром %d"
+
+#. TRANSLATORS:
+#. Get translations for open and closing quotation marks.
+#. The message catalog should translate "`" to a left
+#. quotation mark suitable for the locale, and similarly for
+#. "'".  For example, a French Unicode local should translate
+#. these to U+00AB (LEFT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), and U+00BB (RIGHT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), respectively.
+#.
+#. If the catalog has no translation, we will try to
+#. use Unicode U+2018 (LEFT SINGLE QUOTATION MARK) and
+#. Unicode U+2019 (RIGHT SINGLE QUOTATION MARK).  If the
+#. current locale is not Unicode, locale_quoting_style
+#. will quote 'like this', and clocale_quoting_style will
+#. quote "like this".  You should always include translations
+#. for "`" and "'" even if U+2018 and U+2019 are appropriate
+#. for your locale.
+#.
+#. If you don't know what to put here, please see
+#. <https://en.wikipedia.org/wiki/Quotation_marks_in_other_languages>
+#. and use glyphs suitable for your language.
+#: gnulib-lib/quotearg.c:354
+msgid "`"
+msgstr "„"
+
+#: gnulib-lib/quotearg.c:355
+msgid "'"
+msgstr "“"
+
+#
+#: gnulib-lib/spawn-pipe.c:216 gnulib-lib/spawn-pipe.c:219
+#, c-format
+msgid "cannot create pipe"
+msgstr "не могу да направим спојку"
+
+#: gnulib-lib/wait-process.c:232 gnulib-lib/wait-process.c:264
+#: gnulib-lib/wait-process.c:326
+#, c-format
+msgid "%s subprocess"
+msgstr "%s потпроцес"
+
+#: gnulib-lib/wait-process.c:283 gnulib-lib/wait-process.c:355
+#, c-format
+msgid "%s subprocess got fatal signal %d"
+msgstr "%s потпроцес је добио кобни сигнал %d"
+
+#: src/cldr-plurals.c:61
+#, c-format
+msgid "Could not parse file %s as XML"
+msgstr "Не могу да обрадим датотеку „%s“ као ИксМЛ"
+
+#: src/cldr-plurals.c:69
+#, c-format
+msgid "The root element must be <%s>"
+msgstr "Корени елемент мора бити <%s>"
+
+#: src/cldr-plurals.c:82
+#, c-format
+msgid "The element <%s> does not contain a <%s> element"
+msgstr "Елемент <%s> не садржи елемент <%s>"
+
+#: src/cldr-plurals.c:104 src/cldr-plurals.c:144
+#, c-format
+msgid "The element <%s> does not have attribute <%s>"
+msgstr "Елемент <%s> нема атрибут <%s>"
+
+#: src/cldr-plurals.c:188 src/hostname.c:220 src/msgattrib.c:414
+#: src/msgcat.c:360 src/msgcmp.c:205 src/msgcomm.c:352 src/msgconv.c:300
+#: src/msgen.c:297 src/msgexec.c:256 src/msgfilter.c:407 src/msgfmt.c:899
+#: src/msggrep.c:505 src/msginit.c:405 src/msgmerge.c:533 src/msgunfmt.c:420
+#: src/msguniq.c:319 src/recode-sr-latin.c:139 src/urlget.c:168
+#: src/xgettext.c:1061
+#, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "Пробајте „%s --help“ за више података.\n"
+
+#: src/cldr-plurals.c:192
+#, c-format
+msgid "Usage: %s [OPTION...] [LOCALE RULES]...\n"
+msgstr "Употреба: %s [ОПЦИЈА...] [ЈЕЗИЧКА ПРАВИЛА]...\n"
+
+#: src/cldr-plurals.c:197
+#, c-format, no-wrap
+msgid ""
+"Extract or convert Unicode CLDR plural rules.\n"
+"\n"
+"If both LOCALE and RULES are specified, it reads CLDR plural rules for\n"
+"LOCALE from RULES and print them in a form suitable for gettext use.\n"
+"If no argument is given, it reads CLDR plural rules from the standard input.\n"
+msgstr ""
+"Извлачи или претвара ЦЛДР правила множине Јуникода.\n"
+"\n"
+"Ако су наведени и ЈЕЗИК и ПРАВИЛА, чита ЦЛДР правила множине за\n"
+"ЈЕЗИК из ПРАВИЛА и исписује их у облику погодном геттексу за коришћење.\n"
+"Ако није дат ниједан аргумент, чита ЦЛДР правила множине са стандардног улаза.\n"
+
+#: src/cldr-plurals.c:206 src/msgfmt.c:912 src/xgettext.c:1074
+#, c-format, no-wrap
+msgid ""
+"Mandatory arguments to long options are mandatory for short options too.\n"
+"Similarly for optional arguments.\n"
+msgstr ""
+"Обавезни аргументи за дуге опције су такође обавезни и за кратке опције.\n"
+"Слично и за аргументе избора.\n"
+
+#: src/cldr-plurals.c:211
+#, c-format
+msgid "  -c, --cldr                  print plural rules in the CLDR format\n"
+msgstr "  -c, --cldr                  исписује правила множине у ЦЛДР запису\n"
+
+#: src/cldr-plurals.c:213 src/hostname.c:243 src/msgattrib.c:533
+#: src/msgcat.c:468 src/msgcmp.c:256 src/msgcomm.c:454 src/msgconv.c:384
+#: src/msgen.c:380 src/msgexec.c:305 src/msgfilter.c:507 src/msgfmt.c:1070
+#: src/msggrep.c:623 src/msginit.c:469 src/msgmerge.c:663 src/msgunfmt.c:526
+#: src/msguniq.c:416 src/recode-sr-latin.c:160 src/urlget.c:184
+#: src/xgettext.c:1249
+#, c-format, no-wrap
+msgid "  -h, --help                  display this help and exit\n"
+msgstr "  -h, --help                  приказује ову помоћ и излази\n"
+
+#: src/cldr-plurals.c:215 src/hostname.c:245 src/msgattrib.c:535
+#: src/msgcat.c:470 src/msgcmp.c:258 src/msgcomm.c:456 src/msgconv.c:386
+#: src/msgen.c:382 src/msgexec.c:307 src/msgfilter.c:509 src/msgfmt.c:1072
+#: src/msggrep.c:625 src/msginit.c:471 src/msgmerge.c:665 src/msgunfmt.c:528
+#: src/msguniq.c:418 src/recode-sr-latin.c:163 src/urlget.c:186
+#: src/xgettext.c:1251
+#, c-format, no-wrap
+msgid "  -V, --version               output version information and exit\n"
+msgstr "  -V, --version               исписује податке о издању и излази\n"
+
+#. TRANSLATORS: The first placeholder is the web address of the Savannah
+#. project of this package.  The second placeholder is the bug-reporting
+#. email address for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: src/cldr-plurals.c:223 src/hostname.c:253 src/msgattrib.c:543
+#: src/msgcat.c:478 src/msgcmp.c:266 src/msgcomm.c:464 src/msgconv.c:394
+#: src/msgen.c:390 src/msgexec.c:315 src/msgfilter.c:517 src/msgfmt.c:1084
+#: src/msggrep.c:633 src/msginit.c:479 src/msgmerge.c:677 src/msgunfmt.c:538
+#: src/msguniq.c:426 src/recode-sr-latin.c:171 src/urlget.c:196
+#: src/xgettext.c:1261
+#, c-format
+msgid ""
+"Report bugs in the bug tracker at <%s>\n"
+"or by email to <%s>.\n"
+msgstr ""
+"Грешке пријавите на пратиоцу грешака на „%s“\n"
+"или пошаљите поруку на „%s“.\n"
+
+#: src/cldr-plurals.c:292 src/hostname.c:191 src/msgattrib.c:352
+#: src/msgcat.c:291 src/msgcmp.c:168 src/msgcomm.c:282 src/msgconv.c:241
+#: src/msgen.c:238 src/msgexec.c:183 src/msgfilter.c:286 src/msgfmt.c:444
+#: src/msggrep.c:412 src/msginit.c:269 src/msgmerge.c:369 src/msgunfmt.c:259
+#: src/msguniq.c:261 src/recode-sr-latin.c:106 src/urlget.c:139
+#: src/xgettext.c:691
+#, c-format, no-wrap
+msgid ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"License GPLv3+: GNU GPL version 3 or later <%s>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"Ауторска права © %s Задужбина слободног софтвера, Инк.\n"
+"Лиценца ОЈЛв3+: ГНУ ОЈЛ издање 3 или касније <%s>.\n"
+"Ово је слободан софтвер: слободни сте да га мењате и расподељујете.\n"
+"Не постоји НИКАКВА ГАРАНЦИЈА, у оквирима дозвољеним законом.\n"
+
+#: src/cldr-plurals.c:298 src/hostname.c:197 src/msgattrib.c:358
+#: src/msgcat.c:297 src/msgcmp.c:174 src/msgcomm.c:288 src/msgconv.c:247
+#: src/msgen.c:244 src/msgexec.c:189 src/msgfilter.c:292 src/msgfmt.c:450
+#: src/msggrep.c:418 src/msginit.c:275 src/msgmerge.c:375 src/msgunfmt.c:265
+#: src/msguniq.c:267 src/urlget.c:145 src/xgettext.c:697
+#, c-format
+msgid "Written by %s.\n"
+msgstr "Написао је %s.\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/cldr-plurals.c:298
+msgid "Daiki Ueno"
+msgstr "Даики Уено"
+
+#: src/cldr-plurals.c:318
+#, c-format
+msgid "%s cannot be read"
+msgstr "Не могу да прочитам „%s“"
+
+#: src/cldr-plurals.c:324
+#, c-format
+msgid "cannot extract rules for %s"
+msgstr "не могу да извадим правила за „%s“"
+
+#: src/cldr-plurals.c:334
+#, c-format
+msgid "cannot parse CLDR rule"
+msgstr "не могу да обрадим ЦЛДР правило"
+
+#: src/cldr-plurals.c:369
+#, c-format
+msgid "extra operand %s"
+msgstr "додатни операнд %s"
+
+#: src/file-list.c:53 src/msggrep.c:240 src/open-catalog.c:124
+#: src/read-mo.c:270 src/read-tcl.c:126 src/urlget.c:216
+#: src/write-desktop.c:173 src/xgettext.c:1826 src/xgettext.c:1838
+#: src/xgettext.c:1854 src/xgettext.c:1887 src/xgettext.c:1897
+#: src/xgettext.c:1914
+#, c-format
+msgid "error while opening \"%s\" for reading"
+msgstr "грешка приликом отварања „%s“ за читање"
+
+#: src/format-awk.c:510 src/format-boost.c:619 src/format-c++-brace.c:955
+#: src/format-elisp.c:348 src/format-gcc-internal.c:628
+#: src/format-java-printf.c:579 src/format-javascript.c:356
+#: src/format-kde.c:223 src/format-librep.c:312 src/format-lua.c:228
+#: src/format-pascal.c:395 src/format-perl.c:582 src/format-php.c:348
+#: src/format-qt.c:173 src/format-smalltalk.c:147 src/format-tcl.c:391
+#, c-format
+msgid ""
+"a format specification for argument %u, as in '%s', doesn't exist in '%s'"
+msgstr "особеност записа за %u. аргумент, као у „%s“, не постоји у „%s“"
+
+#: src/format-awk.c:521 src/format-boost.c:630 src/format-c++-brace.c:966
+#: src/format-elisp.c:359 src/format-gcc-internal.c:639
+#: src/format-java-printf.c:590 src/format-javascript.c:367
+#: src/format-kde.c:234 src/format-librep.c:323 src/format-lua.c:235
+#: src/format-pascal.c:406 src/format-perl.c:593 src/format-php.c:359
+#: src/format-qt.c:170 src/format-smalltalk.c:144 src/format-tcl.c:402
+#, c-format
+msgid "a format specification for argument %u doesn't exist in '%s'"
+msgstr "особеност записа за %u. аргумент не постоји у „%s“"
+
+#: src/format-awk.c:541 src/format-boost.c:650 src/format-c.c:149
+#: src/format-elisp.c:379 src/format-gcc-internal.c:659
+#: src/format-gfc-internal.c:372 src/format-java-printf.c:610
+#: src/format-javascript.c:390 src/format-librep.c:343 src/format-lua.c:242
+#: src/format-pascal.c:426 src/format-perl.c:613 src/format-php.c:379
+#: src/format-python.c:527 src/format-ruby.c:960 src/format-tcl.c:422
+#, c-format
+msgid "format specifications in '%s' and '%s' for argument %u are not the same"
+msgstr "спецификације записа у „%s“ и „%s“ за %u. аргумент нису исте"
+
+#: src/format-boost.c:451
+#, c-format
+msgid "The directive number %u starts with | but does not end with |."
+msgstr "Број одреднице %u почиње са | али се не завршава са |."
+
+#: src/format.c:155
+#, c-format
+msgid "'%s' is not a valid %s format string, unlike '%s'. Reason: %s"
+msgstr "„%s“ није исправна ниска записа %s, није исто као „%s“. Разлог: %s"
+
+#: src/format-c++-brace.c:270
+#, c-format
+msgid "In the directive number %u, the arg-id is too large."
+msgstr "У смерници број %u, арг-ид је превелик."
+
+#: src/format-c++-brace.c:383 src/format-c++-brace.c:477
+#, c-format
+msgid "In the directive number %u, the width's arg-id is too large."
+msgstr "У смерници број %u, арг-ид ширине је превелик."
+
+#: src/format-c++-brace.c:438
+#, c-format
+msgid ""
+"In the directive number %u, the width's arg-id is not terminated through '}'."
+msgstr "У смерници број %u, арг-ид ширине није окончан са }."
+
+#: src/format-c++-brace.c:532
+#, c-format
+msgid ""
+"In the directive number %u, the precision's arg-id is not terminated through "
+"'}'."
+msgstr "У смерници број %u, арг-ид тачности није окончан са }."
+
+#: src/format-c++-brace.c:593
+#, c-format
+msgid ""
+"In the directive number %u, the character '%c' is not a standard type "
+"specifier."
+msgstr "У смерници број %u, знак „%c“ није уобичајен одредник врсте."
+
+#: src/format-c++-brace.c:594
+#, c-format
+msgid ""
+"The character that terminates the directive number %u is not a standard type "
+"specifier."
+msgstr "Знак којим се завршава смерница број %u није уобичајен одредник врсте."
+
+#: src/format-c++-brace.c:602
+#, c-format
+msgid ""
+"In the directive number %u, the sign specification is incompatible with the "
+"type specifier '%c'."
+msgstr ""
+"У смерници број %u, одредба знака је несагласна са одредником врсте „%c“."
+
+#: src/format-c++-brace.c:610
+#, c-format
+msgid ""
+"In the directive number %u, the '#' option is incompatible with the type "
+"specifier '%c'."
+msgstr "У смерници број %u, опција „#“ је несагласна са одредником врсте „%c“."
+
+#: src/format-c++-brace.c:618
+#, c-format
+msgid ""
+"In the directive number %u, the '0' option is incompatible with the type "
+"specifier '%c'."
+msgstr "У смерници број %u, опција „0“ је несагласна са одредником врсте „%c“."
+
+#: src/format-c++-brace.c:626
+#, c-format
+msgid ""
+"In the directive number %u, the precision specification is incompatible with "
+"the type specifier '%c'."
+msgstr ""
+"У смерници број %u, одредба тачности је несагласна са одредником врсте „%c“."
+
+#: src/format-c++-brace.c:634
+#, c-format
+msgid ""
+"In the directive number %u, the 'L' option is incompatible with the type "
+"specifier '%c'."
+msgstr "У смерници број %u, опција „L“ је несагласна са одредником врсте „%c“."
+
+#: src/format-c++-brace.c:735
+#, c-format
+msgid ""
+"The directive number %u, with all of its options, is not applicable to any "
+"type."
+msgstr ""
+"Смерница број %u, са свим својим опцијама, није примењива ни на једну врсту."
+
+#: src/format-c++-brace.c:747
+#, c-format
+msgid "The string ends in the middle of the directive number %u."
+msgstr "Ниска се завршава у сред смернице број %u."
+
+#: src/format-c++-brace.c:755
+#, c-format
+msgid "The directive number %u is not terminated through '}'."
+msgstr "Смерница број %u се не завршава са }."
+
+#: src/format-c++-brace.c:777 src/format-csharp.c:158 src/format-java.c:347
+msgid ""
+"The string starts in the middle of a directive: found '}' without matching "
+"'{'."
+msgstr "Ниска почиње у сред смернице: нађох } без одговарајуће {."
+
+#: src/format-c++-brace.c:778 src/format-csharp.c:159
+#, c-format
+msgid "The string contains a lone '}' after directive number %u."
+msgstr "Ниска садржи усамљену } након смернице број %u."
+
+#: src/format-c++-brace.c:991
+#, c-format
+msgid ""
+"The format specification for argument %u in '%s' is applicable to the types "
+"%s, but the format specification for argument %u in '%s' is not."
+msgstr ""
+"Одредба формата за аргумент „%u“ у „%s“ је примењива за врсте „%s“, али "
+"одредба формата за аргумент „%u“ у „%s“ није."
+
+#: src/format-c++-brace.c:1003
+#, c-format
+msgid ""
+"The format specification for argument %u in '%s' uses a different "
+"presentation than the format specification for argument %u in '%s'."
+msgstr ""
+"Одредба формата за аргумент „%u“ у „%s“ користи другачије представљање него "
+"одредба формата за аргумент „%u“ у „%s“."
+
+#: src/format-c.c:36
+#, c-format
+msgid ""
+"In the directive number %u, the token after '<' is not the name of a format "
+"specifier macro. The valid macro names are listed in ISO C 99 section 7.8.1."
+msgstr ""
+"У смерници број %u, члан након „<“ не представља назив макроа спецификације "
+"записа. Исправни називи макроа су пописани у ИСО Це 99, одељак 7.8.1."
+
+#: src/format-c.c:39
+#, c-format
+msgid "In the directive number %u, the token after '<' is not followed by '>'."
+msgstr "У смерници број %u, члан након „<“ није праћен „>“."
+
+#: src/format-c.c:42
+#, c-format
+msgid "In the directive number %u, the argument size specifier is invalid."
+msgstr "У смерници број %u, одредник величине аргумента није исправан."
+
+#: src/format-c.c:45 src/format-gfc-internal.c:289
+#, c-format
+msgid "The string refers to argument number %u but ignores argument number %u."
+msgstr "Ниска упућује на %u. аргумент, али занемарује %u. аргумент."
+
+#: src/format-c.c:140 src/format-csharp.c:203 src/format-gfc-internal.c:363
+#: src/format-python.c:515 src/format-qt-plural.c:110 src/format-ruby.c:951
+#, c-format
+msgid "number of format specifications in '%s' and '%s' does not match"
+msgstr "не подудара се број особености записа у „%s“ и „%s“"
+
+#: src/format-csharp.c:85 src/format-java.c:206
+#, c-format
+msgid "In the directive number %u, '{' is not followed by an argument number."
+msgstr "У смерници број %u, иза { не следи број аргумента."
+
+#: src/format-csharp.c:106
+#, c-format
+msgid "In the directive number %u, ',' is not followed by a number."
+msgstr "У смерници број %u, иза , не следи број аргумента."
+
+#: src/format-csharp.c:127 src/format-java.c:192
+msgid ""
+"The string ends in the middle of a directive: found '{' without matching '}'."
+msgstr "Ниска се завршава у сред смернице: нађох { без одговарајуће }."
+
+#: src/format-csharp.c:136
+#, c-format
+msgid ""
+"The directive number %u ends with an invalid character '%c' instead of '}'."
+msgstr "Смерница број %u се завршава неисправним знаком „%c“ уместо }."
+
+#: src/format-csharp.c:137
+#, c-format
+msgid "The directive number %u ends with an invalid character instead of '}'."
+msgstr "Смерница број %u се завршава неисправним знаком уместо }."
+
+#: src/format-gcc-internal.c:256
+#, c-format
+msgid "In the directive number %u, the flags combination is invalid."
+msgstr "У смерници број %u, комбинација обележја није исправна."
+
+#: src/format-gcc-internal.c:293
+#, c-format
+msgid "In the directive number %u, a precision is not allowed before '%c'."
+msgstr "У смерници број %u, тачност није дозвољена пре „%c“."
+
+#: src/format-gcc-internal.c:335
+#, c-format
+msgid ""
+"In the directive number %u, the argument number for the precision must be "
+"equal to %u."
+msgstr "У смерници број %u, број аргумента за тачност мора бити једнак %u."
+
+#: src/format-gcc-internal.c:399
+#, c-format
+msgid ""
+"In the directive number %u, a precision specification is not allowed before "
+"'%c'."
+msgstr "У смерници број %u, особеност тачности није дозвољена пре „%c“."
+
+#: src/format-gcc-internal.c:407
+#, c-format
+msgid "In the directive number %u, the precision specification is invalid."
+msgstr "У смерници број %u, особеност тачности није исправна."
+
+#: src/format-gcc-internal.c:464
+#, c-format
+msgid "In the directive number %u, flags are not allowed before '%c'."
+msgstr "У смерници број %u, обележја нису дозвољена пре „%c“."
+
+#: src/format-gcc-internal.c:678
+#, c-format
+msgid "'%s' uses %%m but '%s' doesn't"
+msgstr "„%s“ користи %%m али „%s“ не"
+
+#: src/format-gcc-internal.c:681
+#, c-format
+msgid "'%s' does not use %%m but '%s' uses %%m"
+msgstr "„%s“ не користи %%m али „%s“ користи %%m"
+
+#: src/format-gfc-internal.c:383
+#, c-format
+msgid "'%s' uses %%C but '%s' doesn't"
+msgstr "„%s“ користи %%C али „%s“ не"
+
+#: src/format-gfc-internal.c:386
+#, c-format
+msgid "'%s' does not use %%C but '%s' uses %%C"
+msgstr "„%s“ не користи %%C али „%s“ користи %%C"
+
+#: src/format-invalid.h:22
+msgid "The string ends in the middle of a directive."
+msgstr "Ниска се завршава у сред смернице."
+
+#: src/format-invalid.h:25
+msgid ""
+"The string refers to arguments both through absolute argument numbers and "
+"through unnumbered argument specifications."
+msgstr ""
+"Ниска упућује на аргументе и помоћу апсолутног броја аргумента и помоћу "
+"обичних особености аргумената."
+
+#: src/format-invalid.h:28
+#, c-format
+msgid ""
+"In the directive number %u, the argument number 0 is not a positive integer."
+msgstr "У смерници број %u, аргумент са бројем 0 није позитиван цео број."
+
+#: src/format-invalid.h:30
+#, c-format
+msgid ""
+"In the directive number %u, the width's argument number 0 is not a positive "
+"integer."
+msgstr "У смерници број %u, број 0 аргумента ширине није позитиван цео број."
+
+#: src/format-invalid.h:32
+#, c-format
+msgid ""
+"In the directive number %u, the precision's argument number 0 is not a "
+"positive integer."
+msgstr "У смерници број %u, број 0 аргумента тачности није позитиван цео број."
+
+#: src/format-invalid.h:36
+#, c-format
+msgid ""
+"In the directive number %u, the character '%c' is not a valid conversion "
+"specifier."
+msgstr "У смерници број %u, знак „%c“ није исправан одредник претварања."
+
+#: src/format-invalid.h:37
+#, c-format
+msgid ""
+"The character that terminates the directive number %u is not a valid "
+"conversion specifier."
+msgstr ""
+"Знак којим се завршава смерница број %u није исправан одредник претварања."
+
+#: src/format-invalid.h:40
+#, c-format
+msgid "The string refers to argument number %u in incompatible ways."
+msgstr "Ниска упућује на аргумент бр. %u на несагласне начине."
+
+#: src/format-java.c:241
+#, c-format
+msgid ""
+"In the directive number %u, the substring \"%s\" is not a valid date/time "
+"style."
+msgstr ""
+"У смерници број %u, подниска „%s“ не представља исправан стил датума и "
+"времена."
+
+#: src/format-java.c:252 src/format-java.c:286 src/format-java.c:315
+#, c-format
+msgid "In the directive number %u, \"%s\" is not followed by a comma."
+msgstr "У смерници број %u, након „%s“ не следи запета."
+
+#: src/format-java.c:275
+#, c-format
+msgid ""
+"In the directive number %u, the substring \"%s\" is not a valid number style."
+msgstr "У смерници број %u, подниска „%s“ не представља исправан стил бројева."
+
+#: src/format-java.c:324
+#, c-format
+msgid ""
+"In the directive number %u, the argument number is not followed by a comma "
+"and one of \"%s\", \"%s\", \"%s\", \"%s\"."
+msgstr ""
+"У смерници број %u, након броја аргумента не следи запета и неки од „%s“, "
+"„%s“, „%s“, „%s“."
+
+#: src/format-java.c:573
+#, c-format
+msgid "In the directive number %u, a choice contains no number."
+msgstr "У смерници број %u, избор не садржи број."
+
+#: src/format-java.c:584
+#, c-format
+msgid ""
+"In the directive number %u, a choice contains a number that is not followed "
+"by '<', '#' or '%s'."
+msgstr ""
+"У смерници број %u, избор садржи број након кога не следи „<“, „#“ или „%s“."
+
+#: src/format-java.c:746
+#, c-format
+msgid ""
+"a format specification for argument {%u}, as in '%s', doesn't exist in '%s'"
+msgstr "особеност записа за аргумент {%u}, као у „%s“, не постоји у „%s“"
+
+#: src/format-java.c:757
+#, c-format
+msgid "a format specification for argument {%u} doesn't exist in '%s'"
+msgstr "особеност записа за аргумент {%u} не постоји у „%s“"
+
+#: src/format-java.c:777
+#, c-format
+msgid ""
+"format specifications in '%s' and '%s' for argument {%u} are not the same"
+msgstr "спецификације записа у „%s“ и „%s“ за аргумент {%u} нису исте"
+
+#: src/format-java-printf.c:138
+#, c-format
+msgid ""
+"In the directive number %u, the reference to the argument of the previous "
+"directive is invalid."
+msgstr ""
+"У смерници број %u, упута ка аргументу претходне смернице није исправна."
+
+#: src/format-java-printf.c:141
+#, c-format
+msgid "In the directive number %u, the precision is missing."
+msgstr "У смерници број %u, недостаје тачност."
+
+#: src/format-java-printf.c:144
+#, c-format
+msgid ""
+"In the directive number %u, the flag '%c' is invalid for the conversion '%c'."
+msgstr "У смерници број %u, заставица „%c“ није исправна за претварање „%c“."
+
+#: src/format-java-printf.c:147
+#, c-format
+msgid "In the directive number %u, a width is invalid for the conversion '%c'."
+msgstr "У смерници број %u, ширина није исправна за претварање „%c“."
+
+#: src/format-java-printf.c:150
+#, c-format
+msgid ""
+"In the directive number %u, a precision is invalid for the conversion '%c'."
+msgstr "У смерници број %u, тачност није исправна за претварање „%c“."
+
+#: src/format-java-printf.c:154
+#, c-format
+msgid ""
+"In the directive number %u, for the conversion '%c', the character '%c' is "
+"not a valid conversion suffix."
+msgstr ""
+"У смерници број %u, за претварање „%c“, знак „%c“ није исправан суфикс "
+"претварања."
+
+#: src/format-java-printf.c:155
+#, c-format
+msgid ""
+"The character that terminates the directive number %u, for the conversion "
+"'%c', is not a valid conversion suffix."
+msgstr ""
+"Знак којим се завршава смерница број %u, за претварање „%c“, није исправан "
+"суфикс претварања."
+
+#: src/format-kde.c:158
+#, c-format
+msgid ""
+"The string refers to argument number %u but ignores the arguments %u and %u."
+msgstr "Ниска упућује на %u. аргумент, али занемарује аргументе %u и %u."
+
+#: src/format-kde.c:242
+#, c-format
+msgid ""
+"a format specification for arguments %u and %u doesn't exist in '%s', only "
+"one argument may be ignored"
+msgstr ""
+"одредба записа за аргументе „%u“ и „%u“ не постоји у „%s“, само један "
+"аргумент може бити занемарен"
+
+#: src/format-kde-kuit.c:244 src/format-kde-kuit.c:264
+#: src/format-kde-kuit.c:274
+#, c-format
+msgid "error while parsing: %s"
+msgstr "грешка приликом обраде: %s"
+
+#: src/format-lisp.c:2355 src/format-lisp.c:2367 src/format-scheme.c:2382
+#: src/format-scheme.c:2394
+#, c-format
+msgid ""
+"In the directive number %u, parameter %u is of type '%s' but a parameter of "
+"type '%s' is expected."
+msgstr ""
+"У смерници број %u, параметар %u је врсте „%s“ али је очекиван параметар "
+"врсте „%s“."
+
+#: src/format-lisp.c:2390 src/format-scheme.c:2417
+#, c-format
+msgid ""
+"In the directive number %u, too many parameters are given; expected at most "
+"%u parameter."
+msgid_plural ""
+"In the directive number %u, too many parameters are given; expected at most "
+"%u parameters."
+msgstr[0] ""
+"У смерници број %u, дато је превише параметара; очекивах највише %u "
+"параметар."
+msgstr[1] ""
+"У смерници број %u, дато је превише параметара; очекивах највише %u "
+"параметра."
+msgstr[2] ""
+"У смерници број %u, дато је превише параметара; очекивах највише %u "
+"параметара."
+
+#: src/format-lisp.c:2515 src/format-scheme.c:2518
+#, c-format
+msgid "In the directive number %u, '%c' is not followed by a digit."
+msgstr "У смерници број %u, након „%c“ не следи цифра."
+
+#: src/format-lisp.c:2755 src/format-scheme.c:2773
+#, c-format
+msgid "In the directive number %u, the argument %d is negative."
+msgstr "У смерници број %u, %d. аргумент је негативан."
+
+#: src/format-lisp.c:2824
+msgid "The string ends in the middle of a ~/.../ directive."
+msgstr "Ниска се завршава у сред смернице ~/.../."
+
+#: src/format-lisp.c:2862 src/format-lisp.c:3127 src/format-lisp.c:3244
+#: src/format-lisp.c:3304 src/format-lisp.c:3416 src/format-scheme.c:2859
+#: src/format-scheme.c:3124 src/format-scheme.c:3241 src/format-scheme.c:3339
+#, c-format
+msgid "Found '~%c' without matching '~%c'."
+msgstr "Нађох „~%c“ без поклапања „~%c“."
+
+#: src/format-lisp.c:2882 src/format-scheme.c:2879
+#, c-format
+msgid "In the directive number %u, both the @ and the : modifiers are given."
+msgstr "У смерници број %u, дата су оба измењивача „@“ и „:“."
+
+#: src/format-lisp.c:2995 src/format-scheme.c:2992
+#, c-format
+msgid ""
+"In the directive number %u, '~:[' is not followed by two clauses, separated "
+"by '~;'."
+msgstr "У смерници број %u, након „~:[“ не следе две наредбе, раздвојене „~;“."
+
+#: src/format-lisp.c:3345 src/format-scheme.c:3282
+#, c-format
+msgid "In the directive number %u, '~;' is used in an invalid position."
+msgstr "У смерници број %u, „~;“ се користи на неисправном положају."
+
+#: src/format-lisp.c:3451 src/format-scheme.c:3374
+msgid "The string refers to some argument in incompatible ways."
+msgstr "Ниска упућује на неке аргументе на несагласан начин."
+
+#: src/format-lisp.c:3493 src/format-scheme.c:3416
+#, c-format
+msgid "format specifications in '%s' and '%s' are not equivalent"
+msgstr "спецификације записа у „%s“ и „%s“ нису еквивалентне"
+
+#: src/format-lisp.c:3509 src/format-scheme.c:3432
+#, c-format
+msgid "format specifications in '%s' are not a subset of those in '%s'"
+msgstr "спецификакције записа у „%s“ не представљају подскуп оних из „%s“"
+
+#: src/format-perl-brace.c:199 src/format-python-brace.c:478
+#: src/format-python-brace.c:491 src/format-python.c:471 src/format-ruby.c:910
+#: src/format-sh.c:308
+#, c-format
+msgid "a format specification for argument '%s' doesn't exist in '%s'"
+msgstr "особеност записа за аргумент „%s“ не постоји у „%s“"
+
+#: src/format-perl.c:432
+#, c-format
+msgid ""
+"In the directive number %u, the size specifier is incompatible with the "
+"conversion specifier '%c'."
+msgstr ""
+"У смерници број %u, одредник величине је несагласан са одредником претварања "
+"„%c“."
+
+#: src/format-python-brace.c:160
+#, c-format
+msgid "In the directive number %u, '%c' cannot start a field name."
+msgstr "У смерници број %u, „%c“ не не може да започне назив поља."
+
+#: src/format-python-brace.c:180
+#, c-format
+msgid "In the directive number %u, '%c' cannot start a getattr argument."
+msgstr "У смерници број %u, „%c“ не не може да започне аргумент „getattr“."
+
+#: src/format-python-brace.c:195
+#, c-format
+msgid "In the directive number %u, '%c' cannot start a getitem argument."
+msgstr "У смерници број %u, „%c“ не не може да започне аргумент „getitem“."
+
+#: src/format-python-brace.c:204
+#, c-format
+msgid "In the directive number %u, there is an unterminated getitem argument."
+msgstr "У смерници број %u, постоји неокончани „getitem“ аргумент."
+
+#: src/format-python-brace.c:221
+#, c-format
+msgid ""
+"In the directive number %u, no more nesting is allowed in a format specifier."
+msgstr ""
+"У смерници број %u, није дозвољено више угнежђавања у одреднику записа."
+
+#: src/format-python-brace.c:260 src/format-python-brace.c:313
+#, c-format
+msgid "In the directive number %u, there is an unterminated format directive."
+msgstr "У смерници број %u, постоји неокончана смерница записа."
+
+#: src/format-python.c:114 src/format-ruby.c:131
+msgid ""
+"The string refers to arguments both through argument names and through "
+"unnamed argument specifications."
+msgstr ""
+"Ниска упућује на аргументе и кроз називе аргумената и кроз неименоване "
+"наводе аргумената."
+
+#: src/format-python.c:354 src/format-ruby.c:793
+#, c-format
+msgid "The string refers to the argument named '%s' in incompatible ways."
+msgstr "Ниска упућује на аргумент назива „%s“ на несагласне начине."
+
+#: src/format-python.c:430
+#, c-format
+msgid ""
+"format specifications in '%s' expect a mapping, those in '%s' expect a tuple"
+msgstr "особеност записа у „%s“ очекује мапирање, а они у „%s“ очекују н-торку"
+
+#: src/format-python.c:437
+#, c-format
+msgid ""
+"format specifications in '%s' expect a tuple, those in '%s' expect a mapping"
+msgstr "особеност записа у „%s“ очекује н-торку, а они у „%s“ очекују мапирање"
+
+#: src/format-python.c:460 src/format-ruby.c:899 src/format-sh.c:297
+#, c-format
+msgid ""
+"a format specification for argument '%s', as in '%s', doesn't exist in '%s'"
+msgstr "особеност записа за аргумент „%s“, као у „%s“, не постоји у „%s“"
+
+#: src/format-python.c:494 src/format-ruby.c:930
+#, c-format
+msgid ""
+"format specifications in '%s' and '%s' for argument '%s' are not the same"
+msgstr "спецификације записа у „%s“ и „%s“ за аргумент „%s“ нису исте"
+
+#: src/format-qt.c:152
+#, c-format
+msgid ""
+"'%s' is a simple format string, but '%s' is not: it contains an 'L' flag or "
+"a double-digit argument number"
+msgstr ""
+"„%s“ је ниска обичног записа, али „%s“ није: садржи „L“ обележје или "
+"двоцифрени број аргумента"
+
+#: src/format-ruby.c:134
+#, c-format
+msgid "In the directive number %u, two names are given for the same argument."
+msgstr "У смерници број %u, два назива су дата за исти аргумент."
+
+#: src/format-ruby.c:137
+#, c-format
+msgid ""
+"In the directive number %u, two numbers are given for the same argument."
+msgstr "У смерници број %u, два броја су дата за исти аргумент."
+
+#: src/format-ruby.c:140
+#, c-format
+msgid "In the directive number %u, a flag is given after the width."
+msgstr "У смерници број %u, заставица је дата након ширине."
+
+#: src/format-ruby.c:143
+#, c-format
+msgid "In the directive number %u, a flag is given after the precision."
+msgstr "У смерници број %u, заставица је дата након тачности."
+
+#: src/format-ruby.c:146
+#, c-format
+msgid "In the directive number %u, the width is given after the precision."
+msgstr "У смерници број %u, ширина је дата након тачности."
+
+#: src/format-ruby.c:149
+#, c-format
+msgid "In the directive number %u, a width is given twice."
+msgstr "У смерници број %u, ширина је дата два пута."
+
+#: src/format-ruby.c:152
+#, c-format
+msgid "In the directive number %u, a precision is given twice."
+msgstr "У смерници број %u, тачност је дата два пута."
+
+#: src/format-ruby.c:869
+#, c-format
+msgid ""
+"format specifications in '%s' expect a hash table, those in '%s' expect "
+"individual arguments"
+msgstr ""
+"особености записа у „%s“ очекују хеш табелу, а оне у „%s“ очекују "
+"појединачне аргументе"
+
+#: src/format-ruby.c:876
+#, c-format
+msgid ""
+"format specifications in '%s' expect individual arguments, those in '%s' "
+"expect a hash table"
+msgstr ""
+"особености записа у „%s“ очекују појединачне аргументе, а оне у „%s“ очекују "
+"хеш табелу"
+
+#: src/format-sh.c:78
+msgid "The string refers to a shell variable with a non-ASCII name."
+msgstr "Ниска упућује на променљиву љуске помоћу не-АСКРИ назива."
+
+#: src/format-sh.c:80
+msgid ""
+"The string refers to a shell variable with complex shell brace syntax. This "
+"syntax is unsupported here due to security reasons."
+msgstr ""
+"Ниска упућује на променљиву љуске помоћу сложене синтаксе заграда љуске. Ова "
+"синтакса овде није подржана из безбедносних разлога."
+
+#: src/format-sh.c:82
+msgid ""
+"The string refers to a shell variable whose value may be different inside "
+"shell functions."
+msgstr ""
+"Ниска упућује на променљиву љуске чија вредност може бити другачија у "
+"функцијама љуске."
+
+#: src/format-sh.c:84
+msgid "The string refers to a shell variable with an empty name."
+msgstr "Ниска упућује на променљиву љуске празног назива."
+
+#: src/format-smalltalk.c:90
+#, c-format
+msgid ""
+"In the directive number %u, the character '%c' is not a digit between 1 and "
+"9."
+msgstr "У смерници број %u, знак „%c“ не представља цифру између 1 и 9."
+
+#: src/format-smalltalk.c:91
+#, c-format
+msgid ""
+"The character that terminates the directive number %u is not a digit between "
+"1 and 9."
+msgstr "Знак којим се завршава смерница број %u није цифра између 1 и 9."
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/hostname.c:197 src/msgattrib.c:358 src/msgcat.c:297 src/msgconv.c:247
+#: src/msgen.c:244 src/msgexec.c:189 src/msgfilter.c:292 src/msggrep.c:418
+#: src/msginit.c:275 src/msguniq.c:267 src/recode-sr-latin.c:117
+#: src/urlget.c:145
+msgid "Bruno Haible"
+msgstr "Бруно Хејбл"
+
+#: src/hostname.c:207 src/msginit.c:285 src/recode-sr-latin.c:126
+#, c-format
+msgid "too many arguments"
+msgstr "превише аргумената"
+
+#: src/hostname.c:224 src/msginit.c:409 src/recode-sr-latin.c:144
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION]\n"
+msgstr "Употреба: %s [ОПЦИЈА]\n"
+
+#: src/hostname.c:228
+#, c-format
+msgid "Print the machine's hostname.\n"
+msgstr "Испишите назив рачунара.\n"
+
+#: src/hostname.c:231
+#, c-format
+msgid "Output format:\n"
+msgstr "Запис излаза:\n"
+
+#: src/hostname.c:233
+#, c-format
+msgid "  -s, --short                 short host name\n"
+msgstr "  -s, --short                 кратак назив рачунара\n"
+
+#: src/hostname.c:235
+#, c-format
+msgid ""
+"  -f, --fqdn, --long          long host name, includes fully qualified "
+"domain\n"
+"                                name, and aliases\n"
+msgstr ""
+"  -f, --fqdn, --long          дуги назив рачунара, садржи пуни назив домена\n"
+"                              и надимке\n"
+
+#: src/hostname.c:238
+#, c-format
+msgid "  -i, --ip-address            addresses for the hostname\n"
+msgstr "  -i, --ip-address            адресе за назив рачунара\n"
+
+#: src/hostname.c:241 src/msgattrib.c:531 src/msgcat.c:466 src/msgcmp.c:254
+#: src/msgcomm.c:452 src/msgconv.c:382 src/msgen.c:378 src/msgexec.c:303
+#: src/msgfilter.c:505 src/msgfmt.c:1068 src/msggrep.c:621 src/msginit.c:467
+#: src/msgmerge.c:661 src/msgunfmt.c:524 src/msguniq.c:414
+#: src/recode-sr-latin.c:157 src/urlget.c:182 src/xgettext.c:1247
+#, c-format, no-wrap
+msgid "Informative output:\n"
+msgstr "Обавештајни излаз:\n"
+
+#: src/hostname.c:272 src/hostname.c:278 src/hostname.c:285
+#, c-format
+msgid "could not get host name"
+msgstr "не могу да добавим назив рачунара"
+
+#: src/its.c:318
+#, c-format
+msgid "selector is not specified"
+msgstr "бирач није наведен"
+
+#
+#: src/its.c:325 src/its.c:1634
+#, c-format
+msgid "cannot create XPath context"
+msgstr "не могу да направим контекст Икс путање"
+
+#: src/its.c:343
+#, c-format
+msgid "cannot evaluate XPath expression: %s"
+msgstr "не могу да проценим израз Икс путање: %s"
+
+#: src/its.c:696
+#, c-format
+msgid "\"%s\" node does not contain \"%s\""
+msgstr "„%s“ чвор не садржи „%s“"
+
+#: src/its.c:1087
+#, c-format
+msgid "invalid attribute value \"%s\" for \"%s\""
+msgstr "неисправан аргумент „%s“ за „%s“"
+
+#: src/its.c:1419
+#, c-format
+msgid "the root element is not \"rules\" under namespace %s"
+msgstr "корени елемент није „правило“ под називним простором %s"
+
+#
+#: src/its.c:1462 src/its.c:1488 src/its.c:1885 src/its.c:2006
+#: src/locating-rule.c:182
+#, c-format
+msgid "cannot read %s: %s"
+msgstr "не могу да прочитам „%s“: %s"
+
+#: src/its.c:1661
+#, c-format
+msgid "cannot evaluate XPath location path: %s"
+msgstr "не могу да проценим путању положаја Икс путање: %s"
+
+#: src/locating-rule.c:94
+#, c-format
+msgid "cannot find attribute %s on %s"
+msgstr "не могу да нађем атрибут „%s“ на „%s“"
+
+#: src/locating-rule.c:113 src/locating-rule.c:328
+#, c-format
+msgid "cannot locate root element"
+msgstr "не могу да лоцирам корени елемент"
+
+#: src/locating-rule.c:250
+#, c-format
+msgid "\"%s\" node does not have \"%s\""
+msgstr "„%s“ чвор нема „%s“"
+
+#: src/locating-rule.c:321
+#, c-format
+msgid "cannot read XML file %s"
+msgstr "не могу да прочитам ИксМЛ датотеку „%s“"
+
+#: src/locating-rule.c:340
+#, c-format
+msgid "the root element is not \"locatingRules\""
+msgstr "корени елемент није „locatingRules“"
+
+#: src/msgattrib.c:373 src/msgconv.c:262 src/msgexec.c:150 src/msgfilter.c:193
+#: src/msggrep.c:433 src/msginit.c:197 src/msguniq.c:282
+#, c-format
+msgid "at most one input file allowed"
+msgstr "дозвољена је само једна улазна датотека"
+
+#: src/msgattrib.c:379 src/msgcat.c:313 src/msgcomm.c:298 src/msgconv.c:268
+#: src/msgen.c:266 src/msgfilter.c:307 src/msgfmt.c:503 src/msgfmt.c:511
+#: src/msgfmt.c:526 src/msgfmt.c:548 src/msggrep.c:439 src/msgmerge.c:400
+#: src/msgmerge.c:405 src/msgmerge.c:410 src/msgmerge.c:415 src/msgmerge.c:436
+#: src/msgunfmt.c:296 src/msguniq.c:288 src/xgettext.c:707 src/xgettext.c:714
+#: src/xgettext.c:717 src/xgettext.c:720 src/xgettext.c:744
+#, c-format
+msgid "%s and %s are mutually exclusive"
+msgstr "%s и %s се међусобно искључују"
+
+#: src/msgattrib.c:418 src/msgconv.c:304 src/msggrep.c:509 src/msguniq.c:323
+#, c-format
+msgid "Usage: %s [OPTION] [INPUTFILE]\n"
+msgstr "Употреба: %s [ОПЦИЈА]... [УЛАЗНАДАТОТЕКА]\n"
+
+#: src/msgattrib.c:423
+#, c-format, no-wrap
+msgid ""
+"Filters the messages of a translation catalog according to their attributes,\n"
+"and manipulates the attributes.\n"
+msgstr ""
+"Издвајајте поруке каталога превода према њиховим особинама, и управљајте\n"
+"тим особинама.\n"
+
+#: src/msgattrib.c:427 src/msgcat.c:381 src/msgcmp.c:223 src/msgcomm.c:372
+#: src/msgconv.c:312 src/msgen.c:313 src/msgexec.c:284 src/msgfilter.c:419
+#: src/msggrep.c:519 src/msginit.c:419 src/msgmerge.c:554 src/msgunfmt.c:432
+#: src/msguniq.c:339
+#, c-format
+msgid ""
+"Mandatory arguments to long options are mandatory for short options too.\n"
+msgstr ""
+"Обавезни аргументи за дуге опције су такође обавезни и за кратке опције.\n"
+
+#: src/msgattrib.c:430 src/msgcat.c:384 src/msgcmp.c:226 src/msgcomm.c:375
+#: src/msgconv.c:315 src/msgen.c:316 src/msgexec.c:287 src/msgfilter.c:422
+#: src/msgfmt.c:917 src/msggrep.c:522 src/msginit.c:422 src/msgmerge.c:557
+#: src/msgunfmt.c:446 src/msguniq.c:342 src/xgettext.c:1079
+#, c-format
+msgid "Input file location:\n"
+msgstr "Место улазне датотеке:\n"
+
+#: src/msgattrib.c:432 src/msgconv.c:317 src/msggrep.c:524 src/msguniq.c:344
+#, c-format
+msgid "  INPUTFILE                   input PO file\n"
+msgstr "  УЛАЗНАДАТОТЕКА              улазна по датотека\n"
+
+#: src/msgattrib.c:434 src/msgcat.c:390 src/msgcmp.c:232 src/msgcomm.c:381
+#: src/msgconv.c:319 src/msgen.c:320 src/msgexec.c:291 src/msgfilter.c:426
+#: src/msgfmt.c:921 src/msggrep.c:526 src/msgmerge.c:563 src/msguniq.c:346
+#: src/xgettext.c:1085
+#, c-format
+msgid ""
+"  -D, --directory=DIRECTORY   add DIRECTORY to list for input files search\n"
+msgstr ""
+"  -D, --directory=ДИР         додаје ДИР у списак за тражење улазних "
+"датотека\n"
+
+#: src/msgattrib.c:436 src/msgconv.c:321 src/msgexec.c:293 src/msgfilter.c:428
+#: src/msggrep.c:528 src/msgunfmt.c:450 src/msguniq.c:348
+#, c-format
+msgid "If no input file is given or if it is -, standard input is read.\n"
+msgstr "Ако није дата улазна датотека или ако је „-“, чита стандардни улаз.\n"
+
+#: src/msgattrib.c:439 src/msgcat.c:395 src/msgcomm.c:386 src/msgconv.c:324
+#: src/msgen.c:325 src/msgfilter.c:431 src/msgfmt.c:945 src/msggrep.c:531
+#: src/msginit.c:430 src/msgmerge.c:575 src/msgunfmt.c:486 src/msguniq.c:351
+#: src/xgettext.c:1090
+#, c-format
+msgid "Output file location:\n"
+msgstr "Место излазне датотеке:\n"
+
+#: src/msgattrib.c:441 src/msgcat.c:397 src/msgcomm.c:388 src/msgconv.c:326
+#: src/msgen.c:327 src/msgfilter.c:433 src/msgfmt.c:947 src/msgfmt.c:996
+#: src/msgfmt.c:1015 src/msggrep.c:533 src/msgmerge.c:577 src/msgunfmt.c:488
+#: src/msguniq.c:353
+#, c-format
+msgid "  -o, --output-file=FILE      write output to specified file\n"
+msgstr "  -o, --output-file=ДАТОТЕКА  исписује излаз у наведену датотеку\n"
+
+#: src/msgattrib.c:443 src/msgcat.c:399 src/msgcomm.c:390 src/msgconv.c:328
+#: src/msgen.c:329 src/msgfilter.c:435 src/msggrep.c:535 src/msgmerge.c:579
+#: src/msgunfmt.c:490 src/msguniq.c:355
+#, c-format
+msgid ""
+"The results are written to standard output if no output file is specified\n"
+"or if it is -.\n"
+msgstr ""
+"Резултати се пишу на стандардни излаз ако није наведена излазна датотека "
+"или\n"
+"ако је „-“.\n"
+
+#: src/msgattrib.c:447 src/msgcat.c:403 src/msgcomm.c:394 src/msguniq.c:359
+#, c-format
+msgid "Message selection:\n"
+msgstr "Избор поруке:\n"
+
+#: src/msgattrib.c:449
+#, c-format
+msgid ""
+"      --translated            keep translated, remove untranslated messages\n"
+msgstr ""
+"      --translated               задржава преведене, уклања непреведене "
+"поруке\n"
+
+#: src/msgattrib.c:451
+#, c-format
+msgid ""
+"      --untranslated          keep untranslated, remove translated messages\n"
+msgstr ""
+"      --untranslated             задржава непреведене, уклања преведене "
+"поруке\n"
+
+#: src/msgattrib.c:453
+#, c-format
+msgid "      --no-fuzzy              remove 'fuzzy' marked messages\n"
+msgstr ""
+"      --no-fuzzy                 уклања поруке означене као „нејасне“\n"
+
+#: src/msgattrib.c:455
+#, c-format
+msgid "      --only-fuzzy            keep 'fuzzy' marked messages\n"
+msgstr ""
+"      --only-fuzzy               задржава поруке означене као „нејасне“\n"
+
+#: src/msgattrib.c:457
+#, c-format
+msgid "      --no-obsolete           remove obsolete #~ messages\n"
+msgstr "      --no-obsolete              уклања застареле поруке #~\n"
+
+#: src/msgattrib.c:459
+#, c-format
+msgid "      --only-obsolete         keep obsolete #~ messages\n"
+msgstr "      --only-obsolete            задржава застареле поруке #~\n"
+
+#: src/msgattrib.c:462
+#, c-format
+msgid "Attribute manipulation:\n"
+msgstr "Управљање особинама:\n"
+
+#: src/msgattrib.c:464
+#, c-format
+msgid "      --set-fuzzy             set all messages 'fuzzy'\n"
+msgstr "      --set-fuzzy                означава све поруке као „нејасне“\n"
+
+#: src/msgattrib.c:466
+#, c-format
+msgid "      --clear-fuzzy           set all messages non-'fuzzy'\n"
+msgstr ""
+"      --clear-fuzzy              означава све поруке као не-„нејасне“\n"
+
+#: src/msgattrib.c:468
+#, c-format
+msgid "      --set-obsolete          set all messages obsolete\n"
+msgstr "      --set-obsolete             означава све поруке као застареле\n"
+
+#: src/msgattrib.c:470
+#, c-format
+msgid "      --clear-obsolete        set all messages non-obsolete\n"
+msgstr ""
+"      --clear-obsolete           означава све поруке као не-застареле\n"
+
+#: src/msgattrib.c:472
+#, c-format
+msgid ""
+"      --previous              when setting 'fuzzy', keep previous msgids\n"
+"                              of translated messages.\n"
+msgstr ""
+"      --previous                 када означава „нејасне“, задржава претходни "
+"„msgids“\n"
+"                                 преведених порука.\n"
+
+#: src/msgattrib.c:475
+#, c-format
+msgid ""
+"      --clear-previous        remove the \"previous msgid\" from all "
+"messages\n"
+msgstr ""
+"      --clear-previous           уклања претходни „msgid“ сасвих порука\n"
+
+#: src/msgattrib.c:477
+#, c-format
+msgid ""
+"      --empty                 when removing 'fuzzy', also set msgstr empty\n"
+msgstr ""
+"      --empty                 када уклања „нејасне“, такође подешава "
+"„msgstr“ празним\n"
+
+#: src/msgattrib.c:479
+#, c-format
+msgid ""
+"      --only-file=FILE.po     manipulate only entries listed in FILE.po\n"
+msgstr ""
+"      --only-file=ДАТОТЕКА.po    управља једино пољима уписаним у ДАТОТЕЦИ."
+"po\n"
+
+#: src/msgattrib.c:481
+#, c-format
+msgid ""
+"      --ignore-file=FILE.po   manipulate only entries not listed in FILE.po\n"
+msgstr ""
+"      --ignore-file=ДАТОТЕКА.po  управља једино пољима која нису у ДАТОТЕЦИ."
+"po\n"
+
+#: src/msgattrib.c:483
+#, c-format
+msgid "      --fuzzy                 synonym for --only-fuzzy --clear-fuzzy\n"
+msgstr ""
+"      --fuzzy                    исто што и --only-fuzzy --clear-fuzzy\n"
+
+#: src/msgattrib.c:485
+#, c-format
+msgid ""
+"      --obsolete              synonym for --only-obsolete --clear-obsolete\n"
+msgstr ""
+"      --obsolete                 исто што и --only-obsolete --clear-"
+"obsolete\n"
+
+#: src/msgattrib.c:488 src/msgcat.c:415 src/msgcmp.c:246 src/msgcomm.c:406
+#: src/msgconv.c:339 src/msgen.c:333 src/msgexec.c:296 src/msgfilter.c:460
+#: src/msgfmt.c:1025 src/msggrep.c:578 src/msginit.c:438 src/msgmerge.c:615
+#: src/msguniq.c:366
+#, c-format
+msgid "Input file syntax:\n"
+msgstr "Склоп улазне датотеке:\n"
+
+#: src/msgattrib.c:490 src/msgconv.c:341 src/msgen.c:335 src/msgexec.c:298
+#: src/msgfilter.c:462 src/msggrep.c:580 src/msginit.c:440 src/msguniq.c:368
+#, c-format
+msgid ""
+"  -P, --properties-input      input file is in Java .properties syntax\n"
+msgstr ""
+"  -P, --properties-input         улазна датотека је у склопу „Јава ."
+"properties“\n"
+
+#: src/msgattrib.c:492 src/msgconv.c:343 src/msgen.c:337 src/msgexec.c:300
+#: src/msgfilter.c:464 src/msggrep.c:582 src/msginit.c:442 src/msguniq.c:370
+#, c-format
+msgid ""
+"      --stringtable-input     input file is in NeXTstep/GNUstep .strings "
+"syntax\n"
+msgstr ""
+"      --stringtable-input        улазна датотека је у склопу „NeXTstep/"
+"GNUstep\n"
+"                                 .strings“\n"
+
+#: src/msgattrib.c:495 src/msgcat.c:423 src/msgcomm.c:414 src/msgconv.c:346
+#: src/msgen.c:340 src/msgfilter.c:467 src/msgfmt.c:1053 src/msggrep.c:585
+#: src/msginit.c:445 src/msgmerge.c:623 src/msgunfmt.c:494 src/msguniq.c:373
+#: src/xgettext.c:1191
+#, c-format
+msgid "Output details:\n"
+msgstr "Појединости излаза:\n"
+
+#: src/msgattrib.c:497 src/msgcat.c:432 src/msgcomm.c:416 src/msgconv.c:348
+#: src/msgen.c:344 src/msgfilter.c:469 src/msggrep.c:587 src/msginit.c:451
+#: src/msgmerge.c:627 src/msgunfmt.c:496 src/msguniq.c:380 src/xgettext.c:1193
+#, c-format
+msgid ""
+"      --color                 use colors and other text attributes always\n"
+"      --color=WHEN            use colors and other text attributes if WHEN.\n"
+"                              WHEN may be 'always', 'never', 'auto', or "
+"'html'.\n"
+msgstr ""
+"      --color                    увек користи боје и остале особине текста\n"
+"      --color=КАДА               користи боје и остале особине текста ако је "
+"КАДА.\n"
+"                                 КАДА може бити „always“ (увек), "
+"„never“ (никада),\n"
+"                                 „auto“ (самостално), или „html“.\n"
+
+#: src/msgattrib.c:501 src/msgcat.c:436 src/msgcomm.c:420 src/msgconv.c:352
+#: src/msgen.c:348 src/msgfilter.c:473 src/msggrep.c:591 src/msginit.c:455
+#: src/msgmerge.c:631 src/msgunfmt.c:500 src/msguniq.c:384 src/xgettext.c:1197
+#, c-format
+msgid "      --style=STYLEFILE       specify CSS style rule file for --color\n"
+msgstr ""
+"      --style=ИЗГЛЕДДАТОТЕКЕ     наводи датотеку правила ЦСС изгледа за --"
+"color\n"
+
+#: src/msgattrib.c:503 src/msgcat.c:438 src/msgcomm.c:422 src/msgconv.c:354
+#: src/msgen.c:350 src/msgmerge.c:633 src/msgunfmt.c:502 src/msguniq.c:386
+#: src/xgettext.c:1199
+#, c-format
+msgid ""
+"  -e, --no-escape             do not use C escapes in output (default)\n"
+msgstr ""
+"  -e, --no-escape                не користи Ц знаке промене реда у излазу "
+"(задато)\n"
+
+#: src/msgattrib.c:505 src/msgcat.c:440 src/msgcomm.c:424 src/msgconv.c:356
+#: src/msgen.c:352 src/msgfilter.c:477 src/msgmerge.c:635 src/msgunfmt.c:504
+#: src/msguniq.c:388 src/xgettext.c:1201
+#, c-format
+msgid ""
+"  -E, --escape                use C escapes in output, no extended chars\n"
+msgstr ""
+"  -E, --escape                   користи Ц знаке промене реда у излазу, без "
+"проширених знакова\n"
+
+#: src/msgattrib.c:507 src/msgcat.c:442 src/msgcomm.c:426 src/msgconv.c:358
+#: src/msgen.c:354 src/msgfilter.c:479 src/msggrep.c:597 src/msgmerge.c:637
+#: src/msgunfmt.c:506 src/msguniq.c:390 src/xgettext.c:1203
+#, c-format
+msgid "      --force-po              write PO file even if empty\n"
+msgstr ""
+"      --force-po                 записује по датотеку чак и ако је празна\n"
+
+#: src/msgattrib.c:509 src/msgcat.c:444 src/msgcomm.c:428 src/msguniq.c:392
+#: src/xgettext.c:1205
+#, c-format
+msgid "  -i, --indent                write the .po file using indented style\n"
+msgstr ""
+"  -i, --indent                   записује .по датотеку користећи увучени "
+"изглед\n"
+
+#: src/msgattrib.c:511 src/msgcat.c:446 src/msgcomm.c:430 src/msguniq.c:394
+#: src/xgettext.c:1207
+#, c-format
+msgid "      --no-location           do not write '#: filename:line' lines\n"
+msgstr ""
+"      --no-location              не исписује редове „#: датотека:ред“\n"
+
+#: src/msgattrib.c:513 src/msgcat.c:448 src/msgcomm.c:432 src/msguniq.c:396
+#: src/xgettext.c:1209
+#, c-format
+msgid ""
+"  -n, --add-location          generate '#: filename:line' lines (default)\n"
+msgstr ""
+"  -n, --add-location             образује редове „#: датотека:"
+"ред“ (подразумевано)\n"
+
+#: src/msgattrib.c:515 src/msgcat.c:450 src/msgcomm.c:434 src/msguniq.c:398
+#: src/xgettext.c:1211
+#, c-format
+msgid ""
+"      --strict                write out strict Uniforum conforming .po file\n"
+msgstr ""
+"      --strict                   исписује .по датотеку изричито складну са "
+"Унифорумом\n"
+
+#: src/msgattrib.c:517 src/msgcat.c:452 src/msgcomm.c:436 src/msgconv.c:368
+#: src/msgen.c:364 src/msgfilter.c:491 src/msggrep.c:607 src/msginit.c:457
+#: src/msgmerge.c:647 src/msgunfmt.c:512 src/msguniq.c:400
+#, c-format
+msgid "  -p, --properties-output     write out a Java .properties file\n"
+msgstr ""
+"  -p, --properties-output        исписује датотеку „Јава .properties“\n"
+
+#: src/msgattrib.c:519 src/msgcat.c:454 src/msgcomm.c:438 src/msgconv.c:370
+#: src/msgen.c:366 src/msgfilter.c:493 src/msggrep.c:609 src/msginit.c:459
+#: src/msgmerge.c:649 src/msgunfmt.c:514 src/msguniq.c:402 src/xgettext.c:1215
+#, c-format
+msgid ""
+"      --stringtable-output    write out a NeXTstep/GNUstep .strings file\n"
+msgstr ""
+"      --stringtable-output       исписује датотеку „NeXTstep/GNUstep ."
+"strings“\n"
+
+#: src/msgattrib.c:521 src/msgcat.c:456 src/msgcomm.c:440 src/msgconv.c:372
+#: src/msgen.c:368 src/msgfilter.c:495 src/msggrep.c:611 src/msginit.c:461
+#: src/msgmerge.c:651 src/msgunfmt.c:516 src/msguniq.c:404 src/xgettext.c:1219
+#, c-format
+msgid "  -w, --width=NUMBER          set output page width\n"
+msgstr "  -w, --width=БРОЈ               поставља ширину излазне странице\n"
+
+#: src/msgattrib.c:523 src/msgcat.c:458 src/msgcomm.c:442 src/msgconv.c:374
+#: src/msgen.c:370 src/msgfilter.c:497 src/msggrep.c:613 src/msginit.c:463
+#: src/msgmerge.c:653 src/msgunfmt.c:518 src/msguniq.c:406 src/xgettext.c:1221
+#, c-format
+msgid ""
+"      --no-wrap               do not break long message lines, longer than\n"
+"                              the output page width, into several lines\n"
+msgstr ""
+"      --no-wrap                  не прекида редове дуге поруке, дуже од "
+"ширине\n"
+"                                 излазне странице, на неколико редова\n"
+
+#: src/msgattrib.c:526 src/msgcat.c:461 src/msgcomm.c:445 src/msgconv.c:377
+#: src/msgen.c:373 src/msgfilter.c:500 src/msgmerge.c:656 src/msgunfmt.c:521
+#: src/msguniq.c:409
+#, c-format
+msgid "  -s, --sort-output           generate sorted output\n"
+msgstr "  -s, --sort-output              ствара уређени излаз\n"
+
+#: src/msgattrib.c:528 src/msgcat.c:463 src/msgcomm.c:447 src/msgconv.c:379
+#: src/msgen.c:375 src/msgfilter.c:502 src/msgmerge.c:658 src/msguniq.c:411
+#: src/xgettext.c:1226
+#, c-format
+msgid "  -F, --sort-by-file          sort output by file location\n"
+msgstr "  -F, --sort-by-file             ређа излаз према месту датотеке\n"
+
+#: src/msgcat.c:319 src/msgcomm.c:324
+#, c-format
+msgid "impossible selection criteria specified (%d < n < %d)"
+msgstr "наведен је немогућ услов избора (%d < n < %d)"
+
+#: src/msgcat.c:364 src/msgcomm.c:356 src/xgettext.c:1065
+#, c-format
+msgid "Usage: %s [OPTION] [INPUTFILE]...\n"
+msgstr "Употреба: %s [ОПЦИЈА]... [УЛАЗНАДАТОТЕКА]...\n"
+
+#: src/msgcat.c:369
+#, c-format, no-wrap
+msgid ""
+"Concatenates and merges the specified PO files.\n"
+"Find messages which are common to two or more of the specified PO files.\n"
+"By using the --more-than option, greater commonality may be requested\n"
+"before messages are printed.  Conversely, the --less-than option may be\n"
+"used to specify less commonality before messages are printed (i.e.\n"
+"--less-than=2 will only print the unique messages).  Translations,\n"
+"comments, extracted comments, and file positions will be cumulated, except\n"
+"that if --use-first is specified, they will be taken from the first PO file\n"
+"to define them.\n"
+msgstr ""
+"Прилепите и стопите наведене ПО датотеке.\n"
+"Пронађите поруке које су заједничке за две или више ПО датотека.\n"
+"Употребом опције „--more-than“, можете тражити већу учесталост пре исписа\n"
+"порука.  Насупрот томе, опцију „--less-than“ можете користити за тражење\n"
+"мање учесталости пре исписа порука (нпр. „--less-than=2“ ће исписати само \n"
+"јединствене поруке).  Преводи, примедбе, извучене примедбе и положаји\n"
+"датотека ће се збрајати, осим ако не користите „--use-first“, тада се\n"
+"узимају из прве ПО датотеке која их одређује.\n"
+
+#: src/msgcat.c:386 src/msgcomm.c:377 src/xgettext.c:1081
+#, c-format
+msgid "  INPUTFILE ...               input files\n"
+msgstr "  УЛАЗНАДАТОТЕКА ...          улазне датотеке\n"
+
+#: src/msgcat.c:388 src/msgcomm.c:379 src/xgettext.c:1083
+#, c-format
+msgid "  -f, --files-from=FILE       get list of input files from FILE\n"
+msgstr ""
+"  -f, --files-from=ДАТОТЕКА   добавља списак улазних датотека из ДАТОТЕКЕ\n"
+
+#: src/msgcat.c:392 src/msgcomm.c:383 src/msgen.c:322 src/msgfmt.c:923
+#: src/xgettext.c:1087
+#, c-format
+msgid "If input file is -, standard input is read.\n"
+msgstr "Ако је улазна датотека „-“, чита се стандардни улаз.\n"
+
+#: src/msgcat.c:405 src/msgcomm.c:396
+#, c-format
+msgid ""
+"  -<, --less-than=NUMBER      print messages with less than this many\n"
+"                              definitions, defaults to infinite if not set\n"
+msgstr ""
+"  -<, --less-than=БРОЈ        исписује поруке са мање од оволико одредница,\n"
+"                              подразумева се бесконачно ако није постављено\n"
+
+#: src/msgcat.c:408
+#, c-format
+msgid ""
+"  ->, --more-than=NUMBER      print messages with more than this many\n"
+"                              definitions, defaults to 0 if not set\n"
+msgstr ""
+"  -<, --more-than=БРОЈ        исписује поруке са више од оволико одредница,\n"
+"                              подразумева се 0 ако није постављено\n"
+
+#: src/msgcat.c:411 src/msgcomm.c:402
+#, c-format
+msgid ""
+"  -u, --unique                shorthand for --less-than=2, requests\n"
+"                              that only unique messages be printed\n"
+msgstr ""
+"  -u, --unique                скраћеница за „--less-than=2“, захтева\n"
+"                              штампање само јединствених порука\n"
+
+#: src/msgcat.c:417 src/msgcmp.c:248 src/msgcomm.c:408 src/msgfmt.c:1027
+#: src/msgmerge.c:617
+#, c-format
+msgid ""
+"  -P, --properties-input      input files are in Java .properties syntax\n"
+msgstr ""
+"  -P, --properties-input      улазне датотеке су у синтакси „Јава ."
+"properties“\n"
+
+#: src/msgcat.c:419 src/msgcmp.c:250 src/msgcomm.c:410 src/msgfmt.c:1029
+#: src/msgmerge.c:619
+#, c-format
+msgid ""
+"      --stringtable-input     input files are in NeXTstep/GNUstep .strings\n"
+"                              syntax\n"
+msgstr ""
+"      --stringtable-input     улазне датотеке су у синтакси „NeXTstep/"
+"GNUstep \n"
+"                              .strings“\n"
+
+#: src/msgcat.c:425 src/msgconv.c:334 src/msguniq.c:375
+#, c-format
+msgid "  -t, --to-code=NAME          encoding for output\n"
+msgstr "  -t, --to-code=НАЗИВ         кодирање за излаз\n"
+
+#: src/msgcat.c:427 src/msguniq.c:377
+#, c-format
+msgid ""
+"      --use-first             use first available translation for each\n"
+"                              message, don't merge several translations\n"
+msgstr ""
+"      --use-first             користи први доступни превод за сваку поруку,\n"
+"                              не спаја више превода\n"
+
+#: src/msgcat.c:430 src/msgen.c:342 src/msgmerge.c:625
+#, c-format
+msgid ""
+"      --lang=CATALOGNAME      set 'Language' field in the header entry\n"
+msgstr ""
+"      --lang=НАЗИВКАТАЛОГА    поставља поље „Language“ (језик) у заглављу\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/msgcmp.c:174 src/msgcomm.c:288 src/msgmerge.c:375
+msgid "Peter Miller"
+msgstr "Питер Милер"
+
+#: src/msgcmp.c:185 src/msgmerge.c:386
+#, c-format
+msgid "no input files given"
+msgstr "нема улазних датотека"
+
+#: src/msgcmp.c:190 src/msgmerge.c:391
+#, c-format
+msgid "exactly 2 input files required"
+msgstr "потребне су тачно 2 улазне датотеке"
+
+#: src/msgcmp.c:209 src/msgmerge.c:537
+#, c-format
+msgid "Usage: %s [OPTION] def.po ref.pot\n"
+msgstr "Употреба: %s [МОГУЋНОСТ] деф.po реф.pot\n"
+
+#: src/msgcmp.c:214
+#, c-format, no-wrap
+msgid ""
+"Compare two Uniforum style .po files to check that both contain the same\n"
+"set of msgid strings.  The def.po file is an existing PO file with the\n"
+"translations.  The ref.pot file is the last created PO file, or a PO Template\n"
+"file (generally created by xgettext).  This is useful for checking that\n"
+"you have translated each and every message in your program.  Where an exact\n"
+"match cannot be found, fuzzy matching is used to produce better diagnostics.\n"
+msgstr ""
+"Поредите две ПО датотеке Унифорум стила да проверите да ли обе садрже\n"
+"исти скуп оригиналних ниски.  Датотека деф.po је постојећа ПО датотека\n"
+"са преводима.  Датотека реф.pot је последња направљена ПО датотека или\n"
+"ПО шаблон (обично направљен „xgettext“-ом).  Ово је корисно да проверите\n"
+"да ли сте превели сваку поруку вашег програма.  Када неко тачно поклапање\n"
+"не може бити пронађено, користи се нејасно поклапање ради боље дијагностике.\n"
+
+#: src/msgcmp.c:228
+#, c-format
+msgid "  def.po                      translations\n"
+msgstr "  def.po                      преводи\n"
+
+#: src/msgcmp.c:230
+#, c-format
+msgid "  ref.pot                     references to the sources\n"
+msgstr "  ref.pot                     упуте на изворе\n"
+
+#: src/msgcmp.c:235 src/msgmerge.c:603
+#, c-format
+msgid "Operation modifiers:\n"
+msgstr "Измењивачи рада:\n"
+
+#: src/msgcmp.c:237 src/msgmerge.c:605
+#, c-format
+msgid ""
+"  -m, --multi-domain          apply ref.pot to each of the domains in def."
+"po\n"
+msgstr ""
+"  -m, --multi-domain          примењује реф.pot на сваки домен у деф.po\n"
+
+#: src/msgcmp.c:239 src/msgmerge.c:610
+#, c-format
+msgid "  -N, --no-fuzzy-matching     do not use fuzzy matching\n"
+msgstr "  -N, --no-fuzzy-matching     не користи нејасно поклапање\n"
+
+#: src/msgcmp.c:241
+#, c-format
+msgid "      --use-fuzzy             consider fuzzy entries\n"
+msgstr "      --use-fuzzy             узима у обзир нејасне ставке\n"
+
+#: src/msgcmp.c:243
+#, c-format
+msgid "      --use-untranslated      consider untranslated entries\n"
+msgstr "      --use-untranslated      узима у обзир непреведене ставке\n"
+
+#: src/msgcmp.c:326
+#, c-format
+msgid "this message is untranslated"
+msgstr "ова порука није преведена"
+
+#: src/msgcmp.c:332
+#, c-format
+msgid "this message needs to be reviewed by the translator"
+msgstr "ову поруку би преводилац требао да прегледа"
+
+#: src/msgcmp.c:371 src/msgmerge.c:1594
+#, c-format
+msgid "this message is used but not defined..."
+msgstr "ова порука се користи али није одређена..."
+
+#: src/msgcmp.c:374 src/msgmerge.c:1597
+#, c-format
+msgid "...but this definition is similar"
+msgstr "...али ова одредница је слична"
+
+#: src/msgcmp.c:379 src/msgmerge.c:1626
+#, c-format
+msgid "this message is used but not defined in %s"
+msgstr "ова порука се користи али није одређена у „%s“"
+
+#: src/msgcmp.c:548
+#, c-format
+msgid "warning: this message is not used"
+msgstr "упозорење: ова порука се не користи"
+
+#: src/msgcmp.c:555 src/msgfmt.c:775 src/msgfmt.c:1609 src/xgettext.c:1034
+#, c-format
+msgid "found %d fatal error"
+msgid_plural "found %d fatal errors"
+msgstr[0] "нађох %d кобну грешку"
+msgstr[1] "нађох %d кобне грешке"
+msgstr[2] "нађох %d кобних грешака"
+
+#: src/msgcomm.c:313
+#, c-format
+msgid "at least two files must be specified"
+msgstr "најмање две датотеке морају бити наведене"
+
+#: src/msgcomm.c:361
+#, c-format, no-wrap
+msgid ""
+"Find messages which are common to two or more of the specified PO files.\n"
+"By using the --more-than option, greater commonality may be requested\n"
+"before messages are printed.  Conversely, the --less-than option may be\n"
+"used to specify less commonality before messages are printed (i.e.\n"
+"--less-than=2 will only print the unique messages).  Translations,\n"
+"comments and extracted comments will be preserved, but only from the first\n"
+"PO file to define them.  File positions from all PO files will be\n"
+"cumulated.\n"
+msgstr ""
+"Пронађите поруке које су заједничке за две или више ПО датотека.\n"
+"Употребом опције „--more-than“, можете тражити већу учесталост пре\n"
+"исписа порука.  Насупрот томе, опцију „--less-than“ можете користити\n"
+"за тражење мање учесталости пре исписа порука (нпр. „--less-than=2“\n"
+"ће исписати само јединствене поруке).  Преводи, примедбе и извучене\n"
+"примедбе ће бити сачуване, али само из прве ПО датотеке која их\n"
+"одређује.  Положаји датотека из свих ПО датотека ће се збрајати.\n"
+
+#: src/msgcomm.c:399
+#, c-format
+msgid ""
+"  ->, --more-than=NUMBER      print messages with more than this many\n"
+"                              definitions, defaults to 1 if not set\n"
+msgstr ""
+"  ->, --more-than=БРОЈ        исписује поруке са више од оволико одредница,\n"
+"                              подразумева се 1 ако није постављено\n"
+
+#: src/msgcomm.c:449 src/xgettext.c:1228
+#, c-format
+msgid ""
+"      --omit-header           don't write header with 'msgid \"\"' entry\n"
+msgstr ""
+"      --omit-header           изоставља заглавље са пољем „msgid \"\"“\n"
+
+#: src/msgconv.c:308
+#, c-format
+msgid "Converts a translation catalog to a different character encoding.\n"
+msgstr "Претворите текст превода из једног кодирања у друго.\n"
+
+#: src/msgconv.c:332
+#, c-format
+msgid "Conversion target:\n"
+msgstr "Мета претварања:\n"
+
+#: src/msgconv.c:336
+#, c-format
+msgid "The default encoding is the current locale's encoding.\n"
+msgstr "Задато кодирање је кодирање текућег локалитета.\n"
+
+#: src/msgconv.c:360 src/msgen.c:356 src/msgmerge.c:639
+#, c-format
+msgid "  -i, --indent                indented output style\n"
+msgstr "  -i, --indent                увучени изглед излаза\n"
+
+#: src/msgconv.c:362 src/msgen.c:358 src/msgfilter.c:485 src/msggrep.c:601
+#: src/msgmerge.c:641
+#, c-format
+msgid "      --no-location           suppress '#: filename:line' lines\n"
+msgstr "      --no-location           избацује редове „#: датотека:ред“\n"
+
+#: src/msgconv.c:364 src/msgen.c:360 src/msgfilter.c:487 src/msggrep.c:603
+#: src/msgmerge.c:643
+#, c-format
+msgid ""
+"  -n, --add-location          preserve '#: filename:line' lines (default)\n"
+msgstr ""
+"  -n, --add-location          чува редове „#: датотека:ред“ (основно)\n"
+
+#: src/msgconv.c:366 src/msgen.c:362 src/msgfilter.c:489 src/msggrep.c:605
+#: src/msgmerge.c:645
+#, c-format
+msgid "      --strict                strict Uniforum output style\n"
+msgstr "      --strict                изричито Униорумски стил излаза\n"
+
+#: src/msgen.c:255 src/msgfmt.c:463 src/xgettext.c:737
+#, c-format
+msgid "no input file given"
+msgstr "није дата улазна датотека"
+
+#: src/msgen.c:260
+#, c-format
+msgid "exactly one input file required"
+msgstr "потребна је тачно једна улазна датотека"
+
+#: src/msgen.c:301
+#, c-format
+msgid "Usage: %s [OPTION] INPUTFILE\n"
+msgstr "Употреба: %s [ОПЦИЈА]... УЛАЗНАДАТОТЕКА\n"
+
+#: src/msgen.c:306
+#, c-format, no-wrap
+msgid ""
+"Creates an English translation catalog.  The input file is the last\n"
+"created English PO file, or a PO Template file (generally created by\n"
+"xgettext).  Untranslated entries are assigned a translation that is\n"
+"identical to the msgid.\n"
+msgstr ""
+"Направите каталог енглеског превода.  Улазна датотека је последња\n"
+"направљена енглеска ПО датотека, или датотека ПО шаблона (обично\n"
+"направљена „xgettext“-ом). Непреведеним пољима се додељује превод\n"
+"идентичан са „msgid“.\n"
+
+#: src/msgen.c:318
+#, c-format
+msgid "  INPUTFILE                   input PO or POT file\n"
+msgstr "  УЛАЗНАДАТОТЕКА              улазна по или пот датотека\n"
+
+#: src/msgexec.c:199
+#, c-format
+msgid "missing command name"
+msgstr "недостаје назив наредбе"
+
+#: src/msgexec.c:260
+#, c-format
+msgid "Usage: %s [OPTION] COMMAND [COMMAND-OPTION]\n"
+msgstr "Употреба: %s [ОПЦИЈА] НАРЕДБА [ОПЦИЈА-НАРЕДБЕ]\n"
+
+#: src/msgexec.c:265
+#, c-format, no-wrap
+msgid ""
+"Applies a command to all translations of a translation catalog.\n"
+"The COMMAND can be any program that reads a translation from standard\n"
+"input.  It is invoked once for each translation.  Its output becomes\n"
+"msgexec's output.  msgexec's return code is the maximum return code\n"
+"across all invocations.\n"
+msgstr ""
+"Примените наредбу на све преводе у каталогу превода. НАРЕДБА може бити\n"
+"било који програм који чита превод са стандардног улаза. Покреће се по\n"
+"једном за сваки превод.  Његов излаз постаје улаз „msgexec“-а. Повратни\n"
+"код „msgexec“-а је највећи повратни код кроз све позиве програма.\n"
+
+#: src/msgexec.c:274
+#, c-format, no-wrap
+msgid ""
+"A special builtin command called '0' outputs the translation, followed by a\n"
+"null byte.  The output of \"msgexec 0\" is suitable as input for \"xargs -0\".\n"
+msgstr ""
+"Нарочита уграђена наредба звана „0“ исписује превод, праћен нула-бајтом.\n"
+"Излаз „msgexec 0“ је погодан као улаз за „xargs -0“.\n"
+
+#: src/msgexec.c:279
+#, c-format
+msgid "Command input:\n"
+msgstr "Улаз наредбе:\n"
+
+#: src/msgexec.c:281
+#, c-format
+msgid "  --newline                   add newline at the end of input\n"
+msgstr "  --newline                   додаје нови ред на крају улаза\n"
+
+#: src/msgexec.c:289 src/msgfilter.c:424
+#, c-format
+msgid "  -i, --input=INPUTFILE       input PO file\n"
+msgstr "  -i, --input=УЛАЗНА-ДАТОТЕКА улазна ПО датотека\n"
+
+#: src/msgexec.c:358
+#, c-format
+msgid "write to stdout failed"
+msgstr "није успело писање на стандардни излаз"
+
+#: src/msgfilter.c:302
+#, c-format
+msgid "missing filter name"
+msgstr "недостаје назив пропусника"
+
+#: src/msgfilter.c:322
+#, c-format
+msgid "at least one sed script must be specified"
+msgstr "најмање један седов спис мора бити наведен"
+
+#: src/msgfilter.c:411
+#, c-format
+msgid "Usage: %s [OPTION] FILTER [FILTER-OPTION]\n"
+msgstr "Употреба: %s [ОПЦИЈА] ПРОПУСНИК [ОПЦИЈА-ПРОПУСНИКА]\n"
+
+#: src/msgfilter.c:415
+#, c-format
+msgid "Applies a filter to all translations of a translation catalog.\n"
+msgstr "Примените пропусник на све преводе из каталога превода.\n"
+
+#: src/msgfilter.c:439
+#, c-format
+msgid ""
+"The FILTER can be any program that reads a translation from standard input\n"
+"and writes a modified translation to standard output.\n"
+msgstr ""
+"ПРОПУСНИК може бити било који програм који чита превод са стандардног\n"
+"улаза и пише измењени превод на стандардни излаз.\n"
+
+#: src/msgfilter.c:444
+#, c-format
+msgid "Filter input and output:\n"
+msgstr "Издваја улаз и излаз:\n"
+
+#: src/msgfilter.c:446
+#, c-format
+msgid ""
+"  --newline                   add a newline at the end of input and\n"
+"                                remove a newline from the end of output"
+msgstr ""
+"  --newline                   додаје нови ред на крај улаза и уклања\n"
+"                              нови ред са краја излаза"
+
+#: src/msgfilter.c:450
+#, c-format
+msgid "Useful FILTER-OPTIONs when the FILTER is 'sed':\n"
+msgstr "Корисне ОПЦИЈЕ-ПРОПУСНИКА када је сед ПРОПУСНИК:\n"
+
+#: src/msgfilter.c:452
+#, c-format
+msgid ""
+"  -e, --expression=SCRIPT     add SCRIPT to the commands to be executed\n"
+msgstr ""
+"  -e, --expression=СПИС       додаје СПИС наредбама да би биле извршене\n"
+
+#: src/msgfilter.c:454
+#, c-format
+msgid ""
+"  -f, --file=SCRIPTFILE       add the contents of SCRIPTFILE to the "
+"commands\n"
+"                                to be executed\n"
+msgstr ""
+"  -f, --file=ДАТОТЕКАСПИСА    додаје садржај ДАТОТЕКЕСПИСА наредбама\n"
+"                              да би биле извршене\n"
+
+#: src/msgfilter.c:457
+#, c-format
+msgid ""
+"  -n, --quiet, --silent       suppress automatic printing of pattern space\n"
+msgstr ""
+"  -n, --quiet, --silent       обуставља аутоматски испис простора образаца\n"
+
+#: src/msgfilter.c:475 src/msggrep.c:593
+#, c-format
+msgid ""
+"      --no-escape             do not use C escapes in output (default)\n"
+msgstr ""
+"      --no-escape             не користи Ц знаке промене реда у излазу "
+"(задато)\n"
+
+#: src/msgfilter.c:481 src/msggrep.c:599
+#, c-format
+msgid "      --indent                indented output style\n"
+msgstr "      --indent                увучени изглед излаза\n"
+
+#: src/msgfilter.c:483
+#, c-format
+msgid ""
+"      --keep-header           keep header entry unmodified, don't filter it\n"
+msgstr ""
+"      --keep-header           не мењај поље са заглављем, не филтрирај га\n"
+
+#: src/msgfilter.c:667
+#, c-format
+msgid "filter output is not terminated with a newline"
+msgstr "излаз пропусника није окончан новим редом"
+
+#: src/msgfmt.c:365
+#, c-format
+msgid "the argument to %s should be a single punctuation character"
+msgstr "аргумент за „%s“ треба да буде знак једне тачке"
+
+#: src/msgfmt.c:412
+#, c-format
+msgid "invalid endianness: %s"
+msgstr "неисправан поредак од мањег: %s"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/msgfmt.c:450 src/msgunfmt.c:265 src/xgettext.c:697
+msgid "Ulrich Drepper"
+msgstr "Улрих Дрепер"
+
+#: src/msgfmt.c:471
+#, c-format
+msgid "no input file should be given if %s and %s are specified"
+msgstr "не треба бити дата ниједна улазна датотека ако су наведени „%s“ и „%s“"
+
+#: src/msgfmt.c:517 src/msgfmt.c:539 src/msgfmt.c:561 src/msgunfmt.c:327
+#: src/msgunfmt.c:350
+#, c-format
+msgid "%s requires a \"-d directory\" specification"
+msgstr "„%s“ захтева одредницу „-d директоријум“"
+
+#: src/msgfmt.c:532 src/msgfmt.c:554 src/msgfmt.c:589 src/msgfmt.c:617
+#: src/msgunfmt.c:320 src/msgunfmt.c:343
+#, c-format
+msgid "%s requires a \"-l locale\" specification"
+msgstr "„%s“ захтева одредницу „-l језик“"
+
+#: src/msgfmt.c:571 src/msgfmt.c:599
+#, c-format
+msgid "%s requires a \"--template template\" specification"
+msgstr "„%s“ захтева одредницу „--template шаблон“"
+
+#: src/msgfmt.c:578 src/msgfmt.c:606
+#, c-format
+msgid "%s requires a \"-o file\" specification"
+msgstr "„%s“ захтева одредницу „-o датотека“"
+
+#: src/msgfmt.c:584 src/msgfmt.c:612
+#, c-format
+msgid "%s and %s are mutually exclusive in %s"
+msgstr "„%s“ и „%s“ се међусобно искључују у „%s“"
+
+#: src/msgfmt.c:626 src/msgunfmt.c:359 src/msgunfmt.c:365
+#, c-format
+msgid "%s is only valid with %s or %s"
+msgstr "%s је исправно само са %s или %s"
+
+#: src/msgfmt.c:632 src/msgfmt.c:638
+#, c-format
+msgid "%s is only valid with %s, %s or %s"
+msgstr "%s је исправно само са %s, %s или %s"
+
+#: src/msgfmt.c:711
+#, c-format
+msgid "cannot locate ITS rules for %s"
+msgstr "не могу да пронађем „ITS“ правила за „%s“"
+
+#. TRANSLATORS: The prefix before a statistics message.  The argument
+#. is a file name or a comma separated list of file names.
+#: src/msgfmt.c:870
+#, c-format
+msgid "%s: "
+msgstr "%s: "
+
+#: src/msgfmt.c:873
+#, c-format
+msgid "%d translated message"
+msgid_plural "%d translated messages"
+msgstr[0] "%d преведена порука"
+msgstr[1] "%d преведене поруке"
+msgstr[2] "%d преведених порука"
+
+#: src/msgfmt.c:878
+#, c-format
+msgid ", %d fuzzy translation"
+msgid_plural ", %d fuzzy translations"
+msgstr[0] ", %d нејсан превод"
+msgstr[1] ", %d нејасна превода"
+msgstr[2] ", %d нејсаних превода"
+
+#: src/msgfmt.c:883
+#, c-format
+msgid ", %d untranslated message"
+msgid_plural ", %d untranslated messages"
+msgstr[0] ", %d непреведена порука"
+msgstr[1] ", %d непреведене поруке"
+msgstr[2] ", %d непреведених порука"
+
+#: src/msgfmt.c:903
+#, c-format
+msgid "Usage: %s [OPTION] filename.po ...\n"
+msgstr "Употреба: %s [ОПЦИЈА] датотека.po ...\n"
+
+#: src/msgfmt.c:907
+#, c-format
+msgid "Generate binary message catalog from textual translation description.\n"
+msgstr "Створите бинарни каталог порука из текстуалног описа превода.\n"
+
+#: src/msgfmt.c:919
+#, c-format
+msgid "  filename.po ...             input files\n"
+msgstr "  датотека.po ...             улазне датотеке\n"
+
+#: src/msgfmt.c:926 src/msgmerge.c:569 src/msgunfmt.c:435 src/xgettext.c:1123
+#, c-format
+msgid "Operation mode:\n"
+msgstr "Начин рада:\n"
+
+#: src/msgfmt.c:928
+#, c-format
+msgid ""
+"  -j, --java                  Java mode: generate a Java ResourceBundle "
+"class\n"
+msgstr ""
+"  -j, --java                  режим Јаве: ствара Јавин разред „Група "
+"изворишта“\n"
+
+#: src/msgfmt.c:930
+#, c-format
+msgid ""
+"      --java2                 like --java, and assume Java2 (JDK 1.2 or "
+"higher)\n"
+msgstr ""
+"      --java2                 као --java, и претпоставља Јаву2 (ЈДК 1.2 или "
+"новији)\n"
+
+#: src/msgfmt.c:932
+#, c-format
+msgid "      --csharp                C# mode: generate a .NET .dll file\n"
+msgstr ""
+"      --csharp                Ц# режим: ствара .НЕТ-ову „.dll“ датотеку\n"
+
+#: src/msgfmt.c:934
+#, c-format
+msgid ""
+"      --csharp-resources      C# resources mode: generate a .NET .resources "
+"file\n"
+msgstr ""
+"      --csharp-resources      Режим Ц# изворишта: ствара .НЕТ-ову „."
+"resources“ датотеку\n"
+
+#: src/msgfmt.c:936
+#, c-format
+msgid ""
+"      --tcl                   Tcl mode: generate a tcl/msgcat .msg file\n"
+msgstr ""
+"      --tcl                   Тцл режим: ствара тцл/мсгкат-ову „.msg“ "
+"датотеку\n"
+
+#: src/msgfmt.c:938
+#, c-format
+msgid "      --qt                    Qt mode: generate a Qt .qm file\n"
+msgstr ""
+"      --qt                    Кут режим: ствара Кутову „.qm“ датотеку\n"
+
+#: src/msgfmt.c:940
+#, c-format
+msgid ""
+"      --desktop               Desktop Entry mode: generate a .desktop file\n"
+msgstr ""
+"      --desktop               Режим Десктоп уноса: ствара „.desktop“ "
+"датотеку\n"
+
+#: src/msgfmt.c:942
+#, c-format
+msgid "      --xml                   XML mode: generate XML file\n"
+msgstr "      --xml                   ИксМЛ режим: ствара ИксМЛ датотеку\n"
+
+#: src/msgfmt.c:949
+#, c-format
+msgid "      --strict                enable strict Uniforum mode\n"
+msgstr "      --strict                укључује изричити режим Унифорума\n"
+
+#: src/msgfmt.c:951 src/xgettext.c:1098
+#, c-format
+msgid "If output file is -, output is written to standard output.\n"
+msgstr "Ако је излазна датотека -, излаз се записује на стандардни излаз.\n"
+
+#: src/msgfmt.c:954
+#, c-format
+msgid "Output file location in Java mode:\n"
+msgstr "Путања излазне датотеке у Јава режиму:\n"
+
+#: src/msgfmt.c:956 src/msgfmt.c:972 src/msgunfmt.c:455 src/msgunfmt.c:466
+#, c-format
+msgid "  -r, --resource=RESOURCE     resource name\n"
+msgstr "  -r, --resource=ИЗВОРИШТЕ    назив изворишта\n"
+
+#: src/msgfmt.c:958 src/msgfmt.c:974 src/msgfmt.c:984 src/msgfmt.c:994
+#: src/msgfmt.c:1011 src/msgunfmt.c:457 src/msgunfmt.c:468 src/msgunfmt.c:478
+#, c-format
+msgid ""
+"  -l, --locale=LOCALE         locale name, either language or "
+"language_COUNTRY\n"
+msgstr ""
+"  -l, --locale=ЛОКАЛИТЕТ      назив локалитета, било језик или језик_ДРЖАВА\n"
+
+#: src/msgfmt.c:960
+#, c-format
+msgid ""
+"      --source                produce a .java file, instead of a .class "
+"file\n"
+msgstr ""
+"      --source                ствара датотеку „.java“ уместо „.class“\n"
+
+#: src/msgfmt.c:962
+#, c-format
+msgid ""
+"  -d DIRECTORY                base directory of classes directory hierarchy\n"
+msgstr ""
+"  -d ДИРЕКТОРИЈУМ             основни директоријум за хијерархију \n"
+"                              директоријума разреда\n"
+
+#: src/msgfmt.c:964
+#, c-format
+msgid ""
+"The class name is determined by appending the locale name to the resource "
+"name,\n"
+"separated with an underscore.  The -d option is mandatory.  The class is\n"
+"written under the specified directory.\n"
+msgstr ""
+"Назив разреда се одређује придодавањем назива локалитета на назив "
+"изворишта,\n"
+"раздвојено подвлаком.  Опција -d је обавезна.  Разред се уписује под\n"
+"наведеним директоријумом.\n"
+
+#: src/msgfmt.c:970
+#, c-format
+msgid "Output file location in C# mode:\n"
+msgstr "Путања излазне датотеке у Ц# режиму:\n"
+
+#: src/msgfmt.c:976 src/msgunfmt.c:470
+#, c-format
+msgid ""
+"  -d DIRECTORY                base directory for locale dependent .dll "
+"files\n"
+msgstr ""
+"  -d ДИРЕКТОРИЈУМ             основни директоријум за .dll датотеке од "
+"локалитета зависне\n"
+
+#: src/msgfmt.c:978
+#, c-format
+msgid ""
+"The -l and -d options are mandatory.  The .dll file is written in a\n"
+"subdirectory of the specified directory whose name depends on the locale.\n"
+msgstr ""
+"Опције -l и -d су обавезне.  Датотека .dll се уписује у поддиректоријум\n"
+"датог директоријума чији назив зависи од локалитета.\n"
+
+#: src/msgfmt.c:982
+#, c-format
+msgid "Output file location in Tcl mode:\n"
+msgstr "Путања излазне датотеке у Тцл режиму:\n"
+
+#: src/msgfmt.c:986 src/msgunfmt.c:480
+#, c-format
+msgid "  -d DIRECTORY                base directory of .msg message catalogs\n"
+msgstr ""
+"  -d ДИРЕКТОРИЈУМ             основни директоријум каталога .msg порука\n"
+
+#: src/msgfmt.c:988
+#, c-format
+msgid ""
+"The -l and -d options are mandatory.  The .msg file is written in the\n"
+"specified directory.\n"
+msgstr ""
+"Опције -l и -d су обавезне.  Датотека .msg се уписује у дати директоријум.\n"
+
+#: src/msgfmt.c:992
+#, c-format
+msgid "Desktop Entry mode options:\n"
+msgstr "Могућности режима Десктоп уноса:\n"
+
+#: src/msgfmt.c:998
+#, c-format
+msgid "  --template=TEMPLATE         a .desktop file used as a template\n"
+msgstr ""
+"  --template=ШАБЛОН                 „.desktop“ датотека која се користи као "
+"шаблон\n"
+
+#: src/msgfmt.c:1000 src/msgfmt.c:1019
+#, c-format
+msgid "  -d DIRECTORY                base directory of .po files\n"
+msgstr ""
+"  -d ДИРЕКТОРИЈУМ                   основни директоријум „.po“ датотека\n"
+
+#: src/msgfmt.c:1002 src/xgettext.c:1152
+#, c-format
+msgid ""
+"  -kWORD, --keyword=WORD      look for WORD as an additional keyword\n"
+"  -k, --keyword               do not to use default keywords\n"
+msgstr ""
+"  -kРЕЧ, --keyword=РЕЧ              тражи РЕЧ као додатну кључну реч\n"
+"  -k, --keyword                     не користи задате кључне речи\n"
+
+#: src/msgfmt.c:1005 src/msgfmt.c:1021
+#, c-format
+msgid ""
+"The -l, -o, and --template options are mandatory.  If -D is specified, "
+"input\n"
+"files are read from the directory instead of the command line arguments.\n"
+msgstr ""
+"Опције „-l“, „-o“ и „--template“ су обавезне.  Ако је наведено „-D“, улазне\n"
+"датотеке се читају из директоријума уместо из аргумената линије наредби.\n"
+
+#: src/msgfmt.c:1009
+#, c-format
+msgid "XML mode options:\n"
+msgstr "Могућности режима ИксМЛ-а:\n"
+
+#: src/msgfmt.c:1013
+#, c-format
+msgid "  -L, --language=NAME         recognise the specified XML language\n"
+msgstr "  -L, --language=НАЗИВ              препознаје наведени ИксМЛ језик\n"
+
+#: src/msgfmt.c:1017
+#, c-format
+msgid "  --template=TEMPLATE         an XML file used as a template\n"
+msgstr ""
+"  --template=ШАБЛОН                 ИксМЛ датотека која се користи као "
+"шаблон\n"
+
+#: src/msgfmt.c:1033 src/xgettext.c:1115
+#, c-format
+msgid "Input file interpretation:\n"
+msgstr "Тумачење улазне датотеке:\n"
+
+#: src/msgfmt.c:1035
+#, c-format
+msgid ""
+"  -c, --check                 perform all the checks implied by\n"
+"                                --check-format, --check-header, --check-"
+"domain\n"
+msgstr ""
+"  -c, --check                      извршава све провере које подразумевају\n"
+"                                   --check-format, --check-header, --check-"
+"domain\n"
+
+#: src/msgfmt.c:1038
+#, c-format
+msgid "      --check-format          check language dependent format strings\n"
+msgstr ""
+"      --check-format               проверава ниске записа у зависности од "
+"језика\n"
+
+#: src/msgfmt.c:1040
+#, c-format
+msgid ""
+"      --check-header          verify presence and contents of the header "
+"entry\n"
+msgstr ""
+"      --check-header               проверава присуство и садржај заглавља\n"
+
+#: src/msgfmt.c:1042
+#, c-format
+msgid ""
+"      --check-domain          check for conflicts between domain directives\n"
+"                                and the --output-file option\n"
+msgstr ""
+"      --check-domain               проверава сукобе међу смерницама домена "
+"и\n"
+"                                   опције „--output-file“\n"
+
+#: src/msgfmt.c:1045
+#, c-format
+msgid ""
+"  -C, --check-compatibility   check that GNU msgfmt behaves like X/Open "
+"msgfmt\n"
+msgstr ""
+"  -C, --check-compatibility        проверава да ли се Гнуов мсгфмт понаша "
+"као \n"
+"                                   Икс/Опен мсгфмт\n"
+
+#: src/msgfmt.c:1047
+#, c-format
+msgid ""
+"      --check-accelerators[=CHAR]  check presence of keyboard accelerators "
+"for\n"
+"                                menu items\n"
+msgstr ""
+"      --check-accelerators[=ЗНАК]  проверава присуство пречица тастатуре "
+"у                                  ставкама изборника\n"
+
+#: src/msgfmt.c:1050
+#, c-format
+msgid "  -f, --use-fuzzy             use fuzzy entries in output\n"
+msgstr "  -f, --use-fuzzy                  користи нејасне уносе на излазу\n"
+
+#: src/msgfmt.c:1055
+#, c-format
+msgid ""
+"      --no-convert            don't convert the messages to UTF-8 encoding\n"
+msgstr "      --no-convert            не претвара поруке у УТФ-8 кодирање\n"
+
+#: src/msgfmt.c:1057
+#, c-format
+msgid ""
+"      --no-redundancy         don't pre-expand ISO C 99 <inttypes.h>\n"
+"                                format string directive macros\n"
+msgstr ""
+"      --no-redundancy         не проширује унапред ISO C 99 <inttypes.h>\n"
+"                                макрое смернице ниске формата\n"
+
+#: src/msgfmt.c:1060
+#, c-format
+msgid ""
+"  -a, --alignment=NUMBER      align strings to NUMBER bytes (default: %d)\n"
+msgstr ""
+"  -a, --alignment=БРОЈ             поравнава ниске на БРОЈ бајтова (обично: "
+"%d)\n"
+
+#: src/msgfmt.c:1062
+#, c-format
+msgid ""
+"      --endianness=BYTEORDER  write out 32-bit numbers in the given byte "
+"order\n"
+"                                (big or little, default depends on "
+"platform)\n"
+msgstr ""
+"      --endianness=ПОРЕДАКБАЈТОВА  пише 32-битне бројеве по датом редоследу "
+"бајтова\n"
+"                                   (велики или мали, у зависности од "
+"платформе)\n"
+
+#: src/msgfmt.c:1065
+#, c-format
+msgid ""
+"      --no-hash               binary file will not include the hash table\n"
+msgstr ""
+"      --no-hash                    бинарна датотека неће садржати хеш "
+"табелу\n"
+
+#: src/msgfmt.c:1074
+#, c-format
+msgid "      --statistics            print statistics about translations\n"
+msgstr "      --statistics                 исписује статистику о преводима\n"
+
+#: src/msgfmt.c:1076 src/msgmerge.c:667 src/msgunfmt.c:530 src/xgettext.c:1253
+#, c-format
+msgid "  -v, --verbose               increase verbosity level\n"
+msgstr "  -v, --verbose                    повећава ниво опширности\n"
+
+#: src/msgfmt.c:1192
+#, c-format
+msgid "warning: PO file header missing or invalid\n"
+msgstr "упозорење: заглавље по датотеке недостаје или је неисправно\n"
+
+#: src/msgfmt.c:1194
+#, c-format
+msgid "warning: charset conversion will not work\n"
+msgstr "упозорење: претварање скупа знакова неће радити\n"
+
+#: src/msgfmt.c:1218
+#, c-format
+msgid "domain name \"%s\" not suitable as file name"
+msgstr "назив домена „%s“ није прикладан за назив датотеке"
+
+#: src/msgfmt.c:1223
+#, c-format
+msgid "domain name \"%s\" not suitable as file name: will use prefix"
+msgstr "назив домена „%s“ није прикладан за назив датотеке: користићу префикс"
+
+#: src/msgfmt.c:1237
+#, c-format
+msgid "'domain %s' directive ignored"
+msgstr "смерница „domain %s“ је занемарена"
+
+#: src/msgfmt.c:1297
+#, c-format
+msgid "empty 'msgstr' entry ignored"
+msgstr "празан „msgstr“ унос је занемарен"
+
+#: src/msgfmt.c:1298
+#, c-format
+msgid "fuzzy 'msgstr' entry ignored"
+msgstr "нејасан „msgstr“ унос је занемарен"
+
+#: src/msgfmt.c:1346
+#, c-format
+msgid "%s: warning: source file contains fuzzy translation"
+msgstr "%s: упозорење: изворна датотека садржи нејасан превод"
+
+#: src/msgfmt.c:1461
+#, c-format
+msgid "%s does not exist"
+msgstr "Не постоји „%s“"
+
+#: src/msgfmt.c:1468
+#, c-format
+msgid "%s exists but cannot read"
+msgstr "„%s“ постоји али је не могу прочитати"
+
+#: src/msggrep.c:251 src/po-lex.c:655 src/read-desktop.c:124 src/read-mo.c:88
+#: src/read-properties.c:609 src/read-stringtable.c:99 src/x-awk.c:139
+#: src/x-c.c:608 src/x-csharp.c:165 src/x-elisp.c:147 src/x-java.c:201
+#: src/x-javascript.c:179 src/x-librep.c:149 src/x-lisp.c:214 src/x-lua.c:176
+#: src/x-perl.c:260 src/x-perl.c:335 src/x-perl.c:428 src/x-php.c:164
+#: src/x-python.c:179 src/x-rst.c:242 src/x-rst.c:296 src/x-scheme.c:173
+#: src/x-sh.c:165 src/x-smalltalk.c:86 src/x-tcl.c:154 src/x-vala.c:179
+#: src/x-ycp.c:91
+#, c-format
+msgid "error while reading \"%s\""
+msgstr "грешка при читању „%s“"
+
+#: src/msggrep.c:494
+#, c-format
+msgid ""
+"option '%c' cannot be used before 'J' or 'K' or 'T' or 'C' or 'X' has been "
+"specified"
+msgstr ""
+"опција „%c“ се не може користити пре него што се наведе „J“ или „K“ или „T“ "
+"или „C“ или „X“"
+
+#: src/msggrep.c:514
+#, c-format, no-wrap
+msgid ""
+"Extracts all messages of a translation catalog that match a given pattern\n"
+"or belong to some given source files.\n"
+msgstr ""
+"Извлачи све поруке из каталога превода које одговарају датом шаблону\n"
+"или припадају одређеним изворним датотекама.\n"
+
+#: src/msggrep.c:540
+#, c-format, no-wrap
+msgid ""
+"Message selection:\n"
+"  [-N SOURCEFILE]... [-M DOMAINNAME]...\n"
+"  [-J MSGCTXT-PATTERN] [-K MSGID-PATTERN] [-T MSGSTR-PATTERN]\n"
+"  [-C COMMENT-PATTERN] [-X EXTRACTED-COMMENT-PATTERN]\n"
+"A message is selected if it comes from one of the specified source files,\n"
+"or if it comes from one of the specified domains,\n"
+"or if -J is given and its context (msgctxt) matches MSGCTXT-PATTERN,\n"
+"or if -K is given and its key (msgid or msgid_plural) matches MSGID-PATTERN,\n"
+"or if -T is given and its translation (msgstr) matches MSGSTR-PATTERN,\n"
+"or if -C is given and the translator's comment matches COMMENT-PATTERN,\n"
+"or if -X is given and the extracted comment matches EXTRACTED-COMMENT-PATTERN.\n"
+"\n"
+"When more than one selection criterion is specified, the set of selected\n"
+"messages is the union of the selected messages of each criterion.\n"
+"\n"
+"MSGCTXT-PATTERN or MSGID-PATTERN or MSGSTR-PATTERN or COMMENT-PATTERN or\n"
+"EXTRACTED-COMMENT-PATTERN syntax:\n"
+"  [-E | -F] [-e PATTERN | -f FILE]...\n"
+"PATTERNs are basic regular expressions by default, or extended regular\n"
+"expressions if -E is given, or fixed strings if -F is given.\n"
+"\n"
+"  -N, --location=SOURCEFILE   select messages extracted from SOURCEFILE\n"
+"  -M, --domain=DOMAINNAME     select messages belonging to domain DOMAINNAME\n"
+"  -J, --msgctxt               start of patterns for the msgctxt\n"
+"  -K, --msgid                 start of patterns for the msgid\n"
+"  -T, --msgstr                start of patterns for the msgstr\n"
+"  -C, --comment               start of patterns for the translator's comment\n"
+"  -X, --extracted-comment     start of patterns for the extracted comment\n"
+"  -E, --extended-regexp       PATTERN is an extended regular expression\n"
+"  -F, --fixed-strings         PATTERN is a set of newline-separated strings\n"
+"  -e, --regexp=PATTERN        use PATTERN as a regular expression\n"
+"  -f, --file=FILE             obtain PATTERN from FILE\n"
+"  -i, --ignore-case           ignore case distinctions\n"
+"  -v, --invert-match          output only the messages that do not match any\n"
+"                              selection criterion\n"
+msgstr ""
+"Избор поруке:\n"
+"  [-N ИЗВОРНАДАТОТЕКА]... [-M НАЗИВДОМЕНА]...\n"
+"  [-J МСГЦТХТ-ШАБЛОН] [-K МСГИД-ШАБЛОН] [-T МСГСТР-ШАБЛОН]\n"
+"  [-C ШАБЛОН-НАПОМЕНЕ] [-X ШАБЛОН-ИЗВУЧЕНЕ-НАПОМЕНЕ]\n"
+"Порука је изабрана ако долази из једне од наведених изворних датотека,\n"
+"или ако долази из из једног од наведених домена,\n"
+"или ако је дато -J и његов контекст (msgctxt) одговара МСГЦТХТ-ШАБЛОНУ,\n"
+"или ако је дато -K и његов кључ (msgid или msgid_plural) одговара МСГИД-ШАБЛОНУ,\n"
+"или ако је дато -T и његов превод (msgstr) одговара МСГСТР-ШАБЛОНУ,\n"
+"или ако је дато -C и напомена преводиоца одговара ШАБЛОНУ-НАПОМЕНЕ,\n"
+"или ако је дато -X и извучена напомена одговараШАБЛОНУ-ИЗВУЧЕНЕ-НАПОМЕНЕ.\n"
+"\n"
+"Када је наведено више од једног услова избора, скуп изабраних порука\n"
+"је унија изабраних порука сваког услова.\n"
+"\n"
+"синтакса МСГЦТХТ-ШАБЛОНА или МСГИД-ШАБЛОНА или МСГСТР-ШАБЛОНА или ШАБЛОНА-НАПОМЕНЕ\n"
+"или ШАБЛОНА-ИЗВУЧЕНЕ-НАПОМЕНЕ:\n"
+"  [-E | -F] [-e ШАБЛОН | -f ДАТОТЕКА]...\n"
+"ШАБЛОНИ су подразумевано основни регуларни изрази, или проширени регуларни изрази\n"
+"ако је дато -E, или сталне ниске ако је дато -F.\n"
+"\n"
+"  -N, --location=ИЗВОРНАДАТОТЕКА   бира поруке извучене из ИЗВОРНЕДАТОТЕКЕ\n"
+"  -M, --domain=НАЗИВДОМЕНА         бира поруке које припадају домену НАЗИВДОМЕНА\n"
+"  -J, --msgctxt                    почетак шаблона за мсгцтхт\n"
+"  -K, --msgid                      почетак шаблона за мсгид\n"
+"  -T, --msgstr                     почетак шаблона за мсгстр\n"
+"  -C, --comment                    почетак шаблона за напомене преводиоца\n"
+"  -X, --extracted-comment          почетак шаблона за извучену напомену\n"
+"  -E, --extended-regexp            ШАБЛОН је проширени регуларни израз\n"
+"  -F, --fixed-strings              ШАБЛОН је скуп ниски раздвојених новим редом\n"
+"  -e, --regexp=ШАБЛОН              користи ШАБЛОН као регуларан израз\n"
+"  -f, --file=ДАТОТЕКА              доноси ШАБЛОН из ДАТОТЕКЕ\n"
+"  -i, --ignore-case                занемарује разликовање величине слова\n"
+"  -v, --invert-match               исписује само поруке које не одговарају\n"
+"                                   ни једном услову избора\n"
+
+#: src/msggrep.c:595
+#, c-format
+msgid ""
+"      --escape                use C escapes in output, no extended chars\n"
+msgstr ""
+"      --escape                користи Ц знаке промене реда у излазу, без "
+"проширених знакова\n"
+
+#: src/msggrep.c:616
+#, c-format
+msgid "      --sort-output           generate sorted output\n"
+msgstr "      --sort-output           ствара уређени излаз\n"
+
+#: src/msggrep.c:618
+#, c-format
+msgid "      --sort-by-file          sort output by file location\n"
+msgstr "      --sort-by-file          ређа излаз према месту датотеке\n"
+
+#: src/msginit.c:300
+#, c-format
+msgid ""
+"You are in a language indifferent environment.  Please set\n"
+"your LANG environment variable, as described in\n"
+"<%s>.\n"
+"This is necessary so you can test your translations.\n"
+msgstr ""
+"Користите окружење независно од језика. Поставите променљиву \n"
+"окружења „LANG“, како је описано у\n"
+"<%s>.\n"
+"Ово је неопходно ради испробавања ваших превода.\n"
+
+#: src/msginit.c:326
+#, c-format
+msgid ""
+"Output file %s already exists.\n"
+"Please specify the locale through the --locale option or\n"
+"the output .po file through the --output-file option.\n"
+msgstr ""
+"Излазна датотека %s већ постоји.\n"
+"Наведите локалитет помоћу опције --locale или \n"
+"излазну ПО датотеку помоћу опције --output-file.\n"
+
+#: src/msginit.c:394
+#, c-format
+msgid "Created %s.\n"
+msgstr "Направио је %s.\n"
+
+#: src/msginit.c:414
+#, c-format, no-wrap
+msgid ""
+"Creates a new PO file, initializing the meta information with values from the\n"
+"user's environment.\n"
+msgstr ""
+"Стварам нову ПО датотеку, постављајући мета податке помоћу вредности из\n"
+"корисничког окружења.\n"
+
+#: src/msginit.c:424
+#, c-format
+msgid "  -i, --input=INPUTFILE       input POT file\n"
+msgstr "  -i, --input=УЛАЗНАДАТОТЕКА  улазна ПОТ датотека\n"
+
+#: src/msginit.c:426
+#, c-format
+msgid ""
+"If no input file is given, the current directory is searched for the POT "
+"file.\n"
+"If it is -, standard input is read.\n"
+msgstr ""
+"Уколико улазна датотека није дата, текући директоријум се претражује за\n"
+"ПОТ датотеком. Уколико је „-“, чита се стандардни улаз.\n"
+
+#: src/msginit.c:432
+#, c-format
+msgid "  -o, --output-file=FILE      write output to specified PO file\n"
+msgstr "  -o, --output-file=ДАТОТЕКА  исписује излаз у наведену ПО датотеку\n"
+
+#: src/msginit.c:434
+#, c-format
+msgid ""
+"If no output file is given, it depends on the --locale option or the user's\n"
+"locale setting.  If it is -, the results are written to standard output.\n"
+msgstr ""
+"Уколико излазна датотека није дата, зависи од опције „--locale“ или од\n"
+"подешавања корисничког локалитета. Ако је „-“, резултат се исписује на\n"
+"стандардни излаз.\n"
+
+#: src/msginit.c:447
+#, c-format
+msgid "  -l, --locale=LL_CC[.ENCODING]  set target locale\n"
+msgstr ""
+"  -l, --locale=ЈЈ_ДД[.ENCODING]          поставља одредишни локалитет\n"
+
+#: src/msginit.c:449
+#, c-format
+msgid ""
+"      --no-translator         assume the PO file is automatically generated\n"
+msgstr ""
+"      --no-translator         претпоставља да је ПО датотека самоизграђена\n"
+
+#: src/msginit.c:519
+msgid ""
+"Found more than one .pot file.\n"
+"Please specify the input .pot file through the --input option.\n"
+msgstr ""
+"Нађох више од једне .пот датотеке.\n"
+"Наведите улазну .пот датотеку помоћу опције „--input“.\n"
+
+#: src/msginit.c:527 src/msginit.c:532
+#, c-format
+msgid "error reading current directory"
+msgstr "грешка читања текућег директоријума"
+
+#: src/msginit.c:540
+msgid ""
+"Found no .pot file in the current directory.\n"
+"Please specify the input .pot file through the --input option.\n"
+msgstr ""
+"Не нађох .пот датотеку у текућем директоријуму.\n"
+"Наведите улазну .пот датотеку помоћу опције „--input“.\n"
+
+#: src/msginit.c:976 src/msginit.c:1059 src/msginit.c:1228 src/msginit.c:1335
+#: src/msginit.c:1516 src/read-csharp.c:84 src/read-java.c:83
+#: src/read-resources.c:85 src/read-tcl.c:128 src/write-resources.c:106
+#: src/x-ruby.c:147
+#, c-format
+msgid "%s subprocess failed with exit code %d"
+msgstr "%s: потпроцес није успео са излазном шифром %d"
+
+#: src/msginit.c:1193
+msgid ""
+"The new message catalog should contain your email address, so that users "
+"can\n"
+"give you feedback about the translations, and so that maintainers can "
+"contact\n"
+"you in case of unexpected technical problems.\n"
+msgstr ""
+"Нови каталог порука треба да садржи адресу ваше ел. поште, како би "
+"корисници\n"
+"могли да вам дају примедбе на превод, и како би одржаваоци могли да вам се "
+"обрате\n"
+"у случају непредвиђених техничких проблема.\n"
+
+#. TRANSLATORS: "English" needs to be replaced by your language.
+#. For example in it.po write "Traduzioni italiani ...",
+#. *not* "Traduzioni inglesi ...".
+#: src/msginit.c:1711
+#, c-format
+msgid "English translations for %s package"
+msgstr "Преводи на српски језик за пакет „%s“"
+
+#: src/msgl-cat.c:181 src/msgl-charset.c:86 src/msgl-iconv.c:265
+#, c-format
+msgid "present charset \"%s\" is not a portable encoding name"
+msgstr "присутни скуп знакова „%s“ није назив преносивог кодирања"
+
+#: src/msgl-cat.c:191 src/msgl-iconv.c:276
+#, c-format
+msgid "two different charsets \"%s\" and \"%s\" in input file"
+msgstr "два различита скупа знакова „%s“ и „%s“ у улазној датотеци"
+
+#: src/msgl-cat.c:206
+#, c-format
+msgid ""
+"input file '%s' doesn't contain a header entry with a charset specification"
+msgstr "улазна датотека „%s“ не садржи поље заглавља са ознаком скупа знакова"
+
+#: src/msgl-cat.c:210
+#, c-format
+msgid ""
+"domain \"%s\" in input file '%s' doesn't contain a header entry with a "
+"charset specification"
+msgstr ""
+"домен „%s“ у улазној датотеци „%s“ не садржи поље заглавља са ознаком скупа "
+"знакова"
+
+#: src/msgl-cat.c:308 src/xg-message.c:342
+#, c-format
+msgid "msgid '%s' is used without plural and with plural."
+msgstr "„msgid %s“ је коришћена без множине и са множином."
+
+#: src/msgl-cat.c:416 src/msgl-iconv.c:384
+#, c-format
+msgid "target charset \"%s\" is not a portable encoding name."
+msgstr "одредишни скуп знакова „%s“ није назив преносивог кодирања."
+
+#: src/msgl-cat.c:424 src/msgl-iconv.c:393
+#, c-format
+msgid ""
+"Cannot write the control characters that protect file names with spaces in "
+"the %s encoding"
+msgstr ""
+"Не могу да запишем контролне знаке који штите називе датотека са размацима у "
+"„%s“ кодирању"
+
+#: src/msgl-cat.c:476 src/msgl-cat.c:482 src/msgl-cat.c:499
+#: src/msgl-charset.c:91 src/msgl-charset.c:126 src/po-xerror.c:126
+#: src/po-xerror.c:151 src/xgettext.c:589 src/xgettext.c:2073
+#: src/xg-message.c:340
+#, c-format
+msgid "warning: "
+msgstr "упозорење: "
+
+#: src/msgl-cat.c:477
+#, c-format
+msgid ""
+"Input files contain messages in different encodings, UTF-8 among others.\n"
+"Converting the output to UTF-8.\n"
+msgstr ""
+"Улазне датотеке садрже поруке у разним кодирањима, између осталих и у "
+"УТФ-8.\n"
+"Претварам излаз у УТФ-8.\n"
+
+#: src/msgl-cat.c:483
+#, c-format
+msgid ""
+"Input files contain messages in different encodings, %s and %s among "
+"others.\n"
+"Converting the output to UTF-8.\n"
+"To select a different output encoding, use the --to-code option.\n"
+msgstr ""
+"Улазне датотеке садрже поруке у разним кодирањима, између осталих и у %s и "
+"%s.\n"
+"Претварам излаз у УТФ-8.\n"
+"Да изаберете другачије кодирање излаза, користите опцију „--to-code“.\n"
+
+#: src/msgl-cat.c:500
+#, c-format
+msgid ""
+"Input files contain messages referenced in file names with spaces.\n"
+"Converting the output to %s.\n"
+msgstr ""
+"Улазне датотеке садрже поруке упутне у називима датотека са размацима.\n"
+"Претварам излаз у „%s“.\n"
+
+#: src/msgl-cat.c:538
+#, c-format
+msgid ""
+"Conversion of file %s from %s encoding to %s encoding\n"
+"changes some msgids or msgctxts.\n"
+"Either change all msgids and msgctxts to be pure ASCII, or ensure they are\n"
+"UTF-8 encoded from the beginning, i.e. already in your source code files.\n"
+msgstr ""
+"Претварање датотеке „%s“ из %s кодирања у %s кодирање мења\n"
+"неке „msgids“ или „msgctxts“ поруке.\n"
+"Или промените све „msgids“ и „msgctxts“ поруке у чисти АСКРИ, или "
+"осигурајте\n"
+"да су од самог почетка кодиране у УТФ-8, тј. већ вашим изворним датотекама.\n"
+
+#: src/msgl-charset.c:92
+#, c-format
+msgid ""
+"Locale charset \"%s\" is different from\n"
+"input file charset \"%s\".\n"
+"Output of '%s' might be incorrect.\n"
+"Possible workarounds are:\n"
+msgstr ""
+"Скуп знакова „%s“ локалитета се разликује од \n"
+"улазног скупа знакова „%s“.\n"
+"Излаз за „%s“ може бити нетачан.\n"
+"Могућа решења су:\n"
+
+#: src/msgl-charset.c:99
+#, c-format
+msgid "- Set LC_ALL to a locale with encoding %s.\n"
+msgstr "— Поставите „LC_ALL“ на локалитет са кодирањем %s.\n"
+
+#: src/msgl-charset.c:104
+#, c-format
+msgid ""
+"- Convert the translation catalog to %s using 'msgconv',\n"
+"  then apply '%s',\n"
+"  then convert back to %s using 'msgconv'.\n"
+msgstr ""
+"— Претворите каталог превода у %s помоћу „msgconv“,\n"
+"  затим примените „%s“,\n"
+"  а онда претворите назад у %s помоћу „msgconv“.\n"
+
+#: src/msgl-charset.c:113
+#, c-format
+msgid ""
+"- Set LC_ALL to a locale with encoding %s,\n"
+"  convert the translation catalog to %s using 'msgconv',\n"
+"  then apply '%s',\n"
+"  then convert back to %s using 'msgconv'.\n"
+msgstr ""
+"— Поставите „LC_ALL“ на локалитет са кодирањем %s,\n"
+"  претворите каталог превода у %s помоћу „msgconv“,\n"
+"  затим примените „%s“,\n"
+"  и онда претворите назад у %s помоћу „msgconv“.\n"
+
+#: src/msgl-charset.c:127
+#, c-format
+msgid ""
+"Locale charset \"%s\" is not a portable encoding name.\n"
+"Output of '%s' might be incorrect.\n"
+"A possible workaround is to set LC_ALL=C.\n"
+msgstr ""
+"Скуп знакова локалитета „%s“ не чини преносни назив кодирања.\n"
+"Излаз за „%s“ може бити нетачан.\n"
+"Могуће решење је да поставите „LC_ALL=C“.\n"
+
+#: src/msgl-check.c:134
+msgid "plural expression can produce negative values"
+msgstr "израз за множине може дати негативне вредности"
+
+#: src/msgl-check.c:145
+#, c-format
+msgid "nplurals = %lu but plural expression can produce values as large as %lu"
+msgstr "„nplurals = %lu“ али израз за множине може дати чак и вредности %lu"
+
+#: src/msgl-check.c:191
+msgid "plural expression can produce division by zero"
+msgstr "израз за множине може дати дељење нулом"
+
+#: src/msgl-check.c:196
+msgid "plural expression can produce integer overflow"
+msgstr "израз за множине може проузроковати прекорачење целих бројева"
+
+#: src/msgl-check.c:201
+msgid ""
+"plural expression can produce arithmetic exceptions, possibly division by "
+"zero"
+msgstr ""
+"израз за множине може проузроковати аритметичке изузетке, нпр. дељење нулом"
+
+#: src/msgl-check.c:270
+#, c-format
+msgid "Try using the following, valid for %s:"
+msgstr "Покушајте да користите следеће, исправно за %s:"
+
+#: src/msgl-check.c:362 src/msgl-check.c:386
+msgid "message catalog has plural form translations"
+msgstr "каталог порука садржи преводе облика за множину"
+
+#: src/msgl-check.c:364
+msgid "but header entry lacks a \"plural=EXPRESSION\" attribute"
+msgstr "али у заглављу недостаје поље „plural=ИЗРАЗ“"
+
+#: src/msgl-check.c:388
+msgid "but header entry lacks a \"nplurals=INTEGER\" attribute"
+msgstr "али у заглављу недостаје поље „nplurals=БРОЈ“"
+
+#: src/msgl-check.c:424
+msgid "invalid nplurals value"
+msgstr "неисправна вредност за број множина"
+
+#: src/msgl-check.c:446
+msgid "invalid plural expression"
+msgstr "неисправан израз множине"
+
+#: src/msgl-check.c:476 src/msgl-check.c:492
+#, c-format
+msgid "nplurals = %lu"
+msgstr "nplurals = %lu"
+
+#: src/msgl-check.c:478
+#, c-format
+msgid "but some messages have only one plural form"
+msgid_plural "but some messages have only %lu plural forms"
+msgstr[0] "али неке поруке имају само %lu облик за множину"
+msgstr[1] "али неке поруке имају само %lu облика за множину"
+msgstr[2] "али неке поруке имају само %lu облика за множину"
+
+#: src/msgl-check.c:494
+#, c-format
+msgid "but some messages have one plural form"
+msgid_plural "but some messages have %lu plural forms"
+msgstr[0] "али неке поруке имају %lu облик за множину"
+msgstr[1] "али неке поруке имају %lu облика за множину"
+msgstr[2] "али неке поруке имају %lu облика за множину"
+
+#: src/msgl-check.c:518
+msgid ""
+"message catalog has plural form translations, but lacks a header entry with "
+"\"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\""
+msgstr ""
+"каталог порука садржи преводе облика множине, али нема поља заглавља „Plural-"
+"Forms: nplurals=БРОЈ; plural=ИЗРАЗ;“"
+
+#: src/msgl-check.c:616
+msgid "'msgid' and 'msgid_plural' entries do not both begin with '\\n'"
+msgstr "„msgid“ и „msgid_plural“ не почињу оба са „\\n“"
+
+#: src/msgl-check.c:623
+#, c-format
+msgid "'msgid' and 'msgstr[%u]' entries do not both begin with '\\n'"
+msgstr "„msgid“ и „msgstr[%u]“ не почињу оба са „\\n“"
+
+#: src/msgl-check.c:639
+msgid "'msgid' and 'msgstr' entries do not both begin with '\\n'"
+msgstr "„msgid“ и „msgstr“ не почињу оба са „\\n“"
+
+#: src/msgl-check.c:657
+msgid "'msgid' and 'msgid_plural' entries do not both end with '\\n'"
+msgstr "„msgid“ и „msgid_plural“ не завршавају се оба са „\\n“"
+
+#: src/msgl-check.c:664
+#, c-format
+msgid "'msgid' and 'msgstr[%u]' entries do not both end with '\\n'"
+msgstr "„msgid“ и „msgstr[%u]“ не завршавају се оба са „\\n“"
+
+#: src/msgl-check.c:680
+msgid "'msgid' and 'msgstr' entries do not both end with '\\n'"
+msgstr "„msgid“ и „msgstr“ не завршавају се оба са „\\n“"
+
+#: src/msgl-check.c:692
+msgid "plural handling is a GNU gettext extension"
+msgstr "баратање множинама је проширење Гнуовог геттекста"
+
+#: src/msgl-check.c:733
+#, c-format
+msgid "msgstr lacks the keyboard accelerator mark '%c'"
+msgstr "У мсгстр недостаје ознака пречице тастатуре „%c“"
+
+#: src/msgl-check.c:744
+#, c-format
+msgid "msgstr has too many keyboard accelerator marks '%c'"
+msgstr "У мсгстр има превише ознака пречица тастатуре „%c“"
+
+#: src/msgl-check.c:818
+#, c-format
+msgid "header field '%s' still has the initial default value\n"
+msgstr "поље заглавља „%s“ и даље садржи почетну задату вредност\n"
+
+#: src/msgl-check.c:835
+#, c-format
+msgid "header field '%s' missing in header\n"
+msgstr "у заглављу недостаје поље заглавља „%s“\n"
+
+#: src/msgl-check.c:940
+msgid "ASCII ellipsis ('...') instead of Unicode"
+msgstr "АСКРИ тротачка (...) уместо Јуникода"
+
+#: src/msgl-check.c:1013
+msgid "space before ellipsis found in user visible strings"
+msgstr "пронађен је размак пре тротачке у нискама које види корисник"
+
+#: src/msgl-check.c:1041
+msgid "ASCII double quote used instead of Unicode"
+msgstr "коришћен је АСКРИ двоструки наводник уместо Јуникода"
+
+#: src/msgl-check.c:1047
+msgid "ASCII single quote used instead of Unicode"
+msgstr "коришћен је АСКРИ једноструки наводник уместо Јуникода"
+
+#: src/msgl-check.c:1162
+#, c-format
+msgid "ASCII bullet ('%c') instead of Unicode"
+msgstr "АСКРИ метак (%c) уместо Јуникода"
+
+#: src/msgl-iconv.c:64
+#, c-format
+msgid "%s: input is not valid in \"%s\" encoding"
+msgstr "%s: улаз није исправан у „%s“ кодирању"
+
+#: src/msgl-iconv.c:68
+#, c-format
+msgid "%s: error while converting from \"%s\" encoding to \"%s\" encoding"
+msgstr "%s: грешка приликом претварања „%s“ кодирања у „%s“ кодирање"
+
+#: src/msgl-iconv.c:306
+msgid "input file doesn't contain a header entry with a charset specification"
+msgstr "улазна датотека не садржи поље заглавља са ознаком скупа знакова"
+
+#: src/msgl-iconv.c:320 src/recode-sr-latin.c:290 src/recode-sr-latin.c:294
+#: src/xgettext.c:820 src/x-python.c:629
+#, c-format
+msgid ""
+"Cannot convert from \"%s\" to \"%s\". %s relies on iconv(), and iconv() does "
+"not support this conversion."
+msgstr ""
+"Не могу да претворим из „%s“ у „%s“. %s се ослања на иконв(), а иконв() не "
+"подржава ово претварање."
+
+#: src/msgl-iconv.c:348
+#, c-format
+msgid ""
+"Conversion from \"%s\" to \"%s\" introduces duplicates: some different "
+"msgids become equal."
+msgstr ""
+"Претварање из „%s“ у „%s“ уводи понављања: неке различите мсгид поруке "
+"постају једнаке."
+
+#: src/msgl-iconv.c:352 src/recode-sr-latin.c:302 src/xgettext.c:826
+#: src/x-python.c:635
+#, c-format
+msgid ""
+"Cannot convert from \"%s\" to \"%s\". %s relies on iconv(). This version was "
+"built without iconv()."
+msgstr ""
+"Не могу да претворим из „%s“ у „%s“. %s се ослања на иконв(). Ово издање је "
+"изграђено без иконв()-а."
+
+#: src/msgmerge.c:423 src/msgmerge.c:429
+#, c-format
+msgid "%s is only valid with %s"
+msgstr "%s је исправно само са %s"
+
+#: src/msgmerge.c:505
+msgid "backup type"
+msgstr "врста резерве"
+
+#: src/msgmerge.c:542
+#, c-format, no-wrap
+msgid ""
+"Merges two Uniforum style .po files together.  The def.po file is an\n"
+"existing PO file with translations which will be taken over to the newly\n"
+"created file as long as they still match; comments will be preserved,\n"
+"but extracted comments and file positions will be discarded.  The ref.pot\n"
+"file is the last created PO file with up-to-date source references but\n"
+"old translations, or a PO Template file (generally created by xgettext);\n"
+"any translations or comments in the file will be discarded, however dot\n"
+"comments and file positions will be preserved.  Where an exact match\n"
+"cannot be found, fuzzy matching is used to produce better results.\n"
+msgstr ""
+"Спајајте две .по датотеке у Унифорум стилу. Датотека деф.по је постојећа\n"
+"ПО датотека са преводима који ће бити пренети у новостворену датотеку\n"
+"док год се они поклапају; примедбе ће бити очуване, али извучене примедбе\n"
+"и положаји у датотеци ће бити занемарени. Датотека реф.пот је последња\n"
+"ПО датотека са освеженим изворним референцама али старим преводима, или\n"
+"шаблон ПО датотеке (обично направљен помоћу xgettext-а); сви преводи или\n"
+"примедбе из ове датотеке ће бити занемарени, али ће се сачувати извучене\n"
+"примедбе и положаји у датотекама. Када нема тачног поклапања, користи се\n"
+"нејасно поклапање ради добијања бољих резултата.\n"
+
+#: src/msgmerge.c:559
+#, c-format
+msgid "  def.po                      translations referring to old sources\n"
+msgstr "  def.po                      преводи који упућују на старе изворе\n"
+
+#: src/msgmerge.c:561
+#, c-format
+msgid "  ref.pot                     references to new sources\n"
+msgstr "  ref.pot                     упуте на нове изворе\n"
+
+#: src/msgmerge.c:565
+#, c-format
+msgid ""
+"  -C, --compendium=FILE       additional library of message translations,\n"
+"                              may be specified more than once\n"
+msgstr ""
+"  -C, --compendium=ДАТОТЕКА   додатна библиотека превода порука, може се\n"
+"                              навести више пута\n"
+
+#: src/msgmerge.c:571
+#, c-format
+msgid ""
+"  -U, --update                update def.po,\n"
+"                              do nothing if def.po already up to date\n"
+msgstr ""
+"  -U, --update                освежава деф.по,\n"
+"                              не ради ништа ако је деф.по већ освежена\n"
+
+#: src/msgmerge.c:583
+#, c-format
+msgid "Output file location in update mode:\n"
+msgstr "Путања излазне датотеке у режиму освежавања:\n"
+
+#: src/msgmerge.c:585
+#, c-format
+msgid "The result is written back to def.po.\n"
+msgstr "Резултат се уписује назад у деф.по.\n"
+
+#: src/msgmerge.c:587
+#, c-format
+msgid "      --backup=CONTROL        make a backup of def.po\n"
+msgstr "      --backup=УПРАВЉАЊЕ      прави резерву за деф.по\n"
+
+#: src/msgmerge.c:589
+#, c-format
+msgid "      --suffix=SUFFIX         override the usual backup suffix\n"
+msgstr "      --suffix=СУФИКС         мења уобичајени суфикс за резерве\n"
+
+#: src/msgmerge.c:591
+#, c-format
+msgid ""
+"The version control method may be selected via the --backup option or "
+"through\n"
+"the VERSION_CONTROL environment variable.  Here are the values:\n"
+"  none, off       never make backups (even if --backup is given)\n"
+"  numbered, t     make numbered backups\n"
+"  existing, nil   numbered if numbered backups exist, simple otherwise\n"
+"  simple, never   always make simple backups\n"
+msgstr ""
+"Начин управљања издањима се може изабрати помоћу опције „--backup“ или "
+"кроз \n"
+"променљиву окружења „VERSION_CONTROL“. Овде су дозвољене вредности:\n"
+"  none, off       не прави резерве (чак и ако је наведено „--backup“)\n"
+"  numbered, t     прави побројане резерве\n"
+"  existing, nil   побројане ако већ постоје побројане резерве, иначе обичне\n"
+"  simple, never   увек прави обичне резерве\n"
+
+#: src/msgmerge.c:598
+#, c-format
+msgid ""
+"The backup suffix is '~', unless set with --suffix or the "
+"SIMPLE_BACKUP_SUFFIX\n"
+"environment variable.\n"
+msgstr ""
+"Суфикс за резерве је „~“, осим ако је постављен помоћу „--suffix“ или "
+"променљивом\n"
+"окружења „SIMPLE_BACKUP_SUFFIX“.\n"
+
+#: src/msgmerge.c:607
+#, c-format
+msgid ""
+"      --for-msgfmt            produce output for '%s', not for a translator\n"
+msgstr "      --for-msgfmt            даје излаз за „%s“, није за преводиоца\n"
+
+#: src/msgmerge.c:612
+#, c-format
+msgid ""
+"      --previous              keep previous msgids of translated messages\n"
+msgstr ""
+"      --previous              задржава претходне мсгид-се преведених порука\n"
+
+#: src/msgmerge.c:669 src/urlget.c:188
+#, c-format
+msgid "  -q, --quiet, --silent       suppress progress indicators\n"
+msgstr "  -q, --quiet, --silent       потискује указиваче напредовања\n"
+
+#: src/msgmerge.c:1705
+#, c-format
+msgid "this message should define plural forms"
+msgstr "ова порука треба да одреди облике множине"
+
+#: src/msgmerge.c:1726
+#, c-format
+msgid "this message should not define plural forms"
+msgstr "ова порука не треба да одреди облике множине"
+
+#: src/msgmerge.c:2134
+#, c-format
+msgid ""
+"%sRead %ld old + %ld reference, merged %ld, fuzzied %ld, missing %ld, "
+"obsolete %ld.\n"
+msgstr ""
+"%sПрочитах %ld старих + %ld упутних, спојених %ld, нејасних %ld, "
+"недостајућих %ld, превазиђених %ld.\n"
+
+#: src/msgmerge.c:2142 src/urlget.c:299 src/urlget.c:347 src/urlget.c:390
+#: src/urlget.c:433
+#, c-format
+msgid " done.\n"
+msgstr " готово.\n"
+
+#: src/msgunfmt.c:305 src/msgunfmt.c:314 src/msgunfmt.c:337
+#, c-format
+msgid "%s and explicit file names are mutually exclusive"
+msgstr "%s и изричити називи датотека се међусобно искључују"
+
+#: src/msgunfmt.c:424
+#, c-format
+msgid "Usage: %s [OPTION] [FILE]...\n"
+msgstr "Употреба: %s [ОПЦИЈА] [ДАТОТЕКА]...\n"
+
+#: src/msgunfmt.c:428
+#, c-format
+msgid "Convert binary message catalog to Uniforum style .po file.\n"
+msgstr "Претворите бинарни каталог порука у .по датотеку Унифорум стила.\n"
+
+#: src/msgunfmt.c:437
+#, c-format
+msgid ""
+"  -j, --java                  Java mode: input is a Java ResourceBundle "
+"class\n"
+msgstr ""
+"  -j, --java                  Јава режим: улаз је Јавин разред „Група "
+"изворишта“\n"
+
+#: src/msgunfmt.c:439
+#, c-format
+msgid "      --csharp                C# mode: input is a .NET .dll file\n"
+msgstr ""
+"      --csharp                Ц# режим: улаз је .НЕТ-ова „.dll“ датотека\n"
+
+#: src/msgunfmt.c:441
+#, c-format
+msgid ""
+"      --csharp-resources      C# resources mode: input is a .NET .resources "
+"file\n"
+msgstr ""
+"      --csharp-resources      Режим Ц# изворишта: улаз је .НЕТ-ова „."
+"resources“ датотека\n"
+
+#: src/msgunfmt.c:443
+#, c-format
+msgid ""
+"      --tcl                   Tcl mode: input is a tcl/msgcat .msg file\n"
+msgstr ""
+"      --tcl                   Тцл режим: улаз је тцл/мсгкат-ова „.msg“ "
+"датотека\n"
+
+#: src/msgunfmt.c:448
+#, c-format
+msgid "  FILE ...                    input .mo files\n"
+msgstr "  ДАТОТЕКА ...                улазне .мо датотеке\n"
+
+#: src/msgunfmt.c:453
+#, c-format
+msgid "Input file location in Java mode:\n"
+msgstr "Путања улазне датотеке у Јава режиму:\n"
+
+#: src/msgunfmt.c:459
+#, c-format
+msgid ""
+"The class name is determined by appending the locale name to the resource "
+"name,\n"
+"separated with an underscore.  The class is located using the CLASSPATH.\n"
+msgstr ""
+"Назив разреда се одређује надодавањем назива локалитета на назив изворишта,\n"
+"раздвојених подвлаком. Разред се проналази помоћу „CLASSPATH“.\n"
+
+#: src/msgunfmt.c:464
+#, c-format
+msgid "Input file location in C# mode:\n"
+msgstr "Путања улазне датотеке у Ц# режиму:\n"
+
+#: src/msgunfmt.c:472
+#, c-format
+msgid ""
+"The -l and -d options are mandatory.  The .dll file is located in a\n"
+"subdirectory of the specified directory whose name depends on the locale.\n"
+msgstr ""
+"Опције -l и -d су обавезне.  Датотека .dll се налази у поддиректоријуму \n"
+"датог директоријума чији назив зависи од локалитета.\n"
+
+#: src/msgunfmt.c:476
+#, c-format
+msgid "Input file location in Tcl mode:\n"
+msgstr "Путања улазне датотеке у Тцл режиму:\n"
+
+#: src/msgunfmt.c:482
+#, c-format
+msgid ""
+"The -l and -d options are mandatory.  The .msg file is located in the\n"
+"specified directory.\n"
+msgstr ""
+"Опције -l и -d су обавезне.  Датотека „.msg“ се налази у датом "
+"директоријуму.\n"
+
+#: src/msgunfmt.c:508
+#, c-format
+msgid "  -i, --indent                write indented output style\n"
+msgstr "  -i, --indent                записује увучени изглед излаза\n"
+
+#: src/msgunfmt.c:510
+#, c-format
+msgid "      --strict                write strict uniforum style\n"
+msgstr "      --strict                пише изричитим стилом унифорума\n"
+
+#: src/msguniq.c:328
+#, c-format, no-wrap
+msgid ""
+"Unifies duplicate translations in a translation catalog.\n"
+"Finds duplicate translations of the same message ID.  Such duplicates are\n"
+"invalid input for other programs like msgfmt, msgmerge or msgcat.  By\n"
+"default, duplicates are merged together.  When using the --repeated option,\n"
+"only duplicates are output, and all other messages are discarded.  Comments\n"
+"and extracted comments will be cumulated, except that if --use-first is\n"
+"specified, they will be taken from the first translation.  File positions\n"
+"will be cumulated.  When using the --unique option, duplicates are discarded.\n"
+msgstr ""
+"Обједините поновљене преводе у каталогу превода.  Пронађите двоструке\n"
+"преводе са истим ИБ-ом поруке. Такви дупликати су неисправан улаз за\n"
+"остале програме као што је „msgfmt“, „msgmerge“ или „msgcat“. У основи,\n"
+"поновљени преводи се спајају.  Када се користи опција „--repeated“,\n"
+"исписују се само поновљене, а остале поруке се занемарују. Примедбе и\n"
+"извучене примедбе ће се збрајати, осим ако је наведено „--use-first“,\n"
+"када ће се користити оне из првог превода. Положаји у датотеци ће се\n"
+"такође збрајати. Када се користи опција „--unique“, поновљени преводи\n"
+"се занемарују.\n"
+
+#: src/msguniq.c:361
+#, c-format
+msgid "  -d, --repeated              print only duplicates\n"
+msgstr "  -d, --repeated              исписује само дупликате\n"
+
+#: src/msguniq.c:363
+#, c-format
+msgid ""
+"  -u, --unique                print only unique messages, discard "
+"duplicates\n"
+msgstr ""
+"  -u, --unique                исписује само јединствене поруке, одбацујући "
+"дупликате\n"
+
+#: src/open-catalog.c:56 libgettextpo/gettext-po.c:116
+#: libgettextpo/gettext-po.c:164 libgettextpo/gettext-po.c:212
+msgid "<stdin>"
+msgstr "<стдулаз>"
+
+#: src/po-charset.c:500
+#, c-format
+msgid ""
+"Charset \"%s\" is not a portable encoding name.\n"
+"Message conversion to user's charset might not work.\n"
+msgstr ""
+"Скуп знакова „%s“ не чини преносив назив кодирања.\n"
+"Претварање порука у корисников скуп знакова можда неће радити.\n"
+
+#: src/po-charset.c:593
+#, c-format
+msgid ""
+"Charset \"%s\" is not supported. %s relies on iconv(),\n"
+"and iconv() does not support \"%s\".\n"
+msgstr ""
+"Скуп знакова „%s“ није подржан. %s се ослања на „iconv()“,\n"
+"а „iconv()“ не подржава „%s“.\n"
+
+#: src/po-charset.c:599 src/po-charset.c:654
+msgid ""
+"Installing GNU libiconv and then reinstalling GNU gettext\n"
+"would fix this problem.\n"
+msgstr ""
+"Инсталирање Гнуовог „libiconv“-а и затим поновно инсталирање Гнуовог\n"
+"„gettext“-а ће средити овај проблем.\n"
+
+#: src/po-charset.c:613 src/po-charset.c:658
+msgid "Continuing anyway, expect parse errors."
+msgstr "Ипак настављам, очекујте грешке обраде."
+
+#: src/po-charset.c:615
+msgid "Continuing anyway."
+msgstr "Ипак настављам."
+
+#: src/po-charset.c:649
+#, c-format
+msgid ""
+"Charset \"%s\" is not supported. %s relies on iconv().\n"
+"This version was built without iconv().\n"
+msgstr ""
+"Скуп знакова „%s“ није подржан. %s се ослања на „iconv()“.\n"
+"Ово издање је изграђено без „iconv()“-а.\n"
+
+#: src/po-charset.c:686
+msgid ""
+"Charset missing in header.\n"
+"Message conversion to user's charset will not work.\n"
+msgstr ""
+"Недостаје скуп знакова у заглављу.\n"
+"Претварање порука у корисников скуп знакова неће радити.\n"
+
+#: src/po-gram-gen.y:47
+#, c-format
+msgid "inconsistent use of #~"
+msgstr "недоследно стање за #~"
+
+#: src/po-gram-gen.y:200
+#, c-format
+msgid "missing 'msgstr[]' section"
+msgstr "недостаје одељак „msgstr[]“"
+
+#: src/po-gram-gen.y:209
+#, c-format
+msgid "missing 'msgid_plural' section"
+msgstr "недостаје одељак „msgid_plural“"
+
+#: src/po-gram-gen.y:217
+#, c-format
+msgid "missing 'msgstr' section"
+msgstr "недостаје одељак „msgstr“"
+
+#: src/po-gram-gen.y:356
+#, c-format
+msgid "first plural form has nonzero index"
+msgstr "први облик множине користи не-нула индекс"
+
+#: src/po-gram-gen.y:358
+#, c-format
+msgid "plural form has wrong index"
+msgstr "облик множине има погрешан индекс"
+
+#: src/po-lex.c:90 src/po-lex.c:109
+#, c-format
+msgid "too many errors, aborting"
+msgstr "превише грешака, прекидам"
+
+#: src/po-lex.c:437 src/po-lex.c:505 src/write-po.c:846 src/write-po.c:983
+#, c-format
+msgid "invalid multibyte sequence"
+msgstr "неисправан низ мултибајтова"
+
+#: src/po-lex.c:465
+#, c-format
+msgid "incomplete multibyte sequence at end of file"
+msgstr "непотпун низ мултибајтова на крају датотеке"
+
+#: src/po-lex.c:474
+#, c-format
+msgid "incomplete multibyte sequence at end of line"
+msgstr "непотпун низ мултибајтова на крају реда"
+
+#: src/po-lex.c:485
+msgid "iconv failure"
+msgstr "неуспех иконв-а"
+
+#: src/po-lex.c:742
+#, c-format
+msgid "keyword \"%s\" unknown"
+msgstr "кључна реч „%s“ је непозната"
+
+#: src/po-lex.c:852
+#, c-format
+msgid "invalid control sequence"
+msgstr "неисправан низ управљања"
+
+#: src/po-lex.c:979
+#, c-format
+msgid "end-of-file within string"
+msgstr "знак за крај датотеке унутар ниске"
+
+#: src/po-lex.c:985
+#, c-format
+msgid "end-of-line within string"
+msgstr "знак за крај реда унутар ниске"
+
+#: src/po-lex.c:1006
+#, c-format
+msgid "context separator <EOT> within string"
+msgstr "садржајни раздвајач <ЕОТ> унутар ниске"
+
+#: src/read-catalog.c:324 src/xgettext.c:1276
+#, c-format
+msgid "this file may not contain domain directives"
+msgstr "ова датотека не може да садржи смернице домена"
+
+#: src/read-catalog.c:369
+msgid "duplicate message definition"
+msgstr "одредница удвостручене поруке"
+
+#: src/read-catalog.c:371
+msgid "this is the location of the first definition"
+msgstr "ово је место прве одреднице"
+
+#: src/read-desktop.c:258
+msgid "unterminated group name"
+msgstr "неокончани назив групе"
+
+#: src/read-desktop.c:279
+msgid "invalid non-blank character"
+msgstr "неисправан не-празан знак"
+
+#: src/read-desktop.c:386
+#, c-format
+msgid "missing '=' after \"%s\""
+msgstr "недостаје = након „%s“"
+
+#: src/read-desktop.c:449
+msgid "invalid non-blank line"
+msgstr "неисправан не-празан ред"
+
+#: src/read-mo.c:108 src/read-mo.c:130 src/read-mo.c:168 src/read-mo.c:192
+#, c-format
+msgid "file \"%s\" is truncated"
+msgstr "датотека „%s“ је скраћена"
+
+#: src/read-mo.c:133
+#, c-format
+msgid "file \"%s\" contains a not NUL terminated string"
+msgstr "датотека „%s“ садржи ниску која није окончана НУЛ-ом"
+
+#: src/read-mo.c:178
+#, c-format
+msgid "file \"%s\" contains a not NUL terminated system dependent string"
+msgstr "датотека „%s“ садржи од система зависну ниску неокончану НУЛ-ом"
+
+#: src/read-mo.c:184 src/read-mo.c:292
+#, c-format
+msgid "file \"%s\" is not in GNU .mo format"
+msgstr "датотека „%s“ није у Гнуовом .mo запису"
+
+#: src/read-mo.c:198
+#, c-format
+msgid "file \"%s\" contains a not NUL terminated string, at %s"
+msgstr "датотека „%s“ садржи ниску која није окончана НУЛ-ом, на %s"
+
+#: src/read-mo.c:331
+#, c-format
+msgid ""
+"file \"%s\" is not in GNU .mo format: The array of messages is not sorted."
+msgstr "датотека „%s“ није у Гнуовом .mo запису: Низ порука није поређан."
+
+#: src/read-mo.c:346
+#, c-format
+msgid "file \"%s\" is not in GNU .mo format: The hash table size is invalid."
+msgstr ""
+"датотека „%s“ није у Гнуовом .mo запису: Величина хеш табеле је неисправна."
+
+#: src/read-mo.c:362
+#, c-format
+msgid ""
+"file \"%s\" is not in GNU .mo format: The hash table contains invalid "
+"entries."
+msgstr ""
+"датотека „%s“ није у Гнуовом .mo запису: Хеш табела садржи неисправне уносе."
+
+#: src/read-mo.c:369
+#, c-format
+msgid ""
+"file \"%s\" is not in GNU .mo format: Some messages are not present in the "
+"hash table."
+msgstr ""
+"датотека „%s“ није у Гнуовом .mo запису: Неке поруке нису присутне у хеш "
+"табели."
+
+#: src/read-mo.c:390
+#, c-format
+msgid ""
+"file \"%s\" is not in GNU .mo format: Some messages are at a wrong index in "
+"the hash table."
+msgstr ""
+"датотека „%s“ није у Гнуовом .mo запису: Неке поруке су на погрешном индексу "
+"у хеш табели."
+
+#: src/read-properties.c:357
+msgid "warning: invalid \\uxxxx syntax for Unicode character"
+msgstr "упозорење: неисправна синтакса „\\uxxxx“ за Уникод знак"
+
+# bug: there are similar messages with "%s:%lu: warning:"
+#: src/read-properties.c:429
+#, c-format
+msgid "warning: lone surrogate U+%04X"
+msgstr "упозорење: усамљена замена „U+%04X“"
+
+#: src/read-properties.c:499 src/read-properties.c:534
+msgid "warning: invalid Unicode character"
+msgstr "упозорење: неисправан знак Уникода"
+
+#: src/read-stringtable.c:803
+msgid "warning: unterminated string"
+msgstr "упозорење: неокончана ниска"
+
+#: src/read-stringtable.c:811
+msgid "warning: syntax error"
+msgstr "упозорење: грешка синтаксе"
+
+#: src/read-stringtable.c:872 src/read-stringtable.c:894
+msgid "warning: unterminated key/value pair"
+msgstr "упозорење: неокончан пар кључ/вредност"
+
+#: src/read-stringtable.c:941
+msgid "warning: syntax error, expected ';' after string"
+msgstr "упозорење: грешка синтаксе, очекивах ; након ниске"
+
+#: src/read-stringtable.c:949
+msgid "warning: syntax error, expected '=' or ';' after string"
+msgstr "упозорење: грешка синтаксе, очекивах = или ; након ниске"
+
+#: src/recode-sr-latin.c:112
+#, c-format
+msgid "Written by %s and %s.\n"
+msgstr "Написали су %s и %s.\n"
+
+#. TRANSLATORS: This is a proper name. The last name is
+#. (with Unicode escapes) "\u0160egan" or (with HTML entities)
+#. "&Scaron;egan".
+#. This is a proper name. See the gettext manual, section Names.
+#: src/recode-sr-latin.c:116
+msgid "Danilo Segan"
+msgstr "Данило Шеган"
+
+#: src/recode-sr-latin.c:149
+#, c-format, no-wrap
+msgid "Recode Serbian text from Cyrillic to Latin script.\n"
+msgstr "Пребаците српски текст са ћириличног на латинично писмо.\n"
+
+#: src/recode-sr-latin.c:152
+#, c-format, no-wrap
+msgid ""
+"The input text is read from standard input.  The converted text is output to\n"
+"standard output.\n"
+msgstr ""
+"Улазни текст се чита са стандардног улаза.  Претворени текст је излаз\n"
+"стандардног излаза.\n"
+
+#: src/recode-sr-latin.c:337
+#, c-format
+msgid "input is not valid in \"%s\" encoding"
+msgstr "улаз није исправан у „%s“ кодирању"
+
+#: src/recode-sr-latin.c:365
+#, c-format
+msgid "error while converting from \"%s\" encoding to \"%s\" encoding"
+msgstr "грешка приликом претварања „%s“ кодирања у „%s“ кодирање"
+
+#: src/urlget.c:155
+#, c-format
+msgid "expected two arguments"
+msgstr "очекивах два аргумента"
+
+#: src/urlget.c:172
+#, c-format
+msgid "Usage: %s [OPTION] URL FILE\n"
+msgstr "Употреба: %s [ОПЦИЈА] АДРЕСА ДАТОТЕКА\n"
+
+#: src/urlget.c:177
+#, c-format, no-wrap
+msgid ""
+"Fetches and outputs the contents of an URL.  If the URL cannot be accessed,\n"
+"the locally accessible FILE is used instead.\n"
+msgstr ""
+"Преузима и исписује садржај адресе. Уколико не може да приступи адреси,\n"
+"користи се месно доступна ДАТОТЕКА уместо ње.\n"
+
+#: src/urlget.c:228
+#, c-format
+msgid "error reading \"%s\""
+msgstr "грешка читања „%s“"
+
+#: src/urlget.c:234
+#, c-format
+msgid "error writing stdout"
+msgstr "грешка записивања стандардног излаза"
+
+#: src/urlget.c:238
+#, c-format
+msgid "error after reading \"%s\""
+msgstr "грешка након читања „%s“"
+
+#: src/urlget.c:268
+#, c-format
+msgid "Retrieving %s..."
+msgstr "Довлачим „%s“..."
+
+#: src/urlget.c:301
+#, c-format
+msgid " timed out.\n"
+msgstr " истекло је време.\n"
+
+#: src/urlget.c:441
+#, c-format
+msgid " failed.\n"
+msgstr " нисам успео.\n"
+
+#: src/write-catalog.c:125
+msgid ""
+"Cannot output multiple translation domains into a single file with the "
+"specified output format. Try using PO file syntax instead."
+msgstr ""
+"Не могу да испишем више домена превода у једну датотеку са наведеним записом "
+"излаза. Покушајте да користите синтаксу ПО датотеке уместо тога."
+
+#: src/write-catalog.c:128
+msgid ""
+"Cannot output multiple translation domains into a single file with the "
+"specified output format."
+msgstr ""
+"Не могу да испишем више домена превода у једну датотеку са наведеним записом "
+"излаза."
+
+#: src/write-catalog.c:161
+msgid ""
+"message catalog has context dependent translations, but the output format "
+"does not support them."
+msgstr ""
+"каталог порука садржи преводе зависне од садржаја, али запис излаза их не "
+"подржава."
+
+#: src/write-catalog.c:196
+msgid ""
+"message catalog has plural form translations, but the output format does not "
+"support them. Try generating a Java class using \"msgfmt --java\", instead "
+"of a properties file."
+msgstr ""
+"каталог порука садржи преводе са облицима множине, али запис излаза их не "
+"подржава. Покушајте да створите разред Јаве користећи „msgfmt --java“ уместо "
+"датотеке особина."
+
+#: src/write-catalog.c:201
+msgid ""
+"message catalog has plural form translations, but the output format does not "
+"support them."
+msgstr ""
+"каталог порука садржи преводе са облицима множине, али запис излаза их не "
+"подржава."
+
+#: src/write-catalog.c:231 src/write-catalog.c:276 src/write-xml.c:59
+#, c-format
+msgid "cannot create output file \"%s\""
+msgstr "не могу да створим излазну датотеку „%s“"
+
+#: src/write-catalog.c:239 src/write-catalog.c:284
+msgid "standard output"
+msgstr "стандардни излаз"
+
+#: src/write-csharp.c:709
+#, c-format
+msgid "failed to create directory \"%s\""
+msgstr "нисам успео да направим директоријум „%s“"
+
+#: src/write-csharp.c:772
+#, c-format
+msgid "compilation of C# class failed, please try --verbose"
+msgstr "изграђивање Ц# разреда није успело, пробајте „--verbose“"
+
+#: src/write-csharp.c:774
+#, c-format
+msgid "compilation of C# class failed"
+msgstr "изграђивање Ц# разреда није успело"
+
+#: src/write-desktop.c:163 src/write-mo.c:1227 src/write-qt.c:741
+#: src/write-tcl.c:218
+#, c-format
+msgid "error while opening \"%s\" for writing"
+msgstr "грешка приликом отварања „%s“ за писање"
+
+#: src/write-java.c:1098
+#, c-format
+msgid "not a valid Java class name: %s"
+msgstr "неисправан назив разреда Јаве: %s"
+
+#: src/write-java.c:1221
+#, c-format
+msgid "compilation of Java class failed, please try --verbose or set $JAVAC"
+msgstr ""
+"изграђивање разреда Јаве није успело, пробајте „--verbose“ или поставите "
+"„$JAVAC“"
+
+#: src/write-java.c:1224
+#, c-format
+msgid "compilation of Java class failed, please try to set $JAVAC"
+msgstr "изграђивање разреда Јаве није успело, пробајте да поставите „$JAVAC“"
+
+#: src/write-po.c:855
+msgid "incomplete multibyte sequence"
+msgstr "непотпун низ мултибајтова"
+
+#: src/write-po.c:918
+#, c-format
+msgid ""
+"internationalized messages should not contain the '\\%c' escape sequence"
+msgstr ""
+"интернационализоване поруке не треба да садрже „\\%c“ низове за крај реда"
+
+#: src/write-po.c:1368 src/write-po.c:1536
+#, c-format
+msgid ""
+"The following msgctxt contains non-ASCII characters.\n"
+"This will cause problems to translators who use a character encoding\n"
+"different from yours. Consider using a pure ASCII msgctxt instead.\n"
+"%s\n"
+msgstr ""
+"Следећи мсгцтхт садржи не-АСКРИ знакове.\n"
+"Ово ће изазвати проблеме преводиоцима који користе кодирање\n"
+"другачије од вашег. Пробајте да користите чисти АСКРИ мсгцтхт.\n"
+"%s\n"
+
+#: src/write-po.c:1380 src/write-po.c:1548
+#, c-format
+msgid ""
+"The following msgid contains non-ASCII characters.\n"
+"This will cause problems to translators who use a character encoding\n"
+"different from yours. Consider using a pure ASCII msgid instead.\n"
+"%s\n"
+msgstr ""
+"Следећи мсгид садржи не-АСКРИ знакове.\n"
+"Ово ће изазвати проблеме преводиоцима који користе кодирање\n"
+"другачије од вашег. Пробајте да користите чисти АСКРИ мсгид.\n"
+"%s\n"
+
+#: src/write-qt.c:668
+msgid ""
+"message catalog has plural form translations\n"
+"but the Qt message catalog format doesn't support plural handling\n"
+msgstr ""
+"каталог порука садржи преводе облика множине\n"
+"али запис каталога порука Кут-а не подржава руковање множинама\n"
+
+#: src/write-qt.c:694
+msgid ""
+"message catalog has msgctxt strings containing characters outside "
+"ISO-8859-1\n"
+"but the Qt message catalog format supports Unicode only in the translated\n"
+"strings, not in the context strings\n"
+msgstr ""
+"каталог порука садржи мсгцтхт ниске са знаковима ван ISO-8859-1\n"
+"скупа али запис каталога порука Кут-а подржава Уникод једино у\n"
+"преведним нискама, не у садржајним нискама\n"
+
+#: src/write-qt.c:718
+msgid ""
+"message catalog has msgid strings containing characters outside ISO-8859-1\n"
+"but the Qt message catalog format supports Unicode only in the translated\n"
+"strings, not in the untranslated strings\n"
+msgstr ""
+"каталог порука садржи мсгид ниске са знаковима ван ISO-8859-1\n"
+"скупа али запис каталога порука Кут-а подржава Уникод једино у\n"
+"преведним нискама, не у непреведним нискама\n"
+
+#: src/write-resources.c:96
+#, c-format
+msgid "error while writing to %s subprocess"
+msgstr "грешка приликом уписа у подпроцес „%s“"
+
+#: src/write-resources.c:133
+msgid ""
+"message catalog has context dependent translations\n"
+"but the C# .resources format doesn't support contexts\n"
+msgstr ""
+"каталог порука садржи преводе зависне од садржаја,\n"
+"али запис Ц# „.resources“ не подржава садржаје\n"
+
+#: src/write-resources.c:152
+msgid ""
+"message catalog has plural form translations\n"
+"but the C# .resources format doesn't support plural handling\n"
+msgstr ""
+"каталог порука садржи преводе облика множине\n"
+"али запис Ц# „.resources“ не подржава руковање множинама\n"
+
+#: src/write-tcl.c:159
+msgid ""
+"message catalog has context dependent translations\n"
+"but the Tcl message catalog format doesn't support contexts\n"
+msgstr ""
+"каталог порука садржи преводе зависне од садржаја,\n"
+"али запис каталога порука Тцл-а не подржава садржаје\n"
+
+#: src/write-tcl.c:178
+msgid ""
+"message catalog has plural form translations\n"
+"but the Tcl message catalog format doesn't support plural handling\n"
+msgstr ""
+"каталог порука садржи преводе облика множине\n"
+"али запис каталога порука Тцл-а не подржава руковање множинама\n"
+
+#: src/x-awk.c:341 src/x-javascript.c:766 src/x-python.c:896
+#, c-format
+msgid "%s:%d: warning: unterminated string"
+msgstr "%s:%d: упозорење: неокончана ниска"
+
+#: src/x-awk.c:592
+#, c-format
+msgid "%s:%d: warning: unterminated regular expression"
+msgstr "%s:%d: упозорење: неокончани регуларни израз"
+
+#: src/x-awk.c:769 src/x-c.c:2347 src/x-csharp.c:1946 src/x-java.c:1581
+#: src/x-javascript.c:1689 src/x-lua.c:1099 src/x-php.c:1487
+#: src/x-python.c:1602 src/x-vala.c:1322 src/x-ycp.c:698 src/x-ycp.c:773
+#, c-format
+msgid "%s:%d: error: too many open parentheses"
+msgstr "%s:%d: грешка: превише отворених заграда"
+
+#: src/x-c.c:1117 src/x-vala.c:509
+#, c-format
+msgid "%s:%d: warning: hexadecimal escape sequence out of range"
+msgstr "%s:%d: упозорење: хексадецимални низ промене реда је ван опсега"
+
+#: src/x-c.c:1206 src/x-csharp.c:1333 src/x-python.c:1103 src/x-tcl.c:804
+#: src/x-vala.c:597
+#, c-format
+msgid "%s:%d: warning: invalid Unicode character"
+msgstr "%s:%d: упозорење: неисправан знак Уникода"
+
+#: src/x-c.c:1407
+#, c-format
+msgid ""
+"%s:%d: warning: a double-quote in the delimiter of a raw string literal is "
+"unsupported"
+msgstr ""
+"%s:%d: упозорење: двоструки наводник у граничнику литерала сирове ниске није "
+"подржан"
+
+#: src/x-c.c:1485
+#, c-format
+msgid "%s:%d: warning: unterminated raw string literal"
+msgstr "%s:%d: упозорење: литерал сирове ниске није окончан"
+
+#: src/x-c.c:1495
+#, c-format
+msgid "%s:%d: warning: invalid raw string literal syntax"
+msgstr "%s:%d: упозорење: неисправна синтакса литерала сирове ниске"
+
+#: src/x-c.c:1704 src/x-csharp.c:1452 src/x-java.c:682 src/x-vala.c:839
+#, c-format
+msgid "%s:%d: warning: unterminated character constant"
+msgstr "%s:%d: упозорење: константа знака није окончана"
+
+#: src/x-c.c:1741 src/x-vala.c:940
+#, c-format
+msgid "%s:%d: warning: unterminated string literal"
+msgstr "%s:%d: упозорење: литерал ниске није окончан"
+
+#: src/x-csharp.c:226 src/xg-encoding.c:160 src/xg-encoding.c:173
+#: src/xg-encoding.c:217 src/xg-encoding.c:232
+msgid "Please specify the source encoding through --from-code."
+msgstr "Наведите кодирање извора помоћу „--from-code“."
+
+#: src/x-csharp.c:273
+#, c-format
+msgid ""
+"%s:%d: Invalid multibyte sequence.\n"
+"Please specify the correct source encoding through --from-code.\n"
+msgstr ""
+"%s:%d: Неисправан низ мултибајтова.\n"
+"Наведите исправно кодирање извора помоћу „--from-code“.\n"
+
+#: src/x-csharp.c:289
+#, c-format
+msgid ""
+"%s:%d: Long incomplete multibyte sequence.\n"
+"Please specify the correct source encoding through --from-code.\n"
+msgstr ""
+"%s:%d: Дуги недовршени низ мултибајтова.\n"
+"Наведите исправно кодирање извора помоћу „--from-code“.\n"
+
+#: src/x-csharp.c:301
+#, c-format
+msgid ""
+"%s:%d: Incomplete multibyte sequence at end of file.\n"
+"Please specify the correct source encoding through --from-code.\n"
+msgstr ""
+"%s:%d: Недовршени низ мултибајтова на крају датотеке.\n"
+"Наведите исправно кодирање извора помоћу „--from-code“.\n"
+
+#: src/x-csharp.c:310
+#, c-format
+msgid ""
+"%s:%d: Incomplete multibyte sequence at end of line.\n"
+"Please specify the correct source encoding through --from-code.\n"
+msgstr ""
+"%s:%d: Недовршени низ мултибајтова на крају реда.\n"
+"Наведите исправно кодирање извора помоћу „--from-code“.\n"
+
+#: src/x-csharp.c:319 src/x-javascript.c:331 src/x-python.c:358
+#, c-format
+msgid "%s:%d: iconv failure"
+msgstr "%s:%d: неуспех иконв-а"
+
+#: src/x-csharp.c:342
+#, c-format
+msgid ""
+"%s:%d: Invalid multibyte sequence.\n"
+"Please specify the source encoding through --from-code.\n"
+msgstr ""
+"%s:%d: Неисправан низ мултибајтова.\n"
+"Наведите кодирање извора помоћу „--from-code“.\n"
+
+#: src/x-csharp.c:1455 src/x-java.c:685
+#, c-format
+msgid "%s:%d: warning: unterminated string constant"
+msgstr "%s:%d: упозорење: константа ниске није окончана"
+
+#: src/x-csharp.c:1972 src/x-java.c:1607
+#, c-format
+msgid "%s:%d: warning: ')' found where '}' was expected"
+msgstr "%s:%d: упозорење: нађох ) где очекивах }"
+
+#: src/x-csharp.c:1984 src/x-java.c:1619 src/x-javascript.c:1758
+#: src/x-tcl.c:898
+#, c-format
+msgid "%s:%d: error: too many open braces"
+msgstr "%s:%d: грешка: превише отворених заграда"
+
+#: src/x-csharp.c:2009 src/x-java.c:1644
+#, c-format
+msgid "%s:%d: warning: '}' found where ')' was expected"
+msgstr "%s:%d: упозорење: нађох } где очекивах )"
+
+#: src/x-elisp.c:452
+#, c-format
+msgid "%s:%d: error: too deeply nested escape sequence"
+msgstr "%s:%d: грешка: превише дубоко угнежден низ промене реда"
+
+#: src/x-elisp.c:649 src/x-librep.c:606 src/x-lisp.c:949 src/x-scheme.c:690
+#, c-format
+msgid "%s:%d: error: too deeply nested objects"
+msgstr "%s:%d: грешка: превише дубоко угнеждени објекти"
+
+#: src/xg-arglist-parser.c:388
+#, c-format
+msgid "ambiguous argument specification for keyword '%.*s'"
+msgstr "нејасана особеност аргумента за кључну реч „%.*s“"
+
+#: src/xg-arglist-parser.c:450
+#, c-format
+msgid "warning: missing context for keyword '%.*s'"
+msgstr "упозорење: недостаје контекст за кључниу реч „%.*s“"
+
+#: src/xg-arglist-parser.c:475
+#, c-format
+msgid "warning: missing context for plural argument of keyword '%.*s'"
+msgstr "упозорење: недостаје контекст за аргумент множине кључне речи „%.*s“"
+
+#: src/xg-arglist-parser.c:496
+#, c-format
+msgid "context mismatch between singular and plural form"
+msgstr "контекст се разликује између облика за једнину и множину"
+
+#: src/xg-encoding.c:78
+#, c-format
+msgid "Non-ASCII character at %s%s."
+msgstr "Не-АСКРИ знак на %s%s."
+
+#: src/xg-encoding.c:82
+#, c-format
+msgid "Non-ASCII comment at or before %s%s."
+msgstr "Не-АСКРИ напомена на или пре %s%s."
+
+#: src/xg-encoding.c:87
+#, c-format
+msgid "Non-ASCII string at %s%s."
+msgstr "Не-АСКРИ ниска на %s%s."
+
+#: src/xg-encoding.c:92
+#, c-format
+msgid "Non-ASCII XML tag at %s%s."
+msgstr "Не-АСКРИ XML ознака на „%s%s“."
+
+#: src/xg-encoding.c:118
+#, c-format
+msgid "Character at %s%s is not UTF-8 encoded."
+msgstr "Знак на „%s%s“ није УТФ-8 кодиран."
+
+#: src/xg-encoding.c:123
+#, c-format
+msgid "Comment at or before %s%s is not UTF-8 encoded."
+msgstr "Напомена на или пре „%s%s“ није УТФ-8 кодирана."
+
+#: src/xg-encoding.c:128
+#, c-format
+msgid "String at %s%s is not UTF-8 encoded."
+msgstr "Ниска на „%s%s“ није УТФ-8 кодирана."
+
+#: src/xg-encoding.c:134
+#, c-format
+msgid "XML tag at %s%s is not UTF-8 encoded."
+msgstr "XML ознака на „%s%s“ није УТФ-8 кодирана."
+
+#: src/xgettext.c:590
+#, c-format
+msgid "'%s' is not a valid encoding name.  Using ASCII as fallback.\n"
+msgstr "„%s“ није исправан назив кодирања.  Користићу АСКРИ.\n"
+
+#: src/xgettext.c:660
+#, c-format
+msgid "syntax check '%s' unknown"
+msgstr "провера синтаксе „%s“ је непозната"
+
+#: src/xgettext.c:669
+#, c-format
+msgid "sentence end type '%s' unknown"
+msgstr "врста краја реченице „%s“ је непозната"
+
+#: src/xgettext.c:725
+#, c-format
+msgid "--join-existing cannot be used when output is written to stdout"
+msgstr ""
+"„--join-existing“ се не може користити када се излаз исписује на стандардни "
+"излаз"
+
+#: src/xgettext.c:729
+#, c-format
+msgid "xgettext cannot work without keywords to look for"
+msgstr "„xgettext“ не може да ради без кључних речи које тражи"
+
+#: src/xgettext.c:749
+#, c-format
+msgid "The option '%s' is deprecated."
+msgstr "Опција „%s“ је застарела."
+
+#: src/xgettext.c:873
+#, c-format
+msgid "warning: ITS rule file '%s' does not exist"
+msgstr "упозорење: не постоји датотека „%s“ „ITS“ правила"
+
+#: src/xgettext.c:951
+#, c-format
+msgid ""
+"warning: a fallback ITS rule file '%s' is used; it may not be in sync with "
+"the upstream"
+msgstr ""
+"упозорење: резервна датотека „ITS“ правила „%s“ је коришћена; не може бити "
+"усклађена узводно"
+
+#: src/xgettext.c:961
+#, c-format
+msgid ""
+"warning: ITS rule file '%s' does not exist; check your gettext installation"
+msgstr ""
+"упозорење: не постоји датотека „%s“ „ITS“ правила; проверите инсталацију "
+"геттекста"
+
+#: src/xgettext.c:979
+#, c-format
+msgid "warning: file '%s' extension '%s' is unknown; will try C"
+msgstr "упозорење: проширење „%2$s“ датотеке „%1$s“ није познато; пробаћу Ц"
+
+#: src/xgettext.c:1069
+#, c-format
+msgid "Extract translatable strings from given input files.\n"
+msgstr "Извуците преводиве ниске из датих улазних датотека.\n"
+
+#: src/xgettext.c:1092
+#, c-format
+msgid ""
+"  -d, --default-domain=NAME   use NAME.po for output (instead of messages."
+"po)\n"
+msgstr ""
+"  -d, --default-domain=НАЗИВ        користи НАЗИВ.po за излаз (уместо "
+"messages.po)\n"
+
+#: src/xgettext.c:1094
+#, c-format
+msgid "  -o, --output=FILE           write output to specified file\n"
+msgstr ""
+"  -o, --output=ДАТОТЕКА             исписује излаз у наведену датотеку\n"
+
+#: src/xgettext.c:1096
+#, c-format
+msgid ""
+"  -p, --output-dir=DIR        output files will be placed in directory DIR\n"
+msgstr ""
+"  -p, --output-dir=ДИР              излазне датотеке се смештају у "
+"директоријум ДИР\n"
+
+#: src/xgettext.c:1101
+#, c-format
+msgid "Choice of input file language:\n"
+msgstr "Избор језика улазне датотеке:\n"
+
+#: src/xgettext.c:1103
+#, c-format
+msgid ""
+"  -L, --language=NAME         recognise the specified language\n"
+"                                (C, C++, ObjectiveC, PO, Shell, Python, "
+"Lisp,\n"
+"                                EmacsLisp, librep, Scheme, Smalltalk, Java,\n"
+"                                JavaProperties, C#, awk, YCP, Tcl, Perl, "
+"PHP,\n"
+"                                Ruby, GCC-source, NXStringTable, RST, RSJ,\n"
+"                                Glade, Lua, JavaScript, Vala, Desktop)\n"
+msgstr ""
+"  -L, --language=НАЗИВ              препознаје наведени језик\n"
+"                                      (C, C++, ObjectiveC, PO, Shell, "
+"Python, Lisp,\n"
+"                                      EmacsLisp, librep, Scheme, Smalltalk, "
+"Java,\n"
+"                                      JavaProperties, C#, awk, YCP, Tcl, "
+"Perl, PHP,\n"
+"                                      Ruby, GCC-source, NXStringTable, RST, "
+"RSJ,\n"
+"                                      Glade, Lua, JavaScript, Vala, "
+"Desktop)\n"
+
+#: src/xgettext.c:1110
+#, c-format
+msgid "  -C, --c++                   shorthand for --language=C++\n"
+msgstr "  -C, --c++                         скраћеница за „--language=Ц++“\n"
+
+#: src/xgettext.c:1112
+#, c-format
+msgid ""
+"By default the language is guessed depending on the input file name "
+"extension.\n"
+msgstr ""
+"Подразумева се погађање језика на основу проширења назива улазне датотеке.\n"
+
+#: src/xgettext.c:1117
+#, c-format
+msgid ""
+"      --from-code=NAME        encoding of input files\n"
+"                                (except for Python, Tcl, Glade)\n"
+msgstr ""
+"      --from-code=НАЗИВ             кодирање улазних датотека\n"
+"                                    (осим за Питона, Тцл-а, Глејд-а)\n"
+
+#: src/xgettext.c:1120
+#, c-format
+msgid "By default the input files are assumed to be in ASCII.\n"
+msgstr "Подразумева се да су улазне датотеке у АСКРИ запису.\n"
+
+#: src/xgettext.c:1125
+#, c-format
+msgid "  -j, --join-existing         join messages with existing file\n"
+msgstr ""
+"  -j, --join-existing               спаја поруке са постојећом датотеком\n"
+
+#: src/xgettext.c:1127
+#, c-format
+msgid "  -x, --exclude-file=FILE.po  entries from FILE.po are not extracted\n"
+msgstr ""
+"  -x, --exclude-file=ДАТОТЕКА.po    поља из ДАТОТЕКЕ.po се не извлаче\n"
+
+#: src/xgettext.c:1129
+#, c-format
+msgid ""
+"  -cTAG, --add-comments=TAG   place comment blocks starting with TAG and\n"
+"                                preceding keyword lines in output file\n"
+"  -c, --add-comments          place all comment blocks preceding keyword "
+"lines\n"
+"                                in output file\n"
+msgstr ""
+"  -cОЗНАКА, --add-comments=ОЗНАКА   поставља блокове напомене почевши са "
+"ОЗНАКОМ и\n"
+"                                    претходи редове кључних речи у излазној "
+"датотеци\n"
+"  -c, --add-comments                поставља све блокове напомена пре "
+"редова\n"
+"                                    кључних речи у излазној датотеци\n"
+
+#: src/xgettext.c:1134
+#, c-format
+msgid ""
+"      --check=NAME            perform syntax check on messages\n"
+"                                (ellipsis-unicode, space-ellipsis,\n"
+"                                 quote-unicode, bullet-unicode)\n"
+msgstr ""
+"      --check=НАЗИВ            обавља проверу синтаксе у порукама\n"
+"                                (тротачка-јуникод, размак-тротачка,\n"
+"                                 наводник-јуникод, метак-јуникод)\n"
+
+#: src/xgettext.c:1138
+#, c-format
+msgid ""
+"      --sentence-end=TYPE     type describing the end of sentence\n"
+"                                (single-space, which is the default, \n"
+"                                 or double-space)\n"
+msgstr ""
+"      --sentence-end=ВРСТА    врста која описује крај реченице\n"
+"                                (један-размак, који је основни, \n"
+"                                 или двоструки-размак)\n"
+
+#: src/xgettext.c:1143
+#, c-format
+msgid "Language specific options:\n"
+msgstr "Посебне наредбе језика:\n"
+
+#: src/xgettext.c:1145
+#, c-format
+msgid "  -a, --extract-all           extract all strings\n"
+msgstr "  -a, --extract-all                 извлачи све ниске\n"
+
+#: src/xgettext.c:1147
+#, c-format
+msgid ""
+"                                (only languages C, C++, ObjectiveC, Shell,\n"
+"                                Python, Lisp, EmacsLisp, librep, Scheme, "
+"Java,\n"
+"                                C#, awk, Tcl, Perl, PHP, GCC-source, Glade,\n"
+"                                Lua, JavaScript, Vala)\n"
+msgstr ""
+"                                    (само језици Ц, Ц++, ОбјектниЦ, Љуска,\n"
+"                                    Питон, Лисп, ЕмаксЛисп, либреп, Шема,\n"
+"                                    Јава, Ц#, авк, Тцл, Перл, ПХП, ГЦЦ-"
+"извор,\n"
+"                                    Луа, ЈаваСпис, Вала)\n"
+
+#: src/xgettext.c:1155
+#, c-format
+msgid ""
+"                                (only languages C, C++, ObjectiveC, Shell,\n"
+"                                Python, Lisp, EmacsLisp, librep, Scheme, "
+"Java,\n"
+"                                C#, awk, Tcl, Perl, PHP, GCC-source, Glade,\n"
+"                                Lua, JavaScript, Vala, Desktop)\n"
+msgstr ""
+"                                    (само језици Ц, Ц++, ОбјектниЦ, Љуска,\n"
+"                                    Питон, Лисп, ЕмаксЛисп, либреп, Шема,\n"
+"                                    Јава, Ц#, авк, Тцл, Перл, ПХП, ГЦЦ-"
+"извор,\n"
+"                                    Луа, ЈаваСпис, Вала, Десктоп)\n"
+
+#: src/xgettext.c:1160
+#, c-format
+msgid ""
+"      --flag=WORD:ARG:FLAG    additional flag for strings inside the "
+"argument\n"
+"                              number ARG of keyword WORD\n"
+msgstr ""
+"      --flag=РЕЧ:АРГ:ОБЕЛЕЖЈЕ       додатно обележје за ниске унутар броја\n"
+"                                    аргумента АРГ кључне речи РЕЧ\n"
+
+#: src/xgettext.c:1163
+#, c-format
+msgid ""
+"                                (only languages C, C++, ObjectiveC, Shell,\n"
+"                                Python, Lisp, EmacsLisp, librep, Scheme, "
+"Java,\n"
+"                                C#, awk, YCP, Tcl, Perl, PHP, GCC-source,\n"
+"                                Lua, JavaScript, Vala)\n"
+msgstr ""
+"                                    (само језици Ц, Ц++, ОбјектниЦ, Љуска,\n"
+"                                    Питон, Лисп, ЕмаксЛисп, либреп, Шема,\n"
+"                                    Јава, Ц#, авк, ЈЦП, Тцл, Перл, ПХП,\n"
+"                                    ГЦЦ-извор, Луа, ЈаваСпис, Вала)\n"
+
+#: src/xgettext.c:1168
+#, c-format
+msgid "  -T, --trigraphs             understand ANSI C trigraphs for input\n"
+msgstr "  -T, --trigraphs                   разуме АНСИ Ц триграфе за улаз\n"
+
+#: src/xgettext.c:1170
+#, c-format
+msgid "                                (only languages C, C++, ObjectiveC)\n"
+msgstr "                                    (само језици Ц, Ц++, ОбјектниЦ)\n"
+
+#: src/xgettext.c:1172
+#, c-format
+msgid "      --its=FILE              apply ITS rules from FILE\n"
+msgstr "      --its=ДАТОТЕКА           примењује „ITS“ правила из ДАТОТЕКЕ\n"
+
+#: src/xgettext.c:1174
+#, c-format
+msgid "                                (only XML based languages)\n"
+msgstr ""
+"                                    (само језици засновани на ИксМЛ-у)\n"
+
+#: src/xgettext.c:1176
+#, c-format
+msgid "      --qt                    recognize Qt format strings\n"
+msgstr "      --qt                          препознаје ниске записа Кут-а\n"
+
+#: src/xgettext.c:1178 src/xgettext.c:1182 src/xgettext.c:1186
+#, c-format
+msgid "                                (only language C++)\n"
+msgstr "                                    (само језик Ц++)\n"
+
+#: src/xgettext.c:1180
+#, c-format
+msgid "      --kde                   recognize KDE 4 format strings\n"
+msgstr "      --kde                         препознаје ниске записа КДЕ-а 4\n"
+
+#: src/xgettext.c:1184
+#, c-format
+msgid "      --boost                 recognize Boost format strings\n"
+msgstr "      --boost                       препознаје ниске записа Буст-а\n"
+
+#: src/xgettext.c:1188
+#, c-format
+msgid ""
+"      --debug                 more detailed formatstring recognition result\n"
+msgstr ""
+"      --debug                       опширнији резултат препознавања записа "
+"ниске\n"
+
+#: src/xgettext.c:1213
+#, c-format
+msgid "      --properties-output     write out a Java .properties file\n"
+msgstr ""
+"      --properties-output           исписује датотеку Јава „.properties“\n"
+
+#: src/xgettext.c:1217
+#, c-format
+msgid "      --itstool               write out itstool comments\n"
+msgstr "      --itstool               записује напомене итс-алата\n"
+
+#: src/xgettext.c:1224
+#, c-format
+msgid "  -s, --sort-output           generate sorted output (deprecated)\n"
+msgstr "  -s, --sort-output              ствара уређени излаз (застарело)\n"
+
+#: src/xgettext.c:1230
+#, c-format
+msgid "      --copyright-holder=STRING  set copyright holder in output\n"
+msgstr ""
+"      --copyright-holder=НИСКА      поставља носиоца ауторских права у "
+"излазу\n"
+
+#: src/xgettext.c:1232
+#, c-format
+msgid ""
+"      --foreign-user          omit FSF copyright in output for foreign user\n"
+msgstr ""
+"      --foreign-user                избацује ауторска права ФСФ у излазу за "
+"стране кориснике\n"
+
+#: src/xgettext.c:1234
+#, c-format
+msgid "      --package-name=PACKAGE  set package name in output\n"
+msgstr "      --package-name=ПАКЕТ          поставља назив пакета на излазу\n"
+
+#: src/xgettext.c:1236
+#, c-format
+msgid "      --package-version=VERSION  set package version in output\n"
+msgstr "      --package-version=ИЗДАЊЕ      поставља издање пакета на излазу\n"
+
+#: src/xgettext.c:1238
+#, c-format
+msgid ""
+"      --msgid-bugs-address=EMAIL@ADDRESS  set report address for msgid bugs\n"
+msgstr ""
+"      --msgid-bugs-address=АДРЕСА@ЕЛ.ПОШТЕ  поставља адресу за "
+"пријављивање \n"
+"                                           грешака у мсгид-овима\n"
+
+#: src/xgettext.c:1240
+#, c-format
+msgid ""
+"  -m[STRING], --msgstr-prefix[=STRING]  use STRING or \"\" as prefix for "
+"msgstr\n"
+"                                values\n"
+msgstr ""
+"  -m[НИСКА], --msgstr-prefix[=НИСКА]   користи НИСКА или „“ за префикс поља "
+"мсгстр-а\n"
+
+#: src/xgettext.c:1243
+#, c-format
+msgid ""
+"  -M[STRING], --msgstr-suffix[=STRING]  use STRING or \"\" as suffix for "
+"msgstr\n"
+"                                values\n"
+msgstr ""
+"  -M[НИСКА], --msgstr-suffix[=НИСКА]   користи НИСКА или „“ за суфикс поља "
+"мсгстр-а\n"
+
+#: src/xgettext.c:1706
+#, c-format
+msgid ""
+"A --flag argument doesn't have the <keyword>:<argnum>:[pass-]<flag> syntax: "
+"%s"
+msgstr ""
+"Аргумент „--flag“ не користи синтаксу <кључна-реч>:<бр.арг>:"
+"[пролаз-]<обележје>: %s"
+
+#: src/xgettext.c:1873
+msgid "standard input"
+msgstr "стандардни улаз"
+
+#: src/xgettext.c:2074
+msgid ""
+"The option --msgid-bugs-address was not specified.\n"
+"If you are using a 'Makevars' file, please specify\n"
+"the MSGID_BUGS_ADDRESS variable there; otherwise please\n"
+"specify an --msgid-bugs-address command line option.\n"
+msgstr ""
+"Није наведена опција „--msgid-bugs-address“.\n"
+"Уколико користите датотеку „Makevars“, тамо наведите\n"
+"променљиву „MSGID_BUGS_ADDRESS“; у супротном наведите\n"
+"опцију „--msgid-bugs-address“ у наредби.\n"
+
+#: src/xgettext.c:2291
+#, c-format
+msgid "language '%s' unknown"
+msgstr "језик „%s“ је непознат"
+
+#: src/xg-message.c:96 src/xg-message.c:233 src/xg-message.c:301
+#, c-format
+msgid "%s%s: warning: "
+msgstr "%s%s: упозорење: "
+
+#: src/xg-message.c:99
+#, c-format
+msgid ""
+"Although being used in a format string position, the %s is not a valid %s "
+"format string. Reason: %s\n"
+msgstr ""
+"Иако се користи на месту ниске записа, %s не представља исправну ниску "
+"записа %s. Разлог: %s\n"
+
+#: src/xg-message.c:100
+#, c-format
+msgid ""
+"Although declared as such, the %s is not a valid %s format string. Reason: "
+"%s\n"
+msgstr ""
+"Иако је објављена као таква, %s не представља исправну ниску записа %s. "
+"Разлог: %s\n"
+
+#: src/xg-message.c:235
+#, c-format
+msgid ""
+"'%s' format string with unnamed arguments cannot be properly localized:\n"
+"The translator cannot reorder the arguments.\n"
+"Please consider using a format string with named arguments,\n"
+"and a mapping instead of a tuple for the arguments.\n"
+msgstr ""
+"„%s“ запис ниске са неименованим аргументима не може бити исправно "
+"локализован:\n"
+"Преводилац не може да промени поредак аргумената.\n"
+"Размотрите употребу ниску заоиса са именованим аргументима,\n"
+"и са мапирањем уместо н-торке за аргументе.\n"
+
+#: src/xg-message.c:303
+msgid ""
+"Empty msgid.  It is reserved by GNU gettext:\n"
+"gettext(\"\") returns the header entry with\n"
+"meta information, not the empty string.\n"
+msgstr ""
+"Празан мсгид.  Ово је задржано за потребе Гнуовог геттекста-а:\n"
+"„gettext(\"\")“ исписује поље заглавља са мета-подацима, а не\n"
+"празну ниску.\n"
+
+#: src/xg-message.c:344
+#, c-format
+msgid "%s%s: Here is the occurrence without plural."
+msgstr "%s%s: Ово је појављивање без множине."
+
+#: src/xg-message.c:346
+#, c-format
+msgid "%s%s: Here is the occurrence with plural."
+msgstr "%s%s: Ово је појављивање са множином."
+
+#: src/xg-message.c:348
+msgid ""
+"Workaround: If the msgid is a sentence, change the wording of the sentence; "
+"otherwise, use contexts for disambiguation."
+msgstr ""
+"Решење: Ако је мсгид реченица, измените ред речи у њој; у супротном "
+"користите контекст за разликовање."
+
+# bug: there are similar messages with "%s:%lu: warning:"
+#: src/xg-mixed-string.c:496
+#, c-format
+msgid "%s:%d: warning: lone surrogate U+%04X"
+msgstr "%s:%d: упозорење: усамљена замена „U+%04X“"
+
+#: src/x-java.c:1208 src/x-java.c:1252
+#, c-format
+msgid "%s:%d: warning: unterminated text block"
+msgstr "%s:%d: упозорење: неокончан блок текста"
+
+#: src/x-java.c:1221
+#, c-format
+msgid "%s:%d: warning: invalid syntax in text block"
+msgstr "%s:%d: упозорење: неисправна синтакса у блоку текста"
+
+#: src/x-javascript.c:238
+msgid "Please specify the source encoding through --from-code\n"
+msgstr "Наведите кодирање извора помоћу „--from-code“\n"
+
+#: src/x-javascript.c:285
+#, c-format
+msgid ""
+"%s:%d: Invalid multibyte sequence.\n"
+"Please specify the correct source encoding through --from-code\n"
+msgstr ""
+"%s:%d: Неисправан низ мултибајтова.\n"
+"Наведите исправно кодирање извора помоћу „--from-code“\n"
+
+#: src/x-javascript.c:301
+#, c-format
+msgid ""
+"%s:%d: Long incomplete multibyte sequence.\n"
+"Please specify the correct source encoding through --from-code\n"
+msgstr ""
+"%s:%d: Дуги недовршени низ мултибајтова.\n"
+"Наведите исправно кодирање извора помоћу „--from-code“\n"
+
+#: src/x-javascript.c:313
+#, c-format
+msgid ""
+"%s:%d: Incomplete multibyte sequence at end of file.\n"
+"Please specify the correct source encoding through --from-code\n"
+msgstr ""
+"%s:%d: Недовршени низ мултибајтова на крају датотеке.\n"
+"Наведите исправно кодирање извора помоћу „--from-code“\n"
+
+#: src/x-javascript.c:322
+#, c-format
+msgid ""
+"%s:%d: Incomplete multibyte sequence at end of line.\n"
+"Please specify the correct source encoding through --from-code\n"
+msgstr ""
+"%s:%d: Недовршени низ мултибајтова на крају реда.\n"
+"Наведите исправно кодирање извора помоћу „--from-code“\n"
+
+#: src/x-javascript.c:354
+#, c-format
+msgid ""
+"%s:%d: Invalid multibyte sequence.\n"
+"Please specify the source encoding through --from-code\n"
+msgstr ""
+"%s:%d: Неисправан низ мулти бајтова.\n"
+"Наведите кодирање извора помоћу „--from-code“\n"
+
+#: src/x-javascript.c:981
+#, c-format
+msgid "%s:%d: warning: RegExp literal terminated too early"
+msgstr "%s:%d: упозорење: литерал Регизраза је окончан прерано"
+
+#: src/x-javascript.c:1110
+#, c-format
+msgid "%s:%d: warning: %s is not allowed"
+msgstr "%s:%d: упозорење: „%s“ није дозвољено"
+
+#: src/x-javascript.c:1125
+#, c-format
+msgid "%s:%d: warning: unterminated XML markup"
+msgstr "%s:%d: упозорење: неокончана ниска"
+
+#: src/x-javascript.c:1370
+#, c-format
+msgid "%s:%d: warning: ignoring CDATA section"
+msgstr "%s:%d: упозорење: занемарујем „CDATA“ одељак"
+
+#: src/x-javascript.c:1729 src/x-lua.c:1130 src/x-php.c:1527
+#: src/x-python.c:1642 src/x-tcl.c:772
+#, c-format
+msgid "%s:%d: error: too many open brackets"
+msgstr "%s:%d: грешка: превише отворених заграда"
+
+#: src/x-javascript.c:1814
+#, c-format
+msgid "%s:%d: error: too many open XML elements"
+msgstr "%s:%d: грешка: превише отворених XML елемената"
+
+#: src/x-perl.c:342
+#, c-format
+msgid "%s:%d: can't find string terminator \"%s\" anywhere before EOF"
+msgstr ""
+"%s:%d: не могу да нађем окончање ниске „%s“ било где пре краја датотеке"
+
+#: src/x-perl.c:1084
+#, c-format
+msgid "%s:%d: missing right brace on \\x{HEXNUMBER}"
+msgstr "%s:%d: недостаје десна заграда у „\\x{ХЕКСАДЕКАДНИ-БРОЈ}“"
+
+#: src/x-perl.c:1205
+#, c-format
+msgid "%s:%d: invalid interpolation (\"\\l\") of 8bit character \"%c\""
+msgstr "%s:%d: неисправно уметање („\\l“) 8-битног знака „%c“"
+
+#: src/x-perl.c:1225
+#, c-format
+msgid "%s:%d: invalid interpolation (\"\\u\") of 8bit character \"%c\""
+msgstr "%s:%d: неисправно уметање („\\u“) 8-битног знака „%c“"
+
+#: src/x-perl.c:1259
+#, c-format
+msgid "%s:%d: invalid variable interpolation at \"%c\""
+msgstr "%s:%d: неисправно уметање променљиве на „%c“"
+
+#: src/x-perl.c:1272
+#, c-format
+msgid "%s:%d: invalid interpolation (\"\\L\") of 8bit character \"%c\""
+msgstr "%s:%d: неисправно уметање („\\L“) 8-битног знака „%c“"
+
+#: src/x-perl.c:1289
+#, c-format
+msgid "%s:%d: invalid interpolation (\"\\U\") of 8bit character \"%c\""
+msgstr "%s:%d: неисправно уметање („\\U“) 8-битног знака „%c“"
+
+#: src/x-perl.c:1746 src/x-perl.c:2801 src/x-perl.c:3153
+#, c-format
+msgid "%s:%d: error: too deeply nested expressions"
+msgstr "%s:%d: грешка: превише дубоко угнеждени изрази"
+
+#: src/x-po.c:228
+#, c-format
+msgid ""
+"%s: input file doesn't contain a header entry with a charset specification"
+msgstr "%s: улазна датотека не садржи унос заглавља са ознаком скупа знакова"
+
+#: src/x-python.c:281
+msgid ""
+"Please specify the source encoding through --from-code or through a comment\n"
+"as specified in https://www.python.org/peps/pep-0263.html.\n"
+msgstr ""
+"Наведите кодирање извора помоћу „--from-code“ или помоћу напомене\n"
+"као што је наведено у „https://www.python.org/peps/pep-0263.html“.\n"
+
+#: src/x-python.c:341
+#, c-format
+msgid ""
+"%s:%d: Long incomplete multibyte sequence.\n"
+"Please specify the correct source encoding through --from-code or through a\n"
+"comment as specified in https://www.python.org/peps/pep-0263.html.\n"
+msgstr ""
+"%s:%d: Дуги недовршени низ мултибајтова.\n"
+"Наведите кодирање извора помоћу „--from-code“ или помоћу напомене\n"
+"као што је наведено у „https://www.python.org/peps/pep-0263.html“.\n"
+
+#: src/x-python.c:493
+#, c-format
+msgid ""
+"%s:%d: Invalid multibyte sequence.\n"
+"Please specify the correct source encoding through --from-code or through a\n"
+"comment as specified in https://www.python.org/peps/pep-0263.html.\n"
+msgstr ""
+"%s:%d: Неисправан низ мултибајтова.\n"
+"Наведите кодирање извора помоћу „--from-code“ или помоћу напомене\n"
+"као што је наведено у „https://www.python.org/peps/pep-0263.html“.\n"
+
+#: src/x-python.c:502
+#, c-format
+msgid ""
+"%s:%d: Incomplete multibyte sequence at end of file.\n"
+"Please specify the correct source encoding through --from-code or through a\n"
+"comment as specified in https://www.python.org/peps/pep-0263.html.\n"
+msgstr ""
+"%s:%d: Недовршени низ мултибајтова на крају датотеке.\n"
+"Наведите кодирање извора помоћу „--from-code“ или помоћу напомене\n"
+"као што је наведено у „https://www.python.org/peps/pep-0263.html“.\n"
+
+#: src/x-python.c:511
+#, c-format
+msgid ""
+"%s:%d: Incomplete multibyte sequence at end of line.\n"
+"Please specify the correct source encoding through --from-code or through a\n"
+"comment as specified in https://www.python.org/peps/pep-0263.html.\n"
+msgstr ""
+"%s:%d: Недовршени низ мултибајтова на крају реда.\n"
+"Наведите кодирање извора помоћу „--from-code“ или помоћу напомене\n"
+"као што је наведено у „https://www.python.org/peps/pep-0263.html“.\n"
+
+#: src/x-python.c:684
+#, c-format
+msgid "Unknown encoding \"%s\". Proceeding with ASCII instead."
+msgstr "Непознато кодирање „%s“. Настављам са АСКРИ-јем."
+
+#: src/x-rst.c:116
+#, c-format
+msgid "%s:%d: invalid string definition"
+msgstr "%s:%d: неисправна одредница датотеке"
+
+#: src/x-rst.c:180
+#, c-format
+msgid "%s:%d: missing number after #"
+msgstr "%s:%d: недостаје број након #"
+
+#: src/x-rst.c:215
+#, c-format
+msgid "%s:%d: invalid string expression"
+msgstr "%s:%d: неисправан израз ниске"
+
+#: src/x-rst.c:677
+#, c-format
+msgid "%s:%d: invalid JSON syntax"
+msgstr "%s:%d: неисправна ЈСОН синтакса"
+
+#: src/x-rst.c:684
+#, c-format
+msgid "%s:%d: invalid RSJ syntax"
+msgstr "%s:%d: неисправна РСЈ синтакса"
+
+#: src/x-rst.c:692
+#, c-format
+msgid "%s:%d: invalid RSJ version. Only version 1 is supported."
+msgstr "%s:%d: неисправно РСЈ издање. Подржано је само издање 1."
+
+#: src/x-ruby.c:89
+#, c-format
+msgid "(output from '%s')"
+msgstr "(излаз са „%s“)"
+
+#: src/x-sh.c:1151
+#, c-format
+msgid ""
+"%s:%lu: warning: the syntax $\"...\" is deprecated due to security reasons; "
+"use eval_gettext instead"
+msgstr ""
+"%s:%lu: упозорење: синтакса $\"...\" је превазиђена из безбедносних разлога; "
+"уместо тога користите „eval_gettext“"
+
+#: src/x-sh.c:1512
+#, c-format
+msgid "%s:%d: error: too deeply nested command list"
+msgstr "%s:%d: грешка: превише дубоко угнежден списак наредби"
+
+#: src/x-vala.c:647
+#, c-format
+msgid "%s:%d: warning: regular expression literal terminated too early"
+msgstr "%s:%d: упозорење: литерал регуларног израза је окончан прерано"
+
+#: libgettextpo/gettext-po.c:98
+msgid "<unnamed>"
+msgstr "<неименован>"
+
+#: libgettextpo/markup.c:366 libgettextpo/markup.c:449
+msgid "invalid UTF-8 sequence"
+msgstr "неисправан УТФ-8 низ"
+
+#: libgettextpo/markup.c:377
+#, c-format
+msgid "'%s' is not a valid name: %c"
+msgstr "„%s“ није исправан назив: %c"
+
+#: libgettextpo/markup.c:397
+#, c-format
+msgid "'%s' is not a valid name: '%c'"
+msgstr "„%s“ није исправан назив: „%c“"
+
+#: libgettextpo/markup.c:523 libgettextpo/markup.c:534
+#: libgettextpo/markup.c:559
+#, c-format
+msgid "invalid character reference: %s"
+msgstr "неисправна упута знака: %s"
+
+#: libgettextpo/markup.c:526
+msgid "not a valid number specification"
+msgstr "није исправна одредба броја"
+
+#: libgettextpo/markup.c:535 libgettextpo/markup.c:606
+msgid "no ending ';'"
+msgstr "нема крајње ;"
+
+#: libgettextpo/markup.c:560
+msgid "non-permitted character"
+msgstr "недозвољени знак"
+
+#: libgettextpo/markup.c:599
+msgid "empty"
+msgstr "празно"
+
+#: libgettextpo/markup.c:604
+msgid "unknown"
+msgstr "непознато"
+
+#: libgettextpo/markup.c:608
+#, c-format
+msgid "invalid entity reference: %s"
+msgstr "неисправна референца ентитета: %s"
+
+#: libgettextpo/markup.c:959
+msgid "document must begin with an element"
+msgstr "документ мора почети елементом"
+
+#: libgettextpo/markup.c:994 libgettextpo/markup.c:1301
+#: libgettextpo/markup.c:1332
+#, c-format
+msgid "invalid character after '%s'"
+msgstr "неисправан знак након „%s“"
+
+#: libgettextpo/markup.c:1031 libgettextpo/markup.c:1107
+#, c-format
+msgid "missing '%c'"
+msgstr "недостаје „%c“"
+
+#: libgettextpo/markup.c:1140 libgettextpo/markup.c:1176
+#, c-format
+msgid "missing '%c' or '%c'"
+msgstr "недостаје „%c“ или „%c“"
+
+#: libgettextpo/markup.c:1333
+msgid "a close element name"
+msgstr "назив затварајућег елемента"
+
+#: libgettextpo/markup.c:1339 libgettextpo/markup.c:1344
+msgid "element is closed"
+msgstr "елемент је затворен"
+
+#: libgettextpo/markup.c:1475
+msgid "empty document"
+msgstr "празан документ"
+
+#: libgettextpo/markup.c:1488
+msgid "after '<'"
+msgstr "након <"
+
+#: libgettextpo/markup.c:1495 libgettextpo/markup.c:1527
+msgid "elements still open"
+msgstr "елемент је још отворен"
+
+#: libgettextpo/markup.c:1500
+msgid "missing '>'"
+msgstr "недостаје >"
+
+#: libgettextpo/markup.c:1504
+msgid "inside an element name"
+msgstr "унутар назива елемента"
+
+#: libgettextpo/markup.c:1509
+msgid "inside an attribute name"
+msgstr "унутар назива атрибута"
+
+#: libgettextpo/markup.c:1513
+msgid "inside an open tag"
+msgstr "унутар отворене ознаке"
+
+#: libgettextpo/markup.c:1517
+msgid "after '='"
+msgstr "након ="
+
+#: libgettextpo/markup.c:1522
+msgid "inside an attribute value"
+msgstr "унутар вредности атрибута"
+
+#: libgettextpo/markup.c:1533
+msgid "inside the close tag"
+msgstr "унутар затварајуће ознаке"
+
+#: libgettextpo/markup.c:1537
+msgid "inside a comment or processing instruction"
+msgstr "унутар напомене или упутства обраде"
+
+#: libgettextpo/markup.c:1548
+#, c-format
+msgid "document ended unexpectedly: %s"
+msgstr "документ је завршио неочекивано: %s"
+
+#~ msgid "setting permissions for %s"
+#~ msgstr "подешавам овлашћења за %s"
+
+#~ msgid "Report bugs to <bug-gnu-gettext@gnu.org>.\n"
+#~ msgstr "Грешке пријавите на <bug-gnu-gettext@gnu.org>.\n"
+
+#~ msgid ""
+#~ "%s:%d: Invalid multibyte sequence.\n"
+#~ "Please specify the source encoding through --from-code or through a "
+#~ "comment\n"
+#~ "as specified in https://www.python.org/peps/pep-0263.html.\n"
+#~ msgstr ""
+#~ "%s:%d: Неисправан низ мултибајтова.\n"
+#~ "Наведите кодирање извора помоћу „--from-code“ или помоћу напомене\n"
+#~ "као што је наведено у „https://www.python.org/peps/pep-0263.html“.\n"
+
+#~ msgid "%s: option '--%s' doesn't allow an argument\n"
+#~ msgstr "%s: опција „--%s“ не дозвољава аргумент\n"
+
+#~ msgid "%s: unrecognized option '--%s'\n"
+#~ msgstr "%s: непозната опција „--%s“\n"
+
+#~ msgid "%s: option '-W %s' is ambiguous\n"
+#~ msgstr "%s: опција „-W %s“ је нејасна\n"
+
+#~ msgid "%s: option '-W %s' doesn't allow an argument\n"
+#~ msgstr "%s: опција „-W %s“ не дозвољава аргумент\n"
+
+#~ msgid "%s: option '-W %s' requires an argument\n"
+#~ msgstr "%s: опција „-W %s“ захтева аргумент\n"
+
+#~ msgid "warning: PO file header fuzzy\n"
+#~ msgstr "упозорење: заглавље по датотеке је нејасно\n"
+
+#~ msgid "warning: older versions of msgfmt will give an error on this\n"
+#~ msgstr "упозорење: старија издања мсгфмт-а ће овде наићи на грешку\n"
+
+#~ msgid "Missing context for the string extracted from '%s' element"
+#~ msgstr "Недостаје садржај за ниску извучену из елемента „%s“"
+
+#~ msgid ""
+#~ "Language \"glade\" is not supported. %s relies on expat.\n"
+#~ "This version was built without expat.\n"
+#~ msgstr ""
+#~ "Језик „glade“ није подржан. %s се ослања на „expat“.\n"
+#~ "Ово издање је изграђено без „expat“-а.\n"
+
+#~ msgid "DuplicateHandle failed with error code 0x%08x"
+#~ msgstr "Руковање дупликатима није успело са грешком 0x%08x"
+
+#~ msgid "header field `%s' should start at beginning of line\n"
+#~ msgstr "поље „%s“ у заглављу треба да почне на почетку реда\n"
+
+#~ msgid "field `%s' still has initial default value\n"
+#~ msgstr "поља „%s“ и даље садржи почетну задату вредност\n"
+
+#~ msgid "%s:%d: fatal: plural message seen before singular message\n"
+#~ msgstr "%s:%d: кобно: порука множине је испред поруке једнине\n"
+
+#~ msgid ""
+#~ "Invalid email address: need a fully qualified host name or domain name."
+#~ msgstr ""
+#~ "Неисправна адреса ел. поште: потребно је пуно име домаћина или домен."
+
+#~ msgid "Please confirm by pressing Return, or enter your email address."
+#~ msgstr "Потврдите притиском на Унеси, или унесите вашу адресу ел. поште."

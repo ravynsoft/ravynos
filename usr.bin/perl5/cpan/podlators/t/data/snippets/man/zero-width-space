@@ -1,0 +1,10 @@
+[name]
+Zero-width spaces
+
+[input]
+=pod
+
+B<DEF:>I<E<lt>vnameE<gt>>=I<E<lt>rrdfileE<gt>>:I<E<lt>ds-nameE<gt>>:I<E<lt>CFE<gt>>[:step=I<E<lt>stepE<gt>>][:start=I<E<lt>timeE<gt>>]E<0x200B>[:end=I<E<lt>timeE<gt>>]E<0x200B>[:reduce=I<E<lt>B<CF>E<gt>>]E<0x200B>[:daemon=I<E<lt>addressE<gt>>]
+
+[output]
+\&\fBDEF:\fR\fI<vname>\fR=\fI<rrdfile>\fR:\fI<ds\-name>\fR:\fI<CF>\fR[:step=\fI<step>\fR][:start=\fI<time>\fR]\:[:end=\fI<time>\fR]\:[:reduce=\fI<\fR\f(BICF\fR\fI>\fR]\:[:daemon=\fI<address>\fR]

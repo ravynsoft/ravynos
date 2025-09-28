@@ -1,0 +1,32 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C support: recognition of #line.
+
+cat <<EOF > xg-c-3.in.c
+#line 42 "bozo"
+main(){printf(gettext("Hello, World!\n"));}
+# 6 "clown"
+gettext("nothing");
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --add-location -d xg-c-3.tmp xg-c-3.in.c || Exit 1
+LC_ALL=C tr -d '\r' < xg-c-3.tmp.po > xg-c-3.po || Exit 1
+
+cat <<EOF > xg-c-3.ok
+#: bozo:42
+#, c-format
+msgid "Hello, World!\n"
+msgstr ""
+
+#: clown:6
+msgid "nothing"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-c-3.ok xg-c-3.po
+result=$?
+
+exit $result

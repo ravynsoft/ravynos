@@ -1,0 +1,41 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+: ${TMPDIR:=/var/tmp}
+
+FN=$TMPDIR/bash-glob.$$
+mkdir $FN || { echo "glob4.sub: cannot mkdir $FN" >&2 ; exit 1; }
+builtin cd $FN || { echo "glob4.sub: cannot change directory to $FN" >&2 ; exit 1; }
+rm -f *
+
+touch 'a?' aa
+
+set -- a \?; IFS=\\; var=$*;
+recho "$var"
+unset IFS; printf "%s\n" ${var}
+
+var='a\?'
+recho "$var"
+printf "%s\n" ${var}
+
+var='a\a'
+printf "%s\n" ${var}
+
+# shell's idea of a glob pattern and libglob's idea of a glob pattern have to
+# be identical
+PRE='\/'
+printf '<%s>\n' 'define'${PRE}'\
+/'
+
+builtin cd $OLDPWD
+rm -rf $FN

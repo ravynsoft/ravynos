@@ -1,0 +1,85 @@
+# nocase.at --  test for nocase lib search  -*- Autotest -*-
+#
+#   Copyright (C) 2010-2019, 2021-2022 Free Software Foundation, Inc.
+#   Written by Peter Rosin, 2007
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+
+AT_SETUP([nocase library search])
+AT_KEYWORDS([libtool])
+
+eval `$LIBTOOL --config | $EGREP '^(want_nocaseglob|file_magic_glob)='`
+
+AT_CHECK([test yes != "$want_nocaseglob" && ]dnl
+         [test -z "$file_magic_glob" && exit 77],
+	  [1], [ignore], [ignore])
+
+mkdir foo
+AT_DATA([foo/Foo.c],
+[
+int Foo (void) { return 1; }
+])
+
+mkdir bar
+AT_DATA([bar/bar.c],
+[
+extern int Foo (void);
+int bar (void) { return Foo (); }
+])
+
+AT_DATA([main.c],
+[
+extern int bar (void);
+int main (void) { return bar (); }
+])
+
+libdir=`pwd`/inst/lib
+mkdir inst inst/bin inst/lib
+
+$LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c -o foo/Foo.lo foo/Foo.c
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o foo/libFoo.la foo/Foo.lo ]dnl
+	 [-no-undefined -version-info 1:0:0 -rpath $libdir],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp foo/libFoo.la $libdir],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=clean rm -f foo/libFoo.la],
+	 [], [ignore], [ignore])
+
+rm -f $libdir/libFoo.la
+
+$LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c -o bar/bar.lo bar/bar.c
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o bar/libbar.la bar/bar.lo ]dnl
+	 [-L$libdir -lfoo -no-undefined -version-info 1:0:0 -rpath $libdir],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp bar/libbar.la $libdir],
+	 [], [ignore], [ignore])
+
+str=`$EGREP '^(old_library)=' < $libdir/libbar.la`
+eval "$str"
+libbar=$old_library
+rm -f $libdir/$libbar
+
+$LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c -o main.$OBJEXT main.c
+
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT -L$libdir -lbar],
+	 [], [ignore], [ignore])
+
+AT_CLEANUP

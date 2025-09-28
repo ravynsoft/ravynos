@@ -1,0 +1,57 @@
+.TH libinput-measure-touch-size "1"
+.SH NAME
+libinput\-measure\-touch-size \- measure touch size and orientation of devices
+.SH SYNOPSIS
+.B libinput measure touch\-size [\-\-help] [options]
+[\fI/dev/input/event0\fI]
+.SH DESCRIPTION
+.PP
+The
+.B "libinput measure touch\-size"
+tool measures the size and orientation of a touch as provided by the kernel.
+This is an interactive tool. When executed, the tool will prompt the user to
+interact with the touch device. On termination, the tool prints a summary of the
+values seen. This data should be attached to any
+touch\-size\-related bug report.
+.PP
+This is a debugging tool only, its output may change at any time. Do not
+rely on the output.
+.PP
+This tool usually needs to be run as root to have access to the
+/dev/input/eventX nodes.
+.SH OPTIONS
+If a device node is given, this tool opens that device node. Otherwise, this
+tool searches for the first node that looks like a touch-capable device and
+uses that node.
+.TP 8
+.B \-\-help
+Print help
+.TP 8
+.B \-\-touch\-thresholds=\fI"down:up"\fR
+Set the logical touch size thresholds to
+.I down
+and
+.I up,
+respectively. When a touch exceeds the size in
+.I down
+it is considered logically down. If a touch is logically down and goes below
+the size in
+.I up,
+it is considered logically up. The thresholds have to be in
+device-specific pressure values and it is required that
+.I down
+>=
+.I up.
+.TP 8
+.B \-\-palm\-threshold=\fIN\fR
+Assume a palm threshold of
+.I N.
+The threshold has to be in device-specific pressure values.
+.PP
+If the touch-thresholds or the palm-threshold are not provided,
+this tool uses the thresholds provided by the device quirks (if any) or the
+built-in defaults.
+.SH LIBINPUT
+Part of the
+.B libinput(1)
+suite

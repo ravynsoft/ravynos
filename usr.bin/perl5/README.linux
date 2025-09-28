@@ -1,0 +1,53 @@
+# vim: syntax=pod
+
+If you read this file _as_is_, just ignore the funny characters you
+see.  It is written in the POD format (see pod/perlpod.pod) which is
+specifically designed to be readable as is.
+
+=head1 NAME
+
+perllinux - Perl version 5 on Linux systems
+
+=head1 DESCRIPTION
+
+This document describes various features of Linux that will affect how Perl
+version 5 (hereafter just Perl) is compiled and/or runs.
+
+=head2 Deploying Perl on Linux
+
+Normally one can install F</usr/bin/perl> on Linux using your distribution's
+package manager (e.g: C<sudo apt-get install perl>, or
+C<sudo dnf install perl>). Note that sometimes one needs to install some
+extra system packages in order to be able to use CPAN frontends, and that
+messing with the system's perl is not always recommended. One can use
+L<perlbrew|https://perlbrew.pl/> to avoid such issues.
+
+Otherwise, perl should build fine on Linux using the mainstream compilers
+GCC and clang, while following the usual instructions.
+
+=head2 Experimental Support for Sun Studio Compilers for Linux OS
+
+Sun Microsystems has released a port of their Sun Studio compilers for
+Linux.  As of May 2019, the last stable release took place on 2017, and one can
+buy support contracts for them.
+
+There are some special instructions for building Perl with Sun Studio on
+Linux.  Following the normal C<Configure>, you have to run make as follows:
+
+    LDLOADLIBS=-lc make
+
+C<LDLOADLIBS> is an environment variable used by the linker to link
+C</ext> modules to glibc.  Currently, that environment variable is not getting
+populated by a combination of C<Config> entries and C<ExtUtil::MakeMaker>.
+While there may be a bug somewhere in Perl's configuration or
+C<ExtUtil::MakeMaker> causing the problem, the most likely cause is an
+incomplete understanding of Sun Studio by this author.  Further investigation
+is needed to get this working better.
+
+=head1 AUTHOR
+
+Steve Peters <steve@fisharerojo.org>
+
+Please report any errors, updates, or suggestions to
+L<https://github.com/Perl/perl5/issues>.
+

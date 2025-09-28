@@ -1,0 +1,270 @@
+# Expect script for LD Bootstrap Tests
+#   Copyright (C) 1993-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+# Written by Jeffrey Wheat (cassidy@cygnus.com)
+# Rewritten by Ian Lance Taylor (ian@cygnus.com)
+#
+
+# Make sure that ld can bootstrap itself.
+
+# This test can only be run if ld generates native executables.
+if ![isnative] {
+    return
+}
+
+# Skip if OFILES aren't provided, it can happen when lauching
+# the testsuites outside the build directory.
+if {![info exists OFILES]} {
+    return
+}
+
+# Skip for -fprofile-generate=.
+catch "exec $nm $plug_opt $OFILES" exec_output
+send_log "foo: $exec_output"
+if { [ string match "*__gcov_*" $exec_output ] } {
+    return
+}
+
+remote_exec host "$nm --help" "" "/dev/null" "plugin-support"
+set tmp [file_contents "plugin-support"]
+regexp ".*\(--plugin\).*\n" $tmp foo plugins
+if [info exists plugins] then {
+    set plugins "yes"
+} else {
+    set plugins "no"
+}
+
+# LD can have plugin support even if BFD does not.
+if [check_plugin_api_available] {
+    set plugins "yes"
+}
+
+# Bootstrap ld.  First link the object files together using -r, in
+# order to test -r.  Then link the result into an executable, ld1, to
+# really test -r.  Use ld1 to link a fresh ld, ld2.  Use ld2 to link a
+# new ld, ld3.  ld2 and ld3 should be identical.
+set test_flags {"" "strip" "--static" "-Wl,--traditional-format"
+		"-Wl,--no-keep-memory" "-Wl,--relax"
+		"-Wl,--max-cache-size=-1"}
+if { [istarget "powerpc-*-*"] } {
+    lappend test_flags "-Wl,--ppc476-workaround"
+}
+if { [is_elf_format] && ![is_bad_symtab] } {
+    lappend test_flags "-Wl,-z,nosectionheader"
+}
+
+set gcc_B_opt_save $gcc_B_opt
+
+if {![file exists tmpdir/ldscripts]} then {
+    catch "exec ln -s ../ldscripts tmpdir/ldscripts" status
+}
+foreach ldexe {ld1 ld2 ld3} {
+    if {![file isdirectory tmpdir/gcc$ldexe]} then {
+	catch "exec mkdir tmpdir/gcc$ldexe" status
+	catch "exec ln -s ../$ldexe tmpdir/gcc$ldexe/ld" status
+	catch "exec ln -s ld tmpdir/gcc$ldexe/collect-ld" status
+	catch "exec ln -s ../../../gas/as-new tmpdir/gcc$ldexe/as" status
+    }
+}
+
+foreach flags $test_flags {
+    set gcc_B_opt $gcc_B_opt_save
+    set do_strip "no"
+    if {"$flags" == "strip"} { 
+	set testname "bootstrap with $flags"
+        set flags ""
+	set do_strip "yes"
+    } else { if {"$flags" != ""} { 
+	set testname "bootstrap with $flags"
+    } else {
+	set testname "bootstrap"
+    }}
+
+    # --static is meaningless.  --relax and -z nosectionheader are
+    # incompatible with -r.
+    regsub -- "-Wl," $flags "" partial_flags
+    if { "$partial_flags" == "--static" \
+	 || "$partial_flags" == "--relax" \
+	 || [string match "*nosectionheader*" "$partial_flags"] } {
+	set partial_flags ""
+    }
+
+    if { $partial_flags == "--ppc476-workaround" } {
+	append partial_flags " -T $srcdir/$subdir/ppc476.t"
+    }
+
+    # This test can only be run if we have the ld build directory,
+    # since we need the object files.
+    if {[file normalize $ld] != [file normalize $objdir/ld-new]} {
+	untested $testname
+	continue
+    }
+
+    # If -static doesn't work, these tests will fail.
+    if { $flags == "--static" && [string match "" $STATIC_LDFLAGS] } then {
+	untested $testname
+	continue
+    }
+
+    # Plugin support requires linking with a dynamic library which
+    # means that these tests will fail.
+    if { $flags == "--static" && $plugins == "yes" } then {
+	untested $testname
+	continue
+    }
+
+    # If we only have a shared libbfd, we probably can't run the
+    # --static test.
+    if { $flags == "--static" && ! [string match "*libbfd.a*" $BFDLIB] } then {
+	untested $testname
+	continue
+    }
+
+    if ![ld_relocate $ld tmpdir/ld-partial.o "$partial_flags $OFILES"] {
+	fail $testname
+	continue
+    }
+
+    # On AIX, you need to specify an import list when using --static.
+    # You only want the import list when creating the final
+    # executable.
+    if { [istarget "*-*-aix*"] 
+         && ![istarget "ia64-*-aix*"]} {
+	if {"$flags" == "--static"} {
+	    set flags "--static -bI:/lib/syscalls.exp"
+	}
+    }
+
+    # On Cygwin, -lintl may require -liconv when linking statically.
+    set extralibs ""
+    if { [istarget "*-*-cygwin*"]} {
+	if {"$flags" == "--static"} {
+	    set extralibs "-liconv"
+	}
+    }
+
+    # Check if the system's zlib library is used.
+    if {[file exists ../zlib/Makefile ]} then {
+	set extralibs "$extralibs -L../zlib -lz"
+    } else {
+	set extralibs "$extralibs -lz"
+    }
+
+    if { [lindex [remote_exec build grep "-q \"HAVE_ZSTD 1\" config.h" ] 0] == 0 } then {
+	set extralibs "$extralibs $ZSTD_LIBS"
+    }
+
+    # Check if the system's jansson library is used. If so, the object files will
+    # be using symbols from it, so link to it.
+    if { [lindex [remote_exec build grep "-q \"HAVE_JANSSON 1\" config.h" ] 0] == 0 } then {
+	set extralibs "$extralibs $JANSSON_LIBS"
+    }
+
+    # Plugin support requires linking with libdl.
+    if { $plugins == "yes" } {
+	if { ![istarget "*-*-freebsd*"]} {
+	    set extralibs "$extralibs -ldl"
+	}
+    }
+
+    # On Irix 5, linking with --static only works if all the files are
+    # compiled using -non_shared.
+    if {"$flags" == "--static"} {
+	setup_xfail "mips*-*-irix5*"
+    }
+
+    if ![ld_link $CC tmpdir/ld1 "$CFLAGS $flags tmpdir/ld-partial.o $CTFLIB $BFDLIB $LIBIBERTY $SFRAMELIB $extralibs"] {
+	fail $testname
+	continue
+    }
+
+    if {"$do_strip" == "yes"} { 
+	verbose -log "$strip tmpdir/ld1"     
+	catch "exec $strip tmpdir/ld1" exec_output
+	set exec_output [prune_warnings $exec_output]
+	if ![string match "" $exec_output] then {
+	    verbose -log "$exec_output"
+	    fail $testname
+	    continue
+	}
+    }
+
+    regsub /tmpdir/ld/ $gcc_B_opt_save /tmpdir/gccld1/ gcc_B_opt
+    if ![ld_link $CC tmpdir/ld2 "$CFLAGS $flags $OFILES $CTFLIB $BFDLIB $LIBIBERTY $SFRAMELIB $extralibs"] {
+	fail $testname
+	continue
+    }
+
+    regsub /tmpdir/ld/ $gcc_B_opt_save /tmpdir/gccld2/ gcc_B_opt
+    if ![ld_link $CC tmpdir/ld3 "$CFLAGS $flags $OFILES $CTFLIB $BFDLIB $LIBIBERTY $SFRAMELIB $extralibs"] {
+	fail $testname
+	continue
+    }
+
+    if { "$flags" == "--static"
+	 && ([istarget ia64-*-elf*]
+	     || [istarget ia64-*-linux*]
+	     || [istarget mips*-*-linux*]) } {
+	# On ia64 and mips, tmpdir/ld2 != tmpdir/ld3 is normal since they are
+	# generated by different linkers, tmpdir/ld1 and tmpdir/ld2.
+	# So we rebuild tmpdir/ld2 with tmpdir/ld3.
+	regsub /tmpdir/ld/ $gcc_B_opt_save /tmpdir/gccld3/ gcc_B_opt
+	if ![ld_link $CC tmpdir/ld2 "$CFLAGS $flags $OFILES $CTFLIB $BFDLIB $LIBIBERTY $SFRAMELIB $extralibs"] {
+	    fail $testname
+	    continue
+	}
+    }
+
+    if {[istarget "*-*-pe"]
+	|| [istarget "*-*-wince"]
+	|| [istarget "*-*-cygwin*"]
+	|| [istarget "*-*-winnt*"]
+	|| [istarget "*-*-mingw*"]
+	|| [istarget "*-*-interix*"]
+	|| [istarget "*-*-beospe*"]} {
+	# Trim off the date present in PE binaries by only looking
+	#   at the ends of the files
+	# Although this works, a way to set the date would be better.
+	# Removing or zeroing the date stamp in the binary produced by
+	# the linker is not possible as it is required by the target OS.
+	set do_compare [string map {16 220 f1 tmpdir/ld2 f2 tmpdir/ld3 tmp-foo1 tmpdir/ld2tail tmp-foo2 tmpdir/ld3tail} $DO_COMPARE]
+	send_log "$do_compare\n"
+	verbose  "$do_compare"
+	catch "exec sh -c [list $do_compare]" exec_output
+    } else {
+	send_log "cmp tmpdir/ld2 tmpdir/ld3\n"
+	verbose  "cmp tmpdir/ld2 tmpdir/ld3"
+	catch "exec cmp tmpdir/ld2 tmpdir/ld3" exec_output
+    }
+    set exec_output [prune_warnings $exec_output]
+
+    if [string match "" $exec_output] then {
+	pass $testname
+    } else {
+	send_log "$exec_output\n"
+	verbose "$exec_output" 1
+
+	fail $testname
+    }
+}
+
+set gcc_B_opt $gcc_B_opt_save
+catch "exec rm -f tmpdir/ld-partial.o tmpdir/ld1 tmpdir/ld2 tmpdir/ld3" status
+catch "exec rm -f tmpdir/ld2tail tmpdir/ld3tail" status

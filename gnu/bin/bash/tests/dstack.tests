@@ -1,0 +1,100 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+export LC_ALL=C
+export LANG=C
+
+dirs -c
+# error -- non-existent directory
+pushd /tmp/xxx-notthere
+
+# errors -- empty stack
+pushd
+popd
+
+# errors -- bad numeric arguments -- should not cause the script to exit
+pushd -m
+popd -m
+dirs -m
+dirs 7
+
+MYDIR=$PWD
+unalias cd 2>/dev/null
+
+unalias -a
+
+command cd -P /
+command pwd -P	# better be `/'
+
+case "$OLDPWD" in
+$MYDIR)	echo ok ;;
+*)	echo oops -- bad \$OLDPWD ;;
+esac
+
+pushd /usr
+echo $PWD $OLDPWD
+dirs
+echo ${DIRSTACK[@]}
+
+# this should not change the directory stack at all
+pushd -n +0
+dirs
+
+popd
+pushd /usr
+
+pushd /etc
+dirs
+dirs -l
+dirs -v
+
+# two consecutive `pushd's should swap the top two stack elements, then
+# swap them back, leaving the stack intact
+pushd
+pushd
+
+pushd /tmp
+echo ${DIRSTACK[0]} ; dirs +0
+echo ${DIRSTACK[2]} ; dirs +2
+
+# these should be errors, but not affect the directory stack
+dirs +9; dirs -9
+pushd +9 ; pushd -9
+popd +9 ; popd -9
+
+popd -n +2
+dirs
+echo ${DIRSTACK[@]}
+
+pushd -n /usr
+echo $PWD
+dirs
+echo ${DIRSTACK[@]}
+
+builtin pwd
+
+DIRSTACK[1]=/bin
+dirs
+
+builtin pwd
+popd +2
+builtin pwd -L
+pushd -1
+dirs
+echo ${DIRSTACK[0]}
+
+dirs -c
+dirs
+
+# this is for the benefit of pure coverage
+cd "$MYDIR"

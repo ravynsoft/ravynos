@@ -1,0 +1,456 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+if (( $UID == 0 )); then
+	echo "test-tests: the test suite should not be run as root" >&2
+fi
+
+b()
+{
+	[ "$@" ]
+	echo $?
+}
+
+t()
+{
+	test "$@"
+	echo $?
+}
+
+echo 't -a noexist'
+t -a noexist
+echo 't -a run-all'
+t -a run-all
+
+echo 't -b run-all'
+t -b run-all
+echo 't -b /dev/jb1a'
+t -b /dev/jb1a
+
+echo 't -c run-all'
+t -c run-all
+echo 't -c /dev/tty'
+t -c /dev/tty
+
+echo 't -d run-all'
+t -d run-all
+echo 't -d /etc'
+t -d /etc
+echo 't -d ""'
+t -d ""
+echo 'b -d ""'
+b -d ""
+
+echo 't -e noexist'
+t -e noexist
+echo 't -e run-all'
+t -e run-all
+
+echo 't -f noexist'
+t -f noexist
+echo 't -f /dev/tty'
+t -f /dev/tty
+echo 't -f run-all'
+t -f run-all
+
+echo 't -g run-all'
+t -g run-all
+
+touch /tmp/test.setgid
+chgrp ${GROUPS[0]} /tmp/test.setgid
+chmod ug+x /tmp/test.setgid
+chmod g+s /tmp/test.setgid
+echo 't -g /tmp/test.setgid'
+t -g /tmp/test.setgid
+rm -f /tmp/test.setgid
+
+echo 't -k run-all'
+t -k run-all
+
+echo 't -n ""'
+t -n ""
+echo 't -n "hello"'
+t -n "hello"
+
+echo 't -p run-all'
+t -p run-all
+
+echo 't -r noexist'
+t -r noexist
+
+if (( $UID != 0 )); then
+	touch /tmp/test.noread
+	chmod a-r /tmp/test.noread
+	echo 't -r /tmp/test.noread'
+	t -r /tmp/test.noread
+	rm -f /tmp/test.noread
+else
+	echo 't -r /tmp/test.noread'
+	echo 1
+fi
+
+echo 't -r run-all'
+t -r run-all
+
+echo 't -s noexist'
+t -s noexist
+echo 't -s /dev/null'
+t -s /dev/null
+echo 't -s run-all'
+t -s run-all
+
+echo 't -t 20'
+t -t 20
+echo 't -t 0'
+t -t 0 < /dev/tty
+
+echo 't -u noexist'
+t -u noexist
+
+echo 't -u run-all'
+t -u run-all
+
+touch /tmp/test.setuid
+chmod u+x /tmp/test.setuid	# some systems require this to turn on setuid bit
+chmod u+s /tmp/test.setuid
+echo 't -u /tmp/test.setuid'
+t -u /tmp/test.setuid
+rm -f /tmp/test.setuid
+
+echo 't -w noexist'
+t -w noexist
+
+if (( $UID != 0 )); then
+	touch /tmp/test.nowrite
+	chmod a-w /tmp/test.nowrite
+	echo 't -w /tmp/test.nowrite'
+	t -w /tmp/test.nowrite
+	rm -f /tmp/test.nowrite
+else
+	echo 't -w /tmp/test.nowrite'
+	echo 1
+fi
+
+echo 't -w /dev/null'
+t -w /dev/null
+
+echo 't -x noexist'
+t -x noexist
+
+touch /tmp/test.exec
+chmod u+x /tmp/test.exec
+echo 't -x /tmp/test.exec'
+t -x /tmp/test.exec
+rm -f /tmp/test.exec
+
+touch /tmp/test.noexec
+chmod u-x /tmp/test.noexec
+echo 't -x /tmp/test.noexec'
+t -x /tmp/test.noexec
+rm -f /tmp/test.noexec
+
+echo 't -z ""'
+t -z ""
+echo 't -z "foo"'
+t -z "foo"
+
+echo 't "foo"'
+t "foo"
+echo 't ""'
+t ""
+
+touch /tmp/test.owner
+echo 't -O /tmp/test.owner'
+t -O /tmp/test.owner
+rm -f /tmp/test.owner
+
+touch /tmp/test.socket
+echo 't -S /tmp/test.socket'
+t -S /tmp/test.socket	# false
+rm -f /tmp/test.socket
+
+touch /tmp/test.newer ; sleep 1; echo "hello" > /tmp/test.newer
+echo 't -N /tmp/test.newer'
+t -N /tmp/test.newer
+rm -f /tmp/test.newer
+
+echo 't "hello" = "hello"'
+t "hello" = "hello"
+echo 't "hello" = "goodbye"'
+t "hello" = "goodbye"
+
+echo 't "hello" == "hello"'
+t "hello" == "hello"
+echo 't "hello" == "goodbye"'
+t "hello" == "goodbye"
+
+echo 't "hello" != "hello"'
+t "hello" != "hello"
+echo 't "hello" != "goodbye"'
+t "hello" != "goodbye"
+
+echo 't "hello" < "goodbye"'
+t "hello" \< "goodbye"
+echo 't "hello" > "goodbye"'
+t "hello" \> "goodbye"
+
+echo 't ! "hello" > "goodbye"'
+t "! hello" \> "goodbye"
+
+echo 't 200 -eq 200'
+t 200 -eq 200
+echo 't 34 -eq 222'
+t 34 -eq 222
+echo 't -32 -eq 32'
+t -32 -eq 32
+
+echo 't 200 -ne 200'
+t 200 -ne 200
+echo 't 34 -ne 222'
+t 34 -ne 222
+
+echo 't 200 -gt 200'
+t 200 -gt 200
+echo 't 340 -gt 222'
+t 340 -gt 222
+
+echo 't 200 -ge 200'
+t 200 -ge 200
+echo 't 34 -ge 222'
+t 34 -ge 222
+
+echo 't 200 -lt 200'
+t 200 -lt 200
+echo 't 34 -lt 222'
+t 34 -lt 222
+
+echo 't 200 -le 200'
+t 200 -le 200
+echo 't 340 -le 222'
+t 340 -le 222
+
+echo 't 700 -le 1000 -a -n "1" -a "20" = "20"'
+t 700 -le 1000 -a -n "1" -a "20" = "20"
+echo 't ! \( 700 -le 1000 -a -n "1" -a "20" = "20" \)'
+t ! \( 700 -le 1000 -a -n "1" -a "20" = "20" \)
+
+touch /tmp/abc
+sleep 2
+touch /tmp/def
+
+echo 't /tmp/abc -nt /tmp/def'
+t /tmp/abc -nt /tmp/def
+echo 't /tmp/abc -ot /tmp/def'
+t /tmp/abc -ot /tmp/def
+echo 't /tmp/def -nt /tmp/abc'
+t /tmp/def -nt /tmp/abc
+echo 't /tmp/def -ot /tmp/abc'
+t /tmp/def -ot /tmp/abc
+
+echo 't /tmp/abc -ef /tmp/def'
+t /tmp/abc -ef /tmp/def
+ln /tmp/abc /tmp/ghi
+echo 't /tmp/abc -ef /tmp/ghi'
+t /tmp/abc -ef /tmp/ghi
+
+rm /tmp/abc /tmp/def /tmp/ghi
+
+echo 't -r /dev/fd/0'
+t -r /dev/fd/0
+echo 't -w /dev/fd/1'
+t -w /dev/fd/1
+echo 't -w /dev/fd/2'
+t -w /dev/fd/2
+
+echo 't -r /dev/stdin'
+t -r /dev/stdin
+echo 't -w /dev/stdout'
+t -w /dev/stdout
+echo 't -w /dev/stderr'
+t -w /dev/stderr
+
+echo 't'
+t
+echo 'b'
+b
+
+echo 't 12 -eq 34'
+t 12 -eq 34
+echo 't ! 12 -eq 34'
+t ! 12 -eq 34
+
+echo 't -n abcd -o aaa'
+t -n abcd -o aaa
+echo 't -n abcd -o -z aaa'
+t -n abcd -o -z aaa
+
+echo 't -n abcd -a aaa'
+t -n abcd -a aaa
+echo 't -n abcd -a -z aaa'
+t -n abcd -a -z aaa
+
+# test set or unset shell options
+set +o allexport
+echo 't -o allexport'
+t -o allexport
+echo 't ! -o allexport'
+t ! -o allexport
+
+#test set or unset shell variables
+unset unset
+echo 't -v unset'
+t -v unset
+set=
+echo 't -v set'
+t -v set
+set=set
+echo 't -v set'
+t -v set
+
+echo 't xx -a yy'
+t xx -a yy
+echo 't xx -o ""'
+t xx -o ""
+echo 't xx -a ""'
+t xx -a ""
+
+echo 't -X -a -X'
+t -X -a -X
+echo 't -X -o -X'
+t -X -o -X
+echo 't -X -o ""'
+t -X -o ""
+echo 't -X -a ""'
+t -X -a ""
+echo 't "" -a -X'
+t "" -a -X
+echo 't "" -o -X'
+t "" -o -X
+echo 't "" -a ""'
+t "" -a ""
+echo 't "" -o ""'
+t "" -o ""
+echo 't true -o -X'
+t true -o -X
+echo 't true -a -X'
+t true -a -X
+
+echo 't ( -E )'
+t \( -E \)
+echo 't ( "" )'
+t \( "" \)
+
+z=42
+
+echo 't ! -z "$z"'
+t ! -z "$z"
+
+echo 't ! -n "$z"'
+t ! -n "$z"
+
+echo 't ! ! "$z"'
+t ! ! "$z"
+
+zero=
+echo 't "$zero"'
+t "$zero"
+echo 't ! "$zero"'
+t ! "$zero"
+echo 'b "$zero"'
+b "$zero"
+echo 'b ! "$zero"'
+b ! "$zero"
+
+touch /tmp/test.group
+chgrp ${GROUPS[0]} /tmp/test.group
+echo 't -G /tmp/test.group'
+t -G /tmp/test.group
+rm /tmp/test.group
+
+case "${THIS_SH}" in
+/*)	SHNAME=${THIS_SH} ;;
+*)	SHNAME=${PWD}/${THIS_SH} ;;
+esac
+
+if ln -s ${SHNAME} /tmp/test.symlink 2>/dev/null; then
+	chgrp ${GROUPS[0]} /tmp/test.symlink 2>/dev/null
+	echo 't -h /tmp/test.symlink'
+	t -h /tmp/test.symlink
+	# some systems don't let you remove this
+	rm -f /tmp/test.symlink 2>/dev/null
+else
+	echo 't -h /tmp/test.symlink'
+	echo 0
+fi
+
+# arithmetic constant errors
+echo "t 4+3 -eq 7"
+t 4+3 -eq 7
+echo "b 4-5 -eq 7"
+b 4+3 -eq 7
+
+echo "t 9 -eq 4+5"
+t 9 -eq 4+5
+echo "b 9 -eq 4+5"
+b 9 -eq 4+5
+
+A=7
+echo "t A -eq 7"
+t A -eq 7
+echo "b A -eq 7"
+b A -eq 7
+
+B=9
+echo "t 9 -eq B"
+t 9 -eq B
+echo "b 9 -eq B"
+b 9 -eq B
+
+# badly formed expressions
+echo 't ( 1 = 2'
+t \( 1 = 2
+echo 'b ( 1 = 2'
+b \( 1 = 2
+
+# more errors
+t a b
+t a b c
+t -A v
+# too many arguments -- argument expected is also reasonable
+t 4 -eq 4 -a 2 -ne 5 -a 4 -ne
+# too many arguments
+t 4 -eq 4 -a 3 4
+
+[
+echo $?
+
+t \( \)
+
+# non-numeric arguments to `test -t' should return failure -- fix in 2.05
+echo 't -t a'
+t -t a
+echo 't -t addsds'
+t -t addsds
+echo 't -t 42'
+t -t 42
+echo 't -t /dev/tty'
+t -t /dev/tty
+echo 't -t /dev/tty4'
+t -t /dev/tty4
+echo 't -t /dev/tty4444444...'
+t -t /dev/tty4444444...
+
+# fixed in bash-4.0-beta
+t -t ' '
+
+${THIS_SH} ./test1.sub

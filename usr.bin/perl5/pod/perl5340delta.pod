@@ -1,0 +1,1459 @@
+=encoding utf8
+
+=head1 NAME
+
+perl5340delta - what is new for perl v5.34.0
+
+=head1 DESCRIPTION
+
+This document describes differences between the 5.32.0 release and the 5.34.0
+release.
+
+If you are upgrading from an earlier release such as 5.30.0, first read
+L<perl5320delta>, which describes differences between 5.30.0 and 5.32.0.
+
+=head1 Core Enhancements
+
+=head2 Experimental Try/Catch Syntax
+
+An initial experimental attempt at providing C<try>/C<catch> notation has
+been added.
+
+    use feature 'try';
+
+    try {
+        a_function();
+    }
+    catch ($e) {
+        warn "An error occurred: $e";
+    }
+
+For more information, see L<perlsyn/"Try Catch Exception Handling">.
+
+=head2 C<qr/{,n}/> is now accepted
+
+An empty lower bound is now accepted for regular expression quantifiers,
+like C<m/x{,3}/> meaning C<m/x{0,3}/>
+
+=cut
+
+
+=head2 Blanks freely allowed within but adjacent to curly braces
+
+(in double-quotish contexts and regular expression patterns)
+
+This means you can write things like S<C<\x{ FFFC }>> if you like.  This
+applies to all such constructs, namely C<\b{}>, C<\g{}>, C<\k{}>,
+C<\N{}>, C<\o{}>, and C<\x{}>; as well as the regular expression
+quantifier C<{I<m>,I<n>}>.  C<\p{}> and C<\P{}> retain their
+already-existing, even looser, rules mandated by the Unicode standard
+(see L<perluniprops/Properties accessible through \p{} and \P{}>).
+
+This ability is in effect regardless of the presence of the C</x>
+regular expression pattern modifier.
+
+Additionally, the comma in a regular expression braced quantifier may
+have blanks (tabs or spaces) before and/or after the comma, like
+S<C<qr/a{ 5, 7 }/>>.
+
+=head2 New octal syntax C<0oI<ddddd>>
+
+It is now possible to specify octal literals with C<0o> prefixes,
+as in C<0o123_456>, parallel to the existing construct to specify
+hexadecimal literal C<0xI<ddddd>> and binary literal C<0bI<ddddd>>.
+Also, the builtin C<oct()> function now accepts this new syntax.
+
+See L<perldata/Scalar value constructors> and L<perlfunc/oct EXPR>.
+
+=head1 Performance Enhancements
+
+=over 4
+
+=item *
+
+Fix a memory leak in RegEx
+[L<GH #18604|https://github.com/Perl/perl5/issues/18604>]
+
+=back
+
+=head1 Modules and Pragmata
+
+=head2 New Modules and Pragmata
+
+=over 4
+
+=item *
+
+L<ExtUtils::PL2Bat> 0.004 has been added to the Perl core.
+
+This module is a generalization of the C<pl2bat> script. It being a script has
+led to at least two forks of this code; this module will unify them under one
+implementation with tests.
+
+=back
+
+=head2 Updated Modules and Pragmata
+
+=over 4
+
+=item *
+
+L<Archive::Tar> has been upgraded from version 2.36 to 2.38.
+
+=item *
+
+L<autodie> has been upgraded from version 2.32 to 2.34.
+
+=item *
+
+L<B> has been upgraded from version 1.80 to 1.82.
+
+=item *
+
+L<B::Deparse> has been upgraded from version 1.54 to 1.56.
+
+=item *
+
+L<bytes> has been upgraded from version 1.07 to 1.08.
+
+=item *
+
+L<Carp> has been upgraded from version 1.50 to 1.52.
+
+=item *
+
+L<Compress::Raw::Bzip2> has been upgraded from version 2.093 to 2.101.
+
+=item *
+
+L<Compress::Raw::Zlib> has been upgraded from version 2.093 to 2.101.
+
+=item *
+
+L<Config::Perl::V> has been upgraded from version 0.32 to 0.33.
+
+=item *
+
+L<CPAN> has been upgraded from version 2.27 to 2.28.
+
+=item *
+
+L<Data::Dumper> has been upgraded from version 2.174 to 2.179.
+
+=item *
+
+L<DB> has been upgraded from version 1.58 to 1.59.
+
+=item *
+
+L<DB_File> has been upgraded from version 1.853 to 1.855.
+
+=item *
+
+L<Devel::Peek> has been upgraded from version 1.28 to 1.30.
+
+=item *
+
+L<Devel::PPPort> has been upgraded from version 3.57 to 3.62.
+
+New C<PERL_VERSION_*> comparison macros are now available.
+
+C<ppport.h --api-info> no longer includes non-API info unless that is the only
+match
+
+=item *
+
+L<Digest> has been upgraded from version 1.17_01 to 1.19.
+
+=item *
+
+L<Digest::MD5> has been upgraded from version 2.55_01 to 2.58.
+
+=item *
+
+L<DynaLoader> has been upgraded from version 1.47 to 1.50.
+
+=item *
+
+L<Encode> has been upgraded from version 3.06 to 3.08.
+
+=item *
+
+L<Env> has been upgraded from version 1.04 to 1.05.
+
+=item *
+
+L<Errno> has been upgraded from version 1.30 to 1.33.
+
+=item *
+
+L<experimental> has been upgraded from version 0.020 to 0.024.
+
+=item *
+
+L<Exporter> has been upgraded from version 5.74 to 5.76.
+
+=item *
+
+L<ExtUtils::CBuilder> has been upgraded from version 0.280234 to 0.280236.
+
+=item *
+
+L<ExtUtils::Install> has been upgraded from version 2.14 to 2.20.
+
+=item *
+
+L<ExtUtils::MakeMaker> has been upgraded from version 7.44 to 7.62.
+
+=item *
+
+L<ExtUtils::Manifest> has been upgraded from version 1.72 to 1.73.
+
+=item *
+
+L<ExtUtils::Miniperl> has been upgraded from version 1.09 to 1.10.
+
+=item *
+
+L<ExtUtils::ParseXS> has been upgraded from version 3.40 to 3.43.
+
+=item *
+
+L<ExtUtils::Typemaps> has been upgraded from version 3.38 to 3.43.
+
+=item *
+
+L<Fcntl> has been upgraded from version 1.13 to 1.14.
+
+=item *
+
+L<feature> has been upgraded from version 1.58 to 1.64.
+
+Added the default enabled C<bareword_filehandles> feature.
+
+A new L<multidimensional|feature/"The 'multidimensional' feature">
+feature has been added, which is enabled by
+default but allows turning off L<multi-dimensional array
+emulation|perldata/Multi-dimensional array emulation>.
+
+=item *
+
+L<File::Copy> has been upgraded from version 2.34 to 2.35.
+
+=item *
+
+L<File::Fetch> has been upgraded from version 0.56 to 1.00.
+
+=item *
+
+L<File::Find> has been upgraded from version 1.37 to 1.39.
+
+=item *
+
+L<File::Path> has been upgraded from version 2.16 to 2.18.
+
+=item *
+
+L<File::Spec> has been upgraded from version 3.78 to 3.80.
+
+=item *
+
+L<File::Temp> has been upgraded from version 0.2309 to 0.2311.
+
+=item *
+
+L<Filter::Util::Call> has been upgraded from version 1.59 to 1.60.
+
+=item *
+
+L<FindBin> has been upgraded from version 1.51 to 1.52.
+
+=item *
+
+L<GDBM_File> has been upgraded from version 1.18 to 1.19.
+
+New functions and compatibility for newer versions of GDBM.
+[L<GH #18435|https://github.com/Perl/perl5/pull/18435>]
+
+=item *
+
+L<Getopt::Long> has been upgraded from version 2.51 to 2.52.
+
+=item *
+
+L<Getopt::Std> has been upgraded from version 1.12 to 1.13.
+
+=item *
+
+L<Hash::Util> has been upgraded from version 0.23 to 0.25.
+
+=item *
+
+L<Hash::Util::FieldHash> has been upgraded from version 1.20 to 1.21.
+
+=item *
+
+L<I18N::LangTags> has been upgraded from version 0.44 to 0.45.
+
+=item *
+
+L<if> has been upgraded from version 0.0608 to 0.0609.
+
+=item *
+
+L<IO> has been upgraded from version 1.43 to 1.46.
+
+IO::Socket now stores error messages in C<$IO::Socket::errstr>, in
+addition to in C<$@>.
+
+The C<error> method now reports the error state for both the input and
+output streams for sockets and character devices.  Similarly
+C<clearerr> now clears the error state for both streams.
+
+A spurious error reported for regular file handles has been
+fixed in L<IO::Handle>.
+[L<GH #18019|https://github.com/Perl/perl5/issues/18019>]
+
+=item *
+
+IO-Compress has been upgraded from version 2.093 to 2.102.
+
+bin/zipdetails version 2.02
+
+=item *
+
+L<IO::Socket::IP> has been upgraded from version 0.39 to 0.41.
+
+=item *
+
+L<IO::Zlib> has been upgraded from version 1.10 to 1.11.
+
+=item *
+
+L<IPC::SysV> has been upgraded from version 2.07 to 2.09.
+
+=item *
+
+L<JSON::PP> has been upgraded from version 4.04 to 4.06.
+
+=item *
+
+The libnet distribution has been upgraded from version 3.11 to 3.13.
+
+=item *
+
+L<locale> has been upgraded from version 1.09 to 1.10.
+
+=item *
+
+L<Math::Complex> has been upgraded from version 1.5901 to 1.5902.
+
+=item *
+
+L<MIME::Base64> has been upgraded from version 3.15 to 3.16.
+
+=item *
+
+L<Module::CoreList> has been upgraded from version 5.20200620 to 5.20210520.
+
+=item *
+
+L<Module::Load> has been upgraded from version 0.34 to 0.36.
+
+=item *
+
+L<Module::Load::Conditional> has been upgraded from version 0.70 to 0.74.
+
+=item *
+
+L<mro> has been upgraded from version 1.23 to 1.25_001.
+
+=item *
+
+L<Net::Ping> has been upgraded from version 2.72 to 2.74.
+
+=item *
+
+L<NEXT> has been upgraded from version 0.67_01 to 0.68.
+
+=item *
+
+L<ODBM_File> has been upgraded from version 1.16 to 1.17.
+
+=item *
+
+L<Opcode> has been upgraded from version 1.47 to 1.50.
+
+=item *
+
+L<overload> has been upgraded from version 1.31 to 1.33.
+
+=item *
+
+L<perlfaq> has been upgraded from version 5.20200523 to 5.20210411.
+
+=item *
+
+L<PerlIO::encoding> has been upgraded from version 0.28 to 0.30.
+
+=item *
+
+L<PerlIO::mmap> has been upgraded from version 0.016 to 0.017.
+
+=item *
+
+L<PerlIO::scalar> has been upgraded from version 0.30 to 0.31.
+
+=item *
+
+L<PerlIO::via::QuotedPrint> has been upgraded from version 0.08 to 0.09.
+
+=item *
+
+L<Pod::Checker> has been upgraded from version 1.73 to 1.74.
+
+=item *
+
+L<Pod::Html> has been upgraded from version 1.25 to 1.27.
+
+=item *
+
+L<Pod::Simple> has been upgraded from version 3.40 to 3.42.
+
+=item *
+
+L<Pod::Usage> has been upgraded from version 1.69 to 2.01.
+
+=item *
+
+L<POSIX> has been upgraded from version 1.94 to 1.97.
+
+POSIX::signbit() behaviour has been improved.
+[L<GH #18441|https://github.com/Perl/perl5/pull/18441>]
+
+Documentation for C<asctime> clarifies that the result is always in English.
+(Use C<strftime> for a localized result.)
+
+=item *
+
+L<re> has been upgraded from version 0.40 to 0.41.
+
+(See under L</Internal Changes> for more information.)
+
+=item *
+
+L<Safe> has been upgraded from version 2.41 to 2.43.
+
+=item *
+
+L<Socket> has been upgraded from version 2.029 to 2.031.
+
+=item *
+
+L<Storable> has been upgraded from version 3.21 to 3.23.
+
+=item *
+
+L<strict> has been upgraded from version 1.11 to 1.12.
+
+=item *
+
+L<subs> has been upgraded from version 1.03 to 1.04.
+
+=item *
+
+L<Symbol> has been upgraded from version 1.08 to 1.09.
+
+=item *
+
+L<Test::Harness> has been upgraded from version 3.42 to 3.43.
+
+=item *
+
+L<Test::Simple> has been upgraded from version 1.302175 to 1.302183.
+
+=item *
+
+L<Text::Balanced> has been upgraded from version 2.03 to 2.04.
+
+=item *
+
+L<threads> has been upgraded from version 2.25 to 2.26.
+
+=item *
+
+L<threads::shared> has been upgraded from version 1.61 to 1.62.
+
+=item *
+
+L<Tie::RefHash> has been upgraded from version 1.39 to 1.40.
+
+=item *
+
+L<Time::HiRes> has been upgraded from version 1.9764 to 1.9767.
+
+=item *
+
+L<Time::Local> has been upgraded from version 1.28 to 1.30.
+
+=item *
+
+L<Unicode::Collate> has been upgraded from version 1.27 to 1.29.
+
+=item *
+
+L<Unicode::Normalize> has been upgraded from version 1.27 to 1.28.
+
+=item *
+
+L<utf8> has been upgraded from version 1.22 to 1.24.
+
+=item *
+
+L<version> has been upgraded from version 0.9924 to 0.9928.
+
+=item *
+
+L<warnings> has been upgraded from version 1.47 to 1.51.
+
+=item *
+
+L<Win32> has been upgraded from version 0.53 to 0.57.
+
+Fix calling convention for C<PFNRegGetValueA>.
+
+Added C<Win32::IsSymlinkCreationAllowed()>,
+C<Win32::IsDeveloperModeEnabled()>, and C<Win32::GetProcessPrivileges()>.
+
+Removed old code for versions before Windows 2000.
+
+=item *
+
+L<XS::APItest> has been upgraded from version 1.09 to 1.16.
+
+=item *
+
+L<XS::Typemap> has been upgraded from version 0.17 to 0.18.
+
+=back
+
+=head1 Documentation
+
+=head2 New Documentation
+
+=head3 L<perldocstyle>
+
+This document is a guide for the authorship and maintenance of the
+documentation that ships with Perl.
+
+=head3 L<perlgov>
+
+This document describes the goals, scope, system, and rules for Perl's new
+governance model.
+
+Other pod files, most notably L<perlpolicy>, were amended to reflect
+its adoption.
+
+=head2 Changes to Existing Documentation
+
+We have attempted to update the documentation to reflect the changes
+listed in this document.  If you find any we have missed, open an issue
+at L<https://github.com/Perl/perl5/issues>.
+
+Additionally, the following selected changes have been made:
+
+=over 4
+
+=item *
+
+L<perlapi>, L<perlguts>, L<perlxs>, and L<perlxstut> now prefer C<SvPVbyte>
+over C<SvPV>.
+
+=item *
+
+References to B<Pumpking> have been replaced with a more accurate term or
+B<Steering Council> where appropriate.
+
+=item *
+
+B<The Perl Steering Council> is now the fallback contact for security issues.
+
+=back
+
+=head3 L<perlapi>
+
+=over 4
+
+=item *
+
+Efforts continue in improving the presentation of this document, and to
+document more API elements.
+
+=back
+
+=head3 L<perlcommunity>
+
+=over 4
+
+=item *
+
+The freenode IRC URL has been updated.
+
+=back
+
+=head3 L<perldebguts>
+
+=over 4
+
+=item *
+
+Corrected the description of the scalar C<< ${"_<$filename"} >>
+variables.
+
+=back
+
+=head3 L<perldiag>
+
+=over 4
+
+=item *
+
+Now documents additional examples of "not imported" warnings.
+
+=back
+
+=head3 L<perlfaq>
+
+=over 4
+
+=item *
+
+The Perl FAQ was updated to CPAN version 5.20201107 with minor
+improvements.
+
+=back
+
+=head3 L<perlfunc>
+
+=over 4
+
+=item *
+
+L<my()|perlfunc/my> and L<state()|perlfunc/state> now explicitly warn
+the reader that lexical variables should typically not be redeclared
+within the same scope or statement.
+[L<GH #18389|https://github.com/Perl/perl5/issues/18389>]
+
+=item *
+
+The L<localtime|perlfunc/localtime> entry has been improved and now
+also states that the result of the function is always in English.
+
+=item *
+
+L<msgsnd()|perlfunc/msgsnd> documented a length field included in the
+packed C<MSG> parameter to C<msgsnd()>, but there was no such field.
+C<MSG> contains only the type and the message content.
+
+=item *
+
+Better explanation of what happens when C<sleep> is called with a zero or
+negative value.
+
+=item *
+
+Simplify the C<split()> documentation by removing the C<join()>s from the
+examples
+[L<GH #18676|https://github.com/Perl/perl5/issues/18676>]
+
+=back
+
+=head3 L<perlgit>
+
+=over 4
+
+=item *
+
+document how to create a remote-tracking branch for every PR
+
+=item *
+
+document how to get a PR as a local branch
+
+=back
+
+=head3 L<perlguts>
+
+=over 4
+
+=item *
+
+L<perlguts> now explains in greater detail the need to consult C<SvUTF8>
+when calling C<SvPV> (or variants). A new "How do I pass a Perl string to a C
+library?" section in the same document discusses when to use which style of
+macro to read an SV's string value.
+
+=item *
+
+Corrected C<my_rpeep> example in perlguts.
+
+=item *
+
+A section has been added on the formatted printing of special sizes.
+
+=back
+
+=head3 L<perlop>
+
+=over 4
+
+=item *
+
+The C<< <> >> and C<<< <<>> >>> operators are commonly referred to as
+the diamond and double diamond operators respectively, but that wasn't
+mentioned previously in their documentation.
+
+=item *
+
+Document range op behavior change.
+
+=back
+
+=head3 L<perlpacktut>
+
+=over 4
+
+=item *
+
+Incorrect variables used in an example have been fixed.
+
+=back
+
+=head3 L<perlsyn>
+
+=over 4
+
+=item *
+
+Document that caller() does not see try{} blocks
+
+=item *
+
+A new example shows how a lexical C<my> variable can be declared
+during the initialization of a C<for> loop.
+
+=back
+
+=head3 L<perlunifaq>
+
+=over 4
+
+=item *
+
+Fix description of what Perl does with unencoded strings
+
+=back
+
+=head1 Diagnostics
+
+The following additions or changes have been made to diagnostic output,
+including warnings and fatal error messages.  For the complete list of
+diagnostic messages, see L<perldiag>.
+
+=head2 New Diagnostics
+
+=head3 New Errors
+
+=over 4
+
+=item *
+
+L<Bareword filehandle "%s" not allowed under 'no feature "bareword_filehandles"'|perldiag/"Bareword filehandle "%s" not allowed under 'no feature "bareword_filehandles"'">
+
+This accompanies the new
+L<bareword_filehandles|feature/"The 'bareword_filehandles' feature."> feature.
+
+=item *
+
+L<Multidimensional hash lookup is disabled|perldiag/"Multidimensional hash lookup is disabled">
+
+This accompanies the new
+L<multidimensional|feature/"The 'multidimensional' feature"> feature.
+
+=back
+
+=head3 New Warnings
+
+=over 4
+
+=item *
+
+L<Wide character in setenv key (encoding to utf8)|perldiag/"Wide character in %s">
+
+Attempts to put wide characters into environment variable keys via C<%ENV> now
+provoke this warning.
+
+=back
+
+=head2 Changes to Existing Diagnostics
+
+=over 4
+
+=item *
+
+L<Error %s in expansion of %s|perldiag/"Error %s in expansion of %s">
+
+An error was encountered in handling a user-defined property
+(L<perlunicode/User-Defined Character Properties>).  These are
+programmer written subroutines, hence subject to errors that may
+prevent them from compiling or running.
+
+=item *
+
+L<Infinite recursion in user-defined property|perldiag/"Infinite recursion in user-defined property">
+
+A user-defined property (L<perlunicode/User-Defined Character Properties>)
+can depend on the definitions of other user-defined
+properties.  If the chain of dependencies leads back to this property,
+infinite recursion would occur, were it not for the check that raised
+this error.
+
+=item *
+
+L<Timeout waiting for another thread to define \p{%s}|perldiag/"Timeout waiting for another thread to define \p{%s}">
+
+The first time a user-defined property
+(L<perlunicode/User-Defined Character Properties>) is used, its
+definition is looked up and converted into an internal form for more
+efficient handling in subsequent uses.  There could be a race if two or
+more threads tried to do this processing nearly simultaneously.
+
+=item *
+
+L<Unknown user-defined property name \p{%s}|perldiag/"Unknown user-defined property name \p{%s}">
+
+You specified to use a property within the C<\p{...}> which was a
+syntactically valid user-defined property, but no definition was found
+for it
+
+=item *
+
+L<Too few arguments for subroutine '%s' (got %d; expected %d)|perldiag/"Too few arguments for subroutine '%s' (got %d; expected %d)">
+
+Subroutine argument-count mismatch errors now include the number of
+given and expected arguments.
+
+=item *
+
+L<Too many arguments for subroutine '%s' (got %d; expected %d)|perldiag/"Too many arguments for subroutine '%s' (got %d; expected %d)">
+
+Subroutine argument-count mismatch errors now include the number of
+given and expected arguments.
+
+=item *
+
+L<Lost precision when %s %f by 1|perldiag/"Lost precision when %s %f by 1">
+
+This warning was only issued for positive too-large values when
+incrementing, and only for negative ones when decrementing.
+It is now issued for both positive or negative too-large values.
+[L<GH #18333|https://github.com/Perl/perl5/issues/18333>]
+
+=item *
+
+L<\K not permitted in lookahead/lookbehind in regex; marked by <-- HERE in mE<sol>%sE<sol>|perldiag/"\K not permitted in lookahead/lookbehind in regex; marked by <-- HERE in m/%s/">
+
+This error was incorrectly produced in some cases involving nested
+lookarounds.  This has been fixed.
+[L<GH #18123|https://github.com/Perl/perl5/issues/18123>]
+
+=item *
+
+L<Use of uninitialized value%s|perldiag/"Use of uninitialized value%s">
+
+This warning may now include the array or hash index when the
+uninitialized value is the result of an element not found.  This will
+only happen if the index is a simple non-magical variable.
+
+=back
+
+=head1 Utility Changes
+
+=head2 L<perl5db.pl> (the debugger)
+
+=over 4
+
+=item * New option: C<HistItemMinLength>
+
+This option controls the minimum length a command must be to get stored in
+history.  Traditionally, this has been fixed at 2.  Changes to the debugger
+are often perilous, and new bugs should be reported so the debugger can be
+debugged.
+
+=item * Fix to C<i> and C<l> commands
+
+The C<i $var> and C<l $var> commands work again with lexical variables.
+
+=back
+
+=head1 Configuration and Compilation
+
+=over 4
+
+=item *
+
+Prevented incpath to spill into libpth
+
+=item *
+
+Use realpath if available. (This might catch more duplicate paths.)
+
+=item *
+
+Only include real existing paths.
+
+=item *
+
+Filter inc paths out of libpth.
+
+=item * stadtx hash support has been removed
+
+stadtx support has been entirely removed.  Previously, it could be requested
+with C<PERL_HASH_FUNC_STADTX>, and was default in 64-bit builds.  It has been
+replaced with SipHash.  SipHash has been more rigorously reviewed than stadtx.
+
+=item * Configure
+
+A new probe checks for buggy libc implementations of the C<gcvt>/C<qgcvt>
+functions.
+[L<GH #18170|https://github.com/Perl/perl5/issues/18170>]
+
+=item * C<-Dusedefaultstrict>
+
+Perl can now be built with L<strict> on by default (using the configuration
+option C<-Dusedefaultstrict>.
+
+These strict defaults do not apply when C<perl> is run via C<-e> or C<-E>.
+
+This setting provides a diagnostic mechanism intended for development
+purposes only and is thus undefined by default.
+
+=item *
+
+The minimum supported Bison version is now 2.4, and the maximum is 3.7.
+
+=item *
+
+Newer 64-bit versions of the Intel C/C++ compiler are now recognised
+and have the correct flags set.
+
+=item *
+
+We now trap SIGBUS when F<Configure> checks for C<va_copy>.
+
+On several systems the attempt to determine if we need C<va_copy> or similar
+results in a SIGBUS instead of the expected SIGSEGV, which previously caused a
+core dump.
+
+[L<GH #18148|https://github.com/Perl/perl5/issues/18148>]
+
+=back
+
+=head1 Testing
+
+Tests were added and changed to reflect the other additions and
+changes in this release.  Furthermore, these significant changes were
+made:
+
+=over 4
+
+=item *
+
+Split Config-dependent tests in F<t/opbasic/arith.t> to F<t/op/arith2.t>
+
+=item *
+
+F<t/re/opt.t> was added, providing a test harness for regexp optimization.
+[L<GH #18213|https://github.com/Perl/perl5/pull/18213>]
+
+=item *
+
+A workaround for CPAN distributions needing dot in C<@INC> has been removed
+[L<GH #18394|https://github.com/Perl/perl5/pull/18394>].
+All distributions that previously required the workaround have now been
+adapted.
+
+=item *
+
+When testing in parallel on many-core platforms, you can now cause the
+test suite to finish somewhat earlier, but with less logical ordering of
+the tests, by setting
+
+ PERL_TEST_HARNESS_ASAP=1
+
+while running the test suite.
+
+=back
+
+=head1 Platform Support
+
+=head2 New Platforms
+
+=over 4
+
+=item 9front
+
+Allow building Perl on i386 9front systems (a fork of plan9).
+
+=back
+
+=head2 Updated Platforms
+
+=over 4
+
+=item Plan9
+
+Improve support for Plan9 on i386 platforms.
+
+=item MacOS (Darwin)
+
+The hints file for darwin has been updated to handle future MacOS versions
+beyond 10. [L<GH #17946|https://github.com/Perl/perl5/issues/17946>]
+
+=back
+
+=head2 Discontinued Platforms
+
+=over 4
+
+=item Symbian
+
+Support code relating to Symbian has been removed.  Symbian was an
+operating system for mobile devices.  The port was last updated in July
+2009, and the platform itself in October 2012.
+
+=back
+
+=head2 Platform-Specific Notes
+
+=over 4
+
+=item DragonFlyBSD
+
+Tests were updated to workaround DragonFlyBSD bugs in L<tc*()
+functions|https://bugs.dragonflybsd.org/issues/3252> and L<ctime
+updates|https://bugs.dragonflybsd.org/issues/3251>.
+
+=item Mac OS X
+
+A number of system libraries no longer exist as actual files on Big Sur,
+even though C<dlopen> will pretend they do, so now we fall back to C<dlopen>
+if a library file can not be found.
+[L<GH #18407|https://github.com/Perl/perl5/issues/18407>]
+
+=item Windows
+
+Reading non-ASCII characters from the console when its codepage was set to
+65001 (UTF-8) was broken due to a bug in Windows. A workaround for this
+problem has been implemented.
+[L<GH #18701|https://github.com/Perl/perl5/issues/18701>]
+
+Building with mingw.org compilers (version 3.4.5 or later) using mingw runtime
+versions < 3.22 now works again.  This was broken in Perl 5.31.4.
+
+Building with mingw.org compilers (version 3.4.5 or later) using mingw runtime
+versions >= 3.21 now works (for compilers up to version 5.3.0).
+
+F<Makefile.mk>, and thus support for dmake, has been removed. It is still
+possible to build Perl on Windows using nmake (Makefile) and GNU make
+(GNUmakefile).
+[L<GH #18511|https://github.com/Perl/perl5/pull/18511>]
+
+perl can now be built with C<USE_QUADMATH> on MS Windows using
+(32-bit and 64-bit) mingw-w64 ports of gcc.
+[L<GH #18465|https://github.com/Perl/perl5/pull/18465>]
+
+The F<pl2bat.pl> utility now needs to C<use ExtUtils::PL2Bat>. This could
+cause failures in parallel builds.
+
+Windows now supports L<symlink()|perlfunc/symlink> and
+L<readlink()|perlfunc/readlink>, and L<lstat()|perlfunc/lstat> is no
+longer an alias for L<stat()|perlfunc/stat>.
+[L<GH #18005|https://github.com/Perl/perl5/issues/18005>].
+
+Unlike POSIX systems, creating a symbolic link on Windows requires
+either elevated privileges or Windows 10 1703 or later with Developer
+Mode enabled.
+
+stat(), including C<stat FILEHANDLE>, and lstat() now uses our own
+implementation that populates the device C<dev> and inode numbers
+C<ino> returned rather than always returning zero.  The number of
+links C<nlink> field is now always populated.
+
+L<< C<${^WIN32_SLOPPY_STAT}> |perlvar/${^WIN32_SLOPPY_STAT} >> previously
+controlled whether the C<nlink> field was populated requiring a
+separate Windows API call to fetch, since C<nlink> and the other
+information required for C<stat()> is now retrieved in a single API call.
+
+The C<-r> and C<-w> operators now return true for the C<STDIN>,
+C<STDOUT> and C<STDERR> handles.  Unfortunately it still won't return
+true for duplicates of those handles.
+[L<GH #8502|https://github.com/Perl/perl5/issues/8502>].
+
+The times returned by stat() and lstat() are no longer incorrect
+across Daylight Savings Time adjustments.
+[L<GH #6080|https://github.com/Perl/perl5/issues/6080>].
+
+C<-x> on a filehandle should now match C<-x> on the corresponding
+filename on Vista or later.
+[L<GH #4145|https://github.com/Perl/perl5/issues/4145>].
+
+C<-e '"'> no longer incorrectly returns true.
+[L<GH #12431|https://github.com/Perl/perl5/issues/12431>].
+
+The same manifest is now used for Visual C++ and gcc builds.
+
+Previously, MSVC builds were using the B</manifestdependency> flag instead of
+embedding F<perlexe.manifest>, which caused issues such as C<GetVersionEx()>
+returning the wrong version number on Windows 10.
+
+=item z/OS
+
+The locale categories C<LC_SYNTAX> and C<LC_TOD> are now recognized.
+Perl doesn't do anything with these, except it now allows you to specify
+them.  They are included in C<LC_ALL>.
+
+=back
+
+=head1 Internal Changes
+
+=over 4
+
+=item *
+
+Corrected handling of double and long double parameters for perl's
+implementation of formatted output for C<-Dusequadmath> builds.
+
+This applies to C<PerlIO_printf()>, C<croak()>, C<warn()>, C<sv_catpvf()> and
+their variants.
+
+Previously in C<quadmath> builds, code like:
+
+  PerlIO_printf(PerlIO_stderr(), "%g", somedouble);
+
+or
+
+  PerlIO_printf(PerlIO_stderr(), "%Lg", somelongdouble);
+
+would erroneously throw an exception "panic: quadmath invalid format
+...", since the code added for quadmath builds assumed C<NV>s were the
+only floating point format passed into these functions.
+
+This code would also process the standard C long double specifier C<L>
+as if it expected an C<NV> (C<__float128> for quadmath builds),
+resulting in undefined behaviour.
+
+These functions now correctly accept doubles, long doubles and NVs.
+
+=item *
+
+Previously the right operand of bitwise shift operators (shift amount)
+was implicitly cast from IV to int, but it might lead wrong results
+if IV does not fit in int.
+
+And also, shifting INT_MIN bits used to yield the shiftee unchanged
+(treated as 0-bit shift instead of negative shift).
+
+=item *
+
+A set of C<cop_hints_exists_{pv,pvn,pvs,sv}> functions was added,
+to support checking for the existence of keys in the hints hash of a
+specific cop without needing to create a mortal copy of said value.
+
+=item *
+
+An aid has been added for using the C<DEBUG> macros when debugging XS or
+C code. The comments in F<perl.h> describe C<DEBUG_PRE_STMTS> and
+C<DEBUG_POST_STMTS>. which you can C<#define> to do things like save and
+restore C<errno>, in case the C<DEBUG> calls are interfering with that,
+or to display timestamps, or which thread it's coming from, or the
+location of the call, or whatever.  You can make a quick hack to help
+you track something down without having to edit individual C<DEBUG>
+calls.
+
+=item *
+
+Make C<REFCOUNTED_HE_EXISTS> available outside of core
+
+=item *
+
+All C<SvTRUE>-ish functions now evaluate their arguments exactly once.
+In 5.32, plain L<perlapi/C<SvTRUE>> was changed to do that; now the rest
+do as well.
+
+=item *
+
+Unicode is now a first class citizen when considering the pattern /A*B/ where
+A and B are arbitrary.  The pattern matching code tries to make a tight loop
+to match the span of A's.  The logic of this was now really updated with
+support for UTF-8.
+
+=item *
+
+The L<re> module has a new function C<optimization>, which can return a
+hashref of optimization data discovered about a compiled regexp.
+
+=item *
+
+The C<PERL_GLOBAL_STRUCT> compilation option has been removed, and
+with it the need or the C<dVAR> macro.  C<dVAR> remains defined as a
+no-op outside C<PERL_CORE> for backwards compatiblity with XS modules.
+
+=item *
+
+A new savestack type C<SAVEt_HINTS_HH> has been added, which neatens the
+previous behaviour of C<SAVEt_HINTS>.  On previous versions the types and
+values pushed to the save stack would depend on whether the hints included the
+C<HINT_LOCALIZE_HH> bit, which complicates external code that inspects the
+save stack. The new version uses a different savestack type to indicate the
+difference.
+
+=item *
+
+A new API function L<perlapi/av_count> has been added which gives a
+clearly named way to find how many elements are in an array.
+
+=back
+
+=head1 Selected Bug Fixes
+
+=over 4
+
+=item *
+
+Setting C<%ENV> now properly handles upgraded strings in the key. Previously
+Perl sent the SV's internal PV directly to the OS; now it will handle keys
+as it has handled values since 5.18: attempt to downgrade the string first;
+if that fails then warn and use the utf8 form.
+
+=item *
+
+Fix a memory leak in regcomp.c
+[L<GH #18604|https://github.com/Perl/perl5/issues/18604>]
+
+=item * pack/unpack format 'D' now works on all systems that could support it
+
+Previously if C<NV == long double>, now it is supported on all platforms that
+have long doubles. In particular that means it is now also supported on
+quadmath platforms.
+
+=item *
+
+Skip trying to constant fold an incomplete op tree
+[L<GH #18380|https://github.com/Perl/perl5/issues/18380>]
+
+Constant folding of chained comparison op trees could fail under certain
+conditions, causing perl to crash. As a quick fix, constant folding is
+now skipped for such op trees. This also addresses
+[L<GH #17917|https://github.com/Perl/perl5/issues/17917>].
+
+=item *
+
+C<%g> formatting broken on Ubuntu-18.04, C<NVSIZE == 8>
+[L<GH #18170|https://github.com/Perl/perl5/issues/18170>]
+
+Buggy libc implementations of the C<gcvt> and C<qgcvt> functions
+caused C<(s)printf> to incorrectly truncate C<%g> formatted numbers.
+A new Configure probe now checks for this, with the result that the libc
+C<sprintf> will be used in place of C<gcvt> and C<qgcvt>.
+
+Tests added as part of this fix also revealed related problems in
+some Windows builds. The makefiles for MINGW builds on Windows have
+thus been adjusted to use C<USE_MINGW_ANSI_STDIO> by default, ensuring
+that they also provide correct C<(s)printf> formatting of numbers.
+
+=item *
+
+F<op.c>: croak on C<my $_> when C<use utf8> is in effect
+[L<GH #18449|https://github.com/Perl/perl5/issues/18449>]
+
+The lexical topic feature experiment was removed in Perl v5.24 and
+declaring C<my $_> became a compile time error. However, it was previously
+still possible to make this declaration if C<use utf8> was in effect.
+
+=item *
+
+F<regexec.c>: Fix assertion failure
+[L<GH #18451|https://github.com/Perl/perl5/issues/18451>]
+
+Fuzzing triggered an assertion failure in the regexp engine when too many
+characters were copied into a buffer.
+
+=item *
+
+L<semctl()|perlfunc/semctl>, L<msgctl()|perlfunc/msgctl>, and
+L<shmctl()|perlfunc/shmctl> now properly reset the UTF-8 flag on the
+C<ARG> parameter if it's modified for C<IPC_STAT> or C<GETALL>
+operations.
+
+=item *
+
+C<semctl()>, C<msgctl()>, and C<shmctl()> now attempt to downgrade the C<ARG>
+parameter if its value is being used as input to C<IPC_SET> or
+C<SETALL> calls.  A failed downgrade will thrown an exception.
+
+=item *
+
+In cases where C<semctl()>, C<msgctl()> or C<shmctl()> would treat the C<ARG>
+parameter as a pointer, an undefined value no longer generates a
+warning.  In most such calls the pointer isn't used anyway and this
+allows you to supply C<undef> for a value not used by the underlying
+function.
+
+=item *
+
+L<semop()|perlfunc/semop> now downgrades the C<OPSTRING> parameter,
+L<msgsnd()|perlfunc/msgsnd> now downgrades the C<MSG> parameter and
+L<shmwrite|perlfunc/shmwrite> now downgrades the C<STRING> parameter
+to treat them as bytes.  Previously they would be left upgraded,
+providing a corrupted structure to the underlying function call.
+
+=item *
+
+L<msgrcv()|perlfunc/msgrcv> now properly resets the UTF-8 flag the
+C<VAR> parameter when it is modified.  Previously the UTF-8 flag could
+be left on, resulting in a possibly corrupt result in C<VAR>.
+
+=item *
+
+Magic is now called correctly for stacked file test operators.
+[L<GH #18293|https://github.com/Perl/perl5/issues/18293>]
+
+=item *
+
+The C<@ary = split(...)> optimization no longer switches in the target
+array as the value stack.
+[L<GH #18232|https://github.com/Perl/perl5/issues/18232>]
+Also see discussion at
+L<https://github.com/Perl/perl5/pull/18014#issuecomment-671299506>.
+
+=item *
+
+Fixed a bug in which some regexps with recursive subpatterns matched
+incorrectly.
+
+[L<GH #18096|https://github.com/Perl/perl5/issues/18096>]
+
+=item *
+
+On Win32, C<waitpid(-1, WNOHANG)> could sometimes have a very large
+timeout.  [L<GH #16529|https://github.com/Perl/perl5/issues/16529>]
+
+=item *
+
+C<MARK> and hence C<items> are now correctly initialized in C<BOOT> XSUBs.
+
+=item *
+
+Some list assignments involving C<undef> on the left-hand side were
+over-optimized and produced incorrect results.
+[L<GH #16685|https://github.com/Perl/perl5/issues/16685>],
+[L<GH #17816|https://github.com/Perl/perl5/issues/17816>]
+
+=back
+
+=head1 Known Problems
+
+None
+
+=head1 Errata From Previous Releases
+
+None
+
+=head1 Obituary
+
+Kent Fredric (KENTNL) passed away in February 2021.  A native of New Zealand
+and a self-described "huge geek," Kent was the author or maintainer of 178
+CPAN distributions, the Perl maintainer for the Gentoo Linux distribution and
+a contributor to the Perl core distribution.  He is mourned by his family,
+friends and open source software communities worldwide.
+
+=head1 Acknowledgements
+
+Perl 5.34.0 represents approximately 11 months of development since Perl
+5.32.0 and contains approximately 280,000 lines of changes across 2,100
+files from 78 authors.
+
+Excluding auto-generated files, documentation and release tools, there were
+approximately 150,000 lines of changes to 1,300 .pm, .t, .c and .h files.
+
+Perl continues to flourish into its fourth decade thanks to a vibrant
+community of users and developers. The following people are known to have
+contributed the improvements that became Perl 5.34.0:
+
+Aaron Crane, Adam Hartley, Andy Dougherty, Ben Cornett, Branislav
+Zahradník, brian d foy, Chris 'BinGOs' Williams, Christian Walde
+(Mithaldu), Craig A. Berry, Dagfinn Ilmari Mannsåker, Dan Book, Daniel
+Böhmer, Daniel Laügt, Dan Kogai, David Cantrell, David Mitchell, Dominic
+Hamon, E. Choroba, Ed J, Eric Herman, Eugene Alvin Villar,
+Felipe Gasper, Giovanni Tataranni, Graham Knop, Graham Ollis, Hauke D,
+H.Merijn Brand, Hugo van der Sanden, Ichinose Shogo, Ivan Baidakou, Jae
+Bradley, James E Keenan, Jason McIntosh, jkahrman, John Karr, John Lightsey,
+Kang-min Liu, Karen Etheridge, Karl Williamson, Keith Thompson, Leon
+Timmermans, Marc Reisner, Marcus Holland-Moritz, Max Maischein, Michael G
+Schwern, Nicholas Clark, Nicolas R., Paul Evans, Petr Písař, raiph, Renee
+Baecker, Ricardo Signes, Richard Leach, Romano, Ryan Voots, Samanta Navarro,
+Samuel Thibault, Sawyer X, Scott Baker, Sergey Poznyakoff, Sevan Janiyan,
+Shirakata Kentaro, Shlomi Fish, Sisyphus, Sizhe Zhao, Steve Hay, TAKAI
+Kousuke, Thibault Duponchelle, Todd Rinaldo, Tomasz Konojacki, Tom Hukins,
+Tom Stellard, Tony Cook, vividsnow, Yves Orton, Zakariyya Mughal,
+Михаил Козачков.
+
+The list above is almost certainly incomplete as it is automatically
+generated from version control history. In particular, it does not include
+the names of the (very much appreciated) contributors who reported issues to
+the Perl bug tracker.
+
+Many of the changes included in this version originated in the CPAN modules
+included in Perl's core. We're grateful to the entire CPAN community for
+helping Perl to flourish.
+
+For a more complete list of all of Perl's historical contributors, please
+see the F<AUTHORS> file in the Perl source distribution.
+
+=head1 Reporting Bugs
+
+If you find what you think is a bug, you might check the perl bug database
+at L<https://github.com/Perl/perl5/issues>.  There may also be information at
+L<http://www.perl.org/>, the Perl Home Page.
+
+If you believe you have an unreported bug, please open an issue at
+L<https://github.com/Perl/perl5/issues>.  Be sure to trim your bug down to a
+tiny but sufficient test case.
+
+If the bug you are reporting has security implications which make it
+inappropriate to send to a public issue tracker, then see
+L<perlsec/SECURITY VULNERABILITY CONTACT INFORMATION>
+for details of how to report the issue.
+
+=head1 Give Thanks
+
+If you wish to thank the Perl 5 Porters for the work we had done in Perl 5,
+you can do so by running the C<perlthanks> program:
+
+    perlthanks
+
+This will send an email to the Perl 5 Porters list with your show of thanks.
+
+=head1 SEE ALSO
+
+The F<Changes> file for an explanation of how to view exhaustive details on
+what changed.
+
+The F<INSTALL> file for how to build Perl.
+
+The F<README> file for general stuff.
+
+The F<Artistic> and F<Copying> files for copyright information.
+
+=cut

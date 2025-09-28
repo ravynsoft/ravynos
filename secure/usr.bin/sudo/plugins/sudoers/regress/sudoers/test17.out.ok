@@ -1,0 +1,13 @@
+Parses OK
+
+Defaults command_timeout=2d8h10m59s
+
+user0 ALL = TIMEOUT=619830 /usr/bin/id, /usr/bin/who, /bin/ls
+user1 ALL = TIMEOUT=619830 /usr/bin/id
+user2 ALL = TIMEOUT=15030 /usr/bin/id
+user3 ALL = TIMEOUT=630 /usr/bin/id
+user4 ALL = TIMEOUT=1209600 /usr/bin/id
+user5 ALL = TIMEOUT=300 /usr/bin/id
+user6 ALL = TIMEOUT=30 /usr/bin/id
+user7 ALL = TIMEOUT=45 /usr/bin/id
+user8 ALL = TIMEOUT=619830 /usr/bin/id, TIMEOUT=15030 /usr/bin/id, TIMEOUT=630 /usr/bin/id, TIMEOUT=1209600 /usr/bin/id, TIMEOUT=300 /usr/bin/id, TIMEOUT=30 /usr/bin/id

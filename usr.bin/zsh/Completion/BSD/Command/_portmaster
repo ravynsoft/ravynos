@@ -1,0 +1,112 @@
+#compdef portmaster
+
+_portmaster_pkgs() {
+  compadd "$@" - ${PKG_DBDIR:-/var/db/pkg}/*(/:t)
+}
+
+_portmaster_ports() {
+  local expl ret=1 _fbsd_ports _fbsd_cat
+   _fbsd_cat=(${PORTSDIR:-/usr/ports}/[a-z]*(/:t))
+   if [[ $PREFIX != */* ]] ; then
+     _wanted cat_packages expl 'category/port' compadd -S '/' $_fbsd_cat
+   else
+     compset -P '*/'
+     _fbsd_ports=(${PORTSDIR:-/usr/ports}/$IPREFIX/*(/:t))
+     _wanted cat_packages expl 'category/port' compadd $_fbsd_ports
+   fi
+  return ret
+}
+
+_portmaster_pkgs_and_ports() {
+  local ret=1
+  _portmaster_pkgs && ret=0
+  _portmaster_ports && ret=0
+
+  return ret
+}
+
+_portmaster() {
+  local specific_args common_args expunge_args standalone_args kid
+  standalone_args=(
+  '--clean-distfiles[delete distfiles not associated with an installed ports: interactive]'
+  '--clean-distfiles-all[delete distfiles not associated with an installed ports]'
+  '--check-depends[cross-check and update dependency information for all ports]'
+  '--check-port-dbdir[check for stale entries in /var/db/ports]'
+  '--list-origins[list directories from /usr/ports for root and leaf ports]'
+  '-l[list all installed ports by category]'
+  '-L[list all installed ports by category, and search for updates]'
+  {'(-help)-h','(-h)--help'}'[display help message]:'
+    '--version[display the version only]:'
+    )
+    specific_args=(
+    '(-s -r -o)-e[expunge port using pkg_delete, and remove all distfiles]:name of port:_portmaster_pkgs'
+    '(-e -r -o)-s[clean out stale ports that used to be depended on]'
+    '(-e -s -o)-r[rebuild the specified port, and all ports that depend on it]:name/glob of port:_portmaster_pkgs'
+    '(-e -s -r)-o[replace the installed port with a port from a different origin]:new port dir:_portmaster_ports'
+    )
+    expunge_args=(
+    '(-b)-B[prevents creation of the backup package for the installed port]'
+    '(-d)-D[no cleaning of distfiles]'
+    '(-D)-d[always clean distfiles]'
+    )
+    common_args=(
+    "(-G)--force-config[run 'make config' for all ports]" 
+    "-C[prevents 'make clean' from being run before building]"
+    '-H[hide details of the port build and install in a log file]'
+    "-K[prevents 'make clean' from being run after building]"
+    '(-B)-b[create and keep a backup package of an installed port]'
+    '-g[create a package of the new port]'
+    '-n[run through configure, but do not make or install any ports]'
+    '-t[recurse dependencies thoroughly, using all-depends-list]'
+    '-v[verbose output]'
+    '-w[save old shared libraries before deinstall]'
+    '-u[unattended mode]'
+    '(-i)-f[always rebuild ports]'
+    '(-f)-i[interactive update mode]'
+    '-m[any arguments to supply to make]:arguments for make:'
+    '-x[avoid building or updating ports that match this pattern]:glob pattern to exclude from building:'
+    '-p[specify the full path to a port directory]:a port directory:'
+    '--show-work[show what dependent ports are, and are not installed]'
+    '-R[restart an update, skipping ports already up to date]' 
+    '-a[check all ports, update as necessary]'
+    '-F[fetch distfiles only]'
+    $expunge_args
+    $specific_args
+    )
+    if (( CURRENT == 2 ));then
+      _arguments -s \
+      $standalone_args \
+      $common_args \
+        '*:package or port:_portmaster_pkgs_and_ports'
+    else 
+      case "$words[2]" in
+	--clean-distfiles|--clean-distfiles-all|--check-depends|--check-port-dbdir|--version|-help|-h)
+	return 0
+	;;
+	*)
+	if (( $words[(I)-(e|r)] ));then
+	  _arguments -s \
+            '*:package:_portmaster_pkgs'
+	elif (( kid=$words[(I)-o] ));then
+	  if (( CURRENT == $kid + 1 ));then
+	    _arguments -s \
+              '*:replacement port:_portmaster_ports'
+	  elif (( CURRENT == $kid + 2 )); then
+	    _arguments -s \
+              '*:package to replace:_portmaster_pkgs'
+	  else 
+	    return 0
+	  fi
+	elif (( $words[(I)-s] ));then
+	  return 0
+	else
+	  _arguments -s \
+	  $common_args \
+            '*:package or port:_portmaster_pkgs_and_ports'
+	fi
+	;;
+      esac
+    fi
+  }
+
+  _portmaster "$@"

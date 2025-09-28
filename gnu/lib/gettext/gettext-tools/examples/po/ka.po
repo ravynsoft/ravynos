@@ -1,0 +1,132 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2022 Yoyodyne, Inc. (msgids)
+# This file is distributed under the same license as the gettext package.
+# Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-examples 0.20.2\n"
+"Report-Msgid-Bugs-To: bug-gettext@gnu.org\n"
+"POT-Creation-Date: 2023-09-18 23:34+0200\n"
+"PO-Revision-Date: 2022-05-22 05:04+0200\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: Georgian <(nothing)>\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.0.1\n"
+
+#: hello-c/hello.c:35 hello-c-gnome/hello.c:51
+#: hello-c-gnome3/hello.desktop.in.in:5 hello-c++/hello.cc:44
+#: hello-c++20/hello.cc:36 hello-c++-qt/hello.cc:50
+#: hello-c++-kde/hellowindow.cc:47 hello-c++-gnome/hello.cc:55
+#: hello-c++-wxwidgets/hello.cc:73 hello-objc/hello.m:35
+#: hello-objc-gnustep/Hello.m:49 hello-objc-gnome/hello.m:52
+#: hello-sh/hello.sh:14 hello-python/hello.py.in:12
+#: hello-clisp/hello.lisp.in:11 hello-librep/hello.jl.in:12
+#: hello-guile/hello.scm:15 hello-smalltalk/hello.st.in:31
+#: hello-java/Hello.java:14 hello-java-awt/Hello.java:23
+#: hello-java-swing/Hello.java:20 hello-java-qtjambi/Hello.java:27
+#: hello-csharp/hello.cs:14 hello-csharp-forms/hello.cs:29
+#: hello-gawk/hello.awk:11 hello-pascal/hello.hello_world
+#: hello-ycp/hello.ycp:15 hello-tcl/hello.tcl:11 hello-tcl-tk/hello.tcl:13
+#: hello-perl/hello-1.pl.in:17 hello-perl/hello-2.pl.in:12
+#: hello-php/hello.php:12
+msgid "Hello, world!"
+msgstr "გამარჯობა სამყაროვ!"
+
+#: hello-c/hello.c:36 hello-c-gnome/hello.c:56 hello-c++/hello.cc:45
+#: hello-c++-gnome/hello.cc:60 hello-c++-wxwidgets/hello.cc:76
+#: hello-objc/hello.m:36 hello-objc-gnustep/Hello.m:58
+#: hello-objc-gnome/hello.m:57 hello-librep/hello.jl.in:14
+#: hello-gawk/hello.awk:12 hello-pascal/hello.running_as hello-tcl/hello.tcl:12
+#: hello-tcl-tk/hello.tcl:16 hello-perl/hello-1.pl.in:19 hello-php/hello.php:14
+#, php-format
+msgid "This program is running as process number %d."
+msgstr "პროგრამა გაშვებულია პროცესის ნომრით %d."
+
+#: hello-c-gnome3/hello.c:84
+#, c-format
+msgid ""
+"<big>Hello world!</big>\n"
+"This program is running as process number <b>%d</b>."
+msgstr ""
+"<big>გამარჯობა სამყაროვ!</big>\n"
+"პროგრამა გაშვებულია პროცესის ნომრით <b>%d</b>."
+
+#: hello-c-gnome3/hello.c:89
+msgid "<big><u>This is another text</u></big>"
+msgstr "<big><u>ეს კი სხვა ტექსტია</u></big>"
+
+#: hello-c-gnome3/hello.c:91
+msgid "<big><i>This is yet another text</i></big>"
+msgstr "<big><i>ეს კიდევ უფრო სხვაა</i></big>"
+
+#: hello-c-gnome3/hello.desktop.in.in:4
+msgid "Hello"
+msgstr "გამარჯობა"
+
+#: hello-c-gnome3/hello.ui:6
+msgid "Example Application"
+msgstr "მაგალითი აპლიკაცია"
+
+#: hello-c-gnome3/hello.ui:34
+msgid "Update text"
+msgstr "ტექსტის განახლება"
+
+#: hello-c-gnome3/hello.gschema.xml:8
+msgid "Use XML markup"
+msgstr "XML მარკირების გამოყენება"
+
+#: hello-c-gnome3/hello.gschema.xml:9
+msgid "Whether to use XML markup in the text."
+msgstr "გამოიყენოთ თუ არა XML მარკირება ტექსტში."
+
+#: hello-c++20/hello.cc:37
+#, fuzzy, c++-format
+msgid "This program is running as process number {:d}."
+msgstr "პროგრამა გაშვებულია პროცესის ნომრით {pid}."
+
+#: hello-c++-qt/hello.cc:57 hello-c++-kde/hellowindow.cc:54
+#: hello-smalltalk/hello.st.in:32 hello-ycp/hello.ycp:19
+#, ycp-format
+msgid "This program is running as process number %1."
+msgstr "პროგრამა გაშვებულია პროცესის ნომრით %1."
+
+#: hello-c++-kde/hello.cc:46
+msgid "Hello example"
+msgstr "გამარჯობის მაგალითი"
+
+#: hello-c++-kde/hello.cc:48
+msgid "Hello world example"
+msgstr "გამარჯობა სამყაროს მაგალითი"
+
+#: hello-sh/hello.sh:17
+#, sh-format
+msgid "This program is running as process number $pid."
+msgstr "პროგრამა გაშვებულია პროცესის ნომრით $pid."
+
+#: hello-python/hello.py.in:13
+#, python-format
+msgid "This program is running as process number %(pid)d."
+msgstr "პროგრამა გაშვებულია პროცესის ნომრით %(pid)d."
+
+#: hello-clisp/hello.lisp.in:13 hello-guile/hello.scm:17
+#, scheme-format
+msgid "This program is running as process number ~D."
+msgstr "პროგრამა გაშვებულია პროცესის ნომრით ~D."
+
+#: hello-java/Hello.java:18 hello-java-awt/Hello.java:28
+#: hello-java-swing/Hello.java:25 hello-java-qtjambi/Hello.java:34
+#: hello-csharp/hello.cs:17 hello-csharp-forms/hello.cs:36
+#, csharp-format
+msgid "This program is running as process number {0}."
+msgstr "პროგრამა გაშვებულია პროცესის ნომრით {0}."
+
+#: hello-perl/hello-2.pl.in:14
+#, perl-brace-format
+msgid "This program is running as process number {pid}."
+msgstr "პროგრამა გაშვებულია პროცესის ნომრით {pid}."

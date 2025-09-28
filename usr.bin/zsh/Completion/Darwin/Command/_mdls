@@ -1,0 +1,9 @@
+#compdef mdls
+
+# Note: The inconsistent use of the -o+ option variant here is deliberate
+_arguments -s -S : \
+  '*'{-n+,-name}'[restrict output to specified attribute]:attribute' \
+  '(-p -plist)-nullMarker[specify string used for null values]:string' \
+  '(-p -r -nullMarker -plist -raw)'{-p,-plist}'[output in XML plist format to specified file]:output file:_files' \
+  '(-p -r -plist -raw)'{-r,-raw}'[print raw (NUL-delimited) attribute data]' \
+  '*: :_files'

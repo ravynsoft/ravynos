@@ -1,0 +1,400 @@
+declare -A BASH_ALIASES=()
+declare -A BASH_CMDS=()
+declare -A fluff
+declare -A BASH_ALIASES=()
+declare -A BASH_CMDS=()
+declare -A fluff=([foo]="one" [bar]="two" )
+declare -A fluff=([foo]="one" [bar]="two" )
+declare -A fluff=([bar]="two" )
+declare -A fluff=([qux]="assigned" [bar]="newval" )
+./assoc.tests: line 39: chaff: four: must use subscript when assigning associative array
+declare -A BASH_ALIASES=()
+declare -A BASH_CMDS=()
+declare -Ai chaff=([one]="10" [zero]="5" )
+declare -Ar waste=([pid]="42134" [lineno]="41" [source]="./assoc.tests" [version]="4.0-devel" )
+declare -A wheat=([two]="b" [three]="c" [one]="a" [zero]="0" )
+declare -A chaff=(["hello world"]="flip" [one]="10" [zero]="5" )
+./assoc.tests: line 51: waste: readonly variable
+./assoc.tests: line 52: unset: waste: cannot unset: readonly variable
+declare -A chaff=(["*"]="12" ["hello world"]="flip" [one]="a" )
+flip
+argv[1] = <multiple>
+argv[2] = <words>
+argv[3] = <12>
+argv[4] = <flip>
+argv[5] = <a>
+argv[1] = <multiple words>
+argv[2] = <12>
+argv[3] = <flip>
+argv[4] = <a>
+argv[1] = <multiple>
+argv[2] = <words>
+argv[3] = <12>
+argv[4] = <flip>
+argv[5] = <a>
+argv[1] = <multiple words 12 flip a>
+./assoc.tests: line 71: declare: chaff: cannot destroy array variables in this way
+declare -A wheat=([six]="6" ["foo bar"]="qux qix" )
+argv[1] = <qux>
+argv[2] = <qix>
+argv[1] = <qux qix>
+declare -A wheat=([six]="6" ["foo bar"]="qux qix" )
+argv[1] = <2>
+argv[1] = <7>
+argv[1] = <qux>
+argv[2] = <qix>
+argv[3] = <blat>
+argv[1] = <qux qix blat>
+argv[1] = <16>
+argv[1] = <16>
+argv[1] = <6>
+argv[2] = <flix>
+argv[1] = <six>
+argv[2] = <foo>
+argv[3] = <bar>
+argv[1] = <six>
+argv[2] = <foo bar>
+8
+/usr/local/bin /bin . /usr/bin /usr/ucb /usr/sbin /bin /sbin
+bin bin . bin ucb sbin bin sbin
+bin
+/ / / / / / /
+/
+argv[1] = <bin>
+argv[1] = </>
+argv[1] = <sbin>
+argv[1] = </>
+8
+/usr/local/bin /bin . /usr/bin /usr/ucb /usr/sbin /bin /sbin
+bin bin . bin ucb sbin bin sbin
+/ / / / / / /
+8
+4 -- /bin
+^usr^local^bin ^bin . ^usr^bin ^usr^ucb ^usr^sbin ^bin ^sbin
+^usr^local^bin ^bin . ^usr^bin ^usr^ucb ^usr^sbin ^bin ^sbin
+\usr/local/bin \bin . \usr/bin \usr/ucb \usr/sbin \bin \sbin
+\usr\local\bin \bin . \usr\bin \usr\ucb \usr\sbin \bin \sbin
+\usr\local\bin \bin . \usr\bin \usr\ucb \usr\sbin \bin \sbin
+([a]=1)
+
+foo qux
+/usr/sbin/foo /usr/local/bin/qux
+hits	command
+   0	/usr/sbin/foo
+   0	/bin/sh
+   0	/sbin/blat
+   0	/usr/local/bin/qux
+foo sh blat qux
+/usr/sbin/foo /bin/sh /sbin/blat /usr/local/bin/qux
+
+foo qux
+argv[1] = </usr/sbin/foo>
+argv[2] = </usr/local/bin/qux>
+argv[3] = <-l>
+alias blat='cd /blat ; echo $PWD'
+alias foo='/usr/sbin/foo'
+alias qux='/usr/local/bin/qux -l'
+alias sh='/bin/bash --login -o posix'
+blat foo sh qux
+argv[1] = <cd /blat ; echo $PWD>
+argv[2] = </usr/sbin/foo>
+argv[3] = </bin/bash --login -o posix>
+argv[4] = </usr/local/bin/qux -l>
+outside: outside
+declare -A BASH_ALIASES=()
+declare -A BASH_CMDS=()
+declare -A afoo=([six]="six" ["foo bar"]="foo quux" )
+argv[1] = <inside:>
+argv[2] = <six>
+argv[3] = <foo quux>
+outside 2: outside
+argv[1] = </barq//fooq>
+argv[1] = <>
+argv[2] = <barq>
+argv[3] = <>
+argv[4] = <fooq>
+argv[1] = </bar!//foo!>
+argv[1] = <>
+argv[2] = <bar!>
+argv[3] = <>
+argv[4] = <foo!>
+argv[1] = </arq//ooq>
+argv[1] = <>
+argv[2] = <arq>
+argv[3] = <>
+argv[4] = <ooq>
+argv[1] = </Barq//Fooq>
+argv[1] = <>
+argv[2] = <Barq>
+argv[3] = <>
+argv[4] = <Fooq>
+argv[1] = </BARQ//FOOQ>
+argv[1] = <>
+argv[2] = <BARQ>
+argv[3] = <>
+argv[4] = <FOOQ>
+abc
+def
+def
+./assoc5.sub: line 26: declare: `myarray[foo[bar]=bleh': not a valid identifier
+def bleh abc
+myarray=(["]"]="def" [foo]="bleh" ["a]a"]="abc" ["a]=test1;#a"]="123" )
+
+123
+myarray=(["]"]="def" ["a]=test2;#a"]="def" [foo]="bleh" ["a]a"]="abc" ["a]=test1;#a"]="123" )
+bar"bie
+doll
+declare -A foo=(["bar\"bie"]="doll" )
+bar"bie
+doll
+declare -A foo=(["bar\"bie"]="doll" )
+bar"bie
+doll
+declare -A foo=(["bar\"bie"]="doll" )
+bar"bie
+doll
+declare -A foo=(["bar\"bie"]="doll" )
+bar"bie
+doll
+declare -A foo=(["bar\"bie"]="doll" )
+bar'bie
+doll
+declare -A foo=(["bar'bie"]="doll" )
+bar'bie
+doll
+declare -A foo=(["bar'bie"]="doll" )
+bar'bie
+doll
+declare -A foo=(["bar'bie"]="doll" )
+bar'bie
+doll
+declare -A foo=(["bar'bie"]="doll" )
+bar'bie
+doll
+declare -A foo=(["bar'bie"]="doll" )
+bar$bie
+doll
+declare -A foo=(["bar\$bie"]="doll" )
+bar[bie
+doll
+declare -A foo=(["bar[bie"]="doll" )
+bar`bie
+doll
+declare -A foo=(["bar\`bie"]="doll" )
+bar\]bie
+doll
+declare -A foo=(["bar\\]bie"]="doll" )
+bar${foo}bie
+doll
+declare -A foo=(["bar\${foo}bie"]="doll" )
+bar
+after printf
+after use: 0
+declare -A assoc=([0]="assoc" )
+assoc
+declare -A assoc=([two]="twoless" [three]="three" [one]="onemore" )
+declare -Ar assoc=([two]="twoless" [three]="three" [one]="onemore" )
+declare -A hash=([key]="value1" )
+declare -A hash=([key]="value1 value2" )
+declare -A b=([")"]="" ["\""]="" ["]"]="" ["\\"]="" ["\`"]="" )
+declare -A b=(["]"]="" ["\`"]="" )
+declare -A dict=(["'"]="3" ["\""]="1" ["\\"]="4" ["\`"]="2" )
+declare -A dict=()
+declare -A dict=(["'"]="3" ["\""]="1" ["\\"]="4" ["\`"]="2" )
+declare -A dict=()
+4
+4
+a[$b]= 5
+declare -A a=(["80's"]="Depeche Mode" )
+./assoc9.sub: line 84: read: `a[80's]': not a valid identifier
+declare -A a
+declare -A a=(["80's"]="Depeche Mode" )
+./assoc9.sub: line 96: printf: `a[80's]': not a valid identifier
+declare -A a
+declare -A a=(["80's"]="Depeche Mode" )
+6
+1
+1+5
+declare -A a=(["\$(date >&2)"]="5" )
+declare -A myarray=([foo]="bleh" ["foo[bar"]="bleh" )
+foo
+declare -A assoc=(["\$var"]="value" )
+declare -A assoc=(["\$var"]="value" )
+declare -A assoc=(["\$var"]="value" )
+declare -A assoc=()
+./assoc9.sub: line 154: typeset: `foo[foo]bar]=bax': not a valid identifier
+foo]bar
+bip
+declare -A foo=(["foo]bar"]="bip" )
+./assoc10.sub: line 14: declare: a: cannot convert indexed to associative array
+f: declare -a a
+./assoc10.sub: line 17: declare: a: cannot convert associative to indexed array
+f: declare -A a
+
+f: declare -a a
+main: declare -- a="7"
+f: declare -A a
+main: declare -- a="42"
+declare -A a=([3]="" [1]="2" )
+declare -A foo=([d]="4" [c]="3" [b]="2" [a]="1" )
+foo=( d "4" c "3" b "2" a "1" )
+declare -A foo=(["\\"]="5" ["@"]="3" ["holy hell this works"]="4" ["a b"]="1" ["spa ces"]="2" )
+foo=( echo "\\" "5" "@" "3" "holy hell this works" "4" "a b" "1" "spa ces" "2" )
+./assoc11.sub: line 34: "": bad array subscript
+declare -A foo=([";"]="semicolon" ["]"]="def" [a=b]="assignment" ["a]a"]="abc" ["foo[bar"]="bleh" )
+foo=( ";" "semicolon" "]" "def" a=b "assignment" "a]a" "abc" "foo[bar" "bleh" )
+declare -A foo=(["'"]="squote" ["\""]="dquote" ["\\"]="bslash" ["\`"]="backquote" )
+foo=( "'" "squote" "\"" "dquote" "\\" "bslash" "\`" "backquote" )
+declare -A foo=(["bar]bie"]="doll" ["a]=test1;#a"]="123" ["bar\"bie"]="doll" )
+foo=( "bar]bie" "doll" "a]=test1;#a" "123" "bar\"bie" "doll" )
+declare -A inside=([c]="3" [b]="2" [a]="1" )
+inside=( c "3" b "2" a "1" )
+declare -A dict=(["?"]="quest" ["*"]="star" ["'"]="squote" ["\$"]="dol" ["\""]="dquote" ["\\"]="bslash" ["@"]="at" ["}"]="rbrace" ["{"]="lbrace" ["\`"]="bquote" )
+dict=( "?" "quest" "*" "star" "'" "squote" "\$" "dol" "\"" "dquote" "\\" "bslash" "@" "at" "}" "rbrace" "{" "lbrace" "\`" "bquote" )
+declare -A foo=([two]="" [one]="1" )
+foo=( two "" one "1" )
+rparen dquote rbracket bs
+declare -A a=([")"]="rparen" ["\""]="dquote" ["]"]="rbracket" ["\\"]="bs" )
+")" "rparen" "\"" "dquote" "]" "rbracket" "\\" "bs"
+declare -A a=([")"]="rparen" ["\""]="dquote" ["]"]="rbracket" ["\\"]="bs" )
+declare -A a=([")"]="rparen" ["\""]="dquote" ["]"]="rbracket" ["\\"]="bs" )
+declare -A a=([")"]="rparen" ["\""]="dquote" ["]"]="rbracket" ["\\"]="bs" )
+declare -Arx foo=([two]="2" [three]="3" [one]="1" )
+./assoc11.sub: line 90: foo: readonly variable
+declare -A v1=(["1 2"]="3" )
+declare -A v2=(["1 2"]="3" )
+declare -A v3=(["1 2"]="3" )
+declare -A v1=(["1 2"]="3 4 5" )
+declare -A v2=(["1 2"]="3 4 5" )
+declare -A v3=(["1 2"]="3 4 5" )
+declare -A v1=(["1 2"]="3 4 5" )
+declare -A v2=(["1 2"]="3 4 5" )
+declare -A v3=(["1 2"]="3 4 5" )
+declare -A v1=(["1 2"]="3 4 5" )
+declare -A v2=(["1 2"]="3 4 5" )
+declare -A v3=(["1 2"]="3 4 5" )
+declare -A v1=(["20 40 80"]="xtra" ["1 2"]="3 4 5" )
+declare -A v2=(["20 40 80"]="xtra" ["1 2"]="3 4 5" )
+declare -A v3=(["1 2"]="3 4 5" ["\$xtra"]="xtra" )
+declare -A v1=(["20 40 80"]="new xtra" ["1 2"]="3 4 5" )
+declare -A v2=(["20 40 80"]="new xtra" ["1 2"]="3 4 5" )
+declare -A v3=(["1 2"]="3 4 5" ["\$xtra"]="new xtra" )
+declare -A assoc=(["*"]="star" ["!"]="bang" ["@"]="at" )
+at
+star
+declare -A a=(["@"]="at" )
+./assoc13.sub: line 22: ia[@]: bad array subscript
+declare -a ia
+declare -A a=(["@"]="at2" )
+declare -A a=(["@"]="    string" )
+declare -A a=(["*"]="star2" ["@"]="at" )
+declare -A assoc=([hello]="world" ["key with spaces"]="value with spaces" [foo]="bar" [one]="1" )
+argv[1] = <world>
+argv[2] = <value with spaces>
+argv[3] = <bar>
+argv[4] = <1>
+argv[1] = <hello>
+argv[2] = <world>
+argv[3] = <key with spaces>
+argv[4] = <value with spaces>
+argv[5] = <foo>
+argv[6] = <bar>
+argv[7] = <one>
+argv[8] = <1>
+argv[1] = <world value with spaces bar 1>
+argv[1] = <hello world key with spaces value with spaces foo bar one 1>
+argv[1] = <hello>
+argv[2] = <world>
+argv[3] = <key with spaces>
+argv[4] = <value with spaces>
+argv[5] = <one>
+argv[6] = <1>
+argv[7] = <foo>
+argv[8] = <bar>
+argv[1] = <'hello'>
+argv[2] = <'world'>
+argv[3] = <'key with spaces'>
+argv[4] = <'value with spaces'>
+argv[5] = <'one'>
+argv[6] = <'1'>
+argv[7] = <'foo'>
+argv[8] = <'bar'>
+argv[1] = <'hello'>
+argv[2] = <'world'>
+argv[3] = <'key with spaces'>
+argv[4] = <'value with spaces'>
+argv[5] = <'one'>
+argv[6] = <'1'>
+argv[7] = <'foo'>
+argv[8] = <'bar'>
+declare -A clone=([hello]="world" ["key with spaces"]="value with spaces" [foo]="bar" [one]="1" )
+declare -A posparams=([hello]="world" ["key with spaces"]="value with spaces" [foo]="bar" [one]="1" )
+declare -A var=([$'\001']=$'\001\001\001\001' )
+declare -A v2=([$'\001']=$'\001\001\001\001' )
+argv[1] = <^A>
+argv[2] = <^A^A^A^A>
+declare -A foo=([$'\001']=$'\001\001\001\001' )
+declare -A var=([$'\001']=$'\001\001\001\001' )
+argv[1] = <^A>
+argv[2] = <^A^A^A^A>
+declare -A foo=([$'\001']=$'\001\001\001\001' )
+declare -A var=([$'\001']=$'\001\001\001\001' )
+argv[1] = <^A>
+argv[2] = <^A^A^A^A>
+declare -A foo=([$'\001']=$'\001\001\001\001' )
+declare -a var=([0]=$'\001\001\001\001')
+argv[1] = <$'\001\001\001\001'>
+declare -a foo=([0]=$'\001\001\001\001')
+declare -a var=([0]=$'\001\001\001\001')
+argv[1] = <$'\001\001\001\001'>
+declare -a foo=([0]=$'\001\001\001\001')
+declare -A var=([two]=$'ab\001cd' [one]=$'\001\001\001\001' )
+declare -A foo=([two]=$'ab\001cd' [one]=$'\001\001\001\001' )
+declare -A foo=([$'\001']=$'ab\001cd' )
+declare -A foo=([$'\001']=$'\001\001\001\001' )
+declare -A A=(["\$(echo Darwin ; echo stderr>&2)"]="darjeeling" [Darwin]="darjeeling" )
+stderr
+darjsharking
+darjsharking
+stderr
+darj
+darj
+stderr
+DARJEELING
+DARJEELING
+stderr
+'darjeeling'
+'darjeeling'
+stderr
+darjeel
+darjeel
+stderr
+10
+10
+stderr
+darjeeling
+darjeeling
+stderr
+set
+set
+stderr
+set
+set
+stderr
+42
+42
+declare -A A=(["]"]="rbracket" ["["]="lbracket" )
+declare -A A=()
+declare -A A=(["]"]="rbracket" ["["]="lbracket" )
+declare -A A=()
+declare -A A=(["]"]="rbracket" ["["]="lbracket" )
+declare -A A=()
+declare -A A=(["]"]="rbracket" ["["]="lbracket" )
+declare -A A=()
+declare -A A=(["]"]="rbracket" ["["]="lbracket" )
+declare -A A=()
+declare -A A=(["]"]="rbracket" ["["]="lbracket" )
+declare -A A=()
+declare -A A=(["]"]="rbracket" ["["]="lbracket" )
+declare -A A=()
+5: ok 1

@@ -1,0 +1,852 @@
+commit 9035c2225494b80b02e985fc7ee77880e0bd6993
+Author: Henrik Rydberg <rydberg@bitmath.se>
+Date:   Thu Apr 4 09:47:16 2024 +0200
+
+    Release mtdev-1.1.7
+    
+    Signed-off-by: Henrik Rydberg <rydberg@bitmath.se>
+
+commit b969a91d9c971d4cdfda72c7a7bffe63c826751b
+Author: orbea <orbea@riseup.net>
+Date:   Wed Apr 3 20:12:30 2024 -0700
+
+    test: link using libmtdev.la
+    
+    When linking internal dependencies that were linked using $(LIBTOOL) the
+    ideal method is to use the generated libtool archive (.la) file. This
+    fixes the build with slibtool which doesn't find -lmtdev during the
+    build and explicitly requires the .la file to be used.
+    
+    Note the build will not fail if libmtdev is already installed to the
+    system.
+    
+    Github PR: https://github.com/rydberg/mtdev/pull/2
+    Gentoo Issue: https://bugs.gentoo.org/928387
+    Signed-off-by: orbea <orbea@riseup.net>
+
+commit 2ed588eccf83728452ce0fc30770e637a7c1374f
+Author: Henrik Rydberg <rydberg@bitmath.se>
+Date:   Tue Dec 7 21:13:36 2021 +0100
+
+    Fix test warnings
+    
+    The unit tests were using stack-allocated memory smaller than
+    the maximum matrix size, causing compiler warnings. Fixed with
+    this patch.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@bitmath.se>
+
+commit 25d541d2b0b526eba58fee99ceac202acca6d4a2
+Author: Henrik Rydberg <rydberg@bitmath.se>
+Date:   Sun Jan 26 14:40:46 2020 +0100
+
+    Release mtdev-1.1.6
+    
+    Signed-off-by: Henrik Rydberg <rydberg@bitmath.se>
+
+commit 598e561881c687cea072375637aa08ac9230fabe
+Author: Khem Raj <raj.khem@gmail.com>
+Date:   Sat Nov 23 18:45:32 2019 -0800
+
+    adjust for 64bit time_t for 32bit architectures
+    
+    libc that has support for 32 bit applications to use 64 bit
+    time_t supplies __USE_TIME_BITS64 define [1]
+    
+    [1] https://sourceware.org/glibc/wiki/Y2038ProofnessDesign
+    
+    Signed-off-by: Khem Raj <raj.khem@gmail.com>
+    Signed-off-by: Henrik Rydberg <rydberg@bitmath.se>
+
+commit 5a260fa95a5e7cebdd8f9da947c8d8eb244efae0
+Author: Michael Forney <mforney@mforney.org>
+Date:   Fri Jun 7 11:29:01 2019 -0700
+
+    Use a macro for `nlongs` so it can be used in constant expression
+    
+    This way, it can be used to specify the `absbits` array size (in
+    `mtdev_configure`) without making it a VLA.
+    
+    VLAs are an optional feature in C11, and in this case we can determine
+    the array size statically.
+    
+    This also matches the macros used in libevdev and libinput.
+    
+    Signed-off-by: Michael Forney <mforney@mforney.org>
+    Signed-off-by: Henrik Rydberg <rydberg@bitmath.se>
+
+commit 5f9caa26b81155feede6ff71c9b14fa0e8980fbd
+Author: Martin Kepplinger <martink@posteo.de>
+Date:   Tue Aug 22 11:12:13 2017 +0200
+
+    mtdev-matching.c: declare global variables static
+    
+    n1 and n2 are only locally used and can thus be static.
+    
+    Signed-off-by: Martin Kepplinger <martink@posteo.de>
+
+commit d9f084c9384f99d3589cf51f8503b7aee4e9666c
+Author: Martin Kepplinger <martink@posteo.de>
+Date:   Tue Aug 22 11:12:12 2017 +0200
+
+    mtdev-mapgen.c: declare init_caps() static
+    
+    init_caps() is only locally used and can thus be static.
+    
+    Signed-off-by: Martin Kepplinger <martink@posteo.de>
+
+commit 8ba8d359392693f9882ea2d195fc1bebb8b3a29d
+Author: Martin Kepplinger <martink@posteo.de>
+Date:   Tue Aug 22 11:12:11 2017 +0200
+
+    caps.c: declare mtdev_set_slots() static
+    
+    mtdev_set_slots() is only used internally, so it should be static.
+    
+    Signed-off-by: Martin Kepplinger <martink@posteo.de>
+
+commit 4381b78fea54de0e775bf54952b2f95e5a06c57d
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Fri Feb 28 19:57:15 2014 +0100
+
+    Release mtdev-1.1.5
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 88840fe45b49464642181007c5a6df1bc951bade
+Author: Colin Walters <walters@verbum.org>
+Date:   Thu Feb 27 08:03:35 2014 -0500
+
+    build: Fix srcdir != builddir from git
+    
+    Make it possible to build the source out-of-tree. The gnome-continuous
+    build system does this by default.
+    
+    Signed-off-by: Colin Walters <walters@verbum.org>
+    [rydberg@euromail.se: Resolve merge conflict]
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 6d698f6dba4a024b5f3ccac2876465c60f780478
+Author: Ross Burton <ross.burton@intel.com>
+Date:   Fri Nov 15 23:41:29 2013 +0000
+
+    test: fix out-of-tree builds
+    
+    Some tests do #include  relative to the top-level, so add top_srcdir to the
+    include path as otherwise out-of-tree builds can't find the files.
+    
+    Signed-off-by: Ross Burton <ross.burton@intel.com>
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 25070dda4b1aaaf402db621d10fc901b82d78377
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Sat Aug 3 22:01:06 2013 +0200
+
+    Release mtdev-1.1.4
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 72bbb5f42fe8e47d6314eb92a0ada6554644305c
+Merge: b5d8e8e a9ea316
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Wed Jul 31 19:25:50 2013 +0200
+
+    Merge more build fixes from Peter Hutterer, along with a more explicit
+    declaration of the backwards compatibility constraints on the API.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit a9ea3168615056360cdb21d6f1576d66be2a43fe
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Jul 24 14:24:43 2013 +1000
+
+    Enable silent rules by default
+    
+    silent rules make it easier to spot compiler errors
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 0bccf8c5268826bdb0835dd9b7964bcc95bae35f
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Jul 24 14:23:25 2013 +1000
+
+    test: silence compiler warning - implicit declaration of function ‘atoi’
+    
+    mtdev-kernel.c:130:2: warning: implicit declaration of function ‘atoi’
+    [-Wimplicit-function-declaration]
+      eslot = atoi(argv[1]) + 1;
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 1ddaf0af41098d0a01eac162c6fe4d38f2fbbbad
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Jul 24 13:00:32 2013 +1000
+
+    Fix compiler warning - implicit declaration of function 'abs'
+    
+    match_four.c:80:4: warning: implicit declaration of function 'abs'
+    [-Wimplicit-function-declaration]
+        *dist++ = abs(q->x - p->x) + abs(q->y - p->y);
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 6f7c5c558006bb69fdf0af73103097c012ccfed5
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Jul 25 13:21:09 2013 +1000
+
+    Replace hardcoded 11 with a define
+    
+    The 11 comes from the legacy API that we need to be binary compatible with.
+    Make this clear with a define and a comment.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit b5d8e8e26c0116e4b6e556a0f6da8777bc55c590
+Merge: e5eb274 f4fe569
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Thu Jul 25 10:05:20 2013 +0200
+
+    Merge build fixes from Peter Hutterer.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit f4fe56973a29265e22f049ceed1e299573f90ec4
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Jul 3 15:49:21 2013 +1000
+
+    Rename INCLUDES to AM_CPPFLAGS
+    
+    src/Makefile.am:22: warning: 'INCLUDES' is the old name for 'AM_CPPFLAGS' (or '*_CPPFLAGS')
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit e79f2b211830dec2bae35595c6dfd1d06f75d903
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Jul 3 15:45:12 2013 +1000
+
+    Drop maintainer mode - enable by default
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit e5eb27494cd237e60645db4d7be5b4acf41cb5e0
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Wed Aug 22 22:20:16 2012 +0200
+
+    Release mtdev-1.1.3
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 656d5c9d7e37a301afa3af9c2382d6b869f57ebf
+Author: David Kozub <zub@linux.fjfi.cvut.cz>
+Date:   Tue May 29 22:53:21 2012 +0200
+
+    Fix pc file to allow compiling with mtdev installed in non-std path.
+    
+    The pkgconfig file does not specify the -I flag needed to be able to
+    compile with `pkg-config mtdev --cflags` when libmtdev is installed to
+    a directory that is not searched by the C compiler by default.
+    
+    This patch fixes the issue.
+    
+    Signed-off-by: David Kozub <zub@linux.fjfi.cvut.cz>
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 5a6773f85a77e78dbbb915e32768aa24e1c83124
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Mon Feb 20 16:03:05 2012 +0100
+
+    Release mtdev-1.1.2
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 43ce27aab2d990e9a4f54d2050b851bd2da01875
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Thu Feb 16 16:25:30 2012 +0100
+
+    Add support for kernel MT slot state retrieval
+    
+    From kernel 3.4, extraction of the MT slot state is supported
+    via the EVIOGMTSLOTS ioctl. This patch initializes the slots
+    using that information.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 3ec66c3b21e45d6529567f5144ba24dcc4645591
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Thu Jan 12 20:05:28 2012 +0100
+
+    Add the missing distance event to the internal slot representation
+    
+    The new distance value was missing from the internal representation,
+    leading to memory corruption for devices supporting the event. Fixed
+    with this patch.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 3aa3de4c19b80caaf93812fafff20acd5f5a4d12
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Apr 19 11:45:45 2011 +0200
+
+    Return EINVAL for invalid parameters on mtdev_init.
+    
+    [rydberg@euromail.se: minor cleanup]
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 61684cf0466200631b6a44af1c662eb760ad3f5d
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Apr 19 11:41:04 2011 +0200
+
+    mtdev_close should ignore NULL devices.
+    
+    Saves us one goto label in mtdev_init.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 9e3daba37d1d15c99a41a2d838bf683934cc7077
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Wed Dec 22 18:55:09 2010 +0100
+
+    Release mtdev v1.1.0
+    
+    This version includes backwards-compatible API changes,
+    while keeping the ABI stable. Applications that want to
+    migrate to the new API, compile with -DMTDEV_NO_LEGACY_API.
+
+commit ecfc435c3742546e36ec4eefd76f02584fb54192
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Wed Dec 22 18:49:41 2010 +0100
+
+    mtdev-test: output MT event support
+    
+    At startup, output the MT events supported by the device.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit cff212dbe28487c14ab040829877d77378a61344
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Wed Dec 22 18:35:53 2010 +0100
+
+    Add support for ABS_MT_DISTANCE
+    
+    In the upcoming 2.6.38 kernel, support for hovering is introduced.
+    Add the ABS_MT_DISTANCE to the extended set of handled ABS_MT events.
+    
+    The change is binary compatible with existing libraries.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 56a77e68fb91eef928d8a95c50ae14508e37ae0f
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Wed Dec 22 18:29:00 2010 +0100
+
+    Introduce a stable ABI
+    
+    The current mtdev is not ABI stable, and the upcoming additions
+    to the kernel api will break ABI. This patch starts the process
+    of keeping binary compatibility with old programs, by moving the
+    abi-specific parts under a special flag, MTDEV_NO_LEGACY_API,
+    and makes sure the internal parts compiles with MTDEV_NO_LEGACY_API
+    set. This way, older programs will still work, old programs will
+    still compile, and new programs will be able to use the additions.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 0e2ab3b5940e70493aaabdfe5e8da1c75db4db72
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Mon Dec 20 16:49:53 2010 +0100
+
+    Allow use in c++ applications
+    
+    Reported-by: Armando Visconti <armando.visconti@st.com>
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit db1fdc76ceb5d1bbe32c193e13eb4357da5d0b81
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Sun Nov 7 18:07:07 2010 +0100
+
+    mtdev v1.0.11
+
+commit 67fdae132708889ed89e302bd63a5cb91b2c75a7
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Sun Nov 7 18:04:46 2010 +0100
+
+    Add and test a simple kernel matcher
+    
+    This matcher is for up to four fingers, and has these properties:
+    
+    * Approximately 1.4 times faster at 4 fingers
+    * Approximately 4.0 times faster at 2 fingers
+    * Roughly 100 lines of code
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 868f53c8a5684524bc6b1e7cd39aabed56fad9df
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Sun Nov 7 17:56:56 2010 +0100
+
+    Generate kernel matcher data
+    
+    This application generates the matcher tables of the tracking
+    library in the linux kernel.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 561af7f537b80f3952ab228bcc992ad75ced280b
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Tue Oct 12 17:13:45 2010 +0200
+
+    Add mtdev-matching test program
+    
+    Measures matching speed and provides some historically difficult
+    test cases.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 1390859adc7fd084c5c546984d415e44bfc44ccd
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Tue Sep 7 16:22:30 2010 +0200
+
+    mtdev v1.0.10
+
+commit 61632a31642ecaa7288624b0dc9887c4196cc165
+Author: Henrik Rydberg <rydberg@bitmath.org>
+Date:   Tue Sep 7 15:54:27 2010 +0200
+
+    Fall back to single-touch position and pressure dimensions
+    
+    In case mtdev is driving a non-MT device, basic dimensions are not set
+    properly. Fall back on ABS_X/Y and ABS_PRESSURE, such that basic
+    pointer operations can be supported through mtdev.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@bitmath.org>
+
+commit 9daa452e53d2b2f74f943bd0a50d17a311698b4f
+Author: Henrik Rydberg <rydberg@bitmath.org>
+Date:   Tue Sep 7 15:46:31 2010 +0200
+
+    Install mapping and plumbing header files
+    
+    Applications may need to know the property mapping, and the plumbing
+    interface is actually supported, so install both headers.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@bitmath.org>
+
+commit 676b4003302e025d10a0822357c55b97dbab3707
+Author: Henrik Rydberg <rydberg@bitmath.org>
+Date:   Tue Sep 7 15:38:19 2010 +0200
+
+    Complete mtdev property mapping
+    
+    Add the missing property values to the mapgen output, and insert the
+    result in the mtdev mapping header file.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@bitmath.org>
+
+commit a2ea1c9154c0d746f8c4e72425435fc017324d43
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Wed Aug 18 11:06:34 2010 +0200
+
+    mtdev v1.0.9
+
+commit 810cef87de0d65e505e68ad39c469c2e9ce6d0a1
+Author: Henrik Rydberg <rydberg@bitmath.org>
+Date:   Wed Aug 18 11:01:28 2010 +0200
+
+    Correct logic for kernel MT slots devices
+    
+    This patch fixes the broken logic to detect the kernel MT slots protocol,
+    such that MT slots devices may pass through mtdev properly.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit e91311dc01f970b687da4f00810cf40d3d37a5e4
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Mon Aug 2 00:22:50 2010 +0200
+
+    mtdev v1.0.8
+
+commit caa4aaafe48fce11f6826ba2d0b8f1ff4f8e49cf
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Mon Aug 2 01:49:03 2010 +0200
+
+    Remove erroneous dependency on xorg macros
+    
+    This package has no external dependencies and should not depend
+    on the xorg macros. This patch removes the dependency, adds a tailored
+    INSTALL file, and uses git to generate the ChangeLog.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit abfa51e422384d23ea0a253e5937063131fd4279
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Wed Jul 21 10:09:12 2010 +0200
+
+    mtdev v1.0.7
+
+commit ae5e172ee1e2d100bee6607ab66f318a62a2ebe3
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Wed Jul 21 10:08:40 2010 +0200
+
+    The forthcoming 2.6.36 kernel does not define the MT_SLOT_ABS_EVENTS
+    list, so make sure it is always defined in mtdev.h
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 926493b33a0836931ee454cba0761f021d078078
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Mon Jul 19 13:09:51 2010 +0200
+
+    mtdev v1.0.6
+
+commit d2a8e0bfda364730ba5c06be4adc783f9a889073
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Mon Jul 19 13:09:10 2010 +0200
+
+    Change test program name to mtdev-test
+    
+    In order to simplify packaging, rename the current mtdev
+    device test program to mtdev-test.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit a6f1a4dd2c14908c6602c4c2438ef4b5cb86de99
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Thu Jul 15 14:51:55 2010 +0200
+
+    mtdev v1.0.5
+
+commit 16110e89a671067ee53cb7a8bce6b6a2690b97ae
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Thu Jul 15 14:51:04 2010 +0200
+
+    Add missing header files to sources directive
+    
+    In order for make dist-gzip to work properly, all files needed
+    to build the system need to be listed. This patch adds the missing
+    header files to the sources directive.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 7de1f0b0bbfb4dd5b205ed74d2f8ad2ca5e663b6
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Tue Jul 13 09:14:35 2010 +0200
+
+    mtdev v1.0.4
+
+commit 3557acb6a9eec0c0d752a1f3d783b5f50bc19e1b
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Jul 5 08:01:41 2010 +0200
+
+    Build test utilities unconditionally, do not install
+    
+    The test programs in the package are command-line utilities which can
+    be used to generate MT code mappings for header files, and debug
+    hardware problems, and should not be installed. With this patch, tests
+    are built unconditionally, but not installed.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 8da65965093ce2515dd0ce828a6512f24f5f5ca9
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Jul 2 11:53:41 2010 +1000
+
+    README: add URL and email for patches.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit ad07aa12a19dea8324c2cc5e1d986c636c4b6593
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Jul 2 11:51:08 2010 +1000
+
+    test: fix out-of-tree builds.
+    
+    Libraries are in builddir, not sourcedir.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit e1c48e0763304ae58752c29c3afb85f68bdf32fa
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Thu Jun 24 21:03:42 2010 +0200
+
+    mtdev v1.0.3
+
+commit c880548a2973a52070cb583923d5edae375b7b6d
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Thu Jun 24 11:39:08 2010 +0200
+
+    Add a CREDITS file
+    
+    This patch adds a CREDITS file, which keeps track of historical
+    contributions affecting this library.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 1fed4b309cea8c7a0dc03f740174bd31b4b03ab5
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Tue Jun 22 23:25:58 2010 +0200
+
+    gitignore: Ignore the patches directory
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit a0dc5304a856158939b52980ce5eaf7d25b67bf1
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Tue Jun 22 22:42:22 2010 +0200
+
+    mtdev v1.0.2
+
+commit 0acc1d3fbacf08543c46387ed5dba6a1e2b36ec0
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Tue Jun 22 22:38:58 2010 +0200
+
+    Update defuzz() credits
+    
+    Correct the credits for the defuzz() function. Used under the MIT
+    license with permission from Vojtech Pavlik.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 451dbad007dc941fb7a4877238873d13245c0a65
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Tue Jun 22 16:06:38 2010 -0400
+
+    Search for libmtdev in src/ directory during a clean build
+    
+    If mtdev hasn't already been installed, the test binaries will fail to
+    compile because they can't find libmtdev. Point them to the src
+    directory build output.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit d29155e8436e084d925fc3ed5bb1fce94bc69949
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Tue Jun 22 11:55:38 2010 +0200
+
+    mtdev v1.0.1
+
+commit d4d92de224681a260de81be44374649de2bfb485
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Tue Jun 22 11:55:04 2010 +0200
+
+    Apply new package title to all files
+    
+    This patch changes the package description title in all relevant
+    files, and touches up the README. All systems go.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 7a5b2c37ea0b4ec81fbe8be7c1d7f9bf1731439e
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Tue Jun 22 11:45:17 2010 +0200
+
+    Build test tools also under autoconf
+    
+    The tests can be disabled by using --enable-test=no in configure.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 9c5128866ea65ad300b40d47a9d43998dc8bc9f4
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Tue Jun 22 11:44:36 2010 +0200
+
+    janitor: fix compiler warnings
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 0647b37dfc35145d74822844ad7e54bf5c218369
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Mon Jun 21 21:08:51 2010 -0400
+
+    Move to autotools
+    
+    [rydberg@euromail.se: minor fixups]
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 172221f14fc91ebb37aa4c561ad733088cc3c3bf
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Tue Jun 22 09:19:50 2010 +0200
+
+    match: conform to mtdev namespace
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 925ad71be727ec8da3cd71a2c1c965d336ff856f
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Tue Jun 22 00:52:26 2010 +0200
+
+    mtdev v1.0.0
+
+commit ba936eddbf88b6d8f650082f6e7d2694f8addac4
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Mon Jun 21 22:43:58 2010 +0200
+
+    Unused slot is denoted by MT_TRACKING_ID == -1
+    
+    The current MT slot protocol allows any tracking id outside the range
+    specified by the device to denote an unused slot. This is difficult to
+    handle in userspace, since the valid range is unknown. This patch
+    tightens the definition of a valid tracking id to always lie in the
+    range [0, MT_ID_MAX], and uses the value -1 to denote an unused slot.
+    
+    Acked-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit dbbf15a7fad8b76122061344aeddb652bd4fe442
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Mon Jun 21 09:57:56 2010 -0400
+
+    mtdev_get: return number of retrieved events if error occurs
+    
+    Otherwise, we pull events, but return -1. We should send the events we
+    were able to retrieve for now.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 922332131c329b9d444c434d68a2f21e3076ae0c
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Sat Jun 19 14:21:55 2010 +0200
+
+    Install and uninstall all relevant files
+    
+    Useful for testing as a standalong package.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 259b92a30280cdec2b7798df3c14da596c417ef1
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Sat Jun 19 12:10:27 2010 +0200
+
+    Restructure mtdev api
+    
+    Split the api into plumbing and porcelain layers and move the
+    plumbing part to its own optional header file.
+    
+    The main usecase is to fetch events from the device, route them
+    through the converter and extract the processed events. To simplify
+    the API, replace the intermediate mtdev_pull() function by the
+    higher-level mtdev_get(). This function does all the required steps,
+    and has the same semantics as read().
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 8087ac3d655c2b2835cf61e7a69611d81d4f303e
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Fri Jun 18 11:51:54 2010 +0200
+
+    Change the matching code to the MIT license
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit d7f96ade2801a712dbb532ab08ec93c9558870e1
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Fri Jun 18 11:28:55 2010 +0200
+
+    Use a non-blocking example in test/mtdev
+    
+    The non-blocking case is more interesting for X applications.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 2752c003604e907f2a6776ff794a72845d1b5949
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Fri Jun 18 11:24:24 2010 +0200
+
+    Correct minor semantic documentation error in mtdev_close()
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 0463e0bcc262c7a4709b43312f15adaaaaaa88f9
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Fri Jun 18 01:41:14 2010 +0200
+
+    janitor: fix spelling error
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 309df849b8ad3772b912d498eacda9f38a6e4f1e
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Fri Jun 18 01:39:40 2010 +0200
+
+    Correct semantic error in mtdev_idle
+    
+    The current semantics, that a non-empty conversion pipe means
+    the device is not idle, is not very useful. This patch changes
+    the semantics to simply checking if the fetch buffer is empty,
+    and if there are no events to fetch from the device.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit d62c625535494361b8ba0a004a1d24ce485f0b59
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Fri Jun 18 01:35:28 2010 +0200
+
+    Allow max_events to be zero in mtdev_pull()
+    
+    When reading from non-blocking devices, it makes sense to read
+    all events available. This patch lets a zero max_events achieve that.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit c9c4f4cda362679567bc4bc04ffedc5d984e2329
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Fri Jun 18 01:32:43 2010 +0200
+
+    Rectify argument order in mtdev_fetch
+    
+    The argument order in mtdev_fetch() differs from all other
+    usages involved the file descriptor. Fixed with this patch.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit d4704c0d6d70a2815c5ca12d74ba11cc7be69e20
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Fri Jun 18 01:28:43 2010 +0200
+
+    make: Correct bad library name
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit ba07cbb24bd226ead1f8f96b0e969822aa734076
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Thu Jun 17 21:41:26 2010 +0200
+
+    Output both a static and a dynamic library
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 7d392652bae52b76cb5fe907cc1e86e0e0c4ced9
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Thu Jun 17 20:15:44 2010 +0200
+
+    Add idle function
+    
+    This patch adds the mtdev_idle() function, which checks the kernel
+    device for activity. Useful when implementing timing logic.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 6a8c74eb36ab93702c257f425832272cccb0cde8
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Thu Jun 17 18:18:22 2010 +0200
+
+    Name dynamic library correctly
+    
+    To simplify dynamic library usage, name the libary correctly
+    and put it in /usr/lib/.
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+
+commit 66e5de9eaefc33ffa6af3617f9ec7a50f10af50d
+Author: Henrik Rydberg <rydberg@euromail.se>
+Date:   Thu Jun 17 18:12:58 2010 +0200
+
+    Initial load of mtdev project
+    
+    Signed-off-by: Henrik Rydberg <rydberg@euromail.se>

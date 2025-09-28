@@ -1,0 +1,88 @@
+#!/bin/sh
+
+# This file is part of avahi.
+#
+# avahi is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 2 of the
+# License, or (at your option) any later version.
+#
+# avahi is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+# License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with avahi; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+
+set -e
+
+# Command line arguments:
+#   $1 event that happened:
+#          BIND:     Successfully claimed address
+#          CONFLICT: An IP address conflict happened
+#          UNBIND:   The IP address is no longer needed
+#          STOP:     The daemon is terminating
+#   $2 interface name
+#   $3 IP adddress
+
+PATH="$PATH:/usr/bin:/usr/sbin:/bin:/sbin"
+
+# Use a different metric for each interface, so that we can set
+# identical routes to multiple interfaces.
+
+METRIC=$((1000 + `cat "/sys/class/net/$2/ifindex" 2>/dev/null || echo 0`))
+
+if [ -x /bin/ip -o -x /sbin/ip ] ; then
+
+    # We have the Linux ip tool from the iproute package
+
+    case "$1" in
+        BIND)
+            ip addr flush dev "$2" label "$2:avahi"
+            ip addr add "$3"/16 brd 169.254.255.255 label "$2:avahi" scope link dev "$2"
+            ip route add default dev "$2" metric "$METRIC" scope link ||:
+            ;;
+
+        CONFLICT|UNBIND|STOP)
+            ip route del default dev "$2" metric "$METRIC" scope link ||:
+            ip addr del "$3"/16 brd 169.254.255.255 label "$2:avahi" scope link dev "$2"
+            ;;
+
+        *)
+            echo "Unknown event $1" >&2
+            exit 1
+            ;;
+    esac
+
+elif [ -x /bin/ifconfig -o -x /sbin/ifconfig ] ; then
+
+    # We have the old ifconfig tool
+
+    case "$1" in
+        BIND)
+            ifconfig "$2:avahi" inet "$3" netmask 255.255.0.0 broadcast 169.254.255.255 up
+            route add default dev "$2:avahi" metric "$METRIC" ||:
+            ;;
+
+        CONFLICT|STOP|UNBIND)
+            route del default dev "$2:avahi" metric "$METRIC" ||:
+            ifconfig "$2:avahi" down
+            ;;
+
+        *)
+            echo "Unknown event $1" >&2
+            exit 1
+            ;;
+    esac
+
+else
+
+    echo "No network configuration tool found." >&2
+    exit 1
+
+fi
+
+exit 0

@@ -1,0 +1,71 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# framework to test new `wait -n' option that waits for any job to finish
+
+set -m
+
+sleep 20 &
+{ sleep 2; exit 12; } &
+sleep 20 &
+
+wait -n
+echo $?
+
+jobs
+disown -a
+
+{ sleep 1 ; exit 4; } &
+{ sleep 2 ; exit 5; } & bgpid1=$!
+{ sleep 4 ; exit 6; } &
+
+wait -p wvar -n %2 %3
+case "$wvar" in
+$bgpid1)	echo $?: ok 1;;
+*)		echo bad 1;;
+esac
+
+{ sleep 1 ; exit 2; } & bgpid2=$!
+wait -p wvar -n %8 $!
+case $wvar in
+$bgpid2)	echo $?: ok 2;;
+*)		echo bad 2;;
+esac
+
+disown -a
+
+{ sleep 3; exit 1; } & { sleep 1; exit 2; } & bgpid3=$!
+{ sleep 3; exit 3; } & { sleep 3; exit 4; } &
+
+wait -n -p wpid %1 %2 %3 %4
+
+case $wpid in
+$bgpid3)	echo $?: ok 3;;
+*)		echo bad 3 ;;
+esac
+
+disown -a
+
+unset bgpid1 bgpid2 bgpid3
+unset wpid
+
+# now that we have no jobs, make sure that wait -n -p var leaves var unset
+jobs
+wait -n -p wpid
+echo $wpid $?
+
+# make sure wait -p var does something useful without the -n option
+jobs
+wait -p wpid
+declare -p wpid

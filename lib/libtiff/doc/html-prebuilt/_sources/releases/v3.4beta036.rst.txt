@@ -1,0 +1,86 @@
+Changes in TIFF v3.4beta036
+===========================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.4beta036 (no release tag)
+  Previous Version        :doc:`v3.4beta035 <v3.4beta035>`
+  Master Download Site    `<ftp://ftp.sgi.com/graphics/tiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Software configuration changes
+------------------------------
+
+* support was added for building the library as a DSO under HP-UX with 
+  the native C compiler
+* tools are now built with explicit pathnames for the DSO under IRIX,
+  Solaris, and Linux
+* DSO configuration support for Linux was changed to require that
+  :file:`libc.so` only be readable (not executable)
+
+
+Library changes
+---------------
+
+* support was add for ICC: ``NumberOfInks``, and ``ICCProfile``
+* a memory leak caused by doing ``TIFFSetDirectory(0)`` was fixed
+* a bug was fixed whereby certain multi-directory files were not
+  properly handled when accessed by mapping the data into memory
+* the strip chopping support is now always compiled
+  into the library with the default usage controlled by a
+  :c:macro:`STRIPCHOP_DEFAULT` configuration parameter
+* the strip chopping support no longer chops tiled images
+* all static strings are now const---for shared libraries
+* the logic for estimating the strip size of images without
+  ``StripByteCounts`` tag was improved by handling
+  ``PlanarContig`` images differently from ``PlanarSeparate``
+* a bug was fixed in the G3 codec when converting the Y resolution
+  of data specified in metric units
+* a bug was fixed in the G3/G4 decoder for data where lines terminate
+  with a ``v0`` code
+* the ``TIFFRGBAImage`` support was changed to scale 16-bit colormap
+  entries more conservatively to avoid problems with applications
+  that do not generate fully saturated pixel values
+* the LZW decoder was changed to use a more conservative scheme when
+  bounds checking the hash table array; this avoids pitfalls with
+  systems that load objects into memory in unusual locations
+* a bug was fixed in :c:func:`TIFFPrintDirectory` handling of the
+  ``InkNames`` tag
+* :c:func:`TIFFPrintDirectory` now understands ``NumberOfInks``
+  and ICC-related tags
+* the routines for reading image data now provide more useful information
+  when a read error is encountered
+* support was added for compiling with Microsoft Visual C++ 4.0
+
+
+Tools changes
+-------------
+
+* a bug was fixed in :program:`pal2rgb` colormap handling
+* :program:`tiff2ps`:
+
+  * now includes John Wehle's changes for maintaining
+    the aspect ratio of images when scaling and for honoring the deadzone
+    on a page when generating PostScript Level II
+  * does a better job guarding against the mishandling
+    of greyscale images
+  * now correctly converts X- and Y-resolution values
+    specified in metric units
+* :program:`tiffdump`:
+
+  * has a new "``-m``" option to control the maximum number of indirect
+    data values printed for a tag (by default 24)
+  * understands several new tags
+  * now shows any terminating null in ASCII strings
+
+* :program:`tiffinfo` now suppresses strip chopping when interpreting an image;
+  a new "``-z``" option has been added to enable strip chopping

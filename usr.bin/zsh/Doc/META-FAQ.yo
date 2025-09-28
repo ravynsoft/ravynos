@@ -1,0 +1,53 @@
+IFDEF(INCWSLEVEL)(\
+INCWSLEVEL()\
+)(\
+STARTDEF()
+)
+INCLUDEFILE(zmacros.yo)
+
+def(startmenu)(0)(DELLINE)
+def(endmenu)(0)(DELLINE)
+def(menu)(1)(DELLINE)
+def(texinode)(4)(DELLINE)
+def(cindex)(1)(DELLINE)
+
+def(sect)(1)(
+SECTHEAD
+ARG1
+)
+
+def(em)(1)(ARG1)
+def(bf)(1)(ARG1)
+def(tt)(1)(ARG1)
+def(uref)(1)(ARG1)
+def(var)(1)(ARG1)
+def(nofill)(1)(ARG1)
+
+def(startitem)(0)(NEXTLINE DELLINE)
+def(enditem)(0)(DELLINE)
+def(item)(2)(
+      ARG1+USECHARTABLE(indent2)ARG2 DELLINE +USECHARTABLE(standard))
+
+def(startlist)(0)(DELLINE)
+def(endlist)(0)(DELLINE)
+def(list)(1)(      ARG1)
+
+DEFINECHARTABLE(standard)(
+  '\n' = "\n"
+)
+DEFINECHARTABLE(indent2)(
+  '\n' = "\n            "
+)
+
+IFDEF(DECWSLEVEL)(\
+DECWSLEVEL()\
+)(\
+ENDDEF()\
+)\
+------------------------
+META-FAQ for the Z Shell
+------------------------
+
+The latest version of this META-FAQ can be found at any of the FTP sites
+listed below.
+INCLUDEFILE(Zsh/metafaq.yo)\

@@ -1,0 +1,77 @@
+# Expect script for LoongArch ELF linker tests
+#   Copyright (C) 2022 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+if [istarget loongarch64-*-*] {
+
+  if [isbuild loongarch64-*-*] {
+    set testname "loongarch relax build"
+    set pre_builds [list \
+      [list \
+	"$testname" \
+	"" \
+	"" \
+	{relax.s} \
+	{} \
+	"relax" \
+      ] \
+    ]
+
+    run_cc_link_tests $pre_builds
+
+    if [file exist "tmpdir/relax"] {
+      set objdump_output [run_host_cmd "objdump" "-d tmpdir/relax"]
+      if { [ regexp ".*pcaddi.*pcaddi.*" $objdump_output] } {
+	pass "loongarch relax"
+      } {
+	fail "loongarch relax"
+      }
+    }
+  }
+
+  run_ld_link_tests \
+      [list \
+	  [list \
+	      "relax-align" \
+	      "-e 0x0 -z relro" "" \
+	      "" \
+	      {relax-align.s} \
+	      [list \
+		  [list objdump -d relax-align.dd] \
+	      ] \
+	      "relax-align" \
+	  ] \
+      ]
+
+  set objdump_flags "-s -j .data"
+  run_ld_link_tests \
+      [list \
+	  [list \
+	      "uleb128" \
+	      "-e 0x0" "" \
+	      "" \
+	      {uleb128.s} \
+	      [list \
+		  [list objdump $objdump_flags uleb128.dd] \
+	      ] \
+	      "uleb128" \
+	  ] \
+      ]
+}

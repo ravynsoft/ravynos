@@ -1,0 +1,22 @@
+#compdef debdiff
+
+_arguments \
+  '(-d --dirs)'{-d,--dirs}'[do not ignore directories]' \
+  '--nodirs[ignore directories]' \
+  '(-m --move)'{-m,--move}':movement:_files' \
+  '--move-regex:movement:_files' \
+  '--nocontrol[do not compare control files]' \
+  '--control[compare control files]' \
+  '--wp[pass -p to wdiff]' \
+  '--wl[pass -l to wdiff]' \
+  '--wt[pass -t to wdiff]' \
+  '--show-moved[show movements between packages]' \
+  '--noshow-moved[do not show movements between packages]' \
+  '--renamed:package:_deb_packages avail' \
+  '(--no-conf --noconf)'{--no-conf,--noconf}'[do not read any config files]' \
+  '(-h --help)'{-h,--help}'[show help]' \
+  '(-v --version)'{-v,--version}'[show version]' \
+  '(-q --quiet)'{-q,--quiet}'[be quiet if no differences]' \
+  '--from: :_deb_files' \
+  '--to: :_deb_files' \
+  '*:file to compare:_deb_files -c'

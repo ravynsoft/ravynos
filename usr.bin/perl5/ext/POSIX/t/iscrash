@@ -1,0 +1,20 @@
+# test file for checking that the  is*() functions don't crash
+use Win32API::File qw(SetErrorMode SEM_NOGPFAULTERRORBOX SEM_NOOPENFILEERRORBOX);
+use strict;
+use threads;
+use POSIX qw(isalpha islower);
+
+SetErrorMode(SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX);
+
+use warnings; # we want the warnings code to run
+$SIG{__WARN__} = sub {}; # but don't want to display them
+
+my $t1 = threads->create(sub { isalpha("c") });
+$t1->join;
+
+islower("a");
+
+my $t2 = threads->create(sub { isalpha("a") });
+$t2->join;
+
+print "ok\n";

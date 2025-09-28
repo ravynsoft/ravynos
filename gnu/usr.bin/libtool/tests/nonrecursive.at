@@ -1,0 +1,150 @@
+# nonrecursive.at -- test nonrecursive Automake Libltdl       -*- Autotest -*-
+#
+#   Copyright (C) 2005, 2008-2009, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Gary V. Vaughan, 2005
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+
+AT_BANNER([Nonrecursive Automake Libltdl.])
+
+# _LT_AT_LTDL_SETUP
+# -----------------
+m4_pushdef([_LT_AT_LTDL_SETUP],
+[AT_DATA([configure.ac],
+[[AC_INIT([subdirectory-demo], ]AT_PACKAGE_VERSION[, ]AT_PACKAGE_BUGREPORT[)
+LT_CONFIG_LTDL_DIR([ltdl])
+AC_CONFIG_AUX_DIR([ltdl/config])
+AC_CONFIG_MACRO_DIRS([ltdl/m4])
+AC_CONFIG_LIBOBJ_DIR([ltdl])
+AC_CONFIG_HEADERS([config.h:config.hin])
+AM_INIT_AUTOMAKE([foreign subdir-objects])
+AC_PROG_CC
+AM_PROG_CC_C_O
+LT_INIT
+LTDL_INIT([nonrecursive])
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+]])
+
+AT_DATA([Makefile.am],
+[[ACLOCAL_AMFLAGS = -I ltdl/m4
+AUTOMAKE_OPTIONS	= 1.9.6
+BUILT_SOURCES		=
+
+AM_CPPFLAGS		=
+AM_LDFLAGS		=
+
+include_HEADERS		=
+noinst_LTLIBRARIES	=
+lib_LTLIBRARIES		= foo.la
+EXTRA_LTLIBRARIES	=
+
+EXTRA_DIST		=
+
+CLEANFILES		=
+MOSTLYCLEANFILES	=
+
+include ltdl/ltdl.mk
+
+foo_la_LDFLAGS		= -module -avoid-version -no-undefined
+foo_la_SOURCES		= foo.c
+]])
+
+echo 'int dummy = 0;' > foo.c
+])# _LT_AT_LTDL_SETUP
+
+## ------------------------ ##
+## Softlinked libltdl tree. ##
+## ------------------------ ##
+
+AT_SETUP([compiling softlinked libltdl])
+
+_LT_AT_LTDL_SETUP
+
+LT_AT_LIBTOOLIZE([--ltdl])
+AT_CHECK([if test -f ltdl/configure.ac; then false; fi])
+
+# Support vanilla autoconf-2.59 & automake-1.9.6
+for file in lt__argz.c lt__dirent.c lt__strl.c; do
+  cp ltdl/$file $file
+done
+
+LT_AT_BOOTSTRAP([ignore], [-I ltdl/m4], [], [--add-missing --copy],
+	[], [], [all $tst_dist])
+
+AT_CHECK([test -f ltdl/libltdlc.la])
+
+AT_CLEANUP
+
+
+## -------------------- ##
+## Copied libltdl tree. ##
+## -------------------- ##
+
+AT_SETUP([compiling copied libltdl])
+
+_LT_AT_LTDL_SETUP
+
+LT_AT_LIBTOOLIZE([--copy --ltdl])
+AT_CHECK([if test -f ltdl/configure.ac; then false; fi])
+
+# Support vanilla autoconf-2.59 & automake-1.9.6
+for file in lt__argz.c lt__dirent.c lt__strl.c; do
+  cp ltdl/$file $file
+done
+
+LT_AT_BOOTSTRAP([ignore], [-I ltdl/m4], [], [--add-missing --copy],
+	[], [], [all $tst_dist])
+
+AT_CHECK([test -f ltdl/libltdlc.la])
+
+AT_CLEANUP
+
+
+## ------------------------- ##
+## Installable libltdl tree. ##
+## ------------------------- ##
+
+AT_SETUP([installable libltdl])
+
+_LT_AT_LTDL_SETUP
+
+prefix=`pwd`/_inst
+
+LT_AT_LIBTOOLIZE([--copy --ltdl])
+AT_CHECK([if test -f ltdl/configure.ac; then false; fi])
+
+# Support vanilla autoconf-2.59 & automake-1.9.6
+for file in lt__argz.c lt__dirent.c lt__strl.c; do
+  cp ltdl/$file $file
+done
+
+LT_AT_BOOTSTRAP([ignore], [-I ltdl/m4], [], [--add-missing --copy],
+	[], [--enable-ltdl-install --prefix=$prefix], [all install $tst_dist])
+
+AT_CHECK([test -f "$prefix/lib/libltdl.la"])
+AT_CHECK([test -f "$prefix/include/ltdl.h"])
+
+AT_CLEANUP
+
+dnl Be careful not to let the definition leak into other tests
+m4_popdef([_LT_AT_LTDL_SETUP])

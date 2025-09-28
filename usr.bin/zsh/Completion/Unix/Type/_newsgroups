@@ -1,0 +1,9 @@
+#autoload
+
+local expl
+
+: ${(A)_cache_newsgroups:=${${(f)"$(fgrep -vh \! ~/.newsrc*)"}%:*}}
+
+(( ${(w)#_cache_newsgroups} )) && _wanted newsgroups expl 'newsgroup' \
+    _multi_parts "$@" -i . _cache_newsgroups
+

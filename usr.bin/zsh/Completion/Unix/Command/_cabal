@@ -1,0 +1,9 @@
+#compdef cabal
+
+local -a subcmds
+
+subcmds=(${${${${${(f)"$(cabal --help)"}[(r)Commands:*,(r)For more information*]}[2,-2]}#  }%% *})
+
+_arguments \
+    '1:subcmd:compadd -a subcmds' \
+    ':other: _alternative "options:option:compadd -- $(cabal $words[2] --list-options)" "files:file:_files"'

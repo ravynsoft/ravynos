@@ -1,0 +1,104 @@
+# lt_dlopen.at -- test libltdl functionality                -*- Autotest -*-
+#
+#   Copyright (C) 2009, 2011-2019, 2021-2022 Free Software Foundation,
+#   Inc.
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([lt_dlopen error messages])
+AT_KEYWORDS([libltdl])
+
+# The bug is not fixed:
+AT_XFAIL_IF([:])
+
+# This test only works if the system allows undefined symbols.
+eval `$LIBTOOL --config | $GREP '^allow_undefined_flag='`
+AT_CHECK([test unsupported != "$allow_undefined_flag" || exit 77])
+
+AT_DATA([main.c],
+[[#include <ltdl.h>
+#include <stdio.h>
+
+int
+main (int argc, char* argv[])
+{
+  int err = 0;
+  lt_dlhandle plugin_handle;
+
+  if (argc < 2)
+    {
+      fprintf (stderr, "usage: %s plugin\n", argv[0]);
+      return 1;
+    }
+
+  lt_dlinit ();
+  plugin_handle = lt_dlopenext (argv[1]);
+  if (NULL != plugin_handle)
+    {
+      printf ("plugin opened successfully!\n");
+      lt_dlclose (plugin_handle);
+    }
+  else
+    {
+      printf ("plugin failed to open: %s\n", lt_dlerror());
+      err = 1;
+    }
+  lt_dlexit ();
+  return err;
+}
+]])
+
+AT_DATA([good-plugin.c],
+[[int foo;
+int *i = &foo;
+]])
+
+AT_DATA([missing-symbol-plugin.c],
+[[/* On systems that allow undefined symbols, this will compile,
+     but the symbol "foo" won't be found at runtime */
+extern int foo;
+int *i = &foo;
+]])
+
+: ${LTDLINCL="-I$abs_top_srcdir/libltdl"}
+: ${LIBLTDL="$abs_builddir/../libltdl/libltdlc.la"}
+
+CPPFLAGS="$LTDLINCL $CPPFLAGS"
+inst=`pwd`/inst
+libdir=$inst/lib
+
+AT_CHECK([$CC $CPPFLAGS $CFLAGS -c main.c], [], [ignore], [ignore])
+for file in good-plugin.c missing-symbol-plugin.c; do
+  AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c $file],
+	   [], [ignore], [ignore])
+done
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o good-plugin.la -rpath $libdir ]dnl
+	 [-module -avoid-version good-plugin.lo], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o missing-symbol-plugin.la -rpath $libdir]dnl
+	 [-module -avoid-version missing-symbol-plugin.lo], [], [ignore], [ignore])
+
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT ]dnl
+	 [-dlopen good-plugin.la -dlopen missing-symbol-plugin.la $LIBLTDL],
+	 [], [ignore], [ignore])
+
+LT_AT_EXEC_CHECK([./main], [], [ignore], [ignore], [./good-plugin.la])
+LT_AT_EXEC_CHECK([./main], [1], [ignore], [stderr], [./missing-symbol-plugin.la])
+AT_CHECK([$GREP 'missing symbol' stderr], [], [ignore])
+
+AT_CLEANUP

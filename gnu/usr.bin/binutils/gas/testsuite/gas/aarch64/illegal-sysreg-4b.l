@@ -1,0 +1,11 @@
+[^:]*: Assembler messages:
+[^:]*:[0-9]+: Error: immediate value out of range 0 to 1 at operand 2 -- `msr TCO,#-1'
+[^:]*:[0-9]+: Error: immediate value out of range 0 to 1 at operand 2 -- `msr TCO,#2'
+[^:]*:[0-9]+: Error: immediate value out of range 0 to 1 at operand 2 -- `msr TCO,#15'
+[^:]*:[0-9]+: Error: immediate value out of range 0 to 1 at operand 2 -- `msr TCO,#0x100000000'
+[^:]*:[0-9]+: Error: immediate value out of range 0 to 15 at operand 2 -- `msr daifclr,#-1'
+[^:]*:[0-9]+: Error: immediate value out of range 0 to 15 at operand 2 -- `msr daifclr,#16'
+[^:]*:[0-9]+: Error: immediate value out of range 0 to 15 at operand 2 -- `msr daifclr,#0x200000000'
+[^:]*:[0-9]+: Error: immediate value out of range 0 to 15 at operand 2 -- `msr daifset,#-1'
+[^:]*:[0-9]+: Error: immediate value out of range 0 to 15 at operand 2 -- `msr daifset,#16'
+[^:]*:[0-9]+: Error: immediate value out of range 0 to 15 at operand 2 -- `msr daifset,#0x200000000'

@@ -1,0 +1,55 @@
+name: Deploy to GitHub pages
+
+on:
+  push:
+    branches: ["master"]
+
+  # Allow running this workflow manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Set up directory tree
+        run: mkdir -p public_html/doc/
+      - name: Download doxygen from Linux build
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: linux.yml
+          workflow_conclusion: success
+          name: doxygen-docs
+          path: doxygen/
+      - name: Move doxygen to target directory
+        run: mv doxygen/ public_html/doc/current/
+      - name: Check out the static website
+        uses: actions/checkout@v3
+        with:
+          repository: xkbcommon/website
+          persist-credentials: false
+          path: website
+      - name: Move static website to target directory
+        run: mv website/* public_html/
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: public_html/
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2

@@ -1,0 +1,82 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# weird redirections that caused trouble and were fixed in post-3.0 bash
+stuff()
+{
+	c=1
+	( sleep 5 < /dev/null >/dev/null 2>&1 & ) &
+}
+
+exec 3>&1
+eval `
+exec 4>&1 >&3 3>&-
+{
+	stuff 4>&-
+	echo "c=$c" >&4
+}`
+echo c1 is $c
+
+unset -f stuff
+
+stuff()
+{
+	c=2
+	( sleep 5 < /dev/null >/dev/null 2>&1 & )
+}
+
+exec 3>&1
+eval `
+exec 4>&1 >&3 3>&-
+{
+	stuff 4>&-
+	echo "c=$c" >&4
+}`
+echo c2 is $c
+
+unset -f stuff
+
+stuff()
+{
+	c=3
+	{ sleep 5 < /dev/null >/dev/null 2>&1 & } &
+}
+
+exec 3>&1
+eval `
+exec 4>&1 >&3 3>&-
+{
+	stuff 4>&-
+	echo "c=$c" >&4
+}`
+echo c3 is $c
+
+unset -f stuff
+
+stuff()
+{
+	c=4
+	{ sleep 5 < /dev/null >/dev/null 2>&1 & }
+}
+
+exec 3>&1
+eval `
+exec 4>&1 >&3 3>&-
+{
+	stuff 4>&-
+	echo "c=$c" >&4
+}`
+echo c4 is $c
+
+# fixed in bash-3.1
+echo 'exec <&3' | ${THIS_SH} 3<&0

@@ -1,0 +1,113 @@
+read [ -rszpqAclneE ] [ -t [ num ] ] [ -k [ num ] ] [ -d delim ]
+     [ -u n ] [ [name][?prompt] ] [ name ...  ]
+       Read  one  line and break it into fields using the characters in
+       $IFS as separators, except as noted below.  The first  field  is
+       assigned to the first name, the second field to the second name,
+       etc., with leftover fields assigned to the last name.   If  name
+       is omitted then REPLY is used for scalars and reply for arrays.
+
+       -r     Raw  mode:  a  `\'  at the end of a line does not signify
+              line continuation and backslashes in the line don't quote
+              the following character and are not removed.
+
+       -s     Don't echo back characters if reading from the terminal.
+
+       -q     Read only one character from the terminal and set name to
+              `y' if this character was `y' or `Y' and  to  `n'  other-
+              wise.   With this flag set the return status is zero only
+              if the character was `y' or `Y'.  This option may be used
+              with  a  timeout  (see -t); if the read times out, or en-
+              counters end of file, status 2  is  returned.   Input  is
+              read from the terminal unless one of -u or -p is present.
+              This option may also be used within zle widgets.
+
+       -k [ num ]
+              Read only one (or num) characters.  All are  assigned  to
+              the first name, without word splitting.  This flag is ig-
+              nored when -q is present.  Input is read from the  termi-
+              nal  unless  one of -u or -p is present.  This option may
+              also be used within zle widgets.
+
+              Note that despite the mnemonic  `key'  this  option  does
+              read full characters, which may consist of multiple bytes
+              if the option MULTIBYTE is set.
+
+       -z     Read one entry from the editor buffer stack and assign it
+              to  the  first  name,  without  word  splitting.  Text is
+              pushed onto the stack with `print -z' or  with  push-line
+              from  the  line editor (see zshzle(1)).  This flag is ig-
+              nored when the -k or -q flags are present.
+
+       -e
+       -E     The input read is printed (echoed) to the  standard  out-
+              put.  If the -e flag is used, no input is assigned to the
+              parameters.
+
+       -A     The first name is taken as the name of an array  and  all
+              words are assigned to it.
+
+       -c
+       -l     These  flags are allowed only if called inside a function
+              used for completion (specified with the -K flag  to  com-
+              pctl).  If the -c flag is given, the words of the current
+              command are read. If the -l flag is given, the whole line
+              is  assigned  as a scalar.  If both flags are present, -l
+              is used and -c is ignored.
+
+       -n     Together with -c, the number of the word the cursor is on
+              is  read.  With -l, the index of the character the cursor
+              is on is read.  Note that the command name is word number
+              1,  not word 0, and that when the cursor is at the end of
+              the line, its character index is the length of  the  line
+              plus one.
+
+       -u n   Input is read from file descriptor n.
+
+       -p     Input is read from the coprocess.
+
+       -d delim
+              Input  is  terminated by the first character of delim in-
+              stead of by newline.
+
+       -t [ num ]
+              Test if input is available before attempting to read.  If
+              num  is  present,  it must begin with a digit and will be
+              evaluated to give a number of seconds,  which  may  be  a
+              floating point number; in this case the read times out if
+              input is not available within this time.  If num  is  not
+              present, it is taken to be zero, so that read returns im-
+              mediately if no input  is  available.   If  no  input  is
+              available, return status 1 and do not set any variables.
+
+              This option is not available when reading from the editor
+              buffer with -z, when called from within  completion  with
+              -c  or  -l,  with  -q which clears the input queue before
+              reading, or within zle where other mechanisms  should  be
+              used to test for input.
+
+              Note  that  read does not attempt to alter the input pro-
+              cessing mode.  The default mode is  canonical  input,  in
+              which  an entire line is read at a time, so usually `read
+              -t' will not read anything until an entire line has  been
+              typed.   However,  when reading from the terminal with -k
+              input is processed one key at a time; in this case,  only
+              availability  of  the  first character is tested, so that
+              e.g. `read -t -k 2' can still block on the second charac-
+              ter.   Use  two  instances of `read -t -k' if this is not
+              what is wanted.
+
+       If the first argument contains a `?', the remainder of this word
+       is used as a prompt on standard error when the shell is interac-
+       tive.
+
+       The value (exit status) of read is 1 when an end-of-file is  en-
+       countered,  or  when  -c or -l is present and the command is not
+       called from a compctl function, or as described for -q.   Other-
+       wise the value is 0.
+
+       The  behavior  of some combinations of the -k, -p, -q, -u and -z
+       flags is undefined.  Presently -q cancels  all  the  others,  -p
+       cancels  -u, -k cancels -z, and otherwise -z cancels both -p and
+       -u.
+
+       The -c or -l flags cancel any and all of -kpquz.

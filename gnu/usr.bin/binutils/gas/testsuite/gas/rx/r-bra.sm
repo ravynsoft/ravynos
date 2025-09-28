@@ -1,0 +1,22 @@
+	nop
+bar:
+	nop
+	nop
+	bra	fred
+	bra	barney
+	bra	grill
+	bra	bar
+	bra	foo
+	nop
+	bra	bar
+	nop
+	nop
+foo:
+	nop
+
+	.space	130
+grill:
+	nop
+	.space	33000
+barney:
+	nop

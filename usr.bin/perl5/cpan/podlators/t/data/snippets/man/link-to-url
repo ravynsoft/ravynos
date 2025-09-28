@@ -1,0 +1,25 @@
+[name]
+Link to URL
+
+[input]
+=head1 LINK TO URL
+
+This is a L<link|http://www.example.com/> to a URL.
+
+The newest version of this document is also available on the World Wide Web at
+L<http://pod.tst.eu/http://cvs.schmorp.de/rxvt-unicode/doc/rxvt.7.pod>.
+
+=head1 RT LINK
+
+L<[perl #12345]|https://rt.cpan.org/12345>
+
+[output]
+.SH "LINK TO URL"
+.IX Header "LINK TO URL"
+This is a link <http://www.example.com/> to a URL.
+.PP
+The newest version of this document is also available on the World Wide Web at
+<http://pod.tst.eu/http://cvs.schmorp.de/rxvt\-unicode/doc/rxvt.7.pod>.
+.SH "RT LINK"
+.IX Header "RT LINK"
+[perl #12345] <https://rt.cpan.org/12345>

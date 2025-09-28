@@ -1,0 +1,451 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2023 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@pindex msgfmt
+@cindex @code{msgfmt} program, usage
+@example
+msgfmt [@var{option}] @var{filename}.po @dots{}
+@end example
+
+@cindex generate binary message catalog from PO file
+The @code{msgfmt} programs generates a binary message catalog from a textual
+translation description.
+
+@subsection Input file location
+
+@table @samp
+@item @var{filename}.po @dots{}
+
+@item -D @var{directory}
+@itemx --directory=@var{directory}
+@opindex -D@r{, @code{msgfmt} option}
+@opindex --directory@r{, @code{msgfmt} option}
+Add @var{directory} to the list of directories.  Source files are
+searched relative to this list of directories.  The resulting binary
+file will be written relative to the current directory, though.
+
+@end table
+
+If an input file is @samp{-}, standard input is read.
+
+@subsection Operation mode
+
+@table @samp
+@item -j
+@itemx --java
+@opindex -j@r{, @code{msgfmt} option}
+@opindex --java@r{, @code{msgfmt} option}
+@cindex Java mode, and @code{msgfmt} program
+Java mode: generate a Java @code{ResourceBundle} class.
+
+@item --java2
+@opindex --java2@r{, @code{msgfmt} option}
+Like --java, and assume Java2 (JDK 1.2 or higher).
+
+@item --csharp
+@opindex --csharp@r{, @code{msgfmt} option}
+@cindex C# mode, and @code{msgfmt} program
+C# mode: generate a .NET .dll file containing a subclass of
+@code{GettextResourceSet}.
+
+@item --csharp-resources
+@opindex --csharp-resources@r{, @code{msgfmt} option}
+@cindex C# resources mode, and @code{msgfmt} program
+C# resources mode: generate a .NET @file{.resources} file.
+
+@item --tcl
+@opindex --tcl@r{, @code{msgfmt} option}
+@cindex Tcl mode, and @code{msgfmt} program
+Tcl mode: generate a tcl/msgcat @file{.msg} file.
+
+@item --qt
+@opindex --qt@r{, @code{msgfmt} option}
+@cindex Qt mode, and @code{msgfmt} program
+Qt mode: generate a Qt @file{.qm} file.
+
+@item --desktop
+@opindex --desktop@r{, @code{msgfmt} option}
+@cindex Desktop Entry mode, and @code{msgfmt} program
+Desktop Entry mode: generate a @file{.desktop} file.
+
+@item --xml
+@opindex --xml@r{, @code{msgfmt} option}
+@cindex XML mode, and @code{msgfmt} program
+XML mode: generate an XML file.
+
+@end table
+
+@subsection Output file location
+
+@table @samp
+@item -o @var{file}
+@itemx --output-file=@var{file}
+@opindex -o@r{, @code{msgfmt} option}
+@opindex --output-file@r{, @code{msgfmt} option}
+Write output to specified file.
+
+@item --strict
+@opindex --strict@r{, @code{msgfmt} option}
+Direct the program to work strictly following the Uniforum/Sun
+implementation.  Currently this only affects the naming of the output
+file.  If this option is not given the name of the output file is the
+same as the domain name.  If the strict Uniforum mode is enabled the
+suffix @file{.mo} is added to the file name if it is not already
+present.
+
+We find this behaviour of Sun's implementation rather silly and so by
+default this mode is @emph{not} selected.
+
+@end table
+
+If the output @var{file} is @samp{-}, output is written to standard output.
+
+@subsection Output file location in Java mode
+
+@table @samp
+@item -r @var{resource}
+@itemx --resource=@var{resource}
+@opindex -r@r{, @code{msgfmt} option}
+@opindex --resource@r{, @code{msgfmt} option}
+Specify the resource name.
+
+@item -l @var{locale}
+@itemx --locale=@var{locale}
+@opindex -l@r{, @code{msgfmt} option}
+@opindex --locale@r{, @code{msgfmt} option}
+Specify the locale name, either a language specification of the form @var{ll}
+or a combined language and country specification of the form @var{ll_CC}.
+
+@item -d @var{directory}
+@opindex -d@r{, @code{msgfmt} option}
+Specify the base directory of classes directory hierarchy.
+
+@item --source
+@opindex --source@r{, @code{msgfmt} option}
+Produce a .java source file, instead of a compiled .class file.
+
+@end table
+
+The class name is determined by appending the locale name to the resource name,
+separated with an underscore.  The @samp{-d} option is mandatory.  The class
+is written under the specified directory.
+
+@subsection Output file location in C# mode
+
+@table @samp
+@item -r @var{resource}
+@itemx --resource=@var{resource}
+@opindex -r@r{, @code{msgfmt} option}
+@opindex --resource@r{, @code{msgfmt} option}
+Specify the resource name.
+
+@item -l @var{locale}
+@itemx --locale=@var{locale}
+@opindex -l@r{, @code{msgfmt} option}
+@opindex --locale@r{, @code{msgfmt} option}
+Specify the locale name, either a language specification of the form @var{ll}
+or a combined language and country specification of the form @var{ll_CC}.
+
+@item -d @var{directory}
+@opindex -d@r{, @code{msgfmt} option}
+Specify the base directory for locale dependent @file{.dll} files.
+
+@end table
+
+The @samp{-l} and @samp{-d} options are mandatory.  The @file{.dll} file is
+written in a subdirectory of the specified directory whose name depends on the
+locale.
+
+@subsection Output file location in Tcl mode
+
+@table @samp
+@item -l @var{locale}
+@itemx --locale=@var{locale}
+@opindex -l@r{, @code{msgfmt} option}
+@opindex --locale@r{, @code{msgfmt} option}
+Specify the locale name, either a language specification of the form @var{ll}
+or a combined language and country specification of the form @var{ll_CC}.
+
+@item -d @var{directory}
+@opindex -d@r{, @code{msgfmt} option}
+Specify the base directory of @file{.msg} message catalogs.
+
+@end table
+
+The @samp{-l} and @samp{-d} options are mandatory.  The @file{.msg} file is
+written in the specified directory.
+
+@subsection Desktop Entry mode operations
+
+@table @samp
+@item --template=@var{template}
+@opindex --template@r{, @code{msgfmt} option}
+Specify a .desktop file used as a template.
+
+@item -k[@var{keywordspec}]
+@itemx --keyword[=@var{keywordspec}]
+@opindex -k@r{, @code{msgfmt} option}
+@opindex --keyword@r{, @code{msgfmt} option}
+Specify @var{keywordspec} as an additional keyword to be looked for.
+Without a @var{keywordspec}, the option means to not use default keywords.
+
+@item -l @var{locale}
+@itemx --locale=@var{locale}
+@opindex -l@r{, @code{msgfmt} option}
+@opindex --locale@r{, @code{msgfmt} option}
+Specify the locale name, either a language specification of the form @var{ll}
+or a combined language and country specification of the form @var{ll_CC}.
+
+@item -d @var{directory}
+@opindex -d@r{, @code{msgfmt} option}
+Specify the directory where PO files are read.  The directory must
+contain the @samp{LINGUAS} file.
+
+@end table
+
+To generate a @samp{.desktop} file for a single locale, you can use it
+as follows.
+
+@example
+msgfmt --desktop --template=@var{template} --locale=@var{locale} \
+  -o @var{file} @var{filename}.po @dots{}
+@end example
+
+msgfmt provides a special "bulk" operation mode to process multiple
+@file{.po} files at a time.
+
+@example
+msgfmt --desktop --template=@var{template} -d @var{directory} -o @var{file}
+@end example
+
+msgfmt first reads the @samp{LINGUAS} file under @var{directory}, and
+then processes all @samp{.po} files listed there.  You can also limit
+the locales to a subset, through the @samp{LINGUAS} environment
+variable.
+
+For either operation modes, the @samp{-o} and @samp{--template}
+options are mandatory.
+
+@subsection XML mode operations
+
+@table @samp
+@item --template=@var{template}
+@opindex --template@r{, @code{msgfmt} option}
+Specify an XML file used as a template.
+
+@item -L @var{name}
+@itemx --language=@var{name}
+@opindex -L@r{, @code{msgfmt} option}
+@opindex --language@r{, @code{msgfmt} option}
+@cindex supported languages, @code{msgfmt}
+Specifies the language of the input files.
+
+@item -l @var{locale}
+@itemx --locale=@var{locale}
+@opindex -l@r{, @code{msgfmt} option}
+@opindex --locale@r{, @code{msgfmt} option}
+Specify the locale name, either a language specification of the form @var{ll}
+or a combined language and country specification of the form @var{ll_CC}.
+
+@item -d @var{directory}
+@opindex -d@r{, @code{msgfmt} option}
+Specify the base directory of @file{.po} message catalogs.
+
+@end table
+
+To generate an XML file for a single locale, you can use it as follows.
+
+@example
+msgfmt --xml --template=@var{template} --locale=@var{locale} \
+  -o @var{file} @var{filename}.po @dots{}
+@end example
+
+msgfmt provides a special "bulk" operation mode to process multiple
+@file{.po} files at a time.
+
+@example
+msgfmt --xml --template=@var{template} -d @var{directory} -o @var{file}
+@end example
+
+msgfmt first reads the @samp{LINGUAS} file under @var{directory}, and
+then processes all @samp{.po} files listed there.  You can also limit
+the locales to a subset, through the @samp{LINGUAS} environment
+variable.
+
+For either operation modes, the @samp{-o} and @samp{--template}
+options are mandatory.
+
+@subsection Input file syntax
+
+@table @samp
+@item -P
+@itemx --properties-input
+@opindex -P@r{, @code{msgfmt} option}
+@opindex --properties-input@r{, @code{msgfmt} option}
+Assume the input files are Java ResourceBundles in Java @code{.properties}
+syntax, not in PO file syntax.
+
+@item --stringtable-input
+@opindex --stringtable-input@r{, @code{msgfmt} option}
+Assume the input files are NeXTstep/GNUstep localized resource files in
+@code{.strings} syntax, not in PO file syntax.
+
+@end table
+
+@subsection Input file interpretation
+
+@table @samp
+@item -c
+@itemx --check
+@opindex -c@r{, @code{msgfmt} option}
+@opindex --check@r{, @code{msgfmt} option}
+Perform all the checks implied by @code{--check-format}, @code{--check-header},
+@code{--check-domain}.
+
+@item --check-format
+@opindex --check-format@r{, @code{msgfmt} option}
+@cindex check format strings
+Check language dependent format strings.
+
+If the string represents a format string used in a
+@code{printf}-like function both strings should have the same number of
+@samp{%} format specifiers, with matching types.  If the flag
+@code{c-format} or @code{possible-c-format} appears in the special
+comment @key{#,} for this entry a check is performed.  For example, the
+check will diagnose using @samp{%.*s} against @samp{%s}, or @samp{%d}
+against @samp{%s}, or @samp{%d} against @samp{%x}.  It can even handle
+positional parameters.
+
+Normally the @code{xgettext} program automatically decides whether a
+string is a format string or not.  This algorithm is not perfect,
+though.  It might regard a string as a format string though it is not
+used in a @code{printf}-like function and so @code{msgfmt} might report
+errors where there are none.
+
+To solve this problem the programmer can dictate the decision to the
+@code{xgettext} program (@pxref{c-format}).  The translator should not
+consider removing the flag from the @key{#,} line.  This "fix" would be
+reversed again as soon as @code{msgmerge} is called the next time.
+
+@item --check-header
+@opindex --check-header@r{, @code{msgfmt} option}
+Verify presence and contents of the header entry.  @xref{Header Entry},
+for a description of the various fields in the header entry.
+
+@item --check-domain
+@opindex --check-domain@r{, @code{msgfmt} option}
+Check for conflicts between domain directives and the @code{--output-file}
+option
+
+@item -C
+@itemx --check-compatibility
+@opindex -C@r{, @code{msgfmt} option}
+@opindex --check-compatibility@r{, @code{msgfmt} option}
+@cindex compatibility with X/Open @code{msgfmt}
+Check that GNU msgfmt behaves like X/Open msgfmt.  This will give an error
+when attempting to use the GNU extensions.
+
+@item --check-accelerators[=@var{char}]
+@opindex --check-accelerators@r{, @code{msgfmt} option}
+@cindex keyboard accelerator checking
+@cindex menu, keyboard accelerator support
+@cindex mnemonics of menu entries
+Check presence of keyboard accelerators for menu items.  This is based on
+the convention used in some GUIs that a keyboard accelerator in a menu
+item string is designated by an immediately preceding @samp{&} character.
+Sometimes a keyboard accelerator is also called "keyboard mnemonic".
+This check verifies that if the untranslated string has exactly one
+@samp{&} character, the translated string has exactly one @samp{&} as well.
+If this option is given with a @var{char} argument, this @var{char} should
+be a non-alphanumeric character and is used as keyboard accelerator mark
+instead of @samp{&}.
+
+@item -f
+@itemx --use-fuzzy
+@opindex -f@r{, @code{msgfmt} option}
+@opindex --use-fuzzy@r{, @code{msgfmt} option}
+@cindex force use of fuzzy entries
+Use fuzzy entries in output.  Note that using this option is usually wrong,
+because fuzzy messages are exactly those which have not been validated by
+a human translator.
+
+@end table
+
+@subsection Output details
+
+@table @samp
+@item --no-convert
+@opindex --no-convert@r{, @code{msgfmt} option}
+Don't convert the messages to UTF-8 encoding.  By default, messages are
+converted to UTF-8 encoding before being stored in a MO file; this helps
+avoiding conversions at run time, since nowadays most locales use the
+UTF-8 encoding.
+
+@item --no-redundancy
+@opindex --no-redundancy@r{, @code{msgfmt} option}
+Don't pre-expand ISO C 99 <inttypes.h> format string directive macros.
+By default, messages that are marked as @code{c-format} and contain
+ISO C 99 <inttypes.h> format string directive macros are pre-expanded
+for selected platforms, and these redundant expansions are stored in the
+MO file.  These redundant expansions make the translations of these
+messages work with the @code{gettext} implementation in the @code{libc}
+of that platform, without requiring GNU @code{gettext}'s @code{libintl}.
+The platforms that benefit from this pre-expansion are those with the
+musl libc.
+
+@item -a @var{number}
+@itemx --alignment=@var{number}
+@opindex -a@r{, @code{msgfmt} option}
+@opindex --alignment@r{, @code{msgfmt} option}
+Align strings to @var{number} bytes (default: 1).
+@c Currently the README mentions that this constant could be changed by
+@c the installer by changing the value in config.h.  Should this go away?
+
+@item --endianness=@var{byteorder}
+@opindex --endianness@r{, @code{msgfmt} option}
+Write out 32-bit numbers in the given byte order.  The possible values are
+@code{big} and @code{little}.  The default is @code{little}.
+
+MO files of any endianness can be used on any platform.  When a MO file has
+an endianness other than the platform's one, the 32-bit numbers from the MO
+file are swapped at runtime.  The performance impact is negligible.
+
+This option can be useful to produce MO files that are optimized for one
+platform.
+
+@item --no-hash
+@opindex --no-hash@r{, @code{msgfmt} option}
+Don't include a hash table in the binary file.  Lookup will be more expensive
+at run time (binary search instead of hash table lookup).
+
+@end table
+
+@subsection Informative output
+
+@table @samp
+@item -h
+@itemx --help
+@opindex -h@r{, @code{msgfmt} option}
+@opindex --help@r{, @code{msgfmt} option}
+Display this help and exit.
+
+@item -V
+@itemx --version
+@opindex -V@r{, @code{msgfmt} option}
+@opindex --version@r{, @code{msgfmt} option}
+Output version information and exit.
+
+@item --statistics
+@opindex --statistics@r{, @code{msgfmt} option}
+Print statistics about translations.  When the option @code{--verbose} is used
+in combination with @code{--statistics}, the input file name is printed in
+front of the statistics line.
+
+@item -v
+@itemx --verbose
+@opindex -v@r{, @code{msgfmt} option}
+@opindex --verbose@r{, @code{msgfmt} option}
+Increase verbosity level.
+
+@end table

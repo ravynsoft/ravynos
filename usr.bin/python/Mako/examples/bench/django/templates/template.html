@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load bench %}
+
+<head>
+  <title>${title|escape}</title>
+</head>
+
+{% block body %}
+  <div>{% greeting user %}</div>
+  <div>{% greeting "me" %}</div>
+  <div>{% greeting "world" %}</div>
+
+  <h2>Loop</h2>
+  {% if items %}
+    <ul>
+      {% for item in items %}
+	<li{% if forloop.last %} class="last"{% endif %}>{{ item }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+{% endblock %}

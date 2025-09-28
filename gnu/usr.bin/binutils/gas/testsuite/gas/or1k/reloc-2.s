@@ -1,0 +1,13 @@
+	l.sw	lo(x)(r4),r3
+	l.sw	hi(x)(r4),r3
+	l.sw	ha(x)(r4),r3
+	l.sw	got(x)(r4),r3
+	l.sw	gotofflo(x)(r4),r3
+	l.sw	gotoffhi(x)(r4),r3
+	l.sw	gotoffha(x)(r4),r3
+	l.sw	dtpoffhi(x)(r4),r3
+	l.sw	gottpoffhi(x)(r4),r3
+	l.sw	tpofflo(x)(r4),r3
+	l.sw	tpoffhi(x)(r4),r3
+	l.sw	tpoffha(x)(r4),r3
+	l.sw	gotpo(x)(r4),r3

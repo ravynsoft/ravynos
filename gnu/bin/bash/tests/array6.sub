@@ -1,0 +1,128 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# test cases for array quoting and escaping fixed post bash-3.2-release
+
+oIFS="$IFS"
+
+a=(a b c)
+echo ${a[@]}
+
+a2=("${a[@]/#/"-iname '"}")
+recho "${a2[@]}"
+
+echo "${dbg-"'hey'"}"
+echo "${dbg-"hey"}"
+echo "${dbg-'"'hey}"
+echo "${dbg-'"hey'}"
+
+unset a a2
+
+IFS=
+a2=(${a[@]/#/"-iname '"})
+recho "${a2[@]}"
+
+IFS="$oIFS"
+unset a a2
+
+a=('a b' 'c d' 'e f')
+
+recho ${a[@]:1:2}
+recho "${a[@]:1:2}"
+
+IFS=
+recho ${a[@]:1:2}
+recho "${a[@]:1:2}"
+
+IFS="$oIFS"
+unset a a2
+
+a=(abc def)
+
+# Prevent word splitting
+#IFS= 
+
+a2=("${a[@]/#/"-iname '"}") 
+recho "${a2[@]}"
+
+eval a2=("${a[@]/#/\"-iname \'\"}") 
+recho "${a2[@]}"
+
+eval a2=("${a[@]/#/"-iname '"}") 
+recho "${a2[@]}"
+
+a2=("${a[@]/#/-iname \'}") 
+recho "${a2[@]}"
+
+eval a2=("${a[@]/#/-iname \'}") 
+recho "${a2[@]}"
+
+set -- abc def
+
+a2=("${@/#/"-iname '"}") 
+recho "${a2[@]}"
+
+eval a2=("${@/#/\"-iname \'\"}") 
+recho "${a2[@]}"
+
+eval a2=("${@/#/"-iname '"}") 
+recho "${a2[@]}"
+
+unset a a2
+
+IFS=
+pat=('*.*')
+case $(ls ${pat[@]} 2>/dev/null) in
+'')	echo '*.* BAD' ;;
+*)	echo '*.* OK' ;;
+esac
+
+IFS="$oIFS"
+unset a a2 pat
+
+IFS=
+
+s='abc'
+
+set - ${s/b/1 2 3}
+echo $#
+echo "$1"
+
+IFS="$oIFS"
+unset s
+
+set -- ab cd ef
+foo="var with spaces"
+
+IFS=
+recho $foo
+recho "$foo"
+
+recho ${foo}"$@"
+recho ${foo}$@
+
+array=(ab cd ef)
+recho ${foo}"${array[@]}"
+recho ${foo}${array[@]}
+
+recho $(echo $foo)"$@"
+recho $(echo $foo)$@
+
+a=('word1 with spaces' 'word2 with spaces')
+set - ${a[@]/word/element}
+echo $#
+recho "$@"
+recho $@
+
+IFS="$oIFS"
+unset a a2 array foo

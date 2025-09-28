@@ -1,0 +1,13 @@
+#compdef totdconfig
+
+_arguments \
+  - set1 \
+  '-a[add totd specific options]' \
+  '-D[add totd specific config into dhclient-enter-hooks]' \
+  '-d:name server:_hosts' \
+  '-l[configure resolv.conf]' \
+  - set2 \
+  '-r:config to remove:(dhcp totd resolv all)' \
+  - set3 \
+  '-h[help]'
+

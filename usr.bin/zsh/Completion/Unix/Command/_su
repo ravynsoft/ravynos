@@ -1,0 +1,114 @@
+#compdef su
+
+local -A opt_args
+local -a args context state line expl
+local first='(-)${norm}:user name:_users'
+integer norm=1 strip
+local shell usr
+
+(( $words[(i)-(l|-login)] < CURRENT )) || args=( '-[use a login shell]' )
+case $OSTYPE in
+  linux*)
+    # Some of these options only apply to util-linux, not shadow-utils
+    args=( -S $args
+      '(-c --command --session-command *)'{-c+,--command=}'[pass command to shell]:command string:_cmdstring'
+      "(-c --command *)--session-command=[pass command to shell and don't create a new session]:command string:_cmdstring"
+      '(--fast -f)'{-f,--fast}'[pass -f to shell]'
+      '(-l --login -m -p --preserve-environment)'{-l,--login}'[use a login shell]'
+      '(-l --login -m -p --preserve-environment)'{-m,-p,--preserve-environment}"[don't reset environment]"
+      '(-s --shell)'{-s+,--shell=}'[run the specified shell]:shell:->shells'
+      '(-)--help[display help information]'
+      '(-)--version[display version information]'
+    )
+    (( $#_comp_priv_prefix || EUID == 0 )) && args+=(
+      '(-g --group)'{-g+,--group=}'[specify primary group]:group:_groups'
+      \*{-G+,--supp-group=}'[specify supplemental group]:group:_groups'
+    )
+    first="(--help --version)${first#???}"
+  ;;
+  *bsd*|darwin*|dragonfly*)
+    args+=(
+      '-f[if the invoked shell is csh, prevent it from reading .cshrc]'
+      '(-m)-l[use a login shell]'
+      "(-l)-m[don't reset environment]"
+    )
+  ;|
+  *bsd*|dragonfly*)
+    args+=(
+      '-c+[use settings from specified login class]:class:_login_classes'
+    )
+  ;|
+  freebsd*) args+=( '-s[set the MAC label]' ) ;;
+  openbsd*)
+    args+=(
+      # See login.conf(5)
+      '(-K)-a+[specify authentication type]:authentication type:(
+        activ chpass crypto lchpass passwd radius reject skey snk token yubikey
+      )'
+      '(-a)-K[shorthand for -a passwd]'
+      '-s+[run the specified shell]:shell:->shells'
+      '-L[loop until login succeeds]'
+    )
+  ;;
+  netbsd*)
+    args+=(
+      '-d[use a login shell but retain current directory]'
+      "-K[don't use Kerberos]"
+    )
+  ;;
+esac
+
+if (( $words[(i)-] < CURRENT )); then
+  args=( ${args:#*-(-login|l|)\[*} '1:-' )
+  norm=2
+fi
+
+# This is set so that _command_names will understand that we're completing for
+# a privileged command, but _call_program won't actually prepend anything to
+# commands if gain-privileges is enabled (which would be undesirable here since
+# su always prompts for a password). We delay setting it until this point so it
+# doesn't cause issues for the check above
+local -a _comp_priv_prefix=( '' )
+_arguments $args ${(e)first} "*:shell arguments:= ->rest" && return
+
+usr=${${(Q)line[norm]}/--/root}
+# OpenBSD supports appending a log-in method to the user name, as in usr:radius
+[[ $OSTYPE == openbsd* ]] && usr=${usr%:*}
+
+# Normal users generally don't appear in passwd on macOS; try the Directory
+# Service first
+if [[ $OSTYPE == darwin* ]] && (( $+commands[dscl] )); then
+  shell=${"$(
+    _call_program shells dscl . -read /Users/${(q)usr} UserShell
+  )"#UserShell: }
+fi
+
+if [[ -n $shell ]]; then
+  : # Found above
+elif (( ${#${(@M)args:#*-s[+\[]*:*}} && $#opt_args[(i)-(s|-shell)] )); then
+  shell=${(v)opt_args[(i)-(s|-shell)]}
+elif (( ${+commands[getent]} )); then
+  shell="${$(_call_program shells getent passwd ${(q)usr})##*:}"
+else
+  shell="${${(M@)${(@f)$(</etc/passwd)}:#${usr}:*}##*:}"
+fi
+
+case $state in
+  shells)
+    _wanted -C $context shells expl shell compadd ${(f)^"$(</etc/shells)"}(N)
+    return
+  ;;
+  rest)
+    if [[ -z $shell || $shell = */(nologin|false) ]]; then
+      _message "-s option required, $usr has no shell"
+    else
+      (( strip = $#words - $#line + norm ))
+      (( CURRENT -= strip - 1 ))
+      words[2,strip]=()
+      _dispatch ${service}:${context} $shell $shell:t -default-
+      return
+    fi
+  ;;
+esac
+
+return 1

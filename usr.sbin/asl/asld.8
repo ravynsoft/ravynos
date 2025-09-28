@@ -1,0 +1,311 @@
+.\"Copyright (c) 2004-2011 Apple Inc. All rights reserved.
+.\"
+.\"@APPLE_LICENSE_HEADER_START@
+.\"
+.\"This file contains Original Code and/or Modifications of Original Code
+.\"as defined in and that are subject to the Apple Public Source License
+.\"Version 2.0 (the 'License'). You may not use this file except in
+.\"compliance with the License. Please obtain a copy of the License at
+.\"http://www.opensource.apple.com/apsl/ and read it before using this
+.\"file.
+.\"
+.\"The Original Code and all software distributed under the License are
+.\"distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+.\"EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+.\"INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+.\"FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+.\"Please see the License for the specific language governing rights and
+.\"limitations under the License.
+.\"
+.\"@APPLE_LICENSE_HEADER_END@
+.\"
+.Dd October 18, 2004
+.Dt ASLD 8
+.Os "Mac OS X"
+.Sh NAME
+.Nm asld
+.Nd Apple System Log server
+.Sh SYNOPSIS
+.Nm
+.Op Fl d
+.Op Fl D
+.Op Fl m Ar mark_interval
+.Op Fl l Ar lib_path
+.Op Fl db_max Ar size
+.Op Fl utmp_ttl Ar time
+.Op Fl mps_limit Ar quota
+.Op Fl dup_delay Ar time
+.Op Fl module_name Li {0|1}
+.Sh DESCRIPTION
+The
+.Nm
+server receives and processes log messages.
+Several modules receive input messages through various channels,
+including UNIX domain sockets associated with the
+.Xr syslog 3 ,
+.Xr asl 3 ,
+and kernel printf APIs, 
+and optionally on a UDP socket from network clients.
+.Pp
+The Apple System Log facility comprises the 
+.Xr asl 3
+API, a new 
+.Nm
+server, the
+.Xr aslutil 1
+command-line utility, and a data store file manager,
+.Xr aslmanager 8 .
+The system supports structured and extensible messages, 
+permitting advanced message browsing and management through search APIs and
+other components of the Apple system log facility.
+.Pp
+Log messages are retained in a data store,
+subject to automatic archival, and input filtering as described below,
+to simplify the task of locating log messages and to facilitate browsing and searching.
+The data store is intended to become a replacement for the numerous log files that are currently
+found in various locations on the system.
+Those files will be phased out in future versions of Mac OS.
+.Pp
+The following options are recognized:
+.Bl -tag -width "-dup_delay"
+.It Fl d
+Run
+.Nm
+in debugging mode.
+The server stays attached to the controlling terminal and prints debugging messages.
+.It Fl D
+Start as a daemon.
+This option forces 
+.Nm
+to fork and have the child process become a daemon.
+Since
+.Nm
+is started by
+.Nm launchd ,
+this is not normally required.
+.It Fl m
+Set the number of minutes between
+.Dq mark
+messages.
+Mark messages are normally disabled.
+If
+.Fl m
+is specified with no arguments, mark messages will be written every 20 minutes.
+The 
+.Dq mark
+facility is disabled if the setting is zero minutes.
+.It Fl db_max
+Sets the size limit in bytes for individual files in the data store.
+The default value for
+.Fl db_max
+is 25600000 bytes.
+Files are closed upon reaching the maximum size, and a new file is opened for subsequent messages.
+.It Fl utmp_ttl
+Sets the time-to-live in seconds for messages used by the
+.Xr utmp ,
+.Xr wtmp ,
+and
+.Xr lastlog
+subsystems.
+The default is 31622400 seconds (approximately 1 year).
+Note that if archival is enabled (see the
+.Xr aslmanager 8
+manual), these messages will be copied to an archive
+after the regular time-to-live interval, but will persist in the data store until their own expiry time.
+.It Fl mps_limit
+Sets the kernel quota for messages per second allowed by
+.Nm .
+Any messages in excess of the quota limit from any process are ignored.
+An error message is logged stating that the kernel message quota has
+been exceeded, and that remaining messages for the current second will be discarded.
+The default limit is 500 messages per second per process.
+A value of 0 turns off the quota mechanism.
+.Pp
+Note that this setting only limits the number of kernel messages that will be saved by
+.Nm .
+User processes are limited to 36000 messages per hour.
+The limit for a user process is not enforced if a remote-control ASL filter is in
+place for the process.
+.It Fl dup_delay
+Sets the time to delay for coalescing duplicate message in log files.
+If a process logs multiple messages with the same text,
+.Nm
+will wait for the specified period of time to coalesce duplicates.
+If identical messages arrive during this interval,
+.Nm
+will print a message of the form:
+.Pp
+.Li		May  7 12:34:56: --- last message repeated 17 times ---
+.Pp
+The default delay time is 30 seconds.
+Setting the value to 0 disables the coalescing mechanism.
+.El
+.Pp
+The remaining options of the form
+.Fl module_name Li {0|1}
+may be used to disable (0) or enable (1) the action of several of
+.Mn 's
+internal modules.
+.Bl -tag -width "-asl_action"
+.It Fl asl_in
+The 
+.Dq asl_in
+module receives log messages on the UNIX domain socket associated with the 
+.Xr asl 3
+API.
+The module may be disabled using
+.Fl asl_in Li 0 .
+The module is normally enabled.
+.It Fl asl_action
+The 
+.Dq asl_action
+module examines the stream of received log messages and acts upon them according to the rules specified
+in the file /etc/asl.conf.
+See 
+.Xr asl.conf 5
+for details.
+.It Fl klog_in
+The 
+.Dq klog_in
+module receives log messages on the UNIX domain socket associated with the kernel logging API.
+The module may be disabled using
+.Fl klog_in Li 0 .
+The module is normally enabled.
+.It Fl bsd_in
+The 
+.Dq bsd_in
+module receives log messages on the UNIX domain socket associated with the 
+.Xr syslog 3
+API.
+The module may be disabled using
+.Fl bsd_in Li 0 .
+The module is normally enabled.
+.It Fl bsd_out
+The 
+.Dq bsd_out
+module examines the stream of received log messages and acts upon them according to the rules specified
+in the file /etc/syslog.conf.
+See 
+.Xr syslog.conf 5
+for details.
+This module exists for backward compatibility with previous
+.Nm
+implementations.
+Apple encourages use of the
+.Xr syslog 1
+and
+.Xr asl 3
+search APIs over the use of the log files that are specified in the /etc/syslog.conf file.
+Future versions of Mac OS will move functions that are currently handled by the 
+.Dq bsd_out
+module to the 
+.Dq asl_action
+module.
+.It Fl udp_in
+The 
+.Dq udp_in
+module receives log messages on the UDP socket associated with the Internet syslog message protocol.
+.Pp
+This module is normally enabled, but is inactive.
+The actual UDP sockets are managed by
+.Nm launchd ,
+and configured in the
+.Nm syslogd
+configuration file /System/Library/LaunchDaemons/com.apple.syslogd.plist.
+In the default configuration, 
+.Nm launchd
+does not open any sockets for the
+.Dq syslog
+UDP service, so no sockets are provided to the
+.Dq udp_in 
+module.
+If no sockets are provided, the module remains inactive.
+A socket may be specified by adding the following entry to the
+.Dq Sockets
+dictionary in the com.apple.syslogd.plist file.
+.Pp
+.Dl		<key>NetworkListener</key>
+.Dl		<dict>
+.Dl			<key>SockServiceName</key>
+.Dl			<string>syslog</string>
+.Dl			<key>SockType</key>
+.Dl			<string>dgram</string>
+.Dl		</dict>
+.Pp
+The module may be specifically disabled using the
+.Fl udp_in Li 0 
+option.
+.El
+.Pp
+.Nm
+reinitializes in response to a HUP signal.
+.Sh MESSAGE EXPIRY AND ARCHIVAL
+.Nm
+periodically invokes the
+.Nm aslmanager
+utility, which manages files in the ASL data store.
+Files are removed or optionally copied to an archival directory after a (default) 2 day time-to-live.
+See the
+.Xr aslmanager 8
+manual for details.
+.Nm
+invokes
+.Nm aslmanager
+shortly after it starts up, at midnight local time if it is running,
+and any time that a data store file reaches the
+.Fl db_max
+size limit.
+.Sh DATA STORE SECURITY
+Messages saved in the ASL message store are written to files in /var/log/asl.
+The message files are given read access controls corresponding to the read UID and GID specified in the messages themselves.
+Read access UID and GID settings may be attached to messages using the
+.Xr asl 3
+library by setting a value for the "ReadUID" and/or "ReadGID" message keys.
+The file permissions prevent access-controlled messages from being read by unauthorized users.
+.Pp
+Although clients are generally free to use any value for the "Facility" message key,
+only processes running with UID 0 may log messages with a facility value of "com.apple.system",
+or with a value that has "com.apple.system" as a prefix.
+Messages logged by non UID 0 processes that use "com.apple.system" as a facility value or prefix
+will be saved with the facility value "user".
+.Sh FILES
+.Bl -tag -width /var/log/asl.archive -compact
+.It Pa /etc/syslog.conf
+bsd_out module configuration file
+.It Pa /etc/asl.conf
+asl_action module configuration file
+.It Pa /var/run/syslog.pid
+process ID file
+.It Pa /var/run/syslog
+name of the
+.Ux
+domain datagram log socket
+.It Pa /dev/klog
+kernel log device
+.It Pa /var/log/asl
+data store directory
+.It Pa /var/log/asl.archive
+default archive directory
+.It Pa /System/Library/LaunchDaemons/com.apple.syslogd.plist
+launchd configuration file for
+.Nm syslogd
+.El
+.Sh SEE ALSO
+.Xr syslog 1 ,
+.Xr aslutil 1 ,
+.Xr logger 1 ,
+.Xr asl 3 ,
+.Xr syslog 3 ,
+.Xr asl.conf 5 ,
+.Xr syslog.conf 5 ,
+.Xr syslogd 8 .
+.Sh HISTORY
+The original
+.Nm syslogd
+utility appeared in
+.Bx 4.3 .
+.Pp
+The Apple System Log facility was introduced in Mac OS X 10.4.
+.Sh CAVEATS
+.Nm aslmanager
+is currently only available on Mac OS X.

@@ -1,0 +1,643 @@
+%prep
+
+# Find a UTF-8 locale.
+  setopt multibyte
+# Don't let LC_* override our choice of locale.
+  unset -m LC_\*
+  mb_ok=
+  langs=(en_{US,GB}.{UTF-,utf}8 en.UTF-8
+	 $(locale -a 2>/dev/null | egrep 'utf8|UTF-8'))
+  for LANG in $langs; do
+    if [[ é = ? ]]; then
+      mb_ok=1
+      break;
+    fi
+  done
+  if [[ -z $mb_ok ]]; then
+    ZTST_unimplemented="no UTF-8 locale or multibyte mode is not implemented"
+  else
+    print -u $ZTST_fd Testing multibyte with locale $LANG
+    mkdir multibyte.tmp && cd multibyte.tmp
+  fi
+
+%test
+
+  a=ténébreux
+  for i in {1..9}; do
+      print ${a[i]}
+      for j in {$i..9}; do
+	  print $i $j ${a[i,j]} ${a[-j,-i]}
+      done
+  done
+0:Basic indexing with multibyte characters
+>t
+>1 1 t x
+>1 2 té ux
+>1 3 tén eux
+>1 4 téné reux
+>1 5 ténéb breux
+>1 6 ténébr ébreux
+>1 7 ténébre nébreux
+>1 8 ténébreu énébreux
+>1 9 ténébreux ténébreux
+>é
+>2 2 é u
+>2 3 én eu
+>2 4 éné reu
+>2 5 énéb breu
+>2 6 énébr ébreu
+>2 7 énébre nébreu
+>2 8 énébreu énébreu
+>2 9 énébreux ténébreu
+>n
+>3 3 n e
+>3 4 né re
+>3 5 néb bre
+>3 6 nébr ébre
+>3 7 nébre nébre
+>3 8 nébreu énébre
+>3 9 nébreux ténébre
+>é
+>4 4 é r
+>4 5 éb br
+>4 6 ébr ébr
+>4 7 ébre nébr
+>4 8 ébreu énébr
+>4 9 ébreux ténébr
+>b
+>5 5 b b
+>5 6 br éb
+>5 7 bre néb
+>5 8 breu énéb
+>5 9 breux ténéb
+>r
+>6 6 r é
+>6 7 re né
+>6 8 reu éné
+>6 9 reux téné
+>e
+>7 7 e n
+>7 8 eu én
+>7 9 eux tén
+>u
+>8 8 u é
+>8 9 ux té
+>x
+>9 9 x t
+
+  s=é
+  print A${s[-2]}A B${s[-1]}B C${s[0]}C D${s[1]}D E${s[2]}E
+0:Out of range subscripts with multibyte characters
+>AA BéB CC DéD EE
+
+  print ${a[(i)é]} ${a[(I)é]} ${a[${a[(i)é]},${a[(I)é]}]}
+0:Reverse indexing with multibyte characters
+>2 4 éné
+
+  print ${a[(r)én,(r)éb]}
+0:Subscript searching with multibyte characters
+>énéb
+
+  print ${a[(rb:1:)é,-1]}
+  print ${a[(rb:2:)é,-1]}
+  print ${a[(rb:3:)é,-1]}
+  print ${a[(rb:4:)é,-1]}
+  print ${a[(rb:5:)é,-1]}
+0:Subscript searching with initial offset
+>énébreux
+>énébreux
+>ébreux
+>ébreux
+>
+
+  print ${a[(rn:1:)é,-1]}
+  print ${a[(rn:2:)é,-1]}
+  print ${a[(rn:3:)é,-1]}
+0:Subscript searching with count
+>énébreux
+>ébreux
+>
+
+  print ${a[(R)én,(R)éb]}
+0:Backward subscript searching with multibyte characters
+>énéb
+
+# Starting offsets with (R) seem to be so strange as to be hardly
+# worth testing.
+
+  setopt extendedglob
+  [[ $a = (#b)t(én)(éb)reux ]] || print "Failed to match." >&2
+  for i in {1..${#match}}; do
+    print $match[i] $mbegin[i] $mend[i] ${a[$mbegin[i],$mend[i]]}
+  done
+0:Multibyte offsets in pattern tests
+>én 2 3 én
+>éb 4 5 éb
+
+  b=${(U)a}
+  print $b
+  print ${(L)b}
+  desdichado="Je suis le $a, le veuf, l'inconsolé"
+  print ${(C)desdichado}
+  lxiv="l'état c'est moi"
+  print ${(C)lxiv}
+0:Case modification of multibyte strings
+>TÉNÉBREUX
+>ténébreux
+>Je Suis Le Ténébreux, Le Veuf, L'Inconsolé
+>L'État C'Est Moi
+
+  array=(ølaf ødd øpened án encyclopædia)
+  barray=(${(U)array})
+  print $barray
+  print ${(L)barray}
+  print ${(C)array}
+  print ${(C)barray}
+0:Case modification of arrays with multibyte strings
+>ØLAF ØDD ØPENED ÁN ENCYCLOPÆDIA
+>ølaf ødd øpened án encyclopædia
+>Ølaf Ødd Øpened Án Encyclopædia
+>Ølaf Ødd Øpened Án Encyclopædia
+
+  print $(( ##¥ ))
+  pound=£
+  print $(( #pound ))
+  alpha=α
+  print $(( ##α )) $(( #alpha ))
+0:Conversion to Unicode in mathematical expressions
+>165
+>163
+>945 945
+
+  unsetopt posix_identifiers
+  expr='hähä=3 || exit 1; print $hähä'
+  eval $expr
+  setopt posix_identifiers
+  (eval $expr)
+1:POSIX_IDENTIFIERS option
+>3
+?(eval):1: command not found: hähä=3
+
+  expr='[[ é = [[:IDENT:]] ]]'
+  ( unsetopt posix_identifiers; eval $expr && echo ok unset )
+  ( setopt posix_identifiers;   eval $expr || echo ok set )
+0:Regression test for workers/47745
+>ok unset
+>ok set
+
+  foo="Ølaf«Ødd«øpénëd«ån«àpple"
+  print -l ${(s.«.)foo}
+  ioh="Ἐν ἀρχῇ ἦν ὁ λόγος, καὶ ὁ λόγος ἦν πρὸς τὸν θεόν, καὶ θεὸς ἦν ὁ λόγος."
+  print -l ${=ioh}
+  print ${(w)#ioh}
+0:Splitting with multibyte characters
+>Ølaf
+>Ødd
+>øpénëd
+>ån
+>àpple
+>Ἐν
+>ἀρχῇ
+>ἦν
+>ὁ
+>λόγος,
+>καὶ
+>ὁ
+>λόγος
+>ἦν
+>πρὸς
+>τὸν
+>θεόν,
+>καὶ
+>θεὸς
+>ἦν
+>ὁ
+>λόγος.
+>17
+
+  read -d £ one
+  read -d £ two
+  print $one
+  print $two
+0:read with multibyte delimiter
+<first£second£
+>first
+>second
+
+  (IFS=«
+  read -d » -A array
+  print -l $array)
+0:read -A with multibyte IFS
+<dominus«illuminatio«mea»ignored
+>dominus
+>illuminatio
+>mea
+
+  read -k2 -u0 twochars
+  print $twochars
+0:read multibyte characters
+<«»ignored
+>«»
+
+  read -q -u0 mb
+  print $?
+0:multibyte character makes read -q return false
+<«
+>1
+
+  # See if the system grokks first-century Greek...
+  ioh="Ἐν ἀρχῇ ἦν ὁ λόγος, καὶ ὁ λόγος ἦν πρὸς τὸν θεόν, καὶ θεὸς ἦν ὁ λόγος."
+  for (( i = 1; i <= ${#ioh}; i++ )); do
+    # FC3 doesn't recognise ῇ (U+1FC7: Greek small letter eta with
+    # perispomeni and ypogegrammeni, of course) as a lower case character.
+    if [[ $ioh[i] != [[:lower:]] && $i != 7 ]]; then
+      for tp in upper space punct invalid; do
+        if [[ $tp = invalid || $ioh[i] = [[:${tp}:]] ]]; then
+          print "$i: $tp"
+	  break
+	fi
+      done
+    fi
+  done
+0:isw* functions on non-ASCII wide characters
+>1: upper
+>3: space
+>8: space
+>11: space
+>13: space
+>19: punct
+>20: space
+>24: space
+>26: space
+>32: space
+>35: space
+>40: space
+>44: space
+>49: punct
+>50: space
+>54: space
+>59: space
+>62: space
+>64: space
+>70: punct
+
+  ioh="Ἐν ἀρχῇ ἦν ὁ λόγος, καὶ ὁ λόγος ἦν πρὸς τὸν θεόν, καὶ θεὸς ἦν ὁ λόγος"
+  print ${ioh#[[:alpha:]]##}
+  print ${ioh##[[:alpha:]]##}
+  print ${ioh%[[:alpha:]]##}
+  print ${ioh%%[[:alpha:]]##}
+  print ${(S)ioh#λ*ς}
+  print ${(S)ioh##λ*ς}
+  print ${(S)ioh%θ*ς}
+  print ${(S)ioh%%θ*ς}
+0:Parameter #, ##, %, %% with multibyte characters
+>ν ἀρχῇ ἦν ὁ λόγος, καὶ ὁ λόγος ἦν πρὸς τὸν θεόν, καὶ θεὸς ἦν ὁ λόγος
+> ἀρχῇ ἦν ὁ λόγος, καὶ ὁ λόγος ἦν πρὸς τὸν θεόν, καὶ θεὸς ἦν ὁ λόγος
+>Ἐν ἀρχῇ ἦν ὁ λόγος, καὶ ὁ λόγος ἦν πρὸς τὸν θεόν, καὶ θεὸς ἦν ὁ λόγο
+>Ἐν ἀρχῇ ἦν ὁ λόγος, καὶ ὁ λόγος ἦν πρὸς τὸν θεόν, καὶ θεὸς ἦν ὁ 
+>Ἐν ἀρχῇ ἦν ὁ , καὶ ὁ λόγος ἦν πρὸς τὸν θεόν, καὶ θεὸς ἦν ὁ λόγος
+>Ἐν ἀρχῇ ἦν ὁ 
+>Ἐν ἀρχῇ ἦν ὁ λόγος, καὶ ὁ λόγος ἦν πρὸς τὸν θεόν, καὶ  ἦν ὁ λόγος
+>Ἐν ἀρχῇ ἦν ὁ λόγος, καὶ ὁ λόγος ἦν πρὸς τὸν θεόν, καὶ 
+
+  a="1ë34ë6"
+  print ${(BEN)a#*4}
+  print ${(BEN)a##*ë}
+  print ${(BEN)a%4*}
+  print ${(BEN)a%%ë*}
+  print ${(SBEN)a#ë3}
+  print ${(SBEN)a%4ë}
+0:Flags B, E, N and S in ${...#...} and ${...%...}
+>1 5 4
+>1 6 5
+>4 7 3
+>2 7 5
+>2 4 2
+>4 6 2
+
+  foo=(κατέβην χθὲς εἰς Πειραιᾶ)
+  print ${(l.3..¥.r.3..£.)foo}
+  print ${(l.4..¥.r.2..£.)foo}
+  print ${(l.5..¥.r.1..£.)foo}
+  print ${(l.4..¥..«.r.4..£..».)foo}
+  print ${(l.4..¥..Σωκράτης.r.4..£..Γλαύκωνος.)foo}
+0:simultaneous left and right padding
+>κατέβη ¥χθὲς£ ¥¥εἰς£ Πειραι
+>¥κατέβ ¥¥χθὲς ¥¥¥εἰς ¥Πειρα
+>¥¥κατέ ¥¥¥χθὲ ¥¥¥¥εἰ ¥¥Πειρ
+>«κατέβην ¥«χθὲς»£ ¥¥«εἰς»£ «Πειραιᾶ
+>ςκατέβην ηςχθὲςΓλ τηςεἰςΓλ ςΠειραιᾶ
+# er... yeah, that looks right...
+
+  foo=picobarn
+  print ${foo:s£bar£rod£:s¥rod¥stick¥}
+0:Delimiters in modifiers
+>picostickn
+
+# TODO: if we get paired multibyte bracket delimiters to work
+# (as Emacs does, the smug so-and-so), the following should change.
+  foo=bar
+  print ${(r£5££X£)foo}
+  print ${(l«10««Y««HI«)foo}
+0:Delimiters in parameter flags
+>barXX
+>YYYYYHIbar
+
+  printf "%4.3s\n" főobar
+0:Multibyte characters in printf widths
+> főo
+
+# TODO?: POSIX requires that printf should always compute width and
+# precision of '%s' conversion in bytes, while zsh computes them in
+# characters if multi-byte locale is in use.
+  ARGV0=sh $ZTST_testdir/../Src/zsh -c "printf '<%10s>\n' St$'\M-C\M-)'phane"
+0f:POSIX: width in %s should be computed in bytes, not in characters
+F:This is considered a bugfix in zsh
+>< Stéphane>
+
+  ARGV0=sh $ZTST_testdir/../Src/zsh -c "printf '<%7.5s>\n' St$'\M-C\M-)'phane"
+0f:POSIX: precision should also be computed in bytes, not in characers
+><  Stép>
+
+# We ask for case-insensitive sorting here (and supply upper case
+# characters) so that we exercise the logic in the shell that lowers the
+# case of the string for case-insensitive sorting.
+  print -oi HÛH HÔH HÎH HÊH HÂH
+  (LC_ALL=C; print -oi HAH HUH HEH HÉH HÈH)
+0:Multibyte characters in print sorting
+>HÂH HÊH HÎH HÔH HÛH
+>HAH HEH HUH HÈH HÉH
+
+# These are control characters in Unicode, so don't show up.
+# We just want to check they're not being treated as tokens.
+  for x in {128..150}; do
+     print ${(#)x}
+  done | while read line; do
+    print ${#line} $(( #line ))
+  done
+0:evaluated character number with multibyte characters
+>1 128
+>1 129
+>1 130
+>1 131
+>1 132
+>1 133
+>1 134
+>1 135
+>1 136
+>1 137
+>1 138
+>1 139
+>1 140
+>1 141
+>1 142
+>1 143
+>1 144
+>1 145
+>1 146
+>1 147
+>1 148
+>1 149
+>1 150
+
+  touch ngs1txt ngs2txt ngs10txt ngs20txt ngs100txt ngs200txt
+  setopt numericglobsort
+  print -l ngs*
+0:NUMERIC_GLOB_SORT option in UTF-8 locale
+>ngs1txt
+>ngs2txt
+>ngs10txt
+>ngs20txt
+>ngs100txt
+>ngs200txt
+
+# Not strictly multibyte, but gives us a well-defined locale for testing.
+  foo=$'X\xc0Y\x07Z\x7fT'
+  print -r ${(q)foo}
+0:Backslash-quoting of unprintable/invalid characters uses $'...'
+>X$'\300'Y$'\a'Z$'\177'T
+
+# This also isn't strictly multibyte and is here to reduce the
+# likelihood of a "cannot do character set conversion" error.
+  (print $'\u00e9') 2>&1 | read
+  if [[ $REPLY != é ]]; then
+    print "warning: your system can't do simple Unicode conversion." >&$ZTST_fd
+    print "Check you have a correctly installed iconv library." >&$ZTST_fd
+    # cheat
+    repeat 4 print OK
+  else
+    testfn() { (LC_ALL=C; print $'\u00e9') }
+    repeat 4 testfn 2>&1 | while read line; do
+      if [[ $line = *"character not in range"* ]]; then
+        print OK
+      elif [[ $line = "?" ]]; then
+        print OK
+      else
+        print Failed: no error message and no question mark
+      fi
+    done
+  fi
+  true
+0:error handling in Unicode quoting
+>OK
+>OK
+>OK
+>OK
+
+  tmp1='glob/\(\)Ą/*'
+  [[ glob/'()Ą'/foo == $~tmp1 ]] && print "Matched against $tmp1"
+  tmp1='glob/\(\)Ā/*'
+  [[ glob/'()Ā'/bar == $~tmp1 ]] && print "Matched against $tmp1"
+0:Backslashes and metafied characters in patterns
+>Matched against glob/()Ą/*
+>Matched against glob/()Ā/*
+
+  mkdir 梶浦由記 'Пётр Ильич Чайковский'
+  (cd 梶浦由記; print ${${(%):-%~}:t})
+  (cd 'Пётр Ильич Чайковский'; print ${${(%):-%~}:t})
+0:Metafied characters in prompt expansion
+>梶浦由記
+>Пётр Ильич Чайковский
+
+  (
+  setopt nonomatch
+  tmp1=Ą
+  tmpA=(Ą 'Пётр Ильич Чайковский' 梶浦由記)
+  print ${tmp1} ${(%)tmp1} ${(%%)tmp1}
+  print ${#tmp1} ${#${(%)tmp1}} ${#${(%%)tmp1}}
+  print ${tmpA}
+  print ${(%)tmpA}
+  print ${(%%)tmpA}
+  )
+0:More metafied characters in prompt expansion
+>Ą Ą Ą
+>1 1 1
+>Ą Пётр Ильич Чайковский 梶浦由記
+>Ą Пётр Ильич Чайковский 梶浦由記
+>Ą Пётр Ильич Чайковский 梶浦由記
+
+  setopt cbases
+  print $'\xc5' | read
+  print $(( [#16] #REPLY ))
+0:read passes through invalid multibyte characters
+>0xC5
+
+  word=abcま
+  word[-1]=
+  print $word
+  word=abcま
+  word[-2]=
+  print $word
+  word=abcま
+  word[4]=d
+  print $word
+  word=abcま
+  word[3]=not_c
+  print $word
+0:assignment with negative indices
+>abc
+>abま
+>abcd
+>abnot_cま
+
+  # The following doesn't necessarily need UTF-8, but this gives
+  # us the full effect --- if we parse this wrongly the \xe9
+  # in combination with the tokenized input afterwards looks like a
+  # valid UTF-8 character.  But it isn't.
+  print $'$\xe9#``' >test_bad_param
+  (setopt nonomatch
+  . ./test_bad_param)
+127:Invalid parameter name with following tokenized input
+?./test_bad_param:1: command not found: $\M-i#
+
+  lines=$'one\tＺＳＨ\tthree\nfour\tfive\tsix'
+  print -X8 -r -- $lines
+0:Tab expansion with extra-wide characters
+>one     ＺＳＨ  three
+>four    five    six
+# This doesn't look aligned in my editor because actually the characters
+# aren't quite double width, but the arithmetic is correct.
+# It appears just to be an effect of the font.
+
+  () {
+     emulate -L zsh
+     setopt errreturn
+     local cdpath=(.)
+     mkdir ホ
+     cd ホ
+     cd ..
+     cd ./ホ
+     cd ..
+  }
+0:cd with special characters
+
+  test_array=(
+  '[[ \xcc = \xcc ]]'
+  '[[ \xcc != \xcd ]]'
+  '[[ \xcc != \ucc ]]'
+  '[[ \ucc = \ucc ]]'
+  '[[ \ucc = [\ucc] ]]'
+  '[[ \xcc != [\ucc] ]]'
+  # Not clear how useful the following is...
+  '[[ \xcc = [\xcc] ]]'
+  )
+  for test in $test_array; do
+    if ! eval ${(g::)test} ; then
+      print -rl "Test $test failed" >&2
+    fi
+  done
+0:Invalid characters in pattern matching
+
+  [[ $'\xe3' == [[:INCOMPLETE:]] ]] || print fail 1
+  [[ $'\xe3\x83' == [[:INCOMPLETE:]][[:INVALID:]] ]] || print fail 2
+  [[ $'\xe3\x83\x9b' != [[:INCOMPLETE:][:INVALID:]] ]] || print fail 3
+  [[ $'\xe3\x83\x9b' = ? ]] || print fail 4
+0:Testing incomplete and invalid multibyte character components
+
+  print -r -- ${(q+):-ホ}
+  foo='She said "ホ".  I said "You can'\''t '\''ホ'\'' me!'
+  print -r -- ${(q+)foo}
+0:${(q+)...} with printable multibyte characters
+>ホ
+>'She said "ホ".  I said "You can'\''t '\''ホ'\'' me!'
+
+#  This will silently succeed if zsh/parameter isn't available
+  (zmodload zsh/parameter >/dev/null 2>&1
+  f() {
+    : $(:)
+    "↓"
+  }
+  : $functions)
+0:Multibyte handling of functions parameter
+
+# c1=U+0104 (Ą) and c2=U+0120 (Ġ) are chosen so that
+#   u1 = utf8(c1) = c4 84  <  u2 = utf8(c2) = c4 a0
+#   metafy(u1) = c4 83 a4  >  metafy(u2) = c4 83 80
+# in both UTF-8 and ASCII collations (the latter is used in macOS
+# and some versions of BSDs).
+  local -a names=( $'\u0104' $'\u0120' )
+  print -o $names
+  mkdir -p colltest
+  cd colltest
+  touch $names
+  print ?
+0:Sorting of metafied characters
+>Ą Ġ
+>Ą Ġ
+
+  printf '%q%q\n' 你你
+0:printf %q and quotestring and general metafy / token madness
+>你你
+
+ typeset foo
+ print -v foo 'ÖÓŐ'
+ echo $foo
+ printf -v foo 'ÖÓŐ'
+ echo $foo
+0:print and printf into a variable with multibyte text
+>ÖÓŐ
+>ÖÓŐ
+
+# This test is kept last as it introduces an additional
+# dependency on the system regex library.
+  if zmodload zsh/regex 2>/dev/null; then
+    [[ $'\ua0' =~ '^.$' ]] && print OK
+    [[ $'\ua0' =~ $'^\ua0$' ]] && print OK
+    [[ $'\ua0'X =~ '^X$' ]] || print OK
+  else
+    ZTST_skip="regexp library not found."
+  fi
+0:Ensure no confusion on metafied input to regex module
+>OK
+>OK
+>OK
+F:A failure here may indicate the system regex library does not
+F:support character sets outside the portable 7-bit range.
+
+  (
+    locale=$LANG
+    unset -m 'LC_*|LANG'
+    export LC_CTYPE=$locale
+    echo '\u276F'  # this works
+    () {
+      local LC_ALL=C
+    }  
+    echo '\u276F'  # this doesn't work
+  )
+0:locale gets restored when locale parameters go out of scope (regression test for 45772)
+>❯
+>❯
+
+  # Subshell for zmodload isolation
+  (
+    zmodload zsh/stat
+    typeset -A sizes
+    touch 50150-é 50150-Ą
+    # Using +size solely in order to make it easier to write the expectations
+    zstat +size -A sizes -nor -- 50150-*
+    print -r -- 50150-Ą $sizes[50150-Ą]
+    print -r -- 50150-é $sizes[50150-é]
+  )
+0:(workers/50150) zsh/stat with Unicode and metafication
+>50150-Ą 0
+>50150-é 0

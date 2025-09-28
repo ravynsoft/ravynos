@@ -1,0 +1,3890 @@
+2009-12-21 Sergey Udaltsov
+
+	* symbols/ru: Added ru(typewriter-legacy),
+	https://bugs.freedesktop.org/show_bug.cgi?id=25726
+	* rules/base.o_s.part, rules/base.xml.in, symbols/group: added
+	grp(lctrl_rctrl_switch),
+	https://bugs.freedesktop.org/show_bug.cgi?id=25727
+
+2009-11-27 Sergey Udaltsov
+
+	* symbols/se: Reintroduced the broken bar in the Swedish symbol
+	layout. http://bugs.freedesktop.org/show_bug.cgi?id=8491
+
+2009-11-25 Sergey Udaltsov
+
+	* rules/base.m_s.part, symbols/inet: a bit of optimization, K6C to map
+	to Eject, always in media section
+
+2009-11-24 Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/lt: removed unneeded lt(balticplus),
+	http://bugs.freedesktop.org/show_bug.cgi?id=25263
+
+2009-11-21 Sergey Udaltsov
+
+	* ../rules/base.xml.in, ../symbols/pl: added pl(dvp),
+	http://bugs.freedesktop.org/show_bug.cgi?id=25200
+
+2009-11-18 Sergey Udaltsov
+
+	* symbols/tm: small fix for tm layout, related to Ctrl+? shortcuts
+	https://bugs.freedesktop.org/show_bug.cgi?id=25074
+
+2009-11-15 Octavio Alvarez
+
+	* rules/base.xml.in: Removed thinkpadintl from base.xml.in.
+
+2009-10-20 Sergey Udaltsov
+
+	* symbols/sun_vndr/us: added backspace mapping,
+	https://bugs.freedesktop.org/show_bug.cgi?id=24554
+
+2009-10-13 Sergey Udaltsov
+
+	* rules/base.lists.part, symbols/macintosh_vndr/Makefile.am,
+	symbols/macintosh_vndr/es: Spanish mac layout just included the
+	general one
+	* rules/base.xml.in, symbols/ch: fixed Swiss default layout, added
+	legacy variant, http://bugs.freedesktop.org/show_bug.cgi?id=24490
+
+2009-10-12 Sergey Udaltsov
+
+	* rules/base.xml.in: USA Russian Phonetic keyboard layout not found in
+	search by Languages - Russian,
+	http://bugs.freedesktop.org/show_bug.cgi?id=24485
+
+2009-09-30 Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/group: added
+	grp:rctrl_rshift_toggle option,
+	http://bugs.freedesktop.org/show_bug.cgi?id=24234
+
+2009-09-29 Sergey Udaltsov
+
+	* configure.in, NEWS, po/*.po: preparing 1.7
+
+2009-09-15 Sergey Udaltsov
+
+	* symbols/es: addind dead_tilde,
+	https://bugs.freedesktop.org/show_bug.cgi?id=23876
+	* keycodes/sun, rules/base.m_k.part, rules/base.ml_s.part,
+	symbols/sun_vndr/us: fixed Sun keyboard model for type6,
+	https://bugs.freedesktop.org/show_bug.cgi?id=3952
+
+2009-09-08 Gaetan Nadon
+
+	* **/.cvsignore: remove cvsignore files.
+
+2009-09-02 Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/by: restructured Belarussian variants,
+	https://bugs.freedesktop.org/show_bug.cgi?id=23604
+
+2009-08-28 Sergey Udaltsov
+
+	* symbols/no: updated layout,
+	http://bugs.freedesktop.org/show_bug.cgi?id=23518
+
+2009-08-20 Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/capslock: added
+	caps:numlock, http://bugs.freedesktop.org/show_bug.cgi?id=23323
+
+2009-08-18 Peter Hutterer
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/capslock: added
+	caps:hyper, http://bugs.freedesktop.org/show_bug.cgi?id=23356
+
+2009-08-14 Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/capslock: added
+	caps:none option, http://bugs.freedesktop.org/show_bug.cgi?id=23243
+	* rules/base.xml.in, symbols/it: added it(us),
+	http://bugs.freedesktop.org/show_bug.cgi?id=23263
+
+2009-08-04 Sergey Udaltsov
+
+	* geometry/Makefile.am, rules/base.lists.part, rules/base.m_g.part,
+	rules/base.xml.in: added TypeMatrix geometries,
+	http://bugs.freedesktop.org/show_bug.cgi?id=23136
+
+2009-07-19 Sergey Udaltsov
+
+	* symbols/vn: fixed accent typing,
+	http://bugs.freedesktop.org/show_bug.cgi?id=22847
+
+2009-07-18 Sergey Udaltsov
+
+	* symbols/gb: fixed gb(colemak), several mappings added,
+	http://bugs.freedesktop.org/show_bug.cgi?id=22735
+
+2009-07-14 Sergey Udaltsov
+
+	* rules/base.extras.xml.in, rules/extras/variantsMapping.lst,
+	symbols/extras/us: added us(crd) to extras,
+	http://bugs.freedesktop.org/show_bug.cgi?id=22635
+
+2009-07-09 Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/bg: updated bg variants,
+	http://bugs.freedesktop.org/show_bug.cgi?id=22666
+
+2009-06-27 Sergey Udaltsov
+
+	* symbols/extras/us, rules/base.extras.xml.in,
+	rules/extras/variantsMapping.lst, symbols/extras/Makefile.am: Added 3
+	exotic us variants: ats, intl-unicode, alt-intl-unicode
+	http://bugs.freedesktop.org/show_bug.cgi?id=22004
+	http://bugs.freedesktop.org/show_bug.cgi?id=22446
+
+2009-06-22 Sergey Udaltsov
+
+	* .gitignore, configure.in, rules/Makefile.am,
+	rules/base.extras.xml.in, rules/base.l2_s.part, rules/base.l3_s.part,
+	rules/base.l4_s.part, rules/base.lists.part, rules/base.ml_s.part,
+	rules/bin/Makefile.am, rules/compat/ln_s.sh -> rules/bin/ln_s.sh,
+	rules/compat/lnv_s.sh -> rules/bin/lnv_s.sh, rules/compat/ml1_s.sh ->
+	rules/bin/ml1_s.sh, rules/compat/ml1v1_s.sh -> rules/bin/ml1v1_s.sh,
+	rules/compat/ml1v_s.sh -> rules/bin/ml1v_s.sh, rules/compat/ml_s.sh ->
+	rules/bin/ml_s.sh, rules/compat/mlv_s.sh -> rules/bin/mlv_s.sh,
+	rules/compat/Makefile.am, rules/compat/layoutsMapping.lst,
+	rules/compat/variantsMapping.lst, rules/extras/Makefile.am,
+	rules/extras/layoutsMapping.lst, symbols/extras/Makefile.am,
+	symbols/extras/rs: serious restructuring of the rules generation
+	scripts, for compat and extras. Also, adding exotic rs(combiningkeys)
+	variant, http://bugs.freedesktop.org/show_bug.cgi?id=21047
+
+2009-06-20 Sergey Udaltsov
+
+	* symbols/by: missing mappings,
+	https://bugs.freedesktop.org/show_bug.cgi?id=22386
+	* symbols/ca: fixed a couple of mappings in ca(shs)
+	http://bugs.freedesktop.org/show_bug.cgi?id=22388
+
+2009-06-19 Sergey Udaltsov
+
+	* symbols/de: small fix for a numbersign key,
+	http://bugs.freedesktop.org/show_bug.cgi?id=19934
+
+2009-06-15 Sergey Udaltsov
+
+	* symbols/inet: fixing ABNT2-specific mapping for keypad dot key,
+	http://bugs.freedesktop.org/show_bug.cgi?id=22303
+
+2009-06-14 Sergey Udaltsov
+
+	* rules/base.lists.part, rules/base.xml.in, symbols/inet: added
+	creativedw7000 model,
+	http://bugs.freedesktop.org/show_bug.cgi?id=22261
+
+2009-06-12 Sergey Udaltsov
+
+	* symbols/us: added extra symbols to us(altgr-intl),
+	http://bugs.freedesktop.org/show_bug.cgi?id=22249
+
+2009-06-11 Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/capslock: added
+	caps:super, http://bugs.freedesktop.org/show_bug.cgi?id=22184
+
+2009-06-09 Sergey Udaltsov
+
+	* symbols/ng: fixing 'e with dot below' in ng(olpc),
+	https://bugs.freedesktop.org/show_bug.cgi?id=20010
+	* rules/base.ml1_s.part: fixing misspeled variant name,
+	https://bugs.freedesktop.org/show_bug.cgi?id=15782
+	* symbols/tr: lost credits added,
+	https://bugs.freedesktop.org/show_bug.cgi?id=22079
+	* rules/base.xml.in, symbols/ru: added ru(bak),
+	https://bugs.freedesktop.org/show_bug.cgi?id=22101
+
+2009-05-31 Sergey Udaltsov
+
+	* symbols/altwin: setting explicit TWO_LEVEL on sections mapping RALT
+	, it is often ONE_LEVEL because of LEVEL3. Fixed
+	http://bugs.freedesktop.org/show_bug.cgi?id=21761
+
+2009-05-24 Sergey Udaltsov
+
+	* symbols/ua: fixed all references, from ua(basic) to ua(legacy),
+	finalizing http://bugs.freedesktop.org/show_bug.cgi?id=21302
+
+2009-05-18 Sergey Udaltsov
+
+	* symbols/de: adding acute to de(nodeadkeys),
+	http://bugs.freedesktop.org/show_bug.cgi?id=21794
+
+2009-05-12 Sergey Udaltsov
+
+	* NEWS, configure.in: bumping the release number
+
+2009-05-12  Reşat SABIQ
+
+	* configure.in (new locale), po/crh.po:
+	Added crh.po as well (as was done originally on January 30),
+	based on Peter Hutterer's feedback regarding build process;
+	http://bugs.freedesktop.org/show_bug.cgi?id=19730
+
+2009-05-11 Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/pl: polished the description for
+	pl(dvorak_altquotes)
+
+2009-05-11  Reşat SABIQ
+
+	* configure.in (new locale), rules/base.xml.in,
+	symbols/ro, symbols/tr, symbols/ua, symbols/uz:
+	Added Crimean Tatar (Crimean Turkish) layouts;
+	http://bugs.freedesktop.org/show_bug.cgi?id=19730
+
+2009-05-07 Sergey Udaltsov
+
+	* symbols/ru: fixed Kalmyk variant
+
+2009-05-01 Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/ru: added ru(phonetic_winkeys),
+	http://bugs.freedesktop.org/show_bug.cgi?id=21474
+
+2009-04-29 Sergey Udaltsov
+
+	* rules/base.xml.in: fixed wrong locale code,
+	http://bugs.freedesktop.org/show_bug.cgi?id=21451
+
+2009-04-25 Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/Makefile.am,
+	symbols/pc, symbols/srvr_ctrl: Make C-A-Bksp an option,
+	http://bugs.freedesktop.org/show_bug.cgi?id=21274
+
+2009-04-23 Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/ua: making ua(unicode) default,
+	http://bugs.freedesktop.org/show_bug.cgi?id=21302
+
+2009-04-22 Sergey Udaltsov
+
+	* rules/compat/ln_s.sh, rules/compat/ml1_s.sh: improved compat rules,
+	hopefully fixing http://bugs.freedesktop.org/show_bug.cgi?id=8452
+
+2009-04-15 Sergey Udaltsov
+
+	* symbols/kr: fixed ordering issue,
+	http://bugs.freedesktop.org/show_bug.cgi?id=21211
+
+2009-04-14 Sergey Udaltsov
+
+	* symbols/kg: small update of the Kyrgyz layout,
+	http://bugs.freedesktop.org/show_bug.cgi?id=17505
+	* rules/base.xml.in, symbols/gb: added gb(extd),
+	http://bugs.freedesktop.org/show_bug.cgi?id=21121
+
+2009-04-03 Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/tm: added Turkmen layout+variant,
+	http://bugs.freedesktop.org/show_bug.cgi?id=21015
+	* symbols/rs: splitting latlevel3 and cyrlevel3,
+	http://bugs.freedesktop.org/show_bug.cgi?id=21044
+	* rules/base.m_s.part, rules/base.xml.in: Cherry B.UMLIMITED dummy
+	model, http://bugs.freedesktop.org/show_bug.cgi?id=21002
+
+2009-03-17 Sergey Udaltsov
+
+	* symbols/de: some useful symbols added on high shift levels,
+	http://bugs.freedesktop.org/show_bug.cgi?id=20551
+
+2009-03-16 Sergey Udaltsov
+
+	* rules/base.lists.part, rules/base.xml.in, symbols/kg: fixed Kyrgyz
+	variants, http://bugs.freedesktop.org/show_bug.cgi?id=17505
+
+2009-03-07 Sergey Udaltsov
+
+	* rules/base.m_s.part, rules/base.xml.in: added trust_slimline model,
+	http://bugs.freedesktop.org/show_bug.cgi?id=20513
+
+2009-03-04 Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/altwin, symbols/pc:
+	putting altwin:super_win into default configuration,
+	http://bugs.freedesktop.org/show_bug.cgi?id=19500
+
+2009-03-03 Sergey Udaltsov
+
+	* rules/base.lists.part, rules/base.ml1_s.part, rules/base.ml_s.part:
+	use br(thinkpad) for all thinkpads,
+	http://bugs.freedesktop.org/show_bug.cgi?id=20425
+
+2009-03-02 Sergey Udaltsov
+
+	* po/POTFILES.in: removed evdev.xml.in, which is exact copy of
+	base.xml.in (and not distributed),
+	http://bugs.freedesktop.org/show_bug.cgi?id=20107
+
+2009-02-26 Sergey Udaltsov
+
+	* symbols/fi: added missing (in pc101) mappings, on 4th level,
+	https://bugs.freedesktop.org/show_bug.cgi?id=20300
+	* keycodes/evdev, keycodes/xfree86, keymap/xfree86,
+	rules/base.lists.part, rules/base.m_k.part, rules/base.xml.in,
+	rules/evdev.m_k.part: dropping national-specific models abnt2, jp106,
+	kr106. The corresponding geometries are left in the codebase, for some
+	while
+
+2009-02-25 Sergey Udaltsov
+
+	* symbols/ru: missing minus and underscore are added to ru(phonetic),
+	http://bugs.freedesktop.org/show_bug.cgi?id=20093
+
+2009-02-19 Sergey Udaltsov
+
+	* keycodes/evdev, keycodes/xfree86, rules/base.m_k.part: merged
+	xfree86(jp106) section to basic xfree86 keycodes
+
+2009-02-14  Sergey Udaltsov
+
+	* symbols/sn, rules/base.xml.in, symbols/Makefile.am: added wolof
+	layout, http://bugs.freedesktop.org/show_bug.cgi?id=20004
+
+2009-02-13  Sergey Udaltsov
+
+	* symbols/inet: adding missing mappings to evdev,
+	http://bugs.freedesktop.org/show_bug.cgi?id=18854
+	* rules/base.xml.in: added lost lt(balticplus),
+	http://bugs.freedesktop.org/show_bug.cgi?id=20092
+
+2009-02-05  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/in: added in(hin-wx),
+	http://bugs.freedesktop.org/show_bug.cgi?id=19753
+
+2009-02-04  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/ru: added ru(dos),
+	http://bugs.freedesktop.org/show_bug.cgi?id=19880
+
+2009-02-01  Sergey Udaltsov
+
+	* rules/base.xml.in: fixed metainfo for fi(smi),
+	http://bugs.freedesktop.org/show_bug.cgi?id=19841
+	* rules/base.lists.part, rules/evdev.m_s.part: some kbds need tweaking
+	even with evdev, adding $evdevkbds (asked by Peter)
+	* symbols/inet: added battery key (asked by Peter)
+	* README: fixed docs url,
+	http://bugs.freedesktop.org/show_bug.cgi?id=9764
+
+2009-01-28  Sergey Udaltsov
+
+	* rules/base.ml_s.part: fixed sun-related rules,
+	http://bugs.freedesktop.org/show_bug.cgi?id=15782
+	* rules/base.m_s.part, rules/base.xml.in, symbols/inet: added
+	geniuskkb2050hs model,
+	http://bugs.freedesktop.org/show_bug.cgi?id=19694
+	* geometry/dell, rules/base.m_g.part: added latitude geometry,
+	http://bugs.freedesktop.org/show_bug.cgi?id=19750
+	* rules/base.xml.in, symbols/Makefile.am, symbols/brai,
+	symbols/braille: moved Braille symbols to the proper location,
+	http://bugs.freedesktop.org/show_bug.cgi?id=19695
+	* symbols/capslock: keep Escape working in caps:escape,
+	http://bugs.freedesktop.org/show_bug.cgi?id=19795
+	* rules/base.o_s.part, rules/base.xml.in, symbols/level3: added
+	lv3:enter_switch, http://bugs.freedesktop.org/show_bug.cgi?id=19773
+	* rules/base.xml.in, symbols/ca: added ca(eng) for convenience,
+	http://bugs.freedesktop.org/show_bug.cgi?id=19707
+
+2009-01-27  Sergey Udaltsov
+
+	* symbols/typo: fixed text selection,
+	http://bugs.freedesktop.org/show_bug.cgi?id=14022
+	* symbols/be: added missing character,
+	http://bugs.freedesktop.org/show_bug.cgi?id=19751
+	* symbols/fr: fixed . on numpad, period->KP_Decimal,
+	http://bugs.freedesktop.org/show_bug.cgi?id=19756
+	* NEWS, configure.in: preparing 1.5
+
+2009-01-24  Sergey Udaltsov
+
+	* rules/base.xml.in: added SV and US to the country list for latam,
+	http://bugs.freedesktop.org/show_bug.cgi?id=19710
+
+2009-01-22  Sergey Udaltsov
+
+	* symbols/fi: updated default Finnish variant,
+	http://bugs.freedesktop.org/show_bug.cgi?id=18742
+
+2009-01-13  Sergey Udaltsov
+
+	* symbols/typo, rules/base.l1o_s.part, rules/base.l2o_s.part,
+	rules/base.l3o_s.part, rules/base.l4o_s.part, rules/base.lo_s.part,
+	rules/base.xml.in, symbols/Makefile.am: added (inactive so far)
+	misc:typo option, first step to close
+	https://bugs.freedesktop.org/show_bug.cgi?id=14022
+
+2009-01-12  Sergey Udaltsov
+
+	* rules/Makefile.am, rules/merge.sh: fix the build (thanks to Oswald
+	Buddenhagen)
+
+2009-01-11  Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/capslock: added
+	option to use capslock as backspace,
+	http://bugs.freedesktop.org/show_bug.cgi?id=19508
+	* rules/base.xml.in, symbols/lt: removed unneeded variant,
+	http://bugs.freedesktop.org/show_bug.cgi?id=14096
+	* rules/base.xml.in, symbols/fr: added Breton variant,
+	http://bugs.freedesktop.org/show_bug.cgi?id=19506
+
+2009-01-10  Sergey Udaltsov
+
+	* rules/base.xml.in: More improvements(?) in descriptions, to make
+	them shorter
+
+2009-01-08  Sergey Udaltsov
+
+	* rules/base.xml.in: slightly reorganized descriptions for the group
+	related to switchers
+
+2009-01-06  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/es, symbols/latam: added dead tilde
+	variants, http://bugs.freedesktop.org/show_bug.cgi?id=12568
+	* rules/base.xml.in, rules/compat/variantRename.lst, symbols/in,
+	symbols/pk: updated Urdu variants,
+	https://bugs.freedesktop.org/show_bug.cgi?id=8091
+
+2009-01-03  Sergey Udaltsov
+
+	* rules/compat/ln_s.sh, rules/compat/ml1_s.sh: fixed compat layout
+	renaming involving variants on replacement, part of the fix for
+	http://bugs.freedesktop.org/show_bug.cgi?id=8452
+
+2008-12-30  Sergey Udaltsov
+
+	* symbols/fi: updated 2 mappings according to the new standard,
+	http://bugs.freedesktop.org/show_bug.cgi?id=18742
+
+2008-12-29  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/inet: added compal fl90,
+	http://bugs.freedesktop.org/show_bug.cgi?id=15820
+	* rules/base.m_s.part, rules/base.xml.in: added btc9116u model,
+	http://bugs.freedesktop.org/show_bug.cgi?id=15871
+	* symbols/gb: fixed gb dvorak,
+	http://bugs.freedesktop.org/show_bug.cgi?id=18244
+	* symbols/us: removed explicit CAPS mapping,
+	http://bugs.freedesktop.org/show_bug.cgi?id=18320
+
+2008-12-28  Sergey Udaltsov
+
+	*  rules/base.xml.in, symbols/de: updated neo variant,
+	http://bugs.freedesktop.org/show_bug.cgi?id=19308
+
+2008-12-26  Sergey Udaltsov
+
+	* rules/base.lists.part, rules/base.m_s.part, symbols/inet: using
+	acpi_common wherever possible, dropping (aliasing) unneeded models
+
+2008-12-25  Sergey Udaltsov
+
+	* rules/base.lists.part, rules/base.xml.in, symbols/inet: added
+	chicony0420 model, http://bugs.freedesktop.org/show_bug.cgi?id=15813
+	* symbols/inet: updated cymotionlinux model,
+	http://bugs.freedesktop.org/show_bug.cgi?id=15783
+
+2008-12-24  Sergey Udaltsov
+
+	* symbols/inet: consolidated a lot of mappings into nav_common
+
+2008-12-21  Sergey Udaltsov
+
+	* docs/README.enhancing: fixing the location of XKB proto docs,
+	http://bugs.freedesktop.org/show_bug.cgi?id=9764
+	* rules/base.xml.in, symbols/be: added oss variants,
+	http://bugs.freedesktop.org/show_bug.cgi?id=8854
+	* rules/base.m_s.part, rules/base.xml.in: added microsoftccurve2k
+	model http://bugs.freedesktop.org/show_bug.cgi?id=9772
+	* symbols/inet: changing globally XF86Refresh to XF86Reload,
+	http://bugs.freedesktop.org/show_bug.cgi?id=10751
+	* COPYING: added missing copyright notices,
+	http://bugs.freedesktop.org/show_bug.cgi?id=11095
+	* rules/base.lists.part, rules/base.xml.in, symbols/inet: added model
+	unitek_kb1925, http://bugs.freedesktop.org/show_bug.cgi?id=11579
+
+2008-12-18  Sergey Udaltsov
+
+	* keycodes/macintosh, rules/base.m_k.part, rules/base.o_k.part:
+	dropped the goodmap and badmap keycodes for apple - needed for a very
+	old kernels only. http://bugs.freedesktop.org/show_bug.cgi?id=9095
+
+2008-12-17  Sergey Udaltsov
+
+	* symbols/capslock, symbols/compose, symbols/ctrl: fix lock modifier
+	for jp, making "CAPS" replace key,
+	http://bugs.freedesktop.org/show_bug.cgi?id=8805
+
+2008-12-15  Sergey Udaltsov
+
+	* symbols/ru: added Kalmyk variant, thanks to Anatoly Mironov and
+	others
+
+2008-12-12  Sergey Udaltsov
+
+	* symbols/fr: fixed bepo variant,
+	http://bugs.freedesktop.org/show_bug.cgi?id=17821
+	* symbols/ara: restoring presentation forms,
+	http://bugs.freedesktop.org/show_bug.cgi?id=18833
+	* rules/base.xml.in, rules/base.m_s.part: added targa_v811 model,
+	https://bugs.freedesktop.org/show_bug.cgi?id=5722
+
+2008-11-30  Sergey Udaltsov
+
+	* symbols/gr: added ralt switch to Greek default layout,
+	http://bugs.freedesktop.org/show_bug.cgi?id=18819
+	* rules/base.o_s.part, rules/base.xml.in, symbols/group: added
+	win_menu_switch option,
+	http://bugs.freedesktop.org/show_bug.cgi?id=18557
+
+2008-11-29  Sergey Udaltsov
+
+	* compat/level5: finally using Level5 characters,
+	https://bugs.freedesktop.org/show_bug.cgi?id=4411
+	* rules/base.xml.in: generalized Fujitsu-Siemens Amilo laptops, also
+	closing http://bugs.freedesktop.org/show_bug.cgi?id=5694
+	* rules/base.o_s.part, rules/base.xml.in, symbols/epo: added a couple
+	of Esperanto options,
+	http://bugs.freedesktop.org/show_bug.cgi?id=18142
+
+2008-11-27  Sergey Udaltsov
+
+	* ChangeLog, rules/base.lists.part, rules/base.xml.in, symbols/inet:
+	added cymotion expert model,
+	http://bugs.freedesktop.org/show_bug.cgi?id=18718
+
+2008-11-26  Sergey Udaltsov
+
+	* keycodes/evdev: fixed ABNT2 keycodes,
+	http://bugs.freedesktop.org/show_bug.cgi?id=18712
+	* keycodes/amiga, keycodes/ataritt, keycodes/fujitsu,
+	keycodes/macintosh, keycodes/sgi_vndr/indigo, keycodes/sgi_vndr/indy,
+	keycodes/sun, keycodes/xfree98: set keycode ranges 8-255, universally,
+	https://bugs.freedesktop.org/show_bug.cgi?id=12538
+
+2008-11-22  Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/group: added
+	grp(alt_space_toggle) option,
+	http://bugs.freedesktop.org/show_bug.cgi?id=15772
+	* symbols/ca, symbols/et, symbols/tr: small OLPC fixes,
+	http://bugs.freedesktop.org/show_bug.cgi?id=18645
+
+2008-11-20  Sergey Udaltsov
+
+	* rules/base.lists.part, rules/base.xml.in, symbols/inet: added HP dv5
+	keyboard, thanks to Giuseppe Bilotta
+
+2008-11-18  Sergey Udaltsov
+
+	* symbols/it: fixing it(olpc),
+	http://bugs.freedesktop.org/show_bug.cgi?id=18565
+
+2008-11-08  Sergey Udaltsov
+
+	* symbols/inet: using inet(acpi) wherever possible, fixing apple
+	section (thanks to Otavio Salvador)
+	* symbols/pl: missing mappings, thanks to Otavio and Debian
+
+2008-11-06  Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/capslock: added
+	capslock(escape)
+
+2008-10-18  Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/keypad,
+	symbols/kpdl: added 2 keypad options (hex and atm), also kpdl:semi,
+	http://bugs.freedesktop.org/show_bug.cgi?id=17110
+	* rules/base.xml.in, symbols/de: added de(qwerty)
+
+2008-10-14  Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/keypad: removed
+	keypad:phone_hex option, to be replaced with newer one
+	http://bugs.freedesktop.org/show_bug.cgi?id=17110
+
+2008-10-13  Sergey Udaltsov
+
+	* keycodes/evdev: fixed keycode comment from Peter Hutterer
+	* rules/base.xml.in, symbols/tj: cleaning the mess with tj variants,
+	http://bugs.freedesktop.org/show_bug.cgi?id=17975
+
+2008-10-11  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/de: added Lower Sorbian variants,
+	http://bugs.freedesktop.org/show_bug.cgi?id=17855
+	* rules/base.xml.in, symbols/tj: added 2 new variants, std and legacy,
+	http://bugs.freedesktop.org/show_bug.cgi?id=17975
+	* rules/base.o_t.part, rules/base.xml.in, types/numpad: added
+	numpad(shift3) option,
+	http://bugs.freedesktop.org/show_bug.cgi?id=17110
+
+2008-10-03  Sergey Udaltsov
+
+	* symbols/ru: fix typewriter layout,
+	http://bugs.freedesktop.org/show_bug.cgi?id=17881
+
+2008-09-30  Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/altwin: added
+	Mac-like modifiers positioning,
+	http://bugs.freedesktop.org/show_bug.cgi?id=15655
+	* NEWS, configure.in: preparing 1.4
+
+2008-09-26  Sergey Udaltsov
+
+	* symbols/is: fixed AC11 mapping,
+	http://bugs.freedesktop.org/show_bug.cgi?id=17786
+
+2008-09-24  Sergey Udaltsov
+
+	* rules/base.xml.in: all descriptions are prefixed with underscore,
+	to make them translatable,
+	http://bugs.freedesktop.org/show_bug.cgi?id=17587
+
+2008-09-19  Sergey Udaltsov
+
+	* keycodes/evdev, symbols/inet: fixed evdev for abnt2 and jp106
+	http://bugs.freedesktop.org/show_bug.cgi?id=17656
+
+2008-09-18  Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in: more mismatches fixed,
+	http://bugs.freedesktop.org/show_bug.cgi?id=17622
+
+2008-09-17  Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in: fixed mismatch,
+	http://bugs.freedesktop.org/show_bug.cgi?id=17622
+
+2008-09-15  Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/capslock,
+	symbols/cz: added cz(ucw) and couple of options,
+	http://bugs.freedesktop.org/show_bug.cgi?id=17587
+	* rules/base.xml.in, symbols/gr: updated greek variants,
+	http://bugs.freedesktop.org/show_bug.cgi?id=17459
+
+2008-09-12  Sergey Udaltsov
+
+	* geometry/pc: added another pc geometry, with L-shaped Enter,
+	http://bugs.freedesktop.org/show_bug.cgi?id=17513
+
+2008-09-10  Sergey Udaltsov
+
+	* rules/base.lists.part, rules/base.xml.in, symbols/inet: added model
+	sven303, http://bugs.freedesktop.org/show_bug.cgi?id=17518
+
+2008-09-02  Sergey Udaltsov
+
+	* symbols/inet: fixed fscaa1667g,
+	http://bugs.freedesktop.org/show_bug.cgi?id=17389
+	* symbols/fr: fixed invalid keysym,
+	http://bugs.freedesktop.org/show_bug.cgi?id=17388
+	* rules/base.xml.in: some fixes for minor issues
+	* rules/base.xml.in, symbols/gb: added gb(dvorakukp),
+	http://bugs.freedesktop.org/show_bug.cgi?id=17370
+
+2008-08-16  Sergey Udaltsov
+
+	* rules/evdev.m_k.part, rules/evdev.m_s.part, keycodes/evdev,
+	po/POTFILES.in, po/xkeyboard-config.pot, rules/Makefile.am: implement
+	special ruleset for evdev driver
+	* added missing chars to Gurmukhi,
+	http://bugs.freedesktop.org/show_bug.cgi?id=17163
+
+2008-08-06  Sergey Udaltsov
+
+	* compat/Makefile.am, geometry/Makefile.am, keycodes/Makefile.am,
+	keymap/Makefile.am, rules/compat/Makefile.am, semantics/Makefile.am,
+	symbols/Makefile.am, types/Makefile.am, xkbrules.am: improving the
+	build, http://bugs.freedesktop.org/show_bug.cgi?id=17008
+
+2008-08-03  Sergey Udaltsov
+
+	* rules/compat/variantRename.lst: fixing compat rules for Romania,
+	http://bugs.freedesktop.org/show_bug.cgi?id=16872
+	* symbols/mt: fixed Maltese layout,
+	http://bugs.freedesktop.org/show_bug.cgi?id=16966
+	* symbols/fr: fixed fr(dvorak), making it legal
+	http://bugs.freedesktop.org/show_bug.cgi?id=15407
+
+2008-07-28  Sergey Udaltsov
+
+	* rules/base.lists.part, rules/base.xml.in, symbols/inet: added
+	ibm_spacesaver model,
+	http://bugs.freedesktop.org/show_bug.cgi?id=16767
+
+2008-07-22  Sergey Udaltsov
+
+	* rules/base.xml.in: fixed typo,
+	http://bugs.freedesktop.org/show_bug.cgi?id=16806
+
+2008-07-20  Sergey Udaltsov
+
+	* symbols/inet: fixed typo,
+	http://bugs.freedesktop.org/show_bug.cgi?id=16752
+
+2008-07-08  Sergey Udaltsov
+
+	* symbols/us: fixing us(mac),
+	https://bugs.freedesktop.org/show_bug.cgi?id=16641
+
+2008-07-01  Sergey Udaltsov
+
+	* symbols/is, rules/base.xml.in: added is(dvorak),
+	https://bugs.freedesktop.org/show_bug.cgi?id=16557
+
+2008-06-27  Sergey Udaltsov
+
+	* symbols/level5: using normal level5 keysyms
+	* rules/compat/ln_s.sh, rules/compat/lnv_s.sh, rules/compat/ml1_s.sh,
+	rules/compat/ml1v1_s.sh, rules/compat/ml1v_s.sh, rules/compat/ml_s.sh,
+	rules/compat/mlv_s.sh: fixed build process, thanks to Oswald
+	Buddenhagen
+
+2008-06-22  Sergey Udaltsov
+
+	* symbols/tj: sorted and fixed tj layout,
+	http://bugs.freedesktop.org/show_bug.cgi?id=16448
+
+2008-06-12  Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/keypad: added
+	keypad:phone_hex, http://bugs.freedesktop.org/show_bug.cgi?id=16298
+
+2008-06-09  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/us: added us(chr),
+	http://bugs.freedesktop.org/show_bug.cgi?id=16283
+
+2008-06-06  Sergey Udaltsov
+
+	* geometry/pc: removed unneeded space,
+	http://bugs.freedesktop.org/show_bug.cgi?id=16258
+
+2008-06-04  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/ru: added ru(sah),
+	http://bugs.freedesktop.org/show_bug.cgi?id=15872
+
+2008-06-01  Sergey Udaltsov
+
+	* rules/base.xml.in, rules/base.lists.part, symbols/inet: added
+	microsoft7000, http://bugs.freedesktop.org/show_bug.cgi?id=16087
+	* keycodes/xfree86, rules/base.m_g.part, rules/base.m_k.part,
+	rules/base.m_s.part, rules/base.xml.in: added model thinkpadz60,
+	http://bugs.freedesktop.org/show_bug.cgi?id=15999
+
+2008-05-31  Sergey Udaltsov
+
+	* symbols/gb, symbols/hu: fixed utf8
+
+2008-05-31  Sergey Udaltsov
+
+	* symbols/ru: fixed some includes, from common to winkeys (broken in
+	previous release)
+
+2008-05-30  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/ca: added ca(kut),
+	http://bugs.freedesktop.org/show_bug.cgi?id=16048
+
+2008-05-27  Sergey Udaltsov
+
+	* symbols/inet: WWW is mapped to I02, because of some changes in
+	kernel or X server (on nx9020),
+	http://bugs.freedesktop.org/show_bug.cgi?id=7310
+	* symbols/us: fixed one-handed dvorak variants (dropped second group),
+	http://bugs.freedesktop.org/show_bug.cgi?id=5659
+	* symbols/fi: returned nbsp to 3rd level of space,
+	http://bugs.freedesktop.org/show_bug.cgi?id=12764
+	* configure.in, NEWS: preparing 1.3
+
+2008-05-12  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/ro: changed default Romanian variant to
+	the right one, http://bugs.freedesktop.org/show_bug.cgi?id=13277
+
+2008-05-09  Sergey Udaltsov
+
+	* rules/compat/variantRename.lst, symbols/ru: default variant is
+	winkeys (till Daniel fixes xkbcomp)
+	* symbols/ua: small fix, from Andriy
+
+2008-05-01  Sergey Udaltsov
+
+	* po/POTFILES.in, rules/Makefile.am, rules/sgi*, rules/sun*: dropping
+	legacy unsupported rules. Confirmed with Alan Coopersmith (Sun
+	Microsystems)
+
+2008-04-30  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/us: added us(dvp),
+	http://bugs.freedesktop.org/show_bug.cgi?id=15727
+
+2008-04-29  Sergey Udaltsov
+
+	* symbols/ca: fixed ca(shs),
+	http://bugs.freedesktop.org/show_bug.cgi?id=15756
+
+2008-04-23  Sergey Udaltsov
+
+	* symbols/es: revert broken idea about dead tilde,
+	http://bugs.freedesktop.org/show_bug.cgi?id=9763
+	* symbols/latam: revert broken idea about dead tilde,
+	http://bugs.freedesktop.org/show_bug.cgi?id=12568
+
+2008-04-22  Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/fr, symbols/nbsp,
+	types/pc: options for nonbreakspace handling,
+	http://bugs.freedesktop.org/show_bug.cgi?id=9529
+	* symbols/fi: dropping bad nbsp mapping,
+	http://bugs.freedesktop.org/show_bug.cgi?id=12764
+
+2008-04-21  Sergey Udaltsov
+
+	* rules/base.xml.in: fixed some ISO codes
+
+2008-04-19  Sergey Udaltsov
+
+	* symbols/ru, rules/base.xml.in, rules/compat/variantRename.lst:
+	changed ru(winkeys) to default
+	* rules/base.xml.in: put a lot of country/language info in
+
+2008-04-12  Sergey Udaltsov
+
+	* symbols/it: fixed it(geo),
+	https://bugs.freedesktop.org/show_bug.cgi?id=15058
+
+2008-04-07  Sergey Udaltsov
+
+	* symbols/group, rules/base.xml.in, rules/base.o_s.part: added
+	group(shift_caps_switch)
+	http://bugs.freedesktop.org/show_bug.cgi?id=15383
+
+2008-04-01  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/gb: added gb(colemak),
+	http://bugs.freedesktop.org/show_bug.cgi?id=15303
+
+2008-03-30  Sergey Udaltsov
+
+	* symbols/gn, symbols/ng: fixed unicode sequences,
+	http://bugs.freedesktop.org/show_bug.cgi?id=15273
+	* rules/base.xml.in, symbols/ua: added ua(homophonic),
+	http://bugs.freedesktop.org/show_bug.cgi?id=15240
+
+2008-03-28  Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/compose: added
+	compose:102, http://bugs.freedesktop.org/show_bug.cgi?id=15246
+
+2008-03-22  Sergey Udaltsov
+
+	* symbols/fr: fixed fr(oss_nodeadkeys),
+	http://bugs.freedesktop.org/show_bug.cgi?id=15140
+
+2008-03-06  Sergey Udaltsov
+
+	* rules/base.lists.part, symbols/ca, symbols/fr: added ca(olpc),
+	removed fr(olpc), http://bugs.freedesktop.org/show_bug.cgi?id=14749
+
+2008-03-03  Sergey Udaltsov
+
+	* rules/base.lists.part, symbols/fr: added fr(olpc),
+	http://bugs.freedesktop.org/show_bug.cgi?id=14749
+	* symbols/lv: fixed lv accented characters,
+	http://bugs.freedesktop.org/show_bug.cgi?id=14765
+	* rules/base.lists.part, symbols/it: added it(olpc),
+	http://bugs.freedesktop.org/show_bug.cgi?id=14793
+
+2008-03-01  Sergey Udaltsov
+
+	* rules/base.lists.part, rules/base.m_s.part, rules/base.xml.in,
+	symbols/inet: reorganizing keyboard in symbols/inet. Some models are
+	now implemented as "virtual" (by rules only).
+	http://bugs.freedesktop.org/show_bug.cgi?id=14665
+
+2008-02-28  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/in: added in(jhelum), other indian fixes,
+	http://bugs.freedesktop.org/show_bug.cgi?id=14595
+	* symbols/jp: small fix,
+	http://bugs.freedesktop.org/show_bug.cgi?id=8648
+
+2008-02-16  Sergey Udaltsov
+
+	* symbols/cz, symbols/sk: dropping KPDL mapping,
+	http://bugs.freedesktop.org/show_bug.cgi?id=14479
+
+2008-02-12  Sergey Udaltsov
+
+	* keycodes/sun, symbols/sun_vndr/us, rules/base.ml_s.part,
+	rules/base.xml.in: sun type6 kbd,
+	http://bugs.freedesktop.org/show_bug.cgi?id=13664
+
+2008-02-05  Sergey Udaltsov
+
+	* symbols/af: fixed AE09 in af(olpc-ps),
+	http://bugs.freedesktop.org/show_bug.cgi?id=14379
+
+2008-02-04  Sergey Udaltsov
+
+	* symbols/kh, rules/base.lists.part: added kh(olpc),
+	http://bugs.freedesktop.org/show_bug.cgi?id=14376
+
+2008-02-02  Sergey Udaltsov
+
+	* symbols/lt, rules/base.xml.in: added lt(lekp) etc,
+	http://bugs.freedesktop.org/show_bug.cgi?id=14096
+
+2008-01-31  Sergey Udaltsov
+
+	* symbols/af, rules/base.xml.in, rules/base.lists.part: changing
+	af(olpc-da) to af(olpc-fa),
+	http://bugs.freedesktop.org/show_bug.cgi?id=14319
+	* symbols/in: fixed space in in(olpc),
+	http://bugs.freedesktop.org/show_bug.cgi?id=14224
+
+2008-01-30  Sergey Udaltsov
+
+	* symbols/ca, rules/base.xml.in: adding ca(shs), closing
+	http://bugs.freedesktop.org/show_bug.cgi?id=14308
+	* symbols/mn: added mn(olpc),
+	http://bugs.freedesktop.org/show_bug.cgi?id=14307
+	* symbols/tr: fixed Turkish layouts,
+	http://bugs.freedesktop.org/show_bug.cgi?id=14286
+	* symbols/es, rules/base.xml.in: added es(ast),
+	http://bugs.freedesktop.org/show_bug.cgi?id=14277
+	* symbols/am, rules/base.lists.part: added am(olpc),
+	http://bugs.freedesktop.org/show_bug.cgi?id=14226
+	* symbols/af: fixed some keysyms,
+	http://bugs.freedesktop.org/show_bug.cgi?id=14309
+
+2008-01-29  Sergey Udaltsov
+
+	* NEWS, configure.in: preparing release 1.2
+
+2008-01-24  Sergey Udaltsov
+
+	* symbols/af, symbols/ara, symbols/et, symbols/group, symbols/in,
+	symbols/kz, symbols/np, symbols/pk, symbols/ru, symbols/th,
+	symbols/us: separating group(olpc), closing
+	http://bugs.freedesktop.org/show_bug.cgi?id=14225
+
+2008-01-21  Sergey Udaltsov
+
+	* symbols/gr: Polytonic Greek: Use new keysyms for dead psili and
+	dasia, http://bugs.freedesktop.org/show_bug.cgi?id=13275
+
+2008-01-11  Sergey Udaltsov
+
+	* rules/base.lists.part, symbols/in: added in(olpc), by Bernardo
+	Innocenti
+
+2008-01-07  Sergey Udaltsov
+
+	* geometry/thinkpad, keycodes/xfree86, rules/base.lists.part,
+	rules/base.m_g.part, rules/base.m_k.part, rules/base.xml.in,
+	symbols/inet: added thinkpad60 model (with geometry),
+	https://bugs.freedesktop.org/show_bug.cgi?id=13954
+
+2008-01-05  Sergey Udaltsov
+
+	* symbols/us: add (left,right)singlequotemark to us(-altgr)-intl
+	keymap, https://bugs.freedesktop.org/show_bug.cgi?id=13935
+
+2008-01-04  Sergey Udaltsov
+
+	* symbols/inet, rules/base.lists.part, rules/base.xml.in: adding BTC
+	6301URF, https://bugs.freedesktop.org/show_bug.cgi?id=13913
+	* symbols/macintosh_vndr/fr: added nodeadkeys,
+	https://bugs.freedesktop.org/show_bug.cgi?id=13934
+
+2008-01-03  Sergey Udaltsov
+
+	* symbols/pl, rules/base.xml.in: added pl(ru_phonetic_dvorak),
+	https://bugs.freedesktop.org/show_bug.cgi?id=13900
+
+2008-01-02  Sergey Udaltsov
+
+	* symbols/ro, rules/base.xml.in: small fixes for Romanian visible
+	strings from
+	https://bugs.freedesktop.org/show_bug.cgi?id=13277
+	* rules/base.xml.in, rules/compat/variantRename.lst, symbols/fr,
+	symbols/ge: moving ge(azerty_tscapo) to fr(geo), since that layout is
+	only used in France, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=13644
+	* symbols/ara: remove presentation forms from Arabic layout,
+	https://bugs.freedesktop.org/show_bug.cgi?id=13894
+
+2007-12-31  Sergey Udaltsov
+
+	* symbols/ro, rules/base.xml.in, rules/compat/variantRename.lst:
+	temporarily (partially) reverting
+	https://bugs.freedesktop.org/show_bug.cgi?id=13277
+
+2007-12-27  Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/capslock: adding xkb
+	option caps:swapescape,
+	https://bugs.freedesktop.org/show_bug.cgi?id=13824
+
+2007-12-26  Sergey Udaltsov
+
+	* symbols/ee, rules/base.xml.in: adding ee(us), polishing eurosign
+	usage in ee, https://bugs.freedesktop.org/show_bug.cgi?id=13799
+
+2007-12-25  Sergey Udaltsov
+
+	* symbols/eurosign, rules/base.xml.in, rules/base.o_s.part: add
+	eurosign(4)
+
+2007-12-23  Sergey Udaltsov
+
+	* symbols/inet, rules/base.xml.in: add logiultrax model,
+	https://bugs.freedesktop.org/show_bug.cgi?id=13028
+	* symbols/me, rules/base.xml.in: use Latin as default Montenegro
+	variant, https://bugs.freedesktop.org/show_bug.cgi?id=13777
+	* symbols/inet, keycodes/evdev: Kill off the I211 key in evdev
+
+2007-12-17  Sergey Udaltsov
+
+	* keycodes/sun, rules/base.m_k.part, rules/base.ml_s.part,
+	symbols/sun_vndr/cs, symbols/sun_vndr/cz, symbols/sun_vndr/de,
+	symbols/sun_vndr/dk, symbols/sun_vndr/fr, symbols/sun_vndr/gb,
+	symbols/sun_vndr/gr, symbols/sun_vndr/it, symbols/sun_vndr/jp,
+	symbols/sun_vndr/ko, symbols/sun_vndr/nl, symbols/sun_vndr/no,
+	symbols/sun_vndr/pl, symbols/sun_vndr/ru, symbols/sun_vndr/sw,
+	symbols/sun_vndr/tr, symbols/sun_vndr/tuv, symbols/sun_vndr/tw,
+	symbols/sun_vndr/us: added sun type 6 support,
+	https://bugs.freedesktop.org/show_bug.cgi?id=13664
+
+2007-12-10  Sergey Udaltsov
+
+	* symbols/inet: fixed thinkpad,
+	https://bugs.freedesktop.org/show_bug.cgi?id=13461
+
+2007-12-08  Sergey Udaltsov
+
+	* symbols/inet, rules/base.xml.in, rules/base.lists.part: added
+	fscaa1667g model, thanks to Matthew W. S. Bell
+	* symbols/gr: updated greek symbols,
+	https://bugs.freedesktop.org/show_bug.cgi?id=13570
+
+2007-11-30  Sergey Udaltsov
+
+	* symbols/us: small olpc fix
+	* symbols/inet: introducing nav_common and media_nav_common,
+	https://bugs.freedesktop.org/show_bug.cgi?id=13461
+
+2007-11-21  Sergey Udaltsov
+
+	* symbols/np, rules/base.lists.part: added np(olpc)
+	* symbols/et, rules/base.lists.part: added et(olpc)
+	* symbols/in: small fix in in(ben_probhat),
+	https://bugs.freedesktop.org/show_bug.cgi?id=12038
+
+2007-11-20  Sergey Udaltsov
+
+	* symbols/af, symbols/kz, symbols/ng, rules/base.xml.in: OLPC fixes
+	from Bernardo
+	* symbols/pk, rules/base.xml.in: fixing pk(ara) - it is not default
+
+2007-11-18  Sergey Udaltsov
+
+	* symbols/ro, rules/base.xml.in, rules/compat/variantRename.lst:
+	ro(comma), ro(academic) --> ro(cedilla), ro(std_cedilla),
+	https://bugs.freedesktop.org/show_bug.cgi?id=13277
+
+2007-11-17  Sergey Udaltsov
+
+	* symbols/ua, rules/base.xml.in: added ua(unicode)
+
+2007-11-15  Sergey Udaltsov
+
+	* symbols/olpc, keycodes/es: small OLPC fixes
+
+2007-11-14  Sergey Udaltsov
+
+	* symbols/inet, keycodes/evdev: revert #12203
+	https://bugs.freedesktop.org/show_bug.cgi?id=12227
+
+2007-11-01  Sergey Udaltsov
+
+	* symbols/fi, rules/base.xml.in: swapping fi(basic) and fi(kotoistus),
+	https://bugs.freedesktop.org/show_bug.cgi?id=12764
+
+2007-10-28  Sergey Udaltsov
+
+	* symbols/ara, symbols/us, symbols/es, symbols/us, symbols/ng: OLPC
+	fixlets
+
+2007-10-23  Sergey Udaltsov
+
+	* symbols/ru, rules/base.xml.in: added ru(kom),
+	https://bugs.freedesktop.org/show_bug.cgi?id=12893
+
+2007-10-21  Sergey Udaltsov
+
+	* symbols/us, rules/base.xml.in: added us(dvorak-intl),
+	https://bugs.freedesktop.org/show_bug.cgi?id=12867
+	* symbols/macintosh_vndr/dk: dk(macbookpro),
+	https://bugs.freedesktop.org/show_bug.cgi?id=12716
+
+2007-10-19  Sergey Udaltsov
+
+	* symbols/tr, rules/base.xml.in: added tr(intl),
+	https://bugs.freedesktop.org/show_bug.cgi?id=12856
+
+2007-10-18  Sergey Udaltsov
+
+	* geometry/pc, rules/base.xml.in, rules/compat/base.lists.part,
+	symbols/br, symbols/pt: added some br and pt layouts,
+	https://bugs.freedesktop.org/show_bug.cgi?id=12816
+	* rules/base.xml.in symbols/dk: added dk(dvorak),
+	https://bugs.freedesktop.org/show_bug.cgi?id=12837
+
+2007-10-13  Sergey Udaltsov
+
+	* symbols/inet, rules/base.lists.part, rules/base.xml.in: added diNovo
+	Edge, https://bugs.freedesktop.org/show_bug.cgi?id=12789
+
+2007-10-10  Sergey Udaltsov
+
+	* rules/base.xml.in, rules/base.m_g.part: added microsoftelite model,
+	https://bugs.freedesktop.org/show_bug.cgi?id=12753
+	* symbols/fi: fixed fi(kotoistus),
+	https://bugs.freedesktop.org/show_bug.cgi?id=12764
+
+2007-10-09  Sergey Udaltsov
+
+	* geometry/microsoft: added "elite" geometry,
+	https://bugs.freedesktop.org/show_bug.cgi?id=12753
+	* symbols/us: fix for olpc
+
+2007-10-07  Sergey Udaltsov
+
+	* symbols/kz, rules/base.lists.part: added kz(olpc)
+	* symbols/pk: fixed pk(olpc)
+	* rules/base.xml.in: lost vendors,
+	https://bugs.freedesktop.org/show_bug.cgi?id=12719
+	* symbols/inet, rules/base.lists.part, rules/base.xml.in: added
+	chicony0108 model,
+	https://bugs.freedesktop.org/show_bug.cgi?id=6914
+	* symbols/de, types/extra: SS hangling,
+	https://bugs.freedesktop.org/show_bug.cgi?id=7642
+
+2007-10-04  Sergey Udaltsov
+
+	* symbols/us: s/U.S. English/USA/
+	* rules/base.o_s.part, rules/base.xml.in,
+	rules/compat/layoutRename.lst, symbols/Makefile.am, symbols/cs,
+	symbols/me, symbols/rs, symbols/ba, symbols/hr, symbols/si: splitting
+	Serbia and Montenegro
+	https://bugs.freedesktop.org/show_bug.cgi?id=12390
+
+2007-10-02  Sergey Udaltsov
+
+	* symbols/inet: fixing dell inspiron,
+	https://bugs.freedesktop.org/show_bug.cgi?id=12653
+	* configure.in, rules/Makefile.am, po/ChangeLog: dropping translations
+	from base.xml, let apps/libs use .gmo files instead
+
+2007-09-27  Sergey Udaltsov
+
+	* symbols/shift, symbols/Makefile.am, rules/base.o_s.part: added
+	shift:breaks_caps, https://bugs.freedesktop.org/show_bug.cgi?id=9546
+
+2007-09-26  Sergey Udaltsov
+
+	* symbols/latam: no dead_tilde,
+	https://bugs.freedesktop.org/show_bug.cgi?id=12568
+	* rules/base.xml.in, symbols/in: added mal_lalitha, small fixes,
+	https://bugs.freedesktop.org/show_bug.cgi?id=12426
+	* rules/base.lists.part, rules/base.m_k.part, rules/base.ml_c.part,
+	rules/base.ml_s.part, rules/base.xml.in, rules/merge.sh,
+	symbols/Makefile.am, symbols/ara, symbols/br, symbols/es,
+	symbols/group, symbols/inet, symbols/level3, symbols/ng, symbols/olpc,
+	symbols/pk, symbols/ru, symbols/th, symbols/tr, symbols/us: massive
+	patch from OLPC project
+
+2007-09-25  Sergey Udaltsov
+
+	* NEWS, configure.in: preparing release 1.1
+
+2007-09-24  Sergey Udaltsov
+
+	* symbols/inet: added extra key for nx9020
+	https://bugs.freedesktop.org/show_bug.cgi?id=7310
+
+2007-09-14  Sergey Udaltsov
+
+	* symbols/inet: small fixes in cymotionlinux,
+	https://bugs.freedesktop.org/show_bug.cgi?id=7983
+	* keycodes/evdev: fixed fake keycodes,
+	https://bugs.freedesktop.org/show_bug.cgi?id=12202
+
+2007-09-05  Sergey Udaltsov
+
+	* symbols/inet, geometry/dell, rules/base.m_g.part,
+	rules/base.lists.part: adding dell precision m65,
+	https://bugs.freedesktop.org/show_bug.cgi?id=7992
+	* rules/base.m_g.part: fixed rules for the kinesis keyboard,
+	https://bugs.freedesktop.org/show_bug.cgi?id=7991
+
+2007-09-04  Sergey Udaltsov
+
+	* symbols/it, rules/base.xml.in: added strange one, it(geo),
+	contributed by Vladimir Sichinava
+
+2007-09-02  Sergey Udaltsov
+
+	* keycodes/evdev, symbols/inet: more evdev keycodes,
+	https://bugs.freedesktop.org/show_bug.cgi?id=12227
+	https://bugs.freedesktop.org/show_bug.cgi?id=12228
+
+2007-08-29  Sergey Udaltsov
+
+	* keycodes/evdev: updated evdev keycodes,
+	https://bugs.freedesktop.org/show_bug.cgi?id=12202
+	* keycodes/xfree86, symbols/inet, symbols/pc: display switch &
+	backlight control, https://bugs.freedesktop.org/show_bug.cgi?id=12203
+	* keycodes/macintosh, rules/base.m_k.part, rules/base.xml.in: adding
+	macintosh_hhk model,
+	https://bugs.freedesktop.org/show_bug.cgi?id=12091
+
+2007-08-28  Sergey Udaltsov
+
+	* symbols/group, symbols/jp, symbols/la, symbols/level3, symbols/pc,
+	symbols/digital_vndr/pc, types/pc: renaming types, giving more
+	sensible names
+
+2007-08-27  Sergey Udaltsov
+
+	* keycodes/evdev: missing keycodes for evdev:
+	https://bugs.freedesktop.org/show_bug.cgi?id=12167
+
+2007-08-26  Sergey Udaltsov
+
+	* rules/compat/variantRename.lst: fixing dvorak layouts compat rule,
+	https://bugs.freedesktop.org/show_bug.cgi?id=12115
+
+2007-08-24  Sergey Udaltsov
+
+	* symbols/us: fixes typos in us(classmate-intl)
+
+2007-08-22  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/Makefile.am, symbols/cn: adding Tibetan
+	layouts, https://bugs.freedesktop.org/show_bug.cgi?id=12088
+
+2007-08-20  Sergey Udaltsov
+
+	* symbols/gr: replacing combining keys with dead keys, temporary hack
+	by James Cloos
+
+2007-08-19  Sergey Udaltsov
+
+	* symbols/et: added missing dead "c" key
+
+2007-08-18  Sergey Udaltsov
+
+	* rules/base.lists.part, rules/base.ml_s.part, rules/base.mlv_s.part,
+	rules/base.xml.in, symbols/inet, symbols/us: added classmate model
+	with specific variants,
+	https://bugs.freedesktop.org/show_bug.cgi?id=11955
+
+2007-08-14  Sergey Udaltsov
+
+	* symbols/inet, rules/base.xml.in: added asus_laptop,
+	https://bugs.freedesktop.org/show_bug.cgi?id=11936
+
+2007-08-12  Sergey Udaltsov
+
+	* symbols/ru: fixed ebreve in ru(ch),
+	http://bugs.freedesktop.org/show_bug.cgi?id=11246
+	* rules/base.xml.in: missing Romanian variants added,
+	https://bugs.freedesktop.org/show_bug.cgi?id=11945
+
+2007-08-10  Sergey Udaltsov
+
+	* symbols/br, rules/base.m_g.part, rules/base.ml1_s.part,
+	rules/base.ml_g.part, rules/base.ml_s.part: Adding br(thinkpad),
+	polishing rules a bit,
+	https://bugs.freedesktop.org/show_bug.cgi?id=11908
+
+2007-08-07  Sergey Udaltsov
+
+	* symbols/ara: Patch to Arabic keyboard layout,
+	http://bugs.freedesktop.org/show_bug.cgi?id=11867
+
+2007-08-03  Sergey Udaltsov
+
+	* symbols/us, rules/base.xml.in: added us(altgr-intl), closing
+	http://bugs.freedesktop.org/show_bug.cgi?id=11753
+
+2007-07-30  Sergey Udaltsov
+
+	* symbols/inet, rules/base.lists.part, rules/base.m_s.part,
+	rules/base.xml.in: introduced media_common, some Dell/Logitech symbols
+	are dead, compatibility rules created, Acer kbds consolidated,
+	http://bugs.freedesktop.org/show_bug.cgi?id=11746
+
+2007-07-25  Sergey Udaltsov
+
+	* symbols/inet, rules/base.lists.part, rules/base.m_s.part,
+	rules/base.xml.in: consolidating benq keyboards,
+	https://bugs.freedesktop.org/show_bug.cgi?id=11713
+
+2007-07-24  Sergey Udaltsov
+
+	* symbols/gn, symbols/Makefile.am, rules/base.xml.in: added Guinea,
+	http://bugs.freedesktop.org/show_bug.cgi?id=11702
+
+2007-07-23  Sergey Udaltsov
+
+	* symbols/cd: update Congolese,
+	https://bugs.freedesktop.org/show_bug.cgi?id=5500
+
+2007-07-22  Sergey Udaltsov
+
+	* symbols/inet, rules/base.lists.part, rules/base.xml.in: adding
+	logiex110 model, https://bugs.freedesktop.org/show_bug.cgi?id=11686
+
+2007-07-20  Sergey Udaltsov
+
+	* symbols/gr: adding pound sign,
+	https://bugs.freedesktop.org/show_bug.cgi?id=11608
+
+2007-07-16  Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/be, symbols/keypad:
+	modularized wang kbd,
+	https://bugs.freedesktop.org/show_bug.cgi?id=8852
+
+2007-07-15  Sergey Udaltsov
+
+	* symbols/kpdl, symbols/*, rules/base.xml.in, rules/base.o_s.part:
+	introducing separate KPDL handling,
+	https://bugs.freedesktop.org/show_bug.cgi?id=11611
+
+2007-07-12  Sergey Udaltsov
+
+	* NEWS: preparing release 1.0
+
+2007-07-10  Sergey Udaltsov
+
+	*  geometry/hhk, rules/base.m_g.part, rules/base.xml.in,
+	geometry/Makefile.am: adding hhk geometry,
+	https://bugs.freedesktop.org/show_bug.cgi?id=11519
+
+2007-07-09  Sergey Udaltsov
+
+	*  symbols/de: fixed AE12, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=11514
+
+2007-06-29  Sergey Udaltsov
+
+	*  symbols/lk: another fix from
+	https://bugs.freedesktop.org/show_bug.cgi?id=11284
+	*  symbols/us, rules/base.xml.in: added us(colemak),
+	https://bugs.freedesktop.org/show_bug.cgi?id=11416
+
+2007-06-25  Sergey Udaltsov
+
+	*  symbols/Makefile.am, symbols/braille, rules/base.xml.in: added
+	Braille layout, https://bugs.freedesktop.org/show_bug.cgi?id=11356
+
+2007-06-18  Sergey Udaltsov
+
+	*  symbols/Makefile.am, symbols/et, rules/base.xml.in: added
+	et(basic), part of the OLPC works
+
+2007-06-16  Sergey Udaltsov
+
+	*  symbols/lk: fixed Sinhala, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=11284
+
+2007-06-15  Sergey Udaltsov
+
+	*  symbols/ru, rules/base.xml.in: added ru(cv_latin), closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=11246
+
+2007-06-13  Sergey Udaltsov
+
+	*  symbols/ru, rules/base.xml.in: added ru(cv), closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=11246
+	*  symbols/ge, rules/base.xml.in: added ge(os), again closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8092
+	*  symbols/ru, rules/base.xml.in: added ru(udm), closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=11257
+
+2007-06-07  Sergey Udaltsov
+
+	*  symbols/in, rules/base.xml.in: added Hindi phonetic,
+	https://bugs.freedesktop.org/show_bug.cgi?id=11195
+
+2007-06-06  Sergey Udaltsov
+
+	*  rules/xfree98: fixed nec_vndr, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=11176
+
+2007-05-26  Sergey Udaltsov
+
+	*  rules/base.o_s.part, rules/base.xml.in, symbols/jp: Add
+	"NICOLA-F style Backspace" to "Japanese keyboard options", closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=11064
+
+2007-05-14  Sergey Udaltsov
+
+	*  rules/base.xml.in, rules/xkb.dtd: introducing vendor into
+	configItem
+
+2007-05-13  Sergey Udaltsov
+
+	* symbols/il: replaced backslash with bar, reclosing
+	https://bugs.freedesktop.org/show_bug.cgi?id=6375
+
+2007-05-02  Sergey Udaltsov
+
+	* symbols/gr: using Unicode since it is more appropriate for polytonic
+	Greek, https://bugs.freedesktop.org/show_bug.cgi?id=10824
+
+2007-04-30  Sergey Udaltsov
+
+	* rules/base.xml.in: make descriptions less technical
+
+2007-04-29  Sergey Udaltsov
+
+	* symbols/us: adding explicit BKSL, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=10811
+
+2007-04-27  Sergey Udaltsov
+
+	* geometry/microsoft: replacing non-defined AE00 with TLDE,
+	http://bugzilla.gnome.org/show_bug.cgi?id=429907
+
+2007-04-24  Sergey Udaltsov
+
+	* symbols/ma: fixing alt in Tifinagh, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=10736
+
+2007-04-23  Sergey Udaltsov
+
+	* geometry/pc: fix for abnt2, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=10725
+	* symbols/inet, rules/base.lists.part: adding missing logicdo, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=10671
+
+2007-04-11  Sergey Udaltsov
+
+	* symbols/ge, rules/base.xml.in: added/fixed a lot of Georgian
+	layouts, closing https://bugs.freedesktop.org/show_bug.cgi?id=3332
+
+2007-04-05  Sergey Udaltsov
+
+	* symbols/se, rules/base.xml.in: added se(svdvorak),
+	https://bugs.freedesktop.org/show_bug.cgi?id=10424
+
+2007-04-03  Sergey Udaltsov
+
+	* symbols/cd: fixed Congolese layout one more time,
+	https://bugs.freedesktop.org/show_bug.cgi?id=5500
+
+2007-04-01  Sergey Udaltsov
+
+	* symbols/cd: fixed Congolese layout,
+	https://bugs.freedesktop.org/show_bug.cgi?id=5500
+
+2007-03-29  Sergey Udaltsov
+
+	* configure.in: improved xkb_base calculation, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=10435
+
+2007-03-13  Sergey Udaltsov
+
+	* configure.in: added Korean translation,
+	https://bugs.freedesktop.org/show_bug.cgi?id=10269
+	* rules/base.xml.in: s/descr/_descr/g, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=10270
+
+2007-03-06  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/us: added us(euro), after a very hot
+	discussion in the maillist
+
+2007-02-26  Sergey Udaltsov
+
+	* symbols/inet: fixed broken symbol, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=10103
+	* compat/misc: fixing copy/paste bug, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=10104
+
+2007-02-25  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/uz: fixed Uz layout, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=10091
+	* symbols/us: added French oe character to us(intl), closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=10087
+
+2007-02-12  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/Makefile.am, symbols/ma: added Tifinagh
+	layouts, closing http://bugs.freedesktop.org/show_bug.cgi?id=9950
+
+2007-02-03  Sergey Udaltsov
+
+	* rules/base.ml_g.part, rules/HDR, rules/Makefile.am,
+	rules/base.m_g.part: added (model, layout->geometry) section for
+	thinkpad, https://bugs.freedesktop.org/show_bug.cgi?id=9864
+	* symbols/macintosh_vndr/fr: updated French layout, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=9865
+
+2007-01-27  Sergey Udaltsov
+
+	* symbols/inet, rules/base.lists.part: adding thinkpad media keys,
+	closing https://bugs.freedesktop.org/show_bug.cgi?id=9779
+
+2007-01-26  Sergey Udaltsov
+
+	* symbols/es: s/asciitilde/dead_tilde in spanish, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=9763
+
+2007-01-25  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/am: adding am(phonetic-alt), closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=9018
+
+2007-01-11  Sergey Udaltsov
+
+	* symbols/nl, rules/base.xml.in: added nl(std), closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=9603
+	* symbols/epo, rules/base.xml.in: added epo(legacy), closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=9556
+
+2007-01-04  Sergey Udaltsov
+
+	* symbols/ir: settling another licensing issue,
+	https://bugs.freedesktop.org/show_bug.cgi?id=9541
+
+2007-01-04  Sergey Udaltsov
+
+	* rules/base.xml.in, rules/base.o_s.part, symbols/ca, symbols/fr,
+	symbols/nbsp: adding more nbsp options, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=9529
+
+2007-01-02  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/pc: getting rid of stupid "default"
+	altwin options, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=9470
+
+2006-12-19  Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, rules/sun.xml.in,
+	symbols/level3: adding lv3:ralt_alt, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=9070
+
+2006-12-11  Sergey Udaltsov
+
+	* configure.in: getting rid of bashisms, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=9244
+	* symbols/fi: s/NoSymbol/VoidSymbol/, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=9239
+
+2006-12-07  Sergey Udaltsov
+
+	* Makefile.am, rules/Makefile.am, xkbrules.am: getting rid of
+	gmakisms, closing https://bugs.freedesktop.org/show_bug.cgi?id=9245
+	* Makefile.am: dropping install-compiled target, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=9246
+
+2006-11-20  Sergey Udaltsov
+
+	* symbols/br, keycodes/xfree86: making abnt2 more compatible with
+	other keyboards, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=4910
+	* rules/base.m_k.part: dropping the special (and stupid) abnt2 rule,
+	closing https://bugs.freedesktop.org/show_bug.cgi?id=9097
+
+2006-11-19  Sergey Udaltsov
+
+	* symbols/il, rules/base.xml.in: added il(biblical), closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=9002
+
+2006-11-17  Sergey Udaltsov
+
+	* symbols/us: the backslash/bar definition in the us dvorak variant,
+	closing https://bugs.freedesktop.org/show_bug.cgi?id=9061
+	* symbols/ir: removed problematic copyright notice, with permission of
+	Behnam Esfahbod, https://bugs.freedesktop.org/show_bug.cgi?id=4102
+
+2006-11-14  Sergey Udaltsov
+
+	* symbols/altwin: undo invalid Alt mapping done in
+	https://bugs.freedesktop.org/show_bug.cgi?id=8996
+
+2006-11-12  Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/altwin: adding
+	ctrl_win, closing https://bugs.freedesktop.org/show_bug.cgi?id=8996
+
+2006-11-06  Sergey Udaltsov
+
+	* rules/sun.xml.in, rules/Makefile.am, po/POTFILE.in: Added directory
+	for sun rules, closing
+	http://bugzilla.gnome.org/show_bug.cgi?id=137294
+
+2006-11-02  Sergey Udaltsov
+
+	* symbols/fr: some fixes for alternative layouts, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8853
+	* symbols/fr, rules/base.xml.in: new fr(dvorak*) variants, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8728
+
+2006-10-28  Sergey Udaltsov
+
+	* rules/base.lists.part, rules/base.xml.in, symbols/inet: added
+	logitech_g15 model, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8803
+	* symbols/jp: added LCTL definition,
+	https://bugs.freedesktop.org/show_bug.cgi?id=8805
+
+2006-10-26  Sergey Udaltsov
+
+	* rules/base.lists.part, rules/base.xml.in, symbols/inet: added more
+	Dell keyboards, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8761
+
+2006-10-18  Sergey Udaltsov
+
+	* rules/base.lists.part, symbols/macintosh_vndr/Makefile.am,
+	symbols/macintosh_vndr/dk, symbols/macintosh_vndr/es,
+	symbols/macintosh_vndr/it, symbols/macintosh_vndr/latam,
+	symbols/macintosh_vndr/no, symbols/macintosh_vndr/pt,
+	symbols/macintosh_vndr/se: missed part from
+	https://bugs.freedesktop.org/show_bug.cgi?id=1576
+	* rules/base.xml.in, symbols/jp: adding new Japanese layout, changing
+	latin to 106, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8648
+
+2006-10-17  Sergey Udaltsov
+
+	* symbols/macintosh_vndr/dk, symbols/macintosh_vndr/us: adding euro
+	sign to mac us and dk, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8682#add_comment
+
+2006-10-16  Sergey Udaltsov
+
+	* rules/base.m_k.part, rules/base.xml.in, keycodes/Makefile.am,
+	keycodes/powerpcps2: removing obsolete powerpcps2 model. Closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8659
+	* rules/base.o_s.part, rules/base.xml.in, symbols/group: adding
+	grp:lctrl_lshift_toggle, contributed by Alexey Morozov
+	<morozov@gorodok.net>
+	* symbols/macintosh_vndr/us: Fix <BKSP> in symbols/macintosh_vndr/us,
+	closing https://bugs.freedesktop.org/show_bug.cgi?id=8668
+	* symbols/level3: assigning mods to keycodes (reverding earlier wrong
+	fix), closing https://bugs.freedesktop.org/show_bug.cgi?id=8670
+
+2006-10-13  Sergey Udaltsov
+
+	* xkbrules.am: ability to create .dir files when srcdir != objdir,
+	closing https://bugs.freedesktop.org/show_bug.cgi?id=8629
+
+2006-10-12  Sergey Udaltsov
+
+	* symbols/inet, rules/base.lists.part, rules/base.xml.in: added BenQ
+	X-730, thanks to Jean-Marc Spaggiari
+
+2006-10-11  Sergey Udaltsov
+
+	* symbols/af, symbols/ba, symbols/hr, symbols/kr, symbols/nbsp,
+	symbols/ng, symbols/si, symbols/za: addind missing cvs keyword
+	XKeyboardConfig
+	* rules/base.ml_s.part, rules/base.xml.in, symbols/jp: normalizing
+	Japanese rules/variants, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8503
+
+2006-10-10  Sergey Udaltsov
+
+	* symbols/in: fixed Devangari (default) layout, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=4949
+	* configure.in: removing hardcoded prefix, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8448
+	* symbols/it, added EuroSign to italian mac layout, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=1576
+
+2006-10-09  Sergey Udaltsov
+
+	* symbols/inet,rules/base.xml.in: adding benqa800 model, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8574
+
+2006-10-09  Sergey Udaltsov
+
+	* NEWS, configure.in: preparing 0.9
+
+2006-10-09  Sergey Udaltsov
+
+	* tests/*: tests now run alphabetically, a bit of xslt tweaking
+	* symbols/altwin: Alt keys should be mapped on two shift levels,
+	undoing previous fix, as requested in
+	https://bugs.freedesktop.org/show_bug.cgi?id=8571
+	* symbols/level3: mapping Mod5 to keycode rather than to keysym,
+	hopefully fixing https://bugs.freedesktop.org/show_bug.cgi?id=8572
+	* symbols/us,symbols/latin: fixing quotes, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8122
+
+2006-10-07  Sergey Udaltsov
+
+	* types/complete, types/default: putting "numpad" after "extra"
+	hopefully fixes https://bugs.freedesktop.org/show_bug.cgi?id=8402
+
+2006-10-04  Sergey Udaltsov
+
+	* symbols/fi: s/micron/dead_micron, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8494
+
+2006-10-03  Sergey Udaltsov
+
+	* symbols/macintosh_vndr/gb, symbols/gb: adding missing Euro
+	character, closing https://bugs.freedesktop.org/show_bug.cgi?id=5227
+	* symbols/bt, symbols/fr, symbols/np: fixing typos, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8495
+	* symbols/ch, symbols/de, symbols/dk, symbols/es, symbols/no,
+	symbols/pt, symbols/se, symbols/us: optimized mac variants, overwrite
+	old de and ch mac variants, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8491
+
+2006-10-01  Sergey Udaltsov
+
+	* rules/base.xml.in, symbols/Makefile.am, symbols/ng: added Nigerian
+	layouts, closing https://bugs.freedesktop.org/show_bug.cgi?id=8467
+	* symbols/dk, symbols/es, symbols/fi, symbols/fr, symbols/gb,
+	symbols/is, symbols/it, symbols/nl, symbols/no, symbols/pt,
+	symbols/se, symbols/us, rules/base.xml.in: adding mac variants,
+	closing https://bugs.freedesktop.org/show_bug.cgi?id=8465
+
+2006-09-30  Sergey Udaltsov
+
+	* rules/base.o_s.part, rules/base.xml.in, symbols/Makefile.am,
+	symbols/nbsp: adding nbsp:* options, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8451
+
+2006-09-29  Sergey Udaltsov
+
+	* rules/base.xml.in: added keypad:* options, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8240
+
+2006-09-28  Sergey Udaltsov
+
+	* geometry/thinkpad: fix for geometry, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8419
+
+2006-09-24  Sergey Udaltsov
+
+	* symbols/am, rules/base.xml.in: added am(eastern), am(western),
+	am(eastern-alt), closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8404
+	* rules/base.ml_s.part: macbooks should use the vendor symbols, if
+	possible, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8385
+	* rules/base.o_s.part, rules/base.xml.in, symbols/fr, symbols/keypad:
+	added more French variants, new options, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8240
+
+2006-09-18  Sergey Udaltsov
+
+	* keycodes/macintosh, rules/HDR, rules/Makefile.am,
+	rules/base.m_k.part, rules/base.o_k.part, rules/base.xml.in: split
+	"good" and "bad" apple keycodes, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8242
+
+	* rules/base.lists.part, rules/base.m_s.part, symbols/inet,
+	symbols/level3: lv3:enter_switch added, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8324
+
+	* symbols/ara: added ara(buckwalter), closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8198
+
+	* symbols/in: fixed layout, Unicode-related bug, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8203
+
+	* geometry/pc, rules/base.ml1_s.part, rules/base.ml_s.part,
+	rules/compat/ml1_s.sh, rules/compat/ml1v1_s.sh,
+	rules/compat/ml1v_s.sh, rules/compat/ml_s.sh, rules/compat/mlv_s.sh,
+	symbols/pc: getting rid of pc101/102/104 legacy. Breaking XkbSymbols
+	again, https://bugs.freedesktop.org/show_bug.cgi?id=8321
+
+2006-09-17  Sergey Udaltsov
+
+	symbols/keypad, symbols/pc, symbols/us, symbols/macintosh_vndr/*,
+	rules/base.m_t.part, rules/base.ml1_s.part, rules/base.ml_s.part,
+	rules/base.o_t.part, rules/base.xml.in, rules/merge.sh: reorganized
+	Mac stuff, thanks to Denis,
+	https://bugs.freedesktop.org/show_bug.cgi?id=8280
+
+	* symbols/pc: modularized numpad stuff,
+	https://bugs.freedesktop.org/show_bug.cgi?id=8312
+
+2006-09-10  Sergey Udaltsov
+
+	rules/base.list.part, symbols/inet: added 2 models, thanks to
+	Valery V. Inozemtsev
+
+2006-09-06  Sergey Udaltsov
+
+	* rules/altwin: mapping LALT to Mod4 modifier,
+	https://bugs.freedesktop.org/show_bug.cgi?id=8068
+
+2006-09-05  Sergey Udaltsov
+
+	* rules/base.lists.part: adding missing kbds, reordering a bit
+	https://bugs.freedesktop.org/show_bug.cgi?id=7816
+
+	* geometry/ibm_vnd, configure.in, rules/base.m_g.part: getting rid of
+	ibm_vndr geometry, fixing rules,
+	https://bugs.freedesktop.org/show_bug.cgi?id=7990
+
+	* symbols/gb: s/ralt_switch/ralt_switch_multikey
+	https://bugs.freedesktop.org/show_bug.cgi?id=7674
+
+	* rules/base.mlv_s.part: fixing mac rule for nodeadkeys,
+	https://bugs.freedesktop.org/show_bug.cgi?id=8123
+
+	* rules/base.ml_s.part: s/old_macintosh/macintosh_old/g,
+	https://bugs.freedesktop.org/show_bug.cgi?id=8128
+
+2006-09-04  Sergey Udaltsov
+
+	* rules/base.lists.part, rules/base.m_g.part, rules/base.m_k.part,
+	rules/base.m_s.part, rules/base.ml1_s.part, rules/base.ml_s.part,
+	rules/base.mlv_s.part: fixing lists,
+	https://bugs.freedesktop.org/show_bug.cgi?id=7817
+
+	* symbols/cd, symbols/gr, symbols/il, symbols/jp, symbols/la,
+	symbols/lk, symbols/ru, symbols/ca: fixing types, on per-group basis,
+	https://bugs.freedesktop.org/show_bug.cgi?id=8121
+
+	* symbols/level3: adding level3:ralt_switch_multikey,
+	https://bugs.freedesktop.org/show_bug.cgi?id=7674
+
+2006-09-03  Sergey Udaltsov
+
+	* symbols/vn: getting rid of digits (1 and 2 shift levels),
+	https://bugs.freedesktop.org/show_bug.cgi?id=7807
+
+	* rules/base.xml.in: s/guillemot/guillemet/, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8116
+
+2006-09-02  Sergey Udaltsov
+
+	* symbols/lt, rules/base.xml.in: added lt(ibm)
+	https://bugs.freedesktop.org/show_bug.cgi?id=3841
+
+	* symbols/hr: reverted Croatian
+	https://bugs.freedesktop.org/show_bug.cgi?id=8019
+
+2006-09-01  Sergey Udaltsov
+
+	* symbols/ru, rules/base.xml.in: added Ossetian, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8092
+
+	* symbols/ir, symbols/iq, rules/base.xml.in: added Kurdish Arabic-Latin
+
+2006-08-31  Sergey Udaltsov
+
+	* geometry/macintosh, keycodes/macintosh, keycodes/xfree86,
+	rules/base.lists.part, rules/base.m_g.part, rules/base.m_k.part,
+	rules/base.m_s.part, rules/base.ml_s.part, rules/base.xml.in,
+	symbols/inet: Added Macbook stuff, partially closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=8068
+
+	* symbols/group, rules/base.o_s.part: added group:alt_caps_toggle
+	https://bugs.freedesktop.org/show_bug.cgi?id=8047
+
+2006-08-02  Sergey Udaltsov
+
+	* symbols/inet, keycodes/evdev: updated evdev
+	https://bugs.freedesktop.org/show_bug.cgi?id=7631
+
+2006-07-30  Sergey Udaltsov
+
+	* symbols/pl: added pl(csb)
+	https://bugs.freedesktop.org/show_bug.cgi?id=7693
+
+2006-07-29  Sergey Udaltsov
+
+	* symbols/bt: fixed Bhutan
+	https://bugs.freedesktop.org/show_bug.cgi?id=7556
+
+	* symbols/us: added dvorak-classic, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=7503
+
+	* symbols/inet: added acer_c300, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=6361
+
+2006-07-29  Sergey Udaltsov
+
+	* symbols/lk: updated Sinhala, thanks to Harshula
+
+2006-07-10  Sergey Udaltsov
+
+	* symbols/de: added Mac variants, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=6671
+
+2006-07-04  Sergey Udaltsov
+
+	* symbols/ch: fixed KPDL in ch(de_mac), patch from
+	https://bugs.freedesktop.org/show_bug.cgi?id=6960
+
+2006-07-02  Sergey Udaltsov
+
+	* rules/base.xml.in: fixed mismatch between directory and symbols/inet
+	file.
+	https://bugs.freedesktop.org/show_bug.cgi?id=7398
+
+	* symbols/ro: fixed Romanian academic
+	https://bugs.freedesktop.org/show_bug.cgi?id=7393
+
+2006-06-28  Sergey Udaltsov
+
+	* keycodes/evdev: pc105 compatiliby, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=7347
+
+2006-06-25  Sergey Udaltsov
+
+	* rules/base.xml.in, geometry/pc, symbols/inet: added Dell Lattitude,
+	https://bugs.freedesktop.org/show_bug.cgi?id=6894
+
+	* symbols/inet, rules/base.xml.in: added 2 new layouts, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=7325
+
+	* symbols/np: added Nepali, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=6373
+
+2006-06-25  Sergey Udaltsov
+
+	* geometry/pc, rules/base.lists.part, rules/base.m_g.part,
+	rules/base.xml.in, symbols/kr: updated Korean layouts/geometry
+	https://bugs.freedesktop.org/show_bug.cgi?id=7316
+
+2006-06-22  Sergey Udaltsov
+
+	* symbols/inet: fixing double RaiseVolume, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=7095
+
+2006-06-14  Sergey Udaltsov
+
+	* symbols/mt, rules/base.xml.in: fixed the US variant group name
+	* symbols/gh: fixed 'D' key, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=7216
+
+2006-06-13  Sergey Udaltsov
+
+	* symbols/level5, compat/level5: replacing F21-F23 with explicit
+	hexadecimal values of XK_ISO_Level5_*. So for next months people could
+	have Canadian layout fixed and, at the same time, do not have to
+	upgrade xorg. Closing https://bugs.freedesktop.org/show_bug.cgi?id=4411
+
+	* symbols/ch, symbols/inet, symbols/base.xml.in: added mac stuff from
+	https://bugs.freedesktop.org/show_bug.cgi?id=6960
+
+2006-06-13  Sergey Udaltsov
+
+	* symbols/mt: fixed mt(us), closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=1411
+
+2006-06-10  Sergey Udaltsov
+
+	* symbols/level5, compat5/level5: better working Canadian
+	layout, but not complete yet
+
+2006-06-01  Sergey Udaltsov
+
+	* symbols/am: fixed comma in Armenian, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=7080
+
+2006-05-28  Sergey Udaltsov
+
+	* symbols/inet,rules/base.xml.in,rules/base.lists.part:
+	added Logitech Cordless Desktop LX-300
+	https://bugs.freedesktop.org/show_bug.cgi?id=5609
+
+2006-05-28  Sergey Udaltsov
+
+	* rules/base.ml_c: fixed compat for jp layout, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=4002
+
+2006-05-17  Sergey Udaltsov
+
+	* symbols/inet: fixed power_g5, partially closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=6960
+
+2006-05-13  Sergey Udaltsov
+
+	* symbols/fi: added fi(kotoistus)
+	https://bugs.freedesktop.org/show_bug.cgi?id=6901
+
+2006-05-05  Sergey Udaltsov
+
+	* symbols/de: added de(neo)
+	https://bugs.freedesktop.org/show_bug.cgi?id=6837
+
+2006-05-04  Sergey Udaltsov
+
+	* symbols/inet: fixed cymotionlinux, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=6828
+
+2006-05-04  Sergey Udaltsov
+
+	* rules/base.xml.in,symbols/iq,symbols/in,symbols/sy: added Kurdish,
+	closed https://bugs.freedesktop.org/show_bug.cgi?id=6159
+	one more time
+
+2006-04-20  Sergey Udaltsov
+
+	* keycodes/evdev: added LSGT, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=6674
+
+2006-04-19  Sergey Udaltsov
+
+	* symbols/macintosh_vndr/(be,de,ch): use keypad(comma)
+
+2006-04-19  Sergey Udaltsov
+
+	* rules/*, keymap/sgi_vndr/*: shift_toggle -> shifts_toggle,
+	fixing https://bugs.freedesktop.org/show_bug.cgi?id=5078
+
+2006-04-08  Sergey Udaltsov
+
+	* keycodes/xfree86,symbols/br: fixed abnt2 keymap and layout
+	https://bugs.freedesktop.org/show_bug.cgi?id=4910
+
+2006-04-08  Sergey Udaltsov
+
+	* geometry/macintosh: fixed mac geometry
+	https://bugs.freedesktop.org/show_bug.cgi?id=4714
+
+2006-04-05  Sergey Udaltsov
+
+	* rules/base.xml.in, changed PC-98xx Series to Japan,
+	https://bugs.freedesktop.org/show_bug.cgi?id=5591
+
+2006-04-04  Sergey Udaltsov
+
+	* symbols/compose,rules/base.xml.in,rules/base.o_s.part: added
+	compose(lwin)
+	https://bugs.freedesktop.org/show_bug.cgi?id=2396
+
+2006-04-04  Sergey Udaltsov
+
+	* symbols/inet,rules/base.xml.in: added Logitech diNovo
+	https://bugs.freedesktop.org/show_bug.cgi?id=1681
+
+2006-04-04  Sergey Udaltsov
+
+	* symbols/inet: fixed Logitech Access Keyboard
+	https://bugs.freedesktop.org/show_bug.cgi?id=1018
+
+2006-04-04  Sergey Udaltsov
+
+	* symbols/pt: added LSGT
+	https://bugs.freedesktop.org/show_bug.cgi?id=970
+
+2006-04-02  Sergey Udaltsov
+
+	* symbols/be, rules/base.xml.in: added 'be(wang)'
+	https://bugs.freedesktop.org/show_bug.cgi?id=6474
+
+2006-03-28  Sergey Udaltsov
+
+	* symbols/cd, symbols/Makefile.am: added 'cd'
+	https://bugs.freedesktop.org/show_bug.cgi?id=5500
+
+2006-03-27  Sergey Udaltsov
+
+	* keycodes/macintosh,keymap/macintosh,rules/base.m_k.part: fixed
+	Macintosh F13-F15, closed
+	https://bugs.freedesktop.org/show_bug.cgi?id=6399
+
+2006-03-25  Sergey Udaltsov
+
+	* symbols/inet: fixed cymotion,
+	https://bugs.freedesktop.org/show_bug.cgi?id=3541
+
+2006-03-25  Sergey Udaltsov
+
+	* symbols/il,rules/compat/variantRename.lst: generalized 'basic',
+	removed si1452, closed
+	https://bugs.freedesktop.org/show_bug.cgi?id=6375
+
+2006-03-23  Sergey Udaltsov
+
+	* symbols/group: another attempt to fix unfamous
+	RAlt problem, reported in ubuntu:
+	https://launchpad.net/distros/ubuntu/+source/xkeyboard-config/+bug/35845
+	Now all types are specified for Group1, to make it consistent
+
+2006-03-22  Sergey Udaltsov
+
+	* rules/base.xml.in,symbols/tr: added Kurdish, closed
+	https://bugs.freedesktop.org/show_bug.cgi?id=6159
+
+2006-03-22  Sergey Udaltsov
+
+	* rules/base.xml.in: added missing Logitech models, fixed
+	https://bugs.freedesktop.org/show_bug.cgi?id=6350
+
+2006-03-21  Sergey Udaltsov
+
+	* symbols/kr: added Korean layout, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=6323
+
+2006-03-21  Sergey Udaltsov
+
+	* types/pc,symbols/level3: another attempt to fix unfamous
+	RAlt problem, reported in ubuntu:
+	https://launchpad.net/distros/ubuntu/+source/xkeyboard-config/+bug/35845
+
+2006-03-17  Sergey Udaltsov
+
+	* symbols/inet, rules/base*: added Acer Ferrari 4K
+	https://bugs.freedesktop.org/show_bug.cgi?id=5259
+
+2006-03-16  Sergey Udaltsov
+
+	* symbols/ee: improved ee(dvorak), closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=4568
+
+2006-03-05  Sergey Udaltsov
+
+	* configure.in, NEWS, Changelog:Preparing release 0.8
+
+2006-02-26  Sergey Udaltsov
+
+	* symbols/es, rules/base.xml.in: added es(cat), closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=6047
+
+2006-02-25  Alan Coopersmith
+
+	* symbols/sun_vndr/*, compat/japan, compat/mousekeys,
+	geometry/sun:
+	massive update from Sun, see
+	https://bugs.freedesktop.org/show_bug.cgi?id=5725
+
+2006-02-24  M. Emal Alekozai <memala@gmx.net>
+
+	* symbols/af, symbols/Makefile.am, rules/base.xml:
+	added Afghan, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=6013
+
+2006-02-15  Zephaniah E. Hull  <warp@aehallh.com>
+
+	* keycodes/Makefile.am:
+	* keycodes/evdev:
+	* rules/base.m_k.part:
+	Add the evdev keyboard data files. Closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=5903
+
+2006-02-21 svu
+
+	* symbols/inet: Fixed inet(armada)
+	https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=5893
+
+2006-02-21 svu
+
+	* symbols/hr: Fixed hr(us)
+	https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=3807
+
+2006-02-01 svu
+
+	* rules/compat/layoutRename.lst: Added cz_qwerty compat rule
+	https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=177362
+
+2006-01-31 svu
+
+	* symbols/us: Added single-handed dvoraks
+	https://bugs.freedesktop.org/show_bug.cgi?id=5659
+
+2006-01-22 svu
+
+	* types/level5: Fixed ScrollLock behaviour
+	https://bugs.freedesktop.org/show_bug.cgi?id=5635
+
+2006-01-15 svu
+
+	* symbols/bd: Corrected Bangladesh layout, closed
+	https://bugs.freedesktop.org/show_bug.cgi?id=5480
+
+2006-01-14 svu
+
+	* rules/base.ml_*.part: Japanese layouts are nec_vndr/jp, for
+	consistency
+
+2006-01-14 svu
+
+	* symbols/macintosh_vnd/is: some cosmetic stuff and some info, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=5597
+
+2006-01-14 svu
+
+	* rules/base.lists.part: extended non-latin list, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=5590
+
+2006-01-11 svu
+
+	* rules/base*part: improved stuff for non-AT keyboards, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=5507
+
+2006-01-10 svu
+
+	* geometry/pc: fixed geometry, closed
+	https://bugs.freedesktop.org/show_bug.cgi?id=5568
+
+2006-01-08 svu
+
+	* symbols/gh: added Ghana layout, closed
+	https://bugs.freedesktop.org/show_bug.cgi?id=5497
+
+2006-01-06 svu
+
+	* symbols/ad: added Catalan layout, closed
+	https://bugs.freedesktop.org/show_bug.cgi?id=5526
+
+2006-01-01 svu
+
+	* symbols/in: fixed ben_probhat, closed
+	https://bugs.freedesktop.org/show_bug.cgi?id=1012
+
+2005-12-31 svu
+
+	* symbols/ru, rules/base.xml.in: added
+	Tatar, closing https://bugs.freedesktop.org/show_bug.cgi?id=4818
+
+2005-12-31 svu
+
+	* symbols/kh, rules/base.xml.in, symbols/Makefile.am: added
+	Khmer, closing https://bugs.freedesktop.org/show_bug.cgi?id=5389
+
+2005-12-31 svu
+
+	* symbols/epo, rules/base.xml.in, symbols/Makefile.am: added
+	Esperanto, closing https://bugs.freedesktop.org/show_bug.cgi?id=5454
+
+2005-12-30 svu
+
+	* symbols/ctrl: expanding Caps a bit, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=3193
+
+2005-12-20 svu
+
+	* symbols/hu: returned def_dot (instead of def_comma, really
+	eliminated)
+
+2005-12-10 svu
+
+	* symbols/compat/layoutRename.lst: added en_US
+
+2005-12-01 svu
+
+	* symbols/inet, rules/base.xml.in: added Inspiron 6000 keys, closed
+	https://bugs.freedesktop.org/show_bug.cgi?id=5195
+
+2005-12-01 svu
+
+	* symbols/inet: HUGE redesign of the inet file. Major reorganization
+	of Logitech keyboard. HUGE thanks to Fr?d?ric BOITEUX
+
+2005-11-26 svu
+
+	* symbols/group, symbols/level3, compat/level5, compat/misc:
+	Fixing problem with level3(ralt) and group(alts_toggle).
+	Now "us,ru,se" works ok.
+
+2005-10-20 svu
+
+	* symbols/inet, rules:
+	adding Dell USB Multimedia Keybard, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=4826
+
+2005-10-17 svu
+
+	* symbols, types, compat, rules:
+	adding 5th level and beyond, trying to hack 1-group Canadian layout
+
+2005-10-11 svu
+
+	* symbols/macintosh_vndr/fr: update French Macintosh keyboard, closed
+	https://bugs.freedesktop.org/show_bug.cgi?id=2870
+
+2005-10-10 svu
+
+	* symbols/za, rules/base.xml.in: added South Afrika, closed
+	https://bugs.freedesktop.org/show_bug.cgi?id=2856
+
+2005-10-09 svu
+
+	* symbols/inet: expanded Inspiron definition, closed
+	https://bugs.freedesktop.org/show_bug.cgi?id=4071
+
+2005-10-07 svu
+
+	* symbols/hu: fixed comma issue, closed
+	https://bugs.freedesktop.org/show_bug.cgi?id=4693
+
+2005-10-04 svu
+
+	* symbols/by, rules/base.xml.in: added by(latin), closed
+	https://bugs.freedesktop.org/show_bug.cgi?id=4576
+
+2005-10-04 svu
+
+	* symbols/gr: added keypad(comma), closed
+	https://bugs.freedesktop.org/show_bug.cgi?id=3538
+
+2005-10-02 svu
+
+	* symbols/se:
+	updating svorak, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=3635
+
+2005-10-02 svu
+
+	* rules/base.lists.part, rules/base.xml.in,
+	symbols/inet:
+	adding Genius Comfy, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=2275
+
+2005-10-02 svu
+
+	* rules/Makefile.am, rules/HDR,
+	rules/base.l1o_s.part, rules/base.l2o_s.part,
+	rules/base.l3o_s.part, rules/base.l4o_s.part:
+	adding "layout + option -> symbols" rules,
+	for properly maingating RAlt as AltGr + alts_toggle
+	IMPORTANT: REQUIRES FIXING XORG
+
+2005-10-02 svu
+
+	* rules/base.xml.in, symbols/ee:
+	added Estonian Dvorak, closed
+	https://bugs.freedesktop.org/show_bug.cgi?id=4568
+
+2005-10-02 svu
+
+	* rules/base.xml.in, symbols/inet, rules/base.lists.part:
+	Added eMachines m68xx notebooks keyboards, closed
+	https://bugs.freedesktop.org/show_bug.cgi?id=4000
+
+2005-10-01 svu
+
+	* rules/base.xml.in, symbols/inet, rules/base.lists.part:
+	Added SILVERCREST Multimedia Wireless Keyboard, closed
+	https://bugs.freedesktop.org/show_bug.cgi?id=4217
+
+2005-09-30 svu
+
+	* rules/compat/layoutRename.lst:
+	added us_intl, fixed https://bugs.freedesktop.org/show_bug.cgi?id=4642
+
+2005-09-30 svu
+
+	* po/sl.po:
+	Slovenian translation
+
+2005-09-22 svu
+
+	* rules/base.xml.in, rules/base.o_s.part, symbols/compose:
+	adding CapsLock as Compose, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=4548
+
+2005-09-22 svu
+
+	* rules/Makefile.am, rules/merge.sh
+	fixing merging in env where srcdir != objdir, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=4547
+
+2005-09-22 svu
+
+	* rules/base.xml.in, symbols/kz:
+	change Cyr to Rus
+
+2005-09-21 svu
+
+	* rules/base.ml_s.part:
+	IMPORTANT: NO MORE 2-GROUP CANADIAN DEFAULT CONFIGURATION
+
+2005-09-21 svu
+
+	* symbols/kz, symbols/Makefile.am, rules/base.xml.in:
+	added Kazakh, fixing
+	https://bugs.freedesktop.org/show_bug.cgi?id=4497
+
+2005-09-20 svu
+
+	* symbols/macintoch_vndr/ch:
+	Updated de_CH, from
+	https://bugs.freedesktop.org/show_bug.cgi?id=4520
+
+2005-09-20 svu
+
+	* symbols/mk, rules/base.xml.in:
+	removing controversal 'FYROM'
+
+2005-09-14 svu
+
+	* symbols/inet, rules/base.xml.in rules/base.lists.part:
+	Added Cherry CyBo@rd USB-Hub. Thanks to Paul Egan
+	Fixed https://bugs.freedesktop.org/show_bug.cgi?id=4498
+
+2005-09-14 svu
+
+	* symbols/cs: a bit of cleanup by Denis
+
+2005-09-13 svu
+
+	* configure.in: added Finnish translation
+
+2005-09-04 svu
+
+	* symbols/no:
+	fixed no(dvorak), closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=4397
+
+2005-09-04 svu
+
+	* rules/base.xml.in, symbols/inet:
+	adding Power G5
+
+2005-09-04 svu
+
+	* rules/base.xml.in, symbols/ro:
+	Fixing Romanian, closing
+	https://bugs.freedesktop.org/show_bug.cgi?id=371
+
+2005-09-04 svu
+
+	* rules/base.xml.in, symbols/lk:
+	No TSCII/INSCRIPT in Sri Lanka,
+	according to <hash@jayasolutions.cjb.net>
+
+2005-08-25 svu
+
+	* rules/base.xml.in:
+	Control -> Ctrl everywhere, for consistency sake
+
+2005-08-25 svu
+
+	* rules/base.xml.in, symbols/cs:
+	Serbia -> Serbia and Montenegro
+
+2005-08-25 svu
+
+	* configure.in, po/sr@Latn.po:
+	adding sr@Latn translation, thanks to Danilo
+
+2005-08-24 svu
+
+	* configure.in:
+	preparing 0.6
+
+2005-08-24 svu
+
+	* rules/base.xml.in, symbols/mk,
+	rules/compat/layoutRename.lst:
+	Move Macedonian to country-based
+
+2005-08-23 svu
+
+	* rules/base.xml.in, symbols/ba,
+	symbols/si, symbols/cs, symbols/hr:
+	Major Balkanian revolution by Danilo Segan. GREAT THANKS to him.
+
+2005-08-22 svu
+
+	* rules/base.xml.in, symbols/mv:
+	Moved Dhivehi to Maldives, fixed #3716
+
+2005-08-22 svu
+
+	* rules/compat/layoutRename.lst:
+	fixed http://bugzilla.ubuntu.com/show_bug.cgi?id=13919
+
+2005-08-16 svu
+
+	* rules/base.xml.in, symbols/ir:
+	fixed https://bugs.freedesktop.org/show_bug.cgi?id=4102
+
+2005-08-11 svu
+
+	* symbols/jp, symbols/pc:
+	fixed https://bugs.freedesktop.org/show_bug.cgi?id=847
+
+2005-08-07 svu
+
+	* symbols/bg:
+	fixed https://bugs.freedesktop.org/show_bug.cgi?id=4010
+
+2005-08-06 svu
+
+	* Makefile.am:
+	Allowing multiple compatibility symlinks (xfree86,xorg).
+	Thanks to Daniel Stone for the feedback
+
+2005-08-06 svu
+
+	* Makefile.am:
+	Fixing the xkbcomp symlink creation
+	Thanks to Daniel Stone for the feedback
+
+2005-08-04 svu
+
+	* Makefile.am, configure.in, xkbrules.am:
+	Taking nice ideas from xkbdata.
+	Thanks to Daniel Stone for his knowledge of autofoo
+
+2005-08-04 svu
+
+	* symbols/in, symbols/lk,
+	rules/base.xml.in, rules/compat/variantRename.lst:
+	a bit reogranizing tamil stuff
+
+2005-08-03 svu
+
+	* symbols/ie, rules/base.xml.in, rules/compat/variantRename.lst:
+	getting rid of laptop variants in 'ie'
+
+2005-08-02 svu
+
+	* symbols/in, rules/base.xml.in, rules/compat/variantRename.lst:
+	moving 'mal_plusnum' to 'mal'
+
+2005-08-01 svu
+
+	* symbols/il, symbols/hr, symbols/tj:
+	fixing two-group layouts
+
+2005-08-01 svu
+
+	* symbols, rules:
+	putting syr to sy, dzo to bt
+
+2005-07-31 svu
+
+	* symbols, rules:
+	putting smi to no, fi, se
+
+2005-07-31 svu
+
+	* symbols, rules:
+	putting Syriac to Syria (setting 'ara' as default)
+
+2005-07-31 svu
+
+	* symbols, rules:
+	putting Devangari, Gurmukhi into 'in'
+
+2005-07-31 svu
+
+	* symbols, rules:
+	changing 'lao' to 'la'
+
+2005-07-31 svu
+
+	* symbols, rules:
+	putting Inuktitut into 'ca'
+
+2005-07-31 svu
+
+	* symbols, rules:
+	putting Ogham into 'ie'. Cleaning it up.
+
+2005-07-29 svu
+
+	* symbols, rules:
+	reorganizing Asian layouts, round #1
+
+2005-07-25 svu
+
+	* symbols/tr:
+	fixed Turkish, according to
+	https://bugs.freedesktop.org/show_bug.cgi?id=2558
+
+2005-07-25 svu
+
+	* symbols/hr:
+	added belowdot, abovedot, in relation to
+	https://bugs.freedesktop.org/show_bug.cgi?id=475
+
+2005-07-24 svu
+
+	* symbols/div,
+	symbols/Makefile.am,
+	rules/base.xml.in: adding Dhivehi, fixing
+	https://bugs.freedesktop.org/show_bug.cgi?id=3716
+
+2005-07-23 svu
+
+	* symbols/es,
+	rules/base.xml.in:
+	adding Spanish dvorak, pointer from
+	https://bugs.freedesktop.org/show_bug.cgi?id=2344
+
+2005-07-21 svu
+
+	* symbols/sun_vndr/us,
+	rules/sun,
+	keycodes/sun,
+	geometry/sun: adding more keyboards, fixing
+	https://bugs.freedesktop.org/show_bug.cgi?id=2037
+
+2005-07-20 svu
+
+	* symbols/ru,
+	symbols/us,
+	symbols/se,
+	symbols/ua,
+	rules/base.xml.in:
+	sorting out Russian layout, fixing (without 3rd and 4th groups)
+	https://bugs.freedesktop.org/show_bug.cgi?id=2582
+
+2005-07-15 svu
+
+	* symbols/inet, rules/base.xml.in:
+	added Cherry CyMotion Linux, fixed
+	https://bugs.freedesktop.org/show_bug.cgi?id=3789
+
+2005-07-02 svu
+
+	* symbols/nl: fixed Dutch layout
+
+2005-06-17 svu
+
+	* symbols/pl: added AB10 to qwertz
+	https://bugs.freedesktop.org/show_bug.cgi?id=3298
+
+2005-06-17 svu
+
+	* symbols/inet, rules/base.xml.in: added logiultrax,
+	https://bugs.freedesktop.org/show_bug.cgi?id=3523
+
+2005-04-17 svu
+
+	* symbols/tam, rules/base.xml.in: changed default for Tamil,
+	https://bugs.freedesktop.org/show_bug.cgi?id=2971
+
+2005-04-02 svu
+
+	* symbols/de, rules/base.xml.in: added de(dvorak),
+	https://bugs.freedesktop.org/show_bug.cgi?id=2681
+
+2005-03-10 svu
+
+	* po/Makefile.am: adding POTFILES* into the dist
+	* Makefile.am, rules/Makefile.am: adding DISTCLEANFILES
+
+2005-03-09 svu
+
+	* symbols/us: fixing dvorak,
+	https://bugs.freedesktop.org/show_bug.cgi?id=2641
+
+2005-02-05 svu
+
+	* configure.in, NEWS: preparing 0.5
+
+2005-02-03 svu
+
+	* symbols/srp, types/extra: replaced SERBIAN_ALPHABETIC with
+	FOUR_LEVEL_ALPHABETIC, as Danilo requested. Also, SERBIAN_CAPS
+	renamed to SEPARATE_CAPS_AND_SHIFT_ALPHABETIC.
+
+2005-01-21 svu
+
+	* rules/base.lists.part,
+	rules/base.xml.in,
+	symbols/inet: addin my own Acer Travelmate 800 keyboard
+	(based on acerhk kernel module).
+
+2005-01-21 svu
+
+	* symbols/gr: a bit more order in group name (needed for 'basic' but
+	not for 'bare'
+
+2005-01-20 svu
+
+	* symbols/hr: added missing keymapping,
+	fixed https://bugs.freedesktop.org/show_bug.cgi?id=2325
+
+2005-01-19 svu
+
+	* symbols/us: removed illegal 'hidden' attribute from the default layout
+
+2005-01-18 svu
+
+	* symbols/cz, rules/base.xml.in: fixed the Czech layout,
+	https://bugs.freedesktop.org/show_bug.cgi?id=2319
+
+2005-01-16 svu
+
+	* symbols, rules/base.xml.in: HUGE commit - adjusting the group names
+	according to the descriptions.
+	Also, some layouts were missing the default variants - added one.
+	Also, some default variants were listed in the variantLists - now they are removed.
+
+2005-01-06 svu
+
+	* symbols/am, rules/base.xml.in: Removing old Armenian layout,
+	fixing http://bugs.freedesktop.org/show_bug.cgi?id=2226
+
+2004-12-22 svu
+
+	* symbols: massive patch for the group names (by Denis Barbier)
+	* rules/base.xml.in: first iteration, match the country names with
+	the group names
+
+2004-12-21 02:07  svu
+
+	* po/el.po,
+	configure.in: Greek translation
+
+2004-12-20 20:30  svu
+
+	* symbols/inet,
+	rules/base.lists.part,
+	rules/base.xml.in: added A4Tech KBS-8, thanks to olo at force dot sk.
+	fixed https://bugs.freedesktop.org/show_bug.cgi?id=2113
+
+2004-12-10 00:30  svu
+
+	* symbols/inet: removed keyboard names from the group names,
+	fixed https://bugs.freedesktop.org/show_bug.cgi?id=2044
+
+2004-12-08 00:30  svu
+
+	* symbols/mkd,
+	rules/base.xml.in,
+	rules/compat/layoutRename.lst,
+	rules/compat/Makefile.am: Macedonian is now language-based,
+	not country-based. Compatibility rule added.
+
+2004-12-04 01:40  svu
+
+	* symbols/mk, rules/base.xml.in: small fix for Makedonian
+
+2004-12-03 00:40  svu
+
+	* configure.in, Makefile.am, compiled: some cleanup in the
+	build process
+
+2004-11-29 19:00  svu
+
+	* symbols/sin: Small patch for Sinhala from Harshula
+
+2004-11-14 22:14  svu
+
+	* symbols/sin: Small patch for Sinhala from Harshula
+
+2004-10-31 01:20  svu
+
+	* symbols/ca, rules/base.xml.in: added fr-dvorak, thanks to
+	Jonathan Bastien-Filiatrault
+
+2004-10-29 01:15  svu
+
+	* symbols/am: fixed phonetic layout, bug
+	http://freedesktop.org/bugzilla/show_bug.cgi?id=1714
+
+2004-10-29 00:55  svu
+
+	* rules/base.xml.in, rules/base.lists.part, symbols/inet:
+	Added Cherry CyMotion Master XPress, fixed
+	http://freedesktop.org/bugzilla/show_bug.cgi?id=1715
+
+2004-10-26 21:08  svu
+
+	* symbols/Makefile.am, symbols/kg, rules/base.xml.in: added
+	Kyrgyz, thanks to Yury Fedorov
+
+2004-10-12 18:45  svu
+
+	* symbols/Makefile.am, symbols/sin, rules/base.xml.in: added
+	Sinhalese, thanks to Harshula Jayasuriya
+
+2004-10-10 23:59  svu
+
+	* po/: af.po, az.po, bg.po, cs.po, da.po, fr.po, hu.po, nl.po,
+	  ru.po, sk.po, sq.po, sr.po, sv.po, tr.po, uk.po, zh_CN.po: update
+	  from TP
+
+2004-10-09 19:34  svu
+
+	* symbols/: mal, mao, mm, mn, mt, nl, ogam, ori, pc, pl, pt, ru,
+	  sk, smi, srvr_ctrl, syr, tam, tel, th, tr, ua, urd, us: adding
+	  the keyword
+
+2004-10-09 18:40  svu
+
+	* symbols/: jp, kan, lao, latam, latin, level3, lt, lv: adding the
+	  keyword
+
+2004-10-09 18:35  svu
+
+	* symbols/: deva, dzo, ee, es, eurosign, fo, fr, gb, ge, gr, guj,
+	  guru, ie, iku, il, inet, ir, is, it: adding the keyword
+
+2004-10-09 18:29  svu
+
+	* symbols/: al, altwin, am, ara, az, be, ben, bg, by, capslock, ch,
+	  compose, ctrl, cz: adding the keyword
+
+2004-10-09 18:26  svu
+
+	* symbols/: ca, uz, vn: adding the keyword
+
+2004-10-09 18:23  svu
+
+	* symbols/: ca, uz, vn: fixing
+	  https://freedesktop.org/bugzilla/show_bug.cgi?id=1566
+
+2004-10-09 00:31  svu
+
+	* symbols/ch: fixing
+	  https://freedesktop.org/bugzilla/show_bug.cgi?id=1562
+
+2004-10-09 00:20  svu
+
+	* symbols/ca: fixing
+	  https://freedesktop.org/bugzilla/show_bug.cgi?id=1563
+
+2004-10-08 21:55  svu
+
+	* symbols/hu: fixing
+	  https://freedesktop.org/bugzilla/show_bug.cgi?id=1561
+
+2004-09-29 23:25  svu
+
+	* symbols/macintosh_vndr/: Makefile.am, is: Added Icelandic layout
+	  to the Macintosh group
+
+2004-09-28 00:00  svu
+
+	* NEWS, configure.in: preparing 0.4
+
+2004-09-18 01:00  svu
+
+	* BUGS, rules/base.xml.in: David noticed small glitches in
+	  base.xml.in
+
+2004-09-16 01:11  svu
+
+	* rules/Makefile.am, rules/base.o_s.part, rules/base.xml.in,
+	  rules/compat/Makefile.am, rules/compat/base.o_s.part,
+	  symbols/group: shift_toggle -> shifts_toggle
+
+2004-09-15 23:20  svu
+
+	* symbols/group: make the ctrsl_toggle consistend with the others
+
+2004-09-14 20:54  svu
+
+	* symbols/ba: more commas
+
+2004-09-14 20:38  svu
+
+	* symbols/: mk, srp: more commas
+
+2004-09-14 20:14  svu
+
+	* symbols/: br, de, dk, fi, hr, hu, keypad, no, pl, ro, se, si:
+	  keymap(comma) introduced by Frank
+
+2004-09-13 22:39  svu
+
+	* symbols/tj: new local cvs keyword seems to be ok - no more $Id$
+
+2004-09-13 22:38  svu
+
+	* symbols/tj: trying new local cvs keyword
+
+2004-09-13 19:49  svu
+
+	* symbols/ara, symbols/bg, symbols/by, symbols/capslock,
+	  symbols/deva, symbols/fo, symbols/guj, symbols/guru, symbols/iku,
+	  symbols/il, symbols/ir, symbols/kan, symbols/lao, symbols/mk,
+	  symbols/mm, symbols/mt, symbols/ori, symbols/sk, symbols/srp,
+	  symbols/tel, compat/README, compat/ledcaps, compat/lednum,
+	  compat/ledscroll, docs/README.config, geometry/README,
+	  geometry/dell, geometry/everex, geometry/keytronic,
+	  geometry/kinesis, geometry/microsoft, geometry/northgate,
+	  geometry/sgi_vndr/O2, geometry/sgi_vndr/indigo,
+	  geometry/sgi_vndr/indy, keycodes/README, keycodes/aliases,
+	  keymap/README, keymap/sgi_vndr/cz, keymap/sgi_vndr/sk,
+	  rules/README, symbols/macintosh_vndr/ch,
+	  symbols/macintosh_vndr/es, symbols/macintosh_vndr/fi,
+	  symbols/macintosh_vndr/fr, symbols/macintosh_vndr/it,
+	  symbols/macintosh_vndr/nl, symbols/sun_vndr/usb, types/README,
+	  types/basic, types/default, types/numpad: no dummy XFree keyword
+
+2004-09-11 21:41  svu
+
+	* symbols/tj: trying Id
+
+2004-09-09 23:05  svu
+
+	* symbols/: tj: fixing keyword
+
+2004-09-09 23:02  svu
+
+	* symbols/tj: fixing keyword
+
+2004-09-09 22:07  svu
+
+	* symbols/level3: ONE_LEVEL fixing by Frank
+
+2004-09-09 00:01  svu
+
+	* symbols/group: more fair comment
+
+2004-09-08 23:40  svu
+
+	* symbols/level3: they agreed on this
+
+2004-09-08 20:14  svu
+
+	* compat/Makefile.am, rules/base.o_c.part: no more capsled traces
+
+2004-09-07 23:58  svu
+
+	* symbols/level3: restoring for a while, till guys make agreement
+
+2004-09-07 23:16  svu
+
+	* symbols/mn: just for sync:)
+
+2004-09-07 21:51  svu
+
+	* po/ru.po: updated translation
+
+2004-09-07 21:50  svu
+
+	* rules/base.xml.in: small polish of the option descriptions
+
+2004-09-07 20:56  svu
+
+	* symbols/: al, az, be, br, ca, cz, de, dk, dzo, ee, es, fi, fo,
+	  fr, gb, hr, hu, is, it, latam, level3, lt, mt, nl, no, pt, ro,
+	  se, si, sk, smi, srp, tr, us, vn: changing to ralt_switch
+
+2004-09-07 20:39  svu
+
+	* rules/: base.o_s.part, sgi, sun: small fixes, thanks to Frank
+
+2004-09-07 20:33  svu
+
+	* symbols/urd: forgotten to add
+
+2004-09-06 00:59  svu
+
+	* rules/base.xml.in, symbols/Makefile.am: Adding Urdu layout,
+	  thanks to Zaeem Arshad
+
+2004-09-04 22:39  svu
+
+	* compat/Makefile.am, compat/basic, compat/group_led,
+	  compat/ledcaps, compat/lednum, compat/leds, compat/ledscroll,
+	  compat/misc, rules/base.o_c.part, rules/base.o_s.part,
+	  rules/base.xml.in, symbols/Makefile.am, symbols/capslock,
+	  symbols/group, symbols/lock: reorganizing indicators, thanks to
+	  Frank Murphy
+
+2004-08-28 02:04  svu
+
+	* symbols/compose, rules/base.o_s.part, rules/base.xml.in: adding
+	  RCtrl as Compose
+
+2004-08-27 23:57  svu
+
+	* symbols/us: thanks to Frank, he noticed two default variants in
+	  the us layout
+
+2004-08-27 19:20  svu
+
+	* rules/: base.o_s.part, base.xml.in: meta-info about eurosign
+
+2004-08-27 02:23  svu
+
+	* symbols/: Makefile.am, eurosign: added eurosign
+
+2004-07-25 14:55  svu
+
+	* Makefile.am, mkinstalldirs: fixing mkinstalldirs
+
+2004-07-24 00:42  svu
+
+	* rules/Makefile.am: minor fix for the minor bug detected by
+	  distcheck
+
+2004-07-23 22:21  svu
+
+	* TODO: up2date
+
+2004-07-23 22:00  svu
+
+	* NEWS, configure.in: preparing 0.3
+
+2004-07-23 00:11  svu
+
+	* rules/: HDR, Makefile.am, compat/.cvsignore, compat/Makefile.am,
+	  compat/lnv_s.sh, compat/ml1v1_s.sh: HURRAY!!! Rules are working!
+	  Am I cool or what?
+
+2004-07-22 02:03  svu
+
+	* rules/HDR: fixing the header for MLV
+
+2004-07-21 02:21  svu
+
+	* rules/: HDR, Makefile.am, base.mlv_s.part, base.mvl_s.part,
+	  compat/.cvsignore, compat/Makefile.am, compat/ln_s.sh,
+	  compat/ml1_s.sh, compat/ml_s.sh, compat/mlv_s.sh: variants are
+	  there
+
+2004-07-21 01:57  svu
+
+	* rules/: HDR, Makefile.am, compat/.cvsignore, compat/Makefile.am,
+	  compat/lnv_s.sh, compat/ml1_s.sh, compat/ml1v_s.sh: a bit more
+	  about variants
+
+2004-07-21 01:48  svu
+
+	* rules/: .cvsignore, HDR, Makefile.am, compat/.cvsignore,
+	  compat/Makefile.am, compat/lnv_s.sh, compat/variantRename.lst:
+	  adding variants - not complete yet
+
+2004-07-21 01:25  svu
+
+	* rules/compat/: Makefile.am, l2_s.sh, l3_s.sh, l4_s.sh, ln_s.sh:
+	  single script for the layouts 2-4
+
+2004-07-21 00:02  svu
+
+	* rules/merge.sh: bash is great but sh is standard - and think
+	  optimal, dude
+
+2004-07-20 02:57  svu
+
+	* rules/compat/: l2_s.sh, l3_s.sh, l4_s.sh: the extra layouts (2-4)
+	  should be ADDED using '+' character
+
+2004-07-20 02:49  svu
+
+	* rules/: base.ml1_c.part, base.ml1_s.part, base.ml_c.part,
+	  base.ml_s.part, compat/l2_s.sh, compat/l3_s.sh, compat/l4_s.sh,
+	  compat/ml1_s.sh, compat/ml_s.sh: alignment
+
+2004-07-20 02:33  svu
+
+	* rules/compat/: ml1_s.sh, ml_s.sh: little fix
+
+2004-07-20 02:29  svu
+
+	* rules/: HDR, Makefile.am, base.l1_k.part, base.l2_s.part,
+	  base.l3_s.part, base.l4_s.part, base.l_k.part, base.m_g.part,
+	  base.m_k.part, base.m_s.part, base.m_t.part, base.ml1_c.part,
+	  base.ml1_s.part, base.ml_c.part, base.ml_s.part, base.mvl_s.part,
+	  base.o_c.part, base.o_s.part, base.o_t.part, merge.sh: Now, we
+	  compoze the parts using bash script
+
+2004-07-18 03:54  svu
+
+	* configure.in, rules/.cvsignore, rules/compat/.cvsignore,
+	  rules/compat/Makefile.am, rules/compat/base.lists.part,
+	  rules/compat/l2_s.sh, rules/compat/l3_s.sh, rules/compat/l4_s.sh,
+	  rules/compat/layoutRename.lst, rules/compat/ml1_s.sh,
+	  rules/compat/ml_s.sh: starting bundling compatibility parts
+
+2004-07-18 03:44  svu
+
+	* rules/: Makefile.am, base: cleaning a bit before adding the
+	  compat directory
+
+2004-07-18 01:56  svu
+
+	* rules/: Makefile.am, base, base.l1_k.part, base.l2_s.part,
+	  base.l3_s.part, base.l4_s.part, base.l_k.part, base.lists.part,
+	  base.m_g.part, base.m_k.part, base.m_s.part, base.m_t.part,
+	  base.ml1_c.part, base.ml1_s.part, base.ml_c.part, base.ml_s.part,
+	  base.mvl_s.part, base.o_c.part, base.o_s.part, base.o_t.part:
+	  better empty line handling between rule groups
+
+2004-07-18 01:42  svu
+
+	* rules/: Makefile.am, base, base.hdr.part, base.l1_k.part,
+	  base.l2_s.part, base.l3_s.part, base.l4_s.part, base.l_k.part,
+	  base.lists.part, base.m_g.part, base.m_k.part, base.m_s.part,
+	  base.m_t.part, base.ml1_c.part, base.ml1_s.part, base.ml_c.part,
+	  base.ml_s.part, base.mvl_s.part, base.o_c.part, base.o_s.part,
+	  base.o_t.part: Now, the base rules are composed from microfiles
+	  *.part. I see no other way to handle compatibility in a
+	  manageable way. Kill me if I know it.
+
+2004-07-09 05:21  daniel
+
+	* ChangeLog, configure.in: * configure.in: Alter with-xkb-base
+	  default to $(prefix)/lib/X11/xkb, instead of
+	  $(prefix)/X11R6/lib/xkb, which makes --prefix=/usr behave sanely.
+
+2004-07-08 21:40  svu
+
+	* configure.in: getting rid of unnecessary AM_GLIB_GNU_GETTEXT
+
+2004-07-07 22:52  kidcrash
+
+	* ChangeLog: adding required ChangeLog file
+
+2004-07-06 23:44  svu
+
+	* .cvsignore: Anjuta files are not in CVS - and'll never be
+
+2004-07-04 02:00  svu
+
+	* po/ru.po: updating Russian translation
+
+2004-07-04 01:31  svu
+
+	* rules/base.xml.in, symbols/Makefile.am, symbols/cs, symbols/srp:
+	  streamlining ex-yu layouts
+
+2004-07-03 03:32  svu
+
+	* rules/base.xml.in, symbols/Makefile.am, symbols/dvorak,
+	  symbols/fr, symbols/gb, symbols/no, symbols/pl, symbols/se,
+	  symbols/us, po/ru.po: splitting dvorak
+
+2004-07-02 01:59  svu
+
+	* symbols/smi: fixing broken layouts, thanks to my testing scripts
+
+2004-07-02 01:49  svu
+
+	* symbols/: Makefile.am, ara, gr, latam, lv, mal, ogam: fixing
+	  broken layouts, thanks to my testing scripts
+
+2004-07-02 00:16  svu
+
+	* po/Makefile.am: adding update-po
+
+2004-07-01 22:28  svu
+
+	* docs/: iso3166.csv, iso639.csv: more fresh version of the
+	  standards
+
+2004-07-01 03:01  svu
+
+	* po/ru.po: completing Russian translation - though some things are
+	  questionable
+
+2004-07-01 02:59  svu
+
+	* config.rpath, mkinstalldirs: why would I need these files in
+	  CVS???
+
+2004-07-01 02:55  svu
+
+	* ABOUT-NLS: empty but very useful file
+
+2004-07-01 02:48  svu
+
+	* Makefile.am, autogen.sh, configure.in, po/Makefile.am,
+	  rules/base.xml.in: Starting to fix intltool problem, Danilo just
+	  roxx
+
+2004-06-30 23:47  svu
+
+	* rules/base.xml.in, symbols/Makefile.am, symbols/cs, symbols/yu:
+	  Changed yu to cs as Danilo advised - but not sure it is ok.
+	  Investigating...
+
+2004-06-30 23:25  svu
+
+	* rules/base.xml.in, symbols/Makefile.am, symbols/scc, symbols/srp:
+	  Changing scc to srp - as Danilo advised
+
+2004-06-26 01:54  svu
+
+	* BUGS: hopefully fixed Latvian layout
+
+2004-06-26 01:50  svu
+
+	* rules/base.xml.in, symbols/lv: hopefully fixed Latvian layout
+
+2004-06-22 01:11  svu
+
+	* configure.in: trying to set order in the Makefiles list
+
+2004-06-22 00:56  svu
+
+	* Makefile.am, configure.in, autogen.sh: trying to fix intltool -
+	  but without much luck
+
+2004-06-20 20:09  svu
+
+	* rules/base.xml.in: fixing shortDescr for Smi
+
+2004-06-20 19:04  svu
+
+	* docs/: iso15924.csv, iso3166.csv, iso3166.txt, iso639.csv,
+	  iso639.txt: putting order into standards
+
+2004-06-20 15:36  svu
+
+	* symbols/bg: bad patch application
+
+2004-06-20 15:36  svu
+
+	* rules/base.xml.in: typo in Sami id
+
+2004-06-20 15:22  svu
+
+	* symbols/Makefile.am: Frank forgets to chance Makefile.am:)
+
+2004-06-20 14:57  svu
+
+	* xkeyboard-config.spec.in, rules/base, rules/base.xml.in,
+	  docs/Makefile.am, docs/README.symbols, symbols/ar, symbols/ara,
+	  symbols/ba, symbols/bs, symbols/dev, symbols/deva, symbols/dz,
+	  symbols/dzo, symbols/el, symbols/gr, symbols/gur, symbols/guru,
+	  symbols/iku, symbols/iu, symbols/la, symbols/lao, symbols/latam,
+	  symbols/lo, symbols/mal, symbols/mao, symbols/mi, symbols/ml,
+	  symbols/ogam, symbols/ogham, symbols/sapmi, symbols/scc,
+	  symbols/smi, symbols/sr, symbols/tam, symbols/tml: Second phase
+	  of i18n. Frank rocks the world:)
+
+2004-06-19 04:34  svu
+
+	* symbols/mk: Macedonia AKA FYROM
+
+2004-06-19 04:32  svu
+
+	* rules/: Makefile.am, base-it.lst, base.lst, sgi.lst, sun.lst,
+	  xfree98.lst: lst file is not generated automatically - only
+	  base.lst
+
+2004-06-19 04:16  svu
+
+	* rules/: sgi, sun: en_US actually died only now
+
+2004-06-19 04:07  svu
+
+	* symbols/: en_US, sun_vndr/se: en_US actually died only now
+
+2004-06-16 02:07  svu
+
+	* rules/base.xml.in: ISOization, part1
+
+2004-06-16 02:00  svu
+
+	* rules/base.xml.in, symbols/bg, symbols/ch, symbols/el,
+	  symbols/il, symbols/mm: ISOization, part1
+
+2004-06-15 22:04  svu
+
+	* rules/base.xml.in: better wording for Urkainian RSTU description
+
+2004-06-15 19:19  svu
+
+	* rules/base.xml.in, symbols/ru, symbols/ua: Added RSTU
+	  Ukranian/Russian layouts. Thanks to Andrew Porokhnyak
+
+2004-06-13 23:12  svu
+
+	* symbols/inet: actually adding gyration keyboard
+
+2004-06-13 21:30  svu
+
+	* docs/HOWTO.testing: Forgot to add actual document
+
+2004-06-13 21:21  svu
+
+	* BUGS, rules/base, rules/base.lst, rules/base.xml.in, symbols/am,
+	  symbols/inet, symbols/lt, symbols/us: fixing loads of bugs from
+	  fd.o bugzilla
+
+2004-06-13 13:28  svu
+
+	* xkeyboard-config.spec.in, docs/Makefile.am: Added HOWTO.testing
+	  by Frank Murphy
+
+2004-06-12 02:17  svu
+
+	* symbols/mi: getting rid of pc/
+
+2004-06-12 02:14  svu
+
+	* symbols/mi: getting rid of pc/
+
+2004-06-12 02:06  svu
+
+	* NEWS: Redoing 0.2
+
+2004-06-12 02:05  svu
+
+	* symbols/br: fixing bug 515
+
+2004-06-12 02:01  svu
+
+	* rules/base.xml.in, symbols/Makefile.am, symbols/mi: Added Maori,
+	  thanks to John C Barstow
+
+2004-06-12 01:50  svu
+
+	* docs/: iso3166.txt, iso639.txt: just to have standards for
+	  reference
+
+2004-06-10 23:58  svu
+
+	* NEWS: Preparing 0.2
+
+2004-06-10 23:51  svu
+
+	* README, configure.in: Preparing 0.2
+
+2004-06-06 04:22  svu
+
+	* xkeyboard-config.spec.in, docs/HOWTO.transition,
+	  docs/Makefile.am, rules/Makefile.am: adding HOWTO.transition
+
+2004-05-28 23:59  svu
+
+	* Makefile.am, configure.in: Optional creation of xkbcomp symlink
+	  in .../X11/xkb
+
+2004-05-25 22:30  svu
+
+	* NEWS: something to say
+
+2004-05-24 22:15  svu
+
+	* po/xkbdesc.pot: changing the project name
+
+2004-05-24 22:08  svu
+
+	* .cvsignore, Makefile.am, autogen.sh, configure.in,
+	  xkbdesc.spec.in, xkeyboard-config.spec.in: changing the project
+	  name
+
+2004-05-23 21:01  svu
+
+	* rules/base, rules/base.xml.in, symbols/altwin: Daniel Elstner
+	  sent new option for Tux keys
+
+2004-05-18 00:24  svu
+
+	* configure.in: no glib stuff
+
+2004-05-12 13:51  pascal
+
+	* rules/base, symbols/bs: Convert Bosnian keymap to multi-layout
+	  compatible form.
+
+2004-05-09 22:26  svu
+
+	* Makefile.am, README.config, README.enhancing, configure.in,
+	  xkbdesc.spec.in, docs/.cvsignore, docs/Makefile.am,
+	  docs/README.config: reorganization in docs
+
+2004-05-09 21:40  svu
+
+	* TODO, docs/README.enhancing: 2 bits of docs
+
+2004-05-07 19:48  svu
+
+	* po/ru.po: up2date
+
+2004-05-07 19:27  svu
+
+	* rules/base.xml.in, symbols/tr, tests/testLayouts.pl,
+	  tests/testOptions.pl, tests/xkbTestFunc.pm: Some small fixes
+	  made. Options are now testable as well.
+
+2004-05-06 02:00  svu
+
+	* tests/: listCI2.xsl, testLayouts.pl, testOptions.pl,
+	  xkbTestFunc.pm: one more test - but still problems passing it
+
+2004-05-06 01:15  svu
+
+	* configure.in, symbols/mk, tests/testLayouts.pl: Makedonian
+	  problem fixed - and BOTH tests are OK
+
+2004-05-06 01:05  svu
+
+	* symbols/digital_vndr/Makefile.am, symbols/digital_vndr/lk,
+	  symbols/digital_vndr/pc, symbols/digital_vndr/us,
+	  symbols/digital_vndr/vt, symbols/fujitsu_vndr/Makefile.am,
+	  symbols/fujitsu_vndr/jp, keycodes/digital_vndr/Makefile.am,
+	  keycodes/digital_vndr/lk, keycodes/digital_vndr/pc,
+	  keycodes/sgi_vndr/Makefile.am, keycodes/sgi_vndr/indigo,
+	  keycodes/sgi_vndr/indy, keycodes/sgi_vndr/iris, keymap/macintosh,
+	  keymap/sony, keymap/xfree98, keymap/digital_vndr/Makefile.am,
+	  keymap/digital_vndr/us, keymap/sgi_vndr/Makefile.am,
+	  keymap/sgi_vndr/be, keymap/sgi_vndr/bg, keymap/sgi_vndr/ca,
+	  keymap/sgi_vndr/ch, keymap/sgi_vndr/cz, keymap/sgi_vndr/de,
+	  keymap/sgi_vndr/dk, keymap/sgi_vndr/dvorak,
+	  keymap/sgi_vndr/en_US, keymap/sgi_vndr/es, keymap/sgi_vndr/fi,
+	  keymap/sgi_vndr/fr, keymap/sgi_vndr/gb, keymap/sgi_vndr/hu,
+	  keymap/sgi_vndr/it, keymap/sgi_vndr/jp, keymap/sgi_vndr/no,
+	  keymap/sgi_vndr/pl, keymap/sgi_vndr/pt, keymap/sgi_vndr/ru,
+	  keymap/sgi_vndr/se, keymap/sgi_vndr/sk, keymap/sgi_vndr/th,
+	  keymap/sgi_vndr/us, keymap/sun_vndr/Makefile.am,
+	  keymap/sun_vndr/de, keymap/sun_vndr/es, keymap/sun_vndr/fi,
+	  keymap/sun_vndr/fr, keymap/sun_vndr/no, keymap/sun_vndr/pl,
+	  keymap/sun_vndr/ru, keymap/sun_vndr/se, keymap/sun_vndr/uk,
+	  keymap/sun_vndr/us, rules/base, rules/base.xml.in,
+	  symbols/hp_vndr/Makefile.am, symbols/macintosh_vndr/Makefile.am,
+	  symbols/macintosh_vndr/apple, symbols/macintosh_vndr/ch,
+	  symbols/macintosh_vndr/de, symbols/macintosh_vndr/dk,
+	  symbols/macintosh_vndr/fi, symbols/macintosh_vndr/no,
+	  symbols/macintosh_vndr/pt, symbols/macintosh_vndr/se,
+	  symbols/macintosh_vndr/us, symbols/nec_vndr/Makefile.am,
+	  symbols/sgi_vndr/Makefile.am, symbols/sony_vndr/Makefile.am,
+	  symbols/sun_vndr/Makefile.am, symbols/sun_vndr/se,
+	  symbols/sun_vndr/us, symbols/xfree68_vndr/Makefile.am,
+	  tests/testLayouts.pl, tests/testModels.pl, tests/xkbTestFunc.pm,
+	  geometry/digital_vndr/Makefile.am, geometry/digital_vndr/pc,
+	  geometry/ibm_vndr/Makefile.am, geometry/ibm_vndr/thinkpad,
+	  geometry/sgi_vndr/Makefile.am: Yahoo! Models test pased ok!
+
+2004-05-05 23:32  svu
+
+	* configure.in, symbols/Makefile.am,
+	  symbols/digital_vndr/.cvsignore,
+	  symbols/digital_vndr/Makefile.am, symbols/digital_vndr/lk,
+	  symbols/digital_vndr/pc, symbols/digital_vndr/us,
+	  symbols/digital_vndr/vt, symbols/fujitsu_vndr/.cvsignore,
+	  symbols/fujitsu_vndr/Makefile.am, symbols/fujitsu_vndr/jp,
+	  symbols/fujitsu_vndr/us, symbols/hp_vndr/.cvsignore,
+	  symbols/hp_vndr/Makefile.am, symbols/hp_vndr/us,
+	  symbols/macintosh_vndr/.cvsignore,
+	  symbols/macintosh_vndr/Makefile.am, symbols/macintosh_vndr/ch,
+	  symbols/macintosh_vndr/de, symbols/macintosh_vndr/dk,
+	  symbols/macintosh_vndr/es, symbols/macintosh_vndr/fi,
+	  symbols/macintosh_vndr/fr, symbols/macintosh_vndr/gb,
+	  symbols/macintosh_vndr/it, symbols/macintosh_vndr/nl,
+	  symbols/macintosh_vndr/no, symbols/macintosh_vndr/pt,
+	  symbols/macintosh_vndr/se, symbols/macintosh_vndr/us,
+	  symbols/nec_vndr/.cvsignore, symbols/nec_vndr/Makefile.am,
+	  symbols/nec_vndr/jp, geometry/Makefile.am,
+	  geometry/digital_vndr/.cvsignore,
+	  geometry/digital_vndr/Makefile.am, geometry/digital_vndr/lk,
+	  geometry/digital_vndr/pc, geometry/digital_vndr/unix,
+	  geometry/ibm_vndr/.cvsignore, geometry/ibm_vndr/Makefile.am,
+	  geometry/ibm_vndr/thinkpad, geometry/sgi_vndr/.cvsignore,
+	  geometry/sgi_vndr/Makefile.am, geometry/sgi_vndr/O2,
+	  geometry/sgi_vndr/indigo, geometry/sgi_vndr/indy,
+	  keycodes/Makefile.am, symbols/sgi_vndr/.cvsignore,
+	  symbols/sgi_vndr/Makefile.am, symbols/sgi_vndr/jp,
+	  symbols/sony_vndr/.cvsignore, symbols/sony_vndr/Makefile.am,
+	  symbols/sony_vndr/us, symbols/sun_vndr/.cvsignore,
+	  symbols/sun_vndr/Makefile.am, symbols/sun_vndr/se,
+	  symbols/sun_vndr/us, symbols/sun_vndr/usb,
+	  symbols/xfree68_vndr/.cvsignore,
+	  symbols/xfree68_vndr/Makefile.am, symbols/xfree68_vndr/amiga,
+	  symbols/xfree68_vndr/ataritt, keycodes/digital_vndr/.cvsignore,
+	  keycodes/digital_vndr/Makefile.am, keycodes/digital_vndr/lk,
+	  keycodes/digital_vndr/pc, keycodes/sgi_vndr/.cvsignore,
+	  keycodes/sgi_vndr/Makefile.am, keycodes/sgi_vndr/indigo,
+	  keycodes/sgi_vndr/indy, keycodes/sgi_vndr/iris,
+	  keymap/Makefile.am, keymap/digital_vndr/.cvsignore,
+	  keymap/digital_vndr/Makefile.am, keymap/digital_vndr/us,
+	  keymap/sgi_vndr/.cvsignore, keymap/sgi_vndr/Makefile.am,
+	  keymap/sgi_vndr/be, keymap/sgi_vndr/bg, keymap/sgi_vndr/ca,
+	  keymap/sgi_vndr/ch, keymap/sgi_vndr/cz, keymap/sgi_vndr/de,
+	  keymap/sgi_vndr/dk, keymap/sgi_vndr/dvorak,
+	  keymap/sgi_vndr/en_US, keymap/sgi_vndr/es, keymap/sgi_vndr/fi,
+	  keymap/sgi_vndr/fr, keymap/sgi_vndr/gb, keymap/sgi_vndr/hu,
+	  keymap/sgi_vndr/it, keymap/sgi_vndr/jp, keymap/sgi_vndr/no,
+	  keymap/sgi_vndr/pl, keymap/sgi_vndr/pt, keymap/sgi_vndr/ru,
+	  keymap/sgi_vndr/se, keymap/sgi_vndr/sk, keymap/sgi_vndr/th,
+	  keymap/sgi_vndr/us, keymap/sun_vndr/.cvsignore,
+	  keymap/sun_vndr/Makefile.am, keymap/sun_vndr/de,
+	  keymap/sun_vndr/es, keymap/sun_vndr/fi, keymap/sun_vndr/fr,
+	  keymap/sun_vndr/no, keymap/sun_vndr/pl, keymap/sun_vndr/ru,
+	  keymap/sun_vndr/se, keymap/sun_vndr/uk, keymap/sun_vndr/us: Ivan
+	  found dots are not good for us
+
+2004-05-03 02:33  svu
+
+	* tests/: testLayouts.pl, testModels.pl, xkbTestFunc.pm: The perl
+	  code is a bit structured now
+
+2004-05-03 00:48  svu
+
+	* po/ru.po: Russian translation, up2date
+
+2004-05-03 00:48  svu
+
+	* po/xkbdesc.pot: new strings
+
+2004-05-03 00:38  svu
+
+	* rules/: base, base.xml.in: some fixes in rules, more tests pass
+	  ok
+
+2004-05-03 00:05  svu
+
+	* rules/base.xml.in, symbols/ch, symbols/mk, tests/testModels.pl:
+	  at least variants pass ok with tests
+
+2004-05-01 02:17  svu
+
+	* symbols/: Makefile.am, hu: Hungarian layout added, thanks to
+	  Soós
+
+2004-04-30 05:27  pascal
+
+	* rules/base, symbols/Makefile.am, symbols/jp, symbols/mn: Add
+	  Japanese and Mongolian layouts.
+
+2004-04-27 23:17  svu
+
+	* rules/base.xml.in: Canadian layout meta-info fixed
+
+2004-04-27 23:13  svu
+
+	* symbols/ge: fixed syntax typo
+
+2004-04-27 22:19  svu
+
+	* rules/base, rules/base.xml.in, symbols/Makefile.am, symbols/fr,
+	  symbols/fr-latin9: French layouts are now merged. Thanks to
+	  Guylhem for the positive answer
+
+2004-04-26 00:57  svu
+
+	* tests/: listCI2.xsl, testModels.pl: trying to test layouts as
+	  well
+
+2004-04-25 20:26  svu
+
+	* tests/: listCIs.xsl, testModels.pl: starting test scripts
+
+2004-04-25 00:37  svu
+
+	* symbols/us: fixing include
+
+2004-04-25 00:17  svu
+
+	* rules/base.xml.in, symbols/Makefile.am, symbols/us: us_intl is
+	  returned as alt-intl
+
+2004-04-24 20:29  svu
+
+	* symbols/Makefile.am: new layouts by Ivan should be included into
+	  Makefile.am
+
+2004-04-24 13:32  pascal
+
+	* symbols/ca: Remove 'pc' directory name from includes in Canadian
+	  keymap.
+
+2004-04-24 12:35  pascal
+
+	* rules/base, symbols/az, symbols/ca, symbols/group, symbols/vn:
+	  Add Azeri, Canadian and Vietnamese keymaps.
+
+2004-04-24 02:23  svu
+
+	* rules/base.xml.in, symbols/hr: Croatian US stuff appended
+
+2004-04-24 01:55  svu
+
+	* rules/base, rules/base.xml.in, symbols/Makefile.am, symbols/pl,
+	  symbols/pl2: second polish layout is merged
+
+2004-04-24 01:28  svu
+
+	* keymap/macintosh, keymap/sony, keymap/xfree86, keymap/xfree98,
+	  rules/base.lst, rules/base.xml.in, symbols/Makefile.am,
+	  symbols/ch, symbols/cz, symbols/cz_qwerty, symbols/ge,
+	  symbols/ge_la, symbols/ge_ru, symbols/il, symbols/il_phonetic,
+	  symbols/lt, symbols/mt, symbols/mt_us, symbols/ro, symbols/se_FI,
+	  symbols/se_NO, symbols/se_SE, symbols/sk, symbols/sk_qwerty,
+	  symbols/syr, symbols/syr_phonetic, symbols/th, symbols/th_pat,
+	  symbols/th_tis, symbols/us_intl: a lot of layouts cleaned up -
+	  but way way more to go
+
+2004-04-23 00:46  svu
+
+	* Makefile.am, configure.in, compiled/.cvsignore,
+	  compiled/Makefile.am, compiled/README: The 'compiled' directory
+	  is really necessary. Even if it is empty
+
+2004-04-22 00:39  svu
+
+	* po/af.po, po/az.po, po/bg.po, po/cs.po, po/da.po, po/fr.po,
+	  po/hu.po, po/nl.po, po/ru.po, po/sk.po, po/sq.po, po/sr.po,
+	  po/sv.po, po/tr.po, po/uk.po, po/xkbdesc.pot, po/zh_CN.po,
+	  rules/Makefile.am, symbols/Makefile.am, symbols/al, symbols/am,
+	  symbols/ar, symbols/be, symbols/ben, symbols/br, symbols/by,
+	  symbols/ch, symbols/cz, symbols/cz_qwerty, symbols/de,
+	  symbols/dk, symbols/dvorak, symbols/ee, symbols/el,
+	  symbols/en_US, symbols/es, symbols/fi, symbols/fo, symbols/fr,
+	  symbols/fr-latin9, symbols/gb, symbols/ge_la, symbols/hr,
+	  symbols/ie, symbols/il, symbols/is, symbols/it, symbols/la,
+	  symbols/latin, symbols/lt, symbols/lv, symbols/mk, symbols/ml,
+	  symbols/mt, symbols/mt_us, symbols/nl, symbols/no, symbols/ogham,
+	  symbols/pc, symbols/pl, symbols/pl2, symbols/pt, symbols/ro,
+	  symbols/ru, symbols/sapmi, symbols/se, symbols/se_FI,
+	  symbols/se_NO, symbols/se_SE, symbols/si, symbols/sk,
+	  symbols/sk_qwerty, symbols/sr, symbols/syr, symbols/syr_phonetic,
+	  symbols/th, symbols/tml, symbols/tr, symbols/ua, symbols/us,
+	  symbols/us_intl, symbols/uz, symbols/yu: adding Swiss layouts and
+	  removing references to pc/ from files
+
+2004-04-21 00:19  svu
+
+	* symbols/: Makefile.am, bs, srvr_ctrl: Bosninan layout was
+	  forgotten
+
+2004-04-19 23:57  svu
+
+	* symbols/: Makefile.am, altwin, compose, ctrl, group, inet,
+	  keypad, level3, lock: adding all-important option files
+
+2004-04-16 00:58  svu
+
+	* configure.in, xkbdesc.spec.in, rules/Makefile.am: now, the
+	  symlinks allow distributors to use their own names for the rules
+	  - though not really recommended, we have to be
+	  backward-compatible
+
+2004-04-15 00:33  svu
+
+	* COPYING, Makefile.am, xkbdesc.spec.in, po/af.po, po/az.po,
+	  po/bg.po, po/cs.po, po/da.po, po/fr.po, po/hu.po, po/nl.po,
+	  po/ru.po, po/sk.po, po/sq.po, po/sr.po, po/sv.po, po/tr.po,
+	  po/uk.po, po/xkbdesc.pot, po/zh_CN.po: COPYING added - MIT
+	  license (thanks to Keithp). Some minor fixes on infrastructure
+
+2004-04-12 00:13  svu
+
+	* .cvsignore, Makefile.am, autogen.sh, configure.in, rules/base,
+	  symbols/Makefile.am: First buildable version
+
+2004-04-11 23:03  svu
+
+	* configure.in, keycodes/Makefile.am, keymap/.cvsignore,
+	  keymap/Makefile.am, po/af.po, po/az.po, po/bg.po, po/cs.po,
+	  po/da.po, po/fr.po, po/hu.po, po/nl.po, po/ru.po, po/sk.po,
+	  po/sq.po, po/sr.po, po/sv.po, po/tr.po, po/uk.po, po/xkbdesc.pot,
+	  po/zh_CN.po, rules/.cvsignore, rules/Makefile.am,
+	  semantics/.cvsignore, semantics/Makefile.am, symbols/.cvsignore,
+	  types/.cvsignore, types/Makefile.am: more automake foo - but
+	  still far from building the whole thing
+
+2004-04-10 03:22  svu
+
+	* autogen_gnome.sh, keycodes/.cvsignore, keycodes/Makefile.am: more
+	  makefiles.am - but still long way to the first build
+
+2004-04-10 03:08  svu
+
+	* Makefile.am, README, README.config, README.enhancing,
+	  configure.in, xfree86.xml.in, xfree86_xkb_xml.spec.in, xkb.dtd,
+	  xkbdesc.spec.in, compat/.cvsignore, compat/Makefile.am,
+	  compat/README, compat/accessx, compat/basic, compat/complete,
+	  compat/default, compat/group_led, compat/iso9995, compat/japan,
+	  compat/keypad, compat/leds, compat/misc, compat/mousekeys,
+	  compat/norepeat, compat/pc, compat/pc98, compat/xfree86,
+	  compat/xtest, geometry/.cvsignore, geometry/Makefile.am,
+	  geometry/README, geometry/amiga, geometry/ataritt,
+	  geometry/chicony, geometry/dell, geometry/everex,
+	  geometry/fujitsu, geometry/hp, geometry/keytronic,
+	  geometry/kinesis, geometry/macintosh, geometry/microsoft,
+	  geometry/nec, geometry/northgate, geometry/pc, geometry/sony,
+	  geometry/sun, geometry/winbook, keycodes/README,
+	  keycodes/aliases, keycodes/amiga, keycodes/ataritt,
+	  keycodes/fujitsu, keycodes/hp, keycodes/ibm, keycodes/macintosh,
+	  keycodes/powerpcps2, keycodes/sony, keycodes/sun,
+	  keycodes/xfree86, keycodes/xfree98, keymap/README, keymap/amiga,
+	  keymap/ataritt, keymap/macintosh, keymap/sony, keymap/xfree86,
+	  keymap/xfree98, po/POTFILES.in, po/af.po, po/az.po, po/bg.po,
+	  po/cs.po, po/da.po, po/fr.po, po/hu.po, po/nl.po, po/ru.po,
+	  po/sk.po, po/sq.po, po/sr.po, po/sv.po, po/tr.po, po/uk.po,
+	  po/zh_CN.po, rules/README, rules/base, rules/base-it.lst,
+	  rules/base.lst, rules/base.xml.in, rules/sgi, rules/sgi.lst,
+	  rules/sun, rules/sun.lst, rules/xfree98, rules/xfree98.lst,
+	  rules/xkb.dtd, rules/xml2lst.pl, semantics/basic,
+	  semantics/complete, semantics/default, semantics/xtest,
+	  symbols/al, symbols/am, symbols/ar, symbols/be, symbols/ben,
+	  symbols/bg, symbols/br, symbols/by, symbols/cz,
+	  symbols/cz_qwerty, symbols/de, symbols/dev, symbols/dk,
+	  symbols/dvorak, symbols/dz, symbols/ee, symbols/el,
+	  symbols/en_US, symbols/es, symbols/fi, symbols/fo, symbols/fr,
+	  symbols/fr-latin9, symbols/gb, symbols/ge_la, symbols/ge_ru,
+	  symbols/guj, symbols/gur, symbols/hr, symbols/ie, symbols/il,
+	  symbols/il_phonetic, symbols/ir, symbols/is, symbols/it,
+	  symbols/iu, symbols/kan, symbols/la, symbols/latin, symbols/lo,
+	  symbols/lt, symbols/lv, symbols/mk, symbols/ml, symbols/mm,
+	  symbols/mt, symbols/mt_us, symbols/nl, symbols/no, symbols/ogham,
+	  symbols/ori, symbols/pc, symbols/pl, symbols/pl2, symbols/pt,
+	  symbols/ro, symbols/ru, symbols/sapmi, symbols/se, symbols/se_FI,
+	  symbols/se_NO, symbols/se_SE, symbols/si, symbols/sk,
+	  symbols/sk_qwerty, symbols/sr, symbols/syr, symbols/syr_phonetic,
+	  symbols/tel, symbols/th, symbols/th_pat, symbols/th_tis,
+	  symbols/tj, symbols/tml, symbols/tr, symbols/ua, symbols/us,
+	  symbols/us_intl, symbols/uz, symbols/yu, types/README,
+	  types/basic, types/cancel, types/caps, types/complete,
+	  types/default, types/extra, types/iso9995, types/mousekeys,
+	  types/numpad, types/pc: first feed-in of the layouts. The
+	  revolution is coming
+
+2004-04-04 02:40  svu
+
+	* configure.in, po/az.po: Azerbaijani translation, thanks to Metin
+	  Amiroff
+
+2004-04-04 01:14  svu
+
+	* po/ru.po: Russian translation of the Syriac phonetic
+
+2004-04-04 01:12  svu
+
+	* xfree86.xml.in: Syriac phonetic was not there
+
+2004-03-19 21:37  svu
+
+	* configure.in: some more translations
+
+2004-03-19 21:37  svu
+
+	* po/hu.po: Hungarian one
+
+2004-03-19 21:02  svu
+
+	* po/: af.po, bg.po, cs.po, da.po, fr.po, nl.po, ru.po, sk.po,
+	  sq.po, sr.po, sv.po, tr.po, uk.po, zh_CN.po: three new
+	  translations
+
+2004-01-20 10:51  svu
+
+	* po/ru.po: corrected tibetian language translation
+
+2004-01-19 14:41  svu
+
+	* po/ru.po: updated Russian translation
+
+2004-01-19 14:41  svu
+
+	* xfree86.xml.in: new items from Ivan
+
+2004-01-19 14:39  svu
+
+	* xslt/xfree86.xsl: bugfix
+
+2004-01-09 14:44  svu
+
+	* po/ru.po: up2date
+
+2004-01-09 14:43  svu
+
+	* xfree86.xml.in: patch from Ivan - new items
+
+2004-01-07 09:32  svu
+
+	* configure.in, po/fr.po: French translation, thanks to Michel
+	  Robitaille
+
+2004-01-06 16:20  svu
+
+	* xfree86.xml.in, po/ru.po: updates from Ivan
+
+2004-01-03 14:43  svu
+
+	* po/nl.po: new version, thanks to Elros
+
+2003-12-18 22:43  svu
+
+	* .cvsignore, po/.cvsignore: little cleanup on messages
+
+2003-12-18 22:42  svu
+
+	* Makefile.am, configure.in: little things for the latest intltool
+
+2003-12-18 22:39  svu
+
+	* po/sk.po: Slovak translation, thanks to Zdenko Podobný
+
+2003-12-18 22:38  svu
+
+	* po/da.po: Danish translation, thanks to Ole Laursen
+
+2003-12-18 22:34  svu
+
+	* xfree86.xml.in: One more layout, one more variant, updates from
+	  Ivan
+
+2003-12-05 11:37  svu
+
+	* xslt/xfree86.xsl: helper xslt - reduces the resulting file
+
+2003-12-05 10:39  svu
+
+	* configure.in, po/tr.po: Turkish translation added, thanks to
+	  Nilgün Belma Bugüner
+
+2003-11-30 02:11  svu
+
+	* configure.in, po/sr.po: Serbian translation added, thanks to
+	  Danilo Segan
+
+2003-11-29 04:06  svu
+
+	* configure.in, po/zh_CN.po: Chinese simplified translation, thanks
+	  to Funda Wang
+
+2003-11-27 22:57  svu
+
+	* configure.in, po/nl.po: NL translation. Thanks to Elros Cyriatan
+
+2003-11-27 21:19  svu
+
+	* configure.in: added cs translation
+
+2003-11-27 21:15  svu
+
+	* po/cs.po: First non-cyrillic translation. Thanks to Michal
+	  Bukovjan
+
+2003-11-25 23:52  svu
+
+	* Makefile.am, NEWS, autogen_gnome.sh, configure.in,
+	  xfree86.xml.in, po/.cvsignore, po/Makevars, po/POTFILES.in,
+	  po/bg.po, po/ru.po, po/uk.po: Now the project should be buildable
+	  and translatable - but please no translations till the English
+	  version is approved
+
+2003-11-25 16:35  svu
+
+	* .cvsignore, AUTHORS, Makefile.am, autogen.sh, configure.in,
+	  xfree86.xml.in, xfree86_xkb_xml.spec.in, xkb.dtd: first batch of
+	  files - but no translation yet
+
+2003-11-24 23:32  svu
+
+	* README: first file in

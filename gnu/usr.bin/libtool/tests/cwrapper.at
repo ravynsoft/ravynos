@@ -1,0 +1,263 @@
+# cwrapper.at -- test cwrapper compliance with standards -*- Autotest -*-
+
+#   Copyright (C) 2009-2019, 2021-2022 Free Software Foundation, Inc.
+#   Written by Charles Wilson, 2009
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([cwrapper for uninstalled executables])
+AT_KEYWORDS([libtool])
+
+# make sure existing libtool is configured for shared libraries
+AT_CHECK([$LIBTOOL --features | $GREP 'disable shared libraries' && exit 77],
+	 [1], [ignore])
+
+AT_DATA([trivial.c],
+[[
+int main (void)
+{
+  return 0;
+}
+]])
+AT_DATA([liba.c],
+[[int liba_func1 (int arg)
+{
+  return arg + 1;
+}
+]])
+AT_DATA([usea.c],
+[[extern int liba_func1 (int arg);
+int main (void)
+{
+  int a = 2;
+  int b = liba_func1 (a);
+  if (b == 3) return 0;
+  return 1;
+}
+]])
+
+orig_CFLAGS=$CFLAGS
+orig_LIBTOOL=$LIBTOOL
+for restrictive_flags in '-Wall -Werror' '-std=c89 -Wall -Werror' '-std=c99 -Wall -Werror'; do
+  CFLAGS="$orig_CFLAGS $restrictive_flags"
+  $SED "s/LTCFLAGS=.*/&' $restrictive_flags'/" < "$orig_LIBTOOL" > ./libtool
+  chmod +x libtool
+  LIBTOOL=./libtool
+
+  # Make sure $restrictive_flags do not cause a failure
+  # themselves (e.g. because a non-gcc compiler doesn't
+  # understand them).  Tru64 cc only fails when linking.
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS trivial.c || continue
+
+  AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c liba.c],
+           [], [ignore], [ignore])
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -version-info=0.0.0 -no-undefined -o liba.la -rpath /foo liba.lo],
+           [], [ignore], [ignore])
+  AT_CHECK([test -f liba.la])
+
+  AT_CHECK([$CC $CPPFLAGS $CFLAGS -c usea.c],
+           [], [ignore], [ignore])
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o usea$EXEEXT usea.$OBJEXT liba.la],
+           [], [ignore], [ignore])
+  LT_AT_EXEC_CHECK([./usea], [0], [ignore], [ignore], [])
+done
+
+
+# Test run-time activation of wrapper debugging.
+# This is not part of the loop above, because we
+# need to check, not ignore, the output.
+CFLAGS=$orig_CFLAGS
+LIBTOOL=$orig_LIBTOOL
+
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c liba.c],
+         [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -no-undefined -o liba.la -rpath /foo liba.lo],
+         [], [ignore], [ignore])
+AT_CHECK([test -f liba.la])
+
+AT_CHECK([$CC $CPPFLAGS $CFLAGS -c usea.c],
+         [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o usea$EXEEXT usea.$OBJEXT liba.la],
+         [], [ignore], [ignore])
+LT_AT_EXEC_CHECK([./usea], [0], [ignore], [stderr], [--lt-debug])
+LT_AT_UNIFY_NL([stderr])
+AT_CHECK([$GREP 'libtool wrapper' stderr], [0], [ignore], [ignore])
+
+
+# Test compile-time activation of wrapper debugging.
+# We structure this test as a loop, so that we can 'break' out of it
+# if necessary -- even though the loop by design executes only once.
+for debugwrapper_flags in '-DLT_DEBUGWRAPPER'; do
+  CFLAGS="$orig_CFLAGS $debugwrapper_flags"
+  $SED -e "s/LTCFLAGS=.*/&' $debugwrapper_flags'/" \
+       -e "s/^lt_option_debug=/lt_option_debug=1/" \
+    < "$orig_LIBTOOL" > ./libtool
+  LIBTOOL=./libtool
+
+  # Make sure $debugwrapper_flags do not cause a failure
+  # themselves (e.g. because a non-gcc compiler doesn't
+  # understand them).  Tru64 cc only fails when linking.
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS trivial.c || continue
+
+  AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c liba.c],
+           [], [ignore], [ignore])
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -no-undefined -o liba.la -rpath /foo liba.lo],
+           [], [ignore], [ignore])
+  AT_CHECK([test -f liba.la])
+
+  AT_CHECK([$CC $CPPFLAGS $CFLAGS -c usea.c],
+           [], [ignore], [ignore])
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o usea$EXEEXT usea.$OBJEXT liba.la],
+           [], [ignore], [ignore])
+  LT_AT_EXEC_CHECK([./usea], [0], [ignore], [stderr], [])
+  LT_AT_UNIFY_NL([stderr])
+  AT_CHECK([$GREP 'libtool wrapper' stderr], [0], [ignore], [ignore])
+done
+
+
+AT_CLEANUP
+
+
+AT_SETUP([cwrapper string length])
+
+eval "`$LIBTOOL --config | $EGREP '^(objdir)='`"
+
+AT_DATA([liba.c],
+[[int liba_func1 (int arg)
+{
+  return arg + 1;
+}
+]])
+AT_DATA([usea.c],
+[[extern int liba_func1 (int arg);
+int main (void)
+{
+  int a = 2;
+  int b = liba_func1 (a);
+  if (b == 3) return 0;
+  return 1;
+}
+]])
+
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c liba.c],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -no-undefined ]dnl
+	 [-o liba.la -rpath /foo liba.lo],
+	 [], [ignore], [ignore])
+AT_CHECK([$CC $CPPFLAGS $CFLAGS -c usea.c],
+	 [], [ignore], [ignore])
+
+
+# Make sure PATH is at least 250 chars, which should force line breaks
+# in lt-usea.c.
+
+dirpath=
+save_IFS=$IFS
+IFS=$PATH_SEPARATOR
+for dirpath in $PATH; do
+  IFS=$save_IFS
+  break
+done
+IFS=$save_IFS
+
+until $ECHO "PATH=$PATH" | $GREP 'PATH=.\{250\}'; do
+  PATH=$PATH$PATH_SEPARATOR$dirpath
+done
+export PATH
+
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -no-fast-install ]dnl
+	 [-o usea$EXEEXT usea.$OBJEXT liba.la],
+	 [], [ignore], [ignore])
+
+# Skip if no cwrapper is generated.
+AT_CHECK([test -f "$objdir/lt-usea.c" || exit 77])
+
+# Try to make sure the test is relevant.
+AT_CHECK([$GREP ' *fputs' $objdir/lt-usea.c > /dev/null])
+# Check for no overly long fputs.
+AT_CHECK([$GREP ' *fputs.\{250\}' $objdir/lt-usea.c], [1])
+
+
+AT_CLEANUP
+
+
+AT_SETUP([cwrapper and installed shared libraries])
+AT_KEYWORDS([libtool])
+
+# make sure existing libtool is configured for shared libraries
+AT_CHECK([$LIBTOOL --features | $GREP 'enable shared libraries' || exit 77],
+	 [], [ignore])
+
+LDFLAGS="$LDFLAGS -no-undefined"
+
+inst=`pwd`/inst
+libdir=$inst/lib
+bindir=$inst/bin
+mkdir $inst $libdir $bindir
+
+# Build the library in a separate directory to avoid the special case
+# of loading from the current directory.
+
+mkdir foo
+cd foo
+# build and install "old" library version
+AT_DATA([a.c], [[
+int liba_ver (void) { return 1; }
+]])
+AT_CHECK([$LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c a.c],
+         [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -version-info=0.0.0 -o liba.la -rpath $libdir a.lo],
+         [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install $lt_INSTALL liba.la $libdir],
+         [], [ignore], [ignore])
+
+# build a new library version
+AT_DATA([a.c], [[
+int liba_ver (void) { return 2; }
+]])
+AT_CHECK([$LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c a.c],
+         [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -version-info=0.0.0 -o liba.la -rpath $libdir a.lo],
+         [], [ignore], [ignore])
+
+cd ..
+
+# build and run test application
+AT_DATA([m.c], [[
+extern int liba_ver (void);
+int main (void)
+{
+  int r = (liba_ver () == 2) ? 0 : 1;
+  return r;
+}
+]])
+
+AT_CHECK([$CC $CPPFLAGS $CFLAGS -c m.c], [], [ignore], [ignore])
+
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m1$EXEEXT m.$OBJEXT foo/liba.la],
+         [], [ignore], [ignore])
+LT_AT_EXEC_CHECK([./m1], [0], [ignore], [ignore], [])
+
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m2$EXEEXT m.$OBJEXT foo/liba.la -L$inst/lib],
+         [], [ignore], [ignore])
+LT_AT_EXEC_CHECK([./m2], [0], [ignore], [ignore], [])
+
+
+AT_CLEANUP

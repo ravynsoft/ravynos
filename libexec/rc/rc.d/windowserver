@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+
+# PROVIDE: windowserver
+# REQUIRE: LOGIN 
+# KEYWORD: nojail 
+
+. /etc/rc.subr
+
+name="windowserver"
+desc="Inform WindowServer that the system has booted to login"
+start_cmd="windowserver_start"
+stop_cmd="windowserver_stop"
+
+windowserver_start()
+{
+        touch /var/run/windowserver
+}
+
+windowserver_stop()
+{
+	echo "Can't stop, won't stop!"
+}
+
+load_rc_config $name
+run_rc_command "$1"

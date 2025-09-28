@@ -1,0 +1,24 @@
+## vim:ft=zsh
+#
+# A function for calling the branch-format hook
+#
+# Return the value to use in REPLY
+#
+# Parameters:
+readonly branch=$1
+readonly revision=$2
+#
+
+[[ -n $rrn ]] || return 1
+local -A hook_com
+local branchformat
+
+zstyle -s ":vcs_info:${vcs}:${usercontext}:${rrn}" branchformat branchformat || branchformat="%b:%r"
+hook_com=( branch "${branch}" revision "${revision}" )
+if VCS_INFO_hook 'set-branch-format' "${branchformat}"; then
+    zformat -f REPLY "${branchformat}" "b:${hook_com[branch]}" "r:${hook_com[revision]}"
+else
+    REPLY=${hook_com[branch-replace]}
+fi
+hook_com=()
+return 0

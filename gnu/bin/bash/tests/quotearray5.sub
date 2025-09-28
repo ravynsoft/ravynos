@@ -1,0 +1,124 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# a set of tests for unset to try to ensure that subscripts are only expanded
+# once. Derived from tests submitted by konsolebox@gmail.com
+
+declare -A a
+key='$(echo foo)'
+
+# Here the tokens are valid array references and pass that fact to unset
+# post-expansion
+
+# This solves the surprise expansion issues.
+
+a[$key]=1
+unset -v a[$key]		# this performs normal word splitting
+unset -v a["$key"]		# prevent word splitting
+declare -p a # Displays no element
+
+a['$key']=2
+unset -v a['$key']
+declare -p a # Displays no element
+
+a["foo"]=3
+unset -v a["foo"]
+declare -p a # Displays no element
+
+echo -----
+
+# Here the tokens are "strings".  They expand and keep the
+# original behavior and allows existing scripts to not break.
+# It also allows nref or iref references to be transparently
+# referenced in it.
+
+# the quotes prevent the arguments from being recognized as valid array
+# references before word expansion. since unset doesn't know to treat
+# them specially, they're treated as in previous versions and expansion
+# is performed as part of evaluating the subscript
+
+a[$key]=1
+declare -p a
+unset 'a[$key]' # Transforms to a[$key] after expansion
+declare -p a # Displays no element
+
+a['$key']=2
+unset "a['\$key']" # Transforms to a['$key'] after expansion
+declare -p a # Displays no element
+
+a["foo"]=3
+unset 'a["foo"]' # Transforms to a["foo"] after expansion
+declare -p a # Displays no element
+
+echo -----
+
+# The update also keeps compatibility with already existing behavior of
+# unset when assoc_expand_once is enabled, but only for quoted tokens.
+
+a=()
+shopt -s assoc_expand_once
+
+a[$key]=1
+unset "a[$key]"
+declare -p a # Displays no element
+
+a['$key']=2
+unset "a[\$key]"
+declare -p a # Displays no element
+
+a["foo"]=3
+unset "a[foo]"
+declare -p a # Displays no element
+
+echo ----------
+
+# For unsetting '@' and all elements:
+
+key=@
+
+declare -A a=(@ v0 . v1)
+unset a[$key]
+declare -p a # Displays 'declare -A a=([.]="v1" )'
+
+declare -A a=(@ v0 . v1)
+unset a[@]
+declare -p a # same behavior
+
+echo -----
+
+# these are quoted strings and unset doesn't treat them specially
+
+unset a
+shopt -u assoc_expand_once
+
+declare -A a=(@ v0 . v1)
+unset 'a[$key]'
+declare -p a # Displays 'declare -A a=([.]="v1" )'
+
+declare -A a=(@ v0 . v1)
+unset 'a[@]'
+declare -p a # same behavior
+
+echo -----
+
+unset a
+shopt -s assoc_expand_once
+
+declare -A a=(@ v0 . v1)
+unset "a[$key]"			# $key is expanded
+declare -p a # Displays 'declare -A a=([.]="v1" )'
+
+declare -A a=(@ v0 . v1)
+unset 'a[@]'
+declare -p a # same behavior

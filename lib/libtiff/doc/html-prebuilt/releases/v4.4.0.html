@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Changes in TIFF v4.4.0 &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Changes in TIFF v4.3.0" href="v4.3.0.html" />
+    <link rel="prev" title="Changes in TIFF v4.5.0" href="v4.5.0.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="v4.3.0.html" title="Changes in TIFF v4.3.0"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="v4.5.0.html" title="Changes in TIFF v4.5.0"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v4.4.0</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="changes-in-tiff-v4-4-0">
+<h1>Changes in TIFF v4.4.0<a class="headerlink" href="#changes-in-tiff-v4-4-0" title="Permalink to this heading">¶</a></h1>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">References</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Current Version</p></td>
+<td><p>v4.4.0 (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/tags/v4.4.0">tag v4.4.0</a>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Previous Version</p></td>
+<td><p><a class="reference internal" href="v4.3.0.html"><span class="doc">v4.3.0</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Master Download Site</p></td>
+<td><p><a class="reference external" href="https://download.osgeo.org/libtiff/">https://download.osgeo.org/libtiff/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Master HTTP Site #1</p></td>
+<td><p><a class="reference external" href="http://www.simplesystems.org/libtiff/">http://www.simplesystems.org/libtiff/</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Master HTTP Site #2</p></td>
+<td><p><a class="reference external" href="https://libtiff.gitlab.io/libtiff/">https://libtiff.gitlab.io/libtiff/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Master HTTP Site #3</p></td>
+<td><p><a class="reference external" href="http://libtiff.maptools.org/">http://libtiff.maptools.org/</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>This document provides a summary of significant changes made to the
+software between the <em>previous</em> and <em>current</em> versions (see
+above). A fully-detailed change summary is provided by the <code class="file docutils literal notranslate"><span class="pre">ChangeLog</span></code> file
+included in the release package and by the Git commit history:</p>
+<section id="major-changes">
+<h2>Major changes<a class="headerlink" href="#major-changes" title="Permalink to this heading">¶</a></h2>
+<p>None</p>
+</section>
+<section id="software-configuration-changes">
+<h2>Software configuration changes<a class="headerlink" href="#software-configuration-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Handle absolute paths in pkg-config file (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/333">issue #333</a>)</p></li>
+<li><p>Correct fix for the pkgconf file relative paths.</p></li>
+<li><p>cmake: allow running the tests with a read-only source directory.</p></li>
+<li><p>cmake: Fix <code class="docutils literal notranslate"><span class="pre">STRIPCHOP_DEFAULT</span></code> value in CMake builds.</p></li>
+<li><p>build: Fix static library imports in mingw related to LERC</p></li>
+<li><p>Fix version in <code class="file docutils literal notranslate"><span class="pre">libtiff-4.pc.in</span></code>, and CMake build: Add requirements to pc file</p></li>
+<li><p>cmake: Fix build with CMake 3.10.</p></li>
+<li><p>cmake: Export tiff targets.</p></li>
+<li><p>Make <code class="docutils literal notranslate"><span class="pre">LERC_SUPPORT</span></code> conditional on <code class="docutils literal notranslate"><span class="pre">ZLIB_SUPPORT</span></code></p></li>
+</ul>
+</section>
+<section id="library-changes">
+<h2>Library changes<a class="headerlink" href="#library-changes" title="Permalink to this heading">¶</a></h2>
+<p>New/improved functionalities:</p>
+<ul class="simple">
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFIsBigTiff()</span></code> function added.</p></li>
+<li><p>Functions <a class="reference internal" href="../functions/TIFFFieldQuery.html#c.TIFFFieldSetGetSize" title="TIFFFieldSetGetSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFieldSetGetSize()</span></code></a> and <code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFieldSetGetCountSize()</span></code> added.</p></li>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">LZWDecode()</span></code>: major speed improvements (~30% faster)</p></li>
+<li><p>Predictor 2 (horizontal differenciation): support 64-bit</p></li>
+<li><p>Support libjpeg 9d</p></li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li><p>Remove incorrect assert (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/329">issue #329</a>)</p></li>
+<li><p>avoid hang in <a class="reference internal" href="../functions/TIFFWriteDirectory.html#c.TIFFRewriteDirectory" title="TIFFRewriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRewriteDirectory()</span></code></a> if a classic file &gt; 4 GB is attempted to be created</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_jbig.c</span></code>: fix crash when reading a file with multiple IFD in memory-mapped mode and when bit reversal is needed (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/385">issue #385</a>)</p></li>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFetchNormalTag()</span></code>: avoid calling <code class="xref c c-func docutils literal notranslate"><span class="pre">memcpy()</span></code> with a null source pointer and size of zero (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/383">issue #383</a>)</p></li>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectoryTagData()</span></code>: turn assertion on data length into a runtime check</p></li>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFetchStripThing()</span></code>: avoid calling <code class="xref c c-func docutils literal notranslate"><span class="pre">memcpy()</span></code> with a null source pointer and size of zero (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/362">issue #362</a>)</p></li>
+<li><p><a class="reference internal" href="../functions/TIFFReadDirectory.html#c.TIFFReadDirectory" title="TIFFReadDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadDirectory()</span></code></a>: avoid calling <code class="xref c c-func docutils literal notranslate"><span class="pre">memcpy()</span></code> with a null source pointer and size of zero (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/362">issue #362</a>)</p></li>
+<li><p><a class="reference internal" href="../functions/TIFFcolor.html#c.TIFFYCbCrToRGBInit" title="TIFFYCbCrToRGBInit"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFYCbCrToRGBInit()</span></code></a>: avoid Integer-overflow</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TIFFGetField(TIFFTAG_STRIPBYTECOUNTS/TIFFTAG_STRIPOFFSETS)</span></code>: return error if returned pointer is NULL (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/342">issue #342</a>)</p></li>
+<li><p>OJPEG: avoid assertion when using <a class="reference internal" href="../functions/TIFFReadScanline.html#c.TIFFReadScanline" title="TIFFReadScanline"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadScanline()</span></code></a> (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/337">issue #337</a>)</p></li>
+<li><p><a class="reference internal" href="../functions/TIFFReadDirectory.html#c.TIFFReadDirectory" title="TIFFReadDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadDirectory()</span></code></a>: fix OJPEG hack (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/319">issue #319</a>)</p></li>
+<li><p>LZW codec: fix support for strips/tiles &gt; 2 GB on Windows</p></li>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFAppendToStrip()</span></code>: fix rewrite-in-place logic (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/309">issue #309</a>)</p></li>
+<li><p>Fix <a class="reference internal" href="../functions/TIFFWriteDirectory.html#c.TIFFRewriteDirectory" title="TIFFRewriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRewriteDirectory()</span></code></a> discarding directories.</p></li>
+<li><p><a class="reference internal" href="../functions/TIFFCustomDirectory.html#c.TIFFReadCustomDirectory" title="TIFFReadCustomDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadCustomDirectory()</span></code></a>: avoid crash when reading SubjectDistance tag on a non EXIF directory (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/316">issue #316</a>)</p></li>
+<li><p>Fix Segmentation fault printing GPS directory if <code class="docutils literal notranslate"><span class="pre">Altitude</span></code> tag is present</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_jpeg.c</span></code>: do not emit progressive scans with mozjpeg. (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/266">issue #266</a>)</p></li>
+<li><p><a class="reference internal" href="../functions/_TIFFRewriteField.html#c._TIFFRewriteField" title="_TIFFRewriteField"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFRewriteField()</span></code></a>: fix when writing a IFD with a single tile that is a sparse one, on big endian hosts</p></li>
+<li><p>Fix all remaining uses of legacy Deflate compression id and warn on use.</p></li>
+</ul>
+</section>
+<section id="tools-changes">
+<h2>Tools changes<a class="headerlink" href="#tools-changes" title="Permalink to this heading">¶</a></h2>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li><p><strong class="program">tiffcrop</strong>: Fix issue <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/330">issue #330</a> and some more from 320 to 349.</p></li>
+<li><p><strong class="program">tiffcrop</strong>: fix issue <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/395">issue #395</a>: generation of strange section images.</p></li>
+<li><p><strong class="program">tiffcrop</strong>: fix issue <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/380">issue #380</a> and <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/382">issue #382</a> heap buffer overflow in extractImageSection</p></li>
+<li><p><strong class="program">tiffcrop</strong>: fix FPE (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/393">issue #393</a>)</p></li>
+<li><p><strong class="program">tiffcrop</strong>: buffsize check  formula in <code class="xref c c-func docutils literal notranslate"><span class="pre">loadImage()</span></code> amended  (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/273">issue #273</a>, <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/275">issue #275</a>)</p></li>
+<li><p><strong class="program">tiffcrop.c</strong>: Fix issue <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/352">issue #352</a> heap-buffer-overflow by correcting <code class="xref c c-type docutils literal notranslate"><span class="pre">uint32_t</span></code> underflow.</p></li>
+<li><p><strong class="program">tiff2pdf</strong>: handle 8-bit palette colormap.</p></li>
+<li><p><strong class="program">tiffcp</strong>: avoid buffer overflow in “mode” string (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/400">issue #400</a>)</p></li>
+<li><p><strong class="program">tiffcp</strong>: Fix incomprehensible setting of orientation tag (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/29">issue #29</a>)</p></li>
+<li><p><strong class="program">tiffcp</strong>: do not try to fetch compressor-specific tags when not appropriate (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/396">issue #396</a>)</p></li>
+<li><p><strong class="program">tiffcp</strong>: fix heap buffer overflow (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/278">issue #278</a>)</p></li>
+<li><p><strong class="program">tiff2ps</strong>: In <code class="xref c c-func docutils literal notranslate"><span class="pre">limitMalloc()</span></code> check for negative size (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/284">issue #284</a>)</p></li>
+<li><p><strong class="program">tiffinfo</strong>: add a <code class="docutils literal notranslate"><span class="pre">-M</span></code> switch to define the maximum heap allocation, and default it to 256 MiB (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/287">issue #287</a>, <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/290">issue #290</a>)</p></li>
+<li><p><strong class="program">tiffinfo</strong>: limit more memory allocations using <code class="docutils literal notranslate"><span class="pre">-M</span></code> switch (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/288">issue #288</a>)</p></li>
+<li><p><strong class="program">tiffset</strong>: fix global-buffer-overflow for ASCII tags where count is required (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/355">issue #355</a>)</p></li>
+<li><p><strong class="program">raw2tiff</strong>: check that band number if not zero to avoid floating point exception(fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/338">issue #338</a>)</p></li>
+<li><p><strong class="program">tiffinfo</strong>/<strong class="program">tiffdump</strong>: improve output for GDAL tags.</p></li>
+</ul>
+</section>
+<section id="contributed-software-changes">
+<h2>Contributed software changes<a class="headerlink" href="#contributed-software-changes" title="Permalink to this heading">¶</a></h2>
+<p>None</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Changes in TIFF v4.4.0</a><ul>
+<li><a class="reference internal" href="#major-changes">Major changes</a></li>
+<li><a class="reference internal" href="#software-configuration-changes">Software configuration changes</a></li>
+<li><a class="reference internal" href="#library-changes">Library changes</a></li>
+<li><a class="reference internal" href="#tools-changes">Tools changes</a></li>
+<li><a class="reference internal" href="#contributed-software-changes">Contributed software changes</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="v4.5.0.html"
+                          title="previous chapter">Changes in TIFF v4.5.0</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="v4.3.0.html"
+                          title="next chapter">Changes in TIFF v4.3.0</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/releases/v4.4.0.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="v4.3.0.html" title="Changes in TIFF v4.3.0"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="v4.5.0.html" title="Changes in TIFF v4.5.0"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v4.4.0</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

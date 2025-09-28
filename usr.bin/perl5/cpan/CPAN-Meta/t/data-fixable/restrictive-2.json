@@ -1,0 +1,89 @@
+{
+   "resources" : {
+      "license" : [
+         "http://dev.perl.org/licenses/"
+      ],
+      "repository" : {
+        "url" : "svn://repo.example.com/foo-bar#fakeanchor",
+        "web" : "http://www.example.com"
+      }
+   },
+   "generated_by" : "Module::Build version 0.36",
+   "meta-spec" : {
+      "version" : "2",
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec"
+   },
+   "version" : "0.36",
+   "name" : "Module-Build",
+   "dynamic_config" : 1,
+   "author" : [
+      "Ken Williams <kwilliams@cpan.org>",
+      "Module-Build List <module-build@perl.org>"
+   ],
+   "release_status" : "stable",
+   "license" : [
+      "restrictive"
+   ],
+   "description" : "Module::Build is a system for building, testing, and installing Perl modules.  It is meant to be an alternative to ExtUtils::MakeMaker... blah blah blah",
+   "keywords" : [
+      "toolchain",
+      "cpan",
+      "dual-life"
+   ],
+   "prereqs" : {
+      "runtime" : {
+         "requires" : {
+            "File::Copy" : "0",
+            "IO::File" : "0",
+            "Data::Dumper" : "0",
+            "File::Spec" : "0",
+            "Config" : "0",
+            "ExtUtils::Install" : "0",
+            "perl" : "5.006",
+            "File::Compare" : "0",
+            "File::Find" : "0",
+            "File::Path" : "0",
+            "File::Basename" : "0",
+            "Cwd" : "0"
+         },
+         "recommends" : {
+            "YAML" : "0.35",
+            "ExtUtils::ParseXS" : "2.02",
+            "Pod::Text" : "0",
+            "ExtUtils::Install" : "0.3",
+            "Archive::Tar" : "1.00"
+         }
+      },
+      "build" : {
+         "requires" : {
+            "Build::Requires": "1.1",
+            "Test::More" : "0"
+         }
+      },
+      "test" : {
+         "requires" : {
+            "Test::More" : "0.88",
+            "Test::Requires" : "1.2"
+         }
+      }
+   },
+   "optional_features" : {
+      "domination" : {
+         "prereqs" : {
+            "develop" : {
+               "requires" : {
+                  "Genius::Evil" : "1.234"
+               }
+            },
+            "runtime" : {
+               "requires" : {
+                  "Machine::Weather" : "2.0"
+               }
+            }
+         },
+         "description" : "Take over the world"
+      }
+   },
+   "abstract" : "Build and install Perl modules",
+   "x_whatever" : "Custom key"
+}

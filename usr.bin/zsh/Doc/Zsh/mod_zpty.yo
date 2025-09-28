@@ -1,0 +1,93 @@
+COMMENT(!MOD!zsh/zpty
+A builtin for starting a command in a pseudo-terminal.
+!MOD!)
+The tt(zsh/zpty) module offers one builtin:
+
+startitem()
+findex(zpty)
+item(tt(zpty) [ tt(-e) ] [ tt(-b) ] var(name) [ var(arg) ... ])(
+The arguments following var(name) are concatenated with spaces between,
+then executed as a command, as if passed to the tt(eval) builtin.  The
+command runs under a newly assigned pseudo-terminal; this is useful for
+running commands non-interactively which expect an interactive
+environment.  The var(name) is not part of the command, but is used to
+refer to this command in later calls to tt(zpty).
+
+With the tt(-e) option, the pseudo-terminal is set up so that input
+characters are echoed.
+
+With the tt(-b) option, input to and output from the pseudo-terminal are
+made non-blocking.
+
+The shell parameter tt(REPLY) is set to the file descriptor assigned to
+the master side of the pseudo-terminal.  This allows the terminal to be
+monitored with ZLE descriptor handlers (see ifzman(zmanref(zshzle))\
+ifnzman(noderef(Zle Builtins))) or manipulated with tt(sysread) and
+tt(syswrite) (see ifzman(THE ZSH/SYSTEM MODULE in zmanref(zshmodules))\
+ifnzman(noderef(The zsh/system Module))).  em(Warning): Use of tt(sysread)
+and tt(syswrite) is em(not) recommended; use tt(zpty -r) and tt(zpty -w)
+unless you know exactly what you are doing.
+)
+item(tt(zpty) tt(-d) [ var(name) ... ])(
+The second form, with the tt(-d) option, is used to delete commands
+previously started, by supplying a list of their var(name)s.  If no
+var(name) is given, all commands are deleted.  Deleting a command causes
+the HUP signal to be sent to the corresponding process.
+)
+item(tt(zpty) tt(-w) [ tt(-n) ] var(name) [ var(string) ... ])(
+The tt(-w) option can be used to send the to command var(name) the given
+var(string)s as input (separated by spaces).  If the tt(-n) option is
+em(not) given, a newline is added at the end.
+
+If no var(string) is provided, the standard input is copied to the
+pseudo-terminal; this may stop before copying the full input if the
+pseudo-terminal is non-blocking.  The exact input is always copied:
+the tt(-n) option is not applied.
+
+Note that the command under the pseudo-terminal sees this input as if it
+were typed, so beware when sending special tty driver characters such as
+word-erase, line-kill, and end-of-file.
+)
+item(tt(zpty) tt(-r) [ tt(-mt) ] var(name) [ var(param) [ var(pattern) ] ])(
+The tt(-r) option can be used to read the output of the command var(name).
+With only a var(name) argument, the output read is copied to the standard
+output.  Unless the pseudo-terminal is non-blocking, copying continues
+until the command under the pseudo-terminal exits; when non-blocking, only
+as much output as is immediately available is copied.  The return status is
+zero if any output is copied.
+
+When also given a var(param) argument, at most one line is read and stored
+in the parameter named var(param).  Less than a full line may be read if
+the pseudo-terminal is non-blocking.  The return status is zero if at least
+one character is stored in var(param).
+
+If a var(pattern) is given as well, output is read until the whole string
+read matches the var(pattern), even in the non-blocking case.  The return
+status is zero if the string read matches the pattern, or if the command
+has exited but at least one character could still be read.  If the option
+tt(-m) is present, the return status is zero only if the pattern matches.
+As of this writing, a maximum of one megabyte of output can be consumed
+this way; if a full megabyte is read without matching the pattern, the
+return status is non-zero.
+
+In all cases, the return status is non-zero if nothing could be read, and
+is tt(2) if this is because the command has finished.
+
+If the tt(-r) option is combined with the tt(-t) option, tt(zpty) tests
+whether output is available before trying to read.  If no output is
+available, tt(zpty) immediately returns the status tt(1).  When used
+with a var(pattern), the behaviour on a failed poll is similar to
+when the command has exited:  the return value is zero if at least
+one character could still be read even if the pattern failed to match.
+)
+item(tt(zpty) tt(-t) var(name))(
+The tt(-t) option without the tt(-r) option can be used to test
+whether the command var(name) is still running.  It returns a zero
+status if the command is running and a non-zero value otherwise.
+)
+item(tt(zpty) [ tt(-L) ])(
+The last form, without any arguments, is used to list the commands
+currently defined.  If the tt(-L) option is given, this is done in the
+form of calls to the tt(zpty) builtin.
+)
+enditem()

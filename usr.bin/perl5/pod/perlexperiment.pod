@@ -1,0 +1,477 @@
+=encoding utf-8
+
+=head1 NAME
+
+perlexperiment - A listing of experimental features in Perl
+
+=head1 DESCRIPTION
+
+This document lists the current and past experimental features in the perl
+core. Although all of these are documented with their appropriate topics,
+this succinct listing gives you an overview and basic facts about their
+status.
+
+So far we've merely tried to find and list the experimental features and infer
+their inception, versions, etc. There's a lot of speculation here.
+
+=head2 Current experiments
+
+=over 8
+
+=item Smart match (C<~~>)
+
+Introduced in Perl 5.10.0
+
+Modified in Perl 5.10.1, 5.12.0
+
+Deprecated in 5.38.0
+
+Will be removed in 5.42.0
+
+Using this feature triggers warnings in the category
+C<deprecated>.
+
+The ticket for this experiment is
+L<[perl #13173]|https://github.com/Perl/perl5/issues/13173>.
+
+=item Pluggable keywords
+
+Introduced in Perl 5.11.2
+
+See L<perlapi/PL_keyword_plugin> for the mechanism.
+
+The ticket for this experiment is
+L<[perl #13199]|https://github.com/Perl/perl5/issues/13199>.
+
+=item Aliasing via reference
+
+Introduced in Perl 5.22.0
+
+Using this feature triggers warnings in the category
+C<experimental::refaliasing>.
+
+The ticket for this experiment is
+L<[perl #14150]|https://github.com/Perl/perl5/issues/14150>.
+
+See also: L<perlref/Assigning to References>
+
+=item The "const" attribute
+
+Introduced in Perl 5.22.0
+
+Using this feature triggers warnings in the category
+C<experimental::const_attr>.
+
+The ticket for this experiment is
+L<[perl #14428]|https://github.com/Perl/perl5/issues/14428>.
+
+See also: L<perlsub/Constant Functions>
+
+=item use re 'strict';
+
+Introduced in Perl 5.22.0
+
+Using this feature triggers warnings in the category
+C<experimental::re_strict>.
+
+The ticket for this experiment is
+L<[perl #18755]|https://github.com/Perl/perl5/issues/18755>
+
+See L<re/'strict' mode>
+
+=item Declaring a reference to a variable
+
+Introduced in Perl 5.26.0
+
+Using this feature triggers warnings in the category
+C<experimental::declared_refs>.
+
+The ticket for this experiment is
+L<[perl #15458]|https://github.com/Perl/perl5/issues/15458>.
+
+See also: L<perlref/Declaring a Reference to a Variable>
+
+=item There is an C<installhtml> target in the Makefile.
+
+The ticket for this experiment is
+L<[perl #12726]|https://github.com/Perl/perl5/issues/12726>.
+
+=item (Limited) Variable-length look-behind
+
+Introduced in Perl 5.30.0.
+
+Variability of up to 255 characters is handled.
+
+Using this feature triggers warnings in the category
+C<experimental::vlb>.
+
+The ticket for this experiment is
+L<[perl #18756]|https://github.com/Perl/perl5/issues/18756>.
+
+See also: L<perlre/(*positive_lookbehind:I<pattern>)> and
+L<perlre/(*negative_lookbehind:I<pattern>)>
+
+=item Unicode private use character hooks
+
+Introduced in Perl 5.30.0.
+
+This feature is part of an interface intended for internal and experimental
+use by the perl5 developers.  You are unlikely to encounter it in the wild.
+
+Using this feature triggers warnings in the category
+C<experimental::private_use>.
+
+The ticket for this experiment is
+L<[perl #18758]|https://github.com/Perl/perl5/issues/18758>.
+
+=item Unicode property wildcards
+
+Introduced in Perl 5.30.0.
+
+This feature allows regular expression matching against Unicode character
+properties to be expressed more concisely.
+
+Using this feature triggers warnings in the category
+C<experimental::uniprop_wildcards>.
+
+The ticket for this experiment is
+L<[perl #18759]|https://github.com/Perl/perl5/issues/18759>.
+
+=item try/catch control structure
+
+Introduced in Perl 5.34.0.
+
+Using this feature triggers warnings in the category C<experimental::try>.
+
+The ticket for this experiment is
+L<[perl #18760]|https://github.com/Perl/perl5/issues/18760>
+
+=item Use of C<@_> within subroutine signatures
+
+Introduced in Perl 5.36.0 as part of a reduction in the scope of experimental
+subroutine signatures.
+
+Using the default arguments array (C<@_>) within a subroutine that uses
+signatures will emit a warning in the category
+C<experimental::args_array_with_signatures>. This includes C<@_> directly,
+elements of it such as C<$_[$index]>, or situations where the default
+arguments array is accessed implicitly such as C<shift> or C<pop> without
+arguments.
+
+=item for loop with multiple iteration variables
+
+Introduced in Perl 5.36.0.
+
+Using this feature triggers warnings in the category C<experimental::for_list>.
+
+This feature enables a parenthesized list of iteration variables for C<for>
+rather than a single variable.
+
+The ticket for this experiment is
+L<[perl #18744]|https://github.com/Perl/perl5/issues/18744>.
+
+=item The builtin namespace
+
+Introduced in Perl 5.36.0.
+
+Using this feature triggers warnings in the category C<experimental::builtin>.
+
+In Perl 5.36.0, a new namespace, C<builtin>, was created for new core functions
+that will not be present in every namespace, but will be available for
+importing.  The namespace itself is considered an experiment.  Specific
+functions within it may also be experimental.
+
+The ticket for this experiment is
+L<[perl #19764]|https://github.com/Perl/perl5/issues/19764>.
+
+=item The defer block modifier
+
+Introduced in Perl 5.36.0
+
+Using this feature triggers warnings in the category C<experimental::defer>.
+
+This feature adds a new kind of block, a C<defer> block, which will not be
+executed until the containing block is being exited.
+
+The ticket for this experiment is
+L<[perl #17949]|https://github.com/Perl/perl5/issues/17949>.
+
+=item Extra paired delimiters for quote-like operators
+
+Introduced in Perl 5.36.0
+
+Using this feature triggers warnings in the category
+C<experimental::extra_paired_delimiters>.
+
+This feature allows for many non-ASCII pairs of mirroring delimiters, for
+example:
+
+    my @array = qw« tinker tailer soldier spy »;
+
+The ticket for this experiment is
+L<[perl #19765]|https://github.com/Perl/perl5/issues/19765>.
+
+=back
+
+=head2 Accepted features
+
+These features were so wildly successful and played so well with others that
+we decided to remove their experimental status and admit them as full, stable
+features in the world of Perl, lavishing all the benefits and luxuries thereof.
+They are also awarded +5 Stability and +3 Charisma.
+
+=over 8
+
+=item 64-bit support
+
+Introduced in Perl 5.005
+
+=item die accepts a reference
+
+Introduced in Perl 5.005
+
+=item DB module
+
+Introduced in Perl 5.6.0
+
+See also L<perldebug>, L<perldebtut>
+
+=item Weak references
+
+Introduced in Perl 5.6.0
+
+=item Internal file glob
+
+Introduced in Perl 5.6.0
+
+=item fork() emulation
+
+Introduced in Perl 5.6.1
+
+See also L<perlfork>
+
+=item -Dusemultiplicity -Duseithreads
+
+Introduced in Perl 5.6.0
+
+Accepted in Perl 5.8.0
+
+=item Support for long doubles
+
+Introduced in Perl 5.6.0
+
+Accepted in Perl 5.8.1
+
+=item The C<\N> regex character class
+
+The C<\N> character class, not to be confused with the named character
+sequence C<\N{NAME}>, denotes any non-newline character in a regular
+expression.
+
+Introduced in Perl 5.12
+
+Exact version of acceptance unclear, but no later than Perl 5.18.
+
+=item C<(?{code})> and C<(??{ code })>
+
+Introduced in Perl 5.6.0
+
+Accepted in Perl 5.20.0
+
+See also L<perlre>
+
+=item Linux abstract Unix domain sockets
+
+Introduced in Perl 5.9.2
+
+Accepted before Perl 5.20.0.  The Socket library is now primarily maintained
+on CPAN, rather than in the perl core.
+
+See also L<Socket>
+
+=item Lvalue subroutines
+
+Introduced in Perl 5.6.0
+
+Accepted in Perl 5.20.0
+
+See also L<perlsub>
+
+=item Backtracking control verbs
+
+C<(*ACCEPT)>
+
+Introduced in Perl 5.10
+
+Accepted in Perl 5.20.0
+
+=item The C<:pop> IO pseudolayer
+
+See also L<perlrun/PERLIO>
+
+Accepted in Perl 5.20.0
+
+=item C<\s> in regexp matches vertical tab
+
+Accepted in Perl 5.22.0
+
+=item Postfix dereference syntax
+
+Introduced in Perl 5.20.0
+
+Accepted in Perl 5.24.0
+
+=item Lexical subroutines
+
+Introduced in Perl 5.18.0
+
+Accepted in Perl 5.26.0
+
+=item String- and number-specific bitwise operators
+
+Introduced in Perl 5.22.0
+
+Accepted in Perl 5.28.0
+
+=item Alphabetic assertions
+
+Introduced in Perl 5.28.0
+
+Accepted in Perl 5.32.0
+
+=item Script runs
+
+Introduced in Perl 5.28.0
+
+Accepted in Perl 5.32.0
+
+=item The infix C<isa> operator
+
+Introduced in Perl 5.32.0
+
+Accepted in Perl 5.36.0
+
+=item Subroutine signatures
+
+Introduced in Perl 5.20.0
+
+Accepted in Perl 5.36.0
+
+=item Regular Expression Set Operations
+
+Introduced in Perl 5.18
+
+Accepted in Perl 5.36
+
+See : L<perlrecharclass/Extended Bracketed Character Classes>
+
+=back
+
+=head2 Removed features
+
+These features are no longer considered experimental and their functionality
+has disappeared. It's your own fault if you wrote production programs using
+these features after we explicitly told you not to (see L<perlpolicy>).
+
+=over 8
+
+=item 5.005-style threading
+
+Introduced in Perl 5.005
+
+Removed in Perl 5.10
+
+=item perlcc
+
+Introduced in Perl 5.005
+
+Moved from Perl 5.9.0 to CPAN
+
+=item The pseudo-hash data type
+
+Introduced in Perl 5.6.0
+
+Removed in Perl 5.9.0
+
+=item GetOpt::Long Options can now take multiple values at once (experimental)
+
+C<Getopt::Long> upgraded to version 2.35
+
+Removed in Perl 5.8.8
+
+=item Assertions
+
+The C<-A> command line switch
+
+Introduced in Perl 5.9.0
+
+Removed in Perl 5.9.5
+
+=item Test::Harness::Straps
+
+Moved from Perl 5.10.1 to CPAN
+
+=item C<legacy>
+
+The experimental C<legacy> pragma was swallowed by the C<feature> pragma.
+
+Introduced in Perl 5.11.2
+
+Removed in Perl 5.11.3
+
+=item Lexical C<$_>
+
+Using this feature triggered warnings in the category
+C<experimental::lexical_topic>.
+
+Introduced in Perl 5.10.0
+
+Removed in Perl 5.24.0
+
+=item Array and hash container functions accept references
+
+Using this feature triggered warnings in the category
+C<experimental::autoderef>.
+
+Superseded by L</Postfix dereference syntax>.
+
+Introduced in Perl 5.14.0
+
+Removed in Perl 5.24.0
+
+=item C<our> can have an experimental optional attribute C<unique>
+
+Introduced in Perl 5.8.0
+
+Deprecated in Perl 5.10.0
+
+Removed in Perl 5.28.0
+
+=item The C<:win32> IO pseudolayer
+
+Introduced in Perl 5.8.0 (or before)
+
+Removed in Perl 5.36.0
+
+=back
+
+=head1 SEE ALSO
+
+For a complete list of features check L<feature>.
+
+=head1 AUTHORS
+
+brian d foy C<< <brian.d.foy@gmail.com> >>
+
+SE<eacute>bastien Aperghis-Tramoni C<< <saper@cpan.org> >>
+
+=head1 COPYRIGHT
+
+Copyright 2010, brian d foy C<< <brian.d.foy@gmail.com> >>
+
+=head1 LICENSE
+
+You can use and redistribute this document under the same terms as Perl
+itself.
+
+=cut

@@ -1,0 +1,22 @@
+[name]
+Explicit width setting
+
+[options]
+width 40
+
+[input]
+=head1 WIDTH
+
+This is a long bit of text that would normally wrap at 78 characters using
+the default settings, but will be wrapped at 40 characters due to the
+option set.
+
+=cut
+
+[output]
+[1mWIDTH[0m
+    This is a long bit of text that
+    would normally wrap at 78 characters
+    using the default settings, but will
+    be wrapped at 40 characters due to
+    the option set.

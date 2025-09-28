@@ -1,0 +1,22 @@
+#compdef fsh
+
+local curcontext="$curcontext" state line ret=1
+local -a _comp_priv_prefix
+
+_arguments -C \
+  '(- : *)'{-h,--help}'[display help information]' \
+  '(- : *)'{-V,--version}'[display version information]' \
+  '-r[specify method]:method:(rsh ssh)' \
+  '-l[specify login id]:login:_users' \
+  '(-T --timeout)'{-T,--timeout}':idle timeout:' \
+  ':remote host name:_hosts' \
+  '(-):command: _command_names -e' \
+  '*::args:->command' && ret=0
+
+if [[ -n "$state" ]]; then
+  shift 1 words
+  (( CURRENT-- ))
+  _normal && ret=0
+fi
+
+return ret

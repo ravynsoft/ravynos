@@ -1,0 +1,28 @@
+#compdef dchroot
+
+local expl context state line
+typeset -A opt_args
+local -a _comp_priv_prefix
+
+_arguments -S \
+       '(-h --help)'{-h,--help}'[help]' \
+       '(-a --all)'{-a,--all}'[select all chroots]' \
+       '*'{-c,--chroot=}'[use specified chroot]:chroot:->chroot' \
+       '(-d --directory)'{-d,--directory=}'[directory to use]:dir:_files -W / -P /' \
+       '(-l --list)'{-l,--list}'[list available chroots]' \
+       '(-i --info)'{-i,--info}'[show information about selected chroots]' \
+       '(-p --path)'{-p,--path}'[print path to selected chroot]' \
+       '--config[dump configuration of selected chroots]' \
+       '(-d --preserve-environment)'{-d,--preserve-environment}'[preserve user environment]' \
+       '(-q --quiet)'{-q,--quiet}'[quiet]' \
+       '(-v --verbose)'{-v,--verbose}'[verbose]' \
+       '(-V --version)'{-V,--version}'[version]' \
+       '(-):command name: _command_names -e' \
+       '*::arguments: _normal' && return 0
+
+case "$state" in
+  chroot)
+    _wanted -C $context chroots expl 'chroot' \
+	compadd ${(os:,:)${${${"$(_call_program chroots dchroot -l )"#*: }// /}//[[\]]/,}}
+  ;;
+esac

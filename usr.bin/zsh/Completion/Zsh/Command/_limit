@@ -1,0 +1,9 @@
+#compdef limit
+
+if ! ((CURRENT % 2)); then
+    _limits
+elif [[ $PREFIX = u* ]]; then
+    compadd unlimited
+else
+    _message -e values "number and scaling factor"
+fi

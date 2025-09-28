@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+/*
+ * Intercept message from sudo_intercept.so.  Messages on the
+ * wire are prefixed with a 32-bit size in network byte order.
+ */
+message InterceptRequest {
+  oneof type {
+    PolicyCheckRequest policy_check_req = 1;
+    InterceptHello hello = 2;
+  }
+}
+
+/*
+ * Hello message from sudo_intercept.so to main sudo process.
+ * Sudo sends back the token and localhost port number.
+ */
+message InterceptHello {
+    int32 pid = 1;
+}
+
+/*
+ * Sudo response to an InterceptHello from sudo_intercept.so.
+ * The client uses the port number and token to connect back to sudo.
+ * If log_only is set there is no InterceptResponse to a PolicyCheckRequest.
+ */
+message HelloResponse {
+  fixed64 token_lo = 1;
+  fixed64 token_hi = 2;
+  int32 portno = 3;
+  bool log_only = 4;
+}
+
+/*
+ * Policy check request from sudo_intercept.so.
+ * Note that the plugin API only currently supports passing
+ * the new environment in to the open() function.
+ */
+message PolicyCheckRequest {
+  string command = 1;
+  string cwd = 2;
+  repeated string argv = 3;
+  repeated string envp = 4;
+  int32 intercept_fd = 5;
+}
+
+message PolicyAcceptMessage {
+  string run_command = 1;
+  repeated string run_argv = 2;
+  repeated string run_envp = 3;
+}
+
+message PolicyRejectMessage {
+  string reject_message = 1;
+}
+
+message PolicyErrorMessage {
+  string error_message = 1;
+}
+
+/*
+ * Response sent back to sudo_intercept.so.
+ */
+message InterceptResponse {
+  oneof type {
+    HelloResponse hello_resp = 1;
+    PolicyAcceptMessage accept_msg = 2;
+    PolicyRejectMessage reject_msg = 3;
+    PolicyErrorMessage error_msg = 4;
+  }
+}

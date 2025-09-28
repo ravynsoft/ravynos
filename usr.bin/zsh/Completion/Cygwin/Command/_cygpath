@@ -1,0 +1,28 @@
+#compdef cygpath cygpath.exe
+
+# cygwin 1.5.25
+
+_arguments -s -S \
+  '(--dos --mixed --mode --type --unix --windows -d -m -M -t -u -w)'{-d,--dos}'[print DOS (short) form of specified path (C:\PROGRA~1\)]' \
+  '(--dos --mixed --mode --type --unix --windows -d -m -M -t -u -w)'{-m,--mixed}'[like --windows, but with regular slashes (C:/WINNT)]' \
+  '(--dos --mixed --mode --type --unix --windows -d -m -M -t -u -w)'{-M,--mode}'[report on mode of file (binmode or textmode)]' \
+  '(--dos --mixed --mode --type --unix --windows -d -m -M -t -u -w)'{-u,--unix}'[(default) print Unix form of specified path (/cygdrive/c/winnt)]' \
+  '(--dos --mixed --mode --type --unix --windows -d -m -M -t -u -w)'{-w,--windows}'[print Windows form of specified path (C:\WINNT)]' \
+  '(--dos --mixed --mode --type --unix --windows -d -m -M -t -u -w)'{-t,--type}'[print type]:type:(dos mixed unix windows)' \
+  '(--absolute --long-name --path --short-name -a -l -p -s)'{-a,--absolute}'[output absolute path]' \
+  '(--absolute --long-name --path --short-name -a -l -p -s)'{-l,--long-name}'[print Windows long form of specified path (with -w, -m only)]' \
+  "(--absolute --long-name --path --short-name -a -l -p -s)"{-p,--path}"[specified path is a PATH list (i.e., '/bin:/usr/bin')]" \
+  '(--absolute --long-name --path --short-name -a -l -p -s)'{-s,--short-name}'[print DOS (short) form of specified path (with -w, -m only)]' \
+  "(--allusers -A)"{-A,--allusers}"[use 'All Users' instead of current user for -D, -P]" \
+  "(--desktop --homeroot --smprograms --sysdir --windir -D -H -P -S -W)"{-D,--desktop}"[output 'Desktop' directory and exit]" \
+  "(--desktop --homeroot --smprograms --sysdir --windir -D -H -P -S -W)"{-H,--homeroot}"[output 'Profiles' directory (home root) and exit]" \
+  "(--desktop --homeroot --smprograms --sysdir --windir -D -H -P -S -W)"{-P,--smprograms}"[output Start Menu 'Programs' directory and exit]" \
+  '(--desktop --homeroot --smprograms --sysdir --windir -D -H -P -S -W)'{-S,--sysdir}'[output system directory and exit]' \
+  "(--desktop --homeroot --smprograms --sysdir --windir -D -H -P -S -W)"{-W,--windir}"[output 'Windows' directory and exit]" \
+  '(--file -f)'{-f,--file}'[read FILE for input; use - to read from STDIN]: :_files' \
+  '(--option -o)'{-o,--option}'[read options from FILE as well (for use with --file)]' \
+  '(--close -c)'{-c,--close}'[close specified handle (for use in captured process)]:handle' \
+  '(--ignore -i)'{-i,--ignore}'[ignore missing argument]' \
+  '(- *)'{-h,--help}'[display usage information]' \
+  '(- *)'{-v,--version}'[display version information]' \
+  '*: :_files'

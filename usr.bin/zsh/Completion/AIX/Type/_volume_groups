@@ -1,0 +1,5 @@
+#autoload
+
+local expl
+
+_wanted volumegroups expl 'volume group' compadd "$@" - $(lsvg)

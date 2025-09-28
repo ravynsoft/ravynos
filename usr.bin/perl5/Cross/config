@@ -1,0 +1,23 @@
+##############################################################################
+#
+# This is the configuration file used to specify the target platform and
+# required level of debug or optimisation.
+#
+##############################################################################
+
+### Target Arch
+ARCH = arm
+#ARCH = i386-pc
+#ARCH = sh4
+#ARCH = mips
+#ARCH = mipsel
+#ARCH = ppc
+
+## Specific arm
+CONFIG_TARGET_ARM_SA11X0 = 1
+#CONFIG_TARGET_ARM_XSCALE = 1
+
+### Target OS
+OS = linux
+#OS = solaris2.8
+

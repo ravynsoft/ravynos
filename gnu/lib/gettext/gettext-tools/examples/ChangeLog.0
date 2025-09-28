@@ -1,0 +1,1237 @@
+2015-10-08  Daiki Ueno  <ueno@gnu.org>
+
+	* hello-c-gnome3/Makefile.am (hello.desktop.in): Don't use a
+	temporary file.
+	(hello.desktop): Likewise.
+
+2015-09-11  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.6 released.
+
+2015-09-11  Daiki Ueno  <ueno@gnu.org>
+
+	* po/fi.po: Update from Jorma Karvonen <karvonen.jorma@gmail.com>.
+	* po/it.po: Update from Marco Colombo <m.colombo@ed.ac.uk>.
+	* po/zh_CN.po: Update from Ji ZhengYu <zhengyuji@gmail.com>.
+
+2015-07-10  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.5 released.
+
+2015-07-10  Daiki Ueno  <ueno@gnu.org>
+
+	* po/bg.po: Update from Roumen Petrov <transl@roumenpetrov.info>.
+	* po/ca.po: Update from Ivan Vilata i Balaguer <ivan@selidor.net>.
+	* po/cs.po: Update from Marek Černocký <marek@manet.cz>.
+	* po/da.po: Update from Joe Hansen <joedalton2@yahoo.dk>.
+	* po/de.po: Update from Philipp Thomas <pth@suse.de>.
+	* po/es.po: Update from Antonio Ceballos <aceballos@gmail.com>.
+	* po/fi.po: Update from Jorma Karvonen <karvonen.jorma@gmail.com>.
+	* po/fr.po: Update from Stéphane Aulery <lkppo@free.fr>.
+	* po/hu.po: Update from Balázs Úr <urbalazs@gmail.com>.
+	* po/ja.po: Update from Masahito Yamaga <ma@yama-ga.com>.
+	* po/ms.po: Update from Sharuzzaman Ahmat Raslan <sharuzzaman@gmail.com>.
+	* po/nl.po: Update from Benno Schulenberg <benno@vertaalt.nl>.
+	* po/pl.po: Update from Rafał Maszkowski <rzm@icm.edu.pl>.
+	* po/ro.po: Update from Mihai Cristescu <mihai.cristescu@archlinux.info>.
+	* po/ru.po: Update from Yuri Kozlov <yuray@komyakino.ru>.
+	* po/sk.po: Update from Marcel Telka <marcel@telka.sk>.
+	* po/sl.po: Update from Primož Peterlin <primozz.peterlin@gmail.com>.
+	* po/sr.po: Update from Мирослав Николић <miroslavnikolic@rocketmail.com>.
+	* po/uk.po: Update from Yuri Chornoivan <yurchor@ukr.net>.
+	* po/vi.po: Update from Trần Ngọc Quân <vnwildman@gmail.com>.
+
+2015-03-07  Daiki Ueno  <ueno@gnu.org>
+
+	* hello-c-gnome3/Makefile.am (hello.desktop): Remove unnecessary
+	$srcdir check.
+
+2015-03-06  Daiki Ueno  <ueno@gnu.org>
+
+	* hello-c-gnome3/Makefile.am: Suggest hello.desktop.in should be
+	included in EXTRA_DIST.
+
+2015-02-02  Matthias Clasen  <mclasen@redhat.com>
+
+	* hello-c-gnome3/configure.ac: Require gettext 0.19, for GSettings
+	and Desktop files.
+
+2015-01-07  Daiki Ueno  <ueno@gnu.org>
+
+	examples: Make hello-c-gnome3 translator friendly
+	Suggested by Benno Schulenberg in:
+	<https://lists.gnu.org/archive/html/bug-gettext/2015-01/msg00003.html>.
+	* hello-c-gnome3/hello.gschema.xml: Use "use-markup" property
+	instead of "sensitive", to clarify the meaning of the extracted
+	strings.
+	* hello-c-gnome3/hello.c (HelloApplicationWindow): Rename the
+	"label2" member to "label".
+	(update_content): New function.
+	(clicked_callback): Rename from quit_callback and call
+	update_content instead of quitting.  All callers changed.
+	* hello-c-gnome3/hello.ui: Abolish the first label and put a
+	translatable text inside the button.
+
+2014-12-24  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.4 released.
+
+2014-12-24  Daiki Ueno  <ueno@gnu.org>
+
+	* po/bg.po: Update from Roumen Petrov <transl@roumenpetrov.info>.
+	* po/ca.po: Update from Ivan Vilata i Balaguer <ivan@selidor.net>.
+	* po/es.po: Update from Antonio Ceballos <aceballos@gmail.com>.
+	* po/ja.po: Update from Masahito Yamaga <ma@yama-ga.com>.
+	* po/pl.po: Update from Rafał Maszkowski <rzm@icm.edu.pl>.
+	* po/pt_BR.po: Update from Rafael Ferreira <rafael.f.f1@gmail.com>.
+	* po/ru.po: Update from Yuri Kozlov <yuray@komyakino.ru>.
+	* po/sk.po: Update from Marcel Telka <marcel@telka.sk>.
+	* po/sl.po: Update from Primož Peterlin <primozz.peterlin@gmail.com>.
+	* po/sv.po: Update from Jan Djärv <jan.h.d@swipnet.se>.
+	* po/uk.po: Update from Yuri Chornoivan <yurchor@ukr.net>.
+	* po/vi.po: Update from Trần Ngọc Quân <vnwildman@gmail.com>.
+
+2014-12-05  Daiki Ueno  <ueno@gnu.org>
+
+	examples: Regenerate stamp-po after POT has changed
+	* Makefile.am (distdir1): Invoke 'all' target in po/Makefile,
+	after 'update-po'.
+
+2014-12-05  Daiki Ueno  <ueno@gnu.org>
+
+	examples: Include hello-*.pot in the distribution
+	Partially revert 2c3d71ce, as it broke "make dist".  Instead,
+	include all the generated POT files in the distribution to prevent
+	re-generation of those files.
+	* Makefile.am (distdir1): Call update-po in po/Makefile.
+	* po/Makefile.am ($(DOMAIN).pot-update): Specify --directory for
+	xgettext invocation.
+	(DISTCLEANFILES): Move $(SMALLPOTS)...
+	(MAINTAINERCLEANFILES): ...here.
+	(distdir1): Include $(SMALLPOTS) in the distribution.
+
+2014-12-04  Daiki Ueno  <ueno@gnu.org>
+
+	examples: Don't forcibly regenerate POT files on 'make dist'
+	Previously we generated POT files on 'make dist'.  However, it
+	take some time to complete and require autotools bootstrap for
+	each project.
+	* Makefile.am (distdir1): Don't invoke update-po rule in po/Makefile.
+	* po/Makefile.am (distdir1): Don't invoke update-po rule.
+
+2014-10-15  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.3 released.
+
+2014-10-15  Daiki Ueno  <ueno@gnu.org>
+
+	* po/eo.po, po/es.po, po/nb.po: Update.
+
+2014-07-14  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.2 released.
+
+2014-06-10  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.1 released.
+
+2014-06-03  Daiki Ueno  <ueno@gnu.org>
+
+	examples: Don't require msgfmt when compiling hello-c-gnome3
+	* hello-c-gnome3/Makefile.am (CLEANFILES): Clean hello.desktop.
+	(EXTRA_DIST): Add hello.desktop.in.
+	(MAINTAINERCLEANFILES): Add hello.desktop.in.
+	(hello.desktop): Move msgfmt invocation to...
+	(hello.desktop.in): ...here.
+
+2014-06-02  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19 released.
+
+2014-05-14  Daiki Ueno  <ueno@gnu.org>
+
+	* configure.ac: Adjust $docdir assuming that AC_PACKAGE_TARNAME is
+	set.
+
+2014-05-06  Daiki Ueno  <ueno@gnu.org>
+
+	* Makefile.am (install-data-local): Don't fail if a PO file does
+	not exist, but warn user to do "make dist".
+
+2014-04-22  Daiki Ueno  <ueno@gnu.org>
+
+	build: Use git-version-gen intead of version.sh
+	* configure.ac: Use git-version-gen in AC_INIT.
+
+2014-04-21  Daiki Ueno  <ueno@gnu.org>
+
+	examples: Quote shell variables in hello-java*/configure
+	When running from xsmallpot.sh, embedded shell-script snippets are
+	stripped off from configure.ac and some variables are not set.
+	Make sure to quote them to avoid error.
+	* hello-java/configure.ac: Quote $BUILDJAVA.
+	* hello-java-awt/configure.ac: Quote $BUILDJAVAEXE and $BUILDJAVA.
+	* hello-java-qtjambi/configure.ac: Likewise.
+	* hello-java-swing/configure.ac: Likewise.
+
+2014-04-15  Daiki Ueno  <ueno@gnu.org>
+
+	examples: Add a new example 'hello-c-gnome3'
+	* hello-c-gnome3: New subdirectory.
+	* README: Mention it.
+	* Makefile.am (EXAMPLESFILES): Add the files in hello-c-gnome3.
+	(EXAMPLESDIRS): Add hello-c-gnome3.
+	* po/Makefile.am (POTFILES): Add hello-c-gnome3 source.
+	(SMALLPOTS): Add hello-c-gnome3.pot.
+	(hello-c-gnome3.pot): New rule.
+	(SMALLPOFILES_FOR_lang): Add hello-c-gnome3 elements.
+	(../hello-c-gnome3/po/$(LL).po): New rule.
+
+2013-06-10  Daiki Ueno  <ueno@gnu.org>
+
+	* Makefile.am: Use $(MKDIR_P) instead of $(mkdir_p).
+	* hello-c++-qt/po/Makefile.am: Likewise.
+	* hello-c++-wxwidgets/po/Makefile.am: Likewise.
+	* hello-clisp/po/Makefile.am: Likewise.
+	* hello-csharp-forms/Makefile.am: Likewise.
+	* hello-csharp-forms/po/Makefile.am: Likewise.
+	* hello-csharp/Makefile.am: Likewise.
+	* hello-csharp/po/Makefile.am: Likewise.
+	* hello-gawk/po/Makefile.am: Likewise.
+	* hello-guile/po/Makefile.am: Likewise.
+	* hello-java-awt/Makefile.am: Likewise.
+	* hello-java-qtjambi/Makefile.am: Likewise.
+	* hello-java-swing/Makefile.am: Likewise.
+	* hello-java/Makefile.am: Likewise.
+	* hello-librep/po/Makefile.am: Likewise.
+	* hello-pascal/Makefile.am: Likewise.
+	* hello-pascal/po/Makefile.am: Likewise.
+	* hello-perl/po/Makefile.am: Likewise.
+	* hello-php/po/Makefile.am: Likewise.
+	* hello-python/po/Makefile.am: Likewise.
+	* hello-sh/po/Makefile.am: Likewise.
+	* hello-smalltalk/po/Makefile.am: Likewise.
+	* hello-tcl-tk/po/Makefile.am: Likewise.
+	* hello-tcl/po/Makefile.am: Likewise.
+	* hello-ycp/po/Makefile.am: Likewise.
+	Suggested by Stefano Lattarini in
+	<https://lists.gnu.org/archive/html/bug-gettext/2013-04/msg00044.html>.
+
+2013-04-23  Daiki Ueno  <ueno@gnu.org>
+
+	* po/xsmallpot.sh: Don't assume that aclocal accepts configure.in.
+
+2013-04-02  Daiki Ueno  <ueno@gnu.org>
+
+	* Makefile.am (clean-local): New rule to remove tmp-hello-*.
+
+2012-12-25  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext-0.18.2 released.
+
+2012-12-19  Daiki Ueno  <ueno@gnu.org>
+
+	Fix build error in hello-c++-kde due to autom4te cache.
+	* po/xsmallpot.sh: Pass -f to autoconf to ignore cache.
+
+2012-12-07  Bruno Haible  <bruno@clisp.org>
+
+	* po/cs.po: New file, from Marek Černocký <marek@manet.cz>.
+	* po/nb.po: New file, from Johnny A. Solbu <johnny@solbu.net>.
+	* po/vi.po: Update from Trần Ngọc Quân <vnwildman@gmail.com>.
+	* po/LINGUAS: Add cs, hr, nb.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESPOFILES): Add the new message catalogs.
+
+2012-07-08  Bruno Haible  <bruno@clisp.org>
+
+	* po/hr.po: New file, from Tomislav Krznar <tomislav.krznar@gmail.com>.
+
+2011-01-18  Bruno Haible  <bruno@clisp.org>
+
+	* po/da.po: New file, from Keld Simonsen <keld@keldix.com>.
+	* po/gl.po: New file, from
+	Leandro Regueiro <leandro.regueiro@gmail.com>.
+	* po/LINGUAS: Add da, gl.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESPOFILES): Add the new message catalogs.
+
+2010-10-10  Bruno Haible  <bruno@clisp.org>
+
+	* po/bg.po: Update from Roumen Petrov <transl@roumenpetrov.info>.
+
+2010-08-13  Nicola Pero  <nicola.pero@meta-innovation.com>  (tiny change)
+
+	Fix build error in hello-objc-gnustep due to 'ast' and 'ky' catalogs.
+	* hello-objc-gnustep/po/LocaleAliases: Regenerated from newest
+	gnustep-base/Languages/Locale.aliases.
+
+2010-06-04  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.18.1 released.
+
+2010-05-09  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.18 released.
+
+2010-04-25  Bruno Haible  <bruno@clisp.org>
+
+	Update hello-pascal example.
+	* hello-pascal/INSTALL: Require fpc 2.0 or newer.
+	* hello-pascal/hello.pas: Use GetProcessID from the system unit,
+	instead of getpid from the oldlinux unit or fpgetpid from the baseunix
+	unit.
+	Reported by Marco van de Voort <marcov@stack.nl>.
+
+2010-04-02  Bruno Haible  <bruno@clisp.org>
+
+	* hello-c++-wxwidgets/autogen.sh: Update origin of lib-*.m4 and
+	config.rpath files.
+
+2010-03-09  Bruno Haible  <bruno@clisp.org>
+
+	* po/ast.po: Update.
+
+2010-01-31  Bruno Haible  <bruno@clisp.org>
+
+	* po/bg.po: New file, from Roumen Petrov <transl@roumenpetrov.info>.
+	* po/LINGUAS: Add bg.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESPOFILES): Add the new message catalogs.
+
+2009-12-19  Bruno Haible  <bruno@clisp.org>
+
+	* po/ast.po: New file, from
+	Marcos Alvarez Costales <marcos.alvarez.costales@gmail.com>.
+	* po/LINGUAS: Add ast.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESPOFILES): Add the new message catalogs.
+
+2009-08-16  Bruno Haible  <bruno@clisp.org>
+
+	Silence the msgmerge invocations.
+	* hello-c/po/Makevars (MSGMERGE_OPTIONS): New variable.
+	* hello-c-gnome/po/Makevars (MSGMERGE_OPTIONS): Likewise.
+	* hello-c++/po/Makevars (MSGMERGE_OPTIONS): Likewise.
+	* hello-c++-kde/po/Makevars (MSGMERGE_OPTIONS): Likewise.
+	* hello-c++-gnome/po/Makevars (MSGMERGE_OPTIONS): Likewise.
+	* hello-objc/po/Makevars (MSGMERGE_OPTIONS): Likewise.
+	* hello-objc-gnome/po/Makevars (MSGMERGE_OPTIONS): Likewise.
+	* po/Makefile.am (MSGMERGE_OPTIONS): New variable.
+	($(POFILES), .nop.po-update): Use it.
+	* hello-c++-qt/po/Makefile.am: Likewise.
+	* hello-c++-wxwidgets/po/Makefile.am: Likewise.
+	* hello-sh/po/Makefile.am: Likewise.
+	* hello-python/po/Makefile.am: Likewise.
+	* hello-clisp/po/Makefile.am: Likewise.
+	* hello-librep/po/Makefile.am: Likewise.
+	* hello-guile/po/Makefile.am: Likewise.
+	* hello-smalltalk/po/Makefile.am: Likewise.
+	* hello-java/po/Makefile.am: Likewise.
+	* hello-java-awt/po/Makefile.am: Likewise.
+	* hello-java-swing/po/Makefile.am: Likewise.
+	* hello-java-qtjambi/po/Makefile.am: Likewise.
+	* hello-csharp/po/Makefile.am: Likewise.
+	* hello-csharp-forms/po/Makefile.am: Likewise.
+	* hello-gawk/po/Makefile.am: Likewise.
+	* hello-pascal/po/Makefile.am: Likewise.
+	* hello-ycp/po/Makefile.am: Likewise.
+	* hello-tcl/po/Makefile.am: Likewise.
+	* hello-tcl-tk/po/Makefile.am: Likewise.
+	* hello-perl/po/Makefile.am: Likewise.
+	* hello-php/po/Makefile.am: Likewise.
+	* hello-objc-gnustep/po/GNUmakefile: Likewise.
+	* po/mmsmallpo.sh: Pass option --quiet to msgmerge.
+
+2009-08-16  Bruno Haible  <bruno@clisp.org>
+
+	* hello-objc-gnustep/po/GNUmakefile: Apply 2007-10-18 changes to
+	hello-*/po/Makefile.am.
+
+2009-08-16  Bruno Haible  <bruno@clisp.org>
+
+	* hello-objc-gnustep/po/GNUmakefile: Apply 2007-10-17 changes to
+	hello-*/po/Makefile.am.
+	(PACKAGE_NAME, PACKAGE_VERSION): New variables.
+
+2009-08-16  Bruno Haible  <bruno@clisp.org>
+
+	* hello-objc-gnustep/po/GNUmakefile: Apply part of 2005-02-07 changes
+	to hello-*/po/Makefile.am..
+
+2009-08-16  Bruno Haible  <bruno@clisp.org>
+
+	* hello-objc-gnustep/po/GNUmakefile: Apply 2004-01-17 changes to
+	hello-*/po/Makefile.am.
+
+2009-07-29  Bruno Haible  <bruno@clisp.org>
+
+	* po/lv.po: New file, from Rihards Priedītis <rprieditis@gmail.com>.
+	* po/LINGUAS: Add lv.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESPOFILES): Add the new message catalogs.
+
+2009-05-23  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (AM_INIT_AUTOMAKE): Add 'silent-rules' option.
+
+2009-05-23  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_INIT_PACKAGE. Use the preferred form of
+	AM_INIT_AUTOMAKE.
+
+2009-01-27  Bruno Haible  <bruno@clisp.org>
+
+	* hello-c++-qt/po/Makefile.am (XGETTEXT_OPTIONS): Add more options for
+	the tr function, for compatibility with Qt 4.
+
+2009-01-18  Bruno Haible  <bruno@clisp.org>
+
+	* hello-c++-qt/po/Makefile.am (.po.gmo): Pass --verbose to msgfmt when
+	producing statistics.
+	* hello-c++-wxwidgets/po/Makefile.am (.po.gmo): Likewise.
+	* hello-clisp/po/Makefile.am (.po.gmo): Likewise.
+	* hello-gawk/po/Makefile.am (.po.gmo): Likewise.
+	* hello-guile/po/Makefile.am (.po.gmo): Likewise.
+	* hello-librep/po/Makefile.am (.po.gmo): Likewise.
+	* hello-pascal/po/Makefile.am (.po.gmo): Likewise.
+	* hello-perl/po/Makefile.am (.po.gmo): Likewise.
+	* hello-php/po/Makefile.am (.po.gmo): Likewise.
+	* hello-python/po/Makefile.am (.po.gmo): Likewise.
+	* hello-sh/po/Makefile.am (.po.gmo): Likewise.
+	* hello-smalltalk/po/Makefile.am (.po.gmo): Likewise.
+	* hello-ycp/po/Makefile.am (.po.gmo): Likewise.
+	* hello-java/po/Makefile.am (update-properties, update-classes):
+	Likewise.
+	* hello-java-awt/po/Makefile.am (update-properties, update-classes):
+	Likewise.
+	* hello-java-swing/po/Makefile.am (update-properties, update-classes):
+	Likewise.
+	* hello-java-qtjambi/po/Makefile.am (update-properties,
+	update-classes): Likewise.
+	Suggested by Vincent Lefevre <vincent@vinc17.org>.
+
+2009-01-18  Bruno Haible  <bruno@clisp.org>
+
+	* po/mt.po: New file, from Clyde Meli <cmeli@cis.um.edu.mt>.
+	* po/LINGUAS: Add mt.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESPOFILES): Add the new message catalogs.
+
+2009-01-14  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: More consistent m4 quoting.
+
+2007-12-24  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/po/Makefile.am ($(POFILES), .nop.po-update): When using
+	msgmerge 0.18 or newer, pass a --lang option.
+	* hello-objc-gnustep/po/GNUmakefile ($(POFILES), .nop.po-update):
+	Likewise.
+
+2007-12-24  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/po/Makefile.am (.nop.po-update): Put all non-option arguments
+	after all option arguments, so that the commands work 1. when
+	POSIXLY_CORRECT is set, 2. on platforms whose getopt facility is POSIX
+	compliant but not GNU libc compatible, such as Cygwin.
+	* hello-objc-gnustep/po/GNUmakefile (.nop.po-update): Likewise.
+
+2007-11-13  Bruno Haible  <bruno@clisp.org>
+
+	* po/ky.po: New file, from Ilyas Bakirov <just_ilyas@yahoo.com>.
+	* po/LINGUAS: Add ky.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESPOFILES): Add the new message catalogs.
+
+2007-11-07  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.17 released.
+
+2007-10-31  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/m4/Makefile.am (EXTRA_DIST): Remove ulonglong.m4.
+	* hello-*/autoclean.sh: Don't remove ulonglong.m4 any more.
+
+2007-10-28  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/po/Makefile.am ($(DOMAIN).pot-update): Consider the
+	XGETTEXT_EXTRA_OPTIONS variable.
+
+2007-10-26  Bruno Haible  <bruno@clisp.org>
+
+	* po/fi.po: New file, from Lauri Nurmi <lanurmi@iki.fi>.
+	* po/LINGUAS: Add fi.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESPOFILES): Add the new message catalogs.
+
+2007-10-20  Bruno Haible  <bruno@clisp.org>
+
+	New example for Qt/Jambi.
+	* hello-java-qtjambi: New subdirectory.
+	* README: Mention it.
+	* Makefile.am (EXAMPLESFILES): Add the files in hello-java-qtjambi.
+	(EXAMPLESDIRS): Add hello-java-qtjambi.
+	* po/Makefile.am (POTFILES): Add hello-java-qtjambi source.
+	(SMALLPOTS): Add hello-java-qtjambi.pot.
+	(hello-java-qtjambi.pot): New rule.
+	(SMALLPOFILES_FOR_lang): Add hello-java-qtjambi elements.
+	(../hello-java-qtjambi/po/$(LL).po): New rule.
+
+2007-10-18  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/po/Makefile.am ($(DOMAIN).pot-update): Don't pass the package
+	name and version to xgettext if the xgettext version is < 0.16.2.
+
+2007-10-17  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/po/Makefile.am ($(DOMAIN).pot-update): Pass the package name
+	and version to xgettext.
+
+2007-10-17  Bruno Haible  <bruno@clisp.org>
+
+	* hello-java/po/Makefile.am (stamp-po): Test $(PROPERTIESFILES), not
+	$(GMOFILES).
+
+2007-10-13  Bruno Haible  <bruno@clisp.org>
+
+	* po/nl.po: Update from Benno Schulenberg <benno@vertaalt.nl>.
+
+2007-09-15  Bruno Haible  <bruno@clisp.org>
+
+	* po/vi.po: Update from Clytie Siddall <clytie@riverland.net.au>.
+
+2007-06-07  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/autoclean.sh: Remove also intlmacosx.m4.
+
+2007-04-06  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/autoclean.sh: Don't remove longdouble.m4 any more.
+
+2007-03-20  Bruno Haible  <bruno@clisp.org>
+
+	Remove all "Copyright (C) ..." notices from files that are in the
+	public domain.
+
+2007-01-30  Bruno Haible  <bruno@clisp.org>
+
+	* po/ms.po: New file, from
+	Sharuzzaman Ahmat Raslan <sharuzzaman@myrealbox.com>.
+	* po/LINGUAS: Add ms.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESPOFILES): Add the new message catalogs.
+
+2006-12-04  Bruno Haible  <bruno@clisp.org>
+
+	Work around small sh argument length limit on IRIX.
+	* Makefile.am (EXAMPLESFILES): Remove the common files in po
+	directories.
+	(EXAMPLESDIRS, EXAMPLESPOFILES): New variables.
+	(install-data-local, installdirs-local, uninstall-local, distdir1): Use
+	doubly-nested loop for the common files in po directories.
+	Reported by Paul Martinolich <martinol@nrlssc.navy.mil>.
+
+2006-10-27  Bruno Haible  <bruno@clisp.org>
+
+	Work around automake-1.10 annoyance.
+	* Makefile.am (ACLOCAL): New macro.
+
+2006-11-27  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.16.1 released.
+
+2006-10-26  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.16 released.
+
+2006-10-23  Bruno Haible  <bruno@clisp.org>
+
+	* hello-c++-kde/admin/cvs.sh: Accept automake versions > 1.9.x.
+
+2006-10-01  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/autoclean.sh: Remove also intldir.m4.
+
+2006-10-02  Bruno Haible  <bruno@clisp.org>
+
+	* po/fr.po: Update from Christophe Combelles <ccomb@free.fr>.
+	* po/id.po: New file, from Tedi Heriyanto <tedi_heriyanto@yahoo.com>.
+	* po/LINGUAS: Add id.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESFILES): Add the new message catalogs.
+
+2006-09-18  Bruno Haible  <bruno@clisp.org>
+
+	* hello-{c,c++,objc}*/{autoclean.sh,m4/Makefile.am}: Remove
+	inttypes-h.m4.
+
+2006-09-11  Bruno Haible  <bruno@clisp.org>
+
+	* hello-{c,c++,objc}*/autoclean.sh: Remove also intl.m4.
+
+2006-08-28  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/autoclean.sh: Remove mention of signed.m4.
+
+2006-07-31  Bruno Haible  <bruno@clisp.org>
+
+	* hello-c/autogen.sh: Replace gettext-tools/lib with
+	gettext-tools/gnulib-lib.
+	* hello-c++/autogen.sh: Likewise.
+	* hello-objc/autogen.sh: Likewise.
+	* hello-csharp/autogen.sh: Update for changed locations of *.m4 files.
+	* hello-csharp-forms/autogen.sh: Likewise.
+	* hello-java/autogen.sh: Likewise.
+	* hello-java-awt/autogen.sh: Likewise.
+	* hello-java-swing/autogen.sh: Likewise.
+
+2006-07-30  Bruno Haible  <bruno@clisp.org>
+
+	* hello-csharp*/autogen.sh: Update for changed location of
+	csharpcomp.sh.in and csharpexec.sh.in.
+	* hello-java*/autogen.sh: Update for changed location of
+	javacomp.sh.in and javaexec.sh.in.
+
+2006-07-25  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.msvc: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove Makefile.msvc.
+
+2006-07-25  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.vms: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove Makefile.vms.
+
+2006-07-23  Bruno Haible  <bruno@clisp.org>
+
+	* hello-c++-kde/autoclean.sh: Fix syntax error.
+
+2006-07-21  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.15 released.
+
+2006-07-21  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/autogen.sh (GETTEXT_TOPSRCDIR): In the build directory case,
+	append one more "/..".
+
+2006-07-20  Bruno Haible  <bruno@clisp.org>
+
+	* po/sv.po: Update from Jan Djärv <jan.h.d@swipnet.se>.
+	* po/vi.po: Update from Clytie Siddall <clytie@riverland.net.au>.
+	* po/zh_HK.po: New file, from Abel Cheung <abelcheung@gmail.com>.
+	* po/LINGUAS: Add zh_HK.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESFILES): Add the new message catalogs.
+
+2006-07-14  Bruno Haible  <bruno@clisp.org>
+
+	* po/Makefile.am (MOSTLYCLEANFILES): Add *.stackdump.
+	* hello-*/po/Makefile.am (MOSTLYCLEANFILES): Likewise.
+
+2006-07-13  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (Makefile): Invoke FIX_MAKEFILE_TOPDIR_DISTRIB instead
+	of FIX_MAKEFILE_DISTRIB.
+
+2006-07-13  Bruno Haible  <bruno@clisp.org>
+
+	* hello-c++-kde/admin/cvs.sh: Disable the search for specific
+	versions of autoconf, autoheader, autom4te, automake, aclocal.
+	Accept autoconf, autoheader versions > 2.59. Accept automake
+	versions > 1.8.x.
+
+2006-07-13  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (ACLOCAL_AMFLAGS): New variable.
+
+2006-07-03  Bruno Haible  <bruno@clisp.org>
+
+	* po/eo.po: New file, from Edmund Grimley Evans <edmundo@rano.org>.
+	* po/it.po: Update from Marco Colombo <m.colombo@ed.ac.uk>.
+	* po/LINGUAS: Add eo.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESFILES): Add the new message catalogs.
+
+2006-06-29  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: New file.
+	* Makefile.am (AUTOMAKE_OPTIONS): Drop gnits, use foreign instead.
+	* po/Makefile.am (POTFILES): Remove examples/ prefix.
+
+2006-06-27  Bruno Haible  <bruno@clisp.org>
+
+	* hello-c/{autoclean.sh,m4/Makefile.am}: Remove isc-posix.m4.
+	* hello-c-gnome/{autoclean.sh,m4/Makefile.am}: Likewise.
+	* hello-c++/{autoclean.sh,m4/Makefile.am}: Likewise.
+	* hello-c++-gnome/{autoclean.sh,m4/Makefile.am}: Likewise.
+	* hello-c++-kde/{autoclean.sh,m4/Makefile.am}: Likewise.
+	* hello-objc/{autoclean.sh,m4/Makefile.am}: Likewise.
+	* hello-objc-gnome/{autoclean.sh,m4/Makefile.am}: Likewise.
+
+2006-04-14  Bruno Haible  <bruno@clisp.org>
+
+	Assume autoconf >= 2.60.
+	* Makefile.am (docdir): Remove variable.
+	* po/Makefile.am (localedir): Remove variable.
+
+2006-06-04  Bruno Haible  <bruno@clisp.org>
+
+	* hello-c/{autoclean.sh,m4/Makefile.am}: Replace inttypes.m4 with
+	inttypes-h.m4.
+	* hello-c-gnome/{autoclean.sh,m4/Makefile.am}: Likewise.
+	* hello-c++/{autoclean.sh,m4/Makefile.am}: Likewise.
+	* hello-c++-gnome/{autoclean.sh,m4/Makefile.am}: Likewise.
+	* hello-c++-kde/{autoclean.sh,m4/Makefile.am}: Likewise.
+	* hello-objc/{autoclean.sh,m4/Makefile.am}: Likewise.
+	* hello-objc-gnome/{autoclean.sh,m4/Makefile.am}: Likewise.
+
+2006-05-01  Bruno Haible  <bruno@clisp.org>
+
+	* hello-java/configure.ac: Pass a source-version to gt_JAVACOMP. Move
+	gt_JAVAEXEC call before the gt_JAVACOMP call.
+	* hello-java-awt/configure.ac: Likewise.
+	* hello-java-swing/configure.ac: Likewise.
+
+2006-04-17  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am: Use $(mkdir_p) instead of $(mkinstalldirs).
+	* hello-csharp/Makefile.am: Likewise.
+	* hello-csharp-forms/Makefile.am: Likewise.
+	* hello-java/Makefile.am: Likewise.
+	* hello-java-awt/Makefile.am: Likewise.
+	* hello-java-swing/Makefile.am: Likewise.
+	* hello-pascal/Makefile.am: Likewise.
+	* hello-c++-qt/po/Makefile.am: Likewise.
+	* hello-c++-wxwidgets/po/Makefile.am: Likewise.
+	* hello-clisp/po/Makefile.am: Likewise.
+	* hello-csharp/po/Makefile.am: Likewise.
+	* hello-csharp-forms/po/Makefile.am: Likewise.
+	* hello-gawk/po/Makefile.am: Likewise.
+	* hello-guile/po/Makefile.am: Likewise.
+	* hello-librep/po/Makefile.am: Likewise.
+	* hello-pascal/po/Makefile.am: Likewise.
+	* hello-perl/po/Makefile.am: Likewise.
+	* hello-php/po/Makefile.am: Likewise.
+	* hello-python/po/Makefile.am: Likewise.
+	* hello-sh/po/Makefile.am: Likewise.
+	* hello-smalltalk/po/Makefile.am: Likewise.
+	* hello-tcl/po/Makefile.am: Likewise.
+	* hello-tcl-tk/po/Makefile.am: Likewise.
+	* hello-ycp/po/Makefile.am: Likewise.
+	* hello-*/autoclean.sh: Don't remove mkinstalldirs.
+
+2006-04-14  Bruno Haible  <bruno@clisp.org>
+
+	Don't ignore the --localedir option from autoconf >= 2.60.
+	* hello-c/Makefile.am (localedir): Remove variable.
+	* hello-c-gnome/Makefile.am (localedir): Likewise.
+	* hello-objc/Makefile.am (localedir): Likewise.
+	* hello-objc-gnome/Makefile.am (localedir): Likewise.
+	* hello-c++/Makefile.am (localedir): Likewise.
+	* hello-c++-kde/Makefile.am (localedir): Likewise.
+	* hello-c++-gnome/Makefile.am (localedir): Likewise.
+	* hello-c++-qt/Makefile.am (localedir): Likewise.
+	* hello-c++-qt/po/Makefile.am (localedir): Likewise.
+	* hello-c++-wxwidgets/Makefile.am (localedir): Likewise.
+	* hello-c++-wxwidgets/po/Makefile.am (localedir): Likewise.
+	* hello-clisp/po/Makefile.am (localedir): Likewise.
+	* hello-gawk/po/Makefile.am (localedir): Likewise.
+	* hello-guile/po/Makefile.am (localedir): Likewise.
+	* hello-librep/po/Makefile.am (localedir): Likewise.
+	* hello-pascal/po/Makefile.am (localedir): Likewise.
+	* hello-perl/po/Makefile.am (localedir): Likewise.
+	* hello-php/po/Makefile.am (localedir): Likewise.
+	* hello-python/po/Makefile.am (localedir): Likewise.
+	* hello-sh/po/Makefile.am (localedir): Likewise.
+	* hello-smalltalk/po/Makefile.am (localedir): Likewise.
+	* hello-ycp/po/Makefile.am (localedir): Likewise.
+
+2006-04-14  Bruno Haible  <bruno@clisp.org>
+
+	* hello-c/configure.ac: Use gettext-0.15 infrastructure.
+	* hello-c-gnome/configure.ac: Likewise.
+	* hello-objc/configure.ac: Likewise.
+	* hello-objc-gnome/configure.ac: Likewise.
+	* hello-c++/configure.ac: Likewise.
+	* hello-c++-kde/configure.in.in: Likewise.
+	* hello-c++-gnome/configure.ac: Likewise.
+	* hello-c-gnome/m4/Makefile.am (EXTRA_DIST): Add lock.m4.
+	* hello-c++-kde/m4/Makefile.am (EXTRA_DIST): Likewise.
+
+2006-04-14  Bruno Haible  <bruno@clisp.org>
+
+	Prepare for autoconf-2.60.
+	* hello-clisp/configure.ac: Set datarootdir before evaluating
+	${datadir}.
+	* hello-gawk/configure.ac: Likewise.
+	* hello-guile/configure.ac: Likewise.
+	* hello-librep/configure.ac: Likewise.
+	* hello-pascal/configure.ac: Likewise.
+	* hello-perl/configure.ac: Likewise.
+	* hello-php/configure.ac: Likewise.
+	* hello-python/configure.ac: Likewise.
+	* hello-sh/configure.ac: Likewise.
+	* hello-smalltalk/configure.ac: Likewise.
+
+2006-04-07  Bruno Haible  <bruno@clisp.org>
+
+	* po/hu.po: New file, from Kiss Tamás <atomi@inf.elte.hu>.
+	* po/pt.po: New file, from
+	Helder Correia <helder.pereira.correia@gmail.com>.
+	* po/sl.po: New file, from
+	Primož Peterlin <primoz.peterlin@biofiz.mf.uni-lj.si>.
+	* po/vi.po: Update from Clytie Siddall <clytie@riverland.net.au>.
+	* po/LINGUAS: Add hu, pt, sl.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESFILES): Add the new message catalogs.
+
+2006-03-25  Bruno Haible  <bruno@clisp.org>
+
+	* hello-csharp-forms/README: New file.
+	* Makefile.am (EXAMPLESFILES): Add it.
+
+2006-03-25  Bruno Haible  <bruno@clisp.org>
+
+	New example for wxWidgets.
+	* hello-c++-wxwidgets: New subdirectory.
+	* README: Mention it.
+	* Makefile.am (EXAMPLESFILES): Add the files in hello-c++-wxwidgets.
+	* po/Makefile.am (POTFILES): Add hello-c++-wxwidgets source.
+	(SMALLPOTS): Add hello-c++-wxwidgets.pot.
+	(hello-c++-wxwidgets.pot): New rule.
+	(SMALLPOFILES_FOR_lang): Add hello-c++-wxwidgets elements.
+	(../hello-c++-wxwidgets/po/$(LL).po): New rule.
+
+2005-10-18  Bruno Haible  <bruno@clisp.org>
+
+	* hello-c/po/Makevars (USE_MSGCTXT): New macro.
+	* hello-c-gnome/po/Makevars (USE_MSGCTXT): New macro.
+	* hello-c++/po/Makevars (USE_MSGCTXT): New macro.
+	* hello-c++-gnome/po/Makevars (USE_MSGCTXT): New macro.
+	* hello-c++-kde/po/Makevars (USE_MSGCTXT): New macro.
+	* hello-objc/po/Makevars (USE_MSGCTXT): New macro.
+	* hello-objc-gnome/po/Makevars (USE_MSGCTXT): New macro.
+
+2005-09-19  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/autogen.sh: Also install m4/progtest.m4.
+	* hello-*/autoclean.sh: Also remove m4/progtest.m4.
+
+2005-07-24  Bruno Haible  <bruno@clisp.org>
+
+	Tidy up exported symbols.
+	* hello-c/m4/Makefile.am (EXTRA_DIST): Add visibility.m4.
+	* hello-c-gnome/m4/Makefile.am (EXTRA_DIST): Likewise.
+	* hello-c++/m4/Makefile.am (EXTRA_DIST): Likewise.
+	* hello-c++-gnome/m4/Makefile.am (EXTRA_DIST): Likewise.
+	* hello-c++-kde/m4/Makefile.am (EXTRA_DIST): Likewise.
+	* hello-objc/m4/Makefile.am (EXTRA_DIST): Likewise.
+	* hello-objc-gnome/m4/Makefile.am (EXTRA_DIST): Likewise.
+	* hello-c/autoclean.sh: Remove also m4/visibility.m4.
+	* hello-c-gnome/autoclean.sh: Likewise.
+	* hello-c++/autoclean.sh: Likewise.
+	* hello-c++-gnome/autoclean.sh: Likewise.
+	* hello-c++-kde/autoclean.sh: Likewise.
+	* hello-objc/autoclean.sh: Likewise.
+	* hello-objc-gnome/autoclean.sh: Likewise.
+
+2005-07-26  Bruno Haible  <bruno@clisp.org>
+
+	* installpaths.in (datarootdir): New variable.
+
+2005-07-16  Bruno Haible  <bruno@clisp.org>
+
+	* hello-c/m4/Makefile.am (EXTRA_DIST): Add lock.m4.
+	* hello-c++/m4/Makefile.am (EXTRA_DIST): Likewise.
+	* hello-c++-gnome/m4/Makefile.am (EXTRA_DIST): Likewise.
+	* hello-objc/m4/Makefile.am (EXTRA_DIST): Likewise.
+	* hello-objc-gnome/m4/Makefile.am (EXTRA_DIST): Likewise.
+	* hello-c/autoclean.sh: Remove also m4/lock.m4.
+	* hello-c-gnome/autoclean.sh: Likewise.
+	* hello-c++/autoclean.sh: Likewise.
+	* hello-c++-gnome/autoclean.sh: Likewise.
+	* hello-c++-kde/autoclean.sh: Likewise.
+	* hello-objc/autoclean.sh: Likewise.
+	* hello-objc-gnome/autoclean.sh: Likewise.
+
+2005-05-01  Bruno Haible  <bruno@clisp.org>
+
+	* hello-csharp/configure.ac, hello-csharp-forms/configure.ac: Call
+	gt_CSHARPEXEC with parameters.
+	* hello-csharp/m4/Makefile.am, hello-csharp-forms/m4/Makefile.am
+	(EXTRA_DIST): Add csharpexec-test.exe.
+	* hello-csharp/autogen.sh, hello-csharp-forms/autogen.sh: Also copy
+	m4/csharpexec-test.exe.
+	* hello-csharp/autoclean.sh, hello-csharp-forms/autoclean.sh: Also
+	remove m4/csharpexec-test.exe.
+
+2006-06-21  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.6 released.
+
+2005-05-23  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.5 released.
+
+2005-05-23  Bruno Haible  <bruno@clisp.org>
+
+	* po/zh_TW.po: New file, from Abel Cheung <abelcheung@gmail.com>.
+	* po/LINGUAS: Add it.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESFILES): Add the new message catalogs.
+
+2005-04-11  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.4 released.
+
+2005-04-11  Bruno Haible  <bruno@clisp.org>
+
+	* po/it.po: Update from Marco Colombo <m.colombo@ed.ac.uk>.
+
+2005-03-14  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.3 released.
+
+2005-03-08  Bruno Haible  <bruno@clisp.org>
+
+	* po/vi.po: Update from Clytie Siddall <clytie@riverland.net.au>.
+
+2005-03-08  Bruno Haible  <bruno@clisp.org>
+
+	* po/it.po: New file, from Marco Colombo <m.colombo@ed.ac.uk>.
+	* po/LINGUAS: Add it.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESFILES): Add the new message catalogs.
+
+2005-03-06  Bruno Haible  <bruno@clisp.org>
+
+	* po/Makefile.am, hello-*/po/Makefile.am (stamp-po): Do nothing if
+	$(DOMAIN).pot does not exist.
+	(EXTRA_DIST): Remove $(DOMAIN).pot, stamp-po.
+	(distdir1): If $(DOMAIN).pot exists, distribute also $(DOMAIN).pot and
+	stamp-po.
+
+2005-02-24  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.2 released.
+
+2005-02-24  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/autogen.sh: Define and use GETTEXT_TOPSRCDIR, to make it
+	work in VPATH builds.
+
+2005-02-23  Bruno Haible  <bruno@clisp.org>
+
+	* xsmallpot.sh: Make the temporary directory writable.
+
+2005-02-23  Bruno Haible  <bruno@clisp.org>
+
+	* xsmallpot.sh: Add srcdir argument. Make it work when
+	builddir != srcdir.
+	* Makefile.am (hello-*.pot): Update xsmallpot.sh invocations.
+
+2005-02-21  Bruno Haible  <bruno@clisp.org>
+
+	* po/vi.po: New file, from Clytie Siddall <clytie@riverland.net.au>.
+	* po/LINGUAS: Add vi.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESFILES): Add the new message catalogs.
+
+2005-02-11  Bruno Haible  <bruno@clisp.org>
+
+	* po/ga.po: New file, from Kevin Patrick Scannell <scannell@slu.edu>.
+	* po/LINGUAS: Add ga.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESFILES): Add the new message catalogs.
+
+2005-02-06  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/po/Makefile.am ($(DOMAIN).pot-update): If MSGID_BUGS_ADDRESS
+	is empty and PACKAGE_BUGREPORT is available, use the latter.
+	* po/Makefile.am ($(DOMAIN).pot-update): Likewise.
+
+2005-01-20  Bruno Haible  <bruno@clisp.org>
+
+	* hello-guile/hello.scm: Invoke setlocale. Fix bindtextdomain call.
+
+2005-01-16  Bruno Haible  <bruno@clisp.org>
+
+	Support for Scheme.
+	* hello-guile: New subdirectory.
+	* README: Mention it.
+	* Makefile.am (EXAMPLESFILES): Add the files in hello-guile.
+	* po/Makefile.am (POTFILES): Add hello-guile source.
+	(SMALLPOTS): Add hello-guile.pot.
+	(hello-guile.pot): New rule.
+	(SMALLPOFILES_FOR_lang): Add hello-guile elements.
+	(../hello-guile/po/$(LL).po): New rule.
+
+2005-01-06  Bruno Haible  <bruno@clisp.org>
+
+	* po/el.po: New file, from Simos Xenitellis <simos74@gmx.net>.
+	* po/ru.po: New file, from Pavel Maryanov <acid_jack@ukr.net>.
+	* po/uk.po: New file, from Maxim V. Dziumanenko <mvd@mylinux.com.ua>.
+	* po/LINGUAS: Add el, ru, uk.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESFILES): Add the new message catalogs.
+
+2004-09-07  Bruno Haible  <bruno@clisp.org>
+
+	* po/xsmallpot.sh: Keep AC_PROG_* and OBJC lines in configure.in.
+	* hello-objc/configure.ac: Assign OBJC through AC_SUBST.
+	* hello-objc-gnome/configure.ac: Likewise.
+	Needed to avoid error with automake-1.9.
+
+2004-08-19  Bruno Haible  <bruno@clisp.org>
+
+	* hello-librep/hello.jl.in: Remove no-op comments.
+
+2004-03-21  Bruno Haible  <bruno@clisp.org>
+
+	* po/es.po: Update from Max de Mendizábal <max@upn.mx>.
+	* po/sr.po: Update from Aleksandar Jelenak <jelenak@netlinkplus.net>.
+
+2004-02-24  Bruno Haible  <bruno@clisp.org>
+
+	* hello-csharp*/hello.cs (Hello.Main): Remove workaround for mono bug,
+	fixed in mono-0.30.1.
+
+2004-02-24  Bruno Haible  <bruno@clisp.org>
+
+	* hello-csharp*/autogen.sh: Copy also the csharp.m4 file.
+
+2004-02-02  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/autoclean.sh, hello-*/m4/Makefile.am: Handle glibc2.m4 too.
+
+2004-01-29  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.1 released.
+
+2004-01-28  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14 released.
+
+2004-01-28  Bruno Haible  <bruno@clisp.org>
+
+	* po/tr.po: Update from Nilgün Belma Bugüner <nilgun@superonline.com>.
+
+2004-01-17  Bruno Haible  <bruno@clisp.org>
+
+	* po/Makefile.am (POTFILES): Add hello-csharp, hello-csharp-forms
+	sources.
+	(SMALLPOTS): Add hello-csharp.pot, hello-csharp-forms.pot.
+	(hello-csharp.pot, hello-csharp-forms.pot): New rules.
+	(SMALLPOFILES_FOR_lang): Add hello-csharp, hello-csharp-forms elements.
+	(../hello-csharp/po/$(LL).po, ../hello-csharp-forms/po/$(LL).po): New
+	rules.
+	* po/mmsmallpo.sh: Use option --force-po.
+
+2004-01-17  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/po/Makefile.am: Adapt to changes made in po/Makefile.in.in.
+
+2004-01-17  Bruno Haible  <bruno@clisp.org>
+
+	* po/af.po: New file, from Ysbeer <ysbeer@af.org.za>.
+	* po/ca.po: Update from Ivan Vilata i Balaguer <ivan@selidor.net>.
+	* po/de.po: Update from Karl Eichwalder <ke@gnu.franken.de>.
+	* po/fr.po: Update from Michel Robitaille <robitail@iro.umontreal.ca>.
+	* po/ja.po: Update from Masahito Yamaga <ma@yama-ga.com>.
+	* po/nl.po: New file, from Elros Cyriatan <cyriatan@fastmail.fm>.
+	* po/pl.po: Update from Rafał Maszkowski <rzm@icm.edu.pl>.
+	* po/sk.po: New file, from Marcel Telka <marcel@telka.sk>.
+	* po/sv.po: Update from Jan Djärv <jan.h.d@swipnet.se>.
+	* po/zh_CN.po: Update from Funda Wang <fundawang@linux.net.cn>.
+	* po/LINGUAS: Add af, nl, sk.
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESFILES): Add the new message catalogs.
+
+2004-01-10  Bruno Haible  <bruno@clisp.org>
+
+	* hello-c++-kde/admin: New directory, from KDE 3.1.4.
+	* hello-c++-kde/auto*.sh: Don't create/remove the contents of the
+	admin subdirectory.
+	* Makefile.am (EXAMPLESFILES): Add hello-c++-kde/admin/*.
+
+2004-01-10  Bruno Haible  <bruno@clisp.org>
+
+	* hello-c/*, hello-c-gnome/*, hello-objc/*, hello-objc-gnome/*,
+	hello-c++/*, hello-c++-gnome/*, hello-c++-kde/*: Use the autoconf
+	infrastructure from gettext-0.13.1, not 0.12.1.
+
+2004-01-10  Bruno Haible  <bruno@clisp.org>
+
+	* hello-csharp/hello.cs: Work around mono-0.29 CurrentUICulture bug.
+	* hello-csharp-forms/hello.cs: Likewise.
+
+2003-12-29  Bruno Haible  <bruno@clisp.org>
+
+	* hello-perl/INSTALL: Mention that libintl-perl-1.09 required.
+	* hello-perl/hello-1.pl.in, hello-perl/hello-2.pl.in: Inhibit the
+	automatic UTF-8 conversion in UTF-8 locales with Perl-5.8.0. Thanks to
+	Guido Flohr.
+
+2003-12-26  Bruno Haible  <bruno@clisp.org>
+
+	* hello-csharp: New subdirectory.
+	* hello-csharp-forms: New subdirectory.
+	* Makefile.am (EXAMPLESFILES): Add the files in hello-csharp and
+	hello-csharp-forms.
+
+2003-12-26  Bruno Haible  <bruno@clisp.org>
+
+	* hello-c++-qt/m4/qt.m4: Quote the first argument of AC_DEFUN.
+	* hello-c++-gnome/m4/gtk.m4, hello-c++-gnome/m4/gtk--.m4: Likewise.
+
+2003-12-17  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.13.1 released.
+
+2003-12-17  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESFILES): Add the new message catalogs.
+
+2003-12-09  Bruno Haible  <bruno@clisp.org>
+
+	* hello-smalltalk/hello.st.in: Add workaround against PackageLoader
+	verbosity. Solution provided by Carey Evans <careye@spamcop.net>.
+	* hello-smalltalk/BUGS: Remove file.
+	* Makefile.am (EXAMPLESFILES): Update.
+
+2003-12-07  Bruno Haible  <bruno@clisp.org>
+
+	* po/sv.po: New file, from Jan Djärv <jan.h.d@swipnet.se>.
+	* po/tr.po: New file, from
+	Nilgün Belma Bugüner <nilgun@superonline.com>.
+	* po/LINGUAS: Add sv, tr.
+
+2003-12-07  Bruno Haible  <bruno@clisp.org>
+
+	* hello-perl/hello-1.pl.in: Renamed from hello-perl/hello.pl. Make it
+	work.
+	* hello-perl/hello-2.pl.in: New file, from Guido Flohr.
+	* hello-perl/po/Makefile.am (POTFILES): Update.
+	(XGETTEXT_OPTIONS): Add options needed for the Locale::TextDomain API.
+	* hello-perl/configure.ac: Update accordingly.
+	* hello-perl/Makefile.am: Update accordingly.
+	* Makefile.am (EXAMPLESFILES): Update.
+	* po/Makefile.am (POTFILES): Update.
+
+2003-12-06  Bruno Haible  <bruno@clisp.org>
+
+	* hello-objc-gnustep/po/LocaleAliases: Add many new locales. Fix typo
+	for EcuadorSpanish. Remove conflicting entries for Indonesian and
+	Hebrew.
+
+2003-12-06  Bruno Haible  <bruno@clisp.org>
+
+	* hello-objc-gnustep/autoclean.sh: Also remove the *.lproj directories.
+	* hello-objc-gnustep/po/GNUmakefile: Include the general rules at the
+	beginning, not at the end, so that our .SUFFIXES tag has an effect.
+	($(ENSTRINGSFILES)): Create the target directory.
+
+2003-12-06  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/INSTALL: Update the installation instructions.
+	* hello-c++-qt/BUGS: New file.
+	* hello-c++-kde/BUGS: New file.
+	* hello-objc-gnustep/BUGS: New file.
+	* hello-smalltalk/BUGS: New file.
+	* hello-java-awt/BUGS: New file.
+	* hello-java-swing/BUGS: New file.
+	* Makefile.am (EXAMPLESFILES): Add them.
+
+2003-12-02  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (EXTRA_DIST): Don't add the EXAMPLESFILES.
+	(distdir1): New rule. Install the EXAMPLESFILES after 'update-po'.
+
+2003-11-30  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.13 released.
+
+2003-11-30  Bruno Haible  <bruno@clisp.org>
+
+	* po/mmsmallpo.sh: Remove the POT-Creation-Date line from the generated
+	PO file.
+	* Makefile.am (EXAMPLESFILES): Add hello-pascal/hello.rst.
+
+2003-11-30  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/po/LINGUAS: Update.
+	* Makefile.am (EXAMPLESFILES): Add the new message catalogs.
+
+2003-11-30  Bruno Haible  <bruno@clisp.org>
+
+	* po/es.po: New file, from Max de Mendizábal <max@upn.mx>.
+	* po/LINGUAS: Add es.
+
+2003-11-24  Bruno Haible  <bruno@clisp.org>
+
+	* po/ca.po: New file, from Ivan Vilata i Balaguer <ivan@selidor.net>.
+	* po/ro.po: New file, from Eugen Hoanca <eugenh@urban-grafx.ro>.
+	* po/LINGUAS: Add ca, ro.
+
+2003-11-22  Bruno Haible  <bruno@clisp.org>
+
+	* po/ja.po: New file, from Masahito Yamaga <ma@yama-ga.com>.
+	* po/LINGUAS: Add ja.
+
+2003-11-20  Bruno Haible  <bruno@clisp.org>
+
+	* hello-*/configure.ac: Remove AM_NLS invocation.
+	* po/xsmallpot.sh: Don't keep AM_NLS lines.
+
+2003-11-19  Bruno Haible  <bruno@clisp.org>
+
+	* po/de.po: Update from Karl Eichwalder <ke@suse.de>.
+	* po/fr.po: New file, from Michel Robitaille <robitail@iro.umontreal.ca>.
+	* po/pl.po: New file, from Rafał Maszkowski <rzm@icm.edu.pl>.
+	* po/sr.po: New file, from Danilo Segan <dsegan@gmx.net>.
+	* po/zh_CN.po: New file, from Funda Wang <fundawang@linux.net.cn>.
+	* po/LINGUAS: Add fr, pl, sr, zh_CN.
+
+2003-11-15  Bruno Haible  <bruno@clisp.org>
+
+	* hello-c/Makefile.am (AM_CPPFLAGS): Renamed from INCLUDES.
+	* hello-c-gnome/Makefile.am (AM_CPPFLAGS): Renamed from INCLUDES.
+	* hello-c++/Makefile.am (AM_CPPFLAGS): Renamed from INCLUDES.
+	* hello-c++-kde/Makefile.am (AM_CPPFLAGS): Renamed from INCLUDES.
+	* hello-c++-gnome/Makefile.am (AM_CPPFLAGS): Renamed from INCLUDES.
+	* hello-objc/Makefile.am (AM_CPPFLAGS): Renamed from INCLUDES.
+	* hello-objc-gnome/Makefile.am (AM_CPPFLAGS): Renamed from INCLUDES.
+
+2003-11-15  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am: New file.
+	* README: New file.
+	* installpaths.in: New file.
+	* hello-c: New subdirectory.
+	* hello-c-gnome: New subdirectory.
+	* hello-c++: New subdirectory.
+	* hello-c++-qt: New subdirectory.
+	* hello-c++-kde: New subdirectory.
+	* hello-c++-gnome: New subdirectory.
+	* hello-objc: New subdirectory.
+	* hello-objc-gnustep: New subdirectory.
+	* hello-objc-gnome: New subdirectory.
+	* hello-sh: New subdirectory.
+	* hello-python: New subdirectory.
+	* hello-clisp: New subdirectory.
+	* hello-librep: New subdirectory.
+	* hello-smalltalk: New subdirectory.
+	* hello-java: New subdirectory.
+	* hello-java-awt: New subdirectory.
+	* hello-java-swing: New subdirectory.
+	* hello-gawk: New subdirectory.
+	* hello-pascal: New subdirectory.
+	* hello-ycp: New subdirectory.
+	* hello-tcl: New subdirectory.
+	* hello-tcl-tk: New subdirectory.
+	* hello-perl: New subdirectory.
+	* hello-php: New subdirectory.
+

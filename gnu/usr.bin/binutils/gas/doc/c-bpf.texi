@@ -1,0 +1,577 @@
+@c Copyright (C) 2019-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+
+@ifset GENERIC
+@page
+@node BPF-Dependent
+@chapter BPF Dependent Features
+@end ifset
+
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter BPF Dependent Features
+@end ifclear
+
+@cindex BPF support
+@menu
+* BPF Options::                 Options
+* BPF Syntax::		        Syntax
+* BPF Directives::		Machine Directives
+* BPF Opcodes::			Opcodes
+* BPF Pseudo-C Syntax::         Alternative Pseudo-C Assembly Syntax
+@end menu
+
+@node BPF Options
+@section Options
+@cindex BPF options (none)
+@cindex options for BPF (none)
+
+@c man begin OPTIONS
+@table @gcctabopt
+
+@cindex @option{-EB} command-line option, BPF
+@item -EB
+This option specifies that the assembler should emit big-endian eBPF.
+
+@cindex @option{-EL} command-line option, BPF
+@item -EL
+This option specifies that the assembler should emit little-endian
+eBPF.
+@end table
+
+Note that if no endianness option is specified in the command line,
+the host endianness is used.
+@c man end
+
+@node BPF Syntax
+@section Syntax
+@menu
+* BPF-Chars::                Special Characters
+* BPF-Regs::                 Register Names
+* BPF-Pseudo-Maps::	     Pseudo map fds
+@end menu
+
+@node BPF-Chars
+@subsection Special Characters
+
+@cindex line comment character, BPF
+@cindex BPF line comment character
+The presence of a @samp{;} on a line indicates the start of a comment
+that extends to the end of the current line.  If a @samp{#} appears as
+the first character of a line, the whole line is treated as a comment.
+
+@cindex statement separator, BPF
+Statements and assembly directives are separated by newlines.
+
+@node BPF-Regs
+@subsection Register Names
+
+@cindex BPF register names
+@cindex register names, BPF
+The eBPF processor provides ten general-purpose 64-bit registers,
+which are read-write, and a read-only frame pointer register:
+
+@table @samp
+@item %r0 .. %r9
+General-purpose registers.
+@item %r10
+Frame pointer register.
+@end table
+
+Some registers have additional names, to reflect their role in the
+eBPF ABI:
+
+@table @samp
+@item %a
+This is @samp{%r0}.
+@item %ctx
+This is @samp{%r6}.
+@item %fp
+This is @samp{%r10}.
+@end table
+
+@node BPF-Pseudo-Maps
+@subsection Pseudo Maps
+
+@cindex pseudo map fd, BPF
+The @samp{LDDW} instruction can take a literal pseudo map file
+descriptor as its second argument.  This uses the syntax
+@samp{%map_fd(N)} where @samp{N} is a signed number.
+
+For example, to load the address of the pseudo map with file
+descriptor @samp{2} in register @samp{r1} we would do:
+
+@smallexample
+        lddw %r1, %map_fd(2)
+@end smallexample
+
+@node BPF Directives
+@section Machine Directives
+
+@cindex machine directives, BPF
+
+The BPF version of @code{@value{AS}} supports the following additional
+machine directives:
+
+@table @code
+@cindex @code{half} directive, BPF
+@item .word
+The @code{.half} directive produces a 16 bit value.
+
+@cindex @code{word} directive, BPF
+@item .word
+The @code{.word} directive produces a 32 bit value.
+
+@cindex @code{dword} directive, BPF
+@item .dword
+The @code{.dword} directive produces a 64 bit value.
+@end table
+
+@node BPF Opcodes
+@section Opcodes
+
+@cindex BPF opcodes
+@cindex opcodes for BPF
+In the instruction descriptions below the following field descriptors
+are used:
+
+@table @code
+@item %d
+Destination general-purpose register whose role is to be destination
+of an operation.
+@item %s
+Source general-purpose register whose role is to be the source of an
+operation.
+@item disp16
+16-bit signed PC-relative offset, measured in number of 64-bit words,
+minus one.
+@item disp32
+32-bit signed PC-relative offset, measured in number of 64-bit words,
+minus one.
+@item offset16
+Signed 16-bit immediate.
+@item imm32
+Signed 32-bit immediate.
+@item imm64
+Signed 64-bit immediate.
+@end table
+
+@subsubsection Arithmetic instructions
+
+The destination register in these instructions act like an
+accumulator.
+
+@table @code
+@item add %d, (%s|imm32)
+64-bit arithmetic addition.
+@item sub %d, (%s|imm32)
+64-bit arithmetic subtraction.
+@item mul %d, (%s|imm32)
+64-bit arithmetic multiplication.
+@item div %d, (%s|imm32)
+64-bit arithmetic integer division.
+@item mod %d, (%s|imm32)
+64-bit integer remainder.
+@item and %d, (%s|imm32)
+64-bit bit-wise ``and'' operation.
+@item or %d, (%s|imm32)
+64-bit bit-wise ``or'' operation.
+@item xor %d, (%s|imm32)
+64-bit bit-wise exclusive-or operation.
+@item lsh %d, (%s|imm32)
+64-bit left shift, by @code{%s} or @code{imm32} bits.
+@item rsh %d, (%s|imm32)
+64-bit right logical shift, by @code{%s} or @code{imm32} bits.
+@item arsh %d, (%s|imm32)
+64-bit right arithmetic shift, by @code{%s} or @code{imm32} bits.
+@item neg %d
+64-bit arithmetic negation.
+@item mov %d, (%s|imm32)
+Move the 64-bit value of @code{%s} in @code{%d}, or load @code{imm32}
+in @code{%d}.
+@end table
+
+@subsubsection 32-bit arithmetic instructions
+
+The destination register in these instructions act as an accumulator.
+
+@table @code
+@item add32 %d, (%s|imm32)
+32-bit arithmetic addition.
+@item sub32 %d, (%s|imm32)
+32-bit arithmetic subtraction.
+@item mul32 %d, (%s|imm32)
+32-bit arithmetic multiplication.
+@item div32 %d, (%s|imm32)
+32-bit arithmetic integer division.
+@item mod32 %d, (%s|imm32)
+32-bit integer remainder.
+@item and32 %d, (%s|imm32)
+32-bit bit-wise ``and'' operation.
+@item or32 %d, (%s|imm32)
+32-bit bit-wise ``or'' operation.
+@item xor32 %d, (%s|imm32)
+32-bit bit-wise exclusive-or operation.
+@item lsh32 %d, (%s|imm32)
+32-bit left shift, by @code{%s} or @code{imm32} bits.
+@item rsh32 %d, (%s|imm32)
+32-bit right logical shift, by @code{%s} or @code{imm32} bits.
+@item arsh32 %d, (%s|imm32)
+32-bit right arithmetic shift, by @code{%s} or @code{imm32} bits.
+@item neg32 %d
+32-bit arithmetic negation.
+@item mov32 %d, (%s|imm32)
+Move the 32-bit value of @code{%s} in @code{%d}, or load @code{imm32}
+in @code{%d}.
+@end table
+
+@subsubsection Endianness conversion instructions
+
+@table @code
+@item endle %d, (16|32|64)
+Convert the 16-bit, 32-bit or 64-bit value in @code{%d} to
+little-endian.
+@item endbe %d, (16|32|64)
+Convert the 16-bit, 32-bit or 64-bit value in @code{%d} to big-endian.
+@end table
+
+@subsubsection 64-bit load and pseudo maps
+
+@table @code
+@item lddw %d, imm64
+Load the given signed 64-bit immediate, or pseudo map descriptor, to
+the destination register @code{%d}.
+@item lddw %d, %map_fd(N)
+Load the address of the given pseudo map fd @emph{N} to the
+destination register @code{%d}.
+@end table
+
+@subsubsection Load instructions for socket filters
+
+The following instructions are intended to be used in socket filters,
+and are therefore not general-purpose: they make assumptions on the
+contents of several registers.  See the file
+@file{Documentation/networking/filter.txt} in the Linux kernel source
+tree for more information.
+
+Absolute loads:
+
+@table @code
+@item ldabsdw imm32
+Absolute 64-bit load.
+@item ldabsw imm32
+Absolute 32-bit load.
+@item ldabsh imm32
+Absolute 16-bit load.
+@item ldabsb imm32
+Absolute 8-bit load.
+@end table
+
+Indirect loads:
+
+@table @code
+@item ldinddw %s, imm32
+Indirect 64-bit load.
+@item ldindw %s, imm32
+Indirect 32-bit load.
+@item ldindh %s, imm32
+Indirect 16-bit load.
+@item ldindb %s, imm32
+Indirect 8-bit load.
+@end table
+
+@subsubsection Generic load/store instructions
+
+General-purpose load and store instructions are provided for several
+word sizes.
+
+Load to register instructions:
+
+@table @code
+@item ldxdw %d, [%s+offset16]
+Generic 64-bit load.
+@item ldxw %d, [%s+offset16]
+Generic 32-bit load.
+@item ldxh %d, [%s+offset16]
+Generic 16-bit load.
+@item ldxb %d, [%s+offset16]
+Generic 8-bit load.
+@end table
+
+Store from register instructions:
+
+@table @code
+@item stxdw [%d+offset16], %s
+Generic 64-bit store.
+@item stxw [%d+offset16], %s
+Generic 32-bit store.
+@item stxh [%d+offset16], %s
+Generic 16-bit store.
+@item stxb [%d+offset16], %s
+Generic 8-bit store.
+@end table
+
+Store from immediates instructions:
+
+@table @code
+@item stddw [%d+offset16], imm32
+Store immediate as 64-bit.
+@item stdw [%d+offset16], imm32
+Store immediate as 32-bit.
+@item stdh [%d+offset16], imm32
+Store immediate as 16-bit.
+@item stdb [%d+offset16], imm32
+Store immediate as 8-bit.
+@end table
+
+@subsubsection Jump instructions
+
+eBPF provides the following compare-and-jump instructions, which
+compare the values of the two given registers, or the values of a
+register and an immediate, and perform a branch in case the comparison
+holds true.
+
+@table @code
+@item ja %d,(%s|imm32),disp16
+Jump-always.
+@item jeq %d,(%s|imm32),disp16
+Jump if equal, unsigned.
+@item jgt %d,(%s|imm32),disp16
+Jump if greater, unsigned.
+@item jge %d,(%s|imm32),disp16
+Jump if greater or equal.
+@item jlt %d,(%s|imm32),disp16
+Jump if lesser.
+@item jle %d,(%s|imm32),disp16
+Jump if lesser or equal.
+@item jset %d,(%s|imm32),disp16
+Jump if signed equal.
+@item jne %d,(%s|imm32),disp16
+Jump if not equal.
+@item jsgt %d,(%s|imm32),disp16
+Jump if signed greater.
+@item jsge %d,(%s|imm32),disp16
+Jump if signed greater or equal.
+@item jslt %d,(%s|imm32),disp16
+Jump if signed lesser.
+@item jsle %d,(%s|imm32),disp16
+Jump if signed lesser or equal.
+@end table
+
+A call instruction is provided in order to perform calls to other eBPF
+functions, or to external kernel helpers:
+
+@table @code
+@item call (disp32|imm32)
+Jump and link to the offset @emph{disp32}, or to the kernel helper
+function identified by @emph{imm32}.
+@end table
+
+Finally:
+
+@table @code
+@item exit
+Terminate the eBPF program.
+@end table
+
+@subsubsection Atomic instructions
+
+Atomic exchange-and-add instructions are provided in two flavors: one
+for swapping 64-bit quantities and another for 32-bit quantities.
+
+@table @code
+@item xadddw [%d+offset16],%s
+Exchange-and-add a 64-bit value at the specified location.
+@item xaddw [%d+offset16],%s
+Exchange-and-add a 32-bit value at the specified location.
+@end table
+
+@node BPF Pseudo-C Syntax
+@section BPF Pseudo-C Syntax
+
+This assembler supports another syntax to denote BPF instructions,
+which is an alternative to the normal looking syntax documented above.
+This alternatative syntax, which we call @dfn{pseudo-C syntax}, is
+supported by the LLVM/clang integrated assembler.
+
+This syntax is very unconventional, but we need to support it in order
+to support inline assembly in existing BPF programs.
+
+Note that the assembler is able to parse sources in which both
+syntaxes coexist: some instructions can use the usual assembly like
+syntax, whereas some other instructions in the same file can use the
+pseudo-C syntax.
+
+@subsubsection Pseudo-C Register Names
+
+All BPF registers are 64-bit long.  However, in the Pseudo-C syntax
+registers can be referred using different names, which actually
+reflect the kind of instruction they appear on:
+
+@table @samp
+@item r0..r9
+General-purpose register in an instruction that operates on its value
+as if it was a 64-bit value.
+@item w0..w9
+General-purpose register in an instruction that operates on its value
+as if it was a 32-bit value.
+@end table
+
+@noindent
+Note that in the Pseudo-C syntax register names are not preceded by
+@code{%} characters.
+
+@subsubsection Arithmetic instructions
+
+In all the instructions below, the operations are 64-bit or 32-bit
+depending on the names used to refer to the registers.  For example
+@code{r3 += r2} will perform 64-bit addition, whereas @code{w3 += w2}
+will perform 32-bit addition.  Mixing register prefixes is an error,
+for example @code{r3 += w2}.
+
+@table @code
+@item dst_reg += (imm32|src_reg)
+Arithmetic addition.
+@item dst_reg -= (imm32|src_reg)
+Arithmetic subtraction.
+@item dst_reg *= (imm32|src_reg)
+Arithmetic multiplication.
+@item dst_reg /= (imm32|src_reg)
+Arithmetic integer unsigned division.
+@item dst_reg %= (imm32|src_reg)
+Arithmetic integer unsigned remainder.
+@item dst_reg &= (imm32|src_reg)
+Bit-wise ``and'' operation.
+@item dst_reg |= (imm32|src_reg)
+Bit-wise ``or'' operation.
+@item dst_reg ^= (imm32|src_reg)
+Bit-wise exclusive-or operation.
+@item dst_reg <<= (imm32|src_reg)
+Left shift, by whatever specified number of bits.
+@item dst_reg >>= (imm32|src_reg)
+Right logical shift, by whatever specified number of bits.
+@item dst_reg s>>= (imm32|src_reg)
+Right arithmetic shift, by whatever specified number of bits.
+@item dst_reg = (imm32|src_reg)
+Move the value in @code{imm32} or @code{src_reg} in @code{dst_reg}.
+@item dst_reg = -dst_reg
+Arithmetic negation.
+@end table
+
+@subsubsection Endianness conversion instructions
+
+@table @code
+@item dst_reg = le16 src_reg
+Convert the 16-bit value in @code{src_reg} to little-endian.
+@item dst_reg = le32 src_reg
+Convert the 32-bit value in @code{src_reg} to little-endian.
+@item dst_reg = le64 src_reg
+Convert the 64-bit value in @code{src_reg} to little-endian.
+@item dst_reg = be16 src_reg
+Convert the 16-bit value in @code{src_reg} to big-endian.
+@item dst_reg = be32 src_reg
+Convert the 32-bit value in @code{src_reg} to big-endian.
+@item dst_reg = be64 src_reg
+Convert the 64-bit value in @code{src_reg} to big-endian.
+@end table
+
+@subsubsection 64-bit load and pseudo maps
+
+@table @code
+@item dst_reg = imm64 ll
+Load the given signed 64-bit immediate, or pseudo map descriptor, to
+the destination register @code{dst_reg}.
+@end table
+
+@subsubsection Load instructions for socket filters
+
+@table @code
+@item r0 = *(u8 *)skb[imm32]
+Absolute 8-bit load.
+@item r0 = *(u16 *)skb[imm32]
+Absolute 16-bit load.
+@item r0 = *(u32 *)skb[imm32]
+Absolute 32-bit load.
+@item r0 = *(u64 *)skb[imm32]
+Absolute 64-bit load.
+@item r0 = *(u8 *)skb[src_reg + imm32]
+Indirect 8-bit load.
+@item r0 = *(u16 *)skb[src_reg + imm32]
+Indirect 16-bit load.
+@item r0 = *(u32 *)skb[src_reg + imm32]
+Indirect 32-bit load.
+@item r0 = *(u64 *)skb[src_reg + imm32]
+Indirect 64-bit load.
+@end table
+
+@subsubsection Generic load/store instructions
+
+@table @code
+@item dst_reg = *(u8 *)(src_reg + offset16)
+Generic 8-bit load.
+@item dst_reg = *(u16 *)(src_reg + offset16)
+Generic 16-bit load.
+@item dst_reg = *(u32 *)(src_reg + offset16)
+Generic 32-bit load.
+@item dst_reg = *(u64 *)(src_reg + offset16)
+Generic 64-bit load.
+@c XXX stb
+@c NO PSEUDOC-SYNTAX
+@c XXX sth
+@c NO PSEUDOC-SYNTAX
+@c XXX stw
+@c NO PSEUDOC-SYNTAX
+@c XXX stdw
+@c NO PSEUDOC-SYNTAX
+@item *(u8 *)(dst_reg + offset16) = src_reg
+Generic 8-bit store.
+@item *(u16 *)(dst_reg + offset16) = src_reg
+Generic 16-bit store.
+@item *(u32 *)(dst_reg + offset16) = src_reg
+Generic 32-bit store.
+@item *(u64 *)(dst_reg + offset16) = src_reg
+Generic 64-bit store.
+@end table
+
+@subsubsection Jump instructions
+
+@table @code
+@item goto disp16
+Jump-always.
+@item if dst_reg == (imm32|src_reg) goto disp16
+Jump if equal.
+@item if dst_reg & (imm32|src_reg) goto disp16
+Jump if signed equal.
+@item if dst_reg != (imm32|src_reg) goto disp16
+Jump if not equal.
+@item if dst_reg > (imm32|src_reg) goto disp16
+Jump if bigger, unsigned.
+@item if dst_reg < (imm32|src_reg) goto disp16
+Jump if smaller, unsigned.
+@item if dst_reg >= (imm32|src_reg) goto disp16
+Jump if bigger or equal, unsigned.
+@item if dst_reg <= (imm32|src_reg) goto disp16
+Jump if smaller or equal, unsigned.
+@item if dst_reg s> (imm32|src_reg) goto disp16
+Jump if bigger, signed.
+@item if dst_reg s< (imm32|src_reg) goto disp16
+Jump if smaller, signed.
+@item if dst_reg s>= (imm32|src_reg) goto disp16
+Jump if bigger or equal, signed.
+@item if dst_reg s<= (imm32|src_reg) goto disp16
+Jump if smaller or equal, signed.
+@item call imm32
+Jump and link.
+@item exit
+Terminate the eBPF program.
+@end table
+
+@subsubsection Atomic instructions
+
+@table @code
+@item lock *(u64 *)(dst_reg + offset16) += src_reg
+Exchange-and-add a 64-bit value at the specified location.
+@item lock *(u32 *)(dst_reg + offset16) += src_reg
+Exchange-and-add a 32-bit value at the specified location.
+@end table

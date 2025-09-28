@@ -1,0 +1,17 @@
+COMMENT(!MOD!zsh/example
+An example of how to write a module.
+!MOD!)
+The tt(zsh/example) module makes available one builtin command:
+
+startitem()
+findex(example)
+cindex(modules, example)
+cindex(modules, writing)
+cindex(writing modules)
+item(tt(example) [ tt(-flags) ] [ var(args) ... ])(
+Displays the flags and arguments it is invoked with.
+)
+enditem()
+
+The purpose of the module is to serve as an example of how to write a
+module.

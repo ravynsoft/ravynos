@@ -1,0 +1,7 @@
+#compdef mkzsh mkzsh.exe
+
+_arguments -s -S \
+  '(--allusers -A)'{-A,--allusers}'[creates item for All Users instead of just current user]' \
+  '(--desktop -D)'{-D,--desktop}'[creates a Desktop icon for running /zsh.bat]' \
+  '(--smprograms -P)'{-P,--smprograms}'[creates a Program menu item for running /zsh.bat]' \
+  '(--help -h)'{-h,--help}'[display help information]'

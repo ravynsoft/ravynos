@@ -1,0 +1,91 @@
+#autoload
+
+local comp pat val name i ret=1 _compskip="$_compskip"
+local curcontext="$curcontext" service str noskip
+local -a match mbegin mend
+
+# If we get the option `-s', we don't reset `_compskip'.
+
+if [[ "$1" = -s ]]; then
+  noskip=yes
+  shift
+fi
+
+[[ -z "$noskip" ]] && _compskip=
+
+curcontext="${curcontext%:*:*}:${1}:"
+
+shift
+
+# See if there are any matching pattern completions.
+
+if [[ "$_compskip" != (all|*patterns*) ]]; then
+
+  for str in "$@"; do
+    [[ -n "$str" ]] || continue
+    service="${_services[$str]:-$str}"
+    for i in "${(@)_patcomps[(K)$str]}"; do
+      if [[ $i = (#b)"="([^=]#)"="(*) ]]; then
+	service=$match[1]
+	i=$match[2]
+      fi
+      eval "$i" && ret=0
+      if [[ "$_compskip" = *patterns* ]]; then
+        break
+      elif [[ "$_compskip" = all ]]; then
+        _compskip=''
+        return ret
+      fi
+    done
+  done
+fi
+
+# Now look up the names in the normal completion array.
+
+ret=1
+for str in "$@"; do
+  [[ -n "$str" ]] || continue
+  # The following means we look up the names of commands
+  # after stripping quotes.  This is presumably correct,
+  # but do we need to do the same elsewhere?
+  str=${(Q)str}
+  name="$str"
+  comp="${_comps[$str]}"
+  service="${_services[$str]:-$str}"
+
+  [[ -z "$comp" ]] || break
+done
+
+# And generate the matches, probably using default completion.
+
+if [[ -n "$comp" && "$name" != "${argv[-1]}" ]]; then
+  _compskip=patterns
+  eval "$comp" && ret=0
+  [[ "$_compskip" = (all|*patterns*) ]] && return ret
+fi
+
+if [[ "$_compskip" != (all|*patterns*) ]]; then
+  for str; do
+    [[ -n "$str" ]] || continue
+    service="${_services[$str]:-$str}"
+    for i in "${(@)_postpatcomps[(K)$str]}"; do
+      _compskip=default
+      eval "$i" && ret=0
+      if [[ "$_compskip" = *patterns* ]]; then
+        break
+      elif [[ "$_compskip" = all ]]; then
+        _compskip=''
+        return ret
+      fi
+    done
+  done
+fi
+
+[[ "$name" = "${argv[-1]}" && -n "$comp" &&
+   "$_compskip" != (all|*default*) ]] &&
+  service="${_services[$name]:-$name}" &&
+   eval "$comp" && ret=0
+
+_compskip=''
+
+return ret

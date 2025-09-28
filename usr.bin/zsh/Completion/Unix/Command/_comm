@@ -1,0 +1,30 @@
+#compdef comm gcomm
+
+local -a args aopts=( -A '-*' )
+
+args=(
+  '-1[suppress lines unique to first file]'
+  '-2[suppress lines unique to second file]'
+  '-3[suppress lines that appear in both files]'
+  '1:file to compare:_files'
+  '2:file to compare:_files'
+)
+
+if _pick_variant gnu=GNU unix --version; then
+  aopts=( )
+  args+=(
+    '(--nocheck-order)--check-order[check input is correctly sorted]'
+    "(--check-order)--nocheck-order[don't check input is correctly sorted]"
+    '--output-delimiter=[specify column delimiter]:delimiter'
+    '--total[display summary]'
+    '(-z --zero-terminated)'{-z,--zero-terminated}'[use NUL as line delimiter]'
+    '(- : *)--version[display version information]'
+    '(- : *)--help[display help information]'
+  )
+elif [[ $OSTYPE = (freebsd|dragonfly|darwin)* ]]; then
+  args+=( '-i[case insensitive comparison of lines]' )
+elif [[ $OSTYPE = (openbsd|netbsd)* ]]; then
+  args+=( '-f[case insensitive comparison of lines]' )
+fi
+
+_arguments -s -S $aopts : $args

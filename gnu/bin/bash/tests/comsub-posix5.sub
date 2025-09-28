@@ -1,0 +1,70 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+: ${THIS_SH:=./bash}
+
+# problems with recognzing `esac' after a right paren in a command substitution
+
+: $(case x in x) esac)
+: $(case x in x) ;; x) esac)
+# non-reserved word beginning with e
+: $(case x in x) ;; x) echo ;; esac)
+# reserved word beginning with e
+: $(case x in x) ;; x) eval esac ;; esac)
+
+: $(case x in x ) esac)
+: $(case x in x ) ;; x) esac)
+
+: $(case x in (x) esac)
+: $(case x in (x) ;; (x) esac)
+: $(case x in (x) ;; x) esac)
+: $(case x in (x) (echo a) esac)
+
+: $(case x in (x) (echo esac) esac)
+: $(case x in x) (echo esac) esac)
+
+# these errors should be caught sooner
+${THIS_SH} -c ': $(case x in x) ;; x) done esac)' bash
+${THIS_SH} -c ': $(case x in x) ;; x) done ;; esac)' bash
+${THIS_SH} -c ': $(case x in x) (esac) esac)' bash
+
+# these are not errors
+: $(case x in x) ;; x) eval done ;; esac)
+
+# these are just ridiculous
+: $(case x in (x) a() { echo a; } esac)
+: $(case x in (x) if :; then echo a; fi esac)
+: $(case x in (x) { echo a; } esac)
+: $(case x in (x) while false; do echo a; done esac)
+: $(case x in (x) case y in (y) echo a;; esac esac)
+: $(case x in (x) case y in (y) echo a;; esac ;; (y) foo ;;  esac)
+
+: $(case x in x) a() { echo a; } esac)
+: $(case x in x) if :; then echo a; fi esac)
+: $(case x in x) { echo a; } esac)
+: $(case x in x) while false; do echo a; done esac)
+: $(case x in x) case y in (y) echo a;; esac esac)
+: $(case x in x) case y in (y) echo a;; esac ;; y) foo ;;  esac)
+: $(case x in x) case y in y) echo a;; esac ;; y) foo ;;  esac)
+
+: $(case ni in esac)
+: $(case in in esac)
+
+: $(case x in in|esac) foo;; esac)
+: $(case esac in (esac) echo esac;; esac)
+: $(case k in else|done|time|esac) for f in 1 2 3 ; do :; done esac)
+
+# this is an error
+${THIS_SH} -c ': $(case x in esac|in) foo;; esac)' bash
+
+${THIS_SH} -c ': $(case x in x) ;; x) done)' bash

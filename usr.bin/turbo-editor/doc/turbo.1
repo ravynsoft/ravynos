@@ -1,0 +1,130 @@
+.TH TURBO 1 "4 January 2023"
+.SH NAME
+turbo \- An experimental text editor based on Scintilla and Turbo Vision.
+.SH SYNOPSIS
+\fBturbo\fR [\fIfile\fR...]
+.SH DESCRIPTION
+.PP
+Turbo is an experimental text editor for the terminal, based on the Scintilla code editing component and the Turbo Vision application framework.
+.PP
+It was created to demonstrate new features in Turbo Vision.
+In particular, it has served as testing ground for Turbo Vision's Unicode capabilities.
+.PP
+As a text editor, Turbo aims at being intuitive and easy to use.
+And simply because it is a Turbo Vision application, it offers a vintage look and feel.
+.SS User interface shortcuts
+.TP
+\fBCtrl+Q\fR, \fBAlt+X\fR
+Exit Turbo.
+.TP
+\fBAlt+\fIletter\fR
+Open menu with shortcut key \fIletter\fR.
+For example, \fBAlt+F\fR opens the \fBF\fRile menu.
+Once a menu is open, menu entries can be selected by pressing their respective shortcut key.
+For example, \fBAlt+F+U\fR selects the S\fBu\fRspend entry in the \fBF\fRile menu.
+.TP
+\fBCtrl+N\fR
+New document.
+.TP
+\fBCtrl+O\fR
+Open file.
+.TP
+\fBCtrl+S\fR
+Save current document.
+.TP
+\fBF2\fR
+Rename current file.
+.TP
+\fBF6\fR, \fBCtrl+Tab\fR
+Walk through document list.
+.TP
+\fBShift+F6\fR, \fBCtrl+Shift+Tab\fR
+Walk through document list, in reverse order.
+.TP
+\fBAlt+Down\fR
+Select next document in tree view.
+.TP
+\fBAlt+Up\fR
+Select previous document in tree view.
+.SS Text edition shortcuts
+.TP
+\fBCtrl+A\fR
+Select all text.
+.TP
+\fBCtrl+C\fR, \fBCtrl+Ins\fR
+Copy selection into clipboard.
+.TP
+\fBCtrl+D\fR
+Duplicate selection or current line.
+.TP
+\fBCtrl+F\fR
+Find text.
+.TP
+\fBCtrl+R\fR
+Replace text.
+.TP
+\fBCtrl+G\fR
+Go to line.
+.TP
+\fBCtrl+L\fR
+Delete current line.
+.TP
+\fBCtrl+E\fR, \fBCtrl+/\fR, \fBCtrl+_\fR
+Toggle comment.
+.TP
+\fBCtrl+V\fR, \fBShift+Ins\fR
+Paste from clipboard.
+.TP
+\fBCtrl+X\fR, \fBShift+Del\fR
+Cut selection.
+.TP
+\fBCtrl+Y\fR, \fBCtrl+Shift+Z\fR
+Redo.
+.TP
+\fBCtrl+Z\fR
+Undo.
+.TP
+\fBCtrl+Left\fR, \fBAlt+Left\fR
+Move cursor one word left.
+.TP
+\fBCtrl+Right\fR, \fBAlt+Right\fR
+Move cursor one word left.
+.TP
+\fBCtrl+Back\fR, \fBAlt+Back\fR
+Delete one word left.
+.TP
+\fBCtrl+Del\fR
+Delete one word right.
+.TP
+\fBShift\fR
+Extend selection while cursor moves.
+.TP
+\fBCtrl+Shift+Down\fR, \fBAlt+Shift+Down\fR
+Move selected lines down.
+.TP
+\fBCtrl+Shift+Up\fR, \fBAlt+Shift+Up\fR
+Move selected lines up.
+.TP
+\fBF3\fR
+Find next match.
+.TP
+\fBShift+F3\fR
+Find previous match.
+.SH ENVIRONMENT
+.PP
+The following environment variables affect the behaviour of Turbo:
+.TP
+\fBCOLUMNS\fR, \fBLINES\fR
+Overrides the system-supplied number of terminal columns and columns.
+.TP
+\fBDISPLAY\fR, \fBWAYLAND_DISPLAY\fR
+Turbo will interact with the X11 or Wayland clipboard if available.
+This requires \fIwl-clipboard\fR and \fIxsel\fR or \fIxclip\fR to be installed.
+.TP
+\fBLANG\fR, \fBLC_ALL\fR, \fBLC_CTYPE\fR
+UTF-8 support is only enabled if a UTF-8 locale is in use.
+.SH NOTES
+Not all keyboard shortcuts are supported by all terminals.
+For this reason, some commands can be triggered by more than one shortcut.
+.SH BUGS
+You can report bugs in Turbo's issue tracker (https://github.com/magiblot/turbo/issues).

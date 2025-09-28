@@ -1,0 +1,69 @@
+#autoload
+
+# Helper function for _path_files to handle the file-list style.
+
+# arguments:
+#  name of parameter containing file matches
+#  directory prefix
+# Sets array listfiles to the display strings and the array
+# listopts appropriately to be added to the compadd command line.
+
+local stat f elt what dir
+local -a stylevals
+integer ok
+
+listfiles=()
+listopts=()
+
+zstyle -a ":completion:${curcontext}:" file-list stylevals || return 1
+
+# TODO: more flexible way of handling the following?  e.g. use $compstate?
+case $WIDGETSTYLE in
+  (*complete*)
+  what=insert
+  ;;
+
+  (*)
+  what=list
+  ;;
+esac
+
+for elt in $stylevals; do
+  case $elt in
+    (*($what|all|true|1|yes)*=<->)
+    # use long format if no more than the given number of matches
+    (( ${(P)#1} <= ${elt##*=} )) && (( ok = 1 ))
+    break
+    ;;
+
+    ([^=]#($what|all|true|1|yes)[^=]#)
+    # always use long format
+    (( ok = 1 ))
+    break
+    ;;
+  esac
+done
+
+(( ok )) || return 1
+
+zmodload -F zsh/stat b:zstat 2>/dev/null || return 1
+
+dir=${2:+$2/}
+dir=${(Q)dir}
+
+for f in ${(PQ)1}; do
+  if [[ ! -e "$dir$f" ]]; then
+    listfiles+=("$dir$f")
+    continue
+  fi
+
+  # Borrowed from Functions/Example/zls
+  zstat -s -H stat -F "%b %e %H:%M" - "$dir$f" >/dev/null 2>&1
+
+  listfiles+=("$stat[mode] ${(l:3:)stat[nlink]} ${(r:8:)stat[uid]} \
+ ${(r:8:)stat[gid]} ${(l:8:)stat[size]} $stat[mtime] $f")
+done
+
+(( ${#listfiles} )) && listopts=(-d listfiles -l -o match)
+
+return 0

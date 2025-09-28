@@ -1,0 +1,29 @@
+use strict;
+use warnings;
+
+sub foo
+{
+    print "In foo\n";
+    bar();
+}
+
+sub bar
+{
+    print "In baz\n";
+    baz();
+}
+
+sub baz
+{
+    warn "This is not a warning.";
+
+    return;
+}
+
+sub myfunc
+{
+    bar();
+}
+
+myfunc();
+

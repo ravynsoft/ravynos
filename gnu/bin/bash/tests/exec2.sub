@@ -1,0 +1,5 @@
+# make sure an exit command in an exit trap sets the shell's exit status
+trap - 0
+trap 'exit 5' 0
+
+exit 0

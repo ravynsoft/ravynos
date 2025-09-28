@@ -1,0 +1,73 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+case foo in
+bar)	echo skip ;;
+foo)	echo fallthrough ;&
+bax)	echo to here ;&
+qux)	echo and here;;
+fop)	echo but not here;;
+esac
+
+case foobar in
+bar)	echo skip ;;
+foo*)	echo retest ;;&
+*bar)	echo and match ;;&
+qux)	echo but not this ;;
+esac
+
+case a in
+a)	echo no more clauses;&
+esac
+
+x=0 y=1
+case 1 in
+  $((y=0)) ) ;;
+  $((x=1)) ) ;&
+  $((x=2)) ) echo $x.$y ;;
+esac
+
+unset x
+readonly xx=1
+case 1 in $((xx++)) ) echo hi1 ;; *) echo hi2; esac
+echo ${xx}.$?
+
+unset var empty
+
+var=
+case ']' in
+[$var]*[$var])	echo matches 1;;
+*)		echo no match 1 ;;
+esac
+
+case abc in ( [] ) echo yes ;; ( * ) echo no ;; esac
+empty=''
+case abc in ( ["$empty"] ) echo yes ;; ( * ) echo no ;; esac
+
+case abc in ( [] | [!a-z]* ) echo yes ;; ( * ) echo no ;; esac
+empty=''
+case abc in ( ["$empty"] | [!a-z]* ) echo yes ;; ( * ) echo no ;; esac
+
+case abc in (["$empty"]|[!a-z]*) echo yes ;; (*) echo no ;; esac
+
+case " " in ( [" "] ) echo ok;; ( * ) echo no;; esac
+
+# posix issue discovered after bash-5.1 was released
+case esac in (esac) echo esac;; esac
+case k in else|done|time|esac) for f in 1 2 3 ; do :; done esac
+
+# tests of quote removal and pattern matching
+${THIS_SH} ./case1.sub
+${THIS_SH} ./case2.sub
+${THIS_SH} ./case3.sub
+${THIS_SH} ./case4.sub

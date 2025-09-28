@@ -1,0 +1,68 @@
+{
+    "fonts": [
+        {
+            "family": "Foo",
+            "style": "Medium",
+            "weight": 100
+        },
+        {
+            "family": "Bar",
+            "style": "Regular",
+            "weight": 80
+        },
+        {
+            "family": "Baz",
+            "style": "Bold",
+            "weight": 200
+        }
+    ],
+    "tests": [
+        {
+            "method": "match",
+            "query": {
+                "family": "Foo",
+                "weight": 200
+            },
+            "result": {
+                "family": "Foo",
+                "weight": 200,
+                "embolden": true
+            }
+        },
+        {
+            "method": "match",
+            "query": {
+                "family": "Bar",
+                "weight": 102
+            },
+            "result": {
+                "family": "Bar",
+                "weight": 80
+            }
+        },
+        {
+            "method": "match",
+            "query": {
+                "family": "Bar",
+                "weight": 200
+            },
+            "result": {
+                "family": "Bar",
+                "weight": 200,
+                "embolden": true
+            }
+        },
+        {
+            "method": "match",
+            "query": {
+                "family": "Baz",
+                "weight": 200
+            },
+            "result": {
+                "family": "Baz",
+                "weight": 200,
+                "embolden": null
+            }
+        }
+    ]
+}

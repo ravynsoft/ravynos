@@ -1,0 +1,79 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C support: mixing ANSI escapes, Unicode escapes, and bare
+# multibyte characters.
+
+: ${XGETTEXT=xgettext}
+
+cat <<\EOF > err1.c
+/* Out of range */
+gettext ("\U00110000");
+EOF
+
+(LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location --no-wrap -o - err1.c 2>&1; exit) | grep 'invalid Unicode character' || Exit 1
+
+cat <<\EOF > xg-c-escape-1.in.c
+/* 最初のコメント */
+"最初の文字列";
+
+/* 二番目のコメント */
+gettext ("二番目の文字列");
+
+/* 三番目のコメント */
+pgettext ("\u30B3\u30F3\u30C6\u30af\u30B9\u30C8\U0001F600\ud835\udc9ea", "\xBB\xB0\xC8\xD6\xCC\xDC\xA4\xCE\xCA\xB8\xBB\xFA\xCe\363");
+
+gettext ("\"\'\?\\\a\b\f\n\r\t\v\xG\0000");
+gettext ("\u30A");
+EOF
+
+: ${ICONV=iconv}
+iconv -f UTF-8 -t EUC-JP < xg-c-escape-1.in.c > xg-c-escape-1.c \
+  || { echo "Skipping test: iconv does not work for EUC-JP"; Exit 77; }
+
+${XGETTEXT} --from-code=EUC-JP --add-comments --no-location --no-wrap \
+            -o xg-c-escape-1.tmp xg-c-escape-1.c || Exit 1
+func_filter_POT_Creation_Date xg-c-escape-1.tmp xg-c-escape-1.po
+
+cat <<\EOF > xg-c-escape-1.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. 二番目のコメント
+msgid "二番目の文字列"
+msgstr ""
+
+#. 三番目のコメント
+msgctxt "コンテクスト😀𝒞a"
+msgid "三番目の文字列"
+msgstr ""
+
+msgid ""
+"\"'?\\\a\b\f\n"
+"\r\t\v\\xG"
+msgstr ""
+
+msgid "\\u30A"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-c-escape-1.ok xg-c-escape-1.po
+result=$?
+
+exit $result

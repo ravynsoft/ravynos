@@ -1,0 +1,43 @@
+#compdef mtn
+
+local -a cmds
+cmds=(
+  automate:automation db:database fdiff:debug fload:debug fmerge:debug
+  get_roster:debug identify:debug rcs_import:debug annotate:informative
+  cat:informative complete:informative diff:informative help:informative
+  list:informative log:informative ls:informative show_conflicts:informative
+  status:informative cert:key+cert chkeypass:key+cert dropkey:key+cert
+  genkey:key+cert trusted:key+cert pull:network push:network serve:network
+  sync:network privkey:packet\ i/o pubkey:packet\ i/o read:packet\ i/o
+  cvs_import:rcs approve:review comment:review disapprove:review tag:review
+  testresult:review checkout:tree co:tree explicit_merge:tree heads:tree
+  merge:tree merge_into_dir:tree migrate_workspace:tree propagate:tree
+  refresh_inodeprints:tree setup:tree set:vars unset:vars add:workspace
+  attr:workspace ci:workspace commit:workspace drop:workspace mv:workspace
+  pivot_root:workspace pluck:workspace rename:workspace revert:workspace
+  rm:workspace update:workspace
+)
+
+_arguments \
+  '--brief[print a brief version of the normal output]' \
+  '--confdir[set location of configuration directory]:confdir:_files -/' \
+  '(-d --db)'{-d,--db}'[set name of database]:dbname' \
+  '--debug[print debug log to stderr while running]' \
+  '--dump[file to dump debugging log to, on failure]:dumpfile:_files' \
+  '--full-version[print detailed version number, then exit]' \
+  '(-h --help)'{-h,--help}'[display help message]' \
+  '(-k --key)'{-k,--key}'[set key for signatures]:key:' \
+  '--keydir[set location of key store]:keydir:_files -/' \
+  '--log[file to write the log to]:logfile:_files' \
+  '--norc[do not load ~/.monotone/monotonerc or _MTN/monotonerc lua files]' \
+  '--nostd[do not load standard lua hooks]' \
+  '--pid-file[record process id of server]:arg:' \
+  '--quiet[suppress verbose, informational and progress messages]' \
+  '--rcfile[load extra rc file]:extra rcfile:_files' \
+  '--reallyquiet[suppress warning, verbose, informational and progress messages]' \
+  '--root[limit search for workspace to specified root]:root:_files -/' \
+  '--ticker[set ticker style]:ticker style:(count dot none)' \
+  '--version[print version number, then exit]' \
+  '(-@ --xargs)'{-@,--xargs}'[insert command line arguments taken from the given file]:file:_files' \
+  '1:command: _describe -t commands command cmds' \
+  '*:file:_files'

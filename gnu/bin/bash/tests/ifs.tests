@@ -1,0 +1,76 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+OIFS="$IFS"
+IFS=":$IFS"
+eval foo="a:b:c"
+IFS="$OIFS"
+echo $foo
+
+OIFS=$IFS
+IFS=":$IFS"
+foo=$(echo a:b:c)
+IFS=$OIFS
+
+for i in $foo
+do
+	echo $i
+done
+
+OIFS=$IFS
+IFS=":$IFS"
+foo=`echo a:b:c`
+IFS=$OIFS
+
+for i in $foo
+do
+	echo $i
+done
+
+DEFIFS=$' \t\n'
+
+# local copy of IFS that shadows global version
+function f
+{
+	typeset IFS=:
+
+	echo $1
+}
+
+function ff
+{
+	echo $1
+}
+
+f a:b:c:d:e
+x=a:b:c:d:e
+echo $x
+
+IFS=: ff a:b:c:d:e
+echo $x
+
+# doesn't get word split
+IFS=$DEFIFS
+# variable assignment doesn't use new value for word splitting
+IFS=: echo $x
+# but does this time because of the eval
+IFS=: eval echo \$x
+
+# in posix mode, assignments preceding special builtins and functions are global
+set -o posix
+IFS=: export x
+echo $x
+
+IFS="$DEFIFS"
+
+${THIS_SH} ./ifs1.sub

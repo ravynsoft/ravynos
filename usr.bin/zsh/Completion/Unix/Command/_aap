@@ -1,0 +1,50 @@
+#compdef aap
+
+# A-A-P recipe executive version 1.076; released 2005 May 30 12:47:03 GMT
+
+local curcontext="$curcontext" state line ret=1
+typeset -A opt_args
+
+_arguments -C -s -S \
+  '(- *)'{-V,--version}'[print version information and exit]' \
+  '(- *)'{-h,--help}'[print help information and exit]' \
+  '(-s --silent -v --verbose)'{-v,--verbose}'[print more information]' \
+  '(-v --verbose -s --silent)'{-s,--silent}'[print less information]' \
+  '(-d --debug)'{-d,--debug=}'[debug the specified items]:flags:' \
+  '--profile=[profile A-A-P execution and write results in specified file]:output file:_files' \
+  '(-n --nobuild)'{-n,--nobuild}'[print the build commands but do not execute them]' \
+  '--changed=[consider specified file changed]:changed file:_files' \
+  '(-t --touch)'{-t,--touch}'[update target signatures, do not build]' \
+  '(-F --force)'{-F,--force}'[force rebuilding]' \
+  '(-C --contents)'{-C,--contents}'[only build when file contents changed]' \
+  \*{-c,--command=}'[execute a command after reading the recipe]:aap command:' \
+  '(-k --continue)'{-k,--continue}'[continue building after an error]' \
+  '(-S --stop)'{-S,--stop}'[stop building at first error (default)]' \
+  '(-N --nofetch-recipe -R --fetch-recipe)'{-R,--fetch-recipe}'[fetch recipe file and child recipes]' \
+  '(-R --fetch-recipe -N --nofetch-recipe)'{-N,--nofetch-recipe}'[do not fetch recipes for "fetch" target]' \
+  '(-a --nocache)'{-a,--nocache}"[always download files, don't use the cache]" \
+  '(-l --local)'{-l,--local}'[do not recurse into subdirectories]' \
+  '(-j --jobs)'{-j,--jobs=}'[maximum number of parallel jobs]:number of jobs:' \
+  '(-f --recipe -u --search-up --up)'{-u,--search-up,--up}'[search directory tree upwards for main.aap recipe]' \
+  \*{-I,--include=}'[directory to search for included recipes]:include directory:_files -/' \
+  '(-u --search-up --up -f --recipe)'{-f,--recipe=}'[recipe file to be executed]:recipe file:_files -g \*.aap\(-.\)' \
+  '--install=[install specified package]:package name:' \
+  '--[end of options, targets and assignments follow]' \
+  '*:aap target:->target' && ret=0
+
+if [[ "$state" = target ]]; then
+  local targets recipe
+  if [[ -n $opt_args[(I)(-u|--search-up|--up)] ]]; then
+    recipe=( (../)#main.aap(N[-1]) )
+  else
+    recipe=${(v)opt_args[(I)(-f|--recipe)]:-main.aap}
+  fi
+  if [[ -f $recipe ]]; then
+    targets=( ${${(f)"$(_call_program targets $words[1] -f $recipe comment 2>/dev/null)"}/(#b)target (*):[[:blank:]]##(*)/$match[1]:${match[2]:l}} comment )
+    _describe -t targets 'aap target' targets && ret=0
+  else
+    _message -e targets 'aap target'
+  fi
+fi
+
+return ret

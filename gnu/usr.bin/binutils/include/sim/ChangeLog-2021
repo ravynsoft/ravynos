@@ -1,0 +1,46 @@
+2021-06-29  Mike Frysinger  <vapier@gentoo.org>
+
+	* sim/callback.h (struct host_callback_struct): Add ATTRIBUTE_PRINTF
+	to printf functions.
+
+2021-06-24  Mike Frysinger  <vapier@gentoo.org>
+
+	* sim/callback.h (struct host_callback_struct): Add arg5, arg6, and
+	arg7.
+
+2021-06-23  Mike Frysinger  <vapier@gentoo.org>
+
+	* sim/callback.h (struct host_callback_struct): Add kill.
+
+2021-06-22  Mike Frysinger  <vapier@gentoo.org>
+
+	* sim/callback.h (struct host_callback_struct): Add getpid.
+
+2021-05-14  Mike Frysinger  <vapier@gentoo.org>
+
+	* sim/callback.h (struct host_callback_struct): Change lseek return and
+	3rd arg to int64_t.  Change truncate & ftruncate 3rd arg to int64_t.
+
+2021-05-14  Mike Frysinger  <vapier@gentoo.org>
+
+	* callback.h: Include stdint.h.
+	(struct host_callback_struct): Change time return to int64_t.  Delete
+	2nd arg.
+
+2021-05-14  Mike Frysinger  <vapier@gentoo.org>
+
+	* callback.h (p1, p2): Change PTR to void*.
+	(cb_host_to_target_stat): Likewise.
+
+2021-05-14  Mike Frysinger  <vapier@gentoo.org>
+
+	* callback.h (error): Replace __attribute__ with ATTRIBUTE_NORETURN.
+
+2021-05-14  Mike Frysinger  <vapier@gentoo.org>
+
+	* callback.h: Delete va_start define check.
+
+2021-05-14  Mike Frysinger  <vapier@gentoo.org>
+
+	* callback.h: Moved from ../gdb/callback.h.
+	* sim.h: Moved from ../gdb/remote-sim.h.

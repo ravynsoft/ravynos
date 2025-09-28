@@ -1,0 +1,44 @@
+#compdef nkf
+
+typeset -A opt_args
+
+local outputsshort="-j -s -e -w -w8 -w16 -w16b0 -w16b -w16l0 -w16l"
+local outputs="$outputsshort --fj --unix --mac --windows --jis --euc --sjis --utf8 --utf16"
+local inputs=${outputsshort:u}
+
+_arguments -s \
+  '(-u)-b[Output is buffered]' \
+  '(-b)-u[Output is unbuffered]' \
+  '($outputs)'{-j,--jis}'[Output is JIS 7 bit]' \
+  '($outputs)'{-e,--sjis}'[Output is Shift JIS]' \
+  '($outputs)'{-s,--euc}'[Output is EUC-JP]' \
+  '($outputs)'{-w,--utf8}'[Output is UTF-8 (No BOM)]' \
+  '($outputs)-w8[Output is UTF-8 (BOM)]' \
+  '($outputs)'{-w16,-w16b0,--utf16}'[Output is UTF-16 (BigEndian; No BOM)]' \
+  '($outputs)-w16b[Output is UTF-16 (BigEndian; BOM)]' \
+  '($outputs)-w16l0[Output is UTF-16 (Little Endian; No BOM)]' \
+  '($outputs)-w16l[Output is UTF-16 (Little Endian; BOM)]' \
+  '($outputs)--fj[Output is for fj]' \
+  '($outputs)--unix[Output is for unix]' \
+  '($outputs)--mac[Output is for Mac]' \
+  '($outputs)--windows[Output is for Windows]' \
+  '($inputs)-J[Input assumption is JIS 7 bit]' \
+  '($inputs)-E[Input assumption is Shift JIS]' \
+  '($inputs)-S[Input assumption is EUC-JP]' \
+  '($inputs)-W[Input assumption is UTF-8 (No BOM)]' \
+  '($inputs)-W8[Input assumption is UTF-8 (BOM)]' \
+  '($inputs)-W16[Input assumption is UTF-16 (BigEndian; No BOM)]' \
+  '($inputs)-W16b[Input assumption is UTF-16 (BigEndian; BOM)]' \
+  '($inputs)-W16l0[Input assumption is UTF-16 (Little Endian; No BOM)]' \
+  '($inputs)-W16l[Input assumption is UTF-16 (Little Endian; BOM)]' \
+  '(-M)-m-[MIME decode]:mime decode:((B\:base64 Q\:quoted S\:strict N\:non-strict 0\:no-decode))' \
+  '(-m)-M-[MIME encode]:mime encode:((\:header B\:base64 Q\:quoted))' \
+  '-h-[hiragana<->katakana]:hirakata:((1\:hiragana-\>katakana 2\:katakana-\>hiragana 3\:both))' \
+  '-L-[line mode]:line mode:((u\:LF w\:CRLF m\:CR))' \
+  '-I[convert non ISO-2022-JP character to GETA]' \
+  '(--cap-input --url-input)'{--cap-input,--url-input}'[Convert hex after \: or \%]' \
+  '--overwrite[Overwrite original listed files by filtered result]' \
+  '(-v --help)'{-v,--help}'[display help message]' \
+  '*:file:_files' && return 0
+
+return 1

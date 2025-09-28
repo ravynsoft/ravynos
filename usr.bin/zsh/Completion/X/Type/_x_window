@@ -1,0 +1,18 @@
+#autoload
+
+local list expl
+
+_tags windows || return 1
+
+list=( "${(@)${(M@)${(@f)$(_call_program windows xwininfo -root -tree)}:#[ 	]#0x[0-9a-f]# \"*}##[ 	]#}" )
+
+if [[ "$1" = -n ]]; then
+  shift
+
+  _wanted windows expl 'window name' \
+      compadd "$@" -d list - "${(@)${(@)list#*\"}%%\"*}"
+else
+  [[ "$1" = - ]] && shift
+
+  _wanted windows expl 'window ID' compadd "$@" -d list - "${(@)list%% *}"
+fi

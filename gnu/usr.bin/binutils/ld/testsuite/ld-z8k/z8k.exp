@@ -1,0 +1,63 @@
+# Expect script for ld-z8k tests
+#   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+# Test z8k linking; (not yet) all types of relocs.  This tests the
+# assembler and tools like objdump as well as the main target, the
+# linker.
+
+if ![istarget "z8k-*-*"] then {
+    return
+}
+
+set z8ktests {
+    {"z8k specific relocations (non-segmented)"
+	"-T reloc.ld"
+	""
+	"-z8002"
+	{this-file.s other-file.s}
+	{{objdump -dr reloc.dd}}
+	"reloc.prog"
+    }
+    {"z8k specific relocations (segmented, all in one segment)"
+	"-T reloc.ld"
+	"-mz8001"
+	"-z8001"
+	{this-file.s other-file.s}
+	{{objdump -dr relocseg1.dd}}
+	"relocseg1.prog"
+    }
+    {"z8k specific relocations (segmented, different segments)"
+	"-T relocseg.ld"
+	"-mz8001"
+	"-z8001"
+	{this-file.s other-file.s}
+	{{objdump -dr relocseg.dd}}
+	"relocseg.prog"
+    }
+}
+
+run_ld_link_tests $z8ktests
+
+set z8k_test_list [lsort [glob -nocomplain $srcdir/$subdir/*.d]]
+foreach z8k_test $z8k_test_list {
+    verbose [file rootname $z8k_test]
+    run_dump_test [file rootname $z8k_test]
+}

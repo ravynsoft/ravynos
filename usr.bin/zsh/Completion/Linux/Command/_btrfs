@@ -1,0 +1,448 @@
+#compdef btrfs
+
+local curcontext="$curcontext" curstate state line expl grp cmd cont shift ret=1
+local -a cmds_1 cmds_2 cmds_3 cmds_4 cmds_5 cmds_6 cmds_7 cmds_8 cmds_9 cmds_10
+local -a groups args
+
+groups=( subvolume filesystem device scrub balance inspect-internal property
+         quota qgroup replace rescue check restore send receive
+         help version )
+cmds_1=( create delete list snapshot get-default set-default find-new show sync help )
+cmds_2=( df du show sync defragment resize label usage help )
+cmds_3=( add delete remove ready scan stats usage help )
+cmds_4=( start cancel resume status help )
+cmds_5=( start pause cancel resume status )
+cmds_6=( dump-{super,tree} {inode,logical,subvolid}-resolve min-dev-size rootid tree-stats help )
+cmds_7=( get set list )
+cmds_8=( enable disable rescan help )
+cmds_9=( assign remove create destroy show limit help )
+cmds_10=( start status cancel help )
+cmds_11=( chunk-recover fix-device-size super-recover zero-log create-control-device )
+
+_arguments -C -A "-*" "$args[@]" \
+  '(- *)--help[print help information]' \
+  '(- *)--version[print version information]' \
+  '(-v --verbose -q --quiet --help --version)'{-v,--verbose}'[verbose output of operation]' \
+  '(-v --verbose -q --quiet --help --version)'{-q,--quiet}'[suppress all messages except errors]' \
+  '(--help --version)--format=[specify output format]:format:(text json)' \
+  '(--version)1: :->groups' \
+  '2: :->cmds' \
+  '*:: :->args' && ret=0
+
+while (( $#state )); do
+  curstate=$state
+  shift state
+  case $curstate in
+    groups)
+      _wanted command-groups expl 'btrfs command group' compadd -a groups && ret=0
+    ;;
+    cmds)
+      grp=${groups[(i)$words[2]*]}
+      (( grp && grp <= 16 )) || return 1
+      cont=${groups[grp]}
+      curcontext="${curcontext%:*:*}:$service-${cont}:"
+      if (( grp <= 11 )); then
+        _wanted commands expl command compadd -a cmds_$grp && ret=0
+        continue
+      fi
+    ;&
+    args)
+      if [[ $curstate != cmds ]]; then
+        grp=${groups[(i)$words[1]*]}
+        (( grp && grp <= 16 )) || return 1
+        cont=${groups[grp]}
+        if (( grp <= 11 )); then
+          local group=cmds_$grp
+          local cmd=${${(P)group}[(i)$words[2]*]}
+          (( cmd )) || return 1
+          cont+=:${${(P)group}[cmd]}
+        else
+          shift=1
+        fi
+        curcontext="${curcontext%:*:*}:$service-${cont/:/-}:"
+      fi
+      args=( '(-)--help[print help information]' )
+      case ${cont} in
+        (balance|replace):start|device:(add|delete|remove)|filesystem:resize)
+          args+=(
+            "--enqueue[wait if there's another exclusive operation running, otherwise continue]"
+          )
+        ;|
+        subvolume:create)
+          args+=(
+            '*-i[add the newly created subvolume to a qgroup]:qgroup'
+            '1:destination:->mounts'
+          )
+        ;;
+        subvolume:delete)
+          args+=( '!-v' '!--verbose'
+            '(-c --commit-after -C --commit-each)'{-c,--commit-after}'[wait for transaction commit at the end of the operation]'
+            '(-c --commit-after -C --commit-each)'{-C,--commit-each}'[wait for transaction commit after deleting each subvolume]'
+            '(-i --subvolid)'{-i+,--subvolid=}'[specify id of subvolume to be removed]:subvolume id'
+            '1:subvolume:_files -/'
+          )
+        ;;
+        subvolume:snapshot)
+          args+=(
+            '-r[readonly snapshot]'
+            '*-i[assign to qgroup]:qgroup: _message "qgroup"'
+            '1:source directory:_files -/'
+            '2:snapshot name or destination:_files -/'
+          )
+        ;;
+        subvolume:list)
+          args+=(
+            '-p[include parent ID in output]'
+            '-a[include all subvolumes]'
+            '-c[include ogeneration of the subvolume]'
+            '-g[include generation of the subvolume]'
+            '-o[include only subvolumes below the path]'
+            '-u[include UUID of subvolume]'
+            '-q[include parent UUID of subvolume]'
+            '-R[include the uuid of the received snapshots]'
+            '-t[print results as a table]'
+            '-s[list only snapshot subvolumes]'
+            '-r[list only readonly subvolumes]'
+            '-d[list deleted subvolumes that are not yet cleaned]'
+            '-G[subvolume generation is more or less than]:gen: _guard "(|+|-)[0-9]#"'
+            '-C[subvolume ogeneration is more or less than]:ogen: _guard "(|+|-)[0-9]#"'
+            '--sort=-[list in order]:order:_sequence compadd - rootid gen ogen path'
+            '1:path:->mounts'
+          )
+        ;;
+        subvolume:set-default) args+=( '1:id:_guard "[0-9]#" id' '2:path:->mounts' );;
+        subvolume:show)
+          args+=(
+            '(-r --rootid)'{-r,--rootid}'[rootid of the subvolume]'
+            '(-u --uuid)'{-u,--uuid}'[uuid of the subvolume]'
+            '1:subvolume path:_directories'
+          )
+        ;|
+        subvolume:sync) args+=( '-s[sleep between checks]:delay (seconds) [1]' );;
+        subvolume:find-new) args+=( '1:subvol:_files -/' '2:lastgen: _message "last gen"' );;
+        (device|filesystem|qgroup|subvolume):(df|du|show|usage)|scrub:status)
+          args+=(
+            '--iec[use 1024 as a base]'
+            '--si[use 1000 as a base]'
+          )
+        ;|
+        (device|filesystem):(df|usage)|subvolume:show)
+          args+=(
+            '(-b --raw)'{-b,--raw}'[output raw numbers in bytes]'
+            '(-h --human-readable -H)'{-h,--human-readable}'[output human friendly numbers, base 1024]'
+            '(-h --human-readable -H)-H[output human friendly numbers, base 1000]'
+            '(-k --kbytes)'{-k,--kbytes}'[show sizes in KiB, or kB with --si]'
+            '(-m --mbytes)'{-m,--mbytes}'[show sizes in MiB, or MB with --si]'
+            '(-g --gbytes)'{-g,--gbytes}'[show sizes in GiB, or GB with --si]'
+            '(-t --tbytes)'{-t,--tbytes}'[show sizes in TiB, or TB with --si]'
+          )
+        ;|
+        (filesystem|qgroup|scrub):(du|show|status))
+          args+=(
+            '--raw[output raw numbers in bytes]'
+            '--human-readable[output human friendly numbers, base 1024]'
+            '--kbytes[show sizes in KiB, or kB with --si]'
+            '--mbytes[show sizes in MiB, or MB with --si]'
+            '--gbytes[show sizes in GiB, or GB with --si]'
+            '--tbytes[show sizes in TiB, or TB with --si]'
+          )
+        ;|
+        filesystem:resize) args+=( '1: :_numbers -u bytes -N size K M G T P E' '2:path:->mounts' );;
+        filesystem:defragment)
+          args+=( '!-v'
+            '-r[defragment files recursively]'
+            '-c+[compress files while defragmenting]::compression algorithm:(zlib lzo zstd)'
+            '-r[defragment files recursively]'
+            '-f[flush after defragmenting]'
+            '-s[start position]: :_numbers -u bytes -d "beginning of file" offset K M G T P E'
+            '-l[defragment limited number of bytes]: :_numbers -u bytes length K M G T P E'
+            '-t[defragment only extents up to a certain size]: :_numbers -u bytes -d 32M "maximum extent size" K M G T P E'
+            '*:file:_files'
+          )
+        ;;
+        filesystem:du) args+=( '(-s --summarize)'{-s,--summarize}'[display only a total for each argument]' );;
+        filesystem:label) args+=( '1:device:_files -g "*(-%)"' '2:new label' );;
+        filesystem:show)
+          args+=(
+            '(1 -)'{-d,--all-devices}'[scan all devices in /dev]'
+            '(1 -)'{-m,--mounted}'[show only mounted filesystems]'
+            '--raw[output raw numbers in bytes]'
+            '--human-readable[output human friendly numbers, base 1024]'
+            '1: :_guard "^-*" uuid or label'
+          )
+        ;;
+        filesystem:usage) args+=( '-T[show data in tabular format]' );;
+        device:(add|delete|ready|remove))
+          args+=(
+            '1:device:_files -g "*(-%)"'
+            '2:path:->mounts'
+            )
+          [[ ${${(P)group}[cmd]} == add ]] &&
+            args+=(
+              {-K,--nodiscard}"[don't perform whole device TRIM]"
+              {-f,--force}'[force overwrite of existing filesystem]'
+            )
+        ;;
+        device:scan)
+          args+=(
+            '(-)'{-u,--forget}'[unregister all stale devices or a given device]'
+            '(1 -)'{-d,--all-devices}'[enumerate and register all devices]'
+            '1:device:_files -g "*(-%)"'
+          )
+        ;;
+        device:stats)
+          args+=(
+            '(-c --check)'{-c,--check}'[return non-zero if any stat counter is not zero]'
+            '(-z --reset)'{-z,--reset}'[reset stats when done]'
+            "1:device or mountpoint:_files -g '*(-%,/)'"
+          )
+        ;;
+        device:ready) args+=( '1:device: _files -g "*(-%)"' );;
+        scrub:(start|resume))
+          args+=( '!-q'
+            "-B[don't background and print statistics at end]"
+            '-d[print separate statistics for each device]'
+            '-r[read only mode]'
+            '-R[raw print mode]'
+            '-c[set ioprio class]:class:(( 0\:none 1\:realtime 2\:best-effort 3\:idle))'
+            '-n[set ioprio classdata]:classdata:(0 1 2 3 4 5 6 7)'
+            '1:path or device:_files'
+          )
+          [[ ${${(P)group}[cmd]} == start ]] && args+=(
+            '-f[force starting new scrub even if a scrub is already running]'
+          )
+        ;;
+        scrub:cancel) args+=( '1: : _guard "^-*" "path or device"' );;
+        scrub:status)
+          args+=(
+            '-d[separate statistics for each device]'
+            '-R[print raw stats]'
+            '1:path or device:_files'
+          )
+        ;;
+        balance:start)
+          args+=( '!-v' '!--verbose'
+            '(-m -s)-d+[act on data chunks]:filter:->filters'
+            '(-d -s)-m+[act on metadata chunks]:filter:->filters'
+            '(-d -m)-s+[act on system chunks (only under -f)]:filters:->filters'
+            '-f[force a reduction of metadata integrity]'
+            "--full-balance[don't print warning and don't delay start]"
+            '(--background --bg)'{--background,--bg}'[run balance operation asynchronously in the background]'
+            '1:path:_files -/'
+          )
+        ;;
+        balance:status) args+=( '!-v' '!--verbose' '1:path:_files -/' );;
+        balance:(pause|cancel|resume)) args+=( '1:path:_files -/' );;
+        property:set) args+=( '3:value' );&
+        property:get) args+=( '2:property:(ro label compression)' );&
+        property:list)
+          args+=(
+            '-t[specify object type]:object type:(subvol filesystem inode device)'
+            '1: : _guard "^-*" object'
+          )
+        ;;
+        quota:(enable|disable)) args+=( '1:path:_files -/' );;
+        quota:rescan)
+          args+=(
+            '-s[show status of currently running rescan]'
+            '-w[wait for rescan to finish]'
+            '1:path:_files -/'
+          )
+        ;;
+        qgroup:(assign|remove))
+          args+=(
+            \!--rescan
+            "--no-rescan[don't do a rescan, even if the quotas may become inconsistent]"
+            '1:source path:_files -/'
+            '2:destination path:_files -/'
+            '3:path:_files -/'
+          )
+        ;;
+        qgroup:(create|destroy)) args+=( '1:qgroupid:' '2:path:_files -/' );;
+        qgroup:show)
+          args+=(
+            '-p[print parent qgroup id]'
+            '-c[print child qgroup id]'
+            '-r[print max referenced size of qgroup]'
+            '-e[print max exclusive size of qgroup]'
+            '-F[list impacted qgroups \(include ancestral qgroups\)]'
+            '-f[list impacted qgroups \(exclude ancestral qgroups\)]'
+            '--sort=-[sort qgroups]:sort:_values -s , sort \
+              qgroupid rfer excl max_rfer max_excl'
+            '--sync[do filesystem sync before getting information]'
+            '1:path:_files -/'
+          )
+        ;;
+        qgroup:limit)
+          args+=(
+            '-c[limit amount of data after compression]'
+            '-e[limit space exclusively to qgroup]'
+            ': :_guard "^-*" "size or none"'
+            ':qgroup id or path:_files -/'
+            ':path:_files -/'
+          )
+        ;;
+        replace:start)
+          args+=(
+            '-r[read from specified source device only]:srcdev:_files'
+            '-f[force overwriting of target]'
+            "-B[don't background]"
+            ':srcdev or devid:_files'
+            ':target:_files'
+            ':path:->mounts'
+          )
+        ;;
+        replace:status) args+=( '-1[print once rather than continuously]' ':path:->mounts' );;
+        replace:cancel) args+=( ':path:->mounts' );;
+        inspect*:dump-tree)
+          args+=(
+            '(-e --extents)'{-e,--extents}'[print only extent info: extent and device trees]'
+            '(-d --device)'{-d,--device}'[print only device info: tree root, chunk and device trees]'
+            '(-r --roots)'{-r,--roots}'[print only short root node info]'
+            '(-R --backups)'{-R,--backups}'[same as --roots plus print backup root info]'
+            '(-u --uuid)'{-u,--uuid}'[print only the uuid tree]'
+            \*{-b,--block}'[print info from the specified block only]:block number'
+            '(-t --tree)'{-t,--tree}'[print only tree with the given id (string or number)]:tree id'
+            '--follow[use with -b, to show all children tree blocks of the block]'
+            "--noscan[don't scan devices from the filesystem, use only the listed ones]"
+	    '!(--dfs)--bfs'
+	    '--dfs[depth-first traversal of the trees]'
+            '--hide-names[hide filenames/subvolume/xattrs and other name references]'
+            '--csum-headers[print node checksums stored in headers (metadata)]'
+            '--csum-items[print checksums stored in checksum items (data)]'
+          )
+        ;;
+        inspect*:dump-super)
+          args+=( \!-s:byte\ number '!-i:super:(0 1 2)'
+            '(-f --full)'{-f,--full}'[print full superblock information, backup roots etc.]'
+            '(-a --all)'{-a,--all}'[print information about all superblocks]'
+            '(-s --super)'{-s,--super}'[specify which copy to print out]:super:(0 1 2)'
+            '(-F --force)'{-F,--force}'[attempt to dump superblocks with bad magic]'
+            '--bytenr[specify alternate superblock offset]:offset'
+          )
+        ;;
+        inspect*:inode*) args+=( '!-v' '1:inode:_files' '2:path:_files -/' );;
+        inspect*:subvol*) args+=( '!-v' '1:subvolid:_guard "[0-9]#" subvolume id' '2:path:_files -/' );;
+        inspect*:logical*)
+          args+=( '!-v'
+            '-P[skip the path resolving and print the inodes instead]'
+            '-o[ignore offsets when matching references]'
+            '-s[specify buffer size]:buffer size [4096]'
+            '1:logical address:_files'
+            '2:filesystem path:_files -/'
+          )
+        ;;
+        inspect*:min*) args+=( '--id[specify the device id to query]:device id [1]' );;
+        inspect*:rootid) args+=( '1:path:_files -/' );;
+        inspect*:tree*) args+=( '-b[print raw numbers in bytes]' );;
+        rescue:(chunk|super)-recover)
+          args+=( '!-v'
+            '-y[assume yes to every question]'
+            '1:device:_files'
+          )
+          [[ ${${(P)group}[cmd]} == chunk-recover ]] && args+=('(-)-h[display help]')
+        ;;
+        subvolume:get-default) ;&
+        *:sync) ;&
+        *:df) args+=( '1:path:->mounts' );;
+        check)
+          args+=( \!--readonly
+            '(-s --super)'{-s,--super}'[specify superblock]:superblock'
+            '(-b --backup)'{-b,--backup}'[use the backup root copy]'
+            '(-r --tree-root)'{-r,--tree-root}'[use specified byte number for the tree root]:byte number'
+            '--chunk-root[ use the given offset for the chunk tree root]:byte offset'
+            '--repair[try to repair the filesystem]'
+            '--force[skip mount checks, repair is not possible]'
+            '--mode[select memory/IO trade-off]:mode:(original lowmem)'
+            '--init-csum-tree[create a new CRC tree]'
+            '--init-extent-tree[create a new extent tree]'
+            '--clear-space-cache[clear space cache for v1 or v2]:version:(v1 v2)'
+            '--check-data-csum[verify checksums of data blocks]'
+            '(-Q --qgroup-report)'{-Q,--qgroup-report}'[verify qgroup accounting and compare against filesystem accounting]'
+            '(-E --subvol-extents)'{-E,--subvol-extents}'[show extent state for the given subvolume]:subvolume id'
+            '(-p --progress)'{-p,--progress}'[indicate progress at various checking phases]'
+            '1:path:_files -/'
+          )
+        ;;
+        restore)
+          args+=( '!-v' '!--verbose'
+            '(-s --snapshots)'{-s,--snapshots}'[get snapshots]'
+            '(-x --xattr)'{-x,--xattr}'[restore extended attributes]'
+            '(-m --metadata)'{-m,--metadata}'[restore owner, mode and times]'
+            '(-S --symlink)'{-S,--symlink}'[restore symbolic links]'
+            '(-i --ignore-errors)'{-i,--ignore-errors}'[ignore errors]'
+            '(-o --overwrite)'{-o,--overwrite}'[overwrite directories and files]'
+            '-t[specify tree location]:tree root'
+            '-f[specify filesystem location]:byte offset'
+            '(-u --super)'{-u,--super}'[use specified superblock mirror]:mirror:(0 1 2)'
+            '(-r --root)'{-r,--root}'[specify root objectid]:root id'
+            '-d[find directory]'
+            '(-l --list-roots)'{-l,--list-roots}'[list tree roots]'
+            '(-D --dry-run)'{-D,--dry-run}'[dry run (only list files that would be recovered)]'
+            '--path-regex[restore only filenames matching regex]:regex'
+            '-c[ignore case (--path-regex only)]'
+            '1:device:_files -/'
+            '2:path:_files -/'
+          )
+        ;;
+        send|receive)
+          args+=( '!-q' '!--quiet' )
+        ;|
+        send)
+          args+=( '!-v'
+            '-e[if sending multiple subvolumes at once, use the new format]'
+            '-p[send incremental stream]:parent:_files -/'
+            '*-c[use snapshot as clone source]:clone:_files -/'
+            '-f[specify output file]:file:_files'
+            '--no-data[send in NO_FILE_DATA mode]'
+            '1:subvolume:_files -/'
+          )
+        ;;
+        receive)
+          args+=( '!-v'
+            '-f[input file]:file: _files'
+            '-e[terminate after <end cmd>]'
+            '(-C --chroot)'{-C,--chroot}'[confine the process to destination path using chroot(1)]'
+            '(-E --max-errors)'{-E,--max-errors}'[terminate as soon as specified number of errors occur]:errors [1]'
+            '(--dump)-m[specify root mount point of the destination filesystem]:mount point:_directories'
+            '(-m)--dump[dump stream metadata, one line per operation]'
+            '1:mount:->mounts'
+          )
+        ;;
+        h(|e(|l(|p)))) args+=(
+            '--full[display detailed help on every command]'
+            '--box[show list of built-in tools (busybox style)]'
+          )
+        ;;
+        *) args+=( '*: :_default' );; # fallback for unknown subcommands
+      esac
+      if ! (( shift )); then
+        shift words
+        (( CURRENT-- ))
+      fi
+      _arguments -C "$args[@]" && ret=0
+    ;;
+    mounts)
+      _wanted mount-points expl 'mount point' compadd \
+          ${${${(M)${(f)"$(</etc/mtab)"}:#*btrfs*}#* }%% *} && ret=0
+    ;;
+    filters)
+      state=()
+      _values -s , filter \
+        'profiles[balance only block groups in given replication profiles]:profile:->profiles' \
+        'usage[balance block groups with usage below percentage]:percentage' \
+        'devid[limit by device ID]:device ID' \
+        'drange[balance block groups overlapping byte range]:range' \
+        'vrange[balance block groups overlapping byte range in virtual address space]:range' \
+        'convert[convert block groups to given profile]:profile:->profiles' \
+        'soft[leave chunks that already have target profile]' && ret=0
+      state=( $state )
+    ;;
+    profiles)
+      compset -P '*\|'
+      _values -s ',' profile raid0 raid1 raid5 raid6 raid10 dup single && ret=0
+    ;;
+  esac
+done
+
+return ret

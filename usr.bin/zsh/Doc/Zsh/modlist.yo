@@ -1,0 +1,227 @@
+startitem()
+item(tt(zsh/attr))(
+Builtins for manipulating extended attributes (xattr).
+)
+item(tt(zsh/cap))(
+Builtins for manipulating POSIX.1e (POSIX.6) capability (privilege) sets.
+)
+item(tt(zsh/clone))(
+A builtin that can clone a running shell onto another terminal.
+)
+item(tt(zsh/compctl))(
+The tt(compctl) builtin for controlling completion.
+)
+item(tt(zsh/complete))(
+The basic completion code.
+)
+item(tt(zsh/complist))(
+Completion listing extensions.
+)
+item(tt(zsh/computil))(
+A module with utility builtins needed for the shell function based
+completion system.
+)
+item(tt(zsh/curses))(
+curses windowing commands
+)
+item(tt(zsh/datetime))(
+Some date/time commands and parameters.
+)
+item(tt(zsh/db/gdbm))(
+Builtins for managing associative array parameters tied to GDBM databases.
+)
+item(tt(zsh/deltochar))(
+A ZLE function duplicating EMACS' tt(zap-to-char).
+)
+item(tt(zsh/example))(
+An example of how to write a module.
+)
+item(tt(zsh/files))(
+Some basic file manipulation commands as builtins.
+)
+item(tt(zsh/langinfo))(
+Interface to locale information.
+)
+item(tt(zsh/mapfile))(
+Access to external files via a special associative array.
+)
+item(tt(zsh/mathfunc))(
+Standard scientific functions for use in mathematical evaluations.
+)
+item(tt(zsh/nearcolor))(
+Map colours to the nearest colour in the available palette.
+)
+item(tt(zsh/newuser))(
+Arrange for files for new users to be installed.
+)
+item(tt(zsh/parameter))(
+Access to internal hash tables via special associative arrays.
+)
+item(tt(zsh/pcre))(
+Interface to the PCRE library.
+)
+item(tt(zsh/param/private))(
+Builtins for managing private-scoped parameters in function context.
+)
+item(tt(zsh/regex))(
+Interface to the POSIX regex library.
+)
+item(tt(zsh/sched))(
+A builtin that provides a timed execution facility within the shell.
+)
+item(tt(zsh/net/socket))(
+Manipulation of Unix domain sockets
+)
+item(tt(zsh/stat))(
+A builtin command interface to the tt(stat) system call.
+)
+item(tt(zsh/system))(
+A builtin interface to various low-level system features.
+)
+item(tt(zsh/net/tcp))(
+Manipulation of TCP sockets
+)
+item(tt(zsh/termcap))(
+Interface to the termcap database.
+)
+item(tt(zsh/terminfo))(
+Interface to the terminfo database.
+)
+item(tt(zsh/watch))(
+Reporting of login and logout events.
+)
+item(tt(zsh/zftp))(
+A builtin FTP client.
+)
+item(tt(zsh/zle))(
+The Zsh Line Editor, including the tt(bindkey) and tt(vared) builtins.
+)
+item(tt(zsh/zleparameter))(
+Access to internals of the Zsh Line Editor via parameters.
+)
+item(tt(zsh/zprof))(
+A module allowing profiling for shell functions.
+)
+item(tt(zsh/zpty))(
+A builtin for starting a command in a pseudo-terminal.
+)
+item(tt(zsh/zselect))(
+Block and return when file descriptors are ready.
+)
+item(tt(zsh/zutil))(
+Some utility builtins, e.g. the one for supporting configuration via 
+styles.
+)
+enditem()
+includefile(Zsh/modmenu.yo)
+texinode(The zsh/attr Module)(The zsh/cap Module)()(Zsh Modules)
+sect(The zsh/attr Module)
+includefile(Zsh/mod_attr.yo)
+texinode(The zsh/cap Module)(The zsh/clone Module)(The zsh/attr Module)(Zsh Modules)
+sect(The zsh/cap Module)
+includefile(Zsh/mod_cap.yo)
+texinode(The zsh/clone Module)(The zsh/compctl Module)(The zsh/cap Module)(Zsh Modules)
+sect(The zsh/clone Module)
+includefile(Zsh/mod_clone.yo)
+texinode(The zsh/compctl Module)(The zsh/complete Module)(The zsh/clone Module)(Zsh Modules)
+sect(The zsh/compctl Module)
+includefile(Zsh/mod_compctl.yo)
+texinode(The zsh/complete Module)(The zsh/complist Module)(The zsh/compctl Module)(Zsh Modules)
+sect(The zsh/complete Module)
+includefile(Zsh/mod_complete.yo)
+texinode(The zsh/complist Module)(The zsh/computil Module)(The zsh/complete Module)(Zsh Modules)
+sect(The zsh/complist Module)
+includefile(Zsh/mod_complist.yo)
+texinode(The zsh/computil Module)(The zsh/curses Module)(The zsh/complist Module)(Zsh Modules)
+sect(The zsh/computil Module)
+includefile(Zsh/mod_computil.yo)
+texinode(The zsh/curses Module)(The zsh/datetime Module)(The zsh/computil Module)(Zsh Modules)
+sect(The zsh/curses Module)
+includefile(Zsh/mod_curses.yo)
+texinode(The zsh/datetime Module)(The zsh/db/gdbm Module)(The zsh/curses Module)(Zsh Modules)
+sect(The zsh/datetime Module)
+includefile(Zsh/mod_datetime.yo)
+texinode(The zsh/db/gdbm Module)(The zsh/deltochar Module)(The zsh/datetime Module)(Zsh Modules)
+sect(The zsh/db/gdbm Module)
+includefile(Zsh/mod_db_gdbm.yo)
+texinode(The zsh/deltochar Module)(The zsh/example Module)(The zsh/db/gdbm Module)(Zsh Modules)
+sect(The zsh/deltochar Module)
+includefile(Zsh/mod_deltochar.yo)
+texinode(The zsh/example Module)(The zsh/files Module)(The zsh/deltochar Module)(Zsh Modules)
+sect(The zsh/example Module)
+includefile(Zsh/mod_example.yo)
+texinode(The zsh/files Module)(The zsh/langinfo Module)(The zsh/example Module)(Zsh Modules)
+sect(The zsh/files Module)
+includefile(Zsh/mod_files.yo)
+texinode(The zsh/langinfo Module)(The zsh/mapfile Module)(The zsh/files Module)(Zsh Modules)
+sect(The zsh/langinfo Module)
+includefile(Zsh/mod_langinfo.yo)
+texinode(The zsh/mapfile Module)(The zsh/mathfunc Module)(The zsh/langinfo Module)(Zsh Modules)
+sect(The zsh/mapfile Module)
+includefile(Zsh/mod_mapfile.yo)
+texinode(The zsh/mathfunc Module)(The zsh/nearcolor Module)(The zsh/mapfile Module)(Zsh Modules)
+sect(The zsh/mathfunc Module)
+includefile(Zsh/mod_mathfunc.yo)
+texinode(The zsh/nearcolor Module)(The zsh/newuser Module)(The zsh/mathfunc Module)(Zsh Modules)
+sect(The zsh/nearcolor Module)
+includefile(Zsh/mod_nearcolor.yo)
+texinode(The zsh/newuser Module)(The zsh/parameter Module)(The zsh/nearcolor Module)(Zsh Modules)
+sect(The zsh/newuser Module)
+includefile(Zsh/mod_newuser.yo)
+texinode(The zsh/parameter Module)(The zsh/pcre Module)(The zsh/newuser Module)(Zsh Modules)
+sect(The zsh/parameter Module)
+includefile(Zsh/mod_parameter.yo)
+texinode(The zsh/pcre Module)(The zsh/param/private Module)(The zsh/parameter Module)(Zsh Modules)
+sect(The zsh/pcre Module)
+includefile(Zsh/mod_pcre.yo)
+texinode(The zsh/param/private Module)(The zsh/regex Module)(The zsh/pcre Module)(Zsh Modules)
+sect(The zsh/param/private Module)
+includefile(Zsh/mod_private.yo)
+texinode(The zsh/regex Module)(The zsh/sched Module)(The zsh/param/private Module)(Zsh Modules)
+sect(The zsh/regex Module)
+includefile(Zsh/mod_regex.yo)
+texinode(The zsh/sched Module)(The zsh/net/socket Module)(The zsh/regex Module)(Zsh Modules)
+sect(The zsh/sched Module)
+includefile(Zsh/mod_sched.yo)
+texinode(The zsh/net/socket Module)(The zsh/stat Module)(The zsh/sched Module)(Zsh Modules)
+sect(The zsh/net/socket Module)
+includefile(Zsh/mod_socket.yo)
+texinode(The zsh/stat Module)(The zsh/system Module)(The zsh/net/socket Module)(Zsh Modules)
+sect(The zsh/stat Module)
+includefile(Zsh/mod_stat.yo)
+texinode(The zsh/system Module)(The zsh/net/tcp Module)(The zsh/stat Module)(Zsh Modules)
+sect(The zsh/system Module)
+includefile(Zsh/mod_system.yo)
+texinode(The zsh/net/tcp Module)(The zsh/termcap Module)(The zsh/system Module)(Zsh Modules)
+sect(The zsh/net/tcp Module)
+includefile(Zsh/mod_tcp.yo)
+texinode(The zsh/termcap Module)(The zsh/terminfo Module)(The zsh/net/tcp Module)(Zsh Modules)
+sect(The zsh/termcap Module)
+includefile(Zsh/mod_termcap.yo)
+texinode(The zsh/terminfo Module)(The zsh/watch Module)(The zsh/termcap Module)(Zsh Modules)
+sect(The zsh/terminfo Module)
+includefile(Zsh/mod_terminfo.yo)
+texinode(The zsh/watch Module)(The zsh/zftp Module)(The zsh/terminfo Module)(Zsh Modules)
+sect(The zsh/watch Module)
+includefile(Zsh/mod_watch.yo)
+texinode(The zsh/zftp Module)(The zsh/zle Module)(The zsh/watch Module)(Zsh Modules)
+sect(The zsh/zftp Module)
+includefile(Zsh/mod_zftp.yo)
+texinode(The zsh/zle Module)(The zsh/zleparameter Module)(The zsh/zftp Module)(Zsh Modules)
+sect(The zsh/zle Module)
+includefile(Zsh/mod_zle.yo)
+texinode(The zsh/zleparameter Module)(The zsh/zprof Module)(The zsh/zle Module)(Zsh Modules)
+sect(The zsh/zleparameter Module)
+includefile(Zsh/mod_zleparameter.yo)
+texinode(The zsh/zprof Module)(The zsh/zpty Module)(The zsh/zleparameter Module)(Zsh Modules)
+sect(The zsh/zprof Module)
+includefile(Zsh/mod_zprof.yo)
+texinode(The zsh/zpty Module)(The zsh/zselect Module)(The zsh/zprof Module)(Zsh Modules)
+sect(The zsh/zpty Module)
+includefile(Zsh/mod_zpty.yo)
+texinode(The zsh/zselect Module)(The zsh/zutil Module)(The zsh/zpty Module)(Zsh Modules)
+sect(The zsh/zselect Module)
+includefile(Zsh/mod_zselect.yo)
+texinode(The zsh/zutil Module)()(The zsh/zselect Module)(Zsh Modules)
+sect(The zsh/zutil Module)
+includefile(Zsh/mod_zutil.yo)

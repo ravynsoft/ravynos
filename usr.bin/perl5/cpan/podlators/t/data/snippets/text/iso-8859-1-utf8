@@ -1,0 +1,28 @@
+[name]
+ISO-8859-1 encoding
+
+[options]
+encoding utf-8
+
+[input]
+=encoding iso-8859-1
+
+=head1 ACCENTS
+
+Beyoncé!  Beyoncé!  Beyoncé!!
+
+    Beyoncé!  Beyoncé!
+      Beyoncé!  Beyoncé!
+        Beyoncé!  Beyoncé!
+
+Older versions didn't convert Beyoncé in verbatim.
+
+[output]
+ACCENTS
+    BeyoncÃ©! BeyoncÃ©! BeyoncÃ©!!
+
+        BeyoncÃ©!  BeyoncÃ©!
+          BeyoncÃ©!  BeyoncÃ©!
+            BeyoncÃ©!  BeyoncÃ©!
+
+    Older versions didn't convert BeyoncÃ© in verbatim.

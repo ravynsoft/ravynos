@@ -1,0 +1,4 @@
+suspend [ -f ]
+       Suspend  the execution of the shell (send it a SIGTSTP) until it
+       receives a SIGCONT.  Unless the -f option is  given,  this  will
+       refuse to suspend a login shell.

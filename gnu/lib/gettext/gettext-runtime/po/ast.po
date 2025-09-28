@@ -1,0 +1,397 @@
+# Asturian translation for gettext-runtime
+# Copyright (C) 2018 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gettext package.
+#
+# enolp <enolp@softastur.org>, 2018.
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-runtime 0.19.4.73\n"
+"Report-Msgid-Bugs-To: bug-gettext@gnu.org\n"
+"POT-Creation-Date: 2023-11-17 22:40+0100\n"
+"PO-Revision-Date: 2018-07-16 17:18+0100\n"
+"Last-Translator: enolp <enolp@softastur.org>\n"
+"Language-Team: Asturian <ubuntu-l10n-ast@lists.ubuntu.com>\n"
+"Language: ast\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 2.0\n"
+
+#: gnulib-lib/closeout.c:66
+msgid "write error"
+msgstr "fallu d'escritura"
+
+#: gnulib-lib/error.c:194
+msgid "Unknown system error"
+msgstr "Desconozse'l fallu del sistema"
+
+#: gnulib-lib/getopt.c:278
+#, fuzzy, c-format
+#| msgid "%s: option '%s' is ambiguous\n"
+msgid "%s: option '%s%s' is ambiguous\n"
+msgstr "%s: la opción «%s» ye ambigua\n"
+
+#: gnulib-lib/getopt.c:284
+#, fuzzy, c-format
+#| msgid "%s: option '%s' is ambiguous; possibilities:"
+msgid "%s: option '%s%s' is ambiguous; possibilities:"
+msgstr "%s: la opción «%s» ye ambigua, posibilidaes:"
+
+#: gnulib-lib/getopt.c:319
+#, fuzzy, c-format
+#| msgid "%s: unrecognized option '%c%s'\n"
+msgid "%s: unrecognized option '%s%s'\n"
+msgstr "%s: nun se reconoz la opción «%c%s»\n"
+
+#: gnulib-lib/getopt.c:345
+#, fuzzy, c-format
+#| msgid "%s: option '%c%s' doesn't allow an argument\n"
+msgid "%s: option '%s%s' doesn't allow an argument\n"
+msgstr "%s: la opción «%c%s» nun permite un argumentu\n"
+
+#: gnulib-lib/getopt.c:360
+#, fuzzy, c-format
+#| msgid "%s: option '--%s' requires an argument\n"
+msgid "%s: option '%s%s' requires an argument\n"
+msgstr "%s: la opción «--%s» rique un argumentu\n"
+
+#: gnulib-lib/getopt.c:621
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: opción non válida -- «%c»\n"
+
+#: gnulib-lib/getopt.c:636 gnulib-lib/getopt.c:682
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: la opción rique un argumentu -- «%c»\n"
+
+#: gnulib-lib/xalloc-die.c:34
+msgid "memory exhausted"
+msgstr "memoria escosada"
+
+#: src/envsubst.c:110 src/gettext.c:135 src/ngettext.c:125
+#, fuzzy, c-format, no-wrap
+#| msgid ""
+#| "Copyright (C) %s Free Software Foundation, Inc.\n"
+#| "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n"
+#| "This is free software: you are free to change and redistribute it.\n"
+#| "There is NO WARRANTY, to the extent permitted by law.\n"
+msgid ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"License GPLv3+: GNU GPL version 3 or later <%s>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"Llicencia GPLv3+: GNU GPL versión 3 o más nueva <http://gnu.org/licenses/gpl.html>.\n"
+"Esto ye software llibre: yes llibre de camudalu y redistribuyilu.\n"
+"Nun hai DENGUNA GARANTÍA, na midida permitida pola llei.\n"
+
+#: src/envsubst.c:116 src/gettext.c:141 src/ngettext.c:131
+#, c-format
+msgid "Written by %s.\n"
+msgstr "Escritu por %s.\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/envsubst.c:116
+msgid "Bruno Haible"
+msgstr "Bruno Haible"
+
+#: src/envsubst.c:125 src/gettext.c:159 src/ngettext.c:143
+#, c-format
+msgid "too many arguments"
+msgstr "milenta arugmentos"
+
+#: src/envsubst.c:136 src/gettext.c:169 src/ngettext.c:155
+#, c-format
+msgid "missing arguments"
+msgstr "falten argumentos"
+
+#: src/envsubst.c:174 src/gettext.c:246 src/ngettext.c:212
+#, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "Prueba «%s --help» pa más información.\n"
+
+#: src/envsubst.c:179
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [SHELL-FORMAT]\n"
+msgstr "Usu: %s [OPCIÓN] [FORMATU-SHELL]\n"
+
+#: src/envsubst.c:184
+#, c-format, no-wrap
+msgid "Substitutes the values of environment variables.\n"
+msgstr "Sustitúi los valores de les variables d'entornu.\n"
+
+#: src/envsubst.c:188
+#, c-format, no-wrap
+msgid "Operation mode:\n"
+msgstr "Mou d'operación: \n"
+
+#: src/envsubst.c:191
+#, c-format, no-wrap
+msgid "  -v, --variables             output the variables occurring in SHELL-FORMAT\n"
+msgstr "  -v, --variables             amuesa les variables qu'esistan en FORMATU-SHELL\n"
+
+#: src/envsubst.c:195 src/gettext.c:275 src/ngettext.c:242
+#, c-format, no-wrap
+msgid "Informative output:\n"
+msgstr "Salida informativa:\n"
+
+#: src/envsubst.c:198
+#, c-format, no-wrap
+msgid "  -h, --help                  display this help and exit\n"
+msgstr "  -h, --help                  amuesa esta ayuda y cola\n"
+
+#: src/envsubst.c:201
+#, c-format, no-wrap
+msgid "  -V, --version               output version information and exit\n"
+msgstr "  -V, --version               amuesa la información de la versión y cola\n"
+
+#: src/envsubst.c:205
+#, c-format, no-wrap
+msgid ""
+"In normal operation mode, standard input is copied to standard output,\n"
+"with references to environment variables of the form $VARIABLE or ${VARIABLE}\n"
+"being replaced with the corresponding values.  If a SHELL-FORMAT is given,\n"
+"only those environment variables that are referenced in SHELL-FORMAT are\n"
+"substituted; otherwise all environment variables references occurring in\n"
+"standard input are substituted.\n"
+msgstr ""
+"Nel mou d'operación normal, la entrada estándar cópiase a la salida\n"
+"estándar, con referencies a les variables d'entornu de la forma $VARIABLEo ${VARIABLE}\n"
+"trocándose colos valores correspondientes. Si s'apurre un FORMATU-SHELL,\n"
+"namái les variables d'entornu que se referenciaren en FORMATU-SHELL van\n"
+"sustituyise, d'otramiente, toles referencies a les variables d'entornu.\n"
+
+#: src/envsubst.c:214
+#, c-format, no-wrap
+msgid ""
+"When --variables is used, standard input is ignored, and the output consists\n"
+"of the environment variables that are referenced in SHELL-FORMAT, one per line.\n"
+msgstr ""
+"Cuando s'usa --variables , inórase la entrada estándar y la salida consiste\n"
+"de les variables d'entornu que se referenciaren en FORMATU-SHELL, una per llinia.\n"
+
+#. TRANSLATORS: The first placeholder is the web address of the Savannah
+#. project of this package.  The second placeholder is the bug-reporting
+#. email address for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: src/envsubst.c:223 src/gettext.c:299 src/ngettext.c:263
+#, c-format
+msgid ""
+"Report bugs in the bug tracker at <%s>\n"
+"or by email to <%s>.\n"
+msgstr ""
+
+#: src/envsubst.c:451
+#, c-format
+msgid "error while reading \"%s\""
+msgstr "fallu mentanto se lleía «%s»"
+
+#: src/envsubst.c:451
+msgid "standard input"
+msgstr "entrada estandar"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/gettext.c:141 src/ngettext.c:131
+msgid "Ulrich Drepper"
+msgstr "Ulrich Drepper"
+
+#: src/gettext.c:251
+#, c-format, no-wrap
+msgid ""
+"Usage: %s [OPTION] [[TEXTDOMAIN] MSGID]\n"
+"or:    %s [OPTION] -s [MSGID]...\n"
+msgstr ""
+"Usu: %s [OPCIÓN] [[DOMINIU_TESTUAL] MSGID]\n"
+"o:    %s [OPCIÓN] -s [MSGID]...\n"
+
+#: src/gettext.c:257
+#, c-format, no-wrap
+msgid "Display native language translation of a textual message.\n"
+msgstr "Amuesa la traducción en llingua nativa d'un mensaxe testual.\n"
+
+#: src/gettext.c:261
+#, c-format, no-wrap
+msgid "  -d, --domain=TEXTDOMAIN   retrieve translated messages from TEXTDOMAIN\n"
+msgstr ""
+
+#: src/gettext.c:263 src/ngettext.c:229
+#, c-format
+msgid "  -c, --context=CONTEXT     specify context for MSGID\n"
+msgstr ""
+
+#: src/gettext.c:265 src/ngettext.c:231
+#, c-format
+msgid "  -e                        enable expansion of some escape sequences\n"
+msgstr ""
+
+#: src/gettext.c:267
+#, c-format
+msgid "  -n                        suppress trailing newline\n"
+msgstr ""
+
+#: src/gettext.c:269 src/ngettext.c:233
+#, c-format
+msgid "  -E                        (ignored for compatibility)\n"
+msgstr ""
+
+#: src/gettext.c:271
+#, c-format
+msgid ""
+"  [TEXTDOMAIN] MSGID        retrieve translated message corresponding\n"
+"                            to MSGID from TEXTDOMAIN\n"
+msgstr ""
+
+#: src/gettext.c:277 src/ngettext.c:244
+#, fuzzy, c-format
+#| msgid "  -h, --help                  display this help and exit\n"
+msgid "  -h, --help                display this help and exit\n"
+msgstr "  -h, --help                  amuesa esta ayuda y cola\n"
+
+#: src/gettext.c:279 src/ngettext.c:246
+#, fuzzy, c-format
+#| msgid "  -V, --version               output version information and exit\n"
+msgid "  -V, --version             display version information and exit\n"
+msgstr ""
+"  -V, --version               amuesa la información de la versión y cola\n"
+
+#: src/gettext.c:283
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"When used with the -s option the program behaves like the 'echo' command.\n"
+"But it does not simply copy its arguments to stdout.  Instead those messages\n"
+"found in the selected catalog are translated.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Si nun s'apurre'l parámetru DOMINIU_TESTUAL, el dominiu determínase de\n"
+"magar la variable d'entornu TEXTDOMAIN. Si nun s'alcuentra'l catálogu de\n"
+"mensaxes nel direutoriu regular, pue especificase otru allugamientu cola\n"
+"variable d'entornu TEXTDOMAINDIR.\n"
+"Cuando s'usa cola opción -s , el programa compórtase como'l comandu «echo».\n"
+"Pero nun copia namái los sos argumentos a stdout, sinón que traduz los\n"
+"mensaxes qu'alcuentre nel catálogu esbilláu.\n"
+"Direutoriu estándar de gueta: %s\n"
+
+#: src/ngettext.c:217
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [TEXTDOMAIN] MSGID MSGID-PLURAL COUNT\n"
+msgstr "Usu: %s [OPCIÓN] [DOMINIU_TESTUAL] MSGID MSGID-PLURAL NÚMBERU\n"
+
+#: src/ngettext.c:222
+#, c-format, no-wrap
+msgid ""
+"Display native language translation of a textual message whose grammatical\n"
+"form depends on a number.\n"
+msgstr ""
+"Amuesa la traducción del mensaxe en llingua nativa d'un mensaxe testual\n"
+"que, la so gramática, dependiere d'un númberu.\n"
+
+#: src/ngettext.c:227
+#, c-format, no-wrap
+msgid "  -d, --domain=TEXTDOMAIN   retrieve translated message from TEXTDOMAIN\n"
+msgstr ""
+
+#: src/ngettext.c:235
+#, c-format
+msgid ""
+"  [TEXTDOMAIN]              retrieve translated message from TEXTDOMAIN\n"
+msgstr ""
+
+#: src/ngettext.c:237
+#, c-format
+msgid ""
+"  MSGID MSGID-PLURAL        translate MSGID (singular) / MSGID-PLURAL "
+"(plural)\n"
+msgstr ""
+
+#: src/ngettext.c:239
+#, c-format
+msgid ""
+"  COUNT                     choose singular/plural form based on this value\n"
+msgstr ""
+
+#: src/ngettext.c:250
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Si nun s'apurre'l parámetru DOMINIU_TESTUAL, el dominiu determínase de\n"
+"magar la variable d'entornu TEXTDOMAIN. Si nun s'alcuentra'l catálogu de\n"
+"mensaxes nel direutoriu regular, pue especificase otru allugamientu cola\n"
+"variable d'entornu TEXTDOMAINDIR.\n"
+"Direutoriu estándar de gueta: %s\n"
+
+#, c-format
+#~ msgid "%s: option '--%s' doesn't allow an argument\n"
+#~ msgstr "%s: la opción «--%s» nun permite un argumentu\n"
+
+#, c-format
+#~ msgid "%s: unrecognized option '--%s'\n"
+#~ msgstr "%s: nun se reconoz la opción «--%s»\n"
+
+#, c-format
+#~ msgid "%s: option '-W %s' is ambiguous\n"
+#~ msgstr "%s: la opción «-W %s» ye ambigua\n"
+
+#, c-format
+#~ msgid "%s: option '-W %s' doesn't allow an argument\n"
+#~ msgstr "%s: la opción «-W %s» nun permite un argumentu\n"
+
+#, c-format
+#~ msgid "%s: option '-W %s' requires an argument\n"
+#~ msgstr "%s: la opción «-W %s» rique un argumentu\n"
+
+#~ msgid "Report bugs to <bug-gnu-gettext@gnu.org>.\n"
+#~ msgstr "Informa de fallos a <bug-gnu-gettext@gnu.org>.\n"
+
+#, c-format, no-wrap
+#~ msgid ""
+#~ "  -d, --domain=TEXTDOMAIN   retrieve translated messages from TEXTDOMAIN\n"
+#~ "  -e                        enable expansion of some escape sequences\n"
+#~ "  -E                        (ignored for compatibility)\n"
+#~ "  -h, --help                display this help and exit\n"
+#~ "  -n                        suppress trailing newline\n"
+#~ "  -V, --version             display version information and exit\n"
+#~ "  [TEXTDOMAIN] MSGID        retrieve translated message corresponding\n"
+#~ "                            to MSGID from TEXTDOMAIN\n"
+#~ msgstr ""
+#~ "  -d, --domain=DOMINIU_TESTUAL   recupera los mensaxes traducíos de DOMINIU_TESTUAL\n"
+#~ "  -e                        activa la espansión de dalgunes secuencies d'escape\n"
+#~ "  -E                        (inórase por compatibilidá)\n"
+#~ "  -h, --help                amuesa esta ayuda y cola\n"
+#~ "  -n                        desanicia'l saltu de llinia final\n"
+#~ "  -V, --version             amuesa la información de la versión y cola\n"
+#~ "  [DOMINIU_TESTU] MSGID        recupera'l mensaxe traducíu correspondiente\n"
+#~ "                            a MSGID de DOMINIU_TESTUAL\n"
+
+#, c-format, no-wrap
+#~ msgid ""
+#~ "  -d, --domain=TEXTDOMAIN   retrieve translated message from TEXTDOMAIN\n"
+#~ "  -e                        enable expansion of some escape sequences\n"
+#~ "  -E                        (ignored for compatibility)\n"
+#~ "  -h, --help                display this help and exit\n"
+#~ "  -V, --version             display version information and exit\n"
+#~ "  [TEXTDOMAIN]              retrieve translated message from TEXTDOMAIN\n"
+#~ "  MSGID MSGID-PLURAL        translate MSGID (singular) / MSGID-PLURAL (plural)\n"
+#~ "  COUNT                     choose singular/plural form based on this value\n"
+#~ msgstr ""
+#~ "  -d, --domain=DOMINIU_TESTUAL   recibe'l mensaxe traducíu de DOMINIU_TESTUAL\n"
+#~ "  -e                        activa la espansión de dalgunes secuencies d'escape\n"
+#~ "  -E                        (inórase por compatibilida)\n"
+#~ "  -h, --help                amuesa esta salida y cola\n"
+#~ "  -V, --version             amuesa la información de la versión y cola\n"
+#~ "  [TEXTDOMAIN]              recibe'l mensaxe traducíu de DOMINIU_TESTUAL\n"
+#~ "  MSGID MSGID-PLURAL        traduz el MSGID (singular) / MSGID-PLURAL (plural)\n"
+#~ "  COUNT                     escueye la forma singular/plural según esti valor\n"

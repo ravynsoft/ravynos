@@ -1,0 +1,8 @@
+## this tests that the server sends a list of mechanisms
+## in response to blank AUTH
+
+SERVER
+SEND AUTH
+EXPECT_COMMAND REJECTED
+EXPECT_STATE WAITING_FOR_INPUT
+

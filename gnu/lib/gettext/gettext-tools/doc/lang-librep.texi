@@ -1,0 +1,56 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2020 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@node librep
+@subsection librep
+@cindex @code{librep} Lisp
+
+@table @asis
+@item RPMs
+librep 0.15.3 or newer
+
+@item Ubuntu packages
+librep16
+
+@item File extension
+@code{jl}
+
+@item String syntax
+@code{"abc"}
+
+@item gettext shorthand
+@code{(_"abc")}
+
+@item gettext/ngettext functions
+@code{gettext}
+
+@item textdomain
+@code{textdomain} function
+
+@item bindtextdomain
+@code{bindtextdomain} function
+
+@item setlocale
+---
+
+@item Prerequisite
+@code{(require 'rep.i18n.gettext)}
+
+@item Use or emulate GNU gettext
+use
+
+@item Extractor
+@code{xgettext}
+
+@item Formatting with positions
+@code{format "%2$d %1$d"}
+
+@item Portability
+On platforms without gettext, no translation.
+
+@item po-mode marking
+---
+@end table
+
+An example is available in the @file{examples} directory: @code{hello-librep}.

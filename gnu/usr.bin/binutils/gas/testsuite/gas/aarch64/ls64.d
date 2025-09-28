@@ -1,0 +1,58 @@
+#name: LS64 instructions and system register
+#objdump: -dr
+
+.*:     file format .*
+
+Disassembly of section \.text:
+
+0+ <.*>:
+.*:	f83fd020 	ld64b	x0, \[x1\]
+.*:	f83fd022 	ld64b	x2, \[x1\]
+.*:	f83fd024 	ld64b	x4, \[x1\]
+.*:	f83fd026 	ld64b	x6, \[x1\]
+.*:	f83fd028 	ld64b	x8, \[x1\]
+.*:	f83fd02a 	ld64b	x10, \[x1\]
+.*:	f83fd02c 	ld64b	x12, \[x1\]
+.*:	f83fd02e 	ld64b	x14, \[x1\]
+.*:	f83fd030 	ld64b	x16, \[x1\]
+.*:	f83fd032 	ld64b	x18, \[x1\]
+.*:	f83fd034 	ld64b	x20, \[x1\]
+.*:	f83fd036 	ld64b	x22, \[x1\]
+.*:	f83f9020 	st64b	x0, \[x1\]
+.*:	f83f9022 	st64b	x2, \[x1\]
+.*:	f83f9024 	st64b	x4, \[x1\]
+.*:	f83f9026 	st64b	x6, \[x1\]
+.*:	f83f9028 	st64b	x8, \[x1\]
+.*:	f83f902a 	st64b	x10, \[x1\]
+.*:	f83f902c 	st64b	x12, \[x1\]
+.*:	f83f902e 	st64b	x14, \[x1\]
+.*:	f83f9030 	st64b	x16, \[x1\]
+.*:	f83f9032 	st64b	x18, \[x1\]
+.*:	f83f9034 	st64b	x20, \[x1\]
+.*:	f83f9036 	st64b	x22, \[x1\]
+.*:	f821b040 	st64bv	x1, x0, \[x2\]
+.*:	f820b042 	st64bv	x0, x2, \[x2\]
+.*:	f820b044 	st64bv	x0, x4, \[x2\]
+.*:	f820b046 	st64bv	x0, x6, \[x2\]
+.*:	f820b048 	st64bv	x0, x8, \[x2\]
+.*:	f820b04a 	st64bv	x0, x10, \[x2\]
+.*:	f820b04c 	st64bv	x0, x12, \[x2\]
+.*:	f820b04e 	st64bv	x0, x14, \[x2\]
+.*:	f820b050 	st64bv	x0, x16, \[x2\]
+.*:	f820b052 	st64bv	x0, x18, \[x2\]
+.*:	f820b054 	st64bv	x0, x20, \[x2\]
+.*:	f820b056 	st64bv	x0, x22, \[x2\]
+.*:	f821a040 	st64bv0	x1, x0, \[x2\]
+.*:	f820a042 	st64bv0	x0, x2, \[x2\]
+.*:	f820a044 	st64bv0	x0, x4, \[x2\]
+.*:	f820a046 	st64bv0	x0, x6, \[x2\]
+.*:	f820a048 	st64bv0	x0, x8, \[x2\]
+.*:	f820a04a 	st64bv0	x0, x10, \[x2\]
+.*:	f820a04c 	st64bv0	x0, x12, \[x2\]
+.*:	f820a04e 	st64bv0	x0, x14, \[x2\]
+.*:	f820a050 	st64bv0	x0, x16, \[x2\]
+.*:	f820a052 	st64bv0	x0, x18, \[x2\]
+.*:	f820a054 	st64bv0	x0, x20, \[x2\]
+.*:	f820a056 	st64bv0	x0, x22, \[x2\]
+.*:	d538d0a0 	mrs	x0, accdata_el1
+.*:	d518d0a0 	msr	accdata_el1, x0

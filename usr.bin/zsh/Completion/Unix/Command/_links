@@ -1,0 +1,147 @@
+#compdef links links2
+
+local curcontext="$curcontext" state line ign ret=1
+typeset -A opt_args
+
+(( $#words > 2 )) && ign='!'
+_arguments -C \
+  "${ign}-help[prints the help screen]" \
+  "${ign}(- :)-version[prints the links version number and exit]" \
+  "${ign}(- 1)-lookup[do hostname lookup]:hostname:_hosts" \
+  '-g[run in graphics mode rather than plain text mode]' '!-no-g' \
+  '-driver[graphics driver to use]:graphics driver:->graphics_drivers' \
+  '-mode[specify graphics mode]:graphics mode' \
+  '-display[specify X display]:display:_x_display' \
+  '-force-html[treat files with unknown type as html rather than text]' \
+  '-source[dump the source page]' \
+  '-dump[dump the page as pure text]' \
+  '-width[specify screen width for formatting with -dump]:width' \
+  '-codepage[convert output to specified character set with -dump]:codepage' \
+  '-anonymous[restrict links so that it can run on an anonymous account]' \
+  '-no-connect[runs links as a separate instance]' \
+  '-download-dir[default download directory]:_files -/' \
+  '-language[set user interface language]:language' \
+  '-max-connections[specify maximum number of concurrent connections]:connections [10]' \
+  '-max-connections-to-host[maximum number of concurrent connection to a given host]:connections [2]' \
+  '-retries[number of retries]:retries [3]' \
+  '-receive-timeout[timeout on receive]:timeout (seconds) [120]' \
+  '-unrestartable-receive-timeout[timeout on non-restartable connections]:timeout (seconds) [600]' \
+  '-timeout-when-trying-multiple-addresses[specify timeout for connection when trying multiple addresses]:timeout (seconds)' \
+  '-bind-address[use a specific local IP address]:IP address' \
+  '-bind-address-ipv6[use a specific local IPv6 address]:IPv6 address' \
+  "-no-libevent[don't use libevent library]" \
+  "-no-openmp[don't use OpenMP]" \
+  '-async-dns[asynchronous DNS resolver]:enable:((1\:on 0\:off))' \
+  '-download-utime[set time of downloaded files to last modification time reported by server]:enable:((1\:on 0\:off))' \
+  '-format-cache-size[number of formatted document pages cached]:pages [5]' \
+  '-memory-cache-size[cache memory]:size (bytes) [1048576]' \
+  '-image-cache-size[image cache memory]:size (bytes) [1048576]' \
+  '-font-cache-size[specify font cache size]:size (bytes) [2097152]' \
+  "-aggressive-cache[cache everything regardless of server's caching recommendations]:enable [1]:((1\\:on 0\\:off))" \
+  '-address-preference[specify IP version preference]:preference:((
+    0\:system\ default
+    1\:prefer\ IPv4
+    2\:prefer\ IPv6
+    3\:use\ only\ IPv4
+    4\:use\ only\ IPv6
+  ))' \
+  '-http-proxy[specify web proxy server]:proxy:->proxies' \
+  '-ftp-proxy[specify ftp proxy server]:proxy:->proxies' \
+  '-https-proxy[specify https web proxy server]:proxy:->proxies' \
+  '-socks-proxy[specify socks4a proxy server]:proxy:->sproxies' \
+  '-append-text-to-dns-lookups[append text to dns lookups; useful for specifying fixed tor exit node]:text' \
+  '-no-proxy-domains[use no proxy for specified domains]:domain list' \
+  '-only-proxies[only initiate connections via proxy]:enable:((0\:off 1\:on))' \
+  '-ssl.certificates[specify handling of invalid signatures]:handling:((0\:ignore 1\:warn 2\:reject))' \
+  '-ssl.builtin-certificates[specify certificates to use]:certificates:((0\:system 1\:builtin))' \
+  '-ssl.client-cert-key[specify user private key for client certificate authentication]:PEM file:_files' \
+  '-ssl.client-cert-crt[specify user certificate for client certificate authentication]:PEM file:_files' \
+  '-ssl.client-cert-password[specify password for the user private key]:password' \
+  '-http-bugs.http10[specify HTTP version]:protocol [0]:((1\:force\ only\ HTTP\ 1.0 0\:use\ both\ HTTP\ 1.0\ and\ 1.1))' \
+  '-http-bugs.allow-blacklist[use list of servers with broken HTTP/1.1 support]:allow [1]:(1 0)' \
+  '-http-bugs.bug-no-accept-charset[specify sending of Accept-Charset field of HTTP header]:send [0]:(1 0)' \
+  '-http-bugs.no-compression[advertise HTTP compression support]:advertise compression [0]:((0\:yes 1\:no))' \
+  '-http-bugs.retry-internal-errors[retry on internal server errors (50x)]:retry [0]:((1\:yes 0\:no))' \
+  '-http.fake-firefox[fake Firefox in the HTTP header]:enable [0]:((0\:no 1\:yes))' \
+  '-http.do-not-track[send do not track request in the HTTP header]:enable [0]:(1 0)' \
+  "-http.referer[control sending of referer URL in requests]:referer [4]:((
+    0\:don\'t\ send 1\:'send requested URL' 2\:'fake referer' 3\:'send real'
+    4\:'send real only to the same server'
+  ))" \
+  '-http.fake-user-agent[specify fake user agent value]:string' \
+  '-http.extra-header[specify extra string added to HTTP header]:string' \
+  '-ftp.anonymous-password[specify password for anonymous ftp access]:password' \
+  '-ftp.use-passive[use ftp PASV command to bypass firewalls]:enable;(0 1)' \
+  '-ftp.use-eprt-epsv[use EPRT and EPSV commands instead of PORT and PASV]:enable:(0 1)' \
+  '-ftp.set-iptos[set IP type-of-service to high throughput on ftp connections]:enable:(0 1)' \
+  '-smb.allow-hyperlinks-to-smb[allow hyperlinks to SMB protocol]:enable:(0 1)' \
+  '-menu-font-size[specify size of font in menu]:size' \
+  '-menu-background-color[specify menu background color in graphics mode]:color (0xRRGGBB)' \
+  '-menu-foreground-color[specify menu foreground color in graphics mode]:color (0xRRGGBB)' \
+  '-scroll-bar-area-color[set colour of scroll bar area]:colour (0xRRGGBB)' \
+  '-scroll-bar-bar-color[set colour of scroll bar]:colour (0xRRGGBB)' \
+  '-scroll-bar-frame-color[set colour of scroll bar frame]:colour (0xRRGGBB)' \
+  '-bookmarks-file[specify file to store bookmarks]:file:_files' \
+  '-bookmarks-codepage[specify character set of bookmarks file]:character set' \
+  '-save-url-history[save URL history on exit]:enable:(0 1)' \
+  '-display-red-gamma[specify red gamma of display]:gamma [2.2]' \
+  '-display-green-gamma[specify green gamma of display]:gamma [2.2]' \
+  '-display-blue-gamma[specify blue gamma of display]:gamma [2.2]' \
+  '-user-gamma[specify additional gamma]:gamma [1]' \
+  '-bfu-aspect[display aspect ration]' \
+  '-dither-letters[do letter dithering]:enable:(0 1)' \
+  '-display-optimize[optimize for display type]:display:((0\:CRT 1\:LCD\ RGB 2\:LCD\ BGR))' \
+  '-gamma-correction[specify type of gamma correction]:gamma correction:((0\:8-bit 1\:16-bit 2\:auto\ detect))' \
+  '-overwrite-instead-of-scroll[overwrite the screen instead of scrolling it]:enable:(0 1)' \
+  '-html-assume-codepage[specify codepage to use if unspecified by server]:codepage' \
+  '-html-hard-assume[always use character set from -html-assume-codepage]:enable:(0 1)' \
+  '-html-tables[render tables]:enable:(0 1)' \
+  '-html-frames[render frames]:enable:(0 1)' \
+  '-html-images[display links to unnamed images as \[IMG\]]:enable:(0 1)' \
+  '-html-image-names[display filename of an image]:enable:(0 1)' \
+  '-html-display-images[display images in graphics mode]:enable:(0 1)' \
+  '-html-image-scale[sScale images in graphics mode]:scaling (percent)' \
+  '-html-bare-image-autoscale[autoscale images displayed on full screen]:enable:(0 1)' \
+  '-html-numbered-links[number links in text mode allowing quick selection]:enable:(0 1)' \
+  '-html-table-order[set ordering to walk tables]:ordering:((0\:rows 1\:columns))' \
+  '-html-auto-refresh[process refresh or display link]:refresh:(1 0)' \
+  '-html-target-in-new-window[allow opening new windows from html]' \
+  '-html-margin[specify margin]:margin (spaces)' \
+  '-html-user-font-size[specify font size in graphics mode]:size' \
+  '-html-text-color[specify text color in text mode]:color (0..15)' \
+  '-html-link-color[specify link color in text mode]:color (0..15)' \
+  '-html-background-color[specify background color in text mode]:color (0..15)' \
+  '-html-ignore-document-color[ignore colors from HTML in text mode]:ignore:(0 1)' \
+  '-html-g-text-color[specify text color in graphics mode]:color (0xRRGGBB)' \
+  '-html-g-link-color[specify link color in graphics mode]:color (0xRRGGBB)' \
+  '-html-g-background-color[specify background color in graphics mode]:color (0xRRGGBB)' \
+  '-html-g-ignore-document-color[ignore colors from HTML in graphics mode]:ignore:(0 1)' \
+  ':URL:->html' && ret=0
+
+case $state in
+  html)
+    _alternative 'files:file:_files -g "*.x#html(-.)"' 'urls:URL:_urls' && ret=0
+  ;;
+  graphics_drivers)
+    local -a vals
+    vals=( ${=${${${(f)"$(_call_program links-graphics-drivers $words[1] -driver help 2>&1)"}[-1]}//','/''}} )
+    _describe -t links-graphics-drivers 'graphics driver' vals && ret=0
+  ;;
+  sproxies)
+    if ! compset -P '*@'; then
+      _message -e users 'user id'
+      return
+    fi
+  ;&
+  proxies)
+    local suf=-S:
+    if compset -P '*:'; then
+      _message -e ports 'port number'
+    else
+      compset -S ':*' && suf= 
+      _hosts $suf && ret=0
+    fi
+  ;;  
+esac
+
+return ret

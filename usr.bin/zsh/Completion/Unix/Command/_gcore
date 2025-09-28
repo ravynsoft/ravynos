@@ -1,0 +1,68 @@
+#compdef gcore
+
+case $OSTYPE in
+  solaris*)
+    local -a content
+
+    content=(
+      'anon[anonymous private mappings]'
+      'ctf[CTF type information]'
+      'data[writable private file mappings]'
+      'dism[DISM mappings]'
+      'heap[process heap]'
+      'ism[ISM mappings]'
+      'rodata[read-only private file mappings]'
+      'shanon[anonymous shared mappings]'
+      'shfile[file-backed shared mappings]'
+      'shm[System V shared memory]'
+      'stack[process stack]'
+      'symtab[symbol table sections for loaded files]'
+      'text[readable and executable private file mappings]'
+    )
+
+    _arguments -s \
+      '(-c -g)-p[use per-process core file repository]' \
+      '(-c -p)-g[use global core file repository]' \
+      '-F[force grabbing the target process]' \
+      '(-p -g)-c[set core file content]: :_values -s + "content" $content' \
+      '-o[set core file base name]:file base name:_files' \
+      '*:pid:_pids'
+  ;;
+  netbsd*)
+    _arguments \
+      '-c+[write core file to specified file]:file:_files' \
+      '*:pid:_pids'
+    ;;
+  dragonfly*)
+    _arguments -s \
+      '-c+[write core file to specified file]:file:_files' \
+      '-l+[skip map segments larger than the specified limit]:limit (bytes)' \
+      '-s[stop the process while gathering the core image]' \
+      '-v[Verbosely print out the map segments being dumped]' \
+      '::executable:' \
+      ':pid:_pids'
+  ;;
+  freebsd*)
+    _arguments -s \
+      '-c+[write core file to specified file]:file:_files' \
+      '-f[dump all available segments]' \
+      '::executable:' \
+      ':pid:_pids'
+  ;;
+  darwin*)
+    _arguments -s -A '-*' \
+      '-s[suspend the process while the core file is captured]' \
+      '-v[report progress on the dump as it proceeds]' \
+      '-b+[specify maximum size of core file]:size (MiB): ' \
+      '(-c)-o+[write core file to specified file]:file:_files' \
+      '(-o)-c+[specify format of core file name]:format (%%N\:program name, %%U\:uid, %%P\:pid, %%T\:time stamp)' \
+      '1:pid:_pids'
+  ;;
+  *)
+    # GNU GDB gcore
+    _arguments -s -A '-*' \
+      '-a[dump all memory mappings]' \
+      '-o+[set core file base name]:file base name:_files' \
+      '*:pid:_pids'
+  ;;
+esac

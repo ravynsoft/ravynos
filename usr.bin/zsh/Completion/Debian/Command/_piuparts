@@ -1,0 +1,30 @@
+#compdef piuparts
+
+local context state line
+typeset -A opt_args
+
+_arguments -s \
+	'(-a --apt)'{-a,--apt} \
+	'(-b --basetgz)'{-b,--basetgz=}':base tarball:_files' \
+	'(-d --distribution)'{-d,--distribution=}':Debian distribution:(sarge etch sid experimental)' \
+	'(-i --ignore)*'{-i,--ignore=}':file to ignore:_files' \
+	'(-I --ignore-regexp)*'{-I,--ignore-regexp=}':expression to ignore' \
+	'(-k --keep-tmpdir)'{-k,--keep-tmpdir} \
+	'(-l --log-file)'{-l,--logfile=}':log file:_files' \
+	'(-m --mirror)'{-m,--mirror=}':Debian mirror:_urls' \
+	'(-n --no-ignores)'{-n,--no-ignores} \
+	'(-p --pbuilder)'{-p,--pbuilder}'[use /var/cache/pbuilder/base.tgz]' \
+	'(-s --save)'{-s,--save=}':target tarball:_files' \
+	'(-t --tmpdir)'{-t,--tmpdir=}':temp dir:_files -/' \
+	'-V[version]' \
+	'*:package:->packages' && return 0
+
+case "$state" in
+    (packages)
+      if (( $+opt_args[-a] )); then
+          _deb_packages avail
+      else
+          _deb_files
+      fi
+    ;;
+esac

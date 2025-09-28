@@ -1,0 +1,159 @@
+%prep
+
+  setopt localtraps
+
+%test
+
+  unsetopt DEBUG_BEFORE_CMD
+  debug-trap-bug1() {
+    setopt localtraps
+    print "print bug file here" >bug-file
+    print "print this is line one
+    print this is line two
+    print this is line three
+    print and this is line fifty-nine." >bug-file2
+    function debug_trap_handler {
+	print $functrace[1]
+	do_bug
+    }
+    function do_bug {
+       . ./bug-file
+    }
+    trap 'echo EXIT hit' EXIT
+    trap 'debug_trap_handler' DEBUG
+    . ./bug-file2
+  }
+  debug-trap-bug1
+0: Relationship between traps and sources
+>debug-trap-bug1:15
+>bug file here
+>this is line one
+>./bug-file2:1
+>bug file here
+>this is line two
+>./bug-file2:2
+>bug file here
+>this is line three
+>./bug-file2:3
+>bug file here
+>and this is line fifty-nine.
+>./bug-file2:4
+>bug file here
+>debug-trap-bug1:16
+>bug file here
+>EXIT hit
+
+  cat >zsh-trapreturn-bug2 <<-'HERE'
+	cmd='./fdasfsdafd'
+	[[ -x $cmd ]] && rm $cmd
+	set -o DEBUG_BEFORE_CMD
+	trap '[[ $? -ne 0 ]] && exit 0' DEBUG
+	$cmd  # invalid command
+	# Failure
+	exit 10
+	HERE
+  $ZTST_testdir/../Src/zsh -f ./zsh-trapreturn-bug2 2>erroutput.dif
+  mystat=$?
+  (
+   setopt extendedglob
+   print ${"$(< erroutput.dif)"%%:[^:]#: ./fdasfsdafd}
+  )
+  (( mystat == 0 ))
+0: trapreturn handling bug is properly fixed
+>./zsh-trapreturn-bug2:5
+
+  fn() {
+    setopt localtraps localoptions debugbeforecmd
+    trap '(( LINENO == 4 )) && setopt errexit' DEBUG
+    print $LINENO three
+    print $LINENO four
+    print $LINENO five
+    [[ -o errexit ]] && print "Hey, ERREXIT is set!"
+  }
+  fn
+1:Skip line from DEBUG trap
+>3 three
+>5 five
+
+  # Assignments are a special case, since they use a simpler
+  # wordcode type, so we need to test skipping them separately.
+  fn() {
+    setopt localtraps localoptions debugbeforecmd
+    trap '(( LINENO == 4 )) && setopt errexit' DEBUG
+    x=three
+    x=four
+    print $LINENO $x
+    [[ -o errexit ]] && print "Hey, ERREXIT is set!"
+  }
+  fn
+1:Skip assignment from DEBUG trap
+>5 three
+
+  fn() {
+    setopt localtraps localoptions debugbeforecmd
+    trap 'print $LINENO' DEBUG
+    [[ a = a ]] && print a is ok
+  }
+  fn
+0:line numbers of complex sublists
+>3
+>a is ok
+
+  fn() {
+    setopt localtraps localoptions debugbeforecmd
+    trap 'print $LINENO' DEBUG
+    print before
+    x='    first
+    second
+    third'
+    print $x
+  }
+  fn
+0:line numbers of multiline assignments
+>3
+>before
+>4
+>7
+>    first
+>    second
+>    third
+
+  fn() {
+    emulate -L zsh; setopt debugbeforecmd
+    trap 'print "$LINENO: '\''$ZSH_DEBUG_CMD'\''"' DEBUG
+    print foo &&
+    print bar ||
+    print rod
+    x=y
+    print $x
+    fn2() { echo wow }
+    fn2
+  }
+  fn
+0:ZSH_DEBUG_CMD in debug traps
+>3: 'print foo && print bar || print rod'
+>foo
+>bar
+>6: 'x=y '
+>7: 'print $x'
+>y
+>8: 'fn2 () {
+>	echo wow
+>}'
+>9: 'fn2'
+>0: 'echo wow'
+>wow
+
+  foo() {
+    emulate -L zsh; setopt debugbeforecmd
+    trap '[[ $ZSH_DEBUG_CMD == *bar* ]] && return 2' DEBUG
+    echo foo
+    echo bar
+  }
+  foo
+2:Status of forced return from eval-style DEBUG trap
+>foo
+
+%clean
+
+ rm -f bug-file bug-file2 erroutput.dif zsh-trapreturn-bug2

@@ -1,0 +1,179 @@
+/*
+ * Copyright 1991-1998 by Open Software Foundation, Inc. 
+ *              All Rights Reserved 
+ *  
+ * Permission to use, copy, modify, and distribute this software and 
+ * its documentation for any purpose and without fee is hereby granted, 
+ * provided that the above copyright notice appears in all copies and 
+ * that both the copyright notice and this permission notice appear in 
+ * supporting documentation. 
+ *  
+ * OSF DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE 
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+ * FOR A PARTICULAR PURPOSE. 
+ *  
+ * IN NO EVENT SHALL OSF BE LIABLE FOR ANY SPECIAL, INDIRECT, OR 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM 
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN ACTION OF CONTRACT, 
+ * NEGLIGENCE, OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION 
+ * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+ */
+/*
+ * MkLinux
+ */
+/* CMU_HIST */
+/*
+ * Revision 2.7  91/05/14  15:42:37  mrt
+ * 	Correcting copyright
+ * 
+ * Revision 2.6  91/02/05  17:09:01  mrt
+ * 	Changed to new Mach copyright
+ * 	[91/01/31  17:28:12  mrt]
+ * 
+ * Revision 2.5  90/06/02  14:47:40  rpd
+ * 	Converted to new IPC.
+ * 	[90/03/26  21:52:00  rpd]
+ * 
+ * Revision 2.4  89/09/08  11:23:41  dbg
+ * 	Define KERNEL_SERVER.
+ * 	[89/08/23            dbg]
+ * 
+ * Revision 2.3  89/08/31  16:18:39  rwd
+ * 	Added device_read_reply_inband
+ * 	[89/08/15            rwd]
+ * 
+ * Revision 2.2  89/08/05  16:05:58  rwd
+ * 	Added device_write_reply_inband
+ * 	[89/08/04            rwd]
+ * 
+ */
+/* CMU_ENDHIST */
+/* 
+ * Mach Operating System
+ * Copyright (c) 1991,1990,1989 Carnegie Mellon University
+ * All Rights Reserved.
+ * 
+ * Permission to use, copy, modify and distribute this software and its
+ * documentation is hereby granted, provided that both the copyright
+ * notice and this permission notice appear in all copies of the
+ * software, derivative works or modified versions, and any portions
+ * thereof, and that both notices appear in supporting documentation.
+ * 
+ * CARNEGIE MELLON ALLOWS FREE USE OF THIS SOFTWARE IN ITS "AS IS"
+ * CONDITION.  CARNEGIE MELLON DISCLAIMS ANY LIABILITY OF ANY KIND FOR
+ * ANY DAMAGES WHATSOEVER RESULTING FROM THE USE OF THIS SOFTWARE.
+ * 
+ * Carnegie Mellon requests users of this software to return to
+ * 
+ *  Software Distribution Coordinator  or  Software.Distribution@CS.CMU.EDU
+ *  School of Computer Science
+ *  Carnegie Mellon University
+ *  Pittsburgh PA 15213-3890
+ * 
+ * any improvements or extensions that they make and grant Carnegie Mellon
+ * the rights to redistribute these changes.
+ */
+/*
+ *	Author: David B. Golub, Carnegie Mellon University
+ *	Date: 	8/89
+ *
+ * 	Reply-only side of device interface.
+ */
+
+subsystem
+#if	KERNEL_USER
+	  KernelUser
+#endif	/* KERNEL_USER */
+		     device_reply 2900;
+				/* to match reply numbers for device.defs */
+
+/*
+ * Device_write_reply (only user of this data type) deallocates
+ * the data.
+ */
+
+#include <mach/std_types.defs>
+#include <mach/mach_types.defs>
+#include <device/device_types.defs>
+
+#ifdef	SEQNOS
+serverprefix seqnos_;
+serverdemux seqnos_device_reply_server;
+#else	/* SEQNOS */
+userprefix	ds_;
+#endif	/* SEQNOS */
+
+type reply_port_t = polymorphic|MACH_MSG_TYPE_PORT_SEND_ONCE
+	ctype: mach_port_t;
+
+skip;	/* nmk15: device_open */
+
+skip;	/* device_close */
+
+simpleroutine	device_write_reply(
+	    reply_port		: reply_port_t;
+#ifdef	SEQNOS
+	msgseqno seqno		: mach_port_seqno_t;
+#endif	/* SEQNOS */
+	in  return_code		: kern_return_t;
+	in  bytes_written	: io_buf_len_t
+	);
+
+simpleroutine	device_write_reply_inband(
+	    reply_port		: reply_port_t;
+#ifdef	SEQNOS
+	msgseqno seqno		: mach_port_seqno_t;
+#endif	/* SEQNOS */
+	in  return_code		: kern_return_t;
+	in  bytes_written	: io_buf_len_t
+	);
+
+simpleroutine	device_read_reply(
+	    reply_port		: reply_port_t;
+#ifdef	SEQNOS
+	msgseqno seqno		: mach_port_seqno_t;
+#endif	/* SEQNOS */
+	in  return_code		: kern_return_t, RetCode;
+	in  data		: io_buf_ptr_t, dealloc
+	);
+
+simpleroutine	device_read_reply_inband(
+	    reply_port		: reply_port_t;
+#ifdef	SEQNOS
+	msgseqno seqno		: mach_port_seqno_t;
+#endif	/* SEQNOS */
+	in  return_code		: kern_return_t;
+	in  data		: io_buf_ptr_inband_t
+	);
+
+skip;	/*    xxx_device_set_status */
+
+skip;	/*    xxx_device_get_status */
+
+skip;	/*    xxx_device_set_filter */
+
+skip;	/*    device_map */
+
+skip;	/*    device_set_status */
+
+skip;	/*    device_get_status */
+
+skip;	/*    device_set_filter */
+
+simpleroutine	device_read_reply_overwrite(
+	    reply_port		: reply_port_t;
+#ifdef	SEQNOS
+	msgseqno seqno		: mach_port_seqno_t;
+#endif	/* SEQNOS */
+	in  return_code		: kern_return_t;
+	in  bytes_read		: io_buf_len_t
+	);
+
+simpleroutine	device_open_reply(
+	    reply_port		: reply_port_t;
+#ifdef	SEQNOS
+	msgseqno seqno		: mach_port_seqno_t;
+#endif	/* SEQNOS */
+	in  return_code		: kern_return_t, RetCode;
+	in  device_port		: mach_port_make_send_t
+	);

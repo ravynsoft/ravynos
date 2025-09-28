@@ -1,0 +1,28 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.4.0
+  hooks:
+  - id: trailing-whitespace
+  - id: end-of-file-fixer
+  - id: check-yaml
+  - id: check-added-large-files
+- repo: https://github.com/psf/black
+  rev: 23.9.1
+  hooks:
+  - id: black
+    args: ['--check', '--diff', '.']
+- repo: https://github.com/charliermarsh/ruff-pre-commit
+  rev: v0.0.291
+  hooks:
+  - id: ruff
+    # ambiguous-variable-name (E741), line-too-long (E501)
+    args: ['--ignore=E741,E501', '.']
+# [TODO] C linter/formatter
+# Note: There is an old config file for uncrustify (https://uncrustify.sourceforge.net)
+# in the repo, but we may want to migrate to other modern style.
+# - repo: https://github.com/pre-commit/mirrors-clang-format
+#   rev: v16.0.6
+#   hooks:
+#   - id: clang-format

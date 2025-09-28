@@ -1,0 +1,112 @@
+#compdef cksum gcksum sum gsum md2 md4 md5 rmd160 sha1 sha256 sha384 sha512 sha512t256 skein256 skein512 skein1024
+
+# This function covers mostly the BSD `cksum`, `sum`, and digest utilities. It
+# also covers the GNU Coreutils `cksum` and `sum`. For the GNU digest utilities,
+# see `_md5sum`. For the `shasum` Perl script, see `_shasum`.
+#
+# Notes:
+# - We really don't do a very good job of handling option exclusivity here. In
+#   particular, OpenBSD treats -t and -x as exclusive of each other and most
+#   other options — but there are issues with other variants too (@todo)
+# - Although only OpenBSD's documentation mentions it, -t can be supplied
+#   multiple times with all variants to run additional rounds of testing
+# - All digest variants on a given platform share code, but not all variants are
+#   found on all platforms (e.g., Darwin only has `md5`). Some BSDs are actively
+#   purging legacy/insecure digest tools
+# - The documentation for Dragonfly/FreeBSD `sum` says that it's 'identical to'
+#   `cksum`, but, as the synopsis confirms, it doesn't take any options
+# - FreeBSD's -c is never useful, and Dragonfly's -b/-e are *almost* never
+#   useful, with multiple input files
+# - NetBSD's -n isn't useful with `sum` and `cksum` unless a digest is specified
+#   with -a. Similarly, OpenBSD's -b isn't useful with `cksum` without -a
+# - OpenBSD's -a option allows you to add a b/x suffix to each algorithm name;
+#   we don't handle that. Also, only one -a option can be used in conjunction
+#   with -c; we don't handle that either
+
+local -a args
+
+_pick_variant gnu='Free Soft' unix --version && {
+  args=(
+    '*: :_files'
+    '(: -)--help[display help information]'
+    '(: -)--version[display version information]'
+  )
+  [[ $service == *cksum* ]] || args+=(
+    '(-s --sysv)-r[use BSD algorithm (1 KiB blocks)]'
+    '(-r -s --sysv)'{-s,--sysv}'[use System V algorithm (512 B blocks)]'
+  )
+  _arguments -s -S : $args
+  return
+}
+
+[[ $OSTYPE == (darwin|dragonfly|freebsd|openbsd)* && $service == sum ]] && {
+  _default
+  return
+}
+
+[[ $OSTYPE == (darwin|dragonfly|freebsd)* && $service == cksum ]] && {
+  _arguments -s -S -A '-*' \
+    '-o[use specified historic algorithm]:historic algorithm:(1 2 3)' \
+    '*: :_files'
+  return
+}
+
+case $OSTYPE in
+  darwin*|dragonfly*|freebsd*|netbsd*)
+    args+=(
+      '(-n -p -r)-q[output checksums only]'
+    )
+    ;| # MATCH AGAIN
+  darwin*|dragonfly*|freebsd*|openbsd*)
+    args+=(
+      '(-p -q)-r[reverse output format]'
+    )
+    ;| # MATCH AGAIN
+  netbsd*|openbsd*)
+    args+=(
+      '-c[verify checksums from input files]'
+    )
+    ;| # MATCH AGAIN
+  dragonfly*)
+    args+=(
+      '-b+[begin processing files at specified offset]:begin offset (bytes)'
+      '-e+[end processing files at specified offset]:end offset (bytes)'
+    )
+    ;;
+  freebsd*)
+    args+=(
+      '-c+[verify input against specified digest string]:digest string'
+    )
+    ;;
+  netbsd*)
+    args+=(
+      '(-p -q)-n[reverse output format]'
+      '(-p)-w[warn on malformed checksum files]'
+    )
+    [[ $service == (|ck)sum ]] && args+=(
+      '(-o)-a+[use specified algorithm]:algorithm:(crc md2 md4 md5 old1 old2 rmd160 sha1 sha256 sha384 sha512)'
+      '(-a)-o+[use specified historic algorithm]:historic algorithm:(1 2)'
+    )
+    ;;
+  openbsd*)
+    args+=(
+      '-b[output in base64]'
+      '(-h)-C+[verify input files against checksums in specified file]:checksum file:_files'
+      '(-C)-h+[output checksums to specified file]:checksum file:_files'
+      '(-n -r)-q[output checksum only, or suppress check success messages]'
+    )
+    [[ $service == cksum ]] && args+=(
+      '*-a+[use specified algorithm(s)]:algorithm:_values -s , algorithm cksum md5 rmd160 sha1 sha224 sha256 sha384 sha512/256 sha512'
+    )
+    ;;
+esac
+
+args+=(
+  '-p[output stdin along with checksum]'
+  '*-s+[checksum specified string]:string'
+  '*-t[run built-in time trial(s)]'
+  '-x[run built-in tests]'
+  '*: :_files'
+)
+
+_arguments -s -S -A '-*' : $args

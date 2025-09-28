@@ -1,0 +1,10 @@
+#compdef inetadm
+
+_arguments -s \
+  '-?[help]' \
+  '-l[list service instance properties]:FMRI:_svcs_fmri -i' \
+  '-e[enable specified instance]:FMRI:_svcs_fmri -i' \
+  '-d[disable specified instance]:FMRI:_svcs_fmri -i' \
+  '-p[list inet service properties]' \
+  '-m[modify service instance properties]:FMRI:_svcs_fmri -i' \
+  '-M[modify inet service properties]'

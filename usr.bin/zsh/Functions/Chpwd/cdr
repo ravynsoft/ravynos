@@ -1,0 +1,336 @@
+# Description
+# ===========
+#
+# Change to a recently used directory recorded in a file so that the
+# recent file list persists across sessions.
+#
+# To use this system,
+#
+#   autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
+#   add-zsh-hook chpwd chpwd_recent_dirs
+#
+# (add-zsh-hook appeared in zsh version 4.3.4.)  This ensures that all
+# directories you change to interactively are registered.  The
+# chpwd_recent_dirs function does some guesswork to see if you are "really"
+# changing directory permanently, see below.
+#
+# The argument to cdr is a number corresponding to the Nth most recently
+# changed-to directory starting at 1 for the immediately preceding
+# directory (the current directory is remembered but is not offered as a
+# destination).  You can use directory arguments if you set the
+# recent-dirs-default style, see below; however, it should be noted
+# that if you do you gain nothing over using cd directly (the recent
+# directory list is updated in either case).
+#
+# If the argument is omitted, 1 is assumed.
+#
+# Completion is available if compinit has been run; menu selection is
+# recommended, using
+#
+#   zstyle ':completion:*:*:cdr:*:*' menu selection
+#
+# and also the verbose style to ensure the directory is shown (this
+# is on by default).
+#
+# Options
+# =======
+#
+# "cdr -l" lists the numbers and the corresponding directories in
+# abbreviated form (i.e. with "~" substitution reapplied), one per line.
+# The directories here are not quoted (this would only be an issue if a
+# directory name contained a newline).  This is used by the completion
+# system.
+#
+# "cdr -r" sets the parameter "reply" to the current set of directories.
+#
+# "cdr -e" allows you to edit the list of directories, one per line.  The
+# list can be edited to any extent you like; no sanity checking is
+# performed.  Completion is available.  No quoting is necessary (except for
+# newlines, where I have in any case no sympathy); directories are in
+# unabbreviated from and contain an absolute path, i.e. they start with /
+# (and only /).  Usually the first entry should be left as the current
+# directory.
+#
+# "cdr -p 'pattern'" prunes anything matching the given extended glob
+# pattern from the directory list.  The match is against the fully
+# expanded directory path and the full string must match (use wildcards
+# at the ends if needed).  If output is going to a terminal, the
+# function will print the new list for the user to confirm; this can be
+# skipped by giving -P instead of -p.
+#
+# Details of directory handling
+# =============================
+#
+# Recent directories are saved to a file immediately and hence are
+# preserved across sessions.  Note currently no file locking is applied:
+# the list is updated immediately on interactive commands and nowhere else
+# (unlike history), and it is assumed you are only going to change
+# directory in one window at once.  This is not safe on shared accounts,
+# but in any case the system has limited utility when someone else is
+# changing to a different set of directories behind your back.
+#
+# To make this a little safer, only directory changes instituted from the
+# command line, either directly or indirectly through shell function calls
+# (but not through subshells, evals, traps, completion functions and the
+# like) are saved.  This works best in versions of the shell from 4.3.11
+# which has facilities to check the evaluation context.  Shell functions
+# should use cd -q or pushd -q to avoid side effects if the change to the
+# directory is to be invisible at the command line.  See the function
+# chpwd_recent_dirs for more details.
+#
+# Styles
+# ======
+#
+# Various styles are available.  The context for setting styles should be
+# ':chpwd:*' in case the meaning of the context is extended in future, for
+# example:
+#
+#   zstyle ':chpwd:*' recent-dirs-max 0
+#
+# although the style name is specific enough that a context of '*' should
+# be fine in practice.  The only exception is recent-dirs-insert, which is
+# used exclusively by the completion system and so has the usual completion
+# system context (':completion:*' if nothing more specific is needed,
+# though again '*' should be fine in practice).
+#
+#   recent-dirs-default
+#     If true, and the command is expecting a recent directory index, and
+#     either there is more than one argument or the argument is not an
+#     integer, then fall through to "cd".  This allows the lazy to use only
+#     one command for directory changing.  Completion recognises this, too;
+#     see recent-dirs-insert for how to control completion when this option
+#     is in use.
+#
+#   recent-dirs-file
+#     The file where the list of directories is saved.  The default
+#     is ${ZDOTDIR:-$HOME}/.chpwd-recent-dirs, i.e. this is in your
+#     home directory unless you have set ZDOTDIR to point somewhere else.
+#     Directory names are saved in $'...' quoted form, so each line
+#     in the file can be supplied directly to the shell as an argument.
+#
+#     The value of this style may be an array.  In this case, the first
+#     file in the list will always be used for saving directories while any
+#     other files are left untouched.  When reading the recent directory
+#     list, if there are fewer than the maximum number of entries in the
+#     first file, the contents of later files in the array will be appended
+#     with duplicates removed from the list shown.  The contents of the two
+#     files are not sorted together, i.e. all the entries in the first file
+#     are shown first.  The special value "+" can appear in the list to
+#     indicate the default file should be read at that point.  This allows
+#     effects like the following:
+#
+#       zstyle recent-dirs-file ':chpwd:*' ~/.chpwd-recent-dirs-${TTY##*/} +
+#
+#     Recent directories are read from a file numbered according to
+#     the terminal.  If there are insufficient entries the list
+#     is supplemented from the default file.
+#
+#   recent-dirs-insert
+#     Used by completion.  If recent-dirs-default is true, then setting
+#     this to true causes the actual directory, rather than its index, to
+#     be inserted on the command line; this has the same effect as using
+#     the corresponding index, but makes the history clearer and the line
+#     easier to edit.  With this setting, if part of an argument was
+#     already typed, normal directory completion rather than recent
+#     directory completion is done; this is because recent directory
+#     completion is expected to be done by cycling through entries menu
+#     fashion.  However, if the value of the style is "always", then only
+#     recent directories will be completed; in that case, use the cd
+#     command when you want to complete other directories.  If the value is
+#     "fallback", recent directories will be tried first, then normal
+#     directory completion is performed if recent directory completion
+#     failed to find a match.  Finally, if the value is "both" then both
+#     sets of completions are presented; the usual tag mechanism can be
+#     used to distinguish results, with recent directories tagged as
+#     "recent-dirs".  Note that the recent directories inserted are
+#     abbreviated with directory names where appropriate.
+#
+#   recent-dirs-max
+#     The maximum number of directories to save to the file.  If
+#     this is zero or negative there is no maximum.  The default is 20.
+#     Note this includes the current directory, which isn't offered,
+#     so the highest number of directories you will be offered
+#     is one less than the maximum.
+#
+#   recent-dirs-prune
+#     This style is an array determining what directories should (or should
+#     not) be added to the recent list.  Elements of the array can include:
+#       parent
+#         Prune parents (more accurately, ancestors) from the recent list.
+#         If present, changing directly down by any number of directories
+#         causes the current directory to be overwritten.  For example,
+#         changing from ~pws to ~pws/some/other/dir causes ~pws not to be
+#         left on the recent directory stack.  This only applies to direct
+#         changes to descendant directories; earlier directories on the
+#         list are not pruned.  For example, changing from ~pws/yet/another
+#         to ~pws/some/other/dir does not cause ~pws to be pruned.
+#       pattern:<pattern>
+#         Gives a zsh pattern for directories that should not be
+#         added to the recent list (if not already there).  This element
+#         can be repeated to add different patterns.  For example,
+#         'pattern:/tmp(|/*)' stops /tmp or its descendants from being
+#         added.  The EXTENDED_GLOB option is always turned on for
+#         these patterns.
+#
+#   recent-dirs-pushd
+#     If set to true, cdr will use pushd instead of cd to change the
+#     directory, so the directory is saved on the directory stack.  As the
+#     directory stack is completely separate from the list of files saved
+#     by the mechanism used in this file there is no obvious reason to do
+#     this.
+#
+# Use with dynamic directory naming
+# =================================
+#
+# It is possible to refer to recent directories using the dynamic directory
+# name syntax that appeared in zsh version 4.3.7.  If you create and
+# autoload a function zsh_directory_name containing the following code,
+# ~[1] will refer to the most recent directory other than $PWD, and so on.
+# This also includes completion (version 4.3.11 is required for this to
+# work; previous versions needed the file _dynamic_directory_name to
+# be overloaded).
+#
+#   if [[ $1 = n ]]; then
+#     if [[ $2 = <-> ]]; then
+#       # Recent directory
+#       typeset -ga reply
+#       autoload -Uz cdr
+#       cdr -r
+#       if [[ -n ${reply[$2]} ]]; then
+#         reply=(${reply[$2]})
+#         return 0
+#       else
+#         reply=()
+#         return 1
+#       fi
+#     fi
+#   elif [[ $1 = c ]]; then
+#     if [[ $PREFIX = <-> || -z $PREFIX ]]; then
+#       typeset -a keys values
+#   
+#       values=(${${(f)"$(cdr -l)"}/ ##/:})
+#       keys=(${values%%:*})
+#   
+#       _describe -t dir-index 'recent directory index' \
+#         values keys -V unsorted -S']'
+#       return
+#     fi
+#   fi
+#   return 1
+
+
+emulate -L zsh
+setopt extendedglob
+
+autoload -Uz chpwd_recent_filehandler chpwd_recent_add
+
+integer list set_reply i bad edit force_prune
+local opt dir prune
+local -aU dirs
+
+while getopts "elp:P:r" opt; do
+  case $opt in
+    (e)
+    edit=1
+    ;;
+
+    (l)
+    list=1
+    ;;
+
+    ([pP])
+    prune=$OPTARG
+    edit=1
+    [[ $opt = P ]] && force_prune=1
+    ;;
+
+    (r)
+    set_reply=1
+    ;;
+
+    (*)
+    return 1
+    ;;
+  esac
+done
+shift $(( OPTIND - 1 ))
+
+if (( set_reply )); then
+  typeset -ga reply
+else
+  local -a reply
+fi
+
+if (( list || set_reply || edit )); then
+  (( $# )) && bad=1
+else
+  if [[ $#1 -eq 0 ]]; then
+    1=1
+  elif [[ $# -ne 1 || $1 != <-> ]]; then
+    if zstyle -t ':chpwd:' recent-dirs-default; then
+      cd "$@"
+      return
+    else
+      bad=1
+    fi
+  fi
+fi
+
+if (( bad )); then
+  print "Usage: $0 [-l | -r | <dir-num> ]
+Use $0 -l or completion to see possible directories."
+  return 1
+fi
+
+chpwd_recent_filehandler
+
+if [[ $PWD != $reply[1] ]]; then
+  # When we first start we don't have the current directory.
+  # Add it now for consistency.
+  chpwd_recent_add $PWD && chpwd_recent_filehandler $reply
+fi
+
+if (( edit )); then
+  if [[ -n $prune ]]; then
+    reply=(${reply:#$~prune})
+    if [[ force_prune -eq 0 && -t 1 ]]; then
+      print -nrl "New list:" $reply 'Accept? '
+      if ! read -q; then
+	print
+	return 1
+      fi
+      print
+    fi
+  else
+    local compcontext='directories:directory:_path_files -/'
+    IFS='
+' vared reply || return 1
+  fi
+  chpwd_recent_filehandler $reply
+fi
+
+# Skip current directory if present (may have been pruned).
+[[ $reply[1] = $PWD ]] && reply=($reply[2,-1])
+
+if (( list )); then
+  dirs=($reply)
+  for (( i = 1; i <= ${#dirs}; i++ )); do
+    print -n ${(r.5.)i}
+    print -r ${(D)dirs[i]}
+  done
+  return
+fi
+
+(( set_reply || edit )) && return
+
+if (( $1 > ${#reply} )); then
+  print "Not enough directories ($(( ${#dirs} - 1)) possibilities)" >&2
+  return 1
+fi
+dir=${reply[$1]}
+
+if zstyle -t ':chpwd:' recent-dirs-pushd; then
+  pushd -- $dir
+else
+  cd -- $dir
+fi

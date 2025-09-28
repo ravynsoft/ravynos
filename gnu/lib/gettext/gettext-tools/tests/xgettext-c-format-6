@@ -1,0 +1,41 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C support: verify that there are no side effects of the Vala extractor
+# on the C extractor.
+
+cat <<\EOF > xg-c-format-6.c
+/* For the C extractor, Q_ and X_ are unknown identifiers and should therefore
+   behave the same way. */
+printf (Q_("blablaQ %d and %s"), a, b);
+printf (Q_("blablaQ {0} and {1}"), a, b);
+printf (X_("blablaX %d and %s"), a, b);
+printf (X_("blablaX {0} and {1}"), a, b);
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -kQ_ -kX_ \
+            -d xg-c-format-6.tmp xg-c-format-6.c || Exit 1
+LC_ALL=C tr -d '\r' < xg-c-format-6.tmp.po > xg-c-format-6.po || Exit 1
+
+cat <<EOF > xg-c-format-6.ok
+#, c-format
+msgid "blablaQ %d and %s"
+msgstr ""
+
+msgid "blablaQ {0} and {1}"
+msgstr ""
+
+#, c-format
+msgid "blablaX %d and %s"
+msgstr ""
+
+msgid "blablaX {0} and {1}"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-c-format-6.ok xg-c-format-6.po
+result=$?
+
+exit $result

@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>LibTIFF Coverage of the TIFF 6.0 Specification &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="LibTIFF Coverage of the BigTIFF Specification" href="coverage-bigtiff.html" />
+    <link rel="prev" title="BigTIFF Design" href="bigtiff.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="coverage-bigtiff.html" title="LibTIFF Coverage of the BigTIFF Specification"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="bigtiff.html" title="BigTIFF Design"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">TIFF File Format Specification</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">LibTIFF Coverage of the TIFF 6.0 Specification</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="libtiff-coverage-of-the-tiff-6-0-specification">
+<h1>LibTIFF Coverage of the TIFF 6.0 Specification<a class="headerlink" href="#libtiff-coverage-of-the-tiff-6-0-specification" title="Permalink to this heading">¶</a></h1>
+<p>The library is capable of dealing with images that are written to
+follow the 5.0 or 6.0 TIFF spec.  There is also considerable support
+for some of the more esoteric portions of the 6.0 TIFF spec.</p>
+<section id="baseline">
+<h2>Baseline<a class="headerlink" href="#baseline" title="Permalink to this heading">¶</a></h2>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Core requirements</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 80.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Core requirements</p></td>
+<td><p>Both <code class="docutils literal notranslate"><span class="pre">MM</span></code> and <code class="docutils literal notranslate"><span class="pre">II</span></code> byte orders are handled.
+Both packed and separated planar configuration of samples.
+Any number of samples per pixel (memory permitting).
+Any image width and height (memory permitting).
+Multiple subfiles can be read and written.
+Editing is <strong>not</strong> supported in that related subfiles (e.g.
+a reduced resolution version of an image) are not automatically
+updated.</p>
+<p>Tags handled: <code class="docutils literal notranslate"><span class="pre">ExtraSamples</span></code>, <code class="docutils literal notranslate"><span class="pre">ImageWidth</span></code>,
+<code class="docutils literal notranslate"><span class="pre">ImageLength</span></code>, <code class="docutils literal notranslate"><span class="pre">NewSubfileType</span></code>, <code class="docutils literal notranslate"><span class="pre">ResolutionUnit</span></code>.
+<code class="docutils literal notranslate"><span class="pre">Rowsperstrip</span></code>, <code class="docutils literal notranslate"><span class="pre">StripOffsets</span></code>, <code class="docutils literal notranslate"><span class="pre">StripByteCounts</span></code>,
+<code class="docutils literal notranslate"><span class="pre">XResolution</span></code>, <code class="docutils literal notranslate"><span class="pre">YResolution</span></code></p>
+</td>
+</tr>
+<tr class="row-even"><td><p>Tiled Images</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TileWidth</span></code>, <code class="docutils literal notranslate"><span class="pre">TileLength</span></code>, <code class="docutils literal notranslate"><span class="pre">TileOffsets</span></code>,
+<code class="docutils literal notranslate"><span class="pre">TileByteCounts</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Image Colorimetry Information</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WhitePoint</span></code>, <code class="docutils literal notranslate"><span class="pre">PrimaryChromaticities</span></code>, <code class="docutils literal notranslate"><span class="pre">TransferFunction</span></code>,
+<code class="docutils literal notranslate"><span class="pre">ReferenceBlackWhite</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Class B for bilevel images</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span></code> = 1</p>
+<p><code class="docutils literal notranslate"><span class="pre">BitsPerSample</span></code> = 1</p>
+<p><code class="docutils literal notranslate"><span class="pre">Compression</span></code> = 1 (none), 2 (CCITT 1D), or 32773 (PackBits)</p>
+<p><code class="docutils literal notranslate"><span class="pre">PhotometricInterpretation</span></code> = 0 (Min-is-White), 1 (Min-is-Black)</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>Class G for grayscale images</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span></code> = 1</p>
+<p><code class="docutils literal notranslate"><span class="pre">BitsPerSample</span></code> = 4, 8</p>
+<p><code class="docutils literal notranslate"><span class="pre">Compression</span></code> = 1 (none) 5 (LZW)</p>
+<p><code class="docutils literal notranslate"><span class="pre">PhotometricInterpretation</span></code> = 0 (Min-is-White), 1 (Min-is-Black)</p>
+</td>
+</tr>
+<tr class="row-even"><td><p>Class P for palette color images</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span></code> = 1</p>
+<p><code class="docutils literal notranslate"><span class="pre">BitsPerSample</span></code> = 1-8</p>
+<p><code class="docutils literal notranslate"><span class="pre">Compression</span></code> = 1 (none) 5 (LZW)</p>
+<p><code class="docutils literal notranslate"><span class="pre">PhotometricInterpretation</span></code> = 3 (Palette RGB)</p>
+<p><code class="docutils literal notranslate"><span class="pre">ColorMap</span></code></p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>Class R for RGB full color images</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span></code> = 3</p>
+<p><code class="docutils literal notranslate"><span class="pre">BitsPerSample</span></code> = &lt;8,8,8&gt;</p>
+<p><code class="docutils literal notranslate"><span class="pre">PlanarConfiguration</span></code> = 1, 2</p>
+<p><code class="docutils literal notranslate"><span class="pre">Compression</span></code> = 1 (none) 5 (LZW)</p>
+<p><code class="docutils literal notranslate"><span class="pre">PhotometricInterpretation</span></code> = 2 (RGB)</p>
+</td>
+</tr>
+<tr class="row-even"><td><p>Class F for facsimile</p></td>
+<td><p>(<em>Class B tags plus…</em>)</p>
+<p><code class="docutils literal notranslate"><span class="pre">Compression</span></code> = 3 (CCITT Group 3), 4 (CCITT Group 4)</p>
+<p><code class="docutils literal notranslate"><span class="pre">FillOrder</span></code> = 1 (MSB), 2 (LSB)</p>
+<p><code class="docutils literal notranslate"><span class="pre">Group3Options</span></code> = 1 (2d encoding), 4 (zero fill), 5 (2d+fill)</p>
+<p><code class="docutils literal notranslate"><span class="pre">ImageWidth</span></code> = 1728, 2048, 2482</p>
+<p><code class="docutils literal notranslate"><span class="pre">NewSubFileType</span></code> = 2</p>
+<p><code class="docutils literal notranslate"><span class="pre">ResolutionUnit</span></code> = 2 (Inch), 3 (Centimeter)</p>
+<p><code class="docutils literal notranslate"><span class="pre">PageNumber</span></code>,
+<code class="docutils literal notranslate"><span class="pre">XResolution</span></code>,
+<code class="docutils literal notranslate"><span class="pre">YResolution</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Software</span></code>,
+<code class="docutils literal notranslate"><span class="pre">BadFaxLines</span></code>,
+<code class="docutils literal notranslate"><span class="pre">CleanFaxData</span></code>,
+<code class="docutils literal notranslate"><span class="pre">ConsecutiveBadFaxLines</span></code>,
+<code class="docutils literal notranslate"><span class="pre">DateTime</span></code>,
+<code class="docutils literal notranslate"><span class="pre">DocumentName</span></code>,
+<code class="docutils literal notranslate"><span class="pre">ImageDescription</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Orientation</span></code></p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>Class S for separated images</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span></code> = 4</p>
+<p><code class="docutils literal notranslate"><span class="pre">PlanarConfiguration</span></code> = 1, 2</p>
+<p><code class="docutils literal notranslate"><span class="pre">Compression</span></code> = 1 (none), 5 (LZW)</p>
+<p><code class="docutils literal notranslate"><span class="pre">PhotometricInterpretation</span></code> = 5 (Separated)</p>
+<p><code class="docutils literal notranslate"><span class="pre">InkSet</span></code> = 1 (CMYK)</p>
+<p><code class="docutils literal notranslate"><span class="pre">DotRange</span></code>,
+<code class="docutils literal notranslate"><span class="pre">InkNames</span></code>,
+<code class="docutils literal notranslate"><span class="pre">DotRange</span></code>,
+<code class="docutils literal notranslate"><span class="pre">TargetPrinter</span></code></p>
+</td>
+</tr>
+<tr class="row-even"><td><p>Class Y for YCbCr images</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span></code> = 3</p>
+<p><code class="docutils literal notranslate"><span class="pre">BitsPerSample</span></code> = &lt;8,8,8&gt;</p>
+<p><code class="docutils literal notranslate"><span class="pre">PlanarConfiguration</span></code> = 1, 2</p>
+<p><code class="docutils literal notranslate"><span class="pre">Compression</span></code> = 1 (none),  5 (LZW), 7 (JPEG)</p>
+<p><code class="docutils literal notranslate"><span class="pre">PhotometricInterpretation</span></code> = 6 (YCbCr)</p>
+<p><code class="docutils literal notranslate"><span class="pre">YCbCrCoefficients</span></code>,
+<code class="docutils literal notranslate"><span class="pre">YCbCrSubsampling</span></code>,
+<code class="docutils literal notranslate"><span class="pre">YCbCrPositioning</span></code></p>
+<p>(<em>colorimetry info from Appendix H; see above</em>)</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>Class “JPEG” for JPEG images (per TTN2)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PhotometricInterpretation</span></code> = 1 (grayscale), 2 (RGB), 5 (CMYK), 6 (YCbCr)</p>
+<p>(<em>Class Y tags if YCbCr</em>)</p>
+<p>(<em>Class S tags if CMYK</em>)</p>
+<p><code class="docutils literal notranslate"><span class="pre">Compression</span></code> = 7 (JPEG)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>In addition, the library supports some optional compression algorithms
+that are, in some cases, of dubious value.</p>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Compression algorithms</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 80.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Compression tag value</p></th>
+<th class="head"><p>Compression algorithm</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>32766</p></td>
+<td><p>NeXT 2-bit encoding</p></td>
+</tr>
+<tr class="row-odd"><td><p>32809</p></td>
+<td><p>ThunderScan 4-bit encoding</p></td>
+</tr>
+<tr class="row-even"><td><p>32909</p></td>
+<td><p>Pixar companded 11-bit ZIP encoding</p></td>
+</tr>
+<tr class="row-odd"><td><p>32946</p></td>
+<td><p>PKZIP-style Deflate encoding (experimental)</p></td>
+</tr>
+<tr class="row-even"><td><p>34676</p></td>
+<td><p>SGI 32-bit Log Luminance encoding (experimental)</p></td>
+</tr>
+<tr class="row-odd"><td><p>34677</p></td>
+<td><p>SGI 24-bit Log Luminance encoding (experimental)</p></td>
+</tr>
+</tbody>
+</table>
+<p>Note that there is no support for the JPEG-related tags defined
+in the 6.0 specification; the JPEG support is based on the post-6.0
+proposal given in TIFF Technical Note #2.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For more information on the experimental Log Luminance encoding
+consult the materials available at
+<a class="reference external" href="http://www.anyhere.com/gward/pixformat/tiffluv.html">http://www.anyhere.com/gward/pixformat/tiffluv.html</a>.</p>
+</div>
+<p>The following table shows the tags that are recognized
+and how they are used by the library.  If no use is indicated,
+then the library reads and writes the tag, but does not use it internally.
+For the meaning of the tags look in <a class="reference external" href="https://www.awaresystems.be/imaging/tiff/tifftags.html">https://www.awaresystems.be/imaging/tiff/tifftags.html</a></p>
+<p><code class="file docutils literal notranslate"><span class="pre">libtiff</span></code> supports also many private tags allocated for organizations that wish to
+store additional information in a TIFF file.
+Tags for TIFF/EP and for Digital Negative (DNG) Specification 1.1.0
+are included.</p>
+<p>Note that some tags are meaningful only when a particular
+compression scheme is being used; e.g. <code class="docutils literal notranslate"><span class="pre">Group3Options</span></code>
+is only useful if <code class="docutils literal notranslate"><span class="pre">Compression</span></code>
+is set to CCITT Group 3 encoding.
+Tags of this sort are considered <em>codec-specific</em>
+tags and the library does not recognize them except when the
+<code class="docutils literal notranslate"><span class="pre">Compression</span></code>
+tag has been previously set to the relevant compression scheme.</p>
+</section>
+<section id="tags-recognized-by-libtiff">
+<h2>Tags Recognized by LibTIFF<a class="headerlink" href="#tags-recognized-by-libtiff" title="Permalink to this heading">¶</a></h2>
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">Tags used by libtiff</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 41.7%" />
+<col style="width: 8.3%" />
+<col style="width: 8.3%" />
+<col style="width: 41.7%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Tag Name</p></th>
+<th class="head"><p>Value</p></th>
+<th class="head"><p>R/W&lt;</p></th>
+<th class="head"><p>Library’s Use (Comments)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SubfileType</span></code></p></td>
+<td><p>254</p></td>
+<td><p>R/W</p></td>
+<td><p>none (also known as <code class="docutils literal notranslate"><span class="pre">NewSubfileType</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">OldSubfileType</span></code></p></td>
+<td><p>255</p></td>
+<td><p>R/W</p></td>
+<td><p>parsed but ignored (also known as <code class="docutils literal notranslate"><span class="pre">SubFileType</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ImageWidth</span></code></p></td>
+<td><p>256</p></td>
+<td><p>R/W</p></td>
+<td><p>lots</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ImageLength</span></code></p></td>
+<td><p>257</p></td>
+<td><p>R/W</p></td>
+<td><p>lots</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">BitsPerSample</span></code></p></td>
+<td><p>258</p></td>
+<td><p>R/W</p></td>
+<td><p>lots</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Compression</span></code></p></td>
+<td><p>259</p></td>
+<td><p>R/W</p></td>
+<td><p>to select appropriate codec</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PhotometricInterpretation</span></code></p></td>
+<td><p>262</p></td>
+<td><p>R/W</p></td>
+<td><p>lots</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Thresholding</span></code></p></td>
+<td><p>263</p></td>
+<td><p>R/W</p></td>
+<td><p>(tag in tif.h wrongly written as “Threshholding”)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CellWidth</span></code></p></td>
+<td><p>264</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CellLength</span></code></p></td>
+<td><p>265</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FillOrder</span></code></p></td>
+<td><p>266</p></td>
+<td><p>R/W</p></td>
+<td><p>control bit order</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DocumentName</span></code></p></td>
+<td><p>269</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ImageDescription</span></code></p></td>
+<td><p>270</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Make</span></code></p></td>
+<td><p>271</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Model</span></code></p></td>
+<td><p>272</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">StripOffsets</span></code></p></td>
+<td><p>273</p></td>
+<td><p>R/W</p></td>
+<td><p>data i/o</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Orientation</span></code></p></td>
+<td><p>274</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span></code></p></td>
+<td><p>277</p></td>
+<td><p>R/W</p></td>
+<td><p>lots</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RowsPerStrip</span></code></p></td>
+<td><p>278</p></td>
+<td><p>R/W</p></td>
+<td><p>data i/o</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">StripByteCounts</span></code></p></td>
+<td><p>279</p></td>
+<td><p>R/W</p></td>
+<td><p>data i/o</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MinSampleValue</span></code></p></td>
+<td><p>280</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MaxSampleValue</span></code></p></td>
+<td><p>281</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">XResolution</span></code></p></td>
+<td><p>282</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">YResolution</span></code></p></td>
+<td><p>283</p></td>
+<td><p>R/W</p></td>
+<td><p>used by Group 3 2d encoder</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PlanarConfiguration</span></code></p></td>
+<td><p>284</p></td>
+<td><p>R/W</p></td>
+<td><p>data i/o</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">PageName</span></code></p></td>
+<td><p>285</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">XPosition</span></code></p></td>
+<td><p>286</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">YPosition</span></code></p></td>
+<td><p>287</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FreeOffsets</span></code></p></td>
+<td><p>288</p></td>
+<td><p>R/W</p></td>
+<td><p>parsed but ignored</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FreeByteCounts</span></code></p></td>
+<td><p>289</p></td>
+<td><p>R/W</p></td>
+<td><p>parsed but ignored</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GrayResponseUnit</span></code></p></td>
+<td><p>290</p></td>
+<td><p>R/W</p></td>
+<td><p>parsed but ignored</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">GrayResponseCurve</span></code></p></td>
+<td><p>291</p></td>
+<td><p>R/W</p></td>
+<td><p>parsed but ignored</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ResolutionUnit</span></code></p></td>
+<td><p>296</p></td>
+<td><p>R/W</p></td>
+<td><p>used by Group 3 2d encoder</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">PageNumber</span></code></p></td>
+<td><p>297</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ColorResponseUnit</span></code></p></td>
+<td><p>300</p></td>
+<td><p>R/W</p></td>
+<td><p>parsed but ignored</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TransferFunction</span></code></p></td>
+<td><p>301</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Software</span></code></p></td>
+<td><p>305</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DateTime</span></code></p></td>
+<td><p>306</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Artist</span></code></p></td>
+<td><p>315</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">HostComputer</span></code></p></td>
+<td><p>316</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">WhitePoint</span></code></p></td>
+<td><p>318</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">PrimaryChromaticities</span></code></p></td>
+<td><p>319</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ColorMap</span></code></p></td>
+<td><p>320</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">HalftoneHints</span></code></p></td>
+<td><p>321</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TileWidth</span></code></p></td>
+<td><p>322</p></td>
+<td><p>R/W</p></td>
+<td><p>data i/o</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TileLength</span></code></p></td>
+<td><p>323</p></td>
+<td><p>R/W</p></td>
+<td><p>data i/o</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TileOffsets</span></code></p></td>
+<td><p>324</p></td>
+<td><p>R/W</p></td>
+<td><p>data i/o</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TileByteCounts</span></code></p></td>
+<td><p>325</p></td>
+<td><p>R/W</p></td>
+<td><p>data i/o</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SubIFD</span></code></p></td>
+<td><p>330</p></td>
+<td><p>R/W</p></td>
+<td><p>subimage descriptor support</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">InkSet</span></code></p></td>
+<td><p>332</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">InkNames</span></code></p></td>
+<td><p>333</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">NumberOfInks</span></code></p></td>
+<td><p>334</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DotRange</span></code></p></td>
+<td><p>336</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TargetPrinter</span></code></p></td>
+<td><p>337</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ExtraSamples</span></code></p></td>
+<td><p>338</p></td>
+<td><p>R/W</p></td>
+<td><p>lots</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SampleFormat</span></code></p></td>
+<td><p>339</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SMinSampleValue</span></code></p></td>
+<td><p>340</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SMaxSampleValue</span></code></p></td>
+<td><p>341</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ClipPath</span></code></p></td>
+<td><p>343</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">XClipPathUnits</span></code></p></td>
+<td><p>344</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">YClipPathUnits</span></code></p></td>
+<td><p>345</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">YCbCrCoefficients</span></code></p></td>
+<td><p>529</p></td>
+<td><p>R/W</p></td>
+<td><p>used by <code class="docutils literal notranslate"><span class="pre">TIFFReadRGBAImage</span></code> support</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">YCbCrSubsampling</span></code></p></td>
+<td><p>530</p></td>
+<td><p>R/W</p></td>
+<td><p>tile / strip size calculations</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">YCbCrPositioning</span></code></p></td>
+<td><p>531</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ReferenceBlackWhite</span></code></p></td>
+<td><p>532</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">XMLPacket</span></code></p></td>
+<td><p>700</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Matteing</span></code></p></td>
+<td><p>32995</p></td>
+<td><p>R</p></td>
+<td><p>none (obsoleted by <code class="docutils literal notranslate"><span class="pre">ExtraSamples</span></code> tag)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DataType</span></code></p></td>
+<td><p>32996</p></td>
+<td><p>R</p></td>
+<td><p>none (obsoleted by <code class="docutils literal notranslate"><span class="pre">SampleFormat</span></code> tag)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ImageDepth</span></code></p></td>
+<td><p>32997</p></td>
+<td><p>R/W</p></td>
+<td><p>tile / strip size calculations</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TileDepth</span></code></p></td>
+<td><p>32998</p></td>
+<td><p>R/W</p></td>
+<td><p>tile / strip size calculations</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ImageFullWidth</span></code></p></td>
+<td><p>33300</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ImageFullLength</span></code></p></td>
+<td><p>33301</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TextureFormat</span></code></p></td>
+<td><p>33302</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TextureWrapModes</span></code></p></td>
+<td><p>33303</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FieldOfViewCotangent</span></code></p></td>
+<td><p>33304</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MatrixWorldToScreen</span></code></p></td>
+<td><p>33305</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MatrixWorldToCamera</span></code></p></td>
+<td><p>33306</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Copyright</span></code></p></td>
+<td><p>33432</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RichTIFFIPTC</span></code></p></td>
+<td><p>33723</p></td>
+<td><p>R/W</p></td>
+<td><p>(also known as TIFF/EP IPTC/NAA;
+<code class="file docutils literal notranslate"><span class="pre">libtiff</span></code> type is UNDEFINED or BYTE,
+but often times incorrectly specified as LONG,
+because TIFF/EP (ISO/DIS 12234-2) specifies type LONG or ASCII)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Photoshop</span></code></p></td>
+<td><p>34377</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">EXIFIFDOffset</span></code></p></td>
+<td><p>34665</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ICC</span> <span class="pre">Profile</span></code></p></td>
+<td><p>34675</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GPSIFDOffset</span></code></p></td>
+<td><p>34853</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FaxRecvParams</span></code></p></td>
+<td><p>34908</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FaxSubAddress</span></code></p></td>
+<td><p>34909</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FaxRecvTime</span></code></p></td>
+<td><p>34910</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FaxDcs</span></code></p></td>
+<td><p>34911</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">StoNits</span></code></p></td>
+<td><p>37439</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Adobe</span> <span class="pre">Photoshop</span> <span class="pre">Document</span> <span class="pre">Data</span> <span class="pre">Block</span></code></p></td>
+<td><p>37724</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">InteroperabilityIFDOffset</span></code></p></td>
+<td><p>40965</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DNGVersion</span></code></p></td>
+<td><p>50706</p></td>
+<td><p>R/W</p></td>
+<td><p>DNG 1.0 tags</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DNGBackwardVersion</span></code></p></td>
+<td><p>50707</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">UniqueCameraModel</span></code></p></td>
+<td><p>50708</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LocalizedCameraModel</span></code></p></td>
+<td><p>50709</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CFAPlaneColor</span></code></p></td>
+<td><p>50710</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CFALayout</span></code></p></td>
+<td><p>50711</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LinearizationTable</span></code></p></td>
+<td><p>50712</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">BlackLevelRepeatDim</span></code></p></td>
+<td><p>50713</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">BlackLevel</span></code></p></td>
+<td><p>50714</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">BlackLevelDeltaH</span></code></p></td>
+<td><p>50715</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">BlackLevelDeltaV</span></code></p></td>
+<td><p>50716</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">WhiteLevel</span></code></p></td>
+<td><p>50717</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DefaultScale</span></code></p></td>
+<td><p>50718</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DefaultCropOrigin</span></code></p></td>
+<td><p>50719</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DefaultCropSize</span></code></p></td>
+<td><p>50720</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ColorMatrix1</span></code></p></td>
+<td><p>50721</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ColorMatrix2</span></code></p></td>
+<td><p>50722</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CameraCalibration1</span></code></p></td>
+<td><p>50723</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CameraCalibration2</span></code></p></td>
+<td><p>50724</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ReductionMatrix1</span></code></p></td>
+<td><p>50725</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ReductionMatrix2</span></code></p></td>
+<td><p>50726</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">AnalogBalance</span></code></p></td>
+<td><p>50727</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">AsShotNeutral</span></code></p></td>
+<td><p>50728</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">AsShotWhiteXY</span></code></p></td>
+<td><p>50729</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">BaselineExposure</span></code></p></td>
+<td><p>50730</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">BaselineNoise</span></code></p></td>
+<td><p>50731</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">BaselineSharpness</span></code></p></td>
+<td><p>50732</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">BayerGreenSplit</span></code></p></td>
+<td><p>50733</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LinearResponseLimit</span></code></p></td>
+<td><p>50734</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CameraSerialNumber</span></code></p></td>
+<td><p>50735</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LensInfo</span></code></p></td>
+<td><p>50736</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ChromaBlurRadius</span></code></p></td>
+<td><p>50737</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">AntiAliasStrength</span></code></p></td>
+<td><p>50738</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ShadowScale</span></code></p></td>
+<td><p>50739</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DNGPrivateData</span></code></p></td>
+<td><p>50740</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MakerNoteSafety</span></code></p></td>
+<td><p>50741</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CalibrationIlluminant1</span></code></p></td>
+<td><p>50778</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CalibrationIlluminant2</span></code></p></td>
+<td><p>50779</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">BestQualityScale</span></code></p></td>
+<td><p>50780</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">RawDataUniqueID</span></code></p></td>
+<td><p>50781</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">OriginalRawFileName</span></code></p></td>
+<td><p>50827</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">OriginalRawFileData</span></code></p></td>
+<td><p>50828</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ActiveArea</span></code></p></td>
+<td><p>50829</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MaskedAreas</span></code></p></td>
+<td><p>50830</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">AsShotICCProfile</span></code></p></td>
+<td><p>50831</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">AsShotPreProfileMatrix</span></code></p></td>
+<td><p>50832</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CurrentICCProfile</span></code></p></td>
+<td><p>50833</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CurrentPreProfileMatrix</span></code></p></td>
+<td><p>50834</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PerSample</span></code></p></td>
+<td><p>65563</p></td>
+<td><p>R/W</p></td>
+<td><p>(only internal pseudo tag)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Indexed</span></code></p></td>
+<td><p>346</p></td>
+<td><p>R/W</p></td>
+<td><p>TIFF/FX tags</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GlobalParametersIFD</span></code></p></td>
+<td><p>400</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ProfileType</span></code></p></td>
+<td><p>401</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FaxProfile</span></code></p></td>
+<td><p>402</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CodingMethods</span></code></p></td>
+<td><p>403</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">VersionYear</span></code></p></td>
+<td><p>404</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ModeNumber</span></code></p></td>
+<td><p>405</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Decode</span></code></p></td>
+<td><p>433</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ImageBaseColor</span></code></p></td>
+<td><p>434</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">T82Options</span></code></p></td>
+<td><p>435</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">StripRowCounts</span></code></p></td>
+<td><p>559</p></td>
+<td><p>R/W</p></td>
+<td><p>part of RFC 2301 for fax</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ImageLayer</span></code></p></td>
+<td><p>34732</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>The <code class="docutils literal notranslate"><span class="pre">Matteing</span></code> and <code class="docutils literal notranslate"><span class="pre">DataType</span></code>
+tags have been obsoleted by the 6.0
+<code class="docutils literal notranslate"><span class="pre">ExtraSamples</span></code> and <code class="docutils literal notranslate"><span class="pre">SampleFormat</span></code> tags.
+Consult the documentation on the
+<code class="docutils literal notranslate"><span class="pre">ExtraSamples</span></code> tag and Associated Alpha for elaboration.  Note however
+that if you use Associated Alpha, you are expected to save data that is
+pre-multipled by Alpha.  If this means nothing to you, check out
+Porter &amp; Duff’s paper in the ‘84 SIGGRAPH proceedings: “Compositing Digital
+Images”.</p>
+<p>Tag <code class="docutils literal notranslate"><span class="pre">RichTIFFIPTC</span></code> (33723) is defined wrongly in TIFF/EP definition as “LONG or ASCII”.
+<code class="docutils literal notranslate"><span class="pre">libtiff</span></code> defines it as “UNDEFINED or BYTE”.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">ImageDepth</span></code>
+tag is a non-standard, but registered tag that specifies
+the Z-dimension of volumetric data.  The combination of <code class="docutils literal notranslate"><span class="pre">ImageWidth</span></code>,
+<code class="docutils literal notranslate"><span class="pre">ImageLength</span></code>, and <code class="docutils literal notranslate"><span class="pre">ImageDepth</span></code>,
+defines a 3D volume of pixels that are
+further specified by <code class="docutils literal notranslate"><span class="pre">BitsPerSample</span></code> and
+<code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span></code>.  The <code class="docutils literal notranslate"><span class="pre">TileDepth</span></code>
+tag (also non-standard, but registered) can be used to specified a
+subvolume “tiling” of a volume of data.</p>
+<p>The Colorimetry, and CMYK tags are additions that appear in TIFF 6.0.
+Consult the TIFF 6.0 specification and <a class="reference internal" href="index.html"><span class="doc">TIFF File Format Specification</span></a>.</p>
+</section>
+<section id="codecs-compression">
+<h2>Codecs / Compression<a class="headerlink" href="#codecs-compression" title="Permalink to this heading">¶</a></h2>
+<p>The following tags are used by codecs.</p>
+<table class="docutils align-default" id="id4">
+<caption><span class="caption-text">Codec / Compression Tags used by libtiff</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 41.7%" />
+<col style="width: 8.3%" />
+<col style="width: 8.3%" />
+<col style="width: 41.7%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Tag Name</p></th>
+<th class="head"><p>Value</p></th>
+<th class="head"><p>R/W&lt;</p></th>
+<th class="head"><p>Library’s Use (Comments)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Predictor</span></code></p></td>
+<td><p>317</p></td>
+<td><p>R/W</p></td>
+<td><p>LZW codec</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code></p></td>
+<td><p>347</p></td>
+<td><p>R/W</p></td>
+<td><p>JPEG</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">JpegInterchangeFormat</span></code></p></td>
+<td><p>513</p></td>
+<td><p>R/W</p></td>
+<td><p>OJPEG</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">JpegInterchangeFormatLength</span></code></p></td>
+<td><p>514</p></td>
+<td><p>R/W</p></td>
+<td><p>OJPEG</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">JpegQTables</span></code></p></td>
+<td><p>519</p></td>
+<td><p>R/W</p></td>
+<td><p>OJPEG</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">JpegDcTables</span></code></p></td>
+<td><p>520</p></td>
+<td><p>R/W</p></td>
+<td><p>OJPEG</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">JpegAcTables</span></code></p></td>
+<td><p>521</p></td>
+<td><p>R/W</p></td>
+<td><p>OJPEG</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">JpegProc</span></code></p></td>
+<td><p>512</p></td>
+<td><p>R/W</p></td>
+<td><p>OJPEG</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">JpegRestartInterval</span></code></p></td>
+<td><p>515</p></td>
+<td><p>R/W</p></td>
+<td><p>OJPEG</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">BadFaxLines</span></code></p></td>
+<td><p>326</p></td>
+<td><p>R/W</p></td>
+<td><p>CCITT / fax</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CleanFaxData</span></code></p></td>
+<td><p>327</p></td>
+<td><p>R/W</p></td>
+<td><p>CCITT / fax</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ConsecutiveBadFaxLines</span></code></p></td>
+<td><p>328</p></td>
+<td><p>R/W</p></td>
+<td><p>CCITT / fax</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Group3Options</span></code></p></td>
+<td><p>292</p></td>
+<td><p>R/W</p></td>
+<td><p>CCITT / fax</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Group4Options</span></code></p></td>
+<td><p>293</p></td>
+<td><p>R/W</p></td>
+<td><p>CCITT / fax</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LercParameters</span></code></p></td>
+<td><p>50674</p></td>
+<td><p>R/W</p></td>
+<td><p>LERC</p></td>
+</tr>
+</tbody>
+</table>
+<p>Note: This <em>codec-specific</em>
+tags and the library does not recognize them except when the
+<code class="docutils literal notranslate"><span class="pre">Compression</span></code>
+tag has been previously set to the relevant compression scheme.</p>
+<p>The JPEG-related tag is specified in
+<a class="reference internal" href="technote2.html"><span class="doc">DRAFT TIFF Technical Note #2</span></a>, which defines
+a revised JPEG-in-TIFF scheme (revised over the appendix that was
+part of the TIFF 6.0 specification).</p>
+</section>
+<section id="exif-gps-custom-ifds">
+<h2>EXIF / GPS Custom IFDs<a class="headerlink" href="#exif-gps-custom-ifds" title="Permalink to this heading">¶</a></h2>
+<p>In addition to the standard TIFF tags, <code class="file docutils literal notranslate"><span class="pre">libtiff</span></code> has predefined IFDs
+(image file directories) with the tags for EXIF (version 2.32) and EXIF-GPS
+as custom directories.
+For reading / writing of this IFDs refer to <a class="reference internal" href="../functions/TIFFCustomDirectory.html"><span class="doc">TIFFCustomDirectory</span></a>.</p>
+<section id="exif-custom-tags">
+<h3>EXIF Custom Tags<a class="headerlink" href="#exif-custom-tags" title="Permalink to this heading">¶</a></h3>
+<table class="docutils align-default" id="id5">
+<caption><span class="caption-text">EXIF 2.32 Tags used by libtiff</span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 41.7%" />
+<col style="width: 8.3%" />
+<col style="width: 8.3%" />
+<col style="width: 41.7%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Tag Name</p></th>
+<th class="head"><p>Value</p></th>
+<th class="head"><p>R/W&lt;</p></th>
+<th class="head"><p>Library’s Use (Comments)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ExposureTime</span></code></p></td>
+<td><p>33434</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FNumber</span></code></p></td>
+<td><p>33437</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ExposureProgram</span></code></p></td>
+<td><p>34850</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SpectralSensitivity</span></code></p></td>
+<td><p>34852</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ISOSpeedRatings</span></code></p></td>
+<td><p>34855</p></td>
+<td><p>R/W</p></td>
+<td><p>After EXIF 2.2.1 ISOSpeedRatings is named <code class="docutils literal notranslate"><span class="pre">PhotographicSensitivity</span></code>.
+In addition, while “Count=Any”, only 1 count should be used.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">OptoelectricConversionFactor</span></code></p></td>
+<td><p>34856</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SensitivityType</span></code></p></td>
+<td><p>34864</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">StandardOutputSensitivity</span></code></p></td>
+<td><p>34865</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RecommendedExposureIndex</span></code></p></td>
+<td><p>34866</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ISOSpeed</span></code></p></td>
+<td><p>34867</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ISOSpeedLatitudeyyy</span></code></p></td>
+<td><p>34868</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ISOSpeedLatitudezzz</span></code></p></td>
+<td><p>34869</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ExifVersion</span></code></p></td>
+<td><p>36864</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DateTimeOriginal</span></code></p></td>
+<td><p>36867</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DateTimeDigitized</span></code></p></td>
+<td><p>36868</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">OffsetTime</span></code></p></td>
+<td><p>36880</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">OffsetTimeOriginal</span></code></p></td>
+<td><p>36881</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">OffsetTimeDigitized</span></code></p></td>
+<td><p>36882</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ComponentsConfiguration</span></code></p></td>
+<td><p>37121</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CompressedBitsPerPixel</span></code></p></td>
+<td><p>37122</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ShutterSpeedValue</span></code></p></td>
+<td><p>37377</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ApertureValue</span></code></p></td>
+<td><p>37378</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">BrightnessValue</span></code></p></td>
+<td><p>37379</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ExposureBiasValue</span></code></p></td>
+<td><p>37380</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MaxApertureValue</span></code></p></td>
+<td><p>37381</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SubjectDistance</span></code></p></td>
+<td><p>37382</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MeteringMode</span></code></p></td>
+<td><p>37383</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LightSource</span></code></p></td>
+<td><p>37384</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Flash</span></code></p></td>
+<td><p>37385</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FocalLength</span></code></p></td>
+<td><p>37386</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SubjectArea</span></code></p></td>
+<td><p>37396</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MakerNote</span></code></p></td>
+<td><p>37500</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">UserComment</span></code></p></td>
+<td><p>37510</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SubSecTime</span></code></p></td>
+<td><p>37520</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SubSecTimeOriginal</span></code></p></td>
+<td><p>37521</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SubSecTimeDigitized</span></code></p></td>
+<td><p>37522</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Temperature</span></code></p></td>
+<td><p>37888</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Humidity</span></code></p></td>
+<td><p>37889</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Pressure</span></code></p></td>
+<td><p>37890</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">WaterDepth</span></code></p></td>
+<td><p>37891</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Acceleration</span></code></p></td>
+<td><p>37892</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CameraElevationAngle</span></code></p></td>
+<td><p>37893</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FlashpixVersion</span></code></p></td>
+<td><p>40960</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ColorSpace</span></code></p></td>
+<td><p>40961</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PixelXDimension</span></code></p></td>
+<td><p>40962</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">PixelYDimension</span></code></p></td>
+<td><p>40963</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RelatedSoundFile</span></code></p></td>
+<td><p>40964</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FlashEnergy</span></code></p></td>
+<td><p>41483</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SpatialFrequencyResponse</span></code></p></td>
+<td><p>41484</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FocalPlaneXResolution</span></code></p></td>
+<td><p>41486</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FocalPlaneYResolution</span></code></p></td>
+<td><p>41487</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FocalPlaneResolutionUnit</span></code></p></td>
+<td><p>41488</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SubjectLocation</span></code></p></td>
+<td><p>41492</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ExposureIndex</span></code></p></td>
+<td><p>41493</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SensingMethod</span></code></p></td>
+<td><p>41495</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FileSource</span></code></p></td>
+<td><p>41728</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SceneType</span></code></p></td>
+<td><p>41729</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CFAPattern</span></code></p></td>
+<td><p>41730</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CustomRendered</span></code></p></td>
+<td><p>41985</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ExposureMode</span></code></p></td>
+<td><p>41986</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">WhiteBalance</span></code></p></td>
+<td><p>41987</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DigitalZoomRatio</span></code></p></td>
+<td><p>41988</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FocalLengthIn35mmFilm</span></code></p></td>
+<td><p>41989</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SceneCaptureType</span></code></p></td>
+<td><p>41990</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GainControl</span></code></p></td>
+<td><p>41991</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Contrast</span></code></p></td>
+<td><p>41992</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Saturation</span></code></p></td>
+<td><p>41993</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Sharpness</span></code></p></td>
+<td><p>41994</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DeviceSettingDescription</span></code></p></td>
+<td><p>41995</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SubjectDistanceRange</span></code></p></td>
+<td><p>41996</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ImageUniqueID</span></code></p></td>
+<td><p>42016</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CameraOwnerName</span></code></p></td>
+<td><p>42032</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">BodySerialNumber</span></code></p></td>
+<td><p>42033</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LensSpecification</span></code></p></td>
+<td><p>42034</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LensMake</span></code></p></td>
+<td><p>42035</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LensModel</span></code></p></td>
+<td><p>42036</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LensSerialNumber</span></code></p></td>
+<td><p>42037</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Gamma</span></code></p></td>
+<td><p>42240</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CompositeImage</span></code></p></td>
+<td><p>42080</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SourceImageNumberOfCompositeImage</span></code></p></td>
+<td><p>42081</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SourceExposureTimesOfCompositeImage</span></code></p></td>
+<td><p>42082</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="gps-custom-tags">
+<h3>GPS Custom Tags<a class="headerlink" href="#gps-custom-tags" title="Permalink to this heading">¶</a></h3>
+<table class="docutils align-default" id="id6">
+<caption><span class="caption-text">GPS 2.32 Tags used by libtiff</span><a class="headerlink" href="#id6" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 41.7%" />
+<col style="width: 8.3%" />
+<col style="width: 8.3%" />
+<col style="width: 41.7%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Tag Name</p></th>
+<th class="head"><p>Value</p></th>
+<th class="head"><p>R/W&lt;</p></th>
+<th class="head"><p>Library’s Use (Comments)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">VersionID</span></code></p></td>
+<td><p>0</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LatitudeRef</span></code></p></td>
+<td><p>1</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Latitude</span></code></p></td>
+<td><p>2</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LongitudeRef</span></code></p></td>
+<td><p>3</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Longitude</span></code></p></td>
+<td><p>4</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">AltitudeRef</span></code></p></td>
+<td><p>5</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Altitude</span></code></p></td>
+<td><p>6</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TimeStamp</span></code></p></td>
+<td><p>7</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Satellites</span></code></p></td>
+<td><p>8</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Status</span></code></p></td>
+<td><p>9</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MeasureMode</span></code></p></td>
+<td><p>10</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DOP</span></code></p></td>
+<td><p>11</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SpeedRef</span></code></p></td>
+<td><p>12</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Speed</span></code></p></td>
+<td><p>13</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TrackRef</span></code></p></td>
+<td><p>14</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Track</span></code></p></td>
+<td><p>15</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ImgDirectionRef</span></code></p></td>
+<td><p>16</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ImgDirection</span></code></p></td>
+<td><p>17</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MapDatum</span></code></p></td>
+<td><p>18</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DestLatitudeRef</span></code></p></td>
+<td><p>19</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DestLatitude</span></code></p></td>
+<td><p>20</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DestLongitudeRef</span></code></p></td>
+<td><p>21</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DestLongitude</span></code></p></td>
+<td><p>22</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DestBearingRef</span></code></p></td>
+<td><p>23</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DestBearing</span></code></p></td>
+<td><p>24</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DestDistanceRef</span></code></p></td>
+<td><p>25</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DestDistance</span></code></p></td>
+<td><p>26</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ProcessingMethod</span></code></p></td>
+<td><p>27</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">AreaInformation</span></code></p></td>
+<td><p>28</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DateStamp</span></code></p></td>
+<td><p>29</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Differential</span></code></p></td>
+<td><p>30</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">HorizontalPositioningError</span></code></p></td>
+<td><p>31</p></td>
+<td><p>R/W</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">LibTIFF Coverage of the TIFF 6.0 Specification</a><ul>
+<li><a class="reference internal" href="#baseline">Baseline</a></li>
+<li><a class="reference internal" href="#tags-recognized-by-libtiff">Tags Recognized by LibTIFF</a></li>
+<li><a class="reference internal" href="#codecs-compression">Codecs / Compression</a></li>
+<li><a class="reference internal" href="#exif-gps-custom-ifds">EXIF / GPS Custom IFDs</a><ul>
+<li><a class="reference internal" href="#exif-custom-tags">EXIF Custom Tags</a></li>
+<li><a class="reference internal" href="#gps-custom-tags">GPS Custom Tags</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="bigtiff.html"
+                          title="previous chapter">BigTIFF Design</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="coverage-bigtiff.html"
+                          title="next chapter">LibTIFF Coverage of the BigTIFF Specification</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/specification/coverage.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="coverage-bigtiff.html" title="LibTIFF Coverage of the BigTIFF Specification"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="bigtiff.html" title="BigTIFF Design"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >TIFF File Format Specification</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">LibTIFF Coverage of the TIFF 6.0 Specification</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

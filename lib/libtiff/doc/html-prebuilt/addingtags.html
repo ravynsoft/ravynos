@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Defining New TIFF Tags &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="TIFF Tools Overview" href="tools.html" />
+    <link rel="prev" title="Modifying The TIFF Library" href="internals.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="tools.html" title="TIFF Tools Overview"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="internals.html" title="Modifying The TIFF Library"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Defining New TIFF Tags</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="defining-new-tiff-tags">
+<h1>Defining New TIFF Tags<a class="headerlink" href="#defining-new-tiff-tags" title="Permalink to this heading">¶</a></h1>
+<p>Libtiff has built-in knowledge of all the standard TIFF tags, as
+well as extensions.  The following describes how to add knowledge of
+new tags as builtins to libtiff, or how to application specific tags can
+be used by applications without modifying libtiff.</p>
+<section id="tifffieldinfo">
+<span id="tifffieldinfo-definition"></span><h2>TIFFFieldInfo<a class="headerlink" href="#tifffieldinfo" title="Permalink to this heading">¶</a></h2>
+<p>How libtiff manages specific tags is primarily controlled by the
+definition for that tag value stored internally as a TIFFFieldInfo structure.
+This structure looks like this:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">ttag_t</span><span class="w">         </span><span class="n">field_tag</span><span class="p">;</span><span class="w">        </span><span class="cm">/* field&#39;s tag */</span>
+<span class="w">  </span><span class="kt">short</span><span class="w">          </span><span class="n">field_readcount</span><span class="p">;</span><span class="w">  </span><span class="cm">/* read count / TIFF_VARIABLE / TIFF_VARIABLE2 / TIFF_SPP */</span>
+<span class="w">  </span><span class="kt">short</span><span class="w">          </span><span class="n">field_writecount</span><span class="p">;</span><span class="w"> </span><span class="cm">/* write count / TIFF_VARIABLE / TIFF_VARIABLE2 */</span>
+<span class="w">  </span><span class="n">TIFFDataType</span><span class="w">   </span><span class="n">field_type</span><span class="p">;</span><span class="w">       </span><span class="cm">/* type of associated data */</span>
+<span class="w">  </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">short</span><span class="w"> </span><span class="n">field_bit</span><span class="p">;</span><span class="w">        </span><span class="cm">/* bit in fieldsset bit vector */</span>
+<span class="w">  </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="w">  </span><span class="n">field_oktochange</span><span class="p">;</span><span class="w"> </span><span class="cm">/* if true, can change while writing */</span>
+<span class="w">  </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="w">  </span><span class="n">field_passcount</span><span class="p">;</span><span class="w">  </span><span class="cm">/* if true, pass dir count on set */</span>
+<span class="w">  </span><span class="kt">char</span><span class="w">          </span><span class="o">*</span><span class="n">field_name</span><span class="p">;</span><span class="w">       </span><span class="cm">/* ASCII name */</span>
+<span class="p">}</span><span class="w"> </span><span class="n">TIFFFieldInfo</span><span class="p">;</span>
+</pre></div>
+</div>
+<dl class="c member">
+<dt class="sig sig-object c" id="c.TIFFFieldInfo.field_tag">
+<span class="n"><span class="pre">ttag_t</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">TIFFFieldInfo</span></span><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">field_tag</span></span></span><a class="headerlink" href="#c.TIFFFieldInfo.field_tag" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>The tag number.  For instance 277 for the
+SamplesPerPixel tag.  Builtin tags will generally have a <code class="docutils literal notranslate"><span class="pre">#define</span></code> in
+<code class="file docutils literal notranslate"><span class="pre">tiff.h</span></code> for each known tag.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt class="sig sig-object c" id="c.TIFFFieldInfo.field_readcount">
+<span class="kt"><span class="pre">short</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">TIFFFieldInfo</span></span><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">field_readcount</span></span></span><a class="headerlink" href="#c.TIFFFieldInfo.field_readcount" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>The number of values which should be read.
+The special value <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFF_VARIABLE</span></code> (-1) indicates that a variable number of
+values may be read.  The special value <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_SPP</span></code> (-2) indicates that there
+should be one value for each sample as defined by <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_SAMPLESPERPIXEL</span></code>.
+The special value <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFF_VARIABLE2</span></code> (-3) is similar to <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFF_VARIABLE</span></code>
+but the required TIFFGetField() count value must be uint32_t* instead of uint16_t* as
+for <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFF_VARIABLE</span></code> (-1).
+For ASCII fields with variable length, this field is <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFF_VARIABLE</span></code>.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt class="sig sig-object c" id="c.TIFFFieldInfo.field_writecount">
+<span class="kt"><span class="pre">short</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">TIFFFieldInfo</span></span><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">field_writecount</span></span></span><a class="headerlink" href="#c.TIFFFieldInfo.field_writecount" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>The number of values which should be written.
+Generally the same as field_readcount.  A few built-in exceptions exist, but
+I haven’t analysed why they differ.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt class="sig sig-object c" id="c.TIFFFieldInfo.field_type">
+<span class="n"><span class="pre">TIFFDataType</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">TIFFFieldInfo</span></span><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">field_type</span></span></span><a class="headerlink" href="#c.TIFFFieldInfo.field_type" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Type of the field.  One of <code class="xref c c-enumerator docutils literal notranslate"><span class="pre">TIFF_BYTE</span></code>, <code class="xref c c-enumerator docutils literal notranslate"><span class="pre">TIFF_ASCII</span></code>,
+<code class="xref c c-enumerator docutils literal notranslate"><span class="pre">TIFF_SHORT</span></code>, <code class="xref c c-enumerator docutils literal notranslate"><span class="pre">TIFF_LONG</span></code>,
+<code class="xref c c-enumerator docutils literal notranslate"><span class="pre">TIFF_RATIONAL</span></code>, <code class="xref c c-enumerator docutils literal notranslate"><span class="pre">TIFF_SBYTE</span></code>,
+<code class="xref c c-enumerator docutils literal notranslate"><span class="pre">TIFF_UNDEFINED</span></code>, <code class="xref c c-enumerator docutils literal notranslate"><span class="pre">TIFF_SSHORT</span></code>,
+<code class="xref c c-enumerator docutils literal notranslate"><span class="pre">TIFF_SLONG</span></code>, <code class="xref c c-enumerator docutils literal notranslate"><span class="pre">TIFF_SRATIONAL</span></code>,
+<code class="xref c c-enumerator docutils literal notranslate"><span class="pre">TIFF_FLOAT</span></code>, <code class="xref c c-enumerator docutils literal notranslate"><span class="pre">TIFF_DOUBLE</span></code> or
+<code class="xref c c-enumerator docutils literal notranslate"><span class="pre">TIFF_IFD</span></code>.
+And for BigTIFF <code class="xref c c-enumerator docutils literal notranslate"><span class="pre">TIFF_LONG8</span></code>,
+<code class="xref c c-enumerator docutils literal notranslate"><span class="pre">TIFF_SLONG8</span></code> and <code class="xref c c-enumerator docutils literal notranslate"><span class="pre">TIFF_IFD8</span></code>,
+which are automatically reverted to 4 byte fields in
+ClassicTIFF.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt class="sig sig-object c" id="c.TIFFFieldInfo.field_bit">
+<span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">short</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">TIFFFieldInfo</span></span><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">field_bit</span></span></span><a class="headerlink" href="#c.TIFFFieldInfo.field_bit" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Built-in tags stored in special fields in the
+TIFF structure have assigned field numbers to distinguish them (e.g.
+<code class="xref c c-macro docutils literal notranslate"><span class="pre">FIELD_SAMPLESPERPIXEL</span></code>).  New tags should generally just use
+<code class="xref c c-macro docutils literal notranslate"><span class="pre">FIELD_CUSTOM</span></code> indicating they are stored in the generic tag list.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt class="sig sig-object c" id="c.TIFFFieldInfo.field_oktochange">
+<span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">TIFFFieldInfo</span></span><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">field_oktochange</span></span></span><a class="headerlink" href="#c.TIFFFieldInfo.field_oktochange" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>TRUE if it is OK to change this tag value
+while an image is being written.  FALSE for stuff that must be set once
+and then left unchanged (like ImageWidth, or PhotometricInterpretation for
+instance).</p>
+</dd></dl>
+
+<dl class="c member">
+<dt class="sig sig-object c" id="c.TIFFFieldInfo.field_passcount">
+<span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">TIFFFieldInfo</span></span><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">field_passcount</span></span></span><a class="headerlink" href="#c.TIFFFieldInfo.field_passcount" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>If TRUE, then the count value must be passed
+in <a class="reference internal" href="functions/TIFFSetField.html#c.TIFFSetField" title="TIFFSetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetField()</span></code></a>, and <a class="reference internal" href="functions/TIFFGetField.html#c.TIFFGetField" title="TIFFGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetField()</span></code></a>, otherwise the count is not required.
+This should generally be TRUE for non-ascii variable count tags unless
+the count is implicit (such as with the colormap).</p>
+</dd></dl>
+
+<dl class="c member">
+<dt class="sig sig-object c" id="c.TIFFFieldInfo.field_name">
+<span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><span class="n"><span class="pre">TIFFFieldInfo</span></span><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">field_name</span></span></span><a class="headerlink" href="#c.TIFFFieldInfo.field_name" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>A name for the tag.  Normally mixed case (studly caps)
+like <code class="docutils literal notranslate"><span class="pre">StripByteCounts</span></code>, and relatively short.</p>
+</dd></dl>
+
+<p>Within <code class="file docutils literal notranslate"><span class="pre">tif_dirinfo.c</span></code> file, the built-in TIFF tags are defined with
+<code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFField</span></code> structure that has additional parameters defining the var_arg
+interface of <a class="reference internal" href="functions/TIFFSetField.html#c.TIFFSetField" title="TIFFSetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetField()</span></code></a> and <a class="reference internal" href="functions/TIFFGetField.html#c.TIFFGetField" title="TIFFGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetField()</span></code></a>.</p>
+<p>Various functions exist for getting the internal <code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFFieldInfo</span></code>
+definitions, including <code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFFindFieldInfo()</span></code>, and
+<code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFFindFieldInfoByName()</span></code>.  See
+<code class="file docutils literal notranslate"><span class="pre">tif_dirinfo.c</span></code> for details.</p>
+</section>
+<section id="default-tag-auto-registration">
+<span id="tag-auto-registration"></span><h2>Default Tag Auto-registration<a class="headerlink" href="#default-tag-auto-registration" title="Permalink to this heading">¶</a></h2>
+<p>In libtiff 3.6.0 a new mechanism was introduced allowing libtiff to
+read unrecognised tags automatically.  When an unknown tags is encountered,
+it is automatically internally defined with a default name and a type
+derived from the tag value in the file.  Applications only need to predefine
+application specific tags if they need to be able to set them in a file, or
+if particular calling conventions are desired for <a class="reference internal" href="functions/TIFFSetField.html#c.TIFFSetField" title="TIFFSetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetField()</span></code></a> and
+<a class="reference internal" href="functions/TIFFGetField.html#c.TIFFGetField" title="TIFFGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetField()</span></code></a>.</p>
+<p>When tags are autodefined like this the <code class="xref c c-member docutils literal notranslate"><span class="pre">field_readcount</span></code> and
+<code class="xref c c-member docutils literal notranslate"><span class="pre">field_writecount</span></code> values are always <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFF_VARIABLE2</span></code> (-3).  The
+<code class="xref c c-member docutils literal notranslate"><span class="pre">field_passcount</span></code> is always TRUE, and the <code class="xref c c-member docutils literal notranslate"><span class="pre">field_bit</span></code> is
+<code class="xref c c-macro docutils literal notranslate"><span class="pre">FIELD_CUSTOM</span></code>.  The field name will be <code class="docutils literal notranslate"><span class="pre">Tag</span> <span class="pre">%d</span></code> where the <code class="docutils literal notranslate"><span class="pre">%d</span></code>
+is the tag number.</p>
+<p>Thus, to read anonymous auto-registered tags use the following:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">count</span><span class="p">;</span>
+<span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">value</span><span class="p">;</span><span class="w">  </span><span class="c1">//has to be a pointer to the expected value type.</span>
+<span class="n">TIFFGetField</span><span class="p">(</span><span class="n">tif</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_UNKNOWN_TO_LIBTIFF</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">value</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="defining-application-tags">
+<span id="define-application-tags"></span><h2>Defining Application Tags<a class="headerlink" href="#defining-application-tags" title="Permalink to this heading">¶</a></h2>
+<p>For various reasons, it is common for applications to want to define
+their own tags to store information outside the core TIFF specification.
+This is done by calling <a class="reference internal" href="functions/TIFFMergeFieldInfo.html#c.TIFFMergeFieldInfo" title="TIFFMergeFieldInfo"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFMergeFieldInfo()</span></code></a> with one or more
+<code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFFieldInfo</span></code>.</p>
+<p>The libgeotiff library provides geospatial information extensions within
+a TIFF file.  First, an array of <code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFFieldInfo</span></code> is prepared with
+information on the new tags:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">TIFFFieldInfo</span><span class="w"> </span><span class="n">xtiffFieldInfo</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">    </span><span class="cm">/* XXX Insert Your tags here */</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">TIFFTAG_GEOPIXELSCALE</span><span class="p">,</span><span class="w">        </span><span class="mi">-1</span><span class="p">,</span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="n">TIFF_DOUBLE</span><span class="p">,</span><span class="w">     </span><span class="n">FIELD_CUSTOM</span><span class="p">,</span>
+<span class="w">      </span><span class="n">TRUE</span><span class="p">,</span><span class="w"> </span><span class="n">TRUE</span><span class="p">,</span><span class="w">   </span><span class="s">&quot;GeoPixelScale&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">TIFFTAG_GEOTRANSMATRIX</span><span class="p">,</span><span class="w">       </span><span class="mi">-1</span><span class="p">,</span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="n">TIFF_DOUBLE</span><span class="p">,</span><span class="w">     </span><span class="n">FIELD_CUSTOM</span><span class="p">,</span>
+<span class="w">      </span><span class="n">TRUE</span><span class="p">,</span><span class="w"> </span><span class="n">TRUE</span><span class="p">,</span><span class="w">   </span><span class="s">&quot;GeoTransformationMatrix&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">TIFFTAG_GEOTIEPOINTS</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">,</span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="n">TIFF_DOUBLE</span><span class="p">,</span><span class="w">     </span><span class="n">FIELD_CUSTOM</span><span class="p">,</span>
+<span class="w">      </span><span class="n">TRUE</span><span class="p">,</span><span class="w"> </span><span class="n">TRUE</span><span class="p">,</span><span class="w">   </span><span class="s">&quot;GeoTiePoints&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">TIFFTAG_GEOKEYDIRECTORY</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">,</span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="n">TIFF_SHORT</span><span class="p">,</span><span class="w">   </span><span class="n">FIELD_CUSTOM</span><span class="p">,</span>
+<span class="w">      </span><span class="n">TRUE</span><span class="p">,</span><span class="w"> </span><span class="n">TRUE</span><span class="p">,</span><span class="w">   </span><span class="s">&quot;GeoKeyDirectory&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">TIFFTAG_GEODOUBLEPARAMS</span><span class="p">,</span><span class="w">      </span><span class="mi">-1</span><span class="p">,</span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="n">TIFF_DOUBLE</span><span class="p">,</span><span class="w">     </span><span class="n">FIELD_CUSTOM</span><span class="p">,</span>
+<span class="w">      </span><span class="n">TRUE</span><span class="p">,</span><span class="w"> </span><span class="n">TRUE</span><span class="p">,</span><span class="w">   </span><span class="s">&quot;GeoDoubleParams&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">TIFFTAG_GEOASCIIPARAMS</span><span class="p">,</span><span class="w">       </span><span class="mi">-1</span><span class="p">,</span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="n">TIFF_ASCII</span><span class="p">,</span><span class="w">      </span><span class="n">FIELD_CUSTOM</span><span class="p">,</span>
+<span class="w">      </span><span class="n">TRUE</span><span class="p">,</span><span class="w"> </span><span class="n">FALSE</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;GeoASCIIParams&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>In order to define the tags, we call <a class="reference internal" href="functions/TIFFMergeFieldInfo.html#c.TIFFMergeFieldInfo" title="TIFFMergeFieldInfo"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFMergeFieldInfo()</span></code></a> on the
+desired TIFF handle with the list of <code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFFieldInfo</span></code>.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define     N(a)    (sizeof (a) / sizeof (a[0]))</span>
+
+<span class="cm">/* Install the extended Tag field info */</span>
+<span class="n">TIFFMergeFieldInfo</span><span class="p">(</span><span class="n">tif</span><span class="p">,</span><span class="w"> </span><span class="n">xtiffFieldInfo</span><span class="p">,</span><span class="w"> </span><span class="n">N</span><span class="p">(</span><span class="n">xtiffFieldInfo</span><span class="p">));</span>
+</pre></div>
+</div>
+<p>The tags need to be defined for each TIFF file opened - and when reading
+they should be defined before the tags of the file are read, yet a valid
+<span class="c-expr sig sig-inline c"><span class="n">TIFF</span><span class="p">*</span></span> is needed to merge the tags against.  In order to get them
+registered at the appropriate part of the setup process, it is necessary
+to register our merge function as an extender callback with libtiff.
+This is done with <a class="reference internal" href="functions/TIFFSetTagExtender.html#c.TIFFSetTagExtender" title="TIFFSetTagExtender"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetTagExtender()</span></code></a>.  We also keep track of the
+previous tag extender (if any) so that we can call it from our extender
+allowing a chain of customizations to take effect.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">TIFFExtendProc</span><span class="w"> </span><span class="n">_ParentExtender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+
+<span class="k">static</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">_XTIFFInitialize</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">first_time</span><span class="o">=</span><span class="mi">1</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="w"> </span><span class="n">first_time</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="p">;</span><span class="w"> </span><span class="cm">/* Been there. Done that. */</span>
+<span class="w">    </span><span class="n">first_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="cm">/* Grab the inherited method and install */</span>
+<span class="w">    </span><span class="n">_ParentExtender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TIFFSetTagExtender</span><span class="p">(</span><span class="n">_XTIFFDefaultDirectory</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The extender callback is looks like this.  It merges in our new fields
+and then calls the next extender if there is one in effect.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="nf">_XTIFFDefaultDirectory</span><span class="p">(</span><span class="n">TIFF</span><span class="w"> </span><span class="o">*</span><span class="n">tif</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="cm">/* Install the extended Tag field info */</span>
+<span class="w">    </span><span class="n">TIFFMergeFieldInfo</span><span class="p">(</span><span class="n">tif</span><span class="p">,</span><span class="w"> </span><span class="n">xtiffFieldInfo</span><span class="p">,</span><span class="w"> </span><span class="n">N</span><span class="p">(</span><span class="n">xtiffFieldInfo</span><span class="p">));</span>
+
+<span class="w">    </span><span class="cm">/* Since an XTIFF client module may have overridden</span>
+<span class="cm">     * the default directory method, we call it now to</span>
+<span class="cm">     * allow it to set up the rest of its own methods.</span>
+<span class="cm">     */</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_ParentExtender</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="o">*</span><span class="n">_ParentExtender</span><span class="p">)(</span><span class="n">tif</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The above approach ensures that our new definitions are used when reading
+or writing any TIFF file.  However, since on reading we already have
+default definitions for tags, it is usually not critical to pre-define them.
+If tag definitions are only required for writing custom tags, you can just
+call <a class="reference internal" href="functions/TIFFMergeFieldInfo.html#c.TIFFMergeFieldInfo" title="TIFFMergeFieldInfo"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFMergeFieldInfo()</span></code></a> before setting new tags.  The whole extender
+architecture can then be avoided.</p>
+</section>
+<section id="adding-new-builtin-tags">
+<h2>Adding New Builtin Tags<a class="headerlink" href="#adding-new-builtin-tags" title="Permalink to this heading">¶</a></h2>
+<p>A similar approach is taken to the above.  However, the <code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFFieldInfo</span></code>
+should be added to the <span class="c-expr sig sig-inline c"><span class="n">tiffFieldInfo</span><span class="p">[</span><span class="p">]</span></span> list in <code class="file docutils literal notranslate"><span class="pre">tif_dirinfo.c</span></code>.
+Ensure that new tags are added in sorted order by the tag number.</p>
+<p>Normally new built-in tags should be defined with <code class="xref c c-macro docutils literal notranslate"><span class="pre">FIELD_CUSTOM</span></code>; however, if
+it is desirable for the tag value to have it’s own field in the <code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFDirectory</span></code>
+structure, then you will need to <code class="docutils literal notranslate"><span class="pre">#define</span></code> a new <code class="xref c c-macro docutils literal notranslate"><span class="pre">FIELD_</span></code> value for it, and
+add appropriate handling as follows:</p>
+<ol class="arabic">
+<li><p>Define the tag in <code class="file docutils literal notranslate"><span class="pre">tiff.h</span></code>.</p></li>
+<li><p>Add a field to the directory structure in <code class="file docutils literal notranslate"><span class="pre">tif_dir.h</span></code>
+and define a <code class="docutils literal notranslate"><span class="pre">FIELD_*</span></code> bit (also update the definition of
+<code class="xref c c-macro docutils literal notranslate"><span class="pre">FIELD_CODEC</span></code> to reflect your addition).</p></li>
+<li><p>Add an entry in the <code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFFieldInfo</span></code> array defined at the top of
+<code class="file docutils literal notranslate"><span class="pre">tif_dirinfo.c</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Note that you must keep this array sorted by tag
+number and that the widest variant entry for a tag should come
+first (e.g. <code class="xref c c-macro docutils literal notranslate"><span class="pre">LONG</span></code> before <code class="xref c c-macro docutils literal notranslate"><span class="pre">SHORT</span></code>).</p>
+</div>
+</li>
+<li><p>Add entries in <code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFVSetField()</span></code> and <code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFVGetField()</span></code>
+for the new tag.</p></li>
+<li><p>(<em>optional</em>) If the value associated with the tag is not a scalar value
+(e.g. the array for <code class="docutils literal notranslate"><span class="pre">TransferFunction</span></code>) and requires
+special processing,
+then add the appropriate code to <a class="reference internal" href="functions/TIFFReadDirectory.html#c.TIFFReadDirectory" title="TIFFReadDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadDirectory()</span></code></a> and
+<a class="reference internal" href="functions/TIFFWriteDirectory.html#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a>.  You’re best off finding a similar tag and
+cribbing code.</p></li>
+<li><dl class="simple">
+<dt>Add support to <a class="reference internal" href="functions/TIFFPrintDirectory.html#c.TIFFPrintDirectory" title="TIFFPrintDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFPrintDirectory()</span></code></a> in <code class="file docutils literal notranslate"><span class="pre">tif_print.c</span></code></dt><dd><p>to print the tag’s value.</p>
+</dd>
+</dl>
+</li>
+</ol>
+<p>If you want to maintain portability, beware of making assumptions
+about data types.  Use the typedefs (<code class="xref c c-type docutils literal notranslate"><span class="pre">uint16_t</span></code>, etc. when dealing with
+data on disk and <code class="docutils literal notranslate"><span class="pre">t*_t</span></code> when stuff is in memory) and be careful about
+passing items through printf or similar vararg interfaces.</p>
+</section>
+<section id="adding-new-codec-private-tags">
+<h2>Adding New Codec-private Tags<a class="headerlink" href="#adding-new-codec-private-tags" title="Permalink to this heading">¶</a></h2>
+<p>To add tags that are meaningful <em>only when a particular compression
+algorithm is used</em> follow these steps:</p>
+<ol class="arabic">
+<li><p>Define the tag in <code class="file docutils literal notranslate"><span class="pre">tiff.h</span></code>.</p></li>
+<li><p>Allocate storage for the tag values in the private state block of
+the codec.</p></li>
+<li><p>Insure the state block is created when the codec is initialized.</p></li>
+<li><p>At <code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFInitfoo()</span></code> time override the method pointers in the
+<code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFF</span></code> structure for getting, setting and printing tag values.
+For example,</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">sp</span><span class="o">-&gt;</span><span class="n">vgetparent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tif</span><span class="o">-&gt;</span><span class="n">tif_vgetfield</span><span class="p">;</span>
+<span class="n">tif</span><span class="o">-&gt;</span><span class="n">tif_vgetfield</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fooVGetField</span><span class="p">;</span><span class="w">        </span><span class="cm">/* hook for codec tags */</span>
+<span class="n">sp</span><span class="o">-&gt;</span><span class="n">vsetparent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tif</span><span class="o">-&gt;</span><span class="n">tif_vsetfield</span><span class="p">;</span>
+<span class="n">tif</span><span class="o">-&gt;</span><span class="n">tif_vsetfield</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fooVSetField</span><span class="p">;</span><span class="w">        </span><span class="cm">/* hook for codec tags */</span>
+<span class="n">tif</span><span class="o">-&gt;</span><span class="n">tif_printdir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fooPrintDir</span><span class="p">;</span><span class="w">  </span><span class="cm">/* hook for codec tags */</span>
+</pre></div>
+</div>
+<p>(Actually you may decide not to override the
+<code class="xref c c-member docutils literal notranslate"><span class="pre">tif_printdir</span></code> method, but rather just specify it).</p>
+</li>
+<li><p>Create a private <code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFFieldInfo</span></code> array for your tags and
+merge them into the core tags at initialization time using
+<code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFMergeFieldInfo()</span></code>; e.g.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">_TIFFMergeFieldInfo</span><span class="p">(</span><span class="n">tif</span><span class="p">,</span><span class="w"> </span><span class="n">fooFieldInfo</span><span class="p">,</span><span class="w"> </span><span class="n">N</span><span class="p">(</span><span class="n">fooFieldInfo</span><span class="p">));</span>
+</pre></div>
+</div>
+<p>(where <code class="xref c c-macro docutils literal notranslate"><span class="pre">N</span></code> is a macro used liberaly throughout the distributed code).</p>
+</li>
+<li><p>Fill in the get and set routines.  Be sure to call the parent method
+for tags that you are not handled directly.  Also be sure to set the
+<code class="docutils literal notranslate"><span class="pre">FIELD_*</span></code> bits for tags that are to be written to the file.  Note that
+you can create “pseudo-tags” by defining tags that are processed
+exclusively in the get/set routines and never written to file (see
+the handling of <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_FAXMODE</span></code> in <code class="file docutils literal notranslate"><span class="pre">tif_fax3.c</span></code>
+for an example of this).</p></li>
+<li><p>Fill in the print routine, if appropriate.</p></li>
+</ol>
+<p>Note that space has been allocated in the <code class="docutils literal notranslate"><span class="pre">FIELD_*</span></code> bit space for
+codec-private tags.  Define your bits as <code class="docutils literal notranslate"><span class="pre">FIELD_CODEC+&lt;offset&gt;</span></code> to
+keep them away from the core tags.  If you need more tags than there
+is room for, just increase <code class="xref c c-macro docutils literal notranslate"><span class="pre">FIELD_SETLONGS</span></code> at the top of
+<code class="file docutils literal notranslate"><span class="pre">tiffiop.h</span></code>.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Defining New TIFF Tags</a><ul>
+<li><a class="reference internal" href="#tifffieldinfo">TIFFFieldInfo</a></li>
+<li><a class="reference internal" href="#default-tag-auto-registration">Default Tag Auto-registration</a></li>
+<li><a class="reference internal" href="#defining-application-tags">Defining Application Tags</a></li>
+<li><a class="reference internal" href="#adding-new-builtin-tags">Adding New Builtin Tags</a></li>
+<li><a class="reference internal" href="#adding-new-codec-private-tags">Adding New Codec-private Tags</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="internals.html"
+                          title="previous chapter">Modifying The TIFF Library</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="tools.html"
+                          title="next chapter">TIFF Tools Overview</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/addingtags.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="tools.html" title="TIFF Tools Overview"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="internals.html" title="Modifying The TIFF Library"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Defining New TIFF Tags</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

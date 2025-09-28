@@ -1,0 +1,297 @@
+.\" Man page generated from reStructuredText.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "TIFFCUSTOMDIRECTORY" "3tiff" "Sep 08, 2023" "4.6" "LibTIFF"
+.SH NAME
+TIFFCustomDirectory \- routines to create a custom directory
+.SH SYNOPSIS
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <tiffio.h>
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFCreateCustomDirectory(TIFF  *tif, const  TIFFFieldArray  *infoarray) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFCreateEXIFDirectory(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFCreateGPSDirectory(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFWriteCustomDirectory(TIFF  *tif, uint64  *pdiroff) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFReadCustomDirectory(TIFF  *tif, toff_t  diroff, const  TIFFFieldArray  *infoarray) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFReadEXIFDirectory(TIFF  *tif, toff_t  diroff) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFReadGPSDirectory(TIFF  *tif, toff_t  diroff) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B const  TIFFFieldArray  *_TIFFGetExifFields(void) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B const  TIFFFieldArray  *_TIFFGetGpsFields(void) 
+.UNINDENT
+.SH DESCRIPTION
+.sp
+The following routines create a custom directory and retrieve information
+about directories in an open TIFF file.
+.sp
+\fI\%TIFFCreateCustomDirectory()\fP, \fI\%TIFFCreateEXIFDirectory()\fP,
+\fI\%TIFFCreateGPSDirectory()\fP will setup a custom directory or one
+of the predefined EXIF or GPS directories and set the context of the
+TIFF\-handle \fBtif\fP to that custom directory for functions
+like \fI\%TIFFSetField()\fP\&.
+.sp
+\fI\%TIFFWriteCustomDirectory()\fP will write the contents of the
+current custom directory to the file and return the offset to that
+directory in \fBpdiroff\fP\&. That offset has to be written to the main\-IFD:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+ /* Go back to the first directory, and add the EXIFIFD pointer. */
+TIFFSetDirectory(tif, 0);
+TIFFSetField(tif, TIFFTAG_EXIFIFD, pdiroff);
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+\fI\%TIFFReadCustomDirectory()\fP will read the custom directory from the
+arbitrary offset into the \fBinfoarray\fP and sets the context of the
+TIFF\-handle \fBtif\fP to that custom directory for functions like
+\fBTIFFReadField()\fP\&. The \fBTIFFFieldArray\fP \fBinfoarray\fP
+has to be according the layout of the custom directory. For the predefined
+EXIF and GPS directories, the relevant \fBTIFFFieldArray\fP definitions
+are hidden within the functions \fI\%TIFFReadEXIFDirectory()\fP and
+\fI\%TIFFReadGPSDirectory()\fP The code is very similar to \fI\%TIFFReadDirectory()\fP\&.
+The offset to the custom directory diroff has to be read from the
+relative TIFF tag first.
+.sp
+\fI\%_TIFFGetExifFields()\fP and \fI\%_TIFFGetGpsFields()\fP  will
+return a pointer to the \fBlibtiff\fP internal definition list of the
+EXIF and GPS tags, respectively.
+.SH NOTES
+.sp
+Be aware
+.INDENT 0.0
+.IP \(bu 2
+that until a directory is not written to file AND read back, the query
+functions won’t retrieve the correct information!
+.IP \(bu 2
+that the newly created directory will not exist on the file till
+\fI\%TIFFWriteDirectory()\fP, \fI\%TIFFCheckpointDirectory()\fP,
+\fI\%TIFFFlush()\fP or \fI\%TIFFClose()\fP has been called.
+.IP \(bu 2
+that \fI\%TIFFCreateDirectory()\fP and \fI\%TIFFWriteDirectory()\fP
+create a new directory, free the \fB*tif\fP structure and set up a new one.
+.IP \(bu 2
+that unlike \fI\%TIFFWriteDirectory()\fP, \fI\%TIFFCheckpointDirectory()\fP
+does not free up the directory data structures in memory.
+.IP \(bu 2
+that LibTiff does not support custom directory chains
+(NextIFD pointing to another IFD).
+NextIFD of custom directories is always set to zero
+and should be zero when reading.
+.UNINDENT
+.sp
+Unfortunately to create or read custom directories with predefined fields
+it is necessary to include the private tif_dir.h. However, for EXIF and
+GPS directories, which have a predefined schema within \fBlibtiff\fP, this
+is not necessary. There are some test programmes that briefly demonstrate
+the creation and reading of EXIF, GPS and custom directories.
+See test/custom_dir.c and test/custom_dir_EXIF_231.c
+.SH HINTS AND DETAILED INSTRUCTIONS
+.sp
+Writing TIFF files with more than one directory (IFD) is not easy because
+some side effects need to be known.
+.sp
+The main point here is that there can only be one \fBtif\fP structure in
+the main memory for a file, which can only hold the tags of one directory
+at a time. It is useless to work with two different tiffOut1, tiffOut2
+pointers, because there is only ONE TIFF object (TIFF directory) within
+the \fBlibtiff\fP\&. If you want to address a second directory in the file,
+the tags of the current directory must first be saved in the file,
+otherwise they will be lost (overwritten or mixed). Then the \fBtif\fP
+structure in the main memory must be tidied up, otherwise the old tags
+will beincluded in the new directory.
+This can be done either by creating a new, empty \fBtif\fP structure or by
+reading in an directory previously saved in the file.
+.sp
+A sequence to handle a second (or third) TIFF directory \- in this case
+the GPS IFD \- is as follows:
+.INDENT 0.0
+.IP 1. 3
+Create TIFF file
+.IP 2. 3
+Complete the “normal” metadata
+.IP 3. 3
+Set the tag for the custom directory with a “dummy” value in order to
+get the tag reserved. The final value will be inserted lateron. This
+prevents the main directory from being written to the file again at an
+additional area, leaving the first memory area unused:
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+TIFFSetField(tiffOut, TIFFTAG_GPSIFD, dir_offset);
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.IP 4. 3
+Save current TIFF\-directory to file. Otherwise, it will be lost.
+Remember also the number of the current directory:
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+TIFFWriteDirectory(tiffOut);
+dirNum = TIFFCurrentDirectory(tiffOut);
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.IP 5. 3
+Create the second TIFF\-directory (e.g. custom directory) and set its
+fields. The TIFFFieldArray infoarray has to be specified beforehand
+somewhere in your private include files.
+An example is given for the EXIF directory in tif_dirinfo.c
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+TIFFCreateCustomDirectory(tiffOut, infoarray);        /* for a real custom directory */
+/* or alternatively, use GPS or EXIF with pre\-defined TIFFFieldArray IFD field structure */
+TIFFCreateGPSDirectory(tiffOut);
+TIFFSetField(tiffOut, GPSTAG_VERSIONID, gpsVersion);  /* set fields of the custom directory */
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Be aware that every \fI\%TIFFCreateDirectory()\fP or \fI\%TIFFWriteDirectory()\fP
+apparently frees the \fB*tif\fP structure and sets up a new one!
+.INDENT 0.0
+.IP 6. 3
+Write custom directory to file. The offset to that directory in the file
+is returned in \fBdir_offset\fP\&.
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+TIFFWriteCustomDirectory(tiffOut, &dir_offset);
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.IP 7. 3
+Reload the first directory (i.e. the original TIFF directory).
+Apparently, this reads the data back from file.
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+TIFFSetDirectory(tiffOut, dirNum);
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.IP 8. 3
+Set the correct offset value of the custom directory IFD tag and save
+that changes to file.
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+TIFFSetField(tiffOut, TIFFTAG_GPSIFD, dir_offset);
+TIFFWriteDirectory(tiffOut);
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH RETURN VALUES
+.sp
+1 is returned when the contents are successfully written to the file.
+Otherwise, 0 is returned if an error was encountered when writing the
+directory contents.
+.SH DIAGNOSTICS
+.sp
+All error messages are directed to the \fI\%TIFFErrorExtR()\fP routine.
+Likewise, warning messages are directed to the \fI\%TIFFWarningExtR()\fP routine.
+.SH SEE ALSO
+.sp
+\fI\%libtiff\fP (3tiff),
+\fI\%TIFFCreateDirectory\fP (3tiff),
+\fI\%TIFFquery\fP (3tiff),
+\fI\%TIFFSetDirectory\fP (3tiff),
+\fI\%TIFFWriteDirectory\fP (3tiff)
+.SH AUTHOR
+LibTIFF contributors
+.SH COPYRIGHT
+1988-2022, LibTIFF contributors
+.\" Generated by docutils manpage writer.
+.

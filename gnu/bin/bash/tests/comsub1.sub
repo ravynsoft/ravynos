@@ -1,0 +1,73 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+: $(echo \;)
+
+: $(case a in a) echo ;;# comment
+esac)
+
+: $(case a in a) echo ;; # comment
+esac)
+
+: $(: \;# not a comment )
+
+: $(: \ # not a comment)
+
+echo $(case a in a) echo \#esac ;;
+esac)
+
+: $(case a in a) : ;#esac ;;
+esac)
+
+: $(case a in a) : ;#esac comment )
+esac)
+
+: $(case a in a) : ;
+esac)
+
+echo $(#comment )
+echo a)
+
+echo $(case a in (a) echo ok 1;; # comment
+esac)
+
+echo $(case a in (a) echo ok 2;; # comment
+(b) echo moo;;
+esac)
+
+echo $(case a in (a) echo ok 3 # comment
+;;
+esac)
+
+echo $(case a in a) echo ok 4;; # comment
+esac)
+
+echo $(case a in a) echo ok 5;; # comment
+b) echo moo;;
+esac)
+
+echo $(case a in (a) echo ok 6 # comment
+;;
+esac)
+
+echo $( # we just took and pasted in some
+# code from another script inside a
+# command substitution
+echo xyz
+)
+
+# problem with parse_comsub through bash-4.4
+case $(echo $$'x\nx') in
+x*)	echo bad 7;;
+*)	echo ok 7;;
+esac

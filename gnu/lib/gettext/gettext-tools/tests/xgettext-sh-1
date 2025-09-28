@@ -1,0 +1,1857 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of Shell support.
+
+cat <<\EOF > xg-sh-1.sh
+# Test escape sequences expansion.
+
+gettext -e 'escape_0_\n'
+gettext -e 'escape_1_\a'
+gettext -e 'escape_2_\b'
+gettext -e 'escape_3_\f'
+gettext -e 'escape_4_\r'
+gettext -e 'escape_5_\t'
+gettext -e 'escape_6_\v'
+gettext -e 'escape_7_\\\\z'
+gettext -e 'escape_10_\40'
+gettext -e 'escape_11_\044'
+gettext -e 'escape_12_\140'
+
+# Test backslash before normal alphabetic character.
+
+gettext  depth_0_none_0_x
+gettext  depth_0_none_1_\x
+gettext  depth_0_none_2_\\x
+gettext "depth_0_dquote_0_x"
+gettext "depth_0_dquote_1_\x"
+gettext "depth_0_dquote_2_\\x"
+gettext 'depth_0_squote_0_x'
+gettext 'depth_0_squote_1_\x'
+gettext 'depth_0_squote_2_\\x'
+
+echo `gettext  depth_1_0_none_0_x`
+echo `gettext  depth_1_0_none_1_\x`
+echo `gettext  depth_1_0_none_2_\\x`
+echo `gettext  depth_1_0_none_3_\\\x`
+echo `gettext  depth_1_0_none_4_\\\\x`
+echo `gettext "depth_1_0_dquote_0_x"`
+echo `gettext "depth_1_0_dquote_1_\x"`
+echo `gettext "depth_1_0_dquote_2_\\x"`
+echo `gettext "depth_1_0_dquote_3_\\\x"`
+echo `gettext "depth_1_0_dquote_4_\\\\x"`
+echo `gettext 'depth_1_0_squote_0_x'`
+echo `gettext 'depth_1_0_squote_1_\x'`
+echo `gettext 'depth_1_0_squote_2_\\x'`
+echo `gettext 'depth_1_0_squote_3_\\\x'`
+echo `gettext 'depth_1_0_squote_4_\\\\x'`
+echo "`gettext depth_1_1_none_0_x`"
+echo "`gettext depth_1_1_none_1_\x`"
+echo "`gettext depth_1_1_none_2_\\x`"
+echo "`gettext depth_1_1_none_3_\\\x`"
+echo "`gettext depth_1_1_none_4_\\\\x`"
+echo "`gettext "depth_1_1_dquote_0_x"`"
+echo "`gettext "depth_1_1_dquote_1_\x"`"
+echo "`gettext "depth_1_1_dquote_2_\\x"`"
+echo "`gettext "depth_1_1_dquote_3_\\\x"`"
+echo "`gettext "depth_1_1_dquote_4_\\\\x"`"
+echo "`gettext 'depth_1_1_squote_0_x'`"
+echo "`gettext 'depth_1_1_squote_1_\x'`"
+echo "`gettext 'depth_1_1_squote_2_\\x'`"
+echo "`gettext 'depth_1_1_squote_3_\\\x'`"
+echo "`gettext 'depth_1_1_squote_4_\\\\x'`"
+
+echo `echo \`gettext  depth_2_00_none_0_x\``
+echo `echo \`gettext  depth_2_00_none_1_\x\``
+echo `echo \`gettext  depth_2_00_none_2_\\x\``
+echo `echo \`gettext  depth_2_00_none_3_\\\x\``
+echo `echo \`gettext  depth_2_00_none_4_\\\\x\``
+echo `echo \`gettext  depth_2_00_none_5_\\\\\x\``
+echo `echo \`gettext  depth_2_00_none_6_\\\\\\x\``
+echo `echo \`gettext  depth_2_00_none_7_\\\\\\\x\``
+echo `echo \`gettext  depth_2_00_none_8_\\\\\\\\x\``
+echo `echo \`gettext "depth_2_00_dquote_0_x"\``
+echo `echo \`gettext "depth_2_00_dquote_1_\x"\``
+echo `echo \`gettext "depth_2_00_dquote_2_\\x"\``
+echo `echo \`gettext "depth_2_00_dquote_3_\\\x"\``
+echo `echo \`gettext "depth_2_00_dquote_4_\\\\x"\``
+echo `echo \`gettext "depth_2_00_dquote_5_\\\\\x"\``
+echo `echo \`gettext "depth_2_00_dquote_6_\\\\\\x"\``
+echo `echo \`gettext "depth_2_00_dquote_7_\\\\\\\x"\``
+echo `echo \`gettext "depth_2_00_dquote_8_\\\\\\\\x"\``
+echo `echo \`gettext 'depth_2_00_squote_0_x'\``
+echo `echo \`gettext 'depth_2_00_squote_1_\x'\``
+echo `echo \`gettext 'depth_2_00_squote_2_\\x'\``
+echo `echo \`gettext 'depth_2_00_squote_3_\\\x'\``
+echo `echo \`gettext 'depth_2_00_squote_4_\\\\x'\``
+echo `echo \`gettext 'depth_2_00_squote_5_\\\\\x'\``
+echo `echo \`gettext 'depth_2_00_squote_6_\\\\\\x'\``
+echo `echo \`gettext 'depth_2_00_squote_7_\\\\\\\x'\``
+echo `echo \`gettext 'depth_2_00_squote_8_\\\\\\\\x'\``
+echo "`echo \`gettext  depth_2_01_none_0_x\``"
+echo "`echo \`gettext  depth_2_01_none_1_\x\``"
+echo "`echo \`gettext  depth_2_01_none_2_\\x\``"
+echo "`echo \`gettext  depth_2_01_none_3_\\\x\``"
+echo "`echo \`gettext  depth_2_01_none_4_\\\\x\``"
+echo "`echo \`gettext  depth_2_01_none_5_\\\\\x\``"
+echo "`echo \`gettext  depth_2_01_none_6_\\\\\\x\``"
+echo "`echo \`gettext  depth_2_01_none_7_\\\\\\\x\``"
+echo "`echo \`gettext  depth_2_01_none_8_\\\\\\\\x\``"
+echo "`echo \`gettext "depth_2_01_dquote_0_x"\``"
+echo "`echo \`gettext "depth_2_01_dquote_1_\x"\``"
+echo "`echo \`gettext "depth_2_01_dquote_2_\\x"\``"
+echo "`echo \`gettext "depth_2_01_dquote_3_\\\x"\``"
+echo "`echo \`gettext "depth_2_01_dquote_4_\\\\x"\``"
+echo "`echo \`gettext "depth_2_01_dquote_5_\\\\\x"\``"
+echo "`echo \`gettext "depth_2_01_dquote_6_\\\\\\x"\``"
+echo "`echo \`gettext "depth_2_01_dquote_7_\\\\\\\x"\``"
+echo "`echo \`gettext "depth_2_01_dquote_8_\\\\\\\\x"\``"
+echo "`echo \`gettext 'depth_2_01_squote_0_x'\``"
+echo "`echo \`gettext 'depth_2_01_squote_1_\x'\``"
+echo "`echo \`gettext 'depth_2_01_squote_2_\\x'\``"
+echo "`echo \`gettext 'depth_2_01_squote_3_\\\x'\``"
+echo "`echo \`gettext 'depth_2_01_squote_4_\\\\x'\``"
+echo "`echo \`gettext 'depth_2_01_squote_5_\\\\\x'\``"
+echo "`echo \`gettext 'depth_2_01_squote_6_\\\\\\x'\``"
+echo "`echo \`gettext 'depth_2_01_squote_7_\\\\\\\x'\``"
+echo "`echo \`gettext 'depth_2_01_squote_8_\\\\\\\\x'\``"
+echo `echo "\`gettext  depth_2_10_none_0_x\`"`
+echo `echo "\`gettext  depth_2_10_none_1_\x\`"`
+echo `echo "\`gettext  depth_2_10_none_2_\\x\`"`
+echo `echo "\`gettext  depth_2_10_none_3_\\\x\`"`
+echo `echo "\`gettext  depth_2_10_none_4_\\\\x\`"`
+echo `echo "\`gettext  depth_2_10_none_5_\\\\\x\`"`
+echo `echo "\`gettext  depth_2_10_none_6_\\\\\\x\`"`
+echo `echo "\`gettext  depth_2_10_none_7_\\\\\\\x\`"`
+echo `echo "\`gettext  depth_2_10_none_8_\\\\\\\\x\`"`
+echo `echo "\`gettext "depth_2_10_dquote_0_x"\`"`
+echo `echo "\`gettext "depth_2_10_dquote_1_\x"\`"`
+echo `echo "\`gettext "depth_2_10_dquote_2_\\x"\`"`
+echo `echo "\`gettext "depth_2_10_dquote_3_\\\x"\`"`
+echo `echo "\`gettext "depth_2_10_dquote_4_\\\\x"\`"`
+echo `echo "\`gettext "depth_2_10_dquote_5_\\\\\x"\`"`
+echo `echo "\`gettext "depth_2_10_dquote_6_\\\\\\x"\`"`
+echo `echo "\`gettext "depth_2_10_dquote_7_\\\\\\\x"\`"`
+echo `echo "\`gettext "depth_2_10_dquote_8_\\\\\\\\x"\`"`
+echo `echo "\`gettext 'depth_2_10_squote_0_x'\`"`
+echo `echo "\`gettext 'depth_2_10_squote_1_\x'\`"`
+echo `echo "\`gettext 'depth_2_10_squote_2_\\x'\`"`
+echo `echo "\`gettext 'depth_2_10_squote_3_\\\x'\`"`
+echo `echo "\`gettext 'depth_2_10_squote_4_\\\\x'\`"`
+echo `echo "\`gettext 'depth_2_10_squote_5_\\\\\x'\`"`
+echo `echo "\`gettext 'depth_2_10_squote_6_\\\\\\x'\`"`
+echo `echo "\`gettext 'depth_2_10_squote_7_\\\\\\\x'\`"`
+echo `echo "\`gettext 'depth_2_10_squote_8_\\\\\\\\x'\`"`
+echo "`echo "\`gettext  depth_2_11_none_0_x\`"`"
+echo "`echo "\`gettext  depth_2_11_none_1_\x\`"`"
+echo "`echo "\`gettext  depth_2_11_none_2_\\x\`"`"
+echo "`echo "\`gettext  depth_2_11_none_3_\\\x\`"`"
+echo "`echo "\`gettext  depth_2_11_none_4_\\\\x\`"`"
+echo "`echo "\`gettext  depth_2_11_none_5_\\\\\x\`"`"
+echo "`echo "\`gettext  depth_2_11_none_6_\\\\\\x\`"`"
+echo "`echo "\`gettext  depth_2_11_none_7_\\\\\\\x\`"`"
+echo "`echo "\`gettext  depth_2_11_none_8_\\\\\\\\x\`"`"
+echo "`echo "\`gettext "depth_2_11_dquote_0_x"\`"`"
+echo "`echo "\`gettext "depth_2_11_dquote_1_\x"\`"`"
+echo "`echo "\`gettext "depth_2_11_dquote_2_\\x"\`"`"
+echo "`echo "\`gettext "depth_2_11_dquote_3_\\\x"\`"`"
+echo "`echo "\`gettext "depth_2_11_dquote_4_\\\\x"\`"`"
+echo "`echo "\`gettext "depth_2_11_dquote_5_\\\\\x"\`"`"
+echo "`echo "\`gettext "depth_2_11_dquote_6_\\\\\\x"\`"`"
+echo "`echo "\`gettext "depth_2_11_dquote_7_\\\\\\\x"\`"`"
+echo "`echo "\`gettext "depth_2_11_dquote_8_\\\\\\\\x"\`"`"
+echo "`echo "\`gettext 'depth_2_11_squote_0_x'\`"`"
+echo "`echo "\`gettext 'depth_2_11_squote_1_\x'\`"`"
+echo "`echo "\`gettext 'depth_2_11_squote_2_\\x'\`"`"
+echo "`echo "\`gettext 'depth_2_11_squote_3_\\\x'\`"`"
+echo "`echo "\`gettext 'depth_2_11_squote_4_\\\\x'\`"`"
+echo "`echo "\`gettext 'depth_2_11_squote_5_\\\\\x'\`"`"
+echo "`echo "\`gettext 'depth_2_11_squote_6_\\\\\\x'\`"`"
+echo "`echo "\`gettext 'depth_2_11_squote_7_\\\\\\\x'\`"`"
+echo "`echo "\`gettext 'depth_2_11_squote_8_\\\\\\\\x'\`"`"
+
+# Test backslash before dollar.
+
+gettext  depth_0_none_0_$var
+gettext  depth_0_none_1_\$var
+gettext  depth_0_none_2_\\$var
+gettext "depth_0_dquote_0_$var"
+gettext "depth_0_dquote_1_\$var"
+gettext "depth_0_dquote_2_\\$var"
+gettext 'depth_0_squote_0_$var'
+gettext 'depth_0_squote_1_\$var'
+gettext 'depth_0_squote_2_\\$var'
+
+echo `gettext  depth_1_0_none_0_$var`
+echo `gettext  depth_1_0_none_1_\$var`
+echo `gettext  depth_1_0_none_2_\\$var`
+echo `gettext  depth_1_0_none_3_\\\$var`
+echo `gettext  depth_1_0_none_4_\\\\$var`
+echo `gettext "depth_1_0_dquote_0_$var"`
+echo `gettext "depth_1_0_dquote_1_\$var"`
+echo `gettext "depth_1_0_dquote_2_\\$var"`
+echo `gettext "depth_1_0_dquote_3_\\\$var"`
+echo `gettext "depth_1_0_dquote_4_\\\\$var"`
+echo `gettext 'depth_1_0_squote_0_$var'`
+echo `gettext 'depth_1_0_squote_1_\$var'`
+echo `gettext 'depth_1_0_squote_2_\\$var'`
+echo `gettext 'depth_1_0_squote_3_\\\$var'`
+echo `gettext 'depth_1_0_squote_4_\\\\$var'`
+echo "`gettext depth_1_1_none_0_$var`"
+echo "`gettext depth_1_1_none_1_\$var`"
+echo "`gettext depth_1_1_none_2_\\$var`"
+echo "`gettext depth_1_1_none_3_\\\$var`"
+echo "`gettext depth_1_1_none_4_\\\\$var`"
+echo "`gettext "depth_1_1_dquote_0_$var"`"
+echo "`gettext "depth_1_1_dquote_1_\$var"`"
+echo "`gettext "depth_1_1_dquote_2_\\$var"`"
+echo "`gettext "depth_1_1_dquote_3_\\\$var"`"
+echo "`gettext "depth_1_1_dquote_4_\\\\$var"`"
+echo "`gettext 'depth_1_1_squote_0_$var'`"
+echo "`gettext 'depth_1_1_squote_1_\$var'`"
+echo "`gettext 'depth_1_1_squote_2_\\$var'`"
+echo "`gettext 'depth_1_1_squote_3_\\\$var'`"
+echo "`gettext 'depth_1_1_squote_4_\\\\$var'`"
+
+echo `echo \`gettext  depth_2_00_none_0_$var\``
+echo `echo \`gettext  depth_2_00_none_1_\$var\``
+echo `echo \`gettext  depth_2_00_none_2_\\$var\``
+echo `echo \`gettext  depth_2_00_none_3_\\\$var\``
+echo `echo \`gettext  depth_2_00_none_4_\\\\$var\``
+echo `echo \`gettext  depth_2_00_none_5_\\\\\$var\``
+echo `echo \`gettext  depth_2_00_none_6_\\\\\\$var\``
+echo `echo \`gettext  depth_2_00_none_7_\\\\\\\$var\``
+echo `echo \`gettext  depth_2_00_none_8_\\\\\\\\$var\``
+echo `echo \`gettext "depth_2_00_dquote_0_$var"\``
+echo `echo \`gettext "depth_2_00_dquote_1_\$var"\``
+echo `echo \`gettext "depth_2_00_dquote_2_\\$var"\``
+echo `echo \`gettext "depth_2_00_dquote_3_\\\$var"\``
+echo `echo \`gettext "depth_2_00_dquote_4_\\\\$var"\``
+echo `echo \`gettext "depth_2_00_dquote_5_\\\\\$var"\``
+echo `echo \`gettext "depth_2_00_dquote_6_\\\\\\$var"\``
+echo `echo \`gettext "depth_2_00_dquote_7_\\\\\\\$var"\``
+echo `echo \`gettext "depth_2_00_dquote_8_\\\\\\\\$var"\``
+echo `echo \`gettext 'depth_2_00_squote_0_$var'\``
+echo `echo \`gettext 'depth_2_00_squote_1_\$var'\``
+echo `echo \`gettext 'depth_2_00_squote_2_\\$var'\``
+echo `echo \`gettext 'depth_2_00_squote_3_\\\$var'\``
+echo `echo \`gettext 'depth_2_00_squote_4_\\\\$var'\``
+echo `echo \`gettext 'depth_2_00_squote_5_\\\\\$var'\``
+echo `echo \`gettext 'depth_2_00_squote_6_\\\\\\$var'\``
+echo `echo \`gettext 'depth_2_00_squote_7_\\\\\\\$var'\``
+echo `echo \`gettext 'depth_2_00_squote_8_\\\\\\\\$var'\``
+echo "`echo \`gettext  depth_2_01_none_0_$var\``"
+echo "`echo \`gettext  depth_2_01_none_1_\$var\``"
+echo "`echo \`gettext  depth_2_01_none_2_\\$var\``"
+echo "`echo \`gettext  depth_2_01_none_3_\\\$var\``"
+echo "`echo \`gettext  depth_2_01_none_4_\\\\$var\``"
+echo "`echo \`gettext  depth_2_01_none_5_\\\\\$var\``"
+echo "`echo \`gettext  depth_2_01_none_6_\\\\\\$var\``"
+echo "`echo \`gettext  depth_2_01_none_7_\\\\\\\$var\``"
+echo "`echo \`gettext  depth_2_01_none_8_\\\\\\\\$var\``"
+echo "`echo \`gettext "depth_2_01_dquote_0_$var"\``"
+echo "`echo \`gettext "depth_2_01_dquote_1_\$var"\``"
+echo "`echo \`gettext "depth_2_01_dquote_2_\\$var"\``"
+echo "`echo \`gettext "depth_2_01_dquote_3_\\\$var"\``"
+echo "`echo \`gettext "depth_2_01_dquote_4_\\\\$var"\``"
+echo "`echo \`gettext "depth_2_01_dquote_5_\\\\\$var"\``"
+echo "`echo \`gettext "depth_2_01_dquote_6_\\\\\\$var"\``"
+echo "`echo \`gettext "depth_2_01_dquote_7_\\\\\\\$var"\``"
+echo "`echo \`gettext "depth_2_01_dquote_8_\\\\\\\\$var"\``"
+echo "`echo \`gettext 'depth_2_01_squote_0_$var'\``"
+echo "`echo \`gettext 'depth_2_01_squote_1_\$var'\``"
+echo "`echo \`gettext 'depth_2_01_squote_2_\\$var'\``"
+echo "`echo \`gettext 'depth_2_01_squote_3_\\\$var'\``"
+echo "`echo \`gettext 'depth_2_01_squote_4_\\\\$var'\``"
+echo "`echo \`gettext 'depth_2_01_squote_5_\\\\\$var'\``"
+echo "`echo \`gettext 'depth_2_01_squote_6_\\\\\\$var'\``"
+echo "`echo \`gettext 'depth_2_01_squote_7_\\\\\\\$var'\``"
+echo "`echo \`gettext 'depth_2_01_squote_8_\\\\\\\\$var'\``"
+echo `echo "\`gettext  depth_2_10_none_0_$var\`"`
+echo `echo "\`gettext  depth_2_10_none_1_\$var\`"`
+echo `echo "\`gettext  depth_2_10_none_2_\\$var\`"`
+echo `echo "\`gettext  depth_2_10_none_3_\\\$var\`"`
+echo `echo "\`gettext  depth_2_10_none_4_\\\\$var\`"`
+echo `echo "\`gettext  depth_2_10_none_5_\\\\\$var\`"`
+echo `echo "\`gettext  depth_2_10_none_6_\\\\\\$var\`"`
+echo `echo "\`gettext  depth_2_10_none_7_\\\\\\\$var\`"`
+echo `echo "\`gettext  depth_2_10_none_8_\\\\\\\\$var\`"`
+echo `echo "\`gettext "depth_2_10_dquote_0_$var"\`"`
+echo `echo "\`gettext "depth_2_10_dquote_1_\$var"\`"`
+echo `echo "\`gettext "depth_2_10_dquote_2_\\$var"\`"`
+echo `echo "\`gettext "depth_2_10_dquote_3_\\\$var"\`"`
+echo `echo "\`gettext "depth_2_10_dquote_4_\\\\$var"\`"`
+echo `echo "\`gettext "depth_2_10_dquote_5_\\\\\$var"\`"`
+echo `echo "\`gettext "depth_2_10_dquote_6_\\\\\\$var"\`"`
+echo `echo "\`gettext "depth_2_10_dquote_7_\\\\\\\$var"\`"`
+echo `echo "\`gettext "depth_2_10_dquote_8_\\\\\\\\$var"\`"`
+echo `echo "\`gettext 'depth_2_10_squote_0_$var'\`"`
+echo `echo "\`gettext 'depth_2_10_squote_1_\$var'\`"`
+echo `echo "\`gettext 'depth_2_10_squote_2_\\$var'\`"`
+echo `echo "\`gettext 'depth_2_10_squote_3_\\\$var'\`"`
+echo `echo "\`gettext 'depth_2_10_squote_4_\\\\$var'\`"`
+echo `echo "\`gettext 'depth_2_10_squote_5_\\\\\$var'\`"`
+echo `echo "\`gettext 'depth_2_10_squote_6_\\\\\\$var'\`"`
+echo `echo "\`gettext 'depth_2_10_squote_7_\\\\\\\$var'\`"`
+echo `echo "\`gettext 'depth_2_10_squote_8_\\\\\\\\$var'\`"`
+echo "`echo "\`gettext  depth_2_11_none_0_$var\`"`"
+echo "`echo "\`gettext  depth_2_11_none_1_\$var\`"`"
+echo "`echo "\`gettext  depth_2_11_none_2_\\$var\`"`"
+echo "`echo "\`gettext  depth_2_11_none_3_\\\$var\`"`"
+echo "`echo "\`gettext  depth_2_11_none_4_\\\\$var\`"`"
+echo "`echo "\`gettext  depth_2_11_none_5_\\\\\$var\`"`"
+echo "`echo "\`gettext  depth_2_11_none_6_\\\\\\$var\`"`"
+echo "`echo "\`gettext  depth_2_11_none_7_\\\\\\\$var\`"`"
+echo "`echo "\`gettext  depth_2_11_none_8_\\\\\\\\$var\`"`"
+echo "`echo "\`gettext "depth_2_11_dquote_0_$var"\`"`"
+echo "`echo "\`gettext "depth_2_11_dquote_1_\$var"\`"`"
+echo "`echo "\`gettext "depth_2_11_dquote_2_\\$var"\`"`"
+echo "`echo "\`gettext "depth_2_11_dquote_3_\\\$var"\`"`"
+echo "`echo "\`gettext "depth_2_11_dquote_4_\\\\$var"\`"`"
+echo "`echo "\`gettext "depth_2_11_dquote_5_\\\\\$var"\`"`"
+echo "`echo "\`gettext "depth_2_11_dquote_6_\\\\\\$var"\`"`"
+echo "`echo "\`gettext "depth_2_11_dquote_7_\\\\\\\$var"\`"`"
+echo "`echo "\`gettext "depth_2_11_dquote_8_\\\\\\\\$var"\`"`"
+echo "`echo "\`gettext 'depth_2_11_squote_0_$var'\`"`"
+echo "`echo "\`gettext 'depth_2_11_squote_1_\$var'\`"`"
+echo "`echo "\`gettext 'depth_2_11_squote_2_\\$var'\`"`"
+echo "`echo "\`gettext 'depth_2_11_squote_3_\\\$var'\`"`"
+echo "`echo "\`gettext 'depth_2_11_squote_4_\\\\$var'\`"`"
+echo "`echo "\`gettext 'depth_2_11_squote_5_\\\\\$var'\`"`"
+echo "`echo "\`gettext 'depth_2_11_squote_6_\\\\\\$var'\`"`"
+echo "`echo "\`gettext 'depth_2_11_squote_7_\\\\\\\$var'\`"`"
+echo "`echo "\`gettext 'depth_2_11_squote_8_\\\\\\\\$var'\`"`"
+
+# Test backslash before single-quote.
+
+echo \'
+
+# Test backslash before semicolon.
+
+ngettext  depth_0_none_0_semi ;
+ngettext  depth_0_none_1_semi \;
+ngettext  depth_0_none_2_semi \\;
+ngettext "depth_0_dquote_0_semi ;"
+ngettext "depth_0_dquote_1_semi \;"
+ngettext "depth_0_dquote_2_semi \\;"
+ngettext 'depth_0_squote_0_semi ;'
+ngettext 'depth_0_squote_1_semi \;'
+ngettext 'depth_0_squote_2_semi \\;'
+
+echo `ngettext  depth_1_0_none_0_semi ;`
+echo `ngettext  depth_1_0_none_1_semi \;`
+echo `ngettext  depth_1_0_none_2_semi \\;`
+echo `ngettext  depth_1_0_none_3_semi \\\;`
+echo `ngettext  depth_1_0_none_4_semi \\\\;`
+echo `ngettext "depth_1_0_dquote_0_semi ;"`
+echo `ngettext "depth_1_0_dquote_1_semi \;"`
+echo `ngettext "depth_1_0_dquote_2_semi \\;"`
+echo `ngettext "depth_1_0_dquote_3_semi \\\;"`
+echo `ngettext "depth_1_0_dquote_4_semi \\\\;"`
+echo `ngettext 'depth_1_0_squote_0_semi ;'`
+echo `ngettext 'depth_1_0_squote_1_semi \;'`
+echo `ngettext 'depth_1_0_squote_2_semi \\;'`
+echo `ngettext 'depth_1_0_squote_3_semi \\\;'`
+echo `ngettext 'depth_1_0_squote_4_semi \\\\;'`
+echo "`ngettext depth_1_1_none_0_semi ;`"
+echo "`ngettext depth_1_1_none_1_semi \;`"
+echo "`ngettext depth_1_1_none_2_semi \\;`"
+echo "`ngettext depth_1_1_none_3_semi \\\;`"
+echo "`ngettext depth_1_1_none_4_semi \\\\;`"
+echo "`ngettext "depth_1_1_dquote_0_semi ;"`"
+echo "`ngettext "depth_1_1_dquote_1_semi \;"`"
+echo "`ngettext "depth_1_1_dquote_2_semi \\;"`"
+echo "`ngettext "depth_1_1_dquote_3_semi \\\;"`"
+echo "`ngettext "depth_1_1_dquote_4_semi \\\\;"`"
+echo "`ngettext 'depth_1_1_squote_0_semi ;'`"
+echo "`ngettext 'depth_1_1_squote_1_semi \;'`"
+echo "`ngettext 'depth_1_1_squote_2_semi \\;'`"
+echo "`ngettext 'depth_1_1_squote_3_semi \\\;'`"
+echo "`ngettext 'depth_1_1_squote_4_semi \\\\;'`"
+
+echo `echo \`ngettext  depth_2_00_none_0_semi ;\``
+echo `echo \`ngettext  depth_2_00_none_1_semi \;\``
+echo `echo \`ngettext  depth_2_00_none_2_semi \\;\``
+echo `echo \`ngettext  depth_2_00_none_3_semi \\\;\``
+echo `echo \`ngettext  depth_2_00_none_4_semi \\\\;\``
+echo `echo \`ngettext  depth_2_00_none_5_semi \\\\\;\``
+echo `echo \`ngettext  depth_2_00_none_6_semi \\\\\\;\``
+echo `echo \`ngettext  depth_2_00_none_7_semi \\\\\\\;\``
+echo `echo \`ngettext  depth_2_00_none_8_semi \\\\\\\\;\``
+echo `echo \`ngettext "depth_2_00_dquote_0_semi ;"\``
+echo `echo \`ngettext "depth_2_00_dquote_1_semi \;"\``
+echo `echo \`ngettext "depth_2_00_dquote_2_semi \\;"\``
+echo `echo \`ngettext "depth_2_00_dquote_3_semi \\\;"\``
+echo `echo \`ngettext "depth_2_00_dquote_4_semi \\\\;"\``
+echo `echo \`ngettext "depth_2_00_dquote_5_semi \\\\\;"\``
+echo `echo \`ngettext "depth_2_00_dquote_6_semi \\\\\\;"\``
+echo `echo \`ngettext "depth_2_00_dquote_7_semi \\\\\\\;"\``
+echo `echo \`ngettext "depth_2_00_dquote_8_semi \\\\\\\\;"\``
+echo `echo \`ngettext 'depth_2_00_squote_0_semi ;'\``
+echo `echo \`ngettext 'depth_2_00_squote_1_semi \;'\``
+echo `echo \`ngettext 'depth_2_00_squote_2_semi \\;'\``
+echo `echo \`ngettext 'depth_2_00_squote_3_semi \\\;'\``
+echo `echo \`ngettext 'depth_2_00_squote_4_semi \\\\;'\``
+echo `echo \`ngettext 'depth_2_00_squote_5_semi \\\\\;'\``
+echo `echo \`ngettext 'depth_2_00_squote_6_semi \\\\\\;'\``
+echo `echo \`ngettext 'depth_2_00_squote_7_semi \\\\\\\;'\``
+echo `echo \`ngettext 'depth_2_00_squote_8_semi \\\\\\\\;'\``
+echo "`echo \`ngettext  depth_2_01_none_0_semi ;\``"
+echo "`echo \`ngettext  depth_2_01_none_1_semi \;\``"
+echo "`echo \`ngettext  depth_2_01_none_2_semi \\;\``"
+echo "`echo \`ngettext  depth_2_01_none_3_semi \\\;\``"
+echo "`echo \`ngettext  depth_2_01_none_4_semi \\\\;\``"
+echo "`echo \`ngettext  depth_2_01_none_5_semi \\\\\;\``"
+echo "`echo \`ngettext  depth_2_01_none_6_semi \\\\\\;\``"
+echo "`echo \`ngettext  depth_2_01_none_7_semi \\\\\\\;\``"
+echo "`echo \`ngettext  depth_2_01_none_8_semi \\\\\\\\;\``"
+echo "`echo \`ngettext "depth_2_01_dquote_0_semi ;"\``"
+echo "`echo \`ngettext "depth_2_01_dquote_1_semi \;"\``"
+echo "`echo \`ngettext "depth_2_01_dquote_2_semi \\;"\``"
+echo "`echo \`ngettext "depth_2_01_dquote_3_semi \\\;"\``"
+echo "`echo \`ngettext "depth_2_01_dquote_4_semi \\\\;"\``"
+echo "`echo \`ngettext "depth_2_01_dquote_5_semi \\\\\;"\``"
+echo "`echo \`ngettext "depth_2_01_dquote_6_semi \\\\\\;"\``"
+echo "`echo \`ngettext "depth_2_01_dquote_7_semi \\\\\\\;"\``"
+echo "`echo \`ngettext "depth_2_01_dquote_8_semi \\\\\\\\;"\``"
+echo "`echo \`ngettext 'depth_2_01_squote_0_semi ;'\``"
+echo "`echo \`ngettext 'depth_2_01_squote_1_semi \;'\``"
+echo "`echo \`ngettext 'depth_2_01_squote_2_semi \\;'\``"
+echo "`echo \`ngettext 'depth_2_01_squote_3_semi \\\;'\``"
+echo "`echo \`ngettext 'depth_2_01_squote_4_semi \\\\;'\``"
+echo "`echo \`ngettext 'depth_2_01_squote_5_semi \\\\\;'\``"
+echo "`echo \`ngettext 'depth_2_01_squote_6_semi \\\\\\;'\``"
+echo "`echo \`ngettext 'depth_2_01_squote_7_semi \\\\\\\;'\``"
+echo "`echo \`ngettext 'depth_2_01_squote_8_semi \\\\\\\\;'\``"
+echo `echo "\`ngettext  depth_2_10_none_0_semi ;\`"`
+echo `echo "\`ngettext  depth_2_10_none_1_semi \;\`"`
+echo `echo "\`ngettext  depth_2_10_none_2_semi \\;\`"`
+echo `echo "\`ngettext  depth_2_10_none_3_semi \\\;\`"`
+echo `echo "\`ngettext  depth_2_10_none_4_semi \\\\;\`"`
+echo `echo "\`ngettext  depth_2_10_none_5_semi \\\\\;\`"`
+echo `echo "\`ngettext  depth_2_10_none_6_semi \\\\\\;\`"`
+echo `echo "\`ngettext  depth_2_10_none_7_semi \\\\\\\;\`"`
+echo `echo "\`ngettext  depth_2_10_none_8_semi \\\\\\\\;\`"`
+echo `echo "\`ngettext "depth_2_10_dquote_0_semi ;"\`"`
+echo `echo "\`ngettext "depth_2_10_dquote_1_semi \;"\`"`
+echo `echo "\`ngettext "depth_2_10_dquote_2_semi \\;"\`"`
+echo `echo "\`ngettext "depth_2_10_dquote_3_semi \\\;"\`"`
+echo `echo "\`ngettext "depth_2_10_dquote_4_semi \\\\;"\`"`
+echo `echo "\`ngettext "depth_2_10_dquote_5_semi \\\\\;"\`"`
+echo `echo "\`ngettext "depth_2_10_dquote_6_semi \\\\\\;"\`"`
+echo `echo "\`ngettext "depth_2_10_dquote_7_semi \\\\\\\;"\`"`
+echo `echo "\`ngettext "depth_2_10_dquote_8_semi \\\\\\\\;"\`"`
+echo `echo "\`ngettext 'depth_2_10_squote_0_semi ;'\`"`
+echo `echo "\`ngettext 'depth_2_10_squote_1_semi \;'\`"`
+echo `echo "\`ngettext 'depth_2_10_squote_2_semi \\;'\`"`
+echo `echo "\`ngettext 'depth_2_10_squote_3_semi \\\;'\`"`
+echo `echo "\`ngettext 'depth_2_10_squote_4_semi \\\\;'\`"`
+echo `echo "\`ngettext 'depth_2_10_squote_5_semi \\\\\;'\`"`
+echo `echo "\`ngettext 'depth_2_10_squote_6_semi \\\\\\;'\`"`
+echo `echo "\`ngettext 'depth_2_10_squote_7_semi \\\\\\\;'\`"`
+echo `echo "\`ngettext 'depth_2_10_squote_8_semi \\\\\\\\;'\`"`
+echo "`echo "\`ngettext  depth_2_11_none_0_semi ;\`"`"
+echo "`echo "\`ngettext  depth_2_11_none_1_semi \;\`"`"
+echo "`echo "\`ngettext  depth_2_11_none_2_semi \\;\`"`"
+echo "`echo "\`ngettext  depth_2_11_none_3_semi \\\;\`"`"
+echo "`echo "\`ngettext  depth_2_11_none_4_semi \\\\;\`"`"
+echo "`echo "\`ngettext  depth_2_11_none_5_semi \\\\\;\`"`"
+echo "`echo "\`ngettext  depth_2_11_none_6_semi \\\\\\;\`"`"
+echo "`echo "\`ngettext  depth_2_11_none_7_semi \\\\\\\;\`"`"
+echo "`echo "\`ngettext  depth_2_11_none_8_semi \\\\\\\\;\`"`"
+echo "`echo "\`ngettext "depth_2_11_dquote_0_semi ;"\`"`"
+echo "`echo "\`ngettext "depth_2_11_dquote_1_semi \;"\`"`"
+echo "`echo "\`ngettext "depth_2_11_dquote_2_semi \\;"\`"`"
+echo "`echo "\`ngettext "depth_2_11_dquote_3_semi \\\;"\`"`"
+echo "`echo "\`ngettext "depth_2_11_dquote_4_semi \\\\;"\`"`"
+echo "`echo "\`ngettext "depth_2_11_dquote_5_semi \\\\\;"\`"`"
+echo "`echo "\`ngettext "depth_2_11_dquote_6_semi \\\\\\;"\`"`"
+echo "`echo "\`ngettext "depth_2_11_dquote_7_semi \\\\\\\;"\`"`"
+echo "`echo "\`ngettext "depth_2_11_dquote_8_semi \\\\\\\\;"\`"`"
+echo "`echo "\`ngettext 'depth_2_11_squote_0_semi ;'\`"`"
+echo "`echo "\`ngettext 'depth_2_11_squote_1_semi \;'\`"`"
+echo "`echo "\`ngettext 'depth_2_11_squote_2_semi \\;'\`"`"
+echo "`echo "\`ngettext 'depth_2_11_squote_3_semi \\\;'\`"`"
+echo "`echo "\`ngettext 'depth_2_11_squote_4_semi \\\\;'\`"`"
+echo "`echo "\`ngettext 'depth_2_11_squote_5_semi \\\\\;'\`"`"
+echo "`echo "\`ngettext 'depth_2_11_squote_6_semi \\\\\\;'\`"`"
+echo "`echo "\`ngettext 'depth_2_11_squote_7_semi \\\\\\\;'\`"`"
+echo "`echo "\`ngettext 'depth_2_11_squote_8_semi \\\\\\\\;'\`"`"
+EOF
+
+: ${XGETTEXT=xgettext}
+# Here we use ngettext with two signatures: ngettext:1 and ngettext:1,2.
+${XGETTEXT} --omit-header --no-location --keyword=ngettext:1 \
+  -d xg-sh-1.tmp xg-sh-1.sh || Exit 1
+LC_ALL=C tr -d '\r' < xg-sh-1.tmp.po > xg-sh-1.po || Exit 1
+
+cat <<\EOF > xg-sh-1.ok
+msgid "escape_0_\n"
+msgstr ""
+
+msgid "escape_1_\a"
+msgstr ""
+
+msgid "escape_2_\b"
+msgstr ""
+
+msgid "escape_3_\f"
+msgstr ""
+
+msgid "escape_4_\r"
+msgstr ""
+
+msgid "escape_5_\t"
+msgstr ""
+
+msgid "escape_6_\v"
+msgstr ""
+
+msgid "escape_7_\\\\z"
+msgstr ""
+
+msgid "escape_10_ "
+msgstr ""
+
+msgid "escape_11_$"
+msgstr ""
+
+msgid "escape_12_`"
+msgstr ""
+
+msgid "depth_0_none_0_x"
+msgstr ""
+
+msgid "depth_0_none_1_x"
+msgstr ""
+
+msgid "depth_0_none_2_\\x"
+msgstr ""
+
+msgid "depth_0_dquote_0_x"
+msgstr ""
+
+msgid "depth_0_dquote_1_\\x"
+msgstr ""
+
+msgid "depth_0_dquote_2_\\x"
+msgstr ""
+
+msgid "depth_0_squote_0_x"
+msgstr ""
+
+msgid "depth_0_squote_1_\\x"
+msgstr ""
+
+msgid "depth_0_squote_2_\\\\x"
+msgstr ""
+
+msgid "depth_1_0_none_0_x"
+msgstr ""
+
+msgid "depth_1_0_none_1_x"
+msgstr ""
+
+msgid "depth_1_0_none_2_x"
+msgstr ""
+
+msgid "depth_1_0_none_3_\\x"
+msgstr ""
+
+msgid "depth_1_0_none_4_\\x"
+msgstr ""
+
+msgid "depth_1_0_dquote_0_x"
+msgstr ""
+
+msgid "depth_1_0_dquote_1_\\x"
+msgstr ""
+
+msgid "depth_1_0_dquote_2_\\x"
+msgstr ""
+
+msgid "depth_1_0_dquote_3_\\x"
+msgstr ""
+
+msgid "depth_1_0_dquote_4_\\x"
+msgstr ""
+
+msgid "depth_1_0_squote_0_x"
+msgstr ""
+
+msgid "depth_1_0_squote_1_\\x"
+msgstr ""
+
+msgid "depth_1_0_squote_2_\\x"
+msgstr ""
+
+msgid "depth_1_0_squote_3_\\\\x"
+msgstr ""
+
+msgid "depth_1_0_squote_4_\\\\x"
+msgstr ""
+
+msgid "depth_1_1_none_0_x"
+msgstr ""
+
+msgid "depth_1_1_none_1_x"
+msgstr ""
+
+msgid "depth_1_1_none_2_x"
+msgstr ""
+
+msgid "depth_1_1_none_3_\\x"
+msgstr ""
+
+msgid "depth_1_1_none_4_\\x"
+msgstr ""
+
+msgid "depth_1_1_dquote_0_x"
+msgstr ""
+
+msgid "depth_1_1_dquote_1_\\x"
+msgstr ""
+
+msgid "depth_1_1_dquote_2_\\x"
+msgstr ""
+
+msgid "depth_1_1_dquote_3_\\x"
+msgstr ""
+
+msgid "depth_1_1_dquote_4_\\x"
+msgstr ""
+
+msgid "depth_1_1_squote_0_x"
+msgstr ""
+
+msgid "depth_1_1_squote_1_\\x"
+msgstr ""
+
+msgid "depth_1_1_squote_2_\\x"
+msgstr ""
+
+msgid "depth_1_1_squote_3_\\\\x"
+msgstr ""
+
+msgid "depth_1_1_squote_4_\\\\x"
+msgstr ""
+
+msgid "depth_2_00_none_0_x"
+msgstr ""
+
+msgid "depth_2_00_none_1_x"
+msgstr ""
+
+msgid "depth_2_00_none_2_x"
+msgstr ""
+
+msgid "depth_2_00_none_3_x"
+msgstr ""
+
+msgid "depth_2_00_none_4_x"
+msgstr ""
+
+msgid "depth_2_00_none_5_\\x"
+msgstr ""
+
+msgid "depth_2_00_none_6_\\x"
+msgstr ""
+
+msgid "depth_2_00_none_7_\\x"
+msgstr ""
+
+msgid "depth_2_00_none_8_\\x"
+msgstr ""
+
+msgid "depth_2_00_dquote_0_x"
+msgstr ""
+
+msgid "depth_2_00_dquote_1_\\x"
+msgstr ""
+
+msgid "depth_2_00_dquote_2_\\x"
+msgstr ""
+
+msgid "depth_2_00_dquote_3_\\x"
+msgstr ""
+
+msgid "depth_2_00_dquote_4_\\x"
+msgstr ""
+
+msgid "depth_2_00_dquote_5_\\x"
+msgstr ""
+
+msgid "depth_2_00_dquote_6_\\x"
+msgstr ""
+
+msgid "depth_2_00_dquote_7_\\x"
+msgstr ""
+
+msgid "depth_2_00_dquote_8_\\x"
+msgstr ""
+
+msgid "depth_2_00_squote_0_x"
+msgstr ""
+
+msgid "depth_2_00_squote_1_\\x"
+msgstr ""
+
+msgid "depth_2_00_squote_2_\\x"
+msgstr ""
+
+msgid "depth_2_00_squote_3_\\x"
+msgstr ""
+
+msgid "depth_2_00_squote_4_\\x"
+msgstr ""
+
+msgid "depth_2_00_squote_5_\\\\x"
+msgstr ""
+
+msgid "depth_2_00_squote_6_\\\\x"
+msgstr ""
+
+msgid "depth_2_00_squote_7_\\\\x"
+msgstr ""
+
+msgid "depth_2_00_squote_8_\\\\x"
+msgstr ""
+
+msgid "depth_2_01_none_0_x"
+msgstr ""
+
+msgid "depth_2_01_none_1_x"
+msgstr ""
+
+msgid "depth_2_01_none_2_x"
+msgstr ""
+
+msgid "depth_2_01_none_3_x"
+msgstr ""
+
+msgid "depth_2_01_none_4_x"
+msgstr ""
+
+msgid "depth_2_01_none_5_\\x"
+msgstr ""
+
+msgid "depth_2_01_none_6_\\x"
+msgstr ""
+
+msgid "depth_2_01_none_7_\\x"
+msgstr ""
+
+msgid "depth_2_01_none_8_\\x"
+msgstr ""
+
+msgid "depth_2_01_dquote_0_x"
+msgstr ""
+
+msgid "depth_2_01_dquote_1_\\x"
+msgstr ""
+
+msgid "depth_2_01_dquote_2_\\x"
+msgstr ""
+
+msgid "depth_2_01_dquote_3_\\x"
+msgstr ""
+
+msgid "depth_2_01_dquote_4_\\x"
+msgstr ""
+
+msgid "depth_2_01_dquote_5_\\x"
+msgstr ""
+
+msgid "depth_2_01_dquote_6_\\x"
+msgstr ""
+
+msgid "depth_2_01_dquote_7_\\x"
+msgstr ""
+
+msgid "depth_2_01_dquote_8_\\x"
+msgstr ""
+
+msgid "depth_2_01_squote_0_x"
+msgstr ""
+
+msgid "depth_2_01_squote_1_\\x"
+msgstr ""
+
+msgid "depth_2_01_squote_2_\\x"
+msgstr ""
+
+msgid "depth_2_01_squote_3_\\x"
+msgstr ""
+
+msgid "depth_2_01_squote_4_\\x"
+msgstr ""
+
+msgid "depth_2_01_squote_5_\\\\x"
+msgstr ""
+
+msgid "depth_2_01_squote_6_\\\\x"
+msgstr ""
+
+msgid "depth_2_01_squote_7_\\\\x"
+msgstr ""
+
+msgid "depth_2_01_squote_8_\\\\x"
+msgstr ""
+
+msgid "depth_2_10_none_0_x"
+msgstr ""
+
+msgid "depth_2_10_none_1_x"
+msgstr ""
+
+msgid "depth_2_10_none_2_x"
+msgstr ""
+
+msgid "depth_2_10_none_3_x"
+msgstr ""
+
+msgid "depth_2_10_none_4_x"
+msgstr ""
+
+msgid "depth_2_10_none_5_\\x"
+msgstr ""
+
+msgid "depth_2_10_none_6_\\x"
+msgstr ""
+
+msgid "depth_2_10_none_7_\\x"
+msgstr ""
+
+msgid "depth_2_10_none_8_\\x"
+msgstr ""
+
+msgid "depth_2_10_dquote_0_x"
+msgstr ""
+
+msgid "depth_2_10_dquote_1_\\x"
+msgstr ""
+
+msgid "depth_2_10_dquote_2_\\x"
+msgstr ""
+
+msgid "depth_2_10_dquote_3_\\x"
+msgstr ""
+
+msgid "depth_2_10_dquote_4_\\x"
+msgstr ""
+
+msgid "depth_2_10_dquote_5_\\x"
+msgstr ""
+
+msgid "depth_2_10_dquote_6_\\x"
+msgstr ""
+
+msgid "depth_2_10_dquote_7_\\x"
+msgstr ""
+
+msgid "depth_2_10_dquote_8_\\x"
+msgstr ""
+
+msgid "depth_2_10_squote_0_x"
+msgstr ""
+
+msgid "depth_2_10_squote_1_\\x"
+msgstr ""
+
+msgid "depth_2_10_squote_2_\\x"
+msgstr ""
+
+msgid "depth_2_10_squote_3_\\x"
+msgstr ""
+
+msgid "depth_2_10_squote_4_\\x"
+msgstr ""
+
+msgid "depth_2_10_squote_5_\\\\x"
+msgstr ""
+
+msgid "depth_2_10_squote_6_\\\\x"
+msgstr ""
+
+msgid "depth_2_10_squote_7_\\\\x"
+msgstr ""
+
+msgid "depth_2_10_squote_8_\\\\x"
+msgstr ""
+
+msgid "depth_2_11_none_0_x"
+msgstr ""
+
+msgid "depth_2_11_none_1_x"
+msgstr ""
+
+msgid "depth_2_11_none_2_x"
+msgstr ""
+
+msgid "depth_2_11_none_3_x"
+msgstr ""
+
+msgid "depth_2_11_none_4_x"
+msgstr ""
+
+msgid "depth_2_11_none_5_\\x"
+msgstr ""
+
+msgid "depth_2_11_none_6_\\x"
+msgstr ""
+
+msgid "depth_2_11_none_7_\\x"
+msgstr ""
+
+msgid "depth_2_11_none_8_\\x"
+msgstr ""
+
+msgid "depth_2_11_dquote_0_x"
+msgstr ""
+
+msgid "depth_2_11_dquote_1_\\x"
+msgstr ""
+
+msgid "depth_2_11_dquote_2_\\x"
+msgstr ""
+
+msgid "depth_2_11_dquote_3_\\x"
+msgstr ""
+
+msgid "depth_2_11_dquote_4_\\x"
+msgstr ""
+
+msgid "depth_2_11_dquote_5_\\x"
+msgstr ""
+
+msgid "depth_2_11_dquote_6_\\x"
+msgstr ""
+
+msgid "depth_2_11_dquote_7_\\x"
+msgstr ""
+
+msgid "depth_2_11_dquote_8_\\x"
+msgstr ""
+
+msgid "depth_2_11_squote_0_x"
+msgstr ""
+
+msgid "depth_2_11_squote_1_\\x"
+msgstr ""
+
+msgid "depth_2_11_squote_2_\\x"
+msgstr ""
+
+msgid "depth_2_11_squote_3_\\x"
+msgstr ""
+
+msgid "depth_2_11_squote_4_\\x"
+msgstr ""
+
+msgid "depth_2_11_squote_5_\\\\x"
+msgstr ""
+
+msgid "depth_2_11_squote_6_\\\\x"
+msgstr ""
+
+msgid "depth_2_11_squote_7_\\\\x"
+msgstr ""
+
+msgid "depth_2_11_squote_8_\\\\x"
+msgstr ""
+
+#, sh-format
+msgid "depth_0_none_1_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_0_dquote_1_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_0_squote_0_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_0_squote_1_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_0_squote_2_\\\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_0_none_2_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_0_none_3_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_0_dquote_2_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_0_dquote_3_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_0_squote_0_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_0_squote_1_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_0_squote_2_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_0_squote_3_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_0_squote_4_\\\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_1_none_2_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_1_none_3_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_1_dquote_2_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_1_dquote_3_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_1_squote_0_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_1_squote_1_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_1_squote_2_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_1_squote_3_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_1_squote_4_\\\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_none_4_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_none_5_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_none_6_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_none_7_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_dquote_4_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_dquote_5_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_dquote_6_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_dquote_7_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_squote_0_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_squote_1_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_squote_2_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_squote_3_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_squote_4_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_squote_5_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_squote_6_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_squote_7_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_squote_8_\\\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_none_4_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_none_5_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_none_6_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_none_7_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_dquote_4_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_dquote_5_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_dquote_6_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_dquote_7_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_squote_0_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_squote_1_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_squote_2_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_squote_3_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_squote_4_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_squote_5_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_squote_6_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_squote_7_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_squote_8_\\\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_none_4_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_none_5_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_none_6_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_none_7_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_dquote_4_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_dquote_5_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_dquote_6_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_dquote_7_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_squote_0_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_squote_1_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_squote_2_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_squote_3_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_squote_4_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_squote_5_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_squote_6_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_squote_7_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_squote_8_\\\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_none_4_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_none_5_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_none_6_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_none_7_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_dquote_4_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_dquote_5_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_dquote_6_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_dquote_7_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_squote_0_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_squote_1_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_squote_2_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_squote_3_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_squote_4_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_squote_5_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_squote_6_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_squote_7_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_squote_8_\\\\$var"
+msgstr ""
+
+msgid "depth_0_none_0_semi"
+msgstr ""
+
+msgid "depth_0_none_1_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_0_none_2_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_0_dquote_0_semi ;"
+msgstr ""
+
+msgid "depth_0_dquote_1_semi \\;"
+msgstr ""
+
+msgid "depth_0_dquote_2_semi \\;"
+msgstr ""
+
+msgid "depth_0_squote_0_semi ;"
+msgstr ""
+
+msgid "depth_0_squote_1_semi \\;"
+msgstr ""
+
+msgid "depth_0_squote_2_semi \\\\;"
+msgstr ""
+
+msgid "depth_1_0_none_0_semi"
+msgstr ""
+
+msgid "depth_1_0_none_1_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_1_0_none_2_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_1_0_none_3_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_1_0_none_4_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_1_0_dquote_0_semi ;"
+msgstr ""
+
+msgid "depth_1_0_dquote_1_semi \\;"
+msgstr ""
+
+msgid "depth_1_0_dquote_2_semi \\;"
+msgstr ""
+
+msgid "depth_1_0_dquote_3_semi \\;"
+msgstr ""
+
+msgid "depth_1_0_dquote_4_semi \\;"
+msgstr ""
+
+msgid "depth_1_0_squote_0_semi ;"
+msgstr ""
+
+msgid "depth_1_0_squote_1_semi \\;"
+msgstr ""
+
+msgid "depth_1_0_squote_2_semi \\;"
+msgstr ""
+
+msgid "depth_1_0_squote_3_semi \\\\;"
+msgstr ""
+
+msgid "depth_1_0_squote_4_semi \\\\;"
+msgstr ""
+
+msgid "depth_1_1_none_0_semi"
+msgstr ""
+
+msgid "depth_1_1_none_1_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_1_1_none_2_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_1_1_none_3_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_1_1_none_4_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_1_1_dquote_0_semi ;"
+msgstr ""
+
+msgid "depth_1_1_dquote_1_semi \\;"
+msgstr ""
+
+msgid "depth_1_1_dquote_2_semi \\;"
+msgstr ""
+
+msgid "depth_1_1_dquote_3_semi \\;"
+msgstr ""
+
+msgid "depth_1_1_dquote_4_semi \\;"
+msgstr ""
+
+msgid "depth_1_1_squote_0_semi ;"
+msgstr ""
+
+msgid "depth_1_1_squote_1_semi \\;"
+msgstr ""
+
+msgid "depth_1_1_squote_2_semi \\;"
+msgstr ""
+
+msgid "depth_1_1_squote_3_semi \\\\;"
+msgstr ""
+
+msgid "depth_1_1_squote_4_semi \\\\;"
+msgstr ""
+
+msgid "depth_2_00_none_0_semi"
+msgstr ""
+
+msgid "depth_2_00_none_1_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_00_none_2_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_00_none_3_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_00_none_4_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_00_none_5_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_00_none_6_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_00_none_7_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_00_none_8_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_00_dquote_0_semi ;"
+msgstr ""
+
+msgid "depth_2_00_dquote_1_semi \\;"
+msgstr ""
+
+msgid "depth_2_00_dquote_2_semi \\;"
+msgstr ""
+
+msgid "depth_2_00_dquote_3_semi \\;"
+msgstr ""
+
+msgid "depth_2_00_dquote_4_semi \\;"
+msgstr ""
+
+msgid "depth_2_00_dquote_5_semi \\;"
+msgstr ""
+
+msgid "depth_2_00_dquote_6_semi \\;"
+msgstr ""
+
+msgid "depth_2_00_dquote_7_semi \\;"
+msgstr ""
+
+msgid "depth_2_00_dquote_8_semi \\;"
+msgstr ""
+
+msgid "depth_2_00_squote_0_semi ;"
+msgstr ""
+
+msgid "depth_2_00_squote_1_semi \\;"
+msgstr ""
+
+msgid "depth_2_00_squote_2_semi \\;"
+msgstr ""
+
+msgid "depth_2_00_squote_3_semi \\;"
+msgstr ""
+
+msgid "depth_2_00_squote_4_semi \\;"
+msgstr ""
+
+msgid "depth_2_00_squote_5_semi \\\\;"
+msgstr ""
+
+msgid "depth_2_00_squote_6_semi \\\\;"
+msgstr ""
+
+msgid "depth_2_00_squote_7_semi \\\\;"
+msgstr ""
+
+msgid "depth_2_00_squote_8_semi \\\\;"
+msgstr ""
+
+msgid "depth_2_01_none_0_semi"
+msgstr ""
+
+msgid "depth_2_01_none_1_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_01_none_2_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_01_none_3_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_01_none_4_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_01_none_5_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_01_none_6_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_01_none_7_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_01_none_8_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_01_dquote_0_semi ;"
+msgstr ""
+
+msgid "depth_2_01_dquote_1_semi \\;"
+msgstr ""
+
+msgid "depth_2_01_dquote_2_semi \\;"
+msgstr ""
+
+msgid "depth_2_01_dquote_3_semi \\;"
+msgstr ""
+
+msgid "depth_2_01_dquote_4_semi \\;"
+msgstr ""
+
+msgid "depth_2_01_dquote_5_semi \\;"
+msgstr ""
+
+msgid "depth_2_01_dquote_6_semi \\;"
+msgstr ""
+
+msgid "depth_2_01_dquote_7_semi \\;"
+msgstr ""
+
+msgid "depth_2_01_dquote_8_semi \\;"
+msgstr ""
+
+msgid "depth_2_01_squote_0_semi ;"
+msgstr ""
+
+msgid "depth_2_01_squote_1_semi \\;"
+msgstr ""
+
+msgid "depth_2_01_squote_2_semi \\;"
+msgstr ""
+
+msgid "depth_2_01_squote_3_semi \\;"
+msgstr ""
+
+msgid "depth_2_01_squote_4_semi \\;"
+msgstr ""
+
+msgid "depth_2_01_squote_5_semi \\\\;"
+msgstr ""
+
+msgid "depth_2_01_squote_6_semi \\\\;"
+msgstr ""
+
+msgid "depth_2_01_squote_7_semi \\\\;"
+msgstr ""
+
+msgid "depth_2_01_squote_8_semi \\\\;"
+msgstr ""
+
+msgid "depth_2_10_none_0_semi"
+msgstr ""
+
+msgid "depth_2_10_none_1_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_10_none_2_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_10_none_3_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_10_none_4_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_10_none_5_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_10_none_6_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_10_none_7_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_10_none_8_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_10_dquote_0_semi ;"
+msgstr ""
+
+msgid "depth_2_10_dquote_1_semi \\;"
+msgstr ""
+
+msgid "depth_2_10_dquote_2_semi \\;"
+msgstr ""
+
+msgid "depth_2_10_dquote_3_semi \\;"
+msgstr ""
+
+msgid "depth_2_10_dquote_4_semi \\;"
+msgstr ""
+
+msgid "depth_2_10_dquote_5_semi \\;"
+msgstr ""
+
+msgid "depth_2_10_dquote_6_semi \\;"
+msgstr ""
+
+msgid "depth_2_10_dquote_7_semi \\;"
+msgstr ""
+
+msgid "depth_2_10_dquote_8_semi \\;"
+msgstr ""
+
+msgid "depth_2_10_squote_0_semi ;"
+msgstr ""
+
+msgid "depth_2_10_squote_1_semi \\;"
+msgstr ""
+
+msgid "depth_2_10_squote_2_semi \\;"
+msgstr ""
+
+msgid "depth_2_10_squote_3_semi \\;"
+msgstr ""
+
+msgid "depth_2_10_squote_4_semi \\;"
+msgstr ""
+
+msgid "depth_2_10_squote_5_semi \\\\;"
+msgstr ""
+
+msgid "depth_2_10_squote_6_semi \\\\;"
+msgstr ""
+
+msgid "depth_2_10_squote_7_semi \\\\;"
+msgstr ""
+
+msgid "depth_2_10_squote_8_semi \\\\;"
+msgstr ""
+
+msgid "depth_2_11_none_0_semi"
+msgstr ""
+
+msgid "depth_2_11_none_1_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_11_none_2_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_11_none_3_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_11_none_4_semi"
+msgid_plural ";"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_11_none_5_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_11_none_6_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_11_none_7_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_11_none_8_semi"
+msgid_plural "\\"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "depth_2_11_dquote_0_semi ;"
+msgstr ""
+
+msgid "depth_2_11_dquote_1_semi \\;"
+msgstr ""
+
+msgid "depth_2_11_dquote_2_semi \\;"
+msgstr ""
+
+msgid "depth_2_11_dquote_3_semi \\;"
+msgstr ""
+
+msgid "depth_2_11_dquote_4_semi \\;"
+msgstr ""
+
+msgid "depth_2_11_dquote_5_semi \\;"
+msgstr ""
+
+msgid "depth_2_11_dquote_6_semi \\;"
+msgstr ""
+
+msgid "depth_2_11_dquote_7_semi \\;"
+msgstr ""
+
+msgid "depth_2_11_dquote_8_semi \\;"
+msgstr ""
+
+msgid "depth_2_11_squote_0_semi ;"
+msgstr ""
+
+msgid "depth_2_11_squote_1_semi \\;"
+msgstr ""
+
+msgid "depth_2_11_squote_2_semi \\;"
+msgstr ""
+
+msgid "depth_2_11_squote_3_semi \\;"
+msgstr ""
+
+msgid "depth_2_11_squote_4_semi \\;"
+msgstr ""
+
+msgid "depth_2_11_squote_5_semi \\\\;"
+msgstr ""
+
+msgid "depth_2_11_squote_6_semi \\\\;"
+msgstr ""
+
+msgid "depth_2_11_squote_7_semi \\\\;"
+msgstr ""
+
+msgid "depth_2_11_squote_8_semi \\\\;"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-sh-1.ok xg-sh-1.po
+result=$?
+
+exit $result

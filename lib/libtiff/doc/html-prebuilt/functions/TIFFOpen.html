@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>TIFFOpen &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TIFFOpenOptions" href="TIFFOpenOptions.html" />
+    <link rel="prev" title="TIFFMergeFieldInfo" href="TIFFMergeFieldInfo.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="TIFFOpenOptions.html" title="TIFFOpenOptions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="TIFFMergeFieldInfo.html" title="TIFFMergeFieldInfo"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" accesskey="U">TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFOpen</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tiffopen">
+<h1>TIFFOpen<a class="headerlink" href="#tiffopen" title="Permalink to this heading">¶</a></h1>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;tiffio.h&gt;</span>
+</pre></div>
+</div>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFOpen">
+<span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFOpen</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filename</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mode</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFOpen" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFOpenW">
+<span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFOpenW</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">wchar_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mode</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFOpenW" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFFdOpen">
+<span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFFdOpen</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">fd</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filename</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mode</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFFdOpen" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFOpenExt">
+<span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFOpenExt</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filename</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mode</span></span>, <a class="reference internal" href="TIFFOpenOptions.html#c.TIFFOpenOptions" title="TIFFOpenOptions"><span class="n"><span class="pre">TIFFOpenOptions</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">opts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFOpenExt" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFOpenWExt">
+<span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFOpenWExt</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">wchar_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mode</span></span>, <a class="reference internal" href="TIFFOpenOptions.html#c.TIFFOpenOptions" title="TIFFOpenOptions"><span class="n"><span class="pre">TIFFOpenOptions</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">opts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFOpenWExt" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFFdOpenExt">
+<span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFFdOpenExt</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">fd</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filename</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mode</span></span>, <a class="reference internal" href="TIFFOpenOptions.html#c.TIFFOpenOptions" title="TIFFOpenOptions"><span class="n"><span class="pre">TIFFOpenOptions</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">opts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFFdOpenExt" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSetFileName">
+<span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSetFileName</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSetFileName" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSetFileno">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSetFileno</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">fd</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSetFileno" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSetMode">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSetMode</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">mode</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSetMode" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.TIFFReadWriteProc">
+<span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="n"><span class="pre">tsize_t</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFReadWriteProc</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">thandle_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">tdata_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">tsize_t</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.TIFFReadWriteProc" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.TIFFSeekProc">
+<span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="n"><span class="pre">toff_t</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSeekProc</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">thandle_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">toff_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.TIFFSeekProc" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.TIFFCloseProc">
+<span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFCloseProc</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">thandle_t</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.TIFFCloseProc" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.TIFFSizeProc">
+<span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="n"><span class="pre">toff_t</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSizeProc</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">thandle_t</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.TIFFSizeProc" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.TIFFMapFileProc">
+<span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFMapFileProc</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">thandle_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">tdata_t</span></span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">toff_t</span></span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.TIFFMapFileProc" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.TIFFUnmapFileProc">
+<span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFUnmapFileProc</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">thandle_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">tdata_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">toff_t</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.TIFFUnmapFileProc" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFClientOpen">
+<span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFClientOpen</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filename</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mode</span></span>, <span class="n"><span class="pre">thandle_t</span></span><span class="w"> </span><span class="n"><span class="pre">clientdata</span></span>, <a class="reference internal" href="#c.TIFFReadWriteProc" title="TIFFReadWriteProc"><span class="n"><span class="pre">TIFFReadWriteProc</span></span></a><span class="w"> </span><span class="n"><span class="pre">readproc</span></span>, <a class="reference internal" href="#c.TIFFReadWriteProc" title="TIFFReadWriteProc"><span class="n"><span class="pre">TIFFReadWriteProc</span></span></a><span class="w"> </span><span class="n"><span class="pre">writeproc</span></span>, <a class="reference internal" href="#c.TIFFSeekProc" title="TIFFSeekProc"><span class="n"><span class="pre">TIFFSeekProc</span></span></a><span class="w"> </span><span class="n"><span class="pre">seekproc</span></span>, <a class="reference internal" href="#c.TIFFCloseProc" title="TIFFCloseProc"><span class="n"><span class="pre">TIFFCloseProc</span></span></a><span class="w"> </span><span class="n"><span class="pre">closeproc</span></span>, <a class="reference internal" href="#c.TIFFSizeProc" title="TIFFSizeProc"><span class="n"><span class="pre">TIFFSizeProc</span></span></a><span class="w"> </span><span class="n"><span class="pre">sizeproc</span></span>, <a class="reference internal" href="#c.TIFFMapFileProc" title="TIFFMapFileProc"><span class="n"><span class="pre">TIFFMapFileProc</span></span></a><span class="w"> </span><span class="n"><span class="pre">mapproc</span></span>, <a class="reference internal" href="#c.TIFFUnmapFileProc" title="TIFFUnmapFileProc"><span class="n"><span class="pre">TIFFUnmapFileProc</span></span></a><span class="w"> </span><span class="n"><span class="pre">unmapproc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFClientOpen" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFClientOpenExt">
+<span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFClientOpenExt</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filename</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mode</span></span>, <span class="n"><span class="pre">thandle_t</span></span><span class="w"> </span><span class="n"><span class="pre">clientdata</span></span>, <a class="reference internal" href="#c.TIFFReadWriteProc" title="TIFFReadWriteProc"><span class="n"><span class="pre">TIFFReadWriteProc</span></span></a><span class="w"> </span><span class="n"><span class="pre">readproc</span></span>, <a class="reference internal" href="#c.TIFFReadWriteProc" title="TIFFReadWriteProc"><span class="n"><span class="pre">TIFFReadWriteProc</span></span></a><span class="w"> </span><span class="n"><span class="pre">writeproc</span></span>, <a class="reference internal" href="#c.TIFFSeekProc" title="TIFFSeekProc"><span class="n"><span class="pre">TIFFSeekProc</span></span></a><span class="w"> </span><span class="n"><span class="pre">seekproc</span></span>, <a class="reference internal" href="#c.TIFFCloseProc" title="TIFFCloseProc"><span class="n"><span class="pre">TIFFCloseProc</span></span></a><span class="w"> </span><span class="n"><span class="pre">closeproc</span></span>, <a class="reference internal" href="#c.TIFFSizeProc" title="TIFFSizeProc"><span class="n"><span class="pre">TIFFSizeProc</span></span></a><span class="w"> </span><span class="n"><span class="pre">sizeproc</span></span>, <a class="reference internal" href="#c.TIFFMapFileProc" title="TIFFMapFileProc"><span class="n"><span class="pre">TIFFMapFileProc</span></span></a><span class="w"> </span><span class="n"><span class="pre">mapproc</span></span>, <a class="reference internal" href="#c.TIFFUnmapFileProc" title="TIFFUnmapFileProc"><span class="n"><span class="pre">TIFFUnmapFileProc</span></span></a><span class="w"> </span><span class="n"><span class="pre">unmapproc</span></span>, <a class="reference internal" href="TIFFOpenOptions.html#c.TIFFOpenOptions" title="TIFFOpenOptions"><span class="n"><span class="pre">TIFFOpenOptions</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">opts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFClientOpenExt" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFClientdata">
+<span class="n"><span class="pre">thandle_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFClientdata</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFClientdata" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSetClientdata">
+<span class="n"><span class="pre">thandle_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSetClientdata</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span>, <span class="n"><span class="pre">thandle_t</span></span><span class="w"> </span><span class="n"><span class="pre">newvalue</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSetClientdata" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="#c.TIFFOpen" title="TIFFOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpen()</span></code></a> opens a TIFF file whose name is <em>filename</em>
+and returns a handle to be used in subsequent calls to routines in
+<strong class="program">libtiff</strong>.  If the open operation fails, then
+<code class="xref c c-macro docutils literal notranslate"><span class="pre">NULL</span></code> (0) is returned.  The <em>mode</em> parameter specifies if
+the file is to be opened for reading (<code class="docutils literal notranslate"><span class="pre">r</span></code>) or (<code class="docutils literal notranslate"><span class="pre">r+</span></code>), writing (<code class="docutils literal notranslate"><span class="pre">w</span></code>), or
+appending (<code class="docutils literal notranslate"><span class="pre">a</span></code>) and, optionally, whether to override certain
+default aspects of library operation (see below <a class="reference internal" href="#options">Options</a>).</p>
+<p>The <em>mode</em> (<code class="docutils literal notranslate"><span class="pre">r</span></code>) opens only an <strong>existing</strong> file for reading and (<code class="docutils literal notranslate"><span class="pre">r+</span></code>)
+for reading and writing.
+When a file is opened for appending, existing data will not
+be touched; instead new data will be written as additional subfiles.
+If an existing file is opened for writing, all previous data is
+overwritten.</p>
+<p>If a file is opened for reading, the first TIFF directory in the file
+is automatically read.
+If a file is opened for writing or appending, a default directory
+is automatically created for writing subsequent data.
+This directory has all the default values specified in TIFF Revision 6.0:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">BitsPerSample</span></code> = 1,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ThreshHolding</span></code> = “bilevel art scan”</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FillOrder</span></code> = 1 (most significant bit of each data byte is filled first)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Orientation</span></code> = 1 (the 0th row represents the visual top of the image,
+and the 0th column represents the visual left hand side),</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span></code> = 1,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RowsPerStrip</span></code> = ∞,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ResolutionUnit</span></code> = 2 (inches), and</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Compression</span></code> = 1 (no compression).</p></li>
+</ul>
+<p>To alter these values, or to define values for additional fields,
+<a class="reference internal" href="TIFFSetField.html#c.TIFFSetField" title="TIFFSetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetField()</span></code></a> must be used.</p>
+<p><a class="reference internal" href="#c.TIFFOpenW" title="TIFFOpenW"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenW()</span></code></a> opens a TIFF file with a Unicode filename, for read/writing.</p>
+<p><a class="reference internal" href="#c.TIFFFdOpen" title="TIFFFdOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFdOpen()</span></code></a> is like <a class="reference internal" href="#c.TIFFOpen" title="TIFFOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpen()</span></code></a> except that it opens a
+TIFF file given an open file descriptor <em>fd</em>.
+The file’s name and mode must reflect that of the open descriptor.
+Even for write-only mode, <code class="docutils literal notranslate"><span class="pre">libtiff</span></code> needs read permissions because
+some of its functions need to read back the partially written TIFF file.
+The object associated with the file descriptor <strong>must support random access</strong>.
+In order to close a TIFF file opened with <a class="reference internal" href="#c.TIFFFdOpen" title="TIFFFdOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFdOpen()</span></code></a>
+first <a class="reference internal" href="TIFFClose.html#c.TIFFCleanup" title="TIFFCleanup"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCleanup()</span></code></a> should be called to free the internal
+TIFF structure without closing the file handle and afterwards the
+file should be closed using its file descriptor <em>fd</em>.</p>
+<p><a class="reference internal" href="#c.TIFFOpenExt" title="TIFFOpenExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenExt()</span></code></a> (added in libtiff 4.5) is like <a class="reference internal" href="#c.TIFFOpen" title="TIFFOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpen()</span></code></a>,
+but options, such as re-entrant error and warning handlers may be passed
+with the <em>opts</em> argument. The <em>opts</em> argument may be NULL.
+Refer to <a class="reference internal" href="TIFFOpenOptions.html"><span class="doc">TIFFOpenOptions</span></a> for allocating and filling the <em>opts</em> argument
+parameters. The allocated memory for <a class="reference internal" href="TIFFOpenOptions.html#c.TIFFOpenOptions" title="TIFFOpenOptions"><code class="xref c c-type docutils literal notranslate"><span class="pre">TIFFOpenOptions</span></code></a>
+can be released straight after successful execution of the related
+“TIFFOpenExt” functions.</p>
+<p><a class="reference internal" href="#c.TIFFOpenWExt" title="TIFFOpenWExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenWExt()</span></code></a> (added in libtiff 4.5) is like <a class="reference internal" href="#c.TIFFOpenExt" title="TIFFOpenExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenExt()</span></code></a>,
+but opens a TIFF file with a Unicode filename.</p>
+<p><a class="reference internal" href="#c.TIFFFdOpenExt" title="TIFFFdOpenExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFdOpenExt()</span></code></a> (added in libtiff 4.5) is like <a class="reference internal" href="#c.TIFFFdOpen" title="TIFFFdOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFdOpen()</span></code></a>,
+but options, such as re-entrant error and warning handlers may be passed
+with the <em>opts</em> argument. The <em>opts</em> argument may be NULL.
+Refer to <a class="reference internal" href="TIFFOpenOptions.html"><span class="doc">TIFFOpenOptions</span></a> for filling the <em>opts</em> argument.</p>
+<p><a class="reference internal" href="#c.TIFFSetFileName" title="TIFFSetFileName"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetFileName()</span></code></a> sets the file name in the tif-structure
+and returns the old file name.</p>
+<p><a class="reference internal" href="#c.TIFFSetFileno" title="TIFFSetFileno"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetFileno()</span></code></a> overwrites a copy of the open file’s I/O descriptor,
+that was saved when the TIFF file was first opened,
+and returns the previous value. See note below.</p>
+<p><a class="reference internal" href="#c.TIFFSetMode" title="TIFFSetMode"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetMode()</span></code></a> sets the <code class="docutils literal notranslate"><span class="pre">libtiff</span></code> open mode in the tif-structure
+and returns the old mode.</p>
+<p><a class="reference internal" href="#c.TIFFClientOpen" title="TIFFClientOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClientOpen()</span></code></a> is like <a class="reference internal" href="#c.TIFFOpen" title="TIFFOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpen()</span></code></a> except that the caller
+supplies a collection of functions that the library will use to do UNIX-like
+I/O operations.  The <em>readproc</em> and <em>writeproc</em> functions are called to read
+and write data at the current file position.
+<em>seekproc</em> is called to change the current file position à la <code class="xref c c-func docutils literal notranslate"><span class="pre">lseek()</span></code> (2).
+<em>closeproc</em> is invoked to release any resources associated with an open file.
+<em>sizeproc</em> is invoked to obtain the size in bytes of a file.
+<em>mapproc</em> and <em>unmapproc</em> are called to map and unmap a file’s contents in
+memory; c.f. <code class="xref c c-func docutils literal notranslate"><span class="pre">mmap()</span></code> (2) and <code class="xref c c-func docutils literal notranslate"><span class="pre">munmap()</span></code> (2).
+The <em>clientdata</em> parameter is an opaque “handle” passed to the client-specified
+routines passed as parameters to <a class="reference internal" href="#c.TIFFClientOpen" title="TIFFClientOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClientOpen()</span></code></a>.</p>
+<p><a class="reference internal" href="#c.TIFFClientOpenExt" title="TIFFClientOpenExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClientOpenExt()</span></code></a> (added in libtiff 4.5) is like <a class="reference internal" href="#c.TIFFClientOpen" title="TIFFClientOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClientOpen()</span></code></a>,
+but options argument <em>opts</em> like for <a class="reference internal" href="#c.TIFFOpenExt" title="TIFFOpenExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenExt()</span></code></a> can be passed.</p>
+<p><a class="reference internal" href="#c.TIFFClientdata" title="TIFFClientdata"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClientdata()</span></code></a> returns open file’s clientdata handle,
+which is the real open file’s I/O descriptor used by <code class="docutils literal notranslate"><span class="pre">libtiff</span></code>.
+Note: Within tif_unix.c this handle is converted into an integer file descriptor.</p>
+<p><a class="reference internal" href="#c.TIFFSetClientdata" title="TIFFSetClientdata"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetClientdata()</span></code></a> sets open file’s clientdata, and return previous value.
+The clientdata is used as open file’s I/O descriptor within <code class="docutils literal notranslate"><span class="pre">libtiff</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><em>clientdata</em> is used as file descriptor or handle of the opened TIFF file within
+<cite>libtif</cite>, whereas the file descriptor <em>fd</em> (changeable by <a class="reference internal" href="#c.TIFFSetFileno" title="TIFFSetFileno"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetFileno()</span></code></a>)
+is only set once to the value of <em>clientdata</em> converted to an integer
+(in tif_win32.c as well as in tif_unix.c).
+When updating the file’s clientdata with <a class="reference internal" href="#c.TIFFSetClientdata" title="TIFFSetClientdata"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetClientdata()</span></code></a>,
+the <em>fd</em> value is <strong>not</strong> updated.</p>
+</div>
+</section>
+<section id="options">
+<h2>Options<a class="headerlink" href="#options" title="Permalink to this heading">¶</a></h2>
+<p>The open mode parameter can include the following flags in
+addition to the <code class="docutils literal notranslate"><span class="pre">r</span></code>, <code class="docutils literal notranslate"><span class="pre">r+</span></code>, <code class="docutils literal notranslate"><span class="pre">w</span></code>, and <code class="docutils literal notranslate"><span class="pre">a</span></code> flags.
+Note however that option flags must follow the read-write-append
+specification.</p>
+<p>Note 2: Also for <code class="docutils literal notranslate"><span class="pre">w</span></code> the file will be opened with <em>read access</em> rights
+because <code class="docutils literal notranslate"><span class="pre">libtiff</span></code> needs to read back the partially written TIFF file
+for some of its functions.</p>
+<p><code class="docutils literal notranslate"><span class="pre">l</span></code>:</p>
+<blockquote>
+<div><p>When creating a new file force information be written with
+Little-Endian byte order (but see below).
+By default the library will create new files using the native
+CPU byte order.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">b</span></code>:</p>
+<blockquote>
+<div><p>When creating a new file force information be written with
+Big-Endian byte order (but see below).
+By default the library will create new files using the native
+CPU byte order.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">L</span></code>:</p>
+<blockquote>
+<div><p>Force image data that is read or written to be treated with
+bits filled from Least Significant Bit (LSB) to
+Most Significant Bit (MSB).
+Note that this is the opposite to the way the library has
+worked from its inception.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">B</span></code>:</p>
+<blockquote>
+<div><p>Force image data that is read or written to be treated with
+bits filled from Most Significant Bit (MSB) to
+Least Significant Bit (LSB); this is the default.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">H</span></code>:</p>
+<blockquote>
+<div><p>Force image data that is read or written to be treated with
+bits filled in the same order as the native
+CPU.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">M</span></code>:</p>
+<blockquote>
+<div><p>Enable the use of memory-mapped files for images opened read-only.
+If the underlying system does not support memory-mapped files
+or if the specific image being opened cannot be memory-mapped
+then the library will fallback to using the normal system interface
+for reading information.
+By default the library will attempt to use memory-mapped files.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">m</span></code>:</p>
+<blockquote>
+<div><p>Disable the use of memory-mapped files.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">C</span></code>:</p>
+<blockquote>
+<div><p>Enable the use of “strip chopping” when reading images
+that are comprised of a single strip or tile of uncompressed data.
+Strip chopping is a mechanism by which the library will automatically
+convert the single-strip image to multiple strips,
+each of which has about 8 Kilobytes of data.
+This facility can be useful in reducing the amount of memory used
+to read an image because the library normally reads each strip
+in its entirety.
+Strip chopping does however alter the apparent contents of the
+image because when an image is divided into multiple strips it
+looks as though the underlying file contains multiple separate
+strips.
+Finally, note that default handling of strip chopping is a compile-time
+configuration parameter.
+The default behaviour, for backwards compatibility, is to enable
+strip chopping.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">c</span></code>:</p>
+<blockquote>
+<div><p>Disable the use of strip chopping when reading images.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">h</span></code>:</p>
+<blockquote>
+<div><p>Read TIFF header only, do not load the first image directory. That could be
+useful in case of the broken first directory. We can open the file and proceed
+to the other directories.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">4</span></code>:</p>
+<blockquote>
+<div><p>ClassicTIFF for creating a file (default)</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">8</span></code>:</p>
+<blockquote>
+<div><p>BigTIFF for creating a file.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">D</span></code>:</p>
+<blockquote>
+<div><p>Enable use of deferred strip/tile offset/bytecount array loading. They will
+be loaded the first time they are accessed to. This loading will be done in
+its entirety unless the O flag is also specified.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">O</span></code>:</p>
+<blockquote>
+<div><p>On-demand loading of values of the strip/tile offset/bytecount arrays, limited
+to the requested strip/tile, instead of whole array loading (implies <code class="docutils literal notranslate"><span class="pre">D</span></code>)</p>
+</div></blockquote>
+</section>
+<section id="byte-order">
+<h2>Byte order<a class="headerlink" href="#byte-order" title="Permalink to this heading">¶</a></h2>
+<p>The TIFF specification (<strong>all versions</strong>) states that compliant readers
+“must be capable of reading images written in either byte order” .
+Nonetheless some software that claims to support the reading of
+TIFF images is incapable of reading images in anything but the native
+CPU byte order on which the software was written.
+(Especially notorious are applications written to run on Intel-based machines.)
+By default the library will create new files with the native
+byte-order of the CPU on which the application is run.
+This ensures optimal performance and is portable to any application
+that conforms to the TIFF specification.
+To force the library to use a specific byte-order when creating
+a new file the <code class="docutils literal notranslate"><span class="pre">b</span></code> and <code class="docutils literal notranslate"><span class="pre">l</span></code> option flags may be included in
+the call to open a file; for example, <code class="docutils literal notranslate"><span class="pre">wb</span></code> or <code class="docutils literal notranslate"><span class="pre">wl</span></code>.</p>
+</section>
+<section id="return-values">
+<h2>Return values<a class="headerlink" href="#return-values" title="Permalink to this heading">¶</a></h2>
+<p>Upon successful completion
+<a class="reference internal" href="#c.TIFFOpen" title="TIFFOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpen()</span></code></a>, <a class="reference internal" href="#c.TIFFFdOpen" title="TIFFFdOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFdOpen()</span></code></a>, and <a class="reference internal" href="#c.TIFFClientOpen" title="TIFFClientOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClientOpen()</span></code></a>
+return a TIFF pointer.  Otherwise, <code class="xref c c-macro docutils literal notranslate"><span class="pre">NULL</span></code> is returned.</p>
+</section>
+<section id="diagnostics">
+<h2>Diagnostics<a class="headerlink" href="#diagnostics" title="Permalink to this heading">¶</a></h2>
+<p>All error messages are directed to the <a class="reference internal" href="TIFFError.html#c.TIFFErrorExtR" title="TIFFErrorExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExtR()</span></code></a> routine.
+Likewise, warning messages are directed to the <a class="reference internal" href="TIFFWarning.html#c.TIFFWarningExtR" title="TIFFWarningExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningExtR()</span></code></a> routine.</p>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;%s&quot;:</span> <span class="pre">Bad</span> <span class="pre">mode</span></code>:</p>
+<blockquote>
+<div><p>The specified <em>mode</em> parameter was not one of <code class="docutils literal notranslate"><span class="pre">r</span></code> (read), <code class="docutils literal notranslate"><span class="pre">w</span></code> (write),
+or <code class="docutils literal notranslate"><span class="pre">a</span></code> (append).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;%s:</span> <span class="pre">Cannot</span> <span class="pre">open&quot;</span></code>:</p>
+<blockquote>
+<div><p><a class="reference internal" href="#c.TIFFOpen" title="TIFFOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpen()</span></code></a> was unable to open the specified filename for read/writing.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;Cannot</span> <span class="pre">read</span> <span class="pre">TIFF</span> <span class="pre">header&quot;</span></code>:</p>
+<blockquote>
+<div><p>An error occurred while attempting to read the header information.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;Error</span> <span class="pre">writing</span> <span class="pre">TIFF</span> <span class="pre">header&quot;</span></code>:</p>
+<blockquote>
+<div><p>An error occurred while writing the default header information
+for a new file.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;Not</span> <span class="pre">a</span> <span class="pre">TIFF</span> <span class="pre">file,</span> <span class="pre">bad</span> <span class="pre">magic</span> <span class="pre">number</span> <span class="pre">%d</span> <span class="pre">(0x%x)&quot;</span></code>:</p>
+<blockquote>
+<div><p>The magic number in the header was not (hex)
+0x4d4d or (hex) 0x4949.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;Not</span> <span class="pre">a</span> <span class="pre">TIFF</span> <span class="pre">file,</span> <span class="pre">bad</span> <span class="pre">version</span> <span class="pre">number</span> <span class="pre">%d</span> <span class="pre">(0x%x)&quot;</span></code>:</p>
+<blockquote>
+<div><p>The version field in the header was not 42 (decimal).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;Cannot</span> <span class="pre">append</span> <span class="pre">to</span> <span class="pre">file</span> <span class="pre">that</span> <span class="pre">has</span> <span class="pre">opposite</span> <span class="pre">byte</span> <span class="pre">ordering&quot;</span></code>:</p>
+<blockquote>
+<div><p>A file with a byte ordering opposite to the native byte
+ordering of the current machine was opened for appending (<code class="docutils literal notranslate"><span class="pre">a</span></code>).
+This is a limitation of the library.</p>
+</div></blockquote>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="libtiff.html"><span class="doc">libtiff</span></a> (3tiff),
+<a class="reference internal" href="TIFFClose.html"><span class="doc">TIFFClose</span></a> (3tiff),
+<a class="reference internal" href="TIFFStrileQuery.html"><span class="doc">TIFFStrileQuery</span></a>,
+<a class="reference internal" href="TIFFOpenOptions.html"><span class="doc">TIFFOpenOptions</span></a></p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">TIFFOpen</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#options">Options</a></li>
+<li><a class="reference internal" href="#byte-order">Byte order</a></li>
+<li><a class="reference internal" href="#return-values">Return values</a></li>
+<li><a class="reference internal" href="#diagnostics">Diagnostics</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="TIFFMergeFieldInfo.html"
+                          title="previous chapter">TIFFMergeFieldInfo</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="TIFFOpenOptions.html"
+                          title="next chapter">TIFFOpenOptions</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/functions/TIFFOpen.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="TIFFOpenOptions.html" title="TIFFOpenOptions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="TIFFMergeFieldInfo.html" title="TIFFMergeFieldInfo"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" >TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFOpen</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

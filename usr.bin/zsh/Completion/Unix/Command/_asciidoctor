@@ -1,0 +1,42 @@
+#compdef asciidoctor
+
+# Notes:
+# - We don't offer -v for verbose, even though that works in some cases
+# - @todo We don't complete arguments to -E and -r. Unclear how they work.
+#   Should we offer gem names from `gem list`...?
+
+_arguments -s -S : \
+  '(: * -)'{-h+,--help=}'[display help information]::help topic:((
+    manpage\:"dump man page"
+  ))' \
+  '(: * -)'{-V,--version}'[display version information]' \
+  '(-q -v --quiet --verbose)'{-q,--quiet}'[reduce output verbosity]' \
+  '(-q -v --quiet --verbose)'{-v,--verbose}'[increase output verbosity]' \
+  '*'{-a+,--attribute=}'[set/unset specified document attribute]:document attribute' \
+  '(-b --backend)'{-b+,--backend=}'[specify backend output format]:backend:(
+    docbook docbook45 docbook5 html html5 manpage
+  )' \
+  '(-B --base-dir)'{-B+,--base-dir=}'[specify document base directory]:base directory:_files -/' \
+  '(-d --doctype)'{-d+,--doctype=}'[specify document type]:document type:(
+    article book inline manpage
+  )' \
+  '(-D --destination-dir)'{-D+,--destination-dir=}'[specify destination directory]:destination directory:_files -/' \
+  '(-e --eruby)'{-e+,--eruby=}'[specify eRuby implementation]:eRuby implementation:(erb erubis)' \
+  '(-E --template-engine)'{-E+,--template-engine=}'[specify template engine]:template engine' \
+  '--failure-level=[specify minimum logging level to trigger non-zero exit]:failure logging level [FATAL]:(
+    WARNING ERROR FATAL
+  )' \
+  '*'{-I+,--load-path=}'[add specified directory to load path]:extension directory:_files -/' \
+  '(-n --section-numbers)'{-n,--section-numbers}'[auto-number section titles]' \
+  '(-o --out-file)'{-o+,--out-file=}'[specify output file]:output file:_files' \
+  '(-R --source-directory)'{-R+,--source-dir=}'[specify source directory]:source directory:_files -/' \
+  '*'{-r+,--require=}'[require specified library]:Ruby library' \
+  '(-s --no-header-footer)'{-s,--no-header-footer}'[suppress document header/footer]' \
+  '(-S --safe --safe-mode)'{-S+,--safe-mode=}'[specify safe-mode level]:safe-mode level [unsafe]:(
+    unsafe safe server secure
+  )' \
+  '(-S --safe-mode)--safe[set safe-mode level to safe]' \
+  '(-t --timings)'{-t,--timings}'[display timing information]' \
+  '*'{-T+,--template-dir=}'[specify template directory]:template directory:_files -/' \
+  '--trace[include backtrace information on errors]' \
+  '*:source file:_files'

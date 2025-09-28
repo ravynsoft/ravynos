@@ -1,0 +1,15 @@
+#compdef -k complete-word \C-xc
+
+# Simple completion front-end implementing spelling correction.
+# The maximum number of errors is set quite high, and
+# the numeric prefix can be used to specify a different value.
+
+local curcontext="$curcontext"
+
+if [[ -z "$curcontext" ]]; then
+  curcontext="correct-word:::"
+else
+  curcontext="correct-word:${curcontext#*:}"
+fi
+
+_main_complete _correct

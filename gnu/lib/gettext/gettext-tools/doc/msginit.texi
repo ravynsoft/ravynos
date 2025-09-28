@@ -1,0 +1,173 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2019 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@pindex msginit
+@cindex @code{msginit} program, usage
+@example
+msginit [@var{option}]
+@end example
+
+@cindex create new PO file
+@cindex initialize new PO file
+The @code{msginit} program creates a new PO file, initializing the meta
+information with values from the user's environment.
+
+Here are more details.  The following header fields of a PO file are
+automatically filled, when possible.
+
+@table @samp
+@item Project-Id-Version
+The value is guessed from the @code{configure} script or any other files
+in the current directory.
+
+@item PO-Revision-Date
+The value is taken from the @code{PO-Creation-Data} in the input POT
+file, or the current date is used.
+
+@item Last-Translator
+The value is taken from user's password file entry and the mailer
+configuration files.
+
+@item Language-Team, Language
+These values are set according to the current locale and the predefined
+list of translation teams.
+
+@item MIME-Version, Content-Type, Content-Transfer-Encoding
+These values are set according to the content of the POT file and the
+current locale.  If the POT file contains charset=UTF-8, it means that
+the POT file contains non-ASCII characters, and we keep the UTF-8
+encoding.  Otherwise, when the POT file is plain ASCII, we use the
+locale's encoding.
+
+@item Plural-Forms
+The value is first looked up from the embedded table.
+
+As an experimental feature, you can instruct @code{msginit} to use the
+information from Unicode CLDR, by setting the @code{GETTEXTCLDRDIR}
+environment variable.  The program will look for a file named
+@code{common/supplemental/plurals.xml} under that directory.  You can
+get the CLDR data from @url{http://cldr.unicode.org/}.
+
+@end table
+
+@subsection Input file location
+
+@table @samp
+@item -i @var{inputfile}
+@itemx --input=@var{inputfile}
+@opindex -i@r{, @code{msginit} option}
+@opindex --input@r{, @code{msginit} option}
+Input POT file.
+
+@end table
+
+If no @var{inputfile} is given, the current directory is searched for the
+POT file.  If it is @samp{-}, standard input is read.
+
+@subsection Output file location
+
+@table @samp
+@item -o @var{file}
+@itemx --output-file=@var{file}
+@opindex -o@r{, @code{msginit} option}
+@opindex --output-file@r{, @code{msginit} option}
+Write output to specified PO file.
+
+@end table
+
+If no output file is given, it depends on the @samp{--locale} option or the
+user's locale setting.  If it is @samp{-}, the results are written to
+standard output.
+
+@subsection Input file syntax
+
+@table @samp
+@item -P
+@itemx --properties-input
+@opindex -P@r{, @code{msginit} option}
+@opindex --properties-input@r{, @code{msginit} option}
+Assume the input file is a Java ResourceBundle in Java @code{.properties}
+syntax, not in PO file syntax.
+
+@item --stringtable-input
+@opindex --stringtable-input@r{, @code{msginit} option}
+Assume the input file is a NeXTstep/GNUstep localized resource file in
+@code{.strings} syntax, not in PO file syntax.
+
+@end table
+
+@subsection Output details
+
+@table @samp
+@item -l @var{ll_CC[.encoding]}
+@itemx --locale=@var{ll_CC[.encoding]}
+@opindex -l@r{, @code{msginit} option}
+@opindex --locale@r{, @code{msginit} option}
+Set target locale.  @var{ll} should be a language code, and @var{CC} should
+be a country code.  The optional part @var{.encoding} specifies the encoding
+of the locale; most often this part is @code{.UTF-8}.
+The command @samp{locale -a} can be used to output a list
+of all installed locales.  The default is the user's locale setting.
+
+@item --no-translator
+@opindex --no-translator@r{, @code{msginit} option}
+Declares that the PO file will not have a human translator and is instead
+automatically generated.
+
+@item --color
+@itemx --color=@var{when}
+@opindex --color@r{, @code{msginit} option}
+Specify whether or when to use colors and other text attributes.
+See @ref{The --color option} for details.
+
+@item --style=@var{style_file}
+@opindex --style@r{, @code{msginit} option}
+Specify the CSS style rule file to use for @code{--color}.
+See @ref{The --style option} for details.
+
+@item -p
+@itemx --properties-output
+@opindex -p@r{, @code{msginit} option}
+@opindex --properties-output@r{, @code{msginit} option}
+Write out a Java ResourceBundle in Java @code{.properties} syntax.  Note
+that this file format doesn't support plural forms and silently drops
+obsolete messages.
+
+@item --stringtable-output
+@opindex --stringtable-output@r{, @code{msginit} option}
+Write out a NeXTstep/GNUstep localized resource file in @code{.strings} syntax.
+Note that this file format doesn't support plural forms.
+
+@item -w @var{number}
+@itemx --width=@var{number}
+@opindex -w@r{, @code{msginit} option}
+@opindex --width@r{, @code{msginit} option}
+Set the output page width.  Long strings in the output files will be
+split across multiple lines in order to ensure that each line's width
+(= number of screen columns) is less or equal to the given @var{number}.
+
+@item --no-wrap
+@opindex --no-wrap@r{, @code{msginit} option}
+Do not break long message lines.  Message lines whose width exceeds the
+output page width will not be split into several lines.  Only file reference
+lines which are wider than the output page width will be split.
+
+@end table
+
+@subsection Informative output
+
+@table @samp
+@item -h
+@itemx --help
+@opindex -h@r{, @code{msginit} option}
+@opindex --help@r{, @code{msginit} option}
+Display this help and exit.
+
+@item -V
+@itemx --version
+@opindex -V@r{, @code{msginit} option}
+@opindex --version@r{, @code{msginit} option}
+Output version information and exit.
+
+@end table

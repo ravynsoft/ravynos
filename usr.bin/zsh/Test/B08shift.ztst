@@ -1,0 +1,33 @@
+# Test the shift builtin.
+
+%test
+
+  set -- one two three four five six seven eight nine ten
+  shift
+  print $*
+  shift 2
+  print $*
+  shift -p 3
+  print $*
+  shift -p
+  print $*
+0:shifting positional parameters
+>two three four five six seven eight nine ten
+>four five six seven eight nine ten
+>four five six seven
+>four five six
+
+  array=(yan tan tether mether pip azer sezar akker conter dick)
+  shift 2 array
+  print $array
+  shift array
+  print $array
+  shift -p 3 array
+  print $array
+  shift -p array
+  print $array
+0:shifting array
+>tether mether pip azer sezar akker conter dick
+>mether pip azer sezar akker conter dick
+>mether pip azer sezar
+>mether pip azer

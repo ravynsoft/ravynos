@@ -1,0 +1,15 @@
+tmpf=$TMPDIR/tmp-$$
+printf "%s\n" "one two three four" > $tmpf
+
+# make sure we rewind the input properly when reading a specific number of
+# characters or using a non-standard delimiter from a regular file
+
+exec <$tmpf
+read -n 4 input && echo "$input"
+cat -
+
+exec <$tmpf
+read -d ' ' input && echo "$input"
+cat -
+
+rm -f $tmpf

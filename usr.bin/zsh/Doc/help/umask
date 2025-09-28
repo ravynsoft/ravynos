@@ -1,0 +1,8 @@
+umask [ -S ] [ mask ]
+       The umask is set to mask.  mask can be either an octal number or
+       a symbolic value as described in the chmod(1) man page.  If mask
+       is omitted, the current value is printed.  The -S option  causes
+       the mask to be printed as a symbolic value.  Otherwise, the mask
+       is printed as an octal number.  Note that in the  symbolic  form
+       the  permissions  you  specify are those which are to be allowed
+       (not denied) to the users specified.

@@ -1,0 +1,18 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test librep support: strings with hexadecimal escape sequences that are
+# invalid UTF-8.
+
+cat <<\EOF > xg-lr-3.jl
+(_ "\xE0")
+EOF
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location --from-code=UTF-8 -d xg-lr-3.tmp xg-lr-3.jl 2>xg-lr-3.err
+result=$?
+cat xg-lr-3.err
+test $result = 1 || Exit 1
+grep 'is not UTF-8 encoded' xg-lr-3.err >/dev/null || Exit 1
+
+exit 0

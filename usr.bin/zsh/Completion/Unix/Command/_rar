@@ -1,0 +1,136 @@
+#compdef rar unrar
+
+local common expl
+
+common=(
+  '-ad[append archive name to destination path]'
+  '-ad1[create a separate folder for files unpacked from each archive]'
+  "-ad2[like -ad1 but use archives' own folders]"
+  '-ap[set path inside archive]'
+  '-av\-[disable authenticity verification check]'
+  '-c\-[disable comments show]'
+  '-cfg\-[disable read configuration]'
+  '-cl\-[convert names to lower case]'
+  '-cu[convert names to upper case]'
+  '-dh[open shared files]'
+  '-ep[exclude paths from name]'
+  '-f[freshen files]'
+  '-idn[hide archived names]'
+  '-idp[disable percentage display]'
+  '-ierr[send all messages to stderr]'
+  '-inul[disable all messages]'
+  '-kb[keep broken extracted files]'
+  '-o\+[overwrite existing files]'
+  '-o\-[do not overwrite existing files]'
+  '-ow[save or restore file owner and group]'
+  '-p+:password'
+  '-p\-[do not query password]'
+  '-r[recurse subdirectories]'
+  '-ta+[process files modified after a date]:date (YYYYMMDDHHMMSS)'
+  '-tb+[process files modified before a date]:date (YYYYMMDDHHMMSS)'
+  '-tn+[process files newer than a specified time]:time'
+  '-to+[process files older than a specified time]:time'
+  '-ts-[save or restore time]:time:((m\:modification c\:change a\:access p\:preserve))'
+  '-u[update files]'
+  '-v[create volumes with size autodetection or list all volumes]'
+  '-ver[file version control]'
+  '-vp[pause before each volume]'
+  '-x[exclude specified file]'
+  '-y[assume yes answer to all queries]'
+)
+
+case $service in
+  unrar)
+    if (( CURRENT == 2 )); then
+      _values 'rar command' \
+	'e[extract files to current directory]' \
+	'l[list archive]' \
+	'lt[list archive (technical format)]' \
+	'lb[list archive (bare format)]' \
+	'p[print file to stdout]' \
+	't[test archive files]' \
+	'v[verbosely list archive]' \
+	'vt[verbosely list archive (technical format)]' \
+	'vb[verbosely list archive (bare format)]' \
+	'x[extract files with full path]'
+    else
+      _arguments -S \
+	'-ep3[expand paths to full including the drive letter]' \
+        '-idc[disable ___ display]' \
+        '-idd[disable ___ display]' \
+        '-idq[disable ___ display]' \
+	'-n+:file to include:_files' \
+	'-n@+:file of files to include:_files' \
+        "$common[@]" \
+        '*:RAR file:_files -g \*.rar\(-.\)'
+    fi
+  ;;
+  rar)
+    if (( CURRENT == 2 )); then
+      _values 'rar command' \
+	'a[add files to archive]' \
+	'c[add archive comment]' \
+	'cf[add files comment]' \
+	'cw[write archive comment to file]' \
+	'd[delete files from archive]' \
+	'e[extract files to current directory]' \
+	'f[freshen files in archive]' \
+	'i[find string in archives]' \
+	'k[lock archive]' \
+	'l[list archive]' \
+	'lt[list archive (technical format)]' \
+	'lb[list archive (bare format)]' \
+	'm[move to archive]' \
+	'mf[move to archive (files only)]' \
+	'p[print file to stdout]' \
+	'r[repair archive]' \
+	'rc[reconstruct missing volumes]' \
+	'rr[add data recovery record]' \
+	'rv[create recovery volumes]' \
+	's[convert archive to or from SFX]' \
+	't[test archive files]' \
+	'u[update files in archive]' \
+	'v[verbosely list archive]' \
+	'vt[verbosely list archive (technical format)]' \
+	'vb[verbosely list archive (bare format)]' \
+	'x[extract files with full path]'
+    else
+      _arguments -S \
+	'-ag[generate archive name using the current date]' \
+	'-as[synchronize archive contents]' \
+	'-av[put authenticity verification (registered versions only)]' \
+	'-df[delete files after archiving]' \
+	'-ds[disable name sort for solid archive]' \
+	'-e[set file exclude attributes]' \
+	'-ed[do not add empty directories]' \
+	'-en[do not put end of archive block]' \
+	'-ep1[exclude base directory from names]' \
+	'-ep2[expand paths to full]' \
+	'-hp[encrypt both file data and headers]' \
+	'-ilog[log errors to file (registered versions only)]' \
+	'-isnd[enable sound]' \
+	'-k[lock archive]' \
+	'-m+[set compression level]:compression level:(( 0\:store 1\:fastest 2\:fast 3\:normal 4\:good 5\:maximal ))' \
+	'-md+[dictionary size]:dictionary size (KB):( 64 128 256 512 1024 2048 4096 a b c d e f g )' \
+	'-ms[specify file types to store]' \
+	'-ol[save symbolic links as the link instead of the file]' \
+	'-p[set password]' \
+	'-r0[recurse subdirectories for wildcard names only]' \
+	'-rr[add data recovery record]' \
+	'-rv[create recovery volumes]' \
+	'-s[create solid archive]' \
+	'-se[create solid archive using extension]' \
+	'-sv[create solid archive using volumes]' \
+	'-s\-[disable solid archiving]' \
+	'-sfx[create SFX archive]' \
+	'-t[test files after archiving]' \
+	'-tk[keep original archive time]' \
+	'-tl[set archive time to latest file]' \
+	'-vn[use the old style volume naming scheme]' \
+	'-w+[assign work directory]:work directory:_files -/' \
+	"$common[@]" \
+	'-z+[read archive comment from file]:comment file:_files' \
+	'*: :_files'
+    fi
+  ;;
+esac

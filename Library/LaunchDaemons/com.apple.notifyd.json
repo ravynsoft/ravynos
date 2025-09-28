@@ -1,0 +1,15 @@
+{
+  "EnvironmentVariables": {
+    "ASL_DISABLE": "1"
+  },
+  "POSIXSpawnType": "Interactive",
+  "MachServices": {
+    "com.apple.system.notification_center": true
+  },
+  "EnableTransactions": true,
+  "ProgramArguments": [
+    "/usr/sbin/notifyd",
+    "-d"
+  ],
+  "Label": "com.apple.notifyd"
+}

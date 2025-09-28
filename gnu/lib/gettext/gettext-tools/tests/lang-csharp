@@ -1,0 +1,206 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of gettext facilities in the C# language.
+# Assumes an fr_FR locale is installed.
+# Assumes the following packages are installed: mono, mcs.
+
+# Note: This test fails when a GNU gettext version < 0.17 is installed with
+# the same --prefix as mcs. mcs apparently searches ${prefix}/lib before
+# searching the directory specified on the command line:
+#   $ mcs -out:program.exe -lib:../../gettext-runtime/intl-csharp -reference:GNU.Gettext program.cs
+#   program.cs(17,45): error CS0117: `GNU.Gettext.GettextResourceManager' does not contain a definition for `GetParticularPluralString'
+#   /usr/local/lib/GNU.Gettext.dll (Location of the symbol related to previous error)
+#   program.cs(18,45): error CS0117: `GNU.Gettext.GettextResourceManager' does not contain a definition for `GetParticularString'
+#   /usr/local/lib/GNU.Gettext.dll (Location of the symbol related to previous error)
+#   Compilation failed: 2 error(s), 0 warnings
+# The workaround is to install GNU gettext with the same --prefix, despite
+# the test failure, and run "make check" afterwards.
+
+# Test whether we can build and test C# programs.
+test "${CSHARP_CHOICE}" != no || {
+  echo "Skipping test: configured with --disable-csharp"
+  Exit 77
+}
+test "${BUILDCSHARP}" = yes || {
+  echo "Skipping test: C# compiler not found"
+  Exit 77
+}
+test "${TESTCSHARP}" = yes || {
+  echo "Skipping test: C# engine not found"
+  Exit 77
+}
+
+cat <<\EOF > program.cs
+using System;
+using GNU.Gettext;
+class Program {
+  static void Main (String[] args) {
+    #if __MonoCS__
+    // Some systems don't set CurrentCulture and CurrentUICulture as specified
+    // by LC_ALL. So set it by hand.
+    System.Threading.Thread.CurrentThread.CurrentCulture =
+    System.Threading.Thread.CurrentThread.CurrentUICulture =
+      new System.Globalization.CultureInfo("fr-FR");
+    #endif
+    int n = Int32.Parse(args[0]);
+    GettextResourceManager catalog = new GettextResourceManager("prog");
+    Console.WriteLine(catalog.GetString("'Your command, please?', asked the waiter."));
+    Console.WriteLine(String.Format(catalog.GetPluralString("a piece of cake","{0} pieces of cake",n), n));
+    Console.WriteLine(String.Format(catalog.GetString("{0} is replaced by {1}."), "FF", "EUR"));
+    Console.WriteLine(String.Format(catalog.GetParticularPluralString("++","a piece of cake","{0} pieces of cake",n), n));
+    Console.WriteLine(String.Format(catalog.GetParticularString("++","{0} is replaced by {1}."), "FF", "EUR"));
+  }
+}
+EOF
+
+: ${CSHARPCOMP="/bin/sh ../../csharpcomp.sh"}
+${CSHARPCOMP} -o program.exe -L ../../../gettext-runtime/intl-csharp -l GNU.Gettext program.cs || Exit 1
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o prog.tmp --omit-header --no-location program.cs || Exit 1
+LC_ALL=C tr -d '\r' < prog.tmp > prog.pot || Exit 1
+
+cat <<EOF > prog.ok
+msgid "'Your command, please?', asked the waiter."
+msgstr ""
+
+#, csharp-format
+msgid "a piece of cake"
+msgid_plural "{0} pieces of cake"
+msgstr[0] ""
+msgstr[1] ""
+
+#, csharp-format
+msgid "{0} is replaced by {1}."
+msgstr ""
+
+#, csharp-format
+msgctxt "++"
+msgid "a piece of cake"
+msgid_plural "{0} pieces of cake"
+msgstr[0] ""
+msgstr[1] ""
+
+#, csharp-format
+msgctxt "++"
+msgid "{0} is replaced by {1}."
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} prog.ok prog.pot || Exit 1
+
+cat <<\EOF > fr.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "'Your command, please?', asked the waiter."
+msgstr "«Votre commande, s'il vous plait», dit le garçon."
+
+# Les gateaux allemands sont les meilleurs du monde.
+#, csharp-format
+msgid "a piece of cake"
+msgid_plural "{0} pieces of cake"
+msgstr[0] "un morceau de gateau"
+msgstr[1] "{0} morceaux de gateau"
+
+# Reverse the arguments.
+#, csharp-format
+msgid "{0} is replaced by {1}."
+msgstr "{1} remplace {0}."
+
+# Euphemistic formulation.
+#, csharp-format
+msgctxt "++"
+msgid "a piece of cake"
+msgid_plural "{0} pieces of cake"
+msgstr[0] "un morceau de gateau succulent"
+msgstr[1] "{0} morceaux de gateau succulent"
+
+# Euphemistic formulation.
+#, csharp-format
+msgctxt "++"
+msgid "{0} is replaced by {1}."
+msgstr "Le nouveau {1} remplace le vieux {0}."
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o fr.po.tmp fr.po prog.pot || Exit 1
+LC_ALL=C tr -d '\r' < fr.po.tmp > fr.po.new || Exit 1
+
+: ${DIFF=diff}
+${DIFF} fr.po fr.po.new || Exit 1
+
+: ${MSGFMT=msgfmt}
+GETTEXTCSHARPLIBDIR=../../../gettext-runtime/intl-csharp \
+${MSGFMT} --csharp -d . -r prog -l fr fr.po || Exit 1
+
+# Test which of the fr_FR locales are installed.
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+if test $LOCALE_FR != none; then
+  LC_ALL=$LOCALE_FR ../testlocale
+  case $? in
+    0) ;;
+    77) LOCALE_FR=none;;
+    *) Exit 1;;
+  esac
+fi
+if test $LOCALE_FR_UTF8 != none; then
+  LC_ALL=$LOCALE_FR_UTF8 ../testlocale
+  case $? in
+    0) ;;
+    77) LOCALE_FR_UTF8=none;;
+    *) Exit 1;;
+  esac
+fi
+if test $LOCALE_FR = none && test $LOCALE_FR_UTF8 = none; then
+  if test -f /usr/bin/localedef; then
+    echo "Skipping test: no french locale is installed"
+  else
+    echo "Skipping test: no french locale is supported"
+  fi
+  Exit 77
+fi
+
+: ${DIFF=diff}
+cat <<\EOF > prog.ok
+«Votre commande, s'il vous plait», dit le garçon.
+2 morceaux de gateau
+EUR remplace FF.
+2 morceaux de gateau succulent
+Le nouveau EUR remplace le vieux FF.
+EOF
+cat <<\EOF > prog.oku
+Â«Votre commande, s'il vous plaitÂ», dit le garÃ§on.
+2 morceaux de gateau
+EUR remplace FF.
+2 morceaux de gateau succulent
+Le nouveau EUR remplace le vieux FF.
+EOF
+
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+: ${CSHARPEXEC="/bin/sh ../../csharpexec.sh"}
+if test $LOCALE_FR != none; then
+  # On Mac OS X, with mono 4.2.3, this test would fail, because the Console's
+  # output encoding is System.Text.Encoding.Default, and this is UTF-8 even
+  # in the fr_FR.ISO8859-1 locale. System.Text.Encoding.Default is defined
+  # through InternalCodePage(), which uses g_get_charset(), which uses either
+  # locale_charset() or nl_langinfo(CODESET) [which is "ISO8859-1" in this case]
+  # or "UTF-8" - depending on platform or build configuration. So, allow the
+  # expected result in UTF-8 encoding here too.
+  prepare_locale_ fr $LOCALE_FR
+  LANGUAGE= LC_ALL=$LOCALE_FR ${CSHARPEXEC} -L ../../../gettext-runtime/intl-csharp program.exe 2 > prog.out || Exit 1
+  ${DIFF} prog.oku prog.out >/dev/null || ${DIFF} prog.ok prog.out || Exit 1
+fi
+if test $LOCALE_FR_UTF8 != none; then
+  prepare_locale_ fr $LOCALE_FR_UTF8
+  LANGUAGE= LC_ALL=$LOCALE_FR_UTF8 ${CSHARPEXEC} -L ../../../gettext-runtime/intl-csharp program.exe 2 > prog.out || Exit 1
+  ${DIFF} prog.oku prog.out || Exit 1
+fi
+
+Exit 0

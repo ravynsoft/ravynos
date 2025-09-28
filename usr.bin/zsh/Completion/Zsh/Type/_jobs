@@ -1,0 +1,84 @@
+#autoload
+
+local expl disp jobs job jids pfx='%' desc how expls sep
+
+if [[ "$1" = -t ]]; then
+  zstyle -T ":completion:${curcontext}:jobs" prefix-needed &&
+      [[ "$PREFIX" != %* && compstate[nmatches] -ne 0 ]] && return 1
+  shift
+fi
+zstyle -t ":completion:${curcontext}:jobs" prefix-hidden && pfx=''
+zstyle -T ":completion:${curcontext}:jobs" verbose       && desc=yes
+
+if [[ "$1" = -r ]]; then
+  jids=( "${(@k)jobstates[(R)running*]}" )
+  shift
+  expls='running job'
+elif [[ "$1" = -s ]]; then
+  jids=( "${(@k)jobstates[(R)suspended*]}" )
+  shift
+  expls='suspended job'
+else
+  [[ "$1" = - ]] && shift
+  jids=( "${(@k)jobtexts}" )
+  expls=job
+fi
+
+if [[ -n "$desc" ]]; then
+  disp=()
+  zstyle -s ":completion:${curcontext}:jobs" list-separator sep || sep=--
+  for job in "$jids[@]"; do
+    [[ -n "$desc" ]] &&
+        disp=( "$disp[@]" "${pfx}${(r:2:: :)job} $sep ${(r:COLUMNS-8:: :)jobtexts[$job]}" )
+  done
+fi
+
+zstyle -s ":completion:${curcontext}:jobs" numbers how
+
+if [[ "$how" = (yes|true|on|1) ]]; then
+  jobs=( "$jids[@]" )
+else
+  local texts i text str tmp num max=0
+
+  # Find shortest unambiguous strings.
+
+  texts=( "$jobtexts[@]" )
+  jobs=()
+  for i in "$jids[@]"; do
+    text="$jobtexts[$i]"
+    str="${text%% *}"
+    if [[ "$text" = *\ * ]]; then
+      text="${text#* }"
+    else
+      text=""
+    fi
+    tmp=( "${(@M)texts:#${str}*}" )
+    num=1
+    while [[ -n "$text" && $#tmp -ge 2 ]]; do
+      str="${str} ${text%% *}"
+      if [[ "$text" = *\ * ]]; then
+        text="${text#* }"
+      else
+        text=""
+      fi
+      tmp=( "${(@M)texts:#${str}*}" )
+      (( num++ ))
+    done
+
+    [[ num -gt max ]] && max="$num"
+
+    jobs=( "$jobs[@]" "$str" )
+  done
+
+  if [[ "$how" = [0-9]## && max -gt how ]]; then
+    jobs=( "$jids[@]" )
+  else
+    [[ -z "$pfx" && -n "$desc" ]] && disp=( "${(@)disp#%}" )
+  fi
+fi
+
+if [[ -n "$desc" ]]; then
+  _wanted jobs expl "$expls" compadd "$@" -ld disp - "%$^jobs[@]"
+else
+  _wanted jobs expl "$expls" compadd "$@" - "%$^jobs[@]"
+fi

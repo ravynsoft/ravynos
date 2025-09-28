@@ -1,0 +1,11 @@
+#compdef fetchmail
+
+_arguments -S \
+  {--bsmtp,'(--logfile)-L','(-L)--logfile','(--fetchmailrc)-f','(-f)--fetchmailrc','(--idfile)-i','(-i)--idfile'}':file:_files' \
+  {--plugin,--plugout,'(--mda)-m','(-m)--mda'}':command:_command_names -e' \
+  {'(--username)-u','(-u)--username'}:user:_users \
+  '--auth:authentication type:(password kerberos kerberos_v5)' \
+  {'(--protocol)-p','(-p)--protocol'}:protocol:'(auto pop2 pop3 apop rpop kpop sdps imap imap-k4 imap-gss etrn)' \
+  {'(--port)-P','(-P)--port'}':port number' \
+  '*:mail server:_hosts' \
+  --

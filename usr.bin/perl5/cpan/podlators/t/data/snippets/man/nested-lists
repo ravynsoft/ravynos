@@ -1,0 +1,30 @@
+[name]
+Nested lists
+
+[input]
+=over
+
+=item First level
+
+Blah blah blah....
+
+=over
+
+=item *
+
+Should be a bullet.
+
+=back
+
+=back
+
+[output]
+.IP "First level" 4
+.IX Item "First level"
+Blah blah blah....
+.RS 4
+.IP \(bu 4
+Should be a bullet.
+.RE
+.RS 4
+.RE

@@ -1,0 +1,24 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C support: --trigraphs option.
+
+cat <<EOF > xg-c-4.in.c
+main()??<printf(gettext("Hello, " "World!" "??/n"));return 0 ? a??(0??'1??) : 1??!??-a[0]??#1;????>
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location --trigraphs -d xg-c-4.tmp xg-c-4.in.c || Exit 1
+LC_ALL=C tr -d '\r' < xg-c-4.tmp.po > xg-c-4.po || Exit 1
+
+cat <<EOF > xg-c-4.ok
+#, c-format
+msgid "Hello, World!\n"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-c-4.ok xg-c-4.po
+result=$?
+
+exit $result

@@ -1,0 +1,333 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+set +o posix
+declare -i iv jv
+
+iv=$(( 3 + 5 * 32 ))
+echo $iv
+iv=iv+3
+echo $iv
+iv=2
+jv=iv
+
+let "jv *= 2"
+echo $jv
+jv=$(( $jv << 2 ))
+echo $jv
+
+let jv="$jv / 2"
+echo $jv
+jv="jv >> 2"
+echo $jv
+
+iv=$((iv+ $jv))
+echo $iv
+echo $((iv -= jv))
+echo $iv
+echo $(( iv == jv ))
+echo $(( iv != $jv ))
+echo $(( iv < jv ))
+echo $(( $iv > $jv ))
+echo $(( iv <= $jv ))
+echo $(( $iv >= jv ))
+
+echo $jv
+echo $(( ~$jv ))
+echo $(( ~1 ))
+echo $(( ! 0 ))
+
+echo $(( jv % 2 ))
+echo $(( $iv % 4 ))
+
+echo $(( iv <<= 16 ))
+echo $(( iv %= 33 ))
+
+echo $(( 33 & 55 ))
+echo $(( 33 | 17 ))
+
+echo $(( iv && $jv ))
+echo $(( $iv || jv ))
+
+echo $(( iv && 0 ))
+echo $(( iv & 0 ))
+echo $(( iv && 1 ))
+echo $(( iv & 1 ))
+
+echo $(( $jv || 0 ))
+echo $(( jv | 0 ))
+echo $(( jv | 1 ))
+echo $(( $jv || 1 ))
+
+let 'iv *= jv'
+echo $iv
+echo $jv
+let "jv += $iv"
+echo $jv
+
+echo $(( jv /= iv ))
+echo $(( jv <<= 8 ))
+echo $(( jv >>= 4 ))
+
+echo $(( iv |= 4 ))
+echo $(( iv &= 4 ))
+
+echo $(( iv += (jv + 9)))
+echo $(( (iv + 4) % 7 ))
+
+# unary plus, minus
+echo $(( +4 - 8 ))
+echo $(( -4 + 8 ))
+
+# conditional expressions
+echo $(( 4<5 ? 1 : 32))
+echo $(( 4>5 ? 1 : 32))
+echo $(( 4>(2+3) ? 1 : 32))
+echo $(( 4<(2+3) ? 1 : 32))
+echo $(( (2+2)<(2+3) ? 1 : 32))
+echo $(( (2+2)>(2+3) ? 1 : 32))
+
+# bug in bash versions through bash-3.2
+S=105
+W=$((S>99?4:S>9?3:S>0?2:0))
+echo $W
+unset W S
+
+# check that the unevaluated part of the ternary operator does not do
+# evaluation or assignment
+x=i+=2
+y=j+=2
+declare -i i=1 j=1
+echo $((1 ? 20 : (x+=2)))
+echo $i,$x
+echo $((0 ? (y+=2) : 30))
+echo $j,$y
+
+x=i+=2
+y=j+=2
+declare -i i=1 j=1
+echo $((1 ? 20 : (x+=2)))
+echo $i,$x
+echo $((0 ? (y+=2) : 30))
+echo $i,$y
+
+# check precedence of assignment vs. conditional operator
+# should be an error
+declare -i x=2
+y=$((1 ? 20 : x+=2))
+
+# check precedence of assignment vs. conditional operator
+declare -i x=2
+echo $((0 ? x+=2 : 20))
+
+# associativity of assignment-operator operator
+declare -i i=1 j=2 k=3
+echo $((i += j += k))
+echo $i,$j,$k
+
+# octal, hex
+echo $(( 0x100 | 007 ))
+echo $(( 0xff ))
+echo $(( 16#ff ))
+echo $(( 16#FF/2 ))
+echo $(( 8#44 ))
+
+echo $(( 8 ^ 32 ))
+
+# other bases
+echo $(( 16#a ))
+echo $(( 32#a ))
+echo $(( 56#a ))
+echo $(( 64#a ))
+
+echo $(( 16#A ))
+echo $(( 32#A ))
+echo $(( 56#A ))
+echo $(( 64#A ))
+
+echo $(( 64#@ ))
+echo $(( 64#_ ))
+
+# weird bases
+echo $(( 3425#56 ))
+
+# missing number after base now generates an error
+echo $(( 2# ))
+
+# these should generate errors
+echo $(( 7 = 43 ))
+echo $(( 2#44 ))
+echo $(( 44 / 0 ))
+let 'jv += $iv'
+echo $(( jv += \$iv ))
+let 'rv = 7 + (43 * 6'
+
+# more errors
+declare -i i
+i=0#4
+i=2#110#11
+
+((echo abc; echo def;); echo ghi)
+
+if (((4+4) + (4 + 7))); then
+	echo ok
+fi
+
+(())	# make sure the null expression works OK
+
+a=(0 2 4 6)
+echo $(( a[1] + a[2] ))
+echo $(( (a[1] + a[2]) == a[3] ))
+(( (a[1] + a[2]) == a[3] )) ; echo $?
+
+# test pushing and popping the expression stack
+unset A
+A="4 + "
+echo $(( ( 4 + A ) + 4 ))
+A="3 + 5"
+echo $(( ( 4 + A ) + 4 ))
+
+# badly-formed conditional expressions
+echo $(( 4 ? : $A ))
+echo $(( 1 ? 20 ))
+echo $(( 4 ? 20 : ))
+
+# precedence and short-circuit evaluation
+B=9
+echo $B
+
+echo $(( 0 && B=42 ))
+echo $B
+
+echo $(( 1 || B=88 ))
+echo $B
+
+echo $(( 0 && (B=42) ))
+echo $B
+
+echo $(( (${$} - $$) && (B=42) ))
+echo $B
+
+echo $(( 1 || (B=88) ))
+echo $B
+
+# until command with (( )) command
+x=7
+
+echo $x
+until (( x == 4 ))
+do
+	echo $x
+	x=4
+done
+
+echo $x
+
+# exponentiation
+echo $(( 2**15 - 1))
+echo $(( 2**(16-1)))
+echo $(( 2**16*2 ))
+echo $(( 2**31-1))
+echo $(( 2**0 ))
+
+# {pre,post}-{inc,dec}rement and associated errors
+
+x=4
+
+echo $x
+echo $(( x++ ))
+echo $x
+echo $(( x-- ))
+echo $x
+
+echo $(( --x ))
+echo $x
+
+echo $(( ++x ))
+echo $x
+
+echo $(( ++7 ))
+echo $(( 7-- ))
+
+echo $(( --x=7 ))
+echo $(( ++x=7 ))
+
+echo $(( x++=7 ))
+echo $(( x--=7 ))
+
+echo $x
+
+echo $(( +7 ))
+echo $(( -7 ))
+
+echo $(( ++7 ))
+echo $(( --7 ))
+
+# combinations of expansions
+echo $(( "`echo 1+1`" ))
+echo $(( `echo 1+1` ))
+
+${THIS_SH} ./arith1.sub
+${THIS_SH} ./arith2.sub
+${THIS_SH} ./arith3.sub
+${THIS_SH} ./arith4.sub
+
+# make sure arithmetic expansion handles ints > 2**31 - 1 using intmax_t
+echo $(( 2147483645 + 4 ))
+
+# other tests using INTMAX_MIN and INTMAX_MAX that cause exceptions if not
+# handled correctly -- problem through bash-4.2
+${THIS_SH} ./arith5.sub
+
+# problems with suppressing evaluation present through bash-4.2
+${THIS_SH} ./arith6.sub
+
+# problems with parsing arithmetic expressions containing colons that are
+# part of word expansions such as substring extraction
+${THIS_SH} ./arith7.sub
+
+# problems with evaluation of conditional expressions
+${THIS_SH} ./arith8.sub
+
+x=4
+y=7
+
+(( x=8 , y=12 ))
+
+echo $x $y
+
+# should be an error
+(( x=9 y=41 ))
+
+# These are errors
+unset b
+echo $((a b))
+((a b))
+
+n=42
+printf "%d\n" $n
+printf "%i\n" $n
+echo $(( 8#$(printf "%o\n" $n) ))
+printf "%u\n" $n
+echo $(( 16#$(printf "%x\n" $n) ))
+echo $(( 16#$(printf "%X\n" $n) ))
+
+# allow reserved words after an arithmetic command just because
+if ((expr)) then ((expr)) fi
+
+# these are errors
+foo=1
+echo $(( 'foo' ))
+
+# causes longjmp botches through bash-2.05b
+a[b[c]d]=e

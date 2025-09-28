@@ -1,0 +1,406 @@
+NAME
+perlvar - Perl predefined variables
+DESCRIPTION
+Predefined Names
+The following names have special meaning to Perl. Most punctuation names have reasonable mnemonics, or analogs in the shells. Nevertheless, if you wish to use long variable names, you need only say
+    use English;
+at the top of your program. This will alias all the short names to the long names in the current package. Some even have medium names, generally borrowed from awk.
+If you don't mind the performance hit, variables that depend on the currently selected filehandle may instead be set by calling an appropriate object method on the IO::Handle object. (Summary lines below for this contain the word HANDLE.) First you must say
+    use IO::Handle;
+after which you may use either
+    method HANDLE EXPR
+or more safely,
+    HANDLE->method(EXPR)
+Each method returns the old value of the IO::Handle attribute. The methods each take an optional EXPR, which if supplied specifies the new value for the IO::Handle attribute in question. If not supplied, most methods do nothing to the current value--except for autoflush(), which will assume a 1 for you, just to be different. Because loading in the IO::Handle class is an expensive operation, you should learn how to use the regular built-in variables.
+A few of these variables are considered "read-only". This means that if you try to assign to this variable, either directly or indirectly through a reference, you'll raise a run-time exception.
+The following list is ordered by scalar variables first, then the arrays, then the hashes.
+$ARG
+$_
+The default input and pattern-searching space. The following pairs are equivalent:
+    while (<>) {...}    # equivalent only in while!
+    while (defined($_ = <>)) {...}
+    /^Subject:/
+    $_ =~ /^Subject:/
+    tr/a-z/A-Z/
+    $_ =~ tr/a-z/A-Z/
+    chomp
+    chomp($_)
+Here are the places where Perl will assume $_ even if you don't use it:
+ Various unary functions, including functions like ord() and int(), as well as the all file tests (-f, -d) except for -t, which defaults to STDIN.
+ Various list functions like print() and unlink().
+ The pattern matching operations m//, s///, and tr/// when used without an =~ operator.
+ The default iterator variable in a foreach loop if no other variable is supplied.
+ The implicit iterator variable in the grep() and map() functions.
+ The default place to put an input record when a <FH> operation's result is tested by itself as the sole criterion of a while test. Outside a while test, this will not happen.
+(Mnemonic: underline is understood in certain operations.)
+$<digits>
+Contains the subpattern from the corresponding set of capturing parentheses from the last pattern match, not counting patterns matched in nested blocks that have been exited already. (Mnemonic: like \digits.) These variables are all read-only and dynamically scoped to the current BLOCK.
+$MATCH
+$&
+The string matched by the last successful pattern match (not counting any matches hidden within a BLOCK or eval() enclosed by the current BLOCK). (Mnemonic: like & in some editors.) This variable is read-only and dynamically scoped to the current BLOCK.
+The use of this variable anywhere in a program imposes a considerable performance penalty on all regular expression matches. See BUGS.
+$PREMATCH
+$`
+The string preceding whatever was matched by the last successful pattern match (not counting any matches hidden within a BLOCK or eval enclosed by the current BLOCK). (Mnemonic: ` often precedes a quoted string.) This variable is read-only.
+The use of this variable anywhere in a program imposes a considerable performance penalty on all regular expression matches. See BUGS.
+$POSTMATCH
+$'
+The string following whatever was matched by the last successful pattern match (not counting any matches hidden within a BLOCK or eval() enclosed by the current BLOCK). (Mnemonic: ' often follows a quoted string.) Example:
+    $_ = 'abcdefghi';
+    /def/;
+    print "$`:$&:$'\n";         # prints abc:def:ghi
+This variable is read-only and dynamically scoped to the current BLOCK.
+The use of this variable anywhere in a program imposes a considerable performance penalty on all regular expression matches. See BUGS.
+$LAST_PAREN_MATCH
+$+
+The last bracket matched by the last search pattern. This is useful if you don't know which one of a set of alternative patterns matched. For example:
+    /Version: (.*)|Revision: (.*)/ && ($rev = $+);
+(Mnemonic: be positive and forward looking.) This variable is read-only and dynamically scoped to the current BLOCK.
+@LAST_MATCH_END
+@+
+This array holds the offsets of the ends of the last successful submatches in the currently active dynamic scope. $+[0] is the offset into the string of the end of the entire match. This is the same value as what the pos function returns when called on the variable that was matched against. The nth element of this array holds the offset of the nth submatch, so $+[1] is the offset past where $1 ends, $+[2] the offset past where $2 ends, and so on. You can use $#+ to determine how many subgroups were in the last successful match. See the examples given for the @- variable.
+$MULTILINE_MATCHING
+$*
+Set to a non-zero integer value to do multi-line matching within a string, 0 (or undefined) to tell Perl that it can assume that strings contain a single line, for the purpose of optimizing pattern matches. Pattern matches on strings containing multiple newlines can produce confusing results when $* is 0 or undefined. Default is undefined. (Mnemonic: * matches multiple things.) This variable influences the interpretation of only ^ and $. A literal newline can be searched for even when $* == 0.
+Use of $* is deprecated in modern Perl, supplanted by the /s and /m modifiers on pattern matching.
+Assigning a non-numerical value to $* triggers a warning (and makes $* act if $* == 0), while assigning a numerical value to $* makes that an implicit int is applied on the value.
+input_line_number HANDLE EXPR
+$INPUT_LINE_NUMBER
+$NR
+$.
+The current input record number for the last file handle from which you just read() (or called a seek or tell on). The value may be different from the actual physical line number in the file, depending on what notion of "line" is in effect--see $/ on how to change that. An explicit close on a filehandle resets the line number. Because <> never does an explicit close, line numbers increase across ARGV files (but see examples in "eof" in perlfunc). Consider this variable read-only: setting it does not reposition the seek pointer; you'll have to do that on your own. Localizing $. has the effect of also localizing Perl's notion of "the last read filehandle". (Mnemonic: many programs use "." to mean the current line number.)
+input_record_separator HANDLE EXPR
+$INPUT_RECORD_SEPARATOR
+$RS
+$/
+The input record separator, newline by default. This influences Perl's idea of what a "line" is. Works like awk's RS variable, including treating empty lines as a terminator if set to the null string. (An empty line cannot contain any spaces or tabs.) You may set it to a multi-character string to match a multi-character terminator, or to undef to read through the end of file. Setting it to "\n\n" means something slightly different than setting to "", if the file contains consecutive empty lines. Setting to "" will treat two or more consecutive empty lines as a single empty line. Setting to "\n\n" will blindly assume that the next input character belongs to the next paragraph, even if it's a newline. (Mnemonic: / delimits line boundaries when quoting poetry.)
+    undef $/;           # enable "slurp" mode
+    $_ = <FH>;          # whole file now here
+    s/\n[ \t]+/ /g;
+Remember: the value of $/ is a string, not a regex. awk has to be better for something. :-)
+Setting $/ to a reference to an integer, scalar containing an integer, or scalar that's convertible to an integer will attempt to read records instead of lines, with the maximum record size being the referenced integer. So this:
+    $/ = \32768; # or \"32768", or \$var_containing_32768
+    open(FILE, $myfile);
+    $_ = <FILE>;
+will read a record of no more than 32768 bytes from FILE. If you're not reading from a record-oriented file (or your OS doesn't have record-oriented files), then you'll likely get a full chunk of data with every read. If a record is larger than the record size you've set, you'll get the record back in pieces.
+On VMS, record reads are done with the equivalent of sysread, so it's best not to mix record and non-record reads on the same file. (This is unlikely to be a problem, because any file you'd want to read in record mode is probably unusable in line mode.) Non-VMS systems do normal I/O, so it's safe to mix record and non-record reads of a file.
+See also "Newlines" in perlport. Also see $..
+autoflush HANDLE EXPR
+$OUTPUT_AUTOFLUSH
+$|
+If set to nonzero, forces a flush right away and after every write or print on the currently selected output channel. Default is 0 (regardless of whether the channel is really buffered by the system or not; $| tells you only whether you've asked Perl explicitly to flush after each write). STDOUT will typically be line buffered if output is to the terminal and block buffered otherwise. Setting this variable is useful primarily when you are outputting to a pipe or socket, such as when you are running a Perl program under rsh and want to see the output as it's happening. This has no effect on input buffering. See "getc" in perlfunc for that. (Mnemonic: when you want your pipes to be piping hot.)
+output_field_separator HANDLE EXPR
+$OUTPUT_FIELD_SEPARATOR
+$OFS
+$,
+The output field separator for the print operator. Ordinarily the print operator simply prints out its arguments without further adornment. To get behavior more like awk, set this variable as you would set awk's OFS variable to specify what is printed between fields. (Mnemonic: what is printed when there is a "," in your print statement.)
+output_record_separator HANDLE EXPR
+$OUTPUT_RECORD_SEPARATOR
+$ORS
+$\
+The output record separator for the print operator. Ordinarily the print operator simply prints out its arguments as is, with no trailing newline or other end-of-record string added. To get behavior more like awk, set this variable as you would set awk's ORS variable to specify what is printed at the end of the print. (Mnemonic: you set $\ instead of adding "\n" at the end of the print. Also, it's just like $/, but it's what you get "back" from Perl.)
+$LIST_SEPARATOR
+$"
+This is like $, except that it applies to array and slice values interpolated into a double-quoted string (or similar interpreted string). Default is a space. (Mnemonic: obvious, I think.)
+$SUBSCRIPT_SEPARATOR
+$SUBSEP
+$;
+The subscript separator for multidimensional array emulation. If you refer to a hash element as
+    $foo{$a,$b,$c}
+it really means
+    $foo{join($;, $a, $b, $c)}
+But don't put
+    @foo{$a,$b,$c}      # a slice--note the @
+which means
+    ($foo{$a},$foo{$b},$foo{$c})
+Default is "\034", the same as SUBSEP in awk. If your keys contain binary data there might not be any safe value for $;. (Mnemonic: comma (the syntactic subscript separator) is a semi-semicolon. Yeah, I know, it's pretty lame, but $, is already taken for something more important.)
+Consider using "real" multidimensional arrays as described in perllol.
+$OFMT
+$#
+The output format for printed numbers. This variable is a half-hearted attempt to emulate awk's OFMT variable. There are times, however, when awk and Perl have differing notions of what counts as numeric. The initial value is "%.ng", where n is the value of the macro DBL_DIG from your system's float.h. This is different from awk's default OFMT setting of "%.6g", so you need to set $# explicitly to get awk's value. (Mnemonic: # is the number sign.)
+Use of $# is deprecated.
+format_page_number HANDLE EXPR
+$FORMAT_PAGE_NUMBER
+$%
+The current page number of the currently selected output channel. Used with formats. (Mnemonic: % is page number in nroff.)
+format_lines_per_page HANDLE EXPR
+$FORMAT_LINES_PER_PAGE
+$=
+The current page length (printable lines) of the currently selected output channel. Default is 60. Used with formats. (Mnemonic: = has horizontal lines.)
+format_lines_left HANDLE EXPR
+$FORMAT_LINES_LEFT
+$-
+The number of lines left on the page of the currently selected output channel. Used with formats. (Mnemonic: lines_on_page - lines_printed.)
+@LAST_MATCH_START
+@-
+$-[0] is the offset of the start of the last successful match. $-[n] is the offset of the start of the substring matched by n-th subpattern, or undef if the subpattern did not match.
+Thus after a match against $_, $& coincides with substr $_, $-[0], $+[0] - $-[0]. Similarly, $n coincides with substr $_, $-[n], $+[n] - $-[n] if $-[n] is defined, and $+ coincides with substr $_, $-[$#-], $+[$#-]. One can use $#- to find the last matched subgroup in the last successful match. Contrast with $#+, the number of subgroups in the regular expression. Compare with @+.
+This array holds the offsets of the beginnings of the last successful submatches in the currently active dynamic scope. $-[0] is the offset into the string of the beginning of the entire match. The nth element of this array holds the offset of the nth submatch, so $+[1] is the offset where $1 begins, $+[2] the offset where $2 begins, and so on. You can use $#- to determine how many subgroups were in the last successful match. Compare with the @+ variable.
+After a match against some variable $var:
+$` is the same as substr($var, 0, $-[0])
+$& is the same as substr($var, $-[0], $+[0] - $-[0])
+$' is the same as substr($var, $+[0])
+$1 is the same as substr($var, $-[1], $+[1] - $-[1]) 
+$2 is the same as substr($var, $-[2], $+[2] - $-[2])
+$3 is the same as substr $var, $-[3], $+[3] - $-[3])
+format_name HANDLE EXPR
+$FORMAT_NAME
+$~
+The name of the current report format for the currently selected output channel. Default is the name of the filehandle. (Mnemonic: brother to $^.)
+format_top_name HANDLE EXPR
+$FORMAT_TOP_NAME
+$^
+The name of the current top-of-page format for the currently selected output channel. Default is the name of the filehandle with _TOP appended. (Mnemonic: points to top of page.)
+format_line_break_characters HANDLE EXPR
+$FORMAT_LINE_BREAK_CHARACTERS
+$:
+The current set of characters after which a string may be broken to fill continuation fields (starting with ^) in a format. Default is " \n-", to break on whitespace or hyphens. (Mnemonic: a "colon" in poetry is a part of a line.)
+format_formfeed HANDLE EXPR
+$FORMAT_FORMFEED
+$^L
+What formats output as a form feed. Default is \f.
+$ACCUMULATOR
+$^A
+The current value of the write() accumulator for format() lines. A format contains formline() calls that put their result into $^A. After calling its format, write() prints out the contents of $^A and empties. So you never really see the contents of $^A unless you call formline() yourself and then look at it. See perlform and "formline()" in perlfunc.
+$CHILD_ERROR
+$?
+The status returned by the last pipe close, backtick (``) command, successful call to wait() or waitpid(), or from the system() operator. This is just the 16-bit status word returned by the wait() system call (or else is made up to look like it). Thus, the exit value of the subprocess is really ($? >> 8), and $? & 127 gives which signal, if any, the process died from, and $? & 128 reports whether there was a core dump. (Mnemonic: similar to sh and ksh.)
+Additionally, if the h_errno variable is supported in C, its value is returned via $? if any gethost*() function fails.
+If you have installed a signal handler for SIGCHLD, the value of $? will usually be wrong outside that handler.
+Inside an END subroutine $? contains the value that is going to be given to exit(). You can modify $? in an END subroutine to change the exit status of your program. For example:
+    END {
+        $? = 1 if $? == 255;  # die would make it 255
+    } 
+Under VMS, the pragma use vmsish 'status' makes $? reflect the actual VMS exit status, instead of the default emulation of POSIX status.
+Also see "Error Indicators".
+$OS_ERROR
+$ERRNO
+$!
+If used numerically, yields the current value of the C errno variable, with all the usual caveats. (This means that you shouldn't depend on the value of $! to be anything in particular unless you've gotten a specific error return indicating a system error.) If used an a string, yields the corresponding system error string. You can assign a number to $! to set errno if, for instance, you want "$!" to return the string for error n, or you want to set the exit value for the die() operator. (Mnemonic: What just went bang?)
+Also see "Error Indicators".
+$EXTENDED_OS_ERROR
+$^E
+Error information specific to the current operating system. At the moment, this differs from $! under only VMS, OS/2, and Win32 (and for MacPerl). On all other platforms, $^E is always just the same as $!.
+Under VMS, $^E provides the VMS status value from the last system error. This is more specific information about the last system error than that provided by $!. This is particularly important when $! is set to EVMSERR.
+Under OS/2, $^E is set to the error code of the last call to OS/2 API either via CRT, or directly from perl.
+Under Win32, $^E always returns the last error information reported by the Win32 call GetLastError() which describes the last error from within the Win32 API. Most Win32-specific code will report errors via $^E. ANSI C and Unix-like calls set errno and so most portable Perl code will report errors via $!. 
+Caveats mentioned in the description of $! generally apply to $^E, also. (Mnemonic: Extra error explanation.)
+Also see "Error Indicators".
+$EVAL_ERROR
+$@
+The Perl syntax error message from the last eval() operator. If null, the last eval() parsed and executed correctly (although the operations you invoked may have failed in the normal fashion). (Mnemonic: Where was the syntax error "at"?)
+Warning messages are not collected in this variable. You can, however, set up a routine to process warnings by setting $SIG{__WARN__} as described below.
+Also see "Error Indicators".
+$PROCESS_ID
+$PID
+$$
+The process number of the Perl running this script. You should consider this variable read-only, although it will be altered across fork() calls. (Mnemonic: same as shells.)
+$REAL_USER_ID
+$UID
+$<
+The real uid of this process. (Mnemonic: it's the uid you came from, if you're running setuid.)
+$EFFECTIVE_USER_ID
+$EUID
+$>
+The effective uid of this process. Example:
+    $< = $>;            # set real to effective uid
+    ($<,$>) = ($>,$<);  # swap real and effective uid
+(Mnemonic: it's the uid you went to, if you're running setuid.) $< and $> can be swapped only on machines supporting setreuid().
+$REAL_GROUP_ID
+$GID
+$(
+The real gid of this process. If you are on a machine that supports membership in multiple groups simultaneously, gives a space separated list of groups you are in. The first number is the one returned by getgid(), and the subsequent ones by getgroups(), one of which may be the same as the first number.
+However, a value assigned to $( must be a single number used to set the real gid. So the value given by $( should not be assigned back to $( without being forced numeric, such as by adding zero.
+(Mnemonic: parentheses are used to group things. The real gid is the group you left, if you're running setgid.)
+$EFFECTIVE_GROUP_ID
+$EGID
+$)
+The effective gid of this process. If you are on a machine that supports membership in multiple groups simultaneously, gives a space separated list of groups you are in. The first number is the one returned by getegid(), and the subsequent ones by getgroups(), one of which may be the same as the first number.
+Similarly, a value assigned to $) must also be a space-separated list of numbers. The first number sets the effective gid, and the rest (if any) are passed to setgroups(). To get the effect of an empty list for setgroups(), just repeat the new effective gid; that is, to force an effective gid of 5 and an effectively empty setgroups() list, say  $) = "5 5" .
+(Mnemonic: parentheses are used to group things. The effective gid is the group that's right for you, if you're running setgid.)
+$<, $>, $( and $) can be set only on machines that support the corresponding set[re][ug]id() routine. $( and $) can be swapped only on machines supporting setregid().
+$PROGRAM_NAME
+$0
+Contains the name of the program being executed. On some operating systems assigning to $0 modifies the argument area that the ps program sees. This is more useful as a way of indicating the current program state than it is for hiding the program you're running. (Mnemonic: same as sh and ksh.)
+Note for BSD users: setting $0 does not completely remove "perl" from the ps(1) output. For example, setting $0 to "foobar" will result in "perl: foobar (perl)". This is an operating system feature.
+$[
+The index of the first element in an array, and of the first character in a substring. Default is 0, but you could theoretically set it to 1 to make Perl behave more like awk (or Fortran) when subscripting and when evaluating the index() and substr() functions. (Mnemonic: [ begins subscripts.)
+As of release 5 of Perl, assignment to $[ is treated as a compiler directive, and cannot influence the behavior of any other file. Its use is highly discouraged.
+$]
+The version + patchlevel / 1000 of the Perl interpreter. This variable can be used to determine whether the Perl interpreter executing a script is in the right range of versions. (Mnemonic: Is this version of perl in the right bracket?) Example:
+    warn "No checksumming!\n" if $] < 3.019;
+See also the documentation of use VERSION and require VERSION for a convenient way to fail if the running Perl interpreter is too old.
+The use of this variable is deprecated. The floating point representation can sometimes lead to inaccurate numeric comparisons. See $^V for a more modern representation of the Perl version that allows accurate string comparisons.
+$COMPILING
+$^C
+The current value of the flag associated with the -c switch. Mainly of use with -MO=... to allow code to alter its behavior when being compiled, such as for example to AUTOLOAD at compile time rather than normal, deferred loading. See perlcc. Setting $^C = 1 is similar to calling B::minus_c.
+$DEBUGGING
+$^D
+The current value of the debugging flags. (Mnemonic: value of -D switch.)
+$SYSTEM_FD_MAX
+$^F
+The maximum system file descriptor, ordinarily 2. System file descriptors are passed to exec()ed processes, while higher file descriptors are not. Also, during an open(), system file descriptors are preserved even if the open() fails. (Ordinary file descriptors are closed before the open() is attempted.) The close-on-exec status of a file descriptor will be decided according to the value of $^F when the corresponding file, pipe, or socket was opened, not the time of the exec().
+$^H
+WARNING: This variable is strictly for internal use only. Its availability, behavior, and contents are subject to change without notice.
+This variable contains compile-time hints for the Perl interpreter. At the end of compilation of a BLOCK the value of this variable is restored to the value when the interpreter started to compile the BLOCK.
+When perl begins to parse any block construct that provides a lexical scope (e.g., eval body, required file, subroutine body, loop body, or conditional block), the existing value of $^H is saved, but its value is left unchanged. When the compilation of the block is completed, it regains the saved value. Between the points where its value is saved and restored, code that executes within BEGIN blocks is free to change the value of $^H.
+This behavior provides the semantic of lexical scoping, and is used in, for instance, the use strict pragma.
+The contents should be an integer; different bits of it are used for different pragmatic flags. Here's an example:
+    sub add_100 { $^H |= 0x100 }
+    sub foo {
+        BEGIN { add_100() }
+        bar->baz($boon);
+    }
+Consider what happens during execution of the BEGIN block. At this point the BEGIN block has already been compiled, but the body of foo() is still being compiled. The new value of $^H will therefore be visible only while the body of foo() is being compiled.
+Substitution of the above BEGIN block with:
+    BEGIN { require strict; strict->import('vars') }
+demonstrates how use strict 'vars' is implemented. Here's a conditional version of the same lexical pragma:
+    BEGIN { require strict; strict->import('vars') if $condition }
+%^H
+WARNING: This variable is strictly for internal use only. Its availability, behavior, and contents are subject to change without notice.
+The %^H hash provides the same scoping semantic as $^H. This makes it useful for implementation of lexically scoped pragmas.
+$INPLACE_EDIT
+$^I
+The current value of the inplace-edit extension. Use undef to disable inplace editing. (Mnemonic: value of -i switch.)
+$^M
+By default, running out of memory is an untrappable, fatal error. However, if suitably built, Perl can use the contents of $^M as an emergency memory pool after die()ing. Suppose that your Perl were compiled with -DPERL_EMERGENCY_SBRK and used Perl's malloc. Then
+    $^M = 'a' x (1 << 16);
+would allocate a 64K buffer for use in an emergency. See the INSTALL file in the Perl distribution for information on how to enable this option. To discourage casual use of this advanced feature, there is no English long name for this variable.
+$OSNAME
+$^O
+The name of the operating system under which this copy of Perl was built, as determined during the configuration process. The value is identical to $Config{'osname'}. See also Config and the -V command-line switch documented in perlrun.
+$PERLDB
+$^P
+The internal variable for debugging support. The meanings of the various bits are subject to change, but currently indicate:
+0x01
+Debug subroutine enter/exit.
+0x02
+Line-by-line debugging.
+0x04
+Switch off optimizations.
+0x08
+Preserve more data for future interactive inspections.
+0x10
+Keep info about source lines on which a subroutine is defined.
+0x20
+Start with single-step on.
+0x40
+Use subroutine address instead of name when reporting.
+0x80
+Report goto &subroutine as well.
+0x100
+Provide informative "file" names for evals based on the place they were compiled.
+0x200
+Provide informative names to anonymous subroutines based on the place they were compiled.
+Some bits may be relevant at compile-time only, some at run-time only. This is a new mechanism and the details may change.
+$LAST_REGEXP_CODE_RESULT
+$^R
+The result of evaluation of the last successful (?{ code }) regular expression assertion (see perlre). May be written to.
+$EXCEPTIONS_BEING_CAUGHT
+$^S
+Current state of the interpreter. Undefined if parsing of the current module/eval is not finished (may happen in $SIG{__DIE__} and $SIG{__WARN__} handlers). True if inside an eval(), otherwise false.
+$BASETIME
+$^T
+The time at which the program began running, in seconds since the epoch (beginning of 1970). The values returned by the -M, -A, and -C filetests are based on this value.
+$PERL_VERSION
+$^V
+The revision, version, and subversion of the Perl interpreter, represented as a string composed of characters with those ordinals. Thus in Perl v5.6.0 it equals chr(5) . chr(6) . chr(0) and will return true for $^V eq v5.6.0. Note that the characters in this string value can potentially be in Unicode range.
+This can be used to determine whether the Perl interpreter executing a script is in the right range of versions. (Mnemonic: use ^V for Version Control.) Example:
+    warn "No \"our\" declarations!\n" if $^V and $^V lt v5.6.0;
+See the documentation of use VERSION and require VERSION for a convenient way to fail if the running Perl interpreter is too old.
+See also $] for an older representation of the Perl version.
+$WARNING
+$^W
+The current value of the warning switch, initially true if -w was used, false otherwise, but directly modifiable. (Mnemonic: related to the -w switch.) See also warnings.
+${^WARNING_BITS}
+The current set of warning checks enabled by the use warnings pragma. See the documentation of warnings for more details.
+${^WIDE_SYSTEM_CALLS}
+Global flag that enables system calls made by Perl to use wide character APIs native to the system, if available. This is currently only implemented on the Windows platform.
+This can also be enabled from the command line using the -C switch.
+The initial value is typically 0 for compatibility with Perl versions earlier than 5.6, but may be automatically set to 1 by Perl if the system provides a user-settable default (e.g., $ENV{LC_CTYPE}).
+The bytes pragma always overrides the effect of this flag in the current lexical scope. See bytes.
+$EXECUTABLE_NAME
+$^X
+The name that the Perl binary itself was executed as, from C's argv[0]. This may not be a full pathname, nor even necessarily in your path.
+$ARGV
+contains the name of the current file when reading from <>.
+@ARGV
+The array @ARGV contains the command-line arguments intended for the script. $#ARGV is generally the number of arguments minus one, because $ARGV[0] is the first argument, not the program's command name itself. See $0 for the command name.
+@INC
+The array @INC contains the list of places that the do EXPR, require, or use constructs look for their library files. It initially consists of the arguments to any -I command-line switches, followed by the default Perl library, probably /usr/local/lib/perl, followed by ".", to represent the current directory. If you need to modify this at runtime, you should use the use lib pragma to get the machine-dependent library properly loaded also:
+    use lib '/mypath/libdir/';
+    use SomeMod;
+@_
+Within a subroutine the array @_ contains the parameters passed to that subroutine. See perlsub.
+%INC
+The hash %INC contains entries for each filename included via the do, require, or use operators. The key is the filename you specified (with module names converted to pathnames), and the value is the location of the file found. The require operator uses this hash to determine whether a particular file has already been included.
+%ENV
+$ENV{expr}
+The hash %ENV contains your current environment. Setting a value in ENV changes the environment for any child processes you subsequently fork() off.
+%SIG
+$SIG{expr}
+The hash %SIG contains signal handlers for signals. For example:
+    sub handler {       # 1st argument is signal name
+        my($sig) = @_;
+        print "Caught a SIG$sig--shutting down\n";
+        close(LOG);
+        exit(0);
+    }
+    $SIG{'INT'}  = \&handler;
+    $SIG{'QUIT'} = \&handler;
+    ...
+    $SIG{'INT'}  = 'DEFAULT';   # restore default action
+    $SIG{'QUIT'} = 'IGNORE';    # ignore SIGQUIT
+Using a value of 'IGNORE' usually has the effect of ignoring the signal, except for the CHLD signal. See perlipc for more about this special case.
+Here are some other examples:
+    $SIG{"PIPE"} = "Plumber";   # assumes main::Plumber (not recommended)
+    $SIG{"PIPE"} = \&Plumber;   # just fine; assume current Plumber
+    $SIG{"PIPE"} = *Plumber;    # somewhat esoteric
+    $SIG{"PIPE"} = Plumber();   # oops, what did Plumber() return??
+Be sure not to use a bareword as the name of a signal handler, lest you inadvertently call it. 
+If your system has the sigaction() function then signal handlers are installed using it. This means you get reliable signal handling. If your system has the SA_RESTART flag it is used when signals handlers are installed. This means that system calls for which restarting is supported continue rather than returning when a signal arrives. If you want your system calls to be interrupted by signal delivery then do something like this:
+    use POSIX ':signal_h';
+    my $alarm = 0;
+    sigaction SIGALRM, new POSIX::SigAction sub { $alarm = 1 }
+        or die "Error setting SIGALRM handler: $!\n";
+See POSIX.
+Certain internal hooks can be also set using the %SIG hash. The routine indicated by $SIG{__WARN__} is called when a warning message is about to be printed. The warning message is passed as the first argument. The presence of a __WARN__ hook causes the ordinary printing of warnings to STDERR to be suppressed. You can use this to save warnings in a variable, or turn warnings into fatal errors, like this:
+    local $SIG{__WARN__} = sub { die $_[0] };
+    eval $proggie;
+The routine indicated by $SIG{__DIE__} is called when a fatal exception is about to be thrown. The error message is passed as the first argument. When a __DIE__ hook routine returns, the exception processing continues as it would have in the absence of the hook, unless the hook routine itself exits via a goto, a loop exit, or a die(). The __DIE__ handler is explicitly disabled during the call, so that you can die from a __DIE__ handler. Similarly for __WARN__.
+Due to an implementation glitch, the $SIG{__DIE__} hook is called even inside an eval(). Do not use this to rewrite a pending exception in $@, or as a bizarre substitute for overriding CORE::GLOBAL::die(). This strange action at a distance may be fixed in a future release so that $SIG{__DIE__} is only called if your program is about to exit, as was the original intent. Any other use is deprecated.
+__DIE__/__WARN__ handlers are very special in one respect: they may be called to report (probable) errors found by the parser. In such a case the parser may be in inconsistent state, so any attempt to evaluate Perl code from such a handler will probably result in a segfault. This means that warnings or errors that result from parsing Perl should be used with extreme caution, like this:
+    require Carp if defined $^S;
+    Carp::confess("Something wrong") if defined &Carp::confess;
+    die "Something wrong, but could not load Carp to give backtrace...
+         To see backtrace try starting Perl with -MCarp switch";
+Here the first line will load Carp unless it is the parser who called the handler. The second line will print backtrace and die if Carp was available. The third line will be executed only if Carp was not available.
+See "die" in perlfunc, "warn" in perlfunc, "eval" in perlfunc, and warnings for additional information.
+Error Indicators
+The variables $@, $!, $^E, and $? contain information about different types of error conditions that may appear during execution of a Perl program. The variables are shown ordered by the "distance" between the subsystem which reported the error and the Perl process. They correspond to errors detected by the Perl interpreter, C library, operating system, or an external program, respectively.
+To illustrate the differences between these variables, consider the following Perl expression, which uses a single-quoted string:
+    eval q{
+        open PIPE, "/cdrom/install |";
+        @res = <PIPE>;
+        close PIPE or die "bad pipe: $?, $!";
+    };
+After execution of this statement all 4 variables may have been set. 
+$@ is set if the string to be eval-ed did not compile (this may happen if open or close were imported with bad prototypes), or if Perl code executed during evaluation die()d . In these cases the value of $@ is the compile error, or the argument to die (which will interpolate $! and $?!). (See also Fatal, though.)
+When the eval() expression above is executed, open(), <PIPE>, and close are translated to calls in the C run-time library and thence to the operating system kernel. $! is set to the C library's errno if one of these calls fails. 
+Under a few operating systems, $^E may contain a more verbose error indicator, such as in this case, "CDROM tray not closed." Systems that do not support extended error messages leave $^E the same as $!.
+Finally, $? may be set to non-0 value if the external program /cdrom/install fails. The upper eight bits reflect specific error conditions encountered by the program (the program's exit() value). The lower eight bits reflect mode of failure, like signal death and core dump information See wait(2) for details. In contrast to $! and $^E, which are set only if error condition is detected, the variable $? is set on each wait or pipe close, overwriting the old value. This is more like $@, which on every eval() is always set on failure and cleared on success.
+For more details, see the individual descriptions at $@, $!, $^E, and $?.
+Technical Note on the Syntax of Variable Names
+Variable names in Perl can have several formats. Usually, they must begin with a letter or underscore, in which case they can be arbitrarily long (up to an internal limit of 251 characters) and may contain letters, digits, underscores, or the special sequence :: or '. In this case, the part before the last :: or ' is taken to be a package qualifier; see perlmod.
+Perl variable names may also be a sequence of digits or a single punctuation or control character. These names are all reserved for special uses by Perl; for example, the all-digits names are used to hold data captured by backreferences after a regular expression match. Perl has a special syntax for the single-control-character names: It understands ^X (caret X) to mean the control-X character. For example, the notation $^W (dollar-sign caret W) is the scalar variable whose name is the single character control-W. This is better than typing a literal control-W into your program.
+Finally, new in Perl 5.6, Perl variable names may be alphanumeric strings that begin with control characters (or better yet, a caret). These variables must be written in the form ${^Foo}; the braces are not optional. ${^Foo} denotes the scalar variable whose name is a control-F followed by two o's. These variables are reserved for future special uses by Perl, except for the ones that begin with ^_ (control-underscore or caret-underscore). No control-character name that begins with ^_ will acquire a special meaning in any future version of Perl; such names may therefore be used safely in programs. $^_ itself, however, is reserved.
+Perl identifiers that begin with digits, control characters, or punctuation characters are exempt from the effects of the package declaration and are always forced to be in package main. A few other names are also exempt:
+        ENV             STDIN
+        INC             STDOUT
+        ARGV            STDERR
+        ARGVOUT
+        SIG
+In particular, the new special ${^_XYZ} variables are always taken to be in package main, regardless of any package declarations presently in scope.
+BUGS
+Due to an unfortunate accident of Perl's implementation, use English imposes a considerable performance penalty on all regular expression matches in a program, regardless of whether they occur in the scope of use English. For that reason, saying use English in libraries is strongly discouraged. See the Devel::SawAmpersand module documentation from CPAN (http://www.perl.com/CPAN/modules/by-module/Devel/) for more information.
+Having to even think about the $^S variable in your exception handlers is simply wrong. $SIG{__DIE__} as currently implemented invites grievous and difficult to track down errors. Avoid it and use an END{} or CORE::GLOBAL::die override instead.

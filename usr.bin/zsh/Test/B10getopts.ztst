@@ -1,0 +1,127 @@
+# Test the getopts builtin.
+
+%prep
+
+  test_getopts() {
+    local OPTARG OPTIND opt
+    local -a res
+    while getopts abc: opt 2>&1; do
+      [[ $opt == [?:] ]] || res+=( $opt )
+    done
+    (( $#res )) && print -r -- $res
+    return $(( $#res ? 0 : 1 ))
+  }
+
+%test
+
+  test_getopts
+1:no arguments
+
+  test_getopts foo
+1:one operand
+
+  test_getopts -a
+0:one option
+>a
+
+  test_getopts -a foo
+0:one option, one operand
+>a
+
+  test_getopts -a foo -b
+0:one option, two operands, leading hyphen
+>a
+
+  test_getopts -ab
+0:two options, single argument
+>a b
+
+  test_getopts -a -b
+0:two options, separate arguments
+>a b
+
+  test_getopts -a -b +a
+0:three options, + variant
+>a b +a
+
+  test_getopts -cx
+0:one option with value, single argument
+>c
+
+  test_getopts +cx
+0:one option with value, single argument, + variant
+>+c
+
+  test_getopts -c x
+0:one option with value, separate arguments
+>c
+
+  test_getopts -acx
+0:two options, one with value, single argument
+>a c
+
+  test_getopts -ac x
+0:two options, one with value, separate arguments
+>a c
+
+  test_getopts -c
+1:one option missing value
+>test_getopts:3: argument expected after -c option
+
+  test_getopts +c
+1:one option missing value, + variant
+>test_getopts:3: argument expected after +c option
+
+  test_getopts -x
+1:one illegal option
+>test_getopts:3: bad option: -x
+
+  test_getopts +x
+1:one illegal option, + variant
+>test_getopts:3: bad option: +x
+
+  set -- -x
+  OPTIND=1
+  while getopts x: opt; do
+    echo "$opt,${OPTARG:-Empty}"
+  done
+0:missing option-argument (error message mode)
+>?,Empty
+?(eval):3: argument expected after -x option
+
+  set -- -x
+  OPTIND=1
+  while getopts :x: opt; do
+    echo "$opt,${OPTARG:-Empty}"
+  done
+0:missing option-argument (quiet mode)
+>:,x
+
+  # This function is written so it can be easily referenced against other shells
+  t() {
+    local o i=0 n=$1
+    shift
+    while [ $i -lt $n ]; do
+      i=$(( i + 1 ))
+      getopts a: o "$@" 2> /dev/null
+    done
+    printf '<%d>' "$OPTIND"
+  }
+  # Try all these the native way, then the POSIX_BUILTINS way
+  for 1 in no_posix_builtins posix_builtins; do (
+    setopt $1
+    print -rn - "$1: "
+    t 1
+    t 1 foo
+    t 1 -- foo
+    t 1 -a
+    t 1 -b
+    t 2 -a -b
+    t 4 -a -b -c -d -a
+    t 5 -a -b -c -a -b -c
+    t 5 -a -b -c -d -ax -a
+    print
+  ); done
+0:OPTIND calculation with and without POSIX_BUILTINS (workers/42248)
+>no_posix_builtins: <1><1><2><1><1><3><5><7><6>
+>posix_builtins: <1><1><2><2><2><3><6><7><7>

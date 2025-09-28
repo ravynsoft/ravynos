@@ -1,0 +1,41 @@
+Change log for encoding-warnings
+
+  - Converted Makefile.PL from using Module::Install to ExtUtils::MakeMaker
+
+0.14 - 2022-05-16
+
+  - Convert tests from Test.pm to Test::More
+
+0.13 - 2016-06-20
+
+  - Disable module on perl 5.26 and newer. Using it will be a no-op, but will
+    issue warnings.
+  - Skip tests on EBCDIC systems
+
+0.11 - 2007-06-05
+
+  - This module's effect is now lexical for Perl 5.9.5 and later.
+  - "no encoding::warnings" is made more inefficient by doing away
+    with an empty encoding handler.
+    Contributed by: Rafaël Garcia-Suarez
+
+0.04 - 2004-03-16
+
+  - This be 0.04, from the YAPC::Taipei::2004 release party.
+  - Various POD grammar updates.
+  - Mentions that we will be making encoding.pm to be lexical during 5.9.
+
+0.03 - 2004-03-15
+
+  - Fixes various typo and punctuations.
+  - Unified terminology to use "byte-string" and "unicode-string".
+
+0.02 - 2004-03-14
+
+  - Added lots of documentations, as well as explained the subtlety of
+    "use encoding" better.  Prompted by Ton Hospel.
+  - Do not bother decoding a string twice if it is us-ascii.
+
+0.01 - 2004-03-14
+
+  - Initial release on CPAN.

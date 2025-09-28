@@ -1,0 +1,12 @@
+#compdef caffeinate
+
+_arguments -s -S : \
+  '-d[prevent display sleep]' \
+  '-i[prevent system idle sleep]' \
+  '-m[prevent disk idle sleep]' \
+  '-s[prevent system sleep (AC power only)]' \
+  '-u[declare that user is active]' \
+  '(:)-t[specify assertion timeout value]:timeout (seconds)' \
+  '(:)-w[wait for specified PID]: :_pids' \
+  '(-)1: : _command_names -e' \
+  '(-)*::command argument'

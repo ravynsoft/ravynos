@@ -1,0 +1,111 @@
+# dumpbin-symbols.at -- libtool "dumpbin -symbols" support    -*- Autotest -*-
+
+#   Copyright (C) 2010-2019, 2021-2022 Free Software Foundation, Inc.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_BANNER([Windows tests.])
+AT_SETUP([dumpbin -symbols section hiding])
+
+# I don't know of a stable way to create a pair of objects that
+# exhibits the potential problem, so this test fakes it by
+# testing with output from a case that do have the potential
+# problem.
+
+# First check if the global_symbol_pipe can handle the below
+# test case at all, and skip if $NM is not MS dumpbin.
+
+AT_DATA([variable.c],
+[[
+int some_variable = 0;
+]])
+
+AT_CHECK([$CC $CPPFLAGS $CFLAGS -c variable.c], [], [ignore], [ignore])
+AT_CHECK([$NM variable.$OBJEXT], [], [stdout], [ignore])
+AT_CHECK([$GREP 'External.*some_variable' stdout || exit 77], [], [ignore])
+
+eval `$LIBTOOL --config | $EGREP '^(global_symbol_pipe)='`
+
+AT_DATA([dumpbin-output],
+[[
+Dump of file foo.obj
+
+File Type: COFF OBJECT
+
+COFF SYMBOL TABLE
+000 00AB766F ABS    notype       Static       | @comp.id
+001 00000001 ABS    notype       Static       | @feat.00
+002 00000000 SECT1  notype       Static       | .drectve
+    Section length   8F, #relocs    0, #linenums    0, checksum        0
+004 00000000 SECT2  notype       Static       | .debug$S
+    Section length 44B4, #relocs   1C, #linenums    0, checksum        0
+006 00000000 SECT3  notype       Static       | .rdata
+    Section length    1, #relocs    0, #linenums    0, checksum        0, selection    2 (pick any)
+008 00000000 SECT3  notype       External     | ?value@?$integral_constant@_N$0A@@tr1@std@@2_NB (public: static bool const std::tr1::integral_constant<bool,0>::value)
+009 00000000 SECT4  notype       Static       | .rdata
+    Section length    1, #relocs    0, #linenums    0, checksum 77073096, selection    2 (pick any)
+*snip lots of uninteresting crap*
+12A 00000000 SECT5B notype       Static       | .text
+    Section length   4B, #relocs    2, #linenums    0, checksum 22AE8362, selection    2 (pick any)
+12C 00000000 SECT5C notype       Static       | .debug$S
+    Section length  150, #relocs    B, #linenums    0, checksum        0, selection    5 (pick associative Section 0x5B)
+12F 00000000 SECT5D notype       Static       | .debug$T
+    Section length   5C, #relocs    0, #linenums    0, checksum        0
+
+String Table Size = 0x15EF bytes
+
+
+Dump of file conv.lib
+
+File Type: LIBRARY
+
+COFF SYMBOL TABLE
+000 00AB766F ABS    notype       Static       | @comp.id
+001 00000001 ABS    notype       Static       | @feat.00
+002 00000000 SECT1  notype       Static       | .drectve
+    Section length   2F, #relocs    0, #linenums    0, checksum        0
+004 00000000 SECT2  notype       Static       | .debug$S
+    Section length  70C, #relocs    5, #linenums    0, checksum        0
+006 00000000 SECT3  notype       Static       | .text
+    Section length    A, #relocs    0, #linenums    0, checksum BAFC81C1
+008 00000000 SECT3  notype ()    External     | _convenience
+009 00000000 SECT4  notype       Static       | .debug$T
+    Section length   5C, #relocs    0, #linenums    0, checksum        0
+
+String Table Size = 0x11 bytes
+
+  Summary
+
+        5B3C .debug$S
+          B8 .debug$T
+          BE .drectve
+         129 .rdata
+           C .sxdata
+         613 .text
+          6C .text$x
+          B8 .xdata$x
+]])
+
+# Check if the _convenience symbol from section SECT3 in conv.lib is
+# present even if section SECT3 in foo.obj is hidden.
+AT_CHECK([< dumpbin-output eval "$global_symbol_pipe"], [], [stdout])
+AT_CHECK([$GREP convenience stdout], [], [ignore])
+
+AT_CLEANUP

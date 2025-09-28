@@ -1,0 +1,16 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test general operation with Java .properties syntax.
+
+: ${MSGUNIQ-msguniq}
+${MSGUNIQ} --properties-input --properties-output -w 1000 -o msguniq-4.out "$wabs_srcdir"/msguniq-a.inp || Exit 1
+
+: ${MSGCAT-msgcat}
+${MSGCAT} --properties-output -w 1000 -o msguniq-4.ok "$wabs_srcdir"/msguniq-a.out || Exit 1
+
+: ${DIFF=diff}
+${DIFF} msguniq-4.ok msguniq-4.out
+result=$?
+
+exit $result

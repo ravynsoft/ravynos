@@ -1,0 +1,223 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2023 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@node The original ABOUT-NLS
+@section Notes on the Free Translation Project
+
+@cindex @file{ABOUT-NLS} file
+This section contains the text that was, for a long time, distributed
+as a file named @code{ABOUT-NLS}.
+
+@strong{ NOTE: } This documentation section is outdated.  It it included
+here for historical purposes only.
+
+@set STATUS June 2023
+
+Free software is going international!  The Free Translation Project is
+a way to get maintainers of free software, translators, and users all
+together, so that free software will gradually become able to speak many
+languages.  A few packages already provide translations for their messages.
+
+If you found this @file{ABOUT-NLS} file inside a distribution, you
+may assume that the distributed package does use GNU @code{gettext}
+internally, itself available at your nearest GNU archive site.  But you
+do @emph{not} need to install GNU @code{gettext} prior to configuring,
+installing or using this package with messages translated.
+
+Installers will find here some useful hints.  These notes also explain
+how users should proceed for getting the programs to use the available
+translations.  They tell how people wanting to contribute and work
+on translations can contact the appropriate team.
+
+@menu
+* INSTALL Matters::
+* Using This Package::
+* Translating Teams::
+* Available Packages::
+* Using gettext in own code::
+@end menu
+
+
+@node INSTALL Matters
+@subsection INSTALL Matters
+
+Some packages are @dfn{localizable} when properly installed; the
+programs they contain can be made to speak your own native language.
+Most such packages use GNU @code{gettext}.  Other packages have their
+own ways to internationalization, predating GNU @code{gettext}.
+
+By default, this package will be installed to allow translation of
+messages.  It will automatically detect whether the system already
+provides the GNU @code{gettext} functions.  Installers may use special
+options at configuration time for changing the default behaviour.  The
+command:
+
+@example
+./configure --disable-nls
+@end example
+
+@noindent
+will @emph{totally} disable translation of messages.
+
+When you already have GNU @code{gettext} installed on your system and
+run configure without an option for your new package, @code{configure}
+will probably detect the previously built and installed @file{libintl}
+library and will decide to use it.  If not, you may have to to use the
+@samp{--with-libintl-prefix} option to tell @code{configure} where to
+look for it.
+
+Internationalized packages usually have many @file{po/@var{ll}.po}
+files, where @var{ll} gives an @w{ISO 639} two-letter code
+identifying the language.  Unless translations have been forbidden
+at @code{configure} time by using the @samp{--disable-nls} switch,
+all available translations are installed together with the package.
+However, the environment variable @code{LINGUAS} may be set, prior
+to configuration, to limit the installed set.  @code{LINGUAS} should
+then contain a space separated list of two-letter codes, stating
+which languages are allowed.
+
+@node Using This Package
+@subsection Using This Package
+
+@c Note: We don't document the locale aliases, because they are less and less
+@c used - locale.alias contains not a single UTF-8 locale and still lists
+@c ISO-8859-1 for countries which have long adopted the Euro and switched to
+@c ISO-8859-15.
+@c
+As a user, if your language has been installed for this package, you
+only have to set the @code{LANG} environment variable to the appropriate
+@samp{@var{ll}_@var{CC}} combination.  If you happen to have the @code{LC_ALL}
+or some other @code{LC_xxx} environment variables set, you should unset them
+before setting @code{LANG}, otherwise the setting of @code{LANG} will not
+have the desired effect.  Here @samp{@var{ll}} is an
+@w{ISO 639} two-letter language code, and @samp{@var{CC}} is an
+@w{ISO 3166} two-letter country code.  For example, let's suppose that you
+speak German and live in Germany.  At the shell prompt, merely execute
+@w{@samp{setenv LANG de_DE}} (in @code{csh}),
+@w{@samp{export LANG; LANG=de_DE}} (in @code{sh}) or
+@w{@samp{export LANG=de_DE}} (in @code{bash}).  This can be done from your
+@file{.login} or @file{.profile} file, once and for all.
+
+You might think that the country code specification is redundant.  But in
+fact, some languages have dialects in different countries.  For example,
+@samp{de_AT} is used for Austria, and @samp{pt_BR} for Brazil.  The country
+code serves to distinguish the dialects.
+
+The locale naming convention of @samp{@var{ll}_@var{CC}}, with
+@samp{@var{ll}} denoting the language and @samp{@var{CC}} denoting the
+country, is the one use on systems based on GNU libc.  On other systems,
+some variations of this scheme are used, such as @samp{@var{ll}} or
+@samp{@var{ll}_@var{CC}.@var{encoding}}.  You can get the list of
+locales supported by your system for your language by running the command
+@samp{locale -a | grep '^@var{ll}'}.
+
+Not all programs have translations for all languages.  By default, an
+English message is shown in place of a nonexistent translation.  If you
+understand other languages, you can set up a priority list of languages.
+This is done through a different environment variable, called
+@code{LANGUAGE}.  GNU @code{gettext} gives preference to @code{LANGUAGE}
+over @code{LANG} for the purpose of message handling, but you still
+need to have @code{LANG} set to the primary language; this is required
+by other parts of the system libraries.
+For example, some Swedish users who would rather read translations in
+German than English for when Swedish is not available, set @code{LANGUAGE}
+to @samp{sv:de} while leaving @code{LANG} to @samp{sv_SE}.
+
+Special advice for Norwegian users: The language code for Norwegian
+bokm@ringaccent{a}l changed from @samp{no} to @samp{nb} recently (in 2003).
+During the transition period, while some message catalogs for this language
+are installed under @samp{nb} and some older ones under @samp{no}, it's
+recommended for Norwegian users to set @code{LANGUAGE} to @samp{nb:no} so that
+both newer and older translations are used.
+
+In the @code{LANGUAGE} environment variable, but not in the @code{LANG}
+environment variable, @samp{@var{ll}_@var{CC}} combinations can be
+abbreviated as @samp{@var{ll}} to denote the language's main dialect.
+For example, @samp{de} is equivalent to @samp{de_DE} (German as spoken in
+Germany), and @samp{pt} to @samp{pt_PT} (Portuguese as spoken in Portugal)
+in this context.
+
+@c An operating system might already offer message localization for many of
+@c its programs, while other programs have been
+@c installed locally with the full capabilities of GNU @code{gettext}.
+@c Just using @code{gettext} extended syntax for @code{LANG} would break
+@c proper localization of already available operating system programs.
+@c FIXME: The user doesn't care about design justifications. --bruno
+
+@node Translating Teams
+@subsection Translating Teams
+
+For the Free Translation Project to be a success, we need interested
+people who like their own language and write it well, and who are also
+able to synergize with other translators speaking the same language.
+Each translation team has its own mailing list.  The up-to-date list
+of teams can be found at the Free Translation Project's homepage,
+@file{https://translationproject.org/}, in the "Teams" area.
+
+If you'd like to volunteer to @emph{work} at translating messages, you
+should become a member of the translating team for your own language.
+The subscribing address is @emph{not} the same as the list itself, it
+has @samp{-request} appended.  For example, speakers of Swedish can send
+a message to @w{@file{sv-request@@li.org}}, having this message body:
+
+@example
+subscribe
+@end example
+
+Keep in mind that team members are expected to participate
+@emph{actively} in translations, or at solving translational
+difficulties, rather than merely lurking around.  If your team does not
+exist yet and you want to start one, or if you are unsure about what to
+do or how to get started, please write to
+@w{@file{coordinator@@translationproject.org}} to reach the
+coordinator for all translator teams.
+
+The English team is special.  It works at improving and uniformizing
+the terminology in use.  Proven linguistic skills are praised
+more than programming skills, here.
+
+@node Available Packages
+@subsection Available Packages
+
+Languages are not equally supported in all packages.  The following
+matrix shows the current state of internationalization, as of
+@value{STATUS}.  The matrix shows, in regard of each package, for which
+languages PO files have been submitted to translation coordination,
+with a translation percentage of at least 50%.
+
+@include matrix.texi
+
+Some counters in the preceding matrix are higher than the number of visible
+blocks let us expect.  This is because a few extra PO files are used for
+implementing regional variants of languages, or language dialects.
+
+For a PO file in the matrix above to be effective, the package to which
+it applies should also have been internationalized and distributed as
+such by its maintainer.  There might be an observable lag between the
+mere existence a PO file and its wide availability in a distribution.
+
+If @value{STATUS} seems to be old, you may fetch a more recent copy
+of this @file{ABOUT-NLS} file on most GNU archive sites.  The most
+up-to-date matrix with full percentage details can be found at
+@file{https://translationproject.org/extra/matrix.html}.
+
+
+@node Using gettext in own code
+@subsection Using @code{gettext} in new packages
+
+If you are writing a freely available program and want to internationalize
+it you are welcome to use GNU @file{gettext} in your package.  Of course
+you have to respect the GNU Lesser General Public License which covers
+the use of the GNU @file{gettext} library.  This means in particular that
+even non-free programs can use @code{libintl} as a shared library, whereas
+only free software can use @code{libintl} as a static library or use
+modified versions of @code{libintl}.
+
+Once the sources are changed appropriately and the setup can handle the
+use of @code{gettext} the only thing missing are the translations.  The
+Free Translation Project is also available for packages which are not
+developed inside the GNU project.  Therefore the information given above
+applies also for every other Free Software Project.  Contact
+@w{@file{coordinator@@translationproject.org}} to make the @file{.pot} files
+available to the translation teams.

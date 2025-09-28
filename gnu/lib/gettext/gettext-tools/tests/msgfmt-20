@@ -1,0 +1,100 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test .mo file with many system dependent string pairs.
+# Cf. <inttypes.h> format string directives support as in msgfmt-12, format-c-3,
+# and the 'I' format directive flag as in format-c-5.
+
+# This test used to trigger an endless loop in loadmsgcat.c, because
+# hash_tab_size was too small and the "open addressing" collision resolution
+# leads to an endless loop when the hash table is full.
+
+cat <<\EOF > mf-20.po
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "The trees are green."
+msgstr "Les arbres sont verts."
+
+#, c-format
+msgid "A meter has %d millimeters."
+msgstr "Un mètre a %Id millimètres."
+
+#, c-format
+msgid "A pig has %d legs."
+msgstr "Un cochon a %Id pattes."
+
+#, c-format
+msgid "The French revolution took place in %d."
+msgstr "La révolution française eut lieu en %Id."
+
+#, c-format
+msgid "Abraham died at the age of %d."
+msgstr "Abraham mourut à l’âge de %Id ans."
+
+#, c-format
+msgid "Everyone has %d fingers at each hand."
+msgstr "Chacun a %Id doigts à chaque main."
+
+msgid "Sunshine heats."
+msgstr "Le soleil tape."
+
+#, c-format
+msgid "Most cars have %d wheels."
+msgstr "La plupart des voitures a %Id roues."
+
+#, c-format
+msgid "The oldest person is %d years old."
+msgstr "La personne la plus vieille a %Id ans."
+
+#, c-format
+msgid "Cesar tool %d years to conquer Gaul."
+msgstr "César mit %Id ans à conquérir la Gaule."
+
+#, c-format
+msgid "There are %d pyramids in Egypt."
+msgstr "Il y a %Id pyramides en Égypte."
+
+#, c-format
+msgid "The number %d causes bad luck."
+msgstr "Le nombre %Id porte malheur."
+EOF
+
+test -d fr || mkdir fr
+test -d fr/LC_MESSAGES || mkdir fr/LC_MESSAGES
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o fr/LC_MESSAGES/mf-20.mo mf-20.po || Exit 1
+
+cat <<EOF > mf-20.ok
+Le soleil tape.
+EOF
+
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+: ${GETTEXT=gettext}
+: ${DIFF=diff}
+if test $LOCALE_FR != none; then
+  prepare_locale_ fr $LOCALE_FR
+  LC_ALL=$LOCALE_FR LANGUAGE= TEXTDOMAINDIR=. TEXTDOMAIN=mf-20 \
+  ${GETTEXT} -s 'Sunshine heats.' > mf-20.tmp
+  LC_ALL=C tr -d '\r' < mf-20.tmp > mf-20.out
+  ${DIFF} mf-20.ok mf-20.out || Exit 1
+fi
+if test $LOCALE_FR_UTF8 != none; then
+  prepare_locale_ fr $LOCALE_FR_UTF8
+  LC_ALL=$LOCALE_FR_UTF8 LANGUAGE= TEXTDOMAINDIR=. TEXTDOMAIN=mf-20 \
+  ${GETTEXT} -s 'Sunshine heats.' > mf-20.tmp
+  LC_ALL=C tr -d '\r' < mf-20.tmp > mf-20.out
+  ${DIFF} mf-20.ok mf-20.out || Exit 1
+fi
+if test $LOCALE_FR = none && test $LOCALE_FR_UTF8 = none; then
+  if test -f /usr/bin/localedef; then
+    echo "Skipping test: no french locale is installed"
+  else
+    echo "Skipping test: no french locale is supported"
+  fi
+  Exit 77
+fi
+
+Exit 0

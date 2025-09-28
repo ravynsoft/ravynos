@@ -1,0 +1,37 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --omit-header option when there is no header.
+
+cat <<EOF > mcomm-test3.in1
+#: first.c:123
+msgid "1"
+msgstr "1x"
+EOF
+
+cat <<EOF > mcomm-test3.in2
+#: hunt.c:759
+msgid "2"
+msgstr "2x"
+EOF
+
+: ${MSGCOMM=msgcomm}
+${MSGCOMM} --more-than=0 --omit-header -o mcomm-test3.tmp \
+    mcomm-test3.in1 mcomm-test3.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcomm-test3.tmp > mcomm-test3.out || Exit 1
+
+cat << EOF > mcomm-test3.ok
+#: first.c:123
+msgid "1"
+msgstr "1x"
+
+#: hunt.c:759
+msgid "2"
+msgstr "2x"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcomm-test3.ok mcomm-test3.out
+result=$?
+
+exit $result

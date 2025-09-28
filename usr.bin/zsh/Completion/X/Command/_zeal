@@ -1,0 +1,43 @@
+#compdef zeal
+
+local curcontext="$curcontext" cfg docset setdir mbegin mend ret=1
+local -a state line expl suf docsets globbed match
+local -A opt_args dsets
+
+_arguments -S \
+  ':query:->queries' \
+  + '(opt)' \
+  {-h,--help}'[display help information]' \
+  {-v,--version}'[display version information]' \
+  {-f,--force}'[force the application to run]' && ret=0
+
+if [[ -n $state ]]; then
+  cfg=${XDG_CONFIG_HOME:-~/.config}/Zeal/Zeal.conf
+  if [[ -r $cfg ]]; then
+    docsets=${${(M)${(f)"$(<$cfg)"}:#path=*}#path=}
+  else
+    docsets=${XDG_DATA_HOME:-~/.local/share}/Zeal/Zeal/docsets
+  fi
+  for docset in $docsets/*.docset/Contents/Info.plist(N); do
+    setdir=${docset:h:h:r:t:l:gs/+/p}
+    [[ $(<$docset) = *DocSetPlatformFamily\<[^\<]#\<string\>(#b)([^\<]#)* ]] ||
+	match=( ${docset:h:h:r:t:l:gs/+/p} )
+    dsets+=( $match[1] ${docset:h} )
+  done
+  if compset -P 1 '*:'; then
+    globbed=( ${dsets[${IPREFIX%:}]}/Resources/docSet.dsidx(N[1]) )
+    if (( $+commands[sqlite3] )) && [[ -e $globbed ]]; then
+      _description queries expl 'query'
+      compadd "$expl[@]" - ${(f)"$(_call_program queries
+	  sqlite3 $globbed 'select name from searchIndex')"} && ret=0
+    else
+      _message -e queries 'query'
+    fi
+  else
+    compset -S ':*' || suf=( -qS : )
+    _description docsets expl 'docset'
+    compadd "$expl[@]" $suf -k dsets && ret=0
+  fi
+fi
+
+return ret

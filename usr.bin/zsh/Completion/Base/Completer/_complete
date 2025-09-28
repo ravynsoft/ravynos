@@ -1,0 +1,144 @@
+#autoload
+
+# Generate all possible completions. Note that this is not intended as
+# a normal completion function, but as one possible value for the
+# completer style.
+
+local comp name oldcontext ret=1 service
+typeset -T curcontext="$curcontext" ccarray
+
+oldcontext="$curcontext"
+
+# If we have a user-supplied context name, use only that.
+
+if [[ -n "$compcontext" ]]; then
+
+  if [[ "${(t)compcontext}" = *array* ]]; then
+    local expl
+
+    _wanted values expl value compadd -a - compcontext
+
+  elif [[ "${(t)compcontext}" = *assoc* ]]; then
+    local expl tmp i
+
+    tmp=()
+    for i in "${(@k)compcontext[(R)*[^[:blank:]]]}"; do
+      tmp=( "$tmp[@]" "${i}:${compcontext[$i]}" )
+    done
+    tmp=( "$tmp[@]" "${(k@)compcontext[(R)[[:blank:]]#]}" )
+
+    _describe -t values value tmp
+
+  elif [[ "$compcontext" = *:*:* ]]; then
+    local tag="${${compcontext%%:*}:-values}"
+    local descr="${${${compcontext#${tag}:}%%:*}:-value}"
+    local action="${compcontext#${tag}:${descr}:}" expl ws ret=1
+
+    case "$action" in
+    \ #)
+      _message -e "$tag" "$descr";;
+
+    \(\(*\)\))
+      eval ws\=\( "${action[3,-3]}" \)
+
+      _describe -t "$tag" "$descr" ws;;
+
+    \(*\))
+      eval ws\=\( "${action[2,-2]}" \)
+
+      _wanted "$tag" expl "$descr" compadd -a - ws;;
+
+    \{*\})
+      _tags "$tag"
+      while _tags; do
+        while _next_label "$tag" expl "$descr"; do
+          eval "$action[2,-2]" && ret=0
+	done
+	(( ret )) || break
+      done;;
+
+    \ *)
+      eval ws\=\( "$action" \)
+
+      _tags "$tag"
+      while _tags; do
+        while _next_label "$tag" expl "$descr"; do
+          "$ws[@]"
+	done
+	(( ret )) || break
+      done;;
+
+    *)
+      eval ws\=\( "$action" \)
+
+      _tags "$tag"
+      while _tags; do
+        while _next_label "$tag" expl "$descr"; do
+          "$ws[1]" "$expl[@]" "${(@)ws[2,-1]}"
+	done
+	(( ret )) || break
+      done;;
+
+    esac
+
+  else
+    ccarray[3]="$compcontext"
+
+    comp="$_comps[$compcontext]"
+    [[ -n "$comp" ]] && eval "$comp"
+  fi
+
+  return
+fi
+
+# An entry for `-first-' is the replacement for `compctl -T'
+
+comp="$_comps[-first-]"
+if [[ -n "$comp" ]]; then
+  service="${_services[-first-]:--first-}"
+  ccarray[3]=-first-
+  eval "$comp" && ret=0
+  if [[ "$_compskip" = all ]]; then
+    _compskip=
+    return ret
+  fi
+fi
+
+# If we are inside `vared' and we don't have a $compcontext, we treat
+# this like a parameter assignment. Which it is.
+
+[[ -n $compstate[vared] ]] && compstate[context]=vared
+
+# For arguments and command names we use the `_normal' function.
+
+ret=1
+if [[ "$compstate[context]" = command ]]; then
+  curcontext="$oldcontext"
+  _normal -s && ret=0
+else
+  # Let's see if we have a special completion definition for the other
+  # possible contexts.
+
+  local cname="-${compstate[context]:s/_/-/}-"
+
+  ccarray[3]="$cname"
+
+  comp="$_comps[$cname]"
+  service="${_services[$cname]:-$cname}"
+
+  # If not, we use default completion, if any.
+
+  if [[ -z "$comp" ]]; then
+    if [[ "$_compskip" = *default* ]]; then
+      _compskip=
+      return 1
+    fi
+    comp="$_comps[-default-]"
+    service="${_services[-default-]:--default-}"
+  fi
+  [[ -n "$comp" ]] && eval "$comp" && ret=0
+fi
+
+_compskip=
+
+return ret

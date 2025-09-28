@@ -1,0 +1,24 @@
+Description:
+
+Files:
+lib/xgetcwd.h
+lib/xgetcwd.c
+
+Depends-on:
+xalloc
+unistd
+
+configure.ac:
+
+Makefile.am:
+lib_SOURCES += xgetcwd.h xgetcwd.c
+
+Include:
+"xgetcwd.h"
+
+License:
+GPL
+
+Maintainer:
+Bruno Haible
+

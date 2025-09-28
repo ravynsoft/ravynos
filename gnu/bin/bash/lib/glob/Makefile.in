@@ -1,0 +1,169 @@
+## -*- text -*- ####################################################
+#								   #
+# Makefile for the GNU Glob Library.				   #
+#								   #
+####################################################################
+#
+# Copyright (C) 1996-2009 Free Software Foundation, Inc.     
+
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+topdir = @top_srcdir@
+BUILD_DIR = @BUILD_DIR@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+
+CC = @CC@
+RANLIB = @RANLIB@
+AR = @AR@
+ARFLAGS = @ARFLAGS@
+RM = rm -f
+CP = cp
+MV = mv
+
+SHELL = @MAKE_SHELL@
+
+PROFILE_FLAGS = @PROFILE_FLAGS@
+
+CFLAGS = @CFLAGS@
+LOCAL_CFLAGS = @LOCAL_CFLAGS@
+STYLE_CFLAGS = @STYLE_CFLAGS@
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@ @LOCAL_LDFLAGS@
+
+DEFS = @DEFS@
+LOCAL_DEFS = @LOCAL_DEFS@
+
+BASHINCDIR = ${topdir}/include
+
+INCLUDES = -I. -I../.. -I$(topdir) -I$(BASHINCDIR) -I$(topdir)/lib
+
+CCFLAGS = $(PROFILE_FLAGS) $(DEFS) $(LOCAL_DEFS) ${INCLUDES} $(CPPFLAGS) \
+	  $(STYLE_CFLAGS) $(LOCAL_CFLAGS) $(CFLAGS) ${ADDON_CFLAGS}
+
+# Here is a rule for making .o files from .c files that doesn't force
+# the type of the machine (like -sun3) into the flags.
+.c.o:
+	$(RM) $@
+	$(CC) -c $(CCFLAGS) $<
+
+# The name of the library target.
+LIBRARY_NAME = libglob.a
+
+# The C code source files for this library.
+CSOURCES = $(srcdir)/glob.c $(srcdir)/strmatch.c $(srcdir)/smatch.c \
+	   $(srcdir)/xmbsrtowcs.c
+
+# The header files for this library.
+HSOURCES = $(srcdir)/strmatch.h
+
+OBJECTS = glob.o strmatch.o smatch.o xmbsrtowcs.o gmisc.o
+
+# The texinfo files which document this library.
+DOCSOURCE = doc/glob.texi
+DOCOBJECT = doc/glob.dvi
+DOCSUPPORT = doc/Makefile
+DOCUMENTATION = $(DOCSOURCE) $(DOCOBJECT) $(DOCSUPPORT)
+
+SUPPORT = Makefile ChangeLog $(DOCSUPPORT)
+
+SOURCES  = $(CSOURCES) $(HSOURCES) $(DOCSOURCE)
+
+THINGS_TO_TAR = $(SOURCES) $(SUPPORT)
+
+######################################################################
+
+all: $(LIBRARY_NAME)
+
+$(LIBRARY_NAME): $(OBJECTS)
+	$(RM) -f $@
+	$(AR) $(ARFLAGS) $@ $(OBJECTS)
+	-test -n "$(RANLIB)" && $(RANLIB) $@
+
+what-tar:
+	@for file in $(THINGS_TO_TAR); do \
+	  echo $(selfdir)$$file; \
+	done
+
+documentation: force
+	-(cd doc; $(MAKE) $(MFLAGS))
+force:
+
+# The rule for 'includes' is written funny so that the if statement
+# always returns TRUE unless there really was an error installing the
+# include files.
+install:
+
+clean:
+	rm -f $(OBJECTS) $(LIBRARY_NAME)
+	-(cd doc && $(MAKE) $(MFLAGS) $@ )
+
+realclean distclean maintainer-clean: clean
+	-( cd doc && $(MAKE) $(MFLAGS) $@ )
+	$(RM) -f Makefile
+
+mostlyclean: clean
+	-( cd doc && $(MAKE) $(MFLAGS) $@ )
+
+${BUILD_DIR}/pathnames.h: ${BUILD_DIR}/config.h ${BUILD_DIR}/Makefile Makefile
+	-( cd ${BUILD_DIR} && ${MAKE} ${MFLAGS} pathnames.h )
+
+######################################################################
+#								     #
+#  Dependencies for the object files which make up this library.     #
+#								     #
+######################################################################
+
+smatch.o: strmatch.h
+smatch.o: $(BUILD_DIR)/config.h
+smatch.o: $(BASHINCDIR)/chartypes.h
+smatch.o: $(BASHINCDIR)/ansi_stdlib.h $(topdir)/bashansi.h
+smatch.o: $(BASHINCDIR)/shmbutil.h
+smatch.o: $(topdir)/xmalloc.h
+
+strmatch.o: strmatch.h
+strmatch.o: $(BUILD_DIR)/config.h
+strmatch.o: $(BASHINCDIR)/stdc.h
+
+glob.o: $(BUILD_DIR)/config.h
+glob.o: $(topdir)/shell.h $(BUILD_DIR)/pathnames.h
+glob.o: $(topdir)/bashtypes.h $(BASHINCDIR)/ansi_stdlib.h $(topdir)/bashansi.h
+glob.o: $(BASHINCDIR)/posixstat.h $(BASHINCDIR)/memalloc.h
+glob.o: strmatch.h glob.h
+glob.o: $(BASHINCDIR)/shmbutil.h
+glob.o: $(topdir)/xmalloc.h
+
+gmisc.o: $(BUILD_DIR)/config.h
+gmisc.o: $(topdir)/bashtypes.h $(BASHINCDIR)/ansi_stdlib.h $(topdir)/bashansi.h
+gmisc.o: $(BASHINCDIR)/shmbutil.h
+
+xmbsrtowcs.o: ${BUILD_DIR}/config.h
+xmbsrtowcs.o: ${topdir}/bashansi.h ${BASHINCDIR}/ansi_stdlib.h
+xmbsrtowcs.o: ${BASHINCDIR}/shmbutil.h
+
+# Rules for deficient makes, like SunOS and Solaris
+glob.o: glob.c
+gmisc.o: gmisc.c
+strmatch.o: strmatch.c
+smatch.o: smatch.c
+xmbsrtowcs.o: xmbsrtowcs.c
+
+# dependencies for C files that include other C files
+glob.o: glob_loop.c
+gmisc.o: gm_loop.c
+smatch.o: sm_loop.c

@@ -1,0 +1,89 @@
+# Copyright (C) 2012-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+load_lib gas-defs.exp
+
+if ![info exists AS] then {
+    set AS [findfile $base_dir/../as-new "../as-new" [transform as]]
+}
+
+if ![info exists ASFLAGS] then {
+    set ASFLAGS ""
+}
+
+if ![info exists LD] then {
+    set LD [findfile $base_dir/../../ld/ld-new $base_dir/../../ld/ld-new [transform ld]]
+}
+if ![info exists LDFLAGS] then {
+    set LDFLAGS ""
+}
+set ld_elf_shared_opt "-z norelro"
+
+if ![info exists OBJDUMP] then {
+    set OBJDUMP [findfile $base_dir/../../binutils/objdump \
+			  $base_dir/../../binutils/objdump \
+			  [transform objdump]]
+}
+
+if ![info exists OBJDUMPFLAGS] then {
+    set OBJDUMPFLAGS {}
+}
+
+if ![info exists NM] then {
+    set NM [findfile $base_dir/../../binutils/nm-new \
+		     $base_dir/../../binutils/nm-new \
+		     [transform nm]]
+}
+
+if ![info exists NMFLAGS] then {
+    set NMFLAGS {}
+}
+
+if ![info exists SIZE] then {
+    set SIZE [findfile $base_dir/../../binutils/size]
+}
+
+if ![info exists SIZEFLAGS] then {
+    set SIZEFLAGS ""
+}
+
+if ![info exists OBJCOPY] then {
+    set OBJCOPY [findfile $base_dir/../../binutils/objcopy]
+}
+
+if ![info exists OBJCOPYFLAGS] then {
+    set OBJCOPYFLAGS {}
+}
+
+if ![info exists READELF] then {
+    set READELF [findfile $base_dir/../../binutils/readelf]
+}
+
+if ![info exists READELFFLAGS] then {
+    set READELFFLAGS {}
+}
+
+if ![info exists ADDR2LINE] then {
+    set ADDR2LINE [findfile $base_dir/../../binutils/addr2line]
+}
+
+if ![info exists ADDR2LINEFLAGS] then {
+    set ADDR2LINEFLAGS {}
+}
+
+if ![file isdirectory tmpdir] {catch "exec mkdir tmpdir" status}
+
+gas_init

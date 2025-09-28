@@ -1,0 +1,55 @@
+./dstack.tests: line 19: pushd: /tmp/xxx-notthere: No such file or directory
+./dstack.tests: line 22: pushd: no other directory
+./dstack.tests: line 23: popd: directory stack empty
+./dstack.tests: line 26: pushd: -m: invalid number
+pushd: usage: pushd [-n] [+N | -N | dir]
+./dstack.tests: line 27: popd: -m: invalid number
+popd: usage: popd [-n] [+N | -N]
+./dstack.tests: line 28: dirs: -m: invalid number
+dirs: usage: dirs [-clpv] [+N] [-N]
+./dstack.tests: line 29: dirs: 7: invalid option
+dirs: usage: dirs [-clpv] [+N] [-N]
+/
+ok
+/usr /
+/usr /
+/usr /
+/usr /
+/usr /
+/
+/usr /
+/etc /usr /
+/etc /usr /
+/etc /usr /
+ 0  /etc
+ 1  /usr
+ 2  /
+/usr /etc /
+/etc /usr /
+/tmp /etc /usr /
+/tmp
+/tmp
+/usr
+/usr
+./dstack.tests: line 71: dirs: 9: directory stack index out of range
+./dstack.tests: line 71: dirs: 9: directory stack index out of range
+./dstack.tests: line 72: pushd: +9: directory stack index out of range
+./dstack.tests: line 72: pushd: -9: directory stack index out of range
+./dstack.tests: line 73: popd: +9: directory stack index out of range
+./dstack.tests: line 73: popd: -9: directory stack index out of range
+/tmp /etc /
+/tmp /etc /
+/tmp /etc /
+/tmp /usr /etc /
+/tmp
+/tmp /usr /etc /
+/tmp /usr /etc /
+/tmp
+/tmp /bin /etc /
+/tmp
+/tmp /bin /
+/tmp
+/bin / /tmp
+/bin / /tmp
+/bin
+/bin

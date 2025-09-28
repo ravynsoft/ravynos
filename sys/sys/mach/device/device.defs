@@ -1,0 +1,198 @@
+/*
+ * Copyright 1991-1998 by Open Software Foundation, Inc. 
+ *              All Rights Reserved 
+ *  
+ * Permission to use, copy, modify, and distribute this software and 
+ * its documentation for any purpose and without fee is hereby granted, 
+ * provided that the above copyright notice appears in all copies and 
+ * that both the copyright notice and this permission notice appear in 
+ * supporting documentation. 
+ *  
+ * OSF DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE 
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+ * FOR A PARTICULAR PURPOSE. 
+ *  
+ * IN NO EVENT SHALL OSF BE LIABLE FOR ANY SPECIAL, INDIRECT, OR 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM 
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN ACTION OF CONTRACT, 
+ * NEGLIGENCE, OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION 
+ * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+ */
+/*
+ * MkLinux
+ */
+/* CMU_HIST */
+/*
+ * Revision 2.7.3.1  92/03/03  16:13:45  jeffreyh
+ * 	Pick up changes from TRUNK
+ * 	[92/02/26  11:00:51  jeffreyh]
+ * 
+ * Revision 2.8  92/01/03  20:03:29  dbg
+ * 	Add 'CountInOut' tag to routines returning variable-length
+ * 	inline arrays.  Remove 'IsLong' tag from routines passing or
+ * 	returning variable-length arrays.  Old routines left under
+ * 	'xxx_' names.  REMOVE THESE SOON!
+ * 	[91/11/26            dbg]
+ * 
+ * Revision 2.7  91/05/14  15:41:53  mrt
+ * 	Correcting copyright
+ * 
+ * Revision 2.6  91/02/05  17:08:50  mrt
+ * 	Changed to new Mach copyright
+ * 	[91/01/31  17:27:50  mrt]
+ * 
+ * Revision 2.5  90/06/02  14:47:25  rpd
+ * 	Changes for new IPC.
+ * 	[90/05/03  00:13:46  rpd]
+ * 
+ * 29-Jun-88  Michael Young (mwyoung) at Carnegie-Mellon University
+ *	Moved data type declarations to "mach_types.defs".
+ *
+ * 10-Feb-88  Douglas Orr (dorr) at Carnegie-Mellon University
+ *	Created.
+ *
+ */
+/* CMU_ENDHIST */
+/* 
+ * Mach Operating System
+ * Copyright (c) 1991,1990,1989 Carnegie Mellon University
+ * All Rights Reserved.
+ * 
+ * Permission to use, copy, modify and distribute this software and its
+ * documentation is hereby granted, provided that both the copyright
+ * notice and this permission notice appear in all copies of the
+ * software, derivative works or modified versions, and any portions
+ * thereof, and that both notices appear in supporting documentation.
+ * 
+ * CARNEGIE MELLON ALLOWS FREE USE OF THIS SOFTWARE IN ITS "AS IS"
+ * CONDITION.  CARNEGIE MELLON DISCLAIMS ANY LIABILITY OF ANY KIND FOR
+ * ANY DAMAGES WHATSOEVER RESULTING FROM THE USE OF THIS SOFTWARE.
+ * 
+ * Carnegie Mellon requests users of this software to return to
+ * 
+ *  Software Distribution Coordinator  or  Software.Distribution@CS.CMU.EDU
+ *  School of Computer Science
+ *  Carnegie Mellon University
+ *  Pittsburgh PA 15213-3890
+ * 
+ * any improvements or extensions that they make and grant Carnegie Mellon
+ * the rights to redistribute these changes.
+ */
+/*
+ * File:	device/device.defs
+ * Author:	Douglas Orr
+ *		Feb 10, 1988
+ * Abstract:
+ *	Mach device support.  Mach devices are accessed through
+ *	block and character device interfaces to the kernel.
+ */
+
+subsystem
+#if	KERNEL_SERVER
+	  KernelServer
+#endif	/* KERNEL_SERVER */
+		       device 2800;
+
+#include <mach/std_types.defs>
+#include <mach/mach_types.defs>
+#include <device/device_types.defs>
+
+serverprefix	ds_;
+
+type reply_port_t = MACH_MSG_TYPE_MAKE_SEND_ONCE | polymorphic
+	ctype: mach_port_t;
+
+skip;	/* nmk15: device_open */
+
+routine device_close(
+		device		: device_t
+	);
+
+routine device_write(
+		device		: device_t;
+	sreplyport reply_port	: reply_port_t;
+	in	mode		: dev_mode_t;
+	in	recnum		: recnum_t;
+	in	data		: io_buf_ptr_t, const;
+	out	bytes_written	: io_buf_len_t
+	);
+
+routine device_write_inband(
+		device		: device_t;
+	sreplyport reply_port	: reply_port_t;
+	in	mode		: dev_mode_t;
+	in	recnum		: recnum_t;
+	in	data		: io_buf_ptr_inband_t, const;
+	out	bytes_written	: io_buf_len_t
+	);
+
+routine	device_read(
+		device		: device_t;
+	sreplyport reply_port	: reply_port_t;
+	in	mode		: dev_mode_t;
+	in	recnum		: recnum_t;
+	in	bytes_wanted	: io_buf_len_t;
+	out	data		: io_buf_ptr_t
+	);
+
+routine	device_read_inband(
+		device		: device_t;
+	sreplyport reply_port	: reply_port_t;
+	in	mode		: dev_mode_t;
+	in	recnum		: recnum_t;
+	in	bytes_wanted	: io_buf_len_t;
+	out	data		: io_buf_ptr_inband_t
+	);
+
+skip;	/* obsolete: xxx_device_set_status */
+skip;   /* obsolete: xxx_device_get_status */
+skip;	/* obsolete: xxx_device_set_filter */
+
+routine device_map(
+		device		: device_t;
+	in	prot		: vm_prot_t;
+	in	offset		: vm_offset_t;
+	in	size		: vm_size_t;
+	out	pager		: memory_object_t;
+	in	unmap		: boolean_t
+	);
+
+routine	device_set_status(
+		device		: device_t;
+	in	flavor		: dev_flavor_t;
+	in	status		: dev_status_t
+	);
+
+routine	device_get_status(
+		device		: device_t;
+	in	flavor		: dev_flavor_t;
+	out	status		: dev_status_t, CountInOut
+	);
+
+routine device_set_filter(
+		device		: device_t;
+	in	receive_port	: mach_port_send_t;
+	in	priority	: int;
+	in	filter		: filter_array_t
+	);
+
+skip;	/* device_read_reply_overwrite */
+
+routine device_open(
+		master_port	: mach_port_t;
+	sreplyport reply_port	: reply_port_t;
+	in	ledger		: ledger_port_t;
+	in	mode		: dev_mode_t;
+	in	sec_token	: security_token_t;
+	in	name		: dev_name_t;
+	out	device		: device_t
+	);
+
+routine io_done_queue_create(
+		host		: host_t;
+	out	queue		: io_done_queue_t
+	);
+
+routine io_done_queue_terminate(
+		queue		: io_done_queue_t
+	);

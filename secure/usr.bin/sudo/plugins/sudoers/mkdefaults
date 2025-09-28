@@ -1,0 +1,163 @@
+#!/bin/sh
+#
+# Generate sudo_defs_table and associated defines
+#
+# Input should be formatted thusly:
+#
+# var_name
+#	TYPE
+#	description (or NULL)
+#	array of struct def_values if TYPE == T_TUPLE [optional]
+#	*callback [optional]
+
+# Deal with optional -o (output) argument
+if [ "$1" = "-o" ]; then
+    if [ $# -lt 2 ]; then
+	echo "usage: $0 [-o output] [input_file ...]" 1>&2
+	exit 1
+    fi
+    OUTFILE="$2"
+    shift 2
+else
+    OUTFILE=def_data
+fi
+if [ $# -eq 0 ]; then
+    set -- def_data.in
+fi
+
+${AWK-awk} -v outfile=$OUTFILE '
+BEGIN {
+    tuple_values[0] = "never"
+    tuple_keys["never"] = 0
+    ntuples = 1
+    header = outfile ".h"
+    cfile = outfile ".c"
+
+    type_map["T_INT"] = "ival"
+    type_map["T_UINT"] = "uival"
+    type_map["T_STR"] = "str"
+    type_map["T_FLAG"] = "flag"
+    type_map["T_MODE"] = "mode"
+    type_map["T_LIST"] = "list"
+    type_map["T_LOGFAC"] = "ival"
+    type_map["T_LOGPRI"] = "ival"
+    type_map["T_TUPLE"] = "tuple"
+    type_map["T_TIMESPEC"] = "tspec"
+    type_map["T_TIMEOUT"] = "ival"
+    type_map["T_RLIMIT"] = "str"
+    type_map["T_PLUGIN"] = "list"
+}
+{
+    sub(/#.*/, "", $0)
+    if (/^[ \t]*$/) next
+    if (/^[a-zA-Z]/) {
+	# Store previous record and begin new one
+	if (var)
+	    records[count++] = sprintf("%s\n%s\n%s\n%s\n%s\n", var, type, desc, values, callback)
+	var = $1
+	type = ""
+	desc = ""
+	values = ""
+	callback = ""
+	state = 0
+    } else {
+	state++
+	# Strip leading/trailing whitespace
+	gsub(/^[ \t]+|[ \t]+$/, "")
+	if (state == 1) {
+	    # type
+	    type = $1
+	} else if (state == 2) {
+	    # description
+	    if ($0 == "NULL") {
+		desc = "NULL"
+	    } else {
+		# Strip leading and trailing double quote and escape the rest
+		gsub(/^"|"$/, "")
+		gsub(/"/, "\\\"")
+		desc = sprintf("N_(\"%s\")", $0)
+	    }
+	} else if (state == 3 || state == 4) {
+	    if (/^\*/) {
+		callback = substr($0, 2)
+	    } else {
+		if (type ~ /^T_TUPLE/) {
+		    values = $0
+		    # Add to tuple_values as necessary
+		    n = split(values, vals)
+		    for (i = 1; i <= n; i++) {
+			if (!(vals[i] in tuple_keys)) {
+			    tuple_keys[vals[i]] = ntuples
+			    tuple_values[ntuples++] = vals[i]
+			}
+		    }
+		}
+	    }
+	} else {
+	    die("syntax error in input near line " NR)
+	}
+    }
+}
+END {
+    if (var)
+	records[count++] = sprintf("%s\n%s\n%s\n%s\n%s\n", var, type, desc, values, callback)
+
+    print "/* generated file, do not edit */\n" > header
+    print "/* generated file, do not edit */\n" > cfile
+
+    # Print out value arrays
+    for (i = 0; i < count; i++) {
+	split(records[i], fields, "\n")
+	if (fields[4]) {
+	    if (fields[2] !~ /^T_TUPLE/)
+		die("Values list specified for non-tuple " records[1])
+	    printf "static struct def_values def_data_%s[] = {\n", fields[1] > cfile
+	    n = split(fields[4], t)
+	    for (j = 1; j <= n; j++) {
+		printf "    { \"%s\", %s },\n", t[j], t[j] > cfile
+	    }
+	    print "    { NULL, 0 }," > cfile
+	    print "};\n" > cfile
+	}
+    }
+
+    # Print each record
+    print "struct sudo_defs_types sudo_defs_table[] = {\n    {" > cfile
+    for (i = 0; i < count; i++) {
+	print_record(records[i], i)
+    }
+    print "\tNULL, 0, NULL\n    }\n};" > cfile
+
+    # Print out def_tuple
+    print "\nenum def_tuple {" > header
+    for (i = 0; i < ntuples; i++)
+	printf "%s    %s", i ? ",\n" : "", tuple_values[i] > header
+    print "\n};" > header
+}
+
+function die(msg) {
+    print msg > "/dev/stderr"
+    exit 1
+}
+
+function print_record(rec, recnum) {
+    split(rec, fields, "\n")
+    type = fields[2]
+    sub(/\|.*/, "", type)
+    if (!(type in type_map))
+    	die("unknown defaults type " fields[2])
+
+    # each variable gets a macro to access its value
+    defname = "I_" toupper(fields[1])
+    printf "#define %-23s %d\n", defname, recnum > header
+    printf "#define def_%-19s (sudo_defs_table[%s].sd_un.%s)\n",
+	fields[1], defname, type_map[type] > header
+
+    printf "\t\"%s\", %s,\n\t%s,\n", fields[1], fields[2], fields[3] > cfile
+    printf "\t%s,\n", fields[4] ? "def_data_" fields[1] : "NULL" > cfile
+    if (fields[5]) {
+	printf "\t%s,\n", fields[5] > cfile
+    }
+    print "    }, {" > cfile
+}
+' "$@"

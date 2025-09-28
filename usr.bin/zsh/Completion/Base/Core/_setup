@@ -1,0 +1,79 @@
+#autoload
+
+local val nm="$compstate[nmatches]"
+
+[[ $# -eq 1 ]] && 2="$1"
+
+if zstyle -a ":completion:${curcontext}:$1" list-colors val; then
+  zmodload -i zsh/complist
+  if [[ "$1" = default ]]; then
+    _comp_colors=( "$val[@]" )
+  else
+    _comp_colors+=( "(${2})${(@)^val:#(|\(*\)*)}" "${(M@)val:#\(*\)*}" )
+  fi
+
+# Here is the problem mentioned in _main_complete.
+
+# elif [[ "$1" = default && -n "$ZLS_COLORS$ZLS_COLOURS" ]]; then
+#   zmodload -i zsh/complist
+#   ZLS_COLORS="$ZLS_COLORS$ZLS_COLOURS"
+
+elif [[ "$1" = default ]]; then
+  unset ZLS_COLORS ZLS_COLOURS
+fi
+
+# What we'd like is to test that the show-ambiguity style pattern is more
+# specific than the list-colors style pattern, but that's not possible yet
+if zstyle -s ":completion:${curcontext}:$1" show-ambiguity val; then
+  zmodload -i zsh/complist
+  [[ $val = (yes|true|on) ]] && _ambiguous_color=4 || _ambiguous_color=$val
+fi
+
+if zstyle -t ":completion:${curcontext}:$1" list-packed; then
+  compstate[list]="${compstate[list]} packed"
+elif [[ $? -eq 1 ]]; then
+  compstate[list]="${compstate[list]:gs/packed//}"
+else
+  compstate[list]="$_saved_list"
+fi
+
+if zstyle -t ":completion:${curcontext}:$1" list-rows-first; then
+  compstate[list]="${compstate[list]} rows"
+elif [[ $? -eq 1 ]]; then
+  compstate[list]="${compstate[list]:gs/rows//}"
+else
+  compstate[list]="$_saved_list"
+fi
+
+if zstyle -t ":completion:${curcontext}:$1" last-prompt; then
+  compstate[last_prompt]=yes
+elif [[ $? -eq 1 ]]; then
+  compstate[last_prompt]=''
+else
+  compstate[last_prompt]="$_saved_lastprompt"
+fi
+
+if zstyle -t ":completion:${curcontext}:$1" accept-exact; then
+  compstate[exact]=accept
+elif [[ $? -eq 1 ]]; then
+  compstate[exact]=''
+else
+  compstate[exact]="$_saved_exact"
+fi
+
+[[ _last_nmatches -ge 0 && _last_nmatches -ne nm ]] &&
+    _menu_style=( "$_last_menu_style[@]" "$_menu_style[@]" )
+
+if zstyle -a ":completion:${curcontext}:$1" menu val; then
+  _last_nmatches=$nm
+  _last_menu_style=( "$val[@]" )
+else
+  _last_nmatches=-1
+fi
+
+[[ "$_comp_force_list" != always ]] &&
+  zstyle -s ":completion:${curcontext}:$1" force-list val &&
+    [[ "$val" = always ||
+       ( "$val" = [0-9]## &&
+         ( -z "$_comp_force_list" || _comp_force_list -gt val ) ) ]] &&
+    _comp_force_list="$val"

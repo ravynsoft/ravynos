@@ -1,0 +1,79 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test handling of obsolete/untranslated messages.
+
+cat <<EOF > mm-test3.in1
+#
+# def.po
+#
+#: file:100
+msgid ""
+"not existing"
+msgstr "but with translation"
+
+#: file2:101
+msgid "not existing without translation"
+msgstr ""
+
+#: file3:102
+msgid "still existing"
+msgstr "translation"
+
+#: should-not-be-here:10
+#~ msgid "former obsolete"
+#~ msgstr ""
+#~ "but again useful"
+
+#~ msgid "this stays obsolete"
+#~ msgstr "even after running msgmerge"
+
+#
+# trailing comments should be removed
+EOF
+
+cat <<EOF > mm-test3.in2
+#
+# ref.po
+#
+#: file3:102
+msgid "still existing"
+msgstr "here is normally no comment"
+
+#: file4:10
+msgid ""
+"former obsolete"
+msgstr ""
+
+#
+# trailing comments should be removed, even here
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-test3.tmp mm-test3.in1 mm-test3.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mm-test3.tmp > mm-test3.out || Exit 1
+
+cat << EOF > mm-test3.ok
+#: file3:102
+msgid "still existing"
+msgstr "translation"
+
+#: file4:10
+msgid "former obsolete"
+msgstr "but again useful"
+
+#
+# def.po
+#
+#~ msgid "not existing"
+#~ msgstr "but with translation"
+
+#~ msgid "this stays obsolete"
+#~ msgstr "even after running msgmerge"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-test3.ok mm-test3.out
+result=$?
+
+exit $result

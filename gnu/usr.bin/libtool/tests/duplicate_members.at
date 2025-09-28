@@ -1,0 +1,78 @@
+# duplicate_members.at -- duplicate members in archive tests  -*- Autotest -*-
+
+#   Copyright (C) 2005, 2007-2009, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Alexandre Oliva & Peter O'Gorman, 2005
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([duplicate members in archive tests])
+AT_KEYWORDS([libtool])
+
+# we don't want to use whole_archive_flag_spec, even if available
+$SED -e 's|^whole_archive_flag_spec=.*|whole_archive_flag_spec=|g' < $LIBTOOL > libtool
+
+chmod +x ./libtool
+LIBTOOL=./libtool
+
+AT_DATA(bar.c,
+[[extern int foo1 (), foo2 (), foo3 (), foo4 (), foo5 (), foo6 ();
+int bar() {
+    int result = foo1 () + foo2 () + foo3 () + foo4 () + foo5 () + foo6 ();
+    return result;
+}
+]])
+
+AT_DATA(main.c,
+[[int bar();
+int main()
+{
+if (bar() == 21) return 0;
+return 1;
+}
+]])
+
+
+for a in 1 2 3 4 5 6
+do
+  mkdir $a
+  echo "int foo$a() {return $a;}" > $a/a.c
+done
+
+
+for a in 1 2 3 4 5 6
+do
+  $LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c -o $a/a.lo $a/a.c
+done
+$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o libc0.la 6/a.lo
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o libconv.la ]dnl
+	 [1/a.lo 2/a.lo 3/a.lo 4/a.lo 5/a.lo libc0.la], [], [ignore], [ignore])
+
+$LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c -o bar.lo bar.c
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o libbar.la ]dnl
+	 [ bar.lo libconv.la -rpath /notexist], [], [ignore], [ignore])
+
+$LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c -o main.lo main.c
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o main$EXEEXT ]dnl
+	 [main.lo ./libbar.la], [], [ignore], [ignore])
+
+LT_AT_EXEC_CHECK([./main],[0],[ignore],[ignore])
+
+AT_CLEANUP

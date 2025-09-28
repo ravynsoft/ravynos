@@ -1,0 +1,72 @@
+# Basic expect script for libctf lookup tests
+#   Copyright (C) 1993-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+# Written by Jeffrey Wheat (cassidy@cygnus.com)
+#
+
+# Don't run anything if Tcl is too old to have try / catch.
+if { ! $have_tcl_try } {
+    log_and_exit
+}
+
+if ![info exists ld] then {
+    set ld [findfile $base_dir/../ld/ld-new $base_dir/../ld/ld-new [transform ld]]
+}
+
+if ![info exists as] then {
+    set as [findfile $base_dir/../gas/as-new $base_dir/../gas/as-new [transform as]]
+}
+
+remote_exec host "mkdir -p tmpdir"
+
+# Make symlinks from tmpdir/libctf to the linker and assembler in the
+# build tree, so that we can use a -B option to gcc to force it to use
+# the newly built linker and assembler.
+if {![file isdirectory tmpdir/libctf]} then {
+    catch "exec mkdir tmpdir/libctf" status
+    catch "exec ln -s ../../../ld/ld-new tmpdir/libctf/ld" status
+    catch "exec ln -s ld tmpdir/libctf/collect-ld" status
+    catch "exec ln -s ../../../gas/as-new tmpdir/libctf/as" status
+}
+set gcc_B_opt "-B[pwd]/tmpdir/libctf/"
+set ld_L_opt ""
+
+if {![info exists CC]} {
+    set CC gcc
+}
+if {![info exists CFLAGS]} {
+    set CFLAGS "-g -O2"
+}
+if {![info exists CC_FOR_TARGET]} {
+    set CC_FOR_TARGET [find_gcc]
+}
+if {![info exists CFLAGS_FOR_TARGET]} {
+    set CFLAGS_FOR_TARGET $CFLAGS
+}
+if ![info exists AR] then {
+    set AR [findfile $base_dir/../binutils/ar]
+}
+
+if {![info exists OBJDUMP]} {
+    set OBJDUMP [findfile $base_dir/../binutils/objdump]
+}
+
+# load the utility procedures
+load_lib ctf-lib.exp

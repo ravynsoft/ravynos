@@ -1,0 +1,220 @@
+# vim: syntax=pod
+
+If you read this file _as_is_, just ignore the funny characters you
+see. It is written in the POD format (see pod/perlpod.pod) which is
+specially designed to be readable as is.
+
+=head1 NAME
+
+perlandroid - Perl under Android
+
+=head1 SYNOPSIS
+
+The first portions of this document contains instructions
+to cross-compile Perl for Android 2.0 and later, using the
+binaries provided by Google.  The latter portions describe how to build
+perl native using one of the toolchains available on the Play Store.
+
+=head1 DESCRIPTION
+
+This document describes how to set up your host environment when
+attempting to build Perl for Android.
+
+=head1 Cross-compilation
+
+These instructions assume an Unixish build environment on your host system;
+they've been tested on Linux and OS X, and may work on Cygwin and MSYS.
+While Google also provides an NDK for Windows, these steps won't work
+native there, although it may be possible to cross-compile through different
+means.
+
+If your host system's architecture is 32 bits, remember to change the
+C<x86_64>'s below to C<x86>'s.  On a similar vein, the examples below
+use the 4.8 toolchain; if you want to use something older or newer (for
+example, the 4.4.3 toolchain included in the 8th revision of the NDK), just
+change those to the relevant version.
+
+=head2 Get the Android Native Development Kit (NDK)
+
+You can download the NDK from L<https://developer.android.com/tools/sdk/ndk/index.html>.
+You'll want the normal, non-legacy version.
+
+=head2 Determine the architecture you'll be cross-compiling for
+
+There's three possible options: arm-linux-androideabi for ARM,
+mipsel-linux-android for MIPS, and simply x86 for x86.
+As of 2014, most Android devices run on ARM, so that is generally a safe bet.
+
+With those two in hand, you should add
+
+  $ANDROID_NDK/toolchains/$TARGETARCH-4.8/prebuilt/`uname | tr '[A-Z]' '[a-z]'`-x86_64/bin
+
+to your C<PATH>, where C<$ANDROID_NDK> is the location where you unpacked the
+NDK, and C<$TARGETARCH> is your target's architecture.
+
+=head2 Set up a standalone toolchain
+
+This creates a working sysroot that we can feed to Configure later.
+
+    $ export ANDROID_TOOLCHAIN=/tmp/my-toolchain-$TARGETARCH
+    $ export SYSROOT=$ANDROID_TOOLCHAIN/sysroot
+    $ $ANDROID_NDK/build/tools/make-standalone-toolchain.sh \
+            --platform=android-9 \
+            --install-dir=$ANDROID_TOOLCHAIN \
+            --system=`uname | tr '[A-Z]' '[a-z]'`-x86_64 \
+            --toolchain=$TARGETARCH-4.8
+
+=head2 adb or ssh?
+
+adb is the Android Debug Bridge.  For our purposes, it's basically a way
+of establishing an ssh connection to an Android device without having to
+install anything on the device itself, as long as the device is either on
+the same local network as the host, or it is connected to the host through
+USB.
+
+Perl can be cross-compiled using either adb or a normal ssh connection;
+in general, if you can connect your device to the host using a USB port,
+or if you don't feel like installing an sshd app on your device,
+you may want to use adb, although you may be forced to switch to ssh if
+your device is not rooted and you're unlucky -- more on that later.
+Alternatively, if you're cross-compiling to an emulator, you'll have to
+use adb.
+
+=head3 adb
+
+To use adb, download the Android SDK from L<https://developer.android.com/sdk/index.html>.
+The "SDK Tools Only" version should suffice -- if you downloaded the ADT
+Bundle, you can find the sdk under F<$ADT_BUNDLE/sdk/>.
+
+Add F<$ANDROID_SDK/platform-tools> to your C<PATH>, which should give you access
+to adb.  You'll now have to find your device's name using C<adb devices>,
+and later pass that to Configure through C<-Dtargethost=$DEVICE>.
+
+However, before calling Configure, you need to check if using adb is a
+viable choice in the first place.  Because Android doesn't have a F</tmp>,
+nor does it allow executables in the sdcard, we need to find somewhere in
+the device for Configure to put some files in, as well as for the tests
+to run in. If your device is rooted, then you're good.  Try running these:
+
+    $ export TARGETDIR=/mnt/asec/perl
+    $ adb -s $DEVICE shell "echo sh -c '\"mkdir $TARGETDIR\"' | su --"
+
+Which will create the directory we need, and you can move on to the next
+step.  F</mnt/asec> is mounted as a tmpfs in Android, but it's only
+accessible to root.
+
+If your device is not rooted, you may still be in luck. Try running this:
+
+    $ export TARGETDIR=/data/local/tmp/perl
+    $ adb -s $DEVICE shell "mkdir $TARGETDIR"
+
+If the command works, you can move to the next step, but beware:
+B<You'll have to remove the directory from the device once you are done!
+Unlike F</mnt/asec>, F</data/local/tmp> may not get automatically garbage
+collected once you shut off the phone>.
+
+If neither of those work, then you can't use adb to cross-compile to your
+device.  Either try rooting it, or go for the ssh route.
+
+=head3 ssh
+
+To use ssh, you'll need to install and run a sshd app and set it up
+properly.  There are several paid and free apps that do this rather
+easily, so you should be able to spot one on the store.
+Remember that Perl requires a passwordless connection, so set up a 
+public key.
+
+Note that several apps spew crap to stderr every time you
+connect, which can throw off Configure.  You may need to monkeypatch
+the part of Configure that creates C<run-ssh> to have it discard stderr.
+
+Since you're using ssh, you'll have to pass some extra arguments to
+Configure:
+
+  -Dtargetrun=ssh -Dtargethost=$TARGETHOST -Dtargetuser=$TARGETUSER -Dtargetport=$TARGETPORT
+
+=head2 Configure and beyond
+
+With all of the previous done, you're now ready to call Configure.
+
+If using adb, a "basic" Configure line will look like this:
+
+  $ ./Configure -des -Dusedevel -Dusecrosscompile -Dtargetrun=adb \
+      -Dcc=$TARGETARCH-gcc   \
+      -Dsysroot=$SYSROOT     \
+      -Dtargetdir=$TARGETDIR \
+      -Dtargethost=$DEVICE
+
+If using ssh, it's not too different -- we just change targetrun to ssh,
+and pass in targetuser and targetport.  It ends up looking like this:
+
+  $ ./Configure -des -Dusedevel -Dusecrosscompile -Dtargetrun=ssh \
+      -Dcc=$TARGETARCH-gcc        \
+      -Dsysroot=$SYSROOT          \
+      -Dtargetdir=$TARGETDIR      \
+      -Dtargethost="$TARGETHOST"  \
+      -Dtargetuser=$TARGETUSER    \
+      -Dtargetport=$TARGETPORT
+
+Now you're ready to run C<make> and C<make test>!
+
+As a final word of warning, if you're using adb, C<make test> may appear to
+hang; this is because it doesn't output anything until it finishes
+running all tests.  You can check its progress by logging into the
+device, moving to F<$TARGETDIR>, and looking at the file F<output.stdout>.
+
+=head3 Notes
+
+=over
+
+=item *
+
+If you are targetting x86 Android, you will have to change C<$TARGETARCH-gcc>
+to C<i686-linux-android-gcc>.
+
+=item *
+
+On some older low-end devices -- think early 2.2 era -- some tests,
+particularly F<t/re/uniprops.t>, may crash the phone, causing it to turn
+itself off once, and then back on again.
+
+=back
+
+=head1 Native Builds
+
+While Google doesn't provide a native toolchain for Android,
+you can still get one from the Play Store.
+
+=head2 CCTools
+
+You may be able to get the CCTools app, which is free.
+Keep in mind that you want a full toolchain;
+some apps tend to default to installing only a barebones
+version without some important utilities, like ar or nm.
+
+Once you have the toolchain set up properly, the only
+remaining hurdle is actually locating where in the device it was installed
+in.  For example, CCTools installs its toolchain in 
+F</data/data/com.pdaxrom.cctools/root/cctools>.  With the path in hand,
+compiling perl is little more than:
+
+ export SYSROOT=<location of the native toolchain>
+ export LD_LIBRARY_PATH="$SYSROOT/lib:`pwd`:`pwd`/lib:`pwd`/lib/auto:$LD_LIBRARY_PATH"
+ sh Configure -des -Dsysroot=$SYSROOT -Alibpth="/system/lib /vendor/lib"
+
+=head2 Termux
+
+L<Termux|https://termux.com/> provides an Android terminal emulator and Linux environment.
+It comes with a cross-compiled perl already installed.
+
+Natively compiling perl 5.30 or later should be as straightforward as:
+
+ sh Configure -des -Alibpth="/system/lib /vendor/lib"
+
+This certainly works on Android 8.1 (Oreo) at least...
+
+=head1 AUTHOR
+
+Brian Fraser <fraserbn@gmail.com>
+
+=cut

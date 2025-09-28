@@ -1,0 +1,134 @@
+GNUstep Runtime APIs
+====================
+
+The GNUstep Objective-C runtime aims to implement all of the APIs defined in
+Apple's Objective-C Runtime Reference.  That document should be taken as the
+authoritative reference to the majority of the APIs exposed by this runtime.
+Any discrepancies between the implementations in this runtime and the
+documentation should be regarded as a bug in the runtime.
+
+In addition to these APIs, the runtime also exposes some non-portable APIs.
+These are all marked as OBJC_NONPORTABLE in the headers.  Many of these APIs
+are also implemented in GNUstep's ObjectiveC2 framework, which uses the GCC
+Objective-C runtime for the underlying implementation and provides a portable
+set of APIs on top of the GCC runtime structures and functions.
+
+Runtime Capabilities
+--------------------
+
+The objc/capabilities.h header defines runtime capabilities.  A copy of this
+header is also present in the ObjectiveC2 framework, so you can conditionally
+include either version.
+
+You can perform two sorts of checks using this header.  Constants declared in
+the header describe capabilities that the runtime may or may not implement.  If
+a capability is missing from this header, then it means that you are using an
+old version of the runtime, which lacks any knowledge of the header.  You can
+use this to refuse to compile with old runtime versions.
+
+You can also use the objc_test_capability() function to test whether a
+particular capability is present at run time.  Several of the capabilities are
+optional in this runtime, and may not be compiled in to a given install.  If
+you require a particular capability, you can use the OBJC_REQUIRE_CAPABILITY()
+macro to insert a load function that will abort if the capability is not present.
+
+This shows how to refuse to compile or run with versions of the runtime that do
+not support type-dependent dispatch:
+
+	#ifndef OBJC_CAP_TYPE_DEPENDENT_DISPATCH
+	#	error Type-dependent dispatch support required!
+	#else
+	OBJC_REQUIRE_CAPABILITY(OBJC_CAP_TYPE_DEPENDENT_DISPATCH);
+	#endif
+
+Typed Selectors
+---------------
+
+Like the GCC runtime, this runtime uses typed selectors.  In recent versions,
+message lookup is also dependent on the type of the selector by default.  This
+can be disabled by not defining the TYPE_DEPENDENT_DISPATCH macro when
+building.  When using GNU make, you can get name-dependent dispatch by doing:
+
+	$ gmake tdd=no
+
+This is strongly discouraged.  It will give compatibility with the semantics of
+the NeXT, Apple, and GCC runtimes, however these semantics include random stack
+corruption from valid code.
+
+There are three functions for dealing with typed selectors.  The first two are
+direct equivalents of other functions.
+
+	SEL sel_registerTypedName_np(const char *selName, const char *types);
+
+sel_registerName() will register an untyped selector.  This variant registers a
+typed selector, using the specified name and type encoding.
+
+	const char *sel_getType_np(SEL aSel);
+
+This function simply returns the type encoding of the given selector, or NULL for a typed selector.
+
+	unsigned sel_copyTypes_np(const char *selName,
+	                          const char **types,
+	                          unsigned count);
+
+This function copies *all* of the type encodings for a given selector name.
+Generally, there are not many of these.  In a well-written program, there will
+be exactly one type encoding for a given selector.  In a typical program, there
+will be 1-3.  It is not worth allocating a buffer on the heap for most cases,
+so this function is designed to take a stack buffer.
+
+Unlike other functions in the runtime, this always returns the total number of
+type encodings, not the number that were found.  This means that you can call
+it once with a smallish on-stack buffer and then call it again with a
+malloc()'d buffer if there are a lot of encodings for a specific selector, as
+follows.
+
+	char *t[16];
+	char *types = t;
+	unsigned total = sel_copyTypes_np("alloc", types, total);
+	if (total > 16)
+	{
+		types = calloc(sizeof(char*), total);
+		sel_copyTypes_np("alloc", types, total);
+	}
+	// Do stuff with the types.
+	if (total > 16)
+	{
+		free(types);
+	}
+
+
+**Note**: This runtime does not provide any equivalent of the GCC runtime's
+sel_get_typed_uid() or sel_get_any_typed_uid().  This is intentional.  It is
+impossible to use these functions correctly and they should never have been
+made part of the public API.
+
+Message Sending
+---------------
+
+For ABI compatibility with the GCC runtime, this runtime implements the
+objc_msg_lookup() and objc_msg_lookup_super() functions used to implement
+message sending.
+
+The new ABI uses the objc_msg_lookup_sender() function in place of
+objc_msg_lookup().  This allows fast proxies and caching of the lookup result
+at the callsite.  You can find more a detailed explanation of how this works in
+the README file.
+
+This runtime also provides this semi-private function, which can be of use in
+implementing parts of the Foundation framework and similar low-level libraries:
+
+	struct objc_slot* objc_get_slot(Class cls, SEL selector);
+
+This looks up the slot for a given selector, without invoking any forwarding
+mechanisms.  This is most useful for quickly finding the type encoding of a
+method (e.g. for implementing forwarding).  The lookup is as fast as a normal
+message lookup, and the types field of the returned slot provides the type
+encoding.  This is significantly faster than using class_getInstanceMethod(),
+which needs to perform a linear search along a list (O(1) vs O(n)).
+
+Hooks
+-----
+
+All of the callback hooks provided by this runtime are described in
+objc/hooks.h.

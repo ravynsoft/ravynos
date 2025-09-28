@@ -1,0 +1,96 @@
+#compdef strip
+
+local curcontext=$curcontext state line ret=1
+declare -A opt_args
+declare -a args
+
+if _pick_variant gnu=GNU solaris --version; then
+  if [[ -prefix @* ]]; then
+    compset -P '@'
+
+    local expl
+
+    _description files expl 'command-line-options file'
+    _files "$expl[@]"
+    return
+  fi
+  args=(
+    '(-F --target)'{-F+,--target=}'[object code format to use]:bfd name:->bfdnames'
+    '(-)--help[display usage information]'
+    '(-)--info[display list of architectures and object formats]'
+    '(-I --input-target)'{-I+,--input-target=}'[object code format of input]:bfd name:->bfdnames'
+    '(-O --output-target)'{-O+,--output-target=}'[object code format of output]:bfd name:->bfdnames'
+    '(-D --enable-deterministic-archives -U --disable-deterministic-archives)'{-U,--disable-deterministic-archives}'[disable -D behavior]'
+    '(-D --enable-deterministic-archives -U --disable-deterministic-archives)'{-D,--enable-deterministic-archives}'[produce deterministic output when stripping archives (zero file metadata)]'
+    '*'{-R+,--remove-section=}'[remove given sections]:section name'
+    '--remove-relocations=[remove relocations from specified section]:section'
+    '(-s --strip-all)'{-s,--strip-all}'[remove all symbols]'
+    '(-g -S -d --strip-debug)'{-g,-S,-d,--strip-debug}'[remove debugging symbols]'
+    '--strip-dwo[remove all DWARF .dwo sections]'
+    '--strip-unneeded[remove symbols not needed for relocation processing]'
+    '!(--no-merge-notes)'{-M,--merge-notes}
+    "--no-merge-notes[don't attempt to remove redundant notes]"
+    '*'{-K+,--keep-symbol=}'[keep given symbol]:symbol name'
+    '*'{-N+,--strip-symbol=}'[strip given symbol]:symbol name'
+    "*--keep-section=[don't strip given section]:section"
+    '(*)-o+[output file]:output file:_files'
+    '(-p --preserve-dates)'{-p,--preserve-dates}'[preserve access and modification dates]'
+    '(-w --wildcard)'{-w,--wildcard}'[permit wildcards in symbol names]'
+    '(-x --discard-all)'{-x,--discard-all}'[remove non-global symbols]'
+    '(-X --discard-locals)'{-X,--discard-locals}'[remove compiler-generated local symbols]'
+    '--keep-file-symbols[retain symbols specifying source file names]'
+    '--only-keep-debug[remove everything except debugging information]'
+    '(-)'{-V,--version}'[display version information and exit]'
+    '(-v --verbose)'{-v,--verbose}'[list all object files modified or members of archives]')
+else
+  case $OSTYPE in
+    solaris*)
+      args=(
+	'-l[strip line information only]'
+	'-V[display version information on stderr and exit]'
+	'-x[do not strip the symbol table]')
+      ;;
+    darwin*)
+      local -a arch
+      arch=( ${(z)${${"$(_call_program architectures
+			strings -arch - 2>&1)"}#*flags are: }%%$'\n'*} all )
+      args=(
+	'-u[save all undefined symbols]'
+	'-r[save all symbols referenced dynamically]'
+	'-s[save global symbols listed in the specified file]:file:_files'
+	'-R[remove global symbols listed in the specified file]:file:_files'
+	'-i[ignore symbols listed in -s/-R file but are not in the object files]'
+	'-d[save debug symbols in files listed in the specified file]:file:_file'
+	'-A[save all global absolute symbols and Objective-C class symbols]'
+	'-n[save all N_SECT global symbols]'
+	'-S[remove debug symbols]'
+	'-X[remove local symbols whose names begin with L]'
+	'-T[remove Swift symbols]'
+	'-N[remove all nlist symbols and string tables from binaries used by dyld]'
+	'-x[remove all local symbols]'
+	'-c[remove section contents of dynamic library to create stub library]'
+	'-o[write the result to specified file]:output file:_files'
+	'-no_uuid[remove only LC_UUID load command]'
+	'-no_split_info[remove LC_SEGMENT_SPLIT_INFO load command]'
+	'-no_code_signature_warning[not warn when code signature would be invalid in the output]'
+	'-arch[specify the architecture]:architecture:( $arch )' )
+      ;;
+  esac
+fi
+
+_arguments \
+  $args \
+  '1:executable:_files -g "*(-*)"' \
+  '*::executable:_files -g "*(-*)"' && ret=0
+
+case $state in
+  (bfdnames)
+    local expl
+    declare -a bfdnames
+
+    bfdnames=(${=${(M)${(f)"$(_call_program bfdnames strip --help)"}:#strip: supported targets: *}#strip: supported targets: })
+    _describe -t bfdnames 'bfd name' bfdnames && ret=0
+    ;;
+esac
+
+return ret

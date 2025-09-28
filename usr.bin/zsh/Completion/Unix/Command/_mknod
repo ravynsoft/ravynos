@@ -1,0 +1,45 @@
+#compdef mknod gmknod
+
+# - @todo Major/minor device numbers could be completed using /proc/devices on
+#   Linux and e.g. `stat -f %Hr /dev/*` on BSD/Darwin
+# - @todo Device numbers should not be completed given p or w types
+
+local -a aopts args
+
+if _pick_variant gnu='Free Soft' $OSTYPE --version; then
+  args=(
+    '(: * -)--help[display help information]'
+    '(: * -)--version[display version information]'
+    '(-m --mode)'{-m+,--mode=}'[specify file mode]: :_file_modes'
+    '1:special file:_files'
+    '2:special file type:((
+      b\:"block (buffered) special file"
+      {c,u}\:"character (unbuffered) special file"
+      p\:FIFO
+    ))'
+    '3:major device number'
+    '4:minor device number'
+  )
+  [[ $OSTYPE == linux* ]] && args+=(
+    '(--context)-Z[set SELinux security context to default]'
+    '(-Z)--context=-[like -Z, or specify SELinux security context]::SELinux security context:_selinux_contexts'
+  )
+else
+  aopts=( -A '-*' )
+  args=(
+    '-F+[specify device-number format]:device-number format:(
+      native 386bsd 4bsd bsdos freebsd hpux isc linux netbsd osf1 sco solaris
+      sunos svr3 svr4 ultrix
+    )'
+    '1:special file:_files'
+    '2:special file type:((
+      b\:"block-type device"
+      c\:"character-type device"
+      w\:"whiteout node"
+    ))'
+    '3:major device number'
+    '4:minor device number'
+  )
+fi
+
+_arguments -s -S $aopts : $args

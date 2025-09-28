@@ -1,0 +1,7 @@
+echo "warning: some of these tests may fail if job control has not been compiled" >&2
+echo "warning: into the shell" >&2
+echo "warning: there may be a message regarding a cat process dying due to a" >&2
+echo "warning: SIGHUP.  Please disregard." >&2
+
+${THIS_SH} ./jobs.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} jobs.right && rm -f ${BASH_TSTOUT}

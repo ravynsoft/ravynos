@@ -1,0 +1,46 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --no-location and --omit-header options together.
+
+cat <<EOF > mcomm-test7.in1
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: first.c:123
+msgid "1"
+msgstr "1x"
+EOF
+
+cat <<EOF > mcomm-test7.in2
+#: hunt.c:759
+msgid "2"
+msgstr "2x"
+EOF
+
+: ${MSGCOMM=msgcomm}
+${MSGCOMM} --more-than=0 --no-location --omit-header -o mcomm-test7.tmp \
+    mcomm-test7.in1 mcomm-test7.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcomm-test7.tmp > mcomm-test7.out || Exit 1
+
+cat << EOF > mcomm-test7.ok
+msgid "1"
+msgstr "1x"
+
+msgid "2"
+msgstr "2x"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcomm-test7.ok mcomm-test7.out
+result=$?
+
+exit $result

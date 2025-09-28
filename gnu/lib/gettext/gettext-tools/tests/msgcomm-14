@@ -1,0 +1,86 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --force-po option.
+
+# no unique msg in input files.
+# without --force-po don't create any PO file; cf. msgcomm-15
+
+cat <<EOF > mcomm-test14.in1
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# occurs 3 times
+#: first.c:123
+msgid "1"
+msgstr "1x"
+EOF
+
+cat <<EOF > mcomm-test14.in2
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: hunt.c:759
+msgid "1"
+msgstr ""
+EOF
+
+cat <<EOF > mcomm-test14.in3
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: hunt.c:789
+msgid "1"
+msgstr ""
+EOF
+
+: ${MSGCOMM=msgcomm}
+
+# --unique is shorthand for --less-than=2; do we've to test both
+# switches?  Are 'for' loops allowed? -ke-
+${MSGCOMM} --less-than=2 --no-location --force-po -o mcomm-test14.tmp \
+    mcomm-test14.in1 mcomm-test14.in2 mcomm-test14.in3 || Exit 1
+LC_ALL=C tr -d '\r' < mcomm-test14.tmp > mcomm-test14.out || Exit 1
+
+cat << EOF > mcomm-test14.ok
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcomm-test14.ok mcomm-test14.out
+result=$?
+
+exit $result

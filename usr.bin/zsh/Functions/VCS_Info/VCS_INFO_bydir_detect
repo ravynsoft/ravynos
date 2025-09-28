@@ -1,0 +1,41 @@
+## vim:ft=zsh
+## Written by Frank Terbeck <ft@bewatermyfriend.org>
+## Distributed under the same BSD-ish license as zsh itself.
+
+# Helper function for VCS_INFO_detect_*
+#
+# Usage:
+#     vcs_comm[detect_need_file]=FILENAMES VCS_INFO_bydir_detect DIRNAME
+# where DIRNAME is a directory name and FILENAMES is a space-separated list
+# of filenames.
+#
+# If any parent directory of the current working directory, other than the root
+# directory, contains a subdirectory named DIRNAME that contains a file whose name
+# is in FILENAMES, set vcs_comm[basedir] to the path of that parent directory and
+# return true.  Otherwise, return false.
+
+setopt localoptions NO_shwordsplit
+local dirname=$1
+local basedir="." file
+
+basedir=${basedir:P}
+while [[ ${basedir} != '/' ]]; do
+    [[ -r ${basedir} ]] || return 1
+    if [[ -n ${vcs_comm[detect_need_file]} ]] ; then
+        [[ -d ${basedir}/${dirname} ]] && {
+            for file in ${(s: :)${vcs_comm[detect_need_file]}}; do
+                [[ -e ${basedir}/${dirname}/${file} ]] && break 2
+            done
+        }
+    else
+        [[ -d ${basedir}/${dirname} ]] && break
+    fi
+
+    basedir=${basedir:h}
+done
+
+[[ ${basedir} == "/" ]] && return 1
+vcs_comm[basedir]=${basedir}
+# TODO: Would the following be correct? ---
+# rrn=${vcs_comm[basedir]:t}
+return 0

@@ -1,0 +1,504 @@
+#                                                                    -*-perl-*-
+$description = "Test second expansion in ordinary rules.";
+
+$details = "";
+
+# TEST #0: Test handing of '$' in prerequisites with and without second
+# expansion.
+
+# If we don't support archives then the prerequisite is different
+my $prereq = exists $FEATURES{'archives'} ? '$' : '$(PRE)';
+
+run_make_test(q!
+ifdef SE
+  .SECONDEXPANSION:
+endif
+foo$$bar: bar$$baz bar$$biz ; @echo '$@ : $^'
+PRE = one two
+bar$$baz: $$(PRE)
+baraz: $$(PRE)
+PRE = three four
+.DEFAULT: ; @echo '$@'
+!,
+              '',
+              "$prereq\nbar\$biz\nfoo\$bar : bar\$baz bar\$biz");
+
+run_make_test(undef, 'SE=1', "three\nfour\nbariz\nfoo\$bar : baraz bariz");
+
+# TEST #1: automatic variables.
+#
+run_make_test(q!
+.SECONDEXPANSION:
+.DEFAULT: ; @echo '$@'
+
+foo: bar baz
+
+foo: biz | buz
+
+foo: $$@.1 \
+     $$<.2 \
+     $$(addsuffix .3,$$^) \
+     $$(addsuffix .4,$$+) \
+     $$|.5 \
+     $$*.6
+
+!,
+'',
+'bar
+baz
+biz
+buz
+foo.1
+bar.2
+bar.3
+baz.3
+biz.3
+bar.4
+baz.4
+biz.4
+buz.5
+.6
+');
+
+
+# Test #2: target/pattern -specific variables.
+#
+run_make_test(q!
+.SECONDEXPANSION:
+.DEFAULT: ; @echo '$@'
+
+foo.x: $$a $$b
+
+foo.x: a := bar
+
+%.x: b := baz
+!,
+'',
+'bar
+baz
+');
+
+
+# Test #3: order of prerequisites.
+#
+run_make_test(q!
+.SECONDEXPANSION:
+.DEFAULT: ; @echo '$@'
+
+all: foo bar baz
+
+# Subtest #1
+foo: foo.1; @:
+foo: foo.2
+foo: foo.3
+
+# Subtest #2
+bar: bar.2
+bar: bar.1; @:
+bar: bar.3
+
+# Subtest #3
+baz: baz.1
+baz: baz.2
+baz: ; @:
+!,
+'',
+'foo.1
+foo.2
+foo.3
+bar.1
+bar.2
+bar.3
+baz.1
+baz.2
+');
+
+# TEST #4: eval in a context where there is no reading_file
+run_make_test(q!
+.SECONDEXPANSION:
+all : $$(eval $$(info test))
+!,
+            '', "test\n#MAKE#: Nothing to be done for 'all'.\n");
+
+# TEST #5: (NEGATIVE) catch eval in a prereq list trying to create new
+# target/prereq relationships.
+
+run_make_test(q!
+.SECONDEXPANSION:
+proj1.exe : proj1.o $$(eval $$(test))
+define test
+proj1.o : proj1.c
+proj1.c: proj1.h
+endef
+!,
+              '', "#MAKE#: *** prerequisites cannot be defined in recipes.  Stop.\n", 512);
+
+
+# Automatic $$+ variable expansion issue.  Savannah bug #25780
+run_make_test(q!
+all : foo foo
+.SECONDEXPANSION:
+all : $$+ ; @echo '$+'
+foo : ;
+!,
+                  '', "foo foo foo foo\n");
+
+
+# Automatic $$+ variable expansion issue.  Savannah bug #25780
+run_make_test(q!
+all : bar bar
+bar : ;
+q%x : ;
+.SECONDEXPANSION:
+a%l: q1x $$+ q2x ; @echo '$+'
+!,
+                  '', "q1x bar bar q2x bar bar\n");
+
+
+# Allow patsubst shorthand in second expansion context.
+# Requires the colon to be quoted.  Savannah bug #16545
+run_make_test(q!
+.PHONY: foo.bar
+.SECONDEXPANSION:
+foo: $$(@\\:%=%.bar); @echo '$^'
+!,
+              '', "foo.bar\n");
+
+# SV 54549 : Ensure we don't free used variable_sets
+run_make_test(q!
+foo: -lcat
+
+# Removing second expansion prevents segfault
+.SECONDEXPANSION:
+foo: $$@.o ;
+
+# Having an empty command here prevents segfault unless,
+# the environment is empty. `env -i make foo`
+# MFLAGS=-w or MAKEFLAGS=-w `env MFLAGS=-w make foo`
+# libcat.a target calls an extra command, `@true \n @touch $@`
+# odd.
+%.o: ; @true
+
+# Having an empty command prevents segfault.
+-l%: lib%.a ; @true
+
+# Not creating libcat.a here prevents segfault,
+libcat.a: ; @touch $@
+!,
+              '', q!#MAKEFILE#:16: Recipe was specified for file '-lcat' at #MAKEFILE#:16,
+#MAKEFILE#:16: but '-lcat' is now considered the same file as 'libcat.a'.
+#MAKEFILE#:16: Recipe for '-lcat' will be ignored in favor of the one for 'libcat.a'.!);
+unlink('libcat.a');
+
+# SV 28456 : Don't reset $$< for default recipes
+run_make_test(q!
+.SECONDEXPANSION:
+
+.PHONY: biz baz
+biz: baz ;
+biz: $$(info $$<)
+!,
+              '', "baz\n#MAKE#: Nothing to be done for 'biz'.\n");
+
+
+# sv 60659. Second expansion of automatic variables inside a function in the
+# prerequisite list.
+# $$@ expands to the target in the 1st and following rules.
+# $$<,$$^,$$+,$$|,$$?,$$*,$$% expand to the empty string in the prerequisite
+# list of the 1st rule.
+# $$<,$$^,$$+,$$|,$$?,$$*,$$% in the prerequisite list of the 2nd (and
+# following) rule expand to the values from the 1st rule.
+
+
+# subtest 1. Explicit rules. 1st rule.
+run_make_test(q!
+.SECONDEXPANSION:
+all: 2.x
+2.x: 5.z 6.z 5.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*,%=$$%) ;
+%.z: ;
+!, '',
+"@=2.x,<=,^=,+=,|=,?=,*=,%=
+#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# subtest 2. Explicit rules. 2nd rule.
+run_make_test(q!
+.SECONDEXPANSION:
+all: 15.x 1.x
+15.x: 5.z 6.z 5.z | 7.z 7.z 8.z
+1.x: 1.z 2.z 2.z | 3.z 4.z
+15.x 1.x: 9.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*,%=$$%) ;
+%.z: ;
+!, '',
+"@=15.x,<=5.z,^=5.z 6.z,+=5.z 6.z 5.z,|=7.z 8.z,?=,*=,%=
+@=1.x,<=1.z,^=1.z 2.z,+=1.z 2.z 2.z,|=3.z 4.z,?=,*=,%=
+#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# subtest 3. Grouped targets in explicit rules. 1st rule.
+run_make_test(q!
+.SECONDEXPANSION:
+all: 15.x
+15.x 1.x&: 5.z 6.z 5.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*,%=$$%) ;
+%.z: ;
+!, '',
+"@=15.x,<=,^=,+=,|=,?=,*=,%=
+@=1.x,<=,^=,+=,|=,?=,*=,%=
+#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# subtest 4. Grouped targets in explicit rules. 2nd rule.
+run_make_test(q!
+.SECONDEXPANSION:
+all: 15.x 1.x
+15.x: 5.z 6.z 5.z | 7.z 7.z 8.z
+1.x: 1.z 2.z 2.z | 3.z 4.z
+15.x 1.x&: 9.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*,%=$$%) ;
+%.z: ;
+!, '',
+"@=15.x,<=5.z,^=5.z 6.z,+=5.z 6.z 5.z,|=7.z 8.z,?=,*=,%=
+@=1.x,<=1.z,^=1.z 2.z,+=1.z 2.z 2.z,|=3.z 4.z,?=,*=,%=
+#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# Double colon rules.
+# Because each double colon rule is independent of the other double colon rules
+# for the same target, each automatic variable in the prerequisite list, other
+# than $$@, second expands to the empty string in any rule, 1st, 2nd or later.
+
+# subtest 5. 1st double colon rule.
+run_make_test(q!
+.SECONDEXPANSION:
+all: 2.x
+2.x:: 5.z 6.z 5.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*,%=$$%) ;
+%.z: ;
+!, '',
+"@=2.x,<=,^=,+=,|=,?=,*=,%=
+#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# subtest 6. 2nd double colon rule.
+run_make_test(q!
+.SECONDEXPANSION:
+all: 15.x 1.x
+15.x:: 5.z 6.z 5.z | 7.z 7.z 8.z ;
+1.x:: 1.z 2.z 2.z | 3.z 4.z ;
+15.x 1.x:: 9.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*,%=$$%) ;
+%.z: ;
+!, '',
+"@=15.x,<=,^=,+=,|=,?=,*=,%=
+@=1.x,<=,^=,+=,|=,?=,*=,%=
+#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# sv 62324.
+# Integrity self check.
+run_make_test(q!
+.SECONDEXPANSION:
+all: bye.x
+bye.x: $$(firstword bye.1;
+!, '', "#MAKEFILE#:4: *** unterminated call to function 'firstword': missing ')'.  Stop.", 512);
+
+unlink('hello.tsk', 'test.o', 'bye.tsk', 'hello.o', 'hello.h', 'hello.q', 'bye.c', 'bye.o');
+
+# sv 62706.
+# Test that makes avoids second expanding prerequisites of the targets which
+# are not built.
+# Here, hello.tsk is built and its prerequisites are second expanded.
+# bye.tsk is not built and its prerequisites are not second expanded.
+run_make_test(q!
+.SECONDEXPANSION:
+hello.tsk: hello.o $$(info second expansion of $$@ prereqs); $(info $@ from $<)
+bye.tsk: bye.o $$(info second expansion of $$@ prereqs); $(info $@ from $<)
+hello.o: $$(info second expansion of $$@ prereqs); $(info $@)
+bye.o: $$(info second expansion of $$@ prereqs); $(info $@)
+!, 'hello.tsk',
+"second expansion of hello.tsk prereqs
+second expansion of hello.o prereqs
+hello.o
+hello.tsk from hello.o
+#MAKE#: 'hello.tsk' is up to date.\n");
+
+# sv 62706.
+# Multiple rules per target.
+run_make_test(q!
+.SECONDEXPANSION:
+
+all: hello.tsk
+dep1:=hello.o
+dep2:=hello.h
+hello.tsk: $$(dep1)
+hello.tsk: $$(dep2); $(info $@ from $^)
+hello.o:; $(info $@)
+hello.h:; $(info $@)
+!, 'hello.tsk',
+"hello.h
+hello.o
+hello.tsk from hello.h hello.o
+#MAKE#: 'hello.tsk' is up to date.\n");
+
+# sv 62706.
+# Multiple targets per rule.
+run_make_test(q!
+.SECONDEXPANSION:
+hello.tsk bye.tsk: hello.o $$(info second expansion of $$@ prereqs); $(info $@ from $<)
+bye.tsk: bye.o $$(info second expansion of $$@ prereqs)
+hello.o: $$(info second expansion of $$@ prereqs); $(info $@)
+bye.o: $$(info second expansion of $$@ prereqs); $(info $@)
+!, 'hello.tsk',
+"second expansion of hello.tsk prereqs
+second expansion of hello.o prereqs
+hello.o
+hello.tsk from hello.o
+#MAKE#: 'hello.tsk' is up to date.\n");
+
+# sv 62706.
+# Grouped targets.
+run_make_test(q!
+.SECONDEXPANSION:
+world.tsk: world.o $$(info 1 second expansion of $$@ prereqs)
+hello.tsk world.tsk &: hello.o $$(info 2 second expansion of $$@ prereqs); $(info $@ from $<)
+bye.tsk: bye.o $$(info second expansion of $$@ prereqs); $(info $@ from $<)
+hello.o: $$(info second expansion of $$@ prereqs); $(info $@)
+world.o: $$(info second expansion of $$@ prereqs); $(info $@)
+bye.o: $$(info second expansion of $$@ prereqs); $(info $@)
+!, 'hello.tsk',
+"2 second expansion of hello.tsk prereqs
+second expansion of hello.o prereqs
+hello.o
+2 second expansion of world.tsk prereqs
+1 second expansion of world.tsk prereqs
+second expansion of world.o prereqs
+world.o
+hello.tsk from hello.o
+#MAKE#: 'hello.tsk' is up to date.\n");
+
+# sv 62706.
+# Order only.
+run_make_test(q!
+.SECONDEXPANSION:
+hello.tsk:| hello.o $$(info second expansion of $$@ prereqs); $(info $@ from $|)
+bye.tsk:| bye.o $$(info second expansion of $$@ prereqs); $(info $@ from $|)
+hello.o:| $$(info second expansion of $$@ prereqs); $(info $@)
+bye.o:| $$(info second expansion of $$@ prereqs); $(info $@)
+!, 'hello.tsk',
+"second expansion of hello.tsk prereqs
+second expansion of hello.o prereqs
+hello.o
+hello.tsk from hello.o
+#MAKE#: 'hello.tsk' is up to date.\n");
+
+# sv 62706.
+# Double colon. 1 rule per target.
+run_make_test(q!
+.SECONDEXPANSION:
+hello.tsk:: hello.o $$(info second expansion of $$@ prereqs); $(info $@ from $<)
+bye.tsk:: bye.o $$(info second expansion of $$@ prereqs); $(info $@ from $<)
+hello.o:: $$(info second expansion of $$@ prereqs); $(info $@)
+bye.o:: $$(info second expansion of $$@ prereqs); $(info $@)
+!, 'hello.tsk',
+"second expansion of hello.tsk prereqs
+second expansion of hello.o prereqs
+hello.o
+hello.tsk from hello.o
+#MAKE#: 'hello.tsk' is up to date.\n");
+
+# sv 62706.
+# Double colon. 2 rules per targets.
+run_make_test(q!
+.SECONDEXPANSION:
+hello.tsk:: hello.o $$(info 1 second expansion of $$@ prereqs); $(info 1 $@ from $<)
+hello.tsk:: hello.o $$(info 2 second expansion of $$@ prereqs); $(info 2 $@ from $<)
+bye.tsk:: bye.o $$(info 1 second expansion of $$@ prereqs); $(info 1 $@ from $<)
+bye.tsk:: bye.o $$(info 2 second expansion of $$@ prereqs); $(info 2 $@ from $<)
+hello.o:: $$(info 1 second expansion of $$@ prereqs); $(info 1 $@)
+hello.o:: $$(info 2 second expansion of $$@ prereqs); $(info 2 $@)
+bye.o:: $$(info 1 second expansion of $$@ prereqs); $(info 1 $@)
+bye.o:: $$(info 2 second expansion of $$@ prereqs); $(info 2 $@)
+!, 'hello.tsk',
+"1 second expansion of hello.tsk prereqs
+1 second expansion of hello.o prereqs
+1 hello.o
+2 second expansion of hello.o prereqs
+2 hello.o
+1 hello.tsk from hello.o
+2 second expansion of hello.tsk prereqs
+2 hello.tsk from hello.o
+#MAKE#: 'hello.tsk' is up to date.\n");
+
+# sv 62706.
+# Test that the prerequisites of 'hello.tsk' are second expanded once.
+run_make_test(q!
+.SECONDEXPANSION:
+all: hello.tsk hello.q
+hello.tsk: hello.o $$(info second expansion of $$@ prereqs); $(info $@ from $^)
+hello.o: $$(info second expansion of $$@ prereqs); $(info $@)
+hello.q: hello.tsk $$(info second expansion of $$@ prereqs); $(info $@ from $^)
+!, '',
+"second expansion of hello.tsk prereqs
+second expansion of hello.o prereqs
+hello.o
+hello.tsk from hello.o
+second expansion of hello.q prereqs
+hello.q from hello.tsk
+#MAKE#: Nothing to be done for 'all'.\n");
+
+# sv 62706.
+# Merge vpath file and local file.
+# Test that both sets of prerequisites from 'hello.c' rule and from
+# 'src/hello.c' rule are second expanded.
+run_make_test(q!
+.SECONDEXPANSION:
+vpath hello.c src
+all: hello.c; $(info $@ from $^)
+hello.c: $$(info second expansion of hello.c prereqs); $(info 1 $@)
+src/hello.c: $$(info second expansion of src/hello.c prereqs); $(info 2 $@)
+!, '',
+"#MAKEFILE#:5: Recipe was specified for file 'hello.c' at #MAKEFILE#:5,
+#MAKEFILE#:5: but 'hello.c' is now considered the same file as 'src/hello.c'.
+#MAKEFILE#:5: Recipe for 'hello.c' will be ignored in favor of the one for 'src/hello.c'.
+second expansion of src/hello.c prereqs
+second expansion of hello.c prereqs
+2 src/hello.c
+all from src/hello.c
+#MAKE#: 'all' is up to date.\n");
+
+# sv 62706.
+# .DEFAULT.
+run_make_test(q!
+.SECONDEXPANSION:
+bye:=bye.c
+all: hello.o
+.DEFAULT: $$(info second expansion of prereqs of default recipe @ = $$@) ; $(info default recipe $@)
+!, '',
+"default recipe hello.o
+#MAKE#: Nothing to be done for 'all'.\n");
+
+unlink('hello.1');
+
+# sv 62706.
+# No side effects from second expansion of unrelated rules.
+run_make_test(q!
+.SECONDEXPANSION:
+hello.tsk:; exit 1
+unrelated: $$(shell touch hello.1);
+!, '',
+"exit 1
+#MAKE#: *** [#MAKEFILE#:3: hello.tsk] Error 1\n", 512);
+
+# sv 62706.
+# Second expansion of intermediate prerequisites.
+# The rule to build hello.x is explicit.
+# .SECONDARY marks hello.x as intermediate.
+# Test that $$(deps) is secondary expanded.
+run_make_test(q!
+deps:=hello.h
+.SECONDEXPANSION:
+.SECONDARY: hello.x
+all: hello.x
+hello.x: $$(deps); $(info $@)
+hello.h:; $(info $@)
+!, '', "hello.h\nhello.x\n#MAKE#: Nothing to be done for 'all'.\n");
+
+
+1;

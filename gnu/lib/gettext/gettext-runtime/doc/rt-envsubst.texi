@@ -1,0 +1,59 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2019 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@pindex envsubst
+@cindex @code{envsubst} program, usage
+@example
+envsubst [@var{option}] [@var{shell-format}]
+@end example
+
+@cindex shell format string
+@cindex dollar substitution
+@cindex environment variables
+The @code{envsubst} program substitutes the values of environment variables.
+
+@noindent @strong{Operation mode}
+
+@table @samp
+@item -v
+@itemx --variables
+@opindex -v@r{, @code{envsubst} option}
+@opindex --variables@r{, @code{envsubst} option}
+Output the variables occurring in @var{shell-format}.
+
+@end table
+
+@noindent @strong{Informative output}
+
+@table @samp
+@item -h
+@itemx --help
+@opindex -h@r{, @code{envsubst} option}
+@opindex --help@r{, @code{envsubst} option}
+Display this help and exit.
+
+@item -V
+@itemx --version
+@opindex -V@r{, @code{envsubst} option}
+@opindex --version@r{, @code{envsubst} option}
+Output version information and exit.
+
+@end table
+
+In normal operation mode, standard input is copied to standard output,
+with references to environment variables of the form @code{$VARIABLE} or
+@code{$@{VARIABLE@}} being replaced with the corresponding values.  If a
+@var{shell-format} is given, only those environment variables that are
+referenced in @var{shell-format} are substituted; otherwise all environment
+variables references occurring in standard input are substituted.
+
+These substitutions are a subset of the substitutions that a shell performs
+on unquoted and double-quoted strings.  Other kinds of substitutions done
+by a shell, such as @code{$@{@var{variable}-@var{default}@}} or
+@code{$(@var{command-list})} or @code{`@var{command-list}`}, are not performed
+by the @code{envsubst} program, due to security reasons.
+
+When @code{--variables} is used, standard input is ignored, and the output
+consists of the environment variables that are referenced in
+@var{shell-format}, one per line.

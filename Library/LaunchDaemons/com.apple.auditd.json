@@ -1,0 +1,19 @@
+{
+  "EnvironmentVariables": {
+    "ASL_DISABLE": "1"
+  },
+  "MachServices": {
+    "com.apple.auditd": {
+      "HostSpecialPort": 9
+    }
+  },
+  "EnableTransactions": true,
+  "ProgramArguments": [
+    "/usr/sbin/auditd",
+    "-d"
+  ],
+  "RunAtLoad": true,
+  "OnDemand": false,
+  "KeepAlive": true,
+  "Label": "com.apple.auditd"
+}

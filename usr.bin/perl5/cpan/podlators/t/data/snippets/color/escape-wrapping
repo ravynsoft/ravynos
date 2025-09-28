@@ -1,0 +1,19 @@
+[name]
+Wrapping in the middle of formatting
+
+[options]
+width 60
+
+[input]
+=over 4
+
+=item B<autosetup status> [B<-t>] {B<-a>|[B<-e>|B<-f>|B<-u>] I<hostname> ...}
+
+=item B<autosetup install -p standard_test_only_trigger host1 host2 host3>
+
+=back
+
+[output]
+    [1mautosetup status[0m [[1m-t[0m] {[1m-a[0m|[[1m-e[0m|[1m-f[0m|[1m-u[0m] [33mhostname[0m ...}
+    [1mautosetup install -p standard_test_only_trigger host1[0m
+    [1mhost2 host3[0m

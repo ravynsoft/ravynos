@@ -1,0 +1,36 @@
+<Document start_line="2">
+  <head1 start_line="2">
+    NAME
+  </head1>
+  <Para start_line="4">
+    Encoding Warning 1 - implicitly UTF-8
+  </Para>
+  <head2 start_line="6">
+    DESCRIPTION
+  </head2>
+  <Para start_line="8">
+    This line should warn that the price &#8364;9.99 contains a non-ASCII
+    character.
+  </Para>
+  <Para start_line="10">
+    But ch&#226;teau should not generate a warning - once is enough.
+  </Para>
+  <head1 errata="1" start_line="-321">
+    POD ERRORS
+  </head1>
+  <Para errata="1" start_line="-321">
+    Hey! 
+    <B>
+      The above document had some coding errors, which are explained below:
+    </B>
+  </Para>
+  <over-text errata="1" indent="4" start_line="-321">
+    <item-text start_line="-321">
+      Around line 8:
+    </item-text>
+    <Para start_line="-321">
+      Non-ASCII character seen before =encoding in &#39;&#8364;9.99&#39;.
+      Assuming UTF-8
+    </Para>
+  </over-text>
+</Document>

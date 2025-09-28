@@ -1,0 +1,56 @@
+#
+# List of signals used to build sys_siglist (see mksiglist.c)
+# Adapted from pdksh; public domain
+#
+# Note that if a system has multiple defines for the same signal
+# (eg, SIGABRT vs SIGIOT, SIGCHLD vs SIGCLD), only the first one
+# will be seen, so the order in this list is important.
+#
+    HUP     Hangup
+    INT     Interrupt
+    QUIT    Quit
+    ILL     Illegal instruction
+    TRAP    Trace trap
+# before IOT (ABRT is posix and ABRT is sometimes the same as IOT)
+    ABRT    Abort
+    IOT     IOT instruction
+    EMT     EMT trap
+    FPE     Floating point exception
+    KILL    Killed
+    BUS     Bus error
+    SEGV    Memory fault
+# before UNUSED (SYS and UNUSED share the same value in musl libc).
+    SYS     Bad system call
+    UNUSED  Unused
+    PIPE    Broken pipe
+    ALRM    Alarm clock
+    TERM    Terminated
+    STKFLT  Stack fault
+# before POLL (POLL is sometimes the same as IO)
+    IO      I/O possible
+    XCPU    CPU time limit exceeded
+    XFSZ    File size limit exceeded
+    VTALRM  Virtual timer expired
+    PROF    Profiling timer expired
+    WINCH   Window size change
+    LOST    File lock lost
+    USR1    User defined signal 1
+    USR2    User defined signal 2
+    PWR     Power-fail/Restart
+    POLL    Pollable event occurred
+    STOP    Stopped (signal)
+    TSTP    Stopped
+    CONT    Continued
+# before CLD (CHLD is posix and CHLD is sometimes the same as CLD)
+    CHLD    Child exited
+    CLD     Child exited
+    TTIN    Stopped (tty input)
+    TTOU    Stopped (tty output)
+    INFO    Information request
+    URG     Urgent I/O condition
+# Solaris (svr4?) signals
+    WAITING No runnable LWPs
+    LWP	    Inter-LWP signal
+    FREEZE  Checkpoint freeze
+    THAW    Checkpoint thaw
+    CANCEL  Thread cancellation

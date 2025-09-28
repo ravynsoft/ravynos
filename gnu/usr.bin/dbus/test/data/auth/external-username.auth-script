@@ -1,0 +1,24 @@
+# Assert that EXTERNAL authentication accepts numeric uids, but not
+# login names.
+
+# This only works on Unix because USERNAME_HEX is unimplemented on Windows
+# (but no authentication mechanism uses usernames there anyway).
+UNIX_ONLY
+SERVER
+EXPECT_HAVE_NO_CREDENTIALS
+
+# C: "I claim that I am smcv"
+SEND 'AUTH EXTERNAL USERNAME_HEX'
+# S: (doesn't want to look up smcv in NSS or /etc/passwd)
+EXPECT_COMMAND REJECTED
+EXPECT_STATE WAITING_FOR_INPUT
+EXPECT_HAVE_NO_CREDENTIALS
+
+# C: "OK, how about I claim that I am uid 1000?"
+SEND 'AUTH EXTERNAL USERID_HEX'
+# S: (is happier)
+EXPECT_COMMAND OK
+EXPECT_STATE WAITING_FOR_INPUT
+SEND 'BEGIN'
+EXPECT_STATE AUTHENTICATED
+EXPECT_HAVE_SOME_CREDENTIALS

@@ -1,0 +1,6 @@
+echo "warning: UNIX versions number signals and schedule processes differently." >&2
+echo "warning: If output differing only in line numbers is produced, please" >&2
+echo "warning: do not consider this a test failure." >&2
+
+${THIS_SH} ./trap.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} trap.right && rm -f ${BASH_TSTOUT}

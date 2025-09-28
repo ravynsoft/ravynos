@@ -1,0 +1,34 @@
+PROJECT_NAME           = @PACKAGE_NAME@
+PROJECT_NUMBER         = @PACKAGE_VERSION@
+PROJECT_BRIEF          = "A wrapper library for input devices"
+JAVADOC_AUTOBRIEF      = YES
+TAB_SIZE               = 8
+OPTIMIZE_OUTPUT_FOR_C  = YES
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+MAX_INITIALIZER_LINES  = 0
+WARNINGS               = YES
+QUIET                  = YES
+INPUT                  = "@builddir@"
+IMAGE_PATH             = "@builddir@"
+OUTPUT_DIRECTORY       = doc
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+SEARCHENGINE           = NO
+USE_MATHJAX            = YES
+MATHJAX_RELPATH        = https://cdn.mathjax.org/mathjax/latest
+GENERATE_LATEX         = NO
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+PREDEFINED             = LIBINPUT_ATTRIBUTE_PRINTF(f, a)= \
+                         LIBINPUT_ATTRIBUTE_DEPRECATED
+DOTFILE_DIRS           = "@builddir@"
+EXAMPLE_PATH           = "@builddir@"
+SHOW_NAMESPACES        = NO
+HAVE_DOT               = YES
+
+HTML_HEADER = "@builddir@/header.html"
+HTML_FOOTER = "@builddir@/footer.html"
+HTML_EXTRA_STYLESHEET = "@builddir@/bootstrap.css" \
+			"@builddir@/customdoxygen.css" \
+			"@builddir@/libinputdoxygen.css"

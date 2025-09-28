@@ -1,0 +1,13 @@
+# sudoRole user1, user1_1
+user1 ALL = LOG_INPUT: LOG_OUTPUT: /usr/bin/su -, NOLOG_INPUT: NOLOG_OUTPUT:\
+    /usr/bin/id
+
+# sudoRole user2, user2_1
+user2 ALL = SETENV: NOEXEC: NOPASSWD: /usr/bin/vi, NOSETENV: EXEC: PASSWD:\
+    /usr/bin/echo
+
+# sudoRole user3, user3_1
+user3 ALL = MAIL: /bin/sh, NOMAIL: /usr/bin/id
+
+# sudoRole user4, user4_1
+user4 ALL = FOLLOW: sudoedit /etc/motd, NOFOLLOW: sudoedit /home/*/*

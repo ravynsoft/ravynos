@@ -1,0 +1,60 @@
+#compdef mtr
+
+_arguments -s -S \
+  '(H -F --filename)'{-F,--filename}'[read hostnames from a file]' \
+  '(H -6)-4[use IPv4 only]' \
+  '(H -4)-6[use IPv6 only]' \
+  '(H -I --interface)'{-I+,--interface=}'[use named network interface]: :_net_interfaces' \
+  '(H -a --address)'{-a+,--address=}'[bind outgoing packets to specific interface]:source IP:_hosts' \
+  '(H -f --first-ttl)'{-f+,--first-ttl=}'[specify TTL to start]:TTL [1]' \
+  '(H -m --max-ttl)'{-m+,--max-ttl=}'[specify maximum number of hops to probe]:hops [30]' \
+  '(H -U --max-unknown)'{-U+,--max-unknown=}'[specify maximum unknown hosts]:maximum [5]' \
+  '(H -P --port)'{-P+,--port=}'[specify target port for TCP, SCTP or UDP]:port' \
+  '(H -L --localport -T --tcp -S --sctp)'{-L+,--localport=}'[specify source port number for UDP]' \
+  '(H -s --psize 2)'{-s+,--psize=}'[packet size]:packet size (bytes)' \
+  '(H -B --bitpattern)'{-B+,--bitpattern=}'[specify bit pattern to use in payload]:number (0-255)' \
+  '(H -i --interval)'{-i+,--interval=}'[specify ping interval]:interval (seconds)' \
+  '(H -G --gracetime)'{-G+,--gracetime=}'[specify time to wait for responses]:wait time (seconds)' \
+  '(H -Q --tos)'{-Q+,--tos=}'[specify type of service for IP header]:tos (0-255)' \
+  '(H -e --mpls)'{-e,--mpls}'[display ICMP MPLS information]' \
+  '(H -Z --timeout)'{-Z+,--timeout=}'[specify how long to keep probe sockets open before giving up on the connection]:timeout (seconds)' \
+  '(H -r --report)'{-r,--report}'[report mode]' \
+  '(H -w --report-wide)'{-w,--report-wide}"[wide report mode\: don't truncate hostnames]" \
+  '(H -c --report-cycles)'{-c+,--report-cycles=}'[report cycles]:number of pings' \
+  '(H)--displaymode=[select initial display mode]:display mode:((0\:statistics 1\:stripchart\ with\ latency 2\:stripchart\ without\ latency))' \
+  '(H -n --no-dns)'{-n,--no-dns}'[no DNS lookups]' \
+  '(H -b --show-ips)'{-b,--show-ips}'[show both IP numbers and host names]' \
+  '(H -o --order)'{-o+,--order=}'[specify order of output fields]: :_values -S "" "field order"
+    "L[loss ratio]"
+    "D[dropped packets]"
+    "R[received packets]"
+    "S[sent packets]"
+    "N[newest RTT]"
+    "B[min/best RTT]"
+    "A[average RTT]"
+    "W[max/worst RTT]"
+    "V[standard deviation]"
+    "G[geometric mean]"
+    "J[current jitter]"
+    "M[jitter mean/average]"
+    "X[worst jitter]"
+    "I[interarrival jitter]"' \
+  '(H -z --aslookup -y --ipinfo)'{-y+,--ipinfo=}'[select IP information in output]:information:((0\:display\ AS\ number 1\:display\ IP\ prefix 2\:display\ country\ code 3\:display\ RIR 4\:display\ allocation\ date))' \
+  '(H -y --ipinfo -z --aslookup)'{-z,--aslookup}'[display AS number]' \
+  '(H)1:destination host:_hosts' \
+  '(H)2:packet size (bytes)' \
+  + '(H)' \
+  '(- 1 2)'{-h,--help}'[display help information]' \
+  '(- 1 2)'{-v,--version}'[display version information]' \
+  + '(proto)' \
+  '(H)'{-u,--udp}'[use UDP instead of ICMP echo]' \
+  '(H -s --psize)'{-T,--tcp}'[use TCP instead of ICMP echo]' \
+  '(H)'{-S,--sctp}'[use SCTP instead of ICMP echo]' \
+  + '(output)' \
+  '(H)'{-t,--curses}'[curses UI]' \
+  '(H)'{-g,--gtk}'[GTK+ UI]' \
+  '(H)'{-p,--split}'[output for a split-user interface]' \
+  '(H)'{-l,--raw}'[output raw format]' \
+  '(H)'{-C,--csv}'[output comma separated values]' \
+  '(H)'{-j,--json}'[output JSON]' \
+  '(H)'{-x,--xml}'[output XML]'

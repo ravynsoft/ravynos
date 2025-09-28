@@ -1,0 +1,65 @@
+#compdef getent
+
+local curcontext="$curcontext" state line expl ret=1
+local services databases keys
+local -a args
+typeset -A opt_args
+
+if _pick_variant -r is_gnu gnu='(Free Soft|GNU|GLIBC|Gentoo)' unix --version; then
+  args+=(
+    '(- 1 *)'{-\?,--help}'[display help information]'
+    '(- 1 *)--usage[display a short usage message]'
+    '(- 1 *)'{-V,--version}'[display version information]'
+    '*'{-s+,--service=}'[specify service configuration to use]: :->services'
+    '(-i --no-idn)'{-i,--no-idn}'[disable IDN encoding]'
+  )
+fi
+
+_arguments -s -S -C "$args[@]" \
+  '1:database:->databases' \
+  '*:key:->keys' && ret=0
+
+case $state in
+  services)
+    # @todo GNU getent supports both `-s svc` and `-s db:svc`; we only complete
+    # the former here
+    services=( {,/usr}/lib/{,*-linux-gnu/}libnss_*(N-.:fr:t:s/libnss_//) )
+    _wanted services expl 'service or database:service' \
+      compadd ${(u)services%-*} \
+    && ret=0
+  ;;
+  databases)
+    if [[ $is_gnu = gnu ]]; then
+      databases=( "${(@)${(@f)$(_call_program databases $words[1] --help \
+                   2>/dev/null)}[(r)Supported*,-1]}" )
+      databases=( "${=${(@)databases[2,${(@)databases[(i)]}-1]}}" )
+    elif [[ $OSTYPE = freebsd* ]]; then
+      databases=( ${=${(f)"$(_call_program databases $words[1] 2>&1)"}[-1]} )
+    else
+      databases=( passwd group hosts ipnodes services protocols ethers networks netmasks )
+    fi
+    _wanted databases expl database compadd -a databases && ret=0
+  ;;
+  keys)
+    keys=( ${(f)"$(_call_program keys $words[1] ${(kv)opt_args[(i)-s|--service]} $line[1] 2>/dev/null)"} )
+    case $line[1] in
+      *hosts) _wanted keys expl key compadd ${=keys#* } && ret=0 ;;
+      networks|rpc|protocols|services)
+        _wanted keys expl key compadd ${=keys%% *} && ret=0
+      ;;
+      aliases|passwd|shadow|group)
+        _wanted keys expl key compadd ${keys%%:*} && ret=0
+      ;;
+      utmpx)
+	if (( CURRENT > 3 )); then
+	  _files && ret=0
+	else
+	  _wanted keys expl key compadd active lastlogin log && ret=0
+	fi
+      ;;
+      *) _message -e keys key;;
+    esac
+  ;;
+esac
+
+return ret

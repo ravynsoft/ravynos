@@ -1,0 +1,24 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Scheme support: scheme-format string with a loop.
+
+cat <<EOF > xg-sc-5.scm
+(_ "~{~*~}")
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -k_ --omit-header --no-location -d xg-sc-5.tmp xg-sc-5.scm || Exit 1
+LC_ALL=C tr -d '\r' < xg-sc-5.tmp.po > xg-sc-5.po || Exit 1
+
+cat <<EOF > xg-sc-5.ok
+#, scheme-format
+msgid "~{~*~}"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-sc-5.ok xg-sc-5.po
+result=$?
+
+exit $result

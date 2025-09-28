@@ -1,0 +1,154 @@
+## vim:ft=zsh:foldmethod=marker
+##
+## vcs_info - provide version control information
+##
+## Written by Frank Terbeck <ft@bewatermyfriend.org>
+##
+## This file and all corresponding files in Functions/VCS_Info/ are
+## distributed under the same BSD-ish license as zsh itself.
+##
+
+setopt localoptions noksharrays extendedglob NO_shwordsplit
+local file func sys
+local -a static_functions msgs
+local -i maxexports
+
+static_functions=(
+    VCS_INFO_adjust
+    VCS_INFO_bydir_detect
+    VCS_INFO_check_com
+    VCS_INFO_formats
+    VCS_INFO_get_cmd
+    VCS_INFO_hexdump
+    VCS_INFO_hook
+    VCS_INFO_set-patch-format
+    VCS_INFO_set-branch-format
+    VCS_INFO_maxexports
+    VCS_INFO_nvcsformats
+    VCS_INFO_patch2subject
+    VCS_INFO_quilt
+    VCS_INFO_reposub
+    VCS_INFO_set
+
+    vcs_info_hookadd
+    vcs_info_hookdel
+    vcs_info_lastmsg
+    vcs_info_printsys
+    vcs_info_setsys
+)
+
+for func in ${static_functions} ; do
+    autoload -Uz ${func}
+done
+
+[[ -n ${(Mk)parameters:#vcs_info_msg_<->_} ]] && unset ${parameters[(I)vcs_info_msg_<->_]}
+VCS_INFO_maxexports
+VCS_INFO_set --nvcs '-preinit-'
+vcs_info_setsys
+
+# and now, finally create the real vcs_info function
+vcs_info () {
+    emulate -L zsh
+    setopt extendedglob NO_warn_create_global
+
+    [[ -r . ]] || return 0
+
+    local pat
+    local -i found retval
+    local -a enabled disabled dps
+    local usercontext vcs rrn quiltmode
+    local -x LC_MESSAGES
+    local -i maxexports
+    local -a msgs
+
+    # vcs_comm is used internally for passing values among VCS_INFO_* functions.
+    # It is not part of the public API.
+    #
+    # hook_com, backend_misc, and user_data are public API; see zshcontrib(1)
+    # and Misc/vcs_info-examples.
+    local -A vcs_comm hook_com backend_misc user_data
+
+    LC_MESSAGES=C
+    if [[ -n ${LC_ALL} ]]; then
+        local -x LANG
+        LANG=${LC_ALL}
+        local -x LC_ALL
+    fi
+    vcs='-init-'; rrn='-all-'; quiltmode='addon'
+    usercontext=${1:-default}
+
+    VCS_INFO_hook "start-up"
+    retval=$?
+    if (( retval == 1 )); then
+        return 0
+    elif (( retval == 2 )); then
+        # This needs `max-exports' set. We're still setting it again later
+        # for more specific contexts.
+        VCS_INFO_maxexports
+        VCS_INFO_set --nvcs
+        return 0
+    fi
+
+    zstyle -a ":vcs_info:${vcs}:${usercontext}:${rrn}" "enable" enabled
+    (( ${#enabled} == 0 )) && enabled=( all )
+
+    if [[ -n ${(M)enabled:#(#i)none} ]] ; then
+        [[ -n ${vcs_info_msg_0_} ]] && VCS_INFO_set --nvcs
+        return 0
+    fi
+
+    if [[ -n ${(M)enabled:#(#i)all} ]] ; then
+        enabled=( ${VCS_INFO_backends} )
+        zstyle -a ":vcs_info:${vcs}:${usercontext}:${rrn}" "disable" disabled
+    fi
+
+    zstyle -a ":vcs_info:${vcs}:${usercontext}:${rrn}" "disable-patterns" dps
+
+    for pat in ${dps} ; do
+        if [[ ${PWD} == ${~pat} ]] ; then
+            VCS_INFO_maxexports
+            [[ -n ${vcs_info_msg_0_} ]] && VCS_INFO_set --nvcs
+            return 0
+        fi
+    done
+
+    VCS_INFO_maxexports
+
+    (( found = 0 ))
+    for vcs in ${enabled} ; do
+        [[ -n ${(M)disabled:#${vcs}} ]] && continue
+        if (( ${+functions[VCS_INFO_detect_${vcs}]} == 0 )) ; then
+            printf 'vcs_info: configured unknown backend: '\''%s'\''\n' ${vcs}
+            printf 'vcs_info: use '\''vcs_info_printsys'\'' to find supported systems.\n'
+            continue
+        fi
+        vcs_comm=()
+        VCS_INFO_get_cmd
+        VCS_INFO_detect_${vcs} && (( found = 1 )) && break
+    done
+
+    (( found == 0 )) && {
+        vcs='-quilt-'; quiltmode='standalone'
+        VCS_INFO_quilt standalone || VCS_INFO_set --nvcs
+        return 0
+    }
+
+    VCS_INFO_hook "pre-get-data"
+    retval=$?
+    if (( retval == 1 )); then
+        return 0
+    elif (( retval == 2 )); then
+        VCS_INFO_set --nvcs
+        return 0
+    fi
+
+    VCS_INFO_get_data_${vcs} || {
+        VCS_INFO_set --nvcs
+        return 1
+    }
+
+    VCS_INFO_set
+    return 0
+}
+
+vcs_info "$@"

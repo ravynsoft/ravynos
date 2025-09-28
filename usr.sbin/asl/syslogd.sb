@@ -1,0 +1,38 @@
+;;
+;; syslogd - sandbox profile
+;; Copyright (c) 2007 Apple Inc.  All Rights reserved.
+;;
+;; WARNING: The sandbox rules in this file currently constitute 
+;; Apple System Private Interface and are subject to change at any time and
+;; without notice. The contents of this file are also auto-generated and not
+;; user editable; it may be overwritten at any time.
+;;
+(version 1)
+(debug deny)
+
+(import "bsd.sb")
+
+(deny default)
+(allow process*)
+(deny signal)
+(allow sysctl-read)
+(allow network*)
+
+;;; Allow syslogd specific files
+
+(allow file-write* file-read-data file-read-metadata
+    (regex #"^(/private)?/var/run/syslog$"
+           #"^(/private)?/var/run/syslog\.pid$"
+           #"^(/private)?/var/run/asl_input$"))
+
+(allow file-write* file-read-data file-read-metadata
+    (regex #"^(/private)?/dev/console$"
+           #"^(/private)?/var/log/.*\.log$"
+           #"^(/private)?/var/log/asl\.db$"))
+
+(allow file-read-data file-read-metadata
+    (regex #"^(/private)?/dev/klog$"
+           #"^(/private)?/etc/asl\.conf$"
+           #"^(/private)?/etc/syslog\.conf$"
+           #"^/usr/lib/asl/.*\.so$"))
+(allow mach-lookup (global-name "com.apple.system.notification_center"))

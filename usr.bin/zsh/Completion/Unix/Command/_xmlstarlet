@@ -1,0 +1,177 @@
+#compdef xmlstarlet xml
+
+local curcontext="$curcontext" ret=1
+local -a args state line suf
+
+args=( '(- *)--help[display usage information]' )
+_arguments -C -A "-*" $args \
+  '(-q --quiet)'{-q,--quiet}'[no error output]' \
+  "--no-doc-namespace[don't extract namespace bindings from input doc]" \
+  '!(--no-doc-namespace)--doc-namespace' \
+  '(-)--version[display version information]' \
+  '1:command:((
+    ed{,it}\:edit\ or\ update\ documents
+    sel{,ect}\:select\ date\ or\ query\ documents
+    tr{,ransform}\:transform\ documents\ using\ XSLT
+    val{,idate}\:validate\ documents
+    fo{,rmat}\:format\ documents
+    el{,ements}\:display\ element\ structure
+    {c14n,canonic}\:XML\ canonicalization
+    l{s,ist}\:list\ directory\ as\ XML
+    esc{,ape}\:escape\ special\ XML\ characters
+    unesc{,ape}\:unescape\ special\ XML\ characters
+    {pyx,xmln}\:convert\ XML\ into\ the\ line-oriented\ PYX\ format
+    {p2x,depyx}\:convert\ PYX\ into\ XML
+  ))' \
+  '*: :->args' && ret=0
+
+if [[ -n $state ]]; then
+  shift words
+  (( CURRENT-- ))
+  curcontext="${curcontext%:*:*}:$service-${words[1]}:"
+  case $words[1] in
+    el(|ements)|fo(|rmat)|sel(|ect)|c14n|canonic|xmln|pyx)
+      args+=( '1:file:_files -g "(#i)*.xml(-.)"' )
+    ;|
+    ed(|it)|sel(|ect))
+      args+=( '*-N[predefine namespaces]:namespace' )
+    ;|
+    c14n|canonic|ed(|it)|fo(|rmat)|sel(|ect)|tr(|ansform)|val(|idate))
+      args+=( '--net[allow fetching of DTDs or entities over network]' )
+    ;|
+    fo(|rmat)|tr(|ansform))
+      args+=( '(-o --omit-decl)'{-o,--omit-decl}'[omit XML declaration]' )
+    ;|
+
+    ed(|it))
+      args=(
+	'(opt)*'{-d,--delete}'[remove element]:xpath expression'
+	'(opt)*'{-i,--insert}'[add element before node matched by expression]:xpath expression - insert before matched node'
+	'(opt)*'{-a,--append}'[add element after node matched by expression]:xpath expression - insert after matched node'
+	'(opt)*'{-s,--subnode}'[add element as a child of node matched by expression]:xpath expression for parent modes'
+	'(opt)*'{-m,--move}'[move element]:xpath expression: :xpath expression'
+	'(opt)*'{-r,--rename}'[rename element]:xpath expression'
+	'(opt)*'{-u,--update}'[update element]:xpath expression'
+	'*:file:_files -g "(#i)*.xml(-.)"'
+	+ opt $args
+	'(-P -S --pf --ps)'{-P,-S,--pf,--ps}'[preserve whitespace nodes]'
+	'(-O --omit-decl)'{-O,--omit-decl}'[omit XML declaration]'
+	'(-L --inplace)'{-L,--inplace}'[edit file inplace]'
+      )
+      if [[ -n ${${words[2,CURRENT-1]}[(r)-([ias]|-insert|-append|-subnode)]} ]]; then
+	args=(
+	  '(opt)*'{-t,--type}'[specify type of node to add]:type:(elem text attr)'
+	  '(opt)*'{-n,--name}'[specify name of node to add]:name'
+	  $args
+	)
+      fi
+      if [[ -n ${${words[2,CURRENT-1]}[(r)-([iasru]|-insert|-append|-subnode|-rename|-update)]} ]]; then
+	args=( '(opt)*'{-v,--value}'[specify value of node to add or name of renamed node]:value' $args )
+      fi
+    ;;
+    el(|ements))
+      args+=(
+	'(-)-a[show attributes as well]'
+	'(-)-v[show attributes and their values]'
+	'(-)-u[print out sorted unique lines]'
+	'(-)-d-[print out sorted unique lines up to specified depth]:depth'
+      )
+    ;;
+    fo(|rmat))
+      args+=(
+	'(-t --indent-tab -s --indent-spaces -n --noindent)'{-n,--noindent}"[don't indent]"
+	'(-t --indent-tab -s --indent-spaces -n --noindent)'{-t,--indent-tab}'[indent output with tabs]'
+	'(-t --indent-tab -s --indent-spaces -n --noindent)'{-s,--indent-spaces}'[indent output with specified number of spaces]:spaces'
+	'(-R --recover)'{-R,--recover}'[try to recover what is parsable]'
+	'(-D --dropdtd)'{-D,--dropdtd}'[remove the DOCTYPE of the input docs]'
+	'(-C --nocdata)'{-C,--nocdata}'[replace cdata section with text nodes]'
+	'(-N --nsclean)'{-N,--nsclean}'[remove redundant namespace declarations]'
+	'(-e --encode)'{-e,--encode}'[output in the specified encoding]:encoding'
+	'(-H --html)'{-H,--html}'[input is HTML]'
+      )
+    ;;
+    sel(|ect))
+      [[ -n ${${words[2,CURRENT-1]}[(r)-t]} ]] && args+=(
+	\*{-c,--copy-of}'[print copy of XPath expression]:xpath expression'
+	\*{-v,--value-of}'[print value of XPath expression]:xpath expression'
+	\*{-o,--output}'[output string literal]:string'
+	\*{-n,--nl}'[print new line]'
+	\*{-f,--inp-name}'[print input file name (or URL)]'
+	\*{-m,--match}'[match XPath expression]:xpath expression'
+	\*{-v,--var}'[declare a variable]:variable'
+	\*{-i,--if,--elif}'[check condition]:condition'
+	'*--else[check if previous conditions failed]'
+	\*{-e,--elem}'[print out specified element]:element'
+	\*{-b,--break}'[break nesting]'
+	\*{-s,--sort}'[specify sort order]:order:->ordering:xpath expression'
+      )
+      args+=(
+	'(opt)*-t[start query template]'
+	+ opt
+	'(-Q --quiet)'{-Q,--quiet}"[don't write anything to standard output]"
+	'(-C --comp)'{-C,--comp}'[display generated XSLT]'
+	'(-R --root)'{-R,--root}'[print root element]'
+	'(-T --text -e --elem)'{-T,--text}'[output is text]'
+	'(-I --indent)'{-I,--indent}'[indent output]'
+	'(-D --xml-decl)'{-D,--xml-decl}"[don't omit xml declaration line]"
+	'(-B --noblanks)'{-B,--noblanks}'[remove insignificant spaces from XML tree]'
+	'(-E --encode)'{-E,--encode}'[output in the specified encoding]:encoding'
+      )
+    ;;
+    tr(|ansform))
+      args+=(
+	'(--embed -E)'{--embed,-E}'[allow applying embedded stylesheet]'
+	'(1 * -)--show-ext[show list of extensions]'
+	'--val[allow validation against DTD or schema]'
+	'--xinclude[do XInclude processing on document input]'
+	'--maxdepth[increase the maximum depth]:val'
+	'--html[input is HTML]'
+	'1:xsl file:_files -g "(#i)*.xsl(|t)(-.)"'
+	'*:xml file:_files'
+      )
+    ;;
+    val(|idate))
+      args+=(
+	'!(-d --dtd -s --xsd -r --relaxng)'{-w,--well-formed}
+	'(-d --dtd -s --xsd -r --relaxng)'{-d,--dtd}'[validate against DTD]:file:_files -g "(#i)*.dtd(-.)"'
+	'(-d --dtd -s --xsd -r --relaxng)'{-s,--xsd}'[validate against XSD schema]:schema file:_files -g "(#i)*.xsd(-.)"'
+	'(-E --embed)'{-E,--embed}'[validate using embedded DTD]'
+	'(-d --dtd -s --xsd -r --relaxng)'{-r,--relaxng}'[validate against schema]:schema file:_files -g "(#i)*.rng(-.)"'
+	'(-e --err)'{-e,--err}'[print verbose error messages on stderr]'
+	'(-S --stop)'{-S,--stop}'[stop on first error]'
+	'(-b --list-bad -g --list-good)'{-b,--list-bad}"[list only files that don't validate]"
+	'(-b --list-bad -g --list-good -q --quiet)'{-g,--list-good}'[list only files that validate]'
+	'(-b --list-bad -g --list-good -q --quiet)'{-q,--quiet}"[don't list files (return result code only)]"
+	'*:file:_files -g "(#i)*.xml(-.)"'
+      )
+    ;;
+    c14n|canonic)
+      args+=(
+	'!(-)--with-comments'
+	'(-)--without-comments[XML file canonicalization without comments]'
+	'(-)--exc-with-comments[exclusive XML file canonicalization with comments]'
+	'(-)--exc-without-comments[exclusive XML file canonicalization without comments]'
+	'2:xpath file:_files'
+	'3:namespace prefix list'
+      )
+    ;;
+    (un|)esc(|ape)) args+=( '1: :_guard "^-*" string' ) ;;
+    ls|list) args+=( '1:path:_directories' ) ;;
+    depyx|p2x) args+=( '1:pyx file:_files' ) ;;
+  esac
+  _arguments -C -A "-*" $args && ret=0
+  case $state in
+    ordering)
+      compset -S ':*' || suf=( -S : )
+      if compset -P 2 '*:'; then
+	_describe -t case-order case-order '(U:upper-first L:lower-first)' && ret=0
+      elif compset -P 1 '*:'; then
+	_describe -t data-type data-type '(N:numeric T:text)' $suf && ret=0
+      else
+	_describe -t order order '(A:ascending D:descending)' $suf && ret=0
+      fi
+    ;;
+  esac
+fi
+
+return ret

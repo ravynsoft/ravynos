@@ -1,0 +1,59 @@
+TARGET?=        $(uname -m).$(uname -p)
+TARGET_ARCH?=   ${TARGET}
+
+
+TOPDIR= ${.CURDIR}
+BUILDROOT= /usr/obj${TOPDIR}/${MACHINE}.${MACHINE_CPUARCH}/release/dist/ravynOS
+RAVYNOS_VERSION!= sed -e '1q;d' ${TOPDIR}/version.txt
+RAVYNOS_CODENAME!= sed -e '2q;d' ${TOPDIR}/version.txt
+CORES!= sysctl -n hw.ncpu
+DESTDIR=
+.export DESTDIR TOPDIR BUILDROOT RAVYNOS_VERSION RAVYNOS_CODENAME CORES
+
+MK_WERROR=      no
+WARNS=          1
+
+WITHOUT_LIBRARY?=       0
+WITHOUT_FRAMEWORKS?=    0
+WITHOUT_CORESERVICES?=  0
+WITHOUT_APPS?=          0
+
+SUBDIR=
+.if ${WITHOUT_LIBRARY} == 0
+SUBDIR+=        Library
+.endif
+.if ${WITHOUT_FRAMEWORKS} == 0
+# We need the installed frameworks to correctly link CoreServices and applications
+#SUBDIR+=	Frameworks .WAIT installravynos
+SUBDIR+=	Frameworks .WAIT 
+.endif
+.if ${WITHOUT_CORESERVICES} == 0
+SUBDIR+=        CoreServices
+.endif
+.if ${WITHOUT_APPS} == 0
+SUBDIR+=        SysApps
+.endif
+SUBDIR+=        bin/open
+
+
+prep:
+	mkdir -p ${OBJPREFIX} ${TOPDIR}/dist ${BUILDROOT}
+	mkdir -p ${BUILDROOT}/var/db/launchd/com.apple.launchd
+	mkdir -p ${BUILDROOT}/etc ${BUILDROOT}/var/run ${BUILDROOT}/usr/sbin
+	cp -f ${TOPDIR}/resolv.conf ${BUILDROOT}/etc/
+	for x in System System/Library/Frameworks System/Library/LaunchDaemons \
+		System/Library/LaunchAgents Library Library/LaunchDaemons \
+		Library/LaunchAgents Users Applications Volumes; \
+		do mkdir -p ${BUILDROOT}/$$x; \
+	done
+	mkdir -p ${BUILDROOT}/private
+.for x in dev etc var
+	ln -sf ../$x ${BUILDROOT}/private/$x
+.endfor
+
+install:
+	${MAKE} -C ${TOPDIR}/installravynos
+
+.include <bsd.subdir.mk>
+.include <rvn.common.mk>
+

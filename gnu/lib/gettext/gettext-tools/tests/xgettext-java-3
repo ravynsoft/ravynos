@@ -1,0 +1,31 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+#
+# Some tests for java plural keyword support
+#
+
+cat <<EOF > xg-j-3.java
+class TestCase {
+    public TestCase() {
+        Bundle test = Bundle.getBundle();
+        test.ngettext("test 1", "plural test");
+    }
+}
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-j-3.tmp xg-j-3.java || Exit 1
+LC_ALL=C tr -d '\r' < xg-j-3.tmp.po > xg-j-3.po || Exit 1
+
+cat <<EOF > xg-j-3.ok
+msgid "test 1"
+msgid_plural "plural test"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-j-3.ok xg-j-3.po
+result=$?
+
+exit $result

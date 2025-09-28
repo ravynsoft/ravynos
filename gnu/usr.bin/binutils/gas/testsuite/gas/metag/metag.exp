@@ -1,0 +1,42 @@
+# Meta assembler testsuite
+
+# Copyright (C) 2013-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+if [istarget metag-*-*] {
+    # Meta 1.2 geninst
+    run_dump_test "metacore12"
+    # Meta 2.1 geninst
+    run_dump_test "metacore21"
+    # Meta 2.1 extra
+    run_dump_test "metacore21ext"
+    # Meta 2.1 FPU geninst
+    run_dump_test "metafpu21"
+    # Meta 2.1 FPU extra
+    run_dump_test "metafpu21ext"
+    # Meta 2.1 DSP
+    run_dump_test "metadsp21"
+    # Meta 2.1 DSP extra
+    run_dump_test "metadsp21ext"
+    # Meta 2.1 illegal instructions
+    run_list_test "metacore21-invalid" ""
+    # Meta 2.1 DSP illegal instructions
+    run_list_test "metadsp21-invalid" "-mdsp=metac21"
+    # label arithmetic
+    run_dump_test "labelarithmetic"
+    # TLS
+    run_dump_test "tls"
+}

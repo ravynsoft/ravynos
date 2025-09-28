@@ -1,0 +1,129 @@
+#compdef dos2unix unix2dos mac2unix unix2mac
+
+local variant ret=1
+local -a context expl line state state_descr cp_opts xl_opts args
+local -A opt_args
+
+# Code-page options for ISO translation (use group `cp`)
+cp_opts=(
+  '(-7 -ascii)-437[use DOS code page 437 (US) for ISO translation]'
+  '(-7 -ascii)-850[use DOS code page 850 (Western European) for ISO translation]'
+  '(-7 -ascii)-860[use DOS code page 860 (Portuguese) for ISO translation]'
+  '(-7 -ascii)-863[use DOS code page 863 (French Canadian) for ISO translation]'
+  '(-7 -ascii)-865[use DOS code page 865 (Nordic) for ISO translation]'
+
+  '(-7 -ascii)-1252[use Windows code page 1252 (Western European) for ISO translation]'
+)
+# Translation/conversion options (use group `xl`)
+xl_opts=(
+  '(cp)-7[also replace 8-bit characters by 7-bit spaces]'
+  '(cp)-ascii[convert only line breaks (CRLF<->LF)]'
+  '-iso[also convert between DOS and ISO character sets]'
+
+  {-c,--convmode}'[specify conversion mode]:conversion mode:((
+    7bit\:"also replace 8-bit characters by 7-bit spaces"
+    ascii\:"convert only line breaks (CRLF<->LF)"
+    iso\:"also convert between DOS and ISO character sets"
+    mac\:"convert only line breaks (CR<->LF)"
+  ))'
+  {-ub,--assume-utf16be}'[assume input file format is UTF-16BE]'
+  {-ul,--assume-utf16le}'[assume input file format is UTF-16LE]'
+)
+
+# `dos2unix` here is the dos2unix package provided by many Linux distributions,
+# Homebrew, &al. `unix2dos` is the unix2dos package provided by FreeBSD, &al.
+# Some implementations (Solaris) don't bother with any kind of argument
+# validation, so we pass in /dev/null to make sure they never hang
+_pick_variant -r variant \
+  dos2unix='(#i)waterlan' \
+  unix2dos='-p' \
+  $OSTYPE \
+  --version /dev/null{,}
+
+case $variant in
+  dos2unix)
+    # -D and -gb are omitted, since they only make sense on Windows
+    args=(
+      '(: * -)'{-h,--help}'[display help information]'
+      '(: * -)'{-L,--license}'[display license information]'
+      '(: * -)'{-V,--version}'[display version information]'
+      '(-l --newline)'{-l,--newline}'[write two line breaks to output for each converted line break]'
+      '(-u --keep-utf16)'{-u,--keep-utf16}'[write output in same UTF-16 encoding as input]'
+      '*:: :->file'
+      + '(qv)' # Verbosity options
+      {-q,--quiet}'[reduce output verbosity]'
+      {-v,--verbose}'[increase output verbosity]'
+      + '(cp)' # Code-page options
+      $cp_opts
+      + '(xl)' # Translation/conversion options
+      $xl_opts
+      + bm # BOM options
+      '(-b -r --keep-bom --remove-bom)'{-b,--keep-bom}'[write existing BOM to output]'
+      '(-m -r --add-bom --remove-bom)'{-m,--add-bom}'[write new BOM to output]'
+      '(bm)'{-r,--remove-bom}"[don't write BOM to output]"
+      + '(ch)' # chown options
+      '--allow-chown[allow file-ownership changes in old-file mode]'
+      "--no-allow-chown[don't allow file-ownership changes in old-file mode]"
+      + '(fs)' # Force/safe options
+      {-f,--force}'[force conversion of binary files]'
+      {-s,--safe}'[skip binary files]'
+      + '(in)' # Info options
+      {-i-,--info=-}'[display (specified) file information]:: :->info'
+      + '(ln)' # Symlink options
+      {-F,--follow-symlink}'[follow symbolic links]'
+      {-R,--replace-symlink}'[replace symbolic links]'
+      {-S,--skip-symlink}'[skip symbolic links]'
+      + '(no)' # File-mode options
+      {-n,--newfile}'[convert each input file to specified output file]'
+      {-o,--oldfile}'[convert input files in place]'
+    )
+    # No stacking!
+    _arguments -S -A '-*' : $args && ret=0
+
+    case $state in
+      file)
+        if (( CURRENT % 2 == 0 )) && [[ -n ${opt_args[(I)*-(-n|--newfile)]} ]]; then
+          _description files expl 'output file'
+        else
+          _description files expl 'input file'
+        fi
+        _files "${(@)expl}" && ret=0
+        ;;
+      info)
+        _values -s '' 'information flag [dumbt]' \
+          '0[end each output line with NUL instead of newline]' \
+          'b[show BOM type]' \
+          'c[show only files that would be converted]' \
+          'd[show number of DOS line breaks (CRLF)]' \
+          'h[show header]' \
+          'm[show number of Mac line breaks (CR)]' \
+          'p[show file names without paths]' \
+          't[show whether file is text or binary]' \
+          'u[show number of UNIX line breaks (LF)]' \
+        && ret=0
+        ;;
+    esac
+
+    return ret
+    ;;
+  unix2dos)
+    _arguments -s -S -A '-*' : \
+      '-p[preserve access and modification times]' \
+      '*:input file:_files'
+    return
+    ;;
+  solaris*)
+    _arguments -A '-*' : \
+      '1:input file:_files' \
+      '2:output file:_files' \
+      + '(cp)' \
+      ${(@M)cp_opts:#(|\([^\)]#\))-(437|850|860|863|865)(|\[*)} \
+      + '(xl)' \
+      ${(@M)xl_opts:#(|\([^\)]#\))-(7|ascii|iso)(|\[*)}
+    return
+    ;;
+  *)
+    _default
+    return
+    ;;
+esac

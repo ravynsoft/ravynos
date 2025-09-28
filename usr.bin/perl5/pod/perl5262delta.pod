@@ -1,0 +1,245 @@
+=encoding utf8
+
+=head1 NAME
+
+perl5262delta - what is new for perl v5.26.2
+
+=head1 DESCRIPTION
+
+This document describes differences between the 5.26.1 release and the 5.26.2
+release.
+
+If you are upgrading from an earlier release such as 5.26.0, first read
+L<perl5261delta>, which describes differences between 5.26.0 and 5.26.1.
+
+=head1 Security
+
+=head2 [CVE-2018-6797] heap-buffer-overflow (WRITE of size 1) in S_regatom (regcomp.c)
+
+A crafted regular expression could cause a heap buffer write overflow, with
+control over the bytes written.
+L<[GH #16185]|https://github.com/Perl/perl5/issues/16185>
+
+=head2 [CVE-2018-6798] Heap-buffer-overflow in Perl__byte_dump_string (utf8.c)
+
+Matching a crafted locale dependent regular expression could cause a heap
+buffer read overflow and potentially information disclosure.
+L<[GH #16143]|https://github.com/Perl/perl5/issues/16143>
+
+=head2 [CVE-2018-6913] heap-buffer-overflow in S_pack_rec
+
+C<pack()> could cause a heap buffer write overflow with a large item count.
+L<[GH #16098]|https://github.com/Perl/perl5/issues/16098>
+
+=head2 Assertion failure in Perl__core_swash_init (utf8.c)
+
+Control characters in a supposed Unicode property name could cause perl to
+crash.  This has been fixed.
+L<[perl #132055]|https://rt.perl.org/Public/Bug/Display.html?id=132055>
+L<[perl #132553]|https://rt.perl.org/Public/Bug/Display.html?id=132553>
+L<[perl #132658]|https://rt.perl.org/Public/Bug/Display.html?id=132658>
+
+=head1 Incompatible Changes
+
+There are no changes intentionally incompatible with 5.26.1.  If any exist,
+they are bugs, and we request that you submit a report.  See L</Reporting
+Bugs> below.
+
+=head1 Modules and Pragmata
+
+=head2 Updated Modules and Pragmata
+
+=over 4
+
+=item *
+
+L<Module::CoreList> has been upgraded from version 5.20170922_26 to 5.20180414_26.
+
+=item *
+
+L<PerlIO::via> has been upgraded from version 0.16 to 0.17.
+
+=item *
+
+L<Term::ReadLine> has been upgraded from version 1.16 to 1.17.
+
+=item *
+
+L<Unicode::UCD> has been upgraded from version 0.68 to 0.69.
+
+=back
+
+=head1 Documentation
+
+=head2 Changes to Existing Documentation
+
+=head3 L<perluniprops>
+
+=over 4
+
+=item *
+
+This has been updated to note that C<\p{Word}> now includes code points
+matching the C<\p{Join_Control}> property.  The change to the property was made
+in Perl 5.18, but not documented until now.  There are currently only two code
+points that match this property: U+200C (ZERO WIDTH NON-JOINER) and U+200D
+(ZERO WIDTH JOINER).
+
+=back
+
+=head1 Platform Support
+
+=head2 Platform-Specific Notes
+
+=over 4
+
+=item Windows
+
+Visual C++ compiler version detection has been improved to work on non-English
+language systems.
+L<[GH #16235]|https://github.com/Perl/perl5/issues/16235>
+
+We now set C<$Config{libpth}> correctly for 64-bit builds using Visual C++
+versions earlier than 14.1.
+L<[GH #16269]|https://github.com/Perl/perl5/issues/16269>
+
+=back
+
+=head1 Selected Bug Fixes
+
+=over 4
+
+=item *
+
+The C<readpipe()> built-in function now checks at compile time that it has only
+one parameter expression, and puts it in scalar context, thus ensuring that it
+doesn't corrupt the stack at runtime.
+L<[GH #2793]|https://github.com/Perl/perl5/issues/2793>
+
+=item *
+
+Fixed a use after free bug in C<pp_list> introduced in Perl 5.27.1.
+L<[GH #16124]|https://github.com/Perl/perl5/issues/16124>
+
+=item *
+
+Parsing a C<sub> definition could cause a use after free if the C<sub> keyword
+was followed by whitespace including newlines (and comments).
+L<[GH #16097]|https://github.com/Perl/perl5/issues/16097>
+
+=item *
+
+The tokenizer now correctly adjusts a parse pointer when skipping whitespace in
+an C< ${identifier} > construct.
+L<[perl #131949]|https://rt.perl.org/Public/Bug/Display.html?id=131949>
+
+=item *
+
+Accesses to C<${^LAST_FH}> no longer assert after using any of a variety of I/O
+operations on a non-glob.
+L<[GH #15372]|https://github.com/Perl/perl5/issues/15372>
+
+=item *
+
+C<sort> now performs correct reference counting when aliasing C<$a> and C<$b>,
+thus avoiding premature destruction and leakage of scalars if they are
+re-aliased during execution of the sort comparator.
+L<[GH #11422]|https://github.com/Perl/perl5/issues/11422>
+
+=item *
+
+Some convoluted kinds of regexp no longer cause an arithmetic overflow when
+compiled.
+L<[GH #16113]|https://github.com/Perl/perl5/issues/16113>
+
+=item *
+
+Fixed a duplicate symbol failure with B<-flto -mieee-fp> builds.  F<pp.c>
+defined C<_LIB_VERSION> which B<-lieee> already defines.
+L<[GH #16086]|https://github.com/Perl/perl5/issues/16086>
+
+=item *
+
+A NULL pointer dereference in the C<S_regmatch()> function has been fixed.
+L<[perl #132017]|https://rt.perl.org/Public/Bug/Display.html?id=132017>
+
+=item *
+
+Failures while compiling code within other constructs, such as with string
+interpolation and the right part of C<s///e> now cause compilation to abort
+earlier.
+
+Previously compilation could continue in order to report other errors, but the
+failed sub-parse could leave partly parsed constructs on the parser
+shift-reduce stack, confusing the parser, leading to perl crashes.
+L<[GH #14739]|https://github.com/Perl/perl5/issues/14739>
+
+=back
+
+=head1 Acknowledgements
+
+Perl 5.26.2 represents approximately 7 months of development since Perl 5.26.1
+and contains approximately 3,300 lines of changes across 82 files from 17
+authors.
+
+Excluding auto-generated files, documentation and release tools, there were
+approximately 1,800 lines of changes to 36 .pm, .t, .c and .h files.
+
+Perl continues to flourish into its third decade thanks to a vibrant community
+of users and developers.  The following people are known to have contributed
+the improvements that became Perl 5.26.2:
+
+Aaron Crane, Abigail, Chris 'BinGOs' Williams, H.Merijn Brand, James E Keenan,
+Jarkko Hietaniemi, John SJ Anderson, Karen Etheridge, Karl Williamson, Lukas
+Mai, Renee Baecker, Sawyer X, Steve Hay, Todd Rinaldo, Tony Cook, Yves Orton,
+Zefram.
+
+The list above is almost certainly incomplete as it is automatically generated
+from version control history.  In particular, it does not include the names of
+the (very much appreciated) contributors who reported issues to the Perl bug
+tracker.
+
+Many of the changes included in this version originated in the CPAN modules
+included in Perl's core.  We're grateful to the entire CPAN community for
+helping Perl to flourish.
+
+For a more complete list of all of Perl's historical contributors, please see
+the F<AUTHORS> file in the Perl source distribution.
+
+=head1 Reporting Bugs
+
+If you find what you think is a bug, you might check the perl bug database
+at L<https://rt.perl.org/> .  There may also be information at
+L<http://www.perl.org/> , the Perl Home Page.
+
+If you believe you have an unreported bug, please run the L<perlbug> program
+included with your release.  Be sure to trim your bug down to a tiny but
+sufficient test case.  Your bug report, along with the output of C<perl -V>,
+will be sent off to perlbug@perl.org to be analysed by the Perl porting team.
+
+If the bug you are reporting has security implications which make it
+inappropriate to send to a publicly archived mailing list, then see
+L<perlsec/SECURITY VULNERABILITY CONTACT INFORMATION>
+for details of how to report the issue.
+
+=head1 Give Thanks
+
+If you wish to thank the Perl 5 Porters for the work we had done in Perl 5,
+you can do so by running the C<perlthanks> program:
+
+    perlthanks
+
+This will send an email to the Perl 5 Porters list with your show of thanks.
+
+=head1 SEE ALSO
+
+The F<Changes> file for an explanation of how to view exhaustive details on
+what changed.
+
+The F<INSTALL> file for how to build Perl.
+
+The F<README> file for general stuff.
+
+The F<Artistic> and F<Copying> files for copyright information.
+
+=cut

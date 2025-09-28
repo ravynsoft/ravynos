@@ -1,0 +1,50 @@
+# Copyright (C) 2012-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+# Relocation test.
+# This test is special because it exercises the linker's 
+
+proc ld_test { objects ldflags dest test } {
+    set ld_output [target_link $objects $dest $ldflags]
+    if [string match "" $ld_output] then { pass $test } else { fail $test }
+}
+
+
+proc objdump_test { exec flags dest test } {
+    set objcopy [find_binutils_prog objdump]
+    verbose -log "$objcopy $flags $exec > $dest"
+    catch "exec $objcopy $flags $exec > $dest" objdump_output
+    if [string match "" $objdump_output] then { pass $test } else { fail $test }
+}
+
+proc regexp_test { file1 file2 test } {
+    if [regexp_diff $file1 $file2] then { fail $test } else { pass $test }
+}
+
+
+if [istarget mt-*] {
+    gas_test "relocs1.s" {-o relocs1.o} {} {assembling relocs1}
+
+    #    gas_test "relocs2.s" {-o relocs2.o} {} {assembling relocs2}
+    #    ld_test {relocs1.o relocs2.o} {} {relocs.x} {linking relocs.x}
+    #    objdump_test {relocs.x} {-ds} {relocs.dump} {disassembling relocs.x}
+    #    regexp_test {relocs.dump} "$srcdir/$subdir/relocs.d" {matching disassembly}
+
+    gas_test "relocs2.s" {-o relocs2.o} {} {assembling relocs2}
+    ld_test {relocs1.o relocs2.o} {} {relocs.x} {linking relocs.x}
+    objdump_test {relocs.x} {-ds} {relocs.dump} {disassembling relocs.x}
+    regexp_test {relocs.dump} "$srcdir/$subdir/relocs.d" {matching disassembly}
+}

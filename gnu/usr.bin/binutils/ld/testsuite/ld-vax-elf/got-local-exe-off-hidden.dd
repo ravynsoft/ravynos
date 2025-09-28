@@ -1,0 +1,17 @@
+.*: +file format .*vax.*
+
+Disassembly of section \.text:
+
+00000000 <foo>:
+   0:	00 00       	\.word 0x0000 # Entry mask: < >
+   2:	9e ef f8 1f 	movab 2000 <bar_hidden>,r0
+   6:	00 00 50 
+   9:	9e ef f2 1f 	movab 2001 <bar_hidden\+0x1>,r0
+   d:	00 00 50 
+  10:	9e ef ec 1f 	movab 2002 <bar_hidden\+0x2>,r0
+  14:	00 00 50 
+  17:	9e ef e6 1f 	movab 2003 <bar_visible>,r1
+  1b:	00 00 51 
+  1e:	9e ff dc 0f 	movab \*1000 <baz>,r2
+  22:	00 00 52 
+  25:	04          	ret

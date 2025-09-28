@@ -1,0 +1,304 @@
+# Tests for the zsh/param/private module
+
+%prep
+
+ if ! zmodload zsh/param/private 2>/dev/null; then
+   ZTST_unimplemented="can't load the zsh/param/private module for testing"
+ else
+   # Do not use .tmp here, ztst.zsh will remove it too soon (see %cleanup)
+   mkdir private.TMP
+   sed -e 's,# test_zsh_param_private,zmodload zsh/param/private,' < $ZTST_srcdir/B02typeset.ztst > private.TMP/B02
+ fi
+
+%test
+
+ (zmodload -u zsh/param/private && zmodload zsh/param/private)
+0:unload and reload the module without crashing
+
+ typeset scalar_test=toplevel
+ () {
+  print $scalar_test
+  private scalar_test
+  typeset +m scalar_test
+  unset scalar_test
+  print $+scalar_test
+ }
+ print $scalar_test
+0:basic scope hiding
+>toplevel
+>local scalar_test
+>0
+>toplevel
+
+ typeset scalar_test=toplevel
+ print $scalar_test
+ () {
+  private scalar_test=function
+  print $scalar_test
+ }
+ print $scalar_test
+0:enter and exit a scope
+>toplevel
+>function
+>toplevel
+
+ print $+unset_test
+ () {
+  private unset_test
+  typeset +m unset_test
+  unset_test=setme
+  print $unset_test
+ }
+ print $+unset_test
+0:variable defined only in scope
+>0
+>local unset_test
+>setme
+>0
+
+ # Depends on zsh-5.0.9 typeset keyword
+ typeset -a array_test=(top level)
+ () {
+  local -Pa array_test=(in function)
+  () {
+   private array_test
+   typeset +m array_test
+  }
+  print $array_test
+ }
+ print $array_test
+0:nested scope with different type, correctly restored
+>local array_test
+>in function
+>top level
+
+ typeset -a array_test=(top level)
+ () {
+  private array_test
+  array_test=(in function)
+ }
+1:type of private may not be changed by assignment
+?(anon):2: array_test: attempt to assign array value to non-array
+
+ typeset -A hash_test=(top level)
+ () {
+  setopt localoptions noglob
+  private hash_test[top]
+ }
+1:associative array fields may not be private
+?(anon):private:2: hash_test[top]: can't create local array elements
+
+ () {
+  private path
+ }
+1:tied params may not be private, part 1
+?(anon):private:1: can't change scope of existing param: path
+
+ () {
+  private PATH
+ }
+1:tied params may not be private, part 2
+?(anon):private:1: can't change scope of existing param: PATH
+
+ () {
+  private -h path
+  print X$path
+ }
+0:privates may hide tied parameters
+>X
+
+ # Deliberate type mismatch here
+ typeset -a hash_test=(top level)
+ typeset -p hash_test
+ inner () {
+  private -p hash_test
+  print ${(t)hash_test} ${(kv)hash_test}
+ }
+ outer () {
+  local -PA hash_test=(in function)
+  private + hash_test
+  inner
+ }
+ outer
+ print ${(kv)hash_test}
+0:private hides value from surrounding scope in nested scope
+>typeset -a hash_test=( top level )
+>hash_test=( [in]=function )
+>typeset -g -a hash_test=( top level )
+>array-local top level
+>top level
+F:note "typeset" rather than "private" in output from outer
+
+ () {
+  private -a array_test
+  local array_test=scalar
+ }
+1:private cannot be re-declared as local
+?(anon):local:2: array_test: inconsistent type for assignment
+
+ () {
+  local hash_test=scalar
+  private -A hash_test
+ }
+1:local cannot be re-declared as private
+?(anon):private:2: can't change scope of existing param: hash_test
+
+ inner () {
+  print $+scalar_test
+  $ZTST_testdir/../Src/zsh -fc 'print X $scalar_test'
+ }
+ () {
+  private -x scalar_test=whaat
+  $ZTST_testdir/../Src/zsh -fc 'print X $scalar_test'
+  inner
+  print Y $scalar_test
+ }
+0:exported private behaves like a local, part 1
+>X whaat
+>0
+>X whaat
+>Y whaat
+
+ inner () {
+  typeset -p array_test
+  $ZTST_testdir/../Src/zsh -fc 'print X $array_test'
+ }
+ () {
+  local -Pax array_test=(whaat)
+  print Y $array_test
+  $ZTST_testdir/../Src/zsh -fc 'print X $array_test'
+  inner
+ }
+0:exported private behaves like a local, part 2 (arrays do not export)
+?inner:typeset:1: no such variable: array_test
+>Y whaat
+>X
+>X
+
+ inner () {
+  print $+scalar_test
+  $ZTST_testdir/../Src/zsh -fc 'print X $scalar_test'
+ }
+ () {
+  private scalar_test=whaat
+  export scalar_test
+  $ZTST_testdir/../Src/zsh -fc 'print X $scalar_test'
+  inner
+  () {
+   print $+scalar_test
+   $ZTST_testdir/../Src/zsh -fc 'print X $scalar_test'
+  }
+  print Y $scalar_test
+ }
+0:exported private behaves like a local, part 3 (export does not change scope)
+>X whaat
+>0
+>X whaat
+>0
+>X whaat
+>Y whaat
+
+ typeset -A hash_test=(top level)
+ () {
+  local -PA hash_test=(in function)
+  () {
+   print X ${(kv)hash_test}
+  }
+  print Y ${(kv)hash_test}
+ }
+ print ${(kv)hash_test}
+0:privates are not visible in anonymous functions, part 1
+>X top level
+>Y in function
+>top level
+
+ typeset -A hash_test=(top level)
+ () {
+  local -PA hash_test=(in function)
+  () {
+   print X ${(kv)hash_test}
+   hash_test[in]=deeper
+  }
+  print Y ${(kv)hash_test}
+ }
+ print ${(okv)hash_test}
+0:privates are not visible in anonymous functions, part 2
+>X top level
+>Y in function
+>deeper in level top
+
+ typeset -A hash_test=(top level)
+ () {
+  local -Pa array_test=(in function)
+  local -PA hash_test=($array_test)
+  () {
+   print X ${(kv)hash_test}
+   hash_test=(even deeper)
+   {
+     array_test+=(${(kv)hash_test})
+   } always {
+     print ${array_test-array_test not set} ${(t)array_test}
+   }
+  }
+  print Y ${(kv)hash_test} Z $array_test
+ }
+ print ${(kv)hash_test} ${(t)array_test}
+1:privates are not visible in anonymous functions, part 3
+>X top level
+>array_test not set
+?(anon):4: array_test: can't change parameter attribute
+F:future revision will create a global with this assignment
+
+ typeset -a array_test
+ typeset -A hash_test=(top level)
+ () {
+  local -Pa array_test=(in function)
+  local -PA hash_test=($array_test)
+  () {
+   print X ${(kv)hash_test}
+   hash_test=(even deeper)
+   array_test+=(${(kv)hash_test})
+  }
+  print Y ${(kv)hash_test} Z $array_test
+ }
+ print ${(kv)hash_test} $array_test
+0:privates are not visible in anonymous functions, part 4
+>X top level
+>Y in function Z in function
+>even deeper even deeper
+
+ typeset -A hash_test=(top level)
+ () {
+  local -PA hash_test=(in function)
+  () {
+   print X ${(kv)hash_test}
+   unset hash_test
+  }
+  print Y ${(kv)hash_test}
+ }
+ print ${(t)hash_test} ${(kv)hash_test}
+0:privates are not visible in anonymous functions, part 5
+>X top level
+>Y in function
+>
+
+ # Subshell because otherwise this silently dumps core when broken
+ ( () { private SECONDS } )
+1:special parameters cannot be made private
+?(anon):private: can't change scope of existing param: SECONDS
+
+ () { private -h SECONDS }
+0:private parameter may hide a special parameter
+
+ if (( UID )); then
+   ZTST_verbose=0 $ZTST_exe +Z -f $ZTST_srcdir/ztst.zsh private.TMP/B02
+ else
+   ZTST_skip="cannot re-run typeset tests when tests run as superuser"
+ fi
+0:typeset still works with zsh/param/private module loaded
+*>*
+*>*
+
+%clean
+
+  rm -r private.TMP

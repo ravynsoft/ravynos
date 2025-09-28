@@ -1,0 +1,33 @@
+#source: plt-pic.s
+#as: --32
+#ld: -z now -shared -melf_i386
+#objdump: -dwr
+#target: i?86-*-*
+
+.*: +file format .*
+
+
+Disassembly of section .plt:
+
+.* <fn1@plt-0x10>:
+ +[a-f0-9]+:	ff b3 04 00 00 00    	push   0x4\(%ebx\)
+ +[a-f0-9]+:	ff a3 08 00 00 00    	jmp    \*0x8\(%ebx\)
+ +[a-f0-9]+:	00 00                	add    %al,\(%eax\)
+	...
+
+.* <fn1@plt>:
+ +[a-f0-9]+:	ff a3 0c 00 00 00    	jmp    \*0xc\(%ebx\)
+ +[a-f0-9]+:	68 00 00 00 00       	push   \$0x0
+ +[a-f0-9]+:	e9 e0 ff ff ff       	jmp    .* <fn1@plt-0x10>
+
+.* <fn2@plt>:
+ +[a-f0-9]+:	ff a3 10 00 00 00    	jmp    \*0x10\(%ebx\)
+ +[a-f0-9]+:	68 08 00 00 00       	push   \$0x8
+ +[a-f0-9]+:	e9 d0 ff ff ff       	jmp    .* <fn1@plt-0x10>
+
+Disassembly of section .text:
+
+.* <foo>:
+ +[a-f0-9]+:	e8 db ff ff ff       	call   .* <fn1@plt>
+ +[a-f0-9]+:	e9 e6 ff ff ff       	jmp    .* <fn2@plt>
+#pass

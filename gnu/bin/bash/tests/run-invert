@@ -1,0 +1,2 @@
+${THIS_SH} ./invert.tests 2>&1 | grep -v '^expect' > ${BASH_TSTOUT}
+diff ${BASH_TSTOUT} invert.right && rm -f ${BASH_TSTOUT}

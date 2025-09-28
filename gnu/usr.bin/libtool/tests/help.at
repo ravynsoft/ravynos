@@ -1,0 +1,191 @@
+# help.at -- standard command line options          -*- Autotest -*-
+#
+#   Copyright (C) 2009-2019, 2021-2022 Free Software Foundation, Inc.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_BANNER([Testing libtool functions.])
+
+AT_SETUP([standard command line options])
+AT_KEYWORDS([libtool])
+AT_KEYWORDS([libtoolize])
+
+AT_CHECK([$LIBTOOLIZE --help], [], [ignore])
+AT_CHECK([$LIBTOOLIZE --version], [], [stdout])
+AT_CHECK([$GREP 'Copyright.*Free Software Foundation' stdout], [], [ignore])
+AT_CHECK([$LIBTOOL --help], [], [ignore])
+AT_CHECK([$LIBTOOL --help-all], [], [ignore])
+AT_CHECK([$LIBTOOL --version], [], [stdout])
+AT_CHECK([$GREP 'Copyright.*Free Software Foundation' stdout], [], [ignore])
+
+AT_CHECK([$LIBTOOL], [1], [stdout], [stderr])
+AT_CHECK([$GREP 'specify a MODE' stderr], [], [ignore])
+AT_CHECK([$GREP ' --help' stdout], [], [ignore])
+
+AT_CLEANUP
+
+
+AT_SETUP([mode short-hands])
+
+AT_DATA([a.c],
+[[int a () { return 0; }
+]])
+
+AT_DATA([main.c],
+[[extern int a ();
+int main () { return a (); }
+]])
+
+inst=`pwd`/inst
+libdir=$inst/lib
+bindir=$inst/bin
+mkdir $inst $libdir $bindir
+
+AT_CHECK([$LIBTOOL compile $CC $CPPFLAGS $CFLAGS -c a.c],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL co $CC $CPPFLAGS $CFLAGS -c main.c],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL co $CC $CPPFLAGS $CFLAGS -c main.c],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL link $CC $CFLAGS $LDFLAGS -o liba.la a.lo ]dnl
+	 [-no-undefined -rpath $libdir], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL l $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.lo ]dnl
+	 [liba.la], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL execute --dry-run ./main$EXEEXT],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL exe --dry-run ./main$EXEEXT],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL e --dry-run ./main$EXEEXT],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL install cp liba.la $libdir],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL i cp main$EXEEXT $bindir],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL finish $libdir],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL f $libdir],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL uninstall rm -f $libdir/liba.la],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL u rm -f $bindir/main$EXEEXT],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL clean rm -f main$EXEEXT],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL cl liba.la],
+	 [], [ignore], [ignore])
+
+AT_CLEANUP
+
+
+AT_SETUP([debug tracing])
+
+AT_DATA([a.c],
+[[int a () { return 0; }
+]])
+
+AT_DATA([b.c],
+[[extern int a ();
+int b () { return a (); }
+]])
+
+AT_DATA([main.c],
+[[extern int b ();
+int main () { return b (); }
+]])
+
+inst=`pwd`/inst
+libdir=$inst/lib
+bindir=$inst/bin
+mkdir $inst $libdir $bindir
+
+# This test will not work correctly if --debug is passed.
+AT_CHECK([case "$LIBTOOL $CC $CPPFLAGS $CFLAGS $LDFLAGS " in ]dnl
+	 [  *\ --debug\ *) exit 77;; *) :;; esac])
+
+check_trace ()
+{
+  if test X--debug = "X$trace"; then
+    AT_CHECK([$GREP 'enabling shell trace mode' stdout stderr], [0], [ignore])
+    AT_CHECK([$GREP ' --mode' stderr], [0], [ignore])
+  else
+    AT_CHECK([$GREP 'enabling shell trace mode' stdout stderr], [1])
+    AT_CHECK([$GREP ' --mode' stderr], [1])
+  fi
+}
+
+orig_LIBTOOL=$LIBTOOL
+for trace in '' --debug; do
+  LIBTOOL="$orig_LIBTOOL $trace"
+
+  # Hypothesis: debug output should happen if (and only if) --debug is
+  # passed, for compile, link, install, uninstall, and clean modes.
+  AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a.c],
+	   [], [stdout], [stderr])
+  check_trace
+  AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c b.c],
+	   [], [stdout], [stderr])
+  check_trace
+  AT_CHECK([$CC $CPPFLAGS $CFLAGS -c main.c], [], [ignore], [ignore])
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la a.lo ]dnl
+	   [ -no-undefined -rpath $libdir], [], [stdout], [stderr])
+  check_trace
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o libb.la b.lo ]dnl
+	   [ -no-undefined -rpath $libdir liba.la], [], [stdout], [stderr])
+  check_trace
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT ]dnl
+	   [libb.la], [], [stdout], [stderr])
+  check_trace
+  LT_AT_NOINST_EXEC_CHECK([./main], [], [], [stdout], [stderr])
+  check_trace
+
+  AT_CHECK([$LIBTOOL --mode=install cp liba.la libb.la $libdir],
+	   [], [stdout], [stderr])
+  check_trace
+
+  # Hypothesis: --debug should be passed to relink mode if (and only if)
+  # it was passed at link mode.
+  AT_CHECK([$orig_LIBTOOL --mode=install $lt_INSTALL liba.la libb.la $libdir],
+	   [], [stdout], [stderr])
+  if $GREP ': relinking ' stdout stderr; then
+    if test X--debug = "X$trace"; then
+      AT_CHECK([$GREP ' --mode=relink' stdout stderr | $GREP ' --debug '],
+	       [0], [ignore])
+    else
+      AT_CHECK([$GREP ' --mode=relink' stdout stderr | $GREP ' --debug '],
+	       [1])
+    fi
+  fi
+
+  AT_CHECK([$LIBTOOL --mode=install cp main$EXEEXT $bindir],
+	   [], [stdout], [stderr])
+  check_trace
+  AT_CHECK([$LIBTOOL --mode=finish $bindir], [], [stdout], [stderr])
+  check_trace
+
+  AT_CHECK([$LIBTOOL --mode=uninstall rm -f $bindir/main$EXEEXT ]dnl
+	   [$libdir/libb.la $libdir/liba.la], [], [stdout], [stderr])
+  check_trace
+  AT_CHECK([$LIBTOOL --mode=clean rm -f $bindir/main$EXEEXT ]dnl
+	   [$libdir/libb.la $libdir/liba.la], [], [stdout], [stderr])
+  check_trace
+
+done
+
+AT_CLEANUP

@@ -1,0 +1,10 @@
+# originally from Mike Haertel
+foo() { case $1 in a*) ;; *) ;; esac ;}
+bar() { case $1 in [abc]*) ;; *);; esac ;}
+baz() { case $1 in xyzzy) ;; *) ;; esac ;}
+for x in /usr/lib/*/*
+do
+        foo $x
+        bar $x
+        baz $x
+done

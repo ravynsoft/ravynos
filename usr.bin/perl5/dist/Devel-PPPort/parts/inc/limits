@@ -1,0 +1,326 @@
+################################################################################
+##
+##  Version 3.x, Copyright (C) 2004-2013, Marcus Holland-Moritz.
+##  Version 2.x, Copyright (C) 2001, Paul Marquess.
+##  Version 1.x, Copyright (C) 1999, Kenneth Albanowski.
+##
+##  This program is free software; you can redistribute it and/or
+##  modify it under the same terms as Perl itself.
+##
+################################################################################
+
+=provides
+
+PERL_UCHAR_MIN
+PERL_UCHAR_MAX
+PERL_USHORT_MIN
+PERL_USHORT_MAX
+PERL_SHORT_MAX
+PERL_SHORT_MIN
+PERL_UINT_MAX
+PERL_UINT_MIN
+PERL_INT_MAX
+PERL_INT_MIN
+PERL_ULONG_MAX
+PERL_ULONG_MIN
+PERL_LONG_MAX
+PERL_LONG_MIN
+PERL_UQUAD_MAX
+PERL_UQUAD_MIN
+PERL_QUAD_MAX
+PERL_QUAD_MIN
+IVSIZE
+UVSIZE
+IVTYPE
+UVTYPE
+
+=implementation
+
+#ifdef I_LIMITS
+#  include <limits.h>
+#endif
+
+#ifndef PERL_UCHAR_MIN
+#  define PERL_UCHAR_MIN ((unsigned char)0)
+#endif
+
+#ifndef PERL_UCHAR_MAX
+#  ifdef UCHAR_MAX
+#    define PERL_UCHAR_MAX ((unsigned char)UCHAR_MAX)
+#  else
+#    ifdef MAXUCHAR
+#      define PERL_UCHAR_MAX ((unsigned char)MAXUCHAR)
+#    else
+#      define PERL_UCHAR_MAX ((unsigned char)~(unsigned)0)
+#    endif
+#  endif
+#endif
+
+#ifndef PERL_USHORT_MIN
+#  define PERL_USHORT_MIN ((unsigned short)0)
+#endif
+
+#ifndef PERL_USHORT_MAX
+#  ifdef USHORT_MAX
+#    define PERL_USHORT_MAX ((unsigned short)USHORT_MAX)
+#  else
+#    ifdef MAXUSHORT
+#      define PERL_USHORT_MAX ((unsigned short)MAXUSHORT)
+#    else
+#      ifdef USHRT_MAX
+#        define PERL_USHORT_MAX ((unsigned short)USHRT_MAX)
+#      else
+#        define PERL_USHORT_MAX ((unsigned short)~(unsigned)0)
+#      endif
+#    endif
+#  endif
+#endif
+
+#ifndef PERL_SHORT_MAX
+#  ifdef SHORT_MAX
+#    define PERL_SHORT_MAX ((short)SHORT_MAX)
+#  else
+#    ifdef MAXSHORT    /* Often used in <values.h> */
+#      define PERL_SHORT_MAX ((short)MAXSHORT)
+#    else
+#      ifdef SHRT_MAX
+#        define PERL_SHORT_MAX ((short)SHRT_MAX)
+#      else
+#        define PERL_SHORT_MAX ((short) (PERL_USHORT_MAX >> 1))
+#      endif
+#    endif
+#  endif
+#endif
+
+#ifndef PERL_SHORT_MIN
+#  ifdef SHORT_MIN
+#    define PERL_SHORT_MIN ((short)SHORT_MIN)
+#  else
+#    ifdef MINSHORT
+#      define PERL_SHORT_MIN ((short)MINSHORT)
+#    else
+#      ifdef SHRT_MIN
+#        define PERL_SHORT_MIN ((short)SHRT_MIN)
+#      else
+#        define PERL_SHORT_MIN (-PERL_SHORT_MAX - ((3 & -1) == 3))
+#      endif
+#    endif
+#  endif
+#endif
+
+#ifndef PERL_UINT_MAX
+#  ifdef UINT_MAX
+#    define PERL_UINT_MAX ((unsigned int)UINT_MAX)
+#  else
+#    ifdef MAXUINT
+#      define PERL_UINT_MAX ((unsigned int)MAXUINT)
+#    else
+#      define PERL_UINT_MAX (~(unsigned int)0)
+#    endif
+#  endif
+#endif
+
+#ifndef PERL_UINT_MIN
+#  define PERL_UINT_MIN ((unsigned int)0)
+#endif
+
+#ifndef PERL_INT_MAX
+#  ifdef INT_MAX
+#    define PERL_INT_MAX ((int)INT_MAX)
+#  else
+#    ifdef MAXINT    /* Often used in <values.h> */
+#      define PERL_INT_MAX ((int)MAXINT)
+#    else
+#      define PERL_INT_MAX ((int)(PERL_UINT_MAX >> 1))
+#    endif
+#  endif
+#endif
+
+#ifndef PERL_INT_MIN
+#  ifdef INT_MIN
+#    define PERL_INT_MIN ((int)INT_MIN)
+#  else
+#    ifdef MININT
+#      define PERL_INT_MIN ((int)MININT)
+#    else
+#      define PERL_INT_MIN (-PERL_INT_MAX - ((3 & -1) == 3))
+#    endif
+#  endif
+#endif
+
+#ifndef PERL_ULONG_MAX
+#  ifdef ULONG_MAX
+#    define PERL_ULONG_MAX ((unsigned long)ULONG_MAX)
+#  else
+#    ifdef MAXULONG
+#      define PERL_ULONG_MAX ((unsigned long)MAXULONG)
+#    else
+#      define PERL_ULONG_MAX (~(unsigned long)0)
+#    endif
+#  endif
+#endif
+
+#ifndef PERL_ULONG_MIN
+#  define PERL_ULONG_MIN ((unsigned long)0L)
+#endif
+
+#ifndef PERL_LONG_MAX
+#  ifdef LONG_MAX
+#    define PERL_LONG_MAX ((long)LONG_MAX)
+#  else
+#    ifdef MAXLONG
+#      define PERL_LONG_MAX ((long)MAXLONG)
+#    else
+#      define PERL_LONG_MAX ((long) (PERL_ULONG_MAX >> 1))
+#    endif
+#  endif
+#endif
+
+#ifndef PERL_LONG_MIN
+#  ifdef LONG_MIN
+#    define PERL_LONG_MIN ((long)LONG_MIN)
+#  else
+#    ifdef MINLONG
+#      define PERL_LONG_MIN ((long)MINLONG)
+#    else
+#      define PERL_LONG_MIN (-PERL_LONG_MAX - ((3 & -1) == 3))
+#    endif
+#  endif
+#endif
+
+#if defined(HAS_QUAD) && (defined(convex) || defined(uts))
+#  ifndef PERL_UQUAD_MAX
+#    ifdef ULONGLONG_MAX
+#      define PERL_UQUAD_MAX ((unsigned long long)ULONGLONG_MAX)
+#    else
+#      ifdef MAXULONGLONG
+#        define PERL_UQUAD_MAX ((unsigned long long)MAXULONGLONG)
+#      else
+#        define PERL_UQUAD_MAX (~(unsigned long long)0)
+#      endif
+#    endif
+#  endif
+
+#  ifndef PERL_UQUAD_MIN
+#    define PERL_UQUAD_MIN ((unsigned long long)0L)
+#  endif
+
+#  ifndef PERL_QUAD_MAX
+#    ifdef LONGLONG_MAX
+#      define PERL_QUAD_MAX ((long long)LONGLONG_MAX)
+#    else
+#      ifdef MAXLONGLONG
+#        define PERL_QUAD_MAX ((long long)MAXLONGLONG)
+#      else
+#        define PERL_QUAD_MAX ((long long) (PERL_UQUAD_MAX >> 1))
+#      endif
+#    endif
+#  endif
+
+#  ifndef PERL_QUAD_MIN
+#    ifdef LONGLONG_MIN
+#      define PERL_QUAD_MIN ((long long)LONGLONG_MIN)
+#    else
+#      ifdef MINLONGLONG
+#        define PERL_QUAD_MIN ((long long)MINLONGLONG)
+#      else
+#        define PERL_QUAD_MIN (-PERL_QUAD_MAX - ((3 & -1) == 3))
+#      endif
+#    endif
+#  endif
+#endif
+
+/* This is based on code from 5.003 perl.h */
+#ifdef HAS_QUAD
+#  ifdef cray
+     __UNDEFINED__ IVTYPE int
+     __UNDEFINED__ IV_MIN PERL_INT_MIN
+     __UNDEFINED__ IV_MAX PERL_INT_MAX
+     __UNDEFINED__ UV_MIN PERL_UINT_MIN
+     __UNDEFINED__ UV_MAX PERL_UINT_MAX
+#    ifdef INTSIZE
+       __UNDEFINED__ IVSIZE INTSIZE
+#    endif
+#  else
+#    if defined(convex) || defined(uts)
+       __UNDEFINED__ IVTYPE long long
+       __UNDEFINED__ IV_MIN PERL_QUAD_MIN
+       __UNDEFINED__ IV_MAX PERL_QUAD_MAX
+       __UNDEFINED__ UV_MIN PERL_UQUAD_MIN
+       __UNDEFINED__ UV_MAX PERL_UQUAD_MAX
+#      ifdef LONGLONGSIZE
+         __UNDEFINED__ IVSIZE LONGLONGSIZE
+#      endif
+#    else
+       __UNDEFINED__ IVTYPE long
+       __UNDEFINED__ IV_MIN PERL_LONG_MIN
+       __UNDEFINED__ IV_MAX PERL_LONG_MAX
+       __UNDEFINED__ UV_MIN PERL_ULONG_MIN
+       __UNDEFINED__ UV_MAX PERL_ULONG_MAX
+#      ifdef LONGSIZE
+         __UNDEFINED__ IVSIZE LONGSIZE
+#      endif
+#    endif
+#  endif
+  __UNDEFINED__ IVSIZE 8
+  __UNDEFINED__ LONGSIZE 8
+  __UNDEFINED__ PERL_QUAD_MIN  IV_MIN
+  __UNDEFINED__ PERL_QUAD_MAX  IV_MAX
+  __UNDEFINED__ PERL_UQUAD_MIN UV_MIN
+  __UNDEFINED__ PERL_UQUAD_MAX UV_MAX
+#else
+  __UNDEFINED__ IVTYPE long
+  __UNDEFINED__ LONGSIZE 4
+  __UNDEFINED__ IV_MIN PERL_LONG_MIN
+  __UNDEFINED__ IV_MAX PERL_LONG_MAX
+  __UNDEFINED__ UV_MIN PERL_ULONG_MIN
+  __UNDEFINED__ UV_MAX PERL_ULONG_MAX
+#endif
+
+#ifndef IVSIZE
+#  ifdef LONGSIZE
+#    define IVSIZE LONGSIZE
+#  else
+#    define IVSIZE 4 /* A bold guess, but the best we can make. */
+#  endif
+#endif
+
+__UNDEFINED__ UVTYPE unsigned IVTYPE
+__UNDEFINED__ UVSIZE IVSIZE
+
+=xsubs
+
+IV
+iv_size()
+        CODE:
+                RETVAL = IVSIZE == sizeof(IV);
+        OUTPUT:
+                RETVAL
+
+IV
+uv_size()
+        CODE:
+                RETVAL = UVSIZE == sizeof(UV);
+        OUTPUT:
+                RETVAL
+
+IV
+iv_type()
+        CODE:
+                RETVAL = sizeof(IVTYPE) == sizeof(IV);
+        OUTPUT:
+                RETVAL
+
+IV
+uv_type()
+        CODE:
+                RETVAL = sizeof(UVTYPE) == sizeof(UV);
+        OUTPUT:
+                RETVAL
+
+=tests plan => 4
+
+ok(&Devel::PPPort::iv_size());
+ok(&Devel::PPPort::uv_size());
+ok(&Devel::PPPort::iv_type());
+ok(&Devel::PPPort::uv_type());

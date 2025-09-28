@@ -1,0 +1,74 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test file locations with file names that contain spaces.
+
+# Note: This test fails on Linux with musl libc versions that don't support
+# the GB18030 encoding in 'iconv'.
+
+cat <<\EOF > mco-test8.po
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ‚Å®xg-test17 a.c‚Å©:1 ‚Å®xg-test17 x y.c‚Å©:1
+msgid "foo"
+msgstr ""
+
+#: ‚Å®xg-test17 x y.c‚Å©:2 xg-test17z.c:1
+msgid "bar"
+msgstr ""
+EOF
+
+: ${MSGCONV=msgconv}
+${MSGCONV} --to-code=UTF-8 \
+           -o mco-test8.out1 mco-test8.po || Exit 1
+
+: ${DIFF=diff}
+${DIFF} mco-test8.po mco-test8.out1 || Exit 1
+
+: ${MSGCONV=msgconv}
+${MSGCONV} --to-code=GB18030 \
+           -o mco-test8.2.po mco-test8.po || Exit 1
+
+cat <<\EOF > mco-test8.ok
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=GB18030\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: Å6¨4xg-test17 a.cÅ6¨5:1 Å6¨4xg-test17 x y.cÅ6¨5:1
+msgid "foo"
+msgstr ""
+
+#: Å6¨4xg-test17 x y.cÅ6¨5:2 xg-test17z.c:1
+msgid "bar"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} mco-test8.ok mco-test8.2.po || Exit 1
+
+: ${MSGCONV=msgconv}
+${MSGCONV} --to-code=GB18030 \
+           -o mco-test8.out2 mco-test8.2.po || Exit 1
+
+: ${DIFF=diff}
+${DIFF} mco-test8.2.po mco-test8.out2 || Exit 1
+
+: ${MSGCONV=msgconv}
+${MSGCONV} --to-code=UTF-8 \
+           -o mco-test8.out3 mco-test8.2.po || Exit 1
+
+: ${DIFF=diff}
+${DIFF} mco-test8.po mco-test8.out3 || Exit 1
+
+: ${MSGCONV=msgconv}
+${MSGCONV} --to-code=ISO-8859-1 \
+           -o mco-test8.out4 mco-test8.po 2>/dev/null
+test $? = 1 || Exit 1
+
+exit 0

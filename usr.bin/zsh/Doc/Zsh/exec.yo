@@ -1,0 +1,45 @@
+texinode(Command Execution)(Functions)(Redirection)(Top)
+chapter(Command Execution)
+ifzman(\
+sect(Command Execution)
+)\
+cindex(command execution)
+cindex(execution, of commands)
+cindex(command not found, handling of)
+findex(command_not_found_handler)
+If a command name contains no slashes, the shell attempts to locate
+it.  If there exists a shell function by that name, the function
+is invoked as described in noderef(Functions).  If there exists
+a shell builtin by that name, the builtin is invoked.
+
+vindex(path, use of)
+Otherwise, the shell searches each element of tt($path) for a
+directory containing an executable file by that name.
+
+If execution fails: an error message is printed, and one of the
+following values is returned.
+
+startsitem()
+sitem(127)(The search was unsuccessful.  The error message is
+`tt(command not found:) var(cmd)'.)
+sitem(126)(The executable file has insufficient permissions, is a
+directory or special file, or is not a script and is in a format
+unrecognized by the operating system.  The exact conditions and error
+message are operating system-dependent; see
+manref(execve)(2).)
+endsitem()
+
+If execution fails because the file is not in executable format,
+and the file is not a directory, it is assumed to be a shell
+script.  tt(/bin/sh) is spawned to execute it.  If the program
+is a file beginning with `tt(#!)', the remainder of the first line
+specifies an interpreter for the program.  The shell will
+execute the specified interpreter on operating systems that do
+not handle this executable format in the kernel.
+
+If no external command is found but a function tt(command_not_found_handler)
+exists the shell executes this function with all
+command line arguments.  The return status of the function becomes the
+status of the command.  Note that the handler is executed in a
+subshell forked to execute an external command, hence changes to
+directories, shell parameters, etc. have no effect on the main shell.

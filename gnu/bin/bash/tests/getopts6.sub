@@ -1,0 +1,40 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+aflag=
+bflag=
+
+while getopts :ac name "$@"
+do
+	case $name in
+	a)	aflag=1 ;;
+	c)	cflag=1 ;;
+	?)	exit 2;;
+	esac
+
+	# this came in in a bug report -- it's really a usage error
+	# but it shouldn't cause the shell to crash
+	shift
+done
+
+if [ ! -z "$aflag" ] ; then echo -a specified ; fi
+if [ ! -z "$cflag" ] ; then echo -c specified ; fi
+
+if [ "$OPTIND" -gt 1 ]
+then
+	shift $(( $OPTIND - 1 ))
+fi
+
+echo remaining args: "$*"
+
+exit 0

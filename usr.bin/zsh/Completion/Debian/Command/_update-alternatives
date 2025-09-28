@@ -1,0 +1,69 @@
+#compdef update-alternatives
+
+local curcontext="$curcontext" state line alterdir ret
+
+if [[ -d /var/lib/dpkg/alternatives ]]; then
+  alterdir=/var/lib/dpkg/alternatives
+elif [[ -d /var/lib/rpm/alternatives/ ]]; then
+  alterdir=/var/lib/rpm/alternatives
+fi
+
+_arguments -C \
+  '--verbose' \
+  '--quiet' \
+  '--test' \
+  '--help' \
+  '--version' \
+  '--altdir:altdir:_files -/' \
+  '--admindir:admindir:_files -/' \
+  '--log:log file:_files -/' \
+  '--force' \
+  '--skip-auto' \
+  '--install:*::alt:= ->install' \
+  '--remove:*::alt:= ->remove' \
+  '--remove-all:name:_files -W "$alterdir"' \
+  '--auto:name:_files -W "$alterdir"' \
+  '--display:name:_files -W "$alterdir"' \
+  '--query:name:_files -W "$alterdir"' \
+  '--list:name:_files -W "$alterdir"' \
+  '--get-selections' \
+  '--set-selections' \
+  '--config:name:_files -W "$alterdir"' \
+  '--set:name:_files -W "$alterdir":path:_files -/' \
+  '--all' && return
+
+while true; do
+  case "$state" in
+    islave)
+      _call_function ret _update_alternatives_$state && return ret
+      state=
+      _arguments -C \
+        '1:link:_files' \
+        '2:name:_files -W "$alterdir"' \
+        '3:path:_files' \
+        '--slave:*::more:= ->islave' && return
+      [[ -z $state ]] && return 1
+    ;;
+
+    install)
+      _call_function ret _update_alternatives_$state && return ret
+      _arguments -C \
+        '1:link:_files' \
+        '2:name:_files -W "$alterdir"' \
+        '3:path:_files' \
+        '4:priority:' \
+        '--slave:*::slave:= ->islave' && return
+      [[ -z $state ]] && return 1
+    ;;
+
+    remove)
+      _call_function ret _update_alternatives_$state && return ret
+      _arguments \
+        '1:name:_files -W "$alterdir"' \
+        '2:path:_files'
+      return
+    ;;
+
+    *) return 1 ;;
+  esac
+done

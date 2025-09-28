@@ -1,0 +1,74 @@
+name=zsh/zle
+link=either
+load=yes
+functions='Functions/Zle/*'
+
+autofeatures="b:bindkey b:vared b:zle"
+
+objects="zle_bindings.o zle_hist.o zle_keymap.o zle_main.o \
+zle_misc.o zle_move.o zle_params.o zle_refresh.o \
+zle_thingy.o zle_tricky.o zle_utils.o zle_vi.o zle_word.o \
+textobjects.o"
+
+headers="zle.h zle_things.h"
+
+:<<\Make
+zle_things.h: thingies.list zle_things.sed
+	( \
+	    echo '/** zle_things.h                              **/'; \
+	    echo '/** indices of and pointers to known thingies **/'; \
+	    echo; \
+	    echo 'enum {'; \
+	    sed -n -f $(sdir)/zle_things.sed < thingies.list; \
+	    echo '    ZLE_BUILTIN_THINGY_COUNT'; \
+	    echo '};'; \
+	) > $@
+
+zle_widget.h: widgets.list zle_widget.sed
+	( \
+	    echo '/** zle_widget.h                                **/'; \
+	    echo '/** indices of and pointers to internal widgets **/'; \
+	    echo; \
+	    echo 'enum {'; \
+	    sed -n -f $(sdir)/zle_widget.sed < widgets.list; \
+	    echo '    ZLE_BUILTIN_WIDGET_COUNT'; \
+	    echo '};'; \
+	) > $@
+
+thingies.list: iwidgets.list
+	( \
+	    echo '/** thingies.list                            **/'; \
+	    echo '/** thingy structures for the known thingies **/'; \
+	    echo; \
+	    echo '/* format: T("name", TH_FLAGS, w_widget, t_nextthingy) */'; \
+	    echo; \
+	    sed -e 's/#.*//; /^$$/d; s/" *,.*/"/' \
+		-e 's/^"/T("/; s/$$/, 0,/; h' \
+		-e 's/-//g; s/^.*"\(.*\)".*/w_\1, t_D\1)/' \
+		-e 'H; g; s/\n/ /' \
+		< $(sdir)/iwidgets.list; \
+	    sed -e 's/#.*//; /^$$/d; s/" *,.*/"/' \
+		-e 's/^"/T("./; s/$$/, TH_IMMORTAL,/; h' \
+		-e 's/-//g; s/^.*"\.\(.*\)".*/w_\1, t_\1)/' \
+		-e 'H; g; s/\n/ /' \
+		< $(sdir)/iwidgets.list; \
+	) > $@
+
+widgets.list: iwidgets.list
+	( \
+	    echo '/** widgets.list                               **/'; \
+	    echo '/** widget structures for the internal widgets **/'; \
+	    echo; \
+	    echo '/* format: W(ZLE_FLAGS, t_firstname, functionname) */'; \
+	    echo; \
+	    sed -e 's/#.*//; /^$$/d; s/-//g' \
+		-e 's/^"\(.*\)" *, *\([^ ]*\) *, *\(.*\)/W(\3, t_\1, \2)/' \
+		< $(sdir)/iwidgets.list; \
+	) > $@
+
+zle_bindings.o zle_bindings..o: zle_widget.h widgets.list thingies.list
+
+clean-here: clean.zle
+clean.zle:
+	rm -f zle_things.h zle_widget.h widgets.list thingies.list
+Make

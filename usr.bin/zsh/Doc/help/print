@@ -1,0 +1,120 @@
+print [ -abcDilmnNoOpPrsSz ] [ -u n ] [ -f format ] [ -C cols ]
+      [ -v name ] [ -xX tabstop ] [ -R [ -en ]] [ arg ... ]
+       With the `-f' option the arguments are printed as  described  by
+       printf.   With  no flags or with the flag `-', the arguments are
+       printed on the standard output as described by  echo,  with  the
+       following  differences:  the  escape  sequence `\M-x' (or `\Mx')
+       metafies the character x (sets  the  highest  bit),  `\C-x'  (or
+       `\Cx')  produces a control character (`\C-@' and `\C-?' give the
+       characters NULL and delete), a character code in octal is repre-
+       sented by `\NNN' (instead of `\0NNN'), and `\E' is a synonym for
+       `\e'.  Finally, if not in an escape sequence,  `\'  escapes  the
+       following character and is not printed.
+
+       -a     Print arguments with the column incrementing first.  Only
+              useful with the -c and -C options.
+
+       -b     Recognize all the escape sequences defined for the  bind-
+              key command, see the section `Zle Builtins' in zshzle(1).
+
+       -c     Print the arguments in columns.  Unless -a is also given,
+              arguments are printed with the row incrementing first.
+
+       -C cols
+              Print the arguments in cols columns.  Unless -a  is  also
+              given,  arguments  are  printed with the row incrementing
+              first.
+
+       -D     Treat the arguments as paths,  replacing  directory  pre-
+              fixes  with  ~  expressions  corresponding  to  directory
+              names, as appropriate.
+
+       -i     If given together with -o or  -O,  sorting  is  performed
+              case-independently.
+
+       -l     Print the arguments separated by newlines instead of spa-
+              ces.  Note: if the list of arguments is empty,  print  -l
+              will  still  output  one  empty  line.  To print a possi-
+              bly-empty list of arguments one per line, use print  -C1,
+              as in `print -rC1 -- "$list[@]"'.
+
+       -m     Take  the first argument as a pattern (should be quoted),
+              and remove it from the argument list together with subse-
+              quent arguments that do not match this pattern.
+
+       -n     Do not add a newline to the output.
+
+       -N     Print  the  arguments  separated and terminated by nulls.
+              Again, print -rNC1 -- "$list[@]" is a  canonical  way  to
+              print an arbitrary list as null-delimited records.
+
+       -o     Print the arguments sorted in ascending order.
+
+       -O     Print the arguments sorted in descending order.
+
+       -p     Print the arguments to the input of the coprocess.
+
+       -P     Perform  prompt  expansion  (see  EXPANSION OF PROMPT SE-
+              QUENCES in zshmisc(1)).  In combination with `-f', prompt
+              escape  sequences are parsed only within interpolated ar-
+              guments, not within the format string.
+
+       -r     Ignore the escape conventions of echo.
+
+       -R     Emulate the BSD echo command, which does not process  es-
+              cape  sequences unless the -e flag is given.  The -n flag
+              suppresses the trailing newline.   Only  the  -e  and  -n
+              flags  are  recognized  after -R; all other arguments and
+              options are printed.
+
+       -s     Place the results in the history list instead of  on  the
+              standard  output.   Each argument to the print command is
+              treated as a single word in the  history,  regardless  of
+              its content.
+
+       -S     Place  the  results in the history list instead of on the
+              standard output.  In this case only a single argument  is
+              allowed; it will be split into words as if it were a full
+              shell command line.  The effect is similar to reading the
+              line  from  a history file with the HIST_LEX_WORDS option
+              active.
+
+       -u n   Print the arguments to file descriptor n.
+
+       -v name
+              Store the printed arguments as the value of the parameter
+              name.
+
+       -x tab-stop
+              Expand leading tabs on each line of output in the printed
+              string assuming a tab  stop  every  tab-stop  characters.
+              This  is  appropriate for formatting code that may be in-
+              dented with tabs.  Note that leading tabs of any argument
+              to print, not just the first, are expanded, even if print
+              is using spaces to separate arguments (the  column  count
+              is  maintained  across  arguments but may be incorrect on
+              output owing to previous unexpanded tabs).
+
+              The start of the output of each print command is  assumed
+              to be aligned with a tab stop.  Widths of multibyte char-
+              acters are handled if the option MULTIBYTE is in  effect.
+              This option is ignored if other formatting options are in
+              effect, namely column alignment or printf  style,  or  if
+              output  is to a special location such as shell history or
+              the command line editor.
+
+       -X tab-stop
+              This is similar to  -x,  except  that  all  tabs  in  the
+              printed string are expanded.  This is appropriate if tabs
+              in the arguments are being used to produce a  table  for-
+              mat.
+
+       -z     Push  the  arguments onto the editing buffer stack, sepa-
+              rated by spaces.
+
+       If any of `-m', `-o' or `-O' are used in combination  with  `-f'
+       and  there  are  no  arguments (after the removal process in the
+       case of `-m') then nothing is printed.
+
+pushln [ arg ... ]
+       Equivalent to print -nz.

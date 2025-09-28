@@ -1,0 +1,15 @@
+#!/bin/sh
+# Run doxygen such that the working directory is the source root.
+# This is needed for various reasons (e.g. relative references in md files).
+# Do not use directly.
+DOXYGEN="$1"
+DOXYFILE="$2"
+ABS_TOP_SRCDIR="$3"
+# Set environment variables that are unset
+if [ -z "$DOXYGEN_WARN_AS_ERROR" ]
+then export DOXYGEN_WARN_AS_ERROR="NO"
+fi
+if [ -z "$DOXYGEN_QUIET" ]
+then export DOXYGEN_QUIET="YES"
+fi
+cd "$ABS_TOP_SRCDIR" && exec "$DOXYGEN" "$DOXYFILE"

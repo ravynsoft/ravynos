@@ -1,0 +1,59 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Lua comment syntax
+
+cat <<\EOF > xg-lu-2.lua
+-- This comment won't be extracted.
+print(_"Hmm.")
+-- Neither this one.
+print(_"Test.")
+--   TRANSLATORS: Hello translators, how are you today?
+print(_"We're fine, thanks.")
+--[[ Do not extract this, please ]]
+
+--[[  TRANSLATORS:
+Attention!
+]]
+print(--[=[	TRANSLATORS: This is a comment for you!]=] _(--[[TRANSLATORS: Nobody else is supposed to read this!]]
+"flowers" --[===[ TRANSLATORS: Nobody will see this.]===] .. --[[ TRANSLATORS: How sad.]] " and " .. --[[Secret text!]]
+"biscuits" --[=[TRANSLATORS: Hey you!]=]))
+
+--[==[TRANSLATORS: :-]]==]
+print(_"A string.")
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location --add-comments=TRANSLATORS: \
+  -d xg-lu-2.tmp xg-lu-2.lua || Exit 1
+LC_ALL=C tr -d '\r' < xg-lu-2.tmp.po > xg-lu-2.po || Exit 1
+
+cat <<EOF > xg-lu-2.ok
+msgid "Hmm."
+msgstr ""
+
+msgid "Test."
+msgstr ""
+
+#. TRANSLATORS: Hello translators, how are you today?
+msgid "We're fine, thanks."
+msgstr ""
+
+#. TRANSLATORS:
+#. Attention!
+#.
+#. TRANSLATORS: This is a comment for you!
+#. TRANSLATORS: Nobody else is supposed to read this!
+msgid "flowers and biscuits"
+msgstr ""
+
+#. TRANSLATORS: :-]
+msgid "A string."
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-lu-2.ok xg-lu-2.po
+result=$?
+
+exit $result

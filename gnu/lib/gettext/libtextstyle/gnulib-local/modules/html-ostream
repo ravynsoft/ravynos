@@ -1,0 +1,48 @@
+Description:
+Output stream that produces HTML output.
+
+Files:
+lib/html-ostream.oo.h
+lib/html-ostream.oo.c
+
+Depends-on:
+ostream
+array-list
+xlist
+minmax
+unistr/u8-mbtouc
+xalloc
+
+configure.ac:
+
+Makefile.am:
+lib_SOURCES += html-ostream.c
+# This is a Makefile rule that generates multiple files at once; see the
+# automake documentation, node "Multiple Outputs", for details.
+$(srcdir)/html-ostream.h : $(top_srcdir)/build-aux/moopp html-ostream.oo.h html-ostream.oo.c ostream.oo.h
+	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/html-ostream.oo.c $(srcdir)/html-ostream.oo.h $(srcdir)/ostream.oo.h
+$(srcdir)/html-ostream.c $(srcdir)/html_ostream.priv.h $(srcdir)/html_ostream.vt.h : html-ostream.h
+	@test -f $@ || { \
+	  trap 'rm -rf html-ostream.lock' 1 2 13 15; \
+	  if mkdir html-ostream.lock 2>/dev/null; then \
+	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/html-ostream.oo.c $(srcdir)/html-ostream.oo.h $(srcdir)/ostream.oo.h"; \
+	    $(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/html-ostream.oo.c $(srcdir)/html-ostream.oo.h $(srcdir)/ostream.oo.h; \
+	    result=$$?; rm -rf html-ostream.lock; exit $$result; \
+	  else \
+	    while test -d html-ostream.lock; do sleep 1; done; \
+	    test -f $(srcdir)/html-ostream.h; \
+	  fi; \
+	}
+BUILT_SOURCES += html-ostream.h html-ostream.c html_ostream.priv.h html_ostream.vt.h
+MAINTAINERCLEANFILES += html-ostream.h html-ostream.c html_ostream.priv.h html_ostream.vt.h
+EXTRA_DIST += html-ostream.h html-ostream.c html_ostream.priv.h html_ostream.vt.h
+
+Include:
+"html-ostream.h"
+
+License:
+GPL
+
+Maintainer:
+Bruno Haible
+

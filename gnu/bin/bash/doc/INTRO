@@ -1,0 +1,187 @@
+		       BASH - The Bourne-Again Shell
+
+Bash is the shell, or command language interpreter, that will appear
+in the GNU operating system.  Bash is an sh-compatible shell that
+incorporates useful features from the Korn shell (ksh) and C shell
+(csh).  It is intended to conform to the IEEE POSIX P1003.2/ISO 9945.2
+Shell and Tools standard.  It offers functional improvements over sh
+for both programming and interactive use.  In addition, most sh scripts
+can be run by Bash without modification. 
+
+Bash is quite portable.  It uses a configuration system that discovers
+characteristics of the compilation platform at build time, and may
+therefore be built on nearly every version of UNIX.  Ports to
+UNIX-like systems such as QNX and Minix and to non-UNIX systems such
+as OS/2, Windows 95, and Windows NT are available. 
+
+Bash includes the following features:
+
+Editing and Completion
+
+Bash offers a command-line editing facility which permits users to
+edit command lines using familiar emacs or vi-style editing commands.
+Editing allows corrections to be made without having to erase back
+to the point of error or start the command line anew.  The editing
+facilities include a feature that allows users to complete command and
+file names.
+
+The Bash line editing library is fully customizable.  Users may define
+their own key bindings -- the action taken when a key is pressed.  A
+number of variables to fine-tune editing behavior are also available.
+
+History and Command Re-entry
+
+The Bash history feature remembers commands entered to the shell and
+allows them to be recalled and re-executed.  The history list may be
+of unlimited size.  Bash allows users to search for previous commands
+and reuse portions of those commands when composing new ones.  The
+history list may be saved across shell sessions. 
+
+Bash allows users to control which commands are saved on the history
+list.
+
+Job Control
+
+On systems that support it, Bash provides an interface to the
+operating system's job control facilities, which allow processes
+to be suspended and restarted, and moved between the foreground
+and background.  Bash allows users to selectively `forget' about
+background jobs. 
+
+Shell Functions and Aliases
+
+These mechanisms are available to bind a user-selected identifier to a
+list of commands that will be executed when the identifier is used as
+a command name.  Functions allow local variables and recursion, and
+have access to the environment of the calling shell.  Aliases may be
+used to create a mnemonic for a command name, expand a single word to
+a complex command, or ensure that a command is called with a basic set
+of options. 
+
+Arrays
+
+Bash-2.0 supports indexed arrays of unlimited size.  The subscript for
+an array is an arithmetic expression.  Arrays may be assigned to with
+a new compound assignment syntax, and several builtins have options to
+operate on array variables.  Bash includes a number of built-in array
+variables.
+
+Arithmetic
+
+Bash allows users to perform integer arithmetic in any base from two
+to sixty-four.  Nearly all of the C language arithmetic operators are
+available with the same syntax and precedence as in C.  Arithmetic
+expansion allows an arithmetic expression to be evaluated and the
+result substituted into the command line.  Shell variables can be used
+as operands, and the value of an expression may be assigned to a
+variable. 
+
+An arithmetic expression may be used as a command; the exit status of
+the command is the value of the expression.
+
+ANSI-C Quoting
+
+There is a new quoting syntax that allows backslash-escaped characters
+in strings to be expanded according to the ANSI C standard.
+
+Tilde Expansion
+
+Users' home directories may be expanded using this feature.  Words
+beginning with a tilde may also be expanded to the current or previous
+working directory.
+
+Brace Expansion
+
+Brace expansion is a convenient way to generate a list of strings that
+share a common prefix or suffix.
+
+Substring Capabilities
+
+Bash allows new strings to be created by removing leading or trailing
+substrings from existing variable values, or by specifying a starting
+offset and length.  Portions of variable values may be matched against
+shell patterns and the matching portion removed or a new value
+substituted. 
+
+Indirect Variable Expansion
+
+Bash makes it easy to find the value of a shell variable whose name is
+the value of another variable.
+
+Expanded I/O Capabilities
+
+Bash provides several input and output features not available in sh,
+including the ability to:
+
+	o specify a file or file descriptor for both input and output
+	o read from or write to asynchronous processes using named pipes
+	o read lines ending in backslash
+	o display a prompt on the terminal before a read
+	o format menus and interpret responses to them
+	o echo lines exactly as input without escape processing
+
+Control of Builtin Commands
+
+Bash implements several builtin commands to give users more control
+over which commands are executed.  The enable builtin allows other
+builtin commands to be selectively enabled or disabled.  The command
+and builtin builtins change the order in which the shell searches for
+commands. 
+
+On systems that provide dynamic loading, new builtins may be loaded
+into a running shell from a shared object file.  These new builtins
+have access to all of the shell facilities.
+
+Help
+
+Bash includes a built-in help facility.
+
+Shell Optional Behavior
+
+There is a great deal of customizable shell behavior.  The shopt
+builtin command provides a unified interface that allows users to
+alter shell defaults. 
+
+Prompt Customization
+
+Bash allows the primary and secondary prompts to be customized by
+interpreting a number of backslash-escaped special characters. 
+Parameter and variable expansion is also performed on the values of
+the primary and secondary prompt strings before they are displayed. 
+
+Security
+
+Bash provides a restricted shell environment.  It is also possible to
+control the execution of setuid/setgid scripts. 
+
+Directory Stack
+
+Bash provides a `directory stack', to which directories may be added
+and removed.  The current directory may be changed to any directory in
+the stack.  It is easy to toggle between two directories in the stack. 
+The directory stack may be saved and restored across different shell
+invocations. 
+
+POSIX Mode
+
+Bash is nearly completely conformant to POSIX.2.  POSIX mode changes
+those few areas where the Bash default behavior differs from the
+standard to match the standard.  In POSIX mode, Bash is POSIX.2
+compliant. 
+
+Internationalization
+
+Bash provides a new quoting syntax that allows strings to be
+translated according to the current locale.  The locale in which the
+shell itself runs may also be changed, so that the shell messages
+themselves may be language-specific. 
+
+The command-line editing facilities allow the input of eight-bit
+characters, so most of the ISO-8859 family of character sets are
+supported. 
+
+Command Timing
+
+Bash allows external commands, shell builtin commands and shell functions
+to be timed.  The format used to display the timing information may be
+changed by the user.

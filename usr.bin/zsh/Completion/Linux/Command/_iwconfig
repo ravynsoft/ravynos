@@ -1,0 +1,70 @@
+#compdef iwconfig
+
+local curcontext="$curcontext" state line expl ret=1
+
+_arguments -C \
+  '(1 * -)--help[display help information]' \
+  '(1 * -)--version[display version information]' \
+  '1:network interface:_net_interfaces' \
+  '*:parameter:->parameters' && ret=0
+
+if [[ -n "$state" ]]; then
+  local -a arg
+
+  case $words[CURRENT-1] in
+    essid)  _wanted -x names expl 'network name' compadd off any on ;;
+    nwid|domain) _message -e ids 'network id' ;;
+    freq|channel) _message -e channels 'channel or frequency' ;;
+    sens) _message -e levels 'signal level' ;;
+    mode)
+      _wanted modes expl 'operating mode' compadd \
+          Ad-Hoc Managed Master Repeater Secondary Monitor Auto
+    ;;
+    ap) _message -e access-points 'access point' ;;
+    nick*) _message -e names 'nickname' ;;
+    rate|bit*) _message -e bit-rates 'bit rate' ;;
+    rts*|frag*) _message -e sizes 'size' ;;
+    key|enc*) _message -e keys 'key' ;;
+    power)
+      arg=(
+        \*{min,max}'[modifier]'
+	'*off[disable power management]'
+	'*on[enable power management]'
+	'*all[receive all packets]'
+	'unicast[receive unicast packets only]'
+	'multicast[receive multicast and broadcast packets only]'
+      )
+    ;&
+    min|max)
+      _values -S ' ' -w 'parameter' \
+        'period[set the period between wake ups]' \
+	'timeout[set timeout before sleep]' \
+	$arg[@] && ret=0
+    ;;
+    period|timeout) _message -e timeouts 'timeout' ;;
+    txpower) _message -e power 'transmit power' ;;
+    retry) _message -e retries 'retries' ;;
+    (modu) _wanted -x names expl 'modulation' compadd 11g CCK OFDMa auto ;;
+    *)
+      _values -S ' ' -w 'option' \
+      	'essid[set the network name]' \
+	'(nwid domain)'{nwid,domain}'[set the network ID]' \
+	'(freq channel)'{freq,channel}'[set the operating frequency or channel]' \
+	'sens[set the sensitivity threshold]' \
+      	'mode[set operating mode]' \
+	'ap[register with given access point]' \
+	'(nick nickname)'nick{,name}'[set the nickname]' \
+	'(rate bit)'{rate,bit}'[set the bitrate]' \
+	'rts[set packet size threshold for sending RTS]' \
+	'frag[set maximum packet fragment size]' \
+	\*{key,enc}'[add encryption key]' \
+	'*power[manipulate power management scheme parameters]' \
+	'txpower[set transmit power]' \
+	'retry[set number of retries]' \
+	'modu[force a specific set of modulations]' \
+	'commit[apply changes immediately]' && ret=0
+    ;;
+  esac
+fi
+
+return ret

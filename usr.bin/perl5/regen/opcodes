@@ -1,0 +1,605 @@
+# New ops always go at the end
+# The restriction on having custom as the last op has been removed
+
+# A recapitulation of the format of this file:
+# The file consists of five tab-separated columns: the name of the op, an
+# English description, the name of the "check" routine used to optimize this
+# operation, some flags, and a description of the operands.
+
+# The flags consist of options followed by a mandatory op class signifier
+
+# The classes are:
+# baseop      - 0            unop     - 1            binop      - 2
+# logop       - |            listop   - @            pmop       - /
+# padop/svop  - $            padop    - # (unused)   loop       - {
+# baseop/unop - %            loopexop - }            filestatop - -
+# pvop/svop   - "            cop      - ;            methop     - .
+# unop_aux    - +
+
+# Other options are:
+#   needs stack mark                    - m  (OA_MARK)
+#   needs constant folding              - f  (OA_FOLDCONST)
+#   produces a scalar                   - s  (OA_RETSCALAR)
+#   produces an integer                 - i  (unused)
+#   needs a target                      - t  (OA_TARGET)
+#   target can be in a pad              - T  (OA_TARGET|OA_TARGLEX)
+#   has a corresponding integer version - I  (OA_OTHERINT)
+#   make temp copy in list assignment   - d  (OA_DANGEROUS)
+#   uses $_ if no argument given        - u  (OA_DEFGV)
+
+# Values for the operands are:
+# scalar      - S            list     - L            array     - A
+# hash        - H            sub (CV) - C            file      - F
+# socket      - Fs           filetest - F-           filetest_access - F-+
+# num-compare - S<           dirhandle - DF          infix bitwise   - S|
+
+# reference - R
+# "?" denotes an optional operand.
+
+# Nothing.
+
+null		null operation		ck_null		0	
+stub		stub			ck_null		0
+scalar		scalar			ck_fun		s%	S
+
+# Pushy stuff.
+
+pushmark	pushmark		ck_null		s0	
+wantarray	wantarray		ck_null		is0	
+
+const		constant item		ck_svconst	s$	
+
+gvsv		scalar variable		ck_null		ds$	
+gv		glob value		ck_null		ds$	
+gelem		glob elem		ck_null		ds2	S S
+padsv		private variable	ck_null		ds0
+padsv_store	padsv scalar assignment	ck_sassign	s1	S S
+padav		private array		ck_null		d0
+padhv		private hash		ck_null		d0
+padany		private value		ck_null		d0
+
+# References and stuff.
+
+rv2gv		ref-to-glob cast	ck_rvconst	ds1	
+rv2sv		scalar dereference	ck_rvconst	ds1	
+av2arylen	array length		ck_null		is1	
+rv2cv		subroutine dereference	ck_rvconst	d1
+anoncode	anonymous subroutine	ck_anoncode	s$	
+prototype	subroutine prototype	ck_prototype	su%	S?
+refgen		reference constructor	ck_spair	m1	L
+srefgen		single ref constructor	ck_null		fs1	S
+ref		reference-type operator	ck_fun		stu%	S?
+bless		bless			ck_fun		s@	S S?
+
+# Pushy I/O.
+
+backtick	quoted execution (``, qx)	ck_backtick	tu%	S?
+# glob defaults its first arg to $_
+glob		glob			ck_glob		t@	S?
+readline	<HANDLE>		ck_readline	t%	F?
+rcatline	append I/O operator	ck_null		t$
+
+# Bindable operators.
+
+regcmaybe	regexp internal guard	ck_fun		s1	S
+regcreset	regexp internal reset	ck_fun		s1	S
+regcomp		regexp compilation	ck_null		s|	S
+match		pattern match (m//)	ck_match	/
+qr		pattern quote (qr//)	ck_match	s/
+subst		substitution (s///)	ck_match	is/	S
+substcont	substitution iterator	ck_null		is|	
+trans		transliteration (tr///)	ck_match	is"	S
+# y///r
+transr		transliteration (tr///)	ck_match	is"	S
+
+# Lvalue operators.
+
+sassign		scalar assignment	ck_sassign	s2	S S
+aassign		list assignment		ck_null		t2	L L
+
+chop		chop			ck_spair	mts%	L
+schop		scalar chop		ck_null		stu%	S?
+chomp		chomp			ck_spair	mTs%	L
+schomp		scalar chomp		ck_null		sTu%	S?
+defined		defined operator	ck_defined	isu%	S?
+undef		undef operator		ck_fun		s%	R?
+study		study			ck_fun		su%	S?
+pos		match position		ck_fun		stu%	R?
+
+preinc		preincrement (++)		ck_lfun		dIs1	S
+i_preinc	integer preincrement (++)	ck_lfun		dis1	S
+predec		predecrement (--)		ck_lfun		dIs1	S
+i_predec	integer predecrement (--)	ck_lfun		dis1	S
+postinc		postincrement (++)		ck_lfun		Ist1	S
+i_postinc	integer postincrement (++)	ck_lfun		ist1	S
+postdec		postdecrement (--)		ck_lfun		Ist1	S
+i_postdec	integer postdecrement (--)	ck_lfun		ist1	S
+
+# Ordinary operators.
+
+pow		exponentiation (**)	ck_null		fsT2	S S
+
+multiply	multiplication (*)	ck_null		IfsT2	S S
+i_multiply	integer multiplication (*)	ck_null		ifsT2	S S
+divide		division (/)		ck_null		IfsT2	S S
+i_divide	integer division (/)	ck_null		ifsT2	S S
+modulo		modulus (%)		ck_null		IifsT2	S S
+i_modulo	integer modulus (%)	ck_null		ifsT2	S S
+repeat		repeat (x)		ck_repeat	fmt2	L S
+
+add		addition (+)		ck_null		IfsT2	S S
+i_add		integer addition (+)	ck_null		ifsT2	S S
+subtract	subtraction (-)		ck_null		IfsT2	S S
+i_subtract	integer subtraction (-)	ck_null		ifsT2	S S
+concat		concatenation (.) or string	ck_concat	fsT2	S S
+multiconcat	concatenation (.) or string	ck_null	sT+
+stringify	string			ck_stringify	fsT@	S
+
+left_shift	left bitshift (<<)	ck_bitop	fsT2	S S
+right_shift	right bitshift (>>)	ck_bitop	fsT2	S S
+
+lt		numeric lt (<)		ck_cmp		Iifs2	S S<
+i_lt		integer lt (<)		ck_cmp		ifs2	S S<
+gt		numeric gt (>)		ck_cmp		Iifs2	S S<
+i_gt		integer gt (>)		ck_cmp		ifs2	S S<
+le		numeric le (<=)		ck_cmp		Iifs2	S S<
+i_le		integer le (<=)		ck_cmp		ifs2	S S<
+ge		numeric ge (>=)		ck_cmp		Iifs2	S S<
+i_ge		integer ge (>=)		ck_cmp		ifs2	S S<
+eq		numeric eq (==)		ck_cmp		Iifs2	S S<
+i_eq		integer eq (==)		ck_cmp		ifs2	S S<
+ne		numeric ne (!=)		ck_cmp		Iifs2	S S<
+i_ne		integer ne (!=)		ck_cmp		ifs2	S S<
+ncmp		numeric comparison (<=>)	ck_null		Iifst2	S S<
+i_ncmp		integer comparison (<=>)	ck_null		ifst2	S S<
+
+slt		string lt		ck_null		ifs2	S S
+sgt		string gt		ck_null		ifs2	S S
+sle		string le		ck_null		ifs2	S S
+sge		string ge		ck_null		ifs2	S S
+seq		string eq		ck_null		ifs2	S S
+sne		string ne		ck_null		ifs2	S S
+scmp		string comparison (cmp)	ck_null		ifst2	S S
+
+bit_and		bitwise and (&)		ck_bitop	fst2	S S|
+bit_xor		bitwise xor (^)		ck_bitop	fst2	S S|
+bit_or		bitwise or (|)		ck_bitop	fst2	S S|
+nbit_and	numeric bitwise and (&)	ck_bitop	fsT2	S S|
+nbit_xor	numeric bitwise xor (^)	ck_bitop	fsT2	S S|
+nbit_or		numeric bitwise or (|)	ck_bitop	fsT2	S S|
+sbit_and	string bitwise and (&.)	ck_bitop	fst2	S S|
+sbit_xor	string bitwise xor (^.)	ck_bitop	fst2	S S|
+sbit_or		string bitwise or (|.)	ck_bitop	fst2	S S|
+
+negate		negation (-)		ck_null		Ifst1	S
+i_negate	integer negation (-)	ck_null		ifst1	S
+not		not			ck_null		ifs1	S
+complement	1's complement (~)	ck_bitop	fst1	S
+ncomplement	numeric 1's complement (~)	ck_bitop	fsT1	S
+scomplement	string 1's complement (~)	ck_null	fsT1	S
+
+smartmatch	smart match		ck_smartmatch	s2
+
+# High falutin' math.
+
+atan2		atan2			ck_fun		fsT@	S S
+sin		sin			ck_fun		fsTu%	S?
+cos		cos			ck_fun		fsTu%	S?
+rand		rand			ck_fun		sT%	S?
+srand		srand			ck_fun		sT%	S?
+exp		exp			ck_fun		fsTu%	S?
+log		log			ck_fun		fsTu%	S?
+sqrt		sqrt			ck_fun		fsTu%	S?
+
+# Lowbrow math.
+
+int		int			ck_fun		fsTu%	S?
+hex		hex			ck_fun		fsTu%	S?
+oct		oct			ck_fun		fsTu%	S?
+abs		abs			ck_fun		fsTu%	S?
+
+# String stuff.
+
+length		length			ck_length	ifsTu%	S?
+substr		substr			ck_substr	st@	S S S? S?
+vec		vec			ck_fun		ist@	S S S
+
+index		index			ck_index	isT@	S S S?
+rindex		rindex			ck_index	isT@	S S S?
+
+sprintf		sprintf			ck_lfun		fmst@	S L
+formline	formline		ck_fun		ms@	S L
+ord		ord			ck_fun		ifsTu%	S?
+chr		chr			ck_fun		fsTu%	S?
+crypt		crypt			ck_fun		fsT@	S S
+ucfirst		ucfirst			ck_fun		fstu%	S?
+lcfirst		lcfirst			ck_fun		fstu%	S?
+uc		uc			ck_fun		fstu%	S?
+lc		lc			ck_fun		fstu%	S?
+quotemeta	quotemeta		ck_fun		fstu%	S?
+
+# Arrays.
+
+rv2av		array dereference	ck_rvconst	dt1	
+aelemfast	constant array element	ck_null		ds$	A S
+aelemfast_lex	constant lexical array element	ck_null		d0	A S
+aelemfastlex_store	const lexical array element store	ck_null		d1	A S
+aelem		array element		ck_null		s2	A S
+aslice		array slice		ck_null		m@	A L
+kvaslice	index/value array slice	ck_null		m@	A L
+
+aeach		each on array		ck_each		d%	A
+avalues		values on array		ck_each		dt%	A
+akeys		keys on array		ck_each		t%	A
+
+# Hashes.
+
+each		each			ck_each		d%	H
+values		values			ck_each		dt%	H
+keys		keys			ck_each		t%	H
+delete		delete			ck_delete	%	S
+exists		exists			ck_exists	is%	S
+rv2hv		hash dereference	ck_rvconst	dt1	
+helem		hash element		ck_null		s2	H S
+hslice		hash slice		ck_null		m@	H L
+kvhslice	key/value hash slice	ck_null		m@	H L
+
+# mixed array and hash access
+
+multideref	array or hash lookup	ck_null		ds+	
+
+# Explosives and implosives.
+
+unpack		unpack			ck_fun		u@	S S?
+pack		pack			ck_fun		fmst@	S L
+split		split			ck_split	t/	S S S
+join		join or string		ck_join		fmst@	S L
+
+# List operators.
+
+list		list			ck_null		m@	L
+lslice		list slice		ck_null		2	H L L
+anonlist	anonymous array ([])	ck_fun		ms@	L
+anonhash	anonymous hash ({})	ck_fun		ms@	L
+emptyavhv	empty anon hash/array	ck_fun		sT@	L
+
+splice		splice			ck_fun		m@	A S? S? L
+push		push			ck_fun		imsT@	A L
+pop		pop			ck_shift	s%	A?
+shift		shift			ck_shift	s%	A?
+unshift		unshift			ck_fun		imsT@	A L
+sort		sort			ck_sort		m@	C? L
+reverse		reverse			ck_fun		mt@	L
+
+grepstart	grep			ck_grep		m@	C L
+grepwhile	grep iterator		ck_null		t|	
+
+mapstart	map			ck_grep		m@	C L
+mapwhile	map iterator		ck_null		t|
+
+# Range stuff.
+
+range		flipflop		ck_null		|	S S
+flip		range (or flip)		ck_null		1	S S
+flop		range (or flop)		ck_null		1
+
+# Control.
+
+and		logical and (&&)		ck_null		|	
+or		logical or (||)			ck_null		|	
+xor		logical xor			ck_null		fs2	S S	
+dor		defined or (//)			ck_null		|
+cond_expr	conditional expression		ck_null		|	
+andassign	logical and assignment (&&=)	ck_null		s|	
+orassign	logical or assignment (||=)	ck_null		s|	
+dorassign	defined or assignment (//=)	ck_null		s|
+
+entersub	subroutine entry	ck_subr		dm1	L
+leavesub	subroutine exit		ck_null		1	
+leavesublv	lvalue subroutine return	ck_null		1	
+argcheck	check subroutine arguments	ck_null		+
+argelem		subroutine argument	ck_null		+
+argdefelem	subroutine argument default value	ck_null		|
+caller		caller			ck_fun		t%	S?
+warn		warn			ck_fun		imst@	L
+die		die			ck_fun		imst@	L
+reset		symbol reset		ck_fun		is%	S?
+
+lineseq		line sequence		ck_null		@	
+nextstate	next statement		ck_null		s;	
+dbstate		debug next statement	ck_null		s;	
+unstack		iteration finalizer	ck_null		s0
+enter		block entry		ck_null		0	
+leave		block exit		ck_null		@	
+scope		block			ck_null		@	
+enteriter	foreach loop entry	ck_null		d{	
+iter		foreach loop iterator	ck_null		0	
+enterloop	loop entry		ck_null		d{	
+leaveloop	loop exit		ck_null		2	
+return		return			ck_return	m@	L
+last		last			ck_null		s}	
+next		next			ck_null		s}	
+redo		redo			ck_null		s}	
+dump		dump			ck_null		ds}	
+goto		goto			ck_null		s}	
+exit		exit			ck_fun		s%	S?
+method		method lookup		ck_method	d.
+method_named	method with known name	ck_null		d.
+method_super	super with known name	ck_null		d.
+method_redir	redirect method with known name	ck_null	d.
+method_redir_super	redirect super method with known name	ck_null	d.
+
+entergiven	given()			ck_null		d|
+leavegiven	leave given block	ck_null		1
+enterwhen	when()			ck_null		d|
+leavewhen	leave when block	ck_null		1
+break		break			ck_null		0
+continue	continue		ck_null		0
+
+# I/O.
+
+open		open			ck_open		ismt@	F S? L
+close		close			ck_fun		is%	F?
+pipe_op		pipe			ck_fun		is@	F F
+
+fileno		fileno			ck_fun		ist%	F
+umask		umask			ck_fun		ist%	S?
+binmode		binmode			ck_fun		s@	F S?
+
+tie		tie			ck_fun		idms@	R S L
+untie		untie			ck_fun		is%	R
+tied		tied			ck_fun		ds%	R
+dbmopen		dbmopen			ck_fun		is@	H S S
+dbmclose	dbmclose		ck_fun		is%	H
+
+sselect		select system call	ck_select	t@	S S S S
+select		select			ck_select	st@	F?
+
+getc		getc			ck_eof		st%	F?
+read		read			ck_fun		imst@	F R S S?
+enterwrite	write			ck_fun		is%	F?
+leavewrite	write exit		ck_null		1	
+
+prtf		printf			ck_listiob	ims@	F? L
+print		print			ck_listiob	ims@	F? L
+say		say			ck_listiob	ims@	F? L
+
+sysopen		sysopen			ck_fun		s@	F S S S?
+sysseek		sysseek			ck_fun		s@	F S S
+sysread		sysread			ck_fun		imst@	F R S S?
+syswrite	syswrite		ck_fun		imst@	F S S? S?
+
+eof		eof			ck_eof		is%	F?
+tell		tell			ck_tell		st%	F?
+seek		seek			ck_tell		s@	F S S
+# truncate really behaves as if it had both "S S" and "F S"
+truncate	truncate		ck_trunc	is@	S S
+
+fcntl		fcntl			ck_fun		st@	F S S
+ioctl		ioctl			ck_fun		st@	F S S
+flock		flock			ck_fun		isT@	F S
+
+# Sockets.  OP_IS_SOCKET wants them consecutive (so moved 1st 2)
+
+send		send			ck_fun		imst@	Fs S S S?
+recv		recv			ck_fun		imst@	Fs R S S
+
+socket		socket			ck_fun		is@	Fs S S S
+sockpair	socketpair		ck_fun		is@	Fs Fs S S S
+
+bind		bind			ck_fun		is@	Fs S
+connect		connect			ck_fun		is@	Fs S
+listen		listen			ck_fun		is@	Fs S
+accept		accept			ck_fun		ist@	Fs Fs
+shutdown	shutdown		ck_fun		ist@	Fs S
+
+gsockopt	getsockopt		ck_fun		is@	Fs S S
+ssockopt	setsockopt		ck_fun		is@	Fs S S S
+
+getsockname	getsockname		ck_fun		is%	Fs
+getpeername	getpeername		ck_fun		is%	Fs
+
+# Stat calls.  OP_IS_FILETEST wants them consecutive.
+# Also needs to match OP_IS_STAT() in op.h
+
+lstat		lstat			ck_ftst		u-	F?
+stat		stat			ck_ftst		u-	F?
+ftrread		-R			ck_ftst		isu-	F-+
+ftrwrite	-W			ck_ftst		isu-	F-+
+ftrexec		-X			ck_ftst		isu-	F-+
+fteread		-r			ck_ftst		isu-	F-+
+ftewrite	-w			ck_ftst		isu-	F-+
+fteexec		-x			ck_ftst		isu-	F-+
+ftis		-e			ck_ftst		isu-	F-
+ftsize		-s			ck_ftst		istu-	F-
+ftmtime		-M			ck_ftst		stu-	F-
+ftatime		-A			ck_ftst		stu-	F-
+ftctime		-C			ck_ftst		stu-	F-
+ftrowned	-O			ck_ftst		isu-	F-
+fteowned	-o			ck_ftst		isu-	F-
+ftzero		-z			ck_ftst		isu-	F-
+ftsock		-S			ck_ftst		isu-	F-
+ftchr		-c			ck_ftst		isu-	F-
+ftblk		-b			ck_ftst		isu-	F-
+ftfile		-f			ck_ftst		isu-	F-
+ftdir		-d			ck_ftst		isu-	F-
+ftpipe		-p			ck_ftst		isu-	F-
+ftsuid		-u			ck_ftst		isu-	F-
+ftsgid		-g			ck_ftst		isu-	F-
+ftsvtx		-k			ck_ftst		isu-	F-
+ftlink		-l			ck_ftst		isu-	F-
+fttty		-t			ck_ftst		is-	F-
+fttext		-T			ck_ftst		isu-	F-
+ftbinary	-B			ck_ftst		isu-	F-
+
+# File calls.
+
+# chdir really behaves as if it had both "S?" and "F?"
+chdir		chdir			ck_trunc	isT%	S?
+chown		chown			ck_fun		imsT@	L
+chroot		chroot			ck_fun		isTu%	S?
+unlink		unlink			ck_fun		imsTu@	L
+chmod		chmod			ck_fun		imsT@	L
+utime		utime			ck_fun		imsT@	L
+rename		rename			ck_fun		isT@	S S
+link		link			ck_fun		isT@	S S
+symlink		symlink			ck_fun		isT@	S S
+readlink	readlink		ck_fun		stu%	S?
+mkdir		mkdir			ck_fun		isTu@	S? S?
+rmdir		rmdir			ck_fun		isTu%	S?
+
+# Directory calls.
+
+open_dir	opendir			ck_fun		is@	F S
+readdir		readdir			ck_fun		%	DF
+telldir		telldir			ck_fun		st%	DF
+seekdir		seekdir			ck_fun		s@	DF S
+rewinddir	rewinddir		ck_fun		s%	DF
+closedir	closedir		ck_fun		is%	DF
+
+# Process control.
+
+fork		fork			ck_null		ist0	
+wait		wait			ck_null		isT0	
+waitpid		waitpid			ck_fun		isT@	S S
+system		system			ck_exec		imsT@	S? L
+exec		exec			ck_exec		imsT@	S? L
+kill		kill			ck_fun		imsT@	L
+getppid		getppid			ck_null		isT0	
+getpgrp		getpgrp			ck_fun		isT%	S?
+setpgrp		setpgrp			ck_fun		isT@	S? S?
+getpriority	getpriority		ck_fun		isT@	S S
+setpriority	setpriority		ck_fun		isT@	S S S
+
+# Time calls.
+
+time		time			ck_null		isT0	
+tms		times			ck_null		0	
+localtime	localtime		ck_fun		t%	S?
+gmtime		gmtime			ck_fun		t%	S?
+alarm		alarm			ck_fun		istu%	S?
+sleep		sleep			ck_fun		isT%	S?
+
+# Shared memory.
+
+shmget		shmget			ck_fun		imst@	S S S
+shmctl		shmctl			ck_fun		imst@	S S S
+shmread		shmread			ck_fun		imst@	S S S S
+shmwrite	shmwrite		ck_fun		imst@	S S S S
+
+# Message passing.
+
+msgget		msgget			ck_fun		imst@	S S
+msgctl		msgctl			ck_fun		imst@	S S S
+msgsnd		msgsnd			ck_fun		imst@	S S S
+msgrcv		msgrcv			ck_fun		imst@	S S S S S
+
+# Semaphores.
+
+semop		semop			ck_fun		imst@	S S
+semget		semget			ck_fun		imst@	S S S
+semctl		semctl			ck_fun		imst@	S S S S
+
+# Eval.
+
+require		require			ck_require	dsu%	S?
+dofile		do "file"		ck_fun		d1	S
+hintseval	eval hints		ck_svconst	s$
+entereval	eval "string"		ck_eval		du%	S?
+leaveeval	eval "string" exit	ck_null		1	S
+entertry	eval {block}		ck_eval		d|	
+leavetry	eval {block} exit	ck_null		@	
+
+# Get system info.
+
+ghbyname	gethostbyname		ck_fun		%	S
+ghbyaddr	gethostbyaddr		ck_fun		@	S S
+ghostent	gethostent		ck_null		0	
+gnbyname	getnetbyname		ck_fun		%	S
+gnbyaddr	getnetbyaddr		ck_fun		@	S S
+gnetent		getnetent		ck_null		0	
+gpbyname	getprotobyname		ck_fun		%	S
+gpbynumber	getprotobynumber	ck_fun		@	S
+gprotoent	getprotoent		ck_null		0	
+gsbyname	getservbyname		ck_fun		@	S S
+gsbyport	getservbyport		ck_fun		@	S S
+gservent	getservent		ck_null		0	
+shostent	sethostent		ck_fun		is%	S
+snetent		setnetent		ck_fun		is%	S
+sprotoent	setprotoent		ck_fun		is%	S
+sservent	setservent		ck_fun		is%	S
+ehostent	endhostent		ck_null		is0	
+enetent		endnetent		ck_null		is0	
+eprotoent	endprotoent		ck_null		is0	
+eservent	endservent		ck_null		is0	
+gpwnam		getpwnam		ck_fun		%	S
+gpwuid		getpwuid		ck_fun		%	S
+gpwent		getpwent		ck_null		0	
+spwent		setpwent		ck_null		is0	
+epwent		endpwent		ck_null		is0	
+ggrnam		getgrnam		ck_fun		%	S
+ggrgid		getgrgid		ck_fun		%	S
+ggrent		getgrent		ck_null		0	
+sgrent		setgrent		ck_null		is0	
+egrent		endgrent		ck_null		is0	
+getlogin	getlogin		ck_null		st0	
+
+# Miscellaneous.
+
+syscall		syscall			ck_fun		imst@	S L
+
+# For multi-threading
+lock		lock			ck_rfun		s%	R
+
+# For state support
+
+once		once			ck_null		|	
+
+custom		unknown custom operator		ck_null		0
+
+# For CORE:: subs
+coreargs	CORE:: subroutine	ck_null		$	
+avhvswitch	Array/hash switch	ck_null		t1
+
+runcv		__SUB__			ck_null		s0
+
+# fc and \F
+fc		fc			ck_fun		fstu%	S?
+
+padcv		private subroutine	ck_null		d0
+introcv		private subroutine	ck_null		d0
+clonecv		private subroutine	ck_null		d0
+padrange	list of private variables	ck_null		d0
+refassign	lvalue ref assignment	ck_refassign	ds2
+lvref		lvalue ref assignment	ck_null		d%
+lvrefslice	lvalue ref assignment	ck_null		d@
+lvavref		lvalue array reference	ck_null		d%
+anonconst	anonymous constant	ck_null		ds1
+
+isa		derived class test	ck_isa		s2
+
+cmpchain_and	comparison chaining	ck_null		|
+cmpchain_dup	comparand shuffling	ck_null		1
+
+entertrycatch	try {block}		ck_trycatch	|
+leavetrycatch	try {block} exit	ck_null		@
+poptry		pop try			ck_null		@
+catch		catch {} block		ck_null		|
+pushdefer	push defer {} block	ck_null		|
+
+is_bool		boolean type test	ck_null		fs1
+is_weak		weakref type test	ck_null		fs1
+weaken		reference weaken	ck_null		1
+unweaken	reference unweaken	ck_null		1
+blessed		blessed			ck_null		fs1
+refaddr		refaddr			ck_null		fsT1
+reftype		reftype			ck_null		fsT1
+ceil		ceil			ck_null		fsT1
+floor		floor			ck_null		fsT1
+is_tainted	is_tainted		ck_null		fs1
+
+# exists-or; not currently exposed as a Perl-callable op
+helemexistsor	hash element exists or	ck_helemexistsor	|	S S
+
+methstart	method start		ck_null		+
+initfield	initialise field	ck_null		+

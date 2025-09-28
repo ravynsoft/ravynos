@@ -1,0 +1,9 @@
+#compdef prompt
+
+_arguments -s \
+  '-l[list themes]:*:' \
+  '-c[show selected theme]:*:' \
+  "-h[help]::prompt theme:($prompt_themes):*:" \
+  "-p[preview theme(s)]:*:prompt theme:($prompt_themes)" \
+  "-s[set and save theme]:prompt theme:($prompt_themes):*:" \
+  ":prompt theme:($prompt_themes)"

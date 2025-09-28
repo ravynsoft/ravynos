@@ -1,0 +1,117 @@
+#compdef chown chgrp gchown=chown gchgrp=chgrp zf_chown=chown zf_chgrp=chgrp
+
+local curcontext="$curcontext" state line expl ret=1 variant
+local suf usr grp req deref pattern arg args aopts=( -A '-*' )
+
+_pick_variant -r variant -b zsh gnu=Free\ Soft $OSTYPE --version
+case "$variant" in
+  gnu)
+    aopts=()
+    args=(
+      '(-c --changes -v --verbose)'{-c,--changes}'[report each change made]'
+      '(-c --changes -v --verbose)'{-v,--verbose}'[output info for every file processed]'
+      '(-h --no-dereference)--dereference[dereference symlinks]'
+      '(-h --no-dereference --dereference)'{-h,--no-dereference}'[operate on symlinks themselves]'
+      '(-f --silent --quiet)'{-f,--silent,--quiet}"[don't report errors]"
+      '--preserve-root[fail to operate recursively on /]'
+      '--reference=[copy ownership of specified file]:file:_files'
+      '(-R --recursive)'{-R,--recursive}'[change files and directories recursively]'
+      '(-H -L -P)-L[follow all symlinks]'
+      '(-H -L -P)-H[follow symlinks on the command line]'
+      '(-H -L -P)-P[do not follow symlinks (default)]'
+      '(- : *)--help[display help information]'
+      '(- : *)--version[display version information]'
+    )
+    [[ $service = chown ]] &&
+        args+=( '--from=[restrict changes to files by current ownership]: :->owner' )
+    ;;
+  *)
+    args=(
+      '-h[operate on symlinks themselves]'
+      '-R[change files and directories recursively]'
+    )
+    ;|
+  zsh)
+    args+=(
+      '-s[enable paranoid behavior]'
+    )
+    ;;
+  *)
+    args+=(
+      '(-H -L -P)-L[follow all symlinks]'
+      '(-H -L -P)-H[follow symlinks on the command line]'
+      '(-H -L -P)-P[do not follow symlinks (default)]'
+    )
+    ;|
+  dragonfly*|freebsd*)
+    args+=(
+      "-x[don't traverse file systems]"
+    )
+    ;|
+  darwin*|dragonfly*|freebsd*|netbsd*|solaris*)
+    args+=(
+      "-f[don't report errors]"
+    )
+    ;|
+  darwin*|dragonfly*|freebsd*|netbsd*)
+    args+=(
+       '-v[output info for every file processed]'
+    )
+    ;|
+  solaris2.<11->)
+    args+=(
+      '-s[owner and/or group are Windows SID strings]'
+    )
+    ;;
+esac
+
+(( $+words[(r)--reference*] )) || args+=( '(--reference)1: :->owner' )
+_arguments -C -s -S $aopts "$args[@]" '*: :->files' && ret=0
+
+case $state in
+  owner)
+    if [[ $service = chgrp ]] || compset -P '*[:.]'; then
+      if (( EGID && $+commands[groups] && ! $+_comp_priv_prefix )); then  # except for sudo
+       _wanted groups expl 'group' compadd -- $(groups) && return 0
+      fi
+      _groups && ret=0
+    else
+      if compset -S '[.:]*'; then
+        suf=()
+      elif [[ $OSTYPE = irix* ]]; then
+	suf=( -qS '.' )
+      else
+	suf=( -qS ':' )
+      fi
+      _users "$suf[@]" && ret=0
+    fi
+  ;;
+  files)
+    (( $+opt_args[-h] || $+opt_args[--no-dereference] )) || deref="-"
+    if (( $+opt_args[--reference] )); then
+      zmodload -F zsh/stat b:zstat 2>/dev/null
+      usr=$(zstat +uid $opt_args[--reference])
+      grp=$(zstat +gid $opt_args[--reference])
+      _wanted files expl file _files -g "*($deref^u$usr,$deref^g$grp)" && ret=0
+      return ret
+    fi
+    if [[ $service = chgrp ]]; then
+      grp=${line[1]}
+    else
+      usr=${line[1]%%[.:]*}
+      usr=${${(M)usr:#[0-9]#}:-${userdirs[$usr]:+.$usr.}}
+      grp=${${(M)line[1]%%[.:]*}#?}
+    fi
+    [[ -n $grp ]] && grp="${${(M)grp:#[0-9]#}:-.$grp.}"
+    req=( ${usr:+\^u$usr} ${grp:+\^g$grp} )
+    (( EUID )) && req=( u$EUID$^req )
+    req=( $deref$^req )
+    req="*(${(j:,:)req})"
+
+    ( : $~req ) 2> /dev/null || req='*'
+
+    _wanted files expl file _files -g "$req" && ret=0
+  ;;
+esac
+
+return ret

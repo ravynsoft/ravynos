@@ -1,0 +1,249 @@
+=head1 NAME
+
+perlutil - utilities packaged with the Perl distribution
+
+=head1 DESCRIPTION
+
+Along with the Perl interpreter itself, the Perl distribution installs a
+range of utilities on your system. There are also several utilities
+which are used by the Perl distribution itself as part of the install
+process. This document exists to list all of these utilities, explain
+what they are for and provide pointers to each module's documentation,
+if appropriate.
+
+=head1 LIST OF UTILITIES
+
+=head2 Documentation
+
+=over 3
+
+=item L<perldoc>
+
+The main interface to Perl's documentation is F<perldoc>, although
+if you're reading this, it's more than likely that you've already found
+it. F<perldoc> will extract and format the documentation from any file
+in the current directory, any Perl module installed on the system, or
+any of the standard documentation pages, such as this one. Use 
+C<perldoc E<lt>nameE<gt>> to get information on any of the utilities
+described in this document.
+
+=item L<pod2man>
+
+=item L<pod2text>
+
+If it's run from a terminal, F<perldoc> will usually call F<pod2man> to
+translate POD (Plain Old Documentation - see L<perlpod> for an
+explanation) into a manpage, and then run F<man> to display it; if
+F<man> isn't available, F<pod2text> will be used instead and the output
+piped through your favourite pager.
+
+=item L<pod2html>
+
+As well as these two, there is another converter: F<pod2html> will
+produce HTML pages from POD.
+
+=item L<pod2usage>
+
+If you just want to know how to use the utilities described here,
+F<pod2usage> will just extract the "USAGE" section; some of
+the utilities will automatically call F<pod2usage> on themselves when
+you call them with C<-help>.
+
+=item L<podchecker>
+
+If you're writing your own documentation in POD, the F<podchecker>
+utility will look for errors in your markup.
+
+=item L<splain>
+
+F<splain> is an interface to L<perldiag> - paste in your error message
+to it, and it'll explain it for you.
+
+=item F<roffitall>
+
+The F<roffitall> utility is not installed on your system but lives in
+the F<pod/> directory of your Perl source kit; it converts all the
+documentation from the distribution to F<*roff> format, and produces a
+typeset PostScript or text file of the whole lot.
+
+=back
+
+=head2 Converters
+
+=over 3
+
+=item L<pl2pm>
+
+To help you convert legacy programs to more modern Perl, the
+F<pl2pm> utility will help you convert old-style Perl 4 libraries
+to new-style Perl5 modules.
+
+=back
+
+=head2 Administration
+
+=over 3
+
+=item L<libnetcfg>
+
+To display and change the libnet configuration run the libnetcfg command.
+
+=item L<perlivp>
+
+The F<perlivp> program is set up at Perl source code build time to test
+the Perl version it was built under.  It can be used after running C<make
+install> (or your platform's equivalent procedure) to verify that perl
+and its libraries have been installed correctly.
+
+=back
+
+=head2 Development
+
+There are a set of utilities which help you in developing Perl programs, 
+and in particular, extending Perl with C.
+
+=over 3
+
+=item L<perlbug>
+
+F<perlbug> used to be the recommended way to report bugs in the perl
+interpreter itself or any of the standard library modules back to the
+developers; bug reports and patches should now be submitted to
+L<https://github.com/Perl/perl5/issues>.
+
+=item L<perlthanks|perlbug>
+
+This program provides an easy way to send a thank-you message back to the
+authors and maintainers of perl. It's just F<perlbug> installed under
+another name.
+
+=item L<h2ph>
+
+Back before Perl had the XS system for connecting with C libraries,
+programmers used to get library constants by reading through the C
+header files. You may still see S<C<require 'syscall.ph'>> or similar
+around - the F<.ph> file should be created by running F<h2ph> on the
+corresponding F<.h> file. See the L<h2ph> documentation for more on how
+to convert a whole bunch of header files at once.
+
+=item L<h2xs>
+
+F<h2xs> converts C header files into XS modules, and will try and write
+as much glue between C libraries and Perl modules as it can. It's also
+very useful for creating skeletons of pure Perl modules.
+
+=item L<enc2xs>
+
+F<enc2xs> builds a Perl extension for use by Encode from either
+Unicode Character Mapping files (.ucm) or Tcl Encoding Files (.enc).
+Besides being used internally during the build process of the Encode
+module, you can use F<enc2xs> to add your own encoding to perl.
+No knowledge of XS is necessary.
+
+=item L<xsubpp>
+
+F<xsubpp> is a compiler to convert Perl XS code into C code.
+It is typically run by the makefiles created by L<ExtUtils::MakeMaker>.
+
+F<xsubpp> will compile XS code into C code by embedding the constructs
+necessary to let C functions manipulate Perl values and creates the glue
+necessary to let Perl access those functions.
+
+=item L<prove>
+
+F<prove> is a command-line interface to the test-running functionality
+of L<Test::Harness>.  It's an alternative to C<make test>.
+
+=item L<corelist>
+
+A command-line front-end to L<Module::CoreList>, to query what modules
+were shipped with given versions of perl.
+
+=back
+
+=head2 General tools
+
+A few general-purpose tools are shipped with perl, mostly because they
+came along modules included in the perl distribution.
+
+=over 3
+
+=item L<encguess>
+
+F<encguess> will attempt to guess the character encoding of files.
+
+=item L<json_pp>
+
+F<json_pp> is a pure Perl JSON converter and formatter.
+
+=item L<piconv>
+
+F<piconv> is a Perl version of L<iconv(1)>, a character encoding converter
+widely available for various Unixen today.  This script was primarily a
+technology demonstrator for Perl v5.8.0, but you can use piconv in the
+place of iconv for virtually any case.
+
+=item L<ptar>
+
+F<ptar> is a tar-like program, written in pure Perl.
+
+=item L<ptardiff>
+
+F<ptardiff> is a small utility that produces a diff between an extracted
+archive and an unextracted one. (Note that this utility requires the
+L<Text::Diff> module to function properly; this module isn't distributed
+with perl, but is available from the CPAN.)
+
+=item L<ptargrep>
+
+F<ptargrep> is a utility to apply pattern matching to the contents of files 
+in a tar archive.
+
+=item L<shasum>
+
+This utility, that comes with the L<Digest::SHA> module, is used to print
+or verify SHA checksums.
+
+=item L<streamzip>
+
+F<streamzip> compresses data streamed to STDIN into a streamed zip container.
+
+=item L<zipdetails>
+
+F<zipdetails> displays information about the internal record structure of the zip file.
+It is not concerned with displaying any details of the compressed data stored in the zip file.
+
+=back
+
+=head2 Installation
+
+These utilities help manage extra Perl modules that don't come with the perl
+distribution.
+
+=over 3
+
+=item L<cpan>
+
+F<cpan> is a command-line interface to CPAN.pm.  It allows you to install
+modules or distributions from CPAN, or just get information about them, and
+a lot more.  It is similar to the command line mode of the L<CPAN> module,
+
+    perl -MCPAN -e shell
+
+=item L<instmodsh>
+
+A little interface to L<ExtUtils::Installed> to examine installed modules,
+validate your packlists and even create a tarball from an installed module.
+
+=back
+
+=head1 SEE ALSO
+
+L<perldoc>, L<pod2man>, L<pod2text>, L<pod2html>, L<pod2usage>,
+L<podchecker>, L<splain>, L<pl2pm>,
+L<perlbug>, L<h2ph>, L<h2xs>, L<enc2xs>,
+L<xsubpp>, L<cpan>, L<encguess>, L<instmodsh>, L<json_pp>,
+L<piconv>, L<prove>, L<corelist>, L<ptar>,
+L<ptardiff>, L<shasum>, L<streamzip>, L<zipdetails>
+
+=cut

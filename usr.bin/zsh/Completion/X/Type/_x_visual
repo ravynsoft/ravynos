@@ -1,0 +1,10 @@
+#autoload
+
+local expl
+
+# with the -b option, include `Best' in the matches
+local best="${argv[(r)-b]:+Best}"
+argv[(i)-b]=()
+
+_wanted visuals expl visual compadd "$@" -M 'm:{a-zA-Z}={A-Za-z}' - \
+    $best DirectColor TrueColor PseudoColor StaticColor GrayScale StaticGray

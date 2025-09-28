@@ -1,0 +1,172 @@
+#compdef useradd usermod groupadd groupmod
+
+local -a args shells logindefs
+local defex
+
+# this handles solaris, netbsd, openbsd and linux
+case ${service%???}:${(M)service%???}:$OSTYPE in
+  user:*)
+    if [[ -r /etc/shells ]]; then
+      shells=( ${${(f)"$(</etc/shells)"}:#\#*} )
+    else
+      shells=( ${(M)commands:#*/(|[abckz]|tc|ba)sh} )
+    fi
+    args+=(
+      '(-D -c --commend)'{-c+,--comment=}'[comment]:comment'
+      '(-D -d --home -b --base-dir)'{-d+,--home=}"[specify home directory]:home directory:_directories -W /"
+      '(-D -e --expiredate)'{-e+,--expiredate}'[specify expiration date]:expiration date (YYYY-MM-DD)'
+      '(-D -f --inactive)'{-f+,--inactive=}'[specify inactive days]:inactive days'
+      '(-D -g --gid)'{-g+,--gid=}'[specify primary group]:initial group:_groups'
+      '(-D -G --groups)'{-G+,--groups=}'[specify supplementary groups]:supplementary group:_sequence _groups'
+      '(-D -s --shell)'{-s+,--shell=}"[shell]:shell:( $shells /bin/false )"
+      '(-D -u --uid)'{-u+,--uid=}'[specify uid]:uid'
+      '(-D -o --non-unique)'{-o,--non-unique}'[allow non unique uid]'
+    )
+  ;|
+  user:add:*)
+    [[ $OSTYPE = linux* ]] && defex=" -k -K -M -p -r -R -Z"
+    [[ $OSTYPE = (net|open)bsd* ]] && defex=" -p -v"
+    args+=(
+      "(-c -d -G -m -l -N -u -U -o -n -S$defex)"{-D,--defaults}'[show or modify defaults]'
+      '(-D -M -k --skel)'{-k,--skel}'[skeleton home directory]:skeleton directory:_directories -W /'
+      '(-D -M -m --create-home)'{-m,--create-home}'[create home directory]'
+      ':username'
+    )
+  ;|
+  user:add:linux*)
+    logindefs=( # see login.defs(5)
+      CREATE_HOME GID_MAX GID_MIN MAIL_DIR MAX_MEMBERS_PER_GROUP
+      PASS_MAX_DAYS PASS_MIN_DAYS PASS_WARN_AGE SUB_GID_COUNT SUB_GID_MAX
+      SUB_GID_MIN SUB_UID_COUNT SUB_UID_MAX SUB_UID_MIN SYS_GID_MAX
+      SYS_GID_MIN SYS_UID_MAX SYS_UID_MIN UID_MAX UID_MIN UMASK
+    )
+    args+=(
+      '(-l --no-log-init)'{-l,--no-log-init}"[don't add user to lastlog and faillog databases]"
+      '(-m --create-home -M --no-create-home)'{-M,--no-create-home}"[don't create user's home directory, regardless of /etc/login.defs]"
+      '(-N --no-user-group -U --user-group)'{-N,--no-user-group}"[don't create a group with the same name as the user]"
+      '(-N --no-user-group -U --user-group)'{-U,--user-group}"[create a group with the same name as the user]"
+    )
+  ;|
+  user:add:(^solaris2.<-10>))
+    args+=(
+      '(-b --base-dir -d --home-dir)'{-b,--base-dir=}'[specify base directory for new home directory]:directory:_directories'
+    )
+  ;|
+  user:*:(net|open)bsd*)
+    args+=(
+      '-L[specify login class]:login class:_login_classes'
+      '-p+[specify encrypted password]:encrypted password'
+    )
+  ;|
+  user:add:(net|open)bsd*)
+    args+=( '-r[specify UID range]:low.high' )
+  ;|
+  user:add:netbsd*)
+    args+=( '-M[specify home directory permissions]:permissions (octal)' )
+  ;|
+  user:mod:netbsd*)
+    args+=( '-C[lock or unlock account]:locked:(yes no)' )
+  ;|
+  user:*:netbsd*)
+    args+=(
+      '-F[force password change on first login]'
+      '-S[allow samba usernames with a trailing dollar]'
+    )
+  ;|
+  user:mod:openbsd*)
+    args+=(
+      '(-G)-S+[set supplementary groups]:supplementary group:_sequence _groups'
+      "(-U)-Z[lock the account by adding \'-\' to password and shell]"
+      '(-Z)-U[unlock the account]'
+    )
+  ;|
+  *:*:(net|open)bsd*)
+    args+=( '-v[verbose mode - explain commands as they are executed]' )
+  ;|
+  *:*:solaris2.<11->)
+    args+=( '-S[specify repository]:repository:(files ldap)' )
+  ;|
+  user:*:solaris2.<11->)
+    args+=(
+      '-A[specify authorizations]:authorization'
+      \*{-K,--key=}'[set user attributes]:user attribute'
+      '-P[specify execution profiles]:profile'
+      '-R[specify roles]:role'
+      '-p[specify projects]:project'
+    )
+  ;|
+  user:mod:solaris2.<11->)
+    args+=(
+      '-q[specify host or netgroup to qualify extended attributes]:host or netgroup:_hosts'
+    )
+  ;|
+  user:mod:linux*)
+    args+=(
+      '(-a --append)'{-a,--append}'[add user to supplementary groups without removing from other groups]'
+      \*{-v,--add-subuids}'[add a range of subordinate uids]:uids (first-last)'
+      \*{-V,--del-subuids}'[remove a range of subordinate uids]:uids (first-last)'
+      \*{-w,--add-subgids}'[add a range of subordinate gids]:gids (first-last)'
+      \*{-W,--del-subgids}'[remove a range of subordinate gids]:gids (first-last)'
+    )
+  ;|
+  user:mod:*)
+    args+=(
+      '(-l --no-log-init)'{-l,--no-log-init}'[specify new user name]:new username'
+      '(-m --move-home)'{-m,--move-home}'[move home directory contents to new location]'
+      ':username:_users'
+    )
+  ;|
+  user:*:linux*)
+    args+=(
+      '(-U --unlock --lock -L -p)'{-L,--lock}"[lock user's password]"
+      '(-U --unlock --lock -L -p)'{-U,--unlock}"[unlock user's password]"
+      '(-Z --selinux-user)'{-Z,--selinux-user}"[specify SELinux user for the user's login]:user"
+    )
+  ;|
+  group:*)
+    args+=(
+      '(-g --gid)'{-g+,--gid=}'[specify gid]:gid'
+      '(-o --non-unique)'{-o,--non-unique}'[allow non unique gid]'
+    )
+  ;|
+  group:add:linux*)
+    logindefs=( GID_MAX GID_MIN MAX_MEMBERS_PER_GROUP SYS_GID_MAX SYS_GID_MIN )
+    args+=(
+      '(-r --system)'{-r,--system}'[create a system account]'
+      '(-f --force)'{-f,--force}'[exit successfully if group already exists; cancel -g if GID in use]'
+    )
+  ;|
+  group:*:solaris2.<11->)
+    args+=( '-U[add users to the group]:user:_sequence _users' )
+  ;|
+  *:add:linux*)
+    args+=(
+      \*{-K,--key=}'[override /etc/login.defs defaults]:key: _values 'key' ${^logindefs}\:value'
+    )
+  ;|
+  group:add:netbsd*)
+    args+=( '-r[specify GID range]:low.high' )
+  ;|
+  *:*:linux*)
+    args+=(
+      '(-R --root)'{-R,--root=}'[specify directory to chroot into]:directory:_directories'
+      '(-P --prefix)'{-P,--prefix=}"[specify root directory to apply changes in but don't chroot]:directory:_directories"
+      '(-D -U -L -p --password)'{-p+,--password=}'[specify encrypted password]:encrypted password'
+      '(-)'{-h,--help}'[display help information]'
+    )
+  ;|
+  group:add:*)
+    args+=( ':group name' )
+  ;|
+  group:mod:*)
+    args+=(
+      '(-n --new-name)'{-n,--new-name}'[specify new group name]:new group name'
+      ':group:_groups'
+    )
+  ;|
+  ^*:linux*)
+    args=( ${(R)args:#(|\*)(|\(*\))--*} )    # remove long options
+  ;|
+esac
+
+_arguments -A "-*" -s $args[@]

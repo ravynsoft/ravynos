@@ -1,0 +1,45 @@
+#compdef xv
+
+_x_arguments \
+  -{help,quick24,slow24,best24,noqcheck,pkludge,RM} \
+  -+{fixed,rw,perfect,owncmap,stdcmap,cecmap,ninstall,8,24,root,noresetroot,max,maxpect,quit,clear,cmap,imap,cemap,cmtmap,vsmap,nopos,dither,smooth,raw,acrop,4x3,hflip,vflip,norm,hist,mono,rv,wloop,random,loadclear,nofreecols,rgb,hsv,lbrowse,nostat,2xlimit,nolimits,close,iconic,viewonly,poll,vsperfect,vsdisable,nodecor} \
+  '-fg:foreground color:_x_color' \
+  '-bg:background color:_x_color' \
+  '-hi:top left shadow color:_x_color' \
+  '-lo:bottom right shadow color:_x_color' \
+  '-bw:border width' \
+  '-geometry:geometry:_x_geometry' \
+  '-expand:expansion factor' \
+  '-aspect:aspect ratio (e.g. 4:3)' \
+  '-ncols:maximum number of colors used' \
+  '-rmode:root display mode:((0\:tiling 1\:integer\ tiling 2\:mirrored\ tiling 3\:integer\ mirrored\ tiling 4\:centered\ tiling 5\:centered\ tiling\ on\ solid\ background 6\:centered\ tiling\ on\ '\\\''warp'\\\''\ background 7\:centered\ tiling\ on\ '\\\''brick'\\\''\ background 8\:symmetrical\ tiling 9\:symmetrical\ mirrored\ tiling))' \
+  '-rfg:root foreground color:_x_color' \
+  '-rbg:root background color:_x_color' \
+  '-cgeom:control window geometry:_x_geometry' \
+  '-igeom:info window geometry:_x_geometry' \
+  '-cegeom:color editor window geometry:_x_geometry' \
+  '-cmtgeometry:comments window geometry:_x_geometry' \
+  '-tgeometry:text view window geometry:_x_geometry' \
+  '-vsgeometry:visual schauzer geometry:_x_geometry' \
+  '-crop:left border: :top border: :width: :height' \
+  '-rotate:rotation angle:(0 90 -90 +90 180 -180 +180 270 -270 +270)' \
+  '-gamma:gamma value' \
+  '-cgamma:red gamma value: :green gamma value: :blue gamma value' \
+  '-preset:default preset (1-4):(1 2 3 4)' \
+  '-white:'"'"'white'"'"' color:_x_color' \
+  '-black:'"'"'black'"'"' color:_x_color' \
+  '-wait:seconds to wait' \
+  '-visual:visual:_x_visual' \
+  '-cursor:cursor character number' \
+  '-icgeometry:icon geometry:_x_geometry' \
+  '-dir:directory:_files -/' \
+  '-flist:file list file:_files' \
+  '-drift:x movement correction: :y movement correction' \
+  '-mfn:mono spaced font:_x_font' \
+  '-name:window name:_x_name' \
+  '-+grabdelay:grab delay (seconds)' \
+  '-gsdev:ghostscript device' \
+  '-gsres:ghostscript resolution' \
+  '-gsgeom:ghostscript page size' \
+  '-DEBUG:debug level' \
+  '*:picture file:_files -g \*.\(\#i\)\(png\|gif\|jpeg\|jpg\|tiff\|tif\|pbm\|pgm\|ppm\|xbm\|xpm\|ras\(\|t\)\|tga\|rle\|rgb\|bmp\|pcx\|fits\|pm\)\(-.\)'

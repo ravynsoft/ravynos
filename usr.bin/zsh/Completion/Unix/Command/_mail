@@ -1,0 +1,9 @@
+#compdef mail mailx=mail Mail=mail mush zmail nail=mail
+
+_arguments -s \
+  '(-f -u)*-b[specify a BCC recipient]:BCC recipient:_email_addresses -n $service' \
+  '(-f -u)*-c[specify a CC recipient]:CC recipient:_email_addresses -n $service' \
+  '(-b -c -u -s *)-f+[specify mail folder]:mailbox:_mailboxes' \
+  '(-f -u)-s+[specify a subject]:subject' \
+  "(-b -c -f -s *)-u+[read specified user's mail]:user:_users" \
+  "(-f -u)*:recipient:_email_addresses -n $service"

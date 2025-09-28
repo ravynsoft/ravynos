@@ -1,0 +1,74 @@
+.TH libinput "1" "" "libinput @LIBINPUT_VERSION@" "libinput Manual"
+.SH NAME
+libinput \- tool to interface with libinput
+.SH SYNOPSIS
+.B libinput [\-\-help|\-\-version] \fI<command>\fR \fI[<args>]\fR
+.SH DESCRIPTION
+.PP
+libinput is a library to handle input devices and provides device
+detection and input device event processing for most Wayland
+compositors and the X.Org xf86-input-libinput driver.
+.PP
+The
+.B "libinput"
+tools are a set of tools to debug, interface with and analyze data for
+libinput. These tools create libinput contexts separate from that of
+the compositor/X server and cannot change settings in a running session.
+See section
+.B COMMANDS
+for a list of available commands.
+.PP
+libinput's API documentation and details on features and various high-level
+concepts are available online at
+.I https://wayland.freedesktop.org/libinput/doc/latest/
+.PP
+The man page for the X.Org xf86-input-libinput driver is
+.B libinput(4).
+.SH OPTIONS
+.TP 8
+.B \-\-help
+Print help and exit
+.TP 8
+.B \-\-version
+Print the version and exit
+.SH COMMANDS
+.TP 8
+.B libinput\-debug\-events(1)
+Print all events as seen by libinput
+@HAVE_DEBUG_GUI@.TP 8
+@HAVE_DEBUG_GUI@.B libinput\-debug\-gui(1)
+@HAVE_DEBUG_GUI@Show a GUI to visualize libinput's events
+.TP 8
+.B libinput\-debug\-tablet(1)
+A commandline tool to debug tablet axis values
+.TP 8
+.B libinput\-list\-devices(1)
+List all devices recognized by libinput
+.TP 8
+.B libinput\-list\-kernel-devices(1)
+List all kernel devices available on this system
+.TP 8
+.B libinput\-measure(1)
+Measure various properties of devices
+.TP 8
+.B libinput\-record(1)
+Record the events from a device
+.TP 8
+.B libinput\-replay(1)
+Replay the events from a device
+.TP 8
+.B libinput\-analyze(1)
+Analyze events from a device
+.TP 8
+.B libinput\-test(1)
+Test libinput itself.
+.SH LIBINPUT
+Part of the
+.B libinput(1)
+suite
+.PP
+.SH SEE ALSO
+libinput(4)
+.PP
+libinput's online documentation
+.I https://wayland.freedesktop.org/libinput/doc/latest/

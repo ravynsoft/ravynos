@@ -1,0 +1,13 @@
+{
+	"EnvironmentVariables": {
+		"ASL_DISABLE": "1"
+	},
+	"Label": "org.freebsd.devd",
+	"ProgramArguments": [
+		"/sbin/devd",
+		"-d"
+	],
+	"OnDemand": false,
+	"KeepAlive": true,
+	"RunAtLoad": true
+}

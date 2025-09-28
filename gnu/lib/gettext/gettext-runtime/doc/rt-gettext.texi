@@ -1,0 +1,78 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2019 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@pindex gettext
+@cindex @code{gettext} program, usage
+@example
+gettext [@var{option}] [[@var{textdomain}] @var{msgid}]
+gettext [@var{option}] -s [@var{msgid}]...
+@end example
+
+@cindex lookup message translation
+The @code{gettext} program displays the native language translation of a
+textual message.
+
+@noindent @strong{Arguments}
+
+@table @samp
+@item -c @var{context}
+@itemx --context=@var{context}
+@opindex -c@r{, @code{gettext} option}
+@opindex --context@r{, @code{gettext} option}
+Specify the context for the messages to be translated.
+See @ref{Contexts} for details.
+
+@item -d @var{textdomain}
+@itemx --domain=@var{textdomain}
+@opindex -d@r{, @code{gettext} option}
+@opindex --domain@r{, @code{gettext} option}
+Retrieve translated messages from @var{textdomain}.  Usually a @var{textdomain}
+corresponds to a package, a program, or a module of a program.
+
+@item -e
+@opindex -e@r{, @code{gettext} option}
+Enable expansion of some escape sequences.  This option is for compatibility
+with the @samp{echo} program or shell built-in.  The escape sequences
+@samp{\a}, @samp{\b}, @samp{\c}, @samp{\f}, @samp{\n}, @samp{\r}, @samp{\t},
+@samp{\v}, @samp{\\}, and @samp{\} followed by one to three octal digits, are
+interpreted like the System V @samp{echo} program did.
+
+@item -E
+@opindex -E@r{, @code{gettext} option}
+This option is only for compatibility with the @samp{echo} program or shell
+built-in.  It has no effect.
+
+@item -h
+@itemx --help
+@opindex -h@r{, @code{gettext} option}
+@opindex --help@r{, @code{gettext} option}
+Display this help and exit.
+
+@item -n
+@opindex -n@r{, @code{gettext} option}
+This option has only an effect if the @code{-s} option is given.  It
+suppresses the additional newline at the end.
+
+@item -V
+@itemx --version
+@opindex -V@r{, @code{gettext} option}
+@opindex --version@r{, @code{gettext} option}
+Output version information and exit.
+
+@item [@var{textdomain}] @var{msgid}
+Retrieve translated message corresponding to @var{msgid} from @var{textdomain}.
+
+@end table
+
+If the @var{textdomain} parameter is not given, the domain is determined from
+the environment variable @code{TEXTDOMAIN}.  If the message catalog is not
+found in the regular directory, another location can be specified with the
+environment variable @code{TEXTDOMAINDIR}.
+
+When used with the @code{-s} option the program behaves like the @samp{echo}
+command.  But it does not simply copy its arguments to stdout.  Instead those
+messages found in the selected catalog are translated.  Also, a newline is
+added at the end, unless either the option @code{-n} is specified or the
+option @code{-e} is specified and some of the argument strings contains a
+@samp{\c} escape sequence.

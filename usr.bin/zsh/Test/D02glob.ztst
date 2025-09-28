@@ -1,0 +1,828 @@
+# Tests for globbing
+
+%prep
+  mkdir glob.tmp
+  mkdir glob.tmp/dir{1,2,3,4}
+  mkdir glob.tmp/dir3/subdir
+  : >glob.tmp/{,{dir1,dir2}/}{a,b,c}
+
+  globtest () {
+    $ZTST_testdir/../Src/zsh -f $ZTST_srcdir/../Misc/$1
+  }
+
+  regress_absolute_path_and_core_dump() {
+    local absolute_dir=$(cd glob.tmp && pwd -P)
+    [[ -n $absolute_dir ]] || return 1
+    setopt localoptions extendedglob nullglob
+    print $absolute_dir/**/*~/*
+    setopt nonullglob nomatch
+    print glob.tmp/**/*~(.)#
+  }
+
+%test
+
+  globtest globtests
+0:zsh globbing
+>0:  [[ foo~ = foo~ ]]
+>0:  [[ foo~ = (foo~) ]]
+>0:  [[ foo~ = (foo~|) ]]
+>0:  [[ foo.c = *.c~boo* ]]
+>1:  [[ foo.c = *.c~boo*~foo* ]]
+>0:  [[ fofo = (fo#)# ]]
+>0:  [[ ffo = (fo#)# ]]
+>0:  [[ foooofo = (fo#)# ]]
+>0:  [[ foooofof = (fo#)# ]]
+>0:  [[ fooofoofofooo = (fo#)# ]]
+>1:  [[ foooofof = (fo##)# ]]
+>1:  [[ xfoooofof = (fo#)# ]]
+>1:  [[ foooofofx = (fo#)# ]]
+>0:  [[ ofxoofxo = ((ofo#x)#o)# ]]
+>1:  [[ ofooofoofofooo = (fo#)# ]]
+>0:  [[ foooxfooxfoxfooox = (fo#x)# ]]
+>1:  [[ foooxfooxofoxfooox = (fo#x)# ]]
+>0:  [[ foooxfooxfxfooox = (fo#x)# ]]
+>0:  [[ ofxoofxo = ((ofo#x)#o)# ]]
+>0:  [[ ofoooxoofxo = ((ofo#x)#o)# ]]
+>0:  [[ ofoooxoofxoofoooxoofxo = ((ofo#x)#o)# ]]
+>0:  [[ ofoooxoofxoofoooxoofxoo = ((ofo#x)#o)# ]]
+>1:  [[ ofoooxoofxoofoooxoofxofo = ((ofo#x)#o)# ]]
+>0:  [[ ofoooxoofxoofoooxoofxooofxofxo = ((ofo#x)#o)# ]]
+>0:  [[ aac = ((a))#a(c) ]]
+>0:  [[ ac = ((a))#a(c) ]]
+>1:  [[ c = ((a))#a(c) ]]
+>0:  [[ aaac = ((a))#a(c) ]]
+>1:  [[ baaac = ((a))#a(c) ]]
+>0:  [[ abcd = ?(a|b)c#d ]]
+>0:  [[ abcd = (ab|ab#)c#d ]]
+>0:  [[ acd = (ab|ab#)c#d ]]
+>0:  [[ abbcd = (ab|ab#)c#d ]]
+>0:  [[ effgz = (bc##d|ef#g?|(h|)i(j|k)) ]]
+>0:  [[ efgz = (bc##d|ef#g?|(h|)i(j|k)) ]]
+>0:  [[ egz = (bc##d|ef#g?|(h|)i(j|k)) ]]
+>0:  [[ egzefffgzbcdij = (bc##d|ef#g?|(h|)i(j|k))# ]]
+>1:  [[ egz = (bc##d|ef##g?|(h|)i(j|k)) ]]
+>0:  [[ ofoofo = (ofo##)# ]]
+>0:  [[ oxfoxoxfox = (oxf(ox)##)# ]]
+>1:  [[ oxfoxfox = (oxf(ox)##)# ]]
+>0:  [[ ofoofo = (ofo##|f)# ]]
+>0:  [[ foofoofo = (foo|f|fo)(f|ofo##)# ]]
+>0:  [[ oofooofo = (of|oofo##)# ]]
+>0:  [[ fffooofoooooffoofffooofff = (f#o#)# ]]
+>1:  [[ fffooofoooooffoofffooofffx = (f#o#)# ]]
+>0:  [[ fofoofoofofoo = (fo|foo)# ]]
+>0:  [[ foo = ((^x)) ]]
+>0:  [[ foo = ((^x)*) ]]
+>1:  [[ foo = ((^foo)) ]]
+>0:  [[ foo = ((^foo)*) ]]
+>0:  [[ foobar = ((^foo)) ]]
+>0:  [[ foobar = ((^foo)*) ]]
+>1:  [[ foot = z*~*x ]]
+>0:  [[ zoot = z*~*x ]]
+>1:  [[ foox = z*~*x ]]
+>1:  [[ zoox = z*~*x ]]
+>0:  [[ moo.cow = (*~*.*).(*~*.*) ]]
+>1:  [[ mad.moo.cow = (*~*.*).(*~*.*) ]]
+>0:  [[ moo.cow = (^*.*).(^*.*) ]]
+>1:  [[ sane.moo.cow = (^*.*).(^*.*) ]]
+>1:  [[ mucca.pazza = mu(^c#)?.pa(^z#)? ]]
+>1:  [[ _foo~ = _(|*[^~]) ]]
+>0:  [[ fff = ((^f)) ]]
+>0:  [[ fff = ((^f)#) ]]
+>0:  [[ fff = ((^f)##) ]]
+>0:  [[ ooo = ((^f)) ]]
+>0:  [[ ooo = ((^f)#) ]]
+>0:  [[ ooo = ((^f)##) ]]
+>0:  [[ foo = ((^f)) ]]
+>0:  [[ foo = ((^f)#) ]]
+>0:  [[ foo = ((^f)##) ]]
+>1:  [[ f = ((^f)) ]]
+>1:  [[ f = ((^f)#) ]]
+>1:  [[ f = ((^f)##) ]]
+>0:  [[ foot = (^z*|*x) ]]
+>1:  [[ zoot = (^z*|*x) ]]
+>0:  [[ foox = (^z*|*x) ]]
+>0:  [[ zoox = (^z*|*x) ]]
+>0:  [[ foo = (^foo)# ]]
+>1:  [[ foob = (^foo)b* ]]
+>0:  [[ foobb = (^foo)b* ]]
+>1:  [[ foob = (*~foo)b* ]]
+>0:  [[ foobb = (*~foo)b* ]]
+>1:  [[ zsh = ^z* ]]
+>0:  [[ a%1X = [[:alpha:][:punct:]]#[[:digit:]][^[:lower:]] ]]
+>1:  [[ a%1 = [[:alpha:][:punct:]]#[[:digit:]][^[:lower:]] ]]
+>0:  [[ [: = [[:]# ]]
+>0:  [[ :] = []:]# ]]
+>0:  [[ :] = [:]]# ]]
+>0:  [[ [ = [[] ]]
+>0:  [[ ] = []] ]]
+>0:  [[ [] = [^]]] ]]
+>0:  [[ fooxx = (#i)FOOXX ]]
+>1:  [[ fooxx = (#l)FOOXX ]]
+>0:  [[ FOOXX = (#l)fooxx ]]
+>1:  [[ fooxx = (#i)FOO(#I)X(#i)X ]]
+>0:  [[ fooXx = (#i)FOO(#I)X(#i)X ]]
+>0:  [[ fooxx = ((#i)FOOX)x ]]
+>1:  [[ fooxx = ((#i)FOOX)X ]]
+>1:  [[ BAR = (bar|(#i)foo) ]]
+>0:  [[ FOO = (bar|(#i)foo) ]]
+>0:  [[ Modules = (#i)*m* ]]
+>0:  [[ fooGRUD = (#i)(bar|(#I)foo|(#i)rod)grud ]]
+>1:  [[ FOOGRUD = (#i)(bar|(#I)foo|(#i)rod)grud ]]
+>0:  [[ readme = (#i)readme~README|readme ]]
+>0:  [[ readme = (#i)readme~README|readme~README ]]
+>0:  [[ 633 = <1-1000>33 ]]
+>0:  [[ 633 = <-1000>33 ]]
+>0:  [[ 633 = <1->33 ]]
+>0:  [[ 633 = <->33 ]]
+>0:  [[ 12345678901234567890123456789012345678901234567890123456789012345678901234567890foo = <42->foo ]]
+>0:  [[ READ.ME = (#ia1)readme ]]
+>1:  [[ READ..ME = (#ia1)readme ]]
+>0:  [[ README = (#ia1)readm ]]
+>0:  [[ READM = (#ia1)readme ]]
+>0:  [[ README = (#ia1)eadme ]]
+>0:  [[ EADME = (#ia1)readme ]]
+>0:  [[ READEM = (#ia1)readme ]]
+>1:  [[ ADME = (#ia1)readme ]]
+>1:  [[ README = (#ia1)read ]]
+>0:  [[ bob = (#a1)[b][b] ]]
+>1:  [[ bob = (#a1)[b][b]a ]]
+>0:  [[ bob = (#a1)[b]o[b]a ]]
+>1:  [[ bob = (#a1)[c]o[b] ]]
+>0:  [[ abcd = (#a2)XbcX ]]
+>0:  [[ abcd = (#a2)ad ]]
+>0:  [[ ad = (#a2)abcd ]]
+>0:  [[ abcd = (#a2)bd ]]
+>0:  [[ bd = (#a2)abcd ]]
+>0:  [[ badc = (#a2)abcd ]]
+>0:  [[ adbc = (#a2)abcd ]]
+>1:  [[ dcba = (#a2)abcd ]]
+>0:  [[ dcba = (#a3)abcd ]]
+>0:  [[ aabaXaaabY = (#a1)(a#b)#Y ]]
+>0:  [[ aabaXaaabY = (#a1)(a#b)(a#b)Y ]]
+>0:  [[ aaXaaaaabY = (#a1)(a#b)(a#b)Y ]]
+>0:  [[ aaaXaaabY = (#a1)(a##b)##Y ]]
+>0:  [[ aaaXbaabY = (#a1)(a##b)##Y ]]
+>1:  [[ read.me = (#ia1)README~READ.ME ]]
+>0:  [[ read.me = (#ia1)README~READ_ME ]]
+>1:  [[ read.me = (#ia1)README~(#a1)READ_ME ]]
+>0:  [[ test = *((#s)|/)test((#e)|/)* ]]
+>0:  [[ test/path = *((#s)|/)test((#e)|/)* ]]
+>0:  [[ path/test = *((#s)|/)test((#e)|/)* ]]
+>0:  [[ path/test/ohyes = *((#s)|/)test((#e)|/)* ]]
+>1:  [[ atest = *((#s)|/)test((#e)|/)* ]]
+>1:  [[ testy = *((#s)|/)test((#e)|/)* ]]
+>1:  [[ testy/path = *((#s)|/)test((#e)|/)* ]]
+>1:  [[ path/atest = *((#s)|/)test((#e)|/)* ]]
+>1:  [[ atest/path = *((#s)|/)test((#e)|/)* ]]
+>1:  [[ path/testy = *((#s)|/)test((#e)|/)* ]]
+>1:  [[ path/testy/ohyes = *((#s)|/)test((#e)|/)* ]]
+>1:  [[ path/atest/ohyes = *((#s)|/)test((#e)|/)* ]]
+>0:  [[ XabcdabcY = X(ab|c|d)(#c5)Y ]]
+>0:  [[ XabcdabcY = X(ab|c|d)(#c1,5)Y ]]
+>0:  [[ XabcdabcY = X(ab|c|d)(#c5,8)Y ]]
+>0:  [[ XabcdabcY = X(ab|c|d)(#c4,)Y ]]
+>1:  [[ XabcdabcY = X(ab|c|d)(#c6,)Y ]]
+>1:  [[ XabcdabcY = X(ab|c|d)(#c1,4)Y ]]
+>0:  [[ ZX = Z(|)(#c1)X ]]
+>0:  [[ froofroo = (fro(#c2))(#c2) ]]
+>1:  [[ froofroofroo = (fro(#c2))(#c2) ]]
+>1:  [[ froofro = (fro(#c2))(#c2) ]]
+>0:  [[ ax = ?(#c1,2)x ]]
+>0:  [[ ax = ?(#c1,)x ]]
+>0:  [[ ax = ?(#c0,1)x ]]
+>1:  [[ ax = ?(#c0,0)x ]]
+>1:  [[ ax = ?(#c2,)x ]]
+>0:  [[ aa = a(#c1,2)a ]]
+>0:  [[ aa = a(#c1,)a ]]
+>0:  [[ aa = a(#c0,1)a ]]
+>1:  [[ aa = a(#c0,0)a ]]
+>1:  [[ aa = a(#c2,)a ]]
+>0:  [[ test.zsh = *.?(#c1)sh ]]
+>0:  [[ test.bash = *.?(#c2)sh ]]
+>0:  [[ test.bash = *.?(#c1,2)sh ]]
+>0:  [[ test.bash = *.?(#c1,)sh ]]
+>0:  [[ test.zsh = *.?(#c1,)sh ]]
+>0 tests failed.
+
+  globtest globtests.ksh
+0:ksh compatibility
+>0:  [[ fofo = *(f*(o)) ]]
+>0:  [[ ffo = *(f*(o)) ]]
+>0:  [[ foooofo = *(f*(o)) ]]
+>0:  [[ foooofof = *(f*(o)) ]]
+>0:  [[ fooofoofofooo = *(f*(o)) ]]
+>1:  [[ foooofof = *(f+(o)) ]]
+>1:  [[ xfoooofof = *(f*(o)) ]]
+>1:  [[ foooofofx = *(f*(o)) ]]
+>0:  [[ ofxoofxo = *(*(of*(o)x)o) ]]
+>1:  [[ ofooofoofofooo = *(f*(o)) ]]
+>0:  [[ foooxfooxfoxfooox = *(f*(o)x) ]]
+>1:  [[ foooxfooxofoxfooox = *(f*(o)x) ]]
+>0:  [[ foooxfooxfxfooox = *(f*(o)x) ]]
+>0:  [[ ofxoofxo = *(*(of*(o)x)o) ]]
+>0:  [[ ofoooxoofxo = *(*(of*(o)x)o) ]]
+>0:  [[ ofoooxoofxoofoooxoofxo = *(*(of*(o)x)o) ]]
+>0:  [[ ofoooxoofxoofoooxoofxoo = *(*(of*(o)x)o) ]]
+>1:  [[ ofoooxoofxoofoooxoofxofo = *(*(of*(o)x)o) ]]
+>0:  [[ ofoooxoofxoofoooxoofxooofxofxo = *(*(of*(o)x)o) ]]
+>0:  [[ aac = *(@(a))a@(c) ]]
+>0:  [[ ac = *(@(a))a@(c) ]]
+>1:  [[ c = *(@(a))a@(c) ]]
+>0:  [[ aaac = *(@(a))a@(c) ]]
+>1:  [[ baaac = *(@(a))a@(c) ]]
+>0:  [[ abcd = ?@(a|b)*@(c)d ]]
+>0:  [[ abcd = @(ab|a*@(b))*(c)d ]]
+>0:  [[ acd = @(ab|a*(b))*(c)d ]]
+>0:  [[ abbcd = @(ab|a*(b))*(c)d ]]
+>0:  [[ effgz = @(b+(c)d|e*(f)g?|?(h)i@(j|k)) ]]
+>0:  [[ efgz = @(b+(c)d|e*(f)g?|?(h)i@(j|k)) ]]
+>0:  [[ egz = @(b+(c)d|e*(f)g?|?(h)i@(j|k)) ]]
+>0:  [[ egzefffgzbcdij = *(b+(c)d|e*(f)g?|?(h)i@(j|k)) ]]
+>1:  [[ egz = @(b+(c)d|e+(f)g?|?(h)i@(j|k)) ]]
+>0:  [[ ofoofo = *(of+(o)) ]]
+>0:  [[ oxfoxoxfox = *(oxf+(ox)) ]]
+>1:  [[ oxfoxfox = *(oxf+(ox)) ]]
+>0:  [[ ofoofo = *(of+(o)|f) ]]
+>0:  [[ foofoofo = @(foo|f|fo)*(f|of+(o)) ]]
+>0:  [[ oofooofo = *(of|oof+(o)) ]]
+>0:  [[ fffooofoooooffoofffooofff = *(*(f)*(o)) ]]
+>1:  [[ fffooofoooooffoofffooofffx = *(*(f)*(o)) ]]
+>0:  [[ fofoofoofofoo = *(fo|foo) ]]
+>0:  [[ foo = !(x) ]]
+>0:  [[ foo = !(x)* ]]
+>1:  [[ foo = !(foo) ]]
+>0:  [[ foo = !(foo)* ]]
+>0:  [[ foobar = !(foo) ]]
+>0:  [[ foobar = !(foo)* ]]
+>0:  [[ moo.cow = !(*.*).!(*.*) ]]
+>1:  [[ mad.moo.cow = !(*.*).!(*.*) ]]
+>1:  [[ mucca.pazza = mu!(*(c))?.pa!(*(z))? ]]
+>1:  [[ _foo~ = _?(*[^~]) ]]
+>0:  [[ fff = !(f) ]]
+>0:  [[ fff = *(!(f)) ]]
+>0:  [[ fff = +(!(f)) ]]
+>0:  [[ ooo = !(f) ]]
+>0:  [[ ooo = *(!(f)) ]]
+>0:  [[ ooo = +(!(f)) ]]
+>0:  [[ foo = !(f) ]]
+>0:  [[ foo = *(!(f)) ]]
+>0:  [[ foo = +(!(f)) ]]
+>1:  [[ f = !(f) ]]
+>1:  [[ f = *(!(f)) ]]
+>1:  [[ f = +(!(f)) ]]
+>0:  [[ foot = @(!(z*)|*x) ]]
+>1:  [[ zoot = @(!(z*)|*x) ]]
+>0:  [[ foox = @(!(z*)|*x) ]]
+>0:  [[ zoox = @(!(z*)|*x) ]]
+>0:  [[ foo = *(!(foo)) ]]
+>1:  [[ foob = !(foo)b* ]]
+>0:  [[ foobb = !(foo)b* ]]
+>0:  [[ fooxx = (#i)FOOXX ]]
+>1:  [[ fooxx = (#l)FOOXX ]]
+>0:  [[ FOOXX = (#l)fooxx ]]
+>1:  [[ fooxx = (#i)FOO@(#I)X@(#i)X ]]
+>0:  [[ fooXx = (#i)FOO@(#I)X@(#i)X ]]
+>0:  [[ fooxx = @((#i)FOOX)x ]]
+>1:  [[ fooxx = @((#i)FOOX)X ]]
+>1:  [[ BAR = @(bar|(#i)foo) ]]
+>0:  [[ FOO = @(bar|(#i)foo) ]]
+>0:  [[ Modules = (#i)*m* ]]
+>0 tests failed.
+
+ (unsetopt multibyte
+ [[ björn = *[åäöÅÄÖ]* ]])
+0:single byte match with top bit set
+
+  ( regress_absolute_path_and_core_dump )
+0:exclusions regression test
+>
+>glob.tmp/a glob.tmp/b glob.tmp/c glob.tmp/dir1 glob.tmp/dir1/a glob.tmp/dir1/b glob.tmp/dir1/c glob.tmp/dir2 glob.tmp/dir2/a glob.tmp/dir2/b glob.tmp/dir2/c glob.tmp/dir3 glob.tmp/dir3/subdir glob.tmp/dir4
+
+ print glob.tmp/*(/)
+0:Just directories
+>glob.tmp/dir1 glob.tmp/dir2 glob.tmp/dir3 glob.tmp/dir4
+
+ print glob.tmp/*(.)
+0:Just files
+>glob.tmp/a glob.tmp/b glob.tmp/c
+
+ print glob.tmp/*(.e^'reply=( glob.tmp/*/${REPLY:t} )'^:t)
+0:Globbing used recursively (inside e glob qualifier)
+>a a b b c c
+
+ print glob.tmp/*/*(e:'reply=( glob.tmp/**/*([1]) )'::t)
+0:Recursive globbing used recursively (inside e glob qualifier)
+>a a a a a a a
+
+ print glob.tmp/**/(:h) 
+0:Head modifier
+>. glob.tmp glob.tmp glob.tmp glob.tmp glob.tmp/dir3
+
+ print glob.tmp(:r)
+0:Remove extension modifier
+>glob
+
+ print glob.tmp/*(:s/./_/)
+0:Substitute modifier
+>glob_tmp/a glob_tmp/b glob_tmp/c glob_tmp/dir1 glob_tmp/dir2 glob_tmp/dir3 glob_tmp/dir4
+
+ print glob.tmp/*(F)
+0:Just full dirs
+>glob.tmp/dir1 glob.tmp/dir2 glob.tmp/dir3
+
+ print glob.tmp/*(^F)
+0:Omit full dirs
+>glob.tmp/a glob.tmp/b glob.tmp/c glob.tmp/dir4
+
+ print glob.tmp/*(/^F)
+0:Just empty dirs
+>glob.tmp/dir4
+
+ setopt extendedglob
+ print glob.tmp/**/*~*/dir3(/*|(#e))(/)
+0:Exclusions with complicated path specifications
+>glob.tmp/dir1 glob.tmp/dir2 glob.tmp/dir4
+
+ print -l -- glob.tmp/*(P:-f:)
+0:Prepending words to each argument
+>-f
+>glob.tmp/a
+>-f
+>glob.tmp/b
+>-f
+>glob.tmp/c
+>-f
+>glob.tmp/dir1
+>-f
+>glob.tmp/dir2
+>-f
+>glob.tmp/dir3
+>-f
+>glob.tmp/dir4
+
+ print -l -- glob.tmp/*(P:one word:P:another word:)
+0:Prepending two words to each argument
+>one word
+>another word
+>glob.tmp/a
+>one word
+>another word
+>glob.tmp/b
+>one word
+>another word
+>glob.tmp/c
+>one word
+>another word
+>glob.tmp/dir1
+>one word
+>another word
+>glob.tmp/dir2
+>one word
+>another word
+>glob.tmp/dir3
+>one word
+>another word
+>glob.tmp/dir4
+
+ [[ "" = "" ]] && echo OK
+0:Empty strings
+>OK
+
+ foo="this string has a : colon in it"
+ print ${foo%% #:*}
+0:Must-match arguments in complex patterns
+>this string has a
+
+ mkdir glob.tmp/ra=1.0_et=3.5
+ touch glob.tmp/ra=1.0_et=3.5/foo
+ print glob.tmp/ra=1.0_et=3.5/???
+0:Bug with intermediate paths with plain strings but tokenized characters
+>glob.tmp/ra=1.0_et=3.5/foo
+
+ doesmatch() {
+   setopt localoptions extendedglob
+   print -n $1 $2\ 
+   if [[ $1 = $~2 ]]; then print yes; else print no; fi;
+ }
+ doesmatch MY_IDENTIFIER '[[:IDENT:]]##'
+ doesmatch YOUR:IDENTIFIER '[[:IDENT:]]##'
+ IFS=$'\n' doesmatch $'\n' '[[:IFS:]]'
+ IFS=' ' doesmatch $'\n' '[[:IFS:]]'
+ IFS=':' doesmatch : '[[:IFSSPACE:]]'
+ IFS=' ' doesmatch ' ' '[[:IFSSPACE:]]'
+ WORDCHARS="" doesmatch / '[[:WORD:]]'
+ WORDCHARS="/" doesmatch / '[[:WORD:]]'
+0:Named character sets handled internally
+>MY_IDENTIFIER [[:IDENT:]]## yes
+>YOUR:IDENTIFIER [[:IDENT:]]## no
+>
+> [[:IFS:]] yes
+>
+> [[:IFS:]] no
+>: [[:IFSSPACE:]] no
+>  [[:IFSSPACE:]] yes
+>/ [[:WORD:]] no
+>/ [[:WORD:]] yes
+
+ [[ foo = (#c0)foo ]]
+2:Misplaced (#c...) flag
+?(eval):1: bad pattern: (#c0)foo
+
+ mkdir glob.tmp/dir5
+ touch glob.tmp/dir5/N123
+ print glob.tmp/dir5/N<->(N)
+ rm -rf glob.tmp/dir5
+0:Numeric glob is not usurped by process substitution.
+>glob.tmp/dir5/N123
+
+ tpd() {
+   [[ $1 = $~2 ]]
+  print -r "$1, $2: $?"
+ }
+ test_pattern_disables() {
+   emulate -L zsh
+   tpd 'forthcoming' 'f*g'
+   disable -p '*'
+   tpd 'forthcoming' 'f*g'
+   tpd 'f*g' 'f*g'
+   tpd '[frog]' '[frog]'
+   tpd '[frog]' '\[[f]rog\]'
+   disable -p '['
+   tpd '[frog]' '[frog]'
+   tpd '[frog]' '\[[f]rog\]'
+   setopt extendedglob
+   tpd 'foo' '^bar'
+   disable -p '^'
+   tpd 'foo' '^bar'
+   tpd '^bar' '^bar'
+   tpd 'rumble' '(rumble|bluster)'
+   tpd '(thunder)' '(thunder)'
+   disable -p '('
+   tpd 'rumble' '(rumble|bluster)'
+   tpd '(thunder)' '(thunder)'
+   setopt kshglob
+   tpd 'scramble' '@(panic|frenzy|scramble)'
+   tpd '@(scrimf)' '@(scrimf)'
+   disable -p '@('
+   tpd 'scramble' '@(panic|frenzy|scramble)'
+   tpd '@(scrimf)' '@(scrimf)'
+   disable -p
+ }
+ test_pattern_disables
+ print Nothing should be disabled.
+ disable -p
+0:disable -p
+>forthcoming, f*g: 0
+>forthcoming, f*g: 1
+>f*g, f*g: 0
+>[frog], [frog]: 1
+>[frog], \[[f]rog\]: 0
+>[frog], [frog]: 0
+>[frog], \[[f]rog\]: 1
+>foo, ^bar: 0
+>foo, ^bar: 1
+>^bar, ^bar: 0
+>rumble, (rumble|bluster): 0
+>(thunder), (thunder): 1
+>rumble, (rumble|bluster): 1
+>(thunder), (thunder): 0
+>scramble, @(panic|frenzy|scramble): 0
+>@(scrimf), @(scrimf): 1
+>scramble, @(panic|frenzy|scramble): 1
+>@(scrimf), @(scrimf): 0
+>'(' '*' '[' '^' '@('
+>Nothing should be disabled.
+
+  (
+   setopt nomatch
+   x=( '' )
+   print $^x(N)
+  )
+0:No error with empty null glob with (N).
+>
+
+  (setopt kshglob
+   test_array=(
+     '+fours'    '+*'
+     '@titude'   '@*'
+     '!bang'     '!*'
+     # and check they work in the real kshglob cases too...
+     '+bus+bus'  '+(+bus|-car)'
+     '@sinhats'  '@(@sinhats|wrensinfens)'
+     '!kerror'   '!(!somethingelse)'
+     # and these don't match, to be sure
+     '+more'      '+(+less)'
+     '@all@all'   '@(@all)'
+     '!goesitall' '!(!goesitall)'
+   )
+   for str pat in $test_array; do
+     eval "[[ $str = $pat ]]" && print "$str matches $pat"
+   done
+   true
+  )
+0:kshglob option does not break +, @, ! without following open parenthesis
+>+fours matches +*
+>@titude matches @*
+>!bang matches !*
+>+bus+bus matches +(+bus|-car)
+>@sinhats matches @(@sinhats|wrensinfens)
+>!kerror matches !(!somethingelse)
+
+  (
+    setopt extendedglob
+    cd glob.tmp
+    [[ -n a*(#qN) ]] && print File beginning with a
+    [[ -z z*(#qN) ]] && print No file beginning with z
+    setopt nonomatch
+    [[ -n z*(#q) ]] && print Normal string if nullglob not set
+  )
+0:Force glob expansion in conditions using (#q)
+>File beginning with a
+>No file beginning with z
+>Normal string if nullglob not set
+
+ (){ print $#@ } glob.tmp/dir*(Y1)
+ (){ print $#@ } glob.tmp/file*(NY1)
+ (){ [[ "$*" == */dir?\ */dir? ]] && print Returns matching filenames } glob.tmp/dir*(Y2)
+ (){ print "Limit is upper bound:" ${(o)@:t} } glob.tmp/dir*(Y5)
+ (){ print "Negated:" $@:t } glob.tmp/dir*(Y1^Y)
+ (){ print "Sorting:" $@:t } glob.tmp/dir*(Y4On)
+ (){ [[ $#@ -eq 1 ]] && print Globs before last path component } glob.tmp/dir?/subdir(NY1)
+ (){ [[ $1 == glob.tmp/a ]] } glob.tmp/**/a(Y1) && print Breadth first
+ (){ [[ $#@ -eq 0 ]] && print Respects qualifiers } glob.tmp/dir*(NY1.)
+ (print -- *(Y)) 2>/dev/null || print "Argument required"
+0:short-circuit modifier
+>1
+>0
+>Returns matching filenames
+>Limit is upper bound: dir1 dir2 dir3 dir4
+>Negated: dir1 dir2 dir3 dir4
+>Sorting: dir4 dir3 dir2 dir1
+>Globs before last path component
+>Breadth first
+>Respects qualifiers
+>Argument required
+
+  [[ "ce fichier n'existe pas"  = (#b)ce\ (f[^ ]#)\ *s(#q./) ]]
+  print $match[1]
+0:(#q) is ignored completely in conditional pattern matching
+>fichier
+
+# The following should not cause excessive slowdown.
+  print glob.tmp/*.*
+  print glob.tmp/**************************.*************************
+0:Optimisation to squeeze multiple *'s used as ordinary glob wildcards.
+>glob.tmp/ra=1.0_et=3.5
+>glob.tmp/ra=1.0_et=3.5
+
+  [[ 1_2_ = (*_)(#c1) ]] && print 1 OK  # because * matches 1_2
+  [[ 1_2_ = (*_)(#c2) ]] && print 2 OK
+  [[ 1_2_ = (*_)(#c3) ]] || print 3 OK
+0:Some more complicated backtracking with match counts.
+>1 OK
+>2 OK
+>3 OK
+
+  [[ foo = 'f'\o"o" ]]
+0:Stripping of quotes from patterns (1)
+
+  [[ foo = 'f'('o'|'a')('o'|'b') ]]
+0:Stripping of quotes from patterns (2)
+
+  [[ fob = 'f'('o'|'a')('o'|'b') ]]
+0:Stripping of quotes from patterns (3)
+
+  [[ fab = 'f'('o'|'a')('o'|'b') ]]
+0:Stripping of quotes from patterns (4)
+
+  [[ fib != 'f'('o'|'a')('o'|'b') ]]
+0:Stripping of quotes from patterns (4)
+
+  [[ - != [a-z] ]]
+0:- is a special character in ranges
+
+  [[ - = ['a-z'] ]]
+0:- is not a special character in ranges if quoted
+
+  [[ b-1 = [a-z]-[0-9] ]]
+0:- untokenized following a bracketed subexpression
+
+  [[ b-1 = []a-z]-[]0-9] ]]
+0:- "]" after "[" is normal range character and - still works
+
+  headremove="bcdef"
+  print ${headremove#[a-z]}
+0:active - works in pattern in parameter
+>cdef
+
+  headremove="bcdef"
+  print ${headremove#['a-z']}
+  headremove="-cdef"
+  print ${headremove#['a-z']}
+0:quoted - works in pattern in parameter
+>bcdef
+>cdef
+
+  [[ a != [^a] ]]
+0:^ active in character class if not quoted
+
+  [[ a = ['^a'] ]]
+0:^ not active in character class if quoted
+
+  [[ a != [!a] ]]
+0:! active in character class if not quoted
+
+  [[ a = ['!a'] ]]
+0:! not active in character class if quoted
+
+  # Actually, we don't need the quoting here,
+  # c.f. the next test.  This just makes it look
+  # more standard.
+  cset="^a-z"
+  [[ "^" = ["$cset"] ]] || print Fail 1
+  [[ "a" = ["$cset"] ]] || print Fail 2
+  [[ "-" = ["$cset"] ]] || print Fail 3
+  [[ "z" = ["$cset"] ]] || print Fail 4
+  [[ "1" != ["$cset"] ]] || print Fail 5
+  [[ "b" != ["$cset"] ]] || print Fail 6
+0:character set specified as quoted variable
+
+  cset="^a-z"
+  [[ "^" = [$~cset] ]] || print Fail 1
+  [[ "a" != [$~cset] ]] || print Fail 2
+  [[ "-" = [$~cset] ]] || print Fail 3
+  [[ "z" != [$~cset] ]] || print Fail 4
+  [[ "1" = [$~cset] ]] || print Fail 5
+  [[ "b" != [$~cset] ]] || print Fail 6
+0:character set specified as active variable
+
+ () { print -l -- $@:a } / /..{,/} /1 /nonexistent/..{,/} /deeper/nonexistent/..{,/}
+0:modifier ':a' doesn't require existence
+>/
+>/
+>/
+>/1
+>/
+>/
+>/deeper
+>/deeper
+
+ () { set -- ${PWD}/$^@; print -l -- $@:A } glob.tmp/nonexistent/foo/bar/baz
+0:modifier ':A' doesn't require existence
+*>*/glob.tmp/nonexistent/foo/bar/baz
+
+ ln -s dir3/subdir glob.tmp/link
+ () {
+   print ${1:A} | grep glob.tmp
+ } glob.tmp/link/../../hello
+ rm glob.tmp/link
+0:modifier ':A' resolves '..' components before symlinks
+# There should be no output
+
+ ln -s dir3/subdir glob.tmp/link
+ () {
+   print ${1:P}
+ } glob.tmp/link/../../hello/world
+ rm glob.tmp/link
+0:modifier ':P' resolves symlinks before '..' components
+*>*glob.tmp/hello/world
+
+ # This is a bit brittle as it depends on PATH_MAX.
+ # We could use sysconf..
+ bad_pwd="/${(l:16000:: :):-}"
+ print ${#${bad_pwd:P}}
+0:modifier ':P' with path too long
+>16001
+
+ foo=a
+ value="ac"
+ print ${value//[${foo}b-z]/x}
+0:handling of - range in complicated pattern context
+>xx
+
+ pathtotest=glob.tmp/my/test/dir/that/does/not/exist
+ mkdir -p $pathtotest
+ print $pathtotest(:h)
+ print $pathtotest(:h0)
+ print $pathtotest(:h10)
+ print $pathtotest(:h3)
+ print $pathtotest(:h2)
+ print $pathtotest(:h1)
+ print $pathtotest(:t)
+ print $pathtotest(:t0)
+ print $pathtotest(:t10)
+ print $pathtotest(:t3)
+ print $pathtotest(:t2)
+ print $pathtotest(:t1)
+0:modifiers :h and :t with numbers (main test is in D04parameter.ztst)
+>glob.tmp/my/test/dir/that/does/not
+>glob.tmp/my/test/dir/that/does/not
+>glob.tmp/my/test/dir/that/does/not/exist
+>glob.tmp/my/test
+>glob.tmp/my
+>glob.tmp
+>exist
+>exist
+>glob.tmp/my/test/dir/that/does/not/exist
+>does/not/exist
+>not/exist
+>exist
+
+ mkdir -m 000 glob.tmp/secret-d000
+ mkdir -m 111 glob.tmp/secret-d111
+ mkdir -m 444 glob.tmp/secret-d444
+ for 1 in 000 111 444 ; do ln -s secret-d$1 glob.tmp/secret-s$1; done
+ print -rC 2 -- glob.tmp/secret-*/ glob.tmp/secret-*(-/)
+0:unreadable directories can be globbed (users/24619, users/24626)
+>glob.tmp/secret-d000/  glob.tmp/secret-d000
+>glob.tmp/secret-d111/  glob.tmp/secret-d111
+>glob.tmp/secret-d444/  glob.tmp/secret-d444
+>glob.tmp/secret-s000/  glob.tmp/secret-s000
+>glob.tmp/secret-s111/  glob.tmp/secret-s111
+>glob.tmp/secret-s444/  glob.tmp/secret-s444
+
+ for 1 in 000 111 444 ; do
+  chmod 777 glob.tmp/secret-d$1
+  touch glob.tmp/secret-d$1/file
+  mkdir -m 777 glob.tmp/secret-d$1/dir
+  touch glob.tmp/secret-d$1/dir/file
+  chmod $1 glob.tmp/secret-d$1
+ done
+ if (( EUID == 0 )); then
+   ZTST_skip='Not testing unreadable directories (root reads anything)'
+ else
+   print -raC 2 -- glob.tmp/secret-*/* glob.tmp/secret-*/file
+ fi
+0:names inside unreadable directories can be globbed if searchable
+>glob.tmp/secret-d444/dir   glob.tmp/secret-d444/file
+>glob.tmp/secret-s444/dir   glob.tmp/secret-s444/file
+>glob.tmp/secret-d111/file  glob.tmp/secret-s111/file
+
+ if (( EUID == 0 )); then
+   ZTST_skip='Not testing unreadable directories (root reads anything)'
+ else
+   print -rC 2 -- glob.tmp/secret-*/dir/*
+ fi
+0:glob files in readable directories inside unreadable directories
+>glob.tmp/secret-d111/dir/file  glob.tmp/secret-s111/dir/file
+
+ # On macOS, stat(2) allows files to be treated as directories if the calling
+ # process has super-user privileges. e.g., stat() on /my/regular/file/. will
+ # succeed as root but (correctly) fail otherwise. This can produce strange
+ # results when globbing, depending on how it's implemented. This test should,
+ # when run with privileges, confirm that the implementation avoids this
+ # problem. See workers/42891 and workers/45291
+ : > glob.tmp/not-a-directory
+ print -r - glob.tmp/not-a-dir*(N) , glob.tmp/not-a-dir*/(N)
+0:non-directories not globbed as directories
+>glob.tmp/not-a-directory ,
+
+ () { echo $1:P } ////dev
+-f:(workers/45367) modifier ':P' squashes multiple slashes
+>/dev  
+
+  ln -s loop glob.tmp/loop
+  ln -s loop glob.tmp/trap
+  { 
+    (set -- glob.tmp/trap; echo $1:P)
+    (set -- glob.tmp/loop; echo $1:P)
+  } always {
+    rm -f glob.tmp/trap glob.tmp/loop
+  }
+0:the ':P' modifier handles symlink loops in the last path component
+*>*/(trap|loop)
+*>*/(trap|loop)
+
+  ln -s loop glob.tmp/loop
+  ln -s loop glob.tmp/trap
+  { 
+    (set -- glob.tmp/loop/trailing/components; echo $1:P)
+    (set -- glob.tmp/trap/trailing/components; echo $1:P)
+  } always {
+    rm -f glob.tmp/trap glob.tmp/loop
+  }
+0:the ':P' modifier handles symlink loops before the last path component
+*>*/glob.tmp/loop/trailing/components
+*>*/glob.tmp/(loop|trap)/trailing/components
+
+  ln -s flip glob.tmp/flop
+  ln -s flop glob.tmp/flip
+  {
+    (set -- glob.tmp/flip; echo $1:P)
+    (set -- glob.tmp/flip/trailing/components; echo $1:P)
+  } always {
+    rm -f glob.tmp/flip glob.tmp/flop
+  }
+0:the ':P' modifier handles symlink loops other than the trivial case
+*>*/glob.tmp/(flip|flop)
+*>*/glob.tmp/(flip|flop)/trailing/components
+
+  unsetopt extendedglob
+  print -r -- ${(*)=${(@s.+.):-A+B}/(#b)(?)/-${(L)match[1]} ${match[1]}}
+0:the '*' qualfier enables extended_glob for pattern matching
+>-a A -b B
+
+%clean
+
+ # Fix unreadable-directory permissions so ztst can clean up properly
+ chmod +rwx glob.tmp/secret-*(N) 2> /dev/null

@@ -1,0 +1,32 @@
+#compdef dhcpinfo
+
+local -a mnemonics_v4 mnemonics_v6
+
+mnemonics_v4=(
+  Subnet UTCoffst Router Timeserv IEN116ns DNSserv Logserv
+  Cookie Lprserv Impress Resource Hostname Bootsize Dumpfile
+  DNSdmain Swapserv Rootpath ExtendP IpFwdF NLrouteF PFilter
+  MaxIpSiz IpTTL PathTO PathTbl MTU SameMtuF Broadcst
+  MaskDscF MaskSupF RDiscvyF RSolictS StaticRt TrailerF
+  ArpTimeO EthEncap TcpTTL TcpKaInt TcpKaGbF NISdmain
+  NISservs NTPservs NetBNms NetBDsts NetBNdT NetBScop
+  XFontSrv XDispMgr LeaseTim Message T1Time T2Time NW_dmain
+  NWIPOpts NIS+dom NIS+serv TFTPsrvN OptBootF MblIPAgt
+  OptBootF MblIPAgt SMTPserv POP3serv NNTPserv WWWservs
+  Fingersv IRCservs STservs STDAservs UserClas SLP_DA SLP_SS
+  AgentOpt FQDN PXEarch BootFile BootPath BootSrvA BootSrvN
+  EchoVC LeaseNeg
+)
+
+mnemonics_v6=(
+  ClientID ServerID Preference Unicast UserClass VendorClass
+  SIPNames SIPAddresses DNSAddresses DNSSearch NISServers
+  NIS+Servers NISDomain NIS+Domain SNTPServers InfoRefresh
+  BCMCDomain BCMCAddresses
+)
+
+_arguments -A "-*" \
+  '-c[]' \
+  '-i[interface]:interface' \
+  '-n[maximum number of lines]:limit' \
+  ':DHCP parameter:_values "DHCP parameter" $mnemonics_v4'

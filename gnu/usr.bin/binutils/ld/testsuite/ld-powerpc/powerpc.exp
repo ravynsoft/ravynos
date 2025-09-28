@@ -1,0 +1,526 @@
+# Expect script for ld-powerpc tests
+#   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+if { ![istarget "powerpc*-*-*"]	} {
+    return
+}
+
+if {[istarget "*-*-vxworks"]} {
+    set ppcvxtests {
+	{"VxWorks shared library test 1 (default script)" "-shared" ""
+	 "-mregnames" {vxworks1-lib.s}
+	 {{readelf --segments vxworks1-lib.sd}}
+	 "libvxworks1.so"}
+	{"VxWorks shared library test 1"
+	 "-shared --hash-style=sysv -Tvxworks1.ld" ""
+	 "-mregnames" {vxworks1-lib.s}
+         {{readelf {--relocs -T} vxworks1-lib.rd} {objdump -dr vxworks1-lib.dd}
+	  {readelf --symbols vxworks1-lib.nd} {readelf -d vxworks1-lib.td}}
+	 "libvxworks1.so"}
+	{"VxWorks executable test 1 (dynamic)" \
+	 "tmpdir/libvxworks1.so -Tvxworks1.ld -q --force-dynamic --hash-style=sysv" ""
+	 "-mregnames" {vxworks1.s}
+         {{readelf {--relocs -T} vxworks1.rd} {objdump -dr vxworks1.dd}}
+	 "vxworks1"}
+	{"VxWorks executable test 2 (dynamic)" \
+	 "-Tvxworks1.ld -q --force-dynamic --hash-style=sysv" ""
+	 "-mregnames" {vxworks2.s}
+	 {{readelf --segments vxworks2.sd}}
+	 "vxworks2"}
+	{"VxWorks executable test 2 (static)"
+	 "-Tvxworks1.ld --hash-style=sysv" ""
+	 "-mregnames" {vxworks2.s}
+	 {{readelf --segments vxworks2-static.sd}}
+	 "vxworks2"}
+	{"VxWorks relax test"
+	 "-Tvxworks1.ld --relax -q --hash-style=sysv" ""
+	 "-mregnames" {vxworks-relax.s}
+	 {{readelf --relocs vxworks-relax.rd}}
+	 "vxworks-relax"}
+	{"VxWorks relocatable relax test"
+	 "-Tvxworks1.ld -r --relax -q --hash-style=sysv" ""
+	 "-mregnames" {vxworks-relax-2.s}
+         {{readelf {--relocs -T} vxworks-relax-2.rd}}
+	 "vxworks-relax-2"}
+    }
+    run_ld_link_tests $ppcvxtests
+    run_dump_test "vxworks1-static"
+    return
+}
+
+# powerpc ELF only at the moment.  Disable for nto too, even though it
+# is ELF, because we pass -melf32ppc to ld and powerpc-nto-ld wants
+# -melf32ppcnto.
+
+if { [is_xcoff_format]
+     || [istarget "*-*-pe"] || [istarget "*-*-winnt*"]
+     || [istarget "*-*-cygwin*"]
+     || [istarget "*-*-lynxos*"]
+     || [istarget "*-*-nto*"] } {
+    return
+}
+
+proc supports_ppc64 { } {
+    global ld
+
+    catch "exec $ld --help | grep emulations" tmp
+    if [ regexp "elf64l?ppc" $tmp ] then {
+	return 1
+    } else {
+	return 0
+    }
+}
+
+# List contains test-items with 3 items followed by 2 lists:
+# 0:name 1:ld early options 2:ld late options 3:assembler options
+# 4:filenames of assembler files 5: action and options. 6: name of output file
+
+# Actions:
+# objdump: Apply objdump options on result.  Compare with regex (last arg).
+# nm: Apply nm options on result.  Compare with regex (last arg).
+# readelf: Apply readelf options on result.  Compare with regex (last arg).
+
+set ppcelftests {
+    {"Reloc section order" "-melf32ppc -shared -z nocombreloc -z notext" "" "-a32" {reloc.s}
+     {{objdump -hw reloc.d}} "reloc.so"}
+    {"APUinfo section processing" "-melf32ppc" ""
+     "-a32 -me500" {apuinfo1.s apuinfo-nul.s apuinfo2.s}
+     {{readelf -x.PPC.EMB.apuinfo apuinfo.rd}} "apuinfo"}
+    {"APUinfo VLE section processing" "-melf32ppc" ""
+     "-a32 -me500 -mvle" {apuinfo1.s apuinfo-vle.s apuinfo-vle2.s}
+     {{readelf -x.PPC.EMB.apuinfo apuinfo-vle.rd}} "apuinfo-vle"}
+    {"APUinfo NULL section processing" "-melf32ppc" ""
+     "-a32 -me500" {apuinfo-nul1.s apuinfo-nul.s}
+     {{readelf -x.PPC.EMB.apuinfo apuinfo-nul.rd}} "apuinfo"}
+    {"TLS32 static exec (markers)" "-melf32ppc" ""
+     "-a32 --defsym TLSMARK=1"  {tls32.s tlslib32.s}
+     {{objdump -dr tls32.d} {objdump -sj.got tls32.g}
+      {objdump -sj.tdata tls32.t}}
+     "tls32m"}
+    {"TLS32 static exec" "-melf32ppc" "" "-a32"  {tls32.s tlslib32.s}
+     {{objdump -dr tls32.d} {objdump -sj.got tls32.g}
+      {objdump -sj.tdata tls32.t}}
+     "tls32"}
+    {"TLS32 static exec (--no-tls-optimize)" "-melf32ppc --no-tls-optimize" ""
+     "-a32 --defsym TLSMARK=1"  {tls32.s tlslib32.s}
+     {{objdump -dr tls32no.d} {objdump -sj.got tls32no.g}
+      {objdump -sj.tdata tls32.t}}
+     "tls32no"}
+    {"TLS32 helper shared library" "-shared -melf32ppc tmpdir/tlslib32.o" "" "" {}
+     {} "libtlslib32.so"}
+    {"TLS32 dynamic exec" "-melf32ppc --no-plt-align --no-ld-generated-unwind-info --hash-style=sysv tmpdir/tls32.o tmpdir/libtlslib32.so" "" "" {}
+     {{readelf -WSsrl tlsexe32.r} {objdump -dr tlsexe32.d}
+      {objdump -sj.got tlsexe32.g} {objdump -sj.tdata tlsexe32.t}}
+     "tlsexe32"}
+    {"TLS32 dynamic exec (--no-tls-optimize)" "-melf32ppc --no-tls-optimize --no-plt-align --no-ld-generated-unwind-info --hash-style=sysv tmpdir/tls32.o tmpdir/libtlslib32.so" "" "" {}
+     {{readelf -WSsrl tlsexe32no.r} {objdump -dr tlsexe32no.d}
+      {objdump -sj.got tlsexe32no.g} {objdump -sj.tdata tlsexe32.t}}
+     "tlsexe32no"}
+    {"TLS32 shared" "-shared -melf32ppc --no-plt-align --no-ld-generated-unwind-info --hash-style=sysv -z notext tmpdir/tls32.o" "" "" {}
+     {{readelf -WSsrl tlsso32.r} {objdump -dr tlsso32.d}
+      {objdump -sj.got tlsso32.g} {objdump -sj.tdata tlsso32.t}}
+     "tls32.so"}
+    {"TLS32 markers" "-melf32ppc" "" "-a32"  {tlsmark32.s tlslib32.s}
+     {{objdump -dr tlsmark32.d}}
+     "tlsmark32"}
+    {"TLS32 opt 1" "-melf32ppc" "" "-a32"  {tlsopt1_32.s tlslib32.s}
+     {{objdump -dr tlsopt1_32.d}}
+     "tlsopt1_32"}
+    {"TLS32 opt 2" "-melf32ppc" "" "-a32"  {tlsopt2_32.s tlslib32.s}
+     {{objdump -dr tlsopt2_32.d}}
+     "tlsopt2_32"}
+    {"TLS32 opt 3" "-melf32ppc" "" "-a32"  {tlsopt3_32.s tlslib32.s}
+     {{objdump -dr tlsopt3_32.d}}
+      "tlsopt3_32"}
+    {"TLS32 opt 4" "-melf32ppc" "" "-a32"  {tlsopt4_32.s tlslib32.s}
+     {{objdump -dr tlsopt4_32.d}}
+     "tlsopt4_32"}
+    {"TLS32 DLL" "-shared -melf32ppc --version-script tlsdll.ver" ""
+     "-a32" {tlsdll_32.s}
+     {} "tlsdll32.so"}
+    {"TLS32 opt 5" "-melf32ppc -shared --gc-sections --secure-plt --no-plt-align tmpdir/tlsdll32.so" "" "-a32"  {tlsopt5_32.s}
+     {{objdump -dr tlsopt5_32.d}}
+     "tlsopt5_32"}
+    {"Shared library with global symbol" "-shared -melf32ppc" "" "-a32" {sdalib.s}
+     {} "sdalib.so"}
+    {"Dynamic application with SDA" "-melf32ppc tmpdir/sdalib.so" "" "-a32" {sdadyn.s}
+     {{objdump -R sdadyn.d}} "sdadyn"}
+    {"relaxing" "-melf32ppc --relax -Ttext=0 --defsym far=0x80001234 --defsym near=0x00004320" "" "-a32" "relax.s"
+     {{objdump -dr relax.d}}
+     "relax"}
+    {"relocatable relaxing" "-melf32ppc -r --relax" "" "-a32" "relax.s"
+     {{objdump -dr relaxr.d}}
+     "rrelax"}
+    {"relocatable relaxing large" "-melf32ppc -r --relax" "" "-a32" "relax.s big.s"
+     {{objdump -dr relaxrl.d}}
+     "rrelax"}
+    {"build empty shared library" "-shared" "" "" "empty.s" {} "empty.so"}
+    {"abs32-static" "-melf32ppc -static --defsym a=1 --defsym 'HIDDEN(b=2)' --defsym c=0x12345678" ""
+	"-a32" {abs32-reloc.s}
+	{{objdump {-dr} abs32-static.d}
+	 {readelf {-rW} abs32-static.r}} "abs32-static"}
+    {"abs32-pie" "-melf32ppc -pie --hash-style=sysv --defsym a=1 --defsym 'HIDDEN(b=2)' --defsym c=0x12345678" ""
+	"-a32" {abs32-reloc.s}
+	{{objdump {-dr} abs32-pie.d}
+	 {readelf {-rW} abs32-pie.r}} "abs32-pie"}
+    {"abs32-shared" "-melf32ppc -shared --hash-style=sysv --defsym a=1 --defsym 'HIDDEN(b=2)' --defsym c=0x12345678" ""
+	"-a32" {abs32-reloc.s}
+	{{objdump {-dr} abs32-shared.d}
+	 {readelf {-rW} abs32-shared.r}} "abs32-shared"}
+}
+
+set ppc64elftests {
+    {"TLS static exec (markers)" "-melf64ppc --no-plt-align" ""
+     "-a64 --defsym TLSMARK=1"  {tls.s tlslib.s}
+     {{objdump -dr tls.d} {objdump -sj.got tls.g} {objdump -sj.tdata tls.t}}
+     "tlsm"}
+    {"TLS static exec" "-melf64ppc --no-plt-align" "" "-a64"  {tls.s tlslib.s}
+     {{objdump -dr tls.d} {objdump -sj.got tls.g} {objdump -sj.tdata tls.t}}
+     "tls"}
+    {"TLS static exec (--no-tls-optimize)" "-melf64ppc --no-tls-optimize --no-plt-align" ""
+     "-a64 --defsym TLSMARK=1"  {tls.s tlslib.s}
+     {{objdump -dr tlsno.d} {objdump -sj.got tlsno.g} {objdump -sj.tdata tls.t}}
+     "tlsno"}
+    {"TLS helper shared library" "-shared -melf64ppc tmpdir/tlslib.o" "" "" {}
+     {} "libtlslib.so"}
+    {"TLS helper old shared lib" "-shared -melf64ppc" "" "-a64" {oldtlslib.s}
+     {} "liboldlib.so"}
+    {"TLS dynamic exec" "-melf64ppc --no-plt-align --no-ld-generated-unwind-info --hash-style=sysv tmpdir/tls.o tmpdir/libtlslib.so" "" "" {}
+     {{readelf -WSsrl tlsexe.r} {objdump -dr tlsexe.d}
+      {objdump -sj.got tlsexe.g} {objdump -sj.tdata tlsexe.t}}
+     "tlsexe"}
+    {"TLS dynamic old" "-melf64ppc --no-plt-align --no-ld-generated-unwind-info --hash-style=sysv tmpdir/tls.o tmpdir/liboldlib.so" "" "" {}
+     {{readelf -WSsrl tlsexe.r} {objdump -dr tlsexe.d}
+      {objdump -sj.got tlsexe.g} {objdump -sj.tdata tlsexe.t}}
+     "tlsexeold"}
+    {"TLS dynamic exec (--no-tls-optimize)" "-melf64ppc --no-tls-optimize --no-plt-align --no-ld-generated-unwind-info --hash-style=sysv tmpdir/tls.o tmpdir/libtlslib.so" "" "" {}
+     {{readelf -WSsrl tlsexeno.r} {objdump -dr tlsexeno.d}
+      {objdump -sj.got tlsexeno.g} {objdump -sj.tdata tlsexe.t}}
+     "tlsexeno"}
+    {"TLS shared" "-shared -melf64ppc --no-plt-align --no-ld-generated-unwind-info --hash-style=sysv -z notext tmpdir/tls.o" "" "" {}
+     {{readelf -WSsrl tlsso.r} {objdump -dr tlsso.d}
+      {objdump -sj.got tlsso.g} {objdump -sj.tdata tlsso.t}}
+     "tls.so"}
+    {"TLSTOC static exec" "-melf64ppc tmpdir/tlslib.o" "" "-a64"  {tlstoc.s}
+     {{objdump -dr tlstoc.d} {objdump -sj.got tlstoc.g}
+      {objdump -sj.tdata tlstoc.t}}
+     "tlstoc"}
+    {"TLSTOC static exec (--no-tls-optimize)" "-melf64ppc --no-tls-optimize tmpdir/tlslib.o tmpdir/tlstoc.o" "" ""  {}
+     {{objdump -dr tlstocno.d} {objdump -sj.got tlstocno.g}
+      {objdump -sj.tdata tlstoc.t}}
+     "tlstocno"}
+    {"TLSTOC dynamic exec" "-melf64ppc --no-plt-align --no-ld-generated-unwind-info --hash-style=sysv tmpdir/tlstoc.o tmpdir/libtlslib.so" ""
+     "" {}
+     {{readelf -WSsrl tlsexetoc.r} {objdump -dr tlsexetoc.d}
+      {objdump -sj.got tlsexetoc.g} {objdump -sj.tdata tlsexetoc.t}}
+     "tlsexetoc"}
+    {"TLSTOC dynamic old" "-melf64ppc --no-plt-align --no-ld-generated-unwind-info --hash-style=sysv tmpdir/tlstoc.o tmpdir/liboldlib.so" ""
+     "" {}
+     {{readelf -WSsrl tlsexetoc.r} {objdump -dr tlsexetoc.d}
+      {objdump -sj.got tlsexetoc.g} {objdump -sj.tdata tlsexetoc.t}}
+     "tlsexetocold"}
+    {"TLSTOC dynamic exec (--no-tls-optimize)" "-melf64ppc --no-tls-optimize --no-plt-align --no-ld-generated-unwind-info --hash-style=sysv tmpdir/tlstoc.o tmpdir/libtlslib.so" ""
+     "" {}
+     {{readelf -WSsrl tlsexetoc.r} {objdump -dr tlsexetocno.d}
+      {objdump -sj.got tlsexetocno.g} {objdump -sj.tdata tlsexetoc.t}}
+     "tlsexetocno"}
+    {"TLSTOC shared" "-shared -melf64ppc --no-plt-align --no-ld-generated-unwind-info --hash-style=sysv -z notext tmpdir/tlstoc.o" "" "" {}
+     {{readelf -WSsrl tlstocso.r} {objdump -dr tlstocso.d}
+      {objdump -sj.got tlstocso.g} {objdump -sj.tdata tlstocso.t}}
+     "tlstoc.so"}
+    {"TLS dynamic exec (--tls-get-addr-regsave)" "-melf64ppc --no-plt-align --no-ld-generated-unwind-info --hash-style=sysv --tls-get-addr-regsave tmpdir/tls.o tmpdir/libtlslib.so" "" "" {}
+     {{readelf -WSsrl tlsexers.r} {objdump -dr tlsexers.d}
+      {objdump -sj.got tlsexe.g} {objdump -sj.tdata tlsexe.t}}
+     "tlsexers"}
+    {"TLS dynamic exec (--no-tls-optimize --tls-get-addr-regsave)" "-melf64ppc --no-tls-optimize --tls-get-addr-regsave --no-plt-align --no-ld-generated-unwind-info --hash-style=sysv tmpdir/tls.o tmpdir/libtlslib.so" "" "" {}
+     {{readelf -WSsrl tlsexenors.r} {objdump -dr tlsexenors.d}
+      {objdump -sj.got tlsexeno.g} {objdump -sj.tdata tlsexe.t}}
+     "tlsexenors"}
+    {"TLSTOC dynamic exec (--tls-get-addr-regsave)" "-melf64ppc --tls-get-addr-regsave --no-plt-align --no-ld-generated-unwind-info --hash-style=sysv tmpdir/tlstoc.o tmpdir/libtlslib.so" ""
+     "" {}
+     {{readelf -WSsrl tlsexetocrs.r} {objdump -dr tlsexetocrs.d}
+      {objdump -sj.got tlsexetoc.g} {objdump -sj.tdata tlsexetoc.t}}
+     "tlsexetocrs"}
+    {"TLSTOC dynamic exec (--no-tls-optimize --tls-get-addr-regsave)" "-melf64ppc --no-tls-optimize --tls-get-addr-regsave --no-plt-align --no-ld-generated-unwind-info --hash-style=sysv tmpdir/tlstoc.o tmpdir/libtlslib.so" ""
+     "" {}
+     {{readelf -WSsrl tlsexetocrs.r} {objdump -dr tlsexetocnors.d}
+      {objdump -sj.got tlsexetocno.g} {objdump -sj.tdata tlsexetoc.t}}
+     "tlsexetocnors"}
+    {"TLS markers" "-melf64ppc" "" "-a64"  {tlsmark.s tlslib.s}
+     {{objdump -dr tlsmark.d}}
+     "tlsmark"}
+    {"TLS opt 1" "-melf64ppc" "" "-a64"  {tlsopt1.s tlslib.s}
+     {{objdump -dr tlsopt1.d}}
+     "tlsopt1"}
+    {"TLS opt 2" "-melf64ppc" "" "-a64"  {tlsopt2.s tlslib.s}
+     {{objdump -dr tlsopt2.d}}
+     "tlsopt2"}
+    {"TLS opt 3" "-melf64ppc" "" "-a64"  {tlsopt3.s tlslib.s}
+     {{objdump -dr tlsopt3.d}}
+     "tlsopt3"}
+    {"TLS opt 4" "-melf64ppc" "" "-a64"  {tlsopt4.s tlslib.s}
+     {{objdump -dr tlsopt4.d}}
+     "tlsopt4"}
+    {"TLS DLL" "-shared -melf64ppc --version-script tlsdll.ver" "" "-a64" {tlsdll.s}
+     {} "tlsdll.so"}
+    {"TLS opt 5" "-melf64ppc -shared --hash-style=both --gc-sections --no-plt-localentry tmpdir/tlsdll.so" "" "-a64"  {tlsopt5.s}
+     {{objdump -dr tlsopt5.d} {readelf -wf tlsopt5.wf}}
+     "tlsopt5"}
+    {"TLS opt 6" "-melf64ppc -shared --hash-style=both --gc-sections --no-plt-localentry --tls-get-addr-regsave tmpdir/tlsdll.so" "" "-a64"  {tlsopt5.s}
+     {{objdump -dr tlsopt6.d} {readelf -wf tlsopt6.wf}}
+     "tlsopt6"}
+    {"TLSdesc" "-melf64ppc -shared --hash-style=both --no-plt-localentry tmpdir/libtlslib.so" "" "-a64"  {tlsdesc.s}
+     {{objdump -dr tlsdesc.d} {readelf -wf tlsdesc.wf}}
+     "tlsdesc"}
+    {"TLSdesc2" "-melf64ppc -shared --hash-style=both --no-plt-localentry tmpdir/tlsdll.so" "" "-a64"  {tlsdesc.s}
+     {{objdump -dr tlsdesc2.d} {readelf -wf tlsdesc2.wf}}
+     "tlsdesc2"}
+    {"TLSdesc3" "-melf64ppc --no-tls-optimize tmpdir/tlsdll.o" "" "-a64"  {tlsdesc.s}
+     {{objdump -dr tlsdesc3.d} {readelf -wf tlsdesc3.wf}}
+     "tlsdesc3"}
+    {"TLSdesc4" "-melf64ppc --no-tls-optimize tmpdir/tlsdll.o" "" "-a64"  {tlsdesc4.s}
+     {{objdump -dr tlsdesc4.d} {readelf -wf tlsdesc4.wf}}
+     "tlsdesc4"}
+    {"tlsget" "-shared --hash-style=both -melf64ppc --plt-align=0" "tmpdir/tlsdll.so" "-a64 -mpower10"  {tlsget.s}
+     {{objdump -dr tlsget.d} {readelf -wf tlsget.wf}}
+     "tlsget.so"}
+    {"tlsget2" "-shared --hash-style=both -melf64ppc --plt-align=0 --power10-stubs=yes" "tmpdir/tlsdll.so" "-a64 -mpower10"  {tlsget.s}
+     {{objdump -dr tlsget2.d} {readelf -wf tlsget2.wf}}
+     "tlsget2.so"}
+    {"sym@tocbase" "-shared -melf64ppc" "" "-a64" {symtocbase-1.s symtocbase-2.s}
+	{{objdump -dj.data symtocbase.d}} "symtocbase.so"}
+    {"TOC opt" "-melf64ppc" "" "-a64"  {tocopt.s}
+	{{ld tocopt.out} {objdump -s tocopt.d}} "tocopt"}
+    {"TOC opt2" "-melf64ppc --defsym x=2" "" "-a64"  {tocopt2.s}
+	{{ld tocopt2.out} {objdump -s tocopt2.d}} "tocopt2"}
+    {"TOC opt3" "-melf64ppc -no-keep-memory --defsym x=2" "" "-a64"  {tocopt3.s}
+	{{objdump -s tocopt3.d}} "tocopt3"}
+    {"TOC opt4" "-melf64ppc -no-keep-memory --defsym x=2" "" "-a64"
+        {tocopt4a.s tocopt4b.s} {{objdump -s tocopt4.d}} "tocopt4"}
+    {"TOC opt5" "-melf64ppc" "" "-a64"  {tocopt5.s}
+	{{objdump -s tocopt5.d}} "tocopt5"}
+    {"TOC opt6" "-melf64ppc" "" "-a64"  {tocopt6a.s tocopt6b.s tocopt6c.s}
+	{{objdump -d tocopt6.d}} "tocopt6"}
+    {"TOC opt7" "-melf64ppc" "" "-a64 -mpower9"  {tocopt7.s}
+	{{ld tocopt7.out} {objdump -s tocopt7.d}} "tocopt7"}
+    {"TOC opt8" "-melf64ppc" "" "-a64 -mpower9"  {tocopt8.s}
+	{{objdump -s tocopt8.d}} "tocopt8"}
+    {"tocsave lib" "-shared -melf64ppc" "" "-a64" {tocsavelib.s}
+	{} "tocsavelib.so"}
+    {"tocsave1 shared" "-melf64ppc" "tmpdir/tocsavelib.so" "-a64" {tocsave1.s}
+	{{objdump -dr tocsave1s.d}} "tocsave1s"}
+    {"tocsave1 static" "-melf64ppc" "tmpdir/tocsavelib.o" "-a64" {tocsave1.s}
+	{{objdump -dr tocsave1a.d}} "tocsave1a"}
+    {"tocsave2 shared" "-melf64ppc" "tmpdir/tocsavelib.so" "-a64" {tocsave2.s}
+	{{objdump -dr tocsave2s.d}} "tocsave2s"}
+    {"tocsave2 static" "-melf64ppc" "tmpdir/tocsavelib.o" "-a64" {tocsave2.s}
+	{{objdump -dr tocsave2a.d}} "tocsave2a"}
+    {"ambig shared v1" "-shared -melf64ppc" "" "-a64" {funv1.s} {} "funv1.so"}
+    {"ambig shared v2" "-shared -melf64ppc" "" "-a64" {funv2.s} {} "funv2.so"}
+    {"notoc ext" "" "" "-a64" {ext.s} {} ""}
+    {"notoc" "-melf64ppc --no-plt-localentry --no-power10-stubs -T ext.lnk"
+	"" "-a64" {notoc.s}
+	{{objdump -d notoc.d} {readelf {-wf -W} notoc.wf}} "notoc"}
+    {"notoc2" "-melf64ppc -shared" "" "-a64 -mpower10" {notoc2.s}
+	{{objdump {-d -Mpower10} notoc2.d}} "notoc2"}
+    {"notoc3" "-melf64ppc --no-plt-localentry -T ext.lnk" ""
+	"-a64 -mpower10" {notoc3.s}
+	{{objdump -d notoc3.d} {readelf {-wf -W} notoc3.wf}} "notoc3"}
+    {"pcrelopt" "-melf64ppc --hash-style=gnu" "tmpdir/symtocbase.so"
+	"-a64 -mpower10" {pcrelopt.s}
+	{{objdump {-d -Mpower10} pcrelopt.d}
+	 {readelf {-S --wide} pcrelopt.sec}} "pcrelopt" }
+    {"group1" "-melf64ppc -e foo" "" "-a64" {group1.s group2.s group3.s}
+	{{objdump {-d} group1.d}
+	 {readelf {-s} group1.sym}} "group1"}
+    {"group2" "-melf64ppc -e foo" "" "-a64" {group2.s group1.s group3.s}
+	{{objdump {-d} group2.d}
+	 {readelf {-s} group2.sym}} "group2"}
+    {"group3" "-melf64ppc -e foo" "" "-a64" {group3.s group2.s group1.s}
+	{{objdump {-d} group2.d}
+	 {readelf {-s} group3.sym}} "group3"}
+    {"weak1" "-melf64ppc --hash-style=both" ""
+	"-a64 -mpower10" {weak1.s}
+	{{objdump -d weak1.d} {readelf {-srW} weak1.r}} "weak1"}
+    {"weak1.so" "-shared -melf64ppc --hash-style=both" ""
+	"-a64 -mpower10" {weak1.s}
+	{{objdump -d weak1so.d} {readelf {-srW} weak1so.r}} "weak1.so"}
+    {"startstop" "-shared -melf64ppc --hash-style=sysv --gc-sections -z start-stop-gc" ""
+	"-a64 -mpower10" {startstop.s}
+	{{objdump -d startstop.d} {readelf {-rW} startstop.r}} "startstop.so"}
+    {"abs-static" "-melf64ppc -static --defsym a=1 --defsym 'HIDDEN(b=2)' --defsym c=0x123456789abcdef0" ""
+	"-a64" {abs-reloc.s}
+	{{objdump {-sdr} abs-static.d}
+	 {readelf {-rW} abs-static.r}} "abs-static"}
+    {"abs-pie" "-melf64ppc -pie --hash-style=sysv --defsym a=1 --defsym 'HIDDEN(b=2)' --defsym c=0x123456789abcdef0" ""
+	"-a64" {abs-reloc.s}
+	{{objdump {-sdr} abs-pie.d}
+	 {readelf {-rW} abs-pie.r}} "abs-pie"}
+    {"abs-shared" "-melf64ppc -shared --hash-style=sysv --defsym a=1 --defsym 'HIDDEN(b=2)' --defsym c=0x123456789abcdef0" ""
+	"-a64" {abs-reloc.s}
+	{{objdump {-sdr} abs-shared.d}
+	 {readelf {-rW} abs-shared.r}} "abs-shared"}
+    {"abs-pie-relr" "-melf64ppc -pie --hash-style=sysv -z pack-relative-relocs --defsym a=1 --defsym 'HIDDEN(b=2)' --defsym c=0x123456789abcdef0" ""
+	"-a64" {abs-reloc.s}
+	{{objdump {-sdr} abs-pie-relr.d}
+	 {readelf {-rW} abs-pie-relr.r}} "abs-pie-relr"}
+    {"abs-shared-relr" "-melf64ppc -shared --hash-style=sysv -z pack-relative-relocs --defsym a=1 --defsym 'HIDDEN(b=2)' --defsym c=0x123456789abcdef0" ""
+	"-a64" {abs-reloc.s}
+	{{objdump {-sdr} abs-shared-relr.d}
+	 {readelf {-rW} abs-shared-relr.r}} "abs-shared-relr"}
+}
+
+set ppceabitests {
+    {"VLE multiple segments 1" "-melf32ppc -T vle-multiseg-1.ld" ""
+     "-a32 -mbig -mregnames -mvle" {vle-multiseg.s}
+    {{readelf "-l" vle-multiseg-1.d}} "vle-multiseg-1"}
+    {"VLE multiple segments 2" "-melf32ppc -T vle-multiseg-2.ld" ""
+     "-a32 -mbig -mregnames -mvle" {vle-multiseg.s}
+    {{readelf "-l" vle-multiseg-2.d}} "vle-multiseg-2"}
+    {"VLE multiple segments 3" "-melf32ppc -T vle-multiseg-3.ld" ""
+     "-a32 -mbig -mregnames -mvle" {vle-multiseg.s}
+    {{readelf "-l" vle-multiseg-3.d}} "vle-multiseg-3"}
+    {"VLE multiple segments 4" "-melf32ppc -T vle-multiseg-4.ld" ""
+     "-a32 -mbig -mregnames -mvle" {vle-multiseg.s}
+    {{readelf "-l" vle-multiseg-4.d}} "vle-multiseg-4"}
+    {"VLE multiple segments 5" "-melf32ppc -T vle-multiseg-5.ld" ""
+     "-a32 -mbig -mregnames -mvle" {vle-multiseg.s}
+    {{readelf "-l" vle-multiseg-5.d}} "vle-multiseg-5"}
+    {"VLE relocations 1" "-melf32ppc -T vle.ld" ""
+     "-a32 -mbig -mvle" {vle-reloc-1.s vle-reloc-def-1.s}
+    {{objdump "-Mvle -d" vle-reloc-1.d}} "vle-reloc-1"}
+    {"VLE relocations 2" "-melf32ppc -T vle.ld" ""
+     "-a32 -mbig -mvle" {vle-reloc-2.s vle-reloc-def-2.s}
+    {{objdump "-Mvle -d" vle-reloc-2.d}} "vle-reloc-2"}
+    {"VLE relocations 3" "-melf32ppc -T vle.ld" ""
+     "-a32 -mbig -mvle" {vle-reloc-3.s vle-reloc-def-3.s}
+    {{objdump "-Mvle -d" vle-reloc-3.d}} "vle-reloc-3"}
+}
+
+if [istarget "powerpc*le*-*-*"] then {
+    set options_regsub(ld) {{-melf([3264]*)ppc} {-melf\1lppc}}
+
+    for {set i 0} {$i < [llength $ppcelftests]} {incr i} {
+	set line [lindex $ppcelftests $i]
+	set ld_options [lindex $line 1]
+	regsub -all elf32ppc $ld_options elf32lppc ld_options
+	set line [lreplace $line 1 1 $ld_options]
+	set ppcelftests [lreplace $ppcelftests $i $i $line]
+    }
+
+    if [ supports_ppc64 ] then {
+	for {set i 0} {$i < [llength $ppc64elftests]} {incr i} {
+	    set line [lindex $ppc64elftests $i]
+	    set ld_options [lindex $line 1]
+	    regsub -all elf64ppc $ld_options elf64lppc ld_options
+	    set line [lreplace $line 1 1 $ld_options]
+	    set ppc64elftests [lreplace $ppc64elftests $i $i $line]
+	}
+    }
+}
+
+run_ld_link_tests $ppcelftests
+
+if [ supports_ppc64 ] then {
+    run_ld_link_tests $ppc64elftests
+    run_dump_test "relbrlt"
+    run_dump_test "elfv2so"
+    run_dump_test "elfv2exe"
+    run_dump_test "elfv2-2so"
+    run_dump_test "elfv2-2exe"
+    run_dump_test "ambiguousv1"
+    run_dump_test "ambiguousv1b"
+    run_dump_test "ambiguousv2"
+    run_dump_test "ambiguousv2b"
+    run_dump_test "defsym"
+    run_dump_test "tocvar"
+    run_dump_test "tocnovar"
+    run_dump_test "tlsldopt"
+    run_dump_test "relocsort"
+    run_dump_test "addpcis"
+    run_dump_test "dotsym1"
+    run_dump_test "dotsym2"
+    run_dump_test "dotsym3"
+    run_dump_test "dotsym4"
+    run_dump_test "pr23937"
+    run_dump_test "callstub-1"
+    run_dump_test "callstub-2"
+    run_dump_test "callstub-3"
+    run_dump_test "callstub-4"
+    run_dump_test "inline-1"
+    run_dump_test "inline-2"
+    run_dump_test "inline-3"
+    run_dump_test "inline-4"
+    run_dump_test "inlinepcrel-1"
+    run_dump_test "inlinepcrel-2"
+    run_dump_test "inlinepcrel-3"
+    run_dump_test "tlsgd"
+    run_dump_test "tlsld"
+    run_dump_test "tlsie"
+    run_dump_test "non-contiguous-powerpc64"
+    run_dump_test "tprel"
+    run_dump_test "pr28827-1"
+    run_dump_test "pr28827-2"
+}
+
+run_dump_test "localgot"
+run_dump_test "tlsldopt32"
+
+run_ld_link_tests $ppceabitests
+
+run_dump_test "plt1"
+run_dump_test "sdabase"
+run_dump_test "sdabase2"
+
+run_dump_test "attr-gnu-4-00"
+run_dump_test "attr-gnu-4-01"
+run_dump_test "attr-gnu-4-02"
+run_dump_test "attr-gnu-4-03"
+run_dump_test "attr-gnu-4-10"
+run_dump_test "attr-gnu-4-11"
+run_dump_test "attr-gnu-4-12"
+run_dump_test "attr-gnu-4-13"
+run_dump_test "attr-gnu-4-20"
+run_dump_test "attr-gnu-4-21"
+run_dump_test "attr-gnu-4-22"
+run_dump_test "attr-gnu-4-23"
+run_dump_test "attr-gnu-4-31"
+run_dump_test "attr-gnu-4-32"
+run_dump_test "attr-gnu-4-33"
+
+run_dump_test "attr-gnu-8-11"
+run_dump_test "attr-gnu-8-23"
+run_dump_test "attr-gnu-8-31"
+
+run_dump_test "attr-gnu-12-11"
+run_dump_test "attr-gnu-12-21"
+
+run_dump_test "vle-multiseg-6"
+
+run_dump_test "ppc476-shared"
+run_dump_test "ppc476-shared2"
+
+run_dump_test "non-contiguous-powerpc"
+
+run_dump_test "tprel32"
+run_dump_test "tprelbad"
+
+run_dump_test "undefweak"

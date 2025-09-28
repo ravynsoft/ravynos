@@ -1,0 +1,10 @@
+# Test parsing of "list" pseudo-command.
+# It should be allowed as a command but also as a user or host.
+
+user1 ALL = list
+
+list ALL = ALL
+
+user2 ALL = (list : list) ALL
+
+user3 list = ALL

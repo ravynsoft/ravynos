@@ -1,0 +1,36 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --more-than=0 option.
+
+cat <<EOF > mcomm-test1.in1
+#: first.c:123
+msgid "1"
+msgstr "1x"
+EOF
+
+cat <<EOF > mcomm-test1.in2
+#: hunt.c:759
+msgid "2"
+msgstr "2x"
+EOF
+
+: ${MSGCOMM=msgcomm}
+${MSGCOMM} --more-than=0 -o mcomm-test1.tmp mcomm-test1.in1 mcomm-test1.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcomm-test1.tmp > mcomm-test1.out || Exit 1
+
+cat << EOF > mcomm-test1.ok
+#: first.c:123
+msgid "1"
+msgstr "1x"
+
+#: hunt.c:759
+msgid "2"
+msgstr "2x"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcomm-test1.ok mcomm-test1.out
+result=$?
+
+exit $result

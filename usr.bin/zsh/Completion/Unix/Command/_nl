@@ -1,0 +1,40 @@
+#compdef nl gnl
+
+local curcontext="$curcontext" state line args ret=1
+
+args=(
+  '(-b --body-numbering)'{-b+,--body-numbering=}'[specify style for body lines]:style:->styles'
+  '(-d --section-delimiter)'{-d+,--section-delimiter=}'[separate logical pages with specified delimiter]:delimiter'
+  '(-f --footer-numbering)'{-f+,--footer-numbering=}'[specify style for footer lines]:style:->styles'
+  '(-h --header-numbering)'{-h+,--header-numbering=}'[specify style for header lines]:style:->styles'
+  '(-i --line-increment)'{-i+,--line-increment=}'[line number increment at each line]:increment'
+  '(-l --join-blank-lines)'{-l+,--join-blank-lines=}'[count consecutive empty lines as one]:number'
+  '(-n --number-format)'{-n+,--number-format=}'[specify format for line numbers]:format:((ln\:left\ justified rn\:right\ justified rz\:right\ justified\ with\ leading\ zeroes))'
+  '(-p --no-renumber)'{-p,--no-renumber}"[don't reset line numbers at logical pages]"
+  '(-s --number-separator)'{-s+,--number-separator=}'[add specified string after line numbers]:string'
+  '(-v --starting-line-number)'{-v+,--starting-line-number=}'[specify first line number on each logical page]:initial number'
+  '(-w --number-width)'{-w+,--number-width=}'[specify number of columns for line numbers]:columns'
+)
+
+if _pick_variant gnu=GNU unix --version; then
+  args+=(
+    '(- *)--help[display help information]'
+    '(- *)--version[display version information]'
+  )
+else
+  args=( ${(R)args:#(|\*)(|\(*\))--*} )    # remove long options
+fi
+
+_arguments -C -s $args '*:file:_files' && ret=0
+
+if [[ -n $state ]]; then
+  if compset -P p; then
+    _message -e regex 'regular expression'
+  else
+    _describe -t styles style '( p:number\ only\ lines\ matching\ regex )' -S '' -- '(
+      a:number\ all\ lines
+      t:number\ only\ non-empty\ lines
+      n:no\ line\ numbering
+    )'
+  fi
+fi || return ret

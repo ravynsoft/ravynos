@@ -1,0 +1,271 @@
+# List of test files to ignore/skip for deparse tests.
+#
+# This is used by t/TEST.
+# 
+# Those under DEPARSE_FAILURES are ones that we need to fix or
+# we expect to fail. These tests will still be run and checked to
+# see if they fail as expected.
+#
+# Those under DEPARSE_SKIPS we don't want to even attempt running
+# because they might do bad things to our system (memory exhaustion,
+# etc), so they will be completely skipped from the test run.
+#
+# Paths are relative from t/
+#
+# Paths that end with '/' are directories to skip entirely
+#
+# Format:
+#   __DEPARSE_FAILURES__
+#   ../path/to/test1
+#   ../path/to/test2
+#   ../dir/to/skip/
+#
+#   __DEPARSE_SKIPS__
+#   ../path/to/test3
+#   ../path/to/test4
+#
+#   # This is a comment
+#   ../path/to/test5 # More comments at end of line
+#
+#   # Blank lines okay
+
+__DEPARSE_FAILURES__
+
+base/lex.t                # checks regexp stringification
+# class/*.t generally failing because OP_METHSTART not recognised
+class/class.t
+class/construct.t
+class/destruct.t
+class/field.t
+class/inherit.t
+class/method.t
+class/phasers.t
+class/threads.t
+#
+comp/final_line_num.t     # tests syntax error after BEGIN block
+comp/fold.t               # mutability of folded constants
+comp/parser.t             # crazy #line directives ==> shell syntax errors
+mro/basic_01_c3_utf8.t
+mro/basic_01_dfs_utf8.t
+mro/complex_c3_utf8.t
+mro/isarev.t
+mro/isarev_utf8.t
+op/attrhand.t             # Custom attrs ignored; also AH provides none
+op/caller.t
+op/goto.t
+op/gv.t                   # glob copy constants
+op/index.t
+op/join.t                 # mutability of folded constants
+op/length.t               # utf8ness of deparsed strings
+op/lexsub.t
+op/local.t
+op/lvref.t
+op/overload_integer.t
+op/override.t
+op/pack.t
+op/postfixderef.t
+op/range.t
+op/readline.t
+op/srand.t
+op/sub_lval.t
+op/sub.t
+op/switch.t
+op/symbolcache.t
+op/taint.t
+op/undef.t                # keys%{($h=undef)||{}} becomes keys%{{} unless .. }
+op/vec.t
+op/warn.t
+op/write.t
+perf/opcount.t            # keys%{($h=undef)||{}} becomes keys%{{} unless .. }
+porting/globvar.t
+re/overload.t             # [perl #123385] %^H output
+re/pat_advanced.t         # [perl #123417]
+re/pat_rt_report.t        # malformed utf8 constant; also /\c@/ -> /\c\@/
+re/pat.t                  # [perl #90590]
+re/pat_re_eval.t          # the new /(*{...})/ forms don't deparse
+re/regex_sets.t
+re/reg_fold.t             # [perl #123385] %^H output
+re/rxcode.t               # checks regexp stringification
+re/subst.t
+run/switchd-78586.t       # -I on #! line is not deparsed
+run/switchI.t             # -I on #! line is not deparsed
+uni/attrs.t
+uni/bless.t
+uni/gv.t
+uni/labels.t
+uni/lex_utf8.t
+uni/method.t
+uni/package.t
+uni/parser.t
+uni/readline.t
+uni/select.t
+uni/stash.t
+uni/tie.t
+uni/universal.t
+uni/variables.t
+../cpan/Archive-Tar/t/03_file.t         # constant sub ref: FOO->()
+
+# Most autodie tests currently fail under Deparse because
+# the %^H initialisation values are stringifed refs rather
+# than real refs.
+../cpan/autodie/t/autodie.t
+../cpan/autodie/t/basic_exceptions.t
+../cpan/autodie/t/binmode.t
+../cpan/autodie/t/blog_hints.t
+../cpan/autodie/t/caller.t
+../cpan/autodie/t/chmod.t
+../cpan/autodie/t/chown.t
+../cpan/autodie/t/context_lexical.t
+../cpan/autodie/t/context.t
+../cpan/autodie/t/crickey.t
+../cpan/autodie/t/dbmopen.t
+../cpan/autodie/t/eval_error.t
+../cpan/autodie/t/exception_class.t
+../cpan/autodie/t/exception_nonref.t
+../cpan/autodie/t/exceptions.t
+../cpan/autodie/t/exec.t
+../cpan/autodie/t/filehandles.t
+../cpan/autodie/t/fileno.t
+../cpan/autodie/t/hints_insist.t
+../cpan/autodie/t/hints_pod_examples.t
+../cpan/autodie/t/hints_provider_does.t
+../cpan/autodie/t/hints_provider_easy_does_it.t
+../cpan/autodie/t/hints_provider_isa.t
+../cpan/autodie/t/hints.t
+../cpan/autodie/t/internal.t
+../cpan/autodie/t/kill.t
+../cpan/autodie/t/lethal.t
+../cpan/autodie/t/mkdir.t
+../cpan/autodie/t/no-default.t
+../cpan/autodie/t/open.t
+../cpan/autodie/t/read.t
+../cpan/autodie/t/recv.t
+../cpan/autodie/t/repeat.t
+../cpan/autodie/t/scope_leak.t
+../cpan/autodie/t/sysopen.t
+../cpan/autodie/t/truncate.t
+../cpan/autodie/t/unlink.t
+../cpan/autodie/t/user-context.t
+../cpan/autodie/t/usersub.t
+../cpan/autodie/t/utf8_open.t
+../cpan/autodie/t/utime.t
+../cpan/autodie/t/version_tag.t
+
+../cpan/AutoLoader/t/01AutoLoader.t
+
+
+# -------------
+#
+# The big*/Big* modules generally fail because the code references in
+# user-defined hints get stringified when deparsed, e.g.
+#
+#    BEGIN {
+#        $^H{'binary'} = 'CODE(0x21158a0)';
+#        $^H{'float'} = 'CODE(0x1a6ab18)';
+#        $^H{'integer'} = 'CODE(0x1a6abc0)';
+#    }
+
+../cpan/bignum/t/bigexp.t
+../cpan/bignum/t/bigfloat.t
+../cpan/bignum/t/bigint.t
+../cpan/bignum/t/bignum.t
+../cpan/bignum/t/bigrat.t
+../cpan/bignum/t/const-bigfloat.t
+../cpan/bignum/t/const-bigint.t
+../cpan/bignum/t/const-bignum.t
+../cpan/bignum/t/const-bigrat.t
+../cpan/bignum/t/down-mbi-up-mbf.t
+../cpan/bignum/t/down-mbi-up-mbr.t
+../cpan/bignum/t/down-mbi-up-undef.t
+../cpan/bignum/t/down-undef-up-mbf.t
+../cpan/bignum/t/e_pi-bigfloat.t
+../cpan/bignum/t/e_pi-bigint.t
+../cpan/bignum/t/e_pi-bignum.t
+../cpan/bignum/t/e_pi-bigrat.t
+../cpan/bignum/t/import-bigfloat.t
+../cpan/bignum/t/import-bigint.t
+../cpan/bignum/t/import-bignum.t
+../cpan/bignum/t/import-bigrat.t
+../cpan/bignum/t/in_effect.t
+../cpan/bignum/t/infnan-bigfloat.t
+../cpan/bignum/t/infnan-bigint.t
+../cpan/bignum/t/infnan-bignum-mbf.t
+../cpan/bignum/t/infnan-bignum-mbr.t
+../cpan/bignum/t/infnan-bigrat.t
+../cpan/bignum/t/option_a-bignum.t
+../cpan/bignum/t/option_a.t
+../cpan/bignum/t/option_l-bigfloat.t
+../cpan/bignum/t/option_l-bigint.t
+../cpan/bignum/t/option_l-bignum.t
+../cpan/bignum/t/option_l-bigrat.t
+../cpan/bignum/t/option_p-bignum.t
+../cpan/bignum/t/option_p.t
+../cpan/bignum/t/overrides.t
+../cpan/bignum/t/ratopt_a.t
+../cpan/bignum/t/scope-bigfloat.t
+../cpan/bignum/t/scope-bigint.t
+../cpan/bignum/t/scope-bignum.t
+../cpan/bignum/t/scope-bigrat.t
+
+# -------------
+
+
+# This one does a plan('skip_all') in a BEGIN block, which stops the rest
+# of the test file from being compiled
+../cpan/ExtUtils-MakeMaker/t/MM_VMS.t
+
+# see comment above about bignum failures
+../cpan/Math-BigRat/t/const-mbr.t
+
+
+../cpan/Scalar-List-Utils/t/uniq.t
+../cpan/Term-Cap/test.pl
+../cpan/Test-Simple/t/Legacy/Builder/carp.t
+../cpan/Test-Simple/t/Legacy/fail-more.t
+../cpan/Test-Simple/t/Legacy/is_deeply_fail.t
+../cpan/Test-Simple/t/Legacy/no_plan.t         # hard-coded line numbers
+../cpan/Test-Simple/t/Legacy/plan_bad.t
+../cpan/Test-Simple/t/Legacy/plan.t
+../cpan/Test-Simple/t/Legacy/subtest/line_numbers.t
+../cpan/Test-Simple/t/Legacy/subtest/predicate.t
+../cpan/Test-Simple/t/regression/684-nested_todo_diag.t
+../cpan/Test-Simple/t/Test2/behavior/run_subtest_inherit.t
+../dist/Attribute-Handlers/t/constants.t
+../dist/Attribute-Handlers/t/data_convert.t
+../dist/Attribute-Handlers/t/linerep.t
+../dist/Attribute-Handlers/t/multi.t
+../dist/Carp/t/Carp.t
+../dist/constant/t/constant.t
+../dist/Data-Dumper/t/dumper.t
+../dist/Data-Dumper/t/trailing_comma.t
+../dist/Exporter/t/Exporter.t
+../dist/Filter-Simple/t/data.t
+../dist/Storable/t/croak.t
+../dist/threads/t/blocks.t
+../ext/B/t/b.t
+../ext/B/t/optree_constants.t
+# for (...) {} currently gets deparsed as for (...) { (); }
+# which has a slightly different optree
+../ext/B/t/optree_for.t
+../ext/B/t/optree_samples.t
+../ext/Devel-Peek/t/Peek.t
+../ext/IPC-Open3/t/IPC-Open2.t
+../ext/IPC-Open3/t/IPC-Open3.t
+../ext/XS-APItest/t/autoload.t
+../ext/XS-APItest/t/blockhooks.t
+../ext/XS-APItest/t/call_checker.t
+../ext/XS-APItest/t/cleanup.t
+../ext/XS-APItest/t/fetch_pad_names.t
+../ext/XS-APItest/t/synthetic_scope.t
+../lib/Config.t                         # Config_heavy.pl fns getting output
+../lib/charnames.t
+../lib/dumpvar.t
+../lib/English.t
+../lib/overload.t
+
+
+__DEPARSE_SKIPS__
+
+op/smartkve.t                        # Gobbles up all memory...
+comp/redef.t                         # Redefinition happens at compile time
+../lib/locale.t                      # Memory...

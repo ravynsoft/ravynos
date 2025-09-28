@@ -1,0 +1,30 @@
+#compdef getfacl getfacl.exe
+
+if _pick_variant cygwin=cygwin unix --version; then
+# cygwin 1.5.25
+_arguments -s -S \
+  '(--all -a)'{-a,--all}'[display the filename, owner, group, and ACL of the file]' \
+  '(--dir -d)'{-d,--dir}'[display the filename, owner, group, and default ACL of the directory]' \
+  '(--noname -n)'{-n,--noname}'[display user and group IDs instead of names]' \
+  '(- *)'{-h,--help}'[display help information]' \
+  '(- *)'{-v,--version}'[display version information]' \
+  '*: :_files'
+else
+_arguments -s -S \
+  '(-a --access)'{-a,--access}'[display the file access control list only]' \
+  '(-d --default)'{-d,--default}'[display the default access control list only]' \
+  '(-c --omit-header)'{-c,--omit-header}"[don't display the comment header]" \
+  '(-e --all-effective)'{-e,--all-effective}'[print all effective rights]' \
+  '(-E --no-effective)'{-E,--no-effective}'[print no effective rights]' \
+  '(-s --skip-base)'{-s,--skip-base}'[skip files that only have the base entries]' \
+  '(-R --recursive)'{-R,--recursive}'[recurse into subdirectories]' \
+  '(-L --logical)'{-L,--logical}'[logical walk, follow symbolic links]' \
+  '(-P --physical)'{-P,--physical}"[physical walk, don't follow symbolic links]" \
+  '(-t --tabular)'{-t,--tabular}'[use tabular output format]' \
+  '(-n --numeric)'{-n,--numeric}'[print numeric user/group identifiers]' \
+  '--one-file-system[skip files on different filesystems]' \
+  '(-p --absolute-names)'{-p,--absolute-names}"[don't strip leading '/' in pathnames]" \
+  '(- *)'{-v,--version}'[display version information]' \
+  '(- *)'{-h,--help}'[display help information]' \
+  '*: :_files'
+fi

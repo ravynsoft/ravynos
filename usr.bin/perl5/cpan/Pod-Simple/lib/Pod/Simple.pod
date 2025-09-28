@@ -1,0 +1,455 @@
+
+=head1 NAME
+
+Pod::Simple - framework for parsing Pod
+
+=head1 SYNOPSIS
+
+ TODO
+
+=head1 DESCRIPTION
+
+Pod::Simple is a Perl library for parsing text in the Pod ("plain old
+documentation") markup language that is typically used for writing
+documentation for Perl and for Perl modules. The Pod format is explained
+in L<perlpod>; the most common formatter is called C<perldoc>.
+
+Be sure to read L</ENCODING> if your Pod contains non-ASCII characters.
+
+Pod formatters can use Pod::Simple to parse Pod documents and render them into
+plain text, HTML, or any number of other formats. Typically, such formatters
+will be subclasses of Pod::Simple, and so they will inherit its methods, like
+C<parse_file>.  But note that Pod::Simple doesn't understand and
+properly parse Perl itself, so if you have a file which contains a Perl
+program that has a multi-line quoted string which has lines that look
+like pod, Pod::Simple will treat them as pod.  This can be avoided if
+the file makes these into indented here documents instead.
+
+If you're reading this document just because you have a Pod-processing
+subclass that you want to use, this document (plus the documentation for the
+subclass) is probably all you need to read.
+
+If you're reading this document because you want to write a formatter
+subclass, continue reading it and then read L<Pod::Simple::Subclassing>, and
+then possibly even read L<perlpodspec> (some of which is for parser-writers,
+but much of which is notes to formatter-writers).
+
+=head1 MAIN METHODS
+
+=over
+
+=item C<< $parser = I<SomeClass>->new(); >>
+
+This returns a new parser object, where I<C<SomeClass>> is a subclass
+of Pod::Simple.
+
+=item C<< $parser->output_fh( *OUT ); >>
+
+This sets the filehandle that C<$parser>'s output will be written to.
+You can pass C<*STDOUT> or C<*STDERR>, otherwise you should probably do
+something like this:
+
+    my $outfile = "output.txt";
+    open TXTOUT, ">$outfile" or die "Can't write to $outfile: $!";
+    $parser->output_fh(*TXTOUT);
+
+...before you call one of the C<< $parser->parse_I<whatever> >> methods.
+
+=item C<< $parser->output_string( \$somestring ); >>
+
+This sets the string that C<$parser>'s output will be sent to,
+instead of any filehandle.
+
+
+=item C<< $parser->parse_file( I<$some_filename> ); >>
+
+=item C<< $parser->parse_file( *INPUT_FH ); >>
+
+This reads the Pod content of the file (or filehandle) that you specify,
+and processes it with that C<$parser> object, according to however
+C<$parser>'s class works, and according to whatever parser options you
+have set up for this C<$parser> object.
+
+=item C<< $parser->parse_string_document( I<$all_content> ); >>
+
+This works just like C<parse_file> except that it reads the Pod
+content not from a file, but from a string that you have already
+in memory.
+
+=item C<< $parser->parse_lines( I<...@lines...>, undef ); >>
+
+This processes the lines in C<@lines> (where each list item must be a
+defined value, and must contain exactly one line of content -- so no
+items like C<"foo\nbar"> are allowed).  The final C<undef> is used to
+indicate the end of document being parsed.
+
+The other C<parser_I<whatever>> methods are meant to be called only once
+per C<$parser> object; but C<parse_lines> can be called as many times per
+C<$parser> object as you want, as long as the last call (and only
+the last call) ends with an C<undef> value.
+
+
+=item C<< $parser->content_seen >>
+
+This returns true only if there has been any real content seen for this
+document. Returns false in cases where the document contains content,
+but does not make use of any Pod markup.
+
+=item C<< I<SomeClass>->filter( I<$filename> ); >>
+
+=item C<< I<SomeClass>->filter( I<*INPUT_FH> ); >>
+
+=item C<< I<SomeClass>->filter( I<\$document_content> ); >>
+
+This is a shortcut method for creating a new parser object, setting the
+output handle to STDOUT, and then processing the specified file (or
+filehandle, or in-memory document). This is handy for one-liners like
+this:
+
+  perl -MPod::Simple::Text -e "Pod::Simple::Text->filter('thingy.pod')"
+
+=back
+
+
+
+=head1 SECONDARY METHODS
+
+Some of these methods might be of interest to general users, as
+well as of interest to formatter-writers.
+
+Note that the general pattern here is that the accessor-methods
+read the attribute's value with C<< $value = $parser->I<attribute> >>
+and set the attribute's value with
+C<< $parser->I<attribute>(I<newvalue>) >>.  For each accessor, I typically
+only mention one syntax or another, based on which I think you are actually
+most likely to use.
+
+
+=over
+
+=item C<< $parser->parse_characters( I<SOMEVALUE> ) >>
+
+The Pod parser normally expects to read octets and to convert those octets
+to characters based on the C<=encoding> declaration in the Pod source.  Set
+this option to a true value to indicate that the Pod source is already a Perl
+character stream.  This tells the parser to ignore any C<=encoding> command
+and to skip all the code paths involving decoding octets.
+
+=item C<< $parser->no_whining( I<SOMEVALUE> ) >>
+
+If you set this attribute to a true value, you will suppress the
+parser's complaints about irregularities in the Pod coding. By default,
+this attribute's value is false, meaning that irregularities will
+be reported.
+
+Note that turning this attribute to true won't suppress one or two kinds
+of complaints about rarely occurring unrecoverable errors.
+
+
+=item C<< $parser->no_errata_section( I<SOMEVALUE> ) >>
+
+If you set this attribute to a true value, you will stop the parser from
+generating a "POD ERRORS" section at the end of the document. By
+default, this attribute's value is false, meaning that an errata section
+will be generated, as necessary.
+
+
+=item C<< $parser->complain_stderr( I<SOMEVALUE> ) >>
+
+If you set this attribute to a true value, it will send reports of
+parsing errors to STDERR. By default, this attribute's value is false,
+meaning that no output is sent to STDERR.
+
+Setting C<complain_stderr> also sets C<no_errata_section>.
+
+
+=item C<< $parser->source_filename >>
+
+This returns the filename that this parser object was set to read from.
+
+
+=item C<< $parser->doc_has_started >>
+
+This returns true if C<$parser> has read from a source, and has seen
+Pod content in it.
+
+
+=item C<< $parser->source_dead >>
+
+This returns true if C<$parser> has read from a source, and come to the
+end of that source.
+
+=item C<< $parser->strip_verbatim_indent( I<SOMEVALUE> ) >>
+
+The perlpod spec for a Verbatim paragraph is "It should be reproduced
+exactly...", which means that the whitespace you've used to indent your
+verbatim blocks will be preserved in the output. This can be annoying for
+outputs such as HTML, where that whitespace will remain in front of every
+line. It's an unfortunate case where syntax is turned into semantics.
+
+If the POD you're parsing adheres to a consistent indentation policy, you can
+have such indentation stripped from the beginning of every line of your
+verbatim blocks. This method tells Pod::Simple what to strip. For two-space
+indents, you'd use:
+
+  $parser->strip_verbatim_indent('  ');
+
+For tab indents, you'd use a tab character:
+
+  $parser->strip_verbatim_indent("\t");
+
+If the POD is inconsistent about the indentation of verbatim blocks, but you
+have figured out a heuristic to determine how much a particular verbatim block
+is indented, you can pass a code reference instead. The code reference will be
+executed with one argument, an array reference of all the lines in the
+verbatim block, and should return the value to be stripped from each line. For
+example, if you decide that you're fine to use the first line of the verbatim
+block to set the standard for indentation of the rest of the block, you can
+look at the first line and return the appropriate value, like so:
+
+  $new->strip_verbatim_indent(sub {
+      my $lines = shift;
+      (my $indent = $lines->[0]) =~ s/\S.*//;
+      return $indent;
+  });
+
+If you'd rather treat each line individually, you can do that, too, by just
+transforming them in-place in the code reference and returning C<undef>. Say
+that you don't want I<any> lines indented. You can do something like this:
+
+  $new->strip_verbatim_indent(sub {
+      my $lines = shift;
+      sub { s/^\s+// for @{ $lines },
+      return undef;
+  });
+
+=item C<< $parser->expand_verbatim_tabs( I<n> ) >>
+
+Default: 8
+
+If after any stripping of indentation in verbatim blocks, there remain
+tabs, this method call indicates what to do with them.  C<0>
+means leave them as tabs, any other number indicates that each tab is to
+be translated so as to have tab stops every C<n> columns.
+
+This is independent of other methods (except that it operates after any
+verbatim input stripping is done).
+
+Like the other methods, the input parameter is not checked for validity.
+C<undef> or containing non-digits has the same effect as 8.
+
+=back
+
+=head1 TERTIARY METHODS
+
+=over
+
+=item C<< $parser->abandon_output_fh() >>X<abandon_output_fh>
+
+Cancel output to the file handle. Any POD read by the C<$parser> is not
+effected.
+
+=item C<< $parser->abandon_output_string() >>X<abandon_output_string>
+
+Cancel output to the output string. Any POD read by the C<$parser> is not
+effected.
+
+=item C<< $parser->accept_code( @codes ) >>X<accept_code>
+
+Alias for L<< accept_codes >>.
+
+=item C<< $parser->accept_codes( @codes ) >>X<accept_codes>
+
+Allows C<$parser> to accept a list of L<perlpod/Formatting Codes>. This can be
+used to implement user-defined codes.
+
+=item C<< $parser->accept_directive_as_data( @directives ) >>X<accept_directive_as_data>
+
+Allows C<$parser> to accept a list of directives for data paragraphs. A
+directive is the label of a L<perlpod/Command Paragraph>. A data paragraph is
+one delimited by C<< =begin/=for/=end >> directives. This can be used to
+implement user-defined directives.
+
+=item C<< $parser->accept_directive_as_processed( @directives ) >>X<accept_directive_as_processed>
+
+Allows C<$parser> to accept a list of directives for processed paragraphs. A
+directive is the label of a L<perlpod/Command Paragraph>. A processed
+paragraph is also known as L<perlpod/Ordinary Paragraph>. This can be used to
+implement user-defined directives.
+
+=item C<< $parser->accept_directive_as_verbatim( @directives ) >>X<accept_directive_as_verbatim>
+
+Allows C<$parser> to accept a list of directives for L<perlpod/Verbatim
+Paragraph>. A directive is the label of a L<perlpod/Command Paragraph>. This
+can be used to implement user-defined directives.
+
+=item C<< $parser->accept_target( @targets ) >>X<accept_target>
+
+Alias for L<< accept_targets >>.
+
+=item C<< $parser->accept_target_as_text( @targets ) >>X<accept_target_as_text>
+
+Alias for L<< accept_targets_as_text >>.
+
+=item C<< $parser->accept_targets( @targets ) >>X<accept_targets>
+
+Accepts targets for C<< =begin/=for/=end >> sections of the POD.
+
+=item C<< $parser->accept_targets_as_text( @targets ) >>X<accept_targets_as_text>
+
+Accepts targets for C<< =begin/=for/=end >> sections that should be parsed as
+POD. For details, see L<< perlpodspec/About Data Paragraphs >>.
+
+=item C<< $parser->any_errata_seen() >>X<any_errata_seen>
+
+Used to check if any errata was seen.
+
+I<Example:>
+
+  die "too many errors\n" if $parser->any_errata_seen();
+
+=item C<< $parser->errata_seen() >>X<errata_seen>
+
+Returns a hash reference of all errata seen, both whines and screams. The hash reference's keys are the line number and the value is an array reference of the errors for that line.
+
+I<Example:>
+
+  if ( $parser->any_errata_seen() ) {
+     $logger->log( $parser->errata_seen() );
+  }
+
+=item C<< $parser->detected_encoding() >>X<detected_encoding>
+
+Return the encoding corresponding to C<< =encoding >>, but only if the
+encoding was recognized and handled.
+
+=item C<< $parser->encoding() >>X<encoding>
+
+Return encoding of the document, even if the encoding is not correctly
+handled.
+
+=item C<< $parser->parse_from_file( $source, $to ) >>X<parse_from_file>
+
+Parses from C<$source> file to C<$to> file. Similar to L<<
+Pod::Parser/parse_from_file >>.
+
+=item C<< $parser->scream( @error_messages ) >>X<scream>
+
+Log an error that can't be ignored.
+
+=item C<< $parser->unaccept_code( @codes ) >>X<unaccept_code>
+
+Alias for L<< unaccept_codes >>.
+
+=item C<< $parser->unaccept_codes( @codes ) >>X<unaccept_codes>
+
+Removes C<< @codes >> as valid codes for the parse.
+
+=item C<< $parser->unaccept_directive( @directives ) >>X<unaccept_directive>
+
+Alias for L<< unaccept_directives >>.
+
+=item C<< $parser->unaccept_directives( @directives ) >>X<unaccept_directives>
+
+Removes C<< @directives >> as valid directives for the parse.
+
+=item C<< $parser->unaccept_target( @targets ) >>X<unaccept_target>
+
+Alias for L<< unaccept_targets >>.
+
+=item C<< $parser->unaccept_targets( @targets ) >>X<unaccept_targets>
+
+Removes C<< @targets >> as valid targets for the parse.
+
+=item C<< $parser->version_report() >>X<version_report>
+
+Returns a string describing the version.
+
+=item C<< $parser->whine( @error_messages ) >>X<whine>
+
+Log an error unless C<< $parser->no_whining( TRUE ); >>.
+
+=back
+
+=head1 ENCODING
+
+The Pod::Simple parser expects to read B<octets>.  The parser will decode the
+octets into Perl's internal character string representation using the value of
+the C<=encoding> declaration in the POD source.
+
+If the POD source does not include an C<=encoding> declaration, the parser will
+attempt to guess the encoding (selecting one of UTF-8 or CP 1252) by examining
+the first non-ASCII bytes and applying the heuristic described in
+L<perlpodspec>.  (If the POD source contains only ASCII bytes, the
+encoding is assumed to be ASCII.)
+
+If you set the C<parse_characters> option to a true value the parser will
+expect characters rather than octets; will ignore any C<=encoding>; and will
+make no attempt to decode the input.
+
+=head1 SEE ALSO
+
+L<Pod::Simple::Subclassing>
+
+L<perlpod|perlpod>
+
+L<perlpodspec|perlpodspec>
+
+L<Pod::Escapes|Pod::Escapes>
+
+L<perldoc>
+
+=head1 SUPPORT
+
+Questions or discussion about POD and Pod::Simple should be sent to the
+pod-people@perl.org mail list. Send an empty email to
+pod-people-subscribe@perl.org to subscribe.
+
+This module is managed in an open GitHub repository,
+L<https://github.com/perl-pod/pod-simple/>. Feel free to fork and contribute, or
+to clone L<git://github.com/perl-pod/pod-simple.git> and send patches!
+
+Please use L<https://github.com/perl-pod/pod-simple/issues/new> to file a bug
+report.
+
+=head1 COPYRIGHT AND DISCLAIMERS
+
+Copyright (c) 2002 Sean M. Burke.
+
+This library is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+This program is distributed in the hope that it will be useful, but
+without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose.
+
+=head1 AUTHOR
+
+Pod::Simple was created by Sean M. Burke <sburke@cpan.org>.
+But don't bother him, he's retired.
+
+Pod::Simple is maintained by:
+
+=over
+
+=item * Allison Randal C<allison@perl.org>
+
+=item * Hans Dieter Pearcey C<hdp@cpan.org>
+
+=item * David E. Wheeler C<dwheeler@cpan.org>
+
+=item * Karl Williamson C<khw@cpan.org>
+
+=back
+
+Documentation has been contributed by:
+
+=over
+
+=item * Gabor Szabo C<szabgab@gmail.com>
+
+=item * Shawn H Corey  C<SHCOREY at cpan.org>
+
+=back
+
+=cut

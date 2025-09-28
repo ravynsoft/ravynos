@@ -1,0 +1,161 @@
+=== Spreadsheet-Read
+--- yaml
+\--- #YAML:1.1
+name:                   Read
+version:                VERSION
+abstract:               Meta-Wrapper for reading spreadsheet data
+license:                perl
+author:                 
+  - H.Merijn Brand <h.m.brand@xs4all.nl>
+generated_by:           Author
+distribution_type:      module
+provides:
+  Spreadsheet::Read:
+    file:               Read.pm
+    version:            VERSION
+requires:                       
+  perl:                 5.006
+  Exporter:             0
+  Carp:                 0
+  Data::Dumper:         0
+recommends:
+  perl:                 5.008005
+  File::Temp:           0.14
+  IO::Scalar:           0
+build_requires:
+  perl:                 5.006
+  Test::Harness:        0
+  Test::More:           0
+optional_features:
+- opt_csv:
+    description:        Provides parsing of CSV streams
+    requires:
+      Text::CSV_XS:     0.23
+    recommends:
+      Text::CSV:        1.10
+      Text::CSV_PP:     1.10
+      Text::CSV_XS:     0.58
+- opt_excel:
+    description:        Provides parsing of Microsoft Excel files
+    requires:
+      Spreadsheet::ParseExcel: 0.26
+      Spreadsheet::ParseExcel::FmtDefault: 0
+    recommends:
+      Spreadsheet::ParseExcel: 0.42
+- opt_excelx:
+    description:        Provides parsing of Microsoft Excel 2007 files
+    requires:
+      Spreadsheet::XLSX:       0.07
+- opt_oo:
+    description:        Provides parsing of OpenOffice spreadsheets
+    requires:
+      Spreadsheet::ReadSXC:    0.2
+- opt_tools:
+    description:        Spreadsheet tools
+    recommends:
+      Tk:                           0
+      Tk::NoteBook:                 0
+      Tk::TableMatrix::Spreadsheet: 0
+resources:
+  license:      http://dev.perl.org/licenses/
+meta-spec:
+  version:      1.4
+  url:          http://module-build.sourceforge.net/META-spec-v1.4.html
+
+--- perl
+[ {
+    'resources' => {
+        'license' => 'http://dev.perl.org/licenses/'
+    },
+    'meta-spec' => {
+        'version' => '1.4',
+        'url' => 'http://module-build.sourceforge.net/META-spec-v1.4.html'
+    },
+    'distribution_type' => 'module',
+    'generated_by' => 'Author',
+    'version' => 'VERSION',
+    'name' => 'Read',
+    'author' => [
+        'H.Merijn Brand <h.m.brand@xs4all.nl>'
+    ],
+    'license' => 'perl',
+    'build_requires' => {
+        'Test::More' => '0',
+        'Test::Harness' => '0',
+        'perl' => '5.006'
+    },
+    'provides' => {
+        'Spreadsheet::Read' => {
+            'version' => 'VERSION',
+            'file' => 'Read.pm'
+        }
+    },
+    'optional_features' => [
+        {
+            'opt_csv' => {
+                'requires' => {
+                    'Text::CSV_XS' => '0.23'
+                },
+                'recommends' => {
+                    'Text::CSV_PP' => '1.10',
+                    'Text::CSV_XS' => '0.58',
+                    'Text::CSV' => '1.10'
+                },
+                'description' => 'Provides parsing of CSV streams'
+            }
+        },
+        {
+            'opt_excel' => {
+                'requires' => {
+                    'Spreadsheet::ParseExcel' => '0.26',
+                    'Spreadsheet::ParseExcel::FmtDefault' => '0'
+                },
+                'recommends' => {
+                    'Spreadsheet::ParseExcel' => '0.42'
+                },
+                'description' => 'Provides parsing of Microsoft Excel files'
+            }
+        },
+        {
+            'opt_excelx' => {
+                'requires' => {
+                    'Spreadsheet::XLSX' => '0.07'
+                },
+                'description' => 'Provides parsing of Microsoft Excel 2007 files'
+            }
+        },
+        {
+            'opt_oo' => {
+                'requires' => {
+                    'Spreadsheet::ReadSXC' => '0.2'
+                },
+                'description' => 'Provides parsing of OpenOffice spreadsheets'
+            }
+        },
+        {
+            'opt_tools' => {
+                'recommends' => {
+                    'Tk::TableMatrix::Spreadsheet' => '0',
+                    'Tk::NoteBook' => '0',
+                    'Tk' => '0'
+                },
+                'description' => 'Spreadsheet tools'
+            }
+        }
+    ],
+    'requires' => {
+        'perl' => '5.006',
+        'Data::Dumper' => '0',
+        'Exporter' => '0',
+        'Carp' => '0'
+    },
+    'recommends' => {
+        'perl' => '5.008005',
+        'IO::Scalar' => '0',
+        'File::Temp' => '0.14'
+    },
+    'abstract' => 'Meta-Wrapper for reading spreadsheet data'
+} ]
+
+--- noyamlpm
+

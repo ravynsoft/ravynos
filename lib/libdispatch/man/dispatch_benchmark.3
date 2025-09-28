@@ -1,0 +1,59 @@
+.\" Copyright (c) 2008-2009 Apple Inc. All rights reserved.
+.Dd May 1, 2009
+.Dt dispatch_benchmark 3
+.Os Darwin
+.Sh NAME
+.Nm dispatch_benchmark
+.Nd Measures block execution time
+.Sh SYNOPSIS
+.Fd #include <dispatch/dispatch.h>
+.Ft uint64_t
+.Fo dispatch_benchmark
+.Fa "size_t count" "void (^block)(void)"
+.Fc
+.Ft uint64_t
+.Fo dispatch_benchmark_f
+.Fa "size_t count" "void *context" "void (*function)(void *)"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn dispatch_benchmark
+function executes the given
+.Fa block
+multiple times according to the
+.Fa count
+variable and then returns the average number of nanoseconds per execution.
+This function is for debugging and performance analysis work.
+For the best
+results, pass a high count value to
+.Fn dispatch_benchmark .
+When benchmarking concurrent code, please compare the
+serial version of the code against the concurrent version, and compare the
+concurrent version on different classes of hardware.
+Please look for inflection
+points with various data sets and keep the following facts in mind:
+.Pp
+.Bl -bullet -offset indent -compact
+.It
+Code bound by computational bandwidth may be inferred by proportional
+changes in performance as concurrency is increased.
+.It
+Code bound by memory bandwidth may be inferred by negligible changes in
+performance as concurrency is increased.
+.It
+Code bound by critical sections may be inferred by retrograde changes in
+performance as concurrency is increased.
+.Bl -bullet -offset indent -compact
+.It
+Intentional: locks, mutexes, and condition variables.
+.It
+Accidental: unrelated and frequently modified data on the same cache-line.
+.El
+.El
+.Sh RETURN VALUE
+The
+.Fn dispatch_benchmark
+function returns the average number of nanoseconds the given block takes to
+execute.
+.Sh SEE ALSO
+.Xr dispatch 3

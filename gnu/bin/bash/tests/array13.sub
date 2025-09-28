@@ -1,0 +1,12 @@
+
+func1(){
+declare -g variable='function'
+declare -g -a array=(function)
+echo  ${variable} ${array[@]}
+}
+
+declare -g variable='main'
+declare -g -a array=(main)
+echo  ${variable} ${array[@]}
+func1
+echo  ${variable} ${array[@]}

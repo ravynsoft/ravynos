@@ -1,0 +1,42 @@
+<HTML>
+<HEAD>
+<!-- This HTML file has been created by texi2html 1.52b
+     from gperf.texi on 2 January 2017 -->
+
+<META HTTP-EQUIV="content-type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Perfect Hash Function Generator - 2  Introduction</TITLE>
+</HEAD>
+<BODY>
+Go to the <A HREF="gperf_1.html">first</A>, <A HREF="gperf_2.html">previous</A>, <A HREF="gperf_4.html">next</A>, <A HREF="gperf_10.html">last</A> section, <A HREF="gperf_toc.html">table of contents</A>.
+<P><HR><P>
+
+
+<H1><A NAME="SEC3" HREF="gperf_toc.html#TOC3">2  Introduction</A></H1>
+
+<P>
+<CODE>gperf</CODE> is a perfect hash function generator written in C++.  It
+transforms an <VAR>n</VAR> element user-specified keyword set <VAR>W</VAR> into a
+perfect hash function <VAR>F</VAR>.  <VAR>F</VAR> uniquely maps keywords in
+<VAR>W</VAR> onto the range 0..<VAR>k</VAR>, where <VAR>k</VAR> &#62;= <VAR>n-1</VAR>.  If <VAR>k</VAR>
+= <VAR>n-1</VAR> then <VAR>F</VAR> is a <EM>minimal</EM> perfect hash function.
+<CODE>gperf</CODE> generates a 0..<VAR>k</VAR> element static lookup table and a
+pair of C functions.  These functions determine whether a given
+character string <VAR>s</VAR> occurs in <VAR>W</VAR>, using at most one probe into
+the lookup table.
+
+</P>
+<P>
+<CODE>gperf</CODE> currently generates the reserved keyword recognizer for
+lexical analyzers in several production and research compilers and
+language processing tools, including GNU C, GNU C++, GNU Java, GNU Pascal,
+GNU Modula 3, and GNU indent.  Complete C++ source code for <CODE>gperf</CODE> is
+available from <CODE>http://ftp.gnu.org/pub/gnu/gperf/</CODE>.
+A paper describing <CODE>gperf</CODE>'s design and implementation in greater
+detail is available in the Second USENIX C++ Conference proceedings
+or from <CODE>http://www.cs.wustl.edu/~schmidt/resume.html</CODE>.
+
+</P>
+<P><HR><P>
+Go to the <A HREF="gperf_1.html">first</A>, <A HREF="gperf_2.html">previous</A>, <A HREF="gperf_4.html">next</A>, <A HREF="gperf_10.html">last</A> section, <A HREF="gperf_toc.html">table of contents</A>.
+</BODY>
+</HTML>

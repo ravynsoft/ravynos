@@ -1,0 +1,107 @@
+#                                                                    -*-perl-*-
+
+$description = "Test proper handling of SHELL.";
+
+# If we don't have a POSIX shell available, never mind
+$is_posix_sh or return -1;
+
+# On Windows, shell names might not match
+if ($port_type eq 'W32') {
+    return -1;
+}
+
+$mshell = $sh_name;
+
+# According to POSIX, the value of SHELL in the environment has no impact on
+# the value in the makefile.
+
+$ENV{SHELL} = '/dev/null';
+run_make_test('all:;@echo "$(SHELL)"', '', $mshell);
+
+# According to POSIX, any value of SHELL set in the makefile should not be
+# exported to the subshell.  A more portable option might be to set SHELL to
+# be $^X (perl) in the makefile, and set .SHELLFLAGS to -e.
+
+$ENV{SHELL} = $mshell;
+
+my $altshell = "/./$mshell";
+my $altshell2 = "/././$mshell";
+
+if ($mshell =~ m,^([a-zA-Z]:)([\\/])(.*),) {
+    $altshell = "$1$2.$2$3";
+    $altshell2 = "$1$2.$2.$2$3";
+}
+
+run_make_test("SHELL := $altshell\n".'
+all:;@echo "$(SHELL) $$SHELL"
+', '', "$altshell $mshell");
+
+# As a GNU Make extension, if make's SHELL variable is explicitly exported,
+# then we really _DO_ export it.
+
+$ENV{SHELL} = $mshell;
+
+run_make_test("export SHELL := $altshell\n".'
+all:;@echo "$(SHELL) $$SHELL"
+', '', "$altshell $altshell");
+
+
+# Test out setting of SHELL, both exported and not, as a target-specific
+# variable.
+
+$ENV{SHELL} = $mshell;
+
+run_make_test("all: SHELL := $altshell\n".'
+all:;@echo "$(SHELL) $$SHELL"
+', '', "$altshell $mshell");
+
+$ENV{SHELL} = $mshell;
+
+run_make_test("
+SHELL := $altshell2
+one: two
+two: export SHELL := $altshell\n".'
+one two:;@echo "$@: $(SHELL) $$SHELL"
+', '', "two: $altshell $altshell\none: $altshell2 $mshell\n");
+
+# Test .SHELLFLAGS
+
+# We don't know the output here: on some systems, for example, every line
+# printed by the shell in -x mode has a trailing space!
+my $script = 'true; true';
+my $flags = '-xc';
+my $out = `$sh_name $flags '$script' 2>&1`;
+
+run_make_test(qq!
+.SHELLFLAGS = $flags
+all: ; \@$script
+!,
+              '', $out);
+
+# Do it again but add spaces to SHELLFLAGS
+
+# Some shells (*shakes fist at Solaris*) cannot handle multiple flags in
+# separate arguments.
+my $t = `$sh_name -e -c true 2>/dev/null`;
+my $multi_ok = $? == 0;
+
+if ($multi_ok) {
+    $flags = '-x -c';
+    run_make_test(qq!
+.SHELLFLAGS = $flags
+all: ; \@$script
+!,
+              '', $out);
+}
+
+$script = subst_make_string('true; #HELPER# -q fail 1; true');
+$flags = '-xec';
+$out = `$sh_name $flags '$script' 2>&1`;
+
+run_make_test(qq!
+.SHELLFLAGS = $flags
+all: ; \@$script
+!,
+              '', "${out}#MAKE#: *** [#MAKEFILE#:3: all] Error 1", 512);
+
+1;

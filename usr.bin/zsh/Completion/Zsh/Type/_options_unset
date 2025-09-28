@@ -1,0 +1,10 @@
+#autoload
+
+# Complete all unset options. This relies on `_main_complete' to store the
+# names of the options that were unset when it was called in the array
+# `_options_unset'.
+
+local expl
+
+_wanted zsh-options expl 'unset zsh option' \
+    compadd "$@" -M 'B:[nN][oO]= M:_= M:{A-Z}={a-z}' -a - _options_unset

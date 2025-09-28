@@ -1,0 +1,14 @@
+#!/usr/bin/perl -w
+
+#
+# Maintainers - show information about maintainers
+#
+
+use strict;
+use lib "Porting";
+
+use Maintainers qw(show_results process_options);
+
+show_results(process_options());
+
+

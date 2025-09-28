@@ -1,0 +1,25 @@
+-- minimal --
+Only the following commands are allowed: id, whoami 
+
+-- minimal (verbose) --
+Only the following commands are allowed: id, whoami 
+
+-- with user --
+Only the following commands are allowed: id, whoami as user 'testuser'
+
+-- with user (verbose) --
+Only the following commands are allowed: id, whoami as user 'testuser'
+
+-- with allowed program --
+You are allowed to execute command '/bin/id'
+
+-- with allowed program (verbose) --
+You are allowed to execute command '/bin/id'
+Only the following commands are allowed: id, whoami 
+
+-- with denied program --
+You are NOT allowed to execute command '/bin/passwd'
+
+-- with denied program (verbose) --
+You are NOT allowed to execute command '/bin/passwd'
+Only the following commands are allowed: id, whoami 

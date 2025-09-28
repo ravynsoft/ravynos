@@ -1,0 +1,329 @@
+# configure-iface.at -- test ltdl configure interface         -*- Autotest -*-
+#
+#   Copyright (C) 2007-2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Gary V. Vaughan, 2007
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_BANNER([configure interface to libltdl.])
+
+# _LT_AT_LTDL_SETUP
+# -----------------
+m4_pushdef([_LT_AT_LTDL_SETUP],
+[AT_DATA([main.c],
+[[#include <ltdl.h>
+#include <stdio.h>
+
+typedef int funcp (void);
+
+static int errors = 0;
+
+int
+main (void)
+{
+  lt_dlhandle handle;
+
+  LTDL_SET_PRELOADED_SYMBOLS();
+
+  if (lt_dlinit () != 0)
+    {
+      fprintf (stderr, "error during initialization: %s\n", lt_dlerror ());
+      return 1;
+    }
+
+  handle = lt_dlopenext ("libmodule");
+  if (!handle)
+    {
+      fprintf (stderr, "can't open libmodule: %s\n", lt_dlerror ());
+      ++errors;
+    }
+
+  {
+    funcp *f = (funcp *) lt_dlsym (handle, "f");
+
+    if (f)
+      {
+        printf ("%d\n", f ());
+      }
+    else
+      {
+        fprintf (stderr, "function 'f' not found: %s\n", lt_dlerror ());
+        ++errors;
+      }
+  }
+
+  if (lt_dlexit () != 0)
+    {
+      fprintf (stderr, "error during exit: %s\n", lt_dlerror ());
+      ++errors;
+    }
+
+  return (errors != 0);
+}
+]])
+
+AT_DATA([libmodule.c],
+[[#ifdef __cplusplus
+extern "C" {
+#endif
+int f (void) { return 5150; }
+#ifdef __cplusplus
+}
+#endif
+]])
+
+LT_AT_HOST_DATA([expout],
+[[5150
+]])
+])# _LT_AT_LTDL_SETUP
+
+
+## -------------------- ##
+## Installable libltdl. ##
+## -------------------- ##
+
+AT_SETUP([installable libltdl])
+AT_KEYWORDS([libltdl])
+
+_LT_AT_LTDL_SETUP
+
+AT_DATA([configure.ac],
+[[AC_INIT([installable-ltdl-demo], ]AT_PACKAGE_VERSION[, ]AT_PACKAGE_BUGREPORT[)
+AC_CONFIG_AUX_DIR([libltdl/config])
+AC_CONFIG_MACRO_DIRS([libltdl/m4])
+AC_CONFIG_HEADERS([config.h:config.hin])
+LT_CONFIG_LTDL_DIR([libltdl])
+AM_INIT_AUTOMAKE([foreign])
+AC_PROG_CC
+AM_PROG_CC_C_O
+LT_INIT([dlopen])
+LTDL_INIT([installable])
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+]])
+
+AT_DATA([Makefile.am],
+[[AUTOMAKE_OPTIONS	= 1.7
+
+SUBDIRS			= libltdl
+
+AM_CPPFLAGS		= $(LTDLINCL)
+
+lib_LTLIBRARIES		= libmodule.la
+# Automake < 1.8 will use libmodule.la.c as default source,
+# while newer will choose libmodule.c; so specify it here.
+libmodule_la_SOURCES	= libmodule.c
+libmodule_la_LDFLAGS	= -module
+
+bin_PROGRAMS		= main
+main_LDFLAGS		= -dlopen libmodule.la
+main_LDADD		= $(LIBLTDL)
+main_DEPENDENCIES	= $(LTDLDEPS) libmodule.la
+]])
+
+# Install everything!
+prefix=`pwd`/_inst
+
+LT_AT_BOOTSTRAP([--ltdl], [-I libltdl/m4], [], [--add-missing], [],
+        [--with-included-ltdl --prefix=$prefix], [all install])
+
+# TODO: Check that the installed program 'main' is linked against our libltdl
+AT_CHECK([test -f "$prefix/lib/libltdl.la"])
+AT_CHECK([test -f "$prefix/include/ltdl.h"])
+
+# Check that main is rebuilt if libltdl.la is newer
+rm -f libltdl/libltdl.la
+AT_CHECK([$MAKE -q main$EXEEXT || exit 1], [1], [ignore], [ignore])
+
+AT_CLEANUP
+
+
+## ------------------------------- ##
+## Link against installed libltdl. ##
+## ------------------------------- ##
+
+AT_SETUP([--with-ltdl-include/lib])
+AT_KEYWORDS([libltdl])
+
+# Install libltdl
+prefix=`pwd`/_inst
+
+LT_AT_LIBTOOLIZE([--copy --ltdl=ltdl])
+
+(cd ltdl
+LT_AT_CONFIGURE([--enable-ltdl-install --prefix=$prefix])
+LT_AT_MAKE([all install])
+)
+
+# Remove build files
+rm -rf ltdl/
+
+AT_CHECK([test -f "$prefix/lib/libltdl.la"])
+AT_CHECK([test -f "$prefix/include/ltdl.h"])
+
+_LT_AT_LTDL_SETUP
+
+AT_DATA([configure.ac],
+[[AC_INIT([configure-iface-demo], ]AT_PACKAGE_VERSION[, ]AT_PACKAGE_BUGREPORT[)
+AC_CONFIG_MACRO_DIRS([_inst/aclocal])
+AC_CONFIG_HEADERS([config.h:config.hin])
+AM_INIT_AUTOMAKE([foreign])
+AC_PROG_CC
+AM_PROG_CC_C_O
+LT_INIT([dlopen])
+LTDL_INIT
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+]])
+
+AT_DATA([Makefile.am],
+[[AUTOMAKE_OPTIONS	= 1.7
+
+AM_CPPFLAGS		= $(LTDLINCL)
+
+lib_LTLIBRARIES		= libmodule.la
+# Automake < 1.8 will use libmodule.la.c as default source,
+# while newer will choose libmodule.c; so specify it here.
+libmodule_la_SOURCES	= libmodule.c
+libmodule_la_LDFLAGS	= -module
+
+bin_PROGRAMS		= main
+main_LDFLAGS		= -dlopen libmodule.la
+main_LDADD		= $(LIBLTDL)
+main_DEPENDENCIES	= $(LTDLDEPS) libmodule.la
+]])
+
+## Try to avoid linking against a previously installed libltdl found
+## with an explicit -L/path.
+save_LDFLAGS=$LDFLAGS
+LDFLAGS=
+for l in $save_LDFLAGS
+do
+  case $l in
+  -L*) ;;
+  *) LDFLAGS="$LDFLAGS $l" ;;
+  esac
+done
+
+# We don't use 'libtoolize --ltdl', so that we get an error if the test
+# tries to build and link against its own ltdl sources:
+LT_AT_BOOTSTRAP([], [-I _inst/aclocal], [], [--add-missing], [],
+	[--with-ltdl-lib=$prefix/lib --with-ltdl-include=$prefix/include],
+	[all])
+
+## TODO: portable ldd check for correct libltdl
+## Currently, this test doesn't fail if 'main' ends up linking against a
+## previously installed system libltdl.
+LT_AT_NOINST_EXEC_CHECK([./main], [-dlopen libmodule.la], [], [expout], [])
+
+AT_CLEANUP
+
+
+## ------------------------------------- ##
+## Link against shipped libltdl sources. ##
+## ------------------------------------- ##
+
+AT_SETUP([--with-included-ltdl])
+AT_KEYWORDS([libltdl])
+
+_LT_AT_LTDL_SETUP
+
+AT_DATA([configure.ac],
+[[AC_INIT([configure-iface-demo], ]AT_PACKAGE_VERSION[, ]AT_PACKAGE_BUGREPORT[)
+AC_CONFIG_AUX_DIR([libltdl/config])
+AC_CONFIG_MACRO_DIRS([libltdl/m4])
+AC_CONFIG_HEADERS([config.h:config.hin])
+LT_CONFIG_LTDL_DIR([libltdl])
+AM_INIT_AUTOMAKE([foreign])
+AC_PROG_CC
+AM_PROG_CC_C_O
+LT_INIT([dlopen])
+LTDL_INIT
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+]])
+
+AT_DATA([Makefile.am],
+[[AUTOMAKE_OPTIONS	= 1.7
+
+SUBDIRS			= libltdl
+
+AM_CPPFLAGS		= $(LTDLINCL)
+
+lib_LTLIBRARIES		= libmodule.la
+# Automake < 1.8 will use libmodule.la.c as default source,
+# while newer will choose libmodule.c; so specify it here.
+libmodule_la_SOURCES	= libmodule.c
+libmodule_la_LDFLAGS	= -module
+
+bin_PROGRAMS		= main
+main_LDFLAGS		= -dlopen libmodule.la
+main_LDADD		= $(LIBLTDL)
+main_DEPENDENCIES	= $(LTDLDEPS) libmodule.la
+]])
+
+LT_AT_BOOTSTRAP([--ltdl], [-I libltdl/m4], [], [--add-missing], [],
+        [--with-included-ltdl], [all])
+
+# --with-included-ltdl should build a convenience lib by default
+AT_CHECK([test -f libltdl/libltdlc.la])
+
+## TODO: portable ldd check for correct libltdl
+## Currently, this test doesn't fail if 'main' ends up linking against a
+## previously installed system libltdl.
+LT_AT_NOINST_EXEC_CHECK([./main], [-dlopen libmodule.la], [], [expout], [])
+
+# Check that main is rebuilt if libltdlc.la is newer
+rm -f libltdl/libltdlc.la
+AT_CHECK([$MAKE -q main$EXEEXT || exit 1], [1], [ignore], [ignore])
+
+AT_CLEANUP
+
+
+## -------------------- ##
+## Convenience libltdl. ##
+## -------------------- ##
+
+AT_SETUP([convenience libltdl])
+
+AT_DATA([configure.ac],
+[[AC_INIT
+AC_CONFIG_AUX_DIR([libltdl/config])
+AC_LIBLTDL_CONVENIENCE
+AC_LIBTOOL_DLOPEN
+AC_PROG_LIBTOOL
+AC_CONFIG_FILES(Makefile)
+AC_OUTPUT
+]])
+AT_DATA([Makefile.in],
+[[LIBLTDL = @LIBLTDL@
+print-ltdl:
+	echo $(LIBLTDL)
+]])
+
+LT_AT_BOOTSTRAP([--ltdl], [-I libltdl/m4], [ignore], [ignore], [], [], [ignore])
+AT_CHECK([$MAKE print-ltdl], [], [stdout], [ignore])
+AT_CHECK([$GREP libltdl/libltdlc.la stdout], [], [ignore])
+
+AT_CLEANUP
+
+dnl Be careful not to let the definition leak into other tests
+m4_popdef([_LT_AT_LTDL_SETUP])

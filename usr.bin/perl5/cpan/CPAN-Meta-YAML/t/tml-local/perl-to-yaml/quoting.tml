@@ -1,0 +1,26 @@
+=== Quote boolean-like string (scalar)
+# Strings that could be confused with booleans should be quoted
+--- perl
+[ 'true' ]
+
+--- yaml
+\--- 'true'
+
+=== Quote boolean-like string (list)
+--- perl
+[ [ qw{ null true false } ] ]
+
+--- yaml
+\---
+- 'null'
+- 'true'
+- 'false'
+
+=== Quote scalars ending in colon
+--- perl
+[ [ 'A:' ] ]
+
+--- yaml
+\---
+- 'A:'
+

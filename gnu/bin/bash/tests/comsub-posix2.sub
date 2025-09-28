@@ -1,0 +1,29 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# problem with bash-4.x versions before bash-4.2.  required posix interp
+swap32_posix()
+{
+        local funcname=swap32_posix
+        local arg
+        for arg in "$@"; do
+                echo $((
+                        ($arg & 4278190080) >> 24 |
+                        ($arg & 16711680) >> 8 |
+                        ($arg & 65280) << 8 |
+                        ($arg & 255) << 24
+                ))
+        done
+}
+
+type swap32_posix

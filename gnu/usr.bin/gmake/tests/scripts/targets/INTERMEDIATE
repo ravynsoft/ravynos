@@ -1,0 +1,108 @@
+#                                                                    -*-perl-*-
+
+$description = "Test the behaviour of the .INTERMEDIATE target.";
+
+$details = "\
+Test the behavior of the .INTERMEDIATE special target.
+Create a makefile where a file would not normally be considered
+intermediate, then specify it as .INTERMEDIATE.  Build and ensure it's
+deleted properly.  Rebuild to ensure that it's not created if it doesn't
+exist but doesn't need to be built.  Change the original and ensure
+that the intermediate file and the ultimate target are both rebuilt, and
+that the intermediate file is again deleted.
+
+Try this with implicit rules and explicit rules: both should work.\n";
+
+# TEST #0
+
+&utouch(-20, 'foo.f', 'bar.f');
+
+run_make_test(q!
+.INTERMEDIATE: foo.e bar.e
+
+# Implicit rule test
+%.d : %.e ; cp $< $@
+%.e : %.f ; cp $< $@
+
+foo.d: foo.e
+
+# Explicit rule test
+foo.c: foo.e bar.e; cat $^ > $@
+!,
+    'foo.d', "cp foo.f foo.e\ncp foo.e foo.d\nrm foo.e\n");
+
+# TEST #1
+
+run_make_test(undef, 'foo.d', "#MAKE#: 'foo.d' is up to date.\n");
+
+# TEST #2
+
+&utouch(-10, 'foo.d');
+&touch('foo.f');
+
+run_make_test(undef, 'foo.d', "cp foo.f foo.e\ncp foo.e foo.d\nrm foo.e\n");
+
+# TEST #3
+
+run_make_test(undef, 'foo.c', "cp foo.f foo.e\ncp bar.f bar.e\ncat foo.e bar.e > foo.c\nrm foo.e bar.e\n");
+
+# TEST #4
+
+run_make_test(undef, 'foo.c', "#MAKE#: 'foo.c' is up to date.\n");
+
+# TEST #5
+
+&utouch(-10, 'foo.c');
+&touch('foo.f');
+
+run_make_test(undef, 'foo.c', "cp foo.f foo.e\ncp bar.f bar.e\ncat foo.e bar.e > foo.c\nrm foo.e bar.e\n");
+
+# TEST #6 -- added for PR/1669: don't remove files mentioned on the cmd line.
+
+run_make_test(undef, 'foo.e', "cp foo.f foo.e\n");
+
+unlink('foo.f', 'foo.e', 'foo.d', 'foo.c', 'bar.f', 'bar.e', 'bar.d', 'bar.c');
+
+# TEST #7 -- added for PR/1423
+
+run_make_test(q!
+all: foo
+foo.a: ; touch $@
+%: %.a ; touch $@
+.INTERMEDIATE: foo.a
+!,
+              '-R',  "touch foo.a\ntouch foo\nrm foo.a\n");
+
+unlink('foo');
+
+# sv 60188.
+# A file made by an implicit rule, but explicitly mentioned by the user, is
+# still considered intermediate if it's a prereq to .INTERMEDIATE.
+
+touch('hello.z');
+unlink('test.x');
+
+run_make_test(q!
+all: hello.z
+%.z: test.x; touch $@
+%.x: ;
+.INTERMEDIATE: test.x
+!, '', "#MAKE#: Nothing to be done for 'all'.\n");
+
+unlink('hello.z');
+
+# A target explicitly listed as a prerequisite of a pattern rule, is still
+# considered mentioned and "ought to exist".
+
+run_make_test(q!
+1.all: 1.q ; touch $@
+%.q: 1.r ; touch $@
+%.r: ; touch $@
+.INTERMEDIATE: 1.r
+!,
+              '', "touch 1.r\ntouch 1.q\ntouch 1.all\nrm 1.r\n");
+
+unlink('1.all', '1.q', '1.r');
+
+# This tells the test driver that the perl test script executed properly.
+1;

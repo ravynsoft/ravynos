@@ -1,0 +1,56 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test PHP support: --add-comments option.
+
+cat <<EOF > xg-ph-1.php
+<?
+// This comment will not be extracted.
+echo _("help");
+//  TRANSLATORS: This is an extracted comment.
+echo _("me");
+# TRANSLATORS: This is extracted too.
+echo _("and you");
+/* Not extracted either. */
+echo _("Hey Jude");
+/*  TRANSLATORS:
+     Nickname of the Beatles
+*/
+echo _("The Fabulous Four");
+// This will not be extracted.
+echo _(table["key"]);
+?>
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location --add-comments=TRANSLATORS: \
+  -d xg-ph-1.tmp xg-ph-1.php || Exit 1
+LC_ALL=C tr -d '\r' < xg-ph-1.tmp.po > xg-ph-1.po || Exit 1
+
+cat <<EOF > xg-ph-1.ok
+msgid "help"
+msgstr ""
+
+#. TRANSLATORS: This is an extracted comment.
+msgid "me"
+msgstr ""
+
+#. TRANSLATORS: This is extracted too.
+msgid "and you"
+msgstr ""
+
+msgid "Hey Jude"
+msgstr ""
+
+#. TRANSLATORS:
+#. Nickname of the Beatles
+#.
+msgid "The Fabulous Four"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-ph-1.ok xg-ph-1.po
+result=$?
+
+exit $result

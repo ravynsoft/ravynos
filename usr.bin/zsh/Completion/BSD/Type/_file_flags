@@ -1,0 +1,70 @@
+#autoload
+
+# Provides completion for file flags (formerly part of _chflags)
+
+local curcontext=$curcontext su=$(( ! EUID || $+_comp_priv_prefix ))
+local -a context line state state_descr copts=( "${@}" ) flags flag_descs
+local -A val_args
+
+flag_descs+=(
+  nodump nodump
+  uappnd 'user append-only'
+  uchg 'user immutable'
+)
+
+if (( su )); then
+  flag_descs+=(
+    arch archived
+    sappnd 'system append-only'
+    schg 'system immutable'
+  )
+fi
+
+if [[ $OSTYPE = (darwin|dragonfly|freebsd|netbsd)* ]]; then
+  flag_descs+=(opaque opaque)
+
+  if [[ $OSTYPE = darwin* ]]; then
+    flag_descs+=(hidden hidden)
+  fi
+
+  if [[ $OSTYPE = (dragonfly|freebsd)* ]]; then
+    flag_descs+=(uunlnk 'user undeletable')
+
+    (( su )) &&
+    flag_descs+=(sunlnk 'system undeletable')
+  fi
+
+  if [[ $OSTYPE = dragonfly* ]]; then
+    flag_descs+=(
+      cache cache
+      nouhistory 'user nohistory'
+    )
+
+    (( su )) && flag_descs+=(
+      noscache noscache
+      noshistory 'system nohistory'
+    )
+  fi
+
+  [[ $OSTYPE = freebsd* ]] && flag_descs+=(
+    uarch archive
+    uhidden hidden
+    uoffline offline
+    urdonly 'DOS, Windows and CIFS readonly'
+    ureparse 'Windows reparse point'
+    usparse 'sparse file'
+    usystem 'DOS, Windows and CIFS system'
+  )
+fi
+
+for 1 2 in $flag_descs; do
+  if [[ $1 = no* ]]; then
+    flags+=("(${1#no})$1[set the $2 flag]"
+             "($1)${1#no}[unset the $2 flag]")
+  else
+    flags+=("(no$1)$1[set the $2 flag]"
+             "($1)no$1[unset the $2 flag]")
+  fi
+done
+
+_values -O copts -s , 'file flags' $flags

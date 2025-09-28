@@ -1,0 +1,505 @@
+.topic Nocontext=0
+ Turbo Vision demonstration Ü
+  ßßßßßßßßßßßßßßßßßßßßßßßßßßß
+Welcome to Turbo Vision.  This is a demonstration program that allows
+you to view some of the capablilities of Turbo Vision.  The ğ menu is
+accessed by pressing Alt-Space.  All the other menus are accessed by
+pressing Alt-Z, where Z is the first letter of the menu.  For example,
+the "File" menu is pulled down by Alt-F.
+
+Press ESC to put this help screen away.
+
+.topic Viewer=2
+ File viewer Ü
+  ßßßßßßßßßßßß
+A file viewer views the contents of a text file. You can use the
+arrow keys to move about in the file. A file is loaded via the
+{File³Open:FOpen} menu item.
+
+  Up         Move up one line
+  Down       Move down one line
+  Right      Move right one column
+  Left       Move left one column
+  PgUp       Move one page up
+  PgDn       Move one page down
+  Home       View right most column of the file
+  End        View left most column of the file
+  Ctrl-PgUp  View top of file
+  Ctrl-PgDn  View bottom of file.
+
+File viewers can be resized and moved using the {Windows} menu.
+
+.topic Puzzle
+ Puzzle Ü
+  ßßßßßßß
+The puzzle window is a small game.  The object is to get the characters
+to form the following pattern:
+
+    A  B  C  D
+    E  F  G  H
+    I  J  K  L
+    M  N  O
+
+Clicking the mouse on a tile next to the empty space moves the tile
+into the space.  Pressing one of the cursor keys (up, down, left, or
+right arrow) moves a tile into the empty space in the direction
+indicated by the cursor key. The move counter is updated every time
+a tile is moved.
+
+.topic Calculator
+ Calculator Ü
+  ßßßßßßßßßßß
+The calculator is a simple four-function calculator with add, subtract,
+multiply, and divide.  To operate the calculator you can either use the
+keyboard or press the buttons on the calculator with the mouse.  The 'C'
+key clears the calculator, the '' key will erases the last character
+typed, and the 'ñ' key toggles the value from positive to negative (the
+keyboard equivalent of 'ñ' is '_').
+
+.topic Calendar
+ Calendar Ü
+  ßßßßßßßßß
+The calendar displays the current month, highlighting todays date. The
+next and previous months can be viewed using the '+' or '-' keys
+respectivly.  The mouse can also be used to change the month by pressing
+the  or  icons.
+
+.topic AsciiTable
+ ASCII Table Ü
+  ßßßßßßßßßßßß
+The ASCII table displays the entire IBM PC character set.  The current
+character is marked by a blinking block cursor, and the hexadecimal and
+decimal ASCII values of the character are displayed below the chart. A
+new character is selected by pressing it on the keyboard, by clicking
+the mouse on it in the chart, or by moving the cursor using the cursor
+keys.
+
+.topic System
+ ğ (System) menu Ü    (Alt-Spacebar)
+  ßßßßßßßßßßßßßßßß
+The System menu appears on the far left of the menu bar and is
+represented by the ğ symbol.
+
+When you pull down the ğ menu, you see
+
+  {About:SAbout}         {Puzzle:SPuzzle}
+  {Calendar:SCalendar}      {Ascii Table:SAsciiTable}
+  {Calculator:SCalculator}
+
+.topic SAbout
+ ğ³About Ü
+  ßßßßßßßß
+When you choose the About command from the ğ (System) menu, a
+dialog box appears, showing copyright and version information.
+
+To close the box, press Esc, Space, or Enter, or click the OK
+button.
+
+.topic SPuzzle
+ ğ³Puzzle Ü
+  ßßßßßßßßß
+The Puzzle menu item opens a small {Puzzle} game.
+
+.topic SCalendar
+ ğ³Calendar Ü
+  ßßßßßßßßßßß
+The Calendar menu item opens a small {Calendar} which displays
+the current month. It also allows you to view other months.
+
+.topic SAsciiTable
+ ğ³ASCII table Ü
+  ßßßßßßßßßßßßßß
+The ASCII menu items opens an {ASCII Table:AsciiTable} that
+displays the IBM PC character set.
+
+.topic SCalculator
+ ğ³Calculator Ü
+  ßßßßßßßßßßßßß
+When you choose Calculator, a four-function {Calculator} is
+opened on the desktop.
+
+.topic File
+ File  (Alt-F) Ü
+  ßßßßßßßßßßßßßß
+The File menu offers choices for opening files, changing
+directories, and exiting the program.
+
+ {Open:FOpen}          {Change Dir:FChangeDir}    {FExit}
+
+.topic FOpen
+ File³Open  (F3) Ü
+  ßßßßßßßßßßßßßßßß
+The Open command displays the Open a File dialog box. In this
+dialog box you select the text file you want browse in a
+{file viewer:Viewer}.
+
+The {Open a File:FOFileOpenDBox} dialog box contains:
+
+ ş an {input box:FOName} with a history list
+ ş a {list box:FOFiles} to browse the directory
+ ş the standard {Cancel:CancelBtn} button
+ ş {Open:FOOpenBtn} action button
+ ş an information panel that describes the
+   selected file
+
+.topic FChangeDir
+ File³Change Dir...Ü
+  ßßßßßßßßßßßßßßßßßß
+File³Change Dir brings up the {Change Directory:FCChDirDBox}
+dialog box, in which you can change the current directory.
+
+.topic FDosShell
+ File³DOS Shell Ü
+  ßßßßßßßßßßßßßßß
+With the DOS Shell command, you can leave the program temporarily
+to perform a DOS command or run another program.
+
+To return to this program, type EXIT at the DOS prompt.
+
+.topic FExit
+ File³Exit Ü     (Alt-X)
+  ßßßßßßßßßß
+The Exit command terminates this program.
+
+.topic Windows
+ Window Ü    (Alt-W)
+  ßßßßßßß
+The Window menu contains commands to close, move and perform
+other window-management commands.
+
+Most of the windows in this program have all the standard window
+elements, including scroll bars, a close box, and zoom icons.
+
+For more about windows and their elements, refer to windows.
+
+
+ Window-management commands
+ ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
+
+ {Size/Move:WSizeMove}        {Zoom:WZoom}
+ {Tile:WTile}             {Cascade:WCascade}
+ {Next:WNext}             {Previous:WPrevious}
+ {Close:WClose}
+
+.topic WSizeMove
+ Window³Size/Move Ü     (Ctrl-F5)
+  ßßßßßßßßßßßßßßßßß
+Choose this command to change the size or position of the active
+window.
+
+ ÜÜÜÜÜÜ
+  Size
+ ßßßßßß
+If you press Shift while you use the arrow keys, you can change
+the size of the active window. Once you've adjusted its size or
+position, press Enter.
+
+If a window has a Resize corner, you can drag that corner to
+resize the window.
+
+ ÜÜÜÜÜÜ
+  Move
+ ßßßßßß
+When you choose Window³Size/Move, the active window moves in
+response to the arrow keys. Once you've moved the window to where
+you want it, press Enter.
+
+You can also move a window by dragging its title bar with the
+mouse.
+
+.topic WZoom
+ Window³Zoom Ü   (F5)
+  ßßßßßßßßßßßß
+Choose Zoom to resize the active window to the maximum size. If
+the window is already zoomed, you can choose this command to
+restore it to its previous size.
+
+You can also double-click anywhere on the window's title bar
+(except where an icon appears) to zoom or unzoom the window.
+
+.topic WTile
+ Window³Tile Ü
+  ßßßßßßßßßßßß
+Choose Window³Tile to tile all file viewers on the desktop.
+
+ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+ ³ ÉÍÍÍÍÍÍÍÍÍÍÍÍ1ÍÍ»ÚÄÄÄÄÄÄÄÄÄÄÄÄ2ÄÄ¿ ³
+ ³ º               º³               ³ ³
+ ³ º               º³               ³ ³
+ ³ º               º³               ³ ³
+ ³ º               º³               ³ ³
+ ³ ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ ³
+ ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄ3ÄÄ¿ÚÄÄÄÄÄÄÄÄÄÄÄÄ4ÄÄ¿ ³
+ ³ ³               ³³               ³ ³
+ ³ ³               ³³               ³ ³
+ ³ ³               ³³               ³ ³
+ ³ ³               ³³               ³ ³
+ ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ ³
+ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+             Tiled Windows
+
+.topic WCascade
+ Window³Cascade Ü
+  ßßßßßßßßßßßßßßß
+Choose Window³Cascade to stack all file viewers on the desktop.
+
+ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ1Ä¿
+ ³ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ2Ä¿
+ ³³ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ3Ä¿
+ ³³³ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ4Í»
+ ³³³º                         º
+ ³³³º                         º
+ ³³³º                         º
+ ³³³º                         º
+ ³³³º                         º
+ ÀÀÀÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+        Cascaded Windows
+
+.topic WNext
+ Window³Next Ü
+  ßßßßßßßßßßßß
+Choose Next to cycle forwards through the windows on the desktop.
+
+.topic WPrevious
+ Window³Previous Ü
+  ßßßßßßßßßßßßßßßß
+Choose Previous to cycle backwards through the windows on the desktop.
+
+.topic WClose
+ Window³Close Ü    (Alt-F3)
+  ßßßßßßßßßßßßß
+Choose Close to close the active window.
+
+You can also click the Close box in the upper right corner to
+close a window.
+
+.topic Options
+ Options  (Alt-O) Ü
+  ßßßßßßßßßßßßßßßßß
+The Options menu contains commands that let
+you change {color:OColors} and {mouse:OMouse} default settings.
+
+.topic OMouse
+ Options³Mouse... Ü
+  ßßßßßßßßßßßßßßßßß
+The Mouse command brings up the {Mouse Options:OMMouseDBox}
+dialog box, where you can set various options that control how your
+mouse works, including:
+
+ ş how fast a double-click is
+ ş which mouse button (right or left) is
+   active
+
+.topic OColors
+ Options³Colors... Ü
+  ßßßßßßßßßßßßßßßßßß
+The Colors item brings up the {Colors dialog:OCColorsDBox} box,
+where you can customize the colors of the display.
+
+.topic OSaveDesktop
+ Options³Save Desktop Ü
+  ßßßßßßßßßßßßßßßßßßßßß
+Saves the state of all open windows to a file call TVDEMO.DST. This
+file can be reloaded by selecting {Options³Restore Desktop:ORestoreDesktop}.
+
+.topic ORestoreDesktop
+ Options³Restore Desktop Ü
+  ßßßßßßßßßßßßßßßßßßßßßßßß
+Restore a previously-saved state of all open windows from a file
+call TVDEMO.DST. This file is saved via the
+{Options³Save Desktop:OSaveDesktop} menu command.
+
+.topic FOFileOpenDBox
+ Help on Open a File Dialog Box Ü
+  ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+The Open a File dialog box contains an input box, a {file list:FOFiles},
+a file information panel, the standard button {Cancel:CancelBtn},
+one other action button ({Open:FOOpenBtn}), plus a history list
+that's attached to the {Name inputbox:FOName}.
+
+.topic FOName
+ ÚÄ Name ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+ ³                                 ³
+ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+The Name input box is where you enter the name of the file to
+load, or the file-name mask to use as a filter for the Files list
+box (for example, *.*).
+
+.topic FOFiles
+ Ú Files ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+ ³                                 ³
+ ³  FILENM01.PAS  ³  FILENM09.PAS  ³
+ ³  FILENM02.PAS  ³  FILENM10.PAS  ³
+ ³  FILENM03.PAS  ³  FILENM11.PAS  ³
+ ³  FILENM04.PAS  ³  FILENM12.PAS  ³
+ ³  FILENM05.PAS  ³  ..            ³
+ ³  FILENM06.PAS  ³  \MOREXAMP     ³
+ ³  FILENM07.PAS  ³  \TOURS        ³
+ ³  FILENM08.PAS  ³  \ANSWERS.DIR  ³
+ ³  ±±±ş±±±±±±±±±±±±±±±±±±±±±±   ³
+ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+The Files list box lists the names of files in the current
+directory that match the file-name mask in the Name input box,
+plus the parent directory and all subdirectories.
+
+ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+ ³ C:\TP\EXAMPLES\*.PAS                     ³
+ ³ HELLO.PAS       52  Jul 14,1990  12:00pm ³
+ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+The File information panel shows the path name, file name, date,
+time, and size of the selected file.
+
+None of the items on this information panel are selectable.
+
+.topic FOOpenBtn
+ ÚÄÄÄÄÄÄÄÄÄÄ¿
+ ³ [ Open ] ³
+ ÀÄÄÄÄÄÄÄÄÄÄÙ
+The Open button opens a new Viewer window and places the selected
+file in that window.
+
+.topic CancelBtn
+ ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿
+ ³ [ Cancel ] ³
+ ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+If you choose Cancel, nothing changes and no action occurs, and
+the dialog box is put away.
+
+(Esc always cancels a dialog box, even if a Cancel button does
+not appear.)
+
+.topic OpenBtn
+ ÚÄÄÄÄÄÄÄÄÄÄ¿
+ ³ [ Open ] ³
+ ÀÄÄÄÄÄÄÄÄÄÄÙ
+
+In the Open a File dialog box, if you choose the Open button
+TVDEMO opens a new {file viewer:Viewer} and places the selected
+file in that window.
+
+.topic FCChDirDBox
+ Help on the Change Directory dialog box Ü
+  ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+The Change Directory dialog box consists of an input box, a list
+box, the standard OK and Help buttons, and two other buttons
+(Chdir and Revert).
+
+ Ú Directory Name ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+ ³                                     ³
+ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+The Directory Name input box is where you type in the path of the
+new directory.
+
+ Ú Directory Tree ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+ ³   Drives                            ³
+ ³   ÀÄÂC:\                            ³
+ ³     ÀÄÂTP                           ³
+ ³       ÀÄÄTVISION                    ³
+ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+The Directory Tree list box enables you to navigate directories
+by using the selecting bar and pressing Enter.
+
+If you're using the keyboard, press Enter to make the selected
+directory be the current directory, then choose OK or press Esc
+to exit the dialog box.
+
+ ÚÄÄÄÄÄÄÄÄÄÄ¿
+ ³ [Chdir ] ³
+ ÀÄÄÄÄÄÄÄÄÄÄÙ
+The Chdir button changes the current directory once you've
+selected or typed in a directory name.
+
+ ÚÄÄÄÄÄÄÄÄÄÄ¿
+ ³ [Revert] ³
+ ÀÄÄÄÄÄÄÄÄÄÄÙ
+The Revert button goes back to the previous directory, as long as
+you haven't yet exited the dialog box.
+
+.topic OMMouseDBox
+ Help on the Mouse Options dialog box Ü
+  ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+This dialog box consists of one check box, one slider bar, and
+the standard buttons OK and Cancel.
+
+ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+ ³ Mouse Double Click       ³
+ ³ Slow     Medium     Fast ³
+ ³ ±±±±±±±±±±±ş±±±±±±±±±± ³
+ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+The Mouse Double Click slider bar adjusts the double-click speed of
+your mouse.
+
+ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+ ³ [X] Reverse Mouse Buttons ³
+ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+Reverse Mouse Buttons makes the right mouse button take on the
+normal functions of the left--and vice versa.
+
+ See also:
+ ÍÍÍÍÍÍÍÍÍ
+ {Options³Mouse... menu command:OMouse}
+
+.topic OCColorsDBox
+ Help on the Colors dialog box Ü
+  ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+The Colors dialog box consists of two list boxes, a text display
+area, the standard OK, Cancel, and Help buttons, and one of the
+following:
+
+ ş On color and black-and-white systems, it
+   also contains two color palettes.
+ ş On monochrome systems, it contains a set
+   of radio buttons instead of the palettes.
+
+This dialog box is where you can change the colors of different
+parts of this program.
+
+ ÚÄ Group ÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+ ³   Desktop          ³
+ ³   Menus            ş³
+ ³   Dialogs/Calc     ±³
+ ³   Puzzle           ±³
+ ³   Calendar         ±³
+ ³   Ascii table      ±³
+ ³                    ³
+ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+The Group list box contains the names of the different regions of
+the program that you can customize.
+
+ ÚÄ Item ÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+ ³   Color            ³
+ ³                    ş³
+
+When you select a group from the Group list, the Item list box
+displays the names of the different views in that region.
+
+ Ú Foreground ¿   Ú Background ¿
+ ³ °±²°±²°±²° ³   ³ ²°±²°±²°±² ³
+ ³ ²°±²°±²°±² ³   ³ °±²°±²°±²° ³
+ ³ ±²°±²°±²°± ³   ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+ ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+On color and black-and-white systems, you use the Foreground and
+Background palettes to modify colors.
+
+ Ú Colors ÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+ ³  (ù) Mono low        ³
+ ³  ( ) Mono high       ³
+ ³  ( ) Mono underscore ³
+ ³  ( ) Mono inverse    ³
+ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+On monochrome systems, you use the Colors set of radio buttons
+systems to modify the character attributes.
+
+ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+ ³ Text Text Text ³
+ ³ Text Text Text ³
+ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+On all systems, the display text (above the Help button) shows
+the current color or attribute settings.
+
+Changes do not take effect on the desktop until you close the
+Colors dialog box by choosing OK.
+

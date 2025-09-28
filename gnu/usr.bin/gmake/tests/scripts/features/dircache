@@ -1,0 +1,31 @@
+#                                                               -*-mode: perl-*-
+
+$description = "Test the directory cache behavior.";
+
+# The first wildcard should bring the entire directory into the cache Then we
+# create a new file "behind make's back" then see if the next wildcard detects
+# it.
+
+run_make_test(q!
+_orig := $(wildcard ./*)
+$(shell echo > anewfile)
+_new := $(wildcard ./*)
+$(info diff=$(filter-out $(_orig),$(_new)))
+all:;@:
+!,
+              '', "diff=./anewfile\n");
+
+rmfiles('anewfile');
+
+run_make_test(q!
+_orig := $(wildcard ./*)
+$(file >anewfile)
+_new := $(wildcard ./*)
+$(info diff=$(filter-out $(_orig),$(_new)))
+all:;@:
+!,
+              '', "diff=./anewfile\n");
+
+rmfiles('anewfile');
+
+1;

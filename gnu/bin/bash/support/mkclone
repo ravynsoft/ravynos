@@ -1,0 +1,122 @@
+#! /bin/bash
+#
+# mkclone - symlink every file appearing in $src/MANIFEST to a corresponding
+#	    file in the target directory ($1).  Directories specified in
+#	    MANIFEST are created in the target directory
+#
+# Copyright (C) 1996-2002 Free Software Foundation, Inc.
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+prog=`basename $0`
+
+SRCDIR=src
+
+USAGE="usage: $prog [-m manifest] [-s srcdir] [-v] [-d] [-h] target"
+while getopts dhm:s:v opt
+do
+	case "$opt" in
+	m)	MANIFEST=$OPTARG ;;
+	s)	SRCDIR=$OPTARG ;;
+	v)	verbose=y ;;
+	d)	ECHO=echo debug=y ;;
+	h)	hardlinks=y ;;
+	?)	echo $USAGE >&2
+		exit 2;;
+	esac
+done
+
+: ${MANIFEST:=${SRCDIR}/MANIFEST}
+
+[ -n "$debug" ] && verbose=
+
+shift $(( $OPTIND - 1 ))
+
+if [ $# -lt 1 ]; then
+	echo $USAGE >&2
+        exit 2
+fi
+
+if [ ! -f $MANIFEST ]; then
+	echo "$prog: $MANIFEST: no such file or directory" >&2
+	echo "$prog: must be run with valid -s argument or from source directory" >&2
+	exit 1
+fi
+
+rm_ltmp=false
+LINKTEMP=`mktemp -t linktmp.XXXXXXXX 2>/dev/null`
+if [ -z "$LINKTEMP" ]; then
+	: ${TMPDIR:=/tmp}
+	LINKTEMP=${TMPDIR}/linktmp.$$
+	rm_ltmp=true
+fi
+
+$rm_ltmp && rm -f ${LINKTEMP}
+# if the user specified hard links, then do that.  otherwise, try to use
+# symlinks if they're present
+if [ -n "$hardlinks" ]; then
+	LN=ln
+elif (ln -s /dev/null ${LINKTEMP}) >/dev/null 2>&1; then
+	LN="ln -s"
+else
+	LN=ln
+fi
+rm -f ${LINKTEMP}
+
+TARGET=$1
+
+if [ ! -d "$TARGET" ]; then
+	mkdir "$TARGET"
+fi
+
+echo "${prog}: creating clone of bash source tree (from $SRCDIR) in $TARGET"
+
+cd "$TARGET" || { echo "${prog}: cannot cd to $TARGET" >&2 ; exit 1; }
+
+while read fname type mode
+do
+	[ -z "$fname" ] && continue
+
+	case "$fname" in
+	\#*)	continue ;;
+	esac
+
+	case "$type" in
+	d)	[ -n "$verbose" ] && echo mkdir $fname
+		$ECHO mkdir $fname ;;		# already in $TARGET
+	f)	fn=${fname##*/}
+		case "$fname" in
+		*/*)	dn=${fname%/*} ;;
+		*)	dn=. ;;
+		esac
+		if [ -n "$verbose" ] || [ -n "$debug" ]; then
+			echo "( cd $dn && $LN $SRCDIR/$fname $fn )"
+		fi
+		[ -z "$debug" ] && ( cd $dn && $LN $SRCDIR/$fname $fn )
+		;;
+	*)	echo "${prog}: ${fname}: unknown file type $type" 1>&2 ;;
+	esac
+done < $MANIFEST
+
+# special
+SPECIAL="parser-built y.tab.c y.tab.h"
+
+rm -f $SPECIAL
+for sf in $SPECIAL
+do
+	[ -n "$verbose" ] && echo cp -p $SRCDIR/$sf $TARGET
+	$ECHO cp -p $SRCDIR/$sf $TARGET
+done
+
+exit 0

@@ -1,0 +1,45 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C++ support: test --flag that introduces qt-format.
+
+cat <<\EOF > xg-c-format-3.cc
+foo (gettext ("on"));
+tr ("stopped");
+tr ("action", "");
+tr ("deleted %n files", "", numdel);
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-c-format-3.tmp \
+  --qt \
+  --flag=foo:1:qt-format --flag=gettext:1:pass-qt-format \
+  --keyword=tr:1,1t --keyword=tr:1,2c,2t --keyword=tr:1,1,2c,3t \
+  xg-c-format-3.cc || Exit 1
+LC_ALL=C tr -d '\r' < xg-c-format-3.tmp.po > xg-c-format-3.po || Exit 1
+
+cat <<EOF > xg-c-format-3.ok
+#, qt-format
+msgid "on"
+msgstr ""
+
+msgid "stopped"
+msgstr ""
+
+msgctxt ""
+msgid "action"
+msgstr ""
+
+#, qt-plural-format
+msgctxt ""
+msgid "deleted %n files"
+msgid_plural "deleted %n files"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-c-format-3.ok xg-c-format-3.po
+result=$?
+
+exit $result

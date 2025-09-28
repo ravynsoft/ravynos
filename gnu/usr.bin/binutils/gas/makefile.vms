@@ -1,0 +1,79 @@
+#
+# makefile for gas
+#
+# Created by Klaus Kaempf, kkaempf@progis.de
+#
+#   Copyright (C) 2012-2023 Free Software Foundation, Inc.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; see the file COPYING3.  If not see
+# <http://www.gnu.org/licenses/>.
+#
+
+#CC=gcc
+CC=cc
+
+ifeq ($(CC),gcc)
+DEFS=
+CFLAGS=/include=([],[-.bfd],[.config],[-.include],[-])$(DEFS)
+LFLAGS=
+LIBS=,GNU_CC_LIBRARY:libgcc/lib,sys$$library:vaxcrtl.olb/lib,GNU_CC_LIBRARY:crt0.obj
+else
+#DEFS=/define=("VMS_DEBUG","DEBUG2","DEBUG3","DEBUG5","DEBUG_SYMS","DEBUG_ALPHA")
+OPT=/noopt/debug
+CFLAGS=/names=(as_is,shortened)\
+ /include=([],[-.bfd],[.config],"../include","../")$(DEFS)$(OPT)\
+ /prefix=(all,except=("getopt","optarg","optopt","optind","opterr"))
+#LFLAGS=/debug/map=as.map
+endif
+
+OBJS:=targ-cpu.obj,obj-format.obj,atof-targ.obj,app.obj,as.obj,\
+  atof-generic.obj,cond.obj,compress-debug.obj,depend.obj,expr.obj,\
+  flonum-konst.obj,flonum-copy.obj,flonum-mult.obj,\
+  frags.obj,hash.obj,input-file.obj,\
+  input-scrub.obj,literal.obj,messages.obj,output-file.obj,read.obj,\
+  subsegs.obj,symbols.obj,write.obj,listing.obj,ecoff.obj,stabs.obj,sb.obj,\
+  macro.obj,ehopt.obj,dw2gencfi.obj,dwarf2dbg.obj,remap.obj
+
+ifeq ($(ARCH),IA64)
+OBJS:=$(OBJS),te-vms.obj
+endif
+
+LIBIBERTY = [-.libiberty]libiberty.olb
+LIBBFD = [-.bfd]libbfd.olb
+LIBOPCODES = [-.opcodes]libopcodes.olb
+
+all: as.exe
+
+as.exe: $(OBJS) $(LIBOPCODES) $(LIBBFD) $(LIBIBERTY)
+	link$(LFLAGS)/exe=$@ $(OBJS),$(LIBOPCODES)/lib,$(LIBBFD)/lib,$(LIBIBERTY)/lib$(LIBS)
+
+ifneq ($(CC),gcc)
+# Work-around a DEC-C bug.
+targ-cpu.obj: targ-cpu.c targ-cpu.h
+	      $(COMPILE.c) /noopt/obj=$@ $<
+endif
+
+te-vms.obj: [.config]te-vms.c
+	      $(COMPILE.c) /obj=$@ $< + sys$$library:sys$$lib_c.tlb/lib
+
+clean:
+	$$ purge
+	$(RM) *.obj;
+	$(RM) *.exe;
+	$(RM) atof-targ.c;
+	$(RM) obj-format.c;
+	$(RM) obj-format.h;
+	$(RM) targ-env.h;
+	$(RM) targ-cpu.h;
+	$(RM) targ-cpu.c;

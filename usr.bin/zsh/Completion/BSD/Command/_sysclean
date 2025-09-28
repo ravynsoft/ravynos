@@ -1,0 +1,6 @@
+#compdef sysclean
+
+_arguments -s : \
+  '(-p)-a[include filenames used by installed packages]' \
+  '-i[include ignored filenames]' \
+  '(-a)-p[output package names that are using obsolete files]'

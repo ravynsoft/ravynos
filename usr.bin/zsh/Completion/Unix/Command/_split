@@ -1,0 +1,64 @@
+#compdef split gsplit
+
+local curcontext="$curcontext" variant ret=1
+local -A opt_args
+local -a state line args
+
+_pick_variant -r variant gnu=GNU $OSTYPE --version
+
+args=(
+  '-a+[generate suffixes of specified length]:length [2]' \
+  '(-l -p -n)-b+[put specified size in bytes in each output file]:size (bytes)' \
+  '(-b -p -n)-l+[put specified number of lines/records in each output file]:lines' \
+  '1:file:_files' \
+  '2: :_guard "^-*" "prefix [x]"'
+)
+
+case $variant in
+  gnu)
+    args=( -C
+      '(H -a --suffix-length)'{-a+,--suffix-length=}'[generate suffixes of specified length]:length [2]'
+      '(H)--additional-suffix=[append an additional suffix to file names]:suffix'
+      '(H -b --bytes -C --line-bytes -l --lines -n --number)'{-b+,--bytes=}'[put specified size in bytes in each output file]:size (bytes)'
+      '(H -b --bytes -C --line-bytes -l --lines -n --number)'{-C+,--line-bytes=}'[put whole lines/records up to size limit in each output file]:size (bytes)'
+      '(H --numeric-suffixes -x --hex-suffixes)-d[use numeric suffixes starting at 0]'
+      '(H -d -x --hex-suffixes)--numeric-suffixes=-[use numeric suffixes]::start value [0]'
+      '(H -d --numeric-suffixes --hex-suffixes)-x[use hex suffixes starting at 0]'
+      '(H -d --numeric-suffixes -x)--hex-suffixes=-[use hex suffixes]::start value [0]'
+      '(H -e --elide-empty-files)'{-e,--elide-empty-files}"[don't generate empty output files with '-n']"
+      '(H)--filter=[write to shell command; filename is in $FILE]:command:_cmdstring'
+      '(H -b --bytes -C --line-bytes -l --lines -n --number)'{-l+,--lines=}'[put specified number of lines/records in each output file]:lines'
+      '(H -b --bytes -C --line-bytes -l --lines -n --number)'{-n+,--number=}'[generate specified number of output files]:chunks:->chunks'
+      '(H -t --separator)'{-t+,--separator=}'[use specified record separator instead of newline]:separator'
+      '(H -u --unbuffered)'{-u,--unbuffered}"[immediately copy input to output with '-n r/...']"
+      '(H)--verbose[print a diagnostic just before each output file is opened]'
+      '(H)1:file:_files'
+      '(H)2: :_guard "^-*" "prefix [x]"'
+      + 'H'
+      '(- 1 2)--help[display usage information]'
+      '(- 1 2)--version[display version information]'
+    )
+  ;;
+  (free|net)bsd*)
+    args+=( '(-b -l -p)-n+[generate specified number of output files]:output files' )
+  ;|
+  darwin*|freebsd*)
+    args+=(
+      '(-b -l -n)-p+[split the file whenever a line matches specified pattern]:pattern'
+    )
+  ;|
+  freebsd*) args+=( '-d[use numeric suffixes]' ) ;;
+esac
+
+_arguments -s -S $args && ret=0
+
+if [[ $state = chunks ]]; then
+  if [[ ! -prefix *[0-9/]* ]]; then
+    _alternative 'modifiers: :_values -s/ "modifier" "l[don'\''t split lines/records]" "r[round robin distribution]"' \
+      'lines: :_guard "[0-9/]#" lines' && ret=0
+  else
+    _message -e lines lines
+  fi
+fi
+
+return ret

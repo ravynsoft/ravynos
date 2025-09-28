@@ -1,0 +1,139 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgexec on a PO file with contexts.
+
+# This test fails on mingw (in a Cygwin environment), due to the combination
+# of two reasons:
+# 1. The value of the environment variable MSGEXEC_MSGCTXT is stored
+#    in UTF-8 encoding (i.e. the PO file's encoding); it should be stored
+#    in the GetACP() encoding instead. This problem is inherent in msgexec,
+#    and msgexec warns about it - but in this test, we filter the warnings
+#    away.
+# 2. The child process is Cygwin's sh.exe, and is affected by a Cygwin bug:
+#    the values returned by getenv() in the child process, when the parent
+#    process is a mingw program, are in the GetOEMCP() encoding (should be
+#    in the GetACP() encoding). This has been reported at
+#    <https://cygwin.com/ml/cygwin/2009-08/msg00430.html>.
+
+cat <<\EOF > mex-test4.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. A menu item
+msgctxt "File|"
+msgid "Open"
+msgstr "Ouvrir"
+
+#. A menu item
+msgctxt "File|"
+msgid "New"
+msgstr "Nouveau"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Open"
+msgstr "Ouvert"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Closed"
+msgstr "Fermé"
+
+#. A product
+msgctxt "Audi"
+msgid "car"
+msgstr "voiture"
+
+#. A product
+msgctxt "Océ"
+msgid "copier"
+msgstr "photocopieur"
+
+#~ msgid "Save As"
+#~ msgstr "Enregistrer l'as"
+
+#. A menu item
+#~ msgctxt "File|"
+#~ msgid "Save As"
+#~ msgstr "Enregistrer sous"
+EOF
+
+cat <<\EOF > mex-test4.sh
+#! /bin/sh
+echo "========================= $MSGEXEC_LOCATION =========================" | LC_ALL=C tr -d '\r'
+if test -n "${MSGEXEC_MSGCTXT+set}"; then
+  echo "context: $MSGEXEC_MSGCTXT" | LC_ALL=C tr -d '\r'
+fi
+cat <<MEOF
+$MSGEXEC_MSGID
+---
+MEOF
+cat
+echo | LC_ALL=C tr -d '\r'
+exit 0
+EOF
+chmod a+x mex-test4.sh
+
+: ${MSGEXEC=msgexec}
+LC_ALL=C \
+${MSGEXEC} -i mex-test4.po ./mex-test4.sh > mex-test4.out 2> mex-test4.err
+result=$?
+cat mex-test4.err | grep -v 'warning: Locale charset' | grep -v '^ '
+test $result = 0 || { Exit 1; }
+
+cat <<\EOF > mex-test4.ok
+========================= mex-test4.po:2 =========================
+
+---
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+========================= mex-test4.po:9 =========================
+context: File|
+Open
+---
+Ouvrir
+========================= mex-test4.po:14 =========================
+context: File|
+New
+---
+Nouveau
+========================= mex-test4.po:19 =========================
+context: Lock state
+Open
+---
+Ouvert
+========================= mex-test4.po:24 =========================
+context: Lock state
+Closed
+---
+Fermé
+========================= mex-test4.po:29 =========================
+context: Audi
+car
+---
+voiture
+========================= mex-test4.po:34 =========================
+context: Océ
+copier
+---
+photocopieur
+========================= mex-test4.po:37 =========================
+Save As
+---
+Enregistrer l'as
+========================= mex-test4.po:42 =========================
+context: File|
+Save As
+---
+Enregistrer sous
+EOF
+
+: ${DIFF=diff}
+${DIFF} mex-test4.ok mex-test4.out
+result=$?
+
+exit $result

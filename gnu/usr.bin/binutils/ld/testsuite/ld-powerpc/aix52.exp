@@ -1,0 +1,302 @@
+# Expect script for AIX 5.2+ tests
+#   Copyright (C) 2009-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+if { ![istarget "powerpc*-*-aix\[5-9\]*"] && ![istarget "rs6000-*-aix\[5-9\]*"]
+     || [istarget "*-*-aix5.\[01\]*"] } {
+    return
+}
+
+# Run a run_link_tests-style test for AIX.  SIZE selects the target size
+# (32 or 64).  The other arguments are elements of a run_link_tests test.
+#
+# Make the following changes before running the test:
+#
+#    - Mention SIZE in the test name.
+#    - Add "-aSIZE --defsym size=SIZE" to the assembler options.
+#    - Add the source directory to any "-bI:" and "-bE:" linker options.
+#    - Add "-bSIZE" to the linker options.
+#    - Add "-XSIZE" to the archiver options.
+#    - Replace "SIZE" with SIZE in TOOLS.
+#    - When testing 64-bit targets:
+#      - Turn tmpdir/aix-* into tmpdir/aix64-*.
+#      - Turn tmpdir/libaix-* into tmpdir/libaix64-*.
+#      - Turn -laix* into -laix64*, to compensate for the above.
+proc run_aix_test { size name ldopts asopts sources tools output } {
+    global srcdir subdir
+
+    if { $size == 64 } {
+	regsub -all {tmpdir/aix-} $ldopts {tmpdir/aix64-} ldopts
+	regsub {^aix} $output {aix64} output
+
+	regsub -all -- {-laix-} $ldopts {-laix64-} ldopts
+	regsub {^libaix} $output {libaix64} output
+    }
+    if { [regexp {.a$} $output] } {
+	append ldopts " -X$size"
+    } else {
+	regsub -all {(-b[IE]):} $ldopts "\\1:$srcdir/$subdir/" ldopts
+	append ldopts " -b$size"
+    }
+    regsub -all {SIZE} $tools $size tools
+    run_ld_link_tests [list [list "$name ($size-bit)" \
+				 $ldopts "" \
+				 "$asopts -a$size --defsym size=$size" \
+				 $sources \
+				 $tools \
+				 $output]]
+}
+
+foreach file { "aix-lineno-1.txt" } {
+    remote_upload host "$srcdir/$subdir/$file" "tmpdir/$file"
+}
+
+set aix52tests {
+    {"Absolute branch test 1"
+     "-shared -bI:aix-abs-branch-1.im -bE:aix-abs-branch-1.ex"
+     "" {aix-abs-branch-1.s}
+     {{objdump {-dR} aix-abs-branch-1.dd} {nm {} aix-abs-branch-1-SIZE.nd}}
+     "aix-abs-branch-1.so"}
+
+    {"Relocations against absolute symbols 1"
+     "-shared -bI:aix-abs-reloc-1.im -bE:aix-abs-reloc-1.ex"
+     {} {aix-abs-reloc-1.s}
+     {{objdump -sRj.data aix-abs-reloc-1-SIZE.od}
+      {nm {} aix-abs-reloc-1-SIZE.nd}}
+     "aix-abs-reloc-1.so"}
+
+    {"Core sections test 1" "-shared -bE:aix-core-sec-1.ex"
+     "" {aix-core-sec-1.s}
+     {{objdump -h aix-core-sec-1.hd}}
+     "aix-core-sec-1.so"}
+
+    {"Core sections test 2" "-shared -bE:aix-core-sec-2.ex"
+     "" {aix-core-sec-2.s}
+     {{objdump -h aix-core-sec-2.hd}}
+     "aix-core-sec-2.so"}
+
+    {"Core sections test 3" "-shared -bE:aix-core-sec-3.ex"
+     "" {aix-core-sec-3.s}
+     {{objdump -h aix-core-sec-3.hd}}
+     "aix-core-sec-3.so"}
+
+    {"Duplicate symbol check 1 (rel)" "-r"
+     "" {aix-no-dup-syms-1a.s aix-no-dup-syms-1b.s}
+     {{nm {} aix-no-dup-syms-1-rel.nd} {objdump -r aix-no-dup-syms-1-rel.rd}}
+     "aix-no-dup-syms-1.o"}
+
+    {"Duplicate symbol check 1 (shared)"
+     "-shared --allow-multiple-definition -bI:aix-no-dup-syms-1.im -bE:aix-no-dup-syms-1.ex"
+     "" {aix-no-dup-syms-1a.s aix-no-dup-syms-1b.s}
+     {{nm {} aix-no-dup-syms-1-dso-SIZE.nd}
+      {objdump -r aix-no-dup-syms-1-dso-SIZE.rd}
+      {nm -D aix-no-dup-syms-1-dso-SIZE.dnd}
+      {objdump -R aix-no-dup-syms-1-dso-SIZE.drd}}
+     "aix-no-dup-syms-1.so"}
+
+    {"Export test 1 (archive)" ""
+      "" {aix-export-1a.s}
+      {} "libaix-export-1.a"}
+
+    {"Export test 1 (object)" "-r"
+      "" {aix-export-1b.s}
+      {} "aix-export-1.o"}
+
+    {"Export test 1 (-bexpall)"
+     "-shared -bexpall tmpdir/aix-export-1.o -Ltmpdir -laix-export-1"
+     "" {}
+     {{objdump -dj.data aix-export-1-all-SIZE.dd}}
+     "aix-export-1-all.so"}
+
+    {"Export test 1 (-bexpfull)"
+     "-shared -bexpfull tmpdir/aix-export-1.o -Ltmpdir -laix-export-1"
+     "" {}
+     {{objdump -dj.data aix-export-1-full-SIZE.dd}}
+     "aix-export-1-full.so"}
+
+    {"Export test 2" "-shared -bexpall"
+     {} {aix-export-2.s}
+     {{nm -D aix-export-2-SIZE.nd}} "aix-export-2.so"}
+
+    {"Garbage collection test 1"
+     "-shared -binitfini:init_function:fini_function -bE:aix-gc-1.ex"
+     "" {aix-gc-1.s}
+     {{objdump {-dz -j.text -j.data} aix-gc-1-SIZE.dd}
+      {nm {} aix-gc-1-SIZE.nd}}
+     "aix-gc-1.so"}
+
+    {"Glink test 1"
+     "-shared -bE:aix-glink-1.ex --unresolved-symbols=ignore-all"
+     "" {aix-glink-1.s}
+     {{objdump {-D -j.text -j.data} aix-glink-1-SIZE.dd}}
+     "aix-glink-1.so"}
+
+    {"Glink test 2 (part a)" "-shared -bE:aix-glink-2a.ex"
+     "" {aix-glink-2a.s}
+     {}
+     "aix-glink-2a.so"}
+
+    {"Glink test 2 (part b)" "-r"
+     "" {aix-glink-2b.s}
+     {}
+     "aix-glink-2b.ro"}
+
+    {"Glink test 2 (part c)" "-shared -bE:aix-glink-2c.ex"
+     "" {aix-glink-2c.s}
+     {}
+     "aix-glink-2c.so"}
+
+    {"Glink test 2"
+     "-e.main tmpdir/aix-glink-2a.so tmpdir/aix-glink-2b.ro tmpdir/aix-glink-2c.so"
+     "" {aix-glink-2d.s}
+     {{objdump -d aix-glink-2-SIZE.dd}}
+     "aix-glink-2"}
+
+    {"Glink test 3 (shared library a)"
+     "-shared -bexpall"
+     "" {aix-glink-3a.s}
+     {} "aix-glink-3a.so"}
+
+    {"Glink test 3 (shared library b)"
+     "-shared -bexpall"
+     "" {aix-glink-3b.s}
+     {} "aix-glink-3b.so"}
+
+    {"Glink test 3 (main test)"
+     "-bnoautoimp tmpdir/aix-glink-3b.so tmpdir/aix-glink-3a.so"
+     "" {aix-glink-3.s}
+     {{objdump -d aix-glink-3-SIZE.dd}}
+     "aix-glink-3"}
+
+    {"Line number test 1 (no discards)" "-e.main"
+     "" {aix-lineno-1.s}
+     {{objdump -dS aix-lineno-1a-SIZE.dd} {nm {} aix-lineno-1a-SIZE.nd}}
+     "aix-lineno-1a.exe"}
+
+    {"Line number test 1 (discard locals)" "-e.main -x"
+     "" {aix-lineno-1.s}
+     {{objdump -dS aix-lineno-1b-SIZE.dd} {nm {} aix-lineno-1b-SIZE.nd}}
+     "aix-lineno-1b.exe"}
+
+    {"Relocatable test 1" "-r"
+     "" {aix-rel-1.s}
+     {{objdump -hr aix-rel-1.od}} "aix-rel-1.ro"}
+
+    {".ref test 1" "-efoo1"
+     "" {aix-ref-1.s}
+     {{objdump -dr aix-ref-1-SIZE.od}}
+     "aix-ref-1"}
+
+    {"Weak test 1 (rel)" "-r"
+     "" {aix-weak-1a.s aix-weak-1b.s}
+     {{nm {} aix-weak-1-rel.nd} {objdump -h aix-weak-1-rel.hd}}
+     "aix-weak-1.o"}
+
+    {"Weak test 1 (shared, nogc)" "-shared -bE:aix-weak-1.ex -bnogc"
+     "" {aix-weak-1a.s aix-weak-1b.s}
+     {{nm {} aix-weak-1-dso-SIZE.nd} {objdump -h aix-weak-1-dso-SIZE.hd}
+      {nm -D aix-weak-1-dso-SIZE.dnd}}
+     "aix-weak-1-nogc.so"}
+
+    {"Weak test 1 (shared, gc)" "-shared -bE:aix-weak-1.ex"
+     "" {aix-weak-1a.s aix-weak-1b.s}
+     {{nm {} aix-weak-1-gcdso-SIZE.nd} {objdump -h aix-weak-1-gcdso-SIZE.hd}
+      {nm -D aix-weak-1-gcdso-SIZE.dnd}}
+     "aix-weak-1-gc.so"}
+
+    {"Weak test 2 (library 1)" "-shared -bE:aix-weak-2a.ex"
+     "" {aix-weak-2a.s}
+     {{nm -D aix-weak-2a-SIZE.nd}}
+     "aix-weak-2a.so"}
+
+    {"Weak test 2 (library 2)" "-shared -bE:aix-weak-2a.ex"
+     "" {aix-weak-2b.s}
+     {{nm -D aix-weak-2b-SIZE.nd}}
+     "aix-weak-2b.so"}
+
+    {"Weak test 2 (main library)"
+     "-shared -bE:aix-weak-2c.ex tmpdir/aix-weak-2a.so tmpdir/aix-weak-2b.so"
+     "" {aix-weak-2c.s}
+     {{nm {} aix-weak-2c-SIZE.nd} {objdump {-sj.data -R} aix-weak-2c-SIZE.od}}
+     "aix-weak-2c.so"}
+
+    {"Weak test 3 (library)" "-shared -bE:aix-weak-3a.ex"
+     "" {aix-weak-3a.s}
+     {}
+     "aix-weak-3a.so"}
+
+    {"Weak test 3 (main, dynamic)" "-e.main tmpdir/aix-weak-3a.so"
+     "" {aix-weak-3b.s}
+     {{objdump -Dzrj.data aix-weak-3-SIZE.dd}}
+     "aix-weak-3"}
+
+    {"TOC test 1" "-shared -bE:aix-toc-1.ex"
+     "" {aix-toc-1a.s aix-toc-1b.s}
+     {{objdump -dr aix-toc-1-SIZE.dd}}
+     "aix-toc-1.so"}
+
+    {"Negative relocation test 1" "-shared -bE:aix-neg-reloc.ex"
+	"" {aix-neg-reloc.s}
+	{{objdump -dr aix-neg-reloc-SIZE.d}}
+	"aix-neg-reloc.so"}
+
+}
+
+foreach test $aix52tests {
+    foreach { name ldopts asopts sources tools output } $test {
+	run_aix_test 32 $name $ldopts $asopts $sources $tools $output
+	run_aix_test 64 $name $ldopts $asopts $sources $tools $output
+    }
+}
+
+run_dump_test "aix-glink-1-32"
+run_dump_test "aix-glink-1-64"
+run_dump_test "aix-glink-3-32"
+run_dump_test "aix-glink-3-64"
+run_dump_test "aix-weak-3-32"
+run_dump_test "aix-weak-3-64"
+
+
+# Tests added for features in AIX 7+.
+
+set aix7tests {
+    {"Large TOC test 1" "-shared -bE:aix-largetoc-1.ex"
+	"" {aix-largetoc-1.s}
+	{{objdump -dr aix-largetoc-1-SIZE.d}}
+	"aix-largetoc-1.so"}
+
+    {"TLS relocations" "-shared -bE:aix-tls-reloc.ex"
+	"" {aix-tls-reloc.s}
+	{{objdump {-dr -j.data} aix-tls-reloc-SIZE.dd}
+	 {objdump {-dr -j.tdata -j.tbss} aix-tls-reloc-SIZE.dt}}
+	"aix-tls-reloc.so"}
+
+    {"TLS section" "-shared -bE:aix-tls-section.ex"
+	"" {aix-tls-section.s}
+	{{objdump -hw aix-tls-section-SIZE.d}}
+	"aix-tls-section.so"}
+}
+
+foreach test $aix7tests {
+    foreach { name ldopts asopts sources tools output } $test {
+	run_aix_test 32 $name $ldopts $asopts $sources $tools $output
+	run_aix_test 64 $name $ldopts $asopts $sources $tools $output
+    }
+}

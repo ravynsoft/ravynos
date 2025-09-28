@@ -1,0 +1,45 @@
+#compdef global
+
+local cmds="(-c --completion -f --file -g --grep -I --idutils -p --print-dbpath -P --path -u --update --version --help)"
+
+_arguments \
+  "$cmds"{-c,--completion}'[completion on prefix]:prefix:' \
+  "$cmds"{-f,--file}'[print function definitions in file]' \
+  "$cmds"{-g,--grep}'[print all lines which match pattern using grep]:pattern' \
+  "$cmds"{-I,--idutils}'[print all lines which match pattern using id-utils]:pattern' \
+  "$cmds"{-p,--print-dbpath}'[print location of GTAGS]' \
+  "$cmds"{-P,--path}'[print paths matching pattern]:pattern:' \
+  "$cmds"{-u,--update}'[locate tag files and update incrementally]' \
+  '(-a --absolute)'{-a,--absolute}'[print absolute path names]' \
+  '(--color)--color=-[color matches]::color:(always auto never)' \
+  '(-d --definition)'{-d,--definition}'[print locations of definitions]' \
+  '(-e --regexp :)'{-e,--regexp}'[specify pattern]:pattern:_global_tags' \
+  '(--encode-path)--encode-path=-[encode path characters in hexadecimal representation]:format' \
+  '(-F --first-match)'{-f,--first-match}'[stop searching if tag is found in current tag file]' \
+  '(--from-here)--from-here=-[decide tag type by context]:line_path:' \
+  '(-G --basic-regexp :)'{-G,--basic-regexp}'[specify basic regexp to use]:word:_global_tags' \
+  '(--gtagsconf)--gtagsconf=-[set environment variable GTAGSCONF]:file:_files' \
+  '(--gtagslabel)--gtagslabel=-[set environment variable GTAGSLABEL]:file:_files' \
+  '(-i --ignore-case)'{-i,--ignore-case}'[ignore case in patterns]' \
+  '(-L --file-list)'{-L,--file-list}'[obtain files from file in addition to the arguments]:file:_files' \
+  '(-l --local)'{-l,--local}'[print just objects which exist under the current directory]' \
+  '(--literal)--literal[use literal search instead of regexp search]' \
+  '(-M --match-case)'{-m,--match-case}'[enable case sensitive search]' \
+  '(--match-part)--match-part=-[specify how path name completion should match]::part:(first last all)' \
+  '(-n --nofilter)'{-n,--nofilter}'[suppress sort filter and path conversion filter]' \
+  '(-O --only-other)'{-O,--only-other}'[search only text files]' \
+  '(-o --other)'{-o,--other}'[search in other files, not just source files (with -g)]' \
+  '(--path-style)--path-style=-[specify path style]::style:(relative absolute shorter abslib through)' \
+  '(--print0)--print0[print each record followed by a null character]' \
+  '(-q --quiet)'{-q,--quiet}'[quiet mode]' \
+  '(-r --reference --rootdir)'{-r,--reference,--rootdir}'[find object references instead of definitions]' \
+  '(--result)--result=-[specify result format]::format:(path ctags ctags-x grep cscope)' \
+  '(- :)--single-update=-[updata tag for specified file]:file:_files' \
+  '(-s --symbol)'{-s,--symbol}'[find symbols instead of function names]:pattern' \
+  '(-t --tags)'{-t,--tags}'[output in standard ctags format]' \
+  '(-T --through -s -r -l)'{-T,--through}'[search through all tag files in GTAGSLIBPATH]' \
+  '(-v --verbose)'{-v,--verbose}'[verbose mode]' \
+  '(-x --cxref)'{-x,--cxref}'[additionally list line number and contents]' \
+  '(- :)--version[display version information]' \
+  '(- :)--help[display help information]' \
+  ':word:_global_tags'

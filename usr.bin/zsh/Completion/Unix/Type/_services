@@ -1,0 +1,36 @@
+#autoload
+
+local -a inits xinetds alls
+local expl ret=1
+
+if [[ $OSTYPE = freebsd* ]]; then
+  if [[ -x /usr/sbin/service ]]; then
+    alls=( $(service -l) ) && ret=0
+
+    _wanted services expl service compadd "$@" - $alls[@] && ret=0
+  fi
+elif chkconfig --list > /dev/null 2>&1; then
+  alls=( ${(f)"$(LANGUAGE=C LANG=C LC_ALL=C chkconfig --list 2> /dev/null)"} )
+  inits=( ${${${alls[1,(r)xinetd based*]}[1,-2]}/%[[:space:]]*/} )
+  xinetds=( ${${${${alls[(r)xinetd based*,-1]}[2,-1]}/#[[:space:]]#}/%:*} )
+
+  _alternative \
+    'init:init service:compadd -a inits' \
+    'xinetd:xinetd service:compadd -a xinetds' && ret=0
+else
+  local -a scriptpath
+  local dir
+  # Known locations of init scripts
+  # C.f. Unix/Commands/_init_d
+  scriptpath=(/etc/init.d /etc/rc.d /etc/rc.d/init.d)
+
+  for dir in $scriptpath; do
+    if [[ -d $dir ]]; then
+      break
+    fi
+  done
+  _wanted services expl service compadd "$@" - $dir/*(-*:t) &&
+  ret=0
+fi
+
+return ret

@@ -1,0 +1,42 @@
+#compdef clay
+
+# Completion for the Clay Programming Language
+# http://claylabs.com/clay/
+
+_arguments -C \
+  "-o:specify output file:_files" \
+  "-target:set target platform for code generation" \
+  "-shared[create a dynamically linkable library]" \
+  "-emit-llvm[emit llvm code]" \
+  "-S[emit assembler code]" \
+  "-c[emit object code]" \
+  "-D-:set flag value" \
+  "-O-:set optimization level:(0 1 2 3)" \
+  "-g[keep debug symbol information]" \
+  "-exceptions[enable exception handling]" \
+  "-no-exceptions[disable exception handling]" \
+  "-inline[inline procedures marked 'forceinline']" \
+  "-no-inline[ignore 'inline' and 'forceinline' keyword]" \
+  "-import-externals[include externals from imported modules]" \
+  "-no-import-externals[don't include externals from imported modules]" \
+  "-pic[generate position independent code]" \
+  "-abort[abort on error (to get stacktrace in gdb)]" \
+  "-run[execute the program without writing to disk]" \
+  "-timing[show timing information]" \
+  "-full-match-errors[show universal patterns in match failure errors]" \
+  "-log-match:log overload matching behavior for calls" \
+  "-arch:build for Darwin architecture <arch>" \
+  "-F-:add <dir> to framework search path:_files -/" \
+  "-framework:link with framework <name>" \
+  "-L:add <dir> to library search path:_files -/" \
+  "-Wl,-:pass flags to linker" \
+  "-l-:link with library <lib>" \
+  "-I+:add <path> to clay module search path:_files -/" \
+  "-deps[keep track of the dependencies of the currently]" \
+  "-no-deps[don't generate dependencies file]" \
+  "-o-deps:write the dependencies to this file" \
+  "-e:compile and run <source> (implies -run)" \
+  "-M-:import <module>.*; for -e" \
+  "-v[display version info]" \
+  ":program file:_files -g '*.clay(-.)'"
+

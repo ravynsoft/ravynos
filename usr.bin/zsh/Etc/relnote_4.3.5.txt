@@ -1,0 +1,55 @@
+Version 4.3.5 contains both bugfixes and improvements.  Further progress
+has been made in support for multibyte character set and in most cases
+this is thought to be stable although a few glitches remain.
+
+Visible changes in the shell and its modules since 4.3.4 include the
+following:
+
+A new module zsh/curses provides the builtin zcurses for access
+to the curses screen manipulation package; see the entry in the zsh/modules
+manual.  Configuration of terminal libraries is now easier with the
+--with-term-lib option to configure.
+
+The module system has been extended to add "features" which can
+be manipulated with zmodload -F.  This allows a more convenient and
+powerful way of manipulating builtins, parameters, mathematical functions
+and test operators provided by modules.  For example,
+  zmodload -aF zsh/datetime b:strftime p:EPOCHSECONDS
+specifies that builtin strftime and parameter EPOCHSECONDS are to be
+autoloaded from the module zsh/datetime, but that no other features
+from zsh/datetime will be enabled without being specifically mentioned.
+In addition, the zsh/stat module can now be loaded with
+  zmodload -F zsh/stat b:zstat
+to make the builtin available under the name "zstat".  The alternative
+name "stat" is still available but commonly clashes with the name of an
+external binary.  The completion system has been modified to use only
+"zstat".
+
+"zmodload -i" behaviour is now the default, so "zmodload <module>"
+no longer fails if <module> is already loaded.
+
+The globbing flag (#cN,M) is an extension of the extended globbing
+# and ## pattern operators, forcing the previous expression to match
+at least N and no more than M times, similar to {N,M} in regular
+expressions.
+
+In zsh native mode (NO_KSH_ARRAYS), retrieving array subscript zero returns
+the empty string or attempting to set subscript zero with arrays is now an
+error.  This was previously a source of difficult to find problems.
+The old behaviour can be obtained with the KSH_ZERO_SUBSCRIPT option
+for compatibility, however there is no reason to use this in new
+shell code and KSH_ARRAYS should be preferred for compatibility with
+other shells.
+
+Previously, splitting quoted parameters using "${(s.:.)param}" removed
+empty fields.  This is incompatible with the usual effect of quoting
+parameters.  This behaviour has been retained for compatibility,
+but using an explicit "@" flag as in "${(@s.:.)param}" forces
+empty fields to be retained.
+
+The sched module has a parameter zsh_scheduled_events that makes
+querying scheduled events from a function easier.
+
+The calendar function system can now use UIDs imported from other calendar
+systems to identify entries for replacing.  Handling of recurring events
+is more robust but still limited.

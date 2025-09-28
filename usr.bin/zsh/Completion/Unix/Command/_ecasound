@@ -1,0 +1,212 @@
+#compdef ecasound
+
+local curcontext="$curcontext" state line expl ret=1
+typeset -A opt_args
+
+_arguments -C \
+  '-c[start in interactive mode]' \
+  '(-q)-d\:-[debug level]:debug level' \
+  '-D[print all debug information to stderr]' \
+  '(-d)-q[quiet mode, no output]' \
+  '(-)--help[show usage information]' \
+  '(-)--version[show version information]' \
+  '-n\:-[set the name of chainsetup]:chainsetup name' \
+  '-s\:-[create a new chainsetup from file]:chainsetup file:_files' \
+  '-sr\:-[set internal sampling rate]:internal sampling rate:(8000 11025 22050 44100 48000)' \
+  '*-a\:-[select active signal chains]:chain name' \
+  '-b\:-[set the size of buffer in samples]:buffer size:->b' \
+  '-m\:-[force use of specified mix mode]:mix mode:((auto\:automatic simple\:only\ one\ input/cain/output normal\:normal\ single-threaded\ mode))' \
+  '-r[use realtime scheduling policy (SCHED_FIFO)]' \
+  '-r\:-[use realtime scheduling policy (SCHED_FIFO)]:sched_priority' \
+  '-x[truncate outputs]' \
+  '*-z\:-[enable feature]:feature:->z' \
+  '-t\:-[set processing time in seconds]:seconds (int/float)' \
+  '-tl[enable looping]' \
+  '*-f\:-[set sampling parameters for the following input/output files]: :->f' \
+  '*-y\:-[set starting position for last specified input/output]:seconds' \
+  '*-i\:-[specifies a new input source]:input source:->io' \
+  '*-o\:-[specifies a new output source]:output source:->io' \
+  '*-Md\:-[set the active MIDI-device]:device name:_files' \
+  '*-Mms\:-[send MMC start/stop to MIDI device-id]:device id' \
+  '*-mss[sends MIDI-sync to the selected MIDI-device]' \
+  '*-pf\:-[use the first preset found from file as chain operator]:preset file:_files -g \*.epp\(-.\)' \
+  '*-pn\:-[find preset from global preset database]:preset name:->pn' \
+  '*-ev[analyze sample data to find max apm value without clipping]' \
+  '*-ezf[find the optimal value for DC-adjusting]' \
+  '*-eS\:-[audio stamp]:stamp-id (int)' \
+  '*-ea\:-[amplify signal]:amplification value (percent)' \
+  '*-eac\:-[amplify signal of channel]: :->eac' \
+  '*-eaw\:-[amplify signal (clipping)]: :->eaw' \
+  '*-eal\:-[limits audio level]:limit (percent)' \
+  '*-ec\:-[compressor (a simple one)]: :->ec' \
+  '*-eca\:-[a more advanced compressor]: :->eca' \
+  '*-enm\:-[noise gate. (each channel is processes separately)]: :->enm' \
+  '*-ei\:-[pitch shifter (modifies audio pitch by altering its length)]:pitch-shift (percent)' \
+  '*-epp\:-[normal pan effect]:panning (0=left, 50=center, 100=right)' \
+  '*-ezx\:-[adjusts the signal DC (use -ezf to find optimal values)]: :->ezx' \
+  '*-eem-[envelope modulation]: :->emod' \
+  '*-ef-[apply filter effects]: :->filters' \
+  '*-erc\:-[copy channel]: :->erc' \
+  '*-erm\:-[mix all channels to one channel]:to channel' \
+  '*-et-[time based effects]: :->teffects' \
+  '*-el\:-[LADSPA Plugin]: :->el' \
+  '*-eli\:-[LADSPA Plugin]: :->el' \
+  '*-gc\:-[time crop gate]: :->gc' \
+  '*-ge\:-[threshold gate]: :->ge' \
+  ':input source:->io' && ret=0
+
+case $state in
+  filters)
+    _values -S : 'filter effect' \
+      '1[resonant bandpass filter]: :->ef1' \
+      '3[resonant lowpass filter]: :->ef3' \
+      '4[resonant lowpass filter (3rd-order, 36dB)]: :->ef4' \
+      'a[allpass filter]: :->efa' \
+      'c[comb filter]: :->efc' \
+      'b[bandpass filter]: :->efb' \
+      'h[highpass filter]:cutoff frequency' \
+      'i[inverse comb filter]: :->efi' \
+      'l[lowpass filter]:cutoff frequency' \
+      'r[bandreject filter]: :->efr' \
+      's[resonator (resonating bandpass filter)]: :->efs'
+  ;;
+  teffects)
+    _values -S : 'time based effect' \
+      'c[chorus]: :->etc' \
+      'd[delay effect]: :->etd' \
+      'e[a more advanced reverb effect]: :->ete' \
+      'f[fake-stereo effect]:delay time (msec)' \
+      'l[flanger]: :->etl' \
+      'm[multitap delay]: :->etm' \
+      'p[phaser]: :->etp' \
+      'r[reverb effect]: :->etr'
+  ;;
+  emod)
+    _values -S : 'envelope modulation' \
+      'b[pulse gate]: :->eemb' \
+      'p[pulse gate (hz)]: :->eemp' \
+      't[tremolo effect]: :->eemt'
+  ;;
+esac && ret=0
+
+case $state in
+  b)
+    _wanted -V sizes expl 'buffer size' compadd \
+        1 2 4 8 16 32 64 128 256 512 1024 2048 4096 8192 16384 32768 65536
+  ;;
+  f)
+    if compset -P '*,*,*,'; then
+      _values 'interleaving' \
+        'i[interleaved stream format]' \
+	'n[noninterleaved]'
+    elif compset -P '*,*,'; then
+      _message 'sampling rate'
+    elif compset -P '*,'; then
+      _message 'channel'
+    else
+      _values 'sampling parameter' \
+        'u8[unsigned 8-bit]' \
+	's16_le[signed 16-bit little endian]' \
+	's16_be[signed 16-bit big endian]' \
+	's24_le[signed 24-bit little endian]' \
+	's24_be[signed 24-bit big endian]' \
+	's32_le[signed 32-bit little endian]' \
+	's32_be[signed 32-bit big endian]' \
+	'f32_le[32-bit float (little endian)]' \
+	'f32_be[32-bit float (big endian)]'
+    fi
+  ;;
+  z)
+    _values -s , feature \
+      '(nodb)db[enable double-buffering]' \
+      '(db)nodb[disable double-buffering]' \
+      'dbsize[set db buffer size]:buffer size in sample frames:(0 1 2 4 8 16)' \
+      '(nointbuf)intbuf[use extra internal buffering for realtime devices]' \
+      '(intbuf)nointbuf[prevent extra internal buffering for realtime devices]' \
+      'xruns[processing will be halted when a under/overrun occurs]' \
+      'psr[enable the precise-sample-rates]'
+  ;;
+  io)
+    if compset -P 'alsa,'; then
+      if [[ -e /proc/asound ]]; then
+	eval `grep "^[[:digit:]]" < /proc/asound/cards|awk 'BEGIN {print "_values '\''ALSA device'\''" }; {print "'\''" $1 "[" $6, $7, $8, $9 "]'\''"}'||echo _message Wrong`
+      else
+	_message 'ALSA information bot found in proc filesystem'
+      fi
+    else
+      _alternative \
+        'files:input/output file:_files -g "*.(aif|aiff|mid|wav|ewf|mp3|mp2)(-.)"' \
+        'streams:stream:(stdin stdout)' \
+	'devices:realtime device:((/dev/dsp alsa\:alsa\ device null\:null\ device))'
+    fi
+  ;;
+  pn)
+    _wanted presets expl preset compadd \
+        ${${(M)${(f)"$(</usr/share/ecasound/effect_presets)"}:#[a-z]*}%% *}
+  ;;
+  etd)
+    if compset -P 3 '*,'; then
+      _message 'mix (wet) (percent)'
+    elif compset -P 2 '*,'; then
+      _message 'number of delays'
+    elif compset -P '*,'; then
+      _values -s , 'surround mode' \
+              '0[normal]' \
+              '1[surround]' \
+              '2[stereo-spread]'
+    else
+      _message 'delay time (msec)'
+    fi
+  ;;
+  ge)
+    if compset -P 2 '*,'; then
+      _values 'volume mode'
+              'rms'
+    elif compset -P '*,'; then
+      _message 'close threshold (percent)'
+    else
+      _message 'open threshold (percent)'
+    fi
+  ;;
+  *)
+    # all the rest are comma separated lists for which we use a message prompt
+    typeset -A msgs
+    local str
+    msgs=(
+      eac  'amplification value (percent):channel'
+      eaw  'amplification value (percent):channel:max-clipped-samples'
+      ec   'compression rate (decibels):threshold (0.0-1.0)'
+      eca  'peak-level:release-time (seconds):fast compression rate (0.0-1.0):compression rate'
+      enm  'threshold-level:pre-hold-time (msec):attack-time (msec):post-hold-time (msec):release-time (msec)'
+      ezx  'left DC fix value:right CD fix value'
+      eemb 'pulse frequency (beats per minute):on time (msec)'
+      eemp 'pulse frequency (hz):on time (percent)'
+      eemt 'tremolo speed (beats per second):depth (percent)'
+      ef1  'center frequency:width (Hz)'
+      ef3  'cutoff frequency:resonance:gain'
+      ef4  'cutoff:resonance'
+      efa  'delay (samples):feedback (percent)'
+      efc  'delay (samples):radius (0-1.0)'
+      efb  'center frequency:width (Hz)'
+      efi  'delay (samples):radius (0-1.0)'
+      efr  'center frequency:width (Hz)'
+      efs  'center frequency:width (Hz)'
+      erc  'from channel:to channel'
+      etc  'delay time (msec):variance time (samples):feedback (percent):lfo frequency'
+      ete  'room size (metres):feedback level (percent):amount of reverbed signal added to the original (wet) (percent)'
+      etl  'delay time (msec):variance time (samples):feedback (percent):lfo frequency'
+      etm  'delay time (msec):number of delays:mix (wet) (percent)'
+      etp  'delay time (msec):variance time (samples):feedback (percent):lfo frequency'
+      etr  'delay time (msec):surround mode:feedback (percent)'
+      el   'unique LADSPA name/number'
+      gc   'start time (seconds):length (seconds)'
+    )
+    str=$msgs[$state]
+    while compset -P 1 '*,'; do
+      str="${str#*:}"
+    done
+    _message "${str%%:*}"
+  ;;
+esac && ret=0
+
+return ret

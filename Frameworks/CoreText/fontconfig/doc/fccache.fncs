@@ -1,0 +1,111 @@
+/*
+ * Copyright © 2007 Keith Packard
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name of the author(s) not be used in
+ * advertising or publicity pertaining to distribution of the software without
+ * specific, written prior permission.  The authors make no
+ * representations about the suitability of this software for any purpose.  It
+ * is provided "as is" without express or implied warranty.
+ *
+ * THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+
+@RET@           const FcChar8 *
+@FUNC@          FcCacheDir
+@TYPE1@         const FcCache *                 @ARG1@          cache
+@PURPOSE@       Return directory of <parameter>cache</parameter>
+@DESC@
+This function returns the directory from which the cache was constructed.
+@@
+
+@RET@           FcFontSet *
+@FUNC@          FcCacheCopySet
+@TYPE1@         const FcCache *                 @ARG1@          cache
+@PURPOSE@       Returns a copy of the fontset from <parameter>cache</parameter>
+@DESC@
+The returned fontset contains each of the font patterns from
+<parameter>cache</parameter>. This fontset may be modified, but the patterns
+from the cache are read-only.
+@@
+
+@RET@           const FcChar8 *
+@FUNC@          FcCacheSubdir
+@TYPE1@         const FcCache *                 @ARG1@          cache
+@TYPE2@         int                             @ARG2@          i
+@PURPOSE@       Return the <parameter>i</parameter>'th subdirectory.
+@DESC@
+The set of subdirectories stored in a cache file are indexed by this
+function, <parameter>i</parameter> should range from 0 to
+<parameter>n</parameter>-1, where <parameter>n</parameter> is the return
+value from FcCacheNumSubdir.
+@@
+
+@RET@           int
+@FUNC@          FcCacheNumSubdir
+@TYPE1@         const FcCache *                 @ARG1@          cache
+@PURPOSE@       Return the number of subdirectories in <parameter>cache</parameter>.
+@DESC@
+This returns the total number of subdirectories in the cache.
+@@
+
+@RET@           int
+@FUNC@          FcCacheNumFont
+@TYPE1@         const FcCache *                 @ARG1@          cache
+@PURPOSE@       Returns the number of fonts in <parameter>cache</parameter>.
+@DESC@
+This returns the number of fonts which would be included in the return from
+FcCacheCopySet.
+@@
+
+@RET@           FcBool
+@FUNC@          FcDirCacheClean
+@TYPE1@         const FcChar8 *                 @ARG1@          cache_dir
+@TYPE2@         FcBool                          @ARG2@          verbose
+@PURPOSE@       Clean up a cache directory
+@DESC@
+This tries to clean up the cache directory of <parameter>cache_dir</parameter>.
+This returns FcTrue if the operation is successfully complete. otherwise FcFalse.
+@SINCE@         2.9.91
+@@
+
+@RET@           void
+@FUNC@          FcCacheCreateTagFile
+@TYPE1@         const FcConfig *                @ARG1@          config
+@PURPOSE@       Create CACHEDIR.TAG at cache directory.
+@DESC@
+This tries to create CACHEDIR.TAG file at the cache directory registered
+to <parameter>config</parameter>.
+@SINCE@         2.9.91
+@@
+
+@RET@           FcBool
+@FUNC@          FcDirCacheCreateUUID
+@TYPE1@         FcChar8 *                       @ARG1@          dir
+@TYPE2@         FcBool                          @ARG2@          force
+@TYPE3@         FcConfig *                      @ARG3@          config
+@PURPOSE@       Create .uuid file at a directory
+@DESC@
+This function is deprecated. it doesn't take any effects.
+@SINCE@         2.12.92
+@@
+
+@RET@           FcBool
+@FUNC@          FcDirCacheDeleteUUID
+@TYPE1@         const FcChar8 *                 @ARG1@          dir
+@TYPE2@         FcConfig *                      @ARG2@          config
+@PURPOSE@       Delete .uuid file
+@DESC@
+This is to delete .uuid file containing an UUID at a font directory of
+<parameter>dir</parameter>.
+@SINCE@         2.13.1
+@@

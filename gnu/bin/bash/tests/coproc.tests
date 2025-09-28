@@ -1,0 +1,78 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+: ${TMPDIR:=/tmp}
+TMPOUT=${TMPDIR}/coproc-wait-$BASHPID
+
+coproc { echo a b c; sleep 2; }
+
+case $COPROC_PID in
+[0-9]*)	;;
+*)	echo COPROC_PID not integer ;;
+esac
+
+echo ${COPROC[@]}
+
+read LINE <&${COPROC[0]}
+echo $LINE
+
+wait $COPROC_PID
+
+coproc REFLECT { cat - ; }
+
+case $REFLECT_PID in
+[0-9]*)	;;
+*)	echo REFLECT_PID not integer ;;
+esac
+
+echo ${REFLECT[@]}
+
+echo flop >&${REFLECT[1]}
+read LINE <&${REFLECT[0]}
+
+echo $LINE
+
+{ sleep 1; kill $REFLECT_PID; } &
+wait $REFLECT_PID >$TMPOUT 2>&1 || { status=$? ; echo "coproc.tests: REFLECT: status $status" ; }
+[[ $status < 128 || $status == 143 ]] || {
+	echo "coproc.tests: wait for REFLECT failed" >&2
+}
+rm -f $TMPOUT
+exec 2>&1
+
+coproc xcase -n -u
+
+case $COPROC_PID in
+[0-9]*)	;;
+*)	echo COPROC_PID not integer ;;
+esac
+
+echo ${COPROC[@]}
+
+echo foo >&${COPROC[1]}
+read <&${COPROC[0]}
+
+echo $REPLY
+echo ${COPROC[@]}
+
+cat /etc/passwd | grep root | awk -F: '{print $1;}' | sed 1q
+
+exec 4<&${COPROC[0]}-
+exec >&${COPROC[1]}-
+
+echo ${COPROC[@]}
+
+read foo <&4
+echo $foo >&2
+
+exit 0

@@ -1,0 +1,1 @@
+#define FREETYPE_PRESENT 1

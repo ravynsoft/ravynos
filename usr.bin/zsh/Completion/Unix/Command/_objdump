@@ -1,0 +1,198 @@
+#compdef objdump eu-objdump llvm-objdump
+
+local curcontext="$curcontext" files variant ign ret=1
+local -a opts args state state_descr line
+typeset -A opt_args
+
+files='*:object file:_object_files'
+(( $#words > 2 )) && ign='!'
+_pick_variant -r variant binutils=GNU elfutils=elfutils llvm=LLVM unix --version
+
+opts=( -s -S )	# options to _arguments itself
+args=(
+  '(-d --disassemble)'{-d,--disassemble}'[display assembler code of executable sections]'
+  '(-r --reloc)'{-r,--reloc}'[display relocation information]'
+  '(-s --full-contents)'{-s,--full-contents}'[display the full contents of all sections requested]'
+  \*{-j+,--section=}'[only display information for section]:section:(.bss .data .dynamic .dynsym .got .interp .shstrtab .symtab .text)'
+)
+
+case $variant in
+  binutils)
+    compset -P '@' && files='*:options file:_files'
+    args+=(
+      '!(--no-recurse-limit)--recurse-limit'
+      '--no-recurse-limit[disable demangling recursion limit]'
+      '(-a --archive-headers)'{-a,--archive-headers}'[display archive header information]'
+      '(-f --file-headers)'{-f,--file-headers}'[display contents of the overall file header]'
+      '(-p --private-headers)'{-p,--private-headers}'[display object format specific file header contents]'
+      \*{-P+,--private=}'[display information specific to the object format]:option'
+      '(-h --section-headers --headers)'{-h,--section-headers,--headers}'[display contents of the section headers]'
+      '(-x --all-headers)'{-x,--all-headers}'[display the contents of all headers]'
+      '--disassemble=[display assembler contents for specified symbol]:symbol'
+      '(-D --disassemble-all)'{-D,--disassemble-all}'[display assembler contents of all sections]'
+      '(-S --source)'{-S,--source}'[intermix source code with disassembly]'
+      '--source-comment=-[prefix lines of source code with specified text]::text prefix [# ]'
+      '(-g --debugging)'{-g,--debugging}'[display debug information in object file]'
+      '(-e --debugging-tags)'{-e,--debugging-tags}'[display debug information using ctags style]'
+      '(-G --stabs)'{-G,--stabs}'[display (in raw form) any STABS info in the file]'
+
+      '*-W-[display DWARF info in the file]::dwarf section:->short-dwarf-names'
+      '*--dwarf=-[display DWARF info in the file]::dwarf section:->dwarf-names'
+
+      '--ctf=[display compact C type format info for section]:section'
+      '(-t --syms)'{-t,--syms}'[display the contents of the symbol table(s)]'
+      '(-T --dynamic-syms)'{-T,--dynamic-syms}'[display the contents of the dynamic symbol table]'
+      '(-R --dynamic-reloc)'{-R,--dynamic-reloc}'[display the dynamic relocation entries in the file]'
+
+      "${ign}(- *)"{-v,--version}"[display version information]"
+      "${ign}(- *)"{-i,--info}"[list supported object formats and architectures]"
+      "${ign}(- *)"{-H,--help}"[display usage information]"
+
+      '(-b --target)'{-b+,--target=}'[specify the target object format]:target:->bfdnames'
+      '(-m --architecture)'{-m+,--architecture=}'[specify the target architecture]:architecture:->architectures'
+      \*{-M+,--disassembler-options=}'[pass target specific information to the disassembler]:option:->disassembler_options'
+
+      "(-E --endian)-E+[assume endianness when disassembling]:endianness:((B\:\"assume big endian format when disassembling\" L\:\"assume little endian format when disassembling\"))"
+      "(-E --endian)--endian=[assume endianness when disassembling]:endianness:((big\:\"assume big endian format when disassembling\" little\:\"assume little endian format when disassembling\"))"
+
+      '--file-start-context[include context from start of file (with -S)]'
+      \*{-I+,--include=}'[add directory to search list for source files]:directory:_files -/'
+      '(-l --line-numbers)'{-l,--line-numbers}'[include line numbers and filenames in output]'
+      '(-F --file-offsets)'{-F,--file-offsets}'[include file offsets when displaying information]'
+      '(-C --demangle)-C[decode mangled/processed symbol names]'
+      '(-C --demangle)--demangle=-[decode mangled/processed symbol names]::style:(auto gnu lucid arm hp edg gnu-v3 java gnat rust dlang)'
+      '!(--no-recurse-limit)--recurse-limit'
+      '--no-recurse-limit[disable demangling recursion limit]'
+      '(-w --wide)'{-w,--wide}'[format output for more than 80 columns]'
+      '(-z --disassemble-zeroes)'{-z,--disassemble-zeroes}"[don't skip blocks of zeroes when disassembling]"
+
+      '--start-address=[only process data whose address is >= ADDR]:address'
+      '--stop-address=[only process data whose address is < ADDR]:address'
+      "--no-addresses[don't print address alongside disassembly]"
+      '--prefix-addresses[print complete address alongside disassembly]'
+      '(--show-raw-insn --no-show-raw-insn)'--{,no-}show-raw-insn'[display hex alongside symbolic disassembly]'
+      '--insn-width=[display specified number of bytes on a single line with -d]:width (bytes)'
+      '--adjust-vma=[add offset to all displayed section addresses]:offset'
+      '--special-syms[include special symbols in symbol dumps]'
+      '--inlines[print all inlines for source line (with -l)]'
+      '--prefix=[add prefix to absolute paths for -S]:prefix'
+      '--prefix-strip=[strip initial directory names for -S]:level'
+      "--dwarf-depth=[don't display DIEs at specified or greater depth]:depth"
+      '--dwarf-start=[display DIEs at specified or deeper depth]:depth'
+      '--dwarf-check[perform additional dwarf internal consistency checks]'
+      '--ctf-parent=[use specified section as the CTF parent]:section'
+      '--visualize-jumps=-[visualize jumps by drawing ASCII art lines]::color:(color extended-color off)'
+    )
+  ;;
+  elfutils)
+    args+=(
+      "--color=-[colorize the output]::when:(always auto never)"
+      "(- *)"{-\?,--help}"[display help]"
+      "(- *)--usage[display usage]"
+      "(- *)"{-V,--version}"[display program version]"
+
+    )
+  ;;
+  llvm)
+    opts=( -S )	# no option stacking
+    args=(	# start over from an empty array
+      '-aarch64-neon-syntax=[choose style of NEON code (AArch64)]:style:(generic apple)'
+      '-arch=[select arch from a fat binary (with -macho)]:architecture:(i386 x86_64)'
+      '-arch-name=[specify target arch to disassemble for]:architecture:->llvm_targets'
+      '-archive-headers[print archive headers (with -macho)]'
+      '-archive-member-offsets[w -macho -archive-headers: print offset to each archive member]'
+      '-bind[display Mach-O binding info]'
+      '-color[use color syntax highlighting]'
+      '-data-in-code[print data in code table (with -macho)]'
+      "-dis-symname=[disassemble just the specified symbol's instructions (with -macho)]"
+      '(-disassemble -d)'{-disassemble,-d}'[display assembler mnemonics for machine instructions]'
+      '(-disassemble-all -D)'{-disassemble-all,-D}'[disassemble all instruction sections]'
+      '-dsym=[use the specified .dSYM file for debug info (with -macho)]:dsym file:_files'
+      '-dwarf=[dump of dwarf debug section]:section:(frames)'
+      "-dyld-id[print the shared library's id for dylib Mach-O file (with -macho)]"
+      '-dylibs-used[print the shared libraries used for linked Mach-O files (with -macho)]'
+      '-exports-trie[display Mach-O exported symbols]'
+      '-fault-map-section[display contents of faultmap section]'
+      '-filter-print-funcs=[only print IR for the specified functions]:function names'
+      '-full-leading-addr[print full leading address (with -macho)]'
+      '-g[print line information from debug info if available (with -macho)]'
+      '-indirect-symbols[print indirect symbol table (with -macho)]'
+      '-info-plist[print the info plist section (with -macho)]'
+      '-lazy-bind[display Mach-O lazy binding info]'
+      '(-line-numbers -l)'{-line-numbers,-l}'[display source line numbers with disassembly]'
+      '-link-opt-hints[print the linker optimization hints (with -macho)]'
+      '(-macho -m)'{-macho,-m}'[use Mach-O specific object file parser]'
+      '*-mattr=[target specific attributes]:attributes'
+      '-mcpu=[specify target cpu type]:cpu type'
+      '-no-leading-addr[print no leading address (with -macho)]'
+      '-no-leading-headers[print no leading headers]'
+      "-no-show-raw-insn[don't print instruction bytes when disassembling]"
+      "-no-symbolic-operands[don't print operands symbolically when disassembling (with -macho)]"
+      '-non-verbose[print info in non-verbose form (with -macho)]'
+      '-objc-meta-data[print Objective-C runtime meta data (with -macho)]'
+      '-print-after-all[print IR after each pass]'
+      '-print-before-all[print IR before each pass]'
+      '-print-imm-hex[use hex format for immediate values]'
+      '-private-header[display only the first format specific file header]'
+      '(-private-headers -p)'{-private-headers,-p}'[display format specific file headers]'
+      '-r[display the relocation entries in the file]'
+      '-raw-clang-ast[dump raw binary contents of clang AST section]'
+      '-rebase[display Mach-O rebasing info]'
+      '-rng-seed=[seed for the random number generator]:seed'
+      '-s[display contents of each section]'
+      \*{-section=,-j}'[operate on the specified section only]:section'
+      '(-section-headers -h)'{-section-headers,-h}'[display summaries of the headers for each section]'
+      '(-source -S)'{-source,-S}'[display source inlined with disassembly]'
+      '-start-address=[start disassembly at the specified address]:address'
+      '-stop-address=[stop disassembly at the specified address]:address'
+      '-t[display the symbol table]'
+      '-time-passes[time each pass, print elapsed time on exit]'
+      '-triple=[target triple to disassemble for]:triple'
+      '-universal-headers[print Mach-O universal headers (with -macho)]'
+      '-verify-dom-info[verify dominator info (time consuming)]'
+      '-unwind-info[display unwind information]'
+      '-weak-bind[display Mach-O weak binding info]'
+      '-x86-asm-syntax=[choose style of assembler code (x86)]:style:(att intel)'
+      "${ign}(- *)-help[display available options]"
+      "${ign}(- *)-help-list[display list of available options]"
+      "${ign}(- *)-version[display version of objdump]"
+    )
+  ;;
+esac
+
+_arguments $opts -C : "$args[@]" $files && ret=0
+
+case "$state" in
+  short-dwarf-names)
+    _values -s "" "dwarf section" \
+        "l[rawline]" "L[decodedline]" "i[info]" "a[abbrev]" "p[pubnames]" \
+        "r[aranges]" "m[macro]" "f[frames]" "F[frames-interp]" "s[str]" \
+        'O[str-offsets]' \
+        "o[loc]" "R[ranges]" "t[pubtypes]" "U[trace_info]" "u[trace_abbrev]" \
+        "T[trace_aranges]" "g[gdb_index]" "A[addr]" "c[cu_index]" "k[links]" \
+        "K[follow-links]" && ret=0
+  ;;
+  dwarf-names)
+    _sequence _wanted dwarf-sections expl "dwarf section" compadd - \
+        rawline decodedline info abbrev pubnames aranges macro frames \
+        frames-interp str str-offsets loc Ranges pubtypes gdb_index trace_info \
+        trace_abbrev trace_aranges addr cu_index links follow-links && ret=0
+  ;;
+  bfdnames)
+    _wanted targets expl target compadd - \
+        ${=${(M)${(f)"$(_call_program targets objdump --help)"}##* supported targets:*}##*: } && ret=0
+  ;;
+  architectures)
+    _wanted architectures expl architecture compadd - \
+        ${=${(M)${(f)"$(_call_program targets objdump --help)"}##* supported architectures:*}##*: } && ret=0
+  ;;
+  disassembler_options)
+    _values -s , "disassembler option" "${(@)${(@)${(@M)${(f)${(ps.-M switch.)$(_call_program targets objdump --help)}[2]}:#  [^ ]*}#  }%% *}" && ret=0
+  ;;
+  llvm_targets)
+    _values "target architecture" "${(z)${(@)${(f)$(_call_program targets
+            ${~words[1]} -version)##*Registered Targets:}/ -*}}"
+  ;;
+esac
+
+return ret

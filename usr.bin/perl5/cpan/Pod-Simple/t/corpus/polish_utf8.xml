@@ -1,0 +1,91 @@
+<Document start_line="2">
+  <encoding start_line="2">
+    utf8
+  </encoding>
+  <head1 start_line="4">
+    NAME
+  </head1>
+  <Para start_line="6">
+    W&#346;R&#211;D NOCNEJ CISZY -- explicitly utf8 test document in Polish
+  </Para>
+  <head1 start_line="8">
+    DESCRIPTION
+  </head1>
+  <Para start_line="10">
+    This is a test Pod document in UTF8. Its content is the lyrics to the
+    Polish Christmas carol &#34;W&#347;r&#243;d nocnej ciszy&#34;, except
+    it includes a few lines to test RTF specially.
+  </Para>
+  <Para start_line="14">
+    &#64256; is a character in the upper half of Plane 0, so should be negative
+    in RTF &#120120; is a character in Plane 1, so should be expressed as a
+    surrogate pair in RTF
+  </Para>
+  <Para start_line="17">
+    All the ASCII printables
+    !&#34;#$%&#38;\&#39;()*+,-./0123456789:;&#60;=&#62;?@
+    ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_` abcdefghijklmnopqrstuvwxyz{|}~
+  </Para>
+  <Para start_line="22">
+    W&#347;r&#243;d nocnej ciszy g&#322;os si&#281; rozchodzi: / Wsta&#324;cie,
+    pasterze, B&#243;g si&#281; nam rodzi! / Czym pr&#281;dzej si&#281;
+    wybierajcie, / Do Betlejem pospieszajcie / Przywita&#263; Pana.
+  </Para>
+  <Para start_line="28">
+    Poszli, znale&#378;li Dzieci&#261;tko w &#380;&#322;obie / Z wszystkimi
+    znaki danymi sobie. / Jako Bogu cze&#347;&#263; Mu dali, / A
+    witaj&#261;c zawo&#322;ali / Z wielkiej rado&#347;ci:
+  </Para>
+  <Para start_line="34">
+    Ach, witaj Zbawco z dawno &#380;&#261;dany, / Wiele tysi&#281;cy lat
+    wygl&#261;dany / Na Ciebie kr&#243;le, prorocy / Czekali, a Ty&#347;
+    tej nocy / Nam si&#281; objawi&#322;.
+  </Para>
+  <Para start_line="40">
+    I my czekamy na Ciebie, Pana, / A skoro przyjdziesz na g&#322;os
+    kap&#322;ana, / Padniemy na twarz przed Tob&#261;, / Wierz&#261;c,
+    &#380;e&#347; jest pod os&#322;on&#261; / Chleba i wina.
+  </Para>
+  <head2 start_line="46">
+    As Verbatim
+  </head2>
+  <Para start_line="48">
+    And now as verbatim text:
+  </Para>
+  <VerbatimFormatted start_line="50" xml:space="preserve">
+      &#64256;  upper half, Plane 0
+      &#120120; Plane 1
+    
+      All the ASCII printables
+       !&#34;#$%&#38;\&#39;()*+,-./0123456789:;&#60;=&#62;?@
+      ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`
+      abcdefghijklmnopqrstuvwxyz{|}~
+    
+      W&#347;r&#243;d nocnej ciszy g&#322;os si&#281; rozchodzi:
+      Wsta&#324;cie, pasterze, B&#243;g si&#281; nam rodzi!
+      Czym pr&#281;dzej si&#281; wybierajcie,
+      Do Betlejem pospieszajcie
+      Przywita&#263; Pana.
+    
+      Poszli, znale&#378;li Dzieci&#261;tko w &#380;&#322;obie
+      Z wszystkimi znaki danymi sobie.
+      Jako Bogu cze&#347;&#263; Mu dali,
+      A witaj&#261;c zawo&#322;ali
+      Z wielkiej rado&#347;ci:
+    
+      Ach, witaj Zbawco z dawno &#380;&#261;dany,
+      Wiele tysi&#281;cy lat wygl&#261;dany
+      Na Ciebie kr&#243;le, prorocy
+      Czekali, a Ty&#347; tej nocy
+      Nam si&#281; objawi&#322;.
+    
+      I my czekamy na Ciebie, Pana,
+      A skoro przyjdziesz na g&#322;os kap&#322;ana,
+      Padniemy na twarz przed Tob&#261;,
+      Wierz&#261;c, &#380;e&#347; jest pod os&#322;on&#261;
+      Chleba i wina.
+  </VerbatimFormatted>
+  <Para start_line="82">
+    [end]
+  </Para>
+</Document>

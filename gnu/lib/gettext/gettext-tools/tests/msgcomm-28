@@ -1,0 +1,37 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --add-location=file option.
+
+cat <<EOF > mcomm-test28.in1
+#: first.c:123
+msgid "1"
+msgstr "1x"
+EOF
+
+cat <<EOF > mcomm-test28.in2
+#: hunt.c:759
+msgid "2"
+msgstr "2x"
+EOF
+
+: ${MSGCOMM=msgcomm}
+${MSGCOMM} --add-location=file --more-than=0 \
+           -o mcomm-test28.tmp mcomm-test28.in1 mcomm-test28.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcomm-test28.tmp > mcomm-test28.out || Exit 1
+
+cat << EOF > mcomm-test28.ok
+#: first.c
+msgid "1"
+msgstr "1x"
+
+#: hunt.c
+msgid "2"
+msgstr "2x"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcomm-test28.ok mcomm-test28.out
+result=$?
+
+exit $result

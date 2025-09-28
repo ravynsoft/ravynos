@@ -1,0 +1,105 @@
+#autoload
+
+(( $+functions[_path_commands_caching_policy] )) ||
+_path_commands_caching_policy() {
+
+local file
+local -a oldp dbfiles
+
+# rebuild if cache is more than a week old
+oldp=( "$1"(Nmw+1) )
+(( $#oldp )) && return 0
+
+dbfiles=(/usr/share/man/index.(bt|db|dir|pag)(N) \
+  /usr/man/index.(bt|db|dir|pag)(N) \
+  /var/cache/man/index.(bt|db|dir|pag)(N) \
+  /var/catman/index.(bt|db|dir|pag)(N) \
+  /usr/share/man/*/whatis(N))
+
+for file in $dbfiles; do
+  [[ $file -nt $1 ]] && return 0
+done
+
+return 1
+}
+
+_call_whatis() { 
+  case "$(whatis --version)" in
+  ("whatis from "*)
+    local -A args
+    zparseopts -D -A args s: r:
+    apropos "${args[-r]:-"$@"}" | fgrep "($args[-s]"
+    ;;
+  (*) whatis "$@";;
+  esac
+}
+
+_path_commands() {
+local need_desc expl ret=1
+
+if zstyle -t ":completion:${curcontext}:" extra-verbose; then
+  local update_policy first
+  if [[ $+_command_descriptions -eq 0 ]]; then
+    first=yes
+    typeset -A -g _command_descriptions
+  fi
+  zstyle -s ":completion:${curcontext}:" cache-policy update_policy
+  [[ -z "$update_policy" ]] && zstyle ":completion:${curcontext}:" \
+    cache-policy _path_commands_caching_policy
+  if ( [[ -n $first ]] || _cache_invalid command-descriptions ) && \
+    ! _retrieve_cache command-descriptions; then
+    local line
+    for line in "${(f)$(_call_program command-descriptions _call_whatis -s 1 -r .\\\*\; _call_whatis -s 6 -r .\\\* 2>/dev/null)}"; do
+      [[ -n ${line:#(#b)([^ ]#) #\([^ ]#\)( #\[[^ ]#\]|)[ -]#(*)} ]] && continue;
+      [[ -z $match[1] || -z $match[3] || -z ${${match[1]}:#*:*} ]] && continue;
+      _command_descriptions[$match[1]]=$match[3]
+    done
+    _store_cache command-descriptions _command_descriptions
+  fi
+
+  (( $#_command_descriptions )) && need_desc=yes
+fi
+
+if [[ -n $need_desc ]]; then
+  typeset -a dcmds descs cmds matches
+  local desc cmd sep
+  compadd "$@" -O matches -k commands
+  for cmd in $matches; do
+    desc=$_command_descriptions[$cmd]
+    if [[ -z $desc ]]; then
+      cmds+=$cmd
+    else
+      dcmds+=$cmd
+      descs+="$cmd:$desc"
+    fi
+  done
+  zstyle -s ":completion:${curcontext}:" list-separator sep || sep=--
+  zformat -a descs " $sep " $descs
+  descs=("${(@r:COLUMNS-1:)descs}")
+  _wanted commands expl 'external command' \
+    compadd "$@" -ld descs -a dcmds && ret=0
+  _wanted commands expl 'external command' compadd "$@" -a cmds && ret=0
+else
+  _wanted commands expl 'external command' compadd "$@" -k commands && ret=0
+fi
+# TODO: this is called from '_command_names -e' which is typically used in
+# contexts (such as _env) that don't accept directory names.  Should this
+# 'if' block move up to the "_command_names -" branch of _command_names?
+if [[ -o path_dirs ]]; then
+  local -a path_dirs
+
+  if [[ $PREFIX$SUFFIX = */* ]]; then
+    path_dirs=( ${path:#.} )
+    # Find command from path, not hashed
+    _wanted commands expl 'external command' _path_files -W path_dirs -g '*(-*)' && ret=0
+  else
+    path_dirs=(${^path}/*(/N:t))
+    (( ${#path_dirs} )) &&
+        _wanted path-dirs expl 'directory in path' compadd "$@" -S / -a path_dirs && ret=0
+  fi
+fi
+
+return ret
+}
+
+_path_commands "$@"

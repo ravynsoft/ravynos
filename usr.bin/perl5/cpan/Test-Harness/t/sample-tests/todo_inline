@@ -1,0 +1,6 @@
+print <<DUMMY_TEST;
+1..3
+not ok 1 - Foo # TODO Just testing the todo interface.
+ok 2 - Unexpected success # TODO Just testing the todo interface.
+ok 3 - This is not todo
+DUMMY_TEST

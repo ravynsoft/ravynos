@@ -1,0 +1,13 @@
+# indirect referencing of a nameref returns the variable name it references
+unset foo bar
+
+bar=one
+foo=bar
+
+typeset -n foo
+
+echo ${foo}
+echo ${!foo}
+
+# this is a current incompatibility
+echo ${!foo[0]}

@@ -1,0 +1,117 @@
+dn: cn=defaults,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: defaults
+description: Default sudoOption's go here
+sudoOption: passprompt_regex=(?i)password: *
+
+dn: cn=user,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user
+sudoUser: user
+sudoHost: ALL
+sudoCommand: /bin/ls ^/etc/(hosts|motd|issue)$
+sudoOrder: 1
+
+dn: cn=user_1,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user_1
+sudoUser: user
+sudoHost: ALL
+sudoCommand: /usr/bin/c* ^/etc/(hosts|motd|issue)$
+sudoOrder: 2
+
+dn: cn=user_2,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user_2
+sudoUser: user
+sudoHost: ALL
+sudoCommand: ^/usr/bin/(who|w|id|whoami)$
+sudoOrder: 3
+
+dn: cn=user_3,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user_3
+sudoUser: user
+sudoHost: ALL
+sudoCommand: ^/usr/bin/(who|w|id|whoami)$ ""
+sudoOrder: 4
+
+dn: cn=user_4,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user_4
+sudoUser: user
+sudoHost: ALL
+sudoCommand: ^/usr/bin/(who|w|id|whoami)$ root
+sudoOrder: 5
+
+dn: cn=user_5,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user_5
+sudoUser: user
+sudoHost: ALL
+sudoCommand: ^/usr/bin/(who|w|id|whoami)$ -*
+sudoOrder: 6
+
+dn: cn=user_6,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user_6
+sudoUser: user
+sudoHost: ALL
+sudoCommand: ^/usr/bin/(who|w|id|whoami)$ ^(-[ahi] ?)+$
+sudoOrder: 7
+
+dn: cn=user_7,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user_7
+sudoUser: user
+sudoHost: ALL
+sudoCommand: sudoedit ^/etc/(hosts|motd|issue)$
+sudoOrder: 8
+
+dn: cn=user_8,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user_8
+sudoUser: user
+sudoHost: ALL
+sudoCommand: ^/usr/bin/\$tree$
+sudoOrder: 9
+
+dn: cn=user_9,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user_9
+sudoUser: user
+sudoHost: host1
+sudoCommand: /bin/ls ^/etc/(hosts|motd|issue)$
+sudoCommand: /usr/bin/c* ^/etc/(hosts|motd|issue)$
+sudoOrder: 10
+
+dn: cn=user_10,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user_10
+sudoUser: user
+sudoHost: host2
+sudoCommand: ^/usr/bin/(who|w|id|whoami)$ ""
+sudoCommand: ^/usr/bin/(who|w|id|whoami)$ root
+sudoOrder: 11
+
+dn: cn=user_11,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user_11
+sudoUser: user
+sudoHost: host3
+sudoCommand: /bin/echo ^\$foo$
+sudoOrder: 12
+

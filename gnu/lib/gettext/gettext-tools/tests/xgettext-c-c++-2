@@ -1,0 +1,22 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C++ support: C++14 preprocessing number tokens.
+
+: ${XGETTEXT=xgettext}
+
+cat <<\EOF > xg-c-c++-2.cc
+auto i = 1'234; gettext ("hello");
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-c-c++-2.tmp xg-c-c++-2.cc || Exit 1
+LC_ALL=C tr -d '\r' < xg-c-c++-2.tmp.po > xg-c-c++-2.po || Exit 1
+
+cat <<\EOF > xg-c-c++-2.ok
+msgid "hello"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-c-c++-2.ok xg-c-c++-2.po || Exit 1

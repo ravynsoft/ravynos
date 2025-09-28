@@ -1,0 +1,65 @@
+#compdef xargs gxargs
+
+local args variant
+
+args=(
+  '(-l -L --max-lines -n --max-args -s --max-chars)'{-n+,--max-args=}'[specify maximum number of arguments for each line]:number of arguments' \
+  '(-l -L --max-lines -n --max-args -s --max-chars)'{-s+,--max-chars=}'[specify maximum characters per command line]:maximum command line length'
+  '(-p --verbose -t --interactive)'{-p,--interactive}'[prompt user for each command]'
+  '(-p --verbose -t --interactive)'{-t,--verbose}'[verbose - echo each command]'
+  '(-x --exit)'{-x,--exit}'[exit if max size exceeded]'
+)
+
+_pick_variant -r variant gnu=GNU $OSTYPE --version
+
+case $variant in
+  gnu|darwin*|freebsd*|netbsd*|openbsd*)
+    args+=(
+      '(--max-procs -P)'{-P,--max-procs}'[parallel mode]:maximum processes' '!-r'
+    )
+  ;|
+  dragonfly*|darwin*|freebsd*|netbsd*|openbsd*)
+    args=( "${(@)args:#(|\(*\))(|\*)--*}"
+      '-0[expect NUL characters as input separators]'
+      '-J[specify marker for position of arguments]:marker'
+      '-R[specify maximum arguments that -I will replace in]:replacements'
+    )
+  ;|
+  freebsd*|netbsd*|dragonfly*)
+    args+=(
+      '-S[space that -I can use for replacements]:size (bytes) [255]'
+    )
+  ;;
+  solaris*|gnu)
+    args+=(
+      '(-x -I)'{-i-,--replace}'[specify replacement string for command line]::replacement string'
+      '(-n -L -x)-l-[call program for every number of lines]:number of input lines'
+      '(-E -e --eof)'{-e-,--eof=}'[specify EOF marker]:end-of-file marker'
+    )
+  ;|
+  solaris*) args=( "${(@)args:#(|\(*\))(|\*)--*}" ) ;|
+  solaris2.<11->)
+    args+=( '-0[expect NUL characters as input separators]' )
+  ;;
+  gnu)
+    args+=(
+      '(-a --arg-file)'{-a+,--arg-file=}'[read input items from specified file]:file:_files'
+      '(-0 --null -d --delimiter)'{-0,--null}'[expect NUL characters as input separators]'
+      '(-d --delimiter -0 --null)'{-d+,--delimiter=}'[specify delimiter of input items]:delimiter'
+      '(-l -L --max-lines -n --max-args -s --max-chars)--max-lines=-[call program for every number of lines]::number of input lines'
+      '(-o --open-tty)'{-o,--open-tty}'[reopen stdin as /dev/tty in the child process before executing the command]'
+      '--process-slot-var=[set environment variable to unique value in child processes]:variable:_parameters -g "*export*"'
+      '(-r --no-run-if-empty)'{-r,--no-run-if-empty}"[don't run command in absence of input]"
+      '(- *)--help[show help information]'
+      '(- *)--version[show version information]'
+      '--show-limits[show OS imposed limits to command-line length]'
+    )
+  ;;
+esac
+
+_arguments -s $args \
+  '-E[specify EOF marker]:end-of-file marker' \
+  '(-x -i)-I[specify replacement string for command line]:replacement string' \
+  '(-n -l)-L[call program for every number of lines]:number of input lines' \
+  '(-):command: _command_names -e' \
+  '*::args: _normal'

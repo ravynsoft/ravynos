@@ -1,0 +1,145 @@
+# Copyright (C) 2018-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+#
+# Some s12z  tests
+#
+if { ![istarget "s12z*-*-*"] } then {
+    return
+}
+
+
+run_dump_test abs
+run_dump_test adc-imm
+run_dump_test adc-opr
+run_dump_test add-imm
+run_dump_test add-opr
+run_dump_test and-imm
+run_dump_test and-opr
+run_dump_test and-or-cc
+run_dump_test bfext-special
+run_dump_test bfext
+run_dump_test bit-manip
+run_dump_test bit
+run_dump_test bra
+run_dump_test brset-clr-opr-imm-rel
+run_dump_test brset-clr-opr-reg-rel
+run_dump_test brset-clr-reg-imm-rel
+run_dump_test brset-clr-reg-reg-rel
+run_dump_test clb
+run_dump_test clr-opr
+run_dump_test clr
+run_dump_test cmp-imm
+run_dump_test cmp-opr-inc
+run_dump_test cmp-opr-rdirect
+run_dump_test cmp-opr-reg
+run_dump_test cmp-opr-rindirect
+run_dump_test cmp-opr-sxe4
+run_dump_test cmp-opr-xys
+run_dump_test cmp-s-imm
+run_dump_test cmp-s-opr
+run_dump_test cmp-xy
+run_dump_test com-opr
+run_dump_test complex-shifts
+run_dump_test db-tb-cc-opr
+run_dump_test db-tb-cc-reg
+run_dump_test dec-opr
+run_dump_test dec
+run_dump_test div
+run_dump_test eor
+run_dump_test exg
+run_dump_test inc-opr
+run_dump_test inc
+run_dump_test inh
+run_dump_test jmp
+run_dump_test jsr
+run_dump_test ld-imm-page2
+run_dump_test ld-imm
+run_dump_test ld-opr
+run_dump_test ld-s-opr
+run_dump_test lea
+run_dump_test mac
+run_dump_test min-max
+run_dump_test mod
+run_dump_test mov
+run_dump_test mov-imm-reloc
+run_dump_test p2-mul
+run_dump_test mul-imm
+run_dump_test mul-opr-opr
+run_dump_test mul-opr
+run_dump_test mul-reg
+run_dump_test mul
+run_dump_test neg-opr
+run_dump_test not-so-simple-shifts
+run_dump_test opr-18u
+run_dump_test opr-ext-18
+run_dump_test opr-idx-24-reg
+run_dump_test opr-idx3-reg
+run_dump_test opr-idx3-xysp-24
+run_dump_test or-imm
+run_dump_test or-opr
+run_dump_test pc-rel-bad
+run_dump_test pc-rel-good
+run_dump_test page2-inh
+run_dump_test psh-pul
+run_dump_test qmul
+run_dump_test rotate
+run_dump_test sat
+run_dump_test sbc-imm
+run_dump_test sbc-opr
+run_dump_test shift
+run_dump_test simple-shift
+run_dump_test single-ops
+run_dump_test st-opr
+run_dump_test st-s-opr
+run_dump_test sub-imm
+run_dump_test sub-opr
+run_dump_test tfr
+run_dump_test trap
+run_dump_test specd6
+
+# Tests of the disassembler - these are hard to force the assembler to generate
+run_dump_test ld-immu18
+run_dump_test lea-immu18
+run_dump_test ext24-ld-xy
+run_dump_test st-xy
+run_dump_test bit-manip-invalid
+run_dump_test truncated
+
+# Symbol related tests
+run_dump_test opr-symbol
+run_dump_test brclr-symbols
+run_dump_test dbCC
+run_dump_test labels
+
+# Expression related tests
+run_dump_test opr-expr
+run_dump_test opr-indirect-expr
+run_dump_test bra-expression-defined
+run_dump_test bra-expression-undef
+
+# Tests related to optimisation
+run_dump_test ld-large-direct
+run_dump_test ld-small-direct
+run_dump_test st-large-direct
+run_dump_test st-small-direct
+
+run_dump_test imm-dest
+
+# Miscellaneous
+
+run_dump_test reg-prefix
+run_dump_test dollar-hex

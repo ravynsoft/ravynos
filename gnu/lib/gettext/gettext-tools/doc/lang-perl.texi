@@ -1,0 +1,870 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2020 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@node Perl
+@subsection Perl
+@cindex Perl
+
+@table @asis
+@item RPMs
+perl
+
+@item Ubuntu packages
+perl, libintl-perl
+
+@item File extension
+@code{pl}, @code{PL}, @code{pm}, @code{perl}, @code{cgi}
+
+@item String syntax
+@itemize @bullet
+
+@item @code{"abc"}
+
+@item @code{'abc'}
+
+@item @code{qq (abc)}
+
+@item @code{q (abc)}
+
+@item @code{qr /abc/}
+
+@item @code{qx (/bin/date)}
+
+@item @code{/pattern match/}
+
+@item @code{?pattern match?}
+
+@item @code{s/substitution/operators/}
+
+@item @code{$tied_hash@{"message"@}}
+
+@item @code{$tied_hash_reference->@{"message"@}}
+
+@item etc., issue the command @samp{man perlsyn} for details
+
+@end itemize
+
+@item gettext shorthand
+@code{__} (double underscore)
+
+@item gettext/ngettext functions
+@code{gettext}, @code{dgettext}, @code{dcgettext}, @code{ngettext},
+@code{dngettext}, @code{dcngettext}, @code{pgettext}, @code{dpgettext},
+@code{dcpgettext}, @code{npgettext}, @code{dnpgettext},
+@code{dcnpgettext}
+
+@item textdomain
+@code{textdomain} function
+
+@item bindtextdomain
+@code{bindtextdomain} function
+
+@item bind_textdomain_codeset 
+@code{bind_textdomain_codeset} function
+
+@item setlocale
+Use @code{setlocale (LC_ALL, "");}
+
+@item Prerequisite
+@code{use POSIX;}
+@*@code{use Locale::TextDomain;} (included in the package libintl-perl
+which is available on the Comprehensive Perl Archive Network CPAN,
+https://www.cpan.org/).
+
+@item Use or emulate GNU gettext
+platform dependent: gettext_pp emulates, gettext_xs uses GNU gettext
+
+@item Extractor
+@code{xgettext -k__ -k\$__ -k%__ -k__x -k__n:1,2 -k__nx:1,2 -k__xn:1,2 
+-kN__ -kN__n:1,2 -k__p:1c,2 -k__np:1c,2,3 -kN__p:1c,2 -kN__np:1c,2,3}
+
+@item Formatting with positions
+Both kinds of format strings support formatting with positions.
+@*@code{printf "%2\$d %1\$d", ...} (requires Perl 5.8.0 or newer)
+@*@code{__expand("[new] replaces [old]", old => $oldvalue, new => $newvalue)}
+
+@item Portability
+The @code{libintl-perl} package is platform independent but is not
+part of the Perl core.  The programmer is responsible for
+providing a dummy implementation of the required functions if the 
+package is not installed on the target system.
+
+@item po-mode marking
+---
+
+@item Documentation
+Included in @code{libintl-perl}, available on CPAN
+(https://www.cpan.org/).
+
+@end table
+
+An example is available in the @file{examples} directory: @code{hello-perl}.
+
+@cindex marking Perl sources
+
+The @code{xgettext} parser backend for Perl differs significantly from
+the parser backends for other programming languages, just as Perl
+itself differs significantly from other programming languages.  The
+Perl parser backend offers many more string marking facilities than
+the other backends but it also has some Perl specific limitations, the
+worst probably being its imperfectness.
+
+@menu
+* General Problems::            General Problems Parsing Perl Code
+* Default Keywords::            Which Keywords Will xgettext Look For?
+* Special Keywords::            How to Extract Hash Keys
+* Quote-like Expressions::      What are Strings And Quote-like Expressions?
+* Interpolation I::             Invalid String Interpolation
+* Interpolation II::            Valid String Interpolation
+* Parentheses::                 When To Use Parentheses
+* Long Lines::                  How To Grok with Long Lines
+* Perl Pitfalls::               Bugs, Pitfalls, and Things That Do Not Work
+@end menu
+
+@node General Problems
+@subsubsection General Problems Parsing Perl Code
+
+It is often heard that only Perl can parse Perl.  This is not true.
+Perl cannot be @emph{parsed} at all, it can only be @emph{executed}.
+Perl has various built-in ambiguities that can only be resolved at runtime.
+
+The following example may illustrate one common problem:
+
+@example
+print gettext "Hello World!";
+@end example
+
+Although this example looks like a bullet-proof case of a function
+invocation, it is not:
+
+@example
+open gettext, ">testfile" or die;
+print gettext "Hello world!"
+@end example
+
+In this context, the string @code{gettext} looks more like a
+file handle.  But not necessarily:
+
+@example
+use Locale::Messages qw (:libintl_h);
+open gettext ">testfile" or die;
+print gettext "Hello world!";
+@end example
+
+Now, the file is probably syntactically incorrect, provided that the module
+@code{Locale::Messages} found first in the Perl include path exports a
+function @code{gettext}.  But what if the module
+@code{Locale::Messages} really looks like this?
+
+@example
+use vars qw (*gettext);
+
+1;
+@end example
+
+In this case, the string @code{gettext} will be interpreted as a file
+handle again, and the above example will create a file @file{testfile}
+and write the string ``Hello world!'' into it.  Even advanced
+control flow analysis will not really help:
+
+@example
+if (0.5 < rand) @{
+   eval "use Sane";
+@} else @{
+   eval "use InSane";
+@}
+print gettext "Hello world!";
+@end example
+
+If the module @code{Sane} exports a function @code{gettext} that does
+what we expect, and the module @code{InSane} opens a file for writing
+and associates the @emph{handle} @code{gettext} with this output
+stream, we are clueless again about what will happen at runtime.  It is
+completely unpredictable.  The truth is that Perl has so many ways to
+fill its symbol table at runtime that it is impossible to interpret a
+particular piece of code without executing it.
+
+Of course, @code{xgettext} will not execute your Perl sources while
+scanning for translatable strings, but rather use heuristics in order
+to guess what you meant.
+
+Another problem is the ambiguity of the slash and the question mark.
+Their interpretation depends on the context:
+
+@example
+# A pattern match.
+print "OK\n" if /foobar/;
+
+# A division.
+print 1 / 2;
+
+# Another pattern match.
+print "OK\n" if ?foobar?;
+
+# Conditional.
+print $x ? "foo" : "bar";
+@end example
+
+The slash may either act as the division operator or introduce a
+pattern match, whereas the question mark may act as the ternary
+conditional operator or as a pattern match, too.  Other programming
+languages like @code{awk} present similar problems, but the consequences of a
+misinterpretation are particularly nasty with Perl sources.  In @code{awk}
+for instance, a statement can never exceed one line and the parser
+can recover from a parsing error at the next newline and interpret
+the rest of the input stream correctly.  Perl is different, as a
+pattern match is terminated by the next appearance of the delimiter
+(the slash or the question mark) in the input stream, regardless of
+the semantic context.  If a slash is really a division sign but
+mis-interpreted as a pattern match, the rest of the input file is most
+probably parsed incorrectly.
+
+There are certain cases, where the ambiguity cannot be resolved at all:
+
+@example
+$x = wantarray ? 1 : 0;
+@end example
+
+The Perl built-in function @code{wantarray} does not accept any arguments.
+The Perl parser therefore knows that the question mark does not start
+a regular expression but is the ternary conditional operator.
+
+@example 
+sub wantarrays @{@}
+$x = wantarrays ? 1 : 0;
+@end example
+
+Now the situation is different.  The function @code{wantarrays} takes
+a variable number of arguments (like any non-prototyped Perl function).
+The question mark is now the delimiter of a pattern match, and hence
+the piece of code does not compile.
+
+@example
+sub wantarrays() @{@}
+$x = wantarrays ? 1 : 0;
+@end example
+
+Now the function is prototyped, Perl knows that it does not accept any
+arguments, and the question mark is therefore interpreted as the
+ternaray operator again.  But that unfortunately outsmarts @code{xgettext}.
+
+The Perl parser in @code{xgettext} cannot know whether a function has
+a prototype and what that prototype would look like.  It therefore makes
+an educated guess.  If a function is known to be a Perl built-in and
+this function does not accept any arguments, a following question mark
+or slash is treated as an operator, otherwise as the delimiter of a
+following regular expression.  The Perl built-ins that do not accept
+arguments are @code{wantarray}, @code{fork}, @code{time}, @code{times},
+@code{getlogin}, @code{getppid}, @code{getpwent}, @code{getgrent},
+@code{gethostent}, @code{getnetent}, @code{getprotoent}, @code{getservent},
+@code{setpwent}, @code{setgrent}, @code{endpwent}, @code{endgrent},
+@code{endhostent}, @code{endnetent}, @code{endprotoent}, and
+@code{endservent}.
+
+If you find that @code{xgettext} fails to extract strings from
+portions of your sources, you should therefore look out for slashes
+and/or question marks preceding these sections.  You may have come
+across a bug in @code{xgettext}'s Perl parser (and of course you
+should report that bug).  In the meantime you should consider to
+reformulate your code in a manner less challenging to @code{xgettext}.
+
+In particular, if the parser is too dumb to see that a function
+does not accept arguments, use parentheses:
+
+@example
+$x = somefunc() ? 1 : 0;
+$y = (somefunc) ? 1 : 0;
+@end example
+
+In fact the Perl parser itself has similar problems and warns you
+about such constructs.
+
+@node Default Keywords
+@subsubsection Which keywords will xgettext look for?
+@cindex Perl default keywords
+
+Unless you instruct @code{xgettext} otherwise by invoking it with one
+of the options @code{--keyword} or @code{-k}, it will recognize the
+following keywords in your Perl sources:
+
+@itemize @bullet
+
+@item @code{gettext}
+
+@item @code{dgettext:2}
+
+The second argument will be extracted.
+
+@item @code{dcgettext:2}
+
+The second argument will be extracted.
+
+@item @code{ngettext:1,2}
+
+The first (singular) and the second (plural) argument will be
+extracted.
+
+@item @code{dngettext:2,3}
+
+The second (singular) and the third (plural) argument will be
+extracted.
+
+@item @code{dcngettext:2,3}
+
+The second (singular) and the third (plural) argument will be
+extracted.
+
+@item @code{pgettext:1c,2}
+
+The first (message context) and the second argument will be extracted.
+
+@item @code{dpgettext:2c,3}
+
+The second (message context) and the third argument will be extracted.
+
+@item @code{dcpgettext:2c,3}
+
+The second (message context) and the third argument will be extracted.
+
+@item @code{npgettext:1c,2,3}
+
+The first (message context), second (singular), and third (plural)
+argument will be extracted.
+
+@item @code{dnpgettext:2c,3,4}
+
+The second (message context), third (singular), and fourth (plural)
+argument will be extracted.
+
+@item @code{dcnpgettext:2c,3,4}
+
+The second (message context), third (singular), and fourth (plural)
+argument will be extracted.
+
+@item @code{gettext_noop}
+
+@item @code{%gettext}
+
+The keys of lookups into the hash @code{%gettext} will be extracted.
+
+@item @code{$gettext}
+
+The keys of lookups into the hash reference @code{$gettext} will be extracted.
+
+@end itemize
+
+@node Special Keywords
+@subsubsection How to Extract Hash Keys
+@cindex Perl special keywords for hash-lookups
+
+Translating messages at runtime is normally performed by looking up the
+original string in the translation database and returning the
+translated version.  The ``natural'' Perl implementation is a hash
+lookup, and, of course, @code{xgettext} supports such practice.
+
+@example
+print __"Hello world!";
+print $__@{"Hello world!"@};
+print $__->@{"Hello world!"@};
+print $$__@{"Hello world!"@};
+@end example  
+
+The above four lines all do the same thing.  The Perl module 
+@code{Locale::TextDomain} exports by default a hash @code{%__} that
+is tied to the function @code{__()}.  It also exports a reference
+@code{$__} to @code{%__}.
+
+If an argument to the @code{xgettext} option @code{--keyword},
+resp. @code{-k} starts with a percent sign, the rest of the keyword is
+interpreted as the name of a hash.  If it starts with a dollar
+sign, the rest of the keyword is interpreted as a reference to a
+hash.
+
+Note that you can omit the quotation marks (single or double) around
+the hash key (almost) whenever Perl itself allows it:
+
+@example
+print $gettext@{Error@};
+@end example
+
+The exact rule is: You can omit the surrounding quotes, when the hash
+key is a valid C (!) identifier, i.e.@: when it starts with an
+underscore or an ASCII letter and is followed by an arbitrary number
+of underscores, ASCII letters or digits.  Other Unicode characters
+are @emph{not} allowed, regardless of the @code{use utf8} pragma.
+
+@node Quote-like Expressions
+@subsubsection What are Strings And Quote-like Expressions?
+@cindex Perl quote-like expressions
+
+Perl offers a plethora of different string constructs.  Those that can
+be used either as arguments to functions or inside braces for hash
+lookups are generally supported by @code{xgettext}.  
+
+@itemize @bullet
+@item @strong{double-quoted strings}
+@*
+@example
+print gettext "Hello World!";
+@end example
+
+@item @strong{single-quoted strings}
+@*
+@example
+print gettext 'Hello World!';
+@end example
+
+@item @strong{the operator qq}
+@*
+@example
+print gettext qq |Hello World!|;
+print gettext qq <E-mail: <guido\@@imperia.net>>;
+@end example
+
+The operator @code{qq} is fully supported.  You can use arbitrary
+delimiters, including the four bracketing delimiters (round, angle,
+square, curly) that nest.
+
+@item @strong{the operator q}
+@*
+@example
+print gettext q |Hello World!|;
+print gettext q <E-mail: <guido@@imperia.net>>;
+@end example
+
+The operator @code{q} is fully supported.  You can use arbitrary
+delimiters, including the four bracketing delimiters (round, angle,
+square, curly) that nest.
+
+@item @strong{the operator qx}
+@*
+@example
+print gettext qx ;LANGUAGE=C /bin/date;
+print gettext qx [/usr/bin/ls | grep '^[A-Z]*'];
+@end example
+
+The operator @code{qx} is fully supported.  You can use arbitrary
+delimiters, including the four bracketing delimiters (round, angle,
+square, curly) that nest.
+
+The example is actually a useless use of @code{gettext}.  It will
+invoke the @code{gettext} function on the output of the command
+specified with the @code{qx} operator.  The feature was included
+in order to make the interface consistent (the parser will extract
+all strings and quote-like expressions).
+
+@item @strong{here documents}
+@*
+@example
+@group
+print gettext <<'EOF';
+program not found in $PATH
+EOF
+
+print ngettext <<EOF, <<"EOF";
+one file deleted
+EOF
+several files deleted
+EOF
+@end group
+@end example
+
+Here-documents are recognized.  If the delimiter is enclosed in single
+quotes, the string is not interpolated.  If it is enclosed in double
+quotes or has no quotes at all, the string is interpolated.
+
+Delimiters that start with a digit are not supported!
+
+@end itemize
+
+@node Interpolation I
+@subsubsection Invalid Uses Of String Interpolation
+@cindex Perl invalid string interpolation
+
+Perl is capable of interpolating variables into strings.  This offers
+some nice features in localized programs but can also lead to
+problems.
+
+A common error is a construct like the following:
+
+@example
+print gettext "This is the program $0!\n";
+@end example
+
+Perl will interpolate at runtime the value of the variable @code{$0}
+into the argument of the @code{gettext()} function.  Hence, this
+argument is not a string constant but a variable argument (@code{$0}
+is a global variable that holds the name of the Perl script being
+executed).  The interpolation is performed by Perl before the string
+argument is passed to @code{gettext()} and will therefore depend on
+the name of the script which can only be determined at runtime.
+Consequently, it is almost impossible that a translation can be looked
+up at runtime (except if, by accident, the interpolated string is found
+in the message catalog).
+
+The @code{xgettext} program will therefore terminate parsing with a fatal
+error if it encounters a variable inside of an extracted string.  In
+general, this will happen for all kinds of string interpolations that
+cannot be safely performed at compile time.  If you absolutely know
+what you are doing, you can always circumvent this behavior:
+
+@example
+my $know_what_i_am_doing = "This is program $0!\n";
+print gettext $know_what_i_am_doing;
+@end example
+
+Since the parser only recognizes strings and quote-like expressions,
+but not variables or other terms, the above construct will be
+accepted.  You will have to find another way, however, to let your
+original string make it into your message catalog.
+
+If invoked with the option @code{--extract-all}, resp. @code{-a},
+variable interpolation will be accepted.  Rationale: You will
+generally use this option in order to prepare your sources for
+internationalization.
+
+Please see the manual page @samp{man perlop} for details of strings and
+quote-like expressions that are subject to interpolation and those
+that are not.  Safe interpolations (that will not lead to a fatal
+error) are:
+
+@itemize @bullet
+
+@item the escape sequences @code{\t} (tab, HT, TAB), @code{\n}
+(newline, NL), @code{\r} (return, CR), @code{\f} (form feed, FF),
+@code{\b} (backspace, BS), @code{\a} (alarm, bell, BEL), and @code{\e}
+(escape, ESC).
+
+@item octal chars, like @code{\033}
+@*
+Note that octal escapes in the range of 400-777 are translated into a 
+UTF-8 representation, regardless of the presence of the @code{use utf8} pragma.
+
+@item hex chars, like @code{\x1b}
+
+@item wide hex chars, like @code{\x@{263a@}}
+@*
+Note that this escape is translated into a UTF-8 representation,
+regardless of the presence of the @code{use utf8} pragma.
+
+@item control chars, like @code{\c[} (CTRL-[)
+
+@item named Unicode chars, like @code{\N@{LATIN CAPITAL LETTER C WITH CEDILLA@}}
+@*
+Note that this escape is translated into a UTF-8 representation,
+regardless of the presence of the @code{use utf8} pragma.
+@end itemize
+
+The following escapes are considered partially safe:
+
+@itemize @bullet
+
+@item @code{\l} lowercase next char
+
+@item @code{\u} uppercase next char
+
+@item @code{\L} lowercase till \E
+
+@item @code{\U} uppercase till \E
+
+@item @code{\E} end case modification
+
+@item @code{\Q} quote non-word characters till \E
+
+@end itemize
+
+These escapes are only considered safe if the string consists of
+ASCII characters only.  Translation of characters outside the range
+defined by ASCII is locale-dependent and can actually only be performed 
+at runtime; @code{xgettext} doesn't do these locale-dependent translations
+at extraction time.
+
+Except for the modifier @code{\Q}, these translations, albeit valid,
+are generally useless and only obfuscate your sources.  If a
+translation can be safely performed at compile time you can just as
+well write what you mean.
+
+@node Interpolation II
+@subsubsection Valid Uses Of String Interpolation
+@cindex Perl valid string interpolation
+
+Perl is often used to generate sources for other programming languages
+or arbitrary file formats.  Web applications that output HTML code
+make a prominent example for such usage.
+
+You will often come across situations where you want to intersperse
+code written in the target (programming) language with translatable
+messages, like in the following HTML example:
+
+@example
+print gettext <<EOF;
+<h1>My Homepage</h1>
+<script language="JavaScript"><!--
+for (i = 0; i < 100; ++i) @{
+    alert ("Thank you so much for visiting my homepage!");
+@}
+//--></script>
+EOF
+@end example
+
+The parser will extract the entire here document, and it will appear
+entirely in the resulting PO file, including the JavaScript snippet
+embedded in the HTML code.  If you exaggerate with constructs like 
+the above, you will run the risk that the translators of your package 
+will look out for a less challenging project.  You should consider an 
+alternative expression here:
+
+@example
+print <<EOF;
+<h1>$gettext@{"My Homepage"@}</h1>
+<script language="JavaScript"><!--
+for (i = 0; i < 100; ++i) @{
+    alert ("$gettext@{'Thank you so much for visiting my homepage!'@}");
+@}
+//--></script>
+EOF
+@end example
+
+Only the translatable portions of the code will be extracted here, and
+the resulting PO file will begrudgingly improve in terms of readability.
+
+You can interpolate hash lookups in all strings or quote-like
+expressions that are subject to interpolation (see the manual page
+@samp{man perlop} for details).  Double interpolation is invalid, however:
+
+@example
+# TRANSLATORS: Replace "the earth" with the name of your planet.
+print gettext qq@{Welcome to $gettext->@{"the earth"@}@};
+@end example
+
+The @code{qq}-quoted string is recognized as an argument to @code{xgettext} in
+the first place, and checked for invalid variable interpolation.  The
+dollar sign of hash-dereferencing will therefore terminate the parser 
+with an ``invalid interpolation'' error.
+
+It is valid to interpolate hash lookups in regular expressions:
+
+@example
+if ($var =~ /$gettext@{"the earth"@}/) @{
+   print gettext "Match!\n";
+@}
+s/$gettext@{"U. S. A."@}/$gettext@{"U. S. A."@} $gettext@{"(dial +0)"@}/g;
+@end example
+
+@node Parentheses
+@subsubsection When To Use Parentheses
+@cindex Perl parentheses
+
+In Perl, parentheses around function arguments are mostly optional.
+@code{xgettext} will always assume that all
+recognized keywords (except for hashes and hash references) are names
+of properly prototyped functions, and will (hopefully) only require
+parentheses where Perl itself requires them.  All constructs in the
+following example are therefore ok to use:
+
+@example
+@group
+print gettext ("Hello World!\n");
+print gettext "Hello World!\n";
+print dgettext ($package => "Hello World!\n");
+print dgettext $package, "Hello World!\n";
+
+# The "fat comma" => turns the left-hand side argument into a
+# single-quoted string!
+print dgettext smellovision => "Hello World!\n";
+
+# The following assignment only works with prototyped functions.
+# Otherwise, the functions will act as "greedy" list operators and
+# eat up all following arguments.
+my $anonymous_hash = @{
+   planet => gettext "earth",
+   cakes => ngettext "one cake", "several cakes", $n,
+   still => $works,
+@};
+# The same without fat comma:
+my $other_hash = @{
+   'planet', gettext "earth",
+   'cakes', ngettext "one cake", "several cakes", $n,
+   'still', $works,
+@};
+
+# Parentheses are only significant for the first argument.
+print dngettext 'package', ("one cake", "several cakes", $n), $discarded;
+@end group
+@end example
+
+@node Long Lines
+@subsubsection How To Grok with Long Lines
+@cindex Perl long lines
+
+The necessity of long messages can often lead to a cumbersome or
+unreadable coding style.  Perl has several options that may prevent
+you from writing unreadable code, and
+@code{xgettext} does its best to do likewise.  This is where the dot
+operator (the string concatenation operator) may come in handy:
+
+@example
+@group
+print gettext ("This is a very long"
+               . " message that is still"
+               . " readable, because"
+               . " it is split into"
+               . " multiple lines.\n");
+@end group
+@end example
+
+Perl is smart enough to concatenate these constant string fragments
+into one long string at compile time, and so is
+@code{xgettext}.  You will only find one long message in the resulting
+POT file.
+
+Note that the future Perl 6 will probably use the underscore
+(@samp{_}) as the string concatenation operator, and the dot 
+(@samp{.}) for dereferencing.  This new syntax is not yet supported by
+@code{xgettext}.
+
+If embedded newline characters are not an issue, or even desired, you
+may also insert newline characters inside quoted strings wherever you
+feel like it:
+
+@example
+@group
+print gettext ("<em>In HTML output
+embedded newlines are generally no
+problem, since adjacent whitespace
+is always rendered into a single
+space character.</em>");
+@end group
+@end example
+
+You may also consider to use here documents:
+
+@example
+@group
+print gettext <<EOF;
+<em>In HTML output
+embedded newlines are generally no
+problem, since adjacent whitespace
+is always rendered into a single
+space character.</em>
+EOF
+@end group
+@end example
+
+Please do not forget that the line breaks are real, i.e.@: they
+translate into newline characters that will consequently show up in
+the resulting POT file.
+
+@node Perl Pitfalls
+@subsubsection Bugs, Pitfalls, And Things That Do Not Work
+@cindex Perl pitfalls
+
+The foregoing sections should have proven that
+@code{xgettext} is quite smart in extracting translatable strings from
+Perl sources.  Yet, some more or less exotic constructs that could be
+expected to work, actually do not work.  
+
+One of the more relevant limitations can be found in the
+implementation of variable interpolation inside quoted strings.  Only
+simple hash lookups can be used there:
+
+@example
+print <<EOF;
+$gettext@{"The dot operator"
+          . " does not work"
+          . "here!"@}
+Likewise, you cannot @@@{[ gettext ("interpolate function calls") ]@}
+inside quoted strings or quote-like expressions.
+EOF
+@end example
+
+This is valid Perl code and will actually trigger invocations of the
+@code{gettext} function at runtime.  Yet, the Perl parser in
+@code{xgettext} will fail to recognize the strings.  A less obvious
+example can be found in the interpolation of regular expressions:
+
+@example
+s/<!--START_OF_WEEK-->/gettext ("Sunday")/e;
+@end example
+
+The modifier @code{e} will cause the substitution to be interpreted as
+an evaluable statement.  Consequently, at runtime the function
+@code{gettext()} is called, but again, the parser fails to extract the
+string ``Sunday''.  Use a temporary variable as a simple workaround if
+you really happen to need this feature:
+
+@example
+my $sunday = gettext "Sunday";
+s/<!--START_OF_WEEK-->/$sunday/;
+@end example
+
+Hash slices would also be handy but are not recognized:
+
+@example
+my @@weekdays = @@gettext@{'Sunday', 'Monday', 'Tuesday', 'Wednesday',
+                        'Thursday', 'Friday', 'Saturday'@};
+# Or even:
+@@weekdays = @@gettext@{qw (Sunday Monday Tuesday Wednesday Thursday
+                         Friday Saturday) @};
+@end example
+
+This is perfectly valid usage of the tied hash @code{%gettext} but the
+strings are not recognized and therefore will not be extracted.
+
+Another caveat of the current version is its rudimentary support for
+non-ASCII characters in identifiers.  You may encounter serious
+problems if you use identifiers with characters outside the range of
+'A'-'Z', 'a'-'z', '0'-'9' and the underscore '_'.
+
+Maybe some of these missing features will be implemented in future
+versions, but since you can always make do without them at minimal effort,
+these todos have very low priority.
+
+A nasty problem are brace format strings that already contain braces
+as part of the normal text, for example the usage strings typically
+encountered in programs:
+
+@example
+die "usage: $0 @{OPTIONS@} FILENAME...\n";
+@end example
+
+If you want to internationalize this code with Perl brace format strings,
+you will run into a problem:
+
+@example
+die __x ("usage: @{program@} @{OPTIONS@} FILENAME...\n", program => $0);
+@end example
+
+Whereas @samp{@{program@}} is a placeholder, @samp{@{OPTIONS@}}
+is not and should probably be translated. Yet, there is no way to teach
+the Perl parser in @code{xgettext} to recognize the first one, and leave
+the other one alone.
+
+There are two possible work-arounds for this problem.  If you are
+sure that your program will run under Perl 5.8.0 or newer (these
+Perl versions handle positional parameters in @code{printf()}) or
+if you are sure that the translator will not have to reorder the arguments
+in her translation -- for example if you have only one brace placeholder
+in your string, or if it describes a syntax, like in this one --, you can
+mark the string as @code{no-perl-brace-format} and use @code{printf()}:
+
+@example
+# xgettext: no-perl-brace-format
+die sprintf ("usage: %s @{OPTIONS@} FILENAME...\n", $0);
+@end example
+
+If you want to use the more portable Perl brace format, you will have to do
+put placeholders in place of the literal braces:
+
+@example
+die __x ("usage: @{program@} @{[@}OPTIONS@{]@} FILENAME...\n",
+         program => $0, '[' => '@{', ']' => '@}');
+@end example
+
+Perl brace format strings know no escaping mechanism.  No matter how this
+escaping mechanism looked like, it would either give the programmer a
+hard time, make translating Perl brace format strings heavy-going, or
+result in a performance penalty at runtime, when the format directives
+get executed.  Most of the time you will happily get along with
+@code{printf()} for this special case.

@@ -1,0 +1,11 @@
+#compdef dumper dumper.exe
+
+# cygwin 1.5.25
+
+_arguments -s -S \
+  '(--verbose -d --quiet -q)'{-d,--verbose}'[be verbose while dumping]' \
+  '(--verbose -d --quiet -q)'{-q,--quiet}'[be quiet while dumping (default)]' \
+  '(- 1 *)'{-h,--help}'[output help information and exit]' \
+  '(- 1 *)'{-v,--version}'[output version information and exit]' \
+  '1: :_files' \
+  '*: :_pids'

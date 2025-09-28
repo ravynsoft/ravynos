@@ -1,0 +1,53 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recode-sr-latin on some input in UTF-8 encoding.
+
+# Test whether a specific UTF-8 locale is installed.
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+if test $LOCALE_FR_UTF8 != none; then
+  LC_ALL=$LOCALE_FR_UTF8 ../testlocale 2>/dev/null
+  case $? in
+    0) ;;
+    77) LOCALE_FR_UTF8=none;;
+    *) Exit 1;;
+  esac
+fi
+if test $LOCALE_FR_UTF8 = none; then
+  if test -f /usr/bin/localedef; then
+    echo "Skipping test: no french UTF-8 locale is installed"
+  else
+    echo "Skipping test: no french UTF-8 locale is supported"
+  fi
+  Exit 77
+fi
+
+cat <<\EOF > rec-srl-1.in
+Исправни аргументи су
+неједнозначан аргумент
+љубазни фењерџија чађавог лица хоће да ми покаже штос
+ЉУБАЗНИ ФЕЊЕРЏИЈА ЧАЂАВОГ ЛИЦА ХОЋЕ ДА МИ ПОКАЖЕ ШТОС
+ЉУБЉАНА Љубљана ЏИВЏАН Џивџан ЊУЊОРИ Њуњори
+ѐѝӣӯ ЍЀӢӮ ЉӮ ӮЉ
+EOF
+
+: ${RECODE=recode}
+LC_ALL=$LOCALE_FR_UTF8 \
+${RECODE}-sr-latin < rec-srl-1.in > rec-srl-1.tmp.out \
+  || { Exit 1; }
+LC_ALL=C tr -d '\r' < rec-srl-1.tmp.out > rec-srl-1.out || Exit 1
+
+cat <<\EOF > rec-srl-1.ok
+Ispravni argumenti su
+nejednoznačan argument
+ljubazni fenjerdžija čađavog lica hoće da mi pokaže štos
+LJUBAZNI FENJERDŽIJA ČAĐAVOG LICA HOĆE DA MI POKAŽE ŠTOS
+LJUBLJANA Ljubljana DŽIVDŽAN Dživdžan NJUNJORI Njunjori
+èìīū ÌÈĪŪ LJŪ ŪLJ
+EOF
+
+: ${DIFF=diff}
+${DIFF} rec-srl-1.ok rec-srl-1.out
+result=$?
+
+exit $result

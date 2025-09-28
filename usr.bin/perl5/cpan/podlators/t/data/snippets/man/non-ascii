@@ -1,0 +1,15 @@
+[name]
+Non-ASCII character
+
+[options]
+encoding roff
+
+[input]
+=head1 YEN
+
+It cost me E<165>12345! That should be an X.
+
+[output]
+.SH YEN
+.IX Header "YEN"
+It cost me X12345! That should be an X.

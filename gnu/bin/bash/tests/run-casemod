@@ -1,0 +1,2 @@
+${THIS_SH} ./casemod.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} casemod.right && rm -f ${BASH_TSTOUT}

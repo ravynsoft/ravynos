@@ -1,0 +1,11 @@
+# replace the `login' and `newgrp' builtins in old bourne shells
+
+login()
+{
+	exec login "$@"
+}
+
+newgrp()
+{
+	exec newgrp "$@"
+}

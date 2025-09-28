@@ -1,0 +1,43 @@
+# bash completion for vpddecode                            -*- shell-script -*-
+
+_comp_cmd_vpddecode() {
+	local cur prev
+	COMPREPLY=()
+	cur=${COMP_WORDS[COMP_CWORD]}
+	prev=${COMP_WORDS[COMP_CWORD - 1]}
+
+	case $prev in
+	-d | --dev-mem)
+		: "${cur:=/dev/}"
+		local IFS=$'\n'
+		compopt -o filenames
+		COMPREPLY=($(compgen -f -- "$cur"))
+		return 0
+		;;
+	-s | --string)
+		COMPREPLY=($(compgen -W '$(
+			"$1" --string 2>&1 | while IFS=\$'\\n' read -r line ; do
+				[[ $line == "  "* ]] && printf "%s\n" "$line"
+			done
+		' -- "$cur"))
+		return 0
+		;;
+	-[hV] | --help | --version)
+		return 0
+		;;
+	esac
+
+	if [[ $cur == -* ]]; then
+		COMPREPLY=($(compgen -W '
+			--dev-mem
+			--help
+			--string
+			--dump
+			--version
+		' -- "$cur"))
+		return 0
+	fi
+
+} && complete -F _comp_cmd_vpddecode vpddecode
+
+# ex: filetype=sh

@@ -1,0 +1,280 @@
+# Expect script for linker support of STB_GNU_UNIQUE symbols
+#
+#   Copyright (C) 2009-2023 Free Software Foundation, Inc.
+#   Contributed by Red Hat.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+# Written by Nick Clifton <nickc@redhat.com>
+# Adapted for unique checking by Mark J. Wielaard <mjw@redhat.com>
+
+
+# Exclude non-ELF targets.
+if { ![is_elf_format] } {
+    return
+}
+
+# Require STB_GNU_UNIQUE support with OSABI set to GNU.
+if { ![supports_gnu_unique] || [istarget tic6x-*-*] } {
+    verbose "UNIQUE tests not run - target does not support UNIQUE"
+    return
+}
+
+set test_list [lsort [glob -nocomplain $srcdir/$subdir/*.d]]
+foreach t $test_list {
+    # We need to strip the ".d", but can leave the dirname.
+    verbose [file rootname $t]
+    run_dump_test [file rootname $t]
+}
+
+# We need a working compiler.  (Strictly speaking this is
+# not true, we could use target specific assembler files).
+if { ![check_compiler_available] } {
+    verbose "UNIQUE compiled tests not run - no compiler available"
+    return
+}
+
+# A procedure to check the OS/ABI field in the ELF header of a binary file.
+proc check_osabi { binary_file expected_osabi } {
+    global READELF
+    global READELFFLAGS
+
+    catch "exec $READELF $READELFFLAGS --file-header $binary_file > readelf.out" got
+
+    if ![string match "" $got] then {
+	verbose "proc check_osabi: Readelf produced unexpected out processing $binary_file: $got"
+	return 0
+    }
+
+    if { ![regexp "\n\[ \]*OS/ABI:\[ \]*(.+)\n\[ \]*ABI" \
+	   [file_contents readelf.out] nil osabi] } {
+	verbose "proc check_osabi: Readelf failed to extract an ELF header from $binary_file"
+	return 0
+    }
+
+    if { $osabi == $expected_osabi } {
+	return 1
+    }
+
+    verbose "Expected OSABI: $expected_osabi, Obtained osabi: $osabi"
+
+    return 0
+}
+
+# A procedure to confirm that a file contains the UNIQUE symbol.
+# Returns -1 upon error, 0 if the symbol was not found and 1 if it was found.
+proc contains_unique_symbol { binary_file } {
+    global READELF
+    global READELFFLAGS
+
+    catch "exec $READELF $READELFFLAGS --symbols $binary_file > readelf.out" got
+
+    if ![string match "" $got] then {
+	verbose "proc contains_unique_symbol: Readelf produced unexpected out processing $binary_file: $got"
+	return -1
+    }
+
+    # Look for a line like this:
+    #    54: 0000000000400474     4 OBJECT  UNIQUE DEFAULT   13 a
+
+    if { ![regexp ".*\[ \]*OBJECT\[ \]+UNIQUE\[ \]+DEFAULT\[ \]+\[UND0-9\]+\[ \]+\[ab\]_val\n" [file_contents readelf.out]] } {
+	return 0
+    }
+
+    return 1
+}
+
+set fails 0
+
+# Create object file containing unique symbol.
+if ![ld_compile "$CC_FOR_TARGET -c" "$srcdir/$subdir/unique.s" "tmpdir/unique.o"] {
+    fail "Could not create a unique object"
+    set fails [expr $fails + 1]
+}
+
+# Create object file NOT containing unique symbol.
+if ![ld_compile "$CC_FOR_TARGET -c" "$srcdir/$subdir/unique_empty.s" "tmpdir/unique_empty.o"] {
+    fail "Could not create a non-unique object"
+    set fails [expr $fails + 1]
+}
+
+# When using GCC as the linker driver, we need to specify board cflags when
+# linking because cflags may contain linker options.  For example when linker
+# options are included in GCC spec files then we need the -specs option.
+if [board_info [target_info name] exists cflags] {
+  set board_cflags " [board_info [target_info name] cflags]"
+} else {
+  set board_cflags ""
+}
+
+if [board_info [target_info name] exists ldflags] {
+    set board_ldflags " [board_info [target_info name] ldflags]"
+} else {
+    set board_ldflags ""
+}
+
+# Create executable containing unique symbol.
+if ![ld_link "$CC_FOR_TARGET $NOPIE_LDFLAGS $board_cflags $board_ldflags" "tmpdir/unique_prog" "tmpdir/unique.o"] {
+    fail "Could not link a unique executable"
+    set fails [expr $fails + 1]
+}
+
+if { $fails != 0 } {
+    return
+}
+
+# Check the object file.
+if {! [check_osabi tmpdir/unique.o {UNIX - GNU}]} {
+    fail "Object containing unique does not have an OS/ABI field of GNU"
+    set fails [expr $fails + 1]
+}
+
+if {[contains_unique_symbol tmpdir/unique.o] != 1} {
+    fail "Object containing unique does not contain an UNIQUE symbol"
+    set fails [expr $fails + 1]
+}
+
+if { $fails == 0 } {
+  pass "Checking unique object"
+}
+
+# Check the executable.
+if {! [check_osabi tmpdir/unique_prog {UNIX - GNU}]} {
+    fail "Executable containing unique does not have an OS/ABI field of GNU"
+    set fails [expr $fails + 1]
+}
+
+if {[contains_unique_symbol tmpdir/unique_prog] != 1} {
+    fail "Executable containing unique does not contain an UNIQUE symbol"
+    set fails [expr $fails + 1]
+}
+
+if { $fails == 0 } {
+  pass "Checking unique executable"
+}
+
+# Check the empty object file.
+switch -glob $target_triplet {
+    hppa*-*-linux* { set expected_none {UNIX - GNU} }
+    default { set expected_none {UNIX - System V} }
+}
+if {! [check_osabi tmpdir/unique_empty.o $expected_none]} {
+    fail "Object NOT containing unique does not have an OS/ABI field of $expected_none"
+    set fails [expr $fails + 1]
+}
+
+if {[contains_unique_symbol tmpdir/unique_empty.o] == 1} {
+    fail "Object NOT containing unique does contain an UNIQUE symbol"
+    set fails [expr $fails + 1]
+}
+
+if { $fails == 0 } {
+  pass "Checking empty unique object"
+}
+
+# ------------------------------------------------------------------------------
+# Only shared library tests below.
+# ------------------------------------------------------------------------------
+
+if { ![check_shared_lib_support] } {
+    return
+}
+
+# Create pic object file containing unique symbol.
+if {![ld_compile "$CC_FOR_TARGET -c -fPIC" "$srcdir/$subdir/unique_shared.s" "tmpdir/unique_shared.o"] } {
+    fail "Could not create a pic unique object"
+    set fails [expr $fails + 1]
+}
+
+# Create shared library containing unique symbol.
+if {![ld_link $ld "tmpdir/libunique_shared.so" "-shared tmpdir/unique_shared.o"] } {
+    fail "Could not create a shared library containing an unique symbol"
+    set fails [expr $fails + 1]
+}
+
+# Create executable NOT containing unique symbol linked against library.
+if {![ld_link "$CC_FOR_TARGET $NOPIE_LDFLAGS $board_cflags" "tmpdir/unique_shared_prog" "-Ltmpdir tmpdir/unique_empty.o -Wl,-Bdynamic,-rpath=./tmpdir -lunique_shared"] } {
+    fail "Could not link a dynamic executable"
+    set fails [expr $fails + 1]
+}
+
+# Create shared library containing unique symbol with reference.
+if {![ld_link $ld "tmpdir/libunique_shared_ref.so" "-shared -z notext tmpdir/unique_shared.o tmpdir/unique_empty.o"] } {
+    fail "Could not create a shared library containing an unique symbol with reference"
+    set fails [expr $fails + 1]
+}
+
+if { $fails != 0 } {
+    return
+}
+
+# Check the unique PIC file.
+if {! [check_osabi tmpdir/unique_shared.o {UNIX - GNU}]} {
+    fail "PIC Object containing unique does not have an OS/ABI field of GNU"
+    set fails [expr $fails + 1]
+}
+
+if {[contains_unique_symbol tmpdir/unique_shared.o] != 1} {
+    fail "PIC Object containing unique does not contain an UNIQUE symbol"
+    set fails [expr $fails + 1]
+}
+
+if { $fails == 0 } {
+  pass "Checking unique PIC object 1"
+}
+
+# Check the unique shared library.
+if {! [check_osabi tmpdir/libunique_shared.so {UNIX - GNU}]} {
+    fail "Shared library containing unique does not have an OS/ABI field of GNU"
+    set fails [expr $fails + 1]
+}
+
+if {[contains_unique_symbol tmpdir/libunique_shared.so] != 1} {
+    fail "Shared library containing unique does not contain an UNIQUE symbol"
+    set fails [expr $fails + 1]
+}
+
+# Check the unique shared library with reference.
+if {! [check_osabi tmpdir/libunique_shared_ref.so {UNIX - GNU}]} {
+    fail "Shared library containing unique with reference does not have an OS/ABI field of GNU"
+    set fails [expr $fails + 1]
+}
+
+if {[contains_unique_symbol tmpdir/libunique_shared_ref.so] != 1} {
+    fail "Shared library containing unique with reference does not contain an UNIQUE symbol"
+    set fails [expr $fails + 1]
+}
+
+if { $fails == 0 } {
+  pass "Checking unique PIC object 2"
+}
+
+# Check the empty executable linked against unique shared library.
+if {! [check_osabi tmpdir/unique_shared_prog $expected_none]} {
+    fail "Executable NOT containing unique does not have an OS/ABI field of $expected_none"
+    set fails [expr $fails + 1]
+}
+
+if {[contains_unique_symbol tmpdir/unique_shared_prog] == 1} {
+    fail "Executable NOT containing unique does contain an UNIQUE symbol"
+    set fails [expr $fails + 1]
+}
+
+if { $fails == 0 } {
+  pass "Checking shared empty executable"
+}

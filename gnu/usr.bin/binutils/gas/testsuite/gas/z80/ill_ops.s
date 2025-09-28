@@ -1,0 +1,42 @@
+.text
+	ld	b,(var)
+	ld	c,(var)
+	ld	d,(var)
+	ld	e,(var)
+	ld	h,(var)
+	ld	l,(var)
+	ld	(var),(var)
+	ld	(var),b
+	ld	(var),c
+	ld	(var),d
+	ld	(var),h
+	ld	(var),l
+	ld	(var),10
+	ld	10,(var)
+	ld	b,(bc)
+	ld	c,(bc)
+	ld	d,(bc)
+	ld	e,(bc)
+	ld	h,(bc)
+	ld	l,(bc)
+	ld	(bc),b
+	ld	(bc),c
+	ld	(bc),d
+	ld	(bc),e
+	ld	(bc),h
+	ld	(bc),l
+	ld	b,(de)
+	ld	c,(de)
+	ld	d,(de)
+	ld	e,(de)
+	ld	h,(de)
+	ld	l,(de)
+	ld	(de),b
+	ld	(de),c
+	ld	(de),d
+	ld	(de),e
+	ld	(de),h
+	ld	(de),l
+.bss
+var:
+	.db	10

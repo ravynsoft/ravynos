@@ -1,0 +1,1 @@
+#define LIBJPEG_PRESENT 1

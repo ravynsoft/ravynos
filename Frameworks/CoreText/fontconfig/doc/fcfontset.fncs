@@ -1,0 +1,140 @@
+/*
+ * fontconfig/doc/fcfontset.fncs
+ *
+ * Copyright © 2003 Keith Packard
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name of the author(s) not be used in
+ * advertising or publicity pertaining to distribution of the software without
+ * specific, written prior permission.  The authors make no
+ * representations about the suitability of this software for any purpose.  It
+ * is provided "as is" without express or implied warranty.
+ *
+ * THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+@RET@           FcFontSet *
+@FUNC@          FcFontSetCreate
+@TYPE1@         void
+@PURPOSE@       Create a font set
+@DESC@
+Creates an empty font set.
+@@
+
+@RET@           void
+@FUNC@          FcFontSetDestroy
+@TYPE1@         FcFontSet *                     @ARG1@          s
+@PURPOSE@       Destroy a font set
+@DESC@
+Destroys a font set.  Note that this destroys any referenced patterns as
+well.
+@@
+
+@RET@           FcBool
+@FUNC@          FcFontSetAdd
+@TYPE1@         FcFontSet *                     @ARG1@          s
+@TYPE2@         FcPattern *                     @ARG2@          font
+@PURPOSE@       Add to a font set
+@DESC@
+Adds a pattern to a font set.  Note that the pattern is not copied before
+being inserted into the set. Returns FcFalse if the pattern cannot be
+inserted into the set (due to allocation failure). Otherwise returns FcTrue.
+@@
+
+@RET@           FcFontSet *
+@FUNC@          FcFontSetList
+@TYPE1@         FcConfig *                      @ARG1@          config
+@TYPE2@         FcFontSet **                    @ARG2@          sets
+@TYPE3@         int                             @ARG3@          nsets
+@TYPE4@         FcPattern *                     @ARG4@          pattern
+@TYPE5@         FcObjectSet *                   @ARG5@          object_set
+@PURPOSE@       List fonts from a set of font sets
+@DESC@
+Selects fonts matching <parameter>pattern</parameter> from
+<parameter>sets</parameter>, creates patterns from those
+fonts containing only the objects in <parameter>object_set</parameter> and returns
+the set of unique such patterns.
+If <parameter>config</parameter> is NULL, the default configuration is checked
+to be up to date, and used.
+@@
+
+@RET@           FcPattern *
+@FUNC@          FcFontSetMatch
+@TYPE1@         FcConfig *                      @ARG1@          config
+@TYPE2@         FcFontSet **                    @ARG2@          sets
+@TYPE3@         int                             @ARG3@          nsets
+@TYPE4@         FcPattern *                     @ARG4@          pattern
+@TYPE5@         FcResult *                      @ARG5@          result
+@PURPOSE@       Return the best font from a set of font sets
+@DESC@
+Finds the font in <parameter>sets</parameter> most closely matching
+<parameter>pattern</parameter> and returns the result of
+<function>FcFontRenderPrepare</function> for that font and the provided
+pattern. This function should be called only after
+<function>FcConfigSubstitute</function> and
+<function>FcDefaultSubstitute</function> have been called for
+<parameter>pattern</parameter>; otherwise the results will not be correct.
+If <parameter>config</parameter> is NULL, the current configuration is used.
+Returns NULL if an error occurs during this process.
+@@
+
+@RET@           void
+@FUNC@          FcFontSetPrint
+@TYPE1@         FcFontSet *                     @ARG1@          set
+@PURPOSE@       Print a set of patterns to stdout
+@DESC@
+This function is useful for diagnosing font related issues, printing the
+complete contents of every pattern in <parameter>set</parameter>. The format
+of the output is designed to be of help to users and developers, and may
+change at any time.
+@@
+
+@RET@           FcFontSet *
+@FUNC@          FcFontSetSort
+@TYPE1@         FcConfig *                      @ARG1@          config
+@TYPE2@         FcFontSet **                    @ARG2@          sets
+@TYPE3@         int                             @ARG3@          nsets
+@TYPE4@         FcPattern *                     @ARG4@          pattern
+@TYPE5@         FcBool%                         @ARG5@          trim
+@TYPE6@         FcCharSet **                    @ARG6@          csp
+@TYPE7@         FcResult *                      @ARG7@          result
+@PURPOSE@       Add to a font set
+@DESC@
+Returns the list of fonts from <parameter>sets</parameter>
+sorted by closeness to <parameter>pattern</parameter>.
+If <parameter>trim</parameter> is FcTrue,
+elements in the list which don't include Unicode coverage not provided by
+earlier elements in the list are elided.  The union of Unicode coverage of
+all of the fonts is returned in <parameter>csp</parameter>,
+if <parameter>csp</parameter> is not NULL.  This function
+should be called only after FcConfigSubstitute and FcDefaultSubstitute have
+been called for <parameter>p</parameter>;
+otherwise the results will not be correct.
+    </para><para>
+The returned FcFontSet references FcPattern structures which may be shared
+by the return value from multiple FcFontSort calls, applications cannot
+modify these patterns.  Instead, they should be passed, along with
+<parameter>pattern</parameter> to
+<function>FcFontRenderPrepare</function> which combines them into a complete pattern.
+    </para><para>
+The FcFontSet returned by FcFontSetSort is destroyed by calling FcFontSetDestroy.
+@@
+
+@RET@           void
+@FUNC@          FcFontSetSortDestroy
+@TYPE1@         FcFontSet *                     @ARG1@          set
+@PURPOSE@       DEPRECATED destroy a font set
+@DESC@
+This function is DEPRECATED. <function>FcFontSetSortDestroy</function>
+destroys <parameter>set</parameter> by calling
+<function>FcFontSetDestroy</function>. Applications should use
+<function>FcFontSetDestroy</function> directly instead.
+@@

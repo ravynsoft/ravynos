@@ -1,0 +1,161 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgmerge and msgcmp: handling of 'range:' flags.
+
+cat <<\EOF > mm-test24.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#, c-format
+msgid "one day"
+msgid_plural "%d days"
+msgstr[0] "un jour"
+msgstr[1] "%d jours"
+
+#, c-format, range: 1..6
+msgid "one week and one day"
+msgid_plural "one week and %d days"
+msgstr[0] "une semaine et un jour"
+msgstr[1] "une semaine et %d jours"
+
+#, c-format, range: 1..7
+msgid "two weeks and one day"
+msgid_plural "two weeks and %d days"
+msgstr[0] "deux semaines et un jour"
+msgstr[1] "deux semaines et %d jours"
+
+#, c-format, range: 0..6
+msgid "three weeks and one day"
+msgid_plural "three weeks and %d days"
+msgstr[0] "trois semaines et un jour"
+msgstr[1] "trois semaines et %d jours"
+
+#, c-format, range: 0..7
+msgid "four weeks and one day"
+msgid_plural "four weeks and %d days"
+msgstr[0] "quatre semaines et un jour"
+msgstr[1] "quatre semaines et %d jours"
+
+#, c-format, range: 1..6
+msgid "five weeks and one day"
+msgid_plural "five weeks and %d days"
+msgstr[0] "cinq semaines et un jour"
+msgstr[1] "cinq semaines et %d jours"
+EOF
+
+cat <<\EOF > mm-test24.pot
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#, c-format, range: 1..6
+msgid "one day"
+msgid_plural "%d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format
+msgid "one week and one day"
+msgid_plural "one week and %d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, range: 0..6
+msgid "two weeks and one day"
+msgid_plural "two weeks and %d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, range: 1..7
+msgid "three weeks and one day"
+msgid_plural "three weeks and %d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, range: 1..6
+msgid "four weeks and one day"
+msgid_plural "four weeks and %d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, range: 0..7
+msgid "five weeks and one day"
+msgid_plural "five weeks and %d days"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${MSGCMP=msgcmp}
+${MSGCMP} --use-fuzzy --use-untranslated mm-test24.po mm-test24.pot 2>/dev/null || Exit 1
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-test24.tmp.po mm-test24.po mm-test24.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-test24.tmp.po > mm-test24.new.po || Exit 1
+
+cat <<\EOF > mm-test24.ok
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#, c-format, range: 1..6
+msgid "one day"
+msgid_plural "%d days"
+msgstr[0] "un jour"
+msgstr[1] "%d jours"
+
+#, fuzzy, c-format
+msgid "one week and one day"
+msgid_plural "one week and %d days"
+msgstr[0] "une semaine et un jour"
+msgstr[1] "une semaine et %d jours"
+
+#, fuzzy, c-format, range: 0..6
+msgid "two weeks and one day"
+msgid_plural "two weeks and %d days"
+msgstr[0] "deux semaines et un jour"
+msgstr[1] "deux semaines et %d jours"
+
+#, fuzzy, c-format, range: 1..7
+msgid "three weeks and one day"
+msgid_plural "three weeks and %d days"
+msgstr[0] "trois semaines et un jour"
+msgstr[1] "trois semaines et %d jours"
+
+#, c-format, range: 1..6
+msgid "four weeks and one day"
+msgid_plural "four weeks and %d days"
+msgstr[0] "quatre semaines et un jour"
+msgstr[1] "quatre semaines et %d jours"
+
+#, fuzzy, c-format, range: 0..7
+msgid "five weeks and one day"
+msgid_plural "five weeks and %d days"
+msgstr[0] "cinq semaines et un jour"
+msgstr[1] "cinq semaines et %d jours"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-test24.ok mm-test24.new.po || Exit 1
+
+: ${MSGCMP=msgcmp}
+${MSGCMP} --use-fuzzy --use-untranslated mm-test24.new.po mm-test24.pot || Exit 1
+
+Exit 0

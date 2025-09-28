@@ -1,0 +1,34 @@
+TODO list for Net::Ping (in case anyone is looking for things to do)
+
+- More IPv6 support
+Some options like IP_TOS and IP_TTL are not available on IPv6
+
+- POD rewriting
+Some things, such as the return from $p->ping(), are cryptic.  The location of the
+source is off as well.
+
+- Device
+Setting the device uses SO_BINDTODEVICE.  This is Linux-only and should not work anywhere
+else.  I think deprecating this is probably the right thing to do.
+
+-TOS
+The incoming TOS value can be just about anything from my testing.  This valid values are
+supposed to be (in decimal) 0, 1, 2, 4, and 8 assuming we aren't talking DS and ECN.
+I don't know right now if this is a bug in Socket, Darwin (tesing on Mac OS X currently)
+or if that's just the way it is.  Time for some C level testing for this one.
+P.S. TOS is IPv4 only.
+
+- Tests
+Nicholas Clark converted the tests to Test::More which is a good start.  The tests need some
+cleanup and modernizing.  Below is the current test coverage when testing as root.
+
+----------------------------------- ------ ------ ------ ------ ------ ------
+File                                  stmt   bran   cond    sub   time  total
+----------------------------------- ------ ------ ------ ------ ------ ------
+blib/lib/Net/Ping.pm                  62.6   42.8   33.0   76.9  100.0   52.6
+Total                                 62.6   42.8   33.0   76.9  100.0   52.6
+----------------------------------- ------ ------ ------ ------ ------ ------
+
+This needs to be quite a bit higher all around to make me comfortable with a refactor.
+
+

@@ -1,0 +1,228 @@
+#                                                                    -*-perl-*-
+$description = "Test the shared object load API.";
+
+$details = "Verify the different aspects of the shared object API.";
+
+# Don't do anything if this system doesn't support "load"
+exists $FEATURES{load} or return -1;
+
+my $cc = get_config('CC');
+if (! $cc) {
+    $verbose and print "Skipping load test: no CC defined\n";
+    return -1;
+}
+
+# First build a shared object
+# Provide both a default and non-default load symbol
+
+unlink(qw(testapi.c testapi.so));
+
+open(my $F, '> testapi.c') or die "open: testapi.c: $!\n";
+print $F <<'EOF' ;
+#include <string.h>
+#include <stdio.h>
+
+#include "gnumake.h"
+
+char *getenv (const char*);
+
+int plugin_is_GPL_compatible;
+
+int testapi_gmk_setup ();
+
+static char *
+test_eval (const char *buf)
+{
+    gmk_eval (buf, 0);
+    return NULL;
+}
+
+static char *
+test_expand (const char *val)
+{
+    return gmk_expand (val);
+}
+
+static char *
+test_noexpand (const char *val)
+{
+    char *str = gmk_alloc (strlen (val) + 1);
+    strcpy (str, val);
+    return str;
+}
+
+static char *
+func_test (const char *funcname, unsigned int argc, char **argv)
+{
+    char *mem;
+
+    if (strcmp (funcname, "test-expand") == 0)
+        return test_expand (argv[0]);
+
+    if (strcmp (funcname, "test-eval") == 0)
+        return test_eval (argv[0]);
+
+    if (strcmp (funcname, "test-noexpand") == 0)
+        return test_noexpand (argv[0]);
+
+    mem = gmk_alloc (sizeof ("unknown"));
+    strcpy (mem, "unknown");
+    return mem;
+}
+
+int
+testapi_gmk_setup (const gmk_floc *floc)
+{
+    const char *verbose = getenv ("TESTAPI_VERBOSE");
+
+    gmk_add_function ("test-expand", func_test, 1, 1, GMK_FUNC_DEFAULT);
+    gmk_add_function ("test-noexpand", func_test, 1, 1, GMK_FUNC_NOEXPAND);
+    gmk_add_function ("test-eval", func_test, 1, 1, GMK_FUNC_DEFAULT);
+    gmk_add_function ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.", func_test, 0, 0, 0);
+
+    if (verbose)
+      {
+        printf ("testapi_gmk_setup\n");
+
+        if (verbose[0] == '2')
+          printf ("%s:%lu\n", floc->filenm, floc->lineno);
+      }
+
+    if (getenv ("TESTAPI_KEEP"))
+      return -1;
+
+    return 1;
+}
+EOF
+close($F) or die "close: testapi.c: $!\n";
+
+# Make sure we can compile
+
+my $cflags = get_config('CFLAGS');
+my $cppflags = get_config('CPPFLAGS');
+my $ldflags = get_config('LDFLAGS');
+my $sobuild = "$cc ".($srcdir? "-I$srcdir/src":'')." $cppflags $cflags -shared -fPIC $ldflags -o testapi.so testapi.c";
+
+my $clog = `$sobuild 2>&1`;
+if ($? != 0) {
+    $verbose and print "Failed to build testapi.so:\n$sobuild\n$_";
+    return -1;
+}
+
+# TEST 1
+# Check the gmk_expand() function
+run_make_test(q!
+EXPAND = expansion
+all: ; @echo $(test-expand $$(EXPAND))
+load testapi.so
+!,
+              '', "expansion\n");
+
+# TEST 2
+# Check the eval operation.  Prove that the argument is expanded only once
+run_make_test(q!
+load testapi.so
+TEST = bye
+ASSIGN = VAR = $(TEST) $(shell echo there)
+$(test-eval $(value ASSIGN))
+TEST = hi
+all:;@echo '$(VAR)'
+!,
+              '', "hi there\n");
+
+# TEST 2
+# Check the no-expand capability
+run_make_test(q!
+load testapi.so
+TEST = hi
+all:;@echo '$(test-noexpand $(TEST))'
+!,
+              '', "\$(TEST)\n");
+
+
+# During all subsequent tests testapi.so exists.
+#
+my @loads = ('', q!
+load testapi.so
+load testapi.so
+-load testapi.so
+-load testapi.so
+$(eval load testapi.so)
+$(eval -load testapi.so)
+!);
+
+for my $extra_loads (@loads) {
+my $n = 5;
+if ($extra_loads) {
+  $n = 12;
+}
+# sv 63045.
+# Test that having unloaded a shared object make loads it again, even if the
+# shared object is not updated.
+$ENV{TESTAPI_VERBOSE} = 1;
+run_make_test("
+load testapi.so
+$extra_loads
+all:; \$(info \$(test-expand hello))
+testapi.so: force; \$(info \$@)
+force:;
+.PHONY: force
+", '', "testapi_gmk_setup\ntestapi.so\ntestapi_gmk_setup\nhello\n#MAKE#: 'all' is up to date.\n");
+
+# sv 63045.
+# Same as above, but testapi_gmk_setup returned -1.
+$ENV{TESTAPI_KEEP} = 1;
+$ENV{TESTAPI_VERBOSE} = 1;
+run_make_test("
+load testapi.so
+$extra_loads
+all:; \$(info \$(test-expand hello))
+testapi.so: force; \$(info \$@)
+force:;
+.PHONY: force
+", '', "testapi_gmk_setup\nhello\n#MAKE#: 'all' is up to date.\n");
+
+# sv 63045.
+# Test that make exits, unless make can successfully update an unloaded shared
+# object.
+$ENV{TESTAPI_VERBOSE} = 1;
+run_make_test("
+load testapi.so
+$extra_loads
+all:; \$(info \$(test-expand hello))
+testapi.so: force; @#HELPER# fail 1
+force:;
+.PHONY: force
+", '', "testapi_gmk_setup\nfail 1\n#MAKE#: *** [#MAKEFILE#:$n: testapi.so] Error 1\n", 512);
+
+# sv 63045.
+# Same as above, but testapi_gmk_setup returned -1.
+$ENV{TESTAPI_KEEP} = 1;
+$ENV{TESTAPI_VERBOSE} = 1;
+run_make_test("
+load testapi.so
+$extra_loads
+all:; \$(info \$(test-expand hello))
+testapi.so: force; @#HELPER# fail 1
+force:;
+.PHONY: force
+", '', "testapi_gmk_setup\nhello\n#MAKE#: 'all' is up to date.\n");
+
+# sv 63100.
+# Test that make supplies the correct floc when the shared object is loaded
+# again.
+$ENV{TESTAPI_VERBOSE} = 2;
+run_make_test("
+load testapi.so
+$extra_loads
+all:; \$(info \$(test-expand hello))
+testapi.so: force; \$(info \$@)
+force:;
+.PHONY: force
+", '', "testapi_gmk_setup\n#MAKEFILE#:2\ntestapi.so\ntestapi_gmk_setup\n#MAKEFILE#:2\nhello\n#MAKE#: 'all' is up to date.\n");
+}
+
+unlink(qw(testapi.c testapi.so)) unless $keep;
+
+# This tells the test driver that the perl test script executed properly.
+1;

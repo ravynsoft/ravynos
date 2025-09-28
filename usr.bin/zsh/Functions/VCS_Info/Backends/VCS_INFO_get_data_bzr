@@ -1,0 +1,106 @@
+## vim:ft=zsh et
+## bazaar support by: Frank Terbeck <ft@bewatermyfriend.org>
+## mostly rewritten by: Jan Pobrislo <ccx@webprojekty.cz>
+## Distributed under the same BSD-ish license as zsh itself.
+
+setopt localoptions noksharrays extendedglob NO_shwordsplit
+local bzrbase bzrbr bzr_changes bzr_type
+local -a bzrinfo
+local -A hook_com bzr_info
+
+(( ${+functions[VCS_INFO_bzr_get_info]} )) ||
+VCS_INFO_bzr_get_info() {
+    bzrinfo=( ${(s.:.)$( ${vcs_comm[cmd]} version-info --custom \
+        --template="{revno}:{branch_nick}:{clean}")} )
+    if zstyle -t ":vcs_info:${vcs}:${usercontext}:${rrn}" "check-for-changes"
+    then
+        VCS_INFO_bzr_get_changes
+    elif [[ ${bzrinfo[2]} == 1 ]]
+    then
+        bzr_changes = '1'
+    fi
+}
+
+(( ${+functions[VCS_INFO_bzr_get_info_restricted]} )) ||
+VCS_INFO_bzr_get_info_restricted() {
+    # we are forbidden from fetching info on bound branch from remote repository
+    bzrinfo=( $(${vcs_comm[cmd]} revno) ${bzrbase:t} )
+    if zstyle -t ":vcs_info:${vcs}:${usercontext}:${rrn}" "check-for-changes" && \
+       [[ ! $bzr_type == lightweigth ]]
+    then
+        VCS_INFO_bzr_get_changes
+    fi
+}
+
+(( ${+functions[VCS_INFO_bzr_get_changes]} )) ||
+VCS_INFO_bzr_get_changes() {
+    local -A counts
+    local line flag
+    bzr_changes=$(
+        ${vcs_comm[cmd]} stat -SV | while read flag line
+        do
+            counts[${flag}]=$(( ${counts[${flag}]:-0} + 1 ))
+        done
+        for flag in ${(k)counts}
+        do
+            printf "%s:%d " $flag ${counts[${flag}]}
+        done
+    )
+}
+
+if zstyle -t ":vcs_info:${vcs}:${usercontext}:${rrn}" "use-simple" ; then
+    # simple parsing will fail to fetch information from lightweigth checkouts
+    bzrbase=${vcs_comm[basedir]}
+    bzrinfo[2]=${bzrbase:t}
+    if [[ -f ${bzrbase}/.bzr/branch/last-revision ]] ; then
+        bzrinfo[1]=$(< ${bzrbase}/.bzr/branch/last-revision)
+        bzrinfo[1]=${${bzrinfo[1]}%% *}
+    fi
+else
+    # Parse the output of 'bzr info' into associative array bzr_info
+    ${vcs_comm[cmd]} info | {
+        local line key value dirtype
+        read dirtype
+        grep '^[ a-zA-Z0-9]\+: ' | while read line
+        do
+            value=${line#*': '}
+            key=${${line%%: *}// /_}
+            bzr_info[$key]=$value
+        done
+    }
+
+    case "$dirtype" in
+        ('Checkout'*)
+            bzr_type=checkout
+            bzrbase=${bzr_info[checkout_root]} ;;
+        ('Repository checkout'*)
+            bzr_type=checkout
+            bzrbase=${bzr_info[repository_checkout_root]} ;;
+        ('Lightweight checkout'*)
+            bzr_type=lightweigth
+            bzrbase=${bzr_info[light_checkout_root]} ;;
+        (*)
+            bzr_type=standalone
+            bzrbase=${bzr_info[branch_root]} ;;
+    esac
+
+    bzrbase=${bzrbase:P}
+
+    if [ -n "${bzr_info[checkout_of_branch]}" ] && \
+       zstyle -t ":vcs_info:${vcs}:${usercontext}:${rrn}" "use-server"
+    then
+        VCS_INFO_bzr_get_info
+    else
+        case ${bzr_info[checkout_of_branch]} in
+            (file://*) VCS_INFO_bzr_get_info ;;
+            (*://*) VCS_INFO_bzr_get_info_restricted ;;
+            (*) VCS_INFO_bzr_get_info ;;
+        esac
+    fi
+fi
+
+rrn=${bzrbase:t}
+VCS_INFO_set-branch-format "${bzrinfo[2]}" "${bzrinfo[1]}" &&
+    bzrbr="${REPLY}"
+VCS_INFO_formats '' "${bzrbr}" "${bzrbase}" '' "${bzr_changes}" "${bzrinfo[1]}" "${bzr_changes}"
+return 0

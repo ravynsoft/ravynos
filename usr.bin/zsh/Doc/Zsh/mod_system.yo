@@ -1,0 +1,280 @@
+COMMENT(!MOD!zsh/system
+A builtin interface to various low-level system features.
+!MOD!)
+The tt(zsh/system) module makes available various builtin commands and
+parameters.
+
+subsect(Builtins)
+
+startitem()
+findex(syserror)
+item(tt(syserror) [ tt(-e) var(errvar) ] [ tt(-p) var(prefix) ] [ var(errno) | var(errname) ])(
+This command prints out the error message associated with var(errno), a
+system error number, followed by a newline to standard error.
+
+Instead of the error number, a name var(errname), for example
+tt(ENOENT), may be used.  The set of names is the same as the contents
+of the array tt(errnos), see below.
+
+If the string var(prefix) is given, it is printed in front of the error
+message, with no intervening space.
+
+If var(errvar) is supplied, the entire message, without a newline, is
+assigned to the parameter names var(errvar) and nothing is output.
+
+A return status of 0 indicates the message was successfully printed
+(although it may not be useful if the error number was out of the
+system's range), a return status of 1 indicates an error in the
+parameters, and a return status of 2 indicates the error name was
+not recognised (no message is printed for this).
+)
+findex(sysopen)
+redef(SPACES)(0)(tt(ifztexi(NOTRANS(@ @ @ @ @ @ @ @ ))ifnztexi(        )))
+xitem(tt(sysopen) [ tt(-arw) ] [ tt(-m) var(permissions) ] [ tt(-o) var(options) ])
+item(SPACES()tt(-u) var(fd) var(file))(
+This command opens a file. The tt(-r), tt(-w) and tt(-a) flags indicate
+whether the file should be opened for reading, writing and appending,
+respectively. The tt(-m) option allows the initial permissions to use when
+creating a file to be specified in octal form.  The file descriptor is
+specified with tt(-u). Either an explicit file descriptor in the range 0 to 9 can
+be specified or a variable name can be given to which the file descriptor
+number will be assigned.
+
+The tt(-o) option allows various system specific options to be
+specified as a comma-separated list. The following is a list of possible
+options. Note that, depending on the system, some may not be available.
+startitem()
+item(tt(cloexec))(
+mark file to be closed when other programs are executed (else
+the file descriptor remains open in subshells and forked external
+executables)
+)
+xitem(tt(create))
+item(tt(creat))(
+create file if it does not exist
+)
+item(tt(excl))(
+create file, error if it already exists
+)
+item(tt(noatime))(
+suppress updating of the file atime
+)
+item(tt(nofollow))(
+fail if var(file) is a symbolic link
+)
+item(tt(nonblock))(
+the file is opened in nonblocking mode
+)
+item(tt(sync))(
+request that writes wait until data has been physically written
+)
+xitem(tt(truncate))
+item(tt(trunc))(
+truncate file to size 0
+)
+enditem()
+
+To close the file, use one of the following:
+
+example(tt(exec {)var(fd)tt(}<&-)
+tt(exec {)var(fd)tt(}>&-))
+)
+findex(sysread)
+redef(SPACES)(0)(tt(ifztexi(NOTRANS(@ @ @ @ @ @ @ @ ))ifnztexi(        )))
+xitem(tt(sysread )[ tt(-c) var(countvar) ] [ tt(-i) var(infd) ] [ tt(-o) var(outfd) ])
+item(SPACES()[ tt(-s) var(bufsize) ] [ tt(-t) var(timeout) ] [ var(param) ])(
+Perform a single system read from file descriptor var(infd), or zero if
+that is not given.  The result of the read is stored in var(param) or
+tt(REPLY) if that is not given.  If var(countvar) is given, the number
+of bytes read is assigned to the parameter named by var(countvar).
+
+The maximum number of bytes read is var(bufsize) or 8192 if that is not
+given, however the command returns as soon as any number of bytes was
+successfully read.
+
+If var(timeout) is given, it specifies a timeout in seconds, which may
+be zero to poll the file descriptor.  This is handled by the tt(poll)
+system call if available, otherwise the tt(select) system call if
+available.
+
+If var(outfd) is given, an attempt is made to write all the bytes just
+read to the file descriptor var(outfd).  If this fails, because of a
+system error other than tt(EINTR) or because of an internal zsh error
+during an interrupt, the bytes read but not written are stored in the
+parameter named by var(param) if supplied (no default is used in this
+case), and the number of bytes read but not written is stored in the
+parameter named by var(countvar) if that is supplied.  If it was
+successful, var(countvar) contains the full number of bytes transferred,
+as usual, and var(param) is not set.
+
+The error tt(EINTR) (interrupted system call) is handled internally so
+that shell interrupts are transparent to the caller.  Any other error
+causes a return.
+
+The possible return statuses are
+startitem()
+item(0)(
+At least one byte of data was successfully read and, if appropriate,
+written.
+)
+item(1)(
+There was an error in the parameters to the command.  This is the only
+error for which a message is printed to standard error.
+)
+item(2)(
+There was an error on the read, or on polling the input file descriptor
+for a timeout.  The parameter tt(ERRNO) gives the error.
+)
+item(3)(
+Data were successfully read, but there was an error writing them
+to var(outfd).  The parameter tt(ERRNO) gives the error.
+)
+item(4)(
+The attempt to read timed out.  Note this does not set tt(ERRNO) as this
+is not a system error.
+)
+item(5)(
+No system error occurred, but zero bytes were read.  This usually
+indicates end of file.  The parameters are set according to the
+usual rules; no write to var(outfd) is attempted.
+)
+enditem()
+)
+item(tt(sysseek) [ tt(-u) var(fd) ] [ tt(-w) tt(start)|tt(end)|tt(current) ] var(offset))(
+The current file position at which future reads and writes will take place is
+adjusted to the specified byte offset. The var(offset) is evaluated as a math
+expression. The tt(-u) option allows the file descriptor to be specified. By
+default the offset is specified relative to the start or the file but, with the
+tt(-w) option, it is possible to specify that the offset should be relative to
+the current position or the end of the file.
+)
+item(tt(syswrite) [ tt(-c) var(countvar) ] [ tt(-o) var(outfd) ] var(data))(
+The data (a single string of bytes) are written to the file descriptor
+var(outfd), or 1 if that is not given, using the tt(write) system call.
+Multiple write operations may be used if the first does not write all
+the data.
+
+If var(countvar) is given, the number of byte written is stored in the
+parameter named by var(countvar); this may not be the full length of
+var(data) if an error occurred.
+
+The error tt(EINTR) (interrupted system call) is handled internally by
+retrying; otherwise an error causes the command to return.  For example,
+if the file descriptor is set to non-blocking output, an error
+tt(EAGAIN) (on some systems, tt(EWOULDBLOCK)) may result in the command
+returning early.
+
+The return status may be 0 for success, 1 for an error in the parameters
+to the command, or 2 for an error on the write; no error message is
+printed in the last case, but the parameter tt(ERRNO) will reflect
+the error that occurred.
+)
+xitem(tt(zsystem flock) [ tt(-t) var(timeout) ] [ tt(-i) var(interval) ] [ tt(-f) var(var) ] [tt(-er)] var(file))
+item(tt(zsystem flock -u) var(fd_expr))(
+The builtin tt(zsystem)'s subcommand tt(flock) performs advisory file
+locking (via the manref(fcntl)(2) system call) over the entire contents
+of the given file.  This form of locking requires the processes
+accessing the file to cooperate; its most obvious use is between two
+instances of the shell itself.
+
+In the first form the named var(file), which must already exist, is
+locked by opening a file descriptor to the file and applying a lock to
+the file descriptor.  The lock terminates when the shell process that
+created the lock exits; it is therefore often convenient to create file
+locks within subshells, since the lock is automatically released when
+the subshell exits.  Note that use of the tt(print) builtin with the
+tt(-u) option will, as a side effect, release the lock, as will redirection
+to the file in the shell holding the lock.  To work around this use a
+subshell, e.g. `tt((print message) >> )var(file)'.  Status 0 is
+returned if the lock succeeds, else status 1.
+
+In the second form the file descriptor given by the arithmetic
+expression var(fd_expr) is closed, releasing a lock.  The file descriptor
+can be queried by using the `tt(-f) var(var)' form during the lock;
+on a successful lock, the shell variable var(var) is set to the file
+descriptor used for locking.  The lock will be released if the
+file descriptor is closed by any other means, for example using
+`tt(exec {)var(var)tt(}>&-)'; however, the form described here performs
+a safety check that the file descriptor is in use for file locking.
+
+By default the shell waits indefinitely for the lock to succeed.
+The option tt(-t) var(timeout) specifies a timeout for the lock in
+seconds; fractional seconds are allowed.  During this period, the
+shell will attempt to lock the file every var(interval) seconds
+if the tt(-i) var(interval) option is given, otherwise once a second.
+(This var(interval) is shortened before the last attempt if needed,
+so that the shell waits only until the var(timeout) and not longer.)
+If the attempt times out, status 2 is returned.
+
+(Note: var(timeout) is limited to 2^30-1 seconds (about 34 years), and
+var(interval) to 0.999 * LONG_MAX microseconds (only about 35 minutes
+on 32-bit systems).)
+
+If the option tt(-e) is given, the file descriptor for the lock is
+preserved when the shell uses tt(exec) to start a new process;
+otherwise it is closed at that point and the lock released.
+
+If the option tt(-r) is given, the lock is only for reading, otherwise
+it is for reading and writing.  The file descriptor is opened
+accordingly.
+)
+item(tt(zsystem supports) var(subcommand))(
+The builtin tt(zsystem)'s subcommand tt(supports) tests whether a
+given subcommand is supported.  It returns status 0 if so, else
+status 1.  It operates silently unless there was a syntax error
+(i.e. the wrong number of arguments), in which case status 255
+is returned.  Status 1 can indicate one of two things:  var(subcommand)
+is known but not supported by the current operating system, or
+var(subcommand) is not known (possibly because this is an older
+version of the shell before it was implemented).
+)
+enditem()
+
+subsect(Math Functions)
+
+startitem()
+item(tt(systell+LPAR()var(fd)RPAR()))(
+The systell math function returns the current file position for the file
+descriptor passed as an argument.
+)
+enditem()
+
+subsect(Parameters)
+
+startitem()
+vindex(errnos)
+item(tt(errnos))(
+A readonly array of the names of errors defined on the system.  These
+are typically macros defined in C by including the system header file
+tt(errno.h).  The index of each name (assuming the option tt(KSH_ARRAYS)
+is unset) corresponds to the error number.  Error numbers var(num)
+before the last known error which have no name are given the name
+tt(E)var(num) in the array.
+
+Note that aliases for errors are not handled; only the canonical name is
+used.
+)
+vindex(sysparams)
+item(tt(sysparams))(
+A readonly associative array.  The keys are:
+
+startitem()
+item(tt(pid))(
+vindex(pid, sysparams)
+Returns the process ID of the current process, even in subshells.  Compare
+tt($$), which returns the process ID of the main shell process.
+)
+item(tt(ppid))(
+vindex(ppid, sysparams)
+Returns the current process ID of the parent of the current process, even
+in subshells.  Compare tt($PPID), which returns the process ID of the
+initial parent of the main shell process.
+)
+item(tt(procsubstpid))(
+Returns the process ID of the last process started for process
+substitution, i.e. the tt(<LPAR())var(...)tt(RPAR()) and
+tt(>LPAR())var(...)tt(RPAR()) expansions.
+)
+enditem()
+)
+enditem()

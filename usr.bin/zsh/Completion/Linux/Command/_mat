@@ -1,0 +1,19 @@
+#compdef mat
+
+# Completion for mat 0.6.1 (https://tails.boum.org/blueprint/doc/mat)
+
+local curcontext="$curcontext" state line
+typeset -A opt_args
+_arguments \
+  '(- *)'{-h,--help}'[show help message and exit]' \
+  '(-a --add2archive)'{-a,--add2archive}'[add to output archive non-supported filetypes]' \
+  '(-b --backup)'{-b,--backup}'[keep a backup copy]' \
+  '(-L --low-pdf-quality)'{-L,--low-pdf-quality}'[produces a lighter, but lower quality PDF]' \
+  '(-c --check -b --backup)'{-c,--check}'[check if a file is free of harmful metadatas]' \
+  '(-d --display -b --backup)'{-d,--display}'[list all the harmful metadata of a file without removing them]' \
+  '(- *)'{-l,--list}'[list all supported fileformats]' \
+  '(- *)'{-v,--version}"[show program's version number and exit]" \
+  '*:file:_files -g "*.(tif|tiff|png|jpeg|jpg|jpe|odt|fodt|odx|odp|fodp|ods|fods|odg|fodg|docx|docm|pptx|pptm|xlsx|xlsm|pdf|tar|tar.bz2|tar.gz|zip|mp3|mp2|mp1|mpa|ogg|oga|flac|torrent)"'
+  # they are all that are in --list
+  # might not be all the supported files
+

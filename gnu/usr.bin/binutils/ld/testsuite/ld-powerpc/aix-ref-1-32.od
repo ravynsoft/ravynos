@@ -1,0 +1,30 @@
+
+.*
+
+
+Disassembly of section \.text:
+
+.* <foo1>:
+.*:	60 00 00 00 	oril    r0,r0,0
+			.*: R_REF	foo2-.*
+.*:	80 22 00 00 	l       r1,0\(r2\)
+			.*: R_TOC	stuff-.*
+.*:	4e 80 00 20 	br
+
+.* <foo2>:
+.*:	60 00 00 00 	oril    r0,r0,0
+			.*: R_REF	foo6-.*
+			.*: R_REF	foo4-.*
+.*:	80 22 00 00 	l       r1,0\(r2\)
+			.*: R_TOC	stuff-.*
+
+.* <foo4>:
+.*:	60 00 00 00 	oril    r0,r0,0
+.*:	80 22 00 00 	l       r1,0\(r2\)
+			.*: R_TOC	stuff-.*
+
+.* <foo6>:
+.*:	60 00 00 00 	oril    r0,r0,0
+.*:	80 22 00 00 	l       r1,0\(r2\)
+			.*: R_TOC	stuff-.*
+#pass

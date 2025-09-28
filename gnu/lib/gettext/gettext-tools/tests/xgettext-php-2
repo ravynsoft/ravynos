@@ -1,0 +1,91 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test PHP support: here documents.
+
+cat <<EOF > xg-ph-2.php
+<?
+echo _("Egyptians");
+echo <<<EOTMARKER
+Ramses
+EOTMARKER;
+echo _("Babylonians");
+echo <<<EOTMARKER
+Nebukadnezar
+EOTMARKER
+echo _("Assyrians");
+echo <<<EOTMARKER
+Assurbanipal
+EOT
+echo _("Persians");
+echo <<<EOTMARKER
+Darius
+
+echo _("Greeks");
+echo <<<EOTMARKER
+Alexander
+
+EOTMARKER
+echo _("Romans");
+echo <<<EOTMARKER
+Augustus
+  EOTMARKER
+echo _("Goths");
+echo <<<EOTMARKER
+Odoakar
+Theoderich
+EOTMARKER
+echo _("Franks");
+?>
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-ph-2.tmp xg-ph-2.php || Exit 1
+LC_ALL=C tr -d '\r' < xg-ph-2.tmp.po > xg-ph-2.po || Exit 1
+
+sed 's!<<<EOTMARKER!<<<"EOTMARKER"!' xg-ph-2.php > xg-ph-2d.php || Exit 1
+sed "s!<<<EOTMARKER!<<<'EOTMARKER'!" xg-ph-2.php > xg-ph-2s.php || Exit 1
+
+: ${XGETTEXT=xgettext}
+
+${XGETTEXT} --omit-header --no-location -d xg-ph-2.tmp xg-ph-2.php || Exit 1
+LC_ALL=C tr -d '\r' < xg-ph-2.tmp.po > xg-ph-2.po || Exit 1
+
+${XGETTEXT} --omit-header --no-location -d xg-ph-2d.tmp xg-ph-2d.php || Exit 1
+LC_ALL=C tr -d '\r' < xg-ph-2d.tmp.po > xg-ph-2d.po || Exit 1
+
+${XGETTEXT} --omit-header --no-location -d xg-ph-2s.tmp xg-ph-2s.php || Exit 1
+LC_ALL=C tr -d '\r' < xg-ph-2s.tmp.po > xg-ph-2s.po || Exit 1
+
+cat <<EOF > xg-ph-2.ok
+msgid "Egyptians"
+msgstr ""
+
+msgid "Babylonians"
+msgstr ""
+
+msgid "Assyrians"
+msgstr ""
+
+msgid "Romans"
+msgstr ""
+
+msgid "Franks"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+
+${DIFF} xg-ph-2.ok xg-ph-2.po
+result=$?
+test $result = 0 || exit $result
+
+${DIFF} xg-ph-2.ok xg-ph-2d.po
+result=$?
+test $result = 0 || exit $result
+
+${DIFF} xg-ph-2.ok xg-ph-2s.po
+result=$?
+test $result = 0 || exit $result
+
+exit $result

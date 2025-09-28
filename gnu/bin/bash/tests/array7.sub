@@ -1,0 +1,14 @@
+# these didn't work in versions of bash before bash-4.0
+
+LNAME=nordholz
+
+echo ${LNAME[$(( 0 ))]//h/!}
+echo ${LNAME[$(( 2 ))]//h/!}
+
+echo ${LNAME[$(( 0 ))]##??}
+echo ${LNAME[$(( 2 ))]##??}
+
+echo ${LNAME[$(( 0 ))]:2}
+echo ${LNAME[$(( 0 ))]:2:4}
+echo ${LNAME[$(( 2 ))]:2}
+echo ${LNAME[$(( 2 ))]:2:4}

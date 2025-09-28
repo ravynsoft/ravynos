@@ -1,0 +1,186 @@
+#
+# SPDX-License-Identifier: ISC
+#
+# Copyright (c) 2019-2020 Todd C. Miller <Todd.Miller@sudo.ws>
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+# @configure_input@
+#
+
+#### Start of system configuration section. ####
+
+srcdir = @srcdir@
+abs_srcdir = @abs_srcdir@
+top_srcdir = @top_srcdir@
+abs_top_srcdir = @abs_top_srcdir@
+top_builddir = @top_builddir@
+abs_top_builddir = @abs_top_builddir@
+devdir = @devdir@
+scriptdir = $(top_srcdir)/scripts
+incdir = $(top_srcdir)/include
+
+# Compiler & tools to use
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+
+# Libraries
+LT_LIBS =
+
+# C preprocessor flags
+CPPFLAGS = -I$(incdir) -I$(top_builddir) -I$(srcdir) -I$(top_srcdir) @CPPFLAGS@
+
+# Usually -O and/or -g
+CFLAGS = @CFLAGS@
+
+# Flags to pass to libtool
+LTFLAGS = @LT_STATIC@
+
+# Address sanitizer flags
+ASAN_CFLAGS = @ASAN_CFLAGS@
+ASAN_LDFLAGS = @ASAN_LDFLAGS@
+
+# PIE flags
+PIE_CFLAGS = @PIE_CFLAGS@
+PIE_LDFLAGS = @PIE_LDFLAGS@
+
+# Stack smashing protection flags
+HARDENING_CFLAGS = @HARDENING_CFLAGS@
+HARDENING_LDFLAGS = @HARDENING_LDFLAGS@
+
+# cppcheck options, usually set in the top-level Makefile
+CPPCHECK_OPTS = -q --enable=warning,performance,portability --suppress=constStatement --suppress=compareBoolExpressionWithInt --error-exitcode=1 --inline-suppr -Dva_copy=va_copy -U__cplusplus -UQUAD_MAX -UQUAD_MIN -UUQUAD_MAX -U_POSIX_HOST_NAME_MAX -U_POSIX_PATH_MAX -U__NBBY -DNSIG=64
+
+# splint options, usually set in the top-level Makefile
+SPLINT_OPTS = -D__restrict= -checks
+
+# PVS-studio options
+PVS_CFG = $(top_srcdir)/PVS-Studio.cfg
+PVS_IGNORE = 'V707,V011,V002,V536'
+PVS_LOG_OPTS = -a 'GA:1,2' -e -t errorfile -d $(PVS_IGNORE)
+
+# Set to non-empty for development mode
+DEVEL = @DEVEL@
+
+#### End of system configuration section. ####
+
+SHELL = @SHELL@
+
+LIBLOGSRV_OBJS = log_server.pb-c.lo
+
+IOBJS = $(LIBLOGSRV_OBJS:.lo=.i)
+
+POBJS = $(IOBJS:.i=.plog)
+
+GENERATED = log_server.pb-c.h log_server.pb-c.c
+
+all: liblogsrv.la
+
+depend:
+	$(scriptdir)/mkdep.pl --srcdir=$(abs_top_srcdir) \
+	    --builddir=$(abs_top_builddir) lib/logsrv/Makefile.in
+	cd $(top_builddir) && ./config.status --file lib/logsrv/Makefile
+
+Makefile: $(srcdir)/Makefile.in
+	cd $(top_builddir) && ./config.status --file lib/logsrv/Makefile
+
+.SUFFIXES: .c .h .i .lo .plog
+
+.c.lo:
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $<
+
+.c.i:
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+
+.i.plog:
+	ifile=$<; rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $${ifile%i}c --i-file $< --output-file $@
+
+$(devdir)/log_server.pb-c.c: $(srcdir)/log_server.proto
+	@if [ -n "$(DEVEL)" ]; then \
+	    cmd='protoc-c --c_out=$(devdir) --proto_path=$(srcdir) $(srcdir)/log_server.proto'; \
+	    echo "$$cmd"; eval $$cmd; \
+	    cmd='$(scriptdir)/unanon $(devdir)/log_server.pb-c.h $(devdir)/log_server.pb-c.c'; \
+	    echo "$$cmd"; eval $$cmd; \
+	    if [ "$(devdir)" == "$(srcdir)" ]; then \
+		cmd='mv -f $(devdir)/log_server.pb-c.h $(incdir)/log_server.pb-c.h'; \
+	    else \
+		cmd='mv -f $(devdir)/log_server.pb-c.h $(top_builddir)/log_server.pb-c.h'; \
+	    fi; \
+	    echo "$$cmd"; eval $$cmd; \
+	fi
+
+liblogsrv.la: $(LIBLOGSRV_OBJS) $(LT_LIBS)
+	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(LIBLOGSRV_OBJS) $(LT_LIBS)
+
+pre-install:
+
+install:
+
+install-binaries:
+
+install-includes:
+
+install-doc:
+
+install-plugin:
+
+install-fuzzer:
+
+uninstall:
+
+splint:
+	splint $(SPLINT_OPTS) -I$(incdir) -I$(top_builddir) -I$(top_srcdir) $(srcdir)/*.c
+
+cppcheck:
+	cppcheck $(CPPCHECK_OPTS) -I$(incdir) -I$(top_builddir) -I$(top_srcdir) $(srcdir)/*.c
+
+pvs-log-files:
+
+pvs-studio:
+
+fuzz:
+
+check-fuzzer:
+
+check: check-fuzzer
+
+check-verbose: check
+
+clean:
+	-$(LIBTOOL) $(LTFLAGS) --mode=clean rm -f *.lo *.o *.la
+	-rm -f *.i *.plog stamp-* core *.core core.*
+
+mostlyclean: clean
+
+distclean: clean
+	-rm -rf Makefile .libs
+	@if [ -n "$(DEVEL)" -a "$(devdir)" != "$(srcdir)" ]; then \
+	    cmd='rm -rf $(GENERATED)'; \
+	    echo "$$cmd"; eval $$cmd; \
+	fi
+
+clobber: distclean
+
+realclean: distclean
+	rm -f TAGS tags
+
+cleandir: realclean
+
+.PHONY: clean mostlyclean distclean cleandir clobber realclean
+
+# Autogenerated dependencies, do not modify
+log_server.pb-c.lo: $(srcdir)/log_server.pb-c.c $(incdir)/log_server.pb-c.h \
+                    $(incdir)/protobuf-c/protobuf-c.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/log_server.pb-c.c
+log_server.pb-c.plog: $(srcdir)/log_server.pb-c.c
+	touch $@

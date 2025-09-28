@@ -1,0 +1,21 @@
+<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+<busconfig>
+  <listen>@TEST_LISTEN@</listen>
+
+  <servicedir>@DBUS_TEST_DATA@/systemd-activation</servicedir>
+  <standard_session_servicedirs />
+
+  <policy context="default">
+    <allow send_destination="*"/>
+    <allow receive_sender="*"/>
+    <allow own="*"/>
+  </policy>
+
+  <policy context="mandatory">
+    <deny send_destination="com.example.SendDenied"/>
+    <deny send_destination_prefix="com.example.SendPrefixDenied"/>
+    <deny receive_interface="com.example.ReceiveDenied" receive_member="Call"/>
+    <allow send_destination_prefix="com.example.SendPrefixDenied.SendPrefixAllowed"/>
+  </policy>
+</busconfig>

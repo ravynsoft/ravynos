@@ -1,0 +1,103 @@
+.\" Copyright (c) 2008-2010 Apple Inc. All rights reserved.
+.Dd May 1, 2009
+.Dt dispatch_apply 3
+.Os Darwin
+.Sh NAME
+.Nm dispatch_apply
+.Nd schedule blocks for iterative execution
+.Sh SYNOPSIS
+.Fd #include <dispatch/dispatch.h>
+.Ft void
+.Fo dispatch_apply
+.Fa "size_t iterations" "dispatch_queue_t queue" "void (^block)(size_t)"
+.Fc
+.Ft void
+.Fo dispatch_apply_f
+.Fa "size_t iterations" "dispatch_queue_t queue" "void *context" "void (*function)(void *, size_t)"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn dispatch_apply
+function provides data-level concurrency through a "for (;;)" loop like primitive:
+.Bd -literal
+dispatch_queue_t the_queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+size_t iterations = 10;
+
+// 'idx' is zero indexed, just like:
+// for (idx = 0; idx < iterations; idx++)
+
+dispatch_apply(iterations, the_queue, ^(size_t idx) {
+	printf("%zu\\n", idx);
+});
+.Ed
+.Pp
+Like a "for (;;)" loop, the
+.Fn dispatch_apply
+function is synchronous.
+If asynchronous behavior is desired, please wrap the call to
+.Fn dispatch_apply
+with a call to
+.Fn dispatch_async
+against another queue.
+.Pp
+Sometimes, when the block passed to
+.Fn dispatch_apply
+is simple, the use of striding can tune performance.
+Calculating the optimal stride is best left to experimentation.
+Start with a stride of one and work upwards until the desired performance is
+achieved (perhaps using a power of two search):
+.Bd -literal
+#define STRIDE 3
+
+dispatch_apply(count / STRIDE, queue, ^(size_t idx) {
+	size_t j = idx * STRIDE;
+	size_t j_stop = j + STRIDE;
+	do {
+		printf("%zu\\n", j++);
+	} while (j < j_stop);
+});
+
+size_t i;
+for (i = count - (count % STRIDE); i < count; i++) {
+	printf("%zu\\n", i);
+}
+.Ed
+.Sh IMPLIED REFERENCES
+Synchronous functions within the dispatch framework hold an implied reference
+on the target queue. In other words, the synchronous function borrows the
+reference of the calling function (this is valid because the calling function
+is blocked waiting for the result of the synchronous function, and therefore
+cannot modify the reference count of the target queue until after the
+synchronous function has returned).
+.Pp
+This is in contrast to asynchronous functions which must retain both the block
+and target queue for the duration of the asynchronous operation (as the calling
+function may immediately release its interest in these objects).
+.Sh FUNDAMENTALS
+Conceptually,
+.Fn dispatch_apply
+is a convenient wrapper around
+.Fn dispatch_async
+and a semaphore to wait for completion.
+In practice, the dispatch library optimizes this function.
+.Pp
+The
+.Fn dispatch_apply
+function is a wrapper around
+.Fn dispatch_apply_f .
+.Sh CAVEATS
+Unlike
+.Fn dispatch_async ,
+a block submitted to
+.Fn dispatch_apply
+is expected to be either independent or dependent
+.Em only
+on work already performed in lower-indexed invocations of the block. If
+the block's index dependency is non-linear, it is recommended to
+use a for-loop around invocations of
+.Fn dispatch_async .
+.Sh SEE ALSO
+.Xr dispatch 3 ,
+.Xr dispatch_async 3 ,
+.Xr dispatch_queue_create 3 ,
+.Xr dispatch_semaphore_create 3

@@ -1,0 +1,23 @@
+# Copyright 2022 Collabora Ltd.
+# SPDX-License-Identifier: MIT
+#
+# To output as binary:
+# sed -e 's/#.*//' test/data/invalid-messages/zero-length-variant-sig.message-raw.hex |
+# xxd -p -r - test/data/invalid-messages/zero-length-variant-sig.message-raw
+
+# Offset % 0x10:
+# 0001 0203 0405 0607 0809 0a0b 0c0d 0e0f
+
+  6c                                       # little-endian
+    ff                                     # an undefined message type
+       00                                  # flags
+         01                                # major protocol version 1
+            0000 0000                      # message body is 0 bytes
+                      0100 0000            # serial number 1
+                                0300 0000  # header is an array of 0x03 bytes of struct (yv)
+  ff                                       # header field code 0xff (undefined)
+    00                                     # signature is zero-length (invalid!)
+       00                                  # "" \0
+         00 0000 0000                      # padding to 8-byte boundary
+
+#sha1 5b85e1e6586b9737bde18c3e99a201ed6314ecb6

@@ -1,0 +1,114 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# test the trap code
+
+trap 'echo exiting' 0
+trap 'echo aborting' 1 2 3 6 15
+
+# make sure a user-specified subshell runs the exit trap, but does not
+# inherit the exit trap from a parent shell
+( trap 'echo subshell exit' 0; exit 0 )
+( exit 0 )
+
+trap
+
+func()
+{
+	trap 'echo ${FUNCNAME:-$0}[$LINENO] funcdebug' DEBUG
+	echo funcdebug line
+}
+
+trap 'echo [$LINENO] debug' DEBUG
+echo debug line
+
+trap
+
+func
+
+trap
+
+trap 'echo ${FUNCNAME:-$0}[$LINENO] debug' DEBUG
+func2()
+{
+	echo func2debug line
+}
+declare -ft func2
+func2
+
+unset -f func2
+
+trap '' DEBUG
+
+trap
+
+trap - debug
+
+trap
+
+trap - HUP
+trap hup
+trap '' INT
+trap '' int
+
+trap
+
+# exit 0 in exit trap should set exit status
+(
+set -e
+trap 'exit 0' EXIT
+false   
+echo bad
+)
+echo $?
+
+# hmmm...should this set the handling to SIG_IGN for children, too?
+trap '' USR2
+./trap1.sub
+trap - USR2
+
+# test ERR trap
+./trap2.sub
+
+${THIS_SH} ./trap3.sub
+
+${THIS_SH} ./trap4.sub
+
+# This doesn't work right on all Unix versions
+#${THIS_SH} ./trap5.sub
+
+# Return trap issues
+${THIS_SH} ./trap6.sub
+
+#
+# show that setting a trap on SIGCHLD is not disastrous.
+#
+set -o monitor
+
+trap 'echo caught a child death' SIGCHLD
+
+sleep 7 & sleep 6 & sleep 5 &
+
+# this will only catch the first, since there's a trap on SIGCHLD
+wait
+
+trap -p SIGCHLD
+
+# Now reset some of the signals the shell handles specially back to
+# their default values (with or without the SIG prefix)
+trap - SIGINT QUIT TERM
+
+trap
+
+trap - SIGCHLD
+wait

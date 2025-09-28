@@ -1,0 +1,44 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Tcl support: --add-comments option.
+
+cat <<EOF > xg-t-2.tcl
+# This comment will not be extracted.
+puts [_ "help"]
+#  TRANSLATORS: This is an extracted comment.
+puts [_ "me"]
+# Not extracted either.
+puts [_ "Hey Jude"]
+# TRANSLATORS:
+#    Nickname of the Beatles
+puts [_ "The Fabulous Four"]
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location --add-comments=TRANSLATORS: -k_ \
+  -d xg-t-2.tmp xg-t-2.tcl || Exit 1
+LC_ALL=C tr -d '\r' < xg-t-2.tmp.po > xg-t-2.po || Exit 1
+
+cat <<EOF > xg-t-2.ok
+msgid "help"
+msgstr ""
+
+#. TRANSLATORS: This is an extracted comment.
+msgid "me"
+msgstr ""
+
+msgid "Hey Jude"
+msgstr ""
+
+#. TRANSLATORS:
+#. Nickname of the Beatles
+msgid "The Fabulous Four"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-t-2.ok xg-t-2.po
+result=$?
+
+exit $result

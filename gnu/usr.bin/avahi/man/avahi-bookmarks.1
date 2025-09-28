@@ -1,0 +1,33 @@
+.TH avahi-bookmarks 1 User Manuals
+.SH NAME
+avahi-bookmarks \- Web service showing mDNS/DNS-SD announced HTTP services using the Avahi daemon
+.SH SYNOPSIS
+\fBavahi-bookmarks
+\f1
+.SH DESCRIPTION
+A web service for listing HTTP services that are announced via mDNS/DNS-SD using the Avahi daemon. avahi-bookmarks opens a TCP socket on port 8080 and waits for incoming HTTP connections returning a dynamic web site containing links to all services of type _http._tcp on the LAN. Point your browser to http://localhost:8080/ to make use of avahi-bookmarks.
+.SH OPTIONS
+.TP
+\fB-p | --port=\f1 \fIPORT\f1
+Specify a TCP port number to listen on. If omitted defaults to 8080.
+.TP
+\fB-a | --address=\f1 \fIaddress\f1
+Specify an IP address to listen on. If omitted defaults to 127.0.0.1. Specify 0.0.0.0 if you want to allow remote access.
+.TP
+\fB-H | --host-names\f1
+Create links pointing to mDNS host names instead of resolved IP addreses. This is only compatible with your browser if you run some kind of local NSS module to resolve mDNS host names (e.g. nss-mdns). If both -A and -H are ommited avahi-bookmarks detects whether NSS support is available locally. This option conflicts with -A.
+.TP
+\fB-A | --addresses\f1
+Create links pointing to numeric IP addresses instead of mDNS host names. This will break access to hosts running virtual servers. If both -A and -H are ommited avahi-bookmarks detects whether NSS support is available locally. This option conflicts with -H.
+.TP
+\fB-d | --domain\f1=\fIDOMAIN\f1
+The domain to browse for services in.
+.TP
+\fB-h | --help\f1
+Show help
+.SH AUTHORS
+The Avahi Developers <avahi (at) lists (dot) freedesktop (dot) org>; Avahi is available from \fBhttp://avahi.org/\f1
+.SH SEE ALSO
+\fBavahi-browse(1)\f1, \fBavahi-daemon(8)\f1
+.SH COMMENTS
+This man page was written using \fBxml2man(1)\f1 by Oliver Kurth.

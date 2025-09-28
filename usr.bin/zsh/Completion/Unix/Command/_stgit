@@ -1,0 +1,52 @@
+#compdef stg
+
+typeset -a subcmds
+
+subcmds=( ${${${(M)${(f)"$(stg help 2> /dev/null)"}## *}#  }/#(#b)([^[:space:]]##)[[:space:]]##(*)/$match[1]:$match[2]} )
+
+local curcontext="$curcontext" expl
+local subcmd
+local ret=1
+
+if (( CURRENT == 2 )); then
+  _describe -t commands 'stgit command' subcmds && ret=0
+else
+  shift words
+  (( CURRENT-- ))
+  subcmd="$words[1]"
+  curcontext="${curcontext%:*}-${subcmd}:"
+
+  case $subcmd in
+    (push)
+      _wanted -V unapplied-patches expl "patch" \
+       	compadd ${${(M)${(f)"$(stg series 2> /dev/null)"}##- *}#- } \
+		&& ret=0
+    ;;
+    (pop)
+      _wanted -V applied-patches expl "patch" \
+	compadd ${${(M)${(f)"$(stg series 2> /dev/null)"}##[+>] *}#[+>] } \
+		&& ret=0
+    ;;
+    (edit|files|goto|rename|log|float|delete|sink|mail|sync|show|pick|hide|squash)
+      _wanted -V patches expl "patch" \
+	compadd $(stg series --noprefix 2> /dev/null) \
+		&& ret=0
+    ;;
+    (ref*)
+      last_word="$words[$CURRENT-1]"
+      refresh_patch_options=( -p --patch )
+      if [[ -n ${refresh_patch_options[(r)$last_word]} ]]; then
+	_wanted -V applied-patches expl "patch" \
+	  compadd ${${(M)${(f)"$(stg series 2> /dev/null)"}##[+>] *}#[+>] } \
+		  && ret=0
+      else
+	_files && ret=0
+      fi
+    ;;
+    (*)
+      _files && ret=0
+    ;;
+  esac
+fi
+
+return ret

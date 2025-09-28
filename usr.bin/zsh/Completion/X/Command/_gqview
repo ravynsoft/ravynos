@@ -1,0 +1,12 @@
+#compdef gqview
+
+_arguments \
+  '(+t -t --without-tools --with-tools)'{+t,--with-tools}'[force show of tools]' \
+  '(+t -t --without-tools --with-tools)'{-t,--without-tools}'[force hide of tools]' \
+  '(--fullscreen -f)'{-f,--fullscreen}'[start in full screen mode]' \
+  '(--slideshow -s)'{-s,--slideshow}'[start in slideshow mode]' \
+  '(--list -l)'{-l,--list}'[open collection window for command line]' \
+  '--debug[turn on debug output]' \
+  '(--version -v)'{-v,--version}'[print version info]' \
+  '(--help -h)'{-h,--help}'[show help]' \
+  '*:picture file:_files -g "*.(#i)(jpg|jpe|jpeg|png|gif|tif|tiff|bmp)(-.)"'

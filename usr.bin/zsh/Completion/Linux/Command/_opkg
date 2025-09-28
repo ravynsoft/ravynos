@@ -1,0 +1,468 @@
+#compdef opkg ipkg
+
+# Notes:
+#
+# - This function has been designed with opkg in mind, but much of it should
+#   also work with ipkg.
+#
+# - Caching doesn't appear to save a HUGE amount of time given the scale of most
+#   opkg repos (compared to e.g. APT) and the resources available to the devices
+#   that use them.
+#
+# - _opkg_pkg_* functions can be called with --update to update their respective
+#   cache files without actually completing.
+#
+# - Lots of code redundancy here (@todo).
+#
+# Notable styles supported:
+#
+# % zstyle ':completion:*:opkg:*' use-cache <yes/no>
+#   Set to yes to enable caching of package names. Usually disabled by default.
+#
+# % zstyle ':completion:*:opkg:*' cache-path <directory>
+#   Set to a directory path to override the default cache-file directory.
+#
+# % zstyle ':completion:*:opkg:*' cache-persists <yes/no>
+#   Set to yes to keep cache data in memory for the remainder of the shell
+#   session. Most completion functions do this always, but opkg tends to be used
+#   on fairly resource-constrained devices, so it's disabled by default here.
+#
+# % zstyle ':completion:*:opkg:*' status-paths <pattern> ...
+#   Set to one or more paths or glob patterns to override the defaults used when
+#   checking cache validity. If any of the specified files has been modified
+#   more recently than the cache, the cache is considered invalid.
+#
+# % zstyle ':completion:*:opkg:*' conf-paths <pattern> ...
+#   Set to one or more paths or glob patterns to override the defaults used when
+#   searching opkg configuration data.
+#
+# Elevated privileges may be necessary to complete package names, etc.; consider
+# setting the gain-privileges style as follows:
+# zstyle ':completion:*:(ipkg|opkg)/*' gain-privileges yes
+
+##
+# Check cache validity.
+__opkg_cache_policy() {
+  local -a tmp
+
+  # Always invalidate if it's been over a week
+  tmp=( $1(#qmw+1N) )
+  (( $#tmp )) && return 0
+
+  zstyle -a ":completion:$curcontext:" status-paths tmp
+
+  if (( $#tmp )); then
+    tmp=( $~tmp(#qN) )
+  else
+    tmp=(
+      {/opt,/usr,/var}/lib/{i,o}pkg/status(#q-.N)
+      {/opt,/usr,/var}/lib/{i,o}pkg/lists/packages(#q-.N)
+      /opt/var/opkg-lists/packages(#q-.N)
+    )
+  fi
+
+  # Always invalidate if we found no status files
+  (( $#tmp )) || return 0
+
+  # Invalidate if any status file is newer than the cache file
+  for 2 in $tmp; do
+    [[ $2 -nt $1 ]] && return 0
+  done
+
+  return 1
+}
+
+##
+# Search opkg config files.
+__opkg_grep_conf() {
+  local -aU tmp
+
+  zstyle -a ":completion:$curcontext:" conf-paths tmp
+
+  if (( $#tmp )); then
+    tmp=( $~tmp(#qN) )
+  else
+    tmp=(
+      {,/opt}/etc/{i,o}pkg*.conf(#q-.N)
+      {,/opt}/etc/{i,o}pkg/*.conf(#q-.N)
+    )
+  fi
+
+  (( $#tmp )) || return 1
+
+  GREP_OPTIONS= command grep -sE "$@" $tmp
+}
+
+##
+# Complete architecture/priority pair.
+#
+# Architecture names are essentially arbitrary (up to the packager), so we can't
+# really complete every possibility here — but we'll account for most of the
+# popular ones.
+_opkg_arch_prio() {
+  local -a copts=( "$@" )
+  local -aU tmp
+
+  [[ -prefix *: ]] && {
+    _message priority
+    return
+  }
+
+  # Already configured arches
+  tmp=( ${(f)"$( _call_program -p architectures $svc print-architecture )"} )
+  tmp=( ${${tmp##arch[ ]##}%% *} )
+
+  tmp+=(
+    # 'Meta' arches
+    all any noarch
+    # Arches supported by entware-ng
+    armv5soft armv7soft mipselsf x86-32 x86-64
+    # Arches mentioned in the optware-ng source
+    arm armeb fsg3be hpmv2 i686 ixp4xxbe ixp4xxle mssii nslu2 powerpc qemux86
+    slugosbe slugosle
+    # Arches mentioned in the Ångström distribution's narcissus source
+    a780 ac100 akita am180x-evm am3517-crane am3517-evm am37x-evm archos5
+    archos5it arm arm-oabi armeb armv4 armv4b armv4t armv4tb armv5 armv5-vfp
+    armv5e armv5e-vfp armv5eb armv5t armv5t-vfp armv5te armv5te-vfp armv5teb
+    armv6 armv6-vfp armv6t-vfp armv7 armv7-vfp armv7a armv7a-vfp armv7a-vfp-neon
+    armv7at2-vfp armv7at2-vfp-neon armv7t2-vfp at32stk1000 at91sam9263ek
+    atngw100 avr32 beagleboard beaglebone bug20 c6a816x-evm c6a816x_evm c7x0
+    cm-t35 collie da830-omapl137-evm da850-omapl138-evm davinci-dvevm dht-walnut
+    dm355-evm dm355-leopard dm357-evm dm365-evm dm3730-am3715-evm dm37x-evm
+    dm6446-evm dm6467-evm dm6467t-evm dns323 eee701 efika h2200 h3900 h4000
+    h5000 hawkboard htcalpine hx4700 i386 i486 i586 i686 igep0020 iwmmxt
+    ixp4xxbe ixp4xxle kuropro lsppchd lsppchg lspro mini2440 mini6410 mips
+    mv2120 n1200 n2100 neuros-osd2 nokia800 om-gta01 om-gta02 omap3-pandora
+    omap3-touchbook omap3evm omap4430-panda omap4430_panda omap5912osk omapzoom
+    omapzoom2 omapzoom36x openrd-base openrd-client overo palmt650 poodle
+    powerpc ppc ppc405 ppc603e qemuarm qemumips qemuppc qemux86 sheevaplug
+    simpad smartq5 spitz tosa ts409 tsx09 usrp-e1xx x86
+  )
+
+  _values -O copts -w -S : architecture ${^tmp}:priority
+}
+
+##
+# Complete destination name.
+_opkg_dest() {
+  local -a copts=( "$@" )
+  local -aU tmp
+
+  tmp=( ${(f)"$( __opkg_grep_conf '^\s*dest\s+\S+\s+\S+' )"} )
+  tmp=( ${tmp##[[:space:]]#dest[[:space:]]##} )
+  tmp=( ${tmp%%[[:space:]]*} )
+
+  (( $#tmp )) || {
+    _message destination
+    return
+  }
+  _values -O copts -w destination $tmp
+}
+
+##
+# Complete destination-name/path pair.
+_opkg_dest_path() {
+  local -a copts=( "$@" )
+  local -aU tmp
+
+  tmp=( ${(f)"$( __opkg_grep_conf '^\s*dest\s+\S+\s+\S+' )"} )
+  tmp=( ${tmp##[[:space:]]#dest[[:space:]]##} )
+  tmp=( ${tmp%%[[:space:]]*} )
+
+  (( $#tmp )) || {
+    _message destination:path
+    return
+  }
+  _values -O copts -w -S : destination ${^tmp}': :_directories'
+}
+
+##
+# Complete any package name.
+_opkg_pkg_all() {
+  local -a upd copts
+
+  zparseopts -a upd -D -E -update
+  copts=( "$@" )
+
+  { (( ! $#_opkg_cache_pkg_all )) || _cache_invalid opkg-pkg-all } &&
+  ! _retrieve_cache opkg-pkg-all && {
+    _opkg_cache_pkg_all=( ${(f)"$(
+      _call_program -p pkg-all ${svc:-opkg} list )"}
+    )
+    _opkg_cache_pkg_all=( ${(@)_opkg_cache_pkg_all##[[:space:]]*} )
+    _opkg_cache_pkg_all=( ${(@)_opkg_cache_pkg_all%%[[:space:]]*} )
+    _store_cache opkg-pkg-all _opkg_cache_pkg_all
+  }
+  (( $#upd )) && return 0
+
+  (( $#_opkg_cache_pkg_all )) || {
+    _message package
+    return
+  }
+  _values -O copts -w package $_opkg_cache_pkg_all
+}
+
+##
+# Complete installed package name.
+_opkg_pkg_inst() {
+  local -a upd copts
+
+  zparseopts -a upd -D -E -update
+  copts=( "$@" )
+
+  { (( ! $#_opkg_cache_pkg_inst )) || _cache_invalid opkg-pkg-inst } &&
+  ! _retrieve_cache opkg-pkg-inst && {
+    _opkg_cache_pkg_inst=( ${(f)"$(
+      _call_program -p pkg-inst ${svc:-opkg} list-installed
+    )"} )
+    _opkg_cache_pkg_inst=( ${(@)_opkg_cache_pkg_inst##[[:space:]]*} )
+    _opkg_cache_pkg_inst=( ${(@)_opkg_cache_pkg_inst%%[[:space:]]*} )
+    _store_cache opkg-pkg-inst _opkg_cache_pkg_inst
+  }
+  (( $#upd )) && return 0
+
+  (( $#_opkg_cache_pkg_inst )) || {
+    _message 'installed package'
+    return
+  }
+  _values -O copts -w 'installed package' $_opkg_cache_pkg_inst
+}
+
+##
+# Complete new (installable) package name.
+_opkg_pkg_new() {
+  local -a upd copts
+
+  zparseopts -a upd -D -E -update
+  copts=( "$@" )
+
+  { (( ! $#_opkg_cache_pkg_new )) || _cache_invalid opkg-pkg-new } &&
+  ! _retrieve_cache opkg-pkg-new && {
+    _opkg_pkg_all  --update
+    _opkg_pkg_inst --update
+    _opkg_cache_pkg_new=( ${_opkg_cache_pkg_all:|_opkg_cache_pkg_inst} )
+    _store_cache opkg-pkg-new _opkg_cache_pkg_new
+  }
+  (( $#upd )) && return 0
+
+  (( $#_opkg_cache_pkg_new )) || {
+    _message 'installable package'
+    return
+  }
+  _values -O copts -w 'installable package' $_opkg_cache_pkg_new
+}
+
+##
+# Complete upgradeable package name.
+_opkg_pkg_upgr() {
+  local -a upd copts
+
+  zparseopts -a upd -D -E -update
+  copts=( "$@" )
+
+  { (( ! $#_opkg_cache_pkg_upgr )) || _cache_invalid opkg-pkg-upgr } &&
+  ! _retrieve_cache opkg-pkg-upgr && {
+    _opkg_cache_pkg_upgr=( ${(f)"$(
+      _call_program -p pkg-upgr ${svc:-opkg} list-upgradable
+    )"} )
+    _opkg_cache_pkg_upgr=( ${(@)_opkg_cache_pkg_upgr##[[:space:]]*} )
+    _opkg_cache_pkg_upgr=( ${(@)_opkg_cache_pkg_upgr%%[[:space:]]*} )
+    _store_cache opkg-pkg-upgr _opkg_cache_pkg_upgr
+  }
+  (( $#upd )) && return 0
+
+  (( $#_opkg_cache_pkg_upgr )) || {
+    _message 'upgradable package'
+    return
+  }
+  _values -O copts -w 'upgradable package' $_opkg_cache_pkg_upgr
+}
+
+_opkg() {
+  local curcontext=$curcontext ret=1 cache_policy help variant svc=$words[1]
+  local -a line state state_descr args tmp
+  local -A opt_args val_args
+
+  if
+    zstyle -t ":completion:*:*:$service:*" cache-persists &&
+    (( ! $+_opkg_cache_pkg_all ))
+  then
+    typeset -gaU _opkg_cache_pkg_all
+    typeset -gaU _opkg_cache_pkg_inst
+    typeset -gaU _opkg_cache_pkg_new
+    typeset -gaU _opkg_cache_pkg_upgr
+  else
+    local -aU _opkg_cache_pkg_all
+    local -aU _opkg_cache_pkg_inst
+    local -aU _opkg_cache_pkg_new
+    local -aU _opkg_cache_pkg_upgr
+  fi
+
+  zstyle -s ":completion:*:*:$service:*" cache-policy cache_policy
+  [[ -n $cache_policy ]] ||
+  zstyle ":completion:*:*:$service:*" cache-policy __opkg_cache_policy
+
+  # Options are ordered by long name. Alternative names not listed in the usage
+  # help are (mostly) ignored
+  args=(
+    '*--add-arch=[register architecture with priority]: :_opkg_arch_prio'
+    '*--add-dest=[register destination with path]: :_opkg_dest_path'
+    '--autoremove[remove unnecessary packages]'
+    '--combine[combine upgrade and install operations]'
+    '(-f --conf)'{-f+,--conf=}'[specify opkg config file]:config file:_files'
+    '(-d --dest)'{-d+,--dest=}'[specify root directory for package operations]: :_opkg_dest'
+    '--download-only[make no changes (download only)]'
+    '--force-checksum[ignore checksum mismatches]'
+    '--force-downgrade[allow package downgrades]'
+    '--force-depends[ignore failed dependencies]'
+    '(--force-maintainer --ignore-maintainer)--force-maintainer[overwrite local config files with upstream changes]'
+    '--force-overwrite[overwrite files from other packages]'
+    '--force-postinstall[always run postinstall scripts]'
+    '--force-reinstall[reinstall packages]'
+    # This is obnoxiously long; maybe add --force-removal-* to ignored-patterns
+    '--force-removal-of-dependent-packages[remove packages and all dependencies]'
+    '--force-remove[ignore failed prerm scripts]'
+    '--force-space[disable free-space checks]'
+    '(--force-maintainer --ignore-maintainer)--ignore-maintainer[ignore upstream changes to config files]'
+    '(-l --lists-dir)'{-l+,--lists-dir=}'[specify package-list directory]:list directory:_directories'
+    '(--noaction --test)'{--noaction,--test}'[make no changes (test only)]'
+    '--nodeps[do not follow dependencies]'
+    # Undocumented variant
+    '!(-o --offline --offline-root)--offline=:root directory:_directories'
+    '(-o --offline --offline-root)'{-o+,--offline-root=}'[specify root directory for offline package operations]:root directory:_directories'
+    '(-A --query-all)'{-A,--query-all}'[query all packages (not just installed)]'
+    '--recursive[remove packages and all their dependencies]'
+    '--size[show package sizes]'
+    '(-t --tmp-dir)'{-t+,--tmp-dir=}'[specify temp directory]:temp directory:_directories'
+    '(-V --verbosity)'{-V+,--verbosity=}'[specify output verbosity level]: :->verbosity-levels'
+    '(: -)'{-v,--version}'[display version information]'
+    '1: :->commands'
+    '*::: :->extra'
+  )
+
+  # There are a few different variants of opkg, but we'll concern ourselves
+  # mainly with OpenWRT/Entware vs (up-stream) Yocto
+  _pick_variant -r variant openwrt=--nocase yocto --help
+
+  if [[ $variant == openwrt ]]; then
+    args+=(
+      '--cache=[specify cache directory]:cache directory:_directories'
+      '--nocase[match patterns case-insensitively]'
+    )
+  else
+    args+=(
+      '*--add-exclude=[register package for exclusion]: :_opkg_pkg_all'
+      '--cache-dir=[specify cache directory]:cache directory:_directories'
+      '--host-cache-dir[do not place cache in offline root directory]'
+      '--no-install-recommends[do not install recommended packages]'
+      '--prefer-arch-to-version[prefer higher architecture priorities to higher versions]'
+      '--volatile-cache[use volatile download cache]'
+    )
+  fi
+
+  _arguments -s -S -C : $args && ret=0
+
+  case $state in
+    commands)
+      tmp=(
+        'compare-versions[compare version numbers]'
+        'configure[configure unpacked package]'
+        'depends[display dependencies of package]'
+        'download[download package]'
+        'files[display files belonging to package]'
+        'find[search package names and descriptions]'
+        'flag[flag package]'
+        'info[display package information]'
+        'install[install package]'
+        'list[display available packages]'
+        'list-changed-conffiles[display user-modified config files]'
+        'list-installed[display installed packages]'
+        'list-upgradable[display upgradable packages]'
+        'print-architecture[display installable architectures]'
+        'remove[remove package]'
+        'search[display packages providing file]'
+        'status[display package status]'
+        'update[update list of available packages]'
+        'upgrade[upgrade installed package]'
+        'whatconflicts[display what conflicts with package]'
+        'whatdepends[display what depends on package]'
+        'whatdependsrec[display what depends on package (recursive)]'
+        'whatprovides[display what provides package]'
+        'whatrecommends[display what recommends package]'
+        'whatreplaces[display what replaces package]'
+        'whatsuggests[display what suggests package]'
+      )
+      [[ $variant == openwrt ]] ||
+      tmp+=( 'clean[clean internal cache]' )
+
+      _values sub-command $tmp && ret=0
+      ;;
+    verbosity-levels)
+      _values 'verbosity level' \
+        '0[show errors only]' \
+        '1[show normal messages (default)]' \
+        '2[show informational message]' \
+        '3[show debug messages (level 1)]' \
+        '4[show debug messages (level 2)]' \
+      && ret=0
+      ;;
+    extra)
+      case $line[1] in
+        compare-versions)
+          case $CURRENT in
+            1|3) _message 'version string' && ret=0 ;;
+            2)
+              _values operator \
+                '<<[earlier]' \
+                '<=[earlier or equal]' \
+                '=[equal]' \
+                '>=[later or equal]' \
+                '>>[later]' \
+              && ret=0
+              ;;
+          esac
+          ;;
+        configure|files|list-*|status)
+          (( CURRENT == 1 )) && _opkg_pkg_inst && ret=0
+          ;;
+        depends|what*)
+          if [[ -n ${opt_args[(I)-A|--query-all]} ]]; then
+            _opkg_pkg_all && ret=0
+          else
+            _opkg_pkg_inst && ret=0
+          fi
+          ;;
+        download)
+          _opkg_pkg_all && ret=0
+          ;;
+        find|info|list)
+          (( CURRENT == 1 )) && _opkg_pkg_all && ret=0
+          ;;
+        flag)
+          if (( CURRENT == 1 )); then
+            _values flag hold noprune user ok installed unpacked && ret=0
+          else
+            _opkg_pkg_inst && ret=0
+          fi
+          ;;
+        install)
+          _opkg_pkg_new && ret=0
+          ;;
+        remove)
+          _opkg_pkg_inst && ret=0
+          ;;
+        search)
+          (( CURRENT == 1 )) && _files && ret=0
+          ;;
+        upgrade)
+          _opkg_pkg_upgr && ret=0
+          ;;
+      esac
+      ;;
+  esac
+
+  (( ret && $#state )) && _message 'no more arguments' && ret=0
+  return ret
+}
+
+_opkg "$@"

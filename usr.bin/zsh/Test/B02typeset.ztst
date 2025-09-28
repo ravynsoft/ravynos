@@ -1,0 +1,1108 @@
+# There are certain usages of typeset and its synonyms that it is not
+# possible to test here, because they must appear at the top level and
+# everything that follows is processed by an "eval" within a function.
+
+# Equivalences:
+#  declare	typeset
+#  export	typeset -xg
+#  float	typeset -E
+#  functions	typeset -f
+#  integer	typeset -i
+#  local	typeset +g -m		approximately
+#  readonly	typeset -r
+
+# Tested elsewhere:
+#  Equivalence of autoload and typeset -fu 	A05execution
+#  Associative array creation & assignment	D04parameter, D06subscript
+#  Effects of GLOBAL_EXPORT			E01options
+#  Function tracing (typeset -ft)		E02xtrace
+
+# Not yet tested:
+#  Assorted illegal flag combinations
+
+# For a few tests, we include a
+#    typeset -p param
+#    typeset -m param
+#    typeset +m param
+# to test the proper output of typeset for a number of different types
+# of variables. Note that we can't use a dedicated function to factorize
+# that code, as that would affect the scoping.
+
+%prep
+  ## Do not remove the next line, it's used by V10private.ztst
+  # test_zsh_param_private
+
+  mkdir typeset.tmp && cd typeset.tmp
+
+  setopt noglob
+
+  scalar=scalar
+  array=(a r r a y)
+
+  scope00() {
+    typeset scalar
+    scalar=local
+    typeset -a array
+    array=(l o c a l)
+    print $scalar $array
+    typeset -p scalar array
+    typeset -m scalar array
+    typeset +m scalar array
+  }
+  scope01() {
+    local scalar
+    scalar=local
+    local -a array
+    array=(l o c a l)
+    print $scalar $array
+    typeset -p scalar array
+    typeset -m scalar array
+    typeset +m scalar array
+  }
+  scope02() {
+    declare scalar
+    scalar=local
+    declare -a array
+    array=(l o c a l)
+    print $scalar $array
+    typeset -p scalar array
+    typeset -m scalar array
+    typeset +m scalar array
+  }
+  scope10() {
+    export outer=outer
+    /bin/sh -fc 'echo $outer'
+    typeset -p outer
+    typeset -m outer
+    typeset +m outer
+  }
+  scope11() {
+    typeset -x outer=outer
+    /bin/sh -fc 'echo $outer'
+  }
+  scope12() {
+    local -x outer=inner
+    /bin/sh -fc 'echo $outer'
+  }
+  scope13() {
+    local -xT OUTER outer
+    outer=(i n n e r)
+    /bin/sh -fc 'echo $OUTER'
+    typeset -p OUTER outer
+    typeset -m OUTER outer
+    typeset +m OUTER outer
+  }
+
+  # Bug?  `typeset -h' complains that ! # $ * - ? @ are not identifiers.
+  stress00() {
+    typeset -h +g -m [[:alpha:]_]*
+    unset -m [[:alpha:]_]*
+    typeset +m [[:alpha:]_]*
+  }
+
+%test
+
+ typeset -p scalar array
+ typeset -m scalar array
+ typeset +m scalar array
+0:Report types for global variables
+>typeset -g scalar=scalar
+>typeset -g -a array=( a r r a y )
+>scalar=scalar
+>array=( a r r a y )
+>scalar
+>array array
+
+ scope00
+ print $scalar $array
+0:Simple local declarations
+>local l o c a l
+>typeset scalar=local
+>typeset -a array=( l o c a l )
+>scalar=local
+>array=( l o c a l )
+>local scalar
+>array local array
+>scalar a r r a y
+
+ scope01
+ print $scalar $array
+0:Equivalence of local and typeset in functions
+>local l o c a l
+>typeset scalar=local
+>typeset -a array=( l o c a l )
+>scalar=local
+>array=( l o c a l )
+>local scalar
+>array local array
+>scalar a r r a y
+
+ scope02
+ print $scalar $array
+0:Basic equivalence of declare and typeset
+>local l o c a l
+>typeset scalar=local
+>typeset -a array=( l o c a l )
+>scalar=local
+>array=( l o c a l )
+>local scalar
+>array local array
+>scalar a r r a y
+
+ declare +m scalar
+0:declare previously lacked -m/+m options
+>scalar
+
+ scope10
+ print $outer
+0:Global export
+>outer
+>export outer=outer
+>outer=outer
+>outer
+>outer
+
+ scope11
+ print $outer
+0:Equivalence of export and typeset -x
+>outer
+>outer
+
+ scope12
+ print $outer
+0:Local export
+>inner
+>outer
+
+ float f=3.14159
+ typeset +m f
+ float -E3 f
+ print $f
+ float -F f
+ print $f
+ typeset -p f
+ typeset -m f
+ typeset +m f
+0:Floating point, adding a precision, and fixed point
+>float local f
+>3.14e+00
+>3.142
+>typeset -F f=3.142
+>f=3.142
+>float local f
+
+ integer i=3.141
+ typeset +m i
+ integer -i2 i
+ print $i
+ typeset -p i
+ typeset -m i
+ typeset +m i
+0:Integer and changing the base
+>integer local i
+>2#11
+>typeset -i2 i=3
+>i=3
+>integer 2 local i
+
+ float -E3 f=3.141
+ typeset +m f
+ integer -i2 f
+ typeset +m f
+ print $f
+0:Conversion of floating point to integer
+>float local f
+>integer 2 local f
+>2#11
+
+ typeset -f
+0q:Equivalence of functions and typeset -f
+>$(functions)
+
+ readonly r=success
+ print $r
+ r=failure
+1:Readonly declaration
+>success
+?(eval):3: read-only variable: r
+
+ typeset r=success
+ readonly r
+ print $r
+ r=failure
+1:Convert to readonly
+>success
+?(eval):4: read-only variable: r
+
+ typeset -gU array
+ print $array
+ typeset -p array
+ typeset -m array
+ typeset +m array
+0:Uniquified arrays and non-local scope
+>a r y
+>typeset -g -aU array=( a r y )
+>array=( a r y )
+>array unique array
+
+ typeset -T SCALAR=l:o:c:a:l array
+ print $array
+ typeset -U SCALAR
+ print $SCALAR $array
+ typeset -p SCALAR array
+ typeset -m SCALAR array
+ typeset +m SCALAR array
+ print ${(t)SCALAR} ${(t)array}
+0:Tied parameters and uniquified colon-arrays
+>l o c a l
+>l:o:c:a l o c a
+>typeset -UT SCALAR array=( l o c a )
+>typeset -aT SCALAR array=( l o c a )
+>SCALAR=l:o:c:a
+>array=( l o c a )
+>local unique tied array SCALAR
+>array local tied SCALAR array
+>scalar-local-tied-unique array-local-tied
+
+ (setopt NO_multibyte cbases
+ LC_ALL=C 2>/dev/null
+ typeset -T SCALAR=$'l\x83o\x83c\x83a\x83l' array $'\x83'
+ print $array
+ typeset -U SCALAR
+ for (( i = 1; i <= ${#SCALAR}; i++ )); do
+   char=$SCALAR[i]
+   print $(( [#16] #char ))
+ done
+ print $array)
+0:Tied parameters and uniquified arrays with meta-character as separator
+>l o c a l
+>0x6C
+>0x83
+>0x6F
+>0x83
+>0x63
+>0x83
+>0x61
+>l o c a
+
+ typeset -T SCALAR=$'l\000o\000c\000a\000l' array $'\000'
+ typeset -U SCALAR
+ print $array
+ typeset -p SCALAR array
+ typeset -m SCALAR array
+ typeset +m SCALAR array
+ [[ $SCALAR == $'l\000o\000c\000a' ]]
+0:Tied parameters and uniquified arrays with NUL-character as separator
+>l o c a
+>typeset -UT SCALAR array=( l o c a ) ''
+>typeset -aT SCALAR array=( l o c a ) ''
+>SCALAR=$'l\C-@o\C-@c\C-@a'
+>array=( l o c a )
+>local unique tied array SCALAR
+>array local tied SCALAR array
+
+ typeset -T SCALAR array
+ typeset +T SCALAR
+1:Untying is prohibited
+?(eval):typeset:2: use unset to remove tied variables
+
+ OUTER=outer
+ scope13
+ print $OUTER
+0:Export of tied parameters
+>i:n:n:e:r
+>typeset -xT OUTER outer=( i n n e r )
+>typeset -aT OUTER outer=( i n n e r )
+>OUTER=i:n:n:e:r
+>outer=( i n n e r )
+>local exported tied outer OUTER
+>array local tied OUTER outer
+>outer
+
+ typeset -TU MORESTUFF=here-we-go-go-again morestuff '-'
+ print -l $morestuff
+ typeset -p MORESTUFF morestuff
+ typeset -m MORESTUFF morestuff
+ typeset +m MORESTUFF morestuff
+0:Tied arrays with separator specified
+>here
+>we
+>go
+>again
+>typeset -UT MORESTUFF morestuff=( here we go again ) -
+>typeset -aUT MORESTUFF morestuff=( here we go again ) -
+>MORESTUFF=here-we-go-again
+>morestuff=( here we go again )
+>local unique tied morestuff MORESTUFF
+>array local unique tied MORESTUFF morestuff
+
+ typeset -T THIS will not work
+1:Tied array syntax
+?(eval):typeset:1: too many arguments for -T
+
+ local array[2]=x
+1:Illegal local array element assignment
+?(eval):local:1: array[2]: can't create local array elements
+
+ local -a array
+ typeset array[1]=a array[2]=b array[3]=c
+ print $array
+0:Legal local array element assignment
+>a b c
+
+ local -A assoc
+ local b=1 ;: to stomp assoc[1] if assoc[b] is broken
+ typeset assoc[1]=a assoc[b]=2 assoc[3]=c
+ print $assoc[1] $assoc[b] $assoc[3]
+ typeset -p assoc
+ typeset -m assoc
+ typeset +m assoc
+0:Legal local associative array element assignment
+>a 2 c
+>typeset -A assoc=( [1]=a [3]=c [b]=2 )
+>assoc=( [1]=a [3]=c [b]=2 )
+>association local assoc
+
+ local scalar scalar[1]=a scalar[2]=b scalar[3]=c
+ print $scalar
+ typeset -p scalar
+ typeset -m scalar
+ typeset +m scalar
+0:Local scalar subscript assignment
+>abc
+>typeset scalar=abc
+>scalar=abc
+>local scalar
+
+ typeset -L 10 fools
+ for fools in "   once" "twice"  "      thrice" "   oops too long here"; do
+   print "'$fools'"
+ done
+0:Left justification of scalars
+>'once      '
+>'twice     '
+>'thrice    '
+>'oops too l'
+
+ typeset -L 10 -F 3 foolf
+ for foolf in 1.3 4.6 -2.987 -4.91031; do
+   print "'$foolf'"
+ done
+ typeset -p foolf
+ typeset -m foolf
+ typeset +m foolf
+0:Left justification of floating point
+>'1.300     '
+>'4.600     '
+>'-2.987    '
+>'-4.910    '
+>typeset -FL10 foolf=-4.910
+>foolf=-4.910
+>float local left justified 10 foolf
+
+ typeset -L 10 -Z foolzs
+ for foolzs in 001.3 04.6 -2.987 -04.91231; do
+   print "'$foolzs'"
+ done
+0:Left justification of scalars with zero suppression
+>'1.3       '
+>'4.6       '
+>'-2.987    '
+>'-04.91231 '
+
+ typeset -R 10 foors
+ for foors in short longer even-longer; do
+   print "'$foors'"
+ done
+ typeset -p foors
+ typeset -m foors
+ typeset +m foors
+0:Right justification of scalars
+>'     short'
+>'    longer'
+>'ven-longer'
+>typeset -R10 foors=even-longer
+>foors=even-longer
+>local right justified 10 foors
+
+ typeset -Z 10 foozs
+ for foozs in 42 -42 " 43" " -43"; do
+   print "'$foozs'"
+ done
+0:Right justification of scalars with zeroes
+>'0000000042'
+>'       -42'
+>' 000000043'
+>'       -43'
+
+ integer -Z 10 foozi
+ for foozi in 42 -42 " 43" " -43"; do
+   print "'$foozi'"
+ done
+0:Right justification of integers with zero, no initial base
+>'0000000042'
+>'-000000042'
+>'0000000043'
+>'-000000043'
+# In case you hadn't twigged, the spaces are absorbed in the initial
+# math evaluation, so don't get through.
+
+ unsetopt cbases
+ integer -Z 10 -i 16 foozi16
+ for foozi16 in 42 -42 " 43" " -43"; do
+   print "'$foozi16'"
+ done
+0:Right justification of integers with zero, base 16, C_BASES off
+>'16#000002A'
+>'-16#00002A'
+>'16#000002B'
+>'-16#00002B'
+
+ setopt cbases
+ integer -Z 10 -i 16 foozi16c
+ for foozi16c in 42 -42 " 43" " -43"; do
+   print "'$foozi16c'"
+ done
+0:Right justification of integers with zero, base 16, C_BASES on
+>'0x0000002A'
+>'-0x000002A'
+>'0x0000002B'
+>'-0x000002B'
+
+ setopt cbases
+ integer -Z 10 -i 16 foozi16c
+ for foozi16c in 0x1234 -0x1234; do
+   for (( i = 1; i <= 5; i++ )); do
+       print "'${foozi16c[i,11-i]}'"
+   done
+   print "'${foozi16c[-2]}'"
+ done
+0:Extracting substrings from padded integers
+>'0x00001234'
+>'x0000123'
+>'000012'
+>'0001'
+>'00'
+>'3'
+>'-0x0001234'
+>'0x000123'
+>'x00012'
+>'0001'
+>'00'
+>'3'
+
+ typeset -F 3 -Z 10 foozf
+ for foozf in 3.14159 -3.14159 4 -4; do
+   print "'$foozf'"
+ done
+0:Right justification of fixed point numbers with zero
+>'000003.142'
+>'-00003.142'
+>'000004.000'
+>'-00004.000'
+
+ stress00
+ print $scalar $array
+0q:Stress test: all parameters are local and unset, using -m
+>scalar a r y
+
+ local parentenv=preserved
+ fn() {
+  typeset -h +g -m \*
+  unset -m \*
+  integer i=9
+  float -H f=9
+  declare -t scalar
+  declare -H -a array
+  typeset
+  typeset +
+ }
+ fn
+ echo $parentenv
+0:Parameter hiding and tagging, printing types and values
+>array local array
+>float local f
+>integer local i=9
+>local tagged scalar=''
+>array local array
+>float local f
+>integer local i
+>local tagged scalar
+>preserved
+
+ export ENVFOO=bar
+ print ENVFOO in environment
+ env | grep '^ENVFOO'
+ print Changing ENVFOO
+ ENVFOO="not bar any more"
+ env | grep '^ENVFOO'
+ unset ENVFOO
+ print ENVFOO no longer in environment
+ env | grep '^ENVFOO'
+1:Adding and removing values to and from the environment
+>ENVFOO in environment
+>ENVFOO=bar
+>Changing ENVFOO
+>ENVFOO=not bar any more
+>ENVFOO no longer in environment
+
+ (export FOOENV=BAR
+ env | grep '^FOOENV'
+ print Exec
+ exec $ZTST_testdir/../Src/zsh -fc '
+ print Unset
+ unset FOOENV
+ env | grep "^FOOENV"')
+1:Can unset environment variables after exec
+>FOOENV=BAR
+>Exec
+>Unset
+
+ local case1=upper
+ typeset -u case1
+ print $case1
+ upper="VALUE OF \$UPPER"
+ print ${(P)case1}
+ typeset -p case1
+ typeset -m case1
+ typeset +m case1
+0:Upper case conversion, does not apply to values used internally
+>UPPER
+>VALUE OF $UPPER
+>typeset -u case1=upper
+>case1=upper
+>local uppercase case1
+
+ local case2=LOWER
+ typeset -l case2
+ print $case2
+ LOWER="value of \$lower"
+ print ${(P)case2}
+ typeset -p case2
+ typeset -m case2
+ typeset +m case2
+0:Lower case conversion, does not apply to values used internally
+>lower
+>value of $lower
+>typeset -l case2=LOWER
+>case2=LOWER
+>local lowercase case2
+
+ typeset -a array
+ array=(foo bar)
+ fn() { typeset -p array nonexistent; }
+ fn
+1:typeset -p shouldn't create scoped values
+>typeset -g -a array=( foo bar )
+?fn:typeset: no such variable: nonexistent
+
+ unsetopt typesetsilent
+ silent1(){ typeset -g silence; }
+ silent2(){ local silence; silent1; }
+ silent2
+0:typeset -g should be silent even without TYPESET_SILENT
+
+ typeset -T TIED_SCALAR tied_array
+ TIED_SCALAR=foo:bar
+ print $tied_array
+ typeset -T TIED_SCALAR=goo:car tied_array
+ print $tied_array
+ typeset -T TIED_SCALAR tied_array=(poo par)
+ print $TIED_SCALAR
+0:retying arrays to same array works
+>foo bar
+>goo car
+>poo:par
+
+ (
+   setopt POSIXBUILTINS
+   readonly pbro
+   print ${+pbro} >&2
+   (typeset -g pbro=3)
+   (pbro=4)
+   readonly -p >&2        # shows up as "readonly" although unset
+   typeset -gr pbro       # idempotent (no error)...
+   print ${+pbro} >&2     # ...so still readonly...
+   typeset -g +r pbro     # ...can't turn it off
+ )
+1:readonly with POSIX_BUILTINS
+?0
+?(eval):5: read-only variable: pbro
+?(eval):6: read-only variable: pbro
+?readonly pbro
+?0
+?(eval):10: read-only variable: pbro
+
+  readonly foo=bar novalue
+  readonly -p
+0:readonly -p output (no readonly specials)
+>typeset -r foo=bar
+>typeset -r novalue=''
+
+  local -a a1 a2
+  local -r r1=yes r2=no
+  a1=(one two) a2=(three four)
+  readonly a1
+  typeset -pm 'a[12]'
+  typeset -pm 'r[12]'
+0:readonly -p output
+>typeset -ar a1=( one two )
+>typeset -a a2=( three four )
+>typeset -r r1=yes
+>typeset -r r2=no
+
+  one=hidden two=hidden three=hidden four=hidden five=hidden
+  fn() {
+     local bleugh="four=vier"
+     typeset -R10 one=eins two=(zwei dio) three $bleugh five=(cinq cinque)
+     three=drei
+     print -l $one $two $three $four $five
+  }
+  fn
+  print -l $one $two $three $four $five
+0:typeset reserved word interface: basic
+>      eins
+>zwei
+>dio
+>      drei
+>      vier
+>cinq
+>cinque
+>hidden
+>hidden
+>hidden
+>hidden
+>hidden
+
+  (
+  setopt glob
+  mkdir -p arrayglob
+  touch arrayglob/{one,two,three,four,five,six,seven}
+  fn() {
+    typeset array=(arrayglob/[tf]*)
+    print -l ${array:t}
+    #
+    typeset {first,second,third}=the_same_value array=(
+    extends
+    over
+    multiple
+    lines
+    )
+    print -l $first $second $third "$array"
+    #
+    integer i=$(echo 1 + 2 + 3 + 4)
+    print $i
+    #
+    # only noted by accident this was broken..
+    # we need to turn off special recognition
+    # of assignments within assignments...
+    typeset careful=( i=1 j=2 k=3 )
+    print -l $careful
+  }
+  fn
+  )
+0:typeset reserved word, more complicated cases
+>five
+>four
+>three
+>two
+>the_same_value
+>the_same_value
+>the_same_value
+>extends over multiple lines
+>10
+>i=1
+>j=2
+>k=3
+
+  (
+     # reserved word is recognised at parsing.
+     # yes, this is documented.
+     # anyway, that means we need to
+     # re-eval the function...
+     fn='
+     fn() {
+        typeset foo=`echo one word=two`
+        print $foo
+        print $word
+     }
+     '
+     print reserved
+     eval $fn; fn
+     print builtin
+     disable -r typeset
+     eval $fn; fn
+     enable -r typeset
+     disable typeset
+     print reserved
+     eval $fn; fn
+  )
+0:reserved word and builtin interfaces
+>reserved
+>one word=two
+>
+>builtin
+>one
+>two
+>reserved
+>one word=two
+>
+
+  fn() {
+    emulate -L zsh
+    setopt typeset_silent
+    local k
+    typeset -A hash=(k1 v1 k2 v2)
+    typeset foo=word array=(more than one word)
+    for k in ${(ko)hash}; do
+      print $k $hash[$k]
+    done
+    print -l $foo $array
+    typeset -A hash
+    typeset foo array
+    for k in ${(ko)hash}; do
+      print $k $hash[$k]
+    done
+    print -l $foo $array
+    typeset hash=(k3 v3 k4 v4) array=(odd number here)
+    for k in ${(ko)hash}; do
+      print $k $hash[$k]
+    done
+    print -l $array
+  }
+  fn
+0:typeset preserves existing variable types
+>k1 v1
+>k2 v2
+>word
+>more
+>than
+>one
+>word
+>k1 v1
+>k2 v2
+>word
+>more
+>than
+>one
+>word
+>k3 v3
+>k4 v4
+>odd
+>number
+>here
+
+  fn() { typeset foo bar thing=this stuff=(that other) more=woevva; }
+  which -x2 fn
+  fn2() { typeset assignfirst=(why not); }
+  which -x2 fn2
+0:text output from typeset
+>fn () {
+>  typeset foo bar thing=this stuff=(that other) more=woevva 
+>}
+>fn2 () {
+>  typeset assignfirst=(why not) 
+>}
+
+  fn() {
+    typeset array=()
+    print ${(t)array} ${#array}
+    typeset gnothergarray=() gnothergarray[1]=yes gnothergarray[2]=no
+    print -l ${(t)gnothergarray} $gnothergarray
+  }
+  fn
+0:can set empty array
+>array-local 0
+>array-local
+>yes
+>no
+
+  array=(nothing to see here)
+  fn() {
+    typeset array=(one two three four five)
+    typeset array[2,4]=(umm er)
+    print ${#array} $array
+    typeset array[2,3]=()
+    print ${#array} $array
+  }
+  fn
+  print ${#array} $array
+0:can update array slices in typeset
+>4 one umm er five
+>2 one five
+>4 nothing to see here
+
+  array=(no really nothing here)
+  fn() {
+    typeset array=() array[2]=two array[4]=four
+    typeset -p array
+    typeset array=() array[3]=three array[1]=one
+    typeset -p array
+  }
+  fn
+  print $array
+0:setting empty array in typeset
+>typeset -a array=( '' two '' four )
+>typeset -a array=( one '' three )
+>no really nothing here
+
+  readonly isreadonly=yes
+  typeset isreadonly=still
+1:typeset returns status 1 if setting readonly variable
+?(eval):2: read-only variable: isreadonly
+
+  if (( UID )); then
+    UID=$((UID+1)) date; echo "Status is printed, $?"
+  else
+    ZTST_skip="cannot test setuid error when tests run as superuser"
+  fi
+0:when cannot change UID, the command isn't run
+# 'date' did not run.
+>Status is printed, 1
+*?*: failed to change user ID: *
+
+ typeset -A keyvalhash=([one]=eins [two]=zwei)
+ keyvalhash+=([three]=drei)
+ for key in ${(ok)keyvalhash}; do
+   print $key $keyvalhash[$key]
+ done
+0:[key]=val for hashes
+>one eins
+>three drei
+>two zwei
+
+  local keyvalarray=([1]=one [3]=three)
+  print -l "${keyvalarray[@]}"
+  keyvalarray+=([2]=two)
+  print -l "${keyvalarray[@]}"
+  local keyvalarray=([1]=one [3]=three)
+  print -l "${keyvalarray[@]}"
+0:[key]=val for normal arrays
+>one
+>
+>three
+>one
+>two
+>three
+>one
+>
+>three
+
+ touch foo Xnot_globbedX
+ inkey="another key" val="another value"
+ typeset -A keyvalhash=([$(echo the key)]=$(echo the value)
+                        [$inkey]=$val
+	                [*]=?not_globbed?)
+ for key in ${(ok)keyvalhash}; do
+   print -l $key $keyvalhash[$key]
+ done
+ typeset -A keyvalhash=([$(echo the key)]=$(echo the value)
+                        [$inkey]=$val
+	                [*]=?not_globbed?)
+ for key in ${(ok)keyvalhash}; do
+   print -l $key $keyvalhash[$key]
+ done
+ typeset -p keyvalhash
+0:Substitution in [key]=val syntax
+>*
+>?not_globbed?
+>another key
+>another value
+>the key
+>the value
+>*
+>?not_globbed?
+>another key
+>another value
+>the key
+>the value
+>typeset -A keyvalhash=( ['*']='?not_globbed?' ['another key']='another value' ['the key']='the value' )
+
+  local keyvalarray=(first [2]=second third [6]=sixth seventh [5]=fifth new_sixth)
+  print -l "${keyvalarray[@]}"
+0:mixed syntax [key]=val with normal arrays
+>first
+>second
+>third
+>
+>fifth
+>new_sixth
+>seventh
+
+  local -A keyvalhash=(1 one [2]=two 3 three)
+1:Mixed syntax with [key]=val not allowed for hash.
+?(eval):1: bad [key]=value syntax for associative array
+
+  local -a myarray
+  typeset -p1 myarray
+  myarray=("&" sand '""' "" plugh)
+  typeset -p1 myarray
+0:typeset -p1 output for array
+>typeset -a myarray=()
+>typeset -a myarray=(
+>  '&'
+>  sand
+>  '""'
+>  ''
+>  plugh
+>)
+
+  local -A myhash
+  typeset -p1 myhash
+  myhash=([one]=two [three]= [four]="[]")
+  typeset -p1 myhash
+0:typeset -p1 output for associative array
+>typeset -A myhash=()
+>typeset -A myhash=(
+>  [four]='[]'
+>  [one]=two
+>  [three]=''
+>)
+
+ (export PATH MANPATH
+ path=(/bin)
+ MANPATH=/
+ # read-only special params like zsh_eval_context are not output by typeset -p
+ specials=(path PATH manpath MANPATH zsh_eval_context ZSH_EVAL_CONTEXT)
+ typeset -p $specials
+ typeset -m $specials
+ typeset +m $specials
+ for var ($specials) print $var: ${(Pt)var}
+ )
+0:typeset output for some special tied parameters
+>typeset -g -aT PATH path=( /bin )
+>export -T PATH path=( /bin )
+>typeset -g -aT MANPATH manpath=( / )
+>export -T MANPATH manpath=( / )
+>path=( /bin )
+>PATH=/bin
+>manpath=( / )
+>MANPATH=/
+>zsh_eval_context=( toplevel shfunc shfunc shfunc eval )
+>ZSH_EVAL_CONTEXT=toplevel:shfunc:shfunc:shfunc:eval
+>array tied PATH path
+>tied path PATH
+>array tied MANPATH manpath
+>tied manpath MANPATH
+>array readonly tied ZSH_EVAL_CONTEXT zsh_eval_context
+>readonly tied zsh_eval_context ZSH_EVAL_CONTEXT
+>path: array-tied-special
+>PATH: scalar-tied-export-special
+>manpath: array-tied-special
+>MANPATH: scalar-tied-export-special
+>zsh_eval_context: array-readonly-tied-special
+>ZSH_EVAL_CONTEXT: scalar-readonly-tied-special
+
+ typeset -T VAR var=(a b a b)
+ typeset -UuT VAR var +
+ print $VAR
+0:redeclare a tied variable with different attributes
+>A+B
+
+ typeset -T VAR=a+b var
+ typeset -T VAR var +
+ print $var
+0:colonarray re-split when changing the join character
+>a b
+
+ readonly -T VAR var=(a b)
+ readonly -T VAR var +
+1:cannot change the join character on a readonly tied variable
+?(eval):1: read-only variable: var
+
+ typeset -T FOO manpath
+1:Can't tie a special tied array to a different variable
+?(eval):typeset:1: manpath special parameter can only be tied to special parameter MANPATH
+
+ typeset -T MANPATH foo
+1:Can't tie a special tied scalar to a different variable
+?(eval):typeset:1: MANPATH special parameter can only be tied to special parameter manpath
+
+ typeset -T MANPATH manpath +
+1:Can't change the join character of a special tied variable
+?(eval):typeset:1: cannot change the join character of special tied parameters
+
+ (){
+   typeset -h path
+   typeset -T PATH path=(x)
+ }
+ (){
+   typeset -h PATH
+   typeset -T PATH path=(x)
+ }
+1:reject attempt to tie special to downgraded peer
+?(anon):typeset:2: PATH special parameter can only be tied to special parameter path
+?(anon):typeset:2: path special parameter can only be tied to special parameter PATH
+
+ typeset MANPATH
+ manpath=(/ /)
+ typeset -UT MANPATH manpath
+ print $manpath
+0:OK to run typeset -T on tied specials as long as peer and joinchar are unchanged
+>/
+
+ typeset FOO=a:b
+ export FOO
+ typeset +x -T FOO foo
+ typeset -p FOO
+0:Make sure +x is honoured when tying a parameter
+>typeset -T FOO foo=( a b )
+
+ $ZTST_testdir/../Src/zsh --emulate sh -f -c '
+ PATH=/bin; export PATH; readonly PATH
+ export -p PATH		# Should be a no-op, -p ignored
+ typeset -p PATH
+ readonly -p'
+0: readonly/export output for exported+readonly+special when started as sh
+>export -r PATH=/bin
+>readonly PATH=/bin
+
+ function {
+ emulate -L sh
+ MANPATH=/bin; export MANPATH; readonly MANPATH
+ export -p MANPATH	# Should be a no-op, -p ignored
+ typeset -p MANPATH
+ readonly -p
+ }
+0: readonly/export output for exported+readonly+tied+special after switching to sh emulation
+>export -rT MANPATH manpath=( /bin )
+>readonly MANPATH=/bin
+
+ function {
+   local -rax zsh_exported_readonly_array=(2)
+   local -rAx zsh_exported_readonly_hash=(3 3)
+   local -rx zsh_exported_readonly_scalar=1
+   print zsh:
+   export -p | grep zsh_exported_readonly
+   readonly -p | grep zsh_exported_readonly
+   print sh:
+   emulate -L sh
+   export -p | grep zsh_exported_readonly
+   readonly -p | grep zsh_exported_readonly
+   print still asking for arrays:
+   export -ap | grep zsh_exported_readonly
+   readonly -ap | grep zsh_exported_readonly
+ }
+0: no array/hash in POSIX export/readonly -p
+>zsh:
+>typeset -arx zsh_exported_readonly_array=( 2 )
+>typeset -Arx zsh_exported_readonly_hash=( [3]=3 )
+>typeset -rx zsh_exported_readonly_scalar=1
+>typeset -arx zsh_exported_readonly_array=( 2 )
+>typeset -Arx zsh_exported_readonly_hash=( [3]=3 )
+>typeset -rx zsh_exported_readonly_scalar=1
+>sh:
+>export zsh_exported_readonly_scalar=1
+>readonly zsh_exported_readonly_scalar=1
+>still asking for arrays:
+>export zsh_exported_readonly_array=( 2 )
+>export zsh_exported_readonly_scalar=1
+>readonly zsh_exported_readonly_array=( 2 )
+>readonly zsh_exported_readonly_scalar=1
+
+  # The second case was buggy as it needs special handling in postassigns
+  (typeset {X})
+  (typeset Q= {X})
+1:Regression test for {...} parsing in typeset
+?(eval):typeset:2: not valid in this context: {X}
+?(eval):typeset:3: not valid in this context: {X}

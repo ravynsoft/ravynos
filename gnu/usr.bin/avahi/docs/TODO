@@ -1,0 +1,117 @@
+later:
+* add simplification routine for adding services 
+* support for special domain PTR records based on local IP subnet address
+* Changes resulting in updated RFC of 7th June 2005:
+  * Defer responses to replies with TC bit set by 400-500msec
+  * Defer unicast responses the same way as multicast responses 
+* DNSSEC [federico]
+* Wide area DNS Update [federico]
+* long lived queries
+* libavahi-compat-libdns_sd: implement kDNSServiceFlagsNoAutoRename and missing functions
+* libavahi-compat-howl: implement missing functions
+* add API to allow user to tell the server that some service is not reachable
+* gtk3
+* qt5
+* goodbye/hello on sleep/suspend/wake
+* sleep proxy
+* hostname aliases
+* test suite
+* api for creating custom dns records
+* LLMNR
+* ruby dbus wrapper (https://github.com/pawelpacana/avahi)
+* review various limits including dbus object limits
+* can we solve multiple unicast sockets with SO_REUSEPORT? https://lwn.net/Articles/542629/
+
+done:
+* drop glib from avahi-daemon
+* doxygen updates
+* deal with no local interface
+* Probing/Conflict resolution
+* uniqueness
+* respect escaping in name serialization
+* really send goodbye packets
+* refresh subscribed records only
+* FLX_DNS_TYPE_ANY support
+* Known-Answer suppression client part
+* Known-Answer suppression server part
+* make flx_server_add_text() and flx_server_add_service() variadic functions
+* name compression
+* remove expression "rrset" from source files
+* defend our entries on incoming goodbye
+* allow NULL bytes in TXT records
+* add flx_server_add_service_strlst() and friends
+* change flx_* to avahi_*
+* Unicast responses/queries
+* Legacy unicast
+* no flush bit in known answer
+* always set AA
+* check: TC bit is valid for queries ONLY
+* add SRV and TXT records referenced from PTR records automatically to packet
+* add A and AAAA records referenced from SRV records automatically to packet
+* support known answer suppresion for incoming unicast queries
+* check wether RRsets are supported correctly (i.e. that all records of an
+  RRset are really sent if it is requested) (rfc 2181)
+* case insensitve comparison
+* drop records from cache only one second after flush cache bit entry was received
+* either send entire RRSET or don't set flush cache bit!
+* mantain flush cache bit correctly in psched
+* Return to probing state on conflict
+* response job dependencies
+* enlarge packet in case a record/query is too large to fit in a normal packet
+* reflector
+* test against apple test suite
+* sensible logging
+* c++ support
+* drop trailing dot on avahi_normalize_name()
+* add entry_group::reset()
+* add internal error codes
+* finish DBUS stuff: allow NUL bytes in TXT records
+* allow srv port == 0
+* avahi-client:
+   * service resolving
+   * examples
+* publish IP addresses with scope "link" only, unless ther are the only one the interface
+* release 0.2!
+* add identical service detection cookie
+* add API to detect if a service is local
+* make AVAHI_PROTO_xxx well defined constants
+* if two local clients browse for the same RRs, only send out query series once
+* handle multicast/wide area resolving for reverse host name looups
+* add wide area support (i.e. DNS-SD over unicast DNS) 
+* add a way to notify the user that all cache entries have been read when browsing
+* allow resolving of services without name
+* add sever version check to avahi-client
+* Passive observation of failures
+* add option to disable SO_REUSEADDR to disallow binding of multiple processes to port 5353
+* add flags argument to disable cookies-setting for local services
+* add API to add addresses without reverse PTR record
+* reset commit throttling for entry groups after a while
+* wrap subtype support for avahi-client
+* add subtype browsing
+* split linux specific parts from iface.c 
+* consolidate browsing failure events and add an API to query the reason
+* Add sensible record updating API
+* rename AvahiAnnouncement to AvahiAnnouncer (to match AvahiQuerier)
+* implement avahi_client_add_address
+* remove AVAHI_PUBLISH_IS_PROXY
+* replace avahi_server_is_service_local() by AVAHI_PUBLISH flag
+* drop partially created created entries on failure
+* add error state for server and entry group
+* make sure that all limit definitions end with _MAX
+* generate local CNAME responses
+* remove irrelevant functions from pubic rr.h API
+* unify argument order of functions returning a string in a user supplied buffer 
+* add support for subtypes in static services
+* wrap avahi_server_add_record() via DBUS and in avahi-client [lathiat]
+* add service type database support to avahi-browse
+* add domain browsing to avahi-browse
+* always set source address for outgoing packets
+* add support for defining browsing domains with an option in avahi-daemon.onf
+* return an error when the user tries to register a service in a domain != .local, for now
+* introduce AVAHI_CLIENT_FAILURE
+* remove outgoing queries from queue if the browse object they were issued from is destroyed
+* pass *all* Bonjour conformance tests
+* fix python scripts
+* Expose AvahiSRecordBrowser over D-BUS and implement in avahi-client
+* avahi-publish-* rewrites in C, update man pages
+* Add static host configuration like static services [lathiat]

@@ -1,0 +1,37 @@
+GNUstep Objective-C Runtime 1.8
+===============================
+
+This the ninth official release of the GNUstep Objective-C runtime (a.k.a.
+libobjc2).  This runtime was designed to support the features of modern
+dialects of Objective-C for use with GNUstep and other Objective-C programs.
+Highlights of this release include:
+
+- Added API for tracing, allowing interposition on all message sends matching a
+  given selector.
+
+- Numerous bug fixes and stability improvements.
+
+You may obtain the code for this release from git and use the 1.8 branch:
+
+https://github.com/gnustep/libobjc2.git
+
+Alternatively, a tarball is available from:
+
+https://github.com/gnustep/libobjc2/archive/v1.8.zip
+https://github.com/gnustep/libobjc2/archive/v1.8.tar.gz
+
+The runtime library is responsible for implementing the core features of the
+object model, as well as exposing introspection features to the user.  The
+GNUstep runtime implements Apple's Objective-C Runtime APIs, and a small number
+of GCC APIs for legacy compatibility.
+
+This library is based on the Étoilé Objective-C Runtime, an earlier research
+prototype, and includes support for non-fragile instance variables,
+type-dependent dispatch, and object planes.  It is fully backwards compatible
+with the FSF's GCC 4.2.1 Objective-C ABI and also implements a new ABI that is
+supported by Clang and Étoilé's LanguageKit and is required for some of the
+newer features.
+
+If you come across any problems, please file them in the issue tracker:
+
+https://github.com/gnustep/libobjc2/issues

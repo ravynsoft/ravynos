@@ -1,0 +1,7 @@
+Defaults syslog=auth
+Defaults>root !set_logname
+Defaults!PAGERS noexec
+
+Cmnd_Alias PAGERS = /usr/bin/more, /usr/bin/pg, /usr/bin/less
+
+%wheel ALL = (ALL) ALL

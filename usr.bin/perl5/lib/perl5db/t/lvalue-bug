@@ -1,0 +1,9 @@
+#!/usr/bin/perl
+#
+# This code is used by lib/perl5db.t !!!
+#
+
+my $i;
+sub foo () : lvalue { $i }
+foo = 1;
+print defined foo ? "foo is defined" : "foo is still undef", "\n";

@@ -1,0 +1,269 @@
+  perl.c	AOK
+
+  gv_check(defstash)
+	Name \"%s::%s\" used only once: possible typo 
+
+  Mandatory Warnings All TODO
+  ------------------
+  Recompile perl with -DDEBUGGING to use -D switch	[moreswitches]
+  Unbalanced scopes: %ld more ENTERs than LEAVEs	[perl_destruct]
+  Unbalanced saves: %ld more saves than restores	[perl_destruct]
+  Unbalanced tmps: %ld more allocs than frees		[perl_destruct]
+  Unbalanced context: %ld more PUSHes than POPs		[perl_destruct]
+  Unbalanced string table refcount: (%d) for \"%s\"	[perl_destruct]
+  Scalars leaked: %ld					[perl_destruct]
+
+
+__END__
+# perl.c
+no warnings 'once' ;
+$x = 3 ;
+use warnings 'once' ;
+$z = 3 ;
+EXPECT
+Name "main::z" used only once: possible typo at - line 5.
+########
+-w
+# perl.c
+$x = 3 ;
+no warnings 'once' ;
+$z = 3 
+EXPECT
+Name "main::x" used only once: possible typo at - line 3.
+########
+# perl.c
+BEGIN { $^W =1 ; }
+$x = 3 ;
+no warnings 'once' ;
+$z = 3 
+EXPECT
+Name "main::x" used only once: possible typo at - line 3.
+########
+# perl.c
+use warnings 'once';
+$\; # test a few
+$:; # punct vars
+$0; # and
+$123; # numbers
+$_;    # and
+$_foo;  # underscores (none of which should warn)
+@DB::args
+EXPECT
+########
+-w
+# perl.c
+print # avoid void warning
+$\, # test a few
+$:, # punct vars
+$0, # and
+$123, # numbers
+$_,    # and
+$_foo,  # underscores (none of which should warn)
+@DB::args
+if 0;
+EXPECT
+########
+-W
+# perl.c
+no warnings 'once' ;
+$x = 3 ;
+use warnings 'once' ;
+$z = 3 ;
+EXPECT
+OPTION random
+Name "main::z" used only once: possible typo at - line 6.
+Name "main::x" used only once: possible typo at - line 4.
+########
+-X
+# perl.c
+use warnings 'once' ;
+$x = 3 ;
+EXPECT
+########
+
+# perl.c
+{ use warnings 'once' ; $x = 3 ; }
+$y = 3 ;
+EXPECT
+Name "main::x" used only once: possible typo at - line 3.
+########
+
+# perl.c
+$z = 3 ;
+BEGIN { $^W = 1 }
+{ no warnings 'once' ; $x = 3 ; }
+$y = 3 ;
+EXPECT
+Name "main::y" used only once: possible typo at - line 6.
+########
+
+# perl.c
+use utf8;
+use open qw( :utf8 :std );
+no warnings 'once' ;
+$ᛪ = 3 ;
+use warnings 'once' ;
+$ȥ = 3 ;
+EXPECT
+Name "main::ȥ" used only once: possible typo at - line 8.
+########
+-w
+# perl.c
+use utf8;
+use open qw( :utf8 :std );
+$ᛪ = 3 ;
+no warnings 'once' ;
+$ȥ = 3;
+EXPECT
+Name "main::ᛪ" used only once: possible typo at - line 5.
+########
+# perl.c
+use utf8;
+use open qw( :utf8 :std );
+BEGIN { $^W =1 ; }
+$ᛪ = 3 ;
+no warnings 'once' ;
+$ȥ = 3 
+EXPECT
+Name "main::ᛪ" used only once: possible typo at - line 5.
+########
+-W
+# perl.c
+use utf8;
+use open qw( :utf8 :std );
+no warnings 'once' ;
+$ᛪ = 3 ;
+use warnings 'once' ;
+$ȥ = 3 ;
+EXPECT
+OPTION random
+Name "main::ȥ" used only once: possible typo at - line 8.
+Name "main::ᛪ" used only once: possible typo at - line 6.
+########
+-X
+# perl.c
+use utf8;
+use open qw( :utf8 :std );
+use warnings 'once' ;
+$ᛪ = 3 ;
+EXPECT
+########
+
+# perl.c
+use utf8;
+use open qw( :utf8 :std );
+{ use warnings 'once' ; $ᛪ = 3 ; }
+$ŷ = 3 ;
+EXPECT
+Name "main::ᛪ" used only once: possible typo at - line 5.
+########
+
+# perl.c
+use utf8;
+use open qw( :utf8 :std );
+$ȥ = 3 ;
+BEGIN { $^W = 1 }
+{ no warnings 'once' ; $ᛪ = 3 ; }
+$ŷ = 3 ;
+EXPECT
+Name "main::ŷ" used only once: possible typo at - line 8.
+########
+
+
+# perl.c
+use utf8;
+use open qw( :utf8 :std );
+package ɕლȃṢȿ;
+no warnings 'once' ;
+$ᛪ = 3 ;
+use warnings 'once' ;
+$ȥ = 3 ;
+EXPECT
+Name "ɕლȃṢȿ::ȥ" used only once: possible typo at - line 10.
+########
+-w
+# perl.c
+use utf8;
+use open qw( :utf8 :std );
+package ɕლȃṢȿ;
+$ᛪ = 3 ;
+no warnings 'once' ;
+$ȥ = 3 
+EXPECT
+Name "ɕლȃṢȿ::ᛪ" used only once: possible typo at - line 6.
+########
+# perl.c
+use utf8;
+use open qw( :utf8 :std );
+package ɕლȃṢȿ;
+BEGIN { $^W =1 ; }
+$ᛪ = 3 ;
+no warnings 'once' ;
+$ȥ = 3 
+EXPECT
+Name "ɕლȃṢȿ::ᛪ" used only once: possible typo at - line 6.
+########
+-W
+# perl.c
+use utf8;
+use open qw( :utf8 :std );
+package ɕლȃṢȿ;
+no warnings 'once' ;
+$ᛪ = 3 ;
+use warnings 'once' ;
+$ȥ = 3 ;
+EXPECT
+OPTION random
+Name "ɕლȃṢȿ::ᛪ" used only once: possible typo at - line 7.
+Name "ɕლȃṢȿ::ȥ" used only once: possible typo at - line 9.
+########
+-X
+# perl.c
+use utf8;
+use open qw( :utf8 :std );
+use warnings 'once' ;
+package ɕლȃṢȿ;
+$ᛪ = 3 ;
+EXPECT
+########
+
+# perl.c
+use utf8;
+use open qw( :utf8 :std );
+package ɕლȃṢȿ;
+{ use warnings 'once' ; $ᛪ = 3 ; }
+$ŷ = 3 ;
+EXPECT
+Name "ɕლȃṢȿ::ᛪ" used only once: possible typo at - line 6.
+########
+
+# perl.c
+use utf8;
+use open qw( :utf8 :std );
+package ɕლȃṢȿ;
+$ȥ = 3 ;
+BEGIN { $^W = 1 }
+{ no warnings 'once' ; $ᛪ = 3 ; }
+$ŷ = 3 ;
+EXPECT
+Name "ɕლȃṢȿ::ŷ" used only once: possible typo at - line 9.
+########
+
+use warnings 'once';
+$foo++; BEGIN { eval q|@a =~ s///; sub foo;| }
+EXPECT
+Name "main::foo" used only once: possible typo at - line 3.
+########
+
+use warnings 'once';
+BEGIN { ${"_<".__FILE__} = \1 } # should not affect file name in warning
+$foo++;
+EXPECT
+Name "main::foo" used only once: possible typo at - line 4.
+########
+
+use warnings 'once'; # necessary to trigger the crash
+BEGIN{*MUSHROOMS::mushrooms::MUSHROOMS:: = *MUSHROOMS::} # circularity
+$foo++;
+EXPECT
+Name "main::foo" used only once: possible typo at - line 4.

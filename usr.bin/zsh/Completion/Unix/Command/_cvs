@@ -1,0 +1,964 @@
+#compdef cvs
+
+# redefine _cvs.
+
+_cvs() {
+  # "+Qqrwtnlvb:T:e:d:Hfz:s:xa"
+  _arguments -s \
+    '-R[read only access]' \
+    '-a[authenticate]' \
+    '-f[disable .cvsrc]' \
+    '(-n)-l[disable logging]' \
+    '(-l)-n[no change]' \
+    '(-q)-Q[really quiet]' \
+    '(-Q)-q[somewhat quiet]' \
+    '(-w)-r[make new working file read only]' \
+    '-t[trace]' \
+    '(-r)-w[make new working file read-write]' \
+    '-x[encrypt client/server communication]' \
+    '(-)'{-v,--version}'[print version and copyright information]' \
+    '(-)'{-H,--help}'[print help information]' \
+    '(-)--help-commands[command help]' \
+    '(-)--help-synonyms[command synonyms help]' \
+    '(-)--help-options[global options help]' \
+    '*--allow-root=[allowable root for pserver]:rootdir:_files -/' \
+    '-T+[temporary directory]:temporary directory:_cvs_tempdir' \
+    '-d+[cvs root directory]:cvsroot:_cvs_root' \
+    '-e+[editor]:editor:_cvs_editor' \
+    '-s+[user variable]:user variable:_cvs_user_variable' \
+    '-z+[gzip level]:gzip level:(0 1 2 3 4 5 6 7 8 9)' \
+    '*::cvs command:_cvs_command'
+}
+
+# define cvs command dispatch function.
+
+(( $+functions[_cvs_command] )) ||
+_cvs_command() {
+  local cmd cvsroot="$CVSROOT" ret=1
+  [[ -f CVS/Root ]] && cvsroot="$(<CVS/Root)"
+  [[ -n "$opt_args[-d]" ]] && cvsroot=${(e)~opt_args[-d]:Q}
+
+  if (( ! $+_cvs_syns )); then
+    typeset -gA _cvs_syns
+    _cvs_syns=( ${(s. .)${(f)"$(cvs --help-synonyms 2>&1)"}[2,-2]/(#b) #([a-z]#)   #([a-z]#) ([a-z]#)/$match[1] $match[2]:$match[3]} )
+  fi
+
+  (( $+_cvs_cmds )) || _cvs_cmds=(
+    ${${(f)"$(_call_program commands cvs --help-commands 2>&1)"}[2,-2]/(#b) #([a-z]##) #([A-Z])/$match[1]:${match[2]:l}}
+  )
+
+  if (( CURRENT == 1 )); then
+    _describe -t commands 'cvs command' _cvs_cmds || compadd "$@" - ${(s.:.)${(j.:.)_cvs_syns}}
+  else
+    local curcontext="$curcontext"
+
+    cmd="${${_cvs_cmds[(r)$words[1]:*]%%:*}:-${(k)_cvs_syns[(r)(*:|)$words[1](:*|)]}}"
+    if (( $#cmd )); then
+      curcontext="${curcontext%:*:*}:cvs-${cmd}:"
+      _call_function ret _cvs_$cmd || _message 'no more arguments'
+    else
+      _message "unknown cvs command: $words[1]"
+    fi
+    return ret
+  fi
+}
+
+# define completion functions for each cvs command
+
+(( $+functions[_cvs_add] )) ||
+_cvs_add() {
+  # "+k:m:"
+  _arguments -s \
+    '-k+[keyword]:keyword substitution:_cvs_k' \
+    '-m+[message]:message:_cvs_m' \
+    '*:added file:_cvs_files_unmaintained' \
+}
+
+(( $+functions[_cvs_admin] )) ||
+_cvs_admin() {
+  # "+ib::c:a:A:e::l::u::LUn:N:m:o:s:t::IqxV:k:"
+  _arguments -s \
+    -{i,x} \
+    '(-U)-L[set lock strict]' \
+    '(-L)-U[set locl non-strict]' \
+    '-I[interactive]' \
+    '-q[quiet]' \
+    '-b-[default branch]:default branch:(1.1.1)' \
+    '-c+:comment leader (not used)' \
+    '-a+:login names (not work with CVS)' \
+    '-A+:access list to append (not work with CVS)' \
+    '-e-:access list to erase (not work with CVS)' \
+    '-l-[lock]:revision to lock' \
+    '-u-[unlock]:revision to unlock' \
+    '-n+[name revision]:symbolic-name(\:revision)' \
+    '-N+[force to name revision]:symbolic-name(\:revision)' \
+    '-m+[replace log]:revision\:msg' \
+    '-o+[delete revision]:range to delete' \
+    '-s+[replace state attribute]:state(\:revision)' \
+    '-t-[replace descriptive text]:descriptive text:_cvs_admin_t' \
+    '-V+:version (obsolete)' \
+    '-k+[set keyword substitution]:keyword substitution:_cvs_k' \
+    '*:file:_cvs_files'
+}
+
+(( $+functions[_cvs_admin_t] )) ||
+_cvs_admin_t() {
+  if compset -P -; then
+    _message -e descriptions 'descriptive text'
+  else
+    _files "$@"
+  fi
+}
+
+(( $+functions[_cvs_annotate] )) ||
+_cvs_annotate() {
+  # "+lr:D:fR"
+  _arguments -s \
+    "(-R)-l[don't recurse]" \
+    '-f[use head revision]' \
+    '(-l)-R[recursive]' \
+    '(-f -D)-r+[specify revision]:tag:_cvs_revisions' \
+    '(-f -r)-D+[specify date]:date:_cvs_D' \
+    '*:file:_cvs_files'
+}
+
+(( $+functions[_cvs_rannotate] )) ||
+_cvs_rannotate() {
+  # "+lr:D:fR"
+  _arguments -s \
+    "(-R)-l[don't recurse]" \
+    '-f[use head revision]' \
+    '(-l)-R[recursive]' \
+    '(-f -D)-r+[specify revision]:tag:_cvs_revisions' \
+    '(-f -r)-D+[specify date]:date:_cvs_D' \
+    '*:file:_cvs_modules'
+}
+
+(( $+functions[_cvs_checkout] )) ||
+_cvs_checkout() {
+  # "+ANnk:d:flRpQqcsr:D:j:P"
+  _arguments -s \
+    '-N[don'\''t shorten module paths]' \
+    '-A[reset sticky tags, dates and -k]' \
+    '-n[disable checkout program]' \
+    '-f[use most recent revision if -D/-r is not matched]' \
+    "(-R)-l[don't recurse]" \
+    '(-l)-R[recursive]' \
+    '(-s)-c[module database]' \
+    '(-c)-s[module database with status]' \
+    '-P[prune empty directory]' \
+    '-k+[keyword]:keyword substitution:_cvs_k' \
+    '-d+[directory]:directory:_files -/' \
+    '(-D)-r+[specify revision]:tag:_cvs_revisions' \
+    '(-r)-D+[specify date]:date:_cvs_D' \
+    '-j+[merge]:tag:_cvs_revisions' \
+    '*:module:_cvs_modules'
+}
+
+(( $+functions[_cvs_commit] )) ||
+_cvs_commit() {
+  # "+nlRm:fF:r:"
+  _arguments -s \
+    '-n[disable module program]' \
+    "(-R)-l[don't recurse]" \
+    '(-l)-R[recursive]' \
+    '-f[force to commit]' \
+    '(-F)-m+[message]:message:_cvs_m' \
+    '(-m)-F+[message file]:log message file:_files' \
+    '-r+[specify revision]:tag:_cvs_revisions' \
+    '*:modified file:_cvs_commit_arg'
+}
+
+(( $+functions[_cvs_commit_arg] )) ||
+_cvs_commit_arg() {
+  if (( $+opt_args[-f] )); then
+    _cvs_files
+  else
+    _cvs_files_modified
+  fi
+}
+
+(( $+functions[_cvs_diff] )) ||
+_cvs_diff() {
+  local of ofwuc ouc oss ofwy ofwg ofwl
+  # output formats
+  of="-y --side-by-side -n --rcs -e -f --ed -q --brief -c -C --context -u -U \
+  --unified --old-group-format --new-group-format --changed-group-format \
+  --unchanged-group-format --line-format --old-line-format --new-line-format \
+  --unchanged-line-format"
+
+  # output formats w/o unified and context
+  ofwuc="-y --side-by-side -n --rcs -e -f --ed -q --brief --old-group-format \
+  --new-group-format --changed-group-format --unchanged-group-format \
+  --line-format --old-line-format --new-line-format --unchanged-line-format"
+
+  # option specific to unified or context diff
+  ouc='-L --label -p --show-c-function -F --show-function-line'
+
+  # option specific to side by side
+  oss='-W --width --left-column --suppress-common-lines'
+
+  # output formats w/o side by side
+  ofwy="-n --rcs -e -f --ed -q --brief -c -C --context -u -U --unified \
+  --old-group-format --new-group-format --changed-group-format \
+  --unchanged-group-format --line-format --old-line-format \
+  --new-line-format --unchanged-line-format"
+
+  # output formats w/o group format
+  ofwg="-n --rcs -e -f --ed -q --brief -c -C --context -u -U --unified \
+  --line-format --old-line-format --new-line-format --unchanged-line-format"
+
+  # output formats w/o line format
+  ofwl="-n --rcs -e -f --ed -q --brief -c -C --context -u -U --unified \
+  --old-group-format --new-group-format --changed-group-format \
+  --unchanged-group-format"
+
+  # "+abcdefhilnpstuw0123456789BHNRC:D:F:I:L:U:V:W:k:r:"
+  _arguments -s \
+    "(-R)-l[don't recurse]" \
+    '(-l)-R[recursive]' \
+    '-k+[keyword]:keyword substitution:_cvs_k' \
+    {,}'(-r)-D+[specify date]:date:_cvs_D' \
+    {,}'(-D)-r+[specify revision]:tag:_cvs_revisions' \
+    -{h,0,1,2,3,4,5,6,7,8,9} \
+    '--binary[binary mode]' \
+    '--ifdef=[set macro name for merged if-then-else format]:name' \
+    '(-i --ignore-case)'{-i,--ignore-case}'[case insensitive]' \
+    '(-w --ignore-all-space)'{-w,--ignore-all-space}'[ignore all white space]' \
+    '(-b --ignore-space-change)'{-b,--ignore-space-change}'[ignore changes in the amount of white space]' \
+    '(-B --ignore-blank-lines)'{-B,--ignore-blank-lines}'[ignore lines that are all blank]' \
+    '(-I --ignore-matching-lines)'{-I+,--ignore-matching-lines=}'[ignore lines that match regex]:line exclusion regex' \
+    '(-a --text)'{-a,--text}'[treat all files as text]' \
+    "($of $oss)"{-C+,--context=-}'[context diff; specify lines of context]:number of lines of context' \
+    "($of $oss)-c[output a context diff]" \
+    "($of $oss)"{-U+,--unified=-}'[unified diff; specify lines of context]:number of lines of context' \
+    "($of $oss)-u[output a unified diff]" \
+    {,}"($ofwuc $oss -L --label)"{-L+,--label=}'[set label to use instead of file name]:label' \
+    "($ofwuc $oss -p --show-c-function)"{-p,--show-c-function}'[show C function of each change]' \
+    "($ofwuc $oss -F --show-function-line=)"{-F+,--show-function-line=}'[show the most recent line matching regex]:regex' \
+    "($of $ouc $oss)--brief[output only whether files differ]" \
+    "($of $ouc $oss)"{-e,--ed}'[output an ed script]' \
+    "($of $ouc $oss)"{-f,--forward-ed}'[output a reversed ed script]' \
+    "($of $ouc $oss)"{-n,--rcs}'[RCS format diff]' \
+    "($of $ouc)--side-by-side[output in two columns]" \
+    "($of $ouc)-y[output in two columns]" \
+    "($ofwy $ouc -W --width)"{-W+,--width=}'[set size of line]:number of characters per line' \
+    "($ofwy $ouc)--left-column[output only left column of common lines]" \
+    "($ofwy $ouc)--suppress-common-lines[do not output common lines]" \
+    "($ofwg $ouc $oss)--old-group-format=[set old group format]:old group format" \
+    "($ofwg $ouc $oss)--new-group-format=[set new group format]:new group format" \
+    "($ofwg $ouc $oss)--changed-group-format=[set changed group format]:changed group format" \
+    "($ofwg $ouc $oss)--unchanged-group-format=[set unchanged group format]:unchanged group format" \
+    "($ofwl $ouc $oss)--line-format=[set line format]:line format" \
+    "($ofwl $ouc $oss)--old-line-format=[set old line format]:old line format" \
+    "($ofwl $ouc $oss)--new-line-format=[set new line format]:new line format" \
+    "($ofwl $ouc $oss)--unchanged-line-format=[set unchanged line format]:unchanged line format" \
+    '--paginate[output through pr]' \
+    '(-t --expand-tabs)'{-t,--expand-tabs}'[expand tabs to spaces]' \
+    '--initial-tab[prepend a tab]' \
+    '(-N --new-file)'{-N,--new-file}'[treat absent files as empty]' \
+    '(-s --report-identical-files)'{-s,--report-identical-files}'[report when two files are the same]' \
+    '--horizon-lines=[set number of lines to keep in prefix and suffix]:number of horizon lines' \
+    '(-d --minimal)'{-d,--minimal}'[try to find a smaller set of changes]' \
+    '(-H --speed-large-files)'{-H,--speed-large-files}'[assume large files and many small changes]' \
+    '*:file:_cvs_diff_arg'
+}
+
+(( $+functions[_cvs_diff_arg] )) ||
+_cvs_diff_arg() {
+  _cvs_files_modified || _cvs_files
+}
+
+(( $+functions[_cvs_edit] )) ||
+_cvs_edit() {
+  # "+lRa:"
+  _arguments -s \
+    "(-R)-l[don't recurse]" \
+    '(-l)-R[recursive]' \
+    '-a+[specify action]:action:(edit unedit commit all none)' \
+    '*:file:_cvs_files'
+}
+
+(( $+functions[_cvs_editors] )) ||
+_cvs_editors() {
+  # "+lR"
+  _arguments -s \
+    "(-R)-l[don't recurse]" \
+    '(-l)-R[recursive]' \
+    '*:file:_cvs_files'
+}
+
+(( $+functions[_cvs_export] )) ||
+_cvs_export() {
+  # "+Nnk:d:flRQqr:D:"
+  _arguments -s \
+    '-N[don'\''t shorten module paths]' \
+    '-n[disable checkout program]' \
+    '-f[use most recent revision if -D/-r is not matched]' \
+    "(-R)-l[don't recurse]" \
+    '(-l)-R[recursive]' \
+    '-k+[keyword]:keyword substitution:_cvs_k' \
+    '-d+[directory]:directory:_files -/' \
+    '(-D)-r+[specify revision]:tag:_cvs_revisions' \
+    '(-r)-D+[specify date]:date:_cvs_D' \
+    '*:module:_cvs_modules'
+}
+
+(( $+functions[_cvs_history] )) ||
+_cvs_history() {
+  # "+Tacelow?D:b:f:m:n:p:r:t:u:x:X:z:"
+  _arguments -s \
+    '-T[all tags]' \
+    '-a[all users]' \
+    '-c[modified files]' \
+    '-e[everything]' \
+    '-l[last modification]' \
+    '-o[check-outed modules]' \
+    '-w[working directory]' \
+    '-D+[since date]:date:_cvs_D' \
+    '-b+[back to record]:string' \
+    '-f+[specify file]:file:_cvs_files' \
+    '-m+[specify module]:module:_cvs_modules' \
+    '*-n+[in module]:module:_cvs_modules' \
+    '*-p+[in repository]:repository' \
+    '-r+[since revision]:rev' \
+    '-t+[since tag]:tag' \
+    '*-u+[specify user]:user name' \
+    '-x+[specify type]:type:_cvs_history_x' \
+    '-X+[debugging]:arg' \
+    '-z+[specify timezone]:timezone' \
+    '*:file:_cvs_files'
+}
+
+(( $+functions[_cvs_history_x] )) ||
+_cvs_history_x() {
+  _values -s '' 'type' \
+    'F[release]' \
+    'O[checkout]' \
+    'E[export]' \
+    'T[rtag]' \
+    'C[merge collision-detected]' \
+    'G[merge succeed]' \
+    'U[working file was copied]' \
+    'W[working file was deleted]' \
+    'A[a file was added]' \
+    'M[a file was modified]' \
+    'R[a file was removed]'
+}
+
+(( $+functions[_cvs_import] )) ||
+_cvs_import() {
+  # "+Qqdb:m:I:k:W:"
+  _arguments -s \
+    '-d[use file modification time]' \
+    '-b+[specify vendor branch]:branch:(1.1.3)' \
+    '-m+[message]:message:_cvs_m' \
+    '*-I+[ignore files]:name:_files' \
+    '-k+[keyword]:keyword substitution:_cvs_k' \
+    '*-W+[wrapper specification]:spec:_files' \
+    ':repository:_cvs_modules' \
+    ':vendor tag:_cvs_vendor_branches' \
+    ':release tag'
+}
+
+(( $+functions[_cvs_log] )) ||
+_cvs_log() {
+  # "+bd:hlNRr::s:tw::"
+  _arguments -s \
+    '-b[default branch]' \
+    '(-t)-h[header]' \
+    '-l[don'\''t recurse]' \
+    '-R[print the name of RCS file in the repository]' \
+    '-N[don'\''t list tags]' \
+    '(-h)-t[header with descriptive text]' \
+    '-d+[specify dates]:date range' \
+    '-r-[specify revisions]:revisions' \
+    '-s+[specify states]:state:_sequence compadd - Exp Stab Rel dead' \
+    '-w-[specify logins]:login list' \
+    '*:file:_cvs_files'
+}
+
+(( $+functions[_cvs_rlog] )) ||
+_cvs_rlog() {
+  # "+bd:hlNRr::s:tw::"
+  _arguments -s \
+    '-b[default branch]' \
+    '(-t)-h[header]' \
+    "(-R)-l[don't recurse]" \
+    '(-l)-R[recursive]' \
+    '-N[don'\''t list tags]' \
+    '(-h)-t[header with descriptive text]' \
+    '-d+[specify dates]:date range' \
+    '-r-[specify revisions]:revisions' \
+    '-s+[specify states]:state:_sequence compadd - Exp Stab Rel dead' \
+    '-w-[specify logins]:login list' \
+    '*:file:_cvs_modules'
+}
+
+(( $+functions[_cvs_rdiff] )) ||
+_cvs_rdiff() {
+  # "+V:k:cuftsQqlRD:r:"
+  _arguments -s \
+    '-c[output a context diff]' \
+    '-u[output a unified diff]' \
+    '-f[use most recent revision if -D/-r is not matched]' \
+    '-s[short patch]' \
+    "(-R)-l[don't recurse]" \
+    '(-l)-R[recursive]' \
+    '-V+[specify version]:version' \
+    '-k+[keyword]:keyword substitution:_cvs_k' \
+    '(-D -D -r -r)-t[top two differences]' \
+    '(-t -r)-D+[specify date]:date:_cvs_D' \
+    '(-t -r)-D+[specify date]:date:_cvs_D' \
+    '(-t -D)-r+[specify revision]:tag:_cvs_revisions' \
+    '(-t -D)-r+[specify revision]:tag:_cvs_revisions' \
+    '*:module:_cvs_modules'
+}
+
+(( $+functions[_cvs_release] )) ||
+_cvs_release() {
+  # "+Qdq"
+  _arguments -s \
+    '-d[delete]' \
+    '*:directory:_files -/'
+}
+
+(( $+functions[_cvs_remove] )) ||
+_cvs_remove() {
+  # "+flR"
+  _arguments -s \
+    '-f[force to remove]' \
+    "(-R)-l[don't recurse]" \
+    '(-l)-R[recursive]' \
+    '*:removed file:_cvs_remove_arg'
+}
+
+(( $+functions[_cvs_remove_arg] )) ||
+_cvs_remove_arg() {
+  if (( $+opt_args[-f] )); then
+    _cvs_files
+  else
+    _cvs_files_removed
+  fi
+}
+
+(( $+functions[_cvs_rtag] )) ||
+_cvs_rtag() {
+  # "+FanfQqlRdbr:D:"
+  _arguments -s \
+    '(-d)-F[move tag if already exists]' \
+    '(-d)-a[clear tag from removed files]' \
+    '-n[disable tag program]' \
+    '(-d)-f[force a head revision]' \
+    "(-R)-l[don't recurse]" \
+    '(-l)-R[recursive]' \
+    '(-b)-d[delete tag]' \
+    '(-d)-b[create branch]' \
+    '-D+[specify date]:date:_cvs_D' \
+    '-r+[specify revision]:tag:_cvs_revisions' \
+    ':tag' \
+    '*:module:_cvs_modules'
+}
+
+(( $+functions[_cvs_status] )) ||
+_cvs_status() {
+  # "+vlR"
+  _arguments -s \
+    '-v[verbose]' \
+    "(-R)-l[don't recurse]" \
+    '(-l)-R[recursive]' \
+    '*:file:_cvs_files'
+}
+
+(( $+functions[_cvs_tag] )) ||
+_cvs_tag() {
+  # "+FQqlRcdr:D:bf"
+  _arguments -s \
+    '(-d)-F[move tag if already exists]' \
+    "(-R)-l[don't recurse]" \
+    '(-l)-R[recursive]' \
+    '-c[check that working files unmodified]' \
+    '(-b)-d[delete tag]' \
+    '(-d)-b[create branch]' \
+    '(-d)-f[force a head revision]' \
+    '-r+[specify revision]:tag:_cvs_revisions' \
+    '-D+[specify date]:date:_cvs_D' \
+    ':tag:_cvs_revisions' \
+    '*:file:_cvs_files'
+}
+
+(( $+functions[_cvs_unedit] )) ||
+_cvs_unedit() {
+  # "+lR"
+  _arguments -s \
+    "(-R)-l[don't recurse]" \
+    '(-l)-R[recursive]' \
+    '*:file:_cvs_files'
+}
+
+(( $+functions[_cvs_update] )) ||
+_cvs_update() {
+  # "+ApCPflRQqduk:r:D:j:I:W:"
+  _arguments -s \
+    '-C[overwrite local modification]' \
+    '-A[reset sticky tags, dates and -k]' \
+    '-p[check out to standard output]' \
+    '-P[prune empty directory]' \
+    '-f[use head revision]' \
+    "(-R)-l[don't recurse]" \
+    '(-l)-R[recursive]' \
+    '-d[create directories]' \
+    '-k+[keyword]:keyword substitution:_cvs_k' \
+    '(-D)-r+[specify revision]:tag:_cvs_revisions' \
+    '(-r)-D+[specify date]:date:_cvs_D' \
+    '*-j+[merge]:tag:_cvs_revisions' \
+    '*-I+[ignore files]:file:_files' \
+    '*-W+[wrapper specification]:spec:_files' \
+    '*:file:_cvs_files'
+}
+
+(( $+functions[_cvs_watch] )) ||
+_cvs_watch() {
+  local expl
+
+  if (( CURRENT == 2 )); then
+    _wanted values expl 'watch command' compadd on off add remove
+  else
+    case "$words[2]" in
+      on|off) # "+lR"
+	_arguments -s \
+	  "(-R)-l[don't recurse]" \
+	  '(-l)-R[recursive]' \
+	  ':watch command' \
+	  '*:file:_cvs_files'
+      ;;
+      add|remove) # "+lRa:"
+	_arguments -s \
+	  "(-R)-l[don't recurse]" \
+	  '(-l)-R[recursive]' \
+	  '*-a+[specify action]:action:(edit unedit commit all none)' \
+	  ':watch command' \
+	  '*:file:_cvs_files'
+      ;;
+    esac
+  fi
+}
+
+(( $+functions[_cvs_watchers] )) ||
+_cvs_watchers() {
+  # "+lR"
+  _arguments -s \
+    "(-R)-l[don't recurse]" \
+    '(-l)-R[recursive]' \
+    '*:file:_cvs_files'
+}
+
+(( $+functions[_cvs_loadstat] )) ||
+_cvs_loadstat() {
+  (( $+_cvs_loadstat_status )) && return $_cvs_loadstat_status
+
+  zmodload -F zsh/stat b:zstat 2>/dev/null
+  (( _cvs_loadstat_status = ! $+builtins[zstat] ))
+  return $_cvs_loadstat_status
+}
+
+(( $+functions[_cvs_root] )) ||
+_cvs_root() {
+  local cvspassfile id slash
+
+  typeset -gU _cvs_roots
+
+  if [[ -f "${cvspassfile::=${CVS_PASSFILE:-$HOME/.cvspass}}" ]]; then
+    if _cvs_loadstat; then
+      id="$(LC_ALL=C builtin zstat -g +mtime -F '%Y/%m/%d-%T' "$cvspassfile")"
+    else
+      id="$(LC_ALL=C ls -l "$cvspassfile")"
+    fi
+    if [[ "$id" != "$_cvs_pass_id" ]]; then
+      slash=/
+      _cvs_roots=($_cvs_roots ${${${${(f)"$(<$cvspassfile)"}#/1 }%% *}/:2401${slash}/:/})
+      _cvs_pass_id="$id"
+    fi
+  fi
+
+  _tags files && {
+    compadd -M 'r:|[:@./]=** r:|=**' "$@" -a _cvs_roots || {
+      compset -P ':(local|fork):'; _files "$@" -W / -/
+    }
+  }
+}
+
+(( $+functions[_cvs_tempdir] )) ||
+_cvs_tempdir() {
+  _tags directories && compadd "$@" $TMPPREFIX:h $TMPDIR /tmp
+}
+
+(( $+functions[_cvs_user_variable] )) ||
+_cvs_user_variable() {
+  if compset -P 1 '*='; then
+    _default
+  else
+    _message -e variables "variable"
+  fi
+}
+
+# define completion functions for cvs global options.
+
+(( $+functions[_cvs_editor] )) ||
+_cvs_editor() {
+  _tags commands && compadd "$@" vi
+}
+
+# define completion functions for cvs common options and arguments.
+
+(( $+functions[_cvs_D] )) ||
+_cvs_D() {
+  _tags values && compadd "$@" today yesterday week\ ago month\ ago
+}
+
+(( $+functions[_cvs_k] )) ||
+_cvs_k() {
+  _values 'keyword substitution' \
+    'kv[generate keyword strings using the default form]' \
+    "kvl[include locker's name in strings if given revision is locked]" \
+    'k[generate only keyword names in keyword strings; omit their values]' \
+    'o[generate the old keyword string as present in the file before check in]' \
+    "b[binary - like \`o' but also inhibit line ending conversions]" \
+    'v[generate only keyword values for keyword strings]'
+}
+
+(( $+functions[_cvs_m] )) ||
+_cvs_m() {
+  _message -e messages "log message"
+}
+
+(( $+functions[_cvs_modules] )) ||
+_cvs_modules() {
+  if compset -P '(#m)(*/)'; then
+    _cvs_sub_modules "$cvsroot" "${MATCH%/}"
+  else
+    _cvs_top_modules "$cvsroot"
+  fi
+}
+
+(( $+functions[_cvs_top_modules] )) ||
+_cvs_top_modules() {
+  local root="$1"
+
+  if [[ -d $root ]]; then
+    _wanted modules expl 'module name' \
+	compadd - $root/*(/:t) \
+	    ${${(M)${(f)"$(<$root/CVSROOT/modules)"}:#[^#]*}%%[ 	]*}
+  else
+    if [[ "$_cvs_top_modules_cache_key" != "$root" ]]; then
+      _cvs_top_modules_cache_key="$root"
+      _cvs_top_modules_cache_mods=()
+      if zstyle -T ":completion:${curcontext}:" remote-access; then
+	_cvs_remote_directories "$root" . _cvs_top_modules_cache_mods
+	_cvs_top_modules_cache_mods=(
+	  "$_cvs_top_modules_cache_mods[@]"
+	  ${(M)${${(f)"$(
+	    CVS_IGNORE_REMOTE_ROOT= _call_program modules cvs -d "$root" co -c
+	  )"}%%[ 	]*}:#?*}
+	)
+      fi
+    fi
+    if (( $#_cvs_top_modules_cache_mods )); then
+      _wanted modules expl 'module name' \
+	compadd -a _cvs_top_modules_cache_mods
+    else
+      _message -e modules 'module name'
+    fi
+  fi
+}
+
+(( $+functions[_cvs_sub_modules] )) ||
+_cvs_sub_modules() {
+  local root="$1" dir="$2" ignore
+
+  if [[ -d $root ]]; then
+    _wanted modules expl 'module name' \
+	_path_files -W "($root/$dir)" -/ -F "(Attic */Attic)"
+  else
+    if [[ $_cvs_sub_modules_cache_key != "$root $dir" ]]; then
+      _cvs_sub_modules_cache_key="$root $dir"
+      _cvs_sub_modules_cache_mods=()
+      if zstyle -T ":completion:${curcontext}:" remote-access; then
+	_cvs_remote_directories "$root" "$dir" _cvs_sub_modules_cache_mods
+      fi
+    fi
+    if (( $#_cvs_sub_modules_cache_mods )); then
+      _wanted modules expl 'module name' \
+	compadd -qS/ -a _cvs_sub_modules_cache_mods
+    else
+      _message -e modules 'module name'
+    fi
+  fi
+}
+
+# _cvs_run cvsroot directory cvs-arguments...
+(( $+functions[_cvs_run] )) ||
+_cvs_run() {
+  local cvsroot="$1" dir="$2"
+  shift 2
+  local d=${TMPPREFIX:-/tmp/zsh}-cvs-work-$$
+  rm -rf $d
+  mkdir $d &&
+  (
+  chmod 0700 $d &&
+  builtin cd -q $d &&
+  mkdir CVS >&/dev/null || return 1
+  print -r - "$cvsroot" > CVS/Root
+  print "$dir" > CVS/Repository
+  print D > CVS/Entries
+  CVS_IGNORE_REMOTE_ROOT= cvs "$@"
+  )
+  rm -rf $d
+}
+
+# _cvs_remote_directories cvsroot directory [variable]
+(( $+functions[_cvs_remote_directories] )) ||
+_cvs_remote_directories() {
+  local root="$1" dir="$2" subdirs
+  shift 2
+  subdirs=(${${(M)${(f)"$(_call_program directories _cvs_run "$root" "$dir" update -r00 -d -p 2>&1)"}:#* New directory \`*\' -- ignored}/(#b)*\`(*)\'*/$match[1]})
+  if (( $# )); then
+    eval "$1=(\"\$subdirs[@]\")"
+  else
+    if (( $#subdirs )); then
+      print -lr - $subdirs
+    fi
+  fi
+}
+
+(( $+functions[_cvs_vendor_branches] )) ||
+_cvs_vendor_branches() {
+  local expl vendor_branch
+  vendor_branch=()
+  if zstyle -T ":completion:${curcontext}:" remote-access; then
+    if [[ -n $opt_args[-b] ]]; then
+      _cvs_extract_vendor_branch -b "$opt_args[-b]" "$cvsroot" "$line[1]" \
+	vendor_branch
+    else
+      _cvs_extract_vendor_branch "$cvsroot" "$line[1]" vendor_branch
+    fi
+  fi
+  if (( $#vendor_branch )); then
+    _wanted values expl 'vendor branch' compadd -a vendor_branch
+  else
+    _message -e branches 'vendor branch'
+  fi
+}
+
+# _cvs_extract_vendor_branch [-b numeric-branch] cvsroot directory [variable]
+(( $+functions[_cvs_extract_vendor_branch] )) ||
+_cvs_extract_vendor_branch() {
+  local numeric='1\.1\.1'
+  if [[ $1 = -b ]]; then
+    numeric="${2//./\\.}"
+    shift 2
+  fi
+  local root="$1" dir="$2"
+  shift 2
+
+  local vtags
+  vtags=($(
+    _call_program tags _cvs_run "$root" "$dir" -Q log -h 2>/dev/null |
+    sed -ne $'/^symbolic names:/{
+n
+:loop
+/^[^ \t]/d
+/: '"$numeric"$'$/b found
+n
+b loop
+:found
+s/^[ \t]*\\(.*\\): '"$numeric"$'$/\\1/p
+n
+/^[ \t]/b found
+q
+}'))
+  if (( $# )); then
+    eval "$1=(\"\$vtags[@]\")"
+  else
+    if (( $#vtags )); then
+      print -lr - "$vtags[@]"
+    fi
+  fi
+}
+
+(( $+functions[_cvs_revisions] )) ||
+_cvs_revisions() {
+  local expl
+
+  if [[ $_cvs_revisions_key != $cvsroot:$PWD ]]; then
+    _cvs_revisions_key="$cvsroot:$PWD"
+    if zstyle -T ":completion:${curcontext}:" remote-access; then
+      _cvs_revisions_cache=(
+	$(CVS_IGNORE_REMOTE_ROOT= _call_program tags cvs -d "$cvsroot" -q status -vl .|
+	  sed -n -e '/No Tags Exist/d' \
+		 -e 's/^	\([A-Za-z][-_0-9A-Za-z+]*\).*/\1/p'|
+	  sort|uniq)
+      )
+    else
+      _cvs_revisions_cache=()
+    fi
+  fi
+
+  if (( $#_cvs_revisions_cache )); then
+    _wanted values expl revision compadd -a _cvs_revisions_cache
+  else
+    _message -e revisions revision
+  fi
+}
+
+# define completion functions for files maintained by cvs.
+
+(( $+functions[_cvs_files] )) ||
+_cvs_files() {
+  _alternative \
+    'directories:directory:_cvs_existing_directories' \
+    'existing-files:file:_cvs_existing_entries' \
+    'removed-files:removed file:_cvs_nonexistent_entries'
+}
+
+(( $+functions[_cvs_files_modified] )) ||
+_cvs_files_modified() {
+  _alternative \
+    'directories:directory:_cvs_existing_directories' \
+    'existing-files:file:_cvs_modified_entries' \
+    'removed-files:removed file:_cvs_nonexistent_entries'
+}
+
+(( $+functions[_cvs_files_removed] )) ||
+_cvs_files_removed() {
+  _alternative \
+    'directories:directory:_cvs_existing_directories' \
+    'removed-files:removed file:_cvs_nonexistent_entries'
+}
+
+(( $+functions[_cvs_files_unmaintained] )) ||
+_cvs_files_unmaintained() {
+  _cvs_nonentried_files ||
+  _cvs_existing_directories ||
+  _cvs_strict_nonentried_files
+}
+
+(( $+functions[_cvs_existing_directories] )) ||
+_cvs_existing_directories() {
+  local expl
+  _wanted directories expl directory _path_files -g "*~(*/|)CVS(/)" ||
+  _cvs_path_prefixes
+}
+
+(( $+functions[_cvs_existing_entries] )) ||
+_cvs_existing_entries() {
+  local expl match linedir realdir pat
+  match=()
+  : ${PREFIX:#(#b)(*/)(*)}
+  linedir="$match[1]"
+  realdir=${(e)~linedir}
+  [[ -f "$realdir"CVS/Entries ]] &&
+  pat=(${(@)${(@)${(@M)${(@f)"$(<"$realdir"CVS/Entries)"}:#/*}#/}%%/*})
+  (( ${#pat} )) && _wanted files expl file _path_files -a pat
+}
+
+(( $+functions[_cvs_modified_entries] )) ||
+_cvs_modified_entries() {
+  if _cvs_loadstat; then
+    local expl match linedir realdir pat slash=/
+    match=()
+    : ${PREFIX:#(#b)(*/)(*)}
+    linedir="$match[1]"
+    realdir=${(e)~linedir}
+    [[ -f "$realdir"CVS/Entries ]] && {
+      local -a mtime
+      LC_ALL=C builtin zstat -A mtime -gn +mtime -F $'%a %b %e %T %Y\n' ${realdir}*(D) 2>/dev/null
+      [[ -n ${pat::="${(@j:|:)${(@)${(@)${(@)${(@)${(@)${(@M)${(@f)"$(<"$realdir"CVS/Entries)"}:#/*}#/}/${slash}[^${slash}]#${slash}//}%/[^/]#/[^/]#}:#${(j:|:)~${(f)${(j:/:)${mtime##*/}}//(#m)[][*?()<|^~#\\]/\\$MATCH}#/}}%%/*}//(#m)[][*?()<|^~#\\]/\\$MATCH}"} ]]
+    } &&
+    _wanted files expl 'modified file' _path_files -g "$pat"
+  else
+    _cvs_existing_entries
+  fi
+}
+
+(( $+_cvs_ignore_default )) ||
+local _cvs_ignore_default=(
+  RCS SCCS CVS CVS.adm RCSLOG 'cvslog.*' tags TAGS .make.state .nse_depinfo
+  '*\~' '\#*' '.\#*' ',*' '_$*' '*$' '*.old' '*.bak' '*.BAK' '*.orig' '*.rej'
+  '.del-*' '*.a' '*.olb' '*.o' '*.obj' '*.so' '*.exe' '*.Z' '*.elc' '*.ln'
+  core
+)
+
+(( $+functions[_cvs_strict_nonentried_files] )) ||
+_cvs_strict_nonentried_files() {
+  local expl match linedir realdir omitpats
+
+  match=()
+  : ${PREFIX:#(#b)(*/)(*)}
+  linedir="$match[1]"
+  realdir=${(e)~linedir}
+  [[ -f "$realdir"CVS/Entries ]] && {
+    omitpats=(
+      ${${${${(M)${(f)"$(<"$realdir"CVS/Entries)"}:#/*}#/}%%/*}//(#m)[][*?()<|^~#\\]/\\$MATCH}
+    )
+    if (( $#omitpats )); then
+      _path_files -g "*~(*/|)(${(j:|:)~omitpats})(D.)"
+    else
+      _path_files -g "*~(*/|)(D.)"
+    fi
+  }
+}
+
+(( $+functions[_cvs_nonentried_files] )) ||
+_cvs_nonentried_files() {
+  local expl match linedir realdir omitpats
+
+  match=()
+  : ${PREFIX:#(#b)(*/)(*)}
+  linedir="$match[1]"
+  realdir=${(e)~linedir}
+  [[ -f "$realdir"CVS/Entries ]] && {
+    omitpats=(
+      ${${${${(M)${${(f)"$(<"$realdir"CVS/Entries)"}:#/*/-*/*/*/*}:#(D|)/*}#(D|)/}%%/*}//(#m)[][*?()<|^~#\\]/\\$MATCH}
+      $_cvs_ignore_default
+      ${=cvsignore}
+    )
+    [[ -r ~/.cvsignore ]] && omitpats=($omitpats $(<~/.cvsignore))
+    [[ -r ${realdir}.cvsignore ]] && omitpats=($omitpats $(<${realdir}.cvsignore))
+    omitpats=($omitpats $=CVSIGNORE)
+
+    _path_files -g "*~(*/|)(${(j:|:)~omitpats})(D.)"
+  }
+}
+
+(( $+functions[_cvs_nonexistent_entries] )) ||
+_cvs_nonexistent_entries() {
+  local expl match linedir realdir files
+  match=()
+  : ${PREFIX:#(#b)(*/)(*)}
+  linedir="$match[1]"
+  realdir=${(e)~linedir}
+  files=(${realdir}*(D:t))
+  [[ -f "$realdir"CVS/Entries ]] && {
+    files=(
+      ${${${${(M)${(f)"$(<"$realdir"CVS/Entries)"}:#(D|)/*}#(D|)/}%%/*}:#${(j:|:)~${files//(#m)[][*?()<|^~#\\]/\\$MATCH}}}
+    )
+    compquote files
+    _wanted files expl 'removed file' compadd -Qp "$linedir" -a files
+  }
+}
+
+(( $+functions[_cvs_path_prefixes] )) ||
+_cvs_path_prefixes() {
+  local expl match
+  match=()
+  [[ "$PREFIX$SUFFIX" = (#b)(*)(/[^/]#) ]] && {
+    PREFIX="$match[1]"
+    ISUFFIX="$match[2]$ISUFFIX"
+    SUFFIX=''
+    _wanted directories expl directory \
+	_path_files -g "*~($PREFIX|(*/|)CVS)(/)" -S ''
+  }
+}
+
+_cvs "$@"

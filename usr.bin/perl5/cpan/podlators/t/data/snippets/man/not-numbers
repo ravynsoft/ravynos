@@ -1,0 +1,30 @@
+[name]
+Lists not parsed as numbers
+
+[input]
+=over 4
+
+=item 1. Not a number
+
+=item 2. Spaced right
+
+=back
+
+=over 2
+
+=item 1 Not a number
+
+=item 2 Spaced right
+
+=back
+
+[output]
+.IP "1. Not a number" 4
+.IX Item "1. Not a number"
+.PD 0
+.IP "2. Spaced right" 4
+.IX Item "2. Spaced right"
+.IP "1 Not a number" 2
+.IX Item "1 Not a number"
+.IP "2 Spaced right" 2
+.IX Item "2 Spaced right"

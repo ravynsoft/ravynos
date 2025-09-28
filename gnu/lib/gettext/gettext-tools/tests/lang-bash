@@ -1,0 +1,174 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src ../../gettext-runtime/src
+
+# Test of gettext facilities in the bash language.
+# Assumes an fr_FR locale is installed.
+# Assumes the following packages are installed: bash 2.0 or newer.
+
+# This test fails on MacOS X 10.5 because its 'bash' command is built with
+# an included intl directory without iconv support; hence it produces wrong
+# output when accessing any .mo file not generated from a .po file in UTF-8
+# encoding.
+
+# This test fails if the gettext package was configured with --disable-nls,
+# because in this case the gettext-runtime/src/gettext program does not do
+# any message catalog lookups.
+
+cat <<\EOF > prog.bash
+#! /bin/bash
+
+n=$1
+
+. gettext.sh
+
+TEXTDOMAIN=prog
+export TEXTDOMAIN
+TEXTDOMAINDIR=.
+export TEXTDOMAINDIR
+
+$echo $"'Your command, please?', asked the waiter."
+
+$echo "`eval_ngettext "a piece of cake" "\\$n pieces of cake" $n`"
+EOF
+
+: ${XGETTEXT=xgettext}
+LC_MESSAGES=C LC_ALL= \
+${XGETTEXT} -o prog.tmp --omit-header --no-location prog.bash \
+  >prog.err 2>&1
+result=$?
+cat prog.err | grep -v 'warning: the syntax \$"\.\.\." is deprecated due to security reasons'
+test $result = 0 || { Exit 1; }
+LC_ALL=C tr -d '\r' < prog.tmp > prog.pot || Exit 1
+
+cat <<\EOF > prog.ok
+msgid "'Your command, please?', asked the waiter."
+msgstr ""
+
+#, sh-format
+msgid "a piece of cake"
+msgid_plural "$n pieces of cake"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} prog.ok prog.pot || Exit 1
+
+cat <<\EOF > fr.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "'Your command, please?', asked the waiter."
+msgstr "«Votre commande, s'il vous plait», dit le garçon."
+
+# Les gateaux allemands sont les meilleurs du monde.
+#, sh-format
+msgid "a piece of cake"
+msgid_plural "$n pieces of cake"
+msgstr[0] "un morceau de gateau"
+msgstr[1] "$n morceaux de gateau"
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o fr.po.tmp fr.po prog.pot || Exit 1
+LC_ALL=C tr -d '\r' < fr.po.tmp > fr.po.new || Exit 1
+
+: ${DIFF=diff}
+${DIFF} fr.po fr.po.new || Exit 1
+
+test -d fr || mkdir fr
+test -d fr/LC_MESSAGES || mkdir fr/LC_MESSAGES
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o fr/LC_MESSAGES/prog.mo fr.po
+
+# Test for presence of bash version 2.0 or newer.
+(bash -c :) >/dev/null 2>/dev/null \
+  || { echo "Skipping test: bash not found"; Exit 77; }
+case `bash -c 'echo $BASH_VERSION'` in
+  [2-9].*) ;;
+  *) echo "Skipping test: bash version too old"; Exit 77;;
+esac
+
+# Test which of the fr_FR locales are installed.
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+if test $LOCALE_FR != none; then
+  LC_ALL=$LOCALE_FR ../testlocale
+  case $? in
+    0) ;;
+    77) LOCALE_FR=none;;
+    *) Exit 1;;
+  esac
+fi
+if test $LOCALE_FR_UTF8 != none; then
+  LC_ALL=$LOCALE_FR_UTF8 ../testlocale
+  case $? in
+    0) ;;
+    77) LOCALE_FR_UTF8=none;;
+    *) Exit 1;;
+  esac
+fi
+if test $LOCALE_FR = none && test $LOCALE_FR_UTF8 = none; then
+  if test -f /usr/bin/localedef; then
+    echo "Skipping test: no french locale is installed"
+  else
+    echo "Skipping test: no french locale is supported"
+  fi
+  Exit 77
+fi
+
+case "$host_os" in
+  darwin*)
+    if test $LOCALE_FR != none; then
+      LC_ALL=$LOCALE_FR bash --help \
+        | grep '^Utilisation' > /dev/null 2>&1 || Exit 77
+    fi
+    if test $LOCALE_FR_UTF8 != none; then
+      LC_ALL=$LOCALE_FR_UTF8 bash --help \
+        | grep '^Utilisation' > /dev/null 2>&1 || Exit 77
+    fi
+  ;;
+esac
+
+# Expected result when bash is built without i18n support.
+cat <<\EOF > prog.nok
+'Your command, please?', asked the waiter.
+2 morceaux de gateau
+EOF
+# Expected result when bash is built with i18n support.
+cat <<\EOF > prog.ok
+«Votre commande, s'il vous plait», dit le garçon.
+2 morceaux de gateau
+EOF
+cat <<\EOF > prog.oku
+Â«Votre commande, s'il vous plaitÂ», dit le garÃ§on.
+2 morceaux de gateau
+EOF
+
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+if test $LOCALE_FR != none; then
+  prepare_locale_ fr $LOCALE_FR
+  LANGUAGE= LC_ALL=$LOCALE_FR bash ./prog.bash 2 > prog.out || Exit 1
+  : ${DIFF=diff}
+  ${DIFF} prog.nok prog.out > /dev/null && {
+    echo "Skipping test: bash is built without i18n support"
+    Exit 77
+  }
+  ${DIFF} prog.ok prog.out || Exit 1
+fi
+if test $LOCALE_FR_UTF8 != none; then
+  prepare_locale_ fr $LOCALE_FR_UTF8
+  LANGUAGE= LC_ALL=$LOCALE_FR_UTF8 bash ./prog.bash 2 > prog.out || Exit 1
+  : ${DIFF=diff}
+  ${DIFF} prog.nok prog.out > /dev/null && {
+    echo "Skipping test: bash is built without i18n support"
+    Exit 77
+  }
+  ${DIFF} prog.oku prog.out || Exit 1
+fi
+
+Exit 0

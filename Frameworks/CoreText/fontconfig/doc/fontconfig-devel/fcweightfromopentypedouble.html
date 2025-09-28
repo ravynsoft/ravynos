@@ -1,0 +1,223 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML
+><HEAD
+><TITLE
+>FcWeightFromOpenTypeDouble</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
+REL="HOME"
+HREF="t1.html"><LINK
+REL="UP"
+TITLE="FcWeight"
+HREF="x103.html#AEN4060"><LINK
+REL="PREVIOUS"
+TITLE="FUNCTIONS"
+HREF="x103.html"><LINK
+REL="NEXT"
+TITLE="FcWeightToOpenTypeDouble"
+HREF="fcweighttoopentypedouble.html"></HEAD
+><BODY
+CLASS="REFENTRY"
+BGCOLOR="#FFFFFF"
+TEXT="#000000"
+LINK="#0000FF"
+VLINK="#840084"
+ALINK="#0000FF"
+><DIV
+CLASS="NAVHEADER"
+><TABLE
+SUMMARY="Header navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TH
+COLSPAN="3"
+ALIGN="center"
+></TH
+></TR
+><TR
+><TD
+WIDTH="10%"
+ALIGN="left"
+VALIGN="bottom"
+><A
+HREF="x103.html"
+ACCESSKEY="P"
+>&#60;&#60;&#60; Previous</A
+></TD
+><TD
+WIDTH="80%"
+ALIGN="center"
+VALIGN="bottom"
+></TD
+><TD
+WIDTH="10%"
+ALIGN="right"
+VALIGN="bottom"
+><A
+HREF="fcweighttoopentypedouble.html"
+ACCESSKEY="N"
+>Next &#62;&#62;&#62;</A
+></TD
+></TR
+></TABLE
+><HR
+ALIGN="LEFT"
+WIDTH="100%"></DIV
+><H1
+><A
+NAME="FCWEIGHTFROMOPENTYPEDOUBLE"
+></A
+>FcWeightFromOpenTypeDouble</H1
+><DIV
+CLASS="REFNAMEDIV"
+><A
+NAME="AEN4068"
+></A
+><H2
+>Name</H2
+>FcWeightFromOpenTypeDouble&nbsp;--&nbsp;Convert from OpenType weight values to fontconfig ones</DIV
+><DIV
+CLASS="REFSYNOPSISDIV"
+><A
+NAME="AEN4071"
+></A
+><H2
+>Synopsis</H2
+><DIV
+CLASS="FUNCSYNOPSIS"
+><P
+></P
+><A
+NAME="AEN4072"
+></A
+><TABLE
+BORDER="0"
+BGCOLOR="#E0E0E0"
+WIDTH="100%"
+><TR
+><TD
+><PRE
+CLASS="FUNCSYNOPSISINFO"
+>#include &#60;fontconfig/fontconfig.h&#62;
+        </PRE
+></TD
+></TR
+></TABLE
+><P
+><CODE
+><CODE
+CLASS="FUNCDEF"
+>double <TT
+CLASS="FUNCTION"
+>FcWeightFromOpenTypeDouble</TT
+></CODE
+>(double<TT
+CLASS="PARAMETER"
+><I
+>ot_weight</I
+></TT
+>);</CODE
+></P
+><P
+></P
+></DIV
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN4079"
+></A
+><H2
+>Description</H2
+><P
+><TT
+CLASS="FUNCTION"
+>FcWeightFromOpenTypeDouble</TT
+> returns an double value
+to use with FC_WEIGHT, from an double in the 1..1000 range, resembling
+the numbers from OpenType specification's OS/2 usWeight numbers, which
+are also similar to CSS font-weight numbers.  If input is negative,
+zero, or greater than 1000, returns -1.  This function linearly interpolates
+between various FC_WEIGHT_* constants.  As such, the returned value does not
+necessarily match any of the predefined constants.
+            </P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN4083"
+></A
+><H2
+>Since</H2
+><P
+>version 2.12.92</P
+></DIV
+><DIV
+CLASS="NAVFOOTER"
+><HR
+ALIGN="LEFT"
+WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+><A
+HREF="x103.html"
+ACCESSKEY="P"
+>&#60;&#60;&#60; Previous</A
+></TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="t1.html"
+ACCESSKEY="H"
+>Home</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="fcweighttoopentypedouble.html"
+ACCESSKEY="N"
+>Next &#62;&#62;&#62;</A
+></TD
+></TR
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+>FUNCTIONS</TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+><A
+HREF="x103.html#AEN4060"
+ACCESSKEY="U"
+>Up</A
+></TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+>FcWeightToOpenTypeDouble</TD
+></TR
+></TABLE
+></DIV
+></BODY
+></HTML
+>

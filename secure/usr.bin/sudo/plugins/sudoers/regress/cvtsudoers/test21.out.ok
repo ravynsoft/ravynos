@@ -1,0 +1,24 @@
+dn: cn=ALL,ou=SUDOers,dc=my-domain,dc=com
+objectClass: top
+objectClass: sudoRole
+cn: ALL
+sudoUser: ALL
+sudoHost: ALL
+sudoRunAsUser:
+sudoOption: !authenticate
+sudoCommand: /usr/bin/id
+sudoOrder: 1000
+
+dn: cn=FULLTIMERS,ou=SUDOers,dc=my-domain,dc=com
+objectClass: top
+objectClass: sudoRole
+cn: FULLTIMERS
+sudoUser: user1
+sudoUser: user2
+sudoUser: user3
+sudoHost: ALL
+sudoRunAsUser: ALL
+sudoRunAsGroup: ALL
+sudoCommand: ALL
+sudoOrder: 1010
+

@@ -1,0 +1,16 @@
+#compdef enable
+
+local -a ali_arr sali_arr func_arr
+
+ali_arr=(${(k)dis_aliases} ${(k)dis_galiases})
+sali_arr=(${(k)dis_saliases})
+func_arr=(${(k)dis_functions})
+
+_arguments -C -s -A "-*" -S \
+  "(-f -r -s -p)-a[act on regular or global aliases]:*:alias:compadd -k ali_arr" \
+  "(-a -r -s -p)-f[act on functions]:*:function:compadd -k func_arr" \
+  "(-a -f -s -p)-r[act on reserved words]:*:reserved-word:compadd -k dis_reswords" \
+  "(-a -f -r -p)-s[act on suffix aliases]:*:suffix alias:compadd -k sali_arr" \
+  "(-a -f -r -s)-p[act on pattern characters]:*:pattern character:compadd -k dis_patchars" \
+  '-m[treat arguments as patterns]' \
+  "*:builtin command:(${(k)dis_builtins})"

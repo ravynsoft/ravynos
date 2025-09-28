@@ -1,0 +1,69 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of Shell format strings.
+
+cat <<\EOF > f-sh-1.data
+# Invalid: no argument
+"abc"
+# Valid: one argument
+"abc$file"
+# Valid: one argument
+"abc$f_x"
+# Invalid: context dependent variable
+"abc$0"
+# Invalid: context dependent variable
+"abc$$"
+# Invalid: complex shell syntax
+"abc${tmpdir-/tmp}"
+# Invalid: unterminated
+"abc$"
+# Invalid: unterminated name
+"abc${A"
+# Invalid: non-ASCII character
+"abc$ß"
+# Invalid: non-ASCII character
+"abc${ß}"
+# Invalid: an empty name
+"abc${}"
+# Valid: three arguments
+"abc$dir$file"
+# Valid: three arguments, two with equal names
+"abc$addr$char$addr"
+EOF
+
+: ${XGETTEXT=xgettext}
+n=0
+while read comment; do
+  read string
+  n=`expr $n + 1`
+  LC_ALL=C sed -e 's,\$,\\$,g' <<EOF > f-sh-1-$n.in
+gettext ${string};
+EOF
+  ${XGETTEXT} -L Shell --from-code=ISO-8859-1 -o f-sh-1-$n.po f-sh-1-$n.in || Exit 1
+  test -f f-sh-1-$n.po || Exit 1
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if grep sh-format f-sh-1-$n.po > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    if grep sh-format f-sh-1-$n.po > /dev/null; then
+      fail=yes
+    else
+      :
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string recognition error:" 1>&2
+    cat f-sh-1-$n.in 1>&2
+    echo "Got:" 1>&2
+    cat f-sh-1-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-sh-1-$n.in f-sh-1-$n.po
+done < f-sh-1.data
+
+Exit 0

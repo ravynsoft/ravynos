@@ -1,0 +1,51 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# $FreeBSD: src/tools/regression/bin/sh/expansion/set-u1.0,v 1.2 2010/10/12 18:20:38 obrien Exp $
+
+${THIS_SH} -uc 'unset foo; echo ${foo}' 2>/dev/null && exit 1
+${THIS_SH} -uc 'unset foo; echo $foo' 2>/dev/null && exit 1
+${THIS_SH} -uc 'foo=; echo $foo' >/dev/null || exit 2
+${THIS_SH} -uc 'foo=1; echo $foo' >/dev/null || exit 3
+# -/+/= are unaffected by set -u
+${THIS_SH} -uc 'unset foo; echo ${foo-}' >/dev/null || exit 4
+${THIS_SH} -uc 'unset foo; echo ${foo+}' >/dev/null || exit 5
+${THIS_SH} -uc 'unset foo; echo ${foo=}' >/dev/null || exit 6
+# length/trimming are affected
+${THIS_SH} -uc 'unset foo; echo ${#foo}' 2>/dev/null && exit 7
+${THIS_SH} -uc 'foo=; echo ${#foo}' >/dev/null || exit 8
+${THIS_SH} -uc 'unset foo; echo ${foo#?}' 2>/dev/null && exit 9
+${THIS_SH} -uc 'foo=1; echo ${foo#?}' >/dev/null || exit 10
+${THIS_SH} -uc 'unset foo; echo ${foo##?}' 2>/dev/null && exit 11
+${THIS_SH} -uc 'foo=1; echo ${foo##?}' >/dev/null || exit 12
+${THIS_SH} -uc 'unset foo; echo ${foo%?}' 2>/dev/null && exit 13
+${THIS_SH} -uc 'foo=1; echo ${foo%?}' >/dev/null || exit 14
+${THIS_SH} -uc 'unset foo; echo ${foo%%?}' 2>/dev/null && exit 15
+${THIS_SH} -uc 'foo=1; echo ${foo%%?}' >/dev/null || exit 16
+
+${THIS_SH} -uc 'echo $!' 2>/dev/null && exit 17
+${THIS_SH} -uc ':& echo $!' >/dev/null || exit 18
+${THIS_SH} -uc 'echo $#' >/dev/null || exit 19
+${THIS_SH} -uc 'echo $1' 2>/dev/null && exit 20
+${THIS_SH} -uc 'echo $1' ${THIS_SH} xnotthere >/dev/null || exit 21
+${THIS_SH} -uc 'echo $2' ${THIS_SH} xnotthere 2>/dev/null && exit 22
+${THIS_SH} -uc 'echo $2' ${THIS_SH} xnotthere ynotthere >/dev/null || exit 23
+
+${THIS_SH} -uc 'echo $! ; exit 24' 2>/dev/null
+${THIS_SH} -uc 'echo ${!} ; exit 25' 2>/dev/null
+${THIS_SH} -uc 'echo ${!,} ; exit 26' 2>/dev/null
+
+${THIS_SH} -uc 'echo ${!-ok 27} >/dev/null || exit 27'
+${THIS_SH} -uc 'echo ${2-ok 28} >/dev/null || exit 28'
+
+exit 0

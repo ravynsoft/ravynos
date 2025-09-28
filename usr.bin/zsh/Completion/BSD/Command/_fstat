@@ -1,0 +1,12 @@
+#compdef fstat
+
+_arguments -s \
+'-f[restrict examination to files open in the same file systems as the named file arguments]' \
+'-M+[extract values associated with the name list from the specified core]:core:_files' \
+'-N+[extract the name list from the specified system]:system' \
+'-m[include memory-mapped files in the listing]' \
+'-n[numerical format]' \
+'-p+[report all files open by the specified process]:process id:_pids' \
+'-u+[report all files open by the specified user]:user:_users' \
+'-v[verbose mode]' \
+'*: :_files'

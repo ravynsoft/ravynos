@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# this script creates a tag for every p4raw-id
+# the output can be appended to .git/packed-refs, but make sure to back up
+# first
+
+# then you can do:
+
+# git show perl@1234 where 1234 is a perforce change, and 'perl' is the p4
+# depot
+
+git log -z -F --grep='p4raw-id:' --pretty='format:%H %b' | \
+perl -0ne 'chomp; if ( @t = m{([a-f0-9]{40}).*?p4raw-id: //depot/(.*?\@\d+)}s ) { print "@t\n" }'

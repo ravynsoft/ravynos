@@ -1,0 +1,74 @@
+# shlibpath.at -- Test shlibpath settings                     -*- Autotest -*-
+#
+#   Copyright (C) 2006, 2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Ralf Wildenhues, 2006
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([shlibpath_overrides_runpath])
+AT_KEYWORDS([libtool])
+
+mkdir sub sub/lib sub/bin
+echo 'int a () { return 0; }' > a.c
+echo 'extern int a (); int main () { return a(); }' > m.c
+$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a.c
+$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la a.lo -rpath `pwd`/sub/lib
+$LIBTOOL --mode=install cp liba.la `pwd`/sub/lib/liba.la
+$LIBTOOL --mode=clean rm -f liba.la
+rm -f sub/lib/liba.la
+
+$CC $CPPFLAGS $CFLAGS -c m.c
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m$EXEEXT m.$OBJEXT -Lsub/lib -la -R`pwd`/sub/lib],
+         [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m2$EXEEXT m.$OBJEXT -Lsub/lib -la],
+         [], [ignore], [ignore])
+
+LT_AT_MVDIR([sub], [moved])
+mkdir sub sub/lib sub/bin
+echo 'int wrong_lib () { return 0; }' > a.c
+$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a.c
+$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la a.lo -rpath `pwd`/sub/lib
+$LIBTOOL --mode=install cp liba.la `pwd`/sub/lib/liba.la
+$LIBTOOL --mode=clean rm -f liba.la
+
+eval `$LIBTOOL --config | $EGREP '^(shlibpath_var|shlibpath_overrides_runpath)='`
+
+# No point checking a system with static libraries:
+LT_AT_EXEC_CHECK([./m], [1], [ignore], [ignore], [|| exit 1 && exit 77])
+
+if test PATH = "$shlibpath_var"; then
+  addpath=`pwd`/moved/bin
+else
+  addpath=`pwd`/moved/lib
+fi
+sep=
+eval test -n \"\$$shlibpath_var\" && sep=:
+eval $shlibpath_var='$addpath$sep$'$shlibpath_var
+export $shlibpath_var
+if test no != "$shlibpath_overrides_runpath"; then
+  LT_AT_EXEC_CHECK([./m], [0], [ignore], [ignore])
+else
+  LT_AT_EXEC_CHECK([./m], [1], [ignore], [ignore], [|| exit 1])
+fi
+# Test that shlibpath_var is effective in adding paths at all:
+LT_AT_EXEC_CHECK([./m2], [0], [ignore], [ignore])
+
+AT_CLEANUP

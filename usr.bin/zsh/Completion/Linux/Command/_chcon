@@ -1,0 +1,24 @@
+#compdef chcon
+
+local ign
+
+(( $#words > 2 )) && ign='!'
+_arguments -C -s -S \
+  '(-h --no-dereference)--dereference[dereference symlinks]' \
+  '(-h --no-dereference --dereference)'{-h,--no-dereference}'[operate on symlinks themselves]' \
+  '(1 -u --user -r --role  -l --range -t --type)--reference=[copy security context of specified file]:file:_files' \
+  '(1 --reference -u --user)'{-u+,--user=}'[set user in the target security context]: :_selinux_users' \
+  '(1 --reference -r --role)'{-r+,--role=}'[set role in the target security context]: :_selinux_roles' \
+  '(1 --reference -t --type)'{-t+,--type=}'[set type in the target security context]: :_selinux_types' \
+  '(1 --reference -l --range)'{-l+,--range=}'[set range in the target security context]:selinux range' \
+  '(--recursive -R)'{--recursive,-R}'[recurse subdirectories]' \
+  '(-v --verbose)'{-v,--verbose}'[output a diagnostic for every file processed]' \
+  '(-H -L -P)-H[follow symlinks on the command line]' \
+  '(-H -L -P)-L[follow all symlinks]' \
+  "(-H -L -P)-P[don't follow symlinks (default)]" \
+  '!(--preserve-root)--no-preserve-root' \
+  "--preserve-root[fail to operate recursively on '/']" \
+  '(--reference -u --user -r --role  -l --range -t --type)1:security context:_selinux_contexts' \
+  "${ign}--help[display help information]" \
+  "${ign}--version[display version information]" \
+  '*:file:_files'

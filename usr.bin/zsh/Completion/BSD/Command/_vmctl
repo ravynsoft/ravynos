@@ -1,0 +1,95 @@
+#compdef vmctl
+
+local -a subcommands alts
+
+_vm_names() {
+  local expl
+  _description virtual-machines expl 'virtual machine'
+  compadd "$@" "$expl[@]" - ${${${(@f)"$(_call_program virtual-machines vmctl status)"}[2,-1]}##* }
+}
+
+_vm_switches() {
+  local expl
+  _description virtual-switches expl 'virtual switch'
+  [[ -r /etc/vm.conf ]] &&
+  compadd "$@" "$expl[@]" - ${${${(M)${(f)"$(</etc/vm.conf)"}:#switch *}##switch ##\"#}%%\"# *}
+}
+
+subcommands=(
+  console:'connect to the console of the VM'
+  create:'create a VM disk image'
+  load:'load additional configuration'
+  log:'change logging verbosity'
+  pause:'pause a VM'
+  receive:'receive a VM from stdin'
+  reload:'remove stopped VMs and reload config'
+  reset:'reset specified component'
+  send:'send VM to stdout and terminate it'
+  {show,status}:'list VMs running or just the specified id'
+  start:'start a VM'
+  stop:'stop a VM'
+  unpause:'resume a VM'
+  wait:'wait until specified VM has stopped'
+)
+
+if (( CURRENT == 2 )); then
+  _describe subcommand subcommands
+else
+  local curcontext="${curcontext%:*}-${words[2]}:"
+  shift words; (( CURRENT-- ))
+  case $words[1] in
+    console|pause|send|show|status|unpause|wait)
+      _vm_names
+      ;;
+    create)
+      compset -P '(raw|qcow2):' || alts=(
+        'prefixes:prefix:compadd -S: raw qcow2'
+      )
+      _arguments \
+        '-s+[specify size]:size' \
+        '(-i)-b+[specify base disk]:base image:_files' \
+        '(-b)-i+[copy and convert input disk]:disk image:_files' \
+        '1:disk: _alternative "files:path:_files" $alts'
+      ;;
+    load)
+      _arguments ':configuration file:_files'
+      ;;
+    log)
+      _arguments ':logging verbosity:(brief verbose)'
+      ;;
+    receive)
+      _arguments ':name: '
+      ;;
+    reset)
+      _arguments ':reset option:((
+        all\:"reset the running state"
+        switches\:"reset the configured switches"
+        vms\:"reset and terminate all VMs"
+      ))'
+      ;;
+    start)
+      _arguments -s \
+        '-B+[force system to boot from specified device for this boot]:device:(cdrom disk net)' \
+        '-b+[boot with the specified kernel or BIOS image]:boot image:_files' \
+        '-c[automatically connect to the VM console]' \
+        '*-d+[disk image file]:disk image:_files' \
+        '-i+[number of network interfaces]:number: ' \
+        '-L[add a local network interface]' \
+        '-m+[specify memory size]:memory size (megabytes) [512]' \
+        '-n+[specify switch to attach]: :_vm_switches' \
+        '-r+[specify ISO image file for virtual CD-ROM]:ISO image:_files -g "*.iso(-.)"' \
+        '-t+[use existing VM as a template]: :_vm_names' \
+        '1: :_vm_names'
+    ;;
+    stop)
+      _arguments \
+        '(1)-a[stop all running VMs]' \
+        '-f[forcefully stop without attempting a graceful shutdown]' \
+        '-w[wait until the VM has been terminated]' \
+        '(-a)1: :_vm_names'
+    ;;
+    *)
+      _default
+    ;;
+  esac
+fi

@@ -1,0 +1,93 @@
+#compdef netscape
+
+local curcontext="$curcontext" state line expl ret=1 suf files
+typeset -A opt_args
+
+_x_arguments -C \
+  '-xrm:resource:_x_resource' \
+  '-help[show usage message]' \
+  '-version[show the version number and build date]' \
+  '-visual[use a specific server visual]:visual:_x_visual -b' \
+  '-install[install a private colormap]' \
+  '-no-install[use the default colormap]' \
+  '-ncols[max no. of colors to allocate for images]:n:' \
+  '-mono[force 1-bit-deep image display]' \
+  '-iconic[start up iconified]' \
+  '-remote[execute a command in an existing Netscape]:remote command:->remote' \
+  '-id[id of X window to send remote commands to]:window-id:' \
+  '-raise[raise window following remote command]' \
+  "-noraise[don't raise window following remote command]" \
+  '-nethelp[show nethelp]' \
+  -{dont-force-window-stacking,no-about-splash} \
+  -{,no-}{,irix-}session-management \
+  -{done-save,ignore}-geometry-prefs \
+  -{component-bar,composer,edit,messenger,mail,discussions,news} \
+  '*:location:->urls' && ret=0
+
+# Handle netscape remote commands
+if [[ "$state" = "remote" ]]; then  
+  local -a remote_commands
+  remote_commands=(openURL openFile saveAs mailto addBookmark)
+
+  compset -P '*\('
+  if compset -S '(|\\)\)*'; then
+    set - -S "" "$@"
+  else
+    set - -S"${${QIPREFIX:+)}:-\)}$compstate[quote] " "$@"
+  fi
+  case $IPREFIX in
+    openURL*|addBookmark*) state=urls;;
+    openFile*) _files "$@" -W ~;;
+    saveAs*) 
+      if compset -P "*,"; then
+        _wanted types expl 'data type' \
+            compadd "$@" -M 'm:{a-zA-Z}={A-Za-z}' HTML Text PostScript && ret=0
+      else
+        compset -S ",*" || suf=","
+        _files -qS "$suf" -W ~ && ret=0
+      fi
+    ;;
+    mailto*)
+      _email_addresses -s, -c && ret=0
+    ;;
+    *)
+      compset -S '(|\\)\(*' || suf="${${QIPREFIX:+(}:-\(}"
+      _wanted commands expl 'remote command' \
+          compadd -qS "$suf" -M 'm:{a-zA-Z}={A-Za-z}' -a \
+                  remote_commands && ret=0
+    ;;
+  esac
+fi
+
+if [[ "$state" = "urls" ]]; then
+  _tags files urls
+  while _tags; do
+    _requested files expl 'file' _files "$@" && files=yes ret=0
+    if _requested urls; then
+      # Complete netscape urls
+      if compset -P about: ; then
+	_wanted values expl 'about what' \
+            compadd "$@" authors blank cache document fonts global hype \
+	    	image-cache license logo memory-cache mozilla plugins && ret=0
+      elif compset -P news: ; then
+	_newsgroups "$@" && ret=0
+      elif compset -P mailto: ; then
+        _email_addresses -c && ret=0
+      else
+	_tags prefixes
+	while _tags; do
+	  while _next_label prefixes expl 'URL prefix' "$@"; do
+            _urls "$expl[@]" && ret=0
+	    compset -S '[^:]*'
+            compadd -S '' "$expl[@]" about: news: mailto: mocha: javascript: && ret=0
+	  done
+	  (( ret )) || return 0
+	done
+        [[ -z "$files" ]] && _tags files
+      fi
+    fi
+    (( ret )) || return 0
+  done
+fi
+
+return ret

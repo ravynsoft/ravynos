@@ -1,0 +1,119 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test iterative mode of msgfmt --xml.
+
+cat <<\EOF > mf.appdata.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>org.gnome.Characters.desktop</id>
+  <name>GNOME Characters</name>
+  <summary>Character map application</summary>
+  <licence>CC0</licence>
+  <description>
+    <p>
+      Characters is a simple utility application to find and insert
+      unusual characters.  It allows you to quickly find the character
+      you are looking for by searching for keywords.
+    </p>
+    <p>
+      You can also browse characters by categories, such as
+      Punctuation, Pictures, etc.
+    </p>
+  </description>
+  <url type="homepage">https://wiki.gnome.org/Design/Apps/CharacterMap</url>
+  <updatecontact>dueno_at_src.gnome.org</updatecontact>
+</component>
+EOF
+
+cat <<\EOF > fr.po
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-03-17 07:36+0900\n"
+"PO-Revision-Date: 2014-03-17 08:40+0900\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid ""
+"Characters is a simple utility application to find and insert unusual "
+"characters. It allows you to quickly find the character you are looking for "
+"by searching for keywords."
+msgstr ""
+"Caractères est un utilitaire pour chercher et insérer des caractères "
+"inhabituels. Il vous permet de trouver rapidement le caractère que vous "
+"cherchez par le biais de mots-clés."
+
+msgid ""
+"You can also browse characters by categories, such as Punctuation, Pictures, "
+"etc."
+msgstr ""
+"Vous pouvez aussi naviguer dans les caractères par catégories, comme par "
+"Ponctuation, Images, etc."
+EOF
+
+cat <<\EOF > mf.appdata.xml.ok
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>org.gnome.Characters.desktop</id>
+  <name>GNOME Characters</name>
+  <summary>Character map application</summary>
+  <licence>CC0</licence>
+  <description>
+    <p>
+      Characters is a simple utility application to find and insert
+      unusual characters.  It allows you to quickly find the character
+      you are looking for by searching for keywords.
+    </p>
+    <p xml:lang="fr">Caractères est un utilitaire pour chercher et insérer des caractères inhabituels. Il vous permet de trouver rapidement le caractère que vous cherchez par le biais de mots-clés.</p>
+    <p>
+      You can also browse characters by categories, such as
+      Punctuation, Pictures, etc.
+    </p>
+    <p xml:lang="fr">Vous pouvez aussi naviguer dans les caractères par catégories, comme par Ponctuation, Images, etc.</p>
+  </description>
+  <url type="homepage">https://wiki.gnome.org/Design/Apps/CharacterMap</url>
+  <updatecontact>dueno_at_src.gnome.org</updatecontact>
+</component>
+EOF
+
+# Sanity checks for contradicting options.
+
+${MSGFMT} --xml --template=mf.appdata.xml -l fr fr.po \
+          >/dev/null 2>/dev/null \
+  && Exit 1
+
+${MSGFMT} --xml --template=mf.appdata.xml fr.po -o mf.appdata.xml.out \
+          >/dev/null 2>/dev/null \
+  && Exit 1
+
+# Proceed to the XML file generation.
+
+${MSGFMT} --xml --template=mf.appdata.xml -l fr fr.po -o mf.appdata.xml.out \
+  || Exit 1
+
+: ${DIFF=diff}
+${DIFF} mf.appdata.xml.ok mf.appdata.xml.out
+result=$?
+test $result = 0 || exit $result
+
+# Test -L option.
+cp mf.appdata.xml mf.xml
+${MSGFMT} --xml --template=mf.xml -L AppData -l fr fr.po -o mf.appdata.xml.out \
+  || Exit 1
+${DIFF} mf.appdata.xml.ok mf.appdata.xml.out
+result=$?
+test $result = 0 || exit $result
+
+exit $result

@@ -1,0 +1,30 @@
+#compdef ztodo
+
+_ztodo_entries() {
+  local -a entries
+
+  entries=(${${${${(f)"$(_call_program ztodo-entry ztodo list)"}#[[:space:]]##}/:[[:space:]]##/:}%:[[:space:]]#})
+  _describe -t ztodo-entry 'todo entry' entries "$@"
+}
+
+local -a args reply
+args=(
+  /$'[^\0]#\0'/
+)
+
+local -a todo_entry
+todo_entry=(
+  /$'[^\0]#\0'/ ':ztodo-entry:todo entry:_ztodo_entries'
+)
+
+_regex_words \
+  commands "ztodo command" \
+  'add:add entry' \
+  'del:delete entry:$todo_entry' \
+  'clear:clear todo list' \
+  'list:show todo list'
+args+=("$reply[@]")
+
+_regex_arguments _ztodo "${args[@]}"
+
+_ztodo "$@"

@@ -1,0 +1,23 @@
+url
+  http://example.com/index.html
+expected
+  abcdefghijklmnopqrstuvwxyz1234567890abcdef
+expected_rc
+  200
+----------
+GET /index.html HTTP/1.1
+Host: example.com
+Connection: close
+User-Agent: HTTP-Tiny/VERSION
+
+----------
+HTTP/1.1 100 Continue
+
+HTTP/1.1 110 Arbitrary 1XX status code
+
+HTTP/1.1 200 OK
+Date: Thu, 03 Feb 1994 00:00:00 GMT
+Content-Type: text/plain
+Content-Length: 44
+
+abcdefghijklmnopqrstuvwxyz1234567890abcdef

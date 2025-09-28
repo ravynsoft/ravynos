@@ -1,0 +1,17 @@
+#compdef xscreensaver-command
+
+_arguments \
+  '-demo[ask the xscreensaver process to enter interactive demo mode]' \
+  '-prefs[ask the xscreensaver process to bring up the preferences panel]' \
+  '-activate[turn on the screensaver]' \
+  '-deactivate[turn off the screensaver]' \
+  '-cycle[stop the current graphics demo and run a new one]' \
+  '-next' \
+  '-prev' \
+  '-select[but runs the Nth element in the list of hacks]:element number:' \
+  '-exit[causes the xscreensaver process to exit gracefully]' \
+  '-restart[restart the screensaver process]' \
+  '-lock[lock the screen immediately]' \
+  '-version[prints the version of xscreensaver that is currently running]' \
+  '-time[prints the time at which the screensaver last activated or deactivated]' \
+  '-watch[prints a line each time the screensaver changes state]'

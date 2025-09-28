@@ -1,0 +1,23 @@
+#compdef pon poff
+
+case "$service" in
+  (pon)
+
+_arguments \
+  '(-q --quick)'{-q,--quick}'[hangs up after all ip-up scripts are run]' \
+  '1:provider to call:_files -W /etc/ppp/peers'
+
+  ;;
+
+  (poff)
+_arguments \
+  '-r[drop the line and redial]' \
+  '-d[toggle state of debug option]' \
+  '-c[renegotiate compression]' \
+  '-a[stop all pppds]' \
+  '-h[help]' \
+  '-v[version]' \
+  '1:provider to disconnect:_files -W /etc/ppp/peers'
+
+  ;;
+esac

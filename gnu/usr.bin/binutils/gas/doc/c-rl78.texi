@@ -1,0 +1,148 @@
+@c Copyright (C) 2011-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@ifset GENERIC
+@page
+@node RL78-Dependent
+@chapter RL78 Dependent Features
+@end ifset
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter RL78 Dependent Features
+@end ifclear
+
+@cindex RL78 support
+@menu
+* RL78-Opts::                   RL78 Assembler Command-line Options
+* RL78-Modifiers::              Symbolic Operand Modifiers
+* RL78-Directives::             Assembler Directives
+* RL78-Syntax::                 Syntax
+@end menu
+
+@node RL78-Opts
+@section RL78 Options
+@cindex options, RL78
+@cindex RL78 options
+
+@table @code
+@item relax
+Enable support for link-time relaxation.
+
+@item norelax
+Disable support for link-time relaxation (default).
+
+@item mg10
+Mark the generated binary as targeting the G10 variant of the RL78
+architecture.
+
+@item mg13
+Mark the generated binary as targeting the G13 variant of the RL78
+architecture.
+
+@item mg14
+@itemx mrl78
+Mark the generated binary as targeting the G14 variant of the RL78
+architecture.  This is the default.
+
+@item m32bit-doubles
+Mark the generated binary as one that uses 32-bits to hold the
+@code{double} floating point type.  This is the default.
+
+@item m64bit-doubles
+Mark the generated binary as one that uses 64-bits to hold the
+@code{double} floating point type.
+
+@end table
+
+@node RL78-Modifiers
+@section Symbolic Operand Modifiers
+
+@cindex RL78 modifiers
+@cindex syntax, RL78
+
+The RL78 has three modifiers that adjust the relocations used by the
+linker:
+
+@table @code
+
+@item %lo16()
+
+When loading a 20-bit (or wider) address into registers, this modifier
+selects the 16 least significant bits.
+
+@smallexample
+  movw ax,#%lo16(_sym)
+@end smallexample
+
+@item %hi16()
+
+When loading a 20-bit (or wider) address into registers, this modifier
+selects the 16 most significant bits.
+
+@smallexample
+  movw ax,#%hi16(_sym)
+@end smallexample
+
+@item %hi8()
+
+When loading a 20-bit (or wider) address into registers, this modifier
+selects the 8 bits that would go into CS or ES (i.e. bits 23..16).
+
+@smallexample
+  mov es, #%hi8(_sym)
+@end smallexample
+
+@end table
+
+@node RL78-Directives
+@section Assembler Directives
+
+@cindex assembler directives, RL78
+@cindex RL78 assembler directives
+
+In addition to the common directives, the RL78 adds these:
+
+@table @code
+
+@item .double
+Output a constant in ``double'' format, which is either a 32-bit
+or a 64-bit floating point value, depending upon the setting of the
+@option{-m32bit-doubles}|@option{-m64bit-doubles} command-line
+option.
+
+@item .bss
+Select the BSS section.
+
+@item .3byte
+Output a constant value in a three byte format.
+
+@item .int
+@itemx .word
+Output a constant value in a four byte format.
+
+@end table
+
+@node RL78-Syntax
+@section Syntax for the RL78
+@menu
+* RL78-Chars::                Special Characters
+@end menu
+
+@node RL78-Chars
+@subsection Special Characters
+
+@cindex line comment character, RL78
+@cindex RL78 line comment character
+The presence of a @samp{;} appearing anywhere on a line indicates the
+start of a comment that extends to the end of that line.
+
+If a @samp{#} appears as the first character of a line then the whole
+line is treated as a comment, but in this case the line can also be a
+logical line number directive (@pxref{Comments}) or a preprocessor
+control command (@pxref{Preprocessing}).
+
+@cindex line separator, RL78
+@cindex statement separator, RL78
+@cindex RL78 line separator
+The @samp{|} character can be used to separate statements on the same
+line.

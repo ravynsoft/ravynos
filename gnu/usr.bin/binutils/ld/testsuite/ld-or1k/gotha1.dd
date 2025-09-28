@@ -1,0 +1,34 @@
+
+.*\.x:     file format elf32-or1k
+
+
+Disassembly of section \.plt:
+
+[0-9a-f]+ <\.plt>:
+ +[0-9a-f]+:	19 80 00 00 	l\.movhi r12,0x0
+ +[0-9a-f]+:	85 ec [0-9a-f]+ [0-9a-f]+ 	l\.lwz r15,[0-9]+\(r12\)
+ +[0-9a-f]+:	44 00 78 00 	l\.jr r15
+ +[0-9a-f]+:	85 8c [0-9a-f]+ [0-9a-f]+ 	l\.lwz r12,[0-9]+\(r12\)
+ +[0-9a-f]+:	19 80 00 00 	l\.movhi r12,0x0
+ +[0-9a-f]+:	85 8c [0-9a-f]+ [0-9a-f]+ 	l\.lwz r12,[0-9]+\(r12\)
+ +[0-9a-f]+:	44 00 60 00 	l\.jr r12
+ +[0-9a-f]+:	a9 60 00 00 	l\.ori r11,r0,0x0
+
+Disassembly of section \.text:
+
+[0-9a-f]+ <_start>:
+ +[0-9a-f]+:	9c 21 ff fc 	l\.addi r1,r1,-4
+ +[0-9a-f]+:	d4 01 48 00 	l\.sw 0\(r1\),r9
+ +[0-9a-f]+:	04 00 00 02 	l\.jal [0-9a-f]+ <_start\+0x10>
+ +[0-9a-f]+:	1a 60 00 00 	l\.movhi r19,0x0
+ +[0-9a-f]+:	aa 73 [0-9a-f]+ [0-9a-f]+ 	l\.ori r19,r19,0x[0-9a-f]+
+ +[0-9a-f]+:	e2 73 48 00 	l\.add r19,r19,r9
+ +[0-9a-f]+:	1a 20 00 00 	l\.movhi r17,0x0
+ +[0-9a-f]+:	e2 31 98 00 	l\.add r17,r17,r19
+ +[0-9a-f]+:	86 31 00 10 	l\.lwz r17,16\(r17\)
+ +[0-9a-f]+:	84 71 00 00 	l\.lwz r3,0\(r17\)
+ +[0-9a-f]+:	07 ff ff f2 	l\.jal [0-9a-f]+ <\.plt\+0x10>
+ +[0-9a-f]+:	15 00 00 00 	l\.nop 0x0
+ +[0-9a-f]+:	85 21 00 00 	l\.lwz r9,0\(r1\)
+ +[0-9a-f]+:	44 00 48 00 	l\.jr r9
+ +[0-9a-f]+:	9c 21 00 04 	l\.addi r1,r1,4

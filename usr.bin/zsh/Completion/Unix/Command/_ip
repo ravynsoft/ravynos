@@ -1,0 +1,577 @@
+#compdef ip
+
+# This is based on iproute2-ss061214.
+# The manual and help text summaries are not consistent with the main
+# manual text.  I have based this on the main manual text, except where
+# it's obviously deficient.
+
+#
+# Values encoding simple types
+#
+local -a subcmd_dev net_intf_disp net_intf_list
+# subcmd_dev=(/$'[[:alnum:][:punct:][:cntrl:][:digit:]]##\0'/ ':interfaces:network interface:_net_interfaces')
+_find_net_interfaces
+subcmd_dev=(/"(${(j.|.)net_intf_list})"$'\0'/
+	    ':interfaces:network interface:_net_interfaces')
+
+local -a subcmd_onoff
+subcmd_onoff=(/$'(on|off)\0'/ ':onoff:state (on or off):(on off)')
+
+local -a subcmd_string
+subcmd_string=(/$'[^\0]#\0'/ ':string:arbitrary string:( )')
+
+local -a subcmd_number
+subcmd_number=(/$'[0-9]##\0'/ ':number:decimal number:( )')
+
+local xp='[[:xdigit:]][[:xdigit:]]'
+local -a subcmd_lladdr
+subcmd_lladdr=(/"${xp}:${xp}:${xp}:${xp}:${xp}:${xp}"$'\0'/ 
+':lladdress:link layer (MAC) address:( )')
+
+local -a subcmd_ipaddr
+subcmd_ipaddr=(
+  /$'(<->(.<->(.<->(.<->|)|)|)|[:[:xdigit]]#:[:[:xdigit:]]#)(|/<->)\0'/
+  ':ipaddress:IP address (v4 or v6) with optional /<network-prefix-length>:( )'
+)
+
+local -a subcmd_ipaddrs
+local PATH=$PATH
+PATH=/sbin:$PATH
+subcmd_ipaddrs=(
+  /$'(<->(.<->(.<->(.<->|)|)|)|[:[:xdigit]]#:[:[:xdigit:]]#)(|/<->)\0'/
+  ":ipaddress:IP address (v4 or v6) currently set:( $(ip addr show | sed -n 's/^ *inet6* \([0-9a-f\.:/]*\) .*$/\1/p') )"
+)
+local -a subcmd_prefix_label
+subcmd_prefix_label=(
+  /$'(<->(.<->(.<->(.<->|)|)|)|[:[:xdigit]]#:[:[:xdigit:]]#)(|/<->)\0'/
+  ":ipaddresslabel:IP addrlabel prefix currently set:( $(ip -6 addrlabel list 2>/dev/null | sed -n 's/^prefix \([0-9a-f\.:/]*\) .*$/\1/p') )"
+)
+
+
+local -a subcmd_scope
+_regex_words scope "IP address scope" \
+  'global:address globally valid' \
+  'site:address valid for site (IPv6)' \
+  'link:address valid for single link' \
+  'host:address valid for this host'
+subcmd_scope=("$reply[@]")
+
+local -a subcmd_nud
+_regex_words nud "Neighbour Unreachability Detection state" \
+  'permanent:valid forever' \
+  'noarp:valid, not validated, removed if expired' \
+  'reachable:valid until reachability timeout' \
+  'stale:valid but suspicious'
+subcmd_nud=("$reply[@]")
+
+local -a subcmd_rttype
+_regex_words route-type "Route type" \
+  'unicast:real point-to-point route' \
+  'unreachable:generate Host Unreachable messages' \
+  'blackhole:silently discard' \
+  'prohibit:generate Communication Administratively Prohibited messages' \
+  'local:Loopback route' \
+  'broadcast:destinations are broadcast addresses' \
+  'throw:used with policy rules, generate Net Unreachable if no route' \
+  'nat:Network Address Translation route' \
+  'anycast:anycast addresses, not implemented' \
+  'multicast:multicast routing, not present in normal tables'
+subcmd_rttype=("$reply[@]")
+
+local -a subcmd_route
+# Route type is optional in route.
+# There's an overall default but then the whole thing is missed
+# out, and it's marked as optional anyway.
+subcmd_route=("(" $subcmd_rttype "|" ")" $subcmd_ipaddr)
+
+local -a subcmd_tos
+_regex_words tos "type of service" \
+  'lowdelay:low latency' \
+  'throughput:high bulk throughput' \
+  'reliability:high reliability'
+subcmd_tos=("(" "$reply[@]" "|"
+  /$'(|0x)[[:xdigit:]]##\0'/ ":hex-number:8-bit hex number:( )" ")")
+
+local -a subcmd_lockmtu
+subcmd_lockmtu=("(" /$'lock\0'/ ":lock:lock:(lock)" "|" ")" $subcmd_number )
+
+local -a subcmd_nexthop
+_regex_words nexthop 'nexthop route keyword' \
+    'via:specify nexthop router:$subcmd_ipaddr' \
+    'dev:specify output device:$subcmd_dev' \
+    'weight:specify relative quality of route:$subcmd_number'
+subcmd_nexthop=("$reply[@]" "#")
+
+local -a subcmd_rtprotocol
+_regex_words rtprotocol 'route protocol' \
+  'redirect:installed from ICMP redirect' \
+  'kernel:installed automatically by kernel' \
+  'boot:installed during boot sequence' \
+  'static:installed by administrator' \
+  'ra:installed by Router Discovery protocol'
+subcmd_rtprotocol=("$reply[@]")
+
+local -a subcmd_rttable
+_regex_words rttable 'routing table' \
+  'local:local routes' \
+  'main:main routing table' \
+  'default:default routing table' \
+  'unspec:unspecified routing table'
+subcmd_rttable=("(" "$reply[@]" "|" $subcmd_number ")")
+
+local -a subcmd_rtrealm subcmd_rtrealms
+_regex_words -t / rtrealm 'routing realm' \
+  'cosmos:everywhere'
+subcmd_rtrealms=("(" "$reply[@]" "|" /$'[0-9]##/'/
+  ':number:decimal number:( )' ")")
+
+_regex_words rtrealm 'routing realm' \
+  'cosmos:everywhere'
+subcmd_rtrealm=("(" "$reply[@]" "|" $subcmd_number ")")
+subcmd_rtrealms+=($subcmd_rtrealm)
+
+local -a subcmd_rtselector
+_regex_words rtselmod 'routing selector modifier' \
+  'root:select minimum route prefix length to match' \
+  'match:select maximum route prefix length to match' \
+  'exact:select exact prefix length to match'
+subcmd_rtselector=("(" "$reply[@]" "|" ")" $subcmd_ipaddr)
+
+local -a subcmd_family
+_regex_words family 'protocol family' \
+  'inet:IPv4' \
+  'inet6:IPv6' \
+  'link:local, no networking protocol'
+subcmd_family=("$reply[@]")
+
+local -a subcmd_ruletypes
+_regex_words ruletype 'rule type' \
+  'unicast:rule applies to a route' \
+  'blackhole:rule silently drops packet' \
+  'unreachable:rule generates Network Unreachable messages' \
+  'prohibit:rule generates Communication Administratively Prohibited messages' \
+  'nat:rule prescribes translation of source IP address'
+subcmd_ruletypes=("$reply[@]")
+
+local -a subcmd_tunnelmode
+_regex_words tunnelmode 'tunnel mode' \
+  'ipip:IPv4 in IPv4 tunnel' \
+  'sit:Simple Internet Transition - IPv6 in IPv4 tunnel' \
+  'gre:Generic Route Encapsulation - IPv4/IPv6 in IPv4 tunnel'
+subcmd_tunnelmode=("$reply[@]")
+
+local -a subcmd_files
+subcmd_files=(/$'[^\0]##\0'/ ':file:file name:_files')
+
+
+#
+# The ip top-level commands.  First link
+#
+local -a link_set_cmds
+_regex_words \
+  link-set-commands 'link set commands' \
+  'dev:specify device:$subcmd_dev' \
+  'u*p:change state to up' \
+  'do*wn:change state to down' \
+  'ar*p:change ARP flag on device:$subcmd_onoff' \
+  'mu*lticast:change MULTICAST flag on device:$subcmd_onoff' \
+  'pr*omisc:set promiscuous mode:$subcmd_onoff' \
+  'dy*namic:change DYNAMIC flag on device:$subcmd_onoff' \
+  'n*ame:change name of device:$subcmd_string' \
+  'txq*ueuelen:specify length of transmit queue:$subcmd_number' \
+  'txql*en:specify length of transmit queue:$subcmd_number' \
+  'm*tu:specify maximum transmit unit:$subcmd_number' \
+  'ad*dress:specify unicast link layer (MAC) address:$subcmd_lladdr' \
+  'br*oadcast:specify broadcast link layer (MAC) address:$subcmd_lladdr' \
+  'brd:specify broadcast link layer (MAC) address:$subcmd_lladdr' \
+  'p*eer:specify peer link layer (MAC) address:$subcmd_lladdr'
+# can complete interface with no dev, subcommands can repeat...
+link_set_cmds=("(" $subcmd_dev "|" ")" "$reply[@]" "#" )
+
+local -a link_show_cmds
+_regex_words link-show-commands 'link show commands' \
+  'dev:specify device:$subcmd_dev' \
+  'up:limit display to running devices'
+link_show_cmds=("(" $subcmd_dev "|" ")" "$reply[@]" "#" )
+
+local -a link_cmds
+_regex_words \
+  link-commands "link command" \
+  'h*elp:show help for command' \
+  'se*t:change device attributes:$link_set_cmds' \
+  'sh*ow:display device attributes:$link_show_cmds'
+link_cmds=("$reply[@]")
+
+
+#
+# addr
+#
+local -a addr_add_cmds
+# TODO: broadcast can take + or =
+_regex_words addr-add-commands "addr add/remove/change/replace commands" \
+  'dev:specify device:$subcmd_dev' \
+  'lo*cal:specify local IP address:$subcmd_ipaddr' \
+  'p*eer:specify peer IP address (point-to-point):$subcmd_ipaddr' \
+  'b*roadcast:specify broadcast IP address:$subcmd_ipaddr' \
+  'la*bel:specify tag for device:$subcmd_string' \
+  's*cope:specify scope for address:$subcmd_scope'
+# can complete IP address with no keyword
+addr_add_cmds=("(" $subcmd_ipaddr "|" ")" "$reply[@]" "#" )
+
+local -a addr_del_cmds
+addr_del_cmds=("(" $subcmd_ipaddrs "|" "$reply[@]" ")" "#" )
+
+local -a addr_show_cmds
+# TODO: broadcast can take + or =
+_regex_words addr-show-commands "addr show commands" \
+  'dev:specify device:$subcmd_dev' \
+  's*cope:specify scope for address:$subcmd_scope' \
+  't*o:limit to given IP address/prefix:$subcmd_ipaddr' \
+  'la*bel:list tags matching glob patter:$subcmd_string' \
+  'dynamic:list addresses from stateless configuration (IPv6)' \
+  'permanent:list non-dynamic addresses (IPv6)' \
+  'tentative:list addresses failing duplicate address detection (IPv6)' \
+  'deprecated:list deprecated addresses (IPv6)' \
+  'primary:list only primary addresses' \
+  'secondary:list only secondary addresses'
+# can complete device with no keyword
+addr_show_cmds=("(" $subcmd_dev "|" ")" "$reply[@]" "#" )
+
+local -a addr_cmds
+_regex_words \
+  addr-commands "addr command" \
+  'h*elp:show help for command' \
+  'a*dd:add new protocol address:$addr_add_cmds' \
+  'c*hange:change existing protocol address:$addr_add_cmds' \
+  'r*eplace:add or update protocol address:$addr_add_cmds' \
+  'd*elete:delete protocol address:$addr_del_cmds' \
+  's*how:show protocol address:$addr_show_cmds' \
+  'f*lush:flush protocol address:$addr_show_cmds'
+addr_cmds=("$reply[@]")
+
+#
+# addrlabel
+#
+
+local -a addrlabel_add_cmds
+_regex_words addrlabel-add-commands "addlabel add command" \
+  'p*refix: limit to given IP address/prefix' \
+  'd*ev: specify device:$subcmd_dev' \
+  'l*abel: number'
+addrlabel_add_cmds=( "(" $subcmd_ipaddr "|" ")" "$reply[@]" "#")
+
+local -a addrlabel_del_cmds
+_regex_words addrlabel-add-commands "addlabel del command" \
+  'p*refix: limit to given IP address/prefix:$subcmd_prefix_label' \
+  'd*ev: specify device:$subcmd_dev' \
+  'l*abel: number:$subcmd_number'
+addrlabel_del_cmds=( "(" $subcmd_ipaddr "|" ")" "$reply[@]" "#")
+
+
+local -a addrlabel_cmds
+_regex_words \
+  addrlabel-commands "addrlabel command" \
+  'h*elp: show help for command' \
+  'a*dd: add an address labels:$addrlabel_add_cmds' \
+  'd*el: delete an address labels:$addrlabel_del_cmds' \
+  'l*ist: list address labels' \
+  'f*lush: flush adderss labels'
+addrlabel_cmds=("$reply[@]")
+
+#
+# neigh
+#
+local -a neigh_add_cmds
+_regex_words neigh-add-commands "neighbour add command" \
+  't*o:add new neighbour IP address:$subcmd_ipaddr' \
+  'dev:specify network device:$subcmd_dev' \
+  'l*laddr:specify link layer (MAC) address or null:$subcmd_lladdr' \
+  'n*ud:specify neighbour unreachability detection state:$subcmd_nud'
+# to-address without keyword can appear first
+neigh_add_cmds=( "(" $subcmd_ipaddr "|" ")" "$reply[@]" "#")
+
+local -a neigh_del_cmds
+_regex_words neigh-add-commands "neighbour delete command" \
+  't*o:remove neighbour IP address:$subcmd_ipaddr' \
+  'dev:specify network device:$subcmd_dev'
+neigh_del_cmds=( "(" $subcmd_ipaddr "|" ")" "$reply[@]" "#")
+
+local -a neigh_show_cmds
+_regex_words neigh-show-commands "neighbour show command" \
+  't*o:select neighbours by prefix:$subcmd_ipaddr' \
+  'dev:select neighbours by device:$subcmd_dev' \
+  'u*nused:only list unused neighbours' \
+  'n*ud:only list neighbours in given state:$subcmd_nud'
+neigh_show_cmds=( "(" $subcmd_ipaddr "|" ")" "$reply[@]" "#" )
+
+local -a neigh_cmds
+_regex_words \
+  neigh-commands "neigh command" \
+  'h*elp:show help for command' \
+  'a*dd:add new neighbour entry:$neigh_add_cmds' \
+  'c*hange:change existing neighbour entry:$neigh_add_cmds' \
+  'r*eplace:add or change neighbour entry:$neigh_add_cmds' \
+  'd*elete:delete neighbour entry:$neigh_del_cmds' \
+  's*how:list neighbour entries:$neigh_show_cmds' \
+  'f*lush:flush neighbour entries:$neigh_show_cmds'
+neigh_cmds=("$reply[@]")
+
+
+#
+# route
+#
+local -a route_add_cmds
+_regex_words route-add-commands "route add/change/replace command" \
+  'to:route destination prefix:$subcmd_route' \
+  'tos:type of service:$subcmd_tos' \
+  'ds*field:type of service:$subcmd_tos' \
+  'me*tric:preference value of route:$subcmd_number' \
+  'pre*ference:preference value of route:$subcmd_number' \
+  'ta*ble:select table by ID:$subcmd_rttable' \
+  'dev:select device:$subcmd_dev' \
+  'v*ia:select nexthop router:$subcmd_ipaddr' \
+  'sr*c:select preferred source address:$subcmd_ipaddr' \
+  're*alm:select routing realm:$subcmd_rtrealm' \
+  'mtu:select maximum transport unit:$subcmd_lockmtu' \
+  'w*indow:select maximal window in bytes:$subcmd_number' \
+  'rtt:select round trip time estimate:$subcmd_number' \
+  'rttv*ar:select initial round trip variance estimate:$subcmd_number' \
+  'ss*thresh:select initial slow start threshold estimate:$subcmd_number' \
+  'cw*nd:select clamp for congestion window (only if locked):$subcmd_number' \
+  'in*itcwnd:select max initial cwnd in MSS:$subcmd_number' \
+  'ad*vmss:select maximal segment size advertised:$subcmd_number' \
+  're*ordering:select maximal reordering for path:$subcmd_number' \
+  'ne*xthop:select nexthop of multipath route:$subcmd_nexthop' \
+  'sc*ope:select scope of destinations:$subcmd_scope' \
+  'pro*tocol:select routing protocol identifier:$subcmd_rtprotocol' \
+  'onl*ink:pretend nexthop is directly attached' \
+  'eq*ualize:allow packet by packet randomization'
+# route can appear with no "to"
+route_add_cmds=("(" $subcmd_route "|" ")" "$reply[@]" "#")
+
+local -a route_show_cmds
+_regex_words route-show-commands "route show command" \
+  'to:select route via prefix:$subcmd_rtselector' \
+  'tos:type of service:$subcmd_tos' \
+  'ta*ble:select table by ID:$subcmd_rttable' \
+  'cl*oned:list only dynamically forked routes' \
+  'ca*ched:list only dynamically forked routes' \
+  'f*rom:select route via source address prefix:$subcmd_rtselector' \
+  'p*rotocol:select routing protocol identifier:$subcmd_rtprotocol' \
+  'sc*ope:select scope of destinations:$subcmd_scope' \
+  'ty*pe:route type:$subcmd_rttype' \
+  'dev:select device:$subcmd_dev' \
+  'v*ia:select nexthop router:$subcmd_ipaddr' \
+  'sr*c:select route via source prefix:$subcmd_ipaddr' \
+  'realm:select routing realm:$subcmd_rtrealm' \
+  'realms:select from/to routing realms:$subcmd_rtrealms'
+# route selector can appear with no "to"
+route_show_cmds=("(" $subcmd_rtselector "|" ")" "$reply[@]" "#")
+
+local -a route_get_cmds
+_regex_words route-get-commands "route get commands" \
+  'to:route destination:$subcmd_ipaddr' \
+  'f*rom:route source:$subcmd_ipaddr' \
+  'tos:select type of service:$subcmd_tos' \
+  'ds*field:type of service:$subcmd_tos' \
+  'iif:select input interface (device):$subcmd_dev' \
+  'oif:select output interface (device):$subcmd_dev' \
+  'c*onnected:use preferred address as source'
+route_get_cmds=("(" $subcmd_ipaddr "|" ")" "$reply[@]" "#")
+
+local -a route_cmds
+_regex_words \
+  route-commands "route command" \
+  'h*elp:show help for command' \
+  'a*dd:add new network route:$route_add_cmds' \
+  'c*hange:change existing network route:$route_add_cmds' \
+  'r*eplace:add or change network route:$route_add_cmds' \
+  'd*elete:delete network route:$route_add_cmds' \
+  's*how:list network routes:$route_show_cmds' \
+  'f*lush:flush network routes:$route_show_cmds' \
+  'g*et:get a single network route:$route_get_cmds'
+route_cmds=("$reply[@]")
+
+
+#
+# rule
+#
+local -a rule_add_cmds
+_regex_words rule-add-commands 'ip rule add/delete commands' \
+  'ty*xpe:type of rule:$subcmd_ruletypes' \
+  'fr*om:select source prefix:$subcmd_ipaddr' \
+  'to:select destination prefix:$subcmd_ipaddr' \
+  'iif:select input interface (device):$subcmd_dev' \
+  'tos:select type of service:$subcmd_tos' \
+  'ds*field:select type of service:$subcmd_tos' \
+  'fw*mark:select fwmark:$subcmd_string' \
+  'pr*iority:select unique priority for rule:$subcmd_number' \
+  'ta*ble:select routing table by ID:$subcmd_rttable' \
+  're*alms:select from/to routing realms:$subcmd_rtrealms' \
+  'nat:select base of IP block to translate:$subcmd_ipaddr'
+
+rule_add_cmds=("(" $subcmd_ruletypes "|" ")" "$reply[@]" "#")
+
+local -a rule_cmds
+_regex_words \
+  rule-commands "rule command" \
+  'h*elp:show help for command' \
+  'a*dd:insert a new routing rule:$rule_add_cmds' \
+  'd*elete:delete a routing rule:$rule_add_cmds' \
+  'f*lush:flush rules and dump deleted rules' \
+  's*how:list routing rules'
+rule_cmds=("$reply[@]")
+
+
+#
+# tunnel
+#
+local -a tunnel_add_cmds
+_regex_words tunnel-add-commands 'tunnel add/change/delete commands' \
+  'na*me:select tunnel device name:$subcmd_dev' \
+  'm*ode:select tunnel mode:$subcmd_tunnelmode' \
+  'r*emote:select remote endpoint address:$subcmd_ipaddr' \
+  'l*ocal:select local address:$subcmd_ipaddr' \
+  'ttl:set fixed time to live, 1 to 255 or 0 (inherit):$subcmd_number' \
+  'tos:select type of service:$subcmd_tos' \
+  'ds*field:select type of service:$subcmd_tos' \
+  'dev:select device to bind tunnel to:$subcmd_dev' \
+  'no*pmtudisc:disable path maximum transport unit discovery' \
+  'ik*ey:set input key for GRE tunnel:$subcmd_ipaddr' \
+  'ok*ey:set output key for GRE tunnel:$subcmd_ipaddr' \
+  'k*ey:set bidirectional key for GRE tunnel:$subcmd_ipaddr' \
+  'ic*sum:enable input checksums for GRE tunnel' \
+  'oc*sum:enable output checksums for GRE tunnel' \
+  'c*sum:enable bidirectional checksums for GRE tunnel' \
+  'is*eq:serialize input packets on GRE tunnel' \
+  'os*eq:serialize output packets on GRE tunnel' \
+  's*eq:serialize packets bidirectionally on GRE tunnel'
+# name is default... we always complete it as an interface,
+# although that's not really right for "add".
+tunnel_add_cmds=("$reply[@]" "#")
+
+local -a tunnel_cmds
+_regex_words \
+  tunnel-commands "tunnel command" \
+  'h*elp:show help for command' \
+  'a*dd:add a new IP tunnel:$tunnel_add_cmds' \
+  'c*hange:change an existing IP tunnel:$tunnel_add_cmds' \
+  'd*el:destroy an IP tunnel:$tunnel_add_cmds' \
+  's*how:list IP tunnels'
+tunnel_cmds=("$reply[@]")
+
+
+#
+# maddr
+#
+local -a maddr_add_cmds
+_regex_words maddr-add-commands "maddr add/delete command" \
+  'a*ddress:select link layer (MAC) address:$subcmd_lladdr' \
+  'dev:select device to bind multicast address to:$subcmd_dev'
+maddr_add_cmds=("(" $subcmd_ipaddr "|" ")" "$reply[@]" "#")
+
+local -a maddr_show_cmds
+_regex_words maddr-show-commands 'maddr show command' \
+  'dev:select device with multicast address(es):$subcmd_dev'
+# device is default argument but if given the "dev" is useless
+maddr_show_cmds=("(" $subcmd_dev "|" "$reply[@]" ")")
+
+local -a maddr_cmds
+_regex_words \
+  maddr-commands "maddr command" \
+  'h*elp:show help for command' \
+  'a*dd:add multicast address:$maddr_add_cmds' \
+  'd*elete:delete multicast address:$maddr_add_cmds' \
+  's*how:list multicast addresses:$maddr_show_cmds'
+maddr_cmds=("$reply[@]")
+
+
+#
+# mroute
+#
+local -a mroute_show_cmds
+_regex_words mroute-show-commands "mroute show command" \
+  'to:select destination prefix:$subcmd_ipaddr' \
+  'iif:select input interface (device):$subcmd_dev' \
+  'from:select source prefix:$subcmd_ipaddr'
+mroute_show_cmds=("(" $subcmd_ipaddr "|" ")" "$reply[@]")
+
+local -a mroute_cmds
+_regex_words \
+  mroute-commands "mroute command" \
+  'h*elp:show help for command' \
+  's*how:list multicast routing cache entries:$mroute_show_cmds'
+mroute_cmds=("$reply[@]")
+
+
+#
+# monitor
+#
+local -a monitor_cmds
+_regex_words \
+  monitor-commands "monitor command" \
+  'h*elp:show help for command' \
+  'all:monitor all changes' \
+  'link:monitor changes to links' \
+  'address:monitor changes to addresses' \
+  'route:monitor changes to routes' \
+  'file:read rtmon-generated log:$subcmd_files'
+monitor_cmds=("$reply[@]")
+
+
+#
+# Global argument handling
+#
+
+# Arguments to _regex_arguments, built up in array $args.
+local -a args reply
+args=(
+    # Command word.  Don't care what that is.
+    /$'[^\0]#\0'/
+)
+
+# TODO:
+# -b*atch <FILENAME>
+# -force (for batch mode)
+# -l*oops <COUNT>
+# -n*etns <NETNS>
+# -rc, -rcvbuf<SIZE>
+_regex_words options "ip options" \
+  '-h*uman:output statistics with human readable values' \
+  '-i*ec:print human readable rates in IEC units (ie. 1K = 1024)' \
+  '-s*tatistics:output statistics' \
+  '-d*etails:output more detailed information' \
+  '-c*olor:color output' \
+  '-br*ief:brief output' \
+  '-a*ll:executes specified command over all objects' \
+  '-f*amily:select protocol family:$subcmd_family' \
+  '-4:IPv4' \
+  '-6:IPv6' \
+  '-B:family bridge' \
+  '-D:family DECnet' \
+  '-I:family IPX' \
+  '-M:family MPLS' \
+  '-0:link protocol, no networking' \
+  '-o*neline:output one record per line' \
+  '-t*imestamp:display current time when using monitor option' \
+  '-ts*hort:display current time in shorter format when using monitor option' \
+  '-r*esolve:use system resolver for DNS names'
+args+=("$reply[@]" "#")
+
+_regex_words \
+  commands "ip command" \
+  'l*ink:configure network device:$link_cmds' \
+  'addrlabel:manage addrlabel:$addrlabel_cmds' \
+  'a*ddr:manage protocol address:$addr_cmds' \
+  'r*oute:manage routing table:$route_cmds' \
+  'ru*le:manage routing policy database:$rule_cmds' \
+  'n*eigh:manage neighbour/ARP tables:$neigh_cmds' \
+  't*unnel:configure tunnel:$tunnel_cmds' \
+  'm*addr:manage multicast addresses:$maddr_cmds' \
+  'mr*oute:manage multicast routing cache:$mroute_cmds' \
+  'mo*nitor:monitor state:$monitor_cmds'
+args+=("$reply[@]")
+
+_regex_arguments _ip "${args[@]}"
+
+_ip "$@"

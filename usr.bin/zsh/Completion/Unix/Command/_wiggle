@@ -1,0 +1,25 @@
+#compdef wiggle
+
+local fns='-m --merge -d --diff -x --extract -B --browse'
+
+_arguments \
+  "($fns -1 -2 -3)"{-m,--merge}'[select the merge function]' \
+  "($fns -3 3)"{-d,--diff}'[display differences between files]' \
+  "($fns 2 3)"{-x,--extract}'[extract one branch of a patch or merge file]' \
+  '(-w --words -l --lines)'{-w,--words}'[make operations and display word based]' \
+  '(-l --lines -w --words --non-space)'{-l,--lines}'[make operations and display line based]' \
+  '(-l --lines)--non-space[words are separated by spaces]' \
+  '(-p --patch)'{-p,--patch}'[treat last named file as a patch]' \
+  '(-r --replace)'{-r,--replace}'[replace original file with merged output]' \
+  '--no-backup[never save original file (as name.porig)]' \
+  '(-R --reverse -x --extract)'{-R,--reverse}'[swap the files or revert changes]' \
+  '(-2 -3 -m --merge)-1[select branch]' \
+  '(-1 -3 -m --merge)-2[select branch]' \
+  '(-1 -2 -m --merge)-3[select branch]' \
+  '(1 2 3 -)'{-h,--help}'[display help information]' \
+  '(1 2 3 -)'{-V,--version}'[display version information]' \
+  '(-v --verbose -q --quiet)'{-v,--verbose}'[enable verbose output]' \
+  '(-q --quiet -v --verbose)'{-q,--quiet}'[enable quiet output]' \
+  '1:file:_files' \
+  '2:file:_files' \
+  '3:file:_files'

@@ -1,0 +1,14 @@
+[name]
+quotes option
+
+[options]
+quotes <<<>>>
+
+[input]
+=head1 FOO C<BAR> BAZ
+
+Foo C<bar> baz.
+
+[output]
+FOO <<<BAR>>> BAZ
+    Foo <<<bar>>> baz.

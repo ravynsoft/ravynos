@@ -1,0 +1,11 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test the libgettextpo library.
+../gettextpo-1-prg${EXEEXT} "$wabs_srcdir"/gettextpo-1.de.po > /dev/null || Exit 1
+
+: ${DIFF=diff}
+${DIFF} "$abs_srcdir"/gettextpo-1.de.po gtpo-1-copied.po || Exit 1
+${DIFF} "$abs_srcdir"/gettextpo-1.de.po gtpo-1-created.po || Exit 1
+
+Exit 0

@@ -1,0 +1,22 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test a succeeding comparison.
+
+cat <<EOF > mc-test1.in1
+msgid "one" msgstr "first"
+msgid "two" msgstr "second"
+msgid "three" msgstr "third"
+EOF
+
+cat <<EOF > mc-test1.in2
+msgid "three" msgstr ""
+msgid "one" msgstr ""
+msgid "two" msgstr ""
+EOF
+
+: ${MSGCMP=msgcmp}
+${MSGCMP} mc-test1.in1 mc-test1.in2 > /dev/null 2>&1
+result=$?
+
+exit $result

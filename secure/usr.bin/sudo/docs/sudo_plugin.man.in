@@ -1,0 +1,5512 @@
+.\" Automatically generated from an mdoc input file.  Do not edit.
+.\"
+.\" SPDX-License-Identifier: ISC
+.\"
+.\" Copyright (c) 2009-2023 Todd C. Miller <Todd.Miller@sudo.ws>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.TH "SUDO_PLUGIN" "5" "July 10, 2023" "Sudo @PACKAGE_VERSION@" "File Formats Manual"
+.nh
+.if n .ad l
+.SH "NAME"
+\fBsudo_plugin\fR
+\- Sudo Plugin API
+.SH "DESCRIPTION"
+Starting with version 1.8,
+\fBsudo\fR
+supports a plugin API
+for policy and session logging.
+Plugins may be compiled as dynamic shared objects (the default on
+systems that support them) or compiled statically into the
+\fBsudo\fR
+binary itself.
+By default, the
+\fBsudoers\fR
+plugin provides audit, security policy and I/O logging capabilities.
+Via the plugin API,
+\fBsudo\fR
+can be configured to use alternate plugins provided by third parties.
+The plugins to be used are specified in the
+sudo.conf(@mansectform@)
+file.
+.PP
+The API is versioned with a major and minor number.
+The minor version number is incremented when additions are made.
+The major number is incremented when incompatible changes are made.
+A plugin should be check the version passed to it and make sure that the
+major version matches.
+.PP
+The plugin API is defined by the
+<\fIsudo_plugin.h\fR>
+header file.
+.SS "Policy plugin API"
+A policy plugin must declare and populate a
+\fIstruct policy_plugin\fR
+in the global scope.
+This structure contains pointers to the functions that implement the
+\fBsudo\fR
+policy checks.
+The name of the symbol should be specified in
+sudo.conf(@mansectform@)
+along with a path to the plugin so that
+\fBsudo\fR
+can load it.
+.nf
+.sp
+.RS 0n
+struct policy_plugin {
+#define SUDO_POLICY_PLUGIN     1
+    unsigned int type; /* always SUDO_POLICY_PLUGIN */
+    unsigned int version; /* always SUDO_API_VERSION */
+    int (*open)(unsigned int version, sudo_conv_t conversation,
+        sudo_printf_t sudo_plugin_printf, char * const settings[],
+        char * const user_info[], char * const user_env[],
+        char * const plugin_options[], const char **errstr);
+    void (*close)(int exit_status, int error);
+    int (*show_version)(int verbose);
+    int (*check_policy)(int argc, char * const argv[],
+        char *env_add[], char **command_info[],
+        char **argv_out[], char **user_env_out[], const char **errstr);
+    int (*list)(int argc, char * const argv[], int verbose,
+        const char *user, const char **errstr);
+    int (*validate)(const char **errstr);
+    void (*invalidate)(int rmcred);
+    int (*init_session)(struct passwd *pwd, char **user_env[],
+        const char **errstr);
+    void (*register_hooks)(int version,
+       int (*register_hook)(struct sudo_hook *hook));
+    void (*deregister_hooks)(int version,
+       int (*deregister_hook)(struct sudo_hook *hook));
+    struct sudo_plugin_event * (*event_alloc)(void);
+};
+.RE
+.fi
+.PP
+A
+\fIstruct policy_plugin\fR
+has the following fields:
+.TP 6n
+\fItype\fR
+The
+\fItype\fR
+field should always be set to SUDO_POLICY_PLUGIN.
+.TP 6n
+\fIversion\fR
+The
+\fIversion\fR
+field should be set to
+\fRSUDO_API_VERSION\fR.
+.sp
+This allows
+\fBsudo\fR
+to determine the API version the plugin was
+built against.
+.TP 6n
+\fIopen\fR
+.nf
+.RS 6n
+int (*open)(unsigned int version, sudo_conv_t conversation,
+    sudo_printf_t sudo_plugin_printf, char * const settings[],
+    char * const user_info[], char * const user_env[],
+    char * const plugin_options[], const char **errstr);
+.RE
+.fi
+.RS 6n
+.sp
+Returns 1 on success, 0 on failure, \-1 if a general error occurred,
+or \-2 if there was a usage error.
+In the latter case,
+\fBsudo\fR
+will print a usage message before it exits.
+If an error occurs, the plugin may optionally call the
+\fBconversation\fR()
+or
+\fBsudo_plugin_printf\fR()
+function with
+\fRSUDO_CONF_ERROR_MSG\fR
+to present additional error information to the user.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIversion\fR
+The version passed in by
+\fBsudo\fR
+allows the plugin to determine the
+major and minor version number of the plugin API supported by
+\fBsudo\fR.
+.TP 6n
+\fIconversation\fR
+A pointer to the
+\fBconversation\fR()
+function that can be used by the plugin to interact with the user (see
+\fIConversation API\fR
+for details).
+Returns 0 on success and \-1 on failure.
+.TP 6n
+\fIsudo_plugin_printf\fR
+A pointer to a
+\fBprintf\fR()-style
+function that may be used to display informational or error messages (see
+\fIConversation API\fR
+for details).
+Returns the number of characters printed on success and \-1 on failure.
+.TP 6n
+\fIsettings\fR
+A vector of user-supplied
+\fBsudo\fR
+settings in the form of
+\(lqname=value\(rq
+strings.
+The vector is terminated by a
+\fRNULL\fR
+pointer.
+These settings correspond to options the user specified when running
+\fBsudo\fR.
+As such, they will only be present when the corresponding option has
+been specified on the command line.
+.sp
+When parsing
+\fIsettings\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one itself but the
+\fIvalue\fR
+might.
+.sp
+The following values may be set by
+\fBsudo\fR:
+.PP
+.RS 6n
+.PD 0
+.TP 6n
+bsdauth_type=string
+Authentication type, if specified by the
+\fB\-a\fR
+option, to use on
+systems where
+BSD
+authentication is supported.
+.PD
+.TP 6n
+closefrom=number
+If specified, the user has requested via the
+\fB\-C\fR
+option that
+\fBsudo\fR
+close all files descriptors with a value of
+\fInumber\fR
+or higher.
+The plugin may optionally pass this, or another value, back in the
+\fIcommand_info\fR
+list.
+.TP 6n
+cmnd_chroot=string
+The root directory (see
+chroot(2))
+to run the command in, as specified by the user via the
+\fB\-R\fR
+option.
+The plugin may ignore or restrict the user's ability to specify a new
+root directory.
+Only available starting with API version 1.16.
+.TP 6n
+cmnd_cwd=string
+The working directory to run the command in, as specified by the user via the
+\fB\-D\fR
+option.
+The plugin may ignore or restrict the user's ability to specify a new
+working directory.
+Only available starting with API version 1.16.
+.TP 6n
+debug_flags=string
+A debug file path name followed by a space and a comma-separated
+list of debug flags that correspond to the plugin's
+\fIDebug\fR
+entry in
+sudo.conf(@mansectform@),
+if there is one.
+The flags are passed to the plugin exactly as they appear in
+sudo.conf(@mansectform@).
+The syntax used by
+\fBsudo\fR
+and the
+\fBsudoers\fR
+plugin is
+\fIsubsystem\fR@\fIpriority\fR
+but a plugin is free to use a different
+format so long as it does not include a comma
+(\(oq,\&\(cq).
+Prior to
+\fBsudo\fR
+1.8.12, there was no way to specify plugin-specific
+\fIdebug_flags\fR
+so the value was always the same as that used by the
+\fBsudo\fR
+front-end and did not include a path name, only the flags themselves.
+As of version 1.7 of the plugin interface,
+\fBsudo\fR
+will only pass
+\fIdebug_flags\fR
+if
+sudo.conf(@mansectform@)
+contains a plugin-specific
+\fIDebug\fR
+entry.
+.TP 6n
+ignore_ticket=bool
+Set to true if the user specified the
+\fB\-k\fR
+option along with a
+command, indicating that the user wishes to ignore any cached
+authentication credentials.
+\fIimplied_shell\fR
+to true.
+This allows
+\fBsudo\fR
+with no arguments
+to be used similarly to
+su(1).
+If the plugin does not to support this usage, it may return a value of \-2
+from the
+\fBcheck_policy\fR()
+function, which will cause
+\fBsudo\fR
+to print a usage message and exit.
+.TP 6n
+implied_shell=bool
+If the user does not specify a program on the command line,
+\fBsudo\fR
+will pass the plugin the path to the user's shell and set
+\fIimplied_shell\fR.
+.TP 6n
+intercept_ptrace=bool
+Indicates whether or not the system supports intercept
+mode using
+ptrace(2).
+This is currently only true for Linux systems that support
+seccomp(2)
+filtering and the
+\(lqtrap\(rq
+action.
+Other systems will use a dynamic shared object to implement
+intercept.
+Only available starting with API version 1.19.
+.TP 6n
+intercept_setid=bool
+Indicates whether or not the system supports running set-user-ID
+and set-group-ID binaries in intercept mode.
+This is currently only true for Linux systems that support
+seccomp(2)
+filtering and the
+\(lqtrap\(rq
+action.
+On systems that use a dynamic shared object to implement
+intercept, the dynamic linker (ld.so or the equivalent)
+will disable preloading of shared objects when executing a
+set-user-ID or set-group-ID binary.
+This will disable intercept mode for that program and any other
+programs that it executes.
+The policy plugin may refuse to execute a set-user-ID or set-group-ID
+binary in intercept mode to avoid this.
+Only available starting with API version 1.19.
+.TP 6n
+login_class=string
+BSD
+login class to use when setting resource limits and nice value,
+if specified by the
+\fB\-c\fR
+option.
+.TP 6n
+login_shell=bool
+Set to true if the user specified the
+\fB\-i\fR
+option, indicating that
+the user wishes to run a login shell.
+.TP 6n
+max_groups=int
+The maximum number of groups a user may belong to.
+This will only be present if there is a corresponding setting in
+sudo.conf(@mansectform@).
+.TP 6n
+network_addrs=list
+A space-separated list of IP network addresses and netmasks in the
+form
+\(lqaddr/netmask\(rq,
+e.g.,
+\(lq192.168.1.2/255.255.255.0\(rq.
+The address and netmask pairs may be either IPv4 or IPv6, depending on
+what the operating system supports.
+If the address contains a colon
+(\(oq:\&\(cq),
+it is an IPv6 address, else it is IPv4.
+.TP 6n
+noninteractive=bool
+Set to true if the user specified the
+\fB\-n\fR
+option, indicating that
+\fBsudo\fR
+should operate in non-interactive mode.
+The plugin may reject a command run in non-interactive mode if user
+interaction is required.
+.TP 6n
+plugin_dir=string
+The default plugin directory used by the
+\fBsudo\fR
+front-end.
+This is the default directory set at compile time and may not
+correspond to the directory the running plugin was loaded from.
+It may be used by a plugin to locate support files.
+.TP 6n
+plugin_path=string
+The path name of plugin loaded by the
+\fBsudo\fR
+front-end.
+The path name will be a fully-qualified unless the plugin was
+statically compiled into
+\fBsudo\fR.
+.TP 6n
+preserve_environment=bool
+Set to true if the user specified the
+\fB\-E\fR
+option, indicating that
+the user wishes to preserve the environment.
+.TP 6n
+preserve_groups=bool
+Set to true if the user specified the
+\fB\-P\fR
+option, indicating that
+the user wishes to preserve the group vector instead of setting it
+based on the runas user.
+.TP 6n
+progname=string
+The command name that sudo was run as, typically
+\(lqsudo\(rq
+or
+\(lqsudoedit\(rq.
+.TP 6n
+prompt=string
+The prompt to use when requesting a password, if specified via
+the
+\fB\-p\fR
+option.
+.TP 6n
+remote_host=string
+The name of the remote host to run the command on, if specified via
+the
+\fB\-h\fR
+option.
+Support for running the command on a remote host is meant to be implemented
+via a helper program that is executed in place of the user-specified command.
+The
+\fBsudo\fR
+front-end is only capable of executing commands on the local host.
+Only available starting with API version 1.4.
+.TP 6n
+run_shell=bool
+Set to true if the user specified the
+\fB\-s\fR
+option, indicating that the user wishes to run a shell.
+.TP 6n
+runas_group=string
+The group name or group-ID to run the command as, if specified via
+the
+\fB\-g\fR
+option.
+.TP 6n
+runas_user=string
+The user name or user-ID to run the command as, if specified via the
+\fB\-u\fR
+option.
+.TP 6n
+selinux_role=string
+SELinux role to use when executing the command, if specified by
+the
+\fB\-r\fR
+option.
+.TP 6n
+selinux_type=string
+SELinux type to use when executing the command, if specified by
+the
+\fB\-t\fR
+option.
+.TP 6n
+set_home=bool
+Set to true if the user specified the
+\fB\-H\fR
+option.
+If true, set the
+\fRHOME\fR
+environment variable to the target user's home directory.
+.TP 6n
+sudoedit=bool
+Set to true when the
+\fB\-e\fR
+option is specified or if invoked as
+\fBsudoedit\fR.
+The plugin shall substitute an editor into
+\fIargv\fR
+in the
+\fBcheck_policy\fR()
+function or return \-2 with a usage error
+if the plugin does not support
+\fIsudoedit\fR.
+For more information, see the
+\fBcheck_policy\fR()
+section.
+.TP 6n
+timeout=string
+Command timeout specified by the user via the
+\fB\-T\fR
+option.
+Not all plugins support command timeouts and the ability of the
+user to set a timeout may be restricted by policy.
+The format of the timeout string is plugin-specific.
+.TP 6n
+update_ticket=bool
+Set to false if the user specified the
+\fB\-N\fR
+option, indicating that the user wishes to avoid updating any cached
+authentication credentials.
+Only available starting with API version 1.20.
+.PP
+Additional settings may be added in the future so the plugin should
+silently ignore settings that it does not recognize.
+.RE
+.TP 6n
+\fIuser_info\fR
+A vector of information about the user running the command in the form of
+\(lqname=value\(rq
+strings.
+The vector is terminated by a
+\fRNULL\fR
+pointer.
+.sp
+When parsing
+\fIuser_info\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one
+itself but the
+\fIvalue\fR
+might.
+.sp
+The following values may be set by
+\fBsudo\fR:
+.PP
+.RS 6n
+.PD 0
+.TP 6n
+cols=int
+The number of columns the user's terminal supports.
+If there is no terminal device available, a default value of 80 is used.
+.PD
+.TP 6n
+cwd=string
+The user's current working directory.
+.TP 6n
+egid=gid_t
+The effective group-ID of the user invoking
+\fBsudo\fR.
+.TP 6n
+euid=uid_t
+The effective user-ID of the user invoking
+\fBsudo\fR.
+.TP 6n
+gid=gid_t
+The real group-ID of the user invoking
+\fBsudo\fR.
+.TP 6n
+groups=list
+The user's supplementary group list formatted as a string of
+comma-separated group-IDs.
+.TP 6n
+host=string
+The local machine's hostname as returned by the
+gethostname(2)
+system call.
+.TP 6n
+lines=int
+The number of lines the user's terminal supports.
+If there is
+no terminal device available, a default value of 24 is used.
+.TP 6n
+pgid=int
+The ID of the process group that the running
+\fBsudo\fR
+process is a member of.
+Only available starting with API version 1.2.
+.TP 6n
+pid=int
+The process ID of the running
+\fBsudo\fR
+process.
+Only available starting with API version 1.2.
+.TP 6n
+ppid=int
+The parent process ID of the running
+\fBsudo\fR
+process.
+Only available starting with API version 1.2.
+.TP 6n
+rlimit_as=soft,hard
+The maximum size to which the process's address space may grow (in bytes),
+if supported by the operating system.
+The soft and hard limits are separated by a comma.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+Only available starting with API version 1.16.
+.TP 6n
+rlimit_core=soft,hard
+The largest size core dump file that may be created (in bytes).
+The soft and hard limits are separated by a comma.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+Only available starting with API version 1.16.
+.TP 6n
+rlimit_cpu=soft,hard
+The maximum amount of CPU time that the process may use (in seconds).
+The soft and hard limits are separated by a comma.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+Only available starting with API version 1.16.
+.TP 6n
+rlimit_data=soft,hard
+The maximum size of the data segment for the process (in bytes).
+The soft and hard limits are separated by a comma.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+Only available starting with API version 1.16.
+.TP 6n
+rlimit_fsize=soft,hard
+The largest size file that the process may create (in bytes).
+The soft and hard limits are separated by a comma.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+Only available starting with API version 1.16.
+.TP 6n
+rlimit_locks=soft,hard
+The maximum number of locks that the process may establish,
+if supported by the operating system.
+The soft and hard limits are separated by a comma.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+Only available starting with API version 1.16.
+.TP 6n
+rlimit_memlock=soft,hard
+The maximum size that the process may lock in memory (in bytes),
+if supported by the operating system.
+The soft and hard limits are separated by a comma.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+Only available starting with API version 1.16.
+.TP 6n
+rlimit_nofile=soft,hard
+The maximum number of files that the process may have open.
+The soft and hard limits are separated by a comma.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+Only available starting with API version 1.16.
+.TP 6n
+rlimit_nproc=soft,hard
+The maximum number of processes that the user may run simultaneously.
+The soft and hard limits are separated by a comma.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+Only available starting with API version 1.16.
+.TP 6n
+rlimit_rss=soft,hard
+The maximum size to which the process's resident set size may grow (in bytes).
+The soft and hard limits are separated by a comma.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+Only available starting with API version 1.16.
+.TP 6n
+rlimit_stack=soft,hard
+The maximum size to which the process's stack may grow (in bytes).
+The soft and hard limits are separated by a comma.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+Only available starting with API version 1.16.
+.TP 6n
+sid=int
+The session ID of the running
+\fBsudo\fR
+process or 0 if
+\fBsudo\fR
+is not part of a POSIX job control session.
+Only available starting with API version 1.2.
+.TP 6n
+tcpgid=int
+The ID of the foreground process group associated with the terminal
+device associated with the
+\fBsudo\fR
+process or 0 if there is no terminal present.
+Only available starting with API version 1.2.
+.TP 6n
+tty=string
+The path to the user's terminal device.
+If the user has no terminal device associated with the session,
+the value will be empty, as in
+\(oqtty=\(cq.
+.TP 6n
+uid=uid_t
+The real user-ID of the user invoking
+\fBsudo\fR.
+.TP 6n
+umask=octal
+The invoking user's file creation mask.
+Only available starting with API version 1.10.
+.TP 6n
+user=string
+The name of the user invoking
+\fBsudo\fR.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIuser_env\fR
+The user's environment in the form of a
+\fRNULL\fR-terminated vector of
+\(lqname=value\(rq
+strings.
+.sp
+When parsing
+\fIuser_env\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one
+itself but the
+\fIvalue\fR
+might.
+.TP 6n
+\fIplugin_options\fR
+Any (non-comment) strings immediately after the plugin path are
+passed as arguments to the plugin.
+These arguments are split on a white space boundary and are passed to
+the plugin in the form of a
+\fRNULL\fR-terminated
+array of strings.
+If no arguments were
+specified,
+\fIplugin_options\fR
+will be the
+\fRNULL\fR
+pointer.
+.sp
+The
+\fIplugin_options\fR
+parameter is only available starting with
+API version 1.2.
+A plugin
+\fBmust\fR
+check the API version specified
+by the
+\fBsudo\fR
+front-end before using
+\fIplugin_options\fR.
+Failure to do so may result in a crash.
+.TP 6n
+\fIerrstr\fR
+If the
+\fBopen\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.sp
+The
+\fIerrstr\fR
+parameter is only available starting with
+API version 1.15.
+A plugin
+\fBmust\fR
+check the API version specified by the
+\fBsudo\fR
+front-end before using
+\fIerrstr\fR.
+Failure to do so may result in a crash.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIclose\fR
+.br
+.nf
+.RS 6n
+void (*close)(int exit_status, int error);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBclose\fR()
+function is called when
+\fBsudo\fR
+is finished, shortly before it exits.
+Starting with API version 1.15,
+\fBclose\fR()
+is called regardless of whether or not a command was actually executed.
+This makes it possible for plugins to perform cleanup even when a
+command was not run.
+It is not possible to tell whether a command was run based solely
+on the arguments passed to the
+\fBclose\fR()
+function.
+To determine if a command was actually run,
+the plugin must keep track of whether or not the
+\fBcheck_policy\fR()
+function returned successfully.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIexit_status\fR
+The command's exit status, as returned by the
+wait(2)
+system call, or zero if no command was run.
+The value of
+\fIexit_status\fR
+is undefined if
+\fIerror\fR
+is non-zero.
+.TP 6n
+\fIerror\fR
+.br
+If the command could not be executed, this is set to the value of
+\fIerrno\fR
+set by the
+execve(2)
+system call.
+The plugin is responsible for displaying error information via the
+\fBconversation\fR()
+or
+\fBsudo_plugin_printf\fR()
+function.
+If the command was successfully executed, the value of
+\fIerror\fR
+is zero.
+.PP
+If no
+\fBclose\fR()
+function is defined, no I/O logging plugins are loaded,
+and neither the
+\fItimeout\fR
+nor
+\fIuse_pty\fR
+options are set in the
+\fIcommand_info\fR
+list, the
+\fBsudo\fR
+front-end may execute the command directly instead of running
+it as a child process.
+.RE
+.TP 6n
+\fIshow_version\fR
+.nf
+.RS 6n
+int (*show_version)(int verbose);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBshow_version\fR()
+function is called by
+\fBsudo\fR
+when the user specifies the
+\fB\-V\fR
+option.
+The plugin may display its version information to the user via the
+\fBconversation\fR()
+or
+\fBsudo_plugin_printf\fR()
+function using
+\fRSUDO_CONV_INFO_MSG\fR.
+If the user requests detailed version information, the
+\fIverbose\fR
+flag will be non-zero.
+.sp
+Returns 1 on success, 0 on failure, \-1 if a general error occurred,
+or \-2 if there was a usage error, although the return value is currently
+ignored.
+.RE
+.TP 6n
+\fIcheck_policy\fR
+.nf
+.RS 6n
+int (*check_policy)(int argc, char * const argv[], char *env_add[],
+    char **command_info[], char **argv_out[], char **user_env_out[],
+    const char **errstr);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBcheck_policy\fR()
+function is called by
+\fBsudo\fR
+to determine
+whether the user is allowed to run the specified commands.
+.sp
+If the
+\fIsudoedit\fR
+option was enabled in the
+\fIsettings\fR
+array passed to the
+\fBopen\fR()
+function, the user has requested
+\fIsudoedit\fR
+mode.
+\fIsudoedit\fR
+is a mechanism for editing one or more files
+where an editor is run with the user's credentials instead of with
+elevated privileges.
+\fBsudo\fR
+achieves this by creating user-writable
+temporary copies of the files to be edited and then overwriting the
+originals with the temporary copies after editing is complete.
+If the plugin supports
+\fIsudoedit\fR,
+it must set
+\fIsudoedit=true\fR
+in the
+\fIcommand_info\fR
+list.
+The plugin is responsible for choosing the editor to be used,
+potentially from a variable in the user's environment, such as
+\fREDITOR\fR,
+and should be stored in
+\fIargv_out\fR
+(environment variables may include command line options).
+The files to be edited should be copied from
+\fIargv\fR
+to
+\fIargv_out\fR,
+separated from the
+editor and its arguments by a
+\(oq--\(cq
+element.
+The
+\(oq--\(cq
+will be removed by
+\fBsudo\fR
+before the editor is executed.
+The plugin may also set
+\fIsudoedit_nfiles\fR
+to the number of files to be edited in the
+\fIcommand_info\fR
+list; this will only be used by the
+\fBsudo\fR
+front-end starting with API version 1.21.
+.sp
+The
+\fBcheck_policy\fR()
+function returns 1 if the command is allowed,
+0 if not allowed, \-1 for a general error, or \-2 for a usage error
+or if
+\fIsudoedit\fR
+was specified but is unsupported by the plugin.
+In the latter case,
+\fBsudo\fR
+will print a usage message before it
+exits.
+If an error occurs, the plugin may optionally call the
+\fBconversation\fR()
+or
+\fBsudo_plugin_printf\fR()
+function with
+\fRSUDO_CONF_ERROR_MSG\fR
+to present additional error information to the user.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIargc\fR
+The number of elements in
+\fIargv\fR,
+not counting the final
+\fRNULL\fR
+pointer.
+.TP 6n
+\fIargv\fR
+The argument vector describing the command the user wishes to run,
+in the same form as what would be passed to the
+execve(2)
+system call.
+The vector is terminated by a
+\fRNULL\fR
+pointer.
+.TP 6n
+\fIenv_add\fR
+Additional environment variables specified by the user on the command
+line in the form of a
+\fRNULL\fR-terminated
+vector of
+\(lqname=value\(rq
+strings.
+The plugin may reject the command if one or more variables
+are not allowed to be set, or it may silently ignore such variables.
+.sp
+When parsing
+\fIenv_add\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one itself but the
+\fIvalue\fR
+might.
+.TP 6n
+\fIcommand_info\fR
+Information about the command being run in the form of
+\(lqname=value\(rq
+strings.
+These values are used by
+\fBsudo\fR
+to set the execution environment when running a command.
+The plugin is responsible for creating and populating the vector,
+which must be terminated with a
+\fRNULL\fR
+pointer.
+The following values are recognized by
+\fBsudo\fR:
+.PP
+.RS 6n
+.PD 0
+.TP 6n
+apparmor_profile=string
+AppArmor profile to transition to when executing the command.
+Only available starting with API version 1.19.
+.PD
+.TP 6n
+chroot=string
+The root directory to use when running the command.
+.TP 6n
+closefrom=number
+If specified,
+\fBsudo\fR
+will close all files descriptors with a value
+of
+\fInumber\fR
+or higher.
+.TP 6n
+command=string
+Fully qualified path to the command to be executed.
+.TP 6n
+cwd=string
+The current working directory to change to when executing the command.
+If
+\fBsudo\fR
+is unable to change to the new working directory, the command will
+not be run unless
+\fIcwd_optional\fR
+is also set (see below).
+.TP 6n
+cwd_optional=bool
+If set,
+\fBsudo\fR
+will treat an inability to change to the new working directory as a
+non-fatal error.
+This setting has no effect unless
+\fIcwd\fR
+is also set.
+.TP 6n
+exec_background=bool
+By default,
+\fBsudo\fR
+runs a command as the foreground process as long as
+\fBsudo\fR
+itself is running in the foreground.
+When
+\fIexec_background\fR
+is enabled and the command is being run in a pseudo-terminal
+(due to I/O logging or the
+\fIuse_pty\fR
+setting), the command will be run as a background process.
+Attempts to read from the controlling terminal (or to change terminal
+settings) will result in the command being suspended with the
+\fRSIGTTIN\fR
+signal (or
+\fRSIGTTOU\fR
+in the case of terminal settings).
+If this happens when
+\fBsudo\fR
+is a foreground process, the command will be granted the controlling terminal
+and resumed in the foreground with no user intervention required.
+The advantage of initially running the command in the background is that
+\fBsudo\fR
+need not read from the terminal unless the command explicitly requests it.
+Otherwise, any terminal input must be passed to the command, whether it
+has required it or not (the kernel buffers terminals so it is not possible
+to tell whether the command really wants the input).
+This is different from historic
+\fBsudo\fR
+behavior or when the command is not being run in a pseudo-terminal.
+.sp
+For this to work seamlessly, the operating system must support the
+automatic restarting of system calls.
+Unfortunately, not all operating systems do this by default,
+and even those that do may have bugs.
+For example, macOS fails to restart the
+\fBtcgetattr\fR()
+and
+\fBtcsetattr\fR()
+system calls (this is a bug in macOS).
+Furthermore, because this behavior depends on the command stopping with the
+\fRSIGTTIN\fR
+or
+\fRSIGTTOU\fR
+signals, programs that catch these signals and suspend themselves
+with a different signal (usually
+\fRSIGTOP\fR)
+will not be automatically foregrounded.
+Some versions of the linux
+su(1)
+command behave this way.
+Because of this, a plugin should not set
+\fIexec_background\fR
+unless it is explicitly enabled by the administrator and there should
+be a way to enabled or disable it on a per-command basis.
+.sp
+This setting has no effect unless I/O logging is enabled or
+\fIuse_pty\fR
+is enabled.
+.TP 6n
+execfd=number
+If specified,
+\fBsudo\fR
+will use the
+fexecve(2)
+system call to execute the command instead of
+execve(2).
+The specified
+\fInumber\fR
+must refer to an open file descriptor.
+.TP 6n
+intercept=bool
+If set,
+\fBsudo\fR
+will intercept attempts to execute a subsequent command and perform
+a policy check via the policy plugin's
+\fBcheck_policy\fR()
+function to determine whether or not the command is permitted.
+This can be used to prevent shell escapes on supported platforms
+but it has a number of limitations.
+See
+\fBPreventing shell escapes\fR
+in
+sudoers(@mansectform@)
+for details.
+Only available starting with API version 1.18.
+.TP 6n
+intercept_verify=bool
+If set,
+\fBsudo\fR
+will attempt to verify that a command run in intercept mode has the
+expected path name, command line arguments and environment.
+This setting has no effect unless
+\fIuse_ptrace\fR
+is also enabled.
+Only available starting with API version 1.20.
+.TP 6n
+iolog_compress=bool
+Set to true if the I/O logging plugins, if any, should compress the
+log data.
+This is a hint to the I/O logging plugin which may choose to ignore it.
+.TP 6n
+iolog_group=string
+The group that will own newly created I/O log files and directories.
+This is a hint to the I/O logging plugin which may choose to ignore it.
+.TP 6n
+iolog_mode=octal
+The file permission mode to use when creating I/O log files and directories.
+This is a hint to the I/O logging plugin which may choose to ignore it.
+.TP 6n
+iolog_user=string
+The user that will own newly created I/O log files and directories.
+This is a hint to the I/O logging plugin which may choose to ignore it.
+.TP 6n
+iolog_path=string
+Fully qualified path to the file or directory in which I/O log is
+to be stored.
+This is a hint to the I/O logging plugin which may choose to ignore it.
+If no I/O logging plugin is loaded, this setting has no effect.
+.TP 6n
+iolog_stdin=bool
+Set to true if the I/O logging plugins, if any, should log the
+standard input if it is not connected to a terminal device.
+This is a hint to the I/O logging plugin which may choose to ignore it.
+.TP 6n
+iolog_stdout=bool
+Set to true if the I/O logging plugins, if any, should log the
+standard output if it is not connected to a terminal device.
+This is a hint to the I/O logging plugin which may choose to ignore it.
+.TP 6n
+iolog_stderr=bool
+Set to true if the I/O logging plugins, if any, should log the
+standard error if it is not connected to a terminal device.
+This is a hint to the I/O logging plugin which may choose to ignore it.
+.TP 6n
+iolog_ttyin=bool
+Set to true if the I/O logging plugins, if any, should log all
+terminal input.
+This only includes input typed by the user and not from a pipe or
+redirected from a file.
+This is a hint to the I/O logging plugin which may choose to ignore it.
+.TP 6n
+iolog_ttyout=bool
+Set to true if the I/O logging plugins, if any, should log all
+terminal output.
+This only includes output to the screen, not output to a pipe or file.
+This is a hint to the I/O logging plugin which may choose to ignore it.
+.TP 6n
+login_class=string
+BSD
+login class to use when setting resource limits and nice value (optional).
+This option is only set on systems that support login classes.
+.TP 6n
+nice=int
+Nice value (priority) to use when executing the command.
+The nice value, if specified, overrides the priority associated with the
+\fIlogin_class\fR
+on
+BSD
+systems.
+.TP 6n
+log_subcmds=bool
+If set,
+\fBsudo\fR
+will call the audit plugin's
+\fBaccept\fR()
+function to log when the command runs a subsequent command, if supported
+by the system.
+If
+\fIintercept\fR
+is also specified,
+\fIlog_subcmds\fR
+will be ignored.
+See
+\fBPreventing shell escapes\fR
+in
+sudoers(@mansectform@)
+for more information.
+Only available starting with API version 1.18.
+.TP 6n
+noexec=bool
+If set, prevent the command from executing other programs.
+.TP 6n
+preserve_fds=list
+A comma-separated list of file descriptors that should be
+preserved, regardless of the value of the
+\fIclosefrom\fR
+setting.
+Only available starting with API version 1.5.
+.TP 6n
+preserve_groups=bool
+If set,
+\fBsudo\fR
+will preserve the user's group vector instead of
+initializing the group vector based on
+\fIrunas_user\fR.
+.TP 6n
+rlimit_as=soft,hard
+The maximum size to which the process's address space may grow (in bytes),
+if supported by the operating system.
+The soft and hard limits are separated by a comma.
+If only a single value is specified, both the hard and soft limits are set.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+A value of
+\(lquser\(rq
+will cause the invoking user's resource limit to be preserved.
+A value of
+\(lqdefault\(rq
+will cause the target user's default resource limit to be used
+on systems that allow per-user resource limits to be configured.
+Only available starting with API version 1.18.
+.TP 6n
+rlimit_core=soft,hard
+The largest size core dump file that may be created (in bytes).
+The soft and hard limits are separated by a comma.
+If only a single value is specified, both the hard and soft limits are set.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+A value of
+\(lquser\(rq
+will cause the invoking user's resource limit to be preserved.
+A value of
+\(lqdefault\(rq
+will cause the target user's default resource limit to be used
+on systems that allow per-user resource limits to be configured.
+Only available starting with API version 1.18.
+.TP 6n
+rlimit_cpu=soft,hard
+The maximum amount of CPU time that the process may use (in seconds).
+The soft and hard limits are separated by a comma.
+If only a single value is specified, both the hard and soft limits are set.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+A value of
+\(lquser\(rq
+will cause the invoking user's resource limit to be preserved.
+A value of
+\(lqdefault\(rq
+will cause the target user's default resource limit to be used
+on systems that allow per-user resource limits to be configured.
+Only available starting with API version 1.18.
+.TP 6n
+rlimit_data=soft,hard
+The maximum size of the data segment for the process (in bytes).
+The soft and hard limits are separated by a comma.
+If only a single value is specified, both the hard and soft limits are set.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+A value of
+\(lquser\(rq
+will cause the invoking user's resource limit to be preserved.
+A value of
+\(lqdefault\(rq
+will cause the target user's default resource limit to be used
+on systems that allow per-user resource limits to be configured.
+Only available starting with API version 1.18.
+.TP 6n
+rlimit_fsize=soft,hard
+The largest size file that the process may create (in bytes).
+The soft and hard limits are separated by a comma.
+If only a single value is specified, both the hard and soft limits are set.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+A value of
+\(lquser\(rq
+will cause the invoking user's resource limit to be preserved.
+A value of
+\(lqdefault\(rq
+will cause the target user's default resource limit to be used
+on systems that allow per-user resource limits to be configured.
+Only available starting with API version 1.18.
+.TP 6n
+rlimit_locks=soft,hard
+The maximum number of locks that the process may establish,
+if supported by the operating system.
+The soft and hard limits are separated by a comma.
+If only a single value is specified, both the hard and soft limits are set.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+A value of
+\(lquser\(rq
+will cause the invoking user's resource limit to be preserved.
+A value of
+\(lqdefault\(rq
+will cause the target user's default resource limit to be used
+on systems that allow per-user resource limits to be configured.
+Only available starting with API version 1.18.
+.TP 6n
+rlimit_memlock=soft,hard
+The maximum size that the process may lock in memory (in bytes),
+if supported by the operating system.
+The soft and hard limits are separated by a comma.
+If only a single value is specified, both the hard and soft limits are set.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+A value of
+\(lquser\(rq
+will cause the invoking user's resource limit to be preserved.
+A value of
+\(lqdefault\(rq
+will cause the target user's default resource limit to be used
+on systems that allow per-user resource limits to be configured.
+Only available starting with API version 1.18.
+.TP 6n
+rlimit_nofile=soft,hard
+The maximum number of files that the process may have open.
+The soft and hard limits are separated by a comma.
+If only a single value is specified, both the hard and soft limits are set.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+A value of
+\(lquser\(rq
+will cause the invoking user's resource limit to be preserved.
+A value of
+\(lqdefault\(rq
+will cause the target user's default resource limit to be used
+on systems that allow per-user resource limits to be configured.
+Only available starting with API version 1.18.
+.TP 6n
+rlimit_nproc=soft,hard
+The maximum number of processes that the user may run simultaneously.
+The soft and hard limits are separated by a comma.
+If only a single value is specified, both the hard and soft limits are set.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+A value of
+\(lquser\(rq
+will cause the invoking user's resource limit to be preserved.
+A value of
+\(lqdefault\(rq
+will cause the target user's default resource limit to be used
+on systems that allow per-user resource limits to be configured.
+Only available starting with API version 1.18.
+.TP 6n
+rlimit_rss=soft,hard
+The maximum size to which the process's resident set size may grow (in bytes).
+The soft and hard limits are separated by a comma.
+If only a single value is specified, both the hard and soft limits are set.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+A value of
+\(lquser\(rq
+will cause the invoking user's resource limit to be preserved.
+A value of
+\(lqdefault\(rq
+will cause the target user's default resource limit to be used
+on systems that allow per-user resource limits to be configured.
+Only available starting with API version 1.18.
+.TP 6n
+rlimit_stack=soft,hard
+The maximum size to which the process's stack may grow (in bytes).
+The soft and hard limits are separated by a comma.
+If only a single value is specified, both the hard and soft limits are set.
+A value of
+\(lqinfinity\(rq
+indicates that there is no limit.
+A value of
+\(lquser\(rq
+will cause the invoking user's resource limit to be preserved.
+A value of
+\(lqdefault\(rq
+will cause the target user's default resource limit to be used
+on systems that allow per-user resource limits to be configured.
+Only available starting with API version 1.18.
+.TP 6n
+runas_egid=gid
+Effective group-ID to run the command as.
+If not specified, the value of
+\fIrunas_gid\fR
+is used.
+.TP 6n
+runas_euid=uid
+Effective user-ID to run the command as.
+If not specified, the value of
+\fIrunas_uid\fR
+is used.
+.TP 6n
+runas_gid=gid
+Group-ID to run the command as.
+.TP 6n
+runas_group=string
+The name of the group the command will run as, if it is different
+from the
+\fIrunas_user\fR's
+default group.
+This value is provided for auditing purposes only, the
+\fBsudo\fR
+front-end uses
+\fIrunas_egid\fR
+and
+\fIrunas_gid\fR
+when executing the command.
+.TP 6n
+runas_groups=list
+The supplementary group vector to use for the command in the form
+of a comma-separated list of group-IDs.
+If
+\fIpreserve_groups\fR
+is set, this option is ignored.
+.TP 6n
+runas_uid=uid
+User-ID to run the command as.
+.TP 6n
+runas_user=string
+The name of the user the command will run as, which should correspond to
+\fIrunas_euid\fR
+(or
+\fIrunas_uid\fR
+if
+\fIrunas_euid\fR
+is not set).
+This value is provided for auditing purposes only, the
+\fBsudo\fR
+front-end uses
+\fIrunas_euid\fR
+and
+\fIrunas_uid\fR
+when executing the command.
+.TP 6n
+selinux_role=string
+SELinux role to use when executing the command.
+.TP 6n
+selinux_type=string
+SELinux type to use when executing the command.
+.TP 6n
+set_utmp=bool
+Create a utmp (or utmpx) entry when a pseudo-terminal is allocated.
+By default, the new entry will be a copy of the user's existing utmp
+entry (if any), with the tty, time, type, and pid fields updated.
+.TP 6n
+sudoedit=bool
+Set to true when in
+\fIsudoedit\fR
+mode.
+The plugin may enable
+\fIsudoedit\fR
+mode even if
+\fBsudo\fR
+was not invoked as
+\fBsudoedit\fR.
+This allows the plugin to perform command substitution and transparently
+enable
+\fIsudoedit\fR
+when the user attempts to run an editor.
+.TP 6n
+sudoedit_checkdir=bool
+Set to false to disable directory writability checks in
+\fBsudoedit\fR.
+By default,
+\fBsudoedit\fR
+1.8.16 and higher will check all directory components of the path to be
+edited for writability by the invoking user.
+Symbolic links will not be followed in writable directories and
+\fBsudoedit\fR
+will refuse to edit a file located in a writable directory.
+These restrictions are not enforced when
+\fBsudoedit\fR
+is run by root.
+The
+\fIsudoedit_checkdir\fR
+option can be set to false to disable this check.
+Only available starting with API version 1.8.
+.TP 6n
+sudoedit_follow=bool
+Set to true to allow
+\fBsudoedit\fR
+to edit files that are symbolic links.
+By default,
+\fBsudoedit\fR
+1.8.15 and higher will refuse to open a symbolic link.
+The
+\fIsudoedit_follow\fR
+option can be used to restore the older behavior and allow
+\fBsudoedit\fR
+to open symbolic links.
+Only available starting with API version 1.8.
+.TP 6n
+sudoedit_nfiles=number
+The number of files to be edited by the user.
+If present, this is will be used by the
+\fBsudo\fR
+front-end to determine which elements of the
+\fIargv_out\fR
+vector are files to be edited.
+The
+\(oq--\(cq
+element must immediately precede the first file to be editied.
+If
+\fIsudoedit_nfiles\fR
+is not specified, the
+\fBsudo\fR
+front-end will use the position of the
+\(oq--\(cq
+element to determine where the file list begins.
+Only available starting with API version 1.21.
+.TP 6n
+timeout=int
+Command timeout.
+If non-zero then when the timeout expires the command will be killed.
+.TP 6n
+umask=octal
+The file creation mask to use when executing the command.
+This value may be overridden by PAM or login.conf on some systems
+unless the
+\fIumask_override\fR
+option is also set.
+.TP 6n
+umask_override=bool
+Force the value specified by the
+\fIumask\fR
+option to override any umask set by PAM or login.conf.
+.TP 6n
+use_ptrace=bool
+If set,
+\fBsudo\fR
+will use
+ptrace(2)
+to implement intercept mode if supported by the system.
+This setting has no effect unless
+\fIintercept\fR
+is also set.
+Only available starting with API version 1.19.
+.TP 6n
+use_pty=bool
+Allocate a pseudo-terminal to run the command in, regardless of whether
+or not I/O logging is in use.
+By default,
+\fBsudo\fR
+will only run
+the command in a pseudo-terminal when an I/O log plugin is loaded.
+.TP 6n
+utmp_user=string
+User name to use when constructing a new utmp (or utmpx) entry when
+\fIset_utmp\fR
+is enabled.
+This option can be used to set the user field in the utmp entry to
+the user the command runs as rather than the invoking user.
+If not set,
+\fBsudo\fR
+will base the new entry on
+the invoking user's existing entry.
+.PP
+Unsupported values will be ignored.
+.RE
+.TP 6n
+\fIargv_out\fR
+The
+\fRNULL\fR-terminated
+argument vector to pass to the
+execve(2)
+system call when executing the command.
+The plugin is responsible for allocating and populating the vector.
+.TP 6n
+\fIuser_env_out\fR
+The
+\fRNULL\fR-terminated
+environment vector to use when executing the command.
+The plugin is responsible for allocating and populating the vector.
+.TP 6n
+\fIerrstr\fR
+If the
+\fBcheck_policy\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.sp
+The
+\fIerrstr\fR
+parameter is only available starting with
+API version 1.15.
+A plugin
+\fBmust\fR
+check the API version specified by the
+\fBsudo\fR
+front-end before using
+\fIerrstr\fR.
+Failure to do so may result in a crash.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIlist\fR
+.nf
+.RS 6n
+int (*list)(int argc, char * const argv[], int verbose,
+    const char *user, const char **errstr);
+.RE
+.fi
+.RS 6n
+.sp
+List available privileges for the invoking user.
+Returns 1 on success, 0 on failure, and \-1 on error.
+On error, the plugin may optionally call the
+\fBconversation\fR()
+or
+\fBsudo_plugin_printf\fR()
+function with
+\fRSUDO_CONF_ERROR_MSG\fR
+to present additional error information to
+the user.
+.sp
+Privileges should be output via the
+\fBconversation\fR()
+or
+\fBsudo_plugin_printf\fR()
+function using
+\fRSUDO_CONV_INFO_MSG\fR.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIargc\fR
+The number of elements in
+\fIargv\fR,
+not counting the final
+\fRNULL\fR
+pointer.
+.TP 6n
+\fIargv\fR
+If
+non-\fRNULL\fR,
+an argument vector describing a command the user
+wishes to check against the policy in the same form as what would
+be passed to the
+execve(2)
+system call.
+If the command is permitted by the policy, the fully-qualified path
+to the command should be displayed along with any command line arguments.
+.TP 6n
+\fIverbose\fR
+Flag indicating whether to list in verbose mode or not.
+.TP 6n
+\fIuser\fR
+The name of a different user to list privileges for if the policy
+allows it.
+If
+\fRNULL\fR,
+the plugin should list the privileges of the invoking user.
+.TP 6n
+\fIerrstr\fR
+If the
+\fBlist\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.sp
+The
+\fIerrstr\fR
+parameter is only available starting with
+API version 1.15.
+A plugin
+\fBmust\fR
+check the API version specified by the
+\fBsudo\fR
+front-end before using
+\fIerrstr\fR.
+Failure to do so may result in a crash.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIvalidate\fR
+.nf
+.RS 6n
+int (*validate)(const char **errstr);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBvalidate\fR()
+function is called when
+\fBsudo\fR
+is run with the
+\fB\-v\fR
+option.
+For policy plugins such as
+\fBsudoers\fR
+that cache
+authentication credentials, this function will validate and cache
+the credentials.
+.sp
+The
+\fBvalidate\fR()
+function should be
+\fRNULL\fR
+if the plugin does not support credential caching.
+.sp
+Returns 1 on success, 0 on failure, and \-1 on error.
+On error, the plugin may optionally call the
+\fBconversation\fR()
+or
+\fBsudo_plugin_printf\fR()
+function with
+\fRSUDO_CONF_ERROR_MSG\fR
+to present additional
+error information to the user.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIerrstr\fR
+If the
+\fBvalidate\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.sp
+The
+\fIerrstr\fR
+parameter is only available starting with
+API version 1.15.
+A plugin
+\fBmust\fR
+check the API version specified by the
+\fBsudo\fR
+front-end before using
+\fIerrstr\fR.
+Failure to do so may result in a crash.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIinvalidate\fR
+.nf
+.RS 6n
+void (*invalidate)(int rmcred);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBinvalidate\fR()
+function is called when
+\fBsudo\fR
+is run with the
+\fB\-k\fR
+or
+\fB\-K\fR
+option.
+For policy plugins such as
+\fBsudoers\fR
+that
+cache authentication credentials, this function will invalidate the
+credentials.
+If the
+\fIrmcred\fR
+flag is non-zero, the plugin may remove
+the credentials instead of simply invalidating them.
+.sp
+The
+\fBinvalidate\fR()
+function should be
+\fRNULL\fR
+if the plugin does not support credential caching.
+.RE
+.TP 6n
+\fIinit_session\fR
+.nf
+.RS 6n
+int (*init_session)(struct passwd *pwd, char **user_env[],
+    const char **errstr);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBinit_session\fR()
+function is called before
+\fBsudo\fR
+sets up the
+execution environment for the command.
+It is run in the parent
+\fBsudo\fR
+process before any user-ID or group-ID changes.
+This can be used to perform session setup that is not supported by
+\fIcommand_info\fR,
+such as opening the PAM session.
+The
+\fBclose\fR()
+function can be
+used to tear down the session that was opened by
+\fBinit_session\fR().
+.sp
+Returns 1 on success, 0 on failure, and \-1 on error.
+On error, the plugin may optionally call the
+\fBconversation\fR()
+or
+\fBsudo_plugin_printf\fR()
+function with
+\fRSUDO_CONF_ERROR_MSG\fR
+to present additional
+error information to the user.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIpwd\fR
+If the user-ID the command will run as was found in the password database,
+\fIpwd\fR
+will describe that user, otherwise it will be
+\fRNULL\fR.
+.TP 6n
+\fIuser_env_out\fR
+The
+\fRNULL\fR-terminated
+environment vector to use when executing the command.
+This is the same string passed back to the front-end via the Policy Plugin's
+\fIuser_env_out\fR
+parameter.
+If the
+\fBinit_session\fR()
+function needs to modify the user environment, it should update the
+pointer stored in
+\fIuser_env_out\fR.
+The expected use case is to merge the contents of the PAM environment
+(if any) with the contents of
+\fIuser_env_out\fR.
+The
+\fIuser_env_out\fR
+parameter is only available
+starting with API version 1.2.
+A plugin
+\fBmust\fR
+check the API
+version specified by the
+\fBsudo\fR
+front-end before using
+\fIuser_env_out\fR.
+Failure to do so may result in a crash.
+.TP 6n
+\fIerrstr\fR
+If the
+\fBinit_session\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.sp
+The
+\fIerrstr\fR
+parameter is only available starting with
+API version 1.15.
+A plugin
+\fBmust\fR
+check the API version specified by the
+\fBsudo\fR
+front-end before using
+\fIerrstr\fR.
+Failure to do so may result in a crash.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIregister_hooks\fR
+.nf
+.RS 6n
+void (*register_hooks)(int version,
+   int (*register_hook)(struct sudo_hook *hook));
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBregister_hooks\fR()
+function is called by the sudo front-end to
+register any hooks the plugin needs.
+If the plugin does not support hooks,
+\fIregister_hooks\fR
+should be set to the
+\fRNULL\fR
+pointer.
+.sp
+The
+\fIversion\fR
+argument describes the version of the hooks API
+supported by the
+\fBsudo\fR
+front-end.
+.sp
+The
+\fBregister_hook\fR()
+function should be used to register any supported
+hooks the plugin needs.
+It returns 0 on success, 1 if the hook type is not supported, and \-1
+if the major version in
+\fIstruct sudo_hook\fR
+does not match the front-end's major hook API version.
+.sp
+See the
+\fIHook function API\fR
+section below for more information about hooks.
+.sp
+The
+\fBregister_hooks\fR()
+function is only available starting
+with API version 1.2.
+If the
+\fBsudo\fR
+front-end doesn't support API
+version 1.2 or higher,
+\fBregister_hooks\fR()
+will not be called.
+.RE
+.TP 6n
+\fIderegister_hooks\fR
+.nf
+.RS 6n
+void (*deregister_hooks)(int version,
+   int (*deregister_hook)(struct sudo_hook *hook));
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBderegister_hooks\fR()
+function is called by the sudo front-end
+to deregister any hooks the plugin has registered.
+If the plugin does not support hooks,
+\fIderegister_hooks\fR
+should be set to the
+\fRNULL\fR
+pointer.
+.sp
+The
+\fIversion\fR
+argument describes the version of the hooks API
+supported by the
+\fBsudo\fR
+front-end.
+.sp
+The
+\fBderegister_hook\fR()
+function should be used to deregister any
+hooks that were put in place by the
+\fBregister_hook\fR()
+function.
+If the plugin tries to deregister a hook that the front-end does not support,
+\fBderegister_hook\fR()
+will return an error.
+.sp
+See the
+\fIHook function API\fR
+section below for more information about hooks.
+.sp
+The
+\fBderegister_hooks\fR()
+function is only available starting
+with API version 1.2.
+If the
+\fBsudo\fR
+front-end doesn't support API
+version 1.2 or higher,
+\fBderegister_hooks\fR()
+will not be called.
+.RE
+.TP 6n
+\fIevent_alloc\fR
+.nf
+.RS 6n
+struct sudo_plugin_event * (*event_alloc)(void);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBevent_alloc\fR()
+function is used to allocate a
+\fIstruct sudo_plugin_event\fR
+which provides access to the main
+\fBsudo\fR
+event loop.
+Unlike the other fields, the
+\fIevent_alloc\fR
+pointer is filled in by the
+\fBsudo\fR
+front-end, not by the plugin.
+.sp
+See the
+\fIEvent API\fR
+section below for more information
+about events.
+.sp
+The
+\fBevent_alloc\fR()
+function is only available starting
+with API version 1.15.
+If the
+\fBsudo\fR
+front-end doesn't support API
+version 1.15 or higher,
+\fIevent_alloc\fR
+will not be set.
+.RE
+.PP
+\fIPolicy Plugin Version Macros\fR
+.nf
+.sp
+.RS 0n
+/* Plugin API version major/minor. */
+#define SUDO_API_VERSION_MAJOR 1
+#define SUDO_API_VERSION_MINOR 13
+#define SUDO_API_MKVERSION(x, y) ((x << 16) | y)
+#define SUDO_API_VERSION SUDO_API_MKVERSION(SUDO_API_VERSION_MAJOR,\e
+                                            SUDO_API_VERSION_MINOR)
+
+/* Getters and setters for API version */
+#define SUDO_API_VERSION_GET_MAJOR(v) ((v) >> 16)
+#define SUDO_API_VERSION_GET_MINOR(v) ((v) & 0xffff)
+#define SUDO_API_VERSION_SET_MAJOR(vp, n) do { \e
+    *(vp) = (*(vp) & 0x0000ffff) | ((n) << 16); \e
+} while(0)
+#define SUDO_API_VERSION_SET_MINOR(vp, n) do { \e
+    *(vp) = (*(vp) & 0xffff0000) | (n); \e
+} while(0)
+.RE
+.fi
+.SS "I/O plugin API"
+.nf
+.RS 0n
+struct io_plugin {
+#define SUDO_IO_PLUGIN 2
+    unsigned int type; /* always SUDO_IO_PLUGIN */
+    unsigned int version; /* always SUDO_API_VERSION */
+    int (*open)(unsigned int version, sudo_conv_t conversation,
+        sudo_printf_t sudo_plugin_printf, char * const settings[],
+        char * const user_info[], char * const command_info[],
+        int argc, char * const argv[], char * const user_env[],
+        char * const plugin_options[], const char **errstr);
+    void (*close)(int exit_status, int error); /* wait status or error */
+    int (*show_version)(int verbose);
+    int (*log_ttyin)(const char *buf, unsigned int len,
+        const char **errstr);
+    int (*log_ttyout)(const char *buf, unsigned int len,
+        const char **errstr);
+    int (*log_stdin)(const char *buf, unsigned int len,
+        const char **errstr);
+    int (*log_stdout)(const char *buf, unsigned int len,
+        const char **errstr);
+    int (*log_stderr)(const char *buf, unsigned int len,
+        const char **errstr);
+    void (*register_hooks)(int version,
+       int (*register_hook)(struct sudo_hook *hook));
+    void (*deregister_hooks)(int version,
+       int (*deregister_hook)(struct sudo_hook *hook));
+    int (*change_winsize)(unsigned int lines, unsigned int cols,
+        const char **errstr);
+    int (*log_suspend)(int signo, const char **errstr);
+    struct sudo_plugin_event * (*event_alloc)(void);
+};
+.RE
+.fi
+.PP
+When an I/O plugin is loaded,
+\fBsudo\fR
+runs the command in a pseudo-terminal.
+This makes it possible to log the input and output from the user's
+session.
+If any of the standard input, standard output, or standard error do not
+correspond to a tty,
+\fBsudo\fR
+will open a pipe to capture the I/O for logging before passing it on.
+.PP
+The
+\fBlog_ttyin\fR()
+function receives the raw user input from the terminal
+device (this will include input even when echo is disabled,
+such as when a password is read).
+The
+\fBlog_ttyout\fR()
+function receives output from the pseudo-terminal that is
+suitable for replaying the user's session at a later time.
+The
+\fBlog_stdin\fR(),
+\fBlog_stdout\fR(),
+and
+\fBlog_stderr\fR()
+functions are only called if the standard input, standard output,
+or standard error respectively correspond to something other than
+a tty.
+.PP
+Any of the logging functions may be set to the
+\fRNULL\fR
+pointer if no logging is to be performed.
+If the open function returns 0, no I/O will be sent to the plugin.
+.PP
+If a logging function returns an error
+(\-1),
+the running command will be terminated and all of the plugin's logging
+functions will be disabled.
+Other I/O logging plugins will still receive any remaining
+input or output that has not yet been processed.
+.PP
+If an input logging function rejects the data by returning 0, the
+command will be terminated and the data will not be passed to the
+command, though it will still be sent to any other I/O logging plugins.
+If an output logging function rejects the data by returning 0, the
+command will be terminated and the data will not be written to the
+terminal, though it will still be sent to any other I/O logging plugins.
+.PP
+A
+\fIstruct audit_plugin\fR
+has the following fields:
+.TP 6n
+\fItype\fR
+The
+\fItype\fR
+field should always be set to
+\fRSUDO_IO_PLUGIN\fR.
+.TP 6n
+\fIversion\fR
+The
+\fIversion\fR
+field should be set to
+\fRSUDO_API_VERSION\fR.
+.sp
+This allows
+\fBsudo\fR
+to determine the API version the plugin was
+built against.
+.TP 6n
+\fIopen\fR
+.nf
+.RS 6n
+int (*open)(unsigned int version, sudo_conv_t conversation,
+    sudo_printf_t sudo_plugin_printf, char * const settings[],
+    char * const user_info[], char * const command_info[],
+    int argc, char * const argv[], char * const user_env[],
+    char * const plugin_options[]);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBopen\fR()
+function is run before the
+\fBlog_ttyin\fR(),
+\fBlog_ttyout\fR(),
+\fBlog_stdin\fR(),
+\fBlog_stdout\fR(),
+\fBlog_stderr\fR(),
+\fBlog_suspend\fR(),
+\fBchange_winsize\fR(),
+or
+\fBshow_version\fR()
+functions are called.
+It is only called if the version is being requested or if the
+policy plugin's
+\fBcheck_policy\fR()
+function has returned successfully.
+It returns 1 on success, 0 on failure, \-1 if a general error occurred,
+or \-2 if there was a usage error.
+In the latter case,
+\fBsudo\fR
+will print a usage message before it exits.
+If an error occurs, the plugin may optionally call the
+\fBconversation\fR()
+or
+\fBsudo_plugin_printf\fR()
+function with
+\fRSUDO_CONF_ERROR_MSG\fR
+to present additional error information to the user.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIversion\fR
+The version passed in by
+\fBsudo\fR
+allows the plugin to determine the
+major and minor version number of the plugin API supported by
+\fBsudo\fR.
+.TP 6n
+\fIconversation\fR
+A pointer to the
+\fBconversation\fR()
+function that may be used by the
+\fBFa\fR(\fIshow_version\fR)
+function to display version information (see
+\fBshow_version\fR()
+below).
+The
+\fBconversation\fR()
+function may also be used to display additional error message to the user.
+The
+\fBconversation\fR()
+function returns 0 on success and \-1 on failure.
+.TP 6n
+\fIsudo_plugin_printf\fR
+A pointer to a
+\fBprintf\fR()-style
+function that may be used by the
+\fBshow_version\fR()
+function to display version information (see
+show_version below).
+The
+\fBsudo_plugin_printf\fR()
+function may also be used to display additional error message to the user.
+The
+\fBsudo_plugin_printf\fR()
+function returns number of characters printed on success and \-1 on failure.
+.TP 6n
+\fIsettings\fR
+A vector of user-supplied
+\fBsudo\fR
+settings in the form of
+\(lqname=value\(rq
+strings.
+The vector is terminated by a
+\fRNULL\fR
+pointer.
+These settings correspond to options the user specified when running
+\fBsudo\fR.
+As such, they will only be present when the corresponding option has
+been specified on the command line.
+.sp
+When parsing
+\fIsettings\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one
+itself but the
+\fIvalue\fR
+might.
+.sp
+See the
+\fIPolicy plugin API\fR
+section for a list of all possible settings.
+.TP 6n
+\fIuser_info\fR
+A vector of information about the user running the command in the form of
+\(lqname=value\(rq
+strings.
+The vector is terminated by a
+\fRNULL\fR
+pointer.
+.sp
+When parsing
+\fIuser_info\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one
+itself but the
+\fIvalue\fR
+might.
+.sp
+See the
+\fIPolicy plugin API\fR
+section for a list of all possible strings.
+.TP 6n
+\fIcommand_info\fR
+A vector of information describing the command being run in the form of
+\(lqname=value\(rq
+strings.
+The vector is terminated by a
+\fRNULL\fR
+pointer.
+.sp
+When parsing
+\fIcommand_info\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one
+itself but the
+\fIvalue\fR
+might.
+.sp
+See the
+\fIPolicy plugin API\fR
+section for a list of all possible strings.
+.TP 6n
+\fIargc\fR
+The number of elements in
+\fIargv\fR,
+not counting the final
+\fRNULL\fR
+pointer.
+It can be zero, such as when
+\fBsudo\fR
+is called with the
+\fB\-V\fR
+option.
+.TP 6n
+\fIargv\fR
+If
+non-\fRNULL\fR,
+an argument vector describing a command the user
+wishes to run in the same form as what would be passed to the
+execve(2)
+system call.
+.TP 6n
+\fIuser_env\fR
+The user's environment in the form of a
+\fRNULL\fR-terminated
+vector of
+\(lqname=value\(rq
+strings.
+.sp
+When parsing
+\fIuser_env\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one
+itself but the
+\fIvalue\fR
+might.
+.TP 6n
+\fIplugin_options\fR
+Any (non-comment) strings immediately after the plugin path are
+treated as arguments to the plugin.
+These arguments are split on a white space boundary and are passed to
+the plugin in the form of a
+\fRNULL\fR-terminated
+array of strings.
+If no arguments were specified,
+\fIplugin_options\fR
+will be the
+\fRNULL\fR
+pointer.
+.sp
+The
+\fIplugin_options\fR
+parameter is only available starting with
+API version 1.2.
+A plugin
+\fBmust\fR
+check the API version specified
+by the
+\fBsudo\fR
+front-end before using
+\fIplugin_options\fR.
+Failure to do so may result in a crash.
+.TP 6n
+\fIerrstr\fR
+If the
+\fBopen\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.sp
+The
+\fIerrstr\fR
+parameter is only available starting with
+API version 1.15.
+A plugin
+\fBmust\fR
+check the API version specified by the
+\fBsudo\fR
+front-end before using
+\fIerrstr\fR.
+Failure to do so may result in a crash.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIclose\fR
+.br
+.nf
+.RS 6n
+void (*close)(int exit_status, int error);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBclose\fR()
+function is called when
+\fBsudo\fR
+is finished, shortly before it exits.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIexit_status\fR
+The command's exit status, as returned by the
+wait(2)
+system call, or zero if no command was run.
+The value of
+\fIexit_status\fR
+is undefined if
+\fIerror\fR
+is non-zero.
+.TP 6n
+\fIerror\fR
+.br
+If the command could not be executed, this is set to the value of
+\fIerrno\fR
+set by the
+execve(2)
+system call.
+If the command was successfully executed, the value of
+\fIerror\fR
+is zero.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIshow_version\fR
+.nf
+.RS 6n
+int (*show_version)(int verbose);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBshow_version\fR()
+function is called by
+\fBsudo\fR
+when the user specifies the
+\fB\-V\fR
+option.
+The plugin may display its version information to the user via the
+\fBconversation\fR()
+or
+\fBsudo_plugin_printf\fR()
+function using
+\fRSUDO_CONV_INFO_MSG\fR.
+If the user requests detailed version information, the
+\fIverbose\fR
+flag will be non-zero.
+.sp
+Returns 1 on success, 0 on failure, \-1 if a general error occurred,
+or \-2 if there was a usage error, although the return value is currently
+ignored.
+.RE
+.TP 6n
+\fIlog_ttyin\fR
+.nf
+.RS 6n
+int (*log_ttyin)(const char *buf, unsigned int len,
+    const char **errstr);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBlog_ttyin\fR()
+function is called whenever data can be read from
+the user but before it is passed to the running command.
+This allows the plugin to reject data if it chooses to (for instance
+if the input contains banned content).
+Returns 1 if the data should be passed to the command, 0 if the data
+is rejected (which will terminate the running command), or \-1 if an
+error occurred.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIbuf\fR
+The buffer containing user input.
+.TP 6n
+\fIlen\fR
+The length of
+\fIbuf\fR
+in bytes.
+.TP 6n
+\fIerrstr\fR
+If the
+\fBlog_ttyin\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.sp
+The
+\fIerrstr\fR
+parameter is only available starting with
+API version 1.15.
+A plugin
+\fBmust\fR
+check the API version specified by the
+\fBsudo\fR
+front-end before using
+\fIerrstr\fR.
+Failure to do so may result in a crash.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIlog_ttyout\fR
+.nf
+.RS 6n
+int (*log_ttyout)(const char *buf, unsigned int len,
+    const char **errstr);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBlog_ttyout\fR()
+function is called whenever data can be read from
+the command but before it is written to the user's terminal.
+This allows the plugin to reject data if it chooses to (for instance
+if the output contains banned content).
+Returns 1 if the data should be passed to the user, 0 if the data is rejected
+(which will terminate the running command), or \-1 if an error occurred.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIbuf\fR
+The buffer containing command output.
+.TP 6n
+\fIlen\fR
+The length of
+\fIbuf\fR
+in bytes.
+.TP 6n
+\fIerrstr\fR
+If the
+\fBlog_ttyout\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.sp
+The
+\fIerrstr\fR
+parameter is only available starting with
+API version 1.15.
+A plugin
+\fBmust\fR
+check the API version specified by the
+\fBsudo\fR
+front-end before using
+\fIerrstr\fR.
+Failure to do so may result in a crash.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIlog_stdin\fR
+.nf
+.RS 6n
+int (*log_stdin)(const char *buf, unsigned int len,
+    const char **errstr);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBlog_stdin\fR()
+function is only used if the standard input does
+not correspond to a tty device.
+It is called whenever data can be read from the standard input but
+before it is passed to the running command.
+This allows the plugin to reject data if it chooses to
+(for instance if the input contains banned content).
+Returns 1 if the data should be passed to the command, 0 if the
+data is rejected (which will terminate the running command), or \-1
+if an error occurred.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIbuf\fR
+The buffer containing user input.
+.TP 6n
+\fIlen\fR
+The length of
+\fIbuf\fR
+in bytes.
+.TP 6n
+\fIerrstr\fR
+If the
+\fBlog_stdin\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.sp
+The
+\fIerrstr\fR
+parameter is only available starting with
+API version 1.15.
+A plugin
+\fBmust\fR
+check the API version specified by the
+\fBsudo\fR
+front-end before using
+\fIerrstr\fR.
+Failure to do so may result in a crash.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIlog_stdout\fR
+.nf
+.RS 6n
+int (*log_stdout)(const char *buf, unsigned int len,
+    const char **errstr);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBlog_stdout\fR()
+function is only used if the standard output does not correspond
+to a tty device.
+It is called whenever data can be read from the command but before
+it is written to the standard output.
+This allows the plugin to reject data if it chooses to
+(for instance if the output contains banned content).
+Returns 1 if the data should be passed to the user, 0 if the data
+is rejected (which will terminate the running command), or \-1 if
+an error occurred.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIbuf\fR
+The buffer containing command output.
+.TP 6n
+\fIlen\fR
+The length of
+\fIbuf\fR
+in bytes.
+.TP 6n
+\fIerrstr\fR
+If the
+\fBlog_stdout\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.sp
+The
+\fIerrstr\fR
+parameter is only available starting with
+API version 1.15.
+A plugin
+\fBmust\fR
+check the API version specified by the
+\fBsudo\fR
+front-end before using
+\fIerrstr\fR.
+Failure to do so may result in a crash.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIlog_stderr\fR
+.nf
+.RS 6n
+int (*log_stderr)(const char *buf, unsigned int len,
+    const char **errstr);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBlog_stderr\fR()
+function is only used if the standard error does
+not correspond to a tty device.
+It is called whenever data can be read from the command but before it
+is written to the standard error.
+This allows the plugin to reject data if it chooses to
+(for instance if the output contains banned content).
+Returns 1 if the data should be passed to the user, 0 if the data
+is rejected (which will terminate the running command), or \-1 if
+an error occurred.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIbuf\fR
+The buffer containing command output.
+.TP 6n
+\fIlen\fR
+The length of
+\fIbuf\fR
+in bytes.
+.TP 6n
+\fIerrstr\fR
+If the
+\fBlog_stderr\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.sp
+The
+\fIerrstr\fR
+parameter is only available starting with
+API version 1.15.
+A plugin
+\fBmust\fR
+check the API version specified by the
+\fBsudo\fR
+front-end before using
+\fIerrstr\fR.
+Failure to do so may result in a crash.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIregister_hooks\fR
+See the
+\fIPolicy plugin API\fR
+section for a description of
+\fBregister_hooks\fR().
+.TP 6n
+\fIderegister_hooks\fR
+See the
+\fIPolicy plugin API\fR
+section for a description of
+\fBderegister_hooks\fR().
+.TP 6n
+\fIchange_winsize\fR
+.nf
+.RS 6n
+int (*change_winsize)(unsigned int lines, unsigned int cols,
+    const char **errstr);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBchange_winsize\fR()
+function is called whenever the window size of the terminal changes from
+the initial values specified in the
+\fIuser_info\fR
+list.
+Returns \-1 if an error occurred, in which case no further calls to
+\fBchange_winsize\fR()
+will be made,
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIlines\fR
+.br
+The number of lines (rows) in the re-sized terminal.
+.TP 6n
+\fIcols\fR
+The number of columns in the re-sized terminal.
+.TP 6n
+\fIerrstr\fR
+If the
+\fBchange_winsize\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.sp
+The
+\fIerrstr\fR
+parameter is only available starting with
+API version 1.15.
+A plugin
+\fBmust\fR
+check the API version specified by the
+\fBsudo\fR
+front-end before using
+\fIerrstr\fR.
+Failure to do so may result in a crash.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIlog_suspend\fR
+.nf
+.RS 6n
+int (*log_suspend)(int signo, const char **errstr);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBlog_suspend\fR()
+function is called whenever a command is suspended or resumed.
+Logging this information makes it possible to skip the period of time when
+the command was suspended during playback of a session.
+Returns \-1 if an error occurred, in which case no further calls to
+\fBlog_suspend\fR()
+will be made,
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIsigno\fR
+.br
+The signal that caused the command to be suspended, or
+\fRSIGCONT\fR
+if the command was resumed.
+.TP 6n
+\fIerrstr\fR
+If the
+\fBlog_suspend\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.sp
+The
+\fIerrstr\fR
+parameter is only available starting with
+API version 1.15.
+A plugin
+\fBmust\fR
+check the API version specified by the
+\fBsudo\fR
+front-end before using
+\fIerrstr\fR.
+Failure to do so may result in a crash.
+.TP 6n
+\fIevent_alloc\fR
+.nf
+.RS 6n
+struct sudo_plugin_event * (*event_alloc)(void);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBevent_alloc\fR()
+function is used to allocate a
+\fIstruct sudo_plugin_event\fR
+which provides access to the main
+\fBsudo\fR
+event loop.
+Unlike the other fields, the
+\fBevent_alloc\fR()
+pointer is filled in by the
+\fBsudo\fR
+front-end, not by the plugin.
+.sp
+See the
+\fIEvent API\fR
+section below for more information
+about events.
+.sp
+The
+\fBevent_alloc\fR()
+function is only available starting
+with API version 1.15.
+If the
+\fBsudo\fR
+front-end doesn't support API
+version 1.15 or higher,
+\fBevent_alloc\fR()
+will not be set.
+.RE
+.PP
+\fII/O Plugin Version Macros\fR
+.sp
+Same as for the
+\fIPolicy plugin API\fR.
+.RE
+.SS "Audit plugin API"
+.nf
+.RS 0n
+/* Audit plugin close function status types. */
+#define SUDO_PLUGIN_NO_STATUS           0
+#define SUDO_PLUGIN_WAIT_STATUS         1
+#define SUDO_PLUGIN_EXEC_ERROR          2
+#define SUDO_PLUGIN_SUDO_ERROR          3
+
+#define SUDO_AUDIT_PLUGIN 3
+struct audit_plugin {
+    unsigned int type; /* always SUDO_AUDIT_PLUGIN */
+    unsigned int version; /* always SUDO_API_VERSION */
+    int (*open)(unsigned int version, sudo_conv_t conversation,
+        sudo_printf_t sudo_plugin_printf, char * const settings[],
+        char * const user_info[], int submit_optind,
+        char * const submit_argv[], char * const submit_envp[],
+        char * const plugin_options[], const char **errstr);
+    void (*close)(int status_type, int status);
+    int (*accept)(const char *plugin_name,
+        unsigned int plugin_type, char * const command_info[],
+        char * const run_argv[], char * const run_envp[],
+        const char **errstr);
+    int (*reject)(const char *plugin_name, unsigned int plugin_type,
+        const char *audit_msg, char * const command_info[],
+        const char **errstr);
+    int (*error)(const char *plugin_name, unsigned int plugin_type,
+        const char *audit_msg, char * const command_info[],
+        const char **errstr);
+    int (*show_version)(int verbose);
+    void (*register_hooks)(int version,
+        int (*register_hook)(struct sudo_hook *hook));
+    void (*deregister_hooks)(int version,
+        int (*deregister_hook)(struct sudo_hook *hook));
+    struct sudo_plugin_event * (*event_alloc)(void);
+}
+.RE
+.fi
+.PP
+An audit plugin can be used to log successful and unsuccessful attempts
+to run
+\fBsudo\fR
+independent of the policy or any I/O plugins.
+Multiple audit plugins may be specified in
+sudo.conf(@mansectform@).
+.PP
+A
+\fIstruct audit_plugin\fR
+has the following fields:
+.TP 6n
+\fItype\fR
+The
+\fItype\fR
+field should always be set to
+\fRSUDO_AUDIT_PLUGIN\fR.
+.TP 6n
+\fIversion\fR
+The
+\fIversion\fR
+field should be set to
+\fRSUDO_API_VERSION\fR.
+.sp
+This allows
+\fBsudo\fR
+to determine the API version the plugin was
+built against.
+.TP 6n
+\fIopen\fR
+.nf
+.RS 6n
+int (*open)(unsigned int version, sudo_conv_t conversation,
+    sudo_printf_t sudo_plugin_printf, char * const settings[],
+    char * const user_info[], int submit_optind,
+    char * const submit_argv[], char * const submit_envp[],
+    char * const plugin_options[], const char **errstr);
+.RE
+.fi
+.RS 6n
+.sp
+The audit
+\fBopen\fR()
+function is run before any other
+\fBsudo\fR
+plugin API functions.
+This makes it possible to audit failures in the other plugins.
+It returns 1 on success, 0 on failure, \-1 if a general error occurred,
+or \-2 if there was a usage error.
+In the latter case,
+\fBsudo\fR
+will print a usage message before it exits.
+If an error occurs, the plugin may optionally call the
+\fBconversation\fR()
+or
+\fBplugin_printf\fR()
+function with
+\fRSUDO_CONF_ERROR_MSG\fR
+to present additional error information to the user.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIversion\fR
+The version passed in by
+\fBsudo\fR
+allows the plugin to determine the
+major and minor version number of the plugin API supported by
+\fBsudo\fR.
+.TP 6n
+\fIconversation\fR
+A pointer to the
+\fBconversation\fR()
+function that may be used by the
+\fBshow_version\fR()
+function to display version information (see
+\fBshow_version\fR()
+below).
+The
+\fBconversation\fR()
+function may also be used to display additional error message to the user.
+The
+\fBconversation\fR()
+function returns 0 on success, and \-1 on failure.
+.TP 6n
+\fIplugin_printf\fR
+A pointer to a
+\fBprintf\fR()-style
+function that may be used by the
+\fBshow_version\fR()
+function to display version information (see
+show_version below).
+The
+\fBplugin_printf\fR()
+function may also be used to display additional error message to the user.
+The
+\fBplugin_printf\fR()
+function returns number of characters printed on success and \-1 on failure.
+.TP 6n
+\fIsettings\fR
+A vector of user-supplied
+\fBsudo\fR
+settings in the form of
+\(lqname=value\(rq
+strings.
+The vector is terminated by a
+\fRNULL\fR
+pointer.
+These settings correspond to options the user specified when running
+\fBsudo\fR.
+As such, they will only be present when the corresponding option has
+been specified on the command line.
+.sp
+When parsing
+\fIsettings\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one
+itself but the
+\fIvalue\fR
+might.
+.sp
+See the
+\fIPolicy plugin API\fR
+section for a list of all possible settings.
+.TP 6n
+\fIuser_info\fR
+A vector of information about the user running the command in the form of
+\(lqname=value\(rq
+strings.
+The vector is terminated by a
+\fRNULL\fR
+pointer.
+.sp
+When parsing
+\fIuser_info\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one
+itself but the
+\fIvalue\fR
+might.
+.sp
+See the
+\fIPolicy plugin API\fR
+section for a list of all possible strings.
+.TP 6n
+\fIsubmit_optind\fR
+The index into
+\fIsubmit_argv\fR
+that corresponds to the first entry that is not a command line option.
+If
+\fIsubmit_argv\fR
+only consists of options, which may be the case with the
+\fB\-l\fR
+or
+\fB\-v\fR
+options,
+\fIsubmit_argv\fR[\fIsubmit_optind\fR]
+will evaluate to the NULL pointer.
+.TP 6n
+\fIsubmit_argv\fR
+The argument vector
+\fBsudo\fR
+was invoked with, including all command line options.
+The
+\fIsubmit_optind\fR
+argument can be used to determine the end of the command line options.
+.TP 6n
+\fIsubmit_envp\fR
+The invoking user's environment in the form of a
+\fRNULL\fR-terminated
+vector of
+\(lqname=value\(rq
+strings.
+.sp
+When parsing
+\fIsubmit_envp\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one
+itself but the
+\fIvalue\fR
+might.
+.TP 6n
+\fIplugin_options\fR
+Any (non-comment) strings immediately after the plugin path are
+treated as arguments to the plugin.
+These arguments are split on a white space boundary and are passed to
+the plugin in the form of a
+\fRNULL\fR-terminated
+array of strings.
+If no arguments were specified,
+\fIplugin_options\fR
+will be the
+\fRNULL\fR
+pointer.
+.TP 6n
+\fIerrstr\fR
+If the
+\fBopen\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIclose\fR
+.br
+.nf
+.RS 6n
+void (*close)(int status_type, int status);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBclose\fR()
+function is called when
+\fBsudo\fR
+is finished, shortly before it exits.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIstatus_type\fR
+The type of status being passed.
+One of
+\fRSUDO_PLUGIN_NO_STATUS\fR,
+\fRSUDO_PLUGIN_WAIT_STATUS\fR,
+\fRSUDO_PLUGIN_EXEC_ERROR\fR
+or
+\fRSUDO_PLUGIN_SUDO_ERROR\fR.
+.TP 6n
+\fIstatus\fR
+Depending on the value of
+\fIstatus_type\fR,
+this value is either
+ignored, the command's exit status as returned by the
+wait(2)
+system call, the value of
+\fIerrno\fR
+set by the
+execve(2)
+system call, or the value of
+\fIerrno\fR
+resulting from an error in the
+\fBsudo\fR
+front-end.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIaccept\fR
+.nf
+.RS 6n
+int (*accept)(const char *plugin_name, unsigned int plugin_type,
+    char * const command_info[], char * const run_argv[],
+    char * const run_envp[], const char **errstr);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBaccept\fR()
+function is called when a command or action is accepted by a policy
+or approval plugin.
+The function arguments are as follows:
+.TP 6n
+\fIplugin_name\fR
+The name of the plugin that accepted the command or
+\(lqsudo\(rq
+for the
+\fBsudo\fR
+front-end.
+.TP 6n
+\fIplugin_type\fR
+The type of plugin that accepted the command, currently either
+\fRSUDO_POLICY_PLUGIN\fR,
+\fRSUDO_POLICY_APPROVAL\fR,
+or
+\fRSUDO_FRONT_END\fR.
+The
+\fBaccept\fR()
+function is called multiple times--once for each policy or approval
+plugin that succeeds and once for the sudo front-end.
+When called on behalf of the sudo front-end,
+\fIcommand_info\fR
+may include information from an I/O logging plugin as well.
+.sp
+Typically, an audit plugin is interested in either the accept status from
+the
+\fBsudo\fR
+front-end or from the various policy and approval plugins, but not both.
+It is possible for the policy plugin to accept a command that is
+later rejected by an approval plugin, in which case the audit
+plugin's
+\fBaccept\fR()
+and
+\fBreject\fR()
+functions will
+\fIboth\fR
+be called.
+.TP 6n
+\fIcommand_info\fR
+An optional
+vector of information describing the command being run in the form of
+\(lqname=value\(rq
+strings.
+The vector is terminated by a
+\fRNULL\fR
+pointer.
+.sp
+When parsing
+\fIcommand_info\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one
+itself but the
+\fIvalue\fR
+might.
+.sp
+See the
+\fIPolicy plugin API\fR
+section for a list of all possible strings.
+.TP 6n
+\fIrun_argv\fR
+A
+\fRNULL\fR-terminated
+argument vector describing a command that will be run in the
+same form as what would be passed to the
+execve(2)
+system call.
+.TP 6n
+\fIrun_envp\fR
+The environment the command will be run with in the form of a
+\fRNULL\fR-terminated
+vector of
+\(lqname=value\(rq
+strings.
+.sp
+When parsing
+\fIrun_envp\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one
+itself but the
+\fIvalue\fR
+might.
+.TP 6n
+\fIerrstr\fR
+If the
+\fBaccept\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIreject\fR
+.nf
+.RS 6n
+int (*reject)(const char *plugin_name, unsigned int plugin_type,
+    const char *audit_msg, char * const command_info[],
+    const char **errstr);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBreject\fR()
+function is called when a command or action is rejected by a plugin.
+The function arguments are as follows:
+.TP 6n
+\fIplugin_name\fR
+The name of the plugin that rejected the command.
+.TP 6n
+\fIplugin_type\fR
+The type of plugin that rejected the command, currently either
+\fRSUDO_POLICY_PLUGIN\fR,
+\fRSUDO_APPROVAL_PLUGIN\fR,
+or
+\fRSUDO_IO_PLUGIN\fR.
+.sp
+Unlike the
+\fBaccept\fR()
+function, the
+\fBreject\fR()
+function is not called on behalf of the
+\fBsudo\fR
+front-end.
+.TP 6n
+\fIaudit_msg\fR
+An optional string describing the reason the command was rejected
+by the plugin.
+If the plugin did not provide a reason,
+\fIaudit_msg\fR
+will be the
+\fRNULL\fR
+pointer.
+.TP 6n
+\fIcommand_info\fR
+An optional
+vector of information describing the command being run in the form of
+\(lqname=value\(rq
+strings.
+The vector is terminated by a
+\fRNULL\fR
+pointer.
+.sp
+When parsing
+\fIcommand_info\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one
+itself but the
+\fIvalue\fR
+might.
+.sp
+See the
+\fIPolicy plugin API\fR
+section for a list of all possible strings.
+.TP 6n
+\fIerrstr\fR
+If the
+\fBreject\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIerror\fR
+.br
+.nf
+.RS 6n
+int (*error)(const char *plugin_name, unsigned int plugin_type,
+    const char *audit_msg, char * const command_info[],
+    const char **errstr);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBerror\fR()
+function is called when a plugin or the
+\fBsudo\fR
+front-end returns an error.
+The function arguments are as follows:
+.TP 6n
+\fIplugin_name\fR
+The name of the plugin that generated the error or
+\(lqsudo\(rq
+for the
+\fBsudo\fR
+front-end.
+.TP 6n
+\fIplugin_type\fR
+The type of plugin that generated the error, or
+\fRSUDO_FRONT_END\fR
+for the
+\fBsudo\fR
+front-end.
+.TP 6n
+\fIaudit_msg\fR
+An optional string describing the plugin error.
+If the plugin did not provide a description,
+\fIaudit_msg\fR
+will be the
+\fRNULL\fR
+pointer.
+.TP 6n
+\fIcommand_info\fR
+An optional
+vector of information describing the command being run in the form of
+\(lqname=value\(rq
+strings.
+The vector is terminated by a
+\fRNULL\fR
+pointer.
+.sp
+When parsing
+\fIcommand_info\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one
+itself but the
+\fIvalue\fR
+might.
+.sp
+See the
+\fIPolicy plugin API\fR
+section for a list of all possible strings.
+.TP 6n
+\fIerrstr\fR
+If the
+\fBerror\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIshow_version\fR
+.nf
+.RS 6n
+int (*show_version)(int verbose);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBshow_version\fR()
+function is called by
+\fBsudo\fR
+when the user specifies the
+\fB\-V\fR
+option.
+The plugin may display its version information to the user via the
+\fBconversation\fR()
+or
+\fBplugin_printf\fR()
+function using
+\fRSUDO_CONV_INFO_MSG\fR.
+If the user requests detailed version information, the verbose flag will be set.
+.sp
+Returns 1 on success, 0 on failure, \-1 if a general error occurred,
+or \-2 if there was a usage error, although the return value is currently
+ignored.
+.RE
+.TP 6n
+\fIregister_hooks\fR
+See the
+\fIPolicy plugin API\fR
+section for a description of
+\fBregister_hooks\fR().
+.TP 6n
+\fIderegister_hooks\fR
+See the
+\fIPolicy plugin API\fR
+section for a description of
+\fBderegister_hooks\fR().
+.TP 6n
+\fIevent_alloc\fR
+.nf
+.RS 6n
+struct sudo_plugin_event * (*event_alloc)(void);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBevent_alloc\fR()
+function is used to allocate a
+\fIstruct sudo_plugin_event\fR
+which provides access to the main
+\fBsudo\fR
+event loop.
+Unlike the other fields, the
+\fIevent_alloc\fR
+pointer is filled in by the
+\fBsudo\fR
+front-end, not by the plugin.
+.sp
+See the
+\fIEvent API\fR
+section below for more information
+about events.
+.sp
+The
+\fBevent_alloc\fR()
+function is only available starting
+with API version 1.17.
+If the
+\fBsudo\fR
+front-end doesn't support API
+version 1.17 or higher,
+\fBevent_alloc\fR()
+will not be set.
+.RE
+.SS "Approval plugin API"
+.nf
+.RS 0n
+struct approval_plugin {
+#define SUDO_APPROVAL_PLUGIN 4
+    unsigned int type; /* always SUDO_APPROVAL_PLUGIN */
+    unsigned int version; /* always SUDO_API_VERSION */
+    int (*open)(unsigned int version, sudo_conv_t conversation,
+        sudo_printf_t sudo_plugin_printf, char * const settings[],
+        char * const user_info[], int submit_optind,
+        char * const submit_argv[], char * const submit_envp[],
+        char * const plugin_options[], const char **errstr);
+    void (*close)(void);
+    int (*check)(char * const command_info[], char * const run_argv[],
+        char * const run_envp[], const char **errstr);
+    int (*show_version)(int verbose);
+};
+.RE
+.fi
+.PP
+An approval plugin can be used to apply extra constraints after a
+command has been accepted by the policy plugin.
+Unlike the other plugin types, it does not remain open until the command
+completes.
+The plugin is opened before a call to
+\fBcheck\fR()
+or
+\fBshow_version\fR()
+and closed shortly thereafter (audit plugin functions must be called
+before the plugin is closed).
+Multiple approval plugins may be specified in
+sudo.conf(@mansectform@).
+.PP
+A
+\fIstruct approval_plugin\fR
+has the following fields:
+.TP 6n
+\fItype\fR
+The
+\fItype\fR
+field should always be set to
+\fRSUDO_APPROVAL_PLUGIN\fR.
+.TP 6n
+\fIversion\fR
+The
+\fIversion\fR
+field should be set to
+\fRSUDO_API_VERSION\fR.
+.sp
+This allows
+\fBsudo\fR
+to determine the API version the plugin was
+built against.
+.TP 6n
+\fIopen\fR
+.nf
+.RS 6n
+int (*open)(unsigned int version, sudo_conv_t conversation,
+    sudo_printf_t sudo_plugin_printf, char * const settings[],
+    char * const user_info[], int submit_optind,
+    char * const submit_argv[], char * const submit_envp[],
+    char * const plugin_options[], const char **errstr);
+.RE
+.fi
+.RS 6n
+.sp
+The approval
+\fBopen\fR()
+function is run immediately before a call to the plugin's
+\fBcheck\fR()
+or
+\fBshow_version\fR()
+functions.
+It is only called if the version is being requested or if the
+policy plugin's
+\fBcheck_policy\fR()
+function has returned successfully.
+It returns 1 on success, 0 on failure, \-1 if a general error occurred,
+or \-2 if there was a usage error.
+In the latter case,
+\fBsudo\fR
+will print a usage message before it exits.
+If an error occurs, the plugin may optionally call the
+\fBconversation\fR()
+or
+\fBplugin_printf\fR()
+function with
+\fRSUDO_CONF_ERROR_MSG\fR
+to present additional error information to the user.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIversion\fR
+The version passed in by
+\fBsudo\fR
+allows the plugin to determine the
+major and minor version number of the plugin API supported by
+\fBsudo\fR.
+.TP 6n
+\fIconversation\fR
+A pointer to the
+\fBconversation\fR()
+function that can be used by the plugin to interact with the user (see
+\fIConversation API\fR
+for details).
+Returns 0 on success and \-1 on failure.
+.TP 6n
+\fIplugin_printf\fR
+A pointer to a
+\fBprintf\fR()-style
+function that may be used to display informational or error messages (see
+\fIConversation API\fR
+for details).
+Returns the number of characters printed on success and \-1 on failure.
+.TP 6n
+\fIsettings\fR
+A vector of user-supplied
+\fBsudo\fR
+settings in the form of
+\(lqname=value\(rq
+strings.
+The vector is terminated by a
+\fRNULL\fR
+pointer.
+These settings correspond to options the user specified when running
+\fBsudo\fR.
+As such, they will only be present when the corresponding option has
+been specified on the command line.
+.sp
+When parsing
+\fIsettings\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one
+itself but the
+\fIvalue\fR
+might.
+.sp
+See the
+\fIPolicy plugin API\fR
+section for a list of all possible settings.
+.TP 6n
+\fIuser_info\fR
+A vector of information about the user running the command in the form of
+\(lqname=value\(rq
+strings.
+The vector is terminated by a
+\fRNULL\fR
+pointer.
+.sp
+When parsing
+\fIuser_info\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one
+itself but the
+\fIvalue\fR
+might.
+.sp
+See the
+\fIPolicy plugin API\fR
+section for a list of all possible strings.
+.TP 6n
+\fIsubmit_optind\fR
+The index into
+\fIsubmit_argv\fR
+that corresponds to the first entry that is not a command line option.
+If
+\fIsubmit_argv\fR
+only consists of options, which may be the case with the
+\fB\-l\fR
+or
+\fB\-v\fR
+options,
+\fIsubmit_argv\fR[\fIsubmit_optind\fR]
+will evaluate to the NULL pointer.
+.TP 6n
+\fIsubmit_argv\fR
+The argument vector
+\fBsudo\fR
+was invoked with, including all command line options.
+The
+\fIsubmit_optind\fR
+argument can be used to determine the end of the command line options.
+.TP 6n
+\fIsubmit_envp\fR
+The invoking user's environment in the form of a
+\fRNULL\fR-terminated
+vector of
+\(lqname=value\(rq
+strings.
+.sp
+When parsing
+\fIsubmit_envp\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one
+itself but the
+\fIvalue\fR
+might.
+.TP 6n
+\fIplugin_options\fR
+Any (non-comment) strings immediately after the plugin path are
+treated as arguments to the plugin.
+These arguments are split on a white space boundary and are passed to
+the plugin in the form of a
+\fRNULL\fR-terminated
+array of strings.
+If no arguments were specified,
+\fIplugin_options\fR
+will be the
+\fRNULL\fR
+pointer.
+.TP 6n
+\fIerrstr\fR
+If the
+\fBopen\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIclose\fR
+.br
+.nf
+.RS 6n
+void (*close)(void);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBclose\fR()
+function is called after the approval plugin's
+\fBcheck\fR()
+or
+\fBshow_version\fR()
+functions have been called.
+It takes no arguments.
+The
+\fBclose\fR()
+function is typically used to perform plugin-specific cleanup,
+such as the freeing of memory objects allocated by the plugin.
+If the plugin does not need to perform any cleanup,
+\fBclose\fR()
+may be set to the
+\fRNULL\fR
+pointer.
+.RE
+.TP 6n
+\fIcheck\fR
+.br
+.nf
+.RS 6n
+int (*check)(char * const command_info[], char * const run_argv[],
+    char * const run_envp[], const char **errstr);
+.RE
+.fi
+.RS 6n
+.sp
+The approval
+\fBcheck\fR()
+function is run after the policy plugin
+\fBcheck_policy\fR()
+function and before any I/O logging plugins.
+If multiple approval plugins are loaded, they must all succeed for
+the command to be allowed.
+It returns 1 on success, 0 on failure, \-1 if a general error occurred,
+or \-2 if there was a usage error.
+In the latter case,
+\fBsudo\fR
+will print a usage message before it exits.
+If an error occurs, the plugin may optionally call the
+\fBconversation\fR()
+or
+\fBplugin_printf\fR()
+function with
+\fRSUDO_CONF_ERROR_MSG\fR
+to present additional error information to the user.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIcommand_info\fR
+A vector of information describing the command being run in the form of
+\(lqname=value\(rq
+strings.
+The vector is terminated by a
+\fRNULL\fR
+pointer.
+.sp
+When parsing
+\fIcommand_info\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one
+itself but the
+\fIvalue\fR
+might.
+.sp
+See the
+\fIPolicy plugin API\fR
+section for a list of all possible strings.
+.TP 6n
+\fIrun_argv\fR
+A
+\fRNULL\fR-terminated
+argument vector describing a command that will be run in the
+same form as what would be passed to the
+execve(2)
+system call.
+.TP 6n
+\fIrun_envp\fR
+The environment the command will be run with in the form of a
+\fRNULL\fR-terminated
+vector of
+\(lqname=value\(rq
+strings.
+.sp
+When parsing
+\fIrun_envp\fR,
+the plugin should split on the
+\fBfirst\fR
+equal sign
+(\(oq=\(cq)
+since the
+\fIname\fR
+field will never include one
+itself but the
+\fIvalue\fR
+might.
+.TP 6n
+\fIerrstr\fR
+If the
+\fBopen\fR()
+function returns a value other than 1, the plugin may
+store a message describing the failure or error in
+\fIerrstr\fR.
+The
+\fBsudo\fR
+front-end will then pass this value to any registered audit plugins.
+The string stored in
+\fIerrstr\fR
+must remain valid until the plugin's
+\fBclose\fR()
+function is called.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIshow_version\fR
+.nf
+.RS 6n
+int (*show_version)(int verbose);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBshow_version\fR()
+function is called by
+\fBsudo\fR
+when the user specifies the
+\fB\-V\fR
+option.
+The plugin may display its version information to the user via the
+\fBconversation\fR()
+or
+\fBplugin_printf\fR()
+function using
+\fRSUDO_CONV_INFO_MSG\fR.
+If the user requests detailed version information, the verbose flag will be set.
+.sp
+Returns 1 on success, 0 on failure, \-1 if a general error occurred,
+or \-2 if there was a usage error, although the return value is currently
+ignored.
+.RE
+.SS "Signal handlers"
+The
+\fBsudo\fR
+front-end installs default signal handlers to trap common signals
+while the plugin functions are run.
+The following signals are trapped by default before the command is
+executed:
+.TP 3n
+\fB\(bu\fR
+\fRSIGALRM\fR
+.PD 0
+.TP 3n
+\fB\(bu\fR
+\fRSIGHUP\fR
+.TP 3n
+\fB\(bu\fR
+\fRSIGINT\fR
+.TP 3n
+\fB\(bu\fR
+\fRSIGPIPE\fR
+.TP 3n
+\fB\(bu\fR
+\fRSIGQUIT\fR
+.TP 3n
+\fB\(bu\fR
+\fRSIGTERM\fR
+.TP 3n
+\fB\(bu\fR
+\fRSIGTSTP\fR
+.TP 3n
+\fB\(bu\fR
+\fRSIGUSR1\fR
+.TP 3n
+\fB\(bu\fR
+\fRSIGUSR2\fR
+.PD
+.PP
+If a fatal signal is received before the command is executed,
+\fBsudo\fR
+will call the plugin's
+\fBclose\fR()
+function with an exit status of 128 plus the value of the signal
+that was received.
+This allows for consistent logging of commands killed by a signal
+for plugins that log such information in their
+\fBclose\fR()
+function.
+An exception to this is
+\fRSIGPIPE\fR,
+which is ignored until the command is executed.
+.PP
+A plugin may temporarily install its own signal handlers but must
+restore the original handler before the plugin function returns.
+.SS "Hook function API"
+Beginning with plugin API version 1.2, it is possible to install
+hooks for certain functions called by the
+\fBsudo\fR
+front-end.
+.PP
+Currently, the only supported hooks relate to the handling of
+environment variables.
+Hooks can be used to intercept attempts to get, set, or remove
+environment variables so that these changes can be reflected in
+the version of the environment that is used to execute a command.
+A future version of the API will support hooking internal
+\fBsudo\fR
+front-end functions as well.
+.PP
+\fIHook structure\fR
+.PP
+Hooks in
+\fBsudo\fR
+are described by the following structure:
+.nf
+.sp
+.RS 0n
+typedef int (*sudo_hook_fn_t)();
+
+struct sudo_hook {
+    unsigned int hook_version;
+    unsigned int hook_type;
+    sudo_hook_fn_t hook_fn;
+    void *closure;
+};
+.RE
+.fi
+.PP
+A
+\fIstruct sudo_hook\fR
+has the following fields:
+.TP 6n
+\fIhook_version\fR
+The
+\fIhook_version\fR
+field should be set to
+\fRSUDO_HOOK_VERSION\fR.
+.TP 6n
+\fIhook_type\fR
+The
+\fIhook_type\fR
+field may be one of the following supported hook types:
+.PP
+.RS 6n
+.PD 0
+.TP 6n
+\fRSUDO_HOOK_SETENV\fR
+The C library
+setenv(3)
+function.
+Any registered hooks will run before the C library implementation.
+The
+\fIhook_fn\fR
+field should
+be a function that matches the following typedef:
+.nf
+.sp
+.RS 6n
+typedef int (*sudo_hook_fn_setenv_t)(const char *name,
+   const char *value, int overwrite, void *closure);
+.RE
+.fi
+.RS 6n
+.sp
+If the registered hook does not match the typedef the results are
+unspecified.
+.RE
+.PD
+.TP 6n
+\fRSUDO_HOOK_UNSETENV\fR
+The C library
+unsetenv(3)
+function.
+Any registered hooks will run before the C library implementation.
+The
+\fIhook_fn\fR
+field should
+be a function that matches the following typedef:
+.nf
+.sp
+.RS 6n
+typedef int (*sudo_hook_fn_unsetenv_t)(const char *name,
+   void *closure);
+.RE
+.fi
+.TP 6n
+\fRSUDO_HOOK_GETENV\fR
+The C library
+getenv(3)
+function.
+Any registered hooks will run before the C library implementation.
+The
+\fIhook_fn\fR
+field should
+be a function that matches the following typedef:
+.nf
+.sp
+.RS 6n
+typedef int (*sudo_hook_fn_getenv_t)(const char *name,
+   char **value, void *closure);
+.RE
+.fi
+.RS 6n
+.sp
+If the registered hook does not match the typedef the results are
+unspecified.
+.RE
+.TP 6n
+\fRSUDO_HOOK_PUTENV\fR
+The C library
+putenv(3)
+function.
+Any registered hooks will run before the C library implementation.
+The
+\fIhook_fn\fR
+field should
+be a function that matches the following typedef:
+.nf
+.sp
+.RS 6n
+typedef int (*sudo_hook_fn_putenv_t)(char *string,
+   void *closure);
+.RE
+.fi
+.RS 6n
+.sp
+If the registered hook does not match the typedef the results are
+unspecified.
+.RE
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIhook_fn\fR
+.nf
+.RS 6n
+sudo_hook_fn_t hook_fn;
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fIhook_fn\fR
+field should be set to the plugin's hook implementation.
+The actual function arguments will vary depending on the
+\fIhook_type\fR
+(see
+\fIhook_type\fR
+above).
+In all cases, the
+\fIclosure\fR
+field of
+\fIstruct sudo_hook\fR
+is passed as the last function parameter.
+This can be used to pass arbitrary data to the plugin's hook implementation.
+.sp
+The function return value may be one of the following:
+.TP 6n
+\fRSUDO_HOOK_RET_ERROR\fR
+The hook function encountered an error.
+.TP 6n
+\fRSUDO_HOOK_RET_NEXT\fR
+The hook completed without error, go on to the next hook (including
+the system implementation if applicable).
+For example, a
+getenv(3)
+hook might return
+\fRSUDO_HOOK_RET_NEXT\fR
+if the specified variable was not found in the private copy of the environment.
+.TP 6n
+\fRSUDO_HOOK_RET_STOP\fR
+The hook completed without error, stop processing hooks for this invocation.
+This can be used to replace the system implementation.
+For example, a
+\fIsetenv\fR
+hook that operates on a private copy of
+the environment but leaves
+\fIenviron\fR
+unchanged.
+.PD 0
+.PP
+.RE
+.PD
+.PP
+Care must be taken when hooking C library functions,
+it is very easy to create an infinite loop.
+For example, a
+getenv(3)
+hook that calls the
+snprintf(3)
+function may create a loop if the
+snprintf(3)
+implementation calls
+getenv(3)
+to check the locale.
+To prevent this, you may wish to use a static variable in the hook
+function to guard against nested calls.
+For example:
+.nf
+.sp
+.RS 6n
+static int in_progress = 0; /* avoid recursion */
+if (in_progress)
+    return SUDO_HOOK_RET_NEXT;
+in_progress = 1;
+\&...
+in_progress = 0;
+return SUDO_HOOK_RET_STOP;
+.RE
+.fi
+.PP
+\fIHook API Version Macros\fR
+.nf
+.sp
+.RS 0n
+/* Hook API version major/minor */
+#define SUDO_HOOK_VERSION_MAJOR 1
+#define SUDO_HOOK_VERSION_MINOR 0
+#define SUDO_HOOK_VERSION SUDO_API_MKVERSION(SUDO_HOOK_VERSION_MAJOR,\e
+                                              SUDO_HOOK_VERSION_MINOR)
+.RE
+.fi
+.PP
+For getters and setters see the
+\fIPolicy plugin API\fR.
+.SS "Event API"
+When
+\fBsudo\fR
+runs a command, it uses an event loop to service signals and I/O.
+Events may be triggered based on time, a file or socket descriptor
+becoming ready, or due to receipt of a signal.
+Starting with API version 1.15, it is possible for a plugin to
+participate in this event loop by calling the
+\fBevent_alloc\fR()
+function.
+.PP
+\fIEvent structure\fR
+.PP
+Events are described by the following structure:
+.nf
+.RS 0n
+typedef void (*sudo_plugin_ev_callback_t)(int fd, int what, void *closure);
+
+struct sudo_plugin_event {
+    int (*set)(struct sudo_plugin_event *pev, int fd, int events,
+        sudo_plugin_ev_callback_t callback, void *closure);
+    int (*add)(struct sudo_plugin_event *pev, struct timespec *timeout);
+    int (*del)(struct sudo_plugin_event *pev);
+    int (*pending)(struct sudo_plugin_event *pev, int events,
+        struct timespec *ts);
+    int (*fd)(struct sudo_plugin_event *pev);
+    void (*setbase)(struct sudo_plugin_event *pev, void *base);
+    void (*loopbreak)(struct sudo_plugin_event *pev);
+    void (*free)(struct sudo_plugin_event *pev);
+};
+.RE
+.fi
+.PP
+A
+\fIstruct sudo_plugin_event\fR
+contains the following function pointers:
+.TP 6n
+\fIset\fR
+.nf
+.RS 6n
+int (*set)(struct sudo_plugin_event *pev, int fd, int events,
+    sudo_plugin_ev_callback_t callback, void *closure);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBset\fR()
+function takes the following arguments:
+.TP 6n
+\fIstruct sudo_plugin_event *\fR\fIpev\fR
+A pointer to the
+\fIstruct sudo_plugin_event\fR
+itself.
+.TP 6n
+\fIfd\fR
+The file or socket descriptor for I/O-based events or the signal
+number for signal events.
+For time-based events,
+\fIfd\fR
+must be \-1.
+.TP 6n
+\fIevents\fR
+The following values determine what will trigger the event callback:
+.PP
+.RS 6n
+.PD 0
+.TP 6n
+\fRSUDO_PLUGIN_EV_TIMEOUT\fR
+callback is run after the specified timeout expires
+.PD
+.TP 6n
+\fRSUDO_PLUGIN_EV_READ\fR
+callback is run when the file descriptor is readable
+.TP 6n
+\fRSUDO_PLUGIN_EV_WRITE\fR
+callback is run when the file descriptor is writable
+.TP 6n
+\fRSUDO_PLUGIN_EV_PERSIST\fR
+event is persistent and remains enabled until explicitly deleted
+.TP 6n
+\fRSUDO_PLUGIN_EV_SIGNAL\fR
+callback is run when the specified signal is received
+.PP
+The
+\fRSUDO_PLUGIN_EV_PERSIST\fR
+flag may be ORed with any of the event types.
+It is also possible to OR
+\fRSUDO_PLUGIN_EV_READ\fR
+and
+\fRSUDO_PLUGIN_EV_WRITE\fR
+together to run the callback when a descriptor is ready to be
+either read from or written to.
+All other event values are mutually exclusive.
+.RE
+.TP 6n
+\fIsudo_plugin_ev_callback_t\fR \fIcallback\fR
+.nf
+.RS 6n
+typedef void (*sudo_plugin_ev_callback_t)(int fd, int what,
+    void *closure);
+.RE
+.fi
+.RS 6n
+.sp
+The function to call when an event is triggered.
+The
+\fBcallback\fR()
+function is run with the following arguments:
+.TP 6n
+\fIfd\fR
+The file or socket descriptor for I/O-based events or the signal
+number for signal events.
+.TP 6n
+\fIwhat\fR
+The event type that triggered that callback.
+For events that have multiple event types (for example
+\fRSUDO_PLUGIN_EV_READ\fR
+and
+\fRSUDO_PLUGIN_EV_WRITE\fR)
+or have an associated timeout,
+\fIwhat\fR
+can be used to determine why the callback was run.
+.TP 6n
+\fIclosure\fR
+The generic pointer that was specified in the
+\fBset\fR()
+function.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIclosure\fR
+A generic pointer that will be passed to the callback function.
+.PP
+The
+\fBset\fR()
+function returns 1 on success, and \-1 if a error occurred.
+.RE
+.TP 6n
+\fIadd\fR
+.nf
+.RS 6n
+int (*add)(struct sudo_plugin_event *pev, struct timespec *timeout);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBadd\fR()
+function adds the event
+\fIpev\fR
+to
+\fBsudo\fR's
+event loop.
+The event must have previously been initialized via the
+\fBset\fR()
+function.
+If the
+\fItimeout\fR
+argument is not NULL, it should specify a (relative) timeout after
+which the event will be triggered if the main event criteria has
+not been met.
+This is often used to implement an I/O timeout where the event
+will fire if a descriptor is not ready within a certain time
+period.
+If the event is already present in the event loop, its
+\fItimeout\fR
+will be adjusted to match the new value, if any.
+.sp
+The
+\fBadd\fR()
+function returns 1 on success, and \-1 if a error occurred.
+.RE
+.TP 6n
+\fIdel\fR
+.nf
+.RS 6n
+int (*del)(struct sudo_plugin_event *pev);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBdel\fR()
+function deletes the event
+\fIpev\fR
+from
+\fBsudo\fR's
+event loop.
+Deleted events can be added back via the
+\fBadd\fR()
+function.
+.sp
+The
+\fBdel\fR()
+function returns 1 on success, and \-1 if a error occurred.
+.RE
+.TP 6n
+\fIpending\fR
+.nf
+.RS 6n
+int (*pending)(struct sudo_plugin_event *pev, int events,
+    struct timespec *ts);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBpending\fR()
+function can be used to determine whether one or more events is pending.
+The
+\fIevents\fR
+argument specifies which events to check for.
+See the
+\fBset\fR()
+function for a list of valid event types.
+If
+\fRSUDO_PLUGIN_EV_TIMEOUT\fR
+is specified in
+\fIevents\fR,
+the event has an associated timeout and the
+\fIts\fR
+pointer is non-NULL, it will be filled in with the remaining time.
+.RE
+.TP 6n
+\fIfd\fR
+.nf
+.RS 6n
+int (*fd)(struct sudo_plugin_event *pev);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBfd\fR()
+function returns the descriptor or signal number associated with
+the event
+\fIpev\fR.
+.RE
+.TP 6n
+\fIsetbase\fR
+.nf
+.RS 6n
+void (*setbase)(struct sudo_plugin_event *pev, void *base);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBsetbase\fR()
+function sets the underlying event
+\fIbase\fR
+for
+\fIpev\fR
+to the specified value.
+This can be used to move an event created via
+\fBevent_alloc\fR()
+to a new event loop allocated by sudo's event subsystem.
+If
+\fIbase\fR
+is
+\fRNULL\fR,
+\fIpev\fR's
+event base is reset to the default value, which corresponds to
+\fBsudo\fR's
+main event loop.
+Using this function requires linking the plugin with the sudo_util
+library.
+It is unlikely to be used outside of the
+\fBsudoers\fR
+plugin.
+.RE
+.TP 6n
+\fIloopbreak\fR
+.nf
+.RS 6n
+void (*loopbreak)(struct sudo_plugin_event *pev);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBloopbreak\fR()
+function causes
+\fBsudo\fR's
+event loop to exit immediately and the running command to be terminated.
+.RE
+.TP 6n
+\fIfree\fR
+.nf
+.RS 6n
+void (*free)(struct sudo_plugin_event *pev);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBfree\fR()
+function deletes the event
+\fIpev\fR
+from the event loop and frees the memory associated with it.
+.RE
+.SS "Remote command execution"
+The
+\fBsudo\fR
+front-end does not support running remote commands.
+However, starting with
+\fBsudo\fR
+1.8.8, the
+\fB\-h\fR
+option may be used to specify a remote host that is passed
+to the policy plugin.
+A plugin may also accept a
+\fIrunas_user\fR
+in the form of
+\(lquser@hostname\(rq
+which will work with older versions of
+\fBsudo\fR.
+It is anticipated that remote commands will be supported by executing a
+\(lqhelper\(rq
+program.
+The policy plugin should setup the execution environment such that the
+\fBsudo\fR
+front-end will run the helper which, in turn, will connect to the
+remote host and run the command.
+.PP
+For example, the policy plugin could utilize
+\fBssh\fR
+to perform remote command execution.
+The helper program would be responsible for running
+\fBssh\fR
+with the proper options to use a private key or certificate
+that the remote host will accept and run a program
+on the remote host that would setup the execution environment
+accordingly.
+.PP
+Remote
+\fBsudoedit\fR
+functionality must be handled by the policy plugin, not
+\fBsudo\fR
+itself as the front-end has no knowledge that a remote command is
+being executed.
+This may be addressed in a future revision of the plugin API.
+.SS "Conversation API"
+If the plugin needs to interact with the user, it may do so via the
+\fBconversation\fR()
+function.
+A plugin should not attempt to read directly from the standard input
+or the user's terminal (neither of which are guaranteed to exist).
+The caller must include a trailing newline in
+\fImsg\fR
+if one is to be printed.
+.PP
+A
+\fBprintf\fR()-style
+function is also available that can be used to display informational
+or error messages to the user, which is usually more convenient for
+simple messages where no use input is required.
+.PP
+\fIConversation function structures\fR
+.PP
+The conversation function takes as arguments pointers to the following
+structures:
+.nf
+.sp
+.RS 0n
+struct sudo_conv_message {
+#define SUDO_CONV_PROMPT_ECHO_OFF  0x0001 /* do not echo user input */
+#define SUDO_CONV_PROMPT_ECHO_ON   0x0002 /* echo user input */
+#define SUDO_CONV_ERROR_MSG        0x0003 /* error message */
+#define SUDO_CONV_INFO_MSG         0x0004 /* informational message */
+#define SUDO_CONV_PROMPT_MASK      0x0005 /* mask user input */
+#define SUDO_CONV_PROMPT_ECHO_OK   0x1000 /* flag: allow echo if no tty */
+#define SUDO_CONV_PREFER_TTY       0x2000 /* flag: use tty if possible */
+    int msg_type;
+    int timeout;
+    const char *msg;
+};
+
+#define SUDO_CONV_REPL_MAX      1023
+
+struct sudo_conv_reply {
+    char *reply;
+};
+
+typedef int (*sudo_conv_callback_fn_t)(int signo, void *closure);
+struct sudo_conv_callback {
+    unsigned int version;
+    void *closure;
+    sudo_conv_callback_fn_t on_suspend;
+    sudo_conv_callback_fn_t on_resume;
+};
+.RE
+.fi
+.PP
+Pointers to the
+\fBconversation\fR()
+and
+\fBprintf\fR()-style
+functions are passed
+in to the plugin's
+\fBopen\fR()
+function when the plugin is initialized.
+The following type definitions can be used in the declaration of the
+\fBopen\fR()
+function:
+.nf
+.sp
+.RS 0n
+typedef int (*sudo_conv_t)(int num_msgs,
+    const struct sudo_conv_message msgs[],
+    struct sudo_conv_reply replies[], struct sudo_conv_callback *callback);
+
+typedef int (*sudo_printf_t)(int msg_type, const char * restrict fmt, ...);
+.RE
+.fi
+.PP
+To use the
+\fBconversation\fR()
+function, the plugin must pass an array of
+\fIstruct sudo_conv_message\fR
+and
+\fIstruct sudo_conv_reply\fR.
+There must be a
+\fIstruct sudo_conv_message\fR
+and
+\fIstruct sudo_conv_reply\fR
+for each message in the conversation, that is, both arrays must
+have the same number of elements.
+Each
+\fIstruct sudo_conv_reply\fR
+must have its
+\fIreply\fR
+member initialized to
+\fRNULL\fR.
+The
+\fIstruct sudo_conv_callback\fR
+pointer, if not
+\fRNULL\fR,
+should contain function pointers to be called when the
+\fBsudo\fR
+process is suspended and/or resumed during conversation input.
+The
+\fIon_suspend\fR
+and
+\fIon_resume\fR
+functions are called with the signal that caused
+\fBsudo\fR
+to be suspended and the
+\fIclosure\fR
+pointer from the
+\fIstruct sudo_conv_callback\fR.
+These functions should return 0 on success and \-1 on error.
+On error, the conversation will end and the conversation function
+will return a value of \-1.
+The intended use is to allow the plugin to release resources, such as locks,
+that should not be held indefinitely while suspended and then reacquire them
+when the process is resumed.
+The functions are not actually invoked from within a signal handler.
+.PP
+The
+\fImsg_type\fR
+must be set to one of the following values:
+.TP 6n
+\fRSUDO_CONV_PROMPT_ECHO_OFF\fR
+Prompt the user for input with echo disabled;
+this is generally used for passwords.
+The reply will be stored in the
+\fIreplies\fR
+array, and it will never be
+\fRNULL\fR.
+.TP 6n
+\fRSUDO_CONV_PROMPT_ECHO_ON\fR
+Prompt the user for input with echo enabled.
+The reply will be stored in the
+\fIreplies\fR
+array, and it will never be
+\fRNULL\fR.
+.TP 6n
+\fRSUDO_CONV_ERROR_MSG\fR
+Display an error message.
+The message is written to the standard error unless the
+\fRSUDO_CONV_PREFER_TTY\fR
+flag is set, in which case it is written to the user's terminal if possible.
+.TP 6n
+\fRSUDO_CONV_INFO_MSG\fR
+Display a message.
+The message is written to the standard output unless the
+\fRSUDO_CONV_PREFER_TTY\fR
+flag is set, in which case it is written to the user's terminal if possible.
+.TP 6n
+\fRSUDO_CONV_PROMPT_MASK\fR
+Prompt the user for input but echo an asterisk character for each
+character read.
+The reply will be stored in the
+\fIreplies\fR
+array, and it will never be
+\fRNULL\fR.
+This can be used to provide visual feedback to the user while reading
+sensitive information that should not be displayed.
+.PP
+In addition to the above values, the following flag bits may also be set:
+.TP 6n
+\fRSUDO_CONV_PROMPT_ECHO_OK\fR
+Allow input to be read when echo cannot be disabled
+when the message type is
+\fRSUDO_CONV_PROMPT_ECHO_OFF\fR
+or
+\fRSUDO_CONV_PROMPT_MASK\fR.
+By default,
+\fBsudo\fR
+will refuse to read input if the echo cannot be disabled for those
+message types.
+.TP 6n
+\fRSUDO_CONV_PREFER_TTY\fR
+When displaying a message via
+\fRSUDO_CONV_ERROR_MSG\fR
+or
+\fRSUDO_CONV_INFO_MSG\fR,
+try to write the message to the user's terminal.
+If the terminal is unavailable, the standard error or standard output
+will be used, depending upon whether
+\fRSUDO_CONV_ERROR_MSG\fR
+or
+\fRSUDO_CONV_INFO_MSG\fR
+was used.
+The user's terminal is always used when possible for input,
+this flag is only used for output.
+.PP
+The
+\fItimeout\fR
+in seconds until the prompt will wait for no more input.
+A zero value implies an infinite timeout.
+.PP
+The plugin is responsible for freeing the reply buffer located in each
+\fIstruct sudo_conv_reply\fR,
+if it is not
+\fRNULL\fR.
+\fRSUDO_CONV_REPL_MAX\fR
+represents the maximum length of the reply buffer (not including
+the trailing NUL character).
+In practical terms, this is the longest password
+\fBsudo\fR
+will support.
+.PP
+The
+\fBprintf\fR()-style
+function uses the same underlying mechanism as the
+\fBconversation\fR()
+function but only supports
+\fRSUDO_CONV_INFO_MSG\fR
+and
+\fRSUDO_CONV_ERROR_MSG\fR
+for the
+\fImsg_type\fR
+parameter.
+It can be more convenient than using the
+\fBconversation\fR()
+function if no user reply is needed and supports standard
+\fBprintf\fR()
+escape sequences.
+.PP
+See the sample plugin for an example of the
+\fBconversation\fR()
+function usage.
+.SS "Plugin invocation order"
+As of
+\fBsudo\fR
+1.9.0, the plugin
+\fBopen\fR()
+and
+\fBclose\fR()
+functions are called in the
+following order:
+.TP 5n
+1.\&
+audit open
+.TP 5n
+2.\&
+policy open
+.TP 5n
+3.\&
+approval open
+.TP 5n
+4.\&
+approval close
+.TP 5n
+5.\&
+I/O log open
+.TP 5n
+6.\&
+command runs
+.TP 5n
+7.\&
+command exits
+.TP 5n
+8.\&
+I/O log close
+.TP 5n
+9.\&
+policy close
+.TP 5n
+10.\&
+audit close
+.TP 5n
+11.\&
+sudo exits
+.PP
+Prior to
+\fBsudo\fR
+1.9.0, the I/O log
+\fBclose\fR()
+function was called
+\fIafter\fR
+the policy
+\fBclose\fR()
+function.
+.SS "Sudoers group plugin API"
+The
+\fBsudoers\fR
+plugin supports its own plugin interface to allow non-Unix
+group lookups.
+This can be used to query a group source other than the standard Unix
+group database.
+Two sample group plugins are bundled with
+\fBsudo\fR,
+\fIgroup_file\fR,
+and
+\fIsystem_group\fR,
+are detailed in
+sudoers(@mansectform@).
+Third party group plugins include a QAS AD plugin available from Quest Software.
+.PP
+A group plugin must declare and populate a
+\fIstruct sudoers_group_plugin\fR
+in the global scope.
+This structure contains pointers to the functions that implement plugin
+initialization, cleanup, and group lookup.
+.nf
+.sp
+.RS 0n
+struct sudoers_group_plugin {
+    unsigned int version;
+    int (*init)(int version, sudo_printf_t sudo_plugin_printf,
+        char *const argv[]);
+    void (*cleanup)(void);
+    int (*query)(const char *user, const char *group,
+        const struct passwd *pwd);
+};
+.RE
+.fi
+.PP
+A
+\fIstruct sudoers_group_plugin\fR
+has the following fields:
+.TP 6n
+\fIversion\fR
+The
+\fIversion\fR
+field should be set to GROUP_API_VERSION.
+.sp
+This allows
+\fBsudoers\fR
+to determine the API version the group plugin
+was built against.
+.TP 6n
+\fIinit\fR
+.nf
+.RS 6n
+int (*init)(int version, sudo_printf_t sudo_plugin_printf,
+    char *const argv[]);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBinit\fR()
+function is called after
+\fIsudoers\fR
+has been parsed but
+before any policy checks.
+It returns 1 on success, 0 on failure (or if the plugin is not configured),
+and \-1 if a error occurred.
+If an error occurs, the plugin may call the
+\fBplugin_printf\fR()
+function with
+\fRSUDO_CONF_ERROR_MSG\fR
+to present additional error information to the user.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIversion\fR
+The version passed in by
+\fBsudoers\fR
+allows the plugin to determine the
+major and minor version number of the group plugin API supported by
+\fBsudoers\fR.
+.TP 6n
+\fIplugin_printf\fR
+A pointer to a
+\fBprintf\fR()-style
+function that may be used to display informational or error message to the user.
+Returns the number of characters printed on success and \-1 on failure.
+.TP 6n
+\fIargv\fR
+A
+\fRNULL\fR-terminated
+array of arguments generated from the
+\fIgroup_plugin\fR
+option in
+\fIsudoers\fR.
+If no arguments were given,
+\fIargv\fR
+will be
+\fRNULL\fR.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIcleanup\fR
+.nf
+.RS 6n
+void (*cleanup)();
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBcleanup\fR()
+function is called when
+\fBsudoers\fR
+has finished its
+group checks.
+The plugin should free any memory it has allocated and close open file handles.
+.RE
+.TP 6n
+\fIquery\fR
+.br
+.nf
+.RS 6n
+int (*query)(const char *user, const char *group,
+    const struct passwd *pwd);
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBquery\fR()
+function is used to ask the group plugin whether
+\fIuser\fR
+is a member of
+\fIgroup\fR.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIuser\fR
+The name of the user being looked up in the external group database.
+.TP 6n
+\fIgroup\fR
+.br
+The name of the group being queried.
+.TP 6n
+\fIpwd\fR
+The password database entry for
+\fIuser\fR,
+if any.
+If
+\fIuser\fR
+is not
+present in the password database,
+\fIpwd\fR
+will be
+\fRNULL\fR.
+.PD 0
+.PP
+.RE
+.PD
+.PP
+\fIGroup API Version Macros\fR
+.nf
+.sp
+.RS 0n
+/* Sudoers group plugin version major/minor */
+#define GROUP_API_VERSION_MAJOR 1
+#define GROUP_API_VERSION_MINOR 0
+#define GROUP_API_VERSION ((GROUP_API_VERSION_MAJOR << 16) | \e
+                           GROUP_API_VERSION_MINOR)
+.RE
+.fi
+For getters and setters see the
+\fIPolicy plugin API\fR.
+.SH "PLUGIN API CHANGELOG"
+The following revisions have been made to the Sudo Plugin API.
+.TP 6n
+Version 1.0
+Initial API version.
+.TP 6n
+Version 1.1 (sudo 1.8.0)
+The I/O logging plugin's
+\fBopen\fR()
+function was modified to take the
+\fIcommand_info\fR
+list as an argument.
+.TP 6n
+Version 1.2 (sudo 1.8.5)
+The Policy and I/O logging plugins'
+\fBopen\fR()
+functions are now passed
+a list of plugin parameters if any are specified in
+sudo.conf(@mansectform@).
+.sp
+A simple hooks API has been introduced to allow plugins to hook in to the
+system's environment handling functions.
+.sp
+The
+\fBinit_session\fR()
+Policy plugin function is now passed a pointer
+to the user environment which can be updated as needed.
+This can be used to merge in environment variables stored in the PAM
+handle before a command is run.
+.TP 6n
+Version 1.3 (sudo 1.8.7)
+Support for the
+\fIexec_background\fR
+entry has been added to the
+\fIcommand_info\fR
+list.
+.sp
+The
+\fImax_groups\fR
+and
+\fIplugin_dir\fR
+entries were added to the
+\fIsettings\fR
+list.
+.sp
+The
+\fBversion\fR()
+and
+\fBclose\fR()
+functions are now optional.
+Previously, a missing
+\fBversion\fR()
+or
+\fBclose\fR()
+function would result in a crash.
+If no policy plugin
+\fBclose\fR()
+function is defined, a default
+\fBclose\fR()
+function will be provided by the
+\fBsudo\fR
+front-end that displays a warning if the command could not be
+executed.
+.sp
+The
+\fBsudo\fR
+front-end now installs default signal handlers to trap common signals
+while the plugin functions are run.
+.TP 6n
+Version 1.4 (sudo 1.8.8)
+The
+\fIremote_host\fR
+entry was added to the
+\fIsettings\fR
+list.
+.TP 6n
+Version 1.5 (sudo 1.8.9)
+The
+\fIpreserve_fds\fR
+entry was added to the
+\fIcommand_info\fR
+list.
+.TP 6n
+Version 1.6 (sudo 1.8.11)
+The behavior when an I/O logging plugin returns an error
+(\-1)
+has changed.
+Previously, the
+\fBsudo\fR
+front-end took no action when the
+\fBlog_ttyin\fR(),
+\fBlog_ttyout\fR(),
+\fBlog_stdin\fR(),
+\fBlog_stdout\fR(),
+or
+\fBlog_stderr\fR()
+function returned an error.
+.sp
+The behavior when an I/O logging plugin returns 0 has changed.
+Previously, output from the command would be displayed to the
+terminal even if an output logging function returned 0.
+.TP 6n
+Version 1.7 (sudo 1.8.12)
+The
+\fIplugin_path\fR
+entry was added to the
+\fIsettings\fR
+list.
+.sp
+The
+\fIdebug_flags\fR
+entry now starts with a debug file path name and may occur multiple
+times if there are multiple plugin-specific Debug lines in the
+sudo.conf(@mansectform@) file.
+.TP 6n
+Version 1.8 (sudo 1.8.15)
+The
+\fIsudoedit_checkdir\fR
+and
+\fIsudoedit_follow\fR
+entries were added to the
+\fIcommand_info\fR
+list.
+The default value of
+\fIsudoedit_checkdir\fR
+was changed to true in sudo 1.8.16.
+.sp
+The sudo
+\fBconversation\fR()
+function now takes a pointer to a
+\fIstruct sudo_conv_callback\fR
+as its fourth argument.
+The
+\fIsudo_conv_t\fR
+definition has been updated to match.
+The plugin must specify that it supports plugin API version 1.8 or higher
+to receive a conversation function pointer that supports this argument.
+.TP 6n
+Version 1.9 (sudo 1.8.16)
+The
+\fIexecfd\fR
+entry was added to the
+\fIcommand_info\fR
+list.
+.TP 6n
+Version 1.10 (sudo 1.8.19)
+The
+\fIumask\fR
+entry was added to the
+\fIuser_info\fR
+list.
+The
+\fIiolog_group\fR,
+\fIiolog_mode\fR,
+and
+\fIiolog_user\fR
+entries were added to the
+\fIcommand_info\fR
+list.
+.TP 6n
+Version 1.11 (sudo 1.8.20)
+The
+\fItimeout\fR
+entry was added to the
+\fIsettings\fR
+list.
+.TP 6n
+Version 1.12 (sudo 1.8.21)
+The
+\fBchange_winsize\fR()
+function was added to
+\fIstruct io_plugin\fR.
+.TP 6n
+Version 1.13 (sudo 1.8.26)
+The
+\fBlog_suspend\fR()
+function was added to
+\fIstruct io_plugin\fR.
+.TP 6n
+Version 1.14 (sudo 1.8.29)
+The
+\fIumask_override\fR
+entry was added to the
+\fIcommand_info\fR
+list.
+.TP 6n
+Version 1.15 (sudo 1.9.0)
+The
+\fIcwd_optional\fR
+entry was added to the
+\fIcommand_info\fR
+list.
+.sp
+The
+\fBevent_alloc\fR()
+function was added to
+\fIstruct policy_plugin\fR
+and
+\fIstruct io_plugin\fR.
+.sp
+The
+\fIerrstr\fR
+argument was added to the policy and I/O plugin functions
+which the plugin function can use to return an error string.
+This string may be used by the audit plugin to report failure or
+error conditions set by the other plugins.
+.sp
+The
+\fBclose\fR()
+function is now is called regardless of whether or not a command
+was actually executed.
+This makes it possible for plugins to perform cleanup even when a
+command was not run.
+.sp
+\fRSUDO_CONV_REPL_MAX\fR
+has increased from 255 to 1023 bytes.
+.sp
+Support for audit and approval plugins was added.
+.TP 6n
+Version 1.16 (sudo 1.9.3)
+Initial resource limit values were added to the
+\fIuser_info\fR
+list.
+.sp
+The
+\fIcmnd_chroot\fR
+and
+\fIcmnd_cwd\fR
+entries were added to the
+\fIsettings\fR
+list.
+.TP 6n
+Version 1.17 (sudo 1.9.4)
+The
+\fBevent_alloc\fR()
+function was added to
+\fIstruct audit_plugin\fR
+and
+\fIstruct approval_plugin\fR.
+.TP 6n
+Version 1.18 (sudo 1.9.9)
+The policy may now set resource limit values in the
+\fIcommand_info\fR
+list.
+The
+\fIintercept\fR
+and
+\fIlog_subcmds\fR
+entries were added to the
+\fIcommand_info\fR
+list.
+.TP 6n
+Version 1.19 (sudo 1.9.11)
+The
+\fIintercept_ptrace\fR
+and
+\fIintercept_setid\fR
+entries were added to the
+\fIsettings\fR
+list.
+The
+\fIapparmor_profile\fR
+and
+\fIuse_ptrace\fR
+entries were added to the
+\fIcommand_info\fR
+list.
+.TP 6n
+Version 1.20 (sudo 1.9.12)
+The
+\fIupdate_ticket\fR
+entry was added to the
+\fIsettings\fR
+list.
+The
+\fIintercept_verify\fR
+entry was added to the
+\fIcommand_info\fR
+list.
+.TP 6n
+Version 1.21 (sudo 1.9.13)
+The
+\fIsudoedit_nfiles\fR
+entry was added to the
+\fIcommand_info\fR
+list.
+.SH "SEE ALSO"
+sudo.conf(@mansectform@),
+sudoers(@mansectform@),
+sudo(@mansectsu@)
+.SH "AUTHORS"
+Many people have worked on
+\fBsudo\fR
+over the years; this version consists of code written primarily by:
+.sp
+.RS 6n
+Todd C. Miller
+.RE
+.PP
+See the CONTRIBUTORS.md file in the
+\fBsudo\fR
+distribution (https://www.sudo.ws/about/contributors/) for an
+exhaustive list of people who have contributed to
+\fBsudo\fR.
+.SH "BUGS"
+If you believe you have found a bug in
+\fBsudo\fR,
+you can submit a bug report at https://bugzilla.sudo.ws/
+.SH "SUPPORT"
+Limited free support is available via the sudo-users mailing list,
+see https://www.sudo.ws/mailman/listinfo/sudo-users to subscribe or
+search the archives.
+.SH "DISCLAIMER"
+\fBsudo\fR
+is provided
+\(lqAS IS\(rq
+and any express or implied warranties, including, but not limited
+to, the implied warranties of merchantability and fitness for a
+particular purpose are disclaimed.
+See the LICENSE.md file distributed with
+\fBsudo\fR
+or https://www.sudo.ws/about/license/ for complete details.

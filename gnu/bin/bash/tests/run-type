@@ -1,0 +1,2 @@
+${THIS_SH} ./type.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} type.right && rm -f ${BASH_TSTOUT}

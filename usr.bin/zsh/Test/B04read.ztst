@@ -1,0 +1,112 @@
+# Tests for the read builtin
+
+# Tested elsewhere:
+#  reading from a coprocess  A01grammar, A04redirect
+
+# Not tested:
+#  -c/-l/-n (options for compctl functions)
+#  -q/-s (needs a tty)
+
+%test
+
+ read <<<'hello world'
+ print $REPLY
+0:basic read command
+>hello world
+
+ read -A <<<'hello world'
+ print $reply[2]
+0:array read
+>world
+
+ read -k3 -u0 <<<foo:bar
+ print $REPLY
+0:read specified number of chars
+>foo
+
+ for char in y Y n N X $'\n'; do
+   read -q -u0 <<<$char
+   print $?
+ done
+0:read yes or no, default no
+>0
+>0
+>1
+>1
+>1
+>1
+
+ read -d: <<<foo:bar
+ print $REPLY
+0:read up to delimiter
+>foo
+
+ print foo:bar|IFS=: read -A
+ print $reply
+0:use different, IFS separator to array
+>foo bar
+
+ print -z hello world; read -z
+ print $REPLY
+0:read from editor buffer stack
+>hello world
+
+ unset REPLY
+ read -E <<<hello
+ print $REPLY
+0:read with echoing and assigning
+>hello
+>hello
+
+ unset REPLY
+ read -e <<<hello
+ print $REPLY
+0:read with echoing but assigning disabled
+>hello
+>
+
+ read -e -t <<<hello
+0:read with test first
+>hello
+
+ SECONDS=0
+ read -e -t 5 <<<hello
+ print $SECONDS
+0:read with timeout (no waiting should occur)
+>hello
+>0
+
+ print -n 'Testing the\0null hypothesis\0' |
+ while read -d $'\0' line; do print $line; done
+0:read with null delimiter
+>Testing the
+>null hypothesis
+
+# Note that trailing NULLs are not stripped even if they are in
+# $IFS; only whitespace characters contained in $IFS are stripped.
+ print -n $'Aaargh, I hate nulls.\0\0\0' | read line
+ print ${#line}
+0:read with trailing metafied characters
+>24
+
+ (typeset -r foo
+  read foo) <<<bar
+1:return status on failing to set parameter
+?(eval):2: read-only variable: foo
+
+  read -AE array <<<'one two three'
+  print ${(j.:.)array}
+0:Behaviour of -A and -E combination
+>one
+>two
+>three
+>one:two:three
+
+  array=()
+  read -Ae array <<<'four five six'
+  print ${(j.:.)array}
+0:Behaviour of -A and -e combination
+>four
+>five
+>six
+>

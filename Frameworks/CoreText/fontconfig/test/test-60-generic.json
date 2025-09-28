@@ -1,0 +1,34 @@
+{
+    "fonts": [
+        {
+            "family": "Foo",
+            "color": true
+        },
+        {
+            "family": "Bar",
+            "color": false
+        },
+        {
+            "family": "Baz",
+            "color": "DontCare"
+        }
+    ],
+    "tests": [
+        {
+            "method": "list",
+            "query": {
+                "color": true
+            },
+            "result_fs": [
+                {
+                    "family": "Foo",
+                    "color": true
+                },
+                {
+                    "family": "Baz",
+                    "color": "DontCare"
+                }
+            ]
+        }
+    ]
+}

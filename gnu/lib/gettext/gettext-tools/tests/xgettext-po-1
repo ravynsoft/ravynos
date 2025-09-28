@@ -1,0 +1,79 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C, C++, PO extractors.
+
+cat <<EOF > xg-po-1.in.po
+#: file1.c:199
+#, fuzzy
+msgid "extract me"
+msgstr "some text to get fuzzy copied to result"
+
+#: file2.cc:200
+msgid "what about me"
+msgstr ""
+
+#: file3.c:10
+#, c-format, fuzzy
+msgid "hello"
+msgstr "Again some text for fuzzy"
+EOF
+
+cat <<EOF > xg-po-1.c
+#include <libintl.h>
+#include <stdio.h>
+int
+main (int argc, char *argv[])
+{
+  printf (dcgettext ("hello", "Hello, world."));
+  return 0;
+}
+EOF
+
+cat <<EOF > xg-po-1.cc
+#include <iostream.h>
+#include <libintl.h>
+#include <locale.h>
+int
+main (int argc, char *argv[])
+{
+  cout << dcgettext ("hello", "Hello world!", LC_MESSAGES) << endl;
+  return 0;
+}
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header -n \
+  -d xg-po-1.tmp xg-po-1.in.po xg-po-1.c xg-po-1.cc || Exit 1
+LC_ALL=C tr -d '\r' < xg-po-1.tmp.po > xg-po-1.po || Exit 1
+
+cat <<EOF > xg-po-1.ok
+#: file1.c:199
+#, fuzzy
+msgid "extract me"
+msgstr "some text to get fuzzy copied to result"
+
+#: file2.cc:200
+msgid "what about me"
+msgstr ""
+
+#: file3.c:10
+#, fuzzy, c-format
+msgid "hello"
+msgstr "Again some text for fuzzy"
+
+#: xg-po-1.c:6
+#, c-format
+msgid "Hello, world."
+msgstr ""
+
+#: xg-po-1.cc:7
+msgid "Hello world!"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-po-1.ok xg-po-1.po
+result=$?
+
+exit $result

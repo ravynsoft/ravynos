@@ -1,0 +1,171 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+set -o posix
+
+fn() { foo=abc : ; typeset +x foo; printenv|grep ^foo=; }
+
+fn
+unset -v foo
+unset -f fn
+
+func1() {
+  var=1
+  var=2 :       # or 'var=2 return', or another special builtin
+  unset -v var
+  echo $FUNCNAME: var = $var
+}
+func2() {
+  func1
+  unset -v var  # bug: fails silently
+}
+func1
+echo ${var+"BUG: still set 1"}
+
+unset var
+func2
+echo ${var+"BUG: still set 2"}
+
+unset -v var
+unset -f func1 func2
+
+fn() { foo=abc : ; typeset +x foo; echo -n 'inside: ' ; declare -p foo; }
+fn
+echo outside:
+declare -p foo
+
+unset -v foo
+unset -f fn
+
+func()
+{
+	var=value declare -x var
+	echo -n 'inside: ' ; declare -p var
+}
+
+var=one
+func
+echo -n 'outside: ' ; declare -p var
+
+unset -v var
+unset -f func
+
+# this will probably change behavior; export shouldn't behave like this when
+# not in posix mode and the sequencing is probably wrong in posix mode. since
+# export is a special builtin, the variable assignment should modify the
+# local variable, as if a standalone assignment statement had been executed
+# (posix modifying "the current execution environment") leaving the global
+# variable unchanged. all shells, including bash, modify the local variable;
+# bash was the only one that propagates the value out to the calling
+# environment, but no longer does so.
+
+func()
+{
+	local var=inside
+	var=value export var
+	echo -n 'inside: ' ; declare -p var
+}
+
+var=outside
+func
+echo -n 'outside: ' ; declare -p var
+
+unset -v var
+unset -f func
+
+func()
+{
+	local var=local
+	var=inside :
+	echo -n 'inside: ' ; declare -p var
+}
+
+var=outside
+func
+echo -n 'outside: ' ; declare -p var
+
+unset -v var
+unset -f func
+
+func()
+{
+	echo -n 'inside func: ' ; echo "var=${var-<unset>}"
+}
+
+unset -v var
+var=one :
+echo -n 'outside 1.0: ' ; echo "var=${var-<unset>}"
+
+unset -v var
+var=one eval ':'
+echo -n 'outside 1.1: ' ; echo "var=${var-<unset>}"
+
+unset -v var
+
+var=two func
+echo -n 'outside 2.0: ' ; echo "var=${var-<unset>}"
+var=global
+var=two func
+echo -n 'outside 2.1: ' ; echo "var=${var-<unset>}"
+
+unset -v var
+unset -f func
+
+func1()
+{
+	var=value export var
+	echo -n 'inside func1: ' ; echo "var=${var-<unset>}"
+}
+
+var=outside
+func1
+echo -n 'outside 3.0: ' ; echo "var=${var-<unset>}"
+
+unset -v var
+unset -f func1
+
+func2()
+{
+	local var=local
+	var=global :
+	echo -n 'inside func2: ' ; echo "var=${var-<unset>}"
+}
+
+var=outside
+func2
+echo -n 'outside 4.0: ' ; echo "var=${var-<unset>}"
+
+unset -v var
+unset -f fecho foo bar
+
+fecho() {
+    echo $var
+}
+
+foo() {
+    local var="foo: bye bye"
+    var="foo: hello world" fecho
+}
+
+bar() {
+    var="bar: hello world" fecho
+}
+
+var=global
+var=outside foo
+echo after foo: var=$var
+var=global
+var=outside bar
+echo after bar: var=$var
+
+unset -v var

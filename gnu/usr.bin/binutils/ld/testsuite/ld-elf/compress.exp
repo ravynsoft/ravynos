@@ -1,0 +1,272 @@
+# Expect script for ELF compressed debug section tests.
+#   Copyright (C) 2010-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+# Exclude non-ELF targets.
+
+if ![is_elf_format] {
+    return
+}
+
+# Skip targets where -shared is not supported
+
+if ![check_shared_lib_support] {
+    return
+}
+
+# Check if compiler works
+if { ![check_compiler_available] } {
+    return
+}
+
+if { ![ld_assemble $as "--compress-debug-sections $srcdir/$subdir/empty.s" tmpdir/empty.o ] } {
+    fail "linker compressed debug sections"
+}
+
+if { ![ld_assemble $as "--compress-debug-sections=zlib-gabi $srcdir/$subdir/empty.s" tmpdir/emptyzlib.o ] } {
+    fail "linker compressed debug sections"
+}
+
+set build_tests {
+  {"Build libfoo.so with compressed debug sections"
+   "-shared" "-fPIC -ggdb3 -Wa,--compress-debug-sections"
+   {foo.c} {} "libfoo.so"}
+  {"Build libbar.so with compressed debug sections"
+   "-shared -Wl,--compress-debug-sections=none"
+   "-fPIC -ggdb3 -Wa,--compress-debug-sections"
+   {begin.c end.c} {} "libbar.so"}
+  {"Build libfoozlib.so with compressed debug sections with zlib-gabi"
+   "-shared" "-fPIC -ggdb3 -Wa,--compress-debug-sections=zlib-gabi"
+   {foo.c} {} "libfoozlib.so"}
+  {"Build libbarzlib.so with compressed debug sections with zlib-gabi"
+   "-shared" "-fPIC -ggdb3 -Wa,--compress-debug-sections=zlib-gabi"
+   {begin.c end.c} {} "libbarzlib.so"}
+  {"Build libzlibfoo.so with zlib compressed debug sections"
+   "-shared -Wl,--compress-debug-sections=zlib"
+   "-fPIC -ggdb3 -Wa,--compress-debug-sections=zlib"
+   {foo.c} {} "libzlibfoo.so"}
+  {"Build libgnufoo.so with zlib-gnu compressed debug sections"
+   "-shared -Wl,--compress-debug-sections=zlib-gnu"
+   "-fPIC -ggdb3 -Wa,--compress-debug-sections=zlib-gnu"
+   {foo.c} {} "libgnufoo.so"}
+  {"Build libgabifoo.so with zlib-gabi compressed debug sections"
+   "-shared -Wl,--compress-debug-sections=zlib-gabi"
+   "-fPIC -ggdb3 -Wa,--compress-debug-sections=zlib-gabi"
+   {foo.c} {} "libgabifoo.so"}
+  {"Build zlibbegin.o with zlib compressed debug sections"
+   "-r -nostdlib -Wl,--compress-debug-sections=zlib"
+   "-ggdb3 -Wa,--compress-debug-sections=zlib"
+   {begin.c} {} "zlibbegin.o"}
+  {"Build gnubegin.o with zlib-gnu compressed debug sections"
+   "-r -nostdlib -Wl,--compress-debug-sections=zlib-gnu"
+   "-ggdb3 -Wa,--compress-debug-sections=zlib-gnu"
+   {begin.c} {} "gnubegin.o"}
+  {"Build gabiend.o with zlib-gabi compressed debug sections"
+   "-r -nostdlib -Wl,--compress-debug-sections=zlib-gabi"
+   "-ggdb3 -Wa,--compress-debug-sections=zlib-gnu"
+   {end.c} {} "gabiend.o"}
+}
+
+set run_tests {
+    {"Run normal with libfoo.so with compressed debug sections"
+     "tmpdir/begin.o tmpdir/libfoo.so tmpdir/end.o" ""
+     {main.c} "normal" "normal.out" "-Wa,--compress-debug-sections"}
+    {"Run normal with libfoozlib.so with compressed debug sections with zlib-gabi"
+     "tmpdir/begin.o tmpdir/libfoozlib.so tmpdir/end.o" ""
+     {main.c} "normal" "normal.out" "-Wa,--compress-debug-sections=zlib-gabi"}
+    {"Run zlibnormal with libzlibfoo.so with zlib compressed debug sections"
+     "tmpdir/begin.o tmpdir/libzlibfoo.so tmpdir/end.o -Wl,--compress-debug-sections=zlib" ""
+     {main.c} "zlibnormal" "normal.out" "-Wa,--compress-debug-sections=zlib"}
+    {"Run zlibnormal with libfoozlib.so with zlib compressed debug sections"
+     "tmpdir/begin.o tmpdir/libfoozlib.so tmpdir/end.o -Wl,--compress-debug-sections=zlib" ""
+     {main.c} "zlibnormal" "normal.out" "-Wa,--compress-debug-sections=zlib"}
+    {"Run gnunormal with libgnufoo.so with zlib-gnu compressed debug sections"
+     "tmpdir/gnubegin.o tmpdir/libgnufoo.so tmpdir/end.o -Wl,--compress-debug-sections=zlib-gnu" ""
+     {main.c} "gnunormal" "normal.out" "-Wa,--compress-debug-sections=zlib-gnu"}
+    {"Run gnunormal with libfoozlib.so with zlib-gnu compressed debug sections"
+     "tmpdir/gnubegin.o tmpdir/libfoozlib.so tmpdir/end.o -Wl,--compress-debug-sections=zlib-gnu" ""
+     {main.c} "gnunormal" "normal.out" "-Wa,--compress-debug-sections=zlib-gnu"}
+    {"Run gabinormal with libgabifoo.so with zlib-gabi compressed debug sections"
+     "tmpdir/zlibbegin.o tmpdir/libgabifoo.so tmpdir/gabiend.o -Wl,--compress-debug-sections=zlib-gabi" ""
+     {main.c} "gabinormal" "normal.out" "-Wa,--compress-debug-sections=zlib-gabi"}
+    {"Run gabinormal with libfoozlib.so with zlib-gabi compressed debug sections"
+     "tmpdir/zlibbegin.o tmpdir/libfoozlib.so tmpdir/gabiend.o -Wl,--compress-debug-sections=zlib-gabi" ""
+     {main.c} "gabinormal" "normal.out" "-Wa,--compress-debug-sections=zlib-gabi"}
+}
+
+run_cc_link_tests $build_tests
+run_ld_link_exec_tests $run_tests
+
+set test_name "Link with zlib-gabi compressed debug input"
+send_log "cmp tmpdir/libfoo.so tmpdir/libfoozlib.so\n"
+if { [catch {exec cmp tmpdir/libfoo.so tmpdir/libfoozlib.so}] } then {
+    send_log "tmpdir/libfoo.so tmpdir/libfoozlib.so differ.\n"
+    fail "$test_name"
+} else {
+    pass "$test_name"
+}
+
+set test_name "Link -r with zlib compressed debug output"
+set test zlibbegin
+send_log "$READELF -S -W tmpdir/$test.o > tmpdir/$test.out\n"
+set got [remote_exec host "$READELF -S -W tmpdir/$test.o" "" "/dev/null" "tmpdir/$test.out"]
+if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+    send_log "$got\n"
+    fail "$test_name"
+}
+if { [regexp_diff tmpdir/$test.out $srcdir/$subdir/$test.rS] } then {
+    fail "$test_name"
+} else {
+    pass "$test_name"
+}
+
+set test_name "Link -r with zlib-gnu compressed debug output"
+set test gnubegin
+send_log "$READELF -S -W tmpdir/$test.o > tmpdir/$test.out\n"
+set got [remote_exec host "$READELF -S -W tmpdir/$test.o" "" "/dev/null" "tmpdir/$test.out"]
+if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+    send_log "$got\n"
+    fail "$test_name"
+}
+if { [regexp_diff tmpdir/$test.out $srcdir/$subdir/$test.rS] } then {
+    fail "$test_name"
+} else {
+    pass "$test_name"
+}
+
+set test_name "Link -r with zlib-gabi compressed debug output"
+set test gabiend
+send_log "$READELF -t -W tmpdir/$test.o > tmpdir/$test.out\n"
+set got [remote_exec host "$READELF -t -W tmpdir/$test.o" "" "/dev/null" "tmpdir/$test.out"]
+if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+    send_log "$got\n"
+    fail "$test_name"
+}
+if { [regexp_diff tmpdir/$test.out $srcdir/$subdir/$test.rt] } then {
+    fail "$test_name"
+} else {
+    pass "$test_name"
+}
+
+set test_name "Link with zlib compressed debug output 1"
+set test normal
+send_log "$READELF -w tmpdir/$test > tmpdir/$test.out\n"
+set got [remote_exec host [concat sh -c [list "$READELF -w tmpdir/$test > tmpdir/$test.out"]] "" "/dev/null"]
+if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+    send_log "$got\n"
+    fail "$test_name"
+}
+
+set test_name "Link with zlib compressed debug output 2"
+set test zlibnormal
+send_log "$READELF -w tmpdir/$test | sed -e \"s/.zdebug_/.debug_/\" > tmpdir/$test.out\n"
+set got [remote_exec host [concat sh -c [list "$READELF -w tmpdir/$test | sed -e \"s/.zdebug_/.debug_/\" > tmpdir/$test.out"]] "" "/dev/null"]
+if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+    send_log "$got\n"
+    fail "$test_name"
+}
+if { [catch {exec cmp tmpdir/normal.out tmpdir/$test.out}] } then {
+    send_log "tmpdir/normal.out tmpdir/$test.out differ.\n"
+    fail "$test_name"
+} else {
+    pass "$test_name"
+}
+set test_name "Link with zlib compressed debug output 3"
+send_log "$READELF -S -W tmpdir/$test' > tmpdir/$test.out\n"
+set got [remote_exec host "$READELF -S -W tmpdir/$test" "" "/dev/null" "tmpdir/$test.out"]
+if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+    send_log "$got\n"
+    fail "$test_name"
+}
+if { [regexp_diff tmpdir/$test.out $srcdir/$subdir/$test.rS] } then {
+    fail "$test_name"
+} else {
+    pass "$test_name"
+}
+
+set test_name "Link with zlib-gnu compressed debug output 1"
+set test gnunormal
+send_log "$READELF -w tmpdir/$test | sed -e \"s/.zdebug_/.debug_/\" > tmpdir/$test.out\n"
+set got [remote_exec host [concat sh -c [list "$READELF -w tmpdir/$test | sed -e \"s/.zdebug_/.debug_/\" > tmpdir/$test.out"]] "" "/dev/null"]
+if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+    send_log "$got\n"
+    fail "$test_name"
+}
+if { [catch {exec cmp tmpdir/normal.out tmpdir/$test.out}] } then {
+    send_log "tmpdir/normal.out tmpdir/$test.out differ.\n"
+    fail "$test_name"
+} else {
+    pass "$test_name"
+}
+set test_name "Link with zlib-gnu compressed debug output 2"
+send_log "$READELF -S -W tmpdir/$test' > tmpdir/$test.out\n"
+set got [remote_exec host "$READELF -S -W tmpdir/$test" "" "/dev/null" "tmpdir/$test.out"]
+if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+    send_log "$got\n"
+    fail "$test_name"
+}
+if { [regexp_diff tmpdir/$test.out $srcdir/$subdir/$test.rS] } then {
+    fail "$test_name"
+} else {
+    pass "$test_name"
+}
+
+set test gabinormal
+set test_name "Link with zlib-gabi compressed debug output 1"
+send_log "$READELF -w tmpdir/$test > tmpdir/$test.out\n"
+set got [remote_exec host [concat sh -c [list "$READELF -w tmpdir/$test > tmpdir/$test.out"]] "" "/dev/null"]
+if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+    send_log "$got\n"
+    fail "$test_name"
+}
+if { [catch {exec cmp tmpdir/normal.out tmpdir/$test.out}] } then {
+    send_log "tmpdir/normal.out tmpdir/$test.out differ.\n"
+    fail "$test_name"
+} else {
+    pass "$test_name"
+}
+set test_name "Link with zlib-gabi compressed debug output 2"
+send_log "$READELF -t -W tmpdir/$test > tmpdir/$test.out\n"
+set got [remote_exec host "$READELF -t -W tmpdir/$test" "" "/dev/null" "tmpdir/$test.out"]
+if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+    send_log "$got\n"
+    fail "$test_name"
+}
+if { [regexp_diff tmpdir/$test.out $srcdir/$subdir/$test.rt] } then {
+    fail "$test_name"
+} else {
+    pass "$test_name"
+}
+
+if { [ld_assemble $as "--compress-debug-sections=zstd $srcdir/$subdir/empty.s" tmpdir/emptyzstd.o ] } {
+    set build_tests {
+      {"Build libzstdfoo.so with zstd compressed debug sections"
+       "-shared" "-fPIC -g -Wa,--compress-debug-sections=zstd -Wl,--compress-debug-sections=zstd"
+       {foo.c} {} "libzstdfoo.so"}
+    }
+    set run_tests {
+	{"Run zstdnormal with libzstdfoo.so with zstd compressed debug sections"
+	 "tmpdir/begin.o tmpdir/libzstdfoo.so tmpdir/end.o -Wl,--compress-debug-sections=zstd" ""
+	 {main.c} "zstdnormal" "normal.out" "-Wa,--compress-debug-sections=zstd"}
+    }
+
+    run_cc_link_tests $build_tests
+    run_ld_link_exec_tests $run_tests
+}

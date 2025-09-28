@@ -1,0 +1,75 @@
+#compdef svcadm
+
+local curcontext="$curcontext" state line expl subcmds
+typeset -A opt_args
+
+subcmds=( enable disable restart refresh mark delegate clear milestone )
+
+if [[ $service == "svcadm" ]]; then
+  _arguments -C -A "-*" \
+    '-v[print actions verbosely]' \
+    '*::command:->subcmd' && return 0
+
+  if (( CURRENT == 1 )); then
+    _wanted commands expl 'svcadm subcommand' compadd -a subcmds
+    return
+  fi
+  service="$words[1]"
+  curcontext="${curcontext%:*}-$service:"
+fi
+
+case $service in
+  (enable)
+    _arguments -A "-*" \
+      '-r[recursively enable dependencies]' \
+      '-s[wait for service to come online]' \
+      '-T[timeout for -s]:timeout (seconds)' \
+      '-t[state change is temporary]' \
+      '*:instance FMRI:_svcs_fmri -i'
+    ;;
+
+  (disable)
+    _arguments -A "-*" \
+      '-s[wait for service to become disabled]' \
+      '-T[timeout for -s]:timeout (seconds)' \
+      '-t[state change is temporary]' \
+      '*:instance FMRI:_svcs_fmri -i'
+  ;;
+
+  (mark)
+    _arguments -A "-*" \
+      '-I[change state immediately]' \
+      "-s[wait for service to reach the new state]" \
+      '-T[timeout for -s]:timeout (seconds)' \
+      '-t[state change is temporary]' \
+      ':state:(degraded maintenance)' \
+      ':instance FMRI:_svcs_fmri -i'
+  ;;
+
+  (restart|refresh|clear)
+    _arguments \
+      "-s[wait for service to $service]" \
+      '-T[timeout for -s]:timeout (seconds)' \
+      '*:instance FMRI:_svcs_fmri -i'
+  ;;
+
+  (delegate)
+    _arguments -A "-*" \
+      '-s[wait for instances to come online]' \
+      '-T[timeout for -s]:timeout (seconds)' \
+      ':restarter FMRI:_svcs_fmri -r' \
+      '*:FMRI:_svcs_fmri -i'
+  ;;
+
+  (milestone)
+    _arguments -A "-*" \
+      '-d[make milestone the default]' \
+      '-s[wait for the transition to the new milestone]' \
+      '-T[timeout for -s]:timeout (seconds)' \
+      '*:milestone FMRI:_svcs_fmri -m'
+  ;;
+
+  (*)
+    _message "unknown svcadm subcommand: $service"
+  ;;
+esac

@@ -1,0 +1,88 @@
+dn: cn=user1,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user1
+sudoUser: user1
+sudoHost: ALL
+sudoOption: log_input
+sudoOption: log_output
+sudoCommand: /usr/bin/su -
+sudoOrder: 1
+
+dn: cn=user1_1,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user1_1
+sudoUser: user1
+sudoHost: ALL
+sudoOption: !log_input
+sudoOption: !log_output
+sudoCommand: /usr/bin/id
+sudoOrder: 2
+
+dn: cn=user2,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user2
+sudoUser: user2
+sudoHost: ALL
+sudoOption: !authenticate
+sudoOption: noexec
+sudoOption: setenv
+sudoCommand: /usr/bin/vi
+sudoOrder: 3
+
+dn: cn=user2_1,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user2_1
+sudoUser: user2
+sudoHost: ALL
+sudoOption: authenticate
+sudoOption: !noexec
+sudoOption: !setenv
+sudoCommand: /usr/bin/echo
+sudoOrder: 4
+
+dn: cn=user3,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user3
+sudoUser: user3
+sudoHost: ALL
+sudoOption: mail_all_cmnds
+sudoCommand: /bin/sh
+sudoOrder: 5
+
+dn: cn=user3_1,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user3_1
+sudoUser: user3
+sudoHost: ALL
+sudoOption: !mail_all_cmnds
+sudoOption: !mail_always
+sudoOption: !mail_no_perms
+sudoCommand: /usr/bin/id
+sudoOrder: 6
+
+dn: cn=user4,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user4
+sudoUser: user4
+sudoHost: ALL
+sudoOption: sudoedit_follow
+sudoCommand: sudoedit /etc/motd
+sudoOrder: 7
+
+dn: cn=user4_1,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user4_1
+sudoUser: user4
+sudoHost: ALL
+sudoOption: !sudoedit_follow
+sudoCommand: sudoedit /home/*/*
+sudoOrder: 8
+

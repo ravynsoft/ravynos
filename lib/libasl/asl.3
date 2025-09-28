@@ -1,0 +1,1992 @@
+.\" Copyright (c) 2005-2013 Apple Inc.
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 4. Neither the name of Apple Computer nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY APPLE COMPUTER AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"
+.Dd October 1, 2011
+.Dt asl 3
+.Os "Mac OS X"
+.Sh NAME
+.Nm asl_add_log_file ,
+.Nm asl_add_outout_file ,
+.Nm asl_append ,
+.Nm asl_close ,
+.Nm asl_close_auxiliary_file ,
+.Nm asl_count ,
+.Nm asl_create_auxiliary_file ,
+.Nm asl_decode_buffer ,
+.Nm asl_encode_buffer ,
+.Nm asl_fetch_key_val_op ,
+.Nm asl_format ,
+.Nm asl_free ,
+.Nm asl_get ,
+.Nm asl_get_index ,
+.Nm asl_get_type ,
+.Nm asl_key ,
+.Nm asl_log ,
+.Nm asl_log_auxiliary_location ,
+.Nm asl_log_descriptor ,
+.Nm asl_match ,
+.Nm asl_new ,
+.Nm asl_next ,
+.Nm asl_open ,
+.Nm asl_open_from_file ,
+.Nm asl_open_path ,
+.Nm asl_prepend ,
+.Nm asl_prev ,
+.Nm asl_release ,
+.Nm asl_remove_index ,
+.Nm asl_remove_log_file ,
+.Nm asl_reset_iteration ,
+.Nm asl_retain ,
+.Nm asl_search ,
+.Nm asl_send ,
+.Nm asl_set ,
+.Nm asl_set_filter ,
+.Nm asl_set_output_file_filter ,
+.Nm asl_set_query ,
+.Nm asl_unset ,
+.Nm asl_vlog ,
+.Nm aslresponse_free ,
+.Nm aslresponse_next
+.Nd system log message sending and searching functions
+.Sh SYNOPSIS
+.Fd #include <asl.h>
+.\"
+.Ft int
+.Fo asl_add_log_file
+.Fa "asl_object_t client"
+.Fa "int descriptor"
+.Fc
+.Ft int
+.Fo asl_add_output_file
+.Fa "asl_object_t client"
+.Fa "int descriptor"
+.Fa "const char *msg_fmt"
+.Fa "const char *time_fmt"
+.Fa "int filter"
+.Fa "int text_encoding"
+.Fc
+.Ft void
+.Fo asl_append
+.Fa "asl_object_t obj"
+.Fa "asl_object_t msg"
+.Fc
+.Pp
+.Ft void
+.Fo asl_close
+.Fa "asl_object_t obj"
+.Fc
+.Ft int
+.Fo asl_close_auxiliary_file
+.Fa "int descriptor"
+.Fc
+.Ft size_t
+.Fo asl_count
+.Fa "asl_object_t obj"
+.Fc
+.Ft int
+.Fo asl_create_auxiliary_file
+.Fa "asl_object_t msg"
+.Fa "const char *title"
+.Fa "const char *uti"
+.Fa "int *out_descriptor"
+.Fc
+.Ft int
+.Fo asl_decode_buffer
+.Fa "const char *in"
+.Fa "char **buf"
+.Fa "size_t *len"
+.Fc
+.Ft char *
+.Fo asl_encode_buffer
+.Fa "const char *in"
+.Fa "size_t len"
+.Fc
+.Ft int
+.Fo asl_fetch_key_val_op
+.Fa "asl_object_t msg"
+.Fa "uint32_t n"
+.Fa "const char **key"
+.Fa "const char **val"
+.Fa "uint32_t *op"
+.Fc
+.Ft char *
+.Fo asl_format
+.Fa "asl_object_t msg"
+.Fa "const char *msg_fmt"
+.Fa "const char *time_fmt"
+.Fa "uint32_t text_encoding"
+.Fc
+.Ft [DEPRECATED] void
+.Fo asl_free
+.Fa "asl_object_t obj"
+.Fc
+.Ft const char *
+.Fo asl_get
+.Fa "asl_object_t msg"
+.Fa "const char *key"
+.Fc
+.Ft asl_object_t
+.Fo asl_get_index
+.Fa "asl_object_t list"
+.Fa "size_t index"
+.Fc
+.Ft uint32_t
+.Fo asl_get_type
+.Fa "asl_object_t obj"
+.Fc
+.Ft const char *
+.Fo asl_key
+.Fa "asl_object_t msg"
+.Fa "uint32_t n"
+.Fc
+.Ft int
+.Fo asl_log
+.Fa "asl_object_t obj"
+.Fa "asl_object_t msg"
+.Fa "int level"
+.Fa "const char *format"
+.Fa "..."
+.Fc
+.Ft int
+.Fo asl_log_auxiliary_location
+.Fa "asl_object_t msg"
+.Fa "const char *title"
+.Fa "const char *uti"
+.Fa "const char *url"
+.Fc
+.Ft int
+.Fo asl_log_descriptor
+.Fa "asl_object_t client"
+.Fa "asl_object_t msg"
+.Fa "int level"
+.Fa "int descriptor"
+.Fa "uint32_t fd_type"
+.Fc
+.Ft int
+.Fo asl_log_message
+.Fa "int level"
+.Fa "const char *format"
+.Fa "..."
+.Fc
+.Ft asl_object_t
+.Fo asl_match
+.Fa "asl_object_t obj"
+.Fa "asl_object_t querylist"
+.Fa "size_t *last"
+.Fa "size_t start"
+.Fa "size_t count"
+.Fa "uint32_t duration"
+.Fa "int32_t direction"
+.Fc
+.Ft asl_object_t
+.Fo asl_new
+.Fa "uint32_t type"
+.Fc
+.Ft asl_object_t
+.Fo asl_next
+.Fa "asl_object_t obj"
+.Fc
+.Ft asl_object_t
+.Fo asl_open
+.Fa "const char *ident"
+.Fa "const char *facility"
+.Fa "uint32_t opts"
+.Fc
+.Ft asl_object_t
+.Fo asl_open_from_file
+.Fa "int descriptor"
+.Fa "const char *ident"
+.Fa "const char *facility"
+.Fc
+.Ft asl_object_t
+.Fo asl_open_path
+.Fa "const char *path"
+.Fa "uint32_t opts"
+.Fc
+.Ft void
+.Fo asl_prepend
+.Fa "asl_object_t obj"
+.Fa "asl_object_t msg"
+.Fc
+.Ft asl_object_t
+.Fo asl_prev
+.Fa "asl_object_t obj"
+.Fc
+.Ft void
+.Fo asl_release
+.Fa "asl_object_t obj"
+.Fc
+.Ft void
+.Fo asl_remove_index
+.Fa "asl_object_t list"
+.Fa "size_t index"
+.Fc
+.Ft int
+.Fo asl_remove_log_file
+.Fa "asl_object_t asl"
+.Fa "int descriptor"
+.Fc
+.Ft void
+.Fo asl_reset_iteration
+.Fa "asl_object_t obj"
+.Fa "size_t position"
+.Fc
+.Ft asl_object_t
+.Fo asl_retain
+.Fa "asl_object_t obj"
+.Fc
+.Ft asl_object_t
+.Fo asl_search
+.Fa "asl_object_t obj"
+.Fa "asl_object_t query"
+.Fc
+.Ft int
+.Fo asl_send
+.Fa "asl_object_t obj"
+.Fa "asl_object_t msg"
+.Fc
+.Ft int
+.Fo asl_set
+.Fa "asl_object_t msg"
+.Fa "const char *key"
+.Fa "const char *value"
+.Fc
+.Ft int
+.Fo asl_set_filter
+.Fa "asl_object_t asl"
+.Fa "int filter"
+.Fc
+.Ft int
+.Fo asl_set_output_file_filter
+.Fa "asl_object_t asl"
+.Fa "int descriptor"
+.Fa "int filter"
+.Fc
+.Ft int
+.Fo asl_set_query
+.Fa "asl_object_t msg"
+.Fa "const char *key"
+.Fa "const char *value"
+.Fa "uint32_t op"
+.Fc
+.Ft int
+.Fo asl_unset
+.Fa "asl_object_t msg"
+.Fa "const char *key"
+.Fc
+.Ft int
+.Fo asl_vlog
+.Fa "asl_object_t obj"
+.Fa "asl_object_t msg"
+.Fa "int level"
+.Fa "const char *format"
+.Fa "va_list ap"
+.Fc
+.Ft [DEPRECATED] void
+.Fo aslresponse_free
+.Fa "asl_object_t obj"
+.Fc
+.Ft [DEPRECATED] asl_object_t
+.Fo aslresponse_next
+.Fa "asl_object_t obj"
+.Fc
+.Sh DESCRIPTION
+These routines provide an interface to the Apple System Log facility and to various
+data bearing memory objects, files, and storage directories.
+.Pp
+The API allows client applications to create and manipulate
+flexible, structured messages, send them to the
+.Nm syslogd
+server, where they may undergo additional processing.
+Messages received by the server are saved in a data store
+(subject to input filtering constraints).
+.Pp
+Log messages may also be written directly to the filesystem from the ASL library.
+This output may go to plain text files, to ASL-format data files, or to ASL databases.
+.Pp
+This API permits clients to create queries
+and search the system ASL database, ASL-format files, or other ASL databases for matching messages.
+.Pp
+Clients that simply need to send messages to the ASL server may do so using
+.Fn asl_log_message .
+Other routines allow for more complex logging tasks.
+.Pp
+An introduction to the concepts underlying this interface follows the interface summary below.
+.Ss INTERFACE SUMMARY
+.Fo asl_log_message
+.Fa level
+.Fa format
+.Fa "..."
+.Fc
+sends a message to the ASL server
+.Nm syslogd .
+.Fa level
+is an integer between 7 (ASL_LEVEL_DEBUG) and 0 (ASL_LEVEL_EMERG),
+indicating the priority of the message.
+Note that message priority levels are used as the basis of filtering
+messages in several places in the ASL system.
+In general, messages with level ASL_LEVEL_DEBUG and ASL_LEVEL_INFO are often excluded from long-term storage,
+or have shorter time-to-live durations.
+.Pp
+.Fa format
+is a printf-like format string.
+In addition to the conversion specifications supported by
+.Nm printf ,
+.Fn asl_log_message
+supports the
+.Dq %m
+conversion, which is converted to the current error string returned by the
+.Nm strerror
+function for the current value of 
+.Fa errno .
+.Pp
+.Fn asl_log_message
+is a simplified version of the
+.Fn asl_log
+interface. 
+It uses the default (NULL) ASL client handle.
+This interface is thread-safe, although callers will contend for a mutex lock when using this routine.
+Applications that log from multiple threads or dispatch queues may experience undesired performance
+characteristics when using this routine.
+The use of
+.Fn asl_open
+and
+.Fn asl_log ,
+.Fn asl_vlog ,
+or 
+.Fn asl_send
+is advised for applications that log from multiple threads.
+.Pp
+.Fo asl_log
+.Fa obj
+.Fa msg
+.Fa level
+.Fa format
+.Fa "..."
+.Fc
+prepares a message, normally to be sent to the ASL server
+.Nm syslogd .
+The first parameter, 
+.Fa obj ,
+may be an asl_object_t of any type.
+It is typically of type ASL_TYPE_CLIENT.
+In this case the settings and options associated with the ASL client handle
+.Fa obj
+are used when preparing the message.
+The client may direct the ASL library to
+print copies of the message to various output files as well as sending it to the ASL server.
+Filter settings in the client may further direct the library in selecting where the message
+will be sent, and may in fact prevent the message from being sent to the ASL server at all.
+ASL client handles are created using
+.Fn asl_open
+and are described extensively below.
+.Pp
+ASL message are dictionaries. 
+The
+.Fn asl_log
+routine combines information carried in the ASL client handle
+.Fa client
+and the ASL message dictionary
+.Fa msg , 
+together with the
+.Fa format
+string and the associated arguments to construct a final message to be sent
+to the ASL server and/or to be written to output files.
+In general, the ASL client handle will provide the values for the
+ASL_KEY_SENDER and ASL_KEY_FACILITY keys.
+If
+.Fa msg
+is non-NULL, it may override the values for ASL_KEY_SENDER and ASL_KEY_FACILITY,
+and it may supply additional key/value pairs.
+The
+.Fa format
+string and it's associated arguments are used to construct a string value for the
+ASL_KEY_MSG key in the final log message dictionary.
+.Pp
+If the
+.Fa obj
+parameter is of a type other than ASL_TYPE_CLIENT, then
+.Fn asl_log
+creates a message as if it were to be sent to
+.Nm syslogd ,
+but rather than sending the message, it stores the message in the
+.Fa obj
+provided.
+If
+.Fa obj
+is of type ASL_TYPE_FILE or ASL_TYPE_STORE that has been opened for writing,
+then the message is saved to the file or ASL data store.
+If 
+.Fa obj
+is of type ASL_TYPE_LIST, then the message is appended to the list.
+If
+.Fa obj
+is of type ASL_TYPE_MSG, then the message key/value pairs constructed by
+.Fn asl_log
+are merged with
+.Fa obj .
+In a merge operation, existing keys and values in
+.Fa obj
+are preserved.
+New values in the 
+.Fn asl_log 
+message are attached.
+Although this routine works for type ASL_TYPE_QUERY,
+new key/value pairs are attached with an operation value of zero.
+.Pp
+The ASL_PREFILTER_LOG(obj, msg, level, format, ...) macro may be used in
+place of
+.Fn asl_log 
+when
+.Fa obj
+is of type ASL_TYPE_CLIENT.
+The macro avoids processing the variable argument list in those cases where
+the message would be filtered out due to filter settings, would not be
+written to a log file associated with the asl_object_t, or would not be
+written to stderr.
+The macro may provide a performance benefit for some applications.
+Details on filter setting, additional log files, and asl_object_t options
+are described below in this manual.
+.Pp
+.Fo asl_vlog
+.Fa obj
+.Fa msg
+.Fa level
+.Fa format
+.Fa ap
+.Fc
+is similar to
+.Fn asl_log
+except that it takes a va_list argument.
+.Pp
+.Fo asl_send
+.Fa obj
+.Fa msg
+.Fc
+is similar to
+.Fn asl_log ,
+except the value for ASL_KEY_MESSAGE is taken from
+.Ar msg
+rather than being constructed using a
+.Fn printf
+style syntax.
+.Pp
+.Fo asl_open
+.Fa ident
+.Fa facility
+.Fa opts
+.Fc
+creates and returns a client handle, or NULL if an error occurs in the library.
+Messages sent using this handle will default to having the string
+.Ar ident
+as the value associated with the ASL_KEY_SENDER key, and the value
+.Ar facility
+associated with the ASL_KEY_FACILITY key.
+If 
+.Ar ident
+is NULL, the library uses the sending process name.
+If
+.Ar facility
+is NULL, the library will use the
+.Dq user
+facility for processes with non-zero UID, and
+.Dq daemon
+for processes with zero UID.
+.Pp
+Several options are available, as described in the
+.Sx CLIENT HANDLES
+section.
+.Pp
+Each client handle holds state information that is used when a message is logged using that handle.
+This information includes the 
+.Ar ident
+and
+.Ar facility
+strings and the options from the
+.Ar opts
+parameter.
+Client handles also contain various filter, file descriptor, and control data. 
+.Pp
+The state information in a client handle is not protected by locking or thread synchronization mechanisms,
+except for one special case where NULL is used as a client handle.
+That special case is described below.
+.Pp
+It is not safe for two or more threads to use a single client handle simultaneously.
+Multi-threaded applications should generally create one client handle for each thread
+or serial dispatch queue that logs messages.
+A client handle may only be safely shared amongst multiple threads if the application uses locks or some 
+synchronization strategy to ensure single-threaded access.
+.Pp
+As a special case, the ASL library allows the use of NULL in place of a client handle.
+In this case, the library uses an internal structure which contains its own lock.
+Multiple threads may safely use NULL in place of an ASL client handle,
+although there may be contention for the lock.
+.Pp
+Applications that use libdispatch may use NULL in place of a client handle,
+although this may cause undesirable synchronization behavior and degraded performance because of lock contention.
+A better design is often to use one or more serial dispatch queues specifically for logging.
+Each such serial queue should use a separate client handle.
+.Pp
+.Fo asl_open_path
+.Fa path
+.Fa opts
+.Fc
+opens an ASL data store or ASL data file for read or write access.
+Returns an object of type ASL_TYPE_STORE or ASL_TYPE_FILE,
+depending on the input parameters.
+By default, the ASL store or file is opened for reading.
+The routine checks the filesystem type of
+.Fa path ,
+and returns an object of type ASL_TYPE_STORE for an ASL data store (a directory in the filesystem)
+or an object of type ASL_TYPE_FILE for an ASL data file.
+If
+.Fa path
+is NULL, the system's ASL database (/var/log/asl) is opened.
+.Pp
+If the ASL_OPT_OPEN_WRITE option is specified, an existing file or database is
+opened for writing.
+New messages may be added to the file or database using
+.Fn asl_log ,
+.Fn asl_vlog ,
+.Fn asl_send ,
+or
+.Fn asl_append .
+Existing messages in the store or file may not be deleted or modified.
+.Pp
+If the path does not exist in the filesystem,
+.Fn asl_open_path
+will create a new data store if ASL_OPT_CREATE_STORE is set in the options,
+The file will be created with the user's effective UID and GID as owner and group.
+The mode will be 0644.
+If a different mode, UID, or GID is desired, an empty file or directory may be
+pre-created with the desired settings.
+.Pp
+.Fo asl_close
+.Fa asl
+.Fc
+closes the client handle
+.Ar asl
+and releases its associated resources.
+.Fn asl_release
+may also be used to close a client handle.
+.Pp
+.Fo asl_set_filter
+.Fa asl
+.Fa f
+.Fc
+sets a filter for messages being sent to the server.
+The filter is a bitmask representing priority levels.
+Only messages having a priority level with a corresponding bit set in the filter mask are sent to the
+.Nm syslogd
+server.
+The filter does not control writes to additional files associated with the client handle using
+.Fn asl_add_output_file .
+.Fn asl_set_filter
+returns the previous filter value.
+.Pp
+.Fo asl_add_output_file
+.Fa asl
+.Fa descriptor  
+.Fa msg_fmt
+.Fa time_fmt
+.Fa filter
+.Fa text_encoding
+.Fc
+adds the file descriptor
+.Ar descriptor
+to the a set of file descriptors associated with the client handle
+.Ar asl .
+Each log message sent by that client handle is also written to these file descriptors
+(depending on the setting of the
+.Ar filter
+argument).
+The message format is specified by the
+.Ar msg_fmt
+argument.
+The format for timestamps is specified by the
+.Ar time_fmt
+argument, although custom format strings may specify more advanced formats for timestamps.
+Details on custom format strings are below.
+.Pp
+Each output file has an associated
+.Ar filter
+value.
+The filter determines which messages are formatted and written to the file based on the message priority level.
+.Pp
+Special handling for certain characters is specified by the
+.Ar text_encoding
+argument.
+The supported values and their effect are described below.
+.Pp
+The
+.Ar msg_format
+argument is a character string that tells the library how to format each message written to the output file.
+There are several pre-defined message formats, described below.
+Custom formats are also supported,
+giving complete control over which ASL message keys should be written
+and the overall format of each output line.
+The pre-defined formats are identified by constants in the asl.h header file.
+.Pp
+.Bl -tag -width "ASL_MSG_FMT_RAW" -compact
+.It ASL_MSG_FMT_RAW
+The contents of the ASL message dictionaries are formatted as a list,
+with each key-value pair formatted as
+.Dq [Key Value] .
+.Pp
+.It ASL_MSG_FMT_STD
+Messages are formatted using the standard ASL message format of the form
+.Pp
+.Dl Time Host Sender[PID] <Level>: Message
+.Pp
+Time formats are described below.
+.Pp
+.It ASL_MSG_FMT_BSD
+The legacy format used for plain-text log files.
+Similar to the ASL_MSG_FMT_STD format, but the message priority level is excluded.
+.Pp
+.It ASL_MSG_FMT_MSG
+The output line contains only the value of the Message key in each ASL message dictionary.
+.Pp
+.It ASL_MSG_FMT_XML
+Produces multiple lines of output for each ASL message.
+The message is formatted as an XML dictionary:
+.Pp
+.Dl <dict>
+.Dl \t<key>ASLMessageKey1</key>
+.Dl	\t<string>Key 1 Value</string>
+.Dl	\t<key>ASLMessageKey2</key>
+.Dl	\t<string>Key 2 Value</string>
+.Dl	\t\t...
+.Dl </dict>
+.Pp
+.El
+.Pp
+A NULL value for
+.Ar msg_fmt
+causes the library to use the ASL_MSG_FMT_STD format.
+.Pp
+Custom format strings may contain a mix of characters that are directly copied to the output line
+and variables, which are a dollar sign
+.Sq $
+followed by specific ASL message dictionary keys, whose values will be interpolated into the output.
+For example, the format string:
+.Pp
+.Dl This message from $Sender PID=$PID at $Time *** $Message
+.Pp
+would result in lines in the output file like, e.g.:
+.Pp
+.Dl This message from login PID=982 at Jul 27 08:41:27 *** USER_PROCESS: 330 ttys000
+.Dl This message from Mail PID=987 at Jul 27 08:42:16 *** Using V2 Layout
+.Pp
+Normally, a space character terminates a variable name.
+However, the name may be wrapped in parentheses if a space character is not desired in the output.
+For example:
+.Pp
+.Dl $(Sender)[$(PID)]: $Message
+.Pp
+A third form for specifying variables may be used for the ASL
+.Dq Level
+and
+.Dq Time
+message keys.
+Note that a
+.Dq Time
+specification using one of the forms below will override the
+.Ar time_fmt
+argument to the function.
+.Pp
+The following forms are recognized:
+.Pp
+.Bl -tag -width "$((Time)([+|-]HH[:MM]))"
+.It $((Level)(str))
+Formats a Level value as a string, for example 
+.Dq Error ,
+.Dq Alert ,
+.Dq Warning ,
+and so on.
+Note that $(Level) or $Level formats the value as an integer 0 through 7.
+.It $((Level)(char))
+Formats a Level value as a single character from the set
+.Dq PACEWNID ,
+for levels 0 through 7.
+These are abbreviations for Panic, Alert, Critical, Error, Warning, Notice, Info, and Debug.
+.It $((Time)(sec))
+Formats a Time value as the number of seconds since the Epoch.
+.It $((Time)(raw))
+Alias for $((Time)(sec)).
+.It $((Time)(local))
+Formats a Time value as a string of the form
+.Dq "Mmm dd hh:mm:ss" ,
+where Mmm is the abbreviation for the month, dd is the date (1 - 31) and hh:mm:ss is the time.
+The local timezone is used.
+.It $((Time)(lcl))
+Alias for $((Time)(local)).
+.It $((Time)(utc))
+Formats a Time value as a string of the form
+.Dq "yyyy-mm-dd hh:mm:ssZ" ,
+using Coordinated Universal Time, or the
+.Dq Zulu
+time zone.
+.It $((Time)(zulu))
+Alias for $((Time)(utc)).
+.It $((Time)(X))
+Where X may be any letter in the range A - Z or a - z.
+Formats the Time using the format
+.Dq "yyyy-mm-dd hh:mm:ssX" ,
+using the specified nautical timezone.
+Z is the same as UTC/Zulu time.  Timezones A - M (except J) decrease by one hour to the east of the
+Zulu time zone.
+Timezones N - Y increase by one hour to the west of Z.
+M and Y have the same clock time, but differ by one day.
+J is used to indicate the local timezone.
+When printing using $((Time)(J)), the output format is
+.Dq "yyyy-mm-dd hh:mm:ss" ,
+without a trailing timezone letter.
+.It $((Time)(JZ))
+Specifies the local timezone.
+The timezone offset from UTC follows the date and time.
+The time is formatted as
+.Dq "yyyy-mm-dd hh:mm:ss[+|-]HH[:MM]" .
+Minutes in the timezone offset are only printed if they are non-zero.
+.It $((Time)(ISO8601))
+Specifies the local timezone, formatted as specified by ISO 8601.
+The timezone offset from UTC follows the date and time.
+The time is formatted as
+.Dq "yyyy-mm-ddThh:mm:ss[+|-]HH[:MM]" .
+Minutes in the timezone offset are only printed if they are non-zero.
+Note that this differs from
+.Dq JZ
+format only in that a
+.Dq T
+character separates the date and time.
+.It $((Time)([+|-]HH[:MM]))
+Specifies an offset (+ or -) of the indicated number of hours (HH) and optionally minutes (MM) to UTC.
+The value is formatted as a string of the form
+.Dq "yyyy-mm-dd hh:mm:ss[+|-]HH[:MM]" .
+Minutes in the timezone offset are only printed if they are non-zero.
+.El
+.Pp
+Unless a custom message format uses one of the specialized forms for
+.Dq Time
+described above, then any timestamps in an output message will be formatted according the the
+.Ar time_fmt
+argument.
+The known formats are identified by constants in the asl.h header file.
+.Pp
+.Bl -tag -width "ASL_TIME_FMT_SEC"
+.It ASL_TIME_FMT_SEC
+Formats timestamps as the number of seconds since the Epoch.
+.Pp
+.It ASL_TIME_FMT_UTC
+Formats a Time value as a string of the form
+.Dq "yyyy-mm-dd hh:mm:ssZ" ,
+using Coordinated Universal Time, or the
+.Dq Zulu
+time zone.
+.It ASL_TIME_FMT_LCL
+Formats a Time value as a string of the form
+.Dq "Mmm dd hh:mm:ss" ,
+where Mmm is the abbreviation for the month, dd is the date (1 - 31) and hh:mm:ss is the time.
+The local timezone is used.
+.El
+.Pp
+A value of NULL for the
+.Ar time_fmt
+argument will cause the default format ASL_TIME_FMT_LCL to be used.
+.Pp
+The
+.Ar encoding
+parameter specifies how certain characters are to be treated when preparing a message for output.
+The known encodings are:
+.Bl -tag -width "ASL_ENCODE_NONE"
+.It ASL_ENCODE_NONE
+No special character encode is done.
+.Pp
+.It ASL_ENCODE_ASL
+Newlines and tabs are also encoded as "\\n" and "\\t" respectively.
+In 
+.Dq ASL_MSG_FMT_RAW
+format, space characters embedded in log message keys are encoded as "\\s"
+and embedded brackets are escaped to print as "\\[" and "\\]".
+.Pp
+.It ASL_ENCODE_SAFE
+Encodes backspace characters as ^H.
+Carriage returns are mapped to newlines.
+A tab character is appended after newlines so that message text is indented.
+.Pp
+.It ASL_ENCODE_XML
+This encoding should be used when formatting messages using ASL_MSG_FMT_XML.
+XML format output requires that keys are valid UTF8 strings.
+Keys which are not valid UTF8 are ignored, and the associated value is not printed.
+.Pp
+Values that contain legal UTF8 are printed as strings.
+Ampersand, less than, greater than, quotation mark, and apostrophe characters are encoded according to XML conventions.
+Embedded control characters are encoded as
+.Dq &#xNN;
+where NN is the character's hexadecimal value.
+.Pp
+Values that do not contain legal UTF8 are encoded in base-64 and printed as data objects.
+.El
+.Pp
+.Fn asl_add_output_file
+Returns 0 on success, non-zero on failure.
+.Pp
+.Pp
+.Fo asl_add_log_file
+.Fa asl
+.Fa descriptor  
+.Fc
+Is equivalent to
+.Pp
+.Dl asl_add_output_file(asl, descriptor, ASL_MSG_FMT_STD, ASL_TIME_FMT_LCL, ASL_FILTER_MASK_UPTO(ASL_LEVEL_DEBUG), ASL_ENCODE_SAFE);
+.Pp
+Returns 0 on success, non-zero on failure.
+.Pp
+.Fo asl_set_output_file_filter
+.Fa asl
+.Fa descriptor  
+.Fa filter
+.Fc
+replaces the current filter value associated with a file descriptor that has been added to a client handle.
+Returns the previous filter value.
+.Pp
+.Fo asl_remove_log_file
+.Fa asl
+.Fa descriptor  
+.Fc
+removes a file descriptor from the set of file descriptors associated with a client handle.
+Returns 0 on success, non-zero on failure.
+.Pp
+.Fo asl_format
+.Fa msg
+.Fa msg_fmt
+.Fa time_fmt
+.Fa text_encoding
+.Fc
+formats the 
+.Fa msg
+object using the message format string, time format string, and text encoding specified.
+Message formatting is described above for the
+.Fn asl_add_output_file
+routine.
+The caller must free the returned character string.
+.Pp
+.Fo asl_new
+.Fa type
+.Fc
+allocates and returns an asl_object_t structure, or NULL in the case of a failure in the library.
+The
+.Ar type
+argument should be ASL_TYPE_MSG, ASL_TYPE_QUERY, or ASL_TYPE_LIST.
+.Pp
+.Fo asl_get_type
+.Fa obj
+.Fc
+Returns the type of the object
+.Fa obj ,
+or ASL_TYPE_UNDEF if the object is not a recognized type.
+.Pp
+.Fo asl_retain
+.Fa obj
+.Fc
+Increments an internal reference count for
+.Fa obj .
+ASL objects are created with a reference count of 1.
+Objects returned by ASL routines should be retained if they are used outside
+of the immediate scope of the call that returned them.
+.Pp
+.Fo asl_release
+.Fa obj
+.Fc
+Decrements the internal reference count for
+.Fa obj .
+It frees the object and its associated resources when the reference count becomes zero.
+.Pp
+.Em DEPRECATED
+.Fo asl_free
+.Fa obj
+.Fc
+This interface is deprecated in favor of
+.Fn asl_release .
+It is implemented as a call to
+.Fn asl_release .
+.Pp
+.Fo asl_set
+.Fa msg
+.Fa key
+.Fa value
+.Fc
+creates a new key and value in an asl_object_t structure, or replaces the value of an existing key.
+Returns 0 on success, non-zero on failure.
+.Pp
+.Fo asl_set_query
+.Fa msg
+.Fa key
+.Fa op
+.Fa value
+.Fc
+is used to construct searches.
+It is similar to
+.Fn asl_set ,
+except that it takes an additional
+.Ar op
+(operation) argument.
+Creates a new (key, op, value) triple in an asl_object_t structure,
+or replaces the value and operation for an existing key.
+See the
+.Sx SEARCHING
+section for more information.
+Returns 0 on success, non-zero on failure.
+.Pp
+.Fo asl_unset
+.Fa msg
+.Fa key
+.Fc
+removes a key and its associated value from an asl_object_t structure.
+Returns 0 on success, non-zero on failure.
+.Pp
+.Fo asl_key
+.Fa msg
+.Fa n
+.Fc
+returns the nth key in an asl_object_t (beginning at zero),
+allowing an application to iterate through the keys.
+Returns NULL if
+.Ar n
+indexes beyond the number of keys in
+.Ar msg .
+.Pp
+.Fo asl_get
+.Fa msg
+.Fa key
+.Fc
+returns the value associated with
+.Ar key
+in the asl_object_t
+.Ar msg .
+Returns NULL if
+.Ar msg
+does not contain
+. Ar key .
+.Pp
+.Fo asl_fetch_key_val_op
+.Fa msg
+.Fa n
+.Fa key
+.Fa val
+.Fa op
+.Fc
+Returns, in the
+.Fa key ,
+.Fa val ,
+and
+.Fa op
+output parameters, the key, value, and operation (for ASL_TYPE_QUERY) at index
+.Fa n
+in the given object
+.Fa msg .
+The input 
+.Fa msg
+should be of type ASL_TYPE_MSG or ASL_TYPE_QUERY.
+Returns 0 on success, or non-zero otherwise.
+Any of the output parameters may be NULL, in which case that parameter value will not
+be returned.
+.Pp
+.Fo asl_count
+.Fa obj
+.Fc
+returns a count of the number of elements contained in
+.Fa obj .
+For objects of type ASL_TYPE_MSG or ASL_TYPE_QUERY,
+this is the number of dictionary keys.
+For ASL_TYPE_LIST, it is the number of items in the list.
+For ASL_TYPE_FILE, returns the number of messages contained in the file.
+Returns zero for ASL_TYPE_STORE and ASL_TYPE_CLIENT.
+.Pp
+.Fo asl_append
+.Fa obj
+.Fa msg
+.Fc
+appends the
+.Fa msg
+object, which is typically of type ASL_TYPE_MSG or ASL_TYPE_QUERY, to the target
+.Fa obj .
+The target
+.Fa obj
+is typically a type that contains a collection of messages,
+i.e. ASL_TYPE_LIST, ASL_TYPE_FILE, ASL_TYPE_STORE, or ASL_TYPE_CLIENT
+(where the collection is the system ASL database).
+.Fn asl_append
+appends the 
+.Fa msg
+object to the end of the target
+.Fa obj .
+.Pp
+If
+.Fa msg
+is of type ASL_TYPE_LIST and 
+.Fa obj
+is of type ASL_TYPE_LIST, ASL_TYPE_FILE, ASL_TYPE_STORE, or ASL_TYPE_CLIENT,
+the each message in the
+.Fa msg
+list is appended in sequence to the the target
+.Fa obj .
+.Pp
+If both 
+.Fa msg
+and
+.Fa obj
+are of type ASL_TYPE_MSG or ASL_TYPE_QUERY, then the message dictionary from
+.Fa msg
+is merged with 
+.Fa obj .
+Existing keys in
+.Fa obj
+are preserved.
+For keys that are in 
+.Fa msg
+that are not in
+.Fa obj ,
+the key and its value and operation are added to
+.Fa obj .
+.Pp
+.Fo asl_prepend
+.Fa obj
+.Fa msg
+.Fc
+is similar to
+.Fn asl_append ,
+except that the
+.Fa msg
+object is prepended to the target
+.Fa obj.
+In the case where both parameters are of type ASL_TYPE_MSG or ASL_TYPE_QUERY,
+all keys from
+.Fa msg
+are copied to
+.Fa obj .
+Existing keys are not preserved.
+.Pp
+.Fo asl_next
+.Fa obj
+.Fc
+returns the next item in the target
+.Fa obj ,
+which may be of type ASL_TYPE_LIST, ASL_TYPE_FILE, ASL_TYPE_STORE, or of type ASL_TYPE_CLIENT
+in which case the routine fetches messages consecutively from the system ASL database.
+Returned objects are of type ASL_TYPE_MSG, or of type ASL_TYPE_QUERY if the target object is a
+list containing query objects.
+Returns NULL when there are no more objects to return from the target.
+.Pp
+.Fo asl_prev
+.Fa obj
+.Fc
+is similar to
+.Fn asl_next ,
+except that it returns objects in reverse order.
+Objects that contain messages have an internal index for the
+.Dq current
+item.
+.Fn asl_next
+and
+.Fn asl_prev
+simply return the current item and move the index forward or backward.
+The index position can be set using
+.Fn asl_reset_iteration .
+.Pp
+.Fo asl_reset_iteration
+.Fa obj
+.Fa position
+.Fc
+sets the current position index used be
+.Fn asl_next
+and
+.Fn asl_prev .
+The value of 
+.Fa position
+may be zero to set the position index for
+.Fa obj
+at the beginning of its contents,
+or it may be SIZE_MAX to set the position index for
+.Fa obj
+at the end of its contents.
+For objects of type ASL_TYPE_LIST, the position index is an actual index into the list.
+For other message containing objects, the index is an ID number which may not be sequential.
+.Pp
+.Fo asl_get_index
+.Fa list
+.Fa index
+.Fc
+returns the object at position
+.Fa index
+in the target
+.Fa list
+object, which must be of type ASL_TYPE_LIST.
+Returns NULL if the index is out of range or if
+.Fa list
+is not a list type.
+.Pp
+.Fo asl_remove_index
+.Fa list
+.Fa index
+.Fc
+removes the object at position
+.Fa index
+from the target
+.Fa list
+object, which must be of type ASL_TYPE_LIST.
+.Pp
+.Fo asl_log_descriptor
+.Fa asl
+.Fa msg
+.Fa level
+.Fa descriptor
+.Fa fd_type
+.Fc
+provides functionality to use file descriptors to send logging data to ASL.
+.Ar asl
+is retained by ASL and must still be closed by the caller by calling
+.Fn asl_close
+if the caller loses reference to it.
+.Ar msg
+is copied by ASL and similarly must still be releaser by the caller by calling
+.Fn asl_release
+if the caller loses reference to it.  Any changes made to it after calling
+.Fn asl_log_descriptor()
+are not applicable to the message used.
+.Ar descriptor is treated differently based on the value of
+.Ar fd_type .
+.Pp
+If
+.Ar fd_type
+is ASL_LOG_DESCRIPTOR_READ, the descriptor must be open for read access.  ASL
+uses
+.Xr dispatch 2
+to read from the descriptor as data becomes available.  These data are line
+buffered and passed to
+.Fn asl_log .
+When EOF is read, ASL will
+.Xr close 2
+.Ar descriptor ..
+.Pp
+If
+.Ar fd_type
+is ASL_LOG_DESCRIPTOR_WRITE, the descriptor is closed and a new writable
+descriptor is created with the same fileno.  Any data written to this new
+descriptor are line buffered and passed to
+.Fn asl_log .
+When EOF is sent, no further data are read.  The caller is responsible for
+closing the new descriptor.  One common use for this API is to redirect writes
+to stdout or stderr to ASL by passing STDOUT_FILENO or STDERR_FILENO as
+.Ar descriptor .
+.Pp
+.Fo asl_search
+.Fa obj
+.Fa query
+.Fc
+searches messages in the
+.Fa obj
+object for messages that match the keys and values in
+.Fa query ,
+subject to matching operations associated with those keys and values.
+The return returns an object of type ASL_TYPE_LIST containing matching messages,
+or NULL if no matches are found.
+The 
+.Ar query
+argument should be constructed using
+.Fn asl_set_query .
+See the
+.Sx SEARCHING
+section for details on constructing queries.
+.Pp
+The
+.Fa obj
+parameter may be any ASL object.
+For type ASL_TYPE_CLIENT, the main ASL system database is searched.
+If the object type is ASL_TYPE_STORE or ASL_TYPE_FILE,
+then the corresponding data store or data file is searched.
+For ASL_TYPE_LIST, matches are found in a message list.
+If 
+.Fa obj
+is of type ASL_TYPE_MSG and query is of type ASL_TYPE_QUERY,
+.Fa obj
+is matched against the query,
+and a list containing
+.Fa obj 
+is returned if the match succeeds.
+If both
+.Fa obj
+and
+.Fa query
+are objects of type ASL_TYPE_MSG or both are of type ASL_TYPE_QUERY,
+they are tested for exact match.
+A list containing 
+.Fa obj
+is returned if the match is exact.
+If
+.Fa obj
+is of type ASL_TYPE_QUERY and
+.Fa query
+is of type ASL_TYPE_MSG, the routine returns NULL.
+.Pp
+.Fo asl_match
+.Fa obj
+.Fa querylist
+.Fa last
+.Fa start
+.Fa count
+.Fa duration
+.Fa direction
+.Fc
+is similar to 
+.Fn asl_search ,
+but allows more advanced searching of ASL objects.
+The
+.Fa obj
+parameter may be of any type, as with
+.Fn asl_search .
+The 
+.Fa querylist
+parameter must be an object of type ASL_TYPE_LIST,
+containing zero or more objects of type ASL_TYPE_QUERY.
+A NULL
+.Fa querylist
+or a list containing zero objects matches all messages in the target
+.Fa obj.
+.Pp
+The caller may provide a starting ASL message ID, a direction, and a count.
+A 
+.Fa start
+ID value of 0 means that matching should commence at the beginning of the target
+.Fa obj .
+A value of SIZE_MAX indicates that matching should commence at the end (most recent message)
+in the target.
+If a non-zero
+.Fa count
+value is supplied, the routine will return when it has found that many messages,
+or it has checked all messages.
+If a non-zero
+.Fa duration
+is supplied, the routine will return after the specified time (in microseconds).
+If both
+.Fa count
+and
+.Fa duration
+are non-zero, the routine will return when the desired number of items has been matched
+or when the specified duration has been exceeded, whichever occurs first.
+The search direction may be ASL_MATCH_DIRECTION_FORWARD or ASL_MATCH_DIRECTION_REVERSE.
+The routine sets the value of the out parameter
+.Fa last 
+to be an index of the last message checked while matching.
+To fetch matching messages in batches (using a small count or duration value), the
+.Fa start
+value for each iteration should be set to
+.Fa last
++ 1 if searching forward, or
+.Fa last
+- 1 for reverse search.
+.Pp
+.Em DEPRECATED
+.Fo aslresponse_next
+.Fa r
+.Fc
+This interface is deprecated in favor of
+.Fn asl_next .
+It is implemented as a call to
+.Fn asl_next .
+.Pp
+.Em DEPRECATED
+.Fo aslresponse_free
+.Fa r
+.Fc
+This interface is deprecated in favor of
+.Fn asl_release .
+It is implemented as a call to
+.Fn asl_release .
+.Pp
+.Fo asl_create_auxiliary_file
+.Fa msg
+.Fa title
+.Fa uti
+.Fa out_descriptor
+.Fc
+Creates an auxiliary file that may be used by the client to save arbitrary data.
+When the file is closed using
+.Fo asl_close_auxiliary_file
+.Fc ,
+.Nm syslogd
+will log the specified
+.Fa msg 
+along with the
+.Fa title
+and the Uniform Type Identifier provided by
+.Fa uti .
+If a NULL value is supplied for 
+.Fa uti
+the type
+.Dq public.data
+will be used.
+The
+.Nm Console
+application will display the message with a link to the file.
+.Pp
+Auxiliary files are saved in the ASL data store.
+They are automatically deleted at the same time that the log message expires.
+Messages expire in 7 days by default.
+A value set for the ASLExpireTime key will override the default.
+Read access for the auxiliary file will be the same as read access for
+.Fa msg .
+By default, messages (and auxiliary files) are world-readable.
+Access may be limited by setting values for the ReadUID and ReadGID keys.
+.Pp
+.Fo asl_close_auxiliary_file
+.Fa descriptor
+.Fc
+closes the file descriptor
+.Ar descriptor 
+previously returned by a call to
+.Fn asl_create_auxiliary_file .
+.Pp
+.Fo asl_log_auxiliary_location
+.Fa msg
+.Fa title
+.Fa uti
+.Fa url
+.Fc
+will log the specified
+.Fa msg 
+along with the
+.Fa title ,
+the Uniform Type Identifier provided by
+.Fa uti ,
+and the Uniform Resource Locator provided by
+.Fa url .
+The
+.Nm Console
+application will display the message with a link to the file.
+This allows a client to save data in an auxiliary file, but unlike
+.Fn asl_create_auxiliary_file ,
+the life-cycle of this file must be managed by some external system.
+The file will not be removed when the corresponding log message expired from the ASL data store.
+.Pp
+.Fo asl_open_from_file
+.Fa descriptor
+.Fa facility
+.Fa opts
+.Fc
+creates a client handle for an open file descriptor
+.Fa descriptor .
+This routine may be used in conjunction with
+.Fn asl_create_auxiliary_file
+or
+.Fn asl_log_auxiliary_location
+to save ASL format log messages in an auxiliary file.
+The UTI type
+.Dq com.apple.asl-file
+should be used for ASL format auxiliary files.
+.Pp
+Files with this format may be read from the command line using
+.Nm syslog Fl f Ar file ,
+or from the 
+.Nm Console 
+utility.
+.Pp
+The file must be open for read and write access.
+The file will be truncated and its existing contents will be lost.
+.Fo asl_close
+.Fc
+must be called to close the client handle when logging to this file is complete. 
+The file should be closed using
+.Fo asl_close_auxiliary_file
+.Fc
+if it was returned by
+.Fo asl_create_auxiliary_file
+.Fc ,
+or
+.Fo close
+.Fc
+otherwise.
+.Pp
+The client handle returned by
+.Fn asl_open_from_file
+contains an internal lock, and may be used safely by multiple threads or from independent dispatch queues.
+Note that callers will contend for the internal lock when saving log messages to a file.
+.Pp
+Note that messages with ReadUID or ReadGID values will simply be saved to the file,
+and will not effect read access to either the message or the file itself.
+Similarly, messages with ASLExpireTime values will be saved, but will not effect the 
+life-cycle of either the individual messages or the file.
+.Pp
+.Fo asl_encode_buffer
+.Fa in
+.Fa len
+.Fc
+is a utility routine for encoding arbitrary data buffers.
+ASL message dictionary keys and values are nul-terminated C strings.
+If an application wishes to include arbitrary data which may contain zero bytes,
+the data buffer must first be encoded in a manner that eliminates any embedded zeros.
+The
+.Fn asl_encode_buffer
+routine will encode an arbitrary data buffer at the address
+.Fa in
+containing
+.Fa len
+bytes (octets) of data.
+The output of the routine is a nul-terminated C string.
+The encoded string may be decoded using the companion 
+.Fn asl_decode_buffer
+routine.
+.Pp
+This utility is used by the ASL server
+.Nm syslogd
+to encode the value associated with ASL_KEY_AUX_DATA in an ASL_TYPE_MSG object.
+An ASL_KEY_AUX_DATA key/value pair is used to hold the data written to a file descriptor
+created by
+.Fn asl_create_auxiliary_file
+on iOS systems, where the ASL database is stored in memory.
+.Pp
+.Fo asl_decode_buffer
+.Fa in
+.Fa buf
+.Fa len
+.Fc
+decodes a C string previously created by
+.Fn asl_encode_buffer
+back into a buffer, possibly containing embedded zero bytes (octets).
+The routine allocates memory for the buffer and returns a pointer in an output
+.Fa buf
+parameter.
+The caller is responsible for freeing the buffer.
+.Pp
+This routine should be used to decode the value associated with an
+ASL_KEY_AUX_DATA key in an ASL_TYPE_MSG object.
+.Pp
+.Ss MESSAGES
+At the core of this API is the asl_object_t structure.
+Although the structure is opaque and may not be directly manipulated,
+it contains a list of key/value pairs.
+All keys and values are NUL-character terminated C language strings.
+UTF-8 encoding may be used for non-ASCII characters.
+.Pp
+Message structures are generally used to send log messages,
+and are created thusly:
+.Pp
+    asl_object_t m = asl_new(ASL_TYPE_MSG);
+.Pp
+Another message type, ASL_TYPE_QUERY,
+is used to create queries when searching the data store.
+Query type messages and searching are described in detail in the
+.Sx SEARCHING
+section.
+For the remainder of this section,
+the messages described will be of the ASL_TYPE_MSG variety.
+.Pp
+Each asl_object_t contains a default set of keys
+and values that are associated with them.
+These keys are listed in the asl.h header file.
+They are:
+.Pp
+    #define ASL_KEY_TIME      "Time"
+    #define ASL_KEY_HOST      "Host"
+    #define ASL_KEY_SENDER    "Sender"
+    #define ASL_KEY_FACILITY  "Facility"
+    #define ASL_KEY_PID       "PID"
+    #define ASL_KEY_UID       "UID"
+    #define ASL_KEY_GID       "GID"
+    #define ASL_KEY_LEVEL     "Level"
+    #define ASL_KEY_MSG       "Message"
+.Pp
+Many of these correspond to equivalent parts of messages described in the 
+.Xr syslog 3
+API.
+Values associated with these message keys are assigned appropriate defaults.  
+The value for ASL_KEY_HOST is the local host name,
+the value associated with ASL_KEY_SENDER is the process name,
+the ASL_KEY_PID is the client's process ID number, and so on.
+.Pp
+Note the addition of the UID and GID keys.
+The values for UID and GID are set in library code by the message sender.
+The server will attempt to confirm the values,
+but no claim is made that these values cannot be maliciously overridden
+in an attempt to deceive a log message reader
+as to the identity of the sender of a message.
+The contents of log messages must be regarded as insecure.
+.Pp
+The 
+.Xr asl 3
+API does not require a process to choose a facility name.
+The 
+.Nm syslogd
+server will use a default value of 
+.Dq user
+if a facility is not set.
+However, a client may set a facility name as an argument in the
+.Fn asl_open
+call, or by setting a specific value for the ASL_KEY_FACILITY in a message:
+.Pp
+    asl_set(m, ASL_KEY_FACILITY, "com.somename.greatservice");
+.Pp
+An application may choose any facility name at will.
+Different facility names may be attached to different messages, perhaps to distinguish different subsystems in log messages.
+Developers are encouraged to adopt a
+.Dq Reverse ICANN
+naming convention to avoid conflicting facility names.
+.Pp
+Default values are set in the message for each of the keys listed above,
+except for ASL_KEY_MSG,
+which may be explicitly set at any time using the
+.Fn asl_set
+routine, or implicitly set at the time the message is sent using the
+.Fn asl_log_message ,
+.Fn asl_log ,
+or
+.Fn asl_vlog
+routines.
+These three routines also have an integer-level parameter
+for specifying the log priority.
+The ASL_KEY_LEVEL value is set accordingly.
+Finally, the value associated with ASL_KEY_TIME
+is set in the sending routine.
+.Pp
+When logging from multiple threads,
+each thread
+.Em should
+open a separate client handle using
+.Fn asl_open .
+The client handle may then be closed when it is no longer required using
+.Fn asl_release .
+Multiple threads may log messages safely using a NULL asl_object_t argument,
+but the library will use an internal lock, so that in fact only one thread
+will log at a time.
+.Pp
+When an application requires additional keys and values
+to be associated with each log message,
+a single message structure may be allocated and set up as 
+.Dq template
+message of sorts:
+.Pp
+    asl_object_t m = asl_new(ASL_TYPE_MSG);
+    asl_set(m, ASL_KEY_FACILITY, "com.secrets.r.us");
+    asl_set(m, "Clearance", "Top Secret");
+    ...
+    asl_log(NULL, m, ASL_LEVEL_NOTICE, "Message One");
+    ...
+    asl_log(NULL, m, ASL_LEVEL_ERR, "Message Two");
+.Pp
+The message structure will carry the values set for the 
+.Dq Facility
+and
+.Dq Clearance
+keys so that they are used in each call to
+.Fn asl_log ,
+while the log level and the message text
+are taken from the calling parameters.
+.Pp
+The
+.Ar format
+argument to
+.Fn asl_log
+and
+.Fn asl_vlog
+is identical to
+.Xr printf 3 ,
+and may include
+.Ql %m ,
+which is replaced by the current error message
+(as denoted by the global variable 
+.Va errno ;
+see
+.Xr strerror 3 . )
+.Pp
+Key/value pairs may be removed from a message structure with
+.Fn asl_unset .
+A message may be freed using
+.Fn asl_release .
+.Pp
+The 
+.Fn asl_send
+routine is used by 
+.Fn asl_log
+and
+.Fn asl_vlog
+to transmit a message to the server.
+This routine sets the value associated with ASL_KEY_TIME
+and sends the message.
+It may be called directly if all of a message's key/value pairs
+have been created using
+.Fn asl_set .
+.Ss SECURITY
+Messages that are sent to the 
+.Nm syslogd
+server may be saved in a message store.
+The store may be searched using
+.Fn asl_search ,
+as described below.
+By default, all messages are readable by any user.
+However, some applications may wish to restrict read access
+for some messages.
+To accommodate this,
+a client may set a value for the "ReadUID" and "ReadGID" keys.
+These keys may be associated with a value
+containing an ASCII representation of a numeric UID or GID.
+Only the root user (UID 0),
+the user with the given UID,
+or a member of the group with the given GID
+may fetch access-controlled messages from the database.
+.Pp
+Although the ASL system does not require a "Facility" key in a message,
+many processes specify a "Facility" value similar
+to the common usage of the BSD
+.Nm syslog
+API, although developers are encouraged to adopt facility names that make sense for their application.
+A
+.Dq Reverse ICANN
+naming convention (e.g. "com.apple.system.syslog") should be adopted to avoid conflicting names.
+The ASL system generally allows any string to be used as a facility value,
+with one exception.
+The value "com.apple.system",
+or any string that has "com.apple.system" as a prefix,
+may only be used by processes running with the UID 0.
+This allows system processes to log messages that can not be "spoofed" by user processes.
+Non-UID 0 client processes that specify "com.apple.system" as a facility, will be assigned the value "user" 
+by the
+.Nm syslogd
+server.
+.Ss CLIENT HANDLES
+A client handle contains various parameters and control settings that are used when a message is logged.
+This includes an identification string, a facility name, filtering controls, additional file descriptors, and other data.
+Client handles are not thread-safe.
+Applications that log from multiple threads should create a client handle for each thread.
+.Pp
+Applications that use libdispatch must also avoid using a single client handle from multiple dispatch queues if those queues may run concurrently.
+A good approach is to create one or more serial dispatch queues specifically for logging.
+Each such queue should use its own ASL client handle.
+.Pp
+If a single handle must be accessed by multiple dispatch queues,
+then the application must use locks, semaphores, or some other mechanism to prevent concurrent access to a client handle.
+.Pp
+A NULL value may be used in any of the routines
+that require an asl_object_t argument.
+In this case, the library will use an internal client handle.
+This internal handle contains its own lock, allowing multiple threads to safely use the NULL client handle.
+Note, however, that contention for the lock may cause undesirable synchronization behavior or reduced performance.
+.Pp
+The
+.Fn asl_open
+routine may be given an ident argument,
+which becomes the default value for the ASL_KEY_SENDER key,
+and a facility argument,
+which becomes the value associated with the ASL_KEY_FACILITY key.
+If NULL is passed as the value for
+.Ar ident ,
+the name of the currently running program will be used.
+If NULL is passed as the value for
+.Ar facility ,
+the value
+.Dq user
+will be used for non UID 0 processes, and
+.Dq
+daemon
+will be used for UID 0 processes.
+.Pp
+Several options are available when creating a client handle.
+They are:
+.Pp
+.Bl -tag -width "ASL_OPT_NO_REMOTE" -compact
+.It ASL_OPT_STDERR
+adds stderr as an output file descriptor
+.It ASL_OPT_NO_DELAY
+connects to the server immediately
+.It ASL_OPT_NO_REMOTE
+disables remote-control filter adjustment
+.El
+.Pp
+See the FILTERING section below, and the
+.Xr syslog 1
+for additional details on filter controls.
+.Pp
+A client handle is closed and its resources released using 
+.Fn asl_close .
+Note that if additional file descriptors were added to the handle,
+either using the ASL_OPT_STDERR option
+or afterwards with the
+.Fn asl_add_log_file
+routine, those file descriptors are not closed by 
+.Fn asl_close .
+.Ss LOGGING TO ADDITIONAL FILES
+If a client handle is opened with the ASL_OPT_STDERR option to
+.Fn asl_open ,
+a copy of each log message will be sent to stderr. 
+Additional output streams may be include using
+.Fn asl_add_log_file .
+.Pp
+Messages sent to stderr or other files are printed in the "standard" message format
+also used as a default format by the
+.Xr syslog 1
+command line utility.
+Non-ASCII characters in a message are encoded using the
+.Dq safe
+encoding style used by
+.Xr syslog 1
+with the 
+.Fl E Ar safe
+option.
+Backspace characters are printed as ^H.
+Carriage returns are mapped to newlines.
+A tab character is appended after newlines so that message text is indented.
+.Pp
+File descriptors may be removed from the list of outputs associated
+with a client handle with
+.Fn asl_remove_log_file .
+This routine simply removes the file descriptor from the output list.
+The file is not closed as a result.
+.Pp
+The ASL_OPT_STDERR option may not be unset
+after a client handle has been opened.
+.Ss SEARCHING
+The 
+.Nm syslogd
+server archives received messages in a data store
+that may be searched using the
+.Fn asl_search ,
+.Fn asl_next ,
+and
+.Fn asl_release
+routines.
+A query message is created using:
+.Pp
+    asl_object_t q = asl_new(ASL_TYPE_QUERY);
+.Pp
+Search settings are made in the query using 
+.Fn asl_set_query .
+A search is performed on the data store with
+.Fn asl_search .
+It returns an object of type ASL_TYPE_LIST.
+The caller may use routines that operate on lists, such as
+.Fn asl_next ,
+.Fn asl_prev ,
+and
+.Fn asl_get_index
+to access the matching messages.
+.Pp
+Like other messages, ASL_TYPE_QUERY messages contain keys and values.
+They also associate an operation with each key and value.
+The operation is used to decide if a message matches the query.
+The simplest operation is ASL_QUERY_OP_EQUAL, which tests for equality.
+For example, the following code snippet searches for messages
+with a Sender value equal to
+.Dq MyApp .
+.Pp
+    asl_object_t q, r;
+    q = asl_new(ASL_TYPE_QUERY);
+    asl_set_query(q, ASL_KEY_SENDER, "MyApp", ASL_QUERY_OP_EQUAL);
+    r = asl_search(NULL, q);
+.Pp
+More complex searches may be performed using other query operations.
+.Pp
+.Bl -tag -width "ASL_QUERY_OP_GREATER_EQUAL" -compact
+.It ASL_QUERY_OP_EQUAL
+value equality
+.It ASL_QUERY_OP_GREATER
+value greater than
+.It ASL_QUERY_OP_GREATER_EQUAL
+value greater than or equal to
+.It ASL_QUERY_OP_LESS
+value less than
+.It ASL_QUERY_OP_LESS_EQUAL
+value less than or equal to
+.It ASL_QUERY_OP_NOT_EQUAL
+value not equal
+.It ASL_QUERY_OP_REGEX
+regular expression search
+.It ASL_QUERY_OP_TRUE
+always true - use to test for the existence of a key
+.El
+.Pp
+Regular expression search uses 
+.Xr regex 3
+library.
+Patterns are compiled using the REG_EXTENDED and REG_NOSUB options.
+.Pp
+Modifiers that change the behavior of these operations
+may also be specified by ORing the modifier value with the operation.
+The modifiers are:
+.Pp
+.Bl -tag -width "ASL_QUERY_OP_SUBSTRING" -compact
+.It ASL_QUERY_OP_CASEFOLD
+string comparisons are case-folded
+.It ASL_QUERY_OP_PREFIX
+match a leading substring
+.It ASL_QUERY_OP_SUFFIX
+match a trailing substring
+.It ASL_QUERY_OP_SUBSTRING
+match any substring
+.It ASL_QUERY_OP_NUMERIC
+values are converted to integer using 
+.Nm atoi
+.El
+.Pp
+The only modifier that is checked
+for ASL_QUERY_OP_REGEX search is ASL_QUERY_OP_CASEFOLD.
+This causes the regular expression to be compiled
+with the REG_ICASE option.
+.Pp
+If a query message contains more than one set of key/value/operation triples,
+the result will be a logical AND.  For example, to find messages from
+.Dq MyApp 
+with a priority level less than or equal to 
+.Dq 3 :
+.Pp
+    asl_object_t q, r;
+    q = asl_new(ASL_TYPE_QUERY);
+    asl_set_query(q, ASL_KEY_SENDER, "MyApp", ASL_QUERY_OP_EQUAL);
+    asl_set_query(q, ASL_KEY_LEVEL, "3",
+            ASL_QUERY_OP_LESS_EQUAL | ASL_QUERY_OP_NUMERIC);
+    r = asl_search(NULL, q);
+.Pp
+After calling 
+.Fn asl_search
+to get a list of matching messages, one can use
+.Fn asl_next
+to iterate through the list, and 
+.Fn asl_fetch_key_val_op
+To iterate through the message dictionary.
+.Pp
+    asl_object_t q, r;
+.Pp
+    ...
+    r = asl_search(NULL, q);
+    while (NULL != (m = asl_next(r)))
+    {
+        int i, n;
+        n = asl_count(m);
+        for (i = 0; i < n; i++)
+        {
+		    const char *key, *val;
+            asl_fetch_key_val_op(m, i, key, val, NULL);
+            ...
+        }
+    }
+    asl_release(r);
+.Pp
+.Ss FILTERING AND REMOTE CONTROL
+Clients may set a filter mask value with
+.Fn asl_set_filter .
+The mask specifies which messages should be sent to the
+.Nm syslogd
+daemon by specifying a yes/no setting for each priority level.
+Clients typically set a filter mask
+to avoid sending relatively unimportant messages.
+For example, Debug or Info priority level messages
+are generally only useful for debugging operations.
+By setting a filter mask, a process can improve performance
+by avoiding sending messages that are in most cases unnecessary.
+.Pp
+.Fn asl_set_filter returns the previous value of the filter, i.e. the value of the filter before the routine was called.
+.Pp
+As a convenience, the macros ASL_FILTER_MASK(level) and ASL_FILTER_MASK_UPTO(level)
+may be used to construct a bit mask corresponding to a given priority level,
+or corresponding to a bit mask for all priority levels
+from ASL_LEVEL_EMERG to a given input level.
+.Pp
+The default filter mask is ASL_FILTER_MASK_UPTO(ASL_LEVEL_NOTICE).
+This means that by default,
+and in the absence of remote-control changes (described below),
+ASL_LEVEL_DEBUG and ASL_LEVEL_INFO priority level messages
+are not sent to the
+.Nm syslogd
+server.
+.Pp
+Three different filters exist for each application.
+The first is the filter mask set using
+.Fn asl_set_filter
+as described above.
+The Apple System Log facility also manages a 
+.Dq master
+filter mask.
+The master filter mask usually has a value
+that indicates to the library that it is
+.Dq off , 
+and thus it has no effect.
+However, the mask filter mask may be enabled
+by giving it a value using the
+.Nm syslog
+command, using the 
+.Fl c
+0 option.
+When the master filter mask has been set, 
+it takes precedence over the client's filter mask.  
+The client's mask is unmodified,
+and will become active again if remote-control filtering is disabled.
+.Pp
+In addition to the master filter mask,
+The Apple System Log facility
+also manages a per-client remote-control filter mask.
+Like the master filter mask, the per-client mask is usually 
+.Dq off ,
+having no effect on a client.
+If a per-client filter mask is set using the
+.Nm syslog
+command, using the 
+.Fl c Ar process
+option, then it takes precedence
+over both the client's filter mask and the master filter mask.
+As is the case with the master filter mask,
+a per-client mask ceases having any effect when if is disabled.
+.Pp
+The ASL_OPT_NO_REMOTE option to
+.Fn asl_open
+causes both the master and per-client remote-control masks
+to be ignored in the library.
+In that case, only the client's own filter mask
+is used to determine which messages are sent to the server.
+This may be useful for Applications that produce log messages
+that should never be filtered, due to security considerations.
+Note that root (administrator) access is required
+to set or change the master filter mask,
+and that only root may change a per-client remote-control filter mask
+for a root (UID 0) process.
+.Pp
+The per-process remote control filter value is kept as a state value
+associated with a key managed by
+.Nm notifyd .
+The key is protected by an access control mechanism that only permits the
+filter value to be accessed and modified by the same effective UID as the
+ASL client at the time that the first ASL connection was created.
+Remote filter control using 
+.Nm syslog Fl c 
+will fail for processes that change effective UID after starting an ASL connection.
+Those processes should close all ASL client handles and then re-open ASL connections
+if remote filter control support is desired.
+.Sh HISTORY
+These functions first appeared in
+Mac OS X 10.4.
+.Sh SEE ALSO
+.Xr syslog 1 ,
+.Xr strvis 3 ,
+.Xr syslogd 8

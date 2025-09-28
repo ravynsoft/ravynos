@@ -1,0 +1,11 @@
+LC_ALL=en_US.UTF-8
+LANG=en_US.UTF-8
+
+var='абвгдежзиклмноп '
+echo -"$var"- ${#var}
+
+read foo <<< "$var"
+echo -"$foo"- ${#foo}
+
+read -n 5 foo <<< "$var"
+echo -"$foo"- ${#foo}

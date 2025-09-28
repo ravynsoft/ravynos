@@ -1,0 +1,122 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of sentence handling.
+
+cat > s1.in <<\EOF
+1
+This is a primary sentence
+
+1
+This is a primary sentence.
+
+1
+This is a primary sentence.x
+
+2
+This is a primary sentence.  This is a secondary sentence
+
+1
+This is a primary sentence.  This is a secondary sentence
+
+1
+This is a primary sentence.'  This is a secondary sentence
+
+3
+This is a primary sentence.  This is a secondary sentence
+
+2
+This is a primary sentence.'  This is a secondary sentence
+
+2
+This is a primary sentence.'x  This is a secondary sentence
+
+2
+This is a primary sentence.''x  This is a secondary sentence
+
+2
+This is a primary sentence.
+This is a secondary sentence
+
+2
+This is a primary sentence. 
+This is a secondary sentence
+
+2
+This is a primary sentence. 
+This is a secondary sentence
+
+2
+This is a primary sentence.	This is a secondary sentence
+
+2
+This is a primary sentence.'	This is a secondary sentence
+
+2
+This is a primary sentence.'
+This is a secondary sentence
+
+EOF
+
+cat > s1.ok <<EOF
+FFFD
+
+
+2E
+.
+
+FFFD
+
+
+2E
+.  This is a secondary sentence
+
+2E
+.  This is a secondary sentence
+
+2E
+.'  This is a secondary sentence
+
+FFFD
+
+
+2E
+.'  This is a secondary sentence
+
+FFFD
+
+
+FFFD
+
+
+2E
+.
+This is a secondary sentence
+
+2E
+. 
+This is a secondary sentence
+
+2E
+. 
+This is a secondary sentence
+
+2E
+.	This is a secondary sentence
+
+2E
+.'	This is a secondary sentence
+
+2E
+.'
+This is a secondary sentence
+
+EOF
+
+../sentence-1-prg < s1.in > s1.tmp || Exit 1
+LC_ALL=C tr -d '\r' < s1.tmp > s1.out || Exit 1
+
+: ${DIFF=diff}
+${DIFF} s1.ok s1.out || Exit 1
+
+Exit 0

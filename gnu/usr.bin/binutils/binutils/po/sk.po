@@ -1,0 +1,6307 @@
+# Slovak translation for binutils
+# Copyright (C) 2004 Free Software Foundation, Inc.
+# This file is distributed under the same license as the binutils package.
+# Ivan Masár <helix84@centrum.sk>, 2007, 2008, 2009.
+#
+# based on launchpad translation from 30.8.2007 by Jozef Káčer, analytik
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: binutils 2.18.90\n"
+"Report-Msgid-Bugs-To: bug-binutils@gnu.org\n"
+"POT-Creation-Date: 2008-09-09 15:56+0930\n"
+"PO-Revision-Date: 2009-02-19 15:33+0100\n"
+"Last-Translator: Ivan Masár <helix84@centrum.sk>\n"
+"Language-Team: Slovak <sk-i18n@lists.linux.sk>\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Rosetta-Export-Date: 2007-08-30 01:38:26+0000\n"
+
+#: addr2line.c:76
+#, c-format
+msgid "Usage: %s [option(s)] [addr(s)]\n"
+msgstr "Použitie: %s [voľb(a/y)] [adres(a/y)]\n"
+
+#: addr2line.c:77
+#, c-format
+msgid " Convert addresses into line number/file name pairs.\n"
+msgstr " Previesť adresy na páry čísiel riadkov/názvov súborov.\n"
+
+#: addr2line.c:78
+#, c-format
+msgid " If no addresses are specified on the command line, they will be read from stdin\n"
+msgstr " Ak nie sú žiadne adresy určené z príkazového riadka, budú sa čítať zo stdin\n"
+
+#: addr2line.c:79
+#, c-format
+msgid ""
+" The options are:\n"
+"  @<file>                Read options from <file>\n"
+"  -b --target=<bfdname>  Set the binary file format\n"
+"  -e --exe=<executable>  Set the input file name (default is a.out)\n"
+"  -i --inlines           Unwind inlined functions\n"
+"  -j --section=<name>    Read section-relative offsets instead of addresses\n"
+"  -s --basenames         Strip directory names\n"
+"  -f --functions         Show function names\n"
+"  -C --demangle[=style]  Demangle function names\n"
+"  -h --help              Display this information\n"
+"  -v --version           Display the program's version\n"
+"\n"
+msgstr ""
+" Voľby sú:\n"
+"  @<súbor>               Načítať voľby zo <súboru>\n"
+"  -b --target=<bfdname>  nastaviť binárny formát súboru\n"
+"  -e --exe=<executable>  Nastaviť názov vstupného súboru (štandardne a.out)\n"
+"  -i --inlines           Rozvinúť inline funkcie\n"
+"  -j --section=<názov>   Načítať ofsety relatívne vzhľadom na sekciu namiesto adries\n"
+"  -s --basenames         Odstrániť názvy adresárov\n"
+"  -f --functions         Zobraziť názvy funkcií\n"
+"  -C --demangle[=style]  Formátovať výpis názvov funkcií\n"
+"  -h --help              Zobraziť tohto pomocníka\n"
+"  -v --version           Zobraziť verziu programu\n"
+"\n"
+
+#: addr2line.c:94 ar.c:274 coffdump.c:469 dlltool.c:3173 dllwrap.c:510
+#: nlmconv.c:1113 objcopy.c:513 objcopy.c:548 readelf.c:2868 size.c:99
+#: srconv.c:1741 strings.c:664 sysdump.c:654 windmc.c:233 windres.c:698
+#, c-format
+msgid "Report bugs to %s\n"
+msgstr "Hlásiť chyby na %s\n"
+
+#: addr2line.c:281
+#, c-format
+msgid "%s: cannot get addresses from archive"
+msgstr "%s: nepodarilo sa získať adresu z archívu"
+
+#: addr2line.c:298
+#, c-format
+msgid "%s: cannot find section %s"
+msgstr "%s: nepodarilo sa nájsť sekciu %s"
+
+#: addr2line.c:364 nm.c:1542 objdump.c:3223
+#, c-format
+msgid "unknown demangling style `%s'"
+msgstr "neznámy štýl opravy „%s“"
+
+#: ar.c:212
+#, c-format
+msgid "no entry %s in archive\n"
+msgstr "žíadny záznam %s v archíve\n"
+
+#: ar.c:228
+#, c-format
+msgid "Usage: %s [emulation options] [-]{dmpqrstx}[abcfilNoPsSuvV] [member-name] [count] archive-file file...\n"
+msgstr "Použítie: %s [voľby emulácie] [-]{dmpqrstx}[abcfilNoPsSuvV] [názov-člena] [počet] názov archívu...\n"
+
+#: ar.c:231
+#, c-format
+msgid "       %s -M [<mri-script]\n"
+msgstr "       %s -M [<mri-script]\n"
+
+#: ar.c:232
+#, c-format
+msgid " commands:\n"
+msgstr " príkazy:\n"
+
+#: ar.c:233
+#, c-format
+msgid "  d            - delete file(s) from the archive\n"
+msgstr "  d            - odstrániť súbor(y) z archívu\n"
+
+#: ar.c:234
+#, c-format
+msgid "  m[ab]        - move file(s) in the archive\n"
+msgstr "  m[ab]        - posunúť súbor(y) v archíve\n"
+
+#: ar.c:235
+#, c-format
+msgid "  p            - print file(s) found in the archive\n"
+msgstr "  p            - vypísať súbor(y) nájdené v archíve\n"
+
+#: ar.c:236
+#, c-format
+msgid "  q[f]         - quick append file(s) to the archive\n"
+msgstr "  q[f]         - rýchlo pripojiť súbor(y) k archívu\n"
+
+#: ar.c:237
+#, c-format
+msgid "  r[ab][f][u]  - replace existing or insert new file(s) into the archive\n"
+msgstr "  r[ab][f][u]  - nahradiť existujúci alebo vložiť nový súbor(y) do archívu\n"
+
+#: ar.c:238
+#, c-format
+msgid "  t            - display contents of archive\n"
+msgstr "  t            - zobraziť obsah archívu\n"
+
+#: ar.c:239
+#, c-format
+msgid "  x[o]         - extract file(s) from the archive\n"
+msgstr "  x[o]         - rozbaliť súbor(y) z archívu\n"
+
+#: ar.c:240
+#, c-format
+msgid " command specific modifiers:\n"
+msgstr " modifikátory špecifické pre určitý príkaz :\n"
+
+#: ar.c:241
+#, c-format
+msgid "  [a]          - put file(s) after [member-name]\n"
+msgstr "  [a]          - vložiť súbor(y) za [názov-člena]\n"
+
+#: ar.c:242
+#, c-format
+msgid "  [b]          - put file(s) before [member-name] (same as [i])\n"
+msgstr "  [b]          - vložiť súbor(y) pred [názov-člena] (rovnaké ako [i])\n"
+
+#: ar.c:243
+#, c-format
+msgid "  [N]          - use instance [count] of name\n"
+msgstr "  [N]          - použiť inštanciu [počet] názvu\n"
+
+#: ar.c:244
+#, c-format
+msgid "  [f]          - truncate inserted file names\n"
+msgstr "  [f]          - skrátiť vložené názvy súborov\n"
+
+#: ar.c:245
+#, c-format
+msgid "  [P]          - use full path names when matching\n"
+msgstr "  [P]          - použiť celú cestu pri zhode\n"
+
+#: ar.c:246
+#, c-format
+msgid "  [o]          - preserve original dates\n"
+msgstr "  [o]          - zachovať pôvodné dátumy\n"
+
+#: ar.c:247
+#, c-format
+msgid "  [u]          - only replace files that are newer than current archive contents\n"
+msgstr "  [u]          - nahradiť iba tie súbory, ktoré sú novšie než aktuálny obsah súboru\n"
+
+#: ar.c:248
+#, c-format
+msgid " generic modifiers:\n"
+msgstr " všeobecné modifikátory:\n"
+
+#: ar.c:249
+#, c-format
+msgid "  [c]          - do not warn if the library had to be created\n"
+msgstr "  [c]          - neupozorňovať ak sa knižnica musela vytvoriť\n"
+
+#: ar.c:250
+#, c-format
+msgid "  [s]          - create an archive index (cf. ranlib)\n"
+msgstr "  [s]          - vytvoriť index archívu (porovnaj s ranlib)\n"
+
+#: ar.c:251
+#, c-format
+msgid "  [S]          - do not build a symbol table\n"
+msgstr "  [S]          - nevytvárať symbolickú tabuľku\n"
+
+#: ar.c:252
+#, c-format
+msgid "  [T]          - make a thin archive\n"
+msgstr "  [T]          - urobiť riedky archív\n"
+
+#: ar.c:253
+#, c-format
+msgid "  [v]          - be verbose\n"
+msgstr "  [v]          - plný výpis\n"
+
+#: ar.c:254
+#, c-format
+msgid "  [V]          - display the version number\n"
+msgstr "  [V]          - zobraziť číslo verzie\n"
+
+#: ar.c:255
+#, c-format
+msgid "  @<file>      - read options from <file>\n"
+msgstr "  @<súbor>     - čítať voľby z <súboru>\n"
+
+#: ar.c:262
+#, c-format
+msgid "Usage: %s [options] archive\n"
+msgstr "Použitie: %s [voľby] archív\n"
+
+#: ar.c:263
+#, c-format
+msgid " Generate an index to speed access to archives\n"
+msgstr " Vygenerovať index pre rýchly prístup k archívom\n"
+
+#: ar.c:264
+#, c-format
+msgid ""
+" The options are:\n"
+"  @<file>                      Read options from <file>\n"
+"  -t                           Update the archive's symbol map timestamp\n"
+"  -h --help                    Print this help message\n"
+"  -v --version                 Print version information\n"
+msgstr ""
+" The options are:\n"
+"  @<súbor>                     načítať voľby zo <súboru>\n"
+"  -t                           aktualizovať časovú známku mapy symbolov archívu\n"
+"  -h --help                    vypísať túto správu pomocníka\n"
+"  -v --version                 vypísať informácie o verzii\n"
+
+#: ar.c:499
+msgid "two different operation options specified"
+msgstr "boli špecifikované dve odlišné operačné voľby"
+
+#: ar.c:577
+#, c-format
+msgid "illegal option -- %c"
+msgstr "neplatná voľba -- %c"
+
+#: ar.c:620
+msgid "no operation specified"
+msgstr "nebola určená žiadna operácia"
+
+#: ar.c:623
+msgid "`u' is only meaningful with the `r' option."
+msgstr "„u“ má zmysel iba s voľbou „r“"
+
+#: ar.c:631
+msgid "`N' is only meaningful with the `x' and `d' options."
+msgstr "„N“ má zmysel iba s voľbami „x“ a „d“."
+
+#: ar.c:634
+msgid "Value for `N' must be positive."
+msgstr "Hodnota pre „N“ musí byť kladná."
+
+#: ar.c:646
+msgid "`x' cannot be used on thin archives."
+msgstr "„x“ nemožno použiť na riedkych archívoch."
+
+#: ar.c:687
+#, c-format
+msgid "internal error -- this option not implemented"
+msgstr "vnútorná chyba -- táto voľba nie je implementovaná"
+
+#: ar.c:756
+#, c-format
+msgid "creating %s"
+msgstr "vytvára sa %s"
+
+#: ar.c:805 ar.c:860 ar.c:1185 objcopy.c:1912
+#, c-format
+msgid "internal stat error on %s"
+msgstr "vnútorná stat chyba na %s"
+
+#: ar.c:809
+#, c-format
+msgid ""
+"\n"
+"<%s>\n"
+"\n"
+msgstr ""
+"\n"
+"<%s>\n"
+"\n"
+
+#: ar.c:825 ar.c:893
+#, c-format
+msgid "%s is not a valid archive"
+msgstr "%s nie je platný archív"
+
+#: ar.c:1090
+#, c-format
+msgid "No member named `%s'\n"
+msgstr "Žiadny člen s názvom „%s“\n"
+
+#: ar.c:1140
+#, c-format
+msgid "no entry %s in archive %s!"
+msgstr "žiadny záznam %s v archíve %s!"
+
+#: ar.c:1279
+#, c-format
+msgid "%s: no archive map to update"
+msgstr "%s: žiadna mapa archívu pre aktualizáciu"
+
+#: arsup.c:89
+#, c-format
+msgid "No entry %s in archive.\n"
+msgstr "Žiadny záznam %s v archíve.\n"
+
+#: arsup.c:114
+#, c-format
+msgid "Can't open file %s\n"
+msgstr "Nemožno otvoriť súbor %s\n"
+
+#: arsup.c:164
+#, c-format
+msgid "%s: Can't open output archive %s\n"
+msgstr "%s: Nemožno otvoriť výstupný archív %s\n"
+
+#: arsup.c:181
+#, c-format
+msgid "%s: Can't open input archive %s\n"
+msgstr "%s: Nemožno otvoriť vstupný archív %s\n"
+
+#: arsup.c:190
+#, c-format
+msgid "%s: file %s is not an archive\n"
+msgstr "%s: súbor %s nie je archív\n"
+
+#: arsup.c:230
+#, c-format
+msgid "%s: no output archive specified yet\n"
+msgstr "%s: nebol ešte určený žiadny výstupný archív\n"
+
+#: arsup.c:250 arsup.c:288 arsup.c:330 arsup.c:350 arsup.c:416
+#, c-format
+msgid "%s: no open output archive\n"
+msgstr "%s žiadny výstupný archív na otvorenie\n"
+
+#: arsup.c:261 arsup.c:371 arsup.c:397
+#, c-format
+msgid "%s: can't open file %s\n"
+msgstr "%s: nemožno otvoriť súbor %s\n"
+
+#: arsup.c:315 arsup.c:393 arsup.c:474
+#, c-format
+msgid "%s: can't find module file %s\n"
+msgstr "%s: nemožno nájsť súbor modulu %s\n"
+
+#: arsup.c:425
+#, c-format
+msgid "Current open archive is %s\n"
+msgstr "Súčasne otvorený archív je %s\n"
+
+#: arsup.c:449
+#, c-format
+msgid "%s: no open archive\n"
+msgstr "%s: žiadny otvorený archív\n"
+
+#: bin2c.c:59
+#, c-format
+msgid "Usage: %s < input_file > output_file\n"
+msgstr "Použitie: %s <VSTUP_SÚBOR> VÝSTUP_SÚBOR\n"
+
+#: bin2c.c:60
+#, c-format
+msgid "Prints bytes from stdin in hex format.\n"
+msgstr "Vypíše bajtu zo štand. vstupu v hexadecimálnom formáte.\n"
+
+#: binemul.c:38
+#, c-format
+msgid "  No emulation specific options\n"
+msgstr "  Neboli určené žiadne emulačné voľby\n"
+
+#. Macros for common output.
+#: binemul.h:43
+#, c-format
+msgid " emulation options: \n"
+msgstr " emulačné voľby: \n"
+
+#: bucomm.c:157
+#, c-format
+msgid "can't set BFD default target to `%s': %s"
+msgstr "nemožno nastaviť štandardný BFD cieľ na „%s“: %s"
+
+#: bucomm.c:168
+#, c-format
+msgid "%s: Matching formats:"
+msgstr "%s: Zhodujúce sa formáty:"
+
+#: bucomm.c:183
+#, c-format
+msgid "Supported targets:"
+msgstr "Podporované ciele:"
+
+#: bucomm.c:185
+#, c-format
+msgid "%s: supported targets:"
+msgstr "%s: podporované ciele:"
+
+#: bucomm.c:202
+#, c-format
+msgid "Supported architectures:"
+msgstr "Podporované architektúry:"
+
+#: bucomm.c:204
+#, c-format
+msgid "%s: supported architectures:"
+msgstr "%s: podporované architektúry:"
+
+#: bucomm.c:398
+#, c-format
+msgid "BFD header file version %s\n"
+msgstr "Verzia BFD hlavičky súboru %s\n"
+
+#: bucomm.c:547
+#, c-format
+msgid "%s: bad number: %s"
+msgstr "%s: nesprávane číslo: %s"
+
+#: bucomm.c:564 strings.c:410
+#, c-format
+msgid "'%s': No such file"
+msgstr "„%s“: súbor neexistuje"
+
+#: bucomm.c:566 strings.c:412
+#, c-format
+msgid "Warning: could not locate '%s'.  reason: %s"
+msgstr "Upozornenie: nemožno nájsť „%s“. dôvod: %s"
+
+#: bucomm.c:570
+#, c-format
+msgid "Warning: '%s' is not an ordinary file"
+msgstr "Upozornenie: „%s“ nie je bežný súbor"
+
+#: coffdump.c:106
+#, c-format
+msgid "#lines %d "
+msgstr "#riadky %d "
+
+#: coffdump.c:460 sysdump.c:647
+#, c-format
+msgid "Usage: %s [option(s)] in-file\n"
+msgstr "Použitie: %s [voľby] vstupný-súbor\n"
+
+#: coffdump.c:461
+#, c-format
+msgid " Print a human readable interpretation of a SYSROFF object file\n"
+msgstr " Zobraziť čitateľnú interpretáciu objektového súboru SYSFOFF\n"
+
+#: coffdump.c:462
+#, c-format
+msgid ""
+" The options are:\n"
+"  @<file>                Read options from <file>\n"
+"  -h --help              Display this information\n"
+"  -v --version           Display the program's version\n"
+"\n"
+msgstr ""
+" Voľby sú:\n"
+"  @<file>                Čítať voľby z <file>\n"
+"  -h --help              Zobraziť túto informáciu\n"
+"  -v --version           Zobraziť verziu programu\n"
+"\n"
+
+#: coffdump.c:531 srconv.c:1831 sysdump.c:711
+msgid "no input file specified"
+msgstr "nebol určený žiadny vstupný súbor"
+
+#: cxxfilt.c:119 nm.c:256 objdump.c:241
+#, c-format
+msgid "Report bugs to %s.\n"
+msgstr "Hlásiť chyby na %s.\n"
+
+#: debug.c:647
+msgid "debug_add_to_current_namespace: no current file"
+msgstr "debug_add_to_current_namespace: žiadny súčasný súbor"
+
+#: debug.c:726
+msgid "debug_start_source: no debug_set_filename call"
+msgstr "debug_start_source: žiadne volanie debug_set_filename"
+
+#: debug.c:782
+msgid "debug_record_function: no debug_set_filename call"
+msgstr "debug_record_function: žiadne volanie debug_set_filename"
+
+#: debug.c:834
+msgid "debug_record_parameter: no current function"
+msgstr "debug_record_parameter: žiadna súčasná funkcia"
+
+#: debug.c:866
+msgid "debug_end_function: no current function"
+msgstr "debug_end_function: žiadna súčasná funkcia"
+
+#: debug.c:872
+msgid "debug_end_function: some blocks were not closed"
+msgstr "debug_end_function: niektoré bloky neboli uzavreté"
+
+#: debug.c:900
+msgid "debug_start_block: no current block"
+msgstr "debug_start_block: žiadny súčasný blok"
+
+#: debug.c:936
+msgid "debug_end_block: no current block"
+msgstr "debug_end_block: žiadny súčasný blok"
+
+#: debug.c:943
+msgid "debug_end_block: attempt to close top level block"
+msgstr "debug_end_block: pokus o zatvorenie bloku najvyššej úrovne"
+
+#: debug.c:966
+msgid "debug_record_line: no current unit"
+msgstr "debug_record_line: žiadna súčasná jednotka"
+
+#. FIXME
+#: debug.c:1019
+msgid "debug_start_common_block: not implemented"
+msgstr "debug_start_common_block: nie je implementované"
+
+#. FIXME
+#: debug.c:1030
+msgid "debug_end_common_block: not implemented"
+msgstr "debug_end_common_block: nie je implementované"
+
+#. FIXME.
+#: debug.c:1114
+msgid "debug_record_label: not implemented"
+msgstr "debug_record_label: nie je implementované"
+
+#: debug.c:1136
+msgid "debug_record_variable: no current file"
+msgstr "debug_record_variable: žiadny súčasný súbor"
+
+#: debug.c:1664
+msgid "debug_make_undefined_type: unsupported kind"
+msgstr "debug_make_undefined_type: nepodporovaný druh"
+
+#: debug.c:1841
+msgid "debug_name_type: no current file"
+msgstr "debug_name_type: žiadny súčasný súbor"
+
+#: debug.c:1886
+msgid "debug_tag_type: no current file"
+msgstr "debug_tag_type: žiadny súčasný súbor"
+
+#: debug.c:1894
+msgid "debug_tag_type: extra tag attempted"
+msgstr "debug_tag_type: pokus o extra tag"
+
+#: debug.c:1931
+#, c-format
+msgid "Warning: changing type size from %d to %d\n"
+msgstr "Upozornenie: mení sa veľkosť typu z %d na %d\n"
+
+#: debug.c:1953
+msgid "debug_find_named_type: no current compilation unit"
+msgstr "debug_find_named_type: žiadna súčasná kompilačná jednotka"
+
+#: debug.c:2056
+#, c-format
+msgid "debug_get_real_type: circular debug information for %s\n"
+msgstr "debug_get_real_type: cyklická ladiaca informácia pre %s\n"
+
+#: debug.c:2483
+msgid "debug_write_type: illegal type encountered"
+msgstr "debug_write_type: objavený neplatný typ"
+
+#: dlltool.c:797 dlltool.c:823 dlltool.c:854
+#, c-format
+msgid "Internal error: Unknown machine type: %d"
+msgstr "Vnútorná chyba: Neznámy typ architektúry: %d"
+
+#: dlltool.c:890
+#, c-format
+msgid "Can't open def file: %s"
+msgstr "Nemožno otvoriť def súbor: %s"
+
+#: dlltool.c:895
+#, c-format
+msgid "Processing def file: %s"
+msgstr "Spracováva sa def súbor: %s"
+
+#: dlltool.c:899
+msgid "Processed def file"
+msgstr "def súbor spracovaný"
+
+#: dlltool.c:923
+#, c-format
+msgid "Syntax error in def file %s:%d"
+msgstr "Syntaktická chyba v def súbore %s:%d"
+
+#: dlltool.c:958
+#, c-format
+msgid "%s: Path components stripped from image name, '%s'."
+msgstr "%s: Komponenty cesty boli odrezané z názvu obrázka, „%s“."
+
+#: dlltool.c:967
+#, c-format
+msgid "NAME: %s base: %x"
+msgstr "NÁZOV: %s báza: %x"
+
+#: dlltool.c:970 dlltool.c:986
+msgid "Can't have LIBRARY and NAME"
+msgstr "Nemožno mať KNIŽNICU a NÁZOV"
+
+#: dlltool.c:983
+#, c-format
+msgid "LIBRARY: %s base: %x"
+msgstr "KNIŽNICA: %s báza: %x"
+
+#: dlltool.c:1219 resrc.c:293
+#, c-format
+msgid "wait: %s"
+msgstr "čakať: %s"
+
+#: dlltool.c:1224 dllwrap.c:410 resrc.c:298
+#, c-format
+msgid "subprocess got fatal signal %d"
+msgstr "podproces obdržal fatálny signá %d"
+
+#: dlltool.c:1230 dllwrap.c:417 resrc.c:305
+#, c-format
+msgid "%s exited with status %d"
+msgstr "%s ukončený so stavom %d"
+
+#: dlltool.c:1261
+#, c-format
+msgid "Sucking in info from %s section in %s"
+msgstr "Naťahujú sa informácie z %s sekcie v %s"
+
+#: dlltool.c:1386
+#, c-format
+msgid "Excluding symbol: %s"
+msgstr "Vynecháva sa symbol: %s"
+
+#: dlltool.c:1475 dlltool.c:1486 nm.c:992 nm.c:1003
+#, c-format
+msgid "%s: no symbols"
+msgstr "%s: žiadne symboly"
+
+#. FIXME: we ought to read in and block out the base relocations.
+#: dlltool.c:1512
+#, c-format
+msgid "Done reading %s"
+msgstr "Čítanie %s ukončené"
+
+#: dlltool.c:1522
+#, c-format
+msgid "Unable to open object file: %s"
+msgstr "Nemožno otvoriť objektový súbor: %s"
+
+#: dlltool.c:1525
+#, c-format
+msgid "Scanning object file %s"
+msgstr "Prebieha skenovanie objektového súboru %s"
+
+#: dlltool.c:1540
+#, c-format
+msgid "Cannot produce mcore-elf dll from archive file: %s"
+msgstr "Nemožno vytvoriť mcore-elf dll zo súboru archívu: %s"
+
+#: dlltool.c:1626
+msgid "Adding exports to output file"
+msgstr "Pridávanie exportov do výstupného súboru"
+
+#: dlltool.c:1674
+msgid "Added exports to output file"
+msgstr "Exporty boli pridané do výstupného súboru"
+
+#: dlltool.c:1813
+#, c-format
+msgid "Generating export file: %s"
+msgstr "Generuje sa súbor exportu: %s"
+
+#: dlltool.c:1818
+#, c-format
+msgid "Unable to open temporary assembler file: %s"
+msgstr "Nemožno otvoriť dočasný súbor assembleru: %s"
+
+#: dlltool.c:1821
+#, c-format
+msgid "Opened temporary file: %s"
+msgstr "Dočasný súbor otvorený: %s"
+
+#: dlltool.c:2043
+msgid "Generated exports file"
+msgstr "Export súbor vygenerovaný"
+
+#: dlltool.c:2251
+#, c-format
+msgid "bfd_open failed open stub file: %s"
+msgstr "bfd_open zlyhal pri otváraní testovacieho súboru: %s"
+
+#: dlltool.c:2254
+#, c-format
+msgid "Creating stub file: %s"
+msgstr "Vytváram testovací súbor: %s"
+
+#: dlltool.c:2672
+#, c-format
+msgid "failed to open temporary head file: %s"
+msgstr "nepodarilo sa otvoriť dočasný súbor hlavičky: %s"
+
+#: dlltool.c:2734
+#, c-format
+msgid "failed to open temporary tail file: %s"
+msgstr "nepodarilo sa otvoriť dočasný súbor zápätia: %s"
+
+#: dlltool.c:2809
+#, c-format
+msgid "Can't open .lib file: %s"
+msgstr "Nemožno otvoriť .lib súbor: %s"
+
+#: dlltool.c:2812
+#, c-format
+msgid "Creating library file: %s"
+msgstr "Vytvára sa súbor knižnice: %s"
+
+#: dlltool.c:2896 dlltool.c:2902
+#, c-format
+msgid "cannot delete %s: %s"
+msgstr "nemožno odstrániť %s:%s"
+
+#: dlltool.c:2907
+msgid "Created lib file"
+msgstr "lib súbor vytvorený"
+
+#: dlltool.c:2986
+#, c-format
+msgid "Warning, ignoring duplicate EXPORT %s %d,%d"
+msgstr "Upozornenie, ignoruje sa duplikátny EXPORT  %s %d,%d"
+
+#: dlltool.c:2992
+#, c-format
+msgid "Error, duplicate EXPORT with ordinals: %s"
+msgstr "Chyba, duplicitný EXPORT s ordinálami: %s"
+
+#: dlltool.c:3097
+msgid "Processing definitions"
+msgstr "Spracovávajú sa definície"
+
+#: dlltool.c:3129
+msgid "Processed definitions"
+msgstr "Definície spracované"
+
+#. xgetext:c-format
+#: dlltool.c:3136 dllwrap.c:471
+#, c-format
+msgid "Usage %s <option(s)> <object-file(s)>\n"
+msgstr "Použitie %s <voľb(a/y)> <objektový-súbor(y)>\n"
+
+#. xgetext:c-format
+#: dlltool.c:3138
+#, c-format
+msgid "   -m --machine <machine>    Create as DLL for <machine>.  [default: %s]\n"
+msgstr "   -m --machine <architektúra> Vytvoriť ako DLL pre <architektúra>. [štandardne: %s]\n"
+
+#: dlltool.c:3139
+#, c-format
+msgid "        possible <machine>: arm[_interwork], i386, mcore[-elf]{-le|-be}, ppc, thumb\n"
+msgstr "        možná <architektúra>: arm[_interwork], i386, mcore[-elf]{-le|-be}, ppc, thumb\n"
+
+#: dlltool.c:3140
+#, c-format
+msgid "   -e --output-exp <outname> Generate an export file.\n"
+msgstr "   -e --output-exp <výstupný_názov> Vygenerovať export súbor.\n"
+
+#: dlltool.c:3141
+#, c-format
+msgid "   -l --output-lib <outname> Generate an interface library.\n"
+msgstr "   -l --output-lib <výstupný_súbor> Vygenerovať knižnicu rozhrania.\n"
+
+#: dlltool.c:3142
+#, c-format
+msgid "   -a --add-indirect         Add dll indirects to export file.\n"
+msgstr "   -a --add-indirect         Pridať dll indirekty do export súboru.\n"
+
+#: dlltool.c:3143
+#, c-format
+msgid "   -D --dllname <name>       Name of input dll to put into interface lib.\n"
+msgstr "   -D --dllname <názov>      Názov vstupného dll pre vloženie do knižnice rozhrania.\n"
+
+#: dlltool.c:3144
+#, c-format
+msgid "   -d --input-def <deffile>  Name of .def file to be read in.\n"
+msgstr "   -d --input-def <deffile>  Názov .def súboru, v ktorom sa má čitať.\n"
+
+#: dlltool.c:3145
+#, c-format
+msgid "   -z --output-def <deffile> Name of .def file to be created.\n"
+msgstr "   -z --output-def <deffile> Názov .def súboru, ktorý sa má vytvoriť.\n"
+
+#: dlltool.c:3146
+#, c-format
+msgid "      --export-all-symbols   Export all symbols to .def\n"
+msgstr "      --export-all-symbols   Exportovať všetky symboly do .def\n"
+
+#: dlltool.c:3147
+#, c-format
+msgid "      --no-export-all-symbols  Only export listed symbols\n"
+msgstr "      --no-export-all-symbols  Exportovať iba uvedené symboly\n"
+
+#: dlltool.c:3148
+#, c-format
+msgid "      --exclude-symbols <list> Don't export <list>\n"
+msgstr "      --exclude-symbols <zoznam> Neexportovať <zoznam>\n"
+
+#: dlltool.c:3149
+#, c-format
+msgid "      --no-default-excludes  Clear default exclude symbols\n"
+msgstr "      --no-default-excludes  Vyčistiť štandardné exclude symboly\n"
+
+#: dlltool.c:3150
+#, c-format
+msgid "   -b --base-file <basefile> Read linker generated base file.\n"
+msgstr "   -b --base-file <bázový_súbor> Čítať linkerom vygenerovaný bázový súbor.\n"
+
+#: dlltool.c:3151
+#, c-format
+msgid "   -x --no-idata4            Don't generate idata$4 section.\n"
+msgstr "   -x --no-idata4            Negenerovať sekciu idata$4.\n"
+
+#: dlltool.c:3152
+#, c-format
+msgid "   -c --no-idata5            Don't generate idata$5 section.\n"
+msgstr "   -c --no-idata5            Negenerovať sekciu idata$5.\n"
+
+#: dlltool.c:3153
+#, c-format
+msgid "   -U --add-underscore       Add underscores to all symbols in interface library.\n"
+msgstr "   -U --add-underscore       Pridá znak podčiarknutia ku všetkým symbolom knižnice rozhrania.\n"
+
+#: dlltool.c:3154
+#, c-format
+msgid "      --add-stdcall-underscore Add underscores to stdcall symbols in interface library.\n"
+msgstr "      --add-stdcall-underscore Pridá znak podčiarknutia ku všetkým symbolom stdcall knižnice rozhrania.\n"
+
+#: dlltool.c:3155
+#, c-format
+msgid "   -k --kill-at              Kill @<n> from exported names.\n"
+msgstr "   -k --kill-at              Ukončiť @<n> z exportovaných názvov.\n"
+
+#: dlltool.c:3156
+#, c-format
+msgid "   -A --add-stdcall-alias    Add aliases without @<n>.\n"
+msgstr "   -A --add-stdcall-alias    Pridať aliasy bez @<n>.\n"
+
+#: dlltool.c:3157
+#, c-format
+msgid "   -p --ext-prefix-alias <prefix> Add aliases with <prefix>.\n"
+msgstr "   -p --ext-prefix-alias <prefix> Pridať aliasy s <prefix>om.\n"
+
+#: dlltool.c:3158
+#, c-format
+msgid "   -S --as <name>            Use <name> for assembler.\n"
+msgstr "   -S --as <názov>           Použiť <názov> pre assembler.\n"
+
+#: dlltool.c:3159
+#, c-format
+msgid "   -f --as-flags <flags>     Pass <flags> to the assembler.\n"
+msgstr "   -f --as-flags <príznaky>  Poslať <príznaky> do assembleru.\n"
+
+#: dlltool.c:3160
+#, c-format
+msgid "   -C --compat-implib        Create backward compatible import library.\n"
+msgstr "   -C --compat-implib        Vytvoriť spätne kompatibilnú importovaciu knižnicu.\n"
+
+#: dlltool.c:3161
+#, c-format
+msgid "   -n --no-delete            Keep temp files (repeat for extra preservation).\n"
+msgstr "   -n --no-delete            Ponechať dočasné súbory (opakovať pre extra zachovanie)\n"
+
+#: dlltool.c:3162
+#, c-format
+msgid "   -t --temp-prefix <prefix> Use <prefix> to construct temp file names.\n"
+msgstr "   -t --temp-prefix <prefix> Použiť <prefix> pre vytvorenie názvov dočasných súborov.\n"
+
+#: dlltool.c:3163
+#, c-format
+msgid "   -v --verbose              Be verbose.\n"
+msgstr "   -v --verbose              Plný výpis.\n"
+
+#: dlltool.c:3164
+#, c-format
+msgid "   -V --version              Display the program version.\n"
+msgstr "   -V --version              Zobraziť verziu programu.\n"
+
+#: dlltool.c:3165
+#, c-format
+msgid "   -h --help                 Display this information.\n"
+msgstr "   -h --help                 Zobraziť túto informáciu.\n"
+
+#: dlltool.c:3166
+#, c-format
+msgid "   @<file>                   Read options from <file>.\n"
+msgstr "   @<file>                   Čítať voľby z <file>.\n"
+
+#: dlltool.c:3168
+#, c-format
+msgid "   -M --mcore-elf <outname>  Process mcore-elf object files into <outname>.\n"
+msgstr "   -M --mcore-olf <výst_názov> Spracovať objektové súbory mcore-elf do <výst_názvu>.\n"
+
+#: dlltool.c:3169
+#, c-format
+msgid "   -L --linker <name>        Use <name> as the linker.\n"
+msgstr "   -L --linker <názov>       Použiť <názov> ako linker.\n"
+
+#: dlltool.c:3170
+#, c-format
+msgid "   -F --linker-flags <flags> Pass <flags> to the linker.\n"
+msgstr "   -F --linker-flags <príznaky> Poslať <príznaky> do linkera.\n"
+
+#: dlltool.c:3293
+#, c-format
+msgid "Path components stripped from dllname, '%s'."
+msgstr "Komponenty cesty odrezané z dllname, „%s“."
+
+#: dlltool.c:3338
+#, c-format
+msgid "Unable to open base-file: %s"
+msgstr "Nemožno otvoriť bázový-súbor: %s"
+
+#: dlltool.c:3370
+#, c-format
+msgid "Machine '%s' not supported"
+msgstr "Nepodporovaná architektúra „%s“"
+
+#: dlltool.c:3474 dllwrap.c:201
+#, c-format
+msgid "Tried file: %s"
+msgstr "Pokus o súbor: %s"
+
+#: dlltool.c:3481 dllwrap.c:208
+#, c-format
+msgid "Using file: %s"
+msgstr "Používa sa súbor: %s"
+
+#: dllwrap.c:291
+#, c-format
+msgid "Keeping temporary base file %s"
+msgstr "Ponecháva sa dočasného bázového súboru: %s"
+
+#: dllwrap.c:293
+#, c-format
+msgid "Deleting temporary base file %s"
+msgstr "Odstraňuje sa dočasný bázový súbor %s"
+
+#: dllwrap.c:307
+#, c-format
+msgid "Keeping temporary exp file %s"
+msgstr "Ponecháva sa dočasný exp súbor %s"
+
+#: dllwrap.c:309
+#, c-format
+msgid "Deleting temporary exp file %s"
+msgstr "Odstraňuje sa dočasný exp súbor %s"
+
+#: dllwrap.c:322
+#, c-format
+msgid "Keeping temporary def file %s"
+msgstr "Ponecháva sa dočasný def súbor %s"
+
+#: dllwrap.c:324
+#, c-format
+msgid "Deleting temporary def file %s"
+msgstr "Odstraňuje sa dočasný def súbor %s"
+
+#: dllwrap.c:472
+#, c-format
+msgid "  Generic options:\n"
+msgstr "  Druhové voľby:\n"
+
+#: dllwrap.c:473
+#, c-format
+msgid "   @<file>                Read options from <file>\n"
+msgstr "   @<file>                Čítať voľby z <file>\n"
+
+#: dllwrap.c:474
+#, c-format
+msgid "   --quiet, -q            Work quietly\n"
+msgstr "   --quiet, -q Pracovať potichu\n"
+
+#: dllwrap.c:475
+#, c-format
+msgid "   --verbose, -v          Verbose\n"
+msgstr "   --verbose, -v Plný výpis\n"
+
+#: dllwrap.c:476
+#, c-format
+msgid "   --version              Print dllwrap version\n"
+msgstr "   --version Vypísať dllwrap verziu\n"
+
+#: dllwrap.c:477
+#, c-format
+msgid "   --implib <outname>     Synonym for --output-lib\n"
+msgstr "   --implib <výstupný_názov> Synonymum pre --output-lib\n"
+
+#: dllwrap.c:478
+#, c-format
+msgid "  Options for %s:\n"
+msgstr "  Voľby pre %s:\n"
+
+#: dllwrap.c:479
+#, c-format
+msgid "   --driver-name <driver> Defaults to \"gcc\"\n"
+msgstr "   --driver-name <ovládač> Štandardný je „gcc“\n"
+
+#: dllwrap.c:480
+#, c-format
+msgid "   --driver-flags <flags> Override default ld flags\n"
+msgstr "   --driver-flags <príznaky> Preťažiť štandardné ld príznaky\n"
+
+#: dllwrap.c:481
+#, c-format
+msgid "   --dlltool-name <dlltool> Defaults to \"dlltool\"\n"
+msgstr "   --dlltool-name <dlltool> Štandarne „dlltool“\n"
+
+#: dllwrap.c:482
+#, c-format
+msgid "   --entry <entry>        Specify alternate DLL entry point\n"
+msgstr "   --entry <položka> Určiť alternatívne miesto DLL položky\n"
+
+#: dllwrap.c:483
+#, c-format
+msgid "   --image-base <base>    Specify image base address\n"
+msgstr "   --image-base <báza> Určiť bázovú adresu obrázku\n"
+
+#: dllwrap.c:484
+#, c-format
+msgid "   --target <machine>     i386-cygwin32 or i386-mingw32\n"
+msgstr "   --target <architektúra> i386-cygwin32 alebo i386-mingw32\n"
+
+#: dllwrap.c:485
+#, c-format
+msgid "   --dry-run              Show what needs to be run\n"
+msgstr "   --dry-run Zobraziť, čo treba spustiť\n"
+
+#: dllwrap.c:486
+#, c-format
+msgid "   --mno-cygwin           Create Mingw DLL\n"
+msgstr "   --mno-cygwin Vytvoriť Mingw DLL\n"
+
+#: dllwrap.c:487
+#, c-format
+msgid "  Options passed to DLLTOOL:\n"
+msgstr "  Voľby posielané do DLLTOOL:\n"
+
+#: dllwrap.c:488
+#, c-format
+msgid "   --machine <machine>\n"
+msgstr "   --machine <architektúra>\n"
+
+#: dllwrap.c:489
+#, c-format
+msgid "   --output-exp <outname> Generate export file.\n"
+msgstr "   --output-exp <výstupný_názov> Vygenerovať export súbor.\n"
+
+#: dllwrap.c:490
+#, c-format
+msgid "   --output-lib <outname> Generate input library.\n"
+msgstr "   --output-lib <výstupný_názov> Vygenerovať vstupnú knižnicu.\n"
+
+#: dllwrap.c:491
+#, c-format
+msgid "   --add-indirect         Add dll indirects to export file.\n"
+msgstr "   --add-indirect Pridať dll indirekty do export súboru.\n"
+
+#: dllwrap.c:492
+#, c-format
+msgid "   --dllname <name>       Name of input dll to put into output lib.\n"
+msgstr "   --dllname <názov> Názov vstupnej dll pre vloženie do výstupnej knižnice.\n"
+
+#: dllwrap.c:493
+#, c-format
+msgid "   --def <deffile>        Name input .def file\n"
+msgstr "   --def <deffile>Názov vstupného .def súboru\n"
+
+#: dllwrap.c:494
+#, c-format
+msgid "   --output-def <deffile> Name output .def file\n"
+msgstr "   --output-def <deffile> Názov výstupného .def súboru\n"
+
+#: dllwrap.c:495
+#, c-format
+msgid "   --export-all-symbols     Export all symbols to .def\n"
+msgstr "   --export-all-symbols Exportovať všetky symboly do .def\n"
+
+#: dllwrap.c:496
+#, c-format
+msgid "   --no-export-all-symbols  Only export .drectve symbols\n"
+msgstr "   --no-export-all-symbols Exportovať iba .drectve symboly\n"
+
+#: dllwrap.c:497
+#, c-format
+msgid "   --exclude-symbols <list> Exclude <list> from .def\n"
+msgstr "   --exclude-symbols <zoznam> Vynechať <zoznam> z .def\n"
+
+#: dllwrap.c:498
+#, c-format
+msgid "   --no-default-excludes    Zap default exclude symbols\n"
+msgstr "   --no-default-excludes Vymazať štandardné exclude symboly\n"
+
+#: dllwrap.c:499
+#, c-format
+msgid "   --base-file <basefile> Read linker generated base file\n"
+msgstr "   --base-file <bázový_súbor> Čítať linkerom vygenerovaný bázový súbor\n"
+
+#: dllwrap.c:500
+#, c-format
+msgid "   --no-idata4           Don't generate idata$4 section\n"
+msgstr "   --no-idata4 Negenerovať idata$4 sekciu\n"
+
+#: dllwrap.c:501
+#, c-format
+msgid "   --no-idata5           Don't generate idata$5 section\n"
+msgstr "   --no-idata5 Negenerovať idata$5 sekciu\n"
+
+#: dllwrap.c:502
+#, c-format
+msgid "   -U                     Add underscores to .lib\n"
+msgstr "   -U Pridať podtržníky do .lib\n"
+
+#: dllwrap.c:503
+#, c-format
+msgid "   -k                     Kill @<n> from exported names\n"
+msgstr "   -k Ukončiť @<n> z exportovaných názvov\n"
+
+#: dllwrap.c:504
+#, c-format
+msgid "   --add-stdcall-alias    Add aliases without @<n>\n"
+msgstr "   --add-atdcall-alias Pridať aliasy bez @<n>\n"
+
+#: dllwrap.c:505
+#, c-format
+msgid "   --as <name>            Use <name> for assembler\n"
+msgstr "   --as <názov> Použiť <názov> pre assembler\n"
+
+#: dllwrap.c:506
+#, c-format
+msgid "   --nodelete             Keep temp files.\n"
+msgstr "   --nodelete Ponechať dočasné súbory.\n"
+
+#: dllwrap.c:507
+#, c-format
+msgid "  Rest are passed unmodified to the language driver\n"
+msgstr "  Zbytok je poslaný nezmenený ovláadaču jazyka\n"
+
+#: dllwrap.c:781
+msgid "Must provide at least one of -o or --dllname options"
+msgstr "Je nutné uviesť najmenej jednu z volieb -o alebo --dllname"
+
+#: dllwrap.c:810
+msgid ""
+"no export definition file provided.\n"
+"Creating one, but that may not be what you want"
+msgstr ""
+"nebol poskytnutý definičný export súbor.\n"
+"Jeden sa vytvára, ale nemusí to byť to, čo chcete"
+
+#: dllwrap.c:969
+#, c-format
+msgid "DLLTOOL name    : %s\n"
+msgstr "DLLTOOL názov   : %s\n"
+
+#: dllwrap.c:970
+#, c-format
+msgid "DLLTOOL options : %s\n"
+msgstr "DLLTOOL voľby   : %s\n"
+
+#: dllwrap.c:971
+#, c-format
+msgid "DRIVER name     : %s\n"
+msgstr "DRIVER názov    : %s\n"
+
+#: dllwrap.c:972
+#, c-format
+msgid "DRIVER options  : %s\n"
+msgstr "DRIVER voľby    : %s\n"
+
+#: dwarf.c:98 dwarf.c:142 readelf.c:370 readelf.c:526
+#, c-format
+msgid "Unhandled data length: %d\n"
+msgstr "Nespracovateľná dĺžka dát %d\n"
+
+#: dwarf.c:267 dwarf.c:2563
+msgid "badly formed extended line op encountered!\n"
+msgstr "narazilo sa na zle formovaný rozšírený operátor riadka\n"
+
+#: dwarf.c:274
+#, c-format
+msgid "  Extended opcode %d: "
+msgstr "  Rozšírený opkód %d: "
+
+#: dwarf.c:279
+#, c-format
+msgid ""
+"End of Sequence\n"
+"\n"
+msgstr ""
+"Koniec sekvencie\n"
+"\n"
+
+#: dwarf.c:285
+#, c-format
+msgid "set Address to 0x%lx\n"
+msgstr "nastaviť Adresu na 0x%lx\n"
+
+#: dwarf.c:290
+#, c-format
+msgid "  define new File Table entry\n"
+msgstr "  definovať novú položku Tabuľky súboru\n"
+
+#: dwarf.c:291 dwarf.c:2178
+#, c-format
+msgid "  Entry\tDir\tTime\tSize\tName\n"
+msgstr "  Položka\tAdresár\tČas\tVeľkosť\tNázov\n"
+
+#: dwarf.c:293
+#, c-format
+msgid "   %d\t"
+msgstr "   %d\t"
+
+#: dwarf.c:296 dwarf.c:298 dwarf.c:300 dwarf.c:2190 dwarf.c:2192 dwarf.c:2194
+#, c-format
+msgid "%lu\t"
+msgstr "%lu\t"
+
+#: dwarf.c:301
+#, c-format
+msgid ""
+"%s\n"
+"\n"
+msgstr ""
+"%s\n"
+"\n"
+
+#. The test against DW_LNW_hi_user is redundant due to
+#. the limited range of the unsigned char data type used
+#. for op_code.
+#. && op_code <= DW_LNE_hi_user
+#: dwarf.c:342
+#, c-format
+msgid "user defined: length %d\n"
+msgstr "Používateľom definované: dĺžka %d\n"
+
+#: dwarf.c:344 dwarf.c:2594
+#, c-format
+msgid "UNKNOWN: length %d\n"
+msgstr "UNKNOWN: dĺžka %d\n"
+
+#: dwarf.c:357
+msgid "<no .debug_str section>"
+msgstr "<žiadna .debug_str sekcia>"
+
+#: dwarf.c:363
+#, c-format
+msgid "DW_FORM_strp offset too big: %lx\n"
+msgstr "DW_FORM_strp offset priveľký: %lx\n"
+
+#: dwarf.c:364
+msgid "<offset is too big>"
+msgstr "<offset je priveľký>"
+
+#: dwarf.c:597
+#, c-format
+msgid "Unknown TAG value: %lx"
+msgstr "Neznáma TAG hodnota: %lx"
+
+#: dwarf.c:633
+#, c-format
+msgid "Unknown FORM value: %lx"
+msgstr "Neznáma FORM hodnota: %lx"
+
+#: dwarf.c:642
+#, c-format
+msgid " %lu byte block: "
+msgstr " %lu bajtový blok: "
+
+#: dwarf.c:1031
+#, c-format
+msgid "(User defined location op)"
+msgstr "(Užívateľom definovaný operátor umiestnenia)"
+
+#: dwarf.c:1033
+#, c-format
+msgid "(Unknown location op)"
+msgstr "(Neznámy operátor umiestnenia)"
+
+#: dwarf.c:1081
+msgid "Internal error: DWARF version is not 2 or 3.\n"
+msgstr "Vnútorná chyba: DWARF verzia nie je 2 ani 3.\n"
+
+#: dwarf.c:1180
+msgid "DW_FORM_data8 is unsupported when sizeof (unsigned long) != 8\n"
+msgstr "DW_FORM_data8 nie je podporovaný keď sizeof (unsigned long) != 8\n"
+
+#: dwarf.c:1229
+#, c-format
+msgid " (indirect string, offset: 0x%lx): %s"
+msgstr " (nepriamy reťazec, offset: 0x%lx): %s"
+
+#: dwarf.c:1238
+#, c-format
+msgid "Unrecognized form: %lu\n"
+msgstr "Nerozoznaná forma: %lu\n"
+
+#: dwarf.c:1322
+#, c-format
+msgid "(not inlined)"
+msgstr "(ako inline)"
+
+#: dwarf.c:1325
+#, c-format
+msgid "(inlined)"
+msgstr "(nie ako inline)"
+
+#: dwarf.c:1328
+#, c-format
+msgid "(declared as inline but ignored)"
+msgstr "(deklarovaný ako inline, ale ignorovaný)"
+
+#: dwarf.c:1331
+#, c-format
+msgid "(declared as inline and inlined)"
+msgstr "(deklarovaný ako inline a je inline)"
+
+#: dwarf.c:1334
+#, c-format
+msgid "  (Unknown inline attribute value: %lx)"
+msgstr "  (Neznáma hodnota inline atribútu: %lx)"
+
+#: dwarf.c:1495
+#, c-format
+msgid "(location list)"
+msgstr "(zoznam umiestnení)"
+
+#: dwarf.c:1514 dwarf.c:3193
+#, c-format
+msgid " [without DW_AT_frame_base]"
+msgstr " [bez DW_AT_frame_base]"
+
+#: dwarf.c:1526
+#, c-format
+msgid "Offset %lx used as value for DW_AT_import attribute of DIE at offset %lx is too big.\n"
+msgstr "Ofset %lx použitý ako hodnota atribútu DW_AT_import DIE na ofsete %lx je príliš veľký.\n"
+
+#: dwarf.c:1700
+#, c-format
+msgid "Unknown AT value: %lx"
+msgstr "Neznáma AT hodnota: %lx"
+
+#: dwarf.c:1767
+#, c-format
+msgid "Reserved length value (%lx) found in section %s\n"
+msgstr "Hodnota vyhradenej dĺžky (%lx) nájdená v sekcii %s\n"
+
+#: dwarf.c:1778
+#, c-format
+msgid "Corrupt unit length (%lx) found in section %s\n"
+msgstr "Neplatná dĺžka  jednotky (%lx) nájdená v sekcii %s\n"
+
+#: dwarf.c:1785
+#, c-format
+msgid "No comp units in %s section ?"
+msgstr "Žiadne výpočtové jednotky v sekcii %s ?"
+
+#: dwarf.c:1794
+#, c-format
+msgid "Not enough memory for a debug info array of %u entries"
+msgstr "Nedostatok pamäte pre ladiace info pole %u položiek"
+
+#: dwarf.c:1802 dwarf.c:3285
+#, c-format
+msgid ""
+"The section %s contains:\n"
+"\n"
+msgstr ""
+"Sekcia %s obsahuje:\n"
+"\n"
+
+#: dwarf.c:1810
+#, c-format
+msgid "Unable to locate %s section!\n"
+msgstr "Nemožno nájsť sekciu %s!\n"
+
+#: dwarf.c:1873
+#, c-format
+msgid "  Compilation Unit @ offset 0x%lx:\n"
+msgstr "  Kompilačná Jednotka @ offset 0x%lx:\n"
+
+#: dwarf.c:1874
+#, c-format
+msgid "   Length:        0x%lx (%s)\n"
+msgstr "   Dĺžka:         0x%lx (%s)\n"
+
+#: dwarf.c:1876
+#, c-format
+msgid "   Version:       %d\n"
+msgstr "   Verzia:        %d\n"
+
+#: dwarf.c:1877
+#, c-format
+msgid "   Abbrev Offset: %ld\n"
+msgstr "   Offset skratky: %ld\n"
+
+#: dwarf.c:1878
+#, c-format
+msgid "   Pointer Size:  %d\n"
+msgstr "   Veľkosť ukazovateľa: %d\n"
+
+#: dwarf.c:1884
+#, c-format
+msgid "Debug info is corrupted, length of CU at %lx extends beyond end of section (length = %lx)\n"
+msgstr "Ladiace informácie sú poškodené, dĺžka CU na %lx siaha za koniec sekcie (sekcia má dĺžku %lx)\n"
+
+#: dwarf.c:1893
+#, c-format
+msgid "CU at offset %lx contains corrupt or unsupported version number: %d.\n"
+msgstr "CU na ofsete %lx obsahuje neplatné alebo nepodporované číslo verzie: %d\n"
+
+#: dwarf.c:1903
+#, c-format
+msgid "Debug info is corrupted, abbrev offset (%lx) is larger than abbrev section size (%lx)\n"
+msgstr "Ladiace informácie sú poškodené, ofset abbrev (%lx) je väčší ako veľkosť sekcie abbrev (%lx)\n"
+
+#: dwarf.c:1937
+#, c-format
+msgid "Bogus end-of-siblings marker detected at offset %lx in .debug_info section\n"
+msgstr "Neplatná značka end-of-siblings zistená na ofsete %lx v sekcii .debug_info\n"
+
+#: dwarf.c:1941
+msgid "Further warnings about bogus end-of-sibling markers suppressed\n"
+msgstr "Výpis ďalších upozornení na neplatné značky end-of-sibling bude potlačený\n"
+
+#: dwarf.c:1948
+#, c-format
+msgid " <%d><%lx>: Abbrev Number: %lu"
+msgstr " <%d><%lx>: skrát. číslo: %lu"
+
+#: dwarf.c:1965
+#, c-format
+msgid "DIE at offset %lx refers to abbreviation number %lu which does not exist\n"
+msgstr "DIE na ofsete %lx odkazuje na skrátené číslo %lu, ktoré neexistuje\n"
+
+#: dwarf.c:1971
+#, c-format
+msgid " (%s)\n"
+msgstr " (%s)\n"
+
+#: dwarf.c:2062
+#, c-format
+msgid ""
+"Raw dump of debug contents of section %s:\n"
+"\n"
+msgstr ""
+"Nespracovaný výpis obsahu ladenia sekcie %s:\n"
+"\n"
+
+#: dwarf.c:2100 dwarf.c:2387
+msgid "The line info appears to be corrupt - the section is too small\n"
+msgstr "Informácia o riadku je pravdepodobne poškodená - sekcia je príliš krátka\n"
+
+#: dwarf.c:2109 dwarf.c:2397
+msgid "Only DWARF version 2 and 3 line info is currently supported.\n"
+msgstr "Momentálne je podporovaná iba riadková informácia DWARF verzie 2 a 3.\n"
+
+#: dwarf.c:2130
+#, c-format
+msgid "  Offset:                      0x%lx\n"
+msgstr "  Ofset:                       0x%lx\n"
+
+#: dwarf.c:2131
+#, c-format
+msgid "  Length:                      %ld\n"
+msgstr "  Dĺžka:                       %ld\n"
+
+#: dwarf.c:2132
+#, c-format
+msgid "  DWARF Version:               %d\n"
+msgstr "  Verzia DWARF:                %d\n"
+
+#: dwarf.c:2133
+#, c-format
+msgid "  Prologue Length:             %d\n"
+msgstr "  Dĺžka prológu:               %d\n"
+
+#: dwarf.c:2134
+#, c-format
+msgid "  Minimum Instruction Length:  %d\n"
+msgstr "  Minimálna dĺžka inštrukcie:  %d\n"
+
+#: dwarf.c:2135
+#, c-format
+msgid "  Initial value of 'is_stmt':  %d\n"
+msgstr "  Počiatočná hodnota 'is_stmt': %d\n"
+
+#: dwarf.c:2136
+#, c-format
+msgid "  Line Base:                   %d\n"
+msgstr "  Báza riadka:                 %d\n"
+
+#: dwarf.c:2137
+#, c-format
+msgid "  Line Range:                  %d\n"
+msgstr "  Rozsah riadka:               %d\n"
+
+#: dwarf.c:2138
+#, c-format
+msgid "  Opcode Base:                 %d\n"
+msgstr "  Opcode báza:                 %d\n"
+
+#: dwarf.c:2147
+#, c-format
+msgid ""
+"\n"
+" Opcodes:\n"
+msgstr ""
+"\n"
+" Opcody:\n"
+
+#: dwarf.c:2150
+#, c-format
+msgid "  Opcode %d has %d args\n"
+msgstr "  Opcode %d má %d argumentov\n"
+
+#: dwarf.c:2156
+#, c-format
+msgid ""
+"\n"
+" The Directory Table is empty.\n"
+msgstr ""
+"\n"
+" Tabuľka adresára je prázdna.\n"
+
+#: dwarf.c:2159
+#, c-format
+msgid ""
+"\n"
+" The Directory Table:\n"
+msgstr ""
+"\n"
+" Tabuľka adresára:\n"
+
+#: dwarf.c:2163
+#, c-format
+msgid "  %s\n"
+msgstr "  %s\n"
+
+#: dwarf.c:2174
+#, c-format
+msgid ""
+"\n"
+" The File Name Table is empty.\n"
+msgstr ""
+"\n"
+" Tabuľka názvov súborov je prázdna.\n"
+
+#: dwarf.c:2177
+#, c-format
+msgid ""
+"\n"
+" The File Name Table:\n"
+msgstr ""
+"\n"
+" Tabuľka názvov súborov:\n"
+
+#: dwarf.c:2185
+#, c-format
+msgid "  %d\t"
+msgstr "  %d\t"
+
+#: dwarf.c:2196
+#, c-format
+msgid "%s\n"
+msgstr "%s\n"
+
+#. Now display the statements.
+#: dwarf.c:2204
+#, c-format
+msgid ""
+"\n"
+" Line Number Statements:\n"
+msgstr ""
+"\n"
+" Príkazy číslovania riadkov:\n"
+
+#: dwarf.c:2220
+#, c-format
+msgid "  Special opcode %d: advance Address by %lu to 0x%lx"
+msgstr "  Špeciálny opcode %d: posunúť Adresu o %lu do 0x%lx"
+
+#: dwarf.c:2224
+#, c-format
+msgid " and Line by %d to %d\n"
+msgstr " a Riadok o %d do %d\n"
+
+#: dwarf.c:2234
+#, c-format
+msgid "  Copy\n"
+msgstr "  Kopírovať\n"
+
+#: dwarf.c:2242
+#, c-format
+msgid "  Advance PC by %lu to 0x%lx\n"
+msgstr "  Posunúť PC o %lu do 0x%lx\n"
+
+#: dwarf.c:2250
+#, c-format
+msgid "  Advance Line by %d to %d\n"
+msgstr "  Posunúť Riadok o %d do %d\n"
+
+#: dwarf.c:2257
+#, c-format
+msgid "  Set File Name to entry %d in the File Name Table\n"
+msgstr "  Nastaviť Názov súboru na položku %d v Tabuľke názvov súborov\n"
+
+#: dwarf.c:2265
+#, c-format
+msgid "  Set column to %lu\n"
+msgstr "  Nastaviť stĺpec na %lu\n"
+
+#: dwarf.c:2272
+#, c-format
+msgid "  Set is_stmt to %d\n"
+msgstr "  Nastaviť is_stmt na %d\n"
+
+#: dwarf.c:2277
+#, c-format
+msgid "  Set basic block\n"
+msgstr "  Nastaviť základný blok\n"
+
+#: dwarf.c:2285
+#, c-format
+msgid "  Advance PC by constant %lu to 0x%lx\n"
+msgstr "  Posunúť PC o konštantu %lu na 0x%lx\n"
+
+#: dwarf.c:2293
+#, c-format
+msgid "  Advance PC by fixed size amount %lu to 0x%lx\n"
+msgstr "  Posunúť PC o množstvo fixnej dĺžky %lu na 0x%lx\n"
+
+#: dwarf.c:2298
+#, c-format
+msgid "  Set prologue_end to true\n"
+msgstr "  Nastaviť prologue_end na true\n"
+
+#: dwarf.c:2302
+#, c-format
+msgid "  Set epilogue_begin to true\n"
+msgstr "  Set_epilogue_begin na true\n"
+
+#: dwarf.c:2308 dwarf.c:2672
+#, c-format
+msgid "  Set ISA to %lu\n"
+msgstr "  Nastaviť ISA na %lu\n"
+
+#: dwarf.c:2312 dwarf.c:2676
+#, c-format
+msgid "  Unknown opcode %d with operands: "
+msgstr "  Neznámy kód operácie %d s operandami: "
+
+#: dwarf.c:2345
+#, c-format
+msgid ""
+"Decoded dump of debug contents of section %s:\n"
+"\n"
+msgstr ""
+"Dekódovaný výpis obsahu ladenia sekcie %s:\n"
+"\n"
+
+#: dwarf.c:2506
+#, c-format
+msgid "CU: %s:\n"
+msgstr "CU: %s:\n"
+
+#: dwarf.c:2507 dwarf.c:2520
+#, c-format
+msgid "File name                            Line number    Starting address\n"
+msgstr "Názov súboru                         Číslo riadka     Počiatočná adresa\n"
+
+#: dwarf.c:2513
+#, c-format
+msgid "CU: %s/%s:\n"
+msgstr "CU: %s/%s:\n"
+
+#: dwarf.c:2518 dwarf.c:2590
+#, c-format
+msgid "%s:\n"
+msgstr "%s:\n"
+
+#. If directory index is 0, that means current directory.
+#: dwarf.c:2623
+#, c-format
+msgid ""
+"\n"
+"./%s:[++]\n"
+msgstr ""
+"\n"
+"./%s:[++]\n"
+
+#. The directory index starts counting at 1.
+#: dwarf.c:2629
+#, c-format
+msgid ""
+"\n"
+"%s/%s:\n"
+msgstr ""
+"\n"
+"%s/%s:\n"
+
+#: dwarf.c:2714
+#, c-format
+msgid "%-35s  %11d  %#18lx\n"
+msgstr "%-35s  %11d  %#18lx\n"
+
+#: dwarf.c:2719
+#, c-format
+msgid "%s  %11d  %#18lx\n"
+msgstr "%s  %11d  %#18lx\n"
+
+#: dwarf.c:2749 dwarf.c:3024 dwarf.c:3425
+#, c-format
+msgid "Unable to load/parse the .debug_info section, so cannot interpret the %s section.\n"
+msgstr "Napodarilo sa načítať sekciu .debug_info, takže nemožno interpretovať sekciu %s.\n"
+
+#: dwarf.c:2794 dwarf.c:2888 dwarf.c:2962 dwarf.c:3079 dwarf.c:3227
+#: dwarf.c:3480
+#, c-format
+msgid ""
+"Contents of the %s section:\n"
+"\n"
+msgstr ""
+"Obsah %s sekcie:\n"
+"\n"
+
+#: dwarf.c:2828 dwarf.c:3330
+#, c-format
+msgid ".debug_info offset of 0x%lx in %s section does not point to a CU header.\n"
+msgstr ".debug_info ofset 0x%lx v sekcii %s neukazuje na hlavičku CU.\n"
+
+#: dwarf.c:2842
+msgid "Only DWARF 2 and 3 pubnames are currently supported\n"
+msgstr "Mometnálne sú podporované iba verejné mená DWARF 2 a 3\n"
+
+#: dwarf.c:2849
+#, c-format
+msgid "  Length:                              %ld\n"
+msgstr "  Dĺžka: %ld\n"
+
+#: dwarf.c:2851
+#, c-format
+msgid "  Version:                             %d\n"
+msgstr "  Verzia: %d\n"
+
+#: dwarf.c:2853
+#, c-format
+msgid "  Offset into .debug_info section:     0x%lx\n"
+msgstr "  Ofset do sekcie .debug_info:         0x%lx\n"
+
+#: dwarf.c:2855
+#, c-format
+msgid "  Size of area in .debug_info section: %ld\n"
+msgstr "  Veľkosť oblasti v sekcii .debug_info: %ld\n"
+
+#: dwarf.c:2858
+#, c-format
+msgid ""
+"\n"
+"    Offset\tName\n"
+msgstr ""
+"\n"
+"    Offset\tNázov\n"
+
+#: dwarf.c:2909
+#, c-format
+msgid " DW_MACINFO_start_file - lineno: %d filenum: %d\n"
+msgstr " DW_MACINFO_start_file - fileno: %d filenum: %d\n"
+
+#: dwarf.c:2915
+#, c-format
+msgid " DW_MACINFO_end_file\n"
+msgstr " DW_MACINFO_end_file\n"
+
+#: dwarf.c:2923
+#, c-format
+msgid " DW_MACINFO_define - lineno : %d macro : %s\n"
+msgstr " DW_MACINFO_define : %d makro : %s\n"
+
+#: dwarf.c:2932
+#, c-format
+msgid " DW_MACINFO_undef - lineno : %d macro : %s\n"
+msgstr " DW_MACINFO_undef - lineno : %d makro : %s\n"
+
+#: dwarf.c:2944
+#, c-format
+msgid " DW_MACINFO_vendor_ext - constant : %d string : %s\n"
+msgstr " DW_MACINFO_vendor_ext - konštanta : %d reťazec : %s\n"
+
+#: dwarf.c:2973
+#, c-format
+msgid "  Number TAG\n"
+msgstr "  Číslo TAGu\n"
+
+#: dwarf.c:2979
+#, c-format
+msgid "   %ld      %s    [%s]\n"
+msgstr "   %ld %s [%s]\n"
+
+#: dwarf.c:2982
+msgid "has children"
+msgstr "má potomkov"
+
+#: dwarf.c:2982
+msgid "no children"
+msgstr "žiadny potomkovia"
+
+#: dwarf.c:2985
+#, c-format
+msgid "    %-18s %s\n"
+msgstr "    %-18s %s\n"
+
+#: dwarf.c:3018 dwarf.c:3223 dwarf.c:3419
+#, c-format
+msgid ""
+"\n"
+"The %s section is empty.\n"
+msgstr ""
+"\n"
+"%s sekcia je prázdna.\n"
+
+#. FIXME: Should we handle this case?
+#: dwarf.c:3068
+msgid "Location lists in .debug_info section aren't in ascending order!\n"
+msgstr "Zoznamy umiestení v sekcii .debug_info nie sú v vzostupnom poradí!\n"
+
+#: dwarf.c:3071
+msgid "No location lists in .debug_info section!\n"
+msgstr "Žiadne zoznamy umiestení v sekcii .debug_info!\n"
+
+#: dwarf.c:3076
+#, c-format
+msgid "Location lists in %s section start at 0x%lx\n"
+msgstr "Zoznamy umiestnenia v %s sekcii začínajú na 0x%lx\n"
+
+#: dwarf.c:3080
+#, c-format
+msgid "    Offset   Begin    End      Expression\n"
+msgstr "    Offset Begin End Výraz\n"
+
+#: dwarf.c:3111
+#, c-format
+msgid "There is a hole [0x%lx - 0x%lx] in .debug_loc section.\n"
+msgstr "Medzera [0x%lx - 0x%lx] v sekcii .debug_loc.\n"
+
+#: dwarf.c:3115
+#, c-format
+msgid "There is an overlap [0x%lx - 0x%lx] in .debug_loc section.\n"
+msgstr "Prekrytie [0x%lx - 0x%lx] v sekcii .debug_loc.\n"
+
+#: dwarf.c:3123
+#, c-format
+msgid "Offset 0x%lx is bigger than .debug_loc section size.\n"
+msgstr "Offset 0x%lx je väčší než veľkosť sekcii .debug_loc.\n"
+
+#: dwarf.c:3132 dwarf.c:3167 dwarf.c:3177
+#, c-format
+msgid "Location list starting at offset 0x%lx is not terminated.\n"
+msgstr "Zoznam umiestnení začínajúci na offsete 0x%lx nie je ukončený.\n"
+
+#: dwarf.c:3151 dwarf.c:3532
+#, c-format
+msgid "<End of list>\n"
+msgstr "<Koniec zoznamu>\n"
+
+#: dwarf.c:3161
+#, c-format
+msgid "(base address)\n"
+msgstr "(bázová adresa)\n"
+
+#: dwarf.c:3196
+msgid " (start == end)"
+msgstr " start == end)"
+
+#: dwarf.c:3198
+msgid " (start > end)"
+msgstr " (start > end)"
+
+#: dwarf.c:3208
+#, c-format
+msgid "There are %ld unused bytes at the end of section %s\n"
+msgstr "Na konci sekcie %2$s je %1$ld nepoužitých bajtov\n"
+
+#: dwarf.c:3341
+msgid "Only DWARF 2 and 3 aranges are currently supported.\n"
+msgstr "Aktuálne sú podporované iba usporiadania DWARF 2 a 3.\n"
+
+#: dwarf.c:3345
+#, c-format
+msgid "  Length:                   %ld\n"
+msgstr "  Dĺžka: %ld\n"
+
+#: dwarf.c:3346
+#, c-format
+msgid "  Version:                  %d\n"
+msgstr "  Verzia: %d\n"
+
+#: dwarf.c:3347
+#, c-format
+msgid "  Offset into .debug_info:  0x%lx\n"
+msgstr "  Ofset do .debug_info:     0x%lx\n"
+
+#: dwarf.c:3348
+#, c-format
+msgid "  Pointer Size:             %d\n"
+msgstr "  Veľkosť ukazovateľa: %d\n"
+
+#: dwarf.c:3349
+#, c-format
+msgid "  Segment Size:             %d\n"
+msgstr "  Veľkosť segmentu: %d\n"
+
+#: dwarf.c:3358
+msgid "Pointer size + Segment size is not a power of two.\n"
+msgstr "Veľkosť smerníka + veľkosť segmentu nie je mocninou dvoch.\n"
+
+#: dwarf.c:3363
+#, c-format
+msgid ""
+"\n"
+"    Address            Length\n"
+msgstr ""
+"\n"
+"    Adresa             Dĺžka\n"
+
+#: dwarf.c:3365
+#, c-format
+msgid ""
+"\n"
+"    Address    Length\n"
+msgstr ""
+"\n"
+"    Adresa     Dĺžka\n"
+
+#. FIXME: Should we handle this case?
+#: dwarf.c:3469
+msgid "Range lists in .debug_info section aren't in ascending order!\n"
+msgstr "Zoznamy rozsahu v sekcii .debug_info nie sú v vzostupnom poradí!\n"
+
+#: dwarf.c:3472
+msgid "No range lists in .debug_info section!\n"
+msgstr "Žiadne zoznamy rozsahu v sekcii .debug_info!\n"
+
+#: dwarf.c:3477
+#, c-format
+msgid "Range lists in %s section start at 0x%lx\n"
+msgstr "Zoznamy rozsahu v sekcii %s začínajú na 0x%lx\n"
+
+#: dwarf.c:3481
+#, c-format
+msgid "    Offset   Begin    End\n"
+msgstr "    Offset Začiatok Koniec\n"
+
+#: dwarf.c:3506
+#, c-format
+msgid "There is a hole [0x%lx - 0x%lx] in %s section.\n"
+msgstr "Medzera [0x%lx - 0x%lx] v sekcii %s.\n"
+
+#: dwarf.c:3510
+#, c-format
+msgid "There is an overlap [0x%lx - 0x%lx] in %s section.\n"
+msgstr "Prekrytie [0x%lx - 0x%lx] v sekcii %s.\n"
+
+#: dwarf.c:3548
+msgid "(start == end)"
+msgstr "(začiatok == koniec)"
+
+#: dwarf.c:3550
+msgid "(start > end)"
+msgstr "(začiatok > koniec)"
+
+#: dwarf.c:3801
+#, c-format
+msgid "The section %s contains:\n"
+msgstr "Sekcii %s obsahuje:\n"
+
+#: dwarf.c:4492
+#, c-format
+msgid "  DW_CFA_??? (User defined call frame op: %#x)\n"
+msgstr "  DW_CFA_??? (Používateľom definovaný op rámca volania: %#x)\n"
+
+#: dwarf.c:4494
+#, c-format
+msgid "unsupported or unknown Dwarf Call Frame Instruction number: %#x\n"
+msgstr "nepodporované alebo neznáme číslo Dwarf Call Frame Instruction: %#x\n"
+
+#: dwarf.c:4518
+#, c-format
+msgid "Displaying the debug contents of section %s is not yet supported.\n"
+msgstr "Zobrazenie obsahu ladenia sekcie %s nie je zatiaľ podporované.\n"
+
+#: dwarf.c:4560
+#, c-format
+msgid "%s: Error: "
+msgstr "%s: Chyba: "
+
+#: dwarf.c:4571
+#, c-format
+msgid "%s: Warning: "
+msgstr "%s: Upozornenie: "
+
+#: emul_aix.c:43
+#, c-format
+msgid "  [-g]         - 32 bit small archive\n"
+msgstr "  [-g] - 32 bitový malý archív\n"
+
+#: emul_aix.c:44
+#, c-format
+msgid "  [-X32]       - ignores 64 bit objects\n"
+msgstr "  [-X32] - ignoruje 64 bitové objekty\n"
+
+#: emul_aix.c:45
+#, c-format
+msgid "  [-X64]       - ignores 32 bit objects\n"
+msgstr "  [-X64] - ignoruje 32 bitové objekty\n"
+
+#: emul_aix.c:46
+#, c-format
+msgid "  [-X32_64]    - accepts 32 and 64 bit objects\n"
+msgstr "  [-X32_64] - akceptuje 32 a 64 bitové objekty\n"
+
+#: ieee.c:309
+msgid "unexpected end of debugging information"
+msgstr "neočakávaný koniec ladiacej informácie"
+
+#: ieee.c:396
+msgid "invalid number"
+msgstr "neplatné číslo"
+
+#: ieee.c:449
+msgid "invalid string length"
+msgstr "neplatná dĺžka reťazca"
+
+#: ieee.c:504 ieee.c:545
+msgid "expression stack overflow"
+msgstr "pretečenie zásobníka výrazu"
+
+#: ieee.c:524
+msgid "unsupported IEEE expression operator"
+msgstr "nepodporovaný IEEE operátor výrazu"
+
+#: ieee.c:539
+msgid "unknown section"
+msgstr "neznáma sekcia"
+
+#: ieee.c:560
+msgid "expression stack underflow"
+msgstr "podtečenie zásobníka výrazu"
+
+#: ieee.c:574
+msgid "expression stack mismatch"
+msgstr "nezhoda zásobníka výrazu"
+
+#: ieee.c:611
+msgid "unknown builtin type"
+msgstr "neznámy vstavaný typ"
+
+#: ieee.c:756
+msgid "BCD float type not supported"
+msgstr "BCD float typ nie je podporovaný"
+
+#: ieee.c:893
+msgid "unexpected number"
+msgstr "neočakávané číslo"
+
+#: ieee.c:900
+msgid "unexpected record type"
+msgstr "neočakávaný typ záznamu"
+
+#: ieee.c:933
+msgid "blocks left on stack at end"
+msgstr "na konci zásobníka sú ponechané bloky"
+
+#: ieee.c:1196
+msgid "unknown BB type"
+msgstr "neznámy BB typ"
+
+#: ieee.c:1205
+msgid "stack overflow"
+msgstr "pretečenia zásobníka"
+
+#: ieee.c:1228
+msgid "stack underflow"
+msgstr "podtečenie zásobníka"
+
+#: ieee.c:1340 ieee.c:1410 ieee.c:2107
+msgid "illegal variable index"
+msgstr "neplatný index premennej"
+
+#: ieee.c:1388
+msgid "illegal type index"
+msgstr "neplatný typový index"
+
+#: ieee.c:1398 ieee.c:1435
+msgid "unknown TY code"
+msgstr "neznámy TY kód"
+
+#: ieee.c:1417
+msgid "undefined variable in TY"
+msgstr "nezadefinovaná premenná v TY"
+
+#. Pascal file name.  FIXME.
+#: ieee.c:1828
+msgid "Pascal file name not supported"
+msgstr "Pascalovský názov súboru nie je podporovaný"
+
+#: ieee.c:1876
+msgid "unsupported qualifier"
+msgstr "nepodporaný kvalifikátor"
+
+#: ieee.c:2145
+msgid "undefined variable in ATN"
+msgstr "nezadefinovaná premenná v ATN"
+
+#: ieee.c:2188
+msgid "unknown ATN type"
+msgstr "neznámy ATN typ"
+
+#. Reserved for FORTRAN common.
+#: ieee.c:2310
+msgid "unsupported ATN11"
+msgstr "nepodporovaný ATN11"
+
+#. We have no way to record this information.  FIXME.
+#: ieee.c:2337
+msgid "unsupported ATN12"
+msgstr "nepodporovaný ATN11"
+
+#: ieee.c:2397
+msgid "unexpected string in C++ misc"
+msgstr "neočakávaný reťazec v C++ misc"
+
+#: ieee.c:2410
+msgid "bad misc record"
+msgstr "nesprávny misc záznam"
+
+#: ieee.c:2451
+msgid "unrecognized C++ misc record"
+msgstr "nerozpoznaný C++ misc záznam"
+
+#: ieee.c:2566
+msgid "undefined C++ object"
+msgstr "nezadefinovaný C++ objekt"
+
+#: ieee.c:2600
+msgid "unrecognized C++ object spec"
+msgstr "nerozpoznaná špecifikácia C++ objektu"
+
+#: ieee.c:2636
+msgid "unsupported C++ object type"
+msgstr "nepodporovaný objektový typ C++"
+
+#: ieee.c:2646
+msgid "C++ base class not defined"
+msgstr "bázová trieda C++ nebola definovaná"
+
+#: ieee.c:2658 ieee.c:2763
+msgid "C++ object has no fields"
+msgstr "C++ objekt nemá žiadne polia"
+
+#: ieee.c:2677
+msgid "C++ base class not found in container"
+msgstr "bázová trieda C++ nebola nájdená v kontajneri"
+
+#: ieee.c:2784
+msgid "C++ data member not found in container"
+msgstr "dátový člen C++ nebol nájdený v kontajneri"
+
+#: ieee.c:2825 ieee.c:2975
+msgid "unknown C++ visibility"
+msgstr "neznáma C++ viditeľnosť"
+
+#: ieee.c:2859
+msgid "bad C++ field bit pos or size"
+msgstr "zlá bitová pozícia alebo veľkosť C++ poľa"
+
+#: ieee.c:2951
+msgid "bad type for C++ method function"
+msgstr "zlý typ pre metódu funkcie C++"
+
+#: ieee.c:2961
+msgid "no type information for C++ method function"
+msgstr "žiadna informácia o type pre metódu funkcie C++"
+
+#: ieee.c:3000
+msgid "C++ static virtual method"
+msgstr "statická virtuálna metóda C++"
+
+#: ieee.c:3095
+msgid "unrecognized C++ object overhead spec"
+msgstr "nerozpoznaná horná špecifikácia C++ objektu"
+
+#: ieee.c:3134
+msgid "undefined C++ vtable"
+msgstr "nezadefinovaná C++ vtable"
+
+#: ieee.c:3203
+msgid "C++ default values not in a function"
+msgstr "štandardné C++ hodnoty nie sú vo funkcii"
+
+#: ieee.c:3243
+msgid "unrecognized C++ default type"
+msgstr "nerozpoznaný štandardný typ C++"
+
+#: ieee.c:3274
+msgid "reference parameter is not a pointer"
+msgstr "referenčný parameter nie je ukazovateľ"
+
+#: ieee.c:3357
+msgid "unrecognized C++ reference type"
+msgstr "nerozpoznaný referenčný typ C++"
+
+#: ieee.c:3439
+msgid "C++ reference not found"
+msgstr "C++ referencia nebola nájdená"
+
+#: ieee.c:3447
+msgid "C++ reference is not pointer"
+msgstr "C++ referencia nie je ukazovateľ"
+
+#: ieee.c:3473 ieee.c:3481
+msgid "missing required ASN"
+msgstr "chýba požadovaný ASN"
+
+#: ieee.c:3508 ieee.c:3516
+msgid "missing required ATN65"
+msgstr "chýba požadovaný ATN65"
+
+#: ieee.c:3530
+msgid "bad ATN65 record"
+msgstr "zlý ATN65 záznam"
+
+#: ieee.c:4158
+#, c-format
+msgid "IEEE numeric overflow: 0x"
+msgstr "IEEE číselné pretečenie: 0x"
+
+#: ieee.c:4202
+#, c-format
+msgid "IEEE string length overflow: %u\n"
+msgstr "IEEE pretečenie dĺžky reťazca: %u\n"
+
+#: ieee.c:5199
+#, c-format
+msgid "IEEE unsupported integer type size %u\n"
+msgstr "IEEE nepodporaná veľkosť typu integer %u\n"
+
+#: ieee.c:5233
+#, c-format
+msgid "IEEE unsupported float type size %u\n"
+msgstr "IEEE nepodporovaná veľkosť typu float %u\n"
+
+#: ieee.c:5267
+#, c-format
+msgid "IEEE unsupported complex type size %u\n"
+msgstr "IEEE nepodporovaná veľkosť komplexného typu %u\n"
+
+#: mclex.c:241
+msgid "Duplicate symbol entered into keyword list."
+msgstr "Do zoznamu kľúčových slov bol zadaný duplicitný symbol."
+
+#: nlmconv.c:273 srconv.c:1822
+msgid "input and output files must be different"
+msgstr "vstupné a výstupné súbory sa musia líšiť"
+
+#: nlmconv.c:320
+msgid "input file named both on command line and with INPUT"
+msgstr "vstupný súbor bol pomenovaný na príkazovom riadku a aj na VSTUPE"
+
+#: nlmconv.c:329
+msgid "no input file"
+msgstr "žiadny vstupný súbor"
+
+#: nlmconv.c:359
+msgid "no name for output file"
+msgstr "žiadny názov pre výstupný súbor"
+
+#: nlmconv.c:373
+msgid "warning: input and output formats are not compatible"
+msgstr "upozornenie: vstupné a výstupné formáty nie sú kompatibilné"
+
+#: nlmconv.c:403
+msgid "make .bss section"
+msgstr "urobiť .bss sekciu"
+
+#: nlmconv.c:413
+msgid "make .nlmsections section"
+msgstr "urobiť .nlmsections sekciu"
+
+#: nlmconv.c:441
+msgid "set .bss vma"
+msgstr "nastaviť .bss vma"
+
+#: nlmconv.c:448
+msgid "set .data size"
+msgstr "nastaviť .data veľkosť"
+
+#: nlmconv.c:628
+#, c-format
+msgid "warning: symbol %s imported but not in import list"
+msgstr "upozornenie: symbol %s importovaný, ale nie je v importovacom zozname"
+
+#: nlmconv.c:648
+msgid "set start address"
+msgstr "nastaviť počiatočnú adresu"
+
+#: nlmconv.c:697
+#, c-format
+msgid "warning: START procedure %s not defined"
+msgstr "upozornenie: nedefinovaná START procedúra %s"
+
+#: nlmconv.c:699
+#, c-format
+msgid "warning: EXIT procedure %s not defined"
+msgstr "upozornenie: nedefinovaná EXIT procedúra %s"
+
+#: nlmconv.c:701
+#, c-format
+msgid "warning: CHECK procedure %s not defined"
+msgstr "upozornenie: nedefinovaná CHECK procedúra %s"
+
+#: nlmconv.c:721 nlmconv.c:907
+msgid "custom section"
+msgstr "prispôsobená sekcia"
+
+#: nlmconv.c:741 nlmconv.c:936
+msgid "help section"
+msgstr "sekcia pomoci"
+
+#: nlmconv.c:763 nlmconv.c:954
+msgid "message section"
+msgstr "sekcia správ"
+
+#: nlmconv.c:778 nlmconv.c:987
+msgid "module section"
+msgstr "sekcia modulov"
+
+#: nlmconv.c:797 nlmconv.c:1003
+msgid "rpc section"
+msgstr "rpc sekcia"
+
+#. There is no place to record this information.
+#: nlmconv.c:833
+#, c-format
+msgid "%s: warning: shared libraries can not have uninitialized data"
+msgstr "%s: upozornenie: zdielané knižnice nemôžu mať neinicializované dáta"
+
+#: nlmconv.c:854 nlmconv.c:1022
+msgid "shared section"
+msgstr "zdielaná sekcia"
+
+#: nlmconv.c:862
+msgid "warning: No version number given"
+msgstr "upozornenie: Neuvedené číslo verzie"
+
+#: nlmconv.c:902 nlmconv.c:931 nlmconv.c:949 nlmconv.c:998 nlmconv.c:1017
+#, c-format
+msgid "%s: read: %s"
+msgstr "%s: čítať: %s"
+
+#: nlmconv.c:924
+msgid "warning: FULLMAP is not supported; try ld -M"
+msgstr "upozornenie: FULLMAP nie je podporaný; skúste ld -M"
+
+#: nlmconv.c:1100
+#, c-format
+msgid "Usage: %s [option(s)] [in-file [out-file]]\n"
+msgstr "Použitie: %s [voľb(a/y)] [vstupný súbor [výstupný súbor]]\n"
+
+#: nlmconv.c:1101
+#, c-format
+msgid " Convert an object file into a NetWare Loadable Module\n"
+msgstr " Previesť súbor objektu na zavediteľný NetWare Modul\n"
+
+#: nlmconv.c:1102
+#, c-format
+msgid ""
+" The options are:\n"
+"  -I --input-target=<bfdname>   Set the input binary file format\n"
+"  -O --output-target=<bfdname>  Set the output binary file format\n"
+"  -T --header-file=<file>       Read <file> for NLM header information\n"
+"  -l --linker=<linker>          Use <linker> for any linking\n"
+"  -d --debug                    Display on stderr the linker command line\n"
+"  @<file>                       Read options from <file>.\n"
+"  -h --help                     Display this information\n"
+"  -v --version                  Display the program's version\n"
+msgstr ""
+" Voľby sú:\n"
+"  -I --input-target=<bfdname>   Nastaviť formát vstupného binárneho súboru\n"
+"  -O --output-target=<bfdname>  Nastaviť formát výstupného binárneho súboru\n"
+"  -T --header-file=<súbor>      Prečítať <súbor> pre NLM informáciu hlavičky\n"
+"  -l --linker=<linker>          Použiť <linker> pre všetko linkovanie\n"
+"  -d --debug                    Zobraziť príkazový riadok linkera na stderr \n"
+"  @<súbor>                      Čítať voľby zo <súboru>.\n"
+"  -h --help                     Zobraziť túto informáciu\n"
+"  -v --version                  Zobraziť verziu programu\n"
+
+#: nlmconv.c:1143
+#, c-format
+msgid "support not compiled in for %s"
+msgstr "podpora nie je skompilovaná pre %s"
+
+#: nlmconv.c:1180
+msgid "make section"
+msgstr "vytvoriť sekciu"
+
+#: nlmconv.c:1194
+msgid "set section size"
+msgstr "nastaviť veľkosť sekcie"
+
+#: nlmconv.c:1200
+msgid "set section alignment"
+msgstr "nastaviť zarovnanie sekcie"
+
+#: nlmconv.c:1204
+msgid "set section flags"
+msgstr "nastaviť príznaky sekcie"
+
+#: nlmconv.c:1215
+msgid "set .nlmsections size"
+msgstr "nastaviť veľkosť .nlmsections"
+
+#: nlmconv.c:1296 nlmconv.c:1304 nlmconv.c:1313 nlmconv.c:1318
+msgid "set .nlmsection contents"
+msgstr "nastaviť obsah .nlmsections"
+
+#: nlmconv.c:1795
+msgid "stub section sizes"
+msgstr "veľkost sekcie stub"
+
+#: nlmconv.c:1842
+msgid "writing stub"
+msgstr "zapisuje sa stub"
+
+#: nlmconv.c:1926
+#, c-format
+msgid "unresolved PC relative reloc against %s"
+msgstr "nezistená relatívna PC relokácia oproti %s"
+
+#: nlmconv.c:1990
+#, c-format
+msgid "overflow when adjusting relocation against %s"
+msgstr "pretečenie pri prispôsobovaní relokácie oproti %s"
+
+#: nlmconv.c:2117
+#, c-format
+msgid "%s: execution of %s failed: "
+msgstr "%s: vykonanie %s zlyhalo: "
+
+#: nlmconv.c:2132
+#, c-format
+msgid "Execution of %s failed"
+msgstr "Vykonanie %s zlyhalo"
+
+#: nm.c:217 size.c:78 strings.c:647
+#, c-format
+msgid "Usage: %s [option(s)] [file(s)]\n"
+msgstr "Použitie: %s [VOĽBY] [SÚBORY]\n"
+
+#: nm.c:218
+#, c-format
+msgid " List symbols in [file(s)] (a.out by default).\n"
+msgstr " Vypísať symboly v [SÚBOROCH] (štandardne a.out).\n"
+
+#: nm.c:219
+#, c-format
+msgid ""
+" The options are:\n"
+"  -a, --debug-syms       Display debugger-only symbols\n"
+"  -A, --print-file-name  Print name of the input file before every symbol\n"
+"  -B                     Same as --format=bsd\n"
+"  -C, --demangle[=STYLE] Decode low-level symbol names into user-level names\n"
+"                          The STYLE, if specified, can be `auto' (the default),\n"
+"                          `gnu', `lucid', `arm', `hp', `edg', `gnu-v3', `java'\n"
+"                          or `gnat'\n"
+"      --no-demangle      Do not demangle low-level symbol names\n"
+"  -D, --dynamic          Display dynamic symbols instead of normal symbols\n"
+"      --defined-only     Display only defined symbols\n"
+"  -e                     (ignored)\n"
+"  -f, --format=FORMAT    Use the output format FORMAT.  FORMAT can be `bsd',\n"
+"                           `sysv' or `posix'.  The default is `bsd'\n"
+"  -g, --extern-only      Display only external symbols\n"
+"  -l, --line-numbers     Use debugging information to find a filename and\n"
+"                           line number for each symbol\n"
+"  -n, --numeric-sort     Sort symbols numerically by address\n"
+"  -o                     Same as -A\n"
+"  -p, --no-sort          Do not sort the symbols\n"
+"  -P, --portability      Same as --format=posix\n"
+"  -r, --reverse-sort     Reverse the sense of the sort\n"
+"  -S, --print-size       Print size of defined symbols\n"
+"  -s, --print-armap      Include index for symbols from archive members\n"
+"      --size-sort        Sort symbols by size\n"
+"      --special-syms     Include special symbols in the output\n"
+"      --synthetic        Display synthetic symbols as well\n"
+"  -t, --radix=RADIX      Use RADIX for printing symbol values\n"
+"      --target=BFDNAME   Specify the target object format as BFDNAME\n"
+"  -u, --undefined-only   Display only undefined symbols\n"
+"  -X 32_64               (ignored)\n"
+"  @FILE                  Read options from FILE\n"
+"  -h, --help             Display this information\n"
+"  -V, --version          Display this program's version number\n"
+"\n"
+msgstr ""
+" Voľby sú:\n"
+"  -a, --debug-syms       Zobraziť iba symboly ladiaceho nástroja\n"
+"  -A, --print-file-name  Vypísať názov výstupného súboru pred každý symbol\n"
+"  -B Rovnaké ako --format=bsd\n"
+"  -C, --demangle[=ŠTÝL]  Dekódovať nízkoúrovňové názvy symbolov na názvy\n"
+"                         používateľskej úrovne\n"
+"                         ŠTÝL, ak je určený, môže byť „auto“ (predvolený),\n"
+"                          „gnu“, „lucid“, „arm“, „hp“, „edg“, „gnu-v3“, „java“\n"
+"                         alebo „gnat“\n"
+"      --no-demangle      Neupravovať nízko-úrovňové názvy symbolov\n"
+"  -D, --dynamic          Zobraziť dynamické symboly namiesto normálnych symbolov\n"
+"      --defined-only     Zobraziť iba definované symboly\n"
+"  -e (ignorované)\n"
+"  -f, --format=FORMÁT    Použiť výstupný formát FORMÁT. FORMÁT môže byť „bsd“,\n"
+"                           „sysv“ alebo „posix“. Štandardný je „bsd“\n"
+"  -g, --extern-only      Zobraziť iba externé symboly\n"
+"  -l, --line-numbers     Použiť ladiacu informáciu na nájdenie súboru a\n"
+"                           číslo riadka pre každý symbol\n"
+"  -n, --numeric-sort     Utriediť symboly číselne podľa adresy\n"
+"  -o Ravnaký ako -A\n"
+"  -p, --no-sort          Netriediť symboly\n"
+"  -P, --portability      Rovnaké ako --format=posix\n"
+"  -r, --reverse-sort     Prevrátiť zmysel triedenia\n"
+"  -S, --print-size       Vypísať veľkosť definovaných symbolov\n"
+"  -s, --print-armap      Zahrnúť index pre symboly z členov archívu\n"
+"      --size-sort        Triediť symboly podľa veľkosti\n"
+"      --special-syms     Zahrnúť špeciálne symboly do výstupu\n"
+"      --synthetic        Zobraziť tiež syntetické symboly\n"
+"  -t, --radix=RADIX      Použiť RADIX pre výpis hodnôt symbolov\n"
+"     --target=BFDNAME    Určiť formát cieľového objektu ako BFDNAME\n"
+"  -u, --undefined-only   Zobraziť iba nedefinované symboly\n"
+"  -X 32_64 (ignorované)\n"
+"  @SÚBOR                 Čítať voľby zo SÚBORu\n"
+"  -h, --help             Zobraziť túto informáciu\n"
+"  -V, --version          Zobraziť verziu programu\n"
+"\n"
+
+#: nm.c:284
+#, c-format
+msgid "%s: invalid radix"
+msgstr "%s: neplatný radix"
+
+#: nm.c:308
+#, c-format
+msgid "%s: invalid output format"
+msgstr "%s: neplatný výstupný formát"
+
+#: nm.c:329 readelf.c:6971 readelf.c:7009
+#, c-format
+msgid "<processor specific>: %d"
+msgstr "<špecifické pre procesor>: %d"
+
+#: nm.c:331 readelf.c:6974 readelf.c:7021
+#, c-format
+msgid "<OS specific>: %d"
+msgstr "<špecifické pre OS>: %d"
+
+#: nm.c:333 readelf.c:6976 readelf.c:7024
+#, c-format
+msgid "<unknown>: %d"
+msgstr "<neznámy>: %d"
+
+#: nm.c:373
+#, c-format
+msgid ""
+"\n"
+"Archive index:\n"
+msgstr ""
+"\n"
+"Index archívu:\n"
+
+#: nm.c:1233
+#, c-format
+msgid ""
+"\n"
+"\n"
+"Undefined symbols from %s:\n"
+"\n"
+msgstr ""
+"\n"
+"\n"
+"Nedefinované symboly z %s:\n"
+"\n"
+
+#: nm.c:1235
+#, c-format
+msgid ""
+"\n"
+"\n"
+"Symbols from %s:\n"
+"\n"
+msgstr ""
+"\n"
+"\n"
+"Symboly z %s:\n"
+"\n"
+
+#: nm.c:1237 nm.c:1288
+#, c-format
+msgid ""
+"Name                  Value   Class        Type         Size     Line  Section\n"
+"\n"
+msgstr ""
+"Názov                 Hodnota Trieda       Typ          Veľkosť  Riad. Sekcia\n"
+"\n"
+
+#: nm.c:1240 nm.c:1291
+#, c-format
+msgid ""
+"Name                  Value           Class        Type         Size             Line  Section\n"
+"\n"
+msgstr ""
+"Názov                 Hodnota         Trieda       Typ          Veľkosť          Riad. Sekcia\n"
+"\n"
+
+#: nm.c:1284
+#, c-format
+msgid ""
+"\n"
+"\n"
+"Undefined symbols from %s[%s]:\n"
+"\n"
+msgstr ""
+"\n"
+"\n"
+"Nedefinovaný symbol z %s[%s]:\n"
+"\n"
+
+#: nm.c:1286
+#, c-format
+msgid ""
+"\n"
+"\n"
+"Symbols from %s[%s]:\n"
+"\n"
+msgstr ""
+"\n"
+"\n"
+"Symboly z %s[%s]:\n"
+"\n"
+
+#: nm.c:1378
+#, c-format
+msgid "Print width has not been initialized (%d)"
+msgstr "Výpis šírky nebol inicializovaný (%d)"
+
+#: nm.c:1603
+msgid "Only -X 32_64 is supported"
+msgstr "Je podporovaný iba -X 32_64"
+
+#: nm.c:1623
+msgid "Using the --size-sort and --undefined-only options together"
+msgstr "Použitie volieb --size-sort a --undefined-only spolu"
+
+#: nm.c:1624
+msgid "will produce no output, since undefined symbols have no size."
+msgstr "nevytvoria žiadny výstup, pretože nedefinované symboly nemajú žiadnu veľkosť."
+
+#: nm.c:1652
+#, c-format
+msgid "data size %ld"
+msgstr "dátová veľkosť %ld"
+
+#: objcopy.c:424 srconv.c:1730
+#, c-format
+msgid "Usage: %s [option(s)] in-file [out-file]\n"
+msgstr "Použitie: %s [voľb(a/y)] vstupný-súbor [výstupný-súbor]\n"
+
+#: objcopy.c:425
+#, c-format
+msgid " Copies a binary file, possibly transforming it in the process\n"
+msgstr " Kopíruje binárny súbor s možnosťou transformovania počas procesu\n"
+
+#: objcopy.c:426 objcopy.c:522
+#, c-format
+msgid " The options are:\n"
+msgstr " Voľby sú:\n"
+
+#: objcopy.c:427
+#, c-format
+msgid ""
+"  -I --input-target <bfdname>      Assume input file is in format <bfdname>\n"
+"  -O --output-target <bfdname>     Create an output file in format <bfdname>\n"
+"  -B --binary-architecture <arch>  Set arch of output file, when input is binary\n"
+"  -F --target <bfdname>            Set both input and output format to <bfdname>\n"
+"     --debugging                   Convert debugging information, if possible\n"
+"  -p --preserve-dates              Copy modified/access timestamps to the output\n"
+"  -j --only-section <name>         Only copy section <name> into the output\n"
+"     --add-gnu-debuglink=<file>    Add section .gnu_debuglink linking to <file>\n"
+"  -R --remove-section <name>       Remove section <name> from the output\n"
+"  -S --strip-all                   Remove all symbol and relocation information\n"
+"  -g --strip-debug                 Remove all debugging symbols & sections\n"
+"     --strip-unneeded              Remove all symbols not needed by relocations\n"
+"  -N --strip-symbol <name>         Do not copy symbol <name>\n"
+"     --strip-unneeded-symbol <name>\n"
+"                                   Do not copy symbol <name> unless needed by\n"
+"                                     relocations\n"
+"     --only-keep-debug             Strip everything but the debug information\n"
+"     --extract-symbol              Remove section contents but keep symbols\n"
+"  -K --keep-symbol <name>          Do not strip symbol <name>\n"
+"     --keep-file-symbols           Do not strip file symbol(s)\n"
+"     --localize-hidden             Turn all ELF hidden symbols into locals\n"
+"  -L --localize-symbol <name>      Force symbol <name> to be marked as a local\n"
+"     --globalize-symbol <name>     Force symbol <name> to be marked as a global\n"
+"  -G --keep-global-symbol <name>   Localize all symbols except <name>\n"
+"  -W --weaken-symbol <name>        Force symbol <name> to be marked as a weak\n"
+"     --weaken                      Force all global symbols to be marked as weak\n"
+"  -w --wildcard                    Permit wildcard in symbol comparison\n"
+"  -x --discard-all                 Remove all non-global symbols\n"
+"  -X --discard-locals              Remove any compiler-generated symbols\n"
+"  -i --interleave <number>         Only copy one out of every <number> bytes\n"
+"  -b --byte <num>                  Select byte <num> in every interleaved block\n"
+"     --gap-fill <val>              Fill gaps between sections with <val>\n"
+"     --pad-to <addr>               Pad the last section up to address <addr>\n"
+"     --set-start <addr>            Set the start address to <addr>\n"
+"    {--change-start|--adjust-start} <incr>\n"
+"                                   Add <incr> to the start address\n"
+"    {--change-addresses|--adjust-vma} <incr>\n"
+"                                   Add <incr> to LMA, VMA and start addresses\n"
+"    {--change-section-address|--adjust-section-vma} <name>{=|+|-}<val>\n"
+"                                   Change LMA and VMA of section <name> by <val>\n"
+"     --change-section-lma <name>{=|+|-}<val>\n"
+"                                   Change the LMA of section <name> by <val>\n"
+"     --change-section-vma <name>{=|+|-}<val>\n"
+"                                   Change the VMA of section <name> by <val>\n"
+"    {--[no-]change-warnings|--[no-]adjust-warnings}\n"
+"                                   Warn if a named section does not exist\n"
+"     --set-section-flags <name>=<flags>\n"
+"                                   Set section <name>'s properties to <flags>\n"
+"     --add-section <name>=<file>   Add section <name> found in <file> to output\n"
+"     --rename-section <old>=<new>[,<flags>] Rename section <old> to <new>\n"
+"     --change-leading-char         Force output format's leading character style\n"
+"     --remove-leading-char         Remove leading character from global symbols\n"
+"     --reverse-bytes=<num>         Reverse <num> bytes at a time, in output sections with content\n"
+"     --redefine-sym <old>=<new>    Redefine symbol name <old> to <new>\n"
+"     --redefine-syms <file>        --redefine-sym for all symbol pairs \n"
+"                                     listed in <file>\n"
+"     --srec-len <number>           Restrict the length of generated Srecords\n"
+"     --srec-forceS3                Restrict the type of generated Srecords to S3\n"
+"     --strip-symbols <file>        -N for all symbols listed in <file>\n"
+"     --strip-unneeded-symbols <file>\n"
+"                                   --strip-unneeded-symbol for all symbols listed\n"
+"                                     in <file>\n"
+"     --keep-symbols <file>         -K for all symbols listed in <file>\n"
+"     --localize-symbols <file>     -L for all symbols listed in <file>\n"
+"     --globalize-symbols <file>    --globalize-symbol for all in <file>\n"
+"     --keep-global-symbols <file>  -G for all symbols listed in <file>\n"
+"     --weaken-symbols <file>       -W for all symbols listed in <file>\n"
+"     --alt-machine-code <index>    Use the target's <index>'th alternative machine\n"
+"     --writable-text               Mark the output text as writable\n"
+"     --readonly-text               Make the output text write protected\n"
+"     --pure                        Mark the output file as demand paged\n"
+"     --impure                      Mark the output file as impure\n"
+"     --prefix-symbols <prefix>     Add <prefix> to start of every symbol name\n"
+"     --prefix-sections <prefix>    Add <prefix> to start of every section name\n"
+"     --prefix-alloc-sections <prefix>\n"
+"                                   Add <prefix> to start of every allocatable\n"
+"                                     section name\n"
+"  -v --verbose                     List all object files modified\n"
+"  @<file>                          Read options from <file>\n"
+"  -V --version                     Display this program's version number\n"
+"  -h --help                        Display this output\n"
+"     --info                        List object formats & architectures supported\n"
+msgstr ""
+"  -I --input-target <bfdnázov>     Predpokladať vstup vo formáte <bfdnázov>\n"
+"  -O --output-target <bfdnázov>    Vytvoriť výstup vo formáte <bfdnázov>\n"
+"  -B --binary-architecture <arch>  Nastaviť arch výstupného súboru, keď vstup je binárny\n"
+"  -F --target <bfdnázov>           Nastaviť vstupný aj výstupný formát na <bfdnázov>\n"
+"     --debugging                   Previesť ladieace informácie, ak je to možné\n"
+"  -p --preserve-dates              Skopírovať na výstup časové známku zmeny/prístupu\n"
+"  -j --only-section <názov>        Na výstup skopírovať iba sekciu <názov>\n"
+"     --add-gnu-debuglink=<súbor>   Pridať sekciu .gnu_debuglink odkazujúcu na <súbor>\n"
+"  -R --remove-section <názov>      Odstrániť sekciu <názov> z výstupu\n"
+"  -S --strip-all                   Odstrániť všetky informácie o symboloch a relokácii\n"
+"  -g --strip-debug                 Odstrániť všetky ladiace symboly a sekcie\n"
+"     --strip-unneeded              Odstrániť všetky symboly, ktoré nevyžadujú relokácie\n"
+"  -N --strip-symbol <názov>        Nekopírovať symbol <názov>\n"
+"     --strip-unneeded-symbol <názov>\n"
+"                                   Nekopírovať symbol <názov> ak ho nevyžadujú\n"
+"                                     relokácie\n"
+"     --only-keep-debug             Odstrániť všetko okrem ladiacich informácií\n"
+"     --extract-symbol              Odstrániť obsah sekcie ale ponechat symboly\n"
+"  -K --keep-symbol <názov>         Neodstraňovať symbol <názov>\n"
+"     --keep-file-symbols           Neodstraňovať symbol(y) súboru\n"
+"     --localize-hidden             Previesť všetky skryté symboly ELF na lokálne\n"
+"  -L --localize-symbol <názov>     Vynútiť označenie symbolu <názov> ako lokálny\n"
+"     --globalize-symbol <názov>    Vynútiť označenie symbolu <názov> ako globálny\n"
+"  -G --keep-global-symbol <názov>  Lokalizovať všetky symboly okrem <názov>\n"
+"  -W --weaken-symbol <názov>       Vynútiť označenie symbolu <názov> ako slabý\n"
+"     --weaken                      Vynútiť označenie všetkých globálnych symbolov ako slabých\n"
+"  -w --wildcard                    Povoliť zástupné znaky pri porovnávaní symbolov\n"
+"  -x --discard-all                 Odstrániť všetky neglobálne symboly\n"
+"  -X --discard-locals              Odstrániť všetky symboly vygenerované kompilátorom\n"
+"  -i --interleave <číslo>          Iba jedna kópia každých <číslo> bajtov\n"
+"  -b --byte <num>                  Vybrať bajt <num> v každom vynechanom bloku\n"
+"     --gap-fill <hodn>              Vyplniť medzery medzi sekciami pomocou <hodn>\n"
+"     --pad-to <adr>                Doplniť poslednú sekciu do adresy <adr>\n"
+"     --set-start <adr>             Nastaviť adresu začiatku na <adr>\n"
+"    {--change-start|--adjust-start} <inkr>\n"
+"                                   Pridať <inkr> k adrese začiatku\n"
+"    {--change-addresses|--adjust-vma} <inkr>\n"
+"                                   Pridať <inkr> k adresám LMA, VMA a začiatku\n"
+"    {--change-section-address|--adjust-section-vma} <name>{=|+|-}<val>\n"
+"                                   Zmeniť LMA a VMA sekcie <name> o <val>\n"
+"     --change-section-lma <názov>{=|+|-}<hodn>\n"
+"                                   Zmeniť LMA sekcie <názov> o <hodn>\n"
+"     --change-section-vma <názov>{=|+|-}<hodn>\n"
+"                                   Zmeniť VMA sekcie <hodn> o <hodn>\n"
+"    {--[no-]change-warnings|--[no-]adjust-warnings}\n"
+"                                   Upozorniť na neexistenciu pomenovanej sekcie\n"
+"     --set-section-flags <názov>=<príznaky>\n"
+"                                   Nastaviť vlastnosti sekcie <názov> na <príznaky>\n"
+"     --add-section <názov>=<súbor> Pridať sekciu <názov>, ktorá sa nachádza v <súbore> na výstup\n"
+"     --rename-section <star>=<nov>[,<príz>] Premenovať sekciu <star> na <nov>\n"
+"     --change-leading-char         Vynútiť štýl úvodného znaku výstupného formátu\n"
+"     --remove-leading-char         odstrániť úvodný znak z globálnych symbolov\n"
+"     --reverse-bytes=<poč>         Otočiť poradie <poč> bajtov naraz v sekciách výstupu s obsahom\n"
+"     --redefine-sym <star>=<nov>   Redefinovať názov symbolu <star> na <nov>\n"
+"     --redefine-syms <súbor>       --redefine-sym všetkých dvojíc symbolov \n"
+"                                     uvedených v <súbore>\n"
+"     --srec-len <number>           Obmedziť dĺžku generovaných  generated Srecords\n"
+"     --srec-forceS3                Obmedziť typ generovaných Srecords na S3\n"
+"     --strip-symbols <súbor>       -N pre všetky symboly uvedené v <súbore>\n"
+"     --strip-unneeded-symbols <súbor>\n"
+"                                   --strip-unneeded-symbol pre všetky symboly uvedené\n"
+"                                     v <súbore>\n"
+"     --keep-symbols <súbor>        -K pre všetky symboly uvedené v <súbore>\n"
+"     --localize-symbols <súbor>    -L pre všetky symboly uvedené v <súbore>\n"
+"     --globalize-symbols <súbor>   --globalize-symbol pre všetky v <súbore>\n"
+"     --keep-global-symbols <súbor> -G pre všetky symboly uvedené v <súbore>\n"
+"     --weaken-symbols <súbor>      -W pre všetky symboly uvedené v <súbore>\n"
+"     --alt-machine-code <index>    Použiť <index>-tý alternatívny stroj cieľa\n"
+"     --writable-text               Označiť výstupný text ako zapisovateľný\n"
+"     --readonly-text               Označiť výstupný text ako chránený proti zápisu\n"
+"     --pure                        Označiť výstupný text ako stránkovaný na žiadosť\n"
+"     --impure                      Označiť výstupný súbor ako nečistý\n"
+"     --prefix-symbols <prefix>     Pridať <prefix> na začiatok každého názvu symbolu\n"
+"     --prefix-sections <prefix>    Pridať <prefix> na začiatok každého názvu sekcie\n"
+"     --prefix-alloc-sections <prefix>\n"
+"                                   Pridať <prefix> na začiatok každého názvu relokovateľnej\n"
+"                                     sekcie\n"
+"  -v --verbose                     Vypísať všetky zmenené objekty\n"
+"  @<file>                          Načítať voľby zo <file>\n"
+"  -V --version                     Zobraziť verziu programu\n"
+"  -h --help                        Vypísať tohto pomocníka\n"
+"     --info                        Vypísať zoznam objektových formátov a podporovaných architektúr\n"
+
+#: objcopy.c:520
+#, c-format
+msgid "Usage: %s <option(s)> in-file(s)\n"
+msgstr "Použitie: %s <voľb(a/y)> vstupný-súbor(y)\n"
+
+#: objcopy.c:521
+#, c-format
+msgid " Removes symbols and sections from files\n"
+msgstr " Odstráni symboly a sekcie zo súborov\n"
+
+#: objcopy.c:523
+#, c-format
+msgid ""
+"  -I --input-target=<bfdname>      Assume input file is in format <bfdname>\n"
+"  -O --output-target=<bfdname>     Create an output file in format <bfdname>\n"
+"  -F --target=<bfdname>            Set both input and output format to <bfdname>\n"
+"  -p --preserve-dates              Copy modified/access timestamps to the output\n"
+"  -R --remove-section=<name>       Remove section <name> from the output\n"
+"  -s --strip-all                   Remove all symbol and relocation information\n"
+"  -g -S -d --strip-debug           Remove all debugging symbols & sections\n"
+"     --strip-unneeded              Remove all symbols not needed by relocations\n"
+"     --only-keep-debug             Strip everything but the debug information\n"
+"  -N --strip-symbol=<name>         Do not copy symbol <name>\n"
+"  -K --keep-symbol=<name>          Do not strip symbol <name>\n"
+"     --keep-file-symbols           Do not strip file symbol(s)\n"
+"  -w --wildcard                    Permit wildcard in symbol comparison\n"
+"  -x --discard-all                 Remove all non-global symbols\n"
+"  -X --discard-locals              Remove any compiler-generated symbols\n"
+"  -v --verbose                     List all object files modified\n"
+"  -V --version                     Display this program's version number\n"
+"  -h --help                        Display this output\n"
+"     --info                        List object formats & architectures supported\n"
+"  -o <file>                        Place stripped output into <file>\n"
+msgstr ""
+"  -I --input-target <bfdnázov>     Predpokladať vstup vo formáte <bfdnázov>\n"
+"  -O --output-target <bfdnázov>    Vytvoriť výstup vo formáte <bfdnázov>\n"
+"  -F --target <bfdnázov>           Nastaviť vstupný aj výstupný formát na <bfdnázov>\n"
+"  -p --preserve-dates              Skopírovať na výstup časové známku zmeny/prístupu\n"
+"  -R --remove-section <názov>      Odstrániť sekciu <názov> z výstupu\n"
+"  -s --strip-all                   Odstrániť všetky informácie o symboloch a relokácii\n"
+"  -g -S -d --strip-debug           Odstrániť všetky ladiace symboly a sekcie\n"
+"     --strip-unneeded              Odstrániť všetky symboly, ktoré nevyžadujú relokácie\n"
+"     --only-keep-debug             Odstrániť všetko okrem ladiacich informácií\n"
+"  -N --strip-symbol <názov>        Nekopírovať symbol <názov>\n"
+"  -K --keep-symbol <názov>         Neodstraňovať symbol <názov>\n"
+"     --keep-file-symbols           Neodstraňovať symbol(y) súboru\n"
+"  -w --wildcard                    Povoliť zástupné znaky pri porovnávaní symbolov\n"
+"  -x --discard-all                 Odstrániť všetky neglobálne symboly\n"
+"  -X --discard-locals              Odstrániť všetky symboly vygenerované kompilátorom\n"
+"  -v --verbose                     Vypísať všetky zmenené objekty\n"
+"  -V --version                     Zobraziť verziu programu\n"
+"  -h --help                        Vypísať tohto pomocníka\n"
+"     --info                        Vypísať zoznam objektových formátov a podporovaných architektúr\n"
+"  -o <súbor>                       Vložiť orezaný výstup do <súboru>\n"
+
+#: objcopy.c:596
+#, c-format
+msgid "unrecognized section flag `%s'"
+msgstr "nerozpoznaný príznak sekcie „%s“"
+
+#: objcopy.c:597
+#, c-format
+msgid "supported flags: %s"
+msgstr "podporované príznaky: %s"
+
+#: objcopy.c:698
+#, c-format
+msgid "cannot open '%s': %s"
+msgstr "nemožno otvoriť „%s“: %s"
+
+#: objcopy.c:701 objcopy.c:3065
+#, c-format
+msgid "%s: fread failed"
+msgstr "%s: fread zlyhal"
+
+#: objcopy.c:774
+#, c-format
+msgid "%s:%d: Ignoring rubbish found on this line"
+msgstr "%s:%d: Ignorujú sa zbytočnosti nájdené v tomto riadku"
+
+#: objcopy.c:1069
+#, c-format
+msgid "not stripping symbol `%s' because it is named in a relocation"
+msgstr "neodstraňovať symbol „%s“, pretože je spomenutý v relokácii"
+
+#: objcopy.c:1152
+#, c-format
+msgid "%s: Multiple redefinition of symbol \"%s\""
+msgstr "%s: Viacnásobná redefinícia symbolu „%s“"
+
+#: objcopy.c:1156
+#, c-format
+msgid "%s: Symbol \"%s\" is target of more than one redefinition"
+msgstr "%s: Symbol „%s“ je cieľom viac ako jednej redefinície"
+
+#: objcopy.c:1184
+#, c-format
+msgid "couldn't open symbol redefinition file %s (error: %s)"
+msgstr "nepodarilo sa otvoriť súbor redefinície symbolov %s (chyba: %s)"
+
+#: objcopy.c:1262
+#, c-format
+msgid "%s:%d: garbage found at end of line"
+msgstr "%s:%d: nájdené nezmysly na konci riadka"
+
+#: objcopy.c:1265
+#, c-format
+msgid "%s:%d: missing new symbol name"
+msgstr "%s:%d: chýba názov nového symbolu"
+
+#: objcopy.c:1275
+#, c-format
+msgid "%s:%d: premature end of file"
+msgstr "%s:%d: predčasné ukončenie riadka"
+
+#: objcopy.c:1301
+#, c-format
+msgid "stat returns negative size for `%s'"
+msgstr "stat vracia zápornú veľkosť pre „%s“"
+
+#: objcopy.c:1313
+#, c-format
+msgid "copy from `%s' [unknown] to `%s' [unknown]\n"
+msgstr "kopírovať z „%s“ [neznámy] do „%s“ [neznámy]\n"
+
+#: objcopy.c:1369
+msgid "Unable to change endianness of input file(s)"
+msgstr "Nemožno zmeniť endianitu vstupného súboru(-ov)"
+
+#: objcopy.c:1378
+#, c-format
+msgid "copy from `%s' [%s] to `%s' [%s]\n"
+msgstr "kopírovať z „%s“ [%s] do „%s“ [%s]\n"
+
+#: objcopy.c:1421
+#, c-format
+msgid "Unable to recognise the format of the input file `%s'"
+msgstr "Nemožno rozpoznať formát vstupného súboru „%s“"
+
+#: objcopy.c:1424
+#, c-format
+msgid "Warning: Output file cannot represent architecture `%s'"
+msgstr "Upozornenie: Výstupný súbor nemôže reprezentovať architektúru „%s“"
+
+#: objcopy.c:1489
+#, c-format
+msgid "can't add section '%s'"
+msgstr "nemožno pridať sekciu „%s“"
+
+#: objcopy.c:1498
+#, c-format
+msgid "can't create section `%s'"
+msgstr "nemožno vytvoriť sekciu „%s“"
+
+#: objcopy.c:1544
+#, c-format
+msgid "cannot create debug link section `%s'"
+msgstr "nemožno vytvoriť ladiacu sekciu: „%s“"
+
+#: objcopy.c:1637
+msgid "Can't fill gap after section"
+msgstr "Nemožno vyplniť medzeru po sekcii"
+
+#: objcopy.c:1661
+msgid "can't add padding"
+msgstr "Nemožno pridať výplň"
+
+#: objcopy.c:1752
+#, c-format
+msgid "cannot fill debug link section `%s'"
+msgstr "nemožno vyplniť ladiacu sekciu: „%s“"
+
+#: objcopy.c:1815
+msgid "error copying private BFD data"
+msgstr "chyba pri kopírovaní privátnych BFD dát"
+
+#: objcopy.c:1826
+#, c-format
+msgid "this target does not support %lu alternative machine codes"
+msgstr "tento cieľ nepodporuje alternatívne strojové kódy %lu"
+
+#: objcopy.c:1830
+msgid "treating that number as an absolute e_machine value instead"
+msgstr "namiesto toho sa toto číslo považuje za absolútnu hodnotu e_machine"
+
+#: objcopy.c:1834
+msgid "ignoring the alternative value"
+msgstr "ignoruje sa alternatívna hodnota"
+
+#: objcopy.c:1864 objcopy.c:1895
+#, c-format
+msgid "cannot create tempdir for archive copying (error: %s)"
+msgstr "nie je možné vytvoriť dočasný adresár pre kopírovanie archívu (chyba: %s)"
+
+#: objcopy.c:1957
+msgid "Unable to recognise the format of file"
+msgstr "Nemožno rozpoznať formát súboru"
+
+#: objcopy.c:2147
+#, c-format
+msgid "Multiple renames of section %s"
+msgstr "Viacnásobné premenovanie sekcie %s"
+
+#: objcopy.c:2198
+msgid "error in private h\teader data"
+msgstr "chyba v privátnych dátach hlavičky"
+
+#: objcopy.c:2276
+msgid "failed to create output section"
+msgstr "nepodarilo sa vytvoriť výstupnú sekciu"
+
+#: objcopy.c:2290
+msgid "failed to set size"
+msgstr "nepodarilo sa nastaviť veľkosť"
+
+#: objcopy.c:2304
+msgid "failed to set vma"
+msgstr "nepodarilo sa nastaviť vma"
+
+#: objcopy.c:2329
+msgid "failed to set alignment"
+msgstr "nepodarilo sa nastaviť zarovnanie"
+
+#: objcopy.c:2351
+msgid "failed to copy private data"
+msgstr "chyba pri kopírovaní privátnych dát"
+
+#: objcopy.c:2440
+msgid "relocation count is negative"
+msgstr "počet relokácií je záporný"
+
+#. User must pad the section up in order to do this.
+#: objcopy.c:2501
+#, c-format
+msgid "cannot reverse bytes: length of section %s must be evenly divisible by %d"
+msgstr "nie je možné obrátiť poradie bajtov: dĺžka sekcie %s musí byť bezo zvyšku deliteľná %d"
+
+#: objcopy.c:2685
+msgid "can't create debugging section"
+msgstr "nemožno vytvoriť ladiacu sekciu"
+
+#: objcopy.c:2698
+msgid "can't set debugging section contents"
+msgstr "nemožno nastaviť obsah ladiacej sekcie"
+
+#: objcopy.c:2706
+#, c-format
+msgid "don't know how to write debugging information for %s"
+msgstr "nevie sa ako sa má zapísať ladiaca informácia pre %s"
+
+#: objcopy.c:2848
+msgid "could not create temporary file to hold stripped copy"
+msgstr "nebolo možné vytvoriť dočasný súbor pre orezanú kópiu"
+
+#: objcopy.c:2897
+msgid "byte number must be non-negative"
+msgstr "číslo bajtu musí byť nezáporné"
+
+#: objcopy.c:2907
+msgid "interleave must be positive"
+msgstr "vloženie musí byť kladné"
+
+#: objcopy.c:2927 objcopy.c:2935
+#, c-format
+msgid "%s both copied and removed"
+msgstr "%s obe skopírované a odstránené"
+
+#: objcopy.c:3036 objcopy.c:3110 objcopy.c:3210 objcopy.c:3241 objcopy.c:3265
+#: objcopy.c:3269 objcopy.c:3289
+#, c-format
+msgid "bad format for %s"
+msgstr "zlý formát pre %s"
+
+#: objcopy.c:3060
+#, c-format
+msgid "cannot open: %s: %s"
+msgstr "nemožno otvoriť: %s: %s"
+
+#: objcopy.c:3179
+#, c-format
+msgid "Warning: truncating gap-fill from 0x%s to 0x%x"
+msgstr "Upozornenie: skracuje sa výplň medzery z 0x%s na 0x%x"
+
+#: objcopy.c:3347
+msgid "unable to parse alternative machine code"
+msgstr "nepodarila sa syntaktická analýza alternatívneho strojového kódu"
+
+#: objcopy.c:3392
+msgid "number of bytes to reverse must be positive and even"
+msgstr "pičet bajtov, ktorých poradie sa má otočiť musí byť kladný a párny"
+
+#: objcopy.c:3395
+#, c-format
+msgid "Warning: ignoring previous --reverse-bytes value of %d"
+msgstr "Upozornenie: ignoruje sa predošlá hodnota --reverse-bytes %d"
+
+#: objcopy.c:3423
+msgid "byte number must be less than interleave"
+msgstr "číslo bajtu musí byť menšie než vloženie"
+
+#: objcopy.c:3453
+#, c-format
+msgid "architecture %s unknown"
+msgstr "architektúra %s neznáma"
+
+#: objcopy.c:3457
+msgid "Warning: input target 'binary' required for binary architecture parameter."
+msgstr "Upozornenie: vstupný cieľ 'binary' je požadovaný pre parameter binárnej architektúry."
+
+#: objcopy.c:3458
+#, c-format
+msgid " Argument %s ignored"
+msgstr " Argument %s ignorovaný"
+
+#: objcopy.c:3464
+#, c-format
+msgid "warning: could not locate '%s'.  System error message: %s"
+msgstr "upozornenie: nepadarilo sa nájsť „%s“. Sytémové chybové hlásenie: %s"
+
+#: objcopy.c:3475
+#, c-format
+msgid "warning: could not create temporary file whilst copying '%s', (error: %s)"
+msgstr "upozornenie: nebolo možné vytvoriť dočasný súbor počas kopírovania „%s“, (chyba: %s)"
+
+#: objcopy.c:3502 objcopy.c:3516
+#, c-format
+msgid "%s %s%c0x%s never used"
+msgstr "%s %s%c0x%s nikdy nepoužité"
+
+#: objdump.c:182
+#, c-format
+msgid "Usage: %s <option(s)> <file(s)>\n"
+msgstr "Použitie: %s <voľb(a/y)> <súbor(y)>\n"
+
+#: objdump.c:183
+#, c-format
+msgid " Display information from object <file(s)>.\n"
+msgstr " Zobraziť informácie z objektového <súboru(-ov)>.\n"
+
+#: objdump.c:184
+#, c-format
+msgid " At least one of the following switches must be given:\n"
+msgstr " Najmenej jeden z následujúcich prepínačov musí byť uvedený:\n"
+
+#: objdump.c:185
+#, c-format
+msgid ""
+"  -a, --archive-headers    Display archive header information\n"
+"  -f, --file-headers       Display the contents of the overall file header\n"
+"  -p, --private-headers    Display object format specific file header contents\n"
+"  -h, --[section-]headers  Display the contents of the section headers\n"
+"  -x, --all-headers        Display the contents of all headers\n"
+"  -d, --disassemble        Display assembler contents of executable sections\n"
+"  -D, --disassemble-all    Display assembler contents of all sections\n"
+"  -S, --source             Intermix source code with disassembly\n"
+"  -s, --full-contents      Display the full contents of all sections requested\n"
+"  -g, --debugging          Display debug information in object file\n"
+"  -e, --debugging-tags     Display debug information using ctags style\n"
+"  -G, --stabs              Display (in raw form) any STABS info in the file\n"
+"  -W, --dwarf              Display DWARF info in the file\n"
+"  -t, --syms               Display the contents of the symbol table(s)\n"
+"  -T, --dynamic-syms       Display the contents of the dynamic symbol table\n"
+"  -r, --reloc              Display the relocation entries in the file\n"
+"  -R, --dynamic-reloc      Display the dynamic relocation entries in the file\n"
+"  @<file>                  Read options from <file>\n"
+"  -v, --version            Display this program's version number\n"
+"  -i, --info               List object formats and architectures supported\n"
+"  -H, --help               Display this information\n"
+msgstr ""
+"  -a, --archive-headers    Zobraziť informácie hlavičky archívu\n"
+"  -f, --file-headers       Zobraziť obsah hlavičky celého súboru\n"
+"  -p, --private-headers    Zobraziť objektový formát špecifický pre obsah hlavičky súboru\n"
+"  -h, --[section-]headers  Zobraziť obsah hlavičiek sekcií\n"
+"  -x, --all-headers        Zobraziť obsah všetkých hlavičiek\n"
+"  -d, --disassemble        Zobraziť assembler obsahu vykonateľných sekcií\n"
+"  -D, --disassemble-all    Zobraziť assembler obsahu všetkých sekcií\n"
+"  -S, --source             Premiešať zdrojový kód s výstupom disassemblera\n"
+"  -s, --full-contents      Zobraziť plný obsah požadovaných sekcií\n"
+"  -g, --debugging          Zobraziť ladiace informácie objektového súboru\n"
+"  -e, --debugging-tags     Zobraziť ladiace informácie v štýle ctags\n"
+"  -G, --stabs              Zobraziť (v nespracovanom formáte) všetky STABS informácie zo súboru\n"
+"  -W, --dwarf              Zobraziť DWARF informácie zo súboru\n"
+"  -t, --syms               Zobraziť obsah tabuliek symbolov\n"
+"  -T, --dynamic-syms       Zobraziť obsah dynamickej tabuľky symbolov\n"
+"  -r, --reloc              Zobraziť relokačné záznamy zo súboru\n"
+"  -R, --dynamic-reloc      Zobraziť dynamické relokačné záznamy zo súboru\n"
+"  @<súbor>                 Načítať voľby zo <súboru>\n"
+"  -v, --version            Zobraziť verziu tohto programu\n"
+"  -i, --info               Vypísať objektové formáty a podporované architektúry\n"
+"  -H, --help               Zobraziť tohto pomocníka\n"
+
+#: objdump.c:210
+#, c-format
+msgid ""
+"\n"
+" The following switches are optional:\n"
+msgstr ""
+"\n"
+" Následujúce prepínače sú voliteľné:\n"
+
+#: objdump.c:211
+#, c-format
+msgid ""
+"  -b, --target=BFDNAME           Specify the target object format as BFDNAME\n"
+"  -m, --architecture=MACHINE     Specify the target architecture as MACHINE\n"
+"  -j, --section=NAME             Only display information for section NAME\n"
+"  -M, --disassembler-options=OPT Pass text OPT on to the disassembler\n"
+"  -EB --endian=big               Assume big endian format when disassembling\n"
+"  -EL --endian=little            Assume little endian format when disassembling\n"
+"      --file-start-context       Include context from start of file (with -S)\n"
+"  -I, --include=DIR              Add DIR to search list for source files\n"
+"  -l, --line-numbers             Include line numbers and filenames in output\n"
+"  -F, --file-offsets             Include file offsets when displaying information\n"
+"  -C, --demangle[=STYLE]         Decode mangled/processed symbol names\n"
+"                                  The STYLE, if specified, can be `auto', `gnu',\n"
+"                                  `lucid', `arm', `hp', `edg', `gnu-v3', `java'\n"
+"                                  or `gnat'\n"
+"  -w, --wide                     Format output for more than 80 columns\n"
+"  -z, --disassemble-zeroes       Do not skip blocks of zeroes when disassembling\n"
+"      --start-address=ADDR       Only process data whose address is >= ADDR\n"
+"      --stop-address=ADDR        Only process data whose address is <= ADDR\n"
+"      --prefix-addresses         Print complete address alongside disassembly\n"
+"      --[no-]show-raw-insn       Display hex alongside symbolic disassembly\n"
+"      --adjust-vma=OFFSET        Add OFFSET to all displayed section addresses\n"
+"      --special-syms             Include special symbols in symbol dumps\n"
+"\n"
+msgstr ""
+"  -b, --target=BFDNÁZOV          Uviesť cieľový objektový formát ako BFDNÁZOV\n"
+"  -m, --architecture=STROJ       Uviesť cieľovú architektúru ako STROJ\n"
+"  -j, --section=NÁZOV            Zobrazovať iba informácie sekcie NÁZOV\n"
+"  -M, --disassembler-options=VOĽ Odovzdať text VOĽ disassembleru\n"
+"  -EB --endian=big               Disassembler má predpokladať formát big endian\n"
+"  -EL --endian=little            Disassembler má predpokladať formát little endian\n"
+"      --file-start-context       Vložiť kontext od začiatku súboru (s -S)\n"
+"  -I, --include=ADR              Pridať ADR do zoznamu adresárov pre hľadanie zdrojových súborov\n"
+"  -l, --line-numbers             Na výstupe uvádzať čísla riadkov a názvy súborov\n"
+"  -C, --demangle[=ŠTÝL]          Dekódovať neformátované/spracované názvy symbolov\n"
+"                                  ŠTÝL, ak je uvedený, môlže byť „auto“, „gnu“,\n"
+"                                  „lucid“, „arm“, „hp“, „edg“, „gnu-v3“, „java“\n"
+"                                  alebo „gnat“\n"
+"  -w, --wide                     Formátovať výstup na viac ako 80 stĺpcov\n"
+"  -z, --disassemble-zeroes       Disassember nemá preskakovať bloky núl\n"
+"      --start-address=ADDR       Spracúvať iba údaje ktorých adresa >= ADDR\n"
+"      --stop-address=ADDR        Spracúvať iba údaje ktorých adresa <= ADDR\n"
+"      --prefix-addresses         Disassember má vypisovať aj kompletné adresy\n"
+"      --[no-]show-raw-insn       Disassember má vedľa symbolického zápisu vypisovať aj hexadecimálny\n"
+"      --adjust-vma=OFSET         Pridať OFSET ku všetkým zobrazovaným adresám sekcií\n"
+"      --special-syms             Zahrnúť do výpisu symbolov špeciálne symboly\n"
+"\n"
+
+#: objdump.c:395
+#, c-format
+msgid "Sections:\n"
+msgstr "Sekcie:\n"
+
+#: objdump.c:398 objdump.c:402
+#, c-format
+msgid "Idx Name          Size      VMA       LMA       File off  Algn"
+msgstr "Idx Názov         Veľkosť   VMA       LMA       Súb. vyp. Zar."
+
+#: objdump.c:404
+#, c-format
+msgid "Idx Name          Size      VMA               LMA               File off  Algn"
+msgstr "Idx Názov         Veľkosť   VMA               LMA               Súb. vyp. Zar."
+
+#: objdump.c:408
+#, c-format
+msgid "  Flags"
+msgstr "  Príznaky"
+
+#: objdump.c:410
+#, c-format
+msgid "  Pg"
+msgstr "  Pg"
+
+#: objdump.c:453
+#, c-format
+msgid "%s: not a dynamic object"
+msgstr "%s: nie je dynamický objekt"
+
+#: objdump.c:878 objdump.c:902
+#, c-format
+msgid " (File Offset: 0x%lx)"
+msgstr " (Ofset súboru: 0x%lx)"
+
+#: objdump.c:1818
+#, c-format
+msgid ""
+"\n"
+"Disassembly of section %s:\n"
+msgstr ""
+"\n"
+"Rozloženie sekcie %s:\n"
+
+#: objdump.c:1980
+#, c-format
+msgid "Can't use supplied machine %s"
+msgstr "Nedá sa použiť zadaná architekúra %s"
+
+#: objdump.c:1999
+#, c-format
+msgid "Can't disassemble for architecture %s\n"
+msgstr "Nedá sa rozložiť pre architekúru %s\n"
+
+#: objdump.c:2114
+#, c-format
+msgid ""
+"\n"
+"Can't get contents for section '%s'.\n"
+msgstr ""
+"\n"
+"Nedá sa získať obsah pre sekciu „%s“.\n"
+
+#: objdump.c:2125
+#, c-format
+msgid ""
+"\n"
+"Can't uncompress section '%s'.\n"
+msgstr ""
+"\n"
+"Nie je možné dekomprimovať sekciu „%s“.\n"
+
+#: objdump.c:2305
+#, c-format
+msgid ""
+"No %s section present\n"
+"\n"
+msgstr ""
+"Nenachádza sa žiadna sekcia %s\n"
+"\n"
+
+#: objdump.c:2314
+#, c-format
+msgid "Reading %s section of %s failed: %s"
+msgstr "Čítanie %s sekcie z %s zlyhalo: %s"
+
+#: objdump.c:2358
+#, c-format
+msgid ""
+"Contents of %s section:\n"
+"\n"
+msgstr ""
+"Obsah %s sekcie:\n"
+"\n"
+
+#: objdump.c:2489
+#, c-format
+msgid "architecture: %s, "
+msgstr "architektúra: %s, "
+
+#: objdump.c:2492
+#, c-format
+msgid "flags 0x%08x:\n"
+msgstr "príznaky 0x%08x:\n"
+
+#: objdump.c:2506
+#, c-format
+msgid ""
+"\n"
+"start address 0x"
+msgstr ""
+"\n"
+"štartovacia adresa 0x"
+
+#: objdump.c:2569
+#, c-format
+msgid "Contents of section %s:"
+msgstr "Obsah sekcie %s:"
+
+#: objdump.c:2571
+#, c-format
+msgid "  (Starting at file offset: 0x%lx)"
+msgstr "  (Počínajúc na ofsete súboru: 0x%lx)"
+
+#: objdump.c:2678
+#, c-format
+msgid "no symbols\n"
+msgstr "žiadne symboly\n"
+
+#: objdump.c:2685
+#, c-format
+msgid "no information for symbol number %ld\n"
+msgstr "žiadne informácie pre číslo symbolu %ld\n"
+
+#: objdump.c:2688
+#, c-format
+msgid "could not determine the type of symbol number %ld\n"
+msgstr "nedá sa určiť typ čísla symbolu %ld\n"
+
+#: objdump.c:2965
+#, c-format
+msgid ""
+"\n"
+"%s:     file format %s\n"
+msgstr ""
+"\n"
+"%s: formát súboru %s\n"
+
+#: objdump.c:3023
+#, c-format
+msgid "%s: printing debugging information failed"
+msgstr "%s: tlač ladiacich informácii zlahala"
+
+#: objdump.c:3123
+#, c-format
+msgid "In archive %s:\n"
+msgstr "V archíve %s:\n"
+
+#: objdump.c:3238
+msgid "error: the start address should be before the end address"
+msgstr "chyba: štart adresa by mala byť pred koncovou adresou"
+
+#: objdump.c:3243
+msgid "error: the stop address should be after the start address"
+msgstr "chyba: stop adresa by mala byť po štart adrese"
+
+#: objdump.c:3252
+msgid "unrecognized -E option"
+msgstr "nerozpoznaná -E voľba"
+
+#: objdump.c:3263
+#, c-format
+msgid "unrecognized --endian type `%s'"
+msgstr "nerozpoznaný --endian typ „%s“"
+
+#: rclex.c:197
+msgid "invalid value specified for pragma code_page.\n"
+msgstr "bola uvedená neplatná hodnota pragma code_page.\n"
+
+#: rdcoff.c:198
+#, c-format
+msgid "parse_coff_type: Bad type code 0x%x"
+msgstr "parse_coff_type: Zlý typový kód 0x%x"
+
+#: rdcoff.c:406 rdcoff.c:511 rdcoff.c:699
+#, c-format
+msgid "bfd_coff_get_syment failed: %s"
+msgstr "bfd_coff_get_syment zlyhal: %s"
+
+#: rdcoff.c:422 rdcoff.c:719
+#, c-format
+msgid "bfd_coff_get_auxent failed: %s"
+msgstr "bfd_coff_get_auxent zlyhal: %s"
+
+#: rdcoff.c:786
+#, c-format
+msgid "%ld: .bf without preceding function"
+msgstr "%ld: .bf bez predchádzajúcej funkcie"
+
+#: rdcoff.c:836
+#, c-format
+msgid "%ld: unexpected .ef\n"
+msgstr "%ld: neočakávané .ef\n"
+
+#: rddbg.c:88
+#, c-format
+msgid "%s: no recognized debugging information"
+msgstr "%s: žiadna rozpoznaná ladiaca informácia"
+
+#: rddbg.c:402
+#, c-format
+msgid "Last stabs entries before error:\n"
+msgstr "Posledné testovacie záznamy pred chybou:\n"
+
+#: readelf.c:312
+#, c-format
+msgid "Unable to seek to 0x%lx for %s\n"
+msgstr "Nedá sa vyhľadať 0x%lx pre %s\n"
+
+#: readelf.c:327
+#, c-format
+msgid "Out of memory allocating 0x%lx bytes for %s\n"
+msgstr "Nedostatok pamäti pri alokácii 0x%lx bajtov pre %s\n"
+
+#: readelf.c:337
+#, c-format
+msgid "Unable to read in 0x%lx bytes of %s\n"
+msgstr "Nedá sa prečítať v 0x%lx bajtoch z %s\n"
+
+#: readelf.c:642
+msgid "Don't know about relocations on this machine architecture\n"
+msgstr "Nepoznám realokácie pre architektúru tohto počítača\n"
+
+#: readelf.c:662 readelf.c:690 readelf.c:756 readelf.c:784
+msgid "relocs"
+msgstr "relocs"
+
+#: readelf.c:673 readelf.c:701 readelf.c:767 readelf.c:795
+msgid "out of memory parsing relocs\n"
+msgstr "nedostatok pamäte pri spracúvaní relokačných záznamov\n"
+
+#: readelf.c:901
+#, c-format
+msgid " Offset     Info    Type                Sym. Value  Symbol's Name + Addend\n"
+msgstr " Ofset      Info    Typ                 Hodnota sym Názov sym + Sčítanec\n"
+
+#: readelf.c:903
+#, c-format
+msgid " Offset     Info    Type            Sym.Value  Sym. Name + Addend\n"
+msgstr " Ofset      Info    Typ             Hodnota sym Názov sym + Sčítanec\n"
+
+#: readelf.c:908
+#, c-format
+msgid " Offset     Info    Type                Sym. Value  Symbol's Name\n"
+msgstr " Ofset      Info    Typ                 Hodnota sym Názov sym\n"
+
+#: readelf.c:910
+#, c-format
+msgid " Offset     Info    Type            Sym.Value  Sym. Name\n"
+msgstr " Ofset      Info    Typ             Hodnota sym Názov sym\n"
+
+#: readelf.c:918
+#, c-format
+msgid "    Offset             Info             Type               Symbol's Value  Symbol's Name + Addend\n"
+msgstr "    Ofset              Info             Typ                Hodnota sym     Názov sym + Sčítanec\n"
+
+#: readelf.c:920
+#, c-format
+msgid "  Offset          Info           Type           Sym. Value    Sym. Name + Addend\n"
+msgstr "  Ofset           Info           Typ            Hodnota sym   Názov sym + Sčítanec\n"
+
+#: readelf.c:925
+#, c-format
+msgid "    Offset             Info             Type               Symbol's Value  Symbol's Name\n"
+msgstr "    Ofset              Info             Typ                Hodnota sym     Názov sym\n"
+
+#: readelf.c:927
+#, c-format
+msgid "  Offset          Info           Type           Sym. Value    Sym. Name\n"
+msgstr "  Ofset           Info           Typ            Hodnota sym   Názov sym\n"
+
+#: readelf.c:1204 readelf.c:1324 readelf.c:1332
+#, c-format
+msgid "unrecognized: %-7lx"
+msgstr "norozpoznaný: %-7lx"
+
+#: readelf.c:1229
+#, c-format
+msgid "<unknown addend: %lx>"
+msgstr "<neznámy sčítanec: %lx>"
+
+#: readelf.c:1289
+#, c-format
+msgid "<string table index: %3ld>"
+msgstr "<index tabuľky reťazcov: %3ld>"
+
+#: readelf.c:1291
+#, c-format
+msgid "<corrupt string table index: %3ld>"
+msgstr "<poškodený index tabuľky reťazcov: %3ld>"
+
+#: readelf.c:1657
+#, c-format
+msgid "Processor Specific: %lx"
+msgstr "Špecifické pre procesor: %lx"
+
+#: readelf.c:1681
+#, c-format
+msgid "Operating System specific: %lx"
+msgstr "Špecifické pre operačný systém: %lx"
+
+#: readelf.c:1685 readelf.c:2562
+#, c-format
+msgid "<unknown>: %lx"
+msgstr "<neznámy>: %lx"
+
+#: readelf.c:1698
+msgid "NONE (None)"
+msgstr "NONE (Žiadny)"
+
+#: readelf.c:1699
+msgid "REL (Relocatable file)"
+msgstr "REL (Relokačný súbor)"
+
+#: readelf.c:1700
+msgid "EXEC (Executable file)"
+msgstr "EXEC (Spustiteľný súbor)"
+
+#: readelf.c:1701
+msgid "DYN (Shared object file)"
+msgstr "DYN (Súbor zdielaného objektu)"
+
+#: readelf.c:1702
+msgid "CORE (Core file)"
+msgstr "CORE (Súbor jadra)"
+
+#: readelf.c:1706
+#, c-format
+msgid "Processor Specific: (%x)"
+msgstr "Špecifické pre procesor: (%x)"
+
+#: readelf.c:1708
+#, c-format
+msgid "OS Specific: (%x)"
+msgstr "Špecifické pre OS: (%x)"
+
+#: readelf.c:1710 readelf.c:2779
+#, c-format
+msgid "<unknown>: %x"
+msgstr "<neznámy>: %x"
+
+#: readelf.c:1722
+msgid "None"
+msgstr "Žiadny"
+
+#: readelf.c:1829
+#, c-format
+msgid "<unknown>: 0x%x"
+msgstr "<neznáme>: 0x%x"
+
+#: readelf.c:2086
+msgid "unknown"
+msgstr "neznáme"
+
+#: readelf.c:2087
+msgid "unknown mac"
+msgstr "neznáma mac"
+
+#: readelf.c:2399
+msgid "Standalone App"
+msgstr "Samostatná aplikácia"
+
+#: readelf.c:2402 readelf.c:3221 readelf.c:3237
+#, c-format
+msgid "<unknown: %x>"
+msgstr "<neznámy>: %x"
+
+#: readelf.c:2826
+#, c-format
+msgid "Usage: readelf <option(s)> elf-file(s)\n"
+msgstr "Použitie: readelf <voľby> elf-súbor(y)\n"
+
+#: readelf.c:2827
+#, c-format
+msgid " Display information about the contents of ELF format files\n"
+msgstr " Zobraziť informácie o obsahu súborov formátu ELF\n"
+
+#: readelf.c:2828
+#, c-format
+msgid ""
+" Options are:\n"
+"  -a --all               Equivalent to: -h -l -S -s -r -d -V -A -I\n"
+"  -h --file-header       Display the ELF file header\n"
+"  -l --program-headers   Display the program headers\n"
+"     --segments          An alias for --program-headers\n"
+"  -S --section-headers   Display the sections' header\n"
+"     --sections          An alias for --section-headers\n"
+"  -g --section-groups    Display the section groups\n"
+"  -t --section-details   Display the section details\n"
+"  -e --headers           Equivalent to: -h -l -S\n"
+"  -s --syms              Display the symbol table\n"
+"      --symbols          An alias for --syms\n"
+"  -n --notes             Display the core notes (if present)\n"
+"  -r --relocs            Display the relocations (if present)\n"
+"  -u --unwind            Display the unwind info (if present)\n"
+"  -d --dynamic           Display the dynamic section (if present)\n"
+"  -V --version-info      Display the version sections (if present)\n"
+"  -A --arch-specific     Display architecture specific information (if any).\n"
+"  -c --archive-index     Display the symbol/file index in an archive\n"
+"  -D --use-dynamic       Use the dynamic section info when displaying symbols\n"
+"  -x --hex-dump=<number|name>\n"
+"                         Dump the contents of section <number|name> as bytes\n"
+"  -p --string-dump=<number|name>\n"
+"                         Dump the contents of section <number|name> as strings\n"
+"  -w[lLiaprmfFsoR] or\n"
+"  --debug-dump[=rawline,=decodedline,=info,=abbrev,=pubnames,=aranges,=macro,=frames,=str,=loc,=Ranges]\n"
+"                         Display the contents of DWARF2 debug sections\n"
+msgstr ""
+" Voľby sú:\n"
+"  -a --all               Ekvivalent: -h -l -S -s -r -d -V -A -I\n"
+"  -h --file-header       Zobraziť halvičku ELF súboru\n"
+"  -l --program-headers   Zobraziť hlavičky programu\n"
+"     --segments          Alias pre --program-headers\n"
+"  -S --section-headers   Zobraziť hlavičky sekcií\n"
+"     --sections          Alias pre --section-headers\n"
+"  -g --section-groups    Zobraziť skupiny sekcií\n"
+"  -t --section-details   Zobraziť podrobnosti sekcií\n"
+"  -e --headers           Ekvivalent: -h -l -S\n"
+"  -s --syms              Zobraziť tabuľku symbolov\n"
+"      --symbols          Alias pre --syms\n"
+"  -n --notes             Zobraziť poznámky core (ak sú prítomné)\n"
+"  -r --relocs            Zobraziť relokácie (ak sú prítomné)\n"
+"  -u --unwind            Zobraziť informácie o rozvinutí (ak sú prítomné)\n"
+"  -d --dynamic           Zobraziť dynamickú sekciu (ak je prítomná)\n"
+"  -V --version-info      Zobraziť sekcie verzií (ak sú prítomné)\n"
+"  -A --arch-specific     Zobraziť informácie špeicické pre architektúru (ak nejaké sú).\n"
+"  -c --archive-index     Zobraziť index symbolov/súborov v archíve\n"
+"  -D --use-dynamic       Použiť na zobrazenie symbolov ifnormácie dynamickej sekcie\n"
+"  -x --hex-dump=<číslo|názov>\n"
+"                         Vypísať obsah sekcie <číslo|názov> vo forme bajtov\n"
+"  -p --string-dump=<číslo|názov>\n"
+"                         Vypísať obsah sekcie <číslo|názov> vo forme reťazcov\n"
+"  -w[liaprmfFsoR] alebo\n"
+"  --debug-dump[=line,=info,=abbrev,=pubnames,=aranges,=macro,=frames,=str,=loc,=Ranges]\n"
+"                         Zobraziť ladiacich sekcií DWARF2\n"
+
+#: readelf.c:2856
+#, c-format
+msgid ""
+"  -i --instruction-dump=<number|name>\n"
+"                         Disassemble the contents of section <number|name>\n"
+msgstr ""
+"  -i --instruction-dump=<číslo|názov>\n"
+"                         Rozložiť obsah sekcie <číslo|názov>\n"
+
+#: readelf.c:2860
+#, c-format
+msgid ""
+"  -I --histogram         Display histogram of bucket list lengths\n"
+"  -W --wide              Allow output width to exceed 80 characters\n"
+"  @<file>                Read options from <file>\n"
+"  -H --help              Display this information\n"
+"  -v --version           Display the version number of readelf\n"
+msgstr ""
+"  -I --histogram         Zobraziť histogram dĺžok zoznamu oblasti\n"
+"  -W --wide              Umožniť prekročenie 80 znakov\n"
+"  @<súbor>               Čítať voľby zo <súbor>u\n"
+"  -H --help              Zobraziť túto informáciu\n"
+"  -v --version           Zobraziť readelf verziu\n"
+
+#: readelf.c:2888 readelf.c:2916 readelf.c:2920 readelf.c:11007
+msgid "Out of memory allocating dump request table.\n"
+msgstr "Nedostatok pamäte pri alokácii tabuľky požiadaviek o výpis.\n"
+
+#: readelf.c:3090 readelf.c:3160
+#, c-format
+msgid "Unrecognized debug option '%s'\n"
+msgstr "Nerozpoznaná ladiaca voľba „%s“\n"
+
+#: readelf.c:3191
+#, c-format
+msgid "Invalid option '-%c'\n"
+msgstr "Neplatná voľba „-%c“\n"
+
+#: readelf.c:3205
+msgid "Nothing to do.\n"
+msgstr "Nie je čo robiť.\n"
+
+#: readelf.c:3217 readelf.c:3233 readelf.c:6495
+msgid "none"
+msgstr "žiadny"
+
+#: readelf.c:3234
+msgid "2's complement, little endian"
+msgstr "komplement 2, malý endián"
+
+#: readelf.c:3235
+msgid "2's complement, big endian"
+msgstr "domplement 2, veľký endián"
+
+#: readelf.c:3253
+msgid "Not an ELF file - it has the wrong magic bytes at the start\n"
+msgstr "Nie je ELF súbor - na začiatku má nesprávne kúzelné bajty\n"
+
+#: readelf.c:3263
+#, c-format
+msgid "ELF Header:\n"
+msgstr "ELF Hlavička:\n"
+
+#: readelf.c:3264
+#, c-format
+msgid "  Magic:   "
+msgstr "  Kúzlo:   "
+
+#: readelf.c:3268
+#, c-format
+msgid "  Class:                             %s\n"
+msgstr "  Trieda:                            %s\n"
+
+#: readelf.c:3270
+#, c-format
+msgid "  Data:                              %s\n"
+msgstr "  Dáta:                              %s\n"
+
+#: readelf.c:3272
+#, c-format
+msgid "  Version:                           %d %s\n"
+msgstr "  Verzia:                            %d %s\n"
+
+#: readelf.c:3279
+#, c-format
+msgid "  OS/ABI:                            %s\n"
+msgstr "  OS / ABI:                          %s\n"
+
+#: readelf.c:3281
+#, c-format
+msgid "  ABI Version:                       %d\n"
+msgstr "  ABI verzia:                        %d\n"
+
+#: readelf.c:3283
+#, c-format
+msgid "  Type:                              %s\n"
+msgstr "  Typ:                               %s\n"
+
+#: readelf.c:3285
+#, c-format
+msgid "  Machine:                           %s\n"
+msgstr "  Počítač:                           %s\n"
+
+#: readelf.c:3287
+#, c-format
+msgid "  Version:                           0x%lx\n"
+msgstr "  Verzia:                            0x%lx\n"
+
+#: readelf.c:3290
+#, c-format
+msgid "  Entry point address:               "
+msgstr "  Adresa vstupného bodu:               "
+
+#: readelf.c:3292
+#, c-format
+msgid ""
+"\n"
+"  Start of program headers:          "
+msgstr ""
+"\n"
+"  Začiatok hlavičiek programu:          "
+
+#: readelf.c:3294
+#, c-format
+msgid ""
+" (bytes into file)\n"
+"  Start of section headers:          "
+msgstr ""
+" (bajtov do súboru)\n"
+"  Začiatok sekcie hlavičiek:          "
+
+#: readelf.c:3296
+#, c-format
+msgid " (bytes into file)\n"
+msgstr " (bajtov do súboru)\n"
+
+#: readelf.c:3298
+#, c-format
+msgid "  Flags:                             0x%lx%s\n"
+msgstr "  Príznaky:                          0x%lx%s\n"
+
+#: readelf.c:3301
+#, c-format
+msgid "  Size of this header:               %ld (bytes)\n"
+msgstr "  Veľkosť tejto hlavičky:            %ld (bajtov)\n"
+
+#: readelf.c:3303
+#, c-format
+msgid "  Size of program headers:           %ld (bytes)\n"
+msgstr "  Veľkosť hlavičiek programu:        %ld (bajtov)\n"
+
+#: readelf.c:3305
+#, c-format
+msgid "  Number of program headers:         %ld\n"
+msgstr "  Počet hlavičiek programu:          %ld\n"
+
+#: readelf.c:3307
+#, c-format
+msgid "  Size of section headers:           %ld (bytes)\n"
+msgstr "  Veľkosť sekcie hlavičiek:          %ld (bajtov)\n"
+
+#: readelf.c:3309
+#, c-format
+msgid "  Number of section headers:         %ld"
+msgstr "  Počet hlavičiek sekcií:            %ld"
+
+#: readelf.c:3314
+#, c-format
+msgid "  Section header string table index: %ld"
+msgstr "  Index tabuľky reťazcov hlavičky sekcie: %ld"
+
+#: readelf.c:3350 readelf.c:3383
+msgid "program headers"
+msgstr "hlavičky programu"
+
+#: readelf.c:3421 readelf.c:3719 readelf.c:3760 readelf.c:3819 readelf.c:3884
+#: readelf.c:4553 readelf.c:4577 readelf.c:5827 readelf.c:5871 readelf.c:6069
+#: readelf.c:7127 readelf.c:7141 readelf.c:7635 readelf.c:7651 readelf.c:7694
+#: readelf.c:7719 readelf.c:9475 readelf.c:9667 readelf.c:10194
+#: readelf.c:10857
+msgid "Out of memory\n"
+msgstr "Nedostatok pamäte\n"
+
+#: readelf.c:3448
+#, c-format
+msgid ""
+"\n"
+"There are no program headers in this file.\n"
+msgstr ""
+"\n"
+"V tomto súbore nie sú žiadne hlavičky programu.\n"
+
+#: readelf.c:3454
+#, c-format
+msgid ""
+"\n"
+"Elf file type is %s\n"
+msgstr ""
+"\n"
+"Typ súboru Elf je %s\n"
+
+#: readelf.c:3455
+#, c-format
+msgid "Entry point "
+msgstr "Bod vstupu "
+
+#: readelf.c:3457
+#, c-format
+msgid ""
+"\n"
+"There are %d program headers, starting at offset "
+msgstr ""
+"\n"
+"Počet nájdených hlavičiek programu je %d, začínam na offsete "
+
+#: readelf.c:3469 readelf.c:3471
+#, c-format
+msgid ""
+"\n"
+"Program Headers:\n"
+msgstr ""
+"\n"
+"Hlavičky programu:\n"
+
+#: readelf.c:3475
+#, c-format
+msgid "  Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align\n"
+msgstr "  Typ            Ofset    VirtAdr    FyzAdr     VeľSúb  VeľPam  Prí Zarovnanie\n"
+
+#: readelf.c:3478
+#, c-format
+msgid "  Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align\n"
+msgstr "  Typ            Ofset    VirtAdr            FyzAdr             VeľSúb   VeľPam   Prí Zarovnanie\n"
+
+#: readelf.c:3482
+#, c-format
+msgid "  Type           Offset             VirtAddr           PhysAddr\n"
+msgstr "  Typ            Ofset              VirtAdr            FyzAdr\n"
+
+#: readelf.c:3484
+#, c-format
+msgid "                 FileSiz            MemSiz              Flags  Align\n"
+msgstr "                 VeľSúb             VeľPam              Prízn  Zarovnanie\n"
+
+#: readelf.c:3577
+msgid "more than one dynamic segment\n"
+msgstr "viac ako jeden dynamický segment\n"
+
+#: readelf.c:3593
+msgid "no .dynamic section in the dynamic segment\n"
+msgstr "v dynamickom segmente nebola sekcia .dynamic\n"
+
+#: readelf.c:3608
+msgid "the .dynamic section is not contained within the dynamic segment\n"
+msgstr "v dynamický segment neobsahoval sekciu .dynamic\n"
+
+#: readelf.c:3611
+msgid "the .dynamic section is not the first section in the dynamic segment.\n"
+msgstr "v dynamický segment neobsahoval sekciu .dynamic ako prvú\n"
+
+#: readelf.c:3619
+msgid "Unable to find program interpreter name\n"
+msgstr "Nedá sa nájsť názov prekladača programu\n"
+
+#: readelf.c:3626
+msgid "Internal error: failed to create format string to display program interpreter\n"
+msgstr "Vnútorná chyba: nepodarilo sa vytvoriť formátovací reťazec pre zobrazenie interpreta programu\n"
+
+#: readelf.c:3630
+msgid "Unable to read program interpreter name\n"
+msgstr "Nepodarilo sa prečítať názov interpreta programu\n"
+
+#: readelf.c:3633
+#, c-format
+msgid ""
+"\n"
+"      [Requesting program interpreter: %s]"
+msgstr ""
+"\n"
+"      [Požaduje sa prekladač programu: %s]"
+
+#: readelf.c:3645
+#, c-format
+msgid ""
+"\n"
+" Section to Segment mapping:\n"
+msgstr ""
+"\n"
+" Sekcia na mapovanie segmentu:\n"
+
+#: readelf.c:3646
+#, c-format
+msgid "  Segment Sections...\n"
+msgstr "  Sekcie segmentu...\n"
+
+#: readelf.c:3681
+msgid "Cannot interpret virtual addresses without program headers.\n"
+msgstr "Virtuálne adresy sa nedajú preložiť bez hlavičiek programu.\n"
+
+#: readelf.c:3697
+#, c-format
+msgid "Virtual address 0x%lx not located in any PT_LOAD segment.\n"
+msgstr "Virtuálna adresa 0x%lx sa nenachádza v žiadnom PT_LOAD segmente.\n"
+
+#: readelf.c:3711 readelf.c:3752
+msgid "section headers"
+msgstr "hlavičky sekcie"
+
+#: readelf.c:3796 readelf.c:3861
+msgid "symbols"
+msgstr "symboly"
+
+#: readelf.c:3806 readelf.c:3871
+msgid "symtab shndx"
+msgstr "symtab shndx"
+
+#: readelf.c:4130 readelf.c:4537
+#, c-format
+msgid ""
+"\n"
+"There are no sections in this file.\n"
+msgstr ""
+"\n"
+"V tomto súbore nie sú žiadne sekcie.\n"
+
+#: readelf.c:4136
+#, c-format
+msgid "There are %d section headers, starting at offset 0x%lx:\n"
+msgstr "Počet hlavičiek sekcií je %d, začínajúc na offsete 0x%lx:\n"
+
+#: readelf.c:4156 readelf.c:4653 readelf.c:4879 readelf.c:5178 readelf.c:5584
+#: readelf.c:7445
+msgid "string table"
+msgstr "tabuľka reťazcov"
+
+#: readelf.c:4223
+#, c-format
+msgid "Section %d has invalid sh_entsize %lx (expected %lx)\n"
+msgstr "Sekcia %d má neplatnú sh_entsize %lx (očakávaná %lx)\n"
+
+#: readelf.c:4243
+msgid "File contains multiple dynamic symbol tables\n"
+msgstr "Súbor obsahuje viacnásobné dynamické tabuľky symbolov\n"
+
+#: readelf.c:4256
+msgid "File contains multiple dynamic string tables\n"
+msgstr "Súbor obsahuje viacnásobné dynamické reťazcové tabuľky\n"
+
+#: readelf.c:4261
+msgid "dynamic strings"
+msgstr "dynamické reťazce"
+
+#: readelf.c:4268
+msgid "File contains multiple symtab shndx tables\n"
+msgstr "Súbor obsahuje viacnásobné symtam shndx tabuľky\n"
+
+#: readelf.c:4320
+#, c-format
+msgid ""
+"\n"
+"Section Headers:\n"
+msgstr ""
+"\n"
+"Hlavičky sekcie:\n"
+
+#: readelf.c:4322
+#, c-format
+msgid ""
+"\n"
+"Section Header:\n"
+msgstr ""
+"\n"
+"Hlavička sekcie:\n"
+
+#: readelf.c:4328 readelf.c:4339 readelf.c:4350
+#, c-format
+msgid "  [Nr] Name\n"
+msgstr "  [Nr] Názov\n"
+
+#: readelf.c:4329
+#, c-format
+msgid "       Type            Addr     Off    Size   ES   Lk Inf Al\n"
+msgstr "       Typ             Adr      Ofs    Veľk   ES   Lk Inf Al\n"
+
+#: readelf.c:4333
+#, c-format
+msgid "  [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al\n"
+msgstr "  [Nr] Názov             Typ             Adr      Ofs    Veľk   ES Prí Lk Inf Al\n"
+
+#: readelf.c:4340
+#, c-format
+msgid "       Type            Address          Off    Size   ES   Lk Inf Al\n"
+msgstr "       Typ             Adresa           Ofs    Veľk   ES   Lk Inf Al\n"
+
+#: readelf.c:4344
+#, c-format
+msgid "  [Nr] Name              Type            Address          Off    Size   ES Flg Lk Inf Al\n"
+msgstr "  [Nr] Názov             Typ             Adresa           Ofs    Veľk   ES Prí Lk Inf Al\n"
+
+#: readelf.c:4351
+#, c-format
+msgid "       Type              Address          Offset            Link\n"
+msgstr "       Typ               Adresa           Ofset             Odkaz\n"
+
+#: readelf.c:4352
+#, c-format
+msgid "       Size              EntSize          Info              Align\n"
+msgstr "       Veľkosť           EntVeľkosť       Info              Zarovnanie\n"
+
+#: readelf.c:4356
+#, c-format
+msgid "  [Nr] Name              Type             Address           Offset\n"
+msgstr "  [Nr] Názov             Typ              Adresa            Ofset\n"
+
+#: readelf.c:4357
+#, c-format
+msgid "       Size              EntSize          Flags  Link  Info  Align\n"
+msgstr "       Veľkosť           EntVeľk          Prízn  Odkaz Info  Zarovnanie\n"
+
+#: readelf.c:4362
+#, c-format
+msgid "       Flags\n"
+msgstr "       Príznaky\n"
+
+#: readelf.c:4495
+#, c-format
+msgid ""
+"Key to Flags:\n"
+"  W (write), A (alloc), X (execute), M (merge), S (strings)\n"
+"  I (info), L (link order), G (group), x (unknown)\n"
+"  O (extra OS processing required) o (OS specific), p (processor specific)\n"
+msgstr ""
+"Kľúč k príznakom:\n"
+"  W (zápísať), A (alokovať), X (vykonať), M (spojiť), S (reťazce)\n"
+"  I (info), L (poriadie odkazov), G (skupina), x (neznámy)\n"
+"  O (vyžadované extra OS spracovanie), o (špecifické pre OS), p (špecifické pre procesor)\n"
+
+#: readelf.c:4513
+#, c-format
+msgid "[<unknown>: 0x%x]"
+msgstr "[<neznámy>: 0x%x]"
+
+#: readelf.c:4544
+msgid "Section headers are not available!\n"
+msgstr "Hlavičky sekcie nie sú dostupné!\n"
+
+#: readelf.c:4568
+#, c-format
+msgid ""
+"\n"
+"There are no section groups in this file.\n"
+msgstr ""
+"\n"
+"V tomto súbore nie sú žiadne skupiny sekcie.\n"
+
+#: readelf.c:4604
+#, c-format
+msgid "Bad sh_link in group section `%s'\n"
+msgstr "Zlá sh_link v skupinovej sekcii „%s“\n"
+
+#: readelf.c:4623
+#, c-format
+msgid "Bad sh_info in group section `%s'\n"
+msgstr "Zlá sh_link v skupinovej sekcii „%s“\n"
+
+#: readelf.c:4661 readelf.c:7851 readelf.c:7932
+msgid "section data"
+msgstr "dáta sekcie"
+
+#: readelf.c:4673
+#, c-format
+msgid "   [Index]    Name\n"
+msgstr "   [Index] Názov\n"
+
+#: readelf.c:4687
+#, c-format
+msgid "section [%5u] in group section [%5u] > maximum section [%5u]\n"
+msgstr "sekcia [%5u] v skupinovej sekcii [%5u] > maximum sekcia [%5u]\n"
+
+#: readelf.c:4696
+#, c-format
+msgid "section [%5u] in group section [%5u] already in group section [%5u]\n"
+msgstr "sekcia [%5u] v skupinovej sekcii [%5u] už je v skupinovej sekcii [%5u]\n"
+
+#: readelf.c:4709
+#, c-format
+msgid "section 0 in group section [%5u]\n"
+msgstr "sekcia 0 v skupinovej sekcii [%5u]\n"
+
+#: readelf.c:4804
+#, c-format
+msgid ""
+"\n"
+"'%s' relocation section at offset 0x%lx contains %ld bytes:\n"
+msgstr ""
+"\n"
+"„%s“ relokačná sekcia na ofsete 0x%lx obsahuje %ld bajtov:\n"
+
+#: readelf.c:4816
+#, c-format
+msgid ""
+"\n"
+"There are no dynamic relocations in this file.\n"
+msgstr ""
+"\n"
+"V súbore sa nenachádzajú žiadne dynamické relokácie.\n"
+
+#: readelf.c:4840
+#, c-format
+msgid ""
+"\n"
+"Relocation section "
+msgstr ""
+"\n"
+"Relokačná sekcia "
+
+#: readelf.c:4845 readelf.c:5254 readelf.c:5268 readelf.c:5599
+#, c-format
+msgid "'%s'"
+msgstr "„%s“"
+
+#: readelf.c:4847 readelf.c:5270 readelf.c:5601
+#, c-format
+msgid " at offset 0x%lx contains %lu entries:\n"
+msgstr " na offsete 0x%lx obsahuje %lu položiek:\n"
+
+#: readelf.c:4898
+#, c-format
+msgid ""
+"\n"
+"There are no relocations in this file.\n"
+msgstr ""
+"\n"
+"V tomto súbore nie sú žiadne relokácie.\n"
+
+#: readelf.c:5077 readelf.c:5450
+msgid "unwind table"
+msgstr "rozvinúť tabuľku"
+
+#: readelf.c:5127 readelf.c:5531
+#, c-format
+msgid "Skipping unexpected relocation type %s\n"
+msgstr "Preskakujem neočakávaný typ relokácie %s\n"
+
+#: readelf.c:5186 readelf.c:5592 readelf.c:5643
+#, c-format
+msgid ""
+"\n"
+"There are no unwind sections in this file.\n"
+msgstr ""
+"\n"
+"V tomto súbore nie sú žiadne rozvinuté sekcie.\n"
+
+#: readelf.c:5249
+#, c-format
+msgid ""
+"\n"
+"Could not find unwind info section for "
+msgstr ""
+"\n"
+"Nepodarilo sa nájsť informácie o rozvinutí sekcie pre "
+
+#: readelf.c:5261
+msgid "unwind info"
+msgstr "informácie o rozvinutí"
+
+#: readelf.c:5263 readelf.c:5598
+#, c-format
+msgid ""
+"\n"
+"Unwind section "
+msgstr ""
+"\n"
+"Rozvinúť sekciu "
+
+#: readelf.c:5808 readelf.c:5852
+msgid "dynamic section"
+msgstr "dynamická sekcia"
+
+#: readelf.c:5929
+#, c-format
+msgid ""
+"\n"
+"There is no dynamic section in this file.\n"
+msgstr ""
+"\n"
+"V tomto súbore nie sú žiadne dynamické sekcie.\n"
+
+#: readelf.c:5967
+msgid "Unable to seek to end of file!\n"
+msgstr "Nepodarilo sa presunúť na koniec súboru!\n"
+
+#: readelf.c:5980
+msgid "Unable to determine the number of symbols to load\n"
+msgstr "Nedá sa určiť počet symbolov na načítanie\n"
+
+#: readelf.c:6015
+msgid "Unable to seek to end of file\n"
+msgstr "Nedá sa nájsť koniec súboru\n"
+
+#: readelf.c:6022
+msgid "Unable to determine the length of the dynamic string table\n"
+msgstr "Nedá sa určiť dĺžka dynamickej tabuľky reťazcov\n"
+
+#: readelf.c:6027
+msgid "dynamic string table"
+msgstr "dynamická tabuľka reťazcov"
+
+#: readelf.c:6062
+msgid "symbol information"
+msgstr "infomácia o symbole"
+
+#: readelf.c:6087
+#, c-format
+msgid ""
+"\n"
+"Dynamic section at offset 0x%lx contains %u entries:\n"
+msgstr ""
+"\n"
+"Dynamická sekcia na offsete 0x%lx obsahuje %u položiek:\n"
+
+#: readelf.c:6090
+#, c-format
+msgid "  Tag        Type                         Name/Value\n"
+msgstr "  Značka     Typ                          Názov/hodnota\n"
+
+#: readelf.c:6126
+#, c-format
+msgid "Auxiliary library"
+msgstr "Pomocná knižnica"
+
+#: readelf.c:6130
+#, c-format
+msgid "Filter library"
+msgstr "Knižnica filtra"
+
+#: readelf.c:6134
+#, c-format
+msgid "Configuration file"
+msgstr "Konfiguračný súbor"
+
+#: readelf.c:6138
+#, c-format
+msgid "Dependency audit library"
+msgstr "Auditorská knižnica závislostí"
+
+#: readelf.c:6142
+#, c-format
+msgid "Audit library"
+msgstr "Auditorská knižnica"
+
+#: readelf.c:6160 readelf.c:6188 readelf.c:6216
+#, c-format
+msgid "Flags:"
+msgstr "Príznaky:"
+
+#: readelf.c:6163 readelf.c:6191 readelf.c:6218
+#, c-format
+msgid " None\n"
+msgstr " Žiadne\n"
+
+#: readelf.c:6339
+#, c-format
+msgid "Shared library: [%s]"
+msgstr "Zdieľaná knižnica: [%s]"
+
+#: readelf.c:6342
+#, c-format
+msgid " program interpreter"
+msgstr " prekladač programu"
+
+#: readelf.c:6346
+#, c-format
+msgid "Library soname: [%s]"
+msgstr "Knižnica soname: [%s]"
+
+#: readelf.c:6350
+#, c-format
+msgid "Library rpath: [%s]"
+msgstr "Knižnica rpath: [%s]"
+
+#: readelf.c:6354
+#, c-format
+msgid "Library runpath: [%s]"
+msgstr "Knižnica runpath: [%s]"
+
+#: readelf.c:6417
+#, c-format
+msgid "Not needed object: [%s]\n"
+msgstr "Nepotrebný objekt: [%s]\n"
+
+#: readelf.c:6541
+#, c-format
+msgid ""
+"\n"
+"Version definition section '%s' contains %u entries:\n"
+msgstr ""
+"\n"
+"Sekcia definície verzie „%s“ obsahuje %u položiek:\n"
+
+#: readelf.c:6544
+#, c-format
+msgid "  Addr: 0x"
+msgstr "  Adr: 0x"
+
+#: readelf.c:6546 readelf.c:6648 readelf.c:6769
+#, c-format
+msgid "  Offset: %#08lx  Link: %u (%s)\n"
+msgstr "  Ofset: %#08lx   Odkaz: %u (%s)\n"
+
+#: readelf.c:6554
+msgid "version definition section"
+msgstr "sekcia definície verzie"
+
+#: readelf.c:6583
+#, c-format
+msgid "  %#06x: Rev: %d  Flags: %s"
+msgstr "  %#06x: Rev: %d Príznaky: %s"
+
+#: readelf.c:6586
+#, c-format
+msgid "  Index: %d  Cnt: %d  "
+msgstr "  Index: %d Cnt: %d  "
+
+#: readelf.c:6597
+#, c-format
+msgid "Name: %s\n"
+msgstr "Názov: %s\n"
+
+#: readelf.c:6599
+#, c-format
+msgid "Name index: %ld\n"
+msgstr "Index názvov: %ld\n"
+
+#: readelf.c:6616
+#, c-format
+msgid "  %#06x: Parent %d: %s\n"
+msgstr "  %#06x: Rodič %d: %s\n"
+
+#: readelf.c:6619
+#, c-format
+msgid "  %#06x: Parent %d, name index: %ld\n"
+msgstr "  %#06x: Rodič %d, index názvov: %ld\n"
+
+#: readelf.c:6623
+#, c-format
+msgid "  Version def aux past end of section\n"
+msgstr "  Pom def verzie za koncom sekcie\n"
+
+#: readelf.c:6628
+#, c-format
+msgid "  Version definition past end of section\n"
+msgstr "  Definícia verzie za koncom sekcie\n"
+
+#: readelf.c:6643
+#, c-format
+msgid ""
+"\n"
+"Version needs section '%s' contains %u entries:\n"
+msgstr ""
+"\n"
+"Sekcia potreby verzie „%s“ obsahuje %u položiek:\n"
+
+#: readelf.c:6646
+#, c-format
+msgid " Addr: 0x"
+msgstr " Adr: 0x"
+
+#: readelf.c:6656
+msgid "version need section"
+msgstr "sekcia potreby verzie"
+
+#: readelf.c:6681
+#, c-format
+msgid "  %#06x: Version: %d"
+msgstr "  %#06x: Verzia: %d"
+
+#: readelf.c:6684
+#, c-format
+msgid "  File: %s"
+msgstr "  Súbor: %s"
+
+#: readelf.c:6686
+#, c-format
+msgid "  File: %lx"
+msgstr "  Súbor: %lx"
+
+#: readelf.c:6688
+#, c-format
+msgid "  Cnt: %d\n"
+msgstr "  Počet: %d\n"
+
+#: readelf.c:6708
+#, c-format
+msgid "  %#06x:   Name: %s"
+msgstr "  %#06x: Názov: %s"
+
+#: readelf.c:6711
+#, c-format
+msgid "  %#06x:   Name index: %lx"
+msgstr "  %#06x: Index názvu: %lx"
+
+#: readelf.c:6714
+#, c-format
+msgid "  Flags: %s  Version: %d\n"
+msgstr "  Príznaky: %s Verzia: %d\n"
+
+#: readelf.c:6721
+#, c-format
+msgid "  Version need aux past end of section\n"
+msgstr "  Pom. sekcia potreby verzie za koncom sekcie\n"
+
+#: readelf.c:6726
+#, c-format
+msgid "  Version need past end of section\n"
+msgstr "  Sekcia potreby verzie za koncom sekcie\n"
+
+#: readelf.c:6760
+msgid "version string table"
+msgstr "tabuľka reťazcov verzie"
+
+#: readelf.c:6764
+#, c-format
+msgid ""
+"\n"
+"Version symbols section '%s' contains %d entries:\n"
+msgstr ""
+"\n"
+"Sekcia symbolov verzie „%s“ obsahuje %d položiek:\n"
+
+#: readelf.c:6767
+#, c-format
+msgid " Addr: "
+msgstr " Adr: "
+
+#: readelf.c:6777
+msgid "version symbol data"
+msgstr "dáta symbolu verzie"
+
+#: readelf.c:6804
+msgid "   0 (*local*)    "
+msgstr "   0 (*lokálny*)    "
+
+#: readelf.c:6808
+msgid "   1 (*global*)   "
+msgstr "   1 (*globálny*)   "
+
+#: readelf.c:6845 readelf.c:7512
+msgid "version need"
+msgstr "nutnosť verzie"
+
+#: readelf.c:6855
+msgid "version need aux (2)"
+msgstr "nutnosť verzie aux (2)"
+
+#: readelf.c:6870 readelf.c:6925
+msgid "*invalid*"
+msgstr "*neplatné*"
+
+#: readelf.c:6900 readelf.c:7577
+msgid "version def"
+msgstr "def verzie"
+
+#: readelf.c:6920 readelf.c:7592
+msgid "version def aux"
+msgstr "verzia def aux"
+
+#: readelf.c:6954
+#, c-format
+msgid ""
+"\n"
+"No version information found in this file.\n"
+msgstr ""
+"\n"
+"V tomto súbore neboli nájdené informácie o verzii.\n"
+
+#: readelf.c:7075
+#, c-format
+msgid "<other>: %x"
+msgstr "<iné>: %x"
+
+#: readelf.c:7133
+msgid "Unable to read in dynamic data\n"
+msgstr "Nedá sa čítať v dynamických dátach\n"
+
+#: readelf.c:7224 readelf.c:7264 readelf.c:7288 readelf.c:7318 readelf.c:7342
+msgid "Unable to seek to start of dynamic information\n"
+msgstr "Nepodarilo sa presunúť na začiatok dynamických informácií\n"
+
+#: readelf.c:7230 readelf.c:7270
+msgid "Failed to read in number of buckets\n"
+msgstr "Zlyhalo čítanie v číslach oblastí\n"
+
+#: readelf.c:7236
+msgid "Failed to read in number of chains\n"
+msgstr "Zlyhalo čítanie v číslach zreťazení\n"
+
+#: readelf.c:7326
+msgid "Failed to determine last chain length\n"
+msgstr "Nepodarilo sa určiť dĺžku reťaze\n"
+
+#: readelf.c:7363
+#, c-format
+msgid ""
+"\n"
+"Symbol table for image:\n"
+msgstr ""
+"\n"
+"Tabuľka symbolov pre obraz:\n"
+
+#: readelf.c:7365 readelf.c:7383
+#, c-format
+msgid "  Num Buc:    Value  Size   Type   Bind Vis      Ndx Name\n"
+msgstr "  Čísl Buc:   Hodn.  Veľk.  Typ    Väz. Vid      Ndx Názov\n"
+
+#: readelf.c:7367 readelf.c:7385
+#, c-format
+msgid "  Num Buc:    Value          Size   Type   Bind Vis      Ndx Name\n"
+msgstr "  Čísl Buc:   Hodnota        Veľk.  Typ    Väz. Vid      Ndx Názov\n"
+
+#: readelf.c:7381
+#, c-format
+msgid ""
+"\n"
+"Symbol table of `.gnu.hash' for image:\n"
+msgstr ""
+"\n"
+"Tabuľka symbolov „.gnu.hash“ pre obraz:\n"
+
+#: readelf.c:7421
+#, c-format
+msgid ""
+"\n"
+"Symbol table '%s' contains %lu entries:\n"
+msgstr ""
+"\n"
+"Symbolická tabuľka „%s“ obsahuje %lu položiek:\n"
+
+#: readelf.c:7425
+#, c-format
+msgid "   Num:    Value  Size Type    Bind   Vis      Ndx Name\n"
+msgstr "   Čísl:   Hodn.  Veľ. Typ     Väzba  Vid      Ndx Názov\n"
+
+#: readelf.c:7427
+#, c-format
+msgid "   Num:    Value          Size Type    Bind   Vis      Ndx Name\n"
+msgstr "   Čísl:   Hodnota        Veľ. Typ     Väzba  Vid      Ndx Názov\n"
+
+#: readelf.c:7483
+msgid "version data"
+msgstr "verzia"
+
+#: readelf.c:7525
+msgid "version need aux (3)"
+msgstr "potreba verzie aux (3)"
+
+#: readelf.c:7552
+msgid "bad dynamic symbol\n"
+msgstr "chybný dynamický symbol\n"
+
+#: readelf.c:7616
+#, c-format
+msgid ""
+"\n"
+"Dynamic symbol information is not available for displaying symbols.\n"
+msgstr ""
+"\n"
+"Informácia o dynamickom symbole nie je dostupná pre zobrazenie symbolov.\n"
+
+#: readelf.c:7628
+#, c-format
+msgid ""
+"\n"
+"Histogram for bucket list length (total of %lu buckets):\n"
+msgstr ""
+"\n"
+"Histogram pre dĺžku zoznamu blokov (celkovo z %lu blokov):\n"
+
+#: readelf.c:7630 readelf.c:7700
+#, c-format
+msgid " Length  Number     %% of total  Coverage\n"
+msgstr " Veľkosť Číslo      %% z celku   Pokrytie\n"
+
+#: readelf.c:7698
+#, c-format
+msgid ""
+"\n"
+"Histogram for `.gnu.hash' bucket list length (total of %lu buckets):\n"
+msgstr ""
+"\n"
+"Histogram dĺžky bucket listu „.gnu.hash“ (celkom z %lu bucketov):\n"
+
+#: readelf.c:7764
+#, c-format
+msgid ""
+"\n"
+"Dynamic info segment at offset 0x%lx contains %d entries:\n"
+msgstr ""
+"\n"
+"Dynamický info segment na posune 0x%lx obsahuje %d položiek:\n"
+
+#: readelf.c:7767
+#, c-format
+msgid " Num: Name                           BoundTo     Flags\n"
+msgstr " Čísl: Názov                         Zviazaný    Príznaky\n"
+
+#: readelf.c:7819
+#, c-format
+msgid ""
+"\n"
+"Assembly dump of section %s\n"
+msgstr ""
+"\n"
+"Zostaviť výpis pamäte zo sekcie %s\n"
+
+#: readelf.c:7844 readelf.c:7922
+#, c-format
+msgid ""
+"\n"
+"Section '%s' has no data to dump.\n"
+msgstr ""
+"\n"
+"Sekcia „%s“ nemá žiadne dáta na vypísanie.\n"
+
+#: readelf.c:7855
+#, c-format
+msgid ""
+"\n"
+"String dump of section '%s':\n"
+msgstr ""
+"\n"
+"Výpis reťazcov sekcie „%s“:\n"
+
+#: readelf.c:7873
+#, c-format
+msgid "  Note: This section has relocations against it, but these have NOT been applied to this dump.\n"
+msgstr " Pozn.: Oproti tejto sekcii existujú relokácie, ale tieto NEBOLI v tomto výpise použité.\n"
+
+#: readelf.c:7900
+#, c-format
+msgid "  No strings found in this section."
+msgstr "  V tejto sekcii neboli nájdené žiadne reťazce."
+
+#: readelf.c:7927
+#, c-format
+msgid ""
+"\n"
+"Hex dump of section '%s':\n"
+msgstr ""
+"\n"
+"Hexadecimálny výpis pamäte sekcie „%s“:\n"
+
+#: readelf.c:7952
+#, c-format
+msgid " NOTE: This section has relocations against it, but these have NOT been applied to this dump.\n"
+msgstr " POZN.: Oproti tejto sekcii existujú relokácie, ale tieto NEBOLI v tomto výpise použité.\n"
+
+#: readelf.c:8135
+#, c-format
+msgid "Missing knowledge of 32-bit reloc types used in DWARF sections of machine number %d\n"
+msgstr "Chýba znalosť 32-bitových typov reloc používaných v DWARF sekciách stroja číslo %d\n"
+
+#: readelf.c:8432
+#, c-format
+msgid "unable to apply unsupported reloc type %d to section %s\n"
+msgstr "nebolo možné použič nepodporovaný typ reloc %d na sekciu %s\n"
+
+#: readelf.c:8440
+#, c-format
+msgid "skipping invalid relocation offset 0x%lx in section %s\n"
+msgstr "preskakuje sa neplatný posun relokácie 0x%lx v sekcii %s\n"
+
+#: readelf.c:8461
+#, c-format
+msgid "skipping unexpected symbol type %s in %ld'th relocation in section %s\n"
+msgstr "preskakuje sa neočakávaný typ symbolu %s v %ld-tej relokácii v sekcii %s\n"
+
+#: readelf.c:8503
+#, c-format
+msgid "%s section data"
+msgstr "%s dáta sekcie"
+
+#: readelf.c:8568
+#, c-format
+msgid ""
+"\n"
+"Section '%s' has no debugging data.\n"
+msgstr ""
+"\n"
+"Sekcia „%s“ nemá žiadne ladiace dáta.\n"
+
+#: readelf.c:8603
+#, c-format
+msgid "Unrecognized debug section: %s\n"
+msgstr "Nerozpoznaná ladiaca sekcia: %s\n"
+
+#: readelf.c:8631
+#, c-format
+msgid "Section '%s' was not dumped because it does not exist!\n"
+msgstr "Sekcia „%s“ nebola vypísaná, pretože neexistuje!\n"
+
+#: readelf.c:8669
+#, c-format
+msgid "Section %d was not dumped because it does not exist!\n"
+msgstr "Pre sekcie %d nebol urobený výpis z pamäte, pretože neexistuje!\n"
+
+#: readelf.c:9118
+msgid "attributes"
+msgstr "atribúty"
+
+#: readelf.c:9139
+#, c-format
+msgid "ERROR: Bad section length (%d > %d)\n"
+msgstr "CHYBA: Zlá dĺžka sekcie (%d > %d)\n"
+
+#: readelf.c:9170
+#, c-format
+msgid "ERROR: Bad subsection length (%d > %d)\n"
+msgstr "CHYBA: Zlá dĺžka podsekcie (%d > %d)\n"
+
+#: readelf.c:9229
+#, c-format
+msgid "Unknown format '%c'\n"
+msgstr "Neznámy formát '%c'\n"
+
+#: readelf.c:9382 readelf.c:9897
+msgid "liblist"
+msgstr "liblist"
+
+#: readelf.c:9469
+msgid "options"
+msgstr "voľby"
+
+#: readelf.c:9499
+#, c-format
+msgid ""
+"\n"
+"Section '%s' contains %d entries:\n"
+msgstr ""
+"\n"
+"Sekcia „%s“ obsahuje %d položiek:\n"
+
+#: readelf.c:9660
+msgid "conflict list found without a dynamic symbol table\n"
+msgstr "bol nájdený zoznam konfliktov bez tabuľky dynamických symbolov\n"
+
+#: readelf.c:9676 readelf.c:9690
+msgid "conflict"
+msgstr "konflikt"
+
+#: readelf.c:9700
+#, c-format
+msgid ""
+"\n"
+"Section '.conflict' contains %lu entries:\n"
+msgstr ""
+"\n"
+"Sekcia '.conflict' obsahuje %lu položiek:\n"
+
+#: readelf.c:9702
+msgid "  Num:    Index       Value  Name"
+msgstr "  Čísl:   Index       Hodn.  Názov"
+
+#: readelf.c:9734
+msgid "GOT"
+msgstr "GOT"
+
+#: readelf.c:9735
+#, c-format
+msgid ""
+"\n"
+"Primary GOT:\n"
+msgstr ""
+"\n"
+"Primárna GOT:\n"
+
+#: readelf.c:9736
+#, c-format
+msgid " Canonical gp value: "
+msgstr " Kanonická hodnota gp: "
+
+#: readelf.c:9740 readelf.c:9831
+#, c-format
+msgid " Reserved entries:\n"
+msgstr " Vyhradené položky:\n"
+
+#: readelf.c:9741
+#, c-format
+msgid "  %*s %10s %*s Purpose\n"
+msgstr "  %*s %10s %*s Účel\n"
+
+#: readelf.c:9757
+#, c-format
+msgid " Local entries:\n"
+msgstr " Lokálne položky:\n"
+
+#: readelf.c:9758
+#, c-format
+msgid "  %*s %10s %*s\n"
+msgstr "  %*s %10s %*s\n"
+
+#: readelf.c:9773
+#, c-format
+msgid " Global entries:\n"
+msgstr " Globálne položky:\n"
+
+#: readelf.c:9774
+#, c-format
+msgid "  %*s %10s %*s %*s %-7s %3s %s\n"
+msgstr "  %*s %10s %*s %*s %-7s %3s %s\n"
+
+#: readelf.c:9829
+msgid "PLT GOT"
+msgstr "PLT GOT"
+
+#: readelf.c:9830
+#, c-format
+msgid ""
+"\n"
+"PLT GOT:\n"
+"\n"
+msgstr ""
+"\n"
+"PLT GOT:\n"
+"\n"
+
+#: readelf.c:9832
+#, c-format
+msgid "  %*s %*s Purpose\n"
+msgstr "  %*s %*s Účel\n"
+
+#: readelf.c:9840
+#, c-format
+msgid " Entries:\n"
+msgstr " Položky:\n"
+
+#: readelf.c:9841
+#, c-format
+msgid "  %*s %*s %*s %-7s %3s %s\n"
+msgstr "  %*s %*s %*s %-7s %3s %s\n"
+
+#: readelf.c:9904
+msgid "liblist string table"
+msgstr "tabuľka reťazcov liblist"
+
+#: readelf.c:9914
+#, c-format
+msgid ""
+"\n"
+"Library list section '%s' contains %lu entries:\n"
+msgstr ""
+"\n"
+"Sekcia zoznamu knižníc „%s“ obsahuje %lu položiek:\n"
+
+#: readelf.c:9967
+msgid "NT_AUXV (auxiliary vector)"
+msgstr "NT_AUXV (pomocný vektor)"
+
+#: readelf.c:9969
+msgid "NT_PRSTATUS (prstatus structure)"
+msgstr "NT_PRSTATUS (štruktúra prstatus)"
+
+#: readelf.c:9971
+msgid "NT_FPREGSET (floating point registers)"
+msgstr "NT_FPREGSET (registre pohyblivej čiarky)"
+
+#: readelf.c:9973
+msgid "NT_PRPSINFO (prpsinfo structure)"
+msgstr "NT_PRPSINFO (štrutkúra prpsinfo)"
+
+#: readelf.c:9975
+msgid "NT_TASKSTRUCT (task structure)"
+msgstr "NT_TASKSTRUCT (štrukúra úloh)"
+
+#: readelf.c:9977
+msgid "NT_PRXFPREG (user_xfpregs structure)"
+msgstr "NT_PRXFPREG (štruktúra user_xfpregs)"
+
+#: readelf.c:9979
+msgid "NT_PPC_VMX (ppc Altivec registers)"
+msgstr "NT_PPC_VMX (registre ppc Altivec)"
+
+#: readelf.c:9981
+msgid "NT_PPC_VSX (ppc VSX registers)"
+msgstr "NT_PPC_VSX (registre ppc VSX)"
+
+#: readelf.c:9983
+msgid "NT_PSTATUS (pstatus structure)"
+msgstr "NT_PSTATUS (štruktúra pstatus)"
+
+#: readelf.c:9985
+msgid "NT_FPREGS (floating point registers)"
+msgstr "NT_FPREGS (registre pohyblivej čiarky)"
+
+#: readelf.c:9987
+msgid "NT_PSINFO (psinfo structure)"
+msgstr "NT_PSINFO (štruktúra psinfo)"
+
+#: readelf.c:9989
+msgid "NT_LWPSTATUS (lwpstatus_t structure)"
+msgstr "NT_LWPSTATUS (štruktúra lwpstatus_t)"
+
+#: readelf.c:9991
+msgid "NT_LWPSINFO (lwpsinfo_t structure)"
+msgstr "NT_LWPSINFO (štruktúra lwpsinfo_t)"
+
+#: readelf.c:9993
+msgid "NT_WIN32PSTATUS (win32_pstatus structure)"
+msgstr "NT_WIN32PSTATUS (štruktúra win32_pstatus)"
+
+#: readelf.c:10001
+msgid "NT_VERSION (version)"
+msgstr "NT_VERSION (verzia)"
+
+#: readelf.c:10003
+msgid "NT_ARCH (architecture)"
+msgstr "NT_ARCH (architektúra)"
+
+#: readelf.c:10008 readelf.c:10031 readelf.c:10053
+#, c-format
+msgid "Unknown note type: (0x%08x)"
+msgstr "Neznámy typ poznámky: (0x%x08x)"
+
+#: readelf.c:10020
+msgid "NT_GNU_ABI_TAG (ABI version tag)"
+msgstr "NT_GNU_ABI_TAG (značka verzie ABI)"
+
+#: readelf.c:10022
+msgid "NT_GNU_HWCAP (DSO-supplied software HWCAP info)"
+msgstr "NT_GNU_HWCAP (softvérové HWCAP informácie, ktoré dodáva DSO)"
+
+#: readelf.c:10024
+msgid "NT_GNU_BUILD_ID (unique build ID bitstring)"
+msgstr "NT_GNU_BUILD_ID (reťazec bitov jedinečného ID zostavenia)"
+
+#: readelf.c:10026
+msgid "NT_GNU_GOLD_VERSION (gold version)"
+msgstr "NT_GNU_GOLD_VERSION (zlatá verzia)"
+
+#. NetBSD core "procinfo" structure.
+#: readelf.c:10043
+msgid "NetBSD procinfo structure"
+msgstr "NetBSD štruktúra procinfo"
+
+#: readelf.c:10070 readelf.c:10084
+msgid "PT_GETREGS (reg structure)"
+msgstr "PT_GETREGS (štruktúra reg)"
+
+#: readelf.c:10072 readelf.c:10086
+msgid "PT_GETFPREGS (fpreg structure)"
+msgstr "PT_GETFPREGS (štruktúra fpreg)"
+
+#: readelf.c:10092
+#, c-format
+msgid "PT_FIRSTMACH+%d"
+msgstr "PT_FIRSTMACH+%d"
+
+#: readelf.c:10148
+msgid "notes"
+msgstr "poznámky"
+
+#: readelf.c:10154
+#, c-format
+msgid ""
+"\n"
+"Notes at offset 0x%08lx with length 0x%08lx:\n"
+msgstr ""
+"\n"
+"Poznámky na posune 0x%08lx s dĺžkou 0x%08lx:\n"
+
+#: readelf.c:10156
+#, c-format
+msgid "  Owner\t\tData size\tDescription\n"
+msgstr "  Vlastník\t\tVeľkosť dát\tPopis\n"
+
+#: readelf.c:10175
+#, c-format
+msgid "corrupt note found at offset %lx into core notes\n"
+msgstr "bola nájdená poškodená poznámka na posune %lx k poznámkam jadra\n"
+
+#: readelf.c:10177
+#, c-format
+msgid " type: %lx, namesize: %08lx, descsize: %08lx\n"
+msgstr " typ: %lx, veľkosť názvu: %08lx, veľkosť popisu: %08lx\n"
+
+#: readelf.c:10275
+#, c-format
+msgid "No note segments present in the core file.\n"
+msgstr "V jadrovom súbore nie sú žiadne segmenty poznámok.\n"
+
+#: readelf.c:10359
+msgid ""
+"This instance of readelf has been built without support for a\n"
+"64 bit data type and so it cannot read 64 bit ELF files.\n"
+msgstr ""
+"Táto inštancia readelf bola zostavená bez podpory pre\n"
+"64 bitový dátový typ, a tak nedokáže čítať 64 bitové ELF súbory.\n"
+
+#: readelf.c:10406
+#, c-format
+msgid "%s: Failed to read file header\n"
+msgstr "%s: Nepodarilo sa načítať hlavičku súboru\n"
+
+#: readelf.c:10419
+#, c-format
+msgid ""
+"\n"
+"File: %s\n"
+msgstr ""
+"\n"
+"Súbor: %s\n"
+
+#: readelf.c:10572 readelf.c:10892
+#, c-format
+msgid "%s: failed to read archive header\n"
+msgstr "%s: nepodarilo sa načítať hlavičku archívu\n"
+
+#: readelf.c:10595
+#, c-format
+msgid "%s: the archive index is empty\n"
+msgstr "%s: idnex archívu je prázdny\n"
+
+#: readelf.c:10603 readelf.c:10626
+#, c-format
+msgid "%s: failed to read archive index\n"
+msgstr "%s: nepodarilo sa načítať index archívu\n"
+
+#: readelf.c:10612
+#, c-format
+msgid "%s: the archive index is supposed to have %ld entries, but the size in the header is too small\n"
+msgstr "%s: index archívu má mať %ld položiek, ale veľkosť hlavičky je príliš malá\n"
+
+#: readelf.c:10619
+msgid "Out of memory whilst trying to read archive symbol index\n"
+msgstr "Nedostatok pamäte pri pokuse o čítanie indexu symbolov archívu\n"
+
+#: readelf.c:10637
+msgid "Out of memory whilst trying to convert the archive symbol index\n"
+msgstr "Nedostatok pamäte pri pokuse o konverziu indexu symbolov archívu\n"
+
+#: readelf.c:10649
+#, c-format
+msgid "%s: the archive has an index but no symbols\n"
+msgstr "%s: archív má index ale nemá symboly\n"
+
+#: readelf.c:10657
+msgid "Out of memory whilst trying to read archive index symbol table\n"
+msgstr "Nedostatok pamäte pri pokuse o čítanie indexu tabuľky symbolov archívu.\n"
+
+#: readelf.c:10664
+#, c-format
+msgid "%s: failed to read archive index symbol table\n"
+msgstr "%s: nepodarilo sa prečítať index tabuľky symbolov archívu\n"
+
+#: readelf.c:10673
+#, c-format
+msgid "%s: failed to skip archive symbol table\n"
+msgstr "%s: nepodarilo sa preskočiť tabuľku symbolov v archíve\n"
+
+#: readelf.c:10687
+#, c-format
+msgid "%s: failed to read archive header following archive index\n"
+msgstr "%s: nepodarilo sa načítať hlavičku archívu po indexe archívu\n"
+
+#: readelf.c:10693
+#, c-format
+msgid "%s has no archive index\n"
+msgstr "%s: nemá index archívu\n"
+
+#: readelf.c:10704
+msgid "Out of memory reading long symbol names in archive\n"
+msgstr "Nedostatok pamäte pri čítaní dlhých názvov symbolov v archíve\n"
+
+#: readelf.c:10712
+#, c-format
+msgid "%s: failed to read long symbol name string table\n"
+msgstr "%s: nepodarilo sa prečítať tabuľku reťazcov dlhých názvov symbolov\n"
+
+#: readelf.c:10727
+#, c-format
+msgid "%s: failed to read archive header following long symbol names\n"
+msgstr "%s: nepodarilo sa načítať hlavičku archívu nasledujúcu dlhé názvy symbolov\n"
+
+#: readelf.c:10737
+#, c-format
+msgid "%s: unable to dump the index as none was found\n"
+msgstr "%s: nie je možné vypísať index, pretože žiadny nebol nájdený\n"
+
+#: readelf.c:10744
+#, c-format
+msgid "Index of archive %s: (%ld entries, 0x%lx bytes in the symbol table)\n"
+msgstr "Index archívu %s: (%ld položiek, 0x%lx bajtov v tabuľke symbolov)\n"
+
+#: readelf.c:10754
+#, c-format
+msgid "%s: failed to seek to next file name\n"
+msgstr "%s: nepodarilo sa presunúť sa na názov ďalšieho súboru\n"
+
+#: readelf.c:10761
+#, c-format
+msgid "%s: failed to read file name\n"
+msgstr "%s: nepodarilo sa prečítať názov súboru\n"
+
+#: readelf.c:10773 readelf.c:10782
+#, c-format
+msgid "Binary %s contains:\n"
+msgstr "Binárny %s obsahuje:\n"
+
+#: readelf.c:10787
+#, c-format
+msgid "%s: end of the symbol table reached before the end of the index\n"
+msgstr "%s: bol dosiahnutý koniec tabuľky symbolov pred koncom indexu\n"
+
+#: readelf.c:10796
+#, c-format
+msgid "%s: symbols remain in the index symbol table, but without corresponding entries in the index table\n"
+msgstr "%s: symboly zostávajú v indexovej tabuľke symbolov ale bez zodpovedajúcich položiek v indexovej tabuľke\n"
+
+#: readelf.c:10805
+#, c-format
+msgid "%s: failed to seek back to start of object files in the archive\n"
+msgstr "%s: nepodarilo sa presunúť späť na začiaok objektových súborov v archíve\n"
+
+#: readelf.c:10833
+#, c-format
+msgid "%s: invalid archive string table offset %lu\n"
+msgstr "%s: neplatný posun tabuľky reťazcov v archíve %lu\n"
+
+#: readelf.c:10849
+#, c-format
+msgid "%s: bad archive file name\n"
+msgstr "%s: zlý názov súboru archívu\n"
+
+#: readelf.c:10881
+#, c-format
+msgid "%s: failed to seek to next archive header\n"
+msgstr "%s: nepodarilo sa nájsť hlavičku ďalšieho archívu\n"
+
+#: readelf.c:10920
+#, c-format
+msgid "'%s': No such file\n"
+msgstr "„%s“: Taký súbor neexistuje\n"
+
+#: readelf.c:10922
+#, c-format
+msgid "Could not locate '%s'.  System error message: %s\n"
+msgstr "Nepodarilo sa nájsť „%s“. Správa systémovej chyby: %s\n"
+
+#: readelf.c:10929
+#, c-format
+msgid "'%s' is not an ordinary file\n"
+msgstr "„%s“ nie je bežný súbor\n"
+
+#: readelf.c:10936
+#, c-format
+msgid "Input file '%s' is not readable.\n"
+msgstr "Vstupný súbor „%s“ sa nedá čítať.\n"
+
+#: readelf.c:10942
+#, c-format
+msgid "%s: Failed to read file's magic number\n"
+msgstr "%s: Nepodarilo sa prečítať magické číslo súboru\n"
+
+#: readelf.c:10952
+#, c-format
+msgid "File %s is not an archive so its index cannot be displayed.\n"
+msgstr "Súbor %s nie je archív a tak nemožno zobraziť jeho index.\n"
+
+#: rename.c:124
+#, c-format
+msgid "%s: cannot set time: %s"
+msgstr "%s: nedá sa nastaviť čas: %s"
+
+#. We have to clean up here.
+#: rename.c:159 rename.c:197
+#, c-format
+msgid "unable to rename '%s'; reason: %s"
+msgstr "nepodarilo sa premenovať „%s“; dôvod: %s"
+
+#: rename.c:205
+#, c-format
+msgid "unable to copy file '%s'; reason: %s"
+msgstr "nepodarilo sa skopírovať súbor „%s“; dôvod: %s"
+
+#: resbin.c:120
+#, c-format
+msgid "%s: not enough binary data"
+msgstr "%s: nedostatok binárnych dát"
+
+#: resbin.c:136
+msgid "null terminated unicode string"
+msgstr "unicode reťazec zakončený null-om"
+
+#: resbin.c:163 resbin.c:169
+msgid "resource ID"
+msgstr "ID zdroja"
+
+#: resbin.c:208
+msgid "cursor"
+msgstr "kurzor"
+
+#: resbin.c:239 resbin.c:246
+msgid "menu header"
+msgstr "hlavička menu"
+
+#: resbin.c:255
+msgid "menuex header"
+msgstr "hlavička menuex"
+
+#: resbin.c:259
+msgid "menuex offset"
+msgstr "posun menuex"
+
+#: resbin.c:264
+#, c-format
+msgid "unsupported menu version %d"
+msgstr "nepodporovaná verzia menu %d"
+
+#: resbin.c:289 resbin.c:304 resbin.c:366
+msgid "menuitem header"
+msgstr "hlavička menuitem"
+
+#: resbin.c:396
+msgid "menuitem"
+msgstr "menuitem"
+
+#: resbin.c:433 resbin.c:461
+msgid "dialog header"
+msgstr "hlavička dialogu"
+
+#: resbin.c:451
+#, c-format
+msgid "unexpected DIALOGEX version %d"
+msgstr "neočakávaná verzia DIALOGEX %d"
+
+#: resbin.c:496
+msgid "dialog font point size"
+msgstr "bodová veľkosť písma dialogu"
+
+#: resbin.c:504
+msgid "dialogex font information"
+msgstr "informácia o písme pre dialogex"
+
+#: resbin.c:530 resbin.c:548
+msgid "dialog control"
+msgstr "riadenie dialogu"
+
+#: resbin.c:540
+msgid "dialogex control"
+msgstr "riadenie dialogex"
+
+#: resbin.c:569
+msgid "dialog control end"
+msgstr "koniec riadenia dialogu"
+
+#: resbin.c:581
+msgid "dialog control data"
+msgstr "dáta riadenia dialogu"
+
+#: resbin.c:621
+msgid "stringtable string length"
+msgstr "dĺžka reťazca stringtable"
+
+#: resbin.c:631
+msgid "stringtable string"
+msgstr "reťazec stringtable"
+
+#: resbin.c:661
+msgid "fontdir header"
+msgstr "hlavička fontdir"
+
+#: resbin.c:675
+msgid "fontdir"
+msgstr "fontdir"
+
+#: resbin.c:692
+msgid "fontdir device name"
+msgstr "názov zariadenia fontdir"
+
+#: resbin.c:698
+msgid "fontdir face name"
+msgstr "názov prednej strany fontdir"
+
+#: resbin.c:738
+msgid "accelerator"
+msgstr "akcelerátor"
+
+#: resbin.c:797
+msgid "group cursor header"
+msgstr "hlavička kurzora skupiny"
+
+#: resbin.c:801 resrc.c:1355
+#, c-format
+msgid "unexpected group cursor type %d"
+msgstr "neočakávaný typ kurzora skupiny %d"
+
+#: resbin.c:816
+msgid "group cursor"
+msgstr "kurzor skupiny"
+
+#: resbin.c:852
+msgid "group icon header"
+msgstr "hlavička ikony skupiny"
+
+#: resbin.c:856 resrc.c:1302
+#, c-format
+msgid "unexpected group icon type %d"
+msgstr "neočakávaný typ ikony skupiny %d"
+
+#: resbin.c:871
+msgid "group icon"
+msgstr "ikona skupiny"
+
+#: resbin.c:935 resbin.c:1151
+msgid "unexpected version string"
+msgstr "neočakávaný reťazec verzie"
+
+#: resbin.c:966
+#, c-format
+msgid "version length %d does not match resource length %lu"
+msgstr "dĺžka verzie %d nie je zhodná s dĺžkou zdroja %lu"
+
+#: resbin.c:970
+#, c-format
+msgid "unexpected version type %d"
+msgstr "neočakávaný typ verzie %d"
+
+#: resbin.c:982
+#, c-format
+msgid "unexpected fixed version information length %ld"
+msgstr "neočakávaná pevná dĺžka hodnoty verzie %ld"
+
+#: resbin.c:985
+msgid "fixed version info"
+msgstr "pevné informácie o verzii"
+
+#: resbin.c:989
+#, c-format
+msgid "unexpected fixed version signature %lu"
+msgstr "neočakávaná signatúra pevnej verzie %lu"
+
+#: resbin.c:993
+#, c-format
+msgid "unexpected fixed version info version %lu"
+msgstr "neočakávaná verzia informácie o pevnej verzii %lu"
+
+#: resbin.c:1022
+msgid "version var info"
+msgstr "variabilné informácie o verzii"
+
+#: resbin.c:1039
+#, c-format
+msgid "unexpected stringfileinfo value length %ld"
+msgstr "neočakávaná dĺžka hodnoty stringfileinfo %ld"
+
+#: resbin.c:1049
+#, c-format
+msgid "unexpected version stringtable value length %ld"
+msgstr "neočakávaná dĺžka hodnoty tabuľky reťazcov %ld"
+
+#: resbin.c:1083
+#, c-format
+msgid "unexpected version string length %ld != %ld + %ld"
+msgstr "neočakávaná dĺžka hodnoty reťazca %ld != %ld + %ld"
+
+#: resbin.c:1094
+#, c-format
+msgid "unexpected version string length %ld < %ld"
+msgstr "neočakávaná dĺžka hodnoty reťazca %ld < %ld"
+
+#: resbin.c:1111
+#, c-format
+msgid "unexpected varfileinfo value length %ld"
+msgstr "neočakávaná dĺžka hodnoty varfileinfo %ld"
+
+#: resbin.c:1130
+msgid "version varfileinfo"
+msgstr "verzia varfileinfo"
+
+#: resbin.c:1145
+#, c-format
+msgid "unexpected version value length %ld"
+msgstr "neočakávaná dĺžka hodnoty verzie %ld"
+
+#: rescoff.c:124
+msgid "filename required for COFF input"
+msgstr "požaduje sa názov súboru pre COFF vstup"
+
+#: rescoff.c:141
+#, c-format
+msgid "%s: no resource section"
+msgstr "%s: žiadna sekcia zdroja"
+
+#: rescoff.c:173
+#, c-format
+msgid "%s: %s: address out of bounds"
+msgstr "%s: %s: adresa mimo rozsah"
+
+#: rescoff.c:190
+msgid "directory"
+msgstr "priečinok"
+
+#: rescoff.c:218
+msgid "named directory entry"
+msgstr "nazvaná položka priečinku"
+
+#: rescoff.c:227
+msgid "directory entry name"
+msgstr "názov položky priečinku"
+
+#: rescoff.c:247
+msgid "named subdirectory"
+msgstr "nazvaný podpriečinok"
+
+#: rescoff.c:255
+msgid "named resource"
+msgstr "nazvaný zdroj"
+
+#: rescoff.c:270
+msgid "ID directory entry"
+msgstr "ID položka priečinku"
+
+#: rescoff.c:287
+msgid "ID subdirectory"
+msgstr "ID podpriečinku"
+
+#: rescoff.c:295
+msgid "ID resource"
+msgstr "ID zdroja"
+
+#: rescoff.c:320
+msgid "resource type unknown"
+msgstr "neznámy typ zdroja"
+
+#: rescoff.c:323
+msgid "data entry"
+msgstr "dátová položka"
+
+#: rescoff.c:331
+msgid "resource data"
+msgstr "dáta zdroja"
+
+#: rescoff.c:336
+msgid "resource data size"
+msgstr "veľkosť zdrojových dát"
+
+#: rescoff.c:431
+msgid "filename required for COFF output"
+msgstr "vyžaduje sa názov súboru pre COFF výstup"
+
+#: rescoff.c:715
+msgid "can't get BFD_RELOC_RVA relocation type"
+msgstr "nedá sa získať typ relokácie pre BFD_RELOC_RVA"
+
+#: resrc.c:262 resrc.c:333
+#, c-format
+msgid "can't open temporary file `%s': %s"
+msgstr "nedá sa otvoriť dočasný súbor „%s“: %s"
+
+#: resrc.c:268
+#, c-format
+msgid "can't redirect stdout: `%s': %s"
+msgstr "nedá sa presmerovať stdout: „%s“: %s"
+
+#: resrc.c:284
+#, c-format
+msgid "%s %s: %s"
+msgstr "%s %s: %s"
+
+#: resrc.c:329
+#, c-format
+msgid "can't execute `%s': %s"
+msgstr "nedá sa vykonať „%s“: %s"
+
+#: resrc.c:338
+#, c-format
+msgid "Using temporary file `%s' to read preprocessor output\n"
+msgstr "Používa sa dočasný súbor „%s“ na čítanie výstupu preprocesora\n"
+
+#: resrc.c:345
+#, c-format
+msgid "can't popen `%s': %s"
+msgstr "nedá sa otvoriť pomocou popen „%s“: %s"
+
+#: resrc.c:347
+#, c-format
+msgid "Using popen to read preprocessor output\n"
+msgstr "Používa sa popen na čítanie výstupu preprocesora\n"
+
+#: resrc.c:413
+#, c-format
+msgid "Tried `%s'\n"
+msgstr "Vyskúšané „%s“\n"
+
+#: resrc.c:424
+#, c-format
+msgid "Using `%s'\n"
+msgstr "Používa sa „%s“\n"
+
+#: resrc.c:608
+msgid "preprocessing failed."
+msgstr "predspracovanie zlyhalo."
+
+#: resrc.c:631
+#, c-format
+msgid "%s:%d: %s\n"
+msgstr "%s:%d: %s\n"
+
+#: resrc.c:639
+#, c-format
+msgid "%s: unexpected EOF"
+msgstr "%s: neočakávaný znak konca súboru"
+
+#: resrc.c:688
+#, c-format
+msgid "%s: read of %lu returned %lu"
+msgstr "%s: prečitané z %lu vrátených %lu"
+
+#: resrc.c:727 resrc.c:1502
+#, c-format
+msgid "stat failed on bitmap file `%s': %s"
+msgstr "zlyhal stat na súbor bitmapy „%s“: %s"
+
+#: resrc.c:778
+#, c-format
+msgid "cursor file `%s' does not contain cursor data"
+msgstr "súboru kurzora „%s“ neobsahuje dáta o kurzore"
+
+#: resrc.c:810 resrc.c:1210
+#, c-format
+msgid "%s: fseek to %lu failed: %s"
+msgstr "%s: fseek na %lu zlyhal: %s"
+
+#: resrc.c:936
+msgid "help ID requires DIALOGEX"
+msgstr "ID pomoci vyžaduje DIALOGEX"
+
+#: resrc.c:938
+msgid "control data requires DIALOGEX"
+msgstr "dáta riadenia vyžadujú DIALOGEX"
+
+#: resrc.c:966
+#, c-format
+msgid "stat failed on font file `%s': %s"
+msgstr "nepodaril sa stat na súbor písma „%s“: %s"
+
+#: resrc.c:1179
+#, c-format
+msgid "icon file `%s' does not contain icon data"
+msgstr "súbor ikony „%s“ neobsahuje dáta o ikone"
+
+#: resrc.c:1724 resrc.c:1759
+#, c-format
+msgid "stat failed on file `%s': %s"
+msgstr "zlyhal stat súboru „%s“: %s"
+
+#: resrc.c:1940
+#, c-format
+msgid "can't open `%s' for output: %s"
+msgstr "nedá sa otvoriť „%s“ na čítanie: %s"
+
+#: size.c:79
+#, c-format
+msgid " Displays the sizes of sections inside binary files\n"
+msgstr " Zobrazuje veľkosti sekcií vo vnútri binárnych súborov\n"
+
+#: size.c:80
+#, c-format
+msgid " If no input file(s) are specified, a.out is assumed\n"
+msgstr " Ak sa neurčia žiadne vstupné súbory, predpokladá sa a.out\n"
+
+#: size.c:81
+#, c-format
+msgid ""
+" The options are:\n"
+"  -A|-B     --format={sysv|berkeley}  Select output style (default is %s)\n"
+"  -o|-d|-x  --radix={8|10|16}         Display numbers in octal, decimal or hex\n"
+"  -t        --totals                  Display the total sizes (Berkeley only)\n"
+"            --common                  Display total size for *COM* syms\n"
+"            --target=<bfdname>        Set the binary file format\n"
+"            @<file>                   Read options from <file>\n"
+"  -h        --help                    Display this information\n"
+"  -v        --version                 Display the program's version\n"
+"\n"
+msgstr ""
+" Voľby sú:\n"
+"  -A|-B     --format={sysv|berkeley}  Vybrať štýl výstupu (štandardne %s)\n"
+"  -o|-d|-x  --radix={8|10|16}         Zobraziť čísla osmičkovo, desiatkovo alebo hexadecimálne\n"
+"  -t        --totals                  Zobraziť celkové veľkosti (iba Berkeley)\n"
+"            --common                  Zobraziť celkové veľkosti symbolov *COM*\n"
+"            --target=<bfdname>        Nastaviť formát binárneho súboru\n"
+"            @<súbor>                  Čítať voľby zo <súboru>\n"
+"  -h        --help                    Zobraziť túto informáciu\n"
+"  -v        --version                 Zobraziť verziu programu\n"
+"\n"
+
+#: size.c:160
+#, c-format
+msgid "invalid argument to --format: %s"
+msgstr "neplatný argument pre --format: %s"
+
+#: size.c:187
+#, c-format
+msgid "Invalid radix: %s\n"
+msgstr "Neplatný základ čísla: %s\n"
+
+#: srconv.c:1731
+#, c-format
+msgid "Convert a COFF object file into a SYSROFF object file\n"
+msgstr "Previesť súbor objektu COFF na súbor objektu SYSROFF\n"
+
+#: srconv.c:1732
+#, c-format
+msgid ""
+" The options are:\n"
+"  -q --quick       (Obsolete - ignored)\n"
+"  -n --noprescan   Do not perform a scan to convert commons into defs\n"
+"  -d --debug       Display information about what is being done\n"
+"  @<file>          Read options from <file>\n"
+"  -h --help        Display this information\n"
+"  -v --version     Print the program's version number\n"
+msgstr ""
+" Voľby sú:\n"
+"  -q --quick      (Zastaralé - ignorované)\n"
+"  -n --noprescan  Nevykonať skenovanie pre prevod common-ov na def-y\n"
+"  -d --debug      Zobraziť informáciu o tom, čo sa robí\n"
+"  @<súbor>        Čítať voľby zo <súboru>\n"
+"  -h --help       Zobraziť túto informáciu\n"
+"  -v --version    Zobraziť verziu programu\n"
+
+#: srconv.c:1878
+#, c-format
+msgid "unable to open output file %s"
+msgstr "nedá sa otvoriť výstupný súbor %s"
+
+#: stabs.c:328 stabs.c:1706
+msgid "numeric overflow"
+msgstr "číselné pretečenie"
+
+#: stabs.c:338
+#, c-format
+msgid "Bad stab: %s\n"
+msgstr "Zlý stab: %s\n"
+
+#: stabs.c:346
+#, c-format
+msgid "Warning: %s: %s\n"
+msgstr "Upozornenie: %s: %s\n"
+
+#: stabs.c:456
+#, c-format
+msgid "N_LBRAC not within function\n"
+msgstr "N_LBRAC nie je vo funkcii\n"
+
+#: stabs.c:495
+#, c-format
+msgid "Too many N_RBRACs\n"
+msgstr "Priveľa N_RBRACov\n"
+
+#: stabs.c:736
+msgid "unknown C++ encoded name"
+msgstr "neznáme meno kódované v C++"
+
+#. Complain and keep going, so compilers can invent new
+#. cross-reference types.
+#: stabs.c:1251
+msgid "unrecognized cross reference type"
+msgstr "nerozpoznaný typ krížového odkazu"
+
+#. Does this actually ever happen?  Is that why we are worrying
+#. about dealing with it rather than just calling error_type?
+#: stabs.c:1798
+msgid "missing index type"
+msgstr "chýba typ indexu"
+
+#: stabs.c:2112
+msgid "unknown virtual character for baseclass"
+msgstr "neznámy virtuálny znak pre baseclass"
+
+#: stabs.c:2130
+msgid "unknown visibility character for baseclass"
+msgstr "naznámy viditeľný znak pre baseclass"
+
+#: stabs.c:2316
+msgid "unnamed $vb type"
+msgstr "nepomenovaný $vb typ"
+
+#: stabs.c:2322
+msgid "unrecognized C++ abbreviation"
+msgstr "nerozpoznaná C++ skratka"
+
+#: stabs.c:2398
+msgid "unknown visibility character for field"
+msgstr "neznámy znak viditeľnosti pre pole"
+
+#: stabs.c:2650
+msgid "const/volatile indicator missing"
+msgstr "chýba indikátor const/volatile"
+
+#: stabs.c:2886
+#, c-format
+msgid "No mangling for \"%s\"\n"
+msgstr "Žiadne poškodenie pre „%s“\n"
+
+#: stabs.c:3186
+msgid "Undefined N_EXCL"
+msgstr "Nezadefinované N_EXCL"
+
+#: stabs.c:3266
+#, c-format
+msgid "Type file number %d out of range\n"
+msgstr "Typové číslo súboru %d mimo rozsah\n"
+
+#: stabs.c:3271
+#, c-format
+msgid "Type index number %d out of range\n"
+msgstr "Typové číslo indexu %d mimo rozsah\n"
+
+#: stabs.c:3350
+#, c-format
+msgid "Unrecognized XCOFF type %d\n"
+msgstr "Nerozpoznaný typ XCOFF %d\n"
+
+#: stabs.c:3642
+#, c-format
+msgid "bad mangled name `%s'\n"
+msgstr "chybný neformátovaný názov „%s“\n"
+
+#: stabs.c:3737
+#, c-format
+msgid "no argument types in mangled string\n"
+msgstr "v neformátovanom reťazci sa nenachádzajú typy argumentov\n"
+
+#: stabs.c:5091
+#, c-format
+msgid "Demangled name is not a function\n"
+msgstr "Neformátovaný názov nie je funkcia\n"
+
+#: stabs.c:5133
+#, c-format
+msgid "Unexpected type in v3 arglist demangling\n"
+msgstr "Neočakávaný typ pri formátovaní zoznamu argumentov v3\n"
+
+#: stabs.c:5200
+#, c-format
+msgid "Unrecognized demangle component %d\n"
+msgstr "Neočakávaná zložka formátovania %d\n"
+
+#: stabs.c:5252
+#, c-format
+msgid "Failed to print demangled template\n"
+msgstr "Nepodarilo sa vypísať formátovanú šablónu\n"
+
+#: stabs.c:5332
+#, c-format
+msgid "Couldn't get demangled builtin type\n"
+msgstr "Nepodarilo sa zistiť formátovaný vstavaný typ\n"
+
+#: stabs.c:5381
+#, c-format
+msgid "Unexpected demangled varargs\n"
+msgstr "neočakávané formátované varargs\n"
+
+#: stabs.c:5388
+#, c-format
+msgid "Unrecognized demangled builtin type\n"
+msgstr "Nerozpoznaný formátovaný vstavaný typ\n"
+
+#: strings.c:251
+#, c-format
+msgid "invalid minimum string length %d"
+msgstr "neplatná minimálna dĺžka reťazca %d"
+
+#: strings.c:648
+#, c-format
+msgid " Display printable strings in [file(s)] (stdin by default)\n"
+msgstr " Zobraziť vytlačiteľné reťazce v [súbore(-och)] (štandardne stdin)\n"
+
+#: strings.c:649
+#, c-format
+msgid ""
+" The options are:\n"
+"  -a - --all                Scan the entire file, not just the data section\n"
+"  -f --print-file-name      Print the name of the file before each string\n"
+"  -n --bytes=[number]       Locate & print any NUL-terminated sequence of at\n"
+"  -<number>                   least [number] characters (default 4).\n"
+"  -t --radix={o,d,x}        Print the location of the string in base 8, 10 or 16\n"
+"  -o                        An alias for --radix=o\n"
+"  -T --target=<BFDNAME>     Specify the binary file format\n"
+"  -e --encoding={s,S,b,l,B,L} Select character size and endianness:\n"
+"                            s = 7-bit, S = 8-bit, {b,l} = 16-bit, {B,L} = 32-bit\n"
+"  @<file>                   Read options from <file>\n"
+"  -h --help                 Display this information\n"
+"  -v --version              Print the program's version number\n"
+msgstr ""
+" Voľby sú:\n"
+"  -a - --all                Prezrieť celý súbor, nie len dátovú sekciu\n"
+"  -f --print-file-name      Vypísať názov súboru pred každým reťazcom\n"
+"  -n --bytes=[number]       Nájsť a vypísať každú nulou ukončenú postupnosť \n"
+"  -<počet>                    najmenej [počet] znakov (štandardne 4).\n"
+"  -t --radix={o,d,x}        Vypísať umiestnenie reťazca v 8, 10 alebo 16 sústave\n"
+"  -o                        Aalias pre --radix=o\n"
+"  -T --target=<BFDNAME>     Zadať binárny formát súboru\n"
+"  -e --encoding={s,S,b,l,B,L} Vybrať veľkosť znaku a endianitu:\n"
+"                            s = 7 bitov, S = 8 bitov, {b,l} = 16 bitov, {B,L} = 32 bitov\n"
+"  @<súbor>                  Načítať voľby zo <súbor>\n"
+"  -h --help                 Zobraziť tohto pomocníka\n"
+"  -v --version              Vypísať verziu programu\n"
+
+#: sysdump.c:648
+#, c-format
+msgid "Print a human readable interpretation of a SYSROFF object file\n"
+msgstr "Zobraziť pre ľudí zrozumiteľnú interpretáciu objektového súboru SYSROFF\n"
+
+#: sysdump.c:649
+#, c-format
+msgid ""
+" The options are:\n"
+"  -h --help        Display this information\n"
+"  -v --version     Print the program's version number\n"
+msgstr ""
+" Voľby sú:\n"
+"  -h --help Zobraziť túto informáciu\n"
+"  -v --version Zobraziť verziu programu\n"
+
+#: sysdump.c:716
+#, c-format
+msgid "cannot open input file %s"
+msgstr "nedá sa otvoriť vstupný súbor %s"
+
+#: version.c:35
+#, c-format
+msgid "Copyright 2007 Free Software Foundation, Inc.\n"
+msgstr "Copyright 2007 Free Software Foundation, Inc.\n"
+
+#: version.c:36
+#, c-format
+msgid ""
+"This program is free software; you may redistribute it under the terms of\n"
+"the GNU General Public License version 3 or (at your option) any later version.\n"
+"This program has absolutely no warranty.\n"
+msgstr ""
+"Tento program je slobodný softvér. Môžete ho šíriť za podmienok GNU General\n"
+"Public License verzie 3 alebo (ako si zvolíte) ktorejkoľvek vyššej verzie.\n"
+"Na tento program sa neposkytuje absolútne žiadna záruka.\n"
+
+#: windmc.c:195
+#, c-format
+msgid "can't create %s file ,%s' for output.\n"
+msgstr "nebolo možné vytvoriť súbor %s, „%s“ pre výstup.\n"
+
+#: windmc.c:203
+#, c-format
+msgid "Usage: %s [option(s)] [input-file]\n"
+msgstr "Použitie: %s [VOĽBY] [VSTUP_SÚBOR]\n"
+
+#: windmc.c:205
+#, c-format
+msgid ""
+" The options are:\n"
+"  -a --ascii_in                Read input file as ASCII file\n"
+"  -A --ascii_out               Write binary messages as ASCII\n"
+"  -b --binprefix               .bin filename is prefixed by .mc filename_ for uniqueness.\n"
+"  -c --customflag              Set custom flags for messages\n"
+"  -C --codepage_in=<val>       Set codepage when reading mc text file\n"
+"  -d --decimal_values          Print values to text files decimal\n"
+"  -e --extension=<extension>   Set header extension used on export header file\n"
+"  -F --target <target>         Specify output target for endianess.\n"
+"  -h --headerdir=<directory>   Set the export directory for headers\n"
+"  -u --unicode_in              Read input file as UTF16 file\n"
+"  -U --unicode_out             Write binary messages as UFT16\n"
+"  -m --maxlength=<val>         Set the maximal allowed message length\n"
+"  -n --nullterminate           Automatic add a zero termination to strings\n"
+"  -o --hresult_use             Use HRESULT definition instead of status code definition\n"
+"  -O --codepage_out=<val>      Set codepage used for writing text file\n"
+"  -r --rcdir=<directory>       Set the export directory for rc files\n"
+"  -x --xdbg=<directory>        Where to create the .dbg C include file\n"
+"                               that maps message ID's to their symbolic name.\n"
+msgstr ""
+" Voľby sú:\n"
+"  -a --ascii_in                Načítať vstupný súbor ako ASCII súbor\n"
+"  -A --ascii_out               Zapísať binárne správy ako ASCII\n"
+"  -b --binprefix               názov súboru .bin s predponou .mc filename_, aby bol jedinečný.\n"
+"  -c --customflag              Nastaviť vlastné príznaky správ\n"
+"  -C --codepage_in=<val>       Nastavič kódovú stránku pri čítaní textového súboru mc\n"
+"  -d --decimal_values          Vypísať hodnoty do textového súboru v desiatkovej sústave\n"
+"  -e --extension=<prípona>     Nastaviť príponu hlavičiek použitých pri exporte súboru hlavičky\n"
+"  -F --target <cieľ>           Cieľ výstupu endianity.\n"
+"  -h --headerdir=<directory>   Nastaviť exportný adresár pre hlavičky\n"
+"  -u --unicode_in              Načítať vstup ako súbor UTF-16\n"
+"  -U --unicode_out             Zapísať binárne správy v UTF-16\n"
+"  -m --maxlength=<hod>         Nastaviť maximálnu povolenú dĺžku správy\n"
+"  -n --nullterminate           Automaticky pridávať reťazcom na koniec nulu\n"
+"  -o --hresult_use             Použiť definíciu HRESULT namiesto definície stavového kódu\n"
+"  -O --codepage_out=<hod>      Nastaviť kódovú stránku pre zápis textového súboru\n"
+"  -r --rcdir=<adresár>         Nastaviť exportný adresár rc súborov\n"
+"  -x --xdbg=<adresár>          Kde sa má vytvárať .dbg C include súbor,\n"
+"                               ktorý mapuje ID správ na ich symbolický názov.\n"
+
+#: windmc.c:225
+#, c-format
+msgid ""
+"  -H --help                    Print this help message\n"
+"  -v --verbose                 Verbose - tells you what it's doing\n"
+"  -V --version                 Print version information\n"
+msgstr ""
+"  -H --help                    Vypíše túto správu pomocníka\n"
+"  -v --verbose                 Výrečný - oznamuje, čo práve robí\n"
+"  -V --version                 Vypíše informácie o verzii\n"
+
+#: windmc.c:296 windres.c:415
+#, c-format
+msgid "%s: warning: "
+msgstr "%s: upozornenie: "
+
+#: windmc.c:297
+#, c-format
+msgid "A codepage was specified switch ,%s' and UTF16.\n"
+msgstr "Kódová stránka bola uvedená, zameňte „%s“ a UTF-16.\n"
+
+#: windmc.c:298
+#, c-format
+msgid "\tcodepage settings are ignored.\n"
+msgstr "\tnastavenia kódovej stránky sa ignorujú.\n"
+
+#: windmc.c:342
+msgid "try to add a ill language."
+msgstr "pokus o pridanie zlého jazyka."
+
+#: windmc.c:1151
+#, c-format
+msgid "unable to open file ,%s' for input.\n"
+msgstr "nebolo možné otvoriť súbor „%s“ na vstup.\n"
+
+#: windmc.c:1170
+msgid "input file does not seems to be UFT16.\n"
+msgstr "Vstupný súbor nevyzerá byť UTF-16.\n"
+
+#: windres.c:220
+#, c-format
+msgid "can't open %s `%s': %s"
+msgstr "nedá sa otvoriť %s „%s“: %s"
+
+#: windres.c:394
+#, c-format
+msgid ": expected to be a directory\n"
+msgstr ": očakávalo sa, že je to adresár\n"
+
+#: windres.c:406
+#, c-format
+msgid ": expected to be a leaf\n"
+msgstr ": očakávalo sa, že je to list\n"
+
+#: windres.c:417
+#, c-format
+msgid ": duplicate value\n"
+msgstr ": duplicitná hodnota\n"
+
+#: windres.c:567
+#, c-format
+msgid "unknown format type `%s'"
+msgstr "neznámy typ súboru „%s“"
+
+#: windres.c:568
+#, c-format
+msgid "%s: supported formats:"
+msgstr "%s: podporované formáty:"
+
+#. Otherwise, we give up.
+#: windres.c:651
+#, c-format
+msgid "can not determine type of file `%s'; use the -J option"
+msgstr "nebolo možné určiť typ súboru „%s“; použite voľbu -J"
+
+#: windres.c:663
+#, c-format
+msgid "Usage: %s [option(s)] [input-file] [output-file]\n"
+msgstr "Použitie: %s [VOĽBY] [VSTUP_SÚBOR] [VÝSTUP_SÚBOR]\n"
+
+#: windres.c:665
+#, c-format
+msgid ""
+" The options are:\n"
+"  -i --input=<file>            Name input file\n"
+"  -o --output=<file>           Name output file\n"
+"  -J --input-format=<format>   Specify input format\n"
+"  -O --output-format=<format>  Specify output format\n"
+"  -F --target=<target>         Specify COFF target\n"
+"     --preprocessor=<program>  Program to use to preprocess rc file\n"
+"  -I --include-dir=<dir>       Include directory when preprocessing rc file\n"
+"  -D --define <sym>[=<val>]    Define SYM when preprocessing rc file\n"
+"  -U --undefine <sym>          Undefine SYM when preprocessing rc file\n"
+"  -v --verbose                 Verbose - tells you what it's doing\n"
+"  -c --codepage=<codepage>     Specify default codepage\n"
+"  -l --language=<val>          Set language when reading rc file\n"
+"     --use-temp-file           Use a temporary file instead of popen to read\n"
+"                               the preprocessor output\n"
+"     --no-use-temp-file        Use popen (default)\n"
+msgstr ""
+" Voľby sú:\n"
+"  -i --input=<súbor>           Vstupný súbor\n"
+"  -o --output=<súbor>          Výstupný súbor\n"
+"  -J --input-format=<formát>   Uvádza vstupný formát\n"
+"  -O --output-format=<formát>  Uvádza výstupný formát\n"
+"  -F --target=<cieľ>           Uvádza COFF cieľ\n"
+"     --preprocessor=<program>  Program na predspracovanie rc súboru\n"
+"  -I --include-dir=<adr>       Include adresár pre predspracovanie rc súboru\n"
+"  -D --define <sym>[=<val>]    Definovať SYM pre predspracovanie rc súboru\n"
+"  -U --undefine <sym>          Zrušiť definíciu SYM pre predspracovanie rc súboru\n"
+"  -v --verbose                 Výrečný - oznamuje, čo práve robí\n"
+"  -c --codepage=<kódstr>       Uvádza predvolenú kódovú stránku\n"
+"  -l --language=<hodn>         Nastaviť jazyk pre čítanie rc súboru\n"
+"     --use-temp-file           Pre čítanie použiť dočasný súbor namiesto popen\n"
+"                               výstupu preprocesora\n"
+"     --no-use-temp-file        Použiť popen (štandardne)\n"
+
+#: windres.c:682
+#, c-format
+msgid "     --yydebug                 Turn on parser debugging\n"
+msgstr "     --yydebug                 Zapnúť ladenie syntaktického analyzátora\n"
+
+#: windres.c:685
+#, c-format
+msgid ""
+"  -r                           Ignored for compatibility with rc\n"
+"  @<file>                      Read options from <file>\n"
+"  -h --help                    Print this help message\n"
+"  -V --version                 Print version information\n"
+msgstr ""
+"  -r                           Ignorované kvôli kompatibilite s rc\n"
+"  @<súbor>                     Čítať voľby zo <súboru>\n"
+"  -h --help                    Zobraziť túto správu nápovedy\n"
+"  -V --version                 Zobraziť informáciu o verzii\n"
+
+#: windres.c:690
+#, c-format
+msgid ""
+"FORMAT is one of rc, res, or coff, and is deduced from the file name\n"
+"extension if not specified.  A single file name is an input file.\n"
+"No input-file is stdin, default rc.  No output-file is stdout, default rc.\n"
+msgstr ""
+"FORMAT je jeden z rc, res alebo coff a dedukuje sa z prípony názvu súboru,\n"
+"ak nie je určený. Samotný názov súboru je vstupný súbor.\n"
+"Žiadný vstupný súbor je stdin, štandardne je rc. Žiadny výstpuný súbor je stdout, štandardne je rc.\n"
+
+#: windres.c:848
+msgid "invalid codepage specified.\n"
+msgstr "zadaná neplatná kódová stránka.\n"
+
+#: windres.c:863
+msgid "invalid option -f\n"
+msgstr "neplatná voľby -f\n"
+
+#: windres.c:868
+msgid "No filename following the -fo option.\n"
+msgstr "Žiadny názov súboru nenásleduje za voľbou -fo.\n"
+
+#: windres.c:927
+#, c-format
+msgid "Option -I is deprecated for setting the input format, please use -J instead.\n"
+msgstr "Voľba -l je zastaralá pre nastavenie vstupného formátu, prosím, radšej použite -J.\n"
+
+#: windres.c:1037
+msgid "no resources"
+msgstr "žiadne zdroje"
+
+#: wrstabs.c:353 wrstabs.c:1916
+#, c-format
+msgid "string_hash_lookup failed: %s"
+msgstr "string_hash_lookup zlyhal: %s"
+
+#: wrstabs.c:636
+#, c-format
+msgid "stab_int_type: bad size %u"
+msgstr "stab_int_type: zlá veľkosť %u"
+
+#: wrstabs.c:1394
+#, c-format
+msgid "%s: warning: unknown size for field `%s' in struct"
+msgstr "%s: upozornenie: neznáma veľkosť pre pole „%s“ v štruktúre"
+
+#~ msgid "Only version 2 and 3 DWARF debug information is currently supported.\n"
+#~ msgstr "Momentálne sú podporované iba vezie 2 a 3 ladiacej informácie DWARF.\n"
+
+#~ msgid "Unable to locate entry %lu in the abbreviation table\n"
+#~ msgstr "Nemožno nájsť položku %lu v tabuľke skratiek\n"
+
+#~ msgid "    %8.8lx %8.8lx %8.8lx (base address)\n"
+#~ msgstr "    %8.8lx %8.8lx %8.8lx (bázová adresa)\n"
+
+#~ msgid "set .nlmsections flags"
+#~ msgstr "nastaviť .nlmsections príznaky"
+
+#~ msgid "can't add section '%s' - it already exists!"
+#~ msgstr "nie je možné pridať sekciu „%s“ - už existuje!"
+
+#~ msgid "%s: error in %s: %s"
+#~ msgstr "%s: chyba v %s: %s"
+
+#~ msgid "making"
+#~ msgstr "vytvára sa"
+
+#~ msgid "size"
+#~ msgstr "veľkosť"
+
+#~ msgid "vma"
+#~ msgstr "vma"
+
+#~ msgid "alignment"
+#~ msgstr "zarovnanie"
+
+#~ msgid "private data"
+#~ msgstr "privátne dáta"
+
+#~ msgid "%s: section `%s': error in %s: %s"
+#~ msgstr "%s: sekcia „%s“: chyba v %s: %s"
+
+#~ msgid "invalid section [%5u] in group section [%5u]\n"
+#~ msgstr "neplatná sekcia [%5u] v skupinovej sekcii [%5u]\n"
+
+#~ msgid "  Offset: %#08lx  Link to section: %ld (%s)\n"
+#~ msgstr "  Posun: %#08lx Odkaz na sekciu: %ld (%s)\n"
+
+#~ msgid "skipping relocation of unknown size against offset 0x%lx in section %s\n"
+#~ msgstr "preskakujú sa relokácie neznámej veľkosti oproti ofsetu 0x%lx v sekcii %s\n"
+
+#~ msgid "skipping unexpected symbol type %s in relocation in section .rela.%s\n"
+#~ msgstr "preskakuje sa neočakávaný typ symbolu %s v relokácii v sekcii .rela.%s\n"
+
+#~ msgid "invalid number %s"
+#~ msgstr "neplatné číslo %s"
+
+#~ msgid "invalid integer argument %s"
+#~ msgstr "neplatný celočíselný argument %s"

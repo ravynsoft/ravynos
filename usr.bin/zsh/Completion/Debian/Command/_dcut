@@ -1,0 +1,160 @@
+#compdef dcut
+
+# TODO: dcut supports two ways to be called:
+#  * dcut HOST COMMAND ...
+#  * dcut COMMAND ...
+# So ideally, if the first argument is completed, both commands and hosts should
+# be offered. If host is given, the second argument should be completed as
+# command and if not, it should be completed as command specific option.
+
+function _dput_hosts() {
+  local expl
+
+  if ( [[ ${+_dput_cfhosts} -eq 0 ]] || _cache_invalid dputhosts ) && ! _retrieve_cache dputhosts; then
+    local cmd
+    if _pick_variant dputng="usage: dput" dput -H ; then
+      cmd=(dirt hosts)
+    else
+      cmd=(dput -H)
+    fi
+     _dput_cfhosts=(${${(M)${(f)"$($cmd)"}:#*=>*}/ =>*/})
+    _store_cache dputhosts _dput_cfhosts
+  fi
+
+  _wanted dputhosts expl 'target host' compadd -a _dput_cfhosts
+}
+
+function _dcut_commands() {
+  local -a cmds
+  if _pick_variant dcutng="usage: dcut" dcut -v ; then
+    cmds=(
+      dm:'manage Debian Maintainer permissions'
+      break-the-archive:'break the archive'
+      reschedule:'reschedule a deferred upload'
+      cancel:'cancel a deferred upload'
+      rm:'remove a file from the upload queue'
+      upload:'upload a command file'
+    )
+  else
+    cmds=(
+      rm:'remove a file from the upload queue'
+      cancel:'cancel a deferred upload'
+      reschedule:'reschedule a deferred upload'
+    )
+  fi
+  _describe -t commands command cmds
+}
+
+function _dcut() {
+  local -a all_opts dcut_opts dcut_ng_opts
+  local state line context
+  local -A opt_args
+  local curcontext="${curcontext}"
+
+  all_opts=(
+    '(-c --config)'{-c,--config=}'[specify config file]:config file:_files'
+    '(-h --help)'{-h,--help}'[show help message and exit]'
+    '(-m --maintainer)'{-m,--maintainer=}'[use maintainer for upload field and GPG key selection]:maintainer address'
+    '(-k --keyid)'{-k,--keyid}'[use key id for signing]:keyid'
+    '(-O --output)'{-O,--output=}'[write command file to file instead of uploading]:output file:_files'
+    '(-P --passive)'{-P,--passive}'[use passive FTP for uploads]'
+    '(-v --version)'{-v,--version}'[show version information]'
+    ': :_dcut_commands'
+  )
+
+  dcut_opts=(
+    '(-d --debug)'{-d,--debug}'[debug mode]'
+    '(-s --simulate)'{-s,--simulate}'[simulate an upload only]'
+    '(-i --input)'{-i,--input=}'[create commands file to remove every file listed in the changes file]:changes file:_files -g"*.changes(-.)"'
+    '(-U --upload)'{-U,--upload=}'[upload commands file]:commands file:_files'
+    '(--host 1)'{--host=}'[upload to host if it is named like a command]:host:_dput_hosts'
+    '*:: :->dcut_command_arguments'
+  )
+
+  dcut_ng_opts=(
+    '*'{-d,--debug}'[enable debug messages, repeat twice to increase the verbosity level]'
+    '*'{-s,--simulate}'[simulate an upload only, repeat twice to increase level of simulation]'
+    '*:: :->dcut_ng_command_arguments'
+  )
+
+  if _pick_variant dcutng="usage: dcut" dcut -v ; then
+    _arguments -C \
+      "$all_opts[@]" "$dcut_ng_opts[@]" && return
+  else
+    _arguments -C \
+      "$all_opts[@]" "$dcut_opts[@]" && return
+  fi
+
+  case $state in
+  (dcut_command_arguments)
+    # arguments to dcut commands
+    local -a opts
+    case ${line[1]} in
+    (cancel)
+      # dcut cancel arguments
+      opts=(
+        '1::changes file:_files -g"*.changes(-.)"'
+      )
+      ;;
+    (reschedule)
+      # dcut reschedule arguments
+      opts=(
+        '1::changes file:_files -g"*.changes(-.)"'
+        '2::new delayed queue:(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)'
+      )
+      ;;
+    (rm)
+      # dcut rm arguments
+      opts=(
+        '--searchdirs[search in all directories for the given files]'
+        '1::file to be deleted:_files'
+      )
+      ;;
+    esac
+    _arguments "$opts[@]" && return
+    ;;
+  (dcut_ng_command_arguments)
+    # arguments to dput-ng's dcut commands
+    local -a opts
+    case ${line[1]} in
+    (cancel)
+      # dcut cancel arguments
+      opts=(
+        '(-f --filename)'{-f,--filename}'[.changes file name of the upload to be cancelled]:file name:_files -g"*.changes(-.)"'
+      )
+      ;;
+    (dm)
+      # dcut dm arguments
+      opts=(
+        '--uid[full name and address or GPG fingerprint of the Debian Maintainer]'
+        '*--allow[grant permission to upload a source package]:source package'
+        '*--deny[remove permission to upload a source package]:source package'
+      )
+      ;;
+    (reschedule)
+      # dcut reschedule arguments
+      opts=(
+        '(-f --filename)'{-f,--filename}'[.changes file name to be rescheduled]:file name:_files -g"*.changes(-.)"'
+        '(-d --days)'{-d,--days}'[new delayed queue]:days:(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)'
+      )
+      ;;
+    (rm)
+      # dcut rm arguments
+      opts=(
+        '*'{-f,--filename}'[file name to be removed]:file name:_files'
+        '--searchdirs[search in all directories for the given files]'
+      )
+      ;;
+    (upload)
+      # dcut upload arguments
+      opts=(
+        '-f --filename)'{-f,--filename}'[file to be uploaded]:file name:_files'
+      )
+      ;;
+    esac
+    _arguments "$opts[@]" && return
+    ;;
+  esac
+}
+
+_dcut "$@"

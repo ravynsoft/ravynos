@@ -1,0 +1,56 @@
+PROJECT_NAME           = @PACKAGE_NAME@
+
+PROJECT_NUMBER         = @PACKAGE_VERSION@
+
+OUTPUT_DIRECTORY       = @OUTPUT_DIRECTORY@
+
+BRIEF_MEMBER_DESC      = NO
+
+JAVADOC_AUTOBRIEF      = YES
+
+OPTIMIZE_OUTPUT_FOR_C  = YES
+
+EXTENSION_MAPPING      = no_extension=md
+
+SORT_MEMBER_DOCS       = NO
+
+QUIET                  = $(DOXYGEN_QUIET)
+
+WARN_IF_UNDOCUMENTED   = NO
+
+WARN_AS_ERROR          = $(DOXYGEN_WARN_AS_ERROR)
+
+INPUT                  = @INPUT@
+
+FILE_PATTERNS          = *.c \
+                         *.h
+
+RECURSIVE              = YES
+
+USE_MDFILE_AS_MAINPAGE = README.md
+
+VERBATIM_HEADERS       = NO
+
+ALPHABETICAL_INDEX     = NO
+
+IGNORE_PREFIX          = xkb_ \
+                         XKB_ \
+                         rxkb_ \
+                         RXKB_
+
+HTML_EXTRA_STYLESHEET  = doc/doxygen-extra.css
+
+TIMESTAMP              = NO
+HTML_TIMESTAMP         = NO
+
+ENUM_VALUES_PER_LINE   = 1
+
+SEARCHENGINE           = NO
+
+GENERATE_LATEX         = NO
+
+HAVE_DOT               = YES
+
+DOTFILE_DIRS           = doc/diagrams
+
+DOT_IMAGE_FORMAT       = svg

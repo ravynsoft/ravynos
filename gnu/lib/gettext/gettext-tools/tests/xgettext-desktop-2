@@ -1,0 +1,55 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of Icon handling in Desktop Entry support.
+
+: ${XGETTEXT=xgettext}
+
+cat <<\EOF > hello.desktop
+[Desktop Entry]
+Name=Hello
+TryExec=hello
+Exec=hello
+Icon=handshake.jpg
+Icon[en_US]=hifive.jpg
+Icon[th]=wai.jpg
+Type=Application
+Keywords=Utility;
+EOF
+
+${XGETTEXT} --add-comments -o xg-de-2.tmp hello.desktop || Exit 1
+func_filter_POT_Creation_Date xg-de-2.tmp hello-desktop.pot
+
+cat <<\EOF > hello-desktop.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: hello.desktop:3
+msgid "Hello"
+msgstr ""
+
+#: hello.desktop:10
+msgid "Utility;"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} hello-desktop.ok hello-desktop.pot
+result=$?
+
+exit $result

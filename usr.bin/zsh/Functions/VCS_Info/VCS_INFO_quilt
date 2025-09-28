@@ -1,0 +1,207 @@
+## vim:ft=zsh:foldmethod=marker
+
+(( ${+functions[VCS_INFO_quilt-match]} )) ||
+function VCS_INFO_quilt-match() {
+    emulate -L zsh
+    setopt extendedglob
+    local d mode="$1" param="$2"
+    local -a list
+
+    case ${mode} in
+        (assoc) list=( ${(kOP)param} );;
+        (array) : "${foo[@]}" ${(t)foo}; list=( ${(OP)param} );;
+        (*) return 1;;
+    esac
+    for d in "${list[@]}"; do
+        if [[ ${PWD} == ${d%/##}(|/*) ]]; then
+            print "$d"
+            return 0
+        fi
+    done
+    return 1
+}
+
+(( ${+functions[VCS_INFO_quilt-standalone-detect]} )) ||
+function VCS_INFO_quilt-standalone-detect() {
+    emulate -L zsh
+    setopt extendedglob
+    local param
+    local -i ret
+
+    zstyle -s "${context}" quilt-standalone param || return 1
+    [[ "${param}" == 'never' ]] && return 1
+    [[ "${param}" == 'always' ]] && return 0
+
+    if (( ${+functions[$param]} )); then
+        ${param}
+        return $?
+    fi
+
+    case ${(Pt)param} in
+    *association*)
+        local m
+        local -A A
+        m="$(VCS_INFO_quilt-match assoc ${param})"
+        A=(${(kvP)param})
+        (( $? == 0 )) && [[ ${A[$m]} == "true" ]] && return 0
+        return 1
+        ;;
+    *array*)
+        typeset -gU ${param}
+        VCS_INFO_quilt-match array ${param} > /dev/null
+        return $?
+        ;;
+    *scalar*)
+        [[ "${(P)param}" == 'always' ]] && return 0
+        [[ "${(P)param}" == 'never' ]] && return 1
+        ;;
+    esac
+    # If nothing hit yet, it just wasn't meant to be.
+    return 1
+}
+
+(( ${+functions[VCS_INFO_quilt-dirfind]} )) ||
+function VCS_INFO_quilt-dirfind() {
+    # This is a wrapper around VCS_INFO_bydir_detect(). It makes sure
+    # that $vcs_comm[] is unchanged. Currently, changing anything in it
+    # should not be an issue, but this makes sure the code can safely
+    # be called elsewhere, too - if needed.
+    emulate -L zsh
+    setopt extendedglob
+    local dir="$1" file="$2"; shift $#
+    local ret oldfile olddir
+
+    olddir=${vcs_comm[basedir]}
+    vcs_comm[basedir]=''
+    oldfile=${vcs_comm[detect_need_file]}
+    vcs_comm[detect_need_file]=${file}
+    VCS_INFO_bydir_detect ${dir}
+    ret=$?
+    vcs_comm[detect_need_file]=${oldfile}
+    REPLY=${vcs_comm[basedir]}
+    vcs_comm[basedir]="${olddir}"
+    return ${ret}
+}
+
+(( ${+functions[VCS_INFO_quilt-patch2subject]} )) ||
+function VCS_INFO_quilt-patch2subject() {
+    VCS_INFO_patch2subject "$@"
+}
+
+{
+    emulate -L zsh
+    setopt extendedglob
+    local mode="$1"
+    local patches pc qstring root
+    local -i ret
+    local context
+    local -a applied unapplied applied_string unapplied_string quiltcommand quilt_env
+    local -A hook_com
+
+    context=":vcs_info:${vcs}.quilt-${mode}:${usercontext}:${rrn}"
+    zstyle -t "${context}" use-quilt || return 1
+
+    case ${mode} in
+    (standalone)
+        VCS_INFO_quilt-standalone-detect || return 1
+        ;;
+    (addon)
+        ;;
+    (*)
+        printf 'Invalid mode: `%s'\''\n' "$1"
+        return 2
+        ;;
+    esac
+
+    # Look for the patches directory.
+    #
+    # 1. Check if there's a .pc/.version file in a parent dir.  If so, use the
+    # patches dir from the corresponding .pc/.quilt_patches.
+    if VCS_INFO_quilt-dirfind .pc .version; then
+        pc=$REPLY
+        [[ ${quiltmode} == 'standalone' ]] && root=${pc}
+        pc=${pc}/.pc
+        if [[ -e ${pc}/applied-patches ]]; then
+            applied=( ${(f)"$(<$pc/applied-patches)"} )
+            # throw away empty entries
+            applied=( ${applied:#} )
+            applied=( ${(Oa)applied} )
+        else
+            applied=()
+        fi
+        patches=$(<$pc/.quilt_patches)
+        patches=`builtin cd -q "${pc:h}" && print -r - ${patches:P}`
+    # 2. Else, locate a patches dir using the style settings.
+    else
+        zstyle -s "${context}" quilt-patch-dir patches || patches="${QUILT_PATCHES}"
+        : ${patches:="patches"}
+        if [[ "${patches}" != /* ]]; then
+            if VCS_INFO_quilt-dirfind "${patches}"; then
+                patches=$REPLY/$patches
+            else
+                return $?
+            fi
+        else
+            [[ -d ${patches} ]] || return 1
+        fi
+        quilt_env+=(QUILT_PATCHES="$patches")
+    fi
+    # At this point, $patches is set and points to an existing directory.
+
+    if zstyle -t "${context}" get-unapplied; then
+        # This zstyle call needs to be moved further up if `quilt' needs
+        # to be run in more places than this one.
+        zstyle -s "${context}" quiltcommand quiltcommand || quiltcommand='quilt'
+        unapplied=( ${(f)"$(if (( $+quilt_env[1] )); then export ${quilt_env[@]}; fi
+                            $quiltcommand --quiltrc /dev/null unapplied 2> /dev/null)"} )
+        unapplied=( ${unapplied:#} )
+    else
+        unapplied=()
+    fi
+
+    {
+        local i
+        for ((i=1; i<=$#applied; i++)); do
+          if VCS_INFO_quilt-patch2subject "$patches/$applied[$i]" && (( $+REPLY ))
+          then
+            applied[$i]+=" $REPLY"
+          else
+            applied[$i]+=" ?"
+          fi
+        done
+        for ((i=1; i<=$#unapplied; i++)); do
+          if VCS_INFO_quilt-patch2subject "$patches/$unapplied[$i]" && (( $+REPLY ))
+          then
+            unapplied[$i]+=" $REPLY"
+          else
+            unapplied[$i]+=" ?"
+          fi
+        done
+    }
+
+    typeset -A quilt_extra_info=(
+        quilt-patches-dir ${patches}
+        ${pc:+"quilt-pc-dir"} $pc
+    )
+
+    VCS_INFO_set-patch-format 'applied' 'applied_string' \
+                              'unapplied' 'unapplied_string' \
+                              ${context} qstring \
+                              quilt_extra_info '' quilt_extra_info
+    qstring=$REPLY
+
+    case ${mode} in
+    (standalone)
+        backend_misc[patches]=${qstring}
+        VCS_INFO_formats '' '' "${root}" '' '' '' "${qstring}"
+        VCS_INFO_set
+        ;;
+    (addon)
+        # When VCS_INFO_quilt() is called with "addon" a "local REPLY" variable
+        # should be in place. That variable can be unset after it's being used.
+        REPLY="${qstring}"
+        ;;
+    esac
+
+    VCS_INFO_hook 'post-quilt' ${mode} ${patches} ${pc:-\\-nopc-}
+}

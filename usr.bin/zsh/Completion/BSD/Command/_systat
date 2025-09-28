@@ -1,0 +1,92 @@
+#compdef systat
+
+local -a screens opts
+local pre
+case $OSTYPE in
+  freebsd*)
+    pre=-
+    screens=(
+      'pigs:processes consuming the most CPU time'
+      'sctp:SCTP statistics'
+      icmp{6,}':ICMP statistics'
+      ip{6,}':IP and UDP statistics'
+      'tcp:TCP statistics'
+      'iostat:processor and disk statistics'
+      'swap:swap space statistics'
+      'vmstat:virtual memory statistics'
+      'netstat:network connection statistics'
+      'ifstat:network traffic statistics'
+      'zarc:display arc cache usage'
+    )
+  ;;
+  openbsd*)
+    screens=(
+      'buckets:kernel malloc(9) bucket statistics'
+      'cpu:per CPU, usage statistics'
+      'ifstat:interface statistics'
+      'iostat:disk throughput statistics'
+      'malloc:malloc(9) type statistics'
+      'mbufs:mbuf usage statistics'
+      'netstat:network connection statistics'
+      'nfsclient:NFS client statistics'
+      'nfsserver:NFS server statistics'
+      'pf:pf(4) filter statistics'
+      'pigs:processes consuming the most CPU time'
+      'pool:pool(9) statistics'
+      'queues:pf(4) queue statistics'
+      'rules:pf(4) rule statistics'
+      'sensors:display hardware sensors values'
+      'states:pf(4) states statistics'
+      'swap:swap space usage'
+      'vmstat:virtual memory statistics'
+    )
+    opts=(
+      '-a[display all lines]'
+      '-B[raw, non-interactive mode (two screen updates)]'
+      '-b[raw, non-interactive mode (one screen update)]'
+      '-d[exit after `count'\'' updates]:count'
+      '-h[human readable output]'
+      '-i[interactive mode]'
+      '-N[resolve network addresses to names]'
+      '-n[do not resolve network addresses to names]'
+      '-s[screen refresh interval]:refresh interval (seconds)'
+      '-w[maximum width of output in raw mode]:width'
+    )
+  ;;
+  netbsd*)
+    screens=(
+      'all:cycle through all displays'
+      'bufcache:filesystem buffer statistics'
+      'df:disk usage statistics'
+      'inet.icmp:ICMP statistics'
+      'inet.ip:IPv4 and UDP statistics'
+      'inet.tcp:TCP statistics'
+      'inet.tcpsyn:TCP ``syncache'\'\'' statistics'
+      'inet6.ip6:IPv6 statistics'
+      'iostat:disk throughput statistics'
+      'mbufs:mbuf usage statistics'
+      'netstat:network connection statistics'
+      'pigs:processes consuming the most CPU time'
+      'ps:``ps -aux'\'\'' in a loop'
+      'swap:swap space usage'
+      'syscall:per system call statistics'
+      'vmstat:virtual memory statistics'
+    )
+    opts=(
+      '-M[alternative source to extract values from]:core:_files'
+      '-N[alternative source to extract the name list from]:system:_files'
+      '(-t -w)-b[show the chosen display once and exit]'
+      "-n[don't resolve IP addresses]"
+      '(-b)-w[refresh interval]:refresh interval'
+      "(-b)-t[specify amount of refreshes for each screen in 'all' display mode]:turns"
+    )
+esac
+
+if (( $#screens )); then
+  _arguments -M 'r:|.=* r:|=*' : $opts \
+    '1:systat(1) display:(( ${pre}$^screens ))' \
+    '2:refresh interval'
+  return
+fi
+
+_default

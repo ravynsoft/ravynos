@@ -1,0 +1,207 @@
+# Test NOCROSSREFS in a linker script.
+# By Ian Lance Taylor, Cygnus Support.
+#   Copyright (C) 2000-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+set test1 "NOCROSSREFS 1"
+set test2 "NOCROSSREFS 2"
+set test3 "NOCROSSREFS 3"
+set test4 "NOCROSSREFS_TO 1"
+set test5 "NOCROSSREFS_TO 2"
+set test6 "NOCROSSREFS_TO 3"
+set test7 "NOCROSSREFS_TO 4"
+
+if { ![check_compiler_available] } {
+    untested $test1
+    untested $test2
+    untested $test3
+    untested $test4
+    untested $test5
+    untested $test6
+    untested $test7
+    return
+}
+
+# Pass -fplt to CC since -fno-plt doesn't work with NOCROSSREFS tests.
+# Also add $NOPIE_CFLAGS since PIE doesn't work NOCROSSREFS tests.
+set old_CFLAGS "$CFLAGS_FOR_TARGET"
+append CFLAGS_FOR_TARGET " $PLT_CFLAGS $NOPIE_CFLAGS"
+
+# Xtensa targets currently default to putting literal values in a separate
+# section and that requires linker script support, so put literals in text.
+if [istarget xtensa*-*-*] {
+    append CFLAGS_FOR_TARGET " -mtext-section-literals"
+}
+
+# Prevent the use of the MeP's small data area which references a symbol
+# called __sdabase which will not be defined by our test linker scripts.
+if [istarget mep*-*-elf] {
+    append CFLAGS_FOR_TARGET " -mtiny=0"
+}
+
+# The .dsbt section and __c6xabi_DSBT_BASE are not defined in our test
+# linker scripts.
+if [istarget tic6x*-*-*] {
+    append CFLAGS_FOR_TARGET " -mno-dsbt -msdata=none"
+}
+
+if { ![ld_compile "$CC_FOR_TARGET $NOSANITIZE_CFLAGS $NOLTO_CFLAGS" "$srcdir/$subdir/cross1.c" tmpdir/cross1.o] \
+     || ![ld_compile "$CC_FOR_TARGET $NOSANITIZE_CFLAGS $NOLTO_CFLAGS" "$srcdir/$subdir/cross2.c" tmpdir/cross2.o] } {
+    unsupported $test1
+    unsupported $test2
+    set CFLAGS_FOR_TARGET "$old_CFLAGS"
+    return
+}
+
+set flags [big_or_little_endian]
+
+# arc-elf32 requires the symbol __SDATA_BEGIN__ to always be present.
+if [istarget arc*-*-elf32] {
+    append flags " --defsym __SDATA_BEGIN__=0"
+}
+
+if [is_pecoff_format] {
+    append flags " --image-base 0"
+}
+
+set exec_output [run_host_cmd "$ld" "$flags -o tmpdir/cross1 -T $srcdir/$subdir/cross1.t tmpdir/cross1.o tmpdir/cross2.o"]
+
+set exec_output [prune_warnings $exec_output]
+
+regsub -all "(^|\n)($ld: warning: cannot find entry symbol\[^\n\]*\n?)" $exec_output "\\1" exec_output
+
+if [string match "" $exec_output] then {
+    fail $test1
+} else {
+    verbose -log "$exec_output"
+    if [regexp "prohibited cross reference from .* to `.*foo' in" $exec_output] {
+	pass $test1
+    } else {
+	fail $test1
+    }
+}
+
+# Check cross references within a single object.
+
+if { ![ld_compile "$CC_FOR_TARGET $NOSANITIZE_CFLAGS $NOLTO_CFLAGS" "$srcdir/$subdir/cross3.c" tmpdir/cross3.o] } {
+    unsupported $test2
+    set CFLAGS_FOR_TARGET "$old_CFLAGS"
+    return
+}
+
+set exec_output [run_host_cmd "$ld" "$flags -o tmpdir/cross2 -T $srcdir/$subdir/cross2.t tmpdir/cross3.o"]
+set exec_output [prune_warnings $exec_output]
+
+regsub -all "(^|\n)($ld: warning: cannot find entry symbol\[^\n\]*\n?)" $exec_output "\\1" exec_output
+
+if [string match "" $exec_output] then {
+    fail $test2
+} else {
+    verbose -log "$exec_output"
+    if [regexp "prohibited cross reference from .* to `.*' in" $exec_output] {
+	pass $test2
+    } else {
+	fail $test2
+    }
+}
+
+# Check cross references for ld -r
+
+if { ![ld_compile "$CC_FOR_TARGET $NOSANITIZE_CFLAGS $NOLTO_CFLAGS" "$srcdir/$subdir/cross4.c" tmpdir/cross4.o] } {
+    unsupported $test3
+    set CFLAGS_FOR_TARGET "$old_CFLAGS"
+    return
+}
+
+if ![ld_relocate $ld tmpdir/cross3-partial.o "tmpdir/cross1.o tmpdir/cross4.o"] {
+    fail $test3
+    set CFLAGS_FOR_TARGET "$old_CFLAGS"
+    return
+}
+
+set exec_output [run_host_cmd "$ld" "$flags -o tmpdir/cross3 -T $srcdir/$subdir/cross3.t tmpdir/cross3-partial.o tmpdir/cross2.o"]
+
+set exec_output [prune_warnings $exec_output]
+
+regsub -all "(^|\n)($ld: warning: cannot find entry symbol\[^\n\]*\n?)" $exec_output "\\1" exec_output
+
+if [string match "" $exec_output] then {
+    pass $test3
+} else {
+    verbose -log "$exec_output"
+    fail $test3
+}
+
+set exec_output [run_host_cmd "$ld" "$flags -o tmpdir/cross4 -T $srcdir/$subdir/cross4.t tmpdir/cross4.o"]
+set exec_output [prune_warnings $exec_output]
+
+regsub -all "(^|\n)($ld: warning: cannot find entry symbol\[^\n\]*\n?)" $exec_output "\\1" exec_output
+
+if [string match "" $exec_output] then {
+    pass $test4
+} else {
+    verbose -log "$exec_output"
+    fail $test4
+}
+
+set exec_output [run_host_cmd "$ld" "$flags -o tmpdir/cross5 -T $srcdir/$subdir/cross5.t tmpdir/cross4.o"]
+set exec_output [prune_warnings $exec_output]
+
+regsub -all "(^|\n)($ld: warning: cannot find entry symbol\[^\n\]*\n?)" $exec_output "\\1" exec_output
+
+if [string match "" $exec_output] then {
+    fail $test5
+} else {
+    verbose -log "$exec_output"
+    if [regexp "prohibited cross reference from .* to `.*' in" $exec_output] {
+	pass $test5
+    } else {
+	fail $test5
+    }
+}
+
+set exec_output [run_host_cmd "$ld" "$flags -o tmpdir/cross6 -T $srcdir/$subdir/cross6.t tmpdir/cross3.o"]
+set exec_output [prune_warnings $exec_output]
+
+regsub -all "(^|\n)($ld: warning: cannot find entry symbol\[^\n\]*\n?)" $exec_output "\\1" exec_output
+
+if [string match "" $exec_output] then {
+    pass $test6
+} else {
+    verbose -log "$exec_output"
+    fail $test6
+}
+
+set exec_output [run_host_cmd "$ld" "$flags -o tmpdir/cross7 -T $srcdir/$subdir/cross7.t tmpdir/cross3.o"]
+set exec_output [prune_warnings $exec_output]
+
+regsub -all "(^|\n)($ld: warning: cannot find entry symbol\[^\n\]*\n?)" $exec_output "\\1" exec_output
+
+if [string match "" $exec_output] then {
+    fail $test7
+} else {
+    verbose -log "$exec_output"
+    if [regexp "prohibited cross reference from .* to `.*' in" $exec_output] {
+	pass $test7
+    } else {
+	fail $test7
+    }
+}
+
+set CFLAGS_FOR_TARGET "$old_CFLAGS"

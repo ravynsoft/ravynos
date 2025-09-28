@@ -1,0 +1,361 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test checking of Ruby format strings.
+
+cat <<\EOF > f-r-2.data
+# Valid: %% doesn't count
+msgid  "abc%%def"
+msgstr "xyz"
+# Invalid: invalid msgstr
+msgid  "abc%%def"
+msgstr "xyz%"
+# Valid: same arguments, with different widths (argument list)
+msgid  "abc%2sdef"
+msgstr "xyz%3s"
+# Valid: same arguments, with different widths (argument list)
+msgid  "abc%2sdef"
+msgstr "xyz%1$3s"
+# Valid: same arguments, with different widths (named)
+msgid  "abc%<foo>2sdef"
+msgstr "xyz%<foo>3s"
+# Valid: same arguments, with different widths (named)
+msgid  "abc%<date>5s%<time>4s"
+msgstr "xyz%<date>4s%<time>5s"
+# Invalid: too few arguments (argument list)
+msgid  "abc%sdef%u"
+msgstr "xyz%s"
+# Invalid: too few arguments (named)
+msgid  "abc%<foo>sdef%<bar>u"
+msgstr "xyz%<foo>s"
+# Invalid: too many arguments (argument list)
+msgid  "abc%udef"
+msgstr "xyz%uvw%c"
+# Invalid: too many arguments (named)
+msgid  "abc%<foo>udef"
+msgstr "xyz%<foo>uvw%<bar>c"
+# Valid: permutation (argument list)
+msgid  "abc%3$d%1$c%2$sdef"
+msgstr "xyz%2$s%1$c%3$d"
+# Valid: permutation (named)
+msgid  "abc%<3>d%<1>c%<2>sdef"
+msgstr "xyz%<2>s%<1>c%<3>d"
+# Invalid: missing argument (named)
+msgid  "abc%<2>sdef%<1>u"
+msgstr "xyz%<1>u"
+# Invalid: missing argument (named)
+msgid  "abc%<1>sdef%<2>u"
+msgstr "xyz%<2>u"
+# Invalid: added argument (named)
+msgid  "abc%<foo>udef"
+msgstr "xyz%<foo>uvw%<char>c"
+# Invalid: added argument (named)
+msgid  "abc%<foo>udef"
+msgstr "xyz%<zoo>cvw%<foo>u"
+# Invalid: unnamed vs. named arguments
+msgid  "abc%sdef"
+msgstr "xyz%<value>s"
+# Invalid: named vs. unnamed arguments
+msgid  "abc%{value}def"
+msgstr "xyz%s"
+# Valid: unnumbered vs. numbered arguments
+msgid  "abc%sdef%d"
+msgstr "xyz%2$duvw%1$s"
+# Valid: numbered vs. unnumbered arguments
+msgid  "abc%1$sdef%2$d"
+msgstr "xyz%suvw%d"
+# Valid: type compatibility (argument list)
+msgid  "abc%d"
+msgstr "xyz%i"
+# Valid: type compatibility (argument list)
+msgid  "abc%d"
+msgstr "xyz%u"
+# Valid: type compatibility (argument list)
+msgid  "abc%d"
+msgstr "xyz%o"
+# Valid: type compatibility (argument list)
+msgid  "abc%d"
+msgstr "xyz%x"
+# Valid: type compatibility (argument list)
+msgid  "abc%d"
+msgstr "xyz%X"
+# Valid: type compatibility (argument list)
+msgid  "abc%d"
+msgstr "xyz%b"
+# Valid: type compatibility (argument list)
+msgid  "abc%d"
+msgstr "xyz%B"
+# Valid: type compatibility (argument list)
+msgid  "abc%i"
+msgstr "xyz%u"
+# Valid: type compatibility (argument list)
+msgid  "abc%i"
+msgstr "xyz%o"
+# Valid: type compatibility (argument list)
+msgid  "abc%i"
+msgstr "xyz%x"
+# Valid: type compatibility (argument list)
+msgid  "abc%i"
+msgstr "xyz%X"
+# Valid: type compatibility (argument list)
+msgid  "abc%i"
+msgstr "xyz%b"
+# Valid: type compatibility (argument list)
+msgid  "abc%i"
+msgstr "xyz%B"
+# Valid: type compatibility (argument list)
+msgid  "abc%u"
+msgstr "xyz%o"
+# Valid: type compatibility (argument list)
+msgid  "abc%u"
+msgstr "xyz%x"
+# Valid: type compatibility (argument list)
+msgid  "abc%u"
+msgstr "xyz%X"
+# Valid: type compatibility (argument list)
+msgid  "abc%u"
+msgstr "xyz%b"
+# Valid: type compatibility (argument list)
+msgid  "abc%u"
+msgstr "xyz%B"
+# Valid: type compatibility (argument list)
+msgid  "abc%o"
+msgstr "xyz%x"
+# Valid: type compatibility (argument list)
+msgid  "abc%o"
+msgstr "xyz%X"
+# Valid: type compatibility (argument list)
+msgid  "abc%o"
+msgstr "xyz%b"
+# Valid: type compatibility (argument list)
+msgid  "abc%o"
+msgstr "xyz%B"
+# Valid: type compatibility (argument list)
+msgid  "abc%x"
+msgstr "xyz%X"
+# Valid: type compatibility (argument list)
+msgid  "abc%x"
+msgstr "xyz%b"
+# Valid: type compatibility (argument list)
+msgid  "abc%x"
+msgstr "xyz%B"
+# Valid: type compatibility (argument list)
+msgid  "abc%X"
+msgstr "xyz%b"
+# Valid: type compatibility (argument list)
+msgid  "abc%X"
+msgstr "xyz%B"
+# Valid: type compatibility (argument list)
+msgid  "abc%b"
+msgstr "xyz%B"
+# Valid: type compatibility (argument list)
+msgid  "abc%f"
+msgstr "xyz%g"
+# Valid: type compatibility (argument list)
+msgid  "abc%f"
+msgstr "xyz%G"
+# Valid: type compatibility (argument list)
+msgid  "abc%f"
+msgstr "xyz%e"
+# Valid: type compatibility (argument list)
+msgid  "abc%f"
+msgstr "xyz%E"
+# Valid: type compatibility (argument list)
+msgid  "abc%f"
+msgstr "xyz%a"
+# Valid: type compatibility (argument list)
+msgid  "abc%f"
+msgstr "xyz%A"
+# Valid: type compatibility (argument list)
+msgid  "abc%g"
+msgstr "xyz%G"
+# Valid: type compatibility (argument list)
+msgid  "abc%g"
+msgstr "xyz%e"
+# Valid: type compatibility (argument list)
+msgid  "abc%g"
+msgstr "xyz%E"
+# Valid: type compatibility (argument list)
+msgid  "abc%g"
+msgstr "xyz%a"
+# Valid: type compatibility (argument list)
+msgid  "abc%g"
+msgstr "xyz%A"
+# Valid: type compatibility (argument list)
+msgid  "abc%G"
+msgstr "xyz%e"
+# Valid: type compatibility (argument list)
+msgid  "abc%G"
+msgstr "xyz%E"
+# Valid: type compatibility (argument list)
+msgid  "abc%G"
+msgstr "xyz%a"
+# Valid: type compatibility (argument list)
+msgid  "abc%G"
+msgstr "xyz%A"
+# Valid: type compatibility (argument list)
+msgid  "abc%e"
+msgstr "xyz%E"
+# Valid: type compatibility (argument list)
+msgid  "abc%e"
+msgstr "xyz%a"
+# Valid: type compatibility (argument list)
+msgid  "abc%e"
+msgstr "xyz%A"
+# Valid: type compatibility (argument list)
+msgid  "abc%E"
+msgstr "xyz%a"
+# Valid: type compatibility (argument list)
+msgid  "abc%E"
+msgstr "xyz%A"
+# Valid: type compatibility (argument list)
+msgid  "abc%a"
+msgstr "xyz%A"
+# Valid: type compatibility (named)
+msgid  "abc%<foo>d"
+msgstr "xyz%<foo>x"
+# Valid: type compatibility (named)
+msgid  "abc%<foo>s"
+msgstr "xyz%{foo}"
+# Valid: type compatibility (named)
+msgid  "abc%{foo}"
+msgstr "xyz%<foo>s"
+# Invalid: type incompatibility (argument list)
+msgid  "abc%c"
+msgstr "xyz%s"
+# Invalid: type incompatibility (argument list)
+msgid  "abc%c"
+msgstr "xyz%.0s"
+# Invalid: type incompatibility (argument list)
+msgid  "abc%c"
+msgstr "xyz%p"
+# Invalid: type incompatibility (argument list)
+msgid  "abc%c"
+msgstr "xyz%i"
+# Invalid: type incompatibility (argument list)
+msgid  "abc%c"
+msgstr "xyz%e"
+# Invalid: type incompatibility (argument list)
+msgid  "abc%s"
+msgstr "xyz%p"
+# Invalid: type incompatibility (argument list)
+msgid  "abc%s"
+msgstr "xyz%i"
+# Invalid: type incompatibility (argument list)
+msgid  "abc%.0s"
+msgstr "xyz%i"
+# Invalid: type incompatibility (argument list)
+msgid  "abc%s"
+msgstr "xyz%e"
+# Invalid: type incompatibility (argument list)
+msgid  "abc%.0s"
+msgstr "xyz%e"
+# Invalid: type incompatibility (argument list)
+msgid  "abc%p"
+msgstr "xyz%i"
+# Invalid: type incompatibility (argument list)
+msgid  "abc%p"
+msgstr "xyz%e"
+# Invalid: type incompatibility (argument list)
+msgid  "abc%i"
+msgstr "xyz%e"
+# Invalid: type incompatibility (named)
+msgid  "abc%<foo>c"
+msgstr "xyz%<foo>s"
+# Invalid: type incompatibility (named)
+msgid  "abc%<foo>c"
+msgstr "xyz%{foo}"
+# Invalid: type incompatibility (named)
+msgid  "abc%<foo>c"
+msgstr "xyz%<foo>.0s"
+# Invalid: type incompatibility (named)
+msgid  "abc%<foo>c"
+msgstr "xyz%.0{foo}"
+# Invalid: type incompatibility (named)
+msgid  "abc%<foo>c"
+msgstr "xyz%<foo>p"
+# Invalid: type incompatibility (named)
+msgid  "abc%<foo>c"
+msgstr "xyz%<foo>i"
+# Invalid: type incompatibility (named)
+msgid  "abc%<foo>c"
+msgstr "xyz%<foo>e"
+# Invalid: type incompatibility (named)
+msgid  "abc%<foo>s"
+msgstr "xyz%<foo>p"
+# Invalid: type incompatibility (named)
+msgid  "abc%{foo}"
+msgstr "xyz%<foo>p"
+# Invalid: type incompatibility (named)
+msgid  "abc%<foo>s"
+msgstr "xyz%<foo>i"
+# Invalid: type incompatibility (named)
+msgid  "abc%{foo}"
+msgstr "xyz%<foo>i"
+# Invalid: type incompatibility (named)
+msgid  "abc%<foo>.0s"
+msgstr "xyz%<foo>i"
+# Invalid: type incompatibility (named)
+msgid  "abc%.0{foo}"
+msgstr "xyz%<foo>i"
+# Invalid: type incompatibility (named)
+msgid  "abc%<foo>s"
+msgstr "xyz%<foo>e"
+# Invalid: type incompatibility (named)
+msgid  "abc%{foo}"
+msgstr "xyz%<foo>e"
+# Invalid: type incompatibility (named)
+msgid  "abc%<foo>.0s"
+msgstr "xyz%<foo>e"
+# Invalid: type incompatibility (named)
+msgid  "abc%.0{foo}"
+msgstr "xyz%<foo>e"
+# Invalid: type incompatibility (named)
+msgid  "abc%<foo>p"
+msgstr "xyz%<foo>i"
+# Invalid: type incompatibility (named)
+msgid  "abc%<foo>p"
+msgstr "xyz%<foo>e"
+# Invalid: type incompatibility (named)
+msgid  "abc%<foo>i"
+msgstr "xyz%<foo>e"
+# Invalid: type incompatibility for width (argument list)
+msgid  "abc%g%*g"
+msgstr "xyz%*g%g"
+EOF
+
+: ${MSGFMT=msgfmt}
+n=0
+while read comment; do
+  read msgid_line
+  read msgstr_line
+  n=`expr $n + 1`
+  cat <<EOF > f-r-2-$n.po
+#, ruby-format
+${msgid_line}
+${msgstr_line}
+EOF
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if ${MSGFMT} --check-format -o f-r-2-$n.mo f-r-2-$n.po; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    ${MSGFMT} --check-format -o f-r-2-$n.mo f-r-2-$n.po 2> /dev/null
+    if test $? = 1; then
+      :
+    else
+      fail=yes
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string checking error:" 1>&2
+    cat f-r-2-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-r-2-$n.po f-r-2-$n.mo
+done < f-r-2.data
+
+Exit 0

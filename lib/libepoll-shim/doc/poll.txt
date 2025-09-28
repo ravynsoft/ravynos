@@ -1,0 +1,119 @@
+sockets:
+ - POLLIN:
+   1.  sbavail(&(so)->so_rcv) >= (so)->so_rcv.sb_lowat
+     * more in recv buffer than low watermark
+   2.  !TAILQ_EMPTY(&(so)->so_comp)
+     * someone is connecting
+   3.  (so)->so_error
+     * temporary UDP error (?)
+   4.  so->so_rcv.sb_state & SBS_CANTRCVMORE
+     * can't receive any more
+     * behind POLLINIGNEOF
+ - POLLOUT:
+   5.  sbspace(&(so)->so_snd) >= (so)->so_snd.sb_lowat &&
+       (((so)->so_state & SS_ISCONNECTED) ||
+        ((so)->so_proto->pr_flags & PR_CONNREQUIRED) == 0)
+     * more space in send buffer than low watermark
+     * socket must be connected if required by protocol
+   6.  (so)->so_snd.sb_state & SBS_CANTSENDMORE
+     * can't send any more
+   7.  (so)->so_error
+     * socket error
+ - POLLHUP:
+   8.  so->so_rcv.sb_state & SBS_CANTRCVMORE &&
+       so->so_snd.sb_state & SBS_CANTSENDMORE
+     * can neither send nor receive anymore
+     * for a reader, always returns POLLIN|POLLHUP
+     * for a writer, always returns POLLOUT|POLLHUP
+
+ - EVFILT_READ:
+   1. -> kn_data = sbavail(&so->so_rcv) - so->so_rcv.sb_ctl
+   2. -> kn_data = so->so_qlen;
+   3. -> kn_data = sbavail(&so->so_rcv) - so->so_rcv.sb_ctl
+   4. -> kn_data = sbavail(&so->so_rcv) - so->so_rcv.sb_ctl
+      -> kn_flags |= EV_EOF
+      -> kn_fflags = so->so_error
+ - EVFILT_WRITE:
+   5. -> kn_data = sbspace(&so->so_snd)
+   6. -> kn_data = sbspace(&so->so_snd)
+      -> kn_flags |= EV_EOF
+      -> kn_fflags = so->so_error
+   7. -> kn_data = sbspace(&so->so_snd)
+ - EVFILT_READ/EVFILT_WRITE:
+   8.  when EV_EOF set in EVFILT_READ or EVFILT_WRITE:
+       call poll() to check for POLLHUP
+
+
+bidirectional (named) pipes (ignoring PIPE_DIRECTW)
+ - POLLIN:
+   1.  rpipe->pipe_buffer.cnt > 0
+     * some data to read
+   2.  rpipe->pipe_state & PIPE_EOF &&
+       !(rpipe->pipe_state & PIPE_NAMED &&
+         fp->f_flag & FREAD &&
+         fp->f_seqcount == rpipe->pipe_wgen)
+     * don't signal EOF coming from disconnected previous writers if we are
+       a newly connected reader
+ - POLLOUT (only if FWRITE):
+   3.  wpipe->pipe_present != PIPE_ACTIVE
+   4.  wpipe->pipe_state & PIPE_EOF
+   5. (wpipe->pipe_buffer.size - wpipe->pipe_buffer.cnt) >= PIPE_BUF
+   6.  wpipe->pipe_buffer.size == 0
+ - POLLHUP:
+   7.  rpipe->pipe_state & PIPE_EOF &&
+       !(rpipe->pipe_state & PIPE_NAMED &&
+         fp->f_flag & FREAD &&
+         fp->f_seqcount == rpipe->pipe_wgen) &&
+       (wpipe->pipe_present != PIPE_ACTIVE || (wpipe->pipe_state & PIPE_EOF))
+     * same as with POLLIN, but writer must be disconnected
+     * for a reader, always returns POLLIN|POLLHUP, as POLLIN condition 2. is a
+       subset of this condition (even if rpipe->pipe_buffer.cnt == 0)
+
+ - EVFILT_READ:
+   1. -> kn_data = rpipe->pipe_buffer.cnt
+   2. -> kn_data = rpipe->pipe_buffer.cnt
+      -> kn_flags |= EV_EOF
+     * NOTE: this actually checks for
+        rpipe->pipe_state & PIPE_EOF ||
+        wpipe->pipe_present != PIPE_ACTIVE ||
+        wpipe->pipe_state & PIPE_EOF
+     * this is necessary but not sufficient for conditions 2. and 7.
+     * need to recheck with poll() if POLLIN is set
+ - EVFILT_WRITE:
+   3. -> kn_data = 0
+      -> kn_flags |= EV_EOF
+   4. -> kn_data = 0
+      -> kn_flags |= EV_EOF
+   5. -> kn_data = wpipe->pipe_buffer.size - wpipe->pipe_buffer.cnt
+   6. -> kn_data = PIPE_BUF
+ - EVFILT_READ/EVFILT_WRITE:
+   7.  when EV_EOF set in EVFILT_READ or EVFILT_WRITE:
+       call poll() to check for POLLHUP
+
+
+tty:
+ - POLLIN:
+   1.  ttydev_enter error
+   2.  ttydisc_read_poll(tp) > 0
+ - POLLOUT:
+   3.  !(tp->t_flags & TF_ZOMBIE) &&
+       ttydisc_write_poll(tp) > 0
+ - POLLHUP:
+   4.  ttydev_enter error
+   5.  tp->t_flags & TF_ZOMBIE
+
+ - EVFILT_READ:
+   1. -> kn_flags |= EV_EOF;
+   2. -> kn_data = ttydisc_read_poll(tp)
+   4. -> kn_flags |= EV_EOF
+   5. -> kn_flags |= EV_EOF
+ - EVFILT_WRITE:
+   3. -> kn_data = ttydisc_write_poll(tp)
+     * NOTE: this does not check for TF_ZOMBIE!
+   4. -> kn_flags |= EV_EOF
+ - EVFILT_READ/EVFILT_WRITE:
+   4.  when EV_EOF set in EVFILT_READ or EVFILT_WRITE:
+       call poll() to check for POLLHUP
+     * not strictly necessary though
+     * if reliable polling for POLLHUP is needed, EVFILT_READ must be used
+

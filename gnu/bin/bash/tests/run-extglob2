@@ -1,0 +1,4 @@
+PATH=$PATH:`pwd`
+export PATH
+${THIS_SH} ./extglob2.tests | grep -v '^expect' > ${BASH_TSTOUT}
+diff ${BASH_TSTOUT} extglob2.right && rm -f ${BASH_TSTOUT}

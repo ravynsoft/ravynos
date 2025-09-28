@@ -1,0 +1,67 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test checking of Qt plural format strings.
+
+cat <<\EOF > f-qtp-2.data
+# Valid: %1 doesn't count
+msgid  "abc%1def"
+msgstr "xyz"
+# Valid: same arguments
+msgid  "abc%ndef"
+msgstr "xyz%n"
+# Valid: same arguments, L option is ignored
+msgid  "abc%Lndef"
+msgstr "xyz%n"
+# Valid: same arguments, L option is ignored
+msgid  "abc%ndef"
+msgstr "xyz%Ln"
+# Valid: repetition of an argument in the translation
+msgid  "abc%ndef"
+msgstr "xyz%nuvw%n"
+# Valid: removing repeated argument in the translation
+msgid  "abc%ndef%n"
+msgstr "xyz%nuvw"
+# Invalid: too few arguments
+msgid  "abc%ndef"
+msgstr "xyz"
+# Invalid: too many arguments
+msgid  "abcdef"
+msgstr "xyz%nuvw"
+EOF
+
+: ${MSGFMT=msgfmt}
+n=0
+while read comment; do
+  read msgid_line
+  read msgstr_line
+  n=`expr $n + 1`
+  cat <<EOF > f-qtp-2-$n.po
+#, qt-plural-format
+${msgid_line}
+${msgstr_line}
+EOF
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if ${MSGFMT} --check-format -o f-qtp-2-$n.mo f-qtp-2-$n.po; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    ${MSGFMT} --check-format -o f-qtp-2-$n.mo f-qtp-2-$n.po 2> /dev/null
+    if test $? = 1; then
+      :
+    else
+      fail=yes
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string checking error:" 1>&2
+    cat f-qtp-2-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-qtp-2-$n.po f-qtp-2-$n.mo
+done < f-qtp-2.data
+
+Exit 0

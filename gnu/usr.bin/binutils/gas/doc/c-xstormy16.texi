@@ -1,0 +1,104 @@
+@c Copyright (C) 2010-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+
+@node XSTORMY16-Dependent
+@chapter XStormy16 Dependent Features
+
+@cindex XStormy16 support
+@menu
+* XStormy16 Syntax::               Syntax
+* XStormy16 Directives::           Machine Directives
+* XStormy16 Opcodes::              Pseudo-Opcodes
+@end menu
+
+@node XStormy16 Syntax
+@section Syntax
+@menu
+* XStormy16-Chars::                Special Characters
+@end menu
+
+@node XStormy16-Chars
+@subsection Special Characters
+
+@cindex line comment character, XStormy16
+@cindex XStormy16 line comment character
+@samp{#} is the line comment character.  If a @samp{#} appears as the
+first character of a line, the whole line is treated as a comment, but
+in this case the line can also be a logical line number directive
+(@pxref{Comments}) or a preprocessor control command
+(@pxref{Preprocessing}).
+
+@cindex comment character, XStormy16
+@cindex XStormy16 comment character
+A semicolon (@samp{;}) can be used to start a comment that extends
+from wherever the character appears on the line up to the end of the
+line.
+
+@cindex line separator, XStormy16
+@cindex statement separator, XStormy16
+@cindex XStormy16 line separator
+
+The @samp{|} character can be used to separate statements on the same
+line.
+
+
+@node XStormy16 Directives
+@section XStormy16 Machine Directives
+
+@cindex machine directives, XStormy16
+@cindex XStormy16 machine directives
+@table @code
+
+@cindex @code{16bit_pointers} directive, XStormy16
+@item .16bit_pointers
+Like the @option{--16bit-pointers} command-line option this directive
+indicates that the assembly code makes use of 16-bit pointers.
+
+@cindex @code{32bit_pointers} directive, XStormy16
+@item .32bit_pointers
+Like the @option{--32bit-pointers} command-line option this directive
+indicates that the assembly code makes use of 32-bit pointers.
+
+@cindex @code{.no_pointers} directive, XStormy16
+@item .no_pointers
+Like the @option{--no-pointers} command-line option this directive
+indicates that the assembly code does not makes use pointers.
+
+@end table
+
+@node XStormy16 Opcodes
+@section XStormy16 Pseudo-Opcodes
+
+@cindex XStormy16 pseudo-opcodes
+@cindex pseudo-opcodes for XStormy16
+@code{@value{AS}} implements all the standard XStormy16 opcodes.
+
+@code{@value{AS}} also implements the following pseudo ops:
+
+@table @code
+
+@cindex @code{@@lo} pseudo-op, XStormy16
+@item @@lo()
+Computes the lower 16 bits of the given expression and stores it into
+the immediate operand field of the given instruction.  For example:
+
+    @samp{add r6, @@lo(here - there)}
+
+computes the difference between the address of labels 'here' and
+'there', takes the lower 16 bits of this difference and adds it to
+register 6.
+
+@cindex @code{@@hi} pseudo-op, XStormy16
+@item @@hi()
+Computes the higher 16 bits of the given expression and stores it into
+the immediate operand field of the given instruction.  For example:
+
+    @samp{addc r7, @@hi(here - there)}
+
+computes the difference between the address of labels 'here' and
+'there', takes the upper 16 bits of this difference, shifts it down 16
+bits and then adds it, along with the carry bit, to the value in
+register 7.
+
+@end table

@@ -1,0 +1,76 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# test the effect of quotes on the WORD in the posix pattern removal operators
+#
+x=notOK
+x1=not
+
+cat <<EOF
+1: ${x#$'not'}
+2: $'not'
+3: ${x#"not"}
+4: ${x#'not'}
+5: ${x#${x1%'t'}}
+EOF
+
+echo "${x#'not'}"
+echo "${x#$'not'}"
+
+echo "$'not'"
+echo "${x#"not"}"
+echo "${x#${x1%'t'}}"
+
+cat <<EOF
+6: $'not\ttoo\nbad'
+EOF
+
+x=OK$'a\t\'\tb'
+echo OK$'a\t\'\tb'
+echo "$x"
+
+cat <<EOF
+7: ${x%$'a\t\'\tb'}
+8: ${x#$'a\t\'\tb'}
+EOF
+
+x=OK'a	"	b'
+
+cat <<EOF
+9: ${x#'a	"	b'}
+10: ${x#$'a	"	b'}
+EOF
+
+x=notOK
+x1=not
+
+# extquote makes these work
+echo "${x#${$'x1'%$'t'}}"
+cat <<EOF
+${x#${$'x1'%$'t'}}
+EOF
+echo "${x#${$'x1'%'t'}}"
+cat <<EOF
+${x#${$'x1'%'t'}}
+EOF
+
+# syntax errors
+
+echo "${x#${'x1'%'t'}}"
+cat <<EOF
+${x#${'x1'%'t'}}
+EOF
+echo "${x#${'x1'%$'t'}}"
+cat <<EOF
+${x#${'x1'%$'t'}}
+EOF

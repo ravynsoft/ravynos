@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=@libdir@
+includedir=${prefix}/include
+
+Name: avahi-qt3
+Description: Avahi Multicast DNS Responder (QT3 Support)
+Version: @PACKAGE_VERSION@
+Requires.private: qt-mt >= 3.0.0
+Libs: -L${libdir} -lavahi-qt3
+Cflags: -D_REENTRANT -I${includedir}

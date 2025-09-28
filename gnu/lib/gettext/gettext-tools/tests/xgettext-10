@@ -1,0 +1,36 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --add-location=file option.
+
+cat <<\EOF > xg-test10a.c
+gettext ("foo");
+EOF
+
+cat <<\EOF > xg-test10b.c
+gettext ("foo");
+gettext ("bar");
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-location=file --omit-header xg-test10a.c xg-test10b.c \
+            -o xg-test10.out >xg-test10.err 2>&1
+result=$?
+cat xg-test10.err | grep -v 'warning: Charset' | grep -v '^ '
+test $result = 0 || { Exit 1; }
+
+cat <<\EOF > xg-test10.ok
+#: xg-test10a.c xg-test10b.c
+msgid "foo"
+msgstr ""
+
+#: xg-test10b.c
+msgid "bar"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-test10.ok xg-test10.out
+result=$?
+
+exit $result

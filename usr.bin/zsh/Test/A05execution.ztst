@@ -1,0 +1,417 @@
+%prep
+
+  storepath=($path)
+
+  mkdir command.tmp command.tmp/dir1 command.tmp/dir2
+
+  cd command.tmp
+
+  shcmd="$(which sh)"
+  shpath=${shcmd:h}
+  echocmd="$(which -p echo)"
+  echopath=${echocmd:h}
+  print "#!${shcmd}\necho This is top" >tstcmd
+
+  print "#!${shcmd}\necho This is dir1" >dir1/tstcmd
+
+  print "#!${shcmd}\necho This is dir2" >dir2/tstcmd
+
+  print -n '#!sh\necho This is slashless' >tstcmd-slashless
+  print -n '#!echo foo\necho This is arg' >tstcmd-arg
+  print '#!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxnyyy' >tstcmd-interp-too-long
+  print "#!${sh}\necho should not execute; exit 1" >xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxn
+
+  chmod 755 tstcmd dir1/tstcmd dir2/tstcmd
+  chmod 755 tstcmd-slashless tstcmd-arg tstcmd-interp-too-long
+  chmod 755 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxn
+
+%test
+  ./tstcmd
+0:./prog execution
+>This is top
+
+  path=($ZTST_testdir/command.tmp/dir1
+        $ZTST_testdir/command.tmp/dir2
+        .)
+  tstcmd
+  path=($storepath)
+0:path (1)
+>This is dir1
+
+  path=(. command.tmp/dir{1,2})
+  tstcmd
+  path=($storepath)
+0:path (2)
+>This is top
+
+  PATH=${shpath}:${ZTST_testdir}/command.tmp/ tstcmd-slashless
+0:path (3)
+>This is slashless
+
+  PATH=${echopath}:${ZTST_testdir}/command.tmp tstcmd-arg
+0:path (4)
+*>foo */command.tmp/tstcmd-arg
+
+  # Just check this exits with non-zero status,
+  # as output and status code can differ.
+  (
+    path=($shpath $echopath ${ZTST_testdir}/command.tmp/)
+    if tstcmd-interp-too-long >/dev/null 2>&1; then
+      exit 0
+    else
+      exit 1
+    fi
+  )
+1:path (5)
+
+  functst() { print $# arguments:; print -l $*; }
+  functst "Eines Morgens" "als Gregor Samsa"
+  functst ""
+  functst "aus unrühigen Träumen erwachte"
+  foo="fand er sich in seinem Bett"
+  bar=
+  rod="zu einem ungeheuren Ungeziefer verwandelt."
+  functst $foo $bar $rod
+# set up alias for next test
+  alias foo='print This is alias one'
+0:function argument passing
+>2 arguments:
+>Eines Morgens
+>als Gregor Samsa
+>1 arguments:
+>
+>1 arguments:
+>aus unrühigen Träumen erwachte
+>2 arguments:
+>fand er sich in seinem Bett
+>zu einem ungeheuren Ungeziefer verwandelt.
+
+  alias foo='print This is alias two'
+  fn() { foo; }
+  fn
+0:Aliases in functions
+>This is alias one
+
+  foo='Global foo'
+  traptst() { local foo="Local foo"; trap 'print $foo' EXIT; }
+  traptst
+0:EXIT trap environment
+>Global foo
+
+  functst() { return 0; print Ha ha; return 1; }
+  functst
+0:return (1)
+
+  functst() { return 1; print Ho ho; return 0; }
+  functst
+1:return (2)
+
+  unfunction functst
+  fpath=(.)
+  print "print This is functst." >functst
+  autoload functst
+  functst
+0:autoloading (1)
+>This is functst.
+
+  unfunction functst
+  print "functst() { print This, too, is functst; }; print Hello." >functst
+  typeset -fu functst
+  functst
+  functst
+0:autoloading with initialization
+>Hello.
+>This, too, is functst
+
+  unfunction functst
+  print "print Yet another version" >functst
+  functst() { autoload -X; }
+  functst
+0:autoloading via -X
+>Yet another version
+
+  chpwd() { print Changed to $PWD; }
+  cd .
+  unfunction chpwd
+0q:chpwd
+>Changed to $ZTST_testdir/command.tmp
+
+  chpwd() { print chpwd: changed to $PWD; }
+  chpwdfn1()  { print chpwdfn1: changed to $PWD; }
+  chpwdfn2()  { print chpwdfn2: changed to $PWD; }
+  chpwd_functions=(chpwdfn1 '' chpwdnonexistentfn chpwdfn2)
+  cd .
+  unfunction chpwd
+  unset chpwd_functions
+0q:chpwd_functions
+>chpwd: changed to $ZTST_testdir/command.tmp
+>chpwdfn1: changed to $ZTST_testdir/command.tmp
+>chpwdfn2: changed to $ZTST_testdir/command.tmp
+
+# Hard to test periodic, precmd and preexec non-interactively.
+
+  fn() { TRAPEXIT() { print Exit; }; }
+  fn
+0:TRAPEXIT
+>Exit
+
+  unsetopt DEBUG_BEFORE_CMD
+  unfunction fn
+  print 'TRAPDEBUG() {
+      print Line $LINENO
+    }
+    :
+    unfunction TRAPDEBUG
+  ' > fn
+  autoload fn
+  fn
+  rm fn
+0:TRAPDEBUG
+>Line 1
+>Line 1
+
+  unsetopt DEBUG_BEFORE_CMD
+  unfunction fn
+  print 'trap '\''print Line $LINENO'\'' DEBUG
+    :
+    trap - DEBUG
+  ' > fn
+  autoload fn
+  fn
+  rm fn
+0:trap DEBUG
+>Line 1
+>Line 2
+
+  TRAPZERR() { print Command failed; }
+  true
+  false
+  true
+  false
+  unfunction TRAPZERR
+0:TRAPZERR
+>Command failed
+>Command failed
+
+  trap 'print Command failed again.' ZERR
+  true
+  false
+  true
+  false
+  trap - ZERR
+0:trap ZERR
+>Command failed again.
+>Command failed again.
+
+  false
+  sleep 1000 &
+  print $?
+  kill $!
+0:Status reset by starting a backgrounded command
+>0
+
+  { setopt MONITOR } 2>/dev/null
+  [[ -o MONITOR ]] || print -u $ZTST_fd 'Unable to change MONITOR option'
+  repeat 2048; do (return 2 |
+                   return 1 |
+                   while true; do
+                             false
+                             break
+                           done;
+                   print "${pipestatus[@]}")
+	ZTST_hashmark
+  done | sort | uniq -c | sed 's/^ *//'
+0:Check whether '$pipestatus[]' behaves.
+>2048 2 1 0
+F:This test checks for a bug in '$pipestatus[]' handling.  If it breaks then
+F:the bug is still there or it reappeared. See workers-29973 for details.
+
+  { setopt MONITOR } 2>/dev/null
+  externFunc() { awk >/dev/null 2>&1; true; }
+  false | true | false | true | externFunc
+  echo $pipestatus
+0:Check $pipestatus with a known difficult case
+>1 0 1 0 0
+F:This similar test was triggering a reproducible failure with pipestatus.
+
+  { unsetopt MONITOR } 2>/dev/null
+  coproc { read -et 5 || { print -u $ZTST_fd KILLED; kill -HUP -$$ } }
+  print -u $ZTST_fd 'This test takes 5 seconds to fail...'
+  { printf "%d\n" {1..20000} } 2>/dev/null | ( read -e )
+  hang(){ printf "%d\n" {2..20000} | cat }; hang 2>/dev/null | ( read -e )
+  print -p done
+  read -et 6 -p
+0:Bug regression: piping a shell construct to an external process may hang
+>1
+>2
+>done
+F:This test checks for a file descriptor leak that could cause the left
+F:side of a pipe to block on write after the right side has exited
+
+  { setopt MONITOR } 2>/dev/null
+  if [[ -o MONITOR ]]
+  then
+   ( while :; do print "This is a line"; done ) | () : &
+   sleep 1
+   jobs -l
+  else
+   print -u $ZTST_fd "Skipping pipe leak test, requires MONITOR option"
+   print "[0] 0 0"
+  fi
+0:Bug regression: piping to anonymous function; piping to background function
+*>\[<->\] <-> <->
+F:This test checks for two different bugs, a parser segfault piping to an
+F:anonymous function, and a descriptor leak when backgrounding a pipeline
+
+  print "autoload_redir() { print Autoloaded ksh style; } >autoload.log" >autoload_redir
+  autoload -Uk autoload_redir
+  autoload_redir
+  print No output yet
+  cat autoload.log
+  functions autoload_redir
+0:
+>No output yet
+>Autoloaded ksh style
+>autoload_redir () {
+>	print Autoloaded ksh style
+>} > autoload.log
+
+# This tests that we record the status of processes that have already exited
+# for when we wait for them.
+#
+# Actually, we don't guarantee here that the jobs have already exited, but
+# the order of the waits means it's highly likely we do need to recall a
+# previous status, barring accidents which shouldn't happen very often.  In
+# other words, we rely on the test working repeatedly rather than just
+# once.  The monitor option is irrelevant to the logic, so we'll make
+# our job easier by turning it off.
+  { unsetopt MONITOR } 2>/dev/null
+  (exit 1) &
+  one=$!
+  (exit 2) &
+  two=$!
+  (exit 3) &
+  three=$!
+  wait $three
+  print $?
+  wait $two
+  print $?
+  wait $one
+  print $?
+0:The status of recently exited background jobs is recorded
+>3
+>2
+>1
+
+# Regression test for workers/34060 (patch in 34065)
+  setopt ERR_EXIT NULL_GLOB
+  if false; then :; else echo if:$?; fi
+  if false; then :; else for x in _*_; do :; done; echo for:$?; fi
+0:False "if" condition handled correctly by "for" loops with ERR_EXIT
+>if:1
+>for:0
+
+# Regression test for workers/34065 (uses setopt from preceding test)
+  select x; do :; done; echo $?
+  select x in; do :; done; echo $?
+  select x in _*_; do :; done; echo $?
+  unsetopt ERR_EXIT NULL_GLOB
+0:The status of "select" is zero when the loop body does not execute
+>0
+>0
+>0
+
+# Regression test for workers/36392
+  print -u $ZTST_fd 'This test takes 3 seconds and hangs the shell when it fails...'
+  callfromchld() { true && { print CHLD } }
+  TRAPCHLD() { callfromchld }
+  sleep 2 & sleep 3; print OK
+  unfunction TRAPCHLD # don't affect future tests
+0:Background job exit does not affect reaping foreground job
+>CHLD
+>OK
+
+# Regression test for workers/39839 and workers/39844
+  () { if return 11; then :; fi }; echo $?
+  () { while return 13; do :; done }; echo $?
+  () { until return 17; do :; done }; echo $?
+  () { until false; do return 19; done }; echo $?
+0:"return" in "if" or "while" conditional
+>11
+>13
+>17
+>19
+
+# Test 'wait' for unknown job/process ID.
+  wait 1
+  echo $?
+  wait %%
+  echo $?
+  wait %+
+  echo $?
+  wait %-
+  echo $?
+  wait %1
+  echo $?
+  wait %foo
+  echo $?
+  wait %\?bar
+127:'wait' exit status and warning for unknown ID
+>127
+>127
+>127
+>127
+>127
+>127
+?(eval):wait:1: pid 1 is not a child of this shell
+?(eval):wait:3: %%: no such job
+?(eval):wait:5: %+: no such job
+?(eval):wait:7: %-: no such job
+?(eval):wait:9: %1: no such job
+?(eval):wait:11: job not found: foo
+?(eval):wait:13: job not found: ?bar
+
+# Test 'wait' for unknown job/process ID (POSIX mode).
+  (setopt POSIX_BUILTINS
+  wait 1
+  echo $?
+  wait %%
+  echo $?
+  wait %+
+  echo $?
+  wait %-
+  echo $?
+  wait %1
+  echo $?
+  wait %foo
+  echo $?
+  wait %\?bar)
+127:'wait' exit status for unknown ID (POSIX mode)
+>127
+>0
+>127
+>127
+>127
+>127
+# TBD: the 0 above is believed to be bogus and should also be turned
+# into 127 when the ccorresponding bug is fixed in the main shell.
+
+# Without the outer subshell, the test harness reports the pre-46060 behaviour
+# as "skipped" rather than "failed".
+ (( exit 130 ) | { sleep 1; echo hello })
+0:exit code 130 isn't mistaken for a signal (unit test for workers/46060)
+>hello
+
+  (exit 3); repeat "$?" echo x
+  (exit 3); repeat '?' echo y
+0:'repeat' loop can use lastval in the count
+>x
+>x
+>x
+>y
+>y
+>y
+
+ (exit 4); repeat 0 do done
+0:'repeat 0' resets lastval
+

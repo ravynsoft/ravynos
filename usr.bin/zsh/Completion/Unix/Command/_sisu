@@ -1,0 +1,62 @@
+#compdef sisu
+
+local curcontext="$curcontext" state line ret=1
+typeset -A opt_args
+
+_arguments -s -C -M 'r:|[_-]=* r:|=*' \
+  '(--convert --to -C)-U[prints to screen url output map of available output possibilities]' \
+  '(--convert --to -C)-u[url mapping of output files for requested processing flags]' \
+  '(--convert --to -C)-V[more verbose than -v]' \
+  '(--convert --to -C)-v[verbose]' \
+  '--no-ocn[-\[hHp\]switches off object citation numbering]' \
+  '--no-annotate[-\[mhHpoxXabN\] strips output text of additional editors endnotes]' \
+  '(--convert --to -C)-A[plaintext with dos line-feeds, footnotes follow paragraphs in which they occur]' \
+  '(--convert --to -C)-a[plaintext with Unix line-feeds, footnotes follow paragraphs in which they occur]' \
+  '(--convert --to -C)-b[XHTML output]' \
+  '(- *)-C[initialise site]' \
+  '(--convert --to -C)-c[toggle screen color on or off depending on set default]' \
+  '(--convert --to -C)-E[plaintext with dos line-feeds, endnotes following main text]' \
+  '(--convert --to -C)-e[plaintext with Unix line-feeds, endnotes following main text]' \
+  '(--convert --to -C)-F[generate sample cgi web search form \[--webserv=webrick for sisu webrick url\]]' \
+  '(--convert --to -C -h)-H[HTML output, without link suffixes]' \
+  '(--convert --to -C -H)-h[HTML output]' \
+  '(--convert --to -C)-I[texinfo output, not maintained]' \
+  '(--convert --to -C)-L[print license info]' \
+  '(--convert --to -C)-M[maintenance mode, retain intermediate processing files]' \
+  '(--convert --to -C)-m[create intermediate markup file, metaverse, assumed for most output instructions]' \
+  '(--convert --to -C)-N[document content certificate, output document digests]' \
+  '(--convert --to -C)-n[skip intermediate markup, skip -m]' \
+  '(--convert --to -C)-o[Open Document text format output]' \
+  '(--convert --to -C)-p[LaTeX pdf output]' \
+  '(--convert --to -C)-q[quiet mode]' \
+  '(--convert --to -C)-R[post output to remote host using rsync, requires pre-configuration]' \
+  '(--convert --to -C)-r[post output to remote host using scp, requires pre-configuration]' \
+  '(--convert --to -C)-S[produces and shares tarred gzipped markup source document with associated images etc.]' \
+  '(--convert --to -C)-s[shares markup source]' \
+  '(--convert --to -C)-t[termsheet, preprocessing]' \
+  '(- *)-W[starts ruby webrick server]' \
+  '(--convert --to -C)-w[concordance file]' \
+  '(--convert --to -C)-X[XML dom style]' \
+  '(--convert --to -C)-x[XML sax style]' \
+  '(--convert --to -C)-y[output summary page, manifest of existing generated output]' \
+  '(--convert --to -C)-Z[zap delete/destroy output]' \
+  '--import[-\[Dd\] imports document to database]' \
+  '--update[-\[Dd\] updates document in database]' \
+  '--remove[-\[Dd\] removes document from database]' \
+  '--dropall[-\[Dd\] drops database, tables, indexes, all!]' \
+  '--create[-\[Dd\] creates new database - tables, indexes, etc.]' \
+  '--recreate[-\[Dd\] drops database, killing data and creates new empty database - tables, indexes, etc.]' \
+  '(--convert --to -C)-D[postgresql database instruction]' \
+  '(--convert --to -C)-d[sqlite database instruction]' \
+  '(- *)--help[display help information]' \
+  '(--convert --to -C -2 -3 -4 -5)-1[shortcut, initial default -mNHwpy]' \
+  '(--convert --to -C -1 -3 -4 -5)-2[shortcut, initial default -mNHwpaoy]' \
+  '(--convert --to -C -1 -2 -4 -5)-3[shortcut, initial default -mNHwpaobxXy]' \
+  '(--convert --to -C -1 -2 -3 -5)-4[shortcut, initial default -mNHwpaobxXDy --import]' \
+  '(--convert --to -C -1 -2 -3 -4)-5[shortcut, initial default -mNHwpaobxXDy --update]' \
+  '--to=node[XML node based input representation, experimental]' \
+  '--to=sax[XML sax based input representation, experimental]' \
+  '--to=dom[XML dom based input representation, experimental]' \
+  '--convert=footnotes[embedded footnotes]' \
+  '--to=current[current markup]' \
+  '*:SiSU files:_files -g "*.(sst|ssm)(-.)"'

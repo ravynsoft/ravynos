@@ -1,0 +1,70 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+var=$'\01\02\03\177'
+
+bar=${unset:-$var}
+recho "$bar"
+unset -v bar
+bar=${unset:-"$var"}
+recho "$bar"
+
+foo=${parameter:=$var}
+
+recho "$foo"
+recho "$parameter"
+
+unset -v foo parameter
+
+foo=${parameter:="$var"}
+
+recho "$foo"
+recho "$parameter"
+
+unset -v foo parameter
+
+foo="${parameter:=$var}"
+
+recho "$foo"
+recho "$parameter"
+
+unset -v foo parameter
+
+recho ${parameter:=a\ b}
+unset -v parameter
+
+recho ${parameter:="a b"}
+unset -v parameter
+
+v='a b'
+
+recho ${parameter:=$v}
+unset -v parameter
+
+recho ${parameter:="$v"}
+unset -v parameter
+
+# unsetting IFS here
+
+set "  abc  " " def  ghi " "jkl "
+unset -v IFS var
+var=${var-$*}/${var-$*}
+printf '[%s]\n' "$var"
+
+unset -v var
+: ${var=$*}
+printf '[%s]\n' "$var"
+
+unset -v var
+: ${var:=$*/$*/${var-$*}}
+printf '[%s]\n' "$var"

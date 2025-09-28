@@ -1,0 +1,175 @@
+COMMENT(!MOD!zsh/net/tcp
+Manipulation of TCP sockets
+!MOD!)
+The tt(zsh/net/tcp) module makes available one builtin command:
+
+startitem()
+findex(ztcp)
+cindex(TCP)
+cindex(sockets, TCP)
+item(tt(ztcp) [ tt(-acflLtv) ] [ tt(-d) var(fd) ] [ var(args) ])(
+tt(ztcp) is implemented as a builtin to allow full use of shell
+command line editing, file I/O, and job control mechanisms.
+
+If tt(ztcp) is run with no options, it will output
+the contents of its session table.
+
+If it is run with only the option tt(-L), it will output the contents of
+the session table in a format suitable for automatic parsing.  The option
+is ignored if given with a command to open or close a session.  The output
+consists of a set of lines, one per session, each containing the following
+elements separated by spaces:
+
+startitem()
+item(File descriptor)(
+The file descriptor in use for the connection.  For normal inbound (tt(I))
+and outbound (tt(O)) connections this may be read and written by the usual
+shell mechanisms.  However, it should only be close with `tt(ztcp -c)'.
+)
+item(Connection type)(
+A letter indicating how the session was created:
+
+startitem()
+item(tt(Z))(
+A session created with the tt(zftp) command.
+)
+item(tt(L))(
+A connection opened for listening with `tt(ztcp -l)'.
+)
+item(tt(I))(
+An inbound connection accepted with `tt(ztcp -a)'.
+)
+item(tt(O))(
+An outbound connection created with `tt(ztcp) var(host) var(...)'.
+)
+enditem()
+
+)
+item(The local host)(
+This is usually set to an all-zero IP address as the address of the
+localhost is irrelevant.
+)
+item(The local port)(
+This is likely to be zero unless the connection is for listening.
+)
+item(The remote host)(
+This is the fully qualified domain name of the peer, if available, else an
+IP address.  It is an all-zero IP address for a session opened for
+listening.
+)
+item(The remote port)(
+This is zero for a connection opened for listening.
+)
+enditem()
+)
+enditem()
+
+subsect(Outbound Connections)
+cindex(sockets, outbound TCP)
+
+startitem()
+item(tt(ztcp) [ tt(-v) ] [ tt(-d) var(fd) ] var(host) [ var(port) ])(
+Open a new TCP connection to var(host).  If the var(port) is
+omitted, it will default to port 23.  The connection will
+be added to the session table and the shell parameter
+tt(REPLY) will be set to the file descriptor associated
+with that connection.
+
+If tt(-d) is specified, its argument will be taken as the target file
+descriptor for the connection.
+
+In order to elicit more verbose output, use tt(-v).
+)
+enditem()
+
+subsect(Inbound Connections)
+cindex(sockets, inbound TCP)
+
+startitem()
+item(tt(ztcp) tt(-l) [ tt(-v) ] [ tt(-d) var(fd) ] var(port))(
+tt(ztcp -l) will open a socket listening on TCP
+var(port).  The socket will be added to the
+session table and the shell parameter tt(REPLY)
+will be set to the file descriptor associated
+with that listener.
+
+If tt(-d) is specified, its argument will be taken as the target file
+descriptor for the connection.
+
+In order to elicit more verbose output, use tt(-v).
+)
+item(tt(ztcp) tt(-a) [ tt(-tv) ] [ tt(-d) var(targetfd) ] var(listenfd))(
+tt(ztcp -a) will accept an incoming connection
+to the port associated with var(listenfd).
+The connection will be added to the session
+table and the shell parameter tt(REPLY) will
+be set to the file descriptor associated with
+the inbound connection.
+
+If tt(-d) is specified, its argument
+will be taken as the target file descriptor for the
+connection.
+
+If tt(-t) is specified, tt(ztcp) will return
+if no incoming connection is pending.  Otherwise
+it will wait for one.
+
+In order to elicit more verbose output, use tt(-v).
+)
+enditem()
+
+subsect(Closing Connections)
+cindex(sockets, closing TCP)
+
+startitem()
+xitem(tt(ztcp) tt(-cf) [ tt(-v) ] [ var(fd) ])
+item(tt(ztcp) tt(-c) [ tt(-v) ] [ var(fd) ])(
+tt(ztcp -c) will close the socket associated
+with var(fd).  The socket will be removed from the
+session table.  If var(fd) is not specified,
+tt(ztcp) will close everything in the session table.
+
+Normally, sockets registered by zftp (see
+ifzman(\
+zmanref(zshmodules)
+)\
+ifnzman(\
+noderef(The zsh/zftp Module)
+)) cannot be closed this way.  In order
+to force such a socket closed, use tt(-f).
+
+In order to elicit more verbose output, use tt(-v).
+)
+enditem()
+
+subsect(Example)
+cindex(TCP, example)
+Here is how to create a TCP connection between two instances of zsh.  We
+need to pick an unassigned port; here we use the randomly chosen 5123.
+
+On tt(host1),
+example(zmodload zsh/net/tcp
+ztcp -l 5123
+listenfd=$REPLY
+ztcp -a $listenfd
+fd=$REPLY)
+The second from last command blocks until there is an incoming connection.
+
+Now create a connection from tt(host2) (which may, of course, be the same
+machine):
+example(zmodload zsh/net/tcp
+ztcp host1 5123
+fd=$REPLY)
+
+Now on each host, tt($fd) contains a file descriptor for talking to the
+other.  For example, on tt(host1):
+example(print This is a message >&$fd)
+and on tt(host2):
+example(read -r line <&$fd; print -r - $line)
+prints `tt(This is a message)'.
+
+To tidy up, on tt(host1):
+example(ztcp -c $listenfd
+ztcp -c $fd)
+and on tt(host2)
+example(ztcp -c $fd)

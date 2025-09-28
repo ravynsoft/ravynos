@@ -1,0 +1,39 @@
+# GOT layout:
+#
+# -32752: lazy resolution function
+# -32748: reserved for module pointer
+# -32744: the GOT page entry
+# -32740: foo's GOT entry
+# -32736: ext's GOT entry
+
+.*
+
+Disassembly of section \.text:
+
+00000800 <foo>:
+ 800:	3c1c0001 	lui	gp,0x1
+ 804:	279c7bf0 	addiu	gp,gp,31728
+ 808:	0399e021 	addu	gp,gp,t9
+ 80c:	8f99801c 	lw	t9,-32740\(gp\)
+ 810:	8f828018 	lw	v0,-32744\(gp\)
+ 814:	03200008 	jr	t9
+ 818:	24420000 	addiu	v0,v0,0
+
+0000081c <bar>:
+ 81c:	f000 6a01 	li	v0,1
+ 820:	f3cf 0a10 	la	v0,83f0 .*
+ 824:	f400 3240 	sll	v0,16
+ 828:	e269      	addu	v0,v1
+ 82a:	f030 9a60 	lw	v1,-32736\(v0\)
+ 82e:	659a      	move	gp,v0
+ 830:	eb00      	jr	v1
+ 832:	653b      	move	t9,v1
+#...
+Disassembly of section \.MIPS\.stubs:
+
+00000c00 <_MIPS_STUBS_>:
+ c00:	8f998010 	lw	t9,-32752\(gp\)
+ c04:	03e07825 	move	t7,ra
+ c08:	0320f809 	jalr	t9
+ c0c:	24180003 	li	t8,3
+	\.\.\.

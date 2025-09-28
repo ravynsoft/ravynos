@@ -1,0 +1,45 @@
+Container images are stored in https://hub.docker.com/repositories as
+user sudoproject.  Build images are named based on the distro and use
+the tag to differentiate between different versions and architectures.
+There should always be a "latest" tag (or manifest).
+
+When creating a new Dockerfile, use one of the Debian or Fedora files
+as a template.  The examples below use podman rather than docker but it
+should be possible to them interchangeably.
+
+To build Debian containers for both amd64 and i386 (others only have amd64):
+
+    podman build --arch amd64 --pull -t sudoproject/debian:latest.amd64 \
+	docker/debian/latest
+    podman build --arch 386 --pull -t sudoproject/debian:latest.i386 \
+	docker/debian/latest
+
+Then push it to dockerhub (may need to run "podman login" first):
+    podman push sudoproject/debian:latest.amd64
+    podman push sudoproject/debian:latest.i386
+
+Multi-arch containers are supported by creating a manifest, e.g.:
+    podman manifest create sudoproject/debian:latest
+    podman manifest add sudoproject/debian:latest \
+	sudoproject/debian:latest.amd64
+    podman manifest add sudoproject/debian:latest \
+	sudoproject/debian:latest.i386
+
+Finally push the manifest to dockerhub:
+    podman push sudoproject/debian:latest
+
+When building bleeding edge images it is possible that the seccomp
+filter will be out of date with respect to system calls.  It may
+be necessary to pass podman the --security-opt=seccomp=unconfined
+option in this case.
+
+Note that memory sanitizer uses ptrace which is not allowed for
+non-root containers by default.  This will cause a failure when
+running the tests if sudo is configured with --enable-sanitizer.
+The simplest solution is to run the container with the SYS_PTRACE
+capability.  E.g.
+    podman run -it --cap-add SYS_PTRACE ...
+
+Alternately, disable leak sanitizer by setting
+    ASAN_OPTIONS=detect_leaks=0
+in the environment of the container doing "make check".

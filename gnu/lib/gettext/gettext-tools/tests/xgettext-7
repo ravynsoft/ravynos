@@ -1,0 +1,37 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of comment extraction in the case of duplicated msgids.
+
+cat <<\EOF > xg-test7.c
+/* first comment */
+/* xgettext: c-format */
+gettext ("abc");
+
+/* first comment */
+/* xgettext: lisp-format */
+gettext ("abc");
+
+/* second comment */
+/* xgettext: python-format */
+gettext ("abc");
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --add-comments -d xg-test7.tmp xg-test7.c || Exit 1
+LC_ALL=C tr -d '\r' < xg-test7.tmp.po > xg-test7.po || Exit 1
+
+cat <<\EOF > xg-test7.ok
+#. first comment
+#. second comment
+#: xg-test7.c:3 xg-test7.c:7 xg-test7.c:11
+#, c-format, python-format, lisp-format
+msgid "abc"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-test7.ok xg-test7.po
+result=$?
+
+exit $result

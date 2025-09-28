@@ -1,0 +1,24 @@
+#compdef -k complete-word \C-xm
+
+# Complete the most recently modified file matching the pattern on the line
+# so far: globbing is active, i.e. *.txt will be expanded to the most recent
+# file ending in .txt
+#
+# With a prefix argument, select the Nth most recent matching file;
+# negative arguments work in the opposite direction, so for example
+# `Esc - \C-x m' gets you the oldest file.
+
+local file tilde etilde
+if [[ $PREFIX = \~*/* ]]; then
+  tilde=${PREFIX%%/*}
+  etilde=${~tilde} 2>/dev/null
+  # PREFIX and SUFFIX have full command line quoting in, but we want
+  # any globbing characters which are quoted to stay quoted.
+  eval "file=($PREFIX*$SUFFIX(om[${NUMERIC:-1}]N))"
+  file=(${file/#$etilde})
+  file=($tilde${(q)^file})
+else
+  eval "file=($PREFIX*$SUFFIX(om[${NUMERIC:-1}]N))"
+  file=(${(q)file})
+fi
+(( $#file )) && compadd -U -i "$IPREFIX" -I "$ISUFFIX" -f -Q -- $file

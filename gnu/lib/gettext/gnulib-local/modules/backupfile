@@ -1,0 +1,32 @@
+Description:
+Make Emacs style backup file names.
+
+Files:
+lib/backupfile.h
+lib/backupfile.c
+lib/addext.c
+m4/backupfile.m4
+
+Depends-on:
+argmatch
+basename-lgpl
+closedir
+opendir
+readdir
+unistd
+
+configure.ac:
+gt_PREREQ_BACKUPFILE
+
+Makefile.am:
+lib_SOURCES += backupfile.h backupfile.c addext.c
+
+Include:
+"backupfile.h"
+
+License:
+GPL
+
+Maintainer:
+Bruno Haible
+

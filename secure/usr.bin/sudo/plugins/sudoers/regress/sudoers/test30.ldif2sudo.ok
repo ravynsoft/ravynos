@@ -1,0 +1,11 @@
+# sudoRole user1
+user1 ALL = list
+
+# sudoRole list
+list ALL = ALL
+
+# sudoRole user2
+user2 ALL = (list : list) ALL
+
+# sudoRole user3
+user3 list = ALL

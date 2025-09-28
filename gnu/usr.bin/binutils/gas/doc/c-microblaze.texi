@@ -1,0 +1,99 @@
+@c Copyright (C) 2009-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@ifset GENERIC
+@page
+@node MicroBlaze-Dependent
+@chapter MicroBlaze Dependent Features
+@end ifset
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter MicroBlaze Dependent Features
+@end ifclear
+
+@cindex MicroBlaze architectures
+The Xilinx MicroBlaze processor family includes several variants, all using
+the same core instruction set.  This chapter covers features of the @sc{gnu}
+assembler that are specific to the MicroBlaze architecture.  For details about
+the MicroBlaze instruction set, please see the @cite{MicroBlaze Processor
+Reference Guide (UG081)} available at www.xilinx.com.
+
+@cindex MicroBlaze support
+@menu
+* MicroBlaze Directives::           Directives for MicroBlaze Processors.
+* MicroBlaze Syntax::               Syntax for the MicroBlaze
+@end menu
+
+@node MicroBlaze Directives
+@section Directives
+@cindex MicroBlaze directives
+A number of assembler directives are available for MicroBlaze.
+
+@table @code
+@item .data8 @var{expression},...
+This directive is an alias for @code{.byte}. Each expression is assembled
+into an eight-bit value.
+
+@item .data16 @var{expression},...
+This directive is an alias for @code{.hword}. Each expression is assembled
+into an 16-bit value.
+
+@item .data32 @var{expression},...
+This directive is an alias for @code{.word}. Each expression is assembled
+into an 32-bit value.
+
+@item .ent @var{name}[,@var{label}]
+This directive is an alias for @code{.func} denoting the start of function
+@var{name} at (optional) @var{label}.
+
+@item .end @var{name}[,@var{label}]
+This directive is an alias for @code{.endfunc} denoting the end of function
+@var{name}.
+
+@item .gpword @var{label},...
+This directive is an alias for @code{.rva}.  The resolved address of @var{label}
+is stored in the data section.
+
+@item .weakext @var{label}
+Declare that @var{label} is a weak external symbol.
+
+@item .rodata
+Switch to .rodata section. Equivalent to @code{.section .rodata}
+
+@item .sdata2
+Switch to .sdata2 section. Equivalent to @code{.section .sdata2}
+
+@item .sdata
+Switch to .sdata section. Equivalent to @code{.section .sdata}
+
+@item .bss
+Switch to .bss section. Equivalent to @code{.section .bss}
+
+@item .sbss
+Switch to .sbss section. Equivalent to @code{.section .sbss}
+@end table
+
+@node MicroBlaze Syntax
+@section Syntax for the MicroBlaze
+@menu
+* MicroBlaze-Chars::                Special Characters
+@end menu
+
+@node MicroBlaze-Chars
+@subsection Special Characters
+
+@cindex line comment character, MicroBlaze
+@cindex MicroBlaze line comment character
+The presence of a @samp{#} on a line indicates the start of a comment
+that extends to the end of the current line.
+
+If a @samp{#} appears as the first character of a line, the whole line
+is treated as a comment, but in this case the line can also be a
+logical line number directive (@pxref{Comments}) or a
+preprocessor control command (@pxref{Preprocessing}).
+
+@cindex line separator, MicroBlaze
+@cindex statement separator, MicroBlaze
+@cindex MicroBlaze line separator
+The @samp{;} character can be used to separate statements on the same
+line.

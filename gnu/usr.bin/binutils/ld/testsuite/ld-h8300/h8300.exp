@@ -1,0 +1,42 @@
+# Expect script for ld-h8300 tests
+# Copyright (C) 2002-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+# Written by Nick Clifton  <nickc@redhat.com>
+#
+
+# Test h8300
+
+if ![istarget h8300-*-*] {
+    return
+}
+
+set emul elf
+if [istarget *-*-linux*] {
+    set emul elf_linux
+}
+
+run_dump_test relax
+run_dump_test relax-2 [list [list ld "-m h8300h$emul"]]
+run_dump_test relax-3 [list [list ld "-m h8300s$emul"]]
+run_dump_test relax-4 [list [list ld "-m h8300s$emul"]]
+run_dump_test relax-5 [list [list ld "-m h8300s$emul"]]
+run_dump_test relax-6 [list [list ld "-m h8300s$emul"]]
+run_dump_test relax-7 [list [list ld "-m h8300s$emul"]]
+run_dump_test gcsection	[list [list ld "-m h8300h$emul"]]

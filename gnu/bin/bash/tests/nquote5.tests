@@ -1,0 +1,76 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+a=$'ab\001cd\001ef'
+IFS=$'\001'
+
+recho $a
+recho ${a}
+recho xx${a}yy
+recho "$a"
+
+recho $(echo $a)
+recho $(echo "$a")
+
+recho ${a%%??}
+recho "${a%%??}"
+
+recho ${a/f/}
+recho "${a/f/}"
+
+a1=("$a")
+recho ${a1[0]}
+recho ${a1}
+
+recho ${a:2:2}
+
+set -- $a
+recho $1 -- $2 -- $3
+
+set -- "$a"
+recho $1
+recho ${1}
+
+echo "$a" | { IFS=$'\001' read x y z; recho $x -- $y -- $z ; }
+unset x y z
+b=$'uv\177wx\177yz'
+
+recho $b
+
+recho "ab${x}y${a}z"
+recho ab${x}y${a}z
+
+recho "ab${b}y${a}z"
+recho ab${b}y${a}z
+
+echo "ab${b}y${a}z" | { IFS=$'\001' read l m n o  ; recho $l -- $m -- $n -- $o; }
+unset l m n o
+
+a=$'ab\001cd\001ef'
+b=$'uv\177wx\177yz'
+
+IFS=$'\177'
+
+recho $a
+recho $b
+
+recho "ab${x}y${b}z"
+recho ab${x}y${b}z
+
+recho "ab${b}y${a}z"
+recho ab${b}y${a}z
+
+echo "ab${b}y${a}z" | { IFS=$'\001' read l m n o  ; recho "$l" -- "$m" -- "$n" -- "$o"; }
+unset l m n o
+echo "ab${b}y${a}z" | { IFS=$'\177' read l m n o  ; recho "$l" -- "$m" -- "$n" -- "$o"; }
+unset l m n o

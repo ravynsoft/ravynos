@@ -1,0 +1,94 @@
+COMMENT(!MOD!zsh/param/private
+Builtins for managing private-scoped parameters in function context.
+!MOD!)
+The tt(zsh/param/private) module is used to create parameters whose scope
+is limited to the current function body, and em(not) to other functions
+called by the current function.
+
+This module provides a single autoloaded builtin:
+ifnzman()
+startitem()
+findex(private)
+cindex(private parameter, creating)
+item(tt(private) [ {tt(PLUS())|tt(-)}tt(AHUahlmrtux) ] \
+[ {tt(PLUS())|tt(-)}tt(EFLRZi) [ var(n) ] ] [ var(name)[tt(=)var(value)] ... ])(
+The tt(private) builtin accepts all the same options and arguments as tt(local)
+(ifzman(zmanref(zshbuiltins))ifnzman(noderef(Shell Builtin Commands))) except
+for the `tt(-)tt(T)' option.  Tied parameters may not be made private.
+
+The `tt(-)tt(p)' option is presently a no-op because the state of
+private parameters cannot reliably be reloaded.  This also applies
+to printing private parameters with `tt(typeset -p)'.
+
+If used at the top level (outside a function scope), tt(private) creates a
+normal parameter in the same manner as tt(declare) or tt(typeset).  A
+warning about this is printed if tt(WARN_CREATE_GLOBAL) is set
+(ifzman(zmanref(zshoptions))ifnzman(noderef(Options))).  Used inside a
+function scope, tt(private) creates a local parameter similar to one
+declared with tt(local), except having special properties noted below.
+
+Special parameters which expose or manipulate internal shell state, such
+as tt(ARGC), tt(argv), tt(COLUMNS), tt(LINES), tt(UID), tt(EUID), tt(IFS),
+tt(PROMPT), tt(RANDOM), tt(SECONDS), etc., cannot be made private unless
+the `tt(-)tt(h)' option is used to hide the special meaning of the
+parameter.  This may change in the future.
+)
+enditem()
+
+As with other tt(typeset) equivalents, tt(private) is both a builtin and a
+reserved word, so arrays may be assigned with parenthesized word list
+var(name)tt(=LPAR())var(value)...tt(RPAR()) syntax.  However, the reserved
+word `tt(private)' is not available until tt(zsh/param/private) is loaded,
+so care must be taken with order of execution and parsing for function
+definitions which use tt(private).  To compensate for this, the module
+also adds the option `tt(-P)' to the `tt(local)' builtin to declare private
+parameters.
+
+For example, this construction fails if tt(zsh/param/private) has not yet
+been loaded when `tt(bad_declaration)' is defined:
+example(bad_declaration+LPAR()RPAR() {
+  zmodload zsh/param/private
+  private array=LPAR() one two three RPAR()
+})
+
+This construction works because tt(local) is already a keyword, and the
+module is loaded before the statement is executed:
+example(good_declaration+LPAR()RPAR() {
+  zmodload zsh/param/private
+  local -P array=LPAR() one two three RPAR()
+})
+
+The following is usable in scripts but may have trouble with tt(autoload):
+example(zmodload zsh/param/private
+iffy_declaration+LPAR()RPAR() {
+  private array=LPAR() one two three RPAR()
+})
+
+The tt(private) builtin may always be used with scalar assignments and
+for declarations without assignments.
+
+Parameters declared with tt(private) have the following properties:
+ifnzman()
+startitemize()
+itemiz(Within the function body where it is declared, the parameter
+behaves as a local, except as noted above for tied or special parameters.)
+itemiz(The type of a parameter declared private cannot be changed in the
+scope where it was declared, even if the parameter is unset.  Thus an
+array cannot be assigned to a private scalar, etc.)
+itemiz(Within any other function called by the declaring function, the
+private parameter does em(NOT) hide other parameters of the same name, so
+for example a global parameter of the same name is visible and may be
+assigned or unset.  This includes calls to anonymous functions, although
+that may also change in the future.  However, the private name may not be
+created outside the local scope when it was not previously declared.)
+itemiz(An exported private remains in the environment of inner scopes but
+appears unset for the current shell in those scopes.  Generally, exporting
+private parameters should be avoided.)
+enditemize()
+
+Note that this differs from the static scope defined by compiled languages
+derived from C, in that the a new call to the same function creates a new
+scope, i.e., the parameter is still associated with the call stack rather
+than with the function definition.  It differs from ksh `tt(typeset -S)'
+because the syntax used to define the function has no bearing on whether
+the parameter scope is respected.

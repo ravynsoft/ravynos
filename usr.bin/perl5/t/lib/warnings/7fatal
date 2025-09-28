@@ -1,0 +1,566 @@
+Check FATAL functionality
+
+__END__
+
+# Check compile time warning
+use warnings FATAL => 'syntax' ;
+{
+    no warnings ;
+    $a =+ 1 ;
+}
+$a =+ 1 ;
+print STDERR "The End.\n" ;
+EXPECT
+Reversed += operator at - line 8.
+########
+
+# Check compile time warning
+use warnings FATAL => 'all' ;
+{
+    no warnings ;
+    my $a =+ 1 ;
+}
+my $a =+ 1 ;
+print STDERR "The End.\n" ;
+EXPECT
+Reversed += operator at - line 8.
+########
+
+# Check runtime scope of pragma
+use warnings FATAL => 'uninitialized' ;
+{
+    no warnings ;
+    my $b ; chop $b ;
+}
+my $b ; chop $b ;
+print STDERR "The End.\n" ;
+EXPECT
+Use of uninitialized value $b in scalar chop at - line 8.
+########
+
+# Check runtime scope of pragma
+use warnings FATAL => 'all' ;
+{
+    no warnings ;
+    my $b ; chop $b ;
+}
+my $b ; chop $b ;
+print STDERR "The End.\n" ;
+EXPECT
+Use of uninitialized value $b in scalar chop at - line 8.
+########
+
+# Check runtime scope of pragma
+no warnings ;
+{
+    use warnings FATAL => 'uninitialized' ;
+    $a = sub { my $b ; chop $b ; }
+}
+&$a ;
+print STDERR "The End.\n" ;
+EXPECT
+Use of uninitialized value $b in scalar chop at - line 6.
+########
+
+# Check runtime scope of pragma
+no warnings ;
+{
+    use warnings FATAL => 'all' ;
+    $a = sub { my $b ; chop $b ; }
+}
+&$a ;
+print STDERR "The End.\n" ;
+EXPECT
+Use of uninitialized value $b in scalar chop at - line 6.
+########
+
+--FILE-- abc
+$a =+ 1 ;
+1;
+--FILE-- 
+use warnings FATAL => 'syntax' ;
+require "./abc";
+EXPECT
+
+########
+
+--FILE-- abc
+use warnings FATAL => 'syntax' ;
+1;
+--FILE-- 
+require "./abc";
+$a =+ 1 ;
+EXPECT
+
+########
+
+--FILE-- abc
+use warnings 'syntax' ;
+$a =+ 1 ;
+1;
+--FILE-- 
+use warnings FATAL => 'uninitialized' ;
+require "./abc";
+my $a ; chop $a ;
+print STDERR "The End.\n" ;
+EXPECT
+Reversed += operator at ./abc line 2.
+Use of uninitialized value $a in scalar chop at - line 3.
+########
+
+--FILE-- abc.pm
+use warnings 'syntax' ;
+$a =+ 1 ;
+1;
+--FILE-- 
+use warnings FATAL => 'uninitialized' ;
+use abc;
+my $a ; chop $a ;
+print STDERR "The End.\n" ;
+EXPECT
+Reversed += operator at abc.pm line 2.
+Use of uninitialized value $a in scalar chop at - line 3.
+########
+
+# Check scope of pragma with eval
+no warnings ;
+eval {
+    use warnings FATAL => 'uninitialized' ;
+    my $b ; chop $b ;
+}; print STDERR "-- $@" ;
+my $b ; chop $b ;
+print STDERR "The End.\n" ;
+EXPECT
+-- Use of uninitialized value $b in scalar chop at - line 6.
+The End.
+########
+
+# Check scope of pragma with eval
+use warnings FATAL => 'uninitialized' ;
+eval {
+    my $b ; chop $b ;
+}; print STDERR "-- $@" ;
+my $b ; chop $b ;
+print STDERR "The End.\n" ;
+EXPECT
+-- Use of uninitialized value $b in scalar chop at - line 5.
+Use of uninitialized value $b in scalar chop at - line 7.
+########
+
+# Check scope of pragma with eval
+use warnings FATAL => 'uninitialized' ;
+eval {
+    no warnings ;
+    my $b ; chop $b ;
+}; print STDERR $@ ;
+my $b ; chop $b ;
+print STDERR "The End.\n" ;
+EXPECT
+Use of uninitialized value $b in scalar chop at - line 8.
+########
+
+# Check scope of pragma with eval
+no warnings ;
+eval {
+    use warnings FATAL => 'syntax' ;
+    $a =+ 1 ;
+}; print STDERR "-- $@" ;
+$a =+ 1 ;
+print STDERR "The End.\n" ;
+EXPECT
+Reversed += operator at - line 6.
+########
+
+# Check scope of pragma with eval
+use warnings FATAL => 'syntax' ;
+eval {
+    $a =+ 1 ;
+}; print STDERR "-- $@" ;
+$a =+ 1 ;
+print STDERR "The End.\n" ;
+EXPECT
+Reversed += operator at - line 5.
+########
+
+# Check scope of pragma with eval
+use warnings FATAL => 'syntax' ;
+eval {
+    no warnings ;
+    $a =+ 1 ;
+}; print STDERR $@ ;
+$a =+ 1 ;
+print STDERR "The End.\n" ;
+EXPECT
+Reversed += operator at - line 8.
+########
+
+# Check scope of pragma with eval
+no warnings ;
+eval {
+    use warnings FATAL => 'syntax' ;
+}; print STDERR $@ ;
+$a =+ 1 ;
+print STDERR "The End.\n" ;
+EXPECT
+The End.
+########
+
+# Check scope of pragma with eval
+no warnings ;
+eval q[ 
+    use warnings FATAL => 'uninitialized' ;
+    my $b ; chop $b ;
+]; print STDERR "-- $@";
+my $b ; chop $b ;
+print STDERR "The End.\n" ;
+EXPECT
+-- Use of uninitialized value $b in scalar chop at (eval 1) line 3.
+The End.
+########
+
+# Check scope of pragma with eval
+use warnings FATAL => 'uninitialized' ;
+eval '
+    my $b ; chop $b ;
+'; print STDERR "-- $@" ;
+my $b ; chop $b ;
+print STDERR "The End.\n" ;
+EXPECT
+-- Use of uninitialized value $b in scalar chop at (eval 1) line 2.
+Use of uninitialized value $b in scalar chop at - line 7.
+########
+
+# Check scope of pragma with eval
+use warnings FATAL => 'uninitialized' ;
+eval '
+    no warnings ;
+    my $b ; chop $b ;
+'; print STDERR $@ ;
+my $b ; chop $b ;
+print STDERR "The End.\n" ;
+EXPECT
+Use of uninitialized value $b in scalar chop at - line 8.
+########
+
+# Check scope of pragma with eval
+no warnings ;
+eval q[ 
+    use warnings FATAL => 'syntax' ;
+    $a =+ 1 ;
+]; print STDERR "-- $@";
+$a =+ 1 ;
+print STDERR "The End.\n" ;
+EXPECT
+-- Reversed += operator at (eval 1) line 3.
+The End.
+########
+
+# Check scope of pragma with eval
+use warnings FATAL => 'syntax' ;
+eval '
+    $a =+ 1 ;
+'; print STDERR "-- $@";
+print STDERR "The End.\n" ;
+EXPECT
+-- Reversed += operator at (eval 1) line 2.
+The End.
+########
+
+# Check scope of pragma with eval
+use warnings FATAL => 'syntax' ;
+eval '
+    no warnings ;
+    $a =+ 1 ;
+'; print STDERR "-- $@";
+$a =+ 1 ;
+print STDERR "The End.\n" ;
+EXPECT
+Reversed += operator at - line 8.
+########
+# TODO ? !$Config{usethreads} && $::UTF8 && ($ENV{PERL_DESTRUCT_LEVEL} || 0) > 1 ? "Parser leaks OPs, which leak shared hash keys" : ''
+
+use warnings 'void' ;
+
+time ;
+
+{
+    use warnings FATAL => qw(void) ;
+    $a = "abc";
+    length $a ;
+}
+
+join "", 1,2,3 ;
+
+print "done\n" ;
+EXPECT
+Useless use of time in void context at - line 4.
+Useless use of length in void context at - line 9.
+########
+# TODO ? !$Config{usethreads} && $::UTF8 && ($ENV{PERL_DESTRUCT_LEVEL} || 0) > 1 ? "Parser leaks OPs, which leak shared hash keys" : ''
+
+use warnings ;
+
+time ;
+
+{
+    use warnings FATAL => qw(void) ;
+    $a = "abc";
+    length $a ;
+}
+
+join "", 1,2,3 ;
+
+print "done\n" ;
+EXPECT
+Useless use of time in void context at - line 4.
+Useless use of length in void context at - line 9.
+########
+
+use warnings FATAL => 'all';
+{
+    no warnings;
+    my $b ; chop $b;
+    {
+        use warnings ;
+        my $b ; chop $b;
+    }
+}
+my $b ; chop $b;
+print STDERR "The End.\n" ;
+EXPECT
+Use of uninitialized value $b in scalar chop at - line 8.
+Use of uninitialized value $b in scalar chop at - line 11.
+########
+
+use warnings FATAL => 'all';
+{
+    no warnings FATAL => 'all';
+    my $b ; chop $b;
+    {
+        use warnings ;
+        my $b ; chop $b;
+    }
+}
+my $b ; chop $b;
+print STDERR "The End.\n" ;
+EXPECT
+Use of uninitialized value $b in scalar chop at - line 8.
+Use of uninitialized value $b in scalar chop at - line 11.
+########
+
+use warnings FATAL => 'all';
+{
+    no warnings 'syntax';
+    {
+        use warnings ;
+        my $b ; chop $b;
+    }
+}
+my $b ; chop $b;
+print STDERR "The End.\n" ;
+EXPECT
+Use of uninitialized value $b in scalar chop at - line 7.
+########
+
+use warnings FATAL => 'syntax', NONFATAL => 'void' ;
+
+$a = "abc";
+length $a;
+print STDERR "The End.\n" ;
+EXPECT
+Useless use of length in void context at - line 5.
+The End.
+########
+
+use warnings FATAL => 'all', NONFATAL => 'void' ;
+
+$a = "abc";
+length $a;
+print STDERR "The End.\n" ;
+EXPECT
+Useless use of length in void context at - line 5.
+The End.
+########
+
+use warnings FATAL => 'all', NONFATAL => 'void' ;
+
+my $a ; chomp $a;
+
+$b = "abc" ;
+length $b;
+print STDERR "The End.\n" ;
+EXPECT
+Useless use of length in void context at - line 7.
+Use of uninitialized value $a in scalar chomp at - line 4.
+########
+
+use warnings FATAL => 'void', NONFATAL => 'void' ;
+$a = "abc";
+length $a;
+print STDERR "The End.\n" ;
+EXPECT
+Useless use of length in void context at - line 4.
+The End.
+########
+# TODO ? !$Config{usethreads} && $::UTF8 && ($ENV{PERL_DESTRUCT_LEVEL} || 0) > 1 ? "Parser leaks OPs, which leak shared hash keys" : ''
+
+use warnings NONFATAL => 'void', FATAL => 'void' ;
+$a = "abc";
+length $a;
+print STDERR "The End.\n" ;
+EXPECT
+Useless use of length in void context at - line 4.
+########
+
+use warnings FATAL => 'all', NONFATAL => 'io';
+no warnings 'once';
+
+open(F, "<true\ncd");
+open(G, "<truecd\n");
+open(H, "<truecd\n\0");
+close "fred" ;
+print STDERR "The End.\n" ;
+EXPECT
+Unsuccessful open on filename containing newline at - line 6.
+Unsuccessful open on filename containing newline at - line 7.
+close() on unopened filehandle fred at - line 8.
+The End.
+########
+
+use warnings FATAL => 'all', NONFATAL => 'io', FATAL => 'unopened' ;
+no warnings 'once';
+
+open(F, "<truecd\n");
+close "fred" ;
+print STDERR "The End.\n" ;
+EXPECT
+Unsuccessful open on filename containing newline at - line 5.
+close() on unopened filehandle fred at - line 6.
+########
+
+# 'use warnings' test as the basis for the following tests
+use warnings ;
+my $a = oct "7777777777777777777777777777777777778" ;
+my $b =+ 1 ;
+my $c ; chop $c ;
+print STDERR "The End.\n" ;
+EXPECT
+Reversed += operator at - line 5.
+Integer overflow in octal number at - line 4.
+Illegal octal digit '8' ignored at - line 4.
+Octal number > 037777777777 non-portable at - line 4.
+Use of uninitialized value $c in scalar chop at - line 6.
+The End.
+########
+
+# 'use warnings NONFATAL=>"all"' should be the same as 'use warnings'
+use warnings NONFATAL=>"all" ;
+my $a = oct "7777777777777777777777777777777777778" ;
+my $b =+ 1 ;
+my $c ; chop $c ;
+print STDERR "The End.\n" ;
+EXPECT
+Reversed += operator at - line 5.
+Integer overflow in octal number at - line 4.
+Illegal octal digit '8' ignored at - line 4.
+Octal number > 037777777777 non-portable at - line 4.
+Use of uninitialized value $c in scalar chop at - line 6.
+The End.
+########
+
+# 'use warnings "NONFATAL"' should be the same as 'use warnings' [perl #120977]
+use warnings "NONFATAL" ;
+my $a = oct "7777777777777777777777777777777777778" ;
+my $b =+ 1 ;
+my $c ; chop $c ;
+print STDERR "The End.\n" ;
+EXPECT
+Reversed += operator at - line 5.
+Integer overflow in octal number at - line 4.
+Illegal octal digit '8' ignored at - line 4.
+Octal number > 037777777777 non-portable at - line 4.
+Use of uninitialized value $c in scalar chop at - line 6.
+The End.
+########
+
+# 'use warnings "FATAL"' should be the same as 'use warnings FATAL=>"all"' [perl #120977]
+use warnings "FATAL" ;
+{
+    no warnings ;
+    my $a =+ 1 ;
+}
+my $a =+ 1 ;
+print STDERR "The End.\n" ;
+EXPECT
+Reversed += operator at - line 8.
+########
+
+# 'use warnings "FATAL"' should be the same as 'use warnings FATAL=>"all"' [perl #120977]
+use warnings "FATAL" ;
+{
+    no warnings ;
+    my $a = oct "7777777777777777777777777777777777778" ;
+}
+my $a = oct "7777777777777777777777777777777777778" ;
+print STDERR "The End.\n" ;
+EXPECT
+Integer overflow in octal number at - line 8.
+########
+
+# 'no warnings FATAL=>"all"' should be the same as 'no warnings'
+use warnings ;
+{
+    no warnings FATAL=>"all" ;
+    my $a = oct "7777777777777777777777777777777777778" ;
+    my $b =+ 1 ;
+    my $c ; chop $c ;
+}
+my $a =+ 1 ;
+print STDERR "The End.\n" ;
+EXPECT
+Reversed += operator at - line 10.
+The End.
+########
+
+# 'no warnings "FATAL"' should be the same as 'no warnings' [perl #120977]
+use warnings ;
+{
+    no warnings "FATAL" ;
+    my $a = oct "7777777777777777777777777777777777778" ;
+    my $b =+ 1 ;
+    my $c ; chop $c ;
+}
+my $a =+ 1 ;
+print STDERR "The End.\n" ;
+EXPECT
+Reversed += operator at - line 10.
+The End.
+########
+
+# fatal warnings shouldn't hide parse errors [perl #122966]
+use warnings FATAL => 'all';
+if (1 {
+    my $x = "hello";
+    print $x, "\n";
+}
+EXPECT
+syntax error at - line 4, near "1 {"
+Execution of - aborted due to compilation errors.
+########
+
+# fatal warnings in DESTROY should be made non-fatal [perl #123398]
+# This test will blow up your memory with SEGV without the patch
+package Foo;
+use strict; use utf8; use warnings FATAL => 'all';
+sub new {
+    return bless{ 'field' => undef }, 'Foo';
+}
+sub DESTROY {
+    my $self = shift;
+    $self->{'field'}->missing_method;
+}
+package main;
+my $foo = new Foo;
+undef($foo);
+EXPECT
+	(in cleanup) Can't call method "missing_method" on an undefined value at - line 11.

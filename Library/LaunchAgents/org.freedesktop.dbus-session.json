@@ -1,0 +1,14 @@
+{
+	"Label":"org.freedesktop.dbus-session",
+	"ServiceIPC": true,
+	"ProgramArguments": [
+		"/usr/bin/dbus-daemon",
+		"--nofork",
+		"--session"
+	],
+	"Sockets": {
+		"unix_domain_listener": {
+			"SecureSocketWithKey": "DBUS_LAUNCHD_SESSION_BUS_SOCKET"
+		}
+	}
+}

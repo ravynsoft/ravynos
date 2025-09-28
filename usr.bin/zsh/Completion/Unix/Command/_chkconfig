@@ -1,0 +1,28 @@
+#compdef chkconfig
+
+local curcontext="$curcontext" state line expl ret=1
+
+case $OSTYPE in
+linux*)
+  _arguments -C \
+    '(- 2)--list[list services]' \
+    '(-)--level[specify runlevels to apply to]:-:_values -s "" "run levels" 1 2 3 4 5 6 7' \
+    '(- 2)--add[add new service]' \
+    '(- 2)--del[remove service from chkconfig management]' \
+    '1:service name:_services' \
+    '2:state:(on off reset)' && ret=0
+;;
+irix*)
+  _arguments -C \
+    '(- 1)-s[print state of configuration flags]' \
+    '(1 -s)-f[set flag state]:configuration flag:->flag:state:(on off)' \
+    '1:configuration flag:->flag' && ret=0
+
+  if [[ -n "$state" ]]; then
+    _wanted conf-flags expl 'configuration flag' \
+	compadd ${${${(f)"$($words[1])"}[4,-1]##$'\t'}%% *} && ret=0
+  fi
+;;
+esac
+
+return ret

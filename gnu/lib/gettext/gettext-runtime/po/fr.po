@@ -1,0 +1,338 @@
+# Messages français pour GNU gettext.
+# Copyright © 2010 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gettext package.
+#
+# François Pinard <pinard@iro.umontreal.ca>, 1996.
+# Il a été le traducteur jusqu'en 2001.
+# Michel Robitaille <robitail@iro.umontreal.ca>, traducteur depuis/since 1996.
+# Christophe Combelles <ccomb@free.fr>, 2006-2010
+# Stéphane Aulery <lkppo@free.fr>, 2015, 2019, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-runtime 0.20.2\n"
+"Report-Msgid-Bugs-To: bug-gettext@gnu.org\n"
+"POT-Creation-Date: 2023-11-17 22:40+0100\n"
+"PO-Revision-Date: 2020-05-06 20:24+0200\n"
+"Last-Translator: Stéphane Aulery <lkppo@free.fr>\n"
+"Language-Team: French <traduc@traduc.org>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: gnulib-lib/closeout.c:66
+msgid "write error"
+msgstr "erreur d'écriture"
+
+#: gnulib-lib/error.c:194
+msgid "Unknown system error"
+msgstr "Erreur système non identifiée"
+
+#: gnulib-lib/getopt.c:278
+#, c-format
+msgid "%s: option '%s%s' is ambiguous\n"
+msgstr "%s : l'option « %s%s » est ambiguë\n"
+
+#: gnulib-lib/getopt.c:284
+#, c-format
+msgid "%s: option '%s%s' is ambiguous; possibilities:"
+msgstr "%s : l'option « %s%s » est ambiguë ; choix possibles :"
+
+#: gnulib-lib/getopt.c:319
+#, c-format
+msgid "%s: unrecognized option '%s%s'\n"
+msgstr "%s : l'option « %s%s » n'est pas connue\n"
+
+#: gnulib-lib/getopt.c:345
+#, c-format
+msgid "%s: option '%s%s' doesn't allow an argument\n"
+msgstr "%s : l'option « %s%s » ne tolère pas d'argument\n"
+
+#: gnulib-lib/getopt.c:360
+#, c-format
+msgid "%s: option '%s%s' requires an argument\n"
+msgstr "%s : l'option « %s%s » exige un argument\n"
+
+#: gnulib-lib/getopt.c:621
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s : option non valable -- '%c'\n"
+
+#: gnulib-lib/getopt.c:636 gnulib-lib/getopt.c:682
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s : l'option exige un argument -- '%c'\n"
+
+#: gnulib-lib/xalloc-die.c:34
+msgid "memory exhausted"
+msgstr "Mémoire épuisée"
+
+#: src/envsubst.c:110 src/gettext.c:135 src/ngettext.c:125
+#, c-format, no-wrap
+msgid ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"License GPLv3+: GNU GPL version 3 or later <%s>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"Licence GPLv3+ : GNU GPL version 3 ou ultérieure <%s>\n"
+"Ceci est un logiciel libre : vous pouvez le modifier et le redistribuer.\n"
+"Il n'y a PAS DE GARANTIE, dans la mesure de ce que permet la loi.\n"
+
+#: src/envsubst.c:116 src/gettext.c:141 src/ngettext.c:131
+#, c-format
+msgid "Written by %s.\n"
+msgstr "Écrit par %s.\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/envsubst.c:116
+msgid "Bruno Haible"
+msgstr "Bruno Haible"
+
+#: src/envsubst.c:125 src/gettext.c:159 src/ngettext.c:143
+#, c-format
+msgid "too many arguments"
+msgstr "trop d'arguments"
+
+#: src/envsubst.c:136 src/gettext.c:169 src/ngettext.c:155
+#, c-format
+msgid "missing arguments"
+msgstr "arguments manquants"
+
+#: src/envsubst.c:174 src/gettext.c:246 src/ngettext.c:212
+#, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "Pour plus d'information, essayez « %s --help ».\n"
+
+#: src/envsubst.c:179
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [SHELL-FORMAT]\n"
+msgstr "Usage : %s [OPTION] [FORMAT-SHELL]\n"
+
+#: src/envsubst.c:184
+#, c-format, no-wrap
+msgid "Substitutes the values of environment variables.\n"
+msgstr "Substituer les valeurs des variables d'environnement.\n"
+
+#: src/envsubst.c:188
+#, c-format, no-wrap
+msgid "Operation mode:\n"
+msgstr "Mode d'exécution :\n"
+
+#: src/envsubst.c:191
+#, c-format, no-wrap
+msgid "  -v, --variables             output the variables occurring in SHELL-FORMAT\n"
+msgstr "  -v, --variables             afficher les variables apparaissant dans FORMAT-SHELL\n"
+
+#: src/envsubst.c:195 src/gettext.c:275 src/ngettext.c:242
+#, c-format, no-wrap
+msgid "Informative output:\n"
+msgstr "Sortie informative :\n"
+
+#: src/envsubst.c:198
+#, c-format, no-wrap
+msgid "  -h, --help                  display this help and exit\n"
+msgstr "  -h, --help                  affiche l'aide-mémoire\n"
+
+#: src/envsubst.c:201
+#, c-format, no-wrap
+msgid "  -V, --version               output version information and exit\n"
+msgstr "  -V, --version               affiche le nom et la version du logiciel\n"
+
+#: src/envsubst.c:205
+#, c-format, no-wrap
+msgid ""
+"In normal operation mode, standard input is copied to standard output,\n"
+"with references to environment variables of the form $VARIABLE or ${VARIABLE}\n"
+"being replaced with the corresponding values.  If a SHELL-FORMAT is given,\n"
+"only those environment variables that are referenced in SHELL-FORMAT are\n"
+"substituted; otherwise all environment variables references occurring in\n"
+"standard input are substituted.\n"
+msgstr ""
+"Dans le mode d'exécution normal, l'entrée standard est copiée vers la sortie standard,\n"
+"en remplaçant les variables d'environnement de la forme $VARIABLE ou ${VARIABLES}\n"
+"par les valeurs correspondantes. Si FORMAT-SHELL est spécifié,\n"
+"seules les variables d'environnement définies dans FORMAT-SHELL sont\n"
+"remplacées; sinon toutes les variables d'environnement apparaissant dans\n"
+"l'entrée standard sont remplacées.\n"
+
+#: src/envsubst.c:214
+#, c-format, no-wrap
+msgid ""
+"When --variables is used, standard input is ignored, and the output consists\n"
+"of the environment variables that are referenced in SHELL-FORMAT, one per line.\n"
+msgstr ""
+"Lorsque « --variables » est utilisé, l'entrée standard est ignorée et la sortie\n"
+"se résume aux variables d'environnements référées par FORMAT-SHELL (une par ligne).\n"
+
+#. TRANSLATORS: The first placeholder is the web address of the Savannah
+#. project of this package.  The second placeholder is the bug-reporting
+#. email address for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: src/envsubst.c:223 src/gettext.c:299 src/ngettext.c:263
+#, c-format
+msgid ""
+"Report bugs in the bug tracker at <%s>\n"
+"or by email to <%s>.\n"
+msgstr ""
+"Signalez tout bogue via le gestionnaire de bogues à l'adresse <%s>\n"
+"ou par email à <%s>.\n"
+
+#: src/envsubst.c:451
+#, c-format
+msgid "error while reading \"%s\""
+msgstr "erreur lors de la lecture de « %s »"
+
+#: src/envsubst.c:451
+msgid "standard input"
+msgstr "entrée standard"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/gettext.c:141 src/ngettext.c:131
+msgid "Ulrich Drepper"
+msgstr "Ulrich Drepper"
+
+#: src/gettext.c:251
+#, c-format, no-wrap
+msgid ""
+"Usage: %s [OPTION] [[TEXTDOMAIN] MSGID]\n"
+"or:    %s [OPTION] -s [MSGID]...\n"
+msgstr ""
+"Usage : %s [OPTION] [[DOMAINE] MSGID]\n"
+"ou     %s [OPTION] -s [MSGID]...\n"
+
+#: src/gettext.c:257
+#, c-format, no-wrap
+msgid "Display native language translation of a textual message.\n"
+msgstr "Afficher la traduction en langage natif d'un message textuel.\n"
+
+#: src/gettext.c:261
+#, c-format, no-wrap
+msgid "  -d, --domain=TEXTDOMAIN   retrieve translated messages from TEXTDOMAIN\n"
+msgstr "  -d, --domain=DOMAINE      récupérer les messages traduits du DOMAINE\n"
+
+#: src/gettext.c:263 src/ngettext.c:229
+#, c-format
+msgid "  -c, --context=CONTEXT     specify context for MSGID\n"
+msgstr "  -c, --context=CONTEXTE    spécifier le contexte de MSGID\n"
+
+#: src/gettext.c:265 src/ngettext.c:231
+#, c-format
+msgid "  -e                        enable expansion of some escape sequences\n"
+msgstr ""
+"  -e                        activer l'expansion de certaines séquences de "
+"caractères\n"
+
+#: src/gettext.c:267
+#, c-format
+msgid "  -n                        suppress trailing newline\n"
+msgstr "  -n                        supprimer les sauts de ligne en trop\n"
+
+#: src/gettext.c:269 src/ngettext.c:233
+#, c-format
+msgid "  -E                        (ignored for compatibility)\n"
+msgstr "  -E                        (ignoré pour la compatibilité)\n"
+
+#: src/gettext.c:271
+#, c-format
+msgid ""
+"  [TEXTDOMAIN] MSGID        retrieve translated message corresponding\n"
+"                            to MSGID from TEXTDOMAIN\n"
+msgstr ""
+"  [DOMAINE] MSGID           récupérer le message traduit correspondant\n"
+"                            à MSGID du DOMAINE\n"
+
+#: src/gettext.c:277 src/ngettext.c:244
+#, c-format
+msgid "  -h, --help                display this help and exit\n"
+msgstr "  -h, --help                affiche cette aide et quitte\n"
+
+#: src/gettext.c:279 src/ngettext.c:246
+#, c-format
+msgid "  -V, --version             display version information and exit\n"
+msgstr "  -V, --version             affiche le nom et la version du logiciel\n"
+
+#: src/gettext.c:283
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"When used with the -s option the program behaves like the 'echo' command.\n"
+"But it does not simply copy its arguments to stdout.  Instead those messages\n"
+"found in the selected catalog are translated.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Si le DOMAINE n'est pas fourni, il est obtenu depuis la variable d'environnement\n"
+"TEXTDOMAIN.  Si le catalogue de messages n'est pas trouvé à l'endroit\n"
+"habituel, la variable d'environnement TEXTDOMAINDIR peut indiquer un autre\n"
+"dossier.\n"
+"Avec l'option « -s », ce programme se comporte comme la commande « echo » ; mais\n"
+"au lieu de recopier simplement ses arguments sur la sortie standard, il produit une traduction\n"
+"de ceux qui sont disponibles dans le catalogue sélectionné.\n"
+"\n"
+"Dossier standard de recherche : %s\n"
+
+#: src/ngettext.c:217
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [TEXTDOMAIN] MSGID MSGID-PLURAL COUNT\n"
+msgstr "Usage : %s [OPTION] [DOMAINE] MSGID MSGID-PLURIEL VALEUR\n"
+
+#: src/ngettext.c:222
+#, c-format, no-wrap
+msgid ""
+"Display native language translation of a textual message whose grammatical\n"
+"form depends on a number.\n"
+msgstr ""
+"Afficher la traduction en langue native d'un message textuel dont\n"
+"la forme grammaticale dépend d'un nombre\n"
+
+#: src/ngettext.c:227
+#, c-format, no-wrap
+msgid "  -d, --domain=TEXTDOMAIN   retrieve translated message from TEXTDOMAIN\n"
+msgstr "  -d, --domain=DOMAINE      récupérer le message traduit pour le DOMAINE\n"
+
+#: src/ngettext.c:235
+#, c-format
+msgid ""
+"  [TEXTDOMAIN]              retrieve translated message from TEXTDOMAIN\n"
+msgstr ""
+"  [DOMAINE]                 récupérer le message traduit pour le DOMAINE\n"
+
+#: src/ngettext.c:237
+#, c-format
+msgid ""
+"  MSGID MSGID-PLURAL        translate MSGID (singular) / MSGID-PLURAL "
+"(plural)\n"
+msgstr ""
+"  MSGID MSGID-PLURAL        traduire MSGID (singulier) / MSGID-PLURAL "
+"(pluriel)\n"
+
+#: src/ngettext.c:239
+#, c-format
+msgid ""
+"  COUNT                     choose singular/plural form based on this value\n"
+msgstr ""
+"  COUNT                     choisir une forme singulière ou plurielle en "
+"fonction de cette valeur\n"
+
+#: src/ngettext.c:250
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Si le DOMAINE n'est pas founi, il est obtenu depuis la variable d'environnement\n"
+"TEXTDOMAIN.  En l'absence du catalogue de messages à l'endroit\n"
+"habituel, la variable d'environnement TEXTDOMAINDIR peut indiquer un autre\n"
+"dossier.\n"
+"Répertoire standard de recherche : %s\n"

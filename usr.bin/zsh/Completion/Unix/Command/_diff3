@@ -1,0 +1,46 @@
+#compdef diff3
+
+local -a args ed
+local ign
+
+if _pick_variant gnu=GNU unix --version; then
+  ed=(
+    '(-m --merge -A --show-all)'{-e,--ed}'[output ed script for incorporating changes]'
+    '(-m --merge -A --show-all)'{-E,--show-overlap}'[like -e, but bracket conflicts]'
+    '(-m --merge -A --show-all)'{-3,--easy-only}'[like -e, but incorporate only nonoverlapping changes]'
+    '(-m --merge -A --show-all)'{-x,--overlap-only}'[like -e, but incorporate only overlapping changes]'
+    '(-m --merge -A --show-all)-X[like -x, but bracket conflicts]'
+  )
+  (( $#words > 2 )) && ign='!'
+  args=(
+    '(-A --show-all ed)'{-A,--show-all}'[output all changes, bracketing conflicts]'
+    "(-m --merge)-i[append 'w' and 'q' commands to ed scripts]"
+    '(-m --merge -i ed)'{-m,--merge}'[output merged file instead of ed script]'
+    '(-a --text)'{-a,--text}'[treat all files as text]'
+    '--strip-trailing-cr[strip trailing carriage return on input]'
+    '(-T --initial-tab)'{-T,--initial-tab}'[make tabs line up by prepending a tab]'
+    '--diff-program=[specify program to compare files]: : _command_names -e'
+    \*{-L+,--label=}'[use specified label instead of file name]:label'
+    "$ign(- :)--help[display usage information]"
+    "$ign(- :)"{-v,--version}'[display version information]'
+  )
+else
+  args=( -A "-*" )
+  ed=(
+    '-e[output ed script for incorporating changes]'
+    '-E[like -e, but bracket conflicts]'
+    '-x[like -e, but incorporate only overlapping changes]'
+    '-X[like -x, but bracket conflicts]'
+    '-3[like -e, but incorporate only nonoverlapping changes]'
+  )
+  if [[ $OSTYPE != solaris* ]]; then # likely the openbsd diff3 implementation
+    args+=( '-a[treat all files as text]' )
+  fi
+fi
+
+_arguments -s -S $args \
+  '1: : _wanted files expl "first updated file (${${(As.:.)opt_args[-L]}[1]:-mine})" _files' \
+  '2: : _wanted files expl "original file (${${(As.:.)opt_args[-L]}[2]:-old})" _files' \
+  '3: : _wanted files expl "second updated file (${${(As.:.)opt_args[-L]}[3]:-their})" _files' \
+  + '(ed)' $ed
+

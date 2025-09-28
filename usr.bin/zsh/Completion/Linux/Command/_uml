@@ -1,0 +1,149 @@
+#compdef linux uml_moo uml_mconsole uml_switch tunctl
+
+local curcontext="$curcontext" state st line expl suf ret=1
+typeset -A opt_args
+
+case $service in
+  uml_moo)
+    _arguments '1:COW file:_files -g "*cow*(-.)"' '2:new backing file:_files'
+    return
+  ;;
+  uml_switch)
+    _arguments \
+      '-unix[listen on specified pair of sockets]:control socket: :data socket' \
+      '-hub[act like a hub]'
+    return
+  ;;
+  uml_mconsole)
+    if (( CURRENT == 2 )); then
+      _wanted socket expl 'socket name' compadd {~/.uml,/tmp}/*/mconsole(N=:h:t) && ret=0
+    elif [[ $words[CURRENT-1] = config ]]; then
+      if [[ -prefix ubd || -prefix eth ]]; then
+        state=option
+      else
+        _wanted device expl device compadd -S '' ubd eth && ret=0
+      fi
+    elif [[ $words[CURRENT-1] = remove ]]; then
+      _wanted device expl device compadd ubd{0..7} eth{0..9} && ret=0
+    elif (( CURRENT == 3 )); then
+      _values 'command' \
+        'version[print the UML kernel version number]' \
+	'help[print help]' \
+	'halt[shutdown UML system immediately]' \
+	'reboot[reboot the UML system immediately]' \
+	'config[add a new device to the virtual machine]' \
+	'remove[delete a device from the virtual machine]' \
+	'sysrq[perform sysrq action]:key:((r\:turn\ of\ keyboard\ raw\ mode k\:secure\ access\ key b\:reboot o\:shutdown s\:sync u\:remount p\:dump\ registers t\:dump\ tasks m\:dump\ memory e\:SIGTERM\ to\ all i\:SIGKILL\ to\ all l\:SIGKILL\ to\ all\ inc.\ init h\:help {0..9}\:console\ log\ level))' \
+	'cad[invoke ctrl-alt-del handler]' \
+	'stop[pause the UML]' \
+	'go[continue the UML]' \
+	&& ret=0
+    else
+      _message 'no more arguments'
+    fi 
+  ;;
+  linux)
+    _arguments -C \
+      '(* -)--version[display kernel version number]' \
+      '(* -)--help[print usage information]' \
+      '(* -)--showconfig[show kernel configuration]' \
+      '(-)*:option:->option' && ret=0
+  ;;
+  tunctl)
+    _arguments \
+      '(-d)-b[brief output]' \
+      '-f[specify tun clone device]:tun clone device:_files' \
+      '(-d)-u[specify owner]:owner:_users' \
+      '(-b -u -t)-d[specify devicename to delete]:device name:(tap{0..9})' \
+      '(-d)-t[specify devicename]:device name:(tap{0..9})'
+    return
+  ;;
+esac
+
+while [[ -n $state ]]; do
+  st=$state
+  unset state
+  case $st in
+    option)
+      if compset -P '(ssl|con)[0-9]#='; then
+        state=channel
+	continue
+      elif compset -P con; then
+	_message -e consoles 'console number'
+	return
+      elif compset -P ssl; then
+	_message -e serial 'serial line number'
+	return
+      elif compset -P 'ubd[0-7](|r)(|s)='; then
+        compset -P '*,'
+        _files && return
+      elif compset -P ubd; then
+        _message -e devices 'device number'
+	return
+      elif compset -P 'eth[0-9]##='; then
+        if compset -P 1 '*,'; then
+	  _message -e options option
+	else
+	  _wanted transports expl transports compadd -S, \
+	    ethertap tuntap daemon mcast slip && return
+        fi
+	return
+      elif compset -P eth; then
+        _message -e ethernet number
+	return
+      fi
+      compadd -n -S '' con ssl ubd eth && ret=0
+      _values -C -w "option" \
+	'mem[specify amount of "physical" memory to allocate]:memory' \
+	'iomem[configure file as named IO memory region]:arg:->iomem' \
+	'gdb[attach gdb to specified channel]:channel:->channel' \
+	'gdb-pid[specify pid of debugger]:debugger pid:_pids' \
+	'debugtrace[cause tracing thread to wait for debugger]' \
+	'honeypot[put process stacks in the same location as on host]' \
+	'debug[start kernel under gdb control]' \
+	'root[specify root filesystem]:root device' \
+	'umid[specify name for this UML machine]:name' \
+	'uml_dir[location to place pid and umid files]:directory:_directories' \
+	'initrd[boot from initrd image]:initrd file:_files' \
+	'jail[enable protection of kernel memory from processes]' \
+	'*con[attach a console to a host channel]:channel:->channel' \
+	'*ssl[attach a serial line to a host channel]:channel:->channel' \
+	'fake_ide[create ide0 entries which map onto ubd devices]' \
+	'*ubd[associate device with host file]' \
+	'fakehd[change the ubd device name to "hd"]' \
+	'*eth[configure a network device]' \
+	'ncpus[specify number of virtual processors to start]:processors' \
+	'mode[force UML to run in specified mode]:mode:(tt)' \
+	'mconsole[request mconsole driver to send a message to socket]:socket' \
+	'xterm[specify alternate terminal emulator]:terminal emulator:->xterm' \
+	'dsp[specify host dsp device]:dsp device:_files' \
+	'mixer[specify host mixer device]:mixer device:_files' \
+	'umn[specify ip address for host side of slip device]' && ret=0
+    ;;
+    iomem)
+      if compset -P '*,'; then
+	_files && ret=0
+      else
+	_message -e name
+      fi
+    ;;
+    channel)
+      compset -P '*,' || suf=( -S , )
+      _values -S : ${suf/S/s} "channel" \
+	pty pts xterm \
+	'tty:tty:_files $suf' \
+	"fd:file descriptor:_file_descriptors $suf" && ret=0
+    ;;
+    xterm)
+      if compset -P 2 '*,'; then
+        _wanted -x argument expl 'execute switch' compadd - -e -x && ret=0
+      elif compset -P 1 '*,'; then
+        _wanted -x argument expl 'title switch' compadd -S , - -t -T -title && ret=0
+      else
+        _wanted command expl 'terminal emulator' _command_names -e -S , && ret=0
+      fi
+    ;;
+  esac
+done
+
+return ret

@@ -1,0 +1,137 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of Tcl format strings.
+
+cat <<\EOF > f-t-1.data
+# Valid: no argument
+"abc%%"
+# Valid: one character argument
+"abc%c"
+# Valid: one string argument
+"abc%s"
+# Valid: one integer argument
+"abc%i"
+# Valid: one integer argument
+"abc%d"
+# Valid: one integer argument
+"abc%o"
+# Valid: one integer argument
+"abc%u"
+# Valid: one integer argument
+"abc%x"
+# Valid: one integer argument
+"abc%X"
+# Valid: one floating-point argument
+"abc%e"
+# Valid: one floating-point argument
+"abc%E"
+# Valid: one floating-point argument
+"abc%f"
+# Valid: one floating-point argument
+"abc%g"
+# Valid: one floating-point argument
+"abc%G"
+# Valid: one argument with flags
+"abc%0#g"
+# Valid: one argument with width
+"abc%2g"
+# Valid: one argument with width
+"abc%*g"
+# Valid: one argument with precision
+"abc%.4g"
+# Valid: one argument with precision
+"abc%.*g"
+# Valid: one argument with width and precision
+"abc%14.4g"
+# Valid: one argument with width and precision
+"abc%14.*g"
+# Valid: one argument with width and precision
+"abc%*.4g"
+# Valid: one argument with width and precision
+"abc%*.*g"
+# Invalid: unterminated
+"abc%"
+# Invalid: unknown format specifier
+"abc%y"
+# Invalid: unknown format specifier
+"abc%F"
+# Invalid: flags after width
+"abc%*0g"
+# Invalid: twice precision
+"abc%.4.2g"
+# Valid: three arguments
+"abc%d%u%u"
+# Valid: a numbered argument
+"abc%1$d"
+# Invalid: zero
+"abc%0$d"
+# Valid: two-digit numbered arguments
+"abc%11$def%10$dgh%9$dij%8$dkl%7$dmn%6$dop%5$dqr%4$dst%3$duv%2$dwx%1$dyz"
+# Invalid: unterminated number
+"abc%1"
+# Invalid: flags before number
+"abc%+1$d"
+# Valid: three arguments, two with same number
+"abc%1$4x,%2$c,%1$u"
+# Invalid: argument with conflicting types
+"abc%1$4x,%2$c,%1$s"
+# Valid: no conflict
+"abc%1$4x,%2$c,%1$u"
+# Invalid: mixing of numbered and unnumbered arguments
+"abc%d%2$x"
+# Valid: numbered argument with constant precision
+"abc%1$.9x"
+# Valid: * does mix with numbered arguments
+"abc%1$.*x"
+# Valid: missing non-final argument
+"abc%2$x%3$s"
+# Valid: permutation
+"abc%2$ddef%1$d"
+# Valid: multiple uses of same argument
+"abc%2$xdef%1$sghi%2$x"
+# Valid: one argument with width
+"abc%2$#*g"
+# Valid: one argument with width and precision
+"abc%3$*.*g"
+# Invalid: zero
+"abc%0$*.*g"
+EOF
+
+: ${XGETTEXT=xgettext}
+n=0
+while read comment; do
+  read string
+  n=`expr $n + 1`
+  escape_dollars='s/\$/\\\$/g'
+  string=`echo "$string" | sed -e "$escape_dollars"`
+  cat <<EOF > f-t-1-$n.in
+[msgcat::mc ${string}];
+EOF
+  ${XGETTEXT} -L Tcl -o f-t-1-$n.po f-t-1-$n.in || Exit 1
+  test -f f-t-1-$n.po || Exit 1
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if grep tcl-format f-t-1-$n.po > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    if grep tcl-format f-t-1-$n.po > /dev/null; then
+      fail=yes
+    else
+      :
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string recognition error:" 1>&2
+    cat f-t-1-$n.in 1>&2
+    echo "Got:" 1>&2
+    cat f-t-1-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-t-1-$n.in f-t-1-$n.po
+done < f-t-1.data
+
+Exit 0

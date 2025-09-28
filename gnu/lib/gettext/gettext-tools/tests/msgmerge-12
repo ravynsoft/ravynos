@@ -1,0 +1,84 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test merging of a message which has plural forms in def.po but not
+# in ref.pot.
+
+cat <<EOF > mm-test12.po
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: cog_training 1.0\n"
+"POT-Creation-Date: 2001-04-29 22:40+0200\n"
+"PO-Revision-Date: 2001-04-29 21:19+02:00\n"
+"Last-Translator: Felix N. <xyz@zyx.uucp>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#:foobar.c:29
+#, c-format
+msgid "%d error"
+msgid_plural "%d errors"
+msgstr[0] "%d erreur"
+msgstr[1] "%d erreurs"
+EOF
+
+cat <<EOF > mm-test12.pot
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2001-04-30 18:51+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#:foobar.c:32
+#, c-format
+msgid "%d error"
+msgstr ""
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-test12.tmp mm-test12.po mm-test12.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-test12.tmp > mm-test12.out || Exit 1
+
+cat <<EOF > mm-test12.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: cog_training 1.0\n"
+"POT-Creation-Date: 2001-04-30 18:51+0200\n"
+"PO-Revision-Date: 2001-04-29 21:19+02:00\n"
+"Last-Translator: Felix N. <xyz@zyx.uucp>\n"
+"Language-Team: German <de@li.org>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: foobar.c:32
+#, fuzzy, c-format
+msgid "%d error"
+msgstr "%d erreur"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-test12.ok mm-test12.out
+result=$?
+
+exit $result

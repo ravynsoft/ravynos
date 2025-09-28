@@ -1,0 +1,43 @@
+class.c        warnings from 'class' feature
+__END__
+# experimental warnings
+use strict;
+use feature 'class';
+class C {
+  method m {}
+}
+EXPECT
+class is experimental at - line 4.
+method is experimental at - line 5.
+########
+# constructor warnings
+use v5.36;
+use feature 'class';
+no warnings 'experimental::class';
+class C { }
+C->new();
+eval { C->new('foo') }; # suppress error
+EXPECT
+Odd number of arguments passed to "C" constructor at - line 7.
+########
+# field shadowing warning
+use v5.36;
+use feature 'class';
+no warnings 'experimental::class';
+class C {
+  field $x;
+  field $x;
+}
+EXPECT
+"field" variable $x masks earlier declaration in same scope at - line 7.
+########
+# odd number of elements in field init
+use v5.36;
+use feature 'class';
+no warnings 'experimental::class';
+class C {
+  field %h = (1, 2, 3);
+}
+C->new;
+EXPECT
+Odd number of elements in hash field initialization at - line 6.

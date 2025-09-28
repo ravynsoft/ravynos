@@ -1,0 +1,25 @@
+mtdev - Multitouch Protocol Translation Library (MIT license)
+
+To build, you need to have the autoconf and libtool packages
+installed. Then, do
+
+   ./autogen.sh
+   ./configure
+   make
+
+To test an MT device at /dev/input/eventX, do
+
+   sudo ./test/mtdev-test /dev/input/eventX
+
+You should be able to see MT events in the terminal. After five
+seconds of inactivity, the program exits.
+
+To install mtdev, do
+
+   sudo make install
+
+By default, mtdev installs to /usr/local. To change, use the --prefix
+configure option.
+
+Enjoy,
+Henrik

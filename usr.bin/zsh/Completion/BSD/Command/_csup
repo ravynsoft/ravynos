@@ -1,0 +1,26 @@
+#compdef csup
+
+_arguments -s \
+    '-1[disable automatic retries]' \
+    '-4[force usage of IPv4 addresses]' \
+    '-6[force usage of IPv6 addresses]' \
+    '-A[local address to bind to when connecting to the server]:local address:_hosts' \
+    '-b[base directory]:base directory:_files -/' \
+    '-c[subdirectory of base for information about collections]:collections directory:_files -/' \
+    '-d[maximum number of deleted files]:maximum number of deleted files:' \
+    '-h[server host]:server host:_hosts' \
+    '-i[include only files and directories matching]:file pattern:' \
+    '-k[keep temporary copies of failed updates]' \
+    '-l[lock file]:lock file:_files' \
+    '-L[verbosity level]:verbosity level:(0 1 2)' \
+    '-L0[verbosity level 0]' \
+    '-L1[verbosity level 1]' \
+    '-L2[verbosity level 2]' \
+    '-p[server port]:port:_ports' \
+    '-r[maximum number of retries]:maximum number of retries:' \
+    '-s[suppress status checks]' \
+    '-v[print version information]' \
+    '(-Z)-z[enable compression]' \
+    '(-z)-Z[disable compression]' \
+    ':csup file:_files' \
+    ':destination directory:_files -/'

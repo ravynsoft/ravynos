@@ -1,0 +1,25 @@
+[name]
+Handling of bullet after non-bullet
+
+[options]
+errors none
+
+[input]
+=over 4
+
+=item foo
+
+Not a bullet.
+
+=item *
+
+Also not a bullet.
+
+=back
+
+[output]
+.IP foo 4
+.IX Item "foo"
+Not a bullet.
+.IP * 4
+Also not a bullet.

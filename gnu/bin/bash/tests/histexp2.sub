@@ -1,0 +1,14 @@
+LANG=C LC_ALL=C
+
+set -o history
+echo a
+echo b
+echo c
+
+set -o histexpand
+set -o posix
+
+echo "#!/bin/bash" !!
+
+echo '!!'
+echo "!!"

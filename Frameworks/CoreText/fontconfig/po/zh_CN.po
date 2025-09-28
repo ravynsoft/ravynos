@@ -1,0 +1,639 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Fontconfig Author(s)
+# This file is distributed under the same license as the fontconfig package.
+#
+# Dingyuan Wang <gumblex@aosc.io>, 2018.
+# Mingcong Bai <jeffbai@aosc.io>, 2018.
+# Mingye Wang <artoria2e5@aosc.io>, 2018.
+#
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: fontconfig 2.12.92\n"
+"Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/fontconfig/fontconfig/"
+"issues/new\n"
+"POT-Creation-Date: 2023-01-27 17:24+0900\n"
+"PO-Revision-Date: 2018-02-16 01:41-0600\n"
+"Last-Translator: Mingcong Bai <jeffbai@aosc.xyz>\n"
+"Language-Team: AOSC\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.5\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: fc-cache/fc-cache.c:107
+#, c-format
+msgid ""
+"usage: %s [-EfrsvVh] [-y SYSROOT] [--error-on-no-fonts] [--force|--really-"
+"force] [--sysroot=SYSROOT] [--system-only] [--verbose] [--version] [--help] "
+"[dirs]\n"
+msgstr ""
+"用法：%s [-EfrsvVh] [-y <系统根>] [--error-on-no-fonts] [--force|--really-"
+"force] [--sysroot=<系统根>] [--system-only] [--verbose] [--version] [--help] "
+"[目录]\n"
+
+#: fc-cache/fc-cache.c:110
+#, c-format
+msgid "usage: %s [-EfrsvVh] [-y SYSROOT] [dirs]\n"
+msgstr "用法：%s [-EfrsvVh] [-y <系统根>] [目录]\n"
+
+#: fc-cache/fc-cache.c:113
+#, c-format
+msgid ""
+"Build font information caches in [dirs]\n"
+"(all directories in font configuration by default).\n"
+msgstr ""
+"在 [目录] 构建字体信息缓存\n"
+"（默认为所有字体配置中定义的目录）。\n"
+
+#: fc-cache/fc-cache.c:117
+#, c-format
+msgid "  -E, --error-on-no-fonts  raise an error if no fonts in a directory\n"
+msgstr "  -E, --error-on-no-fonts  在目录中无字体时报错\n"
+
+#: fc-cache/fc-cache.c:118
+#, c-format
+msgid ""
+"  -f, --force              scan directories with apparently valid caches\n"
+msgstr "  -f, --force              强制扫描已有有效缓存的目录\n"
+
+#: fc-cache/fc-cache.c:119
+#, c-format
+msgid "  -r, --really-force       erase all existing caches, then rescan\n"
+msgstr "  -r, --really-force       清空所有缓存并重新扫描\n"
+
+#: fc-cache/fc-cache.c:120
+#, c-format
+msgid "  -s, --system-only        scan system-wide directories only\n"
+msgstr "  -s, --system-only        仅扫描系统全局目录\n"
+
+#: fc-cache/fc-cache.c:121
+#, c-format
+msgid "  -y, --sysroot=SYSROOT    prepend SYSROOT to all paths for scanning\n"
+msgstr "  -y, --sysroot=<系统根>    扫描时将 <系统根> 值附加到路径开头\n"
+
+#: fc-cache/fc-cache.c:122
+#, c-format
+msgid "  -v, --verbose            display status information while busy\n"
+msgstr "  -v, --verbose            在程序工作时显示状态信息\n"
+
+#: fc-cache/fc-cache.c:123
+#, c-format
+msgid "  -V, --version            display font config version and exit\n"
+msgstr "  -V, --version            显示 Fontconfig 版本并退出\n"
+
+#: fc-cache/fc-cache.c:124
+#, c-format
+msgid "  -h, --help               display this help and exit\n"
+msgstr "  -h, --help               显示该帮助信息并退出\n"
+
+#: fc-cache/fc-cache.c:126
+#, c-format
+msgid "  -E         (error-on-no-fonts)\n"
+msgstr "  -E         (error-on-no-fonts)\n"
+
+#: fc-cache/fc-cache.c:127
+#, c-format
+msgid "                       raise an error if no fonts in a directory\n"
+msgstr "                       在目录中无字体时报错\n"
+
+#: fc-cache/fc-cache.c:128
+#, c-format
+msgid "  -f         (force)   scan directories with apparently valid caches\n"
+msgstr "  -f         (force)   强制扫描带有有效缓存的目录\n"
+
+#: fc-cache/fc-cache.c:129
+#, c-format
+msgid "  -r,   (really force) erase all existing caches, then rescan\n"
+msgstr "  -r,   (really-force) 清空所有缓存并重新扫描\n"
+
+#: fc-cache/fc-cache.c:130
+#, c-format
+msgid "  -s         (system)  scan system-wide directories only\n"
+msgstr "  -s         (system)  仅扫描系统全局目录\n"
+
+#: fc-cache/fc-cache.c:131
+#, c-format
+msgid "  -y SYSROOT (sysroot) prepend SYSROOT to all paths for scanning\n"
+msgstr "  -y <系统根> (sysroot) 扫描时将 <系统根> 值附加到路径开头\n"
+
+#: fc-cache/fc-cache.c:132
+#, c-format
+msgid "  -v         (verbose) display status information while busy\n"
+msgstr "  -v         (verbose) 在程序工作时显示状态信息\n"
+
+#: fc-cache/fc-cache.c:133 fc-cat/fc-cat.c:181 fc-list/fc-list.c:103
+#: fc-match/fc-match.c:107 fc-pattern/fc-pattern.c:101
+#, c-format
+msgid "  -V         (version) display font config version and exit\n"
+msgstr "  -V         (version) 显示 Fontconfig 版本并退出\n"
+
+#: fc-cache/fc-cache.c:134 fc-cat/fc-cat.c:182 fc-list/fc-list.c:104
+#: fc-match/fc-match.c:108 fc-pattern/fc-pattern.c:102
+#, c-format
+msgid "  -h         (help)    display this help and exit\n"
+msgstr "  -h         (help)    显示该帮助信息并退出\n"
+
+#: fc-cache/fc-cache.c:171
+#, c-format
+msgid "skipping, looped directory detected\n"
+msgstr "跳过，探测到循环目录\n"
+
+#: fc-cache/fc-cache.c:190
+#, c-format
+msgid "skipping, no such directory\n"
+msgstr "跳过，无此目录\n"
+
+#: fc-cache/fc-cache.c:208
+#, c-format
+msgid "\"%s\": not a directory, skipping\n"
+msgstr "“%s”：不是一个目录，跳过\n"
+
+#: fc-cache/fc-cache.c:232
+#, c-format
+msgid "\"%s\": scanning error\n"
+msgstr "“%s”：扫描错误\n"
+
+#: fc-cache/fc-cache.c:241
+#, c-format
+msgid "skipping, existing cache is valid: %d fonts, %d dirs\n"
+msgstr "跳过，当前缓存有效：%d 个字体，%d 个目录\n"
+
+#: fc-cache/fc-cache.c:247
+#, c-format
+msgid "caching, new cache contents: %d fonts, %d dirs\n"
+msgstr "正在生成缓存，新增缓存内容：%d 个字体，%d 个目录\n"
+
+#: fc-cache/fc-cache.c:252
+#, c-format
+msgid "%s: failed to write cache\n"
+msgstr "%s：无法写入缓存\n"
+
+#: fc-cache/fc-cache.c:261
+#, c-format
+msgid "%s: Can't create subdir set\n"
+msgstr "%s：无法创建子目录集\n"
+
+#: fc-cache/fc-cache.c:275
+#, c-format
+msgid "%s: Can't create subdir list\n"
+msgstr "%s：无法创建子目录列表\n"
+
+#: fc-cache/fc-cache.c:383 fc-cat/fc-cat.c:309
+#, c-format
+msgid "%s: Can't initialize font config library\n"
+msgstr "%s：无法初始化 Fontconfig 库\n"
+
+#: fc-cache/fc-cache.c:393
+#, c-format
+msgid "%s: Can't create list of directories\n"
+msgstr "%s：无法创建目录列表\n"
+
+#: fc-cache/fc-cache.c:401
+#, c-format
+msgid "%s: Can't add directory\n"
+msgstr "%s：无法添加目录\n"
+
+#: fc-cache/fc-cache.c:413
+#, c-format
+msgid "Out of Memory\n"
+msgstr "内存耗尽\n"
+
+#: fc-cache/fc-cache.c:456
+msgid "failed"
+msgstr "缓存生成失败"
+
+#: fc-cache/fc-cache.c:456
+msgid "succeeded"
+msgstr "缓存生成成功"
+
+#: fc-cat/fc-cat.c:162
+#, c-format
+msgid "usage: %s [-rv] [--recurse] [--verbose] [*-%s"
+msgstr "用法：%s [-rv] [--recurse] [--verbose] [*-%s"
+
+#: fc-cat/fc-cat.c:166
+#, c-format
+msgid "usage: %s [-rvVh] [*-%s"
+msgstr "用法：%s [-rvVh] [*-%s"
+
+#: fc-cat/fc-cat.c:169
+#, c-format
+msgid "Reads font information cache from:\n"
+msgstr "从此处读取字体信息缓存：\n"
+
+#: fc-cat/fc-cat.c:170
+#, c-format
+msgid " 1) specified fontconfig cache file\n"
+msgstr "1. 指定的 Fontconfig 缓存文件\n"
+
+#: fc-cat/fc-cat.c:171
+#, c-format
+msgid " 2) related to a particular font directory\n"
+msgstr "2. 相对于某个字体目录\n"
+
+#: fc-cat/fc-cat.c:174
+#, c-format
+msgid "  -r, --recurse        recurse into subdirectories\n"
+msgstr "  -r, --recurse        递归进入子目录\n"
+
+#: fc-cat/fc-cat.c:175
+#, c-format
+msgid "  -v, --verbose        be verbose\n"
+msgstr "  -v, --verbose        输出详尽信息\n"
+
+#: fc-cat/fc-cat.c:176 fc-conflist/fc-conflist.c:90 fc-list/fc-list.c:96
+#: fc-match/fc-match.c:99 fc-pattern/fc-pattern.c:95 fc-query/fc-query.c:98
+#: fc-validate/fc-validate.c:98
+#, c-format
+msgid "  -V, --version        display font config version and exit\n"
+msgstr "  -V, --version        显示 Fontconfig 版本并退出\n"
+
+#: fc-cat/fc-cat.c:177 fc-conflist/fc-conflist.c:91 fc-list/fc-list.c:97
+#: fc-match/fc-match.c:100 fc-pattern/fc-pattern.c:96 fc-query/fc-query.c:99
+#: fc-validate/fc-validate.c:99
+#, c-format
+msgid "  -h, --help           display this help and exit\n"
+msgstr "  -h, --help           显示该帮助信息并退出\n"
+
+#: fc-cat/fc-cat.c:179
+#, c-format
+msgid "  -r         (recurse) recurse into subdirectories\n"
+msgstr "  -r         (recurse) 递归进入子目录\n"
+
+#: fc-cat/fc-cat.c:180
+#, c-format
+msgid "  -v         (verbose) be verbose\n"
+msgstr "  -v         (verbose) 输出详尽信息\n"
+
+#: fc-cat/fc-cat.c:318 fc-cat/fc-cat.c:327 fc-cat/fc-cat.c:339
+#: fc-cat/fc-cat.c:347
+#, c-format
+msgid "%s: malloc failure\n"
+msgstr "%s：无法分配内存 (malloc)\n"
+
+#: fc-cat/fc-cat.c:387
+#, c-format
+msgid ""
+"Directory: %s\n"
+"Cache: %s\n"
+"--------\n"
+msgstr ""
+"目录：%s\n"
+"缓存：%s\n"
+"--------\n"
+
+#: fc-conflist/fc-conflist.c:81
+#, c-format
+msgid "usage: %s [-Vh] [--version] [--help]\n"
+msgstr "用法：%s [-Vh] [--version] [--help]\n"
+
+#: fc-conflist/fc-conflist.c:84
+#, c-format
+msgid "usage: %s [-Vh]\n"
+msgstr "用法：%s [-Vh]\n"
+
+#: fc-conflist/fc-conflist.c:87
+#, c-format
+msgid "Show the ruleset files information on the system\n"
+msgstr "显示当前系统中的规则集文件\n"
+
+#: fc-conflist/fc-conflist.c:93 fc-validate/fc-validate.c:104
+#, c-format
+msgid "  -V         (version)      display font config version and exit\n"
+msgstr "  -V         （版本）      显示 Fontconfig 版本并退出\n"
+
+#: fc-conflist/fc-conflist.c:94 fc-validate/fc-validate.c:105
+#, c-format
+msgid "  -h         (help)         display this help and exit\n"
+msgstr "  -h         （帮助）         显示该帮助信息并退出\n"
+
+#: fc-list/fc-list.c:83
+#, c-format
+msgid ""
+"usage: %s [-vbqVh] [-f FORMAT] [--verbose] [--brief] [--format=FORMAT] [--"
+"quiet] [--version] [--help] [pattern] {element ...} \n"
+msgstr ""
+"用法：%s [-vbqVh] [-f <输出格式>] [--verbose] [--brief] [--format=<输出格式"
+">] [--quiet] [--version] [--help] [匹配模式] {元素 …} \n"
+
+#: fc-list/fc-list.c:86
+#, c-format
+msgid "usage: %s [-vbqVh] [-f FORMAT] [pattern] {element ...} \n"
+msgstr "用法：%s [-vbqVh] [-f <输出格式>] [匹配模式] {元素 …} \n"
+
+#: fc-list/fc-list.c:89
+#, c-format
+msgid "List fonts matching [pattern]\n"
+msgstr "列出符合 [匹配模式] 的字体\n"
+
+#: fc-list/fc-list.c:92 fc-match/fc-match.c:96
+#, c-format
+msgid "  -v, --verbose        display entire font pattern verbosely\n"
+msgstr "  -v, --verbose        详尽显示整个字体匹配模式\n"
+
+#: fc-list/fc-list.c:93 fc-match/fc-match.c:97
+#, c-format
+msgid "  -b, --brief          display entire font pattern briefly\n"
+msgstr "  -b, --brief          简略显示整个字体匹配模式\n"
+
+#: fc-list/fc-list.c:94 fc-match/fc-match.c:98 fc-pattern/fc-pattern.c:94
+#: fc-query/fc-query.c:97
+#, c-format
+msgid "  -f, --format=FORMAT  use the given output format\n"
+msgstr "  -f, --format=<输出格式>  使用指定的输出格式\n"
+
+#: fc-list/fc-list.c:95
+#, c-format
+msgid ""
+"  -q, --quiet          suppress all normal output, exit 1 if no fonts "
+"matched\n"
+msgstr "  -q, --quiet          静默所有正常输出，无匹配字体时返回退出代码 1\n"
+
+#: fc-list/fc-list.c:99 fc-match/fc-match.c:104
+#, c-format
+msgid "  -v         (verbose) display entire font pattern verbosely\n"
+msgstr "  -v         (verbose) 详尽显示整个字体匹配模式\n"
+
+#: fc-list/fc-list.c:100 fc-match/fc-match.c:105
+#, c-format
+msgid "  -b         (brief)   display entire font pattern briefly\n"
+msgstr "  -b         (brief)   简略显示整个字体匹配模式\n"
+
+#: fc-list/fc-list.c:101 fc-match/fc-match.c:106 fc-pattern/fc-pattern.c:100
+#, c-format
+msgid "  -f FORMAT  (format)  use the given output format\n"
+msgstr "  -f <输出格式>  (format)  使用指定的输出格式\n"
+
+#: fc-list/fc-list.c:102
+#, c-format
+msgid ""
+"  -q,        (quiet)   suppress all normal output, exit 1 if no fonts "
+"matched\n"
+msgstr "  -q,        (quiet)   静默所有正常输出，无匹配字体时返回退出代码 1\n"
+
+#: fc-list/fc-list.c:164 fc-match/fc-match.c:172 fc-pattern/fc-pattern.c:155
+#, c-format
+msgid "Unable to parse the pattern\n"
+msgstr "无法解析匹配模式\n"
+
+#: fc-match/fc-match.c:85
+#, c-format
+msgid ""
+"usage: %s [-savbVh] [-f FORMAT] [--sort] [--all] [--verbose] [--brief] [--"
+"format=FORMAT] [--version] [--help] [pattern] {element...}\n"
+msgstr ""
+"用法：%s [-savbVh] [-f <输出格式>] [--sort] [--all] [--verbose] [--brief] [--"
+"format=<输出格式>] [--version] [--help] [匹配模式] {元素…}\n"
+
+#: fc-match/fc-match.c:88
+#, c-format
+msgid "usage: %s [-savVh] [-f FORMAT] [pattern] {element...}\n"
+msgstr "用法：%s [-savVh] [-f <输出格式>] [匹配模式] {元素…}\n"
+
+#: fc-match/fc-match.c:91 fc-pattern/fc-pattern.c:89
+#, c-format
+msgid "List best font matching [pattern]\n"
+msgstr "列出符合 [匹配模式] 的最佳字体\n"
+
+#: fc-match/fc-match.c:94
+#, c-format
+msgid "  -s, --sort           display sorted list of matches\n"
+msgstr "  -s, --sort           显示已排序的匹配列表\n"
+
+#: fc-match/fc-match.c:95
+#, c-format
+msgid "  -a, --all            display unpruned sorted list of matches\n"
+msgstr "  -a, --all            显示未修剪而已排序的匹配列表\n"
+
+#: fc-match/fc-match.c:102
+#, c-format
+msgid "  -s,        (sort)    display sorted list of matches\n"
+msgstr "  -s,        (sort)    显示已排序的匹配列表\n"
+
+#: fc-match/fc-match.c:103
+#, c-format
+msgid "  -a         (all)     display unpruned sorted list of matches\n"
+msgstr "  -a         (all)     显示未修剪而已排序的匹配列表\n"
+
+#: fc-match/fc-match.c:201
+#, c-format
+msgid "No fonts installed on the system\n"
+msgstr "系统中未安装任何字体\n"
+
+#: fc-pattern/fc-pattern.c:83
+#, c-format
+msgid ""
+"usage: %s [-cdVh] [-f FORMAT] [--config] [--default] [--verbose] [--"
+"format=FORMAT] [--version] [--help] [pattern] {element...}\n"
+msgstr ""
+"用法：%s [-cdVh] [-f <输出格式>] [--config] [--default] [--verbose] [--"
+"format=<输出格式>] [--version] [--help] [匹配模式] {元素…}\n"
+
+#: fc-pattern/fc-pattern.c:86
+#, c-format
+msgid "usage: %s [-cdVh] [-f FORMAT] [pattern] {element...}\n"
+msgstr "用法：%s [-cdVh] [-f <输出格式>] [匹配模式] {元素…}\n"
+
+#: fc-pattern/fc-pattern.c:92
+#, c-format
+msgid "  -c, --config         perform config substitution on pattern\n"
+msgstr "  -c, --config         根据匹配模式进行配置替换\n"
+
+#: fc-pattern/fc-pattern.c:93
+#, c-format
+msgid "  -d, --default        perform default substitution on pattern\n"
+msgstr "  -d, --default        根据匹配模式进行默认值替换\n"
+
+#: fc-pattern/fc-pattern.c:98
+#, c-format
+msgid "  -c,        (config)  perform config substitution on pattern\n"
+msgstr "  -c,        (config)  根据匹配模式进行配置替换\n"
+
+#: fc-pattern/fc-pattern.c:99
+#, c-format
+msgid "  -d,        (default) perform default substitution on pattern\n"
+msgstr "  -d,        (default) 根据匹配模式进行默认值替换\n"
+
+#: fc-query/fc-query.c:86
+#, c-format
+msgid ""
+"usage: %s [-bVh] [-i index] [-f FORMAT] [--index index] [--brief] [--format "
+"FORMAT] [--version] [--help] font-file...\n"
+msgstr ""
+"用法：%s [-bVh] [-i index] [-f <输出格式>] [--index index] [--brief] [--"
+"format <输出格式>] [--version] [--help] 字体文件…\n"
+
+#: fc-query/fc-query.c:89
+#, c-format
+msgid "usage: %s [-bVh] [-i index] [-f FORMAT] font-file...\n"
+msgstr "用法：%s [-bVh] [-i index] [-f <输出格式>] 字体文件…\n"
+
+#: fc-query/fc-query.c:92
+#, c-format
+msgid "Query font files and print resulting pattern(s)\n"
+msgstr ""
+"查询字体文件并输出匹配模式\n"
+"\n"
+
+#: fc-query/fc-query.c:95 fc-validate/fc-validate.c:95
+#, c-format
+msgid "  -i, --index INDEX    display the INDEX face of each font file only\n"
+msgstr "  -i, --index <编号>    仅显示每个字体文件的 <编号> 样式\n"
+
+#: fc-query/fc-query.c:96
+#, c-format
+msgid "  -b, --brief          display font pattern briefly\n"
+msgstr "  -b, --brief          简略显示字体匹配模式\n"
+
+#: fc-query/fc-query.c:101
+#, c-format
+msgid ""
+"  -i INDEX   (index)         display the INDEX face of each font file only\n"
+msgstr "  -i <编号>   (index)         仅显示每个字体文件的 <编号> 样式\n"
+
+#: fc-query/fc-query.c:102 fc-scan/fc-scan.c:101
+#, c-format
+msgid "  -b         (brief)         display font pattern briefly\n"
+msgstr "  -b         (brief)         简略显示字体匹配模式\n"
+
+#: fc-query/fc-query.c:103 fc-scan/fc-scan.c:102
+#, c-format
+msgid "  -f FORMAT  (format)        use the given output format\n"
+msgstr "  -f <输出格式>  (format)        使用指定的输出格式\n"
+
+#: fc-query/fc-query.c:104 fc-scan/fc-scan.c:104
+#, c-format
+msgid "  -V         (version)       display font config version and exit\n"
+msgstr "  -V         (version)       显示 Fontconfig 版本并退出\n"
+
+#: fc-query/fc-query.c:105 fc-scan/fc-scan.c:105
+#, c-format
+msgid "  -h         (help)          display this help and exit\n"
+msgstr "  -h         (help)          显示此帮助信息并退出\n"
+
+#: fc-query/fc-query.c:163
+#, c-format
+msgid "Can't query face %u of font file %s\n"
+msgstr "无法查询字体文件 %2$s 的样式 %1$u\n"
+
+#: fc-scan/fc-scan.c:86
+#, fuzzy, c-format
+msgid ""
+"usage: %s [-bcVh] [-f FORMAT] [-y SYSROOT] [--brief] [--format FORMAT] [--"
+"version] [--help] font-file...\n"
+msgstr ""
+"用法：%s [-bVh] [-f <输出格式>] [--brief] [--format <输出格式>] [--version] "
+"[--help] 字体文件…\n"
+
+#: fc-scan/fc-scan.c:89
+#, fuzzy, c-format
+msgid "usage: %s [-bcVh] [-f FORMAT] [-y SYSROOT] font-file...\n"
+msgstr "用法：%s [-bVh] [-f <输出格式>] 字体文件…\n"
+
+#: fc-scan/fc-scan.c:92
+#, c-format
+msgid "Scan font files and directories, and print resulting pattern(s)\n"
+msgstr "扫描字体文件和目录并输出匹配模式\n"
+
+#: fc-scan/fc-scan.c:95
+#, fuzzy, c-format
+msgid "  -b, --brief            display font pattern briefly\n"
+msgstr "  -b, --brief          简略显示字体匹配模式\n"
+
+#: fc-scan/fc-scan.c:96
+#, fuzzy, c-format
+msgid "  -f, --format=FORMAT    use the given output format\n"
+msgstr "  -f, --format=<输出格式>  使用指定的输出格式\n"
+
+#: fc-scan/fc-scan.c:97
+#, fuzzy, c-format
+msgid "  -y, --sysroot=SYSROOT  prepend SYSROOT to all paths for scanning\n"
+msgstr "  -y, --sysroot=<系统根>    扫描时将 <系统根> 值附加到路径开头\n"
+
+#: fc-scan/fc-scan.c:98
+#, fuzzy, c-format
+msgid "  -V, --version          display font config version and exit\n"
+msgstr "  -V, --version            显示 Fontconfig 版本并退出\n"
+
+#: fc-scan/fc-scan.c:99
+#, fuzzy, c-format
+msgid "  -h, --help             display this help and exit\n"
+msgstr "  -h, --help               显示该帮助信息并退出\n"
+
+#: fc-scan/fc-scan.c:103
+#, fuzzy, c-format
+msgid ""
+"  -y SYSROOT (sysroot)       prepend SYSROOT to all paths for scanning\n"
+msgstr "  -y <系统根> (sysroot) 扫描时将 <系统根> 值附加到路径开头\n"
+
+#: fc-validate/fc-validate.c:86
+#, c-format
+msgid ""
+"usage: %s [-Vhv] [-i index] [-l LANG] [--index index] [--lang LANG] [--"
+"verbose] [--version] [--help] font-file...\n"
+msgstr ""
+"用法：%s [-Vhv] [-i index] [-l LANG] [--index index] [--lang LANG] [--"
+"verbose] [--version] [--help] 字体文件…\n"
+
+#: fc-validate/fc-validate.c:89
+#, c-format
+msgid "usage: %s [-Vhv] [-i index] [-l LANG] font-file...\n"
+msgstr "用法：%s [-Vhv] [-i index] [-l LANG] 字体文件…\n"
+
+#: fc-validate/fc-validate.c:92
+#, c-format
+msgid "Validate font files and print result\n"
+msgstr "验证字体文件并输出结果\n"
+
+#: fc-validate/fc-validate.c:96
+#, c-format
+msgid "  -l, --lang=LANG      set LANG instead of current locale\n"
+msgstr "  -l, --lang=LANG      使用 LANG 值替换当前区域设置\n"
+
+#: fc-validate/fc-validate.c:97
+#, c-format
+msgid "  -v, --verbose        show more detailed information\n"
+msgstr "  -v, --verbose        显示详尽信息\n"
+
+#: fc-validate/fc-validate.c:101
+#, c-format
+msgid ""
+"  -i INDEX   (index)        display the INDEX face of each font file only\n"
+msgstr "  -i <编号>   (index)        仅显示每个字体的 <编号> 字形\n"
+
+#: fc-validate/fc-validate.c:102
+#, c-format
+msgid "  -l LANG    (lang)         set LANG instead of current locale\n"
+msgstr "  -l LANG    (lang)         使用 LANG 值替换当前区域设置\n"
+
+#: fc-validate/fc-validate.c:103
+#, c-format
+msgid "  -v         (verbose)      show more detailed information\n"
+msgstr "  -v         （详尽）      显示详尽信息\n"
+
+#: fc-validate/fc-validate.c:170
+#, fuzzy, c-format
+msgid "Can't initialize FreeType library\n"
+msgstr "无法初始化 FreeType 库\n"
+
+#: fc-validate/fc-validate.c:188
+#, c-format
+msgid "Unable to open %s\n"
+msgstr "无法打开 %s\n"
+
+#: fc-validate/fc-validate.c:204
+#, c-format
+msgid "%s:%d Missing %d glyph(s) to satisfy the coverage for %s language\n"
+msgstr "%s:%d 尚需 %d 个字形以满足 %s 语言的覆盖需求\n"
+
+#: fc-validate/fc-validate.c:234
+#, c-format
+msgid "%s:%d Satisfy the coverage for %s language\n"
+msgstr "%s:%d 完全满足 %s 语言的覆盖需求\n"
+
+#: src/fccfg.c:3251
+msgid "No description"
+msgstr "无描述"

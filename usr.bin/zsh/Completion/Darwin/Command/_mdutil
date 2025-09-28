@@ -1,0 +1,19 @@
+#compdef mdutil
+
+# @todo This isn't fully comprehensive, but it's unclear from the documentation
+# how some of these options are meant to work together or what kind of arguments
+# they expect
+
+local -a volumes=( / /Volumes/*(N) )
+
+_arguments -s -S : \
+  '(-V)-a[apply to all volumes]' \
+  '-d[disable Spotlight activity]' \
+  '-E[erase and rebuild index]' \
+  '-i[toggle indexing status]:indexing status:(on off)' \
+  '-p[publish metadata]' \
+  '-s[print indexing status]' \
+  '(: -)-t[resolve files from specified file ID]:file ID, volume path, or device ID: :file ID' \
+  "(-a)-V[apply to stores on specified volume]:volume:(${(j< >)${(@q-)volumes}})" \
+  '-v[output verbosely]' \
+  "*:volume:(${(j< >)${(@q-)volumes}})"

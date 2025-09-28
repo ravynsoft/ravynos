@@ -1,0 +1,80 @@
+#compdef sort gsort
+
+local args variant
+local ordering='(-d --dictionary-order -g --general-numeric-sort -M --month-sort -h --human-numeric-sort -n --numeric-sort --sort -V --version-sort --help --version)'
+
+args=(
+  "(-c --check -C -m --merge -s --stable)-c[check whether input is sorted; don't sort]"
+  '(-c --check -C -m --merge)'{-m,--merge}"[merge already sorted files; don't sort]"
+  '(-o --output)'{-o+,--output=}'[write result to file instead of standard output]:output file:_files'
+  \*{-T+,--temporary-directory=}'[specify directory for temporary files]:directory:_directories'
+  '(-u --unique)'{-u,--unique}'[with -c, check for strict ordering; without -c, output only the first of an equal run]'
+  "$ordering"{-d,--dictionary-order}'[consider only blanks and alphanumeric characters]'
+  '(-f --ignore-case)'{-f,--ignore-case}'[fold lower case to upper case characters]'
+  '(-i --ignore-nonprinting)'{-i,--ignore-nonprinting}'[consider only printable characters]'
+  "$ordering"{-n,--numeric-sort}'[compare according to string numerical value]'
+  '(-r --reverse)'{-r,--reverse}'[reverse the result of comparisons]'
+  '(-b --ignore-leading-blanks)'{-b,--ignore-leading-blanks}'[ignore leading blanks]'
+  '(-t --field-separator)'{-t+,--field-separator=}'[specify field separator instead of non-blank to blank transition]:separator'
+  \*{-k+,--key=}'[specified start and end fields for key]:key field'
+)
+
+_pick_variant -r variant gnu=GNU $OSTYPE --version
+case $variant in
+  dragonfly*|netbsd*|openbsd*|freebsd*|darwin*|gnu)
+    args+=(
+      '(-s --stable)'{-s,--stable}'[preserve original order of lines with the same key]'
+    )
+  ;|
+  netbsd*|openbsd*|freebsd*|darwin*|gnu|solaris2.<11->)
+    args+=(
+      "(-c --check -C)-C[check whether input is sorted silently; don't sort]"
+    )
+  ;|
+  openbsd*|freebsd*|darwin*|gnu)
+    args+=(
+      '(-z --zero-terminated)'{-z,--zero-terminated}'[end lines with 0 byte, not newline]'
+    )
+  ;|
+  freebsd*|darwin*|gnu)
+    args+=(
+      "(-c --check -C)--check=-[check whether input is sorted; don't sort]::bad line handling:(diagnose-first silent quiet)"
+      "$ordering"{-g,--general-numeric-sort}'[compare according to general numeric value]'
+      "$ordering"{-M,--month-sort}"[compare (unknown) < 'JAN' < ... < 'DEC']"
+      "$ordering"{-h,--human-numeric-sort}'[compare human readable numbers (e.g., 2K 1G)]'
+      "$ordering"{-R,--random-sort}'[sort by random hash of keys]'
+      "$ordering"{-V,--version-sort}'[sort version numbers]'
+      "$ordering--sort=[specify comparator]:comparator:(general-numeric human-numeric month numeric random version)"
+      '(-i --ignore-nonprinting)'{-i,--ignore-nonprinting}'[consider only printable characters]'
+      '--random-source=[get random bytes from file]:file:_files'
+      '--batch-size=[maximum inputs to merge]:number'
+      '--compress-program=[specify program to compress temporary files with]:program:(gzip bzip2 lzop xz)'
+      '--debug[annotate the part of the line used to sort]'
+      '(*)--files0-from=[read input files from file]:file:_files'
+      '(-S --buffer-size)'{-S+,--buffer-size=}'[specify size for main memory buffer]:size'
+      '(- *)--help[display help and exit]'
+      '(- *)--version[output version information and exit]'
+    )
+  ;|
+  netbsd*|dragonfly*)
+    args+=(
+      "${ordering}-l[sort by string length of field]"
+      "(-s)-S[don't use stable sort]"
+    )
+  ;|
+  openbsd*)
+    args+=(
+      '-H[use a merge sort instead of a radix sort]'
+      '-R[specify record separator]:separator'
+    )
+  ;|
+  gnu)
+    args+=( '--parallel=[set number of sorts run concurrently]:number' )
+  ;;
+  freebsd*|darwin*)
+    args+=( --radixsort  --mergesort --qsort --heapsort --mmap )
+  ;;
+  *) args=( "${(@)args:#(|\(*\))(|\*)--*}" ) ;;
+esac
+
+_arguments -s -S $args '*:file:_files'

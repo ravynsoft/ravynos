@@ -1,0 +1,168 @@
+# Unable to translate stdin:26:29:
+# Defaults@somehost set_home
+
+# Unable to translate stdin:27:29:
+# Defaults@quoted\" set_home
+
+# Unable to translate stdin:30:24:
+# Defaults:you set_home
+
+# Unable to translate stdin:31:25:
+# Defaults:us\" set_home
+
+# Unable to translate stdin:32:26:
+# Defaults:%them set_home
+
+# Unable to translate stdin:33:36:
+# Defaults:"%: non UNIX 0 c" set_home
+
+# Unable to translate stdin:34:25:
+# Defaults:+net set_home
+
+# Unable to translate stdin:37:28:
+# Defaults>someone set_home
+
+# Unable to translate stdin:38:29:
+# Defaults>"some one" set_home
+
+dn: cn=foo,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: foo
+sudoUser: foo
+sudoHost: hosta
+sudoRunAsUser: root
+sudoCommand: ALL
+sudoOrder: 1
+
+dn: cn=foo.bar,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: foo.bar
+sudoUser: foo.bar
+sudoHost: hostb
+sudoRunAsUser: root
+sudoCommand: ALL
+sudoOrder: 2
+
+dn: cn=foo\",ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: foo\"
+sudoUser: foo"
+sudoHost: hostc
+sudoRunAsUser: root
+sudoCommand: ALL
+sudoOrder: 3
+
+dn: cn=foo:bar,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: foo:bar
+sudoUser: foo:bar
+sudoHost: hostd
+sudoRunAsUser: root
+sudoCommand: ALL
+sudoOrder: 4
+
+dn: cn=foo:bar\",ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: foo:bar\"
+sudoUser: foo:bar"
+sudoHost: hoste
+sudoRunAsUser: root
+sudoCommand: ALL
+sudoOrder: 5
+
+dn: cn=%baz,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: %baz
+sudoUser: %baz
+sudoHost: hosta
+sudoRunAsUser: root
+sudoCommand: ALL
+sudoOrder: 6
+
+dn: cn=%baz.biz,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: %baz.biz
+sudoUser: %baz.biz
+sudoHost: hostb
+sudoRunAsUser: root
+sudoCommand: ALL
+sudoOrder: 7
+
+dn: cn=%:C/non UNIX 0 c,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: %:C/non UNIX 0 c
+sudoUser: %:C/non UNIX 0 c
+sudoHost: hostc
+sudoRunAsUser: root
+sudoCommand: ALL
+sudoOrder: 8
+
+dn: cn=%:C/non\\'UNIX\\'1 c,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: %:C/non\\'UNIX\\'1 c
+sudoUser: %:C/non\'UNIX\'1 c
+sudoHost: hostd
+sudoRunAsUser: root
+sudoCommand: ALL
+sudoOrder: 9
+
+dn: cn=%:C/non\"UNIX\"0 c,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: %:C/non\"UNIX\"0 c
+sudoUser: %:C/non"UNIX"0 c
+sudoHost: hoste
+sudoRunAsUser: root
+sudoCommand: ALL
+sudoOrder: 10
+
+dn: cn=%:C/non_UNIX_0 c,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: %:C/non_UNIX_0 c
+sudoUser: %:C/non_UNIX_0 c
+sudoHost: hostf
+sudoRunAsUser: root
+sudoCommand: ALL
+sudoOrder: 11
+
+dn: cn=%:C/non\\'UNIX_3 c,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: %:C/non\\'UNIX_3 c
+sudoUser: %:C/non\'UNIX_3 c
+sudoHost: hostg
+sudoRunAsUser: root
+sudoCommand: ALL
+sudoOrder: 12
+
+dn: cn=\+netgr,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: \+netgr
+sudoUser: +netgr
+sudoHost: hosth
+sudoRunAsUser: root
+sudoCommand: ALL
+sudoOrder: 13
+
+dn: cn=user,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user
+sudoUser: user
+sudoHost: ALL
+sudoCommand: /bin/ls ""
+sudoCommand: /bin/echo " "
+sudoCommand: /bin/foo"bar ""
+sudoOrder: 14
+

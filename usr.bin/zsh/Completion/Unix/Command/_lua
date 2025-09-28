@@ -1,0 +1,63 @@
+#compdef lua -P lua[0-9.-]##
+
+# Complete lua library names. We go out of our way here to support sub-modules
+# (of the format foo.bar.baz), even though the way `lua -l` handles those isn't
+# very nice, because it might be useful for informational purposes
+(( $+functions[_lua_libraries] )) ||
+_lua_libraries() {
+  local p pre
+  local -a tmp tmp2
+
+  # Get Lua's library search path
+  tmp=( ${(s<;>)${(@f)"$(
+    _call_program library-path $words[1] -e '"print(package.path)"'
+  )"}} )
+  # Support C modules, which aren't explicitly included in the above
+  tmp+=( ${(@)${(@M)tmp:#*'?.lua'}/%.lua/.so} )
+
+  for p in ${(@u)tmp}; do
+    # Don't recurse infinitely into the current directory; we'll just trust
+    # that all other paths are sensible
+    if [[ $p == './?'* ]]; then
+      tmp=( ${~${${(b)p}/'\?'/'*'}}(#qN) )
+    else
+      tmp=( ${~${${(b)p}/'\?'/'**/*'}}(#qN) )
+    fi
+    tmp2+=( ${(@)tmp##${p%%'?'*}} )
+  done
+
+  tmp=( ${(@)tmp2%%(/init.lua|.lua|.so)} )
+  tmp=( ${(@u)${(@)tmp//\//.}} )
+
+  _wanted -x libraries expl 'Lua library' compadd -a "$@" - tmp
+}
+
+_lua() {
+  local ret=1
+  local -a context expl line state state_descr
+  local -A opt_args
+
+  # Stacking not supported, no arguments are exclusive except `-`
+  _arguments -S -A '-*' : \
+    '*-e+[execute specified command string]:command string' \
+    '-E[ignore environment variables]' \
+    '-i[enter interactive mode]' \
+    '*-l+[specify library or module to require]: :_lua_libraries' \
+    '-v[display version information]' \
+    '(1 -)-[stop argument parsing and execute script on stdin]' \
+    '1:Lua script:_files' \
+    '*:: :->arg' \
+  && ret=0
+
+  [[ $state == arg ]] &&
+  if [[ $line[1] == - ]]; then
+    _description files expl 'script argument'
+    _files "${(@)expl}" && ret=0
+  else
+    _normal && ret=0
+  fi
+
+  return ret
+}
+
+_lua "$@"

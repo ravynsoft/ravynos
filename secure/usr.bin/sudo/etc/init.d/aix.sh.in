@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# Simple AIX rc.d script to remove the sudo timestamp directory on boot.
+# This is needed because AIX does not have /var/run.
+# Install as /etc/rc.d/init.d/sudo with a link /etc/rc.d/rc2.d/S90sudo
+#
+
+PATH=/usr/sbin:/usr/bin:/sbin
+export PATH
+
+TSDIR="@rundir@/ts"
+rval=0
+
+case "$1" in
+start)
+    echo "Removing the $TSDIR directory"
+    rm -rf "$TSDIR"
+    ;;
+*)
+    echo "usage: $0 start"
+    rval=1
+    ;;
+esac
+
+exit $rval

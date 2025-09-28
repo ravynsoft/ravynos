@@ -1,0 +1,24 @@
+=== basic hash
+# This is just a simple one key hash.
+--- yaml
+a: b
+--- json
+{"a":"b"}
+
+=== double quoted keys
+# Hash with quoted key with embedded newline
+--- yaml
+"a\nb": c
+--- json
+{"a\nb":"c"}
+# --- dump
+# "a\nb": c
+
+=== basic array
+# This is just a simple one key hash.
+--- yaml
+- a
+-b
+--- json
+["a","b"]
+

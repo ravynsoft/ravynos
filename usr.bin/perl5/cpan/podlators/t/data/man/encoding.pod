@@ -1,0 +1,30 @@
+=encoding utf-8
+
+=head1 ENCODING TESTS
+
+This POD source is intended to test encoding behavior with different
+pod2man encoding options.  The resulting *roff output files can be copied
+to various systems to test with the local nroff or man implementations.
+
+ISO 8859-1 character: naïve
+
+ISO 8859-1 escape: naE<iuml>ve, naE<0xEF>ve
+
+Combining accent: naïve
+
+SMP plane character: 😀
+
+Non-breaking space: foo bar, S<foo bar>
+
+Soft hyphen: fac­tory
+
+=head1 LICENSE
+
+Copyright 2022 Russ Allbery <rra@cpan.org>
+
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice and
+this notice are preserved.  This file is offered as-is, without any
+warranty.
+
+SPDX-License-Identifier: FSFAP

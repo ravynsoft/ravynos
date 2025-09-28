@@ -1,0 +1,109 @@
+#compdef getconf
+
+local variant list_cmd ret=1
+local -a context expl line state state_descr args
+local -A opt_args
+
+local -a syskeys posixkeys confkeys pathkeys1 pathkeys2 allkeys mykeys restkeys
+syskeys=(ARG_MAX BC_BASE_MAX BC_DIM_MAX BC_SCALE_MAX
+  BC_STRING_MAX CHILD_MAX COLL_WEIGHTS_MAX EXPR_NEST_MAX LINE_MAX
+  NGROUPS_MAX OPEN_MAX RE_DUP_MAX STREAM_MAX TZNAME_MAX)
+posixkeys=(_POSIX_CHILD_MAX _POSIX_LINK_MAX
+  _POSIX_MAX_CANON _POSIX_MAX_INPUT _POSIX_NAME_MAX _POSIX_NGROUPS_MAX
+  _POSIX_OPEN_MAX _POSIX_PATH_MAX _POSIX_PIPE_BUF _POSIX_SSIZE_MAX
+  _POSIX_STREAM_MAX _POSIX_TZNAME_MAX _POSIX_VERSION
+  POSIX2_BC_BASE_MAX POSIX2_BC_DIM_MAX POSIX2_BC_SCALE_MAX
+  POSIX2_BC_STRING_MAX POSIX2_COLL_WEIGHTS_MAX POSIX2_EXPR_NEST_MAX
+  POSIX2_LINE_MAX POSIX2_RE_DUP_MAX POSIX2_VERSION POSIX2_C_BIND
+  POSIX2_C_DEV POSIX2_FORT_DEV POSIX2_FORT_RUN POSIX2_LOCALEDEF
+  POSIX2_SW_DEV _XOPEN_VERSION)
+confkeys=(PATH GNU_LIBC_VERSION GNU_LIBPTHREAD_VERSION
+  LFS_CFLAGS LFS_LDFLAGS LFS_LIBS LFS_LINTFLAGS
+  LFS64_CFLAGS LFS64_LDFLAGS LFS64_LIBS LFS64_LINTFLAGS)
+pathkeys1=(PIPE_BUF _POSIX_CHOWN_RESTRICTED
+  _POSIX_NO_TRUNC _POSIX_VDISABLE)
+pathkeys2=(LINK_MAX MAX_CANON MAX_INPUT NAME_MAX PATH_MAX PIPE_BUF)
+mykeys=($syskeys $posixkeys $confkeys $pathkeys1 $pathkeys2)
+
+if _pick_variant -r variant gnu='(Free Soft|GLIBC)' $OSTYPE --version; then
+  # GNU getconf doesn't use getopt(3), strangely
+  args+=(
+    '(: * -)--help[display help information]'
+    '(: * -)--version[display version information]'
+    '(1 -)-a[display all configuration variables and their values]'
+    '(-)-v[specify programming environment]: :->env'
+  )
+  : ${list_cmd:='$words[1] -a'}
+
+else
+  [[ $variant == (netbsd*|solaris*) ]] && {
+    args+=( '(1 -)-a[display all configuration variables and their values]' )
+    : ${list_cmd:='$words[1] -a'}
+  }
+
+  [[ $variant == openbsd* ]] && {
+    args+=(
+      '(: - *)-l[display all system (non-path) configuration variables]'
+      '(: - *)-L[display all path configuration variables]'
+    )
+    : ${list_cmd:='$words[1] -l; $words[1] -L'}
+  }
+
+  [[ $variant == netbsd* ]] ||
+  args+=( '(-)-v+[specify programming environment]: :->env' )
+
+  # This is a bit silly, but actually pretty accurate, where available
+  : ${list_cmd:='
+    command strings -- ${${(Q)words[1]}:c} |
+    LC_ALL=C GREP_OPTIONS= command grep -xE \
+      "_*[A-Z][A-Z0-9_]*_[A-Z0-9_]*|NZERO|PATH|[A-Z]+(BITS|SIZE)"
+  '}
+fi
+
+_arguments -S -A '-*' : $args '1: :->var' '2: :_files' && ret=0
+
+case $state in
+  env)
+    _wanted environments expl 'programming environment' compadd - \
+      POSIX_V{6,7}_ILP32_OFF32 \
+      POSIX_V{6,7}_ILP32_OFFBIG \
+      POSIX_V{6,7}_LP64_OFF64 \
+      POSIX_V{6,7}_LPBIG_OFFBIG \
+    && ret=0
+    ;;
+  var)
+    _tags syswideconfig pathconfig standardsconfig confstring restconfig
+
+    allkeys=(${${(f)"$( _call_program variables $list_cmd )"}%%[=:[:space:]]*})
+    restkeys=(${allkeys:|mykeys})
+
+    while _tags; do
+      _requested -V syswideconfig expl 'system-wide configuration variable' \
+        compadd -S '' $syskeys && ret=0
+
+      _requested -V standardsconfig \
+        expl 'system-standards configuration variable' \
+        compadd -S '' $posixkeys && ret=0
+
+      _requested -V confstring \
+        expl 'configuration-dependent string variable' \
+        compadd -S '' $confkeys && ret=0
+
+      _requested pathconfig &&
+      while _next_label -V pathconfig expl 'system path configuration variable'; do
+        compadd "$expl[@]" -S '' $pathkeys1 && ret=0
+        compadd "$expl[@]" -S ' ' $pathkeys2 && ret=0
+      done
+
+      if (( ${#restkeys} )); then
+        _requested -V restconfig \
+          expl 'remaining unclassified configuration variable' \
+          compadd -S '' $restkeys && ret=0
+      fi
+
+      (( ret )) || break
+    done
+    ;;
+esac
+
+return ret

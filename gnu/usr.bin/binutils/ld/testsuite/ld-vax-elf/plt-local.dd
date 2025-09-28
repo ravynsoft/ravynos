@@ -1,0 +1,73 @@
+.*: +file format .*vax.*
+
+Disassembly of section \.plt:
+
+00001000 <.plt>:
+    1000:	dd ef 86 20 	pushl 308c <_GLOBAL_OFFSET_TABLE_\+0x4>
+    1004:	00 00 
+    1006:	17 ff 84 20 	jmp \*3090 <_GLOBAL_OFFSET_TABLE_\+0x8>
+    100a:	00 00 
+
+0000100c <foo_extern@plt>:
+    100c:	fc 0f       	\.word 0x0ffc # Entry mask: < r11 r10 r9 r8 r7 r6 r5 r4 r3 r2 >
+    100e:	16 ef ec ff 	jsb 1000 <.plt>
+    1012:	ff ff 
+    1014:	00 00 00 00 	\.long 0x00000000
+
+Disassembly of section \.text:
+
+00002000 <foo_hidden>:
+    2000:	00 00       	\.word 0x0000 # Entry mask: < >
+    2002:	fb 00 ff 8b 	calls \$0x0,\*3094 <foo_extern>
+    2006:	10 00 00 
+    2009:	fb 00 ef 3c 	calls \$0x0,204c <foo_global>
+    200d:	00 00 00 
+    2010:	fb 00 ef 5b 	calls \$0x0,2072 <foo_local>
+    2014:	00 00 00 
+    2017:	fb 00 ef e2 	calls \$0x0,2000 <foo_hidden>
+    201b:	ff ff ff 
+    201e:	fb 00 ef 01 	calls \$0x0,2026 <foo_rehidden>
+    2022:	00 00 00 
+    2025:	04          	ret
+
+00002026 <foo_rehidden>:
+    2026:	00 00       	\.word 0x0000 # Entry mask: < >
+    2028:	fb 00 ff 65 	calls \$0x0,\*3094 <foo_extern>
+    202c:	10 00 00 
+    202f:	fb 00 ef 16 	calls \$0x0,204c <foo_global>
+    2033:	00 00 00 
+    2036:	fb 00 ef 35 	calls \$0x0,2072 <foo_local>
+    203a:	00 00 00 
+    203d:	fb 00 ef bc 	calls \$0x0,2000 <foo_hidden>
+    2041:	ff ff ff 
+    2044:	fb 00 ef db 	calls \$0x0,2026 <foo_rehidden>
+    2048:	ff ff ff 
+    204b:	04          	ret
+
+0000204c <foo_global>:
+    204c:	00 00       	\.word 0x0000 # Entry mask: < >
+    204e:	fb 00 ff 3f 	calls \$0x0,\*3094 <foo_extern>
+    2052:	10 00 00 
+    2055:	fb 00 ef f0 	calls \$0x0,204c <foo_global>
+    2059:	ff ff ff 
+    205c:	fb 00 ef 0f 	calls \$0x0,2072 <foo_local>
+    2060:	00 00 00 
+    2063:	fb 00 ef 96 	calls \$0x0,2000 <foo_hidden>
+    2067:	ff ff ff 
+    206a:	fb 00 ef b5 	calls \$0x0,2026 <foo_rehidden>
+    206e:	ff ff ff 
+    2071:	04          	ret
+
+00002072 <foo_local>:
+    2072:	00 00       	\.word 0x0000 # Entry mask: < >
+    2074:	fb 00 ff 19 	calls \$0x0,\*3094 <foo_extern>
+    2078:	10 00 00 
+    207b:	fb 00 ef ca 	calls \$0x0,204c <foo_global>
+    207f:	ff ff ff 
+    2082:	fb 00 ef e9 	calls \$0x0,2072 <foo_local>
+    2086:	ff ff ff 
+    2089:	fb 00 ef 70 	calls \$0x0,2000 <foo_hidden>
+    208d:	ff ff ff 
+    2090:	fb 00 ef 8f 	calls \$0x0,2026 <foo_rehidden>
+    2094:	ff ff ff 
+    2097:	04          	ret

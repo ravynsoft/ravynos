@@ -1,0 +1,32 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test awk support: --add-comments option.
+
+cat <<\EOF > xg-a-2.awk
+# a
+string = # b
+# c
+_"hello world" # d
+# e
+;
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-comments --omit-header --no-location --keyword=_ \
+  -d xg-a-2.tmp xg-a-2.awk || Exit 1
+LC_ALL=C tr -d '\r' < xg-a-2.tmp.po > xg-a-2.po || Exit 1
+
+cat <<EOF > xg-a-2.ok
+#. a
+#. b
+#. c
+msgid "hello world"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-a-2.ok xg-a-2.po
+result=$?
+
+exit $result

@@ -1,0 +1,14 @@
+#!/perl
+
+use strict;
+use warnings;
+
+use MyModule;
+
+my $x = "Foo";
+
+MyModule::function();
+
+print "In Main File.\n";
+
+1;

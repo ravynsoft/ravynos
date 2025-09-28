@@ -1,0 +1,59 @@
+__END__
+# NAME goto into foreach
+no warnings 'deprecated';
+goto f;
+foreach(1){f:}
+EXPECT
+Can't "goto" into the middle of a foreach loop at - line 3.
+########
+# NAME goto into given
+no warnings 'deprecated';
+goto f;
+CORE::given(1){f:}
+EXPECT
+Can't "goto" into a "given" block at - line 3.
+########
+# NAME goto from given topic expression
+no warnings 'deprecated';
+CORE::given(goto f){f:}
+EXPECT
+Can't "goto" into a "given" block at - line 2.
+########
+# NAME goto into expression
+no warnings 'deprecated';
+eval { goto a; 1 + do { a: } }; warn $@;
+eval { goto b; meth { b: }   }; warn $@;
+eval { goto c; map { c: } () }; warn $@;
+eval { goto d; f(do { d: })  }; die  $@;
+EXPECT
+Can't "goto" into a binary or list expression at - line 2.
+Can't "goto" into a binary or list expression at - line 3.
+Can't "goto" into a binary or list expression at - line 4.
+Can't "goto" into a binary or list expression at - line 5.
+########
+# NAME dump with computed label
+no warnings 'deprecated';
+my $label = "foo";
+CORE::dump $label;
+EXPECT
+Can't find label foo at - line 3.
+########
+# NAME when outside given
+use 5.01; no warnings 'deprecated';
+when(undef){}
+EXPECT
+Can't "when" outside a topicalizer at - line 2.
+########
+# NAME default outside given
+use 5.01;
+default{}
+EXPECT
+Can't "default" outside a topicalizer at - line 2.
+########
+# NAME croak with read only $@
+eval '"a" =~ /${*@=\_})/';
+die;
+# this would previously recurse infinitely in the eval
+EXPECT
+Unmatched ) in regex; marked by <-- HERE in m/_) <-- HERE / at (eval 1) line 1.
+	...propagated at - line 2.

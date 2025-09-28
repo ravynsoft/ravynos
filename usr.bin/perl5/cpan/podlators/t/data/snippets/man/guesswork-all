@@ -1,0 +1,27 @@
+[name]
+Guesswork with all
+
+[options]
+guesswork all
+
+[input]
+=head1 GUESSWORK
+
+The hyphens-in-compound-words shouldn't be escaped, but e-mail should be.
+
+Function: foo(), bar::baz(), _private::_stuff()
+
+Manpage: foo(1), Pod::Man(3perl), git-rebase(1)
+
+Variables: $foo, @bar::baz, %Pod::Blah
+
+[output]
+.SH GUESSWORK
+.IX Header "GUESSWORK"
+The hyphens-in-compound-words shouldn't be escaped, but e\-mail should be.
+.PP
+Function: \fBfoo()\fR, \fBbar::baz()\fR, \fB_private::_stuff()\fR
+.PP
+Manpage: \fBfoo\fR\|(1), \fBPod::Man\fR\|(3perl), \fBgit\-rebase\fR\|(1)
+.PP
+Variables: \f(CW$foo\fR, \f(CW@bar::baz\fR, \f(CW%Pod::Blah\fR

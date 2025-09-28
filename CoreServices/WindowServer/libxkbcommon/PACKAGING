@@ -1,0 +1,76 @@
+libxkbcommon consists of three shared libraries, libxkbcommon (the main
+library), libxkbcommon-x11 (an addon library for XCB clients) and libxkbregistry
+(a library to list available RMLVO options).
+
+The files for libxkbcommon-x11 are:
+    libxkbcommon-x11.a libxkbcommon-x11.so* xkbcommon/xkbcommon-x11.h
+    xkbcommon-x11.map xkbcommon-x11.pc
+
+libxkbcommon-x11 can be disabled with -Denable-x11=false (see
+`meson configure build` for other options/variables).
+
+The files for libxkbregistry are:
+    libxkbregistry.a libxkbregistry.so* xkbcommon/xkbregistry.h
+    xkbregistry.map xkbregistry.pc
+
+libxkbregistry can be disabled with -Denable-xkbregistry=false (see
+`meson configure build` for other options/variables).
+
+Dependencies for libxkbcommon:
+- C compiler, meson, pkg-config, libc.
+
+- (build) bison (preferred), win_bison or byacc>=20141006.
+  byacc must be configured with --enable-btyacc.
+
+- (build optional, runtime required) xkeyboard-config.
+  During build, for automatically detecting the value of
+  -Dxkb-config-root instead of guessing (/usr/share/X11/xkb).
+  During runtime, not strictly needed, but most users of the library
+  would need it.
+
+- (runtime) libX11.
+  Contains the dataset for Compose support (/usr/share/X11/locale).
+  Please don't depend on it explicitly.
+
+- (build optional) doxygen.
+  For generating the HTML documentation.
+  To disable, use -Denable-docs=false.
+
+- (build optional) gperf.
+  Output included in git and tarball. To regenerate, use
+  `./scripts/update-keywords`.
+
+Dependencies for xkbcli:
+- libxkbcommon.
+
+Dependencies for libxkbcommon-x11:
+- libxkbcommon.
+
+- libxcb>=1.10 with libxcb-xkb.
+
+Dependencies for libxkbcommon-x11 tests:
+- xkbcomp, Xvfb.
+  If they are not available, the relevant tests are skipped.
+
+Dependencies for libxkbregistry:
+- libxkbregistry is a sublibrary of libxkbcommon and cannot be built without
+  building libxbkcommon. The files produced are otherwise independent.
+
+- libxml2
+
+- (build optional, runtime requirement) xkeyboard-config
+  During build, for automatically detecting the value of
+  -Dxkb-config-root instead of guessing (/usr/share/X11/xkb).
+
+Dependencies for Wayland tests:
+- wayland-client>=1.2.0, wayland-scanner, wayland-protocols>=1.0.
+  To disable, use -Denable-wayland=false.
+
+Unless libxcb is always available as part of the system, it is preferred
+that libxkbcommon and libxkbcommon-x11 be split into separate packages,
+such that the main library does not depend on libxcb. This avoids a
+transitive dependency of Wayland clients on X libraries.
+
+It is perferred that libxkbregistry be split into a separate packages as most
+clients that require libxkbcommon do not require libxkbregistry and clients
+requiring libxkbregistry may not need libxkbcommon.

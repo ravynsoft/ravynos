@@ -1,0 +1,37 @@
+# Copyright (C) 2022-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+load_lib dejagnu.exp
+
+# Run the tests only if compatible dejagnu gcc pair is found
+if [string equal $COMPAT_DEJAGNU "no"] {
+    verbose -log "SFrame testsuite needs perhaps a more recent DejaGnu"
+    unsupported encode-1
+    return 0;
+}
+
+catch "exec ln -s $srcdir/libsframe.decode/DATA2 ." status
+
+if { [host_execute "testsuite/libsframe.encode/encode-1"] ne "" } {
+    fail "encode-1"
+}
+
+catch "exec rm DATA2" status
+

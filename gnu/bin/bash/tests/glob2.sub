@@ -1,0 +1,65 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+. ./test-glue-functions
+
+# this locale causes problems all over the place
+if locale -a | grep -i '^zh_HK\.big5hkscs' >/dev/null ; then
+        :
+else
+        echo "glob2.sub: warning: you do not have the zh_HK.big5hkscs locale installed;" >&2
+        echo "glob2.sub: warning: that will cause some of these tests to fail." >&2
+fi
+
+var='ab\'
+
+case $var in
+ab\\)	echo ok 1;;
+*)	echo bad 1;;
+esac
+
+case $var in
+$var)	echo ok 2;;
+*)	echo bad 2;;
+esac
+
+case $var in
+'ab\')	echo ok 3;;
+*)	echo bad 3;;
+esac
+
+[[ $var = $var ]] && echo ok 4
+[[ $var = $'ab\134' ]] && echo ok 5
+
+LC_ALL=zh_HK.big5hkscs
+
+read a b c <<< $'\u3b1 b c\n'
+echo $b
+unset a b c
+
+export alpha=$'\u3b1'
+
+printf -v v 'A%sB' "$alpha" 
+recho "$v"
+IFS=$alpha read a b c <<<"$v"
+recho "$a"
+recho "$b"
+unset a b v
+
+recho "a${alpha}b"
+printf "%s" "a${alpha}b" | LC_ALL=C od -b | _intl_normalize_spaces
+
+a=$'\u3b1'
+[[ $a = $a ]] && echo ok 6
+
+LC_ALL=zh_HK.big5hkscs ${THIS_SH} -c $'[[ \u3b1 = \u3b1 ]]' && echo ok 7

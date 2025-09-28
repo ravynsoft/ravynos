@@ -1,0 +1,74 @@
+  /* This reloc does nothing.  */
+  BPF_HOWTO (R_BPF_NONE,		/* type */
+	 0,			/* rightshift */
+	 0,			/* size */
+	 0,			/* bitsize */
+	 false,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont, /* complain_on_overflow */
+	 bpf_elf_generic_reloc, /* special_function */
+	 "R_BPF_NONE",		/* name */
+	 false,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 false)		/* pcrel_offset */
+
+  /* 64-immediate in LDDW instruction.  */
+  BPF_HOWTO (R_BPF_64_64,		/* type */
+	 0,			/* rightshift */
+	 8,			/* size */
+	 64,			/* bitsize */
+	 false,			/* pc_relative */
+	 32,			/* bitpos */
+	 complain_overflow_signed, /* complain_on_overflow */
+	 bpf_elf_generic_reloc, /* special_function */
+	 "R_BPF_64_64",	/* name */
+	 true,			/* partial_inplace */
+	 MINUS_ONE,		/* src_mask */
+	 MINUS_ONE,		/* dst_mask */
+	 true)			/* pcrel_offset */
+
+  /* 32-bit data.  */
+  BPF_HOWTO (R_BPF_64_ABS32,		/* type */
+	 0,			/* rightshift */
+	 4,			/* size */
+	 32,			/* bitsize */
+	 false,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_bitfield, /* complain_on_overflow */
+	 bpf_elf_generic_reloc, /* special_function */
+	 "R_BPF_64_ABS32",	/* name */
+	 false,			/* partial_inplace */
+	 0xffffffff,		/* src_mask */
+	 0xffffffff,		/* dst_mask */
+	 true)			/* pcrel_offset */
+
+  /* 64-bit data.  */
+  BPF_HOWTO (R_BPF_64_ABS64,		/* type */
+	 0,			/* rightshift */
+	 8,			/* size */
+	 64,			/* bitsize */
+	 false,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_bitfield, /* complain_on_overflow */
+	 bpf_elf_generic_reloc, /* special_function */
+	 "R_BPF_64_ABS64",	/* name */
+	 false,			/* partial_inplace */
+	 0,			/* src_mask */
+	 MINUS_ONE,		/* dst_mask */
+	 true)			/* pcrel_offset */
+
+  /* 32-bit PC-relative address in call instructions.  */
+  BPF_HOWTO (R_BPF_64_32,      /* type */
+        0,                     /* rightshift */
+        4,                     /* size */
+        32,                    /* bitsize */
+        true,                  /* pc_relative */
+        32,                    /* bitpos */
+        complain_overflow_signed, /* complain_on_overflow */
+        bpf_elf_generic_reloc, /* special_function */
+        "R_BPF_64_32",         /* name */
+        true,                  /* partial_inplace */
+        0xffffffff,            /* src_mask */
+        0xffffffff,            /* dst_mask */
+        true)                  /* pcrel_offset */

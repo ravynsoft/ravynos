@@ -1,0 +1,119 @@
+#compdef epsffit extractres fixdlsrps fixfmps fixmacps fixpsditps fixpspps fixscribeps fixtpps fixwfwps fixwpps fixwwps includeres psbook psmerge psnup psresize psselect pstops getafm showchar
+
+case "$service" in
+epsffit)
+  _arguments \
+    '-v[print version]' \
+    '-c[centres the image in the bounding box given]' \
+    '-r[rotates the image by 90 degrees anti-clockwise]' \
+    '-a[alters the aspect ratio to fit the bounding box]' \
+    '-s[adds a showpage at the end of the image]' \
+    '-m[rotates the image to maximise the size]' \
+    ':lower left x:' \
+    ':lower left y:' \
+    ':upper right x:' \
+    ':upper right y:' \
+    ':input file:_postscript' \
+    ':output file:_postscript'
+  ;;
+psbook)
+  _arguments \
+    '-q[quiet mode]' \
+    '-v[print version]' \
+    '-s-[signature size]:signature size:' \
+    ':input file:_postscript' \
+    ':output file:_postscript'
+  ;;
+psnup)
+  _arguments \
+    '-q[quiet mode]' \
+    '-v[print version]' \
+    '(-p)-w-[page width]:paper width:' \
+    '(-p)-h-[page height]:paper height:' \
+    '(-w -h)-p-[page size]:paper size:(a3 a4 a5 b5 letter legal 10x14)' \
+    '(-P)-W-[input page width]:input paper width:' \
+    '(-P)-H-[input page height]:input paper height:' \
+    '(-W -H)-P-[input page paper]:input paper paper:(a3 a4 a5 b5 letter legal 10x14)' \
+    '(   -r -f)-l[landscape (rotated left)]' \
+    '(-l    -f)-r[seascape (rotated right)]' \
+    '(-l -r   )-f[flipped]' \
+    '-c[column major layout]' \
+    '-m-[margins around whole page]:margins around whole page:' \
+    '-b-[border around individual pages]:border around individual pages:' \
+    '-d-[draw borders]:line width for borders:' \
+    '-s-[override scale]:scale:' \
+    '(   -4 -8 -n)-2[2 logical pages on a sheet]' \
+    '(-2    -8 -n)-4[4 logical pages on a sheet]' \
+    '(-2 -4    -n)-8[8 logical pages on a sheet]' \
+    '(-2 -4 -8   )-n[n-up]:pages on a sheet:' \
+    '-t-[layout tolerance]:layout tolerance:' \
+    ':input file:_postscript' \
+    ':output file:_postscript'
+  ;;
+psresize)
+  _arguments \
+    '-q[quiet mode]' \
+    '-v[print version]' \
+    '(-p)-w-[page width]:paper width:' \
+    '(-p)-h-[page height]:paper height:' \
+    '(-w -h)-p-[page size]:paper size:(a3 a4 a5 b5 letter legal 10x14)' \
+    '(-P)-W-[input page width]:input paper width:' \
+    '(-P)-H-[input page height]:input paper height:' \
+    '(-W -H)-P-[input page paper]:input paper paper:(a3 a4 a5 b5 letter legal 10x14)' \
+    ':input file:_postscript' \
+    ':output file:_postscript'
+  ;;
+psselect)
+  _arguments \
+    '-q[quiet mode]' \
+    '-v[print version]' \
+    '-e[select even pages]' \
+    '-o[select odd pages]' \
+    '-r[reverse order]' \
+    '-p-[pages]:pages:' \
+    ':input file:_postscript' \
+    ':output file:_postscript'
+  ;;
+pstops)
+  _arguments \
+    '-q[quiet mode]' \
+    '-v[print version]' \
+    '-d-[draw borders]:line width for borders:' \
+    '-b[no bind operator]' \
+    '(-p)-w-[page width]:paper width:' \
+    '(-p)-h-[page height]:paper height:' \
+    '(-w -h)-p-[page size]:paper size:(a3 a4 a5 b5 letter legal 10x14)' \
+    ':[modulo\:][-]pageno[L][R][U][@scale][(xoff,yoff)][+|,]...:' \
+    ':input file:_postscript' \
+    ':output file:_postscript'
+  ;;
+extractres)
+  _arguments \
+    '-m[merge]' \
+    ':input file:_postscript'
+  ;;
+fixmacps)
+  _arguments \
+    '-d[directory]:directory:_files -/' \
+    '-n[name]:name:' \
+    ':input file:_postscript'
+  ;;
+psmerge)
+  _arguments \
+    '-o-[output file]:output file:_postscript' \
+    '-t[thorough]' \
+    '*:input file:_postscript'
+  ;;
+fixdlsrps|fixfmps|fixpsditps|fixpspps|fixscribeps|fixtpps|fixwfwps|fixwpps|fixwwps|includeres)
+  _postscript
+  ;;
+getafm)
+  _arguments \
+    ':font name:'
+  ;;
+showchar)
+  _arguments \
+    ':font name:' \
+    ':character name:'
+  ;;
+esac

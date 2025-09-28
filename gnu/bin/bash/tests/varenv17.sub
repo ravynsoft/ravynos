@@ -1,0 +1,44 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# testing -I and local variable inheritance
+var=global
+
+f()
+{
+	local $1 var
+	declare -p var
+
+	var=local
+	declare -p var
+}
+
+declare -I var
+declare -p var
+
+f
+f -I
+unset var
+f
+f -I
+
+f1()
+{
+	var=$FUNCNAME
+
+	f
+	f -I
+}
+
+f1

@@ -1,0 +1,13 @@
+#compdef wpa_cli
+
+_arguments \
+    '-p:path to ctrl sockets:_files -g "*(=)"' \
+    '-i:ifname:_net_interfaces' \
+    '-h[help]' \
+    '-v[shown version information]' \
+    '-B[run a daemon in the background]' \
+    '-a[run in daemon mode]:action file:_files' \
+    '-P:pid file:_files' \
+    '-g:global ctrl:_files -g "*(=)"' \
+    '-G:ping interval:' \
+    ':command:(status ping mib help interface level license quit set logon logoff pmksa reassociate preauthenticate identity password new_password pin otp passphrase bssid list_networks select_network enable_network disable_network add_network remove_network set_network get_network save_config disconnect reconnect scan scan_results bss get_capability reconfigure terminate interface_add interface_remove interface_list ap_scan stkstart ft_ds wps_pbc wps_pin wps_reg)'

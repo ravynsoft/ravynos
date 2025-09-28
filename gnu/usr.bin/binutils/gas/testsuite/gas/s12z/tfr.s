@@ -1,0 +1,9 @@
+L1:	tfr d0,d1 
+	tfr d1, x
+	tfr d2, s
+	tfr d2, ccl
+	tfr d6, ccw
+	tfr d4, y
+	zex d5, d7
+	zex d1, ccw
+	zex d0, d2

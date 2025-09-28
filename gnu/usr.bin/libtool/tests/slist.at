@@ -1,0 +1,171 @@
+# slist.at -- test slist.c                   -*- Autotest -*-
+#
+#   Copyright (C) 2009, 2011-2019, 2021-2022 Free Software Foundation,
+#   Inc.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([SList functionality])
+
+AT_DATA([test-slist.c], [[
+#include <config.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+#include <stdio.h>
+#include "slist.h"
+
+#define STREQ(s1, s2)	(strcmp ((s1), (s2)) == 0)
+
+void *find_string (SList *item, void *data)
+{
+  if (data != NULL && STREQ ((const char *) item->userdata, (const char *)data))
+    return item;
+  else
+    return NULL;
+}
+
+void boxed_delete (void *item)
+{
+  free (slist_unbox ((SList *) item));
+}
+
+void *print_item (SList *item, void *userdata)
+{
+  userdata = userdata; /* unused */
+  printf ("%s\n", (const char*)item->userdata);
+  return NULL;
+}
+
+int list_compare (const SList *item1, const SList *item2, void *userdata)
+{
+  userdata = userdata;
+  return strcmp ((const char *) item1->userdata, (const char *)item2->userdata);
+}
+
+int main ()
+{
+  int i;
+  SList *empty_list = NULL, *list = NULL, *item, *list_save;
+  char *data = NULL;
+
+  /* slist_cons */
+  list = slist_cons (NULL, NULL);
+
+  for (i=0; i < 10; ++i) {
+    data = (char *) malloc (42);
+    assert (data);
+    sprintf (data, "foo%d", i);
+    list = slist_cons (slist_box (data), list);
+  }
+  list_save = list;
+  list = slist_cons (NULL, list);
+  assert (list == list_save);
+
+
+  /* slist_find */
+  assert (slist_find (NULL, find_string, (void *) "whatever") == NULL);
+  assert (slist_find (empty_list, find_string, (void *) "whatever") == NULL);
+  assert (slist_find (list, find_string, (void *) "foo10") == NULL);
+  item = (SList *) slist_find (list, find_string, (void *) "foo1");
+  assert (item != NULL);
+  assert (STREQ ((const char *) item->userdata, "foo1"));
+
+  item = slist_nth (list, 10);
+  assert (item != NULL && STREQ ((const char *) item->userdata, "foo0"));
+
+  puts ("list as inserted:");
+  slist_foreach (list, print_item, NULL);
+  puts ("reversed list:");
+  list = slist_reverse (list);
+  slist_foreach (list, print_item, NULL);
+
+  item = slist_nth (list, 1);
+  assert (item != NULL && STREQ ((const char *) item->userdata, "foo0"));
+
+  assert (10 == slist_length (list));
+
+  /* slist_tail is the second item, not the last one */
+  item = slist_tail (list);
+  assert (item != NULL && STREQ ((const char *) item->userdata, "foo1"));
+
+  assert (slist_tail (slist_nth (list, 10)) == NULL);
+
+  /* slist_sort and implicitly, slist_sort_merge */
+  assert (slist_sort (NULL, list_compare, NULL) == NULL);
+  list = slist_sort (list, list_compare, NULL);
+  puts ("list after no-op sort:");
+  slist_foreach (list, print_item, NULL);
+
+  list = slist_reverse (list);
+  puts ("reversed list:");
+  slist_foreach (list, print_item, NULL);
+  puts ("sorting reversed list:");
+  list = slist_sort (list, list_compare, NULL);
+  slist_foreach (list, print_item, NULL);
+
+  /* slist_remove */
+  assert (slist_remove (NULL, find_string, NULL) == NULL);
+  assert (slist_remove (&empty_list, find_string, NULL) == NULL);
+
+  list_save = list;
+  assert (slist_remove (&list, find_string, NULL) == NULL);
+  assert (list_save == list);
+
+  /* remove entries: middle, last, first, not present */
+  /* slist_reverse above has left us with increasing order */
+  list_save = list;
+  item = slist_remove (&list, find_string, (void *) "foo5");
+  assert (list_save == list);
+  assert (item != NULL && STREQ (data = (char *) slist_unbox (item), "foo5"));
+  free (data);
+
+  list_save = list;
+  item = slist_remove (&list, find_string, (void *) "foo9");
+  assert (list_save == list);
+  assert (item != NULL && STREQ (data = (char *) slist_unbox (item), "foo9"));
+  free (data);
+
+  list_save = list;
+  item = slist_remove (&list, find_string, (void *) "foo0");
+  assert (list_save != list);
+  assert (item != NULL && STREQ (data = (char *) slist_unbox (item), "foo0"));
+  free (data);
+
+  list_save = list;
+  item = slist_remove (&list, find_string, (void *) "foo5");
+  assert (list_save == list);
+  assert (item == NULL);
+
+  assert (slist_delete (list, boxed_delete) == NULL);
+  return 0;
+}
+]])
+
+CPPFLAGS="-I$top_srcdir/libltdl -I$top_srcdir/libltdl/libltdl -I$abs_top_builddir"
+AT_CHECK([$CC $CPPFLAGS $CFLAGS -c test-slist.c],
+	 [], [ignore], [ignore])
+AT_CHECK([$CC $CPPFLAGS $CFLAGS -c $top_srcdir/libltdl/slist.c],
+	 [], [ignore], [ignore])
+AT_CHECK([$CC $CFLAGS $LDFLAGS -o test-slist test-slist.$OBJEXT slist.$OBJEXT],
+	 [], [ignore], [ignore])
+LT_AT_EXEC_CHECK([./test-slist], [], [ignore], [ignore])
+
+AT_CLEANUP

@@ -1,0 +1,68 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+export LC_ALL=en_US.UTF-8
+
+a=$'\303\251'
+
+echo "$a"
+
+echo ${#a}
+
+b=$'A\303\251B'
+
+echo "$b"
+
+echo ${b: -1}
+
+c=AeB
+
+echo ${c: -1}
+
+unset a
+a=$(printf '%b' 'A\303\251B')
+IFS=$(printf '%b' '\303\251')
+
+case "$a" in
+"A${IFS}B")	echo ok 1 ;;
+*)		echo bad 1 ;;
+esac
+
+set $a
+
+case $1 in
+A)		echo ok 2 ;;
+*)		echo bad 2 ;;
+esac
+
+set a b
+
+printf '%s\n' "$*"
+
+. ./test-glue-functions
+
+printf '%s' "$*" | od -b | _intl_normalize_spaces
+
+# display differences make this problematic
+${THIS_SH} ./intl1.sub
+
+# this tests both international handling in printf and temporary environments
+${THIS_SH} ./intl2.sub
+
+# test splitting on characters instead of bytes
+${THIS_SH} ./intl3.sub
+
+${THIS_SH} ./unicode1.sub # 2>/dev/null
+${THIS_SH} ./unicode2.sub
+
+${THIS_SH} ./unicode3.sub 2>&1

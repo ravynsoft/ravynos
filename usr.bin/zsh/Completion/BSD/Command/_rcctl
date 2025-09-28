@@ -1,0 +1,51 @@
+#compdef rcctl
+
+local context state line
+local -a actions lsarg subcmds variables
+
+actions=(check reload restart start stop)
+subcmds=(disable enable get getdef ls order set)
+variables=(class flags status timeout user)
+lsarg=(
+  'all:all services and daemons'
+  'failed:enabled but stopped daemons'
+  'off:disabled services and daemons'
+  'on:enabled services and daemons'
+  'rogue:daemons which are disabled but currently running'
+  'started:running daemons'
+  'stopped:stopped daemons'
+)
+
+if [[ $service == "rcctl" ]]; then
+  _arguments -C \
+    '-d[print debug information]' \
+    '-f[forcibly start the daemon]' \
+    ':subcommand:('"$actions ${${${+words[(r)-[df]]}#1}/0/$subcmds}"\) \
+    '*:: :->subcmd' && return
+  service="$words[1]"
+fi
+
+case $service in
+  get|getdef)
+    _arguments \
+      ':service:_services' \
+      ':variable:compadd -a variables'
+    ;;
+  ls)
+    _arguments ':display a list of services and daemons matching:(($lsarg))'
+    ;;
+  order)
+    _arguments \
+      ':service to start first:_services' \
+      '*:service to start next:_services'
+    ;;
+  set)
+    _arguments \
+      ':service:_services' \
+      ':variable:compadd -a variables' \
+      '*:argument:'
+    ;;
+  ${(~j:|:)actions}|disable|enable)
+    _arguments "*:service to $words[2]:_services"
+    ;;
+esac

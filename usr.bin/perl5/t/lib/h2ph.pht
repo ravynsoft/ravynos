@@ -1,0 +1,99 @@
+require '_h2ph_pre.ph';
+
+no warnings qw(redefine misc);
+
+unless(defined(&SQUARE)) {
+    sub SQUARE {
+	my($x) = @_;
+	eval q((($x)*($x)));
+    }
+}
+unless(defined(&ERROR)) {
+    eval 'sub ERROR {
+        my($x) = @_;
+	    eval q( &fprintf( &stderr, \\"%s\\\\n\\", $x->[2][3][0]));
+    }' unless defined(&ERROR);
+}
+unless(defined(&_H2PH_H_)) {
+    eval 'sub _H2PH_H_ () {1;}' unless defined(&_H2PH_H_);
+    # "$Revision h2ph.h,v 1.0 98/05/04 20:42:14 billy $"
+    undef(&MAX) if defined(&MAX);
+    eval 'sub MAX {
+        my($a,$b) = @_;
+	    eval q((($a) > ($b) ? ($a) : ($b)));
+    }' unless defined(&MAX);
+    eval 'sub NOTTRUE () {0;}' unless defined(&NOTTRUE);
+    undef(&NOTTRUE) if defined(&NOTTRUE);
+    if(defined(&__SOME_UNIMPORTANT_PROPERTY)) {
+	eval 'sub MIN {
+	    my($a,$b) = @_;
+    	    eval q((($a) < ($b) ? ($a) : ($b)));
+	}' unless defined(&MIN);
+    }
+    if(!(defined (&__SOMETHING_MORE_IMPORTANT))) {
+    }
+ elsif(!(defined (&__SOMETHING_REALLY_REALLY_IMPORTANT))) {
+	die("Nup, can't go on");
+    } else {
+	eval 'sub EVERYTHING_IS_OK () {1;}' unless defined(&EVERYTHING_IS_OK);
+    }
+    undef(&WHATEVER) if defined(&WHATEVER);
+    if((!((defined (&__SOMETHING_TRIVIAL)  && defined (&__SOMETHING_LESS_SO))) || defined (&__SOMETHING_OVERPOWERING))) {
+	eval 'sub WHATEVER () {6;}' unless defined(&WHATEVER);
+    }
+ elsif(!(defined (&__SOMETHING_TRIVIAL)) ) {
+	eval 'sub WHATEVER () {7;}' unless defined(&WHATEVER);
+    }
+ elsif(!(defined (&__SOMETHING_LESS_SO)) ) {
+	eval 'sub WHATEVER () {8;}' unless defined(&WHATEVER);
+    } else {
+	eval 'sub WHATEVER () {1000;}' unless defined(&WHATEVER);
+    }
+    if(0) {
+	require 'sys/socket.ph';
+	require 'sys/ioctl.ph';
+	eval {
+	    my(@REM);
+	    my(%INCD) = map { $INC{$_} => 1 } (grep { $_ eq "sys/fcntl.ph" } keys(%INC));
+	    @REM = map { "$_/sys/fcntl.ph" } (grep { not exists($INCD{"$_/sys/fcntl.ph"}) and -f "$_/sys/fcntl.ph" } @INC);
+	    require "$REM[0]" if @REM;
+	};
+	warn($@) if $@;
+    }
+    eval("sub sun () { 0; }") unless defined(&sun);
+    eval("sub mon () { 1; }") unless defined(&mon);
+    eval("sub tue () { 2; }") unless defined(&tue);
+    eval("sub wed () { 3; }") unless defined(&wed);
+    eval("sub thu () { 4; }") unless defined(&thu);
+    eval("sub fri () { 5; }") unless defined(&fri);
+    eval("sub sat () { 6; }") unless defined(&sat);
+    eval("sub Sun () { 0; }") unless defined(&Sun);
+    eval("sub Mon () { 1; }") unless defined(&Mon);
+    eval("sub Tue () { 2; }") unless defined(&Tue);
+    eval("sub Wed () { 3; }") unless defined(&Wed);
+    eval("sub Thu () { 4; }") unless defined(&Thu);
+    eval("sub Fri () { 5; }") unless defined(&Fri);
+    eval("sub Sat () { 6; }") unless defined(&Sat);
+    unless(defined(&_SOMETHING_TRIGRAPHIC)) {
+	eval 'sub _SOMETHING_TRIGRAPHIC () {1;}' unless defined(&_SOMETHING_TRIGRAPHIC);
+	eval 'sub SOMETHING_ELSE_TRIGRAPHIC_0 () {"|";}' unless defined(&SOMETHING_ELSE_TRIGRAPHIC_0);
+	eval 'sub SOMETHING_ELSE_TRIGRAPHIC_1 () {"^";}' unless defined(&SOMETHING_ELSE_TRIGRAPHIC_1);
+	eval 'sub SOMETHING_ELSE_TRIGRAPHIC_2 () {"[";}' unless defined(&SOMETHING_ELSE_TRIGRAPHIC_2);
+	eval 'sub SOMETHING_ELSE_TRIGRAPHIC_3 () {"]";}' unless defined(&SOMETHING_ELSE_TRIGRAPHIC_3);
+	eval 'sub SOMETHING_ELSE_TRIGRAPHIC_4 () {"~0";}' unless defined(&SOMETHING_ELSE_TRIGRAPHIC_4);
+	eval 'sub SOMETHING_ELSE_TRIGRAPHIC_5 () {"\\ ";}' unless defined(&SOMETHING_ELSE_TRIGRAPHIC_5);
+	eval 'sub SOMETHING_ELSE_TRIGRAPHIC_6 () {"{";}' unless defined(&SOMETHING_ELSE_TRIGRAPHIC_6);
+	eval 'sub SOMETHING_ELSE_TRIGRAPHIC_7 () {"#";}' unless defined(&SOMETHING_ELSE_TRIGRAPHIC_7);
+	eval 'sub SOMETHING_ELSE_TRIGRAPHIC_8 () {"}";}' unless defined(&SOMETHING_ELSE_TRIGRAPHIC_8);
+    }
+    if(1) {
+    }
+    eval("sub flim () { 0; }") unless defined(&flim);
+    eval("sub flam () { 1; }") unless defined(&flam);
+    eval 'sub blli_in_use {
+        my($blli) = @_;
+	    eval q({  ($blli->{l2_proto}) ||  ($blli->{l3_proto}); });
+    }' unless defined(&blli_in_use);
+    eval 'sub multiline () {"multilinestring";}' unless defined(&multiline);
+}
+1;

@@ -1,0 +1,50 @@
+#compdef beep
+
+# beep  [--verbose | --debug] [-e device | --device device] [-f N] [-l N]
+#       [-r N] [-d N] [-D N] [-s] [-c]
+# beep [ OPTIONS ] [-n] [--new] [ OPTIONS ]
+# beep [-h] [--help]
+# beep [-v] [-V] [--version]
+
+# We support the -n/--new restart flag, when it is in its own word, by
+# stripping all words from the command line that are after the first -n
+# following words[CURRENT] or before the first -n preceding it.  As far as
+# _arguments knows, the -n flag does not exist, and argv should specify
+# a single beeping specification.
+
+## Strip $words[2] through the first -n preceding $words[CURRENT].
+integer specstart
+while specstart=$words[(i)(-n|--new)]
+      (( specstart < CURRENT ))
+do
+  words[2,specstart]=()
+  (( CURRENT -= specstart - 1))
+done
+unset specstart
+
+## Strip everything in $words after the first -n following $words[CURRENT].
+integer specend
+while specend=$words[(I)(-n|--new)]
+      (( specend > CURRENT ))
+do
+  words[specend,$#words]=()
+done
+unset specend
+
+local -a args
+args=(
+  "(--verbose --debug)"{--verbose,--debug}"[enable debug output]"
+  "(-e --device)"{-e+,--device=}"[specify device to use]:device (default /dev/tty0, /dev/vc/0)"
+  "-f+:frequency (Hz) as integer or float"
+  "-l+:duration (ms)"
+  "-r+:number of repetitions"
+  "(-D)-d+[delay between beeps]:delay (ms)"
+  "(-d)-D+[delay after each beep]:delay (ms)"
+  "(-n --new)"{-n,--new}"[start a new beeping specification]"
+  "-s[cat, and beep after each line]"
+  "-c[cat, and beep after each character]"
+  "(-)"{-h,--help}"[display usage info]"
+  "(-)"{-v,-V,--version}"[display version info]"
+)
+
+_arguments -s -S -w : $args

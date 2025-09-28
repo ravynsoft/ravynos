@@ -1,0 +1,298 @@
+printf: usage: printf [-v var] format [arguments]
+printf: usage: printf [-v var] format [arguments]
+10
+	one
+one\ctwo
+4\.2
+no newline now newline
+%
+%
+%d
+A
+unquoted
+unquoted quoted
+unquoted    quoted
+this\&that
+1 2 3 4 5 
+onestring 0 0 0
+onestring 0 0 0.00
+--4.2 --
+--4.2 --
+--
+^@81--
+--	A--
+--	A--
+A7
+A7
+A7
+A7
+A7
+--\"abcd\"--
+--\'abcd\'--
+--a\x--
+./printf.tests: line 95: printf: missing hex digit for \x
+--\x--
+----
+----
+--4.2
+--4\.2--
+--\--
+
+ 
+    4.4BSD
+    4.4BSD
+    4.4BSD
+    4.4BSD
+4.4BSD
+4.4BSD
+    4.4BSD
+--4.4BSD    --
+  4.
+4.4
+--4.4BSD  --
+255 255 255 0377 0xff 0xFF
+255 255 255 0377 0xff 0XFF
+255 255 255 0377 0xff 0xFF
+255 255 255 0377 0xff 0XFF
+        42
+       -42
+        42
+       -42
+4.20
+4.20
+ 4.2
+4.20
+4.20
+ 4.2
+4.200000E+00
+4.200000e+00
+4.2E+00
+4.2e+00
+4.2
+4.2
+   4.2
+   4.2
+115
+115
+0163
+0163
+0x73
+0X73
+115.00
+115.00
+--  abcd--
+--  abcd--
+--  abcdefghij--
+--  abcdefghij--
+'abcd'
+\'abcd\'
+\abcd\
+\abcd\
+26
+26
+26
+./printf.tests: line 219: printf: `%10': missing format character
+./printf.tests: line 220: printf: `M': invalid format character
+ab./printf.tests: line 223: printf: `y': invalid format character
+./printf.tests: line 226: printf: GNU: invalid number
+0
+./printf.tests: line 227: printf: GNU: invalid number
+0
+-
+(foo )(bar )
+0
+  ab cd ef  
+13
+^G
+^G
+^@7
+^Ge
+"?
+00001
+00001
+    1
+1
+0
+0
+   0
+   0
+4
+4
+   4
+   4
+0.000000
+0.000000
+0.00
+0.00
+4.000000
+4.000000
+4.00
+4.00
+0.000000E+00
+0.000000e+00
+0.00E+00
+0.00e+00
+4.000000E+00
+4.000000e+00
+4.00E+00
+4.00e+00
+9B3A59A5
+q
+''
+''
+s
+
+
+b
+
+
+xx
+xx
+<   ><   >
+	one
+one\ctwo
+4\.2
+no newline now newline
+%
+%
+%d
+A
+unquoted
+unquoted quoted
+unquoted    quoted
+this\&that
+1 2 3 4 5 
+onestring 0 0 0
+onestring 0 0 0.00
+--4.2 --
+--4.2 --
+--	A--
+--	A--
+A7
+A7
+A7
+--\"abcd\"--
+--\'abcd\'--
+--a\x--
+./printf1.sub: line 107: printf: missing hex digit for \x
+--\x--
+----
+----
+--4.2
+--4\.2--
+--\--
+
+ 
+    4.4BSD
+    4.4BSD
+    4.4BSD
+    4.4BSD
+4.4BSD
+4.4BSD
+    4.4BSD
+--4.4BSD    --
+  4.
+4.4
+--4.4BSD  --
+255 255 255 0377 0xff 0xFF
+255 255 255 0377 0xff 0XFF
+255 255 255 0377 0xff 0xFF
+255 255 255 0377 0xff 0XFF
+        42
+       -42
+        42
+       -42
+4.20
+4.20
+ 4.2
+4.20
+4.20
+ 4.2
+4.200000E+00
+4.200000e+00
+4.2E+00
+4.2e+00
+4.2
+4.2
+   4.2
+   4.2
+115
+115
+0163
+0163
+0x73
+0X73
+115.00
+115.00
+--  abcd--
+--  abcd--
+--  abcdefghij--
+--  abcdefghij--
+'abcd'
+\'abcd\'
+\abcd\
+\abcd\
+26
+26
+26
+./printf1.sub: line 293: printf: `%10': missing format character
+./printf1.sub: line 294: printf: `M': invalid format character
+./printf1.sub: line 297: printf: `y': invalid format character
+./printf1.sub: line 300: printf: GNU: invalid number
+0
+./printf1.sub: line 302: printf: GNU: invalid number
+0
+-
+(foo )(bar )
+0
+  ab cd ef  
+13
+^G
+^G
+^Ge
+"?
+16:09:15
+./printf3.sub: line 27: printf: warning: `Z': invalid time format specification
+%(abde)Z
+30-May-2010 16:09:15
+05/30/10 15:09:15
+current time: 2010-05-30 04:09:15 PM
+epoch time: 1969-12-31 07:00:00 PM -0500
+random time: 2010-05-30 04:09:15 PM -0400
+local time: Sun May 30 16:09:15 EDT 2010
+Sun May 30 16:09:15 EDT 2010             date-style time
+05/30/10 (foo) 16:09:15                  date-style time
+x       123x
+x       123x
+x       123x
+x       123x
+x       123x
+x       123x
+x    123.00x
+x    123.00x
+x    123.00x
+x    123.00x
+x123       x
+x123       x
+x+00001e+02x
+x+00001e+02x
+x+000000123x
+x+000000123x
+x+00001e+02x
+x+00001e+02x
+x      +123x
+x      +123x
+x      +123x
+x      +123x
+x        7bx
+x        7bx
+x+123      x
+x+123      x
+x+123      x
+x+123      x
+-123.000000
+-123.000000
+x      +123x
+x      +123x
+x      +123x
+x      +123x

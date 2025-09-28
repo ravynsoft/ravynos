@@ -1,0 +1,107 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# assoc_expand_once for builtins
+
+typeset -A a
+a[0]=0 a[1]=1
+
+let "a[\" \"]=11" ; typeset -p a ; a[0]=0
+
+unset a
+
+# tests for `problem' keys when using associative arrays and assoc_expand_once
+# deal with problems for now; this is a placeholder for if and when I fix them
+
+typeset -A a
+
+k='['
+echo $(( a[$k]=7 ))
+
+k=']'
+echo $(( a[$k]=7 ))
+
+unset a
+
+declare -A A
+
+for k in $'\t' ' '; do
+   (( A[$k]=2 ))
+done
+declare -p A
+
+for k in ']' '*' '@'; do
+   (( A[$k]=2 ))
+done
+
+declare -p A
+
+unset A
+declare -A A
+
+for k in $'\t' ' ' ']' '*' '@'; do
+   read "A[$k]" <<< X
+done
+declare -p A
+
+unset A
+declare -A A
+
+for k in $'\t' ' ' ']' '*' '@'; do
+	printf -v "A[$k]" "%s" X
+done
+declare -p A
+
+unset A
+declare -A A
+
+for k in ']' '*' '@'; do
+   declare A[$k]=X
+done
+declare -p A
+
+unset A
+declare -A A
+
+for k in ']' '*' '@'; do
+   declare "A[$k]=X"
+done
+declare -p A
+
+unset A
+
+# this isn't right yet, but changes will show up here
+shopt -s assoc_expand_once
+declare -A assoc
+key='x],b[$(echo uname >&2)'
+
+let assoc[$key]++
+declare -p assoc
+
+unset assoc
+
+typeset -A assoc
+at=@
+
+key='$(echo foo)'
+
+assoc[$key]=1
+declare -p assoc
+
+shopt -s assoc_expand_once
+test -v assoc["$key"] ; echo $?
+
+unset assoc
+shopt -u assoc_expand_once
+

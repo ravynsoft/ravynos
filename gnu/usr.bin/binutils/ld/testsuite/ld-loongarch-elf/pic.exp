@@ -1,0 +1,202 @@
+# Expect script for LoongArch ELF linker tests
+#   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+if ![istarget loongarch*-*-*] {
+  return
+}
+
+global verbose
+set old_verbose verbose
+# set verbose 3
+
+# Check to see if the C compiler works
+if { ![check_compiler_available] } {
+    return
+}
+
+
+set testname "nopic link test pre build"
+set pre_builds [list \
+  [list \
+    "$testname" \
+    "-shared $NOSANITIZE_CFLAGS" \
+    "-fPIC $NOSANITIZE_CFLAGS" \
+    {libnopic-global.s} \
+    {} \
+    "libnopic-global.so" \
+  ] \
+]
+
+#  0:name
+#  1:ld or ar options
+#  2:compile options
+#  3:filenames of source files
+#  4:action and options.
+#  5:name of output file
+#  6:language (optional)
+run_cc_link_tests $pre_builds
+
+
+
+set testname "nopic link test"
+
+set link_tests [list \
+  [list \
+    "$testname readelf -s/-x nopic-local" \
+    "-T pic.ld" "" \
+    "" \
+    { nopic-local.s } \
+    [list \
+      [list readelf -s nopic-local.sd] \
+      [list readelf "-x .data" nopic-local.xd] \
+    ] \
+    "nopic-local" \
+  ] \
+  [list \
+    "$testname readelf -s/-x nopic-weak-local" \
+    "-T pic.ld" "" \
+    "" \
+    {nopic-weak-local.s} \
+      [list \
+	[list readelf -s nopic-weak-local.sd] \
+	[list readelf "-x .data" nopic-weak-local.xd] \
+      ] \
+    "nopic-weak-local" \
+  ] \
+  [list \
+    "$testname readelf -s/-x nopic-global" \
+    "-T pic.ld" "" \
+    "" \
+    {nopic-global.s libnopic-global.s} \
+      [list \
+	[list readelf -s nopic-global.sd] \
+	[list readelf "-x .data" nopic-global.xd] \
+      ] \
+    "nopic-global" \
+  ] \
+  [list \
+    "$testname readelf -s/-r nopic-global-so" \
+    "-L./tmpdir -lnopic-global -L/usr/lib -lc" "" \
+    "" \
+    {nopic-global.s} \
+      [list \
+	[list readelf -s nopic-global-so.sd] \
+	[list readelf -r nopic-global-so.rd] \
+      ] \
+    "nopic-global-so" \
+  ] \
+  [list \
+    "$testname readelf -s/-x nopic-weak-global" \
+    "-T pic.ld" "" \
+    "" \
+    {nopic-weak-global.s libnopic-global.s} \
+      [list \
+	[list readelf -s nopic-weak-global.sd] \
+	[list readelf "-x .data" nopic-weak-global.xd] \
+      ] \
+    "nopic-weak-global" \
+  ] \
+  [list \
+    "$testname readelf -s/-x nopic-weak-global-so" \
+    "-L./tmpdir -lnopic-global -L/usr/lib -lc" "" \
+    "" \
+    {nopic-weak-global.s} \
+      [list \
+	[list readelf -s nopic-weak-global-so.sd] \
+	[list readelf -r nopic-weak-global-so.rd] \
+      ] \
+    "nopic-weak-global-so" \
+  ] \
+]
+
+#  0:name
+#  1:ld/ar leading options, placed before object files
+#  2:ld/ar trailing options, placed after object files
+#  3:assembler options
+#  4:filenames of assembler files
+#  5:list of actions, options and expected outputs.
+#  6:name of output file
+#  7:compiler flags (optional)
+run_ld_link_tests $link_tests
+
+set testname "nopic link exec test"
+
+set link_exec_tests [list \
+  [list \
+    "$testname" \
+    "" "" \
+    { nopic-local.s }   \
+    "nopic-local" \
+    "nopic-local.out" \
+  ] \
+  [list \
+    "$testname" \
+    "" "" \
+    { nopic-weak-local.s }   \
+    "nopic-weak-local" \
+    "nopic-weak-local.out" \
+  ] \
+  [list \
+    "$testname" \
+    "" "" \
+    { nopic-global.s libnopic-global.s }   \
+    "nopic-global" \
+    "nopic-global.out" \
+  ] \
+  [list \
+    "$testname" \
+    "-L./tmpdir -lnopic-global -lc -Wl,-rpath=./tmpdir -no-pie" "" \
+    { nopic-global.s }   \
+    "nopic-global-so" \
+    "nopic-global.out" \
+  ] \
+  [list \
+    "$testname" \
+    "" "" \
+    { nopic-weak-global.s libnopic-global.s }   \
+    "nopic-weak-global" \
+    "nopic-weak-global.out" \
+  ] \
+  [list \
+    "$testname" \
+    "-L./tmpdir -lnopic-global -lc -Wl,-rpath=./tmpdir -no-pie" "" \
+    { nopic-weak-global.s }   \
+    "nopic-weak-global-so" \
+    "nopic-weak-global.out" \
+  ] \
+]
+
+# ldtests contains test-items with 3 items followed by 1 lists, 2 items
+# and 3 optional items:
+#   0:name
+#   1:ld leading options, placed before object files
+#   2:assembler options
+#   3:filenames of source files
+#   4:name of output file
+#   5:expected output
+#   6:compiler flags (optional)
+#   7:language (optional)
+#   8:linker warning (optional)
+#   9:ld trailing options, placed after object files (optional)
+run_ld_link_exec_tests $link_exec_tests
+
+
+#set verbose  old_verbose

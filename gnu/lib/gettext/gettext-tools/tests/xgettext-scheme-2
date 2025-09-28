@@ -1,0 +1,20 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Scheme support: strings outside any function call.
+
+cat <<EOF > xg-sc-2.scm
+(define foo '("bar" "quux"))
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -k_ --omit-header --no-location --force-po -d xg-sc-2 xg-sc-2.scm || Exit 1
+
+cat <<EOF > xg-sc-2.ok
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-sc-2.ok xg-sc-2.po
+result=$?
+
+exit $result

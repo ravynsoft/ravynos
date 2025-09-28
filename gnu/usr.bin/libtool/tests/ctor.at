@@ -1,0 +1,68 @@
+# ctor.at -- Test constructors via C++                        -*- Autotest -*-
+#
+#   Copyright (C) 2007-2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Noah Misch, 2007
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_BANNER([Constructors.])
+
+AT_SETUP([C++ static constructors])
+LT_AT_TAG([CXX])
+AT_KEYWORDS([libtool])
+
+AT_DATA(class.h,
+[[#define magic 0xaabbccdd
+class Foo {
+public:
+	Foo() { bar = magic; }
+	unsigned bar;
+};
+
+extern Foo instance;
+]])
+
+AT_DATA(libctor.cpp,
+[[#include "class.h"
+Foo instance;
+]])
+
+AT_DATA(main.cpp,
+[[#include "class.h"
+
+int main(void)
+{
+  return instance.bar != magic;
+}
+]])
+
+AT_CHECK([$LIBTOOL --tag=CXX --mode=compile $CXX $CPPFLAGS $CXXFLAGS \
+	  -c libctor.cpp -o libctor.lo], [0], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --tag=CXX --mode=compile $CXX $CPPFLAGS $CXXFLAGS \
+	  -c main.cpp -o main.lo], [0], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS \
+	  libctor.lo -o libctor.la -rpath /none], [0], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS \
+	  main.lo libctor.la -o main$EXEEXT], [0], [ignore], [ignore])
+
+LT_AT_EXEC_CHECK([./main], [0])
+
+AT_CLEANUP

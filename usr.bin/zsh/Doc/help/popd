@@ -1,0 +1,14 @@
+popd [ -q ] [ {+|-}n ]
+       Remove an entry from the directory stack, and perform  a  cd  to
+       the  new top directory.  With no argument, the current top entry
+       is removed.  An argument of the form `+n' identifies a stack en-
+       try by counting from the left of the list shown by the dirs com-
+       mand, starting with zero.  An argument of  the  form  -n  counts
+       from  the right.  If the PUSHD_MINUS option is set, the meanings
+       of `+' and `-' in this context are swapped.
+
+       If the -q (quiet) option is specified, the hook  function  chpwd
+       and  the functions in the array $chpwd_functions are not called,
+       and the new directory stack is not printed.  This is useful  for
+       calls  to popd that do not change the environment seen by an in-
+       teractive user.

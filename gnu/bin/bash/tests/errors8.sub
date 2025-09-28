@@ -1,0 +1,14 @@
+# the start of a set of tests for command keeping special builtins from
+# exiting the shell on failure
+set -o posix
+readonly v
+
+command eval '( ' || echo ok 1
+
+command export v=foo || echo ok 2
+command readonly v=foo || echo ok 3
+
+command shift 12 || echo ok 4
+
+command return 16 || echo ok 5
+command set -o notanoption || echo ok 6

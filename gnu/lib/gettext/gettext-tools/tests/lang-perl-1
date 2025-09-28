@@ -1,0 +1,122 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of gettext facilities in the Perl language,
+# using printf format strings.
+# Assumes an fr_FR locale is installed.
+# Assumes the following packages are installed: perl.
+
+cat <<\EOF > program1.pl
+use strict;
+
+use Locale::Messages qw (textdomain bindtextdomain gettext ngettext);
+textdomain "prog";
+bindtextdomain "prog", "./";
+my $n = 2;
+print gettext "'Your command, please?', asked the waiter.";
+print "\n";
+printf ngettext ("a piece of cake", "%d pieces of cake", $n), $n;
+print "\n";
+printf gettext "%s is replaced by %s.", "FF", "EUR";
+print "\n";
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} \
+  -k__ --flag=__:1:pass-perl-format --flag=__:1:pass-perl-brace-format \
+  -o prog.tmp --omit-header --no-location program1.pl || Exit 1
+LC_ALL=C tr -d '\r' < prog.tmp > prog.pot || Exit 1
+
+cat <<EOF > prog.ok
+msgid "'Your command, please?', asked the waiter."
+msgstr ""
+
+#, perl-format
+msgid "a piece of cake"
+msgid_plural "%d pieces of cake"
+msgstr[0] ""
+msgstr[1] ""
+
+#, perl-format
+msgid "%s is replaced by %s."
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} prog.ok prog.pot || Exit 1
+
+cat <<\EOF > fr.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "'Your command, please?', asked the waiter."
+msgstr "«Votre commande, s'il vous plait», dit le garçon."
+
+# Les gateaux allemands sont les meilleurs du monde.
+#, perl-format
+msgid "a piece of cake"
+msgid_plural "%d pieces of cake"
+msgstr[0] "un morceau de gateau"
+msgstr[1] "%d morceaux de gateau"
+
+# Reverse the arguments.
+#, perl-format
+msgid "%s is replaced by %s."
+msgstr "%2$s remplace %1$s."
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o fr.po.tmp fr.po prog.pot || Exit 1
+LC_ALL=C tr -d '\r' < fr.po.tmp > fr.po.new || Exit 1
+
+: ${DIFF=diff}
+${DIFF} fr.po fr.po.new || Exit 1
+
+test -d fr || mkdir fr
+test -d fr/LC_MESSAGES || mkdir fr/LC_MESSAGES
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o fr/LC_MESSAGES/prog.mo fr.po
+
+: ${DIFF=diff}
+cat <<\EOF > prog.ok
+«Votre commande, s'il vous plait», dit le garçon.
+2 morceaux de gateau
+EUR remplace FF.
+EOF
+cat <<\EOF > prog.oku
+Â«Votre commande, s'il vous plaitÂ», dit le garÃ§on.
+2 morceaux de gateau
+EUR remplace FF.
+EOF
+
+# Test for perl with Locale::Messages package.
+perl -e 'use Locale::Messages;' 2>/dev/null \
+  || { echo "Skipping test: perl package Locale::Messages is not installed"
+       Exit 77
+     }
+
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+if test $LOCALE_FR != none; then
+  prepare_locale_ fr $LOCALE_FR
+  LANGUAGE= LANG=$LOCALE_FR LC_MESSAGES= LC_CTYPE= LC_ALL= perl program1.pl > prog.out || Exit 1
+  ${DIFF} prog.ok prog.out || Exit 1
+fi
+if test $LOCALE_FR_UTF8 != none; then
+  prepare_locale_ fr $LOCALE_FR_UTF8
+  LANGUAGE= LANG=$LOCALE_FR_UTF8 LC_MESSAGES= LC_CTYPE= LC_ALL= perl program1.pl > prog.out || Exit 1
+  ${DIFF} prog.oku prog.out || Exit 1
+fi
+if test $LOCALE_FR = none && test $LOCALE_FR_UTF8 = none; then
+  if test -f /usr/bin/localedef; then
+    echo "Skipping test: no french locale is installed"
+  else
+    echo "Skipping test: no french locale is supported"
+  fi
+  Exit 77
+fi
+
+Exit 0

@@ -1,0 +1,41 @@
+Changes in TIFF v3.5.1
+======================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.5.1 (no release tag)
+  Previous Version        v3.4beta037 (missing release notes, go to :doc:`v3.4beta036 <v3.4beta036>`)
+  Master Download Site    `<ftp://ftp.onshore.com/pub/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Software configuration changes
+------------------------------
+
+None.
+
+
+Library changes
+---------------
+
+* Support was added for IPTC Newsphoto metadata (:c:macro:`TIFFTAG_IPTCNEWSPHOTO`)
+* Support was added for photoshop caption handling (:c:macro:`TIFFTAG_PHOTOSHOP`)
+
+
+Contributed software changes
+----------------------------
+
+* `Bill Radcliffe's <billr@corbis.com>`_ :program:`iptcutil` was
+  added to the :file:`contrib` subdirectory .  It can convert an IPTC binary
+  blob to ASCII text and vice-versa.  The blob itself can be extracted
+  from or added to an image with the `ImageMagick <http://www.ImageMagick.org>`_
+  :program:`convert` (1) utility.

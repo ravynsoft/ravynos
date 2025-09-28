@@ -1,0 +1,35 @@
+{
+    "fonts": [
+        {
+            "family": "Foo",
+            "style": "Italic",
+	    "pixelsize": [15, 16, 17, 18],
+            "file": "/path/to/Foo-Italic.ttf",
+            "fontversion": 133365
+        },
+        {
+            "family": "Foo",
+            "style": "Regular",
+	    "pixelsize": [11, 12, 13, 14, 15, 16, 17, 18, 22],
+            "file": "/path/to/Foo-Regular.ttf",
+            "fontversion": 133365
+        }
+    ],
+    "tests": [
+        {
+            "method": "match",
+            "query": {
+                "family": "Foo",
+                "style": "Regular",
+		"pixelsize": 16
+            },
+            "result": {
+                "family": "Foo",
+                "style": "Regular",
+	        "pixelsize": 16,
+                "file": "/path/to/Foo-Regular.ttf",
+                "fontversion": 133365
+            }
+        }
+    ]
+}

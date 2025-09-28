@@ -1,0 +1,26 @@
+#compdef wc gwc
+
+local args
+
+args=(
+  '(-c --bytes)'{-c,--bytes}'[print byte counts]'
+  '(-C -m --chars)'{-m,--chars}'[print character counts]'
+  '(-w --words)'{-w,--words}'[print word counts]'
+  '(-l --lines)'{-l,--lines}'[print line counts]'
+)
+
+if _pick_variant gnu=GNU unix --version; then
+  args+=(
+    '(*)--files0-from=[read NUL-terminated file list from specified file]:file:_files'
+    '(-L --max-line-length)'{-L,--max-line-length}'[print longest line lengths]'
+  )
+else
+  args=( -A "-*" "${(@)args:#(|\(*\))(|\*)--*}" )
+  case $OSTYPE in
+    freebsd*|netbsd*) args+=( '-L[print longest line lengths]' ) ;;
+    openbsd*) args+=( '-h[human readable: use unit suffixes]' ) ;;
+    solaris*) args+=( ${${(M)args:#*-m\[*}//-m\[/-C\[} ) ;;
+  esac
+fi
+
+_arguments -s -S $args '*:file:_files'

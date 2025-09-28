@@ -1,0 +1,5 @@
+${THIS_SH} ./dstack.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} dstack.right && rm -f ${BASH_TSTOUT}
+
+${THIS_SH} ./dstack2.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} dstack2.right && rm -f ${BASH_TSTOUT}

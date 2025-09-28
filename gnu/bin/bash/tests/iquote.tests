@@ -1,0 +1,158 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# bug in bash up to and including bash-3.0 (including patches)
+#
+# problem is conflict between CTLNUL used internally to denote quoted null
+# characters and its value (0x7f) appearing in the expansion of a variable
+#
+unset x
+recho "xxx${x}yyy"
+
+y=$'\177'
+recho "xxx${y}yyy"
+
+unset y
+
+unset undef
+
+set ""
+recho ${undef-"x$*y"}
+
+set $'\177'
+recho ${undef-"x$*y"}
+
+shift $#
+
+f()
+{
+	recho "-${*-x}-"
+}
+
+f ''
+f $'\177'
+
+unset -f f
+
+x=12345
+
+recho "${x:6:1}"
+
+x=
+recho "${x:0:1}"
+
+y=$'\177'
+recho "${y:0:1}"
+
+y=xxx$'\177'yyy
+recho "${y:3:3}"
+
+unset x y
+
+eval tmp=`printf "$'\\\\\x%x'\n" 127`
+printf "%#1x\n" "'$tmp"
+
+x=$'\177'
+printf "%#1x\n" "'$x"
+
+a=127
+eval c=\$\'\\$(printf '%o' $a)\'
+printf "%#1x\n" "'$c"
+
+recho "$c"
+recho "$c"@
+recho @"$c"@
+recho @"$c"
+
+recho "$c"
+recho "$c@"
+recho "@$c@"
+recho "@$c"
+
+unset tmp x a c
+
+qtest()
+{
+	recho ${#q} "${q}" ${q}
+}
+
+q=$'\x7f'
+qtest
+
+q=${q}a
+qtest
+
+q=$'\x7fa'
+qtest
+
+q="${q}a"
+qtest
+
+unset -f qtest
+unset q
+
+set -- ''
+recho "${*:1}"
+recho  ${*:1}
+recho  -${*:1}-
+recho  -"${*:1}"-
+
+set $'\177'
+recho "${*:1}"
+recho "-${*:1}-"
+
+recho  ${*:1}
+recho -${*:1}-
+
+shift $#
+
+DEL=`awk 'END{printf("%c", 0+127)}' </dev/null`
+T1=a\ $DEL
+T2="a $DEL"
+set -- x $(echo $T1|wc -c) $(echo $T2|wc -c); shift
+L1=$1; L2=$2
+case "$L1/$L2" in
+4/4) echo ok;;
+*) echo CTLNUL bug: L1=$L1, L2=$L2;;
+esac
+
+x=$'\177'
+recho "aaa${x}bbb"
+recho ccc"${x}"ddd
+recho eee"$x"fff
+recho ggg"$(echo $x)"hhh
+
+x=
+recho "aaa${x}bbb"
+recho ccc"${x}"ddd
+recho eee"$x"fff
+recho ggg"$(echo $x)"hhh
+
+set -- $'\177'
+recho "aaa${1}bbb"
+recho ccc"${1}"ddd
+recho eee"$1"fff
+recho ggg"$(echo $1)"hhh
+
+set -- ""
+recho "aaa${1}bbb"
+recho ccc"${1}"ddd
+recho eee"$1"fff
+recho ggg"$(echo $1)"hhh
+
+recho aaa$'\177'bbb
+recho ccc""ddd
+recho "eeefff"
+recho ggg"$(echo $'\177')"hhh
+
+${THIS_SH} ./iquote1.sub

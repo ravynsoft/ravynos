@@ -1,0 +1,49 @@
+Release instructions for dual-life ExtUtils::CBuilder
+
+1. Check out a tag/commit corresponding to the release point.  This
+should generally be a Perl release (dev or stable).  Make sure
+your working tree is clear of extraneous files. E.g.
+
+    $ git checkout v5.15.8
+    $ git clean -dxf
+
+2. Rsync the ExtUtils-CBuilder directory to a temporary directory for
+release.  E.g.
+
+    $ rsync -av --delete dist/ExtUtils-CBuilder /tmp
+
+3. Change to the temp directory
+
+    $ cd /tmp/ExtUtils-CBuilder
+
+4. Look at the Changes file.  If it was not kept up to date in blead,
+take a minute to feel sad, then update it.  Remember to copy the
+changes back to blead later.
+
+5. Configure and then make a MANIFEST
+
+    $ perl Makefile.PL
+    $ make manifest
+
+6. Build a release directory and examine its contents, paying particular
+attention to the MANIFEST and the META files
+
+    $ make distdir
+
+7. Test the release directory
+
+    $ make disttest
+
+8. If all looks good, create a tarball and upload it to CPAN (maybe
+install CPAN::Uploader or an equivalent tool)
+
+    $ make dist
+    $ cpan_upload ExtUtils-CBuilder-X.YYYZZZ.tar.gz
+
+9. Update Porting/Maintainers.pl in the Perl repo with the new tarball
+name for ExtUtils-CBuilder.
+
+10. If you updated Changes, copy that back to blead now
+
+11. Commit any changes to blead (or submit it as a patch if you don't have a
+commit bit)

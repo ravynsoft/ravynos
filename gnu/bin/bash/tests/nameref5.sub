@@ -1,0 +1,63 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# nameref variables as for loop index variables are special
+v1=1
+v2=2
+
+# simple for loop
+for v in v1 v2
+do
+	typeset -n ref=$v
+	echo $ref
+done
+unset v
+
+set -- first second third fourth fifth
+
+# unless you put a ${!v} in the for loop, ksh93 misbehaves
+typeset -n v=v1
+for v in v1 v2; do
+	echo "${!v}: $v"
+done
+unset v
+
+# example cribbed from ksh93 o'reilly book
+first="I am first"
+second="I am in the middle"
+third="I am last"
+
+typeset -n ref=first
+for ref in first second third ; do
+	echo "ref -> ${!ref}, value: $ref"
+done
+echo final state: "ref -> ${!ref}, value: $ref"
+
+readonly one=1
+readonly two=2
+readonly three=3
+
+typeset -n ref=one
+for ref in one two three; do
+	echo "ref -> ${!ref}, value: $ref"
+done
+echo final state: "ref -> ${!ref}, value: $ref"
+
+unset ref
+typeset -n ref=one
+readonly ref
+
+for ref in one two three; do
+	echo "ref -> ${!ref}, value: $ref"
+done
+echo final state: "ref -> ${!ref}, value: $ref"

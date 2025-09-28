@@ -1,0 +1,176 @@
+.\" Man page generated from reStructuredText.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "TIFFWRITESCANLINE" "3tiff" "Sep 08, 2023" "4.6" "LibTIFF"
+.SH NAME
+TIFFWriteScanline \- write a scanline to an open TIFF file
+.SH SYNOPSIS
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <tiffio.h>
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFWriteScanline(TIFF  *tif, tdata_t  buf, uint32_t  row, tsample_t  sample) 
+.UNINDENT
+.SH DESCRIPTION
+.sp
+Write data to a file at the specified row. The \fIsample\fP parameter is
+used only if data are organized in separate planes
+(\fBPlanarConfiguration\fP = 2).
+The data are assumed to be uncompressed and in the native bit\- and
+byte\-order of the host machine. The data written to the file is
+compressed according to the compression scheme of the current
+TIFF directory (see further below). If the current scanline is past the
+end of the current subfile, the \fBImageLength\fP field is automatically
+increased to include the scanline (except for \fBPlanarConfiguration\fP = 2,
+where the \fBImageLength\fP cannot be changed once the first data are
+written). If the \fBImageLength\fP is increased, the \fBStripOffsets\fP
+and \fBStripByteCounts\fP fields are similarly enlarged to reflect data
+written past the previous end of image.
+.SH NOTES
+.sp
+The library writes encoded data using the native machine byte order.
+Correctly implemented TIFF readers are expected to do any necessary
+byte\-swapping to correctly process image data with \fBBitsPerSample\fP
+greater than 8. The library attempts to hide bit\-ordering differences
+between the image and the native machine by converting data from the
+native machine order.
+.sp
+In C++ the \fIsample\fP parameter defaults to 0.
+.sp
+Once data are written to a file for the current directory, the values of
+certain tags may not be altered; see \fI\%TIFFSetField()\fP for more
+information.
+.sp
+It is not possible to write scanlines to a file that uses a tiled
+organization.  The routine \fI\%TIFFIsTiled()\fP can be used to
+determine if the file is organized as tiles or strips.
+.SH RETURN VALUES
+.sp
+\fI\%TIFFWriteScanline()\fP returns \-1 if it immediately detects an
+error and 1 for a successful write.
+.SH DIAGNOSTICS
+.sp
+All error messages are directed to the \fI\%TIFFErrorExtR()\fP routine.
+.sp
+\fB%s: File not open for writing\fP:
+.INDENT 0.0
+.INDENT 3.5
+The file was opened for reading, not writing.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\(dqCan not write scanlines to a tiled image\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+An attempt was made to write a scanline to a tiled image. The image
+is assumed to be organized in tiles because the \fBTileWidth\fP and
+\fBTileLength\fP tags have been set with \fI\%TIFFSetField()\fP\&.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\(dqCompression algorithm does not support random access\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+Data was written in a non\-sequential order to a file that uses a
+compression algorithm and that has \fBRowsPerStrip\fP greater than one.
+That is, data in the image is to be stored in a compressed form, and
+with multiple rows packed into a strip. In this case, the library
+does not support random access to the data. The data should either be
+written as entire strips, sequentially by rows, or the value of
+\fBRowsPerStrip\fP should be set to one.
+.UNINDENT
+.UNINDENT
+.sp
+\fB%s: Must set \(dqImageWidth\(dq before writing data\fP:
+.INDENT 0.0
+.INDENT 3.5
+The image’s width has not be set before the first write.
+See \fI\%TIFFSetField()\fP for information on how to do this.
+.UNINDENT
+.UNINDENT
+.sp
+\fB%s: Must set \(dqPlanarConfiguration\(dq before writing data\fP:
+.INDENT 0.0
+.INDENT 3.5
+The organization of data has not be defined before the first write.
+See \fI\%TIFFSetField()\fP for information on how to do this.
+.UNINDENT
+.UNINDENT
+.sp
+\fBCan not change \(dqImageLength\(dq when using separate planes\fP:
+.INDENT 0.0
+.INDENT 3.5
+Separate image planes are being used (\fBPlanarConfiguration\fP = 2),
+but the number of rows has not been specified before the first write.
+The library supports the dynamic growth of an image only when data
+are organized in a contiguous manner (\fBPlanarConfiguration\fP = 1).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\(dq%d: Sample out of range, max %d\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+The \fIsample\fP parameter was greater than the value of the
+\fBSamplesPerPixel\fP tag.
+.UNINDENT
+.UNINDENT
+.sp
+\fB%s: No space for strip arrays\fP:
+.INDENT 0.0
+.INDENT 3.5
+There was not enough space for the arrays that hold strip offsets and
+byte counts.
+.UNINDENT
+.UNINDENT
+.SH BUGS
+.sp
+Writing subsampled YCbCR data does not work correctly because, for
+\fBPlanarConfiguration\fP = 2 the size of a scanline is not calculated on
+a per\-sample basis, and for \fBPlanarConfiguration\fP = 1 the library
+does not pack the block\-interleaved samples.
+.SH SEE ALSO
+.sp
+\fI\%TIFFOpen\fP (3tiff),
+\fI\%TIFFWriteEncodedStrip\fP (3tiff),
+\fI\%TIFFWriteRawStrip\fP (3tiff),
+\fI\%libtiff\fP (3tiff)
+.SH AUTHOR
+LibTIFF contributors
+.SH COPYRIGHT
+1988-2022, LibTIFF contributors
+.\" Generated by docutils manpage writer.
+.

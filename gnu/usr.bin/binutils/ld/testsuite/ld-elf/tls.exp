@@ -1,0 +1,79 @@
+# Expect script for TLS tests.
+#   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+# Make sure that binutils can correctly handle TLS.
+
+if { !([istarget *-*-linux*]
+       || [istarget arm*-*-uclinuxfdpiceabi]
+       || [istarget *-*-nacl*]
+       || [istarget *-*-gnu*]) || [istarget *ecoff] } then {
+    return
+}
+
+# Check to see if the C compiler works.
+if { ![check_compiler_available] } {
+    return
+}
+
+# This target requires extra GAS options when building PIC/PIE code.
+set AFLAGS_PIC ""
+if [istarget "sparc*-*-*"] {
+    append AFLAGS_PIC " -K PIC -Av9"
+} elseif [istarget ia64-*-*] {
+    append AFLAGS_PIC " -x"
+}
+
+set ldflags "-pie -e _start -z text"
+if [istarget arm*-*-*] {
+    append ldflags " --defsym __aeabi_read_tp=0"
+} elseif [istarget m68*-*-*] {
+    append ldflags " --defsym __m68k_read_tp=0"
+} elseif [istarget microblaze-*-*] {
+    append ldflags " --defsym __tls_get_addr=0"
+}
+
+run_ld_link_tests [list \
+    [list \
+	"pr22263-1 -z text" \
+	$ldflags \
+	"" \
+	"$AFLAGS_PIC" \
+	{ pr22263-1a.c pr22263-1b.c } \
+	{} \
+	"pr22263-1" \
+	"-fPIE -O2 $NOSANITIZE_CFLAGS" \
+    ] \
+]
+
+if [file exists tmpdir/pr22263-1] {
+    run_ld_link_tests [list \
+	[list \
+	    "pr22263-1 tprel optimisation" \
+	    $ldflags \
+	    "tmpdir/pr22263-1a.o tmpdir/pr22263-1b.o" \
+	    "" \
+	    {} \
+	    {{readelf -r pr22263-1.rd}} \
+	    "pr22263-1" \
+	    "" \
+	] \
+    ] ia64-*-* m68*-*-* nios2-*-* s390-*-* sh*-*-*
+}

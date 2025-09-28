@@ -1,0 +1,90 @@
+#compdef xli xloadimage xsetbg xview
+
+local rc ipath extension filter type args
+
+if rc=( ${(f)"$($words[1] -path)"} ); then
+  # xli
+  filter=( .Z )
+  args=(
+    '-cache[force caching of entire input]'
+    "-delete[enable deleting images with 'x' key]"
+    '-dispgamma[specify gamma correction]'
+    '-fillscreen[use whole screen, zooming image]'
+    '-focus[take keyboard focus]'
+    '-path[display image path and suffixes]'
+    -dumpcore
+    '*-iscale[scale image]:scale factor'
+    '*-c'{,olor}'dither[dither image]'
+    '*-expand[expand image to 24-bit]'
+    '*-xpm[specify xpm color map]:color context key:((m\:mono g4\:4\ level\ gray g\:gray c\:color))'
+  )
+else
+  # xloadimage
+  rc=( ${(f)"$($words[1] -configuration)"} )
+  filter=( ${${(Q)rc[4,-1]%% -*}# } )
+  type=( ${(f)"$($words[1] -supported)"} )
+  args=(
+    '-configuration[display image path, suffixes and filters]'
+    '-dump[dump image into file]:image type:( '${(F)${(M)type:#*Yes*}%% *}' ):filename:_files'
+    -slideshow
+    '*-type[force type of image]:type name:( '${(F)type[3,-1]%% *}' )'
+    '*-shrink[shrink image to fit display]'
+    '*-tile[tile image to fill display]'
+    '*-global[following option applies to all images]'
+  )
+fi
+ipath=( . ${=${(M)rc:#*path:*}#*:} )
+extension=( ${=${(M)rc:#*extensions:*}#*:} )
+# set default file extensions if there are none
+(( $#extension )) || extension=(
+  .gif .jpg .jpeg .png .rle .csun .msun .sun .face
+  .xbm .bm .fbm .pcx .ppm .pgm .pbm .tga .xpm
+)
+
+# all options are valid after -help so no exclusion lists below
+_x_arguments "$args[@]" \
+  '-default[set root background to default]' \
+  '-fit[use default visual and colormap]' \
+  '-fullscreen[use whole screen, surrounding image with border]' \
+  "-goto[specify image to display at end]:image name:_files -W ipath -g '*(#i)(${(j:|:)extension})(|${(j:|:)filters})(-.)'" \
+  '(*)-help[display information on options]' \
+  '-identity[identify supplied images instead of displaying]' \
+  '-install[forcibly install image colormap on focus]' \
+  '-list[list images]' \
+  '-onroot[display to root window]' \
+  '-path[display image path and suffixes]' \
+  '-pixmap[force the use of a pixmap as backing-store]' \
+  '-private[force use of a private colormap]' \
+  '-quiet[quiet operation]' \
+  '-supported[list supported image types]' \
+  '-verbose[verbose operation]' \
+  '-version[display version info]' \
+  '-view[view image in window]' \
+  '-visual[force use of a specific visual]:visual:_x_visual' \
+  '-windowid[set background pixmap of specific window]:window id:_x_window' \
+  -fork -debug \
+  '*-border[specify background color]:background color:_x_color' \
+  '*-brighten[brighten/darken image]:percentage multiplier' \
+  '*-colors[specify maximum colors in image]:colors' \
+  '*-delay[delay before advancing to next image]:seconds' \
+  '*-dither[dither color image to mono]' \
+  '*-gamma[specify gamma of display image was intended for]:gamma' \
+  '*-gr'{a,e}'y[convert image to grayscale]' \
+  '*-idelay[specify delay for this image]' \
+  '*-smooth[smooth a color image]' \
+  '*-xzoom[zoom X axis of image]:percentage' \
+  '*-yzoon[zoom Y axis of image]:percentage' \
+  '*-zoom:percentage' \
+  '*-newoptions[reset options]' \
+  '*-at[specify coordinates to load next image at]' \
+  '*-background[specify background color for next image]:color:_x_color' \
+  '*-center[center next image on base image]' \
+  '*-clip:X,Y,W,H' \
+  '*-foreground[specify foreground color for next image]:color:_x_color' \
+  '*-halftone[force halftone dithering]' \
+  '*-invert[invert a monochrome image]' \
+  '*-merge[merge image onto the base image]' \
+  "*-name[specify image name]:picture file:_files -W ipath -g '*(#i)(${(j:|:)extension})(|${(j:|:)filters})(-.)'" \
+  '*-normalize' \
+  '*-rotate[rotate image clockwise]:degrees of rotation:(90 180 270)' \
+  "*:picture file:_files -W ipath -g '*(#i)(${(j:|:)extension})(|${(j:|:)filter})(-.)'"

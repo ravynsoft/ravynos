@@ -1,0 +1,189 @@
+COMMENT(!MOD!zsh/files
+Some basic file manipulation commands as builtins.
+!MOD!)
+cindex(files, manipulating)
+The tt(zsh/files) module makes available some common commands for file
+manipulation as builtins; these commands are probably not needed for
+many normal situations but can be useful in emergency recovery
+situations with constrained resources.  The commands do not implement
+all features now required by relevant standards committees.
+
+For all commands, a variant beginning tt(zf_) is also available and loaded
+automatically.  Using the features capability of zmodload will let you load
+only those names you want.  Note that it's possible to load only the
+builtins with zsh-specific names using the following command:
+
+example(zmodload -m -F zsh/files b:zf_\*)
+
+The commands loaded by default are:
+
+startitem()
+findex(chgrp)
+item(tt(chgrp) [ tt(-hRs) ] var(group) var(filename) ...)(
+Changes group of files specified.  This is equivalent to tt(chown) with
+a var(user-spec) argument of `tt(:)var(group)'.
+)
+findex(chmod)
+item(tt(chmod) [ tt(-Rs) ] var(mode) var(filename) ...)(
+Changes mode of files specified.
+
+The specified var(mode) must be in octal.
+
+The tt(-R) option causes tt(chmod) to recursively descend into directories,
+changing the mode of all files in the directory after
+changing the mode of the directory itself.
+
+The tt(-s) option is a zsh extension to tt(chmod) functionality.  It enables
+paranoid behaviour, intended to avoid security problems involving
+a tt(chmod) being tricked into affecting files other than the ones
+intended.  It will refuse to follow symbolic links, so that (for example)
+``tt(chmod 600 /tmp/foo/passwd)'' can't accidentally chmod tt(/etc/passwd)
+if tt(/tmp/foo) happens to be a link to tt(/etc).  It will also check
+where it is after leaving directories, so that a recursive chmod of
+a deep directory tree can't end up recursively chmoding tt(/usr) as
+a result of directories being moved up the tree.
+)
+findex(chown)
+item(tt(chown) [ tt(-hRs) ] var(user-spec) var(filename) ...)(
+Changes ownership and group of files specified.
+
+The var(user-spec) can be in four forms:
+
+startsitem()
+sitem(var(user))(change owner to var(user); do not change group)
+sitem(var(user)tt(::))(change owner to var(user); do not change group)
+sitem(var(user)tt(:))(change owner to var(user); change group to var(user)'s primary group)
+sitem(var(user)tt(:)var(group))(change owner to var(user); change group to var(group))
+sitem(tt(:)var(group))(do not change owner; change group to var(group))
+endsitem()
+
+In each case, the `tt(:)' may instead be a `tt(.)'.  The rule is that
+if there is a `tt(:)' then the separator is `tt(:)', otherwise
+if there is a `tt(.)' then the separator is `tt(.)', otherwise
+there is no separator.
+
+Each of var(user) and var(group) may be either a username (or group name, as
+appropriate) or a decimal user ID (group ID).  Interpretation as a name
+takes precedence, if there is an all-numeric username (or group name).
+
+If the target is a symbolic link, the tt(-h) option causes tt(chown) to set
+the ownership of the link instead of its target.
+
+The tt(-R) option causes tt(chown) to recursively descend into directories,
+changing the ownership of all files in the directory after
+changing the ownership of the directory itself.
+
+The tt(-s) option is a zsh extension to tt(chown) functionality.  It enables
+paranoid behaviour, intended to avoid security problems involving
+a tt(chown) being tricked into affecting files other than the ones
+intended.  It will refuse to follow symbolic links, so that (for example)
+``tt(chown luser /tmp/foo/passwd)'' can't accidentally chown tt(/etc/passwd)
+if tt(/tmp/foo) happens to be a link to tt(/etc).  It will also check
+where it is after leaving directories, so that a recursive chown of
+a deep directory tree can't end up recursively chowning tt(/usr) as
+a result of directories being moved up the tree.
+)
+findex(ln)
+xitem(tt(ln) [ tt(-dfhins) ] var(filename) var(dest))
+item(tt(ln) [ tt(-dfhins) ] var(filename) ... var(dir))(
+Creates hard (or, with tt(-s), symbolic) links.  In the first form, the
+specified var(dest)ination is created, as a link to the specified
+var(filename).  In the second form, each of the var(filename)s is
+taken in turn, and linked to a pathname in the specified var(dir)ectory
+that has the same last pathname component.
+
+Normally, tt(ln) will not attempt to create hard links to
+directories.  This check can be overridden using the tt(-d) option.
+Typically only the super-user can actually succeed in creating
+hard links to directories.
+This does not apply to symbolic links in any case.
+
+By default, existing files cannot be replaced by links.
+The tt(-i) option causes the user to be queried about replacing
+existing files.  The tt(-f) option causes existing files to be
+silently deleted, without querying.  tt(-f) takes precedence.
+
+The tt(-h) and tt(-n) options are identical and both exist for
+compatibility; either one indicates that if the target is a symlink
+then it should not be dereferenced.
+Typically this is used in combination with tt(-sf) so that if an
+existing link points to a directory then it will be removed,
+instead of followed.
+If this option is used with multiple filenames and the target
+is a symbolic link pointing to a directory then the result is
+an error.
+)
+findex(mkdir)
+item(tt(mkdir) [ tt(-p) ] [ tt(-m) var(mode) ] var(dir) ...)(
+Creates directories.  With the tt(-p) option, non-existing parent
+directories are first created if necessary, and there will be
+no complaint if the directory already exists.
+The tt(-m) option can be used to specify (in octal) a set of file permissions
+for the created directories, otherwise mode 777 modified by the current
+tt(umask) (see manref(umask)(2)) is used.
+)
+findex(mv)
+xitem(tt(mv) [ tt(-fi) ] var(filename) var(dest))
+item(tt(mv) [ tt(-fi) ] var(filename) ... var(dir))(
+Moves files.  In the first form, the specified var(filename) is moved
+to the specified var(dest)ination.  In the second form, each of the
+var(filename)s is
+taken in turn, and moved to a pathname in the specified var(dir)ectory
+that has the same last pathname component.
+
+By default, the user will be queried before replacing any file
+that the user cannot write to, but writable files will be silently
+removed.
+The tt(-i) option causes the user to be queried about replacing
+any existing files.  The tt(-f) option causes any existing files to be
+silently deleted, without querying.  tt(-f) takes precedence.
+
+Note that this tt(mv) will not move files across devices.
+Historical versions of tt(mv), when actual renaming is impossible,
+fall back on copying and removing files; if this behaviour is desired,
+use tt(cp) and tt(rm) manually.  This may change in a future version.
+)
+findex(rm)
+item(tt(rm) [ tt(-dfiRrs) ] var(filename) ...)(
+Removes files and directories specified.
+
+Normally, tt(rm) will not remove directories (except with the tt(-R) or tt(-r)
+options).  The tt(-d) option causes tt(rm) to try removing directories
+with tt(unlink) (see manref(unlink)(2)), the same method used for files.
+Typically only the super-user can actually succeed in unlinking
+directories in this way.
+tt(-d) takes precedence over tt(-R) and tt(-r).
+
+By default, the user will be queried before removing any file
+that the user cannot write to, but writable files will be silently
+removed.
+The tt(-i) option causes the user to be queried about removing
+any files.  The tt(-f) option causes files to be
+silently deleted, without querying, and suppresses all error indications.
+tt(-f) takes precedence.
+
+The tt(-R) and tt(-r) options cause tt(rm) to recursively descend into
+directories, deleting all files in the directory before removing the directory
+with the tt(rmdir) system call (see manref(rmdir)(2)).
+
+The tt(-s) option is a zsh extension to tt(rm) functionality.  It enables
+paranoid behaviour, intended to avoid common security problems involving
+a root-run tt(rm) being tricked into removing files other than the ones
+intended.  It will refuse to follow symbolic links, so that (for example)
+``tt(rm /tmp/foo/passwd)'' can't accidentally remove tt(/etc/passwd)
+if tt(/tmp/foo) happens to be a link to tt(/etc).  It will also check
+where it is after leaving directories, so that a recursive removal of
+a deep directory tree can't end up recursively removing tt(/usr) as
+a result of directories being moved up the tree.
+)
+findex(rmdir)
+item(tt(rmdir) var(dir) ...)(
+Removes empty directories specified.
+)
+findex(sync)
+item(tt(sync))(
+Calls the system call of the same name (see manref(sync)(2)), which
+flushes dirty buffers to disk.  It might return before the I/O has
+actually been completed.
+)
+enditem()

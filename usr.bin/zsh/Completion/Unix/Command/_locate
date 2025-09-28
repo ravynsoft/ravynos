@@ -1,0 +1,96 @@
+#compdef locate mlocate slocate glocate
+
+local variant=$service
+local -a args
+[[ $service = locate ]] &&
+  _pick_variant -r variant glocate=findutils mlocate=mlocate slocate=secure $OSTYPE -V
+args=( '(-)'{-V,--version}'[display version information]' )
+
+case $variant in
+  [mg]locate)
+    args+=(
+      '(-A --all)'{-A,--all}'[only print entries that match all patterns]'
+      '(-E --non-existing -e --existing)'{-e,--existing}'[restrict display to existing files]'
+      '(-c --count)'{-c,--count}'[output the number of matching entries]'
+      '(-i --ignore-case)'{-i,--ignore-case}'[ignore case distinctions in patterns]'
+      '(-w --wholename -b --basename)'{-w,--wholename}'[match entire file path (default)]'
+      '(-w --wholename -b --basename)'{-b,--basename}'[match only the basename of files in the database]'
+      '(-P -H --no-follow -L --follow)'{-P,-H,--nofollow}"[don't follow symbolic links]"
+      '(-P -H --no-follow -L --follow)'{-L,--follow}'[follow symbolic links to find existing files (default)]'
+      '(-0 --null)'{-0,--null}'[output separated by NUL characters]'
+      '(-S --statistics)'{-S,--statistics}'[show database statistics]'
+    )
+  ;|
+
+  (mlocate)
+  # -r/--regexp mean no normal arguments, so shouldn't complete
+  # -m and --mmap are ignored, so don't bother
+  # -s and --stdio likewise
+    args=( -s -S : $args
+      \*{-d,--database=}'[use alternative database]:database:_sequence -s \: _files'
+      '(-)'{-h,--help}'[display help information]'
+      '(-l -n --limit)'{-l,-n,--limit=}'[limit search results]:file limit'
+      '(-q --quiet)'{-q,--quiet}"[don't report errors]"
+      '(:)*'{-r,--regexp=}'[search for given basic regexp]:basic regexp'
+      '--regex[patterns are extended regexps]'
+    )
+  ;;
+
+  (slocate)
+  # -d can take path
+  # -e can take a comma-separated list of directories.
+  # -f should complete list of file system types like mount
+    args=( -s -S : $args
+      -u'[create slocate database starting at path /]'
+      -U'[create slocate database starting at given path]:directory:_files -/'
+      -c'[parse GNU locate updatedb with -u, -U]'
+      -e'[exclude directories with -u, -U]: : _dir_list -s,'
+      -f'[exclude file system types from db with -u, -U]:file system:_file_systems'
+      -l'[security level]:level:(0 1)'
+      -q'[quiet mode]'
+      -n'[limit search results]:file limit '
+      -i'[case insensitive search]'
+      {-r,--regexp=}'[use basic regular expression]:regexp'
+      {-o,--output=}'[specify database to create]:database:_files'
+      {-d,--database=}'[specify database to search]:database:_files'
+      '(-)'{-h,--help}'[display help information]'
+      {-v,--verbose}'[display files when creating database]'
+    )
+  ;;
+
+  (glocate)
+    args=( -s : $args
+      \*{-d,--database=}'[use alternative database]:database:_files'
+      '(-E --non-existing -e --existing)'{-E,--non-existing}'[restrict display to nonexistent files]'
+      '(-l --limit)'{-l,--limit=}'[limit search results]:file limit: '
+      '--max-database-age[specify database age at which warning should be issued]:age (days) [8]'
+      '(-p --print)'{-p,--print}'[include search results with statistics or count]'
+      \*{-r,--regex=}'[patterns are regular expressions]:regexp'
+      --regextype='[select type of regular expression]:regex type [basic]:(findutils-default awk egrep ed emacs gnu-awk grep posix-awk posix-basic posix-egrep posix-extended posix-minimal-basic sed)'
+      '(-)'--help'[display help information]'
+    )
+  ;;
+
+  (freebsd|openbsd|dragonfly|darwin)*)
+    args=( -s -S -A '-*'
+      '(-S)-c[output the number of matching file names]'
+      '(-S)-i[ignore case distinctions in pattern and database]'
+      '(-S)-l[limit output to specified number of file names]:file limit '
+      '(- *)-S[show database statistics and exit]'
+    )
+  ;|
+  openbsd*)
+    args+=( '(-S)-b[match only the basename of files in the database]' )
+  ;|
+  (freebsd|dragonfly|darwin)*)
+    args+=(
+      '(-S)-0[separate file names by NUL characters]'
+      '(-S)-m[use mmap(2) instead of stdio(3) (default)]'
+      '(-S)-s[use stdio(3) instead of mmap(2)]'
+    )
+  ;|
+  (*) args+=( '(-S)*-d[specify database to search]:database:_files' ) ;;
+
+esac
+
+_arguments $args '*: :_guard "^-*" pattern'

@@ -1,0 +1,14 @@
+#!perl
+# test code for "l $var" where $var is lexical
+sub foo {
+    print "Hello\n";
+}
+
+sub bar {
+    print "Goodbye\n";
+}
+
+my $x = \&foo;
+our $y = \&bar;
+$DB::single = 1;
+my $z = 1;

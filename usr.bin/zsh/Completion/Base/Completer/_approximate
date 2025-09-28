@@ -1,0 +1,125 @@
+#autoload
+
+# This code will try to correct the string on the line based on the
+# strings generated for the context. These corrected strings will be
+# shown in a list and one can cycle through them as in a menu completion
+# or get the corrected prefix.
+
+# We don't try correction if the string is too short or we have tried it
+# already.
+
+[[ _matcher_num -gt 1 || "${#:-$PREFIX$SUFFIX}" -le 1 ]] && return 1
+
+local _comp_correct _correct_expl _correct_group comax cfgacc match
+local oldcontext="${curcontext}" opm="$compstate[pattern_match]"
+local dounfunction
+integer ret=1
+
+if [[ "$1" = -a* ]]; then
+  cfgacc="${1[3,-1]}"
+elif [[ "$1" = -a ]]; then
+  cfgacc="$2"
+else
+  zstyle -s ":completion:${curcontext}:" max-errors cfgacc ||
+      cfgacc='2 numeric'
+fi
+
+# Get the number of errors to accept.
+
+if [[ "$cfgacc" = *numeric* && ${NUMERIC:-1} -ne 1 ]]; then
+  # A numeric argument may mean that we should not try correction.
+
+  [[ "$cfgacc" = *not-numeric* ]] && return 1
+
+  # Prefer the numeric argument if that has a sensible value.
+
+  comax="${NUMERIC:-1}"
+else
+  comax="${cfgacc//[^0-9]}"
+fi
+
+# If the number of errors to accept is too small, give up.
+
+[[ "$comax" -lt 1 ]] && return 1
+
+_tags corrections original
+
+# Otherwise temporarily define a function to use instead of
+# the builtin that adds matches. This is used to be able
+# to stick the `(#a...)' in the right place (after an
+# ignored prefix).
+#
+# Current shell structure for use with "always", to make sure
+# we unfunction the compadd.
+{
+if (( ! $+functions[compadd] )); then
+  dounfunction=1
+  compadd() {
+    local ppre="$argv[(I)-p]"
+
+    [[ ${argv[(I)-[a-zA-Z]#U[a-zA-Z]#]} -eq 0 &&
+       "${#:-$PREFIX$SUFFIX}" -le _comp_correct ]] && return
+
+    if [[ "$PREFIX" = \~* && ( ppre -eq 0 || "$argv[ppre+1]" != \~* ) ]]; then
+      PREFIX="~(#a${_comp_correct})${PREFIX[2,-1]}"
+    else
+      PREFIX="(#a${_comp_correct})$PREFIX"
+    fi
+
+    (( $_correct_group && ${${argv[1,(r)-(|-)]}[(I)-*[JV]]} )) &&
+        _correct_expl[_correct_group]=${argv[1,(r)-(-|)][(R)-*[JV]]}
+
+    builtin compadd "$_correct_expl[@]" "$@"
+  }
+fi
+
+_comp_correct=1
+
+[[ -z "$compstate[pattern_match]" ]] && compstate[pattern_match]='*'
+
+while [[ _comp_correct -le comax ]]; do
+  curcontext="${oldcontext/(#b)([^:]#:[^:]#:)/${match[1][1,-2]}-${_comp_correct}:}"
+
+  _description corrections _correct_expl corrections \
+               "e:$_comp_correct" "o:$PREFIX$SUFFIX"
+
+  _correct_group="$_correct_expl[(I)-*[JV]]"
+
+  if _complete; then
+    if zstyle -t ":completion:${curcontext}:" insert-unambiguous &&
+       [[ "${#compstate[unambiguous]}" -ge "${#:-$PREFIX$SUFFIX}" ]]; then
+      compstate[pattern_insert]=unambiguous
+    elif _requested original &&
+         { [[ compstate[nmatches] -gt 1 ]] ||
+           zstyle -t ":completion:${curcontext}:" original }; then
+      local expl
+
+      _description -V original expl original
+
+      builtin compadd "$expl[@]" -U -Q - "$PREFIX$SUFFIX"
+
+      # If you always want to see the list of possible corrections,
+      # set `compstate[list]=list force' here.
+
+      [[ "$compstate[list]" != list* ]] &&
+          compstate[list]="$compstate[list] force"
+    fi
+    compstate[pattern_match]="$opm"
+
+    ret=0
+    break
+  fi
+
+  [[ "${#:-$PREFIX$SUFFIX}" -le _comp_correct+1 ]] && break
+  (( _comp_correct++ ))
+done
+
+} always {
+    [[ -n $dounfunction ]] && (( $+functions[compadd] )) && unfunction compadd
+}
+
+(( ret == 0 )) && return 0
+
+compstate[pattern_match]="$opm"
+
+return 1

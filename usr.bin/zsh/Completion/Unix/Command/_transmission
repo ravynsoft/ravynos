@@ -1,0 +1,497 @@
+#compdef transmission-remote
+
+# arrays of options
+
+# `general_options`: *options* which can be used for any action
+local exclusive_auth_options='(-n --auth -ne --authenv -N --netrc)'
+local general_options=(
+  {-d,--debug}'[enable debugging mode]'
+  $exclusive_auth_options{-n+,--auth=}'[set the username and password for authentication]:username\:password: '
+  $exclusive_auth_options{-ne,--authenv}'[set the authentication information from the TR_AUTH environment variable]'
+  $exclusive_auth_options{-N+,--netrc=}'[set the authentication information from a netrc file]:file:_files'
+  '--find[tell Transmission where to look for the current torrents'"'"' data]'
+)
+# `general_actions`: *actions* that can be specified when a specific set of torrents is either specified or either not
+local general_actions=(
+  '(- :)'{-gsr,--global-seedratio}'[all torrents, unless overridden by a per-torrent setting, should seed until a specific ratio]:ratio (kB/s)'
+  '(- :)'{-GSR,--no-global-seedratio}'[all torrents, unless overridden by a per-torrent setting, should seed regardless of ratio]'
+  '(- :)'{-pr,--peers}'[set the maximum number of peers]:number: '
+  '(- :)'{-d+,--downlimit=}'[limit the maximum download speed to limit kB/s]:limit (kB/s)'
+  '(- :)'{-D,--no-downlimit}'[disable download speed limits]'
+)
+# `global_only_actions`: *actions* that can be specified only when no specific torrent is specified
+local global_only_actions=(
+  '(- :)'{-as,--alt-speed}'[use the alternate Limits]'
+  '(- :)'{-AS,--not-alt-speed}'[don'"'"'t use the alternate Limits]'
+  '(- :)'{-asd,--alt-speed-downlimit}'[limit the alternate download speed to limit kilobytes per second]'
+  '(- :)'{-asu,--alt-speed-uplimit}'[limit the alternate upload speed to limit kilobytes per second]'
+  '(- :)'{-asc,--alt-speed-scheduler}'[use the scheduled on/off times]'
+  '(- :)'{-asc,--not-alt-speed-scheduler}'[don'"'"'t use the scheduled on/off times]'
+  '(- :)--alt-speed-time-begin[time to start using the alt speed limits]:time (HHMM)'
+  '(- :)--alt-speed-time-end[time to stop using the alt speed limits]:time (HHMM)'
+  '(- :)--alt-speed-days[set the number of days on which to enable the speed scheduler]:days:_transmission-remote_days'
+  '(- :)--torrent-done-script[specify a file to run each time a torrent finishes]:script:_files'
+  '(- :)--no-torrent-done-script[don'"'"'t run any script when a torrent finishes]'
+  '(- :)'{-e+,--cache=}'[set the session'"'"'s maximum memory cache size in MiB]:size (MiB):'
+  '(- :)'{-er,--encryption-required}'[encrypt all peer connections]'
+  '(- :)'{-ep,--encryption-preferred}'[prefer encrypted peer connections]'
+  '(- :)'{-et,--encryption-tolerated}'[prefer unencrypted peer connections]'
+  '(- :)'{-h,--help}'[print command-line option descriptions]'
+  '(- :)--exit[tell the Transmission to initiate a shutdown]'
+  '(- :)'{-V,--version}'[show version number and exit]'
+  {-t,--torrent=}'[set the current torrent(s) for use by subsequent options]:torrent:_transmission-remote_torrent'
+  '(- :)'{-si,--session-info}'[list session information from the server]'
+  '(- :)'{-st,--session-stats}'[list statistical information from the server]'
+  {-a+,--add=}'[add torrents to transmission]:filename\|url:_transmission-remote_add'
+  '(- :)'{-l,--list}'[list all torrents]'
+  '(- :)'{-p,--port}'[set the port for use when listening for incoming peer connections]:port:'
+  '(- :)--start-paused[start added torrents paused]'
+  '(- :)--no-start-paused[start added torrents unpaused]'
+  '(- :)'{-m,--portmap}'[enable portmapping via NAT-PMP or UPnP]'
+  '(- :)'{-M,--no-portmap}'[disable portmapping]'
+  '(- :)'{-o,--dht}'[enable distributed hash table]'
+  '(- :)'{-O,--no-dht}'[disable distributed hash table]'
+  '(- :)'{-u,--uplimit}'[limit the maximum upload speed to limit kB/s]:limit (kB/s)'
+  '(- :)'{-U,--no-uplimit}'[disable upload speed limits]'
+  '(- :)--utp[enable uTP for peer connections]'
+  '(- :)--no-utp[disable uTP for peer connections]'
+  '(- :)'{-x,--pex}'[enable peer exchange (PEX)]'
+  '(- :)'{-X,--no-pex}'[disable peer exchange (PEX)]'
+  '(- :)'{-y,--lss}'[enable local peer discovery (LPD)]'
+  '(- :)'{-Y,--no-lss}'[disable local peer discovery (LPD)]'
+  '(- :)'{-pi,--peer-info}"[list the current torrent's connected peers]"
+  "(- :)--blocklist-update[update blocklist from URL specified in remote client's settings with blocklist-url key]"
+  '*:host\:port:_hosts'
+)
+# `torrent_add_options`: *options* that can be used only when *adding* a torrent
+local torrent_add_options=(
+  '(-C --no-incomplete-dir)'{-c+,--incomplete-dir=}'[when adding new torrents, store their contents in directory until the torrent is done]:directory:_directories'
+  '(-c --incomplete-dir)'{-C,--no-incomplete-dir}'[don'"'"'t store incomplete torrents in a different directory]'
+  {-w+,--download-dir=}"[when used in conjunction with --add, set the new torrent's download directory]:directory:_directories"
+)
+# `torrent_action_only_actions`: *actions* that can be specified only when explicitly selecting a specific set of torrents
+local torrent_action_only_actions=(
+  {-f,--files}'[get a file list for the current torrent(s)]'
+  {-g,--get}'[mark file(s) for download]:torrent_file:_transmission-remote_torrent_get'
+  {-G,--no-get}'[mark file(s) for not downloading]:torrent_file:_transmission-remote_torrent_no_get'
+  {-i,--info}'[show details of the current torrent(s)]'
+  {-if,--info-files}'[list the specified torrent'"'"'s files]'
+  {-ip,--info-peers}'[list the specified torrent'"'"'s peers]'
+  {-ic,--info-pieces}'[list the specified torrent'"'"'s pieces]'
+  {-it,--info-trackers}'[list the specified torrent'"'"'s trackers]'
+  '--trash-torrent[delete torrents after adding]'
+  '--no-trash-torrent[do not delete torrents after adding]'
+  {-td+,--tracker-add=}'[add a tracker to a torrent]:tracker:_urls'
+  {-tr+,--tracker-remove=}'[remove a tracker from a torrent]:tracker_id:_transmission-remote_torrent_tracker_id'
+  {-s,--start}'[start the current torrent(s)]'
+  {-S,--stop}'[stop the current torrent(s) from downloading or seeding]'
+  {-r,--remove}'[remove the current torrent(s) without deleting the downloaded data]'
+  {-rad,--remove-and-delete}'[remove the current torrent(s) and delete the downloaded data]'
+  '--reannounce[reannounce the current torrent(s)]'
+  "--move[move the current torrents' data from their current locations to the specified directory]:directory:_directories"
+  {-sr+,--seedratio=}'[let the current torrent(s) seed until a specific ratio]:ratio'
+  {-SR,--no-seedratio}'[let the current torrent(s) use the global seedratio settings]'
+  {-hl,--honor-session}'[make the current torrent(s) honor the session limits]'
+  {-HL,--no-honor-session}'[make the current torrent(s) not honor the session limits]'
+  {-Bh,--bandwidth-high}'[give this torrent first chance at available bandwidth]'
+  {-Bn,--bandwidth-normal}'[give this torrent the bandwidth left over by high priority torrents]'
+  {-Bl,--bandwidth-low}'[give this torrent the bandwidth left over by high and normal priority torrents]'
+  {-ph,--priority-high}'[try to download the specified file(s) first]:torrent_file:_transmission-remote_torrent_priority_not_high'
+  {-pn,--priority-normal}'[try to download the specified files normally]:torrent_file:_transmission-remote_torrent_priority_not_normal'
+  {-pl,--priority-low}'[try to download the specified files last]:torrent_file:_transmission-remote_torrent_priority_not_low'
+  {-v,--verify}'[verify the current torrent(s)]'
+)
+
+# helper functions
+
+# complete argument specified after global only action: `--alt-speed-days`
+# completes days in a list such as "2,4-6".
+(( $+functions[_transmission-remote_days] )) ||
+_transmission-remote_days(){
+  _values -s , -S '-' days {1..7}
+}
+# complete argument specified after global only action: `--add`
+(( $+functions[_transmission-remote_add] )) ||
+_transmission-remote_add(){
+_alternative \
+    'args:torrent:_files -g ".torrent(-.)"' \
+    'args:url:_urls'
+}
+# complete torrents
+(( $+functions[_transmission-remote_torrent] )) ||
+_transmission-remote_torrent(){
+  local authentication_args
+  for k in '--auth' '--netrc'; do
+    authentication_args="${opt_args[${k}]}"
+    if ! [[ -z "${authentication_args}" ]]; then
+      authentication_args="$k"="${authentication_args}"
+      break
+    fi
+  done
+  if [[ -z "${authentication_args}" ]]; then
+    for k in '-n' '-N'; do
+      authentication_args="${opt_args[${k}]}"
+      if ! [[ -z "${authentication_args}" ]]; then
+        authentication_args="$k""${authentication_args}"
+        break
+      fi
+    done
+  fi
+  if [[ -z "${authentication_args}" ]]; then
+    for k in '--authenv' '-ne' '--netrc' '-N'; do
+      if [[ ${+opt_args[$k]} == "1" ]]; then
+        authentication_args="$k"
+        break
+      fi
+    done
+  fi
+  local torrents_list_lines=(${(f)"$(transmission-remote "${authentication_args}" --list 2> /dev/null)"})
+  local -a parts
+  local -a torrents_ids torrents_names
+  # While iterating through every line in the output above, we don't need the
+  # first and last line which are just a header and summary
+  for (( t = 2; t < ${#torrents_list_lines[@]} - 1; ++t )); do
+    parts=(${(@s. .)torrents_list_lines[$t]})
+    torrents_ids+=("${parts[1]}")
+    torrents_names+=("${parts[10,${#parts[@]}]}")
+  done
+  _describe -t torrents torrent torrents_names torrents_ids
+}
+# complete action specified after *--torrent*: `--get`
+(( $+functions[_transmission-remote_torrent_get] )) ||
+_transmission-remote_torrent_get(){
+  local authentication_args
+  for k in '--auth' '--netrc'; do
+    authentication_args="${opt_args[${k}]}"
+    if ! [[ -z "${authentication_args}" ]]; then
+      authentication_args="$k"="${authentication_args}"
+      break
+    fi
+  done
+  if [[ -z "${authentication_args}" ]]; then
+    for k in '-n' '-N'; do
+      authentication_args="${opt_args[${k}]}"
+      if ! [[ -z "${authentication_args}" ]]; then
+        authentication_args="$k""${authentication_args}"
+        break
+      fi
+    done
+  fi
+  if [[ -z "${authentication_args}" ]]; then
+    for k in '--authenv' '-ne' '--netrc' '-N'; do
+      if [[ ${+opt_args[$k]} == "1" ]]; then
+        authentication_args="$k"
+        break
+      fi
+    done
+  fi
+  local selected_torrent
+  for k in '-t' '--torrent'; do
+    if [[ ! -z ${opt_args[$k]} ]]; then
+      selected_torrent="${opt_args[$k]}"
+    fi
+  done
+  if [[ -z "${selected_torrent}" ]]; then
+    _message -r "no torrent was selected on the command line enabling completion of files"
+    return
+  fi
+  local files_info_lines=(${(f)"$(transmission-remote "${authentication_args}" --torrent "${selected_torrent}" --info-files 2> /dev/null)"})
+  local -a parts
+  local -a files
+  local torrent_name
+  for (( f = 3; f < ${#files_info_lines[@]}; ++f )); do
+    parts=(${(@s. .)files_info_lines[$f]})
+    torrent_name="${parts[7,${#parts[@]}]%/*}"
+    if [[ ${parts[4]} == "No" ]]; then
+      files+=("${parts[1]%:}""[""${parts[7,${#parts[@]}]#*/}"])
+    fi
+  done
+  if [[ -z "${files}" ]]; then
+    _message -r "No files are marked for not downloading in torrent ${torrent_name}"
+    return
+  fi
+  _values -s , -S '-' "files from ${torrent_name}" "${files[@]}"
+}
+# complete action specified after *--torrent*: `--no-get`
+(( $+functions[_transmission-remote_torrent_no_get] )) ||
+_transmission-remote_torrent_no_get(){
+  local authentication_args
+  for k in '--auth' '--netrc'; do
+    authentication_args="${opt_args[${k}]}"
+    if ! [[ -z "${authentication_args}" ]]; then
+      authentication_args="$k"="${authentication_args}"
+      break
+    fi
+  done
+  if [[ -z "${authentication_args}" ]]; then
+    for k in '-n' '-N'; do
+      authentication_args="${opt_args[${k}]}"
+      if ! [[ -z "${authentication_args}" ]]; then
+        authentication_args="$k""${authentication_args}"
+        break
+      fi
+    done
+  fi
+  if [[ -z "${authentication_args}" ]]; then
+    for k in '--authenv' '-ne' '--netrc' '-N'; do
+      if [[ ${+opt_args[$k]} == "1" ]]; then
+        authentication_args="$k"
+        break
+      fi
+    done
+  fi
+  local selected_torrent
+  for k in '-t' '--torrent'; do
+    if [[ ! -z ${opt_args[$k]} ]]; then
+      selected_torrent="${opt_args[$k]}"
+    fi
+  done
+  if [[ -z "${selected_torrent}" ]]; then
+    _message -r "no torrent was selected on the command line enabling completion of files"
+    return
+  fi
+  local files_info_lines=(${(f)"$(transmission-remote "${authentication_args}" --torrent "${selected_torrent}" --info-files 2> /dev/null)"})
+  local -a parts
+  local -a files
+  local torrent_name
+  for (( f = 3; f < ${#files_info_lines[@]}; ++f )); do
+    parts=(${(@s. .)files_info_lines[$f]})
+    torrent_name="${parts[7,${#parts[@]}]%/*}"
+    if [[ ${parts[4]} == "Yes" ]]; then
+      files+=("${parts[1]%:}""[""${parts[7,${#parts[@]}]#*/}"])
+    fi
+  done
+  if [[ -z "${files}" ]]; then
+    _message -r "No files are marked for downloading in torrent ${torrent_name}"
+    return
+  fi
+  _values -s , -S '-' "files from ${torrent_name}" "${files[@]}"
+}
+# complete action specified after *--torrent*: `--priority-low` or `--priority-normal`
+(( $+functions[_transmission-remote_torrent_priority_not_high] )) ||
+_transmission-remote_torrent_priority_not_high(){
+  local authentication_args
+  for k in '--auth' '--netrc'; do
+    authentication_args="${opt_args[${k}]}"
+    if ! [[ -z "${authentication_args}" ]]; then
+      authentication_args="$k"="${authentication_args}"
+      break
+    fi
+  done
+  if [[ -z "${authentication_args}" ]]; then
+    for k in '-n' '-N'; do
+      authentication_args="${opt_args[${k}]}"
+      if ! [[ -z "${authentication_args}" ]]; then
+        authentication_args="$k""${authentication_args}"
+        break
+      fi
+    done
+  fi
+  if [[ -z "${authentication_args}" ]]; then
+    for k in '--authenv' '-ne' '--netrc' '-N'; do
+      if [[ ${+opt_args[$k]} == "1" ]]; then
+        authentication_args="$k"
+        break
+      fi
+    done
+  fi
+  local selected_torrent
+  for k in '-t' '--torrent'; do
+    if [[ ! -z ${opt_args[$k]} ]]; then
+      selected_torrent="${opt_args[$k]}"
+    fi
+  done
+  if [[ -z "${selected_torrent}" ]]; then
+    _message -r "no torrent was selected on the command line enabling completion of files"
+    return
+  fi
+  local files_info_lines=(${(f)"$(transmission-remote "${authentication_args}" --torrent "${selected_torrent}" --info-files 2> /dev/null)"})
+  local -a parts
+  local -a files
+  local torrent_name
+  for (( f = 3; f < ${#files_info_lines[@]}; ++f )); do
+    parts=(${(@s. .)files_info_lines[$f]})
+    torrent_name="${parts[7,${#parts[@]}]%/*}"
+    if [[ ${parts[3]} != "High" ]]; then
+      files+=("${parts[1]%:}""[""${parts[7,${#parts[@]}]#*/}"])
+    fi
+  done
+  if [[ -z "${files}" ]]; then
+    _message -r "No files are marked with non-high priority in torrent ${torrent_name}"
+    return
+  fi
+  _values -s , -S '-' "files from ${torrent_name}" "${files[@]}"
+}
+# complete action specified after *--torrent*: `--priority-low` or `--priority-high`
+(( $+functions[_transmission-remote_torrent_priority_not_normal] )) ||
+_transmission-remote_torrent_priority_not_normal(){
+  local authentication_args
+  for k in '--auth' '--netrc'; do
+    authentication_args="${opt_args[${k}]}"
+    if ! [[ -z "${authentication_args}" ]]; then
+      authentication_args="$k"="${authentication_args}"
+      break
+    fi
+  done
+  if [[ -z "${authentication_args}" ]]; then
+    for k in '-n' '-N'; do
+      authentication_args="${opt_args[${k}]}"
+      if ! [[ -z "${authentication_args}" ]]; then
+        authentication_args="$k""${authentication_args}"
+        break
+      fi
+    done
+  fi
+  if [[ -z "${authentication_args}" ]]; then
+    for k in '--authenv' '-ne' '--netrc' '-N'; do
+      if [[ ${+opt_args[$k]} == "1" ]]; then
+        authentication_args="$k"
+        break
+      fi
+    done
+  fi
+  local selected_torrent
+  for k in '-t' '--torrent'; do
+    if [[ ! -z ${opt_args[$k]} ]]; then
+      selected_torrent="${opt_args[$k]}"
+    fi
+  done
+  if [[ -z "${selected_torrent}" ]]; then
+    _message -r "no torrent was selected on the command line enabling completion of files"
+    return
+  fi
+  local files_info_lines=(${(f)"$(transmission-remote "${authentication_args}" --torrent "${selected_torrent}" --info-files 2> /dev/null)"})
+  local -a parts
+  local -a files
+  local torrent_name
+  for (( f = 3; f < ${#files_info_lines[@]}; ++f )); do
+    parts=(${(@s. .)files_info_lines[$f]})
+    torrent_name="${parts[7,${#parts[@]}]%/*}"
+    if [[ ${parts[3]} != "Normal" ]]; then
+      files+=("${parts[1]%:}""[""${parts[7,${#parts[@]}]#*/}"])
+    fi
+  done
+  if [[ -z "${files}" ]]; then
+    _message -r "No files are marked with non-high priority in torrent ${torrent_name}"
+    return
+  fi
+  _values -s , -S '-' "files from ${torrent_name}" "${files[@]}"
+}
+# complete action specified after *--torrent*: `--priority-normal` or `--priority-high`
+(( $+functions[_transmission-remote_torrent_priority_not_low] )) ||
+_transmission-remote_torrent_priority_not_low(){
+  local authentication_args
+  for k in '--auth' '--netrc'; do
+    authentication_args="${opt_args[${k}]}"
+    if ! [[ -z "${authentication_args}" ]]; then
+      authentication_args="$k"="${authentication_args}"
+      break
+    fi
+  done
+  if [[ -z "${authentication_args}" ]]; then
+    for k in '-n' '-N'; do
+      authentication_args="${opt_args[${k}]}"
+      if ! [[ -z "${authentication_args}" ]]; then
+        authentication_args="$k""${authentication_args}"
+        break
+      fi
+    done
+  fi
+  if [[ -z "${authentication_args}" ]]; then
+    for k in '--authenv' '-ne' '--netrc' '-N'; do
+      if [[ ${+opt_args[$k]} == "1" ]]; then
+        authentication_args="$k"
+        break
+      fi
+    done
+  fi
+  local selected_torrent
+  for k in '-t' '--torrent'; do
+    if [[ ! -z ${opt_args[$k]} ]]; then
+      selected_torrent="${opt_args[$k]}"
+    fi
+  done
+  if [[ -z "${selected_torrent}" ]]; then
+    _message -r "no torrent was selected on the command line enabling completion of files"
+    return
+  fi
+  local files_info_lines=(${(f)"$(transmission-remote "${authentication_args}" --torrent "${selected_torrent}" --info-files 2> /dev/null)"})
+  local -a parts
+  local -a files
+  local torrent_name
+  for (( f = 3; f < ${#files_info_lines[@]}; ++f )); do
+    parts=(${(@s. .)files_info_lines[$f]})
+    torrent_name="${parts[7,${#parts[@]}]%/*}"
+    if [[ ${parts[3]} != "Low" ]]; then
+      files+=("${parts[1]%:}""[""${parts[7,${#parts[@]}]#*/}"])
+    fi
+  done
+  if [[ -z "${files}" ]]; then
+    _message -r "No files are marked with non-high priority in torrent ${torrent_name}"
+    return
+  fi
+  _values -s , -S '-' "files from ${torrent_name}" "${files[@]}"
+}
+# complete action specified after *--torrent*: `--tracker-remove`
+(( $+functions[_transmission-remote_torrent_tracker_id] )) ||
+_transmission-remote_torrent_tracker_id(){
+  local authentication_args
+  for k in '--auth' '--netrc'; do
+    authentication_args="${opt_args[${k}]}"
+    if ! [[ -z "${authentication_args}" ]]; then
+      authentication_args="$k"="${authentication_args}"
+      break
+    fi
+  done
+  if [[ -z "${authentication_args}" ]]; then
+    for k in '-n' '-N'; do
+      authentication_args="${opt_args[${k}]}"
+      if ! [[ -z "${authentication_args}" ]]; then
+        authentication_args="$k""${authentication_args}"
+        break
+      fi
+    done
+  fi
+  if [[ -z "${authentication_args}" ]]; then
+    for k in '--authenv' '-ne' '--netrc' '-N'; do
+      if [[ ${+opt_args[$k]} == "1" ]]; then
+        authentication_args="$k"
+        break
+      fi
+    done
+  fi
+  local selected_torrent
+  for k in '-t' '--torrent'; do
+    if [[ ! -z ${opt_args[$k]} ]]; then
+      selected_torrent="${opt_args[$k]}"
+    fi
+  done
+  if [[ -z "${selected_torrent}" ]]; then
+    _message -r "no torrent was selected on the command line enabling completion of files"
+    return
+  fi
+  local trackers_info_lines=(${(f)"$(transmission-remote "${authentication_args}" --torrent $selected_torrent --info-trackers 2> /dev/null)"})
+  local -a parts
+  local -a trackers_urls trackers_ids 
+  for (( t = 1; t < ${#trackers_info_lines[@]}; ++t )); do
+    parts=(${(@s. .)trackers_info_lines[$t]})
+    if [[ ( ${parts[1]} == "Tracker" && ${parts[2]} =~ "[0-9]+:" ) ]]; then
+      trackers_ids+=("${parts[2]%:}")
+      # descriptions passed to _describe need to have their ':' quoted.
+      trackers_urls+=("${parts[3]//:/\\:}")
+    fi
+  done
+  if [[ -z "${trackers_ids}" ]]; then
+    _message -r "Specified torrent has no trackers"
+    return
+  fi
+  _describe -t trackers-remove "tracker" trackers_urls trackers_ids
+}
+
+# The real thing goes here
+_arguments \
+  "${general_options[@]}" \
+  "${global_only_actions[@]}" \
+  "${general_actions[@]}" \
+  "${torrent_add_options[@]}" \
+  "${torrent_action_only_actions[@]}"

@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Building the TIFF Software Distribution &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Terminology" href="terms.html" />
+    <link rel="prev" title="TIFF Test Images" href="images.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="terms.html" title="Terminology"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="images.html" title="TIFF Test Images"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Building the TIFF Software Distribution</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="building-the-tiff-software-distribution">
+<h1>Building the TIFF Software Distribution<a class="headerlink" href="#building-the-tiff-software-distribution" title="Permalink to this heading">¶</a></h1>
+<a class="reference internal image-reference" href="_images/cramps.gif"><img alt="cramps" src="_images/cramps.gif" style="width: 159px;" /></a>
+<p>This chapter contains step-by-step instructions on how to configure
+and build the TIFF software distribution. The software is most
+easily built on a UNIX system, but with a little bit of work it can
+easily be built and used on other non-UNIX platforms.</p>
+<section id="building-on-all-systems-with-cmake">
+<h2>Building on all systems with CMake<a class="headerlink" href="#building-on-all-systems-with-cmake" title="Permalink to this heading">¶</a></h2>
+<p>CMake may be used to
+generate build files for most common build systems and IDEs, and
+supports all UNIX-like systems as well as Windows. See
+the <a class="reference external" href="http://www.cmake.org/">CMake website</a> for further
+details. To build the software on you need to first run
+<strong class="command">cmake</strong> to configure the build and generate the system-specific
+build files. This reads the top-level <code class="file docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> file,
+which probes the target system for necessary tools and functions,
+checks any options you specified to configure the build, and then
+outputs build files configured for your system.  If using <code class="docutils literal notranslate"><span class="pre">Unix</span>
+<span class="pre">Makefiles</span></code>, once configuration is done, you simply
+run <strong class="command">make</strong> (or <strong class="command">gmake</strong>) to build the software and
+then <strong class="command">make install</strong> to do the installation.  For other build
+systems, you do the equivalent steps with the tool for that system.
+For example, on any UNIX system:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>./tiff-4.0.5
+$<span class="w"> </span>cmake
+<span class="w">    </span>...lots<span class="w"> </span>of<span class="w"> </span>messages...
+$<span class="w"> </span>make
+<span class="w">    </span>...lots<span class="w"> </span>of<span class="w"> </span>messages...
+$<span class="w"> </span>make<span class="w"> </span><span class="nb">test</span>
+<span class="w">    </span>...lots<span class="w"> </span>of<span class="w"> </span>messages...
+<span class="c1"># make install</span>
+</pre></div>
+</div>
+<p>Building is dependent on a <strong class="program">make</strong> utility and a C
+(and optionally a C++) compiler, so you will need these tools.</p>
+<p>In general, the software is designed such that the following
+targets will always be available:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="p">[</span><span class="nb">all</span><span class="p">]</span>      <span class="n">build</span> <span class="n">stuff</span>
+<span class="n">make</span> <span class="n">test</span>       <span class="n">run</span> <span class="n">the</span> <span class="n">test</span> <span class="n">suite</span>
+<span class="n">make</span> <span class="n">install</span>    <span class="n">build</span> <span class="ow">and</span> <span class="n">install</span> <span class="n">stuff</span>
+<span class="n">make</span> <span class="n">clean</span>      <span class="n">remove</span> <span class="nb">object</span> <span class="n">files</span><span class="p">,</span> <span class="n">executables</span> <span class="ow">and</span> <span class="n">cruft</span>
+</pre></div>
+</div>
+<section id="build-trees">
+<h3>Build Trees<a class="headerlink" href="#build-trees" title="Permalink to this heading">¶</a></h3>
+<p>There are two schemes for configuring and building the software. If
+you intend to build the software for only one target system, you
+can configure the software so that it is built in the same
+directories as the source code.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>gzip<span class="w"> </span>-dc<span class="w"> </span>tiff-4.0.5.tar.gz<span class="w"> </span><span class="p">|</span><span class="w"> </span>tar<span class="w"> </span>-xf<span class="w"> </span>-
+$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>./tiff-4.0.5
+$<span class="w"> </span>cmake
+$<span class="w"> </span>make
+$<span class="w"> </span>make<span class="w"> </span><span class="nb">test</span>
+$<span class="w"> </span>make<span class="w"> </span>install
+</pre></div>
+</div>
+<p>Otherwise, you can configure a build tree that is parallel to
+the source tree hierarchy (or in some completely different place)
+but which contains only configured files and files created during
+the build procedure.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>gzip<span class="w"> </span>-dc<span class="w"> </span>tiff-4.0.5.tar.gz<span class="w"> </span><span class="p">|</span><span class="w"> </span>tar<span class="w"> </span>-xf<span class="w"> </span>-
+$<span class="w"> </span>mkdir<span class="w"> </span>tiff-4.0.5-build
+$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>./tiff-4.0.5-build
+$<span class="w"> </span>cmake<span class="w"> </span>../tiff-4.0.5
+$<span class="w"> </span>make
+$<span class="w"> </span>make<span class="w"> </span><span class="nb">test</span>
+$<span class="w"> </span>make<span class="w"> </span>install
+</pre></div>
+</div>
+<p>This second scheme is useful for:</p>
+<ul class="simple">
+<li><p>building multiple targets from a single source tree</p></li>
+<li><p>building from a read-only source tree</p></li>
+<li><p>sharing the source files via a network, but building on
+multiple systems</p></li>
+<li><p>keeping the source tree clean
+(unlike <strong class="program">autoconf</strong>, <strong class="program">cmake</strong> does not provide
+a <code class="docutils literal notranslate"><span class="pre">distclean</span></code> target, so out of source builds are
+recommended)</p></li>
+</ul>
+</section>
+<section id="generators">
+<h3>Generators<a class="headerlink" href="#generators" title="Permalink to this heading">¶</a></h3>
+<p>The default generator for UNIX is <code class="docutils literal notranslate"><span class="pre">Unix</span> <span class="pre">Makefiles</span></code>, and on Windows is
+<code class="docutils literal notranslate"><span class="pre">NMake</span> <span class="pre">Makefiles</span></code> or <code class="docutils literal notranslate"><span class="pre">MSBuild</span></code> depending upon the setup.
+Run <strong class="command">cmake --help</strong> to list all the
+generators available for your platform.  For example, to use the Ninja
+<a class="reference external" href="https://martine.github.io/ninja/">build system</a> on UNIX or
+Windows:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-G<span class="w"> </span>Ninja
+cmake<span class="w"> </span>--build<span class="w"> </span>.
+ctest<span class="w"> </span>-V
+cmake<span class="w"> </span>--build<span class="w"> </span>.<span class="w"> </span>--target<span class="w"> </span>install
+</pre></div>
+</div>
+<p>Note that <strong class="command">cmake --build .</strong> is a build-system-independent way
+of building a target; you can always use the build system directly.</p>
+<p>Alternatively, using the MSBuild system on Windows (64-bit Release
+build with VS2013):</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-G<span class="w"> </span><span class="s2">&quot;Visual Studio 12 2013 Win64&quot;</span>
+cmake<span class="w"> </span>--build<span class="w"> </span>.<span class="w"> </span>--config<span class="w"> </span>Release
+ctest<span class="w"> </span>-V<span class="w"> </span>-C<span class="w"> </span>Release
+cmake<span class="w"> </span>--build<span class="w"> </span>.<span class="w"> </span>--config<span class="w"> </span>Release<span class="w"> </span>--target<span class="w"> </span>install
+</pre></div>
+</div>
+<p>With the above configuration, it’s also possible to open the generated
+solution file with the Visual Studio IDE as well as building on the
+command-line.</p>
+</section>
+<section id="configuration-options">
+<h3>Configuration Options<a class="headerlink" href="#configuration-options" title="Permalink to this heading">¶</a></h3>
+<p>The configuration process is critical to the proper compilation,
+installation, and operation of the
+software. The <code class="file docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> script runs a series of tests to
+decide whether or not the target system supports required
+functionality and, if it does not, whether it can emulate or
+workaround the missing functions.  After running <strong class="command">cmake</strong>, check
+the <code class="file docutils literal notranslate"><span class="pre">CMakeCache.txt</span></code> file; this contains all the results of the
+checks performed and the options set by the user.  If <strong class="program">cmake</strong>
+failed to run, check <code class="file docutils literal notranslate"><span class="pre">CMakeFiles/CMakeOutput.log</span></code>
+and <code class="file docutils literal notranslate"><span class="pre">CMakeFiles/CMakeError.log</span></code>; these should record the error
+which caused the failure.</p>
+<p>A second function of the configure script is to set the default
+configuration parameters for the software. Of particular note are the
+directories where the software is to be installed. By default the
+software is installed in the <code class="file docutils literal notranslate"><span class="pre">/usr/local</span></code> hierarchy. To change
+this behaviour the appropriate parameters can be specified on the
+command line. Run <strong class="command">cmake --help</strong> to get a full list of possible
+options, and <strong class="command">cmake -LH</strong> to list all the configurable options for
+this software package, or <strong class="command">cmake -LAH</strong> to show all advanced
+options in addition. Standard installation related options are shown
+below.</p>
+<blockquote>
+<div><table class="docutils align-default" id="id9">
+<caption><span class="caption-text">Installation options</span><a class="headerlink" href="#id9" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 60.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_PREFIX</span></code></p></td>
+<td><p>Installation root directory.  The options below may be used to override
+individual installation locations.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_BINDIR</span></code></p></td>
+<td><p>user executables [<code class="file docutils literal notranslate"><span class="pre">PREFIX/bin</span></code>]</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_SBINDIR</span></code></p></td>
+<td><p>system admin executables [<code class="file docutils literal notranslate"><span class="pre">PREFIX/sbin</span></code>]</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_LIBEXECDIR</span></code></p></td>
+<td><p>program executables [<code class="file docutils literal notranslate"><span class="pre">PREFIX/libexec</span></code>]</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_SYSCONFDIR</span></code></p></td>
+<td><p>read-only single-machine data [<code class="file docutils literal notranslate"><span class="pre">PREFIX/etc</span></code>]</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_SHAREDSTATEDIR</span></code></p></td>
+<td><p>modifiable architecture-independent data [<code class="file docutils literal notranslate"><span class="pre">PREFIX/com</span></code>]</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_LOCALSTATEDIR</span></code></p></td>
+<td><p>modifiable single-machine data [<code class="file docutils literal notranslate"><span class="pre">PREFIX/var</span></code>]</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_LIBDIR</span></code></p></td>
+<td><p>object code libraries [<code class="file docutils literal notranslate"><span class="pre">PREFIX/lib</span></code>]</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_INCLUDEDIR</span></code></p></td>
+<td><p>C header files [<code class="file docutils literal notranslate"><span class="pre">PREFIX/include</span></code>]</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_OLDINCLUDEDIR</span></code></p></td>
+<td><p>C header files for non-gcc [<code class="file docutils literal notranslate"><span class="pre">/usr/include</span></code>]</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_DATAROOTDIR</span></code></p></td>
+<td><p>read-only architecture-independent data root [<code class="file docutils literal notranslate"><span class="pre">PREFIX/share</span></code>]</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_DATADIR</span></code></p></td>
+<td><p>read-only architecture-independent data [<code class="file docutils literal notranslate"><span class="pre">DATAROOTDIR</span></code>]</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_LOCALEDIR</span></code></p></td>
+<td><p>locale-dependent data [<code class="file docutils literal notranslate"><span class="pre">DATAROOTDIR/locale</span></code>]</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_MANDIR</span></code></p></td>
+<td><p>man documentation [<code class="file docutils literal notranslate"><span class="pre">DATAROOTDIR/man</span></code>]</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_DOCDIR</span></code></p></td>
+<td><p>documentation root [<code class="file docutils literal notranslate"><span class="pre">DATAROOTDIR/doc/tiff</span></code>]</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Also see the
+CMake <a class="reference external" href="http://www.cmake.org/cmake/help/latest/">documentation</a>
+for <a class="reference external" href="http://www.cmake.org/cmake/help/latest/manual/cmake-variables.7.html">additional variables</a>
+which may be set.</p>
+</section>
+<section id="configuring-optional-packages-support">
+<h3>Configuring Optional Packages/Support<a class="headerlink" href="#configuring-optional-packages-support" title="Permalink to this heading">¶</a></h3>
+<p>The TIFF software comes with several packages that are installed
+only as needed, or only if specifically configured at the time the
+configure script is run. Packages can be configured via the
+<strong class="program">cmake</strong> commandline parameters.</p>
+<section id="static-shared-objects-support">
+<h4>Static/Shared Objects Support<a class="headerlink" href="#static-shared-objects-support" title="Permalink to this heading">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">BUILD_SHARED_LIBS[=ON|OFF]</span></code>:</p>
+<blockquote>
+<div><p>Build shared libraries (default is <code class="docutils literal notranslate"><span class="pre">ON</span></code>)</p>
+<p>This option controls whether or not to configure the software
+to build a shared and static binaries for the TIFF library. Use of
+shared libraries can significantly reduce the disk space needed for
+users of the TIFF software. If shared libraries are not used then
+the code is statically linked into each application that uses it.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">ld-version-script[=ON|OFF]</span></code></p>
+<blockquote>
+<div><p>Enable linker version script (default is <code class="docutils literal notranslate"><span class="pre">ON</span></code>)</p>
+<p>Add shared library symbol versioning on ELF-based systems (e.g.
+Linux and FreeBSD) which use the GNU linker. This is needed if
+several major versions of libtiff might be loaded at once into the
+same program.</p>
+</div></blockquote>
+</section>
+<section id="jpeg-support">
+<h4>JPEG Support<a class="headerlink" href="#jpeg-support" title="Permalink to this heading">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">jpeg[=ON|OFF]</span></code></p>
+<blockquote>
+<div><p>Enable IJG JPEG library usage (required for JPEG compression, enabled by default)</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">JPEG_INCLUDE_DIR=DIR</span></code>:</p>
+<blockquote>
+<div><p>Location of IJG JPEG library headers</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">JPEG_LIBRARY=DIR</span></code></p>
+<blockquote>
+<div><p>Location of IJG JPEG library binary</p>
+</div></blockquote>
+<p>The <code class="docutils literal notranslate"><span class="pre">JPEG</span></code> package enables support for the handling of
+TIFF images with JPEG-encoded data. Support for JPEG-encoded data
+requires the Independent JPEG Group (IJG) <code class="docutils literal notranslate"><span class="pre">libjpeg</span></code>
+distribution; this software is available at <a class="reference external" href="http://www.ijg.org/">http://www.ijg.org/</a>.
+The CMake script automatically tries to search for a working IJG JPEG
+installation. If it fails to find library, JPEG support will be
+automatically disabled. If you want specify the exact paths to
+library binary and headers, use above options for that.</p>
+</section>
+<section id="zip-support">
+<h4>ZIP Support<a class="headerlink" href="#zip-support" title="Permalink to this heading">¶</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">ZIP</span></code> support enables support for the handling of TIFF
+images with deflate-encoded data (enabled by default if
+available). Support for deflate-encoded data requires the freely
+available <code class="docutils literal notranslate"><span class="pre">zlib</span></code> distribution written by Jean-loup Gailly and
+Mark Adler; this software is available at <a class="reference external" href="http://www.zlib.org/">http://www.zlib.org/</a>.</p>
+</section>
+</section>
+</section>
+<section id="building-on-a-unix-system-with-autoconf">
+<h2>Building on a UNIX System with Autoconf<a class="headerlink" href="#building-on-a-unix-system-with-autoconf" title="Permalink to this heading">¶</a></h2>
+<p>To build the software on a UNIX system you need to first run the
+<strong class="program">configure</strong> shell script that is located in the top level of the
+source directory. This script probes the target system for
+necessary tools and functions and constructs a build environment in
+which the software may be compiled. Once configuration is done, you
+simply run <strong class="command">make</strong> (or <strong class="command">gmake</strong>) to build the software
+and then <strong class="command">make install</strong> to do the installation; for example:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>%<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>./tiff-4.0.5
+%<span class="w"> </span>./configure
+<span class="w">    </span>...lots<span class="w"> </span>of<span class="w"> </span>messages...
+%<span class="w"> </span>make
+<span class="w">    </span>...lots<span class="w"> </span>of<span class="w"> </span>messages...
+%<span class="w"> </span>make<span class="w"> </span>check
+<span class="w">    </span>...lots<span class="w"> </span>of<span class="w"> </span>messages...
+<span class="c1"># make install</span>
+</pre></div>
+</div>
+<p>Supplied Makefiles are dependent on a <strong class="program">make</strong> utility and a C
+(and optionally a C++ compiler), so you will need these tools.</p>
+<p>In general, the software is designed such that the following
+should be “make-able” in each directory:</p>
+<blockquote>
+<div><table class="docutils align-default" id="id10">
+<caption><span class="caption-text">Make targets</span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 60.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Target</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong class="command">make [all]</strong></p></td>
+<td><p>build everything</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong class="command">make check</strong></p></td>
+<td><p>run the test suite</p></td>
+</tr>
+<tr class="row-even"><td><p><strong class="command">make install</strong></p></td>
+<td><p>build and install everything</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong class="command">make clean</strong></p></td>
+<td><p>remove object files, executables and cruft</p></td>
+</tr>
+<tr class="row-even"><td><p><strong class="command">make distclean</strong></p></td>
+<td><p>remove everything that can be recreated</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Note that after running <strong class="command">make distclean</strong> the
+<strong class="program">configure</strong> script must be run again to create the <code class="file docutils literal notranslate"><span class="pre">Makefile</span></code>
+and other make-related files.</p>
+<section id="id1">
+<h3>Build Trees<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
+<p>There are two schemes for configuring and building the software. If
+you intend to build the software for only one target system, you
+can configure the software so that it is built in the same
+directories as the source code.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>%<span class="w"> </span>gzip<span class="w"> </span>-dc<span class="w"> </span>tiff-4.0.5.tar.gz<span class="w"> </span><span class="p">|</span><span class="w"> </span>tar<span class="w"> </span>-xf<span class="w"> </span>-
+%<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>./tiff-4.0.5
+%<span class="w"> </span>./configure
+%<span class="w"> </span>make
+%<span class="w"> </span>make<span class="w"> </span>check
+%<span class="w"> </span>make<span class="w"> </span>install
+</pre></div>
+</div>
+<p>Otherwise, you can configure a build tree that is parallel to
+the source tree hierarchy (or in some completely different place)
+but which contains only configured files and files created during
+the build procedure.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>%<span class="w"> </span>gzip<span class="w"> </span>-dc<span class="w"> </span>tiff-4.0.5.tar.gz<span class="w"> </span><span class="p">|</span><span class="w"> </span>tar<span class="w"> </span>-xf<span class="w"> </span>-
+%<span class="w"> </span>mkdir<span class="w"> </span>tiff-4.0.5-build
+%<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>./tiff-4.0.5-build
+%<span class="w"> </span>../tiff-4.0.5/configure
+%<span class="w"> </span>make
+%<span class="w"> </span>make<span class="w"> </span>check
+%<span class="w"> </span>make<span class="w"> </span>install
+</pre></div>
+</div>
+<p>This second scheme is useful for:</p>
+<ul class="simple">
+<li><p>building multiple targets from a single source tree</p></li>
+<li><p>building from a read-only source tree</p></li>
+<li><p>sharing the source files via a network, but building on
+multiple systems</p></li>
+</ul>
+</section>
+<section id="id2">
+<h3>Configuration Options<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
+<p>The configuration process is critical to the proper compilation,
+installation, and operation of the software. The configure script
+runs a series of tests to decide whether or not the target system
+supports required functionality and, if it does not, whether it can
+emulate or workaround the missing functions. This procedure is
+fairly complicated and, due to the nonstandard nature of most UNIX
+systems, prone to error. The first time that you configure the
+software for use you should check the output from the configure
+script and look for anything that does not make sense for your
+system.</p>
+<p>A second function of the configure script is to set the default
+configuration parameters for the software. Of particular note are
+the directories where the software is to be installed. By default
+the software is installed in the <code class="file docutils literal notranslate"><span class="pre">/usr/local</span></code> hierarchy. To
+change this behaviour the appropriate parameters can be specified
+on the command line to configure. Run <strong class="command">./configure --help</strong> to
+get a full list of possible options. Standard installation related
+options are shown below.</p>
+<p>Installation directories:</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-prefix">
+<span class="sig-name descname"><span class="pre">--prefix</span></span><span class="sig-prename descclassname"><span class="pre">=PREFIX</span></span><a class="headerlink" href="#cmdoption-configure-prefix" title="Permalink to this definition">¶</a></dt>
+<dd><p>install architecture-independent files in <em>PREFIX</em> [<code class="file docutils literal notranslate"><span class="pre">/usr/local</span></code>]</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-exec-prefix">
+<span class="sig-name descname"><span class="pre">--exec-prefix</span></span><span class="sig-prename descclassname"><span class="pre">=EPREFIX</span></span><a class="headerlink" href="#cmdoption-configure-exec-prefix" title="Permalink to this definition">¶</a></dt>
+<dd><p>install architecture-dependent files in <em>EPREFIX</em> [<code class="file docutils literal notranslate"><span class="pre">PREFIX</span></code>]</p>
+</dd></dl>
+
+<p>By default, <strong class="command">make install</strong> will install all the files in
+<code class="file docutils literal notranslate"><span class="pre">/usr/local/bin</span></code>, <code class="file docutils literal notranslate"><span class="pre">/usr/local/lib</span></code> etc.  You can specify
+an installation prefix other than <code class="file docutils literal notranslate"><span class="pre">/usr/local</span></code> using <a class="reference internal" href="#cmdoption-configure-prefix"><code class="xref std std-option docutils literal notranslate"><span class="pre">--prefix</span></code></a>,
+for instance <code class="docutils literal notranslate"><span class="pre">--prefix=$HOME</span></code>.  For better control, use the options below.</p>
+<p>Fine tuning of the installation directories:</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-bindir">
+<span class="sig-name descname"><span class="pre">--bindir</span></span><span class="sig-prename descclassname"><span class="pre">=DIR</span></span><a class="headerlink" href="#cmdoption-configure-bindir" title="Permalink to this definition">¶</a></dt>
+<dd><p>user executables [<code class="file docutils literal notranslate"><span class="pre">EPREFIX/bin</span></code>]</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-sbindir">
+<span class="sig-name descname"><span class="pre">--sbindir</span></span><span class="sig-prename descclassname"><span class="pre">=DIR</span></span><a class="headerlink" href="#cmdoption-configure-sbindir" title="Permalink to this definition">¶</a></dt>
+<dd><p>system admin executables [<code class="file docutils literal notranslate"><span class="pre">EPREFIX/sbin</span></code>]</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-libexecdir">
+<span class="sig-name descname"><span class="pre">--libexecdir</span></span><span class="sig-prename descclassname"><span class="pre">=DIR</span></span><a class="headerlink" href="#cmdoption-configure-libexecdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>program executables [<code class="file docutils literal notranslate"><span class="pre">EPREFIX/libexec</span></code>]</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-sysconfdir">
+<span class="sig-name descname"><span class="pre">--sysconfdir</span></span><span class="sig-prename descclassname"><span class="pre">=DIR</span></span><a class="headerlink" href="#cmdoption-configure-sysconfdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>read-only single-machine data [<code class="file docutils literal notranslate"><span class="pre">PREFIX/etc</span></code>]</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-sharedstatedir">
+<span class="sig-name descname"><span class="pre">--sharedstatedir</span></span><span class="sig-prename descclassname"><span class="pre">=DIR</span></span><a class="headerlink" href="#cmdoption-configure-sharedstatedir" title="Permalink to this definition">¶</a></dt>
+<dd><p>modifiable architecture-independent data [<code class="file docutils literal notranslate"><span class="pre">PREFIX/com</span></code>]</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-localstatedir">
+<span class="sig-name descname"><span class="pre">--localstatedir</span></span><span class="sig-prename descclassname"><span class="pre">=DIR</span></span><a class="headerlink" href="#cmdoption-configure-localstatedir" title="Permalink to this definition">¶</a></dt>
+<dd><p>modifiable single-machine data [<code class="file docutils literal notranslate"><span class="pre">PREFIX/var</span></code>]</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-libdir">
+<span class="sig-name descname"><span class="pre">--libdir</span></span><span class="sig-prename descclassname"><span class="pre">=DIR</span></span><a class="headerlink" href="#cmdoption-configure-libdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>object code libraries [<code class="file docutils literal notranslate"><span class="pre">EPREFIX/lib</span></code>]</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-includedir">
+<span class="sig-name descname"><span class="pre">--includedir</span></span><span class="sig-prename descclassname"><span class="pre">=DIR</span></span><a class="headerlink" href="#cmdoption-configure-includedir" title="Permalink to this definition">¶</a></dt>
+<dd><p>C header files [<code class="file docutils literal notranslate"><span class="pre">PREFIX/include</span></code>]</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-oldincludedir">
+<span class="sig-name descname"><span class="pre">--oldincludedir</span></span><span class="sig-prename descclassname"><span class="pre">=DIR</span></span><a class="headerlink" href="#cmdoption-configure-oldincludedir" title="Permalink to this definition">¶</a></dt>
+<dd><p>C header files for non-gcc [<code class="file docutils literal notranslate"><span class="pre">/usr/include</span></code>]</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-datarootdir">
+<span class="sig-name descname"><span class="pre">--datarootdir</span></span><span class="sig-prename descclassname"><span class="pre">=DIR</span></span><a class="headerlink" href="#cmdoption-configure-datarootdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>read-only architecture-independent data root [<code class="file docutils literal notranslate"><span class="pre">PREFIX/share</span></code>]</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-datadir">
+<span class="sig-name descname"><span class="pre">--datadir</span></span><span class="sig-prename descclassname"><span class="pre">=DIR</span></span><a class="headerlink" href="#cmdoption-configure-datadir" title="Permalink to this definition">¶</a></dt>
+<dd><p>read-only architecture-independent data [<code class="file docutils literal notranslate"><span class="pre">DATAROOTDIR</span></code>]</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-localedir">
+<span class="sig-name descname"><span class="pre">--localedir</span></span><span class="sig-prename descclassname"><span class="pre">=DIR</span></span><a class="headerlink" href="#cmdoption-configure-localedir" title="Permalink to this definition">¶</a></dt>
+<dd><p>locale-dependent data [<code class="file docutils literal notranslate"><span class="pre">DATAROOTDIR/locale</span></code>]</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-mandir">
+<span class="sig-name descname"><span class="pre">--mandir</span></span><span class="sig-prename descclassname"><span class="pre">=DIR</span></span><a class="headerlink" href="#cmdoption-configure-mandir" title="Permalink to this definition">¶</a></dt>
+<dd><p>man documentation [<code class="file docutils literal notranslate"><span class="pre">DATAROOTDIR/man</span></code>]</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-docdir">
+<span class="sig-name descname"><span class="pre">--docdir</span></span><span class="sig-prename descclassname"><span class="pre">=DIR</span></span><a class="headerlink" href="#cmdoption-configure-docdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>documentation root [<code class="file docutils literal notranslate"><span class="pre">DATAROOTDIR/doc/tiff</span></code>]</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-htmldir">
+<span class="sig-name descname"><span class="pre">--htmldir</span></span><span class="sig-prename descclassname"><span class="pre">=DIR</span></span><a class="headerlink" href="#cmdoption-configure-htmldir" title="Permalink to this definition">¶</a></dt>
+<dd><p>html documentation [<code class="file docutils literal notranslate"><span class="pre">DOCDIR</span></code>]</p>
+</dd></dl>
+
+<p>Program names:</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-program-prefix">
+<span class="sig-name descname"><span class="pre">--program-prefix</span></span><span class="sig-prename descclassname"><span class="pre">=PREFIX</span></span><a class="headerlink" href="#cmdoption-configure-program-prefix" title="Permalink to this definition">¶</a></dt>
+<dd><p>prepend <em>PREFIX</em> to installed program names</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-program-suffix">
+<span class="sig-name descname"><span class="pre">--program-suffix</span></span><span class="sig-prename descclassname"><span class="pre">=SUFFIX</span></span><a class="headerlink" href="#cmdoption-configure-program-suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>append <em>SUFFIX</em> to installed program names</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-program-transform-name">
+<span class="sig-name descname"><span class="pre">--program-transform-name</span></span><span class="sig-prename descclassname"><span class="pre">=PROGRAM</span></span><a class="headerlink" href="#cmdoption-configure-program-transform-name" title="Permalink to this definition">¶</a></dt>
+<dd><p>run <strong class="command">sed</strong> <em>PROGRAM</em> on installed program names</p>
+</dd></dl>
+
+</section>
+<section id="id3">
+<h3>Configuring Optional Packages/Support<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
+<p>The TIFF software comes with several packages that are installed
+only as needed, or only if specifically configured at the time the
+configure script is run. Packages can be configured via the
+<strong class="program">configure</strong> script commandline parameters.</p>
+<section id="id4">
+<h4>Static/Shared Objects Support<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h4>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-enable-shared">
+<span class="sig-name descname"><span class="pre">--enable-shared</span></span><span class="sig-prename descclassname"><span class="pre">[=PKGS]</span></span><a class="headerlink" href="#cmdoption-configure-enable-shared" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build shared libraries [enabled]</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-enable-static">
+<span class="sig-name descname"><span class="pre">--enable-static</span></span><span class="sig-prename descclassname"><span class="pre">[=PKGS]</span></span><a class="headerlink" href="#cmdoption-configure-enable-static" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build static libraries [enabled]</p>
+<p>These options control whether or not to configure the software
+to build a shared and static binaries for the TIFF library. Use of
+shared libraries can significantly reduce the disk space needed for
+users of the TIFF software. If shared libraries are not used then
+the code is statically linked into each application that uses it.
+By default both types of binaries are configured.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-enable-rpath">
+<span class="sig-name descname"><span class="pre">--enable-rpath</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-configure-enable-rpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable runtime linker paths (<code class="docutils literal notranslate"><span class="pre">-R</span></code> libtool option)</p>
+<p>Add library directories (see other options below) to the TIFF
+library run-time linker path.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-enable-ld-version-script">
+<span class="sig-name descname"><span class="pre">--enable-ld-version-script</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-configure-enable-ld-version-script" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable linker version script [yes]</p>
+<p>Add shared library symbol versioning on ELF-based systems (e.g.
+Linux and FreeBSD) which use the GNU linker. This is needed if
+several major versions of libtiff might be loaded at once into the
+same program.</p>
+</dd></dl>
+
+</section>
+<section id="id5">
+<h4>JPEG Support<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h4>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-disable-jpeg">
+<span class="sig-name descname"><span class="pre">--disable-jpeg</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-configure-disable-jpeg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disable IJG JPEG library usage (required for JPEG compression, enabled by default)</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-with-jpeg-include-dir">
+<span class="sig-name descname"><span class="pre">--with-jpeg-include-dir</span></span><span class="sig-prename descclassname"><span class="pre">=DIR</span></span><a class="headerlink" href="#cmdoption-configure-with-jpeg-include-dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Location of IJG JPEG library headers</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-configure-with-jpeg-lib-dir">
+<span class="sig-name descname"><span class="pre">--with-jpeg-lib-dir</span></span><span class="sig-prename descclassname"><span class="pre">=DIR</span></span><a class="headerlink" href="#cmdoption-configure-with-jpeg-lib-dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Location of IJG JPEG library binary)</p>
+</dd></dl>
+
+<p>The <code class="docutils literal notranslate"><span class="pre">JPEG</span></code> package enables support for the handling of
+TIFF images with JPEG-encoded data. Support for JPEG-encoded data
+requires the Independent JPEG Group (IJG) <code class="docutils literal notranslate"><span class="pre">libjpeg</span></code>
+distribution; this software is available at
+<a class="reference external" href="http://www.ijg.org/">http://www.ijg.org/</a>.  The <strong class="program">configure</strong>
+script automatically tries to search for a working IJG JPEG
+installation. If it fails to find library, JPEG support will be
+automatically disabled. If you want specify the exact paths to
+library binary and headers, use above switches for that.</p>
+</section>
+<section id="id7">
+<h4>ZIP Support<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">ZIP</span></code> support enables support for the handling of
+TIFF images with deflate-encoded data. Support for deflate-encoded
+data requires the freely available <code class="docutils literal notranslate"><span class="pre">zlib</span></code> distribution
+written by Jean-loup Gailly and Mark Adler; this software is
+available at <a class="reference external" href="http://www.zlib.org/">http://www.zlib.org/</a>.  Support will be
+enabled automatically if <code class="docutils literal notranslate"><span class="pre">zlib</span></code> is found.</p>
+</section>
+</section>
+</section>
+<section id="building-the-software-on-other-systems">
+<h2>Building the Software on Other Systems<a class="headerlink" href="#building-the-software-on-other-systems" title="Permalink to this heading">¶</a></h2>
+<p>This section contains information that might be useful if you are
+working on a non-UNIX system that is not directly supported. All
+library-related files described below are located in the
+<code class="file docutils literal notranslate"><span class="pre">libtiff</span></code> directory.</p>
+<p>The library requires two files that are generated
+<em>on-the-fly</em>. The file <code class="file docutils literal notranslate"><span class="pre">tif_fax3sm.c</span></code> has the state
+tables for the Group 3 and Group 4 decoders. This file is generated
+by the <strong class="program">mkg3states</strong> program on a UNIX system; for
+example:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>libtiff
+cc<span class="w"> </span>-o<span class="w"> </span>mkg3states<span class="w"> </span>mkg3states.c
+rm<span class="w"> </span>-f<span class="w"> </span>tif_fax3sm.c
+./mkg3states<span class="w"> </span>-c<span class="w"> </span>const<span class="w"> </span>tif_fax3sm.c
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">-c</span></code> option can be used to control whether or not the
+resulting tables are generated with a <code class="docutils literal notranslate"><span class="pre">const</span></code> declaration.
+The <code class="docutils literal notranslate"><span class="pre">-s</span></code> option can be used to specify a C storage class for
+the table declarations. The <code class="docutils literal notranslate"><span class="pre">-b</span></code> option can be used to force
+data values to be explicitly bracketed with <code class="docutils literal notranslate"><span class="pre">{}</span></code> (apparently
+needed for some MS-Windows compilers); otherwise the structures are
+emitted in as compact a format as possible. Consult the source code
+for this program if you have questions.</p>
+<p>The second file required to build the library, <code class="file docutils literal notranslate"><span class="pre">version.h</span></code>,
+contains the version information returned by the
+<a class="reference internal" href="functions/TIFFquery.html#c.TIFFGetVersion" title="TIFFGetVersion"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetVersion()</span></code></a> routine. This file is built on most systems
+using the <code class="file docutils literal notranslate"><span class="pre">mkversion</span></code> program and the contents of the
+<code class="file docutils literal notranslate"><span class="pre">VERSION</span></code> and <code class="file docutils literal notranslate"><span class="pre">tiff.alpha</span></code> files; for example,</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>libtiff
+cc<span class="w"> </span>-o<span class="w"> </span>mkversion<span class="w"> </span>mkversion.c
+rm<span class="w"> </span>-f<span class="w"> </span>version.h
+./mkversion<span class="w"> </span>-v<span class="w"> </span>../VERSION<span class="w"> </span>-a<span class="w"> </span>../dist/tiff.alpha<span class="w"> </span>version.h
+</pre></div>
+</div>
+<p>Otherwise, when building the library on a non-UNIX system be
+sure to consult the files <code class="file docutils literal notranslate"><span class="pre">tiffcomp.h</span></code> and <code class="file docutils literal notranslate"><span class="pre">tiffconf.h</span></code>.
+The former contains system compatibility definitions while the
+latter is provided so that the software configuration can be
+controlled on systems that do not support the make facility for
+building the software.</p>
+<p>Systems without a 32-bit compiler may not be able to handle some
+of the codecs in the library; especially the Group 3 and 4 decoder.
+If you encounter problems try disabling support for a particular
+codec; consult the <a class="reference internal" href="internals.html"><span class="doc">Modifying The TIFF Library</span></a>.</p>
+<p>Programs in the tools directory are written to assume an ANSI C
+compilation environment. There may be a few POSIX’isms as well. The
+code in the <code class="file docutils literal notranslate"><span class="pre">port</span></code> directory is provided to emulate routines
+that may be missing on some systems. On UNIX systems the
+<strong class="program">configure</strong> script automatically figures out which routines
+are not present on a system and enables the use of the equivalent
+emulation routines from the <code class="file docutils literal notranslate"><span class="pre">port</span></code> directory. It may be
+necessary to manually do this work on a non-UNIX system.</p>
+</section>
+<section id="testing-the-software">
+<h2>Testing the software<a class="headerlink" href="#testing-the-software" title="Permalink to this heading">¶</a></h2>
+<p>You can try
+<a class="reference internal" href="tools/tiffinfo.html"><span class="doc">tiffinfo</span></a> to display the file metadata.  See the
+<a class="reference internal" href="images.html"><span class="doc">TIFF Test Images</span></a> section on obtaining the test images.
+Otherwise, you can do a cursory check of the library
+with the <a class="reference internal" href="tools/tiffcp.html"><span class="doc">tiffcp</span></a> program. For example,</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tiffcp<span class="w"> </span>-lzw<span class="w"> </span>cramps.tif<span class="w"> </span>x.tif
+</pre></div>
+</div>
+</section>
+<section id="libtiff-source-files">
+<h2>LibTIFF source files<a class="headerlink" href="#libtiff-source-files" title="Permalink to this heading">¶</a></h2>
+<p>The following files make up the core library:</p>
+<blockquote>
+<div><table class="docutils align-default" id="id11">
+<caption><span class="caption-text">Core library source files</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 75.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>File</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tiff.h</span></code></p></td>
+<td><p>TIFF spec definitions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tiffconf.h</span></code></p></td>
+<td><p>non-UNIX configuration definitions</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tiffio.h</span></code></p></td>
+<td><p>public TIFF library definitions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tiffiop.h</span></code></p></td>
+<td><p>private TIFF library definitions</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/t4.h</span></code></p></td>
+<td><p>CCITT Group 3/4 code tables+definitions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dir.h</span></code></p></td>
+<td><p>private defs for TIFF directory handling</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_fax3.h</span></code></p></td>
+<td><p>CCITT Group 3/4-related definitions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_predict.h</span></code></p></td>
+<td><p>private defs for Predictor tag support</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tiffvers.h</span></code></p></td>
+<td><p>version string</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/uvcode.h</span></code></p></td>
+<td><p>LogL/LogLuv codec-specific definitions</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_aux.c</span></code></p></td>
+<td><p>auxiliary directory-related functions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_close.c</span></code></p></td>
+<td><p>close an open TIFF file</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_codec.c</span></code></p></td>
+<td><p>configuration table of builtin codecs</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_color.c</span></code></p></td>
+<td><p>colorspace transforms</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_compress.c</span></code></p></td>
+<td><p>compression scheme support</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dir.c</span></code></p></td>
+<td><p>directory tag interface code</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirinfo.c</span></code></p></td>
+<td><p>directory known tag support code</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirread.c</span></code></p></td>
+<td><p>directory reading code</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirwrite.c</span></code></p></td>
+<td><p>directory writing code</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dumpmode.c</span></code></p></td>
+<td><p>“no” compression codec</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_error.c</span></code></p></td>
+<td><p>library error handler</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_fax3.c</span></code></p></td>
+<td><p>CCITT Group 3 and 4 codec</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_fax3sm.c</span></code></p></td>
+<td><p>G3/G4 state tables (generated by mkg3states)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_flush.c</span></code></p></td>
+<td><p>i/o and directory state flushing</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_getimage.c</span></code></p></td>
+<td><p><a class="reference internal" href="functions/TIFFRGBAImage.html"><span class="doc">TIFFRGBAImage</span></a> support</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_jbig.c</span></code></p></td>
+<td><p>JBIG codec</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_jpeg.c</span></code></p></td>
+<td><p>JPEG codec (interface to the IJG distribution)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_jpeg_12.c</span></code></p></td>
+<td><p>12-bit JPEG codec (interface to the IJG distribution)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_lerc.c</span></code></p></td>
+<td><p>LERC codec</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_luv.c</span></code></p></td>
+<td><p>SGI LogL/LogLuv codec</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_lzma.c</span></code></p></td>
+<td><p>LZMA codec</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_lzw.c</span></code></p></td>
+<td><p>LZW codec</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_next.c</span></code></p></td>
+<td><p>NeXT 2-bit scheme codec (decoding only)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_ojpeg.c</span></code></p></td>
+<td><p>Old JPEG codec (obsolete, decoding only)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_open.c</span></code></p></td>
+<td><p>open and simply query code</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_packbits.c</span></code></p></td>
+<td><p>Packbits codec</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_pixarlog.c</span></code></p></td>
+<td><p>Pixar codec</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_predict.c</span></code></p></td>
+<td><p>Predictor tag support</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_print.c</span></code></p></td>
+<td><p>directory printing support</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_read.c</span></code></p></td>
+<td><p>image data reading support</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_strip.c</span></code></p></td>
+<td><p>some strip-related code</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_swab.c</span></code></p></td>
+<td><p>byte and bit swapping support</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_thunder.c</span></code></p></td>
+<td><p>Thunderscan codec (decoding only)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_tile.c</span></code></p></td>
+<td><p>some tile-related code</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_unix.c</span></code></p></td>
+<td><p>UNIX-related OS support</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_version.c</span></code></p></td>
+<td><p>library version support</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_warning.c</span></code></p></td>
+<td><p>library warning handler</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_win32.c</span></code></p></td>
+<td><p>Win32 (Windows)-related OS support</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_write.c</span></code></p></td>
+<td><p>image data writing support</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_zip.c</span></code></p></td>
+<td><p>Deflate codec</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_zstd.c</span></code></p></td>
+<td><p>ZSTD codec</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/mkg3states.c</span></code></p></td>
+<td><p>program to generate G3/G4 decoder state tables</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="file docutils literal notranslate"><span class="pre">libtiff/mkspans.c</span></code></p></td>
+<td><p>program to generate black-white span tables</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Building the TIFF Software Distribution</a><ul>
+<li><a class="reference internal" href="#building-on-all-systems-with-cmake">Building on all systems with CMake</a><ul>
+<li><a class="reference internal" href="#build-trees">Build Trees</a></li>
+<li><a class="reference internal" href="#generators">Generators</a></li>
+<li><a class="reference internal" href="#configuration-options">Configuration Options</a></li>
+<li><a class="reference internal" href="#configuring-optional-packages-support">Configuring Optional Packages/Support</a><ul>
+<li><a class="reference internal" href="#static-shared-objects-support">Static/Shared Objects Support</a></li>
+<li><a class="reference internal" href="#jpeg-support">JPEG Support</a></li>
+<li><a class="reference internal" href="#zip-support">ZIP Support</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#building-on-a-unix-system-with-autoconf">Building on a UNIX System with Autoconf</a><ul>
+<li><a class="reference internal" href="#id1">Build Trees</a></li>
+<li><a class="reference internal" href="#id2">Configuration Options</a></li>
+<li><a class="reference internal" href="#id3">Configuring Optional Packages/Support</a><ul>
+<li><a class="reference internal" href="#id4">Static/Shared Objects Support</a></li>
+<li><a class="reference internal" href="#id5">JPEG Support</a></li>
+<li><a class="reference internal" href="#id7">ZIP Support</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#building-the-software-on-other-systems">Building the Software on Other Systems</a></li>
+<li><a class="reference internal" href="#testing-the-software">Testing the software</a></li>
+<li><a class="reference internal" href="#libtiff-source-files">LibTIFF source files</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="images.html"
+                          title="previous chapter">TIFF Test Images</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="terms.html"
+                          title="next chapter">Terminology</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/build.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="terms.html" title="Terminology"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="images.html" title="TIFF Test Images"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Building the TIFF Software Distribution</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

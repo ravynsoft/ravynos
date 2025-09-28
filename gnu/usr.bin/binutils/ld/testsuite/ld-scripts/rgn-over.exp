@@ -1,0 +1,52 @@
+# Test for proper diagnosis of overflowed memory regions.
+# Copyright (C) 2007-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+if ![is_elf_format] {
+    return
+}
+
+set old_ldflags $LDFLAGS
+if { [istarget spu*-*-*] } {
+    set LDFLAGS "$LDFLAGS --no-overlays"
+}
+
+set test_list [lsort [glob -nocomplain $srcdir/$subdir/rgn-over*.d]]
+foreach test_file $test_list {
+    set test_name [file rootname $test_file]
+    set map_file "tmpdir/[file tail $test_name].map"
+    verbose $test_name
+    run_dump_test $test_name
+
+    if { ! [regexp ".*-ok.d" $test_file] } {
+	set testname "[file tail $test_name] (map check)"
+	if [file exists $map_file] {
+	    # compare the map file to the expectations in the .d file
+	    # (run_dump_test can't do that).
+	    if [regexp_diff $map_file $test_file] {
+		fail $testname
+	    } else {
+		pass $testname
+	    }
+	} else {
+	    untested $testname
+	}
+    }
+}
+set LDFLAGS $old_ldflags

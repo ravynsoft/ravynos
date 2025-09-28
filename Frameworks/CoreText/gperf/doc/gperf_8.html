@@ -1,0 +1,46 @@
+<HTML>
+<HEAD>
+<!-- This HTML file has been created by texi2html 1.52b
+     from gperf.texi on 2 January 2017 -->
+
+<META HTTP-EQUIV="content-type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Perfect Hash Function Generator - 7  Things Still Left to Do</TITLE>
+</HEAD>
+<BODY>
+Go to the <A HREF="gperf_1.html">first</A>, <A HREF="gperf_7.html">previous</A>, <A HREF="gperf_9.html">next</A>, <A HREF="gperf_10.html">last</A> section, <A HREF="gperf_toc.html">table of contents</A>.
+<P><HR><P>
+
+
+<H1><A NAME="SEC26" HREF="gperf_toc.html#TOC26">7  Things Still Left to Do</A></H1>
+
+<P>
+It should be “relatively” easy to replace the current perfect hash
+function algorithm with a more exhaustive approach; the perfect hash
+module is essential independent from other program modules.  Additional
+worthwhile improvements include:
+
+</P>
+
+<UL>
+<LI>
+
+Another useful extension involves modifying the program to generate
+“minimal” perfect hash functions (under certain circumstances, the
+current version can be rather extravagant in the generated table size).
+This is mostly of theoretical interest, since a sparse table
+often produces faster lookups, and use of the <SAMP>&lsquo;-S&rsquo;</SAMP> <CODE>switch</CODE>
+option can minimize the data size, at the expense of slightly longer
+lookups (note that the gcc compiler generally produces good code for
+<CODE>switch</CODE> statements, reducing the need for more complex schemes).
+
+<LI>
+
+In addition to improving the algorithm, it would also be useful to
+generate an Ada package as the code output, in addition to the current
+C and C++ routines.
+</UL>
+
+<P><HR><P>
+Go to the <A HREF="gperf_1.html">first</A>, <A HREF="gperf_7.html">previous</A>, <A HREF="gperf_9.html">next</A>, <A HREF="gperf_10.html">last</A> section, <A HREF="gperf_toc.html">table of contents</A>.
+</BODY>
+</HTML>

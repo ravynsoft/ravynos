@@ -1,0 +1,1212 @@
+# Friulian translations for sudo package
+# This file is put in the public domain.
+# Fabio Tomat <f.t.public@gmail.com>, 2023
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sudo-1.9.13b2\n"
+"Report-Msgid-Bugs-To: https://bugzilla.sudo.ws\n"
+"POT-Creation-Date: 2023-01-24 13:11-0700\n"
+"PO-Revision-Date: 2023-02-01 16:47+0000\n"
+"Last-Translator: Fabio T. <f.t.public@gmail.com>\n"
+"Language-Team: Friulian <f.t.public@gmail.com>\n"
+"Language: fur\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Editor: HaiPO 1.4 beta\n"
+"X-Generator: Poedit 1.8.12\n"
+
+#: lib/util/aix.c:89 lib/util/aix.c:169
+msgid "unable to open userdb"
+msgstr "impussibil vierzi userdb"
+
+#: lib/util/aix.c:224
+#, c-format
+msgid "unable to switch to registry \"%s\" for %s"
+msgstr "impussibil passâ al regjistri \"%s\" par %s"
+
+#: lib/util/aix.c:249
+msgid "unable to restore registry"
+msgstr "impussibil ripristinâ il regjistri"
+
+#: lib/util/aix.c:272 lib/util/gidlist.c:66 lib/util/gidlist.c:76
+#: lib/util/json.c:55 lib/util/json.c:197 lib/util/sudo_conf.c:215
+#: lib/util/sudo_conf.c:301 lib/util/sudo_conf.c:378 lib/util/sudo_conf.c:646
+#: src/conversation.c:80 src/exec_iolog.c:124 src/exec_iolog.c:135
+#: src/exec_iolog.c:212 src/exec_monitor.c:205 src/exec_monitor.c:460
+#: src/exec_monitor.c:466 src/exec_monitor.c:474 src/exec_monitor.c:482
+#: src/exec_monitor.c:489 src/exec_monitor.c:496 src/exec_monitor.c:503
+#: src/exec_monitor.c:510 src/exec_monitor.c:517 src/exec_monitor.c:524
+#: src/exec_monitor.c:531 src/exec_nopty.c:231 src/exec_nopty.c:240
+#: src/exec_nopty.c:247 src/exec_nopty.c:254 src/exec_nopty.c:261
+#: src/exec_nopty.c:268 src/exec_nopty.c:275 src/exec_nopty.c:282
+#: src/exec_nopty.c:289 src/exec_nopty.c:296 src/exec_nopty.c:303
+#: src/exec_nopty.c:310 src/exec_nopty.c:318 src/exec_nopty.c:326
+#: src/exec_nopty.c:736 src/exec_preload.c:343 src/exec_ptrace.c:475
+#: src/exec_ptrace.c:768 src/exec_ptrace.c:983 src/exec_ptrace.c:1095
+#: src/exec_ptrace.c:1270 src/exec_ptrace.c:1612 src/exec_ptrace.c:1639
+#: src/exec_pty.c:511 src/exec_pty.c:692 src/exec_pty.c:882 src/exec_pty.c:891
+#: src/exec_pty.c:898 src/exec_pty.c:905 src/exec_pty.c:912 src/exec_pty.c:919
+#: src/exec_pty.c:926 src/exec_pty.c:933 src/exec_pty.c:940 src/exec_pty.c:947
+#: src/exec_pty.c:954 src/exec_pty.c:962 src/load_plugins.c:98
+#: src/load_plugins.c:123 src/load_plugins.c:159 src/load_plugins.c:392
+#: src/load_plugins.c:398 src/parse_args.c:172 src/parse_args.c:193
+#: src/parse_args.c:267 src/parse_args.c:623 src/parse_args.c:645
+#: src/parse_args.c:670 src/preserve_fds.c:46 src/preserve_fds.c:131
+#: src/selinux.c:89 src/selinux.c:362 src/selinux.c:472 src/selinux.c:489
+#: src/selinux.c:496 src/sesh.c:206 src/sesh.c:240 src/sesh.c:246
+#: src/sesh.c:253 src/sesh.c:259 src/sesh.c:470 src/sudo.c:641 src/sudo.c:706
+#: src/sudo.c:716 src/sudo.c:743 src/sudo.c:766 src/sudo.c:775 src/sudo.c:784
+#: src/sudo.c:801 src/sudo.c:842 src/sudo.c:851 src/sudo.c:861 src/sudo.c:894
+#: src/sudo.c:1122 src/sudo.c:1143 src/sudo.c:1436 src/sudo.c:1605
+#: src/sudo.c:1832 src/sudo.c:2166 src/sudo_edit.c:89 src/sudo_edit.c:149
+#: src/sudo_edit.c:429 src/sudo_edit.c:438 src/sudo_edit.c:538
+#: src/sudo_edit.c:545 src/sudo_edit.c:688 src/sudo_edit.c:708
+#: src/sudo_intercept_common.c:115 src/sudo_intercept_common.c:340
+#, c-format
+msgid "%s: %s"
+msgstr "%s: %s"
+
+#: lib/util/aix.c:272 lib/util/gidlist.c:66 lib/util/json.c:56
+#: lib/util/json.c:198 lib/util/regex.c:173 lib/util/sudo_conf.c:216
+#: lib/util/sudo_conf.c:301 lib/util/sudo_conf.c:378 lib/util/sudo_conf.c:646
+#: src/conversation.c:81 src/exec_intercept.c:111 src/exec_intercept.c:344
+#: src/exec_intercept.c:518 src/exec_intercept.c:582 src/exec_intercept.c:706
+#: src/exec_intercept.c:830 src/exec_iolog.c:124 src/exec_iolog.c:135
+#: src/exec_iolog.c:212 src/exec_monitor.c:460 src/exec_monitor.c:466
+#: src/exec_monitor.c:474 src/exec_monitor.c:482 src/exec_monitor.c:489
+#: src/exec_monitor.c:496 src/exec_monitor.c:503 src/exec_monitor.c:510
+#: src/exec_monitor.c:517 src/exec_monitor.c:524 src/exec_monitor.c:531
+#: src/exec_nopty.c:231 src/exec_nopty.c:240 src/exec_nopty.c:247
+#: src/exec_nopty.c:254 src/exec_nopty.c:261 src/exec_nopty.c:268
+#: src/exec_nopty.c:275 src/exec_nopty.c:282 src/exec_nopty.c:289
+#: src/exec_nopty.c:296 src/exec_nopty.c:303 src/exec_nopty.c:310
+#: src/exec_nopty.c:318 src/exec_nopty.c:326 src/exec_preload.c:343
+#: src/exec_ptrace.c:475 src/exec_ptrace.c:768 src/exec_ptrace.c:983
+#: src/exec_ptrace.c:1639 src/exec_pty.c:511 src/exec_pty.c:882
+#: src/exec_pty.c:891 src/exec_pty.c:898 src/exec_pty.c:905 src/exec_pty.c:912
+#: src/exec_pty.c:919 src/exec_pty.c:926 src/exec_pty.c:933 src/exec_pty.c:940
+#: src/exec_pty.c:947 src/exec_pty.c:954 src/exec_pty.c:962
+#: src/load_plugins.c:98 src/load_plugins.c:123 src/load_plugins.c:159
+#: src/load_plugins.c:392 src/load_plugins.c:398 src/parse_args.c:172
+#: src/parse_args.c:194 src/parse_args.c:267 src/parse_args.c:623
+#: src/parse_args.c:645 src/parse_args.c:670 src/preserve_fds.c:46
+#: src/preserve_fds.c:131 src/selinux.c:89 src/selinux.c:362 src/selinux.c:472
+#: src/selinux.c:489 src/selinux.c:496 src/sesh.c:206 src/sesh.c:471
+#: src/sudo.c:230 src/sudo.c:641 src/sudo.c:894 src/sudo.c:1122
+#: src/sudo.c:1143 src/sudo.c:1436 src/sudo.c:1605 src/sudo.c:1832
+#: src/sudo.c:2166 src/sudo_edit.c:89 src/sudo_edit.c:149 src/sudo_edit.c:429
+#: src/sudo_edit.c:438 src/sudo_edit.c:538 src/sudo_edit.c:545
+#: src/sudo_edit.c:688 src/sudo_edit.c:708 src/sudo_intercept_common.c:115
+#: src/sudo_intercept_common.c:340
+msgid "unable to allocate memory"
+msgstr "impussibil assegnâ memorie"
+
+#: lib/util/mkdir_parents.c:63
+#, c-format
+msgid "unable to stat %.*s"
+msgstr "impussibil eseguî stat %.*s"
+
+#: lib/util/mkdir_parents.c:69
+#, c-format
+msgid "%.*s exists but is not a directory (0%o)"
+msgstr "%.*s al esist ma no je une cartele (0%o)"
+
+#: lib/util/mkdir_parents.c:103 lib/util/sudo_conf.c:666
+#: lib/util/sudo_conf.c:696 lib/util/sudo_conf.c:703 src/selinux.c:235
+#: src/selinux.c:265 src/sudo.c:373 src/sudo_edit.c:494 src/sudo_edit.c:557
+#, c-format
+msgid "unable to open %s"
+msgstr "impussibil vierzi %s"
+
+#: lib/util/mkdir_parents.c:120 lib/util/mkdir_parents.c:160
+#, c-format
+msgid "unable to mkdir %.*s"
+msgstr "impussibil eseguî mkdir %.*s"
+
+#: lib/util/mkdir_parents.c:130 lib/util/mkdir_parents.c:139
+#, c-format
+msgid "unable to open %.*s"
+msgstr "impussibil vierzi %.*s"
+
+#: lib/util/regex.c:163
+msgid "regular expression too large"
+msgstr "espression regolâr masse grande"
+
+#: lib/util/strsignal.c:50
+msgid "Unknown signal"
+msgstr "Segnâl no cognossût"
+
+#: lib/util/strtoid.c:84 lib/util/strtomode.c:52 lib/util/strtonum.c:148
+#: lib/util/strtonum.c:187 src/sesh.c:240 src/sesh.c:253
+msgid "invalid value"
+msgstr "valôr no valit"
+
+#: lib/util/strtomode.c:58 lib/util/strtonum.c:160
+msgid "value too large"
+msgstr "valôr masse grant"
+
+#: lib/util/strtomode.c:58 lib/util/strtonum.c:154
+msgid "value too small"
+msgstr "valôr masse piçul"
+
+#: lib/util/sudo_conf.c:234
+#, c-format
+msgid "invalid Path value \"%s\" in %s, line %u"
+msgstr "il valôr percors \"%s\" no valit in %s, rie %u"
+
+#: lib/util/sudo_conf.c:400 lib/util/sudo_conf.c:453
+#, c-format
+msgid "invalid value for %s \"%s\" in %s, line %u"
+msgstr "valôr no valit par %s \"%s\" in %s, rie %u"
+
+#: lib/util/sudo_conf.c:421
+#, c-format
+msgid "unsupported group source \"%s\" in %s, line %u"
+msgstr "sorzint di grup \"%s\" no supuartade in %s, rie %u"
+
+#: lib/util/sudo_conf.c:437
+#, c-format
+msgid "invalid max groups \"%s\" in %s, line %u"
+msgstr "grups massims \"%s\" no valits in %s, rie %u"
+
+#: lib/util/sudo_conf.c:669
+#, c-format
+msgid "%s is not a regular file"
+msgstr "%s nol è un file regolâr"
+
+#: lib/util/sudo_conf.c:672 src/copy_file.c:164
+#, c-format
+msgid "%s is owned by uid %u, should be %u"
+msgstr "%s al è dal uid %u, al varès di jessi di %u"
+
+#: lib/util/sudo_conf.c:676
+#, c-format
+msgid "%s is world writable"
+msgstr "ducj a puedin scrivi su %s"
+
+#: lib/util/sudo_conf.c:679
+#, c-format
+msgid "%s is group writable"
+msgstr "il grup al pues scrivi su %s"
+
+#: src/apparmor.c:85
+msgid "failed to determine AppArmor confinement"
+msgstr "impussibil determinâ il confinament di AppArmor"
+
+#: src/apparmor.c:93
+#, c-format
+msgid "unable to change AppArmor profile to %s"
+msgstr "impussibil cambiâ il profîl AppArmor a %s"
+
+#: src/copy_file.c:94
+#, c-format
+msgid "%s: truncate %s to zero bytes? (y/n) [n] "
+msgstr "%s: cjonçâ %s a zero bytes? (y/n) [n] "
+
+#: src/copy_file.c:98
+#, c-format
+msgid "not overwriting %s"
+msgstr "no si larà a sorescrivi %s"
+
+#: src/copy_file.c:120
+#, c-format
+msgid "unable to read from %s"
+msgstr "impussibil lei di %s"
+
+#: src/copy_file.c:137 src/sudo_edit.c:320
+#, c-format
+msgid "unable to write to %s"
+msgstr "impussibil scrivi su %s"
+
+#: src/copy_file.c:151
+#, c-format
+msgid "unable to stat %s"
+msgstr "impussibil eseguî stat su %s"
+
+#: src/copy_file.c:155 src/sesh.c:312 src/sudo_edit.c:197
+#, c-format
+msgid "%s: not a regular file"
+msgstr "%s: nol è un file regolâr."
+
+#: src/copy_file.c:159
+#, c-format
+msgid "%s: bad file mode: 0%o"
+msgstr "%s: modalitât file sbaliade: 0%o"
+
+#: src/edit_open.c:331
+msgid "unable to restore current working directory"
+msgstr "impussibil ripristinâ la cartele di lavôr atuâl"
+
+#: src/exec.c:111
+msgid "unable to set privileges"
+msgstr "impussibil configurâ i privileçs"
+
+#: src/exec.c:117 src/exec.c:122
+msgid "unable to set limit privileges"
+msgstr "impussibil configurâ i privileçs di limit"
+
+#: src/exec.c:145
+#, c-format
+msgid "unknown login class %s"
+msgstr "classe di acès %s no cognossude"
+
+#: src/exec.c:157
+msgid "unable to set user context"
+msgstr "impussibil stabilî il contest utent"
+
+#: src/exec.c:173
+msgid "unable to set process priority"
+msgstr "impussibil stabilî la prioritât dal procès"
+
+#: src/exec.c:190
+#, c-format
+msgid "unable to change root to %s"
+msgstr "impussibil cambiâ root a %s"
+
+#: src/exec.c:203 src/exec.c:209 src/exec.c:216
+#, c-format
+msgid "unable to change to runas uid (%u, %u)"
+msgstr "impussibil passâ a un diviers uid (%u, %u)"
+
+#: src/exec.c:238 src/sesh.c:199
+#, c-format
+msgid "unable to change directory to %s"
+msgstr "impussibil passâ ae cartele a %s"
+
+#: src/exec.c:243
+#, c-format
+msgid "starting from %s"
+msgstr "daûr a scomençâ di %s"
+
+#: src/exec.c:278 src/exec.c:351 src/exec_monitor.c:569 src/exec_monitor.c:571
+#: src/exec_pty.c:225 src/exec_pty.c:1026 src/exec_pty.c:1028 src/signal.c:144
+#: src/signal.c:151 src/signal.c:165 src/suspend_nopty.c:93
+#, c-format
+msgid "unable to set handler for signal %d"
+msgstr "impussibil stabilî il gjestôr pal segnâl %d"
+
+#: src/exec.c:422
+msgid "intercept mode is not supported with SELinux RBAC on this system"
+msgstr "la modalitât di intercetazion no je supuartade cun SELinux RBAC su chest sisteme"
+
+#: src/exec.c:427
+msgid "unable to log sub-commands with SELinux RBAC on this system"
+msgstr "impussibil regjistrâ i sot-comants cun SELinux RBAC su chest sisteme"
+
+#: src/exec_common.c:56
+msgid "unable to remove PRIV_PROC_EXEC from PRIV_LIMIT"
+msgstr "impussibil gjavâ PRIV_PROC_EXEC dal PRIV_LIMIT"
+
+#: src/exec_intercept.c:70 src/exec_iolog.c:165 src/exec_iolog.c:175
+#: src/exec_iolog.c:220 src/exec_iolog.c:227 src/exec_iolog.c:254
+#: src/exec_monitor.c:468 src/exec_monitor.c:476 src/exec_monitor.c:484
+#: src/exec_monitor.c:491 src/exec_monitor.c:498 src/exec_monitor.c:505
+#: src/exec_monitor.c:512 src/exec_monitor.c:519 src/exec_monitor.c:526
+#: src/exec_monitor.c:533 src/exec_nopty.c:233 src/exec_nopty.c:242
+#: src/exec_nopty.c:249 src/exec_nopty.c:256 src/exec_nopty.c:263
+#: src/exec_nopty.c:270 src/exec_nopty.c:277 src/exec_nopty.c:284
+#: src/exec_nopty.c:291 src/exec_nopty.c:298 src/exec_nopty.c:305
+#: src/exec_nopty.c:312 src/exec_nopty.c:320 src/exec_nopty.c:328
+#: src/exec_nopty.c:387 src/exec_nopty.c:453 src/exec_pty.c:360
+#: src/exec_pty.c:462 src/exec_pty.c:517 src/exec_pty.c:884 src/exec_pty.c:893
+#: src/exec_pty.c:900 src/exec_pty.c:907 src/exec_pty.c:914 src/exec_pty.c:921
+#: src/exec_pty.c:928 src/exec_pty.c:935 src/exec_pty.c:942 src/exec_pty.c:949
+#: src/exec_pty.c:956
+msgid "unable to add event to queue"
+msgstr "impussibil zontâ l'event ae code"
+
+#: src/exec_intercept.c:317 src/sudo.c:1028
+msgid "command not set by the security policy"
+msgstr "comant no configurât de politiche di sigurece"
+
+#: src/exec_intercept.c:395 src/exec_intercept.c:435 src/sudo.c:1248
+#: src/sudo.c:1293 src/sudo.c:1337
+msgid "command rejected by policy"
+msgstr "comant refudât de politiche"
+
+#: src/exec_intercept.c:505 src/sudo.c:1935
+msgid "approval plugin error"
+msgstr "erôr dal plugin di aprovazion"
+
+#: src/exec_intercept.c:530 src/sudo.c:1253 src/sudo.c:1298 src/sudo.c:1342
+#: src/sudo.c:1416
+msgid "policy plugin error"
+msgstr "erôr dal plugin de politiche"
+
+#: src/exec_intercept.c:559
+msgid "invalid PolicyCheckRequest"
+msgstr "PolicyCheckRequest no valit"
+
+#: src/exec_intercept.c:702
+#, c-format
+msgid "client request too large: %zu"
+msgstr "richieste dal client masse grande: %zu"
+
+#: src/exec_intercept.c:744
+#, c-format
+msgid "unable to unpack %s size %zu"
+msgstr "impussibil decomprimi %s cun dimension di %zu"
+
+#: src/exec_intercept.c:792
+#, c-format
+msgid "unexpected type_case value %d in %s from %s"
+msgstr "valôr di type_case %d inspietât in %s di %s"
+
+#: src/exec_intercept.c:818
+#, c-format
+msgid "server message too large: %zu"
+msgstr "messaç dal servidôr masse grant: %zu"
+
+#: src/exec_iolog.c:323 src/exec_iolog.c:363 src/exec_iolog.c:403
+#: src/exec_iolog.c:454 src/exec_iolog.c:505
+msgid "I/O plugin error"
+msgstr "erôr dal plugin di I/O"
+
+#: src/exec_iolog.c:327 src/exec_iolog.c:367 src/exec_iolog.c:407
+#: src/exec_iolog.c:458 src/exec_iolog.c:509
+msgid "command rejected by I/O plugin"
+msgstr "comant refudât dal plugin di I/O"
+
+#: src/exec_iolog.c:556
+msgid "error logging suspend"
+msgstr "regjistrazion erôrs sospindude"
+
+#: src/exec_iolog.c:591
+msgid "error changing window size"
+msgstr "erôr tal cambiâ la dimension dal barcon"
+
+#: src/exec_monitor.c:362
+msgid "error reading from socketpair"
+msgstr "erôr tal lei dal socketpair"
+
+#: src/exec_monitor.c:379
+#, c-format
+msgid "unexpected reply type on backchannel: %d"
+msgstr "gjenar di rispueste inspietade sul backchannel: %d"
+
+#: src/exec_monitor.c:587
+msgid "unable to set controlling tty"
+msgstr "impussibil stabilî il tty di control"
+
+#: src/exec_monitor.c:595 src/exec_nopty.c:498 src/exec_nopty.c:508
+#: src/exec_nopty.c:518 src/exec_nopty.c:552 src/exec_pty.c:1097
+#: src/exec_pty.c:1118 src/exec_pty.c:1138 src/tgetpass.c:305
+msgid "unable to create pipe"
+msgstr "impussibil creâ il condot (pipe)"
+
+#: src/exec_monitor.c:605
+msgid "unable to receive message from parent"
+msgstr "impussibil ricevi il messaç dal gjenitôr"
+
+#: src/exec_monitor.c:621 src/exec_nopty.c:595 src/exec_pty.c:1176
+#: src/sudo_edit.c:361 src/tgetpass.c:309
+msgid "unable to fork"
+msgstr "impussibil inglovâ (fâ il fork)"
+
+#: src/exec_monitor.c:625 src/exec_monitor.c:723 src/exec_nopty.c:700
+msgid "unable to restore tty label"
+msgstr "impussibil ripristinâ la etichete tty"
+
+#: src/exec_monitor.c:638 src/sesh.c:217 src/sudo.c:1199
+#, c-format
+msgid "unable to execute %s"
+msgstr "impussibil eseguî %s"
+
+#: src/exec_nopty.c:546 src/exec_pty.c:1035
+msgid "policy plugin failed session initialization"
+msgstr "il plugin di politche nol è rivât a inizializâ la session"
+
+#: src/exec_nopty.c:561 src/exec_pty.c:1004 src/exec_pty.c:1013
+msgid "unable to create sockets"
+msgstr "impussibil creâ sockets"
+
+#: src/exec_nopty.c:688 src/exec_pty.c:1274
+msgid "error in event loop"
+msgstr "erôr tal cicli dal event"
+
+#: src/exec_preload.c:167 src/net_ifs.c:206 src/net_ifs.c:372
+#: src/net_ifs.c:433 src/net_ifs.c:620 src/net_ifs.c:851 src/sudo.c:488
+#: src/sudo_edit.c:398 src/sudo_edit.c:406
+#, c-format
+msgid "internal error, %s overflow"
+msgstr "erôr interni, %s overflow (stranfât)"
+
+#: src/exec_ptrace.c:1079 src/exec_ptrace.c:1104 src/exec_ptrace.c:1900
+#, c-format
+msgid "unable to set registers for process %d"
+msgstr "impussibil configurâ i regjistris pal procès %d"
+
+#: src/exec_ptrace.c:1099 src/exec_ptrace.c:1274 src/exec_ptrace.c:1616
+#, c-format
+msgid "process %d exited unexpectedly"
+msgstr "il procès %d al è jessût in maniere inspietade"
+
+#: src/exec_ptrace.c:1208
+msgid "unable to set seccomp filter"
+msgstr "impussibil configurâ il filtri seccomp"
+
+#: src/exec_ptrace.c:1405
+#, c-format
+msgid "interpreter argument , expected \"%s\", got \"%s\""
+msgstr "argoment dal interprete, si spietave \"%s\", si à vût \"%s\""
+
+#: src/exec_ptrace.c:1504
+#, c-format
+msgid "pathname mismatch, expected \"%s\", got \"%s\""
+msgstr "mancjade corispondence cul non dal percors, si spietave \"%s\", si à vût \"%s\""
+
+#: src/exec_ptrace.c:1513 src/exec_ptrace.c:1520 src/exec_ptrace.c:1533
+#: src/exec_ptrace.c:1541 src/exec_ptrace.c:1547 src/exec_ptrace.c:1553
+#, c-format
+msgid "%s[%d] mismatch, expected \"%s\", got \"%s\""
+msgstr "mancjade corispondence %s[%d], si spietave \"%s\", si à vût \"%s\""
+
+#: src/exec_ptrace.c:1620
+#, c-format
+msgid "process %d unexpected status 0x%x"
+msgstr "il procès %d al à tornât il stât inspietât 0x%x"
+
+#: src/exec_ptrace.c:1711
+#, c-format
+msgid "unable to get event message for process %d"
+msgstr "impussibil otignî il messaç dal event pal procès %d"
+
+#: src/exec_ptrace.c:1718
+#, c-format
+msgid "unable to get registers for process %d"
+msgstr "impussibil otignî i regjistris pal procès %d"
+
+#: src/exec_pty.c:103
+msgid "unable to allocate pty"
+msgstr "impussibil assegnâ pty"
+
+#: src/exec_pty.c:268 src/signal.c:101 src/suspend_nopty.c:99
+#, c-format
+msgid "unable to restore handler for signal %d"
+msgstr "impussibil ripristinâ il gjestôr pal segnâl %d"
+
+#: src/exec_pty.c:1222
+msgid "unable to send message to monitor process"
+msgstr "impussibil inviâ il messaç par monitorâ il procès"
+
+#: src/load_plugins.c:73 src/load_plugins.c:220 src/load_plugins.c:230
+#: src/load_plugins.c:240 src/load_plugins.c:287
+#, c-format
+msgid "error in %s, line %d while loading plugin \"%s\""
+msgstr "erôr in %s, rie %d intant che si cjariave il plugin \"%s\""
+
+#: src/load_plugins.c:184 src/load_plugins.c:255
+#, c-format
+msgid "ignoring duplicate plugin \"%s\" in %s, line %d"
+msgstr "si ignore il plugin duplicât \"%s\" in %s, rie %d"
+
+#: src/load_plugins.c:222
+#, c-format
+msgid "unable to load %s: %s"
+msgstr "impussibil cjariâ %s: %s"
+
+#: src/load_plugins.c:232
+#, c-format
+msgid "unable to find symbol \"%s\" in %s"
+msgstr "impussibil cjatâ il simbul \"%s\" in %s"
+
+#: src/load_plugins.c:242
+#, c-format
+msgid "incompatible plugin major version %d (expected %d) found in %s"
+msgstr "numar principâl di version dal plugin %d no compatibil (si spietave %d) cjatât in %s"
+
+#: src/load_plugins.c:260
+#, c-format
+msgid "ignoring policy plugin \"%s\" in %s, line %d"
+msgstr "si ignore il plugin di politiche \"%s\" in %s, rie %d"
+
+#: src/load_plugins.c:263
+msgid "only a single policy plugin may be specified"
+msgstr "dome un singul plugin di politiche al podarès jessi specificât"
+
+#: src/load_plugins.c:289
+#, c-format
+msgid "unknown plugin type %d found in %s"
+msgstr "gjenar di plugin %d no cognossût, cjatât in %s"
+
+#: src/load_plugins.c:472
+#, c-format
+msgid "policy plugin %s does not include a check_policy method"
+msgstr "il plugin di politiche %s nol inclût un metodi check_policy"
+
+#: src/parse_args.c:214
+#, c-format
+msgid "invalid environment variable name: %s"
+msgstr "non de variabile di ambient no valit: %s"
+
+#: src/parse_args.c:317
+msgid "the argument to -C must be a number greater than or equal to 3"
+msgstr "l'argoment di -C al scugne jessi un numar plui grant o compagn a 3"
+
+#: src/parse_args.c:554
+msgid "you may not specify both the -i and -s options"
+msgstr "no tu puedis specificâ dutis dôs lis opzions -i e -s"
+
+#: src/parse_args.c:559
+msgid "you may not specify both the -i and -E options"
+msgstr "no tu puedis specificâ dutis dôs lis opzions -i e -E"
+
+#: src/parse_args.c:569
+msgid "the -E option is not valid in edit mode"
+msgstr "la opzion -E no je valide te modalitât di modifiche"
+
+#: src/parse_args.c:572
+msgid "you may not specify environment variables in edit mode"
+msgstr "no si podarès specificâ lis variabilis di ambient inte modalitât di modifiche"
+
+#: src/parse_args.c:582
+msgid "the -U option may only be used with the -l option"
+msgstr "al è pussibil doprâ la opzion -U dome cu la opzion -l"
+
+#: src/parse_args.c:586
+msgid "the -A and -S options may not be used together"
+msgstr "nol è pussibil doprâ adun lis opzions -A e -S"
+
+#: src/parse_args.c:684
+msgid "sudoedit is not supported on this platform"
+msgstr "sudoedit nol è supuartât su cheste plateforme"
+
+#: src/parse_args.c:767
+msgid "Only one of the -e, -h, -i, -K, -l, -s, -v or -V options may be specified"
+msgstr "Dome une des opzions -e, -h, -i, -K, -l, -s, -v o -V e podarès jessi specificade"
+
+#: src/parse_args.c:780
+msgid "Only one of the -K, -k or -N options may be specified"
+msgstr "Al è pussibil specificâ dome une des opzions -K, -k, -N"
+
+#: src/parse_args.c:796
+#, c-format
+msgid ""
+"%s - edit files as another user\n"
+"\n"
+msgstr ""
+"%s - modifiche i file come altri utent\n"
+"\n"
+
+#: src/parse_args.c:798
+#, c-format
+msgid ""
+"%s - execute a command as another user\n"
+"\n"
+msgstr ""
+"%s - eseguìs un comant come altri utent\n"
+"\n"
+
+#: src/parse_args.c:804
+msgid ""
+"\n"
+"Options:\n"
+msgstr ""
+"\n"
+"Opzions:\n"
+
+#: src/parse_args.c:806
+msgid "use a helper program for password prompting"
+msgstr "Dopre un program di jutori par domandâ la password"
+
+#: src/parse_args.c:809
+msgid "use specified BSD authentication type"
+msgstr "dopre il gjenar di autenticazion BSD specificât"
+
+#: src/parse_args.c:813
+msgid "run command in the background"
+msgstr "eseguìs il comant in background"
+
+#: src/parse_args.c:816
+msgid "ring bell when prompting"
+msgstr "sune la campanele cuant che e ven domandade une rispueste"
+
+#: src/parse_args.c:818
+msgid "close all file descriptors >= num"
+msgstr "siere ducj i descritôrs di file >= num"
+
+#: src/parse_args.c:821
+msgid "run command with the specified BSD login class"
+msgstr "eseguìs il comant cun la classe di acès BSD specificade"
+
+#: src/parse_args.c:824
+msgid "change the working directory before running command"
+msgstr "cambie la cartele di lavôr prime di eseguî il comant"
+
+#: src/parse_args.c:827
+msgid "preserve user environment when running command"
+msgstr "preserve l'ambient utent cuant che si eseguìs un comant"
+
+#: src/parse_args.c:829
+msgid "preserve specific environment variables"
+msgstr "preserve lis specifichis variabilis di ambient"
+
+#: src/parse_args.c:831
+msgid "edit files instead of running a command"
+msgstr "modifiche i file invezit di eseguî un comant"
+
+#: src/parse_args.c:834
+msgid "run command as the specified group name or ID"
+msgstr "eseguìs il comant come il ID o il non dal grup specificât"
+
+#: src/parse_args.c:837
+msgid "set HOME variable to target user's home dir"
+msgstr "stabilìs la variabile HOME ae cartele home dal utent di destinazion"
+
+#: src/parse_args.c:840
+msgid "display help message and exit"
+msgstr "mostre il messaç di jutori e jes"
+
+#: src/parse_args.c:842
+msgid "run command on host (if supported by plugin)"
+msgstr "eseguìs il comant sul host (se supuartât dal plugin)"
+
+#: src/parse_args.c:845
+msgid "run login shell as the target user; a command may also be specified"
+msgstr "eseguìs une shell di acès come utent di destinazion; si podarès ancje specificâ un comant"
+
+#: src/parse_args.c:847
+msgid "remove timestamp file completely"
+msgstr "gjave dal dut il file de marche temporâl"
+
+#: src/parse_args.c:850
+msgid "invalidate timestamp file"
+msgstr "invalide il file de marche temporâl"
+
+#: src/parse_args.c:853
+msgid "list user's privileges or check a specific command; use twice for longer format"
+msgstr "liste i privileçs dal utent o verifiche un comant specific; doprâ dôs voltis pal formât plui lunc"
+
+#: src/parse_args.c:856
+msgid "non-interactive mode, no prompts are used"
+msgstr "modalitât no interative, nissune richieste e ven presentade"
+
+#: src/parse_args.c:859
+msgid "preserve group vector instead of setting to target's"
+msgstr "preserve il vetôr dal grup invezit di metilu a chel de destinazion"
+
+#: src/parse_args.c:862
+msgid "use the specified password prompt"
+msgstr "dopre la richieste de password specificade"
+
+#: src/parse_args.c:864
+msgid "change the root directory before running command"
+msgstr "cambie la cartele lidrîs prime di eseguî il comant"
+
+#: src/parse_args.c:867
+msgid "create SELinux security context with specified role"
+msgstr "cree il contest di sigurece SELinux cul rûl specificât"
+
+#: src/parse_args.c:870
+msgid "read password from standard input"
+msgstr "lei la passwrod dal standard input"
+
+#: src/parse_args.c:873
+msgid "run shell as the target user; a command may also be specified"
+msgstr "eseguìs la shell come l'utent di destinazion; si podarès ancje specificâ un comant"
+
+#: src/parse_args.c:877
+msgid "create SELinux security context with specified type"
+msgstr "cree il contest di sigurece SELinux cul gjenar specificât"
+
+#: src/parse_args.c:880
+msgid "terminate command after the specified time limit"
+msgstr "termine il comant dopo il limit di timp specificât"
+
+#: src/parse_args.c:883
+msgid "in list mode, display privileges for user"
+msgstr "in modalitât liste, mostre i privileçs dal utent"
+
+#: src/parse_args.c:886
+msgid "run command (or edit file) as specified user name or ID"
+msgstr "eseguìs il comant (o modifiche il file) come non utent o ID specificât"
+
+#: src/parse_args.c:888
+msgid "display version information and exit"
+msgstr "mostre informazions di version e jes"
+
+#: src/parse_args.c:891
+msgid "update user's timestamp without running a command"
+msgstr "inzorne la marche temporâl dal utent cence eseguî un comant"
+
+#: src/parse_args.c:894
+msgid "stop processing command line arguments"
+msgstr "ferme la elaborazion dai argoments a rie di comant"
+
+#: src/selinux.c:83
+msgid "unable to open audit system"
+msgstr "impussibil vierzi il sisteme di audit"
+
+#: src/selinux.c:93
+msgid "unable to send audit message"
+msgstr "impussibil inviâ il messaç di audit"
+
+#: src/selinux.c:129
+#, c-format
+msgid "unable to fgetfilecon %s"
+msgstr "impussibil eseguî fgetfilecon %s"
+
+#: src/selinux.c:134
+#, c-format
+msgid "%s changed labels"
+msgstr "%s al à modificâts lis etichetis"
+
+#: src/selinux.c:142
+#, c-format
+msgid "unable to restore context for %s"
+msgstr "impussibil ripristinâ il contest par %s"
+
+#: src/selinux.c:190
+#, c-format
+msgid "unable to open %s, not relabeling tty"
+msgstr "impussibil vierzi %s, no si torne a etichetâ tty"
+
+#: src/selinux.c:194 src/selinux.c:239 src/selinux.c:269
+#, c-format
+msgid "%s is not a character device, not relabeling tty"
+msgstr "%s nol è un dispositîf a caratars, no si torne a etichetâ tty"
+
+#: src/selinux.c:203
+msgid "unable to get current tty context, not relabeling tty"
+msgstr "impussibil otignî il contest tty atuâl, no si torne a etichetâ tty"
+
+#: src/selinux.c:210
+msgid "unknown security class \"chr_file\", not relabeling tty"
+msgstr "classe di sigurece \"chr_file\" no cognossude, no si torne a etichetâ tty"
+
+#: src/selinux.c:215
+msgid "unable to get new tty context, not relabeling tty"
+msgstr "impussibil otignî il gnûf contest tty, no si torne a etichetâ tty"
+
+#: src/selinux.c:224
+msgid "unable to set new tty context"
+msgstr "impussibil stabilî un gnûf contest tty"
+
+#: src/selinux.c:323
+#, c-format
+msgid "you must specify a role for type %s"
+msgstr "si scugne specificâ un rûl pal gjenar %s"
+
+#: src/selinux.c:329
+#, c-format
+msgid "unable to get default type for role %s"
+msgstr "impussibil otignî il gjenar predefinît pal rûl %s"
+
+#: src/selinux.c:341
+msgid "failed to get new context"
+msgstr "impussibil otignî un gnûf contest"
+
+#: src/selinux.c:350
+#, c-format
+msgid "failed to set new role %s"
+msgstr "no si è rivâts a stabilî il gnûf rûl %s"
+
+#: src/selinux.c:354
+#, c-format
+msgid "failed to set new type %s"
+msgstr "no si è rivâts a stabilî il gnûf gjenar %s"
+
+#: src/selinux.c:366
+#, c-format
+msgid "%s is not a valid context"
+msgstr "%s nol è un contest valit"
+
+#: src/selinux.c:394
+msgid "failed to get old context"
+msgstr "impussibil otignî il contest vecjo"
+
+#: src/selinux.c:400
+msgid "unable to determine enforcing mode."
+msgstr "impussibil determinâ la modalitât di costrizion."
+
+#: src/selinux.c:425
+#, c-format
+msgid "unable to set exec context to %s"
+msgstr "impussibil meti il contest di exec a %s"
+
+#: src/selinux.c:432
+#, c-format
+msgid "unable to set key creation context to %s"
+msgstr "impussibil meti il contest de creazion de clâf a %s"
+
+#: src/sesh.c:114 src/sesh.c:134
+msgid "Only one of the -c or -i options may be specified"
+msgstr "Al è pussibil specificâ dome une des opzions -c o -i"
+
+#: src/sesh.c:129
+#, c-format
+msgid "invalid file descriptor number: %s"
+msgstr "numar descritôr file no valit: %s"
+
+#: src/sesh.c:167 src/sesh.c:171 src/sesh.c:175
+#, c-format
+msgid "The -%c option may not be used in edit mode."
+msgstr "Nol è pussibil doprâ la opzion -%c te modalitât di modifiche"
+
+#: src/sesh.c:184 src/sesh.c:189
+#, c-format
+msgid "The -%c option may only be used in edit mode."
+msgstr "Al è pussibil doprâ la opzion -%c dome te modalitât di modifiche."
+
+#: src/sesh.c:294 src/sesh.c:394 src/sudo_edit.c:204
+#, c-format
+msgid "%s: editing symbolic links is not permitted"
+msgstr "%s: la modifiche dai colegaments simbolics no je permetude"
+
+#: src/sesh.c:297 src/sesh.c:397 src/sudo_edit.c:207
+#, c-format
+msgid "%s: editing files in a writable directory is not permitted"
+msgstr "%s: la modifiche dai file intune cartele cun acès in scriture no je permetude"
+
+#: src/sesh.c:381 src/sesh.c:402 src/sesh.c:411 src/sesh.c:419
+#: src/sudo_edit.c:331
+#, c-format
+msgid "contents of edit session left in %s"
+msgstr "contignûts de session di modifiche lassâts in %s"
+
+#: src/sesh.c:476 src/sudo_edit.c:94
+msgid "unable to get group list"
+msgstr "impussibil otignî la liste dai grups"
+
+#: src/signal.c:79
+#, c-format
+msgid "unable to save handler for signal %d"
+msgstr "impussibil salvâ il gjestôr pal segnâl %d"
+
+#: src/solaris.c:72
+msgid "resource control limit has been reached"
+msgstr "si è rivâts al limit di control de risorse"
+
+#: src/solaris.c:75
+#, c-format
+msgid "user \"%s\" is not a member of project \"%s\""
+msgstr "l'utent \"%s\" nol è un membri dal progjet \"%s\""
+
+#: src/solaris.c:79
+msgid "the invoking task is final"
+msgstr "la ativitât di invocazion e je definitive"
+
+#: src/solaris.c:82
+#, c-format
+msgid "could not join project \"%s\""
+msgstr "impussibil unîsi al progjet \"%s\""
+
+#: src/solaris.c:89
+#, c-format
+msgid "no resource pool accepting default bindings exists for project \"%s\""
+msgstr "nissun font di risorsis pal progjet \"%s\" che al aceti i vincui predefinîts"
+
+#: src/solaris.c:93
+#, c-format
+msgid "specified resource pool does not exist for project \"%s\""
+msgstr "il font di risorsis specificât nol esist pal progjet \"%s\""
+
+#: src/solaris.c:97
+#, c-format
+msgid "could not bind to default resource pool for project \"%s\""
+msgstr "impussibil vincolâ al font di risorsis predefinît pal progjet \"%s\""
+
+#: src/solaris.c:104
+#, c-format
+msgid "setproject failed for project \"%s\""
+msgstr "setproject al à falît pal progjet \"%s\""
+
+#: src/solaris.c:106
+#, c-format
+msgid "warning, resource control assignment failed for project \"%s\""
+msgstr "avertiment, faliment de assegnazion dal control de risorse pal progjet \"%s\""
+
+#: src/sudo.c:216
+#, c-format
+msgid "Sudo version %s\n"
+msgstr "Version di sudo: %s\n"
+
+#: src/sudo.c:218
+#, c-format
+msgid "Configure options: %s\n"
+msgstr "Opzions di configurazion: %s\n"
+
+#: src/sudo.c:226
+msgid "fatal error, unable to load plugins"
+msgstr "erôr fatâl, impussibil cjariâ i plugin"
+
+#: src/sudo.c:272
+msgid "plugin did not return a command to execute"
+msgstr "il plugin nol à tornât un comant di eseguî"
+
+#: src/sudo.c:306
+#, c-format
+msgid "unexpected sudo mode 0x%x"
+msgstr "modalitât 0x%x di sudo inspietade"
+
+#: src/sudo.c:555
+#, c-format
+msgid "you do not exist in the %s database"
+msgstr "no tu esistis te base di dâts %s"
+
+#: src/sudo.c:612
+msgid "unable to determine tty"
+msgstr "impussibil determinâ tty"
+
+#: src/sudo.c:928
+msgid "The \"no new privileges\" flag is set, which prevents sudo from running as root."
+msgstr "La opzion (flag) \"no new privileges\" (nissun gnûf privileç) e je definide. Chest al impedìs a sudo di zirâ come root."
+
+#: src/sudo.c:930
+msgid "If sudo is running in a container, you may need to adjust the container configuration to disable the flag."
+msgstr "Se sudo al ven eseguît intun contignidôr, tu varessis di justâ la configurazion dal contignidôr par disabilitâ la flag (opzion)."
+
+#: src/sudo.c:964
+#, c-format
+msgid "%s must be owned by uid %d and have the setuid bit set"
+msgstr "%s al scugne jessi di proprietât dal uid %d e vê stabilît il bit setuid"
+
+#: src/sudo.c:967
+#, c-format
+msgid "effective uid is not %d, is %s on a file system with the 'nosuid' option set or an NFS file system without root privileges?"
+msgstr "il uid efetîf nol è %d, %s isal suntun filesystem cun stabilide la opzion 'nosuid' o un filesystem NFS cence privileçs di root?"
+
+#: src/sudo.c:973
+#, c-format
+msgid "effective uid is not %d, is sudo installed setuid root?"
+msgstr "il uid efetîf nol è %d, sudo isal instalât cun setuid root?"
+
+#: src/sudo.c:989 src/tgetpass.c:331
+msgid "unable to set supplementary group IDs"
+msgstr "impussibil stabilî il ID di grup suplementâr"
+
+#: src/sudo.c:996
+#, c-format
+msgid "unable to set effective gid to runas gid %u"
+msgstr "impussibil stabilî il gid efetîf par eseguî come gid %u"
+
+#: src/sudo.c:1002
+#, c-format
+msgid "unable to set gid to runas gid %u"
+msgstr "impussibil stabilî il gid par eseguî come gid %u"
+
+#: src/sudo.c:1032
+msgid "argv not set by the security policy"
+msgstr "argv nol è stabilît de politiche di sigurece"
+
+#: src/sudo.c:1036
+msgid "envp not set by the security policy"
+msgstr "envp nol è stabilît de politiche di sigurece"
+
+#: src/sudo.c:1058
+#, c-format
+msgid "unexpected child termination condition: %d"
+msgstr "condizion di jessude dal fi inspietade: %d"
+
+#: src/sudo.c:1171
+msgid "unable to initialize policy plugin"
+msgstr "impussibil inizializâ il plugin de politiche"
+
+#: src/sudo.c:1233
+#, c-format
+msgid "policy plugin %s is missing the \"check_policy\" method"
+msgstr "il plugin de politiche %s al mancje dal metodi \"check_policy\""
+
+#: src/sudo.c:1279
+#, c-format
+msgid "policy plugin %s does not support listing privileges"
+msgstr "il plugin di politiche %s nol supuarte il listâ dai privileçs"
+
+#: src/sudo.c:1323
+#, c-format
+msgid "policy plugin %s does not support the -v option"
+msgstr "il plugin di politiche %s nol supuarte la opzion -v"
+
+#: src/sudo.c:1361
+#, c-format
+msgid "policy plugin %s does not support the -k/-K options"
+msgstr "il plugin di politiche %s nol supuarte lis opzions -k/-K"
+
+#: src/sudo.c:1490
+#, c-format
+msgid "error initializing I/O plugin %s"
+msgstr "erôr tal inizializâ il plugin I/O %s"
+
+#: src/sudo.c:1493
+msgid "error initializing I/O plugin"
+msgstr "erôr tal inizializâ il plugin I/O"
+
+#: src/sudo.c:1642
+#, c-format
+msgid "error initializing audit plugin %s"
+msgstr "erôr tal inizializâ il plugin di audit %s"
+
+#: src/sudo.c:1721
+#, c-format
+msgid "%s: unable to log error event%s%s"
+msgstr "%s: impussibil regjistrâ l'event di erôr%s%s"
+
+#: src/sudo.c:1757
+#, c-format
+msgid "%s: unable to log accept event%s%s"
+msgstr "%s: impussibil regjistrâ l'event di acetazion%s%s"
+
+#: src/sudo.c:1762 src/sudo.c:1800
+msgid "audit plugin error"
+msgstr "erôr dal plugin di audit"
+
+#: src/sudo.c:1795
+#, c-format
+msgid "%s: unable to log reject event%s%s"
+msgstr "%s: impussibil regjistrâ l'event di refudament%s%s"
+
+#: src/sudo.c:1855
+#, c-format
+msgid "error initializing approval plugin %s"
+msgstr "erôr tal inizializâ il plugin di aprovazion %s"
+
+#: src/sudo.c:1925
+msgid "command rejected by approver"
+msgstr "comant refudât da cui che al aprove"
+
+#: src/sudo_edit.c:113
+msgid "no writable temporary directory found"
+msgstr "nissune cartele temporanie scrivibile cjatade"
+
+#: src/sudo_edit.c:291
+#, c-format
+msgid "%s left unmodified"
+msgstr "%s lassât no modificât"
+
+#: src/sudo_edit.c:304 src/sudo_edit.c:569
+#, c-format
+msgid "%s unchanged"
+msgstr "%s no modificât"
+
+#: src/sudo_edit.c:481
+msgid "sesh: internal error: odd number of paths"
+msgstr "sesh: erôr interni: strani numar di percors"
+
+#: src/sudo_edit.c:483
+msgid "sesh: unable to create temporary files"
+msgstr "sesh: impussibil creâ file temporanis"
+
+#: src/sudo_edit.c:485 src/sudo_edit.c:604
+msgid "sesh: killed by a signal"
+msgstr "sesh: copât di un segnâl"
+
+#: src/sudo_edit.c:487 src/sudo_edit.c:607
+#, c-format
+msgid "sesh: unknown error %d"
+msgstr "sesh: erôr %d no cognossût"
+
+#: src/sudo_edit.c:597
+msgid "unable to copy temporary files back to their original location"
+msgstr "impussibil tornâ a copiâ i file temporanis te lôr posizion origjinarie"
+
+#: src/sudo_edit.c:601
+msgid "unable to copy some of the temporary files back to their original location"
+msgstr "impussibil tornâ a copiâ cualchidun dai file temporanis te lôr posizion origjinarie"
+
+#: src/sudo_edit.c:646
+#, c-format
+msgid "unable to change uid to root (%u)"
+msgstr "impussibil cambiâ il uid a root (%u)"
+
+#: src/sudo_edit.c:660
+msgid "plugin error: invalid file list for sudoedit"
+msgstr "erôr di plugin: liste di files par sudoedit no valide"
+
+#: src/sudo_edit.c:681
+msgid "plugin error: missing file list for sudoedit"
+msgstr "erôr di plugin: e mancje la liste file par sudoedit"
+
+#: src/sudo_edit.c:724 src/sudo_edit.c:739
+msgid "unable to read the clock"
+msgstr "impussibil lei l'orloi"
+
+#: src/sudo_intercept_common.c:365
+msgid "intercept port not set"
+msgstr "puarte di intercetazion no stabilide"
+
+#: src/tgetpass.c:95
+msgid "timed out reading password"
+msgstr "timp scjadût tal lei la password"
+
+#: src/tgetpass.c:98
+msgid "no password was provided"
+msgstr "no je stade furnide nissune password"
+
+#: src/tgetpass.c:101
+msgid "unable to read password"
+msgstr "impussibil lei la password"
+
+#: src/tgetpass.c:141
+msgid "a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper"
+msgstr "al è necessari un terminâl par lei la password; o tu dopris la opzion -S par lei dal standard input opûr configure un aiût askpass"
+
+#: src/tgetpass.c:152
+msgid "no askpass program specified, try setting SUDO_ASKPASS"
+msgstr "nissun program pe richieste password specificât, cîr di stabilî SUDO_ASKPASS"
+
+#: src/tgetpass.c:326
+#, c-format
+msgid "unable to set gid to %u"
+msgstr "impussibil stabilî il gid a %u"
+
+#: src/tgetpass.c:336
+#, c-format
+msgid "unable to set uid to %u"
+msgstr "impussibil stabilî il uid a %u"
+
+#: src/tgetpass.c:341
+#, c-format
+msgid "unable to run %s"
+msgstr "impussibil eseguî %s"
+
+#: src/utmp.c:288
+msgid "unable to save stdin"
+msgstr "impussibil salvâ stdin"
+
+#: src/utmp.c:290
+msgid "unable to dup2 stdin"
+msgstr "impussibil esguî dup2 su stdin"
+
+#: src/utmp.c:293
+msgid "unable to restore stdin"
+msgstr "impussibil ripristinâ stdin"
+
+#~ msgid "error reading from signal pipe"
+#~ msgstr "erôr tal lei dal condot (pipe) dal segnâl"
+
+#~ msgid "%s%s: %s"
+#~ msgstr "%s%s: %s"
+
+#~ msgid "%s must be owned by uid %d"
+#~ msgstr "%s al scugne jessi di proprietât dal uid %d"
+
+#~ msgid "%s must be only be writable by owner"
+#~ msgstr "%s al scugne jessi scrivibil dome dal proprietari"
+
+#~ msgid "ignoring duplicate policy plugin \"%s\" in %s, line %d"
+#~ msgstr "si ignore il plugin di politiche duplicât \"%s\" in %s, rie %d"
+
+#~ msgid "unable to set tty context to %s"
+#~ msgstr "impussibil meti il contest di tty a %s"
+
+#~ msgid "requires at least one argument"
+#~ msgstr "al domande almancul un argoment"
+
+#~ msgid "unable to run %s as a login shell"
+#~ msgstr "impussibil eseguî %s come une shell di acès"
+
+#~ msgid "unknown uid %u: who are you?"
+#~ msgstr "uid %u no cognossût: cui sêstu?"
+
+#~ msgid "%s: short write"
+#~ msgstr "%s: scriture curte"
+
+#~ msgid "unable to read temporary file"
+#~ msgstr "impussibil lei il file temporani"
+
+#~ msgid "no tty present and no askpass program specified"
+#~ msgstr "nissun tty presint e nissun program specificât pe richieste password"

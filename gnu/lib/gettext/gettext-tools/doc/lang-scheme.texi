@@ -1,0 +1,59 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2020 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@node Scheme
+@subsection GNU guile - Scheme
+@cindex Scheme
+@cindex guile
+
+@table @asis
+@item RPMs
+guile
+
+@item Ubuntu packages
+guile-2.0
+
+@item File extension
+@code{scm}
+
+@item String syntax
+@code{"abc"}
+
+@item gettext shorthand
+@code{(_ "abc")}, @code{_"abc"} (GIMP script-fu extension)
+
+@item gettext/ngettext functions
+@code{gettext}, @code{ngettext}
+
+@item textdomain
+@code{textdomain}
+
+@item bindtextdomain
+@code{bindtextdomain}
+
+@item setlocale
+@code{(catch #t (lambda () (setlocale LC_ALL "")) (lambda args #f))}
+
+@item Prerequisite
+@code{(use-modules (ice-9 format))}
+
+@item Use or emulate GNU gettext
+use
+
+@item Extractor
+@code{xgettext -k_}
+
+@item Formatting with positions
+@c @code{format "~1@@*~D ~0@@*~D~2@@*"}, requires @code{(use-modules (ice-9 format))}
+@c not yet supported
+---
+
+@item Portability
+On platforms without gettext, no translation.
+
+@item po-mode marking
+---
+@end table
+
+An example is available in the @file{examples} directory: @code{hello-guile}.

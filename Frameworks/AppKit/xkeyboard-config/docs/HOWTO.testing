@@ -1,0 +1,22 @@
+A mini-HOWTO test the XKB config without modifying the system configuration.
+(Only tested with XFree86 4.3+.)
+
+First see what your configuration is. Note the model and layout.
+   $ setxkbmap -print
+
+Then unpack the sources locally ...
+   $ gzip -dc xkeyboard-config*.tar.gz | tar -tf -
+... and change to the delivered directory
+   $ cd xkeyboard-config-<version>
+
+Then try to load the current keyboard using the local rules
+   $ setxkbmap -v 10 -I$PWD -rules base
+
+Now try to set different keyboards using the -model and -layout.
+   $ setxkbmap -v 10 -I$PWD -rules base -model pc102 -layout intl
+Look in the file rules/base for other example models and layouts
+
+If there was a problem, you can reset the keyboard like so:
+   $ setxkbmap -rules xfree86 -model <noted model> -layout <noted layout>
+
+If that doesn't work, you may have to log out and log back in.

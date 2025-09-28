@@ -1,0 +1,56 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of Perl support: use of NUL as delimiter.
+
+printf '"\0' > xg-pl-9a.pl
+printf "'"'\0' > xg-pl-9b.pl
+printf '/\0' > xg-pl-9c.pl
+printf '?\0' > xg-pl-9d.pl
+printf '`\0' > xg-pl-9e.pl
+printf 'm\0' > xg-pl-9f.pl
+printf 'q\0' > xg-pl-9g.pl
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location -d xg-pl-9.tmp xg-pl-9a.pl 2>xg-pl-9.err
+result=$?
+cat xg-pl-9.err
+test $result = 0 || Exit 1
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location -d xg-pl-9.tmp xg-pl-9b.pl 2>xg-pl-9.err
+result=$?
+cat xg-pl-9.err
+test $result = 0 || Exit 1
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location -d xg-pl-9.tmp xg-pl-9c.pl 2>xg-pl-9.err
+result=$?
+cat xg-pl-9.err
+test $result = 0 || Exit 1
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location -d xg-pl-9.tmp xg-pl-9d.pl 2>xg-pl-9.err
+result=$?
+cat xg-pl-9.err
+test $result = 0 || Exit 1
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location -d xg-pl-9.tmp xg-pl-9e.pl 2>xg-pl-9.err
+result=$?
+cat xg-pl-9.err
+test $result = 0 || Exit 1
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location -d xg-pl-9.tmp xg-pl-9f.pl 2>xg-pl-9.err
+result=$?
+cat xg-pl-9.err
+test $result = 0 || Exit 1
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location -d xg-pl-9.tmp xg-pl-9g.pl 2>xg-pl-9.err
+result=$?
+cat xg-pl-9.err
+test $result = 0 || Exit 1
+
+exit 0

@@ -1,0 +1,229 @@
+// These partial variants assign ISO_Level3_Shift to various XKB keycodes
+// so that the third shift level can be reached.
+
+// The default behaviour:
+// the right Alt key (AltGr) chooses the third symbol engraved on a key.
+default partial modifier_keys
+xkb_symbols "ralt_switch" {
+  key <RALT> {
+    type[Group1]="ONE_LEVEL",
+    symbols[Group1] = [ ISO_Level3_Shift ]
+  };
+  include "level3(modifier_mapping)"
+};
+
+// Ensure a mapping to a real modifier for LevelThree.
+partial modifier_keys
+xkb_symbols "modifier_mapping" {
+  replace key <LVL3> {
+    type[Group1] = "ONE_LEVEL",
+    symbols[Group1] = [ ISO_Level3_Shift ]
+  };
+  modifier_map Mod5 { <LVL3> };
+};
+
+// The right Alt key never chooses the third level.
+// This option attempts to undo the effect of a layout's inclusion of
+// 'ralt_switch'.  You may want to also select another level3 option
+// to map the level3 shift to some other key.
+partial modifier_keys
+xkb_symbols "ralt_alt" {
+  key <RALT> {
+    type[Group1]="TWO_LEVEL",
+    type[Group2]="TWO_LEVEL",
+    type[Group3]="TWO_LEVEL",
+    type[Group4]="TWO_LEVEL",
+    symbols[Group1] = [ Alt_R, Meta_R ],
+    symbols[Group2] = [ Alt_R, Meta_R ],
+    symbols[Group3] = [ Alt_R, Meta_R ],
+    symbols[Group4] = [ Alt_R, Meta_R ]
+  };
+  modifier_map Mod1 { <RALT> };
+};
+
+// The right Alt key (while pressed) chooses the third shift level,
+// and Compose is mapped to its second level.
+partial modifier_keys
+xkb_symbols "ralt_switch_multikey" {
+  key <RALT> {
+    type[Group1]="TWO_LEVEL",
+    symbols[Group1] = [ ISO_Level3_Shift, Multi_key ]
+  };
+  include "level3(modifier_mapping)"
+};
+
+// A special case of the right-Alt switch -- for use with grp:alts_toggle.
+hidden partial modifier_keys
+xkb_symbols "ralt_switch_for_alts_toggle" {
+  virtual_modifiers LAlt, AltGr;
+  key <LALT> {
+    type[Group1]="PC_RALT_LEVEL2",
+    symbols[Group1] = [ Alt_L, ISO_Prev_Group, ISO_Prev_Group ],
+    virtualMods= LAlt
+  };
+  key <RALT> {
+    type[Group1]="PC_ALT_LEVEL2",
+    symbols[Group1] = [ ISO_Level3_Shift, ISO_Next_Group ],
+    virtualMods= AltGr
+  };
+  include "level3(modifier_mapping)"
+};
+
+// Either Alt key (while pressed) chooses the third shift level.
+// (To be used mostly to imitate Mac OS functionality.)
+partial modifier_keys
+xkb_symbols "alt_switch" {
+  include "level3(lalt_switch)"
+  include "level3(ralt_switch)"
+};
+
+// The left Alt key (while pressed) chooses the third shift level.
+partial modifier_keys
+xkb_symbols "lalt_switch" {
+  key <LALT> {
+    type[Group1]="ONE_LEVEL",
+    symbols[Group1] = [ ISO_Level3_Shift ]
+  };
+  include "level3(modifier_mapping)"
+};
+
+// The right Ctrl key (while pressed) chooses the third shift level.
+partial modifier_keys
+xkb_symbols "switch" {
+  key <RCTL> {
+    type[Group1]="ONE_LEVEL",
+    symbols[Group1] = [ ISO_Level3_Shift ]
+  };
+  include "level3(modifier_mapping)"
+};
+
+// The Menu key (while pressed) chooses the third shift level.
+partial modifier_keys
+xkb_symbols "menu_switch" {
+  key <MENU> {
+    type[Group1]="ONE_LEVEL",
+    symbols[Group1] = [ ISO_Level3_Shift ]
+  };
+  include "level3(modifier_mapping)"
+};
+
+// Either Win key (while pressed) chooses the third shift level.
+partial modifier_keys
+xkb_symbols "win_switch" {
+  include "level3(lwin_switch)"
+  include "level3(rwin_switch)"
+};
+
+// The left Win key (while pressed) chooses the third shift level.
+partial modifier_keys
+xkb_symbols "lwin_switch" {
+  key <LWIN> {
+    type[Group1]="ONE_LEVEL",
+    symbols[Group1] = [ ISO_Level3_Shift ]
+  };
+  include "level3(modifier_mapping)"
+};
+
+// The right Win key (while pressed) chooses the third shift level.
+// (When using this map, you should set your keyboard as pc101 or pc102
+// instead of pc104 or pc105.)
+partial modifier_keys
+xkb_symbols "rwin_switch" {
+  key <RWIN> {
+    type[Group1]="ONE_LEVEL",
+    symbols[Group1] = [ ISO_Level3_Shift ]
+  };
+  include "level3(modifier_mapping)"
+};
+
+// The Enter key on the kepypad (while pressed) chooses the third shift level.
+// (This is especially useful for Mac laptops which miss the right Alt key.)
+partial modifier_keys
+xkb_symbols "enter_switch" {
+  key <KPEN> {
+    type[Group1]="ONE_LEVEL",
+    symbols[Group1] = [ ISO_Level3_Shift ]
+  };
+  include "level3(modifier_mapping)"
+};
+
+// The CapsLock key (while pressed) chooses the third shift level.
+partial modifier_keys
+xkb_symbols "caps_switch" {
+  key <CAPS> {
+    type[Group1]="ONE_LEVEL",
+    symbols[Group1] = [ ISO_Level3_Shift ]
+  };
+  include "level3(modifier_mapping)"
+};
+
+// The Backslash key (while pressed) chooses the third shift level.
+partial modifier_keys
+xkb_symbols "bksl_switch" {
+  key <BKSL> {
+    type[Group1]="ONE_LEVEL",
+    symbols[Group1] = [ ISO_Level3_Shift ]
+  };
+  include "level3(modifier_mapping)"
+};
+
+// The Less/Greater key (while pressed) chooses the third shift level.
+partial modifier_keys
+xkb_symbols "lsgt_switch" {
+  key <LSGT> {
+    type[Group1]="ONE_LEVEL",
+    symbols[Group1] = [ ISO_Level3_Shift ]
+  };
+  include "level3(modifier_mapping)"
+};
+
+// The CapsLock key (while pressed) chooses the third shift level,
+// and latches when pressed together with another third-level chooser.
+partial modifier_keys
+xkb_symbols "caps_switch_latch" {
+  key <CAPS> {
+    type[Group1]="THREE_LEVEL",
+    symbols[Group1] = [ ISO_Level3_Shift, ISO_Level3_Shift, ISO_Level3_Latch ]
+  };
+  include "level3(modifier_mapping)"
+};
+
+// The Backslash key (while pressed) chooses the third shift level,
+// and latches when pressed together with another third-level chooser.
+partial modifier_keys
+xkb_symbols "bksl_switch_latch" {
+  key <BKSL> {
+    type[Group1]="THREE_LEVEL",
+    symbols[Group1] = [ ISO_Level3_Shift, ISO_Level3_Shift, ISO_Level3_Latch ]
+  };
+  include "level3(modifier_mapping)"
+};
+
+// The Less/Greater key (while pressed) chooses the third shift level,
+// and latches when pressed together with another third-level chooser.
+partial modifier_keys
+xkb_symbols "lsgt_switch_latch" {
+  key <LSGT> {
+    type[Group1]="THREE_LEVEL",
+    symbols[Group1] = [ ISO_Level3_Shift, ISO_Level3_Shift, ISO_Level3_Latch ]
+  };
+  include "level3(modifier_mapping)"
+};
+
+// Number key 4 chooses third shift level when pressed in isolation.
+partial modifier_keys
+xkb_symbols "4_switch_isolated" {
+  override key <AE04> {
+    symbols[Group1] = [ ISO_Level3_Shift ]
+  };
+  include "level3(modifier_mapping)"
+};
+
+// Number key 9 chooses third shift level when pressed in isolation.
+partial modifier_keys
+xkb_symbols "9_switch_isolated" {
+  override key <AE09> {
+    symbols[Group1] = [ ISO_Level3_Shift ]
+  };
+  include "level3(modifier_mapping)"
+};

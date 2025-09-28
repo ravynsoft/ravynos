@@ -1,0 +1,151 @@
+# ChangeLog for Test.pm dist
+
+1.26    2013-01-16  Jesse R Vincent <jesse@bestpractical.com>
+	* Bump version to a stable number. No functional changes
+
+1.25_02 2009-06-08  Jesse R Vincent <jesse@bestpractical.com>
+	* Typo fixes from Perl core
+	* README updated
+	* Ancient TODO removed
+	* New Maintainer
+
+2004-04-24  Sean M. Burke <sburke@cpan.org>
+	* Release 1.25
+	* added some new tests
+	* Gisle Aas kindly contributes a bunch of new code that diffs
+	multiline result and expectation
+	* corrected some doc typoes to do with skip()
+	
+2003-04-18  Sean M. Burke <sburke@cpan.org>
+	* Release 1.24
+	* Two cosmetic fixes:  Ken Williams spotted the typo (tr/[...]//d
+	for tr/...//d) that was deleting brackets in program source
+	lines.  Fixed.
+	* And Rob Nagler noticed that I was reporting the MacPerl
+	"verison" instead of "version".  Fixed.  That's all.
+
+2002-10-11  Sean M. Burke <sburke@cpan.org>
+	* Release 1.23
+	* Dermot Musgrove notes that I switched localtime and gmtime in
+	the last dist!  Fixed.  That is all.
+
+2002-08-28  Sean M. Burke <sburke@cpan.org>
+	* Release 1.22
+	* Doc note about the danger of "ok Foo->can('bar');", as helpfully
+	noted by Schwern
+	* Applied Schwern's fix for false positives with "ok 1, undef;"
+	
+2002-08-26  Sean M. Burke <sburke@cpan.org>
+	* Release 1.21
+	* I take over maintenance.
+	* Lots of doc improvement and examples added.
+	* More comment lines are sent to STDERR/STDOUT, noting Perl
+	version and platform, noting content of line where error occurred
+	when it looks interesting, etc.
+	* A bit more DWIM with skip().
+	* Noted in the docs that this modules is indeed being developed.
+	
+2002-02-07  Michael G Schwern <schwern@pobox.com>
+	* Release 1.20
+	* Failure diagnostics now go to STDERR so they show up
+	  in 'make test'.
+	- noted in the docs that this module is no longer being
+	  developed.
+
+2001-12-17  Michael G Schwern <schwern@pobox.com>
+	* Release 1.19
+	- Resetting globals for mod_perl testing (thanks to Stas Bekman)
+ 	- License change to be same as perl's
+
+2001-07-20  Michael G Schwern <schwern@pobox.com>
+	* Release 1.18
+	* Now recommending Test::Simple/More in the docs
+	* Removed warning about skip interface, it was a mistake
+	- added mention of Pod::Tests and SelfTest
+	- Test's tests no longer report "UNEXPECTEDLY SUCCEEDED"
+
+2001-05-29  Michael G Schwern <schwern@pobox.com>
+	* Release 1.17
+	- protected against stray $/ and $,
+	* documented ok()
+	* made the regex diagnostics a bit more obvious
+ 	* Backported to 5.004 (if you're using the new Test::Harness)
+	* Included the VMS fix for ok()
+
+2001-02-16  Michael G Schwern <schwern@pobox.com>
+
+	* Release 1.16
+
+	* Taken over maintenance from Joshua.  Altered AUTHOR appropriately.
+	  Blame me.
+
+	* t/fail.t was failing on Windows because the filename was
+	  hardcoded in the test (its t\fail.t on Windows).  NOT A BUG!
+
+2000-11-22  Joshua Pritikin  <joshua.pritikin@db.com>
+
+	* Release 1.15.
+
+	* Fix documentation. (crt@kiski.net)
+
+1999-06-21  Joshua Pritikin  <joshua.pritikin@db.com>
+
+	* Release 1.14.
+
+	* Port back to 5.004_05.
+
+1999-05-07  Joshua Pritikin  <joshua.pritikin@db.com>
+
+	* Release 1.13.
+
+	* Handle undef without triggering warnings.  Added tests.
+
+1998-11-29  Joshua Pritikin  <joshua.pritikin@db.com>
+
+	* Release 1.122.
+
+	* Make Test.pm 7-bit clean.  (Sarathy)
+
+1998-11-23  Joshua Pritikin  <joshua.pritikin@db.com>
+
+	* Allow customization of 'skip' reason.  Improved tests.
+
+1998-11-17  Joshua Pritikin  <joshua.pritikin@db.com>
+
+	* Release 1.11.
+
+	* Add 5.005 dependency to Makefile.PL.
+
+1998-11-12  Joshua Pritikin  <joshua.pritikin@db.com>
+
+	* Release 1.10.
+
+	* Support qr//.
+
+1998-10-15  Joshua Pritikin  <joshua.pritikin@db.com>
+
+	* Release 1.09.
+
+	* Better diagnostics for failed todo tests.
+
+	* Document return value.
+
+1998-08-21  Joshua Pritikin  <joshua@eq1062.wks.na.deuba.com>
+
+	* Version 1.08.
+
+	* Documentation tweaks.
+
+1998-08-21  Joshua Pritikin  <joshua@eq1062.wks.na.deuba.com>
+
+	* Version 1.07.
+
+	* Send all output to $TESTOUT.
+
+	* Removed all failures from the test suite.  More work is still
+ 	needed but this is a start.
+
+	* Moved $ntest to @EXPORT_OK from @EXPORT.
+
+	* Instead of printing bits to STDERR, now all output goes to
+ 	STDOUT.

@@ -1,0 +1,20 @@
+! model         = keycodes
+  *             = default_keycodes
+
+! layout        variant    = symbols
+  my_layout     my_variant = my_symbols+extra_variant
+
+! layout        = symbols
+  my_layout     = my_symbols
+  *             = default_symbols
+
+! model         = types
+  *             = default_types
+
+! model         = compat
+  *             = default_compat
+
+! option        = compat
+  my_option     = |some:compat
+
+! include %S/inc-src-loop-twice

@@ -1,0 +1,220 @@
+#!/bin/zsh -f
+
+# Tmux has lots of options and sub-commands. It's very tedious to manually
+# check if the actual command's idea of all this matches the completion
+# function. So this is a helper script that automates checking the state of
+# _tmux.
+#
+# You need to call it like this, with a running tmux server:
+#
+# zsh -f check-tmux-state <path-to-tmux-binary> <path-to-_tmux-function>
+#
+# The script will tell you the differences in available and supported
+# sub-commands, command aliases, server options, session options and
+# window-options.
+#
+# It also checks if options have moved from one scope to another. If this
+# happens, then the option in question also appears in the "new/old" listings
+# of the involved scopes. First fix the scope changes, then the "new/old" lists
+# are accurate.
+
+emulate zsh
+setopt extended_glob null_glob no_octal_zeroes
+
+if (( $#argv != 2 )); then
+    printf 'usage: zsh -f check-tmux-state <tmux-binary> <_tmux-function>\n'
+    exit 1
+fi
+
+printf ' -!- Checking status of _tmux completion function definition -!-\n'
+
+autoload -Uz colors
+colors
+
+tmux=$1
+func=$2
+
+differences=none
+
+# We'll source the _tmux file and call a bunch of its functions to gather
+# information. For that, we need to put a few stubs into place so sourcing the
+# file doesn't blow up in our face.
+
+# We need to disable the new "local" keyword to make our data retrieval trick
+# work:
+disable -r local
+
+function _arguments () { }
+function _describe () { }
+function local () { }
+
+typeset -A rev
+
+source $func
+__tmux-server-options
+__tmux-session-options
+__tmux-window-options
+
+# Subcommand helper functions are defined like "function _tmux-foo() {"
+# in the _tmux function definition file.
+typeset -a supported_commands
+supported_commands=( $( grep '^_tmux-[^(]*() *{$' $func |
+                        sed -e 's,^.*\<_tmux-,,' -e 's,(.*$,,' ) )
+
+# Ask tmux for available commands:
+typeset -a available_commands
+available_commands=( $( $tmux list-commands | cut -f1 -d' ' ) )
+
+# Ask tmux for available aliases:
+typeset -A available_aliases
+available_aliases=( $( $tmux list-commands |
+                       grep '^[a-z-]* *(' |
+                       sed -e 's,^\([a-z-]*\) *(\([a-z-]*\))\(.*\)$,\2 \1,' ) )
+
+# Gather information about options:
+typeset -a supported_session_options
+supported_session_options=( ${"${tmux_session_options[@]}"%%:*} )
+typeset -a available_session_options
+available_session_options=( $( $tmux show-options -g | cut -f1 -d' ' ) )
+
+typeset -a available_server_options
+supported_server_options=( ${"${tmux_server_options[@]}"%%:*} )
+typeset -a supported_server_options
+available_server_options=( $( $tmux show-options -s -g | cut -f1 -d' ' ) )
+
+typeset -a supported_window_options
+supported_window_options=( ${"${tmux_window_options[@]}"%%:*} )
+typeset -a available_window_options
+available_window_options=( $( $tmux show-options -w -g | cut -f1 -d' ' ) )
+
+typeset -a supported available
+
+function find_new () {
+    local i
+    new=()
+    for i in "${available[@]}"; do
+        [[ -z ${supported[(r)$i]} ]] && new+=( $i )
+    done
+}
+
+function find_old () {
+    local i
+    old=()
+    for i in "${supported[@]}"; do
+        [[ -z ${available[(r)$i]} ]] && old+=( $i )
+    done
+}
+
+function compare_sets() {
+    name=$1
+    local -a old new
+    new=()
+    old=()
+    find_old
+    find_new
+    if (( $#old > 0 )) || (( $#new > 0 )); then
+        printf '\n%sDifferences with %s:%s\n' ${fg[yellow]} $name $reset_color
+        differences=some
+        if (( $#new > 0 )); then
+            printf '%sNew:%s' ${fg[green]} $reset_color
+            printf ' %s' "${new[@]}"
+            printf '\n'
+        fi
+        if (( $#old > 0 )); then
+            printf '%sOld:%s' ${fg[red]} $reset_color
+            printf ' %s' "${old[@]}"
+            printf '\n'
+        fi
+    fi
+}
+
+function find_changed_scope() {
+    name=$1
+    local -a changes
+    local i av
+    changes=()
+    for i in "${supported[@]}"; do
+        av=${available[(r)$i]}
+        [[ -n $av ]] && changes+=( $av )
+    done
+    if (( $#changes > 0 )); then
+        differences=some
+        printf '\n%sDifferences with scope %s:%s\n' \
+               ${fg[yellow]} $name $reset_color
+        printf '%sChanged:%s' ${fg[green]} $reset_color
+        printf ' %s' "${changes[@]}"
+        printf '\n'
+    fi
+}
+
+supported=( "${supported_session_options[@]}" )
+available=( "${available_server_options[@]}" )
+find_changed_scope 'session=>server'
+
+supported=( "${supported_server_options[@]}" )
+available=( "${available_session_options[@]}" )
+find_changed_scope 'server=>session'
+
+supported=( "${supported_window_options[@]}" )
+available=( "${available_session_options[@]}" )
+find_changed_scope 'window=>session'
+
+supported=( "${supported_session_options[@]}" )
+available=( "${available_window_options[@]}" )
+find_changed_scope 'session=>window'
+
+supported=( "${supported_window_options[@]}" )
+available=( "${available_server_options[@]}" )
+find_changed_scope 'window=>server'
+
+supported=( "${supported_server_options[@]}" )
+available=( "${available_window_options[@]}" )
+find_changed_scope 'server=>window'
+
+supported=( "${supported_commands[@]}" )
+available=( "${available_commands[@]}" )
+compare_sets commands
+
+supported=( "${supported_session_options[@]}" )
+available=( "${available_session_options[@]}" )
+compare_sets session_options
+
+supported=( "${supported_server_options[@]}" )
+available=( "${available_server_options[@]}" )
+compare_sets server_options
+
+supported=( "${supported_window_options[@]}" )
+available=( "${available_window_options[@]}" )
+compare_sets window_options
+
+typeset -a alias_messages
+for i in "${(k)_tmux_aliasmap[@]}"; do
+    su=${_tmux_aliasmap[$i]}
+    av=${available_aliases[$i]}
+    if [[ -z $av ]]; then
+        alias_messages+=( "${fg[red]}Old alias${reset_color}: $i ($su)" )
+    elif [[ $av != $su ]]; then
+        alias_messages+=( "Changed alias $i: is ($av) was ($su)" )
+    fi
+done
+for i in "${(k)available_aliases[@]}"; do
+    su=${_tmux_aliasmap[$i]}
+    av=${available_aliases[$i]}
+    if [[ -z $su ]]; then
+        alias_messages+=( "${fg[green]}New alias${reset_color}: $i ($av)" )
+    fi
+done
+if (( $#alias_messages > 0 )); then
+    differences=some
+    printf '\n%sDifferences with %s:%s\n' ${fg[yellow]} "aliases" $reset_color
+    for i in "${alias_messages[@]}"; do
+        printf '%s\n' $i
+    done
+fi
+
+if [[ $differences == none ]]; then
+    printf '\n... _tmux seems to be up to date!\n'
+else
+    printf '\n'
+fi
+exit 0

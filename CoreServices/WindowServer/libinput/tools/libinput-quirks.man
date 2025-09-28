@@ -1,0 +1,43 @@
+.TH libinput-quirks "1" "" "libinput @LIBINPUT_VERSION@" "libinput Manual"
+.SH NAME
+libinput\-quirks \- quirk debug helper for libinput
+.SH SYNOPSIS
+.B libinput quirks list [\-\-data\-dir /path/to/dir] [\-\-verbose\fB] \fI/dev/input/event0\fB
+.br
+.sp
+.B libinput quirks validate [\-\-data\-dir /path/to/dir] [\-\-verbose\fB]
+.br
+.sp
+.B libinput quirks \-\-help
+.SH DESCRIPTION
+.PP
+The
+.B "libinput quirks"
+tool interacts with libinput's quirks database.
+.PP
+When invoked as
+.B libinput quirks list,
+the tool lists all quirks applied to the given device.
+.PP
+When invoked as
+.B libinput quirks validate,
+the tool checks for parsing errors in the quirks files and fails
+if a parsing error is encountered.
+.PP
+This is a debugging tool only, its output and behavior may change at any
+time. Do not rely on the output.
+.SH OPTIONS
+.TP 8
+.B \-\-data\-dir \fI/path/to/dir\fR
+Use the given directory as data directory for quirks files. When omitted,
+the default directories are used.
+.TP 8
+.B \-\-help
+Print help
+.TP 8
+.B \-\-verbose
+Use verbose output, useful for debugging.
+.SH LIBINPUT
+Part of the
+.B libinput(1)
+suite

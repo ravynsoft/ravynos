@@ -1,0 +1,2332 @@
+2022-12-31  Nick Clifton  <nickc@redhat.com>
+
+	* 2.40 branch created.
+
+2022-07-08  Nick Clifton  <nickc@redhat.com>
+
+	* 2.39 branch created.
+
+2022-01-22  Nick Clifton  <nickc@redhat.com>
+
+	* 2.38 release branch created.
+
+2021-07-03  Nick Clifton  <nickc@redhat.com>
+
+	* 2.37 release branch created.
+
+2021-06-14  Michael Forney  <mforney@mforney.org>
+
+	* gettext.m4 (AM_GNU_GETTEXT): Skip checks for the internal
+	symbols _nl_msg_cat_cntr, _nl_domain_bindings, and
+	_nl_expand_alias, if __GNU_GETTEXT_SUPPORTED_REVISION is defined.
+	Backport of gettext serial 68 patch.
+
+2021-05-18  Mike Frysinger  <vapier@gentoo.org>
+
+	* acinclude.m4 (CYG_AC_PATH_SIM, CYG_AC_PATH_DEVO): Delete.
+
+2021-03-18  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR binutils/27397
+	* cet.m4 (GCC_CET_HOST_FLAGS): Check if host supports multi-byte
+	NOPs.
+
+2021-02-13  Mike Frysinger  <vapier@gentoo.org>
+
+	* debuginfod.m4: Delete m4_include(../config/pkg.m4).
+
+2021-01-12  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR binutils/26792
+	* jobserver.m4: New file.
+
+2021-01-11  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/27173
+	* gcc-plugin.m4 (GCC_PLUGIN_OPTION): Check if AR works with
+	--plugin and rc before enabling --plugin.
+
+2021-01-09  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* gcc-plugin.m4 (GCC_PLUGIN_OPTION): New.
+
+2021-01-09  Nick Clifton  <nickc@redhat.com>
+
+	* 2.36 release branch crated.
+
+2021-01-01  Nicolas Boulenguez  <nicolas@debian.org>
+
+	* override.m4: Correct comment grammar.
+
+2020-09-08  Alan Modra  <amodra@gmail.com>
+
+	Sync from gcc
+	2020-07-15  H.J. Lu  <hjl.tools@gmail.com>
+	PR bootstrap/96202
+	* cet.m4 (GCC_CET_HOST_FLAGS): Don't enable CET without CET
+	support in stage1 nor for build support.
+
+2020-07-30  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* largefile.m4 (ACX_LARGEFILE) <sparc-*-solaris*|i?86-*-solaris*>:
+	Check for <sys/procfs.h> incompatilibity with large-file support
+	on Solaris.
+	Only disable large-file support and perhaps plugins if needed.
+	Set, substitute LARGEFILE_CPPFLAGS if so.
+
+2020-07-28  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR binutils/26301
+	* pkg.m4 (PKG_CHECK_MODULES): Use AC_TRY_LINK only if
+	$pkg_failed = no.
+
+2020-07-28  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR binutils/26301
+	* pkg.m4 (PKG_CHECK_MODULES): Add AC_TRY_LINK to check if
+	$pkg_cv_[]$1[]_LIBS works.
+
+2020-07-24  Aaron Merey  <amerey@redhat.com>
+
+	* debuginfod.m4: use PKG_CHECK_MODULES.
+	* pkg.m4: New file.
+
+2020-07-04  Nick Clifton  <nickc@redhat.com>
+
+	Binutils 2.35 branch created.
+
+2020-06-24  H.J. Lu  <hongjiu.lu@intel.com>
+
+	Sync with GCC
+	2020-05-29  H.J. Lu  <hjl.tools@gmail.com>
+
+	PR bootstrap/95413
+	* cet.m4: Replace save_CFLAGS and save_LDFLAGS with
+	cet_save_CFLAGS and cet_save_LDFLAGS.
+
+2020-05-16  H.J. Lu  <hongjiu.lu@intel.com>
+
+	Sync with GCC
+	2020-05-15  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR bootstrap/95147
+	* cet.m4 (GCC_CET_FLAGS): Also check if -fcf-protection works
+	when defaulting to auto.
+
+	2020-05-14  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* cet.m4 (GCC_CET_FLAGS): Change default to auto.
+
+2020-05-12  H.J. Lu  <hongjiu.lu@intel.com>
+
+	Sync with GCC
+	2020-05-12  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR bootstrap/94998
+	* cet.m4 (GCC_CET_HOST_FLAGS): Enable CET in cross compiler if
+	possible.
+
+2020-04-29  H.J. Lu  <hongjiu.lu@intel.com>
+
+	Sync with GCC
+	2020-04-28  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR bootstrap/94739
+	* cet.m4 (GCC_CET_HOST_FLAGS): Add -fcf-protection=none to
+	-Wl,-z,ibt,-z,shstk.  Check whether -fcf-protection=none
+	-Wl,-z,ibt,-z,shstk works first.
+
+	2020-04-25  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR bootstrap/94739
+	* cet.m4 (GCC_CET_HOST_FLAGS): New.
+
+	2020-04-22  Jakub Jelinek  <jakub@redhat.com>
+
+	PR libfortran/94694
+	PR libfortran/94586
+	* math.m4 (GCC_CHECK_MATH_INLINE_BUILTIN_FALLBACK1,
+	GCC_CHECK_MATH_INLINE_BUILTIN_FALLBACK2): New.
+
+2020-02-19  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* ax_count_cpus.m4: New file, backported from GCC.
+	* bootstrap-Og.mk: New file, backported from GCC.
+	* bootstrap-lto-lean.mk: New file, backported from GCC.
+	* bootstrap-lto.mk: Changes backported from GCC.
+	* futex.m4: Changes backported from GCC.
+	* gthr.m4: Changes backported from GCC.
+	* lib-link.m4: Changes backported from GCC.
+	* mh-mingw: Changes backported from GCC.
+	* no-executables.m4: Changes backported from GCC.
+	* tls.m4: Changes backported from GCC.
+	* toolexeclibdir.m4: New file, backported from GCC.
+
+2020-01-18  Nick Clifton  <nickc@redhat.com>
+
+	Binutils 2.34 branch created.
+
+2019-09-09  Phil Blundell  <pb@pbcl.net>
+
+	binutils 2.33 branch created.
+
+2018-06-24  Nick Clifton  <nickc@redhat.com>
+
+	2.32 branch created.
+
+2018-11-09  Hafiz Abid Qadeer  <abidh@codesourcery.com>
+
+	* iconv.m4 (AM_ICONV_LINK): Don't overwrite CPPFLAGS.
+	Append $INCICONV to it.
+
+2018-10-31  Joseph Myers  <joseph@codesourcery.com>
+
+	Merge from GCC:
+	2018-10-28  Iain Buclaw  <ibuclaw@gdcproject.org>
+
+	* multi.m4: Set GDC.
+
+	2018-07-05  James Clarke  <jrtc27@jrtc27.com>
+
+	* dfp.m4 (enable_decimal_float): Enable for x86_64*-*-gnu* to
+	catch x86_64 kFreeBSD and Hurd.
+
+	Merge from GCC:
+	PR bootstrap/82856
+	* math.m4, tls.m4: Use AC_LANG_SOURCE.
+
+2018-06-19  Simon Marchi  <simon.marchi@ericsson.com>
+
+	* override.m4 (_GCC_AUTOCONF_VERSION): Bump from 2.64 to 2.69.
+
+2018-06-18  Simon Marchi  <simon.marchi@ericsson.com>
+
+	Sync with GCC
+	2018-06-08  Martin Liska  <mliska@suse.cz>
+
+	* bootstrap-mpx.mk: Remove.
+
+	2018-05-10  Martin Liska  <mliska@suse.cz>
+
+	PR bootstrap/64914
+	* bootstrap-ubsan.mk: Define UBSAN_BOOTSTRAP.
+
+	2018-05-09  Joshua Watt <jpewhacker@gmail.com>
+
+        * ax_pthread.m4: Add file.
+
+	2018-05-08  Richard Biener  <rguenther@suse.de>
+
+	PR bootstrap/85571
+	* bootstrap-lto-noplugin.mk: Disable compare.
+	* bootstrap-lto.mk: Supply contrib/compare-lto for do-compare.
+
+	2018-04-24  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR bootstrap/85490
+	* bootstrap-cet.mk (STAGE4_CFLAGS): New.
+
+	2018-04-24  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR target/85485
+	* bootstrap-cet.mk (STAGE2_CFLAGS): Remove -mcet.
+	(STAGE3_CFLAGS): Likewise.
+
+	2018-04-24  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR target/85485
+	* cet.m4 (GCC_CET_FLAGS): Replace -mcet with -mshstk.
+
+	2018-04-19  Jakub Jelinek  <jakub@redhat.com>
+
+	* cet.m4 (GCC_CET_FLAGS): Default to --disable-cet, replace
+	--enable-cet=default with --enable-cet=auto.
+
+	2018-04-18  David Malcolm  <dmalcolm@redhat.com>
+
+	PR jit/85384
+	* acx.m4 (GCC_BASE_VER): Remove \$\$ from sed expression.
+
+2018-04-05  H.J. Lu  <hongjiu.lu@intel.com>
+
+	Sync with GCC
+	2018-04-05  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gas/22318
+	* plugins.m4 (AC_PLUGINS): Use dlsym to check if libdl is needed.
+
+	2018-02-14  Igor Tsimbalist  <igor.v.tsimbalist@intel.com>
+
+	PR target/84148
+	* cet.m4: Check if target support multi-byte NOPS (SSE).
+
+2018-02-06  Eric Botcazou  <ebotcazou@adacore.com>
+
+	* gcc-plugin.m4 (GCC_ENABLE_PLUGINS): Remove -q option passed to grep.
+
+2018-01-10  Nick Clifton  <nickc@redhat.com>
+
+	* Sync with GCC sources:
+
+	2017-11-14 Boris Kolpackov  <boris@codesynthesis.com>
+
+	* gcc-plugin.m4: Add support for MinGW.
+
+	2017-11-17  Igor Tsimbalist  <igor.v.tsimbalist@intel.com>
+
+	* cet.m4: New file.
+
+	2017-11-15  Alexandre Oliva <aoliva@redhat.com>
+
+	* bootstrap-debug-lean.mk (do-compare): Use the
+	contrib/compare-debug script.
+
+	2017-10-24  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* bootstrap-cet.mk: New file.
+
+	2017-06-19  Martin Liska  <mliska@suse.cz>
+
+	* bootstrap-lto-noplugin.mk: Enable -flto in all PGO stages.
+	* bootstrap-lto.mk: Likewise.
+
+	2017-06-03  Eric Botcazou  <ebotcazou@adacore.com>
+
+	* mt-android: New file.
+
+	2017-02-13  Richard Biener  <rguenther@suse.de>
+
+	* isl.m4: Remove support for ISL 0.14.
+
+	2017-01-19  Uros Bizjak  <ubizjak@gmail.com>
+
+	PR target/78478
+	* ax_check_define.m4: New file.
+
+	2017-01-17  Jakub Jelinek  <jakub@redhat.com>
+
+	PR other/79046
+	* acx.m4 (GCC_BASE_VER): New m4 function.
+	(ACX_TOOL_DIRS): Require GCC_BASE_VER, for
+	--with-gcc-major-version-only use just major number from BASE-VER.
+
+	2017-01-06  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	PR go/78978
+	* hwcaps.m4 (GCC_CHECK_ASSEMBLER_HWCAP): New macro.
+
+2017-01-05  Alan Modra  <amodra@gmail.com>
+
+	* picflag.m4: Import from gcc.
+
+2016-12-08  Alan Modra  <amodra@gmail.com>
+
+	* acx.m4: Import from gcc.
+	* bootstrap-asan.mk: Likewise.
+	* multi.m4: Likewise.
+
+2016-01-18  Alan Modra  <amodra@gmail.com>
+
+	PR binutils/19481
+	* override.m4 (AC_PROG_LEX): Define.
+
+2015-10-21  Maxim Ostapenko  <m.ostapenko@partner.samsung.com>
+
+	* bootstrap-asan.mk: Replace ASAN_OPTIONS=detect_leaks with
+	LSAN_OPTIONS=detect_leaks.
+
+2015-08-24  Yaakov Selkowitz  <yselkowi@redhat.com>
+
+	* iconv.m4 (AM_ICONV_LINK): Use in-tree libiconv when present.
+
+2015-07-27  H.J. Lu  <hongjiu.lu@intel.com>
+
+	Sync with GCC
+	2015-07-24  Micahel Darling  <darlingm@gmail.com>
+
+	PR other/66259
+	* gettext.m4: Reflects renaming of configure.in to configure.ac
+	* po.m4: Likewise
+	* stdint.m4: Likewise
+	* tcl.m4: Likewise
+
+2015-07-14  H.J. Lu  <hongjiu.lu@intel.com>
+
+	Sync with GCC
+	2015-05-13  Eric Botcazou  <ebotcazou@adacore.com>
+
+	* sjlj.m4: New file.
+
+	2015-05-04  Trevor Saunders  <tbsaunde+gcc@tbsaunde.org>
+
+	* bitfields.m4: Change int to long long, and use bitfields of
+	width 1 instead of 0.
+
+	2015-05-01  Trevor Saunders  <tbsaunde+gcc@tbsaunde.org>
+
+	* bitfields.m4: New file.
+
+	2015-04-14  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* bootstrap-mpx.mk: New file.
+
+	2015-03-25  Uros Bizjak  <ubizjak@gmail.com>
+
+	PR bootstrap/65537
+	* bootstrap-lto-noplugin.mk: New build configuration.
+
+	2014-11-13  Kirill Yukhin  <kirill.yukhin@intel.com>
+
+	* target-posix: New file.
+
+	2014-10-27  Tom Tromey  <tromey@redhat.com>
+
+	* gcc-plugin.m4: New file.
+
+2015-07-14  H.J. Lu  <hongjiu.lu@intel.com>
+
+	Sync with GCC
+	2015-05-27  Jason Merrill  <jason@redhat.com>
+
+	PR bootstrap/66304
+	* warnings.m4 (ACX_PROG_CXX_WARNING_OPTS)
+	(ACX_PROG_CXX_WARNINGS_ARE_ERRORS)
+	(ACX_PROG_CXX_WARNING_ALMOST_PEDANTIC): New.
+	(ACX_PROG_CC_WARNING_OPTS, ACX_PROG_CC_WARNING_ALMOST_PEDANTIC)
+	(ACX_PROG_CC_WARNINGS_ARE_ERRORS): Push into C language context.
+
+2015-07-14  H.J. Lu  <hongjiu.lu@intel.com>
+
+	Sync with GCC
+	* mh-alpha-linux: Restored.
+
+2015-06-30  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* dfp.m4 (enable_decimal_float): Also set to yes for
+	i?86*-*-elfiamcu target.
+
+2015-04-10  Jakub Jelinek  <jakub@redhat.com>
+	    Iain Sandoe  <iain@codesourcery.com>
+
+	PR target/65351
+	* mh-darwin: Only apply -mdynamic-no-pic for m32 Darwin when the
+	compiler in use supports -mno-dynamic-no-pic.
+	* picflag.m4: Only append -mno-dynamic-no-pic for Darwin when
+	-mdynamic-no-pic is present in CFLAGS.
+
+2015-04-07  Jakub Jelinek  <jakub@redhat.com>
+	    Iain Sandoe  <iain@codesourcery.com>
+
+	PR target/65351
+	* picflag.m4: Append -mno-dynamic-no-pic for Darwin.
+
+2015-04-02  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* zlib.m4 (AM_ZLIB): Set zlibdir to -L\$(top_builddir)/../zlib
+	and set zlibinc to -I\$(top_srcdir)/../zlib.
+
+2015-04-01  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* zlib.m4 (AM_ZLIB): Unset zlibdir and zlibinc only for
+	--with-system-zlib.
+
+2015-03-31  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* zlib.m4 (AM_ZLIB): Replace --with-zlib with --with-system-zlib.
+
+2015-03-16  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* isl.m4: Sync with GCC tree.
+
+2015-03-16  H.J. Lu  <hongjiu.lu@intel.com>
+
+	Sync with GCC
+	2015-02-18  Thomas Schwinge  <thomas@codesourcery.com>
+
+	* elf.m4 (ACX_ELF_TARGET_IFELSE): nvptx-*-none isn't ELF.
+
+2015-03-16  H.J. Lu  <hongjiu.lu@intel.com>
+
+	Sync with GCC
+	2014-11-17  Bob Dunlop  <bob.dunlop@xyzzy.org.uk>
+
+	* mt-ospace (CFLAGS_FOR_TARGET): Append -g -Os rather than
+	overwriting.
+	(CXXFLAGS_FOR_TARGET): Similarly.
+
+2015-03-16  H.J. Lu  <hongjiu.lu@intel.com>
+
+	Sync with GCC
+	2014-04-25  Marc Glisse  <marc.glisse@inria.fr>
+
+	PR target/43538
+	* mt-gnu: Don't reset CXXFLAGS_FOR_TARGET.
+
+2015-03-16  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* bootstrap-asan.mk: Sync with GCC tree.
+	* bootstrap-lto.mk: Likewise.
+
+2015-03-16  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* cloog.m4: Removed.
+
+2014-08-19  Alan Modra  <amodra@gmail.com>
+
+	* plugins.m4 (AC_PLUGINS): If plugins are enabled, add -ldl to
+	LIBS via AC_SEARCH_LIBS.
+
+2014-08-14  Alan Modra  <amodra@gmail.com>
+
+	* plugins.m4: Test for dlfcn.h or windows.h here to set default
+	for --enable-plugins.  Report error if someone tries to enable
+	plugins on a host we don't support.
+
+2014-05-14  Sandra Loosemore  <sandra@codesourcery.com>
+
+	* mt-nios2-elf: New file.
+
+2013-12-07  Mike Frysinger  <vapier@gentoo.org>
+
+	* acinclude.m4: Remove +x file mode.
+
+2013-11-29  Marek Polacek  <polacek@redhat.com>
+
+	* bootstrap-ubsan.mk (POSTSTAGE1_LDFLAGS): Remove -lpthread -ldl.
+	Add -B$$r/prev-$(TARGET_SUBDIR)/libsanitizer/.
+
+2013-11-29  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* bootstrap-asan.mk (POSTSTAGE1_LDFLAGS): Add
+	-B$$r/prev-$(TARGET_SUBDIR)/libsanitizer/.
+
+2013-11-19  Marek Polacek  <polacek@redhat.com>
+
+	* bootstrap-ubsan.mk (POSTSTAGE1_LDFLAGS): Add -ldl.
+
+2013-11-18  Jan Hubicka  <jh@suse.cz>
+
+	* bootstrap-lto.mk: Use -ffat-lto-objects.
+
+2013-11-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* picflag.m4 (m68k-*-*): Use default PIC flag.
+
+2013-09-29  Iain Sandoe  <iain@codesourcery.com>
+
+	* mh-darwin (BOOT_CFLAGS): Only add -mdynamic-no-pic for m32 hosts.
+	(STAGE1_CFLAGS, STAGE1_LDFLAGS): New.
+	Fix over-length lines and amend comments.
+
+2013-08-30  Marek Polacek  <polacek@redhat.com>
+
+	* bootstrap-ubsan.mk: New.
+
+2013-03-27  Kai Tietz  <ktietz@redhat.com>
+
+	* dfp.m4: Add support for cygwin x64 target.
+	* picflag.m4: Likewise.
+
+2013-02-25  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* bootstrap-asan.mk (POSTSTAGE1_LDFLAGS): Add
+	-B$$r/prev-$(TARGET_SUBDIR)/libsanitizer/asan/.
+
+2013-01-23  Shenghou Ma  <minux.ma@gmail.com>
+
+	* isl.m4: don't echo $CFLAGS for ISL_CHECK_VERSION.
+
+2013-01-15  Richard Biener  <rguenther@suse.de>
+
+	PR other/55973
+	* isl.m4 (ISL_INIT_FLAGS): Warn about disabled version check
+	for in-tree build.
+	(ISL_CHECK_VERSION): Do not use AC_CACHE_CHECK.
+	* cloog.m4 (CLOOG_INIT_FLAGS): Disable version check for
+	in-tree build and warn about that.
+	(CLOOG_CHECK_VERSION): Do not use AC_CACHE_CHECK.
+
+2013-01-07  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* libstdc++-raw-cxx.m4 (GCC_LIBSTDCXX_RAW_CXX_FLAGS): Remove
+	"-I" from LIBSTDCXX_RAW_CXX_LDFLAGS.
+
+2012-12-12  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* libstdc++-raw-cxx.m4 (GCC_LIBSTDCXX_RAW_CXX_FLAGS): Also
+	AC_SUBST LIBSTDCXX_RAW_CXX_LDFLAGS.
+
+2012-12-11  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR sanitizer/55533
+	* libstdc++-raw-cxx.m4: New file.
+
+2012-11-28  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* bootstrap-asan.mk: New file.
+
+2012-11-04  Thomas Schwinge  <thomas@codesourcery.com>
+
+	* dfp.m4 (enable_decimal_float): Enable for i?86*-*-gnu*.
+
+2012-10-15  Pavel Chupin  <pavel.v.chupin@intel.com>
+
+	* gthr.m4: New. Define GCC_AC_THREAD_HEADER.
+
+2012-09-19  Steve Ellcey  <sellcey@mips.com>
+
+	* mt-sde: Change -mcode-xonly to -mcode-readable=pcrel.
+
+2012-09-03  Richard Guenther  <rguenther@suse.de>
+
+	PR bootstrap/54138
+	* config/cloog.m4: Adjust for toplevel reorg.
+	* config/isl.m4: Adjust.
+
+2012-08-26  Art Haas <ahaas@impactweather.com>
+
+	* cloog.m4 (CLOOG_INIT_FLAGS): Use = instead of == in test.
+
+2012-07-04  Tristan Gingold  <gingold@adacore.com>
+
+	* isl.m4 (ISL_CHECK_VERSION): Set to yes if cross-compiling.
+	Fix comments.
+
+2012-07-03  Richard Guenther  <rguenther@suse.de>
+
+	* cloog.m4: Remove debugging print.
+
+2012-07-03  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* isl.m4 (ISL_CHECK_VERSION): Add -lisl to LIBS, not LDFLAGS.
+
+2012-07-02  Richard Guenther  <rguenther@suse.de>
+
+	* isl.m4 (_ISL_CHECK_CT_PROG): Omit main function header/footer.
+	Fix version test.
+
+2012-07-02  Richard Guenther  <rguenther@suse.de>
+	Michael Matz  <matz@suse.de>
+	Tobias Grosser <tobias@grosser.es>
+	Sebastian Pop <sebpop@gmail.com>
+
+	* cloog.m4: Set up to work against ISL only.
+	* isl.m4: New file.
+
+2012-05-29  Joseph Myers  <joseph@codesourcery.com>
+
+	* mt-sde: Fix typos.
+	* stdint.m4: Fix typos.
+	* tcl.m4: Fix typos.
+
+2012-05-03  Olivier Hainque  <hainque@adacore.com>
+
+	* mh-ppc-aix (LDFLAGS): Quote $(CC).
+
+2012-04-03  Tristan Gingold  <gingold@adacore.com>
+
+	* mmap.m4: Use *vms* instead of vms*.
+
+2012-04-02  Tristan Gingold  <gingold@adacore.com>
+
+	* math.m4 (GCC_CHECK_MATH_FUNC): Remove if-present
+	argument.  Define the variable.
+
+2012-03-26  Tristan Gingold  <gingold@adacore.com>
+
+	* math.m4: New file.
+
+2012-03-12  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* weakref.m4 (GCC_CHECK_ELF_STYLE_WEAKREF): Remove
+	alpha*-dec-osf*.
+
+2012-01-22  Douglas B Rupp  <rupp@gnat.com>
+
+	* config/mh-interix: Remove as unneeded.
+	* config/picflag.m4 (i[[34567]]86-*-interix3*):
+	Change triplet to i[[34567]]86-*-interix[[3-9]]*.
+
+2012-01-04  Andreas Krebbel  <Andreas.Krebbel@de.ibm.com>
+
+	PR bootstrap/51734
+	* picflag.m4: Remove s390 case statement.
+
+2011-12-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* warnings.m4 (ACX_PROG_CC_WARNING_OPTS): Avoid leading dash in
+	expr call.
+
+2011-12-19  Andreas Schwab  <schwab@linux-m68k.org>
+
+	PR bootstrap/51388
+	* warnings.m4 (ACX_PROG_CC_WARNING_OPTS)
+	(ACX_PROG_CC_WARNING_ALMOST_PEDANTIC): Run the test without the
+	no- prefix.
+
+2011-12-18  Eric Botcazou  <ebotcazou@adacore.com>
+
+	* acx.m4 (Test for GNAT): Update comment and add quotes in final test.
+
+2011-11-22  Iain Sandoe  <iains@gcc.gnu.org>
+
+	* weakref.m4: New file.
+
+2011-11-09  Richard Henderson  <rth@redhat.com>
+
+	* asmcfi.m4: New file.
+
+2011-11-02  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* mh-interix (LIBGCC2_DEBUG_CFLAGS): Remove.
+
+2011-08-22  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* picflag.m4: New file.
+
+2011-07-18  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* elf.m4 (target_elf): Remove *-netware*.
+
+2011-07-06  Uros Bizjak  <ubizjak@gmail.com>
+
+	* mt-alphaieee (GOCFLAGS_FOR_TARGET): Add -mieee.
+
+2011-06-15  Mike Stump  <mikestump@comcast.net>
+
+	PR target/49461
+	* mh-darwin: Turn off -pie on darwin11 and later.
+
+2011-04-20  Eric Botcazou  <ebotcazou@adacore.com>
+
+	* bootstrap-lto.mk: Remove obsolete requirement.
+
+2011-03-24  Paolo Bonzini  <pbonzini@redhat.com>
+
+	* mt-mep: Remove, obsolete.
+	* mt-netware: Remove, obsolete.
+	* mt-wince: Remove, obsolete.
+	* mt-v810: Remove, unused.
+
+2011-03-24  Paolo Bonzini  <bonzini@gnu.org>
+
+	* mh-x86omitfp: Remove.
+
+2011-03-24  Paolo Bonzini  <bonzini@gnu.org>
+
+	* mh-cygwin: Remove obsolete variables and dependencies.
+
+2011-03-24  Paolo Bonzini  <bonzini@gnu.org>
+
+	* mh-sysv4: Remove.
+	* mh-solaris: Remove.
+
+2011-03-24  Paolo Bonzini  <bonzini@gnu.org>
+
+	* mh-sysv4: Remove AR_CFLAGS.
+
+2011-03-24  Joseph Myers  <joseph@codesourcery.com>
+
+	* mh-cxux, mh-decstation, mh-dgux386, mh-lynxrs6k, mh-ncr3000,
+	mh-necv4, mh-sco, mh-sysv5: Remove.
+
+2011-03-05  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+	    Eric Blake  <eblake@redhat.com>
+
+	* override.m4: Error out if a buggy M4 was detected, to
+	avoid spurious diffs in generated files.
+
+2011-01-25  Jakub Jelinek  <jakub@redhat.com>
+
+	* cloog.m4 (CLOOG_REQUESTED): Use $2 if --without-cloog.
+
+2011-01-10  Jan Hubicka  <jh@suse.cz>
+
+	* bootstrap-lto.mk: -fuse-linker-plugin is default now;
+	pass -fno-lto to STAGEprofile.
+
+2010-12-06  Dave Korn  <dave.korn.cygwin@gmail.com>
+
+	PR target/40125
+	PR lto/46695
+	* lthostflags.m4: New file.
+	(ACX_LT_HOST_FLAGS): Define.
+
+2010-12-02  Dave Korn  <dave.korn.cygwin@gmail.com>
+
+	* mh-cygwin (LDFLAGS): Turn up stack allocation to 12MB.
+	(BOOT_LDFLAGS): Add matching stack size flag.
+	* mh-mingw (LDFLAGS): Likewise.
+	(BOOT_LDFLAGS): Likewise.
+
+2010-11-27  Eric Botcazou  <ebotcazou@adacore.com>
+
+	* bootstrap-lto.mk (BOOT_ADAFLAGS): Delete.
+
+2010-11-19  Tobias Grosser  <grosser@fim.uni-passau.de>
+
+	* cloog.m4: Use AS_HELP_STRING and fix help formatting.
+
+2010-11-15  Andreas Schwab  <schwab@redhat.com>
+
+	* cloog.m4 (CLOOG_INIT_FLAGS): Fix spelling in option names.
+
+2010-11-12  Tobias Grosser  <grosser@fim.uni-passau.de>
+
+	* cloog.m4: Add -enable-cloog-backend=(isl|ppl|ppl-legacy) to
+	define the cloog backend to use. Furthermore, only pass the ppllibs to
+	the configure checks, if necessary.
+
+2010-11-12  Tobias Grosser  <grosser@fim.uni-passau.de>
+
+	* cloog.m4: Use CLooG predefined macro to check for CLooG PPL.
+
+2010-11-12  Tobias Grosser  <grosser@fim.uni-passau.de>
+
+	* cloog.m4: Fix typo.  verison -> version.
+
+2010-11-12  Tobias Grosser  <grosser@fim.uni-passau.de>
+
+	* cloog.m4: Pass ppl libraries to the CLooG version check.
+
+2010-11-11  Jan Hubicka  <jh@suse.cz>
+
+	* bootstrap-lto: Use -flto.
+
+2010-11-04  Iain Sandoe  <iains@gcc.gnu.org>
+
+	* mh-darwin: Renamed from mh-ppc-darwin.
+
+2010-06-27  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* po.m4 (AM_PO_SUBDIRS): Fix unportable shell quoting.
+
+2010-09-10  Jonathan Yong  <jon_y@users.sourceforge.net>
+
+	* dfp.m4: Enable decimal float for i?86 cygwin
+	and mingw, and for x86_64 mingw.
+
+2010-09-06  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR target/45524
+	* dfp.m4: Don't set enable_decimal_float to dpd if DFP is
+	disabled.  Set default_decimal_float.
+
+2010-09-06  Andreas Schwab  <schwab@redhat.com>
+
+	* dfp.m4: Quote argument of AC_MSG_WARN.
+
+2010-09-03  Andreas Krebbel  <Andreas.Krebbel@de.ibm.com>
+
+	* dfp.m4: New file.
+
+2010-09-01  Andi Kleen	<ak@linux.intel.com>
+
+	* bootstrap-lto.mk (STAGE2_CFLAGS, STAGE3_CFLAGS): Change
+	to -fwhopr=jobserver -fuse-linker-plugin -frandom-seed=1.
+
+2010-08-21  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	PR target/45084
+	* stdint.m4 (GCC_HEADER_STDINT): Use m4 quotes for arguments
+	of AC_MSG_ERROR.
+
+2010-07-02  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* gc++filt.m4: New file.
+
+2010-06-20  Alexandre Oliva  <aoliva@redhat.com>
+
+	* bootstrap-lto.mk: New.
+
+2010-06-10  Paolo Bonzini  <bonzini@gnu.org>
+
+	* override.m4: Remove obsolete (<2.64) definitions.
+
+2010-06-09  Iain Sandoe  <iains@gcc.gnu.org>
+
+	PR bootstrap/43170
+	* tls.m4 (GCC_CHECK_TLS): Add volatile qualifier to the test
+	references.  Move the main () test reference ahead of
+	pthread_create().  Add a comment to explain the requirements
+	of the test.
+
+2010-06-03  Joern Rennecke <joern.rennecke@embecosm.com>
+	    Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	PR bootstrap/42798
+	* override.m4 (_AC_CHECK_DECL_BODY, _AC_CHECK_DECLS): Import
+	definitions from git Autoconf.
+
+2010-04-13  Steve Ellcey  <sje@cup.hp.com>
+
+	* elf.m4: Add hppa[12]*-*-hpux* to list of non-elf platforms.
+
+2010-03-23  Kai Tietz  <kai.tietz@onevision.com>
+
+	* mh-mingw: Revert accidentally checking r156315.
+
+2010-01-05  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* stdint.m4 (GCC_HEADER_STDINT): Don't typedef uint8_t etc. if
+	corresponding macros already exist.
+
+2010-01-02  Richard Guenther  <rguenther@suse.de>
+
+	PR lto/41529
+	* elf.m4: New file.
+
+2009-11-30  Joseph Myers  <joseph@codesourcery.com>
+
+	* largefile.m4 (ACX_LARGEFILE): Require AC_CANONICAL_HOST and
+	AC_CANONICAL_TARGET.
+
+2009-11-24  Joel Brobecker  <brobecker@adacore.com>
+
+	* zlib.m4: New file.
+
+2009-11-09  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* largefile.m4 (ACX_LARGEFILE): Call AC_PLUGINS.
+
+2009-11-06  Jan Kratochvil  <jan.kratochvil@redhat.com>
+	    Joel Brobecker  <brobecker@adacore.com>
+	    Paolo Bonzini  <bonzini@gnu.org>
+
+	* largefile.m4: New file.
+
+2009-10-23  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* acx.m4 (ACX_CHECK_CYGWIN_CAT_WORKS): Use = with test.
+
+2009-09-09  Paolo Bonzini  <bonzini@gnu.org>
+
+	* stdint.m4 (GCC_HEADER_STDINT): Revert changes to this macro in
+	the previous two patches.
+
+2009-09-09  Paolo Bonzini  <bonzini@gnu.org>
+
+	* stdint.m4: Store temporary file in $tmp/_GCC_STDINT_H.
+
+2009-09-08  Paolo Bonzini  <bonzini@gnu.org>
+
+	* stdint.m4: Rewrite by using autoconf 2.64 features.
+
+2009-09-03  Alexandre Oliva  <aoliva@redhat.com>
+
+	* bootstrap-debug-big.mk (STAGE2_CFLAGS): Drop -gtoggle.
+	* bootstrap-debug-lean.mk: Update comments.
+	(STAGE2_CFLAGS): Likewise.
+	(do-compare): Don't override.
+
+2009-09-01  Alexandre Oliva  <aoliva@redhat.com>
+
+	* bootstrap-debug.mk: Add comments.
+	* bootstrap-debug-big.mk: New.
+	* bootstrap-debug-lean.mk: New.
+	* bootstrap-debug-ckovw.mk: Add comments.
+	* bootstrap-debug-lib.mk: Drop CFLAGS for stages.  Use -g0
+	for TFLAGS in stage1.  Drop -fvar-tracking-assignments-toggle.
+
+2009-08-22  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* override.m4 (_GCC_AUTOCONF_VERSION): Bump to 2.64.
+
+2009-08-19  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* override.m4 (AC_DISABLE_OPTION_CHECKING): Define to be
+	empty if not defined, to avoid error with 2.59.
+	(_AC_LANG_IO_PROGRAM): When the Autoconf version is exactly
+	2.64, avoid per-language instances to drop fopen from test
+	program.
+
+2009-07-30  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* extensions.m4 (AC_USE_SYSTEM_EXTENSIONS): Do not expand
+	for Autoconf 2.62 or newer.
+	* tls.m4 (GCC_CHECK_TLS): Fix m4 quotation.
+	* no-executables.m4 (_AC_COMPILER_EXEEXT): Fix m4 quotation.
+	* override.m4 (m4_copy_force, m4_rename_force): Provide
+	macros if not defined.
+	(AC_PREREQ): Use m4_copy_force.
+
+2009-07-17  Joseph Myers  <joseph@codesourcery.com>
+
+	PR other/40784
+	* tls.m4 (GCC_CHECK_TLS): Add extra quoting around argument to
+	AC_LINK_IFELSE.
+
+2009-07-16  Joseph Myers  <joseph@codesourcery.com>
+
+	* tls.m4 (GCC_CHECK_TLS): Also test TLS in a shared library when
+	cross-compiling.
+
+2009-06-25  Olivier Hainque  <hainque@adacore.com>
+
+	* config/mh-ppc-aix (BOOT_ADAFLAGS): Remove -mminimal-toc.
+
+2009-05-26  Rafael Avila de Espindola  <espindola@google.com>
+
+	* plugins.m4: New.
+
+2009-05-12  Alexandre Oliva  <aoliva@redhat.com>
+
+	* multi.m4: Save CXX, GFORTRAN and GCJ in config.status.
+	* mt-gnu (CXXFLAGS_FOR_TARGET): Adjust.
+	* bootstrap-O1.mk: New.
+	* bootstrap-O3.mk: New.
+	* bootstrap-debug.mk: New.
+
+2009-02-02  Doug Evans  <dje@google.com>
+
+	* tcl.m4 (SC_PATH_TCLCONFIG): Don't exit 0 if tclconfig fails.
+	(SC_PATH_TKCONFIG): Don't exit 0 if tkconfig fails.
+	(SC_LOAD_TCLCONFIG): Quote all uses of TCL_BIN_DIR, it may contain
+	"# no Tcl configs found".
+	(SC_LOAD_TKCONFIG): Similarily for TK_BIN_DIR.
+
+2009-04-09  Jakub Jelinek  <jakub@redhat.com>
+
+	* lead-dot.m4: Change copyright header to refer to version
+	3 of the GNU General Public License and to point readers at the
+	COPYING3 file and the FSF's license web page.
+	* warnings.m4: Likewise.
+
+2009-02-11  Kai Tietz  <kai.tietz@onevision.com>
+
+	* mh-cygwin (LDFLAGS): Add linker option to increase stack limit
+	up to 8MB.
+
+2009-01-23  Jie Zhang  <jie.zhang@analog.com>
+
+	* tls.m4 (GCC_CHECK_EMUTLS): Define.
+
+2008-12-21  Andrew Pinski  <pinskia@gmail.com>
+
+	PR target/38300
+	* unwind_ipinfo.m4: Darwin before 9 does not have _Unwind_GetIPInfo.
+
+2008-11-21  Kai Tietz  <kai.tietz@onevision.com>
+
+	Fix PR/25502
+	* mh-mingw (BOOT_CFLAGS): Add -Wno-pedantic-ms-format switch.
+
+2008-11-12  Steve Ellcey  <sje@cup.hp.com>
+
+	PR target/27880
+	* unwind_ipinfo.m4 (GCC_CHECK_UNWIND_GETIPINFO): Change from
+	link test to target based test.
+
+2008-08-09  Richard Sandiford  <rdsandiford@googlemail.com>
+
+	* mt-mips16-compat: New file, taken from mt-mips-elfoabi.
+	* mt-mips-elfoabi: Include mt-mips16-compat.
+	* mt-mips-gnu: New file.
+
+2008-08-03  Alan Modra  <amodra@bigpond.net.au>
+
+	* mt-spu (all-ld): Update for ld Makefile changes.
+
+2008-08-02  Keith Seitz  <keiths@redhat.com>
+
+	* tcl.m4 (SC_PATH_TCLCONFIG): Add some simple logic to deal
+	with cygwin.
+	(SC_PATH_TKCONFIG): Likewise.
+
+2008-07-30  Paolo Bonzini  <bonzini@gnu.org>
+
+	* mh-pa: New, from gcc/config/pa/x-ada.
+	* mh-pa-hpux10: New, from gcc/config/pa/x-ada-hpux10.
+
+2008-07-25  Keith Seitz  <keiths@redhat.com>
+
+	* acinclude.m4: Remove libide, libgui, and all the other Tcl
+	functions.
+	* tcl.m4: New file.
+
+2008-07-11  Joseph Myers  <joseph@codesourcery.com>
+
+	* mh-mingw (LDFLAGS): Append to rather than replacing previous
+	value.
+
+2008-06-17  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* override.m4: Use m4_version_prereq throughout.
+	(_AC_ARG_VAR_VALIDATE, AC_MSG_FAILURE): Backport from git
+	Autoconf: output pwd along with fatal errors, so the right
+	config.log file is hinted at more prominently.
+	(PARSE_ARGS): Push setting of ac_pwd in this diversion.
+	(_GCC_AUTOCONF_VERSION): New, define to 2.59 if not defined.
+	(_GCC_AUTOCONF_VERSION_CHECK): New macro, require use of Autoconf
+	version _GCC_AUTOCONF_VERSION throughout the tree.
+	(m4_wrap): New override, fix for Posix semantics of m4wrap.
+
+2008-06-11  Bernhard Fischer  <aldot@gcc.gnu.org>
+
+	* tls.m4: Fix typos.
+
+2008-06-08  Joseph Myers  <joseph@codesourcery.com>
+
+	PR tree-optimization/36218
+	* mh-mingw (LDFLAGS): Define.
+
+2008-06-05  Danny Smith  <dannysmith@users.sourceforge.net>
+
+	PR driver/35916
+	* mh-mingw (CFLAGS): Add -D__USE_MINGW_ACCESS.
+
+2008-05-12  Samuel Tardieu  <sam@rfc1149.net>
+	    Paolo Bonzini  <bonzini@gnu.org>
+
+	PR ada/36001
+	* acx.m4: Add optional parameter to ACX_PROG_GNAT.
+
+2008-04-23  Paolo Bonzini  <bonzini@gnu.org>
+
+	* override.m4: Apply _AC_ARG_VALIDATE fix to all versions
+	but 2.62.
+
+2008-04-18  Paolo Bonzini  <bonzini@gnu.org>
+
+	PR bootstrap/35457
+
+	* confsubdir.m4: Rename to...
+	* override.m4: ... this.  Make sure aclocal always picks it.
+	Add more lenient precious variable check, backported from
+	autoconf trunk.
+
+2008-04-04  Nick Clifton  <nickc@redhat.com>
+
+	PR binutils/4334
+	* acx.m4 (ACX_CHECK_CYGWIN_CAT_WORKS): New macro to check that
+	cygwin builds are not running in textmode.
+
+2008-03-27  Paolo Bonzini  <bonzini@gnu.org>
+
+	* extensions.m4: New.
+
+2008-03-27  Paolo Bonzini  <bonzini@gnu.org>
+
+	* mh-armpic: Remove.
+	* mh-i370pic: Remove.
+	* mh-m68kpic: Remove.
+	* mh-ppcpic: Remove.
+	* mh-sparcpic: Remove.
+	* mh-ia64pic: Remove.
+	* mh-papic: Remove.
+	* mh-s390pic: Remove.
+	* mh-x86pic: Remove.
+
+2008-03-16  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* proginstall.m4: New file, with fixed AC_PROG_INSTALL.
+
+2008-02-20  Uros Bizjak  <ubizjak@gmail.com>
+
+	* mh-ppc-darwin (BOOT_CFLAGS): Use +=, not =.
+
+2008-02-20  Paolo Bonzini  <bonzini@gnu.org>
+
+	PR bootstrap/32009
+	* mh-ppc-darwin (BOOT_CFLAGS): Reenable.
+
+2008-01-08  Jakub Jelinek  <jakub@redhat.com>
+
+	* futex.m4: New file.
+
+2007-12-06  Richard Sandiford  <rsandifo@nildram.co.uk>
+
+	* mt-sde (CFLAGS_FOR_TARGET, CXXFLAGS_FOR_TARGET): Use +=, not =.
+	* mt-mips-elfoabi: Likewise.
+
+2007-10-15  Maciej W. Rozycki  <macro@linux-mips.org>
+
+	* tls.m4 (GCC_CHECK_TLS): Rename have_tls to gcc_cv_have_tls.
+	(GCC_CHECK_CC_TLS): Rename have_cc_tls to gcc_cv_have_cc_tls.
+
+2007-10-03  Richard Sandiford  <richard@codesourcery.com>
+
+	* no-executables.m4 (GCC_TRY_COMPILE_OR_LINK): New function.
+
+2007-10-03  Kazu Hirata  <kazu@codesourcery.com>
+
+	Revert:
+	2007-10-02  Richard Sandiford  <richard@codesourcery.com>
+	* no-executables.m4 (GCC_TRY_COMPILE_OR_LINK): New function.
+
+2007-10-02  Richard Sandiford  <richard@codesourcery.com>
+
+	* no-executables.m4 (GCC_TRY_COMPILE_OR_LINK): New function.
+
+2007-09-21  Richard Sandiford  <rsandifo@nildram.co.uk>
+
+	* mt-sde (CFLAGS_FOR_TARGET): Replace -fno-optimize-sibling-calls
+	with -minterlink-mips16.
+	(CXXFLAGS_FOR_TARGET): Likewise.
+
+2007-09-20  Richard Sandiford  <rsandifo@nildram.co.uk>
+
+	* mt-mips-elfoabi: New file.
+
+2007-09-07  Richard Sandiford  <richard@codesourcery.com>
+
+	* mt-sde (CFLAGS_FOR_TARGET): Add -mno-gpopt.
+	(CXXFLAGS_FOR_TARGET): Likewise.
+
+2007-09-06  Francois-Xavier Coudert  <fxcoudert@gcc.gnu.org>
+
+	PR target/33281
+	* mh-mingw: New host makefile fragment.
+
+2007-08-18  Paul Brook  <paul@codesourcery.com>
+	    Joseph Myers  <joseph@codesourcery.com>
+
+	* mt-gnu (CXXFLAGS_FOR_TARGET): Add
+	$(DEBUG_PREFIX_CFLAGS_FOR_TARGET).
+
+2007-08-17  Richard Sandiford  <richard@codesourcery.com>
+	    Nigel Stephens  <nigel@mips.com>
+
+	* mt-sde: New file.
+
+2007-07-06  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* tls.m4 (GCC_CHECK_CC_TLS): New.
+
+2007-07-05  Sebastian Pop  <sebpop@gmail.com>
+
+	PR bootstrap/32622
+	* mh-x86omitfp (BOOT_CFLAGS): Add -fomit-frame-pointer,
+	don't reset its value.
+
+2007-06-27  Mike Stump  <mrs@apple.com>
+
+	* acx.m4 (ACX_CHECK_INSTALLED_TARGET_TOOL): Fixup logic for cross
+	builds.
+
+2007-06-20  Mike Stump  <mrs@apple.com>
+
+	* acx.m4 (NCN_STRICT_CHECK_TARGET_TOOLS): Fix incremental builds.
+	(ACX_HAVE_GCC_FOR_TARGET): Likewise.
+
+2007-06-14  Paolo Bonzini  <bonzini@gnu.org>
+
+	* acx.m4 (ACX_CHECK_PROG_VER): Remove duplicate lines.
+
+2007-06-04  Olivier Hainque  <hainque@adacore.com>
+
+	* mh-ppc-aix: Add default ADAFLAGS to BOOT_ADAFLAGS.
+
+2007-05-27  Paolo Bonzini  <bonzini@gnu.org>
+
+	* confsubdir.m4: Move here from newlib.
+
+2007-05-23  Paolo Bonzini  <bonzini@gnu.org>
+
+	PR bootstrap/32009
+	* mh-ppc-darwin: Temporarily disable.
+
+2007-04-11  Kai Tietz  <kai.tietz@onevision.com>
+
+	* stdint.m4: Make template compatible with older cygwin
+	types.h, wrapping each type in a __XXX_t_defined #ifdef.
+
+2007-03-26  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* acx.m4 (ACX_BUGURL): Set BUGURL first. Quote $BUGURL first
+	when setting REPORT_BUGS_TEXI.
+
+2007-03-23  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* acx.m4 (ACX_BUGURL): Replace "@" with "@@" for
+	REPORT_BUGS_TEXI.
+
+2007-03-23  Joseph Myers  <joseph@codesourcery.com>
+
+	* acx.m4 (ACX_PKGVERSION, ACX_BUGURL): Define.
+
+2007-03-07  Andreas Schwab  <schwab@suse.de>
+
+	* acx.m4 (GCC_TARGET_TOOL): Expand backquotes outside
+	AC_MSG_RESULT.
+
+2007-02-27  Alan Modra  <amodra@bigpond.net.au>
+
+	* mt-spu (all-ld): Depend on all-binutils.
+
+2007-02-18  Alexandre Oliva  <aoliva@redhat.com>
+
+	* acx.m4 (NCN_STRICT_CHECK_TOOLS): Mark environment variable as
+	precious.  Prefer it over a cached value.  Use cached value
+	verbosely.
+	(NCN_STRICT_CHECK_TARGET_TOOLS): Likewise.  Don't override
+	environment variable with build-time tools.
+
+2006-12-11  Alan Modra  <amodra@bigpond.net.au>
+
+	* mt-spu: New file.
+
+2007-02-09  Daniel Jacobowitz  <dan@codesourcery.com>
+
+	* acx.m4 (ACX_CHECK_INSTALLED_TARGET_TOOL): Avoid AC_PATH_PROG
+	with an empty path.
+
+2007-02-07  Bruno Haible  <bruno@clisp.org>
+
+	PR libgomp/28468
+	* config/tls.m4 (GCC_CHECK_TLS): Also check whether the libc supports
+	TLS via __thread.
+
+2007-01-31  Daniel Franke <franke.daniel@gmail.com>
+
+	PR libgomp/30546
+	* acx.m4 (ACX_PROG_CHECK_VER): Locate a program and check that its
+	version is acceptable.
+
+2007-01-27  Paolo Bonzini  <bonzini@gnu.org>
+
+	* depstand.m4 (ZW_CREATE_DEPDIR): Use mkinstalldirs to make
+	directory.
+
+2007-01-23  Richard Guenther  <rguenther@suse.de>
+
+	PR bootstrap/30541
+	* config/acx.m4 (ACX_PROG_GNAT): Check for gnatmake.
+
+2007-01-14  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* ld-symbolic.m4: New.
+
+2007-01-11  Paolo Bonzini  <bonzini@gnu.org>
+
+	* warnings.m4: Use m4_expand_once to clear the AC_SUBST'ed variable.
+	(ACX_PROG_CC_WARNINGS_ARE_ERRORS): Fix typo.  Add optional 2nd argument.
+
+2007-01-11  Paolo Bonzini  <bonzini@gnu.org>
+
+	* warnings.m4: Add second parameter with name of variable.
+	Always append to the variable if it exists.
+
+2007-01-01  Mike Stump  <mrs@apple.com>
+
+	* mh-ppc-darwin: Remove support for building with Apple's gcc-3.1.
+
+2006-12-04  Eric Botcazou  <ebotcazou@libertysurf.fr>
+
+	* tls.m4 (GCC_CHECK_TLS): Do not test TLS with static linking
+	if static linking doesn't even work.
+
+2006-11-13  Daniel Jacobowitz  <dan@codesourcery.com>
+
+	* tls.m4 (GCC_CHECK_TLS): Fall back to a link test.
+
+2006-10-14  Geoffrey Keating  <geoffk@apple.com>
+
+	* multi.m4: New file, from automake version 2 branch.
+
+2006-09-18  Tom Tromey  <tromey@redhat.com>
+
+	* tls.m4 (GCC_CHECK_TLS): Pass empty argument as "help arg" to
+	GCC_ENABLE.
+
+2006-07-25  Paolo Bonzini  <bonzini@gnu.org>
+
+	PR build/26188
+	* stdint.m4: Test for uintptr_t even on systems with uint64_t
+	or uint32_t.
+
+2006-07-21  Steve Ellcey  <sje@cup.hp.com>
+
+	PR target/26792
+	* unwind_ipinfo.m4: New.
+
+2006-07-21  David Daney  <ddaney@avtrex.com>
+
+	PR libgcj/28426
+	* gxx-include-dir.m4: Use target_alias in path for cross build.
+
+2006-07-18  Paolo Bonzini  <bonzini@gnu.org>
+
+	* acx.m4: Support --with-build-libsubdir and AC_SUBST
+	build_libsubdir.
+
+2006-06-13  Richard Earnshaw  <rearnsha@arm.com>
+	    Alexandre Oliva <aoliva@redhat.com>
+
+	* gettext-sister.m4 (ZW_GNU_GETTEXT_SISTER_DIR): Add optional
+	argument for where to search for NLS config file.
+
+2006-05-31  Daniel Jacobowitz  <dan@codesourcery.com>
+
+	* gettext-sister.m4 (ZW_GNU_GETTEXT_SISTER_DIR): Provide some
+	defines otherwise gotten from AM_GNU_GETTEXT.  Remove the
+	po/ prefix from CATALOGS.
+
+2006-02-14  Paolo Bonzini  <bonzini@gnu.org>
+	    Andreas Schwab  <schwab@suse.de>
+
+	* acx.m4 (NCN_STRICT_CHECK_TARGET_TOOLS): Use correct program name.
+	(ACX_CHECK_INSTALLED_TARGET_TOOL): Likewise, and always set $1.
+
+2006-01-26  Paolo Bonzini  <bonzini@gnu.org>
+
+	* acx.m4 (NCN_STRICT_CHECK_TARGET_TOOLS): Test $with_build_time_tools.
+	(ACX_PATH_SEP): New.
+	(ACX_TOOL_DIRS): Move here from the gcc directory.
+	(ACX_CHECK_INSTALLED_TARGET_TOOL): New.
+	(GCC_TARGET_TOOL): Do not use a host tool if we found a target tool
+	with a complete path in either $with_build_time_tools or $exec_prefix.
+
+2006-01-02  Paolo Bonzini  <bonzini@gnu.org>
+
+	PR target/25259
+	* stdint.m4: New.
+
+2005-12-20  Paolo Bonzini  <bonzini@gnu.org>
+
+	Revert Ada-related part of the previous change.
+
+	* mt-ppc-aix: Delete.
+
+2005-12-19  Paolo Bonzini  <bonzini@gnu.org>
+
+	* mt-ppc-aix, mh-ppc-aix: New.
+
+2005-12-05  Paolo Bonzini  <bonzini@gnu.org>
+
+	* acx.m4 (GCC_TARGET_TOOL): New.
+
+2005-09-23  Tom Tromey  <tromey@redhat.com>
+
+	* enable.m4: New file.
+	* tls.m4: New file.
+
+2005-08-12  Paolo Bonzini  <bonzini@gnu.org>
+
+	* config/acx.m4 (NCN_CHECK_TARGET_TOOL, NCN_STRICT_CHECK_TOOL,
+	NCN_STRICT_CHECK_TARGET_TOOL): Remove.
+	(NCN_STRICT_CHECK_TOOLS, NCN_STRICT_CHECK_TARGET_TOOLS): New,
+	based on the deleted macros.
+
+2005-07-27  Mark Mitchell  <mark@codesourcery.com>
+
+	* mt-gnu (CXXFLAGS): Include SYSROOT_CFLAGS_FOR_TARGET.
+
+2005-07-16  Kelley Cook  <kcook@gcc.gnu.org>
+
+	* all files: Update FSF address.
+
+2005-06-14  Tom Tromey  <tromey@redhat.com>
+
+	PR libgcj/19877:
+	* no-executables.m4: Call real AC_FUNC_MMAP when cache variable
+	is set but not 'no'.
+
+2005-06-13  Zack Weinberg  <zack@codesourcery.com>
+
+	* depstand.m4, lead-dot.m4: New files.
+
+2005-05-19  Kelley Cook  <kcook@gcc.gnu.org>
+
+	* accross.m4: Delete file.
+
+2005-05-12  Ryota Kunisawa  <kunisawa@access.co.jp>
+
+	PR bootstrap/21230
+	* warnings.m4 (ACX_PROG_CC_WARNING_ALMOST_PEDANTIC): Add
+	double quotes around GCC variable.
+
+2005-04-29  Paolo Bonzini  <bonzini@gnu.org>
+
+	* acx.m4 (ACX_PROG_GNAT): Remove stray break.
+
+2005-03-31  Paolo Bonzini  <bonzini@gnu.org>
+
+	* gcc-lib-path.m4: Remove.
+
+2005-03-21  Zack Weinberg  <zack@codesourcery.com>
+
+	* gxx-include-dir.m4: In all substitutions, leave $(gcc_version)
+	to be expanded by the Makefile.
+
+2005-03-15  Zack Weinberg  <zack@codesourcery.com>
+
+	* gcc-version.m4: Delete.
+
+2005-02-28  Paolo Bonzini  <bonzini@gnu.org>
+
+	PR bootstrap/17383
+	* acx.m4 (GCC_TOPLEV_SUBDIRS): Set HOST_SUBDIR if an in-src
+	gcc build is going.
+
+2005-01-23  Joseph S. Myers  <joseph@codesourcery.com>
+
+	* warnings.m4 (ACX_PROG_CC_WARNING_ALMOST_PEDANTIC): Don't do
+	anything for non-GCC compilers.
+
+2004-12-03  Richard Sandiford  <rsandifo@redhat.com>
+
+	* gxx-include-dir.m4: New file.
+
+2004-12-02  Richard Sandiford  <rsandifo@redhat.com>
+
+	* gcc-version.m4: New file.
+
+2004-09-24  Zack Weinberg  <zack@codesourcery.com>
+
+	* warnings.m4: New file.
+
+2004-09-23  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR bootstrap/17369
+	* gcc-lib-path.m4: New file.
+
+2004-09-22  Kelley Cook  <kcook@gcc.gnu.org>
+
+	* gettext-sister.m4: Renamed from gettext.m4
+	* codeset.m4, gettext.m4, glibc21.m4, iconv.m4, intdiv0.m4, po.m4,
+	inttypes.m4, inttypes-pri.m4, inttypes_h.m4, lcmessage.m4, lib-ld.m4,
+	lib-link.m4, lib-prefix.m4, nls.m4, progtest.m4, stdint_h.m4,
+	uintmax_t.m4, ulonglong.m4: Import from gettext-0.12.1 sources.
+
+2004-08-31  Robert Bowdidge <bowdidge@apple.com>
+
+	* mh-ppc-darwin: Add file, and override BOOT_CFLAGS.
+
+2004-08-13  Nathanael Nerode  <neroden@gcc.gnu.org>
+
+	* Add ACX_{TARGET,HOST,BUILD}_NONCANONICAL,
+	which do an automatic AC_SUBST on _GCC_TOPLEV_*_NONCANONICAL.
+	The intention is that we will migrate to these bit by bit.
+
+2004-08-01  Robert Millan  <robertmh@gnu.org>
+
+	* mt-linux: Rename to ...
+	* mt-gnu: ... this.
+
+2004-06-09  Paolo Bonzini  <bonzini@gnu.org>
+
+	* acx.m4 (ACX_PROG_LN): From gcc, modified to
+	accept a parameter.
+
+2004-05-23  Paolo Bonzini  <bonzini@gnu.org>
+
+	* acx.m4 (ACX_HEADER_STDBOOL, ACX_HEADER_STRING):
+	From gcc.
+
+2004-04-16  Rainer Orth  <ro@TechFak.Uni-Bielefeld.DE>
+
+	* acx.m4 (ACX_PROG_GNAT): Check if ${CC} produces object file for
+	Ada compilation.
+	Fix acx_cv_cc_gcc_supports_ada spelling.
+
+2004-03-08  Paolo Bonzini  <bonzini@gnu.org>
+
+	PR ada/14131
+	Move language detection to the top level.
+	* acx.m4 (ACX_PROG_GNAT): New macro, moved here
+	from the gcc subdirectory.
+
+2004-03-09  Hans-Peter Nilsson  <hp@axis.com>
+
+	* accross.m4 (AC_C_BIGENDIAN_CROSS): Compile endian probe with
+	"-c".  Properly quote parameter for AC_MSG_ERROR.
+
+2004-01-14  Maciej W. Rozycki  <macro@ds2.pg.gda.pl>
+
+	* acinclude.m4: Quote names of macros to be defined by AC_DEFUN
+	throughout.
+	* aclocal.m4: Regenerate.
+	* configure: Regenerate.
+
+2003-10-14  Nathanael Nerode  <neroden@gcc.gnu.org>
+
+	* gettext.m4: Properly quote arguments to AC_DEFUN.
+
+2003-09-24  Daniel Jacobowitz  <drow@mvista.com>
+
+	* acx.m4 (AC_PROG_CPP_WERROR): New.
+
+2003-08-27  Daniel Jacobowitz  <drow@mvista.com>
+
+	* no-executables.m4: New file.
+
+2003-07-07  Zack Weinberg  <zack@codesourcery.com>
+
+	* gettext.m4: Delete all former contents.
+	(ZW_GNU_GETTEXT_SISTER_DIR): New macro.
+	* progtest.m4: New file.
+
+2003-07-04  Zack Weinberg  <zack@codesourcery.com>
+
+	* gettext.m4: New file - copy of gettext.m4 from binutils
+	CVS, with added AC_ISC_POSIX macro from gcc/aclocal.m4.
+
+2003-05-14  Kelley Cook  <kelleycook@wideopenwest.com>
+
+	* acinclude.m4: Accept i[3456789]86 for machine type.
+
+2003-05-18  Nathanael Nerode  <neroden@gcc.gnu.org>
+
+	* acx.m4: Introduce _GCC_TOPLEV_NONCANONICAL_BUILD,
+	_GCC_TOPLEV_NONCANOICAL_HOST, _GCC_TOPLEV_NONCANONICAL_TARGET,
+	GCC_TOPLEV_SUBDIRS.
+
+2003-03-04  Nathanael Nerode  <neroden@gcc.gnu.org>
+
+	* mh-dgux: Delete.
+
+2002-12-28  Alexandre Oliva  <aoliva@redhat.com>
+
+	* acx.m4: Name cache variables properly.
+	(NCN_STRICT_CHECK_TOOL): If program is not found and
+	value-if-not-found is empty, use ${ncn_tool_prefix}$2 or $2,
+	depending on whether build != host or not.
+	(NCN_STRICT_CHECK_TARGET_TOOL): Ditto, with the target prefix.
+
+2002-12-28  Nathanael Nerode  <neroden@gcc.gnu.org>
+
+	* acx.m4: New.
+	* mh-a68bsd, mh-aix386, mh-apollo68, mh-delta88, mh-hp300,
+	mh-hpux, mh-hpux8, mh-irix5, mh-irix6, mh-ncrsvr43, mh-openedition,
+	mh-riscos, mh-sysv: Delete.
+	* mh-cxux, mh-dgux386, mh-interix, mh-lynxrs6k, mh-ncr3000,
+	mh-necv4, mh-sco, mh-solaris, mh-sysv4, mh-sysv5, mt-v810: Simplify.
+
+2002-12-16  Christopher Faylor  <cgf@redhat.com>
+
+	* mh-cygwin: Don't build libtermcap if it doesn't exist.
+
+2002-12-22  Geoffrey Keating  <geoffk@apple.com>
+
+	* mt-aix43: Delete.
+
+2002-11-23  H.J. Lu <hjl@gnu.org>
+
+	* accross.m4: New.
+
+2002-11-10  Stan Shebs  <shebs@apple.com>
+
+	Retire common MPW configury bits.
+	* mpw-mh-mpw: Remove.
+	* mpw: Remove directory along with all of its files.
+
+2002-05-16  Rainer Orth  <ro@TechFak.Uni-Bielefeld.DE>
+
+	* acinclude.m4: Allow for PWDCMD to override hardcoded pwd.
+
+2002-05-13  Nathanael Nerode  <neroden@twcny.rr.com>
+
+	* mh-apollo68: remove unused HDEFINES setting.
+	* mh-dgux: remove unused HDEFINES setting.
+	* mh-dgux386: remove unused HDEFINES setting, duplicate RANLIB=true.
+
+2002-04-29  Nathanael Nerode  <neroden@twcny.rr.com>
+
+	* mh-cxux: remove dead code
+	* mh-dgux386: remove dead code
+	* mh-hp300: remove dead code
+	* mh-hpux: remove dead code
+	* mh-hpux8: remove dead code
+	* mh-irix5: remove dead code
+	* mh-irix6: remove dead code
+	* mh-ncr3000: remove dead code
+	* mh-ncrsvr43: remove dead code
+	* mh-necv4: remove dead code
+	* mh-sco: remove dead code
+	* mh-solaris: remove dead code
+	* mh-sysv: remove dead code
+	* mh-sysv4: remove dead code
+	* mh-sysv5: remove dead code
+	* mh-irix4: remove, contains only dead code
+
+	* mt-armpic: Delete.
+	* mt-elfalphapic: Delete.
+	* mt-i370pic: Delete.
+	* mt-ia64pic: Delete.
+	* mt-m68kpic: Delete.
+	* mt-papic: Delete.
+	* mt-ppcpic: Delete.
+	* mt-s390pic: Delete.
+	* mt-sparcpic: Delete.
+	* mt-x86pic: Delete.
+
+2002-04-19  Nathanael Nerode  <neroden@twcny.rr.com>
+
+	* mh-a68bsd: clean out dead code
+	* mh-apollo68: clean out dead code
+	* mh-cxux: clean out dead code
+	* mh-decstation: clean out dead code
+	* mh-dgux: clean out dead code
+	* mh-dgux386: clean out dead code
+	* mh-hp300: clean out dead code
+	* mh-hpux: clean out dead code
+	* mh-hpux8: clean out dead code
+	* mh-interix: clean out dead code
+	* mh-irix4: clean out dead code
+	* mh-lynxrs6k: clean out dead code
+	* mh-mingw32: clean out dead code
+	* mh-ncr3000: clean out dead code
+	* mh-ncrsvr43: clean out dead code
+	* mh-necv4: clean out dead code
+	* mh-openedition: clean out dead code
+	* mh-riscos: clean out dead code
+	* mh-sco: clean out dead code
+	* mh-sysv4: clean out dead code
+	* mh-lynxos: removed, contained only dead code
+	* mh-vaxult2: removed, contained only dead code
+	* mh-sun3: removed, contained only dead code
+
+2002-04-15  Keith Seitz  <keiths@redhat.com>
+
+	* acinclude.m4 (CYG_AC_PATH_TCLCONFIG): Search the win/ directory,
+	too.
+	(CYG_AC_PATH_TKCONFIG): Likewise.
+
+2001-10-07  Joseph S. Myers  <jsm28@cam.ac.uk>
+
+	* acinclude.m4: Fix spelling error of "separate" as "seperate".
+
+2001-05-22  Jason Merrill  <jason_merrill@redhat.com>
+
+	* mt-linux (CXXFLAGS_FOR_TARGET): Lose -fvtable-thunks.
+
+2001-01-27  Richard Henderson  <rth@redhat.com>
+
+	* mt-alphaieee: New file.
+
+2001-01-02  Laurynas Biveinis  <lauras@softhome.net>
+
+	* mh-djgpp: do not set CFLAGS.
+
+2000-08-04  Mark Elbrecht  <snowball3@bigfoot.com>
+
+	* mh-djgpp: Conditionally set 'target_alias' to djgpp. Conditionally
+	modify 'gcc_version'.
+
+2000-07-21  Andrew Haley  <aph@cygnus.com>
+
+	* mh-ia64pic: New file.
+	* mt-ia64pic: New file.
+
+2001-02-09  Martin Schwidefsky  <schwidefsky@de.ibm.com>
+
+	* mh-s390pic: New file.
+	* mt-s390pic: New file.
+
+2000-09-26  David Edelsohn  <edelsohn@gnu.org>
+
+	* mt-aix43 (NM_FOR_TARGET): Add -B bsd-style flag.
+
+2000-07-14  Mark P Mitchell  <mark@codesourcery.com>
+
+	* mh-irix6 (CC): Don't set it.
+
+2000-06-21  Branko Cibej  <branko.cibej@hermes.si>
+
+	* mh-sparcpic: Use single instead of double quotes.
+	* mt-sparcpic: Likewise.
+
+2000-06-19  Syd Polk <spolk@redhat.com>
+
+	* acinclude.m4: Updated for Incr Tcl 3.0.
+
+2000-02-23  Linas Vepstas <linas@linas.org>
+
+	* mh-i370pic: New file.
+	* mt-i370pic: New file.
+
+2000-02-22  Nick Clifton  <nickc@cygnus.com>
+
+	* mt-wince: new file: Makefile fragment for WinCE targets.
+
+2000-01-06  Geoff Keating  <geoffk@cygnus.com>
+
+	* mh-aix43: Delete, move to mt-aix43.
+	* mt-aix43: New file.
+
+Tue Sep  7 23:31:01 1999  Linas Vepstas  <linas@linas.org>
+
+	* mh-openedition: New file.
+
+1999-04-07  Michael Meissner  <meissner@cygnus.com>
+
+	* mt-d30v: New file, pass -g -Os -Wa,-C as default options.
+
+Thu Mar 18 00:17:50 1999  Mark Elbrecht <snowball3@usa.net>
+
+	* mh-go32: Delete.
+	* mh-djgpp: New. Renamed from mh-go32.
+
+Wed Feb 24 12:52:17 1999  Stan Shebs  <shebs@andros.cygnus.com>
+
+	* mh-windows: Ditto.
+
+1999-02-08  Syd Polk  <spolk@cygnus.com>
+
+	* acinclude.m4: Added macros to find itcl files.
+	Export TCL_CFLAGS from tclConfig.sh.
+	Export TCL_LIB_FULL_PATH, TK_LIB_FULL_PATH, ITCL_LIB_FULL_PATH,
+	ITK_LIB_FULL_PATH, and TIX_LIB_FULL_PATH
+	Replace TIX macros with better ones from snavigator.
+
+Tue Feb  2 22:51:21 1999 Philip Blundell  <philb@gnu.org>
+
+	* mh-armpic: New file.  Patch from Jim Pick <jim@jimpick.com>.
+	* mt-armpic: Likewise.
+
+Sat Jan 30 08:04:00 1999  Mumit Khan  <khan@xraylith.wisc.edu>
+
+	* mh-interix: New file.
+
+Mon Jan 18 19:41:08 1999  Christopher Faylor <cgf@cygnus.com>
+
+	* cygwin.mh: Activate commented out dependencies for
+	gdb: libtermcap.
+
+Wed Dec 30 20:34:52 1998  Christopher Faylor <cgf@cygnus.com>
+
+	* mt-cygwin: Remove.
+
+Wed Dec 30 01:13:03 1998  Christopher Faylor <cgf@cygnus.com>
+
+	* mt-cygwin: New file.  libtermcap target info.
+
+Wed Nov 18 20:29:46 1998  Christopher Faylor <cgf@cygnus.com>
+
+	* cygwin.mh: Add extra libtermcap target information.
+	Add commented out dependency for gdb to libtermcap for
+	future readline requirement.
+
+Mon Nov  2 15:15:33 1998  Geoffrey Noer  <noer@cygnus.com>
+
+	* mh-cygwin32: delete
+	* mh-cygwin: was mh-cygwin32
+
+1998-10-26  Syd Polk  <spolk@cygnus.com>
+
+	* acinclude.m4: TCLHDIR and TKHDIR need to be run through
+	cygpath for Microsoft builds.
+
+1998-10-20  Syd Polk  <spolk@cygnus.com>
+
+	* acinclude.m4: Re-exported TCL_LIBS and TCL_LD_SEARCH_FLAGS
+	because itcl needs them.
+
+Mon Aug 31 17:50:53 1998  David Edelsohn  <edelsohn@mhpcc.edu>
+
+	* mh-aix43 (NM_FOR_TARGET): Add -X32_64 as well.
+
+Sat Aug 29 14:32:55 1998  David Edelsohn  <edelsohn@mhpcc.edu>
+
+	* mh-aix43: New file.
+
+Mon Aug 10 00:15:47 1998  HJ Lu (hjl@gnu.org)
+
+	* mt-linux (CXXFLAGS_FOR_TARGET): Add -D_GNU_SOURCE.
+
+1998-05-29  Rob Savoye  <rob@chinadoll.cygnus.com>
+
+	* acinclude.m4: New collection of generic autoconf macros.
+
+Wed Apr 22 12:24:28 1998  Michael Meissner  <meissner@cygnus.com>
+
+	* mt-ospace: New file, support using -Os instead of -O2 to compile
+	the libraries.
+
+Wed Apr 22 10:53:14 1998  Andreas Schwab  <schwab@issan.informatik.uni-dortmund.de>
+
+	* mt-linux (CXXFLAGS_FOR_TARGET): Set this instead of CXXFLAGS.
+
+Sat Apr 11 22:43:17 1998  J. Kean Johnston  <jkj@sco.com>
+
+	* mh-svsv5: New file - support for SCO UnixWare 7 / SVR5.
+
+Thu Mar 26 01:54:25 1998  Geoffrey Noer  <noer@cygnus.com>
+
+	* mh-cygwin32: stop configuring and building dosrel.
+
+Fri Feb  6 01:33:52 1998  Manfred Hollstein  <manfred@s-direktnet.de>
+
+	* mh-sparcpic (PICFLAG): Define to properly according
+	to current multilib configuration.
+	* mt-sparcpic (PICFLAG_FOR_TARGET): Define to properly
+	according to current multilib configuration.
+
+Sun Jan  4 01:06:55 1998  Mumit Khan  <khan@xraylith.wisc.edu>
+
+	* mh-mingw32: New file.
+
+Thu Sep 11 16:43:27 1997  Jim Wilson  <wilson@cygnus.com>
+
+	* mh-elfalphapic, mt-elfalphapic: New files.
+
+1997-09-15 02:37  Ulrich Drepper  <drepper@cygnus.com>
+
+	* mt-linux: Define CXXFLAGS to make sure -fvtable-thunks is used.
+
+Sun Sep 14 20:53:42 1997  Geoffrey Noer  <noer@cygnus.com>
+
+	* mh-cygwin32: ok to build split texinfo files
+
+Wed Jul 23 12:32:18 1997  Robert Hoehne <robert.hoehne@Mathematik.TU-Chemnitz.DE>
+
+	* mh-go32 (CFLAGS): Don't set -fno-omit-frame-pointer.
+
+Mon Jun 16 19:06:41 1997  Geoff Keating  <geoffk@ozemail.com.au>
+
+	* mh-ppcpic: New file.
+	* mt-ppcpic: New file.
+
+Thu Mar 27 15:52:40 1997  Geoffrey Noer  <noer@cygnus.com>
+
+	* mh-cygwin32: override CXXFLAGS, setting to -O2 only
+	(no debug)
+
+Tue Mar 25 18:16:43 1997  Geoffrey Noer  <noer@cygnus.com>
+
+	* mh-cygwin32: override LIBGCC2_DEBUG_CFLAGS so debug info
+	isn't included in cygwin32-hosted libgcc2.a by default
+
+Wed Jan  8 19:56:43 1997  Geoffrey Noer  <noer@cygnus.com>
+
+	* mh-cygwin32: override CFLAGS so debug info isn't included
+	in cygwin32-hosted tools by default
+
+Tue Dec 31 16:04:26 1996  Ian Lance Taylor  <ian@cygnus.com>
+
+	* mh-linux: Remove.
+
+Mon Nov 11 10:29:51 1996  Michael Meissner  <meissner@tiktok.cygnus.com>
+
+	* mt-ppc: Delete file, options moved to newlib configure.
+
+Mon Oct 28 17:32:46 1996  Stu Grossman  (grossman@critters.cygnus.com)
+
+	* mh-windows:  Add rules for building MSVC makefiles.
+
+Thu Oct 24 09:02:07 1996  Stu Grossman  (grossman@critters.cygnus.com)
+
+	* mh-windows (HOST_FLAGS):  Set srcroot, which is needed
+	for MSVC build procedure.
+
+Tue Oct  8 08:32:48 1996  Stu Grossman  (grossman@critters.cygnus.com)
+
+	* mh-windows:  Add support for windows host
+	(that is a build done under the Microsoft build environment).
+
+Fri Oct  4 12:21:03 1996  Angela Marie Thomas (angela@cygnus.com)
+
+	* mh-dgux386: New file.  x86 dgux specific flags
+
+Mon Sep 30 15:10:07 1996  Stan Shebs  <shebs@andros.cygnus.com>
+
+	* mpw-mh-mpw (EXTRALIBS_PPC_XCOFF): New, was EXTRALIBS_PPC.
+	(EXTRALIBS_PPC): Use shared libraries instead of xcoff.
+
+Sat Aug 17 04:56:25 1996  Geoffrey Noer  <noer@skaro.cygnus.com>
+
+	* mh-cygwin32: don't -D_WIN32 here anymore
+
+Sun Aug 11 20:51:50 1996  Stu Grossman  (grossman@critters.cygnus.com)
+
+	* mh-cygwin32 (CFLAGS):  Define _WIN32 to be compatible
+	with normal Windows compilation environment.
+
+Thu Aug 15 19:46:44 1996  Stan Shebs  <shebs@andros.cygnus.com>
+
+	* mpw-mh-mpw (SEGFLAG_68K, SEGFLAG_PPC): Remove.
+	(EXTRALIBS_PPC): Add libgcc.xcoff.
+
+Thu Aug  8 14:51:47 1996  Michael Meissner  <meissner@tiktok.cygnus.com>
+
+	* mt-ppc: New file, add -mrelocatable-lib and -mno-eabi to all
+	target builds for PowerPC eabi targets.
+
+Fri Jul 12 12:06:01 1996  Stan Shebs  <shebs@andros.cygnus.com>
+
+	* mpw: New subdir, Mac MPW configuration support bits.
+
+Mon Jul  8 17:30:52 1996  Jim Wilson  <wilson@cygnus.com>
+
+	* mh-irix6: New file.
+
+Mon Jul  8 15:15:37 1996  Jason Merrill  <jason@yorick.cygnus.com>
+
+	* mt-sparcpic (PICFLAG_FOR_TARGET): Use -fPIC.
+
+Fri Jul  5 11:49:02 1996  Ian Lance Taylor  <ian@cygnus.com>
+
+	* mh-irix4 (RANLIB): Don't define; Irix 4 does have ranlib.
+
+Sun Jun 23 22:59:25 1996  Geoffrey Noer  <noer@cygnus.com>
+
+	* mh-cygwin32: new file.  Like mh-go32 without the CFLAGS entry.
+
+Tue Mar 26 14:10:41 1996  Ian Lance Taylor  <ian@cygnus.com>
+
+	* mh-go32 (CFLAGS): Define.
+
+Thu Mar 14 19:20:54 1996  Ian Lance Taylor  <ian@cygnus.com>
+
+	* mh-necv4: New file.
+
+Thu Feb 15 13:07:43 1996  Ian Lance Taylor  <ian@cygnus.com>
+
+	* mh-cxux (CC): New variable.
+	(CFLAGS, LDFLAGS): Remove.
+	* mh-ncrsvr43 (CC): New variable.
+	(CFLAGS): Remove.
+	* mh-solaris (CFLAGS): Remove.
+
+	* mh-go32: Remove most variable settings, since they presumed a
+	Canadian Cross, which is now handled correctly by the configure
+	script.
+
+	* mh-sparcpic (PICFLAG): Set to -fPIC, not -fpic.
+
+Mon Feb 12 14:53:39 1996  Andreas Schwab  <schwab@issan.informatik.uni-dortmund.de>
+
+	* mh-m68kpic, mt-m68kpic: New files.
+
+Thu Feb  1 14:15:42 1996  Stan Shebs  <shebs@andros.cygnus.com>
+
+	* mpw-mh-mpw (CC_MWC68K): Add options similar to those used
+	in CC_MWCPPC, and -mc68020 -model far.
+	(AR_MWLINK68K): Add -xm library.
+	(AR_AR): Define.
+	(CC_LD_MWLINK68K): Remove -d.
+	(EXTRALIBS_MWC68K): Define.
+
+Thu Jan 25 16:05:33 1996  Ian Lance Taylor  <ian@cygnus.com>
+
+	* mh-ncrsvr43 (CFLAGS): Remove -Hnocopyr.
+
+Thu Nov 30 14:45:25 1995  J.T. Conklin  <jtc@rtl.cygnus.com>
+
+	* mt-v810 (CC_FOR_TARGET): Add -ansi flag.  NEC compiler
+	defaults to K&R mode, but doesn't have varargs.h, so we have to
+	compile in ANSI mode.
+
+Wed Nov 29 13:49:08 1995  J.T. Conklin  <jtc@rtl.cygnus.com>
+
+	* mt-v810 (CC_FOR_TARGET, AS_FOR_TARGET, AR_FOR_TARGET,
+	RANLIB_FOR_TARGET): Set as appropriate for NEC v810 toolchain.
+
+Tue Nov 14 15:03:12 1995  Jason Molenda  (crash@phydeaux.cygnus.com)
+
+	* mh-i386win32: add LD_FOR_TARGET.
+
+Tue Nov  7 15:41:30 1995  Stan Shebs  <shebs@andros.cygnus.com>
+
+	* mpw-mh-mpw (CC_MWC68K, CC_MWCPPC): Remove unused include path.
+	(CC_MWCPPC): Add -mpw_chars, disable warnings, add comments
+	explaining reasons for various flags.
+	(EXTRALIBS_PPC, EXTRALIBS_MWCPPC ): Put runtime library first.
+
+Fri Oct 13 14:44:25 1995  Jason Molenda  (crash@phydeaux.cygnus.com)
+
+	* mh-aix, mh-sun:  Removed.
+
+	* mh-decstation (X11_EXTRA_CFLAGS): Define.
+
+	* mh-sco, mh-solaris, mh-sysv4 (X11_EXTRA_LIBS): Define.
+
+	* mh-hp300, mh-hpux, mh-hpux8, mh-solaris, mh-sun3, mh-sysv4: Don't
+	hardcode location of X stuff here.
+
+Thu Sep 28 13:14:56 1995  Stan Shebs  <shebs@andros.cygnus.com>
+
+	* mpw-mh-mpw: Add definitions for various 68K and PowerMac
+	compilers, add definitions for library and link steps for
+	PowerMacs.
+
+Sat Sep 16 18:31:08 PDT 1995  Angela Marie Thomas <angela@cygnus.com>
+
+	* mh-ncrsvr43: Removed AR_FLAGS
+
+Thu Sep 14 08:20:04 1995  Fred Fish  <fnf@cygnus.com>
+
+	* mh-hp300 (CC): Add "CC = cc -Wp,-H256000" to avoid
+	"too much defining" errors from the HPUX compiler.
+
+Thu Aug 17 17:28:56 1995  Ken Raeburn  <raeburn@kr-laptop.cygnus.com>
+
+	* mh-hp300 (RANLIB): Use "ar ts", in case GNU ar was used and
+	didn't build a symbol table.
+
+Thu Jun 22 17:47:24 1995  Stan Shebs  <shebs@andros.cygnus.com>
+
+	* mpw-mh-mpw (CC): Define ANSI_PROTOTYPES.
+
+Mon Jun  5 18:26:36 1995  Jason Merrill  <jason@phydeaux.cygnus.com>
+
+	* m?-*pic: Define PICFLAG* instead of LIB*FLAGS*.
+
+Mon Apr 10 12:29:48 1995  Stan Shebs  <shebs@andros.cygnus.com>
+
+	* mpw-mh-mpw (EXTRALIBS): Always link in Math.o, CSANELIB.o,
+	and ToolLibs.o.
+
+	* mpw-mh-mpw (CC): Define ALMOST_STDC.
+	(CFLAGS): Remove ALMOST_STDC, -mc68881.
+	(LDFLAGS): add -w.
+
+	* mpw-mh-mpw (CFLAGS): Add -b option to put strings at the ends of
+	functions.
+
+	* mpw-mh-mpw: New file, host makefile definitions for MPW.
+
+Fri Mar 31 11:35:17 1995  Jason Molenda (crash@phydeaux.cygnus.com)
+
+	* mt-netware: New file.
+
+Tue Mar 28 14:47:34 1995  Jason Molenda (crash@phydeaux.cygnus.com)
+
+	Revert this change:
+
+	Mon Mar 29 19:59:26 1993  david d `zoo' zuhn  (zoo at cirdan.cygnus.com)
+
+		* mh-solaris: SunPRO C needs -Xs to be able to get a
+		working xmakefile for Emacs.
+
+Mon Mar 13 12:31:29 1995  Ian Lance Taylor  <ian@cygnus.com>
+
+	* mh-hpux8: New file.
+	* mh-hpux: Use X11R5 rather than X11R4.
+
+Thu Feb  9 11:04:13 1995  Ian Lance Taylor  <ian@cygnus.com>
+
+	* mh-linux (SYSV): Don't define.
+	(RANLIB): Don't define.
+
+Wed Jan 11 16:29:34 1995  Jason Merrill  <jason@phydeaux.cygnus.com>
+
+	* m?-*pic (LIBCXXFLAGS): Add -fno-implicit-templates.
+
+Sat Nov  5 18:43:30 1994  Jason Merrill  (jason@phydeaux.cygnus.com)
+
+	* m[th]-*pic: Support --enable-shared.
+
+Thu Nov  3 17:27:19 1994  Ken Raeburn  <raeburn@cujo.cygnus.com>
+
+	* mh-irix4 (CC): Increase maximum string length.
+
+	* mh-sco (CC): Define away const, it doesn't work right; elements
+	of arrays of ptr-to-const are considered const themselves.
+
+Sat Jul 16 12:17:49 1994  Stan Shebs  (shebs@andros.cygnus.com)
+
+	* mh-cxux: New file, from Bob Rusk (rrusk@mail.csd.harris.com).
+
+Sat Jun  4 17:22:12 1994  Per Bothner  (bothner@kalessin.cygnus.com)
+
+	* mh-ncrsvr43:  New file from Tom McConnell
+	<tmcconne@sedona.intel.com>.
+
+Thu May 19 00:32:11 1994  Jeff Law  (law@snake.cs.utah.edu)
+
+	* mh-hpux (CC): Add -Wp,-H256000 to avoid "too much defining"
+	errors from the HPUX 8 compilers.
+
+Fri May  6 14:19:25 1994  Steve Chamberlain  (sac@cygnus.com)
+
+	* mh-go32: New fragment.
+
+Thu May  5 20:06:45 1994  Ken Raeburn  (raeburn@cujo.cygnus.com)
+
+	* mh-lynxrs6k: Renamed from mh-lynxosrs6k, to make it
+	unique in 8.3 naming schemes.
+
+Wed May  4 20:14:47 1994  D. V. Henkel-Wallace  (gumby@cygnus.com)
+
+	* mh-lynxrs6k: set SHELL to /bin/bash
+
+Tue Apr 12 12:38:17 1994  Ian Lance Taylor  (ian@tweedledumb.cygnus.com)
+
+	* mh-irix4 (CC): Change -XNh1500 to -XNh2000.
+
+Mon Jan 31 18:40:55 1994  Stu Grossman  (grossman at cygnus.com)
+
+	* mh-lynxosrs6k:  Account for lack of ranlib!
+
+Sat Dec 25 20:03:45 1993  Jeffrey A. Law  (law@snake.cs.utah.edu)
+
+	* mt-hppa: Delete.
+
+Thu Dec  2 14:35:54 1993  Ian Lance Taylor  (ian@tweedledumb.cygnus.com)
+
+	* mh-irix5: New file for Irix 5.
+
+Tue Nov 16 22:54:39 1993  Jim Kingdon  (kingdon@lioth.cygnus.com)
+
+	* mh-a68bsd: Define CC to gcc.
+
+Mon Nov 15 16:56:51 1993  Jim Kingdon  (kingdon@lioth.cygnus.com)
+
+	* mh-linux: Don't put -static in LDFLAGS.  Add comments.
+
+Mon Nov 15 13:37:58 1993  david d `zoo' zuhn  (zoo@cirdan.cygnus.com)
+
+	* mh-sysv4 (AR_FLAGS): change from cq to cr
+
+Fri Nov  5 08:12:32 1993  D. V. Henkel-Wallace  (gumby@blues.cygnus.com)
+
+	* mh-unixware: remove.  It's the same as sysv4, and config.guess
+	can't tell the difference.  So don't allow skew.
+
+Wed Oct 20 20:35:14 1993  Jim Kingdon  (kingdon@lioth.cygnus.com)
+
+	* mh-hp300: Revert yesterday's change, but add comment explaining.
+
+Tue Oct 19 18:58:21 1993  Jim Kingdon  (kingdon@lioth.cygnus.com)
+
+	* mh-hp300: Don't define CFLAGS to empty.  Why should hp300 be
+	different from anything else?  ("gdb doesn't understand the native
+	debug format" isn't a good enough answer because we might be using
+	gcc).
+
+Tue Oct  5 12:17:40 1993  Peter Schauer  (pes@regent.e-technik.tu-muenchen.de)
+
+	* mh-alphaosf: Remove, no longer necessary now that gdb knows
+	how to handle OSF/1 shared libraries.
+
+Tue Jul  6 11:27:33 1993  Steve Chamberlain  (sac@phydeaux.cygnus.com)
+
+	* mh-alphaosf: New file.
+
+Thu Jul  1 15:49:33 1993  Jim Kingdon  (kingdon@lioth.cygnus.com)
+
+	* mh-riscos: New file.
+
+Mon Jun 14 12:03:18 1993  david d `zoo' zuhn  (zoo at rtl.cygnus.com)
+
+	* mh-aix, mh-aix386, mh-decstation, mh-delta88, mh-hpux, mh-irix4,
+	mh-ncr3000, mh-solaris, mh-sysv, mh-sysv4: remove INSTALL=cp line,
+	now that we're using install.sh globally
+
+Fri Jun  4 16:09:34 1993  Ian Lance Taylor  (ian@cygnus.com)
+
+	* mh-sysv4 (INSTALL): Use cp, not /usr/ucb/install.
+
+Sat Apr 17 17:19:50 1993  david d `zoo' zuhn  (zoo at cirdan.cygnus.com)
+
+	* mh-delta88: remove extraneous GCC references
+
+Thu Apr  8 11:21:52 1993  Ian Lance Taylor  (ian@cygnus.com)
+
+	* mt-a29k, mt-ebmon29k, mt-os68k, mt-ose68000, mt-ose68k,
+	mt-vxworks68, mt-vxworks960: Removed obsolete, unused target
+	Makefile fragment files.
+
+Wed Mar 31 12:31:56 1993  Ian Lance Taylor  (ian@cygnus.com)
+
+	* mh-irix4: Bump -XNh value to 1500 to match gcc requirements.
+
+Mon Mar 29 19:59:26 1993  david d `zoo' zuhn  (zoo at cirdan.cygnus.com)
+
+	* mh-sun3: cc needs -J to compile cp-parse.c correctly
+
+	* mh-solaris: SunPRO C needs -Xs to be able to get a
+	working xmakefile for Emacs.
+
+Mon Mar  8 15:05:25 1993  Ken Raeburn  (raeburn@cambridge.cygnus.com)
+
+	* mh-aix386: New file; old mh-aix, plus no-op RANLIB.
+
+Tue Mar  2 21:15:58 1993  Fred Fish  (fnf@cygnus.com)
+
+	* mh-vaxult2:  New file.
+
+Sat Jan 23 20:32:01 1993  david d `zoo' zuhn  (zoo at cirdan.cygnus.com)
+
+	* mh-sco: define X11_LIB to the mess that SCO ODT requires
+
+Tue Dec 29 15:06:00 1992  Ian Lance Taylor  (ian@cygnus.com)
+
+	* mh-sco: Don't override BISON definition.
+
+Mon Dec  7 06:43:27 1992  david d `zoo' zuhn  (zoo at cirdan.cygnus.com)
+
+	* mh-sco: don't default $(CC) to gcc
+
+Mon Nov 30 14:54:34 1992  david d `zoo' zuhn  (zoo at cirdan.cygnus.com)
+
+	* mh-solaris: rework standard X location to use
+	$OPENWINHOME, if defined.
+
+	* mh-sun: handle X11 include locations
+
+	* mh-decstation: define NeedFunctionPrototypes to 0, to
+	work around dain-bramaged DECwindows include files
+
+Fri Nov 27 18:35:54 1992  david d `zoo' zuhn  (zoo at cirdan.cygnus.com)
+
+	* mh-hpux, mh-solaris: define the "standard" locations for
+	the vendor supplied X11 headers and libraries
+
+Thu Oct  1 13:50:48 1992  david d `zoo' zuhn  (zoo at cirdan.cygnus.com)
+
+	* mh-solaris: INSTALL is NOT /usr/ucb/install
+
+Mon Aug 24 14:25:35 1992  Ian Lance Taylor  (ian@cygnus.com)
+
+	* mt-ose68000, mt-ose68k: renamed from mt-OSE*.
+
+Mon Aug  3 15:41:28 1992  david d `zoo' zuhn  (zoo at cirdan.cygnus.com)
+
+	* mh-solaris: removed the -xs from CFLAGS (let the people
+	with Sun's C compiler deal with it themselved)
+
+Tue Jul 21 02:11:01 1992  D. V. Henkel-Wallace  (gumby@cygnus.com)
+
+	* mt-OSE68k, mt-680000: new configs.
+
+Thu Jul 16 17:12:09 1992  K. Richard Pixley  (rich@rtl.cygnus.com)
+
+	* mh-irix4: merged changes from progressive.
+
+Wed Jul  8 00:01:30 1992  Stu Grossman  (grossman at cygnus.com)
+
+	* mh-solaris:  Use -xs when compiling so that Sun-C puts
+	a symbol-table into the executable.
+
+Mon Jun 15 12:31:52 1992  Fred Fish  (fnf@cygnus.com)
+
+	* mh-ncr3000 (INSTALL):  Don't use /usr/ucb/install,
+	it is broken on ncr 3000's.
+
+Tue Jun  9 23:29:38 1992  Per Bothner  (bothner@rtl.cygnus.com)
+
+	* Everywhere: Change RANLIB=echo>/dev/null (which confuses
+	some shells - and I don't blame them) to RANLIB=true.
+	* mh-solaris:  Use /usr/ucb/install for INSTALL.
+
+Tue Jun  9 17:18:11 1992  Fred Fish  (fnf at cygnus.com)
+
+	* mh-ncr3000, mh-sysv4:  Add INSTALL.
+
+Sun May 31 14:45:23 1992  Mark Eichin  (eichin at cygnus.com)
+
+	* mh-solaris2: Add new configuration for Solaris 2 (sysv, no ranlib)
+
+Wed Apr 22 14:38:34 1992  Fred Fish  (fnf@cygnus.com)
+
+	* mh-delta88, mh-ncr3000:  Replace MINUS_G with
+	CFLAGS per new configuration strategy.
+
+Fri Apr 10 23:10:08 1992  Fred Fish  (fnf@cygnus.com)
+
+	* mh-ncr3000:  Add new configuration for NCR 3000.
+
+Thu Mar  5 12:05:58 1992  Stu Grossman  (grossman at cygnus.com)
+
+	* mh-irix4: Port to SGI Irix-4.x.
+
+Thu Jan 30 16:17:30 1992  Stu Grossman  (grossman at cygnus.com)
+
+	* mh-sco: Fix SCO configuration stuff.
+
+Tue Dec 10 00:10:55 1991  K. Richard Pixley  (rich at rtl.cygnus.com)
+
+	* ChangeLog: fresh changelog.

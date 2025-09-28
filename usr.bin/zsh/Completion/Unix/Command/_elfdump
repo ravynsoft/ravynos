@@ -1,0 +1,43 @@
+#compdef elfdump
+
+local -a args
+
+args=(
+  '-c[dump section header information]'
+  '-d[dump .dynamic section]'
+  '-e[dump file header]'
+  '-G[dump .got (global offset table) section]'
+  '-h[dump .hash section]'
+  '-i[dump .interp (interpreter) section]'
+  '-n[dump .note sections]'
+  '(-w)-p[dump program headers]'
+  '-r[dump relocation sections]'
+  '-s[dump symbol table sections]'
+  '(-p)-w[write contents of matched sections to file]:file:_files'
+)
+
+case $OSTYPE in
+  solaris*)
+    args+=(
+      '-g[dump .group section]'
+      '-H[dump .SUNW_cap (capabilities) section]'
+      '-m[dump .SUNW_move section]'
+      '-S[dump symbol table sections sorted according to symbol sort sections]'
+      '-u[dump stack unwind/exceptions sections]'
+      '-v[dump .SUNW_version (versioning) sections]'
+      '-y[dump .SUNW_syminfo (symbol bindings) section]'
+      '-I[match sections by index]:index or range'
+      "-N[match sections by name]:section"
+      '-T[match sections by type]:type'
+      '-C[demangle C++ symbol names]'
+      '-k[calculate ELF checksum]'
+      '-l[show long section names without truncation]'
+      '-O[specify osabi to apply]:osabi'
+      '-P[use alternative section header]'
+      "*:elf file:_object_files"
+    )
+  ;;
+  freebsd*) args+=( '-a[dump all information]' ) ;;
+esac
+
+_arguments -s $args

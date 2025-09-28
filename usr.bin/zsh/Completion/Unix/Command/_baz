@@ -1,0 +1,585 @@
+#compdef baz
+
+autoload -z is-at-least
+local BAZ=$words[1]
+local baz_version
+local hide_short
+
+# ask the user which version of baz this is
+if ! zstyle -s ":completion:${curcontext}:" baz-version baz_version; then
+  # ask baz instead
+  baz_version="${${$($BAZ --version)#baz Bazaar version }%% \(thelove@canonical.com*}"
+fi
+
+# test whether to hide short options from completion
+if zstyle -s ":completion:${curcontext}:" hide-shortopts hide_short; then
+  case $hide_short in
+    true|yes|on|1) hide_short='!' ;;
+    *) hide_short='' ;;
+  esac
+fi
+
+# completion functions
+(( $+functions[_baz_archives] )) ||
+_baz_archives () { _arch_archives baz "$@" }
+
+(( $+functions[_baz_categories] )) ||
+_baz_categories () { _arch_namespace baz 1 "$argv[@]" }
+
+(( $+functions[_baz_branches] )) ||
+_baz_branches () { _arch_namespace baz 2 "$argv[@]" }
+
+(( $+functions[_baz_versions] )) ||
+_baz_versions () { _arch_namespace baz 3 "$argv[@]" }
+
+(( $+functions[_baz_revisions] )) ||
+_baz_revisions () { _arch_namespace baz 4 "$argv[@]" }
+
+(( $+functions[_baz_local_revisions] )) ||
+_baz_local_revisions () {
+  local expl1 expl2 tree_version=`$BAZ tree-version`
+  _description -V applied-patches expl1 "patch from this version"
+  _description -V other-patches expl2 "patch from other versions"
+  compadd "$expl1[@]" `$BAZ logs`
+  compadd "$expl2[@]" `$BAZ logs --full $($BAZ log-versions | grep -v $tree_version)`
+  # This is incredibly slow.
+  # Should complete based on -A, -R, -d
+}
+
+(( $+functions[_baz_config] )) ||
+_baz_config () {
+  local configdir root ret=1 n expl
+
+  n=$opt_args[(i)(-d|--dir)]
+  [[ -n "$n" ]] && configdir=$opt_args[$n]
+  root="$(_call_program baz $BAZ tree-root ${configdir} 2>&1)"
+  if (( $? )); then
+    if [[ -d "configs" ]]; then
+      root=.
+    else
+      _message -e messages "Error: $root"
+      return $ret
+    fi
+  fi
+
+  if [[ -d "$root/configs" ]]; then
+    configdir=("$root/configs")
+    _description files expl 'config file'
+    _files -W configdir "$expl[@]" && ret=0
+  else
+    _message -e messages "No configs/ directory in tree whose root is $root"
+  fi
+  return $ret
+}
+
+(( $+functions[_baz_limit] )) ||
+_baz_limit () { #presently only does push-mirror style limits
+  [[ $words[$CURRENT] == *@* ]] && return 1
+
+  local expl archive
+  archive=${words[(r)*@*]:-$($BAZ my-default-archive 2> /dev/null)}
+  if [ $archive ]; then
+
+    if [[ $PREFIX != *--* ]]; then
+      _description -V categories expl "categories in $archive"
+      compadd -q -S -- "$expl[@]" `$BAZ category $archive`
+    else
+      _baz_namespace_branches 3
+    fi
+  fi
+}
+
+(( $+functions[_baz_tree_or_rev] )) ||
+_baz_tree_or_rev () {
+  _alternative 'trees:tree:_files -/' 'revisions:revision:_baz_revisions'
+}
+
+(( $+functions[_baz_libraries] )) ||
+_baz_libraries () {
+  local libraries expl
+  libraries=($(_call_program baz $BAZ my-revision-library))
+  _description -V libraries expl "revision library"
+  compadd "$expl[@]" -a libraries
+}
+
+(( $+functions[_baz_my_revision_library] )) ||
+_baz_my_revision_library () {
+  if [[ -n $words[(r)-d] ]] || [[ -n $words[(r)--delete] ]]; then
+    _baz_libraries
+  else
+    _files -/
+  fi
+}
+
+(( $+functions[_baz_log_versions] )) ||
+_baz_log_versions () {
+  local logs expl
+  logs=($(_call_program baz $BAZ log-versions))
+  _description -V versions expl "log version"
+  compadd "$expl[@]" -a logs
+}
+
+# command argument definitions
+# commands with different versions
+
+local cmd_register_archive cmd_archives cmd_ls_archives cmd_redo
+local cmd_redo_changes cmd_what_changed cmd_categories
+local cmd_branches cmd_versions cmd_cacherev cmd_logs cmd_log_versions
+local cmd_log_ls cmd_update cmd_join_branch cmd_replay cmd_deltapatch
+local cmd_delta_patch cmd_apply_delta cmd_sync_tree cmd_make_sync_tree
+local cmd_delta cmd_revdelta cmd_library_categories cmd_library_branches
+local cmd_library_versions cmd_library_revisions
+local cmd_status cmd_diff
+
+cmd_log_ls=('*:version:_baz_log_versions')
+cmd_log_versions=()
+# the options should only complete items that are in the tree
+
+cmd_register_archive=('::archive:_baz_archives' ':location:_files -/')
+cmd_archives=('::regex:')
+cmd_redo=('::changeset:_files -/')
+cmd_status=('::dir:_files -/')
+cmd_diff=('::revision:_baz_revisions'
+  #  ':separator:(--)' '*::limit:_files'
+  #don't understand the limit usage
+)
+cmd_categories=('::archive:_baz_archives')
+cmd_branches=('::category:_baz_categories')
+cmd_versions=('::branch:_baz_branches')
+cmd_cacherev=('::revision:_baz_revisions')
+#should only complete non-cached revisions
+
+cmd_logs=($cmd_log_ls)
+cmd_update=('::revision:_baz_revisions')
+cmd_join_branch=(':revision:_baz_revisions')
+#should only complete continuation revisions
+
+cmd_replay=('*::revision:_baz_revisions')
+cmd_deltapatch=(':FROM:_baz_tree_or_rev' ':TO:_baz_tree_or_rev')
+cmd_sync_tree=(':revision:_baz_revisions')
+cmd_delta=(':FROM:_baz_tree_or_rev' ':TO:_baz_tree_or_rev' '::DEST:_files -/')
+cmd_library_categories=('::archive:_baz_archives --library')
+cmd_library_branches=('::category:_baz_categories --library')
+cmd_library_versions=('::branch:_baz_branches --library')
+cmd_library_revisions=('::version:_baz_versions --library')
+
+cmd_ls_archives=($cmd_archives)
+cmd_redo_changes=($cmd_redo)
+cmd_what_changed=($cmd_changes)
+cmd_delta_patch=($cmd_deltapatch)
+cmd_apply_delta=($cmd_deltapatch)
+cmd_make_sync_tree=($cmd_sync_tree)
+cmd_revdelta=($cmd_delta)
+
+# commands the same in all versions
+
+local cmd_help
+cmd_help=()
+
+local cmd_my_id
+cmd_my_id=('::id-string:')
+
+local cmd_my_default_archive
+cmd_my_default_archive=('::archive:_baz_archives')
+
+local cmd_whereis_archive
+cmd_whereis_archive=(':archive:_baz_archives')
+
+local cmd_init_tree
+cmd_init_tree=('::version:_baz_versions')
+
+local cmd_tree_id
+cmd_tree_id=('::directory:_files -/')
+
+local cmd_tree_root
+cmd_tree_root=('::directory:_files -/')
+
+local cmd_tree_version
+cmd_tree_version=(':version:_baz_versions')
+
+local cmd_build_config cmd_buildcfg
+cmd_build_config=(':config:_baz_config')
+cmd_buildcfg=($cmd_build_config)
+
+local cmd_cat_config cmd_catcfg cmd_cfgcat
+cmd_cat_config=(':config:_baz_config')
+cmd_catcfg=($cmd_cat_config)
+cmd_cfgcat=($cmd_cat_config)
+
+local cmd_undo cmd_undo_changes
+cmd_undo=('::revision:_baz_revisions')
+cmd_undo_changes=($cmd_undo)
+
+local cmd_file_diffs
+cmd_file_diffs=(':file:_files' '::revision:_baz_revisions')
+
+local cmd_file_find
+cmd_file_find=(':file:_files' '::revision:_baz_revisions')
+
+local cmd_inventory cmd_srcfind
+cmd_inventory=('::separator:(--)' '*:directory:_files -/')
+cmd_srcfind=($cmd_inventory)
+
+local cmd_lint
+cmd_lint=('::directory:_files -/')
+
+local cmd_id cmd_invtag
+cmd_id=('*:file:_files')
+cmd_invtag=($cmd_id)
+
+local cmd_id_tagging_method cmd_tagging_method methods
+cmd_id_tagging_method=('::tagging method:(($methods))')
+methods=(
+  'names:use naming conventions only'
+  'implicit:use naming conventions but permit for inventory tags'
+  'tagline:use naming conventions but permit for inventory tags'
+  'explicit:require explicit designation of source'
+)
+cmd_tagging_method=($cmd_id_tagging_method)
+
+local cmd_add cmd_add_id cmd_add_tag
+cmd_add=('*:file to add:_files')
+cmd_add_id=($cmd_add)
+cmd_add_tag=($cmd_add)
+
+local cmd_delete cmd_delete_id cmd_delete_tag
+cmd_delete=('*:file to delete:_files')
+cmd_delete_id=($cmd_delete)
+cmd_delete_tag=($cmd_delete)
+
+local cmd_move cmd_move_id cmd_move_tag
+cmd_move_id=(':old name:_files' ':new name:_files')
+cmd_move_id=($cmd_move)
+cmd_move_tag=($cmd_move)
+#would be nice not to offer dirs for newname if oldname is a file, and
+#vice versa
+
+local cmd_mv
+cmd_mv=('*:file:_files')
+# not really right, but close enough
+
+local cmd_default_id cmd_explicit_default cmd_default_tag
+cmd_default_id=('::TAG-PREFIX:')
+cmd_explicit_default=($cmd_default_id)
+cmd_default_tag=($cmd_default_id)
+
+local cmd_tagging_defaults cmd_id_tagging_defaults
+cmd_tagging_defaults=()
+cmd_id_tagging_defaults=($cmd_tagging_defaults)
+
+local cmd_changeset cmd_mkpatch
+cmd_changeset=(
+  ':ORIG:_files -/'
+  ':MOD:_files -/'
+  ':DEST:_files -/'
+  '*:file:_files'
+)
+cmd_mkpatch=("$cmd_changeset[@]")
+
+local cmd_dopatch cmd_do_changeset cmd_apply_changeset
+cmd_dopatch=(':changeset:_files -/' ':target:_files -/')
+cmd_do_changeset=($cmd_dopatch)
+cmd_apply_changeset=($cmd_dopatch)
+
+local cmd_show_changeset
+cmd_show_changeset=('::changeset:_files -/')
+
+local cmd_make_archive
+cmd_make_archive=('::name:' ':location:_files -/')
+
+local cmd_archive_setup
+cmd_archive_setup=('*:version:_baz_branches --trailing-dashes')
+
+local cmd_make_category
+cmd_make_category=(':category:_baz_archives -S /')
+
+local cmd_make_branch
+cmd_make_branch=(':branch:_baz_categories --trailing-dashes')
+
+local cmd_make_version
+cmd_make_version=(':version:_baz_branches --trailing-dashes')
+
+local cmd_import cmd_imprev
+cmd_import=('::version:_baz_versions')
+cmd_imprev=($cmd_import)
+
+local cmd_commit cmd_cmtrev
+cmd_commit=('*:file:_files')
+cmd_cmtrev=($cmd_commit)
+
+local cmd_get cmd_getrev
+cmd_get=(':revision:_baz_revisions' '::directory:_files -/')
+cmd_getrev=($cmd_get)
+
+local cmd_get_patch cmd_get_changeset
+cmd_get_patch=(':revision:_baz_revisions' '::dir:_files -/')
+cmd_get_changeset=($cmd_get_patch)
+
+local cmd_lock_revision
+cmd_lock_revision=(':revision:_baz_revisions')
+
+local cmd_push_mirror cmd_archive_mirror
+cmd_push_mirror=(
+  '::FROM or MINE:_baz_archives'
+  '::TO:_baz_archives'
+  '::LIMIT:_baz_limit'
+)
+cmd_archive_mirror=($cmd_push_mirror)
+
+local cmd_revisions
+cmd_revisions=('::version:_baz_versions')
+
+local cmd_ancestry
+cmd_ancestry=('::revision:_baz_revisions')
+
+local cmd_ancestry_graph
+cmd_ancestry_graph=('::revision:_baz_revisions')
+
+local cmd_cat_archive_log
+cmd_cat_archive_log=(':revision:_baz_revisions')
+
+local cmd_cachedrevs
+cmd_cachedrevs=(':version:_baz_versions')
+
+local cmd_uncacherev
+cmd_uncacherev=(':revision:_baz_revisions' '::dir:_files -/')
+
+local cmd_archive_meta_info
+cmd_archive_meta_info=(':item-name:((name\:foo mirror\:bar))')
+
+local cmd_archive_snapshot
+cmd_archive_snapshot=(':dir:_files -/' '::limit:_baz_revisions')
+
+local cmd_archive_version
+cmd_archive_version=()
+
+local cmd_archive_fixup
+cmd_archive_fixup=()
+
+local cmd_make_log
+cmd_make_log=('::version:_baz_versions')
+
+local cmd_add_log cmd_add_log_version
+cmd_add_log=(':version:_baz_versions')
+cmd_add_log_version=($cmd_add_log)
+
+local cmd_remove_log cmd_remove_log_version
+cmd_remove_log=(':version:_baz_log_versions')
+cmd_remove_log_version=($cmd_remove_log)
+
+local cmd_abrowse
+cmd_abrowse=('::LIMIT:_baz_revisions')
+
+local cmd_cat_log
+cmd_cat_log=(':revision-spec:_baz_local_revisions')
+
+local cmd_changelog
+cmd_changelog=('::version:_baz_versions')
+
+local cmd_log_for_merge
+cmd_log_for_merge=('::version:_baz_versions')
+
+local cmd_merges
+cmd_merges=(':INTO:_baz_revisions' '::FROM:_baz_revisions')
+
+local cmd_new_merges
+cmd_new_merges=('::version:_baz_versions')
+
+local cmd_branch
+cmd_branch=(':SOURCE-REVISION:_baz_revisions' ':TAG-VERSION:_baz_versions')
+
+local cmd_merge
+cmd_merge=(':FROM:_baz_revisions')
+
+local cmd_missing cmd_whats_missing
+cmd_missing=('::revision:_baz_revisions')
+cmd_whats_missing=($cmd_missing)
+
+local cmd_pristines cmd_ls_pristines
+cmd_pristines=('::limit:_baz_revisions')
+cmd_ls_pristines=($cmd_pristines)
+
+local cmd_lock_pristine
+cmd_lock_pristine=(':revision:_baz_revisions')
+
+local cmd_add_pristine
+cmd_add_pristine=(':revision:_baz_revisions')
+
+local cmd_find_pristine
+cmd_find_pristine=(':revision:_baz_revisions')
+
+local cmd_my_revision_library
+cmd_my_revision_library=(':library:_baz_my_revision_library')
+
+local cmd_library_find
+cmd_library_find=(':revision:_baz_revisions --library')
+
+local cmd_library_add
+cmd_library_add=(':revision:_baz_revisions --exclude-library-revisions')
+
+local cmd_library_remove
+cmd_library_remove=(':revision:_baz_revisions --library')
+
+local cmd_library_archives
+cmd_library_archives=()
+
+local cmd_library_log
+cmd_library_log=(':revision:_baz_revisions --library')
+
+local cmd_library_file
+cmd_library_file=(':file:_files' ':revision:_baz_revisions --library')
+
+local cmd_grab
+cmd_grab=(':location:_files')
+
+local cmd_parse_package_name
+cmd_parse_package_name=(':name:')
+
+local cmd_valid_package_name
+cmd_valid_package_name=(':name:')
+
+local cmd_library_config
+cmd_library_config=(':library:_baz_libraries')
+
+local cmd_rbrowse
+cmd_rbrowse=('::regular expression:')
+
+local cmd_rm
+cmd_rm=('*:file:_files')
+
+local cmd_escape
+cmd_escape=(':string:')
+
+local cmd_switch
+cmd_switch=(':revision:_baz_revisions')
+
+#mutually exclusive options
+
+local -A excludes
+excludes=(
+# This first line means that if --output was given, don't complete
+# --no-output or --keep. The converse is not true.
+--output '--no-output --keep'
+--no-output --output
+
+--silent  '         --quiet --report --verbose --debug'
+--quiet   '--silent         --report --verbose --debug'
+--report  '--silent --quiet          --verbose --debug'
+--verbose '--silent --quiet --report           --debug'
+--debug   '--silent --quiet --report --verbose        '
+
+--sparse --non-sparse
+--non-sparse --sparse
+
+--files       '        --directories --both'
+--directories '--files               --both'
+--both        '--files --directories       '
+
+--mirror --mirror-from
+--mirror-from --mirror
+
+--no-cached --cached-tags
+--cached-tags --no-cached
+
+--non-greedy --greedy
+--greedy --non-greedy
+)
+
+_baz_main () {
+  typeset -A opt_args
+  local arguments
+  if (( CURRENT > 2 )); then
+    local cmd=${words[2]}
+    local var_cmd=cmd_${cmd//-/_}
+    curcontext="${curcontext%:*:*}:baz-$cmd:"
+    (( CURRENT-- ))
+    shift words
+
+    arguments=()
+    local input
+    input=(${${(M)${(f)"$($BAZ $cmd -h)"}:#  *}#  })
+
+    local i j=1
+    local short long arg desc action
+    short=()
+    long=()
+    arg=()
+    desc=()
+    action=()
+    for (( i=1 ; i <= ${#input} ; i++ )); do
+      [[ "$input[i]" != *[^\ ]* ]] && continue # stupid blank lines
+      short[j]="${${${input[i]}[1,2]}#--}"
+      long[j]="${${input[i]#-?, }%% *}"
+
+      arg[j]="${${${input[i]%%  *}##* }##-*}"
+      [[ $long[j] == --archive ]] && arg[j]=ARCHIVE # baz doesn't mention this
+
+      desc[j]="${input[i]##*  }"
+      if [[ "$input[i+1]" == \ *[^\ ]* ]]; then # description continues
+        (( i++ ))
+        desc[j]="$desc[j] ${input[i]##*  }"
+      fi
+      [[ "$short[j]" == -[hHV] ]] && continue
+      desc[j]="${${desc[j]//\[/\\[}//\]/\\]}" # escape brackets
+
+      case $arg[j] in
+      DIR|PATCH-DIR|DEST|OUTPUT|PATH)
+        action[j]='_files -/' ;;
+      FILES|FILE|SNAP-FILE)
+        action[j]='_files' ;;
+      MASTER|MASTER-SOURCE|ARCHIVE)
+        action[j]='_baz_archives' ;;
+      CATEGORY)
+        action[j]='_baz_categories' ;;
+      BRANCH)
+        action[j]='_baz_branches' ;;
+      VERSION)
+        action[j]='_baz_versions' ;;
+      CFG)
+        action[j]='_baz_configs' ;;
+      LIB)
+        action[j]='_baz_libraries' ;;
+#      PATCH,FILE) # not sure how to complete this
+#        action[j]='_baz_patch_file' ;;
+      *)
+        action[j]='' ;;
+      esac
+
+      (( j++ ))
+
+    done
+
+    local excluded k
+    for (( i = 1 ; i < j ; i++ )); do
+      excluded=($short[i] $long[i])
+      foreach opt (${=excludes[$long[i]]})
+        k=$long[(i)$opt]
+        excluded=($excluded $short[k] $long[k])
+        #excludes matching short options too :-)
+      end
+
+
+      # generate arguments to _arguments ;-)
+      # make long and short options mutually exclusive
+      [ $short[i] ] && arguments=("$arguments[@]"
+        "${hide_short}(${excluded})${short[i]}[${desc[i]}]${arg[i]:+:$arg[i]:$action[i]}")
+      [ $long[i] ] && arguments=("$arguments[@]"
+        "(${excluded})${long[i]}[${desc[i]}]${arg[i]:+:$arg[i]:$action[i]}")
+    done
+
+    arguments=("$arguments[@]" "${(@P)var_cmd-*:FILE:_files}")
+  else
+    local help
+    local -U cmds
+    help=(${(f)"$($BAZ help)"})
+    cmds=(${${${${(M)help:#* :*}/ #: #/:}%% ##}## #})
+    arguments=(':command:(($cmds))')
+  fi
+  _arguments -S -A '-*' \
+    {"${hide_short}(: -)-V",'(: -)--version'}'[display version]' \
+    {"${hide_short}(: -)-h",'(: -)--help'}'[display help]' \
+    '(: -)-H[display verbose help]' \
+    "$arguments[@]"
+}
+
+_baz_main "$@"

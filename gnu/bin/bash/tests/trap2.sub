@@ -1,0 +1,62 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+set +e
+trap 'echo ERRTRAP' ERR
+
+false
+false
+false
+
+echo after falses
+
+if ! false; then
+	echo if negation ok
+fi
+
+! false
+echo after negation 
+
+while false; do
+	echo while negation ok
+done
+
+echo after while
+
+./trap2a.sub
+
+echo $(false ; echo command substitution)
+
+# test behavior of failed commands following `command' builtin
+command false
+
+(command false)
+command false | echo bar
+
+(false)
+
+exit 42 | command false
+
+command command command false
+
+unset FALSE
+if [ -x /bin/false ]; then
+        FALSE=/bin/false
+elif [ -x /usr/bin/false ]; then
+        FALSE=/usr/bin/false
+else
+        FALSE='command false'
+fi
+
+command $FALSE
+command command command $FALSE

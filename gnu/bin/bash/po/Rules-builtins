@@ -1,0 +1,19 @@
+#
+# Update the strings from the builtins' long docs.  Must be called when
+# bash.pot exists, in the middle of the bash.pot-update recipe
+#
+builtins.pot-update:	$(top_builddir)/builtins/builtins.c
+	$(XGETTEXT) --default-domain=$(DOMAIN) --directory=$(top_builddir)/builtins \
+		$(XGETTEXT_OPTIONS) --omit-header \
+	  --copyright-holder='$(COPYRIGHT_HOLDER)' \
+	  --join-existing \
+	  builtins.c
+
+# This rule has no dependencies: we don't need to update builtins.pot at
+# every "make" invocation, only create it when it is missing.
+# Only "make builtins.pot-update" or "make dist" will force an update.
+$(srcdir)/builtins.pot:
+	$(MAKE) builtins.pot-update
+
+xdist:
+	$(MAKE) update-po

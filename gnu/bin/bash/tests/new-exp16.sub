@@ -1,0 +1,120 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+HOME=/homes/chet
+string=abcdefg
+set -- a b c
+
+shopt -u patsub_replacement
+
+# verify existing behavior
+echo ${string/abc/~}
+echo "${string/abc/~}"
+echo ${string/abc/"~"}
+
+echo ${string/abc/$notthere}
+echo "${string/abc/$notthere}"
+echo "${string/abc/"$notthere"}"
+
+echo ${string//?/\$\'&\' } 
+
+shopt -s patsub_replacement
+
+echo ${string//?/\$\'&\' } 
+
+echo ${string//?/& } 
+echo "${string//?/& }"
+
+echo ${string//?/\& } 
+echo "${string//?/\& }"
+echo ${string//?/"& "}
+echo ${string//?/"\& "}
+
+echo "${string//?/"a "}"
+echo "${string//?/"$# "}"
+
+echo ${string/abc/& }
+echo "${string/abc/& }"
+echo ${string/abc/"& "}
+
+echo ${string/abc/\& }
+echo "${string/abc/\& }"
+echo ${string/abc/"\& "}
+echo ${string/abc/\\& }
+
+rep='\\&'
+
+echo "${string/abc/&}"
+echo ${string/abc/\&}
+echo "${string/abc/\\&}"
+echo ${string/abc/"\\&"}
+echo "${string/abc/"\\&"}"
+echo ${string/abc/$rep}
+echo ${string/abc/"$rep"}
+
+shopt -u patsub_replacement
+
+echo "${string/abc/&}"
+echo ${string/abc/\&}
+echo "${string/abc/\\&}"
+echo "${string/abc/"\\&"}"
+echo ${string/abc/"$rep"}
+
+shopt -s patsub_replacement
+
+repl='x&y'
+r2='x\&y'
+var='letssee'
+
+pat=ss
+
+echo ${var//$pat/"$repl"}
+echo "${var//$pat/"$repl"}"
+echo ${var//$pat/$repl}
+echo "${var//$pat/$repl}"
+
+echo ${var//$pat/"$r2"}
+echo "${var//$pat/"$r2"}"
+echo ${var//$pat/$r2}
+echo "${var//$pat/$r2}"
+
+r2='\\&'
+r3='\&'
+
+echo ${var//$pat/\\\&}
+echo ${var//$pat/\\$r2}
+echo ${var//$pat/\\&}
+echo ${var//$pat/$r2}
+
+echo ${var//$pat/"\&"}
+echo ${var//$pat/"$r3"}
+echo ${var//$pat/"&"}
+echo ${var//$pat/$r3}
+
+# these cases provide the same functionality as sed when given a BRE like
+# `^' or `$', or when passed a null input line
+one=one
+null=
+
+echo ${one/#/&two}
+echo ${one/#/\&two}
+
+echo ${one/%/&two}
+echo ${one/%/\&two}
+
+echo ${null/#/&two}
+echo ${null/#/\&two}
+
+echo ${one/#?/&two}
+echo ${one/#?/\&two}

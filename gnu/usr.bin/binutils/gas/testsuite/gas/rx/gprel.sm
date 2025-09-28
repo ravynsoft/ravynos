@@ -1,0 +1,9 @@
+	.text
+	.global _start
+_start:
+	mov{bwl}	%gp({_foo;_bar;_grill})[r15], r1
+
+	.data
+__gp:	.long	0
+_foo:	.long	5
+_bar:	.long	6

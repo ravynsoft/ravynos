@@ -1,0 +1,562 @@
+# Japanese messages for GNU binutils gprof.
+# Copyright (C) 2012 Free Software Foundation, Inc.
+# This file is distributed under the same license as the binutils package.
+# Yasuaki Taniguchi <yasuakit@gmail.com>, 2010, 2011.
+# Takeshi Hamasaki <hmatrjp@users.sourceforge.jp>, 2012.
+msgid ""
+msgstr ""
+"Project-Id-Version: gprof 2.22.90\n"
+"Report-Msgid-Bugs-To: bug-binutils@gnu.org\n"
+"POT-Creation-Date: 2011-10-18 14:20+0100\n"
+"PO-Revision-Date: 2012-08-05 22:47+0900\n"
+"Last-Translator: Takeshi Hamasaki <hmatrjp@users.sourceforge.jp>\n"
+"Language-Team: Japanese <translation-team-ja@lists.sourceforge.net>\n"
+"Language: ja\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Poedit-Basepath: /factory/ja-po/binutils/binutils-2.22.90/gprof/\n"
+
+#: alpha.c:102 mips.c:54
+#, fuzzy
+msgid "<indirect child>"
+msgstr "圧縮子プロセス"
+
+#: alpha.c:107 mips.c:59
+#, fuzzy, c-format
+msgid "[find_call] %s: 0x%lx to 0x%lx\n"
+msgstr "設定アドレス 0x%lx\n"
+
+#: alpha.c:129
+#, c-format
+msgid "[find_call] 0x%lx: jsr%s <indirect_child>\n"
+msgstr ""
+
+#: alpha.c:139
+#, c-format
+msgid "[find_call] 0x%lx: bsr"
+msgstr ""
+
+#: basic_blocks.c:129 call_graph.c:89 hist.c:107
+#, c-format
+msgid "%s: %s: unexpected end of file\n"
+msgstr "%s: %s: 予期しないファイル終端 (EOF) です\n"
+
+#: basic_blocks.c:197
+#, c-format
+msgid "%s: warning: ignoring basic-block exec counts (use -l or --line)\n"
+msgstr ""
+
+#. FIXME: This only works if bfd_vma is unsigned long.
+#: basic_blocks.c:290 basic_blocks.c:300
+#, fuzzy, c-format
+msgid "%s:%d: (%s:0x%lx) %lu executions\n"
+msgstr "設定アドレス 0x%lx\n"
+
+#: basic_blocks.c:291 basic_blocks.c:301
+msgid "<unknown>"
+msgstr "<不明>"
+
+#: basic_blocks.c:544
+#, fuzzy, c-format
+msgid ""
+"\n"
+"\n"
+"Top %d Lines:\n"
+"\n"
+"     Line      Count\n"
+"\n"
+msgstr "補助線の数:"
+
+#: basic_blocks.c:568
+#, c-format
+msgid ""
+"\n"
+"Execution Summary:\n"
+"\n"
+msgstr ""
+"\n"
+"実行の要約:\n"
+"\n"
+
+#: basic_blocks.c:569
+#, c-format
+msgid "%9ld   Executable lines in this file\n"
+msgstr "%9ld   このファイル内の実行可能行数\n"
+
+#: basic_blocks.c:571
+#, c-format
+msgid "%9ld   Lines executed\n"
+msgstr "%9ld   実行された行数\n"
+
+#: basic_blocks.c:572
+#, c-format
+msgid "%9.2f   Percent of the file executed\n"
+msgstr "%9.2f   ファイル内で実行された割合 (%%)\n"
+
+#: basic_blocks.c:576
+#, c-format
+msgid ""
+"\n"
+"%9lu   Total number of line executions\n"
+msgstr ""
+"\n"
+"%9lu   実行された総行数\n"
+
+#: basic_blocks.c:578
+#, c-format
+msgid "%9.2f   Average executions per line\n"
+msgstr ""
+
+#: call_graph.c:68
+#, c-format
+msgid "[cg_tally] arc from %s to %s traversed %lu times\n"
+msgstr ""
+
+#: cg_print.c:75
+#, c-format
+msgid ""
+"\t\t     Call graph (explanation follows)\n"
+"\n"
+msgstr ""
+
+#: cg_print.c:77
+#, fuzzy, c-format
+msgid ""
+"\t\t\tCall graph\n"
+"\n"
+msgstr "Graphite scientific グラフ"
+
+#: cg_print.c:80 hist.c:468
+#, c-format
+msgid ""
+"\n"
+"granularity: each sample hit covers %ld byte(s)"
+msgstr ""
+
+#: cg_print.c:84
+#, fuzzy, c-format
+msgid ""
+" for %.2f%% of %.2f seconds\n"
+"\n"
+msgstr "経過時間: %.2f 秒"
+
+#: cg_print.c:88
+#, fuzzy, c-format
+msgid ""
+" no time propagated\n"
+"\n"
+msgstr "[mrl] [, 位置, 時刻]"
+
+#: cg_print.c:97 cg_print.c:102 cg_print.c:105
+msgid "called"
+msgstr ""
+
+#: cg_print.c:97 cg_print.c:105
+msgid "total"
+msgstr "合計"
+
+#: cg_print.c:97
+msgid "parents"
+msgstr "親"
+
+#: cg_print.c:99 cg_print.c:103
+msgid "index"
+msgstr "インデックス"
+
+#: cg_print.c:101
+#, no-c-format
+msgid "%time"
+msgstr "時間の割合(%)"
+
+#: cg_print.c:102
+msgid "self"
+msgstr "自分自身"
+
+#: cg_print.c:102
+msgid "descendants"
+msgstr ""
+
+#: cg_print.c:103 hist.c:494
+msgid "name"
+msgstr "名前"
+
+#: cg_print.c:105
+msgid "children"
+msgstr "子"
+
+#: cg_print.c:110
+#, c-format
+msgid "index %% time    self  children    called     name\n"
+msgstr ""
+
+#: cg_print.c:133
+#, fuzzy, c-format
+msgid " <cycle %d as a whole> [%d]\n"
+msgstr "空白等で区切られた単語だけを探す"
+
+#: cg_print.c:359
+#, c-format
+msgid "%6.6s %5.5s %7.7s %11.11s %7.7s %7.7s     <spontaneous>\n"
+msgstr ""
+
+#: cg_print.c:360
+#, c-format
+msgid "%6.6s %5.5s %7.7s %7.7s %7.7s %7.7s     <spontaneous>\n"
+msgstr ""
+
+#: cg_print.c:594
+#, fuzzy, c-format
+msgid ""
+"Index by function name\n"
+"\n"
+msgstr "既に使われている関数名 %1"
+
+#: cg_print.c:651 cg_print.c:660
+#, fuzzy, c-format
+msgid "<cycle %d>"
+msgstr "モードの周期: "
+
+#: corefile.c:61
+#, fuzzy, c-format
+msgid "%s: unable to parse mapping file %s.\n"
+msgstr "XML ファイル '%s' を解析できません"
+
+#: corefile.c:85 corefile.c:514
+#, c-format
+msgid "%s: could not open %s.\n"
+msgstr "%s: %s を開けませんでした。\n"
+
+#: corefile.c:185
+#, c-format
+msgid "%s: %s: not in executable format\n"
+msgstr "%s: %s: 実行可能形式ではありません\n"
+
+#: corefile.c:196
+#, c-format
+msgid "%s: can't find .text section in %s\n"
+msgstr "%s: %s 内に .text セクションがありません\n"
+
+#: corefile.c:271
+#, c-format
+msgid "%s: ran out room for %lu bytes of text space\n"
+msgstr ""
+
+#: corefile.c:285
+#, c-format
+msgid "%s: can't do -c\n"
+msgstr "%s: -c を行えません\n"
+
+#: corefile.c:324
+#, c-format
+msgid "%s: -c not supported on architecture %s\n"
+msgstr "%s: -c はアーキテクチャ %s ではサポートされていません\n"
+
+#: corefile.c:523 corefile.c:622
+#, c-format
+msgid "%s: file `%s' has no symbols\n"
+msgstr "%s: ファイル `%s' にシンボルがありません\n"
+
+#: corefile.c:884
+#, c-format
+msgid "%s: somebody miscounted: ltab.len=%d instead of %ld\n"
+msgstr ""
+
+#: gmon_io.c:84
+#, c-format
+msgid "%s: address size has unexpected value of %u\n"
+msgstr "%s: アドレスサイズが予期しない値 %u です\n"
+
+#: gmon_io.c:319 gmon_io.c:415
+#, c-format
+msgid "%s: file too short to be a gmon file\n"
+msgstr ""
+
+#: gmon_io.c:329 gmon_io.c:458
+#, c-format
+msgid "%s: file `%s' has bad magic cookie\n"
+msgstr ""
+
+#: gmon_io.c:340
+#, fuzzy, c-format
+msgid "%s: file `%s' has unsupported version %d\n"
+msgstr "ファイル形式のバージョン %d はサポートされていません"
+
+#: gmon_io.c:370
+#, c-format
+msgid "%s: %s: found bad tag %d (file corrupted?)\n"
+msgstr ""
+
+#: gmon_io.c:437
+#, c-format
+msgid "%s: profiling rate incompatible with first gmon file\n"
+msgstr ""
+
+#: gmon_io.c:488
+#, fuzzy, c-format
+msgid "%s: incompatible with first gmon file\n"
+msgstr "%P%X: %s アーキテクチャ (入力ファイル`%B') は %s 出力と互換性がありません\n"
+
+#: gmon_io.c:518
+#, c-format
+msgid "%s: file '%s' does not appear to be in gmon.out format\n"
+msgstr ""
+
+#: gmon_io.c:531
+#, fuzzy, c-format
+msgid "%s: unexpected EOF after reading %d/%d bins\n"
+msgstr "%d 行目のパッケージ名の後に予期しない eof があります"
+
+#: gmon_io.c:563
+#, c-format
+msgid "time is in ticks, not seconds\n"
+msgstr ""
+
+#: gmon_io.c:569 gmon_io.c:749
+#, c-format
+msgid "%s: don't know how to deal with file format %d\n"
+msgstr ""
+
+#: gmon_io.c:579
+#, fuzzy, c-format
+msgid "File `%s' (version %d) contains:\n"
+msgstr "コントロールファイルは %c を含んでいます"
+
+#: gmon_io.c:582
+#, fuzzy, c-format
+msgid "\t%d histogram record\n"
+msgstr "SGF レコード"
+
+#: gmon_io.c:583
+#, fuzzy, c-format
+msgid "\t%d histogram records\n"
+msgstr "%i レコードを書き込みました。\n"
+
+#: gmon_io.c:585
+#, fuzzy, c-format
+msgid "\t%d call-graph record\n"
+msgstr "呼び出しグラフを生成します"
+
+#: gmon_io.c:586
+#, fuzzy, c-format
+msgid "\t%d call-graph records\n"
+msgstr "呼び出しグラフを生成します"
+
+#: gmon_io.c:588
+#, fuzzy, c-format
+msgid "\t%d basic-block count record\n"
+msgstr "記録サイズ = %lu ブロック"
+
+#: gmon_io.c:589
+#, c-format
+msgid "\t%d basic-block count records\n"
+msgstr ""
+
+#: gprof.c:159
+#, c-format
+msgid ""
+"Usage: %s [-[abcDhilLsTvwxyz]] [-[ACeEfFJnNOpPqSQZ][name]] [-I dirs]\n"
+"\t[-d[num]] [-k from/to] [-m min-count] [-t table-length]\n"
+"\t[--[no-]annotated-source[=name]] [--[no-]exec-counts[=name]]\n"
+"\t[--[no-]flat-profile[=name]] [--[no-]graph[=name]]\n"
+"\t[--[no-]time=name] [--all-lines] [--brief] [--debug[=level]]\n"
+"\t[--function-ordering] [--file-ordering]\n"
+"\t[--directory-path=dirs] [--display-unused-functions]\n"
+"\t[--file-format=name] [--file-info] [--help] [--line] [--min-count=n]\n"
+"\t[--no-static] [--print-path] [--separate-files]\n"
+"\t[--static-call-graph] [--sum] [--table-length=len] [--traditional]\n"
+"\t[--version] [--width=n] [--ignore-non-functions]\n"
+"\t[--demangle[=STYLE]] [--no-demangle] [--external-symbol-table=name] [@FILE]\n"
+"\t[image-file] [profile-file...]\n"
+msgstr ""
+
+#: gprof.c:175
+#, c-format
+msgid "Report bugs to %s\n"
+msgstr ""
+"バグを発見したら <%s> に報告して下さい。\n"
+"翻訳に関するバグは<translation-team-ja@lists.sourceforge.net>に報告してください。\n"
+
+#: gprof.c:251
+#, fuzzy, c-format
+msgid "%s: debugging not supported; -d ignored\n"
+msgstr "このカラーマップ形式は使用できません"
+
+#: gprof.c:331
+#, c-format
+msgid "%s: unknown file format %s\n"
+msgstr "%s: 不明なファイル形式 %s です\n"
+
+#. This output is intended to follow the GNU standards document.
+#: gprof.c:419
+#, c-format
+msgid "GNU gprof %s\n"
+msgstr "GNU gprof %s\n"
+
+#: gprof.c:420
+#, c-format
+msgid "Based on BSD gprof, copyright 1983 Regents of the University of California.\n"
+msgstr "Based on BSD gprof, copyright 1983 Regents of the University of California.\n"
+
+#: gprof.c:421
+#, c-format
+msgid "This program is free software.  This program has absolutely no warranty.\n"
+msgstr "This program is free software.  This program has absolutely no warranty.\n"
+
+#: gprof.c:462
+#, c-format
+msgid "%s: unknown demangling style `%s'\n"
+msgstr "%s: 不明な名前復元(demangle) 形式 `%s' です\n"
+
+#: gprof.c:482
+#, c-format
+msgid "%s: Only one of --function-ordering and --file-ordering may be specified.\n"
+msgstr ""
+
+#: gprof.c:534
+#, c-format
+msgid "%s: sorry, file format `prof' is not yet supported\n"
+msgstr ""
+
+#: gprof.c:588
+#, c-format
+msgid "%s: gmon.out file is missing histogram\n"
+msgstr ""
+
+#: gprof.c:595
+#, c-format
+msgid "%s: gmon.out file is missing call-graph data\n"
+msgstr ""
+
+#: hist.c:135
+#, c-format
+msgid ""
+"%s: dimension unit changed between histogram records\n"
+"%s: from '%s'\n"
+"%s: to '%s'\n"
+msgstr ""
+
+#: hist.c:145
+#, c-format
+msgid ""
+"%s: dimension abbreviation changed between histogram records\n"
+"%s: from '%c'\n"
+"%s: to '%c'\n"
+msgstr ""
+
+#: hist.c:159
+#, c-format
+msgid "%s: different scales in histogram records"
+msgstr ""
+
+#: hist.c:196
+#, fuzzy, c-format
+msgid "%s: overlapping histogram records\n"
+msgstr ""
+"ヒストグラムダイアログを開きます。\n"
+"アクティブな画像のヒストグラムを表示します。"
+
+#: hist.c:230
+#, fuzzy, c-format
+msgid "%s: %s: unexpected EOF after reading %u of %u samples\n"
+msgstr "%d 行目のパッケージ名の後に予期しない eof があります"
+
+#: hist.c:464
+#, fuzzy, c-format
+msgid "%c%c/call"
+msgstr "%s を呼び出します。"
+
+#: hist.c:472
+#, fuzzy, c-format
+msgid ""
+" for %.2f%% of %.2f %s\n"
+"\n"
+msgstr "%.2f EV"
+
+#: hist.c:478
+#, fuzzy, c-format
+msgid ""
+"\n"
+"Each sample counts as %g %s.\n"
+msgstr "ソース画像の色を基準にしてターゲット画像に着色します"
+
+#: hist.c:483
+#, fuzzy, c-format
+msgid ""
+" no time accumulated\n"
+"\n"
+msgstr "[mrl] [, 位置, 時刻]"
+
+#: hist.c:490
+#, fuzzy
+msgid "cumulative"
+msgstr "累積レイヤー (結合)"
+
+#: hist.c:490
+#, fuzzy
+msgid "self  "
+msgstr "[自己署名]"
+
+#: hist.c:490
+msgid "total "
+msgstr "合計"
+
+#: hist.c:493
+#, fuzzy
+msgid "time"
+msgstr "時間"
+
+#: hist.c:493
+#, fuzzy
+msgid "calls"
+msgstr "Ｘの呼び出しと同期する"
+
+#: hist.c:582
+#, fuzzy, c-format
+msgid ""
+"\n"
+"\n"
+"\n"
+"flat profile:\n"
+msgstr "カラープロファイル"
+
+#: hist.c:588
+#, fuzzy, c-format
+msgid "Flat profile:\n"
+msgstr "カラープロファイル"
+
+#: hist.c:709
+#, c-format
+msgid "%s: found a symbol that covers several histogram records"
+msgstr ""
+
+#: mips.c:71
+#, c-format
+msgid "[find_call] 0x%lx: jal"
+msgstr ""
+
+#: mips.c:99
+#, c-format
+msgid "[find_call] 0x%lx: jalr\n"
+msgstr ""
+
+#: source.c:162
+#, fuzzy, c-format
+msgid "%s: could not locate `%s'\n"
+msgstr ""
+"'%s' を削除できませんでした\n"
+"（詳細または原因は次のとおりです）\n"
+"\n"
+"  %s"
+
+#: source.c:237
+#, fuzzy, c-format
+msgid "*** File %s:\n"
+msgstr "ファイル(&F)"
+
+#: utils.c:99
+#, fuzzy, c-format
+msgid " <cycle %d>"
+msgstr "モードの周期: "

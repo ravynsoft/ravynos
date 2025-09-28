@@ -1,0 +1,1391 @@
+.\" Automatically generated from an mdoc input file.  Do not edit.
+.\"
+.\" SPDX-License-Identifier: ISC
+.\"
+.\" Copyright (c) 2018, 2021-2023 Todd C. Miller <Todd.Miller@sudo.ws>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.TH "CVTSUDOERS" "1" "January 16, 2023" "Sudo @PACKAGE_VERSION@" "General Commands Manual"
+.nh
+.if n .ad l
+.SH "NAME"
+\fBcvtsudoers\fR
+\- convert between sudoers file formats
+.SH "SYNOPSIS"
+.HP 11n
+\fBcvtsudoers\fR
+[\fB\-ehMpV\fR]
+[\fB\-b\fR\ \fIdn\fR]
+[\fB\-c\fR\ \fIconf_file\fR]
+[\fB\-d\fR\ \fIdeftypes\fR]
+[\fB\-f\fR\ \fIoutput_format\fR]
+[\fB\-i\fR\ \fIinput_format\fR]
+[\fB\-I\fR\ \fIincrement\fR]
+[\fB\-l\fR\ \fIlog_file\fR]
+[\fB\-m\fR\ \fIfilter\fR]
+[\fB\-o\fR\ \fIoutput_file\fR]
+[\fB\-O\fR\ \fIstart_point\fR]
+[\fB\-P\fR\ \fIpadding\fR]
+[\fB\-s\fR\ \fIsections\fR]
+[\fIinput_file\ ...\fR]
+.SH "DESCRIPTION"
+The
+\fBcvtsudoers\fR
+utility accepts one or more security policies in either
+\fIsudoers\fR
+or LDIF format as input, and generates a single
+policy of the specified format as output.
+The default input format is
+\fIsudoers.\fR
+The default output format is LDIF.
+It is only possible to convert a policy file that is syntactically correct.
+.PP
+If no
+\fIinput_file\fR
+is specified, or if it is
+\(oq-\(cq,
+the policy is read from the standard input.
+Input files may be optionally prefixed with a host name followed by a colon
+(\(oq:\&\(cq)
+to make the policy rules specific to a host when merging multiple files.
+By default, the result is written to the standard output.
+.PP
+The options are as follows:
+.TP 8n
+\fB\-b\fR \fIdn\fR, \fB\--base\fR=\fIdn\fR
+The base DN (distinguished name) that will be used when performing
+LDAP queries.
+Typically this is of the form
+\(lqou=SUDOers,dc=my-domain,dc=com\(rq
+for the domain my-domain.com.
+If this option is not specified, the value of the
+\fRSUDOERS_BASE\fR
+environment variable will be used instead.
+Only necessary when converting to LDIF format.
+.TP 8n
+\fB\-c\fR \fIconf_file\fR, \fB\--config\fR=\fIconf_file\fR
+Specify the path to the configuration file.
+Defaults to
+\fI@sysconfdir@/cvtsudoers.conf\fR.
+.TP 8n
+\fB\-d\fR \fIdeftypes\fR, \fB\--defaults\fR=\fIdeftypes\fR
+Only convert
+\fIDefaults\fR
+entries of the specified types.
+One or more
+\fIDefaults\fR
+types may be specified, separated by a comma
+(\(oq\&,\(cq).
+The supported types are:
+.PP
+.RS 8n
+.PD 0
+.TP 9n
+all
+All Defaults entries.
+.PD
+.TP 9n
+global
+Global Defaults entries that are applied regardless of
+user, runas, host, or command.
+.TP 9n
+user
+Per-user Defaults entries.
+.TP 9n
+runas
+Per-runas user Defaults entries.
+.TP 9n
+host
+Per-host Defaults entries.
+.TP 9n
+command
+Per-command Defaults entries.
+.PP
+See the
+\fBDefaults\fR
+section in
+sudoers(@mansectform@)
+for more information.
+.sp
+If the
+\fB\-d\fR
+option is not specified, all
+\fIDefaults\fR
+entries will be converted.
+.RE
+.TP 8n
+\fB\-e\fR, \fB\--expand-aliases\fR
+Expand aliases in
+\fIinput_file\fR.
+Aliases are preserved by default when the output
+\fIformat\fR
+is JSON or sudoers.
+.TP 8n
+\fB\-f\fR \fIoutput_format\fR, \fB\--output-format\fR=\fIoutput_format\fR
+Specify the output format (case-insensitive).
+The following formats are supported:
+.PP
+.RS 8n
+.PD 0
+.TP 9n
+CSV
+CSV (comma-separated value) files are often used by spreadsheets
+and report generators.
+See
+\fICSV output format\fR
+for more details.
+.PD
+.TP 9n
+JSON
+JSON (JavaScript Object Notation) files are usually easier for
+third-party applications to consume than the traditional
+\fIsudoers\fR
+format.
+The various values have explicit types which removes much of the
+ambiguity of the
+\fIsudoers\fR
+format.
+See
+\fIJSON output format\fR
+for more details.
+.TP 9n
+LDIF
+LDIF (LDAP Data Interchange Format) files can be imported into an LDAP
+server for use with
+sudoers.ldap(@mansectform@).
+.sp
+Conversion to LDIF has the following limitations:
+.PP
+.RS 9n
+.PD 0
+.TP 3n
+\fB\(bu\fR
+Command, host, runas, and user-specific Defaults lines cannot be
+translated as they don't have an equivalent in the sudoers LDAP schema.
+.PD
+.TP 3n
+\fB\(bu\fR
+Command, host, runas, and user aliases are not supported by the
+sudoers LDAP schema so they are expanded during the conversion.
+.PD 0
+.PP
+.RE
+.PD
+.TP 9n
+sudoers
+Traditional sudoers format.
+A new sudoers file will be reconstructed from the parsed input file.
+Comments are not preserved and data from any include files will be
+output inline.
+.PD 0
+.PP
+.RE
+.PD
+.TP 8n
+\fB\--group-file\fR=\fIfile\fR
+When the
+\fB\-M\fR
+option is also specified, perform group queries using
+\fIfile\fR
+instead of the system group database.
+.TP 8n
+\fB\-h\fR, \fB\--help\fR
+Display a short help message to the standard output and exit.
+.TP 8n
+\fB\-i\fR \fIinput_format\fR, \fB\--input-format\fR=\fIinput_format\fR
+Specify the input format.
+The following formats are supported:
+.PP
+.RS 8n
+.PD 0
+.TP 9n
+LDIF
+LDIF (LDAP Data Interchange Format) files can be exported from an LDAP
+server to convert security policies used by
+sudoers.ldap(@mansectform@).
+If a base DN (distinguished name) is specified, only sudoRole objects
+that match the base DN will be processed.
+Not all sudoOptions specified in a sudoRole can be translated from
+LDIF to sudoers format.
+.PD
+.TP 9n
+sudoers
+Traditional sudoers format.
+This is the default input format.
+.PD 0
+.PP
+.RE
+.PD
+.TP 8n
+\fB\-I\fR \fIincrement\fR, \fB\--increment\fR=\fIincrement\fR
+When generating LDIF output, increment each sudoOrder attribute by
+the specified number.
+Defaults to an increment of 1.
+.TP 8n
+\fB\-l\fR \fIlog_file\fR, \fB\--logfile\fR=\fIlog_file\fR
+Log conversion warnings to
+\fIlog_file\fR
+instead of to the standard error.
+This is particularly useful when merging multiple
+\fIsudoers\fR
+files, which can generate a large number of warnings.
+.TP 8n
+\fB\-m\fR \fIfilter\fR, \fB\--match\fR=\fIfilter\fR
+Only output rules that match the specified
+\fIfilter\fR.
+A
+\fIfilter\fR
+expression is made up of one or more
+\fBkey =\fR \fIvalue\fR
+pairs, separated by a comma
+(\(oq\&,\(cq).
+The
+\fBkey\fR
+may be
+\(lqcmnd\(rq
+(or \(lqcmd\(rq),
+\(lqhost\(rq,
+\(lqgroup\(rq,
+or
+\(lquser\(rq.
+For example,
+\fBuser\fR = \fIoperator\fR
+or
+\fBhost\fR = \fIwww\fR.
+An upper-case
+\fICmnd_Alias\fR,
+\fIHost_alias\fR,
+or
+\fIUser_Alias\fR
+may be specified as the
+\(lqcmnd\(rq,
+\(lqhost\(rq,
+or
+\(lquser\(rq.
+.sp
+A matching
+\fIsudoers\fR
+rule may also include users, groups, and hosts that are not part of the
+\fIfilter\fR.
+This can happen when a rule includes multiple users, groups, or hosts.
+To prune out any non-matching user, group, or host from the rules, the
+\fB\-p\fR
+option may be used.
+.sp
+By default, the password and group databases are not consulted when matching
+against the filter so the users and groups do not need to be present
+on the local system (see the
+\fB\-M\fR
+option).
+Only aliases that are referenced by the filtered policy rules will
+be displayed.
+.TP 8n
+\fB\-M\fR, \fB\--match-local\fR
+When the
+\fB\-m\fR
+option is also specified, use password and group database information
+when matching users and groups in the filter.
+Only users and groups in the filter that exist on the local system will match,
+and a user's groups will automatically be added to the filter.
+If the
+\fB\-M\fR
+is
+\fInot\fR
+specified, users and groups in the filter do not need to exist on the
+local system, but all groups used for matching must be explicitly listed
+in the filter.
+.TP 8n
+\fB\-o\fR \fIoutput_file\fR, \fB\--output\fR=\fIoutput_file\fR
+Write the converted output to
+\fIoutput_file\fR.
+If no
+\fIoutput_file\fR
+is specified, or if it is
+\(oq-\(cq,
+the converted
+\fIsudoers\fR
+policy will be written to the standard output.
+.TP 8n
+\fB\-O\fR \fIstart_point\fR, \fB\--order-start\fR=\fIstart_point\fR
+When generating LDIF output, use the number specified by
+\fIstart_point\fR
+in the sudoOrder attribute of the first sudoRole object.
+Subsequent sudoRole object use a sudoOrder value generated by adding an
+\fIincrement\fR,
+see the
+\fB\-I\fR
+option for details.
+Defaults to a starting point of 1.
+A starting point of 0 will disable the generation of sudoOrder
+attributes in the resulting LDIF file.
+.TP 8n
+\fB\--passwd-file\fR=\fIfile\fR
+When the
+\fB\-M\fR
+option is also specified, perform passwd queries using
+\fIfile\fR
+instead of the system passwd database.
+.TP 8n
+\fB\-p\fR, \fB\--prune-matches\fR
+When the
+\fB\-m\fR
+option is also specified,
+\fBcvtsudoers\fR
+will prune out non-matching users, groups, and hosts from
+matching entries.
+.TP 8n
+\fB\-P\fR \fIpadding\fR, \fB\--padding\fR=\fIpadding\fR
+When generating LDIF output, construct the initial sudoOrder value by
+concatenating
+\fIorder_start\fR
+and
+\fIincrement\fR,
+padding the
+\fIincrement\fR
+with zeros until it consists of
+\fIpadding\fR
+digits.
+For example, if
+\fIorder_start\fR
+is 1027,
+\fIpadding\fR
+is 3, and
+\fIincrement\fR
+is 1, the value of sudoOrder for the first entry will be 1027000,
+followed by 1027001, 1027002, etc.
+If the number of sudoRole entries is larger than the padding would allow,
+\fBcvtsudoers\fR
+will exit with an error.
+By default, no padding is performed.
+.TP 8n
+\fB\-s\fR \fIsections\fR, \fB\--suppress\fR=\fIsections\fR
+Suppress the output of specific
+\fIsections\fR
+of the security policy.
+One or more section names may be specified, separated by a comma
+(\(oq\&,\(cq).
+The supported section name are:
+\fBdefaults\fR,
+\fBaliases\fR
+and
+\fBprivileges\fR
+(which may be shortened to
+\fBprivs\fR).
+.TP 8n
+\fB\-V\fR, \fB\--version\fR
+Print the
+\fBcvtsudoers\fR
+and
+\fIsudoers\fR
+grammar versions and exit.
+.SS "Merging multiple files"
+When multiple input files are specified,
+\fBcvtsudoers\fR
+will attempt to merge them into a single policy file.
+It is assumed that user and group names are consistent among
+the policy files to be merged.
+For example, user
+\(lqbob\(rq
+on one host is the same as user
+\(lqbob\(rq
+on another host.
+.PP
+When merging policy files, it is possible to prefix the input file name
+with a host name, separated by a colon
+(\(oq:\&\(cq).
+When the files are merged, the host name will be used to restrict
+the policy rules to that specific host where possible.
+.PP
+The merging process is performed as follows:
+.TP 3n
+\fB\(bu\fR
+Each input file is parsed into internal sudoers data structures.
+.TP 3n
+\fB\(bu\fR
+Aliases are merged and renamed as necessary to avoid conflicts.
+In the event of a conflict, the first alias found is left as-is and
+subsequent aliases of the same name are renamed with a numeric suffix
+separated with a underscore
+(\(oq_\(cq).
+For example, if there are two different aliases named
+\fRSERVERS\fR,
+the first will be left as-is and the second will be renamed
+\fRSERVERS_1\fR.
+References to the renamed alias are also updated in the policy file.
+Duplicate aliases (those with identical contents) are pruned.
+.TP 3n
+\fB\(bu\fR
+Defaults settings are merged and duplicates are removed.
+If there are conflicts in the Defaults settings, a warning is emitted for
+each conflict.
+If a host name is specified with the input file,
+\fBcvtsudoers\fR
+will change the global Defaults settings in that file to be host-specific.
+A warning is emitted for command, user, or runas-specific Defaults settings
+which cannot be made host-specific.
+.TP 3n
+\fB\(bu\fR
+Per-user rules are merged and duplicates are removed.
+If a host name is specified with the input file,
+\fBcvtsudoers\fR
+will change rules that specify a host name of
+\fBALL\fR
+to the host name associated with the policy file being merged.
+The merging of rules is currently fairly simplistic but will be
+improved in a later release.
+.PP
+It is possible to merge policy files with differing formats.
+.SS "The cvtsudoers.conf file"
+Options in the form
+\(lqkeyword = value\(rq
+may also be specified in a configuration file,
+\fI@sysconfdir@/cvtsudoers.conf\fR
+by default.
+The following keywords are recognized:
+.TP 6n
+\fBdefaults =\fR \fIdeftypes\fR
+See the description of the
+\fB\-d\fR
+command line option.
+.TP 6n
+\fBexpand_aliases =\fR \fIyes\fR | \fIno\fR
+See the description of the
+\fB\-e\fR
+command line option.
+.TP 6n
+\fBgroup_file =\fR \fIfile\fR
+See the description of the
+\fB\--group-file\fR
+command line option.
+.TP 6n
+\fBinput_format =\fR \fIldif\fR | \fIsudoers\fR
+See the description of the
+\fB\-i\fR
+command line option.
+.TP 6n
+\fBmatch =\fR \fIfilter\fR
+See the description of the
+\fB\-m\fR
+command line option.
+.TP 6n
+\fBmatch_local =\fR \fIyes\fR | \fIno\fR
+See the description of the
+\fB\-M\fR
+command line option.
+.TP 6n
+\fBorder_increment =\fR \fIincrement\fR
+See the description of the
+\fB\-I\fR
+command line option.
+.TP 6n
+\fBorder_start =\fR \fIstart_point\fR
+See the description of the
+\fB\-O\fR
+command line option.
+.TP 6n
+\fBoutput_format =\fR \fIcsv\fR | \fIjson\fR | \fIldif\fR | \fIsudoers\fR
+See the description of the
+\fB\-f\fR
+command line option.
+.TP 6n
+\fBpadding =\fR \fIpadding\fR
+See the description of the
+\fB\-P\fR
+command line option.
+.TP 6n
+\fBpasswd_file =\fR \fIfile\fR
+See the description of the
+\fB\--passwd-file\fR
+command line option.
+.TP 6n
+\fBprune_matches =\fR \fIyes\fR | \fIno\fR
+See the description of the
+\fB\-p\fR
+command line option.
+.TP 6n
+\fBsudoers_base =\fR \fIdn\fR
+See the description of the
+\fB\-b\fR
+command line option.
+.TP 6n
+\fBsuppress =\fR \fIsections\fR
+See the description of the
+\fB\-s\fR
+command line option.
+.PP
+Options on the command line will override values from the
+configuration file.
+.SS "JSON output format"
+The
+\fIsudoers\fR
+JSON format may contain any of the following top-level objects:
+.TP 6n
+Defaults
+An array of objects, each containing an
+\fIOptions\fR
+array and an optional
+\fIBinding\fR
+array.
+.sp
+The
+\fIOptions\fR
+array consists of one or more objects, each containing a
+\(lqname:value\(rq
+pair that corresponds to a
+\fIsudoers\fR
+\fIDefaults\fR
+setting.
+\fIOptions\fR
+that operate on a list will also include an
+\fIoperation\fR
+entry in the object, with a value of
+\(lqlist_assign\(rq
+for
+\(oq=\(cq,
+\(lqlist_add\(rq
+for
+\(oq+=\(cq,
+or
+\(lqlist_remove\(rq
+for
+\(oq-=\(cq.
+.sp
+The optional
+\fIBinding\fR
+array consists of one or more objects, each containing a
+\(lqname:value\(rq
+pair and an optional
+\fInegated\fR
+entry, which will negate any comparison performed with the object.
+If a
+\fIBinding\fR
+is present, the setting will only take effect if one of the specified
+\fIcommand\fR,
+\fIhostname\fR,
+\fInetgroup\fR,
+\fInetworkaddr\fR,
+\fInonunixgid\fR,
+\fInonunixgroup\fR,
+\fIusergid\fR,
+\fIusergroup\fR,
+\fIuserid\fR,
+\fIusername\fR,
+or alias entries match.
+.sp
+For example, the following
+\fIsudoers\fR
+entry:
+.nf
+.sp
+.RS 6n
+Defaults@somehost set_home, env_keep += DISPLAY
+.RE
+.fi
+.RS 6n
+.sp
+converts to:
+.nf
+.sp
+.RS 6n
+"Defaults": [
+    {
+        "Binding": [
+            { "hostname": "somehost" }
+        ],
+        "Options": [
+            { "set_home": true },
+            {
+                "operation": "list_add",
+                "env_keep": [
+                    "DISPLAY"
+                ]
+            }
+        ]
+    }
+]
+.RE
+.fi
+.RE
+.TP 6n
+User_Aliases
+A JSON object containing one or more
+\fIsudoers\fR
+\fIUser_Alias\fR
+entries where each named alias has as its value an array
+containing one or more objects.
+Each object contains a
+\(lqname:value\(rq
+pair and an optional
+\fInegated\fR
+entry, which will negate any comparison performed with the object.
+The name may be one of
+\fInetgroup\fR,
+\fInonunixgid\fR,
+\fInonunixgroup\fR,
+\fIuseralias\fR,
+\fIusergid\fR,
+\fIusergroup\fR,
+\fIuserid\fR,
+or
+\fIusername\fR.
+.sp
+For example, the following
+\fIsudoers\fR
+entry:
+.nf
+.sp
+.RS 6n
+User_Alias SYSADMIN = will, %wheel, +admin
+.RE
+.fi
+.RS 6n
+.sp
+converts to:
+.nf
+.sp
+.RS 6n
+"User_Aliases": {
+    "SYSADMIN": [
+        { "username": "will" },
+        { "usergroup": "wheel" },
+        { "netgroup": "admin" }
+    ]
+}
+.RE
+.fi
+.RE
+.TP 6n
+Runas_Aliases
+A JSON object containing one or more
+\fIsudoers\fR
+\fIRunas_Alias\fR
+entries, where each named alias has as its value an array
+containing one or more objects.
+Each object contains a
+\(lqname:value\(rq
+pair and an optional
+\fInegated\fR
+entry, which will negate any comparison performed with the object.
+The name may be one of
+\fInetgroup\fR,
+\fInonunixgid\fR,
+\fInonunixgroup\fR,
+\fIrunasalias\fR,
+\fIusergid\fR,
+\fIusergroup\fR,
+\fIuserid\fR,
+or
+\fIusername\fR.
+.sp
+For example, the following
+\fIsudoers\fR
+entry:
+.nf
+.sp
+.RS 6n
+Runas_Alias DB = oracle, sybase : OP = root, operator
+.RE
+.fi
+.RS 6n
+.sp
+converts to:
+.nf
+.sp
+.RS 6n
+"Runas_Aliases": {
+    "DB": [
+        { "username": "oracle" },
+        { "username": "sybase" }
+    ],
+    "OP": [
+        { "username": "root" },
+        { "username": "operator" }
+    ]
+}
+.RE
+.fi
+.RE
+.TP 6n
+Host_Aliases
+A JSON object containing one or more
+\fIsudoers\fR
+\fIHost_Alias\fR
+entries where each named alias has as its value an array
+containing one or more objects.
+Each object contains a
+\(lqname:value\(rq
+pair and an optional
+\fInegated\fR
+entry, which will negate any comparison performed with the object.
+The name may be one of
+\fIhostalias\fR,
+\fIhostname\fR,
+\fInetgroup\fR,
+or
+\fInetworkaddr\fR.
+.sp
+For example, the following
+\fIsudoers\fR
+entries:
+.nf
+.sp
+.RS 6n
+Host_Alias DORMNET = 128.138.243.0, 128.138.204.0/24
+Host_Alias SERVERS = boulder, refuge
+.RE
+.fi
+.RS 6n
+.sp
+convert to:
+.nf
+.sp
+.RS 6n
+"Host_Aliases": {
+    "DORMNET": [
+        { "networkaddr": "128.138.243.0" },
+        { "networkaddr": "128.138.204.0/24" }
+    ],
+    "SERVERS": [
+        { "hostname": "boulder" },
+        { "hostname": "refuge" }
+    ]
+}
+.RE
+.fi
+.RE
+.TP 6n
+Cmnd_Aliases
+A JSON object containing one or more
+\fIsudoers\fR
+\fICmnd_Alias\fR
+entries where each named alias has as its value an array
+containing one or more objects.
+Each object contains a
+\(lqname:value\(rq
+pair and an optional
+\fInegated\fR
+entry, which will negate any comparison performed with the object.
+The name may be either another
+\fIcmndalias\fR
+or a
+\fIcommand\fR.
+For example, the following
+\fIsudoers\fR
+entries:
+.nf
+.sp
+.RS 6n
+Cmnd_Alias SHELLS = /bin/bash, /bin/csh, /bin/sh, /bin/zsh
+Cmnd_Alias VIPW = /usr/bin/chpass, /usr/bin/chfn, /usr/bin/chsh, \e
+                  /usr/bin/passwd, /usr/sbin/vigr, /usr/sbin/vipw
+.RE
+.fi
+.RS 6n
+.sp
+convert to:
+.nf
+.sp
+.RS 6n
+"Cmnd_Aliases": {
+    "SHELLS": [
+        { "command": "/bin/bash" },
+        { "command": "/bin/csh" },
+        { "command": "/bin/sh" },
+        { "command": "/bin/zsh" }
+    ],
+    "VIPW": [
+        { "command": "/usr/bin/chpass" },
+        { "command": "/usr/bin/chfn" },
+        { "command": "/usr/bin/chsh" },
+        { "command": "/usr/bin/passwd" },
+        { "command": "/usr/sbin/vigr" },
+        { "command": "/usr/sbin/vipw" }
+    ]
+}
+.RE
+.fi
+.RE
+.TP 6n
+User_Specs
+A JSON array containing one or more objects, each representing a
+\fIsudoers\fR
+User_Spec.
+Each object in the
+\fIUser_Specs\fR
+array should contain a
+\fIUser_List\fR
+array, a
+\fIHost_List\fR
+array and a
+\fICmnd_Specs\fR
+array.
+.sp
+A
+\fIUser_List\fR
+consists of one or more objects.
+Each object contains a
+\(lqname:value\(rq
+pair and an optional
+\fInegated\fR
+entry, which will negate any comparison performed with the object.
+The name may be one of
+\fInetgroup\fR,
+\fInonunixgid\fR,
+\fInonunixgroup\fR,
+\fIuseralias\fR,
+\fIusergid\fR,
+\fIusergroup\fR,
+\fIuserid\fR,
+or
+\fIusername\fR.
+If
+\fIusername\fR
+is set to the special value
+\fBALL\fR,
+it will match any user.
+.sp
+A
+\fIHost_List\fR
+consists of one or more objects.
+Each object contains a
+\(lqname:value\(rq
+pair and an optional
+\fInegated\fR
+entry, which will negate any comparison performed with the object.
+The name may be one of
+\fIhostalias\fR,
+\fIhostname\fR,
+\fInetgroup\fR,
+or
+\fInetworkaddr\fR.
+If
+\fIhostname\fR
+is set to the special value
+\fBALL\fR,
+it will match any host.
+.sp
+The
+\fICmnd_Specs\fR
+array consists of one or more JSON objects describing a command that
+may be run.
+Each
+\fICmnd_Specs\fR
+is made up of a
+\fICommands\fR
+array, an optional
+\fIrunasusers\fR
+array, an optional
+\fIrunasgroups\fR
+array, and an optional
+\fIOptions array.\fR
+.sp
+The
+\fICommands\fR
+array consists of one or more objects containing
+\(lqname:value\(rq
+pair elements.
+The following names and values are supported:
+.PP
+.RS 6n
+.PD 0
+.TP 9n
+command
+A string containing the command to run.
+The special value
+\fBALL\fR
+it will match any command.
+.PD
+.TP 9n
+negated
+A boolean value that, if true, will negate any comparison performed
+with the object.
+.TP 9n
+sha224
+A string containing the SHA224 digest of the
+\fIcommand\fR.
+.TP 9n
+sha256
+A string containing the SHA256 digest of the
+\fIcommand\fR.
+.TP 9n
+sha384
+A string containing the SHA384 digest of the
+\fIcommand\fR.
+.TP 9n
+sha512
+A string containing the SHA512 digest of the
+\fIcommand\fR.
+.PP
+The
+\fIrunasusers\fR
+array consists of objects describing users the command may be run as.
+Each object contains a
+\(lqname:value\(rq
+pair and an optional
+\fInegated\fR
+entry, which will negate any comparison performed with the object.
+The name may be one of
+\fInetgroup\fR,
+\fInonunixgid\fR,
+\fInonunixgroup\fR,
+\fIrunasalias\fR,
+\fIusergid\fR,
+\fIusergroup\fR,
+\fIuserid\fR,
+or
+\fIusername\fR.
+If
+\fIusername\fR
+is set to the special value
+\fBALL\fR,
+it will match any user.
+If
+\fIusername\fR
+is set to the empty string
+\(lq\(rq,
+it will match the invoking user.
+.sp
+The
+\fIrunasgroups\fR
+array consists of objects describing groups the command may be run as.
+Each object contains a
+\(lqname:value\(rq
+pair and an optional
+\fInegated\fR
+entry, which will negate any comparison performed with the object.
+The name may be one of
+\fIrunasalias\fR,
+\fIusergid\fR,
+or
+\fIusergroup\fR.
+If
+\fIusergroup\fR
+is set to the special value
+\fBALL\fR,
+it will match any group.
+.sp
+The
+\fIOptions\fR
+array is of the same format as the one in the
+\fIDefaults\fR
+object.
+Any
+\fITag_Spec\fR
+entries in
+\fIsudoers\fR
+are converted to
+\fIOptions\fR.
+A user with
+\(lqsudo ALL\(rq
+privileges will automatically have the
+\fIsetenv\fR
+option enabled to match the implicit behavior provided by
+\fIsudoers\fR.
+.sp
+For example, the following
+\fIsudoers\fR
+entry:
+.nf
+.sp
+.RS 6n
+millert ALL = (ALL : ALL) NOPASSWD: ALL, !/usr/bin/id
+.RE
+.fi
+.sp
+converts to:
+.nf
+.sp
+.RS 6n
+"User_Specs": [
+    {
+        "User_List": [
+            { "username": "millert" }
+        ],
+        "Host_List": [
+            { "hostname": "ALL" }
+        ],
+        "Cmnd_Specs": [
+            {
+                "runasusers": [
+                    { "username": "ALL" }
+                ],
+                "runasgroups": [
+                    { "usergroup": "ALL" }
+                ],
+                "Options": [
+                    { "authenticate": false },
+                    { "setenv": true }
+                ],
+                "Commands": [
+                    { "command": "ALL" },
+                    {
+                        "command": "/usr/bin/id",
+                        "negated": true
+                    }
+                ]
+            }
+        ]
+    }
+]
+.RE
+.fi
+.RE
+.SS "CSV output format"
+CSV (comma-separated value) files are often used by spreadsheets
+and report generators.
+For CSV output,
+\fBcvtsudoers\fR
+double quotes strings that contain commas.
+For each literal double quote character present inside the string,
+two double quotes are output.
+This method of quoting commas is compatible with most spreadsheet programs.
+.PP
+There are three possible sections in
+\fBcvtsudoers\fR's
+CSV output, each separated by a blank line:
+.TP 6n
+defaults
+This section includes any
+\fIDefaults\fR
+settings in
+\fIsudoers\fR.
+The
+\fIdefaults\fR
+section begins with the following heading:
+.nf
+.sp
+.RS 12n
+defaults_type,binding,name,operator,value
+.RE
+.fi
+.RS 6n
+.sp
+The fields are as follows:
+.TP 6n
+defaults_type
+The type of
+\fIDefaults\fR
+setting; one of
+\fIdefaults\fR,
+\fIdefaults_command\fR,
+\fIdefaults_host\fR,
+\fIdefaults_runas\fR,
+or
+\fIdefaults_user\fR.
+.TP 6n
+binding
+For
+\fIdefaults_command\fR,
+\fIdefaults_host\fR,
+\fIdefaults_runas\fR,
+and
+\fIdefaults_user\fR
+this is the value that must match for the setting to be applied.
+.TP 6n
+name
+The name of the
+\fIDefaults\fR
+setting.
+.TP 6n
+operator
+The operator determines how the value is applied to the setting.
+It may be either
+\(oq=\(cq
+(assignment),
+\(oq+=\(cq
+(append),
+or
+\(oq-=\(cq
+(remove).
+.TP 6n
+value
+.br
+The setting's value, usually a string or, for
+settings used in a boolean context,
+\fItrue\fR
+or
+\fIfalse\fR.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+aliases
+This section includes any
+\fICmnd_Alias\fR
+\fIHost_Alias\fR,
+\fIRunas_Alias\fR,
+or
+\fIUser_Alias\fR,
+entries from
+\fIsudoers\fR.
+The
+\fIaliases\fR
+section begins with the following heading:
+.nf
+.sp
+.RS 12n
+alias_type,alias_name,members
+.RE
+.fi
+.RS 6n
+.sp
+The fields are as follows:
+.TP 6n
+alias_type
+The type of alias; one of
+\fICmnd_Alias\fR,
+\fIHost_Alias\fR,
+\fIRunas_Alias\fR,
+or
+\fIUser_Alias\fR.
+.TP 6n
+alias_name
+The name of the alias; a string starting with an upper-case letter that
+consists of upper-case letters, digits, or underscores.
+.TP 6n
+members
+A comma-separated list of members belonging to the alias.
+Due to the use of commas,
+\fImembers\fR
+is surrounded by double quotes if it contains more than one member.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+rules
+.br
+This section includes the
+\fIsudoers\fR
+rules that grant privileges.
+The
+\fIrules\fR
+section begins with the following heading:
+.nf
+.sp
+.RS 12n
+rule,user,host,runusers,rungroups,options,command
+.RE
+.fi
+.RS 6n
+.sp
+The fields are as follows:
+.TP 6n
+rule
+This field indicates a
+\fIsudoers\fR
+\fIrule\fR
+entry.
+.TP 6n
+user
+The user the rule applies to.
+This may also be a Unix group (preceded by a
+\(oq%\(cq
+character), a non-Unix group (preceded by
+\(oq%:\(cq)
+or a netgroup (preceded by a
+\(oq+\(cq
+character)
+or a
+\fIUser_Alias\fR.
+If set to the special value
+\fBALL\fR,
+it will match any user.
+.TP 6n
+host
+The host the rule applies to.
+This may also be a netgroup (preceded by a
+\(oq+\(cq
+character)
+or a
+\fIHost_Alias\fR.
+If set to the special value
+\fBALL\fR,
+it will match any host.
+.TP 6n
+runusers
+An optional comma-separated list of users (or
+\fIRunas_Alias\fRes)
+the command may be run as.
+If it contains more than one member, the value is surrounded by
+double quotes.
+If set to the special value
+\fBALL\fR,
+it will match any user.
+If empty, the root user is assumed.
+.TP 6n
+rungroups
+An optional comma-separated list of groups (or
+\fIRunas_Alias\fRes)
+the command may be run as.
+If it contains more than one member, the value is surrounded by
+double quotes.
+If set to the special value
+\fBALL\fR,
+it will match any group.
+If empty, the
+\fIrunuser\fR's
+group is used.
+.TP 6n
+options
+An optional list of
+\fIDefaults\fR
+settings to apply to the command.
+Any
+\fITag_Spec\fR
+entries in
+\fIsudoers\fR
+are converted to
+\fIoptions\fR.
+.TP 6n
+commands
+A list of commands, with optional arguments, that the user is allowed to run.
+If set to the special value
+\fBALL\fR,
+it will match any command.
+.PP
+For example, the following
+\fIsudoers\fR
+entry:
+.nf
+.sp
+.RS 6n
+millert ALL = (ALL : ALL) NOPASSWD: ALL, !/usr/bin/id
+.RE
+.fi
+.sp
+converts to:
+.nf
+.sp
+.RS 6n
+rule,millert,ALL,ALL,ALL,"!authenticate","ALL,!/usr/bin/id"
+.RE
+.fi
+.RE
+.SH "FILES"
+.TP 26n
+\fI@sysconfdir@/cvtsudoers.conf\fR
+default configuration for cvtsudoers
+.SH "EXAMPLES"
+Convert
+\fI/etc/sudoers\fR
+to LDIF (LDAP Data Interchange Format) where the
+\fIldap.conf\fR
+file uses a
+\fIsudoers_base\fR
+of my-domain,dc=com, storing the result in
+\fIsudoers.ldif\fR:
+.nf
+.sp
+.RS 4n
+$ cvtsudoers -b ou=SUDOers,dc=my-domain,dc=com -o sudoers.ldif \e
+             /etc/sudoers
+.RE
+.fi
+.PP
+Convert
+\fI/etc/sudoers\fR
+to JSON format, storing the result in
+\fIsudoers.json\fR:
+.nf
+.sp
+.RS 4n
+$ cvtsudoers -f json -o sudoers.json /etc/sudoers
+.RE
+.fi
+.PP
+Parse
+\fI/etc/sudoers\fR
+and display only rules that match user
+\fIambrose\fR
+on host
+\fIhastur\fR:
+.nf
+.sp
+.RS 4n
+$ cvtsudoers -f sudoers -m user=ambrose,host=hastur /etc/sudoers
+.RE
+.fi
+.PP
+Same as above, but expand aliases and prune out any non-matching
+users and hosts from the expanded entries.
+.nf
+.sp
+.RS 4n
+$ cvtsudoers -ep -f sudoers -m user=ambrose,host=hastur /etc/sudoers
+.RE
+.fi
+.PP
+Convert
+\fIsudoers.ldif\fR
+from LDIF to traditional
+\fIsudoers\fR
+format:
+.nf
+.sp
+.RS 4n
+$ cvtsudoers -i ldif -f sudoers -o sudoers.new sudoers.ldif
+.RE
+.fi
+.PP
+Merge a global
+\fIsudoers\fR
+file with two host-specific policy files from the hosts
+\(lqxyzzy\(rq
+and
+\(lqplugh\(rq:
+.nf
+.sp
+.RS 4n
+$ cvtsudoers -f sudoers -o sudoers.merged sudoers \e
+    xyzzy:sudoers.xyzzy plugh:sudoers.plugh
+.RE
+.fi
+.SH "SEE ALSO"
+sudoers(@mansectform@),
+sudoers.ldap(@mansectform@),
+sudo(@mansectsu@)
+.SH "AUTHORS"
+Many people have worked on
+\fBsudo\fR
+over the years; this version consists of code written primarily by:
+.sp
+.RS 6n
+Todd C. Miller
+.RE
+.PP
+See the CONTRIBUTORS.md file in the
+\fBsudo\fR
+distribution (https://www.sudo.ws/about/contributors/) for an
+exhaustive list of people who have contributed to
+\fBsudo\fR.
+.SH "BUGS"
+If you believe you have found a bug in
+\fBcvtsudoers\fR,
+you can submit a bug report at https://bugzilla.sudo.ws/
+.SH "SUPPORT"
+Limited free support is available via the sudo-users mailing list,
+see https://www.sudo.ws/mailman/listinfo/sudo-users to subscribe or
+search the archives.
+.SH "DISCLAIMER"
+\fBcvtsudoers\fR
+is provided
+\(lqAS IS\(rq
+and any express or implied warranties, including, but not limited
+to, the implied warranties of merchantability and fitness for a
+particular purpose are disclaimed.
+See the LICENSE.md file distributed with
+\fBsudo\fR
+or https://www.sudo.ws/about/license/ for complete details.

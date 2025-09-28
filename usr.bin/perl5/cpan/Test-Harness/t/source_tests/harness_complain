@@ -1,0 +1,7 @@
+#!/usr/bin/perl
+
+print "1..1\n";
+
+die "I should have no args -- @ARGV" if (@ARGV);
+print "ok 1 - this is a test\n";
+

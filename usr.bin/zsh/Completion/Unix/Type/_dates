@@ -1,0 +1,127 @@
+#autoload
+
+# Options:
+#  -f format      : specify strftime format for matches
+#  -f s/m/h/d/w/M : specify relative format
+#  -F             : select a future rather than past date
+
+# Styles:
+#   max-matches-length : maximum number or percentage of lines to use for
+#                        completion listing, if both are specified, the
+#                        lowest takes precedence.
+#   date-format        : override date format
+
+local -a disp cand expl
+local userformat format spacer=1 spacing month monstart skip match
+local d day daysecs extra preclude r ri col
+local -a starts skips
+local -i start now mult
+local -i columns=$(( (COLUMNS+4) / 32 )) rows=LINES-4 offset=0
+local -a days=( Mo Tu We Th Fr Sa Su )
+local future mlabel mfmt mlabels
+
+zparseopts -D -K -E f:=format F=future
+(( future = $#future ? 1 : -1 ))
+zstyle -s ":completion:${curcontext}:dates" date-format userformat
+format=${userformat:-${format[2]:-%F}}
+
+zstyle -a ":completion:${curcontext}:dates" max-matches-length r
+for ri in $r; do
+  [[ $ri = [0-9]##% ]] && (( ri = LINES * .${ri%%%} ))
+  (( ri < rows )) && (( rows=ri ))
+done
+(( rows = rows / 8 ))
+zmodload -i zsh/datetime || rows=0
+
+_tags dates || return 0
+_comp_mesg=yes
+_description -2V -x dates expl date
+compadd "${@:/-X/-x}" "$expl[@]" -
+[[ -z $MENUSELECT && $WIDGET != menu-select ]] && return
+[[ -n $PREFIX$SUFFIX ]] && return 0
+(( rows )) || return 0
+compstate[list]='packed rows'
+
+if [[ $WIDGET = _next_tags ]]; then
+  typeset -g -i _next_tags_line
+  typeset -g -i _next_tags_date=$(( HISTNO == _next_tags_line ? _next_tags_date+1 : 1))
+  _next_tags_line=HISTNO
+  (( offset = _next_tags_date*rows*columns ))
+fi
+
+(( now=EPOCHSECONDS ))
+strftime -s year '%Y' $now
+strftime -s month '%m' $now
+(( offset = future*offset + year*12 + month + ((future == 1) ? rows*columns-2  : -1) ))
+for ((;rows;rows--)); do
+  disp=() mlabels=""
+  for ((col=1;col<=columns;col++)); do
+    (( start = offset + col - rows * columns ))
+    strftime -r -s monstart '%Y%m' $(( start/12 ))$(( 1 + start % 12 ))
+    strftime -s skip '%w' $(( monstart-86400 ))
+    starts[col]=$monstart
+    skips[col]=$skip
+    disp+=( $days '  ' )
+
+    mfmt='%B'
+    strftime -s mlabel '%m' $monstart
+    [[ $mlabel = 01 ]] && mfmt+=' %Y'
+    strftime -s mlabel "$mfmt"  $monstart
+
+    mlabels+="${(r.(col == columns) ? 28 : 32.):-${(l.(26-$#mlabel)/2.)}$mlabel}"
+  done
+  (( spacing = COLUMNS - 32 * columns + 2 ))
+  disp[-1]="${(l.spacing.)}"
+  (( spacing < 2 )) && spacer=0 disp[-1]=()
+  expl[1+expl[(i)-J]]=dates-$rows
+  compadd -x "$mlabels" "$expl[@]" -d disp -E $(( $#disp ))
+
+  for ((line=0;line<6;line++)); do
+    for ((col=1;col<=columns;col++)); do
+      if (( skips[col] && !line )); then
+	disp=(); disp[skips[col]]=''
+	compadd -x "$mlabels" "$expl[@]" -d disp -E $skips[col]
+	(( skip=skips[col] ))
+      else
+	skip=0
+      fi
+      disp=() cand=()
+      (( extra = (col == columns) ? spacer : 1 ))
+      (( preclude = 0 ))
+      for ((d=1;d<=7-skip;d++)); do
+	(( day = d+7*line+skip-skips[col] ))
+	(( daysecs = starts[col] + 86400 * (day - 1) ))
+	strftime -s realday '%d' $daysecs
+	if (( realday != day )); then
+	  (( extra+=8-d ))
+	  break
+	fi
+	(( mult = -future * (now - daysecs) + (future == 1 ? 86400 : 0) ))
+	case $format in
+	  s) (( match = mult )) ;;
+	  m) (( match = mult / 60 )) ;;
+	  h) (( match = mult / 3600 )) ;;
+	  d) (( match = mult / 86400 )) ;;
+	  w) (( match = mult / 604800 )) ;;
+	  M) (( match = mult / 2592000 )) ;;
+	  *) strftime -s match - $format $daysecs ;;
+	esac
+	disp+=( "${(l.2.)day}" )
+	if (( future < 0 && now < daysecs )); then
+	  (( extra++ ))
+	elif (( future > 0 && (now - daysecs) > 86400 )); then
+	  (( preclude++ ))
+	else
+	  (( (now - daysecs) < 86400 && (now - daysecs) > 0 )) &&
+	      compstate[insert]=menu:$(( compstate[nmatches] + $#disp ))
+	  cand+=( "$match" )
+	fi
+      done
+      if (( preclude )); then
+	compadd -x "$mlabels" "$expl[@]" -E $preclude -d disp
+	shift preclude disp
+      fi
+      compadd -x "$mlabels" -U -i "$IPREFIX" -I "$ISUFFIX" "$expl[@]" "$@" -d disp -E $extra -a cand
+    done
+  done
+done

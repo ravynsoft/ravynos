@@ -1,0 +1,14 @@
+#
+# This was causing parse failures due to an error in the TAP specification.
+# Hash marks *are* allowed in the description.
+#
+print <<DUMMY;
+1..5
+ok 1
+ok 2
+ok 3 # skipped on foobar system
+# 1234567890123456789012345678901234567890
+ok 4
+# 1234567890123456789012345678901234567890
+ok 5
+DUMMY

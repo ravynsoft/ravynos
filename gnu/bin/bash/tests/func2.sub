@@ -1,0 +1,40 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+funca() (
+	echo func-a
+)
+
+funcb() ( echo func-b )
+
+funcc() (
+	echo func-c
+) 2>&1
+
+type funca
+type funcb
+type funcc
+
+funca
+funcb
+funcc
+
+# when not in posix mode, bash allows non-identifiers as function names
+set +o posix
+foo-bar()
+{
+	:;
+}
+
+declare -F foo-bar
+declare -f foo-bar

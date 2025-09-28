@@ -1,0 +1,204 @@
+# Expect script for ld-tic6x tests
+#
+#   Copyright (C) 2012-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+if { ! [istarget tic6x-*-*] } {
+    return
+}
+
+foreach test [lsort [glob -nocomplain $srcdir/$subdir/*.d]] {
+    if { [runtest_file_p $runtests $test] } {
+	run_dump_test [file rootname $test]
+    }
+}
+
+set shlibtests {
+    {"C6X shared library without --dsbt-index"
+     "-shared  -Tdsbt.ld --dsbt-size=3 --hash-style=sysv" ""
+     "-mdsbt -mpic -mpid=near" {shlib-1.s shlib-2.s}
+     {{readelf -WSsrld shlib-noindex.rd}
+      {objdump "-drj.plt -j.text" shlib-noindex.dd}
+      {objdump -sj.got shlib-noindex.sd}}
+      "libtestn.so"}
+    {"C6X shared library, LE, RELA"
+     "-shared  -Tdsbt.ld --dsbt-index=2 --dsbt-size=3 --hash-style=sysv" ""
+     "-mdsbt -mpic -mpid=near" {shlib-1.s shlib-2.s}
+     {{readelf -WSsrld shlib-1.rd}
+      {objdump "-drj.plt -j.text" shlib-1.dd}
+      {objdump -sj.got shlib-1.sd}}
+      "libtest.so"}
+    {"C6X nonstatic app using shared library, LE, RELA"
+     "-Tdsbt.ld --dsbt-index 0 --dsbt-size=3 tmpdir/libtest.so --hash-style=sysv" ""
+     "-mdsbt -mpic -mpid=near" {shlib-app-1.s}
+     {{readelf -WSsrld shlib-app-1.rd}
+      {objdump "-drj.plt -j.text" shlib-app-1.dd}
+      {objdump -sj.got shlib-app-1.sd}
+      {objdump -R shlib-app-1.od}}
+     "shlib-dynapp-1"}
+    {"C6X shared library, LE, REL"
+     "-shared  -Tdsbt.ld --dsbt-index=2 --dsbt-size=3 --hash-style=sysv" ""
+     "-mdsbt -mpic -mpid=near -mgenerate-rel" {shlib-1.s shlib-2.s}
+     {{readelf -WSsrld shlib-1r.rd}
+      {objdump "-drj.plt -j.text" shlib-1r.dd}
+      {objdump -sj.got shlib-1r.sd}}
+      "libtestr.so"}
+    {"C6X nonstatic app using shared library, LE, REL"
+     "-Tdsbt.ld --dsbt-index 0 --dsbt-size=3 --hash-style=sysv tmpdir/libtestr.so" ""
+     "-mdsbt -mpic -mpid=near -mgenerate-rel" {shlib-app-1r.s}
+     {{readelf -WSsrld shlib-app-1r.rd}
+      {objdump "-drj.plt -j.text" shlib-app-1r.dd}
+      {objdump -sj.got shlib-app-1r.sd}
+      {objdump -R shlib-app-1r.od}}
+     "shlib-dynapp-1r"}
+    {"C6X shared library, BE, RELA"
+     "-shared  -Tdsbt-be.ld --dsbt-index=2 --dsbt-size=3 --hash-style=sysv" ""
+     "-mdsbt -mpic -mpid=near -mbig-endian" {shlib-1.s shlib-2.s}
+     {{readelf -WSsrld shlib-1b.rd}
+      {objdump "-drj.plt -j.text" shlib-1b.dd}
+      {objdump -sj.got shlib-1b.sd}}
+      "libtestb.so"}
+    {"C6X nonstatic app using shared library, BE, RELA"
+     "-Tdsbt-be.ld --dsbt-index 0 --dsbt-size=3 --hash-style=sysv tmpdir/libtestb.so" ""
+     "-mdsbt -mpic -mpid=near -mbig-endian" {shlib-app-1.s}
+     {{readelf -WSsrld shlib-app-1b.rd}
+      {objdump "-drj.plt -j.text" shlib-app-1b.dd}
+      {objdump -sj.got shlib-app-1b.sd}
+      {objdump -R shlib-app-1b.od}}
+     "shlib-dynapp-1b"}
+    {"C6X shared library, BE, REL"
+     "-shared  -Tdsbt-be.ld --dsbt-index=2 --dsbt-size=3 --hash-style=sysv" ""
+     "-mdsbt -mpic -mpid=near -mgenerate-rel -mbig-endian" {shlib-1.s shlib-2.s}
+     {{readelf -WSsrld shlib-1rb.rd}
+      {objdump "-drj.plt -j.text" shlib-1rb.dd}
+      {objdump -sj.got shlib-1rb.sd}}
+      "libtestrb.so"}
+    {"C6X nonstatic app using shared library, BE, REL"
+     "-Tdsbt-be.ld --dsbt-index 0 --dsbt-size=3 --hash-style=sysv tmpdir/libtestrb.so" ""
+     "-mdsbt -mpic -mpid=near -mgenerate-rel -mbig-endian" {shlib-app-1r.s}
+     {{readelf -WSsrld shlib-app-1rb.rd}
+      {objdump "-drj.plt -j.text" shlib-app-1rb.dd}
+      {objdump -sj.got shlib-app-1rb.sd}
+      {objdump -R shlib-app-1rb.od}}
+     "shlib-dynapp-1rb"}
+
+    {"C6X static app, LE, RELA"
+     "-Tdsbt.ld --dsbt-index 0 --dsbt-size=3 --hash-style=sysv" ""
+     "-mdsbt -mpic -mpid=near" {shlib-1.s shlib-2.s shlib-app-1.s}
+     {{readelf -WSsrld static-app-1.rd}
+      {objdump "-drj.plt -j.text" static-app-1.dd}
+      {objdump -sj.got static-app-1.sd}
+      {objdump -R static-app-1.od}}
+     "static-app-1"}
+    {"C6X static app, LE, REL"
+     "-Tdsbt.ld --dsbt-index 0 --dsbt-size=3 --hash-style=sysv" ""
+     "-mdsbt -mpic -mpid=near -mgenerate-rel" {shlib-1.s shlib-2.s shlib-app-1r.s}
+     {{readelf -WSsrld static-app-1r.rd}
+      {objdump "-drj.plt -j.text" static-app-1r.dd}
+      {objdump -sj.got static-app-1r.sd}
+      {objdump -R static-app-1r.od}}
+     "static-app-1r"}
+    {"C6X static app, BE, RELA"
+     "-Tdsbt-be.ld --dsbt-index 0 --dsbt-size=3 --hash-style=sysv" ""
+     "-mdsbt -mpic -mpid=near -mbig-endian" {shlib-1.s shlib-2.s shlib-app-1.s}
+     {{readelf -WSsrld static-app-1b.rd}
+      {objdump "-drj.plt -j.text" static-app-1b.dd}
+      {objdump -sj.got static-app-1b.sd}
+      {objdump -R static-app-1b.od}}
+     "static-app-1b"}
+    {"C6X static app, BE, REL"
+     "-Tdsbt-be.ld --dsbt-index 0 --dsbt-size=3 --hash-style=sysv" ""
+     "-mdsbt -mpic -mpid=near -mbig-endian -mgenerate-rel" {shlib-1.s shlib-2.s shlib-app-1r.s}
+     {{readelf -WSsrld static-app-1rb.rd}
+      {objdump "-drj.plt -j.text" static-app-1rb.dd}
+      {objdump -sj.got static-app-1rb.sd}
+      {objdump -R static-app-1rb.od}}
+     "static-app-1rb"}
+
+    {"C6X shared library with --export-dynamic"
+     "-shared --export-dynamic -Tdsbt.ld --dsbt-size=3 --hash-style=sysv" ""
+     "-mdsbt -mpic -mpid=near" {shlib-1.s shlib-2.s}
+     {} "pr27271.so"}
+}
+
+run_ld_link_tests $shlibtests
+
+if { [istarget tic6x-*-elf] } {
+    set expected_osabi "Bare-metal C6000"
+} elseif { [istarget tic6x-*-uclinux] } {
+    set expected_osabi "Linux C6000"
+} else {
+    return
+}
+
+if { ![ld_assemble_flags $as "-mpic -mpid=near" $srcdir/$subdir/shlib-1.s tmpdir/shlib-1.o]
+     || ![ld_assemble_flags $as "-mpic -mpid=near" $srcdir/$subdir/shlib-2.s tmpdir/shlib-2.o]
+     || ![ld_assemble $as $srcdir/$subdir/shlib-app-1.s tmpdir/shlib-app-1.o]
+     || ![ld_assemble_flags $as "-mpic -mpid=near -mbig-endian" $srcdir/$subdir/shlib-1.s tmpdir/shlib-1b.o]
+     || ![ld_assemble_flags $as "-mpic -mpid=near -mbig-endian" $srcdir/$subdir/shlib-2.s tmpdir/shlib-2b.o]
+     || ![ld_assemble_flags $as -mbig-endian $srcdir/$subdir/shlib-app-1.s tmpdir/shlib-app-1b.o]
+     || ![ld_link $ld tmpdir/libtest.so "-shared tmpdir/shlib-1.o tmpdir/shlib-2.o"]
+     || ![ld_link $ld tmpdir/libtestb.so "-shared -EB tmpdir/shlib-1b.o tmpdir/shlib-2b.o"]
+     || ![ld_link $ld tmpdir/shlib.o "-r tmpdir/shlib-1.o tmpdir/shlib-2.o"]
+     || ![ld_link $ld tmpdir/shlibb.o "-r -EB tmpdir/shlib-1b.o tmpdir/shlib-2b.o"]
+     || ![ld_link $ld tmpdir/dynapp-1 "tmpdir/libtest.so tmpdir/shlib-app-1.o"]
+     || ![ld_link $ld tmpdir/dynapp-1b "-EB tmpdir/libtestb.so tmpdir/shlib-app-1b.o"] } {
+    fail "TIC6X OSABI tests"
+    return
+}
+
+# A procedure to check the OS/ABI field in the ELF header of a binary file.
+proc check_osabi_tic6x { test_name binary_file } {
+    global READELF
+    global READELFFLAGS
+    global expected_osabi
+
+    set cmd "$READELF $READELFFLAGS --file-header $binary_file"
+    send_log "$cmd\n"
+    set got [remote_exec host [concat sh -c [list "$cmd >dump.out"]] "" "/dev/null"]
+
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	send_log "$got\n"
+	fail "$test_name"
+	remote_file build delete "dump.out"
+	return
+    }
+    remote_upload host "dump.out"
+
+    if { ![regexp "\n\[ \]*OS/ABI:\[ \]*(.+)\n\[ \]*ABI" \
+	   [file_contents dump.out] nil osabi] } {
+	verbose "proc check_osabi_tic6x: Readelf failed to extract an ELF header from $binary_file"
+	fail "$test_name"
+    } elseif { $osabi == $expected_osabi } {
+	pass "$test_name"
+    } else {
+	verbose "Expected OSABI: $expected_osabi, Obtained osabi: $osabi"
+	fail "$test_name"
+    }
+    remote_file build delete "dump.out"
+    remote_file host delete "dump.out"
+}
+
+check_osabi_tic6x "C6X shared library OSABI, LE" tmpdir/libtest.so
+check_osabi_tic6x "C6X shared library OSABI, BE" tmpdir/libtestb.so
+check_osabi_tic6x "C6X dynamic app OSABI, LE" tmpdir/dynapp-1
+check_osabi_tic6x "C6X dynamic app OSABI, BE" tmpdir/dynapp-1b
+
+check_osabi_tic6x "C6X relocatable link OSABI, LE" tmpdir/shlib.o
+check_osabi_tic6x "C6X relocatable link OSABI, BE" tmpdir/shlibb.o

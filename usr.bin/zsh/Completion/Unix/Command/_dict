@@ -1,0 +1,44 @@
+#compdef dict
+
+local strategy database state line curcontext="$curcontext"
+typeset -A opt_args
+
+_arguments -C -S \
+  '(--host -h)'{--host=,-h+}'[specify hostname of dict server]:dict server:_hosts' \
+  '(--port -p)'{--port=,-p+}'[specify port for dict server]:service:_ports' \
+  '(--database -d)'{--database=,-d+}'[database]:db name:->database' \
+  '(--match -m)'{--match,-m}'[perform matching]' \
+  '(--strategy -s)'{--strategy=,-s+}'[specify matching strategy]:strategy:->strategy' \
+  '(--nocorrect -C)'{--nocorrect,-C}'[disable spelling correction]' \
+  '(--config -c)'{--config=,-c+}'[specify config file]:config file:_files' \
+  '(--dbs -D)'{--dbs,-D}'[list available databases]' \
+  '(--strats -S)'{--strats,-S}'[list available search strategies]' \
+  '(--serverhelp -H)'{--serverhelp,-H}'[query server for help info it provides]' \
+  '(--info -i)'{--info=,-i+}'[get info on specified database]:db name:->database' \
+  '(--serverinfo -I)'{--serverinfo,-I}'[display info about server]' \
+  '(--noauth -a)'{--noauth,-a}'[disable authentication]' \
+  '(--user -u)'{--user=,-u+}'[specify username for authentication]:user name:' \
+  '(--key -k)'{--key=,-k+}'[specify key for authentication]:shared secret:' \
+  '(-)'{--version,-V}'[display program version]' \
+  '(-)'{--license,-L}'[display program license]' \
+  '(-6)-4[force use of IPv4 addresses only]' \
+  '(-4)-6[force use of IPv6 addresses only]' \
+  '(-)--help[display usage info]' \
+  '(--verbose -v)'{--verbose,-v}'[verbose output]' \
+  '(--raw -r)'{--raw,-r}'[be very verbose]' \
+  '(--pager -P)'{--pager=,-P+}'[specify pager]:program:_command_names -e' \
+  '--pipesize=[specify buffer size for pipelining commands]:buffer size:' \
+  '--client=[specify additional text to send to server]:client text' \
+  '--debug=[set a debug flag]:debug flag:(verbose raw scan parse pipe serial time)' \
+  ':word:_dict_words' && return
+
+case "$state" in
+  strategy)
+    strategy=( ${${${(f)"$(_call_program strategy dict -S 2>/dev/null)"}[2,-1]#?}/ ##/:} )
+    _describe -t strategy strategy strategy && return
+  ;;
+  database)
+    database=( ${${${(f)"$(_call_program database dict --dbs 2>/dev/null)"}[2,-1]#?}/ ##/:} )
+    _describe -t database database database && return
+  ;;
+esac

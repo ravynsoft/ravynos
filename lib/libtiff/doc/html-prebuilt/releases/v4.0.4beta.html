@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Changes in TIFF v4.0.4beta &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Changes in TIFF v4.0.3" href="v4.0.3.html" />
+    <link rel="prev" title="Changes in TIFF v4.0.4" href="v4.0.4.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="v4.0.3.html" title="Changes in TIFF v4.0.3"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="v4.0.4.html" title="Changes in TIFF v4.0.4"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v4.0.4beta</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="changes-in-tiff-v4-0-4beta">
+<h1>Changes in TIFF v4.0.4beta<a class="headerlink" href="#changes-in-tiff-v4-0-4beta" title="Permalink to this heading">¶</a></h1>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">References</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Current Version</p></td>
+<td><p>v4.0.4beta (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/tags/Release-v4-0-4beta">tag Release-v4-0-4beta</a>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Previous Version</p></td>
+<td><p><a class="reference internal" href="v4.0.3.html"><span class="doc">v4.0.3</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Master Download Site</p></td>
+<td><p><a class="reference external" href="https://download.osgeo.org/libtiff/">https://download.osgeo.org/libtiff/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Master HTTP Site</p></td>
+<td><p><a class="reference external" href="https://download.osgeo.org/libtiff/">https://download.osgeo.org/libtiff/</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>This document describes the changes made to the software between the
+<em>previous</em> and <em>current</em> versions (see above).  If you don’t
+find something listed here, then it was not done in this timeframe, or
+it was not considered important enough to be mentioned.  The following
+information is located here:</p>
+<section id="major-changes">
+<h2>Major changes<a class="headerlink" href="#major-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>None</p></li>
+</ul>
+</section>
+<section id="software-configuration-changes">
+<h2>Software configuration changes<a class="headerlink" href="#software-configuration-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Updated to use Automake 1.15 and Libtool 2.4.5</p></li>
+</ul>
+</section>
+<section id="library-changes">
+<h2>Library changes<a class="headerlink" href="#library-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCheckDirOffset()</span></code>: avoid <code class="xref c c-type docutils literal notranslate"><span class="pre">uint16</span></code> overflow
+when reading more than 65535 directories, and effectively error out when
+reaching that limit.</p></li>
+<li><p><a class="reference internal" href="../functions/TIFFquery.html#c.TIFFNumberOfDirectories" title="TIFFNumberOfDirectories"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFNumberOfDirectories()</span></code></a>: generate error in case of directory count
+overflow.</p></li>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFAdvanceDirectory()</span></code>: If nextdir is found to
+be defective, then set it to zero before returning error in order
+to terminate processing of truncated TIFF.</p></li>
+<li><p>JPEG-in-TIFF: recognize <code class="docutils literal notranslate"><span class="pre">SOF2</span></code>, <code class="docutils literal notranslate"><span class="pre">SOF9</span></code> and <code class="docutils literal notranslate"><span class="pre">SOF10</span></code>
+markers to avoid emitting a warning. Fix for compatibility with mozjpeg library.
+Note: the default settings of mozjpeg will produce progressive scans, which
+is forbidden by the TechNote.</p></li>
+<li><p>JPEG-in-TIFF: Fix regression introduced in 3.9.3/4.0.0 that caused
+all tiles/strips to include quantization tables even when the jpegtablesmode
+had the <code class="xref c c-macro docutils literal notranslate"><span class="pre">JPEGTABLESMODE_QUANT</span></code> bit set.
+Also add explicit removal of Huffman tables when jpegtablesmode has the
+<code class="xref c c-macro docutils literal notranslate"><span class="pre">JPEGTABLESMODE_HUFF</span></code> bit set, which avoids Huffman tables to be emitted in the
+first tile/strip (only useful in update scenarios. create-only was
+fine)</p></li>
+<li><p>JPEG-in-TIFF: fix segfault in <code class="xref c c-func docutils literal notranslate"><span class="pre">JPEGFixupTagsSubsampling()</span></code> on
+corrupted image where <code class="docutils literal notranslate"><span class="pre">tif-&gt;tif_dir.td_stripoffset</span> <span class="pre">==</span> <span class="pre">NULL</span></code>.
+(<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2471">MapTools bugzilla #2471</a>)</p></li>
+<li><p>NeXT codec: add new tests to check that we don’t read outside of
+the compressed input stream buffer.</p></li>
+<li><p>NeXT codec: check that <code class="docutils literal notranslate"><span class="pre">BitsPerSample</span></code> = 2. Fixes
+<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2487">MapTools bugzilla #2487</a> (<a class="reference external" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-8129">CVE-2014-8129</a>)</p></li>
+<li><p>NeXT codec: in the “run mode”, use tilewidth for tiled images
+instead of imagewidth to avoid crash</p></li>
+<li><p>tif_getimage.c: in OJPEG case, fix checks on strile width/height
+in the <code class="docutils literal notranslate"><span class="pre">putcontig8bitYCbCr42tile</span></code>, <code class="docutils literal notranslate"><span class="pre">putcontig8bitYCbCr41tile</span></code> and
+<code class="docutils literal notranslate"><span class="pre">putcontig8bitYCbCr21tile</span></code> cases.</p></li>
+<li><p>in <code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFDefaultDirectory()</span></code>, reset any already existing
+extended tags installed by user code through the extender mechaninm before
+calling the extender callback (GDAL #5054)</p></li>
+<li><p>Fix  warnings about unused parameters.</p></li>
+<li><p>Fix various typos in comments found by Debian lintian tool (GDAL #5756)</p></li>
+<li><p>tif_getimage.c: avoid divide by zero on invalid YCbCr subsampling.
+(<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2235">MapTools bugzilla #2235</a>)</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_dirread.c</span></code>: In <code class="xref c c-func docutils literal notranslate"><span class="pre">EstimateStripByteCounts()</span></code>, check return code
+of <code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFFillStriles()</span></code>. This solves crashing bug on corrupted
+images generated by afl.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_read.c</span></code>: fix several invalid comparisons of a <code class="xref c c-type docutils literal notranslate"><span class="pre">uint64</span></code> value with
+<code class="docutils literal notranslate"><span class="pre">&lt;=</span> <span class="pre">0</span></code> by casting it to <code class="xref c c-type docutils literal notranslate"><span class="pre">int64</span></code> first. This solves crashing bug on corrupted
+images generated by afl.</p></li>
+<li><p><a class="reference internal" href="../functions/TIFFSetField.html#c.TIFFSetField" title="TIFFSetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetField()</span></code></a>: refuse to set negative values for
+<code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_XRESOLUTION</span></code> and <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_YRESOLUTION</span></code> that cause asserts when writing
+the directory</p></li>
+<li><p><a class="reference internal" href="../functions/TIFFReadDirectory.html#c.TIFFReadDirectory" title="TIFFReadDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadDirectory()</span></code></a>: refuse to read <code class="docutils literal notranslate"><span class="pre">ColorMap</span></code> or
+<code class="docutils literal notranslate"><span class="pre">TransferFunction</span></code> if <code class="docutils literal notranslate"><span class="pre">BitsPerSample</span></code> has not yet been read, otherwise reading
+it later will cause user code to crash if <code class="docutils literal notranslate"><span class="pre">BitsPerSample</span> <span class="pre">&gt;</span> <span class="pre">1</span></code></p></li>
+<li><p><a class="reference internal" href="../functions/TIFFRGBAImage.html#c.TIFFRGBAImageOK" title="TIFFRGBAImageOK"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRGBAImageOK()</span></code></a>: return FALSE if LOGLUV with
+<code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span> <span class="pre">!=</span> <span class="pre">3</span></code>, or if CIELAB with
+<code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span> <span class="pre">!=</span> <span class="pre">3</span></code> or <code class="docutils literal notranslate"><span class="pre">BitsPerSample</span> <span class="pre">!=</span> <span class="pre">8</span></code></p></li>
+<li><dl class="simple">
+<dt><code class="file docutils literal notranslate"><span class="pre">tif_config.vc.h</span></code>: no longer use <code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">snprintf</span> <span class="pre">_snprintf</span></code> with</dt><dd><p>Visual Studio 2015 aka VC 14 aka MSVC 1900</p>
+</dd>
+</dl>
+</li>
+<li><p>LZW codec: prevent potential null dereference of <code class="docutils literal notranslate"><span class="pre">sp-&gt;dec_codetab</span></code> in <code class="xref c c-func docutils literal notranslate"><span class="pre">LZWPreDecode()</span></code>
+(<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2459">MapTools bugzilla #2459</a>)</p></li>
+<li><p><a class="reference internal" href="../functions/TIFFbuffer.html#c.TIFFReadBufferSetup" title="TIFFReadBufferSetup"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadBufferSetup()</span></code></a>: avoid passing -1 size
+to <code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFmalloc()</span></code> if passed user buffer size is 0
+(<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2459">MapTools bugzilla #2459</a>)</p></li>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadDirEntryOutputErr()</span></code>: Incorrect
+count for tag should be a warning rather than an error since
+errors terminate processing.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_dirinfo.c</span></code> (<code class="docutils literal notranslate"><span class="pre">TIFFField</span></code>) : Fix data type for <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_GLOBALPARAMETERSIFD</span></code> tag.</p></li>
+<li><p>Add definitions for TIFF/EP <code class="docutils literal notranslate"><span class="pre">CFARepeatPatternDim</span></code> and <code class="docutils literal notranslate"><span class="pre">CFAPattern</span></code> tags
+(<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2457">MapTools bugzilla #2457</a>)</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_codec.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">tif_dirinfo.c</span></code>: Enlarge some fixed-size buffers that weren’t
+large enough, and eliminate substantially all uses of <code class="docutils literal notranslate"><span class="pre">sprintf(buf,</span>
+<span class="pre">...)</span></code>  in favor of using <code class="docutils literal notranslate"><span class="pre">snprintf(buf,</span> <span class="pre">sizeof(buf),</span> <span class="pre">...)</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">configure.ac</span></code>: Improve pkg-config static linking by adding <code class="docutils literal notranslate"><span class="pre">-lm</span></code> to <code class="docutils literal notranslate"><span class="pre">Libs.private</span></code> when needed.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_write.c</span></code>: <code class="xref c c-type docutils literal notranslate"><span class="pre">tmsize_t</span></code> related casting warning fixed for
+64bit linux.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_read.c</span></code>: <code class="xref c c-type docutils literal notranslate"><span class="pre">uint64</span></code>/<code class="xref c c-type docutils literal notranslate"><span class="pre">tmsize_t</span></code> change for MSVC warnings.
+(<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2427">MapTools bugzilla #2427</a>)</p></li>
+<li><p>Fix <a class="reference internal" href="../functions/TIFFPrintDirectory.html#c.TIFFPrintDirectory" title="TIFFPrintDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFPrintDirectory()</span></code></a> handling of
+<code class="xref c c-member docutils literal notranslate"><span class="pre">field_passcount</span></code> fields: it had the <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFF_VARIABLE</span></code> and
+<code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFF_VARIABLE2</span></code> cases backwards.</p></li>
+<li><p>PixarLog codec: Improve previous patch for <a class="reference external" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-4447">CVE-2012-4447</a>
+(to enlarge <code class="xref c c-member docutils literal notranslate"><span class="pre">tbuf</span></code> for possible partial stride at end) so that
+overflow in the integer addition is detected.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_</span><em><span class="pre">unix,vms,win32</span></em><span class="pre">.c</span></code> (<a class="reference internal" href="../functions/TIFFmemory.html#c._TIFFmalloc" title="_TIFFmalloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFmalloc()</span></code></a>): ANSI C does not
+require <code class="xref c c-func docutils literal notranslate"><span class="pre">malloc()</span></code> to return <code class="xref c c-macro docutils literal notranslate"><span class="pre">NULL</span></code> pointer if requested allocation
+size is zero.  Assure that <a class="reference internal" href="../functions/TIFFmemory.html#c._TIFFmalloc" title="_TIFFmalloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFmalloc()</span></code></a> does.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_zip.c</span></code>: Avoid crash on <code class="xref c c-macro docutils literal notranslate"><span class="pre">NULL</span></code> error messages.</p></li>
+</ul>
+</section>
+<section id="tools-changes">
+<h2>Tools changes<a class="headerlink" href="#tools-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong class="program">tiff2pdf</strong> Fix various crashes and memory buffer access errors (oCERT-2014-013).</p></li>
+<li><p><strong class="program">tiff2pdf</strong> fix buffer overflow on some YCbCr JPEG compressed images.
+(<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2445">MapTools bugzilla #2445</a>)</p></li>
+<li><p><strong class="program">tiff2pdf</strong> fix buffer overflow on YCbCr JPEG compressed image.
+(<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2443">MapTools bugzilla #2443</a>)</p></li>
+<li><p><strong class="program">tiff2pdf</strong> check return code of <a class="reference internal" href="../functions/TIFFGetField.html#c.TIFFGetField" title="TIFFGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetField()</span></code></a> when reading <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_SAMPLESPERPIXEL</span></code></p></li>
+<li><p><strong class="program">tiff2pdf</strong> fix crash due to invalid tile count.</p></li>
+<li><p><strong class="program">tiff2pdf</strong> Detect invalid settings of <code class="docutils literal notranslate"><span class="pre">BitsPerSample</span></code>/<code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span></code> for CIELAB / ITULAB</p></li>
+<li><p><strong class="program">tiff2pdf</strong> Assure that memory size calculations for
+<a class="reference internal" href="../functions/TIFFmemory.html#c._TIFFmalloc" title="_TIFFmalloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFmalloc()</span></code></a> do not overflow the range of <code class="xref c c-type docutils literal notranslate"><span class="pre">tmsize_t</span></code>.</p></li>
+<li><p><strong class="program">tiff2pdf</strong> Avoid crash when <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_TRANSFERFUNCTION</span></code> tag returns one channel,
+with the other two channels set to <code class="xref c c-macro docutils literal notranslate"><span class="pre">NULL</span></code>.</p></li>
+<li><p><strong class="program">tiff2pdf</strong> close PDF file. (<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2479">MapTools bugzilla #2479</a>)</p></li>
+<li><p><strong class="program">tiff2pdf</strong> Preserve input file directory order when pages
+are tagged with the same page number.</p></li>
+<li><p><strong class="program">tiff2pdf.c</strong> terminate after failure of allocating ycbcr buffer
+(<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2449">MapTools bugzilla #2449</a>, <a class="reference external" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2013-4232">CVE-2013-4232</a>)</p></li>
+<li><p><strong class="program">tiff2pdf</strong> Rewrite JPEG marker parsing in
+<code class="xref c c-func docutils literal notranslate"><span class="pre">t2p_process_jpeg_strip()</span></code> to be at least marginally competent.  The
+approach is still fundamentally flawed, but at least now it won’t
+stomp all over memory when given bogus input.  Fixes <a class="reference external" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2013-1960">CVE-2013-1960</a>.</p></li>
+<li><p><strong class="program">tiffdump</strong> Guard against arithmetic overflow when calculating allocation buffer sizes.</p></li>
+<li><p><strong class="program">tiffdump</strong> fix crash due to overflow of entry count.</p></li>
+<li><p><strong class="program">tiffdump</strong> Fix double-free bug.</p></li>
+<li><p><strong class="program">tiffdump</strong> detect cycle in TIFF directory chaining.
+(<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2463">MapTools bugzilla #2463</a>)</p></li>
+<li><p><strong class="program">tiffdump</strong> avoid passing a <code class="xref c c-macro docutils literal notranslate"><span class="pre">NULL</span></code> pointer to <code class="xref c c-func docutils literal notranslate"><span class="pre">read()</span></code> if <code class="xref c c-func docutils literal notranslate"><span class="pre">seek()</span></code> failed before.
+(<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2459">MapTools bugzilla #2459</a>)</p></li>
+<li><p><strong class="program">tiff2bw</strong> when <code class="docutils literal notranslate"><span class="pre">Photometric</span> <span class="pre">=</span> <span class="pre">RGB</span></code>, the utility only works if <code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span> <span class="pre">=</span> <span class="pre">3</span></code>. Enforce that.
+(:bugzilla:2485`, <a class="reference external" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-8127">CVE-2014-8127</a>)</p></li>
+<li><p><strong class="program">pal2rgb</strong>, <strong class="program">thumbnail</strong>: fix crash by disabling <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_INKNAMES</span></code> copying.
+(<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=#2484">MapTools bugzilla ##2484</a>, <a class="reference external" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-8127">CVE-2014-8127</a>)</p></li>
+<li><p><strong class="program">thumbnail</strong> fix out-of-buffer write.
+(<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2489">MapTools bugzilla #2489</a>, <a class="reference external" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-8128">CVE-2014-8128</a>)</p></li>
+<li><p><strong class="program">thumbnail</strong>, <strong class="program">tiffcmp</strong>: only read/write <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_GROUP3OPTIONS</span></code>
+or <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_GROUP4OPTIONS</span></code> if compression is <code class="xref c c-macro docutils literal notranslate"><span class="pre">COMPRESSION_CCITTFAX3</span></code> or
+<code class="xref c c-macro docutils literal notranslate"><span class="pre">COMPRESSION_CCITTFAX4</span></code>.
+(<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2493">MapTools bugzilla #2493</a>, <a class="reference external" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-8128">CVE-2014-8128</a>)</p></li>
+<li><p><strong class="program">tiffcp</strong> fix crash when converting YCbCr JPEG-compressed to none.
+(<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2480">MapTools bugzilla #2480</a>)</p></li>
+<li><p><strong class="program">bmp2tiff</strong> fix crash due to int overflow related to input BMP dimensions</p></li>
+<li><p><strong class="program">tiffcrop</strong> fix crash due to invalid <code class="docutils literal notranslate"><span class="pre">TileWidth</span></code>/<code class="docutils literal notranslate"><span class="pre">TileHeight</span></code></p></li>
+<li><p><strong class="program">tiffcrop</strong> fix segfault if bad value passed to <code class="docutils literal notranslate"><span class="pre">-Z</span></code> option
+(<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2459">MapTools bugzilla #2459</a>) and add missing <code class="docutils literal notranslate"><span class="pre">va_end</span></code> in <code class="xref c c-func docutils literal notranslate"><span class="pre">dump_info()</span></code></p></li>
+<li><p><strong class="program">thumbnail</strong>, <strong class="program">tiffcrop</strong>: “fix” heap read over-run found with
+Valgrind and Address Sanitizer on test suite</p></li>
+<li><p><strong class="program">fax2ps</strong> check <code class="xref c c-func docutils literal notranslate"><span class="pre">malloc()</span></code>/<code class="xref c c-func docutils literal notranslate"><span class="pre">realloc()</span></code> result. (<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2470">MapTools bugzilla #2470</a>)</p></li>
+<li><p><strong class="program">gif2tiff</strong> apply patch for <a class="reference external" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2013-4243">CVE-2013-4243</a>. (<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2451">MapTools bugzilla #2451</a>)</p></li>
+<li><p><strong class="program">gif2tiff</strong> fix possible OOB write. (<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2452">MapTools bugzilla #2452</a>, <a class="reference external" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2013-4244">CVE-2013-4244</a>)</p></li>
+<li><p><strong class="program">gif2tiff</strong> Be more careful about corrupt or hostile input files (<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2450">MapTools bugzilla #2450</a>, <a class="reference external" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2013-4231">CVE-2013-4231</a>)</p></li>
+<li><p><strong class="program">tiff2rgba</strong> fix usage message in that zip was wrongly described</p></li>
+<li><p><strong class="program">tiffinfo</strong> Default various values fetched with <a class="reference internal" href="../functions/TIFFGetField.html#c.TIFFGetField" title="TIFFGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetField()</span></code></a> to avoid being uninitialized.</p></li>
+<li><p><strong class="program">tiff2ps</strong> Fix bug in auto rotate option code.</p></li>
+<li><p><strong class="program">ppm2tiff</strong> avoid zero size buffer vulnerability (<a class="reference external" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-4564">CVE-2012-4564</a>).
+check the linebytes calculation too, get the <code class="xref c c-func docutils literal notranslate"><span class="pre">max()</span></code> calculation
+straight, avoid redundant error messages, check for <code class="xref c c-func docutils literal notranslate"><span class="pre">malloc()</span></code>
+failure.</p></li>
+<li><dl class="simple">
+<dt><strong class="program">tiffset</strong> now supports a <code class="docutils literal notranslate"><span class="pre">-u</span></code> option to unset a tag.</dt><dd><p>(<a class="reference external" href="http://bugzilla.maptools.org/show_bug.cgi?id=2419">MapTools bugzilla #2419</a>)</p>
+</dd>
+</dl>
+</li>
+<li><p>Fix warnings about unused parameters.</p></li>
+<li><p><strong class="program">rgb2ycbcr</strong>, <strong class="program">tiff2bw</strong>, <strong class="program">tiff2pdf</strong>, <strong class="program">tiff2ps</strong>, <strong class="program">tiffcrop</strong>, <strong class="program">tiffdither</strong>:
+Enlarge some fixed-size buffers that weren’t
+large enough, and eliminate substantially all uses of <code class="docutils literal notranslate"><span class="pre">sprintf(buf,</span>
+<span class="pre">...)</span></code> in favor of using <code class="docutils literal notranslate"><span class="pre">snprintf(buf,</span> <span class="pre">sizeof(buf),</span> <span class="pre">...)</span></code>, so as to
+protect against overflow of fixed-size buffers.  This responds in
+particular to <a class="reference external" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2013-1961">CVE-2013-1961</a> concerning overflow in <code class="file docutils literal notranslate"><span class="pre">tiff2pdf.c</span></code>’s
+<code class="xref c c-func docutils literal notranslate"><span class="pre">t2p_write_pdf_page()</span></code>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">html/man/tiff2ps.1.html</span></code>, <code class="file docutils literal notranslate"><span class="pre">html/man/tiffcp.1.html</span></code>,
+<code class="file docutils literal notranslate"><span class="pre">html/man/tiffdither.1.html</span></code>, <code class="file docutils literal notranslate"><span class="pre">man/tiff2ps.1</span></code>, <code class="file docutils literal notranslate"><span class="pre">man/tiffcp.1</span></code>,
+<code class="file docutils literal notranslate"><span class="pre">man/tiffdither.1</span></code>, <code class="file docutils literal notranslate"><span class="pre">tools/tiff2ps.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">tools/tiffcp.c</span></code>,
+<code class="file docutils literal notranslate"><span class="pre">tools/tiffdither.c</span></code>: Sync tool usage printouts and man pages with
+reality</p></li>
+</ul>
+</section>
+<section id="contributed-software-changes">
+<h2>Contributed software changes<a class="headerlink" href="#contributed-software-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Fix warnings about variables set but not used.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">contrib/dbs/xtiff/xtiff.c</span></code>: Enlarge some fixed-size buffers that weren’t
+large enough, and eliminate substantially all uses of <code class="docutils literal notranslate"><span class="pre">sprintf(buf,</span>
+<span class="pre">...)</span></code> in favor of using <code class="docutils literal notranslate"><span class="pre">snprintf(buf,</span> <span class="pre">sizeof(buf),</span> <span class="pre">...)</span></code>, so as to
+protect against overflow of fixed-size buffers.</p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Changes in TIFF v4.0.4beta</a><ul>
+<li><a class="reference internal" href="#major-changes">Major changes</a></li>
+<li><a class="reference internal" href="#software-configuration-changes">Software configuration changes</a></li>
+<li><a class="reference internal" href="#library-changes">Library changes</a></li>
+<li><a class="reference internal" href="#tools-changes">Tools changes</a></li>
+<li><a class="reference internal" href="#contributed-software-changes">Contributed software changes</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="v4.0.4.html"
+                          title="previous chapter">Changes in TIFF v4.0.4</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="v4.0.3.html"
+                          title="next chapter">Changes in TIFF v4.0.3</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/releases/v4.0.4beta.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="v4.0.3.html" title="Changes in TIFF v4.0.3"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="v4.0.4.html" title="Changes in TIFF v4.0.4"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v4.0.4beta</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

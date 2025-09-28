@@ -1,0 +1,86 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# simple expansion -- no problem, it's quote_string_for_globbing that was flawed
+c=$'\177'
+r="\\$c"
+
+recho $r
+
+# first, match some regular expressions containing ^A, ^G, ^?
+[[ $'\001' =~ $'\001' ]] ; echo $?
+[[ $'\001' =~ $'\\\001' ]] ; echo $?
+[[ $'\001' =~ $'\\[\001]' ]] ; echo $?
+
+[[ $'\a' =~ $'\a' ]] ; echo $?
+[[ $'\a' =~ $'\\\a' ]]  ; echo $?
+[[ $'\a' =~ $'\\[\a]' ]] ; echo $?
+
+[[ $'\177' =~ $'\177' ]] ; echo $?
+[[ $'\177' =~ $'\\\177' ]] ; echo $?
+[[ $'\177' =~ $'\\[\177]' ]] ; echo $?
+
+# Now let's try it with variables expanding to those values
+for c in $'\001' $'\a' $'\177' ; do
+	for r in "$c" "\\$c" "\\[$c]"; do
+		[[ $c =~ $r ]];
+		printf '[[ %q =~ %q ]] -> %d\n' "$c" "$r" "$?";
+	done;
+	printf %s\\n ---
+done
+
+# try again with literals
+
+[[ '' =~ $'' ]] ; echo $?
+[[ '' =~ '\' ]] ; echo $?
+[[ '' =~ '\[]' ]] ; echo $?
+
+[[ '' =~ '' ]] ; echo $?
+[[ '' =~ '\' ]]  ; echo $?
+[[ '' =~ '\[]' ]] ; echo $?
+
+[[ '' =~ $'' ]] ; echo $?
+[[ '' =~ '\' ]] ; echo $?
+[[ '' =~ '\[]' ]] ; echo $?
+
+# more expansions, but with literal non-special characters
+[[ x =~ \x ]] ; echo $?
+[[ x =~ \\x ]] ; echo $?
+
+bs='\'
+[[ x =~ ${bs}x ]] ; echo $?
+
+[[ x =~ $'\\'x ]] ; echo $?
+[[ x =~ '\'x ]] ; echo $?
+
+v='a\-b'
+[[ a-b =~ ${v} ]] ; echo $?
+[[ a-b =~ a\-b ]]; echo $?
+[[ a-b =~ a${bs}-b ]]; echo $?
+[[ a-b =~ a\\-b ]] ; echo $?
+[[ a-b =~ "a\-b" ]] ; echo $?
+
+c=$'\001'
+
+recho $c "$c"
+
+[[ $c == $c ]] && echo ok 1
+[[ $c =~ $c ]] && echo ok 2
+[[ $c =~ \\$c ]] || echo ok 3
+[[ $c =~ \\"$c" ]] || echo ok 4
+
+[[ $c =~ "\\"$c ]] || echo ok 5
+[[ $c =~ '\'$c ]] || echo ok 6
+
+[[ $c =~ "\\""$c" ]] || echo ok 7
+[[ $c =~ '\'"$c" ]] || echo ok 8

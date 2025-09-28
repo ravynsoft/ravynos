@@ -1,0 +1,28 @@
+[name]
+Handling of =for
+
+[input]
+=head1 Test of =for
+
+=for comment
+This won't be seen.
+
+Yes.
+
+=for text
+This should be seen.
+
+=for TEXT As should this.
+
+=for man
+But this shouldn't.
+
+Some more text.
+
+[output]
+Test of =for
+    Yes.
+
+This should be seen.
+As should this.
+    Some more text.

@@ -1,0 +1,380 @@
+@c ----------------------------------------------------------------------------
+@c This is the Texinfo source file for the gp-collect-app man page.
+@c
+@c Author: Ruud van der Pas
+@c ----------------------------------------------------------------------------
+@ifset man
+\input texinfo @c -*-texinfo-*-
+@setfilename gprofng collect app
+@settitle Collect performance data for the target application
+@include gp-macros.texi
+@end ifset
+
+@c ----------------------------------------------------------------------------
+@c This is from the man-pages(7) man page
+@c
+@c "The list below shows conventional or suggested sections.  Most manual pages
+@c  should include at least the highlighted sections.  Arrange a new manual
+@c  page so that sections are placed in the order shown in the list."
+@c
+@c              NAME
+@c              SYNOPSIS
+@c              CONFIGURATION    [Normally only in Section 4]
+@c              DESCRIPTION
+@c              OPTIONS          [Normally only in Sections 1, 8]
+@c              EXIT STATUS      [Normally only in Sections 1, 8]
+@c              RETURN VALUE     [Normally only in Sections 2, 3]
+@c              ERRORS           [Typically only in Sections 2, 3]
+@c              ENVIRONMENT
+@c              FILES
+@c              VERSIONS         [Normally only in Sections 2, 3]
+@c              ATTRIBUTES       [Normally only in Sections 2, 3]
+@c              CONFORMING TO
+@c              NOTES
+@c              BUGS
+@c              EXAMPLES
+@c              AUTHORS          [Discouraged]
+@c              REPORTING BUGS   [Not used in man-pages]
+@c              COPYRIGHT        [Not used in man-pages]
+@c              SEE ALSO
+@c
+@c This is what the texi2pod.pl tool recognizes:
+@c
+@c for $sect (qw(NAME SYNOPSIS TARGET DESCRIPTION OPTIONS ENVIRONMENT FILES
+@c               BUGS NOTES FOOTNOTES SEEALSO AUTHOR COPYRIGHT)) {
+@c
+@c What is interesting is that it places "SEE ALSO" before "COPYRIGHT", which
+@c makes sense and adhered to for the other formats.
+@c ----------------------------------------------------------------------------
+
+@c ----------------------------------------------------------------------------
+@c NAME section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{NAME}
+@c man begin NAME
+
+gprofng collect app - Collect performance data for the target program
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c SYNOPSIS section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{SYNOPSIS}
+@c man begin SYNOPSIS
+
+@command{gprofng collect app} [@var{option(s)}] @var{target} [@var{option(s)}]
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c DESCRIPTION section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{DESCRIPTION}
+@c man begin DESCRIPTION
+
+Collect performance data on the target program.  In addition to Program Counter
+(PC) sampling, hardware event counters and various tracing options are supported.
+
+For example, this command collects performance data for an executable called
+@samp{a.out} and stores the data collected in an experiment directory with
+the name @samp{example.er}.
+
+@smallexample
+$ gprofng collect app -o example.er ./a.out
+@end smallexample
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c OPTIONS section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{OPTIONS}
+@c man begin OPTIONS
+
+@table @gcctabopt
+
+@item --version
+@ifclear man
+@IndexSubentry{Options, @code{--version}}
+@end ifclear
+
+Print the version number and exit.
+
+@item --help
+@ifclear man
+@IndexSubentry{Options, @code{--help}}
+@end ifclear
+
+Print usage information and exit.
+
+@c -- @item --verbose @{on|off@}
+@c -- @ifclear man
+@c -- @IndexSubentry{Options, @code{--verbose}}
+@c -- @end ifclear
+
+@c -- Enable (on) or disable (off) verbose mode; the default is @samp{off}.
+
+@item -p @{off|on|lo|hi|@var{<value>}@}
+@ifclear man
+@IndexSubentry{Options, @code{-p}}
+@end ifclear
+
+Disable (off) or enable (on) clock-profiling using a default sampling
+granularity, or enable clock-profiling implicitly by setting the sampling
+granularity (lo, hi, or a specific value in ms). By default, clock profiling
+is enabled (@samp{-p on}).
+
+@item -h @var{@{<ctr_def>...,<ctr_n_def>@}}
+@ifclear man
+@IndexSubentry{Options, @code{-h}}
+@end ifclear
+Enable hardware event counter profiling and select the counter(s).
+To see the supported counters on this system, use the @samp{-h} option
+without other arguments.
+
+@item -o @var{<exp_name>}
+@ifclear man
+@IndexSubentry{Options, @code{-o}}
+@end ifclear
+
+Specify the name for the experiment directory.  The name has to end with
+@samp{.er} and may contain an absolute path (e.g. @file{/tmp/experiment.er}).
+
+@item -O @var{<exp_name>}
+@ifclear man
+@IndexSubentry{Options, @code{-O}}
+@end ifclear
+
+This is the same as the @samp{-o} option, but unlike this option, silently
+overwrites an existing experiment directory with the same name.
+
+@item -C @var{<comment_string>}
+@ifclear man
+@IndexSubentry{Options, @code{-C}}
+@end ifclear
+
+Add up to 10 comment strings to the experiment.  These comments appear in the
+notes section of the header and can be retrieved with the
+@command{gprofng display text} command using the @samp{-header} option.
+
+@item -j @{on|off|@var{<path>}@}
+@ifclear man
+@IndexSubentry{Options, @code{-j}}
+@end ifclear
+
+Controls Java profiling when the target is a JVM machine. The allowed values of
+this option are: enable (on), disable (off) Java profiling when the target
+program is a JVM, or set @samp{<path>} to a non-default JVM.
+The default is @samp{-j on}
+
+@table @gcctabopt
+
+@item on
+Record profiling data for the JVM machine, and recognize methods compiled by
+the Java HotSpot virtual machine.  Also record Java call stacks.  The default
+is @samp{-j on}.
+
+@item off
+Does not record Java profiling data.  Profiling data for native call stacks is
+still recorded.
+
+@item @var{<path>}
+Records profiling data for the JVM, and use the JVM as installed in @var{<path>}.
+
+@end table
+
+@item -J @var{<jvm-options>}
+@ifclear man
+@IndexSubentry{Options, @code{-J}}
+@end ifclear
+
+Specifies additional options to be passed to the JVM used.  The
+@var{jvm-options} list must be enclosed in quotation marks if it contains more
+than one option. The items in the list need to be separated by spaces or tab.
+Each item is passed as a separate option to the JVM.  Note that this option
+implies @samp{-j on}.
+
+@item -t @var{<duration>}[m|s]
+@ifclear man
+@IndexSubentry{Options, @code{-t}}
+@end ifclear
+
+Collects data for the specified duration.  The duration can be a single number,
+optionally followed by either @samp{m} to specify minutes, or @samp{s} to
+specify seconds, which is the default.
+
+The duration can also two numbers separated by minus (-) sign.  If a single
+number is given, data is collected from the start of the run until the given
+time. If two numbers are given, data is collected from the first time to the
+second.  If the second time is zero, data is collected until the end of the
+run. If two non-zero numbers are given, the first must be less than the second.
+
+@item -n
+@ifclear man
+@IndexSubentry{Options, @code{-n}}
+@end ifclear
+
+This is used for a dry run.  Several run-time settings are displayed, but the
+target is not executed and no performance data is collected.
+
+@item -F @{off|on|=@var{regex}@}
+@ifclear man
+@IndexSubentry{Options, @code{-F}}
+@end ifclear
+
+Control whether descendant processes should have their data recorded.
+To disable/enable this feature, use @samp{off}/@samp{on}.  Use
+@samp{=}@var{regex} to record data on those processes whose executable name
+matches the regular expression.  Only the basename of the executable is used,
+not the full path.  If spaces or characters interpreted by the shell are used,
+enclose the @var{regex} in single quotes.  The default is @samp{-F on}.
+
+@item -a @{off|on|ldobjects|src|usedldobjects|usedsrc@}
+@ifclear man
+@IndexSubentry{Options, @code{-a}}
+@end ifclear
+
+Specify archiving of binaries and other files.  In addition to disable this
+feature (off), or enable archiving off all loadobjects and sources (on),
+the  other  op tions support a more refined selection.
+
+All of these options enable archiving, but the keyword controls what exactly
+is selected: all load objects (ldobjects), all source files (src), the
+loadobjects asscoiated with a program counter (usedldobjects), or the source
+files associated with a program counter (usedsrc).
+The default is @samp{-a ldobjects}.
+
+@item -S @{off|on|@var{<seconds>}@}
+@ifclear man
+@IndexSubentry{Options, @code{-S}}
+@end ifclear
+
+Disable (off), or enable (on) periodic sampling of process-wide resource
+utilization. By default, sampling occurs every second. Use the @var{<seconds>}
+option to change this.  The default is @samp{-S on}.
+
+@item -y @var{<signal>}[,r]
+@ifclear man
+@IndexSubentry{Options, @code{-y}}
+@end ifclear
+
+Controls recording of data with the signal named @var{<signal>}, referred to
+as the pause-resume signal. Whenever the given signal is delivered to the
+process, switch between paused (no data is recorded) and resumed (data is
+recorded) states.
+
+By default, data collection begins in the paused state. If the optional
+@samp{r} is given, data collection begins in the resumed state and data
+collection begins immediately.
+
+SIGUSR1 or SIGUSR2 are recommended for this use, but any signal that is
+not used by the target can be used.
+
+@item -l @var{<signal>}
+@ifclear man
+@IndexSubentry{Options, @code{-l}}
+@end ifclear
+
+Specify a signal that will trigger a sample of process-wide resource utilization.
+When the named @var{<signal>} is delivered to the process, a sample is recorded.
+
+The signal can be specified using the full name, without the initial
+letters @code{SIG}, or the signal number.  Note that the @command{kill}
+command can be used to deliver a signal.
+
+If both the @samp{-l} and @samp{-y} options are used, the signal must be
+different.
+
+@item -s @var{<option>}[,@var{<API>}]
+@ifclear man
+@IndexSubentry{Options, @code{-s}}
+@end ifclear
+
+Enable synchronization wait tracing, where @var{<option>} is used to define the
+specifics of the tracing (on, off, @var{<threshold>}, or all).  The API is 
+selected through the setting for @var{<API>}: @samp{n} selects native/Pthreads,
+@samp{j} selects Java, and @samp{nj} selects both.  The default is @samp{-s off}.
+
+@item -H @{off|on@}
+@ifclear man
+@IndexSubentry{Options, @code{-H}}
+@end ifclear
+
+Disable (off), or enable (on) heap tracing.  The default is @samp{-H off}.
+
+@item -i @{off|on@}
+@ifclear man
+@IndexSubentry{Options, @code{-i}}
+@end ifclear
+
+Disable (off), or enable (on) I/O tracing.  The default is @samp{-i off}.
+
+@end table
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c NOTES section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{NOTES}
+@c man begin NOTES
+
+Any executable in the ELF (Executable and Linkable Format) object format can
+be used for profiling with gprofng.  If debug information is available,
+gprofng can provide more details, but this is not a requirement.
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c SEEALSO section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{SEEALSO}
+@c man begin SEEALSO
+
+gprofng(1), gp-archive(1), gp-display-html(1), gp-display-src(1), gp-display-text(1)
+
+The user guide for gprofng is maintained as a Texinfo manual.  If the
+@command{info} and @command{gprofng} programs are correctly installed, the
+command @command{info gprofng} should give access to this document.
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c COPYRIGHT section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{COPYRIGHT}
+@c man begin COPYRIGHT
+
+Copyright @copyright{} 2022-2023 Free Software Foundation, Inc.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3
+or any later version published by the Free Software Foundation;
+with no Invariant Sections, with no Front-Cover Texts, and with no
+Back-Cover Texts.  A copy of the license is included in the
+section entitled ``GNU Free Documentation License''.
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c If this text is used for a man page, exit.  Otherwise we need to continue.
+@c ----------------------------------------------------------------------------
+
+@ifset man
+@bye
+@end ifset

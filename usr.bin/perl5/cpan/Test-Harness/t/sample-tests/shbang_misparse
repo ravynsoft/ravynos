@@ -1,0 +1,12 @@
+#!/usr/bin/perl-latest
+
+# The above #! line was misparsed as having a -t.
+# Pre-5.8 this will simply cause perl to choke, since there was no -t.
+# Post-5.8 taint warnings will mistakenly be on.
+
+print "1..2\n";
+print "ok 1\n";
+my $warning = '';
+$SIG{__WARN__} = sub { $warning .= $_[0] };
+eval( "#" . substr( $0, 0, 0 ) );
+print $warning ? "not ok 2\n" : "ok 2\n";

@@ -1,0 +1,95 @@
+/*
+ * fontconfig/doc/fcatomic.fncs
+ *
+ * Copyright © 2003 Keith Packard
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name of the author(s) not be used in
+ * advertising or publicity pertaining to distribution of the software without
+ * specific, written prior permission.  The authors make no
+ * representations about the suitability of this software for any purpose.  It
+ * is provided "as is" without express or implied warranty.
+ *
+ * THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+
+@RET@           FcAtomic *
+@FUNC@          FcAtomicCreate
+@TYPE1@         const FcChar8   *               @ARG1@          file
+@PURPOSE@       create an FcAtomic object
+@DESC@
+Creates a data structure containing data needed to control access to <parameter>file</parameter>.
+Writing is done to a separate file.  Once that file is complete, the original
+configuration file is atomically replaced so that reading process always see
+a consistent and complete file without the need to lock for reading.
+@@
+
+@RET@           FcBool
+@FUNC@          FcAtomicLock
+@TYPE1@         FcAtomic *                      @ARG1@          atomic
+@PURPOSE@       lock a file
+@DESC@
+Attempts to lock the file referenced by <parameter>atomic</parameter>.
+Returns FcFalse if the file is already locked, else returns FcTrue and
+leaves the file locked.
+@@
+
+@RET@           FcChar8 *
+@FUNC@          FcAtomicNewFile
+@TYPE1@         FcAtomic *                      @ARG1@          atomic
+@PURPOSE@       return new temporary file name
+@DESC@
+Returns the filename for writing a new version of the file referenced
+by <parameter>atomic</parameter>.
+@@
+
+@RET@           FcChar8 *
+@FUNC@          FcAtomicOrigFile
+@TYPE1@         FcAtomic *                      @ARG1@          atomic
+@PURPOSE@       return original file name
+@DESC@
+Returns the file referenced by <parameter>atomic</parameter>.
+@@
+
+@RET@           FcBool
+@FUNC@          FcAtomicReplaceOrig
+@TYPE1@         FcAtomic *                      @ARG1@          atomic
+@PURPOSE@       replace original with new
+@DESC@
+Replaces the original file referenced by <parameter>atomic</parameter> with
+the new file. Returns FcFalse if the file cannot be replaced due to
+permission issues in the filesystem. Otherwise returns FcTrue.
+@@
+
+@RET@           void
+@FUNC@          FcAtomicDeleteNew
+@TYPE1@         FcAtomic *                      @ARG1@          atomic
+@PURPOSE@       delete new file
+@DESC@
+Deletes the new file.  Used in error recovery to back out changes.
+@@
+
+@RET@           void
+@FUNC@          FcAtomicUnlock
+@TYPE1@         FcAtomic *                      @ARG1@          atomic
+@PURPOSE@       unlock a file
+@DESC@
+Unlocks the file.
+@@
+
+@RET@           void
+@FUNC@          FcAtomicDestroy
+@TYPE1@         FcAtomic *                      @ARG1@          atomic
+@PURPOSE@       destroy an FcAtomic object
+@DESC@
+Destroys <parameter>atomic</parameter>.
+@@

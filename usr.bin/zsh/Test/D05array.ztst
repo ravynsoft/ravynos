@@ -1,0 +1,112 @@
+# Tests for array indexing
+
+%prep
+
+  foo=(a b c d e f g)
+  arr=(foo bar baz)
+  mkdir array.tmp
+  touch array.tmp/{1..9}
+
+%test
+
+  echo .$foo[1].
+0:The first element
+>.a.
+
+  echo .$foo[1,4].
+0:Normal multi-item indexing
+>.a b c d.
+
+  echo .$foo[1,0].
+0:This should be empty
+>..
+
+  echo .$foo[4,1].
+0:Another empty slice
+>..
+
+  echo .$foo[1,-8].
+0:An empty slice with a negative end
+>..
+
+  echo .$foo[0].
+0:Treat 0 as empty
+>..
+
+  echo .$foo[0,0].
+0:Treat 0,0 as empty
+>..
+
+  echo .$foo[0,1].
+0:Another weird way to access the first element
+>.a.
+
+  echo .$foo[3].
+0:An inner element
+>.c.
+
+  echo .$foo[2,2].
+0:Another inner element
+>.b.
+
+  echo .$foo[2,-4].
+0:A slice with a negative end
+>.b c d.
+
+  echo .$foo[-4,5].
+0:A slice with a negative start
+>.d e.
+
+  echo .$foo[-6,-2].
+0:A slice with a negative start and end
+>.b c d e f.
+
+  echo .${${arr[2]}[1]}.
+  echo .${${arr[-2]}[1]}.
+  echo .${${arr[2,2]}[1]}.
+  echo .${${arr[-2,-2]}[1]}.
+  echo .${${arr[2,-2]}[1]}. 
+  echo .${${arr[-2,2]}[1]}. 
+0:Slices should return an array, elements a scalar
+>.b.
+>.b.
+>.bar.
+>.bar.
+>.bar.
+>.bar.
+
+  setopt ksh_arrays
+  echo .${foo[1,2]}.
+  unsetopt ksh_arrays
+0:Ksh array indexing
+>.b c.
+
+  setopt ksh_arrays
+  echo .${foo[0,1]}.
+  unsetopt ksh_arrays
+0:Ksh array indexing (ii)
+>.a b.
+
+  setopt ksh_arrays
+  echo .${foo[1,-1]}.
+  unsetopt ksh_arrays
+0:Ksh array indexing (iii)
+>.b c d e f g.
+
+  cd array.tmp
+  echo . ?([3,5]) .
+  cd ..
+0:Glob array indexing
+>. 3 4 5 .
+
+  cd array.tmp
+  echo . ?([2,-2]) .
+  cd ..
+0:Glob array indexing (ii)
+>. 2 3 4 5 6 7 8 .
+
+  cd array.tmp
+  echo . ?([-6,-4]) .
+  cd ..
+0:Glob array indexing (iii)
+>. 4 5 6 .

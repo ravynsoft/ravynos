@@ -1,0 +1,64 @@
+#compdef a2ps
+
+# This is for the GNU version of a2ps.
+
+if [[ "$words[1]" != "$_cache_a2ps_cmd" ]]; then
+  local descr
+
+  _cache_a2ps_cmd="$words[1]"
+
+  descr=( "${(@)${(f@)$(_call_program features $words[1] --list=features)//
+ /	}:#}" )
+
+  _cache_a2ps_values=(
+    "${descr[(r)Known [Ss]tyle [Ss]heets*]#*	}"
+    "${descr[(r)Known [Ee]ncodings*]#*	}"
+    "${descr[(r)Known [Mm]edia*]#*	}"
+    "${descr[(r)Known [Pp]rologues*]#*	}"
+    "${descr[(r)Known PostScript Printer Descriptions*]#*	}"
+    "${descr[(r)Known [Oo]utputs*]#*	}"
+    "${descr[(r)Known [Uu]ser [Oo]ptions*]#*	}"
+    "${descr[(r)Known Variables*]#*	}"
+  )
+fi
+
+integer ret=1
+local context state line expl
+typeset -A opt_args
+
+_arguments \
+  '(-E --pretty-print=)'{-E-,--pretty-print=}"[enable pretty-printing]::language:(${_cache_a2ps_values[1]})" \
+  \*{-D+,--define=}"[set or unset variable]:variable:(${_cache_a2ps_values[8]})" \
+  '(-d -P --printer)'{-P,--printer=}"[send output to printer]:printer:->printers" \
+  '(-A --file-align)'{-A,--file-align=}'[specify alignment of separate files]:mode:(virtual rank page sheet)' \
+  '(-a --pages)'{-a-,--pages=}'[select pages to print]:page range' \
+  '(-q --quiet --silent -v --verbose)'{-q,--quiet,--silent}'[quiet output]' \
+  '(-q --quiet --silent -v --verbose)'{-v-,--verbose=}'[verbose output]:level' \
+  '(-b --header)'{-b-,--header=}'[set the page header]:text' \
+  '(-g)--highlight-level=:highlight:(none normal heavy)' \
+  '--list=:topic:(features delegations encodings media prologues printers style-sheets user-options variables)' \
+  "--user-option=:user option:(${_cache_a2ps_values[7]})" \
+  {-M,--medium=}":medium:(${_cache_a2ps_values[3]})" \
+  "--ppd=::printer description:(${_cache_a2ps_values[5]})" \
+  '--statusdict=:statusdict definition' \
+  '--setpagedevice=:page device definition' \
+  '--margin=:margin size (PostScript points)' \
+  '--toc=:format' \
+  --{{center,left,right}-title.underlay,{,left-,right-}footer}'=:text' \
+  '*:input file:_files' -- \
+  '*\*:toggle:(yes no)' \
+  '*=DIRECTION:direction:(rows columns)' \
+  '*=TYPE:type:((r\:CR mac\:CR unix\:LF n\:LF nr\:LFCR rn\:CRLF pc\:CRLF any auto))' \
+  '--version-control*:version control:(none off t numbered nil existing never simple)' \
+  '--strip-level*:strip level:((0\:everything\ is\ printed 1\:regular\ comments\ are\ not\ printed 2\:strong\ comments\ are\ not\ printed 3\:no\ comment\ is\ printed))' \
+  '--sides=*:mode:(simplex duplex tumble)' \
+  '--non-printable-format*:format:(caret space question-mark octal hexa emacs)' \
+  "--encoding*:encoding:(${_cache_a2ps_values[2]})" \
+  "--prologue*::prologue:(${_cache_a2ps_values[4]})" && ret=0
+
+if [[ $state = printers ]]; then
+  _wanted printers expl printer compadd -- ${=_cache_a2ps_values[6]} && ret=0
+  _printers && ret=0
+fi
+
+return ret

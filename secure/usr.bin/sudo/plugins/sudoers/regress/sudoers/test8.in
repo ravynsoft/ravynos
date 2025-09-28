@@ -1,0 +1,8 @@
+# Test quoted strings
+User_Alias UA1 = "xy"
+User_Alias UA2 = "x\
+y"
+User_Alias UA3 = x\"y
+
+# A newline in the middle of a string is an error
+User_Alias UA4 = "x

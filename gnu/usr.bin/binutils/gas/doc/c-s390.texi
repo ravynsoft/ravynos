@@ -1,0 +1,978 @@
+@c Copyright (C) 2009-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@ifset GENERIC
+@page
+@node S/390-Dependent
+@chapter IBM S/390 Dependent Features
+@end ifset
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter IBM S/390 Dependent Features
+@end ifclear
+
+@cindex s390 support
+
+The s390 version of @code{@value{AS}} supports two architectures modes
+and eleven chip levels. The architecture modes are the Enterprise System
+Architecture (ESA) and the newer z/Architecture mode. The chip levels
+are g5 (or arch3), g6, z900 (or arch5), z990 (or arch6), z9-109, z9-ec
+(or arch7), z10 (or arch8), z196 (or arch9), zEC12 (or arch10), z13
+(or arch11), z14 (or arch12), z15 (or arch13), or z16 (or arch14).
+
+@menu
+* s390 Options::                Command-line Options.
+* s390 Characters::		Special Characters.
+* s390 Syntax::                 Assembler Instruction syntax.
+* s390 Directives::             Assembler Directives.
+* s390 Floating Point::         Floating Point.
+@end menu
+
+@node s390 Options
+@section Options
+@cindex options for s390
+@cindex s390 options
+
+The following table lists all available s390 specific options:
+
+@table @code
+@cindex @samp{-m31} option, s390
+@cindex @samp{-m64} option, s390
+@item -m31 | -m64
+Select 31- or 64-bit ABI implying a word size of 32- or 64-bit.
+
+These options are only available with the ELF object file format, and
+require that the necessary BFD support has been included (on a 31-bit
+platform you must add --enable-64-bit-bfd on the call to the configure
+script to enable 64-bit usage and use s390x as target platform).
+
+@cindex @samp{-mesa} option, s390
+@cindex @samp{-mzarch} option, s390
+@item -mesa | -mzarch
+Select the architecture mode, either the Enterprise System Architecture
+(esa) mode or the z/Architecture mode (zarch).
+
+The 64-bit instructions are only available with the z/Architecture mode.
+The combination of @samp{-m64} and @samp{-mesa} results in a warning
+message.
+
+@cindex @samp{-march=} option, s390
+@item -march=@var{CPU}
+This option specifies the target processor. The following processor names
+are recognized:
+@code{g5} (or @code{arch3}),
+@code{g6},
+@code{z900} (or @code{arch5}),
+@code{z990} (or @code{arch6}),
+@code{z9-109},
+@code{z9-ec} (or @code{arch7}),
+@code{z10} (or @code{arch8}),
+@code{z196} (or @code{arch9}),
+@code{zEC12} (or @code{arch10}),
+@code{z13} (or @code{arch11}),
+@code{z14} (or @code{arch12}),
+@code{z15} (or @code{arch13}), and
+@code{z16} (or @code{arch14}).
+
+Assembling an instruction that is not supported on the target
+processor results in an error message.
+
+The processor names starting with @code{arch} refer to the edition
+number in the Principle of Operations manual.  They can be used as
+alternate processor names and have been added for compatibility with
+the IBM XL compiler.
+
+@code{arch3}, @code{g5} and @code{g6} cannot be used with the
+@samp{-mzarch} option since the z/Architecture mode is not supported
+on these processor levels.
+
+There is no @code{arch4} option supported. @code{arch4} matches
+@code{-march=arch5 -mesa}.
+
+@cindex @samp{-mregnames} option, s390
+@item -mregnames
+Allow symbolic names for registers.
+
+@cindex @samp{-mno-regnames} option, s390
+@item -mno-regnames
+Do not allow symbolic names for registers.
+
+@cindex @samp{-mwarn-areg-zero} option, s390
+@item -mwarn-areg-zero
+Warn whenever the operand for a base or index register has been specified
+but evaluates to zero. This can indicate the misuse of general purpose
+register 0 as an address register.
+
+@end table
+
+@node s390 Characters
+@section Special Characters
+@cindex line comment character, s390
+@cindex s390 line comment character
+
+@samp{#} is the line comment character.
+
+If a @samp{#} appears as the first character of a line then the whole
+line is treated as a comment, but in this case the line could also be
+a logical line number directive (@pxref{Comments}) or a preprocessor
+control command (@pxref{Preprocessing}).
+
+@cindex line separator, s390
+@cindex statement separator, s390
+@cindex s390 line separator
+The @samp{;} character can be used instead of a newline to separate
+statements.
+
+@node s390 Syntax
+@section Instruction syntax
+@cindex instruction syntax, s390
+@cindex s390 instruction syntax
+
+The assembler syntax closely follows the syntax outlined in
+Enterprise Systems Architecture/390 Principles of Operation (SA22-7201)
+and the z/Architecture Principles of Operation (SA22-7832).
+
+Each instruction has two major parts, the instruction mnemonic
+and the instruction operands. The instruction format varies.
+
+@menu
+* s390 Register::               Register Naming
+* s390 Mnemonics::              Instruction Mnemonics
+* s390 Operands::               Instruction Operands
+* s390 Formats::                Instruction Formats
+* s390 Aliases::		Instruction Aliases
+* s390 Operand Modifier::       Instruction Operand Modifier
+* s390 Instruction Marker::     Instruction Marker
+* s390 Literal Pool Entries::   Literal Pool Entries
+@end menu
+
+@node s390 Register
+@subsection Register naming
+@cindex register naming, s390
+@cindex s390 register naming
+
+The @code{@value{AS}} recognizes a number of predefined symbols for the
+various processor registers. A register specification in one of the
+instruction formats is an unsigned integer between 0 and 15. The specific
+instruction and the position of the register in the instruction format
+denotes the type of the register. The register symbols are prefixed with
+@samp{%}:
+
+@display
+@multitable {%rN} {the 16 general purpose registers, 0 <= N <= 15}
+@item %rN @tab the 16 general purpose registers, 0 <= N <= 15
+@item %fN @tab the 16 floating point registers, 0 <= N <= 15
+@item %aN @tab the 16 access registers, 0 <= N <= 15
+@item %cN @tab the 16 control registers, 0 <= N <= 15
+@item %lit @tab an alias for the general purpose register %r13
+@item %sp @tab an alias for the general purpose register %r15
+@end multitable
+@end display
+
+@node s390 Mnemonics
+@subsection Instruction Mnemonics
+@cindex instruction mnemonics, s390
+@cindex s390 instruction mnemonics
+
+All instructions documented in the Principles of Operation are supported
+with the mnemonic and order of operands as described.
+The instruction mnemonic identifies the instruction format
+(@ref{s390 Formats}) and the specific operation code for the instruction.
+For example, the @samp{lr} mnemonic denotes the instruction format @samp{RR}
+with the operation code @samp{0x18}.
+
+The definition of the various mnemonics follows a scheme, where the first
+character usually hint at the type of the instruction:
+
+@display
+@multitable {sla, sll} {if r is the last character the instruction operates on registers}
+@item a @tab add instruction, for example @samp{al} for add logical 32-bit
+@item b @tab branch instruction, for example @samp{bc} for branch on condition
+@item c @tab compare or convert instruction, for example @samp{cr} for compare
+register 32-bit
+@item d @tab divide instruction, for example @samp{dlr} devide logical register
+64-bit to 32-bit
+@item i @tab insert instruction, for example @samp{ic} insert character
+@item l @tab load instruction, for example @samp{ltr} load and test register
+@item mv @tab move instruction, for example @samp{mvc} move character
+@item m @tab multiply instruction, for example @samp{mh} multiply halfword
+@item n @tab and instruction, for example @samp{ni} and immediate
+@item o @tab or instruction, for example @samp{oc} or character
+@item sla, sll @tab shift left single instruction
+@item sra, srl @tab shift right single instruction
+@item st @tab store instruction, for example @samp{stm} store multiple
+@item s @tab subtract instruction, for example @samp{slr} subtract
+logical 32-bit
+@item t @tab test or translate instruction, of example @samp{tm} test under mask
+@item x @tab exclusive or instruction, for example @samp{xc} exclusive or
+character
+@end multitable
+@end display
+
+Certain characters at the end of the mnemonic may describe a property
+of the instruction:
+
+@display
+@multitable {c} {if r is the last character the instruction operates on registers}
+@item c @tab the instruction uses a 8-bit character operand
+@item f @tab the instruction extends a 32-bit operand to 64 bit
+@item g @tab the operands are treated as 64-bit values
+@item h @tab the operand uses a 16-bit halfword operand
+@item i @tab the instruction uses an immediate operand
+@item l @tab the instruction uses unsigned, logical operands
+@item m @tab the instruction uses a mask or operates on multiple values
+@item r @tab if r is the last character, the instruction operates on registers
+@item y @tab the instruction uses 20-bit displacements
+@end multitable
+@end display
+
+There are many exceptions to the scheme outlined in the above lists, in
+particular for the privileged instructions. For non-privileged
+instruction it works quite well, for example the instruction @samp{clgfr}
+c: compare instruction, l: unsigned operands, g: 64-bit operands,
+f: 32- to 64-bit extension, r: register operands. The instruction compares
+an 64-bit value in a register with the zero extended 32-bit value from
+a second register.
+For a complete list of all mnemonics see appendix B in the Principles
+of Operation.
+
+@node s390 Operands
+@subsection Instruction Operands
+@cindex instruction operands, s390
+@cindex s390 instruction operands
+
+Instruction operands can be grouped into three classes, operands located
+in registers, immediate operands, and operands in storage.
+
+A register operand can be located in general, floating-point, access,
+or control register. The register is identified by a four-bit field.
+The field containing the register operand is called the R field.
+
+Immediate operands are contained within the instruction and can have
+8, 16 or 32 bits. The field containing the immediate operand is called
+the I field. Dependent on the instruction the I field is either signed
+or unsigned.
+
+A storage operand consists of an address and a length. The address of a
+storage operands can be specified in any of these ways:
+
+@itemize
+@item The content of a single general R
+@item The sum of the content of a general register called the base
+register B plus the content of a displacement field D
+@item The sum of the contents of two general registers called the
+index register X and the base register B plus the content of a
+displacement field
+@item The sum of the current instruction address and a 32-bit signed
+immediate field multiplied by two.
+@end itemize
+
+The length of a storage operand can be:
+
+@itemize
+@item Implied by the instruction
+@item Specified by a bitmask
+@item Specified by a four-bit or eight-bit length field L
+@item Specified by the content of a general register
+@end itemize
+
+The notation for storage operand addresses formed from multiple fields is
+as follows:
+
+@table @code
+@item Dn(Bn)
+the address for operand number n is formed from the content of general
+register Bn called the base register and the displacement field Dn.
+@item Dn(Xn,Bn)
+the address for operand number n is formed from the content of general
+register Xn called the index register, general register Bn called the
+base register and the displacement field Dn.
+@item Dn(Ln,Bn)
+the address for operand number n is formed from the content of general
+register Bn called the base register and the displacement field Dn.
+The length of the operand n is specified by the field Ln.
+@end table
+
+The base registers Bn and the index registers Xn of a storage operand can
+be skipped. If Bn and Xn are skipped, a zero will be stored to the operand
+field. The notation changes as follows:
+
+@display
+@multitable @columnfractions 0.30 0.30
+@headitem full notation @tab short notation
+@item Dn(0,Bn) @tab Dn(Bn)
+@item Dn(0,0) @tab Dn
+@item Dn(0) @tab Dn
+@item Dn(Ln,0) @tab Dn(Ln)
+@end multitable
+@end display
+
+
+@node s390 Formats
+@subsection Instruction Formats
+@cindex instruction formats, s390
+@cindex s390 instruction formats
+
+The Principles of Operation manuals lists 35 instruction formats where
+some of the formats have multiple variants. For the @samp{.insn}
+pseudo directive the assembler recognizes some of the formats.
+Typically, the most general variant of the instruction format is used
+by the @samp{.insn} directive.
+
+The following table lists the abbreviations used in the table of
+instruction formats:
+
+@display
+@multitable {OpCode / OpCd} {Displacement lower 12 bits for operand x.}
+@item OpCode / OpCd @tab Part of the op code.
+@item Bx @tab Base register number for operand x.
+@item Dx @tab Displacement for operand x.
+@item DLx @tab Displacement lower 12 bits for operand x.
+@item DHx @tab Displacement higher 8-bits for operand x.
+@item Rx @tab Register number for operand x.
+@item Xx @tab Index register number for operand x.
+@item Ix @tab Signed immediate for operand x.
+@item Ux @tab Unsigned immediate for operand x.
+@end multitable
+@end display
+
+An instruction is two, four, or six bytes in length and must be aligned
+on a 2 byte boundary. The first two bits of the instruction specify the
+length of the instruction, 00 indicates a two byte instruction, 01 and 10
+indicates a four byte instruction, and 11 indicates a six byte instruction.
+
+The following table lists the s390 instruction formats that are available
+with the @samp{.insn} pseudo directive:
+
+@table @code
+@item E format
+@verbatim
++-------------+
+|    OpCode   |
++-------------+
+0            15
+@end verbatim
+
+@item RI format: <insn> R1,I2
+@verbatim
++--------+----+----+------------------+
+| OpCode | R1 |OpCd|        I2        |
++--------+----+----+------------------+
+0        8    12   16                31
+@end verbatim
+
+@item RIE format: <insn> R1,R3,I2
+@verbatim
++--------+----+----+------------------+--------+--------+
+| OpCode | R1 | R3 |        I2        |////////| OpCode |
++--------+----+----+------------------+--------+--------+
+0        8    12   16                 32       40      47
+@end verbatim
+
+@item RIL format: <insn> R1,I2
+@verbatim
++--------+----+----+------------------------------------+
+| OpCode | R1 |OpCd|                  I2                |
++--------+----+----+------------------------------------+
+0        8    12   16                                  47
+@end verbatim
+
+@item RILU format: <insn> R1,U2
+@verbatim
++--------+----+----+------------------------------------+
+| OpCode | R1 |OpCd|                  U2                |
++--------+----+----+------------------------------------+
+0        8    12   16                                  47
+@end verbatim
+
+@item RIS format: <insn> R1,I2,M3,D4(B4)
+@verbatim
++--------+----+----+----+-------------+--------+--------+
+| OpCode | R1 | M3 | B4 |     D4      |   I2   | Opcode |
++--------+----+----+----+-------------+--------+--------+
+0        8    12   16   20            32       36      47
+@end verbatim
+
+@item RR format: <insn> R1,R2
+@verbatim
++--------+----+----+
+| OpCode | R1 | R2 |
++--------+----+----+
+0        8    12  15
+@end verbatim
+
+@item RRE format: <insn> R1,R2
+@verbatim
++------------------+--------+----+----+
+|      OpCode      |////////| R1 | R2 |
++------------------+--------+----+----+
+0                  16       24   28  31
+@end verbatim
+
+@item RRF format: <insn> R1,R2,R3,M4
+@verbatim
++------------------+----+----+----+----+
+|      OpCode      | R3 | M4 | R1 | R2 |
++------------------+----+----+----+----+
+0                  16   20   24   28  31
+@end verbatim
+
+@item RRS format: <insn> R1,R2,M3,D4(B4)
+@verbatim
++--------+----+----+----+-------------+----+----+--------+
+| OpCode | R1 | R3 | B4 |     D4      | M3 |////| OpCode |
++--------+----+----+----+-------------+----+----+--------+
+0        8    12   16   20            32   36   40      47
+@end verbatim
+
+@item RS format: <insn> R1,R3,D2(B2)
+@verbatim
++--------+----+----+----+-------------+
+| OpCode | R1 | R3 | B2 |     D2      |
++--------+----+----+----+-------------+
+0        8    12   16   20           31
+@end verbatim
+
+@item RSE format: <insn> R1,R3,D2(B2)
+@verbatim
++--------+----+----+----+-------------+--------+--------+
+| OpCode | R1 | R3 | B2 |     D2      |////////| OpCode |
++--------+----+----+----+-------------+--------+--------+
+0        8    12   16   20            32       40      47
+@end verbatim
+
+@item RSI format: <insn> R1,R3,I2
+@verbatim
++--------+----+----+------------------------------------+
+| OpCode | R1 | R3 |                  I2                |
++--------+----+----+------------------------------------+
+0        8    12   16                                  47
+@end verbatim
+
+@item RSY format: <insn> R1,R3,D2(B2)
+@verbatim
++--------+----+----+----+-------------+--------+--------+
+| OpCode | R1 | R3 | B2 |    DL2      |  DH2   | OpCode |
++--------+----+----+----+-------------+--------+--------+
+0        8    12   16   20            32       40      47
+@end verbatim
+
+@item RX format: <insn> R1,D2(X2,B2)
+@verbatim
++--------+----+----+----+-------------+
+| OpCode | R1 | X2 | B2 |     D2      |
++--------+----+----+----+-------------+
+0        8    12   16   20           31
+@end verbatim
+
+@item RXE format: <insn> R1,D2(X2,B2)
+@verbatim
++--------+----+----+----+-------------+--------+--------+
+| OpCode | R1 | X2 | B2 |     D2      |////////| OpCode |
++--------+----+----+----+-------------+--------+--------+
+0        8    12   16   20            32       40      47
+@end verbatim
+
+@item RXF format: <insn> R1,R3,D2(X2,B2)
+@verbatim
++--------+----+----+----+-------------+----+---+--------+
+| OpCode | R3 | X2 | B2 |     D2      | R1 |///| OpCode |
++--------+----+----+----+-------------+----+---+--------+
+0        8    12   16   20            32   36  40      47
+@end verbatim
+
+@item RXY format: <insn> R1,D2(X2,B2)
+@verbatim
++--------+----+----+----+-------------+--------+--------+
+| OpCode | R1 | X2 | B2 |     DL2     |   DH2  | OpCode |
++--------+----+----+----+-------------+--------+--------+
+0        8    12   16   20            32   36   40      47
+@end verbatim
+
+@item S format: <insn> D2(B2)
+@verbatim
++------------------+----+-------------+
+|      OpCode      | B2 |     D2      |
++------------------+----+-------------+
+0                  16   20           31
+@end verbatim
+
+@item SI format: <insn> D1(B1),I2
+@verbatim
++--------+---------+----+-------------+
+| OpCode |   I2    | B1 |     D1      |
++--------+---------+----+-------------+
+0        8         16   20           31
+@end verbatim
+
+@item SIY format: <insn> D1(B1),U2
+@verbatim
++--------+---------+----+-------------+--------+--------+
+| OpCode |   I2    | B1 |     DL1     |  DH1   | OpCode |
++--------+---------+----+-------------+--------+--------+
+0        8         16   20            32   36   40      47
+@end verbatim
+
+@item SIL format: <insn> D1(B1),I2
+@verbatim
++------------------+----+-------------+-----------------+
+|      OpCode      | B1 |      D1     |       I2        |
++------------------+----+-------------+-----------------+
+0                  16   20            32               47
+@end verbatim
+
+@item SS format: <insn> D1(R1,B1),D2(B3),R3
+@verbatim
++--------+----+----+----+-------------+----+------------+
+| OpCode | R1 | R3 | B1 |     D1      | B2 |     D2     |
++--------+----+----+----+-------------+----+------------+
+0        8    12   16   20            32   36          47
+@end verbatim
+
+@item SSE format: <insn> D1(B1),D2(B2)
+@verbatim
++------------------+----+-------------+----+------------+
+|      OpCode      | B1 |     D1      | B2 |     D2     |
++------------------+----+-------------+----+------------+
+0        8    12   16   20            32   36           47
+@end verbatim
+
+@item SSF format: <insn> D1(B1),D2(B2),R3
+@verbatim
++--------+----+----+----+-------------+----+------------+
+| OpCode | R3 |OpCd| B1 |     D1      | B2 |     D2     |
++--------+----+----+----+-------------+----+------------+
+0        8    12   16   20            32   36           47
+@end verbatim
+
+@item VRV format: <insn> V1,D2(V2,B2),M3
+@verbatim
++--------+----+----+----+-------------+----+------------+
+| OpCode | V1 | V2 | B2 |     D2      | M3 |   Opcode   |
++--------+----+----+----+-------------+----+------------+
+0        8    12   16   20            32   36           47
+@end verbatim
+
+@item VRI format: <insn> V1,V2,I3,M4,M5
+@verbatim
++--------+----+----+-------------+----+----+------------+
+| OpCode | V1 | V2 |     I3      | M5 | M4 |   Opcode   |
++--------+----+----+-------------+----+----+------------+
+0        8    12   16            28   32   36           47
+@end verbatim
+
+@item VRX format: <insn> V1,D2(R2,B2),M3
+@verbatim
++--------+----+----+----+-------------+----+------------+
+| OpCode | V1 | R2 | B2 |     D2      | M3 |   Opcode   |
++--------+----+----+----+-------------+----+------------+
+0        8    12   16   20            32   36           47
+@end verbatim
+
+@item VRS format: <insn> R1,V3,D2(B2),M4
+@verbatim
++--------+----+----+----+-------------+----+------------+
+| OpCode | R1 | V3 | B2 |     D2      | M4 |   Opcode   |
++--------+----+----+----+-------------+----+------------+
+0        8    12   16   20            32   36           47
+@end verbatim
+
+@item VRR format: <insn> V1,V2,V3,M4,M5,M6
+@verbatim
++--------+----+----+----+---+----+----+----+------------+
+| OpCode | V1 | V2 | V3 |///| M6 | M5 | M4 |   Opcode   |
++--------+----+----+----+---+----+----+----+------------+
+0        8    12   16       24   28   32   36           47
+@end verbatim
+
+@item VSI format: <insn> V1,D2(B2),I3
+@verbatim
++--------+---------+----+-------------+----+------------+
+| OpCode |   I3    | B2 |     D2      | V1 |   Opcode   |
++--------+---------+----+-------------+----+------------+
+0        8         16   20            32   36           47
+@end verbatim
+
+@end table
+
+For the complete list of all instruction format variants see the
+Principles of Operation manuals.
+
+@node s390 Aliases
+@subsection Instruction Aliases
+@cindex instruction aliases, s390
+@cindex s390 instruction aliases
+
+A specific bit pattern can have multiple mnemonics, for example
+the bit pattern @samp{0xa7000000} has the mnemonics @samp{tmh} and
+@samp{tmlh}. In addition, there are a number of mnemonics recognized by
+@code{@value{AS}} that are not present in the Principles of Operation.
+These are the short forms of the branch instructions, where the condition
+code mask operand is encoded in the mnemonic. This is relevant for the
+branch instructions, the compare and branch instructions, and the
+compare and trap instructions.
+
+For the branch instructions there are 20 condition code strings that can
+be used as part of the mnemonic in place of a mask operand in the instruction
+format:
+
+@display
+@multitable @columnfractions .30 .30
+@headitem instruction @tab short form
+@item bcr   M1,R2  @tab  b<m>r  R2
+@item bc    M1,D2(X2,B2) @tab  b<m>   D2(X2,B2)
+@item brc   M1,I2 @tab j<m>   I2
+@item brcl  M1,I2 @tab jg<m>  I2
+@end multitable
+@end display
+
+In the mnemonic for a branch instruction the condition code string <m>
+can be any of the following:
+
+@display
+@multitable {nle} {jump on not zero / if not zeros}
+@item o @tab jump on overflow / if ones
+@item h @tab jump on A high
+@item p @tab jump on plus
+@item nle @tab jump on not low or equal
+@item l @tab jump on A low
+@item m @tab jump on minus
+@item nhe @tab jump on not high or equal
+@item lh @tab jump on low or high
+@item ne @tab jump on A not equal B
+@item nz @tab jump on not zero / if not zeros
+@item e @tab jump on A equal B
+@item z @tab jump on zero / if zeroes
+@item nlh @tab jump on not low or high
+@item he @tab jump on high or equal
+@item nl @tab jump on A not low
+@item nm @tab jump on not minus / if not mixed
+@item le @tab jump on low or equal
+@item nh @tab jump on A not high
+@item np @tab jump on not plus
+@item no @tab jump on not overflow / if not ones
+@end multitable
+@end display
+
+For the compare and branch, and compare and trap instructions there
+are 12 condition code strings that can be used as part of the mnemonic in
+place of a mask operand in the instruction format:
+
+@display
+@multitable @columnfractions .40 .40
+@headitem instruction @tab short form
+@item crb    R1,R2,M3,D4(B4)  @tab  crb<m>    R1,R2,D4(B4)
+@item cgrb   R1,R2,M3,D4(B4)  @tab  cgrb<m>   R1,R2,D4(B4)
+@item crj    R1,R2,M3,I4  @tab  crj<m>    R1,R2,I4
+@item cgrj   R1,R2,M3,I4  @tab  cgrj<m>   R1,R2,I4
+@item cib    R1,I2,M3,D4(B4)  @tab  cib<m>    R1,I2,D4(B4)
+@item cgib   R1,I2,M3,D4(B4)  @tab  cgib<m>   R1,I2,D4(B4)
+@item cij    R1,I2,M3,I4  @tab  cij<m>    R1,I2,I4
+@item cgij   R1,I2,M3,I4  @tab  cgij<m>   R1,I2,I4
+@item crt    R1,R2,M3  @tab  crt<m>    R1,R2
+@item cgrt   R1,R2,M3  @tab  cgrt<m>   R1,R2
+@item cit    R1,I2,M3  @tab  cit<m>    R1,I2
+@item cgit   R1,I2,M3  @tab  cgit<m>   R1,I2
+@item clrb   R1,R2,M3,D4(B4)  @tab  clrb<m>   R1,R2,D4(B4)
+@item clgrb  R1,R2,M3,D4(B4)  @tab  clgrb<m>  R1,R2,D4(B4)
+@item clrj   R1,R2,M3,I4  @tab  clrj<m>   R1,R2,I4
+@item clgrj  R1,R2,M3,I4  @tab  clgrj<m>  R1,R2,I4
+@item clib   R1,I2,M3,D4(B4)  @tab  clib<m>   R1,I2,D4(B4)
+@item clgib  R1,I2,M3,D4(B4)  @tab  clgib<m>  R1,I2,D4(B4)
+@item clij   R1,I2,M3,I4  @tab  clij<m>   R1,I2,I4
+@item clgij  R1,I2,M3,I4  @tab  clgij<m>  R1,I2,I4
+@item clrt   R1,R2,M3  @tab  clrt<m>   R1,R2
+@item clgrt  R1,R2,M3  @tab  clgrt<m>  R1,R2
+@item clfit  R1,I2,M3  @tab  clfit<m>  R1,I2
+@item clgit  R1,I2,M3  @tab  clgit<m>  R1,I2
+@end multitable
+@end display
+
+In the mnemonic for a compare and branch and compare and trap instruction
+the condition code string <m> can be any of the following:
+
+@display
+@multitable {nle} {jump on not zero / if not zeros}
+@item h @tab jump on A high
+@item nle @tab jump on not low or equal
+@item l @tab jump on A low
+@item nhe @tab jump on not high or equal
+@item ne @tab jump on A not equal B
+@item lh @tab jump on low or high
+@item e @tab jump on A equal B
+@item nlh @tab jump on not low or high
+@item nl @tab jump on A not low
+@item he @tab jump on high or equal
+@item nh @tab jump on A not high
+@item le @tab jump on low or equal
+@end multitable
+@end display
+
+@node s390 Operand Modifier
+@subsection Instruction Operand Modifier
+@cindex instruction operand modifier, s390
+@cindex s390 instruction operand modifier
+
+If a symbol modifier is attached to a symbol in an expression for an
+instruction operand field, the symbol term is replaced with a reference
+to an object in the global offset table (GOT) or the procedure linkage
+table (PLT). The following expressions are allowed:
+@samp{symbol@@modifier + constant},
+@samp{symbol@@modifier + label + constant}, and
+@samp{symbol@@modifier - label + constant}.
+The term @samp{symbol} is the symbol that will be entered into the GOT or
+PLT, @samp{label} is a local label, and @samp{constant} is an arbitrary
+expression that the assembler can evaluate to a constant value.
+
+The term @samp{(symbol + constant1)@@modifier +/- label + constant2}
+is also accepted but a warning message is printed and the term is
+converted to @samp{symbol@@modifier +/- label + constant1 + constant2}.
+
+@table @code
+@item @@got
+@itemx @@got12
+The @@got modifier can be used for displacement fields, 16-bit immediate
+fields and 32-bit pc-relative immediate fields. The @@got12 modifier is
+synonym to @@got. The symbol is added to the GOT. For displacement
+fields and 16-bit immediate fields the symbol term is replaced with
+the offset from the start of the GOT to the GOT slot for the symbol.
+For a 32-bit pc-relative field the pc-relative offset to the GOT
+slot from the current instruction address is used.
+@item @@gotent
+The @@gotent modifier can be used for 32-bit pc-relative immediate fields.
+The symbol is added to the GOT and the symbol term is replaced with
+the pc-relative offset from the current instruction to the GOT slot for the
+symbol.
+@item @@gotoff
+The @@gotoff modifier can be used for 16-bit immediate fields. The symbol
+term is replaced with the offset from the start of the GOT to the
+address of the symbol.
+@item @@gotplt
+The @@gotplt modifier can be used for displacement fields, 16-bit immediate
+fields, and 32-bit pc-relative immediate fields. A procedure linkage
+table entry is generated for the symbol and a jump slot for the symbol
+is added to the GOT. For displacement fields and 16-bit immediate
+fields the symbol term is replaced with the offset from the start of the
+GOT to the jump slot for the symbol. For a 32-bit pc-relative field
+the pc-relative offset to the jump slot from the current instruction
+address is used.
+@item @@plt
+The @@plt modifier can be used for 16-bit and 32-bit pc-relative immediate
+fields. A procedure linkage table entry is generated for the symbol.
+The symbol term is replaced with the relative offset from the current
+instruction to the PLT entry for the symbol.
+@item @@pltoff
+The @@pltoff modifier can be used for 16-bit immediate fields. The symbol
+term is replaced with the offset from the start of the PLT to the address
+of the symbol.
+@item @@gotntpoff
+The @@gotntpoff modifier can be used for displacement fields. The symbol
+is added to the static TLS block and the negated offset to the symbol
+in the static TLS block is added to the GOT. The symbol term is replaced
+with the offset to the GOT slot from the start of the GOT.
+@item @@indntpoff
+The @@indntpoff modifier can be used for 32-bit pc-relative immediate
+fields. The symbol is added to the static TLS block and the negated offset
+to the symbol in the static TLS block is added to the GOT. The symbol term
+is replaced with the pc-relative offset to the GOT slot from the current
+instruction address.
+@end table
+
+For more information about the thread local storage modifiers
+@samp{gotntpoff} and @samp{indntpoff} see the ELF extension documentation
+@samp{ELF Handling For Thread-Local Storage}.
+
+@node s390 Instruction Marker
+@subsection Instruction Marker
+@cindex instruction marker, s390
+@cindex s390 instruction marker
+
+The thread local storage instruction markers are used by the linker to
+perform code optimization.
+
+@table @code
+@item :tls_load
+The :tls_load marker is used to flag the load instruction in the initial
+exec TLS model that retrieves the offset from the thread pointer to a
+thread local storage variable from the GOT.
+@item :tls_gdcall
+The :tls_gdcall marker is used to flag the branch-and-save instruction to
+the __tls_get_offset function in the global dynamic TLS model.
+@item :tls_ldcall
+The :tls_ldcall marker is used to flag the branch-and-save instruction to
+the __tls_get_offset function in the local dynamic TLS model.
+@end table
+
+For more information about the thread local storage instruction marker
+and the linker optimizations see the ELF extension documentation
+@samp{ELF Handling For Thread-Local Storage}.
+
+@node s390 Literal Pool Entries
+@subsection Literal Pool Entries
+@cindex literal pool entries, s390
+@cindex s390 literal pool entries
+
+A literal pool is a collection of values. To access the values a pointer
+to the literal pool is loaded to a register, the literal pool register.
+Usually, register %r13 is used as the literal pool register
+(@ref{s390 Register}). Literal pool entries are created by adding the
+suffix :lit1, :lit2, :lit4, or :lit8 to the end of an expression for an
+instruction operand. The expression is added to the literal pool and the
+operand is replaced with the offset to the literal in the literal pool.
+
+@table @code
+@item :lit1
+The literal pool entry is created as an 8-bit value. An operand modifier
+must not be used for the original expression.
+@item :lit2
+The literal pool entry is created as a 16 bit value. The operand modifier
+@@got may be used in the original expression. The term @samp{x@@got:lit2}
+will put the got offset for the global symbol x to the literal pool as
+16 bit value.
+@item :lit4
+The literal pool entry is created as a 32-bit value. The operand modifier
+@@got and @@plt may be used in the original expression. The term
+@samp{x@@got:lit4} will put the got offset for the global symbol x to the
+literal pool as a 32-bit value. The term @samp{x@@plt:lit4} will put the
+plt offset for the global symbol x to the literal pool as a 32-bit value.
+@item :lit8
+The literal pool entry is created as a 64-bit value. The operand modifier
+@@got and @@plt may be used in the original expression. The term
+@samp{x@@got:lit8} will put the got offset for the global symbol x to the
+literal pool as a 64-bit value. The term @samp{x@@plt:lit8} will put the
+plt offset for the global symbol x to the literal pool as a 64-bit value.
+@end table
+
+The assembler directive @samp{.ltorg} is used to emit all literal pool
+entries to the current position.
+
+@node s390 Directives
+@section Assembler Directives
+
+@code{@value{AS}} for s390 supports all of the standard ELF
+assembler directives as outlined in the main part of this document.
+Some directives have been extended and there are some additional
+directives, which are only available for the s390 @code{@value{AS}}.
+
+@table @code
+@cindex @code{.insn} directive, s390
+@item .insn
+This directive permits the numeric representation of an instructions
+and makes the assembler insert the operands according to one of the
+instructions formats for @samp{.insn} (@ref{s390 Formats}).
+For example, the instruction @samp{l %r1,24(%r15)} could be written as
+@samp{.insn rx,0x58000000,%r1,24(%r15)}.
+@cindex @code{.short} directive, s390
+@cindex @code{.long} directive, s390
+@cindex @code{.quad} directive, s390
+@item .short
+@itemx .long
+@itemx .quad
+This directive places one or more 16-bit (.short), 32-bit (.long), or
+64-bit (.quad) values into the current section. If an ELF or TLS modifier
+is used only the following expressions are allowed:
+@samp{symbol@@modifier + constant},
+@samp{symbol@@modifier + label + constant}, and
+@samp{symbol@@modifier - label + constant}.
+The following modifiers are available:
+@table @code
+@item @@got
+@itemx @@got12
+The @@got modifier can be used for .short, .long and .quad. The @@got12
+modifier is synonym to @@got. The symbol is added to the GOT. The symbol
+term is replaced with offset from the start of the GOT to the GOT slot for
+the symbol.
+@item @@gotoff
+The @@gotoff modifier can be used for .short, .long and .quad. The symbol
+term is replaced with the offset from the start of the GOT to the address
+of the symbol.
+@item @@gotplt
+The @@gotplt modifier can be used for .long and .quad. A procedure linkage
+table entry is generated for the symbol and a jump slot for the symbol
+is added to the GOT. The symbol term is replaced with the offset from the
+start of the GOT to the jump slot for the symbol.
+@item @@plt
+The @@plt modifier can be used for .long and .quad. A procedure linkage
+table entry us generated for the symbol. The symbol term is replaced with
+the address of the PLT entry for the symbol.
+@item @@pltoff
+The @@pltoff modifier can be used for .short, .long and .quad. The symbol
+term is replaced with the offset from the start of the PLT to the address
+of the symbol.
+@item @@tlsgd
+@itemx @@tlsldm
+The @@tlsgd and @@tlsldm modifier can be used for .long and .quad. A
+tls_index structure for the symbol is added to the GOT. The symbol term is
+replaced with the offset from the start of the GOT to the tls_index structure.
+@item @@gotntpoff
+@itemx @@indntpoff
+The @@gotntpoff and @@indntpoff modifier can be used for .long and .quad.
+The symbol is added to the static TLS block and the negated offset to the
+symbol in the static TLS block is added to the GOT. For @@gotntpoff the
+symbol term is replaced with the offset from the start of the GOT to the
+GOT slot, for @@indntpoff the symbol term is replaced with the address
+of the GOT slot.
+@item @@dtpoff
+The @@dtpoff modifier can be used for .long and .quad. The symbol term
+is replaced with the offset of the symbol relative to the start of the
+TLS block it is contained in.
+@item @@ntpoff
+The @@ntpoff modifier can be used for .long and .quad. The symbol term
+is replaced with the offset of the symbol relative to the TCB pointer.
+@end table
+
+For more information about the thread local storage modifiers see the
+ELF extension documentation @samp{ELF Handling For Thread-Local Storage}.
+
+@cindex @code{.ltorg} directive, s390
+@item .ltorg
+This directive causes the current contents of the literal pool to be
+dumped to the current location (@ref{s390 Literal Pool Entries}).
+
+@cindex @code{.machine} directive, s390
+@item .machine @var{STRING}[+@var{EXTENSION}]@dots{}
+
+This directive allows changing the machine for which code is
+generated.  @code{string} may be any of the @code{-march=}
+selection options, or @code{push}, or @code{pop}.  @code{.machine
+push} saves the currently selected cpu, which may be restored with
+@code{.machine pop}.  Be aware that the cpu string has to be put
+into double quotes in case it contains characters not appropriate
+for identifiers.  So you have to write @code{"z9-109"} instead of
+just @code{z9-109}.  Extensions can be specified after the cpu
+name, separated by plus characters.  Valid extensions are:
+@code{htm},
+@code{nohtm},
+@code{vx},
+@code{novx}.
+They extend the basic instruction set with features from a higher
+cpu level, or remove support for a feature from the given cpu
+level.
+
+Example: @code{z13+nohtm} allows all instructions of the z13 cpu
+except instructions from the HTM facility.
+
+@cindex @code{.machinemode} directive, s390
+@item .machinemode string
+This directive allows one to change the architecture mode for which code
+is being generated.  @code{string} may be @code{esa}, @code{zarch},
+@code{zarch_nohighgprs}, @code{push}, or @code{pop}.
+@code{.machinemode zarch_nohighgprs} can be used to prevent the
+@code{highgprs} flag from being set in the ELF header of the output
+file.  This is useful in situations where the code is gated with a
+runtime check which makes sure that the code is only executed on
+kernels providing the @code{highgprs} feature.
+@code{.machinemode push} saves the currently selected mode, which may
+be restored with @code{.machinemode pop}.
+@end table
+
+@node s390 Floating Point
+@section Floating Point
+@cindex floating point, s390
+@cindex s390 floating point
+
+The assembler recognizes both the @sc{ieee} floating-point instruction and
+the hexadecimal floating-point instructions. The floating-point constructors
+@samp{.float}, @samp{.single}, and @samp{.double} always emit the
+@sc{ieee} format. To assemble hexadecimal floating-point constants the
+@samp{.long} and @samp{.quad} directives must be used.

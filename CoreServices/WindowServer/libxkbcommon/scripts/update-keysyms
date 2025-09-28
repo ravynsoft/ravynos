@@ -1,0 +1,6 @@
+#!/bin/sh
+# Run this to regenerate xkbcommon-keysyms.h from the X11 headers
+# defining the keysyms and update the name <-> keysym mapping.
+export LC_CTYPE=C
+scripts/makeheader > include/xkbcommon/xkbcommon-keysyms.h
+scripts/makekeys include/xkbcommon/xkbcommon-keysyms.h > src/ks_tables.h

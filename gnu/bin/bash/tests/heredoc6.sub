@@ -1,0 +1,50 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# test $'...' and $"..." strings in here documents (problem through bash-5.1)
+
+pat=$'no\t'
+x=$'no\tOK'
+y=notOK
+
+cat <<EOF
+1: ${x#$'no\t'}
+2: O${x#$'no\t'O}
+3: ${x#n$'o\t'}
+4: ${x#'no	'}
+5: ${x#$pat}
+6: ${y#$'not'}
+7: ${y#'not'}
+EOF
+
+cat <<EOF
+1: ${x#$"no	"}
+2: ${x#n$"o	"}
+3: O${x#n$"o	"O}
+4: ${x#"no	"}
+5: ${y#$"not"}
+5: ${y#"not"}
+EOF
+
+# we don't perform dollar-quote expansion if the here-doc delimiter is quoted
+
+cat <<\EOF
+1: ${x#$'no\t'}
+2: O${x#$'no\t'O}
+3: ${x#n$'o\t'}
+4: ${x#'no	'}
+5: ${x#$pat}
+6: ${y#$'not'}
+7: ${y#'not'}
+EOF

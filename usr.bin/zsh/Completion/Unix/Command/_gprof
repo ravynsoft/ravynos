@@ -1,0 +1,58 @@
+#compdef gprof
+
+local curcontext="$curcontext" state line ret=1
+typeset -A opt_args
+
+_arguments -C -s -{a,b,c,D,h,i,l,L,r,s,T,v,w,x,y,z} \
+           -{A,C,e,E,f,F,J,n,N,O,p,P,q,Q,R,S,t,Z}:'function name:->funcs' \
+	   '-I:directory:_dir_list' \
+	   '-d-:debug level:' '-k:function names:->pair' \
+	   '-m:minimum execution count:' \
+	   ':executable:_files -g \*\(-\*\)' \
+	   ':profile file:_files -g gmon.\*\(-.\)' \
+	   -- -s '((#s)--[no-] --)' \
+           '*=name*:function name:->funcs' \
+	   '*=dirs*:directory:_dir_list' && ret=0
+
+if [[ -n "$state" ]]; then
+  local cmd pair expl
+
+  _tags functions || return 1
+
+  [[ "$state" = pair ]] && pair=yes
+
+  if [[ $#line -gt 1 ]]; then
+    cmd="$line[2]"
+  else
+    return 1
+  fi
+
+  if [[ -n "$cmd" ]]; then
+    if [[ "$cmd" = /* ]]; then
+      tmp="$cmd"
+    else
+      tmp="$PWD/$cmd"
+    fi
+
+    if [[ "$tmp" != "$_gprof_command" ]]; then
+      _gprof_command="$tmp"
+      _gprof_funcs=( "${(@)${(@M)${(@f)$(nm $cmd)}:#[^ ]# [tT] ([^_]|_[^_])*}##* }" )
+    fi
+  
+    if [[ -n "$pair" ]]; then
+      if compset -P '*/'; then
+        expl='call arc to function'
+      else
+        expl='call arc from function'
+      fi
+    else
+      expl=function
+    fi
+    _wanted functions expl "$expl" \
+        compadd -M 'r:|_=* r:|=*' -a _gprof_funcs && ret=0
+  else
+    return 1
+  fi
+fi
+
+return ret

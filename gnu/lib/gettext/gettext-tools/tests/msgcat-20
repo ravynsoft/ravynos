@@ -1,0 +1,64 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Verify --sort-by-file.
+
+cat <<EOF > mcat-test20.in
+#: clients/inst_language.ycp:119
+msgid "one"
+msgstr "1"
+
+#: clients/inst_language.ycp:108
+msgid ""
+"two"
+msgstr ""
+"2"
+
+#: clients/inst_language.ycp:108
+msgid "three"
+msgstr "3"
+
+#: clients/inst_language.ycp:103
+msgctxt "foo"
+msgid "four"
+msgstr "4"
+
+#: clients/inst_language.ycp:103
+msgctxt "bar"
+msgid "four"
+msgstr "4"
+EOF
+
+: ${MSGCAT=msgcat}
+${MSGCAT} --sort-by-file -o mcat-test20.tmp mcat-test20.in || Exit 1
+LC_ALL=C tr -d '\r' < mcat-test20.tmp > mcat-test20.out || Exit 1
+
+cat << EOF > mcat-test20.ok
+#: clients/inst_language.ycp:103
+msgctxt "bar"
+msgid "four"
+msgstr "4"
+
+#: clients/inst_language.ycp:103
+msgctxt "foo"
+msgid "four"
+msgstr "4"
+
+#: clients/inst_language.ycp:108
+msgid "three"
+msgstr "3"
+
+#: clients/inst_language.ycp:108
+msgid "two"
+msgstr "2"
+
+#: clients/inst_language.ycp:119
+msgid "one"
+msgstr "1"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcat-test20.ok mcat-test20.out
+result=$?
+
+exit $result

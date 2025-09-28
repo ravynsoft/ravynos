@@ -1,0 +1,32 @@
+#compdef snoop
+
+local -a args
+
+[[ $OSTYPE = solaris2.<11-> ]] && args=(
+  '-I+[capture packets from specified interface]:interface:_net_interfaces'
+)
+_arguments -s -S -A "-*" \
+  '-a[generate audio signal on receiving packets]' \
+  '-c+[quit after capturing specified number of packets]:number of packets' \
+  '-d+[capture packets from specified device]:device:_net_interfaces' \
+  '-i+[display packets previously captured to file]:file:_files' \
+  '-n+[use file as IP address-to-name mapping table]:file:_files' \
+  '-o+[save captured packets to file]:file:_files' \
+  '-p+[display one or more packets from captured file]:first packet number [ , last packet number]' \
+  "-q[don't display packet counter when capturing to file]" \
+  "-r[don't resolve IP addresses to names]" \
+  '-s[truncate each packet after specified number of bytes]:length (bytes)' \
+  '-t+[specify time-stamp presentation]:time-stamp mode:((
+    r\:relative\ to\ first\ packet
+    a\:absolute
+    d\:delta\ -\ since\ previous\ packet
+  ))' \
+  '-C[list code generated from filter expression]' \
+  '-D[display number of packets dropped on the summary line]' \
+  '-N[create IP-address-to-name mapping table file (used with -i)]' \
+  '-P[capture packets in non-promiscuous mode]' \
+  '-S[display size of the entire link layer frame in bytes]' \
+  '-V[verbose summary mode]' \
+  '-v[verbose mode]' \
+  '-x+[display offset and length of packet in HEX and ASCII]:offset [ , length]' \
+  '*::expression:= _bpf_filters'

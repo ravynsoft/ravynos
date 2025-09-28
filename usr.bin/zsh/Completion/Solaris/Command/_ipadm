@@ -1,0 +1,375 @@
+#compdef ipadm
+# Synced with the S11U1 build 19 man page
+
+_ipadm_ifs() {
+	local -a extra
+
+	zparseopts -D -E -a extra /+:
+
+	compadd "$@" - $(ipadm show-if -p -o ifname) $extra[2,-1]
+}
+
+_ipadm_enabled_ifs() {
+	# Interfaces not marked "disabled"
+	compadd "$@" - "${(@)${(@)${(f)$(ipadm show-if -p -o state,ifname)}:#disabled:*}#*:}"
+}
+
+_ipadm_disabled_ifs() {
+	compadd "$@" - "${(@)${(@)${(f)$(ipadm show-if -p -o state,ifname)}#disabled:*}:#*:*}"
+}
+
+_ipadm_vnis() {
+	compadd "$@" - "${(@)${(@)${(f)$(ipadm show-if -p -o class,ifname)}#vni:*}:#*:*}"
+}
+
+_ipadm_ipmps() {
+	compadd "$@" - "${(@)${(@)${(f)$(ipadm show-if -p -o class,ifname)}#ipmp:*}:#*:*}"
+}
+
+_ipadm_get_possible_values() {
+	local -a proto poss
+	local cmd
+
+	cmd=${${(M)words:#set-*}/set/show}
+	if [[ $cmd == "show-prop" ]]; then
+		# You have to specify a protocol for show-prop if you specify a
+		# property, so we loop through them all.
+		poss=()
+		for proto in ipv4 ipv6 icmp tcp udp sctp; do
+			poss=( $poss ${(u)=$(ipadm $cmd -c -p ${IPREFIX%=} -o possible $proto 2> /dev/null)//,/ } )
+		done
+		poss=( ${(u)poss:#\?} )
+	else
+		proto=${=opt_args[-m]:+-m $opt_args[-m]}
+		poss=( ${(u)=$(ipadm $cmd -c -p ${IPREFIX%=} $proto -o possible)//,/ } )
+	fi
+	if [[ $poss[1] == [0-9]##-[0-9]## ]]; then
+		if (( $#poss > 1 )); then
+			_message -e "number in ranges ${(j:, :)poss}"
+		else
+			_message -e "number in range $poss"
+		fi
+	elif [[ -z $poss[1] ]]; then
+		_message -e "value"
+	else
+		compadd "$@" - $poss
+	fi
+}
+
+_ipadm_addrobjs() {
+	compadd "$@" - $(ipadm show-addr -p -o addrobj)
+}
+
+_ipadm_addrobjs_or_ifs() {
+	compadd "$@" - $(ipadm show-addr -p -o addrobj) \
+		$(ipadm show-if -p -o ifname)
+}
+
+_ipadm_protos() {
+	compadd "$@" - $(ipadm show-prop -c -o proto)
+}
+
+_ipadm() {
+	local context state line expl
+	local -A opt_args
+	local -a subcmds
+	local -a if_properties if_propproperties if_properties2
+	local -a addr_properties addr_propproperties
+	local -a addrobj_properties
+	local -a proto_ipv4_properties proto_ipv6_properties proto_tcp_properties
+	local -a proto_udp_properties proto_sctp_properties proto_icmp_properties
+	local -a proto_all_properties proto_propproperties
+
+	subcmds=(
+		"help"
+		{"show","disable","enable"}"-if"
+		{"create","delete"}"-ip"
+		{"create","delete"}"-vni"
+		{"create","delete","add","remove"}"-ipmp"
+		{"set","reset","show"}"-ifprop"
+		{"create","delete","show","up","down","refresh","disable","enable"}"-addr"
+		{"set","reset","show"}"-addrprop"
+		{"set","reset","show"}"-prop"
+	)
+
+	if_properties=( "ifname" "class" "state" "active" "current" "persistent" "over" )
+
+	if_propproperties=( "ifname" "property" "proto" "perm" "current" "persistent" "default" "possible" )
+
+	if_properties2=(
+		"arp:value:_ipadm_get_possible_values"
+		"forwarding:value:_ipadm_get_possible_values"
+		"metric:value:_ipadm_get_possible_values"
+		"mtu:value:_ipadm_get_possible_values"
+		"nud:value:_ipadm_get_possible_values"
+		"usesrc:value:_ipadm_ifs -/ none"
+		"exchange_routes:value:_ipadm_get_possible_values"
+		"group:value:_ipadm_get_possible_values"
+		"standby:value:_ipadm_get_possible_values"
+	)
+
+	addr_properties=(
+		"broadcast:value:_ipadm_get_possible_values"
+		"deprecated:value:_ipadm_get_possible_values"
+		"prefixlen:value:_ipadm_get_possible_values"
+		"private:value:_ipadm_get_possible_values"
+		"reqhost:value:_ipadm_get_possible_values"
+		"transmit:value:_ipadm_get_possible_values"
+		"zone:value:_zones -t c"
+	)
+
+	addr_propproperties=( "addrobj" "property" "perm" "current" "persistent" "default" "possible" )
+
+	addrobj_properties=(
+		"addrobj" "type" "state" "current" "persistent" "addr"
+		"cid-type" "cid-value" "begin" "expire" "renew"
+	)
+
+	proto_ipv4_properties=( "hostmodel" "ttl" "forwarding" )
+	proto_ipv6_properties=( "hostmodel" "hoplimit" "forwarding" )
+	proto_tcp_properties=( "cong_default" "cong_enabled" "ecn" "extra_priv_ports" "max_buf" "recv_buf"
+		"send_buf" "sack" "smallest_anon_port" "largest_anon_port" "smallest_nonpriv_port" )
+	proto_udp_properties=( "extra_priv_ports" "max_buf" "recv_buf" "send_buf" "smallest_anon_port"
+		"largest_anon_port" "smallest_nonpriv_port" )
+	proto_sctp_properties=( "cong_default" "cong_enabled" "extra_priv_ports" "max_buf" "recv_buf"
+		"send_buf" "smallest_anon_port" "largest_anon_port" "smallest_nonpriv_port" )
+	proto_icmp_properties=( "max_buf" "recv_buf" "send_buf" )
+	proto_all_properties=( $proto_ipv4_properties $proto_ipv6_properties $proto_tcp_properties
+		$proto_udp_properties $proto_sctp_properties $proto_icmp_properties )
+	proto_all_properties=( $^proto_all_properties:value:_ipadm_get_possible_values )
+
+	proto_propproperties=( "proto" "property" "perm" "current" "persistent" "default" "possible" )
+
+	if [[ $service == "ipadm" ]]; then
+		_arguments -C -A "-*" \
+			'-\?[Help]' \
+			'*::command:->subcmd' && return 0
+
+		if (( CURRENT == 1 )); then
+			_wanted commands expl "ipadm subcommand" compadd -a subcmds
+			return
+		fi
+		service="$words[1]"
+		curcontext="${curcontext%:*}=$service:"
+	fi
+
+	case $service in
+	("help")
+		_arguments ':subcommand:($subcmds)'
+		;;
+
+	("create-ip")
+		_arguments -A "-*" \
+			'(-t --temporary)'{-t,--temporary}'[Interface should be temporary]' \
+			':interface name:'
+		;;
+
+	("delete-ip")
+		_arguments -A "-*" \
+			':interface name:_ipadm_ifs'
+		;;
+
+	("create-vni")
+		_arguments -A "-*" \
+			'(-t --temporary)'{-t,--temporary}'[Interface should be temporary]' \
+			':VNI name:'
+		;;
+
+	("delete-vni")
+		_arguments -A "-*" \
+			':VNI name:_ipadm_vnis'
+		;;
+
+	("create-ipmp")
+		_arguments -A "-*" \
+			'(-t --temporary)'{-t,--temporary}'[Interface should be temporary]' \
+			'(-i --interface)'{-i,--interface}'[List of underlying interfaces]:interface name:_values -s , "interface" $(ipadm show-if -p -o ifname)' \
+			':IPMP interface name:'
+		;;
+
+	("delete-ipmp")
+		_arguments -A "-*" \
+			'(-f --force)'{-f,--force}'[First remove all underlying interfaces from group]' \
+			':IPMP interface name:_ipadm_ipmps'
+		;;
+
+	("add-ipmp")
+		_arguments -A "-*" \
+			'(-t --temporary)'{-t,--temporary}'[Interface should be temporary]' \
+			'(-i --interface)'{-i,--interface}'[List of underlying interfaces]:interface name:_values -s , "interface" $(ipadm show-if -p -o ifname)' \
+			':IPMP interface name:_ipadm_ipmps'
+		;;
+
+	("remove-ipmp")
+		_arguments -A "-*" \
+			'(-t --temporary)'{-t,--temporary}'[Interface should be temporary]' \
+			'(-i --interface)'{-i,--interface}'[List of underlying interfaces]:interface name:_values -s , "interface" $(ipadm show-if -p -o ifname)' \
+			':IPMP interface name:_ipadm_ipmps'
+		;;
+
+	("show-if")
+		_arguments -A "-*" \
+			'(-p --parseable)'{-p,--parseable}'[Parseable output]' \
+			'(-o --output)'{-o,--output}'[Properties to display]:property:_values -s , "property" $if_properties' \
+			':interface name:_ipadm_ifs'
+		;;
+
+	("disable-if")
+		_arguments -A "-*" \
+			'(-t --temporary)'{-t,--temporary}'[Change should be temporary]' \
+			':interface name:_ipadm_enabled_ifs'
+		;;
+
+	("enable-if")
+		_arguments -A "-*" \
+			'(-t --temporary)'{-t,--temporary}'[Change should be temporary]' \
+			':interface name:_ipadm_disabled_ifs'
+		;;
+
+	("set-ifprop")
+		_arguments -A "-*" \
+			'(-t --temporary)'{-t,--temporary}'[Change should be temporary]' \
+			'(-m --module)'{-m,--module}'[Protocol]:protocol:(ipv4 ipv6)' \
+			'(-p --prop)'{-p,--prop}'[Property to set]:property:_values -s , "property" $if_properties2' \
+			':interface name:_ipadm_ifs'
+		;;
+
+	("reset-ifprop")
+		_arguments -A "-*" \
+			'(-t --temporary)'{-t,--temporary}'[Change should be temporary]' \
+			'(-m --module)'{-m,--module}'[Protocol]:protocol:(ipv4 ipv6)' \
+			'(-p --prop)'{-p,--prop}'[Property to reset]:property:($if_properties2)' \
+			':interface name:_ipadm_ifs'
+		;;
+
+	("show-ifprop")
+		_arguments -A "-*" \
+			'(-c --parseable)'{-c,--parseable}'[Parseable output]' \
+			'(-m --module)'{-m,--module}'[Protocol]:protocol:(ipv4 ipv6)' \
+			'(-o --output)'{-o,--output}'[Property properties to display]:property:_values -s , "property" $if_propproperties' \
+			'(-p --prop)'{-p,--prop}'[Interface properties to display]:property:_values -s , "property" ${if_properties2%%\:*}' \
+			':interface name:_ipadm_ifs'
+		;;
+
+	("create-addr")
+		# This causes all options and arguments following -T to be
+		# stuck into $opt_args[-T].  It feels hacky, but it seems
+		# to do the trick.
+		# XXX When -T is static, it's not necessary.
+		_arguments -C -A "-*" \
+			'(-t --temporary)'{-t,--temporary}'[Address should be temporary]' \
+			'-T[Address type]:*::address type:->newaddr'
+
+		if [[ $state == "newaddr" ]]; then
+
+			case ${opt_args[-T]#-T:} in
+			("static:"*)
+				local -a addrthingsv4
+				addrthingsv4=( "local:address: " "remote:address: ")
+				_arguments -A "-*" \
+				'(-d --down)'{-d,--down}'[Address should be marked down]' \
+				'(-a --address)'{-a,--address}'[Address specification]:address:_values -s , "address" $addrthingsv4' \
+				':address object name:_ipadm_addrobjs_or_ifs'
+				;;
+
+			("dhcp:"*)
+				_arguments -A "-*" \
+				'(-w --wait)'{-w,--wait}'[Seconds to wait for completion]:number or "forever":{if [[ -prefix [0-9]## ]]; then _message -e "number of seconds"; else _wanted forever expl "number or \"forever\"" compadd forever; fi}' \
+				'-h[Request a specific hostname]:hostname:' \
+				':address object name:_ipadm_addrobjs_or_ifs'
+				;;
+
+			("addrconf:"*)
+				local -a addrthingsv6 statefulness
+				addrthingsv6=( "local:interface id: " "remote:interface id: ")
+				statefulness=( "stateful:statefulness:(yes no)" "stateless:statelessness:(yes no)" )
+				_arguments -A "-*" \
+				'(-i --interface-id)'{-i,--interface-id}'[Interface ID]:address:_values -s , "interface id" $addrthingsv6' \
+				'(-p --prop)'{-p,--prop}'[Statefulness configuration]:statefulness configuration:_values -s , "statefulness" $statefulness' \
+				':address object name:_ipadm_addrobjs_or_ifs'
+				;;
+			(*)
+				_wanted commands expl "address type" compadd static dhcp addrconf
+				;;
+			esac
+		fi
+
+		;;
+
+	("delete-addr")
+		_arguments -A "-*" \
+			'(-r --release)'{-r,--release}'[Release DHCP-acquired address]' \
+			':address object name:_ipadm_addrobjs'
+		;;
+
+	("show-addr")
+		_arguments -A "-*" \
+			'(-d --dhcp -p --parseable)'{-d,--dhcp}'[Display DHCP status fields]' \
+			'(-p --parseable -d --dhcp)'{-p,--parseable}'[Parseable output]' \
+			'(-o --output)'{-o,--output}'[Properties to display]:property:_values -s , "property" $addrobj_properties' \
+			':address object name:_ipadm_addrobjs_or_ifs'
+		;;
+
+	({"up","down","disable","enable"}"-addr")
+		_arguments -A "-*" \
+			'(-t --temporary)'{-t,--temporary}'[Change should be temporary]' \
+			':address object name:_ipadm_addrobjs'
+		;;
+
+	("refresh-addr")
+		_arguments -A "-*" \
+			'(-i --inform)'{-i,--inform}'[Retrieve DHCP parameters]' \
+			':address object name:_ipadm_addrobjs'
+		;;
+
+	("set-addrprop")
+		_arguments -A "-*" \
+			'(-t --temporary)'{-t,--temporary}'[Change should be temporary]' \
+			'(-p --prop)'{-p,--prop}'[Property to set]:property:_values -s , "property" $addr_properties' \
+			':address object name:_ipadm_addrobjs'
+		;;
+
+	("reset-addrprop")
+		_arguments -A "-*" \
+			'(-t --temporary)'{-t,--temporary}'[Change should be temporary]' \
+			'(-p --prop)'{-p,--prop}'[Property to reset]:property:(${addr_properties%%\:*})' \
+			':address object name:_ipadm_addrobjs'
+		;;
+
+	("show-addrprop")
+		_arguments -A "-*" \
+			'(-c --parseable)'{-c,--parseable}'[Parseable output]' \
+			'(-o --output)'{-o,--output}'[Property properties to display]:property:_values -s , "property" $addr_propproperties' \
+			'(-p --prop)'{-p,--prop}'[Address object properties to display]:property:_values -s , "property" ${addr_properties%%\:*}' \
+			':address object name:_ipadm_addrobjs_or_ifs'
+		;;
+
+	("set-prop")
+		_arguments -A "-*" \
+			'(-t --temporary)'{-t,--temporary}'[Change should be temporary]' \
+			'(-p --prop)'{-p,--prop}'[Property to set]:property:_values -s , "property" $proto_all_properties' \
+			':protocol name:_ipadm_protos'
+		;;
+
+	("reset-prop")
+		_arguments -A "-*" \
+			'(-t --temporary)'{-t,--temporary}'[Change should be temporary]' \
+			'(-p --prop)'{-p,--prop}'[Property to reset]:property:(${proto_all_properties%%\:*})' \
+			':protocol name:_ipadm_protos'
+		;;
+
+	("show-prop")
+		_arguments -A "-*" \
+			'(-c --parseable)'{-c,--parseable}'[Parseable output]' \
+			'(-o --output)'{-o,--output}'[Property properties to display]:property:_values -s , "property" $proto_propproperties' \
+			'(-p --prop)'{-p,--prop}'[Protocol properties to display]:property:_values -s , "property" ${proto_all_properties%%\:*}' \
+			':protocol name:_ipadm_protos'
+		;;
+
+	(*)
+		_message "unknown ipadm subcommand: $service"
+		;;
+	esac
+}
+
+_ipadm "$@"

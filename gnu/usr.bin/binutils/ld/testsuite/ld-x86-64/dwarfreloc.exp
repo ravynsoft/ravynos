@@ -1,0 +1,123 @@
+# Expect script for DWARF relocation test.
+#   Copyright (C) 2008-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+#
+# Written by Jan Kratochvil (jan.kratochvil@redhat.com)
+#
+# Test PR ld/3290 Comment 8+9.  DW_FORM_ref_addr used in dwarfreloc2.s was left
+# unrelocated as its target symbol from dwarfreloc1.s became LOCAL due to its
+# `ld -r'.
+#
+#  <1><57>: Abbrev Number: 2 (DW_TAG_variable)
+#     <58>   DW_AT_name        : i2
+#  ...
+#     <5d>   DW_AT_type        : <0x32>
+# vs.
+#     <5d>   DW_AT_type        : <0x0>
+
+# Only the testcase .s files are arch-dependent, the relocations are cross-arch.
+if { !([istarget "x86_64-*-elf*"] || [istarget "x86_64-*-linux*"]) } {
+    return
+}
+
+set build_tests_ld {
+  {"Build dwarfreloc1xa.o"
+   "-r" "" "--elf-stt-common=no"
+   {dwarfreloc1.s} {} "dwarfreloc1xa.o"}
+  {"Build dwarfreloc1xb.o"
+   "-r" "" "--elf-stt-common=yes"
+   {dwarfreloc1.s} {} "dwarfreloc1xb.o"}
+  {"Build dwarfreloc2a.o"
+   "-r" "" "--elf-stt-common=no"
+   {dwarfreloc2.s} {} "dwarfreloc2xa.o"}
+  {"Build dwarfreloc2b.o"
+   "-r" "" "--elf-stt-common=yes"
+   {dwarfreloc2.s} {} "dwarfreloc2xb.o"}
+}
+
+run_ld_link_tests $build_tests_ld
+
+set testname "Link dwarfreloc1xa.o and dwarfreloc2xa.o to dwarfreloca.o"
+if [ld_link $ld "tmpdir/dwarfreloca.o" "-r tmpdir/dwarfreloc1xa.o tmpdir/dwarfreloc2xa.o"] {
+    pass $testname
+} else {
+    fail $testname
+}
+
+set testname "Link dwarfreloc1xb.o and dwarfreloc2xb.o to dwarfrelocb.o"
+if [ld_link $ld "tmpdir/dwarfrelocb.o" "-r tmpdir/dwarfreloc1xb.o tmpdir/dwarfreloc2xb.o"] {
+    pass $testname
+} else {
+    fail $testname
+}
+
+# The code is copied from `ld-lib.exp'.  We cannot use the functions there as
+# they expect source (.s or .c) files while we to check a `ld -r' output (.o).
+
+set testname "Check dwarfreloca.o readelf"
+set dumpfile "dwarfreloc.rd"
+set cmd "$READELF --debug-dump=info tmpdir/dwarfreloca.o"
+set status [remote_exec host [concat sh -c [list "$cmd >dump.out 2>ld.stderr"]] "" "/dev/null"]
+send_log "$cmd\n"
+remote_upload host "ld.stderr"
+set comp_output [prune_warnings [file_contents "ld.stderr"]]
+remote_file host delete "ld.stderr"
+remote_file build delete "ld.stderr"
+
+if ![string match "" $comp_output] then {
+    send_log "$comp_output\n"
+    fail $testname
+} else {
+    remote_upload host "dump.out"
+    if { [regexp_diff "dump.out" "$srcdir/$subdir/$dumpfile"] } then {
+	verbose "output is [file_contents "dump.out"]" 2
+	fail $testname
+    } else {
+	pass $testname
+    }
+    remote_file build delete "dump.out"
+    remote_file host delete "dump.out"
+}
+
+set testname "Check dwarfrelocb.o readelf"
+set dumpfile "dwarfreloc.rd"
+set cmd "$READELF --debug-dump=info tmpdir/dwarfrelocb.o"
+set status [remote_exec host [concat sh -c [list "$cmd >dump.out 2>ld.stderr"]] "" "/dev/null"]
+send_log "$cmd\n"
+remote_upload host "ld.stderr"
+set comp_output [prune_warnings [file_contents "ld.stderr"]]
+remote_file host delete "ld.stderr"
+remote_file build delete "ld.stderr"
+
+if ![string match "" $comp_output] then {
+    send_log "$comp_output\n"
+    fail $testname
+} else {
+    remote_upload host "dump.out"
+    if { [regexp_diff "dump.out" "$srcdir/$subdir/$dumpfile"] } then {
+	verbose "output is [file_contents "dump.out"]" 2
+	fail $testname
+    } else {
+	pass $testname
+    }
+    remote_file build delete "dump.out"
+    remote_file host delete "dump.out"
+}

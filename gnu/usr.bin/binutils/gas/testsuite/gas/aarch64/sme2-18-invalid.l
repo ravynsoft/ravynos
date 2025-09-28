@@ -1,0 +1,21 @@
+[^ :]+: Assembler messages:
+[^ :]+:[0-9]+: Error: expected a ZA array vector at operand 1 -- `bfvdot 0,{z0\.h-z1\.h},z0\.h\[0\]'
+[^ :]+:[0-9]+: Error: expected '{' at operand 2 -- `bfvdot za\.s\[w8,0\],0,z0\.h\[0\]'
+[^ :]+:[0-9]+: Error: expected an SVE vector register at operand 3 -- `bfvdot za\.s\[w8,0\],{z0\.h-z1\.h},0'
+[^ :]+:[0-9]+: Error: missing braces at operand 2 -- `fvdot za\.h\[w8,0\],z0\.h,z0\.h'
+[^ :]+:[0-9]+: Error: operand 3 must be an indexed SVE vector register -- `fvdot za\.h\[w8,0\],{z0\.h-z1\.h},z0\.h'
+[^ :]+:[0-9]+: Error: operand mismatch -- `fvdot za\.s\[w8,0\],{z0\.b-z1\.h},z0\.b\[0\]'
+[^ :]+:[0-9]+: Info:    did you mean this\?
+[^ :]+:[0-9]+: Info:    	fvdot za\.s\[w8, 0\], {z0\.h-z1\.h}, z0\.h\[0\]
+[^ :]+:[0-9]+: Error: expected a single offset rather than a range at operand 1 -- `fvdot za\.s\[w8,0:1\],{z0\.h-z1\.h},z0\.h\[0\]'
+[^ :]+:[0-9]+: Error: operand 1 must have a vector group size of 2 -- `fvdot za\.s\[w8,0,vgx4\],{z0\.h-z1\.h},z0\.h\[0\]'
+[^ :]+:[0-9]+: Error: expected a selection register in the range w8-w11 at operand 1 -- `fvdot za\.s\[w7,0\],{z0\.h-z1\.h},z0\.h\[0\]'
+[^ :]+:[0-9]+: Error: expected a selection register in the range w8-w11 at operand 1 -- `fvdot za\.s\[w12,0\],{z0\.h-z1\.h},z0\.h\[0\]'
+[^ :]+:[0-9]+: Error: immediate offset out of range 0 to 7 at operand 1 -- `fvdot za\.s\[w8,-1\],{z0\.h-z1\.h},z0\.h\[0\]'
+[^ :]+:[0-9]+: Error: immediate offset out of range 0 to 7 at operand 1 -- `fvdot za\.s\[w8,8\],{z0\.h-z1\.h},z0\.h\[0\]'
+[^ :]+:[0-9]+: Error: expected a list of 2 registers at operand 2 -- `fvdot za\.s\[w8,0\],{z0\.h-z2\.h},z0\.h\[0\]'
+[^ :]+:[0-9]+: Error: expected a list of 2 registers at operand 2 -- `fvdot za\.s\[w8,0\],{z0\.h-z3\.h},z0\.h\[0\]'
+[^ :]+:[0-9]+: Error: start register out of range at operand 2 -- `fvdot za\.s\[w8,0\],{z1\.h-z2\.h},z0\.h\[0\]'
+[^ :]+:[0-9]+: Error: register element index out of range 0 to 3 at operand 3 -- `fvdot za\.s\[w8,0\],{z0\.h-z1\.h},z0\.h\[-1\]'
+[^ :]+:[0-9]+: Error: register element index out of range 0 to 3 at operand 3 -- `fvdot za\.s\[w8,0\],{z0\.h-z1\.h},z0\.h\[4\]'
+[^ :]+:[0-9]+: Error: z0-z15 expected at operand 3 -- `fvdot za\.s\[w8,0\],{z0\.h-z1\.h},z16\.h\[0\]'

@@ -1,0 +1,8 @@
+# zsh script sourced at startup when a user is found to have
+# no startup files.  See the documentation for the zsh/newuser
+# module in zshmodules(1).
+
+if functions zsh-newuser-install >/dev/null 2>&1 ||
+   autoload -U +X zsh-newuser-install; then
+   zsh-newuser-install
+fi

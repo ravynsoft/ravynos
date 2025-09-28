@@ -1,0 +1,58 @@
+#                                                                    -*-perl-*-
+
+$description = "Test the filter and filter-out functions.";
+
+$details = "The makefile created in this test has two variables.  The
+filter-out function is first used to discard names ending in
+.o with a single simple pattern.  The second filter-out function
+augments the simple pattern with three literal names, which are
+also added to the text argument.  This tests an internal hash table
+which is only used if there are multiple literals present in both
+the pattern and text arguments.  The result of both filter-out
+functions is the same single .elc name.\n";
+
+# Basic test -- filter
+run_make_test(q!
+files1 := $(filter %.o, foo.elc bar.o lose.o)
+files2 := $(filter %.o foo.i, foo.i bar.i lose.i foo.elc bar.o lose.o)
+all: ; @echo '$(files1) $(files2)'
+!,
+              '', "bar.o lose.o foo.i bar.o lose.o\n");
+
+# Basic test -- filter-out
+run_make_test(q!
+files1 := $(filter-out %.o, foo.elc bar.o lose.o)
+files2 := $(filter-out foo.i bar.i lose.i %.o, foo.i bar.i lose.i foo.elc bar.o lose.o)
+all: ; @echo '$(files1) $(files2)'
+!,
+              '', "foo.elc foo.elc\n");
+
+# Force use of hash (see function.c:func_filter_filterout for params)
+
+my $base = 'foo.1 foo.2 foo.3 foo.4 foo.5 foo.6 foo.7 foo.8 foo.9 foo.10';
+
+my $base10 = join(' ', ($base) x 10);
+my $out3 = join(' ', ('foo.3') x 10);
+my $out456 = join(' ', ('foo.4 foo.5 foo.6') x 10);
+
+run_make_test("words := $base10" . q!
+files1 := $(filter %.3, $(words))
+files2 := $(filter %.4 foo.5 foo.6, $(words))
+all: ; @echo '$(files1) $(files2)'
+!,
+              '', "$out3 $out456\n");
+
+
+# Escaped patterns
+run_make_test(q!all:;@echo '$(filter foo\%bar,foo%bar fooXbar)'!,
+              '', "foo%bar\n");
+
+run_make_test(q!all:;@echo '$(filter foo\%\%\\\\\%\%bar,foo%%\\%%bar fooX\\Ybar)'!,
+              '', "foo%%\\%%bar\n");
+
+run_make_test(q!
+X = $(filter foo\\\\\%bar,foo\%bar foo\Xbar)
+all:;@echo '$(X)'!,
+              '', "foo\\%bar\n");
+
+1;

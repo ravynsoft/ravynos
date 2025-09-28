@@ -1,0 +1,13 @@
+#autoload
+
+local -a type be_names expl
+
+zparseopts -D -E -a type t+:
+
+be_names=( ${${(f)"$(_call_program boot-environs beadm list -H)"}%%;*} )
+
+[[ -n $type[(r)all] ]] &&
+  be_names+=( ${${${(f)"$(_call_program boot-environs beadm list -sH)"}#*;}%%;*} )
+
+_description boot-environs expl 'boot environment'
+compadd "$@" "$expl[@]" -a be_names

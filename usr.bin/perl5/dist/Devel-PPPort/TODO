@@ -1,0 +1,345 @@
+TODO:
+
+* > 3. In several cases, "perl ppport.h --copy=.new" output a new file in
+  > which the only change was the addition of "#include "ppport.h"". In each
+  > case, that actually wasn't necessary because the source file in question
+  > already #included another source file which #included ppport.h itself.
+  > Would it be possible for the analyzer to follow #include directives to
+  > spot cases like this?
+
+  Uh, well, I guess it would be possible. But I have some concerns:
+
+  1. ppport.h is already too big. :-)
+
+  2. There is code in ppport.h to actually remove an
+
+       #include "ppport.h"
+
+     if it appears not to be needed. If it's not needed in your
+     included file, it might be dropped from there and moved to
+     the other file that included the first one. This would make
+     the logic much more complicated.
+
+  3. As ppport.h is configurable, it's not (always) a good idea
+     to put it into a file that's included from another file.
+
+  I guess I'll have to think about this a little more. Maybe I can
+  come up with a fancy solution that doesn't increase the code size
+  too much.
+
+
+* On 14/12/06, Nicholas Clark <nick@ccl4.org> wrote:
+  > On Thu, Dec 14, 2006 at 05:03:24AM +0100, Andreas J. Koenig wrote:
+  >
+  > > Params::Validate and Clone suffer from the same cold:
+  >
+  > The same patch will make both compile and pass tests.
+  > I'm wondering if it might be better to totally drop SVt_PBVM and let source
+  > code fail to compile.
+
+  I don't think so. Because :
+  1. your redefinition of SVt_PBVM is probably what most XS modules want
+  2. anyway, if we remove it from the core, it might appear in Devel::PPPort :)
+
+
+* maybe backport bytes_from_utf8() for 5.6.0 (or even before)?
+
+* check which of the following we need to support:
+
+    amagic_generation
+    AMG_names
+    an
+    Argv
+    argvgv
+    argvoutgv
+    basetime
+    beginav
+    block_type
+    bodytarget
+    bufend
+    bufptr
+    check
+    chopset
+    Cmd
+    compcv
+    compiling
+    comppad
+    comppad_name
+    comppad_name_fill
+    copline
+    cop_seqmax
+    cryptseen
+    cshlen
+    cshname
+    curcop
+    curinterp
+    curpad
+    curpm
+    curstash
+    curstname
+    dbargs
+    DBgv
+    DBline
+    DBsignal
+    DBsingle
+    DBsub
+    DBtrace
+    debstash
+    debug
+    defgv
+    defoutgv
+    defstash
+    delaymagic
+    diehook
+    dirty
+    doextract
+    doswitches
+    do_undump
+    dowarn
+    egid
+    encoding
+    endav
+    envgv
+    errgv
+    error_count
+    errors
+    euid
+    eval_root
+    evalseq
+    eval_start
+    expect
+    fdpid
+    filemode
+    firstgv
+    fold
+    forkprocess
+    formfeed
+    formtarget
+    freq
+    generation
+    gensym
+    gid
+    hexdigit
+    hints
+    incgv
+    in_eval
+    in_my
+    inplace
+    lastfd
+    last_in_gv
+    last_lop
+    last_lop_op
+    lastscream
+    laststatval
+    laststype
+    last_uni
+    lex_brackets
+    lex_brackstack
+    lex_casemods
+    lex_casestack
+    lex_defer
+    lex_dojoin
+    lex_expect
+    lex_formbrack
+    lex_inpat
+    lex_inwhat
+    lex_op
+    lex_repl
+    lex_starts
+    lex_state
+    lex_stuff
+    lineary
+    linestr
+    localizing
+    main_cv
+    main_root
+    mainstack
+    main_start
+    markstack
+    markstack_max
+    markstack_ptr
+    max_intro_pending
+    maxo
+    maxscream
+    maxsysfd
+    min_intro_pending
+    minus_a
+    minus_c
+    minus_F
+    minus_l
+    minus_n
+    minus_p
+    multi_close
+    multi_end
+    multi_open
+    multi_start
+    na
+    nexttoke
+    nexttype
+    nextval
+    nice_chunk
+    nice_chunk_size
+    No
+    no_aelem
+    no_dir_func
+    no_func
+    no_mem
+    nomemok
+    no_modify
+    no_myglob
+    no_security
+    no_sock_func
+    no_symref
+    no_usym
+    no_wrongref
+    nrs
+    oldbufptr
+    oldname
+    oldoldbufptr
+    op
+    opargs
+    op_desc
+    op_mask
+    op_name
+    op_seq
+    origalen
+    origargc
+    origargv
+    origenviron
+    origfilename
+    osname
+    padix
+    padix_floor
+    pad_reset_pending
+    patchlevel
+    patleave
+    perldb
+    perl_destruct_level
+    pidstatus
+    ppaddr
+    preambleav
+    preambled
+    preprocess
+    profiledata
+    regdummy
+    regendp
+    regeol
+    reginput
+    regkind
+    reglastparen
+    regsize
+    regstartp
+    restartop
+    rs
+    rsfp
+    rsfp_filters
+    runops
+    savestack
+    savestack_ix
+    savestack_max
+    sawampersand
+    scopestack
+    scopestack_ix
+    scopestack_max
+    screamfirst
+    screamnext
+    secondgv
+    signals
+    sig_name
+    sig_num
+    simple
+    sortcop
+    sortstash
+    splitstr
+    stack_base
+    stack_max
+    stack_sp
+    statbuf
+    statcache
+    statgv
+    statname
+    statusvalue
+    stdingv
+    sub_generation
+    subline
+    subname
+    Sv
+    sv_arenaroot
+    sv_count
+    sv_no
+    sv_objcount
+    sv_root
+    sv_undef
+    sv_yes
+    tainted
+    tainting
+    timesbuf
+    tmps_floor
+    tmps_ix
+    tmps_max
+    tmps_stack
+    tokenbuf
+    top_env
+    toptarget
+    uid
+    unsafe
+    varies
+    vtbl_amagic
+    vtbl_amagicelem
+    vtbl_arylen
+    vtbl_bm
+    vtbl_dbline
+    vtbl_env
+    vtbl_envelem
+    vtbl_glob
+    vtbl_isa
+    vtbl_isaelem
+    vtbl_mglob
+    vtbl_pack
+    vtbl_packelem
+    vtbl_pos
+    vtbl_sig
+    vtbl_sigelem
+    vtbl_substr
+    vtbl_sv
+    vtbl_taint
+    vtbl_uvar
+    vtbl_vec
+    warnhook
+    warn_nl
+    warn_nosemi
+    warn_reserved
+    warn_uninit
+    watchaddr
+    watchok
+    Yes
+
+* have an --env option for soak to set env variable combinations
+
+* only overwrite generated files if they actually changed
+
+* try to make parts/apicheck.pl automatically find NEED_ #defines
+
+* add support for my_vsnprintf?
+
+* try to perform some core consistency checks:
+
+  - check if 'd' flag in embed.fnc matches with
+    supplied documentation
+
+  - check if all public API is documented
+
+* check (during make regen?) if MAX_PERL in PPPort_pm.PL
+  needs to be updated
+
+* see if we can implement sv_catpvf() for < 5.004
+
+* MULTICALL ?
+
+* improve apicheck (things like utf8_mg_pos_init() are
+  not currently checked)
+
+* more documentation, more tests
+
+* Resolve dependencies in Makefile.PL and remind of
+  running 'make regen'

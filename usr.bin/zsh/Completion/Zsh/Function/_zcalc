@@ -1,0 +1,7 @@
+#compdef zcalc
+
+_arguments -s -w -S : \
+  '-#[specify default base]:base: ' \
+  '-f[force floating point for all expressions]' \
+  '-e[treat command line as expressions to be output immediately]' \
+  '*:expression: '

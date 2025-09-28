@@ -1,0 +1,18 @@
+#compdef gccgo gofmt 5l 6l 8l 5g 6g 8g
+
+# This is for the computer language go,
+# http://golang.org.
+
+local expl pat
+
+case $service in
+  (<->l)
+  pat="*.${service[1,-2]}"
+  ;;
+
+  (*)
+  pat="*.go"
+  ;;
+esac
+
+_wanted files expl "input file" _files -g "$pat(-.)"

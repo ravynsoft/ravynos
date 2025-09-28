@@ -1,0 +1,10 @@
+#compdef xcode-select
+
+# No -s, no -o+ form options
+_arguments : \
+  '(-)'{-h,--help}'[display help information]' \
+  '(-)'{-v,--version}'[display version information]' \
+  '(-)--install[install command-line developer tools]' \
+  '(-)'{-p,--print-path}'[display path of active developer directory]' \
+  '(-)'{-r,--reset}'[reset to default developer directory]' \
+  '(-)'{-s,--switch}'[specify path of active developer directory]:developer directory:_files -/'

@@ -1,0 +1,52 @@
+-----------------
+KNOWN BUGS IN ZSH
+-----------------
+
+------------------------------------------------------------------------
+The pattern %?* matches names beginning with %? instead of names with at
+least two characters beginning with %. This is a hack to allow %?foo job
+substitution without quoting. This behaviour is incompatible with sh
+and ksh and may be removed in the future. A good fix would be to keep
+such patterns unchanged if they do not match regardless of the state of
+the nonomatch and nullglob options.
+------------------------------------------------------------------------
+It is currently impossible to time builtins.
+------------------------------------------------------------------------
+38754: unwanted scrolling of the terminal
+------------------------------------------------------------------------
+40106: The comp* completion-related builtins (compadd, compset, etc) are
+run with $_comp_options in effect, rather than the user's options.
+------------------------------------------------------------------------
+users/20807: vcs_info quilt 'addon' mode: hook lookup context specifies
+the underlying VCS but not whether quilt is used.
+
+Workaround: test (( ${+funcstack[(r)VCS_INFO_quilt]} )).
+------------------------------------------------------------------------
+41184: 'exec' optimization for last command in a subshell should be
+skipped when STTY=... is set for that command.  This is complicated
+because the decision to (not) fork is made in execcmd_exec() before
+the prefix parameter assignments are examined in execute().
+------------------------------------------------------------------------
+41203 and others: Make it easier to maintain C modules out of tree.
+(May require defining a stable API for modules, see 41254)
+------------------------------------------------------------------------
+44850 terminal issues with continuation markers
+------------------------------------------------------------------------
+users/24765 -direct terminals. Not a bug as such but we may need to do
+  something if -direct values in TERM are ever common
+------------------------------------------------------------------------
+44850: zle -M doesn't work properly if the command line fills the screen
+------------------------------------------------------------------------
+44525, 45778 [PATCH] prompt redrawn on the wrong line upon SIGWINCH 
+------------------------------------------------------------------------
+45400: vared does not work in subshells, even when the parent shell is
+interactive and the subshell is the foreground job.  The USEZLE option is
+always turned off in subshells, for reasons lost to history.  There is a
+related, probably obsolete, vared special case for $TERM set to "emacs".
+------------------------------------------------------------------------
+47561: [PATCH v4] vcs_info: choose backend by basedir
+------------------------------------------------------------------------
+48091: Bug in compdescribe with matcher 'b:-=+'
+------------------------------------------------------------------------
+users/26071: Strange behavior about option completion of "git push --f"
+------------------------------------------------------------------------

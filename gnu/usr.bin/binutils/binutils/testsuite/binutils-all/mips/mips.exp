@@ -1,0 +1,282 @@
+# Copyright (C) 2013-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+if {![istarget mips*-*-*] || ![is_elf_format]} {
+    return
+}
+
+if [is_remote host] {
+    set tempfile [remote_download host tmpdir/bintest.o]
+    set copyfile copy
+} else {
+    set tempfile tmpdir/bintest.o
+    set copyfile tmpdir/copy
+}
+
+# run_dump_test_abi ABI NAME ARGS
+#
+# Invoke "run_dump_test" for test NAME using ABI if supported by the
+# target used, passing predefined ABI-specific arguments.  ARGS are
+# as with "run_dump_test" and are appended to ABI-specific arguments,
+# except for the special "noarch" keyword, which, if present, must
+# appear first and is consumed causing any "-march=" option to be
+# removed from ABI-specific GAS arguments, and likewise the special
+# "useld" keyword, which, if present, must be next and is consumed
+# causing LD arguments to be passed.
+proc run_dump_test_abi { abi name args } {
+    global abi_asflags
+    global abi_ldflags
+    global has_abi
+
+    set args [lindex $args 0]
+    set asflags $abi_asflags($abi)
+    if { [lindex $args 0] == "noarch" } {
+	set asflags [regsub -- {-march=[^[:blank:]]*} $asflags {}]
+	set args [lreplace $args 0 0]
+    }
+    if { [lindex $args 0] == "useld" } {
+	set ldflags $abi_ldflags($abi)
+	set args [lreplace $args 0 0]
+    }
+    if !$has_abi($abi) {
+	lappend args {notarget *-*-*}
+    }
+
+    set testargs [list [list as $asflags]]
+    if { [info exists ldflags] } {
+	lappend testargs [list ld $ldflags]
+    }
+    if { [llength $args] > 0 } {
+	set testargs [concat $testargs $args]
+    }
+
+    run_dump_test $name $testargs
+}
+
+# run_dump_test_o32 NAME ARGS
+#
+# Invoke "run_dump_test_abi" for test NAME using the o32 ABI and
+# passing ARGS.
+proc run_dump_test_o32 { name args } {
+    run_dump_test_abi o32 $name [lindex $args 0]
+}
+
+# run_dump_test_n32 NAME ARGS
+#
+# Invoke "run_dump_test_abi" for test NAME using the n32 ABI and
+# passing ARGS.
+proc run_dump_test_n32 { name args } {
+    run_dump_test_abi n32 $name [lindex $args 0]
+}
+
+# run_dump_test_n64 NAME ARGS
+#
+# Invoke "run_dump_test_abi" for test NAME using the n64 ABI and
+# passing ARGS.
+proc run_dump_test_n64 { name args } {
+    run_dump_test_abi n64 $name [lindex $args 0]
+}
+
+set has_abi(o32) [expr ![istarget *-*-openbsd*] \
+		     && ![istarget mips64*el-ps2-elf*]]
+set has_abi(n32) [expr [istarget *-img-elf*] \
+		     || [istarget *-mti-elf*] \
+		     || [istarget mips64*el-ps2-elf*] \
+		     || [istarget *-sde-elf*] \
+		     || [istarget *-*-freebsd*] \
+		     || [istarget *-*-irix6*] \
+		     || [istarget *-*-kfreebsd*-gnu] \
+		     || [istarget *-*-linux*]]
+set has_abi(n64) [expr [istarget *-*-freebsd*] \
+		     || [istarget *-*-irix6*] \
+		     || [istarget *-*-kfreebsd*-gnu] \
+		     || [istarget *-*-linux*] \
+		     || [istarget *-*-netbsd*] \
+		     || [istarget *-*-openbsd*]]
+
+# Set defaults.
+set abi_asflags(o32) ""
+set abi_asflags(n32) ""
+set abi_asflags(n64) ""
+set abi_asflags(eabi) ""
+set abi_ldflags(o32) ""
+set abi_ldflags(n32) ""
+set abi_ldflags(n64) ""
+set abi_ldflags(eabi) ""
+
+# Override as needed.
+if {[istarget *-*-openbsd*] } {
+    set irixemul 0
+} elseif { [istarget mips64*-*-linux*] } {
+    if [istarget *el-*-*] {
+	set abi_asflags(o32) -32
+	set abi_ldflags(o32) -melf32ltsmip
+	if [istarget *-*-*-gnuabi64] {
+	    set abi_asflags(n32) "-march=from-abi -n32"
+	    set abi_ldflags(n32) -melf32ltsmipn32
+	} else {
+	    set abi_asflags(n64) "-march=from-abi -64"
+	    set abi_ldflags(n64) -melf64ltsmip
+	}
+    } else {
+	set abi_asflags(o32) -32
+	set abi_ldflags(o32) -melf32btsmip
+	if [istarget *-*-*-gnuabi64] {
+	    set abi_asflags(n32) "-march=from-abi -n32"
+	    set abi_ldflags(n32) -melf32btsmipn32
+	} else {
+	    set abi_asflags(n64) "-march=from-abi -64"
+	    set abi_ldflags(n64) -melf64btsmip
+	}
+    }
+    set irixemul 0
+} elseif {[istarget *-*-linux*] } {
+    if [istarget *el-*-*] {
+	set abi_asflags(n32) "-march=from-abi -n32"
+	set abi_ldflags(n32) -melf32ltsmipn32
+	set abi_asflags(n64) "-march=from-abi -64"
+	set abi_ldflags(n64) -melf64ltsmip
+    } else {
+	set abi_asflags(n32) "-march=from-abi -n32"
+	set abi_ldflags(n32) -melf32btsmipn32
+	set abi_asflags(n64) "-march=from-abi -64"
+	set abi_ldflags(n64) -melf64btsmip
+    }
+    set irixemul 0
+} elseif {[istarget *-img-elf*] \
+     || [istarget *-mti-elf*] \
+     || [istarget *-sde-elf*] \
+     || [istarget *-*-netbsd*] \
+     || [istarget *-*-linux*] \
+     || [istarget *-*-sysv4*] } {
+    if [istarget *el-*-*] {
+	set abi_asflags(o32) -32
+	set abi_asflags(n32) "-march=from-abi -n32"
+	set abi_ldflags(n32) -melf32ltsmipn32
+	set abi_asflags(n64) "-march=from-abi -64"
+	set abi_ldflags(n64) -melf64ltsmip
+    } else {
+	set abi_asflags(o32) -32
+	set abi_asflags(n32) "-march=from-abi -n32"
+	set abi_ldflags(n32) -melf32btsmipn32
+	set abi_asflags(n64) "-march=from-abi -64"
+	set abi_ldflags(n64) -melf64btsmip
+    }
+    set irixemul 0
+} elseif { [istarget mips64*-*-freebsd*] \
+	   || [istarget mips64*-*-kfreebsd*-gnu] } {
+    if [istarget *el-*-*] {
+	set abi_asflags(o32) -32
+	set abi_ldflags(o32) -melf32ltsmip_fbsd
+	set abi_asflags(n64) "-march=from-abi -64"
+	set abi_ldflags(n64) -melf64ltsmip_fbsd
+    } else {
+	set abi_asflags(o32) -32
+	set abi_ldflags(o32) -melf32btsmip_fbsd
+	set abi_asflags(n64) "-march=from-abi -64"
+	set abi_ldflags(n64) -melf64btsmip_fbsd
+    }
+    set irixemul 0
+} elseif { [istarget *-*-freebsd*] \
+	   || [istarget *-*-kfreebsd*-gnu] } {
+    if [istarget *el-*-*] {
+	set abi_asflags(n32) "-march=from-abi -n32"
+	set abi_ldflags(n32) -melf32ltsmipn32_fbsd
+	set abi_asflags(n64) "-march=from-abi -64"
+	set abi_ldflags(n64) -melf64ltsmip_fbsd
+    } else {
+	set abi_asflags(n32) "-march=from-abi -n32"
+	set abi_ldflags(n32) -melf32btsmipn32_fbsd
+	set abi_asflags(n64) "-march=from-abi -64"
+	set abi_ldflags(n64) -melf64btsmip_fbsd
+    }
+    set irixemul 0
+} elseif { [istarget *vr4100*-*-elf*] \
+	   || [istarget *vr4300*-*-elf*] \
+	   || [istarget *vr5000*-*-elf*] } {
+    set abi_asflags(o32) -32
+    set irixemul 1
+} elseif { [istarget mips64*el-ps2-elf*] } {
+    set abi_asflags(o32) -32
+    set abi_ldflags(o32) -melf32lr5900
+    set irixemul 1
+} elseif { [istarget *-*-elf*] \
+	   || [istarget *-*-rtems*] } {
+    set abi_asflags(o32) -32
+    set irixemul 1
+} elseif { [istarget *-*-irix6*] } {
+    set abi_asflags(o32) -32
+    set abi_asflags(n64) "-march=from-abi -64"
+    set abi_ldflags(o32) -melf32bsmip
+    set abi_ldflags(n64) -melf64bmip
+    set irixemul 1
+} else {
+    set abi_asflags(o32) -32
+    set irixemul 1
+}
+set tmips [expr $irixemul ? {""} : {"t"}]
+
+run_dump_test_o32 "mips-ase-1"
+run_dump_test_o32 "mips-ase-2"
+run_dump_test_o32 "mips-ase-3"
+run_dump_test "mips-xpa-virt-1"
+run_dump_test "mips-xpa-virt-2"
+run_dump_test "mips-xpa-virt-3"
+run_dump_test "mips-xpa-virt-4"
+run_dump_test_o32 "mixed-mips16" noarch
+run_dump_test_o32 "mixed-micromips" noarch
+run_dump_test "mixed-mips16-micromips"
+run_dump_test_o32 "mips16-undecoded" noarch
+run_dump_test_o32 "mips16e2-undecoded" noarch
+run_dump_test_o32 "mips16-pcrel"
+run_dump_test_o32 "mips16-extend-noinsn"
+run_dump_test_o32 "mips16-extend-insn" noarch
+run_dump_test_o32 "mips16e2-extend-insn" noarch
+run_dump_test_o32 "mips16-alias" noarch
+run_dump_test_o32 "mips16-noalias" noarch
+run_dump_test_o32 "mips1-branch-alias"
+run_dump_test_o32 "mips1-branch-noalias"
+run_dump_test_o32 "mips2-branch-alias"
+run_dump_test_o32 "mips2-branch-noalias"
+run_dump_test_o32 "mips32r6-branch-alias"
+run_dump_test_o32 "mips32r6-branch-noalias"
+run_dump_test_o32 "micromips-branch-alias"
+run_dump_test_o32 "micromips-branch-noalias"
+
+run_dump_test_o32 "mips-note-2"
+run_dump_test_n32 "mips-note-2-n32"
+run_dump_test_n64 "mips-note-2-n64"
+run_dump_test_o32 "mips-note-2r"
+run_dump_test_n32 "mips-note-2r-n32"
+run_dump_test_n64 "mips-note-2r-n64"
+
+run_dump_test_o32 "mips-reginfo"
+run_dump_test_n32 "mips-reginfo-n32"
+
+run_dump_test_o32 "global-local-symtab-o32${tmips}"
+run_dump_test_n32 "global-local-symtab-n32${tmips}"
+run_dump_test_n64 "global-local-symtab-n64"
+run_dump_test_o32 "global-local-symtab-sort-o32${tmips}"
+run_dump_test_n32 "global-local-symtab-sort-n32${tmips}"
+run_dump_test_n64 "global-local-symtab-sort-n64${tmips}"
+run_dump_test_o32 "global-local-symtab-final-o32" useld
+run_dump_test_n32 "global-local-symtab-final-n32" useld
+run_dump_test_n64 "global-local-symtab-final-n64" useld
+
+run_dump_test_o32 "micromips-reserved-enc-o32"
+run_dump_test_n32 "micromips-reserved-enc-n32"
+run_dump_test_n64 "micromips-reserved-enc-n64"

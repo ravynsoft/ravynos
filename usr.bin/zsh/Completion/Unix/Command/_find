@@ -1,0 +1,171 @@
+#compdef find gfind
+
+local curcontext="$curcontext" state_descr variant default ret=1
+local -a state line args alts disp smatch
+
+_pick_variant -r variant gnu=GNU $OSTYPE -version
+
+case $variant in
+  solaris*)
+    args+=(
+      '*-'{n,}'cpio:device:_files'
+      '*-local'
+    )
+  ;|
+  solaris*|darwin*)
+    args+=( '*-xattr' )
+  ;|
+  solaris2.<10->|freebsd*|darwin*)
+    args+=( '*-acl' )
+  ;|
+  solaris2.<11->|freebsd*|dragonfly*|darwin*|openbsd*|gnu)
+    args+=(
+      '*-amin:access time (minutes)'
+      '*-cmin:inode change time (minutes)'
+      '*-mmin:modification time (minutes)'
+      '*-iname:name pattern to match (case insensitive)'
+      '*-print0'
+    )
+  ;|
+  solaris*|freebsd*|dragonfly*|darwin*|gnu)
+    args+=( '*-mount' )
+  ;|
+  netbsd*|freebsd*|dragonfly*|darwin*|gnu)
+    args+=( '(-H -L)-P[never follow symlinks]' )
+  ;|
+  darwin*|freebsd*|gnu)
+    args+=(
+      '*-Bmin:birth time (minutes)'
+      '*-Bnewer:file to compare (birth time):_files'
+      '*-Btime:birth time (hours)'
+    )
+  ;|
+  netbsd*|freebsd*|dragonfly*|openbsd*|darwin*|gnu)
+    args+=(
+      '-d[depth first traversal]'
+      '*-anewer:file to compare (access time):_files'
+      '*-cnewer:file to compare (inode change time):_files'
+      '*-empty'
+      '*-execdir:program: _command_names -e:*\;::program arguments: _normal'
+      '*-maxdepth:maximum search depth'
+      '*-mindepth:minimum search depth'
+      '*-path:path pattern to search:'
+    )
+  ;|
+  freebsd*|dragonfly*|darwin*|gnu)
+    args+=(
+      '*-delete'
+      '*-gid:numeric group ID'
+      '*-uid:numeric user ID'
+      '*-noleaf'
+      '*-lname:link pattern to search'
+      '*-ilname:link pattern to search (case insensitive)'
+      '*-ipath:path pattern to search (case insensitive)'
+      '*-regex:regular expression to search'
+      '*-iregex:regular expression to search (case insensitive)'
+      '*-wholename:full path pattern to search' \
+      '*-iwholename:full path pattern to search (case insensitive)'
+      '*-ignore_readdir_race'
+      '*-mnewer:file to compare (modification time):_files'
+      '*-noignore_readdir_race'
+      '*-okdir:program: _command_names -e:*\;::program arguments: _normal'
+      '*-samefile:file to compare inode:_files' \
+      '*-true'
+      '*-false'
+      '*-and'
+      '*-or'
+      '*-not'
+    )
+  ;|
+  freebsd*|dragonfly*|gnu) args+=( '*-quit' ) ;|
+  netbsd*|freebsd*|dragonfly*|darwin*)
+    args+=(
+      '-E[use extended regular expressions with -regex/-iregex]'
+      '-s[traverse directories in sorted order]'
+    )
+  ;|
+  netbsd*|freebsd*|dragonfly*|openbsd*|darwin*)
+    args+=(
+      '-X[warn if filename contains characters special to xargs]'
+      '-f[specify file hierarchy to traverse]:path:_directories'
+      "-x[don't span filesystems]"
+      '*-flags:flag:_chflags'
+    )
+  ;|
+  freebsd*|dragonfly*) args+=( '*-sparse' ) ;|
+  darwin*) args+=( '*-xattrname:name' ) ;|
+  gnu)
+    args+=(
+      '(- *)-help' '(-)--help'
+      '(- *)-version' '(-)--version'
+      '-D[print diagnostics]:debug option:(exec opt rates search stat time tree all help)'
+      '-O+[enable query optimisation]:level:(1 2 3)'
+      '*-daystart'
+      '-regextype:regexp syntax:(help findutils-default awk egrep ed emacs gnu-awk grep posix-awk posix-basic posix-egrep posix-extended posix-minimal-basic sed)'
+      '*-warn'
+      '*-nowarn'
+      '*-xautofs'
+      '*-used:access after inode change (days)'
+      '*-executable'
+      '*-readable'
+      '*-writable'
+      '*-xtype:file type:((b\:block\ special\ file c\:character\ special\ file d\:directory p\:named\ pipe f\:normal\ file l\:symbolic\ link s\:socket))'
+      '*-fls:output file:_files'
+      '*-fprint:output file:_files'
+      '*-fprint0:output file:_files'
+      '*-fprintf:output file:_files:output format'
+      '*-printf:output format'
+    )
+    [[ $OSTYPE = linux-gnu ]] && args+=( '*-context:SELinux context (glob pattern):_selinux_contexts' )
+  ;;
+esac
+
+_arguments -C $args \
+  '(-L -P)-H[only follow symlinks when resolving command-line arguments]' \
+  '(-H -P)-L[follow symlinks]' \
+  '*-atime:access time (days):->times' \
+  '*-ctime:inode change time (days):->times' \
+  '*-depth' \
+  '*-exec:program: _command_names -e:*\;::program arguments: _normal' \
+  '*-follow' \
+  '*-fstype:file system type:_file_systems' \
+  '*-group:group:_groups' \
+  '*-inum:inode number:' \
+  '*-links:number of links:' \
+  '*-ls' \
+  '*-mtime:modification time (days):->times' \
+  '*-name:name pattern' \
+  '*-newer:file to compare (modification time):_files' \
+  '*-nogroup' \
+  '*-nouser' \
+  '*-ok:program: _command_names -e:*\;::program arguments: _normal' \
+  '*-perm: :_file_modes' \
+  '*-print' \
+  '*-prune' \
+  '*-size:file size (blocks)' \
+  '*-type:file type:((b\:block\ special\ file c\:character\ special\ file d\:directory p\:named\ pipe f\:normal\ file l\:symbolic\ link s\:socket))' \
+  '*-user:user:_users' \
+  '*-xdev' \
+  '*-a' '*-o' \
+  '(-D -E -H -L -O -P -f -s -x --help --version)*:directory:_files -/' \
+&& ret=0
+
+if [[ $state = times ]]; then
+  if ! compset -P '[+-]' || [[ -prefix '[0-9]' ]]; then
+    compstate[list]+=' packed'
+    if zstyle -t ":completion:${curcontext}:senses" verbose; then
+      zstyle -s ":completion:${curcontext}:senses" list-separator sep || sep=--
+      default=" [default exactly]"
+      disp=( "+ $sep before (older files)" "- $sep since (newer files)" )
+      smatch=( - + )
+    else
+      disp=( before exactly since )
+      smatch=( + '' - )
+    fi
+    alts=( "senses:sense${default}:compadd -V times -S '' -d disp -a smatch" )
+  fi
+  alts+=( "times:${state_descr}:_dates -f d" )
+  _alternative $alts && ret=0
+fi
+
+return ret

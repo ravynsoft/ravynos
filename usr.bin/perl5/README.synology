@@ -1,0 +1,350 @@
+# vim: syntax=pod
+
+If you read this file _as_is_, just ignore the funny characters you see.
+It is written in the POD format (see pod/perlpod.pod) which is specially
+designed to be readable as is. But if you have been into Perl you
+probably already know this.
+
+=head1 NAME
+
+perlsynology - Perl 5 on Synology DSM systems
+
+=head1 DESCRIPTION
+
+Synology manufactures a vast number of Network Attached Storage (NAS)
+devices that are very popular in large organisations as well as small
+businesses and homes.
+
+The NAS systems are equipped with Synology Disk Storage Manager (DSM),
+which is a trimmed-down Linux system enhanced with several tools for
+managing the NAS. There are several flavours of hardware: Marvell
+Armada (ARMv5tel, ARMv7l), Intel Atom (i686, x86_64), Freescale QorIQ
+(PPC), and more. For a full list see the
+L<Synology FAQ|https://kb.synology.com/en-global/DSM/tutorial/What_kind_of_CPU_does_my_NAS_have>.
+
+Since it is based on Linux, the NAS can run many popular Linux
+software packages, including Perl. In fact, Synology provides a
+ready-to-install package for Perl, depending on the version of DSM
+the installed perl ranges from 5.8.6 on DSM-4.3 to 5.28.1 on DSM-7.1.
+
+There is an active user community that provides many software packages
+for the Synology DSM systems; at the time of writing this document
+they provide Perl version 5.28.1.
+
+This document describes various features of Synology DSM operating
+system that will affect how Perl 5 (hereafter just Perl) is
+configured, compiled and/or runs. It has been compiled and verified by
+Johan Vromans for the Synology DS413 (QorIQ), with feedback from
+H.Merijn Brand (DS213: ARMv5tel, RS815: Intel Atom x64, and DS218+:
+Celeron J3355).
+
+=head2 Setting up the build environment
+
+=head3 DSM 7
+
+For a comfortable development environment, Entware is currently the only
+viable solution. Just follow the detailed instructions on
+L<Install Entware on Synology NAS|https://github.com/Entware/Entware/wiki/Install-on-Synology-NAS>.
+supported architectures are armv5, armv7, mipsel, wl500g, x86_32, and x86_64.
+Check L<here|https://pkg.entware.net/binaries/> for supported platforms.
+
+That github link also shows what environments should be supported.
+
+It was tested on DSM-7.1 by H.Merijn Brand on a DS218+ and a DS220+ (both
+Intel x64).
+
+Entware comes with a precompiled 5.26.1 (Jan 2018) that allowes
+building shared XS code. Note that this installation does B<not> use
+a site_perl folder. The available C<cpan> works. If all required
+development packages are installed too, also for XS.
+
+Installing perl from the Community package center:
+
+=over 4
+
+=item *
+
+Using your favourite browser open the DSM management page and start
+the Package Center.
+
+=item *
+
+In Settings, add the following Package Sources:
+
+  Name:     Community
+  Location: https://synopackage.com/repository/spk/All
+
+=item *
+
+Still in Settings, in Channel Update, select Beta Channel.
+
+=back
+
+To complete the development environment, install make and gcc
+
+ ds220# opkg install make gcc
+
+Then, optionally, make sure you use the more recent bash and gawk.
+
+ ds220# opkg install bash gawk
+ ds220# cd /usr/bin
+ ds220# mv bash bash.syno
+ ds220# ln -s /opt/bin/bash .
+
+In order to have Configure find the required libraries
+
+ ds220# cd /opt/lib
+ ds220# ln -s libcrypt.so.?       libcrypt.so
+ ds220# ln -s libdl.so.?          libdl.so
+ ds220# ln -s libgdbm.so.?        libgdbm.so
+ ds220# ln -s libgdbm_compat.so.? libgdbm_compat.so
+ ds220# ln -s libm.so.?           libm.so
+ ds220# ln -s libpthread.so.?     libpthread.so
+ ds220# ln -s libutil.so.?        libutil.so
+
+=head3 DSM 6
+
+Using iPkg has been deprecated on DSM 6, but an alternative is available
+for DSM 6: entware/opkg. For instructions on how to use that, please read
+L<Install Entware-ng on Synology NAS|https://github.com/Entware-ng/Entware-ng/wiki/Install-on-Synology-NAS>
+
+That sadly does not (yet) work on QorIQ. At the moment of writing, the
+supported architectures are armv5, armv7, mipsel, wl500g, x86_32, and x86_64.
+Check L<here|https://pkg.entware.net/binaries/> for supported platforms.
+
+Entware-ng comes with a precompiled 5.24.1 (June 2017) that allowes
+building shared XS code. Note that this installation does B<not> use
+a site_perl folder. The available C<cpan> works. If all required
+development packages are installed too, also for XS.
+
+=head3 DSM 5
+
+As DSM is a trimmed-down Linux system, it lacks many of the tools and
+libraries commonly found on Linux. The basic tools like sh, cp, rm,
+etc. are implemented using
+L<BusyBox|https://en.wikipedia.org/wiki/BusyBox>.
+
+=over 4
+
+=item *
+
+Using your favourite browser open the DSM management page and start
+the Package Center.
+
+=item *
+
+If you want to smoke test Perl, install C<Perl>.
+
+=item *
+
+In Settings, add the following Package Sources:
+
+  https://www.cphub.net
+  http://packages.quadrat4.de
+
+As these two are both discontinued, it is unlikely you will be able
+to set up a build environment on DSM 5.
+
+=item *
+
+Still in Settings, in Channel Update, select Beta Channel.
+
+=item *
+
+Press Refresh. In the left panel the item "Community" will appear.
+Click it. Select "Bootstrap Installer Beta" and install it.
+
+=item *
+
+Likewise, install "iPKGui Beta".
+
+The application window should now show an icon for iPKGui.
+
+=item *
+
+Start iPKGui. Install the packages C<make>, C<gcc> and C<coreutils>.
+
+If you want to smoke test Perl, install C<patch>.
+
+=back
+
+The next step is to add some symlinks to system libraries. For
+example, the development software expect a library C<libm.so> that
+normally is a symlink to C<libm.so.6>. Synology only provides the
+latter and not the symlink.
+
+Here the actual architecture of the Synology system matters. You have
+to find out where the gcc libraries have been installed. Look in /opt
+for a directory similar to arm-none-linux-gnueab or
+powerpc-linux-gnuspe. In the instructions below I'll use
+powerpc-linux-gnuspe as an example.
+
+=over 4
+
+=item *
+
+On the DSM management page start the Control Panel.
+
+=item *
+
+Click Terminal, and enable SSH service.
+
+=item *
+
+Close Terminal and the Control Panel.
+
+=item *
+
+Open a shell on the Synology using ssh and become root.
+
+=item *
+
+Execute the following commands:
+
+  cd /lib
+  ln -s libm.so.6 libm.so
+  ln -s libcrypt.so.1 libcrypt.so
+  ln -s libdl.so.2 libdl.so
+  cd /opt/powerpc-linux-gnuspe/lib  (or
+                                    /opt/arm-none-linux-gnueabi/lib)
+  ln -s /lib/libdl.so.2 libdl.so
+
+=back
+
+B<WARNING:> When you perform a system software upgrade, these links
+will disappear and need to be re-established.
+
+=head2 Compiling Perl 5
+
+When the build environment has been set up, building and testing Perl
+is straightforward. The only thing you need to do is download the
+sources as usual, and add a file Policy.sh as follows:
+
+  # Administrivia.
+  perladmin="your.email@goes.here"
+
+  # Install Perl in a tree in /opt/perl instead of /opt/bin.
+  prefix=/opt/perl
+
+  # Select the compiler. Note that there is no 'cc' alias or link
+  # on older DSM versions
+  cc=gcc
+  awk=/opt/bin/gawk
+
+  # Build flags. Optional
+  ccflags="-DDEBUGGING"
+
+  # Library and include paths.
+  locincpth="/opt/include"
+  loclibpth="/opt/lib /usr/local/lib /usr/lib"
+  libpth="/opt/lib /usr/local/lib /usr/lib"
+
+You may want to create the destination directory and give it the right
+permissions before installing, thus eliminating the need to build Perl
+as a super user.
+
+In the directory where you unpacked the sources, issue the familiar
+commands:
+
+  $ bash ./Configure -Dusedevel -Duseshrplib -Duse64bitall -des
+  $ make -j2
+  $ env TEST_JOBS=2 make test_harness
+  $ make install
+
+=head2 Known problems
+
+=head3 Configure
+
+The GNU C-compiler might spit out unexpected stuff under -v, which
+causes the analysis of cppsymbols to fail because of unmatched quotes.
+
+You'll note if config.sh fails with a syntax error.
+
+=head3 Build
+
+=over 4
+
+=item Error message "No error definitions found".
+
+This error is generated when it is not possible to find the local
+definitions for error codes, due to the uncommon structure of the
+Synology file system.
+
+This error was fixed in the Perl development git for version 5.19,
+commit 7a8f1212e5482613c8a5b0402528e3105b26ff24.
+
+=back
+
+=head3 Failing tests
+
+=over 4
+
+=item F<ext/DynaLoader/t/DynaLoader.t>
+
+One subtest fails due to the uncommon structure of the Synology file
+system. The file F</lib/glibc.so> is missing.
+
+B<WARNING:> Do not symlink F</lib/glibc.so.6> to F</lib/glibc.so> or
+some system components will start to fail.
+
+=back
+
+=head2 Smoke testing Perl
+
+If building completes successfully, you can set up smoke testing as
+described in the Test::Smoke documentation.
+
+For smoke testing you need a running Perl. You can either install the
+Synology supplied package for Perl 5.8.6, or build and install your
+own, much more recent version.
+
+Note that I could not run successful smokes when initiated by the
+Synology Task Scheduler. I resorted to initiating the smokes via a
+cron job run on another system, using ssh:
+
+  ssh nas1 wrk/Test-Smoke/smoke/smokecurrent.sh
+
+=head3 Local patches
+
+When local patches are applied with smoke testing, the test driver
+will automatically request regeneration of certain tables after the
+patches are applied. The Synology supplied Perl 5.8.6 (at least on the
+DS413) B<is NOT capable> of generating these tables. It will generate
+opcodes with bogus values, causing the build to fail.
+
+You can prevent regeneration by adding the setting
+
+  'flags' => 0,
+
+to the smoke config, or by adding another patch that inserts
+
+  exit 0 if $] == 5.008006;
+
+in the beginning of the C<regen.pl> program.
+
+=head2 Adding libraries
+
+The above procedure describes a basic environment and hence results in
+a basic Perl. If you want to add additional libraries to Perl, you may
+need some extra settings.
+
+For example, the basic Perl does not have any of the DB libraries (db,
+dbm, ndbm, gdsm). You can add these using iPKGui, however, you need to
+set environment variable LD_LIBRARY_PATH to the appropriate value:
+
+  LD_LIBRARY_PATH=/lib:/opt/lib
+  export LD_LIBRARY_PATH
+
+This setting needs to be in effect while Perl is built, but also when
+the programs are run.
+
+=head1 REVISION
+
+July 2022, for DSM 5.1.5022 and DSM 6.1-15101-4, and DSM-7.1-42661-3.
+
+=head1 AUTHOR
+
+Johan Vromans <jvromans@squirrel.nl>
+H. Merijn Brand <cpan@tux.freedom.nl>
+
+=cut

@@ -1,0 +1,38 @@
+: ${THIS_SH:=./bash}
+
+${THIS_SH} -c 'command . notthere ; echo one' bash
+${THIS_SH} -c '. notthere ; echo two' bash
+
+${THIS_SH} -o posix -c 'command . notthere ; echo one' bash
+${THIS_SH} -o posix -c '. notthere ; echo two' bash
+
+command ; echo $?
+command -- ; echo $?
+command -p ; echo $?
+command -p -- ; echo $?
+
+command recho one; echo $?
+command -- recho two; echo $?
+command -p echo three; echo $?
+command -p -- echo four ; echo $?
+
+command ''
+echo $?
+
+command -p
+echo $?
+
+${THIS_SH} -c 'set -e ; command false ; echo after' bash
+
+command command command -p . notthere ; echo after 1
+command -p command command . notthere ; echo after 2
+
+command -p command -V type
+
+set -x
+command -v type
+command command -v type
+command -p command -v type
+command -p -- command -v type
+set +x
+

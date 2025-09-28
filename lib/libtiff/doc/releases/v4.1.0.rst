@@ -1,0 +1,98 @@
+Changes in TIFF v4.1.0
+======================
+
+.. table:: References
+    :widths: auto
+
+    ======================  ==========================================
+    Current Version         v4.1.0 (:tag:`v4.1.0`)
+    Previous Version        :doc:`v4.0.10 <v4.0.10>`
+    Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+    Master HTTP Site #1     `<http://www.simplesystems.org/libtiff/>`_
+    Master HTTP Site #2     `<http://libtiff.maptools.org/>`_
+    ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).  If you don't
+find something listed here, then it was not done in this timeframe, or
+it was not considered important enough to be mentioned.  The following
+information is located here. A change summary is also provided by the
+:file:`ChangeLog` file included in the release package and by the Git commit
+history:
+
+
+Major changes
+-------------
+
+* Make defer strile offset/bytecount loading available at runtime
+  and add per-strile offset/bytecount loading capabilities. Part of
+  this commit makes the behaviour that was previously met when libtiff
+  was compiled with ``-DDEFER_STRILE_LOAD`` available for default builds
+  when specifying the new ``D`` (Deferred) :c:func:`TIFFOpen` flag. In that
+  mode, the [``Tile``/``Strip``][``ByteCounts``/``Offsets``] arrays are only loaded
+  when first accessed. This can speed-up the opening of files stored
+  on the network when just metadata retrieval is needed.
+
+  Another addition is the capability of loading only the values of
+  the offset/bytecount of the strile of interest instead of the
+  whole array. This is enabled with the new ``O`` (Ondemand) flag of
+  :c:func:`TIFFOpen` (which implies ``D``).
+
+  The public :c:func:`TIFFGetStrileOffset`,
+  :c:func:`TIFFGetStrileOffsetWithErr`,
+  :c:func:`TIFFGetStrileByteCount` and
+  :c:func:`TIFFGetStrileByteCountWithErr` functions have been added to
+  API. They are of particular interest when using sparse files (with
+  ``offset == bytecount == 0``) and you want to detect if a strile is
+  present or not without decompressing the data, or updating an
+  existing sparse file.
+
+* The BigTIFF writer now optimizes file size by using 32-bit ``LONG``
+  values (rather than 64-bit) where it is reasonable and safe to do
+  so.  Likewise, the 16-bit ``SHORT`` type is used when possible for
+  ``StripByteCounts``/``TileByteCounts``.
+
+
+Software configuration changes
+------------------------------
+
+* The ``WIN32`` build now uses :file:`tif_win32.c` when building with CMake.
+
+* Properly set value of :c:macro:`HOST_FILLORDER` to :c:macro:`LSB2MSB` for Windows
+  CMake builds.  It was not being properly set!
+
+
+Library changes
+---------------
+
+* Changes in the libtiff library may be viewed on-line
+  `Libtiff Library Commits <https://gitlab.com/libtiff/libtiff/commits/master/libtiff>`_..
+
+* New function :c:func:`TIFFReadFromUserBuffer` which replaces the use of
+  :c:func:`TIFFReadEncodedStrip`/:c:func:`TIFFReadEncodedTile` when the user can
+  provide the buffer for the input data, for example when he wants
+  to avoid libtiff to read the strile offset/count values from the
+  ``[Strip|Tile][Offsets/ByteCounts]`` array.
+
+* New functions :c:func:`TIFFDeferStrileArrayWriting` and :c:func:`TIFFForceStrileArrayWriting`.
+  Those advanced writing functions must be used in a particular sequence
+  to make their intended effect. Their aim is to control when/where
+  the ``[Strip/Tile][Offsets/ByteCounts]`` arrays are written into the file.
+
+  The purpose of this is to generate 'cloud-optimized geotiff' files where
+  the first KB of the file only contain the IFD entries without the potentially
+  large strile arrays. Those are written afterwards.
+
+
+Tools changes
+-------------
+
+* Changes in the libtiff utilities may be viewed on-line
+  at `Libtiff Tools Commits <https://gitlab.com/libtiff/libtiff/commits/master/tools>`_.
+
+
+Contributed software changes
+----------------------------
+
+* Changes in the libtiff contrib area may be viewed on-line
+  at `Libtiff Contrib Commits <https://gitlab.com/libtiff/libtiff/commits/master/contrib>`_.

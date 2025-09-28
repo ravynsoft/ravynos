@@ -1,0 +1,60 @@
+#compdef pflags pcred pldd psig pstack pfiles pwdx pstop prun pwait
+
+# If given the `-m <pattern>' option, this tries to complete only pids
+# of processes whose command line match the `<pattern>'.
+
+local out pids list expl match desc listargs all nm ret=1
+
+_tags processes || return 1
+
+if [[ "$1" = -m ]]; then
+  all=()
+  match="(*[[:blank:]]|)${PREFIX}[0-9]#${SUFFIX}[[:blank:]]*(/|[[:blank:]]-(#c,1))${2}([[:blank:]]*|)"
+  shift 2
+elif [[ "$PREFIX$SUFFIX" = ([%-]*|[0-9]#) ]]; then
+  all=()
+  match="(*[[:blank:]]|)${PREFIX}[0-9]#${SUFFIX}[[:blank:]]*"
+else
+  all=(-P "$IPREFIX" -S "$ISUFFIX" -U)
+  match="*[[:blank:]]*[[/[:blank:]]$PREFIX*$SUFFIX*"
+  nm="$compstate[nmatches]"
+fi
+
+while _tags; do
+  if _requested processes; then
+    while _next_label processes expl 'process ID'; do
+      out=( "${(@f)$(_call_program $curtag ps 2>/dev/null)}" )
+      desc="$out[1]"
+      out=( "${(@M)out[2,-1]:#${~match}}" )
+
+      if [[ "$desc" = (#i)(|*[[:blank:]])pid(|[[:blank:]]*) ]]; then
+	pids=( "${(@)${(@M)out#${(l.${#desc[1,(r)(#i)[[:blank:]]pid]}..?.)~:-}[^[:blank:]]#}##*[[:blank:]]}" )
+      else
+	pids=( "${(@)${(@M)out##[^0-9]#[0-9]#}##*[[:blank:]]}" )
+      fi
+
+      if zstyle -T ":completion:${curcontext}:$curtag" verbose; then
+	list=( "${(@Mr:COLUMNS-1:)out}" )
+	desc=(-ld list)
+      else
+	desc=()
+      fi
+      compadd "$@" "$expl[@]" "$desc[@]" "$all[@]" -a pids && ret=0
+    done
+  fi
+  (( ret )) || break
+done
+
+if [[ -n "$all" ]]; then
+  zstyle -s ":completion:${curcontext}:processes" insert-ids out || out=menu
+
+  case "$out" in
+  menu)   compstate[insert]=menu ;;
+  single) [[ $compstate[nmatches] -ne nm+1 && $compstate[insert] != menu ]] &&
+              compstate[insert]= ;;
+  *)      [[ ${#:-$PREFIX$SUFFIX} -gt ${#compstate[unambiguous]} ]] &&
+              compstate[insert]=menu ;;
+  esac
+fi
+
+return ret

@@ -1,0 +1,18 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test awk support: strings with hexadecimal escape sequences that are
+# invalid UTF-8.
+
+cat <<\EOF > xg-a-3.awk
+_"\xE0"
+EOF
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location --from-code=UTF-8 -d xg-a-3.tmp xg-a-3.awk 2>xg-a-3.err
+result=$?
+cat xg-a-3.err
+test $result = 1 || Exit 1
+grep 'is not UTF-8 encoded' xg-a-3.err >/dev/null || Exit 1
+
+exit 0

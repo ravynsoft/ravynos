@@ -1,0 +1,28 @@
+.TH libinput-list-kernel-devices "1" "" "libinput @LIBINPUT_VERSION@" "libinput Manual"
+.SH NAME
+libinput\-list\-kernel\-devices \- list all kernel input devices
+.SH SYNOPSIS
+.B libinput list\-kernel\-devices [\-\-help]
+.SH DESCRIPTION
+.PP
+The
+.B "libinput list\-kernel\-devices"
+tool iterates through the list of available kernel devices and prints
+their device node and device name. By default this tool lists evdev event nodes.
+.SH OPTIONS
+.TP 8
+.B \-\-help
+Print help
+.TP 8
+.B \-\-hid
+List HID devices instead of evdev device nodes
+.SH NOTES
+.PP
+A device may be available but not recognized by libinput. This may indicate
+a bug with the udev configuration. See the
+.B "libinput list\-devices"
+tools for the devices recognized by libinput.
+.SH LIBINPUT
+Part of the
+.B libinput(1)
+suite

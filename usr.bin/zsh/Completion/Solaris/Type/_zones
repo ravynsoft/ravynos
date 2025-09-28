@@ -1,0 +1,11 @@
+#autoload
+
+local -a type typearg expl
+
+zparseopts -D -E -a type t+:
+
+[[ -n $type[(r)c] ]] && typearg=-c
+[[ -n $type[(r)i] ]] && typearg=-i
+
+_description zones expl zone
+compadd "$@" "$expl[@]" - ${="$(_call_program zones /usr/sbin/zoneadm list $typearg)"}

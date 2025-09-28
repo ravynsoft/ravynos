@@ -1,0 +1,6 @@
+# Test whitespace in User_List as part of a per-user Defaults entry
+User_Alias FOO = foo, bar
+Defaults:FOO env_reset
+Defaults:foo,bar env_reset
+Defaults:foo,\ bar env_reset
+Defaults:foo, bar env_reset

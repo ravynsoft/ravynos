@@ -1,0 +1,26 @@
+#autoload
+# disk device names on BSDs
+local -a disks
+
+case $OSTYPE in
+  freebsd*)
+    disks=( ${${(M)${(f)"$(geom disk list)"}\:#Geom name\:*}#*\: } )
+  ;;
+  dragonfly*)
+    disks=( $(sysctl -n kern.disks) )
+  ;;
+  openbsd*)
+    disks=( ${${(s.,.)"$(sysctl -n hw.disknames)"}%\:*} )
+  ;;
+  netbsd*)
+    disks=( $(sysctl -n hw.disknames) )
+  ;;
+esac
+
+if (( $#disks )); then
+  local expl
+  _wanted disk-devices expl 'disk device' compadd "$@" $disks
+  return
+fi
+
+return 1

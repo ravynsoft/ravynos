@@ -1,0 +1,94 @@
+/* Arc V2 Related PLT entries.
+   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Contributed by Cupertino Miranda (cmiranda@synopsys.com).
+
+   This file is part of BFD, the Binary File Descriptor library.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+   MA 02110-1301, USA.  */
+
+PLT_TYPE_START (ELF_ARCV2_PIC)
+  PLT_ENTRY (0x2730, 0x7f8b, 0x0000, 0x0000) /* ld %r11, [pcl,0] : 0 to be replaced by _DYNAMIC@GOTPC+4 */
+  PLT_ENTRY (0x2730, 0x7f8a, 0x0000, 0x0000) /* ld %r10, [pcl,0] : 0 to be replaced by _DYNAMIC@GOTPC+8 */
+  PLT_ENTRY (0x2020, 0x0280)		    /* j [%r10] */
+  PLT_ENTRY (0x0,0x0,0x0,0x0,0x0,0x0)	    /* padding */
+
+  PLT_ELEM (0x2730, 0x7f8c, 0x0000, 0x0000) /* ld %r12, [%pc,func@got] */
+  PLT_ELEM (0x2021, 0x0300)		   /* j.d [%r12] */
+  PLT_ELEM (0x240a, 0x1fc0)		   /* mov %r12, %pcl */
+
+  ENTRY_RELOC (4, 32, 0xFFFFFFFF, SGOT | RELATIVE_INSN_32 | MIDDLE_ENDIAN, 4)
+  ENTRY_RELOC (12, 32, 0xFFFFFFFF, SGOT | RELATIVE_INSN_32 | MIDDLE_ENDIAN, 8)
+  ENTRY_RELOC (20, 32, 0xFFFFFFFF, SGOT, 0)
+
+  ELEM_RELOC (4, 32, 0xFFFFFFFF, SGOT | RELATIVE_INSN_32 | MIDDLE_ENDIAN, 0)
+
+PLT_TYPE_END (ELF_ARCV2_PIC)
+
+PLT_TYPE_START (ELF_ARCV2_ABS)
+  PLT_ENTRY (0x1600,0x700b,0x0000,0x0000)  /* ld %r11, [0] */
+  PLT_ENTRY (0x1600,0x700a,0x0000,0x0000)  /* ld %r10, [0] */
+  PLT_ENTRY (0x2020,0x0280)		  /* j [%r10] */
+  PLT_ENTRY (0x0,0x0,0x0,0x0,0x0,0x0)	  /* padding */
+
+  PLT_ELEM (0x2730, 0x7f8c, 0x0000, 0x0000) /* ld %r12, [%pcl,func@gotpc] */
+  PLT_ELEM (0x2021,0x0300)		   /* j.d [%r12] */
+  PLT_ELEM (0x240a,0x1fc0)		   /* mov %r12, %pcl */
+
+  ENTRY_RELOC (4, 32, 0xFFFFFFFF, SGOT | MIDDLE_ENDIAN, 4)
+  ENTRY_RELOC (12, 32, 0xFFFFFFFF, SGOT | MIDDLE_ENDIAN, 8)
+  ENTRY_RELOC (20, 32, 0xFFFFFFFF, SGOT, 0)
+
+  ELEM_RELOC (4, 32, 0xFFFFFFFF, SGOT | RELATIVE_INSN_32 | MIDDLE_ENDIAN, 0)
+
+PLT_TYPE_END (ELF_ARCV2_ABS)
+
+
+/* Non Arc V2 Related PLT entries.  */
+
+PLT_TYPE_START (ELF_ARC_PIC)
+  PLT_ENTRY (0x2730,0x7f8b,0x0000,0x0000) /* ld %r11, [pcl,0] : 0 to be replaced by _DYNAMIC@GOTPC+4 */
+  PLT_ENTRY (0x2730,0x7f8a,0x0000,0x0000) /* ld %r10, [pcl,0] : 0 to be replaced by -DYNAMIC@GOTPC+8  */
+  PLT_ENTRY (0x2020,0x0280)		 /* j [%r10] */
+  PLT_ENTRY (0x0,0x0)			 /* padding */
+
+  PLT_ELEM (0x2730,0x7f8c,0x0000,0x0000)  /* ld %r12, [%pc,func@got]   */
+  PLT_ELEM (0x7c20)			 /* j_s.d [%r12]	      */
+  PLT_ELEM (0x74ef)			 /* mov_s %r12, %pcl          */
+
+  ENTRY_RELOC (4, 32, 0xFFFFFFFF, SGOT | RELATIVE_INSN_32 | MIDDLE_ENDIAN, 4)
+  ENTRY_RELOC (12, 32, 0xFFFFFFFF, SGOT | RELATIVE_INSN_32 | MIDDLE_ENDIAN, 8)
+  ENTRY_RELOC (20, 32, 0xFFFFFFFF, SGOT, 0)
+
+  ELEM_RELOC (4, 32, 0xFFFFFFFF, SGOT | RELATIVE_INSN_32 | MIDDLE_ENDIAN, 0)
+
+PLT_TYPE_END (ELF_ARC_PIC)
+
+PLT_TYPE_START (ELF_ARC_ABS)
+  PLT_ENTRY (0x1600,0x700b,0x0000,0x0000) /* ld %r11, [0] */
+  PLT_ENTRY (0x1600,0x700a,0x0000,0x0000) /* ld %r10, [0] */
+  PLT_ENTRY (0x2020,0x0280)		 /* j [%r10] */
+  PLT_ENTRY (0x0,0x0)			 /* padding */
+
+  PLT_ELEM (0x2730,0x7f8c,0x0000,0x0000) /* ld %r12, [%pc,func@gotpc] */
+  PLT_ELEM (0x7c20,0x74ef)		/* mov_s %r12, %pcl          */
+
+  ENTRY_RELOC (4, 32, 0xFFFFFFFF, SGOT | MIDDLE_ENDIAN, 4)
+  ENTRY_RELOC (12, 32, 0xFFFFFFFF, SGOT | MIDDLE_ENDIAN, 8)
+  ENTRY_RELOC (20, 32, 0xFFFFFFFF, SGOT, 0)
+
+  ELEM_RELOC (4, 32, 0xFFFFFFFF, SGOT | RELATIVE_INSN_32 | MIDDLE_ENDIAN, 0)
+
+PLT_TYPE_END (ELF_ARC_ABS)

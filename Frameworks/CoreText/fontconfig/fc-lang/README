@@ -1,0 +1,28 @@
+Requirements for adding new orth file:
+
+* we are following up to the locale name, 2 or 3 letter code
+  in ISO 639 and ISO 3166-1 alpha-2 code to determine a
+  filename. if it's not yet available, in advance, you
+  should get it fixed in glibc or so.
+
+* Please add a reference URL (written in English as far as
+  possible) into the orth file that explains the code
+  coverage for the certain language. this would helps to
+  review if it has enough coverage.
+
+* no need to add all of the codepoints for the certain
+  language. good enough if it covers most frequently used
+  codepoints in it.
+
+To update existing orth files:
+
+* Please make sure how the changes affects to the existing
+  fonts and no regressions except it is expected behavior.
+
+* Please add any reference URL in GitLab or any
+  explanation why it needs to be added/removed and also why
+  current orth file doesn't work.
+
+* Please provide a test case what fonts are supposed to be
+  accepted against the change and what fonts aren't.
+

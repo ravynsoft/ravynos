@@ -1,0 +1,64 @@
+# Expect script for VxWorks targeted SH linker tests
+#   Copyright (C) 2006-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+if { ![istarget "sh-*-vxworks"] } {
+    return
+}
+
+set endians { "--big" "-EB" "" "--little" "-EL" "-le" }
+
+foreach { gas_option ld_option suffix } $endians {
+    set vxworkstests {
+	{"VxWorks shared library test 1"
+	 "-shared -Tvxworks1.ld --hash-style=sysv $ld_option" ""
+	 "$gas_option" {vxworks1-lib.s}
+	 {{readelf --relocs vxworks1-lib.rd}
+	  {objdump -dr vxworks1-lib$suffix.dd}
+	  {readelf --symbols vxworks1-lib.nd} {readelf -d vxworks1-lib.td}}
+	 "libvxworks1.so"}
+	{"VxWorks executable test 1 (dynamic)" \
+	 "tmpdir/libvxworks1.so -Tvxworks1.ld --hash-style=sysv -q --force-dynamic $ld_option" ""
+	 "$gas_option" {vxworks1.s}
+	 {{readelf {--relocs --wide} vxworks1.rd} {objdump -dr vxworks1$suffix.dd}}
+	 "vxworks1"}
+	{"VxWorks executable test 2 (dynamic)" \
+	 "-Tvxworks1.ld --hash-style=sysv -q --force-dynamic $ld_option" ""
+	 "$gas_option" {vxworks2.s}
+	 {{readelf --segments vxworks2.sd}}
+	 "vxworks2"}
+	{"VxWorks executable test 2 (static)"
+	 "-Tvxworks1.ld --hash-style=sysv $ld_option" ""
+	 "$gas_option" {vxworks2.s}
+	 {{readelf --segments vxworks2-static.sd}}
+	 "vxworks2"}
+	{"VxWorks shared library test 3"
+	 "-shared -Tvxworks1.ld --hash-style=sysv $ld_option" ""
+	 "$gas_option" {vxworks3-lib.s}
+	    {{objdump -dr vxworks3-lib$suffix.dd}}
+	 "libvxworks3.so"}
+	{"VxWorks executable test 3 (dynamic)" \
+	 "tmpdir/libvxworks3.so -Tvxworks1.ld --hash-style=sysv -q --force-dynamic $ld_option" ""
+	 "$gas_option" {vxworks3.s}
+	 {{objdump -d vxworks3$suffix.dd}}
+	 "vxworks3"}
+    }
+    run_ld_link_tests [subst $vxworkstests]
+}
+run_dump_test "vxworks1-static"

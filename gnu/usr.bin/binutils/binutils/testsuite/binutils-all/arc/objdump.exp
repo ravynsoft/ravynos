@@ -1,0 +1,106 @@
+#   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.
+
+if {![istarget "arc*-*-*"]} then {
+  return
+}
+
+if {[which $OBJDUMP] == 0} then {
+    perror "$OBJDUMP does not exist"
+    return
+}
+
+send_user "Version [binutil_version $OBJDUMP]"
+
+# Helper functions
+
+# Create object file from the assembly source.
+proc do_objfile { srcfile } {
+    global srcdir
+    global subdir
+
+    set objfile [regsub -- "\.s$" $srcfile ".o"]
+
+    if {![binutils_assemble $srcdir/$subdir/$srcfile tmpdir/$objfile]} then {
+	return
+    }
+
+    if [is_remote host] {
+	set objfile [remote_download host tmpdir/$objfile]
+    } else {
+	set objfile tmpdir/$objfile
+    }
+
+    return $objfile
+}
+
+# Ensure that disassembler output includes EXPECTED lines.
+proc check_assembly { testname objfile expected { disas_flags "" } } {
+    global OBJDUMP
+    global OBJDUMPFLAGS
+
+    if [string equal "" $objfile] then {
+	fail $testname
+	return
+    }
+    set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS --disassemble --disassembler-color=off $disas_flags \
+	$objfile"]
+
+    if [regexp $expected $got] then {
+	pass $testname
+    } else {
+	fail $testname
+    }
+}
+
+# Make sure that a warning message is generated (because the disassembly does
+# not match the assembled instructions, which has happened because the user
+# has not specified a -M option on the disassembler command line, and so the
+# disassembler has had to guess as the instruction class in use).
+set want "Warning: disassembly.*vmac2hnfr\[ \t\]*r0,r2,r4.*dmulh12.f\[ \t\]*r0,r2,r4.*dmulh11.f"
+check_assembly "Warning test" [do_objfile dsp.s] $want
+set warn_double_reg "Warning: illegal use of double register pair."
+check_assembly "Warning faulty double regs" [do_objfile double_regs.s] \
+    $warn_double_reg
+
+set double_store_hs_expected {std\s*r0r1,\[r3\]}
+set objfile [do_objfile double_store.s]
+check_assembly "arc double_store default -M" $objfile \
+    $double_store_hs_expected
+check_assembly "arc double_store -Mcpu=hs" $objfile \
+    $double_store_hs_expected "-Mcpu=hs"
+check_assembly "arc double_store -Mcpu=hs38_linux" $objfile \
+    $double_store_hs_expected "-Mcpu=hs38_linux"
+set double_store_em_expected {word\s*0x1b000006}
+check_assembly "arc double_store -Mcpu=em" $objfile \
+    $double_store_em_expected "-Mcpu=em"
+check_assembly "arc double_store -Mcpu=em4_dmips" $objfile \
+    $double_store_em_expected "-Mcpu=em4_dmips"
+# Test to ensure that only value up to the next `,' is checked.  There used to
+# be a bug, where whole `em,fpus' was compared against known CPU values, and
+# that comparison would fail.  When this bug is present, whole cpu= option will
+# be ignored and instruction will be disassembled as ARC HS.
+check_assembly "arc double_store -Mcpu=em,fpus" $objfile \
+    $double_store_em_expected "-Mcpu=em,fpus"
+# Make sure that the last cpu= value is used.
+check_assembly "arc double_store -Mcpu=hs,cpu=em" $objfile \
+    $double_store_em_expected "-Mcpu=hs,cpu=em"
+# Check the hex printing for short immediates.
+set thexobj [do_objfile hexprint.s]
+check_assembly "arc hex printing" $thexobj \
+    {st\s*r0,\[r1,0xfffffff7\]} "-Mhex"
+check_assembly "arc normal printing" $thexobj \
+    {st\s*r0,\[r1,-9\]}

@@ -1,0 +1,1090 @@
+=encoding utf8
+
+=for comment
+Consistent formatting of this file is achieved with:
+  perl ./Porting/podtidy pod/perlobj.pod
+
+=head1 NAME
+X<object> X<OOP>
+
+perlobj - Perl object reference
+
+=head1 DESCRIPTION
+
+This document provides a reference for Perl's object orientation
+features. If you're looking for an introduction to object-oriented
+programming in Perl, please see L<perlootut>.
+
+In order to understand Perl objects, you first need to understand
+references in Perl. See L<perlreftut> for details.
+
+This document describes all of Perl's object-oriented (OO) features
+from the ground up. If you're just looking to write some
+object-oriented code of your own, you are probably better served by
+using one of the object systems from CPAN described in L<perlootut>.
+
+If you're looking to write your own object system, or you need to
+maintain code which implements objects from scratch then this document
+will help you understand exactly how Perl does object orientation.
+
+There are a few basic principles which define object oriented Perl:
+
+=over 4
+
+=item 1.
+
+An object is simply a data structure that knows to which class it
+belongs.
+
+=item 2.
+
+A class is simply a package. A class provides methods that expect to
+operate on objects.
+
+=item 3.
+
+A method is simply a subroutine that expects a reference to an object
+(or a package name, for class methods) as the first argument.
+
+=back
+
+Let's look at each of these principles in depth.
+
+=head2 An Object is Simply a Data Structure
+X<object> X<bless> X<constructor> X<new>
+
+Unlike many other languages which support object orientation, Perl does
+not provide any special syntax for constructing an object. Objects are
+merely Perl data structures (hashes, arrays, scalars, filehandles,
+etc.) that have been explicitly associated with a particular class.
+
+That explicit association is created by the built-in C<bless> function,
+which is typically used within the I<constructor> subroutine of the
+class.
+
+Here is a simple constructor:
+
+  package File;
+
+  sub new {
+      my $class = shift;
+
+      return bless {}, $class;
+  }
+
+The name C<new> isn't special. We could name our constructor something
+else:
+
+  package File;
+
+  sub load {
+      my $class = shift;
+
+      return bless {}, $class;
+  }
+
+The modern convention for OO modules is to always use C<new> as the
+name for the constructor, but there is no requirement to do so. Any
+subroutine that blesses a data structure into a class is a valid
+constructor in Perl.
+
+In the previous examples, the C<{}> code creates a reference to an
+empty anonymous hash. The C<bless> function then takes that reference
+and associates the hash with the class in C<$class>. In the simplest
+case, the C<$class> variable will end up containing the string "File".
+
+We can also use a variable to store a reference to the data structure
+that is being blessed as our object:
+
+  sub new {
+      my $class = shift;
+
+      my $self = {};
+      bless $self, $class;
+
+      return $self;
+  }
+
+Once we've blessed the hash referred to by C<$self> we can start
+calling methods on it. This is useful if you want to put object
+initialization in its own separate method:
+
+  sub new {
+      my $class = shift;
+
+      my $self = {};
+      bless $self, $class;
+
+      $self->_initialize();
+
+      return $self;
+  }
+
+Since the object is also a hash, you can treat it as one, using it to
+store data associated with the object. Typically, code inside the class
+can treat the hash as an accessible data structure, while code outside
+the class should always treat the object as opaque. This is called
+B<encapsulation>. Encapsulation means that the user of an object does
+not have to know how it is implemented. The user simply calls
+documented methods on the object.
+
+Note, however, that (unlike most other OO languages) Perl does not
+ensure or enforce encapsulation in any way. If you want objects to
+actually I<be> opaque you need to arrange for that yourself. This can
+be done in a variety of ways, including using L</"Inside-Out objects">
+or modules from CPAN.
+
+=head3 Objects Are Blessed; Variables Are Not
+
+When we bless something, we are not blessing the variable which
+contains a reference to that thing, nor are we blessing the reference
+that the variable stores; we are blessing the thing that the variable
+refers to (sometimes known as the I<referent>). This is best
+demonstrated with this code:
+
+  use Scalar::Util 'blessed';
+
+  my $foo = {};
+  my $bar = $foo;
+
+  bless $foo, 'Class';
+  print blessed( $bar ) // 'not blessed';    # prints "Class"
+
+  $bar = "some other value";
+  print blessed( $bar ) // 'not blessed';    # prints "not blessed"
+
+When we call C<bless> on a variable, we are actually blessing the
+underlying data structure that the variable refers to. We are not
+blessing the reference itself, nor the variable that contains that
+reference. That's why the second call to C<blessed( $bar )> returns
+false. At that point C<$bar> is no longer storing a reference to an
+object.
+
+You will sometimes see older books or documentation mention "blessing a
+reference" or describe an object as a "blessed reference", but this is
+incorrect. It isn't the reference that is blessed as an object; it's
+the thing the reference refers to (i.e. the referent).
+
+=head2 A Class is Simply a Package
+X<class> X<package> X<@ISA> X<inheritance>
+
+Perl does not provide any special syntax for class definitions. A
+package is simply a namespace containing variables and subroutines. The
+only difference is that in a class, the subroutines may expect a
+reference to an object or the name of a class as the first argument.
+This is purely a matter of convention, so a class may contain both
+methods and subroutines which I<don't> operate on an object or class.
+
+Each package contains a special array called C<@ISA>. The C<@ISA> array
+contains a list of that class's parent classes, if any. This array is
+examined when Perl does method resolution, which we will cover later.
+
+Calling methods from a package means it must be loaded, of course, so
+you will often want to load a module and add it to C<@ISA> at the same
+time. You can do so in a single step using the L<parent> pragma.
+(In older code you may encounter the L<base> pragma, which is nowadays
+discouraged except when you have to work with the equally discouraged
+L<fields> pragma.)
+
+However the parent classes are set, the package's C<@ISA> variable will
+contain a list of those parents. This is simply a list of scalars, each
+of which is a string that corresponds to a package name.
+
+All classes inherit from the L<UNIVERSAL> class implicitly. The
+L<UNIVERSAL> class is implemented by the Perl core, and provides
+several default methods, such as C<isa()>, C<can()>, and C<VERSION()>.
+The C<UNIVERSAL> class will I<never> appear in a package's C<@ISA>
+variable.
+
+Perl I<only> provides method inheritance as a built-in feature.
+Attribute inheritance is left up the class to implement. See the
+L</Writing Accessors> section for details.
+
+=head2 A Method is Simply a Subroutine
+X<method>
+
+Perl does not provide any special syntax for defining a method. A
+method is simply a regular subroutine, and is declared with C<sub>.
+What makes a method special is that it expects to receive either an
+object or a class name as its first argument.
+
+Perl I<does> provide special syntax for method invocation, the C<< ->
+>> operator. We will cover this in more detail later.
+
+Most methods you write will expect to operate on objects:
+
+  sub save {
+      my $self = shift;
+
+      open my $fh, '>', $self->path() or die $!;
+      print {$fh} $self->data()       or die $!;
+      close $fh                       or die $!;
+  }
+
+=head2 Method Invocation
+X<invocation> X<method> X<arrow> X<< -> >>
+
+Calling a method on an object is written as C<< $object->method >>.
+
+The left hand side of the method invocation (or arrow) operator is the
+object (or class name), and the right hand side is the method name.
+
+  my $pod = File->new( 'perlobj.pod', $data );
+  $pod->save();
+
+The C<< -> >> syntax is also used when dereferencing a reference. It
+looks like the same operator, but these are two different operations.
+
+When you call a method, the thing on the left side of the arrow is
+passed as the first argument to the method. That means when we call C<<
+Critter->new() >>, the C<new()> method receives the string C<"Critter">
+as its first argument. When we call C<< $fred->speak() >>, the C<$fred>
+variable is passed as the first argument to C<speak()>.
+
+Just as with any Perl subroutine, all of the arguments passed in C<@_>
+are aliases to the original argument. This includes the object itself.
+If you assign directly to C<$_[0]> you will change the contents of the
+variable that holds the reference to the object. We recommend that you
+don't do this unless you know exactly what you're doing.
+
+Perl knows what package the method is in by looking at the left side of
+the arrow. If the left hand side is a package name, it looks for the
+method in that package. If the left hand side is an object, then Perl
+looks for the method in the package that the object has been blessed
+into.
+
+If the left hand side is neither a package name nor an object, then the
+method call will cause an error, but see the section on L</Method Call
+Variations> for more nuances.
+
+=head2 Inheritance
+X<inheritance>
+
+We already talked about the special C<@ISA> array and the L<parent>
+pragma.
+
+When a class inherits from another class, any methods defined in the
+parent class are available to the child class. If you attempt to call a
+method on an object that isn't defined in its own class, Perl will also
+look for that method in any parent classes it may have.
+
+  package File::MP3;
+  use parent 'File';    # sets @File::MP3::ISA = ('File');
+
+  my $mp3 = File::MP3->new( 'Andvari.mp3', $data );
+  $mp3->save();
+
+Since we didn't define a C<save()> method in the C<File::MP3> class,
+Perl will look at the C<File::MP3> class's parent classes to find the
+C<save()> method. If Perl cannot find a C<save()> method anywhere in
+the inheritance hierarchy, it will die.
+
+In this case, it finds a C<save()> method in the C<File> class. Note
+that the object passed to C<save()> in this case is still a
+C<File::MP3> object, even though the method is found in the C<File>
+class.
+
+We can override a parent's method in a child class. When we do so, we
+can still call the parent class's method with the C<SUPER>
+pseudo-class.
+
+  sub save {
+      my $self = shift;
+
+      say 'Prepare to rock';
+      $self->SUPER::save();
+  }
+
+The C<SUPER> modifier can I<only> be used for method calls. You can't
+use it for regular subroutine calls or class methods:
+
+  SUPER::save($thing);     # FAIL: looks for save() sub in package SUPER
+
+  SUPER->save($thing);     # FAIL: looks for save() method in class
+                           #       SUPER
+
+  $thing->SUPER::save();   # Okay: looks for save() method in parent
+                           #       classes
+
+
+=head3 How SUPER is Resolved
+X<SUPER>
+
+The C<SUPER> pseudo-class is resolved from the package where the call
+is made. It is I<not> resolved based on the object's class. This is
+important, because it lets methods at different levels within a deep
+inheritance hierarchy each correctly call their respective parent
+methods.
+
+  package A;
+
+  sub new {
+      return bless {}, shift;
+  }
+
+  sub speak {
+      my $self = shift;
+
+      say 'A';
+  }
+
+  package B;
+
+  use parent -norequire, 'A';
+
+  sub speak {
+      my $self = shift;
+
+      $self->SUPER::speak();
+
+      say 'B';
+  }
+
+  package C;
+
+  use parent -norequire, 'B';
+
+  sub speak {
+      my $self = shift;
+
+      $self->SUPER::speak();
+
+      say 'C';
+  }
+
+  my $c = C->new();
+  $c->speak();
+
+In this example, we will get the following output:
+
+  A
+  B
+  C
+
+This demonstrates how C<SUPER> is resolved. Even though the object is
+blessed into the C<C> class, the C<speak()> method in the C<B> class
+can still call C<SUPER::speak()> and expect it to correctly look in the
+parent class of C<B> (i.e the class the method call is in), not in the
+parent class of C<C> (i.e. the class the object belongs to).
+
+There are rare cases where this package-based resolution can be a
+problem. If you copy a subroutine from one package to another, C<SUPER>
+resolution will be done based on the original package.
+
+=head3 Multiple Inheritance
+X<multiple inheritance>
+
+Multiple inheritance often indicates a design problem, but Perl always
+gives you enough rope to hang yourself with if you ask for it.
+
+To declare multiple parents, you simply need to pass multiple class
+names to C<use parent>:
+
+  package MultiChild;
+
+  use parent 'Parent1', 'Parent2';
+
+=head3 Method Resolution Order
+X<method resolution order> X<mro>
+
+Method resolution order only matters in the case of multiple
+inheritance. In the case of single inheritance, Perl simply looks up
+the inheritance chain to find a method:
+
+  Grandparent
+    |
+  Parent
+    |
+  Child
+
+If we call a method on a C<Child> object and that method is not defined
+in the C<Child> class, Perl will look for that method in the C<Parent>
+class and then, if necessary, in the C<Grandparent> class.
+
+If Perl cannot find the method in any of these classes, it will die
+with an error message.
+
+When a class has multiple parents, the method lookup order becomes more
+complicated.
+
+By default, Perl does a depth-first left-to-right search for a method.
+That means it starts with the first parent in the C<@ISA> array, and
+then searches all of its parents, grandparents, etc. If it fails to
+find the method, it then goes to the next parent in the original
+class's C<@ISA> array and searches from there.
+
+            SharedGreatGrandParent
+            /                    \
+  PaternalGrandparent       MaternalGrandparent
+            \                    /
+             Father        Mother
+                   \      /
+                    Child
+
+So given the diagram above, Perl will search C<Child>, C<Father>,
+C<PaternalGrandparent>, C<SharedGreatGrandParent>, C<Mother>, and
+finally C<MaternalGrandparent>. This may be a problem because now we're
+looking in C<SharedGreatGrandParent> I<before> we've checked all its
+derived classes (i.e. before we tried C<Mother> and
+C<MaternalGrandparent>).
+
+It is possible to ask for a different method resolution order with the
+L<mro> pragma.
+
+  package Child;
+
+  use mro 'c3';
+  use parent 'Father', 'Mother';
+
+This pragma lets you switch to the "C3" resolution order. In simple
+terms, "C3" order ensures that shared parent classes are never searched
+before child classes, so Perl will now search: C<Child>, C<Father>,
+C<PaternalGrandparent>, C<Mother> C<MaternalGrandparent>, and finally
+C<SharedGreatGrandParent>. Note however that this is not
+"breadth-first" searching: All the C<Father> ancestors (except the
+common ancestor) are searched before any of the C<Mother> ancestors are
+considered.
+
+The C3 order also lets you call methods in sibling classes with the
+C<next> pseudo-class. See the L<mro> documentation for more details on
+this feature.
+
+=head3 Method Resolution Caching
+
+When Perl searches for a method, it caches the lookup so that future
+calls to the method do not need to search for it again. Changing a
+class's parent class or adding subroutines to a class will invalidate
+the cache for that class.
+
+The L<mro> pragma provides some functions for manipulating the method
+cache directly.
+
+=head2 Writing Constructors
+X<constructor>
+
+As we mentioned earlier, Perl provides no special constructor syntax.
+This means that a class must implement its own constructor. A
+constructor is simply a class method that returns a reference to a new
+object.
+
+The constructor can also accept additional parameters that define the
+object. Let's write a real constructor for the C<File> class we used
+earlier:
+
+  package File;
+
+  sub new {
+      my $class = shift;
+      my ( $path, $data ) = @_;
+
+      my $self = bless {
+          path => $path,
+          data => $data,
+      }, $class;
+
+      return $self;
+  }
+
+As you can see, we've stored the path and file data in the object
+itself. Remember, under the hood, this object is still just a hash.
+Later, we'll write accessors to manipulate this data.
+
+For our C<File::MP3> class, we can check to make sure that the path
+we're given ends with ".mp3":
+
+  package File::MP3;
+
+  sub new {
+      my $class = shift;
+      my ( $path, $data ) = @_;
+
+      die "You cannot create a File::MP3 without an mp3 extension\n"
+          unless $path =~ /\.mp3\z/;
+
+      return $class->SUPER::new(@_);
+  }
+
+This constructor lets its parent class do the actual object
+construction.
+
+=head2 Attributes
+X<attribute>
+
+An attribute is a piece of data belonging to a particular object.
+Unlike most object-oriented languages, Perl provides no special syntax
+or support for declaring and manipulating attributes.
+
+Attributes are often stored in the object itself. For example, if the
+object is an anonymous hash, we can store the attribute values in the
+hash using the attribute name as the key.
+
+While it's possible to refer directly to these hash keys outside of the
+class, it's considered a best practice to wrap all access to the
+attribute with accessor methods.
+
+This has several advantages. Accessors make it easier to change the
+implementation of an object later while still preserving the original
+API.
+
+An accessor lets you add additional code around attribute access. For
+example, you could apply a default to an attribute that wasn't set in
+the constructor, or you could validate that a new value for the
+attribute is acceptable.
+
+Finally, using accessors makes inheritance much simpler. Subclasses can
+use the accessors rather than having to know how a parent class is
+implemented internally.
+
+=head3 Writing Accessors
+X<accessor>
+
+As with constructors, Perl provides no special accessor declaration
+syntax, so classes must provide explicitly written accessor methods.
+There are two common types of accessors, read-only and read-write.
+
+A simple read-only accessor simply gets the value of a single
+attribute:
+
+  sub path {
+      my $self = shift;
+
+      return $self->{path};
+  }
+
+A read-write accessor will allow the caller to set the value as well as
+get it:
+
+  sub path {
+      my $self = shift;
+
+      if (@_) {
+          $self->{path} = shift;
+      }
+
+      return $self->{path};
+  }
+
+=head2 An Aside About Smarter and Safer Code
+
+Our constructor and accessors are not very smart. They don't check that
+a C<$path> is defined, nor do they check that a C<$path> is a valid
+filesystem path.
+
+Doing these checks by hand can quickly become tedious. Writing a bunch
+of accessors by hand is also incredibly tedious. There are a lot of
+modules on CPAN that can help you write safer and more concise code,
+including the modules we recommend in L<perlootut>.
+
+=head2 Method Call Variations
+X<method>
+
+Perl supports several other ways to call methods besides the C<<
+$object->method() >> usage we've seen so far.
+
+=head3 Method Names with a Fully Qualified Name
+
+Perl allows you to call methods using their fully qualified name (the
+package and method name):
+
+  my $mp3 = File::MP3->new( 'Regin.mp3', $data );
+  $mp3->File::save();
+
+When you call a fully qualified method name like C<File::save>, the method
+resolution search for the C<save> method starts in the C<File> class,
+skipping any C<save> method the C<File::MP3> class may have defined. It
+still searches the C<File> class's parents if necessary.
+
+While this feature is most commonly used to explicitly call methods
+inherited from an ancestor class, there is no technical restriction
+that enforces this:
+
+  my $obj = Tree->new();
+  $obj->Dog::bark();
+
+This calls the C<bark> method from class C<Dog> on an object of class
+C<Tree>, even if the two classes are completely unrelated. Use this
+with great care.
+
+The C<SUPER> pseudo-class that was described earlier is I<not> the same
+as calling a method with a fully-qualified name. See the earlier
+L</Inheritance> section for details.
+
+=head3 Method Names as Strings
+
+Perl lets you use a scalar variable containing a string as a method
+name:
+
+  my $file = File->new( $path, $data );
+
+  my $method = 'save';
+  $file->$method();
+
+This works exactly like calling C<< $file->save() >>. This can be very
+useful for writing dynamic code. For example, it allows you to pass a
+method name to be called as a parameter to another method.
+
+=head3 Class Names as Strings
+
+Perl also lets you use a scalar containing a string as a class name:
+
+  my $class = 'File';
+
+  my $file = $class->new( $path, $data );
+
+Again, this allows for very dynamic code.
+
+=head3 Subroutine References as Methods
+
+You can also use a subroutine reference as a method:
+
+  my $sub = sub {
+      my $self = shift;
+
+      $self->save();
+  };
+
+  $file->$sub();
+
+This is exactly equivalent to writing C<< $sub->($file) >>. You may see
+this idiom in the wild combined with a call to C<can>:
+
+  if ( my $meth = $object->can('foo') ) {
+      $object->$meth();
+  }
+
+=head3 Dereferencing Method Call
+
+Perl also lets you use a dereferenced scalar reference in a method
+call. That's a mouthful, so let's look at some code:
+
+  $file->${ \'save' };
+  $file->${ returns_scalar_ref() };
+  $file->${ \( returns_scalar() ) };
+  $file->${ returns_ref_to_sub_ref() };
+
+This works if the dereference produces a string I<or> a subroutine
+reference.
+
+=head3 Method Calls on Filehandles
+
+Under the hood, Perl filehandles are instances of the C<IO::Handle> or
+C<IO::File> class. Once you have an open filehandle, you can call
+methods on it. Additionally, you can call methods on the C<STDIN>,
+C<STDOUT>, and C<STDERR> filehandles.
+
+  open my $fh, '>', 'path/to/file';
+  $fh->autoflush();
+  $fh->print('content');
+
+  STDOUT->autoflush();
+
+=head2 Invoking Class Methods
+X<invocation>
+
+Because Perl allows you to use barewords for package names and
+subroutine names, it sometimes interprets a bareword's meaning
+incorrectly. For example, the construct C<< Class->new() >> can be
+interpreted as either C<< 'Class'->new() >> or C<< Class()->new() >>.
+In English, that second interpretation reads as "call a subroutine
+named Class(), then call new() as a method on the return value of
+Class()". If there is a subroutine named C<Class()> in the current
+namespace, Perl will always interpret C<< Class->new() >> as the second
+alternative: a call to C<new()> on the object  returned by a call to
+C<Class()>
+
+You can force Perl to use the first interpretation (i.e. as a method
+call on the class named "Class") in two ways. First, you can append a
+C<::> to the class name:
+
+    Class::->new()
+
+Perl will always interpret this as a method call.
+
+Alternatively, you can quote the class name:
+
+    'Class'->new()
+
+Of course, if the class name is in a scalar Perl will do the right
+thing as well:
+
+    my $class = 'Class';
+    $class->new();
+
+=head3 Indirect Object Syntax
+X<indirect object>
+
+B<Outside of the file handle case, use of this syntax is discouraged as
+it can confuse the Perl interpreter. See below for more details.>
+
+Perl supports another method invocation syntax called "indirect object"
+notation. This syntax is called "indirect" because the method comes
+before the object it is being invoked on.
+
+This syntax can be used with any class or object method:
+
+    my $file = new File $path, $data;
+    save $file;
+
+We recommend that you avoid this syntax, for several reasons.
+
+First, it can be confusing to read. In the above example, it's not
+clear if C<save> is a method provided by the C<File> class or simply a
+subroutine that expects a file object as its first argument.
+
+When used with class methods, the problem is even worse. Because Perl
+allows subroutine names to be written as barewords, Perl has to guess
+whether the bareword after the method is a class name or subroutine
+name. In other words, Perl can resolve the syntax as either C<<
+File->new( $path, $data ) >> B<or> C<< new( File( $path, $data ) ) >>.
+
+To parse this code, Perl uses a heuristic based on what package names
+it has seen, what subroutines exist in the current package, what
+barewords it has previously seen, and other input. Needless to say,
+heuristics can produce very surprising results!
+
+Older documentation (and some CPAN modules) encouraged this syntax,
+particularly for constructors, so you may still find it in the wild.
+However, we encourage you to avoid using it in new code.
+
+You can force Perl to interpret the bareword as a class name by
+appending "::" to it, like we saw earlier:
+
+  my $file = new File:: $path, $data;
+
+Indirect object syntax is only available when the 
+L<C<"indirect">|feature/The 'indirect' feature> named feature is enabled.
+This is enabled by default, but can be disabled if requested.  This
+feature is present in older feature version bundles, but was removed
+from the C<:5.36> bundle; so a L<C<use VERSION>|perlfunc/use VERSION>
+declaration of C<v5.36> or above will also disable the feature.
+
+    use v5.36;
+    # indirect object syntax is no longer available
+
+=head2 C<bless>, C<blessed>, and C<ref>
+
+As we saw earlier, an object is simply a data structure that has been
+blessed into a class via the C<bless> function. The C<bless> function
+can take either one or two arguments:
+
+  my $object = bless {}, $class;
+  my $object = bless {};
+
+In the first form, the anonymous hash is being blessed into the class
+in C<$class>. In the second form, the anonymous hash is blessed into
+the current package.
+
+The second form is strongly discouraged, because it breaks the ability
+of a subclass to reuse the parent's constructor, but you may still run
+across it in existing code.
+
+If you want to know whether a particular scalar refers to an object,
+you can use the C<blessed> function exported by L<Scalar::Util>, which
+is shipped with the Perl core.
+
+  use Scalar::Util 'blessed';
+
+  if ( defined blessed($thing) ) { ... }
+
+If C<$thing> refers to an object, then this function returns the name
+of the package the object has been blessed into. If C<$thing> doesn't
+contain a reference to a blessed object, the C<blessed> function
+returns C<undef>.
+
+Note that C<blessed($thing)> will also return false if C<$thing> has
+been blessed into a class named "0". This is a possible, but quite
+pathological. Don't create a class named "0" unless you know what
+you're doing.
+
+Similarly, Perl's built-in C<ref> function treats a reference to a
+blessed object specially. If you call C<ref($thing)> and C<$thing>
+holds a reference to an object, it will return the name of the class
+that the object has been blessed into.
+
+If you simply want to check that a variable contains an object
+reference, we recommend that you use C<defined blessed($object)>, since
+C<ref> returns true values for all references, not just objects.
+
+=head2 The UNIVERSAL Class
+X<UNIVERSAL>
+
+All classes automatically inherit from the L<UNIVERSAL> class, which is
+built-in to the Perl core. This class provides a number of methods, all
+of which can be called on either a class or an object. You can also
+choose to override some of these methods in your class. If you do so,
+we recommend that you follow the built-in semantics described below.
+
+=over 4
+
+=item isa($class)
+X<isa>
+
+The C<isa> method returns I<true> if the object is a member of the
+class in C<$class>, or a member of a subclass of C<$class>.
+
+If you override this method, it should never throw an exception.
+
+=item DOES($role)
+X<DOES>
+
+The C<DOES> method returns I<true> if its object claims to perform the
+role C<$role>. By default, this is equivalent to C<isa>. This method is
+provided for use by object system extensions that implement roles, like
+C<Moose> and C<Role::Tiny>.
+
+You can also override C<DOES> directly in your own classes. If you
+override this method, it should never throw an exception.
+
+=item can($method)
+X<can>
+
+The C<can> method checks to see if the class or object it was called on
+has a method named C<$method>. This checks for the method in the class
+and all of its parents. If the method exists, then a reference to the
+subroutine is returned. If it does not then C<undef> is returned.
+
+If your class responds to method calls via C<AUTOLOAD>, you may want to
+overload C<can> to return a subroutine reference for methods which your
+C<AUTOLOAD> method handles.
+
+If you override this method, it should never throw an exception.
+
+=item VERSION($need)
+X<VERSION>
+
+The C<VERSION> method returns the version number of the class
+(package).
+
+If the C<$need> argument is given then it will check that the current
+version (as defined by the $VERSION variable in the package) is greater
+than or equal to C<$need>; it will die if this is not the case. This
+method is called automatically by the C<VERSION> form of C<use>.
+
+    use Package 1.2 qw(some imported subs);
+    # implies:
+    Package->VERSION(1.2);
+
+We recommend that you use this method to access another package's
+version, rather than looking directly at C<$Package::VERSION>. The
+package you are looking at could have overridden the C<VERSION> method.
+
+We also recommend using this method to check whether a module has a
+sufficient version. The internal implementation uses the L<version>
+module to make sure that different types of version numbers are
+compared correctly.
+
+=back
+
+=head2 AUTOLOAD
+X<AUTOLOAD>
+
+If you call a method that doesn't exist in a class, Perl will throw an
+error. However, if that class or any of its parent classes defines an
+C<AUTOLOAD> method, that C<AUTOLOAD> method is called instead.
+
+C<AUTOLOAD> is called as a regular method, and the caller will not know
+the difference. Whatever value your C<AUTOLOAD> method returns is
+returned to the caller.
+
+The fully qualified method name that was called is available in the
+C<$AUTOLOAD> package global for your class. Since this is a global, if
+you want to refer to do it without a package name prefix under C<strict
+'vars'>, you need to declare it.
+
+  # XXX - this is a terrible way to implement accessors, but it makes
+  # for a simple example.
+  our $AUTOLOAD;
+  sub AUTOLOAD {
+      my $self = shift;
+
+      # Remove qualifier from original method name...
+      my $called =  $AUTOLOAD =~ s/.*:://r;
+
+      # Is there an attribute of that name?
+      die "No such attribute: $called"
+          unless exists $self->{$called};
+
+      # If so, return it...
+      return $self->{$called};
+  }
+
+  sub DESTROY { } # see below
+
+Without the C<our $AUTOLOAD> declaration, this code will not compile
+under the L<strict> pragma.
+
+As the comment says, this is not a good way to implement accessors.
+It's slow and too clever by far. However, you may see this as a way to
+provide accessors in older Perl code. See L<perlootut> for
+recommendations on OO coding in Perl.
+
+If your class does have an C<AUTOLOAD> method, we strongly recommend
+that you override C<can> in your class as well. Your overridden C<can>
+method should return a subroutine reference for any method that your
+C<AUTOLOAD> responds to.
+
+=head2 Destructors
+X<destructor> X<DESTROY>
+
+When the last reference to an object goes away, the object is
+destroyed. If you only have one reference to an object stored in a
+lexical scalar, the object is destroyed when that scalar goes out of
+scope. If you store the object in a package global, that object may not
+go out of scope until the program exits.
+
+If you want to do something when the object is destroyed, you can
+define a C<DESTROY> method in your class. This method will always be
+called by Perl at the appropriate time, unless the method is empty.
+
+This is called just like any other method, with the object as the first
+argument. It does not receive any additional arguments. However, the
+C<$_[0]> variable will be read-only in the destructor, so you cannot
+assign a value to it.
+
+If your C<DESTROY> method throws an exception, this will not cause
+any control transfer beyond exiting the method.  The exception will be
+reported to C<STDERR> as a warning, marked "(in cleanup)", and Perl will
+continue with whatever it was doing before.
+
+Because C<DESTROY> methods can be called at any time, you should localize
+any global status variables that might be set by anything you do in
+your C<DESTROY> method.  If you are in doubt about a particular status
+variable, it doesn't hurt to localize it.  There are five global status
+variables, and the safest way is to localize all five of them:
+
+  sub DESTROY {
+      local($., $@, $!, $^E, $?);
+      my $self = shift;
+      ...;
+  }
+
+If you define an C<AUTOLOAD> in your class, then Perl will call your
+C<AUTOLOAD> to handle the C<DESTROY> method. You can prevent this by
+defining an empty C<DESTROY>, like we did in the autoloading example.
+You can also check the value of C<$AUTOLOAD> and return without doing
+anything when called to handle C<DESTROY>.
+
+=head3 Global Destruction
+
+The order in which objects are destroyed during the global destruction
+before the program exits is unpredictable. This means that any objects
+contained by your object may already have been destroyed. You should
+check that a contained object is defined before calling a method on it:
+
+  sub DESTROY {
+      my $self = shift;
+
+      $self->{handle}->close() if $self->{handle};
+  }
+
+You can use the C<${^GLOBAL_PHASE}> variable to detect if you are
+currently in the global destruction phase:
+
+  sub DESTROY {
+      my $self = shift;
+
+      return if ${^GLOBAL_PHASE} eq 'DESTRUCT';
+
+      $self->{handle}->close();
+  }
+
+Note that this variable was added in Perl 5.14.0. If you want to detect
+the global destruction phase on older versions of Perl, you can use the
+C<Devel::GlobalDestruction> module on CPAN.
+
+If your C<DESTROY> method issues a warning during global destruction,
+the Perl interpreter will append the string " during global
+destruction" to the warning.
+
+During global destruction, Perl will always garbage collect objects
+before unblessed references. See L<perlhacktips/PERL_DESTRUCT_LEVEL>
+for more information about global destruction.
+
+=head2 Non-Hash Objects
+
+All the examples so far have shown objects based on a blessed hash.
+However, it's possible to bless any type of data structure or referent,
+including scalars, globs, and subroutines. You may see this sort of
+thing when looking at code in the wild.
+
+Here's an example of a module as a blessed scalar:
+
+  package Time;
+
+  use v5.36;
+
+  sub new {
+      my $class = shift;
+
+      my $time = time;
+      return bless \$time, $class;
+  }
+
+  sub epoch {
+      my $self = shift;
+      return $$self;
+  }
+
+  my $time = Time->new();
+  print $time->epoch();
+
+=head2 Inside-Out objects
+
+In the past, the Perl community experimented with a technique called
+"inside-out objects". An inside-out object stores its data outside of
+the object's reference, indexed on a unique property of the object,
+such as its memory address, rather than in the object itself. This has
+the advantage of enforcing the encapsulation of object attributes,
+since their data is not stored in the object itself.
+
+This technique was popular for a while (and was recommended in Damian
+Conway's I<Perl Best Practices>), but never achieved universal
+adoption. The L<Object::InsideOut> module on CPAN provides a
+comprehensive implementation of this technique, and you may see it or
+other inside-out modules in the wild.
+
+Here is a simple example of the technique, using the
+L<Hash::Util::FieldHash> core module. This module was added to the core
+to support inside-out object implementations.
+
+  package Time;
+
+  use v5.36;
+
+  use Hash::Util::FieldHash 'fieldhash';
+
+  fieldhash my %time_for;
+
+  sub new {
+      my $class = shift;
+
+      my $self = bless \( my $object ), $class;
+
+      $time_for{$self} = time;
+
+      return $self;
+  }
+
+  sub epoch {
+      my $self = shift;
+
+      return $time_for{$self};
+  }
+
+  my $time = Time->new;
+  print $time->epoch;
+
+=head2 Pseudo-hashes
+
+The pseudo-hash feature was an experimental feature introduced in
+earlier versions of Perl and removed in 5.10.0. A pseudo-hash is an
+array reference which can be accessed using named keys like a hash. You
+may run in to some code in the wild which uses it. See the L<fields>
+pragma for more information.
+
+=head1 SEE ALSO
+
+A kinder, gentler tutorial on object-oriented programming in Perl can
+be found in L<perlootut>. You should also check out L<perlmodlib> for
+some style guides on constructing both modules and classes.
+

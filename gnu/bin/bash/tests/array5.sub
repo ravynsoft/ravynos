@@ -1,0 +1,47 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+: ${TMPDIR:=/tmp}
+
+mkdir $TMPDIR/bash-test-$$
+cd $TMPDIR/bash-test-$$
+
+trap "cd $OLDPWD ; rm -rf $TMPDIR/bash-test-$$" 0 1 2 3 6 15
+
+touch '[3]=abcde'
+
+touch r s t u v
+
+declare -a x=(*)
+
+echo ${x[3]}
+echo ${x[@]}
+
+unset x
+x=(a b c d e)
+
+echo ${x[*]: -1}
+
+unset x[4]
+unset x[2]
+
+x[9]='9'
+
+echo ${x[*]: -1}
+
+TOOLKIT=(1 2 3 4 5 6 7 8 9 10)
+ARRAY="1"
+echo ${TOOLKIT["$ARRAY"]}
+
+exit 0

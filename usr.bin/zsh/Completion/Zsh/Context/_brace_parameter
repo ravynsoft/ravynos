@@ -1,0 +1,214 @@
+#compdef -brace-parameter-
+
+local char delim found_percent found_m exp
+local -a flags
+integer q_last n_q
+
+if [[ $PREFIX = *'${('[^\)]# ]]; then
+  # Parameter flags.
+  compset -p 3
+
+  # Based on code in _globquals.
+  while [[ -n $PREFIX ]]; do
+    char=$PREFIX[1]
+    compset -p 1
+    if [[ $char = q ]]; then
+      (( q_last++, n_q++ ))
+      continue
+    else
+      (( q_last = 0 ))
+    fi
+    # Skip arguments to find what's left to complete
+    case $char in
+      (%)
+      found_percent=1
+      ;;
+
+      (m)
+      found_m=1
+      ;;
+
+      ([gIjsZ_])
+      # Single delimited argument.
+      if [[ -z $PREFIX ]]; then
+	_delimiters qualifier-$char
+	return
+      elif ! _globqual_delims; then
+	# still completing argument
+	case $char in
+	  (g)
+	  compset -P '*'
+	  flags=('o:octal escapes' 'c:expand ^X etc.' 'e:expand \\M-t etc.')
+	  _describe -t format 'format option' flags -Q -S ''
+	  ;;
+
+	  (I)
+	  _message 'integer expression'
+	  ;;
+
+	  ([js])
+	  _message "separator"
+	  ;;
+
+	  (Z)
+	  compset -P '*'
+	  flags=(
+	    'c:parse comments as strings (else as ordinary words)'
+	    'C:strip comments (else treat as ordinary words)'
+	    'n:treat newlines as whitespace'
+	  )
+	  _describe -t format 'format option' flags -Q -S ''
+	  ;;
+
+	  (_)
+	  _message "no useful values"
+	  ;;
+	esac
+	return
+      fi
+      ;;
+
+      ([lr])
+      # One compulsory argument, two optional.
+      if [[ -z $PREFIX ]]; then
+	_delimiters qualifier-$char
+	return
+      else
+	delim=$PREFIX[1]
+	if ! _globqual_delims; then
+	  # still completing argument
+	  _message "padding width"
+	  return
+	fi
+	# TBD if $PREFIX is empty can complete
+	# either repeat delimiter or a new qualifier.
+	# You might think it would just be easier
+	# for the user to type the delimiter at
+	# this stage, but users are astonishingly lazy.
+	if [[ $delim = $PREFIX[1] ]]; then
+	  # second argument
+	  if ! _globqual_delims; then
+	    _message "repeated padding"
+	    return
+	  fi
+	  if [[ $delim = $PREFIX[1] ]]; then
+	    if ! _globqual_delims; then
+	      _message "one-off padding"
+	      return
+	    fi
+	  fi
+	fi
+      fi
+      ;;
+    esac
+  done
+
+  if [[ -z $found_percent ]]; then
+    flags=("%:expand prompt sequences")
+  else
+    flags=("%:expand prompts respecting options")
+  fi
+  case $q_last in
+    (0)
+    if (( n_q == 0 )); then
+      flags+=("q:quote with backslashes")
+    fi
+    ;;
+
+    (1)
+    flags+=(
+      "q:quote with single quotes"
+      "-:quote minimally for readability"
+      "+:quote like q-, plus \$'...' for unprintable characters"
+    )
+    ;;
+
+    (2)
+    flags+=("q:quote with double quotes")
+    ;;
+
+    (3)
+    flags+=("q:quote with \$'...'")
+    ;;
+  esac
+  if (( !n_q )); then
+    flags+=("Q:remove one level of quoting")
+  fi
+  if [[ -z $found_m ]]; then
+    flags+=("m:count multibyte width in padding calculation")
+  else
+    flags+=("m:count number of character code points in padding calculation")
+  fi
+  flags+=(
+    "#:interpret numeric expression as character code"
+    "@:prevent double-quoted joining of arrays"
+    "*:enable extended globs for pattern"
+    "A:assign as an array parameter"
+    "a:sort in array index order (with O to reverse)"
+    "b:backslash quote pattern characters only"
+    "c:count characters in an array (with \${(c)#...})"
+    "C:capitalize words"
+    "D:perform directory name abbreviation"
+    "e:perform single-word shell expansions"
+    "f:split the result on newlines"
+    "F:join arrays with newlines"
+    "g:process echo array sequences (needs options)"
+    "i:sort case-insensitively"
+    "k:substitute keys of associative arrays"
+    "L:lower case all letters"
+    "n:sort positive decimal integers numerically"
+    "-:sort decimal integers numerically"
+    "o:sort in ascending order (lexically if no other sort option)"
+    "O:sort in descending order (lexically if no other sort option)"
+    "P:use parameter value as name of parameter for redirected lookup"
+    "t:substitute type of parameter"
+    "u:substitute first occurrence of each unique word"
+    "U:upper case all letters"
+    "v:substitute values of associative arrays (with (k))"
+    "V:visibility enhancements for special characters"
+    "w:count words in array or string (with \${(w)#...})"
+    "W:count words including empty words (with \${(W)#...})"
+    "X:report parsing errors and eXit substitution"
+    "z:split words as if zsh command line"
+    "0:split words on null bytes"
+    "p:handle print escapes or variables in parameter flag arguments"
+    "~:treat strings in parameter flag arguments as patterns"
+    "j:join arrays with specified string"
+    "l:left-pad resulting words"
+    "r:right-pad resulting words"
+    "s:split words on specified string"
+    "Z:split words as if zsh command line (with options)"
+    # "_:extended flags, for future expansion"
+    "S:match non-greedy in /, // or search substrings in % and # expressions"
+    "I:search <argument>th match in #, %, / expressions"
+    "B:include index of beginning of match in #, % expressions"
+    "E:include index of one past end of match in #, % expressions"
+    "M:include matched portion in #, % expressions"
+    "N:include length of match in #, % expressions"
+    "R:include rest (unmatched portion) in #, % expressions"
+  )
+  _describe -t flags "parameter flag" flags -Q -S ''
+  return
+elif compset -P '*:([\|\*\^]|\^\^)'; then
+  _arrays
+  return
+elif compset -P '*:'; then
+    flags=(
+      '-:substitute alternate value if parameter is null'
+      '+:substitute alternate value if parameter is non-null'
+      '=:substitute and assign alternate value if parameter is null'
+      '\:=:unconditionally assign value to parameter'
+      '?:print error if parameter is null'
+      '#:filter value matching pattern'
+      '/:replace whole word matching pattern'
+      '|:set difference'
+      '*:set intersection'
+      '^:zip arrays'
+      '^^:zip arrays reusing values from shorter array'
+    )
+    _describe -t flags "operator" flags -Q -S ''
+    _history_modifiers p
+    return
+fi
+
+_parameters -e

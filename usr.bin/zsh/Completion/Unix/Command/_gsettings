@@ -1,0 +1,50 @@
+#compdef gsettings
+
+local curcontext="$curcontext" state line expl ret=1
+local subcmds
+
+_arguments -A "-*" \
+  '(- 1 *)--version[show version information]' \
+  '--schemadir[specify location of schemata]:directory:_directories' \
+  ':command:->subcmds' \
+  '*::args:->subargs' && ret=0
+
+if [[ $state = subargs ]]; then
+  curcontext="${curcontext%:*}-$words[1]:"
+  case $words[1] in
+    help) state=subcmds;;
+    describe|get|range|reset|writable|monitor)
+      _arguments ':schema:->schemata' ':key:->keys'
+    ;;
+    set)
+      _arguments ':schema:->schemata' ':key:->keys' ':value'
+    ;;
+    (list|reset)-(keys|recursively|children)) state=schemata ;;
+    list-schemas)
+      _arguments '--print-paths'
+    ;;
+    *) _default && ret=0 ;;
+  esac
+fi
+
+case $state in
+  subcmds)
+    subcmds=( ${(L)${${(M)${${(f)"$(_call_program commands $service help)"}[(r)Commands:*,-2]}:#  *}#??}/ ##/:} )
+    _describe -t commands 'command' subcmds -M 'r:?|-=* r:|=*' && ret=0
+    state=''
+  ;;
+  schemata)
+    if compset -P 1 '*:'; then
+      _directories && ret=0
+    else
+      _wanted schemata expl 'schema' compadd -M 'r:|.=* r:|=*' \
+          $(_call_program schemata $service list-schemas) && ret=0
+    fi
+  ;;
+  keys)
+    _wanted keys expl 'key' compadd \
+        $(_call_program keys $service list-keys $words[CURRENT-1]) && ret=0
+  ;;
+esac
+
+return ret

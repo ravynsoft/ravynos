@@ -1,0 +1,10 @@
+Test that removed features can be disabled, but not enabled.
+
+__END__
+use feature "array_base";
+EXPECT
+OPTIONS regex
+^Feature "array_base" is not supported by Perl [v0-9.]+ at - line 1.
+########
+no feature "array_base";
+EXPECT

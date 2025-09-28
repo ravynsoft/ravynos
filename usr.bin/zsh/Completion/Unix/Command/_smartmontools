@@ -1,0 +1,61 @@
+#compdef smartctl
+
+local context state state_descr line
+
+_arguments -s -S \
+  '(H -i --info)'{-i,--info}'[show identity information for device]' \
+  '(H)--identify=-[show words and bits from identification data]: : _values -S "" "words and bits"
+    "(n v)b[print all bits]"
+    "w[print all words]"
+    "(b v)n[suppress printing bits]"
+    "(b n)v[print all bits from valid words]"' \
+  '(H)*'{-g+,--get=}'[get device setting]:setting:(all aam apm lookahead security wcache rcache wcreorder)' \
+  '(H -a --all -x --xall -H --health -i --info -c --capabilities -A --attributes --scan --scan-open)'{-a,--all}'[show all SMART information for device]' \
+  '(H -x --xall -a --all -H --health -i --info -c --capabilities -A --attributes --scan --scan-open)'{-x,--xall}'[show all information for device]' \
+  '(H 1 --scan-open --identify -x --xall -a --all -H --health -i --info -c --capabilities -A --attributes)--scan[scan for devices]' \
+  '(H 1 --scan --identify -x --xall -a --all -H --health -i --info -c --capabilities -A --attributes)--scan-open[scan for devices and try to open each device]' \
+  '(H -q --quietmode)'{-q+,--quietmode=}'[set smartctl quiet mode]:quiet mode:(errorsonly silent noserial)' \
+  '(H -d --device)'{-d+,--device=}'[specify device type]:device type:(ata scsi nvme sat usbcypress usbjmicron usbprolific usbsunplus marvell areca  3ware hpt megaraid cciss auto test)' \
+  '(H)*'{-T+,--tolerance=}'[specify how tolerant smartctl should be of ATA SMART command failures]:tolerance:(normal conservative permissive verypermissive)' \
+  '(H -b --badsum)'{-b+,--badsum=}'[set action if checksum error is detected]:action:(warn exit ignore)' \
+  '(H)*'{-r+,--report=}'[report transactions]:transaction type:(ioctl ataioctl scsiioctl nvmeioctl)' \
+  '(H -n --nocheck)'{-n+,--nocheck=}'[exit if the device is in a low-power mode]:power mode causing exit:(never sleep standby idle)' \
+  '(H -s --smart)--smart=[enable/disable SMART on device]:enable:(on off)' \
+  '(H -o --offlineauto)'{-o+,--offlineauto=}'[enable/disable automatic offline test on device]:enable:(on off)' \
+  '(H -S --saveauto)'{-S+,--saveauto=}'[enable/disable attribute autosave on device]:enable:(on off)' \
+  '(H -s --set)'{-s+,--set=}'[enable/disable/change device setting]:setting:->settings' \
+  '(H -H --health)'{-H,--health}'[show device SMART health status]' \
+  '(H -c --capabilities)'{-c,--capabilities}'[show device SMART capabilities]' \
+  '(H -A --attributes)'{-A,--attributes}'[show device SMART vendor-specific attributes and values]' \
+  '(H)*'{-f+,--format=}'[set output format for attributes]:format:(old brief hex,id hex,val hex)' \
+  '(H)*'{-l+,--log=}'[show device log]:log:(error selftest selective directory xerror xselftest background sasphy sataphy scttemp scttempsts scttemphist scttempint scterc devstat ssd gplog smartlog nvmelog)' \
+  '(H)*'{-v+,--vendorattribute=}'[set display option for vendor attribute]:vendor attribute:->vendorattrs' \
+  '(H -F --firmwarebug)'{-F+,--firmwarebug=}'[use firmware bug workaround]:bug:(none nologdir samsung samsung2 samsung3 xerrorlba swapid)' \
+  '(H -P --presets)'{-P+,--presets=}'[specify whether to use drive-specific presets]:preset usage:(use ignore show showall)' \
+  '(H -B --drivedb)'{-B+,--drivedb=}'[read drive database from file]:file:->plusfiles' \
+  '(H -t --test)'{-t+,--test=}'[run specified self-test]:self-test:(offline short long conveyance force vendor select pending afterselect,on afterselect,off scttempint)' \
+  '(H -C --captive)'{-C,--captive}'[run self-test in captive mode]' \
+  '(H -X --abort)'{-X,--abort}'[abort any non-captive self-test]' \
+  '(H --scan --scan-open)1:disk device:_files -g "*(-%)" -P / -W /' \
+  + 'H' \
+  '(- 1)'{-h,--help,--usage}'[display help information]' \
+  '(- 1)'{-V,--version,--copyright,--license}'[display version, licence and build information]' && return
+
+case $state in
+  vendorattrs)
+    _wanted -C $context vendor-attributes expl 'vendor attribute' compadd - \
+      ${${${(f)"$(_call_program vendor-attributes $words[1] -v help)"}[(r)*help*,-1]#$'\t'}%%\[*}
+  ;;
+  plusfiles)
+    compset -P \+ || state_descr[1]+=" (prefix with + to prepend entries)"
+    _wanted -C $context files expl $state_descr _files
+  ;;
+  settings)
+    local values
+    [[ $context = option-s-1 ]] &&
+      values+=( {on\[en,off\[dis}'able SMART on device]' )
+
+    _values -S , setting $values {aam,apm,standby}':value' \
+      {lookahead,{w,r}cache,wcreorder}':enable:(on off)' security security-freeze
+  ;;
+esac

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Changes in TIFF v3.5.3 &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Changes in TIFF v3.5.2" href="v3.5.2.html" />
+    <link rel="prev" title="Changes in TIFF v3.5.4" href="v3.5.4.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="v3.5.2.html" title="Changes in TIFF v3.5.2"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="v3.5.4.html" title="Changes in TIFF v3.5.4"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="historical.html" accesskey="U">Old release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v3.5.3</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="changes-in-tiff-v3-5-3">
+<h1>Changes in TIFF v3.5.3<a class="headerlink" href="#changes-in-tiff-v3-5-3" title="Permalink to this heading">¶</a></h1>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">References</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Current Version</p></td>
+<td><p>v3.5.3 (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/tags/Release-v3-5-3">tag Release-v3-5-3</a>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Previous Version</p></td>
+<td><p><a class="reference internal" href="v3.5.2.html"><span class="doc">v3.5.2</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Master Download Site</p></td>
+<td><p><a class="reference external" href="ftp://ftp.onshore.com/pub/libtiff/">ftp://ftp.onshore.com/pub/libtiff/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Master HTTP Site</p></td>
+<td><p><a class="reference external" href="http://www.simplesystems.org/libtiff/">http://www.simplesystems.org/libtiff/</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>This document describes the changes made to the software between the
+<em>previous</em> and <em>current</em> versions (see above).
+If you don’t find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:</p>
+<section id="major-changes">
+<h2>Major changes<a class="headerlink" href="#major-changes" title="Permalink to this heading">¶</a></h2>
+<p>Please note the most important change: <strong>LZW compression has been removed</strong>.</p>
+<p>Unisys has the patent on LZW compression and have been very active in
+their enforcement of late, demanding payments of $5000 or more from
+websites using unlicensed software to create GIF’s.  They could well
+do the same do persons using libtiff to create LZW compressed TIFF
+images.</p>
+<p>From <a class="reference external" href="http://burnallgifs.org">Burn All GIF’s Day</a>:</p>
+<blockquote>
+<div><p>The catch is that it appears to be difficult or impossible to get a
+Unisys license to use LZW in free software that complies with the Open
+Source Definition</p>
+</div></blockquote>
+<p>Unfortunately, the removal of LZW compression means that saved image size has
+grown dramatically.  Without a change in the TIFF spec to support
+another lossless compression format, this is unavoidable.</p>
+<p>The library can use zip for lossless compression, but as this is not
+part of the spec, TIFFs using zip compression may not work with other
+software.</p>
+<p>We will be making a patch available that will contain the LZW
+compression code for users who have either obtained a license from
+Unisys or are willing to risk it.</p>
+<p>LZW decompression is unchanged.</p>
+</section>
+<section id="software-configuration-changes">
+<h2>Software configuration changes<a class="headerlink" href="#software-configuration-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Added zip creation to release makefile target</p></li>
+</ul>
+</section>
+<section id="library-changes">
+<h2>Library changes<a class="headerlink" href="#library-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Added html for <code class="file docutils literal notranslate"><span class="pre">TIFFWriteTile.3t</span></code> man page.</p></li>
+<li><p>Added some changes to <code class="file docutils literal notranslate"><span class="pre">tif_write.c</span></code> to support rewriting existing
+fixed sized tiles and strips.  Code mods disabled by default, only
+enabled if <code class="xref c c-macro docutils literal notranslate"><span class="pre">REWRITE_HACK</span></code> is defined for now.</p></li>
+<li><p>Added <code class="file docutils literal notranslate"><span class="pre">TIFFWriteTile.3t</span></code> man page.</p></li>
+<li><p>Added notes on use of <code class="file docutils literal notranslate"><span class="pre">makefile.vc</span></code> in <code class="file docutils literal notranslate"><span class="pre">build.html</span></code>, and fixed
+email subscription address.</p></li>
+<li><p>Did some casts cleaning up to reduce compiler warnings in <code class="file docutils literal notranslate"><span class="pre">tif_fax3.c</span></code>,
+from <a class="reference external" href="mailto:cameron&#37;&#52;&#48;petris&#46;com">Bruce Cameron</a>—modifications of
+changes made by Frank (sun cc still complained on cast).</p></li>
+<li><p>fixed various VC++ warnings as suggested by <a class="reference external" href="mailto:info&#37;&#52;&#48;winimage&#46;com">Gilles Vollant</a>.</p></li>
+<li><p>Modified <code class="file docutils literal notranslate"><span class="pre">TIFFquery.3t</span></code> man pages info on <a class="reference internal" href="../functions/TIFFquery.html#c.TIFFIsByteSwapped" title="TIFFIsByteSwapped"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFIsByteSwapped()</span></code></a> to
+not imply applications are responsible for image data swapping.</p></li>
+<li><p>HTML-ized the man pages, added to <code class="file docutils literal notranslate"><span class="pre">html/man</span></code>.</p></li>
+<li><p>Removed LZW Compression to comply with Unisys patent extortion.</p></li>
+<li><p>Corrected one remaining <code class="docutils literal notranslate"><span class="pre">16</span> <span class="pre">-&gt;</span> <span class="pre">32</span></code> bit value in <code class="file docutils literal notranslate"><span class="pre">tif_fax3.c</span></code>,
+From  <a class="reference external" href="mailto:ivo&#46;penzar&#37;&#52;&#48;infolink-software&#46;com">Ivo Penzar</a>.</p></li>
+<li><p>Added patch from Ivo Penzar to have <code class="xref c c-func docutils literal notranslate"><span class="pre">TiffAdvanceDirectory()</span></code> handle
+memory mapped files. <a class="reference external" href="mailto:ivo&#46;penzar&#37;&#52;&#48;infolink-software&#46;com">Ivo Penzar</a>.</p></li>
+</ul>
+</section>
+<section id="contributed-software-changes">
+<h2>Contributed software changes<a class="headerlink" href="#contributed-software-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Fixed apocalypse-inducing y2k bug in <code class="file docutils literal notranslate"><span class="pre">contrib/ras/ras2tiff.c</span></code></p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Changes in TIFF v3.5.3</a><ul>
+<li><a class="reference internal" href="#major-changes">Major changes</a></li>
+<li><a class="reference internal" href="#software-configuration-changes">Software configuration changes</a></li>
+<li><a class="reference internal" href="#library-changes">Library changes</a></li>
+<li><a class="reference internal" href="#contributed-software-changes">Contributed software changes</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="v3.5.4.html"
+                          title="previous chapter">Changes in TIFF v3.5.4</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="v3.5.2.html"
+                          title="next chapter">Changes in TIFF v3.5.2</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/releases/v3.5.3.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="v3.5.2.html" title="Changes in TIFF v3.5.2"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="v3.5.4.html" title="Changes in TIFF v3.5.4"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="historical.html" >Old release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v3.5.3</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

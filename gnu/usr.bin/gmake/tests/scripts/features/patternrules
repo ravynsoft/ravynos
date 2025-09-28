@@ -1,0 +1,676 @@
+#                                                                    -*-perl-*-
+
+$description = "Test pattern rules.";
+
+$details = "";
+
+use Cwd;
+
+$dir = cwd;
+$dir =~ s,.*/([^/]+)$,../$1,;
+
+
+# TEST #0: Make sure that multiple patterns where the same target
+#          can be built are searched even if the first one fails
+#          to match properly.
+#
+
+run_make_test(q!
+.PHONY: all
+
+all: case.1 case.2 case.3 case.4
+
+# We can't have this, due to "Implicit Rule Search Algorithm" step 5c
+#xxx: void
+
+# 1 - existing file
+%.1: void ; @exit 1
+%.1: #MAKEFILE# ; @exit 0
+
+# 2 - phony
+%.2: void ; @exit 1
+%.2: 2.phony ; @exit 0
+.PHONY: 2.phony
+
+# 3 - implicit-phony
+%.3: void ; @exit 1
+%.3: 3.implicit-phony ; @exit 0
+
+3.implicit-phony:
+
+# 4 - explicitly mentioned file made by an implicit rule
+%.4: void ; @exit 1
+%.4: test.x ; @exit 0
+%.x: ;
+!,
+              '', '');
+
+# TEST #1: make sure files that are built via implicit rules are marked
+#          as targets (Savannah bug #12202).
+#
+run_make_test('
+TARGETS := foo foo.out
+
+.PHONY: all foo.in
+
+all: $(TARGETS)
+
+%: %.in ; @echo $@
+
+%.out: % ; @echo $@
+
+foo.in: ; @:
+
+',
+              '', "foo\nfoo.out");
+
+
+# TEST #2: make sure intermediate files that also happened to be
+#          prerequisites are not removed (Savannah bug #12267).
+#
+run_make_test('
+$(dir)/foo.o:
+
+$(dir)/foo.y: ; @echo $@
+
+%.c: %.y ; touch $@
+
+%.o: %.c ; @echo $@
+
+.PHONY: install
+install: $(dir)/foo.c
+
+',
+              "dir=$dir", "$dir/foo.y\ntouch $dir/foo.c\n$dir/foo.o");
+
+unlink("$dir/foo.c");
+
+
+# TEST #3: make sure precious flag is set properly for targets
+#          that are built via implicit rules (Savannah bug #13218).
+#
+run_make_test('
+.DELETE_ON_ERROR:
+
+.PRECIOUS: %.bar
+
+%.bar:; @touch $@ && exit 1
+
+$(dir)/foo.bar:
+
+',
+              "dir=$dir",
+              "#MAKE#: *** [#MAKEFILE#:6: $dir/foo.bar] Error 1", 512);
+
+unlink("$dir/foo.bar");
+
+
+# TEST #4: make sure targets of a matched implicit pattern rule are
+#          never considered intermediate (Savannah bug #13022).
+#
+run_make_test('
+.PHONY: all
+all: foo.c foo.o
+
+%.h %.c: %.in ; touch $*.h ; touch $*.c
+
+%.o: %.c %.h ; echo $+ >$@
+
+%.o: %.c ; @echo wrong rule
+
+foo.in: ; touch $@
+
+',
+              '', "touch foo.in\ntouch foo.h ; touch foo.c\necho foo.c foo.h >foo.o\nrm foo.h");
+
+unlink('foo.in', 'foo.h', 'foo.c', 'foo.o');
+
+# TEST #5: make sure both prefix and suffix patterns work with multiple
+#          target patterns (Savannah bug #26593).
+#
+run_make_test('
+all: foo.s1 foo.s2 p1.foo p2.foo
+
+p1.% p2.%: %.orig ; @echo $@
+%.s1 %.s2: %.orig ; @echo $@
+
+.PHONY: foo.orig
+',
+              '', "foo.s1\np1.foo\n");
+
+# TEST 6: Make sure that non-target files are still eligible to be created
+# as part of implicit rule chaining.  Savannah bug #17752.
+
+run_make_test(sprintf(q!
+BIN = xyz
+COPY = $(BIN).cp
+SRC = $(BIN).c
+allbroken: $(COPY) $(BIN) ; @echo ok
+$(SRC): ; @echo 'main(){}' > $@
+%%.cp: %% ; @cp $< $@
+%% : %%.c ; @cp $< $@
+clean: ; @%s $(SRC) $(COPY) $(BIN)
+!, $CMD_rmfile),
+              '', "ok\n");
+
+unlink(qw(xyz xyz.cp xyz.c));
+
+# TEST 7: Make sure that all prereqs of all "also_make" targets get created
+# before any of the things that depend on any of them.  Savannah bug #19108.
+
+run_make_test(q!
+final: x ; @echo $@
+x: x.t1 x.t2 ; @echo $@
+x.t2: dep
+dep: ; @echo $@
+%.t1 %.t2: ; @echo $*.t1 ; echo $*.t2
+!,
+              '', "dep\nx.t1\nx.t2\nx\nfinal\n");
+
+
+# TEST 8: Verify we can remove pattern rules.  Savannah bug #18622.
+
+my @f = (qw(foo.w foo.ch));
+touch(@f);
+
+run_make_test(q!
+CWEAVE := :
+
+# Disable builtin rules
+%.tex : %.w
+%.tex : %.w %.ch
+!,
+              'foo.tex',
+              "#MAKE#: *** No rule to make target 'foo.tex'.  Stop.", 512);
+
+unlink(@f);
+
+# TEST #9: Test shortest stem selection in pattern rules.
+
+run_make_test('
+%.x: ;@echo one
+%-mt.x: ;@echo two
+
+all: foo.x foo-mt.x
+',
+              '', "one\ntwo");
+
+# Test pattern rules building the same targets
+# See SV 54233.
+
+touch('a.c');
+
+# a.lnk isn't listed as removed, because it's not actually created
+run_make_test(q!
+all: a.elf a.dbg
+
+%.elf %.lnk: %.c ; : $*.elf $*.lnk
+
+%.elf %.dbg: %.lnk ; : $*.elf $*.dbg
+!,
+    '-j2', ": a.elf a.lnk\n: a.elf a.dbg\n");
+
+# SV 60435 : a.lnk is removed, because it is intermediate.
+run_make_test(q!
+all: a.elf a.dbg
+
+%.elf %.lnk: %.c ; touch $*.elf $*.lnk
+
+%.elf %.dbg: %.lnk ; touch $*.elf $*.dbg
+!,
+              '-j2', "touch a.elf a.lnk\ntouch a.elf a.dbg\nrm a.lnk\n");
+
+unlink('a.elf', 'a.dbg');
+
+# SV 60435 : a.lnk is not intermediate, because it is explicitly mentioned.
+run_make_test(q!
+all: a.elf a.dbg
+
+%.elf %.lnk: %.c ; touch $*.elf $*.lnk
+
+%.elf %.dbg: %.lnk ; touch $*.elf $*.dbg
+
+install: a.lnk
+.PHONY: install
+!,
+              '-j2', "touch a.elf a.lnk\ntouch a.elf a.dbg\n");
+
+unlink('a.c', 'a.elf', 'a.dbg', 'a.lnk');
+
+# SV 56655: Test patterns matching files containing whitespace
+touch('some file.yy');
+run_make_test(q!
+%.xx : %.yy ; @echo matched
+!,
+              '"some file.xx"', "matched\n");
+
+unlink('some file.xx', 'some file.yy');
+
+
+# sv 60188.
+# Test that a file explicitly mentioned by the user and made by an implicit
+# rule is not considered intermediate.
+
+touch('hello.z');
+unlink('hello.x', 'test.x');
+
+# subtest 1
+# hello.x is not explicitly mentioned and thus is an intermediate file.
+run_make_test(q!
+all: hello.z
+%.z: %.x ; touch $@
+%.x: ;
+!,
+              '', "#MAKE#: Nothing to be done for 'all'.\n");
+
+# subtest 2
+# test.x is explicitly mentioned and thus is not an intermediate file.
+run_make_test(q!
+all: hello.z
+%.z: %.x test.x ; touch $@
+%.x: ;
+!,
+              '', "touch hello.z");
+
+# subtest 3
+# hello.x is explicitly mentioned on an unrelated rule and thus is not an
+# intermediate file.
+touch('hello.z');
+run_make_test(q!
+all: hello.z
+%.z: %.x; touch $@
+%.x: ;
+unrelated: hello.x
+!,
+              '', "touch hello.z");
+
+unlink('hello.z');
+
+# sv 60188.
+# Test that a file explicitly mentioned by the user and made by an implicit
+# rule is not considered intermediate, even when the builtin rules are used.
+
+touch('hello.x');
+touch('test.x');
+touch('hello.tsk');
+
+# subtest 1
+# hello.o is not explicitly mentioned and thus is an intermediate file.
+run_make_test(q!
+all: hello.tsk
+%.tsk: %.z ; @echo $@
+%.z : %.x ; @echo $@
+!,
+              '', "#MAKE#: Nothing to be done for 'all'.\n");
+
+# subtest 2
+# test.z is explicitly mentioned and thus is not an intermediate file.
+# test.z is built first because until it's built we don't know if we
+# need to rebuild the intermediate hello.z
+run_make_test(q!
+all: hello.tsk
+%.tsk: %.z test.z ; @echo $@
+%.z : %.x ; @echo $@
+!,
+              '', "test.z\nhello.z\nhello.tsk\n");
+
+# subtest 3
+# hello.o is not explicitly mentioned and thus is an intermediate file.
+run_make_test(q!
+all: hello.tsk
+dep:=%.o
+%.tsk: $(dep) ; @echo $@
+!,
+              '', "#MAKE#: Nothing to be done for 'all'.\n");
+
+# subtest 4
+# Even when test.z is constructed from 2 variables it is still explicitly
+# mentioned and thus is not an intermediate file.
+# test.z is built first because until it's built we don't know if we
+# need to rebuild the intermediate hello.z
+run_make_test(q!
+all: hello.tsk
+name:=test
+suf:=.z
+%.tsk: %.z $(name)$(suf) ; @echo $@
+%.z: %.x ; @echo $@
+!,
+              '', "test.z\nhello.z\nhello.tsk\n");
+
+unlink('hello.x', 'test.x', 'hello.tsk');
+
+# Test that chained pattern rules with multiple targets remove all intermediate
+# files.
+# sv 60435.
+
+# subtest 1.
+# a.1 and a.2 are intermediate and should be removed.
+
+run_make_test(q!
+a.4:
+%.4: %.1 %.15 ; cat $^ >$@
+%.1 %.15: ; touch $*.1 $*.15
+!,
+              '', "touch a.1 a.15\ncat a.1 a.15 >a.4\nrm a.15 a.1");
+
+unlink('a.4');
+
+# subtest 2.
+# a.1 and a.2 are intermediate and should be removed.
+# a.3 is explicit and should not be removed.
+run_make_test(q!
+a.4:
+%.4: %.1 %.15 a.3 ; cat $^ >$@
+%.1 %.15: ; touch $*.1 $*.15
+%.3: ; touch $@
+!,
+              '', "touch a.3\ntouch a.1 a.15\ncat a.1 a.15 a.3 >a.4\nrm a.15 a.1");
+
+unlink('a.3', 'a.4');
+
+# subtest 3.
+# a.1 and a.2 are intermediate and should be removed.
+# a.3 is explicit and should not be removed.
+run_make_test(q!
+a.4:
+%.4: %.1 %.15 a.3 ; cat $^ >$@
+%.1 %.15 %.3: ; touch $*.1 $*.15 $*.3
+!,
+              '', "touch a.1 a.15 a.3\ncat a.1 a.15 a.3 >a.4\nrm a.15 a.1");
+
+unlink('a.3', 'a.4');
+
+# subtest 4.
+# a.1 and a.2 are intermediate and should be removed.
+# a.3 is explicit and should not be removed.
+run_make_test(q!
+a.4:
+%.4: %.1 %.15 a.3 ; cat $^ >$@
+%.3 %.1 %.15: ; touch $*.1 $*.15 $*.3
+!,
+              '', "touch a.1 a.15 a.3\ncat a.1 a.15 a.3 >a.4\nrm a.15 a.1");
+
+unlink('a.3', 'a.4');
+
+# subtest 5.
+# a.1 and a.2 are intermediate and should be removed.
+# a.3 is explicit and should not be removed.
+run_make_test(q!
+a.4:
+%.4: a.3 %.1 %.15 ; cat $^ >$@
+%.1 %.15 %.3: ; touch $*.1 $*.15 $*.3
+!,
+              '', "touch a.1 a.15 a.3\ncat a.3 a.1 a.15 >a.4\nrm a.15 a.1");
+
+unlink('a.3', 'a.4');
+
+# subtest 6.
+# a.2 is intermediate and should be removed.
+# a.1 is mentioned explicitly on an unrelated rule and should not be removed.
+run_make_test(q!
+a.3:
+%.3: %.1 %.2 ; cat $^ >$@
+%.1 %.2: ; touch $*.1 $*.2
+install: a.1
+.PHONY: install
+!,
+              '', "touch a.1 a.2\ncat a.1 a.2 >a.3\nrm a.2");
+
+unlink('a.1', 'a.3');
+
+# Test removal of intermediate files.
+
+# subtest 1.
+# hello.x is removed, because it is intermediate.
+run_make_test(q!
+hello.tsk:
+%.tsk: %.x; touch $@
+%.x: ; touch $@
+!,
+              '', "touch hello.x\ntouch hello.tsk\nrm hello.x");
+
+unlink('hello.tsk');
+
+# subtest 2.
+# Even though hello.x is intermediate, it is not removed, because it is not
+# created.
+touch('hello.x');
+
+run_make_test(q!
+hello.tsk:
+%.tsk: %.x; touch $@
+%.x: ; touch $@
+!,
+              '', "touch hello.tsk");
+
+unlink('hello.x', 'hello.tsk');
+
+# subtest 2.
+# Even though hello.x is intermediate, it is not removed, because it is not
+# created.
+run_make_test(q!
+hello.tsk:
+%.tsk: %.x; touch $@
+%.x: ; : $@
+!,
+              '', ": hello.x\ntouch hello.tsk");
+
+unlink('hello.tsk');
+
+# A target explicitly listed as a prerequisite of a pattern rule, is still
+# considered mentioned and "ought to exist".
+
+run_make_test(q!
+1.all: 1.q ; touch $@
+%.q: 1.r ; touch $@
+%.r: ; touch $@
+!,
+              '', "touch 1.r\ntouch 1.q\ntouch 1.all\n");
+
+unlink('1.all', '1.q', '1.r');
+
+# SV 63098: Verify that missing also_made in pattern rules gives a warning but
+# doesn't fail.
+
+run_make_test(q!
+%a %b : ; touch $*a
+!,
+              'gta', "touch gta\n#MAKEFILE#:2: warning: pattern recipe did not update peer target 'gtb'.\n");
+unlink(qw(gta));
+
+# We don't warn if we didn't update the file
+utouch(-10, qw(gta));
+run_make_test(q!
+%a %b : xyzzy ; $(OP)
+xyzzy: ;
+ifdef RUN
+OP = @echo no
+endif
+!,
+              '-rR gta', "#MAKE#: 'gta' is up to date.\n");
+
+run_make_test(undef, '-rR gta RUN=1', "no\n");
+unlink(qw(gta));
+
+run_make_test(q!
+all:;
+include gta
+%a %b : ; touch $*a
+!,
+              '', "touch gta\n#MAKEFILE#:4: warning: pattern recipe did not update peer target 'gtb'.\n#MAKE#: 'all' is up to date.");
+unlink(qw(gta));
+
+run_make_test(q!
+%.c %.h : %.y; touch $*.c
+%.o: %.c; touch $@
+foo.y: ; touch $@
+!,
+              'foo.o', "touch foo.y\ntouch foo.c\n#MAKEFILE#:2: warning: pattern recipe did not update peer target 'foo.h'.\ntouch foo.o\nrm foo.c");
+unlink(qw(foo.y foo.c foo.o));
+
+if (0) {
+# SV 12078: Missing grouped pattern peer causes remake regardless of which
+# target caused the rule to run.
+touch(qw(gta));  # but not gtb
+run_make_test(q!
+%a %b : ; touch $*a $*b
+!,
+              'gta', "touch gta gtb\n");
+unlink(qw(gta gtb));
+
+# Ensure both goal targets are built if they depend on a grouped pattern
+touch(qw(gta));  # but not gtb
+run_make_test(q!
+x y: ; touch $@
+
+x: gta
+y: gtb
+
+%a %b : ; touch $*a $*b
+!,
+              'x y', "touch gta gtb\ntouch x\ntouch y\n");
+
+# Now everything should be up to date
+run_make_test(undef, 'x y',
+              "#MAKE#: 'x' is up to date.\n#MAKE#: 'y' is up to date.");
+
+unlink(qw(x y gta gtb));
+
+# sv 12078 : make sure we notice when all targets need to be rebuilt
+# a.1st exists but b.1st doesn't: make sure a.2nd is out of date as well
+
+utouch(-20, 'a.1st');
+utouch(-10, 'a.2nd', 'b.2nd');
+
+run_make_test(q!
+1st := a.1st b.1st
+2nd := ${1st:.1st=.2nd}
+.PHONY: all
+all: ${2nd}
+a.% b.% : ; touch a.$* b.$*
+${2nd}: %.2nd: %.1st ; cp $< $@
+!
+              , '', "touch a.1st b.1st\ncp a.1st a.2nd\ncp b.1st b.2nd\n");
+
+unlink(qw(a.1st b.1st a.2nd b.2nd));
+
+# Variation: b.1st exists but is newer
+
+utouch(-20, 'a.1st');
+utouch(-10, 'a.2nd', 'b.2nd');
+touch(qw(b.1st));
+
+run_make_test(undef, '', "cp b.1st b.2nd\n");
+
+unlink(qw(a.1st b.1st a.2nd b.2nd));
+}
+
+# sv 62206.
+
+# The following combinations are generated with and without second expansion.
+# 1.
+# all: bye.x
+# %.x: ...
+#
+# 2.
+# all: lib/bye.x
+# %.x: ...
+#
+# 3.
+# all: lib/bye.x
+# lib/%.x: ...
+#
+# The following combination is not generated, because there is no rule to
+# build bye.x, no stem substitution takes place, not of interest of this test.
+# 4.
+# all: bye.x
+# lib/%.x: ...
+
+my @dir = ('', 'lib/'); # With and without last slash.
+my @secondexpansion = ('', '.SECONDEXPANSION:');
+
+for my $se (@secondexpansion) {
+for my $d (@dir) { # The directory of the prerequisite of 'all'.
+for my $r (@dir) { # The directory of the target in the rule definition.
+(!$d && $r) && next; # Combination 4.
+my $dollar = $se ? '$' : '';
+
+# The prerequisite should only have directory if the prerequisite of 'all' has
+# it and if the prerequisite pattern in the rule definition does not have it.
+# That is combination 2.
+my $pdir = $d && !$r ? $d : '';
+
+my $prereqs = "${pdir}bye.1";
+
+# One func, one %.
+run_make_test("
+$se
+all: ${d}bye.x
+$r%.x: $dollar\$(firstword %.1); \$(info \$@ from \$^)
+.PHONY: $prereqs
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+
+$prereqs = "${pdir}bye.1 ${pdir}bye.2";
+
+# Multiple funcs, each has one %.
+run_make_test("
+$se
+all: ${d}bye.x
+$r%.x: $dollar\$(firstword %.1) $dollar\$(firstword %.2); \$(info \$@ from \$^)
+.PHONY: $prereqs
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+
+$prereqs = "${pdir}bye.1 ${pdir}bye.2 ${pdir}bye.3 ${pdir}bye.4";
+
+# Multiple funcs, each has multiple %.
+run_make_test("
+$se
+all: ${d}bye.x
+$r%.x: $dollar\$(wordlist 1, 99, %.1 %.2) $dollar\$(wordlist 1, 99, %.3 %.4); \$(info \$@ from \$^)
+.PHONY: $prereqs
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+
+$prereqs = "${pdir}bye.1 ${pdir}bye.2 ${pdir}bye.3 ${pdir}bye.4";
+
+# Nested functions.
+run_make_test("
+$se
+all: ${d}bye.x
+$r%.x: $dollar\$(wordlist 1, 99, $dollar\$(wordlist 1, 99, %.1 %.2)) $dollar\$(wordlist 1, 99, $dollar\$(wordlist 1,99, %.3 %.4)); \$(info \$@ from \$^)
+.PHONY: $prereqs
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+
+$prereqs = "${pdir}bye1%2% ${pdir}bye ${pdir}3bye4%5 ${pdir}6bye ${pdir}bye7%8 ${pdir}bye9 ${pdir}bye10% ${pdir}11bye12 13";
+
+# Multiple funcs, each has multiple words, each word has multiple %, sole %,
+# various corner cases.
+# Make should substitute the first % and only the first % in each word with the
+# stem.
+run_make_test("
+$se
+all: ${d}bye.x
+$r%.x: $dollar\$(wordlist 1, 99, %1%2% % 3%4%5 6%) %7%8 %9 $dollar\$(wordlist 1, 99, %10% 11%12) 13; \$(info \$@ from \$^)
+.PHONY: $prereqs
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+
+if ($port_type eq 'UNIX') {
+# Test that make does not use some hardcoded array of a finite size on stack.
+# Long prerequisite name. This prerequisite name is over 66K long.
+my $prefix = 'abcdefgh' x 128 x 33; # 33K long.
+my $suffix = 'stuvwxyz' x 128 x 33; # 33K long.
+$prereqs = "${pdir}${prefix}bye${suffix}.1 ${pdir}${prefix}bye${suffix}.2";
+
+run_make_test("
+$se
+all: ${d}bye.x
+$r%.x: $dollar\$(wordlist 1, 99, ${prefix}%${suffix}.1 ${prefix}%${suffix}.2); \$(info \$@ from \$^)
+.PHONY: $prereqs
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+}
+
+}
+}
+}
+
+# This tells the test driver that the perl test script executed properly.
+1;

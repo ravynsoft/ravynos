@@ -1,0 +1,36 @@
+#compdef schroot
+
+local expl context state line
+typeset -A opt_args
+local -a _comp_priv_prefix
+
+_arguments -S \
+       '(-h --help)'{-h,--help}'[help]' \
+       '(-a --all)'{-a,--all}'[select all chroots and active sessions]' \
+       '--all-chroots[select all chroots]' \
+       '--all-sessions[select all active sessions]' \
+       '*'{-c,--chroot=}'[use specified chroot]:chroot:->chroot' \
+       '(-d --directory)'{-d,--directory=}'[directory to use]:dir:_files -W / -P /' \
+       '(-u --user)'{-u,--user=}'[username (default current user)]:user:_users' \
+       '(-l --list)'{-l,--list}'[list available chroots]' \
+       '(-i --info)'{-i,--info}'[show information about selected chroots]' \
+       '--location[print location of selected chroots]' \
+       '--config[dump configuration of selected chroots]' \
+       '(-p --preserve-environment)'{-p,--preserve-environment}'[preserve user environment]' \
+       '(-q --quiet)'{-q,--quiet}'[quiet]' \
+       '(-v --verbose)'{-v,--verbose}'[verbose]' \
+       '(-V --version)'{-V,--version}'[version]' \
+       '(-b --begin-session)'{-b,--begin-session}'[begin a session; returns a session ID]' \
+       '(-r --run-session)'{-r,--run-session}'[run an existing session]' \
+       '--recover-session[recover an existing session]' \
+       '(-e --end-session)'{-e,--end-session}'[end an existing session]' \
+       '(-f --force)'{-f,--force}'[force operation]' \
+       '(-):command name: _command_names -e' \
+       '*::arguments: _normal' && return 0
+
+case "$state" in
+	(chroot)
+	_wanted tag expl 'chroot' \
+	  compadd $(schroot -l -a)
+	;;
+esac

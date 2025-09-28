@@ -1,0 +1,46 @@
+#compdef espeak
+
+local curcontext="$curcontext" state line expl ret=1
+typeset -A opt_args
+
+_arguments -C \
+  '(1 --stdin)-f+[specify file to speak]:text file:_files' \
+  '(1 -f)--stdin[speak from stdin]' \
+  '(-q)-a+[specify amplitude]:amplitude (0-200) [100]' \
+  '(-q)-g+[specify pause between words]:pause (10ms) [1]' \
+  '-k[capital letter indication]:integer:((1\:sound 2\:the\ word\ "capitals"))' \
+  '-l[specify line length below which clause is ended]:length' \
+  '(-q)-p+[specify pitch adjustment]:adjustment (0-99)' \
+  '(-q)-s+[specify speed]:speed (words per minute) [175]' \
+  '(-q)-v+[voice]:voice name:->voices' \
+  '(--stdout -q)-w+[write speech to wav file]:wav file:_files -g "*.wav(-.)"' \
+  '-b+[specify input encoding]:encoding:((1\:UTF-8 2\:8-bit 3\:16-bit))' \
+  '-m[interpret SSML markup, ignore other XML]' \
+  '(-a -g -p -s -v -w -z --split --stdout)-q[quiet, no sound output]' \
+  '(-x --ipa)-x[output phoneme mnemonics]' \
+  '(-X --ipa)-X[output phoneme mnemonics and translation trace]' \
+  '(-q)-z[suppress final sentence pause at the end of the text]' \
+  '--compile=-[compile pronunciation rules and dictionary]::voicename or debug' \
+  '(-x -X)--ipa=-[output phonemes using International Phonetic Alphabet]::options:((1\:use\ ties 2\:use\ ZWJ 3\:separate\ with\ _))' \
+  '--path=[specify espeak-data path]:path:_files -/' \
+  '--pho[output mbrola phoneme data]' \
+  '--phonout=[output filename for -x/-X/--ipa]:filename:_files' \
+  '--punct=-[speak names of punctuation characters]::characters' \
+  '(-q --stdout)--split=[periodically start new wav file]:period (minutes)' \
+  '(-w -q --split)--stdout[output speech to stdout]' \
+  '--voices=-[list available voices]::language code:->languages' \
+  '(-)'{-h,--help}'[display help information]' \
+  '(-)--version[display version information]' && ret=0
+
+case $state in
+  voices)
+    _wanted voices expl voice compadd \
+        ${${${(f)"$(_call_program voices $words[1] --voices)"}[2,-1]#?(#c22)}%% *} && ret=0
+  ;;
+  languages)
+    _wanted languages expl language compadd \
+        ${${${(f)"$(_call_program voices $words[1] --voices)"}[2,-1]#?(#c4)}%% *} && ret=0
+  ;;
+esac
+
+return ret

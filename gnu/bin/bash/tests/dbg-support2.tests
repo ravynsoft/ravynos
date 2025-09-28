@@ -1,0 +1,33 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# Test correct trap return codes = 2 means skip execution.
+shopt -s extdebug
+print_trap() {
+   echo "lineno: $1 ($LINENO) ${FUNCNAME[1]}"
+   if [[ $debug_exit == 2 ]] ; then
+     debug_exit=0
+     return 2
+   fi
+   return 0
+}
+
+debug_exit=0
+trap 'print_trap $LINENO' DEBUG
+
+x=1
+echo "x is $x"
+debug_exit=2
+x=2
+echo "x is $x"
