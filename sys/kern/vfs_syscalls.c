@@ -38,7 +38,7 @@
 #include "opt_capsicum.h"
 #include "opt_ktrace.h"
 
-#include <sys/param.h>
+#define	EXTERR_CATEGORY		EXTERR_CAT_VFSSYSCALL
 #include <sys/systm.h>
 #ifdef COMPAT_FREEBSD11
 #include <sys/abi_compat.h>
@@ -47,6 +47,19 @@
 #include <sys/buf.h>
 #include <sys/capsicum.h>
 #include <sys/disk.h>
+#include <sys/dirent.h>
+#include <sys/exterrvar.h>
+#include <sys/fcntl.h>
+#include <sys/file.h>
+#include <sys/filedesc.h>
+#include <sys/filio.h>
+#include <sys/jail.h>
+#include <sys/kernel.h>
+#ifdef KTRACE
+#include <sys/ktrace.h>
+#endif
+#include <sys/limits.h>
+#include <sys/linker.h>
 #include <sys/malloc.h>
 #include <sys/mount.h>
 #include <sys/mutex.h>
@@ -980,13 +993,16 @@ kern_chroot(struct thread *td, struct vnode *vp)
 	error = priv_check(td, PRIV_VFS_CHROOT);
 	if (error != 0) {
 		p = td->td_proc;
-		PROC_LOCK(p);
-		if (unprivileged_chroot == 0 ||
-		    (p->p_flag2 & P2_NO_NEW_PRIVS) == 0) {
-			PROC_UNLOCK(p);
+		if (unprivileged_chroot == 0) {
+			error = EXTERROR(EPERM,
+		    "security.bsd.unprivileged_chroot sysctl not enabled");
 			goto e_vunlock;
 		}
-		PROC_UNLOCK(p);
+		if ((p->p_flag2 & P2_NO_NEW_PRIVS) == 0) {
+			error = EXTERROR(EPERM,
+			    "PROC_NO_NEW_PRIVS not enabled");
+			goto e_vunlock;
+		}
 	}
 
 	error = change_dir(vp, td);
