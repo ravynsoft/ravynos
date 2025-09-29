@@ -765,7 +765,7 @@ zcp_lua_alloc(void *ud, void *ptr, size_t osize, size_t nsize)
 			return (NULL);
 		}
 		(void) memcpy(luabuf, ptr, osize);
-		VERIFY3P(zcp_lua_alloc(ud, ptr, osize, 0), ==, NULL);
+		VERIFY0P(zcp_lua_alloc(ud, ptr, osize, 0));
 		return (luabuf);
 	}
 }
@@ -970,8 +970,8 @@ zcp_pool_error(zcp_run_info_t *ri, const char *poolname, int error)
 }
 
 /*
- * This callback is called when txg_wait_synced_sig encountered a signal.
- * The txg_wait_synced_sig will continue to wait for the txg to complete
+ * This callback is called when txg_wait_synced_flags encountered a signal.
+ * The txg_wait_synced_flags will continue to wait for the txg to complete
  * after calling this callback.
  */
 static void
@@ -1141,12 +1141,14 @@ zcp_eval(const char *poolname, const char *program, boolean_t sync,
 	}
 	VERIFY3U(3, ==, lua_gettop(state));
 
+	cred_t *cr = CRED();
+	crhold(cr);
+
 	runinfo.zri_state = state;
 	runinfo.zri_allocargs = &allocargs;
 	runinfo.zri_outnvl = outnvl;
 	runinfo.zri_result = 0;
-	runinfo.zri_cred = CRED();
-	runinfo.zri_proc = curproc;
+	runinfo.zri_cred = cr;
 	runinfo.zri_timed_out = B_FALSE;
 	runinfo.zri_canceled = B_FALSE;
 	runinfo.zri_sync = sync;
@@ -1165,13 +1167,15 @@ zcp_eval(const char *poolname, const char *program, boolean_t sync,
 	}
 	lua_close(state);
 
+	crfree(cr);
+
 	/*
 	 * Create device minor nodes for any new zvols.
 	 */
 	for (nvpair_t *pair = nvlist_next_nvpair(runinfo.zri_new_zvols, NULL);
 	    pair != NULL;
 	    pair = nvlist_next_nvpair(runinfo.zri_new_zvols, pair)) {
-		zvol_create_minor(nvpair_name(pair));
+		zvol_create_minors(nvpair_name(pair));
 	}
 	fnvlist_free(runinfo.zri_new_zvols);
 

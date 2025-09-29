@@ -235,6 +235,9 @@ static uint_t zfs_resilver_defer_percent = 10;
 #define	DSL_SCAN_IS_SCRUB(scn)		\
 	((scn)->scn_phys.scn_func == POOL_SCAN_SCRUB)
 
+#define	DSL_SCAN_IS_RESILVER(scn) \
+	((scn)->scn_phys.scn_func == POOL_SCAN_RESILVER)
+
 /*
  * Enable/disable the processing of the free_bpobj object.
  */
@@ -451,7 +454,7 @@ static inline void
 bp2sio(const blkptr_t *bp, scan_io_t *sio, int dva_i)
 {
 	sio->sio_blk_prop = bp->blk_prop;
-	sio->sio_phys_birth = BP_GET_PHYSICAL_BIRTH(bp);
+	sio->sio_phys_birth = BP_GET_RAW_PHYSICAL_BIRTH(bp);
 	sio->sio_birth = BP_GET_LOGICAL_BIRTH(bp);
 	sio->sio_cksum = bp->blk_cksum;
 	sio->sio_nr_dvas = BP_GET_NDVAS(bp);
@@ -1021,7 +1024,7 @@ dsl_scan(dsl_pool_t *dp, pool_scan_func_t func, uint64_t txgstart,
 			if (err == 0) {
 				spa_event_notify(spa, NULL, NULL,
 				    ESC_ZFS_ERRORSCRUB_RESUME);
-				return (ECANCELED);
+				return (0);
 			}
 			return (SET_ERROR(err));
 		}
@@ -1037,7 +1040,7 @@ dsl_scan(dsl_pool_t *dp, pool_scan_func_t func, uint64_t txgstart,
 		    POOL_SCRUB_NORMAL);
 		if (err == 0) {
 			spa_event_notify(spa, NULL, NULL, ESC_ZFS_SCRUB_RESUME);
-			return (SET_ERROR(ECANCELED));
+			return (0);
 		}
 		return (SET_ERROR(err));
 	}
@@ -1132,10 +1135,6 @@ dsl_scan_done(dsl_scan_t *scn, boolean_t complete, dmu_tx_t *tx)
 		}
 	}
 
-	scn->scn_phys.scn_state = complete ? DSS_FINISHED : DSS_CANCELED;
-
-	spa_notify_waiters(spa);
-
 	if (dsl_scan_restarting(scn, tx)) {
 		spa_history_log_internal(spa, "scan aborted, restarting", tx,
 		    "errors=%llu", (u_longlong_t)spa_approx_errlog_size(spa));
@@ -1173,7 +1172,7 @@ dsl_scan_done(dsl_scan_t *scn, boolean_t complete, dmu_tx_t *tx)
 			vdev_dtl_reassess(spa->spa_root_vdev, tx->tx_txg,
 			    scn->scn_phys.scn_max_txg, B_TRUE, B_FALSE);
 
-			if (scn->scn_phys.scn_min_txg) {
+			if (DSL_SCAN_IS_RESILVER(scn)) {
 				nvlist_t *aux = fnvlist_alloc();
 				fnvlist_add_string(aux, ZFS_EV_RESILVER_TYPE,
 				    "healing");
@@ -1194,6 +1193,9 @@ dsl_scan_done(dsl_scan_t *scn, boolean_t complete, dmu_tx_t *tx)
 		 * Don't clear flag until after vdev_dtl_reassess to ensure that
 		 * DTL_MISSING will get updated when possible.
 		 */
+		scn->scn_phys.scn_state = complete ? DSS_FINISHED :
+		    DSS_CANCELED;
+		scn->scn_phys.scn_end_time = gethrestime_sec();
 		spa->spa_scrub_started = B_FALSE;
 
 		/*
@@ -1223,9 +1225,13 @@ dsl_scan_done(dsl_scan_t *scn, boolean_t complete, dmu_tx_t *tx)
 		/* Clear recent error events (i.e. duplicate events tracking) */
 		if (complete)
 			zfs_ereport_clear(spa, NULL);
+	} else {
+		scn->scn_phys.scn_state = complete ? DSS_FINISHED :
+		    DSS_CANCELED;
+		scn->scn_phys.scn_end_time = gethrestime_sec();
 	}
 
-	scn->scn_phys.scn_end_time = gethrestime_sec();
+	spa_notify_waiters(spa);
 
 	if (spa->spa_errata == ZPOOL_ERRATA_ZOL_2094_SCRUB)
 		spa->spa_errata = 0;
@@ -1434,7 +1440,7 @@ dsl_scan_restart_resilver(dsl_pool_t *dp, uint64_t txg)
 	if (txg == 0) {
 		dmu_tx_t *tx;
 		tx = dmu_tx_create_dd(dp->dp_mos_dir);
-		VERIFY(0 == dmu_tx_assign(tx, DMU_TX_WAIT));
+		VERIFY0(dmu_tx_assign(tx, DMU_TX_WAIT | DMU_TX_SUSPEND));
 
 		txg = dmu_tx_get_txg(tx);
 		dp->dp_scan->scn_restart_txg = txg;
@@ -1762,7 +1768,7 @@ dsl_scan_zil_block(zilog_t *zilog, const blkptr_t *bp, void *arg,
 
 	ASSERT(!BP_IS_REDACTED(bp));
 	if (BP_IS_HOLE(bp) ||
-	    BP_GET_LOGICAL_BIRTH(bp) <= scn->scn_phys.scn_cur_min_txg)
+	    BP_GET_BIRTH(bp) <= scn->scn_phys.scn_cur_min_txg)
 		return (0);
 
 	/*
@@ -1772,13 +1778,13 @@ dsl_scan_zil_block(zilog_t *zilog, const blkptr_t *bp, void *arg,
 	 * scrub there's nothing to do to it).
 	 */
 	if (claim_txg == 0 &&
-	    BP_GET_LOGICAL_BIRTH(bp) >= spa_min_claim_txg(dp->dp_spa))
+	    BP_GET_BIRTH(bp) >= spa_min_claim_txg(dp->dp_spa))
 		return (0);
 
 	SET_BOOKMARK(&zb, zh->zh_log.blk_cksum.zc_word[ZIL_ZC_OBJSET],
 	    ZB_ZIL_OBJECT, ZB_ZIL_LEVEL, bp->blk_cksum.zc_word[ZIL_ZC_SEQ]);
 
-	VERIFY(0 == scan_funcs[scn->scn_phys.scn_func](dp, bp, &zb));
+	VERIFY0(scan_funcs[scn->scn_phys.scn_func](dp, bp, &zb));
 	return (0);
 }
 
@@ -1798,7 +1804,7 @@ dsl_scan_zil_record(zilog_t *zilog, const lr_t *lrc, void *arg,
 
 		ASSERT(!BP_IS_REDACTED(bp));
 		if (BP_IS_HOLE(bp) ||
-		    BP_GET_LOGICAL_BIRTH(bp) <= scn->scn_phys.scn_cur_min_txg)
+		    BP_GET_BIRTH(bp) <= scn->scn_phys.scn_cur_min_txg)
 			return (0);
 
 		/*
@@ -1806,7 +1812,7 @@ dsl_scan_zil_record(zilog_t *zilog, const lr_t *lrc, void *arg,
 		 * already txg sync'ed (but this log block contains
 		 * other records that are not synced)
 		 */
-		if (claim_txg == 0 || BP_GET_LOGICAL_BIRTH(bp) < claim_txg)
+		if (claim_txg == 0 || BP_GET_BIRTH(bp) < claim_txg)
 			return (0);
 
 		ASSERT3U(BP_GET_LSIZE(bp), !=, 0);
@@ -1814,7 +1820,7 @@ dsl_scan_zil_record(zilog_t *zilog, const lr_t *lrc, void *arg,
 		    lr->lr_foid, ZB_ZIL_LEVEL,
 		    lr->lr_offset / BP_GET_LSIZE(bp));
 
-		VERIFY(0 == scan_funcs[scn->scn_phys.scn_func](dp, bp, &zb));
+		VERIFY0(scan_funcs[scn->scn_phys.scn_func](dp, bp, &zb));
 	}
 	return (0);
 }
@@ -1946,7 +1952,7 @@ dsl_scan_prefetch(scan_prefetch_ctx_t *spc, blkptr_t *bp, zbookmark_phys_t *zb)
 		return;
 
 	if (BP_IS_HOLE(bp) ||
-	    BP_GET_LOGICAL_BIRTH(bp) <= scn->scn_phys.scn_cur_min_txg ||
+	    BP_GET_BIRTH(bp) <= scn->scn_phys.scn_cur_min_txg ||
 	    (BP_GET_LEVEL(bp) == 0 && BP_GET_TYPE(bp) != DMU_OT_DNODE &&
 	    BP_GET_TYPE(bp) != DMU_OT_OBJSET))
 		return;
@@ -2217,7 +2223,7 @@ dsl_scan_recurse(dsl_scan_t *scn, dsl_dataset_t *ds, dmu_objset_type_t ostype,
 	if (dnp != NULL &&
 	    dnp->dn_bonuslen > DN_MAX_BONUS_LEN(dnp)) {
 		scn->scn_phys.scn_errors++;
-		spa_log_error(spa, zb, BP_GET_LOGICAL_BIRTH(bp));
+		spa_log_error(spa, zb, BP_GET_PHYSICAL_BIRTH(bp));
 		return (SET_ERROR(EINVAL));
 	}
 
@@ -2313,7 +2319,7 @@ dsl_scan_recurse(dsl_scan_t *scn, dsl_dataset_t *ds, dmu_objset_type_t ostype,
 		 * by arc_read() for the cases above.
 		 */
 		scn->scn_phys.scn_errors++;
-		spa_log_error(spa, zb, BP_GET_LOGICAL_BIRTH(bp));
+		spa_log_error(spa, zb, BP_GET_PHYSICAL_BIRTH(bp));
 		return (SET_ERROR(EINVAL));
 	}
 
@@ -2390,7 +2396,12 @@ dsl_scan_visitbp(const blkptr_t *bp, const zbookmark_phys_t *zb,
 	if (f != SPA_FEATURE_NONE)
 		ASSERT(dsl_dataset_feature_is_active(ds, f));
 
-	if (BP_GET_LOGICAL_BIRTH(bp) <= scn->scn_phys.scn_cur_min_txg) {
+	/*
+	 * Recurse any blocks that were written either logically or physically
+	 * at or after cur_min_txg.  About logical birth we care for traversal,
+	 * looking for any changes, while about physical for the actual scan.
+	 */
+	if (BP_GET_BIRTH(bp) <= scn->scn_phys.scn_cur_min_txg) {
 		scn->scn_lt_min_this_txg++;
 		return;
 	}
@@ -2416,7 +2427,7 @@ dsl_scan_visitbp(const blkptr_t *bp, const zbookmark_phys_t *zb,
 	 * Don't scan it now unless we need to because something
 	 * under it was modified.
 	 */
-	if (BP_GET_BIRTH(bp) > scn->scn_phys.scn_cur_max_txg) {
+	if (BP_GET_PHYSICAL_BIRTH(bp) > scn->scn_phys.scn_cur_max_txg) {
 		scn->scn_gt_max_this_txg++;
 		return;
 	}
@@ -4800,7 +4811,7 @@ dsl_scan_scrub_cb(dsl_pool_t *dp,
 {
 	dsl_scan_t *scn = dp->dp_scan;
 	spa_t *spa = dp->dp_spa;
-	uint64_t phys_birth = BP_GET_BIRTH(bp);
+	uint64_t phys_birth = BP_GET_PHYSICAL_BIRTH(bp);
 	size_t psize = BP_GET_PSIZE(bp);
 	boolean_t needs_io = B_FALSE;
 	int zio_flags = ZIO_FLAG_SCAN_THREAD | ZIO_FLAG_RAW | ZIO_FLAG_CANFAIL;
@@ -5130,7 +5141,7 @@ dsl_scan_io_queue_vdev_xfer(vdev_t *svd, vdev_t *tvd)
 	mutex_enter(&svd->vdev_scan_io_queue_lock);
 	mutex_enter(&tvd->vdev_scan_io_queue_lock);
 
-	VERIFY3P(tvd->vdev_scan_io_queue, ==, NULL);
+	VERIFY0P(tvd->vdev_scan_io_queue);
 	tvd->vdev_scan_io_queue = svd->vdev_scan_io_queue;
 	svd->vdev_scan_io_queue = NULL;
 	if (tvd->vdev_scan_io_queue != NULL)

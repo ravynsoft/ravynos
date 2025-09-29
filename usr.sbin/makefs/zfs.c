@@ -38,6 +38,7 @@
 #include <stdalign.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -85,6 +86,8 @@ zfs_prep_opts(fsinfo_t *fsopts)
 		  0, 0, "Bootable dataset" },
 		{ '\0', "mssize", &zfs->mssize, OPT_INT64,
 		  MINMSSIZE, MAXMSSIZE, "Metaslab size" },
+		{ '\0', "poolguid", &zfs->poolguid, OPT_INT64,
+		  0, INT64_MAX, "ZFS pool GUID" },
 		{ '\0', "poolname", &zfs->poolname, OPT_STRPTR,
 		  0, 0, "ZFS pool name" },
 		{ '\0', "rootpath", &zfs->rootpath, OPT_STRPTR,
@@ -547,7 +550,8 @@ pool_init(zfs_opt_t *zfs)
 {
 	uint64_t dnid;
 
-	zfs->poolguid = randomguid();
+	if (zfs->poolguid == 0)
+		zfs->poolguid = randomguid();
 	zfs->vdevguid = randomguid();
 
 	zfs->mos = objset_alloc(zfs, DMU_OST_META);
@@ -592,7 +596,7 @@ pool_labels_write(zfs_opt_t *zfs)
 	 * checksum is calculated in vdev_label_write().
 	 */
 	for (size_t uoff = 0; uoff < sizeof(label->vl_uberblock);
-	    uoff += (1 << zfs->ashift)) {
+	    uoff += ASHIFT_UBERBLOCK_SIZE(zfs->ashift)) {
 		ub = (uberblock_t *)(&label->vl_uberblock[0] + uoff);
 		ub->ub_magic = UBERBLOCK_MAGIC;
 		ub->ub_version = SPA_VERSION;

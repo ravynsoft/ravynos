@@ -569,7 +569,7 @@ spa_condense_indirect_commit_entry(spa_t *spa,
 
 	dmu_tx_t *tx = dmu_tx_create_dd(spa_get_dsl(spa)->dp_mos_dir);
 	dmu_tx_hold_space(tx, sizeof (*vimep) + sizeof (count));
-	VERIFY0(dmu_tx_assign(tx, DMU_TX_WAIT));
+	VERIFY0(dmu_tx_assign(tx, DMU_TX_WAIT | DMU_TX_SUSPEND));
 	int txgoff = dmu_tx_get_txg(tx) & TXG_MASK;
 
 	/*
@@ -792,7 +792,7 @@ spa_condense_indirect_start_sync(vdev_t *vd, dmu_tx_t *tx)
 	    DMU_POOL_CONDENSING_INDIRECT, sizeof (uint64_t),
 	    sizeof (*scip) / sizeof (uint64_t), scip, tx));
 
-	ASSERT3P(spa->spa_condensing_indirect, ==, NULL);
+	ASSERT0P(spa->spa_condensing_indirect);
 	spa->spa_condensing_indirect = spa_condensing_indirect_create(spa);
 
 	zfs_dbgmsg("starting condense of vdev %llu in txg %llu: "
@@ -882,7 +882,7 @@ spa_condense_fini(spa_t *spa)
 void
 spa_start_indirect_condensing_thread(spa_t *spa)
 {
-	ASSERT3P(spa->spa_condense_zthr, ==, NULL);
+	ASSERT0P(spa->spa_condense_zthr);
 	spa->spa_condense_zthr = zthr_create("z_indirect_condense",
 	    spa_condense_indirect_thread_check,
 	    spa_condense_indirect_thread, spa, minclsyspri);
@@ -1504,7 +1504,7 @@ vdev_indirect_splits_checksum_validate(indirect_vsd_t *iv, zio_t *zio)
 	    is != NULL; is = list_next(&iv->iv_splits, is)) {
 
 		ASSERT3P(is->is_good_child->ic_data, !=, NULL);
-		ASSERT3P(is->is_good_child->ic_duplicate, ==, NULL);
+		ASSERT0P(is->is_good_child->ic_duplicate);
 
 		abd_copy_off(zio->io_abd, is->is_good_child->ic_data,
 		    is->is_split_offset, 0, is->is_size);
@@ -1842,7 +1842,7 @@ vdev_indirect_io_done(zio_t *zio)
 	 */
 	if (zio->io_flags & ZIO_FLAG_DIO_READ && ret == ECKSUM) {
 		zio->io_error = ret;
-		zio->io_flags |= ZIO_FLAG_DIO_CHKSUM_ERR;
+		zio->io_post |= ZIO_POST_DIO_CHKSUM_ERR;
 		zio_dio_chksum_verify_error_report(zio);
 		ret = 0;
 	}
@@ -1867,7 +1867,8 @@ vdev_ops_t vdev_indirect_ops = {
 	.vdev_op_fini = NULL,
 	.vdev_op_open = vdev_indirect_open,
 	.vdev_op_close = vdev_indirect_close,
-	.vdev_op_asize = vdev_default_asize,
+	.vdev_op_psize_to_asize = vdev_default_asize,
+	.vdev_op_asize_to_psize = vdev_default_psize,
 	.vdev_op_min_asize = vdev_default_min_asize,
 	.vdev_op_min_alloc = NULL,
 	.vdev_op_io_start = vdev_indirect_io_start,

@@ -100,6 +100,7 @@ extern boolean_t vdev_replace_in_progress(vdev_t *vdev);
 extern void vdev_hold(vdev_t *);
 extern void vdev_rele(vdev_t *);
 
+void vdev_update_nonallocating_space(vdev_t *vd, boolean_t add);
 extern int vdev_metaslab_init(vdev_t *vd, uint64_t txg);
 extern void vdev_metaslab_fini(vdev_t *vd);
 extern void vdev_metaslab_set_size(vdev_t *);
@@ -133,9 +134,12 @@ extern void vdev_space_update(vdev_t *vd,
 
 extern int64_t vdev_deflated_space(vdev_t *vd, int64_t space);
 
+extern uint64_t vdev_asize_to_psize_txg(vdev_t *vd, uint64_t asize,
+    uint64_t txg);
 extern uint64_t vdev_psize_to_asize_txg(vdev_t *vd, uint64_t psize,
     uint64_t txg);
 extern uint64_t vdev_psize_to_asize(vdev_t *vd, uint64_t psize);
+extern uint64_t vdev_get_min_alloc(vdev_t *vd);
 
 /*
  * Return the amount of space allocated for a gang block header.  Note that
@@ -145,7 +149,20 @@ extern uint64_t vdev_psize_to_asize(vdev_t *vd, uint64_t psize);
 static inline uint64_t
 vdev_gang_header_asize(vdev_t *vd)
 {
-	return (vdev_psize_to_asize_txg(vd, SPA_GANGBLOCKSIZE, 0));
+	return (vdev_psize_to_asize_txg(vd, SPA_OLD_GANGBLOCKSIZE, 0));
+}
+
+/*
+ * Return the amount of data that can be stored in a gang header. Because we
+ * need to ensure gang headers can always be allocated (as long as there is
+ * space available), this is the minimum allocatable size on the vdev. Note that
+ * since the physical birth txg is not provided, this must be constant for
+ * a given vdev.  (e.g. raidz expansion can't change this)
+ */
+static inline uint64_t
+vdev_gang_header_psize(vdev_t *vd)
+{
+	return (vdev_get_min_alloc(vd));
 }
 
 extern int vdev_fault(spa_t *spa, uint64_t guid, vdev_aux_t aux);

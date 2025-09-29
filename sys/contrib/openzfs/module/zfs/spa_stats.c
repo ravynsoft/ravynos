@@ -718,7 +718,7 @@ spa_mmp_history_set(spa_t *spa, uint64_t mmp_node_id, int io_error,
 	for (smh = list_tail(&shl->procfs_list.pl_list); smh != NULL;
 	    smh = list_prev(&shl->procfs_list.pl_list, smh)) {
 		if (smh->mmp_node_id == mmp_node_id) {
-			ASSERT(smh->io_error == 0);
+			ASSERT0(smh->io_error);
 			smh->io_error = io_error;
 			smh->duration = duration;
 			error = 0;
@@ -948,7 +948,8 @@ spa_iostats_trim_add(spa_t *spa, trim_type_t type,
 }
 
 void
-spa_iostats_read_add(spa_t *spa, uint64_t size, uint64_t iops, uint32_t flags)
+spa_iostats_read_add(spa_t *spa, uint64_t size, uint64_t iops,
+    dmu_flags_t flags)
 {
 	spa_history_kstat_t *shk = &spa->spa_stats.iostats;
 	kstat_t *ksp = shk->kstat;
@@ -967,7 +968,8 @@ spa_iostats_read_add(spa_t *spa, uint64_t size, uint64_t iops, uint32_t flags)
 }
 
 void
-spa_iostats_write_add(spa_t *spa, uint64_t size, uint64_t iops, uint32_t flags)
+spa_iostats_write_add(spa_t *spa, uint64_t size, uint64_t iops,
+    dmu_flags_t flags)
 {
 	spa_history_kstat_t *shk = &spa->spa_stats.iostats;
 	kstat_t *ksp = shk->kstat;

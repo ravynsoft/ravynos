@@ -241,35 +241,40 @@ zfs_getquota(zfsvfs_t *zfsvfs, uid_t id, int isgroup, struct dqblk64 *dqp)
 {
 	int error = 0;
 	char buf[32];
-	uint64_t usedobj, quotaobj;
+	uint64_t usedobj, quotaobj, defaultquota;
 	uint64_t quota, used = 0;
 	timespec_t now;
 
 	usedobj = isgroup ? DMU_GROUPUSED_OBJECT : DMU_USERUSED_OBJECT;
 	quotaobj = isgroup ? zfsvfs->z_groupquota_obj : zfsvfs->z_userquota_obj;
+	defaultquota = isgroup ? zfsvfs->z_defaultgroupquota :
+	    zfsvfs->z_defaultuserquota;
 
-	if (quotaobj == 0 || zfsvfs->z_replay) {
-		error = ENOENT;
-		goto done;
-	}
+	if (zfsvfs->z_replay)
+		return (ENOENT);
+
 	(void) sprintf(buf, "%llx", (longlong_t)id);
-	if ((error = zap_lookup(zfsvfs->z_os, quotaobj,
-	    buf, sizeof (quota), 1, &quota)) != 0) {
-		dprintf("%s(%d): quotaobj lookup failed\n",
-		    __FUNCTION__, __LINE__);
-		goto done;
+	if (quotaobj == 0) {
+		if (defaultquota == 0)
+			return (ENOENT);
+		quota = defaultquota;
+	} else {
+		error = zap_lookup(zfsvfs->z_os, quotaobj, buf, sizeof (quota),
+		    1, &quota);
+		if (error && (quota = defaultquota) == 0)
+			return (error);
 	}
+
 	/*
 	 * quota(8) uses bsoftlimit as "quoota", and hardlimit as "limit".
 	 * So we set them to be the same.
 	 */
 	dqp->dqb_bsoftlimit = dqp->dqb_bhardlimit = btodb(quota);
 	error = zap_lookup(zfsvfs->z_os, usedobj, buf, sizeof (used), 1, &used);
-	if (error && error != ENOENT) {
-		dprintf("%s(%d):  usedobj failed; %d\n",
-		    __FUNCTION__, __LINE__, error);
-		goto done;
-	}
+	if (error == ENOENT)
+		error = 0;
+	if (error)
+		return (error);
 	dqp->dqb_curblocks = btodb(used);
 	dqp->dqb_ihardlimit = dqp->dqb_isoftlimit = 0;
 	vfs_timestamp(&now);
@@ -279,7 +284,6 @@ zfs_getquota(zfsvfs_t *zfsvfs, uid_t id, int isgroup, struct dqblk64 *dqp)
 	 * particularly useful.
 	 */
 	dqp->dqb_btime = dqp->dqb_itime = now.tv_sec;
-done:
 	return (error);
 }
 
@@ -451,8 +455,13 @@ zfs_sync(vfs_t *vfsp, int waitfor)
 			return (0);
 		}
 
-		if (zfsvfs->z_log != NULL)
-			zil_commit(zfsvfs->z_log, 0);
+		if (zfsvfs->z_log != NULL) {
+			error = zil_commit(zfsvfs->z_log, 0);
+			if (error != 0) {
+				zfs_exit(zfsvfs, FTAG);
+				return (error);
+			}
+		}
 
 		zfs_exit(zfsvfs, FTAG);
 	} else {
@@ -861,6 +870,36 @@ zfsvfs_init(zfsvfs_t *zfsvfs, objset_t *os)
 			zfsvfs->z_xattr_sa = B_TRUE;
 	}
 
+	error = zfs_get_zplprop(os, ZFS_PROP_DEFAULTUSERQUOTA,
+	    &zfsvfs->z_defaultuserquota);
+	if (error != 0)
+		return (error);
+
+	error = zfs_get_zplprop(os, ZFS_PROP_DEFAULTGROUPQUOTA,
+	    &zfsvfs->z_defaultgroupquota);
+	if (error != 0)
+		return (error);
+
+	error = zfs_get_zplprop(os, ZFS_PROP_DEFAULTPROJECTQUOTA,
+	    &zfsvfs->z_defaultprojectquota);
+	if (error != 0)
+		return (error);
+
+	error = zfs_get_zplprop(os, ZFS_PROP_DEFAULTUSEROBJQUOTA,
+	    &zfsvfs->z_defaultuserobjquota);
+	if (error != 0)
+		return (error);
+
+	error = zfs_get_zplprop(os, ZFS_PROP_DEFAULTGROUPOBJQUOTA,
+	    &zfsvfs->z_defaultgroupobjquota);
+	if (error != 0)
+		return (error);
+
+	error = zfs_get_zplprop(os, ZFS_PROP_DEFAULTPROJECTOBJQUOTA,
+	    &zfsvfs->z_defaultprojectobjquota);
+	if (error != 0)
+		return (error);
+
 	error = sa_setup(os, sa_obj, zfs_attr_table, ZPL_END,
 	    &zfsvfs->z_attr_table);
 	if (error != 0)
@@ -1057,7 +1096,7 @@ zfsvfs_setup(zfsvfs_t *zfsvfs, boolean_t mounting)
 	if (mounting) {
 		boolean_t readonly;
 
-		ASSERT3P(zfsvfs->z_kstat.dk_kstats, ==, NULL);
+		ASSERT0P(zfsvfs->z_kstat.dk_kstats);
 		error = dataset_kstats_create(&zfsvfs->z_kstat, zfsvfs->z_os);
 		if (error)
 			return (error);
@@ -1175,6 +1214,8 @@ zfs_set_fuid_feature(zfsvfs_t *zfsvfs)
 	zfsvfs->z_use_sa = USE_SA(zfsvfs->z_version, zfsvfs->z_os);
 }
 
+extern int zfs_xattr_compat;
+
 static int
 zfs_domount(vfs_t *vfsp, char *osname)
 {
@@ -1254,6 +1295,16 @@ zfs_domount(vfs_t *vfsp, char *osname)
 		if ((error = zfsvfs_setup(zfsvfs, B_TRUE)))
 			goto out;
 	}
+
+#if __FreeBSD_version >= 1500040
+	/*
+	 * Named attributes can only work if the xattr property is set to
+	 * on/dir and not sa.  Also, zfs_xattr_compat must be set.
+	 */
+	if ((zfsvfs->z_flags & ZSB_XATTR) != 0 && !zfsvfs->z_xattr_sa &&
+	    zfs_xattr_compat)
+		vfsp->mnt_flag |= MNT_NAMEDATTR;
+#endif
 
 	vfs_mountedfrom(vfsp, osname);
 
@@ -1778,6 +1829,14 @@ zfs_vget(vfs_t *vfsp, ino_t ino, int flags, vnode_t **vpp)
 		err = vn_lock(*vpp, flags);
 		if (err != 0)
 			vrele(*vpp);
+#if __FreeBSD_version >= 1500040
+		else if ((zp->z_pflags & ZFS_XATTR) != 0) {
+			if ((*vpp)->v_type == VDIR)
+				vn_irflag_set_cond(*vpp, VIRF_NAMEDDIR);
+			else
+				vn_irflag_set_cond(*vpp, VIRF_NAMEDATTR);
+		}
+#endif
 	}
 	if (err != 0)
 		*vpp = NULL;
@@ -1930,9 +1989,17 @@ zfs_fhtovp(vfs_t *vfsp, fid_t *fidp, int flags, vnode_t **vpp)
 	*vpp = ZTOV(zp);
 	zfs_exit(zfsvfs, FTAG);
 	err = vn_lock(*vpp, flags);
-	if (err == 0)
+	if (err == 0) {
 		vnode_create_vobject(*vpp, zp->z_size, curthread);
-	else
+#if __FreeBSD_version >= 1500040
+		if ((zp->z_pflags & ZFS_XATTR) != 0) {
+			if ((*vpp)->v_type == VDIR)
+				vn_irflag_set_cond(*vpp, VIRF_NAMEDDIR);
+			else
+				vn_irflag_set_cond(*vpp, VIRF_NAMEDATTR);
+		}
+#endif
+	} else
 		*vpp = NULL;
 	return (err);
 }
@@ -2239,6 +2306,62 @@ zfs_set_version(zfsvfs_t *zfsvfs, uint64_t newvers)
 	zfs_set_fuid_feature(zfsvfs);
 
 	return (0);
+}
+
+int
+zfs_set_default_quota(zfsvfs_t *zfsvfs, zfs_prop_t prop, uint64_t quota)
+{
+	int error;
+	objset_t *os = zfsvfs->z_os;
+	const char *propstr = zfs_prop_to_name(prop);
+	dmu_tx_t *tx;
+
+	tx = dmu_tx_create(os);
+	dmu_tx_hold_zap(tx, MASTER_NODE_OBJ, B_FALSE, propstr);
+	error = dmu_tx_assign(tx, DMU_TX_WAIT);
+	if (error) {
+		dmu_tx_abort(tx);
+		return (error);
+	}
+
+	if (quota == 0) {
+		error = zap_remove(os, MASTER_NODE_OBJ, propstr, tx);
+		if (error == ENOENT)
+			error = 0;
+	} else {
+		error = zap_update(os, MASTER_NODE_OBJ, propstr, 8, 1,
+		    &quota, tx);
+	}
+
+	if (error)
+		goto out;
+
+	switch (prop) {
+	case ZFS_PROP_DEFAULTUSERQUOTA:
+		zfsvfs->z_defaultuserquota = quota;
+		break;
+	case ZFS_PROP_DEFAULTGROUPQUOTA:
+		zfsvfs->z_defaultgroupquota = quota;
+		break;
+	case ZFS_PROP_DEFAULTPROJECTQUOTA:
+		zfsvfs->z_defaultprojectquota = quota;
+		break;
+	case ZFS_PROP_DEFAULTUSEROBJQUOTA:
+		zfsvfs->z_defaultuserobjquota = quota;
+		break;
+	case ZFS_PROP_DEFAULTGROUPOBJQUOTA:
+		zfsvfs->z_defaultgroupobjquota = quota;
+		break;
+	case ZFS_PROP_DEFAULTPROJECTOBJQUOTA:
+		zfsvfs->z_defaultprojectobjquota = quota;
+		break;
+	default:
+		break;
+	}
+
+out:
+	dmu_tx_commit(tx);
+	return (error);
 }
 
 /*

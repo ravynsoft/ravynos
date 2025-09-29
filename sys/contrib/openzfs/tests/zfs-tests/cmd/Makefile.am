@@ -72,7 +72,9 @@ scripts_zfs_tests_bin_PROGRAMS += %D%/mkbusy %D%/mkfile %D%/mkfiles %D%/mktree
 %C%_mkfile_LDADD = $(LTLIBINTL)
 
 
-scripts_zfs_tests_bin_PROGRAMS += %D%/mmap_exec %D%/mmap_seek %D%/mmap_sync %D%/mmapwrite %D%/readmmap
+scripts_zfs_tests_bin_PROGRAMS += \
+	%D%/mmap_exec %D%/mmap_ftruncate %D%/mmap_seek \
+	%D%/mmap_sync %D%/mmapwrite %D%/readmmap %D%/mmap_write_sync
 %C%_mmapwrite_LDADD = -lpthread
 
 if WANT_MMAP_LIBAIO
@@ -140,7 +142,7 @@ scripts_zfs_tests_bin_PROGRAMS  += %D%/read_dos_attributes %D%/write_dos_attribu
 
 scripts_zfs_tests_bin_PROGRAMS += %D%/randfree_file
 %C%_randfree_file_SOURCES       = %D%/file/randfree_file.c
+endif
 
 scripts_zfs_tests_bin_PROGRAMS += %D%/file_fadvise
 %C%_file_fadvise_SOURCES  = %D%/file/file_fadvise.c
-endif

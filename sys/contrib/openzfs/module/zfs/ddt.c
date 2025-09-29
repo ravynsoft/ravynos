@@ -153,7 +153,7 @@
  * storage object (ie ZAP) as normal. OpenZFS will try hard to flush enough to
  * keep up with the rate of change on dedup entries, but not so much that it
  * would impact overall throughput, and not using too much memory. See the
- * zfs_dedup_log_* tuneables in zfs(4) for more details.
+ * zfs_dedup_log_* tunables in zfs(4) for more details.
  *
  * ## Repair IO
  *
@@ -397,7 +397,7 @@ ddt_object_create(ddt_t *ddt, ddt_type_t type, ddt_class_t class,
 
 	ddt_object_name(ddt, type, class, name);
 
-	ASSERT3U(*objectp, ==, 0);
+	ASSERT0(*objectp);
 	VERIFY0(ddt_ops[type]->ddt_op_create(os, objectp, tx, prehash));
 	ASSERT3U(*objectp, !=, 0);
 
@@ -724,10 +724,34 @@ ddt_phys_extend(ddt_univ_phys_t *ddp, ddt_phys_variant_t v, const blkptr_t *bp)
 		dvas[2] = bp->blk_dva[2];
 
 	if (ddt_phys_birth(ddp, v) == 0) {
+		if (v == DDT_PHYS_FLAT) {
+			ddp->ddp_flat.ddp_phys_birth =
+			    BP_GET_PHYSICAL_BIRTH(bp);
+		} else {
+			ddp->ddp_trad[v].ddp_phys_birth =
+			    BP_GET_PHYSICAL_BIRTH(bp);
+		}
+	}
+}
+
+void
+ddt_phys_unextend(ddt_univ_phys_t *cur, ddt_univ_phys_t *orig,
+    ddt_phys_variant_t v)
+{
+	ASSERT3U(v, <, DDT_PHYS_NONE);
+	dva_t *cur_dvas = (v == DDT_PHYS_FLAT) ?
+	    cur->ddp_flat.ddp_dva : cur->ddp_trad[v].ddp_dva;
+	dva_t *orig_dvas = (v == DDT_PHYS_FLAT) ?
+	    orig->ddp_flat.ddp_dva : orig->ddp_trad[v].ddp_dva;
+
+	for (int d = 0; d < SPA_DVAS_PER_BP; d++)
+		cur_dvas[d] = orig_dvas[d];
+
+	if (ddt_phys_birth(orig, v) == 0) {
 		if (v == DDT_PHYS_FLAT)
-			ddp->ddp_flat.ddp_phys_birth = BP_GET_BIRTH(bp);
+			cur->ddp_flat.ddp_phys_birth = 0;
 		else
-			ddp->ddp_trad[v].ddp_phys_birth = BP_GET_BIRTH(bp);
+			cur->ddp_trad[v].ddp_phys_birth = 0;
 	}
 }
 
@@ -836,6 +860,17 @@ ddt_phys_birth(const ddt_univ_phys_t *ddp, ddt_phys_variant_t v)
 }
 
 int
+ddt_phys_is_gang(const ddt_univ_phys_t *ddp, ddt_phys_variant_t v)
+{
+	ASSERT3U(v, <, DDT_PHYS_NONE);
+
+	const dva_t *dvas = (v == DDT_PHYS_FLAT) ?
+	    ddp->ddp_flat.ddp_dva : ddp->ddp_trad[v].ddp_dva;
+
+	return (DVA_GET_GANG(&dvas[0]));
+}
+
+int
 ddt_phys_dva_count(const ddt_univ_phys_t *ddp, ddt_phys_variant_t v,
     boolean_t encrypted)
 {
@@ -859,14 +894,14 @@ ddt_phys_select(const ddt_t *ddt, const ddt_entry_t *dde, const blkptr_t *bp)
 
 	if (ddt->ddt_flags & DDT_FLAG_FLAT) {
 		if (DVA_EQUAL(BP_IDENTITY(bp), &ddp->ddp_flat.ddp_dva[0]) &&
-		    BP_GET_BIRTH(bp) == ddp->ddp_flat.ddp_phys_birth) {
+		    BP_GET_PHYSICAL_BIRTH(bp) == ddp->ddp_flat.ddp_phys_birth) {
 			return (DDT_PHYS_FLAT);
 		}
 	} else /* traditional phys */ {
 		for (int p = 0; p < DDT_PHYS_MAX; p++) {
 			if (DVA_EQUAL(BP_IDENTITY(bp),
 			    &ddp->ddp_trad[p].ddp_dva[0]) &&
-			    BP_GET_BIRTH(bp) ==
+			    BP_GET_PHYSICAL_BIRTH(bp) ==
 			    ddp->ddp_trad[p].ddp_phys_birth) {
 				return (p);
 			}
@@ -976,7 +1011,7 @@ ddt_free(const ddt_t *ddt, ddt_entry_t *dde)
 {
 	if (dde->dde_io != NULL) {
 		for (int p = 0; p < DDT_NPHYS(ddt); p++)
-			ASSERT3P(dde->dde_io->dde_lead_zio[p], ==, NULL);
+			ASSERT0P(dde->dde_io->dde_lead_zio[p]);
 
 		if (dde->dde_io->dde_repair_abd != NULL)
 			abd_free(dde->dde_io->dde_repair_abd);
@@ -1005,29 +1040,18 @@ ddt_remove(ddt_t *ddt, ddt_entry_t *dde)
 	ddt_free(ddt, dde);
 }
 
+/*
+ * We're considered over quota when we hit 85% full, or for larger drives,
+ * when there is less than 8GB free.
+ */
 static boolean_t
-ddt_special_over_quota(spa_t *spa, metaslab_class_t *mc)
+ddt_special_over_quota(metaslab_class_t *mc)
 {
-	if (mc != NULL && metaslab_class_get_space(mc) > 0) {
-		/* Over quota if allocating outside of this special class */
-		if (spa_syncing_txg(spa) <= spa->spa_dedup_class_full_txg +
-		    dedup_class_wait_txgs) {
-			/* Waiting for some deferred frees to be processed */
-			return (B_TRUE);
-		}
-
-		/*
-		 * We're considered over quota when we hit 85% full, or for
-		 * larger drives, when there is less than 8GB free.
-		 */
-		uint64_t allocated = metaslab_class_get_alloc(mc);
-		uint64_t capacity = metaslab_class_get_space(mc);
-		uint64_t limit = MAX(capacity * 85 / 100,
-		    (capacity > (1LL<<33)) ? capacity - (1LL<<33) : 0);
-
-		return (allocated >= limit);
-	}
-	return (B_FALSE);
+	uint64_t allocated = metaslab_class_get_alloc(mc);
+	uint64_t capacity = metaslab_class_get_space(mc);
+	uint64_t limit = MAX(capacity * 85 / 100,
+	    (capacity > (1LL<<33)) ? capacity - (1LL<<33) : 0);
+	return (allocated >= limit);
 }
 
 /*
@@ -1050,13 +1074,21 @@ ddt_over_quota(spa_t *spa)
 		return (ddt_get_ddt_dsize(spa) > spa->spa_dedup_table_quota);
 
 	/*
+	 * Over quota if have to allocate outside of the dedup/special class.
+	 */
+	if (spa_syncing_txg(spa) <= spa->spa_dedup_class_full_txg +
+	    dedup_class_wait_txgs) {
+		/* Waiting for some deferred frees to be processed */
+		return (B_TRUE);
+	}
+
+	/*
 	 * For automatic quota, table size is limited by dedup or special class
 	 */
-	if (ddt_special_over_quota(spa, spa_dedup_class(spa)))
-		return (B_TRUE);
-	else if (spa_special_has_ddt(spa) &&
-	    ddt_special_over_quota(spa, spa_special_class(spa)))
-		return (B_TRUE);
+	if (spa_has_dedup(spa))
+		return (ddt_special_over_quota(spa_dedup_class(spa)));
+	else if (spa_special_has_ddt(spa))
+		return (ddt_special_over_quota(spa_special_class(spa)));
 
 	return (B_FALSE);
 }
@@ -1389,7 +1421,7 @@ ddt_key_compare(const void *x1, const void *x2)
 static void
 ddt_create_dir(ddt_t *ddt, dmu_tx_t *tx)
 {
-	ASSERT3U(ddt->ddt_dir_object, ==, 0);
+	ASSERT0(ddt->ddt_dir_object);
 	ASSERT3U(ddt->ddt_version, ==, DDT_VERSION_FDT);
 
 	char name[DDT_NAMELEN];
@@ -2363,7 +2395,7 @@ ddt_sync(spa_t *spa, uint64_t txg)
 	 * scan's root zio here so that we can wait for any scan IOs in
 	 * addition to the regular ddt IOs.
 	 */
-	ASSERT3P(scn->scn_zio_root, ==, NULL);
+	ASSERT0P(scn->scn_zio_root);
 	scn->scn_zio_root = rio;
 
 	for (enum zio_checksum c = 0; c < ZIO_CHECKSUM_FUNCTIONS; c++) {

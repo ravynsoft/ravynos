@@ -30,6 +30,7 @@
  * Copyright (c) 2019, Allan Jude
  * Copyright (c) 2019 Datto Inc.
  * Copyright (c) 2022 Axcient.
+ * Copyright (c) 2025, Rob Norris <robn@despairlabs.com>
  */
 
 #include <sys/arc.h>
@@ -68,6 +69,7 @@
 #include <sys/zfs_vfsops.h>
 #endif
 #include <sys/zfs_file.h>
+#include <sys/cred.h>
 
 static uint_t zfs_recv_queue_length = SPA_MAXBLOCKSIZE;
 static uint_t zfs_recv_queue_ff = 20;
@@ -145,7 +147,6 @@ typedef struct dmu_recv_begin_arg {
 	const char *drba_origin;
 	dmu_recv_cookie_t *drba_cookie;
 	cred_t *drba_cred;
-	proc_t *drba_proc;
 	dsl_crypto_params_t *drba_dcp;
 } dmu_recv_begin_arg_t;
 
@@ -411,7 +412,7 @@ recv_begin_check_existing_impl(dmu_recv_begin_arg_t *drba, dsl_dataset_t *ds,
 	 * against that limit.
 	 */
 	error = dsl_fs_ss_limit_check(ds->ds_dir, 1, ZFS_PROP_SNAPSHOT_LIMIT,
-	    NULL, drba->drba_cred, drba->drba_proc);
+	    NULL, drba->drba_cred);
 	if (error != 0)
 		return (error);
 
@@ -750,16 +751,14 @@ dmu_recv_begin_check(void *arg, dmu_tx_t *tx)
 		 * filesystems and increment those counts during begin_sync).
 		 */
 		error = dsl_fs_ss_limit_check(ds->ds_dir, 1,
-		    ZFS_PROP_FILESYSTEM_LIMIT, NULL,
-		    drba->drba_cred, drba->drba_proc);
+		    ZFS_PROP_FILESYSTEM_LIMIT, NULL, drba->drba_cred);
 		if (error != 0) {
 			dsl_dataset_rele(ds, FTAG);
 			return (error);
 		}
 
 		error = dsl_fs_ss_limit_check(ds->ds_dir, 1,
-		    ZFS_PROP_SNAPSHOT_LIMIT, NULL,
-		    drba->drba_cred, drba->drba_proc);
+		    ZFS_PROP_SNAPSHOT_LIMIT, NULL, drba->drba_cred);
 		if (error != 0) {
 			dsl_dataset_rele(ds, FTAG);
 			return (error);
@@ -867,7 +866,7 @@ dmu_recv_begin_sync(void *arg, dmu_tx_t *tx)
 	 */
 	if (dcp == NULL && drrb->drr_fromguid == 0 &&
 	    drba->drba_origin == NULL) {
-		ASSERT3P(dcp, ==, NULL);
+		ASSERT0P(dcp);
 		dcp = &dummy_dcp;
 
 		if (featureflags & DMU_BACKUP_FEATURE_RAW)
@@ -882,7 +881,7 @@ dmu_recv_begin_sync(void *arg, dmu_tx_t *tx)
 		if (drba->drba_cookie->drc_fromsnapobj != 0) {
 			VERIFY0(dsl_dataset_hold_obj(dp,
 			    drba->drba_cookie->drc_fromsnapobj, FTAG, &snap));
-			ASSERT3P(dcp, ==, NULL);
+			ASSERT0P(dcp);
 		}
 		if (drc->drc_heal) {
 			/* When healing we want to use the provided snapshot */
@@ -906,7 +905,7 @@ dmu_recv_begin_sync(void *arg, dmu_tx_t *tx)
 		if (drba->drba_origin != NULL) {
 			VERIFY0(dsl_dataset_hold(dp, drba->drba_origin,
 			    FTAG, &origin));
-			ASSERT3P(dcp, ==, NULL);
+			ASSERT0P(dcp);
 		}
 
 		/* Create new dataset. */
@@ -1265,6 +1264,9 @@ dmu_recv_begin(const char *tofs, const char *tosnap,
 	dmu_recv_begin_arg_t drba = { 0 };
 	int err = 0;
 
+	cred_t *cr = CRED();
+	crhold(cr);
+
 	memset(drc, 0, sizeof (dmu_recv_cookie_t));
 	drc->drc_drr_begin = drr_begin;
 	drc->drc_drrb = &drr_begin->drr_u.drr_begin;
@@ -1273,8 +1275,7 @@ dmu_recv_begin(const char *tofs, const char *tosnap,
 	drc->drc_force = force;
 	drc->drc_heal = heal;
 	drc->drc_resumable = resumable;
-	drc->drc_cred = CRED();
-	drc->drc_proc = curproc;
+	drc->drc_cred = cr;
 	drc->drc_clone = (origin != NULL);
 
 	if (drc->drc_drrb->drr_magic == BSWAP_64(DMU_BACKUP_MAGIC)) {
@@ -1286,6 +1287,8 @@ dmu_recv_begin(const char *tofs, const char *tosnap,
 		(void) fletcher_4_incremental_native(drr_begin,
 		    sizeof (dmu_replay_record_t), &drc->drc_cksum);
 	} else {
+		crfree(cr);
+		drc->drc_cred = NULL;
 		return (SET_ERROR(EINVAL));
 	}
 
@@ -1302,9 +1305,11 @@ dmu_recv_begin(const char *tofs, const char *tosnap,
 	 * upper limit. Systems with less than 1GB of RAM will see a lower
 	 * limit from `arc_all_memory() / 4`.
 	 */
-	if (payloadlen > (MIN((1U << 28), arc_all_memory() / 4)))
-		return (E2BIG);
-
+	if (payloadlen > (MIN((1U << 28), arc_all_memory() / 4))) {
+		crfree(cr);
+		drc->drc_cred = NULL;
+		return (SET_ERROR(E2BIG));
+	}
 
 	if (payloadlen != 0) {
 		void *payload = vmem_alloc(payloadlen, KM_SLEEP);
@@ -1320,6 +1325,8 @@ dmu_recv_begin(const char *tofs, const char *tosnap,
 		    payload);
 		if (err != 0) {
 			vmem_free(payload, payloadlen);
+			crfree(cr);
+			drc->drc_cred = NULL;
 			return (err);
 		}
 		err = nvlist_unpack(payload, payloadlen, &drc->drc_begin_nvl,
@@ -1328,6 +1335,8 @@ dmu_recv_begin(const char *tofs, const char *tosnap,
 		if (err != 0) {
 			kmem_free(drc->drc_next_rrd,
 			    sizeof (*drc->drc_next_rrd));
+			crfree(cr);
+			drc->drc_cred = NULL;
 			return (err);
 		}
 	}
@@ -1337,8 +1346,7 @@ dmu_recv_begin(const char *tofs, const char *tosnap,
 
 	drba.drba_origin = origin;
 	drba.drba_cookie = drc;
-	drba.drba_cred = CRED();
-	drba.drba_proc = curproc;
+	drba.drba_cred = drc->drc_cred;
 
 	if (drc->drc_featureflags & DMU_BACKUP_FEATURE_RESUMING) {
 		err = dsl_sync_task(tofs,
@@ -1373,6 +1381,8 @@ dmu_recv_begin(const char *tofs, const char *tosnap,
 	if (err != 0) {
 		kmem_free(drc->drc_next_rrd, sizeof (*drc->drc_next_rrd));
 		nvlist_free(drc->drc_begin_nvl);
+		crfree(cr);
+		drc->drc_cred = NULL;
 	}
 	return (err);
 }
@@ -1393,7 +1403,7 @@ corrective_read_done(zio_t *zio)
 	/* Corruption corrected; update error log if needed */
 	if (zio->io_error == 0) {
 		spa_remove_error(data->spa, &data->zb,
-		    BP_GET_LOGICAL_BIRTH(zio->io_bp));
+		    BP_GET_PHYSICAL_BIRTH(zio->io_bp));
 	}
 	kmem_free(data, sizeof (cr_cb_data_t));
 	abd_free(zio->io_abd);
@@ -1520,7 +1530,7 @@ do_corrective_recv(struct receive_writer_arg *rwa, struct drr_write *drrw,
 	}
 	rrd->abd = abd;
 
-	io = zio_rewrite(NULL, rwa->os->os_spa, BP_GET_LOGICAL_BIRTH(bp), bp,
+	io = zio_rewrite(NULL, rwa->os->os_spa, BP_GET_BIRTH(bp), bp,
 	    abd, BP_GET_PSIZE(bp), NULL, NULL, ZIO_PRIORITY_SYNC_WRITE, flags,
 	    &zb);
 
@@ -2125,7 +2135,7 @@ receive_object(struct receive_writer_arg *rwa, struct drr_object *drro,
 	if (data != NULL) {
 		dmu_buf_t *db;
 		dnode_t *dn;
-		uint32_t flags = DMU_READ_NO_PREFETCH;
+		dmu_flags_t flags = DMU_READ_NO_PREFETCH;
 
 		if (rwa->raw)
 			flags |= DMU_READ_NO_DECRYPT;
@@ -2267,14 +2277,18 @@ flush_write_batch_impl(struct receive_writer_arg *rwa)
 					dmu_write_by_dnode(dn,
 					    drrw->drr_offset,
 					    drrw->drr_logical_size,
-					    abd_to_buf(decomp_abd), tx);
+					    abd_to_buf(decomp_abd), tx,
+					    DMU_READ_NO_PREFETCH |
+					    DMU_UNCACHEDIO);
 				}
 				abd_free(decomp_abd);
 			} else {
 				dmu_write_by_dnode(dn,
 				    drrw->drr_offset,
 				    drrw->drr_logical_size,
-				    abd_to_buf(abd), tx);
+				    abd_to_buf(abd), tx,
+				    DMU_READ_NO_PREFETCH |
+				    DMU_UNCACHEDIO);
 			}
 			if (err == 0)
 				abd_free(abd);
@@ -2397,10 +2411,10 @@ receive_process_write_record(struct receive_writer_arg *rwa,
 	if (rwa->heal) {
 		blkptr_t *bp;
 		dmu_buf_t *dbp;
-		int flags = DB_RF_CANFAIL;
+		dmu_flags_t flags = DB_RF_CANFAIL;
 
 		if (rwa->raw)
-			flags |= DB_RF_NO_DECRYPT;
+			flags |= DMU_READ_NO_DECRYPT;
 
 		if (rwa->byteswap) {
 			dmu_object_byteswap_t byteswap =
@@ -2557,8 +2571,8 @@ receive_spill(struct receive_writer_arg *rwa, struct drr_spill *drrs,
 		rwa->max_object = drrs->drr_object;
 
 	VERIFY0(dmu_bonus_hold(rwa->os, drrs->drr_object, FTAG, &db));
-	if ((err = dmu_spill_hold_by_bonus(db, DMU_READ_NO_DECRYPT, FTAG,
-	    &db_spill)) != 0) {
+	if ((err = dmu_spill_hold_by_bonus(db, DMU_READ_NO_DECRYPT |
+	    DB_RF_CANFAIL, FTAG, &db_spill)) != 0) {
 		dmu_buf_rele(db, FTAG);
 		return (err);
 	}
@@ -2611,7 +2625,8 @@ receive_spill(struct receive_writer_arg *rwa, struct drr_spill *drrs,
 
 	memcpy(abuf->b_data, abd_to_buf(abd), DRR_SPILL_PAYLOAD_SIZE(drrs));
 	abd_free(abd);
-	dbuf_assign_arcbuf((dmu_buf_impl_t *)db_spill, abuf, tx);
+	dbuf_assign_arcbuf((dmu_buf_impl_t *)db_spill, abuf, tx,
+	    DMU_UNCACHEDIO);
 
 	dmu_buf_rele(db, FTAG);
 	dmu_buf_rele(db_spill, FTAG);
@@ -2777,7 +2792,7 @@ receive_read_payload_and_next_header(dmu_recv_cookie_t *drc, int len, void *buf)
 			drc->drc_rrd->bytes_read = drc->drc_bytes_read;
 		}
 	} else {
-		ASSERT3P(buf, ==, NULL);
+		ASSERT0P(buf);
 	}
 
 	drc->drc_prev_cksum = drc->drc_cksum;
@@ -3435,7 +3450,7 @@ dmu_recv_stream(dmu_recv_cookie_t *drc, offset_t *voffp)
 			break;
 		}
 
-		ASSERT3P(drc->drc_rrd, ==, NULL);
+		ASSERT0P(drc->drc_rrd);
 		drc->drc_rrd = drc->drc_next_rrd;
 		drc->drc_next_rrd = NULL;
 		/* Allocates and loads header into drc->drc_next_rrd */
@@ -3453,7 +3468,7 @@ dmu_recv_stream(dmu_recv_cookie_t *drc, offset_t *voffp)
 		drc->drc_rrd = NULL;
 	}
 
-	ASSERT3P(drc->drc_rrd, ==, NULL);
+	ASSERT0P(drc->drc_rrd);
 	drc->drc_rrd = kmem_zalloc(sizeof (*drc->drc_rrd), KM_SLEEP);
 	drc->drc_rrd->eos_marker = B_TRUE;
 	bqueue_enqueue_flush(&rwa->q, drc->drc_rrd, 1);
@@ -3527,6 +3542,8 @@ out:
 		 */
 		dmu_recv_cleanup_ds(drc);
 		nvlist_free(drc->drc_keynvl);
+		crfree(drc->drc_cred);
+		drc->drc_cred = NULL;
 	}
 
 	objlist_destroy(drc->drc_ignore_objlist);
@@ -3601,8 +3618,7 @@ dmu_recv_end_check(void *arg, dmu_tx_t *tx)
 			return (error);
 		}
 		error = dsl_dataset_snapshot_check_impl(origin_head,
-		    drc->drc_tosnap, tx, B_TRUE, 1,
-		    drc->drc_cred, drc->drc_proc);
+		    drc->drc_tosnap, tx, B_TRUE, 1, drc->drc_cred);
 		dsl_dataset_rele(origin_head, FTAG);
 		if (error != 0)
 			return (error);
@@ -3610,8 +3626,7 @@ dmu_recv_end_check(void *arg, dmu_tx_t *tx)
 		error = dsl_destroy_head_check_impl(drc->drc_ds, 1);
 	} else {
 		error = dsl_dataset_snapshot_check_impl(drc->drc_ds,
-		    drc->drc_tosnap, tx, B_TRUE, 1,
-		    drc->drc_cred, drc->drc_proc);
+		    drc->drc_tosnap, tx, B_TRUE, 1, drc->drc_cred);
 	}
 	return (error);
 }
@@ -3816,13 +3831,17 @@ dmu_recv_end(dmu_recv_cookie_t *drc, void *owner)
 		nvlist_free(drc->drc_keynvl);
 	} else if (!drc->drc_heal) {
 		if (drc->drc_newfs) {
-			zvol_create_minor(drc->drc_tofs);
+			zvol_create_minors(drc->drc_tofs);
 		}
 		char *snapname = kmem_asprintf("%s@%s",
 		    drc->drc_tofs, drc->drc_tosnap);
-		zvol_create_minor(snapname);
+		zvol_create_minors(snapname);
 		kmem_strfree(snapname);
 	}
+
+	crfree(drc->drc_cred);
+	drc->drc_cred = NULL;
+
 	return (error);
 }
 

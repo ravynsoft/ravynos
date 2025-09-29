@@ -563,7 +563,7 @@ abd_get_offset_impl(abd_t *abd, abd_t *sabd, size_t off, size_t size)
 			left -= csize;
 			off = 0;
 		}
-		ASSERT3U(left, ==, 0);
+		ASSERT0(left);
 	} else {
 		abd = abd_get_offset_scatter(abd, sabd, off, size);
 	}
@@ -1210,3 +1210,5 @@ abd_raidz_rec_iterate(abd_t **cabds, abd_t **tabds,
 	}
 	abd_exit_critical(flags);
 }
+
+EXPORT_SYMBOL(abd_free);

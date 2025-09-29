@@ -73,7 +73,7 @@ extern "C" {
 		pflags |= attr; \
 	else \
 		pflags &= ~attr; \
-	VERIFY(0 == sa_update(zp->z_sa_hdl, SA_ZPL_FLAGS(ZTOZSB(zp)), \
+	VERIFY0(sa_update(zp->z_sa_hdl, SA_ZPL_FLAGS(ZTOZSB(zp)), \
 	    &pflags, sizeof (pflags), tx)); \
 }
 
@@ -163,8 +163,9 @@ extern int zfs_obj_to_pobj(objset_t *osp, sa_handle_t *hdl,
     sa_attr_type_t *sa_table, uint64_t *pobjp, int *is_xattrdir);
 extern int zfs_get_zplprop(objset_t *os, zfs_prop_t prop, uint64_t *value);
 
-#ifdef _KERNEL
+#if defined(_KERNEL) || defined(_WANT_ZNODE)
 #include <sys/zfs_znode_impl.h>
+#include <sys/zfs_rlock.h>
 
 /*
  * Directory entry locks control access to directory entries.
@@ -201,8 +202,6 @@ typedef struct znode {
 	uint64_t	z_size;		/* file size (cached) */
 	uint64_t	z_pflags;	/* pflags (cached) */
 	uint32_t	z_sync_cnt;	/* synchronous open count */
-	uint32_t	z_sync_writes_cnt; /* synchronous write count */
-	uint32_t	z_async_writes_cnt; /* asynchronous write count */
 	mode_t		z_mode;		/* mode (cached) */
 	kmutex_t	z_acl_lock;	/* acl data lock */
 	zfs_acl_t	*z_acl_cached;	/* cached acl */
@@ -219,7 +218,9 @@ typedef struct znode {
 	 */
 	ZNODE_OS_FIELDS;
 } znode_t;
+#endif
 
+#ifdef _KERNEL
 /* Verifies the znode is valid. */
 static inline int
 zfs_verify_zp(znode_t *zp)

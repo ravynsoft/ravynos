@@ -21,11 +21,13 @@ function prefix() {
   S=$((DIFF-(M*60)))
 
   CTR=$(cat /tmp/ctr)
-  echo $LINE| grep -q "^Test[: ]" && CTR=$((CTR+1)) && echo $CTR > /tmp/ctr
+  echo $LINE| grep -q '^\[.*] Test[: ]' && CTR=$((CTR+1)) && echo $CTR > /tmp/ctr
 
   BASE="$HOME/work/zfs/zfs"
   COLOR="$BASE/scripts/zfs-tests-color.sh"
-  CLINE=$(echo $LINE| grep "^Test[ :]" | sed -e 's|/usr/local|/usr|g' \
+  CLINE=$(echo $LINE| grep '^\[.*] Test[: ]' \
+    | sed -e 's|^\[.*] Test|Test|g' \
+    | sed -e 's|/usr/local|/usr|g' \
     | sed -e 's| /usr/share/zfs/zfs-tests/tests/| |g' | $COLOR)
   if [ -z "$CLINE" ]; then
     printf "vm${ID}: %s\n" "$LINE"
@@ -45,7 +47,7 @@ if [ -z ${1:-} ]; then
   echo 0 > /tmp/ctr
   date "+%s" > /tmp/tsstart
 
-  for i in $(seq 1 $VMs); do
+  for ((i=1; i<=VMs; i++)); do
     IP="192.168.122.1$i"
     daemonize -c /var/tmp -p vm${i}.pid -o vm${i}log.txt -- \
       $SSH zfs@$IP $TESTS $OS $i $VMs $CI_TYPE
@@ -58,7 +60,7 @@ if [ -z ${1:-} ]; then
   done
 
   # wait for all vm's to finish
-  for i in $(seq 1 $VMs); do
+  for ((i=1; i<=VMs; i++)); do
     tail --pid=$(cat vm${i}.pid) -f /dev/null
     pid=$(cat vm${i}log.pid)
     rm -f vm${i}log.pid
@@ -72,19 +74,31 @@ fi
 export PATH="$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/sbin:/usr/local/bin"
 case "$1" in
   freebsd*)
+    TDIR="/usr/local/share/zfs"
     sudo kldstat -n zfs 2>/dev/null && sudo kldunload zfs
     sudo -E ./zfs/scripts/zfs.sh
-    TDIR="/usr/local/share/zfs"
+    sudo mv -f /var/tmp/*.txt /tmp
+    sudo newfs -U -t -L tmp /dev/vtbd1 >/dev/null
+    sudo mount -o noatime /dev/vtbd1 /var/tmp
+    sudo chmod 1777 /var/tmp
+    sudo mv -f /tmp/*.txt /var/tmp
     ;;
   *)
     # use xfs @ /var/tmp for all distros
+    TDIR="/usr/share/zfs"
+    sudo -E modprobe zfs
     sudo mv -f /var/tmp/*.txt /tmp
     sudo mkfs.xfs -fq /dev/vdb
     sudo mount -o noatime /dev/vdb /var/tmp
     sudo chmod 1777 /var/tmp
     sudo mv -f /tmp/*.txt /var/tmp
-    sudo -E modprobe zfs
-    TDIR="/usr/share/zfs"
+    ;;
+esac
+
+# enable io_uring on el9/el10
+case "$1" in
+  almalinux9|almalinux10|centos-stream*)
+    sudo sysctl kernel.io_uring_disabled=0 > /dev/null
     ;;
 esac
 

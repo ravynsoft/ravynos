@@ -74,6 +74,15 @@ static int traverse_dnode(traverse_data_t *td, const blkptr_t *bp,
 static void prefetch_dnode_metadata(traverse_data_t *td, const dnode_phys_t *,
     uint64_t objset, uint64_t object);
 
+static inline uint64_t
+get_birth_time(traverse_data_t *td, const blkptr_t *bp)
+{
+	if (td->td_flags & TRAVERSE_LOGICAL)
+		return (BP_GET_LOGICAL_BIRTH(bp));
+	else
+		return (BP_GET_BIRTH(bp));
+}
+
 static int
 traverse_zil_block(zilog_t *zilog, const blkptr_t *bp, void *arg,
     uint64_t claim_txg)
@@ -85,7 +94,7 @@ traverse_zil_block(zilog_t *zilog, const blkptr_t *bp, void *arg,
 		return (0);
 
 	if (claim_txg == 0 &&
-	    BP_GET_LOGICAL_BIRTH(bp) >= spa_min_claim_txg(td->td_spa))
+	    get_birth_time(td, bp) >= spa_min_claim_txg(td->td_spa))
 		return (-1);
 
 	SET_BOOKMARK(&zb, td->td_objset, ZB_ZIL_OBJECT, ZB_ZIL_LEVEL,
@@ -110,7 +119,7 @@ traverse_zil_record(zilog_t *zilog, const lr_t *lrc, void *arg,
 		if (BP_IS_HOLE(bp))
 			return (0);
 
-		if (claim_txg == 0 || BP_GET_LOGICAL_BIRTH(bp) < claim_txg)
+		if (claim_txg == 0 || get_birth_time(td, bp) < claim_txg)
 			return (0);
 
 		ASSERT3U(BP_GET_LSIZE(bp), !=, 0);
@@ -194,7 +203,7 @@ traverse_prefetch_metadata(traverse_data_t *td, const dnode_phys_t *dnp,
 	 */
 	if (resume_skip_check(td, dnp, zb) != RESUME_SKIP_NONE)
 		return (B_FALSE);
-	if (BP_IS_HOLE(bp) || BP_GET_LOGICAL_BIRTH(bp) <= td->td_min_txg)
+	if (BP_IS_HOLE(bp) || get_birth_time(td, bp) <= td->td_min_txg)
 		return (B_FALSE);
 	if (BP_GET_LEVEL(bp) == 0 && BP_GET_TYPE(bp) != DMU_OT_DNODE)
 		return (B_FALSE);
@@ -265,7 +274,7 @@ traverse_visitbp(traverse_data_t *td, const dnode_phys_t *dnp,
 		    zb->zb_object == DMU_META_DNODE_OBJECT) &&
 		    td->td_hole_birth_enabled_txg <= td->td_min_txg)
 			return (0);
-	} else if (BP_GET_LOGICAL_BIRTH(bp) <= td->td_min_txg) {
+	} else if (get_birth_time(td, bp) <= td->td_min_txg) {
 		return (0);
 	}
 
@@ -297,7 +306,7 @@ traverse_visitbp(traverse_data_t *td, const dnode_phys_t *dnp,
 	}
 
 	if (BP_GET_LEVEL(bp) > 0) {
-		uint32_t flags = ARC_FLAG_WAIT;
+		arc_flags_t flags = ARC_FLAG_WAIT;
 		int32_t i, ptidx, pidx;
 		uint32_t prefetchlimit;
 		int32_t epb = BP_GET_LSIZE(bp) >> SPA_BLKPTRSHIFT;
@@ -364,8 +373,8 @@ traverse_visitbp(traverse_data_t *td, const dnode_phys_t *dnp,
 		kmem_free(czb, sizeof (zbookmark_phys_t));
 
 	} else if (BP_GET_TYPE(bp) == DMU_OT_DNODE) {
-		uint32_t flags = ARC_FLAG_WAIT;
-		uint32_t zio_flags = ZIO_FLAG_CANFAIL;
+		arc_flags_t flags = ARC_FLAG_WAIT;
+		zio_flag_t zio_flags = ZIO_FLAG_CANFAIL;
 		int32_t i;
 		int32_t epb = BP_GET_LSIZE(bp) >> DNODE_SHIFT;
 		dnode_phys_t *child_dnp;
@@ -397,7 +406,7 @@ traverse_visitbp(traverse_data_t *td, const dnode_phys_t *dnp,
 				break;
 		}
 	} else if (BP_GET_TYPE(bp) == DMU_OT_OBJSET) {
-		uint32_t zio_flags = ZIO_FLAG_CANFAIL;
+		zio_flag_t zio_flags = ZIO_FLAG_CANFAIL;
 		arc_flags_t flags = ARC_FLAG_WAIT;
 		objset_phys_t *osp;
 
@@ -669,7 +678,7 @@ traverse_impl(spa_t *spa, dsl_dataset_t *ds, uint64_t objset, blkptr_t *rootbp,
 	/* See comment on ZIL traversal in dsl_scan_visitds. */
 	if (ds != NULL && !ds->ds_is_snapshot && !BP_IS_HOLE(rootbp)) {
 		zio_flag_t zio_flags = ZIO_FLAG_CANFAIL;
-		uint32_t flags = ARC_FLAG_WAIT;
+		arc_flags_t flags = ARC_FLAG_WAIT;
 		objset_phys_t *osp;
 		arc_buf_t *buf;
 		ASSERT(!BP_IS_REDACTED(rootbp));
@@ -812,12 +821,6 @@ ZFS_MODULE_PARAM(zfs, zfs_, pd_bytes_max, INT, ZMOD_RW,
 
 ZFS_MODULE_PARAM(zfs, zfs_, traverse_indirect_prefetch_limit, UINT, ZMOD_RW,
 	"Traverse prefetch number of blocks pointed by indirect block");
-
-#if defined(_KERNEL)
-module_param_named(ignore_hole_birth, send_holes_without_birth_time, int, 0644);
-MODULE_PARM_DESC(ignore_hole_birth,
-	"Alias for send_holes_without_birth_time");
-#endif
 
 ZFS_MODULE_PARAM(zfs, , send_holes_without_birth_time, INT, ZMOD_RW,
 	"Ignore hole_birth txg for zfs send");

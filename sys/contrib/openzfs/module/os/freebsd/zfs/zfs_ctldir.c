@@ -357,7 +357,7 @@ zfsctl_create(zfsvfs_t *zfsvfs)
 	vnode_t *rvp;
 	uint64_t crtime[2];
 
-	ASSERT3P(zfsvfs->z_ctldir, ==, NULL);
+	ASSERT0P(zfsvfs->z_ctldir);
 
 	snapdir = sfs_alloc_node(sizeof (*snapdir), "snapshot", ZFSCTL_INO_ROOT,
 	    ZFSCTL_INO_SNAPDIR);
@@ -494,7 +494,7 @@ zfsctl_common_getattr(vnode_t *vp, vattr_t *vap)
 
 	vap->va_uid = 0;
 	vap->va_gid = 0;
-	vap->va_rdev = 0;
+	vap->va_rdev = NODEV;
 	/*
 	 * We are a purely virtual object, so we have no
 	 * blocksize or allocated blocks.
@@ -688,6 +688,8 @@ zfsctl_root_readdir(struct vop_readdir_args *ap)
 	 * count to return is 0.
 	 */
 	if (zfs_uio_offset(&uio) == 3 * sizeof (entry)) {
+		if (eofp != NULL)
+			*eofp = 1;
 		return (0);
 	}
 
@@ -1367,7 +1369,7 @@ zfsctl_snapshot_unmount(const char *snapname, int flags __unused)
 
 	int err = getzfsvfs(snapname, &zfsvfs);
 	if (err != 0) {
-		ASSERT3P(zfsvfs, ==, NULL);
+		ASSERT0P(zfsvfs);
 		return (0);
 	}
 	vfsp = zfsvfs->z_vfs;

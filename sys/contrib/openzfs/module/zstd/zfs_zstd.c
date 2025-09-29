@@ -637,11 +637,10 @@ zfs_zstd_compress_buf(void *s_start, void *d_start, size_t s_len, size_t d_len,
 	size_t actual_abort_size = zstd_abort_size;
 	if (zstd_earlyabort_pass > 0 && zstd_level >= zstd_cutoff_level &&
 	    s_len >= actual_abort_size) {
-		int pass_len = 1;
 		abd_t sabd, dabd;
 		abd_get_from_buf_struct(&sabd, s_start, s_len);
 		abd_get_from_buf_struct(&dabd, d_start, d_len);
-		pass_len = zfs_lz4_compress(&sabd, &dabd, s_len, d_len, 0);
+		int pass_len = zfs_lz4_compress(&sabd, &dabd, s_len, d_len, 0);
 		abd_free(&dabd);
 		abd_free(&sabd);
 		if (pass_len < d_len) {
@@ -877,9 +876,9 @@ static void __init
 zstd_mempool_init(void)
 {
 	zstd_mempool_cctx =
-	    kmem_zalloc(ZSTD_POOL_MAX * sizeof (struct zstd_pool), KM_SLEEP);
+	    vmem_zalloc(ZSTD_POOL_MAX * sizeof (struct zstd_pool), KM_SLEEP);
 	zstd_mempool_dctx =
-	    kmem_zalloc(ZSTD_POOL_MAX * sizeof (struct zstd_pool), KM_SLEEP);
+	    vmem_zalloc(ZSTD_POOL_MAX * sizeof (struct zstd_pool), KM_SLEEP);
 
 	for (int i = 0; i < ZSTD_POOL_MAX; i++) {
 		mutex_init(&zstd_mempool_cctx[i].barrier, NULL,
@@ -925,8 +924,8 @@ zstd_mempool_deinit(void)
 		release_pool(&zstd_mempool_dctx[i]);
 	}
 
-	kmem_free(zstd_mempool_dctx, ZSTD_POOL_MAX * sizeof (struct zstd_pool));
-	kmem_free(zstd_mempool_cctx, ZSTD_POOL_MAX * sizeof (struct zstd_pool));
+	vmem_free(zstd_mempool_dctx, ZSTD_POOL_MAX * sizeof (struct zstd_pool));
+	vmem_free(zstd_mempool_cctx, ZSTD_POOL_MAX * sizeof (struct zstd_pool));
 	zstd_mempool_dctx = NULL;
 	zstd_mempool_cctx = NULL;
 }

@@ -37,6 +37,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <sys/debug.h>
+#include <dirent.h>
 #include <errno.h>
 #include <getopt.h>
 #include <libgen.h>
@@ -121,6 +122,7 @@ static int zfs_do_change_key(int argc, char **argv);
 static int zfs_do_project(int argc, char **argv);
 static int zfs_do_version(int argc, char **argv);
 static int zfs_do_redact(int argc, char **argv);
+static int zfs_do_rewrite(int argc, char **argv);
 static int zfs_do_wait(int argc, char **argv);
 
 #ifdef __FreeBSD__
@@ -193,6 +195,7 @@ typedef enum {
 	HELP_CHANGE_KEY,
 	HELP_VERSION,
 	HELP_REDACT,
+	HELP_REWRITE,
 	HELP_JAIL,
 	HELP_UNJAIL,
 	HELP_WAIT,
@@ -227,7 +230,7 @@ static zfs_command_t command_table[] = {
 	{ "promote",	zfs_do_promote,		HELP_PROMOTE		},
 	{ "rename",	zfs_do_rename,		HELP_RENAME		},
 	{ "bookmark",	zfs_do_bookmark,	HELP_BOOKMARK		},
-	{ "program",    zfs_do_channel_program, HELP_CHANNEL_PROGRAM    },
+	{ "diff",	zfs_do_diff,		HELP_DIFF		},
 	{ NULL },
 	{ "list",	zfs_do_list,		HELP_LIST		},
 	{ NULL },
@@ -249,27 +252,31 @@ static zfs_command_t command_table[] = {
 	{ NULL },
 	{ "send",	zfs_do_send,		HELP_SEND		},
 	{ "receive",	zfs_do_receive,		HELP_RECEIVE		},
+	{ "redact",	zfs_do_redact,		HELP_REDACT		},
 	{ NULL },
 	{ "allow",	zfs_do_allow,		HELP_ALLOW		},
-	{ NULL },
 	{ "unallow",	zfs_do_unallow,		HELP_UNALLOW		},
 	{ NULL },
 	{ "hold",	zfs_do_hold,		HELP_HOLD		},
 	{ "holds",	zfs_do_holds,		HELP_HOLDS		},
 	{ "release",	zfs_do_release,		HELP_RELEASE		},
-	{ "diff",	zfs_do_diff,		HELP_DIFF		},
+	{ NULL },
 	{ "load-key",	zfs_do_load_key,	HELP_LOAD_KEY		},
 	{ "unload-key",	zfs_do_unload_key,	HELP_UNLOAD_KEY		},
 	{ "change-key",	zfs_do_change_key,	HELP_CHANGE_KEY		},
-	{ "redact",	zfs_do_redact,		HELP_REDACT		},
+	{ NULL },
+	{ "program",	zfs_do_channel_program,	HELP_CHANNEL_PROGRAM	},
+	{ "rewrite",	zfs_do_rewrite,		HELP_REWRITE		},
 	{ "wait",	zfs_do_wait,		HELP_WAIT		},
 
 #ifdef __FreeBSD__
+	{ NULL },
 	{ "jail",	zfs_do_jail,		HELP_JAIL		},
 	{ "unjail",	zfs_do_unjail,		HELP_UNJAIL		},
 #endif
 
 #ifdef __linux__
+	{ NULL },
 	{ "zone",	zfs_do_zone,		HELP_ZONE		},
 	{ "unzone",	zfs_do_unzone,		HELP_UNZONE		},
 #endif
@@ -432,6 +439,9 @@ get_usage(zfs_help_t idx)
 	case HELP_REDACT:
 		return (gettext("\tredact <snapshot> <bookmark> "
 		    "<redaction_snapshot> ...\n"));
+	case HELP_REWRITE:
+		return (gettext("\trewrite [-Prvx] [-o <offset>] [-l <length>] "
+		    "<directory|file ...>\n"));
 	case HELP_JAIL:
 		return (gettext("\tjail <jailid|jailname> <filesystem>\n"));
 	case HELP_UNJAIL:
@@ -913,7 +923,7 @@ zfs_do_clone(int argc, char **argv)
 	return (!!ret);
 
 usage:
-	ASSERT3P(zhp, ==, NULL);
+	ASSERT0P(zhp);
 	nvlist_free(props);
 	usage(B_FALSE);
 	return (-1);
@@ -1964,9 +1974,8 @@ fill_dataset_info(nvlist_t *list, zfs_handle_t *zhp, boolean_t as_int)
 	}
 
 	if (type == ZFS_TYPE_SNAPSHOT) {
-		char *ds, *snap;
-		ds = snap = strdup(zfs_get_name(zhp));
-		ds = strsep(&snap, "@");
+		char *snap = strdup(zfs_get_name(zhp));
+		char *ds = strsep(&snap, "@");
 		fnvlist_add_string(list, "dataset", ds);
 		fnvlist_add_string(list, "snapshot_name", snap);
 		free(ds);
@@ -2009,8 +2018,7 @@ get_callback(zfs_handle_t *zhp, void *data)
 	nvlist_t *user_props = zfs_get_user_props(zhp);
 	zprop_list_t *pl = cbp->cb_proplist;
 	nvlist_t *propval;
-	nvlist_t *item, *d, *props;
-	item = d = props = NULL;
+	nvlist_t *item, *d = NULL, *props = NULL;
 	const char *strval;
 	const char *sourceval;
 	boolean_t received = is_recvd_column(cbp);
@@ -2986,7 +2994,8 @@ us_type2str(unsigned field_type)
 }
 
 static int
-userspace_cb(void *arg, const char *domain, uid_t rid, uint64_t space)
+userspace_cb(void *arg, const char *domain, uid_t rid, uint64_t space,
+    uint64_t default_quota)
 {
 	us_cbdata_t *cb = (us_cbdata_t *)arg;
 	zfs_userquota_prop_t prop = cb->cb_prop;
@@ -3142,7 +3151,7 @@ userspace_cb(void *arg, const char *domain, uid_t rid, uint64_t space)
 	    prop == ZFS_PROP_PROJECTUSED) {
 		propname = "used";
 		if (!nvlist_exists(props, "quota"))
-			(void) nvlist_add_uint64(props, "quota", 0);
+			(void) nvlist_add_uint64(props, "quota", default_quota);
 	} else if (prop == ZFS_PROP_USERQUOTA || prop == ZFS_PROP_GROUPQUOTA ||
 	    prop == ZFS_PROP_PROJECTQUOTA) {
 		propname = "quota";
@@ -3151,8 +3160,10 @@ userspace_cb(void *arg, const char *domain, uid_t rid, uint64_t space)
 	} else if (prop == ZFS_PROP_USEROBJUSED ||
 	    prop == ZFS_PROP_GROUPOBJUSED || prop == ZFS_PROP_PROJECTOBJUSED) {
 		propname = "objused";
-		if (!nvlist_exists(props, "objquota"))
-			(void) nvlist_add_uint64(props, "objquota", 0);
+		if (!nvlist_exists(props, "objquota")) {
+			(void) nvlist_add_uint64(props, "objquota",
+			    default_quota);
+		}
 	} else if (prop == ZFS_PROP_USEROBJQUOTA ||
 	    prop == ZFS_PROP_GROUPOBJQUOTA ||
 	    prop == ZFS_PROP_PROJECTOBJQUOTA) {
@@ -4440,7 +4451,7 @@ zfs_do_rollback(int argc, char **argv)
 	if (cb.cb_create > 0)
 		min_txg = cb.cb_create;
 
-	if ((ret = zfs_iter_snapshots_v2(zhp, 0, rollback_check, &cb,
+	if ((ret = zfs_iter_snapshots_sorted_v2(zhp, 0, rollback_check, &cb,
 	    min_txg, 0)) != 0)
 		goto out;
 	if ((ret = zfs_iter_bookmarks_v2(zhp, 0, rollback_check, &cb)) != 0)
@@ -5866,7 +5877,7 @@ parse_fs_perm_set(fs_perm_set_t *fspset, nvlist_t *nvl)
 static inline const char *
 deleg_perm_comment(zfs_deleg_note_t note)
 {
-	const char *str = "";
+	const char *str;
 
 	/* subcommands */
 	switch (note) {
@@ -7716,6 +7727,7 @@ unshare_unmount_path(int op, char *path, int flags, boolean_t is_manual)
 	struct extmnttab entry;
 	const char *cmdname = (op == OP_SHARE) ? "unshare" : "unmount";
 	ino_t path_inode;
+	char *zfs_mntpnt, *entry_mntpnt;
 
 	/*
 	 * Search for the given (major,minor) pair in the mount table.
@@ -7756,6 +7768,24 @@ unshare_unmount_path(int op, char *path, int flags, boolean_t is_manual)
 		    "%s '%s': not a mountpoint\n"), cmdname, path);
 		goto out;
 	}
+
+	/*
+	 * If the filesystem is mounted, check that the mountpoint matches
+	 * the one in the mnttab entry w.r.t. provided path. If it doesn't,
+	 * then we should not proceed further.
+	 */
+	entry_mntpnt = strdup(entry.mnt_mountp);
+	if (zfs_is_mounted(zhp, &zfs_mntpnt)) {
+		if (strcmp(zfs_mntpnt, entry_mntpnt) != 0) {
+			(void) fprintf(stderr, gettext("cannot %s '%s': "
+			    "not an original mountpoint\n"), cmdname, path);
+			free(zfs_mntpnt);
+			free(entry_mntpnt);
+			goto out;
+		}
+		free(zfs_mntpnt);
+	}
+	free(entry_mntpnt);
 
 	if (op == OP_SHARE) {
 		char nfs_mnt_prop[ZFS_MAXPROPLEN];
@@ -9009,6 +9039,195 @@ zfs_do_project(int argc, char **argv)
 		if (err && !ret)
 			ret = err;
 	}
+
+	return (ret);
+}
+
+static int
+zfs_rewrite_file(const char *path, boolean_t verbose, zfs_rewrite_args_t *args)
+{
+	int fd, ret = 0;
+
+	fd = open(path, O_WRONLY);
+	if (fd < 0) {
+		ret = errno;
+		(void) fprintf(stderr, gettext("failed to open %s: %s\n"),
+		    path, strerror(errno));
+		return (ret);
+	}
+
+	if (ioctl(fd, ZFS_IOC_REWRITE, args) < 0) {
+		ret = errno;
+		(void) fprintf(stderr, gettext("failed to rewrite %s: %s\n"),
+		    path, strerror(errno));
+	} else if (verbose) {
+		printf("%s\n", path);
+	}
+
+	close(fd);
+	return (ret);
+}
+
+static int
+zfs_rewrite_dir(const char *path, boolean_t verbose, boolean_t xdev, dev_t dev,
+    zfs_rewrite_args_t *args, nvlist_t *dirs)
+{
+	struct dirent *ent;
+	DIR *dir;
+	int ret = 0, err;
+
+	dir = opendir(path);
+	if (dir == NULL) {
+		if (errno == ENOENT)
+			return (0);
+		ret = errno;
+		(void) fprintf(stderr, gettext("failed to opendir %s: %s\n"),
+		    path, strerror(errno));
+		return (ret);
+	}
+
+	size_t plen = strlen(path) + 1;
+	while ((ent = readdir(dir)) != NULL) {
+		char *fullname;
+		struct stat st;
+
+		if (ent->d_type != DT_REG && ent->d_type != DT_DIR)
+			continue;
+
+		if (strcmp(ent->d_name, ".") == 0 ||
+		    strcmp(ent->d_name, "..") == 0)
+			continue;
+
+		if (plen + strlen(ent->d_name) >= PATH_MAX) {
+			(void) fprintf(stderr, gettext("path too long %s/%s\n"),
+			    path, ent->d_name);
+			ret = ENAMETOOLONG;
+			continue;
+		}
+
+		if (asprintf(&fullname, "%s/%s", path, ent->d_name) == -1) {
+			(void) fprintf(stderr,
+			    gettext("failed to allocate memory\n"));
+			ret = ENOMEM;
+			continue;
+		}
+
+		if (xdev) {
+			if (lstat(fullname, &st) < 0) {
+				ret = errno;
+				(void) fprintf(stderr,
+				    gettext("failed to stat %s: %s\n"),
+				    fullname, strerror(errno));
+				free(fullname);
+				continue;
+			}
+			if (st.st_dev != dev) {
+				free(fullname);
+				continue;
+			}
+		}
+
+		if (ent->d_type == DT_REG) {
+			err = zfs_rewrite_file(fullname, verbose, args);
+			if (err)
+				ret = err;
+		} else { /* DT_DIR */
+			fnvlist_add_uint64(dirs, fullname, dev);
+		}
+
+		free(fullname);
+	}
+
+	closedir(dir);
+	return (ret);
+}
+
+static int
+zfs_rewrite_path(const char *path, boolean_t verbose, boolean_t recurse,
+    boolean_t xdev, zfs_rewrite_args_t *args, nvlist_t *dirs)
+{
+	struct stat st;
+	int ret = 0;
+
+	if (lstat(path, &st) < 0) {
+		ret = errno;
+		(void) fprintf(stderr, gettext("failed to stat %s: %s\n"),
+		    path, strerror(errno));
+		return (ret);
+	}
+
+	if (S_ISREG(st.st_mode)) {
+		ret = zfs_rewrite_file(path, verbose, args);
+	} else if (S_ISDIR(st.st_mode) && recurse) {
+		ret = zfs_rewrite_dir(path, verbose, xdev, st.st_dev, args,
+		    dirs);
+	}
+	return (ret);
+}
+
+static int
+zfs_do_rewrite(int argc, char **argv)
+{
+	int ret = 0, err, c;
+	boolean_t recurse = B_FALSE, verbose = B_FALSE, xdev = B_FALSE;
+
+	if (argc < 2)
+		usage(B_FALSE);
+
+	zfs_rewrite_args_t args;
+	memset(&args, 0, sizeof (args));
+
+	while ((c = getopt(argc, argv, "Pl:o:rvx")) != -1) {
+		switch (c) {
+		case 'P':
+			args.flags |= ZFS_REWRITE_PHYSICAL;
+			break;
+		case 'l':
+			args.len = strtoll(optarg, NULL, 0);
+			break;
+		case 'o':
+			args.off = strtoll(optarg, NULL, 0);
+			break;
+		case 'r':
+			recurse = B_TRUE;
+			break;
+		case 'v':
+			verbose = B_TRUE;
+			break;
+		case 'x':
+			xdev = B_TRUE;
+			break;
+		default:
+			(void) fprintf(stderr, gettext("invalid option '%c'\n"),
+			    optopt);
+			usage(B_FALSE);
+		}
+	}
+
+	argv += optind;
+	argc -= optind;
+	if (argc == 0) {
+		(void) fprintf(stderr,
+		    gettext("missing file or directory target(s)\n"));
+		usage(B_FALSE);
+	}
+
+	nvlist_t *dirs = fnvlist_alloc();
+	for (int i = 0; i < argc; i++) {
+		err = zfs_rewrite_path(argv[i], verbose, recurse, xdev, &args,
+		    dirs);
+		if (err)
+			ret = err;
+	}
+	nvpair_t *dir;
+	while ((dir = nvlist_next_nvpair(dirs, NULL)) != NULL) {
+		err = zfs_rewrite_dir(nvpair_name(dir), verbose, xdev,
+		    fnvpair_value_uint64(dir), &args, dirs);
+		if (err)
+			ret = err;
+		fnvlist_remove_nvpair(dirs, dir);
+	}
+	fnvlist_free(dirs);
 
 	return (ret);
 }

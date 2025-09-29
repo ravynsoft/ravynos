@@ -265,6 +265,7 @@ zfs_sync(struct super_block *sb, int wait, cred_t *cr)
 {
 	(void) cr;
 	zfsvfs_t *zfsvfs = sb->s_fs_info;
+	ASSERT3P(zfsvfs, !=, NULL);
 
 	/*
 	 * Semantically, the only requirement is that the sync be initiated.
@@ -273,40 +274,19 @@ zfs_sync(struct super_block *sb, int wait, cred_t *cr)
 	if (!wait)
 		return (0);
 
-	if (zfsvfs != NULL) {
-		/*
-		 * Sync a specific filesystem.
-		 */
-		dsl_pool_t *dp;
-		int error;
+	int err = zfs_enter(zfsvfs, FTAG);
+	if (err != 0)
+		return (err);
 
-		if ((error = zfs_enter(zfsvfs, FTAG)) != 0)
-			return (error);
-		dp = dmu_objset_pool(zfsvfs->z_os);
+	/*
+	 * Sync any pending writes, but do not block if the pool is suspended.
+	 * This is to help with shutting down with pools suspended, as we don't
+	 * want to block in that case.
+	 */
+	err = zil_commit_flags(zfsvfs->z_log, 0, ZIL_COMMIT_NOW);
+	zfs_exit(zfsvfs, FTAG);
 
-		/*
-		 * If the system is shutting down, then skip any
-		 * filesystems which may exist on a suspended pool.
-		 */
-		if (spa_suspended(dp->dp_spa)) {
-			zfs_exit(zfsvfs, FTAG);
-			return (0);
-		}
-
-		if (zfsvfs->z_log != NULL)
-			zil_commit(zfsvfs->z_log, 0);
-
-		zfs_exit(zfsvfs, FTAG);
-	} else {
-		/*
-		 * Sync all ZFS filesystems.  This is what happens when you
-		 * run sync(1).  Unlike other filesystems, ZFS honors the
-		 * request by waiting for all pools to commit all dirty data.
-		 */
-		spa_sync_allpools();
-	}
-
-	return (0);
+	return (err);
 }
 
 static void
@@ -697,6 +677,36 @@ zfsvfs_init(zfsvfs_t *zfsvfs, objset_t *os)
 			zfsvfs->z_xattr_sa = B_TRUE;
 	}
 
+	error = zfs_get_zplprop(os, ZFS_PROP_DEFAULTUSERQUOTA,
+	    &zfsvfs->z_defaultuserquota);
+	if (error != 0)
+		return (error);
+
+	error = zfs_get_zplprop(os, ZFS_PROP_DEFAULTGROUPQUOTA,
+	    &zfsvfs->z_defaultgroupquota);
+	if (error != 0)
+		return (error);
+
+	error = zfs_get_zplprop(os, ZFS_PROP_DEFAULTPROJECTQUOTA,
+	    &zfsvfs->z_defaultprojectquota);
+	if (error != 0)
+		return (error);
+
+	error = zfs_get_zplprop(os, ZFS_PROP_DEFAULTUSEROBJQUOTA,
+	    &zfsvfs->z_defaultuserobjquota);
+	if (error != 0)
+		return (error);
+
+	error = zfs_get_zplprop(os, ZFS_PROP_DEFAULTGROUPOBJQUOTA,
+	    &zfsvfs->z_defaultgroupobjquota);
+	if (error != 0)
+		return (error);
+
+	error = zfs_get_zplprop(os, ZFS_PROP_DEFAULTPROJECTOBJQUOTA,
+	    &zfsvfs->z_defaultprojectobjquota);
+	if (error != 0)
+		return (error);
+
 	error = zap_lookup(os, MASTER_NODE_OBJ, ZFS_ROOT_OBJ, 8, 1,
 	    &zfsvfs->z_root);
 	if (error != 0)
@@ -868,7 +878,7 @@ zfsvfs_setup(zfsvfs_t *zfsvfs, boolean_t mounting)
 	 * operations out since we closed the ZIL.
 	 */
 	if (mounting) {
-		ASSERT3P(zfsvfs->z_kstat.dk_kstats, ==, NULL);
+		ASSERT0P(zfsvfs->z_kstat.dk_kstats);
 		error = dataset_kstats_create(&zfsvfs->z_kstat, zfsvfs->z_os);
 		if (error)
 			return (error);
@@ -1038,15 +1048,19 @@ zfs_statfs_project(zfsvfs_t *zfsvfs, znode_t *zp, struct kstatfs *statp,
 	if (err)
 		return (err);
 
-	if (zfsvfs->z_projectquota_obj == 0)
-		goto objs;
-
-	err = zap_lookup(zfsvfs->z_os, zfsvfs->z_projectquota_obj,
-	    buf + offset, 8, 1, &quota);
-	if (err == ENOENT)
-		goto objs;
-	else if (err)
-		return (err);
+	if (zfsvfs->z_projectquota_obj == 0) {
+		if (zfsvfs->z_defaultprojectquota == 0)
+			goto objs;
+		quota = zfsvfs->z_defaultprojectquota;
+	} else {
+		err = zap_lookup(zfsvfs->z_os, zfsvfs->z_projectquota_obj,
+		    buf + offset, 8, 1, &quota);
+		if (err && (quota = zfsvfs->z_defaultprojectquota) == 0) {
+			if (err == ENOENT)
+				goto objs;
+			return (err);
+		}
+	}
 
 	err = zap_lookup(zfsvfs->z_os, DMU_PROJECTUSED_OBJECT,
 	    buf + offset, 8, 1, &used);
@@ -1072,15 +1086,21 @@ zfs_statfs_project(zfsvfs_t *zfsvfs, znode_t *zp, struct kstatfs *statp,
 	statp->f_bavail = statp->f_bfree;
 
 objs:
-	if (zfsvfs->z_projectobjquota_obj == 0)
-		return (0);
 
-	err = zap_lookup(zfsvfs->z_os, zfsvfs->z_projectobjquota_obj,
-	    buf + offset, 8, 1, &quota);
-	if (err == ENOENT)
-		return (0);
-	else if (err)
-		return (err);
+	if (zfsvfs->z_projectobjquota_obj == 0) {
+		if (zfsvfs->z_defaultprojectobjquota == 0)
+			return (0);
+		quota = zfsvfs->z_defaultprojectobjquota;
+	} else {
+		err = zap_lookup(zfsvfs->z_os, zfsvfs->z_projectobjquota_obj,
+		    buf + offset, 8, 1, &quota);
+		if (err && (quota = zfsvfs->z_defaultprojectobjquota) == 0) {
+			if (err == ENOENT)
+				return (0);
+			return (err);
+		}
+	}
+
 
 	err = zap_lookup(zfsvfs->z_os, DMU_PROJECTUSED_OBJECT,
 	    buf, 8, 1, &used);
@@ -1192,6 +1212,63 @@ zfs_root(zfsvfs_t *zfsvfs, struct inode **ipp)
 }
 
 /*
+ * Dentry and inode caches referenced by a task in non-root memcg are
+ * not going to be scanned by the kernel-provided shrinker. So, if
+ * kernel prunes nothing, fall back to this manual walk to free dnodes.
+ * To avoid scanning the same znodes multiple times they are always rotated
+ * to the end of the z_all_znodes list. New znodes are inserted at the
+ * end of the list so we're always scanning the oldest znodes first.
+ */
+static int
+zfs_prune_aliases(zfsvfs_t *zfsvfs, unsigned long nr_to_scan)
+{
+	znode_t **zp_array, *zp;
+	int max_array = MIN(nr_to_scan, PAGE_SIZE * 8 / sizeof (znode_t *));
+	int objects = 0;
+	int i = 0, j = 0;
+
+	zp_array = vmem_zalloc(max_array * sizeof (znode_t *), KM_SLEEP);
+
+	mutex_enter(&zfsvfs->z_znodes_lock);
+	while ((zp = list_head(&zfsvfs->z_all_znodes)) != NULL) {
+
+		if ((i++ > nr_to_scan) || (j >= max_array))
+			break;
+
+		ASSERT(list_link_active(&zp->z_link_node));
+		list_remove(&zfsvfs->z_all_znodes, zp);
+		list_insert_tail(&zfsvfs->z_all_znodes, zp);
+
+		/* Skip active znodes and .zfs entries */
+		if (MUTEX_HELD(&zp->z_lock) || zp->z_is_ctldir)
+			continue;
+
+		if (igrab(ZTOI(zp)) == NULL)
+			continue;
+
+		zp_array[j] = zp;
+		j++;
+	}
+	mutex_exit(&zfsvfs->z_znodes_lock);
+
+	for (i = 0; i < j; i++) {
+		zp = zp_array[i];
+
+		ASSERT3P(zp, !=, NULL);
+		d_prune_aliases(ZTOI(zp));
+
+		if (atomic_read(&ZTOI(zp)->i_count) == 1)
+			objects++;
+
+		zrele(zp);
+	}
+
+	vmem_free(zp_array, max_array * sizeof (znode_t *));
+
+	return (objects);
+}
+
+/*
  * The ARC has requested that the filesystem drop entries from the dentry
  * and inode caches.  This can occur when the ARC needs to free meta data
  * blocks but can't because they are all pinned by entries in these caches.
@@ -1241,6 +1318,14 @@ zfs_prune(struct super_block *sb, unsigned long nr_to_scan, int *objects)
 #else
 	*objects = (*shrinker->scan_objects)(shrinker, &sc);
 #endif
+
+	/*
+	 * Fall back to zfs_prune_aliases if kernel's shrinker did nothing
+	 * due to dentry and inode caches being referenced by a task running
+	 * in non-root memcg.
+	 */
+	if (*objects == 0)
+		*objects = zfs_prune_aliases(zfsvfs, nr_to_scan);
 
 	zfs_exit(zfsvfs, FTAG);
 
@@ -1586,7 +1671,7 @@ zfs_umount(struct super_block *sb)
 
 	if (zfsvfs->z_arc_prune != NULL)
 		arc_remove_prune_callback(zfsvfs->z_arc_prune);
-	VERIFY(zfsvfs_teardown(zfsvfs, B_TRUE) == 0);
+	VERIFY0(zfsvfs_teardown(zfsvfs, B_TRUE));
 	os = zfsvfs->z_os;
 
 	/*
@@ -1712,8 +1797,8 @@ zfs_vget(struct super_block *sb, struct inode **ipp, fid_t *fidp)
 		ASSERT(*ipp != NULL);
 
 		if (object == ZFSCTL_INO_SNAPDIR) {
-			VERIFY(zfsctl_root_lookup(*ipp, "snapshot", ipp,
-			    0, kcred, NULL, NULL) == 0);
+			VERIFY0(zfsctl_root_lookup(*ipp, "snapshot", ipp,
+			    0, kcred, NULL, NULL));
 		} else {
 			/*
 			 * Must have an existing ref, so igrab()
@@ -1815,7 +1900,7 @@ zfs_resume_fs(zfsvfs_t *zfsvfs, dsl_dataset_t *ds)
 		goto bail;
 
 	ds->ds_dir->dd_activity_cancelled = B_FALSE;
-	VERIFY(zfsvfs_setup(zfsvfs, B_FALSE) == 0);
+	VERIFY0(zfsvfs_setup(zfsvfs, B_FALSE));
 
 	zfs_set_fuid_feature(zfsvfs);
 	zfsvfs->z_rollback_time = jiffies;
@@ -1988,7 +2073,7 @@ zfs_set_version(zfsvfs_t *zfsvfs, uint64_t newvers)
 		    ZFS_SA_ATTRS, 8, 1, &sa_obj, tx);
 		ASSERT0(error);
 
-		VERIFY(0 == sa_set_sa_object(os, sa_obj));
+		VERIFY0(sa_set_sa_object(os, sa_obj));
 		sa_register_update_callback(os, zfs_sa_upgrade);
 	}
 
@@ -2003,6 +2088,62 @@ zfs_set_version(zfsvfs_t *zfsvfs, uint64_t newvers)
 	zfs_set_fuid_feature(zfsvfs);
 
 	return (0);
+}
+
+int
+zfs_set_default_quota(zfsvfs_t *zfsvfs, zfs_prop_t prop, uint64_t quota)
+{
+	int error;
+	objset_t *os = zfsvfs->z_os;
+	const char *propstr = zfs_prop_to_name(prop);
+	dmu_tx_t *tx;
+
+	tx = dmu_tx_create(os);
+	dmu_tx_hold_zap(tx, MASTER_NODE_OBJ, B_FALSE, propstr);
+	error = dmu_tx_assign(tx, DMU_TX_WAIT);
+	if (error) {
+		dmu_tx_abort(tx);
+		return (error);
+	}
+
+	if (quota == 0) {
+		error = zap_remove(os, MASTER_NODE_OBJ, propstr, tx);
+		if (error == ENOENT)
+			error = 0;
+	} else {
+		error = zap_update(os, MASTER_NODE_OBJ, propstr, 8, 1,
+		    &quota, tx);
+	}
+
+	if (error)
+		goto out;
+
+	switch (prop) {
+	case ZFS_PROP_DEFAULTUSERQUOTA:
+		zfsvfs->z_defaultuserquota = quota;
+		break;
+	case ZFS_PROP_DEFAULTGROUPQUOTA:
+		zfsvfs->z_defaultgroupquota = quota;
+		break;
+	case ZFS_PROP_DEFAULTPROJECTQUOTA:
+		zfsvfs->z_defaultprojectquota = quota;
+		break;
+	case ZFS_PROP_DEFAULTUSEROBJQUOTA:
+		zfsvfs->z_defaultuserobjquota = quota;
+		break;
+	case ZFS_PROP_DEFAULTGROUPOBJQUOTA:
+		zfsvfs->z_defaultgroupobjquota = quota;
+		break;
+	case ZFS_PROP_DEFAULTPROJECTOBJQUOTA:
+		zfsvfs->z_defaultprojectobjquota = quota;
+		break;
+	default:
+		break;
+	}
+
+out:
+	dmu_tx_commit(tx);
+	return (error);
 }
 
 /*
@@ -2073,4 +2214,5 @@ EXPORT_SYMBOL(zfs_remount);
 EXPORT_SYMBOL(zfs_statvfs);
 EXPORT_SYMBOL(zfs_vget);
 EXPORT_SYMBOL(zfs_prune);
+EXPORT_SYMBOL(zfs_set_default_quota);
 #endif

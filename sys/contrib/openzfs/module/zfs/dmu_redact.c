@@ -370,8 +370,8 @@ redact_traverse_thread(void *arg)
 #endif
 
 	err = traverse_dataset_resume(rt_arg->ds, rt_arg->txg,
-	    &rt_arg->resume, TRAVERSE_PRE | TRAVERSE_PREFETCH_METADATA,
-	    redact_cb, rt_arg);
+	    &rt_arg->resume, TRAVERSE_PRE | TRAVERSE_PREFETCH_METADATA |
+	    TRAVERSE_LOGICAL, redact_cb, rt_arg);
 
 	if (err != EINTR)
 		rt_arg->error_code = err;
@@ -568,7 +568,7 @@ commit_rl_updates(objset_t *os, struct merge_data *md, uint64_t object,
 {
 	dmu_tx_t *tx = dmu_tx_create_dd(spa_get_dsl(os->os_spa)->dp_mos_dir);
 	dmu_tx_hold_space(tx, sizeof (struct redact_block_list_node));
-	VERIFY0(dmu_tx_assign(tx, DMU_TX_WAIT));
+	VERIFY0(dmu_tx_assign(tx, DMU_TX_WAIT | DMU_TX_SUSPEND));
 	uint64_t txg = dmu_tx_get_txg(tx);
 	if (!md->md_synctask_txg[txg & TXG_MASK]) {
 		dsl_sync_task_nowait(dmu_tx_pool(tx),
@@ -1067,7 +1067,7 @@ dmu_redact_snap(const char *snapname, nvlist_t *redactnvl,
 	}
 	if (err != 0)
 		goto out;
-	VERIFY3P(nvlist_next_nvpair(redactnvl, pair), ==, NULL);
+	VERIFY0P(nvlist_next_nvpair(redactnvl, pair));
 
 	boolean_t resuming = B_FALSE;
 	zfs_bookmark_phys_t bookmark;

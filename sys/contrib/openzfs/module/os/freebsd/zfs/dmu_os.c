@@ -41,7 +41,6 @@
 #include <sys/dsl_pool.h>
 #include <sys/dsl_synctask.h>
 #include <sys/dsl_prop.h>
-#include <sys/dmu_zfetch.h>
 #include <sys/zfs_ioctl.h>
 #include <sys/zap.h>
 #include <sys/zio_checksum.h>
@@ -71,6 +70,7 @@ dmu_write_pages(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
 	struct sf_buf *sf;
 	int numbufs, i;
 	int err;
+	dmu_flags_t flags = 0;
 
 	if (size == 0)
 		return (0);
@@ -94,10 +94,17 @@ dmu_write_pages(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
 
 		ASSERT(i == 0 || i == numbufs-1 || tocpy == db->db_size);
 
-		if (tocpy == db->db_size)
+		if (tocpy == db->db_size) {
 			dmu_buf_will_fill(db, tx, B_FALSE);
-		else
-			dmu_buf_will_dirty(db, tx);
+		} else {
+			if (i == numbufs - 1 && bufoff + tocpy < db->db_size) {
+				if (bufoff == 0)
+					flags |= DMU_PARTIAL_FIRST;
+				else
+					flags |= DMU_PARTIAL_MORE;
+			}
+			dmu_buf_will_dirty_flags(db, tx, flags);
+		}
 
 		for (copied = 0; copied < tocpy; copied += PAGESIZE) {
 			ASSERT3U(ptoa((*ma)->pindex), ==,
@@ -149,7 +156,7 @@ dmu_read_pages(objset_t *os, uint64_t object, vm_page_t *ma, int count,
 	if (dbp[0]->db_offset != 0 || numbufs > 1) {
 		for (i = 0; i < numbufs; i++) {
 			ASSERT(ISP2(dbp[i]->db_size));
-			ASSERT3U((dbp[i]->db_offset % dbp[i]->db_size), ==, 0);
+			ASSERT0((dbp[i]->db_offset % dbp[i]->db_size));
 			ASSERT3U(dbp[i]->db_size, ==, dbp[0]->db_size);
 		}
 	}
@@ -168,7 +175,7 @@ dmu_read_pages(objset_t *os, uint64_t object, vm_page_t *ma, int count,
 			vm_page_sunbusy(m);
 			break;
 		}
-		ASSERT3U(m->dirty, ==, 0);
+		ASSERT0(m->dirty);
 		ASSERT(!pmap_page_is_write_mapped(m));
 
 		ASSERT3U(db->db_size, >, PAGE_SIZE);
@@ -194,7 +201,7 @@ dmu_read_pages(objset_t *os, uint64_t object, vm_page_t *ma, int count,
 			if (m != bogus_page) {
 				vm_page_assert_xbusied(m);
 				ASSERT(vm_page_none_valid(m));
-				ASSERT3U(m->dirty, ==, 0);
+				ASSERT0(m->dirty);
 				ASSERT(!pmap_page_is_write_mapped(m));
 				va = zfs_map_page(m, &sf);
 			}
@@ -288,7 +295,7 @@ dmu_read_pages(objset_t *os, uint64_t object, vm_page_t *ma, int count,
 			vm_page_sunbusy(m);
 			break;
 		}
-		ASSERT3U(m->dirty, ==, 0);
+		ASSERT0(m->dirty);
 		ASSERT(!pmap_page_is_write_mapped(m));
 
 		ASSERT3U(db->db_size, >, PAGE_SIZE);
