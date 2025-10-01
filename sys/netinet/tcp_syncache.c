@@ -131,17 +131,18 @@ static void	 syncache_timer(void *);
 static uint32_t	 syncookie_mac(struct in_conninfo *, tcp_seq, uint8_t,
 		    uint8_t *, uintptr_t);
 static tcp_seq	 syncookie_generate(struct syncache_head *, struct syncache *);
-static struct syncache
-		*syncookie_lookup(struct in_conninfo *, struct syncache_head *,
-		    struct syncache *, struct tcphdr *, struct tcpopt *,
-		    struct socket *, uint16_t);
+static bool	syncookie_expand(struct in_conninfo *,
+		    const struct syncache_head *, struct syncache *,
+		    struct tcphdr *, struct tcpopt *, struct socket *,
+		    uint16_t);
 static void	syncache_pause(struct in_conninfo *);
 static void	syncache_unpause(void *);
 static void	 syncookie_reseed(void *);
 #ifdef INVARIANTS
-static int	 syncookie_cmp(struct in_conninfo *inc, struct syncache_head *sch,
-		    struct syncache *sc, struct tcphdr *th, struct tcpopt *to,
-		    struct socket *lso, uint16_t port);
+static void	syncookie_cmp(struct in_conninfo *,
+		    const struct syncache_head *, struct syncache *,
+		    struct tcphdr *, struct tcpopt *, struct socket *,
+		    uint16_t);
 #endif
 
 /*
@@ -442,7 +443,7 @@ syncache_timeout(struct syncache *sc, struct syncache_head *sch, int docallout)
 	else
 		TCPT_RANGESET(rexmt,
 		    tcp_rexmit_initial * tcp_backoff[sc->sc_rxmits],
-		    tcp_rexmit_min, TCPTV_REXMTMAX);
+		    tcp_rexmit_min, tcp_rexmit_max);
 	sc->sc_rxttime = ticks + rexmt;
 	sc->sc_rxmits++;
 	if (TSTMP_LT(sc->sc_rxttime, sch->sch_nextc)) {
@@ -1674,7 +1675,7 @@ syncache_add(struct in_conninfo *inc, struct tcpopt *to, struct tcphdr *th,
 			sc->sc_tsoff = tcp_new_ts_offset(inc);
 		}
 		if ((to->to_flags & TOF_SCALE) && (V_tcp_do_rfc1323 != 3)) {
-			int wscale = 0;
+			u_int wscale = 0;
 
 			/*
 			 * Pick the smallest possible scaling factor that
@@ -2262,15 +2263,15 @@ syncookie_generate(struct syncache_head *sch, struct syncache *sc)
 	return (iss);
 }
 
-static struct syncache *
-syncookie_lookup(struct in_conninfo *inc, struct syncache_head *sch,
+static bool
+syncookie_expand(struct in_conninfo *inc, const struct syncache_head *sch,
     struct syncache *sc, struct tcphdr *th, struct tcpopt *to,
     struct socket *lso, uint16_t port)
 {
 	uint32_t hash;
 	uint8_t *secbits;
 	tcp_seq ack, seq;
-	int wnd, wscale = 0;
+	int wnd;
 	union syncookie cookie;
 
 	/*
@@ -2293,7 +2294,7 @@ syncookie_lookup(struct in_conninfo *inc, struct syncache_head *sch,
 
 	/* The recomputed hash matches the ACK if this was a genuine cookie. */
 	if ((ack & ~0xff) != (hash & ~0xff))
-		return (NULL);
+		return (false);
 
 	/* Fill in the syncache values. */
 	sc->sc_flags = 0;
@@ -2321,12 +2322,14 @@ syncookie_lookup(struct in_conninfo *inc, struct syncache_head *sch,
 
 	sc->sc_peer_mss = tcp_sc_msstab[cookie.flags.mss_idx];
 
-	/* We can simply recompute receive window scale we sent earlier. */
-	while (wscale < TCP_MAX_WINSHIFT && (TCP_MAXWIN << wscale) < sb_max)
-		wscale++;
-
 	/* Only use wscale if it was enabled in the orignal SYN. */
 	if (cookie.flags.wscale_idx > 0) {
+		u_int wscale = 0;
+
+		/* Recompute the receive window scale that was sent earlier. */
+		while (wscale < TCP_MAX_WINSHIFT &&
+		    (TCP_MAXWIN << wscale) < sb_max)
+			wscale++;
 		sc->sc_requested_r_scale = wscale;
 		sc->sc_requested_s_scale = tcp_sc_wstab[cookie.flags.wscale_idx];
 		sc->sc_flags |= SCF_WINSCALE;
@@ -2353,47 +2356,47 @@ syncookie_lookup(struct in_conninfo *inc, struct syncache_head *sch,
 
 	sc->sc_port = port;
 
-	TCPSTAT_INC(tcps_sc_recvcookie);
-	return (sc);
+	return (true);
 }
 
 #ifdef INVARIANTS
-static int
-syncookie_cmp(struct in_conninfo *inc, struct syncache_head *sch,
+static void
+syncookie_cmp(struct in_conninfo *inc, const struct syncache_head *sch,
     struct syncache *sc, struct tcphdr *th, struct tcpopt *to,
     struct socket *lso, uint16_t port)
 {
-	struct syncache scs, *scx;
+	struct syncache scs;
 	char *s;
 
 	bzero(&scs, sizeof(scs));
-	scx = syncookie_lookup(inc, sch, &scs, th, to, lso, port);
+	if (syncookie_expand(inc, sch, &scs, th, to, lso, port) &&
+	    (sc->sc_peer_mss != scs.sc_peer_mss ||
+	     sc->sc_requested_r_scale != scs.sc_requested_r_scale ||
+	     sc->sc_requested_s_scale != scs.sc_requested_s_scale ||
+	     (sc->sc_flags & SCF_SACK) != (scs.sc_flags & SCF_SACK))) {
 
-	if ((s = tcp_log_addrs(inc, th, NULL, NULL)) == NULL)
-		return (0);
+		if ((s = tcp_log_addrs(inc, th, NULL, NULL)) == NULL)
+			return;
 
-	if (scx != NULL) {
-		if (sc->sc_peer_mss != scx->sc_peer_mss)
+		if (sc->sc_peer_mss != scs.sc_peer_mss)
 			log(LOG_DEBUG, "%s; %s: mss different %i vs %i\n",
-			    s, __func__, sc->sc_peer_mss, scx->sc_peer_mss);
+			    s, __func__, sc->sc_peer_mss, scs.sc_peer_mss);
 
-		if (sc->sc_requested_r_scale != scx->sc_requested_r_scale)
+		if (sc->sc_requested_r_scale != scs.sc_requested_r_scale)
 			log(LOG_DEBUG, "%s; %s: rwscale different %i vs %i\n",
 			    s, __func__, sc->sc_requested_r_scale,
-			    scx->sc_requested_r_scale);
+			    scs.sc_requested_r_scale);
 
-		if (sc->sc_requested_s_scale != scx->sc_requested_s_scale)
+		if (sc->sc_requested_s_scale != scs.sc_requested_s_scale)
 			log(LOG_DEBUG, "%s; %s: swscale different %i vs %i\n",
 			    s, __func__, sc->sc_requested_s_scale,
-			    scx->sc_requested_s_scale);
+			    scs.sc_requested_s_scale);
 
-		if ((sc->sc_flags & SCF_SACK) != (scx->sc_flags & SCF_SACK))
+		if ((sc->sc_flags & SCF_SACK) != (scs.sc_flags & SCF_SACK))
 			log(LOG_DEBUG, "%s; %s: SACK different\n", s, __func__);
-	}
 
-	if (s != NULL)
 		free(s, M_TCPLOG);
-	return (0);
+	}
 }
 #endif /* INVARIANTS */
 

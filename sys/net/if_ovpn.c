@@ -81,7 +81,6 @@
 #include "if_ovpn.h"
 
 struct ovpn_kkey_dir {
-	int			refcount;
 	uint8_t			key[32];
 	uint8_t			keylen;
 	uint8_t			nonce[8];
@@ -290,7 +289,7 @@ SYSCTL_INT(_net_link_openvpn, OID_AUTO, netisr_queue,
 	"Use netisr_queue() rather than netisr_dispatch().");
 
 static int
-ovpn_peer_compare(struct ovpn_kpeer *a, struct ovpn_kpeer *b)
+ovpn_peer_compare(const struct ovpn_kpeer *a, const struct ovpn_kpeer *b)
 {
 	return (a->peerid - b->peerid);
 }
@@ -323,6 +322,8 @@ ovpn_sockaddr_compare(const struct sockaddr *a,
 
 		if (a6->sin6_port != b6->sin6_port)
 			return (false);
+		if (a6->sin6_scope_id != b6->sin6_scope_id)
+			return (false);
 
 		return (memcmp(&a6->sin6_addr, &b6->sin6_addr,
 		    sizeof(a6->sin6_addr)) == 0);
@@ -353,16 +354,35 @@ ovpn_find_only_peer(struct ovpn_softc *sc)
 }
 
 static uint16_t
-ovpn_get_port(struct sockaddr_storage *s)
+ovpn_get_port(const struct sockaddr_storage *s)
+{
+	switch (s->ss_family) {
+	case AF_INET: {
+		const struct sockaddr_in *in = (const struct sockaddr_in *)s;
+		return (in->sin_port);
+	}
+	case AF_INET6: {
+		const struct sockaddr_in6 *in6 = (const struct sockaddr_in6 *)s;
+		return (in6->sin6_port);
+	}
+	default:
+		panic("Unsupported address family %d", s->ss_family);
+	}
+}
+
+static void
+ovpn_set_port(struct sockaddr_storage *s, unsigned short port)
 {
 	switch (s->ss_family) {
 	case AF_INET: {
 		struct sockaddr_in *in = (struct sockaddr_in *)s;
-		return (in->sin_port);
+		in->sin_port = port;
+		break;
 	}
 	case AF_INET6: {
 		struct sockaddr_in6 *in6 = (struct sockaddr_in6 *)s;
-		return (in6->sin6_port);
+		in6->sin6_port = port;
+		break;
 	}
 	default:
 		panic("Unsupported address family %d", s->ss_family);
@@ -374,6 +394,8 @@ ovpn_nvlist_to_sockaddr(const nvlist_t *nvl, struct sockaddr_storage *sa)
 {
 	int af;
 
+	memset(sa, 0, sizeof(*sa));
+
 	if (! nvlist_exists_number(nvl, "af"))
 		return (EINVAL);
 	if (! nvlist_exists_binary(nvl, "address"))
@@ -382,14 +404,16 @@ ovpn_nvlist_to_sockaddr(const nvlist_t *nvl, struct sockaddr_storage *sa)
 		return (EINVAL);
 
 	af = nvlist_get_number(nvl, "af");
-
 	switch (af) {
 #ifdef INET
 	case AF_INET: {
 		struct sockaddr_in *in = (struct sockaddr_in *)sa;
 		size_t len;
 		const void *addr = nvlist_get_binary(nvl, "address", &len);
+
+		memset(in, 0, sizeof(*in));
 		in->sin_family = af;
+		in->sin_len = sizeof(*in);
 		if (len != sizeof(in->sin_addr))
 			return (EINVAL);
 
@@ -403,12 +427,19 @@ ovpn_nvlist_to_sockaddr(const nvlist_t *nvl, struct sockaddr_storage *sa)
 		struct sockaddr_in6 *in6 = (struct sockaddr_in6 *)sa;
 		size_t len;
 		const void *addr = nvlist_get_binary(nvl, "address", &len);
+
+		memset(in6, 0, sizeof(*in6));
 		in6->sin6_family = af;
+		in6->sin6_len = sizeof(*in6);
 		if (len != sizeof(in6->sin6_addr))
 			return (EINVAL);
 
 		memcpy(&in6->sin6_addr, addr, sizeof(in6->sin6_addr));
 		in6->sin6_port = nvlist_get_number(nvl, "port");
+
+		if (nvlist_exists_number(nvl, "scopeid"))
+			in6->sin6_scope_id = nvlist_get_number(nvl, "scopeid");
+
 		break;
 	}
 #endif
@@ -445,6 +476,7 @@ ovpn_add_sockaddr(nvlist_t *parent, const char *name, const struct sockaddr *s)
 		nvlist_add_number(nvl, "port", s6->sin6_port);
 		nvlist_add_binary(nvl, "address", &s6->sin6_addr,
 		    sizeof(s6->sin6_addr));
+		nvlist_add_number(nvl, "scopeid", s6->sin6_scope_id);
 		break;
 	}
 	default:
@@ -572,8 +604,6 @@ ovpn_peer_release_ref(struct ovpn_kpeer *peer, bool locked)
 		ovpn_free_kkey_dir(peer->keys[i].decrypt);
 	}
 
-	ovpn_rele_so(sc);
-
 	callout_stop(&peer->ping_send);
 	callout_stop(&peer->ping_rcv);
 	uma_zfree_pcpu(pcpu_zone_4, peer->last_active);
@@ -589,7 +619,7 @@ ovpn_new_peer(struct ifnet *ifp, const nvlist_t *nvl)
 #ifdef INET6
 	struct epoch_tracker et;
 #endif
-	struct sockaddr_storage remote;
+	struct sockaddr_storage local, remote;
 	struct ovpn_kpeer *peer = NULL;
 	struct file *fp = NULL;
 	struct ovpn_softc *sc = ifp->if_softc;
@@ -658,20 +688,37 @@ ovpn_new_peer(struct ifnet *ifp, const nvlist_t *nvl)
 	callout_init_rm(&peer->ping_send, &sc->lock, CALLOUT_SHAREDLOCK);
 	callout_init_rm(&peer->ping_rcv, &sc->lock, 0);
 
-	peer->local.ss_len = sizeof(peer->local);
-	ret = sosockaddr(so, (struct sockaddr *)&peer->local);
-	if (ret)
+	memset(&local, 0, sizeof(local));
+	local.ss_len = sizeof(local);
+	ret = sosockaddr(so, (struct sockaddr *)&local);
+	if (ret != 0)
 		goto error;
+	if (nvlist_exists_nvlist(nvl, "local")) {
+		struct sockaddr_storage local1;
 
-	if (ovpn_get_port(&peer->local) == 0) {
+		ret = ovpn_nvlist_to_sockaddr(nvlist_get_nvlist(nvl, "local"),
+		    &local1);
+		if (ret != 0)
+			goto error;
+
+		/*
+		 * openvpn doesn't provide a port here when in multihome mode,
+		 * just steal the one the socket is bound to.
+		 */
+		if (ovpn_get_port(&local1) == 0)
+			ovpn_set_port(&local1, ovpn_get_port(&local));
+		memcpy(&local, &local1, sizeof(local1));
+	}
+	if (ovpn_get_port(&local) == 0) {
 		ret = EINVAL;
 		goto error;
 	}
-	if (peer->local.ss_family != remote.ss_family) {
+	if (local.ss_family != remote.ss_family) {
 		ret = EINVAL;
 		goto error;
 	}
 
+	memcpy(&peer->local, &local, sizeof(local));
 	memcpy(&peer->remote, &remote, sizeof(remote));
 
 #ifdef INET6
@@ -687,7 +734,8 @@ ovpn_new_peer(struct ifnet *ifp, const nvlist_t *nvl)
 		NET_EPOCH_ENTER(et);
 		ret = in6_selectsrc_addr(curthread->td_proc->p_fibnum,
 		    &TO_IN6(&peer->remote)->sin6_addr,
-		    0, NULL, &TO_IN6(&peer->local)->sin6_addr, NULL);
+		    TO_IN6(&peer->remote)->sin6_scope_id, NULL,
+		    &TO_IN6(&peer->local)->sin6_addr, NULL);
 		NET_EPOCH_EXIT(et);
 		if (ret != 0) {
 			goto error;
@@ -720,6 +768,7 @@ ovpn_new_peer(struct ifnet *ifp, const nvlist_t *nvl)
 		 * a new one.
 		 */
 		ret = udp_set_kernel_tunneling(sc->so, NULL, NULL, NULL);
+		MPASS(ret == 0);
 		sorele(sc->so);
 		sc->so = NULL;
 	}
@@ -2236,6 +2285,15 @@ ovpn_encap(struct ovpn_softc *sc, uint32_t peerid, struct mbuf *m)
 		memcpy(&ip6->ip6_dst, &in6_remote->sin6_addr,
 		    sizeof(ip6->ip6_dst));
 
+		if (IN6_IS_ADDR_LINKLOCAL(&ip6->ip6_src)) {
+			/* Local and remote must have the same scope. */
+			ip6->ip6_src.__u6_addr.__u6_addr16[1] =
+			    htons(in6_remote->sin6_scope_id & 0xffff);
+		}
+		if (IN6_IS_ADDR_LINKLOCAL(&ip6->ip6_dst))
+			ip6->ip6_dst.__u6_addr.__u6_addr16[1] =
+			    htons(in6_remote->sin6_scope_id & 0xffff);
+
 		udp = mtodo(m, sizeof(*ip6));
 		udp->uh_sum = in6_cksum_pseudo(ip6,
 		    m->m_pkthdr.len - sizeof(struct ip6_hdr),
@@ -2392,12 +2450,6 @@ ovpn_udp_input(struct mbuf *m, int off, struct inpcb *inp,
 
 	M_ASSERTPKTHDR(m);
 
-	m = m_unshare(m, M_NOWAIT);
-	if (m == NULL) {
-		OVPN_COUNTER_ADD(sc, nomem_data_pkts_in, 1);
-		return (true);
-	}
-
 	OVPN_COUNTER_ADD(sc, transport_bytes_received, m->m_pkthdr.len - off);
 
 	ohdrlen = sizeof(*ohdr) - sizeof(ohdr->auth_tag);
@@ -2423,6 +2475,12 @@ ovpn_udp_input(struct mbuf *m, int off, struct inpcb *inp,
 		/* Control packet? */
 		OVPN_RUNLOCK(sc);
 		return (false);
+	}
+
+	m = m_unshare(m, M_NOWAIT);
+	if (m == NULL) {
+		OVPN_COUNTER_ADD(sc, nomem_data_pkts_in, 1);
+		return (true);
 	}
 
 	m = m_pullup(m, off + sizeof(*uhdr) + ohdrlen);
@@ -2686,6 +2744,7 @@ ovpn_clone_destroy_cb(struct epoch_context *ctx)
 
 	COUNTER_ARRAY_FREE(sc->counters, OVPN_COUNTER_SIZE);
 
+	rm_destroy(&sc->lock);
 	if_free(sc->ifp);
 	free(sc, M_OVPN);
 }

@@ -29,7 +29,7 @@
 #
 
 .if !target(__<src.opts.mk>__)
-__<src.opts.mk>__:
+__<src.opts.mk>__:	.NOTMAIN
 
 .include <bsd.own.mk>
 
@@ -123,7 +123,6 @@ __DEFAULT_YES_OPTIONS = \
     LEGACY_CONSOLE \
     LLD \
     LLD_BOOTSTRAP \
-    LLVM_ASSERTIONS \
     LLVM_BINUTILS \
     LLVM_COV \
     LLVM_CXXFILT \
@@ -143,6 +142,8 @@ __DEFAULT_YES_OPTIONS = \
     MAIL \
     MAILWRAPPER \
     MAKE \
+    MALLOC_PRODUCTION \
+    MITKRB5 \
     MLX5TOOL \
     NETCAT \
     NETGRAPH \
@@ -159,7 +160,6 @@ __DEFAULT_YES_OPTIONS = \
     PKGBOOTSTRAP \
     PMC \
     PPP \
-    PTHREADS_ASSERTIONS \
     QUOTAS \
     RADIUS_SUPPORT \
     RBOOTD \
@@ -209,11 +209,11 @@ __DEFAULT_NO_OPTIONS = \
     HESIOD \
     LOADER_VERBOSE \
     LOADER_VERIEXEC_PASS_MANIFEST \
+    LLVM_ASSERTIONS \
     LLVM_FULL_DEBUGINFO \
-    MALLOC_PRODUCTION \
     OFED_EXTRA \
     OPENLDAP \
-    REPRODUCIBLE_BUILD \
+    PTHREADS_ASSERTIONS \
     RPCBIND_WARMSTART_SUPPORT \
     SORT_THREADS \
     ZONEINFO_LEAPSECONDS_SUPPORT \
@@ -295,9 +295,9 @@ __DEFAULT_NO_OPTIONS+=LLVM_TARGET_BPF LLVM_TARGET_MIPS
 .include <bsd.compiler.mk>
 
 .if ${__T} == "i386" || ${__T} == "amd64"
-__DEFAULT_NO_OPTIONS += FDT
+__DEFAULT_NO_OPTIONS+=FDT
 .else
-__DEFAULT_YES_OPTIONS += FDT
+__DEFAULT_YES_OPTIONS+=FDT
 .endif
 
 .if ${__T:Marm*} == "" && ${__T:Mriscv64*} == ""
@@ -403,6 +403,7 @@ MK_OPENSSL:=	no
 MK_OPENSSH:=	no
 MK_KERBEROS:=	no
 MK_KERBEROS_SUPPORT:=	no
+MK_MITKRB5:=	no
 .endif
 
 .if ${MK_DTRACE} == "no"
@@ -429,6 +430,7 @@ MK_OPENSSH:=	no
 MK_OPENSSL_KTLS:=	no
 MK_KERBEROS:=	no
 MK_KERBEROS_SUPPORT:=	no
+MK_MITKRB5:=	no
 MK_LDNS:=	no
 MK_PKGBOOTSTRAP:=	no
 MK_LOADER_ZFS:=	no
@@ -505,7 +507,7 @@ MK_LOADER_VERIEXEC_PASS_MANIFEST := no
 # MK_* options whose default value depends on another option.
 #
 .for vv in \
-    GSSAPI/KERBEROS \
+    KERBEROS_SUPPORT/KERBEROS \
     MAN_UTILS/MAN
 .if defined(WITH_${vv:H})
 MK_${vv:H}:=	yes
@@ -515,9 +517,5 @@ MK_${vv:H}:=	no
 MK_${vv:H}:=	${MK_${vv:T}}
 .endif
 .endfor
-
-#
-# Set defaults for the MK_*_SUPPORT variables.
-#
 
 .endif #  !target(__<src.opts.mk>__)

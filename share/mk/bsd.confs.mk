@@ -8,7 +8,7 @@
 .    error bsd.dirs.mk must be included after bsd.confs.mk.
 .  endif
 
-__<bsd.confs.mk>__:
+__<bsd.confs.mk>__:	.NOTMAIN
 
 CONFGROUPS?=	CONFS
 
@@ -49,7 +49,7 @@ ${group}TAGS+=		package=${PACKAGE:Uutilities}
 .          endif
 .        endif
 ${group}TAGS+=		config
-${group}TAG_ARGS=	-T ${${group}TAGS:[*]:S/ /,/g}
+${group}TAG_ARGS=	-T ${${group}TAGS:ts,:[*]}
 .      endif
 
 

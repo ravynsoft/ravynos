@@ -1,6 +1,8 @@
 .PATH: ${SRCTOP}/sys/contrib/openzfs/lib/libuutil
 
 PACKAGE=	zfs
+LIB_PACKAGE=
+
 LIB=	uutil
 SRCS=\
 	uu_alloc.c \

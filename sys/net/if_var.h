@@ -297,12 +297,14 @@ typedef int (if_snd_tag_modify_t)(struct m_snd_tag *, union if_snd_tag_modify_pa
 typedef int (if_snd_tag_query_t)(struct m_snd_tag *, union if_snd_tag_query_params *);
 typedef void (if_snd_tag_free_t)(struct m_snd_tag *);
 typedef struct m_snd_tag *(if_next_send_tag_t)(struct m_snd_tag *);
+typedef int (if_snd_tag_status_str_t)(struct m_snd_tag *, char *buf, size_t *sz);
 
 struct if_snd_tag_sw {
 	if_snd_tag_modify_t *snd_tag_modify;
 	if_snd_tag_query_t *snd_tag_query;
 	if_snd_tag_free_t *snd_tag_free;
 	if_next_send_tag_t *next_snd_tag;
+	if_snd_tag_status_str_t *snd_tag_status_str;
 	u_int	type;			/* One of IF_SND_TAG_TYPE_*. */
 };
 
@@ -620,6 +622,7 @@ int if_setmtu(if_t ifp, int mtu);
 int if_getmtu(const if_t ifp);
 int if_getmtu_family(const if_t ifp, int family);
 void if_notifymtu(if_t ifp);
+void if_setppromisc(const if_t ifp, bool ppromisc);
 int if_setflagbits(if_t ifp, int set, int clear);
 int if_setflags(if_t ifp, int flags);
 int if_getflags(const if_t ifp);

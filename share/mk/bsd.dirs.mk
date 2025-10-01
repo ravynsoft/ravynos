@@ -2,7 +2,7 @@
 # Directory permissions management.
 
 .if !target(__<bsd.dirs.mk>__)
-__<bsd.dirs.mk>__:
+__<bsd.dirs.mk>__:	.NOTMAIN
 # List of directory variable names to install.  Each variable name's value
 # must be a full path.  If non-default permissions are desired, <DIR>_MODE,
 # <DIR>_OWN, and <DIR>_GRP may be specified.
@@ -22,7 +22,7 @@ ${dir}_FLAG=	-f ${${dir}_FLAGS}
 .        if !defined(${dir}TAGS) || ! ${${dir}TAGS:Mpackage=*}
 ${dir}TAGS+=		package=${${dir}PACKAGE:Uutilities}
 .        endif
-${dir}TAG_ARGS=	-T ${${dir}TAGS:[*]:S/ /,/g}
+${dir}TAG_ARGS=	-T ${${dir}TAGS:ts,:[*]}
 .      endif
 
 installdirs: installdirs-${dir}

@@ -1927,6 +1927,11 @@ struct setcred_args {
 	char wcred_l_[PADL_(const struct setcred *)]; const struct setcred * wcred; char wcred_r_[PADR_(const struct setcred *)];
 	char size_l_[PADL_(size_t)]; size_t size; char size_r_[PADR_(size_t)];
 };
+struct exterrctl_args {
+	char op_l_[PADL_(u_int)]; u_int op; char op_r_[PADR_(u_int)];
+	char flags_l_[PADL_(u_int)]; u_int flags; char flags_r_[PADR_(u_int)];
+	char ptr_l_[PADL_(void *)]; void * ptr; char ptr_r_[PADR_(void *)];
+};
 struct _kernelrpc_mach_vm_allocate_trap_args {
 	char target_l_[PADL_(mach_port_name_t)]; mach_port_name_t target; char target_r_[PADR_(mach_port_name_t)];
 	char address_l_[PADL_(mach_vm_offset_t *)]; mach_vm_offset_t * address; char address_r_[PADR_(mach_vm_offset_t *)];
@@ -2559,6 +2564,7 @@ int	sys_kcmp(struct thread *, struct kcmp_args *);
 int	sys_getrlimitusage(struct thread *, struct getrlimitusage_args *);
 int	sys_fchroot(struct thread *, struct fchroot_args *);
 int	sys_setcred(struct thread *, struct setcred_args *);
+int	sys_exterrctl(struct thread *, struct exterrctl_args *);
 int	sys__kernelrpc_mach_vm_allocate_trap(struct thread *, struct _kernelrpc_mach_vm_allocate_trap_args *);
 int	sys__kernelrpc_mach_vm_deallocate_trap(struct thread *, struct _kernelrpc_mach_vm_deallocate_trap_args *);
 int	sys__kernelrpc_mach_vm_protect_trap(struct thread *, struct _kernelrpc_mach_vm_protect_trap_args *);
@@ -3595,6 +3601,7 @@ int	freebsd13_swapoff(struct thread *, struct freebsd13_swapoff_args *);
 #define	SYS_AUE_getrlimitusage	AUE_NULL
 #define	SYS_AUE_fchroot	AUE_NULL
 #define	SYS_AUE_setcred	AUE_SETCRED
+#define	SYS_AUE_exterrctl	AUE_NULL
 #define	SYS_AUE__kernelrpc_mach_vm_allocate_trap	AUE_NULL
 #define	SYS_AUE__kernelrpc_mach_vm_deallocate_trap	AUE_NULL
 #define	SYS_AUE__kernelrpc_mach_vm_protect_trap	AUE_NULL

@@ -137,8 +137,7 @@ uint32_t tcp_hpts_insert_diag(struct tcpcb *tp, uint32_t slot, int32_t line,
 #define	tcp_hpts_insert(inp, slot)	\
 	tcp_hpts_insert_diag((inp), (slot), __LINE__, NULL)
 
-void __tcp_set_hpts(struct tcpcb *tp, int32_t line);
-#define tcp_set_hpts(a) __tcp_set_hpts(a, __LINE__)
+void tcp_set_hpts(struct tcpcb *tp);
 
 extern int32_t tcp_min_hptsi_time;
 
@@ -148,7 +147,7 @@ get_hpts_min_sleep_time(void)
 	return (tcp_min_hptsi_time + HPTS_USECS_PER_SLOT);
 }
 
-static __inline uint32_t
+static inline uint32_t
 tcp_gethptstick(struct timeval *sv)
 {
 	struct timeval tv;
@@ -159,7 +158,7 @@ tcp_gethptstick(struct timeval *sv)
 	return (tcp_tv_to_hpts_slot(sv));
 }
 
-static __inline uint64_t
+static inline uint64_t
 tcp_get_u64_usecs(struct timeval *tv)
 {
 	struct timeval tvd;
@@ -170,7 +169,7 @@ tcp_get_u64_usecs(struct timeval *tv)
 	return (tcp_tv_to_lusec(tv));
 }
 
-static __inline uint32_t
+static inline uint32_t
 tcp_get_usecs(struct timeval *tv)
 {
 	struct timeval tvd;

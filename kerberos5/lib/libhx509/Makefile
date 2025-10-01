@@ -1,7 +1,5 @@
-PACKAGE=	kerberos-lib
-
 LIB=	hx509
-LDFLAGS=	-Wl,--no-undefined
+LDFLAGS+=	-Wl,--no-undefined
 VERSION_MAP= ${KRB5DIR}/lib/hx509/version-script.map
 LIBADD=	asn1 com_err crypto roken wind
 

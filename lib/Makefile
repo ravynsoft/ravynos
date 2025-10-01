@@ -128,12 +128,14 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	libulog \
         libutf8 \
 	libutil \
+	libutil++ \
 	${_libvgl} \
 	libwrap \
         libxml2 \
 	libxo \
 	libxpc \
 	liby \
+	libyaml \
 	libz \
 	libzstd \
 	ncurses \
@@ -209,22 +211,28 @@ SUBDIR.${MK_FDT}+=	libfdt
 SUBDIR.${MK_FILE}+=	libmagic
 SUBDIR.${MK_GPIO}+=	libgpio
 .if ${MK_MITKRB5} == "no"
-SUBDIR.${MK_GSSAPI}+=	libgssapi
+SUBDIR.${MK_KERBEROS}+=	libgssapi
 .endif
-SUBDIR.${MK_GSSAPI}+=	librpcsec_gss
+SUBDIR.${MK_KERBEROS}+=	librpcsec_gss
 SUBDIR.${MK_ICONV}+=	libiconv_modules
-SUBDIR.${MK_KERBEROS_SUPPORT}+=	libcom_err
+.if ${MK_MITKRB5} == "no"
+SUBDIR.${MK_KERBEROS}+=	libcom_err
+.endif
 SUBDIR.${MK_LDNS}+=	libldns
 SUBDIR.${MK_STATS}+=	libstats
 
 # The libraries under libclang_rt can only be built by clang.
-.if ${COMPILER_TYPE} == "clang" && ${MK_CLANG} != "no"
+.if (${COMPILER_TYPE} == "clang" || make(clean) || make(cleandir)) && \
+    ${MK_CLANG} != "no"
 _libclang_rt=	libclang_rt
 .elif (${MK_ASAN} != "no" || ${MK_UBSAN} != "no") && make(all)
 .error Requested build with sanitizers but cannot build runtime libraries!
 .endif
 
+# This construct disables libefivar for 32-bit build.
+.if ${MACHINE_CPUARCH} != "i386"
 SUBDIR.${MK_EFI}+=	libefivar
+.endif
 SUBDIR.${MK_GOOGLETEST}+=	googletest
 SUBDIR.${MK_NETGRAPH}+=	libnetgraph
 SUBDIR.${MK_NIS}+=	libypclnt

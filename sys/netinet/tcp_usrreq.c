@@ -95,9 +95,6 @@
 #include <netinet/cc/cc.h>
 #include <netinet/tcp_fastopen.h>
 #include <netinet/tcp_hpts.h>
-#ifdef TCPPCAP
-#include <netinet/tcp_pcap.h>
-#endif
 #ifdef TCP_OFFLOAD
 #include <netinet/tcp_offload.h>
 #endif
@@ -149,7 +146,7 @@ tcp_bblog_pru(struct tcpcb *tp, uint32_t pru, int error)
 }
 
 /*
- * TCP attaches to socket via pru_attach(), reserving space,
+ * TCP attaches to socket via pr_attach(), reserving space,
  * and an internet control block.
  */
 static int
@@ -167,7 +164,7 @@ tcp_usr_attach(struct socket *so, int proto, struct thread *td)
 		goto out;
 
 	so->so_rcv.sb_flags |= SB_AUTOSIZE;
-	so->so_snd.sb_flags |= SB_AUTOSIZE;
+	so->so_snd.sb_flags |= (SB_AUTOLOWAT | SB_AUTOSIZE);
 	error = in_pcballoc(so, &V_tcbinfo);
 	if (error)
 		goto out;
@@ -526,7 +523,7 @@ tcp_usr_connect(struct socket *so, struct sockaddr *nam, struct thread *td)
 	}
 	if ((error = prison_remote_ip4(td->td_ucred, &sinp->sin_addr)) != 0)
 		goto out;
-	if (SOLISTENING(so) || so->so_options & SO_REUSEPORT_LB) {
+	if (SOLISTENING(so)) {
 		error = EOPNOTSUPP;
 		goto out;
 	}
@@ -593,7 +590,7 @@ tcp6_usr_connect(struct socket *so, struct sockaddr *nam, struct thread *td)
 		error = EAFNOSUPPORT;
 		goto out;
 	}
-	if (SOLISTENING(so) || so->so_options & SO_REUSEPORT_LB) {
+	if (SOLISTENING(so)) {
 		error = EOPNOTSUPP;
 		goto out;
 	}
@@ -910,8 +907,8 @@ out:
 /*
  * Do a send by putting data in output queue and updating urgent
  * marker if URG set.  Possibly send more data.  Unlike the other
- * pru_*() routines, the mbuf chains are our responsibility.  We
- * must either enqueue them or free them.  The other pru_* routines
+ * pr_*() routines, the mbuf chains are our responsibility.  We
+ * must either enqueue them or free them.  The other pr_*() routines
  * generally are caller-frees.
  */
 static int
@@ -1422,6 +1419,7 @@ struct protosw tcp_protosw = {
 	.pr_rcvd =		tcp_usr_rcvd,
 	.pr_rcvoob =		tcp_usr_rcvoob,
 	.pr_send =		tcp_usr_send,
+	.pr_sendfile_wait =	sendfile_wait_generic,
 	.pr_ready =		tcp_usr_ready,
 	.pr_shutdown =		tcp_usr_shutdown,
 	.pr_sockaddr =		in_getsockaddr,
@@ -1450,6 +1448,7 @@ struct protosw tcp6_protosw = {
 	.pr_rcvd =		tcp_usr_rcvd,
 	.pr_rcvoob =		tcp_usr_rcvoob,
 	.pr_send =		tcp_usr_send,
+	.pr_sendfile_wait =	sendfile_wait_generic,
 	.pr_ready =		tcp_usr_ready,
 	.pr_shutdown =		tcp_usr_shutdown,
 	.pr_sockaddr =		in6_mapped_sockaddr,
@@ -1479,6 +1478,8 @@ tcp_connect(struct tcpcb *tp, struct sockaddr_in *sin, struct thread *td)
 	    (SS_ISCONNECTING | SS_ISCONNECTED | SS_ISDISCONNECTING |
 	    SS_ISDISCONNECTED)) != 0))
 		return (EISCONN);
+	if (__predict_false((so->so_options & SO_REUSEPORT_LB) != 0))
+		return (EOPNOTSUPP);
 
 	INP_HASH_WLOCK(&V_tcbinfo);
 	error = in_pcbconnect(inp, sin, td->td_ucred);
@@ -1519,8 +1520,11 @@ tcp6_connect(struct tcpcb *tp, struct sockaddr_in6 *sin6, struct thread *td)
 	INP_WLOCK_ASSERT(inp);
 
 	if (__predict_false((so->so_state &
-	    (SS_ISCONNECTING | SS_ISCONNECTED)) != 0))
+	    (SS_ISCONNECTING | SS_ISCONNECTED | SS_ISDISCONNECTING |
+	    SS_ISDISCONNECTED)) != 0))
 		return (EISCONN);
+	if (__predict_false((so->so_options & SO_REUSEPORT_LB) != 0))
+		return (EOPNOTSUPP);
 
 	INP_HASH_WLOCK(&V_tcbinfo);
 	error = in6_pcbconnect(inp, sin6, td->td_ucred, true);
@@ -1764,9 +1768,9 @@ tcp_ctloutput_set(struct inpcb *inp, struct sockopt *sopt)
 				/*
 				 * Release the ref count the lookup
 				 * acquired.
-				 */ 
+				 */
 				refcount_release(&blk->tfb_refcnt);
-				/* 
+				/*
 				 * Now there is a chance that the
 				 * init() function mucked with some
 				 * things before it failed, such as
@@ -1796,7 +1800,7 @@ tcp_ctloutput_set(struct inpcb *inp, struct sockopt *sopt)
 		 * new one already.
 		 */
 		refcount_release(&tp->t_fb->tfb_refcnt);
-		/* 
+		/*
 		 * Set in the new stack.
 		 */
 		tp->t_fb = blk;
@@ -1930,7 +1934,7 @@ tcp_set_cc_mod(struct inpcb *inp, struct sockopt *sopt)
 		CC_LIST_RUNLOCK();
 		return(ESRCH);
 	}
-	/* 
+	/*
 	 * With a reference the algorithm cannot be removed
 	 * so we hold a reference through the change process.
 	 */
@@ -2342,26 +2346,6 @@ unlock_and_done:
 				    TP_MAXIDLE(tp));
 			goto unlock_and_done;
 
-#ifdef TCPPCAP
-		case TCP_PCAP_OUT:
-		case TCP_PCAP_IN:
-			INP_WUNLOCK(inp);
-			error = sooptcopyin(sopt, &optval, sizeof optval,
-			    sizeof optval);
-			if (error)
-				return (error);
-
-			INP_WLOCK_RECHECK(inp);
-			if (optval >= 0)
-				tcp_pcap_set_sock_max(
-					(sopt->sopt_name == TCP_PCAP_OUT) ?
-					&(tp->t_outpkts) : &(tp->t_inpkts),
-					optval);
-			else
-				error = EINVAL;
-			goto unlock_and_done;
-#endif
-
 		case TCP_FASTOPEN: {
 			struct tcp_fastopen tfo_optval;
 
@@ -2592,16 +2576,6 @@ unhold:
 			INP_WUNLOCK(inp);
 			error = sooptcopyout(sopt, &ui, sizeof(ui));
 			break;
-#ifdef TCPPCAP
-		case TCP_PCAP_OUT:
-		case TCP_PCAP_IN:
-			optval = tcp_pcap_get_sock_max(
-					(sopt->sopt_name == TCP_PCAP_OUT) ?
-					&(tp->t_outpkts) : &(tp->t_inpkts));
-			INP_WUNLOCK(inp);
-			error = sooptcopyout(sopt, &optval, sizeof optval);
-			break;
-#endif
 		case TCP_FASTOPEN:
 			optval = tp->t_flags & TF_FASTOPEN;
 			INP_WUNLOCK(inp);
@@ -3077,7 +3051,44 @@ db_print_toobflags(char t_oobflags)
 }
 
 static void
-db_print_tcpcb(struct tcpcb *tp, const char *name, int indent)
+db_print_bblog_state(int state)
+{
+	switch (state) {
+	case TCP_LOG_STATE_RATIO_OFF:
+		db_printf("TCP_LOG_STATE_RATIO_OFF");
+		break;
+	case TCP_LOG_STATE_CLEAR:
+		db_printf("TCP_LOG_STATE_CLEAR");
+		break;
+	case TCP_LOG_STATE_OFF:
+		db_printf("TCP_LOG_STATE_OFF");
+		break;
+	case TCP_LOG_STATE_TAIL:
+		db_printf("TCP_LOG_STATE_TAIL");
+		break;
+	case TCP_LOG_STATE_HEAD:
+		db_printf("TCP_LOG_STATE_HEAD");
+		break;
+	case TCP_LOG_STATE_HEAD_AUTO:
+		db_printf("TCP_LOG_STATE_HEAD_AUTO");
+		break;
+	case TCP_LOG_STATE_CONTINUAL:
+		db_printf("TCP_LOG_STATE_CONTINUAL");
+		break;
+	case TCP_LOG_STATE_TAIL_AUTO:
+		db_printf("TCP_LOG_STATE_TAIL_AUTO");
+		break;
+	case TCP_LOG_VIA_BBPOINTS:
+		db_printf("TCP_LOG_STATE_BBPOINTS");
+		break;
+	default:
+		db_printf("UNKNOWN(%d)", state);
+		break;
+	}
+}
+
+static void
+db_print_tcpcb(struct tcpcb *tp, const char *name, int indent, bool show_bblog)
 {
 
 	db_print_indent(indent);
@@ -3187,18 +3198,68 @@ db_print_tcpcb(struct tcpcb *tp, const char *name, int indent)
 	db_print_indent(indent);
 	db_printf("t_rttlow: %d   rfbuf_ts: %u   rfbuf_cnt: %d\n",
 	    tp->t_rttlow, tp->rfbuf_ts, tp->rfbuf_cnt);
+
+	db_print_indent(indent);
+	db_printf("t_fb.tfb_tcp_block_name: %s\n", tp->t_fb->tfb_tcp_block_name);
+
+	db_print_indent(indent);
+	db_printf("t_cc.name: %s\n", tp->t_cc->name);
+
+	db_print_indent(indent);
+	db_printf("_t_logstate: %d (", tp->_t_logstate);
+	db_print_bblog_state(tp->_t_logstate);
+	db_printf(")\n");
+
+	db_print_indent(indent);
+	db_printf("t_lognum: %d   t_loglimit: %d   t_logsn: %u\n",
+	    tp->t_lognum, tp->t_loglimit, tp->t_logsn);
+
+	if (show_bblog) {
+#ifdef TCP_BLACKBOX
+		db_print_bblog_entries(&tp->t_logs, indent);
+#else
+		db_print_indent(indent);
+		db_printf("BBLog not supported\n");
+#endif
+	}
 }
 
 DB_SHOW_COMMAND(tcpcb, db_show_tcpcb)
 {
 	struct tcpcb *tp;
+	bool show_bblog;
 
 	if (!have_addr) {
 		db_printf("usage: show tcpcb <addr>\n");
 		return;
 	}
+	show_bblog = strchr(modif, 'b') != NULL;
 	tp = (struct tcpcb *)addr;
 
-	db_print_tcpcb(tp, "tcpcb", 0);
+	db_print_tcpcb(tp, "tcpcb", 0, show_bblog);
+}
+
+DB_SHOW_ALL_COMMAND(tcpcbs, db_show_all_tcpcbs)
+{
+	VNET_ITERATOR_DECL(vnet_iter);
+	struct inpcb *inp;
+	bool only_locked, show_bblog;
+
+	only_locked = strchr(modif, 'l') != NULL;
+	show_bblog = strchr(modif, 'b') != NULL;
+	VNET_FOREACH(vnet_iter) {
+		CURVNET_SET(vnet_iter);
+		CK_LIST_FOREACH(inp, &V_tcbinfo.ipi_listhead, inp_list) {
+			if (only_locked &&
+			    inp->inp_lock.rw_lock == RW_UNLOCKED)
+				continue;
+			db_print_tcpcb(intotcpcb(inp), "tcpcb", 0, show_bblog);
+			if (db_pager_quit)
+				break;
+		}
+		CURVNET_RESTORE();
+		if (db_pager_quit)
+			break;
+	}
 }
 #endif

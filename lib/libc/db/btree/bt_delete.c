@@ -610,7 +610,7 @@ dup2:				c->pg.pgno = e.page->pgno;
  *	t:	tree
  *	h:	page to be deleted
  */
-int
+static int
 __bt_relink(BTREE *t, PAGE *h)
 {
 	PAGE *pg;

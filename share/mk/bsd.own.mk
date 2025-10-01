@@ -44,6 +44,10 @@
 #
 # DEBUGMODE	Mode for debug files. [${NOBINMODE}]
 #
+# DEBUGOWN      Owner for debug info files. [root]
+#
+# DEBUGGRP      Group for debug info files. [wheel]
+#
 #
 # KMODDIR	Base path for loadable kernel modules
 #		(see kld(4)). [/boot/modules]
@@ -146,7 +150,7 @@
 # SYMLINKMODE	Symbolic link mode [755]
 
 .if !target(__<bsd.own.mk>__)
-__<bsd.own.mk>__:
+__<bsd.own.mk>__:	.NOTMAIN
 
 .include <bsd.opts.mk>		# options now here or src.opts.mk
 
@@ -197,7 +201,8 @@ LIBMODE?=	${NOBINMODE}
 
 DEBUGDIR?=	/usr/lib/debug
 DEBUGMODE?=	${NOBINMODE}
-
+DEBUGOWN?=	${BINOWN}
+DEBUGGRP?=	${BINGRP}
 
 # Share files
 SHAREDIR?=	/usr/share
@@ -272,8 +277,10 @@ XZ_THREADS?=	0
 
 .if !empty(XZ_THREADS)
 XZ_CMD?=	xz -T ${XZ_THREADS}
+TAR_XZ_CMD?=	${TAR_CMD} -J --options xz:threads=${XZ_THREADS}
 .else
 XZ_CMD?=	xz
+TAR_XZ_CMD?=	${TAR_CMD} -J
 .endif
 
 PKG_CMD?=	pkg

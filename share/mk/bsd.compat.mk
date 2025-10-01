@@ -1,6 +1,6 @@
 
 .if !targets(__<${_this:T}>__)
-__<${_this:T}>__:
+__<${_this:T}>__:	.NOTMAIN
 
 .include <bsd.compat.pre.mk>
 
@@ -74,6 +74,7 @@ LIB32WMAKEFLAGS=	\
 
 LIB32WMAKEFLAGS+= NM="${XNM}"
 LIB32WMAKEFLAGS+= OBJCOPY="${XOBJCOPY}"
+LIB32WMAKEFLAGS+= STRIPBIN="${XSTRIPBIN}"
 
 LIB32DTRACE=	${DTRACE} -32
 LIB32_MACHINE_ABI=	${MACHINE_ABI:N*64} long32 ptr32

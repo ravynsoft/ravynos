@@ -100,15 +100,13 @@ void	kmod_icmpstat_inc(int statnum);
 SYSCTL_DECL(_net_inet_icmp);
 
 extern int badport_bandlim(int);
-#define BANDLIM_UNLIMITED -1
 #define BANDLIM_ICMP_UNREACH 0
 #define BANDLIM_ICMP_ECHO 1
 #define BANDLIM_ICMP_TSTAMP 2
-#define BANDLIM_RST_CLOSEDPORT 3 /* No connection, and no listeners */
-#define BANDLIM_RST_OPENPORT 4   /* No connection, listener */
-#define BANDLIM_ICMP6_UNREACH 5
-#define BANDLIM_SCTP_OOTB 6
-#define BANDLIM_MAX 7
+#define BANDLIM_TCP_RST 3
+#define BANDLIM_ICMP6_UNREACH 4
+#define BANDLIM_SCTP_OOTB 5
+#define BANDLIM_MAX 6
 #endif
 
 #endif

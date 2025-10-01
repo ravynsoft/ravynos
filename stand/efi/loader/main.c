@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Copyright (c) 2016-2019 Netflix, Inc. written by M. Warner Losh
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -71,7 +71,17 @@
 
 #include "loader_efi.h"
 
-struct arch_switch archsw;	/* MI/MD interface boundary */
+struct arch_switch archsw = {	/* MI/MD interface boundary */
+	.arch_autoload = efi_autoload,
+	.arch_getdev = efi_getdev,
+	.arch_copyin = efi_copyin,
+	.arch_copyout = efi_copyout,
+#if defined(__amd64__) || defined(__i386__)
+	.arch_hypervisor = x86_hypervisor,
+#endif
+	.arch_readin = efi_readin,
+	.arch_zfs_probe = efi_zfs_probe,
+};
 
 EFI_GUID acpi = ACPI_TABLE_GUID;
 EFI_GUID acpi20 = ACPI_20_TABLE_GUID;
@@ -513,7 +523,7 @@ find_currdev(bool do_bootmgr, bool is_last,
 	 * it's wrong.
 	 */
 	rootdev = getenv("rootdev");
-	if (rootdev != NULL) {
+	if (rootdev != NULL && *rootdev != '\0') {
 		printf("    Setting currdev to configured rootdev %s\n",
 		    rootdev);
 		set_currdev(rootdev);
@@ -1202,16 +1212,6 @@ main(int argc, CHAR16 *argv[])
 	char buf[32];
 	bool uefi_boot_mgr;
 
-	archsw.arch_autoload = efi_autoload;
-	archsw.arch_getdev = efi_getdev;
-	archsw.arch_copyin = efi_copyin;
-	archsw.arch_copyout = efi_copyout;
-#if defined(__amd64__) || defined(__i386__)
-	archsw.arch_hypervisor = x86_hypervisor;
-#endif
-	archsw.arch_readin = efi_readin;
-	archsw.arch_zfs_probe = efi_zfs_probe;
-
 #if !defined(__arm__)
 	efi_smbios_detect();
 #endif
@@ -1240,6 +1240,9 @@ main(int argc, CHAR16 *argv[])
 		setenv("console", "comconsole", 1);
 #endif
 	cons_probe();
+
+	/* Set print_delay variable to have hooks in place. */
+	env_setenv("print_delay", EV_VOLATILE, "", setprint_delay, env_nounset);
 
 	/* Set up currdev variable to have hooks in place. */
 	env_setenv("currdev", EV_VOLATILE, "", gen_setcurrdev, env_nounset);
@@ -1547,6 +1550,7 @@ command_seed_entropy(int argc, char *argv[])
 }
 
 COMMAND_SET(poweroff, "poweroff", "power off the system", command_poweroff);
+COMMAND_SET(halt, "halt", "power off the system", command_poweroff);
 
 static int
 command_poweroff(int argc __unused, char *argv[] __unused)

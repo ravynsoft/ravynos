@@ -207,6 +207,8 @@ LOADER_INTERP?=${LOADER_DEFAULT_INTERP}
 # Make sure we use the machine link we're about to create
 CFLAGS+=-I.
 
+.include "${BOOTSRC}/veriexec.mk"
+
 all: ${PROG}
 
 CLEANFILES+= teken_state.h
@@ -258,4 +260,6 @@ ${_ILINKS}: .NOMETA
 	${ECHO} ${.TARGET} "->" $$path ; \
 	ln -fns $$path ${.TARGET}
 .endif # !NO_OBJ
+
+.-include "local.defs.mk"
 .endif # __BOOT_DEFS_MK__

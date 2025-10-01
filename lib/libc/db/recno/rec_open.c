@@ -50,7 +50,7 @@
 
 DB *
 __rec_open(const char *fname, int flags, int mode, const RECNOINFO *openinfo,
-	   int dflags)
+    int dflags)
 {
 	BTREE *t;
 	BTREEINFO btopeninfo;

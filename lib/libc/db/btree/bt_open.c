@@ -84,8 +84,7 @@ static int tmp(void);
  *
  */
 DB *
-__bt_open(const char *fname, int flags, int mode, const BTREEINFO *openinfo,
-	  int dflags)
+__bt_open(const char *fname, int flags, int mode, const BTREEINFO *openinfo, int dflags)
 {
 	struct stat sb;
 	BTMETA m;

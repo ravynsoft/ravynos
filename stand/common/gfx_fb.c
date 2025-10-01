@@ -232,6 +232,69 @@ gfx_parse_mode_str(char *str, int *x, int *y, int *depth)
 	return (true);
 }
 
+/*
+ * Returns true if we set the color from pre-existing environment, false if
+ * just used existing defaults.
+ */
+static bool
+gfx_fb_evalcolor(const char *envname, teken_color_t *cattr,
+    ev_sethook_t sethook, ev_unsethook_t unsethook)
+{
+	const char *ptr;
+	char env[10];
+	int eflags = EV_VOLATILE | EV_NOKENV;
+	bool from_env = false;
+
+	ptr = getenv(envname);
+	if (ptr != NULL) {
+		*cattr = strtol(ptr, NULL, 10);
+
+		/*
+		 * If we can't unset the value, then it's probably hooked
+		 * properly and we can just carry on.  Otherwise, we want to
+		 * reinitialize it so that we can hook it for the console that
+		 * we're resetting defaults for.
+		 */
+		if (unsetenv(envname) != 0)
+			return (true);
+		from_env = true;
+
+		/*
+		 * If we're carrying over an existing value, we *do* want that
+		 * to propagate to the kenv.
+		 */
+		eflags &= ~EV_NOKENV;
+	}
+
+	snprintf(env, sizeof(env), "%d", *cattr);
+	env_setenv(envname, eflags, env, sethook, unsethook);
+
+	return (from_env);
+}
+
+void
+gfx_fb_setcolors(teken_attr_t *attr, ev_sethook_t sethook,
+     ev_unsethook_t unsethook)
+{
+	const char *ptr;
+	bool need_setattr = false;
+
+	/*
+	 * On first run, we setup an environment hook to process any color
+	 * changes.  If the env is already set, we pick up fg and bg color
+	 * values from the environment.
+	 */
+	if (gfx_fb_evalcolor("teken.fg_color", &attr->ta_fgcolor,
+	    sethook, unsethook))
+		need_setattr = true;
+	if (gfx_fb_evalcolor("teken.bg_color", &attr->ta_bgcolor,
+	    sethook, unsethook))
+		need_setattr = true;
+
+	if (need_setattr)
+		teken_set_defattr(&gfx_state.tg_teken, attr);
+}
+
 static uint32_t
 rgb_color_map(uint8_t index, uint32_t rmax, int roffset,
     uint32_t gmax, int goffset, uint32_t bmax, int boffset)
@@ -1001,6 +1064,8 @@ gfx_fb_fill(void *arg, const teken_rect_t *r, teken_char_t c,
 	teken_pos_t p;
 	struct text_pixel *row;
 
+	TSENTER();
+
 	/* remove the cursor */
 	if (state->tg_cursor_visible)
 		gfx_fb_cursor_draw(state, &state->tg_cursor, false);
@@ -1026,6 +1091,8 @@ gfx_fb_fill(void *arg, const teken_rect_t *r, teken_char_t c,
 		c = teken_get_cursor(&state->tg_teken);
 		gfx_fb_cursor_draw(state, c, true);
 	}
+
+	TSEXIT();
 }
 
 static void
@@ -2050,7 +2117,8 @@ gfx_get_ppi(void)
  * not smaller than calculated size value.
  */
 static vt_font_bitmap_data_t *
-gfx_get_font(void)
+gfx_get_font(teken_unit_t rows, teken_unit_t cols, teken_unit_t height,
+    teken_unit_t width)
 {
 	unsigned ppi, size;
 	vt_font_bitmap_data_t *font = NULL;
@@ -2073,6 +2141,14 @@ gfx_get_font(void)
 	size = roundup(size * 2, 10) / 10;
 
 	STAILQ_FOREACH(fl, &fonts, font_next) {
+		/*
+		 * Skip too large fonts.
+		 */
+		font = fl->font_data;
+		if (height / font->vfbd_height < rows ||
+		    width / font->vfbd_width < cols)
+			continue;
+
 		next = STAILQ_NEXT(fl, font_next);
 
 		/*
@@ -2080,7 +2156,6 @@ gfx_get_font(void)
 		 * we have our font. Make sure, it actually is loaded.
 		 */
 		if (next == NULL || next->font_data->vfbd_height < size) {
-			font = fl->font_data;
 			if (font->vfbd_font == NULL ||
 			    fl->font_flags == FONT_RELOAD) {
 				if (fl->font_load != NULL &&
@@ -2089,6 +2164,7 @@ gfx_get_font(void)
 			}
 			break;
 		}
+		font = NULL;
 	}
 
 	return (font);
@@ -2119,7 +2195,7 @@ set_font(teken_unit_t *rows, teken_unit_t *cols, teken_unit_t h, teken_unit_t w)
 	}
 
 	if (font == NULL)
-		font = gfx_get_font();
+		font = gfx_get_font(*rows, *cols, h, w);
 
 	if (font != NULL) {
 		*rows = height / font->vfbd_height;

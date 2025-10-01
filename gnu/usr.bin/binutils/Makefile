@@ -11,6 +11,9 @@ distribute:
 
 .include <bsd.prog.mk>
 
+LD_LIBRARY_PATH=	${OBJTOP}/tmp/lib:${OBJTOP}/tmp/usr/lib:${OBJTOP}/tmp/obj-tools/lib
+PERL5LIB=		${OBJTOP}/tmp/obj-tools/lib/perl5
+
 .MAKEFLAGS=
 # Ensure we call it gmake to avoid clash with BSD make!
 CONFIGURE_ARGS+=        --enable-lto \

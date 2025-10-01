@@ -37,9 +37,6 @@
 #include "stand.h"
 #include <smbios.h>
 
-struct arch_switch	archsw;
-extern void *_end;
-
 int kboot_getdev(void **vdev, const char *devspec, const char **path);
 ssize_t kboot_copyin(const void *src, vm_offset_t dest, const size_t len);
 ssize_t kboot_copyout(vm_offset_t src, void *dest, const size_t len);
@@ -47,11 +44,34 @@ ssize_t kboot_readin(readin_handle_t fd, vm_offset_t dest, const size_t len);
 int kboot_autoload(void);
 static void kboot_zfs_probe(void);
 
+struct arch_switch	archsw = {
+	.arch_getdev = kboot_getdev,
+	.arch_copyin = kboot_copyin,
+	.arch_copyout = kboot_copyout,
+	.arch_readin = kboot_readin,
+	.arch_autoload = kboot_autoload,
+	.arch_zfs_probe = kboot_zfs_probe,
+};
+
 extern int command_fdt_internal(int argc, char *argv[]);
+
+/*
+ * On amd64, KERNSTART is where the first actual kernel page is mapped, after
+ * the compatibility mapping. We reserve 2MB at the start of the address space
+ * for the page tables, etc, and so need to offset this there (and only there).
+ * The loader needs to know about this so we can pad everything to the proper
+ * place in PA. Ideally, we'd include vmparam.h to figure this out, but the
+ * macros it uses are not easily available in this compile environment, so we
+ * hard code that knowledge here.
+ */
+#if defined(__amd64__)
+#define KERN_PADDING (2 << 20)
+#else
+#define KERN_PADDING 0
+#endif
 
 #define PA_INVAL (vm_offset_t)-1
 static vm_offset_t pa_start = PA_INVAL;
-static vm_offset_t padding;
 static vm_offset_t offset;
 
 static uint64_t commit_limit;
@@ -209,6 +229,7 @@ static struct mapping
 	uintptr_t pa;
 	caddr_t va;
 } map[MAX_MAP];
+static bool smbios_mmap_file;
 static int smbios_fd;
 static int nmap;
 
@@ -218,12 +239,17 @@ caddr_t ptov(uintptr_t pa)
 	uintptr_t pa2;
 	struct mapping *m = map;
 
-	pa2 = rounddown(pa, PAGE);
+	if (smbios_mmap_file)
+		pa2 = rounddown(pa, PAGE);
+	else
+		pa2 = pa;
 	for (int i = 0; i < nmap; i++, m++) {
 		if (m->pa == pa2) {
 			return (m->va + pa - m->pa);
 		}
 	}
+	if (!smbios_mmap_file)
+		panic("Out of bounds smbios access");
 	if (nmap == MAX_MAP)
 		panic("Too many maps for smbios");
 
@@ -278,6 +304,7 @@ static void
 find_smbios(void)
 {
 	char buf[40];
+	void *dmi_data;
 	uintptr_t pa;
 	caddr_t va;
 
@@ -286,17 +313,47 @@ find_smbios(void)
 	if (pa == 0)
 		return;
 
+	dmi_data = NULL;
+	smbios_fd = host_open("/sys/firmware/dmi/tables/DMI", O_RDONLY, 0);
+	if (smbios_fd >= 0) {
+		struct host_kstat sb;
+		struct mapping *m;
+
+		if (host_fstat(smbios_fd, &sb) < 0) {
+			host_close(smbios_fd);
+			goto try_dev_mem;
+		}
+
+		dmi_data = malloc(sb.st_size);
+		if (dmi_data == NULL) {
+			host_close(smbios_fd);
+			goto try_dev_mem;
+		}
+
+		host_read(smbios_fd, dmi_data, sb.st_size);
+
+		m = &map[nmap++];
+		m->pa = pa;
+		m->va = dmi_data;
+		smbios_mmap_file = false;
+	} else {
+try_dev_mem:
+		smbios_fd = host_open("/dev/mem", O_RDONLY, 0);
+		if (smbios_fd < 0) {
+			printf("Can't open /sys/firmware/dmi/tables/DMI or "
+			    "/dev/mem to read smbios\n");
+			return;
+		}
+		smbios_mmap_file = true;
+	}
 	snprintf(buf, sizeof(buf), "%#jx", (uintmax_t)pa);
 	setenv("hint.smbios.0.mem", buf, 1);
-	smbios_fd = host_open("/dev/mem", O_RDONLY, 0);
-	if (smbios_fd < 0) {
-		printf("Can't open /dev/mem to read smbios\n");
-		return;
-	}
+
 	va = ptov(pa);
 	printf("Start of smbios at pa %p va %p\n", (void *)pa, va);
 	smbios_detect(va);
 	smbios_cleanup();
+	free(dmi_data);
 	host_close(smbios_fd);
 }
 
@@ -331,13 +388,6 @@ main(int argc, const char **argv)
 	void *heapbase;
 	const size_t heapsize = 64*1024*1024;
 	const char *bootdev;
-
-	archsw.arch_getdev = kboot_getdev;
-	archsw.arch_copyin = kboot_copyin;
-	archsw.arch_copyout = kboot_copyout;
-	archsw.arch_readin = kboot_readin;
-	archsw.arch_autoload = kboot_autoload;
-	archsw.arch_zfs_probe = kboot_zfs_probe;
 
 	/* Give us a sane world if we're running as init */
 	do_init();
@@ -386,6 +436,8 @@ main(int argc, const char **argv)
 			bootdev = getenv("currdev");
 	}
 #endif
+	if (bootdev == NULL)
+		bootdev = "host:/";
 	if (bootdev != NULL) {
 		/*
 		 * Otherwise, honor what's on the command line. If we've been
@@ -514,15 +566,13 @@ kboot_copyin(const void *src, vm_offset_t dest, const size_t len)
 
 	if (pa_start == PA_INVAL) {
 		pa_start = kboot_get_phys_load_segment();
-//		padding = 2 << 20; /* XXX amd64: revisit this when we make it work */
-		padding = 0;
 		offset = dest;
 		get_phys_buffer(pa_start, len, &destbuf);
 	}
 
 	remainder = len;
 	do {
-		segsize = get_phys_buffer(dest + pa_start + padding - offset, remainder, &destbuf);
+		segsize = get_phys_buffer(dest + pa_start + KERN_PADDING - offset, remainder, &destbuf);
 		bcopy(src, destbuf, segsize);
 		remainder -= segsize;
 		src += segsize;
@@ -540,7 +590,7 @@ kboot_copyout(vm_offset_t src, void *dest, const size_t len)
 
 	remainder = len;
 	do {
-		segsize = get_phys_buffer(src + pa_start + padding - offset, remainder, &srcbuf);
+		segsize = get_phys_buffer(src + pa_start + KERN_PADDING - offset, remainder, &srcbuf);
 		bcopy(srcbuf, dest, segsize);
 		remainder -= segsize;
 		src += segsize;
@@ -642,3 +692,15 @@ command_fdt(int argc, char *argv[])
 
 COMMAND_SET(fdt, "fdt", "flattened device tree handling", command_fdt);
 #endif
+
+/*
+ * Support quitting.
+ */
+static int
+command_quit(int argc, char *argv[])
+{
+	exit(0);
+	return (CMD_OK);
+}
+
+COMMAND_SET(quit, "quit", "exit the program", command_quit);

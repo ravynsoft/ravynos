@@ -172,6 +172,8 @@ md_copyenv(vm_offset_t start)
 
 	/* Traverse the environment. */
 	for (ep = environ; ep != NULL; ep = ep->ev_next) {
+		if ((ep->ev_flags & EV_NOKENV) != 0)
+			continue;
 		len = strlen(ep->ev_name);
 		if ((size_t)archsw.arch_copyin(ep->ev_name, addr, len) != len)
 			break;
@@ -193,4 +195,26 @@ md_copyenv(vm_offset_t start)
 	if (archsw.arch_copyin("", last++, 1) != 1)
 		last = start;
 	return(last);
+}
+
+/*
+ * Take the ending address and round it up to the currently required
+ * alignment. This typically is the page size, but is the larger of the compiled
+ * kernel page size, the loader page size, and the typical page size on the
+ * platform.
+ *
+ * XXX For the moment, it's just PAGE_SIZE to make the refactoring go faster,
+ * but needs to hook-in the replacement of arch_loadaddr.
+ *
+ * Also, we may need other logical things when dealing with different types of
+ * page sizes and/or masking or sizes. This works well for addr and sizes, but
+ * not for masks.
+ *
+ * Also, this is different than the MOD_ALIGN macro above, which is used for
+ * aligning elements in the metadata lists, not for whare modules can begin.
+ */
+vm_offset_t
+md_align(vm_offset_t addr)
+{
+	return (roundup(addr, PAGE_SIZE));
 }

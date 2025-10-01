@@ -48,7 +48,7 @@ static int efinet_match(struct netif *, void *);
 static int efinet_probe(struct netif *, void *);
 static ssize_t efinet_put(struct iodesc *, void *, size_t);
 
-struct netif_driver efinetif = {   
+struct netif_driver efinetif = {
 	.netif_bname = "efinet",
 	.netif_match = efinet_match,
 	.netif_probe = efinet_probe,
@@ -150,7 +150,7 @@ efinet_put(struct iodesc *desc, void *pkt, size_t len)
 		buf = NULL;	/* XXX Is this needed? */
 		status = net->GetStatus(net, NULL, &buf);
 		/*
-		 * XXX EFI1.1 and the E1000 card returns a different 
+		 * XXX EFI1.1 and the E1000 card returns a different
 		 * address than we gave.  Sigh.
 		 */
 	} while (status == EFI_SUCCESS && buf == NULL);
@@ -256,6 +256,7 @@ efi_env_net_params(struct iodesc *desc)
 	rootip.s_addr = rootaddr;
 
 #ifdef EFINET_DEBUG
+	printf("%s: proto=%d\n", __func__, netproto);
 	printf("%s: ip=%s\n", __func__, inet_ntoa(myip));
 	printf("%s: mask=%s\n", __func__, intoa(netmask));
 	printf("%s: gateway=%s\n", __func__, inet_ntoa(gateip));
@@ -328,7 +329,7 @@ efinet_init(struct iodesc *desc, void *machdep_hint)
 static void
 efinet_end(struct netif *nif)
 {
-	EFI_SIMPLE_NETWORK *net = nif->nif_devdata; 
+	EFI_SIMPLE_NETWORK *net = nif->nif_devdata;
 
 	if (net == NULL)
 		return;
@@ -427,6 +428,7 @@ efinet_dev_init(void)
 		dif->dif_private = handles2[i];
 	}
 
+	efinet_dev.dv_cleanup = netdev.dv_cleanup;
 	efinet_dev.dv_open = netdev.dv_open;
 	efinet_dev.dv_close = netdev.dv_close;
 	efinet_dev.dv_strategy = netdev.dv_strategy;

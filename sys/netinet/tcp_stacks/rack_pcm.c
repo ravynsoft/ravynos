@@ -78,8 +78,6 @@
 #include <netinet/in_kdtrace.h>
 #include <netinet/in_pcb.h>
 #include <netinet/ip.h>
-#include <netinet/ip_icmp.h>	/* required for icmp_var.h */
-#include <netinet/icmp_var.h>	/* for ICMP_BANDLIM */
 #include <netinet/ip_var.h>
 #include <netinet/ip6.h>
 #include <netinet6/in6_pcb.h>
@@ -172,7 +170,7 @@ rack_update_pcm_ack(struct tcp_rack *rack, int was_cumack, uint32_t start, uint3
 		goto skip_ack_accounting;
 	}
 	/*
-	 * Record ACK data. 
+	 * Record ACK data.
 	 */
 	ack_arrival = tcp_tv_to_lusec(&rack->r_ctl.act_rcv_time);
 	if (SEQ_GT(end, rack->r_ctl.pcm_i.eseq)) {
@@ -305,7 +303,7 @@ skip_ack_accounting:
 					    0, &log, false, NULL, NULL, 0, &tv);
 		}
 	}
-	/* 
+	/*
 	 * Here we need a lot to be added including:
 	 * 1) Some form of measurement, where if we think the measurement
 	 *    is valid we iterate over the PCM data and come up with a path

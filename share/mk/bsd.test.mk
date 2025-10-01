@@ -7,7 +7,7 @@
 
 .include <bsd.init.mk>
 
-__<bsd.test.mk>__:
+__<bsd.test.mk>__:	.NOTMAIN
 
 # Third-party software (kyua, etc) prefix.
 LOCALBASE?=	/usr/local
@@ -16,6 +16,9 @@ LOCALBASE?=	/usr/local
 TESTSDIR?=	${TESTSBASE}/${RELDIR:H}
 
 PACKAGE?=	tests
+# Prevent creating a -dev package for tests.  Sometimes tests include static
+# libraries or other artifacts which are not actually "development" files.
+NO_DEV_PACKAGE=
 
 FILESGROUPS+=	${PACKAGE}FILES
 ${PACKAGE}FILESPACKAGE=	${PACKAGE}
@@ -89,6 +92,11 @@ MAN=
 
 .if !defined(NOT_FOR_TEST_SUITE)
 .include <suite.test.mk>
+.endif
+
+.if ${MK_RUN_TESTS} == "yes"
+# Run tests as part of the build
+.include <host.test.mk>
 .endif
 
 .if !target(realcheck)

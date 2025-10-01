@@ -3542,6 +3542,15 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 3;
 		break;
 	}
+	/* exterrctl */
+	case 592: {
+		struct exterrctl_args *p = params;
+		uarg[a++] = p->op; /* u_int */
+		uarg[a++] = p->flags; /* u_int */
+		uarg[a++] = (intptr_t)p->ptr; /* void * */
+		*n_args = 3;
+		break;
+	}
 	/* _kernelrpc_mach_vm_allocate_trap */
 	case 610: {
 		struct _kernelrpc_mach_vm_allocate_trap_args *p = params;
@@ -9878,6 +9887,22 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
+	/* exterrctl */
+	case 592:
+		switch (ndx) {
+		case 0:
+			p = "u_int";
+			break;
+		case 1:
+			p = "u_int";
+			break;
+		case 2:
+			p = "userland void *";
+			break;
+		default:
+			break;
+		};
+		break;
 	/* _kernelrpc_mach_vm_allocate_trap */
 	case 610:
 		switch (ndx) {
@@ -12569,6 +12594,11 @@ systrace_return_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 		break;
 	/* setcred */
 	case 591:
+		if (ndx == 0 || ndx == 1)
+			p = "int";
+		break;
+	/* exterrctl */
+	case 592:
 		if (ndx == 0 || ndx == 1)
 			p = "int";
 		break;

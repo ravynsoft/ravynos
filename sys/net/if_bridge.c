@@ -241,12 +241,15 @@
 #define BRIDGE_RT_LOCK_OR_NET_EPOCH_ASSERT(_sc)	\
 	    MPASS(in_epoch(net_epoch_preempt) || mtx_owned(&(_sc)->sc_rt_mtx))
 
+struct bridge_softc;
+
 /*
  * Bridge interface list entry.
  */
 struct bridge_iflist {
 	CK_LIST_ENTRY(bridge_iflist) bif_next;
 	struct ifnet		*bif_ifp;	/* member if */
+	struct bridge_softc	*bif_sc;	/* parent bridge */
 	struct bstp_port	bif_stp;	/* STP state */
 	uint32_t		bif_flags;	/* member if flags */
 	int			bif_savedcaps;	/* saved capabilities */
@@ -256,6 +259,7 @@ struct bridge_iflist {
 	struct epoch_context	bif_epoch_ctx;
 	ether_vlanid_t		bif_pvid;	/* port vlan id */
 	ifbvlan_set_t		bif_vlan_set;	/* if allowed tagged vlans */
+	uint16_t		bif_vlanproto;	/* vlan protocol */
 };
 
 /*
@@ -268,7 +272,7 @@ struct bridge_rtnode {
 	unsigned long		brt_expire;	/* expiration time */
 	uint8_t			brt_flags;	/* address flags */
 	uint8_t			brt_addr[ETHER_ADDR_LEN];
-	uint16_t		brt_vlan;	/* vlan id */
+	ether_vlanid_t		brt_vlan;	/* vlan id */
 	struct	vnet		*brt_vnet;
 	struct	epoch_context	brt_epoch_ctx;
 };
@@ -297,6 +301,8 @@ struct bridge_softc {
 	struct ether_addr	sc_defaddr;	/* Default MAC address */
 	if_input_fn_t		sc_if_input;	/* Saved copy of if_input */
 	struct epoch_context	sc_epoch_ctx;
+	ifbr_flags_t		sc_flags;	/* bridge flags */
+	ether_vlanid_t		sc_defpvid;	/* default PVID */
 };
 
 VNET_DEFINE_STATIC(struct sx, bridge_list_sx);
@@ -319,6 +325,8 @@ static void	bridge_set_ifcap(struct bridge_softc *, struct bridge_iflist *,
 static void	bridge_ifdetach(void *arg __unused, struct ifnet *);
 static void	bridge_init(void *);
 static void	bridge_dummynet(struct mbuf *, struct ifnet *);
+static bool	bridge_same(const void *, const void *);
+static void	*bridge_get_softc(struct ifnet *);
 static void	bridge_stop(struct ifnet *, int);
 static int	bridge_transmit(struct ifnet *, struct mbuf *);
 #ifdef ALTQ
@@ -331,12 +339,12 @@ static void	bridge_inject(struct ifnet *, struct mbuf *);
 static int	bridge_output(struct ifnet *, struct mbuf *, struct sockaddr *,
 		    struct rtentry *);
 static int	bridge_enqueue(struct bridge_softc *, struct ifnet *,
-		    struct mbuf *);
+		    struct mbuf *, struct bridge_iflist *);
 static void	bridge_rtdelete(struct bridge_softc *, struct ifnet *ifp, int);
 
 static void	bridge_forward(struct bridge_softc *, struct bridge_iflist *,
 		    struct mbuf *m);
-
+static bool	bridge_member_ifaddrs(void);
 static void	bridge_timer(void *);
 
 static void	bridge_broadcast(struct bridge_softc *, struct ifnet *,
@@ -344,21 +352,24 @@ static void	bridge_broadcast(struct bridge_softc *, struct ifnet *,
 static void	bridge_span(struct bridge_softc *, struct mbuf *);
 
 static int	bridge_rtupdate(struct bridge_softc *, const uint8_t *,
-		    uint16_t, struct bridge_iflist *, int, uint8_t);
+		    ether_vlanid_t, struct bridge_iflist *, int, uint8_t);
 static struct ifnet *bridge_rtlookup(struct bridge_softc *, const uint8_t *,
-		    uint16_t);
+		    ether_vlanid_t);
 static void	bridge_rttrim(struct bridge_softc *);
 static void	bridge_rtage(struct bridge_softc *);
 static void	bridge_rtflush(struct bridge_softc *, int);
 static int	bridge_rtdaddr(struct bridge_softc *, const uint8_t *,
-		    uint16_t);
+		    ether_vlanid_t);
+static bool	bridge_vfilter_in(const struct bridge_iflist *, struct mbuf *);
+static bool	bridge_vfilter_out(const struct bridge_iflist *,
+		    const struct mbuf *);
 
 static void	bridge_rtable_init(struct bridge_softc *);
 static void	bridge_rtable_fini(struct bridge_softc *);
 
 static int	bridge_rtnode_addr_cmp(const uint8_t *, const uint8_t *);
 static struct bridge_rtnode *bridge_rtnode_lookup(struct bridge_softc *,
-		    const uint8_t *, uint16_t);
+		    const uint8_t *, ether_vlanid_t);
 static int	bridge_rtnode_insert(struct bridge_softc *,
 		    struct bridge_rtnode *);
 static void	bridge_rtnode_destroy(struct bridge_softc *,
@@ -409,6 +420,11 @@ static int	bridge_ioctl_grte(struct bridge_softc *, void *);
 static int	bridge_ioctl_gifsstp(struct bridge_softc *, void *);
 static int	bridge_ioctl_sproto(struct bridge_softc *, void *);
 static int	bridge_ioctl_stxhc(struct bridge_softc *, void *);
+static int	bridge_ioctl_gflags(struct bridge_softc *, void *);
+static int	bridge_ioctl_sflags(struct bridge_softc *, void *);
+static int	bridge_ioctl_gdefpvid(struct bridge_softc *, void *);
+static int	bridge_ioctl_sdefpvid(struct bridge_softc *, void *);
+static int	bridge_ioctl_svlanproto(struct bridge_softc *, void *);
 static int	bridge_pfil(struct mbuf **, struct ifnet *, struct ifnet *,
 		    int);
 #ifdef INET
@@ -427,7 +443,7 @@ static void	bridge_linkcheck(struct bridge_softc *sc);
  * to indicate untagged frames.
  */
 #define	VLANTAGOF(_m)	\
-    (_m->m_flags & M_VLANTAG) ? EVL_VLANOFTAG(_m->m_pkthdr.ether_vtag) : DOT1Q_VID_NULL
+    ((_m->m_flags & M_VLANTAG) ? EVL_VLANOFTAG(_m->m_pkthdr.ether_vtag) : DOT1Q_VID_NULL)
 
 static struct bstp_cb_ops bridge_ops = {
 	.bcb_state = bridge_state_change,
@@ -504,6 +520,19 @@ VNET_DEFINE_STATIC(bool, log_mac_flap) = true;
 SYSCTL_BOOL(_net_link_bridge, OID_AUTO, log_mac_flap,
     CTLFLAG_RW | CTLFLAG_VNET, &VNET_NAME(log_mac_flap), true,
     "Log MAC address port flapping");
+
+/* allow IP addresses on bridge members */
+VNET_DEFINE_STATIC(bool, member_ifaddrs) = true;
+#define	V_member_ifaddrs	VNET(member_ifaddrs)
+SYSCTL_BOOL(_net_link_bridge, OID_AUTO, member_ifaddrs,
+    CTLFLAG_RW | CTLFLAG_VNET, &VNET_NAME(member_ifaddrs), false,
+    "Allow layer 3 addresses on bridge members (deprecated)");
+
+static bool
+bridge_member_ifaddrs(void)
+{
+	return (V_member_ifaddrs);
+}
 
 VNET_DEFINE_STATIC(int, log_interval) = 5;
 VNET_DEFINE_STATIC(int, log_count) = 0;
@@ -615,6 +644,21 @@ static const struct bridge_control bridge_control_table[] = {
 
 	{ bridge_ioctl_gifvlanset,	sizeof(struct ifbif_vlan_req),
 	  BC_F_COPYIN|BC_F_COPYOUT },
+
+	{ bridge_ioctl_gflags,		sizeof(struct ifbrparam),
+	  BC_F_COPYOUT },
+
+	{ bridge_ioctl_sflags,		sizeof(struct ifbrparam),
+	  BC_F_COPYIN|BC_F_SUSER },
+
+	{ bridge_ioctl_gdefpvid,	sizeof(struct ifbrparam),
+	  BC_F_COPYOUT },
+
+	{ bridge_ioctl_sdefpvid,	sizeof(struct ifbrparam),
+	  BC_F_COPYIN|BC_F_SUSER },
+
+	{ bridge_ioctl_svlanproto,	sizeof(struct ifbreq),
+	  BC_F_COPYIN|BC_F_SUSER },
 };
 static const int bridge_control_table_size = nitems(bridge_control_table);
 
@@ -674,6 +718,9 @@ bridge_modevent(module_t mod, int type, void *data)
 	switch (type) {
 	case MOD_LOAD:
 		bridge_dn_p = bridge_dummynet;
+		bridge_same_p = bridge_same;
+		bridge_get_softc_p = bridge_get_softc;
+		bridge_member_ifaddrs_p = bridge_member_ifaddrs;
 		bridge_detach_cookie = EVENTHANDLER_REGISTER(
 		    ifnet_departure_event, bridge_ifdetach, NULL,
 		    EVENTHANDLER_PRI_ANY);
@@ -682,6 +729,9 @@ bridge_modevent(module_t mod, int type, void *data)
 		EVENTHANDLER_DEREGISTER(ifnet_departure_event,
 		    bridge_detach_cookie);
 		bridge_dn_p = NULL;
+		bridge_same_p = NULL;
+		bridge_get_softc_p = NULL;
+		bridge_member_ifaddrs_p = NULL;
 		break;
 	default:
 		return (EOPNOTSUPP);
@@ -757,6 +807,43 @@ bridge_reassign(struct ifnet *ifp, struct vnet *newvnet, char *arg)
 #endif
 
 /*
+ * bridge_get_softc:
+ *
+ * Return the bridge softc for an ifnet.
+ */
+static void *
+bridge_get_softc(struct ifnet *ifp)
+{
+	struct bridge_iflist *bif;
+
+	NET_EPOCH_ASSERT();
+
+	bif = ifp->if_bridge;
+	if (bif == NULL)
+		return (NULL);
+	return (bif->bif_sc);
+}
+
+/*
+ * bridge_same:
+ *
+ * Return true if two interfaces are in the same bridge.  This is only used by
+ * bridgestp via bridge_same_p.
+ */
+static bool
+bridge_same(const void *bifap, const void *bifbp)
+{
+	const struct bridge_iflist *bifa = bifap, *bifb = bifbp;
+
+	NET_EPOCH_ASSERT();
+
+	if (bifa == NULL || bifb == NULL)
+		return (false);
+
+	return (bifa->bif_sc == bifb->bif_sc);
+}
+
+/*
  * bridge_clone_create:
  *
  *	Create a new bridge instance.
@@ -786,6 +873,7 @@ bridge_clone_create(struct if_clone *ifc, char *name, size_t len,
 	ifp->if_softc = sc;
 	if_initname(ifp, bridge_name, ifd->unit);
 	ifp->if_flags = IFF_BROADCAST | IFF_SIMPLEX | IFF_MULTICAST;
+	ifp->if_capabilities = ifp->if_capenable = IFCAP_VLAN_HWTAGGING;
 	ifp->if_ioctl = bridge_ioctl;
 #ifdef ALTQ
 	ifp->if_start = bridge_altq_start;
@@ -806,7 +894,6 @@ bridge_clone_create(struct if_clone *ifc, char *name, size_t len,
 	ether_ifattach(ifp, sc->sc_defaddr.octet);
 	/* Now undo some of the damage... */
 	ifp->if_baudrate = 0;
-	ifp->if_type = IFT_BRIDGE;
 #ifdef VIMAGE
 	ifp->if_reassign = bridge_reassign;
 #endif
@@ -909,6 +996,7 @@ bridge_ioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
 		struct ifbaconf ifbaconf;
 		struct ifbrparam ifbrparam;
 		struct ifbropreq ifbropreq;
+		struct ifbif_vlan_req ifvlanreq;
 	} args;
 	struct ifdrv *ifd = (struct ifdrv *) data;
 	const struct bridge_control *bc;
@@ -1141,16 +1229,8 @@ bridge_lookup_member(struct bridge_softc *sc, const char *name)
 static struct bridge_iflist *
 bridge_lookup_member_if(struct bridge_softc *sc, struct ifnet *member_ifp)
 {
-	struct bridge_iflist *bif;
-
 	BRIDGE_LOCK_OR_NET_EPOCH_ASSERT(sc);
-
-	CK_LIST_FOREACH(bif, &sc->sc_iflist, bif_next) {
-		if (bif->bif_ifp == member_ifp)
-			return (bif);
-	}
-
-	return (NULL);
+	return (member_ifp->if_bridge);
 }
 
 static void
@@ -1368,24 +1448,30 @@ bridge_ioctl_add(struct bridge_softc *sc, void *arg)
 
 	/*
 	 * If member_ifaddrs is disabled, do not allow an interface with
-	 * assigned IP addresses to be added to a bridge.
+	 * assigned IP addresses to be added to a bridge.  Skip this check
+	 * for gif interfaces, because the IP address assigned to a gif
+	 * interface is separate from the bridge's Ethernet segment.
 	 */
-	if (!V_member_ifaddrs) {
+	if (ifs->if_type != IFT_GIF) {
 		struct ifaddr *ifa;
 
 		CK_STAILQ_FOREACH(ifa, &ifs->if_addrhead, ifa_link) {
-#ifdef INET
-			if (ifa->ifa_addr->sa_family == AF_INET)
+			if (ifa->ifa_addr->sa_family != AF_INET &&
+			    ifa->ifa_addr->sa_family != AF_INET6)
+				continue;
+
+			if (V_member_ifaddrs) {
+				if_printf(sc->sc_ifp,
+				    "WARNING: Adding member interface %s which "
+				    "has an IP address assigned is deprecated "
+				    "and will be unsupported in a future "
+				    "release.\n", ifs->if_xname);
+				break;
+			} else {
 				return (EXTERROR(EINVAL,
 				    "Member interface may not have "
-				    "an IPv4 address configured"));
-#endif
-#ifdef INET6
-			if (ifa->ifa_addr->sa_family == AF_INET6)
-				return (EXTERROR(EINVAL,
-				    "Member interface may not have "
-				    "an IPv6 address configured"));
-#endif
+				    "an IP address assigned"));
+			}
 		}
 	}
 
@@ -1415,9 +1501,14 @@ bridge_ioctl_add(struct bridge_softc *sc, void *arg)
 	if (bif == NULL)
 		return (ENOMEM);
 
+	bif->bif_sc = sc;
 	bif->bif_ifp = ifs;
 	bif->bif_flags = IFBIF_LEARNING | IFBIF_DISCOVER;
 	bif->bif_savedcaps = ifs->if_capenable;
+	bif->bif_vlanproto = ETHERTYPE_VLAN;
+	bif->bif_pvid = sc->sc_defpvid;
+	if (sc->sc_flags & IFBRF_DEFQINQ)
+		bif->bif_flags |= IFBIF_QINQ;
 
 	/*
 	 * Assign the interface's MAC address to the bridge if it's the first
@@ -1431,7 +1522,7 @@ bridge_ioctl_add(struct bridge_softc *sc, void *arg)
 		EVENTHANDLER_INVOKE(iflladdr_event, sc->sc_ifp);
 	}
 
-	ifs->if_bridge = sc;
+	ifs->if_bridge = bif;
 	ifs->if_bridge_output = bridge_output;
 	ifs->if_bridge_input = bridge_input;
 	ifs->if_bridge_linkstate = bridge_linkstate;
@@ -1499,6 +1590,7 @@ bridge_ioctl_gifflags(struct bridge_softc *sc, void *arg)
 	req->ifbr_addrmax = bif->bif_addrmax;
 	req->ifbr_addrexceeded = bif->bif_addrexceeded;
 	req->ifbr_pvid = bif->bif_pvid;
+	req->ifbr_vlanproto = bif->bif_vlanproto;
 
 	/* Copy STP state options as flags */
 	if (bp->bp_operedge)
@@ -1890,8 +1982,6 @@ bridge_ioctl_sifpvid(struct bridge_softc *sc, void *arg)
 	if (req->ifbr_pvid > DOT1Q_VID_MAX)
 		return (EXTERROR(EINVAL, "Invalid VLAN ID"));
 
-	if (req->ifbr_pvid != DOT1Q_VID_NULL)
-		bif->bif_flags |= IFBIF_VLANFILTER;
 	bif->bif_pvid = req->ifbr_pvid;
 	return (0);
 }
@@ -1901,6 +1991,9 @@ bridge_ioctl_sifvlanset(struct bridge_softc *sc, void *arg)
 {
 	struct ifbif_vlan_req *req = arg;
 	struct bridge_iflist *bif;
+
+	if ((sc->sc_flags & IFBRF_VLANFILTER) == 0)
+		return (EXTERROR(EINVAL, "VLAN filtering not enabled"));
 
 	bif = bridge_lookup_member(sc, req->bv_ifname);
 	if (bif == NULL)
@@ -1932,12 +2025,6 @@ bridge_ioctl_sifvlanset(struct bridge_softc *sc, void *arg)
 		return (EXTERROR(EINVAL,
 		    "Unsupported BRDGSIFVLANSET operation"));
 	}
-
-	/*
-	 * The only reason to modify the VLAN access list is to use VLAN
-	 * filtering on this interface, so enable it automatically.
-	 */
-	bif->bif_flags |= IFBIF_VLANFILTER;
 
 	return (0);
 }
@@ -2132,6 +2219,68 @@ bridge_ioctl_stxhc(struct bridge_softc *sc, void *arg)
 	return (bstp_set_holdcount(&sc->sc_stp, param->ifbrp_txhc));
 }
 
+static int
+bridge_ioctl_gflags(struct bridge_softc *sc, void *arg)
+{
+	struct ifbrparam *param = arg;
+
+	param->ifbrp_flags = sc->sc_flags;
+
+	return (0);
+}
+
+static int
+bridge_ioctl_sflags(struct bridge_softc *sc, void *arg)
+{
+	struct ifbrparam *param = arg;
+
+	sc->sc_flags = param->ifbrp_flags;
+
+	return (0);
+}
+
+static int
+bridge_ioctl_gdefpvid(struct bridge_softc *sc, void *arg)
+{
+	struct ifbrparam *param = arg;
+
+	param->ifbrp_defpvid = sc->sc_defpvid;
+
+	return (0);
+}
+
+static int
+bridge_ioctl_sdefpvid(struct bridge_softc *sc, void *arg)
+{
+	struct ifbrparam *param = arg;
+
+	/* Reject invalid VIDs, but allow 0 to mean 'none'. */
+	if (param->ifbrp_defpvid > DOT1Q_VID_MAX)
+		return (EINVAL);
+
+	sc->sc_defpvid = param->ifbrp_defpvid;
+
+	return (0);
+}
+
+static int
+bridge_ioctl_svlanproto(struct bridge_softc *sc, void *arg)
+{
+	struct ifbreq *req = arg;
+	struct bridge_iflist *bif;
+
+	bif = bridge_lookup_member(sc, req->ifbr_ifsname);
+	if (bif == NULL)
+		return (EXTERROR(ENOENT, "Interface is not a bridge member"));
+
+	if (req->ifbr_vlanproto != ETHERTYPE_VLAN &&
+	    req->ifbr_vlanproto != ETHERTYPE_QINQ)
+		return (EXTERROR(EINVAL, "Invalid VLAN protocol"));
+
+	bif->bif_vlanproto = req->ifbr_vlanproto;
+
+	return (0);
+}
 /*
  * bridge_ifdetach:
  *
@@ -2141,8 +2290,11 @@ bridge_ioctl_stxhc(struct bridge_softc *sc, void *arg)
 static void
 bridge_ifdetach(void *arg __unused, struct ifnet *ifp)
 {
-	struct bridge_softc *sc = ifp->if_bridge;
-	struct bridge_iflist *bif;
+	struct bridge_iflist *bif = ifp->if_bridge;
+	struct bridge_softc *sc = NULL;
+
+	if (bif)
+		sc = bif->bif_sc;
 
 	if (ifp->if_flags & IFF_RENAMING)
 		return;
@@ -2156,11 +2308,7 @@ bridge_ifdetach(void *arg __unused, struct ifnet *ifp)
 	/* Check if the interface is a bridge member */
 	if (sc != NULL) {
 		BRIDGE_LOCK(sc);
-
-		bif = bridge_lookup_member_if(sc, ifp);
-		if (bif != NULL)
-			bridge_delete_member(sc, bif, 1);
-
+		bridge_delete_member(sc, bif, 1);
 		BRIDGE_UNLOCK(sc);
 		return;
 	}
@@ -2237,11 +2385,30 @@ bridge_stop(struct ifnet *ifp, int disable)
  *
  */
 static int
-bridge_enqueue(struct bridge_softc *sc, struct ifnet *dst_ifp, struct mbuf *m)
+bridge_enqueue(struct bridge_softc *sc, struct ifnet *dst_ifp, struct mbuf *m,
+    struct bridge_iflist *bif)
 {
 	int len, err = 0;
 	short mflags;
 	struct mbuf *m0;
+
+	/*
+	 * Find the bridge member port this packet is being sent on, if the
+	 * caller didn't already provide it.
+	 */
+	if (bif == NULL)
+		bif = bridge_lookup_member_if(sc, dst_ifp);
+	if (bif == NULL) {
+		/* Perhaps the interface was removed from the bridge */
+		m_freem(m);
+		return (EINVAL);
+	}
+
+	/* Do VLAN filtering. */
+	if (!bridge_vfilter_out(bif, m)) {
+		m_freem(m);
+		return (0);
+	}
 
 	/* We may be sending a fragment so traverse the mbuf */
 	for (; m; m = m0) {
@@ -2251,24 +2418,25 @@ bridge_enqueue(struct bridge_softc *sc, struct ifnet *dst_ifp, struct mbuf *m)
 		mflags = m->m_flags;
 
 		/*
-		 * If VLAN filtering is enabled, and the native VLAN ID of the
-		 * outgoing interface matches the VLAN ID of the frame, remove
-		 * the VLAN header.
+		 * If the native VLAN ID of the outgoing interface matches the
+		 * VLAN ID of the frame, remove the VLAN tag.
 		 */
-		if ((bif->bif_flags & IFBIF_VLANFILTER) &&
-		    bif->bif_pvid != DOT1Q_VID_NULL &&
+		if (bif->bif_pvid != DOT1Q_VID_NULL &&
 		    VLANTAGOF(m) == bif->bif_pvid) {
 			m->m_flags &= ~M_VLANTAG;
 			m->m_pkthdr.ether_vtag = 0;
 		}
 
 		/*
-		 * If underlying interface can not do VLAN tag insertion itself
-		 * then attach a packet tag that holds it.
+		 * There are two cases where we have to insert our own tag:
+		 * if the member interface doesn't support hardware tagging,
+		 * or if the tag proto is not 802.1q.
 		 */
 		if ((m->m_flags & M_VLANTAG) &&
-		    (dst_ifp->if_capenable & IFCAP_VLAN_HWTAGGING) == 0) {
-			m = ether_vlanencap(m, m->m_pkthdr.ether_vtag);
+		    ((dst_ifp->if_capenable & IFCAP_VLAN_HWTAGGING) == 0 ||
+		      bif->bif_vlanproto != ETHERTYPE_VLAN)) {
+			m = ether_vlanencap_proto(m, m->m_pkthdr.ether_vtag,
+			    bif->bif_vlanproto);
 			if (m == NULL) {
 				if_printf(dst_ifp,
 				    "unable to prepend VLAN header\n");
@@ -2279,6 +2447,12 @@ bridge_enqueue(struct bridge_softc *sc, struct ifnet *dst_ifp, struct mbuf *m)
 		}
 
 		M_ASSERTPKTHDR(m); /* We shouldn't transmit mbuf without pkthdr */
+		/*
+		 * XXXZL: gif(4) requires the af to be saved in csum_data field
+		 * so that gif_transmit() routine can pull it back.
+		 */
+		if (dst_ifp->if_type == IFT_GIF)
+			m->m_pkthdr.csum_data = AF_LINK;
 		if ((err = dst_ifp->if_transmit(dst_ifp, m))) {
 			int n;
 
@@ -2310,9 +2484,11 @@ bridge_enqueue(struct bridge_softc *sc, struct ifnet *dst_ifp, struct mbuf *m)
 static void
 bridge_dummynet(struct mbuf *m, struct ifnet *ifp)
 {
-	struct bridge_softc *sc;
+	struct bridge_iflist *bif = ifp->if_bridge;
+	struct bridge_softc *sc = NULL;
 
-	sc = ifp->if_bridge;
+	if (bif)
+		sc = bif->bif_sc;
 
 	/*
 	 * The packet didnt originate from a member interface. This should only
@@ -2331,7 +2507,7 @@ bridge_dummynet(struct mbuf *m, struct ifnet *ifp)
 			return;
 	}
 
-	bridge_enqueue(sc, ifp, m);
+	bridge_enqueue(sc, ifp, m, NULL);
 }
 
 /*
@@ -2349,9 +2525,10 @@ bridge_output(struct ifnet *ifp, struct mbuf *m, struct sockaddr *sa,
     struct rtentry *rt)
 {
 	struct ether_header *eh;
+	struct bridge_iflist *sbif;
 	struct ifnet *bifp, *dst_if;
 	struct bridge_softc *sc;
-	uint16_t vlan;
+	ether_vlanid_t vlan;
 
 	NET_EPOCH_ASSERT();
 
@@ -2361,11 +2538,12 @@ bridge_output(struct ifnet *ifp, struct mbuf *m, struct sockaddr *sa,
 			return (0);
 	}
 
-	eh = mtod(m, struct ether_header *);
-	sc = ifp->if_bridge;
-	vlan = VLANTAGOF(m);
-
+	sbif = ifp->if_bridge;
+	sc = sbif->bif_sc;
 	bifp = sc->sc_ifp;
+
+	eh = mtod(m, struct ether_header *);
+	vlan = VLANTAGOF(m);
 
 	/*
 	 * If bridge is down, but the original output interface is up,
@@ -2424,7 +2602,7 @@ bridge_output(struct ifnet *ifp, struct mbuf *m, struct sockaddr *sa,
 				}
 			}
 
-			bridge_enqueue(sc, dst_if, mc);
+			bridge_enqueue(sc, dst_if, mc, bif);
 		}
 		if (used == 0)
 			m_freem(m);
@@ -2442,7 +2620,7 @@ sendunicast:
 		return (0);
 	}
 
-	bridge_enqueue(sc, dst_if, m);
+	bridge_enqueue(sc, dst_if, m, NULL);
 	return (0);
 }
 
@@ -2459,17 +2637,18 @@ bridge_transmit(struct ifnet *ifp, struct mbuf *m)
 	struct ether_header *eh;
 	struct ifnet *dst_if;
 	int error = 0;
+	ether_vlanid_t vlan;
 
 	sc = ifp->if_softc;
 
 	ETHER_BPF_MTAP(ifp, m);
 
 	eh = mtod(m, struct ether_header *);
+	vlan = VLANTAGOF(m);
 
 	if (((m->m_flags & (M_BCAST|M_MCAST)) == 0) &&
-	    (dst_if = bridge_rtlookup(sc, eh->ether_dhost, DOT1Q_VID_NULL)) !=
-	    NULL) {
-		error = bridge_enqueue(sc, dst_if, m);
+	    (dst_if = bridge_rtlookup(sc, eh->ether_dhost, vlan)) != NULL) {
+		error = bridge_enqueue(sc, dst_if, m, NULL);
 	} else
 		bridge_broadcast(sc, ifp, m, 0);
 
@@ -2530,18 +2709,18 @@ bridge_forward(struct bridge_softc *sc, struct bridge_iflist *sbif,
 	struct bridge_iflist *dbif;
 	struct ifnet *src_if, *dst_if, *ifp;
 	struct ether_header *eh;
-	uint16_t vlan;
 	uint8_t *dst;
 	int error;
+	ether_vlanid_t vlan;
 
 	NET_EPOCH_ASSERT();
 
 	src_if = m->m_pkthdr.rcvif;
 	ifp = sc->sc_ifp;
+	vlan = VLANTAGOF(m);
 
 	if_inc_counter(ifp, IFCOUNTER_IPACKETS, 1);
 	if_inc_counter(ifp, IFCOUNTER_IBYTES, m->m_pkthdr.len);
-	vlan = VLANTAGOF(m);
 
 	if ((sbif->bif_flags & IFBIF_STP) &&
 	    sbif->bif_stp.bp_state == BSTP_IFSTATE_DISCARDING)
@@ -2661,7 +2840,7 @@ bridge_forward(struct bridge_softc *sc, struct bridge_iflist *sbif,
 			return;
 	}
 
-	bridge_enqueue(sc, dst_if, m);
+	bridge_enqueue(sc, dst_if, m, dbif);
 	return;
 
 drop:
@@ -2677,20 +2856,43 @@ drop:
 static struct mbuf *
 bridge_input(struct ifnet *ifp, struct mbuf *m)
 {
-	struct bridge_softc *sc;
+	struct bridge_softc *sc = NULL;
 	struct bridge_iflist *bif, *bif2;
 	struct ifnet *bifp;
 	struct ether_header *eh;
 	struct mbuf *mc, *mc2;
-	uint16_t vlan;
+	ether_vlanid_t vlan;
 	int error;
 
 	NET_EPOCH_ASSERT();
 
+	/* We need the Ethernet header later, so make sure we have it now. */
+	if (m->m_len < ETHER_HDR_LEN) {
+		m = m_pullup(m, ETHER_HDR_LEN);
+		if (m == NULL) {
+			if_inc_counter(sc->sc_ifp, IFCOUNTER_IERRORS, 1);
+			m_freem(m);
+			return (NULL);
+		}
+	}
+
 	eh = mtod(m, struct ether_header *);
 	vlan = VLANTAGOF(m);
 
-	sc = ifp->if_bridge;
+	/*
+	 * If this frame has a VLAN tag and the receiving interface has a
+	 * vlan(4) trunk, then it is is destined for vlan(4), not for us.
+	 * This means if vlan(4) and bridge(4) are configured on the same
+	 * interface, vlan(4) is preferred, which is what users typically
+	 * expect.
+	 */
+	if (vlan != DOT1Q_VID_NULL && ifp->if_vlantrunk != NULL)
+		return (m);
+
+	bif = ifp->if_bridge;
+	if (bif)
+		sc = bif->bif_sc;
+
 	if (sc == NULL) {
 		/*
 		 * This packet originated from the bridge itself, so it must
@@ -2727,10 +2929,15 @@ bridge_input(struct ifnet *ifp, struct mbuf *m)
 		m_freem(m);
 		return (NULL);
 	}
-	bif = bridge_lookup_member_if(sc, ifp);
-	if (bif == NULL) {
-		return (m);
+
+	/* Do VLAN filtering. */
+	if (!bridge_vfilter_in(bif, m)) {
+		if_inc_counter(sc->sc_ifp, IFCOUNTER_IERRORS, 1);
+		m_freem(m);
+		return (NULL);
 	}
+	/* bridge_vfilter_in() may add a tag */
+	vlan = VLANTAGOF(m);
 
 	bridge_span(sc, m);
 
@@ -2857,6 +3064,15 @@ bridge_input(struct ifnet *ifp, struct mbuf *m)
 		}							\
 		if ((iface) != bifp)					\
 			ETHER_BPF_MTAP(iface, m);			\
+		/* Pass tagged packets to if_vlan, if it's loaded */	\
+		if (VLANTAGOF(m) != 0) {				\
+			if (bifp->if_vlantrunk == NULL) {		\
+				m_freem(m);				\
+				return (NULL);				\
+			}						\
+			(*vlan_input_p)(bifp, m);			\
+			return (NULL);					\
+		}							\
 		return (m);						\
 	}								\
 									\
@@ -2873,17 +3089,16 @@ bridge_input(struct ifnet *ifp, struct mbuf *m)
 	do { GRAB_OUR_PACKETS(bifp) } while (0);
 
 	/*
-	 * Give a chance for ifp at first priority. This will help when	the
-	 * packet comes through the interface like VLAN's with the same MACs
-	 * on several interfaces from the same bridge. This also will save
-	 * some CPU cycles in case the destination interface and the input
-	 * interface (eq ifp) are the same.
+	 * If member_ifaddrs is enabled, see if the packet is destined for
+	 * one of the members' addresses.
 	 */
-	do { GRAB_OUR_PACKETS(ifp) } while (0);
+	if (V_member_ifaddrs) {
+		/* Check the interface the packet arrived on. */
+		do { GRAB_OUR_PACKETS(ifp) } while (0);
 
-	/* Now check the all bridge members. */
-	CK_LIST_FOREACH(bif2, &sc->sc_iflist, bif_next) {
-		GRAB_OUR_PACKETS(bif2->bif_ifp)
+		CK_LIST_FOREACH(bif2, &sc->sc_iflist, bif_next) {
+			GRAB_OUR_PACKETS(bif2->bif_ifp)
+		}
 	}
 
 #undef CARP_CHECK_WE_ARE_DST
@@ -2907,6 +3122,30 @@ static void
 bridge_inject(struct ifnet *ifp, struct mbuf *m)
 {
 	struct bridge_softc *sc;
+
+	if (ifp->if_type == IFT_L2VLAN) {
+		/*
+		 * vlan(4) gives us the vlan ifnet, so we need to get the
+		 * bridge softc to get a pointer to ether_input to send the
+		 * packet to.
+		 */
+		struct ifnet *bifp = NULL;
+
+		if (vlan_trunkdev_p == NULL) {
+			m_freem(m);
+			return;
+		}
+
+		bifp = vlan_trunkdev_p(ifp);
+		if (bifp == NULL) {
+			m_freem(m);
+			return;
+		}
+
+		sc = if_getsoftc(bifp);
+		sc->sc_if_input(ifp, m);
+		return;
+	}
 
 	KASSERT((if_getcapenable(ifp) & IFCAP_NETMAP) != 0,
 	    ("%s: iface %s is not running in netmap mode",
@@ -3001,7 +3240,7 @@ bridge_broadcast(struct bridge_softc *sc, struct ifnet *src_if,
 				continue;
 		}
 
-		bridge_enqueue(sc, dst_if, mc);
+		bridge_enqueue(sc, dst_if, mc, dbif);
 	}
 	if (used == 0)
 		m_freem(m);
@@ -3037,7 +3276,7 @@ bridge_span(struct bridge_softc *sc, struct mbuf *m)
 			continue;
 		}
 
-		bridge_enqueue(sc, dst_if, mc);
+		bridge_enqueue(sc, dst_if, mc, bif);
 	}
 }
 
@@ -3055,9 +3294,31 @@ bridge_vfilter_in(const struct bridge_iflist *sbif, struct mbuf *m)
 	if (vlan > DOT1Q_VID_MAX)
 		return (false);
 
-	/* If VLAN filtering isn't enabled, pass everything. */
-	if ((sbif->bif_flags & IFBIF_VLANFILTER) == 0)
+	/*
+	 * If VLAN filtering isn't enabled, pass everything, but add a tag
+	 * if the port has a pvid configured.
+	 */
+	if ((sbif->bif_sc->sc_flags & IFBRF_VLANFILTER) == 0) {
+		if (vlan == DOT1Q_VID_NULL &&
+		    sbif->bif_pvid != DOT1Q_VID_NULL) {
+			m->m_pkthdr.ether_vtag = sbif->bif_pvid;
+			m->m_flags |= M_VLANTAG;
+		}
+
 		return (true);
+	}
+
+	/* If Q-in-Q is disabled, check for stacked tags. */
+	if ((sbif->bif_flags & IFBIF_QINQ) == 0) {
+		struct ether_header *eh;
+		uint16_t proto;
+
+		eh = mtod(m, struct ether_header *);
+		proto = ntohs(eh->ether_type);
+
+		if (proto == ETHERTYPE_VLAN || proto == ETHERTYPE_QINQ)
+			return (false);
+	}
 
 	if (vlan == DOT1Q_VID_NULL) {
 		/*
@@ -3101,8 +3362,16 @@ bridge_vfilter_out(const struct bridge_iflist *dbif, const struct mbuf *m)
 
 	NET_EPOCH_ASSERT();
 
+	/*
+	 * If the interface is in span mode, then bif_sc will be NULL.
+	 * Since the purpose of span interfaces is to receive all frames,
+	 * pass everything.
+	 */
+	if (dbif->bif_sc == NULL)
+		return (true);
+
 	/* If VLAN filtering isn't enabled, pass everything. */
-	if ((dbif->bif_flags & IFBIF_VLANFILTER) == 0)
+	if ((dbif->bif_sc->sc_flags & IFBRF_VLANFILTER) == 0)
 		return (true);
 
 	vlan = VLANTAGOF(m);
@@ -3152,8 +3421,9 @@ bridge_vfilter_out(const struct bridge_iflist *dbif, const struct mbuf *m)
  *	Add a bridge routing entry.
  */
 static int
-bridge_rtupdate(struct bridge_softc *sc, const uint8_t *dst, uint16_t vlan,
-    struct bridge_iflist *bif, int setflags, uint8_t flags)
+bridge_rtupdate(struct bridge_softc *sc, const uint8_t *dst,
+		ether_vlanid_t vlan, struct bridge_iflist *bif,
+		int setflags, uint8_t flags)
 {
 	struct bridge_rtnode *brt;
 	struct bridge_iflist *obif;
@@ -3263,7 +3533,8 @@ bridge_rtupdate(struct bridge_softc *sc, const uint8_t *dst, uint16_t vlan,
  *	Lookup the destination interface for an address.
  */
 static struct ifnet *
-bridge_rtlookup(struct bridge_softc *sc, const uint8_t *addr, uint16_t vlan)
+bridge_rtlookup(struct bridge_softc *sc, const uint8_t *addr,
+		ether_vlanid_t vlan)
 {
 	struct bridge_rtnode *brt;
 
@@ -3374,7 +3645,8 @@ bridge_rtflush(struct bridge_softc *sc, int full)
  *	Remove an address from the table.
  */
 static int
-bridge_rtdaddr(struct bridge_softc *sc, const uint8_t *addr, uint16_t vlan)
+bridge_rtdaddr(struct bridge_softc *sc, const uint8_t *addr,
+	       ether_vlanid_t vlan)
 {
 	struct bridge_rtnode *brt;
 	int found = 0;
@@ -3503,7 +3775,8 @@ bridge_rtnode_addr_cmp(const uint8_t *a, const uint8_t *b)
  *	vlan id or if zero then just return the first match.
  */
 static struct bridge_rtnode *
-bridge_rtnode_lookup(struct bridge_softc *sc, const uint8_t *addr, uint16_t vlan)
+bridge_rtnode_lookup(struct bridge_softc *sc, const uint8_t *addr,
+		     ether_vlanid_t vlan)
 {
 	struct bridge_rtnode *brt;
 	uint32_t hash;
@@ -3611,10 +3884,16 @@ bridge_rtnode_destroy(struct bridge_softc *sc, struct bridge_rtnode *brt)
 static void
 bridge_rtable_expire(struct ifnet *ifp, int age)
 {
-	struct bridge_softc *sc = ifp->if_bridge;
+	struct bridge_iflist *bif = NULL;
+	struct bridge_softc *sc = NULL;
 	struct bridge_rtnode *brt;
 
 	CURVNET_SET(ifp->if_vnet);
+
+	bif = ifp->if_bridge;
+	if (bif)
+		sc = bif->bif_sc;
+	MPASS(sc != NULL);
 	BRIDGE_RT_LOCK(sc);
 
 	/*
@@ -3644,7 +3923,8 @@ bridge_rtable_expire(struct ifnet *ifp, int age)
 static void
 bridge_state_change(struct ifnet *ifp, int state)
 {
-	struct bridge_softc *sc = ifp->if_bridge;
+	struct bridge_iflist *bif = ifp->if_bridge;
+	struct bridge_softc *sc = bif->bif_sc;
 	static const char *stpstates[] = {
 		"disabled",
 		"listening",
@@ -4159,20 +4439,20 @@ dropit:
 static void
 bridge_linkstate(struct ifnet *ifp)
 {
-	struct bridge_softc *sc = ifp->if_bridge;
+	struct bridge_softc *sc = NULL;
 	struct bridge_iflist *bif;
 	struct epoch_tracker et;
 
 	NET_EPOCH_ENTER(et);
 
-	bif = bridge_lookup_member_if(sc, ifp);
-	if (bif == NULL) {
-		NET_EPOCH_EXIT(et);
-		return;
-	}
-	bridge_linkcheck(sc);
+	bif = ifp->if_bridge;
+	if (bif)
+		sc = bif->bif_sc;
 
-	bstp_linkstate(&bif->bif_stp);
+	if (sc != NULL) {
+		bridge_linkcheck(sc);
+		bstp_linkstate(&bif->bif_stp);
+	}
 
 	NET_EPOCH_EXIT(et);
 }

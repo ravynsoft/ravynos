@@ -3408,7 +3408,14 @@
 		    size_t size
 		);
 	}
-592-599	AUE_NULL	UNIMPL	nosys
+592	AUE_NULL	STD|CAPENABLED {
+		int exterrctl(
+			u_int op,
+			u_int flags,
+			_In_reads_bytes_(4) void *ptr
+		);
+	}
+593-599	AUE_NULL	UNIMPL	nosys
 ; The mach syscall number space is negative on OS X
 ; here we have reserved this for OS X mach calls where the offset is: 600 + -(OSX mach index)
 600-609	AUE_NULL	UNIMPL	nosys

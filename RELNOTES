@@ -106,6 +106,16 @@ f1f230439fa4:
 	and obj NFSv4 mounted, the total RPC count dropped from
 	5461286 to 945643, with a 20% drop in elapsed time.
 
+c3fc0db3bc50
+	The default value of the sysctl variable
+	net.inet.tcp.nolocaltimewait has changed from 1 to 0. This means
+	that FreeBSD does not skip the TIME_WAIT state anymore for
+	endpoints for which the remote address is local. The new sysctl
+	variable net.inet.tcp.msl_local can be used to control the time
+	these endpoints stay in the TIME_WAIT state. The sysctl variable
+	net.inet.tcp.nolocaltimewait is deprecated and intended to be
+	removed in FreeBSD 16.
+
 cd240957d7ba
 	Making a connection to INADDR_ANY (i.e., using INADDR_ANY as an alias
 	for localhost) is now disabled by default.  This functionality can be
@@ -279,10 +289,11 @@ e962b37bf0ff:
 7398d1ece5cf:
 	hw.snd.version is removed.
 
-a15f7c96a276,a8089ea5aee5:
+a15f7c96a276,66b5296f1b29:
 	NVMe over Fabrics controller.  The nvmft(4) kernel module adds
 	a new frontend to the CAM target layer which exports ctl(4)
-	LUNs as NVMe namespaces to remote hosts.  The nvmfd(8) daemon
+	LUNs as NVMe namespaces to remote hosts.  The ctld(8) daemon
+	now supports NVMe controllers in addition to iSCSI targets and
 	is responsible for accepting incoming connection requests and
 	handing off connected queue pairs to nvmft(4).
 

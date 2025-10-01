@@ -1,4 +1,3 @@
-IGNORE_OSVERSION=yes
 CIRRUS_WORKING_DIR=${CIRRUS_WORKING_DIR:-$PWD}
 PLATFORM=${PLATFORM:-$(uname -m).$(uname -p)}
 PREFIX=${PREFIX:-/usr}
@@ -8,19 +7,16 @@ BUILDROOT=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}
 TMPBIN=${BUILDROOT}/tmp/usr/bin
 TMPLEGACY=${BUILDROOT}/tmp/legacy/bin
 
-export PREFIX
+__MAKE_CONF=$PWD/tools/ravynOS/make.conf
+
+export PREFIX __MAKE_CONF
 
 install() {
     cd ${CIRRUS_WORKING_DIR}
-    make -j${CORES} MALLOC_PRODUCTION=1 WITHOUT_CLEAN=1 \
-	MK_LIB32=no MK_LLVM_TARGET_X86=yes \
-	MK_LLVM_TARGET_ARM=yes MK_LLVM_TARGET_AARCH64=yes \
-	MK_LLVM_TARGET_RISCV=no MK_LLVM_TARGET_POWERPC=no \
-	MK_LLVM_TARGET_MIPS=no MK_LLVM_TARGET_BPF=no \
-	COMPILER_TYPE=clang installworld
-    make -j${CORES} MK_LIB32=no KERNCONF=RAVYN WITHOUT_CLEAN=1 COMPILER_TYPE=clang installkernel
+    make -j${CORES} installworld
+    make -j${CORES} installkernel
     if [ -d drm-kmod ]; then
-        COMPILER_TYPE=clang make -C drm-kmod install
+        make -C drm-kmod install
     fi
     if [ -d neofetch ]; then
         ${TMPLEGACY}/gmake -C neofetch install
@@ -28,7 +24,7 @@ install() {
     if [ -d plutil ]; then
         ${TMPLEGACY}/gmake -C plutil install
     fi
-    make COMPILER_TYPE=clang -f Makefile.ravynOS install
+    make -f Makefile.ravynOS install
 
     while read -r LINE; do
         option="$(echo "$LINE" | cut -d= -f1)"
@@ -49,32 +45,27 @@ END
 
 base_build() {
     cd ${CIRRUS_WORKING_DIR}
-    make -j${CORES} MALLOC_PRODUCTION=1 WITHOUT_CLEAN=1 \
-	MK_LIB32=no MK_LLVM_TARGET_X86=yes \
-	MK_LLVM_TARGET_ARM=yes MK_LLVM_TARGET_AARCH64=yes \
-	MK_LLVM_TARGET_RISCV=no MK_LLVM_TARGET_POWERPC=no \
-	MK_LLVM_TARGET_MIPS=no MK_LLVM_TARGET_BPF=no \
-	COMPILER_TYPE=clang buildworld
+    make -j${CORES} buildworld
     if [ $? -ne 0 ]; then exit $?; fi
 }
 
 kernel_build() {
     cd ${CIRRUS_WORKING_DIR}
-    make -j${CORES} MK_LIB32=no KERNCONF=RAVYN WITHOUT_CLEAN=1 COMPILER_TYPE=clang buildkernel
+    make -j${CORES} buildkernel
     if [ $? -ne 0 ]; then exit $?; fi
 }
 
 drm_build() {
     cd ${CIRRUS_WORKING_DIR}
     # Is this install actually needed?
-    #make -j${CORES} MK_LIB32=no KERNCONF=RAVYN WITHOUT_CLEAN=1 COMPILER_TYPE=clang installkernel
+    #make -j${CORES} installkernel
     #if [ $? -ne 0 ]; then exit $?; fi
     if [ ! -d drm-kmod ]; then
         git clone https://github.com/ravynsoft/drm-kmod.git
     fi
-    COMPILER_TYPE=clang SYSDIR=${CIRRUS_WORKING_DIR}/sys make -C drm-kmod 
+    SYSDIR=${CIRRUS_WORKING_DIR}/sys make -C drm-kmod 
     mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/kernel/boot/modules
-    COMPILER_TYPE=clang SYSDIR=${CIRRUS_WORKING_DIR}/sys make -C drm-kmod install DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/kernel/
+    SYSDIR=${CIRRUS_WORKING_DIR}/sys make -C drm-kmod install DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/kernel/
     if [ $? -ne 0 ]; then exit $?; fi
 }
 
@@ -86,10 +77,10 @@ system_build() {
         ln -sf ${CIRRUS_WORKING_DIR}/sys/$(uname -m)/include \
 	/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/tmp/usr/include/machine
     fi
-    make COMPILER_TYPE=clang -f Makefile.ravynOS prep
+    make -f Makefile.ravynOS prep
     if [ $? -ne 0 ]; then exit $?; fi
     cp -fv share/mk/* /usr/share/mk/
-    make COMPILER_TYPE=clang -f Makefile.ravynOS
+    make -f Makefile.ravynOS
     if [ $? -ne 0 ]; then exit $?; fi
 }
 
@@ -133,7 +124,7 @@ kernelpkg() {
     cd ${CIRRUS_WORKING_DIR}
     rm -f ${BUILDROOT}/release/kernel.txz
     rm -f ${BUILDROOT}/release/kernel-dbg.txz
-    make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN COMPILER_TYPE=clang kernel.txz
+    make -C release NOSRC=true NOPORTS=true kernel.txz
     if [ $? -ne 0 ]; then exit $?; fi
 }
 
@@ -141,14 +132,14 @@ basepkg() {
     cd ${CIRRUS_WORKING_DIR}
     DISTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist
     mkdir -p ${DISTDIR}
-    make -DNO_ROOT distributeworld MK_LIB32=no NO_PORTS=true NOSRC=true DISTDIR=${DISTDIR}
+    make -DNO_ROOT distributeworld NO_PORTS=true NOSRC=true DISTDIR=${DISTDIR}
     # Bootstrap etcupdate(8) database.
     sh ${CIRRUS_WORKING_DIR}/usr.sbin/etcupdate/etcupdate.sh extract -B \
         -m "make" -M "TARGET_ARCH=$(uname -m) TARGET=$(uname -p)" \
         -s ${CIRRUS_WORKING_DIR} -d "${DISTDIR}/base/var/db/etcupdate" \
         -L /dev/null -N
     # Package all components
-    make packageworld MK_LIB32=no NO_PORTS=true NOSRC=true DISTDIR=${DISTDIR}
+    make packageworld NO_PORTS=true NOSRC=true DISTDIR=${DISTDIR}
     mv ${DISTDIR}/*.txz ${DISTDIR}/../
     if [ $? -ne 0 ]; then exit $?; fi
 }

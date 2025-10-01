@@ -137,8 +137,6 @@
 #include <netinet/in_kdtrace.h>
 #include <netinet/in_pcb.h>
 #include <netinet/ip.h>
-#include <netinet/ip_icmp.h>	/* required for icmp_var.h */
-#include <netinet/icmp_var.h>	/* for ICMP_BANDLIM */
 #include <netinet/ip_var.h>
 #include <netinet/ip6.h>
 #include <netinet6/in6_pcb.h>
@@ -1163,8 +1161,7 @@ again:
 	hpts->p_wheel_complete = 0;
 	HPTS_MTX_ASSERT(hpts);
 	slots_to_run = hpts_slots_diff(hpts->p_prev_slot, hpts->p_cur_slot);
-	if (((hpts->p_curtick - hpts->p_lasttick) >
-	     ((NUM_OF_HPTSI_SLOTS-1) * HPTS_USECS_PER_SLOT)) &&
+	if (((hpts->p_curtick - hpts->p_lasttick) > (NUM_OF_HPTSI_SLOTS - 1)) &&
 	    (hpts->p_on_queue_cnt != 0)) {
 		/*
 		 * Wheel wrap is occuring, basically we
@@ -1398,10 +1395,7 @@ again:
 			}
 			CURVNET_SET(inp->inp_vnet);
 			/* Lets do any logging that we might want to */
-			if (hpts_does_tp_logging && tcp_bblogging_on(tp)) {
-				tcp_hpts_log(hpts, tp, &tv, slots_to_run, i,
-				    from_callout);
-			}
+			tcp_hpts_log(hpts, tp, &tv, slots_to_run, i, from_callout);
 
 			if (tp->t_fb_ptr != NULL) {
 				kern_prefetch(tp->t_fb_ptr, &did_prefetch);
@@ -1532,7 +1526,7 @@ no_run:
 }
 
 void
-__tcp_set_hpts(struct tcpcb *tp, int32_t line)
+tcp_set_hpts(struct tcpcb *tp)
 {
 	struct tcp_hpts_entry *hpts;
 	int failed;

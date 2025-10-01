@@ -52,7 +52,7 @@ static void mswap(PAGE *);
  *	h:	page to convert
  */
 void
-__bt_pgin(void *t, db_pgno_t pg, void *pp)
+__bt_pgin(void *t, pgno_t pg, void *pp)
 {
 	PAGE *h;
 	indx_t i, top;
@@ -117,7 +117,7 @@ __bt_pgin(void *t, db_pgno_t pg, void *pp)
 }
 
 void
-__bt_pgout(void *t, db_pgno_t pg, void *pp)
+__bt_pgout(void *t, pgno_t pg, void *pp)
 {
 	PAGE *h;
 	indx_t i, top;

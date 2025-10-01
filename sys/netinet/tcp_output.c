@@ -85,9 +85,6 @@
 #include <netinet/tcpip.h>
 #include <netinet/cc/cc.h>
 #include <netinet/tcp_fastopen.h>
-#ifdef TCPPCAP
-#include <netinet/tcp_pcap.h>
-#endif
 #ifdef TCP_OFFLOAD
 #include <netinet/tcp_offload.h>
 #endif
@@ -1253,7 +1250,7 @@ send:
 		 * fack acks recoverypoint.
 		 */
 		if ((tp->t_flags & TF_LRD) && SEQ_GEQ(p->rxmit, p->end))
-			p->rxmit = tp->snd_recover;
+			p->rxmit = SEQ_MAX(p->rxmit, tp->snd_recover);
 		tp->sackhint.sack_bytes_rexmit += len;
 	}
 	if (IN_RECOVERY(tp->t_flags)) {
@@ -1466,10 +1463,6 @@ send:
 
 		TCP_PROBE5(send, NULL, tp, ip6, tp, th);
 
-#ifdef TCPPCAP
-		/* Save packet, if requested. */
-		tcp_pcap_add(th, m, &(tp->t_outpkts));
-#endif
 
 		/* TODO: IPv6 IP6TOS_ECT bit on */
 		error = ip6_output(m, inp->in6p_outputopts, &inp->inp_route6,
@@ -1511,11 +1504,6 @@ send:
 		TCP_PROBE5(connect__request, NULL, tp, ip, tp, th);
 
 	TCP_PROBE5(send, NULL, tp, ip, tp, th);
-
-#ifdef TCPPCAP
-	/* Save packet, if requested. */
-	tcp_pcap_add(th, m, &(tp->t_outpkts));
-#endif
 
 	error = ip_output(m, inp->inp_options, &inp->inp_route,
 	    ((so->so_options & SO_DONTROUTE) ? IP_ROUTETOIF : 0), 0, inp);

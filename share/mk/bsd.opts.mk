@@ -30,7 +30,7 @@
 #
 
 .if !target(__<bsd.opts.mk>__)
-__<bsd.opts.mk>__:
+__<bsd.opts.mk>__:	.NOTMAIN
 
 .if !defined(_WITHOUT_SRCCONF)
 #
@@ -60,11 +60,11 @@ __DEFAULT_YES_OPTIONS = \
     MAKE_CHECK_USE_SANDBOX \
     MAN \
     MANCOMPRESS \
-    MANSPLITPKG \
     NIS \
     NLS \
     OPENSSH \
     RELRO \
+    REPRODUCIBLE_BUILD \
     SSP \
     TESTS \
     TOOLCHAIN \
@@ -78,7 +78,9 @@ __DEFAULT_NO_OPTIONS = \
     CCACHE_BUILD \
     CTF \
     INSTALL_AS_USER \
+    MANSPLITPKG \
     RETPOLINE \
+    RUN_TESTS \
     STALE_STAGED \
     UBSAN \
     UNDEFINED_VERSION \

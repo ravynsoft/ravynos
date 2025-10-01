@@ -1,10 +1,12 @@
 .PATH: ${SRCTOP}/sys/contrib/openzfs/lib/libtpool
 .PATH: ${SRCTOP}/sys/contrib/openzfs/include
 
-
-LIB=	tpool
-LIBADD=	spl
 PACKAGE=	zfs
+LIB_PACKAGE=
+
+LIB=		tpool
+SHLIBDIR?=	/lib
+LIBADD=		spl
 
 INCS=	thread_pool_impl.h
 SRCS=	thread_pool.c
@@ -21,5 +23,10 @@ CFLAGS+= -I${SRCTOP}/sys/contrib/openzfs/module/icp/include
 CFLAGS+= -include ${SRCTOP}/sys/contrib/openzfs/include/os/freebsd/spl/sys/ccompile.h
 CFLAGS+= -DHAVE_ISSETUGID 
 CFLAGS+= -include ${SRCTOP}/sys/modules/zfs/zfs_config.h
+
+.include <src.opts.mk>
+
+HAS_TESTS=
+SUBDIR.${MK_TESTS}+=	tests
 
 .include <bsd.lib.mk>

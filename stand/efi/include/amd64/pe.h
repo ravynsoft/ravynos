@@ -1,4 +1,4 @@
-/* 
+/*
     PE32+ header file
  */
 #ifndef _PE_H
@@ -7,7 +7,7 @@
 #define IMAGE_DOS_SIGNATURE                 0x5A4D      // MZ
 #define IMAGE_OS2_SIGNATURE                 0x454E      // NE
 #define IMAGE_OS2_SIGNATURE_LE              0x454C      // LE
-#define IMAGE_NT_SIGNATURE                  0x00004550  // PE00  
+#define IMAGE_NT_SIGNATURE                  0x00004550  // PE00
 #define IMAGE_EDOS_SIGNATURE                0x44454550  // PEED
 
 
@@ -83,7 +83,7 @@ typedef struct _IMAGE_FILE_HEADER {
 #define IMAGE_SIZEOF_FILE_HEADER             20
 
 #define IMAGE_FILE_RELOCS_STRIPPED           0x0001  // Relocation info stripped from file.
-#define IMAGE_FILE_EXECUTABLE_IMAGE          0x0002  // File is executable  (i.e. no unresolved externel references).
+#define IMAGE_FILE_EXECUTABLE_IMAGE          0x0002  // File is executable  (i.e. no unresolved external references).
 #define IMAGE_FILE_LINE_NUMS_STRIPPED        0x0004  // Line nunbers stripped from file.
 #define IMAGE_FILE_LOCAL_SYMS_STRIPPED       0x0008  // Local symbols stripped from file.
 #define IMAGE_FILE_BYTES_REVERSED_LO         0x0080  // Bytes of machine word are reversed.
@@ -129,7 +129,7 @@ typedef struct _IMAGE_OPTIONAL_HEADER {
     UINT32    AddressOfEntryPoint;
     UINT32    BaseOfCode;
     UINT32    BaseOfData;
-                
+
     //
     // NT additional fields.
     //

@@ -30,11 +30,8 @@
 #include <sys/exec.h>
 #include <sys/linker.h>
 #include <sys/module.h>
-#include <sys/stdint.h>
-#include <string.h>
 #include <machine/elf.h>
 #include <stand.h>
-#include <sys/link_elf.h>
 
 #include "bootstrap.h"
 #include "modinfo.h"
@@ -406,6 +403,7 @@ __elfN(loadfile_raw)(char *filename, uint64_t dest,
 		 * in the elf header (an ARM kernel can be loaded at any 2MB
 		 * boundary), so we leave dest set to the value calculated by
 		 * archsw.arch_loadaddr() and passed in to this function.
+		 * XXX This comment is obsolete, but it still seems to work
 		 */
 #ifndef __arm__
 		if (ehdr->e_type == ET_EXEC)
@@ -448,10 +446,7 @@ __elfN(loadfile_raw)(char *filename, uint64_t dest,
 		goto oerr;
 	}
 
-	if (archsw.arch_loadaddr != NULL)
-		dest = archsw.arch_loadaddr(LOAD_ELF, ehdr, dest);
-	else
-		dest = roundup(dest, PAGE_SIZE);
+	dest = md_align(dest);
 
 	/*
 	 * Ok, we think we should handle this.

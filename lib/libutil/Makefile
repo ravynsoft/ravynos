@@ -16,9 +16,10 @@ SRCS=	_secure_path.c cpuset.c expand_number.c flopen.c fparseln.c \
 	kinfo_getvmobject.c kld.c \
 	login_auth.c login_cap.c \
 	login_class.c login_crypt.c login_ok.c login_times.c login_tty.c \
+	mntopts.c \
 	pidfile.c property.c pty.c pw_scan.c pw_util.c quotafile.c \
 	realhostname.c stub.c trimdomain.c uucplock.c
-INCS=	libutil.h login_cap.h
+INCS=	libutil.h login_cap.h mntopts.h
 
 CFLAGS+= -DNO__SCCSID
 
@@ -135,7 +136,6 @@ MLINKS+=quotafile.3 quota_on.3
 MLINKS+=quotafile.3 quota_open.3
 MLINKS+=quotafile.3 quota_qfname.3
 MLINKS+=quotafile.3 quota_read.3
-MLINKS+=quotafile.3 quota_statfs.3
 MLINKS+=quotafile.3 quota_write_limits.3
 MLINKS+=quotafile.3 quota_write_usage.3
 MAN+=	realhostname.3

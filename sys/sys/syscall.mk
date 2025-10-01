@@ -442,6 +442,7 @@ MIASM =  \
 	getrlimitusage.o \
 	fchroot.o \
 	setcred.o \
+	exterrctl.o \
 	_kernelrpc_mach_vm_allocate_trap.o \
 	_kernelrpc_mach_vm_deallocate_trap.o \
 	_kernelrpc_mach_vm_protect_trap.o \

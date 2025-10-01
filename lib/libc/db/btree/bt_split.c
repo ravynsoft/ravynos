@@ -71,7 +71,7 @@ u_long	bt_rootsplit, bt_split, bt_sortsplit, bt_pfxsaved;
  */
 int
 __bt_split(BTREE *t, PAGE *sp, const DBT *key, const DBT *data, int flags,
-	   size_t ilen, u_int32_t argskip)
+    size_t ilen, u_int32_t argskip)
 {
 	BINTERNAL *bi;
 	BLEAF *bl, *tbl;
@@ -761,7 +761,7 @@ bt_psplit(BTREE *t, PAGE *h, PAGE *l, PAGE *r, indx_t *pskip, size_t ilen)
  *	RET_SUCCESS, RET_ERROR.
  */
 static int
-bt_preserve(BTREE *t, db_pgno_t pg)
+bt_preserve(BTREE *t, pgno_t pg)
 {
 	PAGE *h;
 

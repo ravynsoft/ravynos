@@ -391,7 +391,6 @@ stdreply:	icmpelen = max(8, min(V_icmp_quotelen, ntohs(oip->ip_len) -
 	nip->ip_hl = 5;
 	nip->ip_p = IPPROTO_ICMP;
 	nip->ip_tos = 0;
-	nip->ip_off = 0;
 
 	if (V_error_keeptags)
 		m_tag_copy_chain(m, n, M_NOWAIT);
@@ -872,6 +871,8 @@ match:
 	mac_netinet_icmp_replyinplace(m);
 #endif
 	ip->ip_src = t;
+	/* ip->ip_tos will be reflected. */
+	ip->ip_off = htons(0);
 	ip->ip_ttl = V_ip_defttl;
 
 	if (optlen > 0) {
@@ -1090,15 +1091,14 @@ ip_next_mtu(int mtu, int dir)
  *	the 'final' error, but it doesn't make sense to solve the printing
  *	delay with more complex code.
  */
-VNET_DEFINE_STATIC(struct counter_rate, icmp_rates[BANDLIM_MAX]);
+VNET_DEFINE_STATIC(struct counter_rate *, icmp_rates[BANDLIM_MAX]);
 #define	V_icmp_rates	VNET(icmp_rates)
 
 static const char *icmp_rate_descrs[BANDLIM_MAX] = {
 	[BANDLIM_ICMP_UNREACH] = "icmp unreach",
 	[BANDLIM_ICMP_ECHO] = "icmp ping",
 	[BANDLIM_ICMP_TSTAMP] = "icmp tstamp",
-	[BANDLIM_RST_CLOSEDPORT] = "closed port RST",
-	[BANDLIM_RST_OPENPORT] = "open port RST",
+	[BANDLIM_TCP_RST] = "tcp reset",
 	[BANDLIM_ICMP6_UNREACH] = "icmp6 unreach",
 	[BANDLIM_SCTP_OOTB] = "sctp ootb",
 };
@@ -1158,8 +1158,7 @@ icmp_bandlimit_init(void)
 {
 
 	for (int i = 0; i < BANDLIM_MAX; i++) {
-		V_icmp_rates[i].cr_rate = counter_u64_alloc(M_WAITOK);
-		V_icmp_rates[i].cr_ticks = ticks;
+		V_icmp_rates[i] = counter_rate_alloc(M_WAITOK, 1);
 		icmplim_new_jitter(i);
 	}
 }
@@ -1172,7 +1171,7 @@ icmp_bandlimit_uninit(void)
 {
 
 	for (int i = 0; i < BANDLIM_MAX; i++)
-		counter_u64_free(V_icmp_rates[i].cr_rate);
+		counter_rate_free(V_icmp_rates[i]);
 }
 VNET_SYSUNINIT(icmp_bandlimit, SI_SUB_PROTO_DOMAIN, SI_ORDER_THIRD,
     icmp_bandlimit_uninit, NULL);
@@ -1183,13 +1182,13 @@ badport_bandlim(int which)
 {
 	int64_t pps;
 
-	if (V_icmplim == 0 || which == BANDLIM_UNLIMITED)
+	if (V_icmplim == 0)
 		return (0);
 
 	KASSERT(which >= 0 && which < BANDLIM_MAX,
 	    ("%s: which %d", __func__, which));
 
-	pps = counter_ratecheck(&V_icmp_rates[which], V_icmplim +
+	pps = counter_ratecheck(V_icmp_rates[which], V_icmplim +
 	    V_icmplim_curr_jitter[which]);
 	if (pps > 0) {
 		if (V_icmplim_output)

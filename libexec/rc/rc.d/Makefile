@@ -209,7 +209,7 @@ CONFS+=		ccd
 CONFS+=		ftpd
 .endif
 
-.if ${MK_GSSAPI} != "no"
+.if ${MK_KERBEROS} != "no"
 CONFGROUPS+=	GSSD
 GSSD=		gssd
 GSSDPACKAGE=	kerberos

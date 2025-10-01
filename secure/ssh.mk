@@ -6,7 +6,7 @@ SSHDIR=		${SRCTOP}/crypto/openssh
 
 CFLAGS+= -I${SSHDIR} -include ssh_namespace.h
 
-.if ${MK_GSSAPI} != "no" && ${MK_KERBEROS_SUPPORT} != "no"
+.if ${MK_KERBEROS} != "no" && ${MK_KERBEROS_SUPPORT} != "no"
 CFLAGS+= -include krb5_config.h
 .endif
 
