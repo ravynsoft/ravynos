@@ -33,4 +33,7 @@ MLINKS=		llvm-objcopy.1 objcopy.1 \
 		llvm-objcopy.1 strip.1
 .endif
 
+LIBS+=		libmach.so
+LDFLAGS+=	-lmach
+
 .include "../llvm.prog.mk"

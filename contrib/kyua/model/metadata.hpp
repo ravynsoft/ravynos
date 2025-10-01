@@ -76,6 +76,7 @@ public:
     const utils::units::bytes& required_disk_space(void) const;
     const paths_set& required_files(void) const;
     const utils::units::bytes& required_memory(void) const;
+    const strings_set& required_kmods(void) const;
     const paths_set& required_programs(void) const;
     const std::string& required_user(void) const;
     const utils::datetime::delta& timeout(void) const;
@@ -95,7 +96,7 @@ class metadata_builder : utils::noncopyable {
     struct impl;
 
     /// Pointer to the shared internal implementation.
-    std::auto_ptr< impl > _pimpl;
+    std::unique_ptr< impl > _pimpl;
 
 public:
     metadata_builder(void);
@@ -121,6 +122,7 @@ public:
     metadata_builder& set_required_disk_space(const utils::units::bytes&);
     metadata_builder& set_required_files(const paths_set&);
     metadata_builder& set_required_memory(const utils::units::bytes&);
+    metadata_builder& set_required_kmods(const strings_set&);
     metadata_builder& set_required_programs(const paths_set&);
     metadata_builder& set_required_user(const std::string&);
     metadata_builder& set_string(const std::string&, const std::string&);

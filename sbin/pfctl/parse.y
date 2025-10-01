@@ -233,6 +233,7 @@ static struct pool_opts {
 #define POM_TYPE		0x01
 #define POM_STICKYADDRESS	0x02
 #define POM_ENDPI		0x04
+#define POM_IPV6NH		0x08
 	u_int8_t		 opts;
 	int			 type;
 	int			 staticport;
@@ -530,7 +531,8 @@ int	parseport(char *, struct range *r, int);
 %token	STICKYADDRESS ENDPI MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
 %token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH SLOPPY PFLOW ALLOW_RELATED
 %token	TAGGED TAG IFBOUND FLOATING STATEPOLICY STATEDEFAULTS ROUTE SETTOS
-%token	DIVERTTO DIVERTREPLY BRIDGE_TO RECEIVEDON NE LE GE AFTO
+%token	DIVERTTO DIVERTREPLY BRIDGE_TO RECEIVEDON NE LE GE AFTO NATTO RDRTO
+%token	BINATTO MAXPKTRATE MAXPKTSIZE IPV6NH
 %token	<v.string>		STRING
 %token	<v.number>		NUMBER
 %token	<v.i>			PORTBINARY
@@ -2734,13 +2736,16 @@ pfrule		: action dir logquick interface route af proto fromto
 					YYERROR;
 				}
 				r.rt = $5.rt;
-				decide_address_family($5.redirspec->host, &r.af);
-				if (!(r.rule_flag & PFRULE_AFTO))
-					remove_invalid_hosts(&($5.redirspec->host), &r.af);
-				if ($5.redirspec->host == NULL) {
-					yyerror("no routing address with "
-					    "matching address family found.");
-					YYERROR;
+
+				if (!($5.redirspec->pool_opts.opts & PF_POOL_IPV6NH)) {
+					decide_address_family($5.redirspec->host, &r.af);
+					if (!(r.rule_flag & PFRULE_AFTO))
+						remove_invalid_hosts(&($5.redirspec->host), &r.af);
+					if ($5.redirspec->host == NULL) {
+						yyerror("no routing address with "
+						    "matching address family found.");
+						YYERROR;
+					}
 				}
 			}
 			if ($9.queues.qname != NULL) {
@@ -3032,7 +3037,8 @@ filter_opt	: USER uids {
 
 			filter_opts.nat = $4;
 			filter_opts.nat->af = $2;
-			if ($4->af && $4->af != $2) {
+			remove_invalid_hosts(&($4->host), &(filter_opts.nat->af));
+			if ($4->host == NULL) {
 				yyerror("af-to addresses must be in the "
 				   "target address family");
 				YYERROR;
@@ -3052,8 +3058,9 @@ filter_opt	: USER uids {
 			filter_opts.nat->af = $2;
 			filter_opts.rdr = $6;
 			filter_opts.rdr->af = $2;
-			if (($4->af && $4->host->af != $2) ||
-			    ($6->af && $6->host->af != $2)) {
+			remove_invalid_hosts(&($4->host), &(filter_opts.nat->af));
+			remove_invalid_hosts(&($6->host), &(filter_opts.rdr->af));
+			if ($4->host == NULL || $6->host == NULL) {
 				yyerror("af-to addresses must be in the "
 				   "target address family");
 				YYERROR;
@@ -4694,6 +4701,14 @@ pool_opt	: BITMASK	{
 			pool_opts.marker |= POM_ENDPI;
 			pool_opts.opts |= PF_POOL_ENDPI;
 		}
+		| IPV6NH {
+			if (pool_opts.marker & POM_IPV6NH) {
+				yyerror("prefer-ipv6-nexthop cannot be redefined");
+				YYERROR;
+			}
+			pool_opts.marker |= POM_IPV6NH;
+			pool_opts.opts |= PF_POOL_IPV6NH;
+		}
 		| MAPEPORTSET number '/' number '/' number {
 			if (pool_opts.mape.offset) {
 				yyerror("map-e-portset cannot be redefined");
@@ -4831,6 +4846,12 @@ natrule		: nataction interface af proto fromto tag tagged rtable
 				if ($9 == NULL || $9->host == NULL) {
 					yyerror("translation rule requires '-> "
 					    "address'");
+					YYERROR;
+				}
+				if ($9->pool_opts.opts & PF_POOL_IPV6NH) {
+					yyerror("The prefer-ipv6-nexthop option "
+					    "can't be used for nat/rdr/binat pools"
+					);
 					YYERROR;
 				}
 				if (!r.af && ! $9->host->ifindex)
@@ -5094,13 +5115,6 @@ route_host	: STRING			{
 
 route_host_list	: route_host optnl			{ $$ = $1; }
 		| route_host_list comma route_host optnl {
-			if ($1->af == 0)
-				$1->af = $3->af;
-			if ($1->af != $3->af) {
-				yyerror("all pool addresses must be in the "
-				    "same address family");
-				YYERROR;
-			}
 			$1->tail->next = $3;
 			$1->tail = $3->tail;
 			$$ = $1;
@@ -6620,6 +6634,7 @@ lookup(char *s)
 		{ "pass",		PASS},
 		{ "pflow",		PFLOW},
 		{ "port",		PORT},
+		{ "prefer-ipv6-nexthop", IPV6NH},
 		{ "prio",		PRIO},
 		{ "priority",		PRIORITY},
 		{ "priq",		PRIQ},

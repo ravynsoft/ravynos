@@ -28,4 +28,7 @@ LINKS+=		${BINDIR}/llvm-size ${BINDIR}/size
 MLINKS+=	llvm-size.1 size.1
 .endif
 
+LIBS+=		libmach.so
+LDFLAGS+=	-lmach
+
 .include "../llvm.prog.mk"

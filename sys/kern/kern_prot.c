@@ -2894,19 +2894,15 @@ crsetgroups(struct ucred *cr, int ngrp, const gid_t *groups)
 
 	if (ngrp > ngroups_max)
 		ngrp = ngroups_max;
-	cr->cr_ngroups = 0;
-	if (ngrp == 0) {
-		cr->cr_flags |= CRED_FLAG_GROUPSET;
-		return;
-	}
-
 	/*
 	 * crextend() asserts that groups are not set, as it may allocate a new
 	 * backing storage without copying the content of the old one.  Since we
 	 * are going to install a completely new set anyway, signal that we
 	 * consider the old ones thrown away.
 	 */
-	cr->cr_flags &= ~CRED_FLAG_GROUPSET;
+	cr->cr_ngroups = 0;
+	if (ngrp == 0)
+		return;
 
 	crextend(cr, ngrp);
 	crsetgroups_internal(cr, ngrp, groups);
@@ -2928,7 +2924,6 @@ crsetgroups_and_egid(struct ucred *cr, int ngrp, const gid_t *groups,
 	if (ngrp == 0) {
 		cr->cr_gid = default_egid;
 		cr->cr_ngroups = 0;
-		cr->cr_flags |= CRED_FLAG_GROUPSET;
 		return;
 	}
 

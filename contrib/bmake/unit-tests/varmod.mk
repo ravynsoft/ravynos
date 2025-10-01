@@ -1,4 +1,4 @@
-# $NetBSD: varmod.mk,v 1.22 2025/01/11 20:54:46 rillig Exp $
+# $NetBSD: varmod.mk,v 1.30 2025/06/29 11:27:21 rillig Exp $
 #
 # Tests for variable modifiers, such as :Q, :S,from,to or :Ufallback.
 #
@@ -21,40 +21,50 @@
 # * `individual`: parsing this modifier does not follow the common
 #   pattern of calling `ParseModifierPart`.
 #
-# The SysV column says whether a parse error in the modifier falls back
-# trying the `:from=to` System V modifier.
+# The SysV column says whether a modifier falls back trying the `:from=to`
+# System V modifier. Remarks:
 #
-# | **Operator** | **Behavior** | **Remarks**        | **SysV** |
+#	In the assignment modifiers `::=` and its variants, the `=` is part of
+#	the modifier name, so they never fall back to the `:from=to` modifier.
+#
+#	All no-colon modifiers get a "no", as the modifier name would be
+#	trimmed off before the `:from=to` modifier could see them, for
+#	example, ${VAR:LAR=ALUE} and ${VAR:L:AR=ALUE} behave the same.
+#
+# | **Modifier** | **Behavior** | **Remarks**        | **SysV** |
 # |--------------|--------------|--------------------|----------|
-# | `!`          | no-colon     |                    | no       |
-# | `:=`         | greedy       |                    | yes      |
-# | `?:`         | greedy       |                    | no       |
-# | `@`          | no-colon     |                    | no       |
-# | `C`          | no-colon     |                    | no       |
-# | `D`          | individual   | custom parser      | N/A      |
-# | `E`          | strict       |                    | yes      |
-# | `H`          | strict       |                    | yes      |
-# | `L`          | no-colon     |                    | N/A      |
-# | `M`          | individual   | custom parser      | N/A      |
-# | `N`          | individual   | custom parser      | N/A      |
-# | `O`          | strict       | only literal value | no       |
-# | `P`          | no-colon     |                    | N/A      |
-# | `Q`          | strict       |                    | yes      |
-# | `R`          | strict       |                    | yes      |
-# | `S`          | no-colon     |                    | N/A      |
-# | `T`          | strict       |                    | N/A      |
-# | `U`          | individual   | custom parser      | N/A      |
-# | `[`          | strict       |                    | no       |
-# | `_`          | individual   | strcspn            | yes      |
-# | `gmtime`     | strict       |                    | yes      |
-# | `hash`       | strict       |                    | N/A      |
-# | `localtime`  | strict       |                    | yes      |
-# | `q`          | strict       |                    | yes      |
-# | `range`      | strict       |                    | N/A      |
-# | `sh`         | strict       |                    | N/A      |
-# | `t`          | strict       |                    | no       |
-# | `u`          | strict       |                    | yes      |
-# | `from=to`    | greedy       | SysV, fallback     | N/A      |
+# | !            | no-colon     |                    | no       |
+# | :=           | greedy       |                    | no       |
+# | :?=          | greedy       |                    | no       |
+# | :+=          | greedy       |                    | no       |
+# | :!=          | greedy       |                    | no       |
+# | ?:           | greedy       |                    | no       |
+# | @            | no-colon     |                    | no       |
+# | C            | no-colon     |                    | no       |
+# | D            | individual   | custom parser      | no       |
+# | E            | strict       |                    | yes      |
+# | H            | strict       |                    | yes      |
+# | L            | no-colon     |                    | no       |
+# | M            | individual   | custom parser      | no       |
+# | N            | individual   | custom parser      | no       |
+# | O            | strict       | only literal value | yes      |
+# | P            | no-colon     |                    | no       |
+# | Q            | strict       |                    | yes      |
+# | R            | strict       |                    | yes      |
+# | S            | no-colon     |                    | no       |
+# | T            | strict       |                    | yes      |
+# | U            | individual   | custom parser      | no       |
+# | [            | strict       |                    | no       |
+# | _            | individual   | strcspn            | no       |
+# | gmtime       | strict       |                    | no       |
+# | hash         | strict       |                    | yes      |
+# | localtime    | strict       |                    | no       |
+# | q            | strict       |                    | yes      |
+# | range        | strict       |                    | no       |
+# | sh           | strict       |                    | yes      |
+# | t            | strict       |                    | yes      |
+# | u            | strict       |                    | yes      |
+# | from=to      | greedy       | SysV, fallback     | ---      |
 
 # These tests assume
 .MAKE.SAVE_DOLLARS = yes
@@ -97,7 +107,7 @@ DOLLAR2=	${:U\$}
 # Should it?
 .MAKEFLAGS: -dL
 # expect+2: To escape a dollar, use \$, not $$, at "$$:L} != """
-# expect+1: Invalid variable name ':', at "$:L} != """
+# expect+1: Invalid variable name ":", at "$:L} != """
 .if ${$$:L} != ""
 .  error
 .endif
@@ -108,29 +118,28 @@ DOLLAR2=	${:U\$}
 .  error
 .endif
 
-# The variable modifier :P does not fall back to the SysV modifier.
+# The modifier :P does not fall back to the SysV modifier.
 # Therefore the modifier :P=RE generates a parse error.
-# XXX: The .error should not be reached since the expression is
-# malformed, and this error should be propagated up to Cond_EvalLine.
 VAR=	STOP
-# expect+1: Missing delimiter ':' after modifier "P"
+# expect+1: Missing delimiter ":" after modifier "P"
 .if ${VAR:P=RE} != "STORE"
-# expect+1: Missing argument for ".error"
+.  error
+.else
 .  error
 .endif
 
 # Test the word selection modifier ':[n]' with a very large number that is
 # larger than ULONG_MAX for any supported platform.
-# expect+1: Bad modifier ":[99333000222000111000]"
+# expect+1: Invalid modifier ":[99333000222000111000]"
 .if ${word:L:[99333000222000111000]}
 .endif
-# expect+1: Bad modifier ":[2147483648]"
+# expect+1: Invalid modifier ":[2147483648]"
 .if ${word:L:[2147483648]}
 .endif
 
 # Test the range generation modifier ':range=n' with a very large number that
 # is larger than SIZE_MAX for any supported platform.
-# expect+1: Invalid number "99333000222000111000}" for ':range' modifier
+# expect+1: Invalid number "99333000222000111000}" for modifier ":range"
 .if ${word:L:range=99333000222000111000}
 .endif
 
@@ -172,7 +181,7 @@ ${:U }=		<space>
 .if ${word:L:@w@$w$@} != "word"
 .  error
 .endif
-# expect+1: Bad modifier ":[$]"
+# expect+1: Invalid modifier ":[$]"
 .if ${word:[$]}
 .  error
 .else
@@ -189,11 +198,11 @@ VAR_DOLLAR=	VAR$$
 .  error
 .endif
 # expect+2: Dollar followed by nothing
-# expect+1: Invalid variable name '}', at "$} != "set""
+# expect+1: Invalid variable name "}", at "$} != "set""
 .if ${VAR:Dset$} != "set"
 .  error
 .endif
-# expect+1: Invalid variable name '}', at "$} != "fallback""
+# expect+1: Invalid variable name "}", at "$} != "fallback""
 .if ${:Ufallback$} != "fallback"
 .  error
 .endif
@@ -217,7 +226,7 @@ VAR_DOLLAR=	VAR$$
 .if ${word:L:NX*$} != "word"
 .  error
 .endif
-# expect+1: Invalid argument 'fallback$' for modifier ':mtime'
+# expect+1: Invalid argument "fallback$" for modifier ":mtime"
 .if ${.:L:mtime=fallback$}
 .  error
 .else
@@ -227,5 +236,40 @@ VAR_DOLLAR=	VAR$$
 .  error
 .endif
 .if ${word:L:S,d,m$,} != "worm\$"
+.  error
+.endif
+
+.undef VAR
+# expect+1: Missing delimiter ":" after modifier "L"
+.if ${VAR:LAR=ALUE} != "VALUE"
+.  error
+.endif
+.if ${VAR:L:AR=ALUE} != "VALUE"
+.  error
+.endif
+
+
+# When an expression has the usual form ${...} with braces,
+# in the part of a modifier, ":}\$" can be escaped using a backslash.
+# All other characters are passed through unmodified.
+# expect+1: Invalid time value " : } \ $ ) \) ( "
+.if ${%Y:L:localtime= \: \} \\ \$ ) \) ( :M*} != ": } \\ \$ ) \\) ("
+.  error
+.endif
+# When an expression has the unusual form $(...) with parentheses,
+# in the part of a modifier, ":)\$" can be escaped using a backslash.
+# All other characters are passed through unmodified.
+# expect+1: Invalid time value " : \) \ $ "
+.if ${%Y:L:localtime= \: \) \\ \$ } \} { :M*} != ": ) \\ \$ } \\} {"
+.  error
+.endif
+# Same when the modifier is the last modifier in an expression.
+# expect+1: Invalid time value " : } \ $ ) \) ( "
+.if ${%Y:L:localtime= \: \} \\ \$ ) \) ( } != " : } \\ \$ ) \\) ( "
+.  error
+.endif
+# Same when the modifier is the last modifier in an expression.
+# expect+1: Invalid time value " : \) \ $ "
+.if ${%Y:L:localtime= \: \) \\ \$ } \} { } != " : ) \\ \$ } \\} { "
 .  error
 .endif

@@ -5939,7 +5939,9 @@ nextrule:
 
 		/*
 		 * Set act.rt here instead of in pf_rule_to_actions() because
-		 * it is applied only from the last pass rule.
+		 * it is applied only from the last pass rule. For rules
+		 * with the prefer-ipv6-nexthop option act.rt_af is a hint
+		 * about AF of the forwarded packet and might be changed.
 		 */
 		pd->act.rt = r->rt;
 		if (r->rt == PF_REPLYTO)
@@ -8787,9 +8789,10 @@ pf_route(struct mbuf **m, struct pf_krule *r, struct ifnet *oifp,
     struct pf_kstate *s, struct pf_pdesc *pd, struct inpcb *inp)
 {
 	struct mbuf		*m0, *m1, *md;
-	struct route		 ro;
-	const struct sockaddr	*gw = &ro.ro_dst;
-	struct sockaddr_in	*dst;
+	struct route_in6	 ro;
+	union sockaddr_union	 rt_gw;
+	const union sockaddr_union	*gw = (const union sockaddr_union *)&ro.ro_dst;
+	union sockaddr_union	*dst;
 	struct ip		*ip;
 	struct ifnet		*ifp = NULL;
 	int			 error = 0;
@@ -8881,10 +8884,35 @@ pf_route(struct mbuf **m, struct pf_krule *r, struct ifnet *oifp,
 	ip = mtod(m0, struct ip *);
 
 	bzero(&ro, sizeof(ro));
-	dst = (struct sockaddr_in *)&ro.ro_dst;
-	dst->sin_family = AF_INET;
-	dst->sin_len = sizeof(struct sockaddr_in);
-	dst->sin_addr.s_addr = pd->act.rt_addr.v4.s_addr;
+	dst = (union sockaddr_union *)&ro.ro_dst;
+	dst->sin.sin_family = AF_INET;
+	dst->sin.sin_len = sizeof(struct sockaddr_in);
+	dst->sin.sin_addr = ip->ip_dst;
+	if (ifp) { /* Only needed in forward direction and route-to */
+		bzero(&rt_gw, sizeof(rt_gw));
+		ro.ro_flags |= RT_HAS_GW;
+		gw = &rt_gw;
+		switch (pd->act.rt_af) {
+#ifdef INET
+		case AF_INET:
+			rt_gw.sin.sin_family = AF_INET;
+			rt_gw.sin.sin_len = sizeof(struct sockaddr_in);
+			rt_gw.sin.sin_addr.s_addr = pd->act.rt_addr.v4.s_addr;
+			break;
+#endif /* INET */
+#ifdef INET6
+		case AF_INET6:
+			rt_gw.sin6.sin6_family = AF_INET6;
+			rt_gw.sin6.sin6_len = sizeof(struct sockaddr_in6);
+			pf_addrcpy((struct pf_addr *)&rt_gw.sin6.sin6_addr,
+			    &pd->act.rt_addr, AF_INET6);
+			break;
+#endif /* INET6 */
+		default:
+			/* Normal af-to without route-to */
+			break;
+		}
+	}
 
 	if (s != NULL){
 		if (ifp == NULL && (pd->af != pd->naf)) {
@@ -8896,10 +8924,10 @@ pf_route(struct mbuf **m, struct pf_krule *r, struct ifnet *oifp,
 
 				/* Use the gateway if needed. */
 				if (nh->nh_flags & NHF_GATEWAY) {
-					gw = &nh->gw_sa;
+					gw = (const union sockaddr_union *)&nh->gw_sa;
 					ro.ro_flags |= RT_HAS_GW;
 				} else {
-					dst->sin_addr = ip->ip_dst;
+					dst->sin.sin_addr = ip->ip_dst;
 				}
 
 				/*
@@ -8923,6 +8951,9 @@ pf_route(struct mbuf **m, struct pf_krule *r, struct ifnet *oifp,
 
 		PF_STATE_UNLOCK(s);
 	}
+
+	/* It must have been either set from rt_af or from fib4_lookup */
+	KASSERT(gw->sin.sin_family != 0, ("%s: gw address family undetermined", __func__));
 
 	if (ifp == NULL) {
 		m0 = *m;
@@ -9001,9 +9032,11 @@ pf_route(struct mbuf **m, struct pf_krule *r, struct ifnet *oifp,
 		m_clrprotoflags(m0);	/* Avoid confusing lower layers. */
 
 		md = m0;
-		error = pf_dummynet_route(pd, s, r, ifp, gw, &md);
+		error = pf_dummynet_route(pd, s, r, ifp,
+		    (const struct sockaddr *)gw, &md);
 		if (md != NULL) {
-			error = (*ifp->if_output)(ifp, md, gw, &ro);
+			error = (*ifp->if_output)(ifp, md,
+			    (const struct sockaddr *)gw, (struct route *)&ro);
 			SDT_PROBE2(pf, ip, route_to, output, ifp, error);
 		}
 		goto done;
@@ -9043,9 +9076,11 @@ pf_route(struct mbuf **m, struct pf_krule *r, struct ifnet *oifp,
 			md = m0;
 			pd->pf_mtag = pf_find_mtag(md);
 			error = pf_dummynet_route(pd, s, r, ifp,
-			    gw, &md);
+			    (const struct sockaddr *)gw, &md);
 			if (md != NULL) {
-				error = (*ifp->if_output)(ifp, md, gw, &ro);
+				error = (*ifp->if_output)(ifp, md,
+				    (const struct sockaddr *)gw,
+				    (struct route *)&ro);
 				SDT_PROBE2(pf, ip, route_to, output, ifp, error);
 			}
 		} else

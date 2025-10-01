@@ -9,7 +9,6 @@ ${PACKAGE}FILES+=		README
 
 ATF_TESTS_C+=		dbm_open_test
 ATF_TESTS_C+=		dbm_perm_test
-ATF_TESTS_C+=		dbm_nextkey_test
 
 NETBSD_ATF_TESTS_C+=	db_hash_seq_test
 NETBSD_ATF_TESTS_SH+=	db_test

@@ -39,6 +39,7 @@ extern "C" {
 #include <stdexcept>
 
 #include "engine/config.hpp"
+#include "engine/debugger.hpp"
 #include "engine/exceptions.hpp"
 #include "engine/execenv/execenv.hpp"
 #include "engine/requirements.hpp"
@@ -86,11 +87,11 @@ using utils::optional;
 ///
 /// TODO(jmmv): This is here only for testing purposes.  Maybe we should expose
 /// this setting as part of the user_config.
-datetime::delta scheduler::cleanup_timeout(60, 0);
+datetime::delta scheduler::cleanup_timeout(300, 0);
 
 
 /// Timeout for the test case execenv cleanup operation.
-datetime::delta scheduler::execenv_cleanup_timeout(60, 0);
+datetime::delta scheduler::execenv_cleanup_timeout(300, 0);
 
 
 /// Timeout for the test case listing operation.
@@ -1396,8 +1397,15 @@ scheduler::scheduler_handle::wait_any(void)
                                  handle.stderr_file());
         }
 
+        std::shared_ptr< debugger > debugger = test_case.get_debugger();
+        if (debugger) {
+            debugger->before_cleanup(test_data->test_program, test_case,
+                result, handle);
+        }
+
         if (test_data->needs_cleanup) {
             INV(test_case.get_metadata().has_cleanup());
+
             // The test body has completed and we have processed it.  If there
             // is a cleanup routine, trigger it now and wait for any other test
             // completion.  The caller never knows about cleanup routines.
@@ -1567,12 +1575,12 @@ scheduler::scheduler_handle::debug_test(
     // file, waiting for further output to appear... as this only works on pipes
     // or sockets.  We need a better interface for this whole thing.
     {
-        std::auto_ptr< std::ostream > output = utils::open_ostream(
+        std::unique_ptr< std::ostream > output = utils::open_ostream(
             stdout_target);
         *output << utils::read_file(result_handle->stdout_file());
     }
     {
-        std::auto_ptr< std::ostream > output = utils::open_ostream(
+        std::unique_ptr< std::ostream > output = utils::open_ostream(
             stderr_target);
         *output << utils::read_file(result_handle->stderr_file());
     }

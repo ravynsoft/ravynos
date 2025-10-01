@@ -18,4 +18,6 @@ SRCS+=		TestingSupport.cpp
 SRCS+=		gcov.cpp
 SRCS+=		llvm-cov.cpp
 
+LIBADD+=	mach
+
 .include "../llvm.prog.mk"

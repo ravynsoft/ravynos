@@ -120,7 +120,7 @@ enum sk_checksum_flags {
 	CHECKSUM_NONE			= 0x00,
 	CHECKSUM_UNNECESSARY		= 0x01,
 	CHECKSUM_PARTIAL		= 0x02,
-	CHECKSUM_COMPLETE		= 0x04,
+	CHECKSUM_COMPLETE		= 0x03,
 };
 
 struct skb_frag {
@@ -184,7 +184,39 @@ struct sk_buff {
 	uint8_t			*tail;			/* End of data. */
 	uint8_t			*end;			/* End of buffer. */
 
-	struct skb_shared_info	*shinfo;
+	uint32_t		len;		/* ? */
+	uint32_t		data_len;	/* ? If we have frags? */
+	union {
+		__wsum			csum;
+		struct {
+			uint16_t	csum_offset;
+			uint16_t	csum_start;
+		};
+	};
+	uint16_t		protocol;
+	uint8_t			ip_summed;		/* 2 bit only. */
+	/* uint8_t */
+
+	/* "Scratch" area for layers to store metadata. */
+	/* ??? I see sizeof() operations so probably an array. */
+	uint8_t			cb[64] __aligned(CACHE_LINE_SIZE);
+
+	struct skb_shared_info	*shinfo	__aligned(CACHE_LINE_SIZE);
+
+	uint32_t		truesize;	/* The total size of all buffers, incl. frags. */
+	uint32_t		priority;
+	uint16_t		qmap;		/* queue mapping */
+	uint16_t		_flags;		/* Internal flags. */
+#define	_SKB_FLAGS_SKBEXTFRAG	0x0001
+	uint16_t		l3hdroff;	/* network header offset from *head */
+	uint16_t		l4hdroff;	/* transport header offset from *head */
+	uint16_t		mac_header;	/* offset of mac_header */
+	uint16_t		mac_len;	/* Link-layer header length. */
+	enum sk_buff_pkt_type	pkt_type;
+	refcount_t		refcnt;
+
+	struct net_device	*dev;
+	void			*sk;		/* XXX net/sock.h? */
 
 	/* FreeBSD specific bandaid (see linuxkpi_kfree_skb). */
 	void			*m;

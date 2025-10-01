@@ -30,4 +30,7 @@ LINKS+=		${BINDIR}/llvm-symbolizer ${BINDIR}/addr2line
 MLINKS+=	llvm-addr2line.1 addr2line.1
 .endif
 
+LIBS+=		libmach.so
+LDFLAGS+=	-lmach
+
 .include "../llvm.prog.mk"

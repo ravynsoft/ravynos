@@ -31,5 +31,5 @@ LAUNCHCTL=		${OBJTOP}/bin/launchctl/launchctl
 
 all: gnu_configure .WAIT gnu_build
 build: gnu_build
-clean: gnu_clean
+clean: .PHONY
 install: gnu_install

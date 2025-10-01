@@ -87,4 +87,6 @@ WARNS?=	3
 
 LIBADD+=	krb5
 
+.endif
+
 .include <bsd.lib.mk>

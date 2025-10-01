@@ -661,6 +661,7 @@ struct pf_kpool {
 	int			 tblidx;
 	u_int16_t		 proxy_port[2];
 	u_int8_t		 opts;
+	sa_family_t		 ipv6_nexthop_af;
 };
 
 struct pf_rule_actions {

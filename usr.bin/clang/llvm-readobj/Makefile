@@ -40,4 +40,7 @@ LINKS+=		${BINDIR}/llvm-readelf ${BINDIR}/readelf
 MLINKS+=		llvm-readelf.1 readelf.1
 .endif
 
+LIBS+=		libmach.so
+LDFLAGS+=	-lmach
+
 .include "../llvm.prog.mk"

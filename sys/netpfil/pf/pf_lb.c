@@ -525,7 +525,36 @@ pf_map_addr(sa_family_t saf, struct pf_krule *r, struct pf_addr *saddr,
 		}
 	}
 
-	switch (rpool->opts & PF_POOL_TYPEMASK) {
+	/*
+	 * For pools with a single host with the prefer-ipv6-nexthop option
+	 * we can return pool address of any AF, unless the forwarded packet
+	 * is IPv6, then we can return only if pool address is IPv6.
+	 * For non-prefer-ipv6-nexthop we can return pool address only
+	 * of wanted AF, unless the pool address'es AF is unknown, which
+	 * happens in case old ioctls have been used to set up the pool.
+	 *
+	 * Round-robin pools have their own logic for retrying next addresses.
+	 */
+	pool_type = rpool->opts & PF_POOL_TYPEMASK;
+	if (pool_type == PF_POOL_NONE || pool_type == PF_POOL_BITMASK ||
+	    ((pool_type == PF_POOL_RANDOM || pool_type == PF_POOL_SRCHASH) &&
+	    rpool->cur->addr.type != PF_ADDR_TABLE &&
+	    rpool->cur->addr.type != PF_ADDR_DYNIFTL)) {
+		if (prefer_ipv6_nexthop) {
+			if (rpool->cur->af == AF_INET && (*naf) == AF_INET6) {
+				reason = PFRES_MAPFAILED;
+				goto done_pool_mtx;
+			}
+			wanted_af = rpool->cur->af;
+		} else {
+			if (rpool->cur->af != 0 && rpool->cur->af != (*naf)) {
+				reason = PFRES_MAPFAILED;
+				goto done_pool_mtx;
+			}
+		}
+	}
+
+	switch (pool_type) {
 	case PF_POOL_NONE:
 		pf_addrcpy(naddr, raddr, wanted_af);
 		break;
@@ -627,6 +656,9 @@ pf_map_addr(sa_family_t saf, struct pf_krule *r, struct pf_addr *saddr,
 	    {
 		struct pf_kpooladdr *acur = rpool->cur;
 
+	retry_other_af_rr:
+		if (prefer_ipv6_nexthop)
+			wanted_af = rpool->ipv6_nexthop_af;
 		if (rpool->cur->addr.type == PF_ADDR_TABLE) {
 			if (!pfr_pool_get(rpool->cur->addr.p.tbl,
 			    &rpool->tblidx, &rpool->counter, wanted_af,
@@ -640,12 +672,25 @@ pf_map_addr(sa_family_t saf, struct pf_krule *r, struct pf_addr *saddr,
 		} else if (pf_match_addr(0, raddr, rmask, &rpool->counter,
 		    wanted_af))
 			goto get_addr;
-
+		if (prefer_ipv6_nexthop &&
+		    (*naf) == AF_INET && wanted_af == AF_INET6) {
+			/* Reset table index when changing wanted AF. */
+			rpool->tblidx = -1;
+			rpool->ipv6_nexthop_af = AF_INET;
+			goto retry_other_af_rr;
+		}
 	try_next:
+		/* Reset prefer-ipv6-nexthop search to IPv6 when iterating pools. */
+		rpool->ipv6_nexthop_af = AF_INET6;
 		if (TAILQ_NEXT(rpool->cur, entries) == NULL)
 			rpool->cur = TAILQ_FIRST(&rpool->list);
 		else
 			rpool->cur = TAILQ_NEXT(rpool->cur, entries);
+	try_next_ipv6_nexthop_rr:
+		/* Reset table index when iterating pools or changing wanted AF. */
+		rpool->tblidx = -1;
+		if (prefer_ipv6_nexthop)
+			wanted_af = rpool->ipv6_nexthop_af;
 		if (rpool->cur->addr.type == PF_ADDR_TABLE) {
 			if (pfr_pool_get(rpool->cur->addr.p.tbl,
 			    &rpool->tblidx, &rpool->counter, wanted_af, NULL,
@@ -676,7 +721,15 @@ pf_map_addr(sa_family_t saf, struct pf_krule *r, struct pf_addr *saddr,
 			}
 			pf_addrcpy(&rpool->counter, raddr, wanted_af);
 		}
-
+		if (prefer_ipv6_nexthop &&
+		    (*naf) == AF_INET && wanted_af == AF_INET6) {
+			rpool->ipv6_nexthop_af = AF_INET;
+			goto try_next_ipv6_nexthop_rr;
+		}
+		if (rpool->cur != acur)
+			goto try_next;
+		reason = PFRES_MAPFAILED;
+		goto done_pool_mtx;
 	get_addr:
 		pf_addrcpy(naddr, &rpool->counter, wanted_af);
 		if (init_addr != NULL && PF_AZERO(init_addr, wanted_af))
@@ -686,8 +739,15 @@ pf_map_addr(sa_family_t saf, struct pf_krule *r, struct pf_addr *saddr,
 	    }
 	}
 
+	if (wanted_af == 0) {
+		reason = PFRES_MAPFAILED;
+		goto done_pool_mtx;
+	}
+
 	if (nkif)
 		*nkif = rpool->cur->kif;
+
+	(*naf) = wanted_af;
 
 done_pool_mtx:
 	mtx_unlock(&rpool->mtx);

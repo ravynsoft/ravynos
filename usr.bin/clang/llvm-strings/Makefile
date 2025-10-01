@@ -26,4 +26,7 @@ LINKS+=		${BINDIR}/llvm-strings ${BINDIR}/strings
 MLINKS+=	llvm-strings.1 strings.1
 .endif
 
+LIBS+=		libmach.so
+LDFLAGS+=	-lmach
+
 .include "../llvm.prog.mk"

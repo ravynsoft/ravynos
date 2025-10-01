@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<Include>
+    <?ifdef CL1600 ?>
+        <MergeRef Id="MSVCRT$(var.VCVer)MEM64"/>
+        <MergeRef Id="MSVCRT$(var.VCVer)MFC64"/>
+        <MergeRef Id="MSVCRT$(var.VCVer)MFL64"/>
+    <?endif?>
+</Include>

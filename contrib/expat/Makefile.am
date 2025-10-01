@@ -6,7 +6,7 @@
 #                      \___/_/\_\ .__/ \__,_|\__|
 #                               |_| XML parser
 #
-# Copyright (c) 2017-2023 Sebastian Pipping <sebastian@pipping.org>
+# Copyright (c) 2017-2025 Sebastian Pipping <sebastian@pipping.org>
 # Copyright (c) 2018      KangLin <kl222@126.com>
 # Copyright (c) 2022      Johnny Jazeix <jazeix@gmail.com>
 # Copyright (c) 2023      Sony Corporation / Snild Dolkow <snild@sony.com>
@@ -58,10 +58,8 @@ pkgconfig_DATA = expat.pc
 pkgconfigdir = $(libdir)/pkgconfig
 
 
-dist_cmake_DATA = \
-    cmake/autotools/expat.cmake
-
 nodist_cmake_DATA = \
+    cmake/autotools/expat.cmake \
     cmake/autotools/expat-config-version.cmake \
     cmake/autotools/expat-noconfig.cmake \
     cmake/expat-config.cmake
@@ -70,6 +68,9 @@ cmakedir = $(libdir)/cmake/expat-@PACKAGE_VERSION@
 
 
 _EXTRA_DIST_CMAKE = \
+    cmake/autotools/expat__linux.cmake.in \
+    cmake/autotools/expat__macos.cmake.in \
+    cmake/autotools/expat__windows.cmake.in \
     cmake/autotools/expat-noconfig__linux.cmake.in \
     cmake/autotools/expat-noconfig__macos.cmake.in \
     cmake/autotools/expat-noconfig__windows.cmake.in \
@@ -96,6 +97,8 @@ EXTRA_DIST = \
     conftools/expat.m4 \
     conftools/get-version.sh \
     \
+    fuzz/xml_lpm_fuzzer.cpp \
+    fuzz/xml_lpm_fuzzer.proto \
     fuzz/xml_parsebuffer_fuzzer.c \
     fuzz/xml_parse_fuzzer.c \
     \

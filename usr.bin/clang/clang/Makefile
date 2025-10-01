@@ -30,4 +30,5 @@ NO_TARGET_FLAGS=
 
 LIBADD+=	mach
 LDFLAGS+=	-lmach
+
 .include "../clang.prog.mk"

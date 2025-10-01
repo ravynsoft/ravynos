@@ -75,10 +75,11 @@
 
 
 # RCSid:
-#	$Id: meta2deps.sh,v 1.21 2024/02/17 17:26:57 sjg Exp $
+#	$Id: meta2deps.sh,v 1.24 2025/07/24 15:55:48 sjg Exp $
 
 # SPDX-License-Identifier: BSD-2-Clause
 #
+# Copyright (c) 2011-2025, Simon J. Gerraty
 # Copyright (c) 2010-2013, Juniper Networks, Inc.
 # All rights reserved.
 #
@@ -248,11 +249,21 @@ meta2deps() {
 	;;
     *) cat /dev/null "$@";;
     esac 2> /dev/null |
-    sed -e 's,^CWD,C C,;/^[#CREFLMVX] /!d' -e "s,',,g" |
+    sed -e 's,^CWD,C C,;/^[#CREFLMVWX] /!d' -e "s,',,g" |
     $_excludes | ( version=no epids= xpids= eof_token=no
-    while read op pid path junk
+    while read op pid path path2
     do
-	: op=$op pid=$pid path=$path
+	: op=$op pid=$pid path=$path path2=$path2
+	# first a sanity check - filemon on Linux is not very reliable
+	# path2 should only be non-empty for op L or M
+	# and it should not contain spaces.
+	case "$op,$path2" in
+	\#*) ;;			# ok
+	[LM],) error "missing path2 in: '$op $pid $path'";;
+	[LMX],*" "*) error "wrong number of words in: '$op $pid $path $path2'";;
+	*,|[LMX],*) ;;		# ok
+	*) error "wrong number of words in: '$op $pid $path $path2'";;
+	esac
 	# we track cwd and ldir (of interest) per pid
 	# CWD is bmake's cwd
 	case "$lpid,$pid" in
@@ -319,9 +330,14 @@ meta2deps() {
 	    $src_re|$obj_re) ;;
 	    /*/stage/*) ;;
 	    /*) continue;;
-	    *)	for path in $ldir/$path $cwd/$path
+	    *)
+		rlist="$ldir/$path $cwd/$path"
+		case "$op,$path" in
+		[ML],../*) rlist="$rlist $path2/$path `dirname $path2`/$path";;
+		esac
+		for path in $rlist
 		do
-			test -e $path && break
+		    test -e $path && break
 		done
 		dir=${path%/*}
 		;;

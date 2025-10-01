@@ -813,7 +813,7 @@ gcm_impl_init(void)
 
 	strlcpy(gcm_fastest_impl.name, "fastest", GCM_IMPL_NAME_MAX);
 
-#ifdef CAN_USE_GCM_ASM
+#if CAN_USE_GCM_ASM >= 1
 	/*
 	 * Use the avx implementation if it's available and the implementation
 	 * hasn't changed from its default value of fastest on module load.
@@ -847,9 +847,11 @@ static const struct {
 } gcm_impl_opts[] = {
 		{ "cycle",	IMPL_CYCLE },
 		{ "fastest",	IMPL_FASTEST },
-#ifdef CAN_USE_GCM_ASM
+#if CAN_USE_GCM_ASM >= 1
 		{ "avx",	IMPL_AVX },
+#if CAN_USE_GCM_ASM >= 2
 		{ "avx2-vaes",	IMPL_AVX2 },
+#endif
 #endif
 };
 

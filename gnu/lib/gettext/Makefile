@@ -57,5 +57,5 @@ copy-header:
 .endfor
 
 build: gnu_build
-clean: gnu_clean
+clean: .PHONY
 install: gnu_install

@@ -11,7 +11,7 @@ dnl   Copyright (c) 2000      Clark Cooper <coopercc@users.sourceforge.net>
 dnl   Copyright (c) 2000-2005 Fred L. Drake, Jr. <fdrake@users.sourceforge.net>
 dnl   Copyright (c) 2001-2003 Greg Stein <gstein@users.sourceforge.net>
 dnl   Copyright (c) 2006-2012 Karl Waclawek <karl@waclawek.net>
-dnl   Copyright (c) 2016-2024 Sebastian Pipping <sebastian@pipping.org>
+dnl   Copyright (c) 2016-2025 Sebastian Pipping <sebastian@pipping.org>
 dnl   Copyright (c) 2017      S. P. Zeidler <spz@netbsd.org>
 dnl   Copyright (c) 2017      Stephen Groat <stephen@groat.us>
 dnl   Copyright (c) 2017-2020 Joe Orton <jorton@redhat.com>
@@ -84,9 +84,9 @@ dnl
 dnl If the API changes incompatibly set LIBAGE back to 0
 dnl
 
-LIBCURRENT=11  # sync
+LIBCURRENT=12  # sync
 LIBREVISION=0  # with
-LIBAGE=10      # CMakeLists.txt!
+LIBAGE=11      # CMakeLists.txt!
 
 AC_CONFIG_HEADERS([expat_config.h])
 AH_TOP([#ifndef EXPAT_CONFIG_H
@@ -440,12 +440,22 @@ AC_MSG_RESULT([${CMAKE_SHARED_LIBRARY_PREFIX}])
 AC_SUBST([CMAKE_SHARED_LIBRARY_PREFIX])
 
 AS_CASE("${host_os}",
-  [darwin*], [CMAKE_NOCONFIG_SOURCE=cmake/autotools/expat-noconfig__macos.cmake.in],
-  [mingw*|cygwin*], [CMAKE_NOCONFIG_SOURCE=cmake/autotools/expat-noconfig__windows.cmake.in],
-  [CMAKE_NOCONFIG_SOURCE=cmake/autotools/expat-noconfig__linux.cmake.in])
+  [darwin*], [
+    CMAKE_SOURCE=cmake/autotools/expat__macos.cmake.in
+    CMAKE_NOCONFIG_SOURCE=cmake/autotools/expat-noconfig__macos.cmake.in
+  ],
+  [mingw*|cygwin*], [
+    CMAKE_SOURCE=cmake/autotools/expat__windows.cmake.in
+    CMAKE_NOCONFIG_SOURCE=cmake/autotools/expat-noconfig__windows.cmake.in
+  ],
+  [
+    CMAKE_SOURCE=cmake/autotools/expat__linux.cmake.in
+    CMAKE_NOCONFIG_SOURCE=cmake/autotools/expat-noconfig__linux.cmake.in
+  ])
 AC_CONFIG_FILES([Makefile]
   [expat.pc]
   [cmake/expat-config.cmake]
+  [cmake/autotools/expat.cmake:${CMAKE_SOURCE}]
   [cmake/autotools/expat-config-version.cmake]
   [cmake/autotools/expat-noconfig.cmake:${CMAKE_NOCONFIG_SOURCE}]
   [doc/Makefile]

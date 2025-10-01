@@ -392,6 +392,14 @@ enum ieee80211_sta_state {
 	IEEE80211_STA_AUTHORIZED	= 4,	/* 802.1x */
 };
 
+enum ieee80211_sta_rx_bandwidth {
+	IEEE80211_STA_RX_BW_20		= 0,
+	IEEE80211_STA_RX_BW_40,
+	IEEE80211_STA_RX_BW_80,
+	IEEE80211_STA_RX_BW_160,
+	IEEE80211_STA_RX_BW_320,
+};
+
 enum ieee80211_tx_info_flags {
 	/* XXX TODO .. right shift numbers - not sure where that came from? */
 	IEEE80211_TX_CTL_AMPDU			= BIT(0),
@@ -507,24 +515,24 @@ struct ieee80211_mgmt {
 			uint16_t	beacon_int;
 			uint16_t	capab_info;
 			uint8_t		variable[0];
-		} beacon;
+		} __packed beacon;
 		/* 9.3.3.5 Association Request frame format */
 		struct  {
 			uint16_t	capab_info;
 			uint16_t	listen_interval;
 			uint8_t		variable[0];
-		} assoc_req;
+		} __packed assoc_req;
 		/* 9.3.3.10 Probe Request frame format */
 		struct {
 			uint8_t		variable[0];
-		} probe_req;
+		} __packed probe_req;
 		/* 9.3.3.11 Probe Response frame format */
 		struct {
 			uint64_t	timestamp;
 			uint16_t	beacon_int;
 			uint16_t	capab_info;
 			uint8_t		variable[0];
-		} probe_resp;
+		} __packed probe_resp;
 		/* 9.3.3.14 Action frame format */
 		struct {
 			/* 9.4.1.11 Action field */
@@ -540,7 +548,7 @@ struct ieee80211_mgmt {
 					uint8_t tpc_elem_length;
 					uint8_t tpc_elem_tx_power;
 					uint8_t tpc_elem_link_margin;
-				} tpc_report;
+				} __packed tpc_report;
 				/* 9.6.8.33 Fine Timing Measurement frame format */
 				struct {
 					uint8_t	dialog_token;
@@ -550,7 +558,7 @@ struct ieee80211_mgmt {
 					uint16_t tod_error;
 					uint16_t toa_error;
 					uint8_t variable[0];
-				} ftm;
+				} __packed ftm;
 				/* 802.11-2016, 9.6.5.2 ADDBA Request frame format */
 				struct {
 					uint8_t action_code;
@@ -560,16 +568,16 @@ struct ieee80211_mgmt {
 					uint16_t start_seq_num;
 					/* Optional follows... */
 					uint8_t variable[0];
-				} addba_req;
+				} __packed addba_req;
 				/* XXX */
 				struct {
 					uint8_t dialog_token;
-				} wnm_timing_msr;
+				} __packed wnm_timing_msr;
 			} u;
-		} action;
+		} __packed action;
 		DECLARE_FLEX_ARRAY(uint8_t, body);
 	} u;
-};
+} __packed __aligned(2);
 
 struct ieee80211_cts {		/* net80211::ieee80211_frame_cts */
         __le16		frame_control;

@@ -265,7 +265,27 @@ check_required_disk_space(const units::bytes& required_disk_space,
 }
 
 
+/// List of registered extra requirement checkers.
+///
+/// Use register_reqs_checker() to add an entry to this global list.
+static std::vector< std::shared_ptr< engine::reqs_checker > > _reqs_checkers;
+
+
 }  // anonymous namespace
+
+
+const std::vector< std::shared_ptr< engine::reqs_checker > >
+engine::reqs_checkers()
+{
+    return _reqs_checkers;
+}
+
+void
+engine::register_reqs_checker(
+    const std::shared_ptr< engine::reqs_checker > checker)
+{
+    _reqs_checkers.push_back(checker);
+}
 
 
 /// Checks if all the requirements specified by the test case are met.
@@ -320,6 +340,13 @@ engine::check_reqs(const model::metadata& md, const config::tree& cfg,
                                        work_directory);
     if (!reason.empty())
         return reason;
+
+    // Iterate over extra checkers registered.
+    for (auto& checker : engine::reqs_checkers()) {
+        reason = checker->exec(md, cfg, test_suite, work_directory);
+        if (!reason.empty())
+            return reason;
+    }
 
     INV(reason.empty());
     return reason;
