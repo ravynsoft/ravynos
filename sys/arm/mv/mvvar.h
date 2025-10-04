@@ -80,6 +80,9 @@ extern const struct decode_win *xor_wins;
 extern int idma_wins_no;
 extern int xor_wins_no;
 
+extern vm_paddr_t fdt_immr_pa;
+extern vm_offset_t fdt_immr_va;
+
 int soc_decode_win(void);
 void soc_id(uint32_t *dev, uint32_t *rev);
 void soc_dump_decode_win(void);
@@ -99,7 +102,6 @@ uint32_t ddr_attr(int i);
 
 uint32_t get_tclk(void);
 uint32_t get_cpu_freq(void);
-uint32_t get_l2clk(void);
 uint32_t read_cpu_ctrl(uint32_t);
 void write_cpu_ctrl(uint32_t, uint32_t);
 

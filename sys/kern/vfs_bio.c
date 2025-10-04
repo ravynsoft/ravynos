@@ -160,7 +160,7 @@ nbufp(unsigned i)
 
 caddr_t __read_mostly unmapped_buf;
 #ifdef INVARIANTS
-caddr_t	poisoned_buf = (void *)-1;
+void *poisoned_buf = (void *)-1;
 #endif
 
 /* Used below and for softdep flushing threads in ufs/ffs/ffs_softdep.c */
@@ -756,7 +756,7 @@ bufspace_wait(struct bufdomain *bd, struct vnode *vp, int gbflags,
 				break;
 		}
 		error = msleep(&bd->bd_wanted, BD_LOCKPTR(bd),
-		    (PRIBIO + 4) | slpflag, "newbuf", slptimeo);
+		    PVFS | slpflag, "newbuf", slptimeo);
 		if (error != 0)
 			break;
 	}
@@ -2659,8 +2659,7 @@ bwillwrite(void)
 		mtx_lock(&bdirtylock);
 		while (buf_dirty_count_severe()) {
 			bdirtywait = 1;
-			msleep(&bdirtywait, &bdirtylock, (PRIBIO + 4),
-			    "flswai", 0);
+			msleep(&bdirtywait, &bdirtylock, PVFS, "flswai", 0);
 		}
 		mtx_unlock(&bdirtylock);
 	}
@@ -5171,7 +5170,7 @@ bufstrategy(struct bufobj *bo, struct buf *bp)
 
 	vp = bp->b_vp;
 	KASSERT(vp == bo->bo_private, ("Inconsistent vnode bufstrategy"));
-	KASSERT(vp->v_type != VCHR && vp->v_type != VBLK,
+	KASSERT(!VN_ISDEV(vp),
 	    ("Wrong vnode in bufstrategy(bp=%p, vp=%p)", bp, vp));
 	i = VOP_STRATEGY(vp, bp);
 	KASSERT(i == 0, ("VOP_STRATEGY failed bp=%p vp=%p", bp, bp->b_vp));
@@ -5239,7 +5238,7 @@ bufobj_wwait(struct bufobj *bo, int slpflag, int timeo)
 	while (bo->bo_numoutput) {
 		bo->bo_flag |= BO_WWAIT;
 		error = msleep(&bo->bo_numoutput, BO_LOCKPTR(bo),
-		    slpflag | (PRIBIO + 1), "bo_wwait", timeo);
+		    slpflag | PRIBIO, "bo_wwait", timeo);
 		if (error)
 			break;
 	}

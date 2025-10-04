@@ -1,4 +1,6 @@
-PACKAGE=lib${LIB}
+PACKAGE=	xz
+LIB_PACKAGE=
+
 LIB=		lzma
 LZMADIR=	${SRCTOP}/contrib/xz/src/liblzma
 
@@ -80,16 +82,13 @@ SRCS+=	common.c \
 
 
 .PATH: ${LZMADIR}/check
-SRCS+=	check.c \
-	crc32_table.c \
-	crc64_table.c
+SRCS+=	check.c		\
+	crc32_fast.c	\
+	crc64_fast.c
 .if defined(MACHINE_ARCH) && ${MACHINE_ARCH} == "i386"
 SRCS+=	crc32_x86.S \
 	crc64_x86.S
 ACFLAGS+=	-Wa,--noexecstack
-.else
-SRCS+=	crc32_fast.c \
-	crc64_fast.c
 .endif
 
 .PATH: ${LZMADIR}/lz

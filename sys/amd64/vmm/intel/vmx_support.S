@@ -32,12 +32,6 @@
 
 #include "vmx_assym.h"
 
-#ifdef SMP
-#define	LK	lock ;
-#else
-#define	LK
-#endif
-
 /* Be friendly to DTrace FBT's prologue/epilogue pattern matching */
 #define VENTER  push %rbp ; mov %rsp,%rbp
 #define VLEAVE  pop %rbp
@@ -177,13 +171,11 @@ do_launch:
 	 */
 	movq	%rsp, %rdi		/* point %rdi back to 'vmxctx' */
 	movl	$VMX_VMLAUNCH_ERROR, %eax
-	jmp	decode_inst_error
-
+	/* FALLTHROUGH */
 decode_inst_error:
 	movl	$VM_FAIL_VALID, %r11d
-	jz	inst_error
-	movl	$VM_FAIL_INVALID, %r11d
-inst_error:
+	movl	$VM_FAIL_INVALID, %esi
+	cmovnzl	%esi, %r11d
 	movl	%r11d, VMXCTX_INST_FAIL_STATUS(%rdi)
 
 	/*

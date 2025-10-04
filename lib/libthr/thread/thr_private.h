@@ -40,6 +40,7 @@
 #include <sys/queue.h>
 #include <sys/param.h>
 #include <sys/cpuset.h>
+#include <sys/exterrvar.h>
 #include <machine/atomic.h>
 #include <errno.h>
 #include <limits.h>
@@ -576,6 +577,8 @@ struct pthread {
 
 	/* pthread_set/get_name_np */
 	char			*name;
+
+	struct uexterror	uexterr;
 };
 
 #define THR_SHOULD_GC(thrd) 						\
@@ -775,6 +778,8 @@ extern int		_suspend_all_cycle __hidden;
 extern struct pthread	*_single_thread __hidden;
 
 extern bool		_thr_after_fork __hidden;
+
+extern int	__thr_new_flags;
 
 /*
  * Function prototype definitions.
@@ -981,8 +986,6 @@ void __pthread_cxa_finalize(struct dl_phdr_info *phdr_info);
 void _thr_tsd_unload(struct dl_phdr_info *phdr_info) __hidden;
 void _thr_sigact_unload(struct dl_phdr_info *phdr_info) __hidden;
 void _thr_stack_fix_protection(struct pthread *thrd);
-void __pthread_distribute_static_tls(size_t offset, void *src, size_t len,
-    size_t total_len);
 
 int *__error_threaded(void) __hidden;
 void __thr_interpose_libc(void) __hidden;
@@ -1014,6 +1017,7 @@ void __thr_pshared_destroy(void *key) __hidden;
 void __thr_pshared_atfork_pre(void) __hidden;
 void __thr_pshared_atfork_post(void) __hidden;
 
+void *__thr_aligned_alloc_offset(size_t align, size_t size, size_t offset);
 void *__thr_calloc(size_t num, size_t size);
 void __thr_free(void *cp);
 void *__thr_malloc(size_t nbytes);

@@ -289,20 +289,22 @@ setup_user_access(void *arg __unused)
 }
 
 #ifdef __aarch64__
-static int
-cntpct_handler(vm_offset_t va, uint32_t insn, struct trapframe *frame,
-    uint32_t esr)
+static bool
+cntpct_handler(uint64_t esr, struct trapframe *frame)
 {
 	uint64_t val;
 	int reg;
 
-	if ((insn & MRS_MASK) != MRS_VALUE)
-		return (0);
+	if (ESR_ELx_EXCEPTION(esr) != EXCP_MSR)
+		return (false);
 
-	if (MRS_SPECIAL(insn) != MRS_SPECIAL(CNTPCT_EL0))
-		return (0);
+	if ((esr & ISS_MSR_DIR) == 0)
+		return (false);
 
-	reg = MRS_REGISTER(insn);
+	if ((esr & ISS_MSR_REG_MASK) != CNTPCT_EL0_ISS)
+		return (false);
+
+	reg = ISS_MSR_Rt(esr);
 	val = READ_SPECIALREG(cntvct_el0);
 	if (reg < nitems(frame->tf_x)) {
 		frame->tf_x[reg] = val;
@@ -316,7 +318,7 @@ cntpct_handler(vm_offset_t va, uint32_t insn, struct trapframe *frame,
 	 */
 	frame->tf_elr += INSN_SIZE;
 
-	return (1);
+	return (true);
 }
 #endif
 
@@ -332,7 +334,7 @@ tmr_setup_user_access(void *arg __unused)
 #ifdef __aarch64__
 		if (TUNABLE_INT_FETCH("hw.emulate_phys_counter", &emulate) &&
 		    emulate != 0) {
-			install_undef_handler(true, cntpct_handler);
+			install_sys_handler(cntpct_handler);
 		}
 #endif
 	}
@@ -880,32 +882,39 @@ DELAY(int usec)
 	TSEXIT();
 }
 
-static bool
+static cpu_feat_en
 wfxt_check(const struct cpu_feat *feat __unused, u_int midr __unused)
 {
 	uint64_t id_aa64isar2;
 
 	if (!get_kernel_reg(ID_AA64ISAR2_EL1, &id_aa64isar2))
-		return (false);
-	return (ID_AA64ISAR2_WFxT_VAL(id_aa64isar2) != ID_AA64ISAR2_WFxT_NONE);
+		return (FEAT_ALWAYS_DISABLE);
+	if (ID_AA64ISAR2_WFxT_VAL(id_aa64isar2) >= ID_AA64ISAR2_WFxT_IMPL)
+		return (FEAT_DEFAULT_ENABLE);
+
+	return (FEAT_ALWAYS_DISABLE);
 }
 
-static void
+static bool
 wfxt_enable(const struct cpu_feat *feat __unused,
     cpu_feat_errata errata_status __unused, u_int *errata_list __unused,
     u_int errata_count __unused)
 {
 	/* will be called if wfxt_check returns true */
 	enable_wfxt = true;
+	return (true);
 }
 
-static struct cpu_feat feat_wfxt = {
-	.feat_name		= "FEAT_WFXT",
-	.feat_check		= wfxt_check,
-	.feat_enable		= wfxt_enable,
-	.feat_flags		= CPU_FEAT_AFTER_DEV | CPU_FEAT_SYSTEM,
-};
-DATA_SET(cpu_feat_set, feat_wfxt);
+static void
+wfxt_disabled(const struct cpu_feat *feat __unused)
+{
+	if (PCPU_GET(cpuid) == 0)
+		update_special_reg(ID_AA64ISAR2_EL1, ID_AA64ISAR2_WFxT_MASK, 0);
+}
+
+CPU_FEAT(feat_wfxt, "WFE and WFI instructions with timeout",
+    wfxt_check, NULL, wfxt_enable, wfxt_disabled,
+    CPU_FEAT_AFTER_DEV | CPU_FEAT_SYSTEM);
 #endif
 
 static uint32_t

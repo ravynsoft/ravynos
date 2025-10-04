@@ -19,7 +19,6 @@ SHLIB_MAJOR= 3
 
 NO_WTHREAD_SAFETY=1
 NO_WCAST_ALIGN.gcc=1    # for gcc 4.2
-CFLAGS+=-fPIC
 CFLAGS+=-DPTHREAD_KERNEL
 CFLAGS+=-I${SRCTOP}/lib/libc/include
 CFLAGS+=-I${SRCTOP}/lib/libc/${MACHINE_CPUARCH}
@@ -48,16 +47,13 @@ CFLAGS.thr_sig.c+=	-fno-sanitize=address
 NO_THREAD_UNWIND_STACK= yes
 .endif
 
-.if ${MACHINE_CPUARCH} == "arm"
-NO_THREAD_UNWIND_STACK= yes
-.endif
-
 .ifndef NO_THREAD_UNWIND_STACK
 CFLAGS+=-fexceptions
 CFLAGS+=-D_PTHREAD_FORCED_UNWIND
 .endif
 
 LDFLAGS+=-Wl,-znodelete
+LDFLAGS+=-Wl,-zinitfirst
 LDFLAGS+=-Wl,--auxiliary,libsys.so.7
 
 VERSION_DEF=${SRCTOP}/lib/libc/Versions.def

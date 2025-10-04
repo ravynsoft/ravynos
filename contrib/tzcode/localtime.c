@@ -14,7 +14,6 @@
 
 #define LOCALTIME_IMPLEMENTATION
 #ifdef __FreeBSD__
-#include "namespace.h"
 #include <pthread.h>
 #endif /* __FreeBSD__ */
 #ifdef DETECT_TZ_CHANGES
@@ -31,7 +30,6 @@ int __tz_change_interval = DETECT_TZ_CHANGES_INTERVAL;
 #include <fcntl.h>
 #ifdef __FreeBSD__
 #include "libc_private.h"
-#include "un-namespace.h"
 #endif /* __FreeBSD__ */
 
 #if HAVE_SYS_STAT_H
@@ -45,8 +43,8 @@ int __tz_change_interval = DETECT_TZ_CHANGES_INTERVAL;
 #if defined THREAD_SAFE && THREAD_SAFE
 # include <pthread.h>
 #ifdef __FreeBSD__
-# define pthread_mutex_lock(l) (__isthreaded ? _pthread_mutex_lock(l) : 0)
-# define pthread_mutex_unlock(l) (__isthreaded ? _pthread_mutex_unlock(l) : 0)
+# define pthread_mutex_lock(l) (__isthreaded ? pthread_mutex_lock(l) : 0)
+# define pthread_mutex_unlock(l) (__isthreaded ? pthread_mutex_unlock(l) : 0)
 #endif /* __FreeBSD__ */
 static pthread_mutex_t locallock = PTHREAD_MUTEX_INITIALIZER;
 static int lock(void) { return pthread_mutex_lock(&locallock); }
@@ -525,7 +523,7 @@ tzfile_changed(const char *name, int fd)
 	static struct stat old_sb;
 	struct stat sb;
 
-	if (_fstat(fd, &sb) != 0)
+	if (fstat(fd, &sb) != 0)
 		return -1;
 
 	if (strcmp(name, old_name) != 0) {
@@ -668,36 +666,39 @@ tzloadbody(char const *name, struct state *sp, char tzloadflags,
 	  }
 #endif
 	}
-	fid = _open(name, (O_RDONLY | O_BINARY | O_CLOEXEC | O_CLOFORK
+	fid = open(name, (O_RDONLY | O_BINARY | O_CLOEXEC | O_CLOFORK
 			  | O_IGNORE_CTTY | O_NOCTTY));
 #else /* __FreeBSD__ */
 	if ((tzloadflags & TZLOAD_FROMENV) && strcmp(name, TZDEFAULT) == 0)
           tzloadflags &= ~TZLOAD_FROMENV;
 	relname = name;
-	if (strncmp(relname, TZDIR "/", strlen(TZDIR) + 1) == 0)
+	if (strncmp(relname, TZDIR "/", strlen(TZDIR) + 1) == 0) {
 	  relname += strlen(TZDIR) + 1;
-	dd = _open(TZDIR, O_DIRECTORY | O_RDONLY);
+	  while (*relname == '/')
+	    relname++;
+	}
+	dd = open(TZDIR, O_DIRECTORY | O_SEARCH | O_CLOEXEC);
 	if ((tzloadflags & TZLOAD_FROMENV) && issetugid()) {
 	  if (dd < 0)
 	    return errno;
-	  if (fstatat(dd, name, &sb, AT_RESOLVE_BENEATH) < 0) {
+	  if (fstatat(dd, relname, &sb, AT_RESOLVE_BENEATH) < 0) {
 	    fid = -1;
 	  } else if (!S_ISREG(sb.st_mode)) {
 	    fid = -1;
 	    errno = EINVAL;
 	  } else {
-	    fid = _openat(dd, relname, O_RDONLY | O_BINARY, AT_RESOLVE_BENEATH);
+	    fid = openat(dd, relname, O_RDONLY | O_CLOEXEC | O_RESOLVE_BENEATH);
 	  }
 	} else {
 	  if (dd < 0) {
 	    relname = name;
 	    dd = AT_FDCWD;
 	  }
-	  fid = _openat(dd, relname, O_RDONLY | O_BINARY, 0);
+	  fid = openat(dd, relname, O_RDONLY | O_CLOEXEC);
 	}
 	if (dd != AT_FDCWD && dd >= 0) {
 	  serrno = errno;
-	  _close(dd);
+	  close(dd);
 	  errno = serrno;
 	}
 #endif /* __FreeBSD__ */
@@ -714,23 +715,23 @@ tzloadbody(char const *name, struct state *sp, char tzloadflags,
 	  switch (tzfile_changed(name, fid)) {
 	  case -1:
 	    serrno = errno;
-	    _close(fid);
+	    close(fid);
 	    return serrno;
 	  case 0:
-	    _close(fid);
+	    close(fid);
 	    return 0;
 	  case 1:
 	    break;
 	  }
 	}
 #endif /* DETECT_TZ_CHANGES */
-	nread = _read(fid, up->buf, sizeof up->buf);
+	nread = read(fid, up->buf, sizeof up->buf);
 	if (nread < tzheadsize) {
 	  int err = nread < 0 ? errno : EINVAL;
-	  _close(fid);
+	  close(fid);
 	  return err;
 	}
-	if (_close(fid) < 0)
+	if (close(fid) < 0)
 	  return errno;
 	for (stored = 4; stored <= 8; stored *= 2) {
 	    char version = up->tzhead.tzh_version[0];
@@ -1649,9 +1650,13 @@ tzset_unlocked_name(char const *name)
     lclptr = sp = malloc(sizeof *lclptr);
 # endif
   if (sp) {
-    if (zoneinit(sp, name, TZLOAD_FROMENV | TZLOAD_TZSTRING) != 0) {
+    int err = zoneinit(sp, name, TZLOAD_FROMENV | TZLOAD_TZSTRING);
+    if (err != 0) {
       zoneinit(sp, "", 0);
-      strcpy(sp->chars, UNSPEC);
+      /* Abbreviate with "-00" if there was an error.
+	 Do not treat a missing TZDEFAULT file as an error.  */
+      if (name || err != ENOENT)
+	strcpy(sp->chars, UNSPEC);
     }
     if (0 < lcl)
       strcpy(lcl_TZname, name);
@@ -1886,7 +1891,7 @@ localtime_tzset(time_t const *timep, struct tm *tmp, bool setname)
 static void
 localtime_key_init(void)
 {
-  localtime_key_error = _pthread_key_create(&localtime_key, free);
+  localtime_key_error = pthread_key_create(&localtime_key, free);
 }
 #endif /* __FreeBSD__ */
 struct tm *
@@ -1899,16 +1904,16 @@ localtime(const time_t *timep)
   struct tm *p_tm = &tm;
 
   if (__isthreaded != 0) {
-    _pthread_once(&localtime_once, localtime_key_init);
+    pthread_once(&localtime_once, localtime_key_init);
     if (localtime_key_error != 0) {
       errno = localtime_key_error;
       return (NULL);
     }
-    if ((p_tm = _pthread_getspecific(localtime_key)) == NULL) {
+    if ((p_tm = pthread_getspecific(localtime_key)) == NULL) {
       if ((p_tm = malloc(sizeof(*p_tm))) == NULL) {
 	return (NULL);
       }
-      if (_pthread_setspecific(localtime_key, p_tm) != 0) {
+      if (pthread_setspecific(localtime_key, p_tm) != 0) {
 	free(p_tm);
 	return (NULL);
       }
@@ -1965,7 +1970,7 @@ gmtime_r(time_t const *restrict timep, struct tm *restrict tmp)
 static void
 gmtime_key_init(void)
 {
-  gmtime_key_error = _pthread_key_create(&gmtime_key, free);
+  gmtime_key_error = pthread_key_create(&gmtime_key, free);
 }
 #endif /* __FreeBSD__ */
 struct tm *
@@ -1978,16 +1983,16 @@ gmtime(const time_t *timep)
   struct tm *p_tm = &tm;
 
   if (__isthreaded != 0) {
-    _pthread_once(&gmtime_once, gmtime_key_init);
+    pthread_once(&gmtime_once, gmtime_key_init);
     if (gmtime_key_error != 0) {
       errno = gmtime_key_error;
       return (NULL);
     }
-    if ((p_tm = _pthread_getspecific(gmtime_key)) == NULL) {
+    if ((p_tm = pthread_getspecific(gmtime_key)) == NULL) {
       if ((p_tm = malloc(sizeof(*p_tm))) == NULL) {
 	return (NULL);
       }
-      if (_pthread_setspecific(gmtime_key, p_tm) != 0) {
+      if (pthread_setspecific(gmtime_key, p_tm) != 0) {
 	free(p_tm);
 	return (NULL);
       }
@@ -2013,11 +2018,11 @@ offtime_r(time_t const *restrict timep, long offset, struct tm *restrict tmp)
 static void
 offtime_key_init(void)
 {
-  offtime_key_error = _pthread_key_create(&offtime_key, free);
+  offtime_key_error = pthread_key_create(&offtime_key, free);
 }
 #endif /* __FreeBSD__ */
 struct tm *
-offtime(const time_t *timep, long offset)
+offtime(time_t const *timep, long offset)
 {
 #  if !SUPPORT_C89
   static struct tm tm;
@@ -2026,16 +2031,16 @@ offtime(const time_t *timep, long offset)
   struct tm *p_tm = &tm;
 
   if (__isthreaded != 0) {
-    _pthread_once(&offtime_once, offtime_key_init);
+    pthread_once(&offtime_once, offtime_key_init);
     if (offtime_key_error != 0) {
       errno = offtime_key_error;
       return (NULL);
     }
-    if ((p_tm = _pthread_getspecific(offtime_key)) == NULL) {
+    if ((p_tm = pthread_getspecific(offtime_key)) == NULL) {
       if ((p_tm = malloc(sizeof(*p_tm))) == NULL) {
 	return (NULL);
       }
-      if (_pthread_setspecific(offtime_key, p_tm) != 0) {
+      if (pthread_setspecific(offtime_key, p_tm) != 0) {
 	free(p_tm);
 	return (NULL);
       }

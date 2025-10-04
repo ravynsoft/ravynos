@@ -84,7 +84,6 @@
 #include <vm/vm.h>
 #include <vm/vm_param.h>
 #include <vm/vm_domainset.h>
-#include <vm/vm_object.h>
 #include <vm/vm_page.h>
 #include <vm/vm_pageout.h>
 #include <vm/vm_phys.h>
@@ -1987,18 +1986,18 @@ pcpu_page_alloc(uma_zone_t zone, vm_size_t bytes, int domain, uint8_t *pflag,
 		}
 		if (__predict_false(p == NULL))
 			goto fail;
-		TAILQ_INSERT_TAIL(&alloctail, p, listq);
+		TAILQ_INSERT_TAIL(&alloctail, p, plinks.q);
 	}
 	if ((addr = kva_alloc(bytes)) == 0)
 		goto fail;
 	zkva = addr;
-	TAILQ_FOREACH(p, &alloctail, listq) {
+	TAILQ_FOREACH(p, &alloctail, plinks.q) {
 		pmap_qenter(zkva, &p, 1);
 		zkva += PAGE_SIZE;
 	}
 	return ((void*)addr);
 fail:
-	TAILQ_FOREACH_SAFE(p, &alloctail, listq, p_next) {
+	TAILQ_FOREACH_SAFE(p, &alloctail, plinks.q, p_next) {
 		vm_page_unwire_noq(p);
 		vm_page_free(p);
 	}
@@ -2037,11 +2036,7 @@ noobj_alloc(uma_zone_t zone, vm_size_t bytes, int domain, uint8_t *flags,
 	while (npages > 0) {
 		p = vm_page_alloc_noobj_domain(domain, req);
 		if (p != NULL) {
-			/*
-			 * Since the page does not belong to an object, its
-			 * listq is unused.
-			 */
-			TAILQ_INSERT_TAIL(&alloctail, p, listq);
+			TAILQ_INSERT_TAIL(&alloctail, p, plinks.q);
 			npages--;
 			continue;
 		}
@@ -2049,7 +2044,7 @@ noobj_alloc(uma_zone_t zone, vm_size_t bytes, int domain, uint8_t *flags,
 		 * Page allocation failed, free intermediate pages and
 		 * exit.
 		 */
-		TAILQ_FOREACH_SAFE(p, &alloctail, listq, p_next) {
+		TAILQ_FOREACH_SAFE(p, &alloctail, plinks.q, p_next) {
 			vm_page_unwire_noq(p);
 			vm_page_free(p); 
 		}
@@ -2059,7 +2054,7 @@ noobj_alloc(uma_zone_t zone, vm_size_t bytes, int domain, uint8_t *flags,
 	zkva = keg->uk_kva +
 	    atomic_fetchadd_long(&keg->uk_offset, round_page(bytes));
 	retkva = zkva;
-	TAILQ_FOREACH(p, &alloctail, listq) {
+	TAILQ_FOREACH(p, &alloctail, plinks.q) {
 		pmap_qenter(zkva, &p, 1);
 		zkva += PAGE_SIZE;
 	}
@@ -4022,8 +4017,9 @@ restart:
 	rr = rdomain == UMA_ANYDOMAIN;
 	if (rr) {
 		aflags = (flags & ~M_WAITOK) | M_NOWAIT;
-		vm_domainset_iter_policy_ref_init(&di, &keg->uk_dr, &domain,
-		    &aflags);
+		if (vm_domainset_iter_policy_ref_init(&di, &keg->uk_dr, &domain,
+		    &aflags) != 0)
+			return (NULL);
 	} else {
 		aflags = flags;
 		domain = rdomain;
@@ -5250,8 +5246,9 @@ uma_prealloc(uma_zone_t zone, int items)
 	slabs = howmany(items, keg->uk_ipers);
 	while (slabs-- > 0) {
 		aflags = M_NOWAIT;
-		vm_domainset_iter_policy_ref_init(&di, &keg->uk_dr, &domain,
-		    &aflags);
+		if (vm_domainset_iter_policy_ref_init(&di, &keg->uk_dr, &domain,
+		    &aflags) != 0)
+			panic("%s: Domainset is empty", __func__);
 		for (;;) {
 			slab = keg_alloc_slab(keg, zone, domain, M_WAITOK,
 			    aflags);

@@ -69,6 +69,7 @@ struct md_page {
 	TAILQ_HEAD(,pv_entry)	pv_list;
 	int			pv_gen;
 	vm_memattr_t		pv_memattr;
+	uint8_t			pv_reserve[3];
 };
 
 enum pmap_stage {
@@ -141,7 +142,8 @@ extern pt_entry_t pmap_sh_attr;
 #define	pmap_vm_page_alloc_check(m)
 
 void	pmap_activate_vm(pmap_t);
-void	pmap_bootstrap(vm_size_t);
+void	pmap_bootstrap_dmap(vm_size_t);
+void	pmap_bootstrap(void);
 int	pmap_change_attr(vm_offset_t va, vm_size_t size, int mode);
 int	pmap_change_prot(vm_offset_t va, vm_size_t size, vm_prot_t prot);
 void	pmap_kenter(vm_offset_t sva, vm_size_t size, vm_paddr_t pa, int mode);
@@ -172,6 +174,8 @@ bool	pmap_get_tables(pmap_t, vm_offset_t, pd_entry_t **, pd_entry_t **,
 int	pmap_fault(pmap_t, uint64_t, uint64_t);
 
 struct pcb *pmap_switch(struct thread *);
+
+void	pmap_s1_invalidate_all_kernel(void);
 
 extern void (*pmap_clean_stage2_tlbi)(void);
 extern void (*pmap_stage2_invalidate_range)(uint64_t, vm_offset_t, vm_offset_t,

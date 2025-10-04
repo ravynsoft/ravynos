@@ -28,7 +28,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd July 30, 2025
+.Dd September 12, 2025
 .Dt IFCONFIG 8
 .Os
 .Sh NAME
@@ -36,7 +36,7 @@
 .Nd configure network interface parameters
 .Sh SYNOPSIS
 .Nm
-.Op Fl j Ar jail
+.Op Fl j Ar jid
 .Op Fl DkLmn
 .Op Fl f Ar type Ns Cm \&: Ns Ar format
 .Ar interface
@@ -50,11 +50,11 @@
 .Oc
 .Op Ar parameters
 .Nm
-.Op Fl j Ar jail
+.Op Fl j Ar jid
 .Ar interface
 .Cm destroy
 .Nm
-.Op Fl j Ar jail
+.Op Fl j Ar jid
 .Fl a
 .Op Fl dDkLmuv
 .Op Fl f Ar type Ns Cm \&: Ns Ar format
@@ -64,16 +64,16 @@
 .Nm
 .Fl C
 .Nm
-.Op Fl j Ar jail
+.Op Fl j Ar jid
 .Fl g Ar groupname
 .Nm
-.Op Fl j Ar jail
+.Op Fl j Ar jid
 .Fl l
 .Op Fl du
 .Op Fl g Ar groupname
 .Op Ar address_family
 .Nm
-.Op Fl j Ar jail
+.Op Fl j Ar jid
 .Op Fl dkLmuv
 .Op Fl f Ar type Ns Cm \&: Ns Ar format
 .Sh DESCRIPTION
@@ -257,22 +257,22 @@ Setting
 to
 .Cm all
 selects all interfaces.
-.It Fl j Ar jail
-Perform the actions inside the
-.Ar jail .
+.It Fl j Ar jid
+Perform the actions inside the jail specified by
+.Ar jid ,
+which may be either a jail name or a numeric jail ID.
 .Pp
 The
-.Cm ifconfig
-will first attach to the
-.Ar jail
-(by jail id or jail name) before performing the effects.
+.Nm
+utility will attach to the specified jail immediately upon
+encountering the option on the command line.
+The option may be specified multiple times to attach to a nested jail
+(jail within a jail).
 .Pp
-This allow network interfaces of
-.Ar jail
-to be configured even if the
-.Cm ifconfig
-binary is not available in
-.Ar jail .
+This makes it possible to configure network interfaces within a vnet
+jail even if the
+.Nm
+binary is not available inside the jail.
 .It Fl k
 Print keying information for the
 .Ar interface ,
@@ -448,11 +448,10 @@ of specifying the host portion, removing all NS addresses will
 allow you to respecify the host portion.
 .It Cm anycast
 (Inet6 only.)
-Specify that the address configured is an anycast address.
-Based on the current specification,
-only routers may configure anycast addresses.
-Anycast address will not be used as source address of any of outgoing
-IPv6 packets.
+Specify that the address configured is an anycast address,
+as described in RFC 4291 section 2.6.
+Anycast addresses will not be used as source address of any outgoing
+IPv6 packets unless an application explicitly binds to the address.
 .It Cm arp
 Enable the use of the Address Resolution Protocol
 .Pq Xr arp 4
@@ -2495,12 +2494,27 @@ compatibility.
 .Ss Bridge Interface Parameters
 The following parameters are specific to bridge interfaces:
 .Bl -tag -width indent
-.It Cm addm Ar interface
+.It Cm addm Ar interface Op Ar options ...
 Add the interface named by
 .Ar interface
 as a member of the bridge.
 The interface is put into promiscuous mode
 so that it can receive every packet sent on the network.
+.Pp
+The interface name may be followed by one or more of the following
+.Ar options :
+.Bl -tag -width ".Cm untagged Ar vlan-id"
+.It Cm untagged Ar vlan-id
+Set the untagged VLAN identifier for the interface.
+This is equivalent to the
+.Cm ifuntagged
+command.
+.It Cm tagged Ar vlan-set
+Set the allowed VLAN list for the interface.
+This is equivalent to the
+.Cm iftagged
+command.
+.El
 .It Cm deletem Ar interface
 Remove the interface named by
 .Ar interface
@@ -2704,6 +2718,103 @@ Set the maximum number of hosts allowed from an interface, packets with unknown
 source addresses are dropped until an existing host cache entry expires or is
 removed.
 Set to 0 to disable.
+.It Cm vlanfilter
+Enable VLAN filtering on the bridge.
+Incoming frames on member interfaces will be dropped unless the frame
+is explicitly permitted by the interface's
+.Cm ifuntagged
+or
+.Cm iftagged
+configuration.
+.It Cm -vlanfilter
+Disable VLAN filtering on the bridge.
+This is the default.
+.It Cm iftagged Ar interface Ar vlan-list
+Set the interface's VLAN access list to the provided list of VLANs.
+The list should be a comma-separated list of one or more VLAN IDs
+or ranges formatted as
+.Ar first-last ,
+the value
+.Dq none
+meaning the empty set,
+or the value
+.Dq all
+meaning all VLANs (1-4094).
+.Pp
+This option is only meaningful if the
+.Cm vlanfilter
+option is enabled for the bridge;
+otherwise, all VLANs will be permitted.
+.It Cm +iftagged Ar interface Ar vlan-list
+Add the provided list of VLAN IDs to the interface's VLAN access list.
+The list should be formatted as described for
+.Cm iftagged .
+.Pp
+This option is only meaningful if the
+.Cm vlanfilter
+option is enabled for the bridge;
+otherwise, all VLANs will be permitted.
+.It Cm -iftagged Ar interface Ar vlan-list
+Remove the provided list of VLAN IDs from the interface's VLAN access
+list.
+The list should be formatted as described for
+.Cm iftagged .
+.Pp
+This option is only meaningful if the
+.Cm vlanfilter
+option is enabled for the bridge;
+otherwise, all VLANs will be permitted.
+.It Cm ifuntagged Ar interface Ar vlan-id
+Set the untagged VLAN identifier for an interface.
+Frames received on this interface without an 802.1Q tag will be assigned
+to this VLAN instead of the default VLAN 0,
+and outgoing frames on this VLAN will have their 802.1Q tag removed.
+.It Cm -ifuntagged Ar interface Ar vlan-id
+Clear the untagged VLAN identifier for an interface.
+.It Cm defuntagged Ar vlan-id
+Enable the
+.Cm untagged
+option by default on newly added members.
+.It Cm -defuntagged
+Do not enable the
+.Cm untagged
+option by default on newly added members.
+This is the default.
+.It Cm qinq Ar interface
+Allow this interface to send 802.1ad
+.Dq Q-in-Q
+frames.
+This option is only meaningful if the
+.Cm vlanfilter
+option is enabled for the bridge;
+otherwise, Q-in-Q frames are always allowed.
+.It Cm -qinq Ar interface
+Do not allow this interface to send 802.1ad
+.Dq Q-in-Q
+frames.
+This is the default if the
+.Cm vlanfilter
+option is enabled.
+.It Cm defqinq
+Enable the
+.Cm qinq
+option by default on newly added members.
+.It Cm -defqinq
+Do not enable the
+.Cm qinq
+option by default on newly added members.
+This is the default.
+.It Cm ifvlanproto Ar interface Ar proto
+Set the VLAN encapsulation protocol on
+.Ar interface
+to
+.Ar proto ,
+which must be either
+.Dq 802.1q
+or
+.Dq 802.1ad .
+The default is
+.Dq 802.1q .
 .El
 .Ss Link Aggregation and Link Failover Parameters
 The following parameters are specific to lagg interfaces:
@@ -2836,34 +2947,26 @@ interfaces previously configured with
 Another name for the
 .Fl tunnel
 parameter.
-.It Cm accept_rev_ethip_ver
-Set a flag to accept both correct EtherIP packets and ones
-with reversed version field.
-Enabled by default.
-This is for backward compatibility with
-.Fx 6.1 ,
-6.2, 6.3, 7.0, and 7.1.
-.It Cm -accept_rev_ethip_ver
-Clear a flag
-.Cm accept_rev_ethip_ver .
+.It Cm noclamp
+This flag prevents the MTU from being clamped to 1280 bytes, the
+minimum MTU for IPv6, when the outer protocol is IPv6.  When the
+flag is set, the MTU value configured on the interface will be
+used instead of the fixed length of 1280 bytes. For more details,
+please refer to the
+.Ar MTU Configuration and Path MTU Discovery
+section in
+.Xr gif 4 .
+.It Cm -noclamp
+Clear the flag
+.Cm noclamp .
 .It Cm ignore_source
 Set a flag to accept encapsulated packets destined to this host
 independently from source address.
 This may be useful for hosts, that receive encapsulated packets
 from the load balancers.
 .It Cm -ignore_source
-Clear a flag
+Clear the flag
 .Cm ignore_source .
-.It Cm send_rev_ethip_ver
-Set a flag to send EtherIP packets with reversed version
-field intentionally.
-Disabled by default.
-This is for backward compatibility with
-.Fx 6.1 ,
-6.2, 6.3, 7.0, and 7.1.
-.It Cm -send_rev_ethip_ver
-Clear a flag
-.Cm send_rev_ethip_ver .
 .El
 .Ss GRE Tunnel Parameters
 The following parameters apply to GRE tunnel interfaces,
@@ -3334,6 +3437,16 @@ tried to alter an interface's configuration.
 .Xr rc 8 ,
 .Xr routed 8 ,
 .Xr sysctl 8
+.Rs
+.%R RFC 3484
+.%D February 2003
+.%T "Default Address Selection for Internet Protocol version 6 (IPv6)"
+.Re
+.Rs
+.%R RFC 4291
+.%D February 2006
+.%T "IP Version 6 Addressing Architecture"
+.Re
 .Sh HISTORY
 The
 .Nm

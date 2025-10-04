@@ -934,10 +934,7 @@ ENTRY(casueword32_nosmap)
 	ja	fusufault
 
 	movl	%esi,%eax			/* old */
-#ifdef SMP
-	lock
-#endif
-	cmpxchgl %ecx,(%rdi)			/* new = %ecx */
+	lock cmpxchgl %ecx,(%rdi)		/* new = %ecx */
 	setne	%cl
 
 	/*
@@ -971,10 +968,7 @@ ENTRY(casueword32_smap)
 
 	movl	%esi,%eax			/* old */
 	stac
-#ifdef SMP
-	lock
-#endif
-	cmpxchgl %ecx,(%rdi)			/* new = %ecx */
+	lock cmpxchgl %ecx,(%rdi)		/* new = %ecx */
 	clac
 	setne	%cl
 
@@ -1014,10 +1008,7 @@ ENTRY(casueword_nosmap)
 	ja	fusufault
 
 	movq	%rsi,%rax			/* old */
-#ifdef SMP
-	lock
-#endif
-	cmpxchgq %rcx,(%rdi)			/* new = %rcx */
+	lock cmpxchgq %rcx,(%rdi)		/* new = %rcx */
 	setne	%cl
 
 	/*
@@ -1045,10 +1036,7 @@ ENTRY(casueword_smap)
 
 	movq	%rsi,%rax			/* old */
 	stac
-#ifdef SMP
-	lock
-#endif
-	cmpxchgq %rcx,(%rdi)			/* new = %rcx */
+	lock cmpxchgq %rcx,(%rdi)		/* new = %rcx */
 	clac
 	setne	%cl
 
@@ -1576,6 +1564,22 @@ msr_onfault:
 	movl	$EFAULT,%eax
 	POP_FRAME_POINTER
 	ret
+
+ENTRY(wrmsr_early_safe)
+	movl	%edi,%ecx
+	movl	%esi,%eax
+	sarq	$32,%rsi
+	movl	%esi,%edx
+	wrmsr
+	xorl	%eax,%eax
+wrmsr_early_faulted:
+	ret
+
+ENTRY(wrmsr_early_safe_gp_handler)
+	addq	$8,%rsp
+	movl	$EFAULT,%eax
+	movq	$wrmsr_early_faulted,(%rsp)
+	iretq
 
 /*
  * void pmap_pti_pcid_invalidate(uint64_t ucr3, uint64_t kcr3);

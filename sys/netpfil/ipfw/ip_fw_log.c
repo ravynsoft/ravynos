@@ -224,39 +224,62 @@ ipfw_log_syslog(struct ip_fw_chain *chain, struct ip_fw *f, u_int hlen,
 			snprintf(SNPARGS(action2, 0), "Queue %d",
 				TARG(cmd->arg1, pipe));
 			break;
-		case O_FORWARD_IP: {
-			char buf[INET_ADDRSTRLEN];
-			ipfw_insn_sa *sa = (ipfw_insn_sa *)cmd;
-			int len;
-			struct in_addr dummyaddr;
-			if (sa->sa.sin_addr.s_addr == INADDR_ANY)
-				dummyaddr.s_addr = htonl(tablearg);
-			else
-				dummyaddr.s_addr = sa->sa.sin_addr.s_addr;
+		case O_FORWARD_IP:
+			if (IS_IP4_FLOW_ID(&args->f_id)) {
+				char buf[INET_ADDRSTRLEN];
+				const struct sockaddr_in *sin = &insntod(cmd, sa)->sa;
+				int len;
 
-			len = snprintf(SNPARGS(action2, 0), "Forward to %s",
-				inet_ntoa_r(dummyaddr, buf));
+				/* handle fwd tablearg */
+				if (sin->sin_addr.s_addr == INADDR_ANY) {
+					struct in_addr tmp;
 
-			if (sa->sa.sin_port)
-				snprintf(SNPARGS(action2, len), ":%d",
-				    sa->sa.sin_port);
+					tmp.s_addr = htonl(
+					    TARG_VAL(chain, tablearg, nh4));
+					inet_ntoa_r(tmp, buf);
+				} else
+					inet_ntoa_r(sin->sin_addr, buf);
+				len = snprintf(SNPARGS(action2, 0),
+				    "Forward to %s", buf);
+				if (sin->sin_port != 0)
+					snprintf(SNPARGS(action2, len), ":%d",
+					    sin->sin_port);
 			}
-			break;
+			/* FALLTHROUGH */
 #ifdef INET6
-		case O_FORWARD_IP6: {
-			char buf[INET6_ADDRSTRLEN];
-			ipfw_insn_sa6 *sa = (ipfw_insn_sa6 *)cmd;
-			int len;
+		case O_FORWARD_IP6:
+			if (IS_IP6_FLOW_ID(&args->f_id)) {
+				char buf[INET6_ADDRSTRLEN];
+				struct sockaddr_in6 tmp;
+				const struct sockaddr_in *sin = &insntod(cmd, sa)->sa;
+				struct sockaddr_in6 *sin6 = &insntod(cmd, sa6)->sa;
+				int len;
 
-			len = snprintf(SNPARGS(action2, 0), "Forward to [%s]",
-			    ip6_sprintf(buf, &sa->sa.sin6_addr));
+				if (cmd->opcode == O_FORWARD_IP &&
+				    sin->sin_addr.s_addr == INADDR_ANY) {
+					sin6 = &tmp;
+					sin6->sin6_addr =
+					    TARG_VAL(chain, tablearg, nh6);
+					sin6->sin6_scope_id =
+					    TARG_VAL(chain, tablearg, zoneid);
+					sin6->sin6_port = sin->sin_port;
+				}
 
-			if (sa->sa.sin6_port)
-				snprintf(SNPARGS(action2, len), ":%u",
-				    sa->sa.sin6_port);
+				ip6_sprintf(buf, &sin6->sin6_addr);
+				if (IN6_IS_ADDR_LINKLOCAL(&sin6->sin6_addr) &&
+				    sin6->sin6_scope_id != 0)
+					len = snprintf(SNPARGS(action2, 0),
+					    "Forward to [%s%%%u]",
+					    buf, sin6->sin6_scope_id);
+				else
+					len = snprintf(SNPARGS(action2, 0),
+					    "Forward to [%s]", buf);
+				if (sin6->sin6_port != 0)
+					snprintf(SNPARGS(action2, len), ":%u",
+					    sin6->sin6_port);
 			}
-			break;
 #endif
+			break;
 		case O_NETGRAPH:
 			snprintf(SNPARGS(action2, 0), "Netgraph %d",
 				cmd->arg1);
@@ -483,11 +506,10 @@ ipfw_rtsocklog_fill_l3(struct ip_fw_args *args,
 }
 
 static struct sockaddr *
-ipfw_rtsocklog_handle_tablearg(struct ip_fw_chain *chain, ipfw_insn *cmd,
-    uint32_t tablearg, uint32_t *targ_value, char **buf)
+ipfw_rtsocklog_handle_tablearg(struct ip_fw_chain *chain,
+    struct ip_fw_args *args, ipfw_insn *cmd, uint32_t tablearg,
+    uint32_t *targ_value, char **buf)
 {
-	struct sockaddr_in *v4nh = NULL;
-
 	/* handle tablearg now */
 	switch (cmd->opcode) {
 	case O_DIVERT:
@@ -508,26 +530,47 @@ ipfw_rtsocklog_handle_tablearg(struct ip_fw_chain *chain, ipfw_insn *cmd,
 	case O_CALLRETURN:
 		if (cmd->opcode == O_CALLRETURN && (cmd->len & F_NOT))
 			break;
-		*targ_value = (TARG(insntod(cmd, u32)->d[0], skipto));
+		*targ_value = TARG(insntod(cmd, u32)->d[0], skipto);
 		break;
 	case O_PIPE:
 	case O_QUEUE:
 		*targ_value = TARG(cmd->arg1, pipe);
 		break;
-	case O_MARK:
-		*targ_value = TARG(cmd->arg1, mark);
+	case O_SETMARK:
+		if (cmd->arg1 == IP_FW_TARG)
+			*targ_value = TARG_VAL(chain, tablearg, mark);
 		break;
 	case O_FORWARD_IP:
-		v4nh = (struct sockaddr_in *)buf;
-		buf += sizeof(*v4nh);
-		*v4nh = ((ipfw_insn_sa *)cmd)->sa;
-		if (v4nh->sin_addr.s_addr == INADDR_ANY)
-			v4nh->sin_addr.s_addr = htonl(tablearg);
+		if (IS_IP4_FLOW_ID(&args->f_id)) {
+			struct sockaddr_in *nh = (struct sockaddr_in *)*buf;
 
-		return (struct sockaddr *)v4nh;
+			*buf += sizeof(*nh);
+			memcpy(nh, &insntod(cmd, sa)->sa, sizeof(*nh));
+			if (nh->sin_addr.s_addr == INADDR_ANY)
+				nh->sin_addr.s_addr = htonl(
+				    TARG_VAL(chain, tablearg, nh4));
+			return ((struct sockaddr *)nh);
+		}
+		/* FALLTHROUGH */
 #ifdef INET6
 	case O_FORWARD_IP6:
-		return (struct sockaddr *)&(((ipfw_insn_sa6 *)cmd)->sa);
+		if (IS_IP6_FLOW_ID(&args->f_id)) {
+			const struct sockaddr_in *sin = &insntod(cmd, sa)->sa;
+			struct sockaddr_in6 *nh = (struct sockaddr_in6 *)*buf;
+
+			*buf += sizeof(*nh);
+			if (cmd->opcode == O_FORWARD_IP &&
+			    sin->sin_addr.s_addr == INADDR_ANY) {
+				nh->sin6_family = AF_INET6;
+				nh->sin6_len = sizeof(*nh);
+				nh->sin6_addr = TARG_VAL(chain, tablearg, nh6);
+				nh->sin6_port = sin->sin_port;
+				nh->sin6_scope_id =
+				    TARG_VAL(chain, tablearg, zoneid);
+			} else
+				memcpy(nh, &insntod(cmd, sa6)->sa, sizeof(*nh));
+			return ((struct sockaddr *)nh);
+		}
 #endif
 	default:
 		break;
@@ -562,10 +605,42 @@ ipfw_copy_rule_comment(struct ip_fw *f, char *dst)
 	return (rcomment_len);
 }
 
+/*
+ * Logs a packet matched by a rule as a route(4) socket message.
+ *
+ * While ipfw0 pseudo interface provides a way to observe full packet body,
+ * no metadata (rule number, action, mark, etc) is available.
+ * pflog(4) is not an option either as it's header is hardcoded and does not
+ * provide sufficient space for ipfw meta information.
+ *
+ * To be able to get a machine-readable event with all meta information needed
+ * for user-space daemons we construct a route(4) message and pack as much meta
+ * information as we can into it.
+ *
+ * RTAX_DST(0): (struct sockaddr_dl) carrying ipfwlog_rtsock_hdr_v2 in sdl_data
+ *		with general rule information (rule number, set, action, mark,
+ *		cmd, comment) and source/destination MAC addresses in case we're
+ *		logging in layer2 pass.
+ *
+ * RTAX_GATEWAY(1): (struct sockaddr) IP source address
+ *
+ * RTAX_NETMASK(2): (struct sockaddr) IP destination address
+ *
+ * RTAX_GENMASK(3): (struct sockaddr) IP address and port used in fwd action
+ *
+ * One SHOULD set an explicit logamount for any rule using rtsock as flooding
+ * route socket with such events could lead to various system-wide side effects.
+ * RTF_PROTO1 flag in (struct rt_addrinfo).rti_flags is set in all messages
+ * once half of logamount limit is crossed. This could be used by the software
+ * processing these logs to issue `ipfw resetlog` command to keep the event
+ * flow.
+ *
+ * TODO: convert ipfwlog_rtsock_hdr_v2 data into TLV to ease expansion.
+*/
+
 static void
 ipfw_log_rtsock(struct ip_fw_chain *chain, struct ip_fw *f, u_int hlen,
-    struct ip_fw_args *args, u_short offset, uint32_t tablearg,
-    void *_eh)
+    struct ip_fw_args *args, u_short offset, uint32_t tablearg, void *_eh)
 {
 	struct sockaddr_dl *sdl_ipfwcmd;
 	struct ether_header *eh = _eh;
@@ -583,6 +658,9 @@ ipfw_log_rtsock(struct ip_fw_chain *chain, struct ip_fw *f, u_int hlen,
 	l = (ipfw_insn_log *)cmd;
 
 	if (l->max_log != 0 && l->log_left == 0)
+		return;
+
+	if (hlen == 0) /* non-ip */
 		return;
 
 	l->log_left--;
@@ -638,12 +716,15 @@ ipfw_log_rtsock(struct ip_fw_chain *chain, struct ip_fw *f, u_int hlen,
 
 	/* handle tablearg */
 	info->rti_info[RTAX_GENMASK] = ipfw_rtsocklog_handle_tablearg(
-	    chain, cmd, tablearg, targ_value, &buf);
+	    chain, args, cmd, tablearg, targ_value, &buf);
 
 	/* L3 */
 	ipfw_rtsocklog_fill_l3(args, &buf,
 	    &info->rti_info[RTAX_GATEWAY],
 	    &info->rti_info[RTAX_NETMASK]);
+
+	KASSERT(buf <= (orig_buf + buflen),
+	    ("ipfw: buffer for logdst rtsock is not big enough"));
 
 	info->rti_ifp = args->ifp;
 	rtsock_routemsg_info(RTM_IPFWLOG, info, RT_ALL_FIBS);
@@ -661,13 +742,10 @@ ipfw_log(struct ip_fw_chain *chain, struct ip_fw *f, u_int hlen,
 {
 	ipfw_insn *cmd;
 
-	if (f == NULL || hlen == 0)
-		return;
-
-	/* O_LOG is the first action */
-	cmd = ACTION_PTR(f);
-
-	if (cmd->arg1 == IPFW_LOG_DEFAULT) {
+	/* Fallback to default logging if we're missing rule pointer */
+	if (f == NULL ||
+	    /* O_LOG is the first action */
+	    ((cmd = ACTION_PTR(f)) && cmd->arg1 == IPFW_LOG_DEFAULT)) {
 		if (V_fw_verbose == 0) {
 			ipfw_log_ipfw0(args, ip);
 			return;

@@ -428,6 +428,11 @@ in6_getaddr(const char *addr_str, int which)
 {
         struct in6_px *px = sin6tab_nl[which];
 
+	if (which == MASK)
+		errx(1, "netmask: invalid option for inet6");
+	if (which == BRDADDR)
+		errx(1, "broadcast: invalid option for inet6");
+
         px->set = true;
         px->plen = 128;
         if (which == ADDR) {
@@ -748,7 +753,7 @@ static struct afswtch af_inet6 = {
 #ifdef WITHOUT_NETLINK
 	.af_difaddr	= SIOCDIFADDR_IN6,
 	.af_aifaddr	= SIOCAIFADDR_IN6,
-	.af_ridreq	= &in6_addreq,
+	.af_ridreq	= &in6_ridreq,
 	.af_addreq	= &in6_addreq,
 	.af_exec	= af_exec_ioctl,
 #else

@@ -24,9 +24,8 @@
 # SUCH DAMAGE.
 #
 
+PACKAGE=	atf
+LIB_PACKAGE=
 CFLAGS+=	-DHAVE_CONFIG_H
 
 WARNS?=		3
-
-# Permit use of auto_ptr for compilers defaulting to C++17 or later
-CXXSTD=		c++11

@@ -57,11 +57,21 @@
 
 u_long __read_frequently elf_hwcap;
 u_long __read_frequently elf_hwcap2;
+u_long __read_frequently elf_hwcap3;
+u_long __read_frequently elf_hwcap4;
 /* TODO: Move to a better location */
 u_long __read_frequently linux_elf_hwcap;
 u_long __read_frequently linux_elf_hwcap2;
+u_long __read_frequently linux_elf_hwcap3;
+u_long __read_frequently linux_elf_hwcap4;
 
-struct arm64_addr_mask elf64_addr_mask;
+struct arm64_addr_mask elf64_addr_mask = {
+    .code = TBI_ADDR_MASK,
+    .data = TBI_ADDR_MASK,
+};
+#ifdef COMPAT_FREEBSD14
+struct arm64_addr_mask elf64_addr_mask_14;
+#endif
 
 static void arm64_exec_protect(struct image_params *, int);
 
@@ -101,6 +111,8 @@ static struct sysentvec elf64_freebsd_sysvec = {
 	.sv_trap	= NULL,
 	.sv_hwcap	= &elf_hwcap,
 	.sv_hwcap2	= &elf_hwcap2,
+	.sv_hwcap3	= &elf_hwcap3,
+	.sv_hwcap4	= &elf_hwcap4,
 	.sv_onexec_old	= exec_onexec_old,
 	.sv_protect	= arm64_exec_protect,
 	.sv_onexit	= exit_onexit,
@@ -130,7 +142,14 @@ get_arm64_addr_mask(struct regset *rs, struct thread *td, void *buf,
 	if (buf != NULL) {
 		KASSERT(*sizep == sizeof(elf64_addr_mask),
 		    ("%s: invalid size", __func__));
-		memcpy(buf, &elf64_addr_mask, sizeof(elf64_addr_mask));
+#ifdef COMPAT_FREEBSD14
+		/* running an old binary use the old address mask */
+		if (td->td_proc->p_osrel < TBI_VERSION)
+			memcpy(buf, &elf64_addr_mask_14,
+			    sizeof(elf64_addr_mask_14));
+		else
+#endif
+			memcpy(buf, &elf64_addr_mask, sizeof(elf64_addr_mask));
 	}
 	*sizep = sizeof(elf64_addr_mask);
 

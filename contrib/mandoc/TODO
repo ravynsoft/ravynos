@@ -1,6 +1,6 @@
 ************************************************************************
 * Official mandoc TODO.
-* $Id: TODO,v 1.335 2024/09/21 12:08:54 schwarze Exp $
+* $Id: TODO,v 1.338 2025/07/22 13:36:54 schwarze Exp $
 ************************************************************************
 
 Many issues are annotated for difficulty as follows:
@@ -233,6 +233,11 @@ are mere guesses, and some may be wrong.
   loc *  exist **  algo ***  size *  imp **
 
 --- missing man features -----------------------------------------------
+
+- When calling less(1), specify -P to print "name(sec) lines ..."
+  in the bottom line instead of "/tmp/man..."
+  Jan Engelhardt (SuSE) via Matej Cepl 06 Apr 2025 14:42:52 +0200
+  loc *  exist *  algo *  size *  imp **
 
 - MANWIDTH
   Markus Waldeck <waldeck at gmx dot de> 9 Jun 2015 05:49:56 +0200
@@ -483,6 +488,10 @@ are mere guesses, and some may be wrong.
   reveals lots of bugs both in groff and mandoc...
   reported by bentley@  Wed, 22 May 2013 23:49:30 -0600
 
+- Make an underlined blank an underscore rather than a blank in both
+  groff and mandoc terminal output (likely tricky, needs investigation)
+  job@  21 Jan 2025 18:03:52 +0000
+
 --- PostScript and PDF issues ------------------------------------------
 
 - PDF output doesn't use a monospaced font for .Bd -literal
@@ -495,6 +504,15 @@ are mere guesses, and some may be wrong.
     and change the /Name from /F0 to the new font (/F5 (?)).
   re-reported by tb@ Mon, 16 Mar 2015 16:47:21 +0100
   loc **  exist **  algo **  size *  imp **
+
+- Check for bad line breaks caused by PostScript and PDF using variable-
+  width fonts, for example in .Bl -width "string".  The difficulty line
+  below describes a naive solution by simply scaling up widths internally
+  or adding default spacing (like in terminal output).  If fixes are
+  needed in width measurements, it might be a bit harder, but likely
+  not unreasonably so.
+  reported by Jan Stary 20 May 2024 10:19:01 +0200
+  loc *  exist *  algo **  size *  imp **
 
 --- HTML issues --------------------------------------------------------
 

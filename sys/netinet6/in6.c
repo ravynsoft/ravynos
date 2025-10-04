@@ -86,6 +86,7 @@
 #include <net/if_var.h>
 #include <net/if_private.h>
 #include <net/if_types.h>
+#include <net/if_bridgevar.h>
 #include <net/route.h>
 #include <net/route/route_ctl.h>
 #include <net/route/nhop.h>
@@ -587,7 +588,7 @@ in6_control_ioctl(u_long cmd, void *data,
 #endif
 		error = in6_addifaddr(ifp, ifra, ia);
 		ia = NULL;
-		break;
+		goto out;
 
 	case SIOCDIFADDR_IN6:
 		in6_purgeifaddr(ia);
@@ -1233,6 +1234,22 @@ in6_addifaddr(struct ifnet *ifp, struct in6_aliasreq *ifra, struct in6_ifaddr *i
 	struct nd_prefix *pr;
 	int carp_attached = 0;
 	int error;
+
+	/*
+	 * Check if bridge wants to allow adding addrs to member interfaces.
+	 */
+	if (ifp->if_bridge != NULL && ifp->if_type != IFT_GIF &&
+	    bridge_member_ifaddrs_p != NULL) {
+		if (bridge_member_ifaddrs_p()) {
+			if_printf(ifp, "WARNING: Assigning an IP address to "
+			    "an interface which is also a bridge member is "
+			    "deprecated and will be unsupported in a future "
+			    "release.\n");
+		} else {
+			error = EINVAL;
+			goto out;
+		}
+	}
 
 	/*
 	 * first, make or update the interface address structure,
@@ -2105,31 +2122,6 @@ in6if_do_dad(struct ifnet *ifp)
 }
 
 /*
- * Calculate max IPv6 MTU through all the interfaces and store it
- * to in6_maxmtu.
- */
-void
-in6_setmaxmtu(void)
-{
-	struct epoch_tracker et;
-	unsigned long maxmtu = 0;
-	struct ifnet *ifp;
-
-	NET_EPOCH_ENTER(et);
-	CK_STAILQ_FOREACH(ifp, &V_ifnet, if_link) {
-		/* this function can be called during ifnet initialization */
-		if (!ifp->if_afdata[AF_INET6])
-			continue;
-		if ((ifp->if_flags & IFF_LOOPBACK) == 0 &&
-		    IN6_LINKMTU(ifp) > maxmtu)
-			maxmtu = IN6_LINKMTU(ifp);
-	}
-	NET_EPOCH_EXIT(et);
-	if (maxmtu)	/* update only when maxmtu is positive */
-		V_in6_maxmtu = maxmtu;
-}
-
-/*
  * Provide the length of interface identifiers to be used for the link attached
  * to the given interface.  The length should be defined in "IPv6 over
  * xxx-link" document.  Note that address architecture might also define
@@ -2634,6 +2626,8 @@ void
 in6_domifdetach(struct ifnet *ifp, void *aux)
 {
 	struct in6_ifextra *ext = (struct in6_ifextra *)aux;
+
+	MPASS(ifp->if_afdata[AF_INET6] == NULL);
 
 	mld_domifdetach(ifp);
 	scope6_ifdetach(ext->scope6_id);

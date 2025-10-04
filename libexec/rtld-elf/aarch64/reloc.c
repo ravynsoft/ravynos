@@ -37,13 +37,6 @@
 #include "rtld_printf.h"
 
 /*
- * It is possible for the compiler to emit relocations for unaligned data.
- * We handle this situation with these inlines.
- */
-#define	RELOC_ALIGNED_P(x) \
-	(((uintptr_t)(x) & (sizeof(void *) - 1)) == 0)
-
-/*
  * This is not the correct prototype, but we only need it for
  * a function pointer to a simple asm function.
  */
@@ -629,8 +622,5 @@ allocate_initial_tls(Obj_Entry *objs)
 void *
 __tls_get_addr(tls_index* ti)
 {
-	uintptr_t **dtvp;
-
-	dtvp = &_tcb_get()->tcb_dtv;
-	return (tls_get_addr_common(dtvp, ti->ti_module, ti->ti_offset));
+	return (tls_get_addr_common(_tcb_get(), ti->ti_module, ti->ti_offset));
 }

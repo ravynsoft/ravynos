@@ -292,6 +292,11 @@ typedef	__useconds_t	useconds_t;
 #define	_SC_NPROCESSORS_CONF	57
 #define	_SC_NPROCESSORS_ONLN	58
 #define	_SC_CPUSET_SIZE		122
+#define	_SC_UEXTERR_MAXLEN	123 /* user */
+#endif
+
+#if __POSIX_VISIBLE >= 202405
+#define	_SC_NSIG		124
 #endif
 
 /* Extensions found in Solaris and Linux. */

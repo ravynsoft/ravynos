@@ -199,8 +199,6 @@ readipv4(struct iodesc *d, void **pkt, void **payload, ssize_t n)
 	struct ip *ip = *payload;
 	size_t hlen;
 	struct ether_header *eh;
-	void *buf;
-	struct ip *ip;
 	struct udphdr *uh;
 	char *ptr = *pkt;
 	struct ip_reasm *ipr;
@@ -208,53 +206,9 @@ readipv4(struct iodesc *d, void **pkt, void **payload, ssize_t n)
 	bool morefrag, isfrag;
 	uint16_t fragoffset;
 
-#ifdef NET_DEBUG
-	if (debug)
-		printf("readip: called\n");
-#endif
-
-	ip = NULL;
-	ptr = NULL;
-	n = readether(d, (void **)&ptr, (void **)&buf, tleft, &etype);
-	if (n == -1 || n < sizeof(*ip) + sizeof(*uh)) {
-		free(ptr);
-		return (-1);
-	}
-
-	/* Ethernet address checks now in readether() */
-
-	/* Need to respond to ARP requests. */
-	if (etype == ETHERTYPE_ARP) {
-		struct arphdr *ah = buf;
-		if (ah->ar_op == htons(ARPOP_REQUEST)) {
-			/* Send ARP reply */
-			arp_reply(d, ah);
-		}
+	if (n < sizeof(*ip)) {
 		free(ptr);
 		errno = EAGAIN;	/* Call me again. */
-		return (-1);
-	}
-
-	if (etype != ETHERTYPE_IP) {
-#ifdef NET_DEBUG
-		if (debug)
-			printf("readip: not IP. ether_type=%x\n", etype);
-#endif
-		free(ptr);
-		return (-1);
-	}
-
-	ip = buf;
-	/* Check ip header */
-	if (ip->ip_v != IPVERSION ||	/* half char */
-	    ip->ip_p != proto) {
-#ifdef NET_DEBUG
-		if (debug) {
-			printf("readip: IP version or proto. ip_v=%d ip_p=%d\n",
-			    ip->ip_v, ip->ip_p);
-		}
-#endif
-		free(ptr);
 		return (-1);
 	}
 

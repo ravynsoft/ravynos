@@ -67,6 +67,7 @@
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/hash.h>
+#include <sys/jail.h>
 #include <sys/kernel.h>
 #include <sys/kobj.h>
 #include <sys/lock.h>
@@ -745,6 +746,7 @@ rpc_gss_init(AUTH *auth, rpc_gss_options_ret_t *options_ret)
 	struct rpc_callextra	 ext;
 	gss_OID			mech_oid;
 	gss_OID_set		mechlist;
+	static enum krb_imp	my_krb_imp = KRBIMP_UNKNOWN;
 
 	rpc_gss_log_debug("in rpc_gss_refresh()");
 	
@@ -771,6 +773,17 @@ rpc_gss_init(AUTH *auth, rpc_gss_options_ret_t *options_ret)
 	gd->gd_cred.gc_proc = RPCSEC_GSS_INIT;
 	gd->gd_cred.gc_seq = 0;
 
+	/*
+	 * XXX Threads from inside jails can get here via calls
+	 * to clnt_vc_call()->AUTH_REFRESH()->rpc_gss_refresh()
+	 * but the NFS mount is always done outside of the
+	 * jails in vnet0.  Since the thread credentials won't
+	 * necessarily have cr_prison == vnet0 and this function
+	 * has no access to the socket, using vnet0 seems the
+	 * only option.  This is broken if NFS mounts are enabled
+	 * within vnet prisons.
+	 */
+	KGSS_CURVNET_SET_QUIET(vnet0);
 	/*
 	 * For KerberosV, if there is a client principal name, that implies
 	 * that this is a host based initiator credential in the default
@@ -840,6 +853,14 @@ rpc_gss_init(AUTH *auth, rpc_gss_options_ret_t *options_ret)
 		goto out;
 	}
 
+	if (my_krb_imp == KRBIMP_UNKNOWN) {
+		maj_stat = gss_supports_lucid(&min_stat, NULL);
+		if (maj_stat == GSS_S_COMPLETE)
+			my_krb_imp = KRBIMP_MIT;
+		else
+			my_krb_imp = KRBIMP_HEIMDALV1;
+	}
+
 	/* GSS context establishment loop. */
 	memset(&recv_token, 0, sizeof(recv_token));
 	memset(&gr, 0, sizeof(gr));
@@ -850,19 +871,34 @@ rpc_gss_init(AUTH *auth, rpc_gss_options_ret_t *options_ret)
 	for (;;) {
 		crsave = td->td_ucred;
 		td->td_ucred = gd->gd_ucred;
-		maj_stat = gss_init_sec_context(&min_stat,
-		    gd->gd_options.my_cred,
-		    &gd->gd_ctx,
-		    name,
-		    gd->gd_mech,
-		    gd->gd_options.req_flags,
-		    gd->gd_options.time_req,
-		    gd->gd_options.input_channel_bindings,
-		    recv_tokenp,
-		    &gd->gd_mech,	/* used mech */
-		    &send_token,
-		    &options_ret->ret_flags,
-		    &options_ret->time_req);
+		if (my_krb_imp == KRBIMP_MIT)
+			maj_stat = gss_init_sec_context_lucid_v1(&min_stat,
+			    gd->gd_options.my_cred,
+			    &gd->gd_ctx,
+			    name,
+			    gd->gd_mech,
+			    gd->gd_options.req_flags,
+			    gd->gd_options.time_req,
+			    gd->gd_options.input_channel_bindings,
+			    recv_tokenp,
+			    &gd->gd_mech,	/* used mech */
+			    &send_token,
+			    &options_ret->ret_flags,
+			    &options_ret->time_req);
+		else
+			maj_stat = gss_init_sec_context(&min_stat,
+			    gd->gd_options.my_cred,
+			    &gd->gd_ctx,
+			    name,
+			    gd->gd_mech,
+			    gd->gd_options.req_flags,
+			    gd->gd_options.time_req,
+			    gd->gd_options.input_channel_bindings,
+			    recv_tokenp,
+			    &gd->gd_mech,	/* used mech */
+			    &send_token,
+			    &options_ret->ret_flags,
+			    &options_ret->time_req);
 		td->td_ucred = crsave;
 		
 		/*
@@ -994,12 +1030,14 @@ out:
 			gss_delete_sec_context(&min_stat, &gd->gd_ctx,
 				GSS_C_NO_BUFFER);
 		}
+		KGSS_CURVNET_RESTORE();
 		mtx_lock(&gd->gd_lock);
 		gd->gd_state = RPCSEC_GSS_START;
 		wakeup(gd);
 		mtx_unlock(&gd->gd_lock);
 		return (FALSE);
 	}
+	KGSS_CURVNET_RESTORE();
 	
 	mtx_lock(&gd->gd_lock);
 	gd->gd_state = RPCSEC_GSS_ESTABLISHED;

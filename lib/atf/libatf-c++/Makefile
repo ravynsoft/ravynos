@@ -27,7 +27,6 @@
 .include <src.opts.mk>
 .include <bsd.init.mk>
 
-PACKAGE=	tests
 LIB_CXX=	atf-c++
 PRIVATELIB=	true
 SHLIB_MAJOR=	2
@@ -47,9 +46,6 @@ CFLAGS+=	-I${.CURDIR:H}/libatf-c
 CFLAGS+=	-I.
 
 CFLAGS+=	-DHAVE_CONFIG_H
-
-# Silence warnings about usage of deprecated std::auto_ptr
-CXXWARNFLAGS+=	-Wno-deprecated-declarations
 
 SRCS=		application.cpp \
 		build.cpp \

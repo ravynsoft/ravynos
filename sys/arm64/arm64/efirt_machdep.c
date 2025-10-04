@@ -55,6 +55,7 @@
 #include <vm/vm_object.h>
 #include <vm/vm_page.h>
 #include <vm/vm_pager.h>
+#include <vm/vm_radix.h>
 
 static vm_object_t obj_1t1_pt;
 static vm_pindex_t efi_1t1_idx;
@@ -64,11 +65,13 @@ static uint64_t efi_ttbr0;
 void
 efi_destroy_1t1_map(void)
 {
+	struct pctrie_iter pages;
 	vm_page_t m;
 
 	if (obj_1t1_pt != NULL) {
+		vm_page_iter_init(&pages, obj_1t1_pt);
 		VM_OBJECT_RLOCK(obj_1t1_pt);
-		TAILQ_FOREACH(m, &obj_1t1_pt->memq, listq)
+		VM_RADIX_FOREACH(m, &pages)
 			m->ref_count = VPRC_OBJREF;
 		vm_wire_sub(obj_1t1_pt->resident_page_count);
 		VM_OBJECT_RUNLOCK(obj_1t1_pt);
@@ -238,6 +241,7 @@ fail:
 int
 efi_arch_enter(void)
 {
+	uint64_t tcr;
 
 	CRITICAL_ASSERT(curthread);
 	curthread->td_md.md_efirt_dis_pf = vm_fault_disable_pagefaults();
@@ -246,7 +250,17 @@ efi_arch_enter(void)
 	 * Temporarily switch to EFI's page table.  However, we leave curpmap
 	 * unchanged in order to prevent its ASID from being reclaimed before
 	 * we switch back to its page table in efi_arch_leave().
+	 *
+	 * UEFI sdoesn't care about TBI, so enable it. It's more likely
+	 * userspace will have TBI on as it's only disabled for backwards
+	 * compatibility.
 	 */
+	tcr = READ_SPECIALREG(tcr_el1);
+	if ((tcr & MD_TCR_FIELDS) != TCR_TBI0) {
+		tcr &= ~MD_TCR_FIELDS;
+		tcr |= TCR_TBI0;
+		WRITE_SPECIALREG(tcr_el1, tcr);
+	}
 	set_ttbr0(efi_ttbr0);
 	if (PCPU_GET(bcast_tlbi_workaround) != 0)
 		invalidate_local_icache();
@@ -257,6 +271,7 @@ efi_arch_enter(void)
 void
 efi_arch_leave(void)
 {
+	uint64_t proc_tcr, tcr;
 
 	/*
 	 * Restore the pcpu pointer. Some UEFI implementations trash it and
@@ -268,6 +283,13 @@ efi_arch_leave(void)
 	__asm __volatile(
 	    "mrs x18, tpidr_el1	\n"
 	);
+	proc_tcr = curthread->td_proc->p_md.md_tcr;
+	tcr = READ_SPECIALREG(tcr_el1);
+	if ((tcr & MD_TCR_FIELDS) != proc_tcr) {
+		tcr &= ~MD_TCR_FIELDS;
+		tcr |= proc_tcr;
+		WRITE_SPECIALREG(tcr_el1, tcr);
+	}
 	set_ttbr0(pmap_to_ttbr0(PCPU_GET(curpmap)));
 	if (PCPU_GET(bcast_tlbi_workaround) != 0)
 		invalidate_local_icache();

@@ -53,11 +53,11 @@
 #include <sys/mutex.h>
 #include <sys/resource.h>
 #include <sys/rman.h>
+#include <sys/stdarg.h>
 #include <sys/gpio.h>
 
 #include <machine/bus.h>
 #include <machine/resource.h>
-#include <machine/stdarg.h>
 
 #include <dev/gpio/gpiobusvar.h>
 #include <dev/ofw/ofw_bus.h>
@@ -441,12 +441,13 @@ zy7_gpio_attach(device_t dev)
 		return (ENOMEM);
 	}
 
-	sc->busdev = gpiobus_attach_bus(dev);
+	sc->busdev = gpiobus_add_bus(dev);
 	if (sc->busdev == NULL) {
 		zy7_gpio_detach(dev);
 		return (ENOMEM);
 	}
 
+	bus_attach_children(dev);
 	return (0);
 }
 

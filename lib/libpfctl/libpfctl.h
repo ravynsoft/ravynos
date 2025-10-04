@@ -168,6 +168,13 @@ struct pfctl_rules_info {
 	uint32_t	ticket;
 };
 
+struct pfctl_threshold {
+	uint32_t		limit;
+	uint32_t		seconds;
+	uint32_t		count;
+	uint32_t		last;
+};
+
 struct pfctl_rule {
 	struct pf_rule_addr	 src;
 	struct pf_rule_addr	 dst;
@@ -190,6 +197,7 @@ struct pfctl_rule {
 		struct pfctl_pool	 rdr;
 	};
 	struct pfctl_pool	 route;
+	struct pfctl_threshold	 pktrate;
 
 	uint64_t		 evaluations;
 	uint64_t		 packets[2];
@@ -212,6 +220,7 @@ struct pfctl_rule {
 		uint32_t		limit;
 		uint32_t		seconds;
 	}			 max_src_conn_rate;
+	uint16_t		 max_pkt_size;
 	uint32_t		 qid;
 	uint32_t		 pqid;
 	uint16_t		 dnpipe;
@@ -252,8 +261,8 @@ struct pfctl_rule {
 	uint8_t			 keep_state;
 	sa_family_t		 af;
 	uint8_t			 proto;
-	uint8_t			 type;
-	uint8_t			 code;
+	uint16_t		 type;
+	uint16_t		 code;
 	uint8_t			 flags;
 	uint8_t			 flagset;
 	uint8_t			 min_ttl;
@@ -406,13 +415,6 @@ struct pfctl_syncookies {
 	uint32_t			halfopen_states;
 };
 
-struct pfctl_threshold {
-	uint32_t		limit;
-	uint32_t		seconds;
-	uint32_t		count;
-	uint32_t		last;
-};
-
 struct pfctl_src_node {
 	struct pf_addr		addr;
 	struct pf_addr		raddr;
@@ -509,8 +511,12 @@ int	pfctl_clear_nat(int dev, const char *anchorname);
 int	pfctl_clear_eth_rules(int dev, const char *anchorname);
 int	pfctl_set_syncookies(int dev, const struct pfctl_syncookies *s);
 int	pfctl_get_syncookies(int dev, struct pfctl_syncookies *s);
+int	pfctl_table_add_addrs_h(struct pfctl_handle *h, struct pfr_table *tbl, struct pfr_addr
+	    *addr, int size, int *nadd, int flags);
 int	pfctl_table_add_addrs(int dev, struct pfr_table *tbl, struct pfr_addr
 	    *addr, int size, int *nadd, int flags);
+int	pfctl_table_del_addrs_h(struct pfctl_handle *h, struct pfr_table *tbl,
+	    struct pfr_addr *addr, int size, int *ndel, int flags);
 int	pfctl_table_del_addrs(int dev, struct pfr_table *tbl, struct pfr_addr
 	    *addr, int size, int *ndel, int flags);
 int     pfctl_table_set_addrs(int dev, struct pfr_table *tbl, struct pfr_addr
@@ -566,5 +572,7 @@ int	pfctl_get_tstats(struct pfctl_handle *h, const struct pfr_table *filter,
 	    pfctl_get_tstats_fn fn, void *arg);
 int	pfctl_clear_tstats(struct pfctl_handle *h, const struct pfr_table *filter,
 	    int *nzero, int flags);
+int	pfctl_clear_addrs(struct pfctl_handle *h, const struct pfr_table *filter,
+	    int *ndel, int flags);
 
 #endif

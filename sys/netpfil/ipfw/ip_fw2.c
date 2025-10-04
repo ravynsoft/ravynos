@@ -67,6 +67,7 @@
 #include <net/route/nhop.h>
 #include <net/pfil.h>
 #include <net/vnet.h>
+#include <net/if_gif.h>
 #include <net/if_pfsync.h>
 
 #include <netpfil/pf/pf_mtag.h>
@@ -196,7 +197,7 @@ SYSCTL_NODE(_net_inet_ip, OID_AUTO, fw, CTLFLAG_RW | CTLFLAG_MPSAFE, 0,
     "Firewall");
 SYSCTL_INT(_net_inet_ip_fw, OID_AUTO, one_pass,
     CTLFLAG_VNET | CTLFLAG_RW | CTLFLAG_SECURE3, &VNET_NAME(fw_one_pass), 0,
-    "Only do a single pass through ipfw when using dummynet(4)");
+    "Only do a single pass through ipfw when using dummynet(4), ipfw_nat or other divert(4)-like interfaces");
 SYSCTL_INT(_net_inet_ip_fw, OID_AUTO, autoinc_step,
     CTLFLAG_VNET | CTLFLAG_RW, &VNET_NAME(autoinc_step), 0,
     "Rule number auto-increment step");
@@ -1755,6 +1756,12 @@ do {								\
 
 			case IPPROTO_IPV4:	/* RFC 2893 */
 				PULLUP_TO(hlen, ulp, struct ip);
+				break;
+
+			case IPPROTO_ETHERIP:	/* RFC 3378 */
+				PULLUP_LEN(hlen, ulp,
+				    sizeof(struct etherip_header) +
+				    sizeof(struct ether_header));
 				break;
 
 			case IPPROTO_PFSYNC:

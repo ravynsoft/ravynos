@@ -134,6 +134,8 @@ static struct sysentvec elf32_freebsd_sysvec = {
 	.sv_trap	= NULL,
 	.sv_hwcap	= &elf32_hwcap,
 	.sv_hwcap2	= &elf32_hwcap2,
+	.sv_hwcap3	= NULL,
+	.sv_hwcap4	= NULL,
 	.sv_onexec_old	= exec_onexec_old,
 	.sv_onexit	= exit_onexit,
 	.sv_regset_begin = SET_BEGIN(__elfN(regset)),
@@ -193,7 +195,7 @@ freebsd32_fetch_syscall_args(struct thread *td)
 	register_t *ap;
 	struct syscall_args *sa;
 	int error, i, nap, narg;
-	unsigned int args[4];
+	unsigned int args[6];
 
 	nap = 4;
 	p = td->td_proc;

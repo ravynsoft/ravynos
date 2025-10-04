@@ -173,6 +173,11 @@ SYSCTL_BOOL(_net_inet6_ip6, OID_AUTO, source_address_validation,
     CTLFLAG_VNET | CTLFLAG_RW, &VNET_NAME(ip6_sav), true,
     "Drop incoming packets with source address that is a local address");
 
+SYSCTL_UINT(_net_inet6_ip6, OID_AUTO, temp_max_desync_factor,
+    CTLFLAG_RD | CTLFLAG_VNET,
+    &VNET_NAME(ip6_temp_max_desync_factor), 0,
+    "RFC 8981 max desync factor");
+
 #ifdef RSS
 static struct netisr_handler ip6_direct_nh = {
 	.nh_name = "ip6_direct",
@@ -262,7 +267,10 @@ ip6_vnet_init(void *arg __unused)
 	nd6_init();
 	frag6_init();
 
-	V_ip6_desync_factor = arc4random() % MAX_TEMP_DESYNC_FACTOR;
+	V_ip6_temp_max_desync_factor = TEMP_MAX_DESYNC_FACTOR_BASE +
+	    (V_ip6_temp_preferred_lifetime >> 2) +
+	    (V_ip6_temp_preferred_lifetime >> 3);
+	V_ip6_desync_factor = arc4random() % V_ip6_temp_max_desync_factor;
 
 	/* Skip global initialization stuff for non-default instances. */
 #ifdef VIMAGE
@@ -1189,8 +1197,8 @@ ip6_savecontrol_v4(struct inpcb *inp, struct mbuf *m, struct mbuf **mp,
 {
 	struct ip6_hdr *ip6 = mtod(m, struct ip6_hdr *);
 
-#ifdef SO_TIMESTAMP
-	if ((inp->inp_socket->so_options & SO_TIMESTAMP) != 0) {
+#if defined(SO_TIMESTAMP) && defined(SO_BINTIME)
+	if ((inp->inp_socket->so_options & (SO_TIMESTAMP | SO_BINTIME)) != 0) {
 		union {
 			struct timeval tv;
 			struct bintime bt;
@@ -1198,10 +1206,44 @@ ip6_savecontrol_v4(struct inpcb *inp, struct mbuf *m, struct mbuf **mp,
 		} t;
 		struct bintime boottimebin, bt1;
 		struct timespec ts1;
+		int ts_clock;
 		bool stamped;
 
+		ts_clock = inp->inp_socket->so_ts_clock;
 		stamped = false;
-		switch (inp->inp_socket->so_ts_clock) {
+
+		/*
+		 * Handle BINTIME first. We create the same output options
+		 * for both SO_BINTIME and the case where SO_TIMESTAMP is
+		 * set with the timestamp clock set to SO_TS_BINTIME.
+		 */
+		if ((inp->inp_socket->so_options & SO_BINTIME) != 0 ||
+		    ts_clock == SO_TS_BINTIME) {
+			if ((m->m_flags & (M_PKTHDR | M_TSTMP)) == (M_PKTHDR |
+			    M_TSTMP)) {
+				mbuf_tstmp2timespec(m, &ts1);
+				timespec2bintime(&ts1, &t.bt);
+				getboottimebin(&boottimebin);
+				bintime_add(&t.bt, &boottimebin);
+			} else {
+				bintime(&t.bt);
+			}
+			*mp = sbcreatecontrol(&t.bt, sizeof(t.bt), SCM_BINTIME,
+			    SOL_SOCKET, M_NOWAIT);
+			if (*mp != NULL) {
+				mp = &(*mp)->m_next;
+				stamped = true;
+			}
+
+			/*
+			 * Suppress other timestamps if SO_TIMESTAMP is not
+			 * set.
+			 */
+			if ((inp->inp_socket->so_options & SO_TIMESTAMP) == 0)
+				ts_clock = SO_TS_BINTIME;
+		}
+
+		switch (ts_clock) {
 		case SO_TS_REALTIME_MICRO:
 			if ((m->m_flags & (M_PKTHDR | M_TSTMP)) == (M_PKTHDR |
 			    M_TSTMP)) {
@@ -1222,21 +1264,6 @@ ip6_savecontrol_v4(struct inpcb *inp, struct mbuf *m, struct mbuf **mp,
 			break;
 
 		case SO_TS_BINTIME:
-			if ((m->m_flags & (M_PKTHDR | M_TSTMP)) == (M_PKTHDR |
-			    M_TSTMP)) {
-				mbuf_tstmp2timespec(m, &ts1);
-				timespec2bintime(&ts1, &t.bt);
-				getboottimebin(&boottimebin);
-				bintime_add(&t.bt, &boottimebin);
-			} else {
-				bintime(&t.bt);
-			}
-			*mp = sbcreatecontrol(&t.bt, sizeof(t.bt), SCM_BINTIME,
-			    SOL_SOCKET, M_NOWAIT);
-			if (*mp != NULL) {
-				mp = &(*mp)->m_next;
-				stamped = true;
-			}
 			break;
 
 		case SO_TS_REALTIME:

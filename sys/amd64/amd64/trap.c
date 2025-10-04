@@ -37,7 +37,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 /*
  * AMD64 Trap and System call handling
  */
@@ -87,9 +86,7 @@ PMC_SOFT_DEFINE( , , page_fault, write);
 #include <x86/mca.h>
 #include <machine/md_var.h>
 #include <machine/pcb.h>
-#ifdef SMP
 #include <machine/smp.h>
-#endif
 #include <machine/stack.h>
 #include <machine/trap.h>
 #include <machine/tss.h>
@@ -162,6 +159,9 @@ static int uprintf_signal;
 SYSCTL_INT(_machdep, OID_AUTO, uprintf_signal, CTLFLAG_RWTUN,
     &uprintf_signal, 0,
     "Print debugging information on trap signal to ctty");
+
+u_long cnt_efirt_faults;
+int print_efirt_faults = 1;
 
 /*
  * Control L1D flush on return from NMI.
@@ -431,8 +431,14 @@ trap(struct trapframe *frame)
 		 */
 		if ((td->td_pflags & TDP_EFIRT) != 0 &&
 		    curpcb->pcb_onfault != NULL && type != T_PAGEFLT) {
-			trap_diag(frame, 0);
-			printf("EFI RT fault %s\n", traptype_to_msg(type));
+			u_long cnt = atomic_fetchadd_long(&cnt_efirt_faults, 1);
+
+			if ((print_efirt_faults == 1 && cnt == 0) ||
+			    print_efirt_faults == 2) {
+				trap_diag(frame, 0);
+				printf("EFI RT fault %s\n",
+				    traptype_to_msg(type));
+			}
 			frame->tf_rip = (long)curpcb->pcb_onfault;
 			return;
 		}
@@ -760,7 +766,7 @@ trap_pfault(struct trapframe *frame, bool usermode, int *signo, int *ucode)
 			return (-1);
 		}
 	}
-	if (eva >= VM_MIN_KERNEL_ADDRESS) {
+	if (eva >= kva_layout.km_low) {
 		/*
 		 * Don't allow user-mode faults in kernel address space.
 		 */
@@ -860,8 +866,13 @@ after_vmfault:
 	if (td->td_intr_nesting_level == 0 &&
 	    curpcb->pcb_onfault != NULL) {
 		if ((td->td_pflags & TDP_EFIRT) != 0) {
-			trap_diag(frame, eva);
-			printf("EFI RT page fault\n");
+			u_long cnt = atomic_fetchadd_long(&cnt_efirt_faults, 1);
+
+			if ((print_efirt_faults == 1 && cnt == 0) ||
+			    print_efirt_faults == 2) {
+				trap_diag(frame, eva);
+				printf("EFI RT page fault\n");
+			}
 		}
 		frame->tf_rip = (long)curpcb->pcb_onfault;
 		return (0);
@@ -886,11 +897,9 @@ trap_diag(struct trapframe *frame, vm_offset_t eva)
 	printf("\n\nFatal trap %d: %s while in %s mode\n", type,
 	    type < nitems(trap_msg) ? trap_msg[type] : UNKNOWN,
 	    TRAPF_USERMODE(frame) ? "user" : "kernel");
-#ifdef SMP
-	/* two separate prints in case of a trap on an unmapped page */
-	printf("cpuid = %d; ", PCPU_GET(cpuid));
-	printf("apic id = %02x\n", PCPU_GET(apic_id));
-#endif
+	/* Print these separately in case pcpu accesses trap. */
+	printf("cpuid = %d; apic id = %02x\n", PCPU_GET(cpuid),
+	    PCPU_GET(apic_id));
 	if (type == T_PAGEFLT) {
 		printf("fault virtual address	= 0x%lx\n", eva);
 		printf("fault code		= %s %s %s%s%s, %s\n",
@@ -1011,11 +1020,9 @@ dblfault_handler(struct trapframe *frame)
 	    frame->tf_cs, frame->tf_ss, frame->tf_ds, frame->tf_es,
 	    frame->tf_fs, frame->tf_gs,
 	    rdmsr(MSR_FSBASE), rdmsr(MSR_GSBASE), rdmsr(MSR_KGSBASE));
-#ifdef SMP
-	/* two separate prints in case of a trap on an unmapped page */
-	printf("cpuid = %d; ", PCPU_GET(cpuid));
-	printf("apic id = %02x\n", PCPU_GET(apic_id));
-#endif
+	/* Print these separately in case pcpu accesses trap. */
+	printf("cpuid = %d; apic id = %02x\n", PCPU_GET(cpuid),
+	    PCPU_GET(apic_id));
 	panic("double fault");
 }
 

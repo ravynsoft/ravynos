@@ -10,4 +10,3 @@ SRCS+=	_ctx_start.S \
 	setjmp.S \
 	sigsetjmp.S \
 	trivial-getcontextx.c
-

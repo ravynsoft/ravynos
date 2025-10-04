@@ -30,6 +30,8 @@
             ..
             ucl
             ..
+            yaml
+            ..
             zstd
             ..
         ..
@@ -81,12 +83,26 @@
         ..
         i18n
         ..
+        krb5
+            kdb
+            ..
+            plugins
+                kdb
+                ..
+                preauth
+                ..
+                tls
+                ..
+            ..
+        ..
         libxo
             encoder
             ..
         ..
         ossl-modules
         ..
+	virtual_oss
+	..
     ..
     libdata
         ldscripts
@@ -253,6 +269,8 @@
         ..
         dtrace
         ..
+        et
+        ..
         examples
             BSD_daemon
             ..
@@ -270,8 +288,6 @@
             ..
             dma
             ..
-            drivers
-            ..
             dwatch
             ..
             etc
@@ -287,6 +303,8 @@
             hostapd
             ..
             indent
+            ..
+            inotify
             ..
             ipfilter
             ..

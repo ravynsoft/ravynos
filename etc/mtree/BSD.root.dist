@@ -38,7 +38,7 @@
         zfs
         ..
     ..
-    dev             mode=0555
+    dev             mode=0555 tags=package=runtime
     ..
     etc
         X11
@@ -98,16 +98,16 @@
         ssh
         ..
         ssl
-            certs
+            certs		tags=package=caroot
             ..
-            untrusted
+            untrusted		tags=package=caroot
             ..
         ..
         sysctl.kld.d
         ..
         syslog.d
         ..
-        zfs
+        zfs			tags=package=zfs
             compatibility.d
             ..
         ..
@@ -122,21 +122,21 @@
         resolvconf
         ..
     ..
-    media
+    media           tags=package=runtime
     ..
-    mnt
+    mnt             tags=package=runtime
     ..
-    net
+    net             tags=package=autofs
     ..
-    proc            mode=0555
+    proc            mode=0555 tags=package=runtime
     ..
-    rescue
+    rescue          tags=package=rescue
     ..
     root            mode=0750
     ..
     sbin
     ..
-    tmp             mode=01777
+    tmp             mode=01777 tags=package=runtime
     ..
     usr
     ..

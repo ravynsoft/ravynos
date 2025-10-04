@@ -174,12 +174,6 @@ vm_map_entry_system_wired_count(vm_map_entry_t entry)
 {
 	return (entry->wired_count - vm_map_entry_user_wired_count(entry));
 }
-
-int
-vm_map_clip_start(vm_map_t map, vm_map_entry_t entry, vm_offset_t startaddr);
-
-int
-vm_map_clip_end(vm_map_t map, vm_map_entry_t entry, vm_offset_t endaddr);
 #endif	/* _KERNEL */
 
 /*
@@ -515,8 +509,6 @@ vm_map_entry_first(vm_map_t map)
 
 	return (map->header.right);
 }
-
-vm_map_entry_t vm_map_entry_pred(vm_map_entry_t entry);
 
 static inline vm_map_entry_t
 vm_map_entry_succ(vm_map_entry_t entry)

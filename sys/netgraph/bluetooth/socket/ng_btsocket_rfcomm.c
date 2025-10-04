@@ -113,7 +113,7 @@ static void ng_btsocket_rfcomm_connect_cfm
 
 static int ng_btsocket_rfcomm_session_create
 	(ng_btsocket_rfcomm_session_p *sp, struct socket *l2so,
-	 bdaddr_p src, bdaddr_p dst, struct thread *td);
+	 const bdaddr_t *src, const bdaddr_t *dst, struct thread *td);
 static int ng_btsocket_rfcomm_session_accept
 	(ng_btsocket_rfcomm_session_p s0);
 static int ng_btsocket_rfcomm_session_connect
@@ -384,7 +384,7 @@ ng_btsocket_rfcomm_attach(struct socket *so, int proto, struct thread *td)
 	if (so->so_type != SOCK_STREAM)
 		return (ESOCKTNOSUPPORT);
 
-#if 0 /* XXX sonewconn() calls "pru_attach" with proto == 0 */
+#if 0 /* XXX sonewconn() calls pr_attach() with proto == 0 */
 	if (proto != 0) 
 		if (proto != BLUETOOTH_PROTO_RFCOMM)
 			return (EPROTONOSUPPORT);
@@ -1250,7 +1250,7 @@ ng_btsocket_rfcomm_connect_cfm(ng_btsocket_rfcomm_session_p s)
 
 static int
 ng_btsocket_rfcomm_session_create(ng_btsocket_rfcomm_session_p *sp,
-		struct socket *l2so, bdaddr_p src, bdaddr_p dst,
+		struct socket *l2so, const bdaddr_t *src, const bdaddr_t *dst,
 		struct thread *td)
 {
 	ng_btsocket_rfcomm_session_p	s = NULL;

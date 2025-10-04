@@ -38,7 +38,6 @@
 #include <sys/cons.h>
 #include <sys/cpu.h>
 #include <sys/csan.h>
-#include <sys/devmap.h>
 #include <sys/efi.h>
 #include <sys/efi_map.h>
 #include <sys/exec.h>
@@ -174,16 +173,20 @@ SYSINIT(ssp_warn, SI_SUB_COPYRIGHT, SI_ORDER_ANY, print_ssp_warning, NULL);
 SYSINIT(ssp_warn2, SI_SUB_LAST, SI_ORDER_ANY, print_ssp_warning, NULL);
 #endif
 
-static bool
+static cpu_feat_en
 pan_check(const struct cpu_feat *feat __unused, u_int midr __unused)
 {
 	uint64_t id_aa64mfr1;
 
-	id_aa64mfr1 = READ_SPECIALREG(id_aa64mmfr1_el1);
-	return (ID_AA64MMFR1_PAN_VAL(id_aa64mfr1) != ID_AA64MMFR1_PAN_NONE);
+	if (!get_kernel_reg(ID_AA64MMFR1_EL1, &id_aa64mfr1))
+		return (FEAT_ALWAYS_DISABLE);
+	if (ID_AA64MMFR1_PAN_VAL(id_aa64mfr1) == ID_AA64MMFR1_PAN_NONE)
+		return (FEAT_ALWAYS_DISABLE);
+
+	return (FEAT_DEFAULT_ENABLE);
 }
 
-static void
+static bool
 pan_enable(const struct cpu_feat *feat __unused,
     cpu_feat_errata errata_status __unused, u_int *errata_list __unused,
     u_int errata_count __unused)
@@ -201,15 +204,20 @@ pan_enable(const struct cpu_feat *feat __unused,
 	    ".arch_extension pan	\n"
 	    "msr pan, #1		\n"
 	    ".arch_extension nopan	\n");
+
+	return (true);
 }
 
-static struct cpu_feat feat_pan = {
-	.feat_name		= "FEAT_PAN",
-	.feat_check		= pan_check,
-	.feat_enable		= pan_enable,
-	.feat_flags		= CPU_FEAT_EARLY_BOOT | CPU_FEAT_PER_CPU,
-};
-DATA_SET(cpu_feat_set, feat_pan);
+static void
+pan_disabled(const struct cpu_feat *feat __unused)
+{
+	if (PCPU_GET(cpuid) == 0)
+		update_special_reg(ID_AA64MMFR1_EL1, ID_AA64MMFR1_PAN_MASK, 0);
+}
+
+CPU_FEAT(feat_pan, "Privileged access never",
+    pan_check, NULL, pan_enable, pan_disabled,
+    CPU_FEAT_AFTER_DEV | CPU_FEAT_PER_CPU);
 
 bool
 has_hyp(void)
@@ -264,7 +272,9 @@ late_ifunc_resolve(void *dummy __unused)
 {
 	link_elf_late_ireloc();
 }
-SYSINIT(late_ifunc_resolve, SI_SUB_CPU, SI_ORDER_ANY, late_ifunc_resolve, NULL);
+/* Late enough for cpu_feat to have completed */
+SYSINIT(late_ifunc_resolve, SI_SUB_CONFIGURE, SI_ORDER_ANY,
+    late_ifunc_resolve, NULL);
 
 int
 cpu_idle_wakeup(int cpu)
@@ -502,16 +512,18 @@ efi_early_map(vm_offset_t va)
 
 
 /*
- * When booted via kboot, the prior kernel will pass in reserved memory areas in
- * a EFI config table. We need to find that table and walk through it excluding
- * the memory ranges in it. btw, this is called too early for the printf to do
- * anything since msgbufp isn't initialized, let alone a console...
+ * When booted via kexec from Linux, the prior kernel will pass in reserved
+ * memory areas in an EFI config table. We need to find that table and walk
+ * through it excluding the memory ranges in it. btw, this is called too early
+ * for the printf to do anything (unless EARLY_PRINTF is defined) since msgbufp
+ * isn't initialized, let alone a console, but breakpoints in printf help
+ * diagnose rare failures.
  */
 static void
 exclude_efi_memreserve(vm_paddr_t efi_systbl_phys)
 {
 	struct efi_systbl *systbl;
-	struct uuid efi_memreserve = LINUX_EFI_MEMRESERVE_TABLE;
+	efi_guid_t efi_memreserve = LINUX_EFI_MEMRESERVE_TABLE;
 
 	systbl = (struct efi_systbl *)PHYS_TO_DMAP(efi_systbl_phys);
 	if (systbl == NULL) {
@@ -540,7 +552,7 @@ exclude_efi_memreserve(vm_paddr_t efi_systbl_phys)
 		cfgtbl = efi_early_map(systbl->st_cfgtbl + i * sizeof(*cfgtbl));
 		if (cfgtbl == NULL)
 			panic("Can't map the config table entry %d\n", i);
-		if (memcmp(&cfgtbl->ct_uuid, &efi_memreserve, sizeof(struct uuid)) != 0)
+		if (memcmp(&cfgtbl->ct_guid, &efi_memreserve, sizeof(efi_guid_t)) != 0)
 			continue;
 
 		/*
@@ -722,6 +734,21 @@ memory_mapping_mode(vm_paddr_t pa)
 	return (VM_MEMATTR_DEVICE);
 }
 
+#ifdef FDT
+static void
+fdt_physmem_hardware_region_cb(const struct mem_region *mr, void *arg __unused)
+{
+	physmem_hardware_region(mr->mr_start, mr->mr_size);
+}
+
+static void
+fdt_physmem_exclude_region_cb(const struct mem_region *mr, void *arg __unused)
+{
+	physmem_exclude_region(mr->mr_start, mr->mr_size,
+	    EXFLAG_NODUMP | EXFLAG_NOALLOC);
+}
+#endif
+
 void
 initarm(struct arm64_bootparams *abp)
 {
@@ -729,8 +756,6 @@ initarm(struct arm64_bootparams *abp)
 	struct pcpu *pcpup;
 	char *env;
 #ifdef FDT
-	struct mem_region mem_regions[FDT_MEM_REGIONS];
-	int mem_regions_sz;
 	phandle_t root;
 	char dts_version[255];
 #endif
@@ -781,14 +806,11 @@ initarm(struct arm64_bootparams *abp)
 #ifdef FDT
 	else {
 		/* Grab physical memory regions information from device tree. */
-		if (fdt_get_mem_regions(mem_regions, &mem_regions_sz,
+		if (fdt_foreach_mem_region(fdt_physmem_hardware_region_cb,
 		    NULL) != 0)
 			panic("Cannot get physical memory regions");
-		physmem_hardware_regions(mem_regions, mem_regions_sz);
 	}
-	if (fdt_get_reserved_mem(mem_regions, &mem_regions_sz) == 0)
-		physmem_exclude_regions(mem_regions, mem_regions_sz,
-		    EXFLAG_NODUMP | EXFLAG_NOALLOC);
+	fdt_foreach_reserved_mem(fdt_physmem_exclude_region_cb, NULL);
 #endif
 
 	/* Exclude the EFI framebuffer from our view of physical memory. */
@@ -803,14 +825,29 @@ initarm(struct arm64_bootparams *abp)
 
 	cache_setup();
 
-	/* Bootstrap enough of pmap  to enter the kernel proper */
-	pmap_bootstrap(lastaddr - KERNBASE);
-	/* Exclude entries needed in the DMAP region, but not phys_avail */
+	/*
+	 * Perform a staged bootstrap of virtual memory.
+	 *
+	 * - First we create the DMAP region. This allows it to be used in
+	 *   later bootstrapping.
+	 * - Next exclude memory that is needed in the DMAP region, but must
+	 *   not be used by FreeBSD.
+	 * - Lastly complete the bootstrapping. It may use the physical
+	 *   memory map so any excluded memory must be marked as such before
+	 *   pmap_bootstrap() is called.
+	 */
+	pmap_bootstrap_dmap(lastaddr - KERNBASE);
+	/*
+	 * Exclude EFI entries needed in the DMAP, e.g. EFI_MD_TYPE_RECLAIM
+	 * may contain the ACPI tables but shouldn't be used by the kernel
+	 */
 	if (efihdr != NULL)
 		efi_map_exclude_entries(efihdr);
 	/*  Do the same for reserve entries in the EFI MEMRESERVE table */
 	if (efi_systbl_phys != 0)
 		exclude_efi_memreserve(efi_systbl_phys);
+	/* Continue bootstrapping pmap */
+	pmap_bootstrap();
 
 	/*
 	 * We carefully bootstrap the sanitizer map after we've excluded
@@ -825,13 +862,11 @@ initarm(struct arm64_bootparams *abp)
 
 	physmem_init_kernel_globals();
 
-	devmap_bootstrap();
-
 	valid = bus_probe();
 
 	cninit();
 	set_ttbr0(abp->kern_ttbr0);
-	cpu_tlb_flushID();
+	pmap_s1_invalidate_all_kernel();
 
 	if (!valid)
 		panic("Invalid bus configuration: %s",

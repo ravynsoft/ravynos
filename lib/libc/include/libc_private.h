@@ -249,7 +249,7 @@ enum {
 	INTERPOS_map_stacks_exec,
 	INTERPOS_fdatasync,
 	INTERPOS_clock_nanosleep,
-	INTERPOS_reserved0, /* was distribute_static_tls */
+	INTERPOS__reserved0, /* was distribute_static_tls */
 	INTERPOS_pdfork,
 	INTERPOS_uexterr_gettext,
 	INTERPOS_MAX

@@ -27,10 +27,12 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#define _WANT_P_OSREL
 #include "namespace.h"
 #include <sys/types.h>
 #include <sys/rtprio.h>
 #include <sys/signalvar.h>
+#include <sys/exterrvar.h>
 #include <errno.h>
 #include <link.h>
 #include <stdlib.h>
@@ -43,8 +45,12 @@
 #include "libc_private.h"
 #include "thr_private.h"
 
+int __getosreldate(void);
+
 static int  create_stack(struct pthread_attr *pattr);
 static void thread_start(struct pthread *curthread);
+
+int __thr_new_flags = THR_C_RUNTIME;
 
 __weak_reference(_pthread_create, pthread_create);
 
@@ -160,7 +166,7 @@ _pthread_create(pthread_t * __restrict thread,
 	param.tls_size = sizeof(struct tcb);
 	param.child_tid = &new_thread->tid;
 	param.parent_tid = &new_thread->tid;
-	param.flags = 0;
+	param.flags = __thr_new_flags;
 	if (new_thread->attr.flags & PTHREAD_SCOPE_SYSTEM)
 		param.flags |= THR_SYSTEM_SCOPE;
 	if (new_thread->attr.sched_inherit == PTHREAD_INHERIT_SCHED)
@@ -284,6 +290,10 @@ thread_start(struct pthread *curthread)
 	curthread->unwind_stackend = (char *)curthread->attr.stackaddr_attr +
 		curthread->attr.stacksize_attr;
 #endif
+
+	curthread->uexterr.ver = UEXTERROR_VER;
+	if (__getosreldate() >= P_OSREL_EXTERRCTL)
+		exterrctl(EXTERRCTL_ENABLE, 0, &curthread->uexterr);
 
 	/* Run the current thread's start routine with argument: */
 	_pthread_exit(curthread->start_routine(curthread->arg));

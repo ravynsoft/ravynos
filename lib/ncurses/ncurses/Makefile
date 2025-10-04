@@ -1,4 +1,3 @@
-PACKAGE=	clibs
 SHLIBDIR?=	/lib
 
 .include <src.opts.mk>
@@ -7,8 +6,6 @@ SHLIBDIR?=	/lib
 
 LIB=		ncursesw
 SHLIB_MAJOR=	9
-
-NO_LINT=
 
 GENSRCS=	\
 	expanded.c \

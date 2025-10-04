@@ -51,9 +51,11 @@ case $(uname) in
 	else
 	    die "Can't find the make wrapper"
 	fi
+	qemu_bin=/opt/homebrew/bin
 	;;
     FreeBSD)
 	MAKE=make
+	qemu_bin=/usr/local/bin
 	;;
     # linux) not yet
     *)
@@ -71,12 +73,6 @@ MTREE=$(SHELL="which mtree" ${MAKE} ${DEFARCH} buildenv | tail -1) || die "No mt
 
 # MAKE=$(SHELL="which make" ${MAKE} ${DEFARCH} buildenv | tail -1) || die "No make, try buildworld first"
 
-# hack -- I have extra junk in my qemu, but it's not needed to recreate things
-if [ $(whoami) = imp ]; then
-    qemu_bin=/home/imp/git/qemu/00-build
-else
-    qemu_bin=/usr/local/bin
-fi
 
 # All the architectures under test
 # Note: we can't yet do armv7 because we don't have a good iso for it and would
@@ -163,9 +159,8 @@ make_minimal_freebsd_tree()
     # Pretend we don't have a separate /usr
     ln -s . ${dir}/usr
     # snag the binaries for my simple /etc/rc file
-    tar -C ${dir} -xf ${CACHE}/$file sbin/reboot sbin/halt sbin/init bin/sh sbin/sysctl \
-	lib/libncursesw.so.9 lib/libc.so.7 lib/libedit.so.8 libexec/ld-elf.so.1
-
+    tar -C ${dir} -xf ${CACHE}/$file sbin/fastboot sbin/reboot sbin/halt sbin/init bin/sh sbin/sysctl \
+	lib/libtinfow.so.9 lib/libncursesw.so.9 lib/libc.so.7 lib/libedit.so.8 libexec/ld-elf.so.1
     # My simple etc/rc
     cat > ${dir}/etc/rc <<EOF
 #!/bin/sh
@@ -213,6 +208,10 @@ autoboot_delay=2
 zfs_load="YES"
 boot_verbose=yes
 kern.cfg.order="acpi,fdt"
+boot_serial="YES"
+hw.uart.console="io:1016,br:115200"
+vfs.root.mountfrom="ufs:/dev/ufs/root"
+vfs.root.mountfrom.options="rw"
 EOF
 }
 
@@ -366,7 +365,7 @@ make_linuxboot_scripts()
 		if [ ${bios_code} -ot /usr/local/share/qemu/edk2-x86_64-code.fd ]; then
 		    cp /usr/local/share/qemu/edk2-x86_64-code.fd ${bios_code}
 		    # vars file works on both 32 and 64 bit x86
-		    cp /usr/local/share/qemu/edk2-i386-vars.fd ${bios_vars}
+#		    cp /usr/local/share/qemu/edk2-i386-vars.fd ${bios_vars}
 		fi
 		;;
 	    aarch64)
@@ -448,7 +447,8 @@ EOF
 make_freebsd_esps()
 {
     # At the moment, we have just three (armv7 could also be here too, but we're not doing that)
-    for a in amd64:amd64 arm64:aarch64 riscv:riscv64; do
+#   for a in amd64:amd64 arm64:aarch64 riscv:riscv64; do
+    for a in amd64:amd64 arm64:aarch64; do
 	m=${a%%:*}
 	ma=${a##*:}
 	ma_combo="${m}"
@@ -470,7 +470,8 @@ make_freebsd_images()
 {
     # ESP variant: In this variant, riscv, amd64 and arm64 are created more or
     # less the same way. UEFI + ACPI implementations
-    for a in amd64:amd64 arm64:aarch64 riscv:riscv64; do
+#   for a in amd64:amd64 arm64:aarch64 riscv:riscv64; do
+    for a in amd64:amd64 arm64:aarch64; do
 	m=${a%%:*}
 	ma=${a##*:}
 	ma_combo="${m}"
@@ -495,6 +496,7 @@ EOF
 
     set -x
 
+if false; then
     # BIOS i386
     a=i386:i386
     m=${a%%:*}
@@ -541,6 +543,7 @@ EOF
         -p freebsd-boot:=${dir2}/boot/boot1.hfs \
         -p freebsd-ufs:=${ufs} \
         -o ${img}
+fi
 
     set +x
 }
@@ -562,7 +565,7 @@ make_freebsd_scripts()
 		if [ ${bios_code} -ot /usr/local/share/qemu/edk2-x86_64-code.fd ]; then
 		    cp /usr/local/share/qemu/edk2-x86_64-code.fd ${bios_code}
 		    # vars file works on both 32 and 64 bit x86
-		    cp /usr/local/share/qemu/edk2-i386-vars.fd ${bios_vars}
+#		    cp /usr/local/share/qemu/edk2-i386-vars.fd ${bios_vars}
 		fi
 		;;
 	    aarch64)
@@ -609,6 +612,7 @@ EOF
 	esac
     done
 
+if false; then
     set -x
     a=powerpc:powerpc
     m=${a%%:*}
@@ -644,6 +648,7 @@ ${qemu_bin}/qemu-system-i386 -m 1g \\
         -monitor telnet::4444,server,nowait \\
         -serial stdio \$*
 EOF
+fi
 }
 
 # The smallest FAT32 filesystem is 33292 KB

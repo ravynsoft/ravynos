@@ -39,8 +39,21 @@ cleanup() {
 }
 
 metalog_add_data() {
+	local file mode type
+
 	if [ -n "${NO_ROOT}" ]; then
-		echo "$1 type=file uname=root gname=wheel mode=0644" >> \
+		file=$1
+		if [ -f ${DESTDIR}/${file} ]; then
+			type=file
+			mode=${2:-0644}
+		elif [ -d ${DESTDIR}/${file} ]; then
+			type=dir
+			mode=${2:-0755}
+		else
+			echo "metalog_add_data: ${file} not found" >&2
+			return 1
+		fi
+		echo "${file} type=${type} uname=root gname=wheel mode=${mode}" >> \
 		    ${DESTDIR}/METALOG
 	fi
 }
@@ -57,13 +70,44 @@ vm_copy_base() {
 	return 0
 }
 
+vm_filter_base_packages() {
+	# Reads a list of all base system packages from stdin.
+	# Writes a list of base system packages to install to stdout.
+	grep -v -e '^FreeBSD-src.*' -e '^FreeBSD-kernel.*'
+	# There are several kernel variants available in separate packages.
+	# For VMs it is sufficient to install only the generic kernel.
+	echo "FreeBSD-kernel-man"
+	echo "FreeBSD-kernel-generic"
+	echo "FreeBSD-kernel-generic-dbg"
+}
+
+vm_extra_filter_base_packages() {
+	# Prototype. When overridden, allows further filtering of base system
+	# packages, reading package names from stdin and writing to stdout.
+	cat
+}
+
 vm_install_base() {
 	# Installs the FreeBSD userland/kernel to the virtual machine disk.
 
-	cd ${WORLDDIR} && \
-		make DESTDIR=${DESTDIR} ${INSTALLOPTS} \
-		installworld installkernel distribution || \
-		err "\n\nCannot install the base system to ${DESTDIR}."
+	if [ -z "${NOPKGBASE}" ]; then
+		local pkg_cmd
+		pkg_cmd="pkg --rootdir ${DESTDIR} --repo-conf-dir ${PKGBASE_REPO_DIR}
+			-o ASSUME_ALWAYS_YES=yes -o IGNORE_OSVERSION=yes
+			-o ABI=${PKG_ABI} -o INSTALL_AS_USER=yes "
+		if [ -n "${NO_ROOT}" ]; then
+			pkg_cmd="$pkg_cmd -o METALOG=METALOG"
+		fi
+		$pkg_cmd update
+		selected=$($pkg_cmd rquery -U -r FreeBSD-base %n | \
+			vm_filter_base_packages | vm_extra_filter_base_packages)
+		$pkg_cmd install -U -r FreeBSD-base $selected
+	else
+		cd ${WORLDDIR} && \
+			make DESTDIR=${DESTDIR} ${INSTALLOPTS} \
+			installworld installkernel distribution || \
+			err "\n\nCannot install the base system to ${DESTDIR}."
+	fi
 
 	# Bootstrap etcupdate(8) database.
 	mkdir -p ${DESTDIR}/var/db/etcupdate
@@ -82,7 +126,7 @@ vm_install_base() {
 	echo '# Custom /etc/fstab for FreeBSD VM images' \
 		> ${DESTDIR}/etc/fstab
 	if [ "${VMFS}" != zfs ]; then
-		echo "/dev/${ROOTLABEL}/rootfs   /       ${VMFS}   rw      1       1" \
+		echo "/dev/${ROOTLABEL}/rootfs   /       ${VMFS}   rw,noatime      1       1" \
 			>> ${DESTDIR}/etc/fstab
 	fi
 	if [ -z "${NOSWAP}" ]; then
@@ -144,26 +188,39 @@ vm_extra_enable_services() {
 			${DESTDIR}/etc/rc.conf
 		# Expand the filesystem to fill the disk.
 		echo 'growfs_enable="YES"' >> ${DESTDIR}/etc/rc.conf
-		touch ${DESTDIR}/firstboot
 	fi
 
 	return 0
 }
 
 vm_extra_install_packages() {
-	if [ -n "${WITHOUT_QEMU}" ]; then
-		return 0
-	fi
-
 	if [ -z "${VM_EXTRA_PACKAGES}" ]; then
 		return 0
 	fi
-	chroot ${DESTDIR} ${EMULATOR} env ASSUME_ALWAYS_YES=yes \
-		/usr/sbin/pkg bootstrap -y
-	for p in ${VM_EXTRA_PACKAGES}; do
+	if [ -n "${NO_ROOT}" ]; then
+		for pkg in ${VM_EXTRA_PACKAGES}; do
+			INSTALL_AS_USER=yes \
+			${PKG_CMD} \
+			    -o ABI=${PKG_ABI} \
+			    -o METALOG=${DESTDIR}/METALOG.pkg \
+			    -o REPOS_DIR=${PKG_REPOS_DIR} \
+			    -o PKG_DBDIR=${DESTDIR}/var/db/pkg \
+			    -r ${DESTDIR} \
+			    install -y -r ${PKG_REPO_NAME} $pkg
+		done
+		metalog_add_data ./var/db/pkg/local.sqlite
+	else
+		if [ -n "${WITHOUT_QEMU}" ]; then
+			return 0
+		fi
+
 		chroot ${DESTDIR} ${EMULATOR} env ASSUME_ALWAYS_YES=yes \
-			/usr/sbin/pkg install -y ${p}
-	done
+			/usr/sbin/pkg bootstrap -y
+		for p in ${VM_EXTRA_PACKAGES}; do
+			chroot ${DESTDIR} ${EMULATOR} env ASSUME_ALWAYS_YES=yes \
+				/usr/sbin/pkg install -y ${p}
+		done
+	fi
 
 	return 0
 }
@@ -196,9 +253,16 @@ vm_emulation_cleanup() {
 }
 
 vm_extra_pkg_rmcache() {
-	if [ -e ${DESTDIR}/usr/local/sbin/pkg ]; then
-		chroot ${DESTDIR} ${EMULATOR} env ASSUME_ALWAYS_YES=yes \
-			/usr/local/sbin/pkg clean -y -a
+	if [ -n "${NO_ROOT}" ]; then
+		${PKG_CMD} \
+		    -o ASSUME_ALWAYS_YES=yes \
+		    -r ${DESTDIR} \
+		    clean -y -a
+	else
+		if [ -e ${DESTDIR}/usr/local/sbin/pkg ]; then
+			chroot ${DESTDIR} ${EMULATOR} env ASSUME_ALWAYS_YES=yes \
+			    /usr/local/sbin/pkg clean -y -a
+		fi
 	fi
 
 	return 0
@@ -206,6 +270,10 @@ vm_extra_pkg_rmcache() {
 
 buildfs() {
 	local md tmppool
+
+	if [ -f ${DESTDIR}/METALOG.pkg ]; then
+		cat ${DESTDIR}/METALOG.pkg >> ${DESTDIR}/METALOG
+	fi
 
 	case "${VMFS}" in
 	ufs)
@@ -338,6 +406,11 @@ vm_create_disk() {
 			>> ${DESTDIR}/etc/fstab
 	fi
 
+	# Add a marker file which indicates that this image has never
+	# been booted.  Some services run only upon the first boot.
+	touch ${DESTDIR}/firstboot
+	metalog_add_data ./firstboot
+
 	echo "Building filesystem...  Please wait."
 	buildfs
 
@@ -361,9 +434,4 @@ vm_create_disk() {
 vm_extra_create_disk() {
 
 	return 0
-}
-
-touch_firstboot() {
-	touch ${DESTDIR}/firstboot
-	metalog_add_data ./firstboot
 }

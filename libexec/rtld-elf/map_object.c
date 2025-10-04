@@ -25,7 +25,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define _WANT_P_OSREL
 #include <sys/param.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -43,8 +42,6 @@ static Elf_Ehdr *get_elf_header(int, const char *, const struct stat *,
     Elf_Phdr **phdr);
 static int convert_flags(int); /* Elf flags -> mmap flags */
 
-int __getosreldate(void);
-
 static bool
 phdr_in_zero_page(const Elf_Ehdr *hdr)
 {
@@ -60,7 +57,7 @@ phdr_in_zero_page(const Elf_Ehdr *hdr)
  * for the shared object.  Returns NULL on failure.
  */
 Obj_Entry *
-map_object(int fd, const char *path, const struct stat *sb)
+map_object(int fd, const char *path, const struct stat *sb, bool ismain)
 {
 	Obj_Entry *obj;
 	Elf_Ehdr *hdr;
@@ -204,8 +201,7 @@ map_object(int fd, const char *path, const struct stat *sb)
 	    segs[nsegs]->p_memsz);
 	mapsize = base_vlimit - base_vaddr;
 	base_addr = (caddr_t)base_vaddr;
-	base_flags = __getosreldate() >= P_OSREL_MAP_GUARD ?
-	    MAP_GUARD : MAP_PRIVATE | MAP_ANON | MAP_NOCORE;
+	base_flags = MAP_GUARD;
 	if (npagesizes > 1 &&  rtld_round_page(segs[0]->p_filesz) >=
 	    pagesizes[1])
 		base_flags |= MAP_ALIGNED_SUPER;
@@ -327,13 +323,17 @@ map_object(int fd, const char *path, const struct stat *sb)
 		obj->interp = (const char *)(obj->relocbase +
 		    phinterp->p_vaddr);
 	if (phtls != NULL) {
-		tls_dtv_generation++;
-		obj->tlsindex = ++tls_max_index;
+		if (ismain)
+			obj->tlsindex = 1;
+		else {
+			tls_dtv_generation++;
+			obj->tlsindex = ++tls_max_index;
+		}
 		obj->tlssize = phtls->p_memsz;
 		obj->tlsalign = phtls->p_align;
 		obj->tlspoffset = phtls->p_offset;
 		obj->tlsinitsize = phtls->p_filesz;
-		obj->tlsinit = mapbase + phtls->p_vaddr;
+		obj->tlsinit = obj->relocbase + phtls->p_vaddr;
 	}
 	obj->stack_flags = stack_flags;
 	if (note_start < note_end)

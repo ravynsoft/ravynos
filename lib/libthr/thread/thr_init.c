@@ -33,6 +33,7 @@
  * SUCH DAMAGE.
  */
 
+#define _WANT_P_OSREL
 #include "namespace.h"
 #include <sys/param.h>
 #include <sys/auxv.h>
@@ -59,6 +60,7 @@
 #include "libc_private.h"
 #include "thr_private.h"
 
+int		__getosreldate(void);
 char		*_usrstack;
 struct pthread	*_thr_initial;
 int		_libthr_debug;
@@ -168,7 +170,6 @@ STATIC_LIB_REQUIRE(_sem_trywait);
 STATIC_LIB_REQUIRE(_sem_wait);
 STATIC_LIB_REQUIRE(_sigaction);
 STATIC_LIB_REQUIRE(_sigprocmask);
-STATIC_LIB_REQUIRE(_sigsuspend);
 STATIC_LIB_REQUIRE(_sigtimedwait);
 STATIC_LIB_REQUIRE(_sigwait);
 STATIC_LIB_REQUIRE(_sigwaitinfo);
@@ -352,7 +353,7 @@ _libpthread_init(struct pthread *curthread)
 	_thread_active_threads = 1;
 
 	/* Setup the thread specific data */
-	_tcb_set(curthread->tcb);
+	__thr_setup_tsd(curthread);
 
 	if (first) {
 		_thr_initial = curthread;
@@ -432,6 +433,10 @@ init_main_thread(struct pthread *thread)
 #ifdef _PTHREAD_FORCED_UNWIND
 	thread->unwind_stackend = _usrstack;
 #endif
+
+	thread->uexterr.ver = UEXTERROR_VER;
+	if (__getosreldate() >= P_OSREL_EXTERRCTL)
+		exterrctl(EXTERRCTL_ENABLE, EXTERRCTLF_FORCE, &thread->uexterr);
 
 	/* Others cleared to zero by thr_alloc() */
 }

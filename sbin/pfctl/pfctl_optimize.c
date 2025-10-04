@@ -241,6 +241,8 @@ int	skip_cmp_src_addr(struct pfctl_rule *, struct pfctl_rule *);
 int	skip_cmp_src_port(struct pfctl_rule *, struct pfctl_rule *);
 int	superblock_inclusive(struct superblock *, struct pf_opt_rule *);
 void	superblock_free(struct pfctl *, struct superblock *);
+struct pf_opt_tbl *pf_opt_table_ref(struct pf_opt_tbl *);
+void	pf_opt_table_unref(struct pf_opt_tbl *);
 
 
 static int (*skip_comparitors[PF_SKIP_COUNT])(struct pfctl_rule *,
@@ -271,7 +273,10 @@ pfctl_optimize_ruleset(struct pfctl *pf, struct pfctl_ruleset *rs)
 	struct pfctl_rule *r;
 	struct pfctl_rulequeue *old_rules;
 
-	DEBUG("optimizing ruleset");
+	if (TAILQ_EMPTY(rs->rules[PF_RULESET_FILTER].active.ptr))
+		return (0);
+
+	DEBUG("optimizing ruleset \"%s\"", rs->anchor->path);
 	memset(&table_buffer, 0, sizeof(table_buffer));
 	skip_init();
 	TAILQ_INIT(&opt_queue);
@@ -345,9 +350,11 @@ pfctl_optimize_ruleset(struct pfctl *pf, struct pfctl_ruleset *rs)
 			TAILQ_INSERT_TAIL(
 			    rs->rules[PF_RULESET_FILTER].active.ptr,
 			    r, entries);
+			pf_opt_table_unref(por->por_src_tbl);
+			pf_opt_table_unref(por->por_dst_tbl);
 			free(por);
 		}
-		free(block);
+		superblock_free(pf, block);
 	}
 
 	return (0);
@@ -355,16 +362,8 @@ pfctl_optimize_ruleset(struct pfctl *pf, struct pfctl_ruleset *rs)
 error:
 	while ((por = TAILQ_FIRST(&opt_queue))) {
 		TAILQ_REMOVE(&opt_queue, por, por_entry);
-		if (por->por_src_tbl) {
-			pfr_buf_clear(por->por_src_tbl->pt_buf);
-			free(por->por_src_tbl->pt_buf);
-			free(por->por_src_tbl);
-		}
-		if (por->por_dst_tbl) {
-			pfr_buf_clear(por->por_dst_tbl->pt_buf);
-			free(por->por_dst_tbl->pt_buf);
-			free(por->por_dst_tbl);
-		}
+		pf_opt_table_unref(por->por_src_tbl);
+		pf_opt_table_unref(por->por_dst_tbl);
 		free(por);
 	}
 	while ((block = TAILQ_FIRST(&superblocks))) {
@@ -537,12 +536,14 @@ combine_rules(struct pfctl *pf, struct superblock *block)
 				if (add_opt_table(pf, &p1->por_dst_tbl,
 				    p1->por_rule.af, &p2->por_rule.dst))
 					return (1);
-				p2->por_dst_tbl = p1->por_dst_tbl;
 				if (p1->por_dst_tbl->pt_rulecount >=
 				    TABLE_THRESHOLD) {
 					TAILQ_REMOVE(&block->sb_rules, p2,
 					    por_entry);
 					free(p2);
+				} else {
+					p2->por_dst_tbl =
+					    pf_opt_table_ref(p1->por_dst_tbl);
 				}
 			} else if (!src_eq && dst_eq && p1->por_dst_tbl == NULL
 			    && p2->por_src_tbl == NULL &&
@@ -559,12 +560,14 @@ combine_rules(struct pfctl *pf, struct superblock *block)
 				if (add_opt_table(pf, &p1->por_src_tbl,
 				    p1->por_rule.af, &p2->por_rule.src))
 					return (1);
-				p2->por_src_tbl = p1->por_src_tbl;
 				if (p1->por_src_tbl->pt_rulecount >=
 				    TABLE_THRESHOLD) {
 					TAILQ_REMOVE(&block->sb_rules, p2,
 					    por_entry);
 					free(p2);
+				} else {
+					p2->por_src_tbl =
+					    pf_opt_table_ref(p1->por_src_tbl);
 				}
 			}
 		}
@@ -720,11 +723,7 @@ reorder_rules(struct pfctl *pf, struct superblock *block, int depth)
 	 * it based on a more optimal skipstep order.
 	 */
 	TAILQ_INIT(&head);
-	while ((por = TAILQ_FIRST(&block->sb_rules))) {
-		TAILQ_REMOVE(&block->sb_rules, por, por_entry);
-		TAILQ_INSERT_TAIL(&head, por, por_entry);
-	}
-
+	TAILQ_CONCAT(&head, &block->sb_rules, por_entry);
 
 	while (!TAILQ_EMPTY(&head)) {
 		largest = 1;
@@ -745,11 +744,7 @@ reorder_rules(struct pfctl *pf, struct superblock *block, int depth)
 			 * Nothing useful left.  Leave remaining rules in order.
 			 */
 			DEBUG("(%d) no more commonality for skip steps", depth);
-			while ((por = TAILQ_FIRST(&head))) {
-				TAILQ_REMOVE(&head, por, por_entry);
-				TAILQ_INSERT_TAIL(&block->sb_rules, por,
-				    por_entry);
-			}
+			TAILQ_CONCAT(&block->sb_rules, &head, por_entry);
 		} else {
 			/*
 			 * There is commonality.  Extract those common rules
@@ -860,10 +855,7 @@ block_feedback(struct pfctl *pf, struct superblock *block)
 	 */
 
 	TAILQ_INIT(&queue);
-	while ((por1 = TAILQ_FIRST(&block->sb_rules)) != NULL) {
-		TAILQ_REMOVE(&block->sb_rules, por1, por_entry);
-		TAILQ_INSERT_TAIL(&queue, por1, por_entry);
-	}
+	TAILQ_CONCAT(&queue, &block->sb_rules, por_entry);
 
 	while ((por1 = TAILQ_FIRST(&queue)) != NULL) {
 		TAILQ_REMOVE(&queue, por1, por_entry);
@@ -900,13 +892,13 @@ load_feedback_profile(struct pfctl *pf, struct superblocks *superblocks)
 	struct pf_opt_queue queue;
 	struct pfctl_rules_info rules;
 	struct pfctl_rule a, b, rule;
-	int nr, mnr;
+	int nr, mnr, ret;
 
 	TAILQ_INIT(&queue);
 	TAILQ_INIT(&prof_superblocks);
 
-	if (pfctl_get_rules_info_h(pf->h, &rules, PF_PASS, "")) {
-		warn("DIOCGETRULES");
+	if ((ret = pfctl_get_rules_info_h(pf->h, &rules, PF_PASS, "")) != 0) {
+		warnx("%s", pf_strerror(ret));
 		return (1);
 	}
 	mnr = rules.nr;
@@ -921,7 +913,8 @@ load_feedback_profile(struct pfctl *pf, struct superblocks *superblocks)
 
 		if (pfctl_get_rule_h(pf->h, nr, rules.ticket, "", PF_PASS,
 		    &rule, anchor_call)) {
-			warn("DIOCGETRULENV");
+			warnx("%s", pf_strerror(ret));
+			free(por);
 			return (1);
 		}
 		memcpy(&por->por_rule, &rule, sizeof(por->por_rule));
@@ -1249,12 +1242,13 @@ add_opt_table(struct pfctl *pf, struct pf_opt_tbl **tbl, sa_family_t af,
 		    ((*tbl)->pt_buf = calloc(1, sizeof(*(*tbl)->pt_buf))) ==
 		    NULL)
 			err(1, "calloc");
+		(*tbl)->pt_refcnt = 1;
 		(*tbl)->pt_buf->pfrb_type = PFRB_ADDRS;
 		SIMPLEQ_INIT(&(*tbl)->pt_nodes);
 
 		/* This is just a temporary table name */
 		snprintf((*tbl)->pt_name, sizeof((*tbl)->pt_name), "%s%d",
-		    PF_OPT_TABLE_PREFIX, tablenum++);
+		    PF_OPTIMIZER_TABLE_PFX, tablenum++);
 		DEBUG("creating table <%s>", (*tbl)->pt_name);
 	}
 
@@ -1265,7 +1259,7 @@ add_opt_table(struct pfctl *pf, struct pf_opt_tbl **tbl, sa_family_t af,
 #ifdef OPT_DEBUG
 	DEBUG("<%s> adding %s/%d", (*tbl)->pt_name, inet_ntop(af,
 	    &node_host.addr.v.a.addr, buf, sizeof(buf)),
-	    unmask(&node_host.addr.v.a.mask, af));
+	    unmask(&node_host.addr.v.a.mask));
 #endif /* OPT_DEBUG */
 
 	if (append_addr_host((*tbl)->pt_buf, &node_host, 0, 0)) {
@@ -1321,9 +1315,9 @@ pf_opt_create_table(struct pfctl *pf, struct pf_opt_tbl *tbl)
 	/* Now we have to pick a table name that isn't used */
 again:
 	DEBUG("translating temporary table <%s> to <%s%x_%d>", tbl->pt_name,
-	    PF_OPT_TABLE_PREFIX, table_identifier, tablenum);
+	    PF_OPTIMIZER_TABLE_PFX, table_identifier, tablenum);
 	snprintf(tbl->pt_name, sizeof(tbl->pt_name), "%s%x_%d",
-	    PF_OPT_TABLE_PREFIX, table_identifier, tablenum);
+	    PF_OPTIMIZER_TABLE_PFX, table_identifier, tablenum);
 	PFRB_FOREACH(t, &table_buffer) {
 		if (strcasecmp(t->pfrt_name, tbl->pt_name) == 0) {
 			/* Collision.  Try again */
@@ -1337,7 +1331,7 @@ again:
 
 
 	if (pfctl_define_table(tbl->pt_name, PFR_TFLAG_CONST, 1,
-	    pf->astack[0]->name, tbl->pt_buf, pf->astack[0]->ruleset.tticket)) {
+	    pf->astack[0]->path, tbl->pt_buf, pf->astack[0]->ruleset.tticket)) {
 		warn("failed to create table %s in %s",
 		    tbl->pt_name, pf->astack[0]->name);
 		return (1);
@@ -1600,8 +1594,8 @@ exclude_supersets(struct pfctl_rule *super, struct pfctl_rule *sub)
 	    sub->src.addr.type == PF_ADDR_ADDRMASK &&
 	    super->src.neg == sub->src.neg &&
 	    super->af == sub->af &&
-	    unmask(&super->src.addr.v.a.mask, super->af) <
-	    unmask(&sub->src.addr.v.a.mask, sub->af) &&
+	    unmask(&super->src.addr.v.a.mask) <
+	    unmask(&sub->src.addr.v.a.mask) &&
 	    super->src.addr.v.a.addr.addr32[0] ==
 	    (sub->src.addr.v.a.addr.addr32[0] &
 	    super->src.addr.v.a.mask.addr32[0]) &&
@@ -1628,8 +1622,8 @@ exclude_supersets(struct pfctl_rule *super, struct pfctl_rule *sub)
 	    sub->dst.addr.type == PF_ADDR_ADDRMASK &&
 	    super->dst.neg == sub->dst.neg &&
 	    super->af == sub->af &&
-	    unmask(&super->dst.addr.v.a.mask, super->af) <
-	    unmask(&sub->dst.addr.v.a.mask, sub->af) &&
+	    unmask(&super->dst.addr.v.a.mask) <
+	    unmask(&sub->dst.addr.v.a.mask) &&
 	    super->dst.addr.v.a.addr.addr32[0] ==
 	    (sub->dst.addr.v.a.addr.addr32[0] &
 	    super->dst.addr.v.a.mask.addr32[0]) &&
@@ -1657,20 +1651,8 @@ superblock_free(struct pfctl *pf, struct superblock *block)
 	struct pf_opt_rule *por;
 	while ((por = TAILQ_FIRST(&block->sb_rules))) {
 		TAILQ_REMOVE(&block->sb_rules, por, por_entry);
-		if (por->por_src_tbl) {
-			if (por->por_src_tbl->pt_buf) {
-				pfr_buf_clear(por->por_src_tbl->pt_buf);
-				free(por->por_src_tbl->pt_buf);
-			}
-			free(por->por_src_tbl);
-		}
-		if (por->por_dst_tbl) {
-			if (por->por_dst_tbl->pt_buf) {
-				pfr_buf_clear(por->por_dst_tbl->pt_buf);
-				free(por->por_dst_tbl->pt_buf);
-			}
-			free(por->por_dst_tbl);
-		}
+		pf_opt_table_unref(por->por_src_tbl);
+		pf_opt_table_unref(por->por_dst_tbl);
 		free(por);
 	}
 	if (block->sb_profiled_block)
@@ -1678,3 +1660,24 @@ superblock_free(struct pfctl *pf, struct superblock *block)
 	free(block);
 }
 
+struct pf_opt_tbl *
+pf_opt_table_ref(struct pf_opt_tbl *pt)
+{
+	/* parser does not run concurrently, we don't need atomic ops. */
+	if (pt != NULL)
+		pt->pt_refcnt++;
+
+	return (pt);
+}
+
+void
+pf_opt_table_unref(struct pf_opt_tbl *pt)
+{
+	if ((pt != NULL) && ((--pt->pt_refcnt) == 0)) {
+		if (pt->pt_buf != NULL) {
+			pfr_buf_clear(pt->pt_buf);
+			free(pt->pt_buf);
+		}
+		free(pt);
+	}
+}

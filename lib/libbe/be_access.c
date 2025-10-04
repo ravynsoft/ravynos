@@ -1,30 +1,9 @@
-/*-
- * SPDX-License-Identifier: BSD-2-Clause
- *
+/*
  * Copyright (c) 2017 Kyle J. Kneitinger <kyle@kneit.in>
  * Copyright (c) 2018 Kyle Evans <kevans@FreeBSD.org>
  * Copyright (c) 2019 Wes Maag <wes@jwmaag.org>
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
+ * SPDX-License-Identifier: BSD-2-Clause
  */
 
 #include <sys/cdefs.h>
@@ -32,6 +11,8 @@
 
 #include "be.h"
 #include "be_impl.h"
+
+#define	LIBBE_MOUNT_PREFIX	"be_mount."
 
 struct be_mountcheck_info {
 	const char *path;
@@ -164,7 +145,11 @@ be_umount_iter(zfs_handle_t *zfs_hdl, void *data)
 	if (!zfs_is_mounted(zfs_hdl, &mountpoint)) {
 		return (0);
 	}
-	free(mountpoint);
+
+	if (info->depth == 0 && info->mountpoint == NULL)
+		info->mountpoint = mountpoint;
+	else
+		free(mountpoint);
 
 	if (zfs_unmount(zfs_hdl, NULL, info->mntflags) != 0) {
 		switch (errno) {
@@ -255,7 +240,17 @@ be_mount(libbe_handle_t *lbh, const char *bootenv, const char *mountpoint,
 
 	/* Create mountpoint if it is not specified */
 	if (mountpoint == NULL) {
-		strlcpy(mnt_temp, "/tmp/be_mount.XXXX", sizeof(mnt_temp));
+		const char *tmpdir;
+
+		tmpdir = getenv("TMPDIR");
+		if (tmpdir == NULL)
+			tmpdir = _PATH_TMP;
+
+		if (snprintf(mnt_temp, sizeof(mnt_temp), "%s%s%sXXXX", tmpdir,
+		    tmpdir[strlen(tmpdir) - 1] == '/' ? "" : "/",
+		     LIBBE_MOUNT_PREFIX) >= (int)sizeof(mnt_temp))
+			return (set_error(lbh, BE_ERR_PATHLEN));
+
 		if (mkdtemp(mnt_temp) == NULL)
 			return (set_error(lbh, BE_ERR_IO));
 	}
@@ -307,9 +302,31 @@ be_unmount(libbe_handle_t *lbh, const char *bootenv, int flags)
 	info.depth = 0;
 
 	if ((err = be_umount_iter(root_hdl, &info)) != 0) {
+		free(__DECONST(char *, info.mountpoint));
 		zfs_close(root_hdl);
 		return (err);
 	}
+
+	/*
+	 * We'll attempt to remove the directory if we created it on a
+	 * best-effort basis.  rmdir(2) failure will not be reported.
+	 */
+	if (info.mountpoint != NULL) {
+		const char *mdir;
+
+		mdir = strrchr(info.mountpoint, '/');
+		if (mdir == NULL)
+			mdir = info.mountpoint;
+		else
+			mdir++;
+
+		if (strncmp(mdir, LIBBE_MOUNT_PREFIX,
+		    sizeof(LIBBE_MOUNT_PREFIX) - 1) == 0) {
+			(void)rmdir(info.mountpoint);
+		}
+	}
+
+	free(__DECONST(char *, info.mountpoint));
 
 	zfs_close(root_hdl);
 	return (BE_ERR_SUCCESS);

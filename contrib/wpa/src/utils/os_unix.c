@@ -18,7 +18,7 @@
 #endif /* ANDROID */
 
 #ifdef __MACH__
-#import <CoreServices/CoreServices.h>
+#include <CoreServices/CoreServices.h>
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 #endif /* __MACH__ */
