@@ -364,9 +364,21 @@
    don't. */
 #define HAVE_DECL_HOWMANY 1
 
+/* Define to 1 if you have the declaration of 'htole64', and to 0 if you
+   don't. */
+#define HAVE_DECL_HTOLE64 1
+
 /* Define to 1 if you have the declaration of 'h_errno', and to 0 if you
    don't. */
 #define HAVE_DECL_H_ERRNO 1
+
+/* Define to 1 if you have the declaration of 'le32toh', and to 0 if you
+   don't. */
+#define HAVE_DECL_LE32TOH 1
+
+/* Define to 1 if you have the declaration of 'le64toh', and to 0 if you
+   don't. */
+#define HAVE_DECL_LE64TOH 1
 
 /* Define to 1 if you have the declaration of 'loginfailed', and to 0 if you
    don't. */
@@ -395,14 +407,6 @@
 /* Define to 1 if you have the declaration of 'offsetof', and to 0 if you
    don't. */
 #define HAVE_DECL_OFFSETOF 1
-
-/* Define to 1 if you have the declaration of 'OPENSSL_IS_BORINGSSL', and to 0
-   if you don't. */
-/* #undef HAVE_DECL_OPENSSL_IS_BORINGSSL */
-
-/* Define to 1 if you have the declaration of 'OPENSSL_NO_DSA', and to 0 if
-   you don't. */
-/* #undef HAVE_DECL_OPENSSL_NO_DSA */
 
 /* Define to 1 if you have the declaration of 'O_NONBLOCK', and to 0 if you
    don't. */
@@ -1716,6 +1720,9 @@
    EOPNOTSUPP. */
 /* #undef LINK_OPNOTSUPP_ERRNO */
 
+/* Lock all memory to protect sshd against Linux kcompactd */
+/* #undef LINUX_MEMLOCK_ONFAULT */
+
 /* Adjust Linux out-of-memory killer */
 /* #undef LINUX_OOM_ADJUST */
 
@@ -1739,6 +1746,9 @@
 
 /* Set this to your mail directory if you do not have _PATH_MAILDIR */
 /* #undef MAIL_DIRECTORY */
+
+/* Define if your compiler lacks __builtin_popcount */
+/* #undef MISSING_BUILTIN_POPCOUNT */
 
 /* Need setpgrp to for controlling tty */
 /* #undef NEED_SETPGRP */
@@ -1831,9 +1841,6 @@
 /* no privsep sandboxing */
 /* #undef SANDBOX_NULL */
 
-/* Sandbox using pledge(2) */
-/* #undef SANDBOX_PLEDGE */
-
 /* Sandbox using setrlimit(2) */
 /* #undef SANDBOX_RLIMIT */
 
@@ -1848,9 +1855,6 @@
 
 /* Sandbox using Solaris/Illumos privileges */
 /* #undef SANDBOX_SOLARIS */
-
-/* Sandbox using systrace(4) */
-/* #undef SANDBOX_SYSTRACE */
 
 /* Specify the system call convention in use */
 /* #undef SECCOMP_AUDIT_ARCH */
@@ -1979,6 +1983,9 @@
 /* Define if you have Solaris projects */
 /* #undef USE_SOLARIS_PROJECTS */
 
+/* Use libwtmpdb for sshd */
+/* #undef USE_WTMPDB */
+
 /* compiler variable declarations after code */
 #define VARIABLE_DECLARATION_AFTER_CODE 1
 
@@ -1990,9 +1997,6 @@
 
 /* Define if you want to enable AIX4's authenticate function */
 /* #undef WITH_AIXAUTHENTICATE */
-
-/* DSA keys explicitly enabled */
-/* #undef WITH_DSA */
 
 /* Define if you have/want arrays (cluster-wide session management, not C
    arrays) */

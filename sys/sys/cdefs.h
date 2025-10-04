@@ -253,18 +253,6 @@
 #define	__noinline	__attribute__ ((__noinline__))
 #define	__fastcall	__attribute__((__fastcall__))
 #define	__result_use_check	__attribute__((__warn_unused_result__))
-#ifdef __clang__
-/*
- * clang and gcc have different semantics for __warn_unused_result__: the latter
- * does not permit the use of a void cast to suppress the warning.  Use
- * __result_use_or_ignore_check in places where a void cast is acceptable.
- * This can be implemented by [[nodiscard]] from C23.
- */
-#define	__result_use_or_ignore_check	__result_use_check
-#else
-#define	__result_use_or_ignore_check
-#endif /* !__clang__ */
-
 #define	__returns_twice	__attribute__((__returns_twice__))
 
 #define	__unreachable()	__builtin_unreachable()
@@ -293,6 +281,44 @@
 #else
 #define __noexcept
 #define __noexcept_if(__c)
+#endif
+
+/*
+ * nodiscard attribute added in C++17 and C23, but supported by both LLVM and
+ * GCC in earlier language versions, so we use __has_c{,pp}_attribute to test
+ * for it.
+ *
+ * __nodiscard may be used on a function:
+ * 	__nodiscard int f();
+ *
+ * or on a struct, union or enum:
+ * 	struct __nodiscard S{};
+ * 	struct S f();
+ *
+ * or in C++, on an object constructor.
+ */
+
+#if defined(__cplusplus) && defined(__has_cpp_attribute)
+#if __has_cpp_attribute(nodiscard)
+#define	__nodiscard	[[nodiscard]]
+#endif
+#elif defined(__STDC_VERSION__) && defined(__has_c_attribute)
+#if __has_c_attribute(__nodiscard__)
+#define	__nodiscard	[[__nodiscard__]]
+#endif
+#endif
+
+#ifndef __nodiscard
+/*
+ * LLVM 16 and earlier don't support [[nodiscard]] in C, but they do support
+ * __warn_unused_result__ with the same semantics, so fall back to that.
+ * We can't do this for GCC because the semantics are different.
+ */
+#ifdef __clang__
+#define	__nodiscard	__attribute__((__warn_unused_result__))
+#else
+#define	__nodiscard
+#endif
 #endif
 
 /*
@@ -468,190 +494,7 @@
 #define	__RENAME(x)	no renaming in kernel/standalone environment
 #endif
 
-/*-
- * The following definitions are an extension of the behavior originally
- * implemented in <sys/_posix.h>, but with a different level of granularity.
- * POSIX.1 requires that the macros we test be defined before any standard
- * header file is included.
- *
- * Here's a quick run-down of the versions (and some informal names)
- *  defined(_POSIX_SOURCE)		1003.1-1988
- *					encoded as 198808 below
- *  _POSIX_C_SOURCE == 1		1003.1-1990
- *					encoded as 199009 below
- *  _POSIX_C_SOURCE == 2		1003.2-1992 C Language Binding Option
- *					encoded as 199209 below
- *  _POSIX_C_SOURCE == 199309		1003.1b-1993
- *					(1003.1 Issue 4, Single Unix Spec v1, Unix 93)
- *  _POSIX_C_SOURCE == 199506		1003.1c-1995, 1003.1i-1995,
- *					and the omnibus ISO/IEC 9945-1: 1996
- *					(1003.1 Issue 5, Single	Unix Spec v2, Unix 95)
- *  _POSIX_C_SOURCE == 200112		1003.1-2001 (1003.1 Issue 6, Unix 03)
- *					with _XOPEN_SOURCE=600
- *  _POSIX_C_SOURCE == 200809		1003.1-2008 (1003.1 Issue 7)
- *					IEEE Std 1003.1-2017 (Rev of 1003.1-2008) is
- *					1003.1-2008 with two TCs applied and
- *					_XOPEN_SOURCE=700
- * _POSIX_C_SOURCE == 202405		1003.1-2004 (1003.1 Issue 8), IEEE Std 1003.1-2024
- * 					with _XOPEN_SOURCE=800
- *
- * In addition, the X/Open Portability Guide, which is now the Single UNIX
- * Specification, defines a feature-test macro which indicates the version of
- * that specification, and which subsumes _POSIX_C_SOURCE.
- *
- * Our macros begin with two underscores to avoid namespace screwage.
- */
-
-/* Deal with IEEE Std. 1003.1-1990, in which _POSIX_C_SOURCE == 1. */
-#if defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE == 1
-#undef _POSIX_C_SOURCE		/* Probably illegal, but beyond caring now. */
-#define	_POSIX_C_SOURCE		199009
-#endif
-
-/* Deal with IEEE Std. 1003.2-1992, in which _POSIX_C_SOURCE == 2. */
-#if defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE == 2
-#undef _POSIX_C_SOURCE
-#define	_POSIX_C_SOURCE		199209
-#endif
-
-/*
- * Deal with various X/Open Portability Guides and Single UNIX Spec. We use the
- * '- 0' construct so software that defines _XOPEN_SOURCE to nothing doesn't
- * cause errors. X/Open CAE Specification, August 1994, System Interfaces and
- * Headers, Issue 4, Version 2 section 2.2 states an empty definition means the
- * same thing as _POSIX_C_SOURCE == 2. This broadly mirrors "System V Interface
- * Definition, Fourth Edition", but earlier editions suggest some ambiguity.
- * However, FreeBSD has histoically implemented this as a NOP, so we just
- * document what it should be for now to not break ports gratuitously.
- */
-#ifdef _XOPEN_SOURCE
-#if _XOPEN_SOURCE - 0 >= 800
-#define	__XSI_VISIBLE		800
-#undef _POSIX_C_SOURCE
-#define	_POSIX_C_SOURCE		202405
-#elif _XOPEN_SOURCE - 0 >= 700
-#define	__XSI_VISIBLE		700
-#undef _POSIX_C_SOURCE
-#define	_POSIX_C_SOURCE		200809
-#elif _XOPEN_SOURCE - 0 >= 600
-#define	__XSI_VISIBLE		600
-#undef _POSIX_C_SOURCE
-#define	_POSIX_C_SOURCE		200112
-#elif _XOPEN_SOURCE - 0 >= 500
-#define	__XSI_VISIBLE		500
-#undef _POSIX_C_SOURCE
-#define	_POSIX_C_SOURCE		199506
-#else
-/* #define	_POSIX_C_SOURCE		199209 */
-#endif
-#endif
-
-/*
- * Deal with all versions of POSIX.  The ordering relative to the tests above is
- * important.
- */
-#if defined(_POSIX_SOURCE) && !defined(_POSIX_C_SOURCE)
-#define	_POSIX_C_SOURCE		198808
-#endif
-#ifdef _POSIX_C_SOURCE
-#if _POSIX_C_SOURCE >= 202405
-#define	__POSIX_VISIBLE		202405
-#define	__ISO_C_VISIBLE		2017
-#elif _POSIX_C_SOURCE >= 200809
-#define	__POSIX_VISIBLE		200809
-#define	__ISO_C_VISIBLE		1999
-#elif _POSIX_C_SOURCE >= 200112
-#define	__POSIX_VISIBLE		200112
-#define	__ISO_C_VISIBLE		1999
-#elif _POSIX_C_SOURCE >= 199506
-#define	__POSIX_VISIBLE		199506
-#define	__ISO_C_VISIBLE		1990
-#elif _POSIX_C_SOURCE >= 199309
-#define	__POSIX_VISIBLE		199309
-#define	__ISO_C_VISIBLE		1990
-#elif _POSIX_C_SOURCE >= 199209
-#define	__POSIX_VISIBLE		199209
-#define	__ISO_C_VISIBLE		1990
-#elif _POSIX_C_SOURCE >= 199009
-#define	__POSIX_VISIBLE		199009
-#define	__ISO_C_VISIBLE		1990
-#else
-#define	__POSIX_VISIBLE		198808
-#define	__ISO_C_VISIBLE		0
-#endif /* _POSIX_C_SOURCE */
-
-/*
- * When we've explicitly asked for a newer C version, make the C variable
- * visible by default. Also honor the glibc _ISOC{11,23}_SOURCE macros
- * extensions. Both glibc and OpenBSD do this, even when a more strict
- * _POSIX_C_SOURCE has been requested, and it makes good sense (especially for
- * pre POSIX 2024, since C11 is much nicer than the old C99 base). Continue the
- * practice with C23, though don't do older standards. Also, GLIBC doesn't have
- * a _ISOC17_SOURCE, so it's not implemented here. glibc has earlier ISOCxx defines,
- * but we don't implement those as they are not relevant enough.
- */
-#if _ISOC23_SOURCE || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L)
-#undef __ISO_C_VISIBLE
-#define __ISO_C_VISIBLE		2023
-#elif _ISOC11_SOURCE || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L)
-#undef __ISO_C_VISIBLE
-#define __ISO_C_VISIBLE		2011
-#endif
-#else /* _POSIX_C_SOURCE */
-/*-
- * Deal with _ANSI_SOURCE:
- * If it is defined, and no other compilation environment is explicitly
- * requested, then define our internal feature-test macros to zero.  This
- * makes no difference to the preprocessor (undefined symbols in preprocessing
- * expressions are defined to have value zero), but makes it more convenient for
- * a test program to print out the values.
- *
- * If a program mistakenly defines _ANSI_SOURCE and some other macro such as
- * _POSIX_C_SOURCE, we will assume that it wants the broader compilation
- * environment (and in fact we will never get here).
- */
-#if defined(_ANSI_SOURCE)	/* Hide almost everything. */
-#define	__POSIX_VISIBLE		0
-#define	__XSI_VISIBLE		0
-#define	__BSD_VISIBLE		0
-#define	__ISO_C_VISIBLE		1990
-#define	__EXT1_VISIBLE		0
-#elif defined(_C99_SOURCE)	/* Localism to specify strict C99 env. */
-#define	__POSIX_VISIBLE		0
-#define	__XSI_VISIBLE		0
-#define	__BSD_VISIBLE		0
-#define	__ISO_C_VISIBLE		1999
-#define	__EXT1_VISIBLE		0
-#elif defined(_C11_SOURCE)	/* Localism to specify strict C11 env. */
-#define	__POSIX_VISIBLE		0
-#define	__XSI_VISIBLE		0
-#define	__BSD_VISIBLE		0
-#define	__ISO_C_VISIBLE		2011
-#define	__EXT1_VISIBLE		0
-#elif defined(_C23_SOURCE)	/* Localism to specify strict C23 env. */
-#define	__POSIX_VISIBLE		0
-#define	__XSI_VISIBLE		0
-#define	__BSD_VISIBLE		0
-#define	__ISO_C_VISIBLE		2023
-#define	__EXT1_VISIBLE		0
-#else				/* Default environment: show everything. */
-#define	__POSIX_VISIBLE		202405
-#define	__XSI_VISIBLE		800
-#define	__BSD_VISIBLE		1
-#define	__ISO_C_VISIBLE		2023
-#define	__EXT1_VISIBLE		1
-#endif
-#endif /* _POSIX_C_SOURCE */
-
-/* User override __EXT1_VISIBLE */
-#if defined(__STDC_WANT_LIB_EXT1__)
-#undef	__EXT1_VISIBLE
-#if __STDC_WANT_LIB_EXT1__
-#define	__EXT1_VISIBLE		1
-#else
-#define	__EXT1_VISIBLE		0
-#endif
-#endif /* __STDC_WANT_LIB_EXT1__ */
+#include <sys/_visible.h>
 
 /*
  * Nullability qualifiers: currently only supported by Clang.

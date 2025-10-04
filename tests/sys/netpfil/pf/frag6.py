@@ -1,23 +1,10 @@
 import pytest
 import logging
-import threading
-import time
 import random
 logging.getLogger("scapy").setLevel(logging.CRITICAL)
+from utils import DelayedSend
 from atf_python.sys.net.tools import ToolsHelper
 from atf_python.sys.net.vnet import VnetTestTemplate
-
-class DelayedSend(threading.Thread):
-    def __init__(self, packet):
-        threading.Thread.__init__(self)
-        self._packet = packet
-
-        self.start()
-
-    def run(self):
-        import scapy.all as sp
-        time.sleep(1)
-        sp.send(self._packet)
 
 class TestFrag6(VnetTestTemplate):
     REQUIRED_MODULES = ["pf", "dummymbuf"]
@@ -97,6 +84,96 @@ class TestFrag6(VnetTestTemplate):
 
         sp.send(pkts, inter = 0.1)
 
+class TestFrag6HopHyHop(VnetTestTemplate):
+    REQUIRED_MODULES = ["pf"]
+    TOPOLOGY = {
+        "vnet1": {"ifaces": ["if1", "if2"]},
+        "vnet2": {"ifaces": ["if1", "if2"]},
+        "if1": {"prefixes6": [("2001:db8::1/64", "2001:db8::2/64")]},
+        "if2": {"prefixes6": [("2001:db8:666::1/64", "2001:db8:1::2/64")]},
+    }
+
+    def vnet2_handler(self, vnet):
+        ifname = vnet.iface_alias_map["if1"].name
+        ToolsHelper.print_output("/sbin/sysctl net.inet6.ip6.forwarding=1")
+        ToolsHelper.print_output("/usr/sbin/ndp -s 2001:db8:1::1 00:01:02:03:04:05")
+        ToolsHelper.print_output("/sbin/pfctl -e")
+        ToolsHelper.print_output("/sbin/pfctl -x loud")
+        ToolsHelper.pf_rules([
+            "scrub fragment reassemble min-ttl 10",
+            "pass allow-opts",
+        ])
+
+    @pytest.mark.require_user("root")
+    @pytest.mark.require_progs(["scapy"])
+    def test_hop_by_hop(self):
+        "Verify that we reject non-first hop-by-hop headers"
+        if1 = self.vnet.iface_alias_map["if1"].name
+        if2 = self.vnet.iface_alias_map["if2"].name
+        ToolsHelper.print_output("/sbin/route add -6 default 2001:db8::2")
+        ToolsHelper.print_output("/sbin/ping6 -c 1 2001:db8:1::2")
+
+        # Import in the correct vnet, so at to not confuse Scapy
+        import scapy.all as sp
+
+        # A hop-by-hop header is accepted if it's the first header
+        pkt = sp.IPv6(src="2001:db8::1", dst="2001:db8:1::1") \
+            / sp.IPv6ExtHdrHopByHop() \
+            / sp.ICMPv6EchoRequest(data=sp.raw(bytes.fromhex('f0') * 30))
+        pkt.show()
+
+        # Delay the send so the sniffer is running when we transmit.
+        s = DelayedSend(pkt)
+
+        replies = sp.sniff(iface=if2, timeout=3)
+        found = False
+        for p in replies:
+            p.show()
+            ip6 = p.getlayer(sp.IPv6)
+            hbh = p.getlayer(sp.IPv6ExtHdrHopByHop)
+            icmp6 = p.getlayer(sp.ICMPv6EchoRequest)
+
+            if not ip6 or not icmp6:
+                continue
+            assert ip6.src == "2001:db8::1"
+            assert ip6.dst == "2001:db8:1::1"
+            assert hbh
+            assert icmp6
+            found = True
+        assert found
+
+        # A hop-by-hop header causes the packet to be dropped if it's not the
+        # first extension header
+        pkt = sp.IPv6(src="2001:db8::1", dst="2001:db8:1::1") \
+            / sp.IPv6ExtHdrFragment(offset=0, m=0) \
+            / sp.IPv6ExtHdrHopByHop() \
+            / sp.ICMPv6EchoRequest(data=sp.raw(bytes.fromhex('f0') * 30))
+        pkt2 = sp.IPv6(src="2001:db8::1", dst="2001:db8:1::1") \
+            / sp.ICMPv6EchoRequest(data=sp.raw(bytes.fromhex('f0') * 30))
+
+        # Delay the send so the sniffer is running when we transmit.
+        ToolsHelper.print_output("/sbin/ping6 -c 1 2001:db8:1::2")
+
+        s = DelayedSend([ pkt2, pkt ])
+        replies = sp.sniff(iface=if2, timeout=10)
+        found = False
+        for p in replies:
+            # Expect to find the packet without the hop-by-hop header, not the
+            # one with
+            p.show()
+            ip6 = p.getlayer(sp.IPv6)
+            hbh = p.getlayer(sp.IPv6ExtHdrHopByHop)
+            icmp6 = p.getlayer(sp.ICMPv6EchoRequest)
+
+            if not ip6 or not icmp6:
+                continue
+            assert ip6.src == "2001:db8::1"
+            assert ip6.dst == "2001:db8:1::1"
+            assert not hbh
+            assert icmp6
+            found = True
+        assert found
+
 class TestFrag6_Overlap(VnetTestTemplate):
     REQUIRED_MODULES = ["pf"]
     TOPOLOGY = {
@@ -141,3 +218,59 @@ class TestFrag6_Overlap(VnetTestTemplate):
         for p in packets:
             p.show()
             assert not p.getlayer(sp.ICMPv6EchoReply)
+
+class TestFrag6_RouteTo(VnetTestTemplate):
+    REQUIRED_MODULES = ["pf"]
+    TOPOLOGY = {
+        "vnet1": {"ifaces": ["if1"]},
+        "vnet2": {"ifaces": ["if1", "if2"]},
+        "vnet3": {"ifaces": ["if2"]},
+        "if1": {"prefixes6": [("2001:db8::1/64", "2001:db8::2/64")]},
+        "if2": {"prefixes6": [("2001:db8:1::1/64", "2001:db8:1::2/64")]},
+    }
+
+    def vnet2_handler(self, vnet):
+        if2name = vnet.iface_alias_map["if2"].name
+        ToolsHelper.print_output("/sbin/pfctl -e")
+        ToolsHelper.print_output("/sbin/pfctl -x loud")
+        ToolsHelper.pf_rules([
+            "scrub fragment reassemble",
+            "pass in route-to (%s 2001:db8:1::2) from 2001:db8::1 to 2001:db8:666::1" % if2name,
+        ])
+
+        ToolsHelper.print_output("/sbin/ifconfig %s mtu 1300" % if2name)
+        ToolsHelper.print_output("/sbin/sysctl net.inet6.ip6.forwarding=1")
+
+    def vnet3_handler(self, vnet):
+        pass
+
+    @pytest.mark.require_user("root")
+    @pytest.mark.require_progs(["scapy"])
+    def test_too_big(self):
+        ToolsHelper.print_output("/sbin/route add -6 default 2001:db8::2")
+
+        # Import in the correct vnet, so at to not confuse Scapy
+        import scapy.all as sp
+
+        pkt = sp.IPv6(dst="2001:db8:666::1") \
+            / sp.ICMPv6EchoRequest(data=sp.raw(bytes.fromhex('f0') * 3000))
+        frags = sp.fragment6(pkt, 1320)
+
+        reply = sp.sr1(frags, timeout=3)
+        if reply:
+            reply.show()
+
+        assert reply
+
+        ip6 = reply.getlayer(sp.IPv6)
+        icmp6 = reply.getlayer(sp.ICMPv6PacketTooBig)
+        err_ip6 = reply.getlayer(sp.IPerror6)
+
+        assert ip6
+        assert ip6.src == "2001:db8::2"
+        assert ip6.dst == "2001:db8::1"
+        assert icmp6
+        assert icmp6.mtu == 1300
+        assert err_ip6
+        assert err_ip6.src == "2001:db8::1"
+        assert err_ip6.dst == "2001:db8:666::1"

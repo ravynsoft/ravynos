@@ -2082,7 +2082,7 @@ mps_mapping_check_devices(void *data)
  * mps_mapping_initialize - initialize mapping tables
  * @sc: per adapter object
  *
- * Read controller persistent mapping tables into internal data area.
+ * Read controller persitant mapping tables into internal data area.
  *
  * Return 0 for success or non-zero for failure.
  */

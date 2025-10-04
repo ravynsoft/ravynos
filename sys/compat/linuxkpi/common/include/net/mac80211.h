@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2020-2025 The FreeBSD Foundation
- * Copyright (c) 2020-2022 Bjoern A. Zeeb
+ * Copyright (c) 2020-2025 Bjoern A. Zeeb
  *
  * This software was developed by Björn Zeeb under sponsorship from
  * the FreeBSD Foundation.
@@ -41,6 +41,7 @@
 #include <linux/skbuff.h>
 #include <linux/workqueue.h>
 #include <linux/dcache.h>
+#include <linux/ieee80211.h>
 #include <net/cfg80211.h>
 #include <net/if_inet6.h>
 
@@ -86,6 +87,9 @@ enum mcast_filter_flags {
 	FIF_PSPOLL			= BIT(5),
 	FIF_CONTROL			= BIT(6),
 	FIF_MCAST_ACTION		= BIT(7),
+
+	/* Must stay last. */
+	FIF_FLAGS_MASK			= BIT(8)-1,
 };
 
 enum ieee80211_bss_changed {
@@ -208,19 +212,6 @@ struct ieee80211_bar {
 	uint16_t	frame_control;
 };
 
-struct ieee80211_p2p_noa_desc {
-	uint32_t				count;		/* uint8_t ? */
-	uint32_t				duration;
-	uint32_t				interval;
-	uint32_t				start_time;
-};
-
-struct ieee80211_p2p_noa_attr {
-	uint8_t					index;
-	uint8_t					oppps_ctwindow;
-	struct ieee80211_p2p_noa_desc		desc[4];
-};
-
 struct ieee80211_mutable_offsets {
 	/* TODO FIXME */
 	uint16_t				tim_offset;
@@ -334,6 +325,7 @@ struct ieee80211_bss_conf {
 
 	uint8_t					dtim_period;
 	uint8_t					sync_dtim_count;
+	uint8_t					bss_param_ch_cnt_link_id;
 	bool					qos;
 	bool					twt_broadcast;
 	bool					use_cts_prot;
@@ -343,6 +335,7 @@ struct ieee80211_bss_conf {
 	bool					eht_support;
 	bool					csa_active;
 	bool					mu_mimo_owner;
+	bool					color_change_active;
 	uint32_t				sync_device_ts;
 	uint64_t				sync_tsf;
 	uint16_t				beacon_int;
@@ -363,7 +356,6 @@ struct ieee80211_bss_conf {
 	int		twt_requester, uora_exists, uora_ocw_range;
 	int		assoc_capability, enable_beacon, hidden_ssid, ibss_joined, twt_protected;
 	int		twt_responder, unsol_bcast_probe_resp_interval;
-	int		color_change_active;
 };
 
 struct ieee80211_channel_switch {
@@ -371,18 +363,6 @@ struct ieee80211_channel_switch {
 	int		block_tx, count, delay, device_timestamp, timestamp;
 	uint8_t					link_id;
 	struct cfg80211_chan_def		chandef;
-};
-
-struct ieee80211_cipher_scheme {
-	uint32_t	cipher;
-	uint8_t		iftype;		/* We do not know the size of this. */
-	uint8_t		hdr_len;
-	uint8_t		pn_len;
-	uint8_t		pn_off;
-	uint8_t		key_idx_off;
-	uint8_t		key_idx_mask;
-	uint8_t		key_idx_shift;
-	uint8_t		mic_len;
 };
 
 enum ieee80211_event_type {
@@ -434,11 +414,6 @@ struct ieee80211_ftm_responder_params {
 	uint8_t					*civicloc;
 	int					lci_len;
 	int					civicloc_len;
-};
-
-struct ieee80211_he_mu_edca_param_ac_rec {
-	/* TODO FIXME */
-	int		aifsn, ecw_min_max, mu_edca_timer;
 };
 
 struct ieee80211_conf {
@@ -496,6 +471,7 @@ enum ieee80211_hw_flags {
 	IEEE80211_HW_DISALLOW_PUNCTURING_5GHZ,
 	IEEE80211_HW_TX_STATUS_NO_AMPDU_LEN,
 	IEEE80211_HW_HANDLES_QUIET_CSA,
+	IEEE80211_HW_NO_VIRTUAL_MONITOR,
 
 	/* Keep last. */
 	NUM_IEEE80211_HW_FLAGS
@@ -508,8 +484,6 @@ struct ieee80211_hw {
 	/* TODO FIXME */
 	int		extra_tx_headroom, weight_multiplier;
 	int		max_rate_tries, max_rates, max_report_rates;
-	struct ieee80211_cipher_scheme	*cipher_schemes;
-	int				n_cipher_schemes;
 	const char			*rate_control_algorithm;
 	struct {
 		uint16_t units_pos;	/* radiotap "spec" is .. inconsistent. */
@@ -554,6 +528,11 @@ enum ieee802111_key_flag {
 	IEEE80211_KEY_FLAG_RESERVE_TAILROOM	= BIT(8),
 	IEEE80211_KEY_FLAG_SPP_AMSDU		= BIT(9),
 };
+
+#define	IEEE80211_KEY_FLAG_BITS						\
+	"\20\1GENERATE_IV\2GENERATE_MMIC\3PAIRWISE\4PUT_IV_SPACE"	\
+	"\5PUT_MIC_SPACE\6SW_MGMT_TX\7GENERATE_IV_MGMT\10GENERATE_MMIE"	\
+	"\11RESERVE_TAILROOM\12SPP_AMSDU"
 
 struct ieee80211_key_conf {
 #if defined(__FreeBSD__)
@@ -728,9 +707,10 @@ struct ieee80211_sta_rates {
 	/* XXX TODO */
 	/* XXX some _rcu thing */
 	struct {
-		int	idx;
-		int	flags;
-	} rate[1];		/* XXX what is the real number? */
+		uint8_t			idx;
+		uint8_t			count;
+		uint16_t		flags;
+	} rate[4];		/* XXX what is the real number? */
 };
 
 struct ieee80211_sta_txpwr {
@@ -754,7 +734,7 @@ struct ieee80211_link_sta {
 	struct ieee80211_sta_ht_cap		ht_cap;
 	struct ieee80211_sta_vht_cap		vht_cap;
 	struct ieee80211_sta_he_cap		he_cap;
-	struct ieee80211_sta_he_6ghz_capa	he_6ghz_capa;
+	struct ieee80211_he_6ghz_capa		he_6ghz_capa;
 	struct ieee80211_sta_eht_cap		eht_cap;
 	uint8_t					rx_nss;
 	enum ieee80211_sta_rx_bandwidth		bandwidth;
@@ -772,6 +752,7 @@ struct ieee80211_sta {
 	uint8_t					addr[ETH_ALEN];
 	uint16_t				aid;
 	bool					wme;
+	bool					mlo;
 	uint8_t					max_sp;
 	uint8_t					uapsd_queues;
 	uint16_t				valid_links;
@@ -823,6 +804,7 @@ enum ieee80211_vif_driver_flags {
 #endif
 	IEEE80211_VIF_EML_ACTIVE		= BIT(4),
 	IEEE80211_VIF_IGNORE_OFDMA_WIDER_BW	= BIT(5),
+	IEEE80211_VIF_REMOVE_AP_AFTER_DISASSOC	= BIT(6),
 };
 
 #define	IEEE80211_BSS_ARP_ADDR_LIST_LEN		4
@@ -845,15 +827,13 @@ struct ieee80211_vif_cfg {
 struct ieee80211_vif {
 	/* TODO FIXME */
 	enum nl80211_iftype		type;
-	int		csa_active, mu_mimo_owner;
 	int		cab_queue;
-	int     color_change_active, offload_flags;
+	int		offload_flags;
 	enum ieee80211_vif_driver_flags	driver_flags;
 	bool				p2p;
 	bool				probe_req_reg;
 	uint8_t				addr[ETH_ALEN];
 	struct ieee80211_vif_cfg	cfg;
-	struct ieee80211_chanctx_conf	*chanctx_conf;
 	struct ieee80211_txq		*txq;
 	struct ieee80211_bss_conf	bss_conf;
 	struct ieee80211_bss_conf	*link_conf[IEEE80211_MLD_MAX_NUM_LINKS];	/* rcu? */
@@ -999,6 +979,7 @@ struct ieee80211_ops {
 	int  (*config)(struct ieee80211_hw *, u32);
 	void (*reconfig_complete)(struct ieee80211_hw *, enum ieee80211_reconfig_type);
 
+	void (*prep_add_interface)(struct ieee80211_hw *, enum nl80211_iftype);
 	int  (*add_interface)(struct ieee80211_hw *, struct ieee80211_vif *);
 	void (*remove_interface)(struct ieee80211_hw *, struct ieee80211_vif *);
 	int  (*change_interface)(struct ieee80211_hw *, struct ieee80211_vif *, enum nl80211_iftype, bool);
@@ -1037,6 +1018,7 @@ struct ieee80211_ops {
 	int  (*sta_state)(struct ieee80211_hw *, struct ieee80211_vif *, struct ieee80211_sta *, enum ieee80211_sta_state, enum ieee80211_sta_state);
 	void (*sta_notify)(struct ieee80211_hw *, struct ieee80211_vif *, enum sta_notify_cmd, struct ieee80211_sta *);
 	void (*sta_rc_update)(struct ieee80211_hw *, struct ieee80211_vif *, struct ieee80211_sta *, u32);
+	void (*link_sta_rc_update)(struct ieee80211_hw *, struct ieee80211_vif *, struct ieee80211_link_sta *, u32);
 	void (*sta_rate_tbl_update)(struct ieee80211_hw *, struct ieee80211_vif *, struct ieee80211_sta *);
 	void (*sta_set_4addr)(struct ieee80211_hw *, struct ieee80211_vif *, struct ieee80211_sta *, bool);
 	void (*sta_set_decap_offload)(struct ieee80211_hw *, struct ieee80211_vif *, struct ieee80211_sta *, bool);
@@ -1111,7 +1093,7 @@ struct ieee80211_ops {
 
 	void (*update_vif_offload)(struct ieee80211_hw *, struct ieee80211_vif *);
 
-	int  (*get_txpower)(struct ieee80211_hw *, struct ieee80211_vif *, int *);
+	int  (*get_txpower)(struct ieee80211_hw *, struct ieee80211_vif *, unsigned int, int *);
 	int  (*get_stats)(struct ieee80211_hw *, struct ieee80211_low_level_stats *);
 
 	int  (*set_radar_background)(struct ieee80211_hw *, struct cfg80211_chan_def *);
@@ -1127,6 +1109,8 @@ struct ieee80211_ops {
 	int (*change_sta_links)(struct ieee80211_hw *, struct ieee80211_vif *, struct ieee80211_sta *, u16, u16);
 	bool (*can_activate_links)(struct ieee80211_hw *, struct ieee80211_vif *, u16);
 	enum ieee80211_neg_ttlm_res (*can_neg_ttlm)(struct ieee80211_hw *, struct ieee80211_vif *, struct ieee80211_neg_ttlm *);
+
+	void (*rfkill_poll)(struct ieee80211_hw *);
 
 /* #ifdef CONFIG_MAC80211_DEBUGFS */	/* Do not change depending on compile-time option. */
 	void (*sta_add_debugfs)(struct ieee80211_hw *, struct ieee80211_vif *, struct ieee80211_sta *, struct dentry *);
@@ -1154,7 +1138,7 @@ extern const struct cfg80211_ops linuxkpi_mac80211cfgops;
 struct ieee80211_hw *linuxkpi_ieee80211_alloc_hw(size_t,
     const struct ieee80211_ops *);
 void linuxkpi_ieee80211_iffree(struct ieee80211_hw *);
-void linuxkpi_set_ieee80211_dev(struct ieee80211_hw *, char *);
+void linuxkpi_set_ieee80211_dev(struct ieee80211_hw *);
 int linuxkpi_ieee80211_ifattach(struct ieee80211_hw *);
 void linuxkpi_ieee80211_ifdetach(struct ieee80211_hw *);
 void linuxkpi_ieee80211_unregister_hw(struct ieee80211_hw *);
@@ -1203,7 +1187,7 @@ struct wireless_dev *linuxkpi_ieee80211_vif_to_wdev(struct ieee80211_vif *);
 void linuxkpi_ieee80211_connection_loss(struct ieee80211_vif *);
 void linuxkpi_ieee80211_beacon_loss(struct ieee80211_vif *);
 struct sk_buff *linuxkpi_ieee80211_probereq_get(struct ieee80211_hw *,
-    uint8_t *, uint8_t *, size_t, size_t);
+    const uint8_t *, const uint8_t *, size_t, size_t);
 void linuxkpi_ieee80211_tx_status(struct ieee80211_hw *, struct sk_buff *);
 void linuxkpi_ieee80211_tx_status_ext(struct ieee80211_hw *,
     struct ieee80211_tx_status *);
@@ -1274,7 +1258,7 @@ SET_IEEE80211_DEV(struct ieee80211_hw *hw, struct device *dev)
 {
 
 	set_wiphy_dev(hw->wiphy, dev);
-	linuxkpi_set_ieee80211_dev(hw, dev_name(dev));
+	linuxkpi_set_ieee80211_dev(hw);
 
 	IMPROVE();
 }
@@ -1466,6 +1450,13 @@ ieee80211_handle_wake_tx_queue(struct ieee80211_hw *hw,
     struct ieee80211_txq *txq)
 {
 	linuxkpi_ieee80211_handle_wake_tx_queue(hw, txq);
+}
+
+static inline void
+ieee80211_purge_tx_queue(struct ieee80211_hw *hw,
+    struct sk_buff_head *skbs)
+{
+	TODO();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1721,26 +1712,6 @@ ieee80211_find_sta_by_ifaddr(struct ieee80211_hw *hw, const uint8_t *addr,
 	return (linuxkpi_ieee80211_find_sta_by_ifaddr(hw, addr, ourvifaddr));
 }
 
-
-static __inline void
-ieee80211_get_tkip_p2k(struct ieee80211_key_conf *keyconf,
-    struct sk_buff *skb_frag, u8 *key)
-{
-	TODO();
-}
-
-static __inline void
-ieee80211_get_tkip_rx_p1k(struct ieee80211_key_conf *keyconf,
-    const u8 *addr, uint32_t iv32, u16 *p1k)
-{
-
-	KASSERT(keyconf != NULL && addr != NULL && p1k != NULL,
-	    ("%s: keyconf %p addr %p p1k %p\n", __func__, keyconf, addr, p1k));
-
-	TODO();
-	memset(p1k, 0xfa, 5 * sizeof(*p1k));	/* Just initializing. */
-}
-
 static __inline size_t
 ieee80211_ie_split(const u8 *ies, size_t ies_len,
     const u8 *ie_ids, size_t ie_ids_len, size_t start)
@@ -1773,12 +1744,15 @@ ieee80211_request_smps(struct ieee80211_vif *vif, u_int link_id,
 		"SMPS_STATIC",
 		"SMPS_DYNAMIC",
 		"SMPS_AUTOMATIC",
-		"SMPS_NUM_MODES"
 	};
 
-	if (linuxkpi_debug_80211 & D80211_TODO)
-		printf("%s:%d: XXX LKPI80211 TODO smps %d %s\n",
-		    __func__, __LINE__, smps, smps_mode_name[smps]);
+	if (vif->type != NL80211_IFTYPE_STATION)
+		return;
+
+	if (smps >= nitems(smps_mode_name))
+		panic("%s: unsupported smps value: %d\n", __func__, smps);
+
+	IMPROVE("XXX LKPI80211 TODO smps %d %s\n", smps, smps_mode_name[smps]);
 }
 
 static __inline void
@@ -1906,13 +1880,13 @@ ieee80211_rate_set_vht(struct ieee80211_tx_rate *r, uint8_t mcs, uint8_t nss)
 }
 
 static inline uint8_t
-ieee80211_rate_get_vht_nss(struct ieee80211_tx_rate *r)
+ieee80211_rate_get_vht_nss(const struct ieee80211_tx_rate *r)
 {
 	return (((r->idx >> 4) & 0x07) + 1);
 }
 
 static inline uint8_t
-ieee80211_rate_get_vht_mcs(struct ieee80211_tx_rate *r)
+ieee80211_rate_get_vht_mcs(const struct ieee80211_tx_rate *r)
 {
 	return (r->idx & 0x0f);
 }
@@ -2068,13 +2042,6 @@ ieee80211_sta_uapsd_trigger(struct ieee80211_sta *sta, int ntids)
 	TODO();
 }
 
-static __inline void
-ieee80211_tkip_add_iv(u8 *crypto_hdr, struct ieee80211_key_conf *keyconf,
-    uint64_t pn)
-{
-	TODO();
-}
-
 static inline struct sk_buff *
 ieee80211_tx_dequeue(struct ieee80211_hw *hw, struct ieee80211_txq *txq)
 {
@@ -2200,8 +2167,8 @@ ieee80211_nullfunc_get(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 }
 
 static __inline struct sk_buff *
-ieee80211_probereq_get(struct ieee80211_hw *hw, uint8_t *addr,
-    uint8_t *ssid, size_t ssid_len, size_t tailroom)
+ieee80211_probereq_get(struct ieee80211_hw *hw, const uint8_t *addr,
+    const uint8_t *ssid, size_t ssid_len, size_t tailroom)
 {
 
 	return (linuxkpi_ieee80211_probereq_get(hw, addr, ssid, ssid_len,
@@ -2223,10 +2190,25 @@ ieee80211_queue_work(struct ieee80211_hw *hw, struct work_struct *w)
 	linuxkpi_ieee80211_queue_work(hw, w);
 }
 
+static __inline bool
+ieee80211_tx_prepare_skb(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+    struct sk_buff *skb, enum nl80211_band band, struct ieee80211_sta **sta)
+{
+	TODO();
+	return (false);
+}
+
 static __inline void
 ieee80211_tx_status_skb(struct ieee80211_hw *hw, struct sk_buff *skb)
 {
 	linuxkpi_ieee80211_tx_status(hw, skb);
+}
+
+static inline void
+ieee80211_tx_status_noskb(struct ieee80211_hw *hw, struct ieee80211_sta *sta,
+    struct ieee80211_tx_info *info)
+{
+	TODO();
 }
 
 static __inline void
@@ -2310,7 +2292,8 @@ ieee80211_txq_may_transmit(struct ieee80211_hw *hw, struct ieee80211_txq *txq)
 }
 
 static __inline void
-ieee80211_radar_detected(struct ieee80211_hw *hw)
+ieee80211_radar_detected(struct ieee80211_hw *hw,
+    struct ieee80211_chanctx_conf *chanctx_conf)
 {
 	TODO();
 }
@@ -2349,19 +2332,7 @@ ieee80211_disconnect(struct ieee80211_vif *vif, bool _x)
 }
 
 static __inline void
-ieee80211_channel_switch_disconnect(struct ieee80211_vif *vif, bool _x)
-{
-	TODO();
-}
-
-static __inline void
-ieee80211_key_mic_failure(struct ieee80211_key_conf *key)
-{
-	TODO();
-}
-
-static __inline void
-ieee80211_key_replay(struct ieee80211_key_conf *key)
+ieee80211_channel_switch_disconnect(struct ieee80211_vif *vif)
 {
 	TODO();
 }
@@ -2382,7 +2353,7 @@ ieee80211_get_tx_rates(struct ieee80211_vif *vif, struct ieee80211_sta *sta,
 }
 
 static __inline void
-ieee80211_color_change_finish(struct ieee80211_vif *vif)
+ieee80211_color_change_finish(struct ieee80211_vif *vif, uint8_t link_id)
 {
 	TODO();
 }
@@ -2424,9 +2395,22 @@ ieee80211_data_to_8023(struct sk_buff *skb, const uint8_t *addr,
         return (-1);
 }
 
+/* -------------------------------------------------------------------------- */
+
 static __inline void
-ieee80211_get_tkip_p1k_iv(struct ieee80211_key_conf *key,
-    uint32_t iv32, uint16_t *p1k)
+ieee80211_key_mic_failure(struct ieee80211_key_conf *key)
+{
+	TODO();
+}
+
+static __inline void
+ieee80211_key_replay(struct ieee80211_key_conf *key)
+{
+	TODO();
+}
+
+static __inline void
+ieee80211_remove_key(struct ieee80211_key_conf *key)
 {
         TODO();
 }
@@ -2447,9 +2431,36 @@ ieee80211_gtk_rekey_notify(struct ieee80211_vif *vif, const uint8_t *bssid,
 }
 
 static __inline void
-ieee80211_remove_key(struct ieee80211_key_conf *key)
+ieee80211_tkip_add_iv(u8 *crypto_hdr, struct ieee80211_key_conf *keyconf,
+    uint64_t pn)
+{
+	TODO();
+}
+
+static __inline void
+ieee80211_get_tkip_rx_p1k(struct ieee80211_key_conf *keyconf,
+    const u8 *addr, uint32_t iv32, u16 *p1k)
+{
+
+	KASSERT(keyconf != NULL && addr != NULL && p1k != NULL,
+	    ("%s: keyconf %p addr %p p1k %p\n", __func__, keyconf, addr, p1k));
+
+	TODO();
+	memset(p1k, 0xfa, 5 * sizeof(*p1k));	/* Just initializing. */
+}
+
+static __inline void
+ieee80211_get_tkip_p1k_iv(struct ieee80211_key_conf *key,
+    uint32_t iv32, uint16_t *p1k)
 {
         TODO();
+}
+
+static __inline void
+ieee80211_get_tkip_p2k(struct ieee80211_key_conf *keyconf,
+    struct sk_buff *skb_frag, u8 *key)
+{
+	TODO();
 }
 
 static inline void
@@ -2461,28 +2472,46 @@ ieee80211_get_key_rx_seq(struct ieee80211_key_conf *keyconf, int8_t tid,
 
 	KASSERT(keyconf != NULL && seq != NULL, ("%s: keyconf %p seq %p\n",
 	    __func__, keyconf, seq));
-	KASSERT(tid <= IEEE80211_NUM_TIDS, ("%s: tid out of bounds %d\n",
-	    __func__, tid));
 	k = keyconf->_k;
 	KASSERT(k != NULL, ("%s: keyconf %p ieee80211_key is NULL\n", __func__, keyconf));
 
 	switch (keyconf->cipher) {
+	case WLAN_CIPHER_SUITE_TKIP:
+		if (tid < 0 || tid >= IEEE80211_NUM_TIDS)
+			return;
+		/* See net80211::tkip_decrypt() */
+		seq->tkip.iv32 = TKIP_PN_TO_IV32(k->wk_keyrsc[tid]);
+		seq->tkip.iv16 = TKIP_PN_TO_IV16(k->wk_keyrsc[tid]);
+		break;
 	case WLAN_CIPHER_SUITE_CCMP:
 	case WLAN_CIPHER_SUITE_CCMP_256:
-		if (tid < 0)
+		if (tid < -1 || tid >= IEEE80211_NUM_TIDS)
+			return;
+		if (tid == -1)
 			p = (const uint8_t *)&k->wk_keyrsc[IEEE80211_NUM_TIDS];	/* IEEE80211_NONQOS_TID */
 		else
 			p = (const uint8_t *)&k->wk_keyrsc[tid];
 		memcpy(seq->ccmp.pn, p, sizeof(seq->ccmp.pn));
 		break;
+	case WLAN_CIPHER_SUITE_GCMP:
+	case WLAN_CIPHER_SUITE_GCMP_256:
+		if (tid < -1 || tid >= IEEE80211_NUM_TIDS)
+			return;
+		if (tid == -1)
+			p = (const uint8_t *)&k->wk_keyrsc[IEEE80211_NUM_TIDS];	/* IEEE80211_NONQOS_TID */
+		else
+			p = (const uint8_t *)&k->wk_keyrsc[tid];
+		memcpy(seq->gcmp.pn, p, sizeof(seq->gcmp.pn));
+		break;
 	case WLAN_CIPHER_SUITE_AES_CMAC:
+	case WLAN_CIPHER_SUITE_BIP_CMAC_256:
 		TODO();
 		memset(seq->aes_cmac.pn, 0xfa, sizeof(seq->aes_cmac.pn));	/* XXX TODO */
 		break;
-	case WLAN_CIPHER_SUITE_TKIP:
+	case WLAN_CIPHER_SUITE_BIP_GMAC_128:
+	case WLAN_CIPHER_SUITE_BIP_GMAC_256:
 		TODO();
-		seq->tkip.iv32 = 0xfa;		/* XXX TODO */
-		seq->tkip.iv16 = 0xfa;		/* XXX TODO */
+		memset(seq->aes_gmac.pn, 0xfa, sizeof(seq->aes_gmac.pn));	/* XXX TODO */
 		break;
 	default:
 		pr_debug("%s: unsupported cipher suite %d\n", __func__, keyconf->cipher);
@@ -2496,6 +2525,8 @@ ieee80211_set_key_rx_seq(struct ieee80211_key_conf *key, int tid,
 {
         TODO();
 }
+
+/* -------------------------------------------------------------------------- */
 
 static __inline void
 ieee80211_report_wowlan_wakeup(struct ieee80211_vif *vif,

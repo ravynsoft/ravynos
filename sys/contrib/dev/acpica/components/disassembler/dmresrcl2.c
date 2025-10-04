@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2024, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2025, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -778,7 +778,7 @@ AcpiDmCsi2SerialBusDescriptor (
 
     AcpiOsPrintf (" 0x%2.2X, 0x%2.2X,\n",
         Resource->Csi2SerialBus.TypeSpecificFlags & 0x03,
-        Resource->Csi2SerialBus.TypeSpecificFlags & 0xFC);
+        (Resource->Csi2SerialBus.TypeSpecificFlags & 0xFC) >> 2);
 
     /* ResourceSource is a required field */
 

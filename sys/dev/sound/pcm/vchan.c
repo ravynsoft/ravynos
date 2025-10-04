@@ -259,9 +259,13 @@ sysctl_dev_pcm_vchans(SYSCTL_HANDLER_ARGS)
 	struct snddev_info *d;
 	int err, enabled, flag;
 
+	bus_topo_lock();
 	d = devclass_get_softc(pcm_devclass, VCHAN_SYSCTL_UNIT(oidp->oid_arg1));
-	if (!PCM_REGISTERED(d))
+	if (!PCM_REGISTERED(d)) {
+		bus_topo_unlock();
 		return (EINVAL);
+	}
+	bus_topo_unlock();
 
 	PCM_LOCK(d);
 	PCM_WAIT(d);
@@ -317,9 +321,13 @@ sysctl_dev_pcm_vchanmode(SYSCTL_HANDLER_ARGS)
 	int *vchanmode, direction, ret;
 	char dtype[16];
 
+	bus_topo_lock();
 	d = devclass_get_softc(pcm_devclass, VCHAN_SYSCTL_UNIT(oidp->oid_arg1));
-	if (!PCM_REGISTERED(d))
+	if (!PCM_REGISTERED(d)) {
+		bus_topo_unlock();
 		return (EINVAL);
+	}
+	bus_topo_unlock();
 
 	PCM_LOCK(d);
 	PCM_WAIT(d);
@@ -405,12 +413,15 @@ sysctl_dev_pcm_vchanrate(SYSCTL_HANDLER_ARGS)
 {
 	struct snddev_info *d;
 	struct pcm_channel *c, *ch;
-	struct pcmchan_caps *caps;
 	int *vchanrate, direction, ret, newspd, restart;
 
+	bus_topo_lock();
 	d = devclass_get_softc(pcm_devclass, VCHAN_SYSCTL_UNIT(oidp->oid_arg1));
-	if (!PCM_REGISTERED(d))
+	if (!PCM_REGISTERED(d)) {
+		bus_topo_unlock();
 		return (EINVAL);
+	}
+	bus_topo_unlock();
 
 	PCM_LOCK(d);
 	PCM_WAIT(d);
@@ -467,13 +478,6 @@ sysctl_dev_pcm_vchanrate(SYSCTL_HANDLER_ARGS)
 			} else
 				restart = 0;
 
-			if (feeder_rate_round) {
-				caps = chn_getcaps(c);
-				RANGE(newspd, caps->minspeed, caps->maxspeed);
-				newspd = CHANNEL_SETSPEED(c->methods,
-				    c->devinfo, newspd);
-			}
-
 			ret = chn_reset(c, c->format, newspd);
 			if (ret == 0) {
 				if (restart != 0) {
@@ -488,7 +492,7 @@ sysctl_dev_pcm_vchanrate(SYSCTL_HANDLER_ARGS)
 				}
 			}
 		}
-		*vchanrate = c->speed;
+		*vchanrate = sndbuf_getspd(c->bufsoft);
 
 		CHN_UNLOCK(c);
 	}
@@ -507,9 +511,13 @@ sysctl_dev_pcm_vchanformat(SYSCTL_HANDLER_ARGS)
 	int *vchanformat, direction, ret, restart;
 	char fmtstr[AFMTSTR_LEN];
 
+	bus_topo_lock();
 	d = devclass_get_softc(pcm_devclass, VCHAN_SYSCTL_UNIT(oidp->oid_arg1));
-	if (!PCM_REGISTERED(d))
+	if (!PCM_REGISTERED(d)) {
+		bus_topo_unlock();
 		return (EINVAL);
+	}
+	bus_topo_unlock();
 
 	PCM_LOCK(d);
 	PCM_WAIT(d);
@@ -583,7 +591,7 @@ sysctl_dev_pcm_vchanformat(SYSCTL_HANDLER_ARGS)
 				}
 			}
 		}
-		*vchanformat = c->format;
+		*vchanformat = sndbuf_getfmt(c->bufsoft);
 
 		CHN_UNLOCK(c);
 	}
@@ -607,11 +615,9 @@ vchan_create(struct pcm_channel *parent, struct pcm_channel **child)
 	struct pcm_channel *ch;
 	struct pcmchan_caps *parent_caps;
 	uint32_t vchanfmt, vchanspd;
-	int ret, direction, r;
-	bool save;
+	int ret, direction;
 
 	ret = 0;
-	save = false;
 	d = parent->parentsnddev;
 
 	PCM_BUSYASSERT(d);
@@ -659,74 +665,8 @@ vchan_create(struct pcm_channel *parent, struct pcm_channel **child)
 		goto fail;
 	}
 
-	if (vchanfmt == 0) {
-		const char *vfmt;
-
-		CHN_UNLOCK(parent);
-		r = resource_string_value(device_get_name(parent->dev),
-		    device_get_unit(parent->dev), VCHAN_FMT_HINT(direction),
-		    &vfmt);
-		CHN_LOCK(parent);
-		if (r != 0)
-			vfmt = NULL;
-		if (vfmt != NULL) {
-			vchanfmt = snd_str2afmt(vfmt);
-			if (vchanfmt != 0 && !(vchanfmt & AFMT_VCHAN))
-				vchanfmt = 0;
-		}
-		if (vchanfmt == 0)
-			vchanfmt = VCHAN_DEFAULT_FORMAT;
-		save = true;
-	}
-
-	if (vchanspd == 0) {
-		/*
-		 * This is very sad. Few soundcards advertised as being
-		 * able to do (insanely) higher/lower speed, but in
-		 * reality, they simply can't. At least, we give user chance
-		 * to set sane value via kernel hints or sysctl.
-		 */
-		CHN_UNLOCK(parent);
-		r = resource_int_value(device_get_name(parent->dev),
-		    device_get_unit(parent->dev), VCHAN_SPD_HINT(direction),
-		    &vchanspd);
-		CHN_LOCK(parent);
-		if (r != 0) {
-			/* No saved value, no hint, NOTHING. */
-			vchanspd = VCHAN_DEFAULT_RATE;
-			RANGE(vchanspd, parent_caps->minspeed,
-			    parent_caps->maxspeed);
-		}
-		save = true;
-	}
-
-	/*
-	 * Limit the speed between feeder_rate_min <-> feeder_rate_max.
-	 */
-	RANGE(vchanspd, feeder_rate_min, feeder_rate_max);
-
-	if (feeder_rate_round) {
-		RANGE(vchanspd, parent_caps->minspeed,
-		    parent_caps->maxspeed);
-		vchanspd = CHANNEL_SETSPEED(parent->methods,
-		    parent->devinfo, vchanspd);
-	}
-
 	if ((ret = chn_reset(parent, vchanfmt, vchanspd)) != 0)
 		goto fail;
-
-	if (save) {
-		/*
-		 * Save new value.
-		 */
-		if (direction == PCMDIR_PLAY_VIRTUAL) {
-			d->pvchanformat = parent->format;
-			d->pvchanrate = parent->speed;
-		} else {
-			d->rvchanformat = parent->format;
-			d->rvchanrate = parent->speed;
-		}
-	}
 
 	/*
 	 * If the parent channel supports digital format,
@@ -825,6 +765,7 @@ sysctl_hw_snd_vchans_enable(SYSCTL_HANDLER_ARGS)
 	if (error != 0 || req->newptr == NULL)
 		return (error);
 
+	bus_topo_lock();
 	snd_vchans_enable = v >= 1;
 
 	for (i = 0; pcm_devclass != NULL &&
@@ -842,11 +783,12 @@ sysctl_hw_snd_vchans_enable(SYSCTL_HANDLER_ARGS)
 			d->flags &= ~(SD_F_PVCHANS | SD_F_RVCHANS);
 		PCM_RELEASE_QUICK(d);
 	}
+	bus_topo_unlock();
 
 	return (0);
 }
 SYSCTL_PROC(_hw_snd, OID_AUTO, vchans_enable,
-    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_NEEDGIANT, 0, sizeof(int),
+    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_MPSAFE, 0, sizeof(int),
     sysctl_hw_snd_vchans_enable, "I", "global virtual channel switch");
 
 void

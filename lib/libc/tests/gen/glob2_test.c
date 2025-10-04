@@ -25,9 +25,12 @@
  */
 
 #include <sys/param.h>
+#include <sys/stat.h>
+
 #include <errno.h>
 #include <fcntl.h>
 #include <glob.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -102,10 +105,80 @@ ATF_TC_BODY(glob_pathological_test, tc)
 	}
 }
 
+ATF_TC(glob_period);
+ATF_TC_HEAD(glob_period, tc)
+{
+	atf_tc_set_md_var(tc, "descr",
+	    "Test behaviour when matching files that start with a period"
+	    "(documented in the glob(3) CAVEATS section).");
+}
+ATF_TC_BODY(glob_period, tc)
+{
+	int i;
+	glob_t g;
+
+	atf_utils_create_file(".test", "");
+	glob(".", 0, NULL, &g);
+	ATF_REQUIRE_MSG(g.gl_matchc == 1,
+	    "glob(3) shouldn't match files starting with a period when using '.'");
+	for (i = 0; i < g.gl_matchc; i++)
+		printf("%s\n", g.gl_pathv[i]);
+	glob(".*", 0, NULL, &g);
+	ATF_REQUIRE_MSG(g.gl_matchc == 3 && strcmp(g.gl_pathv[2], ".test") == 0,
+	    "glob(3) should match files starting with a period when using '.*'");
+}
+
+static bool glob_callback_invoked;
+
+static int
+errfunc(const char *path, int err)
+{
+	ATF_CHECK_STREQ(path, "test/");
+	ATF_CHECK(err == EACCES);
+	glob_callback_invoked = true;
+	/* Suppress EACCES errors. */
+	return (0);
+}
+
+ATF_TC(glob_callback);
+ATF_TC_HEAD(glob_callback, tc)
+{
+	atf_tc_set_md_var(tc, "descr",
+	    "Test ability of callback function to suppress errors");
+	atf_tc_set_md_var(tc, "require.user", "unprivileged");
+}
+ATF_TC_BODY(glob_callback, tc)
+{
+	glob_t g;
+	int rv;
+
+	ATF_REQUIRE_EQ(0, mkdir("test", 0755));
+	ATF_REQUIRE_EQ(0, symlink("foo", "test/foo"));
+	ATF_REQUIRE_EQ(0, chmod("test", 0));
+
+	glob_callback_invoked = false;
+	rv = glob("test/*", 0, errfunc, &g);
+	ATF_CHECK_MSG(glob_callback_invoked,
+	    "glob(3) failed to invoke callback function");
+	ATF_CHECK_EQ_MSG(GLOB_NOMATCH, rv,
+	    "callback function failed to suppress EACCES");
+	globfree(&g);
+
+	/* GLOB_ERR should ignore the suppressed error. */
+	glob_callback_invoked = false;
+	rv = glob("test/*", GLOB_ERR, errfunc, &g);
+	ATF_CHECK_MSG(glob_callback_invoked,
+	    "glob(3) failed to invoke callback function");
+	ATF_CHECK_EQ_MSG(GLOB_ABORTED, rv,
+	    "GLOB_ERR didn't override callback function");
+	globfree(&g);
+}
+
 ATF_TP_ADD_TCS(tp)
 {
 
 	ATF_TP_ADD_TC(tp, glob_pathological_test);
-
+	ATF_TP_ADD_TC(tp, glob_period);
+	ATF_TP_ADD_TC(tp, glob_callback);
 	return (atf_no_error());
 }

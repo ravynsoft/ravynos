@@ -50,6 +50,15 @@ struct attribute_group {
 	struct attribute	**attrs;
 };
 
+struct bin_attribute {
+	struct attribute	attr;
+	size_t			size;
+	ssize_t (*read)(struct linux_file *, struct kobject *,
+			struct bin_attribute *, char *, loff_t, size_t);
+	ssize_t (*write)(struct linux_file *, struct kobject *,
+			 struct bin_attribute *, char *, loff_t, size_t);
+};
+
 #define	__ATTR(_name, _mode, _show, _store) {				\
 	.attr = { .name = __stringify(_name), .mode = _mode },		\
 	.show = _show, .store  = _store,				\
@@ -71,6 +80,39 @@ struct attribute_group {
 		&_name##_group,						\
 		NULL,							\
 	}
+
+#define	__BIN_ATTR(_name, _mode, _read, _write, _size) {		\
+	.attr = { .name = __stringify(_name), .mode = _mode },		\
+	.read = _read, .write  = _write, .size = _size,			\
+}
+#define	__BIN_ATTR_RO(_name, _size) {					\
+	.attr = { .name = __stringify(_name), .mode = 0444 },		\
+	.read = _name##_read, .size = _size,				\
+}
+#define	__BIN_ATTR_WO(_name, _size) {					\
+	.attr = { .name = __stringify(_name), .mode = 0200 },		\
+	.write = _name##_write, .size = _size,				\
+}
+#define	__BIN_ATTR_WR(_name, _size) {					\
+	.attr = { .name = __stringify(_name), .mode = 0644 },		\
+	.read = _name##_read, .write = _name##_write, .size = _size,	\
+}
+
+#define	BIN_ATTR(_name, _mode, _read, _write, _size) \
+struct bin_attribute bin_attr_##_name = \
+    __BIN_ATTR(_name, _mode, _read, _write, _size);
+
+#define	BIN_ATTR_RO(_name, _size) \
+struct bin_attribute bin_attr_##_name = \
+    __BIN_ATTR_RO(_name, _size);
+
+#define	BIN_ATTR_WO(_name, _size) \
+struct bin_attribute bin_attr_##_name = \
+    __BIN_ATTR_WO(_name, _size);
+
+#define	BIN_ATTR_WR(_name, _size) \
+struct bin_attribute bin_attr_##_name = \
+    __BIN_ATTR_WR(_name, _size);
 
 /*
  * Handle our generic '\0' terminated 'C' string.
@@ -147,12 +189,143 @@ sysfs_create_file(struct kobject *kobj, const struct attribute *attr)
 	return (0);
 }
 
+static inline struct kobject *
+__sysfs_lookup_group(struct kobject *kobj, const char *group)
+{
+	int found;
+	struct sysctl_oid *group_oidp;
+	struct kobject *group_kobj;
+
+	found = 0;
+	if (group != NULL) {
+		SYSCTL_FOREACH(group_oidp, SYSCTL_CHILDREN(kobj->oidp)) {
+			if (strcmp(group_oidp->oid_name, group) != 0)
+				continue;
+			found = 1;
+			break;
+		}
+	} else {
+		found = 1;
+		group_oidp = kobj->oidp;
+	}
+
+	if (!found)
+		return (NULL);
+
+	group_kobj = group_oidp->oid_arg1;
+
+	return (group_kobj);
+}
+
+static inline int
+sysfs_add_file_to_group(struct kobject *kobj,
+    const struct attribute *attr, const char *group)
+{
+	int ret;
+	struct kobject *group_kobj;
+
+	group_kobj = __sysfs_lookup_group(kobj, group);
+	if (group_kobj == NULL)
+		return (-ENOENT);
+
+	ret = sysfs_create_file(group_kobj, attr);
+
+	return (ret);
+}
+
 static inline void
 sysfs_remove_file(struct kobject *kobj, const struct attribute *attr)
 {
 
 	if (kobj->oidp)
 		sysctl_remove_name(kobj->oidp, attr->name, 1, 1);
+}
+
+static inline void
+sysfs_remove_file_from_group(struct kobject *kobj,
+    const struct attribute *attr, const char *group)
+{
+	struct kobject *group_kobj;
+
+	group_kobj = __sysfs_lookup_group(kobj, group);
+	if (group_kobj == NULL)
+		return;
+
+	sysfs_remove_file(group_kobj, attr);
+}
+
+static inline int
+sysctl_handle_bin_attr(SYSCTL_HANDLER_ARGS)
+{
+	struct kobject *kobj;
+	struct bin_attribute *attr;
+	char *buf;
+	int error;
+	ssize_t len;
+
+	kobj = arg1;
+	attr = (struct bin_attribute *)(intptr_t)arg2;
+	if (kobj->ktype == NULL || kobj->ktype->sysfs_ops == NULL)
+		return (ENODEV);
+	buf = (char *)get_zeroed_page(GFP_KERNEL);
+	if (buf == NULL)
+		return (ENOMEM);
+
+	if (attr->read) {
+		len = attr->read(
+		    NULL, /* <-- struct file, unimplemented */
+		    kobj, attr, buf, req->oldidx, PAGE_SIZE);
+		if (len < 0) {
+			error = -len;
+			if (error != EIO)
+				goto out;
+		}
+	}
+
+	error = sysctl_handle_opaque(oidp, buf, PAGE_SIZE, req);
+	if (error != 0 || req->newptr == NULL || attr->write == NULL)
+		goto out;
+
+	len = attr->write(
+	    NULL, /* <-- struct file, unimplemented */
+	    kobj, attr, buf, req->newidx, req->newlen);
+	if (len < 0)
+		error = -len;
+out:
+	free_page((unsigned long)buf);
+
+	return (error);
+}
+
+static inline int
+sysfs_create_bin_file(struct kobject *kobj, const struct bin_attribute *attr)
+{
+	struct sysctl_oid *oid;
+	int ctlflags;
+
+	ctlflags = CTLTYPE_OPAQUE | CTLFLAG_MPSAFE;
+	if (attr->attr.mode & (S_IRUSR | S_IWUSR))
+		ctlflags |= CTLFLAG_RW;
+	else if (attr->attr.mode & S_IRUSR)
+		ctlflags |= CTLFLAG_RD;
+	else if (attr->attr.mode & S_IWUSR)
+		ctlflags |= CTLFLAG_WR;
+
+	oid = SYSCTL_ADD_OID(NULL, SYSCTL_CHILDREN(kobj->oidp), OID_AUTO,
+	    attr->attr.name, ctlflags, kobj,
+	    (uintptr_t)attr, sysctl_handle_bin_attr, "", "");
+	if (oid == NULL)
+		return (-ENOMEM);
+
+	return (0);
+}
+
+static inline void
+sysfs_remove_bin_file(struct kobject *kobj, const struct bin_attribute *attr)
+{
+
+	if (kobj->oidp)
+		sysctl_remove_name(kobj->oidp, attr->attr.name, 1, 1);
 }
 
 static inline int
@@ -347,6 +520,24 @@ sysfs_emit_at(char *buf, int at, const char *fmt, ...)
 
 	return (i);
 }
+
+static inline int
+_sysfs_match_string(const char * const *a, size_t l, const char *s)
+{
+	const char *p;
+	int i;
+
+	for (i = 0; i < l; i++) {
+		p = a[i];
+		if (p == NULL)
+			break;
+		if (sysfs_streq(p, s))
+			return (i);
+	}
+
+	return (-ENOENT);
+}
+#define	sysfs_match_string(a, s)	_sysfs_match_string(a, ARRAY_SIZE(a), s)
 
 #define sysfs_attr_init(attr) do {} while(0)
 

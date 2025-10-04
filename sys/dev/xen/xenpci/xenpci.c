@@ -31,12 +31,11 @@
 #include <sys/kernel.h>
 #include <sys/malloc.h>
 #include <sys/module.h>
+#include <sys/stdarg.h>
 
 #include <machine/bus.h>
 #include <machine/resource.h>
 #include <sys/rman.h>
-
-#include <machine/stdarg.h>
 
 #include <xen/xen-os.h>
 #include <xen/features.h>
@@ -127,8 +126,9 @@ errexit:
 static int
 xenpci_probe(device_t dev)
 {
+	uint32_t device_id = pci_get_devid(dev);
 
-	if (pci_get_devid(dev) != 0x00015853)
+	if (device_id != 0x00015853 && device_id != 0x00025853)
 		return (ENXIO);
 
 	device_set_desc(dev, "Xen Platform Device");

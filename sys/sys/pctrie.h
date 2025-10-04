@@ -83,6 +83,19 @@ name##_PCTRIE_LOOKUP_UNLOCKED(struct pctrie *ptree, uint64_t key)	\
 	return name##_PCTRIE_VAL2PTR(pctrie_lookup_unlocked(ptree,	\
 	    key, (smr)));						\
 }									\
+									\
+static __inline __unused int						\
+name##_PCTRIE_LOOKUP_RANGE_UNLOCKED(struct pctrie *ptree, uint64_t key,	\
+     struct type *value[], int count) 					\
+{									\
+	uint64_t **data = (uint64_t **)value;				\
+									\
+	count = pctrie_lookup_range_unlocked(ptree, key, data, count,	\
+	    (smr));							\
+	for (int i = 0; i < count; i++)					\
+		value[i] = name##_PCTRIE_NZVAL2PTR(data[i]);		\
+	return (count);							\
+}									\
 
 #define	PCTRIE_DEFINE(name, type, field, allocfn, freefn)		\
 									\
@@ -94,13 +107,18 @@ CTASSERT(sizeof(((struct type *)0)->field) == sizeof(uint64_t));	\
 CTASSERT((__offsetof(struct type, field) & (sizeof(uint32_t) - 1)) == 0); \
 									\
 static __inline struct type *						\
-name##_PCTRIE_VAL2PTR(uint64_t *val)					\
+name##_PCTRIE_NZVAL2PTR(uint64_t *val)					\
 {									\
-									\
-	if (val == NULL)						\
-		return (NULL);						\
 	return (struct type *)						\
 	    ((uintptr_t)val - __offsetof(struct type, field));		\
+}									\
+									\
+static __inline struct type *						\
+name##_PCTRIE_VAL2PTR(uint64_t *val)					\
+{									\
+	if (val == NULL)						\
+		return (NULL);						\
+	return (name##_PCTRIE_NZVAL2PTR(val));				\
 }									\
 									\
 static __inline uint64_t *						\
@@ -112,7 +130,7 @@ name##_PCTRIE_PTR2VAL(struct type *ptr)					\
 									\
 static __inline __unused int						\
 name##_PCTRIE_INSERT_BASE(struct pctrie *ptree, uint64_t *val,		\
-    struct pctrie_node *parent, void *parentp,				\
+    struct pctrie_node **parent, void *parentp,				\
     uint64_t *found, struct type **found_out)				\
 {									\
 	struct pctrie_node *child;					\
@@ -128,7 +146,8 @@ name##_PCTRIE_INSERT_BASE(struct pctrie *ptree, uint64_t *val,		\
 				*found_out = NULL;			\
 			return (ENOMEM);				\
 		}							\
-		pctrie_insert_node(val, parent, parentp, child);	\
+		pctrie_insert_node(val, *parent, parentp, child);	\
+		*parent = child;					\
 	}								\
 	return (0);							\
 }									\
@@ -141,7 +160,7 @@ name##_PCTRIE_INSERT(struct pctrie *ptree, struct type *ptr)		\
 	uint64_t *val = name##_PCTRIE_PTR2VAL(ptr);			\
 									\
 	parentp = pctrie_insert_lookup_strict(ptree, val, &parent);	\
-	return (name##_PCTRIE_INSERT_BASE(ptree, val, parent, parentp,	\
+	return (name##_PCTRIE_INSERT_BASE(ptree, val, &parent, parentp,	\
 	    NULL, NULL));						\
 }									\
 									\
@@ -155,7 +174,7 @@ name##_PCTRIE_FIND_OR_INSERT(struct pctrie *ptree, struct type *ptr,	\
 	uint64_t *found;						\
 									\
 	parentp = pctrie_insert_lookup(ptree, val, &parent, &found);	\
-	return (name##_PCTRIE_INSERT_BASE(ptree, val, parent, parentp,	\
+	return (name##_PCTRIE_INSERT_BASE(ptree, val, &parent, parentp,	\
 	    found, found_out_opt));					\
 }									\
 									\
@@ -170,7 +189,7 @@ name##_PCTRIE_INSERT_LOOKUP_LE(struct pctrie *ptree, struct type *ptr,	\
 	int retval;							\
 									\
 	parentp = pctrie_insert_lookup(ptree, val, &parent, &found);	\
-	retval = name##_PCTRIE_INSERT_BASE(ptree, val, parent, parentp, \
+	retval = name##_PCTRIE_INSERT_BASE(ptree, val, &parent, parentp, \
 	    found, found_out);						\
 	if (retval != 0)						\
 		return (retval);					\
@@ -186,7 +205,7 @@ name##_PCTRIE_ITER_INSERT(struct pctrie_iter *it, struct type *ptr)	\
 	uint64_t *val = name##_PCTRIE_PTR2VAL(ptr);			\
 									\
 	parentp = pctrie_iter_insert_lookup(it, val);			\
-	return (name##_PCTRIE_INSERT_BASE(it->ptree, val, it->node,	\
+	return (name##_PCTRIE_INSERT_BASE(it->ptree, val, &it->node,	\
 	    parentp, NULL, NULL));					\
 }									\
 									\
@@ -195,6 +214,30 @@ name##_PCTRIE_LOOKUP(struct pctrie *ptree, uint64_t key)		\
 {									\
 									\
 	return name##_PCTRIE_VAL2PTR(pctrie_lookup(ptree, key));	\
+}									\
+									\
+static __inline __unused int						\
+name##_PCTRIE_LOOKUP_RANGE(struct pctrie *ptree, uint64_t key,		\
+    struct type *value[], int count) 					\
+{									\
+	uint64_t **data = (uint64_t **)value;				\
+									\
+	count = pctrie_lookup_range(ptree, key, data, count);		\
+	for (int i = 0; i < count; i++)					\
+		value[i] = name##_PCTRIE_NZVAL2PTR(data[i]);		\
+	return (count);							\
+}									\
+									\
+static __inline __unused int						\
+name##_PCTRIE_ITER_LOOKUP_RANGE(struct pctrie_iter *it, uint64_t key,	\
+    struct type *value[], int count) 					\
+{									\
+	uint64_t **data = (uint64_t **)value;				\
+									\
+	count = pctrie_iter_lookup_range(it, key, data, count);		\
+	for (int i = 0; i < count; i++)					\
+		value[i] = name##_PCTRIE_NZVAL2PTR(data[i]);		\
+	return (count);							\
 }									\
 									\
 static __inline __unused struct type *					\
@@ -365,6 +408,12 @@ void		pctrie_insert_node(uint64_t *val, struct pctrie_node *parent,
 uint64_t	*pctrie_lookup(struct pctrie *ptree, uint64_t key);
 uint64_t	*pctrie_lookup_unlocked(struct pctrie *ptree, uint64_t key,
 		    smr_t smr);
+int		pctrie_lookup_range(struct pctrie *ptree,
+		    uint64_t index, uint64_t *value[], int count);
+int		pctrie_lookup_range_unlocked(struct pctrie *ptree,
+		    uint64_t index, uint64_t *value[], int count, smr_t smr);
+int		pctrie_iter_lookup_range(struct pctrie_iter *it, uint64_t index,
+		    uint64_t *value[], int count);
 uint64_t	*pctrie_iter_lookup(struct pctrie_iter *it, uint64_t index);
 uint64_t	*pctrie_iter_stride(struct pctrie_iter *it, int stride);
 uint64_t	*pctrie_iter_next(struct pctrie_iter *it);

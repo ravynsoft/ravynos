@@ -699,10 +699,14 @@ vtblk_alloc_virtqueue(struct vtblk_softc *sc)
 {
 	device_t dev;
 	struct vq_alloc_info vq_info;
+	int indir_segs;
 
 	dev = sc->vtblk_dev;
 
-	VQ_ALLOC_INFO_INIT(&vq_info, sc->vtblk_max_nsegs,
+	indir_segs = 0;
+	if (sc->vtblk_flags & VTBLK_FLAG_INDIRECT)
+		indir_segs = sc->vtblk_max_nsegs;
+	VQ_ALLOC_INFO_INIT(&vq_info, indir_segs,
 	    vtblk_vq_intr, sc, &sc->vtblk_vq,
 	    "%s request", device_get_nameunit(dev));
 
@@ -755,6 +759,8 @@ vtblk_alloc_disk(struct vtblk_softc *sc, struct virtio_blk_config *blkcfg)
 	dp->d_hba_device = virtio_get_device(dev);
 	dp->d_hba_subvendor = virtio_get_subvendor(dev);
 	dp->d_hba_subdevice = virtio_get_subdevice(dev);
+	strlcpy(dp->d_attachment, device_get_nameunit(dev),
+	    sizeof(dp->d_attachment));
 
 	if (virtio_with_feature(dev, VIRTIO_BLK_F_RO))
 		dp->d_flags |= DISKFLAG_WRITE_PROTECT;

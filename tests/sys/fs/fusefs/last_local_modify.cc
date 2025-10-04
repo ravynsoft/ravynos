@@ -241,7 +241,6 @@ TEST_P(LastLocalModify, lookup)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.nodeid = ino;
 		out.body.entry.attr.size = oldsize;
-		out.body.entry.nodeid = ino;
 		out.body.entry.attr_valid_nsec = NAP_NS / 2;
 		out.body.entry.attr.ino = ino;
 		out.body.entry.attr.mode = S_IFREG | 0644;
@@ -285,6 +284,7 @@ TEST_P(LastLocalModify, lookup)
 		SET_OUT_HEADER_LEN(*out0, entry);
 		out0->body.entry.attr.mode = S_IFREG | 0644;
 		out0->body.entry.nodeid = ino;
+		out0->body.entry.attr.ino = ino;
 		out0->body.entry.entry_valid = UINT64_MAX;
 		out0->body.entry.attr_valid = UINT64_MAX;
 		out0->body.entry.attr.size = oldsize;
@@ -400,7 +400,6 @@ TEST_P(LastLocalModify, vfs_vget)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.nodeid = ino;
 		out.body.entry.attr.size = oldsize;
-		out.body.entry.nodeid = ino;
 		out.body.entry.attr_valid_nsec = NAP_NS / 2;
 		out.body.entry.attr.ino = ino;
 		out.body.entry.attr.mode = S_IFREG | 0644;
@@ -422,7 +421,6 @@ TEST_P(LastLocalModify, vfs_vget)
 		SET_OUT_HEADER_LEN(out, entry);
 		out.body.entry.nodeid = ino;
 		out.body.entry.attr.size = oldsize;
-		out.body.entry.nodeid = ino;
 		out.body.entry.attr_valid_nsec = NAP_NS / 2;
 		out.body.entry.attr.ino = ino;
 		out.body.entry.attr.mode = S_IFREG | 0644;
@@ -447,6 +445,7 @@ TEST_P(LastLocalModify, vfs_vget)
 		SET_OUT_HEADER_LEN(*out0, entry);
 		out0->body.entry.attr.mode = S_IFREG | 0644;
 		out0->body.entry.nodeid = ino;
+		out0->body.entry.attr.ino = ino;
 		out0->body.entry.entry_valid = UINT64_MAX;
 		out0->body.entry.attr_valid = UINT64_MAX;
 		out0->body.entry.attr.size = oldsize;

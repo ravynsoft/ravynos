@@ -18,87 +18,59 @@ local function capture(command)
 	return output:match("(.-)\n$") or output
 end
 
-local function append_list(list, other)
-	for _, item in ipairs(other) do
-		table.insert(list, item)
-	end
-end
-
 -- Returns a list of packages to be included in the given media
 local function select_packages(pkg, media, all_libcompats)
-	local components = {
-		kernel = {},
-		kernel_dbg = {},
-		base = {},
-		base_dbg = {},
-		src = {},
-		tests = {},
+	-- Note: if you update this list, you must also update the list in
+	-- usr.sbin/bsdinstall/scripts/pkgbase.in.
+	local kernel_packages = {
+		-- Most architectures use this
+		["FreeBSD-kernel-generic"] = true,
+		-- PowerPC uses either of these, depending on platform
+		["FreeBSD-kernel-generic64"] = true,
+		["FreeBSD-kernel-generic64le"] = true,
 	}
 
-	for compat in all_libcompats:gmatch("%S+") do
-		components["lib" .. compat] = {}
-		components["lib" .. compat .. "_dbg"] = {}
-	end
-
+	local components = {}
 	local rquery = capture(pkg .. "rquery -U -r FreeBSD-base %n")
 	for package in rquery:gmatch("[^\n]+") do
-		if package == "FreeBSD-src" or package:match("^FreeBSD%-src%-.*") then
-			table.insert(components["src"], package)
-		elseif package == "FreeBSD-tests" or package:match("^FreeBSD%-tests%-.*") then
-			table.insert(components["tests"], package)
-		elseif package:match("^FreeBSD%-kernel%-.*") and
-			package ~= "FreeBSD-kernel-man"
-		then
-			-- Kernels other than FreeBSD-kernel-generic are ignored
-			if package == "FreeBSD-kernel-generic" then
-				table.insert(components["kernel"], package)
-			elseif package == "FreeBSD-kernel-generic-dbg" then
-				table.insert(components["kernel_dbg"], package)
-			end
-		elseif package:match(".*%-dbg$") then
-			table.insert(components["base_dbg"], package)
-		else
-			local found = false
-			for compat in all_libcompats:gmatch("%S+") do
-				if package:match(".*%-dbg%-lib" .. compat .. "$") then
-					table.insert(components["lib" .. compat .. "_dbg"], package)
-					found = true
-					break
-				elseif package:match(".*%-lib" .. compat .. "$") then
-					table.insert(components["lib" .. compat], package)
-					found = true
-					break
-				end
-			end
-			if not found then
-				table.insert(components["base"], package)
-			end
+		local set = package:match("^FreeBSD%-set%-(.*)$")
+		if set then
+			components[set] = package
+		elseif kernel_packages[package] then
+			components["kernel"] = package
+		elseif kernel_packages[package:match("(.*)%-dbg$")] then
+			components["kernel-dbg"] = package
+		elseif package == "pkg" then
+			components["pkg"] = package
 		end
 	end
-	assert(#components["kernel"] == 1)
-	assert(#components["base"] > 0)
+	assert(components["kernel"])
+	assert(components["base"])
+	assert(components["pkg"])
 
 	local selected = {}
 	if media == "disc" then
-		append_list(selected, components["base"])
-		append_list(selected, components["kernel"])
-		append_list(selected, components["kernel_dbg"])
-		append_list(selected, components["src"])
-		append_list(selected, components["tests"])
+		table.insert(selected, components["pkg"])
+		table.insert(selected, components["base"])
+		table.insert(selected, components["kernel"])
+		table.insert(selected, components["kernel-dbg"])
+		table.insert(selected, components["src"])
+		table.insert(selected, components["tests"])
 		for compat in all_libcompats:gmatch("%S+") do
-			append_list(selected, components["lib" .. compat])
+			table.insert(selected, components["lib" .. compat])
 		end
 	else
 		assert(media == "dvd")
-		append_list(selected, components["base"])
-		append_list(selected, components["base_dbg"])
-		append_list(selected, components["kernel"])
-		append_list(selected, components["kernel_dbg"])
-		append_list(selected, components["src"])
-		append_list(selected, components["tests"])
+		table.insert(selected, components["pkg"])
+		table.insert(selected, components["base"])
+		table.insert(selected, components["base-dbg"])
+		table.insert(selected, components["kernel"])
+		table.insert(selected, components["kernel-dbg"])
+		table.insert(selected, components["src"])
+		table.insert(selected, components["tests"])
 		for compat in all_libcompats:gmatch("%S+") do
-			append_list(selected, components["lib" .. compat])
-			append_list(selected, components["lib" .. compat .. "_dbg"])
+			table.insert(selected, components["lib" .. compat])
+			table.insert(selected, components["lib" .. compat .. "-dbg"])
 		end
 	end
 
@@ -115,6 +87,8 @@ local function main()
 	local target = assert(arg[3])
 	-- =hitespace separated list of all libcompat names (e.g. "32")
 	local all_libcompats = assert(arg[4])
+	-- ABI of repository
+	local ABI = assert(arg[5])
 
 	assert(os.execute("mkdir -p pkgbase-repo-conf"))
 	local f <close> = assert(io.open("pkgbase-repo-conf/FreeBSD-base.conf", "w"))
@@ -127,13 +101,14 @@ local function main()
 	assert(f:close())
 
 	local pkg = "pkg -o ASSUME_ALWAYS_YES=yes -o IGNORE_OSVERSION=yes " ..
+	    "-o ABI=" .. ABI .. " " ..
 	    "-o INSTALL_AS_USER=1 -o PKG_DBDIR=./pkgdb -R ./pkgbase-repo-conf "
 
 	assert(os.execute(pkg .. "update"))
 
 	local packages = select_packages(pkg, media, all_libcompats)
 
-	assert(os.execute(pkg .. "fetch -o " .. target .. " " .. table.concat(packages, " ")))
+	assert(os.execute(pkg .. "fetch -d -o " .. target .. " " .. table.concat(packages, " ")))
 	assert(os.execute(pkg .. "repo " .. target))
 end
 

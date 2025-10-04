@@ -111,10 +111,11 @@ typedef	__uintptr_t	uintptr_t;
  */
 #define	SOCK_CLOEXEC	0x10000000
 #define	SOCK_NONBLOCK	0x20000000
+#define	SOCK_CLOFORK	0x40000000
 #ifdef _KERNEL
 /*
  * Flags for accept1(), kern_accept4() and solisten_dequeue, in addition
- * to SOCK_CLOEXEC and SOCK_NONBLOCK.
+ * to SOCK_CLOEXEC, SOCK_CLOFORK and SOCK_NONBLOCK.
  */
 #define ACCEPT4_INHERIT 0x1
 #define ACCEPT4_COMPAT  0x2
@@ -273,9 +274,8 @@ struct accept_filter_arg {
 #define AF_RESV01	48		/* Reserved */
 #define AF_RESV02	50		/* Reserved */
 #define AF_RESV03	52		/* Reserved */
-#define AF_SYSTEM	54		/* Mach */
-#define	AF_MAX		54
-
+#define AF_SYSTEM	54		/* Reserved */
+#define	AF_MAX		54	
 /*
  * When allocating a new AF_ constant, please only allocate
  * even numbered constants for FreeBSD until 134 as odd numbered AF_
@@ -400,9 +400,9 @@ struct sockproto {
 #define	PF_NETLINK	AF_NETLINK
 #define	PF_INET_SDP	AF_INET_SDP
 #define	PF_INET6_SDP	AF_INET6_SDP
-#define PF_SYSTEM	AF_SYSTEM
 #define	PF_DIVERT	AF_DIVERT
 #define	PF_IPFWLOG	AF_IPFWLOG
+#define PF_SYSTEM	AF_SYSTEM
 
 #define	PF_MAX		AF_MAX
 
@@ -483,6 +483,9 @@ struct msghdr {
 #ifdef _KERNEL
 #define	MSG_MORETOCOME	 0x00100000	/* additional data pending */
 #define	MSG_TLSAPPDATA	 0x00200000	/* do not soreceive() alert rec. (TLS) */
+#endif
+#if __BSD_VISIBLE
+#define	MSG_CMSG_CLOFORK 0x00400000	/* make received fds close-on-fork */
 #endif
 
 /*
@@ -691,11 +694,11 @@ struct splice {
 
 #endif /* __BSD_VISIBLE */
 
+#ifndef	_KERNEL
+
 #if defined(_FORTIFY_SOURCE) && _FORTIFY_SOURCE > 0
 #include <ssp/socket.h>
 #endif
-
-#ifndef	_KERNEL
 
 #include <sys/cdefs.h>
 

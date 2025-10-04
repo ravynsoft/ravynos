@@ -132,6 +132,7 @@ chn_vpc_proc(int reset, int db)
 	struct pcm_channel *c;
 	int i;
 
+	bus_topo_lock();
 	for (i = 0; pcm_devclass != NULL &&
 	    i < devclass_get_maxunit(pcm_devclass); i++) {
 		d = devclass_get_softc(pcm_devclass, i);
@@ -150,6 +151,7 @@ chn_vpc_proc(int reset, int db)
 		PCM_RELEASE(d);
 		PCM_UNLOCK(d);
 	}
+	bus_topo_unlock();
 }
 
 static int
@@ -170,7 +172,7 @@ sysctl_hw_snd_vpc_0db(SYSCTL_HANDLER_ARGS)
 	return (0);
 }
 SYSCTL_PROC(_hw_snd, OID_AUTO, vpc_0db,
-    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_NEEDGIANT, 0, sizeof(int),
+    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_MPSAFE, 0, sizeof(int),
     sysctl_hw_snd_vpc_0db, "I",
     "0db relative level");
 
@@ -190,7 +192,7 @@ sysctl_hw_snd_vpc_reset(SYSCTL_HANDLER_ARGS)
 	return (0);
 }
 SYSCTL_PROC(_hw_snd, OID_AUTO, vpc_reset,
-    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT, 0, sizeof(int),
+    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_MPSAFE, 0, sizeof(int),
     sysctl_hw_snd_vpc_reset, "I",
     "reset volume on all channels");
 
@@ -961,29 +963,38 @@ static const struct {
 	{ "mulaw",  NULL, NULL, AFMT_MU_LAW },
 	{    "u8",   "8", NULL, AFMT_U8     },
 	{    "s8",  NULL, NULL, AFMT_S8     },
+	{   "ac3",  NULL, NULL, AFMT_AC3    },
 #if BYTE_ORDER == LITTLE_ENDIAN
 	{ "s16le", "s16", "16", AFMT_S16_LE },
 	{ "s16be",  NULL, NULL, AFMT_S16_BE },
+	{ "s24le", "s24", "24", AFMT_S24_LE },
+	{ "s24be",  NULL, NULL, AFMT_S24_BE },
+	{ "s32le", "s32", "32", AFMT_S32_LE },
+	{ "s32be",  NULL, NULL, AFMT_S32_BE },
+	{ "f32le", "f32", NULL, AFMT_F32_LE },
+	{ "f32be",  NULL, NULL, AFMT_F32_BE },
+	{ "u16le", "u16", NULL, AFMT_U16_LE },
+	{ "u16be",  NULL, NULL, AFMT_U16_BE },
+	{ "u24le", "u24", NULL, AFMT_U24_LE },
+	{ "u24be",  NULL, NULL, AFMT_U24_BE },
+	{ "u32le", "u32", NULL, AFMT_U32_LE },
+	{ "u32be",  NULL, NULL, AFMT_U32_BE },
 #else
 	{ "s16le",  NULL, NULL, AFMT_S16_LE },
 	{ "s16be", "s16", "16", AFMT_S16_BE },
-#endif
-	{ "u16le",  NULL, NULL, AFMT_U16_LE },
-	{ "u16be",  NULL, NULL, AFMT_U16_BE },
 	{ "s24le",  NULL, NULL, AFMT_S24_LE },
-	{ "s24be",  NULL, NULL, AFMT_S24_BE },
-	{ "u24le",  NULL, NULL, AFMT_U24_LE },
-	{ "u24be",  NULL, NULL, AFMT_U24_BE },
-#if BYTE_ORDER == LITTLE_ENDIAN
-	{ "s32le", "s32", "32", AFMT_S32_LE },
-	{ "s32be",  NULL, NULL, AFMT_S32_BE },
-#else
+	{ "s24be", "s24", "24", AFMT_S24_BE },
 	{ "s32le",  NULL, NULL, AFMT_S32_LE },
 	{ "s32be", "s32", "32", AFMT_S32_BE },
-#endif
+	{ "f32le",  NULL, NULL, AFMT_F32_LE },
+	{ "f32be", "f32", NULL, AFMT_F32_BE },
+	{ "u16le",  NULL, NULL, AFMT_U16_LE },
+	{ "u16be", "u16", NULL, AFMT_U16_BE },
+	{ "u24le",  NULL, NULL, AFMT_U24_LE },
+	{ "u24be", "u24", NULL, AFMT_U24_BE },
 	{ "u32le",  NULL, NULL, AFMT_U32_LE },
-	{ "u32be",  NULL, NULL, AFMT_U32_BE },
-	{   "ac3",  NULL, NULL, AFMT_AC3    },
+	{ "u32be", "u32", NULL, AFMT_U32_BE },
+#endif
 	{    NULL,  NULL, NULL, 0           }
 };
 
@@ -1176,7 +1187,7 @@ chn_init(struct snddev_info *d, struct pcm_channel *parent, kobj_class_t cls,
 	struct feeder_class *fc;
 	struct snd_dbuf *b, *bs;
 	char buf[CHN_NAMELEN];
-	int err, i, direction;
+	int err, i, direction, *vchanrate, *vchanformat;
 
 	PCM_BUSYASSERT(d);
 	PCM_LOCKASSERT(d);
@@ -1189,6 +1200,8 @@ chn_init(struct snddev_info *d, struct pcm_channel *parent, kobj_class_t cls,
 		if (dir == PCMDIR_PLAY_VIRTUAL)
 			d->pvchancount++;
 		direction = PCMDIR_PLAY;
+		vchanrate = &d->pvchanrate;
+		vchanformat = &d->pvchanformat;
 		break;
 	case PCMDIR_REC:
 		d->reccount++;
@@ -1197,6 +1210,8 @@ chn_init(struct snddev_info *d, struct pcm_channel *parent, kobj_class_t cls,
 		if (dir == PCMDIR_REC_VIRTUAL)
 			d->rvchancount++;
 		direction = PCMDIR_REC;
+		vchanrate = &d->rvchanrate;
+		vchanformat = &d->rvchanformat;
 		break;
 	default:
 		device_printf(d->dev,
@@ -1301,8 +1316,12 @@ chn_init(struct snddev_info *d, struct pcm_channel *parent, kobj_class_t cls,
 
 	PCM_LOCK(d);
 	CHN_INSERT_SORT_ASCEND(d, c, channels.pcm);
-	if ((c->flags & CHN_F_VIRTUAL) == 0)
+	if ((c->flags & CHN_F_VIRTUAL) == 0) {
 		CHN_INSERT_SORT_ASCEND(d, c, channels.pcm.primary);
+		/* Initialize the *vchanrate/vchanformat parameters. */
+		*vchanrate = sndbuf_getspd(c->bufsoft);
+		*vchanformat = sndbuf_getfmt(c->bufsoft);
+	}
 
 	return (c);
 

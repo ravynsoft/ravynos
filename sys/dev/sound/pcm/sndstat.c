@@ -52,7 +52,6 @@
 
 #define	SS_TYPE_PCM		1
 #define	SS_TYPE_MIDI		2
-#define	SS_TYPE_SEQUENCER	3
 
 static d_open_t sndstat_open;
 static void sndstat_close(void *);
@@ -440,12 +439,14 @@ sndstat_build_sound4_nvlist(struct snddev_info *d, nvlist_t **dip)
 	nvlist_add_string(sound4di, SNDST_DSPS_SOUND4_STATUS, d->status);
 	nvlist_add_bool(
 	    sound4di, SNDST_DSPS_SOUND4_BITPERFECT, d->flags & SD_F_BITPERFECT);
-	nvlist_add_number(sound4di, SNDST_DSPS_SOUND4_PVCHAN, d->pvchancount);
+	nvlist_add_bool(sound4di, SNDST_DSPS_SOUND4_PVCHAN,
+	    d->flags & SD_F_PVCHANS);
 	nvlist_add_number(sound4di, SNDST_DSPS_SOUND4_PVCHANRATE,
 	    d->pvchanrate);
 	nvlist_add_number(sound4di, SNDST_DSPS_SOUND4_PVCHANFORMAT,
 	    d->pvchanformat);
-	nvlist_add_number(sound4di, SNDST_DSPS_SOUND4_RVCHAN, d->rvchancount);
+	nvlist_add_bool(sound4di, SNDST_DSPS_SOUND4_RVCHAN,
+	    d->flags & SD_F_RVCHANS);
 	nvlist_add_number(sound4di, SNDST_DSPS_SOUND4_RVCHANRATE,
 	    d->rvchanrate);
 	nvlist_add_number(sound4di, SNDST_DSPS_SOUND4_RVCHANFORMAT,
@@ -491,6 +492,8 @@ sndstat_build_sound4_nvlist(struct snddev_info *d, nvlist_t **dip)
 		    CHN_GETVOLUME(c, SND_VOL_C_PCM, SND_CHN_T_FR));
 		nvlist_add_number(cdi, SNDST_DSPS_SOUND4_CHAN_HWBUF_FORMAT,
 		    sndbuf_getfmt(c->bufhard));
+		nvlist_add_number(cdi, SNDST_DSPS_SOUND4_CHAN_HWBUF_RATE,
+		    sndbuf_getspd(c->bufhard));
 		nvlist_add_number(cdi, SNDST_DSPS_SOUND4_CHAN_HWBUF_SIZE,
 		    sndbuf_getsize(c->bufhard));
 		nvlist_add_number(cdi, SNDST_DSPS_SOUND4_CHAN_HWBUF_BLKSZ,
@@ -503,6 +506,8 @@ sndstat_build_sound4_nvlist(struct snddev_info *d, nvlist_t **dip)
 		    sndbuf_getready(c->bufhard));
 		nvlist_add_number(cdi, SNDST_DSPS_SOUND4_CHAN_SWBUF_FORMAT,
 		    sndbuf_getfmt(c->bufsoft));
+		nvlist_add_number(cdi, SNDST_DSPS_SOUND4_CHAN_SWBUF_RATE,
+		    sndbuf_getspd(c->bufsoft));
 		nvlist_add_number(cdi, SNDST_DSPS_SOUND4_CHAN_SWBUF_SIZE,
 		    sndbuf_getsize(c->bufsoft));
 		nvlist_add_number(cdi, SNDST_DSPS_SOUND4_CHAN_SWBUF_BLKSZ,
@@ -1159,8 +1164,6 @@ sndstat_register(device_t dev, char *str)
 		type = SS_TYPE_PCM;
 	else if (!strcmp(devtype, "midi"))
 		type = SS_TYPE_MIDI;
-	else if (!strcmp(devtype, "sequencer"))
-		type = SS_TYPE_SEQUENCER;
 	else
 		return (EINVAL);
 
@@ -1435,8 +1438,8 @@ static void
 sndstat_sysinit(void *p)
 {
 	sx_init(&sndstat_lock, "sndstat lock");
-	sndstat_dev = make_dev(&sndstat_cdevsw, SND_DEV_STATUS,
-	    UID_ROOT, GID_WHEEL, 0644, "sndstat");
+	sndstat_dev = make_dev(&sndstat_cdevsw, 0, UID_ROOT, GID_WHEEL, 0644,
+	    "sndstat");
 }
 SYSINIT(sndstat_sysinit, SI_SUB_DRIVERS, SI_ORDER_FIRST, sndstat_sysinit, NULL);
 

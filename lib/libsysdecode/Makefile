@@ -27,7 +27,7 @@ MAN=	sysdecode.3 \
 	sysdecode_sigcode.3 \
 	sysdecode_sockopt_name.3 \
 	sysdecode_socket_protocol.3 \
-	sysdecode_syscallnames.3 \
+	sysdecode_syscallname.3 \
 	sysdecode_utrace.3
 MLINKS= sysdecode_abi_to_freebsd_errno.3 sysdecode_freebsd_to_abi_errno.3
 MLINKS+=sysdecode_enum.3 sysdecode_acltype.3 \
@@ -84,6 +84,7 @@ MLINKS+=sysdecode_mask.3 sysdecode_accessmode.3 \
 	sysdecode_mask.3 sysdecode_fileflags.3 \
 	sysdecode_mask.3 sysdecode_filemode.3 \
 	sysdecode_mask.3 sysdecode_flock_operation.3 \
+	sysdecode_mask.3 sysdecode_inotifyflags.3 \
 	sysdecode_mask.3 sysdecode_mlockall_flags.3 \
 	sysdecode_mask.3 sysdecode_mmap_flags.3 \
 	sysdecode_mask.3 sysdecode_mmap_prot.3 \

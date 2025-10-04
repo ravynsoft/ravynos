@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright(c) 2007-2022 Intel Corporation */
+/* Copyright(c) 2007-2025 Intel Corporation */
 /* System headers */
 #include <sys/param.h>
 #include <sys/systm.h>
@@ -941,8 +941,8 @@ fail:
 static void
 qat_ocf_identify(driver_t *drv, device_t parent)
 {
-	if (device_find_child(parent, "qat_ocf", -1) == NULL &&
-	    BUS_ADD_CHILD(parent, 200, "qat_ocf", -1) == 0)
+	if (device_find_child(parent, "qat_ocf", DEVICE_UNIT_ANY) == NULL &&
+	    BUS_ADD_CHILD(parent, 200, "qat_ocf", DEVICE_UNIT_ANY) == 0)
 		device_printf(parent, "qat_ocf: could not attach!");
 }
 
@@ -1279,7 +1279,6 @@ static driver_t qat_ocf_driver = {
 	.methods = qat_ocf_methods,
 	.size = sizeof(struct qat_ocf_softc),
 };
-
 
 DRIVER_MODULE_ORDERED(qat,
 		      nexus,

@@ -65,6 +65,7 @@ struct dummy_softc {
 	struct dummy_chan chans[DUMMY_NCHAN];
 	struct callout callout;
 	struct mtx *lock;
+	bool stopped;
 };
 
 static bool
@@ -92,6 +93,9 @@ dummy_chan_io(void *arg)
 	struct dummy_chan *ch;
 	int i = 0;
 
+	if (sc->stopped)
+		return;
+
 	/* Do not reschedule if no channel is running. */
 	if (!dummy_active(sc))
 		return;
@@ -108,7 +112,8 @@ dummy_chan_io(void *arg)
 		chn_intr(ch->chan);
 		snd_mtxlock(sc->lock);
 	}
-	callout_schedule(&sc->callout, 1);
+	if (!sc->stopped)
+		callout_schedule(&sc->callout, 1);
 }
 
 static int
@@ -194,6 +199,11 @@ dummy_chan_trigger(kobj_t obj, void *data, int go)
 	struct dummy_softc *sc = ch->sc;
 
 	snd_mtxlock(sc->lock);
+
+	if (sc->stopped) {
+		snd_mtxunlock(sc->lock);
+		return (0);
+	}
 
 	switch (go) {
 	case PCMTRIG_START:
@@ -286,9 +296,9 @@ MIXER_DECLARE(dummy_mixer);
 static void
 dummy_identify(driver_t *driver, device_t parent)
 {
-	if (device_find_child(parent, driver->name, -1) != NULL)
+	if (device_find_child(parent, driver->name, DEVICE_UNIT_ANY) != NULL)
 		return;
-	if (BUS_ADD_CHILD(parent, 0, driver->name, -1) == NULL)
+	if (BUS_ADD_CHILD(parent, 0, driver->name, DEVICE_UNIT_ANY) == NULL)
 		device_printf(parent, "add child failed\n");
 }
 
@@ -345,8 +355,11 @@ dummy_detach(device_t dev)
 	struct dummy_softc *sc = device_get_softc(dev);
 	int err;
 
-	err = pcm_unregister(dev);
+	snd_mtxlock(sc->lock);
+	sc->stopped = true;
+	snd_mtxunlock(sc->lock);
 	callout_drain(&sc->callout);
+	err = pcm_unregister(dev);
 	snd_mtxfree(sc->lock);
 
 	return (err);

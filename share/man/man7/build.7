@@ -25,7 +25,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd March 8, 2025
+.Dd August 8, 2025
 .Dt BUILD 7
 .Os
 .Sh NAME
@@ -642,6 +642,20 @@ If set, this variable supplies a list of additional directories relative to
 the root of the source tree to build as part of the
 .Cm cross-tools
 target.
+.It Va PKG_FORMAT
+Specify a package compression format when building
+.Pa src
+into
+.Cm packages .
+Default:
+.Ql tzst .
+Consider using
+.Ql tar
+to disable compression.
+Accepted options are documented in the
+.Fl f
+description of
+.Xr pkg-create 8 .
 .It Va PORTS_MODULES
 A list of ports with kernel modules that should be built and installed
 as part of the
@@ -649,8 +663,16 @@ as part of the
 and
 .Cm installkernel
 process.
-.Bd -literal -offset indent
-make PORTS_MODULES=emulators/virtualbox-ose-kmod kernel
+This is currently incompatible with building
+.Pa src
+into
+.Cm packages .
+Each port must be specified as
+.Ar category Ns Li / Ns Ar port Ns Op Li @ Ns Ar flavor ,
+e.g.
+.Bd -literal
+PORTS_MODULES=graphics/gpu-firmware-intel-kmod@kabylake
+PORTS_MODULES+=graphics/drm-66-kmod
 .Ed
 .It Va LOCAL_MODULES
 A list of external kernel modules that should be built and installed

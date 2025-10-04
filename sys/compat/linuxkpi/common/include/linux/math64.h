@@ -61,6 +61,8 @@ div64_u64(uint64_t dividend, uint64_t divisor)
 	return (dividend / divisor);
 }
 
+#define	div64_ul(x, y)	div64_u64((x), (y))
+
 static inline uint64_t
 div_u64_rem(uint64_t dividend, uint32_t divisor, uint32_t *remainder)
 {
@@ -94,6 +96,12 @@ static inline uint64_t
 div64_u64_round_up(uint64_t dividend, uint64_t divisor)
 {
 	return ((dividend + divisor - 1) / divisor);
+}
+
+static inline uint64_t
+roundup_u64(uint64_t x1, uint32_t x2)
+{
+	return (div_u64(x1 + x2 - 1, x2) * x2);
 }
 
 #define	DIV64_U64_ROUND_UP(...) \

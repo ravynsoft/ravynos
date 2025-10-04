@@ -113,9 +113,9 @@ static const CODE prioritynames[] = {
 #define	LOG_LOCAL5	(21<<3)	/* reserved for local use */
 #define	LOG_LOCAL6	(22<<3)	/* reserved for local use */
 #define	LOG_LOCAL7	(23<<3)	/* reserved for local use */
-#define	LOG_LAUNCHD	(24<<3) /* launchd - initNG */
+#define LOG_LAUNCHD	(24<<3) /* launchd - initNG */
 
-#define	LOG_NFACILITIES	25	/* current number of facilities */
+#define	LOG_NFACILITIES	24	/* current number of facilities */
 #define	LOG_FACMASK	0x03f8	/* mask to extract facility part */
 				/* facility of pri */
 #define	LOG_FAC(p)	(((p) & LOG_FACMASK) >> 3)

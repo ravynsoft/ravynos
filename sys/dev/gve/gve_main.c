@@ -32,10 +32,10 @@
 #include "gve_adminq.h"
 #include "gve_dqo.h"
 
-#define GVE_DRIVER_VERSION "GVE-FBSD-1.3.2\n"
+#define GVE_DRIVER_VERSION "GVE-FBSD-1.3.4\n"
 #define GVE_VERSION_MAJOR 1
 #define GVE_VERSION_MINOR 3
-#define GVE_VERSION_SUB 2
+#define GVE_VERSION_SUB 5
 
 #define GVE_DEFAULT_RX_COPYBREAK 256
 
@@ -49,6 +49,9 @@ static struct gve_dev {
 };
 
 struct sx gve_global_lock;
+
+static void gve_start_tx_timeout_service(struct gve_priv *priv);
+static void gve_stop_tx_timeout_service(struct gve_priv *priv);
 
 static int
 gve_verify_driver_compatibility(struct gve_priv *priv)
@@ -97,6 +100,72 @@ gve_verify_driver_compatibility(struct gve_priv *priv)
 	gve_dma_free_coherent(&driver_info_mem);
 
 	return (err);
+}
+
+static void
+gve_handle_tx_timeout(struct gve_priv *priv, struct gve_tx_ring *tx,
+    int num_timeout_pkts)
+{
+	int64_t time_since_last_kick;
+
+	counter_u64_add_protected(tx->stats.tx_timeout, 1);
+
+	/* last_kicked is never GVE_TIMESTAMP_INVALID so we can skip checking */
+	time_since_last_kick = gve_seconds_since(&tx->last_kicked);
+
+	/* Try kicking first in case the timeout is due to a missed interrupt */
+	if (time_since_last_kick > GVE_TX_TIMEOUT_KICK_COOLDOWN_SEC) {
+		device_printf(priv->dev,
+		    "Found %d timed out packet(s) on txq%d, kicking it for completions\n",
+		    num_timeout_pkts, tx->com.id);
+		gve_set_timestamp(&tx->last_kicked);
+		taskqueue_enqueue(tx->com.cleanup_tq, &tx->com.cleanup_task);
+	} else {
+		device_printf(priv->dev,
+		    "Found %d timed out packet(s) on txq%d with its last kick %jd sec ago which is less than the cooldown period %d. Resetting device\n",
+		    num_timeout_pkts, tx->com.id,
+		    (intmax_t)time_since_last_kick,
+		    GVE_TX_TIMEOUT_KICK_COOLDOWN_SEC);
+		gve_schedule_reset(priv);
+	}
+}
+
+static void
+gve_tx_timeout_service_callback(void *data)
+{
+	struct gve_priv *priv = (struct gve_priv *)data;
+	struct gve_tx_ring *tx;
+	uint16_t num_timeout_pkts;
+
+	tx = &priv->tx[priv->check_tx_queue_idx];
+
+	num_timeout_pkts = gve_is_gqi(priv) ?
+	    gve_check_tx_timeout_gqi(priv, tx) :
+	    gve_check_tx_timeout_dqo(priv, tx);
+	if (num_timeout_pkts)
+		gve_handle_tx_timeout(priv, tx, num_timeout_pkts);
+
+	priv->check_tx_queue_idx = (priv->check_tx_queue_idx + 1) %
+	    priv->tx_cfg.num_queues;
+	callout_reset_sbt(&priv->tx_timeout_service,
+	    SBT_1S * GVE_TX_TIMEOUT_CHECK_CADENCE_SEC, 0,
+	    gve_tx_timeout_service_callback, (void *)priv, 0);
+}
+
+static void
+gve_start_tx_timeout_service(struct gve_priv *priv)
+{
+	priv->check_tx_queue_idx = 0;
+	callout_init(&priv->tx_timeout_service, true);
+	callout_reset_sbt(&priv->tx_timeout_service,
+	    SBT_1S * GVE_TX_TIMEOUT_CHECK_CADENCE_SEC, 0,
+	    gve_tx_timeout_service_callback, (void *)priv, 0);
+}
+
+static void
+gve_stop_tx_timeout_service(struct gve_priv *priv)
+{
+	callout_drain(&priv->tx_timeout_service);
 }
 
 static int
@@ -149,6 +218,9 @@ gve_up(struct gve_priv *priv)
 	gve_unmask_all_queue_irqs(priv);
 	gve_set_state_flag(priv, GVE_STATE_FLAG_QUEUES_UP);
 	priv->interface_up_cnt++;
+
+	gve_start_tx_timeout_service(priv);
+
 	return (0);
 
 reset:
@@ -163,6 +235,8 @@ gve_down(struct gve_priv *priv)
 
 	if (!gve_get_state_flag(priv, GVE_STATE_FLAG_QUEUES_UP))
 		return;
+
+	gve_stop_tx_timeout_service(priv);
 
 	if (gve_get_state_flag(priv, GVE_STATE_FLAG_LINK_UP)) {
 		if_link_state_change(priv->ifp, LINK_STATE_DOWN);
@@ -192,12 +266,143 @@ reset:
 	gve_schedule_reset(priv);
 }
 
+int
+gve_adjust_rx_queues(struct gve_priv *priv, uint16_t new_queue_cnt)
+{
+	int err;
+
+	GVE_IFACE_LOCK_ASSERT(priv->gve_iface_lock);
+
+	gve_down(priv);
+
+	if (new_queue_cnt < priv->rx_cfg.num_queues) {
+		/*
+		 * Freeing a ring still preserves its ntfy_id,
+		 * which is needed if we create the ring again.
+		 */
+		gve_free_rx_rings(priv, new_queue_cnt, priv->rx_cfg.num_queues);
+	} else {
+		err = gve_alloc_rx_rings(priv, priv->rx_cfg.num_queues, new_queue_cnt);
+		if (err != 0) {
+			device_printf(priv->dev, "Failed to allocate new queues");
+			/* Failed to allocate rings, start back up with old ones */
+			gve_up(priv);
+			return (err);
+
+		}
+	}
+	priv->rx_cfg.num_queues = new_queue_cnt;
+
+	err = gve_up(priv);
+	if (err != 0)
+		gve_schedule_reset(priv);
+
+	return (err);
+}
+
+int
+gve_adjust_tx_queues(struct gve_priv *priv, uint16_t new_queue_cnt)
+{
+	int err;
+
+	GVE_IFACE_LOCK_ASSERT(priv->gve_iface_lock);
+
+	gve_down(priv);
+
+	if (new_queue_cnt < priv->tx_cfg.num_queues) {
+		/*
+		 * Freeing a ring still preserves its ntfy_id,
+		 * which is needed if we create the ring again.
+		 */
+		gve_free_tx_rings(priv, new_queue_cnt, priv->tx_cfg.num_queues);
+	} else {
+		err = gve_alloc_tx_rings(priv, priv->tx_cfg.num_queues, new_queue_cnt);
+		if (err != 0) {
+			device_printf(priv->dev, "Failed to allocate new queues");
+			/* Failed to allocate rings, start back up with old ones */
+			gve_up(priv);
+			return (err);
+
+		}
+	}
+	priv->tx_cfg.num_queues = new_queue_cnt;
+
+	err = gve_up(priv);
+	if (err != 0)
+		gve_schedule_reset(priv);
+
+	return (err);
+}
+
+int
+gve_adjust_ring_sizes(struct gve_priv *priv, uint16_t new_desc_cnt, bool is_rx)
+{
+	int err;
+	uint16_t prev_desc_cnt;
+
+	GVE_IFACE_LOCK_ASSERT(priv->gve_iface_lock);
+
+	gve_down(priv);
+
+	if (is_rx) {
+		gve_free_rx_rings(priv, 0, priv->rx_cfg.num_queues);
+		prev_desc_cnt = priv->rx_desc_cnt;
+		priv->rx_desc_cnt = new_desc_cnt;
+		err = gve_alloc_rx_rings(priv, 0, priv->rx_cfg.num_queues);
+		if (err != 0) {
+			device_printf(priv->dev,
+			    "Failed to allocate rings. Trying to start back up with previous ring size.");
+			priv->rx_desc_cnt = prev_desc_cnt;
+			err = gve_alloc_rx_rings(priv, 0, priv->rx_cfg.num_queues);
+		}
+	} else {
+		gve_free_tx_rings(priv, 0, priv->tx_cfg.num_queues);
+		prev_desc_cnt = priv->tx_desc_cnt;
+		priv->tx_desc_cnt = new_desc_cnt;
+		err = gve_alloc_tx_rings(priv, 0, priv->tx_cfg.num_queues);
+		if (err != 0) {
+			device_printf(priv->dev,
+			    "Failed to allocate rings. Trying to start back up with previous ring size.");
+			priv->tx_desc_cnt = prev_desc_cnt;
+			err = gve_alloc_tx_rings(priv, 0, priv->tx_cfg.num_queues);
+		}
+	}
+
+	if (err != 0) {
+		device_printf(priv->dev, "Failed to allocate rings! Cannot start device back up!");
+		return (err);
+	}
+
+	err = gve_up(priv);
+	if (err != 0) {
+		gve_schedule_reset(priv);
+		return (err);
+	}
+
+	return (0);
+}
+
+static int
+gve_get_dqo_rx_buf_size(struct gve_priv *priv, uint16_t mtu)
+{
+	/*
+	 * Use 4k buffers only if mode is DQ, 4k buffers flag is on,
+	 * and either hw LRO is enabled or mtu is greater than 2048
+	 */
+	if (!gve_is_gqi(priv) && gve_allow_4k_rx_buffers &&
+	    (!gve_disable_hw_lro || mtu > GVE_DEFAULT_RX_BUFFER_SIZE))
+		return (GVE_4K_RX_BUFFER_SIZE_DQO);
+
+	return (GVE_DEFAULT_RX_BUFFER_SIZE);
+}
+
 static int
 gve_set_mtu(if_t ifp, uint32_t new_mtu)
 {
 	struct gve_priv *priv = if_getsoftc(ifp);
 	const uint32_t max_problem_range = 8227;
 	const uint32_t min_problem_range = 7822;
+	uint16_t new_rx_buf_size = gve_get_dqo_rx_buf_size(priv, new_mtu);
 	int err;
 
 	if ((new_mtu > priv->max_mtu) || (new_mtu < ETHERMIN)) {
@@ -212,9 +417,10 @@ gve_set_mtu(if_t ifp, uint32_t new_mtu)
 	 * in throughput.
 	 */
 	if (!gve_is_gqi(priv) && !gve_disable_hw_lro &&
-	    new_mtu >= min_problem_range && new_mtu <= max_problem_range) {
+	    new_mtu >= min_problem_range && new_mtu <= max_problem_range &&
+	    new_rx_buf_size != GVE_4K_RX_BUFFER_SIZE_DQO) {
 		device_printf(priv->dev,
-		    "Cannot set to MTU to %d within the range [%d, %d] while hardware LRO is enabled\n",
+		    "Cannot set to MTU to %d within the range [%d, %d] while HW LRO is enabled and not using 4k RX Buffers\n",
 		    new_mtu, min_problem_range, max_problem_range);
 		return (EINVAL);
 	}
@@ -224,6 +430,13 @@ gve_set_mtu(if_t ifp, uint32_t new_mtu)
 		if (bootverbose)
 			device_printf(priv->dev, "MTU set to %d\n", new_mtu);
 		if_setmtu(ifp, new_mtu);
+		/* Need to re-alloc RX queues if RX buffer size changed */
+		if (!gve_is_gqi(priv) &&
+		    new_rx_buf_size != priv->rx_buf_size_dqo) {
+			gve_free_rx_rings(priv, 0, priv->rx_cfg.num_queues);
+			priv->rx_buf_size_dqo = new_rx_buf_size;
+			gve_alloc_rx_rings(priv, 0, priv->rx_cfg.num_queues);
+		}
 	} else {
 		device_printf(priv->dev, "Failed to set MTU to %d\n", new_mtu);
 	}
@@ -480,10 +693,14 @@ static void
 gve_free_rings(struct gve_priv *priv)
 {
 	gve_free_irqs(priv);
-	gve_free_tx_rings(priv);
-	gve_free_rx_rings(priv);
-	if (gve_is_qpl(priv))
-		gve_free_qpls(priv);
+
+	gve_free_tx_rings(priv, 0, priv->tx_cfg.num_queues);
+	free(priv->tx, M_GVE);
+	priv->tx = NULL;
+
+	gve_free_rx_rings(priv, 0, priv->rx_cfg.num_queues);
+	free(priv->rx, M_GVE);
+	priv->rx = NULL;
 }
 
 static int
@@ -491,17 +708,15 @@ gve_alloc_rings(struct gve_priv *priv)
 {
 	int err;
 
-	if (gve_is_qpl(priv)) {
-		err = gve_alloc_qpls(priv);
-		if (err != 0)
-			goto abort;
-	}
-
-	err = gve_alloc_rx_rings(priv);
+	priv->rx = malloc(sizeof(struct gve_rx_ring) * priv->rx_cfg.max_queues,
+	    M_GVE, M_WAITOK | M_ZERO);
+	err = gve_alloc_rx_rings(priv, 0, priv->rx_cfg.num_queues);
 	if (err != 0)
 		goto abort;
 
-	err = gve_alloc_tx_rings(priv);
+	priv->tx = malloc(sizeof(struct gve_tx_ring) * priv->tx_cfg.max_queues,
+	    M_GVE, M_WAITOK | M_ZERO);
+	err = gve_alloc_tx_rings(priv, 0, priv->tx_cfg.num_queues);
 	if (err != 0)
 		goto abort;
 
@@ -603,7 +818,7 @@ gve_set_queue_cnts(struct gve_priv *priv)
 		    priv->rx_cfg.num_queues);
 	}
 
-	priv->num_queues = priv->tx_cfg.num_queues + priv->rx_cfg.num_queues;
+	priv->num_queues = priv->tx_cfg.max_queues + priv->rx_cfg.max_queues;
 	priv->mgmt_msix_idx = priv->num_queues;
 }
 
@@ -872,6 +1087,7 @@ gve_attach(device_t dev)
 	if (err != 0)
 		goto abort;
 
+	priv->rx_buf_size_dqo = gve_get_dqo_rx_buf_size(priv, priv->max_mtu);
 	err = gve_alloc_rings(priv);
 	if (err != 0)
 		goto abort;

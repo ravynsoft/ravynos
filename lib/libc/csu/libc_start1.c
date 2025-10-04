@@ -28,6 +28,7 @@
 #include <sys/param.h>
 #include <sys/elf.h>
 #include <sys/elf_common.h>
+#include <errno.h>
 #include <stdlib.h>
 #include "libc_private.h"
 
@@ -174,6 +175,7 @@ __libc_start1(int argc, char *argv[], char *env[], void (*cleanup)(void),
 	}
 
 	handle_static_init(argc, argv, env);
+	errno = 0;
 	exit(mainX(argc, argv, env));
 }
 

@@ -42,6 +42,7 @@
 #ifdef _KERNEL
 #include <sys/_eventhandler.h>
 #endif
+#include <sys/_exterr.h>
 #include <sys/condvar.h>
 #ifndef _KERNEL
 #include <sys/filedesc.h>
@@ -53,7 +54,6 @@
 #include <sys/osd.h>
 #include <sys/priority.h>
 #include <sys/rtprio.h>			/* XXX. */
-#include <sys/runq.h>
 #include <sys/resource.h>
 #include <sys/sigio.h>
 #include <sys/signal.h>
@@ -325,6 +325,7 @@ struct thread {
 	size_t		td_vslock_sz;	/* (k) amount of vslock-ed space */
 	struct kcov_info *td_kcov_info;	/* (*) Kernel code coverage data */
 	long		td_ucredref;	/* (k) references on td_realucred */
+	struct kexterr	td_kexterr;
 #define	td_endzero td_sigmask
 
 /* Copied during fork1(), thread_create(), or kthread_add(). */
@@ -344,6 +345,7 @@ struct thread {
 	void		*td_sigblock_ptr; /* (k) uptr for fast sigblock. */
 	uint32_t	td_sigblock_val;  /* (k) fast sigblock value read at
 					     td_sigblock_ptr on kern entry */
+	void		*td_exterr_ptr;
 #define	td_endcopy td_pcb
 
 /*
@@ -384,10 +386,10 @@ struct thread {
 	int		td_ma_cnt;	/* (k) size of *td_ma */
 	/* LP64 hole */
 	void		*td_emuldata;	/* Emulator state data */
-    mi_switchcb_t   td_cswitchcb;   /* (k) context switch callback. */
-	struct threadlist *td_threadlist; /* (?) thread workq thread list. */
-	void            *td_reuse_stack;  /* (?) reuse workq thread stack.  */
-    void		*td_machdata;	/* (k) mach state. */
+	mi_switchcb_t	td_cswitchcb;	/* (k) context switch callback */
+	struct threadlist *td_threadlist; /* (?) thread workq thread list */
+	void		*td_reuse_stack   /* (?) reuse workq thread stack */
+	void		*td_machdata;	/* (k) mach state */
 	int		td_lastcpu;	/* (t) Last cpu we were on. */
 	int		td_oncpu;	/* (t) Which cpu we are on. */
 	void		*td_lkpi_task;	/* LinuxKPI task struct pointer */
@@ -576,6 +578,8 @@ enum {
 #define	TDP2_COMPAT32RB	0x00000002 /* compat32 ABI for robust lists */
 #define	TDP2_ACCT	0x00000004 /* Doing accounting */
 #define	TDP2_SAN_QUIET	0x00000008 /* Disable warnings from K(A|M)SAN */
+#define	TDP2_EXTERR	0x00000010 /* Kernel reported ext error */
+#define	TDP2_UEXTERR	0x00000020 /* User set ext error reporting ptr */
 
 /*
  * Reasons that the current thread can not be run yet.
@@ -766,7 +770,6 @@ struct proc {
 	LIST_HEAD(, mqueue_notifier)	p_mqnotifier; /* (c) mqueue notifiers.*/
 	struct kdtrace_proc	*p_dtrace; /* (*) DTrace-specific data. */
 	struct cv	p_pwait;	/* (*) wait cv for exit/exec. */
-	uint64_t	p_prev_runtime;	/* (c) Resource usage accounting. */
 	struct racct	*p_racct;	/* (b) Resource accounting. */
 	int		p_throttled;	/* (c) Flag for racct pcpu throttling */
 	/*
@@ -779,9 +782,9 @@ struct proc {
 	LIST_HEAD(, proc) p_orphans;	/* (e) Pointer to list of orphans. */
 
 	vm_offset_t	p_thrstack;	/* ( ) next addr for thread stack */
-	struct mtx	p_twqlock;	/* (n) thread workqueue lock. */
-	struct thrworkq *p_twq;		/* (^) thread workqueue. */
-	void		*p_machdata;	/* (c) Mach state data. */
+	struct mtx	p_twqlock;	/* (n) thread workqueue lock */
+	struct thrworkq *p_twq;		/* (^) thread workqueue */
+	void		*p_machdata;	/* (c) Mach state data */
 
 	TAILQ_HEAD(, kq_timer_cb_data)	p_kqtim_stop;	/* (c) */
 	LIST_ENTRY(proc) p_jaillist;	/* (d) Jail process linkage. */
@@ -815,7 +818,7 @@ struct proc {
 					   lock. */
 #define	P_CONTROLT	0x00000002	/* Has a controlling terminal. */
 #define	P_KPROC		0x00000004	/* Kernel process. */
-#define	P_UNUSED3	0x00000008	/* --available-- */
+#define	P_IDLEPROC	0x00000008	/* Container for system idle threads. */
 #define	P_PPWAIT	0x00000010	/* Parent is waiting for child to
 					   exec/exit. */
 #define	P_PROFIL	0x00000020	/* Has started profiling. */
@@ -901,6 +904,8 @@ struct proc {
 #define	P2_LOGSIGEXIT_ENABLE	0x00800000	/* Disable logging on sigexit */
 #define	P2_LOGSIGEXIT_CTL	0x01000000	/* Override kern.logsigexit */
 
+#define	P2_HWT			0x02000000	/* Process is using HWT. */
+
 /* Flags protected by proctree_lock, kept in p_treeflags. */
 #define	P_TREE_ORPHANED		0x00000001	/* Reparented, on orphan list */
 #define	P_TREE_FIRST_ORPHAN	0x00000002	/* First element of orphan
@@ -942,9 +947,9 @@ struct proc {
 #define	SW_VOL		0x0100		/* Voluntary switch. */
 #define	SW_INVOL	0x0200		/* Involuntary switch. */
 #define SW_PREEMPT	0x0400		/* The invol switch is a preemption */
-/* Callback type. */
-#define	SWCB_BLOCK		1	/* Thread is about to block. */
-#define	SWCB_UNBLOCK		2	/* Thread was just unblocked. */
+/* Callback type */
+#define	SWCB_BLOCK		1	/* Thread is about to block */
+#define SWCB_UNBLOCK		2	/* Thread was just unblocked */
 
 /* How values for thread_single(). */
 #define	SINGLE_NO_EXIT	0
@@ -1251,7 +1256,7 @@ int	cpu_procctl(struct thread *td, int idtype, id_t id, int com,
 void	cpu_set_syscall_retval(struct thread *, int);
 int	cpu_set_upcall(struct thread *, void (*)(void *), void *,
 	    stack_t *);
-int	cpu_set_user_tls(struct thread *, void *tls_base);
+int	cpu_set_user_tls(struct thread *, void *tls_base, int flags);
 void	cpu_thread_alloc(struct thread *);
 void	cpu_thread_clean(struct thread *);
 void	cpu_thread_exit(struct thread *);

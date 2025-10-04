@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2024, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2025, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -1469,7 +1469,7 @@ RsDoCsi2SerialBusDescriptor (
 
         case 2: /* Local Port Instance [Integer] (_PRT) */
 
-            RsSetFlagBits16 ((UINT16 *) &Descriptor->Csi2SerialBus.TypeSpecificFlags, InitializerOp, 0, 0);
+            RsSetFlagBits16 ((UINT16 *) &Descriptor->Csi2SerialBus.TypeSpecificFlags, InitializerOp, 2, 0);
             RsCreateMultiBitField (InitializerOp, ACPI_RESTAG_LOCALPORT,
                 CurrentByteOffset + ASL_RESDESC_OFFSET (Csi2SerialBus.TypeSpecificFlags), 2, 6);
             break;

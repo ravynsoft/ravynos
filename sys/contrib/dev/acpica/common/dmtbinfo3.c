@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2024, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2025, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -200,7 +200,7 @@ ACPI_DMTABLE_INFO           AcpiDmTableInfoCcel[] =
 {
     {ACPI_DMT_UINT8,    ACPI_CCEL_OFFSET (CCType),                  "CC Type", 0},
     {ACPI_DMT_UINT8,    ACPI_CCEL_OFFSET (CCSubType),               "CC Sub Type", 0},
-    {ACPI_DMT_UINT32,   ACPI_CCEL_OFFSET (Reserved),                "Reserved", 0},
+    {ACPI_DMT_UINT16,   ACPI_CCEL_OFFSET (Reserved),                "Reserved", 0},
     {ACPI_DMT_UINT64,   ACPI_CCEL_OFFSET (LogAreaMinimumLength),    "Log Area Minimum Length", 0},
     {ACPI_DMT_UINT64,   ACPI_CCEL_OFFSET (LogAreaStartAddress),     "Log Area Start Address", 0},
     ACPI_DMT_TERMINATOR

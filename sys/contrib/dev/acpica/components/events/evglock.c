@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2024, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2025, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -191,6 +191,11 @@ AcpiEvInitGlobalLockHandler (
     /* If Hardware Reduced flag is set, there is no global lock */
 
     if (AcpiGbl_ReducedHardware)
+    {
+        return_ACPI_STATUS (AE_OK);
+    }
+
+    if (!AcpiGbl_UseGlobalLock)
     {
         return_ACPI_STATUS (AE_OK);
     }

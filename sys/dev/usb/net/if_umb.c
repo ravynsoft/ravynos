@@ -177,9 +177,7 @@ static void	 umb_ncm_setup(struct umb_softc *, struct usb_config *);
 static void	 umb_close_bulkpipes(struct umb_softc *);
 static int	 umb_ioctl(if_t , u_long, caddr_t);
 static void	 umb_init(void *);
-#ifdef DEV_NETMAP
 static void	 umb_input(if_t , struct mbuf *);
-#endif
 static int	 umb_output(if_t , struct mbuf *,
 		    const struct sockaddr *, struct route *);
 static void	 umb_start(if_t );
@@ -585,9 +583,7 @@ umb_attach_task(struct usb_proc_msg *msg)
 	if_setsoftc(ifp, sc);
 	if_setflags(ifp, IFF_SIMPLEX | IFF_MULTICAST | IFF_POINTOPOINT);
 	if_setioctlfn(ifp, umb_ioctl);
-#ifdef DEV_NETMAP
 	if_setinputfn(ifp, umb_input);
-#endif
 	if_setoutputfn(ifp, umb_output);
 	if_setstartfn(ifp, umb_start);
 	if_setinitfn(ifp, umb_init);
@@ -666,7 +662,7 @@ umb_ncm_setup(struct umb_softc *sc, struct usb_config * config)
 	struct ncm_ntb_parameters np;
 	usb_error_t error;
 
-	/* Query NTB tranfers sizes */
+	/* Query NTB transfers sizes */
 	req.bmRequestType = UT_READ_CLASS_INTERFACE;
 	req.bRequest = NCM_GET_NTB_PARAMETERS;
 	USETW(req.wValue, 0);
@@ -1377,10 +1373,9 @@ umb_getinfobuf(char *in, int inlen, uint32_t offs, uint32_t sz,
 {
 	offs = le32toh(offs);
 	sz = le32toh(sz);
-	if (inlen >= offs + sz) {
-		memset(out, 0, outlen);
+	memset(out, 0, outlen);
+	if ((uint64_t)inlen >= (uint64_t)offs + (uint64_t)sz)
 		memcpy(out, in + offs, MIN(sz, outlen));
-	}
 }
 
 static inline int
@@ -1753,7 +1748,8 @@ umb_add_inet_config(struct umb_softc *sc, struct in_addr ip, u_int prefixlen,
 	sin = (struct sockaddr_in *)&ifra.ifra_mask;
 	sin->sin_family = AF_INET;
 	sin->sin_len = sizeof (*sin);
-	umb_in_len2mask(&sin->sin_addr, prefixlen);
+	umb_in_len2mask(&sin->sin_addr,
+	    MIN(prefixlen, sizeof (struct in_addr) * 8));
 
 	mtx_unlock(&sc->sc_mutex);
 	CURVNET_SET_QUIET(if_getvnet(ifp));
@@ -2147,10 +2143,12 @@ umb_decap(struct umb_softc *sc, struct usb_xfer *xfer, int frame)
 		goto fail;
 	}
 
+	if (len < ptroff)
+		goto toosmall;
 	ptr16 = (struct ncm_pointer16 *)(buf + ptroff);
 	psig = UGETDW(ptr16->dwSignature);
 	ptrlen = UGETW(ptr16->wLength);
-	if (len < ptrlen + ptroff)
+	if ((uint64_t)len < (uint64_t)ptrlen + (uint64_t)ptroff)
 		goto toosmall;
 	if (!MBIM_NCM_NTH16_ISISG(psig) && !MBIM_NCM_NTH32_ISISG(psig)) {
 		DPRINTF("%s: unsupported NCM pointer signature (0x%08x)\n",
@@ -2197,7 +2195,7 @@ umb_decap(struct umb_softc *sc, struct usb_xfer *xfer, int frame)
 		/* Terminating zero entry */
 		if (dlen == 0 || doff == 0)
 			break;
-		if (len < dlen + doff) {
+		if ((uint64_t)len < (uint64_t)dlen + (uint64_t)doff) {
 			/* Skip giant datagram but continue processing */
 			DPRINTF("%s: datagram too large (%d @ off %d)\n",
 			    DEVNAM(sc), dlen, doff);

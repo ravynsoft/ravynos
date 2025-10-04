@@ -22,13 +22,13 @@ LIBDEPS+=	lldb
 LIBDEPS+=	clang
 LIBDEPS+=	llvm
 
-.for lib in ${LIBDEPS}
-DPADD+=		${OBJTOP}/lib/clang/lib${lib}/lib${lib}.a
-LDADD+=		${OBJTOP}/lib/clang/lib${lib}/lib${lib}.a
-.endfor
+LIBPRIV=	private
+LIBEXT=		so
 
-DPADD+=		${OBJTOP}/lib/libmach/libmach.so
-LDADD+=		${OBJTOP}/lib/libmach/libmach.so
+.for lib in ${LIBDEPS}
+DPADD+=		${OBJTOP}/lib/clang/lib${lib}/lib${LIBPRIV}${lib}.${LIBEXT}
+LDADD+=		${OBJTOP}/lib/clang/lib${lib}/lib${LIBPRIV}${lib}.${LIBEXT}
+.endfor
 
 INCFILE=	LLGSOptions.inc
 TDFILE=		${LLDB_SRCS}/tools/lldb-server/LLGSOptions.td
@@ -52,6 +52,5 @@ LIBADD+=	panel
 LIBADD+=	pthread
 LIBADD+=	z
 LIBADD+=	zstd
-LIBADD+=	mach
 
 .include <bsd.prog.mk>

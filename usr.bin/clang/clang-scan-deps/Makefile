@@ -24,7 +24,4 @@ DEPENDFILES+=	${TGHDRS:C/$/.d/}
 DPSRCS+=	${TGHDRS}
 CLEANFILES+=	${TGHDRS} ${TGHDRS:C/$/.d/}
 
-LIBS+=		libmach.so
-LDFLAGS+=	-lmach
-
 .include "../clang.prog.mk"

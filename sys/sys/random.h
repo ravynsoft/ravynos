@@ -85,7 +85,8 @@ enum random_entropy_source {
 	RANDOM_FS_ATIME,
 	RANDOM_UMA,	/* Special!! UMA/SLAB Allocator */
 	RANDOM_CALLOUT,
-	RANDOM_ENVIRONMENTAL_END = RANDOM_CALLOUT,
+	RANDOM_RANDOMDEV,
+	RANDOM_ENVIRONMENTAL_END = RANDOM_RANDOMDEV,
 	/* Fast hardware random-number sources from here on. */
 	RANDOM_PURE_START,
 	RANDOM_PURE_OCTEON = RANDOM_PURE_START,
@@ -156,15 +157,17 @@ void random_harvest_deregister_source(enum random_entropy_source);
 #define random_harvest_queue_ether(a, b)	do {} while (0)
 #endif /* defined(RANDOM_ENABLE_ETHER) */
 
+#else /* !_KERNEL */
+
+#if defined(_FORTIFY_SOURCE) && _FORTIFY_SOURCE > 0
+#include <ssp/random.h>
+#endif
+
 #endif /* _KERNEL */
 
 #define GRND_NONBLOCK	0x1
 #define GRND_RANDOM	0x2
 #define GRND_INSECURE	0x4
-
-#if defined(_FORTIFY_SOURCE) && _FORTIFY_SOURCE > 0
-#include <ssp/random.h>
-#endif
 
 __BEGIN_DECLS
 ssize_t getrandom(void *buf, size_t buflen, unsigned int flags);

@@ -3,7 +3,7 @@
 .\"
 .\" SPDX-License-Identifier: BSD-2-Clause
 .\"
-.Dd January 6, 2025
+.Dd May 9, 2025
 .Dt CDEFS 9
 .Os
 .Sh NAME
@@ -118,9 +118,20 @@ family of functions.
 .It Sy __fastcall Ta Use the
 .Dq fastcall
 ABI to call and name mangle this function.
-.It Sy __result_use_check Ta Warn if function caller does not use it's return value
-.It Sy __result_use_or_ignore_check Ta Warn if function caller does not use it's return value.
-Allows the value to be explicitly ignored with a (void) cast.
+.It Sy __result_use_check Ta Warn if function caller does not use its return value
+.It Sy __nodiscard Ta Equivalent to the standard
+.Dq [[nodiscard]]
+attribute.
+If applied to a function, warn if function caller does not use its
+return value.
+The warning may be silenced using a cast to
+.Vt void ,
+or in C++, using an assignment to
+.Va std::ignore .
+If applied to a struct, C++ class or enum, this applies to all functions
+returning values of that type.
+If applied to a C++ constructor, this applies to creating instances of
+the class using that constructor.
 .It Sy __returns_twice Ta Returns multiple times, like
 .Xr fork 2
 .It Sy __unreachable Ta This code is not reachable at runtime
@@ -308,7 +319,7 @@ to distinguish it from newer standards.
 Support for this compilation environment is dependent on compilers supporting
 this configuration.
 Most of the old forms of C have been deprecated or removed in
-.St -isoC-2024 .
+.St -isoC-2023 .
 Compilers make compiling in this mode increasingly difficult and support for it
 may ultimately be removed from the tree.
 .It St -ansiC
@@ -338,7 +349,7 @@ since there are no new C17 only symbols or macros.
 .Pp
 This version of the standard did not introduce any new features, only made
 minor, technical corrections.
-.It St -isoC-2024
+.It St -isoC-2023
 .Dv __STDC_VERSION__ = 202311L
 Strict environment selected with
 .Dv _C23_SOURCE
@@ -374,7 +385,7 @@ implements this as a NOP because too much software breaks with the correct stric
 .It Dv _ANSI_SOURCE Ta St -ansiC
 .It Dv _C99_SOURCE Ta St -isoC-99
 .It Dv _C11_SOURCE Ta St -isoC-2011
-.It Dv _C23_SOURCE Ta St -isoC-2024
+.It Dv _C23_SOURCE Ta St -isoC-2023
 .It Dv _BSD_SOURCE Ta Everything, including Fx extensions
 .El
 .Pp
@@ -395,7 +406,7 @@ Likewise, when C23 dialog is selected with
 or
 .St -p1003.1-2024 ,
 definitions for
-.St -isoC-2024
+.St -isoC-2023
 are also included.
 .Ss Header Visibility Macros
 These macros are set by
@@ -421,7 +432,7 @@ Possible values include 1990, 1999, 2011, 2017 and 2023 for
 .St -isoC-99 ,
 .St -isoC-2011 ,
 ISO/IEC 9899:2018 ("ISO C17"), and
-.St -isoC-2024 ,
+.St -isoC-2023 ,
 respectively.
 .It Dv __BSD_VISIBLE Ta 1 if the
 .Fx

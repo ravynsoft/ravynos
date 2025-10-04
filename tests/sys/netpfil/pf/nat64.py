@@ -28,22 +28,9 @@ import pytest
 import selectors
 import socket
 import sys
-import threading
-import time
+from utils import DelayedSend
 from atf_python.sys.net.tools import ToolsHelper
 from atf_python.sys.net.vnet import VnetTestTemplate
-
-class DelayedSend(threading.Thread):
-    def __init__(self, packet):
-        threading.Thread.__init__(self)
-        self._packet = packet
-
-        self.start()
-
-    def run(self):
-        import scapy.all as sp
-        time.sleep(1)
-        sp.send(self._packet)
 
 class TestNAT64(VnetTestTemplate):
     REQUIRED_MODULES = [ "pf", "pflog" ]
@@ -109,8 +96,10 @@ class TestNAT64(VnetTestTemplate):
         ToolsHelper.print_output("/sbin/route add default 192.0.2.2")
         ToolsHelper.print_output("/sbin/pfctl -e")
         ToolsHelper.pf_rules([
-            "pass inet6 proto icmp6",
-            "pass in on %s inet6 af-to inet from 192.0.2.1" % ifname])
+            "block",
+            "pass inet6 proto icmp6 icmp6-type { neighbrsol, neighbradv }",
+            "pass in on %s inet6 af-to inet from 192.0.2.1" % ifname,
+        ])
 
         vnet.pipe.send(socket.if_nametoindex("pflog0"))
 
@@ -194,7 +183,7 @@ class TestNAT64(VnetTestTemplate):
 
         # Check the hop limit
         ip6 = reply.getlayer(sp.IPv6)
-        assert ip6.hlim == 62
+        assert ip6.hlim == 61
 
     @pytest.mark.require_user("root")
     @pytest.mark.require_progs(["scapy"])
@@ -252,7 +241,7 @@ class TestNAT64(VnetTestTemplate):
         ToolsHelper.print_output("/sbin/route -6 add default 2001:db8::1")
         import scapy.all as sp
 
-        packet = sp.IPv6(dst="64:ff9b::198.51.100.2", hlim=1) \
+        packet = sp.IPv6(dst="64:ff9b::198.51.100.2", hlim=2) \
             / sp.TCP(sport=1111, dport=2222, flags="S")
         self.common_test_source_addr(packet)
 
@@ -262,7 +251,7 @@ class TestNAT64(VnetTestTemplate):
         ToolsHelper.print_output("/sbin/route -6 add default 2001:db8::1")
         import scapy.all as sp
 
-        packet = sp.IPv6(dst="64:ff9b::198.51.100.2", hlim=1) \
+        packet = sp.IPv6(dst="64:ff9b::198.51.100.2", hlim=2) \
             / sp.UDP(sport=1111, dport=2222) / sp.Raw("foo")
         self.common_test_source_addr(packet)
 
@@ -272,7 +261,7 @@ class TestNAT64(VnetTestTemplate):
         ToolsHelper.print_output("/sbin/route -6 add default 2001:db8::1")
         import scapy.all as sp
 
-        packet = sp.IPv6(dst="64:ff9b::198.51.100.2", hlim=1) \
+        packet = sp.IPv6(dst="64:ff9b::198.51.100.2", hlim=2) \
             / sp.SCTP(sport=1111, dport=2222) \
             / sp.SCTPChunkInit(init_tag=1, n_in_streams=1, n_out_streams=1, a_rwnd=1500)
         self.common_test_source_addr(packet)
@@ -283,7 +272,7 @@ class TestNAT64(VnetTestTemplate):
         ToolsHelper.print_output("/sbin/route -6 add default 2001:db8::1")
         import scapy.all as sp
 
-        packet = sp.IPv6(dst="64:ff9b::198.51.100.2", hlim=1) \
+        packet = sp.IPv6(dst="64:ff9b::198.51.100.2", hlim=2) \
             / sp.ICMPv6EchoRequest() / sp.Raw("foo")
         reply = self.common_test_source_addr(packet)
         icmp = reply.getlayer(sp.ICMPv6EchoRequest)
@@ -339,3 +328,31 @@ class TestNAT64(VnetTestTemplate):
         packets = sp.sniff(iface=ifname, timeout=5)
         for r in packets:
             r.show()
+
+    @pytest.mark.require_user("root")
+    @pytest.mark.require_progs(["scapy"])
+    def test_ttl_zero(self):
+        """
+            PR 288274: we can use an mbuf after free on TTL = 0
+        """
+        ifname = self.vnet.iface_alias_map["if1"].name
+        gw_mac = self.vnet.iface_alias_map["if1"].epairb.ether
+        ToolsHelper.print_output("/sbin/route -6 add default 2001:db8::1")
+
+        import scapy.all as sp
+
+        pkt = sp.Ether(dst=gw_mac) \
+            / sp.IPv6(dst="64:ff9b::192.0.2.2", hlim=0) \
+            / sp.SCTP(sport=1111, dport=2222) \
+            / sp.SCTPChunkInit(init_tag=1, n_in_streams=1, n_out_streams=1, \
+                a_rwnd=1500, params=[ \
+                    sp.SCTPChunkParamIPv4Addr() \
+                ])
+        pkt.show()
+        sp.hexdump(pkt)
+        s = DelayedSend(pkt, sendif=ifname)
+
+        packets = sp.sniff(iface=ifname, timeout=5)
+        for r in packets:
+            r.show()
+

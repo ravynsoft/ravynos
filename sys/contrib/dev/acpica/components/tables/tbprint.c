@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2024, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2025, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -278,6 +278,14 @@ AcpiTbPrintTableHeader (
                 ACPI_CAST_PTR (ACPI_TABLE_RSDP, Header)->Length : 20,
             ACPI_CAST_PTR (ACPI_TABLE_RSDP, Header)->Revision,
             LocalHeader.OemId));
+    }
+    else if (AcpiGbl_CDAT && !AcpiUtValidNameseg (Header->Signature))
+    {
+	/* CDAT does not use the common ACPI table header */
+
+        ACPI_INFO (("%-4.4s 0x%8.8X%8.8X %06X",
+            ACPI_SIG_CDAT, ACPI_FORMAT_UINT64 (Address),
+            ACPI_CAST_PTR (ACPI_TABLE_CDAT, Header)->Length));
     }
     else
     {

@@ -1,21 +1,26 @@
-# SPDX-License-Identifier: BSD-2-Clause
-
+:
 # RCSid:
-#	$Id: safe_eval.sh,v 1.20 2024/08/16 00:57:58 sjg Exp $
+#	$Id: safe_eval.sh,v 1.25 2025/08/07 22:13:03 sjg Exp $
 #
 #	@(#) Copyright (c) 2023-2024 Simon J. Gerraty
 #
-#	This file is provided in the hope that it will
-#	be of use.  There is absolutely NO WARRANTY.
-#	Permission to copy, redistribute or otherwise
-#	use this file is hereby granted provided that
-#	the above copyright notice and this notice are
-#	left intact.
+#	SPDX-License-Identifier: BSD-2-Clause
 #
 #	Please send copies of changes and bug-fixes to:
 #	sjg@crufty.net
 
 _SAFE_EVAL_SH=:
+
+# does local *actually* work?
+local_works() {
+    local _fu
+}
+
+if local_works > /dev/null 2>&1; then
+    _local=local
+else
+    _local=:
+fi
 
 ##
 # safe_set
@@ -24,7 +29,7 @@ _SAFE_EVAL_SH=:
 # any non-alphanumeric chars are replaced with '_'
 #
 safe_set() {
-    ${SED:-sed} 's/[ 	]*#.*//;/^[A-Za-z_][A-Za-z0-9_]*=/!d;s;[^A-Za-z0-9_. 	"$,/=-];_;g'
+    ${SED:-sed} 's/[ 	]*#.*//;/^[A-Za-z_][A-Za-z0-9_]*=/!d;s;[^A-Za-z0-9_. 	"$,/=:+-];_;g'
 }
 
 ##
@@ -54,7 +59,7 @@ safe_eval_export() {
 # feed all "file" that exist to safe_eval
 #
 safe_dot() {
-    eval ${local:-:} ef ex f rc
+    eval $_local ef ex f rc
     ef=
     ex=
     rc=1

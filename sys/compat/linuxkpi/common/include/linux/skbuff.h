@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2020-2025 The FreeBSD Foundation
- * Copyright (c) 2021-2023 Bjoern A. Zeeb
+ * Copyright (c) 2021-2025 Bjoern A. Zeeb
  *
  * This software was developed by Björn Zeeb under sponsorship from
  * the FreeBSD Foundation.
@@ -47,13 +47,11 @@
 #include <linux/ktime.h>
 #include <linux/compiler.h>
 
-#include "opt_wlan.h"
-
-/* Currently this is only used for wlan so we can depend on that. */
-#if defined(IEEE80211_DEBUG) && !defined(SKB_DEBUG)
-#define	SKB_DEBUG
-#endif
-
+/*
+ * At least the net/intel-irdma-kmod port pulls this header in; likely through
+ * if_ether.h (see PR289268).  This means we no longer can rely on
+ * IEEE80211_DEBUG (opt_wlan.h) to automatically set SKB_DEBUG.
+ */
 /* #define	SKB_DEBUG */
 
 #ifdef SKB_DEBUG
@@ -154,30 +152,6 @@ struct sk_buff {
 		};
 		struct list_head	list;
 	};
-	uint32_t		_alloc_len;	/* Length of alloc data-buf. XXX-BZ give up for truesize? */
-	uint32_t		len;		/* ? */
-	uint32_t		data_len;	/* ? If we have frags? */
-	uint32_t		truesize;	/* The total size of all buffers, incl. frags. */
-	uint16_t		mac_len;	/* Link-layer header length. */
-	__sum16			csum;
-	uint16_t		l3hdroff;	/* network header offset from *head */
-	uint16_t		l4hdroff;	/* transport header offset from *head */
-	uint32_t		priority;
-	uint16_t		qmap;		/* queue mapping */
-	uint16_t		_flags;		/* Internal flags. */
-#define	_SKB_FLAGS_SKBEXTFRAG	0x0001
-	enum sk_buff_pkt_type	pkt_type;
-	uint16_t		mac_header;	/* offset of mac_header */
-	refcount_t		refcnt;
-
-	/* "Scratch" area for layers to store metadata. */
-	/* ??? I see sizeof() operations so probably an array. */
-	uint8_t			cb[64] __aligned(CACHE_LINE_SIZE);
-
-	struct net_device	*dev;
-	void			*sk;		/* XXX net/sock.h? */
-
-	int		csum_offset, csum_start, ip_summed, protocol;
 
 	uint8_t			*head;			/* Head of buffer. */
 	uint8_t			*data;			/* Head of data. */
@@ -1025,6 +999,13 @@ skb_get_queue_mapping(struct sk_buff *skb)
 	return (skb->qmap);
 }
 
+static inline void
+skb_copy_header(struct sk_buff *to, const struct sk_buff *from)
+{
+	SKB_TRACE2(to, from);
+	SKB_TODO();
+}
+
 static inline bool
 skb_header_cloned(struct sk_buff *skb)
 {
@@ -1070,7 +1051,7 @@ skb_orphan(struct sk_buff *skb)
 	SKB_TODO();
 }
 
-static inline __sum16
+static inline __wsum
 csum_unfold(__sum16 sum)
 {
 	return (sum);

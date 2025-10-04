@@ -7,11 +7,13 @@ SRCS+=	\
 	inout.c		\
 	ioapic.c	\
 	kernemu_dev.c	\
+	mem_x86.c	\
 	mptbl.c		\
 	pci_fbuf.c	\
 	pci_gvt-d.c	\
 	pci_lpc.c	\
 	pci_passthru.c	\
+	pci_passthru_quirks.c	\
 	pctestdev.c	\
 	pm.c		\
 	post.c		\

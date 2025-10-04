@@ -219,7 +219,7 @@ typedef struct tdsaContext_s {
   agsaHwConfig_t        HwConfig;
 
 
-  /**< Copy of TI low level resource */
+  /**< Copy of TI low level resoure */
   tiLoLevelResource_t   loResource;
 
   /* information of ESGL pages allocated

@@ -72,6 +72,10 @@ struct pci_device_id {
 	uintptr_t	driver_data;
 };
 
+#define	MODULE_DEVICE_TABLE_BUS_pci(_bus, _table)			\
+MODULE_PNP_INFO("U32:vendor;U32:device;V32:subvendor;V32:subdevice",	\
+    _bus, lkpi_ ## _table, _table, nitems(_table) - 1)
+
 /* Linux has an empty element at the end of the ID table -> nitems() - 1. */
 #define	MODULE_DEVICE_TABLE(_bus, _table)				\
 									\
@@ -85,11 +89,10 @@ static driver_t _ ## _bus ## _ ## _table ## _driver = {			\
 	0								\
 };									\
 									\
-DRIVER_MODULE(lkpi_ ## _table, pci, _ ## _bus ## _ ## _table ## _driver,\
+DRIVER_MODULE(lkpi_ ## _table, _bus, _ ## _bus ## _ ## _table ## _driver,\
 	0, 0);								\
 									\
-MODULE_PNP_INFO("U32:vendor;U32:device;V32:subvendor;V32:subdevice",	\
-    _bus, lkpi_ ## _table, _table, nitems(_table) - 1)
+MODULE_DEVICE_TABLE_BUS_ ## _bus(_bus, _table)
 
 #define	PCI_ANY_ID			-1U
 
@@ -220,11 +223,11 @@ enum pcie_link_width {
 
 typedef int pci_power_t;
 
-#define PCI_D0	PCI_POWERSTATE_D0
-#define PCI_D1	PCI_POWERSTATE_D1
-#define PCI_D2	PCI_POWERSTATE_D2
-#define PCI_D3hot	PCI_POWERSTATE_D3
-#define PCI_D3cold	4
+#define PCI_D0		PCI_POWERSTATE_D0
+#define PCI_D1		PCI_POWERSTATE_D1
+#define PCI_D2		PCI_POWERSTATE_D2
+#define PCI_D3hot	PCI_POWERSTATE_D3_HOT
+#define PCI_D3cold	PCI_POWERSTATE_D3_COLD
 
 #define PCI_POWER_ERROR	PCI_POWERSTATE_UNKNOWN
 
@@ -352,7 +355,6 @@ struct pci_dev {
 	TAILQ_HEAD(, pci_mmio_region)	mmio;
 };
 
-int pci_request_region(struct pci_dev *pdev, int bar, const char *res_name);
 int pci_alloc_irq_vectors(struct pci_dev *pdev, int minv, int maxv,
     unsigned int flags);
 bool pci_device_is_present(struct pci_dev *pdev);
@@ -362,10 +364,13 @@ void __iomem **linuxkpi_pcim_iomap_table(struct pci_dev *pdev);
 void *linuxkpi_pci_iomap_range(struct pci_dev *, int,
     unsigned long, unsigned long);
 void *linuxkpi_pci_iomap(struct pci_dev *, int, unsigned long);
+void *linuxkpi_pcim_iomap(struct pci_dev *, int, unsigned long);
 void linuxkpi_pci_iounmap(struct pci_dev *pdev, void *res);
 int linuxkpi_pcim_iomap_regions(struct pci_dev *pdev, uint32_t mask,
     const char *name);
+int linuxkpi_pci_request_region(struct pci_dev *, int, const char *);
 int linuxkpi_pci_request_regions(struct pci_dev *pdev, const char *res_name);
+int linuxkpi_pcim_request_all_regions(struct pci_dev *, const char *);
 void linuxkpi_pci_release_region(struct pci_dev *pdev, int bar);
 void linuxkpi_pci_release_regions(struct pci_dev *pdev);
 int linuxkpi_pci_enable_msix(struct pci_dev *pdev, struct msix_entry *entries,
@@ -380,7 +385,9 @@ struct device *lkpi_pci_find_irq_dev(unsigned int irq);
 int _lkpi_pci_enable_msi_range(struct pci_dev *pdev, int minvec, int maxvec);
 
 #define	pci_err(pdev, fmt, ...)						\
-    dev_err(&(pdev)->dev, fmt, __VA_ARGS__)
+    dev_err(&(pdev)->dev, fmt, ##__VA_ARGS__)
+#define	pci_info(pdev, fmt, ...)					\
+    dev_info(&(pdev)->dev, fmt, ##__VA_ARGS__)
 
 static inline bool
 dev_is_pci(struct device *dev)
@@ -523,7 +530,20 @@ pci_upstream_bridge(struct pci_dev *pdev)
 	if (pdev == pdev->bus->self) {
 		device_t bridge;
 
-		bridge = device_get_parent(pdev->dev.bsddev);
+		/*
+		 * In the case of DRM drivers, the passed device is a child of
+		 * `vgapci`. We want to start the lookup from `vgapci`, so the
+		 * parent of the passed `drmn`.
+		 *
+		 * We can use the `isdrm` flag to determine this.
+		 */
+		bridge = pdev->dev.bsddev;
+		if (pdev->pdrv != NULL && pdev->pdrv->isdrm)
+			bridge = device_get_parent(bridge);
+		if (bridge == NULL)
+			goto done;
+
+		bridge = device_get_parent(bridge);
 		if (bridge == NULL)
 			goto done;
 		bridge = device_get_parent(bridge);
@@ -543,12 +563,16 @@ done:
 	return (pdev->bus->self);
 }
 
+#define	pci_request_region(pdev, bar, res_name)				\
+    linuxkpi_pci_request_region(pdev, bar, res_name)
 #define	pci_release_region(pdev, bar)					\
     linuxkpi_pci_release_region(pdev, bar)
-#define	pci_release_regions(pdev)					\
-    linuxkpi_pci_release_regions(pdev)
 #define	pci_request_regions(pdev, res_name)				\
     linuxkpi_pci_request_regions(pdev, res_name)
+#define	pci_release_regions(pdev)					\
+    linuxkpi_pci_release_regions(pdev)
+#define	pcim_request_all_regions(pdev, name)				\
+    linuxkpi_pcim_request_all_regions(pdev, name)
 
 static inline void
 lkpi_pci_disable_msix(struct pci_dev *pdev)
@@ -785,6 +809,8 @@ static inline void pci_disable_sriov(struct pci_dev *dev)
     linuxkpi_pci_iomap_range(pdev, mmio_bar, mmio_off, mmio_size)
 #define	pci_iomap(pdev, mmio_bar, mmio_size)				\
     linuxkpi_pci_iomap(pdev, mmio_bar, mmio_size)
+#define	pcim_iomap(pdev, bar, maxlen)					\
+    linuxkpi_pcim_iomap(pdev, bar, maxlen)
 #define	pci_iounmap(pdev, res)						\
     linuxkpi_pci_iounmap(pdev, res)
 
@@ -1426,6 +1452,9 @@ linuxkpi_pci_get_device(uint32_t vendor, uint32_t device, struct pci_dev *odev)
 
 	return (lkpi_pci_get_device(vendor, device, odev));
 }
+
+#define	for_each_pci_dev(_pdev)						\
+    while ((_pdev = linuxkpi_pci_get_device(PCI_ANY_ID, PCI_ANY_ID, _pdev)) != NULL)
 
 /* This is a FreeBSD extension so we can use bus_*(). */
 static inline void

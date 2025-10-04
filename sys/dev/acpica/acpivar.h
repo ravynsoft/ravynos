@@ -490,6 +490,7 @@ EVENTHANDLER_DECLARE(acpi_video_event, acpi_event_handler_t);
 
 /* Device power control. */
 ACPI_STATUS	acpi_pwr_wake_enable(ACPI_HANDLE consumer, int enable);
+ACPI_STATUS	acpi_pwr_get_state(ACPI_HANDLE consumer, int *state);
 ACPI_STATUS	acpi_pwr_switch_consumer(ACPI_HANDLE consumer, int state);
 acpi_pwr_for_sleep_t	acpi_device_pwr_for_sleep;
 int		acpi_set_powerstate(device_t child, int state);
@@ -515,6 +516,16 @@ acpi_get_verbose(struct acpi_softc *sc)
     if (sc)
 	return (sc->acpi_verbose);
     return (0);
+}
+
+static __inline const char *
+acpi_d_state_to_str(int state)
+{
+    const char *strs[ACPI_D_STATE_COUNT] = {"D0", "D1", "D2", "D3hot",
+	"D3cold"};
+
+    MPASS(state >= ACPI_STATE_D0 && state <= ACPI_D_STATES_MAX);
+    return (strs[state]);
 }
 
 char		*acpi_name(ACPI_HANDLE handle);
@@ -614,12 +625,13 @@ bus_get_cpus_t		acpi_get_cpus;
  * ARM specific ACPI interfaces, relating to IORT table.
  */
 int	acpi_iort_map_pci_msi(u_int seg, u_int rid, u_int *xref, u_int *devid);
-int	acpi_iort_map_pci_smmuv3(u_int seg, u_int rid, u_int *xref, u_int *devid);
+int	acpi_iort_map_pci_smmuv3(u_int seg, u_int rid, uint64_t *xref,
+	    u_int *devid);
 int	acpi_iort_its_lookup(u_int its_id, u_int *xref, int *pxm);
 int	acpi_iort_map_named_msi(const char *devname, u_int rid, u_int *xref,
 	    u_int *devid);
-int	acpi_iort_map_named_smmuv3(const char *devname, u_int rid, u_int *xref,
-	    u_int *devid);
+int	acpi_iort_map_named_smmuv3(const char *devname, u_int rid,
+	    uint64_t *xref, u_int *devid);
 #endif
 #endif /* _KERNEL */
 #endif /* !_ACPIVAR_H_ */

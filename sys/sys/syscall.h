@@ -5,7 +5,7 @@
  */
 
 #define	SYS_syscall	0
-#define	SYS_exit	1
+#define	SYS__exit	1
 #define	SYS_fork	2
 #define	SYS_read	3
 #define	SYS_write	4
@@ -83,8 +83,8 @@
 				/* 76 is obsolete vhangup */
 				/* 77 is obsolete vlimit */
 #define	SYS_mincore	78
-#define	SYS_getgroups	79
-#define	SYS_setgroups	80
+#define	SYS_freebsd14_getgroups	79
+#define	SYS_freebsd14_setgroups	80
 #define	SYS_getpgrp	81
 #define	SYS_setpgid	82
 #define	SYS_setitimer	83
@@ -537,6 +537,12 @@
 #define	SYS_fchroot	590
 #define	SYS_setcred	591
 #define	SYS_exterrctl	592
+#define	SYS_inotify_add_watch_at	593
+#define	SYS_inotify_rm_watch	594
+#define	SYS_getgroups	595
+#define	SYS_setgroups	596
+#define	SYS_jail_attach_jd	597
+#define	SYS_jail_remove_jd	598
 #define	SYS__kernelrpc_mach_vm_allocate_trap	610
 #define	SYS__kernelrpc_mach_vm_deallocate_trap	612
 #define	SYS__kernelrpc_mach_vm_protect_trap	614

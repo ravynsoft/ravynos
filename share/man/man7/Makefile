@@ -1,11 +1,14 @@
 .include <src.opts.mk>
 
+MANGROUPS=	MAN
+
 #MISSING: eqnchar.7 ms.7 term.7
 MAN=	arch.7 \
 	ascii.7 \
 	bsd.snmpmod.mk.7 \
 	build.7 \
 	c.7 \
+	d.7 \
 	clocks.7 \
 	crypto.7 \
 	development.7 \
@@ -17,6 +20,7 @@ MAN=	arch.7 \
 	intro.7 \
 	maclabel.7 \
 	mitigations.7 \
+	named_attribute.7 \
 	operator.7 \
 	orders.7 \
 	ports.7 \
@@ -29,7 +33,7 @@ MAN=	arch.7 \
 	stats.7 \
 	stdint.7 \
 	sticky.7 \
-	tests.7 \
+	tracing.7 \
 	tuning.7
 
 MLINKS=	intro.7 miscellaneous.7
@@ -51,14 +55,21 @@ MLINKS+= networking.7 wifi.7
 .endif
 
 .if ${MK_TESTS} != "no"
-ATF=	${SRCTOP}/contrib/atf
-.PATH:	${ATF}/doc
-MAN+=	atf.7
+MANGROUPS+=	ATF TESTS
+
+TESTS=		tests.7
+TESTSPACKAGE=	tests
+
+ATF=		atf.7
+ATFPACKAGE=	atf
+
+ATFPATH=	${SRCTOP}/contrib/atf
+.PATH:	${ATFPATH}/doc
 
 CLEANFILES+= atf.7
 atf.7: atf.7.in
 	sed -e 's,__DOCDIR__,/usr/share/doc/atf,g' \
-	    <"${ATF}/doc/atf.7.in" >atf.7
+	    <"${ATFPATH}/doc/atf.7.in" >atf.7
 .endif
 
 .include <bsd.prog.mk>

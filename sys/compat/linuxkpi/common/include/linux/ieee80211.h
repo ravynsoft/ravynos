@@ -35,6 +35,7 @@
 #include <asm/unaligned.h>
 #include <linux/kernel.h>
 #include <linux/bitops.h>
+#include <linux/bitfield.h>
 #include <linux/if_ether.h>
 
 /* linux_80211.c */
@@ -121,7 +122,20 @@ enum ieee80211_rate_control_changed_flags {
 /* 802.11-2016, 9.4.2.158.3 Supported VHT-MCS and NSS Set field. */
 #define	IEEE80211_VHT_EXT_NSS_BW_CAPABLE	(1 << 13)	/* part of tx_highest */
 
-#define	IEEE80211_VHT_MAX_AMPDU_1024K		7	/* 9.4.2.56.3 A-MPDU Parameters field, Table 9-163 */
+/*
+ * 802.11-2020, 9.4.2.157.2 VHT Capabilities Information field,
+ * Table 9-271-Subfields of the VHT Capabilities Information field (continued).
+ */
+enum ieee80211_vht_max_ampdu_len_exp {
+	IEEE80211_VHT_MAX_AMPDU_8K		= 0,
+	IEEE80211_VHT_MAX_AMPDU_16K		= 1,
+	IEEE80211_VHT_MAX_AMPDU_32K		= 2,
+	IEEE80211_VHT_MAX_AMPDU_64K		= 3,
+	IEEE80211_VHT_MAX_AMPDU_128K		= 4,
+	IEEE80211_VHT_MAX_AMPDU_256K		= 5,
+	IEEE80211_VHT_MAX_AMPDU_512K		= 6,
+	IEEE80211_VHT_MAX_AMPDU_1024K		= 7,
+};
 
 #define	IEEE80211_WEP_IV_LEN			3	/* net80211: IEEE80211_WEP_IVLEN */
 #define	IEEE80211_WEP_ICV_LEN			4
@@ -133,9 +147,9 @@ enum ieee80211_rate_control_changed_flags {
 
 enum wlan_ht_cap_sm_ps {
 	WLAN_HT_CAP_SM_PS_STATIC		= 0,
-	WLAN_HT_CAP_SM_PS_DYNAMIC,
-	WLAN_HT_CAP_SM_PS_INVALID,
-	WLAN_HT_CAP_SM_PS_DISABLED,
+	WLAN_HT_CAP_SM_PS_DYNAMIC		= 1,
+	WLAN_HT_CAP_SM_PS_INVALID		= 2,
+	WLAN_HT_CAP_SM_PS_DISABLED		= 3
 };
 
 #define	WLAN_MAX_KEY_LEN			32
@@ -295,6 +309,7 @@ enum ieee80211_ac_numbers {
 #define	IEEE80211_HT_MCS_MASK_LEN		10
 
 #define	IEEE80211_MLD_MAX_NUM_LINKS		15
+#define	IEEE80211_MLD_CAP_OP_MAX_SIMUL_LINKS	0xf
 #define	IEEE80211_MLD_CAP_OP_TID_TO_LINK_MAP_NEG_SUPP		0x0060
 #define	IEEE80211_MLD_CAP_OP_TID_TO_LINK_MAP_NEG_SUPP_SAME	1
 
@@ -303,7 +318,7 @@ struct ieee80211_mcs_info {
 	uint16_t	rx_highest;
 	uint8_t		tx_params;
 	uint8_t		__reserved[3];
-};
+} __packed;
 
 /* 802.11-2020, 9.4.2.55.1 HT Capabilities element structure */
 struct ieee80211_ht_cap {
@@ -313,7 +328,7 @@ struct ieee80211_ht_cap {
 	uint16_t				extended_ht_cap_info;
 	uint32_t				tx_BF_cap_info;
 	uint8_t					antenna_selection_info;
-};
+} __packed;
 
 #define	IEEE80211_HT_MAX_AMPDU_FACTOR		13
 #define	IEEE80211_HE_HT_MAX_AMPDU_FACTOR	16
@@ -349,6 +364,7 @@ enum ieee80211_chanctx_change_flags {
 	IEEE80211_CHANCTX_CHANGE_WIDTH		= BIT(3),
 	IEEE80211_CHANCTX_CHANGE_CHANNEL	= BIT(4),
 	IEEE80211_CHANCTX_CHANGE_PUNCTURING	= BIT(5),
+	IEEE80211_CHANCTX_CHANGE_MIN_DEF	= BIT(6),
 };
 
 enum ieee80211_frame_release_type {
@@ -434,6 +450,7 @@ enum ieee80211_tx_control_flags {
 	IEEE80211_TX_CTRL_PORT_CTRL_PROTO	= BIT(0),
 	IEEE80211_TX_CTRL_PS_RESPONSE		= BIT(1),
 	IEEE80211_TX_CTRL_RATE_INJECT		= BIT(2),
+	IEEE80211_TX_CTRL_DONT_USE_RATE_MASK	= BIT(3),
 	IEEE80211_TX_CTRL_MLO_LINK		= 0xF0000000,	/* This is IEEE80211_LINK_UNSPECIFIED on the high bits. */
 };
 
@@ -790,6 +807,20 @@ struct ieee80211_bss_load_elem {
 	uint8_t					channel_util;
 	uint16_t				avail_adm_capa;
 };
+
+struct ieee80211_p2p_noa_desc {
+	uint32_t				count;		/* uint8_t ? */
+	uint32_t				duration;
+	uint32_t				interval;
+	uint32_t				start_time;
+};
+
+struct ieee80211_p2p_noa_attr {
+	uint8_t					index;
+	uint8_t					oppps_ctwindow;
+	struct ieee80211_p2p_noa_desc		desc[4];
+};
+
 
 /* net80211: IEEE80211_IS_CTL() */
 static __inline bool
@@ -1232,6 +1263,5 @@ ieee80211_get_qos_ctl(struct ieee80211_hdr *hdr)
         else
                 return (u8 *)hdr + 24;
 }
-
 
 #endif	/* _LINUXKPI_LINUX_IEEE80211_H */

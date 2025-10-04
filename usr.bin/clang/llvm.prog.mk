@@ -31,4 +31,6 @@ LIBADD+=	tinfow
 .endif
 LIBADD+=	pthread
 
+NO_MACH= yes
+
 .include <bsd.prog.mk>

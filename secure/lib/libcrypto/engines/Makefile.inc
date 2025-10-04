@@ -1,3 +1,6 @@
+PACKAGE?=	openssl
+LIB_PACKAGE=
+
 SHLIBDIR=	${LIBDIR}/engines-3
 
 LCRYPTO_SRC=	${SRCTOP}/crypto/openssl

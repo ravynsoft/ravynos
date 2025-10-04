@@ -59,6 +59,7 @@ CONFS=	DAEMON \
 	netif \
 	netoptions \
 	netwait \
+	noshutdown \
 	newsyslog \
 	nfsclient \
 	nfscbd \
@@ -120,6 +121,12 @@ CONFGROUPS+=		DHCLIENT
 DHCLIENT=		dhclient
 DHCLIENTPACKAGE=	dhclient
 
+CONFGROUPS+=		GEOM
+GEOM=			geli \
+			geli2 \
+			gptboot
+GEOMPACKAGE=		geom
+
 CONFGROUPS+=		GGATED
 GGATED=			ggated
 GGATEDPACKAGE=		ggate
@@ -132,20 +139,45 @@ CONFGROUPS+=		CRON
 CRON+=			cron
 CRONPACKAGE=		cron
 
-.if ${MK_NIS} != "no"
-CONFS+=	ypbind \
-	ypldap \
-	yppasswdd \
-	ypserv \
-	ypset \
-	ypupdated \
-	ypxfrd
-.endif
+CONFGROUPS+=		CTL
+CTL=			ctld
+CTLPACKAGE=		ctl
 
-.if ${MK_ACCT} != "no"
+CONFGROUPS+=		NFS
+NFS=			lockd \
+			mountd \
+			nfscbd \
+			nfsclient \
+			nfsd \
+			nfsuserd \
+			statd
+NFSPACKAGE=		nfs
+
+CONFGROUPS+=		NEWSYSLOG
+NEWSYSLOG=		newsyslog
+NEWSYSLOGPACKAGE=	newsyslog
+
+CONFGROUPS+=		POWERD
+POWERD=			powerd
+POWERDPACKAGE=		powerd
+
+CONFGROUPS+=		SYSLOGD
+SYSLOGD=		syslogd
+SYSLOGDPACKAGE=		syslogd
+
+CONFGROUPS+=		RCMDS
+RCMDS=			rwho
+RCMDSPACKAGE=		rcmds
+
+.if ${MK_ACCT} != "no" || ${MK_UTMPX} != "no"
 CONFGROUPS+=	ACCT
-ACCT+=		accounting
 ACCTPACKAGE=	acct
+.if ${MK_ACCT} != "no"
+ACCT+=		accounting
+.endif
+.if ${MK_UTMPX} != "no"
+ACCT+=		utx
+.endif
 .endif
 
 .if ${MK_ACPI} != "no"
@@ -171,13 +203,17 @@ AUDITPACKAGE=	audit
 .endif
 
 .if ${MK_AUTOFS} != "no"
-CONFS+=		automount
-CONFS+=		automountd
-CONFS+=		autounmountd
+CONFGROUPS+=	AUTOFS
+AUTOFS=		automount \
+		automountd \
+		autounmountd
+AUTOFSPACKAGE=	autofs
 .endif
 
 .if ${MK_BLACKLIST} != "no"
-_blacklistd+=	blacklistd
+CONFGROUPS+=	BLOCKLIST
+BLOCKLIST=	blacklistd
+BLOCKLISTPACKAGE=blocklist
 .endif
 
 .if ${MK_BLUETOOTH} != "no"
@@ -202,17 +238,21 @@ BSNMPPACKAGE=	bsnmp
 .endif
 
 .if ${MK_CCD} != "no"
-CONFS+=		ccd
+CONFGROUPS+=	CCD
+CCD=		ccd
+CCDPACKAGE=	ccdconfig
 .endif
 
 .if ${MK_FTP} != "no"
-CONFS+=		ftpd
+CONFGROUPS+=	FTPD
+FTPD=		ftpd
+FTPDPACKAGE=	ftpd
 .endif
 
-.if ${MK_KERBEROS} != "no"
+.if ${MK_KERBEROS_SUPPORT} != "no"
 CONFGROUPS+=	GSSD
 GSSD=		gssd
-GSSDPACKAGE=	kerberos
+GSSDPACKAGE=	gssd
 .endif
 
 .if ${MK_HAST} != "no"
@@ -222,28 +262,40 @@ HASTPACKAGE=	hast
 .endif
 
 .if ${MK_INETD} != "no"
-CONFS+=		inetd
+CONFGROUPS+=	INETD
+INETD=		inetd
+INETDPACKAGE=	inetd
 .endif
 
 .if ${MK_IPFILTER} != "no"
-CONFS+=	ipfilter \
-	ipfs \
-	ipmon \
-	ipnat \
-	ippool
+CONFGROUPS+=	IPF
+IPF=		ipfilter \
+		ipfs \
+		ipmon \
+		ipnat \
+		ippool
+IPFPACKAGE=	ipf
 .endif
 
 .if ${MK_IPFW} != "no"
-CONFS+=		ipfw \
-		dnctl
+CONFGROUPS+=	IPFW
+IPFW=		ipfw dnctl
 .if ${MK_NETGRAPH} != "no"
-CONFS+=		ipfw_netflow
+IPFW+=		ipfw_netflow
 .endif
+IPFWPACKAGE=	ipfw
+
+# natd is only built when ipfw is built
+CONFGROUPS+=	NATD
+NATD+=		natd
+NATDPACKAGE=	natd
 .endif
 
 .if ${MK_ISCSI} != "no"
-CONFS+=		iscsictl
-CONFS+=		iscsid
+CONFGROUPS+=	ISCSI
+ISCSI=		iscsictl \
+		iscsid
+ISCSIPACKAGE=	iscsi
 .endif
 
 .if ${MK_JAIL} != "no"
@@ -255,6 +307,7 @@ JAILPACKAGE=	jail
 .if ${MK_LEGACY_CONSOLE} != "no"
 CONFGROUPS+=	CONSOLE
 CONSOLE+=	moused
+CONSOLE+=	msconvd
 CONSOLE+=	syscons
 CONSOLEPACKAGE=	console-tools
 .endif
@@ -266,16 +319,44 @@ LPPACKAGE=	lp
 .endif
 
 .if ${MK_KERBEROS} != "no"
-CONFS+=		ipropd_master
-CONFS+=		ipropd_slave
-_kadmind=	kadmind
-_kdc=		kdc
-_kfd=		kfd
-_kpasswdd=	kpasswdd
+.if ${MK_MITKRB5} == "no"
 
-DIRS+=	VAR_HEMIDAL
+# Heimdal rc scripts
+CONFGROUPS+=	HEIMDAL
+HEIMDAL=	ipropd_master \
+		ipropd_slave \
+		kadmind \
+		kdc \
+		kfd \
+		kpasswdd
+HEIMDALPACKAGE=	kerberos
+
+DIRS+=		VAR_HEMIDAL
 VAR_HEMIDAL=	/var/heimdal
 VAR_HEMIDAL_MODE=	700
+
+.else	# ${MK_MITKRB5} != "no"
+
+# MIT KRB5 rc scripts
+CONFGROUPS+=	KRB5
+KRB5=		kadmind \
+		kdc
+KRB5PACKAGE=	kerberos-kdc
+
+.endif	# ${MK_MITKRB5}
+.endif	# ${MK_KERBEROS}
+
+.if ${MK_NIS} != "no"
+CONFGROUPS+=	YP
+YP=		ypbind \
+		ypldap \
+		yppasswdd \
+		ypserv \
+		ypset \
+		ypupdated \
+		ypxfrd \
+		nisdomain
+YPPACKAGE=	yp
 .endif
 
 .if ${MK_NS_CACHING} != "no"
@@ -293,12 +374,9 @@ NTPPACKAGE=	ntp
 _opensm=	opensm
 .endif
 
-.if ${MK_OPENSSL} != "no"
-CONFS+=		keyserv
-.if ${MK_OPENSSL_KTLS} != "no"
+.if ${MK_OPENSSL} != "no" && ${MK_OPENSSL_KTLS} != "no"
 CONFS+=		tlsclntd \
 		tlsservd
-.endif
 .endif
 
 .if ${MK_OPENSSH} != "no"
@@ -308,11 +386,30 @@ SSHPACKAGE=	ssh
 .endif
 
 .if ${MK_PF} != "no"
-CONFS+=		ftp-proxy
+CONFGROUPS+=	PF
+PF=		pf \
+		pflog \
+		pfsync \
+		ftp-proxy
+PFPACKAGE=	pf
 .endif
 
+.if ${MK_PPP} != "no"
+CONFGROUPS+=	PPP
+PPP=		ppp
+PPPPACKAGE=	ppp
+.endif
+
+.if ${MK_INET6} != "no" || ${MK_ROUTED} != "no"
+CONFGROUPS+=	RIP
+RIPPACKAGE=	rip
+
+.if ${MK_INET6} != "no"
+RIP+=		route6d
+.endif
 .if ${MK_ROUTED} != "no"
-CONFS+=		routed
+RIP+=		routed
+.endif
 .endif
 
 .if ${MK_SENDMAIL} != "no"
@@ -323,7 +420,9 @@ SMRCDPACKAGE=	sendmail
 
 .if ${MK_NUAGEINIT} != "no"
 CONFGROUPS+=	NIUAGEINIT
-NIUAGEINIT=		nuageinit
+NIUAGEINIT=		nuageinit \
+			nuageinit_post_net \
+			nuageinit_user_data_script
 NIUAGEINITPACKAGE=	nuageinit
 .endif
 
@@ -333,10 +432,6 @@ UNBOUND+=	local_unbound
 UNBOUNDPACKAGE=	unbound
 .endif
 
-.if ${MK_UTMPX} != "no"
-_utx=		utx
-.endif
-
 .if ${MK_VI} != "no"
 CONFGROUPS+=	VI
 VI+=		virecover
@@ -344,8 +439,13 @@ VIPACKAGE=	vi
 .endif
 
 .if ${MK_WIRELESS} != "no"
-CONFS+=		hostapd
-CONFS+=		wpa_supplicant
+CONFGROUPS+=	HOSTAPD
+HOSTAPD=	hostapd
+HOSTAPDPACKAGE=	hostapd
+
+CONFGROUPS+=	WPA
+WPA=		wpa_supplicant
+WPAPACKAGE=	wpa
 .endif
 
 .if ${MK_ZFS} != "no"
@@ -358,7 +458,7 @@ ZFS+=		zpool
 ZFS+=		zpoolreguid
 ZFS+=		zpoolupgrade
 ZFS+=		zvol
-ZFSPACKAGE=	rc
+ZFSPACKAGE=	zfs
 .endif
 
 .for fg in ${CONFGROUPS}

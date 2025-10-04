@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2024, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2025, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -436,9 +436,12 @@ DtGetFieldType (
     case ACPI_DMT_RAW_BUFFER:
     case ACPI_DMT_BUF7:
     case ACPI_DMT_BUF10:
+    case ACPI_DMT_BUF11:
     case ACPI_DMT_BUF12:
     case ACPI_DMT_BUF16:
     case ACPI_DMT_BUF18:
+    case ACPI_DMT_BUF24:
+    case ACPI_DMT_BUF26:
     case ACPI_DMT_BUF32:
     case ACPI_DMT_BUF112:
     case ACPI_DMT_BUF128:
@@ -614,11 +617,13 @@ DtGetFieldLength (
     case ACPI_DMT_ASPT:
     case ACPI_DMT_UINT16:
     case ACPI_DMT_DMAR:
+    case ACPI_DMT_ERDT:
     case ACPI_DMT_HEST:
     case ACPI_DMT_HMAT:
     case ACPI_DMT_NFIT:
     case ACPI_DMT_PCI_PATH:
     case ACPI_DMT_PHAT:
+    case ACPI_DMT_RHCT:
 
         ByteLength = 2;
         break;
@@ -732,6 +737,11 @@ DtGetFieldLength (
         ByteLength = 10;
         break;
 
+    case ACPI_DMT_BUF11:
+
+        ByteLength = 11;
+        break;
+
     case ACPI_DMT_BUF12:
 
         ByteLength = 12;
@@ -746,6 +756,16 @@ DtGetFieldLength (
     case ACPI_DMT_BUF18:
 
         ByteLength = 18;
+        break;
+
+    case ACPI_DMT_BUF24:
+
+        ByteLength = 24;
+        break;
+
+    case ACPI_DMT_BUF26:
+
+        ByteLength = 26;
         break;
 
     case ACPI_DMT_BUF32:

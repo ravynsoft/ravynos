@@ -33,7 +33,7 @@
 #include <contrib/dev/acpica/include/acpi.h>
 
 enum acpi_gpiobus_ivars {
-	ACPI_GPIOBUS_IVAR_HANDLE	= 10600,
+	ACPI_GPIOBUS_IVAR_HANDLE	= 10600
 };
 
 #define ACPI_GPIOBUS_ACCESSOR(var, ivar, type)			\
@@ -43,7 +43,6 @@ ACPI_GPIOBUS_ACCESSOR(handle,	HANDLE,		ACPI_HANDLE)
 
 #undef ACPI_GPIOBUS_ACCESSOR
 
-int gpio_pin_get_by_acpi_index(device_t consumer, uint32_t idx,
-    gpio_pin_t *out_pin);
+uint32_t acpi_gpiobus_convflags(ACPI_RESOURCE_GPIO *);
 
 #endif	/* __ACPI_GPIOBUS_H__ */

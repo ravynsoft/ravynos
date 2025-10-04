@@ -91,10 +91,10 @@ class TestICMP(VnetTestTemplate):
     def test_inner_match(self):
         vnet = self.vnet_map["vnet1"]
         dst_vnet = self.vnet_map["vnet3"]
-        sendif = vnet.iface_alias_map["if1"].name
+        sendif = vnet.iface_alias_map["if1"]
 
-        our_mac = ToolsHelper.get_output("/sbin/ifconfig %s ether | awk '/ether/ { print $2; }'" % sendif)
-        dst_mac = re.sub("0a$", "0b", our_mac)
+        our_mac = sendif.ether
+        dst_mac = sendif.epairb.ether
 
         # Import in the correct vnet, so at to not confuse Scapy
         import scapy.all as sp
@@ -111,7 +111,7 @@ class TestICMP(VnetTestTemplate):
             / sp.IP(src="192.0.2.2", dst="198.51.100.2") \
             / sp.ICMP(type='echo-request') \
             / "PAYLOAD"
-        sp.sendp(pkt, sendif, verbose=False)
+        sp.sendp(pkt, sendif.name, verbose=False)
 
         # Now try to pass an ICMP error message piggy-backing on that state, but
         # use a different source address
@@ -120,7 +120,7 @@ class TestICMP(VnetTestTemplate):
             / sp.ICMP(type='dest-unreach') \
             / sp.IP(src="198.51.100.2", dst="192.0.2.2") \
             / sp.ICMP(type='echo-reply')
-        sp.sendp(pkt, sendif, verbose=False)
+        sp.sendp(pkt, sendif.name, verbose=False)
 
         try:
             rcvd = self.wait_object(dst_vnet.pipe, timeout=1)
@@ -136,8 +136,7 @@ class TestICMP(VnetTestTemplate):
             / sp.ICMP(type='echo-request') \
             / sp.raw(bytes.fromhex('f0') * payload_size)
 
-        p = sp.sr1(packet, iface=self.vnet.iface_alias_map["if1"].name,
-            timeout=3)
+        p = sp.sr1(packet, timeout=3)
         p.show()
 
         ip = p.getlayer(sp.IP)
@@ -175,3 +174,96 @@ class TestICMP(VnetTestTemplate):
         self.check_icmp_echo(sp, 128)
         self.check_icmp_echo(sp, 1464)
         self.check_icmp_echo(sp, 1468)
+
+    @pytest.mark.require_user("root")
+    @pytest.mark.require_progs(["scapy"])
+    def test_truncated_opts(self):
+        ToolsHelper.print_output("/sbin/route add default 192.0.2.1")
+
+        # Import in the correct vnet, so at to not confuse Scapy
+        import scapy.all as sp
+
+        packet = sp.IP(dst="198.51.100.2", flags="DF") \
+            / sp.ICMP(type='dest-unreach', length=108) \
+            / sp.IP(src="198.51.100.2", dst="192.0.2.2", len=1000, \
+              ihl=(120 >> 2), options=[ \
+              sp.IPOption_Security(length=100)])
+        packet.show()
+        sp.sr1(packet, timeout=3)
+
+class TestICMP_NAT(VnetTestTemplate):
+    REQUIRED_MODULES = [ "pf" ]
+    TOPOLOGY = {
+        "vnet1": {"ifaces": ["if1"]},
+        "vnet2": {"ifaces": ["if1", "if2"]},
+        "vnet3": {"ifaces": ["if2"]},
+        "if1": {"prefixes4": [("192.0.2.2/24", "192.0.2.1/24")]},
+        "if2": {"prefixes4": [("198.51.100.1/24", "198.51.100.2/24")]},
+    }
+
+    def vnet2_handler(self, vnet):
+        ifname = vnet.iface_alias_map["if1"].name
+        if2name = vnet.iface_alias_map["if2"].name
+
+        ToolsHelper.print_output("/sbin/pfctl -e")
+        ToolsHelper.pf_rules([
+            "set reassemble yes",
+            "set state-policy if-bound",
+            "nat on %s inet from 192.0.2.0/24 to any -> (%s)" % (if2name, if2name),
+            "block",
+            "pass inet proto icmp icmp-type echoreq",
+            ])
+
+        ToolsHelper.print_output("/sbin/sysctl net.inet.ip.forwarding=1")
+        ToolsHelper.print_output("/sbin/pfctl -x loud")
+
+    def vnet3_handler(self, vnet):
+        ifname = vnet.iface_alias_map["if2"].name
+        ToolsHelper.print_output("/sbin/ifconfig %s inet alias 198.51.100.3/24" % ifname)
+
+    @pytest.mark.require_user("root")
+    @pytest.mark.require_progs(["scapy"])
+    def test_id_conflict(self):
+        """
+            Test ICMP echo requests with the same ID from different clients.
+            Windows does this, and it can confuse pf.
+        """
+        ifname = self.vnet.iface_alias_map["if1"].name
+        ToolsHelper.print_output("/sbin/route add default 192.0.2.1")
+        ToolsHelper.print_output("/sbin/ifconfig %s inet alias 192.0.2.3/24" % ifname)
+
+        ToolsHelper.print_output("/sbin/ping -c 1 192.0.2.1")
+        ToolsHelper.print_output("/sbin/ping -c 1 198.51.100.1")
+        ToolsHelper.print_output("/sbin/ping -c 1 198.51.100.2")
+        ToolsHelper.print_output("/sbin/ping -c 1 198.51.100.3")
+
+        # Import in the correct vnet, so at to not confuse Scapy
+        import scapy.all as sp
+
+        # Address one
+        packet = sp.IP(src="192.0.2.2", dst="198.51.100.2", flags="DF") \
+            / sp.ICMP(type='echo-request', id=42) \
+            / sp.raw(bytes.fromhex('f0') * 16)
+
+        p = sp.sr1(packet, timeout=3)
+        p.show()
+        ip = p.getlayer(sp.IP)
+        icmp = p.getlayer(sp.ICMP)
+        assert ip
+        assert icmp
+        assert ip.dst == "192.0.2.2"
+        assert icmp.id == 42
+
+        # Address one
+        packet = sp.IP(src="192.0.2.3", dst="198.51.100.2", flags="DF") \
+            / sp.ICMP(type='echo-request', id=42) \
+            / sp.raw(bytes.fromhex('f0') * 16)
+
+        p = sp.sr1(packet, timeout=3)
+        p.show()
+        ip = p.getlayer(sp.IP)
+        icmp = p.getlayer(sp.ICMP)
+        assert ip
+        assert icmp
+        assert ip.dst == "192.0.2.3"
+        assert icmp.id == 42

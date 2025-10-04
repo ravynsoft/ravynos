@@ -86,7 +86,7 @@
  */
 #define	KI_NSPARE_INT	2
 #define	KI_NSPARE_LONG	12
-#define	KI_NSPARE_PTR	5
+#define	KI_NSPARE_PTR	4
 
 #ifndef _KERNEL
 #ifndef KINFO_PROC_SIZE
@@ -212,6 +212,7 @@ struct kinfo_proc {
 	 * That way the spare room from both arrays will remain contiguous.
 	 */
 	struct	pwddesc *ki_pd;	/* pointer to process paths info */
+	void	*ki_uerrmsg;		/* address of the ext err msg place */
 	void	*ki_spareptrs[KI_NSPARE_PTR];	/* spare room for growth */
 	long	ki_sparelongs[KI_NSPARE_LONG];	/* spare room for growth */
 	long	ki_sflag;		/* PS_* flags */
@@ -264,9 +265,8 @@ struct user {
 #define	KF_TYPE_DEV	12
 #define	KF_TYPE_EVENTFD	13
 #define	KF_TYPE_TIMERFD	14
-/* tired of renumbering these whenever upstream adds types... */
-#define	KF_TYPE_PORT	253
-#define	KF_TYPE_PORTSET	254
+#define	KF_TYPE_INOTIFY	15
+#define	KF_TYPE_JAILDESC	16
 #define	KF_TYPE_UNKNOWN	255
 
 #define	KF_VTYPE_VNON	0
@@ -454,10 +454,17 @@ struct kinfo_file {
 				uint64_t	kf_timerfd_addr;
 			} kf_timerfd;
 			struct {
+				int32_t		kf_jid;
+			} kf_jail;
+			struct {
 				uint64_t	kf_kqueue_addr;
 				int32_t		kf_kqueue_count;
 				int32_t		kf_kqueue_state;
 			} kf_kqueue;
+			struct {
+				uint64_t	kf_inotify_npending;
+				uint64_t	kf_inotify_nbpending;
+			} kf_inotify;
 		} kf_un;
 	};
 	uint16_t	kf_status;		/* Status flags. */

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright(c) 2007-2022 Intel Corporation */
+/* Copyright(c) 2007-2025 Intel Corporation */
 #ifndef ADF_200XX_HW_DATA_H_
 #define ADF_200XX_HW_DATA_H_
 

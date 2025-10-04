@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2024, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2025, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -154,7 +154,7 @@
 
 /* Current ACPICA subsystem version in YYYYMMDD format */
 
-#define ACPI_CA_VERSION                 0x20241212  
+#define ACPI_CA_VERSION                 0x20250807 
 
 #include <contrib/dev/acpica/include/acconfig.h>
 #include <contrib/dev/acpica/include/actypes.h>
@@ -356,6 +356,12 @@ ACPI_INIT_GLOBAL (UINT8,            AcpiGbl_OsiData, 0);
  * a reduced HW machine, and that flag is duplicated here for convenience.
  */
 ACPI_INIT_GLOBAL (BOOLEAN,          AcpiGbl_ReducedHardware, FALSE);
+
+/*
+ * ACPI Global Lock is mainly used for systems with SMM, so no-SMM systems
+ * (such as LoongArch) may not have and not use Global Lock.
+ */
+ACPI_INIT_GLOBAL (BOOLEAN,          AcpiGbl_UseGlobalLock, TRUE);
 
 /*
  * Maximum timeout for While() loop iterations before forced method abort.

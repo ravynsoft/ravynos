@@ -604,7 +604,7 @@ iichid_intr(void *context)
 	error = iichid_cmd_read(sc, sc->intr_buf, sc->intr_bufsize, &actual);
 	THREAD_NO_SLEEPING();
 	if (error == 0) {
-		if (sc->power_on) {
+		if (sc->power_on && sc->open) {
 			if (actual != 0)
 				sc->intr_handler(sc->intr_ctx, sc->intr_buf + 2,
 				    actual);
@@ -861,7 +861,8 @@ iichid_intr_start(device_t dev, device_t child __unused)
 
 	sc = device_get_softc(dev);
 	DPRINTF(sc, "iichid device open\n");
-	iichid_set_power_state(sc, IICHID_PS_ON, IICHID_PS_NULL);
+	if (!sc->open)
+		iichid_set_power_state(sc, IICHID_PS_ON, IICHID_PS_NULL);
 
 	return (0);
 }

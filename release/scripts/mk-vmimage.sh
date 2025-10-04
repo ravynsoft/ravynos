@@ -29,6 +29,7 @@
 # mk-vmimage.sh: Create virtual machine disk images in various formats.
 #
 #
+set -e
 
 usage() {
 	echo "${0} usage:"
@@ -91,7 +92,7 @@ main() {
 
 	. "${VMBUILDCONF}"
 
-	if [ ! -z "${VMCONFIG}" ] && [ ! -c "${VMCONFIG}" ]; then
+	if [ -n "${VMCONFIG}" ] && [ ! -c "${VMCONFIG}" ]; then
 		. "${VMCONFIG}"
 	fi
 

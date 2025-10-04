@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2024, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2025, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -361,9 +361,9 @@ AcpiExTracePoint (
     if (Pathname)
     {
         ACPI_DEBUG_PRINT ((ACPI_DB_TRACE_POINT,
-            "%s %s [0x%p:%s] execution.\n",
+            "%s %s [%s] execution.\n",
             AcpiExGetTraceEventName (Type), Begin ? "Begin" : "End",
-            Aml, Pathname));
+            Pathname));
     }
     else
     {

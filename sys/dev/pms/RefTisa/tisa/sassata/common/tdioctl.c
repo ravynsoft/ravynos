@@ -1116,7 +1116,7 @@ tdsaGpioSetup(
 
   osIoctlTimer = &tdsaAllShared->osIoctlTimer;
   tdsaInitTimerRequest(tiRoot, osIoctlTimer);
-  tdIoctlStartTimer(tiRoot, osIoctlTimer); /* Start the timeout handler for both ioctl and controller response */
+  tdIoctlStartTimer(tiRoot, osIoctlTimer); /* Start the timout handler for both ioctl and controller response */
   tdsaAllShared->tdFWControlEx.virtAddr = (bit8 *)osIoctlTimer;
 
   tdsaAllShared->tdFWControlEx.usrAddr = (bit8 *)&agIOCTLPayload->FunctionSpecificArea[0];

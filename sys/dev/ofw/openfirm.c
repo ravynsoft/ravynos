@@ -68,8 +68,7 @@
 #include <sys/queue.h>
 #include <sys/systm.h>
 #include <sys/endian.h>
-
-#include <machine/stdarg.h>
+#include <sys/stdarg.h>
 
 #include <dev/ofw/ofwvar.h>
 #include <dev/ofw/openfirm.h>
@@ -185,6 +184,15 @@ xrefinfo_add(phandle_t node, phandle_t xref, device_t dev)
 	SLIST_INSERT_HEAD(&xreflist, xi, next_entry);
 	mtx_unlock(&xreflist_lock);
 	return (xi);
+}
+
+static void
+xrefinfo_remove(struct xrefinfo *xi)
+{
+
+	mtx_lock(&xreflist_lock);
+	SLIST_REMOVE(&xreflist, xi, xrefinfo, next_entry);
+	mtx_unlock(&xreflist_lock);
 }
 
 /*
@@ -702,6 +710,16 @@ OF_device_register_xref(phandle_t xref, device_t dev)
 		return (0);
 	}
 	panic("Attempt to register device before xreflist_init");
+}
+
+void
+OF_device_unregister_xref(phandle_t xref, device_t dev)
+{
+	struct xrefinfo *xi;
+
+	if ((xi = xrefinfo_find(xref, FIND_BY_XREF)) == NULL)
+		return;
+	xrefinfo_remove(xi);
 }
 
 /*  Call the method in the scope of a given instance. */
