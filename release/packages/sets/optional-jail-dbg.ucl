@@ -16,9 +16,16 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-comment = "YACC runtime library"
+comment = "Optional software debug symbols for jails (metapackage)"
 
 desc = <<EOD
-liby provides default implementations of main() and yyerror() for applications
-which use the yacc(1) parser generator.
+This metapackage installs debugging symbols for optional software
+which is not part of the minimal set.
 EOD
+
+deps {
+	"set-minimal-jail-dbg" {
+		version = "${VERSION}"
+		origin = "base"
+	},
+}

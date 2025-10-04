@@ -16,9 +16,14 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-comment = "C11 threading library"
+comment = "LZMA2 data compression"
 
 desc = <<EOD
-libstdthreads provides the thread-control interface defined in the
-ISO/IEC 9899:2011 (C11) standard.
+xz compresses data using the LZMA2 data compression algorithm.  This package
+provides the front-end xz(1) utility, and the liblzma library which allows
+applications to use this functionality programatically.
 EOD
+
+annotations {
+	set = "optional,optional-jail"
+}

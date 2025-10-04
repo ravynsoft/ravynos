@@ -16,24 +16,19 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/*
- * Note: Do not use the text from ctf(5) to describe this package, since that
- * text is licensed under the CDDL.
- */
-
-comment = "Compact C Type Format (CTF) utilities"
+comment = "Base jail system debug symbols (metapackage)"
 
 desc = <<EOD
-The Compact C Type Format (CTF) is a method of encoding type information for C
-programs inside ELF objects.  Compared to the common DWARF debug symbol format,
-CTF is intended specifically for runtime program analyzers such as DTrace.
-
-This package provides the ctfconvert(1), ctfdump(1) and ctfmerge(1) utilities
-which are used to work with CTF data.
+This metapackage installs debugging symbols for the base jail system.
 EOD
 
-licenses = [ "CDDL-1.0" ]
-
-annotations {
-	set = devel
+deps {
+	"set-minimal-jail-dbg" {
+		version = "${VERSION}"
+		origin = "base"
+	},
+	"set-devel-dbg" {
+		version = "${VERSION}"
+		origin = "base"
+	}
 }
