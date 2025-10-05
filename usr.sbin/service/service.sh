@@ -46,6 +46,7 @@ usage () {
 	echo "-R		Stop and start enabled $local_startup services"
 	echo "-l		List all scripts in /etc/rc.d and $local_startup"
 	echo '-r		Show the results of boot time rcorder'
+	echo '-q		quiet'
 	echo '-v		Verbose'
 	echo ''
 }
@@ -58,6 +59,7 @@ while getopts 'dE:ehj:lqrRv' COMMAND_LINE_ARGUMENT ; do
 	h)	usage ; exit 0 ;;
 	j)	JAIL="${OPTARG}" ;;
 	l)	LIST=lopt ;;
+	q)	QUIET=qopt ;;
 	r)	RCORDER=ropt ;;
 	R)	RESTART=Ropt ;;
 	v)	VERBOSE=vopt ;;
@@ -72,6 +74,7 @@ if [ -n "${JAIL}" ]; then
 	args=""
 	[ -n "${ENABLED}" ] && args="${args} -e"
 	[ -n "${LIST}" ] && args="${args} -l"
+	[ -n "${QUIET}" ] && args="${args} -q"
 	[ -n "${RCORDER}" ] && args="${args} -r"
 	[ -n "${RESTART}" ] && args="${args} -R"
 	[ -n "${VERBOSE}" ] && args="${args} -v"
@@ -107,14 +110,22 @@ if [ -n "$RESTART" ]; then
 			if [ -n "$rcvar" ]; then
 				load_rc_config_var ${name} ${rcvar}
 			fi
-			checkyesno $rcvar 2>/dev/null && run_rc_script ${file} stop
+			if [ -n "$QUIET" ]; then
+				checkyesno $rcvar 2>/dev/null && run_rc_script ${file} stop >/dev/null 2>&1
+			else
+				checkyesno $rcvar 2>/dev/null && run_rc_script ${file} stop
+			fi
 		fi
 	done
 	for file in $files; do
 		if grep -q ^rcvar $file; then
 			eval `grep ^name= $file`
 			eval `grep ^rcvar $file`
-			checkyesno $rcvar 2>/dev/null && run_rc_script ${file} start
+			if [ -n "$QUIET" ]; then
+				checkyesno $rcvar 2>/dev/null && run_rc_script ${file} start >/dev/null 2>&1
+			else
+				checkyesno $rcvar 2>/dev/null && run_rc_script ${file} start
+			fi
 		fi
 	done
 
@@ -169,7 +180,7 @@ if [ -n "$RCORDER" ]; then
 	exit 0
 fi
 
-if [ $# -gt 1 ]; then
+if [ $# -gt 0 ]; then
 	script=$1
 	shift
 else
@@ -181,7 +192,11 @@ cd /
 for dir in /etc/rc.d $local_startup; do
 	if [ -x "$dir/$script" ]; then
 		[ -n "$VERBOSE" ] && echo "$script is located in $dir"
-		exec env -i -L -/daemon HOME=/ PATH=/sbin:/bin:/usr/sbin:/usr/bin ${VARS} "$dir/$script" "$@"
+		if [ -n "$QUIET" ]; then
+			exec /usr/bin/env -i -L -/daemon HOME=/ PATH=/sbin:/bin:/usr/sbin:/usr/bin ${VARS} "$dir/$script" "$@" > /dev/null 2>&1
+		else
+			exec /usr/bin/env -i -L -/daemon HOME=/ PATH=/sbin:/bin:/usr/sbin:/usr/bin ${VARS} "$dir/$script" "$@"
+		fi
 	fi
 done
 

@@ -557,7 +557,7 @@ nfsrv_setclient(struct nfsrv_descript *nd, struct nfsclient **new_clpp,
 		 */
 		while (clp->lc_cbref) {
 			clp->lc_flags |= LCL_WAKEUPWANTED;
-			(void)mtx_sleep(clp, NFSSTATEMUTEXPTR, PZERO - 1,
+			(void)mtx_sleep(clp, NFSSTATEMUTEXPTR, PVFS,
 			    "nfsd clp", 10 * hz);
 		}
 		NFSUNLOCKSTATE();
@@ -634,7 +634,7 @@ nfsrv_setclient(struct nfsrv_descript *nd, struct nfsclient **new_clpp,
 			NFSLOCKSTATE();
 		while (clp->lc_cbref) {
 			clp->lc_flags |= LCL_WAKEUPWANTED;
-			(void)mtx_sleep(clp, NFSSTATEMUTEXPTR, PZERO - 1,
+			(void)mtx_sleep(clp, NFSSTATEMUTEXPTR, PVFS,
 			    "nfsdclp", 10 * hz);
 		}
 		NFSUNLOCKSTATE();
@@ -4675,7 +4675,7 @@ errout:
 		} else if (error == 0 && procnum == NFSV4OP_CBGETATTR)
 			error = nfsv4_loadattr(nd, NULL, nap, NULL, NULL, 0,
 			    NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL,
-			    p, NULL);
+			    NULL, NULL, p, NULL);
 		m_freem(nd->nd_mrep);
 	}
 	NFSLOCKSTATE();
@@ -7731,6 +7731,7 @@ nfsrv_setdsserver(char *dspathp, char *mdspathp, NFSPROC_T *p,
 	NFSD_DEBUG(4, "lookup=%d\n", error);
 	if (error != 0)
 		return (error);
+	NDFREE_PNBUF(&nd);
 	if (nd.ni_vp->v_type != VDIR) {
 		vput(nd.ni_vp);
 		NFSD_DEBUG(4, "dspath not dir\n");
@@ -7767,6 +7768,7 @@ nfsrv_setdsserver(char *dspathp, char *mdspathp, NFSPROC_T *p,
 		NFSD_DEBUG(4, "dsdirpath=%s lookup=%d\n", dsdirpath, error);
 		if (error != 0)
 			break;
+		NDFREE_PNBUF(&nd);
 		if (nd.ni_vp->v_type != VDIR) {
 			vput(nd.ni_vp);
 			error = ENOTDIR;
@@ -7795,6 +7797,7 @@ nfsrv_setdsserver(char *dspathp, char *mdspathp, NFSPROC_T *p,
 		NFSD_DEBUG(4, "mds lookup=%d\n", error);
 		if (error != 0)
 			goto out;
+		NDFREE_PNBUF(&nd);
 		if (nd.ni_vp->v_type != VDIR) {
 			vput(nd.ni_vp);
 			error = ENOTDIR;
@@ -8654,6 +8657,7 @@ nfsrv_mdscopymr(char *mdspathp, char *dspathp, char *curdspathp, char *buf,
 	NFSD_DEBUG(4, "lookup=%d\n", error);
 	if (error != 0)
 		return (error);
+	NDFREE_PNBUF(&nd);
 	if (nd.ni_vp->v_type != VREG) {
 		vput(nd.ni_vp);
 		NFSD_DEBUG(4, "mdspath not reg\n");
@@ -8675,6 +8679,7 @@ nfsrv_mdscopymr(char *mdspathp, char *dspathp, char *curdspathp, char *buf,
 			vput(vp);
 			return (error);
 		}
+		NDFREE_PNBUF(&nd);
 		if (nd.ni_vp->v_type != VDIR) {
 			vput(nd.ni_vp);
 			vput(vp);
@@ -8717,6 +8722,7 @@ nfsrv_mdscopymr(char *mdspathp, char *dspathp, char *curdspathp, char *buf,
 				vput(curvp);
 			return (error);
 		}
+		NDFREE_PNBUF(&nd);
 		if (nd.ni_vp->v_type != VDIR || nd.ni_vp == curvp) {
 			vput(nd.ni_vp);
 			vput(vp);
@@ -9008,4 +9014,30 @@ nfsrv_issuedelegation(struct vnode *vp, struct nfsclient *clp,
 		nfsrv_openpluslock++;
 		nfsrv_delegatecnt++;
 	}
+}
+
+/*
+ * Find and remove any delegations for the fh.
+ */
+void
+nfsrv_removedeleg(fhandle_t *fhp, struct nfsrv_descript *nd, NFSPROC_T *p)
+{
+	struct nfsclient *clp;
+	struct nfsstate *stp, *nstp;
+	struct nfslockfile *lfp;
+	int error;
+
+	NFSLOCKSTATE();
+	error = nfsrv_getclient(nd->nd_clientid, CLOPS_RENEW, &clp, NULL,
+	    (nfsquad_t)((u_quad_t)0), 0, nd, p);
+	if (error == 0)
+		error = nfsrv_getlockfile(NFSLCK_CHECK, NULL, &lfp, fhp, 0);
+	/*
+	 * Now we must free any delegations.
+	 */
+	if (error == 0) {
+		LIST_FOREACH_SAFE(stp, &lfp->lf_deleg, ls_file, nstp)
+			nfsrv_freedeleg(stp);
+	}
+	NFSUNLOCKSTATE();
 }

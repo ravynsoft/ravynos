@@ -65,7 +65,7 @@ resolve_group(const char *group)
 	 */
 	errno = 0;
 	gid = strtoul(group, &endp, 0);
-	if (errno == 0 && *endp == '\0' && (gid_t)gid >= 0 && gid <= GID_MAX)
+	if (errno == 0 && *endp == '\0' && gid <= GID_MAX)
 		return (gid);
 
 	errx(1, "no such group '%s'", group);
@@ -84,7 +84,7 @@ resolve_user(const char *user)
 
 	errno = 0;
 	uid = strtoul(user, &endp, 0);
-	if (errno == 0 && *endp == '\0' && (uid_t)uid >= 0 && uid <= UID_MAX)
+	if (errno == 0 && *endp == '\0' && uid <= UID_MAX)
 		return (uid);
 
 	errx(1, "no such user '%s'", user);
@@ -103,7 +103,9 @@ main(int argc, char *argv[])
 
 	gid = 0;
 	uid = 0;
+	gids = 0;
 	user = group = grouplist = NULL;
+	gidlist = NULL;
 	nonprivileged = false;
 	while ((ch = getopt(argc, argv, "G:g:u:n")) != -1) {
 		switch(ch) {
@@ -119,6 +121,11 @@ main(int argc, char *argv[])
 			break;
 		case 'G':
 			grouplist = optarg;
+
+			/*
+			 * XXX Why not allow us to drop all of our supplementary
+			 * groups?
+			 */
 			if (*grouplist == '\0')
 				usage();
 			break;
@@ -139,18 +146,20 @@ main(int argc, char *argv[])
 	if (group != NULL)
 		gid = resolve_group(group);
 
-	ngroups_max = sysconf(_SC_NGROUPS_MAX) + 1;
-	if ((gidlist = malloc(sizeof(gid_t) * ngroups_max)) == NULL)
-		err(1, "malloc");
-	for (gids = 0;
-	    (p = strsep(&grouplist, ",")) != NULL && gids < ngroups_max; ) {
-		if (*p == '\0')
-			continue;
+	if (grouplist != NULL) {
+		ngroups_max = sysconf(_SC_NGROUPS_MAX);
+		if ((gidlist = malloc(sizeof(gid_t) * ngroups_max)) == NULL)
+			err(1, "malloc");
+		for (gids = 0; (p = strsep(&grouplist, ",")) != NULL &&
+		    gids < ngroups_max; ) {
+			if (*p == '\0')
+				continue;
 
-		gidlist[gids++] = resolve_group(p);
+			gidlist[gids++] = resolve_group(p);
+		}
+		if (p != NULL && gids == ngroups_max)
+			errx(1, "too many supplementary groups provided");
 	}
-	if (p != NULL && gids == ngroups_max)
-		errx(1, "too many supplementary groups provided");
 
 	if (user != NULL)
 		uid = resolve_user(user);
@@ -170,7 +179,7 @@ main(int argc, char *argv[])
 		err(1, "%s", argv[0]);
 	}
 
-	if (gids && setgroups(gids, gidlist) == -1)
+	if (gidlist != NULL && setgroups(gids, gidlist) == -1)
 		err(1, "setgroups");
 	if (group && setgid(gid) == -1)
 		err(1, "setgid");

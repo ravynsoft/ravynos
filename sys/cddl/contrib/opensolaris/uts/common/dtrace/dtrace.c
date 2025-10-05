@@ -549,10 +549,12 @@ dtrace_load##bits(uintptr_t addr)					\
 		return (0);						\
 	}								\
 									\
+	__compiler_membar();						\
 	*flags |= CPU_DTRACE_NOFAULT;					\
 	/*CSTYLED*/							\
 	rval = *((volatile uint##bits##_t *)addr);			\
 	*flags &= ~CPU_DTRACE_NOFAULT;					\
+	__compiler_membar();						\
 									\
 	return (!(*flags & CPU_DTRACE_FAULT) ? rval : 0);		\
 }
@@ -7759,7 +7761,8 @@ dtrace_probe(dtrace_id_t id, uintptr_t arg0, uintptr_t arg1,
 				uintptr_t *memref = (uintptr_t *)(uintptr_t) val;
 
 				if (!DTRACE_INSCRATCHPTR(&mstate,
-				    (uintptr_t)memref, 2 * sizeof(uintptr_t))) {
+				    (uintptr_t) memref,
+				    sizeof (uintptr_t) + sizeof (size_t))) {
 					*flags |= CPU_DTRACE_BADADDR;
 					continue;
 				}
@@ -7771,21 +7774,21 @@ dtrace_probe(dtrace_id_t id, uintptr_t arg0, uintptr_t arg1,
 				 * Check if the size exceeds the allocated
 				 * buffer size.
 				 */
-				if (size + sizeof(uintptr_t) > dp->dtdo_rtype.dtdt_size) {
+				if (size + sizeof (size_t) >
+				    dp->dtdo_rtype.dtdt_size) {
 					/* Flag a drop! */
 					*flags |= CPU_DTRACE_DROP;
 					continue;
 				}
 
 				/* Store the size in the buffer first. */
-				DTRACE_STORE(uintptr_t, tomax,
-				    valoffs, size);
+				DTRACE_STORE(size_t, tomax, valoffs, size);
 
 				/*
 				 * Offset the buffer address to the start
 				 * of the data.
 				 */
-				valoffs += sizeof(uintptr_t);
+				valoffs += sizeof(size_t);
 
 				/*
 				 * Reset to the memory address rather than

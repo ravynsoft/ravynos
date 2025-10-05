@@ -171,3 +171,5 @@ cleandir:
 includes:
 distribute:
 	$(MAKE) -C ${.CURDIR} DESTDIR=${OBJTOP}/release/dist/base/ install
+cleandepend:
+	rm -f .depend .depend.*

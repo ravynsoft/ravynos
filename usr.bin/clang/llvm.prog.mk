@@ -10,8 +10,12 @@ CFLAGS+=	-I${OBJTOP}/lib/clang/libllvm
     (${PROG_CXX} == "clang-tblgen" || ${PROG_CXX} == "lldb-tblgen" || \
      ${PROG_CXX} == "llvm-min-tblgen" || ${PROG_CXX} == "llvm-tblgen")
 LIBDEPS+=	llvmminimal
+LIBPRIV=
+LIBEXT=		a
 .else
 LIBDEPS+=	llvm
+LIBPRIV=	private
+LIBEXT=		so
 LIBADD+=	z
 LIBADD+=	zstd
 DPADD+=		${OBJTOP}/lib/libmach/libmach.so
@@ -19,8 +23,8 @@ LDADD+=		${OBJTOP}/lib/libmach/libmach.so
 .endif
 
 .for lib in ${LIBDEPS}
-DPADD+=		${OBJTOP}/lib/clang/lib${lib}/lib${lib}.a
-LDADD+=		${OBJTOP}/lib/clang/lib${lib}/lib${lib}.a
+DPADD+=		${OBJTOP}/lib/clang/lib${lib}/lib${LIBPRIV}${lib}.${LIBEXT}
+LDADD+=		${OBJTOP}/lib/clang/lib${lib}/lib${LIBPRIV}${lib}.${LIBEXT}
 .endfor
 
 PACKAGE?=	clang
@@ -30,7 +34,5 @@ LIBADD+=	execinfo
 LIBADD+=	tinfow
 .endif
 LIBADD+=	pthread
-
-NO_MACH= yes
 
 .include <bsd.prog.mk>

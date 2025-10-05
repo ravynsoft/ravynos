@@ -6,7 +6,7 @@ LIBADD=	util pam
 
 .if ${MK_AUDIT} != "no"
 CFLAGS+= -DUSE_BSM_AUDIT
-LIBADD+=	bsm System notify
+LIBADD+=	bsm
 .endif
 
 BINOWN=	root

@@ -245,7 +245,8 @@ vmm_regs_init(struct vmm_regs *regs, const struct vmm_regs *masks)
 {
 #define	_FETCH_KERN_REG(reg, field) do {				\
 	regs->field = vmm_arch_regs_masks.field;			\
-	if (!get_kernel_reg_masked(reg, &regs->field, masks->field))	\
+	if (!get_kernel_reg_iss_masked(reg ## _ISS, &regs->field,	\
+	    masks->field))						\
 		regs->field = 0;					\
 } while (0)
 	_FETCH_KERN_REG(ID_AA64AFR0_EL1, id_aa64afr0);
@@ -1341,8 +1342,14 @@ vm_handle_smccc_call(struct vcpu *vcpu, struct vm_exit *vme, bool *retu)
 static int
 vm_handle_wfi(struct vcpu *vcpu, struct vm_exit *vme, bool *retu)
 {
+	struct vm *vm;
+
+	vm = vcpu->vm;
 	vcpu_lock(vcpu);
 	while (1) {
+		if (vm->suspend)
+			break;
+
 		if (vgic_has_pending_irq(vcpu->cookie))
 			break;
 

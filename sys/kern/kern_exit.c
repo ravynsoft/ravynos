@@ -72,12 +72,12 @@
 #include <sys/shm.h>
 #include <sys/sem.h>
 #include <sys/sysent.h>
-#include <sys/timers.h>
-#include <sys/umtx.h>
-#include <sys/umtxvar.h>
 #ifdef THRWORKQ
 #include <sys/thrworkq.h>
 #endif
+#include <sys/timers.h>
+#include <sys/umtx.h>
+#include <sys/umtxvar.h>
 #ifdef KTRACE
 #include <sys/ktrace.h>
 #endif
@@ -207,7 +207,7 @@ exit_onexit(struct proc *p)
  * exit -- death of process.
  */
 int
-sys_exit(struct thread *td, struct exit_args *uap)
+sys__exit(struct thread *td, struct _exit_args *uap)
 {
 
 	exit1(td, uap->rval, 0);
@@ -387,6 +387,7 @@ exit1(struct thread *td, int rval, int signo)
 	 * Stop the real interval timer.  If the handler is currently
 	 * executing, prevent it from rearming itself and let it finish.
 	 */
+	p->p_flag2 &= ~P2_ITSTOPPED;
 	if (timevalisset(&p->p_realtimer.it_value) &&
 	    callout_stop(&p->p_itcallout) == 0) {
 		timevalclear(&p->p_realtimer.it_interval);

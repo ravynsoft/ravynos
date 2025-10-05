@@ -44,19 +44,22 @@
 
 static void efi_table_print_esrt(const void *data);
 static void efi_table_print_prop(const void *data);
+static void efi_table_print_memory(const void *data);
 static void usage(void) __dead2;
 
 struct efi_table_op {
 	char name[TABLE_MAX_LEN];
 	void (*parse) (const void *);
-	struct uuid uuid;
+	efi_guid_t guid;
 };
 
 static const struct efi_table_op efi_table_ops[] = {
 	{ .name = "esrt", .parse = efi_table_print_esrt,
-	    .uuid = EFI_TABLE_ESRT },
+	    .guid = EFI_TABLE_ESRT },
 	{ .name = "prop", .parse = efi_table_print_prop,
-	    .uuid = EFI_PROPERTIES_TABLE }
+	    .guid = EFI_PROPERTIES_TABLE },
+	{ .name = "memory", .parse = efi_table_print_memory,
+	    .guid = EFI_MEMORY_ATTRIBUTES_TABLE }
 };
 
 int
@@ -81,13 +84,22 @@ main(int argc, char **argv)
 	if (argc < 0)
 		exit(EXIT_FAILURE);
 
-	while ((ch = getopt_long(argc, argv, "u:t:", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "g:t:u:", longopts, NULL)) != -1) {
 		switch (ch) {
+		case 'g':
 		case 'u':
 		{
 			char *uuid_str = optarg;
 			struct uuid uuid;
 			uint32_t status;
+
+			/*
+			 * Note: we use the uuid parsing routine to parse the
+			 * guid strings. However, EFI defines a slightly
+			 * different structure to access them. We unify on
+			 * using a structure that's compatible with EDK2
+			 * EFI_GUID structure.
+			 */
 
 			uuid_set = 1;
 
@@ -96,7 +108,7 @@ main(int argc, char **argv)
 				xo_errx(EX_DATAERR, "invalid UUID");
 
 			for (size_t n = 0; n < nitems(efi_table_ops); n++) {
-				if (!memcmp(&uuid, &efi_table_ops[n].uuid,
+				if (!memcmp(&uuid, &efi_table_ops[n].guid,
 				    sizeof(uuid))) {
 					efi_idx = n;
 					got_table = true;
@@ -140,7 +152,7 @@ main(int argc, char **argv)
 	if (efi_fd < 0)
 		xo_err(EX_OSFILE, "/dev/efi");
 
-	table.uuid = efi_table_ops[efi_idx].uuid;
+	memcpy(&table.uuid, &efi_table_ops[efi_idx].guid, sizeof(struct uuid));
 	if (ioctl(efi_fd, EFIIOC_GET_TABLE, &table) == -1)
 		xo_err(EX_OSERR, "EFIIOC_GET_TABLE (len == 0)");
 
@@ -181,7 +193,7 @@ efi_table_print_esrt(const void *data)
 		uint32_t status;
 		char *uuid;
 
-		uuid_to_string(&e->fw_class, &uuid, &status);
+		uuid_to_string((const uuid_t *)&e->fw_class, &uuid, &status);
 		if (status != uuid_s_ok) {
 			xo_errx(EX_DATAERR, "uuid_to_string error");
 		}
@@ -230,8 +242,53 @@ efi_table_print_prop(const void *data)
 		xo_err(EX_IOERR, "stdout");
 }
 
+static void
+efi_table_print_memory(const void *data)
+{
+	const struct efi_memory_attribute_table *attr =
+	    (const struct efi_memory_attribute_table *)data;
+	const struct efi_memory_descriptor *desc;
+	int i, nentries;
+
+	nentries = attr->num_ents;
+	desc = attr->tables;
+
+	xo_set_version(EFITABLE_XO_VERSION);
+
+	xo_open_container("memory");
+	xo_emit("{Lwc:Version}{:version/%#x}\n", attr->version);
+	xo_emit("{Lwc:Length}{:length/%u}\n", attr->descriptor_size);
+	xo_emit("{Lwc:Entries}{:entries/%u}\n", attr->num_ents);
+
+	xo_open_container("attributes");
+
+	/*
+	 * According to https://forum.osdev.org/viewtopic.php?t=32953, the size
+	 * of records into the attribute table never equals to
+	 * sizeof(efi_memory_descriptor). The correct one for indexing the array
+	 * resides in the attributet table.
+	 */
+	for (i = 0; i < nentries; i++) {
+		xo_emit("{Lwc:ID}{:id/%#x}\n", i);
+		xo_emit("{Lwc:Attributes}{:attributes/%#x}\n", desc->attrs);
+		xo_emit("{Lwc:Type}{:type/%#x}\n", desc->type);
+		xo_emit("{Lwc:Pages}{:pages/%#x}\n", desc->pages);
+		xo_emit("{Lwc:Phyaddr}{:phyaddr/%#p}\n", desc->phy_addr);
+		xo_emit("{Lwc:Virtaddr}{:virtaddr/%#p}\n", desc->virt_addr);
+		desc = (const struct efi_memory_descriptor *)(const void *)
+		    ((const char *)desc + attr->descriptor_size);
+	}
+
+	xo_close_container("attributes");
+
+	xo_close_container("memory");
+
+	if (xo_finish() < 0)
+		xo_err(EX_IOERR, "stdout");
+}
+
 static void usage(void)
 {
-	xo_error("usage: efitable [-d uuid | -t name] [--libxo]\n");
+	xo_error("usage: efitable [-g guid | -t name] [--libxo]\n");
 	exit(EX_USAGE);
 }

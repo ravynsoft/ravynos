@@ -64,6 +64,7 @@
 #include <grp.h>
 #include <libutil.h>
 #include <limits.h>
+#include <mntopts.h>
 #include <netdb.h>
 #include <pwd.h>
 #include <signal.h>
@@ -73,7 +74,6 @@
 #include <unistd.h>
 #include <vis.h>
 #include "pathnames.h"
-#include "mntopts.h"
 
 #ifdef DEBUG
 #include <stdarg.h>
@@ -231,6 +231,7 @@ static void	free_exports(struct exportlisthead *);
 static void	read_exportfile(int);
 static int	compare_nmount_exportlist(struct iovec *, int, char *);
 static int	compare_export(struct exportlist *, struct exportlist *);
+static int	compare_addr(struct grouplist *, struct grouplist *);
 static int	compare_cred(struct expcred *, struct expcred *);
 static int	compare_secflavor(int *, int *, int);
 static void	delete_export(struct iovec *, int, struct statfs *, char *);
@@ -2099,19 +2100,7 @@ get_exportlist(int passno)
 			syslog(LOG_ERR, "NFSv4 requires at least one V4: line");
 	}
 
-	if (iov != NULL) {
-		/* Free strings allocated by strdup() in getmntopts.c */
-		free(iov[0].iov_base); /* fstype */
-		free(iov[2].iov_base); /* fspath */
-		free(iov[4].iov_base); /* from */
-		free(iov[6].iov_base); /* update */
-		free(iov[8].iov_base); /* export */
-		free(iov[10].iov_base); /* errmsg */
-
-		/* free iov, allocated by realloc() */
-		free(iov);
-		iovlen = 0;
-	}
+	free_iovec(&iov, &iovlen);
 
 	/*
 	 * If there was no public fh, clear any previous one set.
@@ -2348,7 +2337,8 @@ compare_export(struct exportlist *ep, struct exportlist *oep)
 			    grp->gr_exflags == ogrp->gr_exflags &&
 			    compare_cred(&grp->gr_anon, &ogrp->gr_anon) == 0 &&
 			    compare_secflavor(grp->gr_secflavors,
-			    ogrp->gr_secflavors, grp->gr_numsecflavors) == 0)
+			    ogrp->gr_secflavors, grp->gr_numsecflavors) == 0 &&
+			    compare_addr(grp, ogrp) == 0)
 				break;
 		if (ogrp != NULL)
 			ogrp->gr_flag |= GR_FND;
@@ -2358,6 +2348,46 @@ compare_export(struct exportlist *ep, struct exportlist *oep)
 	for (ogrp = oep->ex_grphead; ogrp != NULL; ogrp = ogrp->gr_next)
 		if ((ogrp->gr_flag & GR_FND) == 0)
 			return (1);
+	return (0);
+}
+
+/*
+ * Compare the addresses in the group.  It is safe to return they are not
+ * the same when the are, so only return they are the same when they are
+ * exactly the same.
+ */
+static int
+compare_addr(struct grouplist *grp, struct grouplist *ogrp)
+{
+	struct addrinfo *ai, *oai;
+
+	if (grp->gr_type != ogrp->gr_type)
+		return (1);
+	switch (grp->gr_type) {
+	case GT_HOST:
+		ai = grp->gr_ptr.gt_addrinfo;
+		oai = ogrp->gr_ptr.gt_addrinfo;
+		for (; ai != NULL && oai != NULL; ai = ai->ai_next,
+		    oai = oai->ai_next) {
+			if (sacmp(ai->ai_addr, oai->ai_addr, NULL) != 0)
+				return (1);
+		}
+		if (ai != NULL || oai != NULL)
+			return (1);
+		break;
+	case GT_NET:
+		/* First compare the masks and then the nets. */
+		if (sacmp((struct sockaddr *)&grp->gr_ptr.gt_net.nt_mask,
+		    (struct sockaddr *)&ogrp->gr_ptr.gt_net.nt_mask, NULL) != 0)
+			return (1);
+		if (sacmp((struct sockaddr *)&grp->gr_ptr.gt_net.nt_net,
+		    (struct sockaddr *)&ogrp->gr_ptr.gt_net.nt_net,
+		    (struct sockaddr *)&grp->gr_ptr.gt_net.nt_mask) != 0)
+			return (1);
+		break;
+	default:
+		return (1);
+	}
 	return (0);
 }
 
@@ -3409,18 +3439,7 @@ skip:
 	if (cp)
 		*cp = savedc;
 error_exit:
-	/* free strings allocated by strdup() in getmntopts.c */
-	if (iov != NULL) {
-		free(iov[0].iov_base); /* fstype */
-		free(iov[2].iov_base); /* fspath */
-		free(iov[4].iov_base); /* from */
-		free(iov[6].iov_base); /* update */
-		free(iov[8].iov_base); /* export */
-		free(iov[10].iov_base); /* errmsg */
-
-		/* free iov, allocated by realloc() */
-		free(iov);
-	}
+	free_iovec(&iov, &iovlen);
 	return (ret);
 }
 

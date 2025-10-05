@@ -47,6 +47,7 @@
 #include <sys/selinfo.h>
 #include <sys/sysctl.h>
 #include <sys/systm.h>
+#include <sys/taskqueue.h>
 #include <sys/uio.h>
 
 #include <dev/evdev/input.h>
@@ -78,6 +79,7 @@ struct u2f_softc {
 	struct cdev *dev;
 
 	struct mtx sc_mtx;		/* hidbus private mutex */
+	struct task sc_kqtask;		/* kqueue task */
 	void *sc_rdesc;
 	hid_size_t sc_rdesc_size;
 	hid_size_t sc_isize;
@@ -121,6 +123,7 @@ static device_probe_t	u2f_probe;
 static device_attach_t	u2f_attach;
 static device_detach_t	u2f_detach;
 
+static void		u2f_kqtask(void *context, int pending);
 static int		u2f_kqread(struct knote *, long);
 static void		u2f_kqdetach(struct knote *);
 static void		u2f_notify(struct u2f_softc *);
@@ -174,6 +177,7 @@ u2f_attach(device_t dev)
 
 	mtx_init(&sc->sc_mtx, "u2f lock", NULL, MTX_DEF);
 	knlist_init_mtx(&sc->sc_rsel.si_note, &sc->sc_mtx);
+	TASK_INIT(&sc->sc_kqtask, 0, u2f_kqtask, sc);
 
 	make_dev_args_init(&mda);
 	mda.mda_flags = MAKEDEV_WAITOK;
@@ -189,7 +193,7 @@ u2f_attach(device_t dev)
 		u2f_detach(dev);
 		return (error);
 	}
-#ifdef U2F_MAKE_UHID_ALIAS
+#ifndef U2F_DROP_UHID_ALIAS
 	(void)make_dev_alias(sc->dev, "uhid%d", device_get_unit(dev));
 #endif
 
@@ -217,6 +221,7 @@ u2f_detach(device_t dev)
 		destroy_dev(sc->dev);
 	}
 
+	taskqueue_drain(taskqueue_thread, &sc->sc_kqtask);
 	hid_intr_stop(sc->sc_dev);
 
 	knlist_clear(&sc->sc_rsel.si_note, 0);
@@ -519,6 +524,14 @@ u2f_kqfilter(struct cdev *dev, struct knote *kn)
 	return (0);
 }
 
+static void
+u2f_kqtask(void *context, int pending)
+{
+	struct u2f_softc *sc = context;
+
+	hid_intr_start(sc->sc_dev);
+}
+
 static int
 u2f_kqread(struct knote *kn, long hint)
 {
@@ -533,7 +546,7 @@ u2f_kqread(struct knote *kn, long hint)
 	} else {
 		ret = sc->sc_state.data ? 1 : 0;
 		if (!sc->sc_state.data)
-			hid_intr_start(sc->sc_dev);
+			taskqueue_enqueue(taskqueue_thread, &sc->sc_kqtask);
 	}
 
 	return (ret);
@@ -574,10 +587,10 @@ static device_method_t u2f_methods[] = {
 };
 
 static driver_t u2f_driver = {
-#ifdef U2F_MAKE_UHID_ALIAS
-	"uhid",
+#ifdef U2F_DROP_UHID_ALIAS
+	"uf2",
 #else
-	"u2f",
+	"uhid",
 #endif
 	u2f_methods,
 	sizeof(struct u2f_softc)

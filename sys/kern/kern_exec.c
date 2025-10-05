@@ -29,6 +29,7 @@
 #include <sys/cdefs.h>
 #include "opt_capsicum.h"
 #include "opt_hwpmc_hooks.h"
+#include "opt_hwt_hooks.h"
 #include "opt_ktrace.h"
 #include "opt_thrworkq.h"
 #include "opt_vm.h"
@@ -73,6 +74,7 @@
 #include <sys/thrworkq.h>
 #endif
 #include <sys/timers.h>
+#include <sys/ucoredump.h>
 #include <sys/umtxvar.h>
 #include <sys/vnode.h>
 #include <sys/wait.h>
@@ -92,6 +94,10 @@
 
 #ifdef	HWPMC_HOOKS
 #include <sys/pmckern.h>
+#endif
+
+#ifdef HWT_HOOKS
+#include <dev/hwt/hwt_hook.h>
 #endif
 
 #include <security/audit/audit.h>
@@ -229,8 +235,7 @@ sys_execve(struct thread *td, struct execve_args *uap)
 	error = pre_execve(td, &oldvmspace);
 	if (error != 0)
 		return (error);
-	error = exec_copyin_args(&args, uap->fname, UIO_USERSPACE,
-	    uap->argv, uap->envv);
+	error = exec_copyin_args(&args, uap->fname, uap->argv, uap->envv);
 	if (error == 0)
 		error = kern_execve(td, &args, NULL, oldvmspace);
 	post_execve(td, error, oldvmspace);
@@ -255,8 +260,7 @@ sys_fexecve(struct thread *td, struct fexecve_args *uap)
 	error = pre_execve(td, &oldvmspace);
 	if (error != 0)
 		return (error);
-	error = exec_copyin_args(&args, NULL, UIO_SYSSPACE,
-	    uap->argv, uap->envv);
+	error = exec_copyin_args(&args, NULL, uap->argv, uap->envv);
 	if (error == 0) {
 		args.fd = uap->fd;
 		error = kern_execve(td, &args, NULL, oldvmspace);
@@ -286,8 +290,7 @@ sys___mac_execve(struct thread *td, struct __mac_execve_args *uap)
 	error = pre_execve(td, &oldvmspace);
 	if (error != 0)
 		return (error);
-	error = exec_copyin_args(&args, uap->fname, UIO_USERSPACE,
-	    uap->argv, uap->envv);
+	error = exec_copyin_args(&args, uap->fname, uap->argv, uap->envv);
 	if (error == 0)
 		error = kern_execve(td, &args, uap->mac_p, oldvmspace);
 	post_execve(td, error, oldvmspace);
@@ -820,6 +823,7 @@ interpret:
 	 * it that it now has its own resources back
 	 */
 	p->p_flag |= P_EXEC;
+	td->td_pflags2 &= ~TDP2_UEXTERR;
 	if ((p->p_flag2 & P2_NOTRACE_EXEC) == 0)
 		p->p_flag2 &= ~P2_NOTRACE;
 	if ((p->p_flag2 & P2_STKGAP_DISABLE_EXEC) == 0)
@@ -942,6 +946,20 @@ interpret:
 		pe.pm_dynaddr = imgp->et_dyn_addr;
 
 		PMC_CALL_HOOK_X(td, PMC_FN_PROCESS_EXEC, (void *) &pe);
+		vn_lock(imgp->vp, LK_SHARED | LK_RETRY);
+	}
+#endif
+
+#ifdef HWT_HOOKS
+	if ((td->td_proc->p_flag2 & P2_HWT) != 0) {
+		struct hwt_record_entry ent;
+
+		VOP_UNLOCK(imgp->vp);
+		ent.fullpath = imgp->execpath;
+		ent.addr = imgp->et_dyn_addr;
+		ent.baseaddr = imgp->reloc_base;
+		ent.record_type = HWT_RECORD_EXECUTABLE;
+		HWT_CALL_HOOK(td, HWT_EXEC, &ent);
 		vn_lock(imgp->vp, LK_SHARED | LK_RETRY);
 	}
 #endif
@@ -1336,7 +1354,7 @@ out:
  */
 int
 exec_copyin_args(struct image_args *args, const char *fname,
-    enum uio_seg segflg, char **argv, char **envv)
+    char **argv, char **envv)
 {
 	u_long arg, env;
 	int error;
@@ -1356,7 +1374,7 @@ exec_copyin_args(struct image_args *args, const char *fname,
 	/*
 	 * Copy the file name.
 	 */
-	error = exec_args_add_fname(args, fname, segflg);
+	error = exec_args_add_fname(args, fname, UIO_USERSPACE);
 	if (error != 0)
 		goto err_exit;
 
@@ -1993,10 +2011,14 @@ int
 core_write(struct coredump_params *cp, const void *base, size_t len,
     off_t offset, enum uio_seg seg, size_t *resid)
 {
+	return ((*cp->cdw->write_fn)(cp->cdw, base, len, offset, seg,
+	    cp->active_cred, resid, cp->td));
+}
 
-	return (vn_rdwr_inchunks(UIO_WRITE, cp->vp, __DECONST(void *, base),
-	    len, offset, seg, IO_UNIT | IO_DIRECT | IO_RANGELOCKED,
-	    cp->active_cred, cp->file_cred, resid, cp->td));
+static int
+core_extend(struct coredump_params *cp, off_t newsz)
+{
+	return ((*cp->cdw->extend_fn)(cp->cdw, newsz, cp->active_cred));
 }
 
 int
@@ -2004,7 +2026,6 @@ core_output(char *base, size_t len, off_t offset, struct coredump_params *cp,
     void *tmpbuf)
 {
 	vm_map_t map;
-	struct mount *mp;
 	size_t resid, runlen;
 	int error;
 	bool success;
@@ -2059,14 +2080,7 @@ core_output(char *base, size_t len, off_t offset, struct coredump_params *cp,
 			}
 		}
 		if (!success) {
-			error = vn_start_write(cp->vp, &mp, V_WAIT);
-			if (error != 0)
-				break;
-			vn_lock(cp->vp, LK_EXCLUSIVE | LK_RETRY);
-			error = vn_truncate_locked(cp->vp, offset + runlen,
-			    false, cp->td->td_ucred);
-			VOP_UNLOCK(cp->vp);
-			vn_finished_write(mp);
+			error = core_extend(cp, offset + runlen);
 			if (error != 0)
 				break;
 		}

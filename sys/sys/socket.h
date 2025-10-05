@@ -275,7 +275,7 @@ struct accept_filter_arg {
 #define AF_RESV02	50		/* Reserved */
 #define AF_RESV03	52		/* Reserved */
 #define AF_SYSTEM	54		/* Reserved */
-#define	AF_MAX		54	
+#define	AF_MAX		54
 /*
  * When allocating a new AF_ constant, please only allocate
  * even numbered constants for FreeBSD until 134 as odd numbered AF_

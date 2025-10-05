@@ -93,6 +93,7 @@
 #include <vm/vm_object.h>
 #include <vm/vm_page.h>
 #include <vm/vm_pager.h>
+#include <vm/vm_radix.h>
 #include <vm/uma.h>
 
 #include <fs/devfs/devfs.h>
@@ -1116,13 +1117,14 @@ fill_kinfo_proc_only(struct proc *p, struct kinfo_proc *kp)
 		if (cred->cr_flags & CRED_FLAG_CAPMODE)
 			kp->ki_cr_flags |= KI_CRF_CAPABILITY_MODE;
 		/* XXX bde doesn't like KI_NGROUPS */
-		if (cred->cr_ngroups > KI_NGROUPS) {
+		if (1 + cred->cr_ngroups > KI_NGROUPS) {
 			kp->ki_ngroups = KI_NGROUPS;
 			kp->ki_cr_flags |= KI_CRF_GRP_OVERFLOW;
 		} else
-			kp->ki_ngroups = cred->cr_ngroups;
-		bcopy(cred->cr_groups, kp->ki_groups,
-		    kp->ki_ngroups * sizeof(gid_t));
+			kp->ki_ngroups = 1 + cred->cr_ngroups;
+		kp->ki_groups[0] = cred->cr_gid;
+		bcopy(cred->cr_groups, kp->ki_groups + 1,
+		    (kp->ki_ngroups - 1) * sizeof(gid_t));
 		kp->ki_rgid = cred->cr_rgid;
 		kp->ki_svgid = cred->cr_svgid;
 		/* If jailed(cred), emulate the old P_JAILED flag. */
@@ -1352,6 +1354,9 @@ fill_kinfo_thread(struct thread *td, struct kinfo_proc *kp, int preferthread)
 	thread_unlock(td);
 	if (preferthread)
 		PROC_STATUNLOCK(p);
+
+	if ((td->td_pflags & TDP2_UEXTERR) != 0)
+		kp->ki_uerrmsg = td->td_exterr_ptr;
 }
 
 /*
@@ -1507,6 +1512,7 @@ freebsd32_kinfo_proc_out(const struct kinfo_proc *ki, struct kinfo_proc32 *ki32)
 	PTRTRIM_CP(*ki, *ki32, ki_tdaddr);
 	CP(*ki, *ki32, ki_sflag);
 	CP(*ki, *ki32, ki_tdflags);
+	PTRTRIM_CP(*ki, *ki32, ki_uerrmsg);
 }
 #endif
 
@@ -2565,7 +2571,7 @@ kern_proc_vmmap_resident(vm_map_t map, vm_map_entry_t entry,
 			pi_adv = atop(entry->end - addr);
 			pindex = pi;
 			for (tobj = obj;; tobj = tobj->backing_object) {
-				m = vm_page_find_least(tobj, pindex);
+				m = vm_radix_lookup_ge(&tobj->rtree, pindex);
 				if (m != NULL) {
 					if (m->pindex == pindex)
 						break;
@@ -2943,8 +2949,11 @@ sysctl_kern_proc_groups(SYSCTL_HANDLER_ARGS)
 	cred = crhold(p->p_ucred);
 	PROC_UNLOCK(p);
 
-	error = SYSCTL_OUT(req, cred->cr_groups,
-	    cred->cr_ngroups * sizeof(gid_t));
+	error = SYSCTL_OUT(req, &cred->cr_gid, sizeof(gid_t));
+	if (error == 0)
+		error = SYSCTL_OUT(req, cred->cr_groups,
+		    cred->cr_ngroups * sizeof(gid_t));
+
 	crfree(cred);
 	return (error);
 }

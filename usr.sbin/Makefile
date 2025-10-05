@@ -15,6 +15,8 @@ SUBDIR=	adduser \
 	clear_locks \
 	crashinfo \
 	cron \
+	ctld \
+	ctladm \
 	daemon \
 	dconschat \
 	devctl \
@@ -85,6 +87,7 @@ SUBDIR=	adduser \
 	setpmac \
 	smbmsg \
 	snapinfo \
+	sndctl \
 	spi \
 	spray \
 	syslogd \
@@ -128,6 +131,7 @@ SUBDIR.${MK_BSNMP}+=	bsnmpd
 .if ${MK_CAROOT} != "no"
 SUBDIR.${MK_OPENSSL}+=	certctl
 .endif
+SUBDIR.${MK_CUSE}+=	virtual_oss
 SUBDIR.${MK_CXGBETOOL}+=	cxgbetool
 SUBDIR.${MK_EFI}+=	efivar efidp efibootmgr efitable efiwake
 .if ${MK_OPENSSL} != "no"
@@ -139,7 +143,7 @@ SUBDIR.${MK_FLOPPY}+=	fdformat
 SUBDIR.${MK_FLOPPY}+=	fdread
 SUBDIR.${MK_FLOPPY}+=	fdwrite
 SUBDIR.${MK_FREEBSD_UPDATE}+=	freebsd-update
-SUBDIR.${MK_KERBEROS}+=	gssd
+SUBDIR.${MK_KERBEROS_SUPPORT}+=	gssd
 SUBDIR.${MK_GPIO}+=	gpioctl
 SUBDIR.${MK_HYPERV}+=	hyperv
 SUBDIR.${MK_INET6}+=	ip6addrctl
@@ -154,7 +158,7 @@ SUBDIR.${MK_INET6}+=	rtsold
 SUBDIR.${MK_INET6}+=	traceroute6
 SUBDIR.${MK_INETD}+=	inetd
 SUBDIR.${MK_IPFW}+=	ipfwpcap
-SUBDIR.${MK_ISCSI}+=	ctladm ctld iscsid
+SUBDIR.${MK_ISCSI}+=	iscsid
 SUBDIR.${MK_JAIL}+=	jail
 SUBDIR.${MK_JAIL}+=	jexec
 SUBDIR.${MK_JAIL}+=	jls
@@ -209,7 +213,7 @@ SUBDIR.${MK_UTMPX}+=	ac
 SUBDIR.${MK_UTMPX}+=	lastlogin
 SUBDIR.${MK_UTMPX}+=	utx
 SUBDIR.${MK_WIRELESS}+=	wlandebug
-SUBDIR.${MK_WIRELESS}+=	wlanstats
+SUBDIR.${MK_WIRELESS}+=	wlanstat
 SUBDIR.${MK_WIRELESS}+=	wpa
 
 SUBDIR.${MK_TESTS}+=	tests

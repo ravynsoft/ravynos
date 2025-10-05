@@ -23,7 +23,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd September 19, 2024
+.Dd September 15, 2025
 .Dt JAIL 8
 .Os
 .Sh NAME
@@ -513,6 +513,42 @@ sysctl and uname -r.
 The number for the jail's
 .Va kern.osreldate
 and uname -K.
+.It Va meta , Va env
+An arbitrary string associated with the jail.
+Its maximum buffer size is controlled by the global
+.Va security.jail.meta_maxbufsize
+sysctl, which can only be adjusted by the non-jailed root user.
+While the
+.Va meta
+is hidden from the jail, the
+.Va env
+is readable through the
+.Va security.jail.env
+sysctl.
+.Pp
+Each buffer can be treated as a set of key=value\\n strings.
+In order to add or replace a specific key the
+.Va meta.keyname=value
+or
+.Va env.keyname=value
+parameter notations must be used.
+While
+.Va meta.keyname=
+or
+.Va env.keyname=
+reset the value to an empty string, the
+.Va meta.keyname
+or
+.Va env.keyname
+notations, without the equal sign, remove the given key.
+Respectively, the same
+.Va meta.keyname
+or
+.Va env.keyname
+notations are used to query a specific key while reading jail parameters
+using such commands as
+.Xr jls 8 .
+Multiple keys can be queried or modified with a single command.
 .It Va allow.*
 Some restrictions of the jail environment may be set on a per-jail
 basis.
@@ -650,6 +686,12 @@ in the
 file outside of the jails.
 .It Va allow.reserved_ports
 The jail root may bind to ports lower than 1024.
+.It Va allow.unprivileged_parent_tampering
+Unprivileged processes in the jail's parent may tamper with processes of the
+same UID in the jail.
+This includes the ability to signal, debug, and
+.Xr cpuset 1
+processes that belong to the jail.
 .It Va allow.unprivileged_proc_debug
 Unprivileged processes in the jail may use debugging facilities.
 .It Va allow.suser
@@ -660,20 +702,34 @@ The super-user will be disabled automatically if its parent system has it
 disabled.
 The super-user is enabled by default.
 .It Va allow.extattr
-Allow privileged process in the jail to manipulate filesystem extended
+Allow privileged processes in the jail to manipulate filesystem extended
 attributes in the system namespace.
 .It Va allow.adjtime
-Allow privileged process in the jail to slowly adjusting global operating system
+Allow privileged processes in the jail to slowly adjusting global operating system
 time.
 For example through utilities like
 .Xr ntpd 8 .
 .It Va allow.settime
-Allow privileged process in the jail to set global operating system data
+Allow privileged processes in the jail to set global operating system data
 and time.
 For example through utilities like
 .Xr date 1 .
 This permission includes also
 .Va allow.adjtime .
+.It Va allow.routing
+Allow privileged process in the non-VNET jail to modify the system routing
+table.
+.It Va allow.setaudit
+Allow privileged processes in the jail to set
+.Xr audit 4
+session state using
+.Xr setaudit 2
+and related system calls.
+This is useful, for example, for allowing a jailed
+.Xr sshd 8
+to set the audit user ID for an authenticated session.
+However, it gives jailed processes the ability to modify or disable audit
+session state, so should be configured with care.
 .El
 .El
 .Pp
@@ -819,6 +875,22 @@ commands in sequence.
 All commands must succeed (return a zero exit status), or the jail will
 not be created or removed, as appropriate.
 .Pp
+The following variables are added to the environment:
+.Bl -tag -width indent -offset indent
+.It Ev JID
+The
+.Va jid ,
+or jail identifier.
+.It Ev JNAME
+The
+.Va name
+of the jail.
+.It Ev JPATH
+The
+.Va path
+of the jail.
+.El
+.Pp
 The pseudo-parameters are:
 .Bl -tag -width indent
 .It Va exec.prepare
@@ -883,6 +955,11 @@ is imported from the current environment.
 is set to "/bin:/usr/bin".
 The environment variables from the login class capability database for the
 target login are also set.
+.Ev JID ,
+.Ev JNAME ,
+and
+.Ev JPATH
+are not set.
 If a user is specified (as with
 .Va exec.jail_user ) ,
 commands are run from that (possibly jailed) user's directory.

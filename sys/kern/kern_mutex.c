@@ -1074,9 +1074,7 @@ __mtx_unlock_sleep(volatile uintptr_t *c, uintptr_t v)
 	turnstile_chain_lock(&m->lock_object);
 	_mtx_release_lock_quick(m);
 	ts = turnstile_lookup(&m->lock_object);
-	if (__predict_false(ts == NULL)) {
-		panic("got NULL turnstile on mutex %p v %p", m, (void *)v);
-	}
+	MPASS(ts != NULL);
 	if (LOCK_LOG_TEST(&m->lock_object, opts))
 		CTR1(KTR_LOCK, "_mtx_unlock_sleep: %p contested", m);
 	turnstile_broadcast(ts, TS_EXCLUSIVE_QUEUE);
@@ -1139,9 +1137,9 @@ __mtx_assert(const volatile uintptr_t *c, int what, const char *file, int line)
  * General init routine used by the MTX_SYSINIT() macro.
  */
 void
-mtx_sysinit(void *arg)
+mtx_sysinit(const void *arg)
 {
-	struct mtx_args *margs = arg;
+	const struct mtx_args *margs = arg;
 
 	mtx_init((struct mtx *)margs->ma_mtx, margs->ma_desc, NULL,
 	    margs->ma_opts);

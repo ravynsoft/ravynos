@@ -18,8 +18,6 @@
 
 #include <bsm/audit_kevents.h>
 
-#include <sys/mach/mach.h>
-
 struct proc;
 
 struct thread;

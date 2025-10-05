@@ -1,5 +1,6 @@
 .include <src.opts.mk>
 .include <src.tools.mk>
+
 .include <bsd.compat.pre.mk>
 
 RAVYNOS_VERSION != sed -e '1q;d' ${.CURDIR}/../version.txt
@@ -59,7 +60,11 @@ distribution:
 	@echo "set DESTDIR before running \"make ${.TARGET}\""
 	@false
 .endif
+.if ${MK_MITKRB5} != "no"
+	${_+_}cd ${.CURDIR}/gss-krb5; ${MAKE} install
+.else
 	${_+_}cd ${.CURDIR}/gss; ${MAKE} install
+.endif
 	${_+_}cd ${.CURDIR}/mtree; ${MAKE} install
 	${_+_}cd ${SRCTOP}/share/termcap; ${MAKE} etc-termcap
 	${_+_}cd ${SRCTOP}/usr.sbin/rmt; ${MAKE} etc-rmt
@@ -93,12 +98,17 @@ distribution:
 .if ${MK_MAIL} != "no"
 	cd ${.CURDIR}/mail; ${INSTALL} -o ${BINOWN} -g ${BINGRP} -m 644 \
 	    -T "package=runtime,config" ${ETCMAIL} ${DESTDIR}/etc/mail
-	if [ -d ${DESTDIR}/etc/mail -a -f ${DESTDIR}/etc/mail/aliases -a \
-	      ! -f ${DESTDIR}/etc/aliases ]; then \
-		${INSTALL_SYMLINK} -T "package=runtime" \
-		mail/aliases ${DESTDIR}/etc/aliases; \
+# If NO_ROOT is defined, we are doing a stage install and always need to
+# install the /etc/aliases symlink, otherwise, don't overwrite the user's
+# existing symlink.
+	if [ "${NO_ROOT:Dtrue}" = true -o \( -f ${DESTDIR}/etc/mail/aliases -a \
+	  ! -f ${DESTDIR}/etc/aliases \) ]; then \
+		${INSTALL_SYMLINK} -Tpackage=runtime mail/aliases \
+		${DESTDIR}/etc/aliases; \
+
 	fi
-.endif
+.endif # ${MK_MAIL} != "no"
+
 .if ${MK_SENDMAIL} != "no"
 	cd ${.CURDIR}/mail; ${INSTALL} -o ${BINOWN} -g ${BINGRP} -m 644 \
 		-T "package=sendmail" ${ETCMAIL_SENDMAIL} ${DESTDIR}/etc/mail

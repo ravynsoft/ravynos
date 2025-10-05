@@ -49,7 +49,7 @@
 .Op Fl dqv
 .Op Fl E Ar var=value
 .Ar script
-.Ar command
+.Op Ar command
 .Sh DESCRIPTION
 The
 .Nm
@@ -193,7 +193,7 @@ complete service 'c/-/(e l r v)/' 'p/1/`service -l`/' \e
 .Ed
 .Pp
 The following programmable completion entry can be used in
-.Xr bash 1
+.Xr bash 1 Pq Pa ports/shells/bash
 for the names of the rc.d scripts:
 .Bd -literal -offset indent
 _service () {

@@ -443,7 +443,7 @@ tmpfs_set_reserve_from_percent(void)
 }
 
 SYSCTL_PROC(_vfs_tmpfs, OID_AUTO, memory_percent,
-    CTLTYPE_INT | CTLFLAG_MPSAFE | CTLFLAG_RW, &tmpfs_mem_percent, 0,
+    CTLTYPE_INT | CTLFLAG_MPSAFE | CTLFLAG_RWTUN, &tmpfs_mem_percent, 0,
     sysctl_mem_percent, "I",
     "Percent of available memory that can be used if no size limit");
 
@@ -551,7 +551,7 @@ tmpfs_alloc_node(struct mount *mp, struct tmpfs_mount *tmp, __enum_uint8(vtype) 
 	MPASS(IMPLIES(tmp->tm_root == NULL, parent == NULL && type == VDIR));
 
 	MPASS((type == VLNK) ^ (target == NULL));
-	MPASS((type == VBLK || type == VCHR) ^ (rdev == VNOVAL));
+	MPASS(VTYPE_ISDEV(type) ^ (rdev == VNOVAL));
 
 	if (tmp->tm_nodes_inuse >= tmp->tm_nodes_max)
 		return (ENOSPC);

@@ -401,7 +401,7 @@ freebsd32_sigaltstack(struct thread *td,
  */
 int
 freebsd32_exec_copyin_args(struct image_args *args, const char *fname,
-    enum uio_seg segflg, uint32_t *argv, uint32_t *envv)
+    uint32_t *argv, uint32_t *envv)
 {
 	char *argp, *envp;
 	uint32_t *p32, arg;
@@ -422,7 +422,7 @@ freebsd32_exec_copyin_args(struct image_args *args, const char *fname,
 	/*
 	 * Copy the file name.
 	 */
-	error = exec_args_add_fname(args, fname, segflg);
+	error = exec_args_add_fname(args, fname, UIO_USERSPACE);
 	if (error != 0)
 		goto err_exit;
 
@@ -477,8 +477,8 @@ freebsd32_execve(struct thread *td, struct freebsd32_execve_args *uap)
 	error = pre_execve(td, &oldvmspace);
 	if (error != 0)
 		return (error);
-	error = freebsd32_exec_copyin_args(&eargs, uap->fname, UIO_USERSPACE,
-	    uap->argv, uap->envv);
+	error = freebsd32_exec_copyin_args(&eargs, uap->fname, uap->argv,
+	    uap->envv);
 	if (error == 0)
 		error = kern_execve(td, &eargs, NULL, oldvmspace);
 	post_execve(td, error, oldvmspace);
@@ -496,8 +496,7 @@ freebsd32_fexecve(struct thread *td, struct freebsd32_fexecve_args *uap)
 	error = pre_execve(td, &oldvmspace);
 	if (error != 0)
 		return (error);
-	error = freebsd32_exec_copyin_args(&eargs, NULL, UIO_SYSSPACE,
-	    uap->argv, uap->envv);
+	error = freebsd32_exec_copyin_args(&eargs, NULL, uap->argv, uap->envv);
 	if (error == 0) {
 		eargs.fd = uap->fd;
 		error = kern_execve(td, &eargs, NULL, oldvmspace);
@@ -1177,6 +1176,9 @@ freebsd32_ptrace(struct thread *td, struct freebsd32_ptrace_args *uap)
 		for (i = 0; i < r32.sr.pscr_nargs; i++)
 			pscr_args[i] = pscr_args32[i];
 		r.sr.pscr_args = pscr_args;
+		break;
+	case PTINTERNAL_FIRST ... PTINTERNAL_LAST:
+		error = EINVAL;
 		break;
 	default:
 		addr = uap->addr;
@@ -2309,8 +2311,8 @@ copy_stat(struct stat *in, struct stat32 *out)
 	CP(*in, *out, st_flags);
 	CP(*in, *out, st_gen);
 	CP(*in, *out, st_filerev);
+	CP(*in, *out, st_bsdflags);
 	TS_CP(*in, *out, st_birthtim);
-	out->st_padding0 = 0;
 	out->st_padding1 = 0;
 #ifdef __STAT32_TIME_T_EXT
 	out->st_atim_ext = 0;

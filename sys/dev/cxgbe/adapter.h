@@ -1,8 +1,7 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
- * Copyright (c) 2011 Chelsio Communications, Inc.
- * All rights reserved.
+ * Copyright (c) 2011, 2025 Chelsio Communications.
  * Written by: Navdeep Parhar <np@FreeBSD.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -319,7 +318,7 @@ struct port_info {
 	char lockname[16];
 	unsigned long flags;
 
-	uint8_t  lport;		/* associated offload logical port */
+	uint8_t  hw_port;	/* associated hardware port idx */
 	int8_t   mdio_addr;
 	uint8_t  port_type;
 	uint8_t  mod_type;
@@ -413,6 +412,24 @@ enum {
 	NUM_CPL_COOKIES = 8	/* Limited by M_COOKIE.  Do not increase. */
 };
 
+/*
+ * Crypto replies use the low bit in the 64-bit cookie of CPL_FW6_PLD as a
+ * CPL cookie to identify the sender/receiver.
+ */
+enum {
+	CPL_FW6_COOKIE_CCR = 0,
+	CPL_FW6_COOKIE_KTLS,
+
+	NUM_CPL_FW6_COOKIES = 2	/* Low bits of cookie value. */
+};
+
+_Static_assert(powerof2(NUM_CPL_FW6_COOKIES),
+    "NUM_CPL_FW6_COOKIES must be a power of 2");
+
+#define	CPL_FW6_COOKIE_MASK	(NUM_CPL_FW6_COOKIES - 1)
+
+#define	CPL_FW6_PLD_COOKIE(cpl)	(be64toh((cpl)->data[1]) & ~CPL_FW6_COOKIE_MASK)
+
 struct sge_iq;
 struct rss_header;
 typedef int (*cpl_handler_t)(struct sge_iq *, const struct rss_header *,
@@ -477,6 +494,7 @@ struct sge_eq {
 	uint8_t doorbells;
 	uint8_t port_id;	/* port_id of the port associated with the eq */
 	uint8_t tx_chan;	/* tx channel used by the eq */
+	uint8_t hw_port;	/* hw port used by the eq */
 	struct mtx eq_lock;
 
 	struct tx_desc *desc;	/* KVA of descriptor ring */
@@ -640,12 +658,26 @@ struct sge_txq {
 	uint64_t kern_tls_full;
 	uint64_t kern_tls_octets;
 	uint64_t kern_tls_waste;
-	uint64_t kern_tls_options;
 	uint64_t kern_tls_header;
-	uint64_t kern_tls_fin;
 	uint64_t kern_tls_fin_short;
 	uint64_t kern_tls_cbc;
 	uint64_t kern_tls_gcm;
+	union {
+		struct {
+			/* T6 only. */
+			uint64_t kern_tls_options;
+			uint64_t kern_tls_fin;
+		};
+		struct {
+			/* T7 only. */
+			uint64_t kern_tls_ghash_received;
+			uint64_t kern_tls_ghash_requested;
+			uint64_t kern_tls_lso;
+			uint64_t kern_tls_partial_ghash;
+			uint64_t kern_tls_splitmode;
+			uint64_t kern_tls_trailer;
+		};
+	};
 
 	/* stats for not-that-common events */
 
@@ -769,6 +801,16 @@ struct sge_ofld_txq {
 	counter_u64_t tx_toe_tls_octets;
 } __aligned(CACHE_LINE_SIZE);
 
+static inline int
+ofld_txq_group(int val, int mask)
+{
+	const uint32_t ngroup = 1 << bitcount32(mask);
+	const int mshift = ffs(mask) - 1;
+	const uint32_t gmask = ngroup - 1;
+
+	return (val >> mshift & gmask);
+}
+
 #define INVALID_NM_RXQ_CNTXT_ID ((uint16_t)(-1))
 struct sge_nm_rxq {
 	/* Items used by the driver rx ithread are in this cacheline. */
@@ -836,6 +878,7 @@ struct sge_nm_txq {
 } __aligned(CACHE_LINE_SIZE);
 
 struct sge {
+	int nctrlq;	/* total # of control queues */
 	int nrxq;	/* total # of Ethernet rx queues */
 	int ntxq;	/* total # of Ethernet tx queues */
 	int nofldrxq;	/* total # of TOE rx queues */
@@ -937,7 +980,8 @@ struct adapter {
 
 	struct taskqueue *tq[MAX_NPORTS];	/* General purpose taskqueues */
 	struct port_info *port[MAX_NPORTS];
-	uint8_t chan_map[MAX_NCHAN];		/* channel -> port */
+	uint8_t chan_map[MAX_NCHAN];		/* tx_chan -> port_id */
+	uint8_t port_map[MAX_NPORTS];		/* hw_port -> port_id */
 
 	CXGBE_LIST_HEAD(, clip_entry) *clip_table;
 	TAILQ_HEAD(, clip_entry) clip_pending;	/* these need hw update. */
@@ -959,9 +1003,12 @@ struct adapter {
 	vmem_t *key_map;
 	struct tls_tunables tlst;
 
+	vmem_t *pbl_arena;
+	vmem_t *stag_arena;
+
 	uint8_t doorbells;
 	int offload_map;	/* port_id's with IFCAP_TOE enabled */
-	int bt_map;		/* tx_chan's with BASE-T */
+	int bt_map;		/* hw_port's that are BASE-T */
 	int active_ulds;	/* ULDs activated on this adapter */
 	int flags;
 	int debug_flags;
@@ -988,6 +1035,7 @@ struct adapter {
 	uint16_t nbmcaps;
 	uint16_t linkcaps;
 	uint16_t switchcaps;
+	uint16_t nvmecaps;
 	uint16_t niccaps;
 	uint16_t toecaps;
 	uint16_t rdmacaps;
@@ -1409,6 +1457,14 @@ void t6_ktls_modunload(void);
 int t6_ktls_try(if_t, struct socket *, struct ktls_session *);
 int t6_ktls_parse_pkt(struct mbuf *);
 int t6_ktls_write_wr(struct sge_txq *, void *, struct mbuf *, u_int);
+
+/* t7_kern_tls.c */
+int t7_tls_tag_alloc(struct ifnet *, union if_snd_tag_alloc_params *,
+    struct m_snd_tag **);
+void t7_ktls_modload(void);
+void t7_ktls_modunload(void);
+int t7_ktls_parse_pkt(struct mbuf *);
+int t7_ktls_write_wr(struct sge_txq *, void *, struct mbuf *, u_int);
 #endif
 
 /* t4_keyctx.c */
@@ -1535,6 +1591,27 @@ int t4_hashfilter_ao_rpl(struct sge_iq *, const struct rss_header *, struct mbuf
 int t4_hashfilter_tcb_rpl(struct sge_iq *, const struct rss_header *, struct mbuf *);
 int t4_del_hashfilter_rpl(struct sge_iq *, const struct rss_header *, struct mbuf *);
 void free_hftid_hash(struct tid_info *);
+
+/* t4_tpt.c */
+#define T4_STAG_UNSET 0xffffffff
+#define	T4_WRITE_MEM_DMA_LEN						\
+	roundup2(sizeof(struct ulp_mem_io) + sizeof(struct ulptx_sgl), 16)
+#define T4_ULPTX_MIN_IO 32
+#define T4_MAX_INLINE_SIZE 96
+#define	T4_WRITE_MEM_INLINE_LEN(len)					\
+	roundup2(sizeof(struct ulp_mem_io) + sizeof(struct ulptx_idata) + \
+	    roundup((len), T4_ULPTX_MIN_IO), 16)
+
+uint32_t t4_pblpool_alloc(struct adapter *, int);
+void t4_pblpool_free(struct adapter *, uint32_t, int);
+uint32_t t4_stag_alloc(struct adapter *, int);
+void t4_stag_free(struct adapter *, uint32_t, int);
+void t4_init_tpt(struct adapter *);
+void t4_free_tpt(struct adapter *);
+void t4_write_mem_dma_wr(struct adapter *, void *, int, int, uint32_t,
+    uint32_t, vm_paddr_t, uint64_t);
+void t4_write_mem_inline_wr(struct adapter *, void *, int, int, uint32_t,
+    uint32_t, void *, uint64_t);
 
 static inline struct wrqe *
 alloc_wrqe(int wr_len, struct sge_wrq *wrq)

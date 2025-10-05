@@ -292,8 +292,10 @@ nfs_statfs(struct mount *mp, struct statfs *sbp)
 	int error = 0, attrflag, gotfsinfo = 0, ret;
 	struct nfsnode *np;
 	char *fakefh;
+	uint32_t clone_blksize;
 
 	td = curthread;
+	clone_blksize = 0;
 
 	error = vfs_busy(mp, MBF_NOWAIT);
 	if (error)
@@ -337,8 +339,8 @@ nfs_statfs(struct mount *mp, struct statfs *sbp)
 	} else
 		mtx_unlock(&nmp->nm_mtx);
 	if (!error)
-		error = nfsrpc_statfs(vp, &sb, &fs, NULL, td->td_ucred, td,
-		    &nfsva, &attrflag);
+		error = nfsrpc_statfs(vp, &sb, &fs, NULL, &clone_blksize,
+		    td->td_ucred, td, &nfsva, &attrflag);
 	if ((nmp->nm_privflag & NFSMNTP_FAKEROOTFH) != 0 &&
 	    error == NFSERR_WRONGSEC) {
 		/* Cannot get new stats, so return what is in mnt_stat. */
@@ -375,7 +377,7 @@ nfs_statfs(struct mount *mp, struct statfs *sbp)
 	if (!error) {
 	    mtx_lock(&nmp->nm_mtx);
 	    if (gotfsinfo || (nmp->nm_flag & NFSMNT_NFSV4))
-		nfscl_loadfsinfo(nmp, &fs);
+		nfscl_loadfsinfo(nmp, &fs, clone_blksize);
 	    nfscl_loadsbinfo(nmp, &sb, sbp);
 	    sbp->f_iosize = newnfs_iosize(nmp);
 	    mtx_unlock(&nmp->nm_mtx);
@@ -408,7 +410,7 @@ ncl_fsinfo(struct nfsmount *nmp, struct vnode *vp, struct ucred *cred,
 		if (attrflag)
 			(void) nfscl_loadattrcache(&vp, &nfsva, NULL, 0, 1);
 		mtx_lock(&nmp->nm_mtx);
-		nfscl_loadfsinfo(nmp, &fs);
+		nfscl_loadfsinfo(nmp, &fs, 0);
 		mtx_unlock(&nmp->nm_mtx);
 	}
 	return (error);
@@ -1801,12 +1803,18 @@ mountnfs(struct nfs_args *argp, struct mount *mp, struct sockaddr *nam,
 		if (argp->flags & NFSMNT_NFSV3)
 			ncl_fsinfo(nmp, *vpp, cred, td);
 
-		/* Mark if the mount point supports NFSv4 ACLs. */
-		if ((argp->flags & NFSMNT_NFSV4) != 0 && nfsrv_useacl != 0 &&
-		    ret == 0 &&
-		    NFSISSET_ATTRBIT(&nfsva.na_suppattr, NFSATTRBIT_ACL)) {
+		/*
+		 * Mark if the mount point supports NFSv4 ACLs and
+		 * named attributes.
+		 */
+		if ((argp->flags & NFSMNT_NFSV4) != 0) {
 			MNT_ILOCK(mp);
-			mp->mnt_flag |= MNT_NFS4ACLS;
+			if (ret == 0 && nfsrv_useacl != 0 &&
+			    NFSISSET_ATTRBIT(&nfsva.na_suppattr,
+			    NFSATTRBIT_ACL))
+				mp->mnt_flag |= MNT_NFS4ACLS;
+			if (nmp->nm_minorvers > 0)
+				mp->mnt_flag |= MNT_NAMEDATTR;
 			MNT_IUNLOCK(mp);
 		}
 

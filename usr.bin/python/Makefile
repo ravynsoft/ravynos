@@ -27,6 +27,8 @@ install:
 installconfig: .PHONY
 includes: .PHONY
 cleandir: .PHONY
+cleandepend:
+	rm -f .depend .depend.*
 
 distribute:
 	${MAKE} install DESTDIR=${DESTDIR} \

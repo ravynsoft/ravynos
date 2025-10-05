@@ -281,7 +281,7 @@ static int vtnet_tso_disable = 0;
 SYSCTL_INT(_hw_vtnet, OID_AUTO, tso_disable, CTLFLAG_RDTUN,
     &vtnet_tso_disable, 0, "Disables TSO");
 
-static int vtnet_lro_disable = 0;
+static int vtnet_lro_disable = 1;
 SYSCTL_INT(_hw_vtnet, OID_AUTO, lro_disable, CTLFLAG_RDTUN,
     &vtnet_lro_disable, 0, "Disables hardware LRO");
 
@@ -1153,11 +1153,9 @@ vtnet_setup_interface(struct vtnet_softc *sc)
 	}
 
 	if (virtio_with_feature(dev, VIRTIO_NET_F_GUEST_CSUM)) {
-		if_setcapabilitiesbit(ifp, IFCAP_RXCSUM, 0);
-#ifdef notyet
 		/* BMV: Rx checksums not distinguished between IPv4 and IPv6. */
+		if_setcapabilitiesbit(ifp, IFCAP_RXCSUM, 0);
 		if_setcapabilitiesbit(ifp, IFCAP_RXCSUM_IPV6, 0);
-#endif
 
 		if (vtnet_tunable_int(sc, "fixup_needs_csum",
 		    vtnet_fixup_needs_csum) != 0)
@@ -1347,14 +1345,22 @@ vtnet_ioctl_ifcap(struct vtnet_softc *sc, struct ifreq *ifr)
 
 	VTNET_CORE_LOCK_ASSERT(sc);
 
-	if (mask & IFCAP_TXCSUM)
+	if (mask & IFCAP_TXCSUM) {
 		if_togglecapenable(ifp, IFCAP_TXCSUM);
-	if (mask & IFCAP_TXCSUM_IPV6)
+		if_togglehwassist(ifp, VTNET_CSUM_OFFLOAD);
+	}
+	if (mask & IFCAP_TXCSUM_IPV6) {
 		if_togglecapenable(ifp, IFCAP_TXCSUM_IPV6);
-	if (mask & IFCAP_TSO4)
+		if_togglehwassist(ifp, VTNET_CSUM_OFFLOAD_IPV6);
+	}
+	if (mask & IFCAP_TSO4) {
 		if_togglecapenable(ifp, IFCAP_TSO4);
-	if (mask & IFCAP_TSO6)
+		if_togglehwassist(ifp, IFCAP_TSO4);
+	}
+	if (mask & IFCAP_TSO6) {
 		if_togglecapenable(ifp, IFCAP_TSO6);
+		if_togglehwassist(ifp, IFCAP_TSO6);
+	}
 
 	if (mask & (IFCAP_RXCSUM | IFCAP_RXCSUM_IPV6 | IFCAP_LRO)) {
 		/*
@@ -1370,27 +1376,20 @@ vtnet_ioctl_ifcap(struct vtnet_softc *sc, struct ifreq *ifr)
 		if ((mask & (IFCAP_RXCSUM | IFCAP_RXCSUM_IPV6 | IFCAP_LRO)) ==
 		    IFCAP_LRO && vtnet_software_lro(sc))
 			reinit = update = 0;
-
-		if (mask & IFCAP_RXCSUM)
+		/*
+		 * VirtIO does not distinguish between receive checksum offload
+		 * for IPv4 and IPv6 packets, so treat them as a pair.
+		 */
+		if (mask & (IFCAP_RXCSUM | IFCAP_RXCSUM_IPV6)) {
 			if_togglecapenable(ifp, IFCAP_RXCSUM);
-		if (mask & IFCAP_RXCSUM_IPV6)
 			if_togglecapenable(ifp, IFCAP_RXCSUM_IPV6);
+		}
 		if (mask & IFCAP_LRO)
 			if_togglecapenable(ifp, IFCAP_LRO);
-
-		/*
-		 * VirtIO does not distinguish between IPv4 and IPv6 checksums
-		 * so treat them as a pair. Guest TSO (LRO) requires receive
-		 * checksums.
-		 */
-		if (if_getcapenable(ifp) & (IFCAP_RXCSUM | IFCAP_RXCSUM_IPV6)) {
-			if_setcapenablebit(ifp, IFCAP_RXCSUM, 0);
-#ifdef notyet
-			if_setcapenablebit(ifp, IFCAP_RXCSUM_IPV6, 0);
-#endif
-		} else
-			if_setcapenablebit(ifp, 0,
-			    (IFCAP_RXCSUM | IFCAP_RXCSUM_IPV6 | IFCAP_LRO));
+		/* Both SW and HW TCP LRO require receive checksum offload. */
+		if ((if_getcapenable(ifp) &
+		    (IFCAP_RXCSUM | IFCAP_RXCSUM_IPV6)) == 0)
+			if_setcapenablebit(ifp, 0, IFCAP_LRO);
 	}
 
 	if (mask & IFCAP_VLAN_HWFILTER) {

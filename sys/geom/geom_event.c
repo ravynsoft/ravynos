@@ -48,11 +48,10 @@
 #include <sys/mutex.h>
 #include <sys/proc.h>
 #include <sys/errno.h>
+#include <sys/stdarg.h>
 #include <sys/time.h>
 #include <geom/geom.h>
 #include <geom/geom_int.h>
-
-#include <machine/stdarg.h>
 
 TAILQ_HEAD(event_tailq_head, g_event);
 
@@ -146,7 +145,7 @@ g_attr_changed(struct g_provider *pp, const char *attr, int flag)
 	struct g_attrchanged_args *args;
 	int error;
 
-	args = g_malloc(sizeof *args, flag);
+	args = g_malloc(sizeof(*args), flag);
 	if (args == NULL)
 		return (ENOMEM);
 	args->pp = pp;
@@ -348,6 +347,7 @@ static void
 g_post_event_ep_va(g_event_t *func, void *arg, int wuflag,
     struct g_event *ep, va_list ap)
 {
+	struct thread *td;
 	void *p;
 	u_int n;
 
@@ -367,8 +367,12 @@ g_post_event_ep_va(g_event_t *func, void *arg, int wuflag,
 	TAILQ_INSERT_TAIL(&g_events, ep, events);
 	mtx_unlock(&g_eventlock);
 	wakeup(&g_wait_event);
-	curthread->td_pflags |= TDP_GEOM;
-	ast_sched(curthread, TDA_GEOM);
+
+	td = curthread;
+	if ((td->td_pflags & TDP_KTHREAD) == 0) {
+		td->td_pflags |= TDP_GEOM;
+		ast_sched(td, TDA_GEOM);
+	}
 }
 
 void

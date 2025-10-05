@@ -36,6 +36,7 @@
 
 #include <sys/cdefs.h>
 #include "opt_hwpmc_hooks.h"
+#include "opt_hwt_hooks.h"
 #include "opt_sched.h"
 
 #include <sys/param.h>
@@ -48,6 +49,7 @@
 #include <sys/mutex.h>
 #include <sys/proc.h>
 #include <sys/resourcevar.h>
+#include <sys/runq.h>
 #include <sys/sched.h>
 #include <sys/sdt.h>
 #include <sys/smp.h>
@@ -62,6 +64,10 @@
 #include <sys/pmckern.h>
 #endif
 
+#ifdef HWT_HOOKS
+#include <dev/hwt/hwt_hook.h>
+#endif
+
 #ifdef KDTRACE_HOOKS
 #include <sys/dtrace_bsd.h>
 int __read_mostly		dtrace_vtime_active;
@@ -72,15 +78,17 @@ dtrace_vtime_switch_func_t	dtrace_vtime_switch_func;
  * INVERSE_ESTCPU_WEIGHT is only suitable for statclock() frequencies in
  * the range 100-256 Hz (approximately).
  */
-#define	ESTCPULIM(e) \
-    min((e), INVERSE_ESTCPU_WEIGHT * (NICE_WEIGHT * (PRIO_MAX - PRIO_MIN) - \
-    RQ_PPQ) + INVERSE_ESTCPU_WEIGHT - 1)
 #ifdef SMP
 #define	INVERSE_ESTCPU_WEIGHT	(8 * smp_cpus)
 #else
 #define	INVERSE_ESTCPU_WEIGHT	8	/* 1 / (priorities per estcpu level). */
 #endif
 #define	NICE_WEIGHT		1	/* Priorities per nice level. */
+#define	ESTCPULIM(e)							\
+	min((e), INVERSE_ESTCPU_WEIGHT *				\
+	    (NICE_WEIGHT * (PRIO_MAX - PRIO_MIN) +			\
+	    PRI_MAX_TIMESHARE - PRI_MIN_TIMESHARE)			\
+	    + INVERSE_ESTCPU_WEIGHT - 1)
 
 #define	TS_NAME_LEN (MAXCOMLEN + sizeof(" td ") + sizeof(__XSTRING(UINT_MAX)))
 
@@ -683,13 +691,14 @@ schedinit_ap(void)
 	/* Nothing needed. */
 }
 
-int
+bool
 sched_runnable(void)
 {
 #ifdef SMP
-	return runq_check(&runq) + runq_check(&runq_pcpu[PCPU_GET(cpuid)]);
+	return (runq_not_empty(&runq) ||
+	    runq_not_empty(&runq_pcpu[PCPU_GET(cpuid)]));
 #else
-	return runq_check(&runq);
+	return (runq_not_empty(&runq));
 #endif
 }
 
@@ -871,7 +880,7 @@ sched_priority(struct thread *td, u_char prio)
 	if (td->td_priority == prio)
 		return;
 	td->td_priority = prio;
-	if (TD_ON_RUNQ(td) && td->td_rqindex != (prio / RQ_PPQ)) {
+	if (TD_ON_RUNQ(td) && td->td_rqindex != RQ_PRI_TO_QUEUE_IDX(prio)) {
 		sched_rem(td);
 		sched_add(td, SRQ_BORING | SRQ_HOLDTD);
 	}
@@ -1069,6 +1078,11 @@ sched_switch(struct thread *td, int flags)
 #ifdef	HWPMC_HOOKS
 		if (PMC_PROC_IS_USING_PMCS(td->td_proc))
 			PMC_SWITCH_CONTEXT(td, PMC_FN_CSW_OUT);
+#endif
+
+#ifdef HWT_HOOKS
+		HWT_CALL_HOOK(td, HWT_SWITCH_OUT, NULL);
+		HWT_CALL_HOOK(newtd, HWT_SWITCH_IN, NULL);
 #endif
 
 		SDT_PROBE2(sched, , , off__cpu, newtd, newtd->td_proc);
@@ -1679,7 +1693,7 @@ sched_idletd(void *dummy)
 	for (;;) {
 		mtx_assert(&Giant, MA_NOTOWNED);
 
-		while (sched_runnable() == 0) {
+		while (!sched_runnable()) {
 			cpu_idle(stat->idlecalls + stat->oldidlecalls > 64);
 			stat->idlecalls++;
 		}
@@ -1692,10 +1706,20 @@ sched_idletd(void *dummy)
 static void
 sched_throw_tail(struct thread *td)
 {
+	struct thread *newtd;
 
 	mtx_assert(&sched_lock, MA_OWNED);
 	KASSERT(curthread->td_md.md_spinlock_count == 1, ("invalid count"));
-	cpu_throw(td, choosethread());	/* doesn't return */
+
+	newtd = choosethread();
+
+#ifdef HWT_HOOKS
+	if (td)
+		HWT_CALL_HOOK(td, HWT_SWITCH_OUT, NULL);
+	HWT_CALL_HOOK(newtd, HWT_SWITCH_IN, NULL);
+#endif
+
+	cpu_throw(td, newtd);	/* doesn't return */
 }
 
 /*

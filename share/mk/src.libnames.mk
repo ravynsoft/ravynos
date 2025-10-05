@@ -7,7 +7,7 @@
 .endif
 
 .if !target(__<src.libnames.mk>__)
-__<src.libnames.mk>__: .NOTMAIN
+__<src.libnames.mk>__:	.NOTMAIN
 
 .include <src.opts.mk>
 
@@ -176,19 +176,15 @@ _LIBRARIES=	\
 		k5crypto \
 		kadm5 \
 		kadmin_common \
+		kafs5 \
 		jansson \
 		kdb5 \
-                kdc \
-                kiconv \
+		kdc \
+		kiconv \
 		krad \
                 krb5 \
 		krb5profile \
 		krb5support \
-		kadm5srv \
-		kafs5 \
-		kdc \
-		kiconv \
-		krb5 \
 		kvm \
 		l \
 		launch \
@@ -421,19 +417,19 @@ _DP_pam+=	ypclnt
 .endif
 .if ${MK_KERBEROS} != "no"
 .if ${MK_MITKRB5} != "no"
-# _DP_krb5support=     no dependencies except for libc
-# _DP_verto=           no dependencies except for libc
-# _DP_apputils=                no dependencies except for libc
-_DP_com_err=           krb5support
-_DP_k5crypto=          com_err krb5support crypto
-_DP_krb5profile=       com_err krb5support
-_DP_gssapi_krb5=       krb5 k5crypto com_err krb5profile krb5support
-_DP_kadm5clnt_mit=     gssrpc gssapi_krb5 krb5 k5crypto krb5support com_err krb5profile
-_DP_kadm5srv_mit=      krb5profile gssrpc gssapi_krb5 kdb5 krb5 k5crypto krb5support com_err
-_DP_kdb5=              gssrpc krb5 k5crypto com_err krb5support gssapi_krb5 krb5profile
-_DP_krad=              krb5 k5crypto com_err krb5profile krb5support verto
-_DP_krb5=              krb5profile k5crypto com_err krb5support
-_DP_gssrpc=            gssapi_krb5 krb5 k5crypto com_err krb5support
+# _DP_krb5support=	no dependencies except for libc
+# _DP_verto=		no dependencies except for libc
+# _DP_apputils=		no dependencies except for libc
+_DP_com_err=		krb5support
+_DP_k5crypto=		com_err krb5support crypto
+_DP_krb5profile=	com_err krb5support
+_DP_gssapi_krb5=	krb5 k5crypto com_err krb5profile krb5support
+_DP_kadm5clnt_mit=	gssrpc gssapi_krb5 krb5 k5crypto krb5support com_err krb5profile
+_DP_kadm5srv_mit=	krb5profile gssrpc gssapi_krb5 kdb5 krb5 k5crypto krb5support com_err
+_DP_kdb5=		gssrpc krb5 k5crypto com_err krb5support gssapi_krb5 krb5profile
+_DP_krad=		krb5 k5crypto com_err krb5profile krb5support verto
+_DP_krb5=		krb5profile k5crypto com_err krb5support
+_DP_gssrpc=		gssapi_krb5 krb5 k5crypto com_err krb5support
 .else
 _DP_roken=	crypt
 _DP_kadm5clnt=	com_err krb5 roken
@@ -821,38 +817,38 @@ LIBDIALOGDIR=	${_LIB_OBJTOP}/gnu/lib/libdialog
 LIBSSPDIR=	${_LIB_OBJTOP}/lib/libssp
 LIBSSP_NONSHAREDDIR=	${_LIB_OBJTOP}/lib/libssp_nonshared
 .if ${MK_MITKRB5} != "no"
-LIBAPPUTILSDIR=                ${_LIB_OBJTOP}/krb5/lib/apputils
-LIBAPPUTILS?=          ${LIBAPPUTILSDIR}/libapputils${PIE_SUFFIX}.a
-LIBGSSAPI_KRB5DIR=     ${_LIB_OBJTOP}/krb5/lib/gssapi
-LIBGSSAPI_KRB5?=       ${LIBGSSAPI_KRB5DIR}/libgssapi_krb5${PIE_SUFFIX}.a
-LIBGSSRPCDIR=          ${_LIB_OBJTOP}/krb5/lib/rpc
-LIBGSSRPC?=            ${LIBGSSRPCDIR}/libgssrpc${PIE_SUFFIX}.a
-LIBK5CRYPTODIR=                ${_LIB_OBJTOP}/krb5/lib/crypto
-LIBK5CRYPTO?=          ${LIBK5CRYPTODIR}/libk5crypto${PIE_SUFFIX}.a
-LIBK5GSSRPCDIR=                ${_LIB_OBJTOP}/krb5/lib/rpc
-LIBK5GSSRPC?=          ${LIBK5GSSRPCDIR}/libgssrpc${PIE_SUFFIX}.a
-LIBKADM5CLNT_MITDIR=   ${_LIB_OBJTOP}/krb5/lib/kadm5clnt
-LIBKADM5CLNT_MIT?=     ${LIBKADM5CLNT_MITDIR}/libkadm5clnt_mit${PIE_SUFFIX}.a
-LIBKADM5SRV_MITDIR=    ${_LIB_OBJTOP}/krb5/lib/kadm5srv
-LIBKADM5SRV_MIT?=      ${LIBKADM5SRV_MITDIR}/libkadm5srv_mit${PIE_SUFFIX}.a
-LIBKADMIN_COMMONDIR=   ${_LIB_OBJTOP}/krb5/lib/kadmin_common
-LIBKADMIN_COMMON?=     ${LIBKADMIN_COMMONDIR}/libkadmin_common${PIE_SUFFIX}.a
-LIBKDB5DIR=            ${_LIB_OBJTOP}/krb5/lib/kdb
-LIBKDB5?=              ${LIBKDB5DIR}/libkdb5${PIE_SUFFIX}.a
-LIBKPROP_UTILDIR=      ${_LIB_OBJTOP}/krb5/lib/kprop_util
-LIBKPROP_UTIL?=                ${LIBKPROP_UTILDIR}/libkprop_util${PIE_SUFFIX}.a
-LIBKRADDIR=            ${_LIB_OBJTOP}/krb5/lib/krad
-LIBKRAD?=              ${LIBKRADDIR}/libkrad${PIE_SUFFIX}.a
-LIBKRB5DIR=            ${_LIB_OBJTOP}/krb5/lib/krb5
-LIBKRB5?=              ${LIBKRB5DIR}/libkrb5${PIE_SUFFIX}.a
-LIBKRB5SSDIR=          ${_LIB_OBJTOP}/krb5/util/ss
-LIBKRB5SS?=            ${LIBKRB5SUPPORTDIR}/libkrb5ss${PIE_SUFFIX}.a
-LIBKRB5SUPPORTDIR=     ${_LIB_OBJTOP}/krb5/util/support
-LIBKRB5SUPPORT?=       ${LIBKRB5SUPPORTDIR}/libkrb5support${PIE_SUFFIX}.a
-LIBKRB5PROFILEDIR=     ${_LIB_OBJTOP}/krb5/util/profile
-LIBKRB5PROFILE?=       ${LIBPROFILEDIR}/libkrb5profile${PIE_SUFFIX}.a
-LIBVERTODIR=           ${_LIB_OBJTOP}/krb5/util/verto
-LIBVERTO?=             ${LIBVERTODIR}/libverto${PIE_SUFFIX}.a
+LIBAPPUTILSDIR=		${_LIB_OBJTOP}/krb5/lib/apputils
+LIBAPPUTILS?=		${LIBAPPUTILSDIR}/libapputils${PIE_SUFFIX}.a
+LIBGSSAPI_KRB5DIR=	${_LIB_OBJTOP}/krb5/lib/gssapi
+LIBGSSAPI_KRB5?=	${LIBGSSAPI_KRB5DIR}/libgssapi_krb5${PIE_SUFFIX}.a
+LIBGSSRPCDIR=		${_LIB_OBJTOP}/krb5/lib/rpc
+LIBGSSRPC?=		${LIBGSSRPCDIR}/libgssrpc${PIE_SUFFIX}.a
+LIBK5CRYPTODIR=		${_LIB_OBJTOP}/krb5/lib/crypto
+LIBK5CRYPTO?=		${LIBK5CRYPTODIR}/libk5crypto${PIE_SUFFIX}.a
+LIBK5GSSRPCDIR=		${_LIB_OBJTOP}/krb5/lib/rpc
+LIBK5GSSRPC?=		${LIBK5GSSRPCDIR}/libgssrpc${PIE_SUFFIX}.a
+LIBKADM5CLNT_MITDIR=	${_LIB_OBJTOP}/krb5/lib/kadm5clnt
+LIBKADM5CLNT_MIT?=	${LIBKADM5CLNT_MITDIR}/libkadm5clnt_mit${PIE_SUFFIX}.a
+LIBKADM5SRV_MITDIR=	${_LIB_OBJTOP}/krb5/lib/kadm5srv
+LIBKADM5SRV_MIT?=	${LIBKADM5SRV_MITDIR}/libkadm5srv_mit${PIE_SUFFIX}.a
+LIBKADMIN_COMMONDIR=	${_LIB_OBJTOP}/krb5/lib/kadmin_common
+LIBKADMIN_COMMON?=	${LIBKADMIN_COMMONDIR}/libkadmin_common${PIE_SUFFIX}.a
+LIBKDB5DIR=		${_LIB_OBJTOP}/krb5/lib/kdb
+LIBKDB5?=		${LIBKDB5DIR}/libkdb5${PIE_SUFFIX}.a
+LIBKPROP_UTILDIR=	${_LIB_OBJTOP}/krb5/lib/kprop_util
+LIBKPROP_UTIL?=		${LIBKPROP_UTILDIR}/libkprop_util${PIE_SUFFIX}.a
+LIBKRADDIR=		${_LIB_OBJTOP}/krb5/lib/krad
+LIBKRAD?=		${LIBKRADDIR}/libkrad${PIE_SUFFIX}.a
+LIBKRB5DIR=		${_LIB_OBJTOP}/krb5/lib/krb5
+LIBKRB5?=		${LIBKRB5DIR}/libkrb5${PIE_SUFFIX}.a
+LIBKRB5SSDIR=		${_LIB_OBJTOP}/krb5/util/ss
+LIBKRB5SS?=		${LIBKRB5SUPPORTDIR}/libkrb5ss${PIE_SUFFIX}.a
+LIBKRB5SUPPORTDIR=	${_LIB_OBJTOP}/krb5/util/support
+LIBKRB5SUPPORT?=	${LIBKRB5SUPPORTDIR}/libkrb5support${PIE_SUFFIX}.a
+LIBKRB5PROFILEDIR=	${_LIB_OBJTOP}/krb5/util/profile
+LIBKRB5PROFILE?=	${LIBPROFILEDIR}/libkrb5profile${PIE_SUFFIX}.a
+LIBVERTODIR=		${_LIB_OBJTOP}/krb5/util/verto
+LIBVERTO?=		${LIBVERTODIR}/libverto${PIE_SUFFIX}.a
 .else
 LIBASN1DIR=	${_LIB_OBJTOP}/kerberos5/lib/libasn1
 LIBGSSAPI_KRB5DIR=	${_LIB_OBJTOP}/kerberos5/lib/libgssapi_krb5

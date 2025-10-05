@@ -22,3 +22,5 @@ install: .PHONY
 installconfig: .PHONY
 includes: .PHONY
 distribute: .PHONY
+cleandepend:
+	rm -f .depend .depend.*

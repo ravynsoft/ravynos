@@ -48,11 +48,11 @@
 #include <sys/proc.h>
 #include <sys/selinfo.h>
 #include <sys/smp.h>
+#include <sys/stdarg.h>
 #include <sys/sysctl.h>
 #include <sys/uio.h>
 #include <sys/unistd.h>
 #include <machine/cpu.h>
-#include <machine/stdarg.h>
 
 #include <sys/dtrace.h>
 #include <sys/dtrace_bsd.h>
@@ -118,7 +118,6 @@ struct profile_probe_percpu;
 #endif
 
 typedef struct profile_probe {
-	char		prof_name[PROF_NAMELEN];
 	dtrace_id_t	prof_id;
 	int		prof_kind;
 #ifdef illumos
@@ -302,7 +301,6 @@ profile_create(hrtime_t interval, char *name, int kind)
 	}
 
 	prof = kmem_zalloc(sizeof (profile_probe_t), KM_SLEEP);
-	(void) strcpy(prof->prof_name, name);
 #ifdef illumos
 	prof->prof_interval = interval;
 	prof->prof_cyclic = CYCLIC_NONE;

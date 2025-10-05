@@ -1,3 +1,5 @@
+PACKAGE=xz
+
 PROG=	xzdec
 
 LINKS=	${BINDIR}/xzdec ${BINDIR}/lzdec
@@ -14,7 +16,8 @@ SRCS=	xzdec.c
 .PATH: ${XZDIR}/common
 
 SRCS+=	tuklib_progname.c \
-	tuklib_exit.c
+	tuklib_exit.c \
+	tuklib_mbstr_nonprint.c
 
 CFLAGS+=	-DHAVE_CONFIG_H \
 		-I${LZMALIBDIR} \

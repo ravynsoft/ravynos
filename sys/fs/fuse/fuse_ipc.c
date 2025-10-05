@@ -193,7 +193,6 @@ fuse_interrupt_send(struct fuse_ticket *otick, int err)
 	struct fuse_data *data = otick->tk_data;
 	struct fuse_ticket *tick, *xtick;
 	struct ucred reused_creds;
-	gid_t reused_groups[1];
 
 	if (otick->irq_unique == 0) {
 		/* 
@@ -237,8 +236,7 @@ fuse_interrupt_send(struct fuse_ticket *otick, int err)
 		 */
 		ftick_hdr = fticket_in_header(otick);
 		reused_creds.cr_uid = ftick_hdr->uid;
-		reused_groups[0] = ftick_hdr->gid;
-		reused_creds.cr_groups = reused_groups;
+		reused_creds.cr_gid = ftick_hdr->gid;
 		fdisp_init(&fdi, sizeof(*fii));
 		fdisp_make_pid(&fdi, FUSE_INTERRUPT, data, ftick_hdr->nodeid,
 			ftick_hdr->pid, &reused_creds);
@@ -443,11 +441,6 @@ retry:
 	if (err == EWOULDBLOCK) {
 		SDT_PROBE2(fusefs, , ipc, trace, 3,
 			"fticket_wait_answer: EWOULDBLOCK");
-#ifdef XXXIP				/* die conditionally */
-		if (!fdata_get_dead(data)) {
-			fdata_set_dead(data);
-		}
-#endif
 		err = ETIMEDOUT;
 		fticket_set_answered(ftick);
 	} else if ((err == EINTR || err == ERESTART)) {
@@ -593,7 +586,7 @@ fdata_set_dead(struct fuse_data *data)
 	fuse_lck_mtx_lock(data->ms_mtx);
 	data->dataflags |= FSESS_DEAD;
 	wakeup_one(data);
-	selwakeuppri(&data->ks_rsel, PZERO + 1);
+	selwakeuppri(&data->ks_rsel, PZERO);
 	wakeup(&data->ticketer);
 	fuse_lck_mtx_unlock(data->ms_mtx);
 	FUSE_UNLOCK();
@@ -669,7 +662,7 @@ fuse_insert_message(struct fuse_ticket *ftick, bool urgent)
 	else
 		fuse_ms_push(ftick);
 	wakeup_one(ftick->tk_data);
-	selwakeuppri(&ftick->tk_data->ks_rsel, PZERO + 1);
+	selwakeuppri(&ftick->tk_data->ks_rsel, PZERO);
 	KNOTE_LOCKED(&ftick->tk_data->ks_rsel.si_note, 0);
 	fuse_lck_mtx_unlock(ftick->tk_data->ms_mtx);
 }
@@ -873,7 +866,7 @@ fuse_setup_ihead(struct fuse_in_header *ihead, struct fuse_ticket *ftick,
 
 	ihead->pid = pid;
 	ihead->uid = cred->cr_uid;
-	ihead->gid = cred->cr_groups[0];
+	ihead->gid = cred->cr_gid;
 }
 
 /*

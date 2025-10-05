@@ -11,12 +11,10 @@ CONFS=	DAEMON \
 	SERVERS \
 	adjkerntz \
 	bgfsck \
-	${_blacklistd} \
 	bridge \
 	cfumass \
 	cleanvar \
 	cleartmp \
-	ctld \
 	ddb \
 	defaultroute \
 	devfs \
@@ -24,9 +22,6 @@ CONFS=	DAEMON \
 	dumpon \
 	fdescfs \
 	fsck \
-	geli \
-	geli2 \
-	gptboot \
 	growfs \
 	growfs_fstab \
 	hostid \
@@ -35,17 +30,12 @@ CONFS=	DAEMON \
 	iovctl \
 	ip6addrctl \
 	ipsec \
-	${_kadmind} \
-	${_kdc} \
-	${_kfd} \
 	kld \
 	kldxref \
-	${_kpasswdd} \
 	ldconfig \
 	linux \
 	local \
 	localpkg \
-	lockd \
 	mixer \
 	motd \
 	mountcritlocal \
@@ -53,27 +43,14 @@ CONFS=	DAEMON \
 	mountlate \
 	mdconfig \
 	mdconfig2 \
-	mountd \
 	msgs \
-	natd \
 	netif \
 	netoptions \
 	netwait \
 	noshutdown \
-	newsyslog \
-	nfsclient \
-	nfscbd \
-	nfsd \
-	nfsuserd \
-	nisdomain \
 	${_nscd} \
 	${_opensm} \
 	os-release \
-	pf \
-	pflog \
-	pfsync \
-	powerd \
-	ppp \
 	pppoed \
 	procfs \
 	pwcheck \
@@ -82,16 +59,13 @@ CONFS=	DAEMON \
 	rarpd \
 	rctl \
 	root \
-	route6d \
 	routing \
 	rpcbind \
 	rtadvd \
 	rtsold \
-	rwho \
 	savecore \
 	securelevel \
 	serial \
-	statd \
 	static_arp \
 	static_ndp \
 	stf \
@@ -99,11 +73,9 @@ CONFS=	DAEMON \
 	swaplate \
 	sysctl \
 	sysctl_lastload \
-	syslogd \
 	sysvipc \
 	tmp \
 	ugidfw \
-	${_utx} \
 	var \
 	var_run \
 	watchdogd \
@@ -241,12 +213,6 @@ BSNMPPACKAGE=	bsnmp
 CONFGROUPS+=	CCD
 CCD=		ccd
 CCDPACKAGE=	ccdconfig
-.endif
-
-.if ${MK_FTP} != "no"
-CONFGROUPS+=	FTPD
-FTPD=		ftpd
-FTPDPACKAGE=	ftpd
 .endif
 
 .if ${MK_CUSE} != "no"

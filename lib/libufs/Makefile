@@ -1,4 +1,6 @@
 PACKAGE=	ufs
+LIB_PACKAGE=
+
 LIB=	ufs
 SHLIBDIR?= /lib
 SHLIB_MAJOR=	8

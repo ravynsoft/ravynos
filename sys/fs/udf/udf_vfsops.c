@@ -32,7 +32,7 @@
 /*
  * Ok, here's how it goes.  The UDF specs are pretty clear on how each data
  * structure is made up, but not very clear on how they relate to each other.
- * Here is the skinny... This demostrates a filesystem with one file in the
+ * Here is the skinny... This demonstrates a filesystem with one file in the
  * root directory.  Subdirectories are treated just as normal files, but they
  * have File Id Descriptors of their children as their file data.  As for the
  * Anchor Volume Descriptor Pointer, it can exist in two of the following three
@@ -81,6 +81,7 @@
 #include <sys/fcntl.h>
 #include <sys/iconv.h>
 #include <sys/kernel.h>
+#include <sys/limits.h>
 #include <sys/malloc.h>
 #include <sys/mount.h>
 #include <sys/namei.h>
@@ -729,7 +730,7 @@ udf_fhtovp(struct mount *mp, struct fid *fhp, int flags, struct vnode **vpp)
 	struct ifid *ifhp;
 	struct vnode *nvp;
 	struct udf_node *np;
-	off_t fsize;
+	uint64_t fsize;
 	int error;
 
 	ifhp = (struct ifid *)fhp;
@@ -741,6 +742,10 @@ udf_fhtovp(struct mount *mp, struct fid *fhp, int flags, struct vnode **vpp)
 
 	np = VTON(nvp);
 	fsize = le64toh(np->fentry->inf_len);
+	if (fsize > OFF_MAX) {
+		*vpp = NULLVP;
+		return (EIO);
+	}
 
 	*vpp = nvp;
 	vnode_create_vobject(*vpp, fsize, curthread);
