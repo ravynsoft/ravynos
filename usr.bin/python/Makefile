@@ -22,7 +22,7 @@ ${PROG}:
 install:
 	ln -sfv python3.10 ${DESTDIR}${PREFIX}/bin/python3
 	ln -sfv python3 ${DESTDIR}${PREFIX}/bin/python
-	${MAKE} -C ${.CURDIR}/Mako ${.TARGET}
+	#${MAKE} -C ${.CURDIR}/Mako ${.TARGET}
 
 installconfig: .PHONY
 includes: .PHONY

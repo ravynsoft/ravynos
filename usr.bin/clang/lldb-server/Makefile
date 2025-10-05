@@ -47,6 +47,7 @@ LIBADD+=	edit
 LIBADD+=	execinfo
 LIBADD+=	lua
 LIBADD+=	lzma
+LIBADD+=	mach
 LIBADD+=	ncursesw
 LIBADD+=	panel
 LIBADD+=	pthread

@@ -29,6 +29,7 @@ ioctl_includes=$(
 	# find -s would avoid the need to invoke sort but it is non-portable
 	find -L ./* -type f -name '*.h' | \
 		LC_ALL=C sort | \
+		egrep -v '(mach/|apple/)' | \
 		$filter | \
 		xargs egrep -l \
 '^#[ 	]*define[ 	]+[A-Za-z_][A-Za-z0-9_]*[ 	]+_IO[^a-z0-9_]' |

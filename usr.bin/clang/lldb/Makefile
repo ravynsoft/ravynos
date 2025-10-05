@@ -41,6 +41,7 @@ LIBADD+=	execinfo
 LIBADD+=	kvm
 LIBADD+=	lua
 LIBADD+=	lzma
+LIBADD+=	mach
 LIBADD+=	ncursesw
 LIBADD+=	panelw
 LIBADD+=	pthread

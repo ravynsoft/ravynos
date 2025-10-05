@@ -23,5 +23,7 @@ TGHDRS+=	${INCFILE}
 DEPENDFILES+=	${TGHDRS:C/$/.d/}
 DPSRCS+=	${TGHDRS}
 CLEANFILES+=	${TGHDRS} ${TGHDRS:C/$/.d/}
+LIBADD+=	mach
+LDFLAGS+=	-lmach
 
 .include "../clang.prog.mk"
