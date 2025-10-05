@@ -4,6 +4,8 @@
  * DO NOT EDIT-- this file is automatically @generated.
  */
 
+#define	SYS_exit	SYS__exit
+
 #define	SYS_syscall	0
 #define	SYS__exit	1
 #define	SYS_fork	2

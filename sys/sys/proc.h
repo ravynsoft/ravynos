@@ -388,7 +388,7 @@ struct thread {
 	void		*td_emuldata;	/* Emulator state data */
 	mi_switchcb_t	td_cswitchcb;	/* (k) context switch callback */
 	struct threadlist *td_threadlist; /* (?) thread workq thread list */
-	void		*td_reuse_stack   /* (?) reuse workq thread stack */
+	void		*td_reuse_stack;  /* (?) reuse workq thread stack */
 	void		*td_machdata;	/* (k) mach state */
 	int		td_lastcpu;	/* (t) Last cpu we were on. */
 	int		td_oncpu;	/* (t) Which cpu we are on. */

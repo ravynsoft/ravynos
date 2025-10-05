@@ -17,9 +17,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 0;
 		break;
 	}
-	/* exit */
+	/* _exit */
 	case 1: {
-		struct exit_args *p = params;
+		struct _exit_args *p = params;
 		iarg[a++] = p->rval; /* int */
 		*n_args = 1;
 		break;
@@ -452,22 +452,6 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		uarg[a++] = p->len; /* size_t */
 		uarg[a++] = (intptr_t)p->vec; /* char * */
 		*n_args = 3;
-		break;
-	}
-	/* getgroups */
-	case 79: {
-		struct getgroups_args *p = params;
-		iarg[a++] = p->gidsetsize; /* int */
-		uarg[a++] = (intptr_t)p->gidset; /* gid_t * */
-		*n_args = 2;
-		break;
-	}
-	/* setgroups */
-	case 80: {
-		struct setgroups_args *p = params;
-		iarg[a++] = p->gidsetsize; /* int */
-		uarg[a++] = (intptr_t)p->gidset; /* const gid_t * */
-		*n_args = 2;
 		break;
 	}
 	/* getpgrp */
@@ -3551,6 +3535,54 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 3;
 		break;
 	}
+	/* inotify_add_watch_at */
+	case 593: {
+		struct inotify_add_watch_at_args *p = params;
+		iarg[a++] = p->fd; /* int */
+		iarg[a++] = p->dfd; /* int */
+		uarg[a++] = (intptr_t)p->path; /* const char * */
+		uarg[a++] = p->mask; /* uint32_t */
+		*n_args = 4;
+		break;
+	}
+	/* inotify_rm_watch */
+	case 594: {
+		struct inotify_rm_watch_args *p = params;
+		iarg[a++] = p->fd; /* int */
+		iarg[a++] = p->wd; /* int */
+		*n_args = 2;
+		break;
+	}
+	/* getgroups */
+	case 595: {
+		struct getgroups_args *p = params;
+		iarg[a++] = p->gidsetsize; /* int */
+		uarg[a++] = (intptr_t)p->gidset; /* gid_t * */
+		*n_args = 2;
+		break;
+	}
+	/* setgroups */
+	case 596: {
+		struct setgroups_args *p = params;
+		iarg[a++] = p->gidsetsize; /* int */
+		uarg[a++] = (intptr_t)p->gidset; /* const gid_t * */
+		*n_args = 2;
+		break;
+	}
+	/* jail_attach_jd */
+	case 597: {
+		struct jail_attach_jd_args *p = params;
+		iarg[a++] = p->fd; /* int */
+		*n_args = 1;
+		break;
+	}
+	/* jail_remove_jd */
+	case 598: {
+		struct jail_remove_jd_args *p = params;
+		iarg[a++] = p->fd; /* int */
+		*n_args = 1;
+		break;
+	}
 	/* _kernelrpc_mach_vm_allocate_trap */
 	case 610: {
 		struct _kernelrpc_mach_vm_allocate_trap_args *p = params;
@@ -3963,7 +3995,7 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 	/* syscall */
 	case 0:
 		break;
-	/* exit */
+	/* _exit */
 	case 1:
 		switch (ndx) {
 		case 0:
@@ -4644,32 +4676,6 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		case 2:
 			p = "userland char *";
-			break;
-		default:
-			break;
-		};
-		break;
-	/* getgroups */
-	case 79:
-		switch (ndx) {
-		case 0:
-			p = "int";
-			break;
-		case 1:
-			p = "userland gid_t *";
-			break;
-		default:
-			break;
-		};
-		break;
-	/* setgroups */
-	case 80:
-		switch (ndx) {
-		case 0:
-			p = "int";
-			break;
-		case 1:
-			p = "userland const gid_t *";
 			break;
 		default:
 			break;
@@ -9903,6 +9909,84 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
+	/* inotify_add_watch_at */
+	case 593:
+		switch (ndx) {
+		case 0:
+			p = "int";
+			break;
+		case 1:
+			p = "int";
+			break;
+		case 2:
+			p = "userland const char *";
+			break;
+		case 3:
+			p = "uint32_t";
+			break;
+		default:
+			break;
+		};
+		break;
+	/* inotify_rm_watch */
+	case 594:
+		switch (ndx) {
+		case 0:
+			p = "int";
+			break;
+		case 1:
+			p = "int";
+			break;
+		default:
+			break;
+		};
+		break;
+	/* getgroups */
+	case 595:
+		switch (ndx) {
+		case 0:
+			p = "int";
+			break;
+		case 1:
+			p = "userland gid_t *";
+			break;
+		default:
+			break;
+		};
+		break;
+	/* setgroups */
+	case 596:
+		switch (ndx) {
+		case 0:
+			p = "int";
+			break;
+		case 1:
+			p = "userland const gid_t *";
+			break;
+		default:
+			break;
+		};
+		break;
+	/* jail_attach_jd */
+	case 597:
+		switch (ndx) {
+		case 0:
+			p = "int";
+			break;
+		default:
+			break;
+		};
+		break;
+	/* jail_remove_jd */
+	case 598:
+		switch (ndx) {
+		case 0:
+			p = "int";
+			break;
+		default:
+			break;
+		};
+		break;
 	/* _kernelrpc_mach_vm_allocate_trap */
 	case 610:
 		switch (ndx) {
@@ -10590,7 +10674,7 @@ systrace_return_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 	switch (sysnum) {
 	/* syscall */
 	case 0:
-	/* exit */
+	/* _exit */
 	case 1:
 		if (ndx == 0 || ndx == 1)
 			p = "void";
@@ -10840,16 +10924,6 @@ systrace_return_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 		break;
 	/* mincore */
 	case 78:
-		if (ndx == 0 || ndx == 1)
-			p = "int";
-		break;
-	/* getgroups */
-	case 79:
-		if (ndx == 0 || ndx == 1)
-			p = "int";
-		break;
-	/* setgroups */
-	case 80:
 		if (ndx == 0 || ndx == 1)
 			p = "int";
 		break;
@@ -12599,6 +12673,36 @@ systrace_return_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 		break;
 	/* exterrctl */
 	case 592:
+		if (ndx == 0 || ndx == 1)
+			p = "int";
+		break;
+	/* inotify_add_watch_at */
+	case 593:
+		if (ndx == 0 || ndx == 1)
+			p = "int";
+		break;
+	/* inotify_rm_watch */
+	case 594:
+		if (ndx == 0 || ndx == 1)
+			p = "int";
+		break;
+	/* getgroups */
+	case 595:
+		if (ndx == 0 || ndx == 1)
+			p = "int";
+		break;
+	/* setgroups */
+	case 596:
+		if (ndx == 0 || ndx == 1)
+			p = "int";
+		break;
+	/* jail_attach_jd */
+	case 597:
+		if (ndx == 0 || ndx == 1)
+			p = "int";
+		break;
+	/* jail_remove_jd */
+	case 598:
 		if (ndx == 0 || ndx == 1)
 			p = "int";
 		break;

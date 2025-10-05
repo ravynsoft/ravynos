@@ -6,7 +6,7 @@
 
 MIASM =  \
 	syscall.o \
-	exit.o \
+	_exit.o \
 	fork.o \
 	read.o \
 	write.o \
@@ -65,8 +65,8 @@ MIASM =  \
 	mprotect.o \
 	madvise.o \
 	mincore.o \
-	getgroups.o \
-	setgroups.o \
+	freebsd14_getgroups.o \
+	freebsd14_setgroups.o \
 	getpgrp.o \
 	setpgid.o \
 	setitimer.o \
@@ -443,6 +443,12 @@ MIASM =  \
 	fchroot.o \
 	setcred.o \
 	exterrctl.o \
+	inotify_add_watch_at.o \
+	inotify_rm_watch.o \
+	getgroups.o \
+	setgroups.o \
+	jail_attach_jd.o \
+	jail_remove_jd.o \
 	_kernelrpc_mach_vm_allocate_trap.o \
 	_kernelrpc_mach_vm_deallocate_trap.o \
 	_kernelrpc_mach_vm_protect_trap.o \
