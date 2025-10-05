@@ -1016,3 +1016,11 @@ PRESERVE_EARLY_KENV	opt_global.h
 
 # Options for the Intel QuickAssist (QAT) driver.
 QAT_DISABLE_SAFE_DC_MODE	opt_qat.h
+
+# Mach support options
+COMPAT_MACH_STATIC
+COMPAT_MACH_PORT_DEBUG opt_compat_mach.h
+
+# PThread WorkQueue Option
+THRWORKQ		opt_thrworkq.h
+

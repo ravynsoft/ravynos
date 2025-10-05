@@ -38,6 +38,7 @@
 #endif
 #include <sys/limits.h>
 #include <sys/lock.h>
+#include <sys/mman.h>
 #include <sys/mutex.h>
 #include <sys/priv.h>
 #include <sys/proc.h>
@@ -779,7 +780,7 @@ kern_thr_stack(struct proc *p, void **addr, vm_size_t stacksz,
 
 	map = &p->p_vmspace->vm_map;
 	error = vm_mmap(map, &stackaddr, (stacksz + guardsz), VM_PROT_ALL,
-	PROT_READ | PROT_WRITE, MAP_STACK, OBJT_DEFAULT, NULL, 0);
+	    PROT_READ | PROT_WRITE, MAP_STACK, OBJT_DEFAULT, NULL, 0);
 	if (error)
 		return (error);
 

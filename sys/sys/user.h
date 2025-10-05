@@ -267,6 +267,9 @@ struct user {
 #define	KF_TYPE_TIMERFD	14
 #define	KF_TYPE_INOTIFY	15
 #define	KF_TYPE_JAILDESC	16
+/* tired of renumbering these whenever upstream adds types... */
+#define	KF_TYPE_PORT	253
+#define	KF_TYPE_PORTSET	254
 #define	KF_TYPE_UNKNOWN	255
 
 #define	KF_VTYPE_VNON	0

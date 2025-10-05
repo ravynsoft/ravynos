@@ -1012,7 +1012,7 @@ vm_map_entry_max_free_right(vm_map_entry_t root, vm_map_entry_t right_ancestor)
  *	in the appropriate direction and backtracking as much as necessary.
  *	vm_map_entry_succ is defined in vm_map.h.
  */
-static inline vm_map_entry_t
+inline vm_map_entry_t
 vm_map_entry_pred(vm_map_entry_t entry)
 {
 	vm_map_entry_t prior;
@@ -2490,7 +2490,7 @@ vm_map_entry_clone(vm_map_t map, vm_map_entry_t entry)
  *	the specified address; if necessary,
  *	it splits the entry into two.
  */
-static int
+int
 vm_map_clip_start(vm_map_t map, vm_map_entry_t entry, vm_offset_t startaddr)
 {
 	vm_map_entry_t new_entry;
@@ -2563,7 +2563,7 @@ vm_map_lookup_clip_start(vm_map_t map, vm_offset_t start,
  *	the specified address; if necessary,
  *	it splits the entry into two.
  */
-static int
+int
 vm_map_clip_end(vm_map_t map, vm_map_entry_t entry, vm_offset_t endaddr)
 {
 	vm_map_entry_t new_entry;
