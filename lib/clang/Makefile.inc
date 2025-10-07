@@ -1,5 +1,6 @@
 .include <src.opts.mk>
 
+NO_MACH=	yes
 PACKAGE=	clang
 MK_PIE:=	no	# Explicit libXXX.a references
 

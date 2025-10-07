@@ -1,6 +1,8 @@
 .include <bsd.init.mk>
 .include "../llvm.pre.mk"
 
+NO_MACH=	yes
+
 .if defined(TOOLS_PREFIX)
 # Build static library during cross-tools stage
 LIB=		llvm

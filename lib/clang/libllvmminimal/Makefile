@@ -1,6 +1,7 @@
 .include <bsd.init.mk>
 .include "../llvm.pre.mk"
 
+NO_MACH=	yes
 LIB=		llvmminimal
 INTERNALLIB=
 
