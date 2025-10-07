@@ -15,6 +15,7 @@ install:
 
 installconfig: .PHONY
 includes: .PHONY
+installincludes: .PHONY
 cleandir: .PHONY
 cleandepend:
 	rm -f .depend .depend.*
