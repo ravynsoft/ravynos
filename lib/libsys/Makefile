@@ -26,6 +26,7 @@ MK_SSP=		no
 INCS=	libsys.h _libsys.h
 
 CFLAGS+=-DLIBSYS
+CFLAGS+=-D__MACH__
 
 CFLAGS+=-I${LIBSYS_SRCTOP}/include -I${LIBC_SRCTOP}/include
 CFLAGS+=-I${LIBSYS_SRCTOP}/${LIBC_ARCH}

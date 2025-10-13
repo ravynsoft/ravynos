@@ -32,7 +32,7 @@
 }
 
 -(void)applicationWillFinishLaunching:(NSNotification *)note {
-    NSImage *img = [[NSImage alloc] initWithContentsOfFile:@"/System/Library/Desktop Pictures/waves_snek_tinted.png"];
+    NSImage *img = [[NSImage alloc] initWithContentsOfFile:@"/System/Library/Desktop Pictures/waves_purple.png"];
     [img setScalesWhenResized:YES];
     wallpaper = [[NSImageView alloc] initWithFrame:_frame];
     [wallpaper setImage:img];

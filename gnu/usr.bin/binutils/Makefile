@@ -1,7 +1,4 @@
 distribute:
-	rm -f ${OBJTOP}/tmp/legacy/bin/ar
-	ln -f ${OBJTOP}/usr.bin/ar/ar \
-		${OBJTOP}/tmp/legacy/bin/ar
 	ln -sfv ${OBJTOP}/tmp/legacy/bin/install \
 		${MAKEOBJDIR}/install
 	PATH=$$PATH:${OBJTOP}/tmp/usr/bin \

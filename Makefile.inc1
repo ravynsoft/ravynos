@@ -1018,9 +1018,9 @@ IMAKE_MTREE=	MTREE_CMD="${MTREE_CMD} ${MTREEFLAGS}"
 .if ${DISTDIR:U/} == /
 .error DISTDIR must be set for make distribute* and make package*, and may not be the root directory.
 .endif
-.if !defined(NO_ROOT) || !defined(METALOG)
-.error NO_ROOT and METALOG must be set for make distribute* and make package*.
-.endif
+#.if !defined(NO_ROOT) || !defined(METALOG)
+#.error NO_ROOT and METALOG must be set for make distribute* and make package*.
+#.endif
 .endif
 
 .if make(distributeworld)
