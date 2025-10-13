@@ -3,7 +3,8 @@ SRCS=           LoginWindow.m \
                 DesktopWindow.m \
                 LoginBox.m \
                 Label.m 
-RESOURCES=      ${SRCTOP}/Logo_Assets/ravynos-full.png ${.CURDIR}/../SneakySnek.png
+RESOURCES=      ${SRCTOP}/Logo_Assets/ravynos-full.png \
+		${SRCTOP}/Logo_Assets/hyena.png
 
 MK_WERROR=	no
 MK_PIE=		no

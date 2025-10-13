@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022-2024 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022-2025 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -83,7 +83,7 @@ extern int fd;
     [logoView setImageScaling:NSImageScaleAxesIndependently];
     [logoView setImageAlignment:NSImageAlignCenter];
 
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"SneakySnek" ofType:@"png"];
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"hyena" ofType:@"png"];
     NSImage *logo = [[NSImage alloc] initWithContentsOfFile:path];
     [logo setScalesWhenResized:YES];
     [logoView setImage:logo];
