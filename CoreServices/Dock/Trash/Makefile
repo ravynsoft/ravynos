@@ -5,6 +5,7 @@ RESOURCES=	${.CURDIR}/Trash.png ${.CURDIR}/Trash_full.png
 Trash.o: Trash.m Trash.h
 
 MK_WERROR=	no
+MK_PIE=		no
 CFLAGS+=	-g -fPIC -fobjc-arc --sysroot=${OBJTOP}/tmp \
 		-B${OBJTOP}/tmp/usr/bin -I${SRCTOP}/Frameworks \
 		-I${OBJTOP}/Frameworks/Foundation/Headers

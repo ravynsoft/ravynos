@@ -14,6 +14,7 @@ RESOURCES=	${.CURDIR}/../Icon.png ${.CURDIR}/ravynos-mark-64.png \
                 ${.CURDIR}/../SneakySnek.png ${.CURDIR}/kickSession
 
 MK_WERROR=	no
+MK_PIE=		no
 WARNS=	        1
 OBJCFLAGS= -fobjc-runtime=gnustep-2.0 -fobjc-nonfragile-abi -fPIC \
 	   -Wno-missing-method-return-type -Wno-macro-redefined

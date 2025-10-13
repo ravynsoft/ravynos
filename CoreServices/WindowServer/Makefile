@@ -24,6 +24,7 @@ RESOURCES=	${.CURDIR}/Icon.png \
 		${.CURDIR}/Decorations/zoomDownHover.png
 
 MK_WERROR=	no
+MK_PIE=		no
 WARNS=	        1
 SYSROOT=        --sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin
 CFLAGS+=	-fobjc-arc -g -D__RAVYNOS__ -D__MACH__ -D__WSRPC -pthread \
@@ -52,7 +53,7 @@ LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' -L${MAKEOBJDIR} \
 		${MAKEOBJDIR}/libxkbcommon/src/*.pico \
 		${MAKEOBJDIR}/libxkbcommon/src/compose/*.pico \
 		${MAKEOBJDIR}/libxkbcommon/src/xkbcomp/*.pico \
-		${OBJTOP}/tmp/lib/libutil.so.9 -L${MAKEOBJDIR}/libinput -linput \
+		${OBJTOP}/tmp/lib/libutil.so.10 -L${MAKEOBJDIR}/libinput -linput \
 		-ludev -lCoreText -lAppKit -lFoundation -lCoreGraphics -lcrypt -llaunch \
 		-lCoreFoundation -lOnyx2D -lxml2 -pthread -lobjc -lSystem -lkvm -lm \
 		${OBJTOP}/tmp/lib/libc.so.7

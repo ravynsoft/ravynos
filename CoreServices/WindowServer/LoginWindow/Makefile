@@ -6,6 +6,7 @@ SRCS=           LoginWindow.m \
 RESOURCES=      ${SRCTOP}/Logo_Assets/ravynos-full.png ${.CURDIR}/../SneakySnek.png
 
 MK_WERROR=	no
+MK_PIE=		no
 WARNS=	        1
 OBJCFLAGS= -fobjc-runtime=gnustep-2.0 -fobjc-nonfragile-abi -fPIC \
 	   -Wno-missing-method-return-type -Wno-macro-redefined

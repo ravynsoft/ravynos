@@ -5,6 +5,7 @@ RESOURCES=	${.CURDIR}/Downloads.png
 Downloads.o: Downloads.m Downloads.h
 
 MK_WERROR=	no
+MK_PIE=		no
 CFLAGS+=	-g -fPIC -fobjc-arc --sysroot=${OBJTOP}/tmp \
 		-B${OBJTOP}/tmp/usr/bin -I${SRCTOP}/Frameworks \
 		-I${OBJTOP}/Frameworks/Foundation/Headers
