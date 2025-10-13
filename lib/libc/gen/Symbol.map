@@ -438,13 +438,6 @@ FBSD_1.6 {
 	sigorset;
 	tcgetwinsize;
 	tcsetwinsize;
-
-	/* ravynOS */
-	_NSGetArgc;
-	_NSGetArgv;
-	_NSGetEnviron;
-	_NSGetProgname;
-	_NSGetMachExecuteHeader;
 };
 
 FBSD_1.7 {
@@ -609,8 +602,4 @@ FBSDprivate_1.0 {
 	__getcontextx_size;
 	__makecontext;
 	__uexterr_format;
-
-	/* ravynOS */
-	__argc;
-	__argv;
 };
