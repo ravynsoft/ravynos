@@ -9,7 +9,7 @@ TMPLEGACY=${BUILDROOT}/tmp/legacy/bin
 
 __MAKE_CONF=$PWD/tools/ravynOS/make.conf
 
-export PREFIX __MAKE_CONF
+export PREFIX __MAKE_CONF CIRRUS_WORKING_DIR PLATFORM
 
 install() {
     cd ${CIRRUS_WORKING_DIR}
@@ -153,8 +153,11 @@ systempkg() {
 isoalt() {
     cp -fv version.txt ISO/overlays/ramdisk/version
     mkdir -p /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base
-    cp -fv /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/base.txz /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/kernel.txz ${CIRRUS_WORKING_DIR}/dist/ravynOS.txz /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base/
-    cd ISO; RAVYNOS=${CIRRUS_WORKING_DIR} ./build.sh ravynOS ravynOS_$(head -1 ../version.txt)
+    cp -fv /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/base.txz \
+      /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/kernel.txz \
+      ${CIRRUS_WORKING_DIR}/dist/ravynOS.txz \
+      /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base/
+    cd ISO; RAVYNOS=${CIRRUS_WORKING_DIR} ./build.sh
 }
 
 iso_build() {
