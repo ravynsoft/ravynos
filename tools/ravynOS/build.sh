@@ -1,3 +1,4 @@
+#!/usr/bin/env zsh
 CIRRUS_WORKING_DIR=${CIRRUS_WORKING_DIR:-$PWD}
 PLATFORM=${PLATFORM:-$(uname -m).$(uname -p)}
 PREFIX=${PREFIX:-/usr}
@@ -167,22 +168,63 @@ iso_build() {
     isoalt
 }
 
-echo ravynOS Build Tool [Prefix ${PREFIX} Cores ${CORES} Platform ${PLATFORM}]
+set_options() {
+    if [ $log -eq 1 ]; then
+        if [ $preserve -eq 0 ]; then
+            exec > >(tee ${logfile}) 2>&1
+        else
+            exec > >(tee -a ${logfile}) 2>&1
+        fi
+     fi
+    echo "ravynOS Build Tool [Prefix ${PREFIX} Cores ${CORES} Platform ${PLATFORM}]"
+    echo "Log: " $log " Preserve: " $preserve
+}
+
+usage() {
+    echo "Usage: " $(basename $0) " [-n] [-p] target [target] ..."
+    echo "    -n    No Log - do not create a log file"
+    echo "    -p    Preserve Log - append to existing file"
+    echo ""
+    echo "Targets:"
+    echo "    base kernel system extras drm basepkg kernelpkg systempkg"
+    echo "    cleanpkg iso isoalt install all"
+    echo ""
+}
+
+preserve=0
+log=1
+logfile="build.log"
+set -A targets
+
 while ! [ "z$1" = "z" ]; do
     case "$1" in
+        -n) log=0 ;;
+        -p) preserve=1 ;;
+        --) ;;
+        *) targets="${targets} $1" ;;
+    esac
+    shift
+done
+set_options
+
+set -- $targets
+while ! [ "z$1" = "z" ]; do
+    arg=$(echo $1|sed -e 's/[\t ]*//g') # trim whitespace
+    case "$arg" in
         base) base_build ;;
         kernel) kernel_build ;;
         system) system_build ;;
         extras) extras_build ;;
-	drm) drm_build ;;
+      	drm) drm_build ;;
         iso) iso_build ;;
         basepkg) basepkg ;;
         kernelpkg) kernelpkg ;;
         systempkg) systempkg ;;
         isoalt) isoalt ;;
-	cleanpkg) cleanpkg ;;
-	install) install ;;
-        all) kernel_build; drm_build; base_build; system_build; extras_build; iso_build ;;
+	      cleanpkg) cleanpkg ;;
+	      install) install ;;
+        all) kernel_build; drm_build; base_build; \
+             system_build; extras_build; iso_build ;;
     esac
     shift
 done
