@@ -39,9 +39,23 @@ if [ "$(id -u)" != "0" ]; then
   exit 1
 fi
 
+cleanup() {
+  if [ -n "$CIRRUS_CI" ] ; then
+      # On CI systems there is no reason to clean up which takes time
+      return 0
+  else
+      umount ${uzip}/dev >/dev/null 2>/dev/null || true
+      zpool destroy -f furybsd >/dev/null 2>/dev/null || true
+      mdconfig -d -u 0 >/dev/null 2>/dev/null || true
+      rm ${livecd}/pool.img >/dev/null 2>/dev/null || true
+      rm -rf ${cdroot} >/dev/null 2>/dev/null || true
+  fi
+}
+
 mkdir -p ${workdir}/furybsd
 rm ${workdir}/furybsd/version >/dev/null 2>/dev/null || true
-echo "ravynOS_${version}" > ${workdir}/furybsd/tag
+tag="ravynOS_${version}"
+echo $tag > ${workdir}/furybsd/tag
 
 # Get the short git SHA
 SHA=$(echo ${CIRRUS_CHANGE_IN_REPO}| cut -c1-7)
@@ -52,17 +66,7 @@ if [ ! -z "${CIRRUS_BUILD_ID}" ]; then
 fi
 isopath="${iso}/${tag}_${CILABEL}${arch}.iso"
 
-### Cleanup
-if [ -n "$CIRRUS_CI" ] ; then
-    # On CI systems there is no reason to clean up which takes time
-    return 0
-else
-    umount ${uzip}/dev >/dev/null 2>/dev/null || true
-    zpool destroy -f furybsd >/dev/null 2>/dev/null || true
-    mdconfig -d -u 0 >/dev/null 2>/dev/null || true
-    rm ${livecd}/pool.img >/dev/null 2>/dev/null || true
-    rm -rf ${cdroot} >/dev/null 2>/dev/null || true
-fi
+cleanup
 
 ### Set up the workspace
 mkdir -p "${livecd}" "${base}" "${iso}" "${uzip}" "${ramdisk_root}/dev" "${ramdisk_root}/etc" >/dev/null 2>/dev/null
@@ -99,7 +103,10 @@ chroot ${uzip} chown -R 1000:1000 /Users/liveuser
 chroot ${uzip} pw groupmod wheel -m liveuser
 chroot ${uzip} pw groupmod video -m liveuser
 
-### FIXME: install the overlays now
+### Install the overlays now
+cd overlays/uzip
+cp -rpvf * "${uzip}/"
+cd ../..
 
 if [ -e "${cwd}/settings/script.ravynOS" ] ; then
     "${cwd}/settings/script.ravynOS"
@@ -118,6 +125,8 @@ if [ -n "$CIRRUS_CI" ] ; then
 fi
 
 ### Create the uzip from our ZFS volume
+umount "${uzip}/dev"
+umount furybsd
 install -o root -g wheel -m 755 -d "${cdroot}"
 zfs set mountpoint=/sysroot furybsd
 cd ${cwd} && zpool export furybsd && while zpool status furybsd >/dev/null; do :; done 2>/dev/null
@@ -143,9 +152,10 @@ cd "${uzip}" && tar -cf - boot | tar -xf - -C "${cdroot}"
 cp -R "${cwd}/overlays/boot/" "${cdroot}"
 cd ${cwd} && zpool export furybsd && mdconfig -d -u 0
 
-
 ### Finally, build the ISO image from the components
 sh "${cwd}/scripts/mkisoimages-${arch}.sh" -b "${label}" "${isopath}" "${cdroot}"
 sync ### Needed?
 md5 "${isopath}" > "${isopath}.md5"
 echo "$isopath created"
+
+cleanup

@@ -133,7 +133,7 @@ basepkg() {
     cd ${CIRRUS_WORKING_DIR}
     DISTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist
     mkdir -p ${DISTDIR}
-    make -DNO_ROOT distributeworld NO_PORTS=true NOSRC=true DISTDIR=${DISTDIR}
+    make -DNO_ROOT -DNOPKGBASE distributeworld NO_PORTS=true NOSRC=true DISTDIR=${DISTDIR}
     # Bootstrap etcupdate(8) database.
     sh ${CIRRUS_WORKING_DIR}/usr.sbin/etcupdate/etcupdate.sh extract -B \
         -m "make" -M "TARGET_ARCH=$(uname -m) TARGET=$(uname -p)" \
@@ -201,13 +201,13 @@ while ! [ "z$1" = "z" ]; do
         -n) log=0 ;;
         -p) preserve=1 ;;
         --) ;;
-        *) targets="${targets} $1" ;;
+        *) targets+=("$1") ;;
     esac
     shift
 done
 set_options
 
-set -- $targets
+set -- $targets[@]
 while ! [ "z$1" = "z" ]; do
     arg=$(echo $1|sed -e 's/[\t ]*//g') # trim whitespace
     case "$arg" in

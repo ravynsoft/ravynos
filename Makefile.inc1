@@ -1571,8 +1571,7 @@ distributeworld installworld stageworld: _installcheck_world .PHONY
 packageworld: .PHONY
 .for dist in base ${EXTRA_DISTRIBUTIONS}
 	${_+_}cd ${DESTDIR}/${DISTDIR}/${dist}; \
-	    ${TAR_CMD} cvf - --exclude usr/lib/debug \
-	    @${DESTDIR}/${DISTDIR}/${dist}.meta | \
+	    ${TAR_CMD} cvf - --exclude usr/lib/debug  . \
 	    ${XZ_CMD} > ${PACKAGEDIR}/${dist}.txz
 .endfor
 

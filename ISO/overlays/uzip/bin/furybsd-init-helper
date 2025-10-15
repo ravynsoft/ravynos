@@ -1,0 +1,16 @@
+#!/bin/sh
+
+BOOTMODE=$(/sbin/sysctl -n machdep.bootmethod)
+export BOOTMODE
+
+VM_GUEST=$(/sbin/sysctl -n kern.vm_guest)
+export VM_GUEST
+
+HV_VENDOR=$(/sbin/sysctl -n hw.hv_vendor | /usr/bin/awk '{print $1}')
+export HV_VENDOR
+
+# Set hostname other than the default based on SMBIOS information
+HOSTNAME=$(hostname)
+if [ "${HOSTNAME}" = "ravynOS" ] ; then
+  hostname $(kenv -q "smbios.system.product" | xargs | sed -e 's| |-|g')
+fi

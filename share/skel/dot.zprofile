@@ -1,6 +1,8 @@
 #
 # .zprofile - Zed Shell startup script for login shells
 
+bindkey -e
+
 EDITOR=vi;   	export EDITOR
 PAGER=less;  	export PAGER
 
@@ -16,5 +18,5 @@ export TERM
 # Query terminal size; useful for serial lines.
 if [ -x /usr/bin/resizewin ] ; then /usr/bin/resizewin -z ; fi
 
-PROMPT='%B%F{white}[%F{cyan}%m%F{white}F{cyan}%n%F{white} %b%~%B]%#%b%f '
+PROMPT='%B%F{white}[%F{cyan}%m%F{white}!%F{cyan}%n%F{white} %b%~%B]%#%b%f '
 export PROMPT
