@@ -1,0 +1,75 @@
+<testcase>
+<info>
+<keywords>
+HTTP
+HTTP GET
+compressed
+Transfer-Encoding
+chunked Transfer-Encoding
+</keywords>
+</info>
+#
+# Server-side
+<reply>
+<data>
+HTTP/1.1 200 OK
+Date: Mon, 29 Nov 2024 21:56:53 GMT
+Server: Something-TE-friendly/0.1
+Vary: Accept-Encoding
+Content-Type: text/html; charset=ISO-8859-1
+Transfer-Encoding: gzip, chunked
+
+2c
+%hex[%1f%8b%08%08%79%9e%ab%41%00%03%6c%61%6c%61%6c%61%00%cb%c9%cc%4b%55%30%e4%52%c8%01%d1%46%5c]hex%
+%hex[%10%86%31%17%00]hex%
+%hex[%02%71%60%18%00%00%00]hex%
+0
+
+</data>
+
+<datacheck>
+HTTP/1.1 200 OK
+Date: Mon, 29 Nov 2024 21:56:53 GMT
+Server: Something-TE-friendly/0.1
+Vary: Accept-Encoding
+Content-Type: text/html; charset=ISO-8859-1
+Transfer-Encoding: gzip, chunked
+
+line 1
+ line 2
+  line 3
+</datacheck>
+
+</reply>
+
+#
+# Client-side
+<client>
+<features>
+libz
+</features>
+<server>
+http
+</server>
+<name>
+HTTP GET gzip+chunked transfer-encoded content
+</name>
+<command>
+http://%HOSTIP:%HTTPPORT/%TESTNUMBER --tr-encoding
+</command>
+</client>
+
+#
+# Verify data after the test has been "shot"
+<verify>
+<protocol>
+GET /%TESTNUMBER HTTP/1.1
+Host: %HOSTIP:%HTTPPORT
+User-Agent: curl/%VERSION
+Accept: */*
+TE: gzip
+Connection: TE
+
+</protocol>
+</verify>
+</testcase>

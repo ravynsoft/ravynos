@@ -1,0 +1,38 @@
+<testcase>
+<info>
+<keywords>
+warning
+</keywords>
+</info>
+
+#
+# Server-side
+<reply>
+</reply>
+
+#
+# Client-side
+<client>
+<features>
+UnixSockets
+</features>
+<name>
+filename argument looks like a flag
+</name>
+<command>
+--stderr %LOGDIR/moo%TESTNUMBER --unix-socket -q hej://moo
+</command>
+</client>
+
+<verify>
+<file name="%LOGDIR/moo%TESTNUMBER" mode="text">
+Warning: The filename argument '-q' looks like a flag.
+curl: (1) Protocol "hej" not supported
+</file>
+
+# we expect an error since we provide a weird URL
+<errorcode>
+1
+</errorcode>
+</verify>
+</testcase>

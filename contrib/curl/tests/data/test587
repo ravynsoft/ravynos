@@ -1,0 +1,49 @@
+<testcase>
+<info>
+<keywords>
+HTTP
+HTTP POST
+FORM
+flaky
+</keywords>
+</info>
+
+#
+# Server-side
+<reply>
+<data>
+</data>
+</reply>
+
+# Client-side
+<client>
+<features>
+form-api
+</features>
+<server>
+http
+</server>
+# tool is what to use instead of 'curl'
+<tool>
+lib554
+</tool>
+
+<name>
+HTTP multi-part formpost with aborted read callback
+</name>
+# Add a delay to give server time to write its output since we otherwise might
+# not even give it enough time to write its lock file.
+ <command delay="1">
+http://%HOSTIP:%HTTPPORT/%TESTNUMBER
+</command>
+</client>
+
+#
+# Verify data after the test has been "shot"
+<verify>
+# CURLE_ABORTED_BY_CALLBACK (42)
+<errorcode>
+42
+</errorcode>
+</verify>
+</testcase>

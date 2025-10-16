@@ -1,0 +1,34 @@
+<testcase>
+<info>
+<keywords>
+curl-config
+</keywords>
+</info>
+
+#
+# Server-side
+<reply>
+</reply>
+
+#
+# Client-side
+<client>
+<name>
+Compare curl --version with curl-config --features
+</name>
+<command>
+--version
+</command>
+</client>
+
+#
+# Verify data after the test has been "shot"
+<verify>
+<postcheck>
+%SRCDIR/libtest/test1013.pl ../curl-config %LOGDIR/stdout%TESTNUMBER features > %LOGDIR/result%TESTNUMBER
+</postcheck>
+<errorcode>
+0
+</errorcode>
+</verify>
+</testcase>

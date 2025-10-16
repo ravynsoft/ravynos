@@ -1,0 +1,111 @@
+<testcase>
+<info>
+<keywords>
+FTP
+EPSV
+RETR
+timeout
+FAILURE
+SLOWDOWNDATA
+flaky
+timing-dependent
+</keywords>
+</info>
+
+# Server-side
+<reply>
+<servercmd>
+SLOWDOWNDATA
+REPLY welcome 220 Hey
+REPLY USER 331 OK
+REPLY PASS 230 OK
+REPLY PWD 257 "/"
+REPLY TYPE 200 OK
+</servercmd>
+<data nocheck="yes">
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+Long chunk of data that couldn't possibly be sent in the time allotted.
+</data>
+</reply>
+
+# Client-side
+<client>
+<server>
+ftp
+</server>
+<killserver>
+ftp
+</killserver>
+<name>
+FTP download with strict timeout and slow data transfer
+</name>
+<command>
+ftp://%HOSTIP:%FTPPORT/%TESTNUMBER -m 5
+</command>
+</client>
+
+# Verify data after the test has been "shot"
+<verify>
+# 28 is CURLE_OPERATION_TIMEDOUT
+<errorcode>
+28
+</errorcode>
+<protocol>
+USER anonymous
+PASS ftp@example.com
+PWD
+EPSV
+TYPE I
+SIZE %TESTNUMBER
+RETR %TESTNUMBER
+</protocol>
+</verify>
+</testcase>

@@ -1,0 +1,28 @@
+<testcase>
+<info>
+<keywords>
+source analysis
+symbols-in-versions
+documentation
+</keywords>
+</info>
+
+#
+# Client-side
+<client>
+<name>
+Verify the nroff of manpages
+</name>
+
+<command type="perl">
+%SRCDIR/test1140.pl %PWD/../docs/ %PWD/../docs/libcurl/*.3 %PWD/../docs/libcurl/opts/*.3 %PWD/../docs/*.1 %PWD/../docs/cmdline-opts/*.1
+</command>
+</client>
+
+<verify>
+<stdout>
+OK
+</stdout>
+</verify>
+
+</testcase>

@@ -1,0 +1,35 @@
+<testcase>
+<info>
+<keywords>
+SFTP
+FAILURE
+</keywords>
+</info>
+
+#
+# Client-side
+<client>
+<server>
+sftp
+</server>
+<name>
+SFTP retrieval of missing file followed by good file
+</name>
+<command>
+--key %LOGDIR/server/curl_client_key --pubkey %LOGDIR/server/curl_client_key.pub -u %USER: sftp://%HOSTIP:%SSHPORT%SFTP_PWD/%LOGDIR/not-a-valid-file-moooo sftp://%HOSTIP:%SSHPORT%SFTP_PWD/%LOGDIR/file%TESTNUMBER.txt --insecure
+</command>
+<file name="%LOGDIR/file%TESTNUMBER.txt">
+Test data
+for ssh test
+</file>
+</client>
+
+#
+# Verify data after the test has been "shot"
+<verify>
+<stdout>
+Test data
+for ssh test
+</stdout>
+</verify>
+</testcase>

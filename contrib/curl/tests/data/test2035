@@ -1,0 +1,41 @@
+<testcase>
+<info>
+<keywords>
+HTTPS
+HTTP GET
+PEM certificate
+</keywords>
+</info>
+
+#
+# Server-side
+<reply>
+</reply>
+
+#
+# Client-side
+<client>
+<features>
+SSL
+SSLpinning
+local-http
+</features>
+<server>
+https test-localhost.pem
+</server>
+<name>
+HTTPS wrong DER pinnedpubkey but right CN
+</name>
+<command>
+-4 --cacert %CERTDIR/certs/test-ca.crt --pinnedpubkey %CERTDIR/certs/test-localhost.der https://localhost:%HTTPSPORT/%TESTNUMBER
+</command>
+</client>
+
+#
+# Verify data after the test has been "shot"
+<verify>
+<errorcode>
+90
+</errorcode>
+</verify>
+</testcase>
