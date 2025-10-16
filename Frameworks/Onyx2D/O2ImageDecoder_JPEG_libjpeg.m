@@ -69,7 +69,9 @@ static unsigned char *stbi_jpeg_load_from_memory(const uint8_t const *buffer, in
 	*y = cinfo.output_height;
 	
 	// Number of bytes in a decompressed row
-	int bytesPerRow = cinfo.output_width*wantedPixelSize;
+	long bytesPerRow = cinfo.output_width*wantedPixelSize;
+	if(bytesPerRow > UINT_MAX || (bytesPerRow*cinfo.output_height) > UINT_MAX)
+	        return NULL; /* too big - let constructor fail */
 	
 	// Buffer for the final decompressed data
 	unsigned char *outputImage = (unsigned char*)malloc(bytesPerRow*cinfo.output_height);
