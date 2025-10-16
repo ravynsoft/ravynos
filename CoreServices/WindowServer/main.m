@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022-2024 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022-2025 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -139,6 +139,13 @@ int main(int argc, const char *argv[]) {
     new = old;
     new.c_lflag &= ~(ICANON | ECHO);
     tcsetattr(wsfd,TCSANOW, &new);
+
+    // Hide the moused cursor so we don't get flickers
+    struct mouse_info mouse;
+    mouse.operation = MOUSE_HIDE;
+
+    if(ioctl(0, CONS_MOUSECTL, &mouse) == -1)
+	NSLog(@"Cannot hide console mouse cursor: %s", strerror(errno));
 
     ws = [WindowServer new];
     if(ws == nil)
