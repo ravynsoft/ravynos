@@ -19,6 +19,7 @@ WITHOUT_CORESERVICES?=  0
 WITHOUT_APPS?=          0
 
 SUBDIR=
+SUBDIR+=        usr.bin/curl
 .if ${WITHOUT_LIBRARY} == 0
 SUBDIR+=        Library
 .endif
@@ -56,4 +57,3 @@ install:
 
 .include <bsd.subdir.mk>
 .include <rvn.common.mk>
-

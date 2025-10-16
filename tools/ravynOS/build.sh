@@ -168,6 +168,14 @@ iso_build() {
     isoalt
 }
 
+logdate() {
+  echo -n ':: '
+  if ! [ "z$1" = "z" ]; then
+      echo -n "$1 "
+  fi
+  echo $(date '+%c %z')
+}
+
 set_options() {
     if [ $log -eq 1 ]; then
         if [ $preserve -eq 0 ]; then
@@ -176,8 +184,8 @@ set_options() {
             exec > >(tee -a ${logfile}) 2>&1
         fi
      fi
-    echo "ravynOS Build Tool [Prefix ${PREFIX} Cores ${CORES} Platform ${PLATFORM}]"
-    echo "Log: " $log " Preserve: " $preserve
+    echo ":: ravynOS Build Tool [Prefix ${PREFIX} Cores ${CORES} Platform ${PLATFORM}]"
+    logdate "Starting"
 }
 
 usage() {
@@ -228,3 +236,4 @@ while ! [ "z$1" = "z" ]; do
     esac
     shift
 done
+logdate "Finished"

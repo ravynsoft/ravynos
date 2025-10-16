@@ -3,13 +3,15 @@
 set -e
 set -x
 
+CURL="/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/usr.bin/curl/src/curl"
+
 mkdir -p /tmp/system-overlay 
 cd /tmp/system-overlay
 
 # Install our standard app bundles
 mkdir -p "${uzip}/Applications/Utilities"
 
-curl -Lo - https://github.com/ravynsoft/Terminal_app/releases/download/v0.9.1/Terminal.txz | \
+${CURL} -Lo - https://github.com/ravynsoft/Terminal_app/releases/download/v0.9.1/Terminal.txz | \
     tar -xf - -C "${uzip}/Applications/Utilities/"
 
 # Silence late boot messages
