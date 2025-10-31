@@ -3534,6 +3534,8 @@ cert_parse(
 		 */
 		case NID_ext_key_usage:
 			bp = BIO_new(BIO_s_mem());
+			if (bp == NULL)
+				return (NULL);
 			X509V3_EXT_print(bp, ext, 0, 0);
 			BIO_gets(bp, pathbuf, sizeof(pathbuf));
 			BIO_free(bp);
