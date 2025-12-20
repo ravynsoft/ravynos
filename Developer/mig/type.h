@@ -40,11 +40,12 @@
 #include <mach/boolean.h>
 #include "strdefs.h"
 
-#ifdef linux
-#include <linux/types.h>
-#else /* linux */
 #include <sys/types.h>
-#endif /* linux */
+#ifdef __linux__
+typedef unsigned int u_int;
+#define __private_extern__ extern
+#endif
+
 typedef u_int ipc_flags_t;
 
 /*

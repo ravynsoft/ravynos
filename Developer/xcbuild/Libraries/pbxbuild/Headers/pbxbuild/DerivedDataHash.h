@@ -10,6 +10,9 @@
 #ifndef __pbxbuild_DerivedDataHash_h
 #define __pbxbuild_DerivedDataHash_h
 
+#ifdef __linux__
+#include <cstdint>
+#endif
 #include <pbxsetting/Setting.h>
 
 #include <string>

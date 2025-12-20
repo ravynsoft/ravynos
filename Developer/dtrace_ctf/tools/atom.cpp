@@ -28,7 +28,7 @@
 
 #include "memory.h"
 #include "atom.h"
-#include "llvm-ADT/DenseSet.h"
+#include "llvm/ADT/DenseSet.h"
 
 llvm::DenseSet<const char *> atoms{4096};
 

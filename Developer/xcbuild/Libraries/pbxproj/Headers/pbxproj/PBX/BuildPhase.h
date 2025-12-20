@@ -10,6 +10,10 @@
 #ifndef __pbxproj_PBX_BuildPhase_h
 #define __pbxproj_PBX_BuildPhase_h
 
+#ifdef __linux__
+#include <cstdint>
+#endif
+
 #include <pbxproj/PBX/BuildFile.h>
 
 namespace pbxproj { namespace PBX {

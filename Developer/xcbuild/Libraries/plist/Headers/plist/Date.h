@@ -12,6 +12,9 @@
 
 #include <plist/Base.h>
 #include <plist/Object.h>
+#ifdef __linux__
+#include <cstdint>
+#endif
 
 #include <ctime>
 

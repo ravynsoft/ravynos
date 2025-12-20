@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "llvm-ADT/DenseMap.h"
+#include "llvm/ADT/DenseMap.h"
 
 #include "alist.h"
 #include "memory.h"

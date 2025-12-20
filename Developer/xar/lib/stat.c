@@ -54,6 +54,9 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <fcntl.h>
+#ifdef __linux__
+#define __USE_XOPEN
+#endif
 #include <time.h>
 #include <pwd.h>
 #include <grp.h>

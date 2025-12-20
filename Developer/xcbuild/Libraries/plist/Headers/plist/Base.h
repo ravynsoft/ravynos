@@ -11,6 +11,8 @@
 #define __plist_Base_h
 
 #include <memory>
+#include <cstdint>
+#include <cstdlib>
 
 namespace plist {
 

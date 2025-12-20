@@ -13,6 +13,10 @@
 #include <plist/Format/BaseXMLParser.h>
 #include <plist/Dictionary.h>
 
+#ifdef __linux__
+#include <cstdint>
+#endif
+
 namespace plist {
 namespace Format {
 

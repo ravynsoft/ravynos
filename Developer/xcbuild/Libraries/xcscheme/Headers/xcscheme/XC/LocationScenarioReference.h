@@ -10,6 +10,9 @@
 #ifndef __xcscheme_XC_LocationScenarioReference_h
 #define __xcscheme_XC_LocationScenarioReference_h
 
+#ifdef __linux__
+#include <cstdint>
+#endif
 #include <memory>
 #include <string>
 

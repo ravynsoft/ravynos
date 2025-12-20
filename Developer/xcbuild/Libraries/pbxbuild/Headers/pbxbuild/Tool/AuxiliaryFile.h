@@ -10,6 +10,9 @@
 #ifndef __pbxbuild_Tool_AuxiliaryFile_h
 #define __pbxbuild_Tool_AuxiliaryFile_h
 
+#ifdef __linux__
+#include <cstdint>
+#endif
 #include <string>
 #include <vector>
 #include <ext/optional>

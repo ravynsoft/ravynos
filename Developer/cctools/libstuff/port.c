@@ -165,6 +165,15 @@ mach_port_t mach_host_self(void)
     return 0;
 }
 
+#ifdef __linux__
+#ifdef __x86_64__
+#define EMULATED_HOST_CPU_TYPE CPU_TYPE_X86_64
+#define EMULATED_HOST_CPU_SUBTYPE CPU_SUBTYPE_X86_64_ALL
+#else // !__x86_64__
+#define EMULATED_HOST_CPU_TYPE CPU_TYPE_ARM64
+#define EMULATED_HOST_CPU_SUBTYPE CPU_SUBTYPE_ARM_ALL
+#endif // !__x86_64__
+#endif // __linux__
 kern_return_t host_info(host_t host, host_flavor_t flavor,
                         host_info_t host_info_out,
                         mach_msg_type_number_t *host_info_outCnt)

@@ -138,13 +138,3 @@ add_subdirectory(Extensions)
 # 	export PATH PLATFORM=MacOSX MAKEFLAGS="" MAKE=${GMAKE}; \
 # 		${GMAKE} DESTDIR=${BUILDROOT} -C ${OBJTOP}/Kernel/Extensions \
 # 		install
-
-# KMUTIL?= /usr/bin/kmutil
-# prelink:
-# 	${KMUTIL} create --allow-missing-kdk -n boot -z \
-# 		--boot-path ${OBJTOP}/Kernel/kernelcache \
-# 		-f 'OSBundleRequired == Local-Root'  \
-# 		--kernel ${OBJTOP}/Kernel/xnu/RELEASE_${MACHINE:S/x/X/}/kernel \
-# 		-r ${BUILDROOT}/System/Library/Extensions/ \
-# 		-r ${SRCTOP}/Kernel/xnu/config/System.kext/PlugIns \
-# 		--bundle-path ${SRCTOP}/Kernel/xnu/config/System.kext

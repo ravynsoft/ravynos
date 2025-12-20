@@ -31,3 +31,9 @@ target_sources(libelf.host PRIVATE
 )
 set_property(TARGET libelf.host PROPERTY OUTPUT_NAME elf)
 target_include_directories(libelf.host PRIVATE ../include ../include/sys)
+if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+    set_property(TARGET libelf.host PROPERTY CXX_STANDARD 14)
+    target_compile_options(libelf.host PRIVATE
+        "-D__DARWIN_ALIAS(x)="
+    )
+endif()

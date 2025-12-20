@@ -15,6 +15,9 @@
 
 #include <cstring>
 #include <vector>
+#ifdef __linux__
+#include <cstdint>
+#endif
 
 namespace plist {
 

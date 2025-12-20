@@ -47,4 +47,11 @@ typedef	Elf32_Shdr	Shdr;
 }
 #endif
 
+#ifdef __linux__
+# define __nonnull_attribute__(...) __attribute__ ((__nonnull__ (__VA_ARGS__)))
+# define __deprecated_attribute__ __attribute__ ((__deprecated__))
+# define __attribute_pure__ __attribute__ ((__pure__))
+# define __const_attribute__ __attribute__ ((__const__))
+#endif
+
 #endif	/* _SYS_MACHELF_H */

@@ -2,6 +2,16 @@
 # generic implementations of the core runtime library along with optimized
 # architecture-specific code in various subdirectories.
 
+if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+  include_directories(
+    ../../../../../Kernel/xnu/EXTERNAL_HEADERS
+    ../../../../../Libraries/libdispatch
+    ../../../../../Libraries/libplatform/include
+    ../../../../Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk
+  )
+  add_compile_definitions(__THROW=)
+endif()
+
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   cmake_minimum_required(VERSION 3.20.0)
 

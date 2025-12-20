@@ -29,6 +29,10 @@
 #ifndef _OS_OSBYTEORDER_H
 #define _OS_OSBYTEORDER_H
 
+#ifdef __linux__
+#include <endian.h>
+#endif
+
 #include <stdint.h>
 #include <libkern/_OSByteOrder.h>
 
@@ -153,7 +157,7 @@ _OSWriteInt64(
     *(volatile uint64_t *)((uintptr_t)base + byteOffset) = data;
 }
 
-#if		defined(__BIG_ENDIAN__)
+#if		defined(__BIG_ENDIAN__) || defined(__BIG_ENDIAN)
 
 /* Functions for loading big endian to host endianess. */
 
@@ -227,7 +231,7 @@ _OSWriteInt64(
 #define OSSwapLittleToHostInt32(x) OSSwapInt32(x)
 #define OSSwapLittleToHostInt64(x) OSSwapInt64(x)
 
-#elif		defined(__LITTLE_ENDIAN__)
+#elif		defined(__LITTLE_ENDIAN__) || defined(__LITTLE_ENDIAN)
 
 /* Functions for loading big endian to host endianess. */
 

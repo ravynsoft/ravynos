@@ -1,1 +1,309 @@
-tapi-tbdv5.1
+.TH tapi\-tbdv5 1 2023-03-08 Darwin "TAPI TBD Version 5 Format Documentation"
+.SH NAME
+tbd \- Text Based Dynamic Library Stub
+
+.SH DESCRIPTION
+.PP
+TAPI both generates and operates over text based stub files (.tbd).
+These files are a textual, human readable representation of Mach\-O dynamic libraries (dylib) 
+holding properties needed to resolve static link time dependencies including the same exported symbols
+as the original dynamic library. Version 5 and onward are represented in JSON.
+.RE
+
+.SH REQUIRED KEYS 
+.PP
+tapi_tbd_version: <int>
+.RS 4
+Specifies the TBD file version. The only supported version is 5.
+.RE
+.PP
+main_library: <dict>
+.RS 4
+Specifies the linkage properties of the main dylib in the TBD.
+.RE
+.PP
+target_info: <array>
+.RS 4
+Specifies the supported targets of the dylib per target slice.
+.RE
+.PP
+target: <architecture-platform>
+.RS 4
+Specify the architecture and platform identifier supported by the dylib.  
+Those identifiers are mapped to the platform number that is specified by the
+Mach-O format for the LC_BUILD_VERSION load command. It is also possible to
+encode the platform with the platform number directly (for example: x86_64-maccatalyst).
+.br
+The following platform identifiers are supported: macos, maccatalyst, ios, ios-simulator,
+tvos, tvos-simulator, watchos, watchos-simulator.
+.RE
+.PP
+min_deployment: <version>
+.RS 4
+Specify the minimum deployment version to match the target for the dylib. This key is part of the 
+LC_BUILD_VERSION load command. 
+.RE
+.PP
+install_names: <array>
+.RS 4
+Specifies the install name of the dylib per target slice. This key is part of the
+LC_ID_DYLIB load command in the Mach-O format. If \fItargets\fR section is omitted, the install name is the same 
+for all targets recorded in \fItarget_info\fR.
+.RE
+
+.SH OPTIONAL KEYS 
+.PP
+flags: <array>
+.RS 4
+Specifies the flags of the dylib per target slice. If \fItargets\fR section is omitted,
+the flags are the same for all targets recorded in \fItarget_info\fR.
+.br
+Valid flags are: flat_namespace and not_app_extension_safe.
+flat_namespace is deprecated, but there are still some old binaries around on
+macOS that depend on flat namespace linking. The default is two level
+namespace linking. not_app_extension_safe indicates that the library is not safe
+to be used in an Application Extension.
+.RE
+.PP
+current_versions: <array>
+.RS 4
+Specifies the current version of the dylib per target slice. This key is part of the
+LC_ID_DYLIB load command in the Mach-O format. If \fItargets\fR section is omitted,
+the current version is the same for all targets recorded in \fItarget_info\fR.
+The default value is 1.0 if not specified.
+.RE
+.PP
+compatibility_versions: <array>
+.RS 4
+Specifies the compatibility version of the dylib per target slice. This key is part of the
+LC_ID_DYLIB load command in the Mach-O format. If \fItargets\fR section is omitted,
+the compatibility version is the same for all targets recorded in \fItarget_info\fR.
+The default value is 1.0 if not specified.
+.RE
+.PP
+swift_abi: <array>
+.RS 4
+Specifies the Swift ABI version the dylib was compiled with per target slice. 
+The Swift ABI version is encoded in the Objective-C image section, which doesn't 
+exist in stubbed dynamic library files. If \fItargets\fR section is omitted, the 
+compatibility version is the same for all targets recorded in \fItarget_info\fR.
+The default value is 0 if not specified.
+.RE
+.PP
+parent_umbrellas: <array>
+.RS 4
+Specifies the parent umbrella of the dylib per target slice. This key is equivalent
+to the LC_SUB_FRAMEWORK load command in the Mach-O format. If \fItargets\fR section is omitted,
+the parent umbrella is the same for all targets recorded in \fItarget_info\fR.
+.RE
+.PP
+reexported_libraries: <array>
+.RS 4
+Specifies the list of re-exported libraries of the dylib per target slice. This key is equivalent
+to the LC_REEXPORT_DYLIB load command in the Mach-O format. If \fItargets\fR section is omitted,
+the list of re-exported libraries are the same for all targets recorded in \fItarget_info\fR.
+.RE
+.PP
+rpaths: <array>
+.RS 4
+Specifies the list of runpath search paths of the dylib per target slice. This key is equivalent
+to the LC_RPATH load command in the Mach-O format. If \fItargets\fR section is omitted,
+the list of runpath search paths are the same for all targets recorded in \fItarget_info\fR.
+.RE
+.PP
+exported_symbols: <array>
+.RS 4
+Specifies the regular export symbol sections. If \fItargets\fR section is omitted,
+the exports are the same for all targets recorded in \fItarget_info\fR.
+.RE
+.PP
+reexported_symbols: <array>
+.RS 4
+Specifies the export symbol sections, but these symbols are not defined by the library itself. 
+Instead, these symbols come from a different library. If \fItargets\fR section is omitted,
+the re-exports are the same for all targets recorded in \fItarget_info\fR.
+.RE
+.PP
+undefined_symbols: <array>
+.RS 4
+Specifies the undefined symbol sections and are only used for flat address space libraries. 
+If \fItargets\fR section is omitted, the undefineds are the same for all targets 
+recorded in \fItarget_info\fR.
+.RE
+.PP
+text:  <dict>
+.RS 4
+Specifies the symbols defined in __TEXT segment of the library.
+.RE
+.PP
+data:  <dict>
+.RS 4
+Specifies the symbols defined in __DATA segment of the library.
+.RE
+.PP
+global:  <array>
+.RS 4
+Specifies the a list of exported, re-exported, or undefined symbol names.
+.RE
+.PP
+weak:  <array>
+.RS 4
+Specifies the names of weak defined symbols for exported symbol sections or weak referenced symbols 
+for undefined symbol sections. 
+.RE
+.PP
+thread_local:  <array>
+.RS 4
+Specifies the symbol name of thread local exports. 
+.RE
+.PP
+objc_class:  <array>
+.RS 4
+Specifies the list of exported, re-exported, or undefined Objective-C class names.
+.RE
+.PP
+objc_eh_type:  <array>
+.RS 4
+Specifies the list of exported, re-exported or undefined Objective-C class exception type names.
+.RE
+.PP
+objc_ivar:  <array>
+.RS 4
+Specifies the list of exported, re-exported or undefined Objective-C instance variable names.
+.RE
+.PP
+libraries:  <dict>
+.RS 4
+Specifies the inlined tbd attributes for the \fImain_library\fR's reexported libraries. 
+.RE
+
+
+.SH Examples
+.br
+.RS 1
+{
+.br
+"tapi_tbd_version": 5,
+.br
+"main_library": {
+.br
+  "target_info": [
+.br
+    {
+      "target": "x86_64-macos",
+      "min_deployment": "10.14"
+    },
+    {
+      "target": "arm64-macos",
+      "min_deployment": "10.14"
+    },
+    {
+      "target": "arm64-maccatalyst",
+      "min_deployment": "12.1"
+    }
+  ],
+  "flags":[ 
+    {
+      "targets": ["x86_64-macos"],
+      "attributes": ["flat_namespace"]
+    }
+  ], 
+  "install_names":[
+    {
+      "name":"/System/Library/Frameworks/Foundation.framework/Foundation"
+    }
+  ],
+  "current_versions":[ 
+    {
+      "version": "1.2"
+    }
+  ],
+  "compatibility_versions":[
+    {
+      "version": "1.1"
+    }
+  ],
+  "rpaths": [ 
+    {
+      "targets": ["x86_64-macos"],
+      "paths": ["@executable_path/.../Frameworks"]
+    }
+  ],
+  "parent_umbrellas": [
+    {
+      "umbrella": "System"
+    }
+  ],
+  "allowable_clients": [
+    {
+        "clients": [
+            "ClientA",
+            "ClientB"
+        ]
+    }
+  ],
+  "reexported_libraries": [
+    {
+        "names": [
+            "/u/l/l/libfoo.dylib",
+            "/u/l/l/libbar.dylib"
+        ]
+    }
+  ],
+  "exported_symbols": [
+    {
+      "targets": ["x86_64-macos", "arm64-macos"],
+      "data": { 
+        "global": ["_global"],
+        "objc_class": ["ClassA"],
+        "weak": [],
+        "thread_local": []
+      },
+      "text": { 
+        "global": ["_func"],
+            "weak": [],
+            "thread_local": []
+      }
+    },
+    {
+      "targets": ["x86_64-macos"],
+       "data": {
+           "global": ["_globalVar"],
+           "objc_class": ["ClassData"], 
+           "objc_eh_type": ["ClassA", "ClassB"], 
+           "objc_ivar": [ 
+              "ClassA.ivar1", "ClassA.ivar2", "ClassC.ivar1" 
+           ]
+       },
+       "text": {
+           "global": ["_funcFoo"]
+       }
+    }
+  ],
+  "reexported_symbols": [
+    {
+      "targets": ["x86_64-macos","arm64-macos"],
+      "data": {
+          "global": ["_globalRe"],
+          "objc_class": ["ClassRexport"]
+      },
+      "text": {
+          "global": ["_funcA"]
+      }
+    }
+  ],
+  "undefined_symbols": [
+    {
+      "targets": ["x86_64-macos"],
+       "data": {
+          "global": ["_globalBind"],
+            "weak": ["referenced_sym"]
+       }
+    }
+  ]
+ }
+.br
+}
+
+.SH SEE ALSO
+tapi(1), tapi\-tbdv4(1), ld(1), Mach\-O(5)

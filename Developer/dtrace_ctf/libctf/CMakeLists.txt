@@ -19,3 +19,8 @@ target_sources(libctf.host PRIVATE
 set_property(TARGET libctf.host PROPERTY OUTPUT_NAME ctf)
 target_include_directories(libctf.host PRIVATE ../include ../include/sys)
 target_compile_definitions(libctf.host PRIVATE CTF_OLD_VERSIONS)
+if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+    target_compile_options(libctf.host PRIVATE
+        -w -Wno-error=implicit-function-declaration -D__APPLE__
+    )
+endif()

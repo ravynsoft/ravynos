@@ -10,6 +10,11 @@
 #ifndef __pbxproj_pbxproj_h
 #define __pbxproj_pbxproj_h
 
+#ifdef __linux__
+#include <cstdint>
+#include <cstdlib>
+#endif
+
 #include <pbxproj/PBX/AggregateTarget.h>
 #include <pbxproj/PBX/BuildFile.h>
 #include <pbxproj/PBX/BuildPhase.h>

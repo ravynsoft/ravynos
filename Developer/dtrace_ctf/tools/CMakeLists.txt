@@ -94,3 +94,13 @@ target_include_directories(host_ctfmerge PRIVATE ../include ../include/sys ../li
 target_link_libraries(host_ctfmerge PRIVATE libelf.host libdwarf.host libctf.host ${ZLIB_LIBRARY_RELEASE})
 set_property(TARGET host_ctfmerge PROPERTY CXX_STANDARD 14)
 suppress_all_warnings(host_ctfmerge)
+
+if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+    target_compile_options(host_ctfconvert PRIVATE -w)
+    target_compile_options(host_ctfmerge PRIVATE -w)
+    target_compile_options(host_ctfdump PRIVATE -w)
+    include_directories(
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../llvm-project/llvm/include
+        ${ROOT_SOURCE_DIR}/Libraries/libdispatch
+    )
+endif()

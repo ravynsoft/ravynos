@@ -10,6 +10,9 @@
 #ifndef __xcscheme_XC_Scheme_h
 #define __xcscheme_XC_Scheme_h
 
+#ifdef __linux__
+#include <cstdint>
+#endif
 #include <xcscheme/XC/Actions.h>
 
 namespace libutil { class Filesystem; }

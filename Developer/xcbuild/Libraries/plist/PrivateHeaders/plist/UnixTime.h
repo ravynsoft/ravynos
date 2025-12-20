@@ -11,6 +11,9 @@
 #define __plist_UnixTime_h
 
 #include <plist/Base.h>
+#ifdef __linux__
+#include <cstdint>
+#endif
 
 namespace plist {
 

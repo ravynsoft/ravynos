@@ -31,7 +31,7 @@ set_property(TARGET host_libxar PROPERTY OUTPUT_NAME xar)
 target_include_directories(host_libxar PUBLIC include /usr/local/include)
 target_include_directories(host_libxar PRIVATE ${OPENSSL_INCLUDE_DIR} ${LIBXML2_INCLUDE_DIR})
 target_link_libraries(host_libxar PRIVATE ZLIB::ZLIB LibXml2::LibXml2)
-suppress_all_warnings(host_libxar)
+target_compile_options(host_libxar PRIVATE -w)
 
 add_executable(host_xar)
 target_sources(host_xar PRIVATE
@@ -39,3 +39,7 @@ target_sources(host_xar PRIVATE
 )
 set_property(TARGET host_xar PROPERTY OUTPUT_NAME xar)
 target_link_libraries(host_xar PRIVATE host_libxar OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB LibXml2::LibXml2)
+target_compile_options(host_xar PRIVATE -w)
+if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+    target_link_libraries(host_xar PRIVATE -lacl)
+endif()

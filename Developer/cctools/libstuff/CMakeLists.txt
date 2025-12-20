@@ -53,3 +53,14 @@ target_include_directories(host_libstuff PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../include
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/foreign
 )
+if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+    target_compile_options(host_libstuff PRIVATE
+        -w -Wno-error=implicit-function-declaration
+    )
+    target_compile_definitions(host_libstuff PRIVATE
+        __private_extern__=extern
+    )
+    target_include_directories(host_libstuff PRIVATE
+        ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk
+    )
+endif()

@@ -19,6 +19,9 @@ target_sources(migcom PRIVATE
 )
 target_compile_definitions(migcom PRIVATE MIG_VERSION=\"\")
 target_include_directories(migcom PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+set_target_properties(migcom PROPERTIES
+    CMAKE_C_COMPILER ${TOOLS}/usr/bin/clang
+)
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/y.tab.c
     COMMAND yacc -d -b "${CMAKE_CURRENT_BINARY_DIR}/y" ${CMAKE_CURRENT_SOURCE_DIR}/parser.y
@@ -50,6 +53,15 @@ target_sources(host_migcom PRIVATE
 )
 target_compile_definitions(host_migcom PRIVATE MIG_VERSION=\"\")
 target_include_directories(host_migcom PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+    target_include_directories(host_migcom PRIVATE
+        ${CMAKE_SOURCE_DIR}/Developer/cctools/include/foreign
+        ${CMAKE_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS
+    )
+    target_compile_options(host_migcom PRIVATE
+        -w -std=c99 -Wno-error=implicit-function-declaration
+    )
+endif()
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/y.tab.c
     COMMAND yacc -d -b "${CMAKE_CURRENT_BINARY_DIR}/y" ${CMAKE_CURRENT_SOURCE_DIR}/parser.y

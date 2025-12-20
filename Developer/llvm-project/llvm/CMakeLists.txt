@@ -1347,3 +1347,6 @@ endif()
 if (LLVM_INCLUDE_UTILS AND LLVM_INCLUDE_TOOLS)
   add_subdirectory(utils/llvm-locstats)
 endif()
+
+include_directories(${CMAKE_SOURCE_DIR}/Developer/cctools/include/foreign)
+add_compile_options(-w -std=gnu++17)

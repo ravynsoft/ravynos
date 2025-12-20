@@ -104,6 +104,11 @@ protected:
   }
 };
 
+#ifdef __linux__
+typedef unsigned long uint64_t;
+typedef unsigned int uint32_t;
+#endif
+
 template <class T>
 using SmallVectorSizeType =
     std::conditional_t<sizeof(T) < 4 && sizeof(void *) >= 8, uint64_t,

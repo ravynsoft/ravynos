@@ -1,7 +1,3 @@
-if(NOT APPLE)
-  message(FATAL_ERROR "Unsupported configuration.")
-endif()
-
 set(TAPI_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(TAPI_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -73,14 +69,18 @@ llvm_check_linker_flag(CXX "-Wl,-no_inits" LINKER_SUPPORTS_NO_INITS)
 llvm_check_linker_flag(CXX "-Wl,-iosmac_version_min,13.0" LINKER_SUPPORTS_IOSMAC)
 # MARZIPAN RENAME
 
-# Check if i386 is supported.
-SET(CMAKE_OLD_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
-SET(CMAKE_OLD_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS})
-SET(CMAKE_REQUIRED_FLAGS "-arch i386")
-SET(CMAKE_EXE_LINKER_FLAGS "-Wl,-arch_errors_fatal -Wl,-framework,Foundation")
-check_c_compiler_flag("" SDK_SUPPORTS_I386)
-SET(CMAKE_REQUIRED_FLAGS ${CMAKE_OLD_REQUIRED_FLAGS})
-SET(CMAKE_EXE_LINKER_FLAGS ${CMAKE_OLD_LINKER_FLAGS})
+if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+  include_directories(${CMAKE_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS)
+else()
+  # Check if i386 is supported.
+  SET(CMAKE_OLD_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
+  SET(CMAKE_OLD_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS})
+  SET(CMAKE_REQUIRED_FLAGS "-arch i386")
+  SET(CMAKE_EXE_LINKER_FLAGS "-Wl,-arch_errors_fatal -Wl,-framework,Foundation")
+  check_c_compiler_flag("" SDK_SUPPORTS_I386)
+  SET(CMAKE_REQUIRED_FLAGS ${CMAKE_OLD_REQUIRED_FLAGS})
+  SET(CMAKE_EXE_LINKER_FLAGS ${CMAKE_OLD_LINKER_FLAGS})
+endif()
 
 macro(add_tapi_library name)
   cmake_parse_arguments(ARG
@@ -160,7 +160,11 @@ endmacro(add_tapi_library)
 macro(add_tapi_executable name)
   add_llvm_executable(${name} ${ARGN})
   set_target_properties(${name} PROPERTIES FOLDER "Tapi executables")
-  target_link_options(${name} PRIVATE "-Wl,-no_exported_symbols")
+  if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+    target_link_options(${name} PRIVATE "-fuse-ld=/usr/bin/ld64")
+  else()
+    target_link_options(${name} PRIVATE "-Wl,-no_exported_symbols")
+  endif()
 endmacro(add_tapi_executable)
 
 function(tapi_clang_tablegen)

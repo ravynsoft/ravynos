@@ -10,6 +10,9 @@
 #ifndef __xcscheme_XC_LaunchAction_h
 #define __xcscheme_XC_LaunchAction_h
 
+#ifdef __linux__
+#include <cstdint>
+#endif
 #include <xcscheme/XC/Action.h>
 #include <xcscheme/XC/BuildableReference.h>
 #include <xcscheme/XC/LocationScenarioReference.h>

@@ -24,7 +24,9 @@
 
 #include <mach/mach.h>
 #include <mach/mach_time.h>
+#ifndef __linux__
 #include <sys/sysctl.h>
+#endif
 #include <sys/time.h>
 #include <sys/errno.h>
 #include <unistd.h>

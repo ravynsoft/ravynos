@@ -10,6 +10,9 @@
 #ifndef __pbxproj_PBX_Group_h
 #define __pbxproj_PBX_Group_h
 
+#ifdef __linux__
+#include <cstdint>
+#endif
 #include <pbxproj/PBX/BaseGroup.h>
 
 namespace pbxproj { namespace PBX {

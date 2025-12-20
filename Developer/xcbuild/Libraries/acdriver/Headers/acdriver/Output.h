@@ -10,6 +10,9 @@
 #ifndef __acdriver_Output_h
 #define __acdriver_Output_h
 
+#ifdef __linux__
+#include <cstdint>
+#endif
 #include <memory>
 #include <string>
 #include <unordered_map>

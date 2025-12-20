@@ -10,6 +10,9 @@
 #ifndef __dependency_DependencyInfoFormat_h
 #define __dependency_DependencyInfoFormat_h
 
+#ifdef __linux__
+#include <cstdint>
+#endif
 #include <string>
 
 namespace dependency {

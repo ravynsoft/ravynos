@@ -47,7 +47,7 @@
 
 #endif /* __APPLE__ */
 
-#include "llvm-ADT/DenseMap.h"
+#include "llvm/ADT/DenseMap.h"
 
 template<>
 struct llvm::DenseMapInfo<atom_t *> {

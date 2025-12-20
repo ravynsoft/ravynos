@@ -83,6 +83,11 @@
 #include <mach-o/redo_prebinding.h>
 #endif /* defined(LIBRARY_API) */
 
+#ifdef __linux__
+#define __alloc_size(...) __attribute__((alloc_size(__VA_ARGS__)))
+#include <Availability.h>
+#endif
+
 #import <stdio.h>
 #import <stdlib.h>
 #import <string.h>

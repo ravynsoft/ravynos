@@ -43,6 +43,9 @@
 #include <sys/types.h>
 #include <sys/param.h>
 #include <stdbool.h>
+#ifdef __linux__
+#include <endian.h>
+#endif
 
 #if defined(__LP64__)
 #if !defined(_LP64)
@@ -60,11 +63,11 @@
 #endif
 #endif
 
-#if defined(__BIG_ENDIAN__)
+#if defined(__BIG_ENDIAN__) || defined(__BIG_ENDIAN)
 #if !defined(_BIG_ENDIAN)
 #define _BIG_ENDIAN /* Solaris vs. Darwin */
 #endif
-#elif defined(__LITTLE_ENDIAN__)
+#elif defined(__LITTLE_ENDIAN__) || defined(__LITTLE_ENDIAN)
 #if !defined(_LITTLE_ENDIAN)
 #define _LITTLE_ENDIAN /* Solaris vs. Darwin */
 #endif

@@ -26,7 +26,7 @@
  * @APPLE_OSREFERENCE_LICENSE_HEADER_END@
  */
 
-#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__APPLE__) || defined(__CYGWIN__)
+#if !defined(__linux__) && (defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__APPLE__) || defined(__CYGWIN__))
 #include_next <sys/_types.h>
 #else
 #ifndef _SYS__TYPES_H_

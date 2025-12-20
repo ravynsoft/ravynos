@@ -12,6 +12,9 @@
 
 #include <bitset>
 #include <limits>
+#ifdef __linux__
+#include <cstdint>
+#endif
 
 namespace libutil {
 

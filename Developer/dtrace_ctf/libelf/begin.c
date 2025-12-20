@@ -45,7 +45,9 @@ static const char	armag[] = ARMAG;
 #include <mach-o/loader.h>
 #include <mach-o/dyld.h>
 #include <mach-o/fat.h>
+#ifndef __linux__
 #include <sys/sysctl.h>
+#endif
 
 static cpu_type_t current_program_arch(void)
 {

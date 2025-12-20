@@ -43,6 +43,10 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#ifdef __linux__
+#define __USE_XOPEN
+#include <time.h>
+#endif
 #include "config.h"
 #ifndef HAVE_ASPRINTF
 #include "asprintf.h"
