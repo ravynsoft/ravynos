@@ -29,7 +29,6 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <assert.h>
-#include <synch.h>
 #include <signal.h>
 #include <libgen.h>
 #include <string.h>
@@ -38,7 +37,6 @@
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/mman.h>
-#include <sys/sysconf.h>
 #else
 #include <stdio.h>
 #include <stdlib.h>
@@ -87,9 +85,7 @@ usage(void)
 	    "       %s [-fgstv] -l label | -L labelenv -o outfile -w withfile "
 	    "file ...\n"
 	    "       %s [-g] -c srcfile destfile\n"
-#if defined(__APPLE__)
 	    "       %s [-fgstv] -l label | -L labelenv -o master_macho_file -Z raw_ctf_outfile file ...\n"
-#endif
 	    "\n"
 	    "  Note: if -L labelenv is specified and labelenv is not set in\n"
 	    "  the environment, a default value is used.\n",
@@ -153,9 +149,7 @@ main(int argc, char **argv)
 	tdata_t *mstrtd, *savetd;
 	char *uniqfile = NULL, *uniqlabel = NULL;
 	char *withfile = NULL;
-#if defined(__APPLE__)
 	char *raw_ctf_file = NULL;
-#endif
 	char *label = NULL;
 	char **ifiles, **tifiles;
 	int verbose = 0, docopy = 0;
@@ -171,11 +165,7 @@ main(int argc, char **argv)
 		debug_level = atoi(getenv("CTFMERGE_DEBUG_LEVEL"));
 
 	err = 0;
-#if defined(__APPLE__)
 	while ((c = getopt(argc, argv, ":cd:D:fgl:L:o:tvw:sZ:")) != EOF) {
-#else
-	while ((c = getopt(argc, argv, ":cd:D:fgl:L:o:tvw:s")) != EOF) {
-#endif
 		switch (c) {
 		case 'c':
 			docopy = 1;
@@ -223,12 +213,10 @@ main(int argc, char **argv)
 			/* use the dynsym rather than the symtab */
 			dynsym = CTF_USE_DYNSYM;
 			break;
-#if defined(__APPLE__)
 		case 'Z':
 			/* Write raw CTF data by itself */
 			raw_ctf_file = optarg;
 			break;
-#endif
 		default:
 			usage();
 			exit(2);
@@ -257,10 +245,8 @@ main(int argc, char **argv)
 			err++;
 	}
 
-#if defined(__APPLE__)
 	if ((uniqfile != NULL || withfile != NULL) && raw_ctf_file != NULL)
 		err++;
-#endif
 		
 	if (err) {
 		usage();
@@ -283,10 +269,8 @@ main(int argc, char **argv)
 	if (outfile && access(outfile, R_OK|W_OK) != 0)
 		terminate("Cannot open output file %s for r/w", outfile);
 
-#if defined(__APPLE__)
 	if (raw_ctf_file && access(raw_ctf_file, F_OK) != -1)
 		terminate("Raw CTF output file %s already exists", raw_ctf_file);
-#endif
 		
 	/*
 	 * This is ugly, but we don't want to have to have a separate tool
@@ -422,27 +406,12 @@ main(int argc, char **argv)
 		savetd = mstrtd;
 	}
 
-#if !defined(__APPLE__)
 	tmpname = mktmpname(outfile, ".ctf");
 	write_ctf(savetd, outfile, tmpname,
 		  CTF_COMPRESS | write_fuzzy_match | dynsym | keep_stabs);
 	if (rename(tmpname, outfile) != 0)
 	    terminate("Couldn't rename output temp file %s", tmpname);
 	free(tmpname);
-#else
-	if (raw_ctf_file) {
-		tmpname = raw_ctf_file;
-	} else {
-		tmpname = mktmpname(outfile, ".ctf");
-	}
-	write_ctf(savetd, outfile, tmpname,
-		  CTF_COMPRESS | write_fuzzy_match | dynsym | keep_stabs | (raw_ctf_file != NULL ? CTF_RAW_OUTPUT : 0));
-	if (!raw_ctf_file) {
-		if (rename(tmpname, outfile) != 0)
-			terminate("Couldn't rename output temp file %s", tmpname);
-		free(tmpname);
-	}
-#endif /* __APPLE__ */
 		
 	return (0);
 }

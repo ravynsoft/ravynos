@@ -64,14 +64,10 @@
  */
 
 #if !defined(__APPLE__)
-#include <uts/common/sys/ctf.h>
-#include <uts/common/sys/ctf_api.h>
-#include <lib/libctf/common/libctf.h>
-#else
 #include "darwin_shim.h"
+#endif /* __APPLE__ */
 #include "ctf.h"
 #include "ctf_api.h"
 #include "libctf.h"
-#endif /* __APPLE__ */
 
 #endif /* _CTF_HEADERS_H */

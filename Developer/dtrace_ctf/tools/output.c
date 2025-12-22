@@ -28,6 +28,10 @@
  * for placing the resulting data into an output file.
  */
 
+#ifdef __linux__
+#include <string.h>
+#define __APPLE__
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>

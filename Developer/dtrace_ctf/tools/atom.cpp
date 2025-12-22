@@ -20,6 +20,12 @@
  * @APPLE_LICENSE_HEADER_END@
  */
 
+#ifndef max_align_t
+namespace {
+	typedef long double max_align_t;
+}
+#endif
+
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>

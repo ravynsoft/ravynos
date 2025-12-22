@@ -36,30 +36,6 @@
 
 static const char *pname;
 
-#if !defined(__APPLE__)
-#pragma init(getpname)
-const char *
-getpname(void)
-{
-	const char *p, *q;
-
-	if (pname != NULL)
-		return (pname);
-
-	if ((p = getexecname()) != NULL)
-		q = strrchr(p, '/');
-	else
-		q = NULL;
-
-	if (q == NULL)
-		pname = p;
-	else
-		pname = q + 1;
-
-	return (pname);
-}
-#endif /* __APPLE__ */
-
 void
 vwarn(const char *format, va_list alist)
 {

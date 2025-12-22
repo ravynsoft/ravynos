@@ -34,6 +34,9 @@
 #include <gelf.h>
 #include <strings.h>
 #include <sys/types.h>
+#ifdef __linux__
+#include <string.h>
+#endif
 
 #include "ctftools.h"
 #include "memory.h"

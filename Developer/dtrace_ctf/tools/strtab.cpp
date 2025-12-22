@@ -24,6 +24,12 @@
  * All rights reserved.
  */
 
+#ifndef max_align_t
+namespace {
+	typedef long double max_align_t;
+}
+#endif
+
 #if !defined(__APPLE__)
 #include <sys/types.h>
 #include <sys/sysmacros.h>
@@ -43,9 +49,10 @@
 #include "strtab.h"
 #include "memory.h"
 
-#define	MIN(a, b) 		((a) > (b) ? (b) : (a))
-
 #endif /* __APPLE__ */
+
+#undef MIN
+#define	MIN(a, b) 		((a) > (b) ? (b) : (a))
 
 #include "llvm/ADT/DenseMap.h"
 

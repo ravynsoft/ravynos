@@ -29,9 +29,14 @@
  * arbitrary index types, and are also commonly known as associative arrays.
  */
 
+#ifndef max_align_t
+namespace {
+	typedef long double max_align_t;
+}
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "llvm/ADT/DenseMap.h"
 
 #include "alist.h"

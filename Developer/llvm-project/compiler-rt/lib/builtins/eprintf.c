@@ -6,10 +6,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifdef __linux__
-#define __nonnull(...)
-#endif // __linux__
-
 #include "int_lib.h"
 #include <stdio.h>
 

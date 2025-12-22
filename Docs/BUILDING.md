@@ -10,7 +10,7 @@ Building it this way takes longer, but there are advantages. It helps make the e
 
 ## What you need:
 * A host machine with:
-  * clang 16.x+
+  * clang 17.x (Apple, Linux) or 18.x (Linux)
   * cmake 3.15+ and ninja
   * GNU make (gmake)
   * BSD make (bmake)
@@ -19,10 +19,15 @@ Building it this way takes longer, but there are advantages. It helps make the e
   * libpng (for xcbuild), libxml2, zlib (libz)
 * A lot of patience
 
-__NOTE:__ ravynOS currently only builds on macOS! We're working hard to fix this.
 
 __On macOS:__
 * Have a recent Xcode installed
 * Run: `cmake -S /path/to/ravynos -B /path/to/build -GNinja`
 * Run: `cmake --build /path/to/build`
 
+
+__On Linux (tested on Arch 2025/12/21):__
+* Install `bison`, `binutils`, `flex`, `libdispatch`, and the LLVM linker `lld`
+* Symlink `cc` and `c++` to clang to avoid accidental use of gcc: `rm -f /usr/bin/cc /usr/bin/c++; ln -sf clang /usr/bin/cc; ln -sf clang++ /usr/bin/c++`
+* Run: `cmake --fresh -S /path/to/ravynos -B /path/to/build -GNinja`
+* Run: `cmake --build /path/to/build`

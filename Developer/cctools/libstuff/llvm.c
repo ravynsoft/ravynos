@@ -1,3 +1,6 @@
+#ifdef __linux__
+#define _BSD_SOURCE // for realpath(3)
+#endif
 #include <stdio.h>
 #include <strings.h> /* cctools-port: For bcmp, bzero ... */
 #include <stdlib.h>

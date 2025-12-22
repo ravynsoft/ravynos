@@ -30,6 +30,10 @@
  * Functions and data structures used in the manipulation of stabs and CTF data
  */
 
+#ifdef __linux__
+#include <sys/types.h>
+typedef __caddr_t caddr_t;
+#endif
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>

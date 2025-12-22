@@ -28,6 +28,9 @@
  * Copyright (c) 2013, Joyent, Inc.  All rights reserved.
  */
 
+#ifdef __linux__
+#include <string.h>
+#endif
 #include <assert.h>
 #include <sys/param.h>
 #include <sys/mman.h>

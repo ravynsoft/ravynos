@@ -29,6 +29,11 @@
  */
 
 #if !defined(__APPLE__)
+#ifdef __linux__
+#include <stdint.h>
+typedef unsigned long ulong_t;
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -63,7 +68,7 @@ struct hash {
 
 struct hash_data {
 	hash_t *hd_hash;
-	int (*hd_fun)();
+	int (*hd_fun)(void *node, struct hash_data *hd);
 	void *hd_key;
 	void *hd_private;
 

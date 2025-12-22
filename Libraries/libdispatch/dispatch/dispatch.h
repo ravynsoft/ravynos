@@ -50,6 +50,10 @@
 #endif
 #endif
 
+#ifdef __linux__
+#include <Availability.h>
+#endif /* __linux__ */
+
 #define DISPATCH_API_VERSION 20181008
 
 #ifndef __DISPATCH_BUILDING_DISPATCH__

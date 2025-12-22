@@ -358,7 +358,7 @@ fwd_equiv(tdesc_t *ctdp, tdesc_t *mtdp)
 static int
 equiv_node(tdesc_t *ctdp, tdesc_t *mtdp, equiv_data_t *ed)
 {
-	int (*equiv)();
+	int (*equiv)(tdesc_t *ctdp, tdesc_t *mtdp, equiv_data_t *ed);
 	int mapping;
 
 	if (ctdp->t_emark > ed->ed_clear_mark ||
@@ -1320,7 +1320,7 @@ tdesc_ops_t tdesc_ops[] = {
  * this comment will not live to see the stock hit five.
  */
 
-#if !defined(__APPLE__)
+#if !defined(__APPLE__) && !defined(__linux__)
 #pragma init(bigheap)
 static size_t maxpgsize = 0x400000;
 #endif /* __APPLE__ */
@@ -1329,7 +1329,7 @@ static size_t maxpgsize = 0x400000;
 #define	MERGE_PHASE1_MAX_SLOTS		5
 #define	MERGE_INPUT_THROTTLE_LEN	10
 
-#if !defined(__APPLE__)
+#if !defined(__APPLE__) && !defined(__linux__)
 static void
 bigheap(void)
 {

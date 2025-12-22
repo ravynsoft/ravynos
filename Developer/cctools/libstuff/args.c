@@ -4,6 +4,10 @@
 //
 //  Created by Michael Trent on 5/31/19.
 //
+#ifdef __linux__
+#include <string.h>
+#include <time.h>
+#endif
 
 #include "stuff/args.h"
 #include "stuff/errors.h"

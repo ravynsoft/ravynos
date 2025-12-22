@@ -51,12 +51,19 @@ static const char	armag[] = ARMAG;
 
 static cpu_type_t current_program_arch(void)
 {
+#ifdef __linux__
+	cpu_type_t current_arch = CPU_TYPE_X86_64;
+#else // !__linux__
         cpu_type_t current_arch = (_NSGetMachExecuteHeader())->cputype;
+#endif // __linux__
         return current_arch;
 }
 
 static cpu_type_t current_kernel_arch(void)
 {
+#ifdef __linux__
+	cpu_type_t current_arch = CPU_TYPE_X86_64;
+#else // !__linux__
         struct host_basic_info  hi;
         unsigned int            size;
         kern_return_t           kret;
@@ -84,6 +91,7 @@ static cpu_type_t current_kernel_arch(void)
         if (kp.kp_proc.p_flag & P_LP64) {
                 current_arch |= CPU_ARCH_ABI64;
         }
+#endif // __linux__
         return current_arch;
 }
 

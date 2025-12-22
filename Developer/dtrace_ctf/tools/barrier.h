@@ -27,6 +27,9 @@
 #ifndef _BARRIER_H
 #define	_BARRIER_H
 
+#ifdef __linux__
+#include <Availability.h>
+#endif
 #include <dispatch/dispatch.h>
 #include <pthread.h>
 

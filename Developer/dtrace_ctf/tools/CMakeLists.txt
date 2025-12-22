@@ -1,5 +1,23 @@
 find_package(ZLIB REQUIRED)
 
+if(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
+    include_directories(
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../llvm-project/llvm/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../cctools/include/foreign
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../cctools/include
+        ${CMAKE_SOURCE_DIR}/../../Libraries/libdispatch
+        ${CMAKE_SOURCE_DIR}/../../Libraries/libplatform/include
+        ${CMAKE_SOURCE_DIR}/../Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk
+    )
+    add_compile_options(
+        -w
+        -Wno-error=incompatible-pointer-types
+        -Wno-error=implicit-function-declaration
+        -Wno-error=int-conversion
+        -Wno-error=implicit-int
+    )
+endif()
+
 add_executable(host_ctfconvert)
 target_sources(host_ctfconvert PRIVATE
     alist.cpp
@@ -29,7 +47,7 @@ target_sources(host_ctfconvert PRIVATE
 set_property(TARGET host_ctfconvert PROPERTY OUTPUT_NAME "ctfconvert")
 target_include_directories(host_ctfconvert PRIVATE ../include ../include/sys ../libelf)
 target_link_libraries(host_ctfconvert PRIVATE libelf.host libdwarf.host libctf.host ${ZLIB_LIBRARY_RELEASE})
-set_property(TARGET host_ctfconvert PROPERTY CXX_STANDARD 14)
+set_property(TARGET host_ctfconvert PROPERTY CXX_STANDARD 17)
 suppress_all_warnings(host_ctfconvert)
 
 add_executable(host_ctfdump)
@@ -59,7 +77,7 @@ target_sources(host_ctfdump PRIVATE
 set_property(TARGET host_ctfdump PROPERTY OUTPUT_NAME "ctfdump")
 target_include_directories(host_ctfdump PRIVATE ../include ../include/sys ../libelf)
 target_link_libraries(host_ctfdump PRIVATE libelf.host libctf.host ${ZLIB_LIBRARY_RELEASE})
-set_property(TARGET host_ctfdump PROPERTY CXX_STANDARD 14)
+set_property(TARGET host_ctfdump PROPERTY CXX_STANDARD 17)
 suppress_all_warnings(host_ctfdump)
 
 add_executable(host_ctfmerge)
@@ -92,15 +110,11 @@ target_sources(host_ctfmerge PRIVATE
 set_property(TARGET host_ctfmerge PROPERTY OUTPUT_NAME ctfmerge)
 target_include_directories(host_ctfmerge PRIVATE ../include ../include/sys ../libelf)
 target_link_libraries(host_ctfmerge PRIVATE libelf.host libdwarf.host libctf.host ${ZLIB_LIBRARY_RELEASE})
-set_property(TARGET host_ctfmerge PROPERTY CXX_STANDARD 14)
+set_property(TARGET host_ctfmerge PROPERTY CXX_STANDARD 17)
 suppress_all_warnings(host_ctfmerge)
 
-if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
-    target_compile_options(host_ctfconvert PRIVATE -w)
-    target_compile_options(host_ctfmerge PRIVATE -w)
-    target_compile_options(host_ctfdump PRIVATE -w)
-    include_directories(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../llvm-project/llvm/include
-        ${ROOT_SOURCE_DIR}/Libraries/libdispatch
-    )
+if(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
+    target_link_libraries(host_ctfconvert PRIVATE -lLLVM -ldispatch)
+    target_link_libraries(host_ctfdump PRIVATE -lLLVM -ldispatch)
+    target_link_libraries(host_ctfmerge PRIVATE -lLLVM -ldispatch)
 endif()

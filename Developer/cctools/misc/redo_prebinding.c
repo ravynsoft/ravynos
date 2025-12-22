@@ -85,6 +85,7 @@
 
 #ifdef __linux__
 #define __alloc_size(...) __attribute__((alloc_size(__VA_ARGS__)))
+#define __OSX_AVAILABLE_STARTING(...)
 #include <Availability.h>
 #endif
 

@@ -35,8 +35,8 @@
 #include "traverse.h"
 #include "memory.h"
 
-int (*tddescenders[])();
-int (*tdnops[])();
+int (*tddescenders[])(tdesc_t *, tdtrav_data_t *);
+int (*tdnops[])(tdesc_t *, tdesc_t **, void *);
 
 int tdtraverse(tdesc_t *, tdesc_t **, tdtrav_data_t *);
 
@@ -158,7 +158,7 @@ int
 tdtraverse(tdesc_t *this, tdesc_t **thisp, tdtrav_data_t *tdtd)
 {
 	tdtrav_cb_f travcb;
-	int (*descender)();
+	int (*descender)(tdesc_t *, tdtrav_data_t *);
 	int descend = 1;
 	int rc;
 

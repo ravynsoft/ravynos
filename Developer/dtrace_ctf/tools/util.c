@@ -138,16 +138,12 @@ terminate(const char *format, ...)
 	va_list ap;
 
 	va_start(ap, format);
-#if !defined(__APPLE__)
-	whine("ERROR", format, ap);
-#else
     /*
      * Supress the error message if the format is empty
      */
     if (format[0] != 0) {
         whine("ERROR", format, ap);
     }
-#endif
 	va_end(ap);
 
 	if (terminate_cleanup)
@@ -168,16 +164,12 @@ aborterr(char *format, ...)
 	whine("ERROR", format, ap);
 	va_end(ap);
 
-#if !defined(__APPLE__)
-	abort();
-#else
 	/*
 	 * On Mac OS X, unhandled SIGABRT raised by abort() invokes the CrashReporter
 	 * mechanism. That's way more heavyweight than needed. And as there are no SIGABRT
 	 * signal handlers in ctfconvert and friends, we may as well just exit().
 	 */
 	exit(1);
-#endif /* __APPLE__ */
 }
 
 /*PRINTFLIKE1*/

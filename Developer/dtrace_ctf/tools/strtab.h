@@ -28,6 +28,9 @@
 #define	_STRTAB_H
 
 #include <sys/types.h>
+#ifdef __linux__
+typedef unsigned long ulong_t;
+#endif
 
 #include "atom.h"
 

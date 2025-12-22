@@ -20,6 +20,14 @@
  * @APPLE_LICENSE_HEADER_END@
  */
 
+#ifdef __linux__
+#include <stddef.h>
+int fls(int mask);
+typedef int cmp_t(const void *, const void *, void *, void *thunk);
+void qsort_r(void *a, size_t n, size_t es, cmp_t *cmp, void *thunk);
+#define __predict_false(exp) __builtin_expect((exp), 0)
+#endif
+
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>

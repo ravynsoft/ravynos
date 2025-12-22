@@ -31,18 +31,17 @@
 #include <sys/mman.h>
 #else
 #include <sys/types.h>
-//#include <sys/sysmacros.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
-
 #include "darwin_shim.h"
-#include <mach-o/loader.h>
-#include <mach-o/nlist.h>
-#include <mach-o/stab.h>
+#endif /* __APPLE__ */
 
 int debug_level;
 const char *progname = "ctfdump";
-#endif /* __APPLE__ */
+
+#include <mach-o/loader.h>
+#include <mach-o/nlist.h>
+#include <mach-o/stab.h>
 
 #include <strings.h>
 #include <unistd.h>
@@ -58,7 +57,6 @@ const char *progname = "ctfdump";
 #include "utils.h"
 #include "symbol.h"
 
-#ifdef __APPLE__
 extern caddr_t write_buffer(ctf_header_t *h, ctf_buf_t *buf, size_t *resszp);
 extern caddr_t write_compressed_buffer(ctf_header_t *h, ctf_buf_t *buf, size_t *resszp);
 struct ctf_buf {
@@ -73,7 +71,6 @@ struct ctf_buf {
 
 void write_file(Elf *src, const char *srcname, Elf *dst, const char *dstname, caddr_t ctfdata, size_t ctfsize, int flags);
 
-#endif /* __APPLE__ */
 
 #define	WARN(x)	{ warn(x); return (E_ERROR); }
 
@@ -137,9 +134,7 @@ typedef struct ctf_data {
 	Elf_Data *cd_symdata;	/* Symbol table */
 	Elf_Data *cd_strdata;	/* Symbol table strings */
 	int cd_nsyms;		/* Number of symbol table entries */
-#if defined (__APPLE__)
 	Elf32_Word sh_link;
-#endif /* __APPLE__ */
 } ctf_data_t;
 
 static const char *
@@ -262,7 +257,6 @@ print_labeltable(const ctf_header_t *hp, const ctf_data_t *cd)
 	return (E_SUCCESS);
 }
 
-#if defined(__APPLE__)
 static GElf_Sym *
 gelf_getsym_macho(Elf_Data * data, int ndx, GElf_Sym * sym, const char *base)
 {
@@ -358,7 +352,6 @@ gelf_getsym_macho_64(Elf_Data * data, int ndx, GElf_Sym * sym, const char *base)
 			
 	return sym;
 }
-#endif /* __APPLE__ */
 
 /*
  * Given the current symbol index (-1 to start at the beginning of the symbol
@@ -377,7 +370,6 @@ next_sym(const ctf_data_t *cd, const int symidx, const uchar_t matchtype,
 		char *name;
 		int type;
 
-#if defined(__APPLE__)
 		if (cd->sh_link == SHN_MACHO) { /* Underlying file is Mach-o */
 			if (gelf_getsym_macho(cd->cd_symdata, i, &sym, (const char *)(cd->cd_strdata->d_buf)) == 0)
 				return (-1);
@@ -387,7 +379,6 @@ next_sym(const ctf_data_t *cd, const int symidx, const uchar_t matchtype,
 				return (-1);
 		}
 		else
-#endif /* __APPLE__ */
 		if (gelf_getsym(cd->cd_symdata, i, &sym) == 0)
 			return (-1);
 
@@ -1021,11 +1012,7 @@ print_stats(void)
 static int
 print_usage(FILE *fp, int verbose)
 {
-#if !defined(__APPLE__)
-	(void) fprintf(fp, "Usage: %s [-dfhlsSt] [-u file] file\n", getpname());
-#else
 	(void) fprintf(fp, "Usage: %s [-dfhlrsSt] [-u file] file\n", progname);
-#endif /* __APPLE__ */
 
 	if (verbose) {
 		(void) fprintf(fp,
@@ -1033,9 +1020,7 @@ print_usage(FILE *fp, int verbose)
 		    "\t-f  dump function section\n"
 		    "\t-h  dump file header\n"
 		    "\t-l  dump label table\n"
-#ifdef __APPLE__
 		    "\t-r  remove listed symbols from CTF data\n" 
-#endif /* __APPLE__ */
 		    "\t-s  dump string table\n"
 		    "\t-S  dump statistics\n"
 		    "\t-t  dump type section\n"
@@ -1156,21 +1141,12 @@ skiploop:
 		 * should be used. We default to the .symtab section if sh_link
 		 * is zero or if there's an error reading the section header.
 		 */
-#if !defined(__APPLE__)
-		if (gelf_getshdr(ctfscn, &ctfshdr) != NULL &&
-		    ctfshdr.sh_link != 0) {
-			symscn = elf_getscn(elf, ctfshdr.sh_link);
-		} else {
-			symscn = findelfscn(elf, &ehdr, ".symtab");
-		}
-#else
 		if (gelf_getshdr(ctfscn, &ctfshdr) != NULL &&
 		    ctfshdr.sh_link != 0 && ctfshdr.sh_link != SHN_MACHO && ctfshdr.sh_link != SHN_MACHO_64) {
 			symscn = elf_getscn(elf, ctfshdr.sh_link);
 		} else {
 			symscn = findelfscn(elf, &ehdr, ".symtab");
 		}
-#endif /* __APPLE__ */
 
 		/* If we found a symbol table, find the corresponding strings */
 		if (symscn != NULL) {
@@ -1178,13 +1154,6 @@ skiploop:
 			Elf_Scn *symstrscn;
 
 			if (gelf_getshdr(symscn, &shdr) != NULL) {
-#if !defined(__APPLE__)
-				symstrscn = elf_getscn(elf, shdr.sh_link);
-
-				cd.cd_nsyms = shdr.sh_size / shdr.sh_entsize;
-				cd.cd_symdata = elf_getdata(symscn, NULL);
-				cd.cd_strdata = elf_getdata(symstrscn, NULL);
-#else
 				if (SHN_MACHO == shdr.sh_link) { /* Underlying file is Mach-o */
 					int dir_idx;
 					cd.cd_nsyms = shdr.sh_size / shdr.sh_entsize;
@@ -1215,7 +1184,6 @@ skiploop:
 					cd.cd_strdata = elf_getdata(symstrscn, NULL);
 					cd.sh_link = shdr.sh_link;
 				}
-#endif /* __APPLE__ */
 			}
 		}
 	} else {
@@ -1297,7 +1265,6 @@ skiploop:
 		cd.cd_ctflen = hp->cth_stroff + hp->cth_strlen;
 	}
 
-#ifdef __APPLE__
 	if (doclean) {
 		int nsyms = argc - 1 - optind;
 		char **syms = &argv[optind];
@@ -1315,7 +1282,6 @@ skiploop:
 		free(tmpname);
 		flags = 0;
 	}
-#endif /* __APPLE__ */
 
 	if (flags & F_HDR)
 		error |= print_header(hp, &cd);

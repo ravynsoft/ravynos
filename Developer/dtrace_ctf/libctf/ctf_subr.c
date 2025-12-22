@@ -28,6 +28,9 @@
 #include "libctf.h"
 #include <sys/mman.h>
 #include <stdarg.h>
+#ifdef __linux__
+#include <string.h>
+#endif
 
 void *
 ctf_data_alloc(size_t size)

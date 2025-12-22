@@ -48,6 +48,7 @@ set_property(TARGET host_libstuff PROPERTY OUTPUT_NAME stuff)
 target_compile_definitions(host_libstuff PRIVATE
     __DARWIN_UNIX03
     PROGRAM_PREFIX=\"\"
+    __LITTLE_ENDIAN__=1234
 )
 target_include_directories(host_libstuff PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../include
@@ -55,7 +56,7 @@ target_include_directories(host_libstuff PRIVATE
 )
 if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
     target_compile_options(host_libstuff PRIVATE
-        -w -Wno-error=implicit-function-declaration
+        -w -Wno-error -std=gnu99
     )
     target_compile_definitions(host_libstuff PRIVATE
         __private_extern__=extern

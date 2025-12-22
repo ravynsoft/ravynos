@@ -22,6 +22,10 @@
  * @APPLE_LICENSE_HEADER_END@
  */
  
+#ifdef __linux__
+#include <Availability.h>
+#define __OSX_AVAILABLE_STARTING(...)
+#endif
 
 #include <stdint.h>
 #include <stdlib.h>

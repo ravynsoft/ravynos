@@ -97,7 +97,11 @@
 #include "alist.h"
 #include "traverse.h"
 
-#if defined(__APPLE__)
+#ifdef __linux__
+#include <string.h>
+#endif
+
+#if defined(__APPLE__) || defined(__linux__)
 /* Sun extensions not present in Darwin's dwarf.h */
 #define DW_ATE_SUN_interval_float       0x91
 #define DW_ATE_SUN_imaginary_float      0x92 /* Obsolete: See DW_ATE_imaginary_float */
@@ -2240,7 +2244,7 @@ dw_read(Elf *elf, const char *filename, const char *unitmatch, int verbose, tdat
 		die_create(dw, child);
 		die_resolve(dw);
 
-#if !defined(__APPLE__)
+#if !defined(__APPLE__) && !defined(__linux__)
 		cvt_fixups(td, dw->dw_ptrsz);
 #else
 		/* Ignore Solaris gore. See on-src-20080707/usr/src/tools/ctf/cvt/fixup_tdescs.c */

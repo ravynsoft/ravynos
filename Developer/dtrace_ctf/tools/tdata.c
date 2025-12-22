@@ -31,6 +31,9 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <pthread.h>
+#ifdef __linux__
+#include <string.h>
+#endif
 
 #include "ctftools.h"
 #include "memory.h"

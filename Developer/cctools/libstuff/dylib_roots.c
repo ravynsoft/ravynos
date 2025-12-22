@@ -21,6 +21,9 @@
  * @APPLE_LICENSE_HEADER_END@
  */
 #ifndef RLD
+#ifdef __linux__
+#define _BSD_SOURCE // for realpath(3)
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <strings.h>

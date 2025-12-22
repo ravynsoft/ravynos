@@ -26,10 +26,16 @@ target_compile_options(host_ld PRIVATE
     "-Wno-#warnings" -Wno-deprecated -Wno-macro-redefined -fblocks
     -F${SYSROOT_DIR}/System/Library/Frameworks
 )
+if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+    set(RPATH_ORIGIN "-R$ORIGIN")
+    add_compile_options(-w -stdlib=libc++)
+else()
+    set(RPATH_ORIGIN -rpath,@executable_path)
+endif()
 target_link_libraries(host_ld PRIVATE
     host_libxar host_ld_libparsers host_ld_libpasses
     host_libstuff OpenSSL::SSL OpenSSL::Crypto
-    -L${TOOLCHAIN}/usr/lib -ltapi -Wl,-rpath,@executable_path/../lib
+    -L${TOOLCHAIN}/usr/lib -ltapi -Wl,${RPATH_ORIGIN}/../lib
 )
 set_property(TARGET host_ld PROPERTY OUTPUT_NAME ld)
 

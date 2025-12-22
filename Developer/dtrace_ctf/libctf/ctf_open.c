@@ -25,6 +25,9 @@
  * Use is subject to license terms.
  */
 
+#ifdef __linux__
+#include <string.h>
+#endif
 #include "ctf_impl.h"
 #include <sys/mman.h>
 #define Z_OK            0	/* In lieu of Solaris <sys/zmod.h> */

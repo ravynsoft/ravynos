@@ -1,3 +1,8 @@
+if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+    set(LINUX_SRCS qsort.c fls.c)
+    add_compile_options(-Wno-error -std=gnu99)
+endif()
+
 add_library(libctf.host STATIC)
 target_sources(libctf.host PRIVATE
     ctf_create.c
@@ -11,6 +16,7 @@ target_sources(libctf.host PRIVATE
     ctf_subr.c
     ctf_types.c
     ctf_util.c
+    ${LINUX_SRCS}
 
     ctf_impl.h
     ../include/libctf.h
@@ -19,8 +25,3 @@ target_sources(libctf.host PRIVATE
 set_property(TARGET libctf.host PROPERTY OUTPUT_NAME ctf)
 target_include_directories(libctf.host PRIVATE ../include ../include/sys)
 target_compile_definitions(libctf.host PRIVATE CTF_OLD_VERSIONS)
-if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
-    target_compile_options(libctf.host PRIVATE
-        -w -Wno-error=implicit-function-declaration -D__APPLE__
-    )
-endif()

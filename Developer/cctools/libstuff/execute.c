@@ -29,6 +29,11 @@
 #include <sys/wait.h>
 #include <sys/file.h>
 #include <errno.h>
+#ifdef __linux__
+#define _BSD_SOURCE
+#include <limits.h>
+#include <stdlib.h>
+#endif
 #include "stuff/errors.h"
 #include "stuff/allocate.h"
 #include "stuff/execute.h"

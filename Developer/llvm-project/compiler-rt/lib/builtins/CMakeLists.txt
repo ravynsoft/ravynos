@@ -9,7 +9,10 @@ if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
     ../../../../../Libraries/libplatform/include
     ../../../../Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk
   )
-  add_compile_definitions(__THROW=)
+  add_compile_definitions(
+    __NO_FLOAT128
+    "__nonnull(x)="
+  )
 endif()
 
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)

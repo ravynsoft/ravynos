@@ -17,11 +17,20 @@ target_sources(migcom PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/y.tab.c
     ${CMAKE_CURRENT_BINARY_DIR}/lexxer.yy.c
 )
-target_compile_definitions(migcom PRIVATE MIG_VERSION=\"\")
-target_include_directories(migcom PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-set_target_properties(migcom PROPERTIES
-    CMAKE_C_COMPILER ${TOOLS}/usr/bin/clang
+target_compile_definitions(migcom PRIVATE MIG_VERSION=\"${PROD_VERSION}\")
+target_compile_options(migcom PRIVATE
+	--sysroot=${CMAKE_BINARY_DIR}/sysroot
 )
+target_include_directories(migcom PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../cctools/include/foreign
+    ${CMAKE_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS
+)
+set_target_properties(migcom PROPERTIES
+    CMAKE_C_COMPILER ${CMAKE_BINARY_DIR}/Developer/Toolchains/Default.xctoolchain/usr/bin/clang
+    CMAKE_CXX_COMPILER ${CMAKE_BINARY_DIR}/Developer/Toolchains/Default.xctoolchain/usr/bin/clang++
+)
+add_dependencies(migcom ravynOS_sdk BootstrapTools)
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/y.tab.c
     COMMAND yacc -d -b "${CMAKE_CURRENT_BINARY_DIR}/y" ${CMAKE_CURRENT_SOURCE_DIR}/parser.y
@@ -74,4 +83,4 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lexxer.yy.c
 
 add_executable(mig IMPORTED)
 set_property(TARGET mig PROPERTY IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/mig.sh)
-add_dependencies(mig migcom)
+add_dependencies(mig host_migcom)

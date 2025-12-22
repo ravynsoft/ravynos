@@ -24,6 +24,7 @@ target_include_directories(host_ld_libpasses PRIVATE
     ${TOOLCHAIN}/usr/include
     ${CMAKE_SOURCE_DIR}/Libraries/libmalloc/include
     ../../abstraction
+    ../../../../include
     ..
     ../..
     ../parsers

@@ -23,7 +23,7 @@
 #endif
 #include <sys/param.h>
 
-#if __has_include(<sys/cdefs.h>)
+#if __has_include(<sys/cdefs.h>) || defined(__linux__)
 #include <sys/cdefs.h>
 #endif
 

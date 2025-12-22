@@ -25,6 +25,9 @@
  * Use is subject to license terms.
  */
 
+#ifdef __linux__
+#include <string.h>
+#endif
 #include "ctf_impl.h"
 
 static const uint16_t _CTF_EMPTY[1] = { 0 };

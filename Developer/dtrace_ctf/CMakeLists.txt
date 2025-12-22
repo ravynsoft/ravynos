@@ -19,16 +19,15 @@ include(../cmake/suppress_warnings.cmake)
 
 if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
     add_compile_definitions(
-        __APPLE__ __DARWIN_UNIX03 __DARWIN_ONLY_UNIX_CONFORMANCE
+        __DARWIN_UNIX03 __DARWIN_ONLY_UNIX_CONFORMANCE
         __private_extern__=extern
         __unused=
     )
-    add_compile_options(-w
-    )
+    add_compile_options(-w)
     include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}../llvm-project/llvm/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/../cctools/include
         ${CMAKE_CURRENT_SOURCE_DIR}/../cctools/include/foreign
+        ${CMAKE_CURRENT_SOURCE_DIR}/../cctools/include
         ${CMAKE_SOURCE_DIR}/../../Kernel/xnu/EXTERNAL_HEADERS
         ${CMAKE_SOURCE_DIR}/../../Kernel/xnu/osfmk
     )

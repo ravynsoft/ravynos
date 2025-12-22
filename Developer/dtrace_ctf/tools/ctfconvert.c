@@ -28,6 +28,11 @@
  * CTF data, and replace the stabs sections with a CTF section.
  */
 
+#ifdef __linux__
+#define _XOPEN_SOURCE 600
+#include <signal.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

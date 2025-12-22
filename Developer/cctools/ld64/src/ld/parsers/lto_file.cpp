@@ -25,6 +25,13 @@
 #ifndef __LTO_READER_H__
 #define __LTO_READER_H__
 
+#ifdef __linux__
+#include <cstddef>
+#include <stddef.h>
+#include <Availability.h>
+#define __OSX_AVAILABLE_STARTING(...)
+#endif
+
 #include <stdlib.h>
 #include <sys/param.h>
 #include <sys/fcntl.h>
