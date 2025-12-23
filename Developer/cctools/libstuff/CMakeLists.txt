@@ -56,7 +56,7 @@ target_include_directories(host_libstuff PRIVATE
 )
 if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
     target_compile_options(host_libstuff PRIVATE
-        -w -Wno-error -std=gnu99
+        -w -Wno-error -std=gnu99 -UHAVE_STRMODE
     )
     target_compile_definitions(host_libstuff PRIVATE
         __private_extern__=extern

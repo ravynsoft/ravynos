@@ -7,6 +7,7 @@ include(${LLVM_COMMON_CMAKE_UTILS}/Modules/CMakePolicy.cmake
   NO_POLICY_SCOPE)
 
 set(CMAKE_BUILD_WITH_INSTALL_NAME_DIR ON)
+add_compile_options(-w -Wno-error=global-constructors)
 
 if(NOT DEFINED LLVM_VERSION_MAJOR)
   set(LLVM_VERSION_MAJOR 17)

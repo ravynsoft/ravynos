@@ -55,6 +55,10 @@
 #include "archive.h"
 #include "filetree.h"
 
+#ifndef HAVE_STRMODE
+#include "strmode.h"
+#endif
+
 uint64_t xar_ntoh64(uint64_t num) {
 	int t = 1234;
 	union conv {
@@ -175,10 +179,6 @@ void xar_devmake(dev_t dev, uint32_t *out_major, uint32_t *out_minor)
 	return;
 }
 
-
-#ifndef HAVE_STRMODE
-#include "strmode.h"
-#endif
 
 char *xar_get_type(xar_t x, xar_file_t f) {
 	const char *type = NULL;

@@ -38,7 +38,13 @@ target_sources(host_xar PRIVATE
     src/xar.c
 )
 set_property(TARGET host_xar PROPERTY OUTPUT_NAME xar)
-target_link_libraries(host_xar PRIVATE host_libxar OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB LibXml2::LibXml2)
+target_link_libraries(host_xar PRIVATE
+    host_libxar 
+    OpenSSL::SSL OpenSSL::Crypto 
+    ZLIB::ZLIB 
+    LibXml2::LibXml2
+    host_libstuff
+)
 target_compile_options(host_xar PRIVATE -w)
 if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
     target_link_libraries(host_xar PRIVATE -lacl)

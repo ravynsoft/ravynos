@@ -45,9 +45,6 @@ if(CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
         -DLLVM_LINK_LLVM_DYLIB=ON -DLLVM_CREATE_XCODE_TOOLCHAIN=ON
         -DLLVM_ENABLE_RUNTIMES=compiler-rt$<SEMICOLON>libcxx$<SEMICOLON>libcxxabi$<SEMICOLON>libunwind
     )
-    set(PROJECTS clang$<SEMICOLON>tapi$<SEMICOLON>lld)
-elseif(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
-    set(PROJECTS clang$<SEMICOLON>lld)
 endif()
 
 file(COPY_FILE ${CMAKE_SOURCE_DIR}/Developer/mig/mig.sh ${CMAKE_BINARY_DIR}/Developer/mig/mig)
@@ -58,12 +55,12 @@ ExternalProject_Add(host_clang DEPENDS host_migcom
     CMAKE_ARGS
         ${EXTRA_ARGS} -Wno-dev 
         -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/Developer/Toolchains/Default.xctoolchain/usr
-        -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_LIBCXX=ON
         -DLLVM_TARGETS_TO_BUILD=${BuildArch} -DLLVM_ENABLE_LTO=OFF
         -DLLVM_DEFAULT_TARGET_TRIPLE=${CpuArch}-ravynOS-darwin-macho
         -DLLVM_BUILD_DOCS=OFF -DLLVM_INSTALL_BINUTILS_SYMLINKS=ON
         -DLLVM_ENABLE_ZSTD=OFF -DLLVM_ENABLE_ZLIB=ON
-        -DLLVM_ENABLE_PROJECTS=${PROJECTS}
+        -DLLVM_ENABLE_PROJECTS=clang$<SEMICOLON>tapi$<SEMICOLON>lld
         -DROOT_BINARY_DIR=${ROOT_BINARY_DIR}
         -DCLANG_TABLEGEN_EXE=${CMAKE_CURRENT_BINARY_DIR}/clang/bin/clang-tblgen
 )

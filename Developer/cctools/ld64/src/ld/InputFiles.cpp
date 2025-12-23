@@ -35,10 +35,10 @@ namespace {
 #include <string.h>
 #define MAXPATHLEN 1024
 #define MIN(a,b) (a < b ? a : b)
-extern "C" void atomic_fetch_add_4(volatile int *, int);
-extern "C" void atomic_fetch_add_8(volatile int *, long);
-#define OSAtomicAdd64(i, v) atomic_fetch_add_8((volatile int *)v, i)
-#define OSAtomicIncrement32(v) atomic_fetch_add_4((volatile int *)v, 1)
+extern "C" void atomic_fetchadd_32(volatile int *, int);
+extern "C" void atomic_fetchadd_64(volatile int *, long);
+#define OSAtomicAdd64(i, v) atomic_fetchadd_64((volatile int *)v, i)
+#define OSAtomicIncrement32(v) atomic_fetchadd_32((volatile int *)v, 1)
 #else
 #include <sys/sysctl.h>
 #endif
