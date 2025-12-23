@@ -22,6 +22,16 @@
  * @APPLE_LICENSE_HEADER_END@
  */
 
+#ifdef __linux__
+#include <algorithm>
+#include <string.h>
+#define PLATFORM_UNKNOWN 0
+#define PLATFORM_MACOS 1
+#define CPU_SUBTYPE_X86_ALL 3
+namespace {
+	typedef long double max_align_t;
+}
+#endif
 
 #include <stdint.h>
 #include <math.h>

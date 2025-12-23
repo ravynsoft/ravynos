@@ -6,6 +6,14 @@
 //  Copyright (c) 2011 Apple Inc. All rights reserved.
 //
 
+#ifdef __linux__
+#include <algorithm>
+namespace {
+	typedef long double max_align_t;
+}
+#define ARG_MAX 256*1024
+#endif
+
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
@@ -41,6 +49,26 @@ static const char *assertFileString         = "assert_info";        // text file
 static const char *compileFileString        = "compile_stubs";      // text file containing compile_stubs script
 
 Snapshot *Snapshot::globalSnapshot = NULL;
+
+#ifdef __linux__
+static int mkpath_np(const char *path, mode_t mode)
+{
+	const char *p = path;
+	char segment[1024];
+	int idx = 0;
+	while(*p) {
+		segment[idx++] = *p;
+		if(*p == '/') {
+			segment[idx] = 0;
+			if(mkdir(segment, mode) < 0)
+				return -1;
+			segment[idx++] = *p;
+		}
+		++p;
+	}
+	return 0;
+}
+#endif /* __linux__ */
 
 Snapshot::Snapshot(const Options * opts) : fOptions(opts), fRecordArgs(false), fRecordObjects(false), fRecordDylibSymbols(false), fRecordArchiveFiles(false), fRecordUmbrellaFiles(false), fRecordDataFiles(false), fFrameworkArgAdded(false), fRecordKext(false), fSnapshotLocation(NULL), fSnapshotName(NULL), fRootDir(NULL), fFilelistFile(-1), fCopiedArchives(NULL)
 {

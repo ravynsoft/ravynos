@@ -23,6 +23,14 @@
  */
 
 
+#ifdef __linux__
+#include <algorithm>
+#include <string.h>
+namespace {
+	typedef long double max_align_t;
+}
+#endif
+
 #include <vector>
 #include <map>
 

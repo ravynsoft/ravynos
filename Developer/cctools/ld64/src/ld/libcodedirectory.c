@@ -1,3 +1,9 @@
+
+#ifdef __linux__
+#define __unused __attribute__((unused))
+#define htonll htonl
+#endif
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>

@@ -26,9 +26,12 @@ target_include_directories(host_ld_libparsers PRIVATE
     ../../abstraction
     ../../../../include
     ../../../../include/foreign
+    ../../../../../llvm-project/tapi/include
+    ${CMAKE_CURRENT_BINARY_DIR}/..
     ${CMAKE_SOURCE_DIR}/Libraries/libplatform/private
     ${CMAKE_SOURCE_DIR}/Libraries/dyld/include
     ${CMAKE_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS
+    ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk
     ${TOOLCHAIN}/usr/include
 )
 set_property(TARGET host_ld_libparsers PROPERTY CXX_STANDARD 17)

@@ -26,10 +26,12 @@
 #define __LTO_READER_H__
 
 #ifdef __linux__
-#include <cstddef>
-#include <stddef.h>
+#include <algorithm>
 #include <Availability.h>
 #define __OSX_AVAILABLE_STARTING(...)
+namespace {
+	typedef long double max_align_t;
+}
 #endif
 
 #include <stdlib.h>

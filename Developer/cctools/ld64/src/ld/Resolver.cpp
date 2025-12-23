@@ -27,7 +27,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#ifdef __linux__
+#define MAXPATHLEN 1024
+#include <string.h>
+namespace {
+	typedef long double max_align_t;
+}
+#else
 #include <sys/sysctl.h>
+#endif
 #include <fcntl.h>
 #include <errno.h>
 #include <limits.h>

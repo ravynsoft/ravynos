@@ -27,7 +27,16 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#ifdef __linux__
+namespace {
+	typedef long double max_align_t;
+	typedef char uuid_string_t[37];
+}
+#include <sys/statfs.h>
+#define ARM64_RELOC_AUTHENTICATED_POINTER 11
+#else
 #include <sys/sysctl.h>
+#endif
 #include <sys/param.h>
 #include <sys/mount.h>
 #include <fcntl.h>
@@ -55,8 +64,8 @@
 #include <iostream>
 #include <fstream>
 
-#include <CommonCrypto/CommonDigest.h>
 #include <AvailabilityMacros.h>
+#include <CommonCrypto/CommonDigest.h>
 
 #include "MachOTrie.hpp"
 
@@ -75,7 +84,6 @@ namespace tool {
 uint32_t sAdrpNA = 0;
 uint32_t sAdrpNoped = 0;
 uint32_t sAdrpNotNoped = 0;
-
 
 OutputFile::OutputFile(const Options& opts, ld::Internal& state) 
 	:
@@ -3766,7 +3774,12 @@ static void removePathAndExit(int sig)
 {
 	if ( sDescriptorOfPathToRemove != -1 ) {
 		char path[MAXPATHLEN];
+#ifdef __linux__
+		sprintf(path, "/proc/self/fd/%d", sDescriptorOfPathToRemove);
+		if(readlink(path, path, MAXPATHLEN) >= 0)
+#else
 		if ( ::fcntl(sDescriptorOfPathToRemove, F_GETPATH, path) == 0 )
+#endif
 			::unlink(path);
 	}
 	fprintf(stderr, "ld: interrupted\n");
@@ -3796,6 +3809,7 @@ void OutputFile::writeOutputFile(ld::Internal& state)
 	if ( stat(_options.outputFilePath(), &stat_buf) != -1 ) {
 		if (stat_buf.st_mode & S_IFREG) {
 			outputIsRegularFile = true;
+#ifdef __APPLE__
 			// <rdar://problem/12264302> Don't use mmap on non-hfs volumes
 			struct statfs fsInfo;
 			if ( statfs(_options.outputFilePath(), &fsInfo) != -1 ) {
@@ -3807,6 +3821,9 @@ void OutputFile::writeOutputFile(ld::Internal& state)
 			else {
 				outputIsMappableFile = false;
 			}
+#else
+			outputIsMappableFile = true;
+#endif
 		} 
 		else {
 			outputIsRegularFile = false;
@@ -3821,12 +3838,16 @@ void OutputFile::writeOutputFile(ld::Internal& state)
 		char* end = strrchr(dirPath, '/');
 		if ( end != NULL ) {
 			end[1] = '\0';
+#ifdef __APPLE__
 			struct statfs fsInfo;
 			if ( statfs(dirPath, &fsInfo) != -1 ) {
 				if ( (strcmp(fsInfo.f_fstypename, "hfs") == 0) || (strcmp(fsInfo.f_fstypename, "apfs") == 0) ) {
 					outputIsMappableFile = true;
 				}
 			}
+#else
+			outputIsMappableFile = true;
+#endif
 		}
 	}
 	

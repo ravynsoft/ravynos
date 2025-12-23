@@ -32,6 +32,14 @@
 
 #if defined(_MSC_VER)
 #include <availability.h>
+#endif
+#if defined(__linux__)
+#undef API_AVAILABLE
+#undef API_DEPRECATED
+#undef API_DEPRECATED_WITH_REPLACEMENT
+#define API_DEPRECATED(...)
+#define API_DEPRECATED_WITH_REPLACEMENT(...)
+#define API_AVAILABLE(...)
 #else
 #include <os/availability.h>
 #endif

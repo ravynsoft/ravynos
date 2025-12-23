@@ -6,6 +6,11 @@
 //  Copyright © 2020 Apple Inc. All rights reserved.
 //
 
+#ifdef __linux__
+#include <stdlib.h>
+#define reallocf realloc
+#endif
+
 #include "ResponseFiles.h"
 
 extern void throwf (const char* format, ...) __attribute__ ((noreturn,format(printf, 1, 2)));

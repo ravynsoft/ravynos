@@ -87,6 +87,7 @@ SHA1Final_r(SHA1_CTX *context, void *digest)
 }
 
 
+#ifndef __linux__
 /*
  * This function is called by the SHA1 hardware kext during its init.
  * This will register the function to call to perform SHA1 using hardware.
@@ -116,3 +117,4 @@ sha1_hardware_hook(Boolean option, InKernelPerformSHA1Func func, void *ref)
 		SHA1Ref = NULL;
 	}
 }
+#endif /* __linux__ */

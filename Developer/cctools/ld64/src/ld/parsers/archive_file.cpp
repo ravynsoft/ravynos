@@ -22,6 +22,12 @@
  * @APPLE_LICENSE_HEADER_END@
  */
 
+#ifdef __linux__
+#include <algorithm>
+namespace {
+	typedef long double max_align_t;
+}
+#endif
 #include <stdint.h>
 #include <math.h>
 #include <unistd.h>

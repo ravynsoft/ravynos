@@ -22,6 +22,14 @@
  * @APPLE_LICENSE_HEADER_END@
  */
 
+#ifdef __linux__
+#include <algorithm>
+#include <string.h>
+namespace {
+	typedef long double max_align_t;
+}
+#endif
+
 #include <mach-o/loader.h>
 #include "PlatformSupport.h"
 

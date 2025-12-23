@@ -10,6 +10,9 @@
 #else
 // This will need to be provided for building with non-apple toolchains
 #include "cs_blobs.h"
+#ifndef __unused
+#define __unused
+#endif
 #endif
 
 __BEGIN_DECLS

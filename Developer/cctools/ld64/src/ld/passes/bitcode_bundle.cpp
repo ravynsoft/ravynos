@@ -22,6 +22,14 @@
  * @APPLE_LICENSE_HEADER_END@
  */
 
+#ifdef __linux__
+#include <algorithm>
+#include <string.h>
+#ifndef PATH_MAX
+#define PATH_MAX 1024
+#endif
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>

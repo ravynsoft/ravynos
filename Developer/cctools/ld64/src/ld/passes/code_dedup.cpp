@@ -22,7 +22,9 @@
  * @APPLE_LICENSE_HEADER_END@
  */
 
-
+#ifdef __linux__
+#include <string.h>
+#endif
 #include <stdint.h>
 #include <math.h>
 #include <unistd.h>

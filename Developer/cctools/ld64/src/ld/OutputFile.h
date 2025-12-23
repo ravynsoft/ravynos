@@ -29,7 +29,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#ifndef __linux__
 #include <sys/sysctl.h>
+#endif
 #include <fcntl.h>
 #include <errno.h>
 #include <limits.h>

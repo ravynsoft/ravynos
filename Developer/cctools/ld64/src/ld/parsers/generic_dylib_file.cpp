@@ -22,6 +22,17 @@
  * @APPLE_LICENSE_HEADER_END@
  */
 
+#ifdef __linux__
+#include <algorithm>
+#include <string.h>
+#ifndef PATH_MAX
+#define PATH_MAX 1024
+#endif
+namespace {
+	typedef long double max_align_t;
+}
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 

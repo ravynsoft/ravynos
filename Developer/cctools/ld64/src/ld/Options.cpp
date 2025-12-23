@@ -26,7 +26,18 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <mach/vm_prot.h>
+#ifdef __linux__
+#include <algorithm>
+#include <limits.h>
+#define PATH_MAX 1024
+#define MAXPATHLEN PATH_MAX
+#define CPU_SUBTYPE_X86_ALL 3
+namespace {
+	typedef long double max_align_t;
+}
+#else
 #include <sys/sysctl.h>
+#endif
 #include <mach-o/dyld.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -1337,7 +1348,7 @@ std::vector<const char*> Options::exportsData() const
 std::vector<const char*> Options::SetWithWildcards::data() const
 {
 	std::vector<const char*> data;
-	for (NameSet::iterator it=regularBegin(); it != regularEnd(); ++it) {
+	for (NameSet::const_iterator it=regularBegin(); it != regularEnd(); ++it) {
 		data.push_back(*it);
 	}
 	for (std::vector<const char*>::const_iterator it=fWildCard.begin(); it != fWildCard.end(); ++it) {
@@ -5501,6 +5512,7 @@ void Options::reconfigureDefaults()
 
 		// if no version was explicitly set on the commandline or by an environment variable, and the
 		// the platform is macOS then set the min version to the current
+#ifdef __APPLE__
 		if ( !fPlatfromVersionCmdFound && !inferredFromSDKpath && (fSDKVersion == 0) && platforms().contains(ld::Platform::macOS)
 			&& !(getenv("RC_ProjectName") && getenv("MACOSX_DEPLOYMENT_TARGET")) && (fOutputKind != Options::kObjectFile) ) {
 			int mib[2] = { CTL_KERN, KERN_OSRELEASE };
@@ -5512,6 +5524,7 @@ void Options::reconfigureDefaults()
 				fPlatforms.updateSDKVersion(ld::Platform::macOS, (0x000A0000 + (minor << 8)));
 			}
 		}
+#endif
 	}
 
 	// allow trie based absolute symbols if targeting new enough OS
@@ -5996,7 +6009,7 @@ void Options::checkIllegalOptionCombinations()
 
 	// make sure all required exported symbols exist
 	std::vector<const char*> impliedExports;
-	for (NameSet::iterator it=fExportSymbols.regularBegin(); it != fExportSymbols.regularEnd(); ++it) {
+	for (NameSet::const_iterator it=fExportSymbols.regularBegin(); it != fExportSymbols.regularEnd(); ++it) {
 		const char* name = *it;
 		const int len = strlen(name);
 		if ( (strcmp(&name[len-3], ".eh") == 0) || (strncmp(name, ".objc_category_name_", 20) == 0) ) {
@@ -6028,7 +6041,7 @@ void Options::checkIllegalOptionCombinations()
 	}
 
 	// make sure all required re-exported symbols exist
-	for (NameSet::iterator it=fReExportSymbols.regularBegin(); it != fReExportSymbols.regularEnd(); ++it) {
+	for (NameSet::const_iterator it=fReExportSymbols.regularBegin(); it != fReExportSymbols.regularEnd(); ++it) {
 		fInitialUndefines.push_back(*it);
 	}
 	

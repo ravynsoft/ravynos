@@ -25,6 +25,11 @@
 #ifdef __linux__
 #include <Availability.h>
 #define __OSX_AVAILABLE_STARTING(...)
+#define __API_AVAILABLE(...)
+#define CPU_SUBTYPE_X86_ALL 3
+namespace {
+	typedef long double max_align_t;
+}
 #endif
 
 #include <stdint.h>
@@ -2469,9 +2474,13 @@ void Parser<A>::makeSortedSectionsArray(uint32_t array[])
 	// sort by symbol table address
 	for (uint32_t i=0; i < _machOSectionsCount; ++i)
 		array[i] = i;
+#ifdef __linux__
+	::qsort_r(array, _machOSectionsCount, sizeof(uint32_t), (__compar_d_fn_t)this, (void*)&sectionIndexSorter);
+#else
 	::qsort_r(array, _machOSectionsCount, sizeof(uint32_t), this, &sectionIndexSorter);
+#endif
 
-	if ( log ) {
+if ( log ) {
 		fprintf(stderr, "sorted sections:\n");
 		for(unsigned int i=0; i < _machOSectionsCount; ++i ) 
 			fprintf(stderr, "0x%08llX %s %s\n", _sectionsStart[array[i]].addr(), _sectionsStart[array[i]].segname(), _sectionsStart[array[i]].sectname());
@@ -2562,8 +2571,11 @@ void Parser<A>::makeSortedSymbolsArray(uint32_t array[], const uint32_t sectionA
 	
 	// sort by symbol table address
 	ParserAndSectionsArray extra = { this, sectionArray };
+#ifdef __linux__
+	::qsort_r(array, _symbolsInSections, sizeof(uint32_t), (__compar_d_fn_t)&extra, (void*)&symbolIndexSorter);
+#else
 	::qsort_r(array, _symbolsInSections, sizeof(uint32_t), &extra, &symbolIndexSorter);
-
+#endif
 	
 	// look for two symbols at same address
 	_overlappingSymbols = false;

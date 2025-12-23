@@ -28,7 +28,20 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#ifdef __linux__
+namespace {
+	typedef long double max_align_t;
+}
+#include <string.h>
+#define MAXPATHLEN 1024
+#define MIN(a,b) (a < b ? a : b)
+extern "C" void atomic_fetch_add_4(volatile int *, int);
+extern "C" void atomic_fetch_add_8(volatile int *, long);
+#define OSAtomicAdd64(i, v) atomic_fetch_add_8((volatile int *)v, i)
+#define OSAtomicIncrement32(v) atomic_fetch_add_4((volatile int *)v, 1)
+#else
 #include <sys/sysctl.h>
+#endif
 #include <fcntl.h>
 #include <errno.h>
 #include <limits.h>
@@ -40,13 +53,11 @@
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
 #include <mach-o/fat.h>
-#include <sys/sysctl.h>
 #include <libkern/OSAtomic.h>
 
-#include <string>
+//#include <string>
 #include <map>
 #include <set>
-#include <string>
 #include <vector>
 #include <list>
 #include <algorithm>
@@ -977,6 +988,9 @@ InputFiles::InputFiles(Options& opts)
 	
 	// initialize info for parsing input files on worker threads
 	unsigned int ncpus;
+#ifdef __linux__
+	ncpus = (unsigned int)sysconf(_SC_NPROCESSORS_ONLN);
+#else
 	int mib[2];
 	size_t len = sizeof(ncpus);
 	mib[0] = CTL_HW;
@@ -984,6 +998,8 @@ InputFiles::InputFiles(Options& opts)
 	if (sysctl(mib, 2, &ncpus, &len, NULL, 0) != 0) {
 		ncpus = 1;
 	}
+#endif
+
 	_availableWorkers = MIN(ncpus, files.size()); // max # workers we permit
 	_idleWorkers = 0;
 	

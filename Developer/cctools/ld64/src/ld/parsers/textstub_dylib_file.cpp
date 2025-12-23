@@ -22,6 +22,21 @@
  * @APPLE_LICENSE_HEADER_END@
  */
 
+#ifdef __linux__
+#include <algorithm>
+#include <sys/types.h>
+#ifndef uint8_t
+typedef unsigned char uint8_t;
+#endif
+#ifndef uint32_t
+typedef unsigned int uint32_t;
+#endif
+#define PLATFORM_UNKNOWN 0
+#define PLATFORM_MACOS 1
+namespace {
+	typedef long double max_align_t;
+}
+#endif
 
 #include <sys/param.h>
 #include <sys/mman.h>

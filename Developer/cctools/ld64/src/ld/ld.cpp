@@ -23,16 +23,26 @@
  */
  
 // start temp HACK for cross builds
-extern "C" double log2 ( double );
+//extern "C" double log2 ( double );
+
 //#define __MATH__
 // end temp HACK for cross builds
 
+#ifdef __linux__
+#include <algorithm>
+#include <string.h>
+namespace {
+	typedef long double max_align_t;
+}
+#endif
 
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#ifndef __linux__
 #include <sys/sysctl.h>
+#endif
 #include <fcntl.h>
 #include <errno.h>
 #include <limits.h>
