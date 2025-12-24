@@ -1,36 +1,36 @@
-add_executable(migcom)
-target_sources(migcom PRIVATE
-    error.c
-    global.c
-    header.c
-    mig.c
-    routine.c
-    server.c
-    routine.c
-    server.c
-    statement.c
-    string.c
-    type.c
-    user.c
-    utils.c
+# add_executable(migcom)
+# target_sources(migcom PRIVATE
+#     error.c
+#     global.c
+#     header.c
+#     mig.c
+#     routine.c
+#     server.c
+#     routine.c
+#     server.c
+#     statement.c
+#     string.c
+#     type.c
+#     user.c
+#     utils.c
 
-    ${CMAKE_CURRENT_BINARY_DIR}/y.tab.c
-    ${CMAKE_CURRENT_BINARY_DIR}/lexxer.yy.c
-)
-target_compile_definitions(migcom PRIVATE MIG_VERSION=\"${PROD_VERSION}\")
-target_compile_options(migcom PRIVATE
-	--sysroot=${CMAKE_BINARY_DIR}/sysroot
-)
-target_include_directories(migcom PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ../cctools/include/foreign
-    ${CMAKE_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS
-)
-set_target_properties(migcom PROPERTIES
-    CMAKE_C_COMPILER ${CMAKE_BINARY_DIR}/Developer/Toolchains/Default.xctoolchain/usr/bin/clang
-    CMAKE_CXX_COMPILER ${CMAKE_BINARY_DIR}/Developer/Toolchains/Default.xctoolchain/usr/bin/clang++
-)
-add_dependencies(migcom ravynOS_sdk BootstrapTools)
+#     ${CMAKE_CURRENT_BINARY_DIR}/y.tab.c
+#     ${CMAKE_CURRENT_BINARY_DIR}/lexxer.yy.c
+# )
+# target_compile_definitions(migcom PRIVATE MIG_VERSION=\"${PROD_VERSION}\")
+# target_compile_options(migcom PRIVATE
+# 	--sysroot=${CMAKE_BINARY_DIR}/sysroot
+# )
+# target_include_directories(migcom PRIVATE
+#     ${CMAKE_CURRENT_SOURCE_DIR}
+#     ../cctools/include/foreign
+#     ${CMAKE_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS
+# )
+# set_target_properties(migcom PROPERTIES
+#     CMAKE_C_COMPILER ${CMAKE_BINARY_DIR}/Developer/Toolchains/Default.xctoolchain/usr/bin/clang
+#     CMAKE_CXX_COMPILER ${CMAKE_BINARY_DIR}/Developer/Toolchains/Default.xctoolchain/usr/bin/clang++
+# )
+# add_dependencies(migcom ravynOS_sdk BootstrapTools)
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/y.tab.c
     COMMAND yacc -d -b "${CMAKE_CURRENT_BINARY_DIR}/y" ${CMAKE_CURRENT_SOURCE_DIR}/parser.y

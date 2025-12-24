@@ -57,3 +57,22 @@ register_crypto_functions(const crypto_functions_t funcs)
 
 	return 0;
 }
+
+/* Aaaaand a few other things we need to build on Linux */
+
+void __assert_rtn(const char *func, const char *file, int line, const char *expr)
+{
+    printf("Assertion failed: %s in %s at %s:%d\n", expr, func, file, line);
+    exit(1);
+}
+
+void panic(char *fmt, ...)
+{
+    va_list args;
+
+    va_start(args, fmt);
+    printf("PANIC: ");
+    vprintf(fmt, args);
+    va_end(args);
+    exit(2);
+}

@@ -35,7 +35,9 @@ target_include_directories(host_ld_libpasses PRIVATE
     ${CMAKE_SOURCE_DIR}/Kernel/xnu/libkern
 )
 if(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
-    target_compile_options(host_ld_libpasses PRIVATE -fblocks)
+    target_compile_options(host_ld_libpasses PRIVATE
+        -stdlib=libc++ -fblocks
+    )
 endif()
 set_property(TARGET host_ld_libpasses PROPERTY CXX_STANDARD 17)
 suppress_all_warnings(host_ld_libpasses)

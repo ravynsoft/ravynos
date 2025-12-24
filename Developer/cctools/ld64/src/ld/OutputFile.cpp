@@ -33,7 +33,7 @@ namespace {
 	typedef char uuid_string_t[37];
 }
 #include <sys/statfs.h>
-#define ARM64_RELOC_AUTHENTICATED_POINTER 11
+#include <md5.h>
 #else
 #include <sys/sysctl.h>
 #endif
@@ -3653,6 +3653,13 @@ void OutputFile::chain32bitPointers(dyld_chained_ptr_32_rebase* prevLoc, dyld_ch
 	pageInfo.chainOverflows.push_back(newChainStartOffset);
 }
 
+#ifdef __linux__
+#define CC_MD5_DIGEST_LENGTH 16
+#define CC_MD5_Init(ctx) MD5Init(ctx)
+#define CC_MD5_Update(ctx,data,len) MD5Update(ctx,(const uint8_t *)data,len)
+#define CC_MD5_Final(buf,ctx) MD5Final(buf,ctx)
+#define CC_MD5_CTX MD5_CTX
+#endif
 
 void OutputFile::computeContentUUID(ld::Internal& state, uint8_t* wholeBuffer)
 {
@@ -3758,7 +3765,14 @@ void OutputFile::computeContentUUID(ld::Internal& state, uint8_t* wholeBuffer)
 							   digest[3], digest[4], digest[5], digest[6],  digest[7]);
 		}
 		else {
+#ifdef __linux__
+			MD5_CTX ctx;
+			MD5Init(&ctx);
+			MD5Update(&ctx, wholeBuffer, _fileSize);
+			MD5Final(digest, &ctx);
+#else
 			CC_MD5(wholeBuffer, _fileSize, digest);
+#endif
 		}
 		// <rdar://problem/6723729> LC_UUID uuids should conform to RFC 4122 UUID version 4 & UUID version 5 formats
 		digest[6] = ( digest[6] & 0x0F ) | ( 3 << 4 );

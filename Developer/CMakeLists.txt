@@ -43,8 +43,9 @@ if(CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
         -C ${CMAKE_CURRENT_SOURCE_DIR}/llvm-project/tapi/cmake/caches/apple-tapi.cmake
         -DCMAKE_OSX_SYSROOT=${HOST_SDKROOT} -DLLVM_BUILD_LLVM_DYLIB=ON
         -DLLVM_LINK_LLVM_DYLIB=ON -DLLVM_CREATE_XCODE_TOOLCHAIN=ON
-        -DLLVM_ENABLE_RUNTIMES=compiler-rt$<SEMICOLON>libcxx$<SEMICOLON>libcxxabi$<SEMICOLON>libunwind
     )
+elseif(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
+    set(EXTRA_ARGS -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON)
 endif()
 
 file(COPY_FILE ${CMAKE_SOURCE_DIR}/Developer/mig/mig.sh ${CMAKE_BINARY_DIR}/Developer/mig/mig)
