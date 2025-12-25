@@ -117,8 +117,13 @@ installsrc:
 
 else ifeq ($(RC_ProjectName),xnu_tests)
 
+ifeq ($(shell uname -s),Linux)
+export SYSCTL_HW_PHYSICALCPU := $(shell nproc)
+export SYSCTL_HW_LOGICALCPU  := $(shell nproc)
+else
 export SYSCTL_HW_PHYSICALCPU := $(shell /usr/sbin/sysctl -n hw.physicalcpu)
 export SYSCTL_HW_LOGICALCPU  := $(shell /usr/sbin/sysctl -n hw.logicalcpu)
+endif
 MAKEJOBS := --jobs=$(shell expr $(SYSCTL_HW_LOGICALCPU) + 1)
 
 default: install
@@ -150,8 +155,13 @@ endif
 # CPUs. If the system does not support SMT, use N+1.
 # If MAKEJOBS or -jN is passed on the make line, that takes precedence.
 #
+ifeq ($(shell uname -s),Linux)
+export SYSCTL_HW_PHYSICALCPU := $(shell nproc)
+export SYSCTL_HW_LOGICALCPU  := $(shell nproc)
+else
 export SYSCTL_HW_PHYSICALCPU := $(shell /usr/sbin/sysctl -n hw.physicalcpu)
 export SYSCTL_HW_LOGICALCPU  := $(shell /usr/sbin/sysctl -n hw.logicalcpu)
+endif
 MAKEJOBS := --jobs=$(shell expr $(SYSCTL_HW_LOGICALCPU) + 1)
 
 TOP_TARGETS =								\

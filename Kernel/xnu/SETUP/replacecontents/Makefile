@@ -8,11 +8,11 @@ include $(MakeInc_def)
 
 OBJS = replacecontents.o
 
-CFLAGS = -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION) -g -O0 -I$(SOURCE) -I.
+CFLAGS = -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION) -g -O0 $(HOST_BUILD_FLAGS) -I$(SOURCE) -I. $(HOST_BUILD_INCS)
 
 WARNFLAGS = -Wall
 
-LDFLAGS = -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION)
+LDFLAGS = -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION) $(HOST_LD_FLAGS)
 
 replacecontents: $(OBJS)
 	$(call makelog,$(ColorH)HOST_LD$(Color0)       $(ColorF)$@$(Color0))

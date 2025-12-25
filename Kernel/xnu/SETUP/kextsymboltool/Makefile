@@ -8,11 +8,11 @@ include $(MakeInc_def)
 
 OBJS = kextsymboltool.o
 
-CFLAGS = -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION) -g -O0 -I$(SOURCE) -I.
+CFLAGS = -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION) -g -O0 $(HOST_BUILD_FLAGS) -I$(SOURCE) -I. $(HOST_BUILD_INCS)
 
 WARNFLAGS = -Wall
 
-LDFLAGS = -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION) -lstdc++
+LDFLAGS = -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION) -lstdc++ $(HOST_LD_FLAGS)
 
 kextsymboltool: $(OBJS)
 	$(call makelog,$(ColorH)HOST_LD$(Color0)       $(ColorF)$@$(Color0))

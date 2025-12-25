@@ -6,6 +6,13 @@ export MakeInc_dir=${SRCROOT}/makedefs/MakeInc.dir
 include $(MakeInc_cmd)
 include $(MakeInc_def)
 
+_symbol_aliasing.h:
+	AVAILABILITY_PL=$(SRCROOT)/../availability.pl \
+		$(SRCROOT)/bsd/sys/make_symbol_aliasing.sh \
+		$(RAVYN_SDKROOT) $(OBJROOT)/bsd/sys/_symbol_aliasing.h
+
+$(OBJS): _symbol_aliasing.h
+
 SETUP_SUBDIRS =		\
 	config		\
 	kextsymboltool	\

@@ -160,7 +160,9 @@ WARNFLAGS_STD := \
 	-Wno-used-but-marked-unused \
 	-Wno-variadic-macros \
 	-Wno-vla \
-	-Wno-zero-length-array
+	-Wno-zero-length-array \
+	-Wno-incompatible-sysroot \
+	-Wno-nullability-completeness
 
 WARNFLAGS_STD := $(WARNFLAGS_STD) \
 	-Wno-unknown-warning-option \
@@ -695,7 +697,8 @@ INCFLAGS_GEN	= -I$(SRCROOT)/$(COMPONENT) -I$(OBJROOT)/EXPORT_HDRS/$(COMPONENT)
 INCFLAGS_LOCAL	= -I.
 INCFLAGS_SDK	= -I$(SRCROOT)/../../Libraries/libdispatch -I$(SRCROOT)/libkern/firehose \
                   -I$(SDKROOT)/usr/local/include/kernel -I$(OBJROOT)/bsd \
-                  -I$(OBJROOT)/../../sysroot/usr/local/include/kernel
+                  -I$(OBJROOT)/../../sysroot/usr/local/include/kernel \
+				  -I$(SRCROOT)/../../Libraries/Libc/include
 
 INCFLAGS	= $(INCFLAGS_LOCAL) $(INCFLAGS_GEN) $(INCFLAGS_IMPORT) $(INCFLAGS_EXTERN) $(INCFLAGS_MAKEFILE) $(INCFLAGS_SDK)
 
@@ -966,4 +969,30 @@ ifeq ($(RC_ProjectName),xnu_kasan)
 INSTALL_KASAN_ONLY = 1
 endif
 
+HOST_BUILD_INCS = \
+	-I$(SRCROOT)/../../Libraries/Libc/include \
+	-I$(SRCROOT)/../../Libraries/Libc/fbsdcompat \
+	-I$(SRCROOT)/bsd -I$(OBJROOT)/bsd \
+	-I$(SRCROOT)/../../Developer/CarbonHeaders \
+	-I$(SRCROOT)/../../Libraries/libpthread \
+	-I$(SRCROOT)/../../Libraries/libpthread/pthread \
+	-I$(SRCROOT)/../../Libraries/libpthread/private \
+	-I$(SRCROOT)/libkern -I$(SRCROOT)/../../Libraries/Libc/locale \
+	-I$(SRCROOT)/osfmk -I$(SRCROOT)/../../Libraries/Libc/darwin \
+	-I$(SRCROOT)/libsyscall/wrappers \
+	-I$(SRCROOT)/libsyscall \
+	-I$(SRCROOT)/../../Libraries/libmalloc/include \
+	-I$(SRCROOT)/../../Developer/Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk/copyfile \
+	-I$(SRCROOT)/../../Developer/Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk \
+	-I$(SRCROOT)/../../Developer/cctools/include \
+	-I$(SRCROOT)/../../Developer/cctools/include/foreign
+HOST_BUILD_FLAGS = \
+	-std=gnu99 \
+	-Wno-incompatible-sysroot \
+	-Wno-nullability-completeness \
+	-Wno-implicit-int \
+	-D__APPLE_CC__ -D__MACH__ -I$(DSTROOT)/usr/include \
+	--imacros=$(DSTROOT)/usr/include/Availability.h \
+	-F$(DSTROOT)/System/Library/Frameworks
+HOST_LD_FLAGS = -lc -lm
 # vim: set ft=make:

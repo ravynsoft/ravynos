@@ -25,6 +25,12 @@ set(XCRUN ${TOOLS}/xcrun)
 set(XCBUILD ${TOOLS}/xcbuild)
 set(XCODEBUILD ${TOOLS}/xcodebuild)
 
+if(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
+    set(HOST_CC /usr/bin/clang)
+    set(HOST_CXX /usr/bin/clang++)
+    set(HOST_LD /usr/bin/ld)
+endif()
+
 string(TOUPPER "${CMAKE_SYSTEM_PROCESSOR}" MACHINE)
 # Do not set these CONFIGS to multiple values! Only RELEASE|DEBUG and one arch
 set(KERNEL_CONFIGS RELEASE)
@@ -51,24 +57,33 @@ file(COPY ${CMAKE_SOURCE_DIR}/Libraries/libdispatch/os
 ExternalProject_Add(xnu_headers
     SOURCE_DIR ${CMAKE_SOURCE_DIR}/Kernel/xnu
     BINARY_DIR ${CMAKE_BINARY_DIR}/Kernel/xnu
-    CONFIGURE_COMMAND ""
+    CONFIGURE_COMMAND
+        ${CMAKE_COMMAND} -E rm -f <BINARY_DIR>/bsd/System 
+                <BINARY_DIR>/bsd/System &&
+        ${CMAKE_COMMAND} -E make_directory <BINARY_DIR>/bsd &&
+        ${CMAKE_COMMAND} -E create_symlink <SOURCE_DIR>/osfmk 
+            <BINARY_DIR>/bsd/System &&
+        ${CMAKE_COMMAND} -E create_symlink <SOURCE_DIR>/osfmk/kern
+            <BINARY_DIR>/bsd/mach
     BUILD_COMMAND
-    	${GMAKE} -C <SOURCE_DIR>
+    	PATH=${PATH} ${GMAKE} -C <SOURCE_DIR>
     	    PLATFORM=MacOSX BUILD_LTO=0 BUILD_WERROR=0 DO_CTFMERGE=0
     	    SDKVERSION=${CMAKE_MACOSX_MIN_VERSION} SRCROOT=<SOURCE_DIR>
     	    OBJROOT=<BINARY_DIR> DSTROOT=${CMAKE_BINARY_DIR}/sysroot
             MIGCOM=${MIGCOM} MIG=${MIG} IIG=${IIG} CC=${CC} LD=${CC}
             UNIFDEF=${UNIFDEF} CTFCONVERT=${CTFCONVERT} CTFMERGE=${CTFMERGE}
             CTFINSERT=${CTFINSERT} AVAILABILITY_PL=${AVAILABILITY_PL}
-            AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH}
+            AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH} XCRUN=${XCRUN}
             KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS}
-    	    installhdrs
+            DEVELOPER_DIR=${CMAKE_BINARY_DIR}/Developer
+            SYMROOT=${CMAKE_BINARY_DIR} HOST_CC=${HOST_CC}
+            HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD}
+    	    installhdrs VERBOSE=YES
     INSTALL_COMMAND
         ${GMAKE} -C <SOURCE_DIR>
     	    PLATFORM=MacOSX BUILD_LTO=0 BUILD_WERROR=0 DO_CTFMERGE=0
     	    SDKVERSION=${CMAKE_MACOSX_MIN_VERSION} SRCROOT=<SOURCE_DIR>
-    	    OBJROOT=<BINARY_DIR>
-            DSTROOT=${CMAKE_BINARY_DIR}/Developer/Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk
+    	    OBJROOT=<BINARY_DIR> DSTROOT=${RAVYN_SDKROOT}
             MIGCOM=${MIGCOM} MIG=${MIG} IIG=${IIG} CC=${CC} LD=${CC}
             UNIFDEF=${UNIFDEF} CTFCONVERT=${CTFCONVERT} CTFMERGE=${CTFMERGE}
             CTFINSERT=${CTFINSERT} AVAILABILITY_PL=${AVAILABILITY_PL}
@@ -98,6 +113,7 @@ ExternalProject_Add(xnu
             AVAILABILITY_PL=${AVAILABILITY_PL} MACHINE=${MACHINE}
             AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH} SDKROOT=macosx
             KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS}
+            HOST_CC=${HOST_CC} HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD}
     	    all
     INSTALL_COMMAND
         ${GMAKE} -C <SOURCE_DIR>
@@ -111,6 +127,7 @@ ExternalProject_Add(xnu
             AVAILABILITY_PL=${AVAILABILITY_PL} MACHINE=${MACHINE}
             AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH}
             KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS}
+            HOST_CC=${HOST_CC} HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD}
             install && ${CMAKE_COMMAND} -E make_directory 
             ${RAVYN_SDKROOT}/System/Library/Kernels && ${CMAKE_COMMAND} -E 
             copy <BINARY_DIR>/${KERNEL_CONFIGS}_${ARCH_CONFIGS}/kernel${DEBUG}.dSYM

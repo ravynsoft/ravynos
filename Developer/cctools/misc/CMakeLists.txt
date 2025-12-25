@@ -35,11 +35,13 @@ cctools_misc_executable(vtool)
 
 # Special cases
 add_executable(host_nmedit strip.c)
+set_target_properties(host_nmedit PROPERTIES OUTPUT_NAME nmedit) # xnu needs this
 target_link_libraries(host_nmedit PRIVATE host_libmacho host_libstuff)
 target_include_directories(host_nmedit PRIVATE ../include ../include/foreign ../libstuff)
 target_compile_definitions(host_nmedit PRIVATE -D__DARWIN_UNIX03 -DNMEDIT)
 
 add_executable(host_ranlib libtool.c)
+set_target_properties(host_ranlib PROPERTIES OUTPUT_NAME ranlib)
 target_link_libraries(host_ranlib PRIVATE host_libmacho host_libstuff)
 target_include_directories(host_ranlib PRIVATE ../include ../include/foreign ../libstuff)
 target_compile_definitions(host_ranlib PRIVATE -D__DARWIN_UNIX03 -DRANLIB)

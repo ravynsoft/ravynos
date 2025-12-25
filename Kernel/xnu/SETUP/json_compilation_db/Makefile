@@ -8,7 +8,7 @@ include $(MakeInc_def)
 
 OBJS = json_compilation_db.o
 
-CFLAGS = -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION) -g -O0 -I$(SOURCE) -I.
+CFLAGS = -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION) -g -O0 -I$(SOURCE) -I. -I$(SRCROOT)/../../Libraries/Libc/include -Wno-incompatible-sysroot
 
 WARNFLAGS = -Wall
 

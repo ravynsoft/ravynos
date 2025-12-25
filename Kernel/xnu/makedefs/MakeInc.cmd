@@ -39,11 +39,11 @@ endif
 ifeq ($(VERBOSE),YES)
 	_v =
 	_vstdout =
-	XCRUN = /usr/bin/xcrun -verbose
+	XCRUN = $(shell echo $$XCRUN) -verbose
 else
 	_v = @
 	_vstdout = > /dev/null
-	XCRUN = /usr/bin/xcrun
+	XCRUN = $(shell echo $$XCRUN)
 endif
 
 VERBOSE_GENERATED_MAKE_FRAGMENTS = NO
@@ -215,7 +215,11 @@ ifeq ($(HOST_BISON),)
 	export HOST_BISON	:= $(shell $(XCRUN) -sdk $(HOST_SDKROOT) -find bison)
 endif
 ifeq ($(HOST_GM4),)
-	export HOST_GM4		:= $(shell $(XCRUN) -sdk $(HOST_SDKROOT) -find gm4)
+	ifeq ($(shell uname -s),Linux)
+		export HOST_GM4 := /usr/bin/m4
+	else
+		export HOST_GM4		:= $(shell $(XCRUN) -sdk $(HOST_SDKROOT) -find gm4)
+	endif
 endif
 ifeq ($(HOST_CODESIGN),)
 	export HOST_CODESIGN	:= /usr/bin/codesign

@@ -2,7 +2,7 @@
 # Common definitions for test directories
 #
 
-XCRUN := /usr/bin/xcrun
+XCRUN ?= /usr/bin/xcrun
 SDKROOT ?= macosx.internal
 
 # SDKROOT may be passed as a shorthand like "iphoneos.internal". We

@@ -263,7 +263,11 @@ endif
 # $(warning TARGET_CONFIGS_ALIASES is $(TARGET_CONFIGS_ALIASES))
 # $(warning ALIAS_CONFIGS is $(ALIAS_CONFIGS))
 
+ifeq ($(shell uname -s),Linux)
+MEMORY_SIZE := $(shell free|grep ^Mem|awk '{print $1}')
+else
 MEMORY_SIZE := $(shell /usr/sbin/sysctl -n hw.memsize)
+endif
 
 # Assume LTO scaling by default, unless it is being explicitly passed on the command-line
 LARGE_BUILD_FOOTPRINT := $(if $(BUILD_LTO),$(BUILD_LTO),1)

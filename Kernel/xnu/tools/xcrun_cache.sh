@@ -118,7 +118,7 @@ if [ $CACHE -eq 1 ]; then
 	    REALSDKROOT="$SDKROOT"
 	fi
 
-	SDKPROPERTY=`/usr/bin/xcrun $VERBOSE -sdk "$REALSDKROOT" "$SDKQUERY"`
+	SDKPROPERTY=`${XCRUN:-/usr/bin/xcrun} $VERBOSE -sdk "$REALSDKROOT" "$SDKQUERY"`
 	if [ $? -ne 0 ]; then
 	    exit $?
 	fi
@@ -191,7 +191,7 @@ if [ $CACHE -eq 1 ]; then
 	fi
 	SDKTYPE=`cat "$SDKROOT/.sdktype"`
 
-	TOOLPATH=`/usr/bin/xcrun $VERBOSE -sdk "$REALSDKROOT" -find "$FINDTOOL"`
+	TOOLPATH=`${XCRUN:-/usr/bin/xcrun} $VERBOSE -sdk "$REALSDKROOT" -find "$FINDTOOL"`
 	if [ $? -ne 0 ]; then
 	    exit $?
 	fi
