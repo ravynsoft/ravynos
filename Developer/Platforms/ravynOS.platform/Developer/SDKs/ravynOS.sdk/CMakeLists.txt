@@ -17,9 +17,9 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/usr/lib)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/usr/bin)
 
 file(GLOB_RECURSE HEADER_SET LIST_DIRECTORIES false
-    ${CMAKE_SOURCE_DIR}/Developer/CarbonHeaders/TargetConditionals.h
-    ${CMAKE_SOURCE_DIR}/Developer/CarbonHeaders/ConditionalMacros.h
-    ${CMAKE_SOURCE_DIR}/Developer/CarbonHeaders/MacTypes.h
+    ${CMAKE_SOURCE_DIR}/TargetConditionals.h
+    ${CMAKE_SOURCE_DIR}/ConditionalMacros.h
+    ${CMAKE_SOURCE_DIR}/MacTypes.h
     ${CMAKE_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS/Availability*.h
     ${CMAKE_CURRENT_SOURCE_DIR}/os
     ${CMAKE_CURRENT_SOURCE_DIR}/architecture/byte_order.h
