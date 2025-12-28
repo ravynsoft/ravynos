@@ -19,11 +19,11 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/sysroot/usr/include/mach/)
 file(COPY ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk/mach/vm_statistics.h 
     DESTINATION ${CMAKE_BINARY_DIR}/sysroot/usr/include/mach/)
 target_compile_options(libfirehose_kernel PRIVATE -mkernel -Wno-packed
-    --sysroot=${CMAKE_BINARY_DIR}/sysroot
-    -I${CMAKE_BINARY_DIR}/sysroot/usr/include
+    --sysroot=${RAVYN_SDKROOT}
+    -I${RAVYN_SDKROOT}/usr/include
+    -I${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Headers
     -I${CMAKE_SOURCE_DIR}/Libraries/libdispatch
     -I${CMAKE_SOURCE_DIR}/Libraries/libdispatch/src/firehose
-    -I${CMAKE_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS
     -I${CMAKE_SOURCE_DIR}/Libraries/libplatform/private/os
     -I${CMAKE_SOURCE_DIR}/Libraries/libpthread
     -I${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk

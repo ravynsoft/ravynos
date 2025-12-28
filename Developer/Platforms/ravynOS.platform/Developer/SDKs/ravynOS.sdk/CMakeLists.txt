@@ -21,10 +21,11 @@ add_custom_target(ravynOS_sdkPrep ALL
 add_library(ravynOS_sdk OBJECT stub.c)
 add_dependencies(ravynOS_sdk ravynOS_sdkPrep)
 
+file(GLOB_RECURSE architecture LIST_DIRECTORIES false architecture/*.h)
 file(GLOB_RECURSE usr_include
     AssertMacros.h TargetConditionals.h Availability.h AvailabilityInternal.h
     AvailabilityInternalLegacy.h AvailabilityMacros.h AvailabilityVersions.h
-    os architecture/byte_order.h architecture/alignment.h
+    os ${ROOT_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS/stdarg.h
 )
 
 file(GLOB_RECURSE kernelFramework
@@ -32,10 +33,22 @@ file(GLOB_RECURSE kernelFramework
 )
 
 file(COPY ${usr_include} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/usr/include/)
+file(COPY ${architecture} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/usr/include/architecture/)
+
 file(COPY ${usr_include} DESTINATION
     ${CMAKE_CURRENT_BINARY_DIR}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders/)
+
 file(COPY ${kernelFramework} DESTINATION
     ${CMAKE_CURRENT_BINARY_DIR}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers)
+file(COPY ${architecture} DESTINATION
+    ${CMAKE_CURRENT_BINARY_DIR}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers)
+file(COPY ${architecture} DESTINATION
+    ${CMAKE_CURRENT_BINARY_DIR}/System/Library/Frameworks/Kernel.framework/Versions/A/PrivateHeaders)
+
+file(CREATE_LINK Versions/Current/Headers ${CMAKE_CURRENT_BINARY_DIR}/System/Library/Frameworks/System.framework/Headers SYMBOLIC)
+file(CREATE_LINK Versions/Current/PrivateHeaders ${CMAKE_CURRENT_BINARY_DIR}/System/Library/Frameworks/System.framework/PrivateHeaders SYMBOLIC)
+file(CREATE_LINK Versions/Current/Headers ${CMAKE_CURRENT_BINARY_DIR}/System/Library/Frameworks/Kernel.framework/Headers SYMBOLIC)
+file(CREATE_LINK Versions/Current/PrivateHeaders ${CMAKE_CURRENT_BINARY_DIR}/System/Library/Frameworks/Kernel.framework/PrivateHeaders SYMBOLIC)
 
 # add_custom_target(sdk_Libc_manpages DEPENDS ravynOS_sdkPrep
 #     COMMAND

@@ -89,7 +89,7 @@ ExternalProject_Add(host_clang DEPENDS host_migcom
 #         -DCMAKE_NM=<BINARY_DIR>/../clang/bin/llvm-nm
 #         -DCMAKE_RANLIB=<BINARY_DIR>/../clang/bin/llvm-ranlib
 #         -DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=${CpuArch}-ravynos-darwin-macho
-#         -DCMAKE_SYSROOT=${ROOT_BINARY_DIR}/sysroot
+#         -DCMAKE_SYSROOT=${RAVYN_SDKROOT}
 #         -DCMAKE_C_COMPILER_WORKS=ON -DCMAKE_CXX_COMPILER_WORKS=ON
 #     DEPENDS ravynOS_sdk host_clang
 # )
