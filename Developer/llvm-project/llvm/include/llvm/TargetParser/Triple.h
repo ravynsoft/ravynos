@@ -181,6 +181,7 @@ public:
     SUSE,
     OpenEmbedded,
     Swift,
+    Corvux,
     LastVendorType = Swift
   };
   enum OSType {
@@ -226,6 +227,7 @@ public:
     WASI,       // Experimental WebAssembly OS
     Emscripten,
     ShaderModel, // DirectX ShaderModel
+    ravynOS,
     LiteOS,
     LastOSType = LiteOS
   };

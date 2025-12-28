@@ -227,6 +227,7 @@ StringRef Triple::getVendorTypeName(VendorType Kind) {
   case SCEI: return "scei";
   case SUSE: return "suse";
   case Swift: return "swift";
+  case Corvux: return "corvux";
   }
 
   llvm_unreachable("Invalid VendorType!");
@@ -266,6 +267,7 @@ StringRef Triple::getOSTypeName(OSType Kind) {
   case OpenBSD: return "openbsd";
   case PS4: return "ps4";
   case PS5: return "ps5";
+  case ravynOS: return "macos";
   case RTEMS: return "rtems";
   case Solaris: return "solaris";
   case TvOS: return "tvos";
@@ -603,6 +605,7 @@ static Triple::VendorType parseVendor(StringRef VendorName) {
     .Case("suse", Triple::SUSE)
     .Case("swift", Triple::Swift)
     .Case("oe", Triple::OpenEmbedded)
+    .Case("corvux", Triple::Corvux)
     .Default(Triple::UnknownVendor);
 }
 
@@ -651,6 +654,7 @@ static Triple::OSType parseOS(StringRef OSName) {
     .StartsWith("emscripten", Triple::Emscripten)
     .StartsWith("shadermodel", Triple::ShaderModel)
     .StartsWith("liteos", Triple::LiteOS)
+    .StartsWith("ravynos", Triple::MacOSX)
     .Default(Triple::UnknownOS);
 }
 

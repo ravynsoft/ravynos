@@ -295,6 +295,7 @@ public:
 
   enum DarwinPlatformKind {
     MacOS,
+    ravynOS,
     IPhoneOS,
     TvOS,
     WatchOS,

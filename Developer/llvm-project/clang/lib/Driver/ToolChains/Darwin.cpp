@@ -2087,6 +2087,7 @@ getDeploymentTargetFromEnvironmentVariables(const Driver &TheDriver,
   std::string Targets[Darwin::LastDarwinPlatform + 1];
   const char *EnvVars[] = {
       "MACOSX_DEPLOYMENT_TARGET",
+      "MACOSX_DEPLOYMENT_TARGET",
       "IPHONEOS_DEPLOYMENT_TARGET",
       "TVOS_DEPLOYMENT_TARGET",
       "WATCHOS_DEPLOYMENT_TARGET",
@@ -2324,6 +2325,7 @@ std::optional<DarwinPlatform> getDeploymentTargetFromMTargetOSArg(
   llvm::Triple TT(llvm::Twine("unknown-apple-") + A->getValue());
   switch (TT.getOS()) {
   case llvm::Triple::MacOSX:
+  case llvm::Triple::ravynOS:
   case llvm::Triple::IOS:
   case llvm::Triple::TvOS:
   case llvm::Triple::WatchOS:
@@ -3384,6 +3386,7 @@ static const char *getPlatformName(Darwin::DarwinPlatformKind Platform,
                                    Darwin::DarwinEnvironmentKind Environment) {
   switch (Platform) {
   case Darwin::MacOS:
+  case Darwin::ravynOS:
     return "macos";
   case Darwin::IPhoneOS:
     if (Environment == Darwin::MacCatalyst)

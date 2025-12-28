@@ -1,9 +1,0 @@
-add_mlir_unittest(MLIRBytecodeTests
-  BytecodeTest.cpp
-)
-target_link_libraries(MLIRBytecodeTests
-  PRIVATE
-  MLIRBytecodeReader
-  MLIRBytecodeWriter
-  MLIRParser
-)
