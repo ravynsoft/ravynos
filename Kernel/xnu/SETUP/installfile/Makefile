@@ -8,11 +8,21 @@ include $(MakeInc_def)
 
 OBJS = installfile.o
 
-CFLAGS = -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION) -g -O0 $(HOST_BUILD_FLAGS) -I$(SOURCE) -I. $(HOST_BUILD_INCS)
+CFLAGS = -g -O0 -I$(SOURCE) -I. -Wimplicit-function-declaration
+LDFLAGS = 
 
-WARNFLAGS = -Wall
+ifeq ($(OPSYS),Darwin)
+	CFLAGS += -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION)
+	LDFLAGS += -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION)
+endif
+ifeq ($(OPSYS),Linux)
+	CFLAGS += \
+	  -I$(SRCROOT)/../../Developer/Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk/copyfile \
+	  -I$(SRCROOT)/../../Developer/cctools/include/foreign
+	LDFLAGS += -lbsd
+endif
 
-LDFLAGS = -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION) $(HOST_LD_FLAGS)
+WARNFLAGS = -Wall -Wno-implicit-function-declaration -Wno-int-conversion
 
 installfile: $(OBJS)
 	$(call makelog,$(ColorH)HOST_LD$(Color0)       $(ColorF)$@$(Color0))

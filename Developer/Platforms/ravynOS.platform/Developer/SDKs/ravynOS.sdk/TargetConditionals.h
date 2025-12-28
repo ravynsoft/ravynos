@@ -84,7 +84,7 @@
 /*
  *    gcc based compiler used on Mac OS X
  */
-#if (defined(__GNUC__) || 1) && ( defined(__APPLE_CPP__) || defined(__APPLE_CC__) || defined(__MACOS_CLASSIC__) )
+#if (defined(__GNUC__) || 1) && (defined(__clang__) || defined(__APPLE_CPP__) || defined(__APPLE_CC__) || defined(__MACOS_CLASSIC__) )
     #define TARGET_OS_MAC               1
     #define TARGET_OS_OSX               1
     #define TARGET_OS_WIN32             0

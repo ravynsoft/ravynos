@@ -31,7 +31,7 @@ target_include_directories(host_ld_libparsers PRIVATE
     ${CMAKE_SOURCE_DIR}/Libraries/libplatform/private
     ${CMAKE_SOURCE_DIR}/Libraries/dyld/include
     ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk
-    ${CMAKE_SOURCE_DIR}/Developer/CarbonHeaders
+    ${CMAKE_SOURCE_DIR}/Developer/Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk
     ${TOOLCHAIN}/usr/include
 )
 set_property(TARGET host_ld_libparsers PROPERTY CXX_STANDARD 17)

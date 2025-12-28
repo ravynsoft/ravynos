@@ -27,7 +27,7 @@ __On macOS:__
 
 
 __On Linux (tested on Arch 2025/12/21):__
-* Install `bison`, `binutils`, `flex`, `libdispatch`, and the LLVM linker `lld`
+* Install `csh`, `bison`, `binutils`, `flex`, `libdispatch`, and the LLVM linker `lld`
 * Symlink `cc` and `c++` to clang to avoid accidental use of gcc: `rm -f /usr/bin/cc /usr/bin/c++; ln -sf clang /usr/bin/cc; ln -sf clang++ /usr/bin/c++`
 * Run: `cmake --fresh -S /path/to/ravynos -B /path/to/build -GNinja`
 * Run: `cmake --build /path/to/build`

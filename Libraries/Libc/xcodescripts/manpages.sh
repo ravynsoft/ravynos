@@ -7,7 +7,11 @@ if [ "${DRIVERKIT}" = 1 ]; then exit 0; fi
 
 UNIFDEF_FLAGS=`${SRCROOT}/xcodescripts/generate_features.pl --unifdef`
 MANPAGES_LIST="${SRCROOT}/man/manpages.lst"
-FILES=$(find -E ${SRCROOT} -regex '.*/[^.]+\.[0-9]' -type f)
+if [ "x$(uname -s)" = "xLinux" ]; then
+_FILES=$(find ${SRCROOT} -regextype posix-extended -regex '.*/[^.]+\.[0-9]' -type f)
+else
+_FILES=$(find -E ${SRCROOT} -regex '.*/[^.]+\.[0-9]' -type f)
+fi
 
 cat ${MANPAGES_LIST} | grep -v -E '(^#|^\s*$)' | while read first solid rest; do
 	SOURCE=$(grep -E "/${first}$"<<EOF

@@ -685,7 +685,7 @@ typedef SInt8                           VHSelect;
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  */
 extern void 
-Debugger(void)                                                AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER;
+Debugger(void);
 
 
 /*
@@ -697,7 +697,7 @@ Debugger(void)                                                AVAILABLE_MAC_OS_X
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  */
 extern void 
-DebugStr(ConstStr255Param debuggerMsg)                        AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER;
+DebugStr(ConstStr255Param debuggerMsg);
 
 
 /*
@@ -744,7 +744,7 @@ DebugStr(ConstStr255Param debuggerMsg)                        AVAILABLE_MAC_OS_X
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  */
 extern void 
-SysBreak(void)                                                AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER;
+SysBreak(void);
 
 
 /*
@@ -756,7 +756,7 @@ SysBreak(void)                                                AVAILABLE_MAC_OS_X
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  */
 extern void 
-SysBreakStr(ConstStr255Param debuggerMsg)                     AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER;
+SysBreakStr(ConstStr255Param debuggerMsg);
 
 
 /*
@@ -768,7 +768,7 @@ SysBreakStr(ConstStr255Param debuggerMsg)                     AVAILABLE_MAC_OS_X
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  */
 extern void 
-SysBreakFunc(ConstStr255Param debuggerMsg)                    AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER;
+SysBreakFunc(ConstStr255Param debuggerMsg);
 
 
 /* old names for Debugger and DebugStr */

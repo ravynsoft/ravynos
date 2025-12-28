@@ -79,7 +79,8 @@ if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
 else()
     set(RPATH_ORIGIN -rpath,@executable_path)
 endif()
-target_link_libraries(host_ld PRIVATE -ltapi
+target_link_libraries(host_ld PRIVATE
+    -L${ROOT_BINARY_DIR}/Developer/clang/lib -ltapi
     host_libxar host_ld_libparsers host_ld_libpasses
     host_libstuff OpenSSL::SSL OpenSSL::Crypto
     -L${TOOLCHAIN}/usr/lib ${EXTRALIBS} "-Wl,${RPATH_ORIGIN}/../lib"

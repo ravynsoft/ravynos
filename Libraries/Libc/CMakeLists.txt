@@ -3,8 +3,8 @@ add_compile_definitions(
 )
 add_compile_options(
     -w -nostdinc --sysroot ${CMAKE_BINARY_DIR}/sysroot
-    -F${CMAKE_BINARY_DIR}/sysroot/System/Library/Frameworks
-    -Wno-reserved-identifier
+    -F${RAVYN_SDKROOT}/System/Library/Frameworks
+    -Wno-reserved-identifier -Wno-incompatible-sysroot
 )
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -12,9 +12,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/locale
     ${CMAKE_CURRENT_SOURCE_DIR}/../libplatform/private
     ${CMAKE_CURRENT_SOURCE_DIR}/../libpthread/src
-    ${CMAKE_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/bsd
-    ${CMAKE_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
-    ${CMAKE_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS
+    ${RAVYN_SDKROOT}/usr/include
 )
 
 add_library(Base OBJECT
@@ -115,4 +113,4 @@ add_library(Base OBJECT
     uuid/uuidsrc/unparse.c
 )
 
-add_dependencies(Base xnu)
+add_dependencies(Base xnu_headers)

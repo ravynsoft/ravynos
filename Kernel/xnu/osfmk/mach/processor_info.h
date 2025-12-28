@@ -67,23 +67,6 @@
 #ifndef _MACH_PROCESSOR_INFO_H_
 #define _MACH_PROCESSOR_INFO_H_
 
-#if defined(__linux__)
-#include <mach/std_types.h>
-#include <mach/vm_types.h>
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wtypedef-redefinition"
-#define CPU_STATE_MAX 4
-#define cpu_type_t mach_port_t
-#define cpu_subtype_t mach_port_t
-#define cpu_threadtype_t mach_port_t
-#define processor_t mach_port_t
-#define thread_t mach_port_t
-#define thread_urgency_t mach_port_t
-#define perfcontrol_event mach_port_t
-#include <mach/mach_types.h>
-#pragma GCC diagnostic pop
-#endif
-
 #include <mach/message.h>
 #include <mach/machine.h>
 #include <mach/machine/processor_info.h>

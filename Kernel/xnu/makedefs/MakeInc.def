@@ -6,6 +6,8 @@
 # linking, and installing files.
 #
 
+OPSYS := $(shell uname -s)
+
 #
 # Architecture Configuration options
 #
@@ -162,7 +164,8 @@ WARNFLAGS_STD := \
 	-Wno-vla \
 	-Wno-zero-length-array \
 	-Wno-incompatible-sysroot \
-	-Wno-nullability-completeness
+	-Wno-nullability-completeness \
+	-Wno-incompatible-sysroot
 
 WARNFLAGS_STD := $(WARNFLAGS_STD) \
 	-Wno-unknown-warning-option \
@@ -201,8 +204,13 @@ endef
 #
 # Default ARCH_FLAGS, for use with compiler/linker/assembler/mig drivers
 
+ifeq ($(OPSYS),Linux)
+ARCH_FLAGS_X86_64     = -march=x86-64
+ARCH_FLAGS_X86_64H    = -march=x86-64h
+else
 ARCH_FLAGS_X86_64	  = -arch x86_64
 ARCH_FLAGS_X86_64H	  = -arch x86_64h
+endif
 
 ifneq ($(filter ARM ARM64,$(CURRENT_ARCH_CONFIG)),)
 
@@ -227,8 +235,13 @@ BUILD_STATIC_LINK := 1
 
 endif
 
+ifeq ($(OPSYS),Linux)
+ARCH_FLAGS_ARM		  = -march=$(ARCH_STRING_FOR_CURRENT_MACHINE_CONFIG)
+ARCH_FLAGS_ARM64	  = -march=$(ARCH_STRING_FOR_CURRENT_MACHINE_CONFIG)
+else
 ARCH_FLAGS_ARM		  = -arch $(ARCH_STRING_FOR_CURRENT_MACHINE_CONFIG)
 ARCH_FLAGS_ARM64	  = -arch $(ARCH_STRING_FOR_CURRENT_MACHINE_CONFIG)
+endif
 
 #
 # Clang static analyzer flags
@@ -270,7 +283,7 @@ BUILD_DSYM := 1
 #
 CFLAGS_GEN = $(DEBUG_CFLAGS) -nostdinc -w \
 	-ferror-limit=10000 \
-	-fno-builtin \
+	-fno-builtin -fblocks \
 	-fno-common \
 	-fsigned-bitfields \
 	-fmerge-all-constants \
@@ -786,10 +799,17 @@ export VPATH = .:$(SOURCE)
 #
 # install flags for header files
 #
+ifeq ($(OPSYS),Linux)
+INSTALL_FLAGS = -m 0444
+DATA_INSTALL_FLAGS = -m 0644
+DATA_INSTALL_FLAGS_RO = -m 0444
+EXEC_INSTALL_FLAGS = -m 0755
+else
 INSTALL_FLAGS = -c -S -m 0444
 DATA_INSTALL_FLAGS = -c -S -m 0644
 DATA_INSTALL_FLAGS_RO = -c -S -m 0444
 EXEC_INSTALL_FLAGS = -c -S -m 0755
+endif
 
 #
 # Header file destinations
@@ -969,30 +989,4 @@ ifeq ($(RC_ProjectName),xnu_kasan)
 INSTALL_KASAN_ONLY = 1
 endif
 
-HOST_BUILD_INCS = \
-	-I$(SRCROOT)/../../Libraries/Libc/include \
-	-I$(SRCROOT)/../../Libraries/Libc/fbsdcompat \
-	-I$(SRCROOT)/bsd -I$(OBJROOT)/bsd \
-	-I$(SRCROOT)/../../Developer/CarbonHeaders \
-	-I$(SRCROOT)/../../Libraries/libpthread \
-	-I$(SRCROOT)/../../Libraries/libpthread/pthread \
-	-I$(SRCROOT)/../../Libraries/libpthread/private \
-	-I$(SRCROOT)/libkern -I$(SRCROOT)/../../Libraries/Libc/locale \
-	-I$(SRCROOT)/osfmk -I$(SRCROOT)/../../Libraries/Libc/darwin \
-	-I$(SRCROOT)/libsyscall/wrappers \
-	-I$(SRCROOT)/libsyscall \
-	-I$(SRCROOT)/../../Libraries/libmalloc/include \
-	-I$(SRCROOT)/../../Developer/Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk/copyfile \
-	-I$(SRCROOT)/../../Developer/Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk \
-	-I$(SRCROOT)/../../Developer/cctools/include \
-	-I$(SRCROOT)/../../Developer/cctools/include/foreign
-HOST_BUILD_FLAGS = \
-	-std=gnu99 \
-	-Wno-incompatible-sysroot \
-	-Wno-nullability-completeness \
-	-Wno-implicit-int \
-	-D__APPLE_CC__ -D__MACH__ -I$(DSTROOT)/usr/include \
-	--imacros=$(DSTROOT)/usr/include/Availability.h \
-	-F$(DSTROOT)/System/Library/Frameworks
-HOST_LD_FLAGS = -lc -lm
 # vim: set ft=make:

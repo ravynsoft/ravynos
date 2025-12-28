@@ -1253,8 +1253,16 @@ private:
 	void											makeSortedSymbolsArray(uint32_t symArray[], const uint32_t sectionArray[]);
 	void											makeSortedSectionsArray(uint32_t array[]);
 	static int										pointerSorter(const void* l, const void* r);
+#ifdef __linux__
+	static int										symbolIndexSorter(const void* l, const void* r, void* extra);
+#else
 	static int										symbolIndexSorter(void* extra, const void* l, const void* r);
+#endif
+#ifdef __linux__
+	static int										sectionIndexSorter(const void* l, const void* r, void* extra);
+#else
 	static int										sectionIndexSorter(void* extra, const void* l, const void* r);
+#endif
 
 	void											parseDebugInfo();
 	void											parseStabs();
@@ -2431,8 +2439,13 @@ void Parser<A>::appendAliasAtoms(uint8_t* p)
 
 
 template <typename A>
-int Parser<A>::sectionIndexSorter(void* extra, const void* l, const void* r)
-{
+int Parser<A>::sectionIndexSorter(
+#ifdef __linux__
+const void* l, const void* r, void* extra
+#else
+void* extra, const void* l, const void* r
+#endif
+) {
 	Parser<A>* parser = (Parser<A>*)extra;
 	const uint32_t* left = (uint32_t*)l;
 	const uint32_t* right = (uint32_t*)r;
@@ -2475,7 +2488,7 @@ void Parser<A>::makeSortedSectionsArray(uint32_t array[])
 	for (uint32_t i=0; i < _machOSectionsCount; ++i)
 		array[i] = i;
 #ifdef __linux__
-	::qsort_r(array, _machOSectionsCount, sizeof(uint32_t), (__compar_d_fn_t)this, (void*)&sectionIndexSorter);
+	::qsort_r(array, _machOSectionsCount, sizeof(uint32_t), &sectionIndexSorter, this);
 #else
 	::qsort_r(array, _machOSectionsCount, sizeof(uint32_t), this, &sectionIndexSorter);
 #endif
@@ -2490,8 +2503,13 @@ if ( log ) {
 
 
 template <typename A>
-int Parser<A>::symbolIndexSorter(void* extra, const void* l, const void* r)
-{
+int Parser<A>::symbolIndexSorter(
+#ifdef __linux__
+	const void* l, const void* r, void* extra
+#else
+	void* extra, const void* l, const void* r
+#endif
+) {
 	ParserAndSectionsArray* extraInfo = (ParserAndSectionsArray*)extra;
 	Parser<A>* parser = extraInfo->parser;
 	const uint32_t* sortedSectionsArray = extraInfo->sortedSectionsArray;
@@ -2572,7 +2590,7 @@ void Parser<A>::makeSortedSymbolsArray(uint32_t array[], const uint32_t sectionA
 	// sort by symbol table address
 	ParserAndSectionsArray extra = { this, sectionArray };
 #ifdef __linux__
-	::qsort_r(array, _symbolsInSections, sizeof(uint32_t), (__compar_d_fn_t)&extra, (void*)&symbolIndexSorter);
+	::qsort_r(array, _symbolsInSections, sizeof(uint32_t), &symbolIndexSorter, &extra);
 #else
 	::qsort_r(array, _symbolsInSections, sizeof(uint32_t), &extra, &symbolIndexSorter);
 #endif

@@ -20,7 +20,12 @@
  *
  * @APPLE_LICENSE_HEADER_END@
  */
+#ifdef __APPLE__
 #include <libc.h>
+#else
+#include <stdio.h>
+#include <unistd.h>
+#endif
 #include <errno.h>
 
 #include <sys/stat.h>
@@ -109,7 +114,12 @@ readFile(const char *path, vm_offset_t * objAddr, vm_size_t * objSize)
 static void
 usage(void)
 {
-	fprintf(stderr, "Usage: %s [-s OLDSEGNAME] -n NEWSEGNAME input -o output\n", getprogname());
+	fprintf(stderr, "Usage: %s [-s OLDSEGNAME] -n NEWSEGNAME input -o output\n", 
+#ifdef __linux__
+		"setsegname");
+#else
+		getprogname());
+#endif
 	exit(1);
 }
 

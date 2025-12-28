@@ -6,17 +6,32 @@ export MakeInc_dir=${SRCROOT}/makedefs/MakeInc.dir
 include $(MakeInc_cmd)
 include $(MakeInc_def)
 
+OPSYS := $(shell uname -s)
+
 OBJS = kextsymboltool.o
 
-CFLAGS = -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION) -g -O0 $(HOST_BUILD_FLAGS) -I$(SOURCE) -I. $(HOST_BUILD_INCS)
+CFLAGS = -g -O0 -Wno-implicit-function-declaration \
+	-I$(SRCROOT)/../../Developer/cctools/include/foreign \
+	-I$(SOURCE) -I. -I$(SRCROOT)/../../Developer/cctools/include \
+	-I$(SRCROOT)/../../Developer/Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk
+LDFLAGS = -lstdc++
 
-WARNFLAGS = -Wall
+ifeq ($(OPSYS),Darwin)
+CFLAGS += -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION)
+LDFLAGS += -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION)
+endif
 
-LDFLAGS = -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION) -lstdc++ $(HOST_LD_FLAGS)
+ifeq ($(OPSYS),Linux)
+# The linux linker needs these to come after object files :(
+export LIBS = -L../../../../Developer/cctools/libmacho \
+	-L../../../../Developer/cctools/libstuff -luuid -lmacho -lstuff
+endif
+
+WARNFLAGS = -Wall -Wno-int-conversion
 
 kextsymboltool: $(OBJS)
 	$(call makelog,$(ColorH)HOST_LD$(Color0)       $(ColorF)$@$(Color0))
-	$(_v)$(HOST_CC) $(LDFLAGS) -o $@ $^
+	$(_v)$(HOST_CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 	$(call makelog,$(ColorH)HOST_CODESIGN$(Color0) $(ColorF)$@$(Color0))
 	$(_v)env CODESIGN_ALLOCATE=$(HOST_CODESIGN_ALLOCATE) $(HOST_CODESIGN) -s - $@
 

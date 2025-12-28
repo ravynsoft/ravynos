@@ -7,8 +7,12 @@ add_subdirectory(Toolchains/Default.xctoolchain)
 
 if(CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
     set(RPATH @executable_path)
+    set(HOST_CC ${CC})
+    set(HOST_CXX ${CXX})
 else()
     set(RPATH "$ORIGIN")
+    set(HOST_CC /usr/bin/clang)
+    set(HOST_CXX /usr/bin/clang++)
 endif()
 ExternalProject_Add(host_xcbuild
     SOURCE_DIR ${CMAKE_SOURCE_DIR}/Developer/xcbuild
@@ -58,32 +62,48 @@ ExternalProject_Add(host_clang DEPENDS host_migcom
         -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/Developer/Toolchains/Default.xctoolchain/usr
         -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_LIBCXX=ON
         -DLLVM_TARGETS_TO_BUILD=${BuildArch} -DLLVM_ENABLE_LTO=OFF
-        -DLLVM_DEFAULT_TARGET_TRIPLE=${CpuArch}-ravynOS-darwin-macho
+        -DLLVM_DEFAULT_TARGET_TRIPLE=${CpuArch}-ravynos-darwin-macho
         -DLLVM_BUILD_DOCS=OFF -DLLVM_INSTALL_BINUTILS_SYMLINKS=ON
-        -DLLVM_ENABLE_ZSTD=OFF -DLLVM_ENABLE_ZLIB=ON
+        -DLLVM_ENABLE_ZSTD=OFF -DLLVM_ENABLE_ZLIB=ON -DLLVM_NATIVE_TOOL_DIR=${TOOLS}
         -DLLVM_ENABLE_PROJECTS=clang$<SEMICOLON>tapi$<SEMICOLON>lld
-        -DROOT_BINARY_DIR=${ROOT_BINARY_DIR}
+        -DROOT_BINARY_DIR=${ROOT_BINARY_DIR} -DLLVM_BUILD_RUNTIMES=OFF
         -DCLANG_TABLEGEN_EXE=${CMAKE_CURRENT_BINARY_DIR}/clang/bin/clang-tblgen
+        -DHAVE_CXX_ATOMICS_WITHOUT_LIB=1 -DHAVE_CXX_ATOMICS64_WITHOUT_LIB=1
 )
 
-add_custom_target(CarbonHeaders ALL DEPENDS BootstrapTools
-    USES_TERMINAL
-	COMMAND ${CMAKE_COMMAND} -E copy 
-		${CMAKE_SOURCE_DIR}/Developer/CarbonHeaders/{ConditionalMacros,MacTypes}.h
-		${CMAKE_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS/Availability*.h
-		${CMAKE_BINARY_DIR}/sysroot/usr/include/
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/sysroot/usr/include
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/CarbonHeaders/TargetConditionals.h ${CMAKE_BINARY_DIR}/sysroot/usr/include/
-)
+# ExternalProject_Add(compilerRT
+#     SOURCE_DIR ${CMAKE_SOURCE_DIR}/Developer/llvm-project/compiler-rt
+#     BINARY_DIR ${CMAKE_BINARY_DIR}/Developer/compiler-rt
+#     CMAKE_ARGS
+#         ${EXTRA_ARGS} -Wno-dev
+#         -DCMAKE_INSTALL_PREFIX=<BINARY_DIR> #${CMAKE_BINARY_DIR}/Developer/Toolchains/Default.xctoolchain/usr
+#         -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=${BuildArch}
+#         -DLLVM_ENABLE_ZSTD=OFF -DLLVM_ENABLE_ZLIB=ON
+#         -DLLVM_DIR=<BINARY_DIR>/../clang
+#         -DCOMPILER_RT_BAREMETAL_BUILD=ON -DCOMPILER_RT_BUILD_LIBFUZZER=OFF
+#         -DCOMPILER_RT_BUILD_PROFILE=OFF -DCOMPILER_RT_BUILD_SANITIZERS=OFF
+#         -DCOMPILER_RT_BUILD_XRAY=OFF -DCOMPILER_RT_INCLUDE_TESTS=OFF
+#         -DCMAKE_C_COMPILER=<BINARY_DIR>/../clang/bin/clang
+#         -DCMAKE_CXX_COMPILER=<BINARY_DIR>/../clang/bin/clang++
+#         -DCMAKE_AR=<BINARY_DIR>/../clang/bin/llvm-ar
+#         -DCMAKE_NM=<BINARY_DIR>/../clang/bin/llvm-nm
+#         -DCMAKE_RANLIB=<BINARY_DIR>/../clang/bin/llvm-ranlib
+#         -DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=${CpuArch}-ravynos-darwin-macho
+#         -DCMAKE_SYSROOT=${ROOT_BINARY_DIR}/sysroot
+#         -DCMAKE_C_COMPILER_WORKS=ON -DCMAKE_CXX_COMPILER_WORKS=ON
+#     DEPENDS ravynOS_sdk host_clang
+# )
+
 set(GNU_CONFIGURE_ARGS
     --prefix=/usr --sysconfdir=/etc --bindir=/bin --sbindir=/sbin --localstatedir=/var
 )
 add_custom_target(host_gmake ALL DEPENDS BootstrapTools
     USES_TERMINAL
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/gmake
-    COMMAND cd ${CMAKE_CURRENT_BINARY_DIR}/gmake
-        && ${CMAKE_CURRENT_SOURCE_DIR}/gmake/configure ${GNU_CONFIGURE_ARGS}
+        && cd ${CMAKE_CURRENT_BINARY_DIR}/gmake
+        && CC=${HOST_CC} CXX=${HOST_CXX} 
+            ${CMAKE_CURRENT_SOURCE_DIR}/gmake/configure ${GNU_CONFIGURE_ARGS}
         && ./build.sh
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/gmake/make
-        ${TOOLCHAIN}/usr/bin/
+        && ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/gmake/make
+            ${TOOLCHAIN}/usr/bin/
 )

@@ -20,11 +20,20 @@
  *
  * @APPLE_LICENSE_HEADER_END@
  */
+#ifdef __APPLE__
 #include <libc.h>
+#else
+#include <stdio.h>
+#define PAGE_SIZE 4096
+#define PAGE_MASK (PAGE_SIZE-1)
+#define mach_vm_round_page(x) (((mach_vm_offset_t)(x) + PAGE_MASK) & ~((signed)PAGE_MASK))
+#endif
 #include <errno.h>
 #include <ctype.h>
 
+#ifdef __APPLE__
 #include <mach/mach_init.h>
+#endif
 
 #include <sys/stat.h>
 #include <sys/file.h>

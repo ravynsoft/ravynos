@@ -8,12 +8,14 @@ include $(MakeInc_def)
 
 OBJS = decomment.o
 
-CFLAGS = -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION) -g -O0 $(HOST_BUILD_FLAGS) -I$(SOURCE) -I. $(HOST_BUILD_INCS)
-
+CFLAGS = -g -O0 -I$(SOURCE) -I.
+LDFLAGS =
+ifeq ($(shell uname -s),"Darwin")
+	CFLAGS += -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION)
+	LDFLAGS += -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION)
+endif
 
 WARNFLAGS = -Wall
-
-LDFLAGS = -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION) $(HOST_LD_FLAGS)
 
 decomment: $(OBJS)
 	$(call makelog,$(ColorH)HOST_LD$(Color0)       $(ColorF)$@$(Color0))

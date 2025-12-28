@@ -34,7 +34,13 @@
 #include <sys/param.h>
 #include <sys/time.h>
 
+#ifdef __linux__
+#include <bsd/unistd.h> /* for getmode, setmode */
+#define COPYFILE_DATA 0
+int fcopyfile(int, int, void *, int);
+#else
 #include <copyfile.h>
+#endif
 
 void usage(void);
 
@@ -63,10 +69,10 @@ main(int argc, char * argv[])
 			mset = setmode(optarg);
 			if (!mset) {
 				errx(EX_USAGE, "Unrecognized mode %s", optarg);
+			} else {
+				mode = getmode(mset, 0);
+				free(mset);
 			}
-
-			mode = getmode(mset, 0);
-			free(mset);
 			break;
 		case '?':
 		default:
@@ -84,7 +90,11 @@ main(int argc, char * argv[])
 	src = argv[0];
 	dst = argv[1];
 
+#ifdef __linux__
+	srcfd = open(src, O_RDONLY | O_NOFOLLOW, 0);
+#else
 	srcfd = open(src, O_RDONLY | O_SYMLINK, 0);
+#endif
 	if (srcfd < 0) {
 		err(EX_NOINPUT, "open(%s)", src);
 	}
@@ -145,6 +155,62 @@ void
 usage(void)
 {
 	fprintf(stderr, "Usage: %s [-c] [-S] [-m <mode>] <src> <dst>\n",
+#ifdef __linux__
+		"installfile");
+#else
 	    getprogname());
+#endif
 	exit(EX_USAGE);
 }
+
+#ifdef __linux__
+/*
+ * fcopyfile() is used to copy a source file descriptor to a destination file
+ * descriptor.  This allows an application to figure out how it wants to open
+ * the files (doing various security checks, perhaps), and then just pass in
+ * the file descriptors.
+ */
+int fcopyfile(int src_fd, int dst_fd, void *state, int flags)
+{
+	char buffer[512*1024];
+	int ret = 0, size = 0;
+	struct stat src_sb, dst_sb;
+
+	if (src_fd < 0 || dst_fd < 0)
+	{
+		errno = EINVAL;
+		return -1;
+	}
+
+	fstat(src_fd, &src_sb);
+	switch (src_sb.st_mode & S_IFMT)
+	{
+		case S_IFLNK:
+		case S_IFDIR:
+		case S_IFREG:
+			break;
+		default:
+			errno = ENOTSUP;
+			return -1;
+	}
+
+	(void)fstat(dst_fd, &dst_sb);
+	(void)fchmod(dst_fd, (dst_sb.st_mode & ~S_IFMT) | (S_IRUSR | S_IWUSR));
+
+	while((size = read(src_fd, buffer, sizeof(buffer))) > 0)
+	{
+		write(dst_fd, buffer, size);
+	}
+
+	/*
+	 * copy the non-meta data portion of the file.  We attempt to
+	 * remove (via unlink) the destination file if we fail.
+	 */
+	if ((src_sb.st_mode & S_IFMT) != S_IFREG)
+		return 0;
+
+	fchmod(dst_fd, src_sb.st_mode & ~S_IFMT);
+	return ret;
+}
+
+#endif /* __linux__ */
