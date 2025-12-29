@@ -23,8 +23,8 @@ endif
 
 ifeq ($(OPSYS),Linux)
 # The linux linker needs these to come after object files :(
-export LIBS = -L../../../../Developer/cctools/libmacho \
-	-L../../../../Developer/cctools/libstuff -luuid -lmacho -lstuff
+export LIBS = -L../../../../Bootstrap/cctools/libmacho \
+	-L../../../../Bootstrap/cctools/libstuff -luuid -lmacho -lstuff
 endif
 
 WARNFLAGS = -Wall -Wno-int-conversion

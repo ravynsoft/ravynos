@@ -12,7 +12,7 @@ target_sources(host_ld_libparsers PRIVATE
 # want a tool built for the host OS but targeting ravynOS, which means complicated
 # header management.
 file(MAKE_DIRECTORY ${TOOLCHAIN}/usr/include/mach)
-file(COPY ${CMAKE_SOURCE_DIR}/Developer/cctools/include/foreign/mach/mach_host.h
+file(COPY ${ROOT_SOURCE_DIR}/Developer/cctools/include/foreign/mach/mach_host.h
     DESTINATION ${TOOLCHAIN}/usr/include/mach/)
 file(TOUCH ${TOOLCHAIN}/usr/include/CrashReporterClient.h)
 add_dependencies(host_ld_libparsers host_clang)
@@ -28,10 +28,10 @@ target_include_directories(host_ld_libparsers PRIVATE
     ../../../../include/foreign
     ../../../../../llvm-project/tapi/include
     ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/Libraries/libplatform/private
-    ${CMAKE_SOURCE_DIR}/Libraries/dyld/include
-    ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk
-    ${CMAKE_SOURCE_DIR}/Developer/Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk
+    ${ROOT_SOURCE_DIR}/Libraries/libplatform/private
+    ${ROOT_SOURCE_DIR}/Libraries/dyld/include
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk
+    ${CMAKE_SOURCE_DIR}/Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk
     ${TOOLCHAIN}/usr/include
 )
 set_property(TARGET host_ld_libparsers PROPERTY CXX_STANDARD 17)

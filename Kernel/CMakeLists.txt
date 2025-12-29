@@ -1,39 +1,21 @@
-set(TOOLS ${TOOLCHAIN}/usr/bin)
-set(PATH "${TOOLS}:$ENV{PATH}")
+# ------------------------------------------------------------------------
+#  RAVYNOS BUILD SYSTEM - Darwin Base System
+# ------------------------------------------------------------------------
 
-set(CC ${TOOLS}/cc)
-set(CXX ${TOOLS}/c++)
-set(LD ${TOOLS}/ld)
-set(AR ${TOOLS}/ar)
-set(RANLIB ${TOOLS}/ranlib)
-set(NM ${TOOLS}/nm)
-set(CODESIGN_ALLOCATE ${TOOLS}/codesign_allocate)
-set(CTFCONVERT ${TOOLS}/ctfconvert)
-set(CTFMERGE ${TOOLS}/ctfmerge)
-set(CTFINSERT ${TOOLS}/ctfinsert)
-set(IIG /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/iig)
-set(MIG ${TOOLS}/mig)
-set(MIGCOM ${TOOLS}/../libexec/migcom)
-set(STRIP ${TOOLS}/strip)
-set(LIPO ${TOOLS}/lipo)
-set(NM ${TOOLS}/nm)
-set(NMEDIT ${TOOLS}/nmedit)
-set(LIBTOOL ${TOOLS}/libtool)
-set(UNIFDEF ${TOOLS}/unifdef)
-set(DSYMUTIL ${TOOLS}/dsymutil)
-set(XCRUN ${TOOLS}/xcrun)
-set(XCBUILD ${TOOLS}/xcbuild)
-set(XCODEBUILD ${TOOLS}/xcodebuild)
+cmake_minimum_required(VERSION 3.15.1)
+project(ravynOS_Darwin)
+
+include(${ROOT_SOURCE_DIR}/Developer/cmake/Version.cmake)
+include(${ROOT_SOURCE_DIR}/Developer/cmake/Paths.cmake)
+include(${ROOT_SOURCE_DIR}/Developer/cmake/Tools.cmake)
 
 string(TOUPPER "${CMAKE_SYSTEM_PROCESSOR}" MACHINE)
-# Do not set these CONFIGS to multiple values! Only RELEASE|DEBUG and one arch
-set(KERNEL_CONFIGS RELEASE)
-set(ARCH_CONFIGS X86_64)
-set(AVAILABILITY_PL ${CMAKE_SOURCE_DIR}/Kernel/availability.pl)
-set(AVAILABILITY_PL_PATH ${CMAKE_SOURCE_DIR}/Kernel/availability.pl)
+set(AVAILABILITY_PL ${CMAKE_SOURCE_DIR}/availability.pl)
+set(AVAILABILITY_PL_PATH ${CMAKE_SOURCE_DIR}/availability.pl)
 set(SEED_DEFINES 
     -DRC_ENABLE_XNU_PRODUCT_INFO_FILTER
 )
+set(PATH $ENV{PATH})
 
 if("${KERNEL_CONFIGS}" STREQUAL "DEBUG")
     set(DEBUG ".debug")
@@ -42,9 +24,9 @@ else()
 endif()
 
 if(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
-    set(HOST_CC /usr/bin/clang)
-    set(HOST_CXX /usr/bin/clang++)
-    set(HOST_LD /usr/bin/ld)
+    # set(HOST_CC /usr/bin/clang)
+    # set(HOST_CXX /usr/bin/clang++)
+    # set(HOST_LD /usr/bin/ld)
     set(HOST_CODESIGN=/bin/true)
     set(IIG /bin/true)
     file(GLOB IIG_HDRS xnu/iokit/DriverKit/*.h)
@@ -52,16 +34,17 @@ if(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
         ${CMAKE_CURRENT_BINARY_DIR}/xnu/${KERNEL_CONFIGS}_${ARCH_CONFIGS}/iokit/DriverKit/)
 endif()
 
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/sysroot/usr/include
-    ${CMAKE_BINARY_DIR}/sysroot/usr/local/include/kernel)
-file(COPY ${CMAKE_SOURCE_DIR}/Libraries/Libc/include/limits.h
-    DESTINATION ${CMAKE_BINARY_DIR}/sysroot/usr/include/)
-file(COPY ${CMAKE_SOURCE_DIR}/Libraries/libdispatch/os
-    DESTINATION ${CMAKE_BINARY_DIR}/sysroot/usr/local/include/kernel/)
+file(MAKE_DIRECTORY ${ROOT_BINARY_DIR}/sysroot/usr/include
+    ${ROOT_BINARY_DIR}/sysroot/usr/local/include/kernel)
+file(COPY ${ROOT_SOURCE_DIR}/Libraries/Libc/include/limits.h
+    DESTINATION ${ROOT_BINARY_DIR}/sysroot/usr/include/)
+file(COPY ${ROOT_SOURCE_DIR}/Libraries/libdispatch/os
+    DESTINATION ${ROOT_BINARY_DIR}/sysroot/usr/local/include/kernel/)
 
 ExternalProject_Add(xnu_headers
-    SOURCE_DIR ${CMAKE_SOURCE_DIR}/Kernel/xnu
-    BINARY_DIR ${CMAKE_BINARY_DIR}/Kernel/xnu
+    SOURCE_DIR ${ROOT_SOURCE_DIR}/Kernel/xnu
+    BINARY_DIR ${ROOT_BINARY_DIR}/Kernel/xnu
+    STEP_TARGETS build install
     CONFIGURE_COMMAND ""
     BUILD_COMMAND
     	PATH=${PATH} ${GMAKE} -C <SOURCE_DIR>
@@ -73,48 +56,47 @@ ExternalProject_Add(xnu_headers
             CTFINSERT=${CTFINSERT} AVAILABILITY_PL=${AVAILABILITY_PL}
             AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH} XCRUN=${XCRUN}
             KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS}
-            DEVELOPER_DIR=${CMAKE_BINARY_DIR}/Developer
-            SYMROOT=${CMAKE_BINARY_DIR} HOST_CC=${HOST_CC}
+            DEVELOPER_DIR=${ROOT_BINARY_DIR}/Developer
+            SYMROOT=${ROOT_BINARY_DIR} HOST_CC=${HOST_CC}
             HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD}
     	    installhdrs
     INSTALL_COMMAND
         PATH=${PATH} ${GMAKE} -C <SOURCE_DIR>
     	    PLATFORM=MacOSX BUILD_LTO=0 BUILD_WERROR=0 DO_CTFMERGE=0
     	    SDKVERSION=${CMAKE_MACOSX_MIN_VERSION} SRCROOT=<SOURCE_DIR>
-    	    OBJROOT=<BINARY_DIR> DSTROOT=${CMAKE_BINARY_DIR}/sysroot
+    	    OBJROOT=<BINARY_DIR> DSTROOT=${ROOT_BINARY_DIR}/sysroot
             MIGCOM=${MIGCOM} MIG=${MIG} IIG=${IIG} CC=${CC} LD=${CC}
             UNIFDEF=${UNIFDEF} CTFCONVERT=${CTFCONVERT} CTFMERGE=${CTFMERGE}
             CTFINSERT=${CTFINSERT} AVAILABILITY_PL=${AVAILABILITY_PL}
             AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH} XCRUN=${XCRUN}
             KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS}
-            DEVELOPER_DIR=${CMAKE_BINARY_DIR}/Developer
-            SYMROOT=${CMAKE_BINARY_DIR} HOST_CC=${HOST_CC}
+            DEVELOPER_DIR=${ROOT_BINARY_DIR}/Developer
+            SYMROOT=${ROOT_BINARY_DIR} HOST_CC=${HOST_CC}
             HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD}
     	    installhdrs
-	DEPENDS BootstrapTools host_migcom host_ld host_gmake
 )
-add_dependencies(ravynOS_sdk xnu_headers)
+
 add_subdirectory(libfirehose_kernel)
 
-
 ExternalProject_Add(xnu
-    SOURCE_DIR ${CMAKE_SOURCE_DIR}/Kernel/xnu
-    BINARY_DIR ${CMAKE_BINARY_DIR}/Kernel/xnu
+    SOURCE_DIR ${ROOT_SOURCE_DIR}/Kernel/xnu
+    BINARY_DIR ${ROOT_BINARY_DIR}/Kernel/xnu
+    STEP_TARGETS build install
     CONFIGURE_COMMAND ""
     BUILD_COMMAND
     	${GMAKE} -C <SOURCE_DIR>
             SDKROOT=${RAVYN_SDKROOT}
     	    PLATFORM=MacOSX BUILD_LTO=0 BUILD_WERROR=0 DO_CTFMERGE=0
     	    SDKVERSION=${CMAKE_MACOSX_MIN_VERSION} SRCROOT=<SOURCE_DIR>
-    	    OBJROOT=<BINARY_DIR> DSTROOT=${CMAKE_BINARY_DIR}/sysroot
-    	    SYMROOT=${CMAKE_BINARY_DIR} BUILD_STATIC_LINK=1
+    	    OBJROOT=<BINARY_DIR> DSTROOT=${ROOT_BINARY_DIR}/sysroot
+    	    SYMROOT=${ROOT_BINARY_DIR} BUILD_STATIC_LINK=1
             MIGCOM=${MIGCOM} MIG=${MIG} IIG=${IIG} CC=${CC} LD=${CC}
             UNIFDEF=${UNIFDEF} CTFCONVERT=${CTFCONVERT} CTFMERGE=${CTFMERGE}
             CTFINSERT=${CTFINSERT} AR=${AR} NM=${NM} NMEDIT=${NMEDIT}
             DSYMUTIL=${DSYMUTIL} LIPO=${LIPO} STRIP=${STRIP} AS=${AS}
             AVAILABILITY_PL=${AVAILABILITY_PL} MACHINE=${MACHINE}
             AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH} SDKROOT=macosx
-            DEVELOPER_DIR=${CMAKE_BINARY_DIR}/Developer XCRUN=${XCRUN}
+            DEVELOPER_DIR=${ROOT_BINARY_DIR}/Developer XCRUN=${XCRUN}
             KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS}
             HOST_CC=${HOST_CC} HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD}
     	    all
@@ -123,12 +105,12 @@ ExternalProject_Add(xnu
             SDKROOT=${RAVYN_SDKROOT}
             PLATFORM=MacOSX BUILD_LTO=0 BUILD_WERROR=0 DO_CTFMERGE=0
             SDKVERSION=${CMAKE_MACOSX_MIN_VERSION} SRCROOT=<SOURCE_DIR>
-            OBJROOT=<BINARY_DIR> DSTROOT=${CMAKE_BINARY_DIR}/sysroot
+            OBJROOT=<BINARY_DIR> DSTROOT=${ROOT_BINARY_DIR}/sysroot
             MIGCOM=${MIGCOM} MIG=${MIG} IIG=${IIG} CC=${CC} LD=${CC}
             UNIFDEF=${UNIFDEF} CTFCONVERT=${CTFCONVERT} CTFMERGE=${CTFMERGE}
             CTFINSERT=${CTFINSERT} AR=${AR} NM=${NM} NMEDIT=${NMEDIT}
             DSYMUTIL=${DSYMUTIL} LIPO=${LIPO} STRIP=${STRIP} AS=${AS}
-            DEVELOPER_DIR=${CMAKE_BINARY_DIR}/Developer XCRUN=${XCRUN}
+            DEVELOPER_DIR=${ROOT_BINARY_DIR}/Developer XCRUN=${XCRUN}
             AVAILABILITY_PL=${AVAILABILITY_PL} MACHINE=${MACHINE}
             AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH}
             KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS}
@@ -137,8 +119,11 @@ ExternalProject_Add(xnu
             ${RAVYN_SDKROOT}/System/Library/Kernels && ${CMAKE_COMMAND} -E 
             copy <BINARY_DIR>/${KERNEL_CONFIGS}_${ARCH_CONFIGS}/kernel${DEBUG}.dSYM
             ${RAVYN_SDKROOT}/System/Library/Kernels/
-	DEPENDS libfirehose_kernel #compilerRT
+	DEPENDS libfirehose_kernel
 )
+
+add_custom_target(Darwin)
+add_dependencies(Darwin xnu_headers libfirehose_kernel xnu)
 
 # Build kernel extensions
 #add_subdirectory(libkmod)

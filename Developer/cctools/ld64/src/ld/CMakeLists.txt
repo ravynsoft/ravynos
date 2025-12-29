@@ -18,7 +18,7 @@ target_sources(host_ld PRIVATE
     PlatformSupport.cpp
     code-sign-blobs/blob.cpp
 )
-file(COPY ${CMAKE_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS/corecrypto
+file(COPY ${ROOT_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS/corecrypto
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 
 target_compile_definitions(host_ld PRIVATE __DARWIN_UNIX03 _DARWIN_C_SOURCE=1)
@@ -42,29 +42,28 @@ if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
     set(TAPI_VERSION_MINOR 0)
     set(TAPI_VERSION_PATCH 6)
     configure_file(
-        ${CMAKE_SOURCE_DIR}/Developer/llvm-project/tapi/include/tapi/Version.inc.in
+        ${ROOT_SOURCE_DIR}/Developer/llvm-project/tapi/include/tapi/Version.inc.in
         ${CMAKE_CURRENT_BINARY_DIR}/tapi/Version.inc
     )
     # on ravynOS/macOS, we link against libSystem which has cc in it
     # but on linux, we need to include the relevant sources into ld64
     target_sources(host_ld PRIVATE
-        ${CMAKE_SOURCE_DIR}/Kernel/xnu/libkern/crypto/corecrypto_sha1.c
-        ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk/corecrypto/ccsha1/src/ccdigest_final_64be.c
-        ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk/corecrypto/cc/src/cc_clear.c
-        ${CMAKE_SOURCE_DIR}/Kernel/xnu/libkern/crypto/corecrypto_sha2.c
-        ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk/corecrypto/ccdigest/src/ccdigest_init.c
-        ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk/corecrypto/ccdigest/src/ccdigest_update.c
-        ${CMAKE_SOURCE_DIR}/Kernel/xnu/bsd/nfs/gss/ccrypto.c
-        ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk/corecrypto/ccsha2/src/ccsha256_di.c
-        ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk/corecrypto/ccsha2/src/ccsha256_ltc_di.c
-        ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk/corecrypto/ccsha2/src/ccsha256_initial_state.c
-        ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk/corecrypto/ccsha2/src/ccsha256_ltc_compress.c
-        ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk/corecrypto/ccsha2/src/ccsha256_K.c
+        ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern/crypto/corecrypto_sha1.c
+        ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk/corecrypto/ccsha1/src/ccdigest_final_64be.c
+        ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk/corecrypto/cc/src/cc_clear.c
+        ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern/crypto/corecrypto_sha2.c
+        ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk/corecrypto/ccdigest/src/ccdigest_init.c
+        ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk/corecrypto/ccdigest/src/ccdigest_update.c
+        ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd/nfs/gss/ccrypto.c
+        ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk/corecrypto/ccsha2/src/ccsha256_di.c
+        ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk/corecrypto/ccsha2/src/ccsha256_ltc_di.c
+        ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk/corecrypto/ccsha2/src/ccsha256_initial_state.c
+        ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk/corecrypto/ccsha2/src/ccsha256_ltc_compress.c
+        ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk/corecrypto/ccsha2/src/ccsha256_K.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../other/ccstubs.c
     )
     target_include_directories(host_ld PRIVATE
-        ${CMAKE_SOURCE_DIR}/Kernel/xnu/libkern
-        ${CMAKE_SOURCE_DIR}/Developer/CarbonHeaders
+        ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern
     )
     set(EXTRALIBS host_libxar
         -lacl -latomic -lBlocksRuntime
@@ -72,15 +71,15 @@ if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
     )
     configure_file(../other/libkern.h 
         ${CMAKE_CURRENT_BINARY_DIR}/libkern/libkern.h COPYONLY)
-    configure_file(${CMAKE_SOURCE_DIR}/Kernel/xnu/bsd/sys/malloc.h 
+    configure_file(${ROOT_SOURCE_DIR}/Kernel/xnu/bsd/sys/malloc.h 
         ${CMAKE_CURRENT_BINARY_DIR}/sys/malloc.h COPYONLY)
-    configure_file(${CMAKE_SOURCE_DIR}/Kernel/xnu/bsd/sys/appleapiopts.h 
+    configure_file(${ROOT_SOURCE_DIR}/Kernel/xnu/bsd/sys/appleapiopts.h 
         ${CMAKE_CURRENT_BINARY_DIR}/sys/appleapiopts.h COPYONLY)
 else()
     set(RPATH_ORIGIN -rpath,@executable_path)
 endif()
 target_link_libraries(host_ld PRIVATE
-    -L${ROOT_BINARY_DIR}/Developer/clang/lib -ltapi
+    -L${ROOT_BINARY_DIR}/Bootstrap/clang/lib -ltapi
     host_libxar host_ld_libparsers host_ld_libpasses
     host_libstuff OpenSSL::SSL OpenSSL::Crypto
     -L${TOOLCHAIN}/usr/lib ${EXTRALIBS} "-Wl,${RPATH_ORIGIN}/../lib"
@@ -90,11 +89,11 @@ set_property(TARGET host_ld PROPERTY OUTPUT_NAME ld)
 file(MAKE_DIRECTORY ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers/machine)
 file(MAKE_DIRECTORY ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers/arm)
 file(MAKE_DIRECTORY ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers/i386)
-file(COPY ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk/machine/cpu_capabilities.h
+file(COPY ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk/machine/cpu_capabilities.h
     DESTINATION ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers/machine/)
-file(COPY ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk/arm/cpu_capabilities.h
+file(COPY ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk/arm/cpu_capabilities.h
     DESTINATION ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers/arm/)
-file(COPY ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk/i386/cpu_capabilities.h
+file(COPY ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk/i386/cpu_capabilities.h
     DESTINATION ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers/i386/)
 target_include_directories(host_ld PRIVATE
     .
@@ -109,9 +108,9 @@ target_include_directories(host_ld PRIVATE
     parsers passes
     ${OPENSSL_INCLUDE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
-    ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk
-    ${CMAKE_SOURCE_DIR}/Libraries/libplatform/private
-    ${CMAKE_SOURCE_DIR}/Developer/llvm-project/tapi/include
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk
+    ${ROOT_SOURCE_DIR}/Libraries/libplatform/private
+    ${ROOT_SOURCE_DIR}/Developer/llvm-project/tapi/include
     ${TOOLCHAIN}/usr/include
 )
 suppress_all_warnings(host_ld)

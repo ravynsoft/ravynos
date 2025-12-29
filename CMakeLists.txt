@@ -2,65 +2,46 @@ cmake_minimum_required(VERSION 3.15.1)
 project(ravynOS)
 
 # ------------------------------------------------------------------------
-#                        PRODUCT VERSION KNOBS
-# ------------------------------------------------------------------------
-set(PROD_VERSION 0.6.1)
-set(PROD_FAMILY "Hyperpop Hyena")
-
-set(CMAKE_MACOSX_MIN_VERSION 12.0)
-
+#  RAVYNOS BUILD SYSTEM - TOP LEVEL
 # ------------------------------------------------------------------------
 
-set(CMAKE_INSTALL_PREFIX "/usr")
-
-set(ROOT_BINARY_DIR ${CMAKE_BINARY_DIR})
 set(ROOT_SOURCE_DIR ${CMAKE_SOURCE_DIR})
-set(SYSROOT_DIR ${ROOT_BINARY_DIR}/sysroot)
-set(RAVYN_SDKROOT ${CMAKE_BINARY_DIR}/Developer/Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk)
-set(TOOLCHAIN ${CMAKE_BINARY_DIR}/Developer/Toolchains/Default.xctoolchain)
-set(RUNTIME_SPEC_PATH ${CMAKE_SOURCE_DIR}/Developer/xcbuild/Specifications)
+set(ROOT_BINARY_DIR ${CMAKE_BINARY_DIR})
 
-if("${GMAKE}" STREQUAL "")
-    if(CMAKE_HOST_BSD)
-        set(GMAKE gmake)
-        set(BMAKE make)
-    else()
-        set(GMAKE make)
-        set(BMAKE bmake)
-    endif()
-endif()
+include(Developer/cmake/Version.cmake)
+include(Developer/cmake/Paths.cmake)
 
-include(ExternalProject)
-include(Developer/cmake/asm.cmake)
-include(Developer/cmake/bundle_resources.cmake)
-include(Developer/cmake/circular.cmake)
-include(Developer/cmake/crosscompile.cmake)
-include(Developer/cmake/get_target_dependencies.cmake)
-include(Developer/cmake/install_helpers.cmake)
-include(Developer/cmake/kext.cmake)
-include(Developer/cmake/mig.cmake)
-include(Developer/cmake/suppress_warnings.cmake)
+# ------------------------------------------------------------------------
+#  Top level targets
+# ------------------------------------------------------------------------
 
-if($ENV{CI})
-    execute_process(OUTPUT_VARIABLE BUILD_STAMP
-        COMMAND /bin/sh -c "echo ${CIRRUS_CHANGE_IN_REPO}|cut -c1-7|tr '[a-z]' '[A-Z]'"
-    )
-else()
-    execute_process(OUTPUT_VARIABLE BUILD_STAMP
-        COMMAND /bin/sh -c "cd ${CMAKE_SOURCE_DIR} && git log -1|head -1|cut -c8-14|tr '[a-z]' '[A-Z]'"
-    )
-endif()
+add_custom_target(DarwinComplete)
+add_custom_target(CoreSystemComplete)
+add_custom_target(Complete)
 
-
-# Bootstrap our SDK if needed
-add_subdirectory(Developer)
-
-add_subdirectory(Libraries)
-add_subdirectory(Kernel)
-
-string(STRIP "${BUILD_STAMP}" BUILD_STAMP)
-file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/sysroot/System/Library/CoreServices")
-configure_file(${CMAKE_SOURCE_DIR}/SystemLibrary/SystemVersion.plist.in
-    ${CMAKE_BINARY_DIR}/sysroot/System/Library/CoreServices/SystemVersion.plist
-    @ONLY
+ExternalProject_Add(EXT_Bootstrap
+    SOURCE_DIR ${ROOT_SOURCE_DIR}/Developer
+    BINARY_DIR Bootstrap
+    STEP_TARGETS build
+    CMAKE_ARGS
+        -DROOT_SOURCE_DIR=${ROOT_SOURCE_DIR}
+        -DROOT_BINARY_DIR=${ROOT_BINARY_DIR}
+    INSTALL_COMMAND ""
 )
+
+include(Developer/cmake/Tools.cmake)
+
+ExternalProject_Add(EXT_Darwin
+    SOURCE_DIR ${ROOT_SOURCE_DIR}/Kernel
+    BINARY_DIR Kernel
+    CMAKE_ARGS
+        -DHOST_CC=${CMAKE_C_COMPILER}
+        -DHOST_CXX=${CMAKE_CXX_COMPILER}
+        -DCMAKE_C_COMPILER=${CC} -DCMAKE_C_COMPILER_WORKS=ON
+        -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_COMPILER_WORKS=ON
+        -DROOT_SOURCE_DIR=${ROOT_SOURCE_DIR}
+        -DROOT_BINARY_DIR=${ROOT_BINARY_DIR}
+    DEPENDS EXT_Bootstrap-build
+)
+
+add_subdirectory(SystemLibrary)

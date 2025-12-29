@@ -54,7 +54,7 @@ target_include_directories(host_libstuff PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../include
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/foreign
 )
-if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+if(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
     target_compile_options(host_libstuff PRIVATE
         -w -Wno-error -std=gnu99 -UHAVE_STRMODE
     )
@@ -62,6 +62,6 @@ if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
         __private_extern__=extern
     )
     target_include_directories(host_libstuff PRIVATE
-        ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk
+        ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk
     )
 endif()

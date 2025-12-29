@@ -64,8 +64,8 @@ target_compile_definitions(host_migcom PRIVATE MIG_VERSION=\"\")
 target_include_directories(host_migcom PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
     target_include_directories(host_migcom PRIVATE
-        ${CMAKE_SOURCE_DIR}/Developer/cctools/include/foreign
-        ${CMAKE_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS
+        ${CMAKE_SOURCE_DIR}/cctools/include/foreign
+        ${ROOT_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS
     )
     target_compile_options(host_migcom PRIVATE
         -w -std=c99 -Wno-error=implicit-function-declaration

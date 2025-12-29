@@ -2,7 +2,7 @@ macro(cctools_misc_executable name)
     add_executable(host_${name} ${name}.c)
     set_property(TARGET host_${name} PROPERTY OUTPUT_NAME ${name})
     target_link_libraries(host_${name} PRIVATE host_libmacho host_libstuff)
-    if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+    if(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
         set_property(TARGET host_${name} PROPERTY C_STD gnu89)
         target_link_libraries(host_${name} PRIVATE -lm)
     endif()
@@ -46,9 +46,9 @@ target_link_libraries(host_ranlib PRIVATE host_libmacho host_libstuff)
 target_include_directories(host_ranlib PRIVATE ../include ../include/foreign ../libstuff)
 target_compile_definitions(host_ranlib PRIVATE -D__DARWIN_UNIX03 -DRANLIB)
 
-if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+if(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
     include_directories(
-        ${CMAKE_SOURCE_DIR}/Kernel/xnu/osfmk
-        ${CMAKE_SOURCE_DIR}/Libraries/libmalloc/include
+        ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk
+        ${ROOT_SOURCE_DIR}/Libraries/libmalloc/include
     )
 endif()
