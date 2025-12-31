@@ -52,18 +52,22 @@ target_sources(libplatform PRIVATE
     src/introspection/introspection.c
 )
 
-set(headers
+set(headersI
     include/ucontext.h
-    include/setjmp.h
+    include/setjmp.h)
+
+set(headersLK
     include/libkern/OSAtomic.h
     include/libkern/OSAtomicDeprecated.h
     include/libkern/OSAtomicQueue.h
     include/libkern/OSSpinLockDeprecated.h
-    include/libkern/OSCacheControl.h
+    include/libkern/OSCacheControl.h)
+
+set(headersOS
     include/os/lock.h
-    include/os/base.h
-)
-target_sources(libplatform INTERFACE ${headers})
+    include/os/base.h)
+
+target_sources(libplatform INTERFACE ${headersI} ${headersLK} ${headersOS})
 
 target_sources(libplatform PRIVATE
     private/_simple.h
@@ -124,10 +128,24 @@ add_dependencies(libplatform xnu_headers)
 add_custom_command(TARGET libplatform
     POST_BUILD
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMAND ${CMAKE_COMMAND} -E copy ${headers} ${SYSROOT_DIR}/usr/include
-    COMMAND ${CMAKE_COMMAND} -E copy ${headers} ${RAVYN_SDKROOT}/usr/include
-    COMMAND ${CMAKE_COMMAND} -E copy ${headers}
+    COMMAND ${CMAKE_COMMAND} -E copy ${headersI} ${SYSROOT_DIR}/usr/include
+    COMMAND ${CMAKE_COMMAND} -E copy ${headersI} ${RAVYN_SDKROOT}/usr/include
+    COMMAND ${CMAKE_COMMAND} -E copy ${headersI}
         ${SYSROOT_DIR}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders/
-    COMMAND ${CMAKE_COMMAND} -E copy ${headers}
+    COMMAND ${CMAKE_COMMAND} -E copy ${headersI}
         ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders/
+
+    COMMAND ${CMAKE_COMMAND} -E copy ${headersLK} ${SYSROOT_DIR}/usr/include/libkern
+    COMMAND ${CMAKE_COMMAND} -E copy ${headersLK} ${RAVYN_SDKROOT}/usr/include/libkern
+    COMMAND ${CMAKE_COMMAND} -E copy ${headersLK}
+        ${SYSROOT_DIR}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders/libkern
+    COMMAND ${CMAKE_COMMAND} -E copy ${headersLK}
+        ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders/libkern
+
+    COMMAND ${CMAKE_COMMAND} -E copy ${headersOS} ${SYSROOT_DIR}/usr/include/os
+    COMMAND ${CMAKE_COMMAND} -E copy ${headersOS} ${RAVYN_SDKROOT}/usr/include/os
+    COMMAND ${CMAKE_COMMAND} -E copy ${headersOS}
+        ${SYSROOT_DIR}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders/os
+    COMMAND ${CMAKE_COMMAND} -E copy ${headersOS}
+        ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders/os
 )

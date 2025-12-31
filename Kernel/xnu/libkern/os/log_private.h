@@ -89,6 +89,18 @@ typedef struct oslog_stream_buf_entry_s {
 	struct firehose_tracepoint_s metadata[];
 } *oslog_stream_buf_entry_t;
 
+
+/*!
+ * @typedef os_log_pack_t
+ * AppleInternal. This type was guessed from clues in public documents
+ */
+typedef struct os_log_pack_s {
+    uint64_t olp_pc;
+    const char *olp_format;
+    uint8_t olp_data[0];
+} *os_log_pack_t;
+
+
 __END_DECLS
 
 #endif // __os_log_private_h

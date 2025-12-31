@@ -43,6 +43,7 @@
 #include <errno.h>
 #include <unistd.h>
 
+extern int errno;
 static int sbrk_needs_init = TRUE;
 static vm_size_t sbrk_region_size = 4*1024*1024; /* Well, what should it be? */
 static vm_address_t sbrk_curbrk;

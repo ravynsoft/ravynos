@@ -41,10 +41,9 @@ target_compile_options(libmalloc PRIVATE
     --sysroot=${RAVYN_SDKROOT} -w
     -mmacosx-version-min=${CMAKE_MACOSX_MIN_VERSION}
     -Wno-implicit-function-declaration
-    # --include ${RAVYN_SDKROOT}/usr/include/libkern/OSAtomic.h
 )
 
-# add_dependencies(libmalloc )
+add_dependencies(libmalloc xnu_headers)
 
 # add_custom_command(TARGET libfirehose_kernel
 #     POST_BUILD

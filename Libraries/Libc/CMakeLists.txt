@@ -1,21 +1,6 @@
-add_compile_definitions(
-    __DARWIN_UNIX03=1
-)
-add_compile_options(
-    -w -nostdinc --sysroot ${CMAKE_BINARY_DIR}/sysroot
-    -F${RAVYN_SDKROOT}/System/Library/Frameworks
-    -Wno-reserved-identifier -Wno-incompatible-sysroot
-)
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/darwin
-    ${CMAKE_CURRENT_SOURCE_DIR}/locale
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libplatform/private
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libpthread/src
-    ${RAVYN_SDKROOT}/usr/include
-)
+set(CMAKE_INSTALL_PREFIX "")
 
-add_library(Base OBJECT
+add_library(libc OBJECT
     compat-43/sigaltstk.c
     compat-43/sigcompat.c
     darwin/atexit_receipt.c
@@ -113,4 +98,51 @@ add_library(Base OBJECT
     uuid/uuidsrc/unparse.c
 )
 
-add_dependencies(Base xnu_headers)
+add_dependencies(libc xnu_headers)
+set_property(TARGET libc PROPERTY OUTPUT_NAME "system_c")
+
+target_include_directories(libc PRIVATE
+    ../libplatform/private
+    ../libmalloc/include ../libmalloc/private
+    ../libdispatch/src/BlocksRuntime
+    ../dyld/include
+    ../../Kernel/xnu/libsyscall/wrappers
+    ../../Kernel/xnu/libsyscall/mach
+    ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders
+    include
+    ../libpthread/private ../libpthread
+    ../../Kernel/xnu/libsyscall/wrappers/spawn
+    ../../Kernel/xnu/libsyscall
+    ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers
+    locale locale/FreeBSD stdtime/FreeBSD gen stdio/FreeBSD
+    ../../Developer/cctools/include
+    ../../CoreServices/syslog/libsystem_asl.tproj/include
+    ../../Developer/cctools/include/foreign
+    ../Libinfo/membership.subproj ../Libinfo/lookup.subproj
+    ../../Kernel/xnu/libkern
+    ../libpthread/pthread ../Libnotify ../libdispatch
+)
+
+target_compile_definitions(libc PRIVATE
+    TARGET_OS_BRIDGE=0 __DARWIN_UNIX03 
+    memory_order_seq_cst=__ATOMIC_SEQ_CST
+    "__LIBC_PTHREAD_KEY_XLOCALE=__LIBC_PTHREAD_KEY(0)"
+    HAVE_STDINT_H
+)
+
+target_compile_options(libc PRIVATE
+    --sysroot=${RAVYN_SDKROOT} -w
+    -mmacosx-version-min=${CMAKE_MACOSX_MIN_VERSION}
+    -Wno-implicit-function-declaration
+    -Wno-int-conversion
+)
+
+# add_dependencies(libc )
+
+# add_custom_command(TARGET libfirehose_kernel
+#     POST_BUILD
+#     COMMAND ${CMAKE_COMMAND} -E make_directory
+#         ${CMAKE_BINARY_DIR}/sysroot/usr/local/lib/kernel
+#     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libfirehose_kernel>
+#         ${CMAKE_BINARY_DIR}/sysroot/usr/local/lib/kernel
+# )
