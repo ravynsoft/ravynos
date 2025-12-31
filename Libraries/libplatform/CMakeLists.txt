@@ -93,6 +93,7 @@ file(CREATE_LINK ${ROOT_SOURCE_DIR}/Libraries/Libsystem/alloc_once_private.h
     ${CMAKE_CURRENT_SOURCE_DIR}/private/os/alloc_once_private.h)
 
 target_include_directories(libplatform PRIVATE
+    ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/PrivateHeaders
     internal include private src src/os/resolver
     ../libmalloc/include
     ../libpthread/private
@@ -100,7 +101,6 @@ target_include_directories(libplatform PRIVATE
     ../../Kernel/xnu/libsyscall/wrappers
     ../../Kernel/xnu/libsyscall/mach
     ${RAVYN_SDKROOT}/usr/include
-    ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/PrivateHeaders
     ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Headers
 )
 
