@@ -11,32 +11,53 @@ target_sources(libpthread PRIVATE ${srcfiles})
 target_sources(libpthread INTERFACE ${interface})
 target_sources(libpthread PRIVATE ${privhdrs})
 
+file(COPY private/pthread/qos_private.h DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/private/)
+# file(COPY pthread/pthread.h DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/)
+
 target_include_directories(libpthread PRIVATE
-    . private private/pthread src/resolver
+    src/resolver
     ../libplatform/include ../libplatform/private
-    ../libmalloc/include
+    ../libmalloc/include ../libmalloc/private
     ../../Kernel/xnu/libsyscall/mach
-    ../../Kernel/xnu/libsyscall
-    ${RAVYN_SDKROOT}/usr/include
-    ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Headers
     ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/PrivateHeaders
+    ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Headers
+    private/pthread
+    ../../Kernel/xnu/libsyscall
+    private .
+    ../../Kernel/xnu/libsyscall/wrappers
+    ../dyld/include
+    ../../Kernel/xnu/bsd
+    ../../Kernel/xnu/libsyscall/wrappers/spawn
+    pthread
 )
 
-# target_compile_definitions(libpthread PRIVATE
-
-# )
+target_compile_definitions(libpthread PRIVATE
+    DISPATCH_USE_DTRACE=0
+    memory_order_dependency=os_atomic_memory_order_dependency
+    memory_order_acquire=os_atomic_memory_order_acquire
+    memory_order_release=os_atomic_memory_order_release
+    memory_order_relaxed=os_atomic_memory_order_relaxed
+    OS_ATOMIC_CONFIG_MEMORY_ORDER_DEPENDENCY=1
+    OS_ATOMIC_CONFIG_MEMORY_ORDER_DEPENDENCY=1 
+    OS_ATOMIC_CONFIG_STARVATION_FREE_ONLY=0
+    __DARWIN_LITTLE_ENDIAN=1234 __DARWIN_BIG_ENDIAN=4321
+    __PTHREAD_EXPOSE_INTERNALS__=1
+)
 
 target_compile_options(libpthread PRIVATE
-    --sysroot=${RAVYN_SDKROOT}
+    --sysroot=${RAVYN_SDKROOT} -w
     -mmacosx-version-min=${CMAKE_MACOSX_MIN_VERSION}
+    -Wno-implicit-function-declaration
+    -Wno-int-conversion
 )
 
-add_dependencies(libpthread ravynOS_sdk libplatform)
+add_dependencies(libpthread libplatform)
 
-# add_custom_command(TARGET libfirehose_kernel
-#     POST_BUILD
-#     COMMAND ${CMAKE_COMMAND} -E make_directory
-#         ${CMAKE_BINARY_DIR}/sysroot/usr/local/lib/kernel
-#     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libfirehose_kernel>
-#         ${CMAKE_BINARY_DIR}/sysroot/usr/local/lib/kernel
-# )
+add_custom_command(TARGET libpthread
+    POST_BUILD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND env DSTROOT=${SYSROOT_DIR} sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/xcodescripts/install-sys-headers.sh
+    COMMAND env DSTROOT=${SYSROOT_DIR} sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/xcodescripts/install-symlinks.sh
+)

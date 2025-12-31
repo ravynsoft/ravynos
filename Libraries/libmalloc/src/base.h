@@ -93,6 +93,7 @@
 #define SCRIBBLE_BYTE 0xaa /* allocated scribble */
 #define SCRABBLE_BYTE 0x55 /* free()'d scribble */
 #define SCRUBBLE_BYTE 0xdd /* madvise(..., MADV_FREE) scriblle */
+#define SCROBBLE_BYTE 0x69 /* nice */
 
 #define NDEBUG 1
 #define trunc_page_quanta(x) trunc_page((x))

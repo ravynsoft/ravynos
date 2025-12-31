@@ -405,6 +405,34 @@
   #define __WATCHOS_DEPRECATED(_start, _dep, _msg)
 #endif
 
+/* for use marking APIs available info for Watch OS */
+#if defined(__has_feature)
+  #if __has_feature(attribute_availability_bridgeos)
+    #define __BRIDGEOS_UNAVAILABLE                    __OS_AVAILABILITY(bridgeos,unavailable)
+    #ifndef __BRIDGEOS_PROHIBITED
+      #define __BRIDGEOS_PROHIBITED                     __OS_AVAILABILITY(bridgeos,unavailable)
+    #endif
+    #define __BRIDGEOS_AVAILABLE(_vers)               __OS_AVAILABILITY(bridgeos,introduced=_vers)
+    #define __BRIDGEOS_DEPRECATED(_start, _dep, _msg) __BRIDGEOS_AVAILABLE(_start) __OS_AVAILABILITY_MSG(bridgeos,deprecated=_dep,_msg)
+  #endif
+#endif
+
+#ifndef __BRIDGEOS_UNAVAILABLE
+  #define __BRIDGEOS_UNAVAILABLE
+#endif
+
+#ifndef __BRIDGEOS_PROHIBITED
+  #define __BRIDGEOS_PROHIBITED
+#endif
+
+#ifndef __BRIDGEOS_AVAILABLE
+  #define __BRIDGEOS_AVAILABLE(_vers)
+#endif
+
+#ifndef __BRIDGEOS_DEPRECATED
+  #define __BRIDGEOS_DEPRECATED(_start, _dep, _msg)
+#endif
+
 /* for use marking APIs unavailable for swift */
 #if defined(__has_feature)
   #if __has_feature(attribute_availability_swift)

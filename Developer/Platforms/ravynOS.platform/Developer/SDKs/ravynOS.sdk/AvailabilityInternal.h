@@ -78,6 +78,24 @@
     #endif /* defined(__has_builtin) */
 #endif /* __WATCH_OS_VERSION_MIN_REQUIRED */
 
+#ifndef __BRIDGE_OS_VERSION_MIN_REQUIRED
+    #if defined(__has_builtin)
+        #if __has_builtin(__is_target_os)
+            #if __is_target_os(bridgeos)
+                #define __BRIDGE_OS_VERSION_MIN_REQUIRED __ENVIRONMENT_OS_VERSION_MIN_REQUIRED__
+                #define __BRIDGE_OS_VERSION_MAX_ALLOWED __BRIDGEOS_26_0
+                /* for compatibility with existing code.  New code should use platform specific checks */
+                #define __IPHONE_OS_VERSION_MIN_REQUIRED __IPHONE_9_0
+            #endif
+        #elif  __ENVIRONMENT_BRIDGE_OS_VERSION_MIN_REQUIRED__ 
+            #define __BRIDGE_OS_VERSION_MIN_REQUIRED __ENVIRONMENT_BRIDGE_OS_VERSION_MIN_REQUIRED__
+            #define __BRIDGE_OS_VERSION_MAX_ALLOWED __BRIDGEOS_26_0
+            /* for compatibility with existing code.  New code should use platform specific checks */
+            #define __IPHONE_OS_VERSION_MIN_REQUIRED __IPHONE_9_0
+        #endif /* __has_builtin(__is_target_os) */
+    #endif /* defined(__has_builtin) */
+#endif /* __BRIDGE_OS_VERSION_MIN_REQUIRED */
+
 #ifndef __TV_OS_VERSION_MIN_REQUIRED
     #if defined(__has_builtin)
         #if __has_builtin(__is_target_os)
@@ -193,6 +211,14 @@
    #define __API_DEPRECATED_PLATFORM_watchOSApplicationExtension(x,y) watchOSApplicationExtension,introduced=x,deprecated=y
    #define __API_OBSOLETED_PLATFORM_watchOSApplicationExtension(x,y,z) watchOSApplicationExtension,introduced=x,deprecated=y,obsoleted=z
    #define __API_UNAVAILABLE_PLATFORM_watchOSApplicationExtension watchOSApplicationExtension,unavailable
+   #define __API_AVAILABLE_PLATFORM_bridgeos(x) bridgeos,introduced=x
+   #define __API_DEPRECATED_PLATFORM_bridgeos(x,y) bridgeos,introduced=x,deprecated=y
+   #define __API_OBSOLETED_PLATFORM_bridgeos(x,y,z) bridgeos,introduced=x,deprecated=y,obsoleted=z
+   #define __API_UNAVAILABLE_PLATFORM_bridgeos bridgeos,unavailable
+   #define __API_AVAILABLE_PLATFORM_bridgeOSApplicationExtension(x) bridgeOSApplicationExtension,introduced=x
+   #define __API_DEPRECATED_PLATFORM_bridgeOSApplicationExtension(x,y) bridgeOSApplicationExtension,introduced=x,deprecated=y
+   #define __API_OBSOLETED_PLATFORM_bridgeOSApplicationExtension(x,y,z) bridgeOSApplicationExtension,introduced=x,deprecated=y,obsoleted=z
+   #define __API_UNAVAILABLE_PLATFORM_bridgeOSApplicationExtension bridgeOSApplicationExtension,unavailable
    #define __API_AVAILABLE_PLATFORM_tvos(x) tvos,introduced=x
    #define __API_DEPRECATED_PLATFORM_tvos(x,y) tvos,introduced=x,deprecated=y
    #define __API_OBSOLETED_PLATFORM_tvos(x,y,z) tvos,introduced=x,deprecated=y,obsoleted=z
@@ -511,6 +537,25 @@
     #define __API_UNAVAILABLE_BEGIN_GET_MACRO_93585900(_0,_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,NAME,...) NAME
 
  #endif /* __has_attribute(availability) */
+
+ #ifndef __API_AVAILABLE_GET_MACRO
+    #define __API_AVAILABLE_GET_MACRO __API_AVAILABLE_GET_MACRO_93585900
+    #endif
+    #ifndef __API_UNAVAILABLE_GET_MACRO
+    #define __API_UNAVAILABLE_GET_MACRO __API_UNAVAILABLE_BEGIN_GET_MACRO_93585900
+    #endif
+    #ifndef __API_DEPRECATED_MSG_GET_MACRO
+    #define __API_DEPRECATED_MSG_GET_MACRO __API_DEPRECATED_MSG_GET_MACRO_93585900
+    #endif
+    #ifndef __API_DEPRECATED_REP_GET_MACRO
+    #define __API_DEPRECATED_REP_GET_MACRO __API_DEPRECATED_REP_GET_MACRO_93585900
+    #endif
+    #ifndef __API_OBSOLETED_MSG_GET_MACRO
+    #define __API_OBSOLETED_MSG_GET_MACRO __API_OBSOLETED_MSG_GET_MACRO_93585900
+    #endif
+    #ifndef __API_OBSOLETED_REP_GET_MACRO
+    #define __API_OBSOLETED_REP_GET_MACRO __API_OBSOLETED_REP_GET_MACRO_93585900
+ #endif
 #endif /* #if defined(__has_feature) && defined(__has_attribute) */
 
 /*

@@ -24,6 +24,7 @@
 #ifndef __MAGAZINE_INLINE_H
 #define __MAGAZINE_INLINE_H
 
+extern int errno;
 extern unsigned int _os_cpu_number_override;
 
 /*

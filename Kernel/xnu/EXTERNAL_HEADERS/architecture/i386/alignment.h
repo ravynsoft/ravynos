@@ -23,31 +23,47 @@
 /*
  * Copyright (c) 1992 NeXT Computer, Inc.
  *
- * Intel386 Family:	Segment selector.
+ * Natural alignment of shorts and longs (for i386)
  *
  * HISTORY
  *
- * 29 March 1992 ? at NeXT
+ * 2 Sept 1992 Brian Raymor at NeXT
+ *      Moved over to architecture.
+ * 18 August 1992 Jack Greenfield at NeXT
  *	Created.
  */
 
-#ifndef	_ARCH_I386_SEL_H_
-#define	_ARCH_I386_SEL_H_
+#ifndef _ARCH_I386_ALIGNMENT_H_
+#define _ARCH_I386_ALIGNMENT_H_
 
 /*
- * Segment selector.
+ * NOP
  */
+__inline__ static unsigned short
+get_align_short(void *ivalue)
+{
+    return *((unsigned short *) ivalue);
+}
 
-typedef struct sel {
-    unsigned short	rpl	:2,
-#define KERN_PRIV	0
-#define USER_PRIV	3
-			ti	:1,
-#define SEL_GDT		0
-#define SEL_LDT		1
-			index	:13;
-} sel_t;
+__inline__ static unsigned short
+put_align_short(unsigned short ivalue, void *ovalue)
+{
+    return *((unsigned short *) ovalue) = ivalue;
+}
 
-#define NULL_SEL	((sel_t) { 0, 0, 0 } )
+/*
+ * NOP
+ */
+__inline__ static unsigned long
+get_align_long(void *ivalue)
+{
+    return *((unsigned long *) ivalue);
+}
 
-#endif	/* _ARCH_I386_SEL_H_ */
+__inline__ static unsigned long
+put_align_long(unsigned long ivalue, void *ovalue)
+{
+    return *((unsigned long *) ovalue) = ivalue;
+}
+
+#endif	/* _ARCH_I386_ALIGNMENT_H_ */

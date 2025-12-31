@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999 Apple Computer, Inc. All rights reserved.
+ * Copyright (c) 2008 Apple Inc. All rights reserved.
  *
  * @APPLE_LICENSE_HEADER_START@
  *
@@ -21,33 +21,12 @@
  * @APPLE_LICENSE_HEADER_END@
  */
 /*
- * Copyright (c) 1992 NeXT Computer, Inc.
- *
- * Intel386 Family:	Segment selector.
- *
- * HISTORY
- *
- * 29 March 1992 ? at NeXT
- *	Created.
+ * Copyright (c) 2007 Apple Computer, Inc. All rights reserved.
  */
 
-#ifndef	_ARCH_I386_SEL_H_
-#define	_ARCH_I386_SEL_H_
+#ifndef _ARCH_ARM_BYTE_ORDER_H_
+#define _ARCH_ARM_BYTE_ORDER_H_
 
-/*
- * Segment selector.
- */
+#include <architecture/byte_order.h>
 
-typedef struct sel {
-    unsigned short	rpl	:2,
-#define KERN_PRIV	0
-#define USER_PRIV	3
-			ti	:1,
-#define SEL_GDT		0
-#define SEL_LDT		1
-			index	:13;
-} sel_t;
-
-#define NULL_SEL	((sel_t) { 0, 0, 0 } )
-
-#endif	/* _ARCH_I386_SEL_H_ */
+#endif /* _ARCH_ARM_BYTE_ORDER_H_ */

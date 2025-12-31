@@ -42,6 +42,7 @@ ExternalProject_Add(EXT_Darwin
         -DROOT_SOURCE_DIR=${ROOT_SOURCE_DIR}
         -DROOT_BINARY_DIR=${ROOT_BINARY_DIR}
     DEPENDS EXT_Bootstrap-build
+    INSTALL_COMMAND ""
 )
 
 add_subdirectory(SystemLibrary)

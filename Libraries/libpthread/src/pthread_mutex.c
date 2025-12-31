@@ -54,6 +54,10 @@
 #include "internal.h"
 #include "kern/kern_trace.h"
 
+#ifndef errno_t
+#include <errno.h>
+#endif
+
 #ifndef BUILDING_VARIANT /* [ */
 
 #ifdef PLOCKSTAT

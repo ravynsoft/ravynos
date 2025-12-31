@@ -284,7 +284,7 @@ OS_OPTIONS(os_unfair_lock_options, uint32_t,
 		OS_UNFAIR_LOCK_AVAILABILITY = 0x00010000,
 	OS_UNFAIR_LOCK_ADAPTIVE_SPIN OS_SWIFT_NAME(AdaptiveSpin)
 		__API_AVAILABLE(macos(10.15), ios(13.0),
-		tvos(13.0), watchos(6.0), bridgeos(4.0)) = 0x00040000,
+		tvos(13.0), watchos(6.0)) = 0x00040000,
 );
 
 #if __swift__

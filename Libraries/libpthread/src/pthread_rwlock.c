@@ -61,6 +61,10 @@
 #include <platform/compat.h> // for bzero
 #endif
 
+#ifndef errno_t
+#include <errno.h>
+#endif
+
 #ifdef PLOCKSTAT
 #include "plockstat.h"
 #else /* !PLOCKSTAT */

@@ -82,7 +82,9 @@
 #include <unistd.h>
 #include <xlocale.h>
 
+#ifdef MALLOC_DTRACE
 #include "dtrace.h"
+#endif
 #include "base.h"
 #include "trace.h"
 #include "platform.h"

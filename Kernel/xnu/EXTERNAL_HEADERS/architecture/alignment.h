@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999 Apple Computer, Inc. All rights reserved.
+ * Copyright (c) 1999, 2008 Apple Inc. All rights reserved.
  *
  * @APPLE_LICENSE_HEADER_START@
  *
@@ -21,33 +21,22 @@
  * @APPLE_LICENSE_HEADER_END@
  */
 /*
- * Copyright (c) 1992 NeXT Computer, Inc.
+ * Copyright (c) 1996 NeXT Software, Inc.
  *
- * Intel386 Family:	Segment selector.
+ * Natural alignment of shorts and longs.
  *
  * HISTORY
  *
- * 29 March 1992 ? at NeXT
+ * 2 Sept 1992 Brian Raymor at NeXT
+ *	Moved over to architecture.
+ * 18 August 1992 Jack Greenfield at NeXT
  *	Created.
  */
 
-#ifndef	_ARCH_I386_SEL_H_
-#define	_ARCH_I386_SEL_H_
+#if defined (__i386__)
+#include "architecture/i386/alignment.h"
+#else
+#error architecture not supported
+#endif
 
-/*
- * Segment selector.
- */
 
-typedef struct sel {
-    unsigned short	rpl	:2,
-#define KERN_PRIV	0
-#define USER_PRIV	3
-			ti	:1,
-#define SEL_GDT		0
-#define SEL_LDT		1
-			index	:13;
-} sel_t;
-
-#define NULL_SEL	((sel_t) { 0, 0, 0 } )
-
-#endif	/* _ARCH_I386_SEL_H_ */

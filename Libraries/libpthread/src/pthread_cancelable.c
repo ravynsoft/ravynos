@@ -64,6 +64,11 @@
 #include <machine/vmparam.h>
 #include <mach/vm_statistics.h>
 
+
+#ifndef errno_t
+#include <errno.h>
+#endif
+
 extern int _pthread_cond_wait(pthread_cond_t *cond,
 			pthread_mutex_t *mutex,
 			const struct timespec *abstime,

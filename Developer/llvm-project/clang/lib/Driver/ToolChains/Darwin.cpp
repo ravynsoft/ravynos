@@ -2000,6 +2000,7 @@ private:
     switch (OS) {
     case llvm::Triple::Darwin:
     case llvm::Triple::MacOSX:
+    case llvm::Triple::ravynOS:
       return DarwinPlatformKind::MacOS;
     case llvm::Triple::IOS:
       return DarwinPlatformKind::IPhoneOS;
@@ -2211,6 +2212,7 @@ std::string getOSVersion(llvm::Triple::OSType OS, const llvm::Triple &Triple,
   switch (OS) {
   case llvm::Triple::Darwin:
   case llvm::Triple::MacOSX:
+  case llvm::Triple::ravynOS:
     // If there is no version specified on triple, and both host and target are
     // macos, use the host triple to infer OS version.
     if (Triple.isMacOSX() && SystemTriple.isMacOSX() &&
