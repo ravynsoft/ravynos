@@ -1,0 +1,34 @@
+##
+# configuration file for syslogd and aslmanager
+##
+
+# aslmanager logs
+> /var/log/asl/Logs/aslmanager external style=lcl-b ttl=2
+
+# authpriv messages are root/admin readable
+? [= Facility authpriv] access 0 80
+
+# remoteauth critical, alert, and emergency messages are root/admin readable
+? [= Facility remoteauth] [<= Level critical] access 0 80
+
+# broadcast emergency messages
+? [= Level emergency] broadcast
+
+# save kernel [PID 0] and launchd [PID 1] messages
+? [<= PID 1] store
+
+# ignore "internal" facility
+? [= Facility internal] ignore
+
+# save everything from emergency to notice
+? [<= Level notice] store
+
+# Rules for /var/log/system.log
+> system.log mode=0640 format=bsd rotate=seq compress file_max=5M all_max=50M
+? [= Sender kernel] file system.log
+? [<= Level notice] file system.log
+? [= Facility auth] [<= Level info] file system.log
+? [= Facility authpriv] [<= Level info] file system.log
+
+# Facility com.apple.alf.logging gets saved in appfirewall.log
+? [= Facility com.apple.alf.logging] file appfirewall.log file_max=5M all_max=50M

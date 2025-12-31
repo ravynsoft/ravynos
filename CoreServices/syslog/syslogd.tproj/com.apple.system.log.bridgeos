@@ -1,0 +1,8 @@
+# Rules for /var/log/system.log
+# This file is installed in /usr/local/etc/asl on iOS for Apple Internal
+#
+> /var/log/system.log mode=0640 format=bsd rotate=system.seq.log compress file_max=1M all_max=3M
+? [= Sender kernel] file system.log
+? [<= Level notice] file system.log
+? [= Facility auth] [<= Level info] file system.log
+? [= Facility authpriv] [<= Level info] file system.log

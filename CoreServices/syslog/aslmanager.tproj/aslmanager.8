@@ -1,0 +1,204 @@
+.\"Copyright (c) 2004-2009 Apple Inc. All rights reserved.
+.\"
+.\"@APPLE_LICENSE_HEADER_START@
+.\"
+.\"This file contains Original Code and/or Modifications of Original Code
+.\"as defined in and that are subject to the Apple Public Source License
+.\"Version 2.0 (the 'License'). You may not use this file except in
+.\"compliance with the License. Please obtain a copy of the License at
+.\"http://www.opensource.apple.com/apsl/ and read it before using this
+.\"file.
+.\"
+.\"The Original Code and all software distributed under the License are
+.\"distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+.\"EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+.\"INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+.\"FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+.\"Please see the License for the specific language governing rights and
+.\"limitations under the License.
+.\"
+.\"@APPLE_LICENSE_HEADER_END@
+.\"
+.Dd December 7, 2007
+.Dt ASLMANAGER 8
+.Os "Mac OS X"
+.Sh NAME
+.Nm aslmanager
+.Nd Apple System Log data life-cycle manager
+.Sh SYNOPSIS
+.Nm
+.Op Fl s Ar store_dir
+.Op Fl a Op Ar archive_dir
+.Op Fl ttl Ar days
+.Op Fl store_ttl Ar days
+.Op Fl module_ttl Ar days
+.Op Fl size Ar max_size
+.Op Fl asldb
+.Op Fl module Op Ar name
+.Op Fl checkpoint
+.Op Fl d Op level
+.Op Fl dd Op level
+.Sh DESCRIPTION
+.Nm aslmanager 
+manages rotated files and ASL data written by the
+.Nm syslogd
+server.
+It is started automatically at various times by
+.Nm syslogd .
+It may also be invoked from the command line by the superuser (root).
+It manages the life-cycle of data in the ASL database, rotated log files,
+and ASL directory data stores.
+Configuration information for
+.Nm aslmanager
+comes from the /etc/asl.conf configuration file,
+any ASL output module configuration files in the /etc/asl directory,
+and from command-line options that may be specified to override some settings
+found in the configuration files.
+In normal operation, it first checks the ASL database in /var/log/asl,
+then it checks the files and directories specified by /etc/asl.conf and each ASL output module. 
+.Pp
+If the
+.Fl asldb
+flag is specified, then only the ASL database will be processed.
+.Pp
+If the
+.Fl module
+flag is specified, then the ASL database will not be processed.
+All ASL output modules, or a single module if
+.Ar name
+is specified, will be processed.
+.Pp
+If
+.Fl checkpoint
+is specified, then
+.Nm aslmanager
+will signal
+.Nm syslogd
+to checkpoint files for all modules, or for a single named module, before processing.
+.Pp
+The
+.Fl d
+flag causes
+.Nm
+to print debug messages tracing it's actions as they are performed.
+An integer value (1, 2, or 3) may follow the 
+.Fl d
+flag.
+Higher values cause more fine-grained messages to be printed.
+The default value is 1.
+The 
+.Fl dd
+flag directs
+.Nm 
+to do a
+.Dq dry run .
+Debug messages are printed as with
+.Fl d ,
+but no actions are actually performed.
+An optional debug level may follow the
+.Fl dd
+flag.
+.Ss ASL DATABASE MANAGEMENT
+.Nm aslmanager
+scans the ASL database in /var/log/asl, or some other path specified by the setting of the
+.Dq store_path
+parameter in asl.conf, or by the path supplied following the
+.Fl s
+flag.
+Data files that are older than the time-to-live for the database are either archived or removed.
+Files that contain messages with explicit expire times are removed or archived monthly after all their contents expire.
+The default 7 day time-to-live value may be overridden by the setting of the
+.Dq store_ttl
+parameter in asl.conf or by supplying a value following the
+.Fl store_ttl
+flag or the
+.Fl ttl 
+flag (which overrides the time-to-live for both the ASL database and for all ASL modules).
+A time-to-live value of zero allows files to remain in the store with no time limit.
+.Pp
+A maximum size for the entire database is provided by the setting of the
+.Dq max_store_size
+parameter in asl.conf, or as a value following the
+.Fl size
+flag.
+This will cause
+.Nm
+to archive (if enabled) and remove files to keep the database size below the specified limit.
+The default value is 150000000 bytes.
+A value of zero means the size is unlimited.
+An unlimited size specification should be used with great caution,
+since a runaway process could quickly fill all available disk space.
+Files are removed in order starting from oldest to newest.
+Files with the same date are removed in standard lexicographic sort order by file name.
+.Pp
+Files are either removed entirely or copied to an archive directory.
+If the
+.Fl a
+flag is specified with no argument, files are copied to the /var/log/asl.archive directory.
+An alternate directory path may be specified following the
+.Fl a
+flag.
+The archive parameter setting in asl.conf enables or disables archiving.
+The archive parameter requires a value of "1" to enable archiving, or a value of "0" to disable it.
+An option archive directory path may follow the "0" or "1".
+.Pp
+.Ss ASL OUTPUT MODULE MANAGEMENT
+For each ASL output module, or a single module specified as an argument following
+.Fl module ,
+.Nm aslmanager
+first locates all checkpoint files produced by
+.Nm syslogd
+for that module.
+.Nm aslmanager
+checks all ASL directory data stores and all rotated log files - those with a
+.Dq rotate
+option in the module's configuration rules.
+Checkpoint files are renamed if necessary to conform to the naming style specified for the file by a
+.Dq style
+option in the module's configuration file.
+.Nm aslmanager 
+will compress the file if directed by a
+.Dq compress
+option, and it will move the file to a destination directory if a
+.Dq dest
+option is specified for the file.
+Following this,
+.Nm
+will delete expired files.
+The time-to-live for files is 7 days by default, but may be specified using the
+.Dq ttl
+option for the file in the module's configuration rules.
+If
+.Fl module_ttl
+or
+.Fl ttl
+are specified command line, then value specified as an argument is used as a time-to-live instead.
+.Fl module_ttl
+specifies time-to-live for module processing.
+.Fl ttl
+specifies time-to-live for both the ASL database and for modules.
+.Pp
+Finally, if the
+.Dq all_max
+option is specified for the output file,
+.Nm
+checks the total size of all the rotated versions,
+and will delete them, (oldest first) to limit the total size as specified by
+.Dq all_max .
+When processing ASL directory data stores,
+.Nm
+will similarly delete data files after the expiry of their time-to-live,
+and will delete data files (oldest first) to limit the total size as specified by
+.Dq all_max .
+.Pp
+.Sh SEE ALSO
+.Xr syslogd 8 ,
+.Xr syslog 1 ,
+.Xr asl 3 ,
+.Xr asl.conf 5 ,
+.Xr syslog 3 .
+.Sh HISTORY
+The
+.Nm
+utility appeared in Mac OS X 10.6.
+Support for log file and ASL directory life-cycle management was added in OS X 10.9.

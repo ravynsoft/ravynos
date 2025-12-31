@@ -1,0 +1,39 @@
+#include "base.xcconfig"
+
+DEAD_CODE_STRIPPING = NO
+CURRENT_PROJECT_VERSION = $(CURRENT_PROJECT_VERSION)
+DYLIB_CURRENT_VERSION = $(CURRENT_PROJECT_VERSION)
+
+EXECUTABLE_PREFIX = libsystem_
+
+PRODUCT_NAME = asl
+
+INSTALL_PATH = /usr/lib/system
+
+PUBLIC_HEADERS_FOLDER_PATH = /usr/include
+PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include
+
+LINK_WITH_STANDARD_LIBRARIES = NO
+
+CR_LDFLAGS = -lCrashReporterClient
+LIBCOMPILER_RT_LDFLAGS = -lcompiler_rt
+LIBCLOSURE_LDFLAGS = -lsystem_blocks
+LIBC_LDFLAGS = -lsystem_c
+LIBMALLOC_LDFLAGS = -lsystem_malloc
+LIBNOTIFY_LDFLAGS = -lsystem_notify
+LIBPLATFORM_LDFLAGS = -lsystem_platform
+LIBPLATFORM_LDFLAGS[sdk=iphonesimulator*] = -lsystem_sim_platform
+LIBPTHREAD_LDFLAGS = -lsystem_pthread
+LIBPTHREAD_LDFLAGS[sdk=iphonesimulator*] = -lsystem_sim_pthread
+LIBSYSCALL_LDFLAGS = -lsystem_kernel
+LIBSYSCALL_LDFLAGS[sdk=iphonesimulator*] = -lsystem_sim_kernel
+LIBM_LDFLAGS = -lsystem_m
+LIBDYLD_LDFLAGS = -ldyld
+LIBTRACE_LDFLAGS = -lsystem_trace
+LIBUNWIND_LDFLAGS = -lunwind
+
+OTHER_LDFLAGS = -all_load -L/usr/lib/system -umbrella System $(CR_LDFLAGS) $(LIBCOMPILER_RT_LDFLAGS) $(LIBDYLD_LDFLAGS) $(LIBSYSCALL_LDFLAGS) $(LIBPLATFORM_LDFLAGS) $(LIBPTHREAD_LDFLAGS) $(LIBMALLOC_LDFLAGS) $(LIBC_LDFLAGS) $(LIBUNWIND_LDFLAGS) $(LIBCLOSURE_LDFLAGS) -ldispatch $(LIBLAUNCH_LDFLAGS) -lxpc $(LIBTRACE_LDFLAGS) $(LIBNOTIFY_LDFLAGS) $(UPWARD_LINKS)
+
+UPWARD_LINKS = -Wl,-upward-lsystem_info
+
+IS_ZIPPERED = YES

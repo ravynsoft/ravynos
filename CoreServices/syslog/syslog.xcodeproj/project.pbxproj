@@ -1,0 +1,1205 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		3F0552BB1614E58B00F729CC /* libasl_Sim */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 3F0552BC1614E58B00F729CC /* Build configuration list for PBXAggregateTarget "libasl_Sim" */;
+			buildPhases = (
+			);
+			dependencies = (
+				3FFD440917486329007DAC1B /* PBXTargetDependency */,
+			);
+			name = libasl_Sim;
+			productName = libasl_Sim;
+		};
+		3F6F440B1613AA3600CA9ADB /* libasl */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 3F6F440C1613AA3700CA9ADB /* Build configuration list for PBXAggregateTarget "libasl" */;
+			buildPhases = (
+			);
+			dependencies = (
+				3F6F440F1613AA3B00CA9ADB /* PBXTargetDependency */,
+			);
+			name = libasl;
+			productName = libasl;
+		};
+		3FFD43F9174862D0007DAC1B /* executables_Sim */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 3FFD4402174862D0007DAC1B /* Build configuration list for PBXAggregateTarget "executables_Sim" */;
+			buildPhases = (
+			);
+			dependencies = (
+				3FFD440717486325007DAC1B /* PBXTargetDependency */,
+			);
+			name = executables_Sim;
+			productName = All;
+		};
+		5020A3211098EBDE00982ED6 /* executables */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 5020A3311098EC3000982ED6 /* Build configuration list for PBXAggregateTarget "executables" */;
+			buildPhases = (
+			);
+			dependencies = (
+				5020A3241098EBF400982ED6 /* PBXTargetDependency */,
+				5020A3261098EBF900982ED6 /* PBXTargetDependency */,
+				5020A3281098EBFC00982ED6 /* PBXTargetDependency */,
+				503A82141098FB9300B0D08A /* PBXTargetDependency */,
+			);
+			name = executables;
+			productName = All;
+		};
+		721700891CCABF6F000FC779 /* executables_DaytonaBridge */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 721700921CCABF6F000FC779 /* Build configuration list for PBXAggregateTarget "executables_DaytonaBridge" */;
+			buildPhases = (
+			);
+			dependencies = (
+				7217008A1CCABF6F000FC779 /* PBXTargetDependency */,
+				7217008E1CCABF6F000FC779 /* PBXTargetDependency */,
+				721700901CCABF6F000FC779 /* PBXTargetDependency */,
+			);
+			name = executables_DaytonaBridge;
+			productName = All;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		2D30656E150E6EFF00F31A54 /* asl_common.c in Sources */ = {isa = PBXBuildFile; fileRef = 2D30656C150E6EFF00F31A54 /* asl_common.c */; };
+		2D30D2811AE6C84200673818 /* daemon.c in Sources */ = {isa = PBXBuildFile; fileRef = 2D30D27F1AE6C84200673818 /* daemon.c */; };
+		2D31F3C517E77F3300F2A60C /* asl_client.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D31F3C117E77F3300F2A60C /* asl_client.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		2D31F3C617E77F3300F2A60C /* asl_msg_list.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D31F3C217E77F3300F2A60C /* asl_msg_list.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		2D31F3C717E77F3300F2A60C /* asl_object.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D31F3C317E77F3300F2A60C /* asl_object.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		2D31F3C817E77F3300F2A60C /* asl_string.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D31F3C417E77F3300F2A60C /* asl_string.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		2D31F3CD17E77F8800F2A60C /* asl_client.c in Sources */ = {isa = PBXBuildFile; fileRef = 2D31F3C917E77F8800F2A60C /* asl_client.c */; };
+		2D31F3CE17E77F8800F2A60C /* asl_msg_list.c in Sources */ = {isa = PBXBuildFile; fileRef = 2D31F3CA17E77F8800F2A60C /* asl_msg_list.c */; };
+		2D31F3CF17E77F8800F2A60C /* asl_object.c in Sources */ = {isa = PBXBuildFile; fileRef = 2D31F3CB17E77F8800F2A60C /* asl_object.c */; };
+		2D31F3D017E77F8800F2A60C /* asl_string.c in Sources */ = {isa = PBXBuildFile; fileRef = 2D31F3CC17E77F8800F2A60C /* asl_string.c */; };
+		2D60F61115657D0F00F2E3F9 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D60F61015657D0F00F2E3F9 /* libz.dylib */; };
+		2D9DEB64150E6FE80059BA61 /* asl_common.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D30656D150E6EFF00F31A54 /* asl_common.h */; };
+		2DCF701A150E97C0002D5E8F /* libaslcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 505ACB9D108FD16400197086 /* libaslcommon.a */; };
+		3F6F43F21613A8E300CA9ADB /* asl.h in Headers */ = {isa = PBXBuildFile; fileRef = 3F6F43CF1613A8E300CA9ADB /* asl.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		3F6F43F31613A8E300CA9ADB /* asl_core.h in Headers */ = {isa = PBXBuildFile; fileRef = 3F6F43D01613A8E300CA9ADB /* asl_core.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		3F6F43F41613A8E300CA9ADB /* asl_file.h in Headers */ = {isa = PBXBuildFile; fileRef = 3F6F43D11613A8E300CA9ADB /* asl_file.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		3F6F43F51613A8E300CA9ADB /* asl_legacy1.h in Headers */ = {isa = PBXBuildFile; fileRef = 3F6F43D21613A8E300CA9ADB /* asl_legacy1.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		3F6F43F61613A8E300CA9ADB /* asl_msg.h in Headers */ = {isa = PBXBuildFile; fileRef = 3F6F43D31613A8E300CA9ADB /* asl_msg.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		3F6F43F71613A8E300CA9ADB /* asl_private.h in Headers */ = {isa = PBXBuildFile; fileRef = 3F6F43D41613A8E300CA9ADB /* asl_private.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		3F6F43F81613A8E300CA9ADB /* asl_store.h in Headers */ = {isa = PBXBuildFile; fileRef = 3F6F43D51613A8E300CA9ADB /* asl_store.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		3F6F43FB1613A8E300CA9ADB /* asl.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F6F43E21613A8E300CA9ADB /* asl.c */; };
+		3F6F43FC1613A8E300CA9ADB /* asl_core.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F6F43E31613A8E300CA9ADB /* asl_core.c */; };
+		3F6F43FD1613A8E300CA9ADB /* asl_fd.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F6F43E41613A8E300CA9ADB /* asl_fd.c */; };
+		3F6F43FE1613A8E300CA9ADB /* asl_file.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F6F43E51613A8E300CA9ADB /* asl_file.c */; };
+		3F6F43FF1613A8E300CA9ADB /* asl_legacy1.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F6F43E61613A8E300CA9ADB /* asl_legacy1.c */; };
+		3F6F44001613A8E300CA9ADB /* asl_msg.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F6F43E71613A8E300CA9ADB /* asl_msg.c */; };
+		3F6F44011613A8E300CA9ADB /* asl_store.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F6F43E81613A8E300CA9ADB /* asl_store.c */; };
+		3F6F44021613A8E300CA9ADB /* asl_util.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F6F43E91613A8E300CA9ADB /* asl_util.c */; };
+		3F6F440A1613A91E00CA9ADB /* asl_ipc.defs in Sources */ = {isa = PBXBuildFile; fileRef = 505ACBA2108FD18400197086 /* asl_ipc.defs */; };
+		3F6F44141613AAA600CA9ADB /* asl.3 in Install man3 */ = {isa = PBXBuildFile; fileRef = 3F6F43D91613A8E300CA9ADB /* asl.3 */; };
+		3FE798E416161F2A00D547B0 /* syslog.c in Sources */ = {isa = PBXBuildFile; fileRef = 3FE798E316161F2A00D547B0 /* syslog.c */; };
+		3FE798E616161F5D00D547B0 /* syslog.3 in Install man3 */ = {isa = PBXBuildFile; fileRef = 3FE798E516161F3A00D547B0 /* syslog.3 */; };
+		5020A36B1098EE1D00982ED6 /* libaslcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 505ACB9D108FD16400197086 /* libaslcommon.a */; };
+		5020A37F1098EEC400982ED6 /* libaslcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 505ACB9D108FD16400197086 /* libaslcommon.a */; };
+		5039176F1091408B0001165E /* aslmanager.c in Sources */ = {isa = PBXBuildFile; fileRef = 5039176C1091408B0001165E /* aslmanager.c */; };
+		503917B81091410E0001165E /* asl_action.c in Sources */ = {isa = PBXBuildFile; fileRef = 503917A61091410E0001165E /* asl_action.c */; };
+		503917BB1091410E0001165E /* bsd_in.c in Sources */ = {isa = PBXBuildFile; fileRef = 503917AA1091410E0001165E /* bsd_in.c */; };
+		503917BC1091410E0001165E /* bsd_out.c in Sources */ = {isa = PBXBuildFile; fileRef = 503917AB1091410E0001165E /* bsd_out.c */; };
+		503917BD1091410E0001165E /* daemon.c in Sources */ = {isa = PBXBuildFile; fileRef = 503917AD1091410E0001165E /* daemon.c */; };
+		503917BE1091410E0001165E /* dbserver.c in Sources */ = {isa = PBXBuildFile; fileRef = 503917AF1091410E0001165E /* dbserver.c */; };
+		503917BF1091410E0001165E /* klog_in.c in Sources */ = {isa = PBXBuildFile; fileRef = 503917B01091410E0001165E /* klog_in.c */; };
+		503917C11091410E0001165E /* remote.c in Sources */ = {isa = PBXBuildFile; fileRef = 503917B21091410E0001165E /* remote.c */; };
+		503917C21091410E0001165E /* syslogd.c in Sources */ = {isa = PBXBuildFile; fileRef = 503917B51091410E0001165E /* syslogd.c */; };
+		503917C31091410E0001165E /* udp_in.c in Sources */ = {isa = PBXBuildFile; fileRef = 503917B71091410E0001165E /* udp_in.c */; };
+		503917D2109141530001165E /* syslog.c in Sources */ = {isa = PBXBuildFile; fileRef = 503917D1109141530001165E /* syslog.c */; };
+		503A81D81098FA3900B0D08A /* asl_ipc.defs in Sources */ = {isa = PBXBuildFile; fileRef = 505ACBA2108FD18400197086 /* asl_ipc.defs */; settings = {ATTRIBUTES = (Client, Server, ); }; };
+		503A82471099029200B0D08A /* libbsm.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 503A82461099029200B0D08A /* libbsm.dylib */; };
+		503A82741099045F00B0D08A /* aslmanager.8 in Copy Manpage.8 */ = {isa = PBXBuildFile; fileRef = 5039176B1091408B0001165E /* aslmanager.8 */; };
+		503A82761099049900B0D08A /* syslog.1 in Copy Manpage.1 */ = {isa = PBXBuildFile; fileRef = 503917D0109141530001165E /* syslog.1 */; };
+		503A8278109904C000B0D08A /* syslogd.8 in Copy Manpage.8 */ = {isa = PBXBuildFile; fileRef = 503917B41091410E0001165E /* syslogd.8 */; };
+		503A827A109904E400B0D08A /* asl.conf.5 in Copy Manpages.5 */ = {isa = PBXBuildFile; fileRef = 503917A81091410E0001165E /* asl.conf.5 */; };
+		503A827B109904E400B0D08A /* syslog.conf.5 in Copy Manpages.5 */ = {isa = PBXBuildFile; fileRef = 503917B31091410E0001165E /* syslog.conf.5 */; };
+		505ACBA8108FD18400197086 /* asl_ipc.defs in Headers */ = {isa = PBXBuildFile; fileRef = 505ACBA2108FD18400197086 /* asl_ipc.defs */; };
+		505ACBA9108FD18400197086 /* asl_memory.c in Sources */ = {isa = PBXBuildFile; fileRef = 505ACBA3108FD18400197086 /* asl_memory.c */; };
+		505ACBAA108FD18400197086 /* asl_memory.h in Headers */ = {isa = PBXBuildFile; fileRef = 505ACBA4108FD18400197086 /* asl_memory.h */; };
+		8FBD22362241ED0000CEBA6A /* asl_mt_shim.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F77AF5A2241CD17004AF9B4 /* asl_mt_shim.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		3F6F440E1613AA3B00CA9ADB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3F6F43C91613922800CA9ADB;
+			remoteInfo = libsystem_asl;
+		};
+		3FFD440617486325007DAC1B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5020A3211098EBDE00982ED6;
+			remoteInfo = executables;
+		};
+		3FFD440817486329007DAC1B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3F6F440B1613AA3600CA9ADB;
+			remoteInfo = libasl;
+		};
+		5020A3231098EBF400982ED6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 505ACB9C108FD16400197086;
+			remoteInfo = aslcommon;
+		};
+		5020A3251098EBF900982ED6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 50391765109140450001165E;
+			remoteInfo = aslmanager;
+		};
+		5020A3271098EBFC00982ED6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 503917C71091413E0001165E;
+			remoteInfo = util;
+		};
+		503A82131098FB9300B0D08A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5039177B109140C30001165E;
+			remoteInfo = syslogd;
+		};
+		7217008B1CCABF6F000FC779 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 505ACB9C108FD16400197086;
+			remoteInfo = aslcommon;
+		};
+		7217008F1CCABF6F000FC779 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 503917C71091413E0001165E;
+			remoteInfo = util;
+		};
+		721700911CCABF6F000FC779 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5039177B109140C30001165E;
+			remoteInfo = syslogd;
+		};
+		FCF3761810D2EED700C0EC8D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 505ACB9C108FD16400197086;
+			remoteInfo = aslcommon;
+		};
+		FCF3761A10D2EEDF00C0EC8D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 505ACB9C108FD16400197086;
+			remoteInfo = aslcommon;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		3F6F44131613AA9300CA9ADB /* Install man3 */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 8;
+			dstPath = /usr/share/man/man3;
+			dstSubfolderSpec = 0;
+			files = (
+				3F6F44141613AAA600CA9ADB /* asl.3 in Install man3 */,
+				3FE798E616161F5D00D547B0 /* syslog.3 in Install man3 */,
+			);
+			name = "Install man3";
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		503A82631099037D00B0D08A /* Copy Manpage.8 */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 8;
+			dstPath = /usr/share/man/man8;
+			dstSubfolderSpec = 0;
+			files = (
+				503A82741099045F00B0D08A /* aslmanager.8 in Copy Manpage.8 */,
+			);
+			name = "Copy Manpage.8";
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		503A8285109904FD00B0D08A /* Copy Manpage.1 */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 8;
+			dstPath = /usr/share/man/man1;
+			dstSubfolderSpec = 0;
+			files = (
+				503A82761099049900B0D08A /* syslog.1 in Copy Manpage.1 */,
+			);
+			name = "Copy Manpage.1";
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		503A8286109904FD00B0D08A /* Copy Manpage.8 */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 8;
+			dstPath = /usr/share/man/man8;
+			dstSubfolderSpec = 0;
+			files = (
+				503A8278109904C000B0D08A /* syslogd.8 in Copy Manpage.8 */,
+			);
+			name = "Copy Manpage.8";
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		503A8287109904FD00B0D08A /* Copy Manpages.5 */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 8;
+			dstPath = /usr/share/man/man5;
+			dstSubfolderSpec = 0;
+			files = (
+				503A827A109904E400B0D08A /* asl.conf.5 in Copy Manpages.5 */,
+				503A827B109904E400B0D08A /* syslog.conf.5 in Copy Manpages.5 */,
+			);
+			name = "Copy Manpages.5";
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		2D30656C150E6EFF00F31A54 /* asl_common.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = asl_common.c; sourceTree = "<group>"; };
+		2D30656D150E6EFF00F31A54 /* asl_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asl_common.h; sourceTree = "<group>"; };
+		2D30D27F1AE6C84200673818 /* daemon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = daemon.c; path = aslmanager.tproj/daemon.c; sourceTree = "<group>"; };
+		2D30D2801AE6C84200673818 /* daemon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = daemon.h; path = aslmanager.tproj/daemon.h; sourceTree = "<group>"; };
+		2D31F3C117E77F3300F2A60C /* asl_client.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asl_client.h; sourceTree = "<group>"; };
+		2D31F3C217E77F3300F2A60C /* asl_msg_list.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asl_msg_list.h; sourceTree = "<group>"; };
+		2D31F3C317E77F3300F2A60C /* asl_object.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asl_object.h; sourceTree = "<group>"; };
+		2D31F3C417E77F3300F2A60C /* asl_string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asl_string.h; sourceTree = "<group>"; };
+		2D31F3C917E77F8800F2A60C /* asl_client.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = asl_client.c; sourceTree = "<group>"; };
+		2D31F3CA17E77F8800F2A60C /* asl_msg_list.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = asl_msg_list.c; sourceTree = "<group>"; };
+		2D31F3CB17E77F8800F2A60C /* asl_object.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = asl_object.c; sourceTree = "<group>"; };
+		2D31F3CC17E77F8800F2A60C /* asl_string.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = asl_string.c; sourceTree = "<group>"; };
+		2D60F61015657D0F00F2E3F9 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
+		2D9C4F131B3A29E700219FB3 /* com.apple.system.log */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = com.apple.system.log; path = syslogd.tproj/com.apple.system.log; sourceTree = "<group>"; };
+		2DB4DA0A125FC69A001CDC45 /* after_install.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = after_install.sh; path = syslogd.tproj/after_install.sh; sourceTree = "<group>"; };
+		2DB8178915589D0C004D0BDE /* entitlements.plist */ = {isa = PBXFileReference; lastKnownFileType = file.bplist; name = entitlements.plist; path = util.tproj/entitlements.plist; sourceTree = "<group>"; };
+		3ABA38852335754100E6D121 /* com.apple.syslogd.disabled.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = com.apple.syslogd.disabled.plist; path = syslogd.tproj/com.apple.syslogd.disabled.plist; sourceTree = "<group>"; };
+		3F6B6311185AF66C00F692C5 /* aslmanager.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = aslmanager.xcconfig; sourceTree = "<group>"; };
+		3F6B6312185AF66C00F692C5 /* base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = base.xcconfig; sourceTree = "<group>"; };
+		3F6B6313185AF66C00F692C5 /* syslogd.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = syslogd.xcconfig; sourceTree = "<group>"; };
+		3F6B6314185AF66C00F692C5 /* util.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = util.xcconfig; sourceTree = "<group>"; };
+		3F6F43CA1613922800CA9ADB /* libsystem_asl.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libsystem_asl.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		3F6F43CF1613A8E300CA9ADB /* asl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asl.h; sourceTree = "<group>"; };
+		3F6F43D01613A8E300CA9ADB /* asl_core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asl_core.h; sourceTree = "<group>"; };
+		3F6F43D11613A8E300CA9ADB /* asl_file.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asl_file.h; sourceTree = "<group>"; };
+		3F6F43D21613A8E300CA9ADB /* asl_legacy1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asl_legacy1.h; sourceTree = "<group>"; };
+		3F6F43D31613A8E300CA9ADB /* asl_msg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asl_msg.h; sourceTree = "<group>"; };
+		3F6F43D41613A8E300CA9ADB /* asl_private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asl_private.h; sourceTree = "<group>"; };
+		3F6F43D51613A8E300CA9ADB /* asl_store.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asl_store.h; sourceTree = "<group>"; };
+		3F6F43D91613A8E300CA9ADB /* asl.3 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = asl.3; sourceTree = "<group>"; };
+		3F6F43DF1613A8E300CA9ADB /* README */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
+		3F6F43E21613A8E300CA9ADB /* asl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = asl.c; sourceTree = "<group>"; };
+		3F6F43E31613A8E300CA9ADB /* asl_core.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = asl_core.c; sourceTree = "<group>"; };
+		3F6F43E41613A8E300CA9ADB /* asl_fd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = asl_fd.c; sourceTree = "<group>"; };
+		3F6F43E51613A8E300CA9ADB /* asl_file.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = asl_file.c; sourceTree = "<group>"; };
+		3F6F43E61613A8E300CA9ADB /* asl_legacy1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = asl_legacy1.c; sourceTree = "<group>"; };
+		3F6F43E71613A8E300CA9ADB /* asl_msg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = asl_msg.c; sourceTree = "<group>"; };
+		3F6F43E81613A8E300CA9ADB /* asl_store.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = asl_store.c; sourceTree = "<group>"; };
+		3F6F43E91613A8E300CA9ADB /* asl_util.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = asl_util.c; sourceTree = "<group>"; };
+		3F900DB619383950003CA7E6 /* sim-compat-symlink.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "sim-compat-symlink.sh"; sourceTree = "<group>"; };
+		3FCCB5361749B53D00F8FEBC /* asl.conf.ios_sim */ = {isa = PBXFileReference; lastKnownFileType = text; name = asl.conf.ios_sim; path = syslogd.tproj/asl.conf.ios_sim; sourceTree = "<group>"; };
+		3FE6E8391A529FEF0075D75F /* asl.conf.ios */ = {isa = PBXFileReference; lastKnownFileType = text; name = asl.conf.ios; path = syslogd.tproj/asl.conf.ios; sourceTree = "<group>"; };
+		3FE6E83A1A529FEF0075D75F /* asl.conf.osx */ = {isa = PBXFileReference; lastKnownFileType = text; name = asl.conf.osx; path = syslogd.tproj/asl.conf.osx; sourceTree = "<group>"; };
+		3FE6E83B1A529FEF0075D75F /* syslog.conf */ = {isa = PBXFileReference; lastKnownFileType = text; name = syslog.conf; path = syslogd.tproj/syslog.conf; sourceTree = "<group>"; };
+		3FE798E316161F2A00D547B0 /* syslog.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = syslog.c; sourceTree = "<group>"; };
+		3FE798E516161F3A00D547B0 /* syslog.3 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = syslog.3; sourceTree = "<group>"; };
+		3FFD43F817485C5B007DAC1B /* libasl.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = libasl.xcconfig; sourceTree = "<group>"; };
+		50391766109140450001165E /* aslmanager */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = aslmanager; sourceTree = BUILT_PRODUCTS_DIR; };
+		5039176B1091408B0001165E /* aslmanager.8 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = aslmanager.8; path = aslmanager.tproj/aslmanager.8; sourceTree = "<group>"; };
+		5039176C1091408B0001165E /* aslmanager.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = aslmanager.c; path = aslmanager.tproj/aslmanager.c; sourceTree = "<group>"; };
+		5039176D1091408B0001165E /* com.apple.aslmanager.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = com.apple.aslmanager.plist; path = aslmanager.tproj/com.apple.aslmanager.plist; sourceTree = "<group>"; };
+		5039177C109140C30001165E /* syslogd */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = syslogd; sourceTree = BUILT_PRODUCTS_DIR; };
+		503917A61091410E0001165E /* asl_action.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = asl_action.c; path = syslogd.tproj/asl_action.c; sourceTree = "<group>"; };
+		503917A81091410E0001165E /* asl.conf.5 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = asl.conf.5; path = syslogd.tproj/asl.conf.5; sourceTree = "<group>"; };
+		503917AA1091410E0001165E /* bsd_in.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = bsd_in.c; path = syslogd.tproj/bsd_in.c; sourceTree = "<group>"; };
+		503917AB1091410E0001165E /* bsd_out.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = bsd_out.c; path = syslogd.tproj/bsd_out.c; sourceTree = "<group>"; };
+		503917AC1091410E0001165E /* com.apple.syslogd.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = com.apple.syslogd.plist; path = syslogd.tproj/com.apple.syslogd.plist; sourceTree = "<group>"; };
+		503917AD1091410E0001165E /* daemon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = daemon.c; path = syslogd.tproj/daemon.c; sourceTree = "<group>"; };
+		503917AE1091410E0001165E /* daemon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = daemon.h; path = syslogd.tproj/daemon.h; sourceTree = "<group>"; };
+		503917AF1091410E0001165E /* dbserver.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = dbserver.c; path = syslogd.tproj/dbserver.c; sourceTree = "<group>"; };
+		503917B01091410E0001165E /* klog_in.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = klog_in.c; path = syslogd.tproj/klog_in.c; sourceTree = "<group>"; };
+		503917B21091410E0001165E /* remote.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = remote.c; path = syslogd.tproj/remote.c; sourceTree = "<group>"; };
+		503917B31091410E0001165E /* syslog.conf.5 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = syslog.conf.5; path = syslogd.tproj/syslog.conf.5; sourceTree = "<group>"; };
+		503917B41091410E0001165E /* syslogd.8 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = syslogd.8; path = syslogd.tproj/syslogd.8; sourceTree = "<group>"; };
+		503917B51091410E0001165E /* syslogd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = syslogd.c; path = syslogd.tproj/syslogd.c; sourceTree = "<group>"; };
+		503917B61091410E0001165E /* syslogd.sb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = syslogd.sb; path = syslogd.tproj/syslogd.sb; sourceTree = "<group>"; };
+		503917B71091410E0001165E /* udp_in.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = udp_in.c; path = syslogd.tproj/udp_in.c; sourceTree = "<group>"; };
+		503917C81091413E0001165E /* syslog */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = syslog; sourceTree = BUILT_PRODUCTS_DIR; };
+		503917D0109141530001165E /* syslog.1 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.man; name = syslog.1; path = util.tproj/syslog.1; sourceTree = "<group>"; };
+		503917D1109141530001165E /* syslog.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = syslog.c; path = util.tproj/syslog.c; sourceTree = "<group>"; };
+		503A82461099029200B0D08A /* libbsm.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libbsm.dylib; path = usr/lib/libbsm.dylib; sourceTree = SDKROOT; };
+		505ACB9D108FD16400197086 /* libaslcommon.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libaslcommon.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		505ACBA2108FD18400197086 /* asl_ipc.defs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.mig; path = asl_ipc.defs; sourceTree = "<group>"; };
+		505ACBA3108FD18400197086 /* asl_memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = asl_memory.c; sourceTree = "<group>"; };
+		505ACBA4108FD18400197086 /* asl_memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asl_memory.h; sourceTree = "<group>"; };
+		8F77AF5A2241CD17004AF9B4 /* asl_mt_shim.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = asl_mt_shim.c; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3F6F43C71613922800CA9ADB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		50391764109140450001165E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2D60F61115657D0F00F2E3F9 /* libz.dylib in Frameworks */,
+				2DCF701A150E97C0002D5E8F /* libaslcommon.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5039177A109140C30001165E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5020A37F1098EEC400982ED6 /* libaslcommon.a in Frameworks */,
+				503A82471099029200B0D08A /* libbsm.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		503917C61091413E0001165E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5020A36B1098EE1D00982ED6 /* libaslcommon.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		505ACB9B108FD16400197086 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		08FB7794FE84155DC02AAC07 /* syslog */ = {
+			isa = PBXGroup;
+			children = (
+				505ACBA1108FD18400197086 /* aslcommon */,
+				503917691091404D0001165E /* aslmanager */,
+				503917C41091412B0001165E /* util */,
+				503917711091409F0001165E /* syslogd */,
+				3F6F43CD1613A8E300CA9ADB /* libsystem_asl */,
+				505ACB9E108FD16400197086 /* Products */,
+				3FFD43F717485C5B007DAC1B /* xcodeconfig */,
+				3F900DB519383950003CA7E6 /* xcodescripts */,
+				503A82461099029200B0D08A /* libbsm.dylib */,
+				2D60F61015657D0F00F2E3F9 /* libz.dylib */,
+			);
+			name = syslog;
+			sourceTree = "<group>";
+		};
+		3F6F43CD1613A8E300CA9ADB /* libsystem_asl */ = {
+			isa = PBXGroup;
+			children = (
+				3F6F43CE1613A8E300CA9ADB /* include */,
+				3F6F43D81613A8E300CA9ADB /* man */,
+				3F6F43DF1613A8E300CA9ADB /* README */,
+				3F6F43E01613A8E300CA9ADB /* src */,
+			);
+			name = libsystem_asl;
+			path = libsystem_asl.tproj;
+			sourceTree = "<group>";
+		};
+		3F6F43CE1613A8E300CA9ADB /* include */ = {
+			isa = PBXGroup;
+			children = (
+				3F6F43CF1613A8E300CA9ADB /* asl.h */,
+				3F6F43D01613A8E300CA9ADB /* asl_core.h */,
+				2D31F3C117E77F3300F2A60C /* asl_client.h */,
+				2D31F3C217E77F3300F2A60C /* asl_msg_list.h */,
+				2D31F3C317E77F3300F2A60C /* asl_object.h */,
+				2D31F3C417E77F3300F2A60C /* asl_string.h */,
+				3F6F43D11613A8E300CA9ADB /* asl_file.h */,
+				3F6F43D21613A8E300CA9ADB /* asl_legacy1.h */,
+				3F6F43D31613A8E300CA9ADB /* asl_msg.h */,
+				3F6F43D41613A8E300CA9ADB /* asl_private.h */,
+				3F6F43D51613A8E300CA9ADB /* asl_store.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		3F6F43D81613A8E300CA9ADB /* man */ = {
+			isa = PBXGroup;
+			children = (
+				3F6F43D91613A8E300CA9ADB /* asl.3 */,
+				3FE798E516161F3A00D547B0 /* syslog.3 */,
+			);
+			path = man;
+			sourceTree = "<group>";
+		};
+		3F6F43E01613A8E300CA9ADB /* src */ = {
+			isa = PBXGroup;
+			children = (
+				3FE798E316161F2A00D547B0 /* syslog.c */,
+				3F6F43E21613A8E300CA9ADB /* asl.c */,
+				2D31F3C917E77F8800F2A60C /* asl_client.c */,
+				2D31F3CA17E77F8800F2A60C /* asl_msg_list.c */,
+				2D31F3CB17E77F8800F2A60C /* asl_object.c */,
+				2D31F3CC17E77F8800F2A60C /* asl_string.c */,
+				3F6F43E31613A8E300CA9ADB /* asl_core.c */,
+				3F6F43E41613A8E300CA9ADB /* asl_fd.c */,
+				3F6F43E51613A8E300CA9ADB /* asl_file.c */,
+				3F6F43E61613A8E300CA9ADB /* asl_legacy1.c */,
+				3F6F43E71613A8E300CA9ADB /* asl_msg.c */,
+				8F77AF5A2241CD17004AF9B4 /* asl_mt_shim.c */,
+				3F6F43E81613A8E300CA9ADB /* asl_store.c */,
+				3F6F43E91613A8E300CA9ADB /* asl_util.c */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		3F900DB519383950003CA7E6 /* xcodescripts */ = {
+			isa = PBXGroup;
+			children = (
+				3F900DB619383950003CA7E6 /* sim-compat-symlink.sh */,
+			);
+			path = xcodescripts;
+			sourceTree = "<group>";
+		};
+		3FFD43F717485C5B007DAC1B /* xcodeconfig */ = {
+			isa = PBXGroup;
+			children = (
+				3F6B6311185AF66C00F692C5 /* aslmanager.xcconfig */,
+				3F6B6312185AF66C00F692C5 /* base.xcconfig */,
+				3F6B6313185AF66C00F692C5 /* syslogd.xcconfig */,
+				3F6B6314185AF66C00F692C5 /* util.xcconfig */,
+				3FFD43F817485C5B007DAC1B /* libasl.xcconfig */,
+			);
+			path = xcodeconfig;
+			sourceTree = "<group>";
+		};
+		503917691091404D0001165E /* aslmanager */ = {
+			isa = PBXGroup;
+			children = (
+				5039176B1091408B0001165E /* aslmanager.8 */,
+				5039176C1091408B0001165E /* aslmanager.c */,
+				2D30D27F1AE6C84200673818 /* daemon.c */,
+				2D30D2801AE6C84200673818 /* daemon.h */,
+				5039176D1091408B0001165E /* com.apple.aslmanager.plist */,
+			);
+			name = aslmanager;
+			sourceTree = "<group>";
+		};
+		503917711091409F0001165E /* syslogd */ = {
+			isa = PBXGroup;
+			children = (
+				3FE6E8391A529FEF0075D75F /* asl.conf.ios */,
+				2D9C4F131B3A29E700219FB3 /* com.apple.system.log */,
+				3FE6E83A1A529FEF0075D75F /* asl.conf.osx */,
+				3FCCB5361749B53D00F8FEBC /* asl.conf.ios_sim */,
+				3FE6E83B1A529FEF0075D75F /* syslog.conf */,
+				503917A61091410E0001165E /* asl_action.c */,
+				2DB4DA0A125FC69A001CDC45 /* after_install.sh */,
+				503917A81091410E0001165E /* asl.conf.5 */,
+				503917AA1091410E0001165E /* bsd_in.c */,
+				503917AB1091410E0001165E /* bsd_out.c */,
+				503917AC1091410E0001165E /* com.apple.syslogd.plist */,
+				3ABA38852335754100E6D121 /* com.apple.syslogd.disabled.plist */,
+				503917AD1091410E0001165E /* daemon.c */,
+				503917AE1091410E0001165E /* daemon.h */,
+				503917AF1091410E0001165E /* dbserver.c */,
+				503917B01091410E0001165E /* klog_in.c */,
+				503917B21091410E0001165E /* remote.c */,
+				503917B31091410E0001165E /* syslog.conf.5 */,
+				503917B41091410E0001165E /* syslogd.8 */,
+				503917B51091410E0001165E /* syslogd.c */,
+				503917B61091410E0001165E /* syslogd.sb */,
+				503917B71091410E0001165E /* udp_in.c */,
+			);
+			name = syslogd;
+			sourceTree = "<group>";
+		};
+		503917C41091412B0001165E /* util */ = {
+			isa = PBXGroup;
+			children = (
+				503917D0109141530001165E /* syslog.1 */,
+				503917D1109141530001165E /* syslog.c */,
+				2DB8178915589D0C004D0BDE /* entitlements.plist */,
+			);
+			name = util;
+			sourceTree = "<group>";
+		};
+		505ACB9E108FD16400197086 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				505ACB9D108FD16400197086 /* libaslcommon.a */,
+				50391766109140450001165E /* aslmanager */,
+				5039177C109140C30001165E /* syslogd */,
+				503917C81091413E0001165E /* syslog */,
+				3F6F43CA1613922800CA9ADB /* libsystem_asl.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		505ACBA1108FD18400197086 /* aslcommon */ = {
+			isa = PBXGroup;
+			children = (
+				2D30656C150E6EFF00F31A54 /* asl_common.c */,
+				2D30656D150E6EFF00F31A54 /* asl_common.h */,
+				505ACBA2108FD18400197086 /* asl_ipc.defs */,
+				505ACBA3108FD18400197086 /* asl_memory.c */,
+				505ACBA4108FD18400197086 /* asl_memory.h */,
+			);
+			path = aslcommon;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		3F6F43C81613922800CA9ADB /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2D31F3C517E77F3300F2A60C /* asl_client.h in Headers */,
+				2D31F3C817E77F3300F2A60C /* asl_string.h in Headers */,
+				3F6F43F21613A8E300CA9ADB /* asl.h in Headers */,
+				2D31F3C717E77F3300F2A60C /* asl_object.h in Headers */,
+				2D31F3C617E77F3300F2A60C /* asl_msg_list.h in Headers */,
+				3F6F43F31613A8E300CA9ADB /* asl_core.h in Headers */,
+				3F6F43F41613A8E300CA9ADB /* asl_file.h in Headers */,
+				3F6F43F51613A8E300CA9ADB /* asl_legacy1.h in Headers */,
+				3F6F43F61613A8E300CA9ADB /* asl_msg.h in Headers */,
+				3F6F43F71613A8E300CA9ADB /* asl_private.h in Headers */,
+				3F6F43F81613A8E300CA9ADB /* asl_store.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		505ACB99108FD16400197086 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				505ACBA8108FD18400197086 /* asl_ipc.defs in Headers */,
+				505ACBAA108FD18400197086 /* asl_memory.h in Headers */,
+				2D9DEB64150E6FE80059BA61 /* asl_common.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		3F6F43C91613922800CA9ADB /* libsystem_asl */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3F6F43CB1613922800CA9ADB /* Build configuration list for PBXNativeTarget "libsystem_asl" */;
+			buildPhases = (
+				3F6F43C61613922800CA9ADB /* Sources */,
+				3F6F43C71613922800CA9ADB /* Frameworks */,
+				3F6F43C81613922800CA9ADB /* Headers */,
+				3F6F44131613AA9300CA9ADB /* Install man3 */,
+				3F900DB41938393C003CA7E6 /* Sim compat symlink */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = libsystem_asl;
+			productName = libsystem_asl.dylib;
+			productReference = 3F6F43CA1613922800CA9ADB /* libsystem_asl.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+		50391765109140450001165E /* aslmanager */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5039176A1091404D0001165E /* Build configuration list for PBXNativeTarget "aslmanager" */;
+			buildPhases = (
+				50391763109140450001165E /* Sources */,
+				50391764109140450001165E /* Frameworks */,
+				503A82631099037D00B0D08A /* Copy Manpage.8 */,
+				FCAC6D7410AB34C9008DEAC9 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = aslmanager;
+			productName = aslmanager;
+			productReference = 50391766109140450001165E /* aslmanager */;
+			productType = "com.apple.product-type.tool";
+		};
+		5039177B109140C30001165E /* syslogd */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 50391782109140CA0001165E /* Build configuration list for PBXNativeTarget "syslogd" */;
+			buildPhases = (
+				50391779109140C30001165E /* Sources */,
+				5039177A109140C30001165E /* Frameworks */,
+				503A8286109904FD00B0D08A /* Copy Manpage.8 */,
+				503A8287109904FD00B0D08A /* Copy Manpages.5 */,
+				50A9CB7A10A8D16300AA715E /* after install */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FCF3761B10D2EEDF00C0EC8D /* PBXTargetDependency */,
+			);
+			name = syslogd;
+			productName = syslogd;
+			productReference = 5039177C109140C30001165E /* syslogd */;
+			productType = "com.apple.product-type.tool";
+		};
+		503917C71091413E0001165E /* util */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 503917CF1091414A0001165E /* Build configuration list for PBXNativeTarget "util" */;
+			buildPhases = (
+				503917C51091413E0001165E /* Sources */,
+				503917C61091413E0001165E /* Frameworks */,
+				503A8285109904FD00B0D08A /* Copy Manpage.1 */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FCF3761910D2EED700C0EC8D /* PBXTargetDependency */,
+			);
+			name = util;
+			productName = util;
+			productReference = 503917C81091413E0001165E /* syslog */;
+			productType = "com.apple.product-type.tool";
+		};
+		505ACB9C108FD16400197086 /* aslcommon */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 505ACBA0108FD16500197086 /* Build configuration list for PBXNativeTarget "aslcommon" */;
+			buildPhases = (
+				505ACB99108FD16400197086 /* Headers */,
+				505ACB9A108FD16400197086 /* Sources */,
+				505ACB9B108FD16400197086 /* Frameworks */,
+				FCF3762A10D2F47C00C0EC8D /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = aslcommon;
+			productName = aslcommon;
+			productReference = 505ACB9D108FD16400197086 /* libaslcommon.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		08FB7793FE84155DC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+			};
+			buildConfigurationList = 1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "syslog" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 08FB7794FE84155DC02AAC07 /* syslog */;
+			productRefGroup = 505ACB9E108FD16400197086 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				5020A3211098EBDE00982ED6 /* executables */,
+				3FFD43F9174862D0007DAC1B /* executables_Sim */,
+				3F6F440B1613AA3600CA9ADB /* libasl */,
+				3F0552BB1614E58B00F729CC /* libasl_Sim */,
+				505ACB9C108FD16400197086 /* aslcommon */,
+				50391765109140450001165E /* aslmanager */,
+				503917C71091413E0001165E /* util */,
+				5039177B109140C30001165E /* syslogd */,
+				3F6F43C91613922800CA9ADB /* libsystem_asl */,
+				721700891CCABF6F000FC779 /* executables_DaytonaBridge */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		3F900DB41938393C003CA7E6 /* Sim compat symlink */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 8;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/xcodescripts/sim-compat-symlink.sh",
+			);
+			name = "Sim compat symlink";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+			shellPath = "/bin/bash -e -x";
+			shellScript = ". \"${SCRIPT_INPUT_FILE_0}\"";
+		};
+		50A9CB7A10A8D16300AA715E /* after install */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 8;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "after install";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+			shellPath = /bin/sh;
+			shellScript = "exec ${PROJECT_DIR}/syslogd.tproj/after_install.sh";
+		};
+		FCAC6D7410AB34C9008DEAC9 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 8;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+			shellPath = /bin/sh;
+			shellScript = "set -e\n\nDESTDIR=\"$DSTROOT\"/System/Library/LaunchDaemons\ninstall -d -m 0755 -o root -g wheel -d \"$DESTDIR\"\ninstall -m 0644 -o root -g wheel \"$SRCROOT\"/aslmanager.tproj/com.apple.aslmanager.plist \"$DESTDIR\"\nplutil -convert binary1 \"$DESTDIR\"/com.apple.aslmanager.plist";
+			showEnvVarsInLog = 0;
+		};
+		FCF3762A10D2F47C00C0EC8D /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -ex\n\n# Install asl_ipc.h in a location that other targets can find.\n\nfor ARCH in $ARCHS ; do\n\tDESTDIR=\"$BUILT_PRODUCTS_DIR/$ARCH\"\n\tmkdir -p \"$DESTDIR\"\n\tcp \"$DERIVED_SOURCES_DIR/$ARCH\"/asl_ipc{,Server}.h \"$DESTDIR\"\ndone";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3F6F43C61613922800CA9ADB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8FBD22362241ED0000CEBA6A /* asl_mt_shim.c in Sources */,
+				2D31F3CD17E77F8800F2A60C /* asl_client.c in Sources */,
+				3F6F43FB1613A8E300CA9ADB /* asl.c in Sources */,
+				3F6F43FC1613A8E300CA9ADB /* asl_core.c in Sources */,
+				2D31F3D017E77F8800F2A60C /* asl_string.c in Sources */,
+				3F6F43FD1613A8E300CA9ADB /* asl_fd.c in Sources */,
+				2D31F3CE17E77F8800F2A60C /* asl_msg_list.c in Sources */,
+				3F6F43FE1613A8E300CA9ADB /* asl_file.c in Sources */,
+				3F6F43FF1613A8E300CA9ADB /* asl_legacy1.c in Sources */,
+				3F6F44001613A8E300CA9ADB /* asl_msg.c in Sources */,
+				3F6F44011613A8E300CA9ADB /* asl_store.c in Sources */,
+				3F6F44021613A8E300CA9ADB /* asl_util.c in Sources */,
+				2D31F3CF17E77F8800F2A60C /* asl_object.c in Sources */,
+				3F6F440A1613A91E00CA9ADB /* asl_ipc.defs in Sources */,
+				3FE798E416161F2A00D547B0 /* syslog.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		50391763109140450001165E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2D30D2811AE6C84200673818 /* daemon.c in Sources */,
+				5039176F1091408B0001165E /* aslmanager.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		50391779109140C30001165E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				503917B81091410E0001165E /* asl_action.c in Sources */,
+				503917BB1091410E0001165E /* bsd_in.c in Sources */,
+				503917BC1091410E0001165E /* bsd_out.c in Sources */,
+				503917BD1091410E0001165E /* daemon.c in Sources */,
+				503917BE1091410E0001165E /* dbserver.c in Sources */,
+				503917BF1091410E0001165E /* klog_in.c in Sources */,
+				503917C11091410E0001165E /* remote.c in Sources */,
+				503917C21091410E0001165E /* syslogd.c in Sources */,
+				503917C31091410E0001165E /* udp_in.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		503917C51091413E0001165E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				503917D2109141530001165E /* syslog.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		505ACB9A108FD16400197086 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				503A81D81098FA3900B0D08A /* asl_ipc.defs in Sources */,
+				505ACBA9108FD18400197086 /* asl_memory.c in Sources */,
+				2D30656E150E6EFF00F31A54 /* asl_common.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		3F6F440F1613AA3B00CA9ADB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3F6F43C91613922800CA9ADB /* libsystem_asl */;
+			targetProxy = 3F6F440E1613AA3B00CA9ADB /* PBXContainerItemProxy */;
+		};
+		3FFD440717486325007DAC1B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5020A3211098EBDE00982ED6 /* executables */;
+			targetProxy = 3FFD440617486325007DAC1B /* PBXContainerItemProxy */;
+		};
+		3FFD440917486329007DAC1B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3F6F440B1613AA3600CA9ADB /* libasl */;
+			targetProxy = 3FFD440817486329007DAC1B /* PBXContainerItemProxy */;
+		};
+		5020A3241098EBF400982ED6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 505ACB9C108FD16400197086 /* aslcommon */;
+			targetProxy = 5020A3231098EBF400982ED6 /* PBXContainerItemProxy */;
+		};
+		5020A3261098EBF900982ED6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 50391765109140450001165E /* aslmanager */;
+			targetProxy = 5020A3251098EBF900982ED6 /* PBXContainerItemProxy */;
+		};
+		5020A3281098EBFC00982ED6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 503917C71091413E0001165E /* util */;
+			targetProxy = 5020A3271098EBFC00982ED6 /* PBXContainerItemProxy */;
+		};
+		503A82141098FB9300B0D08A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5039177B109140C30001165E /* syslogd */;
+			targetProxy = 503A82131098FB9300B0D08A /* PBXContainerItemProxy */;
+		};
+		7217008A1CCABF6F000FC779 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 505ACB9C108FD16400197086 /* aslcommon */;
+			targetProxy = 7217008B1CCABF6F000FC779 /* PBXContainerItemProxy */;
+		};
+		7217008E1CCABF6F000FC779 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 503917C71091413E0001165E /* util */;
+			targetProxy = 7217008F1CCABF6F000FC779 /* PBXContainerItemProxy */;
+		};
+		721700901CCABF6F000FC779 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5039177B109140C30001165E /* syslogd */;
+			targetProxy = 721700911CCABF6F000FC779 /* PBXContainerItemProxy */;
+		};
+		FCF3761910D2EED700C0EC8D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 505ACB9C108FD16400197086 /* aslcommon */;
+			targetProxy = FCF3761810D2EED700C0EC8D /* PBXContainerItemProxy */;
+		};
+		FCF3761B10D2EEDF00C0EC8D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 505ACB9C108FD16400197086 /* aslcommon */;
+			targetProxy = FCF3761A10D2EEDF00C0EC8D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1DEB928B08733DD80010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3F6B6312185AF66C00F692C5 /* base.xcconfig */;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CURRENT_PROJECT_VERSION = "$(RC_ProjectSourceVersion)";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_PREFIX_HEADER = "";
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(BUILT_PRODUCTS_DIR)/$(CURRENT_ARCH)",
+					"$(PROJECT_DIR)/libsystem_asl.tproj/include",
+					"$(PROJECT_DIR)/aslcommon",
+				);
+				USE_HEADERMAP = NO;
+				VERSIONING_SYSTEM = "apple-generic";
+				WARNING_CFLAGS = "-Werror=format";
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		3F0552BD1614E58B00F729CC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		3F6F43CC1613922800CA9ADB /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3FFD43F817485C5B007DAC1B /* libasl.xcconfig */;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SDKROOT)/System/Library/Frameworks/System.framework/PrivateHeaders",
+				);
+				"ORDER_FILE[sdk=iphoneos*]" = "${SDK_ROOT}/AppleInternal/OrderFiles/libsystem_asl.order";
+			};
+			name = Release;
+		};
+		3F6F440D1613AA3700CA9ADB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		3FFD4403174862D0007DAC1B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				PRODUCT_NAME = "executables copy";
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		5020A3221098EBDF00982ED6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		50391768109140460001165E /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3F6B6311185AF66C00F692C5 /* aslmanager.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = YES;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks",
+				);
+				GCC_DYNAMIC_NO_PIC = NO;
+				OTHER_CFLAGS = (
+					"-Wall",
+					"-DINET6",
+				);
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = aslmanager;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		5039177E109140C40001165E /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3F6B6313185AF66C00F692C5 /* syslogd.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = YES;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_DYNAMIC_NO_PIC = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SDKROOT)/System/Library/Frameworks/System.framework/PrivateHeaders",
+				);
+				OTHER_CFLAGS = (
+					"-Wall",
+					"-DINET6",
+				);
+				"OTHER_CFLAGS[sdk=iphoneos*][arch=*]" = (
+					"$(OTHER_CFLAGS)",
+					"-DLOCKDOWN",
+				);
+				"OTHER_CFLAGS[sdk=macosx*][arch=*]" = (
+					"$(OTHER_CFLAGS)",
+					"-DREMOTE_IPV4",
+				);
+				PRODUCT_NAME = syslogd;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		503917CA1091413E0001165E /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3F6B6314185AF66C00F692C5 /* util.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CODE_SIGN_ENTITLEMENTS = util.tproj/entitlements.plist;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "";
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = YES;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_DYNAMIC_NO_PIC = NO;
+				OTHER_CFLAGS = (
+					"-Wall",
+					"-DINET6",
+				);
+				PRODUCT_NAME = syslog;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		505ACB9F108FD16500197086 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				OTHER_CFLAGS = (
+					"-Wall",
+					"-D__MigTypeCheck=1",
+				);
+				"OTHER_CFLAGS[sdk=iphoneos*][arch=*]" = (
+					"$(OTHER_CFLAGS)",
+					"-DLOCKDOWN",
+				);
+				"OTHER_CFLAGS[sdk=macosx*][arch=*]" = (
+					"$(OTHER_CFLAGS)",
+					"-DREMOTE_IPV4",
+				);
+				PRODUCT_NAME = aslcommon;
+				SKIP_INSTALL = YES;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		721700931CCABF6F000FC779 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "syslog" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB928B08733DD80010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3F0552BC1614E58B00F729CC /* Build configuration list for PBXAggregateTarget "libasl_Sim" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3F0552BD1614E58B00F729CC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3F6F43CB1613922800CA9ADB /* Build configuration list for PBXNativeTarget "libsystem_asl" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3F6F43CC1613922800CA9ADB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3F6F440C1613AA3700CA9ADB /* Build configuration list for PBXAggregateTarget "libasl" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3F6F440D1613AA3700CA9ADB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3FFD4402174862D0007DAC1B /* Build configuration list for PBXAggregateTarget "executables_Sim" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3FFD4403174862D0007DAC1B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5020A3311098EC3000982ED6 /* Build configuration list for PBXAggregateTarget "executables" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5020A3221098EBDF00982ED6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5039176A1091404D0001165E /* Build configuration list for PBXNativeTarget "aslmanager" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				50391768109140460001165E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		50391782109140CA0001165E /* Build configuration list for PBXNativeTarget "syslogd" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5039177E109140C40001165E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		503917CF1091414A0001165E /* Build configuration list for PBXNativeTarget "util" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				503917CA1091413E0001165E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		505ACBA0108FD16500197086 /* Build configuration list for PBXNativeTarget "aslcommon" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				505ACB9F108FD16500197086 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		721700921CCABF6F000FC779 /* Build configuration list for PBXAggregateTarget "executables_DaytonaBridge" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				721700931CCABF6F000FC779 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 08FB7793FE84155DC02AAC07 /* Project object */;
+}
