@@ -62,14 +62,14 @@
 
 #ifdef notdef
 #define CALL_MCOUNT						\
-	pushl	%ebp						;\
-	movl	%esp, %ebp					;\
+	pushq	%rbp						;\
+	movq	%rsp, %rbp					;\
 	.data							;\
-	1: .long 0						;\
+	1: .quad 0						;\
 	.text							;\
-	lea 9b,%edx						;\
-	call mcount						;\
-	popl	%ebp						;
+	lea 9b,%rdx						;\
+	callq mcount						;\
+	popq	%rbp						;
 #else
 #define CALL_MCOUNT
 #endif
@@ -83,13 +83,13 @@
 	.set	__nested_function, 1				;\
 	CALL_MCOUNT						\
 	.if __framesize						;\
-	  pushl	%ebp						;\
-	  movl	%esp, %ebp					;\
-	  subl	$__framesize, %esp				;\
+	  pushq	%rbp						;\
+	  movq	%rsp, %rbp					;\
+	  subq	$__framesize, %rsp				;\
 	.endif							;\
-	pushl	%edi						;\
-	pushl	%esi						;\
-	pushl	%ebx
+	pushq	%rdi						;\
+	pushq	%rsi						;\
+	pushq	%rbx
 
 /*
  * Prologue for functions that do not call other functions.  Does not
@@ -101,9 +101,9 @@
 	.set	__nested_function, 0				;\
 	CALL_MCOUNT						\
 	.if __framesize						;\
-	  pushl	%ebp						;\
-	  movl	%esp, %ebp					;\
-	  subl	$__framesize, %esp				;\
+	  pushq	%rbp						;\
+	  movq	%rsp, %rbp					;\
+	  subq	$__framesize, %rsp				;\
 	.endif
 
 /*
@@ -114,13 +114,13 @@
  */
 #define FUNCTION_EPILOGUE					\
 	.if __nested_function					;\
-	  popl	%ebx						;\
-	  popl	%esi						;\
-	  popl	%edi						;\
+	  popq	%rbx						;\
+	  popq	%rsi						;\
+	  popq	%rdi						;\
 	.endif							;\
 	.if __framesize						;\
-	  movl	%ebp, %esp					;\
-	  popl	%ebp						;\
+	  movq	%rbp, %rsp					;\
+	  popq	%rbp						;\
 	.endif							;\
 	ret
 
@@ -269,20 +269,20 @@ name:
 
 #if defined(__DYNAMIC__)
 #define PICIFY(var)					\
-	call	1f					; \
+	callq	1f					; \
 1:							; \
-	popl	%edx					; \
-	movl	L ## var ## $non_lazy_ptr-1b(%edx),%edx
+	popq	%rdx					; \
+	movq	L##var##$non_lazy_ptr-1b(%rdx),%rdx
 
 #define CALL_EXTERN_AGAIN(func)	\
 	PICIFY(func)		; \
-	call	%edx
+	call	*%rdx
 
 #define NON_LAZY_STUB(var)	\
 .non_lazy_symbol_pointer	; \
-L ## var ## $non_lazy_ptr:	; \
+L##var##$non_lazy_ptr:	; \
 .indirect_symbol var		; \
-.long 0				; \
+.quad 0				; \
 .text
 
 #define CALL_EXTERN(func)	\
@@ -291,35 +291,35 @@ L ## var ## $non_lazy_ptr:	; \
 
 #define BRANCH_EXTERN(func)	\
 	PICIFY(func)		; \
-	jmp	%edx		; \
+	jmpq	*%rdx		; \
 	NON_LAZY_STUB(func)
 
 #define PUSH_EXTERN(var)	\
 	PICIFY(var)		; \
-	movl	(%edx),%edx	; \
-	pushl	%edx		; \
+	movq	(%rdx),%rdx	; \
+	pushq	%rdx		; \
 	NON_LAZY_STUB(var)
 
 #define REG_TO_EXTERN(reg, var)	\
 	PICIFY(var)		; \
-	movl	reg, (%edx)	; \
+	movq	reg, (%rdx)	; \
 	NON_LAZY_STUB(var)
 
 #define EXTERN_TO_REG(var, reg)				\
-	call	1f					; \
+	callq	1f					; \
 1:							; \
-	popl	%edx					; \
-	movl	L ## var ##$non_lazy_ptr-1b(%edx),reg	; \
+	popq	%rdx					; \
+	movq	L##var##$non_lazy_ptr-1b(%rdx),reg	; \
 	NON_LAZY_STUB(var)
 
 
 #else
-#define BRANCH_EXTERN(func)	jmp	func
-#define PUSH_EXTERN(var)	pushl	var
-#define CALL_EXTERN(func)	call	func
-#define CALL_EXTERN_AGAIN(func)	call	func
-#define REG_TO_EXTERN(reg, var)	movl	reg, var
-#define EXTERN_TO_REG(var, reg)	movl	$ ## var, reg
+#define BRANCH_EXTERN(func)	jmpq	func
+#define PUSH_EXTERN(var)	pushq	var
+#define CALL_EXTERN(func)	callq	func
+#define CALL_EXTERN_AGAIN(func)	callq	func
+#define REG_TO_EXTERN(reg, var)	movq	reg, var
+#define EXTERN_TO_REG(var, reg)	movq	$ ## var, reg
 #endif
 
 #endif	/* __ASSEMBLER__ */

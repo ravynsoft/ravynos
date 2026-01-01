@@ -21,17 +21,6 @@ add_custom_target(ravynOS_sdkPrep ALL
 add_library(ravynOS_sdk OBJECT stub.c)
 add_dependencies(ravynOS_sdk ravynOS_sdkPrep)
 
-set(architecture architecture/byte_order.h architecture/alignment.h)
-set(arch_i386
-    architecture/i386/alignment.h architecture/i386/asm_help.h
-    architecture/i386/byte_order.h architecture/i386/cpu.h
-    architecture/i386/desc.h architecture/i386/fpu.h
-    architecture/i386/frame.h architecture/i386/io.h
-    architecture/i386/pio.h architecture/i386/reg_help.h
-    architecture/i386/sel.h architecture/i386/table.h
-    architecture/i386/tss.h)
-set(arch_arm architecture/arm/asm_help.h architecture/arm/byte_order.h
-    architecture/arm/cframe.h architecture/arm/reg_help.h)
 set(os os/availability.h)
 set(usr_include
     AssertMacros.h TargetConditionals.h Availability.h AvailabilityInternal.h
@@ -44,11 +33,6 @@ file(GLOB_RECURSE kernelFramework
 )
 
 file(COPY ${usr_include} DESTINATION ${RAVYN_SDKROOT}/usr/include/)
-
-file(COPY ${architecture} DESTINATION ${RAVYN_SDKROOT}/usr/include/architecture/)
-file(COPY ${arch_arm} DESTINATION ${RAVYN_SDKROOT}/usr/include/architecture/arm/)
-file(COPY ${arch_i386} DESTINATION ${RAVYN_SDKROOT}/usr/include/architecture/i386/)
-
 file(COPY ${os} DESTINATION ${RAVYN_SDKROOT}/usr/include/os/)
 
 file(COPY ${usr_include} DESTINATION
@@ -56,13 +40,6 @@ file(COPY ${usr_include} DESTINATION
 
 file(COPY ${kernelFramework} DESTINATION
     ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers)
-file(COPY ${architecture} DESTINATION
-    ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/PrivateHeaders/architecture)
-file(COPY ${arch_i386} DESTINATION
-    ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/PrivateHeaders/architecture/i386/)
-file(COPY ${arch_arm} DESTINATION
-    ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/PrivateHeaders/architecture/arm/)
-
 file(COPY ${os} DESTINATION
     ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers/os)
 
@@ -88,8 +65,5 @@ add_custom_target(sdk_pthread_headers DEPENDS ravynOS_sdkPrep unifdef
     COMMAND
         SDK_INSTALL_ROOT=/ DSTROOT=${RAVYN_SDKROOT} sh 
             ${ROOT_SOURCE_DIR}/Libraries/libpthread/xcodescripts/install-sys-headers.sh
-    COMMAND
-        SDK_INSTALL_ROOT=/ DSTROOT=${RAVYN_SDKROOT} sh 
-            ${ROOT_SOURCE_DIR}/Libraries/libpthread/xcodescripts/install-symlinks.sh
 )
 add_dependencies(ravynOS_sdk sdk_pthread_headers)

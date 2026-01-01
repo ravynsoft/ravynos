@@ -87,34 +87,6 @@ ExternalProject_Add(host_clang DEPENDS host_migcom
         -DHAVE_CXX_ATOMICS_WITHOUT_LIB=1 -DHAVE_CXX_ATOMICS64_WITHOUT_LIB=1
 )
 
-ExternalProject_Add(compilerRT
-    SOURCE_DIR ${CMAKE_SOURCE_DIR}/llvm-project/compiler-rt
-    BINARY_DIR compiler-rt
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND /bin/true
-    INSTALL_COMMAND ""
-    # CMAKE_ARGS
-    #     ${EXTRA_ARGS} -Wno-dev
-    #     -DROOT_SOURCE_DIR=${ROOT_SOURCE_DIR}
-    #     -DROOT_BINARY_DIR=${ROOT_BINARY_DIR}
-    #     -DCMAKE_INSTALL_PREFIX=${ROOT_BINARY_DIR}/Developer/Toolchains/Default.xctoolchain/usr
-    #     -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=${BuildArch}
-    #     -DLLVM_ENABLE_ZSTD=OFF -DLLVM_ENABLE_ZLIB=ON
-    #     -DLLVM_DIR=<BINARY_DIR>/../clang
-    #     -DCOMPILER_RT_BAREMETAL_BUILD=ON -DCOMPILER_RT_BUILD_LIBFUZZER=OFF
-    #     -DCOMPILER_RT_BUILD_PROFILE=OFF -DCOMPILER_RT_BUILD_SANITIZERS=OFF
-    #     -DCOMPILER_RT_BUILD_XRAY=OFF -DCOMPILER_RT_INCLUDE_TESTS=OFF
-    #     -DCMAKE_C_COMPILER=<BINARY_DIR>/../clang/bin/clang
-    #     -DCMAKE_CXX_COMPILER=<BINARY_DIR>/../clang/bin/clang++
-    #     -DCMAKE_AR=<BINARY_DIR>/../clang/bin/llvm-ar
-    #     -DCMAKE_NM=<BINARY_DIR>/../clang/bin/llvm-nm
-    #     -DCMAKE_RANLIB=<BINARY_DIR>/../clang/bin/llvm-ranlib
-    #     -DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=${CpuArch}-corvux-ravynos
-    #     -DCMAKE_SYSROOT=${RAVYN_SDKROOT}
-    #     -DCMAKE_C_COMPILER_WORKS=ON -DCMAKE_CXX_COMPILER_WORKS=ON
-    DEPENDS ravynOS_sdk host_clang
-)
-
 set(GNU_CONFIGURE_ARGS
     --prefix=/usr --sysconfdir=/etc --bindir=/bin --sbindir=/sbin --localstatedir=/var
 )

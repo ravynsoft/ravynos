@@ -24,9 +24,6 @@ else()
 endif()
 
 if(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
-    # set(HOST_CC /usr/bin/clang)
-    # set(HOST_CXX /usr/bin/clang++)
-    # set(HOST_LD /usr/bin/ld)
     set(HOST_CODESIGN=/bin/true)
     set(IIG /bin/true)
     file(GLOB IIG_HDRS xnu/iokit/DriverKit/*.h)
@@ -77,6 +74,7 @@ ExternalProject_Add(xnu_headers
 )
 
 add_subdirectory(libfirehose_kernel)
+add_subdirectory(${ROOT_SOURCE_DIR}/Libraries ${ROOT_BINARY_DIR}/Libraries)
 
 ExternalProject_Add(xnu
     EXCLUDE_FROM_ALL
@@ -85,42 +83,42 @@ ExternalProject_Add(xnu
     STEP_TARGETS build install
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
-    	# ${GMAKE} -C <SOURCE_DIR>
-        #     SDKROOT=${RAVYN_SDKROOT}
-    	#     PLATFORM=MacOSX BUILD_LTO=0 BUILD_WERROR=0 DO_CTFMERGE=0
-    	#     SDKVERSION=${CMAKE_MACOSX_MIN_VERSION} SRCROOT=<SOURCE_DIR>
-    	#     OBJROOT=<BINARY_DIR> DSTROOT=${ROOT_BINARY_DIR}/sysroot
-    	#     SYMROOT=${ROOT_BINARY_DIR} BUILD_STATIC_LINK=1
-        #     MIGCOM=${MIGCOM} MIG=${MIG} IIG=${IIG} CC=${CC} LD=${CC}
-        #     UNIFDEF=${UNIFDEF} CTFCONVERT=${CTFCONVERT} CTFMERGE=${CTFMERGE}
-        #     CTFINSERT=${CTFINSERT} AR=${AR} NM=${NM} NMEDIT=${NMEDIT}
-        #     DSYMUTIL=${DSYMUTIL} LIPO=${LIPO} STRIP=${STRIP} AS=${AS}
-        #     AVAILABILITY_PL=${AVAILABILITY_PL} MACHINE=${MACHINE}
-        #     AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH} SDKROOT=macosx
-        #     DEVELOPER_DIR=${ROOT_BINARY_DIR}/Developer XCRUN=${XCRUN}
-        #     KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS}
-        #     HOST_CC=${HOST_CC} HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD}
-    	#     all
+    	${GMAKE} -C <SOURCE_DIR>
+            SDKROOT=${RAVYN_SDKROOT}
+    	    PLATFORM=MacOSX BUILD_LTO=0 BUILD_WERROR=0 DO_CTFMERGE=0
+    	    SDKVERSION=${CMAKE_MACOSX_MIN_VERSION} SRCROOT=<SOURCE_DIR>
+    	    OBJROOT=<BINARY_DIR> DSTROOT=${RAVYN_SDKROOT}
+    	    SYMROOT=${ROOT_BINARY_DIR} BUILD_STATIC_LINK=1
+            MIGCOM=${MIGCOM} MIG=${MIG} IIG=${IIG} CC=${CC} LD=${CC}
+            UNIFDEF=${UNIFDEF} CTFCONVERT=${CTFCONVERT} CTFMERGE=${CTFMERGE}
+            CTFINSERT=${CTFINSERT} AR=${AR} NM=${NM} NMEDIT=${NMEDIT}
+            DSYMUTIL=${DSYMUTIL} LIPO=${LIPO} STRIP=${STRIP} AS=${AS}
+            AVAILABILITY_PL=${AVAILABILITY_PL} MACHINE=${MACHINE}
+            AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH} SDKROOT=macosx
+            DEVELOPER_DIR=${ROOT_BINARY_DIR}/Developer XCRUN=${XCRUN}
+            KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS}
+            HOST_CC=${HOST_CC} HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD} VERBOSE=YES
+    	    all
     INSTALL_COMMAND ""
-        # ${GMAKE} -C <SOURCE_DIR>
-        #     SDKROOT=${RAVYN_SDKROOT}
-        #     PLATFORM=MacOSX BUILD_LTO=0 BUILD_WERROR=0 DO_CTFMERGE=0
-        #     SDKVERSION=${CMAKE_MACOSX_MIN_VERSION} SRCROOT=<SOURCE_DIR>
-        #     OBJROOT=<BINARY_DIR> DSTROOT=${ROOT_BINARY_DIR}/sysroot
-        #     MIGCOM=${MIGCOM} MIG=${MIG} IIG=${IIG} CC=${CC} LD=${CC}
-        #     UNIFDEF=${UNIFDEF} CTFCONVERT=${CTFCONVERT} CTFMERGE=${CTFMERGE}
-        #     CTFINSERT=${CTFINSERT} AR=${AR} NM=${NM} NMEDIT=${NMEDIT}
-        #     DSYMUTIL=${DSYMUTIL} LIPO=${LIPO} STRIP=${STRIP} AS=${AS}
-        #     DEVELOPER_DIR=${ROOT_BINARY_DIR}/Developer XCRUN=${XCRUN}
-        #     AVAILABILITY_PL=${AVAILABILITY_PL} MACHINE=${MACHINE}
-        #     AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH}
-        #     KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS}
-        #     HOST_CC=${HOST_CC} HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD}
-        #     install && ${CMAKE_COMMAND} -E make_directory 
-        #     ${RAVYN_SDKROOT}/System/Library/Kernels && ${CMAKE_COMMAND} -E 
-        #     copy <BINARY_DIR>/${KERNEL_CONFIGS}_${ARCH_CONFIGS}/kernel${DEBUG}.dSYM
-        #     ${RAVYN_SDKROOT}/System/Library/Kernels/
-	DEPENDS libfirehose_kernel
+        ${GMAKE} -C <SOURCE_DIR>
+            SDKROOT=${RAVYN_SDKROOT}
+            PLATFORM=MacOSX BUILD_LTO=0 BUILD_WERROR=0 DO_CTFMERGE=0
+            SDKVERSION=${CMAKE_MACOSX_MIN_VERSION} SRCROOT=<SOURCE_DIR>
+            OBJROOT=<BINARY_DIR> DSTROOT=${ROOT_BINARY_DIR}/sysroot
+            MIGCOM=${MIGCOM} MIG=${MIG} IIG=${IIG} CC=${CC} LD=${CC}
+            UNIFDEF=${UNIFDEF} CTFCONVERT=${CTFCONVERT} CTFMERGE=${CTFMERGE}
+            CTFINSERT=${CTFINSERT} AR=${AR} NM=${NM} NMEDIT=${NMEDIT}
+            DSYMUTIL=${DSYMUTIL} LIPO=${LIPO} STRIP=${STRIP} AS=${AS}
+            DEVELOPER_DIR=${ROOT_BINARY_DIR}/Developer XCRUN=${XCRUN}
+            AVAILABILITY_PL=${AVAILABILITY_PL} MACHINE=${MACHINE}
+            AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH}
+            KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS}
+            HOST_CC=${HOST_CC} HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD}
+            install && ${CMAKE_COMMAND} -E make_directory 
+            ${RAVYN_SDKROOT}/System/Library/Kernels && ${CMAKE_COMMAND} -E 
+            copy <BINARY_DIR>/${KERNEL_CONFIGS}_${ARCH_CONFIGS}/kernel${DEBUG}.dSYM
+            ${RAVYN_SDKROOT}/System/Library/Kernels/
+	DEPENDS libfirehose_kernel compiler_rt
 )
 
 add_custom_target(Darwin)
@@ -146,5 +144,3 @@ add_dependencies(Darwin xnu_headers libfirehose_kernel xnu)
 # 	export PATH PLATFORM=MacOSX MAKEFLAGS="" MAKE=${GMAKE}; \
 # 		${GMAKE} DESTDIR=${BUILDROOT} -C ${OBJTOP}/Kernel/Extensions \
 # 		install
-
-add_subdirectory(${ROOT_SOURCE_DIR}/Libraries ${ROOT_BINARY_DIR}/Libraries)

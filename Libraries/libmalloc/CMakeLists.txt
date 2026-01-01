@@ -31,6 +31,7 @@ target_include_directories(libmalloc PRIVATE
     ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/PrivateHeaders
     ${RAVYN_SDKROOT}/usr/include
     resolver
+    ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers
 )
 
 target_compile_definitions(libmalloc PRIVATE
