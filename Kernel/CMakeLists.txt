@@ -38,6 +38,8 @@ file(COPY ${ROOT_SOURCE_DIR}/Libraries/Libc/include/limits.h
 file(COPY ${ROOT_SOURCE_DIR}/Libraries/libdispatch/os
     DESTINATION ${ROOT_BINARY_DIR}/sysroot/usr/local/include/kernel/)
 
+add_custom_target(Darwin)
+
 ExternalProject_Add(xnu_headers
     SOURCE_DIR ${ROOT_SOURCE_DIR}/Kernel/xnu
     BINARY_DIR ${ROOT_BINARY_DIR}/Kernel/xnu
@@ -55,7 +57,7 @@ ExternalProject_Add(xnu_headers
             KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS}
             DEVELOPER_DIR=${ROOT_BINARY_DIR}/Developer
             SYMROOT=${ROOT_BINARY_DIR} HOST_CC=${HOST_CC}
-            HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD}
+            HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD} VERBOSE=YES
     	    installhdrs
     INSTALL_COMMAND
         PATH=${PATH} ${GMAKE} -C <SOURCE_DIR>
@@ -97,7 +99,7 @@ ExternalProject_Add(xnu
             AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH} SDKROOT=macosx
             DEVELOPER_DIR=${ROOT_BINARY_DIR}/Developer XCRUN=${XCRUN}
             KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS}
-            HOST_CC=${HOST_CC} HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD} VERBOSE=YES
+            HOST_CC=${HOST_CC} HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD}
     	    all
     INSTALL_COMMAND ""
         ${GMAKE} -C <SOURCE_DIR>
@@ -118,29 +120,10 @@ ExternalProject_Add(xnu
             ${RAVYN_SDKROOT}/System/Library/Kernels && ${CMAKE_COMMAND} -E 
             copy <BINARY_DIR>/${KERNEL_CONFIGS}_${ARCH_CONFIGS}/kernel${DEBUG}.dSYM
             ${RAVYN_SDKROOT}/System/Library/Kernels/
-	DEPENDS libfirehose_kernel compiler_rt
+	DEPENDS libfirehose_kernel libcxx
 )
 
-add_custom_target(Darwin)
-add_dependencies(Darwin xnu_headers libfirehose_kernel xnu)
+add_subdirectory(xnu/libkern/kmod)
+add_subdirectory(Extensions)
 
-# Build kernel extensions
-#add_subdirectory(libkmod)
-#add_subdirectory(Extensions)
-
-# kext: libkmod
-# 	mkdir -pv ${OBJTOP}/Kernel/Extensions/include/pthread
-# 	mkdir -pv ${OBJTOP}/Kernel/Extensions/include/IOKit/{storage,ata}
-# 	cp -fv ${SRCTOP}/Libraries/libpthread/private/qos_private.h \
-# 		${OBJTOP}/Kernel/Extensions/include/pthread/
-# 	cp -fv ${SRCTOP}/Kernel/Extensions/IOATAFamily/IOATARegI386.h \
-# 		${OBJTOP}/Kernel/Extensions/include/IOKit/ata/
-# 	cp -fv ${SRCTOP}/Kernel/Extensions/IOStorageFamily/*.h \
-# 		${OBJTOP}/Kernel/Extensions/include/IOKit/storage/
-# 	cd ${OBJTOP}/Kernel/Extensions;	cmake -Wno-dev \
-# 		-DCMAKE_INSTALL_PREFIX=/System/Library/Extensions \
-# 		-DCMAKE_BUILD_TYPE=Release -DSRCTOP=${SRCTOP} -DOBJTOP=${OBJTOP} \
-# 		-G"Unix Makefiles" ${SRCTOP}/Kernel/Extensions
-# 	export PATH PLATFORM=MacOSX MAKEFLAGS="" MAKE=${GMAKE}; \
-# 		${GMAKE} DESTDIR=${BUILDROOT} -C ${OBJTOP}/Kernel/Extensions \
-# 		install
+add_dependencies(Darwin xnu_headers libfirehose_kernel xnu libkmod)

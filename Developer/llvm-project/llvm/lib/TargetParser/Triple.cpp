@@ -267,7 +267,7 @@ StringRef Triple::getOSTypeName(OSType Kind) {
   case OpenBSD: return "openbsd";
   case PS4: return "ps4";
   case PS5: return "ps5";
-  case ravynOS: return "macos";
+  case ravynOS: return "macosx";
   case RTEMS: return "rtems";
   case Solaris: return "solaris";
   case TvOS: return "tvos";
@@ -1227,8 +1227,10 @@ VersionTuple Triple::getOSVersion() const {
   StringRef OSTypeName = getOSTypeName(getOS());
   if (OSName.startswith(OSTypeName))
     OSName = OSName.substr(OSTypeName.size());
-  else if (getOS() == MacOSX)
+  else if (getOS() == MacOSX) {
     OSName.consume_front("macos");
+    OSName.consume_front("ravynos");
+  }
   else if (OSName.starts_with("visionos"))
     OSName.consume_front("visionos");
 
@@ -1241,9 +1243,9 @@ bool Triple::getMacOSXVersion(VersionTuple &Version) const {
   switch (getOS()) {
   default: llvm_unreachable("unexpected OS for Darwin triple");
   case Darwin:
-    // Default to darwin8, i.e., MacOSX 10.4.
+    // Default to darwin19, i.e., MacOSX 10.15
     if (Version.getMajor() == 0)
-      Version = VersionTuple(8);
+      Version = VersionTuple(19);
     // Darwin version numbers are skewed from OS X versions.
     if (Version.getMajor() < 4) {
       return false;
@@ -1256,9 +1258,9 @@ bool Triple::getMacOSXVersion(VersionTuple &Version) const {
     }
     break;
   case MacOSX:
-    // Default to 10.4.
+    // Default to 12.0.
     if (Version.getMajor() == 0) {
-      Version = VersionTuple(10, 4);
+      Version = VersionTuple(12, 0);
     } else if (Version.getMajor() < 10) {
       return false;
     }

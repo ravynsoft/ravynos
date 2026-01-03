@@ -4,7 +4,8 @@ add_darwin_shared_library(libSystem SHARED
     INSTALL_NAME_DIR ${RAVYN_SDKROOT}/usr/lib
 )
 target_sources(libSystem PRIVATE init.c CompatibilityHacks.c)
-# set_property(TARGET libSystem PROPERTY OUTPUT_NAME "System")
+set_property(TARGET libSystem PROPERTY OUTPUT_NAME "System")
+set_property(TARGET libSystem PROPERTY SUFFIX ".B.dylib")
 
 target_include_directories(libSystem PRIVATE
     ../../Kernel/xnu/libsyscall/wrappers ../../Kernel/xnu/libsyscall/mach
@@ -31,7 +32,15 @@ target_compile_options(libSystem PRIVATE
     -Wno-int-conversion -Wno-implicit-int
 )
 
-target_link_libraries(libSystem libpthread libplatform libmalloc libc)
+target_link_libraries(libSystem
+    libpthread libplatform libmalloc libc compiler_rt) #libdarwin
 
-add_dependencies(libSystem
-    xnu_headers libc libplatform libpthread libmalloc)
+add_custom_command(TARGET libSystem
+    POST_BUILD
+    COMMAND env PLATFORM_NAME=macosx sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/xcodescripts/create_system_framework.sh
+            ${SYSROOT_DIR} . none ${BuildArch} normal
+    COMMAND env PLATFORM_NAME=macosx sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/xcodescripts/create_system_framework.sh
+            ${RAVYN_SDKROOT} . none ${BuildArch} normal
+)

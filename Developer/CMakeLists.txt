@@ -31,14 +31,6 @@ else()
     set(RPATH "$ORIGIN")
 endif()
 
-if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "x86_64|amd64")
-    set(BuildArch "X86")
-    set(CpuArch "x86_64")
-elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
-    set(BuildArch "AArch64")
-    set(CpuArch "aarch64")
-endif()
-
 if(CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
 elseif(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
     set(EXTRA_ARGS -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON)
@@ -52,7 +44,7 @@ ExternalProject_Add(host_xcbuild
         -DROOT_BINARY_DIR=${ROOT_BINARY_DIR}
         -DCMAKE_BUILD_RPATH=${RPATH}/../lib 
         -DCMAKE_INSTALL_RPATH=${RPATH}/../lib
-        -DCMAKE_INSTALL_PREFIX=${ROOT_BINARY_DIR}/Developer/Toolchains/Default.xctoolchain
+        -DCMAKE_INSTALL_PREFIX=${TOOLCHAIN}
 )
 
 ExternalProject_Add(dtrace_ctf_host
@@ -75,12 +67,13 @@ ExternalProject_Add(host_clang DEPENDS host_migcom
         ${EXTRA_ARGS} -Wno-dev
         -DROOT_SOURCE_DIR=${ROOT_SOURCE_DIR}
         -DROOT_BINARY_DIR=${ROOT_BINARY_DIR}
-        -DCMAKE_INSTALL_PREFIX=${ROOT_BINARY_DIR}/Developer/Toolchains/Default.xctoolchain/usr
+        -DCMAKE_INSTALL_PREFIX=${TOOLCHAIN}/usr
         -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_LIBCXX=ON
-        -DLLVM_TARGETS_TO_BUILD=${BuildArch} -DLLVM_ENABLE_LTO=OFF
-        -DLLVM_DEFAULT_TARGET_TRIPLE=${CpuArch}-corvux-ravynos
-        -DLLVM_BUILD_DOCS=OFF -DLLVM_INSTALL_BINUTILS_SYMLINKS=ON
-        -DLLVM_ENABLE_ZSTD=OFF -DLLVM_ENABLE_ZLIB=ON -DLLVM_NATIVE_TOOL_DIR=${TOOLS}
+        -DLLVM_APPEND_VC_REV=OFF -DLLVM_TARGETS_TO_BUILD=${BuildArch}
+        -DLLVM_ENABLE_LTO=OFF -DLLVM_BUILD_DOCS=OFF
+        -DLLVM_INSTALL_BINUTILS_SYMLINKS=ON -DLLVM_NATIVE_TOOL_DIR=${TOOLS}
+        -DLLVM_DEFAULT_TARGET_TRIPLE=${TARGET_TRIPLE}
+        -DLLVM_ENABLE_ZSTD=OFF -DLLVM_ENABLE_ZLIB=ON 
         -DLLVM_ENABLE_PROJECTS=clang$<SEMICOLON>tapi$<SEMICOLON>lld
         -DROOT_BINARY_DIR=${ROOT_BINARY_DIR} -DLLVM_BUILD_RUNTIMES=OFF
         -DCLANG_TABLEGEN_EXE=${CMAKE_CURRENT_BINARY_DIR}/clang/bin/clang-tblgen

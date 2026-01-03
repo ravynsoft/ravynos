@@ -15,11 +15,8 @@ include(Developer/cmake/Paths.cmake)
 #  Top level targets
 # ------------------------------------------------------------------------
 
-add_custom_target(DarwinComplete)
-add_custom_target(CoreSystemComplete)
-add_custom_target(Complete)
-
 ExternalProject_Add(EXT_Bootstrap
+    USES_TERMINAL_BUILD
     SOURCE_DIR ${ROOT_SOURCE_DIR}/Developer
     BINARY_DIR Bootstrap
     STEP_TARGETS build
@@ -32,6 +29,7 @@ ExternalProject_Add(EXT_Bootstrap
 include(Developer/cmake/Tools.cmake)
 
 ExternalProject_Add(EXT_Darwin
+    USES_TERMINAL_BUILD
     SOURCE_DIR ${ROOT_SOURCE_DIR}/Kernel
     BINARY_DIR Kernel
     CMAKE_ARGS

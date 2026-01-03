@@ -12,10 +12,11 @@ function(add_kext_bundle name)
 
     target_compile_definitions(${name} PRIVATE TARGET_OS_OSX KERNEL)
     target_compile_options(${name} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fapple-kext>
-        -I${CMAKE_BINARY_DIR}/sysroot/System/Library/Frameworks/Kernel.framework/Versions/A/PrivateHeaders
-        -I${CMAKE_BINARY_DIR}/sysroot/System/Library/Frameworks/Kernel.framework/Versions/A/Headers
-        -I${CMAKE_SOURCE_DIR}/Kernel/xnu/bsd
-        -I${CMAKE_BINARY_DIR}/sysroot/usr/include
+        --sysroot=${RAVYN_SDKROOT}
+        -I${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/PrivateHeaders
+        -I${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers
+        -I${ROOT_BINARY_DIR}/Kernel/xnu/bsd
+        -I${RAVYN_SDKROOT}/usr/include
 )
 
     target_link_options(${name} PRIVATE "LINKER:-bundle")
@@ -80,7 +81,7 @@ function(add_kmod_info target)
         set(KEXT_ANTIMAIN_FUNCTION "0")
     endif()
 
-    configure_file(${CMAKE_SOURCE_DIR}/Developer/cmake/templates/kmod_info.c.in ${CMAKE_CURRENT_BINARY_DIR}/kmod_info.c)
+    configure_file(${ROOT_SOURCE_DIR}/Developer/cmake/templates/kmod_info.c.in ${CMAKE_CURRENT_BINARY_DIR}/kmod_info.c)
     target_sources(${target} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/kmod_info.c)
-    target_link_libraries(${target} PRIVATE ${CMAKE_BINARY_DIR}/Kernel/libkmod/libkmod.a)
+    target_link_libraries(${target} PRIVATE ${ROOT_BINARY_DIR}/Kernel/libkmod/libkmod.a)
 endfunction()

@@ -28,9 +28,9 @@
 #ifndef __DARWIN_INTERNAL_H
 #define __DARWIN_INTERNAL_H
 
+#include <Availability.h>
 #include <os/base.h>
 #include <os/api.h>
-#include <Availability.h>
 
 #include <mach/port.h>
 #include <mach/message.h>
@@ -62,7 +62,7 @@
 
 #define OS_CRASH_ENABLE_EXPERIMENTAL_LIBTRACE 1
 #include <os/assumes.h>
-#include <os/transaction_private.h>
+// #include <os/transaction_private.h>
 #include <os/log_private.h>
 #include <os/alloc_once_private.h>
 

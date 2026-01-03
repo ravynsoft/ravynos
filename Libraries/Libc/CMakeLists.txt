@@ -1,10 +1,10 @@
 set(CMAKE_INSTALL_PREFIX "")
 
-add_library(libc OBJECT
+add_library(libc
     compat-43/sigaltstk.c
     compat-43/sigcompat.c
-    darwin/atexit_receipt.c
     darwin/kvm.c
+    darwin/atexit_receipt.c
     emulated/brk.c
     emulated/bsd_signal.c
     emulated/lchflags.c
@@ -98,28 +98,6 @@ add_library(libc OBJECT
     uuid/uuidsrc/unparse.c
 )
 
-ExternalProject_Add(compiler_rt
-    SOURCE_DIR ${ROOT_SOURCE_DIR}/Developer/llvm-project/compiler-rt
-    BINARY_DIR compiler_rt
-    CMAKE_ARGS
-        ${EXTRA_ARGS} -Wno-dev
-        -DROOT_SOURCE_DIR=${ROOT_SOURCE_DIR}
-        -DROOT_BINARY_DIR=${ROOT_BINARY_DIR}
-        -DCMAKE_INSTALL_PREFIX=${ROOT_BINARY_DIR}/Developer/Toolchains/Default.xctoolchain/usr
-        -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=${BuildArch}
-        -DLLVM_ENABLE_ZSTD=OFF -DLLVM_ENABLE_ZLIB=ON
-        -DLLVM_DIR=<BINARY_DIR>/../clang
-        # -DCOMPILER_RT_BAREMETAL_BUILD=ON
-        -DCOMPILER_RT_BUILD_LIBFUZZER=OFF
-        -DCOMPILER_RT_BUILD_PROFILE=OFF -DCOMPILER_RT_BUILD_SANITIZERS=OFF
-        -DCOMPILER_RT_BUILD_XRAY=OFF -DCOMPILER_RT_INCLUDE_TESTS=OFF
-        -DCMAKE_C_COMPILER=${CC} -DCMAKE_CXX_COMPILER=${CXX}
-        -DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=${CpuArch}-corvux-ravynos
-        -DCMAKE_SYSROOT=${RAVYN_SDKROOT}
-        -DCMAKE_C_COMPILER_WORKS=ON -DCMAKE_CXX_COMPILER_WORKS=ON
-    DEPENDS libSystem
-)
-
 add_dependencies(libc xnu_headers)
 set_property(TARGET libc PROPERTY OUTPUT_NAME "system_c")
 
@@ -159,12 +137,48 @@ target_compile_options(libc PRIVATE
     -Wno-int-conversion
 )
 
-# add_dependencies(libc )
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "QuothTheRaven_NeverBuild")
+add_library(libdarwin
+    libdarwin/bsd.c
+    libdarwin/ctl.c
+    libdarwin/dirstat.c
+    libdarwin/dirstat_collection.c
+    libdarwin/err.c
+    libdarwin/exception.c
+    libdarwin/init.c
+    libdarwin/mach.c
+    libdarwin/stdio.c
+    libdarwin/stdlib.c
+    libdarwin/string.c
+    libdarwin/variant.c
+)
+add_dependencies(libdarwin libplatform libmalloc libc)
+set_property(TARGET libdarwin PROPERTY OUTPUT_NAME "system_darwin")
 
-# add_custom_command(TARGET libfirehose_kernel
-#     POST_BUILD
-#     COMMAND ${CMAKE_COMMAND} -E make_directory
-#         ${CMAKE_BINARY_DIR}/sysroot/usr/local/lib/kernel
-#     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libfirehose_kernel>
-#         ${CMAKE_BINARY_DIR}/sysroot/usr/local/lib/kernel
-# )
+target_include_directories(libdarwin PRIVATE
+        ${ROOT_SOURCE_DIR}/Developer/Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk
+        ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers
+        ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/PrivateHeaders
+	. include
+	libdarwin/h
+	../libmalloc/include ../libmalloc/private
+	../libplatform/private
+	${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk
+	#${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
+	${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/libkern
+	${ROOT_SOURCE_DIR}/Developer/cctools/include
+	#${ROOT_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS
+)
+
+target_compile_definitions(libdarwin PRIVATE
+    TARGET_OS_BRIDGE=0 __DARWIN_UNIX03 
+    __DARWIN_BYTE_ORDER=__BYTE_ORDER__
+)
+
+target_compile_options(libdarwin PRIVATE
+    --sysroot=${RAVYN_SDKROOT} -w
+    -mmacosx-version-min=${CMAKE_MACOSX_MIN_VERSION}
+    -Wno-implicit-function-declaration
+    -Wno-int-conversion
+)
+endif()
