@@ -2,20 +2,6 @@
 # generic implementations of the core runtime library along with optimized
 # architecture-specific code in various subdirectories.
 
-# if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
-#   set(CMAKE_SYSROOT ${ROOT_BINARY_DIR}/sysroot)
-#   #set(CMAKE_OSX_SYSROOT ${ROOT_BINARY_DIR}/Developer/Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk)
-#   #set(CMAKE_SYSTEM_NAME Darwin)
-#   add_compile_options(-B${TOOLS})
-#   include_directories(
-#     ${ROOT_BINARY_DIR}/Developer/Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk
-#     ../../../../Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk
-#     ../../../../../Kernel/xnu/EXTERNAL_HEADERS
-#     ../../../../../Libraries/libdispatch
-#     ../../../../../Libraries/libplatform/include
-#   )
-# endif()
-
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   cmake_minimum_required(VERSION 3.20.0)
 

@@ -3,7 +3,7 @@
 #                     SET UP STUFF FOR THE BUILD
 # ------------------------------------------------------------------------
 
-set(CMAKE_MACOSX_MIN_VERSION 12.0)
+set(CMAKE_MACOSX_MIN_VERSION 10.15)
 
 set(SYSROOT_DIR ${ROOT_BINARY_DIR}/sysroot)
 set(RAVYN_SDKROOT ${ROOT_BINARY_DIR}/Developer/Platforms/ravynOS.platform/Developer/SDKs/MacOSX.sdk)

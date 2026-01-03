@@ -94,6 +94,7 @@ L1:
 	//child here...
 	xorq	%rax, %rax
 	PICIFY(__current_pid)
+	NON_LAZY_STUB(__current_pid)
 	movl	%eax,(%r11)
 L2:
 	// parent ends up here skipping child portion

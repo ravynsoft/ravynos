@@ -100,7 +100,7 @@ ExternalProject_Add(xnu
             DEVELOPER_DIR=${ROOT_BINARY_DIR}/Developer XCRUN=${XCRUN}
             KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS}
             HOST_CC=${HOST_CC} HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD}
-    	    all
+    	    VERBOSE=YES all
     INSTALL_COMMAND ""
         ${GMAKE} -C <SOURCE_DIR>
             SDKROOT=${RAVYN_SDKROOT}
@@ -120,7 +120,7 @@ ExternalProject_Add(xnu
             ${RAVYN_SDKROOT}/System/Library/Kernels && ${CMAKE_COMMAND} -E 
             copy <BINARY_DIR>/${KERNEL_CONFIGS}_${ARCH_CONFIGS}/kernel${DEBUG}.dSYM
             ${RAVYN_SDKROOT}/System/Library/Kernels/
-	DEPENDS libfirehose_kernel libcxx
+	DEPENDS libfirehose_kernel libcxx compiler_rt
 )
 
 add_subdirectory(xnu/libkern/kmod)

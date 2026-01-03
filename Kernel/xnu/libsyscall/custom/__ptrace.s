@@ -46,6 +46,7 @@ LEAF(___ptrace, 0)
 LEAF(___ptrace, 0)
 	xorq	%rax,%rax
 	PICIFY(_errno)
+        NON_LAZY_STUB(_errno)
 	movl	%eax,(%r11)
 	UNIX_SYSCALL_NONAME(ptrace, 4, cerror)
 	ret

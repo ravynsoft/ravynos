@@ -33,7 +33,7 @@ target_compile_options(libSystem PRIVATE
 )
 
 target_link_libraries(libSystem
-    libpthread libplatform libmalloc libc compiler_rt) #libdarwin
+    libpthread libplatform libmalloc libc libkernel) #compiler_rt libdarwin
 
 add_custom_command(TARGET libSystem
     POST_BUILD

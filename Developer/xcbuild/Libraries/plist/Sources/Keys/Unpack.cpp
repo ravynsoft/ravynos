@@ -31,6 +31,7 @@ value(std::string const &key)
 bool Unpack::
 complete(bool check)
 {
+#if DEBUG_UNHANDLED_KEYS
     if (check) {
         for (size_t n = 0; n < _dict->count(); n++) {
             std::string const &key = _dict->key(n);
@@ -39,6 +40,7 @@ complete(bool check)
             }
         }
     }
+#endif
 
     return _errors.empty();
 }
