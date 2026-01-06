@@ -6,11 +6,9 @@ cmake_minimum_required(VERSION 4.0.0)
 project(ravynOS_Kernel)
 
 string(TOUPPER "${CMAKE_SYSTEM_PROCESSOR}" MACHINE)
-set(AVAILABILITY_PL ${ROOT_SOURCE_DIR}/Kernelavailability.pl)
-set(AVAILABILITY_PL_PATH ${ROOT_SOURCE_DIR}/Kernel/availability.pl)
-set(SEED_DEFINES 
-    -DRC_ENABLE_XNU_PRODUCT_INFO_FILTER
-)
+set(AVAILABILITY_PL ${RAVYN_SDKROOT}/usr/local/libexec/availability.pl)
+set(AVAILABILITY_PL_PATH ${RAVYN_SDKROOT}/usr/local/libexec/availability.pl)
+set(SEED_DEFINES -DRC_ENABLE_XNU_PRODUCT_INFO_FILTER)
 set(PATH $ENV{PATH})
 
 if("${KERNEL_CONFIGS}" STREQUAL "DEBUG")

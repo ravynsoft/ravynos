@@ -7,13 +7,7 @@ if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
         __unused=
     )
     add_compile_options(-w -DAVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER=)
-    include_directories(
-        ${CMAKE_CURRENT_SOURCE_DIR}../llvm/llvm/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/../cctools/include/foreign
-        ${CMAKE_CURRENT_SOURCE_DIR}/../cctools/include
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk
-    )
+    include_directories(../include ../llvm/llvm/include)
 endif()
 
 add_subdirectory(libctf)

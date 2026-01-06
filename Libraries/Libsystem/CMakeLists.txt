@@ -37,6 +37,9 @@ target_link_libraries(libSystem
     libsystem_pthread libsystem_platform libsystem_malloc libsystem_c) #libkernel compiler_rt libdarwin
 
 add_dependencies(libsystem_c xnu_headers)
+add_dependencies(libsystem_pthread xnu_headers)
+add_dependencies(libsystem_malloc xnu_headers)
+add_dependencies(libsystem_platform xnu_headers)
 add_dependencies(libSystem 
     libsystem_c libsystem_malloc libsystem_pthread libsystem_platform)
 

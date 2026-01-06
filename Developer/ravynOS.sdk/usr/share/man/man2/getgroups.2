@@ -1,0 +1,162 @@
+.\"
+.\" Copyright (c) 2008-2011 Apple Inc.  All rights reserved.
+.\"
+.\" @APPLE_LICENSE_HEADER_START@
+.\" 
+.\" This file contains Original Code and/or Modifications of Original Code
+.\" as defined in and that are subject to the Apple Public Source License
+.\" Version 2.0 (the 'License'). You may not use this file except in
+.\" compliance with the License. Please obtain a copy of the License at
+.\" http://www.opensource.apple.com/apsl/ and read it before using this
+.\" file.
+.\" 
+.\" The Original Code and all software distributed under the License are
+.\" distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+.\" EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+.\" INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+.\" Please see the License for the specific language governing rights and
+.\" limitations under the License.
+.\" 
+.\" @APPLE_LICENSE_HEADER_END@
+.\"
+.\"
+.\"	$NetBSD: getgroups.2,v 1.8 1995/02/27 12:32:57 cgd Exp $
+.\"
+.\" Copyright (c) 1983, 1991, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)getgroups.2	8.2 (Berkeley) 4/16/94
+.\"
+.Dd October 28, 2011
+.Dt GETGROUPS 2
+.Os BSD 4.2
+.Sh NAME
+.Nm getgroups
+.Nd get group access list
+.Sh SYNOPSIS
+.Fd #include <unistd.h>
+.Ft int
+.Fo getgroups
+.Fa "int gidsetsize"
+.Fa "gid_t grouplist[]"
+.Fc
+.Sh DESCRIPTION
+.Fn getgroups
+gets the current group access list of the current user process
+and stores it in the array 
+.Fa grouplist[] .
+The parameter
+.Fa gidsetsize
+indicates the number of entries that may be placed in 
+.Fa grouplist[] .
+.Fn getgroups
+returns the actual number of groups returned in
+.Fa grouplist[] .
+However, no more than
+.Dv {NGROUPS_MAX}
+will be returned. If
+.Fa gidsetsize
+is 0, 
+.Fn getgroups
+returns the number of groups without modifying the
+.Fa grouplist[]
+array.
+.Pp
+Calling
+.Xr initgroups 3
+to opt-in for supplementary groups will cause
+.Fn getgroups
+to return a single entry, the GID that was passed to 
+.Xr initgroups 3 .
+.Pp
+To provide compatibility with applications that use
+.Fn getgroups
+in environments where users may be in more than
+.Dv {NGROUPS_MAX}
+groups, a variant of
+.Fn getgroups ,
+obtained when compiling with either the macros
+.Dv _DARWIN_UNLIMITED_GETGROUPS
+or
+.Dv _DARWIN_C_SOURCE
+defined, can be used that is not limited to
+.Dv {NGROUPS_MAX}
+groups.
+However, this variant only returns the user's default group access list and
+not the group list modified by a call to
+.Xr setgroups 2
+(either in the current process or an ancestor process).
+Use of
+.Xr setgroups 2
+is highly discouraged, and there is no foolproof way to determine if it has
+been previously called.
+.Sh RETURN VALUES
+A successful call returns the number of groups in the group set.
+Otherwise, a value of -1 is returned and the global integer variable
+.Va errno
+is set to indicate the error.
+.Sh ERRORS
+The possible errors for
+.Fn getgroups
+are:
+.Bl -tag -width Er
+.\" ==========
+.It Bq Er EFAULT
+The argument
+.Fa grouplist
+specifies an invalid address.
+.\" ==========
+.It Bq Er EINVAL
+The argument
+.Fa gidsetsize ,
+although non-zero,
+is smaller than the number of groups in the group set.
+.El
+.Sh LEGACY SYNOPSIS
+.Fd #include <sys/param.h>
+.Fd #include <sys/types.h>
+.Fd #include <unistd.h>
+.Pp
+The include files
+.In sys/param.h
+and
+.In sys/types.h
+are necessary.
+.Sh SEE ALSO
+.Xr setgroups 2 ,
+.Xr initgroups 3 ,
+.Xr compat 5
+.Sh HISTORY
+The
+.Fn getgroups
+function call appeared in
+.Bx 4.2 .

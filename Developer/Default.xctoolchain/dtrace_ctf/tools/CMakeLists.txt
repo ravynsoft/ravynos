@@ -1,14 +1,7 @@
 find_package(ZLIB REQUIRED)
 
 if(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
-    include_directories(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../llvm/llvm/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../cctools/include/foreign
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../cctools/include
-        ${ROOT_SOURCE_DIR}/Libraries/libdispatch
-        ${ROOT_SOURCE_DIR}/Libraries/libplatform/include
-        ${DEVEL}/ravynOS.sdk
-    )
+    include_directories(../../include)
     add_compile_options(
         -w
         -Wno-error=incompatible-pointer-types

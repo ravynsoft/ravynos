@@ -1,0 +1,627 @@
+.\"	$OpenBSD: stat.2,v 1.3 1997/02/13 05:20:55 millert Exp $
+.\"
+.\" Copyright (c) 1980, 1991, 1993, 1994
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)stat.2	8.3 (Berkeley) 4/19/94
+.\"
+.Dd May 15, 2008
+.Dt STAT 2
+.Os BSD 4
+.Sh NAME
+.Nm fstat ,
+.Nm fstat64 ,
+.Nm lstat ,
+.Nm lstat64 ,
+.Nm stat ,
+.Nm stat64 ,
+.Nm fstatat
+.Nd get file status
+.Sh SYNOPSIS
+.Fd #include <sys/stat.h>
+.Ft int
+.Fo fstat
+.Fa "int fildes"
+.Fa "struct stat *buf"
+.Fc
+.Ft int
+.Fo lstat
+.Fa "const char *restrict path"
+.Fa "struct stat *restrict buf"
+.Fc
+.Ft int
+.Fo stat
+.Fa "const char *restrict path"
+.Fa "struct stat *restrict buf"
+.Fc
+.Ft int
+.Fn fstatat "int fd" "const char *path" "struct stat *buf" "int flag"
+.Sh TRANSITIIONAL SYNOPSIS (NOW DEPRECATED)
+.Ft int
+.br
+.Fo fstat64
+.Fa "int fildes"
+.Fa "struct stat64 *buf"
+.Fc ;
+.sp
+.Ft int
+.br
+.Fo lstat64
+.Fa "const char *restrict path"
+.Fa "struct stat64 *restrict buf"
+.Fc ;
+.sp
+.Ft int
+.br
+.Fo stat64
+.Fa "const char *restrict path"
+.Fa "struct stat64 *restrict buf"
+.Fc ;
+.Sh DESCRIPTION
+The 
+.Fn stat 
+function obtains information about the file pointed to by
+.Fa path .
+Read, write or execute
+permission of the named file is not required, but all directories
+listed in the path name leading to the file must be searchable.
+.Pp
+The
+.Fn lstat
+function
+is like
+.Fn stat
+except in the case where the named file is a symbolic link;
+.Fn lstat
+returns information about the link,
+while
+.Fn stat
+returns information about the file the link references.
+For symbolic links, the st_mode member contains meaningful information
+when used with the file type macros, and the st_size member contains
+the length of the pathname contained in the symbolic link. File mode
+bits and the contents of the remaining members of the stat structure
+are unspecified. The value returned in the st_size member is the
+length of the contents of the symbolic link, and does not count any
+trailing null.
+.Pp
+The
+.Fn fstat
+obtains the same information about an open file
+known by the file descriptor
+.Fa fildes .
+.Pp
+The
+.Fn fstatat
+system call is equivalent to
+.Fn stat
+and
+.Fn lstat
+except in the case where the
+.Fa path
+specifies a relative path.
+In this case the status is retrieved from a file relative to
+the directory associated with the file descriptor
+.Fa fd
+instead of the current working directory.
+.Pp
+The values for the
+.Fa flag
+are constructed by a bitwise-inclusive OR of flags from the following list,
+defined in
+.In fcntl.h :
+.Bl -tag -width indent
+.It Dv AT_SYMLINK_NOFOLLOW
+If
+.Fa path
+names a symbolic link, the status of the symbolic link is returned.
+.El
+.Pp
+If
+.Fn fstatat
+is passed the special value
+.Dv AT_FDCWD
+in the
+.Fa fd
+parameter, the current working directory is used and the behavior is
+identical to a call to
+.Fn stat
+or
+.Fn lstat
+respectively, depending on whether or not the
+.Dv AT_SYMLINK_NOFOLLOW
+bit is set in
+.Fa flag .
+.Pp
+The
+.Fa buf
+argument is a pointer to a
+.Fa stat
+structure 
+as defined by
+.Aq Pa sys/stat.h
+and into which information is placed concerning the file.
+When the macro
+.Dv _DARWIN_FEATURE_64_BIT_INODE
+is not defined (see below for more information about this macro), the
+.Fa stat
+structure is defined as:
+.Bd -literal
+struct stat { /* when _DARWIN_FEATURE_64_BIT_INODE is NOT defined */
+    dev_t    st_dev;    /* device inode resides on */
+    ino_t    st_ino;    /* inode's number */
+    mode_t   st_mode;   /* inode protection mode */
+    nlink_t  st_nlink;  /* number of hard links to the file */
+    uid_t    st_uid;    /* user-id of owner */
+    gid_t    st_gid;    /* group-id of owner */
+    dev_t    st_rdev;   /* device type, for special file inode */
+    struct timespec st_atimespec;  /* time of last access */
+    struct timespec st_mtimespec;  /* time of last data modification */
+    struct timespec st_ctimespec;  /* time of last file status change */
+    off_t    st_size;   /* file size, in bytes */
+    quad_t   st_blocks; /* blocks allocated for file */
+    u_long   st_blksize;/* optimal file sys I/O ops blocksize */
+    u_long   st_flags;  /* user defined flags for file */
+    u_long   st_gen;    /* file generation number */
+};
+.Ed
+.Pp
+However, when the macro
+.Dv _DARWIN_FEATURE_64_BIT_INODE
+is defined, the
+.Fa stat
+structure will now be defined as:
+.Bd -literal
+struct stat { /* when _DARWIN_FEATURE_64_BIT_INODE is defined */
+    dev_t           st_dev;           /* ID of device containing file */
+    mode_t          st_mode;          /* Mode of file (see below) */
+    nlink_t         st_nlink;         /* Number of hard links */
+    ino_t 	    st_ino;           /* File serial number */
+    uid_t           st_uid;           /* User ID of the file */
+    gid_t           st_gid;           /* Group ID of the file */
+    dev_t           st_rdev;          /* Device ID */
+    struct timespec st_atimespec;     /* time of last access */
+    struct timespec st_mtimespec;     /* time of last data modification */
+    struct timespec st_ctimespec;     /* time of last status change */
+    struct timespec st_birthtimespec; /* time of file creation(birth) */
+    off_t           st_size;          /* file size, in bytes */
+    blkcnt_t        st_blocks;        /* blocks allocated for file */
+    blksize_t       st_blksize;       /* optimal blocksize for I/O */
+    uint32_t        st_flags;         /* user defined flags for file */
+    uint32_t        st_gen;           /* file generation number */
+    int32_t         st_lspare;        /* RESERVED: DO NOT USE! */
+    int64_t         st_qspare[2];     /* RESERVED: DO NOT USE! */
+};
+.Ed
+.Pp
+The time-related fields of
+.Fa struct stat
+are as follows:
+.Bl -tag -width XXXst_birthtime
+.It st_atime
+Time when file data last accessed.
+Changed by the
+.Xr mknod 2 ,
+.Xr utimes 2
+and
+.Xr read 2
+system calls.
+.It st_mtime
+Time when file data last modified.
+Changed by the
+.Xr mknod 2 ,
+.Xr utimes 2
+and
+.Xr write 2
+system calls.
+.It st_ctime
+Time when file status was last changed (inode data modification).
+Changed by the
+.Xr chmod 2 ,
+.Xr chown 2 ,
+.Xr link 2 ,
+.Xr mknod 2 ,
+.Xr rename 2 ,
+.Xr unlink 2 ,
+.Xr utimes 2
+and
+.Xr write 2
+system calls.
+.It st_birthtime
+Time of file creation. Only set once when the file is created. This field is 
+only available in the 64 bit inode variants. On filesystems where birthtime is 
+not available, this field is set to 0 (i.e. epoch).
+.El
+.Pp
+The size-related fields of the structures are as follows:
+.Bl -tag -width XXXst_blksize
+.It st_blksize
+The optimal I/O block size for the file.
+.It st_blocks
+The actual number of blocks allocated for the file in 512-byte units.
+As short symbolic links are stored in the inode, this number may
+be zero.
+.El
+.Pp
+The status information word
+.Fa st_mode
+has the following bits:
+.Bd -literal
+#define S_IFMT 0170000           /* type of file */
+#define        S_IFIFO  0010000  /* named pipe (fifo) */
+#define        S_IFCHR  0020000  /* character special */
+#define        S_IFDIR  0040000  /* directory */
+#define        S_IFBLK  0060000  /* block special */
+#define        S_IFREG  0100000  /* regular */
+#define        S_IFLNK  0120000  /* symbolic link */
+#define        S_IFSOCK 0140000  /* socket */
+#define        S_IFWHT  0160000  /* whiteout */
+#define S_ISUID 0004000  /* set user id on execution */
+#define S_ISGID 0002000  /* set group id on execution */
+#define S_ISVTX 0001000  /* save swapped text even after use */
+#define S_IRUSR 0000400  /* read permission, owner */
+#define S_IWUSR 0000200  /* write permission, owner */
+#define S_IXUSR 0000100  /* execute/search permission, owner */
+.Ed
+.Pp
+For a list of access modes, see
+.Aq Pa sys/stat.h ,
+.Xr access 2
+and
+.Xr chmod 2 .
+.Pp
+For a list of the file flags in the
+.Fa st_flags
+field, see
+.Aq Pa sys/stat.h
+and
+.Xr chflags 2 .
+.Sh _DARWIN_FEATURE_64_BIT_INODE
+In order to accommodate advanced capabilities of newer file systems, the 
+.Fa struct stat ,
+.Fa struct statfs ,
+and
+.Fa struct dirent
+data structures were updated in Mac OSX 10.5.
+.Pp
+The most obvious change is the increased size of
+.Fa ino_t
+from 32 bits to 64 bits.  As a consequence, storing an ino_t in an int is
+no longer safe, and file formats storing ino_t as 32-bit values may need to
+be updated.  There are other changes as well, such as the widening of
+.Fa f_fstypename ,
+.Fa f_mntonname ,
+and
+.Fa f_mntfromname
+in
+.Fa struct statfs .
+Please refer to
+.Xr dir 5
+for more detail on the specific changes to the other affected data structures.
+.Pp
+On platforms that existed before these updates were available, ABI
+compatibility is achieved by providing two implementations for related
+functions: one using the legacy data structures and one using the updated
+data structures.  Variants which make use of the newer structures have their
+symbols suffixed with $INODE64.  These $INODE64 suffixes are automatically
+appended by the compiler tool-chain and should not be used directly.
+.Pp
+Platforms that were released after these updates only have the newer variants
+available to them.  These platforms have the macro
+.Dv _DARWIN_FEATURE_ONLY_64_BIT_INODE
+defined.
+.Pp
+The
+.Dv _DARWIN_FEATURE_64_BIT_INODE
+macro should not be set directly.  Instead, developers should make use of the
+.Dv _DARWIN_NO_64_BIT_INODE
+or
+.Dv _DARWIN_USE_64_BIT_INODE
+macros when the default variant is not desired.  The following table details
+the effects of defining these macros for different deployment targets.
+.Pp
+.TS
+center;
+c s s s
+l | c s s
+c | c c c
+c | c c c
+l | c c c.
+T{
+.Dv _DARWIN_FEATURE_ONLY_64_BIT_INODE Sy not defined
+T}
+=
+	Deployment Target
+user defines:	< 10.5	10.5	> 10.5
+_
+T{
+.Em (none)
+T}	32-bit	32-bit	64-bit
+T{
+.Dv _DARWIN_NO_64_BIT_INODE
+T}	32-bit	32-bit	32-bit
+T{
+.Dv _DARWIN_USE_64_BIT_INODE
+T}	32-bit	64-bit	64-bit
+_
+.T&
+c s s s
+c s s s
+c | l s s
+c | c c c
+l | c c c.
+
+T{
+.Dv _DARWIN_FEATURE_ONLY_64_BIT_INODE Sy defined
+T}
+=
+user defines:	Any Deployment Target
+_
+T{
+.Em (none)
+T}	64-bit-only
+T{
+.Dv _DARWIN_NO_64_BIT_INODE
+T}	T{
+.Em (error)
+T}
+T{
+.Dv _DARWIN_USE_64_BIT_INODE
+T}	64-bit-only
+_
+.TE
+.Pp
+.Bl -tag -width 64-bit-only -offset indent
+.It 32-bit
+32-bit inode values are enabled, and the legacy structures involving the
+.Vt ino_t
+type are in use.
+The macro
+.Dv _DARWIN_FEATURE_64_BIT_INODE
+is not defined.
+.It 64-bit
+64-bit inode values are enabled, and the expanded structures involving the
+.Vt ino_t
+type are in use.
+The macro
+.Dv _DARWIN_FEATURE_64_BIT_INODE
+is defined, and loader symbols will contain the
+.Li $INODE64
+suffix.
+.It 64-bit-only
+Like 64-bit, except loader symbols do not have the
+.Li $INODE64
+suffix.
+.It Em (error)
+A compile time error is generated.
+.El
+.Pp
+Due to the increased benefits of the larger structure, it is highly
+recommended that developers not define
+.Dv _DARWIN_NO_64_BIT_INODE
+and make use of
+.Dv _DARWIN_USE_64_BIT_INODE
+when targeting Mac OSX 10.5.
+.Pp
+In addition to the $INODE64 suffixed symbols, variants suffixed with 64 are
+also available for related functions.  These functions were provided as a way
+for developers to use the updated structures in code that also made use of
+the legacy structures.  The enlarged stat structures were also prefixed with
+64 to distinguish them from their legacy variants.  These functions have been
+deprecated and should be avoided.
+.Sh RETURN VALUES
+Upon successful completion a value of 0 is returned.
+Otherwise, a value of -1 is returned and
+.Va errno
+is set to indicate the error.
+.Sh COMPATIBILITY
+Previous versions of the system used different types for the
+.Li st_dev ,
+.Li st_uid ,
+.Li st_gid ,
+.Li st_rdev ,
+.Li st_size ,
+.Li st_blksize
+and
+.Li st_blocks
+fields.
+.Sh ERRORS
+.Bl -tag -width Er
+The
+.Fn fstat
+system call will fail if:
+.\" ===========
+.It Bq Er EBADF
+.Fa fildes
+is not a valid open file descriptor.
+.\" ===========
+.It Bq Er EFAULT
+.Fa Sb
+points to an invalid address.
+.\" ===========
+.It Bq Er EIO
+An I/O error occurs while reading from or writing to the file system.
+.El
+.Pp
+The
+.Fn lstat
+and
+.Fn stat
+system calls will fail if:
+.Bl -tag -width Er
+.\" ===========
+.It Bq Er EACCES
+Search permission is denied for a component of the path prefix.
+.\" ===========
+.It Bq Er EFAULT
+.Fa Sb
+or
+.Em name
+points to an invalid address.
+.\" ===========
+.It Bq Er EIO
+An I/O error occurs while reading from or writing to the file system.
+.\" ===========
+.It Bq Er ELOOP
+Too many symbolic links are encountered in translating the pathname.
+This is taken to be indicative of a looping symbolic link.
+.\" ===========
+.It Bq Er ENAMETOOLONG
+A component of a pathname exceeds
+.Dv {NAME_MAX}
+characters, or an entire path name exceeds
+.Dv {PATH_MAX}
+characters.
+.\" ===========
+.It Bq Er ENOENT
+The named file does not exist.
+.\" ===========
+.It Bq Er ENOTDIR
+A component of the path prefix is not a directory.
+.El
+.Pp
+The
+.Fn fstat ,
+.Fn lstat ,
+and
+.Fn stat
+system calls will fail if:
+.Bl -tag -width Er
+.\" ===========
+.It Bq Er EOVERFLOW
+The file size in bytes 
+or the number of blocks allocated to the file
+or the file serial number cannot be represented correctly
+in the structure pointed to by
+.Fa buf .
+.El
+.Pp
+In addition to the errors returned by the
+.Fn stat
+and
+.Fn lstat ,
+.Fn fstatat
+may fail if:
+.Bl -tag -width Er
+.It Bq Er EBADF
+The
+.Fa path
+argument does not specify an absolute path and the
+.Fa fd
+argument is neither
+.Dv AT_FDCWD
+nor a valid file descriptor open for searching.
+.It Bq Er EINVAL
+The value of the
+.Fa flag
+argument is not valid.
+.It Bq Er ENOTDIR
+The
+.Fa path
+argument is not an absolute path and
+.Fa fd
+is neither
+.Dv AT_FDCWD
+nor a file descriptor associated with a directory.
+.El
+.Sh CAVEATS
+The file generation number,
+.Fa st_gen ,
+is only available to the super-user.
+.br
+The fields in the stat structure currently marked
+.Fa st_spare1 ,
+.Fa st_spare2 ,
+and
+.Fa st_spare3
+are present in preparation for inode time stamps expanding
+to 64 bits.  This, however, can break certain programs that
+depend on the time stamps being contiguous (in calls to
+.Xr utimes 2 ) .
+.Sh TRANSITIONAL DESCRIPTION (NOW DEPRECATED)
+The
+.Fa fstat64 ,
+.Fa lstat64
+and
+.Fa stat64
+routines are equivalent to their corresponding non-64-suffixed routine,
+when 64-bit inodes are in effect.
+They were added before there was support for the symbol variants, and so are
+now deprecated.
+Instead of using these, set the
+.Dv _DARWIN_USE_64_BIT_INODE
+macro before including header files to force 64-bit inode support.
+.Pp
+The
+.Fa stat64
+structure used by these deprecated routines is the same as the
+.Fa stat
+structure when 64-bit inodes are in effect (see above).
+.Sh SEE ALSO
+.Xr chflags 2 ,
+.Xr chmod 2 ,
+.Xr chown 2 ,
+.Xr utimes 2 ,
+.Xr compat 5 ,
+.Xr statfs 2 ,
+.Xr symlink 7
+.Sh BUGS
+Applying
+.Xr fstat
+to a socket (and thus to a pipe)
+returns a zero'd buffer,
+except for the blocksize field,
+and a unique device and inode number.
+.Sh STANDARDS
+The
+.Fn stat
+and
+.Fn fstat
+function calls are expected to conform to 
+.St -p1003.1-88 .
+The
+.Fn fstatat
+system call is expected to conform to POSIX.1-2008 .
+.Sh HISTORY
+An
+.Fn lstat
+function call appeared in
+.Bx 4.2 .
+The 
+.Fn stat64 ,
+.Fn fstat64 ,
+and
+.Fn lstat64
+system calls first appeared in Mac OS X 10.5 (Leopard) and are now deprecated
+in favor of the corresponding symbol variants.
+The
+.Fn fstatat
+system call appeared in OS X 10.10

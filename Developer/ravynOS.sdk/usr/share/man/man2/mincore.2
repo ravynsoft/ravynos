@@ -1,0 +1,96 @@
+.\"	$NetBSD: mincore.2,v 1.7 1995/10/12 15:41:05 jtc Exp $
+.\"
+.\" Copyright (c) 1991, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"	@(#)mincore.2	8.1 (Berkeley) 6/9/93
+.\"
+.Dd June 9, 1993
+.Dt MINCORE 2
+.Os
+.Sh NAME
+.Nm mincore
+.Nd determine residency of memory pages
+.Sh SYNOPSIS
+.Fd #include <sys/types.h>
+.Fd #include <sys/mman.h>
+.Ft int
+.Fn mincore "caddr_t addr" "size_t len" "char *vec"
+.Sh DESCRIPTION
+The
+.Fn mincore
+system call
+allows a process to obtain information about whether pages are
+core resident.
+The current core residency of the pages is returned
+in the character array 
+.Fa vec .
+For each entry in the character array
+.Fa vec ,
+the following bit values may be set
+depending upon the state of the page:
+.Bd -literal -offset indent
+.nf
+MINCORE_INCORE           0x1     /* Page is incore */
+MINCORE_REFERENCED       0x2     /* Page has been referenced by us */
+MINCORE_MODIFIED         0x4     /* Page has been modified by us */
+MINCORE_REFERENCED_OTHER 0x8     /* Page has been referenced */
+MINCORE_MODIFIED_OTHER  0x10     /* Page has been modified */
+.fi
+.Ed
+.Sh RETURN VALUES
+Upon successful completion,
+a value of 0 is returned.
+Otherwise, a value of -1 is returned and
+.Va errno
+is set to indicate the error.
+.Sh ERRORS
+.Bl -tag -width Er
+.\" ===========
+.It Bq Er EINVAL
+.Fa addr
+is not a valid address for user mode.
+.\" ===========
+.It Bq Er EFAULT
+an error occurred trying to copy to the output character array
+.Fa vec .
+.El
+.Sh SEE ALSO
+.Xr madvise 2 ,
+.Xr minherit 2 ,
+.Xr mlock 2 ,
+.Xr mprotect 2 ,
+.Xr msync 2 ,
+.Xr munmap 2
+.Sh HISTORY
+The
+.Fn mincore
+function first appeared in 4.4BSD.

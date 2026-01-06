@@ -1,0 +1,302 @@
+.\"	$NetBSD: link.2,v 1.7 1995/02/27 12:34:01 cgd Exp $
+.\"
+.\" Copyright (c) 1980, 1991, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)link.2	8.3 (Berkeley) 1/12/94
+.\"
+.Dd October 29, 2008
+.Dt LINK 2
+.Os BSD 4
+.Sh NAME
+.Nm link ,
+.Nm linkat
+.Nd make a hard file link
+.Sh SYNOPSIS
+.Fd #include <unistd.h>
+.Ft int
+.Fo link
+.Fa "const char *path1"
+.Fa "const char *path2"
+.Fc
+.Ft int
+.Fo linkat
+.Fa "int fd1" "const char *name1" "int fd2" "const char *name2" "int flag"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn link
+function call
+atomically creates the specified directory entry (hard link)
+.Fa path2
+with the attributes of the underlying object pointed at by
+.Fa path1 .
+If the link is successful,
+the link count of the underlying object is incremented;
+.Fa path1
+and
+.Fa path2
+share equal access and rights
+to the
+underlying object.
+.Pp
+If
+.Fa path1
+is removed, the file
+.Fa path2
+is not deleted and the link count of the
+underlying object is
+decremented.
+.Pp
+In order for the system call to succeed,
+.Fa path1
+must exist and both
+.Fa path1
+and
+.Fa path2
+must be in the same file system.
+As mandated by POSIX.1,
+.Fa path1
+may not be a directory.
+.Pp
+.Fn link
+will resolve and follow symbolic links contained within both
+.Fa path1
+and
+.Fa path2 .
+If the last component of
+.Fa path1
+is a symbolic link,
+.Fn link
+will point the hard link, 
+.Fa path2 ,
+to the underlying object pointed to by
+.Fa path1 ,
+not to the symbolic link itself.
+.Pp
+The
+.Fn linkat
+system call is equivalent to
+.Fa link
+except in the case where either
+.Fa name1
+or
+.Fa name2
+or both are relative paths.
+In this case a relative path
+.Fa name1
+is interpreted relative to
+the directory associated with the file descriptor
+.Fa fd1
+instead of the current working directory and similarly for
+.Fa name2
+and the file descriptor
+.Fa fd2 .
+.Pp
+Values for
+.Fa flag
+are constructed by a bitwise-inclusive OR of flags from the following
+list, defined in
+.In fcntl.h :
+.Bl -tag -width indent
+.It Dv AT_SYMLINK_FOLLOW
+If
+.Fa name1
+names a symbolic link, a new link for the target of the symbolic link is
+created.
+.El
+.Pp
+If
+.Fn linkat
+is passed the special value
+.Dv AT_FDCWD
+in the
+.Fa fd1
+or
+.Fa fd2
+parameter, the current working directory is used for the respective
+.Fa name
+argument.
+If both
+.Fa fd1
+and
+.Fa fd2
+have value
+.Dv AT_FDCWD ,
+the behavior is identical to a call to
+.Fn link .
+Unless
+.Fa flag
+contains the
+.Dv AT_SYMLINK_FOLLOW
+flag, if
+.Fa name1
+names a symbolic link, a new link is created for the symbolic link
+.Fa name1
+and not its target. On OS X, not assigning AT_SYMLINK_FOLLOW to
+.Fa flag
+may result in some filesystems returning an error.
+.Sh RETURN VALUES
+Upon successful completion, a value of 0 is returned.  Otherwise,
+a value of -1 is returned and
+.Va errno
+is set to indicate the error.
+.Sh ERRORS
+.Fn link
+will fail and no link will be created if:
+.Bl -tag -width Er
+.\" ==========
+.It Bq Er EACCES
+A component of either path prefix denies search permission.
+.\" ==========
+.It Bq Er EACCES
+The requested link requires writing in a directory with a mode
+that denies write permission.
+.\" ==========
+.It Bq Er EACCES
+The current process cannot access the existing file.
+.\" ==========
+.It Bq Er EDQUOT
+The directory in which the entry for the new link
+is being placed cannot be extended because the
+user's quota of disk blocks on the file system
+containing the directory has been exhausted.
+.\" ==========
+.It Bq Er EEXIST
+The link named by
+.Fa path2
+already exists.
+.\" ==========
+.It Bq Er EFAULT
+One of the pathnames specified
+is outside the process's allocated address space.
+.\" ==========
+.It Bq Er EIO
+An I/O error occurs while reading from or writing to 
+the file system to make the directory entry.
+.\" ==========
+.It Bq Er ELOOP
+Too many symbolic links are encountered in translating one of the pathnames.
+This is taken to be indicative of a looping symbolic link.
+.\" ==========
+.It Bq Er EMLINK
+The file already has {LINK_MAX} links.
+.\" ==========
+.It Bq Er ENAMETOOLONG
+A component of a pathname exceeds 
+.Dv {NAME_MAX}
+characters, or an entire path name exceeded 
+.Dv {PATH_MAX}
+characters.
+.\" ==========
+.It Bq Er ENOENT
+A component of either path prefix does not exist, or is a dangling symbolic link.
+.\" ==========
+.It Bq Er ENOENT
+The file named by
+.Fa path1
+does not exist, or is a dangling symbolic link.
+.\" ==========
+.It Bq Er ENOSPC
+The directory in which the entry for the new link is being placed
+cannot be extended because there is no space left on the file
+system containing the directory.
+.\" ==========
+.It Bq Er ENOTDIR
+A component of either path prefix is not a directory.
+.\" ==========
+.It Bq Er EPERM
+The file named by
+.Fa path1
+is a directory.
+.\" ==========
+.It Bq Er EROFS
+The requested link requires writing in a directory
+on a read-only file system.
+.\" ==========
+.It Bq Er EXDEV
+The link named by
+.Fa path2
+and the file named by
+.Fa path1
+are on different file systems.
+.El
+.Pp
+In addition to the errors returned by the
+.Fn link ,
+the
+.Fn linkat
+system call may fail if:
+.Bl -tag -width Er
+.It Bq Er EBADF
+The
+.Fa name1
+or
+.Fa name2
+argument does not specify an absolute path and the
+.Fa fd1
+or
+.Fa fd2
+argument, respectively, is neither
+.Dv AT_FDCWD
+nor a valid file descriptor open for searching.
+.It Bq Er EINVAL
+The value of the
+.Fa flag
+argument is not valid.
+.It Bq Er ENOTSUP
+.Fa flag
+was not set to
+.Dv AT_SYMLINK_FOLLOW (some filesystems only)
+.It Bq Er ENOTDIR
+The
+.Fa name1
+or
+.Fa name2
+argument is not an absolute path and
+.Fa fd1
+or
+.Fa fd2 ,
+respectively, is neither
+.Dv AT_FDCWD
+nor a file descriptor associated with a directory.
+.El
+.Sh SEE ALSO
+.Xr symlink 2 ,
+.Xr unlink 2
+.Sh STANDARDS
+The
+.Fn link
+function is expected to conform to 
+.St -p1003.1-88 .
+The
+.Fn linkat
+system call is expected to conform to POSIX.1-2008 .

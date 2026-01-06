@@ -1,0 +1,385 @@
+.\" 
+.\" Copyright (c) 2015 Apple Inc. All rights reserved.
+.\" 
+.\" @APPLE_OSREFERENCE_LICENSE_HEADER_START@
+.\" 
+.\" This file contains Original Code and/or Modifications of Original Code
+.\" as defined in and that are subject to the Apple Public Source License
+.\" Version 2.0 (the 'License'). You may not use this file except in
+.\" compliance with the License. The rights granted to you under the License
+.\" may not be used to create, or enable the creation or redistribution of,
+.\" unlawful or unlicensed copies of an Apple operating system, or to
+.\" circumvent, violate, or enable the circumvention or violation of, any
+.\" terms of an Apple operating system software license agreement.
+.\" 
+.\" Please obtain a copy of the License at
+.\" http://www.opensource.apple.com/apsl/ and read it before using this file.
+.\" 
+.\" The Original Code and all software distributed under the License are
+.\" distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+.\" EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+.\" INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+.\" Please see the License for the specific language governing rights and
+.\" limitations under the License.
+.\" 
+.\" @APPLE_OSREFERENCE_LICENSE_HEADER_END@
+.\"
+.Dd March 26, 2015
+.Dt CONNECTX 2
+.Os Darwin
+.Sh NAME
+.Nm connectx
+.Nd initiate a connection on a socket
+.Sh SYNOPSIS
+.Fd #include <sys/socket.h>
+.Ft int
+.Fo connectx
+.Fa "int socket"
+.Fa "const sa_endpoints_t *endpoints"
+.Fa "sae_associd_t associd"
+.Fa "unsigned int flags"
+.Fa "const struct iovec *iov"
+.Fa "unsigned int iovcnt"
+.Fa "size_t *len"
+.Fa "sae_connid_t *connid"
+.Fc
+.Sh DESCRIPTION
+The parameter
+.Fa socket
+is a socket.
+In general,
+.Fn connectx
+may be used as a substitute for cases when
+.Xr bind 2
+and
+.Xr connect 2
+are issued in succession, as well as a mechanism to transmit data
+at connection establishment time.
+.Pp
+The
+.Fn connectx
+system call uses a
+.Fa sa_endpoints
+structure to minimize the number of directly supplied arguments. This structure
+has the following form, as defined in
+.In sys/socket.h :
+.Pp
+.Bd -literal
+typedef struct sa_endpoints {
+	unsigned int     sae_srcif;      /* optional source interface   */
+	struct sockaddr *sae_srcaddr;    /* optional source address     */
+	socklen_t        sae_srcaddrlen; /* size of source address      */
+	struct sockaddr *sae_dstaddr;    /* destination address         */
+	socklen_t        sae_dstaddrlen; /* size of destination address */
+}sa_endpoints_t;
+.Ed
+.Pp
+When the optional source address
+.Fa sae_srcaddr
+parameter is specified,
+.Fn connectx
+binds the connection to the address, as if
+.Xr bind 2
+is used.  The length of
+.Fa sae_srcaddr
+buffer is specified by
+.Fa sae_srcaddrlen .
+.\" This buffer may hold more than one addresses, where each successive address
+.\" immediately follows the previous one.
+The source address can be obtained by calling
+.Xr getifaddrs 3 .
+.Pp
+The optional parameter
+.Fa sae_srcif
+may also be specified, in order to force the connection to use the interface
+whose interface index equals to
+.Fa sae_srcif .
+The value for
+.Fa sae_srcif
+may be obtained by issuing a call to
+.Xr if_nametoindex 3 .
+If only
+.Fa sae_srcif
+is specified, the communication domain will choose a source address on that
+interface for communicating to the peer socket.  Both
+.Fa sae_srcaddr
+and
+.Fa sae_srcif
+parameters may also be specified in order to add more constraints to the connection, and
+.Fn connectx
+will fail unless the address is currently assigned to that interface.
+.Pp
+A destination address must be specified in the
+.Fa sae_dstaddr
+parameter.  The
+.Fa sae_dstaddrlen
+specifies the length of that buffer.
+.\" When more than one addresses
+.\" is specified, each successive address immediately follows the previous one.
+.\" Each communication domain interprets the
+.\" .Fa sae_srcaddr
+.\" and
+.\" .Fa sae_dstaddr
+.\" parameters in its own way.
+.\" When multiple addresses are specified, one of the addresses will be chosen.
+.\" The rules used in selecting the eligible addresses as well as their address family requirements vary between communication domains.
+.\" .Pp
+.\" Changes related to the connection state may be monitored by registering for the
+.\" .Dv NOTE_CONNINFO_UPDATED
+.\" .Xr kqueue 2
+.\" event, using the predefined system filter
+.\" .Dv EVFILT_SOCK .
+.\" Details regarding the event may be retrieved by calling
+.\" .Xr getconninfo 3 .
+.\" .Sh MULTIPATH
+.\" On a multipath socket,
+.\" .Fn connectx
+.\" may be used multiple times, in order to establish the initial session
+.\" association with the peer socket upon the first connection, and to further
+.\" establish additional connections related to that association on subsequent
+.\" ones.
+.\" .Pp
+.\" The parameter
+.\" .Fa associd
+.\" specifies the association identifier.  When
+.\" .Fn connectx
+.\" is initially called to establish an associtation, the association identifier
+.\" is not yet known, and
+.\" .Dv ASSOCID_ANY
+.\" must be specified.  After the initial connection is established, the
+.\" association identifier may be retrieved using
+.\" .Xr getassocids 3 ,
+.\" and the value may then be used on subsequent
+.\" .Fn connectx
+.\" calls.
+.\" .Pp
+.\" An association representing one or more connections, or a single connection
+.\" may be dissolved by calling
+.\" .Xr disconnectx 2 .
+.\" .Sh NON-MULTIPATH
+.\" On non-multipath socket,
+.\" .Fn connectx
+.\" behaves much like a combination of
+.\" .Xr bind 2
+.\" and
+.\" .Xr connect 2 .
+.Pp
+Data to be transmitted may optionally be defined via the
+.Fa iovcnt
+buffers specified by members of the
+.Fa iov
+array, along with a non-NULL
+.Fa len
+parameter, which upon success, indicates the number of bytes enqueued for
+transmission.
+.Pp
+When the
+.Fa iov
+and
+.Fa len 
+parameters are non-NULL, the communication domain will copy the data to the
+socket send buffer. The communication domain may impose a limit on the amount of data allowed to be buffered before connection establishment.
+.Pp
+When the flags parameter is set to CONNECT_RESUME_ON_READ_WRITE and an
+.Fa iov
+is not passed in, the communication domain will trigger the actual connection
+establishment upon the first read or write following the
+.Xr connectx 2
+system call. This flag is ignored if the iov is specified in the
+.Xr connectx 2
+call itself.
+.Pp
+The flags parameter may also be set to CONNECT_DATA_IDEMPOTENT to indicate to
+the communication domain that the data is idempotent. For example, this will
+trigger TCP Fast Open (RFC 7413) with SOCK_STREAM type. The data must be passed in the
+.Fa iov 
+parameter in
+.Xr connectx 2 
+, or passed in with the first write call such as with the
+.Xr writev 2
+or similar system call if the CONNECT_RESUME_ON_READ_WRITE is also set.
+.Pp
+In general, the communication domain makes the final decision on the amount of
+data that may get transmitted at connection establishment time.  If the socket
+requires the data be sent atomically and the data size makes this impossible,
+EMSGSIZE will be returned and the state of the socket is left unchanged as if
+.Fn connectx
+was not called.
+.Pp
+The parameter
+.Fa associd
+is reserved for future use, and must always be set to
+.Dv SAE_ASSOCID_ANY .
+The parameter
+.Fa connid
+is also reserved for future use and should be set to NULL.
+.Sh NOTES
+.Fn connectx
+is currently supported only on AF_INET and AF_INET6 sockets of type SOCK_DGRAM
+and SOCK_STREAM.
+.Pp
+Generally,
+.\" non-multipath
+connection-oriented sockets may successfully
+.Fn connectx
+only once.  Connectionless sockets may use
+.Fn connectx
+to create an association to the peer socket, and it may call
+.Xr disconnectx 2
+to dissolve any existing association.  Unlike connection-oriented sockets,
+connectionless sockets may call
+.Fn connectx
+again afterwards to associate to another peer socket.
+.Pp
+If CONNECT_RESUME_ON_READ_WRITE is set without data 
+supplied,
+.Fn connectx
+will immediately return success, assuming the rest of the parameters are valid.
+.Xr select 2
+will indicate that the socket is ready for writing, and the actual connection
+establishment is attempted once the initial data is written to the socket via
+.Xr writev 2
+or similar.  Subsequent attempts to write more data will fail until the existing
+connection establishment attempt is successful.  The error status of the socket
+may be retrieved via the SO_ERROR option using
+.Xr getsockopt 2 .
+.Sh RETURN VALUES
+Upon successful completion, a value of 0 is returned.
+.\" and an opaque value may be returned through the
+.\" .Fa connid
+.\" parameter.  
+The number of bytes from
+.Fa iov
+array which were enqueued for transmission is returned via
+.Fa len .
+.\" If the initial connection establishes an association with a peer socket, the association identifier may be retrieved by calling
+.\" .Xr getassocids 2 .
+.\" Both of these identifiers are unique
+.\" on a per
+.\" .Fa socket
+.\" basis.
+Upon failure, a value of -1 is returned and the global integer
+variable
+.Va errno
+is set to indicate the error.
+.Sh ERRORS
+The
+.Fn connectx
+system call will fail if:
+.Bl -tag -width Er
+.\" ==========
+.It Bq Er EADDRINUSE
+The address specified in
+.Fa sae_srcaddr
+parameter is already in use.
+.\" ==========
+.It Bq Er EADDRNOTAVAIL
+The specified in
+.Fa sae_srcaddr
+parameter is not available on this machine, or is not assigned to the interface specified by
+.Fa sae_srcif .
+.\" ==========
+.It Bq Er EAFNOSUPPORT
+The
+.Fa socket
+cannot find any usable addresses of a specific address family
+as required by the communication domain.
+.\" ==========
+.It Bq Er EALREADY
+A previous connection attempt has not yet been completed.
+.\" ==========
+.It Bq Er EBADF
+.Fa socket
+is not a valid descriptor.
+.\" ==========
+.It Bq Er ECONNREFUSED
+The attempt to connect was ignored
+(because the target is not listening for connections)
+or explicitly rejected.
+.\" ==========
+.It Bq Er EFAULT
+Part of
+.Fa iov
+or data to be written to
+.Fa socket
+points outside the process's allocated address space.
+.\" ==========
+.It Bq Er EHOSTUNREACH
+The target host cannot be reached (e.g., down, disconnected).
+.\" ==========
+.It Bq Er EINPROGRESS
+The connection cannot be completed immediately.
+It is possible to
+.Xr select 2
+for completion by selecting the
+.Fa socket
+for writing.
+.\" ==========
+.It Bq Er EINTR
+Its execution was interrupted by a signal.
+.\" ==========
+.It Bq Er EMSGSIZE
+The size of the message exceeds the available send buffer space in the
+.Fa socket .
+.\" ==========
+.It Bq Er EINVAL
+An invalid argument was detected
+(e.g.,
+.Fa sae_dstaddrlen
+is not valid, the contents of
+.Fa sae_srcaddr
+or
+.Fa sae_dstaddr,
+buffer is invalid, etc.)
+.\" ==========
+.It Bq Er EISCONN
+The socket is already connected.
+.\" ==========
+.It Bq Er ENETDOWN
+The local network interface is not functioning.
+.\" ==========
+.It Bq Er ENETUNREACH
+The network isn't reachable from this host.
+.\" ==========
+.It Bq Er ENOBUFS
+The system call was unable to allocate a needed memory buffer.
+.\" ==========
+.It Bq Er ENOTSOCK
+.Fa socket
+is not a file descriptor for a socket.
+.\" ==========
+.It Bq Er EOPNOTSUPP
+Because
+.Fa socket
+is listening, no connection is allowed.
+.\" ==========
+.\".It Bq Er EPROTOTYPE
+.\".Fa address
+.\"has a different type than the socket
+.\"that is bound to the specified peer address.
+.\" ==========
+.It Bq Er ETIMEDOUT
+Connection establishment timed out without establishing a connection.
+.\" ==========
+.El
+.Sh SEE ALSO
+.\".Xr accept 2 ,
+.Xr bind 2 ,
+.Xr connect 2 ,
+.Xr disconnectx 2 ,
+.Xr disconnectx 2 ,
+.Xr getsockopt 2 ,
+.\".Xr kqueue 2 ,
+.\".Xr shutdown 2 ,
+.Xr select 2 ,
+.Xr socket 2 ,
+.\".Xr getassocids 3 ,
+.\".Xr getconnids 3 ,
+.\".Xr getconninfo 3 ,
+.Xr writev 2 ,
+.Xr compat 5
+.Sh HISTORY
+The
+.Fn connectx
+function call appeared in Darwin 15.0.0

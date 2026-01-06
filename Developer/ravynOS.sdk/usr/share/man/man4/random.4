@@ -1,0 +1,56 @@
+.Dd September 6, 2001
+.Dt RANDOM 4
+.Os Darwin
+.Sh NAME
+.Nm random
+,
+.Nm urandom
+.Nd random data source devices.
+.Sh SYNOPSIS
+.Cd "pseudo-device random"
+.Sh DESCRIPTION
+The
+.Nm
+device produces uniformly distributed random byte values
+of potentially high quality.
+.Pp
+To obtain random bytes, open
+.Nm /dev/random
+for reading and read from it.
+.Pp
+The same random data is also available from
+.Xr getentropy 2 .
+Using the
+.Xr getentropy 2
+system call interface will provide resiliency to file descriptor exhaustion, chroot, or sandboxing which can make
+.Nm /dev/random
+unavailable.  Additionally, the
+.Xr arc4random 3
+API provides a fast userspace random number generator built on the
+.Nm
+data source and is preferred over directly accessing the system's random device.
+.Pp
+.Nm /dev/urandom
+is a compatibility nod to Linux. On Linux,
+.Nm /dev/urandom
+will produce lower quality output if the entropy pool drains, while
+.Nm /dev/random
+will prefer to block and wait for additional entropy to be collected.
+With Fortuna, this choice and distinction is not necessary, and
+the two devices behave identically. You may use either.
+.Pp
+The
+.Nm
+device implements the
+.Nm Fortuna
+pseudo random number generator algorithm and maintains its entropy pool.
+The kernel automatically seeds the algorithm with additional entropy during normal execution.
+.Sh FILES
+.Bl -tag -width /dev/urandom -compact
+.It Pa /dev/random
+.It Pa /dev/urandom
+.El
+.Sh HISTORY
+A
+.Nm
+device appeared in the Linux operating system.

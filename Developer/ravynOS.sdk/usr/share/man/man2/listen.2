@@ -1,0 +1,122 @@
+.\"	$OpenBSD: listen.2,v 1.2 1996/03/19 23:15:16 niklas Exp $
+.\"	$NetBSD: listen.2,v 1.7 1996/02/16 20:38:45 phil Exp $
+.\"
+.\" Copyright (c) 1983, 1991, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)listen.2	8.2 (Berkeley) 12/11/93
+.\"
+.Dd March 18, 2015
+.Dt LISTEN 2
+.Os BSD 4.2
+.Sh NAME
+.Nm listen
+.Nd listen for connections on a socket
+.Sh SYNOPSIS
+.Fd #include <sys/socket.h>
+.Ft int
+.Fo listen
+.Fa "int socket"
+.Fa "int backlog"
+.Fc
+.Sh DESCRIPTION
+Creation of socket-based connections requires several operations.
+First, a socket is created with
+.Xr socket 2 .
+Next, a willingness to accept incoming connections and
+a queue limit for incoming connections are specified with
+.Fn listen .
+Finally, the connections are
+accepted with
+.Xr accept 2 .
+The
+.Fn listen
+call applies only to sockets of type
+.Dv SOCK_STREAM.
+.\"or
+.\".Dv SOCK_SEQPACKET.
+.Pp
+The
+.Fa backlog
+parameter defines the maximum length
+for the queue of pending connections.
+If a connection
+request arrives with the queue full,
+the client may receive an error with an indication of
+.Er ECONNREFUSED .
+Alternatively, if the underlying protocol supports retransmission,
+the request may be ignored so that retries may succeed.
+.Sh RETURN VALUES
+.Rv -std listen
+.Sh ERRORS
+.Fn listen
+will fail if:
+.Bl -tag -width Er
+.\" ==========
+.It Bq Er EACCES
+The current process has insufficient privileges.
+.\" ==========
+.It Bq Er EBADF
+The argument
+.Fa socket
+is not a valid file descriptor.
+.\" ==========
+.It Bq Er EDESTADDRREQ
+The socket is not bound to a local address
+and the protocol does not support listening on an unbound socket.
+.\" ==========
+.It Bq Er EINVAL
+.Fa socket
+is already connected.
+.\" ==========
+.It Bq Er ENOTSOCK
+The argument
+.Fa socket
+does not reference a socket.
+.\" ==========
+.It Bq Er EOPNOTSUPP
+The socket is not of a type that supports the operation
+.Fn listen .
+.El
+.Sh SEE ALSO
+.Xr accept 2 ,
+.Xr connect 2 ,
+.Xr connectx 2 ,
+.Xr socket 2
+.Sh BUGS
+The
+.Fa backlog
+is currently limited (silently) to 128.
+.Sh HISTORY
+The
+.Fn listen
+function call appeared in
+.Bx 4.2 .

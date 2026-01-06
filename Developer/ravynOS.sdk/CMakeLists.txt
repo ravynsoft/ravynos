@@ -20,6 +20,9 @@ add_custom_target(ravynOS_sdkPrep ALL
 
 add_library(ravynOS_sdk OBJECT stub.c)
 add_dependencies(ravynOS_sdk ravynOS_sdkPrep)
+file(COPY usr USE_SOURCE_PERMISSIONS DESTINATION ${RAVYN_SDKROOT})
+execute_process(COMMAND ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd/sys/make_symbol_aliasing.sh
+    ${RAVYN_SDKROOT} ${RAVYN_SDKROOT}/usr/include/sys/_symbol_aliasing.h)
 
 # file(CREATE_LINK Versions/B/Headers ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Headers SYMBOLIC)
 # file(CREATE_LINK Versions/B/PrivateHeaders ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/PrivateHeaders SYMBOLIC)

@@ -1,0 +1,125 @@
+.\"	$NetBSD: getsockname.2,v 1.6 1995/10/12 15:41:00 jtc Exp $
+.\"
+.\" Copyright (c) 1983, 1991, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)getsockname.2	8.1 (Berkeley) 6/4/93
+.\"
+.Dd June 4, 1993
+.Dt GETSOCKNAME 2
+.Os BSD 4.2
+.Sh NAME
+.Nm getsockname
+.Nd get socket name
+.Sh SYNOPSIS
+.Fd #include <sys/socket.h>
+.Ft int
+.Fo getsockname
+.Fa "int socket"
+.Fa "struct sockaddr *restrict address"
+.Fa "socklen_t *restrict address_len"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn getsockname
+function returns the current
+.Fa address
+for the specified socket. 
+.Pp
+The
+.Fa address_len
+parameter should be initialized to indicate
+the amount of space pointed to by
+.Fa address .
+On return it contains the actual size of the address
+returned (in bytes).
+.Pp
+The address is truncated if the buffer provided is too small.
+.Pp
+Note: For the UNIX domain, the address length returned is the
+.Fa address_len
+parameter passed to the previous
+.Xr bind 2
+system call and not the
+.Va sa_len
+field of the
+.Fa address
+parameter passed to
+.Xr bind 2 .
+.Sh RETURN VALUES
+.Rv -std getsockname
+.Sh ERRORS
+The
+.Fn getsockname
+system call will succeed unless:
+.Bl -tag -width Er
+.\" ==========
+.It Bq Er EBADF
+The argument
+.Fa socket
+is not a valid file descriptor.
+.\" ==========
+.It Bq Er EFAULT
+The 
+.Fa address
+parameter points to memory not in a valid part of the
+process address space.
+.\" ==========
+.It Bq Er EINVAL
+.Fa socket
+has been shut down.
+.\" ==========
+.It Bq Er ENOBUFS
+Insufficient resources were available in the system
+to perform the operation.
+.\" ==========
+.It Bq Er ENOTSOCK
+The argument
+.Fa socket
+is not a socket (e.g., a plain file).
+.\" ==========
+.It Bq Er EOPNOTSUPP
+.Fn getsockname
+is not supported for the protocol in use by
+.Fa socket .
+.El
+.Sh SEE ALSO
+.Xr bind 2 ,
+.Xr socket 2
+.Sh BUGS
+Names bound to sockets in the UNIX domain are inaccessible;
+.Fn getsockname
+returns a zero-length address.
+.Sh HISTORY
+The
+.Fn getsockname
+call appeared in
+.Bx 4.2 .
