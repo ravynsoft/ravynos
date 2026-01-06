@@ -1,0 +1,96 @@
+/* Title for shut-down alert warning that we're updating Boot Caches */
+"Updating Boot Caches" = "Updating Boot Caches";
+
+/* Title for alert warning in boot≠root that kernel or mkext in memory doesn't match that found on root volume. */
+"Inconsistent system files" = "Inconsistent system files";
+
+/* Title for alert warning the user of a kernel extension whose contents could be replaced with malicious code. */
+"System extension cannot be used" = "System extension cannot be used";
+
+/* Text of alert warning the user of a kernel extension whose contents could be replaced with malicious code. In two parts; the filename in question is put in between them. */
+"The system extension \"" = "The system extension “";
+
+"\" was installed improperly and cannot be used. Please try reinstalling it, or contact the product's vendor for an update." = "” was installed improperly and cannot be used. Please try reinstalling it, or contact the product’s vendor for an update.";
+
+/* Titles for "no load" and revoked cert alerts.  There is one for single kext and one for multiple kexts. */
+"Kernel extension could not be loaded" = "Kernel extension could not be loaded";
+
+"Kernel extensions could not be loaded" = "Kernel extensions could not be loaded";
+
+/* Text of first part of revoked cert, "no load" and invalid signature alerts for one kext */
+"The kernel extension at \"" = "The kernel extension at “";
+
+/* Text for "no load" alert  */
+"The following kernel extensions can't be loaded because they are from unidentified developers.  Extensions loaded from /Library/Extensions must be signed by identified developers. \r" = "The following kernel extensions can’t be loaded because they are from unidentified developers.  Extensions loaded from /Library/Extensions must be signed by identified developers. \r";
+
+"\" can't be loaded because it is from an unidentified developer.  Extensions loaded from /Library/Extensions must be signed by identified developers." = "” can’t be loaded because it is from an unidentified developer.  Extensions loaded from /Library/Extensions must be signed by identified developers.";
+
+/* Text of last part of "no load" and invalid signature alerts */
+"\r\rPlease contact the kernel extension vendor for updated software." = "\r\rPlease contact the kernel extension vendor for updated software.";
+
+/* Text for revoked cert alert */
+"The following kernel extensions are damaged and can't be loaded. \r" = "The following kernel extensions are damaged and can’t be loaded. \r";
+
+"\" is damaged and can't be loaded." = "” is damaged and can’t be loaded.";
+
+"\r\rYou should move them to the Trash." = "\r\rYou should move them to the Trash.";
+
+"\r\rYou should move it to the Trash." = "\r\rYou should move it to the Trash.";
+
+/* Text for invalid kext signature alert */
+"The following kernel extensions are not from identified developers but will still be loaded. \r" = "The following kernel extensions are not from identified developers but will still be loaded. \r";
+
+"\" is not from an identified developer but will still be loaded." = "” is not from an identified developer but will still be loaded.";
+
+"Kernel extensions are not from identified developers" = "Kernel extensions are not from identified developers";
+
+"Kernel extension is not from an identified developer" = "Kernel extension is not from an identified developer";
+
+/* Text for excluded kexts alert */
+"Some system extensions are not compatible with this version of OS X and can’t be used:" = "Some system extensions are not compatible with this version of macOS and can’t be used:";
+
+"\" is not compatible with this version of OS X and can’t be used." = "” is not compatible with this version of macOS and can’t be used.";
+
+"Please contact the developer for updated software." = "Please contact the developer for updated software.";
+
+/* OK */
+"OK" = "OK";
+
+/* Display mode naming related strings. */
+
+"PAL"  = "PAL";
+"NTSC" = "NTSC";
+
+"256 Colors" = "256 Colors";
+"Thousands"  = "Thousands";
+"Millions"   = "Millions";
+"Trillions"  = "Trillions";
+
+"n/a"  = "n/a";
+
+"stretched"  = "stretched";
+"simulscan"  = "simulscan";
+"interlaced" = "interlaced";
+"external"   = "external";
+
+
+"%%.%ldf Hertz"       = "%%.%ldf Hertz";
+"%%.%ldf Hertz (%%@)" = "%%.%ldf Hertz (%%@)";
+
+"%d x %d"  = "%d x %d";
+"%d x %dp" = "%d x %dp";
+"%d x %di" = "%d x %di";
+
+"%@"						=	"%@";
+"%@ (%@)"					= 	"%@ (%@)";
+"%@ (%@, %@)"					= 	"%@ (%@, %@)";
+"%@ (%@, %@, %@)"				=	"%@ (%@, %@, %@)";
+"%@ (%@, %@, %@, %@)"				=	"%@ (%@, %@, %@, %@)";
+"%@ (%@, %@, %@, %@, %@)"			=	"%@ (%@, %@, %@, %@, %@)";
+
+"%%@, %%.%ldf Hz"				=	"%%@, %%.%ldf Hz";
+"%%@, %%.%ldf Hz (%%@)"				=	"%%@, %%.%ldf Hz (%%@)";
+"%%@, %%.%ldf Hz (%%@, %%@)"			= 	"%%@, %%.%ldf Hz (%%@, %%@)";
+"%%@, %%.%ldf Hz (%%@, %%@, %%@)"		=	"%%@, %%.%ldf Hz (%%@, %%@, %%@)";
+"%%@, %%.%ldf Hz (%%@, %%@, %%@, %%@)"		=	"%%@, %%.%ldf Hz (%%@, %%@, %%@, %%@)";
+"%%@, %%.%ldf Hz (%%@, %%@, %%@, %%@, %%@)"	=	"%%@, %%.%ldf Hz (%%@, %%@, %%@, %%@, %%@)";

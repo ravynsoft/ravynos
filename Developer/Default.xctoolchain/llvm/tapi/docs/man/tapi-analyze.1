@@ -1,0 +1,57 @@
+.TH tapi\-analyze 1 2019-02-19 Darwin "TAPI Tool Documentation"
+.SH NAME
+tapi\-analyze \- Analyze that a binary can be launched without missing frameworks and interfaces.
+.SH SYNOPSIS
+\fItapi-analyze\fR [\-\-help]
+
+\fItapi-analyze\fR [\-\-target <target>] [\-o <output_json>] [\-\-sdkdb <sdkdb>] [\-\-app-info-output <app_info_json>] [\-v] <binary>
+
+\fItapi-analyze\fR [\-o <output_json>] \-\-sdkdb <sdkdb> [\-v] <app_info_json>
+
+.SH DESCRIPTION
+.PP
+tapi\-analyze is a tool that checks if binary can be launched without running it.
+The tool will try to resolve all the dylibs/frameworks that is required by the
+main binary and all their dependencies, and verify that all the necessary interfaces
+are present in them.
+
+.SH OPTIONS
+.PP
+\-\-target
+.RS 4
+Specify the target to be analyzed. For example, \fIx86_64\-apple\-macos\fR.
+If the option is not specified, the tool will analyze all the available
+targets that can be applied to the main binary.
+.RE
+
+.PP
+\-o
+.RS 4
+Specify the output JSON file location.
+The output format can be extended to contain more information.
+The JSON output will be in the format of:
+.PP
+.RS
+.nf
+{
+  "launchAnalysis": {
+    "arm64-apple-ios13" : {
+      "crashOnLaunch": false
+    }
+    "armv7-apple-ios13" : {
+      "crashOnLaunch": true,
+      "reason": "missing symbol _foo"
+    }
+  }
+}
+.fi
+.RE
+.RE
+
+.PP
+\-v
+.RS 4
+Verbose output. More information will be print to STDOUT during the analysis.
+.RE
+
+.SS For information on the complete set of command line options, please use 'tapi-analyze --help'

@@ -1,0 +1,304 @@
+/*
+ * Copyright (c) 1999-2008 Apple Computer, Inc.  All Rights Reserved.
+ * 
+ * @APPLE_LICENSE_HEADER_START@
+ * 
+ * This file contains Original Code and/or Modifications of Original Code
+ * as defined in and that are subject to the Apple Public Source License
+ * Version 2.0 (the 'License'). You may not use this file except in
+ * compliance with the License. Please obtain a copy of the License at
+ * http://www.opensource.apple.com/apsl/ and read it before using this
+ * file.
+ * 
+ * The Original Code and all software distributed under the License are
+ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+ * Please see the License for the specific language governing rights and
+ * limitations under the License.
+ * 
+ * @APPLE_LICENSE_HEADER_END@
+ */
+#include <mach/std_types.defs>
+#include <mach/mach_types.defs>
+
+type string_t = c_string[*:1024] ctype:string_t;
+
+import <IOKit/pwr_mgt/powermanagement_mig.h>;
+
+subsystem powermanagement 73000; 
+serverprefix _;
+
+UseSpecialReplyPort 1;
+
+routine io_pm_get_value_int(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        in  selector    : int;
+        out value       : int);
+        
+routine io_pm_set_value_int(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        in  selector    : int;
+        in  value       : int;
+        out return_val  : int);
+
+// PM Settings
+routine io_pm_force_active_settings(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        in  profiles    : pointer_t;
+        out return_val  : int);
+
+// Scheduled Events
+routine io_pm_schedule_power_event(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        in  package     : pointer_t;
+        in action       : int;
+        out return_val  : int);
+
+routine io_pm_schedule_repeat_event(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        in  package     : pointer_t;
+        in action       : int;
+        out return_val  : int);
+
+
+routine io_pm_cancel_repeat_events(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        out return_val  : int);
+
+
+// PM Bookkeeping
+routine io_pm_last_wake_time(
+            server      : mach_port_t;
+        out wakeData    : pointer_t;
+        out deltaData   : pointer_t;
+        out return_val  : int);
+
+// IOPMAssertion
+routine io_pm_assertion_create(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        in  props       : pointer_t;
+        out assertion_id: int;
+        out disableAppSleep: int;
+        out enTrIntensity: int;
+        out return_code : int);
+        
+routine io_pm_assertion_set_properties(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        in  assertion_id: int;
+        in  props       : pointer_t;
+        out disableAppSleep: int;
+        out enableAppSleep: int;
+        out enTrIntensity: int;
+        out return_code : int);
+
+routine io_pm_assertion_retain_release(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        in  assertion_id: int;
+        in  action      : int;
+        out retainCnt   : int;
+        out disableAppSleep: int;
+        out enableAppSleep: int;
+        out return_code : int);
+
+routine io_pm_assertion_copy_details(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        in assertion_id : int;
+        in whichData    : int;
+        in props        : pointer_t;
+        out assertions  : pointer_t, dealloc;
+        out return_val  : int);
+
+routine io_pm_declare_system_active(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+            inout state : int;
+            in props    : pointer_t;
+      inout assertion_id: int;
+      out return_code   : int);
+
+routine io_pm_declare_user_active(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+           in user_type : int;
+        in  props       : pointer_t;
+      inout assertion_id: int;
+        out disableAppSleep: int;
+        out return_code : int);
+
+routine io_pm_declare_network_client_active(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        in  props       : pointer_t;
+      inout assertion_id: int;
+        out disableAppSleep: int;
+        out return_code : int);
+
+// IOPMPowerHistory
+
+routine io_pm_get_uuid(
+            server      : mach_port_t;
+         in selector    : int;
+        out out_uuid    : string_t;
+        out return_val  : int);
+
+// IOPMConnection
+routine io_pm_connection_create(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        in name         : string_t;
+        in interests    : int;
+        out connection_id : uint32_t;
+        out return_code :int);
+
+routine io_pm_connection_schedule_notification(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        in connection_id : uint32_t;
+        in notify_port  : mach_port_t;
+        in disable      : int;
+        out return_code : int);
+        
+routine io_pm_connection_release(
+            server      : mach_port_t;
+        in connection_id : uint32_t;
+        out return_code : int);
+
+routine io_pm_connection_acknowledge_event(
+           server       : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        in connection_id : uint32_t;
+        in messageToken : int;
+        in options      : pointer_t;
+        out return_code : int);
+
+// OS controlled power sources
+routine io_ps_new_pspowersource(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        out psid        : int;
+        out return_code : int);
+    
+routine io_ps_update_pspowersource(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        in  psid        : int;
+        in  psdetails   : pointer_t;
+        out return_code : int);
+
+routine io_ps_release_pspowersource(
+        server          : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        in   psid       : int);
+
+routine io_ps_copy_powersources_info(
+        server          : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        in pstype       : int;
+       out powersources : pointer_t, dealloc;
+       out return_code  : int);
+
+routine io_ps_copy_chargelog(
+        server          : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        in time         : double;
+       out log          : pointer_t, dealloc;
+       out return_code  : int);
+
+
+// IOPMHIDPostEventActivity
+routine io_pm_hid_event_report_activity(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+        in  _action     : int;
+        out  allow      : int);
+
+routine io_pm_hid_event_copy_history(
+            server      : mach_port_t;
+            out eventArray : pointer_t, dealloc;
+            out return_val : int);
+
+routine io_pm_set_debug_flags(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+            in  newFlags   : uint32_t;
+            in  setMode    : uint32_t;
+            out oldFlags   : uint32_t;
+            out return_val : int);
+
+routine io_pm_set_bt_wake_interval(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+            in  newInterval   : uint32_t;
+            out oldInterval   : uint32_t;
+            out return_val    : int);
+
+routine io_pm_set_dw_linger_interval(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+            in  newInterval   : uint32_t;
+            out return_val    : int);
+
+routine io_pm_change_sa_assertion_behavior(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+            in newFlags     : uint32_t;
+            out oldFlags    : uint32_t;
+            out return_val  : int);
+
+routine io_pm_set_sleepservice_wake_time_cap(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+            in  cap_time   : int;
+            out return_val : int);
+
+routine io_pm_get_capability_bits(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+            out capBits : uint32_t;
+            out return_val : int);
+
+routine io_pm_ctl_assertion_type(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+            in assertion    : string_t;
+            in  action      : int;
+            out return_code : int);
+
+routine io_pm_assertion_notify(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+            in name     : string_t;
+            in  req_type: int;
+            out return_code : int);
+
+routine io_pm_assertion_activity_log(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+            out log         : pointer_t, dealloc;
+            inout entryCnt  : uint32_t;
+            out overflow    : uint32_t;
+            out return_code : int);
+
+routine io_pm_assertion_activity_aggregate(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+            out statsData: pointer_t, dealloc;
+            out return_code : int);
+
+routine io_pm_set_exception_limits(
+            server      : mach_port_t;
+ServerAuditToken token  : audit_token_t;
+            in  props   : pointer_t;
+            out return_code : int);

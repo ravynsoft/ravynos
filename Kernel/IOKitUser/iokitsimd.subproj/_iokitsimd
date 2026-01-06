@@ -1,0 +1,6 @@
+#!/bin/sh
+
+INDIGO_PREFIX=${DYLD_ROOT_PATH}
+unset DYLD_ROOT_PATH
+
+exec ${INDIGO_PREFIX}/usr/sbin/iokitsimd "${@}"

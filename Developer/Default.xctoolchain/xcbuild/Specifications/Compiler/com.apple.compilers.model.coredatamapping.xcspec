@@ -1,0 +1,60 @@
+/**
+ Copyright (c) 2015-present, Facebook, Inc.
+ All rights reserved.
+
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree. An additional grant
+ of patent rights can be found in the PATENTS file in the same directory.
+ */
+
+{
+    Type = Compiler;
+    Identifier = com.apple.compilers.model.coredatamapping;
+    Name = "Data Mapping Model Compiler";
+
+    CommandLine = "mapc [options] $(InputPath) $(ProductResourcesDir)/$(InputFileBase).cdm";
+    RuleName = "MappingModelCompile $(ProductResourcesDir)/$(InputFileBase).cdm $(InputPath)";
+    IsArchitectureNeutral = YES;
+
+    DeeplyStatInputDirectories = YES;
+    SynthesizeBuildRule = YES;
+    InputFileTypes = (
+        "wrapper.xcmappingmodel",
+    );
+    Outputs = (
+        "$(ProductResourcesDir)/$(InputFileBase).cdm",
+    );
+
+    Options = (
+        {
+            Name = "MAPC_MODULE";
+            Type = String;
+            DefaultValue = "$(PRODUCT_MODULE_NAME)";
+            CommandLineFlag = "--module";
+        },
+
+
+        /* Target */
+        {
+            Name = "SDKROOT";
+            Type = Path;
+            DefaultValue = "$(inherited)";
+            CommandLineFlag = "--sdkroot";
+        },
+        {
+            Name = "DEPLOYMENT_TARGET";
+            Type = String;
+            DefaultValue = "$($(DEPLOYMENT_TARGET_SETTING_NAME))";
+            CommandLineFlag = "--$(PLATFORM_NAME)-deployment-target";
+        },
+
+
+        /* Warnings */
+        {
+            Name = "MAPC_NO_WARNINGS";
+            Type = Boolean;
+            DefaultValue = NO;
+            CommandLineFlag = "--mapc-no-warnings";
+        },
+    );
+}

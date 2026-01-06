@@ -1,0 +1,156 @@
+/*
+ * Copyright (c) 2008 Apple Inc. All rights reserved.
+ *
+ * @APPLE_LICENSE_HEADER_START@
+ * 
+ * This file contains Original Code and/or Modifications of Original Code
+ * as defined in and that are subject to the Apple Public Source License
+ * Version 2.0 (the 'License'). You may not use this file except in
+ * compliance with the License. Please obtain a copy of the License at
+ * http://www.opensource.apple.com/apsl/ and read it before using this
+ * file.
+ * 
+ * The Original Code and all software distributed under the License are
+ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+ * Please see the License for the specific language governing rights and
+ * limitations under the License.
+ * 
+ * @APPLE_LICENSE_HEADER_END@
+ */
+#include <mach/std_types.defs>
+#include <mach/mach_types.defs>
+
+subsystem kextmanager 70000;
+serverprefix _;
+
+#include <mach/std_types.defs>
+#include <mach/mach_types.defs>
+//import <TargetConditionals.h>;
+// RY: Looks like TargetConditionals is not working with MIG
+// Using NO_SECURITY_FRAMEWORK instead of !TARGET_OS_IPHONE
+#ifndef NO_SECURITY_FRAMEWORK
+import <Security/Authorization.h>;
+#endif /* NO_SECURITY_FRAMEWORK */
+import <IOKit/kext/kextmanager_types.h>;
+import <mach/kmod.h>;
+import <sys/param.h>;
+
+
+// !! Everything here MUST MATCH kextmanager_types.h !!
+// (yes, it's unfortunate that we have to duplicate typedefs)
+
+type kext_result_t = int;
+// tracks __darwin_uuid_t in sys/_types.h (or CFUUIDBytes in CFUUID.h)
+type uuid_t = array [16] of uint8_t;
+// length must match MNAMELEN (sys/mount.h)
+#if __DARWIN_64_BIT_INO_T
+type mountpoint_t = array [MAXPATHLEN] of char;
+#else
+type mountpoint_t = array [90] of char;
+#endif
+// length limit chosen arbitrarily (matches kextmanager_types.h)
+type property_key_t = array [128] of char;
+// length must match KMOD_MAX_NAME from <mach/kmod.h>
+type kext_bundle_id_t = array [64] of char;
+// length must match MAXPATHLEN from <sys/param.h>
+type posix_path_t = array [1024] of char;
+
+/*
+ * serialized XML data (server->client)
+ */
+// nowadays this is binary plist data but we keep the name for now
+type xmlDataOut = ^ array [] of MACH_MSG_TYPE_BYTE
+        ctype : xmlDataOut_t;
+type xmlDataIn = ^ array [] of MACH_MSG_TYPE_BYTE
+        ctype : xmlDataIn_t;
+#ifndef NO_SECURITY_FRAMEWORK
+type AuthRefIn = struct [8] of unsigned32
+        ctype : AuthorizationExternalForm;
+#endif /* NO_SECURITY_FRAMEWORK */
+
+// for finding icons
+routine kextmanager_path_for_bundle_id(
+    server           : mach_port_t;
+    bundle_id        : kext_bundle_id_t;
+    out path         : posix_path_t;
+    out kext_result  : kext_result_t);
+
+// for loginwindow to find "OSBundleHelper"
+routine kextmanager_create_property_value_array(
+    server           : mach_port_t;
+    prop_key         : property_key_t;
+    out data         : xmlDataOut, dealloc);
+
+// login / logout tracking
+#ifndef NO_SECURITY_FRAMEWORK
+skip;  /* was kextmanager_user_did_log_in */
+#endif /* NO_SECURITY_FRAMEWORK */
+
+skip;  /* was kextmanager_user_will_log_out */
+skip;  /* was kextmanager_get_logged_in_userid */
+
+skip;  /* was kextmanager_record_nonsecure_kextload */
+
+// reboot blocking (are caches up to date?)
+routine kextmanager_lock_reboot(
+            server      : mach_port_t;
+    sreplyport reply    : mach_port_make_send_once_t;   // exposed reply port
+            reaper      : mach_port_make_send_t;        // death tracking
+            waitForLock : int;
+    out     busyVol     : mountpoint_t;                 // if available
+    out     busyStatus  : int);
+
+// kextcache locking
+// if not waiting for lock, lockStatus = EBUSY if unavailable
+routine kextmanager_lock_volume(
+            server      : mach_port_t;
+    sreplyport reply    : mach_port_make_send_once_t;   // exposed reply port
+            reaper      : mach_port_make_send_t;        // death tracking
+            vol_uuid    : uuid_t;
+            waitForLock : int;
+    out     lockStatus  : int);
+
+routine kextmanager_unlock_volume(
+            server      : mach_port_t;
+            clientIdent : mach_port_make_send_t;
+            vol_uuid    : uuid_t;
+            exitStatus  : int);
+
+// kextload locking (trylock-style)
+routine kextmanager_lock_kextload(
+    server           : mach_port_t;
+    clientPort       : mach_port_make_send_t;
+    out lockstatus   : int);
+
+routine kextmanager_unlock_kextload(
+    server           : mach_port_t;
+    clientPort       : mach_port_make_send_t);
+
+/* This spot used to be kextmanager_record_path_for_bundle_id(),
+ * but the kernel records the paths of all loaded kexts now so
+ * it's no longer necessary.
+ */
+skip;
+
+routine kextmanager_load_kext(
+    server                        : mach_port_t;
+    ServerAuditToken remote_creds : audit_token_t;
+    load_data                     : xmlDataIn);
+
+routine kextmanager_validate_ext(
+    server                        : mach_port_t;
+    ServerAuditToken remote_creds : audit_token_t;
+    dext_data                     : xmlDataIn);
+
+routine kextmanager_update_ext(
+    server                        : mach_port_t;
+    ServerAuditToken remote_creds : audit_token_t;
+    dext_data                     : xmlDataIn);
+
+routine kextmanager_stop_ext(
+    server                        : mach_port_t;
+    ServerAuditToken remote_creds : audit_token_t;
+    dext_data                     : xmlDataIn);

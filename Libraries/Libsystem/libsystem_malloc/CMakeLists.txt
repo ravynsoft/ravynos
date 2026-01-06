@@ -1,0 +1,36 @@
+add_library(libsystem_malloc)
+set_property(TARGET libsystem_malloc PROPERTY OUTPUT_NAME "system_malloc")
+set_property(TARGET libsystem_malloc PROPERTY SUFFIX ".dylib")
+set_property(TARGET libsystem_malloc PROPERTY PREFIX "lib")
+
+target_sources(libsystem_malloc PRIVATE
+    bitarray.c empty.s frozen_malloc.c legacy_malloc.c
+    magazine_large.c magazine_malloc.c magazine_medium.c
+    magazine_rack.c magazine_small.c magazine_tiny.c
+    malloc_common.c malloc_printf.c malloc.c nano_malloc.c
+    msl_lite_support.c nano_malloc_common.c nanov2_malloc.c
+    purgeable_malloc.c vm.c resolver/resolver.c
+)
+
+target_include_directories(libsystem_malloc PRIVATE
+   ../private internal ${SDK_SOURCE_DIR}/usr/include
+)
+
+target_compile_definitions(libsystem_malloc PRIVATE
+    DISPATCH_USE_DTRACE=0
+    # memory_order_dependency=os_atomic_memory_order_dependency
+    # memory_order_acquire=os_atomic_memory_order_acquire
+    # memory_order_release=os_atomic_memory_order_release
+    # memory_order_relaxed=os_atomic_memory_order_relaxed
+    # OS_ATOMIC_CONFIG_MEMORY_ORDER_DEPENDENCY=1
+    # OS_ATOMIC_CONFIG_MEMORY_ORDER_DEPENDENCY=1 
+    # OS_ATOMIC_CONFIG_STARVATION_FREE_ONLY=0
+    # __DARWIN_LITTLE_ENDIAN=1234 __DARWIN_BIG_ENDIAN=4321
+)
+
+target_compile_options(libsystem_malloc PRIVATE
+    --sysroot=${RAVYN_SDKROOT} -isysroot=${RAVYN_SDKROOT} -w
+    --target=${TARGET_TRIPLE}
+    -Wno-implicit-function-declaration
+    -Wno-int-conversion -Wno-implicit-int
+)

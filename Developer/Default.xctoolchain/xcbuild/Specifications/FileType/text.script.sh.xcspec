@@ -1,0 +1,36 @@
+/**
+ Copyright (c) 2015-present, Facebook, Inc.
+ All rights reserved.
+
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree. An additional grant
+ of patent rights can be found in the PATENTS file in the same directory.
+ */
+
+{
+    Type = FileType;
+    Identifier = text.script.sh;
+    BasedOn = text.script;
+
+    UTI = "public.bash-script";
+    Extensions = (
+        "sh",
+        "command",
+    );
+    MIMETypes = (
+        "text/x-sh-script",
+    );
+    MagicWord = (
+        "#!/bin/sh",
+        "#! /bin/sh",
+        "#!/bin/bash",
+        "#! /bin/bash",
+        "#!/bin/zsh",
+        "#! /bin/zsh",
+        "#!/usr/local/bin/bash",
+        "#! /usr/local/bin/bash",
+        "#!/usr/local/bin/zsh",
+        "#! /usr/local/bin/zsh",
+    );
+    IsExecutable = YES;
+}

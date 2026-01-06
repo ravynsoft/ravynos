@@ -36,6 +36,8 @@
 #include <sys/signal.h>
 #include "_errno.h"
 
+extern int errno;
+
 #if defined(VARIANT_CANCELABLE) || defined(VARIANT_PRE1050)
 #if !defined(VARIANT_DARWIN_EXTSN)
 extern int __select(int, fd_set * __restrict, fd_set * __restrict,

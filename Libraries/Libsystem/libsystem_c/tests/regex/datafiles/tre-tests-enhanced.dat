@@ -1,0 +1,544 @@
+# Large number of macros in one regexp (Enhanced BRE)
+B$H	[A-Z]\\d\\s\\?\\d[A-Z]\\{2\\}\\|[A-Z]\\d\\{2\\}\\s\\?\\d[A-Z]\\{2\\}\\|[A-Z]\\{2\\}\\d\\s\\?\\d[A-Z]\\{2\\}\\|[A-Z]\\{2\\}\\d\\{2\\}\\s\\?\\d[A-Z]\\{2\\}\\|[A-Z]\\d[A-Z]\\s\\?\\d[A-Z]\\{2\\}\\|[A-Z]\\{2\\}\\d[A-Z]\\s\\?\\d[A-Z]\\{2\\}\\|[A-Z]\\{3\\}\\s\\?\\d[A-Z]\\{2\\}			A12BC		(0,5)
+BH	a\{11\}\(b\{2\}c\)\{2\}			aaaaaaaaaaabbcbbc	(0,17)(14,17)
+B$H	^!packet [0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\} [0-9]\\+	!packet 127.0.0.1 999	(0,21)
+B$H	^!pfast [0-9]\\{1,15\\} \\([0-9]\\{1,3\\}\\.\\)\\{3\\}[0-9]\\{1,3\\}\\.[0-9]\\{1,5\\}$		!pfast 1234567890 127.0.0.1.1234	(0,32)(24,26)
+# Should these match or not?
+BH	\(a\)*-\1b			aaa-b		NOMATCH
+BH	\(\(.*\)\1\)\{1,\}		xxxxxx		ESUBREG
+# Basic string matching
+BH	foobar				foobar		(0,6)
+BH	SAME				xxxfoobarzapzot	(3,9)
+BH	aaaa				xxaaaaaaaaaaaaaaaaa	(2,6)
+# Test zero length matches
+BH	\(a*\)				NULL		(0,0)(0,0)
+BH	\(a*\)*				NULL		(0,0)(0,0)
+BH	\(\(a*\)*\)*			NULL		(0,0)(0,0)(0,0)
+BH	\(a*bcd\)*			aaaaaaaaaaaabcxbcxbcxaabcxaabcx	(0,0)(?,?)
+BH	SAME				aaaaaaaaaaaabcxbcxbcxaabcxaabc	(0,0)(?,?)
+BH	SAME				aaaaaaaaaaaabcxbcdbcxaabcxaabc	(0,0)(?,?)
+BH	SAME				aaaaaaaaaaaabcdbcdbcxaabcxaabc	(0,18)(15,18)
+BH	\(a*\)\+			-		(0,0)(0,0)
+#E	NULL				NULL		(0,0)
+#E	SAME				foo		(0,0)
+# Test for submatch addressing which requires arbitrary lookahead
+BH	\(a*\)aaaaaa			aaaaaaaaaaaaaaax	(0,15)(0,9)
+# Test leftmost and longest matching and some tricky submatches
+BH	\(a*\)\(a*\)			aaaa		(0,4)(0,4)(4,4)
+BH	\(abcd\|abc\)\(d\?\)		abcd		(0,4)(0,4)(4,4)
+BH	\(abc\|abcd\)\(d\?\)		abcd		(0,4)(0,4)(4,4)
+BH	\(abc\|abcd\)\(d\?\)e		abcde		(0,5)(0,4)(4,4)
+BH	\(abcd\|abc\)\(d\?\)e		abcde		(0,5)(0,4)(4,4)
+BH	a\(bc\|bcd\)\(d\?\)		abcd		(0,4)(1,4)(4,4)
+BH	a\(bcd\|bc\)\(d\?\)		abcd		(0,4)(1,4)(4,4)
+BH	a*\(a\?bc\|bcd\)\(d\?\)		aaabcd		(0,6)(3,6)(6,6)
+BH	a*\(bcd\|a\?bc\)\(d\?\)		aaabcd		(0,6)(3,6)(6,6)
+BH	\(a\|\(a*b*\)\)*		NULL		(0,0)(0,0)(0,0)
+BH	SAME				a		(0,1)(0,1)(?,?)
+BH	SAME				aa		(0,2)(0,2)(0,2)
+BH	SAME				aaa		(0,3)(0,3)(0,3)
+BH	SAME				bbb		(0,3)(0,3)(0,3)
+BH	SAME				aaabbb		(0,6)(0,6)(0,6)
+BH	SAME				bbbaaa		(0,6)(3,6)(3,6)
+BH	\(\(a*b*\)\|a\)*		NULL		(0,0)(0,0)(0,0)
+BH	SAME				a		(0,1)(0,1)(0,1)
+BH	SAME				aa		(0,2)(0,2)(0,2)
+BH	SAME				aaa		(0,3)(0,3)(0,3)
+BH	SAME				bbb		(0,3)(0,3)(0,3)
+BH	SAME				aaabbb		(0,6)(0,6)(0,6)
+BH	SAME				bbbaaa		(0,6)(3,6)(3,6)
+BH	a.*\(.*b.*\(.*c.*\).*d.*\).*e.*\(.*f.*\).*g	aabbccddeeffgg	(0,14)(3,9)(5,7)(11,13)
+BH	\(wee\|week\)\(night\|knights\)s*	weeknights	(0,10)(0,4)(4,9)
+BH	SAME				weeknightss	(0,11)(0,4)(4,9)
+BH	a*				aaaaaaaaaa	(0,10)
+BH	aa*				aaaaaaaaaa	(0,10)
+BH	aaa*				aaaaaaaaaa	(0,10)
+BH	aaaa*				aaaaaaaaaa	(0,10)
+# Test clearing old submatch data with nesting parentheses and iteration
+BH	\(\(a\)\|\(b\)\)*c		aaabc		(0,5)(3,4)(?,?)(3,4)
+BH	SAME				aaaac		(0,5)(3,4)(3,4)(?,?)
+BH	foo\(\(bar\)*\)*zot		foozot		(0,6)(3,3)(?,?)
+BH	SAME				foobarzot	(0,9)(3,6)(3,6)
+BH	SAME				foobarbarzot	(0,12)(3,9)(6,9)
+BH	foo\(\(zup\)*\|\(bar\)*\|\(zap\)*\)*zot	foobarzapzot	(0,12)(6,9)(?,?)(?,?)(6,9)
+BH	SAME				foobarbarzapzot	(0,15)(9,12)(?,?)(?,?)(9,12)
+BH	SAME				foozupzot	(0,9)(3,6)(3,6)(?,?)(?,?)
+BH	SAME				foobarzot	(0,9)(3,6)(?,?)(3,6)(?,?)
+BH	SAME				foozapzot	(0,9)(3,6)(?,?)(?,?)(3,6)
+BH	SAME				foozot		(0,6)(3,3)(?,?)(?,?)(?,?)
+# Test case where, e.g., Perl and Python regexp functions, and many
+# other backtracking matchers, fail to produce the longest match.
+# It is not exactly a bug since Perl does not claim to find the
+# longest match, but a confusing feature and, in my opinion, a bad
+# design choice because the union operator is traditionally defined
+# to be commutative (with respect to the language denoted by the RE). */
+BH	\(a\|ab\)\(blip\)\?		ablip		(0,5)(0,1)(1,5)
+BH	SAME				ab		(0,2)(0,2)(?,?)
+BH	\(ab\|a\)\(blip\)\?		ablip		(0,5)(0,1)(1,5)
+BH	SAME				ab		(0,2)(0,2)(?,?)
+BH	\(\(a\|b\)*\)a\(a\|b\)*		aaaaabaaaba	(0,11)(0,10)(9,10)(?,?)
+BH	SAME				aaaaabaaab	(0,10)(0,8)(7,8)(9,10)
+BH	SAME				caa		(1,3)(1,2)(1,2)(?,?)
+BH	\(\(a\|aba\)*\)\(ababbaba\)\(\(a\|b\)*\)	aabaababbabaaababbab	(0,20)(0,4)(1,4)(4,12)(12,20)(19,20)
+BH	SAME				aaaaababbaba	(0,12)(0,4)(3,4)(4,12)(12,12)(?,?)
+BH	\(\(a\|aba\|abb\|bba\|bab\)*\)\(ababbababbabbbabbbbbbabbaba\)\(\(a\|b\)*\)	aabaabbbbabababaababbababbabbbabbbbbbabbabababbababababbabababa	(0,63)(0,16)(13,16)(16,43)(43,63)(62,63)
+# Test for empty subexpressions
+#E	(a|)				a		(0,1)(0,1)
+#E	SAME				b		(0,0)(0,0)
+#E	SAME				NULL		(0,0)(0,0)
+#E	(|a)				a		(0,1)(0,1)
+#E	SAME				b		(0,0)(0,0)
+#E	SAME				NULL		(0,0)(0,0)
+#E	a|				a		(0,1)
+#E	SAME				b		(0,0)
+#E	SAME				NULL		(0,0)
+#E	|a				a		(0,1)
+#E	SAME				b		(0,0)
+#E	SAME				NULL		(0,0)
+# Miscellaneous tests
+BH	\(a*\)b\(c*\)			abc		(0,3)(0,1)(2,3)
+BH	SAME				***abc***	(3,6)(3,4)(5,6)
+BH	\(a\)				a		(0,1)(0,1)
+BH	\(\(a\)\)			a		(0,1)(0,1)(0,1)
+BH	\(\(\(\(\(\(\(\(\(\(\(\(\(\(\(\(\(\(\(\(a\)\)\)\)\)\)\)\)\)\)\)\)\)\)\)\)\)\)\)\)	a	(0,1)(0,1)(0,1)(0,1)(0,1)(0,1)(0,1)(0,1)(0,1)(0,1)(0,1)(0,1)(0,1)(0,1)(0,1)(0,1)(0,1)(0,1)(0,1)(0,1)(0,1)
+BH	ksntoeaiksntoeaikstneoaiksnteoaiksntoeaiskntoeaiskntoekainstoeiaskntoeakisntoeksaitnokesantiksoentaikosentaiksoentaiksnoeaisknteoaksintoekasitnoeksaitkosetniaksoetnaisknoetakistoeksintokesanitksoentaisknoetaisknoetiaksotneaikstoekasitoeskatioksentaiksoenatiksoetnaiksonateiksoteaeskanotisknetaiskntoeasknitoskenatiskonetaisknoteai			x		NOMATCH
+BH	\(\(aab\)\|\(aac\)\|\(aa*\)\)c	aabc		(0,4)(0,3)(0,3)(?,?)(?,?)
+BH	SAME				aacc		(0,4)(0,3)(?,?)(0,3)(?,?)
+BH	SAME				aaac		(0,4)(0,3)(?,?)(?,?)(0,3)
+BH	^\(\([^!]\+!\)\?\([^!]\+\)\|.\+!\([^!]\+!\)\([^!]\+\)\)$	foo!bar!bas	(0,11)(0,11)(?,?)(?,?)(4,8)(8,11)
+# For BRE, the first $ is not magic
+#E	^([^!]+!)?([^!]+)$|^.+!([^!]+!)([^!]+)$		foo!bar!bas	(0,11)(?,?)(?,?)(4,8)(8,11)
+BH	^\(\([^!]\+!\)\?\([^!]\+\)\|.\+!\([^!]\+!\)\([^!]\+\)\)$	foo!bar!bas	(0,11)(0,11)(?,?)(?,?)(4,8)(8,11)
+BH	M[ou]'\?am\+[ae]r .*\([AEae]l[- ]\)\?[GKQ]h\?[aeu]\+\([dtz][dhz]\?\)\+af[iy]	Muammar Quathafi	(0,16)(?,?)(11,13)
+BHi	\(Ab\|cD\)*			aBcD		(0,4)(2,4)
+BH	a**				NULL		BADRPT
+BH	a*\+				NULL		BADRPT
+BH	a\+*				NULL		BADRPT
+BH	a\+\+				NULL		BADRPT
+BH	a\?\+				NULL		BADRPT
+BH	a\?*				NULL		BADRPT
+BH	a\{1,2\}*			NULL		BADRPT
+BH	a\{1,2\}\+			a+		(0,2)
+# Many of the following tests were mostly inspired by (or copied from) the
+# libhackerlab posix test suite by Tom Lord
+BH	a				a		(0,1)
+BH	\.				.		(0,1)
+BH	\[				[		(0,1)
+BH	\\				\		(0,1)
+BH	\*				*		(0,1)
+BH	\^				^		(0,1)
+BH	\$				$		(0,1)
+BH	\				NULL		EESCAPE
+BH	x\.				x.		(0,2)
+BH	x\[				x[		(0,2)
+BH	x\\				x\		(0,2)
+BH	x\*				x*		(0,2)
+BH	x\^				x^		(0,2)
+BH	x\$				x$		(0,2)
+BH	x\				NULL		EESCAPE
+BH	.				a		(0,1)
+BH$	SAME				\n		(0,1)
+#B	(+|?)				(+|?)		(0,5)
+#B	SAME				+|?		NOMATCH
+#B	SAME				(+)		NOMATCH
+#B	SAME				+		NOMATCH
+# Test bracket expressions
+BH	[				NULL		EBRACK
+BH	[]				NULL		EBRACK
+BH	[^]				NULL		EBRACK
+BH	[]x]				]		(0,1)
+BH	[]x]				x		(0,1)
+BH	[.]				.		(0,1)
+BH	SAME				a		NOMATCH
+BH	[*]				*		(0,1)
+BH	[[]				[		(0,1)
+BH	[\]				\		(0,1)
+BH	[-x]				-		(0,1)
+BH	SAME				x		(0,1)
+BH	[x-]				-		(0,1)
+BH	SAME				x		(0,1)
+BH	[-]				-		(0,1)
+BH	[abc]				a		(0,1)
+BH	SAME				b		(0,1)
+BH	SAME				c		(0,1)
+BH	SAME				d		NOMATCH
+BH	SAME				xa		(1,2)
+BH	SAME				xb		(1,2)
+BH	SAME				xc		(1,2)
+BH	SAME				xd		NOMATCH
+BH	x[abc]				xa		(0,2)
+BH	SAME				xb		(0,2)
+BH	SAME				xc		(0,2)
+BH	SAME				xd		NOMATCH
+BH	[^abc]				a		NOMATCH
+BH	SAME				b		NOMATCH
+BH	SAME				c		NOMATCH
+BH	SAME				d		(0,1)
+BH	SAME				xa		(0,1)
+BH	SAME				xb		(0,1)
+BH	SAME				xc		(0,1)
+BH	SAME				xd		(0,1)
+BH	x[^abc]				xa		NOMATCH
+BH	x[^abc]				xb		NOMATCH
+BH	x[^abc]				xc		NOMATCH
+BH	x[^abc]				xd		(0,2)
+BH	[()+?*\]\+			x\*?+()x	(1,7)
+# Standard character classes
+BH	[[:alnum:]]\+			%abc123890XYZ=	(1,13)
+BH$	[[:cntrl:]]\\+			%\n\t\015\f 	(1,5)
+BH	[[:lower:]]\+			AbcdE		(1,4)
+BHi	[[:lower:]]\+			AbcdE		(0,5)
+BH$	[[:space:]]\\+			x \t\f\nx	(1,5)
+BH	[[:alpha:]]\+			%abC123890xyz=	(1,4)
+BH	[[:digit:]]\+			%abC123890xyz=	(4,10)
+BH	[^[:digit:]]\+			%abC123890xyz=	(0,4)
+BH$	[[:print:]]\\+			\n %abC12\f	(1,8)
+BH$	[[:upper:]]\\+			\n aBCDEFGHIJKLMNOPQRSTUVWXYz	(3,27)
+BHi$	[[:upper:]]\\+			\n aBCDEFGHIJKLMNOPQRSTUVWXYz	(2,28)
+BH$	[[:blank:]]\\+			\na \t b	(2,5)
+BH$	[[:graph:]]\\+			\n %abC12\f	(2,8)
+BH	[[:punct:]]\+			a~!@#$%^&*()_+=-`[]{};':"|\,./?>< 	(1,33)
+BH	[[:xdigit:]]\+			-0123456789ABCDEFabcdef	(1,23)
+BH	[[:bogus-character-class-name:]	NULL		ECTYPE
+# Range expressions (assuming that the C locale is being used)
+BH	[a-z]\+				ABCabcxyzABC	(3,9)
+BH	[z-a]\+				NULL		ERANGE
+BH	[a-b-c]				NULL		ERANGE
+BH	[a-a]\+				zaaaaab		(1,6)
+BH	[--Z]\+				!ABC-./XYZ~	(1,10)
+BH	[*--]				-		(0,1)
+BH	SAME				*		(0,1)
+BH	[*--Z]\+			!+*,---ABC	(1,7)
+BH	[a-]\+				xa-a--a-ay	(1,9)
+# REG_ICASE and character sets
+BHi	[a-c]*				cABbage		(0,5)
+BHi	[^a-c]*				tObAcCo		(0,2)
+BHi	[A-C]*				cABbage		(0,5)
+BHi	[^A-C]*				tObAcCo		(0,2)
+# Complex character sets
+BH	[[:digit:]a-z#$%]\+		__abc#lmn012$x%yz789*	(2,20)
+BHi	[[:digit:]a-z#$%]\+		__abcLMN012x%#$yz789*	(2,20)
+BH	[^[:digit:]a-z#$%]\+		abc#lmn012$x%yz789--@*,abc	(18,23)
+BHi	[^[:digit:]a-z#$%]\+		abc#lmn012$x%yz789--@*,abc	(18,23)
+BHi	[^[:digit:]#$%[:xdigit:]]\+	abc#lmn012$x%yz789--@*,abc	(4,7)
+BH	[^-]\+				---afd*(&,ml---	(3,12)
+BH	[^--Z]\+			---AFD*(&,ml---	(6,12)
+BHi	[^--Z]\+			---AFD*(&,ml---	(6,10)
+# Miscellaneous tests
+BH	abc\(\(de\)\(fg\)\)hi		xabcdefghiy	(1,10)(4,8)(4,6)(6,8)
+BH	abc*def				xabdefy		(1,6)
+BH	SAME				xabcdefy	(1,7)
+BH	SAME				xabcccccccdefy	(1,13)
+BH	abc\(def\)*ghi			xabcghiy	(1,7)(?,?)
+BH	SAME				xabcdefghi	(1,10)(4,7)
+BH	SAME				xabcdefdefdefghi	(1,16)(10,13)
+BH	a\?				aaaaa		(0,1)
+BH	SAME				xaaaaa		(0,0)
+BH	a\+				aaaaa		(0,5)
+BH	SAME				xaaaaa		(1,6)
+# Test anchors and their behaviour with the REG_NEWLINE compilation
+# flag and the REG_NOTBOL, REG_NOTEOL execution flags.
+#
+# Normally, `^' matches the empty string at beginning of input.
+# If REG_NOTBOL is used, `^' won't match the zero length string.
+BH	^abc				abcdef		(0,3)
+BHb	SAME				abcdef		NOMATCH
+BH	SAME				xyzabcdef	NOMATCH
+BHb	SAME				xyzabcdef	NOMATCH
+BH$	SAME				\nabcdef	NOMATCH
+BHb$	SAME				\nabcdef	NOMATCH
+# Normally, `$' matches the empty string at end of input.
+# If REG_NOTEOL is used, `$' won't match the zero length string.
+BH	abc$				defabc		(3,6)
+BHe	SAME				defabc		NOMATCH
+BH	SAME				defabcxyz	NOMATCH
+BHe	SAME				defabcxyz	NOMATCH
+BH$	SAME				defabc\n	NOMATCH
+BHe$	SAME				defabc\n	NOMATCH
+BH	^abc$				abc		(0,3)
+BHb	SAME				abc		NOMATCH
+BHe	SAME				abc		NOMATCH
+BHbe	SAME				abc		NOMATCH
+BH$	SAME				\nabc\n		NOMATCH
+BH$	SAME				defabc\n	NOMATCH
+BH$	SAME				\nabcdef	NOMATCH
+BH	SAME				abcdef		NOMATCH
+BH	SAME				defabc		NOMATCH
+BH$	SAME				abc\ndef	NOMATCH
+BH$	SAME				def\nabc	NOMATCH
+# If REG_NEWLINE is used, `^' matches the empty string immediately after
+# a newline, regardless of whether execution flags contain REG_NOTBOL.
+# Similarly, if REG_NEWLINE is used, `$' matches the empty string
+# immediately before a newline, regardless of execution flags.
+BHn	^abc				abcdef		(0,3)
+BHbn	SAME				abcdef		NOMATCH
+BHn	SAME				xyzabcdef	NOMATCH
+BHbn	SAME				xyzabcdef	NOMATCH
+BHn$	SAME				\nabcdef	(1,4)
+BHbn$	SAME				\nabcdef	(1,4)
+BHn	abc$				defabc		(3,6)
+BHen	SAME				defabc		NOMATCH
+BHn	SAME				defabcxyz	NOMATCH
+BHen	SAME				defabcxyz	NOMATCH
+BHn$	SAME				defabc\n	(3,6)
+BHen$	SAME				defabc\n	(3,6)
+BHn	^abc$				abc		(0,3)
+BHbn	SAME				abc		NOMATCH
+BHen	SAME				abc		NOMATCH
+BHben	SAME				abc		NOMATCH
+BHn$	SAME				\nabc\n		(1,4)
+BHn$	SAME				defabc\n	NOMATCH
+BHn$	SAME				\nabcdef	NOMATCH
+BHn	SAME				abcdef		NOMATCH
+BHbn	SAME				abcdef		NOMATCH
+BHn	SAME				defabc		NOMATCH
+BHen	SAME				defabc		NOMATCH
+BHn$	SAME				abc\ndef	(0,3)
+BHbn$	SAME				abc\ndef	NOMATCH
+BHen$	SAME				abc\ndef	(0,3)
+BHbn$	SAME				abc\ndef	NOMATCH
+BHn$	SAME				def\nabc	(4,7)
+BHbn$	SAME				def\nabc	(4,7)
+BHen$	SAME				def\nabc	NOMATCH
+BHben$	SAME				def\nabc	NOMATCH
+# With BRE syntax, `^' has a special meaning only at the beginning of the
+# RE or the beginning of a parenthesized subexpression.
+BH	a\{0,1\}^bc			bc		NOMATCH
+BH	SAME				^bc		(0,3)
+BH	SAME				abc		NOMATCH
+BH	SAME				a^bc		(0,4)
+BH	a\{0,1\}\(^bc\)			bc		(0,2)(0,2)
+BH	SAME				^bc		NOMATCH
+BH	SAME				abc		NOMATCH
+BH	SAME				a^bc		NOMATCH
+BH	(^a				(^a		(0,3)
+# With BRE syntax, `$' has a special meaning only at the end of the
+# RE or the end of a parenthesized subexpression.
+BH	ab$c\{0,1\}			ab		NOMATCH
+BH	SAME				ab$		(0,3)
+BH	SAME				abc		NOMATCH
+BH	SAME				ab$c		(0,4)
+BH	\(ab$\)c\{0,1\}			ab		(0,2)(0,2)
+BH	SAME				ab$		NOMATCH
+BH	SAME				abc		NOMATCH
+BH	SAME				ab$c		NOMATCH
+BH	a$)				a$)		(0,3)
+# Miscellaneous tests for `^' and `$'
+BH	foo^$				foo		NOMATCH
+# For BRE, $ and ^ not magic
+#En$	x$\n^y				foo\nybarx\nyes\n	(8,11)
+BH	^$				x		NOMATCH
+BH	SAME				NULL		(0,0)
+BH$	SAME				\n		NOMATCH
+BHn	^$				x		NOMATCH
+BHn	SAME				NULL		(0,0)
+BHn$	SAME				\n		(0,0)
+# REG_NEWLINE causes `.' not to match newlines
+BH$	.*				ab\ncd		(0,5)
+BHn$	.*				ab\ncd		(0,2)
+# Tests for nonstandard syntax extensions (Enhanced mode off)
+#
+# Zero width assertions
+BH	\<x				aax xaa		(4,5)
+BH	SAME				xaa		(0,1)
+BH	x\>				axx xaa		(2,3)
+BH	SAME				aax		(2,3)
+BH	\bx				axx xaa		(4,5)
+BH	SAME				aax		NOMATCH
+BH	SAME				xax		(0,1)
+BH	x\b				axx xaa		(2,3)
+BH	SAME				aax		(2,3)
+BH	SAME				xaa		NOMATCH
+BH	\Bx				aax xxa		(2,3)
+BH	\Bx\b				aax xxx		(2,3)
+BH	\<.				;xaa		(1,2)
+# Shorthands for character classes
+BH	\w\{1,\}			,.(a23_Nt-öo)	(3,9)
+BH	\d\{1,\}			uR120_4=v4	(2,5)
+BH	\D\{1,\}			120d_=vA4s	(3,8)
+BH	\w\+				,.(a23_Nt-öo)	(3,9)
+BH	\d\+				uR120_4=v4	(2,5)
+BH	\D\+				120d_=vA4s	(3,8)
+# Quoted special characters
+B$H	\\t				\t		(0,1)
+B$H	\\e				\033		(0,1)
+# Test the \x1B and \x{263a} extensions for specifying 8 bit and wide
+# characters in hexadecimal.
+BH	\x41				ABC		(0,1)
+B$H	\\x5				\005		(0,1)
+B$H	\\x5r				\005r		(0,2)
+# test_comp("\\x",REG_EXTENDED,0)
+# test_nexec("\000",1,0,REG_OK,0,1)
+# test_comp("\\xr",REG_EXTENDED,0)
+# test_nexec("\000r",2,0,REG_OK,0,2)
+BH	\x{41}				ABC		(0,1)
+B$H	\\x{5}				\005		(0,1)
+B$H	\\x{5}r				\005r		(0,2)
+# test_comp("\\x{}",REG_EXTENDED,0)
+# test_nexec("\000",1,0,REG_OK,0,1)
+# test_comp("\\x{}r",REG_EXTENDED,0)
+# test_nexec("\000r",2,0,REG_OK,0,2)
+# Tests for (?inrU-inrU) and (?inrU-inrU:) (Enhanced mode off)
+#E	foo(?i)bar			fooBaR		BADRPT
+#E	foo(?i)bar|zap			fooBaR		BADRPT
+#E	SAME				foozap		BADRPT
+#E	SAME				foozAp		BADRPT
+#E	SAME				bar		BADRPT
+#E	SAME				zap		BADRPT
+#Ei	foo(?-i:zap)zot			FoOzapZOt	BADRPT
+#Ei	SAME				FoOzApZOt	BADRPT
+#E	foo(?i:bar|zap)			foozap		BADRPT
+#E	SAME				foobar		BADRPT
+#E	SAME				foobAr		BADRPT
+#E	SAME				fooZaP		BADRPT
+#E	foo(?U:o*)(o*)			foooo		BADRPT
+# Test comment syntax (Enhanced mode off)
+#E	foo(?# This here is a comment. )bar	foobar	BADRPT
+# Tests for \Q and \E (Enhanced mode off)
+#E	\((\Q)?:\<[^$\E)		()?:\<[^$	EBRACK
+#E	\Qabc\E.*			abcdef		NOMATCH
+#E	SAME				QabcEdef	(0,8)
+#E	\Qabc\E.*|foo			parabc123wxyz	NOMATCH
+#E	SAME				fooabc123wxyz	(0,3)
+#E	SAME				QabcEdef	(0,8)
+# Test bounded repetitions
+BH	a\{0,0\}			aaa		(0,0)
+BH	a\{0,1\}			aaa		(0,1)
+BH	a\{1,1\}			aaa		(0,1)
+BH	a\{1,3\}			xaaaaa		(1,4)
+BH	a\{0,3\}			aaaaa		(0,3)
+BH	a\{0,\}				NULL		(0,0)
+BH	SAME				a		(0,1)
+BH	SAME				aa		(0,2)
+BH	SAME				aaa		(0,3)
+BH	a\{1,\}				NULL		NOMATCH
+BH	SAME				a		(0,1)
+BH	SAME				aa		(0,2)
+BH	SAME				aaa		(0,3)
+BH	a\{2,\}				NULL		NOMATCH
+BH	SAME				a		NOMATCH
+BH	SAME				aa		(0,2)
+BH	SAME				aaa		(0,3)
+BH	a\{3,\}				NULL		NOMATCH
+BH	SAME				a		NOMATCH
+BH	SAME				aa		NOMATCH
+BH	SAME				aaa		(0,3)
+BH	SAME				aaaa		(0,4)
+BH	SAME				aaaaa		(0,5)
+BH	SAME				aaaaaa		(0,6)
+BH	SAME				aaaaaaa		(0,7)
+BH	a\{5,10\}			aaaaaaa		(0,7)
+BH	a\{6,6\}			aaaaaaaaaaaa	(0,6)
+BH	SAME				xxaaaaaaaaaaaa	(2,8)
+BH	SAME				xxaaaaa		NOMATCH
+BH	a\{5,6\}			aaaaaaaaaaaa	(0,6)
+BH	SAME				xxaaaaaaaaaaaa	(2,8)
+BH	SAME				xxaaaaa		(2,7)
+BH	SAME				xxaaaa		NOMATCH
+# Trickier ones...
+BH	\([ab]\{5,10\}\)*b		bbbbbabaaaaab	(0,13)(7,12)
+BH	SAME				bbbbbbaaaaab	(0,12)(6,11)
+BH	SAME				bbbbbbaaaab	(0,11)(0,10)
+BH	SAME				bbbbbbaaab	(0,10)(0,9)
+BH	SAME				bbbbbbaab	(0,9)(0,8)
+BH	SAME				bbbbbbab	(0,8)(0,7)
+BH	\([ab]*\)\(ab[ab]\{5,10\}\)ba	abbabbbabaabbbbbbbbbbbbbabaaaabab	(0,10)(0,0)(0,8)
+BH	SAME				abbabbbabaabbbbbbbbbbbbabaaaaabab	(0,32)(0,23)(23,30)
+BH	SAME				abbabbbabaabbbbbbbbbbbbabaaaabab	(0,24)(0,10)(10,22)
+BH	SAME				abbabbbabaabbbbbbbbbbbba	(0,24)(0,10)(10,22)
+# Test repeating something that has submatches inside
+BH	\(a\)\{0,5\}			NULL		(0,0)(?,?)
+BH	SAME				a		(0,1)(0,1)
+BH	SAME				aa		(0,2)(1,2)
+BH	SAME				aaa		(0,3)(2,3)
+BH	SAME				aaaa		(0,4)(3,4)
+BH	SAME				aaaaa		(0,5)(4,5)
+BH	SAME				aaaaaa		(0,5)(4,5)
+BH	\(a\)\{2,3\}			NULL		NOMATCH
+BH	SAME				a		NOMATCH
+BH	SAME				aa		(0,2)(1,2)
+BH	SAME				aaa		(0,3)(2,3)
+BH	SAME				aaaa		(0,3)(2,3)
+BH	\(a\)\{4\}			aaaa		(0,4)(3,4)
+BH	\(a*\)\{2\}			a		(0,1)(1,1)
+BH	\(\(..\)\|\(.\)\)\{2\}		aa		(0,2)(1,2)(?,?)(1,2)
+# Nested repeats
+#E	(.){2}{3}			xxxxx		NOMATCH
+#E	SAME				xxxxxx		(0,6)(5,6)
+#E	(..){2}{3}			xxxxxxxxxxx	NOMATCH
+#E	SAME				xxxxxxxxxxxx	(0,12)(10,12)
+BH	\(\(..\)\{2\}.\)\{3\}		xxxxxxxxxxxxxx	NOMATCH
+BH	SAME				xxxxxxxxxxxxxxx	(0,15)(10,15)(12,14)
+BH	\(\(..\)\{1,2\}.\)\{3\}		xxxxxxxx	NOMATCH
+BH	SAME				xxxxxxxxx	(0,9)(6,9)(6,8)
+BH	SAME				xxxxxxxxxx	(0,9)(6,9)(6,8)
+BH	SAME				xxxxxxxxxxx	(0,11)(8,11)(8,10)
+#E	a{2}{2}x			NULL		NOMATCH
+#E	SAME				x		NOMATCH
+#E	SAME				ax		NOMATCH
+#E	SAME				aax		NOMATCH
+#E	SAME				aaax		NOMATCH
+#E	SAME				aaaax		(0,5)
+#E	SAME				aaaaax		(1,6)
+#E	SAME				aaaaaax		(2,7)
+#E	SAME				aaaaaaax	(3,8)
+#E	SAME				aaaaaaaax	(4,9)
+# Repeats with iterations inside
+BH$	\\([a-z]\\+\\)\\{2,5\\}		a\n		NOMATCH
+BH$	SAME				aa\n		(0,2)(1,2)
+# Multiple repeats in one regexp
+BH	a\{3\}b\{3\}			aaabbb		(0,6)
+BH	SAME				aaabbbb		(0,6)
+BH	SAME				aaaabbb		(1,7)
+BH	SAME				aabbb		NOMATCH
+BH	SAME				aaabb		NOMATCH
+# Test that different types of repetitions work correctly when used
+# in the same regexp.
+#E	a{2}{2}xb+xc*xd?x		aaaaxbxcxdx	(0,11)
+#E	SAME				aaaxbxcxdx	NOMATCH
+#E	SAME				aabxcxdx	NOMATCH
+#E	SAME				aaaacxdx	NOMATCH
+#E	SAME				aaaaxbdx	NOMATCH
+BH	^!packet [0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\} [0-9]\+	!packet 10.0.2.4 12765 ei voittoa	(0,22)
+# Back referencing tests
+BH	\([a-z]*\) \1			foobar foobar	(0,13)(0,6)
+# Searching for a leftmost longest square (repeated string)
+BH	\(.*\)\1			foobarfoobar	(0,12)(0,6)
+BH	a\(b\)*c\1			acb		NOMATCH
+BH	SAME				abbcbbb		(0,5)(2,3)
+BH	SAME				abbdbd		NOMATCH
+BH	\([a-c]*\)\1			abcacdef	(0,0)(0,0)
+BH	SAME				abcabcabcd	(0,6)(0,3)
+BH	\(a*\)*\(x\)\(\1\)		x		(0,1)(0,0)(0,1)(1,1)
+BH	SAME				ax		(0,2)(1,1)(1,2)(2,2)
+BH	\(a\)\1\{1,2\}			aabc		(0,2)(0,1)
+BH	\(\)\(\1\1\)*			NULL		(0,0)(0,0)(0,0)
+# Check that back references work with REG_NOSUB
+BHw	\(o\)\1				foobar		NULL
+BH	\(o\)\1				foobar		(1,3)(1,2)
+BH	SAME				fobar		NOMATCH
+BH	\1foo				NULL		ESUBREG
+BH	\1foo\(bar\)			x		ESUBREG
+# Back reference with zero-width assertion
+BH	\(.\)\1$			foox		NOMATCH
+BH	SAME				foo		(1,3)(1,2)
+# Back references together with {}
+BH	\([0-9]\{5\}\)\1		12345		NOMATCH
+BH	SAME				1234512345	(0,10)(0,5)
+BH	\([0-9]\{4\}\)\1		1234		NOMATCH
+BH	SAME				12341234	(0,8)(0,4)
+# Test lack of minimal repetitions (non-greedy repetitions)
+#
+# Basic
+BH	.*\?				ab?d		(0,3)
+BH	.\+\?				ab?d		(0,3)
+BH	.\?\?				a?cd		(0,2)
+BH	.\{2,5\}\?			ab?d		(0,3)
+# More complicated
+#E	<b>(.*?)</b>			<b>text1</b><b>text2</b>	BADRPT
+#E	a(.*?)(foo|bar|zap)		hubba wooga-booga zabar gafoo wazap	BADRPT
+##### Extras
+# ^ magic after \|
+BH	\(a\|^b\)			bas		(0,1)(0,1)
+# Lack of minimal repetition
+BH	a*?				a?		(0,2)

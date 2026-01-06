@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
+<plist version="0.9">
+<dict>
+    <key>CFBundleIdentifier</key>
+        <string>com.apple.OSSystemResources</string>
+    <key>CFBundleName</key>
+        <string>System Resource Extension</string>
+    <key>CFBundleGetInfoString</key>
+        <string>System Resource Extension, Apple Computer Inc, 1.0.0b1</string>
+    <key>CFBundleVersion</key>
+        <string>1.0.0b1</string>
+    <key>CFBundlePackageType</key>
+        <string>KEXT</string>
+    <key>CFBundleSignature</key>
+        <string>????</string>
+    <key>Modules</key>
+    <array>
+	<dict>
+	    <key>Kernel Resource</key>
+		<true/>
+	    <key>Name</key>
+		<string>com.apple.family.IOPCIBus</string>
+	</dict>
+	<dict>
+	    <key>Kernel Resource</key>
+		<true/>
+	    <key>Name</key>
+		<string>com.apple.family.IOSCSIParallel</string>
+	</dict>
+	<dict>
+	    <key>Kernel Resource</key>
+		<true/>
+	    <key>Name</key>
+		<string>com.apple.family.IOGraphics</string>
+	</dict>
+	<dict>
+	    <key>Kernel Resource</key>
+		<true/>
+	    <key>Name</key>
+		<string>com.apple.family.IOUSBBus</string>
+	</dict>
+	<dict>
+	    <key>Kernel Resource</key>
+		<true/>
+	    <key>Name</key>
+		<string>com.apple.family.IOADBBus</string>
+	</dict>
+	<dict>
+	    <key>Kernel Resource</key>
+		<true/>
+	    <key>Name</key>
+		<string>com.apple.family.IOATABus</string>
+	</dict>
+	<dict>
+	    <key>Kernel Resource</key>
+		<true/>
+	    <key>Name</key>
+		<string>com.apple.family.IOStorage</string>
+	</dict>
+	<dict>
+	    <key>Kernel Resource</key>
+		<true/>
+	    <key>Name</key>
+		<string>com.apple.family.IONetworking</string>
+	</dict>
+	<dict>
+	    <key>Kernel Resource</key>
+		<true/>
+	    <key>Name</key>
+		<string>com.apple.family.IOHIDSystem</string>
+	</dict>
+    </array>
+</dict>
+</plist>

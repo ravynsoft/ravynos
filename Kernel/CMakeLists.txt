@@ -1,17 +1,13 @@
 # ------------------------------------------------------------------------
-#  RAVYNOS BUILD SYSTEM - Darwin Base System
+#  RAVYNOS BUILD SYSTEM - Kernel and Extensions
 # ------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.15.1)
-project(ravynOS_Darwin)
-
-include(${ROOT_SOURCE_DIR}/Developer/cmake/Version.cmake)
-include(${ROOT_SOURCE_DIR}/Developer/cmake/Paths.cmake)
-include(${ROOT_SOURCE_DIR}/Developer/cmake/Tools.cmake)
+cmake_minimum_required(VERSION 4.0.0)
+project(ravynOS_Kernel)
 
 string(TOUPPER "${CMAKE_SYSTEM_PROCESSOR}" MACHINE)
-set(AVAILABILITY_PL ${CMAKE_SOURCE_DIR}/availability.pl)
-set(AVAILABILITY_PL_PATH ${CMAKE_SOURCE_DIR}/availability.pl)
+set(AVAILABILITY_PL ${ROOT_SOURCE_DIR}/Kernelavailability.pl)
+set(AVAILABILITY_PL_PATH ${ROOT_SOURCE_DIR}/Kernel/availability.pl)
 set(SEED_DEFINES 
     -DRC_ENABLE_XNU_PRODUCT_INFO_FILTER
 )
@@ -31,19 +27,10 @@ if(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
         ${CMAKE_CURRENT_BINARY_DIR}/xnu/${KERNEL_CONFIGS}_${ARCH_CONFIGS}/iokit/DriverKit/)
 endif()
 
-file(MAKE_DIRECTORY ${ROOT_BINARY_DIR}/sysroot/usr/include
-    ${ROOT_BINARY_DIR}/sysroot/usr/local/include/kernel)
-file(COPY ${ROOT_SOURCE_DIR}/Libraries/Libc/include/limits.h
-    DESTINATION ${ROOT_BINARY_DIR}/sysroot/usr/include/)
-file(COPY ${ROOT_SOURCE_DIR}/Libraries/libdispatch/os
-    DESTINATION ${ROOT_BINARY_DIR}/sysroot/usr/local/include/kernel/)
-
-add_custom_target(Darwin)
-
 ExternalProject_Add(xnu_headers
     SOURCE_DIR ${ROOT_SOURCE_DIR}/Kernel/xnu
     BINARY_DIR ${ROOT_BINARY_DIR}/Kernel/xnu
-    STEP_TARGETS build install
+    DEPENDS BootstrapTools
     CONFIGURE_COMMAND ""
     BUILD_COMMAND
     	PATH=${PATH} ${GMAKE} -C <SOURCE_DIR>
@@ -75,55 +62,52 @@ ExternalProject_Add(xnu_headers
     	    installhdrs
 )
 
-add_subdirectory(libfirehose_kernel)
-add_subdirectory(${ROOT_SOURCE_DIR}/Libraries ${ROOT_BINARY_DIR}/Libraries)
+# add_subdirectory(libfirehose_kernel)
 
-ExternalProject_Add(xnu
-    EXCLUDE_FROM_ALL
-    SOURCE_DIR ${ROOT_SOURCE_DIR}/Kernel/xnu
-    BINARY_DIR ${ROOT_BINARY_DIR}/Kernel/xnu
-    STEP_TARGETS build install
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
-    	${GMAKE} -C <SOURCE_DIR>
-            SDKROOT=${RAVYN_SDKROOT}
-    	    PLATFORM=MacOSX BUILD_LTO=0 BUILD_WERROR=0 DO_CTFMERGE=0
-    	    SDKVERSION=${CMAKE_MACOSX_MIN_VERSION} SRCROOT=<SOURCE_DIR>
-    	    OBJROOT=<BINARY_DIR> DSTROOT=${RAVYN_SDKROOT}
-    	    SYMROOT=${ROOT_BINARY_DIR} BUILD_STATIC_LINK=1
-            MIGCOM=${MIGCOM} MIG=${MIG} IIG=${IIG} CC=${CC} LD=${CC}
-            UNIFDEF=${UNIFDEF} CTFCONVERT=${CTFCONVERT} CTFMERGE=${CTFMERGE}
-            CTFINSERT=${CTFINSERT} AR=${AR} NM=${NM} NMEDIT=${NMEDIT}
-            DSYMUTIL=${DSYMUTIL} LIPO=${LIPO} STRIP=${STRIP} AS=${AS}
-            AVAILABILITY_PL=${AVAILABILITY_PL} MACHINE=${MACHINE}
-            AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH} SDKROOT=macosx
-            DEVELOPER_DIR=${ROOT_BINARY_DIR}/Developer XCRUN=${XCRUN}
-            KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS}
-            HOST_CC=${HOST_CC} HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD}
-    	    VERBOSE=YES all
-    INSTALL_COMMAND ""
-        ${GMAKE} -C <SOURCE_DIR>
-            SDKROOT=${RAVYN_SDKROOT}
-            PLATFORM=MacOSX BUILD_LTO=0 BUILD_WERROR=0 DO_CTFMERGE=0
-            SDKVERSION=${CMAKE_MACOSX_MIN_VERSION} SRCROOT=<SOURCE_DIR>
-            OBJROOT=<BINARY_DIR> DSTROOT=${ROOT_BINARY_DIR}/sysroot
-            MIGCOM=${MIGCOM} MIG=${MIG} IIG=${IIG} CC=${CC} LD=${CC}
-            UNIFDEF=${UNIFDEF} CTFCONVERT=${CTFCONVERT} CTFMERGE=${CTFMERGE}
-            CTFINSERT=${CTFINSERT} AR=${AR} NM=${NM} NMEDIT=${NMEDIT}
-            DSYMUTIL=${DSYMUTIL} LIPO=${LIPO} STRIP=${STRIP} AS=${AS}
-            DEVELOPER_DIR=${ROOT_BINARY_DIR}/Developer XCRUN=${XCRUN}
-            AVAILABILITY_PL=${AVAILABILITY_PL} MACHINE=${MACHINE}
-            AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH}
-            KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS}
-            HOST_CC=${HOST_CC} HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD}
-            install && ${CMAKE_COMMAND} -E make_directory 
-            ${RAVYN_SDKROOT}/System/Library/Kernels && ${CMAKE_COMMAND} -E 
-            copy <BINARY_DIR>/${KERNEL_CONFIGS}_${ARCH_CONFIGS}/kernel${DEBUG}.dSYM
-            ${RAVYN_SDKROOT}/System/Library/Kernels/
-	DEPENDS libfirehose_kernel libcxx compiler_rt
-)
+# ExternalProject_Add(xnu
+#     EXCLUDE_FROM_ALL
+#     SOURCE_DIR ${ROOT_SOURCE_DIR}/Kernel/xnu
+#     BINARY_DIR ${ROOT_BINARY_DIR}/Kernel/xnu
+#     STEP_TARGETS build install
+#     CONFIGURE_COMMAND ""
+#     BUILD_COMMAND ""
+#     	${GMAKE} -C <SOURCE_DIR>
+#             SDKROOT=${RAVYN_SDKROOT}
+#     	    PLATFORM=MacOSX BUILD_LTO=0 BUILD_WERROR=0 DO_CTFMERGE=0
+#     	    SDKVERSION=${CMAKE_MACOSX_MIN_VERSION} SRCROOT=<SOURCE_DIR>
+#     	    OBJROOT=<BINARY_DIR> DSTROOT=${RAVYN_SDKROOT}
+#     	    SYMROOT=${ROOT_BINARY_DIR} BUILD_STATIC_LINK=1
+#             MIGCOM=${MIGCOM} MIG=${MIG} IIG=${IIG} CC=${CC} LD=${CC}
+#             UNIFDEF=${UNIFDEF} CTFCONVERT=${CTFCONVERT} CTFMERGE=${CTFMERGE}
+#             CTFINSERT=${CTFINSERT} AR=${AR} NM=${NM} NMEDIT=${NMEDIT}
+#             DSYMUTIL=${DSYMUTIL} LIPO=${LIPO} STRIP=${STRIP} AS=${AS}
+#             AVAILABILITY_PL=${AVAILABILITY_PL} MACHINE=${MACHINE}
+#             AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH} SDKROOT=macosx
+#             DEVELOPER_DIR=${ROOT_BINARY_DIR}/Developer XCRUN=${XCRUN}
+#             KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS}
+#             HOST_CC=${HOST_CC} HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD}
+#     	    VERBOSE=YES all
+#     INSTALL_COMMAND ""
+#         ${GMAKE} -C <SOURCE_DIR>
+#             SDKROOT=${RAVYN_SDKROOT}
+#             PLATFORM=MacOSX BUILD_LTO=0 BUILD_WERROR=0 DO_CTFMERGE=0
+#             SDKVERSION=${CMAKE_MACOSX_MIN_VERSION} SRCROOT=<SOURCE_DIR>
+#             OBJROOT=<BINARY_DIR> DSTROOT=${ROOT_BINARY_DIR}/sysroot
+#             MIGCOM=${MIGCOM} MIG=${MIG} IIG=${IIG} CC=${CC} LD=${CC}
+#             UNIFDEF=${UNIFDEF} CTFCONVERT=${CTFCONVERT} CTFMERGE=${CTFMERGE}
+#             CTFINSERT=${CTFINSERT} AR=${AR} NM=${NM} NMEDIT=${NMEDIT}
+#             DSYMUTIL=${DSYMUTIL} LIPO=${LIPO} STRIP=${STRIP} AS=${AS}
+#             DEVELOPER_DIR=${ROOT_BINARY_DIR}/Developer XCRUN=${XCRUN}
+#             AVAILABILITY_PL=${AVAILABILITY_PL} MACHINE=${MACHINE}
+#             AVAILABILITY_PL_PATH=${AVAILABILITY_PL_PATH}
+#             KERNEL_CONFIGS=${KERNEL_CONFIGS} ARCH_CONFIGS=${ARCH_CONFIGS}
+#             HOST_CC=${HOST_CC} HOST_CXX=${HOST_CXX} HOST_LD=${HOST_LD}
+#             install && ${CMAKE_COMMAND} -E make_directory 
+#             ${RAVYN_SDKROOT}/System/Library/Kernels && ${CMAKE_COMMAND} -E 
+#             copy <BINARY_DIR>/${KERNEL_CONFIGS}_${ARCH_CONFIGS}/kernel${DEBUG}.dSYM
+#             ${RAVYN_SDKROOT}/System/Library/Kernels/
+# 	DEPENDS libfirehose_kernel
+# )
 
-add_subdirectory(xnu/libkern/kmod)
-add_subdirectory(Extensions)
-
-add_dependencies(Darwin xnu_headers libfirehose_kernel xnu libkmod)
+#add_subdirectory(xnu/libkern/kmod libkmod)
+#add_subdirectory(Extensions)

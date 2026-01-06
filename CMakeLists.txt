@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15.1)
+cmake_minimum_required(VERSION 4.0.0)
 project(ravynOS)
 
 # ------------------------------------------------------------------------
@@ -8,39 +8,27 @@ project(ravynOS)
 set(ROOT_SOURCE_DIR ${CMAKE_SOURCE_DIR})
 set(ROOT_BINARY_DIR ${CMAKE_BINARY_DIR})
 
-include(Developer/cmake/Version.cmake)
-include(Developer/cmake/Paths.cmake)
+include(./Developer/cmake/Version.cmake)
+include(./Developer/cmake/Paths.cmake)
+include(./Developer/cmake/Tools.cmake)
+
+message(STATUS "Configuring ravynOS ${PROD_FAMILY} ${PROD_VERSION} for ${CpuArch}")
+message(STATUS "Darwin ${DARWIN_VERSION}, Apple LLVM/TAPI ${TAPI_VERSION}")
 
 # ------------------------------------------------------------------------
 #  Top level targets
 # ------------------------------------------------------------------------
 
-ExternalProject_Add(EXT_Bootstrap
-    USES_TERMINAL_BUILD
-    SOURCE_DIR ${ROOT_SOURCE_DIR}/Developer
-    BINARY_DIR Bootstrap
-    STEP_TARGETS build
-    CMAKE_ARGS
-        -DROOT_SOURCE_DIR=${ROOT_SOURCE_DIR}
-        -DROOT_BINARY_DIR=${ROOT_BINARY_DIR}
-    INSTALL_COMMAND ""
-)
+add_custom_target(Darwin)
+add_custom_target(Bootstrap)
 
-include(Developer/cmake/Tools.cmake)
-
-ExternalProject_Add(EXT_Darwin
-    USES_TERMINAL_BUILD
-    SOURCE_DIR ${ROOT_SOURCE_DIR}/Kernel
-    BINARY_DIR Kernel
-    CMAKE_ARGS
-        -DHOST_CC=${CMAKE_C_COMPILER}
-        -DHOST_CXX=${CMAKE_CXX_COMPILER}
-        -DCMAKE_C_COMPILER=${CC} -DCMAKE_C_COMPILER_WORKS=ON
-        -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_COMPILER_WORKS=ON
-        -DROOT_SOURCE_DIR=${ROOT_SOURCE_DIR}
-        -DROOT_BINARY_DIR=${ROOT_BINARY_DIR}
-    DEPENDS EXT_Bootstrap-build
-    INSTALL_COMMAND ""
-)
+# ------------------------------------------------------------------------
 
 add_subdirectory(SystemLibrary)
+add_subdirectory(Developer)
+add_subdirectory(Kernel)
+add_subdirectory(Libraries)
+
+
+add_dependencies(Darwin Bootstrap libSystem xnu_headers)
+add_dependencies(Bootstrap BootstrapTools ravynOS_sdk)

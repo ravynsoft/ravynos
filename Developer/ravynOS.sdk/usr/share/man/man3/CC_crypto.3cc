@@ -1,0 +1,43 @@
+.Dd April 5, 2007
+.Dt CC_crypto 3cc
+.Os
+.Sh NAME
+.Nm Common Crypto
+.Nd libSystem digest library
+.Sh DESCRIPTION
+The libSystem \fBCommon Crypto\fR library implements a wide range of cryptographic
+algorithms used in various Internet standards. The services provided
+by this library are used by the CDSA implementations of \s-1SSL\s0, \s-1TLS\s0
+and S/MIME.
+.Sh OVERVIEW
+\&\fBlibSystem\fR contains the Common Crypto collection of algorithms. Digest
+and encryption algorithms contained in this library are optimized for speed.
+The algorithms have been collected from various sources and chosen for their
+performance characteristics.  Since libSystem is linked into all executables
+it is preferable for applications to use these functions rather than
+implementing their own versions.
+.Sh NOTES
+To use the digest functions with existing code which uses
+the corresponding openssl functions, #define the symbol 
+COMMON_DIGEST_FOR_OPENSSL in your client code (BEFORE including
+.In CommonCrypto/CommonDigest.h
+).
+.Pp
+You can *NOT* mix and match functions operating on a given data
+type from the two implementations; i.e., if you do a 
+.Fn CC_MD5_Init
+on a 
+.Ft CC_MD5_CTX
+object, do not assume that you can do an openssl-style
+.Fn MD5_Update
+on that same context.
+.Pp
+The interfaces to the encryption and HMAC algorithms have a calling interface
+that is different from that provided by OpenSSL.
+.Sh HISTORY
+The Common Crypto collection of functions started to become available in OS X 10.4 and later.
+.Sh SEE ALSO
+.Xr CC_MD5 3cc ,
+.Xr CC_SHA 3cc ,
+.Xr CCHmac 3cc ,
+.Xr CCCryptor 3cc

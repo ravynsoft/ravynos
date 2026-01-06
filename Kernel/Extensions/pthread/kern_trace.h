@@ -42,8 +42,6 @@
 // WQ_TRACE_REQUESTS_SUBCLASS is 2, in xnu
 # define _TRACE_SUB_MUTEX 3
 # define _TRACE_SUB_CONDVAR 4
-# define _TRACE_SUB_ULMUTEX 5
-# define _TRACE_SUB_ULCOND 6
 
 #ifndef _PTHREAD_BUILDING_CODES_
 
@@ -68,6 +66,12 @@ VM_UNSLIDE(void* ptr)
 
 # define PTHREAD_TRACE(x,a,b,c,d) \
 	{ if (pthread_debug_tracing) { KERNEL_DEBUG_CONSTANT(TRACE_##x, a, b, c, d, 0); } }
+
+# define PTHREAD_TRACE_WQ(x,a,b,c,d) \
+	{ if (pthread_debug_tracing) { KERNEL_DEBUG_CONSTANT(TRACE_##x, VM_UNSLIDE(a), b, c, d, 0); } }
+
+# define PTHREAD_TRACE_WQ_REQ(x,a,b,c,d,e) \
+	{ if (pthread_debug_tracing) { KERNEL_DEBUG_CONSTANT(TRACE_##x, VM_UNSLIDE(a), VM_UNSLIDE(b), c, d, e); } }
 
 #else // KERNEL
 
@@ -103,6 +107,32 @@ TRACE_CODE(pthread_thread_create, _TRACE_SUB_DEFAULT, 0x10);
 TRACE_CODE(pthread_thread_terminate, _TRACE_SUB_DEFAULT, 0x20);
 TRACE_CODE(pthread_set_qos_self, _TRACE_SUB_DEFAULT, 0x30);
 
+// workqueue trace points
+TRACE_CODE(wq_pthread_exit, _TRACE_SUB_WORKQUEUE, 0x01);
+TRACE_CODE(wq_workqueue_exit, _TRACE_SUB_WORKQUEUE, 0x02);
+TRACE_CODE(wq_runthread, _TRACE_SUB_WORKQUEUE, 0x03);
+TRACE_CODE(wq_runitem, _TRACE_SUB_WORKQUEUE, 0x04);
+TRACE_CODE(wq_thread_block, _TRACE_SUB_WORKQUEUE, 0x9);
+TRACE_CODE(wq_thactive_update, _TRACE_SUB_WORKQUEUE, 0xa);
+TRACE_CODE(wq_add_timer, _TRACE_SUB_WORKQUEUE, 0xb);
+TRACE_CODE(wq_start_add_timer, _TRACE_SUB_WORKQUEUE, 0x0c);
+TRACE_CODE(wq_override_start, _TRACE_SUB_WORKQUEUE, 0x12);
+TRACE_CODE(wq_override_end, _TRACE_SUB_WORKQUEUE, 0x13);
+TRACE_CODE(wq_override_dispatch, _TRACE_SUB_WORKQUEUE, 0x14);
+TRACE_CODE(wq_override_reset, _TRACE_SUB_WORKQUEUE, 0x15);
+TRACE_CODE(wq_thread_create_failed, _TRACE_SUB_WORKQUEUE, 0x1d);
+TRACE_CODE(wq_thread_create, _TRACE_SUB_WORKQUEUE, 0x1f);
+TRACE_CODE(wq_run_threadreq, _TRACE_SUB_WORKQUEUE, 0x20);
+TRACE_CODE(wq_run_threadreq_mgr_merge, _TRACE_SUB_WORKQUEUE, 0x21);
+TRACE_CODE(wq_run_threadreq_req_select, _TRACE_SUB_WORKQUEUE, 0x22);
+TRACE_CODE(wq_run_threadreq_thread_select, _TRACE_SUB_WORKQUEUE, 0x23);
+TRACE_CODE(wq_thread_reset_priority, _TRACE_SUB_WORKQUEUE, 0x24);
+TRACE_CODE(wq_constrained_admission, _TRACE_SUB_WORKQUEUE, 0x25);
+TRACE_CODE(wq_wqops_reqthreads, _TRACE_SUB_WORKQUEUE, 0x26);
+TRACE_CODE(wq_kevent_reqthreads, _TRACE_SUB_WORKQUEUE, 0x27);
+TRACE_CODE(wq_thread_park, _TRACE_SUB_WORKQUEUE, 0x28);
+TRACE_CODE(wq_thread_squash, _TRACE_SUB_WORKQUEUE, 0x29);
+
 // synch trace points
 TRACE_CODE(psynch_mutex_ulock, _TRACE_SUB_MUTEX, 0x0);
 TRACE_CODE(psynch_mutex_utrylock_failed, _TRACE_SUB_MUTEX, 0x1);
@@ -130,15 +160,5 @@ TRACE_CODE(psynch_cvar_signal, _TRACE_SUB_CONDVAR, 0x3);
 TRACE_CODE(psynch_cvar_broadcast, _TRACE_SUB_CONDVAR, 0x5);
 TRACE_CODE(psynch_cvar_zeroed, _TRACE_SUB_CONDVAR, 0x6);
 TRACE_CODE(psynch_cvar_updateval, _TRACE_SUB_CONDVAR, 0x7);
-
-TRACE_CODE(ulmutex_lock, _TRACE_SUB_ULMUTEX, 0x0);
-TRACE_CODE(ulmutex_trylock, _TRACE_SUB_ULMUTEX, 0x1);
-TRACE_CODE(ulmutex_lock_wait, _TRACE_SUB_ULMUTEX, 0x2);
-TRACE_CODE(ulmutex_unlock, _TRACE_SUB_ULMUTEX, 0x3);
-TRACE_CODE(ulmutex_unlock_wake, _TRACE_SUB_ULMUTEX, 0x4);
-TRACE_CODE(ulmutex_unlock_steal, _TRACE_SUB_ULMUTEX, 0x5);
-
-TRACE_CODE(ulcond_wait, _TRACE_SUB_ULCOND, 0x0);
-TRACE_CODE(ulcond_signal, _TRACE_SUB_ULCOND, 0x1);
 
 #endif // _KERN_TRACE_H_

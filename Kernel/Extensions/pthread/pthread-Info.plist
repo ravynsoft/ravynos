@@ -7,15 +7,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>pthread</string>
+	<string>${EXECUTABLE_NAME}</string>
 	<key>CFBundleIconFile</key>
 	<string></string>
 	<key>CFBundleIdentifier</key>
-	<string>com.apple.kec.pthread</string>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>pthread</string>
+	<string>${PRODUCT_NAME}</string>
 	<key>CFBundlePackageType</key>
 	<string>KEXT</string>
 	<key>CFBundleShortVersionString</key>
@@ -25,7 +25,7 @@
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2012 PureDarwin Project. All rights reserved.</string>
+	<string>Copyright © 2012 Apple Inc. All rights reserved.</string>
 	<key>OSBundleAllowUserLoad</key>
 	<true/>
 	<key>OSBundleCompatibleVersion</key>
@@ -39,6 +39,8 @@
 		<key>com.apple.kpi.libkern</key>
 		<string>11.2</string>
 		<key>com.apple.kpi.mach</key>
+		<string>11.2</string>
+		<key>com.apple.kpi.private</key>
 		<string>11.2</string>
 		<key>com.apple.kpi.unsupported</key>
 		<string>11.2</string>

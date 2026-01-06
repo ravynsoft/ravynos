@@ -33,6 +33,8 @@
 #include <stdlib.h>
 #include <strings.h>
 
+extern int errno;
+
 const char *
 mach_host_special_port_description(int port)
 {

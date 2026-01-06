@@ -1,0 +1,60 @@
+.\" Copyright (c) 2016 Apple Inc. All rights reserved.
+.\"
+.\" @APPLE_LICENSE_HEADER_START@
+.\"
+.\" This file contains Original Code and/or Modifications of Original Code
+.\" as defined in and that are subject to the Apple Public Source License
+.\" Version 2.0 (the 'License'). You may not use this file except in
+.\" compliance with the License. Please obtain a copy of the License at
+.\" http://www.opensource.apple.com/apsl/ and read it before using this
+.\" file.
+.\"
+.\" The Original Code and all software distributed under the License are
+.\" distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+.\" EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+.\" INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+.\" Please see the License for the specific language governing rights and
+.\" limitations under the License.
+.\"
+.\" @APPLE_LICENSE_HEADER_END@
+.\"
+.Dd April 12, 2016
+.Dt PTHREAD_THREADID_NP 3
+.Os
+.Sh NAME
+.Nm pthread_threadid_np
+.Nd get the calling thread's unique ID
+.Sh SYNOPSIS
+.In pthread.h
+.Ft int
+.Fn pthread_threadid_np "pthread_t thread" "uint64_t *thread_id"
+.Sh DESCRIPTION
+The
+.Fn pthread_threadid_np
+function stores the system-wide unique integral ID of
+.Fa thread
+in the location spedified by
+.Fa thread_id .
+If
+.Fa thread
+is NULL, the ID of the current thread is provided.
+.Sh RETURN VALUES
+If successful, the
+.Fn pthread_threadid_np
+function will return zero.  Otherwise an error number will be returned to
+indicate the error.
+.Sh ERRORS
+The
+.Fn pthread_threadid_np
+function will fail if:
+.Bl -tag -width Er
+.It Bq Er EINVAL
+NULL value for
+.Fa thread_id .
+.It Bq Er ESRCH
+Non-existent thread
+.Fa thread .
+.El
+.Sh SEE ALSO
+.Xr pthread_self 3

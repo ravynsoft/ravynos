@@ -1,0 +1,30 @@
+.TH BITCODE_STRIP 1 "July 12, 2016" "Apple, Inc."
+.SH NAME
+bitcode_strip \- remove or leave the bitcode segment in a Mach-O file
+.SH SYNOPSIS
+.B bitcode_strip
+input [ \-r | \-m | \-l ] \-o output
+.SH DESCRIPTION
+.I bitcode_strip
+edits the input Mach-O file and with the \-r option removes the bitcode segment,
+the segment named __LLVM and its section.  With the \-m option removes the bitcode
+segment but leaves a marker.  Or with the -l option leaves only the bitcode segment
+in the Mach-O file an the (__TEXT,__info_plist) section.  If the Mach-O file, or slice of a universal file, does not have a
+bitcode segment, it is left essentially unchanged.
+.TP
+.BI input
+specifies the input Mach-O file to operate on.
+.TP
+.BI \-o " output"
+specifies the output file as
+.I output.
+.TP
+.B \-r
+specifies the bitcode segment is to be removed.
+.TP
+.B \-m
+specifies the bitcode segment is to be removed and a marker is left.
+.TP
+.BI \-l
+specifies that only the bitcode segment and the (__TEXT,__info_plist) section
+is to be left in the Mach-O file.

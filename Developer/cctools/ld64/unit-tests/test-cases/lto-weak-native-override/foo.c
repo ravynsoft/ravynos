@@ -1,6 +1,0 @@
-
-
-void foo() 
-{
-   // do nothing
-}

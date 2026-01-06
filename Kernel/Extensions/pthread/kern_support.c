@@ -102,6 +102,9 @@ extern void panic(const char *string, ...) __printflike(1,2) __dead2;
 #include <machine/machine_routines.h>
 #include <mach/shared_region.h>
 
+#include <libkern/OSAtomic.h>
+#include <libkern/libkern.h>
+
 #include "kern_internal.h"
 
 #ifndef WQ_SETUP_EXIT_THREAD

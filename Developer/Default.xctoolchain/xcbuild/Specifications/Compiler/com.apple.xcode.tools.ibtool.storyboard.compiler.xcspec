@@ -1,0 +1,44 @@
+/**
+ Copyright (c) 2015-present, Facebook, Inc.
+ All rights reserved.
+
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree. An additional grant
+ of patent rights can be found in the PATENTS file in the same directory.
+ */
+
+{
+    Type = Compiler;
+    Identifier = "com.apple.xcode.tools.ibtool.storyboard.compiler";
+    Name = "Storyboard Compiler";
+
+    RuleName = "CompileStoryboard $(InputFile)";
+
+    InputFileTypes = (
+        "file.storyboard"
+    );
+
+    CommandLine = "ibtool [options] [special-args] [input]";
+
+    Outputs = (
+        "$(STORYBOARD_COMPILE_OUTPUT_DIRECTORY_PATH)/$(InputFileBase).storyboardc",
+    );
+
+    SynthesizeBuildRule = YES;
+
+    Options = (
+        {
+            Name = "IBTOOL_OUTPUT_FORMAT";
+            Type = String;
+            DefaultValue = "human-readable-text";
+            CommandLineFlag = "--output-format";
+        },
+        {
+            Name = "STORYBOARD_COMPILE_OUTPUT_DIRECTORY_PATH";
+            Type = Path;
+            DefaultValue = "$(TempResourcesDir)";
+            CommandLineFlag = "--compilation-directory";
+        },
+        /* TODO: Complete. */
+    );
+}

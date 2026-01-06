@@ -1,0 +1,126 @@
+/**
+ Copyright (c) 2015-present, Facebook, Inc.
+ All rights reserved.
+
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree. An additional grant
+ of patent rights can be found in the PATENTS file in the same directory.
+ */
+
+{
+    Type = Compiler;
+    Identifier = com.apple.xcode.tools.swift.compiler;
+    Name = "Swift Compiler";
+
+    ExecPath = "$(SWIFT_EXEC)";
+    SynthesizeBuildRule = YES;
+
+    InputFileGroupings = (
+        tool,
+    );
+    InputFileTypes = (
+        "sourcecode.swift",
+    );
+
+    Options = (
+        {
+            Name = "SWIFT_EXEC";
+            Type = Path;
+            DefaultValue = "swiftc";
+        },
+        {
+            Name = "SWIFT_LIBRARIES_ONLY";
+            Type = Boolean;
+            DefaultValue = NO;
+            CommandLineFlag = "-parse-as-library";
+        },
+        {
+            Name = "SWIFT_USE_PARALLEL_WHOLE_MODULE_OPTIMIZATION";
+            Type = Boolean;
+            DefaultValue = YES;
+        },
+        {
+            Name = "SWIFT_WHOLE_MODULE_OPTIMIZATION";
+            Type = Boolean;
+            DefaultValue = NO;
+            CommandLineFlag = "-whole-module-optimization";
+        },
+        {
+            Name = "SWIFT_LIBRARY_PATH";
+            Type = Path;
+            DefaultValue = "";
+        },
+        {
+            Name = "SWIFT_MODULE_NAME";
+            Type = String;
+            DefaultValue = "$(PRODUCT_MODULE_NAME)";
+            CommandLineArgs = (
+                "-module-name",
+                "$(value)",
+            );
+        },
+        {
+            Name = "SWIFT_OBJC_BRIDGING_HEADER";
+            Type = String;
+            DefaultValue = "";
+        },
+        {
+            Name = "SWIFT_OBJC_INTERFACE_HEADER_NAME";
+            Type = String;
+            DefaultValue = "$(SWIFT_MODULE_NAME)-Swift.h";
+        },
+        {
+            Name = "SWIFT_INSTALL_OBJC_HEADER";
+            Type = Boolean;
+            DefaultValue = YES;
+        },
+        {
+            Name = "SWIFT_OPTIMIZATION_LEVEL";
+            Type = Enumeration;
+            Values = (
+                "-Onone",
+                "-O",
+                "-Owholemodule",
+            );
+            DefaultValue = "-O";
+            CommandLineArgs = {
+                "-Onone" = "-Onone";
+                "-O" = "-O";
+                "-Owholemodule" = "-Owholemodule";
+                "<<otherwise>>" = "$(value)";
+            };
+        },
+        {
+            Name = "SWIFT_STDLIB";
+            Type = String;
+            DefaultValue = "swiftCore";
+        },
+        {
+            Name = "SWIFT_INCLUDE_PATHS";
+            Type = PathList;
+            FlattenRecursiveSearchPathsInValue = YES;
+        },
+        {
+            Name = "FRAMEWORK_SEARCH_PATHS";
+            Type = PathList;
+            FlattenRecursiveSearchPathsInValue = YES;
+        },
+        {
+            Name = "SDKROOT";
+            Type = Path;
+            CommandLineFlag = "-sdk";
+        },
+        {
+            Name = "SWIFT_DEPLOYMENT_TARGET";
+            Type = String;
+            DefaultValue = "$($(DEPLOYMENT_TARGET_SETTING_NAME))";
+            CommandLineArgs = ( "-target", "$(CURRENT_ARCH)-apple-$(SWIFT_PLATFORM_TARGET_PREFIX)$(value)" );
+        },
+        {
+            Name = "GCC_GENERATE_DEBUGGING_SYMBOLS";
+            Type = Boolean;
+            CommandLineFlag = "-g";
+        },
+        /* TODO: Complete. */
+    );
+}

@@ -1,5 +1,3 @@
-set(TOOLS ${TOOLCHAIN}/usr/bin)
-
 set(HOST_CC ${CC})
 set(HOST_CXX ${CXX})
 
@@ -26,3 +24,4 @@ set(DSYMUTIL ${TOOLS}/dsymutil)
 set(XCRUN ${TOOLS}/xcrun)
 set(XCBUILD ${TOOLS}/xcbuild)
 set(XCODEBUILD ${TOOLS}/xcodebuild)
+set(GMAKE ${TOOLS}/make)

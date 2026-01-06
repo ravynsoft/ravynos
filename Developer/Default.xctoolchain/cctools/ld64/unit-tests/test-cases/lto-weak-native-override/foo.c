@@ -1,0 +1,6 @@
+
+
+void foo() 
+{
+   // do nothing
+}

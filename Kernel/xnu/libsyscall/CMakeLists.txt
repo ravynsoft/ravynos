@@ -201,37 +201,60 @@ target_sources(libkernel INTERFACE
     os/tsd.h
 )
 
-add_dependencies(libkernel xnu_headers libc)
+add_dependencies(libkernel xnu_headers libc libcxx)
 set_property(TARGET libkernel PROPERTY OUTPUT_NAME "system_kernel")
 
 target_include_directories(libkernel PRIVATE
-    custom mach os wrappers wrappers/string wrappers/libproc
-    wrappers/libproc/spawn
-    ${CMAKE_CURRENT_BINARY_DIR}/internal_hdr/include
-    ${CMAKE_CURRENT_BINARY_DIR}/mig_hdr/local/include
-    ${CMAKE_CURRENT_BINARY_DIR}/mig_hdr/include
-    ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk
+    ${ROOT_BINARY_DIR}/Kernel/xnu/bsd
     ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/bsd
-    ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
-    ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers
-    #${ROOT_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/libkern
+    wrappers/string
+    ${ROOT_BINARY_DIR}/Libraries/Libc/include
+    . os
+    ${CMAKE_CURRENT_BINARY_DIR}/mig_hdr/include
+    ${ROOT_SOURCE_DIR}/Libraries/libpthread
+    ${CMAKE_CURRENT_BINARY_DIR}/internal_hdr/include
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/san
+    ${RAVYN_SDKROOT}/usr/local/include
+    wrappers
+    mach
+    ${ROOT_SOURCE_DIR}/Libraries/libmalloc/include
+    # ${CMAKE_CURRENT_BINARY_DIR}/mig_hdr/local/include
+    # os wrappers wrappers/string wrappers/libproc
+    # wrappers/libproc/spawn .
+    # ${ROOT_SOURCE_DIR}/Libraries/libpthread/private
+    # ${ROOT_SOURCE_DIR}/Libraries/libpthread/pthread    
+    # ${ROOT_SOURCE_DIR}/Libraries/Libc/locale
+    # ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk
+    # ${RAVYN_SDKROOT}/usr/local/include
+    # ${RAVYN_SDKROOT}/usr/include
+    ${ROOT_SOURCE_DIR}/Frameworks # for IOKit/usb/USB.h and CoreFoundation.h
+    ${RAVYN_SDKROOT}/usr/include
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS
+    ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/PrivateHeaders
+    ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders
+    ${ROOT_SOURCE_DIR}/Developer/llvm-project/libcxx/include
+    
 )
 
 target_compile_definitions(libkernel PRIVATE
     TARGET_OS_BRIDGE=0 __DARWIN_UNIX03 LIBSYSCALL_INTERFACE
     __DARWIN_VERS_1050 NO_SYSCALL_LEGACY SYSCALL_PRE1050
+    __DARWIN_BYTE_ORDER=__BYTE_ORDER__ OS_ALWAYS_INLINE=
+    _DARWIN_C_SOURCE _DARWIN_C_LEVEL=_DARWIN_C_FULL
 )
 
 target_compile_options(libkernel PRIVATE
-    --sysroot=${RAVYN_SDKROOT} -w
+    --sysroot=${RAVYN_SDKROOT} -w -nostdinc -nostdlib
     -mmacosx-version-min=${CMAKE_MACOSX_MIN_VERSION}
     -Wno-implicit-function-declaration -Wno-int-conversion
     -fdollars-in-identifiers -no-cpp-precomp -fno-common 
     -fno-stack-protector -fno-stack-check -momit-leaf-frame-pointer
-    -UKERNEL -DPRIVATE -F${RAVYN_SDKROOT}/System/Library/Frameworks
-    -isystem=${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders
-    -isystem=${RAVYN_SDKROOT}/usr/local/include
-    -isystem=${RAVYN_SDKROOT}/usr/include
+    -UKERNEL -D_FORTIFY_SOURCE=0 -DPRIVATE
+    -F${RAVYN_SDKROOT}/System/Library/Frameworks
+    # -isystem=${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders
+    # -isystem=${RAVYN_SDKROOT}/usr/local/include
+    # -isystem=${RAVYN_SDKROOT}/usr/include
 )
 
 target_link_options(libkernel PRIVATE -umbrella System -all_load)
@@ -240,10 +263,15 @@ target_link_options(libkernel PRIVATE -umbrella System -all_load)
 add_custom_command(
     OUTPUT 
         MIG_HEADERS
-    COMMAND env SDKROOT=macosx SRCROOT=${CMAKE_CURRENT_SOURCE_DIR}
-        ARCHS=${CpuArch} OBJROOT=${CMAKE_CURRENT_BINARY_DIR}/obj 
+    COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/obj
+    COMMAND env 
+        SDKROOT=${RAVYN_SDKROOT}
+        ARCHS=${CpuArch}
+        SRCROOT=${CMAKE_CURRENT_SOURCE_DIR}
+        OBJROOT=${CMAKE_CURRENT_BINARY_DIR}/obj 
         BUILT_PRODUCTS_DIR=${CMAKE_CURRENT_BINARY_DIR}
-        "PATH=${TOOLS}:$ENV{PATH}" DEVELOPER_DIR=${ROOT_BINARY_DIR}/Developer
+        DEVELOPER_DIR=${ROOT_BINARY_DIR}/Developer
+        "PATH=${TOOLS}:$ENV{PATH}"
         sh ${CMAKE_CURRENT_SOURCE_DIR}/xcodescripts/mach_install_mig.sh
     USES_TERMINAL
 )
