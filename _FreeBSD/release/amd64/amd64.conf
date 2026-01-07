@@ -1,9 +1,0 @@
-#!/bin/sh
-#
-#
-
-# Configuration file for release/release.sh to build amd64/amd64.
-
-TARGET="amd64"
-TARGET_ARCH="amd64"
-KERNEL="GENERIC"
