@@ -27,6 +27,7 @@ target_compile_options(host_ld PRIVATE
     -F${SYSROOT_DIR}/System/Library/Frameworks
 )
 if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+    target_sources(host_ld PRIVATE linuxshim.cpp)
     set(RPATH_ORIGIN '-R$$ORIGIN')
     target_compile_definitions(host_ld PRIVATE
         __APPLE_CC__=1 u_int8_t=__uint8_t u_int32_t=__uint32_t
@@ -61,47 +62,22 @@ if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
         -lacl -latomic -lBlocksRuntime
         -lc++ -luuid -lmd
     )
-    configure_file(../other/libkern.h 
-        ${CMAKE_CURRENT_BINARY_DIR}/libkern/libkern.h COPYONLY)
-    configure_file(${ROOT_SOURCE_DIR}/Kernel/xnu/bsd/sys/malloc.h 
-        ${CMAKE_CURRENT_BINARY_DIR}/sys/malloc.h COPYONLY)
-    configure_file(${ROOT_SOURCE_DIR}/Kernel/xnu/bsd/sys/appleapiopts.h 
-        ${CMAKE_CURRENT_BINARY_DIR}/sys/appleapiopts.h COPYONLY)
 else()
     set(RPATH_ORIGIN -rpath,@executable_path)
 endif()
 target_link_libraries(host_ld PRIVATE
-    -L${ROOT_BINARY_DIR}/Bootstrap/clang/lib -ltapi
+    -L${ROOT_BINARY_DIR}/Developer/Default.xctoolchain/llvm_host/lib -ltapi
     host_libxar host_ld_libparsers host_ld_libpasses
     host_libstuff OpenSSL::SSL OpenSSL::Crypto
     -L${TOOLCHAIN}/usr/lib ${EXTRALIBS} "-Wl,${RPATH_ORIGIN}/../lib"
 )
 set_property(TARGET host_ld PROPERTY OUTPUT_NAME ld)
 
-file(MAKE_DIRECTORY ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers/machine)
-file(MAKE_DIRECTORY ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers/arm)
-file(MAKE_DIRECTORY ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers/i386)
-file(COPY ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk/machine/cpu_capabilities.h
-    DESTINATION ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers/machine/)
-file(COPY ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk/arm/cpu_capabilities.h
-    DESTINATION ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers/arm/)
-file(COPY ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk/i386/cpu_capabilities.h
-    DESTINATION ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers/i386/)
 target_include_directories(host_ld PRIVATE
-    .
-    ..
-    ../..
-    ../abstraction
-    ../../../include
-    ../../../include/foreign
-    ../../../../../Libraries/CommonCrypto/include
-    ../../../../../Libraries/CommonCrypto/include/Private
-    ../../../../Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk
-    parsers passes
+    .  ..  ../..  ../abstraction parsers passes
     ${OPENSSL_INCLUDE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
     ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk
-    ${ROOT_SOURCE_DIR}/Libraries/libplatform/private
-    ${ROOT_SOURCE_DIR}/Developer/llvm-project/tapi/include
+    ${ROOT_SOURCE_DIR}/Developer/Default.xctoolchain/include/Private
     ${TOOLCHAIN}/usr/include
 )

@@ -1,0 +1,15 @@
+module CommonCrypto [system] [extern_c] {
+  umbrella header "CommonCrypto.h"
+  export *
+  module * { export * }
+  
+  module Error {
+      header "CommonCryptoError.h"
+      export *
+  }
+  
+  module Random {
+      header "CommonRandom.h"
+      export *
+  }
+}

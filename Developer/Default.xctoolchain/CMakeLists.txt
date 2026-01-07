@@ -78,7 +78,7 @@ add_custom_target(host_gmake
 )
 
 add_dependencies(BootstrapTools
-    host_libmacho host_libstuff
+    host_libmacho host_libstuff host_gmake
     host_checksyms host_lipo host_size host_strings host_nm host_libtool
     host_redo_prebinding host_seg_addr_table host_seg_hack host_install_name_tool
     host_indr host_strip host_segedit host_pagestuff host_codesign_allocate
@@ -129,9 +129,9 @@ add_custom_command(TARGET BootstrapTools
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:host_ranlib> ${TOOLCHAIN}/usr/bin/
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:unifdef> ${TOOLCHAIN}/usr/bin/
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:host_migcom> ${TOOLCHAIN}/usr/libexec/migcom
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/dtrace_ctf_host/tools/ctfconvert ${TOOLCHAIN}/usr/bin/
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/dtrace_ctf_host/tools/ctfdump ${TOOLCHAIN}/usr/bin/
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/dtrace_ctf_host/tools/ctfmerge ${TOOLCHAIN}/usr/bin/
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:host_ctfconvert> ${TOOLCHAIN}/usr/bin/
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:host_ctfdump> ${TOOLCHAIN}/usr/bin/
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:host_ctfmerge> ${TOOLCHAIN}/usr/bin/
     COMMAND ${CMAKE_COMMAND} -E create_symlink llvm-otool ${TOOLCHAIN}/usr/bin/otool
     COMMAND ${CMAKE_COMMAND} -E create_symlink llvm-as ${TOOLCHAIN}/usr/bin/as
     COMMAND ${CMAKE_COMMAND} -E create_symlink ld ${TOOLCHAIN}/usr/bin/ld64

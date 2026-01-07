@@ -1,9 +1,9 @@
 add_library(libcommonCrypto SHARED)
-set_property(TARGET CommonCrypto PROPERTY OUTPUT_NAME "commonCrypto")
-set_property(TARGET CommonCrypto PROPERTY SUFFIX ".dylib")
-set_property(TARGET CommonCrypto PROPERTY PREFIX "lib")
+set_property(TARGET libcommonCrypto PROPERTY OUTPUT_NAME "commonCrypto")
+set_property(TARGET libcommonCrypto PROPERTY SUFFIX ".dylib")
+set_property(TARGET libcommonCrypto PROPERTY PREFIX "lib")
 
-target_sources(CommonCrypto PRIVATE
+target_sources(libcommonCrypto PRIVATE
     lib/CommonBigNum.c lib/CommonCMAC.c lib/CommonCollabKeyGen.c
     lib/CommonCryptor.c lib/CommonCryptorDES.c lib/CommonCryptorGCM.c
     lib/CommonCryptorRC4.c lib/CommonDH.c lib/CommonDigest.c
@@ -23,14 +23,14 @@ target_sources(CommonCrypto PRIVATE
     libcn/reverse_crc.c libcn/reverse_poly.c
 )
 
-target_include_directories(CommonCrypto PRIVATE
+target_include_directories(libcommonCrypto PRIVATE
     lib lib_cn ${SDK_SOURCE_DIR}/usr/include
 )
 
-target_compile_definitions(CommonCrypto PRIVATE
+target_compile_definitions(libcommonCrypto PRIVATE
 )
 
-target_compile_options(CommonCrypto PRIVATE
+target_compile_options(libcommonCrypto PRIVATE
     --sysroot=${RAVYN_SDKROOT} -isysroot=${RAVYN_SDKROOT} -w
     --target=${TARGET_TRIPLE}
     -Wno-implicit-function-declaration

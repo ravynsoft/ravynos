@@ -1,0 +1,10 @@
+module CommonCrypto_Private [system] [extern_c] {
+    umbrella header "CommonCryptoPriv.h"
+    export *
+    explicit module * { export * }
+    
+    explicit module KeyDerivation {
+        header "CommonKeyDerivationSPI.h"
+        export *
+    }
+}

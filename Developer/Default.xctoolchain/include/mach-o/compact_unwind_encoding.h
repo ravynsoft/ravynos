@@ -1,56 +1,41 @@
-/* -*- mode: C; c-basic-offset: 4; tab-width: 4 -*-
- *
- * Copyright (c) 2008-2011 Apple Inc. All rights reserved.
- *
- * @APPLE_LICENSE_HEADER_START@
- *
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- *
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- *
- * @APPLE_LICENSE_HEADER_END@
- */
- 
+//===----------------------------------------------------------------------===//
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//
+// Darwin's alternative to DWARF based unwind encodings.
+//
+//===----------------------------------------------------------------------===//
+
 
 #ifndef __COMPACT_UNWIND_ENCODING__
 #define __COMPACT_UNWIND_ENCODING__
 
 #include <stdint.h>
 
-
-
 //
-// Compilers can emit standard Dwarf FDEs in the __TEXT,__eh_frame section 
-// of object files. Or compilers can emit compact unwind information in 
+// Compilers can emit standard DWARF FDEs in the __TEXT,__eh_frame section
+// of object files. Or compilers can emit compact unwind information in
 // the __LD,__compact_unwind section.
 //
-// When the linker creates a final linked image, it will create a  
-// __TEXT,__unwind_info section.  This section is a small and fast way for the 
-// runtime to access unwind info for any given function.  If the compiler emitted
-// compact unwind info for the function, that compact unwind info will be encoded
-// in the __TEXT,__unwind_info section. If the compiler emitted dwarf unwind info,
-// the __TEXT,__unwind_info section will contain the offset of the FDE in the
-// __TEXT,__eh_frame section in the final linked image.  
+// When the linker creates a final linked image, it will create a
+// __TEXT,__unwind_info section.  This section is a small and fast way for the
+// runtime to access unwind info for any given function.  If the compiler
+// emitted compact unwind info for the function, that compact unwind info will
+// be encoded in the __TEXT,__unwind_info section. If the compiler emitted
+// DWARF unwind info, the __TEXT,__unwind_info section will contain the offset
+// of the FDE in the __TEXT,__eh_frame section in the final linked image.
 //
-// Note: Previously, the linker would transform some dwarf unwind infos into 
+// Note: Previously, the linker would transform some DWARF unwind infos into
 //       compact unwind info.  But that is fragile and no longer done.
 
 
 //
-// The compact unwind endoding is a 32-bit value which encoded in an architecture
-// specific way, which registers to restore from where, and how to unwind out
-// of the function.  
+// The compact unwind encoding is a 32-bit value which encoded in an
+// architecture specific way, which registers to restore from where, and how
+// to unwind out of the function.
 //
 typedef uint32_t compact_unwind_encoding_t;
 
@@ -72,7 +57,7 @@ enum {
 // 1-bit: has lsda
 // 2-bit: personality index
 //
-// 4-bits: 0=old, 1=ebp based, 2=stack-imm, 3=stack-ind, 4=dwarf
+// 4-bits: 0=old, 1=ebp based, 2=stack-imm, 3=stack-ind, 4=DWARF
 //  ebp based:
 //        15-bits (5*3-bits per reg) register permutation
 //        8-bits for stack offset
@@ -88,15 +73,15 @@ enum {
     UNWIND_X86_MODE_STACK_IMMD                   = 0x02000000,
     UNWIND_X86_MODE_STACK_IND                    = 0x03000000,
     UNWIND_X86_MODE_DWARF                        = 0x04000000,
-    
+
     UNWIND_X86_EBP_FRAME_REGISTERS               = 0x00007FFF,
     UNWIND_X86_EBP_FRAME_OFFSET                  = 0x00FF0000,
-    
+
     UNWIND_X86_FRAMELESS_STACK_SIZE              = 0x00FF0000,
     UNWIND_X86_FRAMELESS_STACK_ADJUST            = 0x0000E000,
     UNWIND_X86_FRAMELESS_STACK_REG_COUNT         = 0x00001C00,
     UNWIND_X86_FRAMELESS_STACK_REG_PERMUTATION   = 0x000003FF,
-    
+
     UNWIND_X86_DWARF_SECTION_OFFSET              = 0x00FFFFFF,
 };
 
@@ -113,26 +98,26 @@ enum {
 //
 // For x86 there are four modes for the compact unwind encoding:
 // UNWIND_X86_MODE_EBP_FRAME:
-//    EBP based frame where EBP is push on stack immediately after return address, 
-//    then ESP is moved to EBP. Thus, to unwind ESP is restored with the current 
-//    EPB value, then EBP is restored by popping off the stack, and the return 
+//    EBP based frame where EBP is push on stack immediately after return address,
+//    then ESP is moved to EBP. Thus, to unwind ESP is restored with the current
+//    EPB value, then EBP is restored by popping off the stack, and the return
 //    is done by popping the stack once more into the pc.
 //    All non-volatile registers that need to be restored must have been saved
-//    in a small range in the stack that starts EBP-4 to EBP-1020.  The offset/4 
+//    in a small range in the stack that starts EBP-4 to EBP-1020.  The offset/4
 //    is encoded in the UNWIND_X86_EBP_FRAME_OFFSET bits.  The registers saved
 //    are encoded in the UNWIND_X86_EBP_FRAME_REGISTERS bits as five 3-bit entries.
-//    Each entry contains which register to restore.  
+//    Each entry contains which register to restore.
 // UNWIND_X86_MODE_STACK_IMMD:
 //    A "frameless" (EBP not used as frame pointer) function with a small 
-//    constant stack size.  To return, a constant (encoded in the compact 
-//    unwind encoding) is added to the ESP. Then the return is done by 
+//    constant stack size.  To return, a constant (encoded in the compact
+//    unwind encoding) is added to the ESP. Then the return is done by
 //    popping the stack into the pc.
 //    All non-volatile registers that need to be restored must have been saved
 //    on the stack immediately after the return address.  The stack_size/4 is
 //    encoded in the UNWIND_X86_FRAMELESS_STACK_SIZE (max stack size is 1024).
 //    The number of registers saved is encoded in UNWIND_X86_FRAMELESS_STACK_REG_COUNT.
-//    UNWIND_X86_FRAMELESS_STACK_REG_PERMUTATION constains which registers were
-//    saved and their order.  
+//    UNWIND_X86_FRAMELESS_STACK_REG_PERMUTATION contains which registers were
+//    saved and their order.
 // UNWIND_X86_MODE_STACK_IND:
 //    A "frameless" (EBP not used as frame pointer) function large constant 
 //    stack size.  This case is like the previous, except the stack size is too
@@ -142,10 +127,14 @@ enum {
 //    UNWIND_X86_FRAMELESS_STACK_SIZE.  
 // UNWIND_X86_MODE_DWARF:
 //    No compact unwind encoding is available.  Instead the low 24-bits of the
-//    compact encoding is the offset of the dwarf FDE in the __eh_frame section.
+//    compact encoding is the offset of the DWARF FDE in the __eh_frame section.
 //    This mode is never used in object files.  It is only generated by the 
-//    linker in final linked images which have only dwarf unwind info for a
+//    linker in final linked images which have only DWARF unwind info for a
 //    function.
+//
+// The permutation encoding is a Lehmer code sequence encoded into a
+// single variable-base number so we can encode the ordering of up to
+// six registers in a 10-bit space.
 //
 // The following is the algorithm used to create the permutation encoding used
 // with frameless stacks.  It is passed the number of registers to be saved and
@@ -165,21 +154,21 @@ enum {
 //    uint32_t permutationEncoding = 0;
 //    switch ( registerCount ) {
 //        case 6:
-//            permutationEncoding |= (120*renumregs[0] + 24*renumregs[1] 
-//                                    + 6*renumregs[2] + 2*renumregs[3] 
+//            permutationEncoding |= (120*renumregs[0] + 24*renumregs[1]
+//                                    + 6*renumregs[2] + 2*renumregs[3]
 //                                      + renumregs[4]);
 //            break;
 //        case 5:
-//            permutationEncoding |= (120*renumregs[1] + 24*renumregs[2] 
-//                                    + 6*renumregs[3] + 2*renumregs[4] 
+//            permutationEncoding |= (120*renumregs[1] + 24*renumregs[2]
+//                                    + 6*renumregs[3] + 2*renumregs[4]
 //                                      + renumregs[5]);
 //            break;
 //        case 4:
-//            permutationEncoding |= (60*renumregs[2] + 12*renumregs[3] 
+//            permutationEncoding |= (60*renumregs[2] + 12*renumregs[3]
 //                                   + 3*renumregs[4] + renumregs[5]);
 //            break;
 //        case 3:
-//            permutationEncoding |= (20*renumregs[3] + 4*renumregs[4] 
+//            permutationEncoding |= (20*renumregs[3] + 4*renumregs[4]
 //                                     + renumregs[5]);
 //            break;
 //        case 2:
@@ -203,7 +192,7 @@ enum {
 // 1-bit: has lsda
 // 2-bit: personality index
 //
-// 4-bits: 0=old, 1=rbp based, 2=stack-imm, 3=stack-ind, 4=dwarf
+// 4-bits: 0=old, 1=rbp based, 2=stack-imm, 3=stack-ind, 4=DWARF
 //  rbp based:
 //        15-bits (5*3-bits per reg) register permutation
 //        8-bits for stack offset
@@ -219,7 +208,7 @@ enum {
     UNWIND_X86_64_MODE_STACK_IMMD                   = 0x02000000,
     UNWIND_X86_64_MODE_STACK_IND                    = 0x03000000,
     UNWIND_X86_64_MODE_DWARF                        = 0x04000000,
-    
+
     UNWIND_X86_64_RBP_FRAME_REGISTERS               = 0x00007FFF,
     UNWIND_X86_64_RBP_FRAME_OFFSET                  = 0x00FF0000,
 
@@ -243,12 +232,12 @@ enum {
 //
 // For x86_64 there are four modes for the compact unwind encoding:
 // UNWIND_X86_64_MODE_RBP_FRAME:
-//    RBP based frame where RBP is push on stack immediately after return address, 
+//    RBP based frame where RBP is push on stack immediately after return address,
 //    then RSP is moved to RBP. Thus, to unwind RSP is restored with the current 
 //    EPB value, then RBP is restored by popping off the stack, and the return 
 //    is done by popping the stack once more into the pc.
 //    All non-volatile registers that need to be restored must have been saved
-//    in a small range in the stack that starts RBP-8 to RBP-1020.  The offset/4 
+//    in a small range in the stack that starts RBP-8 to RBP-2040.  The offset/8 
 //    is encoded in the UNWIND_X86_64_RBP_FRAME_OFFSET bits.  The registers saved
 //    are encoded in the UNWIND_X86_64_RBP_FRAME_REGISTERS bits as five 3-bit entries.
 //    Each entry contains which register to restore.  
@@ -258,10 +247,10 @@ enum {
 //    unwind encoding) is added to the RSP. Then the return is done by 
 //    popping the stack into the pc.
 //    All non-volatile registers that need to be restored must have been saved
-//    on the stack immediately after the return address.  The stack_size/4 is
-//    encoded in the UNWIND_X86_64_FRAMELESS_STACK_SIZE (max stack size is 1024).
+//    on the stack immediately after the return address.  The stack_size/8 is
+//    encoded in the UNWIND_X86_64_FRAMELESS_STACK_SIZE (max stack size is 2048).
 //    The number of registers saved is encoded in UNWIND_X86_64_FRAMELESS_STACK_REG_COUNT.
-//    UNWIND_X86_64_FRAMELESS_STACK_REG_PERMUTATION constains which registers were
+//    UNWIND_X86_64_FRAMELESS_STACK_REG_PERMUTATION contains which registers were
 //    saved and their order.  
 // UNWIND_X86_64_MODE_STACK_IND:
 //    A "frameless" (RBP not used as frame pointer) function large constant 
@@ -272,11 +261,71 @@ enum {
 //    UNWIND_X86_64_FRAMELESS_STACK_SIZE.  
 // UNWIND_X86_64_MODE_DWARF:
 //    No compact unwind encoding is available.  Instead the low 24-bits of the
-//    compact encoding is the offset of the dwarf FDE in the __eh_frame section.
+//    compact encoding is the offset of the DWARF FDE in the __eh_frame section.
 //    This mode is never used in object files.  It is only generated by the 
-//    linker in final linked images which have only dwarf unwind info for a
+//    linker in final linked images which have only DWARF unwind info for a
 //    function.
 //
+
+
+// ARM64
+//
+// 1-bit: start
+// 1-bit: has lsda
+// 2-bit: personality index
+//
+// 4-bits: 4=frame-based, 3=DWARF, 2=frameless
+//  frameless:
+//        12-bits of stack size
+//  frame-based:
+//        4-bits D reg pairs saved
+//        5-bits X reg pairs saved
+//  DWARF:
+//        24-bits offset of DWARF FDE in __eh_frame section
+//
+enum {
+    UNWIND_ARM64_MODE_MASK                     = 0x0F000000,
+    UNWIND_ARM64_MODE_FRAMELESS                = 0x02000000,
+    UNWIND_ARM64_MODE_DWARF                    = 0x03000000,
+    UNWIND_ARM64_MODE_FRAME                    = 0x04000000,
+
+    UNWIND_ARM64_FRAME_X19_X20_PAIR            = 0x00000001,
+    UNWIND_ARM64_FRAME_X21_X22_PAIR            = 0x00000002,
+    UNWIND_ARM64_FRAME_X23_X24_PAIR            = 0x00000004,
+    UNWIND_ARM64_FRAME_X25_X26_PAIR            = 0x00000008,
+    UNWIND_ARM64_FRAME_X27_X28_PAIR            = 0x00000010,
+    UNWIND_ARM64_FRAME_D8_D9_PAIR              = 0x00000100,
+    UNWIND_ARM64_FRAME_D10_D11_PAIR            = 0x00000200,
+    UNWIND_ARM64_FRAME_D12_D13_PAIR            = 0x00000400,
+    UNWIND_ARM64_FRAME_D14_D15_PAIR            = 0x00000800,
+
+    UNWIND_ARM64_FRAMELESS_STACK_SIZE_MASK     = 0x00FFF000,
+    UNWIND_ARM64_DWARF_SECTION_OFFSET          = 0x00FFFFFF,
+};
+// For arm64 there are three modes for the compact unwind encoding:
+// UNWIND_ARM64_MODE_FRAME:
+//    This is a standard arm64 prolog where FP/LR are immediately pushed on the
+//    stack, then SP is copied to FP. If there are any non-volatile registers
+//    saved, then are copied into the stack frame in pairs in a contiguous
+//    range right below the saved FP/LR pair.  Any subset of the five X pairs 
+//    and four D pairs can be saved, but the memory layout must be in register
+//    number order.  
+// UNWIND_ARM64_MODE_FRAMELESS:
+//    A "frameless" leaf function, where FP/LR are not saved. The return address 
+//    remains in LR throughout the function. If any non-volatile registers
+//    are saved, they must be pushed onto the stack before any stack space is
+//    allocated for local variables.  The stack sized (including any saved
+//    non-volatile registers) divided by 16 is encoded in the bits 
+//    UNWIND_ARM64_FRAMELESS_STACK_SIZE_MASK.
+// UNWIND_ARM64_MODE_DWARF:
+//    No compact unwind encoding is available.  Instead the low 24-bits of the
+//    compact encoding is the offset of the DWARF FDE in the __eh_frame section.
+//    This mode is never used in object files.  It is only generated by the 
+//    linker in final linked images which have only DWARF unwind info for a
+//    function.
+//
+
+
 
 
 
@@ -294,7 +343,7 @@ enum {
 // This section is a table, initially with one row per function (that needs 
 // unwind info).  The table columns and some conceptual entries are:
 //
-//	   range-start               pointer to start of function/range
+//     range-start               pointer to start of function/range
 //     range-length              
 //     compact-unwind-encoding   32-bit encoding  
 //     personality-function      or zero if no personality function
@@ -335,7 +384,7 @@ enum {
 // saved at that range of the function.
 //
 // If a particular function is so wacky that there is no compact unwind way
-// to encode it, then the compiler can emit traditional dwarf unwind info.  
+// to encode it, then the compiler can emit traditional DWARF unwind info.  
 // The runtime will use which ever is available.
 //
 // Runtime support for compact unwind encodings are only available on 10.6 
@@ -367,19 +416,19 @@ struct unwind_info_section_header
     uint32_t    indexSectionOffset;
     uint32_t    indexCount;
     // compact_unwind_encoding_t[]
-    // uintptr_t personalities[]
+    // uint32_t personalities[]
     // unwind_info_section_header_index_entry[]
     // unwind_info_section_header_lsda_index_entry[]
 };
 
-struct unwind_info_section_header_index_entry 
+struct unwind_info_section_header_index_entry
 {
     uint32_t        functionOffset;
     uint32_t        secondLevelPagesSectionOffset;  // section offset to start of regular or compress page
     uint32_t        lsdaIndexArraySectionOffset;    // section offset to start of lsda_index array for this range
 };
 
-struct unwind_info_section_header_lsda_index_entry 
+struct unwind_info_section_header_lsda_index_entry
 {
     uint32_t        functionOffset;
     uint32_t        lsdaOffset;
@@ -389,10 +438,10 @@ struct unwind_info_section_header_lsda_index_entry
 // There are two kinds of second level index pages: regular and compressed.
 // A compressed page can hold up to 1021 entries, but it cannot be used
 // if too many different encoding types are used.  The regular page holds
-// 511 entries.  
+// 511 entries.
 //
 
-struct unwind_info_regular_second_level_entry 
+struct unwind_info_regular_second_level_entry
 {
     uint32_t                    functionOffset;
     compact_unwind_encoding_t    encoding;
@@ -415,7 +464,7 @@ struct unwind_info_compressed_second_level_page_header
     uint16_t    entryCount;
     uint16_t    encodingsPageOffset;
     uint16_t    encodingsCount;
-    // 32-bit entry array    
+    // 32-bit entry array
     // encodings array
 };
 
