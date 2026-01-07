@@ -7,6 +7,7 @@ add_subdirectory(libsystem_platform)
 add_subdirectory(libsystem_malloc)
 add_subdirectory(libsystem_pthread)
 add_subdirectory(libsystem_c)
+add_subdirectory(CommonCrypto)
 
 # target_include_directories(libSystem PRIVATE
 #     ../../Kernel/xnu/libsyscall/wrappers ../../Kernel/xnu/libsyscall/mach
@@ -34,14 +35,18 @@ target_compile_options(libSystem PRIVATE
 )
 
 target_link_libraries(libSystem
-    libsystem_pthread libsystem_platform libsystem_malloc libsystem_c) #libkernel compiler_rt libdarwin
+    libcommonCrypto libsystem_pthread libsystem_platform libsystem_malloc
+    libsystem_c) #libkernel compiler_rt libdarwin
 
 add_dependencies(libsystem_c xnu_headers)
 add_dependencies(libsystem_pthread xnu_headers)
 add_dependencies(libsystem_malloc xnu_headers)
 add_dependencies(libsystem_platform xnu_headers)
+add_dependencies(libcommonCrypto xnu_headers)
 add_dependencies(libSystem 
-    libsystem_c libsystem_malloc libsystem_pthread libsystem_platform)
+    libsystem_c libsystem_malloc libsystem_pthread libsystem_platform
+    libcommonCrypto
+)
 
 # add_custom_command(TARGET libSystem
 #     POST_BUILD

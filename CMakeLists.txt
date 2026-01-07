@@ -12,7 +12,7 @@ include(./Developer/cmake/Version.cmake)
 include(./Developer/cmake/Paths.cmake)
 include(./Developer/cmake/Tools.cmake)
 
-message(STATUS "Configuring ravynOS ${PROD_FAMILY} ${PROD_VERSION} for ${CpuArch}")
+message(STATUS "Configuring ravynOS ${PROD_VERSION} ${PROD_FAMILY} for ${CpuArch}")
 message(STATUS "Darwin ${DARWIN_VERSION}, Apple LLVM/TAPI ${TAPI_VERSION}")
 
 # ------------------------------------------------------------------------
