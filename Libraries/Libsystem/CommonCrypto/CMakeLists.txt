@@ -24,7 +24,8 @@ target_sources(libcommonCrypto PRIVATE
 )
 
 target_include_directories(libcommonCrypto PRIVATE
-    lib lib_cn ${SDK_SOURCE_DIR}/usr/include
+    lib lib_cn ${SDK_SOURCE_DIR}/usr/include ../libsystem_c/darwin
+    ${RAVYN_SDKROOT}/usr/include
 )
 
 target_compile_definitions(libcommonCrypto PRIVATE
@@ -32,7 +33,7 @@ target_compile_definitions(libcommonCrypto PRIVATE
 
 target_compile_options(libcommonCrypto PRIVATE
     --sysroot=${RAVYN_SDKROOT} -isysroot=${RAVYN_SDKROOT} -w
-    --target=${TARGET_TRIPLE}
+    --target=${TARGET_TRIPLE} -F${RAVYN_SDKROOT}/System/Library/Frameworks
     -Wno-implicit-function-declaration
     -Wno-int-conversion -Wno-implicit-int
 )

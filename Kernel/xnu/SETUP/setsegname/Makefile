@@ -9,9 +9,8 @@ include $(MakeInc_def)
 OBJS = setsegname.o
 
 CFLAGS = -g -O0 -Wno-implicit-function-declaration \
-	-I$(SRCROOT)/../../Developer/cctools/include/foreign \
-	-I$(SOURCE) -I. -I$(SRCROOT)/../../Developer/cctools/include \
-	-I$(SRCROOT)/../../Developer/Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk
+	-I$(SRCROOT)/../../Developer/Default.xctoolchain/include \
+	-I$(SOURCE) -I. 
 LDFLAGS =
 ifeq ($(shell uname -s),"Darwin")
 	CFLAGS += -isysroot $(HOST_SDKROOT) -mmacosx-version-min=$(HOST_OS_VERSION)

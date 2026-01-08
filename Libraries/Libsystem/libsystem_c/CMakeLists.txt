@@ -106,22 +106,8 @@ target_sources(libsystem_c PRIVATE
 target_include_directories(libsystem_c PRIVATE
     ../private ${SDK_SOURCE_DIR}/usr/include
     ../../libdispatch/src/BlocksRuntime
-    ../../dyld/include
-    # ../../Kernel/xnu/libsyscall/wrappers
-    # ../../Kernel/xnu/libsyscall/mach
-    # ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders
-    # include
-    # ../libpthread/private ../libpthread
-    # ../../Kernel/xnu/libsyscall/wrappers/spawn
-    # ../../Kernel/xnu/libsyscall
-    # ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers
-    # locale locale/FreeBSD stdtime/FreeBSD gen stdio/FreeBSD
-    # ../../Developer/cctools/include
-    # ../../CoreServices/syslog/libsystem_asl.tproj/include
-    # ../../Developer/cctools/include/foreign
-    # ../Libinfo/membership.subproj ../Libinfo/lookup.subproj
-    # ../../Kernel/xnu/libkern
-    # ../libpthread/pthread ../Libnotify ../libdispatch
+    ../../dyld/include ./darwin
+    ${RAVYN_SDKROOT}/usr/include
 )
 
 target_compile_definitions(libsystem_c PRIVATE
@@ -133,7 +119,7 @@ target_compile_definitions(libsystem_c PRIVATE
 
 target_compile_options(libsystem_c PRIVATE
     --sysroot=${RAVYN_SDKROOT} -isysroot=${RAVYN_SDKROOT} -w
-    --target=${TARGET_TRIPLE}
+    --target=${TARGET_TRIPLE} -F${RAVYN_SDKROOT}/System/Library/Frameworks
     -Wno-implicit-function-declaration
     -Wno-int-conversion -Wno-implicit-int
 )

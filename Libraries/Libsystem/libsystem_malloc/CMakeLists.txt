@@ -13,7 +13,14 @@ target_sources(libsystem_malloc PRIVATE
 )
 
 target_include_directories(libsystem_malloc PRIVATE
-   ../private internal ${SDK_SOURCE_DIR}/usr/include
+    ${SDK_SOURCE_DIR}/usr/include
+    ../../../Kernel/xnu/EXTERNAL_HEADERS
+    ../private internal resolver 
+    ../libsystem_c/darwin
+    ../../../Kernel/xnu/libsyscall/mach
+    ../libsystem_c/gen
+    ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders
+    ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers
 )
 
 target_compile_definitions(libsystem_malloc PRIVATE
@@ -30,7 +37,7 @@ target_compile_definitions(libsystem_malloc PRIVATE
 
 target_compile_options(libsystem_malloc PRIVATE
     --sysroot=${RAVYN_SDKROOT} -isysroot=${RAVYN_SDKROOT} -w
-    --target=${TARGET_TRIPLE}
+    --target=${TARGET_TRIPLE} -F${RAVYN_SDKROOT}/System/Library/Frameworks
     -Wno-implicit-function-declaration
     -Wno-int-conversion -Wno-implicit-int
 )

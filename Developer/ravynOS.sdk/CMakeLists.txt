@@ -24,7 +24,7 @@ file(COPY usr USE_SOURCE_PERMISSIONS DESTINATION ${RAVYN_SDKROOT})
 execute_process(COMMAND ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd/sys/make_symbol_aliasing.sh
     ${RAVYN_SDKROOT} ${RAVYN_SDKROOT}/usr/include/sys/_symbol_aliasing.h)
 
-# file(CREATE_LINK Versions/B/Headers ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Headers SYMBOLIC)
-# file(CREATE_LINK Versions/B/PrivateHeaders ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/PrivateHeaders SYMBOLIC)
-# file(CREATE_LINK Versions/A/Headers ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Headers SYMBOLIC)
-# file(CREATE_LINK Versions/A/PrivateHeaders ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/PrivateHeaders SYMBOLIC)
+file(CREATE_LINK Versions/B/Headers ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Headers SYMBOLIC)
+file(CREATE_LINK Versions/B/PrivateHeaders ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/PrivateHeaders SYMBOLIC)
+file(CREATE_LINK Versions/A/Headers ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Headers SYMBOLIC)
+file(CREATE_LINK Versions/A/PrivateHeaders ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/PrivateHeaders SYMBOLIC)

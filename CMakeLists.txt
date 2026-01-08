@@ -24,11 +24,13 @@ add_custom_target(Bootstrap)
 
 # ------------------------------------------------------------------------
 
+add_custom_target(_bsHeaders)
+
 add_subdirectory(SystemLibrary)
 add_subdirectory(Developer)
 add_subdirectory(Kernel)
 add_subdirectory(Libraries)
 
-
 add_dependencies(Darwin Bootstrap libSystem xnu_headers)
 add_dependencies(Bootstrap BootstrapTools ravynOS_sdk)
+add_dependencies(_bsHeaders xnu_headers)

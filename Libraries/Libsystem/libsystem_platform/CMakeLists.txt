@@ -53,7 +53,8 @@ target_sources(libsystem_platform PRIVATE
 )
 
 target_include_directories(libsystem_platform PRIVATE
-    ../private internal os/resolver ${SDK_SOURCE_DIR}/usr/include
+    ../private internal os/resolver ../libsystem_c/darwin
+    ${RAVYN_SDKROOT}/usr/include
 )
 
 target_compile_definitions(libsystem_platform PRIVATE
@@ -70,7 +71,7 @@ target_compile_definitions(libsystem_platform PRIVATE
 
 target_compile_options(libsystem_platform PRIVATE
     --sysroot=${RAVYN_SDKROOT} -isysroot=${RAVYN_SDKROOT} -w
-    --target=${TARGET_TRIPLE}
+    --target=${TARGET_TRIPLE} -F${RAVYN_SDKROOT}/System/Library/Frameworks
     -Wno-implicit-function-declaration
     -Wno-int-conversion -Wno-implicit-int
 )

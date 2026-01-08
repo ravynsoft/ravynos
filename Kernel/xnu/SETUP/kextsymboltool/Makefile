@@ -11,9 +11,8 @@ OPSYS := $(shell uname -s)
 OBJS = kextsymboltool.o
 
 CFLAGS = -g -O0 -Wno-implicit-function-declaration \
-	-I$(SRCROOT)/../../Developer/cctools/include/foreign \
-	-I$(SOURCE) -I. -I$(SRCROOT)/../../Developer/cctools/include \
-	-I$(SRCROOT)/../../Developer/Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk
+	-I$(SRCROOT)/../../Developer/Default.xctoolchain/include \
+	-I$(SOURCE) -I. 
 LDFLAGS = -lstdc++
 
 ifeq ($(OPSYS),Darwin)
@@ -23,8 +22,9 @@ endif
 
 ifeq ($(OPSYS),Linux)
 # The linux linker needs these to come after object files :(
-export LIBS = -L../../../../Bootstrap/cctools/libmacho \
-	-L../../../../Bootstrap/cctools/libstuff -luuid -lmacho -lstuff
+export LIBS = -L../../../../Developer/Default.xctoolchain/cctools/libmacho \
+	-L../../../../Developer/Default.xctoolchain/cctools/libstuff \
+	-luuid -lmacho -lstuff
 endif
 
 WARNFLAGS = -Wall -Wno-int-conversion

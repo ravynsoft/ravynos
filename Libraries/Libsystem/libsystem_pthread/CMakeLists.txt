@@ -11,19 +11,7 @@ target_sources(libsystem_pthread PRIVATE ${privhdrs})
 
 target_include_directories(libsystem_pthread PRIVATE
     ../private resolver ${SDK_SOURCE_DIR}/usr/include
-    # ../libplatform/include ../libplatform/private
-    # ../libmalloc/include ../libmalloc/private
-    # ../../Kernel/xnu/libsyscall/mach
-    # ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/PrivateHeaders
-    # ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Headers
-    # private/pthread
-    # ../../Kernel/xnu/libsyscall
-    # private .
-    # ../../Kernel/xnu/libsyscall/wrappers
-    # ../dyld/include
-    # ../../Kernel/xnu/bsd
-    # ../../Kernel/xnu/libsyscall/wrappers/spawn
-    # pthread
+    ../libsystem_c/darwin ${RAVYN_SDKROOT}/usr/include
 )
 
 target_compile_definitions(libsystem_pthread PRIVATE
