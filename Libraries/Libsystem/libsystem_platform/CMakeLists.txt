@@ -1,4 +1,4 @@
-add_library(libsystem_platform STATIC)
+add_library(libsystem_platform OBJECT)
 set_property(TARGET libsystem_platform PROPERTY OUTPUT_NAME "system_platform")
 set_property(TARGET libsystem_platform PROPERTY SUFFIX ".dylib")
 set_property(TARGET libsystem_platform PROPERTY PREFIX "lib")
@@ -53,25 +53,28 @@ target_sources(libsystem_platform PRIVATE
 )
 
 target_include_directories(libsystem_platform PRIVATE
+    ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders
+    ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers
     ../private internal os/resolver ../libsystem_c/darwin
-    ${RAVYN_SDKROOT}/usr/include
+    ../../../Kernel/xnu/libsyscall/mach
+    ../../../Kernel/xnu/libsyscall/wrappers
 )
 
 target_compile_definitions(libsystem_platform PRIVATE
     DISPATCH_USE_DTRACE=0
-    # memory_order_dependency=os_atomic_memory_order_dependency
-    # memory_order_acquire=os_atomic_memory_order_acquire
-    # memory_order_release=os_atomic_memory_order_release
-    # memory_order_relaxed=os_atomic_memory_order_relaxed
-    # OS_ATOMIC_CONFIG_MEMORY_ORDER_DEPENDENCY=1
-    # OS_ATOMIC_CONFIG_MEMORY_ORDER_DEPENDENCY=1 
-    # OS_ATOMIC_CONFIG_STARVATION_FREE_ONLY=0
+    memory_order_dependency=os_atomic_memory_order_dependency
+    memory_order_acquire=os_atomic_memory_order_acquire
+    memory_order_release=os_atomic_memory_order_release
+    memory_order_relaxed=os_atomic_memory_order_relaxed
+    OS_ATOMIC_CONFIG_MEMORY_ORDER_DEPENDENCY=1
+    OS_ATOMIC_CONFIG_STARVATION_FREE_ONLY=0
     # __DARWIN_LITTLE_ENDIAN=1234 __DARWIN_BIG_ENDIAN=4321
 )
 
 target_compile_options(libsystem_platform PRIVATE
     --sysroot=${RAVYN_SDKROOT} -isysroot=${RAVYN_SDKROOT} -w
-    --target=${TARGET_TRIPLE} -F${RAVYN_SDKROOT}/System/Library/Frameworks
+    --target=${TARGET_TRIPLE} -isystem ${RAVYN_SDKROOT}/usr/include
+    -iframework ${RAVYN_SDKROOT}/System/Library/Frameworks
     -Wno-implicit-function-declaration
     -Wno-int-conversion -Wno-implicit-int
 )

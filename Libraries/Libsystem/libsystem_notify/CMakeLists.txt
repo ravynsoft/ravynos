@@ -1,0 +1,31 @@
+add_library(libsystem_notify OBJECT)
+set_property(TARGET libsystem_notify PROPERTY OUTPUT_NAME "system_notify")
+set_property(TARGET libsystem_notify PROPERTY SUFFIX ".dylib")
+set_property(TARGET libsystem_notify PROPERTY PREFIX "lib")
+
+target_sources(libsystem_notify PRIVATE
+    libnotify.c notify_client.c table.c
+)
+
+target_include_directories(libsystem_notify PRIVATE
+    ${SDK_SOURCE_DIR}/usr/include
+    ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders
+    . ../libsystem_c/darwin ../libsystem_c ../../../Kernel/xnu/libsyscall/mach
+    ../private ../../../Kernel/xnu/libkern
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
+    ../liblaunch ${SDK_SOURCE_DIR}/usr/include/pthread
+    ../libdispatch/private
+)
+
+target_compile_definitions(libsystem_notify PRIVATE
+    DISPATCH_USE_DTRACE=0
+)
+
+target_compile_options(libsystem_notify PRIVATE
+    --sysroot=${RAVYN_SDKROOT} -isysroot=${RAVYN_SDKROOT} -w
+    --target=${TARGET_TRIPLE}
+    -iframework ${RAVYN_SDKROOT}/System/Library/Frameworks
+    -fno-exceptions -Wno-implicit-function-declaration
+    -Wno-int-conversion -Wno-implicit-int
+)
+

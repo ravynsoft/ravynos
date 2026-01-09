@@ -6,6 +6,7 @@ set_property(TARGET libSystem PROPERTY SUFFIX ".B.dylib")
 add_subdirectory(libsystem_platform)
 add_subdirectory(libsystem_malloc)
 add_subdirectory(libsystem_pthread)
+add_subdirectory(libsystem_notify)
 add_subdirectory(libsystem_c)
 add_subdirectory(CommonCrypto)
 
@@ -42,10 +43,11 @@ add_dependencies(libsystem_c xnu_headers)
 add_dependencies(libsystem_pthread xnu_headers)
 add_dependencies(libsystem_malloc xnu_headers)
 add_dependencies(libsystem_platform xnu_headers)
+add_dependencies(libsystem_notify xnu_headers)
 add_dependencies(libcommonCrypto xnu_headers)
 add_dependencies(libSystem 
     libsystem_c libsystem_malloc libsystem_pthread libsystem_platform
-    libcommonCrypto
+    libsystem_notify libcommonCrypto
 )
 
 # add_custom_command(TARGET libSystem

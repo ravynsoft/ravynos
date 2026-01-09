@@ -1,4 +1,4 @@
-add_library(libcommonCrypto SHARED)
+add_library(libcommonCrypto OBJECT)
 set_property(TARGET libcommonCrypto PROPERTY OUTPUT_NAME "commonCrypto")
 set_property(TARGET libcommonCrypto PROPERTY SUFFIX ".dylib")
 set_property(TARGET libcommonCrypto PROPERTY PREFIX "lib")
@@ -25,7 +25,9 @@ target_sources(libcommonCrypto PRIVATE
 
 target_include_directories(libcommonCrypto PRIVATE
     lib lib_cn ${SDK_SOURCE_DIR}/usr/include ../libsystem_c/darwin
-    ${RAVYN_SDKROOT}/usr/include
+    ${RAVYN_SDKROOT}/usr/include ${RAVYN_SDKROOT}/usr/include/Private
+    ../../../Kernel/xnu/EXTERNAL_HEADERS ../../../Kernel/xnu/libkern
+    ../libsystem_c ../private
 )
 
 target_compile_definitions(libcommonCrypto PRIVATE
@@ -33,7 +35,8 @@ target_compile_definitions(libcommonCrypto PRIVATE
 
 target_compile_options(libcommonCrypto PRIVATE
     --sysroot=${RAVYN_SDKROOT} -isysroot=${RAVYN_SDKROOT} -w
-    --target=${TARGET_TRIPLE} -F${RAVYN_SDKROOT}/System/Library/Frameworks
+    --target=${TARGET_TRIPLE}
+    -iframework ${RAVYN_SDKROOT}/System/Library/Frameworks
     -Wno-implicit-function-declaration
     -Wno-int-conversion -Wno-implicit-int
 )

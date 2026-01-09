@@ -11,7 +11,7 @@ endif()
 
 set(CC ${TOOLS}/cc)
 set(CXX ${TOOLS}/c++)
-set(LD ${TOOLS}/ld)
+set(LD ${TOOLS}/ld64)
 set(AR ${TOOLS}/ar)
 set(RANLIB ${TOOLS}/ranlib)
 set(NM ${TOOLS}/nm)

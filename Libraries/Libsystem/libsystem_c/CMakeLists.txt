@@ -1,4 +1,4 @@
-add_library(libsystem_c STATIC)
+add_library(libsystem_c OBJECT)
 set_property(TARGET libsystem_c PROPERTY OUTPUT_NAME "system_c")
 set_property(TARGET libsystem_c PROPERTY SUFFIX ".dylib")
 set_property(TARGET libsystem_c PROPERTY PREFIX "lib")
@@ -104,22 +104,32 @@ target_sources(libsystem_c PRIVATE
 # add_dependencies(libc xnu_headers)
 
 target_include_directories(libsystem_c PRIVATE
-    ../private ${SDK_SOURCE_DIR}/usr/include
-    ../../libdispatch/src/BlocksRuntime
-    ../../dyld/include ./darwin
-    ${RAVYN_SDKROOT}/usr/include
+    ../../../Kernel/xnu/bsd
+    ../../../Kernel/xnu/osfmk
+    ../private locale locale/FreeBSD stdtime/FreeBSD . gen stdio/FreeBSD
+    ../../libdispatch/src/BlocksRuntime ../libsystem_info/membership.subproj
+    ../libsystem_info/lookup.subproj
+    ../../../Kernel/xnu/libsyscall/wrappers/spawn
+    ../../dyld/include ./darwin ../../../Kernel/xnu/libsyscall/mach
+    ../../../Kernel/xnu/libkern ${SDK_SOURCE_DIR}/usr/include/pthread
+    ${SDK_SOURCE_DIR}/usr/include
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
 )
 
 target_compile_definitions(libsystem_c PRIVATE
     TARGET_OS_BRIDGE=0 __DARWIN_UNIX03 
-    # memory_order_seq_cst=__ATOMIC_SEQ_CST
-    # "__LIBC_PTHREAD_KEY_XLOCALE=__LIBC_PTHREAD_KEY(0)"
-    # HAVE_STDINT_H
+    "__LIBC_PTHREAD_KEY_XLOCALE=__LIBC_PTHREAD_KEY(0)"
+    memory_order_seq_cst=__ATOMIC_SEQ_CST
+    HAVE_STDINT_H _COMM_PAGE_ATM_DIAGNOSTIC_CONFIG=0x00007fffffe00048ULL
 )
 
 target_compile_options(libsystem_c PRIVATE
     --sysroot=${RAVYN_SDKROOT} -isysroot=${RAVYN_SDKROOT} -w
-    --target=${TARGET_TRIPLE} -F${RAVYN_SDKROOT}/System/Library/Frameworks
+    --target=${TARGET_TRIPLE}
+    -iframework ${RAVYN_SDKROOT}/System/Library/Frameworks
+    -isystem ${RAVYN_SDKROOT}/usr/include
     -Wno-implicit-function-declaration
     -Wno-int-conversion -Wno-implicit-int
+    -include${SDK_SOURCE_DIR}/usr/include/os/availability.h
 )

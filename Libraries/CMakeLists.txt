@@ -11,6 +11,9 @@ include(${ROOT_SOURCE_DIR}/Developer/cmake/Tools.cmake)
 
 set(ENV{DERIVED_DATA_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
+set(CMAKE_C_COMPILER ${CC})
+set(CMAKE_CXX_COMPILER ${CXX})
+
 add_subdirectory(Libsystem)
 # add_subdirectory(libdispatch)
 # add_subdirectory(CommonCrypto)

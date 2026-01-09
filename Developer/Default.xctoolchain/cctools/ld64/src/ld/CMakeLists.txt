@@ -28,7 +28,7 @@ target_compile_options(host_ld PRIVATE
 )
 if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
     target_sources(host_ld PRIVATE linuxshim.cpp)
-    set(RPATH_ORIGIN '-R$$ORIGIN')
+    set(RPATH_ORIGIN -R$ORIGIN)
     target_compile_definitions(host_ld PRIVATE
         __APPLE_CC__=1 u_int8_t=__uint8_t u_int32_t=__uint32_t
         u_int64_t=__uint64_t OS_ALWAYS_INLINE=inline OS_WARN_RESULT=
