@@ -1,7 +1,6 @@
-add_library(libsystem_platform OBJECT)
-set_property(TARGET libsystem_platform PROPERTY OUTPUT_NAME "system_platform")
-set_property(TARGET libsystem_platform PROPERTY SUFFIX ".dylib")
-set_property(TARGET libsystem_platform PROPERTY PREFIX "lib")
+add_library(libsystem_platform SHARED)
+set_target_properties(libsystem_platform PROPERTIES
+    OUTPUT_NAME "libsystem_platform" SUFFIX ".dylib" PREFIX "lib" NO_SONAME true)
 
 target_sources(libsystem_platform PRIVATE
     simple/asl.c
@@ -67,8 +66,8 @@ target_compile_definitions(libsystem_platform PRIVATE
     memory_order_release=os_atomic_memory_order_release
     memory_order_relaxed=os_atomic_memory_order_relaxed
     OS_ATOMIC_CONFIG_MEMORY_ORDER_DEPENDENCY=1
-    OS_ATOMIC_CONFIG_STARVATION_FREE_ONLY=0
-    # __DARWIN_LITTLE_ENDIAN=1234 __DARWIN_BIG_ENDIAN=4321
+    OS_ATOMIC_CONFIG_STARVATION_FREE_ONLY=0 OS_UNFAIR_LOCK_INLINE=0
+    OSATOMIC_USE_INLINED=0 OSATOMIC_DEPRECATED=0 OSSPINLOCK_USE_INLINED=1
 )
 
 target_compile_options(libsystem_platform PRIVATE
@@ -77,4 +76,15 @@ target_compile_options(libsystem_platform PRIVATE
     -iframework ${RAVYN_SDKROOT}/System/Library/Frameworks
     -Wno-implicit-function-declaration
     -Wno-int-conversion -Wno-implicit-int
+    -fno-stack-protector -fdollars-in-identifiers -fno-common -fverbose-asm
+    -momit-leaf-frame-pointer
+)
+
+
+target_link_options(libsystem_platform PRIVATE
+    -mmacos-version-min=10.15 -v -Wl,-install_name,/usr/lib/system/libsystem_platform.dylib
+    -rdynamic -nodefaultlibs -Wl,-search_paths_first
+    -all_load -nostdlib -L${RAVYN_SDKROOT}/usr/lib/system -umbrella System
+    #-lcompiler-rt -ldyld -lkernel
+    -Wl,-alias_list,${CMAKE_CURRENT_SOURCE_DIR}/xcodeconfig/libplatform.aliases
 )

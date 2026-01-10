@@ -1,7 +1,6 @@
-add_library(libsystem_pthread OBJECT)
-set_property(TARGET libsystem_pthread PROPERTY OUTPUT_NAME "system_pthread")
-set_property(TARGET libsystem_pthread PROPERTY SUFFIX ".dylib")
-set_property(TARGET libsystem_pthread PROPERTY PREFIX "lib")
+add_library(libsystem_pthread SHARED)
+set_target_properties(libsystem_pthread PROPERTIES
+    OUTPUT_NAME "libsystem_pthread" SUFFIX ".dylib" PREFIX "lib" NO_SONAME true)
 
 target_sources(libsystem_pthread PRIVATE
     pthread.c pthread_asm.s pthread_atfork.c pthread_cancelable.c
@@ -24,7 +23,9 @@ target_include_directories(libsystem_pthread PRIVATE
 )
 
 target_compile_definitions(libsystem_pthread PRIVATE
-    DISPATCH_USE_DTRACE=0 __PTHREAD_EXPOSE_INTERNALS__=1
+    DISPATCH_USE_DTRACE=0 __LIBC__ __DARWIN_UNIX03 __DARWIN_64_BIT_INO_T
+    __DARWIN_NON_CANCELABLE __DARWIN_VERS_1050 _FORTIFY_SOURCE=0
+    __PTHREAD_BUILDING_PTHREAD__ __PTHREAD_EXPOSE_INTERNALS__
     memory_order_dependency=os_atomic_memory_order_dependency
     memory_order_acquire=os_atomic_memory_order_acquire
     memory_order_release=os_atomic_memory_order_release
@@ -38,4 +39,16 @@ target_compile_options(libsystem_pthread PRIVATE
     -iframework ${RAVYN_SDKROOT}/System/Library/Frameworks
     -Wno-implicit-function-declaration
     -Wno-int-conversion -Wno-implicit-int
+    -fno-stack-protector -fno-stack-check -fno-builtin
+    -momit-leaf-frame-pointer
+)
+
+target_link_options(libsystem_pthread PRIVATE
+    -mmacos-version-min=10.15 -v -Wl,-install_name,/usr/lib/system/libsystem_pthread.dylib
+    -rdynamic -nodefaultlibs -Wl,-search_paths_first
+    -all_load -nostdlib -L${RAVYN_SDKROOT}/usr/lib/system -umbrella System
+    #-lsystem_kernel -ldyld -lcompiler_rt
+    -lsystem_platform
+    -Wl,-dirty_data_list,xcodescripts/pthread.dirty
+    -Wl,-alias_list,xcodescripts/pthread.aliases 
 )

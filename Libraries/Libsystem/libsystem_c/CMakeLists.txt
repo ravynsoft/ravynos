@@ -1,4 +1,4 @@
-add_library(libsystem_c OBJECT)
+add_library(libsystem_c SHARED)
 set_property(TARGET libsystem_c PROPERTY OUTPUT_NAME "system_c")
 set_property(TARGET libsystem_c PROPERTY SUFFIX ".dylib")
 set_property(TARGET libsystem_c PROPERTY PREFIX "lib")
@@ -101,8 +101,6 @@ target_sources(libsystem_c PRIVATE
     uuid/uuidsrc/unparse.c
 )
 
-# add_dependencies(libc xnu_headers)
-
 target_include_directories(libsystem_c PRIVATE
     ../../../Kernel/xnu/bsd
     ../../../Kernel/xnu/osfmk
@@ -112,14 +110,15 @@ target_include_directories(libsystem_c PRIVATE
     ../../../Kernel/xnu/libsyscall/wrappers/spawn
     ../../dyld/include ./darwin ../../../Kernel/xnu/libsyscall/mach
     ../../../Kernel/xnu/libkern ${SDK_SOURCE_DIR}/usr/include/pthread
+    ../libsystem_notify ../libxpc
     ${SDK_SOURCE_DIR}/usr/include
     ${ROOT_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS
     ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
 )
 
 target_compile_definitions(libsystem_c PRIVATE
-    TARGET_OS_BRIDGE=0 __DARWIN_UNIX03 
-    "__LIBC_PTHREAD_KEY_XLOCALE=__LIBC_PTHREAD_KEY(0)"
+    __LIBC__ __DARWIN_64_BIT_INO_T=1 __DARWIN_NON_CANCELABLE=1 __DARWIN_VERS_1050=1 _FORTIFY_SOURCE=0
+    TARGET_OS_BRIDGE=0 __DARWIN_UNIX03  "__LIBC_PTHREAD_KEY_XLOCALE=__LIBC_PTHREAD_KEY(0)"
     memory_order_seq_cst=__ATOMIC_SEQ_CST
     HAVE_STDINT_H _COMM_PAGE_ATM_DIAGNOSTIC_CONFIG=0x00007fffffe00048ULL
 )
@@ -131,5 +130,22 @@ target_compile_options(libsystem_c PRIVATE
     -isystem ${RAVYN_SDKROOT}/usr/include
     -Wno-implicit-function-declaration
     -Wno-int-conversion -Wno-implicit-int
+    -fdollars-in-identifiers -fno-common -fverbose-asm 
     -include${SDK_SOURCE_DIR}/usr/include/os/availability.h
+)
+
+target_link_options(libsystem_c PRIVATE
+    -mmacos-version-min=10.15 -v -Wl,-install_name,/usr/lib/system/libsystem_c.dylib
+    -rdynamic -nodefaultlibs -Wl,-search_paths_first
+    -all_load -nostdlib -L${RAVYN_SDKROOT}/usr/lib/system -umbrella System
+    #-lCrashReporterClient -lcompiler-rt -ldyld -lkernel -lm
+    -lsystem_malloc -lsystem_platform -lsystem_pthread
+    #-Wl,-upward-ldispatch -Wl,-upward-lmacho -Wl,-upward-lsystem_asl -Wl,-upward-lsystem_blocks
+    #-Wl,-upward-lsystem_info -Wl,-upward-lsystem_notify -Wl,-upward-lxpc -Wl,-upward-lcorecrypto
+    #-Wl,-upward-lsystem_trace
+    -Wl,-interposable_list,${CMAKE_CURRENT_BINARY_DIR}/interposable.list
+    -Wl,-unexported_symbols_list,${CMAKE_CURRENT_BINARY_DIR}/unexport.list
+    -Wl,-alias_list,xcodescripts/alias.list
+    -Wl,-alias_list,xcodescripts/legacy_alias.list
+    -Wl,-order_file,xcodescripts/Libc.order
 )

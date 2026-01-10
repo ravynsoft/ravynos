@@ -1,28 +1,24 @@
 add_library(libSystem SHARED)
 target_sources(libSystem PRIVATE init.c CompatibilityHacks.c)
-set_property(TARGET libSystem PROPERTY OUTPUT_NAME "System")
-set_property(TARGET libSystem PROPERTY SUFFIX ".B.dylib")
+set_target_properties(libSystem PROPERTIES
+    OUTPUT_NAME "System.B" SUFFIX ".dylib" PREFIX "lib" NO_SONAME true)
 
+
+add_subdirectory(libsystem_kernel)
 add_subdirectory(libsystem_platform)
 add_subdirectory(libsystem_malloc)
 add_subdirectory(libsystem_pthread)
-add_subdirectory(libsystem_notify)
+#add_subdirectory(libsystem_notify)
 add_subdirectory(libsystem_c)
-add_subdirectory(CommonCrypto)
+#add_subdirectory(CommonCrypto)
 
-# target_include_directories(libSystem PRIVATE
-#     ../../Kernel/xnu/libsyscall/wrappers ../../Kernel/xnu/libsyscall/mach
-#     ../libpthread ../libpthread/private ../libpthread/pthread
-#     ../libmalloc/include ../../Kernel/xnu/bsd ../../Kernel/xnu/osfmk
-#     ../../Kernel/xnu/EXTERNAL_HEADERS
-#     ../../Kernel/xnu/libsyscall
-#     ../dyld/include ../libmalloc/private
-#     ${CMAKE_CURRENT_BINARY_DIR}/../../Kernel/xnu/EXPORT_HDRS/osfmk
-#     ../libplatform/include ${SYSROOT_DIR}/usr/include
-#     ../Libc ../../Developer/Platforms/ravynOS.platform/Developer/SDKs/ravynOS.sdk
-#     ../Libc/include ../../Developer/llvm-project/clang/lib/Headers
-#     ../libplatform/private ../Libc/darwin
-# )
+target_include_directories(libSystem PRIVATE
+    libsystem_c/darwin ../../Kernel/xnu/EXTERNAL_HEADERS
+    ${RAVYN_SDKROOT}/usr/include/pthread private
+    ../../Kernel/xnu/bsd ../../Kernel/xnu/libsyscall/mach
+    ../../Kernel/xnu/libsyscall/wrappers
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
+)
 
 target_compile_definitions(libSystem PRIVATE
     __DARWIN_UNIX03 DYLD_MACOSX_VERSION_10_11=0x000A0B00
@@ -30,32 +26,25 @@ target_compile_definitions(libSystem PRIVATE
 
 target_compile_options(libSystem PRIVATE
     --sysroot=${RAVYN_SDKROOT} -isysroot=${RAVYN_SDKROOT} -w
-    --target=${TARGET_TRIPLE}
+    --target=${TARGET_TRIPLE} -isystem ${RAVYN_SDKROOT}/usr/include
+    -iframework ${RAVYN_SDKROOT}/System/Library/Frameworks
     -Wno-implicit-function-declaration
     -Wno-int-conversion -Wno-implicit-int
 )
 
-target_link_libraries(libSystem
-    libcommonCrypto libsystem_pthread libsystem_platform libsystem_malloc
-    libsystem_c) #libkernel compiler_rt libdarwin
-
-add_dependencies(libsystem_c xnu_headers)
-add_dependencies(libsystem_pthread xnu_headers)
-add_dependencies(libsystem_malloc xnu_headers)
-add_dependencies(libsystem_platform xnu_headers)
-add_dependencies(libsystem_notify xnu_headers)
-add_dependencies(libcommonCrypto xnu_headers)
+add_dependencies(libsystem_c libsystem_malloc libsystem_platform)
+add_dependencies(libsystem_pthread libsystem_platform)
+add_dependencies(libsystem_malloc libsystem_platform)
+add_dependencies(libsystem_platform compiler_rt)
+#add_dependencies(libsystem_notify xnu_headers)
+#add_dependencies(libcommonCrypto xnu_headers)
 add_dependencies(libSystem 
     libsystem_c libsystem_malloc libsystem_pthread libsystem_platform
-    libsystem_notify libcommonCrypto
+    #libsystem_notify libcommonCrypto
 )
 
-# add_custom_command(TARGET libSystem
-#     POST_BUILD
-#     COMMAND env PLATFORM_NAME=macosx sh
-#         ${CMAKE_CURRENT_SOURCE_DIR}/xcodescripts/create_system_framework.sh
-#             ${SYSROOT_DIR} . none ${BuildArch} normal
-#     COMMAND env PLATFORM_NAME=macosx sh
-#         ${CMAKE_CURRENT_SOURCE_DIR}/xcodescripts/create_system_framework.sh
-#             ${RAVYN_SDKROOT} . none ${BuildArch} normal
-# )
+target_link_options(libSystem PRIVATE
+    -mmacos-version-min=10.15 -v
+    -rdynamic -nodefaultlibs -Wl,-search_paths_first -Wl,-reexport-lsystem_c
+    -Wl,-reexport-lsystem_malloc -Wl,-reexport-lsystem_platform -Wl,-reexport-lsystem_pthread
+)
