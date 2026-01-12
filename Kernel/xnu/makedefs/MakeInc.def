@@ -484,8 +484,7 @@ LDFLAGS_KERNEL_GEN = \
 	-Wl,-function_starts \
 	-Wl,-headerpad,152
 
-# LDFLAGS_KERNEL_SDK	= -L$(SDKROOT)/usr/local/lib/kernel -lfirehose_kernel
-LDFLAGS_KERNEL_SDK	= -L$(OBJROOT)/../../sysroot/usr/local/lib/kernel
+LDFLAGS_KERNEL_SDK	= -L$(SDKROOT)/usr/local/lib/kernel -lfirehose_kernel
 
 LDFLAGS_KERNEL_RELEASE	=
 LDFLAGS_KERNEL_DEVELOPMENT     =
@@ -708,10 +707,9 @@ INCFLAGS_IMPORT	= $(patsubst %, -I$(OBJROOT)/EXPORT_HDRS/%, $(COMPONENT_IMPORT_L
 INCFLAGS_EXTERN	= -I$(SRCROOT)/EXTERNAL_HEADERS
 INCFLAGS_GEN	= -I$(SRCROOT)/$(COMPONENT) -I$(OBJROOT)/EXPORT_HDRS/$(COMPONENT)
 INCFLAGS_LOCAL	= -I.
-INCFLAGS_SDK	= -I$(SRCROOT)/../../Libraries/libdispatch -I$(SRCROOT)/libkern/firehose \
-                  -I$(SDKROOT)/usr/local/include/kernel -I$(OBJROOT)/bsd \
-                  -I$(OBJROOT)/../../sysroot/usr/local/include/kernel \
-				  -I$(SRCROOT)/../../Libraries/Libc/include
+INCFLAGS_SDK	= -I$(SRCROOT)/../../Libraries/Libsystem/libdispatch \
+				  -I$(SRCROOT)/libkern/firehose \
+                  -I$(SDKROOT)/usr/local/include/kernel -I$(OBJROOT)/bsd
 
 INCFLAGS	= $(INCFLAGS_LOCAL) $(INCFLAGS_GEN) $(INCFLAGS_IMPORT) $(INCFLAGS_EXTERN) $(INCFLAGS_MAKEFILE) $(INCFLAGS_SDK)
 

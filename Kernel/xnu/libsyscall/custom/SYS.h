@@ -151,7 +151,7 @@ LEAF(_##name, 0)								;\
 2:
 
 #define PSEUDO(pseudo, name, nargs, cerror)			\
-LEAF(pseudo, 0)					;\
+P_LEAF(pseudo, 0)					;\
 	UNIX_SYSCALL_NONAME(name, nargs, cerror)
 
 #define __SYSCALL2(pseudo, name, nargs, cerror) \

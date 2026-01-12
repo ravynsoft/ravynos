@@ -1,6 +1,6 @@
 add_library(libsystem_malloc SHARED)
 set_target_properties(libsystem_malloc PROPERTIES
-    OUTPUT_NAME "libsystem_malloc" SUFFIX ".dylib" PREFIX "lib" NO_SONAME true)
+    OUTPUT_NAME "system_malloc" SUFFIX ".dylib" PREFIX "lib" NO_SONAME true)
 
 
 target_sources(libsystem_malloc PRIVATE

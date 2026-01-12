@@ -1,6 +1,6 @@
 add_library(libsystem_pthread SHARED)
 set_target_properties(libsystem_pthread PROPERTIES
-    OUTPUT_NAME "libsystem_pthread" SUFFIX ".dylib" PREFIX "lib" NO_SONAME true)
+    OUTPUT_NAME "system_pthread" SUFFIX ".dylib" PREFIX "lib" NO_SONAME true)
 
 target_sources(libsystem_pthread PRIVATE
     pthread.c pthread_asm.s pthread_atfork.c pthread_cancelable.c

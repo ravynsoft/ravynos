@@ -79,7 +79,7 @@ for my $arch (@archs) {
 }
 
 # do each compile
-my $jobs = `sysctl -n hw.ncpu` + 2;
+my $jobs = `nproc` + 2;
 
 for my $src (@sources) {
 	if ($jobs == 0) {

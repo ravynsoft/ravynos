@@ -74,7 +74,7 @@ static void _dispatch_firehose_gate_wait(dispatch_gate_t l, uint32_t flags);
 #include <sys/param.h>
 #include <sys/types.h>
 #include <vm/vm_kern.h>
-#include <internal/atomic.h> // os/internal/atomic.h
+#include <os/internal/atomic.h>
 #include <firehose_types_private.h> // <firehose/firehose_types_private.h>
 #include <tracepoint_private.h> // <firehose/tracepoint_private.h>
 #include <chunk_private.h> // <firehose/chunk_private.h>

@@ -1,6 +1,6 @@
 add_library(libsystem_platform SHARED)
 set_target_properties(libsystem_platform PROPERTIES
-    OUTPUT_NAME "libsystem_platform" SUFFIX ".dylib" PREFIX "lib" NO_SONAME true)
+    OUTPUT_NAME "system_platform" SUFFIX ".dylib" PREFIX "lib" NO_SONAME true)
 
 target_sources(libsystem_platform PRIVATE
     simple/asl.c
