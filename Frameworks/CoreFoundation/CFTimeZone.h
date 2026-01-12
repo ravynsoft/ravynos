@@ -1,45 +1,114 @@
-/* Copyright (c) 2008-2009 Christopher J. W. Lloyd
+/*
+ * Copyright (c) 2015 Apple Inc. All rights reserved.
+ *
+ * @APPLE_LICENSE_HEADER_START@
+ *
+ * This file contains Original Code and/or Modifications of Original Code
+ * as defined in and that are subject to the Apple Public Source License
+ * Version 2.0 (the 'License'). You may not use this file except in
+ * compliance with the License. Please obtain a copy of the License at
+ * http://www.opensource.apple.com/apsl/ and read it before using this
+ * file.
+ *
+ * The Original Code and all software distributed under the License are
+ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+ * Please see the License for the specific language governing rights and
+ * limitations under the License.
+ *
+ * @APPLE_LICENSE_HEADER_END@
+ */
 
-Permission is hereby granted,free of charge,to any person obtaining a copy of this software and associated documentation files (the "Software"),to deal in the Software without restriction,including without limitation the rights to use,copy,modify,merge,publish,distribute,sublicense,and/or sell copies of the Software,and to permit persons to whom the Software is furnished to do so,subject to the following conditions:
+/*	CFTimeZone.h
+	Copyright (c) 1998-2014, Apple Inc. All rights reserved.
+*/
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+#if !defined(__COREFOUNDATION_CFTIMEZONE__)
+#define __COREFOUNDATION_CFTIMEZONE__ 1
 
-THE SOFTWARE IS PROVIDED "AS IS",WITHOUT WARRANTY OF ANY KIND,EXPRESS OR IMPLIED,INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,DAMAGES OR OTHER LIABILITY,WHETHER IN AN ACTION OF CONTRACT,TORT OR OTHERWISE,ARISING FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
-#import <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFArray.h>
+#include <CoreFoundation/CFData.h>
+#include <CoreFoundation/CFDate.h>
+#include <CoreFoundation/CFDictionary.h>
+#include <CoreFoundation/CFString.h>
 
-typedef struct __NSTimeZone *CFTimeZoneRef;
+CF_IMPLICIT_BRIDGING_ENABLED
+CF_EXTERN_C_BEGIN
 
-#import <CoreFoundation/CFDate.h>
+CF_EXPORT
+CFTypeID CFTimeZoneGetTypeID(void);
 
-enum {
-    kCFTimeZoneNameStyleStandard = 0,
-    kCFTimeZoneNameStyleShortStandard = 1,
-    kCFTimeZoneNameStyleDaylightSaving = 2,
-    kCFTimeZoneNameStyleShortDaylightSaving = 3,
-};
-typedef CFIndex CFTimeZoneNameStyle;
+CF_EXPORT
+CFTimeZoneRef CFTimeZoneCopySystem(void);
 
-COREFOUNDATION_EXPORT const CFStringRef kCFTimeZoneSystemTimeZoneDidChangeNotification;
+CF_EXPORT
+void CFTimeZoneResetSystem(void);
 
-COREFOUNDATION_EXPORT CFTypeID CFTimeZoneGetTypeID(void);
-COREFOUNDATION_EXPORT CFDictionaryRef CFTimeZoneCopyAbbreviationDictionary(void);
-COREFOUNDATION_EXPORT CFTimeZoneRef CFTimeZoneCopyDefault(void);
-COREFOUNDATION_EXPORT CFArrayRef CFTimeZoneCopyKnownNames(void);
-COREFOUNDATION_EXPORT CFTimeZoneRef CFTimeZoneCopySystem(void);
-COREFOUNDATION_EXPORT void CFTimeZoneResetSystem(void);
-COREFOUNDATION_EXPORT void CFTimeZoneSetAbbreviationDictionary(CFDictionaryRef dictionary);
-COREFOUNDATION_EXPORT void CFTimeZoneSetDefault(CFTimeZoneRef self);
+CF_EXPORT
+CFTimeZoneRef CFTimeZoneCopyDefault(void);
 
-COREFOUNDATION_EXPORT CFTimeZoneRef CFTimeZoneCreate(CFAllocatorRef allocator, CFStringRef name, CFDataRef data);
-COREFOUNDATION_EXPORT CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef name, Boolean checkAbbreviations);
-COREFOUNDATION_EXPORT CFTimeZoneRef CFTimeZoneCreateWithTimeIntervalFromGMT(CFAllocatorRef allocator, CFTimeInterval timeInterval);
+CF_EXPORT
+void CFTimeZoneSetDefault(CFTimeZoneRef tz);
 
-COREFOUNDATION_EXPORT CFStringRef CFTimeZoneGetName(CFTimeZoneRef self);
-COREFOUNDATION_EXPORT CFDataRef CFTimeZoneGetData(CFTimeZoneRef self);
+CF_EXPORT
+CFArrayRef CFTimeZoneCopyKnownNames(void);
 
-COREFOUNDATION_EXPORT CFTimeInterval CFTimeZoneGetSecondsFromGMT(CFTimeZoneRef self, CFAbsoluteTime absoluteTime);
-COREFOUNDATION_EXPORT CFStringRef CFTimeZoneCopyAbbreviation(CFTimeZoneRef self, CFAbsoluteTime absoluteTime);
-COREFOUNDATION_EXPORT CFStringRef CFTimeZoneCopyLocalizedName(CFTimeZoneRef self, CFTimeZoneNameStyle style, CFLocaleRef locale);
-COREFOUNDATION_EXPORT CFTimeInterval CFTimeZoneGetDaylightSavingTimeOffset(CFTimeZoneRef self, CFAbsoluteTime absoluteTime);
-COREFOUNDATION_EXPORT CFAbsoluteTime CFTimeZoneGetNextDaylightSavingTimeTransition(CFTimeZoneRef self, CFAbsoluteTime absoluteTime);
-COREFOUNDATION_EXPORT Boolean CFTimeZoneIsDaylightSavingTime(CFTimeZoneRef self, CFAbsoluteTime absoluteTime);
+CF_EXPORT
+CFDictionaryRef CFTimeZoneCopyAbbreviationDictionary(void);
+
+CF_EXPORT
+void CFTimeZoneSetAbbreviationDictionary(CFDictionaryRef dict);
+
+CF_EXPORT
+CFTimeZoneRef CFTimeZoneCreate(CFAllocatorRef allocator, CFStringRef name, CFDataRef data);
+
+CF_EXPORT
+CFTimeZoneRef CFTimeZoneCreateWithTimeIntervalFromGMT(CFAllocatorRef allocator, CFTimeInterval ti);
+
+CF_EXPORT
+CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef name, Boolean tryAbbrev);
+
+CF_EXPORT
+CFStringRef CFTimeZoneGetName(CFTimeZoneRef tz);
+
+CF_EXPORT
+CFDataRef CFTimeZoneGetData(CFTimeZoneRef tz);
+
+CF_EXPORT
+CFTimeInterval CFTimeZoneGetSecondsFromGMT(CFTimeZoneRef tz, CFAbsoluteTime at);
+
+CF_EXPORT
+CFStringRef CFTimeZoneCopyAbbreviation(CFTimeZoneRef tz, CFAbsoluteTime at);
+
+CF_EXPORT
+Boolean CFTimeZoneIsDaylightSavingTime(CFTimeZoneRef tz, CFAbsoluteTime at);
+
+CF_EXPORT
+CFTimeInterval CFTimeZoneGetDaylightSavingTimeOffset(CFTimeZoneRef tz, CFAbsoluteTime at) CF_AVAILABLE(10_5, 2_0);
+
+CF_EXPORT
+CFAbsoluteTime CFTimeZoneGetNextDaylightSavingTimeTransition(CFTimeZoneRef tz, CFAbsoluteTime at) CF_AVAILABLE(10_5, 2_0);
+
+typedef CF_ENUM(CFIndex, CFTimeZoneNameStyle) {
+	kCFTimeZoneNameStyleStandard,
+	kCFTimeZoneNameStyleShortStandard,
+	kCFTimeZoneNameStyleDaylightSaving,
+	kCFTimeZoneNameStyleShortDaylightSaving,
+	kCFTimeZoneNameStyleGeneric,
+	kCFTimeZoneNameStyleShortGeneric
+} CF_ENUM_AVAILABLE(10_5, 2_0);
+
+CF_EXPORT
+CFStringRef CFTimeZoneCopyLocalizedName(CFTimeZoneRef tz, CFTimeZoneNameStyle style, CFLocaleRef locale) CF_AVAILABLE(10_5, 2_0);
+
+CF_EXPORT
+const CFStringRef kCFTimeZoneSystemTimeZoneDidChangeNotification CF_AVAILABLE(10_5, 2_0);
+
+CF_EXTERN_C_END
+CF_IMPLICIT_BRIDGING_DISABLED
+
+#endif /* ! __COREFOUNDATION_CFTIMEZONE__ */
+

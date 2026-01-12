@@ -1,27 +1,67 @@
-/* Copyright (c) 2008-2009 Christopher J. W. Lloyd
+/*
+ * Copyright (c) 2015 Apple Inc. All rights reserved.
+ *
+ * @APPLE_LICENSE_HEADER_START@
+ *
+ * This file contains Original Code and/or Modifications of Original Code
+ * as defined in and that are subject to the Apple Public Source License
+ * Version 2.0 (the 'License'). You may not use this file except in
+ * compliance with the License. Please obtain a copy of the License at
+ * http://www.opensource.apple.com/apsl/ and read it before using this
+ * file.
+ *
+ * The Original Code and all software distributed under the License are
+ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+ * Please see the License for the specific language governing rights and
+ * limitations under the License.
+ *
+ * @APPLE_LICENSE_HEADER_END@
+ */
 
-Permission is hereby granted,free of charge,to any person obtaining a copy of this software and associated documentation files (the "Software"),to deal in the Software without restriction,including without limitation the rights to use,copy,modify,merge,publish,distribute,sublicense,and/or sell copies of the Software,and to permit persons to whom the Software is furnished to do so,subject to the following conditions:
+/*	CFBitVector.h
+	Copyright (c) 1998-2014, Apple Inc. All rights reserved.
+*/
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+#if !defined(__COREFOUNDATION_CFBITVECTOR__)
+#define __COREFOUNDATION_CFBITVECTOR__ 1
 
-THE SOFTWARE IS PROVIDED "AS IS",WITHOUT WARRANTY OF ANY KIND,EXPRESS OR IMPLIED,INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,DAMAGES OR OTHER LIABILITY,WHETHER IN AN ACTION OF CONTRACT,TORT OR OTHERWISE,ARISING FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
-#import <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFBase.h>
 
-typedef struct CFBitVector *CFBitVectorRef;
+CF_IMPLICIT_BRIDGING_ENABLED
+CF_EXTERN_C_BEGIN
 
-typedef CFUInteger CFBit;
+typedef UInt32 CFBit;
 
-COREFOUNDATION_EXPORT CFTypeID CFBitVectorGetTypeID(void);
+typedef const struct __CFBitVector * CFBitVectorRef;
+typedef struct __CFBitVector * CFMutableBitVectorRef;
 
-COREFOUNDATION_EXPORT CFBitVectorRef CFBitVectorCreate(CFAllocatorRef allocator, const uint8_t *bytes, CFIndex count);
+CF_EXPORT CFTypeID	CFBitVectorGetTypeID(void);
 
-COREFOUNDATION_EXPORT CFBitVectorRef CFBitVectorCreateCopy(CFAllocatorRef allocator, CFBitVectorRef self);
+CF_EXPORT CFBitVectorRef	CFBitVectorCreate(CFAllocatorRef allocator, const UInt8 *bytes, CFIndex numBits);
+CF_EXPORT CFBitVectorRef	CFBitVectorCreateCopy(CFAllocatorRef allocator, CFBitVectorRef bv);
+CF_EXPORT CFMutableBitVectorRef	CFBitVectorCreateMutable(CFAllocatorRef allocator, CFIndex capacity);
+CF_EXPORT CFMutableBitVectorRef	CFBitVectorCreateMutableCopy(CFAllocatorRef allocator, CFIndex capacity, CFBitVectorRef bv);
 
-COREFOUNDATION_EXPORT CFIndex CFBitVectorGetCount(CFBitVectorRef self);
-COREFOUNDATION_EXPORT CFBit CFBitVectorGetBitAtIndex(CFBitVectorRef self, CFIndex index);
-COREFOUNDATION_EXPORT void CFBitVectorGetBits(CFBitVectorRef self, CFRange range, uint8_t *bytes);
+CF_EXPORT CFIndex	CFBitVectorGetCount(CFBitVectorRef bv);
+CF_EXPORT CFIndex	CFBitVectorGetCountOfBit(CFBitVectorRef bv, CFRange range, CFBit value);
+CF_EXPORT Boolean	CFBitVectorContainsBit(CFBitVectorRef bv, CFRange range, CFBit value);
+CF_EXPORT CFBit		CFBitVectorGetBitAtIndex(CFBitVectorRef bv, CFIndex idx);
+CF_EXPORT void		CFBitVectorGetBits(CFBitVectorRef bv, CFRange range, UInt8 *bytes);
+CF_EXPORT CFIndex	CFBitVectorGetFirstIndexOfBit(CFBitVectorRef bv, CFRange range, CFBit value);
+CF_EXPORT CFIndex	CFBitVectorGetLastIndexOfBit(CFBitVectorRef bv, CFRange range, CFBit value);
 
-COREFOUNDATION_EXPORT Boolean CFBitVectorContainsBit(CFBitVectorRef self, CFRange range, CFBit value);
-COREFOUNDATION_EXPORT CFIndex CFBitVectorGetCountOfBit(CFBitVectorRef self, CFRange range, CFBit value);
-COREFOUNDATION_EXPORT CFIndex CFBitVectorGetFirstIndexOfBit(CFBitVectorRef self, CFRange range, CFBit value);
-COREFOUNDATION_EXPORT CFIndex CFBitVectorGetLastIndexOfBit(CFBitVectorRef self, CFRange range, CFBit value);
+CF_EXPORT void		CFBitVectorSetCount(CFMutableBitVectorRef bv, CFIndex count);
+CF_EXPORT void		CFBitVectorFlipBitAtIndex(CFMutableBitVectorRef bv, CFIndex idx);
+CF_EXPORT void		CFBitVectorFlipBits(CFMutableBitVectorRef bv, CFRange range);
+CF_EXPORT void		CFBitVectorSetBitAtIndex(CFMutableBitVectorRef bv, CFIndex idx, CFBit value);
+CF_EXPORT void		CFBitVectorSetBits(CFMutableBitVectorRef bv, CFRange range, CFBit value);
+CF_EXPORT void		CFBitVectorSetAllBits(CFMutableBitVectorRef bv, CFBit value);
+
+CF_EXTERN_C_END
+CF_IMPLICIT_BRIDGING_DISABLED
+
+#endif /* ! __COREFOUNDATION_CFBITVECTOR__ */
+

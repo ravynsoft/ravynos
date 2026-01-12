@@ -1,52 +1,115 @@
-/* Copyright (c) 2008-2009 Christopher J. W. Lloyd
+/*
+ * Copyright (c) 2015 Apple Inc. All rights reserved.
+ *
+ * @APPLE_LICENSE_HEADER_START@
+ *
+ * This file contains Original Code and/or Modifications of Original Code
+ * as defined in and that are subject to the Apple Public Source License
+ * Version 2.0 (the 'License'). You may not use this file except in
+ * compliance with the License. Please obtain a copy of the License at
+ * http://www.opensource.apple.com/apsl/ and read it before using this
+ * file.
+ *
+ * The Original Code and all software distributed under the License are
+ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+ * Please see the License for the specific language governing rights and
+ * limitations under the License.
+ *
+ * @APPLE_LICENSE_HEADER_END@
+ */
 
-Permission is hereby granted,free of charge,to any person obtaining a copy of this software and associated documentation files (the "Software"),to deal in the Software without restriction,including without limitation the rights to use,copy,modify,merge,publish,distribute,sublicense,and/or sell copies of the Software,and to permit persons to whom the Software is furnished to do so,subject to the following conditions:
+/*	CFBag.h
+	Copyright (c) 1998-2014, Apple Inc. All rights reserved.
+*/
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+#if !defined(__COREFOUNDATION_CFBAG__)
+#define __COREFOUNDATION_CFBAG__ 1
 
-THE SOFTWARE IS PROVIDED "AS IS",WITHOUT WARRANTY OF ANY KIND,EXPRESS OR IMPLIED,INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,DAMAGES OR OTHER LIABILITY,WHETHER IN AN ACTION OF CONTRACT,TORT OR OTHERWISE,ARISING FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
-#import <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFBase.h>
 
-typedef struct CFMutableBag *CFBagRef;
-typedef struct CFMutableBag *CFMutableBagRef;
+CF_IMPLICIT_BRIDGING_ENABLED
+CF_EXTERN_C_BEGIN
 
-typedef const void *(*CFBagRetainCallBack)(CFAllocatorRef allocator, const void *value);
-typedef void (*CFBagReleaseCallBack)(CFAllocatorRef allocator, const void *value);
-typedef CFAllocatorCopyDescriptionCallBack CFBagCopyDescriptionCallBack;
-typedef Boolean (*CFBagEqualCallBack)(const void *value, const void *other);
-typedef CFHashCode (*CFBagHashCallBack)(const void *value);
-
+typedef const void *	(*CFBagRetainCallBack)(CFAllocatorRef allocator, const void *value);
+typedef void		(*CFBagReleaseCallBack)(CFAllocatorRef allocator, const void *value);
+typedef CFStringRef	(*CFBagCopyDescriptionCallBack)(const void *value);
+typedef Boolean		(*CFBagEqualCallBack)(const void *value1, const void *value2);
+typedef CFHashCode	(*CFBagHashCallBack)(const void *value);
 typedef struct {
-    CFIndex version;
-    CFBagRetainCallBack retain;
-    CFBagReleaseCallBack release;
-    CFBagCopyDescriptionCallBack copyDescription;
-    CFBagEqualCallBack equal;
-    CFBagHashCallBack hash;
+    CFIndex				version;
+    CFBagRetainCallBack			retain;
+    CFBagReleaseCallBack		release;
+    CFBagCopyDescriptionCallBack	copyDescription;
+    CFBagEqualCallBack			equal;
+    CFBagHashCallBack			hash;
 } CFBagCallBacks;
+
+CF_EXPORT
+const CFBagCallBacks kCFTypeBagCallBacks;
+CF_EXPORT
+const CFBagCallBacks kCFCopyStringBagCallBacks;
 
 typedef void (*CFBagApplierFunction)(const void *value, void *context);
 
-COREFOUNDATION_EXPORT const CFBagCallBacks kCFTypeBagCallBacks;
-COREFOUNDATION_EXPORT const CFBagCallBacks kCFCopyStringBagCallBacks;
+typedef const struct __CFBag * CFBagRef;
+typedef struct __CFBag * CFMutableBagRef;
 
-COREFOUNDATION_EXPORT CFTypeID CFBagGetTypeID(void);
+CF_EXPORT
+CFTypeID CFBagGetTypeID(void);
 
-COREFOUNDATION_EXPORT void CFBagApplyFunction(CFBagRef self, CFBagApplierFunction function, void *context);
-COREFOUNDATION_EXPORT Boolean CFBagContainsValue(CFBagRef self, const void *value);
-COREFOUNDATION_EXPORT CFBagRef CFBagCreate(CFAllocatorRef allocator, const void **values, CFIndex count, const CFBagCallBacks *callbacks);
-COREFOUNDATION_EXPORT CFBagRef CFBagCreateCopy(CFAllocatorRef allocator, CFBagRef self);
-COREFOUNDATION_EXPORT CFIndex CFBagGetCount(CFBagRef self);
-COREFOUNDATION_EXPORT CFIndex CFBagGetCountOfValue(CFBagRef self, const void *value);
-COREFOUNDATION_EXPORT const void *CFBagGetValue(CFBagRef self, const void *value);
-COREFOUNDATION_EXPORT Boolean CFBagGetValueIfPresent(CFBagRef self, const void *candidate, const void **value);
-COREFOUNDATION_EXPORT void CFBagGetValues(CFBagRef self, const void **values);
-// mutable
+CF_EXPORT
+CFBagRef CFBagCreate(CFAllocatorRef allocator, const void **values, CFIndex numValues, const CFBagCallBacks *callBacks);
 
-COREFOUNDATION_EXPORT void CFBagAddValue(CFMutableBagRef self, const void *value);
-COREFOUNDATION_EXPORT CFMutableBagRef CFBagCreateMutable(CFAllocatorRef allocator, CFIndex capacity, const CFBagCallBacks *callbacks);
-COREFOUNDATION_EXPORT CFMutableBagRef CFBagCreateMutableCopy(CFAllocatorRef allocator, CFIndex capacity, CFBagRef self);
-COREFOUNDATION_EXPORT void CFBagRemoveAllValues(CFMutableBagRef self);
-COREFOUNDATION_EXPORT void CFBagRemoveValue(CFMutableBagRef self, const void *value);
-COREFOUNDATION_EXPORT void CFBagReplaceValue(CFMutableBagRef self, const void *value);
-COREFOUNDATION_EXPORT void CFBagSetValue(CFMutableBagRef self, const void *value);
+CF_EXPORT
+CFBagRef CFBagCreateCopy(CFAllocatorRef allocator, CFBagRef theBag);
+
+CF_EXPORT
+CFMutableBagRef CFBagCreateMutable(CFAllocatorRef allocator, CFIndex capacity, const CFBagCallBacks *callBacks);
+
+CF_EXPORT
+CFMutableBagRef CFBagCreateMutableCopy(CFAllocatorRef allocator, CFIndex capacity, CFBagRef theBag);
+
+CF_EXPORT
+CFIndex CFBagGetCount(CFBagRef theBag);
+
+CF_EXPORT
+CFIndex CFBagGetCountOfValue(CFBagRef theBag, const void *value);
+
+CF_EXPORT
+Boolean CFBagContainsValue(CFBagRef theBag, const void *value);
+
+CF_EXPORT
+const void *CFBagGetValue(CFBagRef theBag, const void *value);
+
+CF_EXPORT
+Boolean CFBagGetValueIfPresent(CFBagRef theBag, const void *candidate, const void **value);
+
+CF_EXPORT
+void CFBagGetValues(CFBagRef theBag, const void **values);
+
+CF_EXPORT
+void CFBagApplyFunction(CFBagRef theBag, CFBagApplierFunction applier, void *context);
+
+CF_EXPORT
+void CFBagAddValue(CFMutableBagRef theBag, const void *value);
+
+CF_EXPORT
+void CFBagReplaceValue(CFMutableBagRef theBag, const void *value);
+
+CF_EXPORT
+void CFBagSetValue(CFMutableBagRef theBag, const void *value);
+
+CF_EXPORT
+void CFBagRemoveValue(CFMutableBagRef theBag, const void *value);
+
+CF_EXPORT
+void CFBagRemoveAllValues(CFMutableBagRef theBag);
+
+CF_EXTERN_C_END
+CF_IMPLICIT_BRIDGING_DISABLED
+
+#endif /* ! __COREFOUNDATION_CFBAG__ */
+

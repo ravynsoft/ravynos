@@ -1,66 +1,205 @@
-/* Copyright (c) 2008-2009 Christopher J. W. Lloyd
+/*
+ * Copyright (c) 2015 Apple Inc. All rights reserved.
+ *
+ * @APPLE_LICENSE_HEADER_START@
+ *
+ * This file contains Original Code and/or Modifications of Original Code
+ * as defined in and that are subject to the Apple Public Source License
+ * Version 2.0 (the 'License'). You may not use this file except in
+ * compliance with the License. Please obtain a copy of the License at
+ * http://www.opensource.apple.com/apsl/ and read it before using this
+ * file.
+ *
+ * The Original Code and all software distributed under the License are
+ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+ * Please see the License for the specific language governing rights and
+ * limitations under the License.
+ *
+ * @APPLE_LICENSE_HEADER_END@
+ */
 
-Permission is hereby granted,free of charge,to any person obtaining a copy of this software and associated documentation files (the "Software"),to deal in the Software without restriction,including without limitation the rights to use,copy,modify,merge,publish,distribute,sublicense,and/or sell copies of the Software,and to permit persons to whom the Software is furnished to do so,subject to the following conditions:
+/*	CFUserNotification.h
+	Copyright (c) 2000-2014, Apple Inc.  All rights reserved.
+*/
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+#if !defined(__COREFOUNDATION_CFUSERNOTIFICATION__)
+#define __COREFOUNDATION_CFUSERNOTIFICATION__ 1
 
-THE SOFTWARE IS PROVIDED "AS IS",WITHOUT WARRANTY OF ANY KIND,EXPRESS OR IMPLIED,INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,DAMAGES OR OTHER LIABILITY,WHETHER IN AN ACTION OF CONTRACT,TORT OR OTHERWISE,ARISING FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
-#import <CoreFoundation/CFBase.h>
-#import <CoreFoundation/CFDate.h>
-#import <CoreFoundation/CFRunLoop.h>
-#import <CoreFoundation/CFURL.h>
+#include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFDate.h>
+#include <CoreFoundation/CFDictionary.h>
+#include <CoreFoundation/CFString.h>
+#include <CoreFoundation/CFURL.h>
+#include <CoreFoundation/CFRunLoop.h>
 
-typedef struct CFUserNotification *CFUserNotificationRef;
+CF_IMPLICIT_BRIDGING_ENABLED
+CF_EXTERN_C_BEGIN
 
+typedef struct __CFUserNotification * CFUserNotificationRef;
+
+/* A CFUserNotification is a notification intended to be presented to a 
+user at the console (if one is present).  This is for the use of processes
+that do not otherwise have user interfaces, but may need occasional
+interaction with a user.  There is a parallel API for this functionality
+at the System framework level, described in UNCUserNotification.h.
+
+The contents of the notification can include a header, a message, textfields,
+a popup button, radio buttons or checkboxes, a progress indicator, and up to
+three ordinary buttons.  All of these items are optional, but a default
+button will be supplied even if not specified unless the
+kCFUserNotificationNoDefaultButtonFlag is set.
+
+The contents of the notification are specified in the dictionary used to
+create the notification, whose keys should be taken from the list of constants
+below, and whose values should be either strings or arrays of strings
+(except for kCFUserNotificationProgressIndicatorValueKey, in which case the
+value should be a number between 0 and 1, for a "definite" progress indicator,
+or a boolean, for an "indefinite" progress indicator).  Additionally, URLs can
+optionally be supplied for an icon, a sound, and a bundle whose Localizable.strings
+files will be used to localize strings.
+    
+Certain request flags are specified when a notification is created.
+These specify an alert level for the notification, determine whether
+radio buttons or check boxes are to be used, specify which if any of these
+are checked by default, specify whether any of the textfields are to
+be secure textfields, and determine which popup item should be selected
+by default.  A timeout is also specified, which determines how long the
+notification should be supplied to the user (if zero, it will not timeout).
+    
+A CFUserNotification is dispatched for presentation when it is created.
+If any reply is required, it may be awaited in one of two ways:  either
+synchronously, using CFUserNotificationReceiveResponse, or asynchronously,
+using a run loop source.  CFUserNotificationReceiveResponse has a timeout
+parameter that determines how long it will block (zero meaning indefinitely)
+and it may be called as many times as necessary until a response arrives.
+If a notification has not yet received a response, it may be updated with
+new information, or it may be cancelled.  Notifications may not be reused.
+    
+When a response arrives, it carries with it response flags that describe
+which button was used to dismiss the notification, which checkboxes or
+radio buttons were checked, and what the selection of the popup was.
+It also carries a response dictionary, which describes the contents
+of the textfields.  */
+    
 typedef void (*CFUserNotificationCallBack)(CFUserNotificationRef userNotification, CFOptionFlags responseFlags);
+
+CF_EXPORT
+CFTypeID CFUserNotificationGetTypeID(void);
+
+CF_EXPORT
+CFUserNotificationRef CFUserNotificationCreate(CFAllocatorRef allocator, CFTimeInterval timeout, CFOptionFlags flags, SInt32 *error, CFDictionaryRef dictionary);
+
+CF_EXPORT
+SInt32 CFUserNotificationReceiveResponse(CFUserNotificationRef userNotification, CFTimeInterval timeout, CFOptionFlags *responseFlags);
+
+CF_EXPORT
+CFStringRef CFUserNotificationGetResponseValue(CFUserNotificationRef userNotification, CFStringRef key, CFIndex idx);
+
+CF_EXPORT
+CFDictionaryRef CFUserNotificationGetResponseDictionary(CFUserNotificationRef userNotification);
+
+CF_EXPORT
+SInt32 CFUserNotificationUpdate(CFUserNotificationRef userNotification, CFTimeInterval timeout, CFOptionFlags flags, CFDictionaryRef dictionary);
+
+CF_EXPORT
+SInt32 CFUserNotificationCancel(CFUserNotificationRef userNotification);
+
+CF_EXPORT
+CFRunLoopSourceRef CFUserNotificationCreateRunLoopSource(CFAllocatorRef allocator, CFUserNotificationRef userNotification, CFUserNotificationCallBack callout, CFIndex order);
+
+/* Convenience functions for handling the simplest and most common cases:  
+a one-way notification, and a notification with up to three buttons. */
+    
+CF_EXPORT
+SInt32 CFUserNotificationDisplayNotice(CFTimeInterval timeout, CFOptionFlags flags, CFURLRef iconURL, CFURLRef soundURL, CFURLRef localizationURL, CFStringRef alertHeader, CFStringRef alertMessage, CFStringRef defaultButtonTitle);
+
+CF_EXPORT
+SInt32 CFUserNotificationDisplayAlert(CFTimeInterval timeout, CFOptionFlags flags, CFURLRef iconURL, CFURLRef soundURL, CFURLRef localizationURL, CFStringRef alertHeader, CFStringRef alertMessage, CFStringRef defaultButtonTitle, CFStringRef alternateButtonTitle, CFStringRef otherButtonTitle, CFOptionFlags *responseFlags);
+
+
+/* Flags */
+
 enum {
-    kCFUserNotificationStopAlertLevel = 0,
-    kCFUserNotificationNoteAlertLevel = 1,
-    kCFUserNotificationCautionAlertLevel = 2,
-    kCFUserNotificationPlainAlertLevel = 3,
+    kCFUserNotificationStopAlertLevel 		= 0,
+    kCFUserNotificationNoteAlertLevel 		= 1,
+    kCFUserNotificationCautionAlertLevel 	= 2,
+    kCFUserNotificationPlainAlertLevel		= 3
 };
 
 enum {
-    kCFUserNotificationDefaultResponse = 0,
-    kCFUserNotificationAlternateResponse = 1,
-    kCFUserNotificationOtherResponse = 2,
-    kCFUserNotificationCancelResponse = 3,
+    kCFUserNotificationDefaultResponse		= 0,
+    kCFUserNotificationAlternateResponse	= 1,
+    kCFUserNotificationOtherResponse		= 2,
+    kCFUserNotificationCancelResponse		= 3
 };
 
 enum {
-    kCFUserNotificationNoDefaultButtonFlag = (1 << 5),
-    kCFUserNotificationUseRadioButtonsFlag = (1 << 6),
+    kCFUserNotificationNoDefaultButtonFlag 	= (1UL << 5),
+    kCFUserNotificationUseRadioButtonsFlag 	= (1UL << 6)
 };
 
-COREFOUNDATION_EXPORT const CFStringRef kCFUserNotificationIconURLKey;
-COREFOUNDATION_EXPORT const CFStringRef kCFUserNotificationSoundURLKey;
-COREFOUNDATION_EXPORT const CFStringRef kCFUserNotificationLocalizationURLKey;
-COREFOUNDATION_EXPORT const CFStringRef kCFUserNotificationAlertHeaderKey;
-COREFOUNDATION_EXPORT const CFStringRef kCFUserNotificationAlertMessageKey;
-COREFOUNDATION_EXPORT const CFStringRef kCFUserNotificationDefaultButtonTitleKey;
-COREFOUNDATION_EXPORT const CFStringRef kCFUserNotificationAlternateButtonTitleKey;
-COREFOUNDATION_EXPORT const CFStringRef kCFUserNotificationOtherButtonTitleKey;
-COREFOUNDATION_EXPORT const CFStringRef kCFUserNotificationProgressIndicatorValueKey;
-COREFOUNDATION_EXPORT const CFStringRef kCFUserNotificationPopUpTitlesKey;
-COREFOUNDATION_EXPORT const CFStringRef kCFUserNotificationTextFieldTitlesKey;
-COREFOUNDATION_EXPORT const CFStringRef kCFUserNotificationCheckBoxTitlesKey;
-COREFOUNDATION_EXPORT const CFStringRef kCFUserNotificationTextFieldValuesKey;
-COREFOUNDATION_EXPORT const CFStringRef kCFUserNotificationPopUpSelectionKey;
+CF_INLINE CFOptionFlags CFUserNotificationCheckBoxChecked(CFIndex i) {return ((CFOptionFlags)(1UL << (8 + i)));}
+CF_INLINE CFOptionFlags CFUserNotificationSecureTextField(CFIndex i) {return ((CFOptionFlags)(1UL << (16 + i)));}
+CF_INLINE CFOptionFlags CFUserNotificationPopUpSelection(CFIndex n) {return ((CFOptionFlags)(n << 24));}
 
-COREFOUNDATION_EXPORT CFTypeID CFUserNotificationGetTypeID(void);
 
-COREFOUNDATION_EXPORT CFOptionFlags CFUserNotificationCheckBoxChecked(CFIndex i);
-COREFOUNDATION_EXPORT CFOptionFlags CFUserNotificationPopUpSelection(CFIndex n);
-COREFOUNDATION_EXPORT CFOptionFlags CFUserNotificationSecureTextField(CFIndex i);
+/* Keys */
 
-COREFOUNDATION_EXPORT CFInteger CFUserNotificationDisplayAlert(CFTimeInterval timeout, CFOptionFlags flags, CFURLRef iconURL, CFURLRef soundURL, CFURLRef localizationURL, CFStringRef alertHeader, CFStringRef alertMessage, CFStringRef defaultButtonTitle, CFStringRef alternateButtonTitle, CFStringRef otherButtonTitle, CFOptionFlags *responseFlags);
-COREFOUNDATION_EXPORT CFInteger CFUserNotificationDisplayNotice(CFTimeInterval timeout, CFOptionFlags flags, CFURLRef iconURL, CFURLRef soundURL, CFURLRef localizationURL, CFStringRef alertHeader, CFStringRef alertMessage, CFStringRef defaultButtonTitle);
+CF_EXPORT
+const CFStringRef kCFUserNotificationIconURLKey;
 
-COREFOUNDATION_EXPORT CFUserNotificationRef CFUserNotificationCreate(CFAllocatorRef allocator, CFTimeInterval timeout, CFOptionFlags flags, CFInteger *error, CFDictionaryRef dictionary);
+CF_EXPORT
+const CFStringRef kCFUserNotificationSoundURLKey;
 
-COREFOUNDATION_EXPORT CFInteger CFUserNotificationCancel(CFUserNotificationRef self);
-COREFOUNDATION_EXPORT CFRunLoopSourceRef CFUserNotificationCreateRunLoopSource(CFAllocatorRef allocator, CFUserNotificationRef self, CFUserNotificationCallBack callback, CFIndex order);
-COREFOUNDATION_EXPORT CFDictionaryRef CFUserNotificationGetResponseDictionary(CFUserNotificationRef self);
-COREFOUNDATION_EXPORT CFStringRef CFUserNotificationGetResponseValue(CFUserNotificationRef self, CFStringRef key, CFIndex index);
-COREFOUNDATION_EXPORT CFInteger CFUserNotificationReceiveResponse(CFUserNotificationRef self, CFTimeInterval timeout, CFOptionFlags *responseFlags);
-COREFOUNDATION_EXPORT CFInteger CFUserNotificationUpdate(CFUserNotificationRef self, CFTimeInterval timeout, CFOptionFlags flags, CFDictionaryRef dictionary);
+CF_EXPORT
+const CFStringRef kCFUserNotificationLocalizationURLKey;
+
+CF_EXPORT
+const CFStringRef kCFUserNotificationAlertHeaderKey;
+
+CF_EXPORT
+const CFStringRef kCFUserNotificationAlertMessageKey;
+
+CF_EXPORT
+const CFStringRef kCFUserNotificationDefaultButtonTitleKey;
+
+CF_EXPORT
+const CFStringRef kCFUserNotificationAlternateButtonTitleKey;
+
+CF_EXPORT
+const CFStringRef kCFUserNotificationOtherButtonTitleKey;
+
+CF_EXPORT
+const CFStringRef kCFUserNotificationProgressIndicatorValueKey;
+
+CF_EXPORT
+const CFStringRef kCFUserNotificationPopUpTitlesKey;
+
+CF_EXPORT
+const CFStringRef kCFUserNotificationTextFieldTitlesKey;
+
+CF_EXPORT
+const CFStringRef kCFUserNotificationCheckBoxTitlesKey;
+
+CF_EXPORT
+const CFStringRef kCFUserNotificationTextFieldValuesKey;
+
+CF_EXPORT
+const CFStringRef kCFUserNotificationPopUpSelectionKey	CF_AVAILABLE(10_3, NA);
+
+#if (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+CF_EXPORT
+const CFStringRef kCFUserNotificationAlertTopMostKey;
+        
+CF_EXPORT
+const CFStringRef kCFUserNotificationKeyboardTypesKey;
+#endif
+
+CF_EXTERN_C_END
+CF_IMPLICIT_BRIDGING_DISABLED
+
+#endif /* ! __COREFOUNDATION_CFUSERNOTIFICATION__ */
+

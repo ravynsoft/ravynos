@@ -1,23 +1,33 @@
-/* Copyright (c) 2008-2009 Christopher J. W. Lloyd
-   Copyright (c) 2025 Zoe Knox
+/*
+ * Copyright (c) 2015 Apple Inc. All rights reserved.
+ *
+ * @APPLE_LICENSE_HEADER_START@
+ *
+ * This file contains Original Code and/or Modifications of Original Code
+ * as defined in and that are subject to the Apple Public Source License
+ * Version 2.0 (the 'License'). You may not use this file except in
+ * compliance with the License. Please obtain a copy of the License at
+ * http://www.opensource.apple.com/apsl/ and read it before using this
+ * file.
+ *
+ * The Original Code and all software distributed under the License are
+ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+ * Please see the License for the specific language governing rights and
+ * limitations under the License.
+ *
+ * @APPLE_LICENSE_HEADER_END@
+ */
 
-   Permission is hereby granted,free of charge,to any person obtaining a copy of
-   this software and associated documentation files (the "Software"),to deal in
-   the Software without restriction,including without limitation the rights to
-   use,copy,modify,merge,publish,distribute,sublicense,and/or sell copies of the
-   Software,and to permit persons to whom the Software is furnished to do
-   so,subject to the following conditions:
-
-   The above copyright notice and this permission notice shall be included in all
-   copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED "AS IS",WITHOUT WARRANTY OF ANY KIND,EXPRESS OR
-   IMPLIED,INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,FITNESS
-   FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-   COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,DAMAGES OR OTHER LIABILITY,WHETHER IN
-   AN ACTION OF CONTRACT,TORT OR OTHERWISE,ARISING FROM,OUT OF OR IN CONNECTION
-   WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+/*	CoreFoundation.h
+	Copyright (c) 1998-2014, Apple Inc. All rights reserved.
 */
+
+#if !defined(__COREFOUNDATION_COREFOUNDATION__)
+#define __COREFOUNDATION_COREFOUNDATION__ 1
+#define __COREFOUNDATION__ 1
 
 #if !defined(CF_EXCLUDE_CSTD_HEADERS)
 
@@ -38,7 +48,7 @@
 #include <string.h>
 #include <time.h>
 
-#if defined(__STDC_VERSION__)
+#if defined(__STDC_VERSION__) && (199901L <= __STDC_VERSION__)
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -46,45 +56,56 @@
 
 #endif
 
-#ifndef MAXFLOAT
-#define MAXFLOAT ((float)3.40282346638528860e+38)
 #endif
+
+#include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFArray.h>
+#include <CoreFoundation/CFBag.h>
+#include <CoreFoundation/CFBinaryHeap.h>
+#include <CoreFoundation/CFBitVector.h>
+#include <CoreFoundation/CFByteOrder.h>
+#include <CoreFoundation/CFCalendar.h>
+#include <CoreFoundation/CFCharacterSet.h>
+#include <CoreFoundation/CFData.h>
+#include <CoreFoundation/CFDate.h>
+#include <CoreFoundation/CFDateFormatter.h>
+#include <CoreFoundation/CFDictionary.h>
+#include <CoreFoundation/CFError.h>
+#include <CoreFoundation/CFLocale.h>
+#include <CoreFoundation/CFNumber.h>
+#include <CoreFoundation/CFNumberFormatter.h>
+#include <CoreFoundation/CFPreferences.h>
+#include <CoreFoundation/CFPropertyList.h>
+#include <CoreFoundation/CFSet.h>
+#include <CoreFoundation/CFString.h>
+#include <CoreFoundation/CFStringEncodingExt.h>
+#include <CoreFoundation/CFTimeZone.h>
+#include <CoreFoundation/CFTree.h>
+#include <CoreFoundation/CFURL.h>
+#include <CoreFoundation/CFURLAccess.h>
+#include <CoreFoundation/CFUUID.h>
+#include <CoreFoundation/CFUtilities.h>
+
+#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE) || TARGET_OS_WIN32
+#include <CoreFoundation/CFBundle.h>
+#include <CoreFoundation/CFMessagePort.h>
+#include <CoreFoundation/CFPlugIn.h>
+#include <CoreFoundation/CFRunLoop.h>
+#include <CoreFoundation/CFStream.h>
+#include <CoreFoundation/CFSocket.h>
+
 
 #endif
 
-#import <CoreFoundation/CFAttributedString.h>
-#import <CoreFoundation/CFBag.h>
-#import <CoreFoundation/CFBinaryHeap.h>
-#import <CoreFoundation/CFBitVector.h>
-#import <CoreFoundation/CFBundle.h>
-#import <CoreFoundation/CFByteOrder.h>
-#import <CoreFoundation/CFCalendar.h>
-#import <CoreFoundation/CFCharacterSet.h>
-#import <CoreFoundation/CFData.h>
-#import <CoreFoundation/CFDate.h>
-#import <CoreFoundation/CFDateFormatter.h>
-#import <CoreFoundation/CFDictionary.h>
-#import <CoreFoundation/CFError.h>
-#import <CoreFoundation/CFFileDescriptor.h>
-#import <CoreFoundation/CFLocale.h>
-#import <CoreFoundation/CFMachPort.h>
-#import <CoreFoundation/CFMessagePort.h>
-#import <CoreFoundation/CFNotificationCenter.h>
-#import <CoreFoundation/CFNumber.h>
-#import <CoreFoundation/CFNumberFormatter.h>
-#import <CoreFoundation/CFPlugIn.h>
-#import <CoreFoundation/CFPreferences.h>
-#import <CoreFoundation/CFPropertyList.h>
-#import <CoreFoundation/CFRunLoop.h>
-#import <CoreFoundation/CFSet.h>
-#import <CoreFoundation/CFSocket.h>
-#import <CoreFoundation/CFStream.h>
-#import <CoreFoundation/CFString.h>
-#import <CoreFoundation/CFStringTokenizer.h>
-#import <CoreFoundation/CFTimeZone.h>
-#import <CoreFoundation/CFTree.h>
-#import <CoreFoundation/CFURL.h>
-#import <CoreFoundation/CFUUID.h>
-#import <CoreFoundation/CFUserNotification.h>
-#import <CoreFoundation/CFXMLNode.h>
-#import <CoreFoundation/CFXMLParser.h>
+#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+#endif
+
+#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE))
+#include <CoreFoundation/CFUserNotification.h>
+#include <CoreFoundation/CFXMLNode.h>
+#include <CoreFoundation/CFXMLParser.h>
+#endif
+
+
+#endif /* ! __COREFOUNDATION_COREFOUNDATION__ */
+

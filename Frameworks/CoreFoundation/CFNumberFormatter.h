@@ -1,30 +1,159 @@
-/* Copyright (c) 2008-2009 Christopher J. W. Lloyd
+/*
+ * Copyright (c) 2015 Apple Inc. All rights reserved.
+ *
+ * @APPLE_LICENSE_HEADER_START@
+ *
+ * This file contains Original Code and/or Modifications of Original Code
+ * as defined in and that are subject to the Apple Public Source License
+ * Version 2.0 (the 'License'). You may not use this file except in
+ * compliance with the License. Please obtain a copy of the License at
+ * http://www.opensource.apple.com/apsl/ and read it before using this
+ * file.
+ *
+ * The Original Code and all software distributed under the License are
+ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+ * Please see the License for the specific language governing rights and
+ * limitations under the License.
+ *
+ * @APPLE_LICENSE_HEADER_END@
+ */
 
-Permission is hereby granted,free of charge,to any person obtaining a copy of this software and associated documentation files (the "Software"),to deal in the Software without restriction,including without limitation the rights to use,copy,modify,merge,publish,distribute,sublicense,and/or sell copies of the Software,and to permit persons to whom the Software is furnished to do so,subject to the following conditions:
+/*	CFNumberFormatter.h
+	Copyright (c) 2003-2014, Apple Inc. All rights reserved.
+*/
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+#if !defined(__COREFOUNDATION_CFNUMBERFORMATTER__)
+#define __COREFOUNDATION_CFNUMBERFORMATTER__ 1
 
-THE SOFTWARE IS PROVIDED "AS IS",WITHOUT WARRANTY OF ANY KIND,EXPRESS OR IMPLIED,INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,DAMAGES OR OTHER LIABILITY,WHETHER IN AN ACTION OF CONTRACT,TORT OR OTHERWISE,ARISING FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
-#import <CoreFoundation/CFBase.h>
-#import <CoreFoundation/CFNumber.h>
+#include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFNumber.h>
+#include <CoreFoundation/CFLocale.h>
 
-typedef struct __NSNumberFormatter *CFNumberFormatterRef;
+CF_IMPLICIT_BRIDGING_ENABLED
+CF_EXTERN_C_BEGIN
 
-enum {
-    kCFNumberFormatterNoStyle = 0,
-    kCFNumberFormatterDecimalStyle = 1,
-    kCFNumberFormatterCurrencyStyle = 2,
-    kCFNumberFormatterPercentStyle = 3,
-    kCFNumberFormatterScientificStyle = 4,
-    kCFNumberFormatterSpellOutStyle = 5,
+typedef struct __CFNumberFormatter *CFNumberFormatterRef;
+
+// CFNumberFormatters are not thread-safe.  Do not use one from multiple threads!
+
+CF_EXPORT
+CFTypeID CFNumberFormatterGetTypeID(void);
+
+typedef CF_ENUM(CFIndex, CFNumberFormatterStyle) {	// number format styles
+	kCFNumberFormatterNoStyle = 0,
+	kCFNumberFormatterDecimalStyle = 1,
+	kCFNumberFormatterCurrencyStyle = 2,
+	kCFNumberFormatterPercentStyle = 3,
+	kCFNumberFormatterScientificStyle = 4,
+	kCFNumberFormatterSpellOutStyle = 5
 };
-typedef CFIndex CFNumberFormatterStyle;
 
-enum {
-    kCFNumberFormatterParseIntegersOnly = 1
+
+CF_EXPORT
+CFNumberFormatterRef CFNumberFormatterCreate(CFAllocatorRef allocator, CFLocaleRef locale, CFNumberFormatterStyle style);
+	// Returns a CFNumberFormatter, localized to the given locale, which
+	// will format numbers to the given style.
+
+CF_EXPORT
+CFLocaleRef CFNumberFormatterGetLocale(CFNumberFormatterRef formatter);
+
+CF_EXPORT
+CFNumberFormatterStyle CFNumberFormatterGetStyle(CFNumberFormatterRef formatter);
+	// Get the properties with which the number formatter was created.
+
+CF_EXPORT
+CFStringRef CFNumberFormatterGetFormat(CFNumberFormatterRef formatter);
+
+CF_EXPORT
+void CFNumberFormatterSetFormat(CFNumberFormatterRef formatter, CFStringRef formatString);
+	// Set the format description string of the number formatter.  This
+	// overrides the style settings.  The format of the format string
+	// is as defined by the ICU library, and is similar to that found
+	// in Microsoft Excel and NSNumberFormatter.
+	// The number formatter starts with a default format string defined
+	// by the style argument with which it was created.
+
+
+CF_EXPORT
+CFStringRef CFNumberFormatterCreateStringWithNumber(CFAllocatorRef allocator, CFNumberFormatterRef formatter, CFNumberRef number);
+
+CF_EXPORT
+CFStringRef CFNumberFormatterCreateStringWithValue(CFAllocatorRef allocator, CFNumberFormatterRef formatter, CFNumberType numberType, const void *valuePtr);
+	// Create a string representation of the given number or value
+	// using the current state of the number formatter.
+
+
+typedef CF_OPTIONS(CFOptionFlags, CFNumberFormatterOptionFlags) {
+    kCFNumberFormatterParseIntegersOnly = 1	/* only parse integers */
 };
 
-typedef enum {
+CF_EXPORT
+CFNumberRef CFNumberFormatterCreateNumberFromString(CFAllocatorRef allocator, CFNumberFormatterRef formatter, CFStringRef string, CFRange *rangep, CFOptionFlags options);
+
+CF_EXPORT
+Boolean CFNumberFormatterGetValueFromString(CFNumberFormatterRef formatter, CFStringRef string, CFRange *rangep, CFNumberType numberType, void *valuePtr);
+	// Parse a string representation of a number using the current state
+	// of the number formatter.  The range parameter specifies the range
+	// of the string in which the parsing should occur in input, and on
+	// output indicates the extent that was used; this parameter can
+	// be NULL, in which case the whole string may be used.  The
+	// return value indicates whether some number was computed and
+	// (if valuePtr is not NULL) stored at the location specified by
+	// valuePtr.  The numberType indicates the type of value pointed
+	// to by valuePtr.
+
+
+CF_EXPORT
+void CFNumberFormatterSetProperty(CFNumberFormatterRef formatter, CFStringRef key, CFTypeRef value);
+
+CF_EXPORT
+CFTypeRef CFNumberFormatterCopyProperty(CFNumberFormatterRef formatter, CFStringRef key);
+	// Set and get various properties of the number formatter, the set of
+	// which may be expanded in the future.
+
+CF_EXPORT const CFStringRef kCFNumberFormatterCurrencyCode;		// CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterDecimalSeparator;	// CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterCurrencyDecimalSeparator; // CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterAlwaysShowDecimalSeparator; // CFBoolean
+CF_EXPORT const CFStringRef kCFNumberFormatterGroupingSeparator;	// CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterUseGroupingSeparator;	// CFBoolean
+CF_EXPORT const CFStringRef kCFNumberFormatterPercentSymbol;		// CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterZeroSymbol;		// CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterNaNSymbol;		// CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterInfinitySymbol;		// CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterMinusSign;		// CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterPlusSign;		// CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterCurrencySymbol;		// CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterExponentSymbol;		// CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterMinIntegerDigits;	// CFNumber
+CF_EXPORT const CFStringRef kCFNumberFormatterMaxIntegerDigits;	// CFNumber
+CF_EXPORT const CFStringRef kCFNumberFormatterMinFractionDigits;	// CFNumber
+CF_EXPORT const CFStringRef kCFNumberFormatterMaxFractionDigits;	// CFNumber
+CF_EXPORT const CFStringRef kCFNumberFormatterGroupingSize;		// CFNumber
+CF_EXPORT const CFStringRef kCFNumberFormatterSecondaryGroupingSize;	// CFNumber
+CF_EXPORT const CFStringRef kCFNumberFormatterRoundingMode;		// CFNumber
+CF_EXPORT const CFStringRef kCFNumberFormatterRoundingIncrement;	// CFNumber
+CF_EXPORT const CFStringRef kCFNumberFormatterFormatWidth;		// CFNumber
+CF_EXPORT const CFStringRef kCFNumberFormatterPaddingPosition;	// CFNumber
+CF_EXPORT const CFStringRef kCFNumberFormatterPaddingCharacter;	// CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterDefaultFormat;		// CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterMultiplier;		// CFNumber
+CF_EXPORT const CFStringRef kCFNumberFormatterPositivePrefix;		// CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterPositiveSuffix;		// CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterNegativePrefix;		// CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterNegativeSuffix;		// CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterPerMillSymbol;		// CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterInternationalCurrencySymbol; // CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterCurrencyGroupingSeparator CF_AVAILABLE(10_5, 2_0); // CFString
+CF_EXPORT const CFStringRef kCFNumberFormatterIsLenient CF_AVAILABLE(10_5, 2_0);		// CFBoolean
+CF_EXPORT const CFStringRef kCFNumberFormatterUseSignificantDigits CF_AVAILABLE(10_5, 2_0);	// CFBoolean
+CF_EXPORT const CFStringRef kCFNumberFormatterMinSignificantDigits CF_AVAILABLE(10_5, 2_0);	// CFNumber
+CF_EXPORT const CFStringRef kCFNumberFormatterMaxSignificantDigits CF_AVAILABLE(10_5, 2_0);	// CFNumber
+
+typedef CF_ENUM(CFIndex, CFNumberFormatterRoundingMode) {
     kCFNumberFormatterRoundCeiling = 0,
     kCFNumberFormatterRoundFloor = 1,
     kCFNumberFormatterRoundDown = 2,
@@ -32,68 +161,26 @@ typedef enum {
     kCFNumberFormatterRoundHalfEven = 4,
     kCFNumberFormatterRoundHalfDown = 5,
     kCFNumberFormatterRoundHalfUp = 6
-} CFNumberFormatterRoundingMode;
+};
 
-enum {
+typedef CF_ENUM(CFIndex, CFNumberFormatterPadPosition) {
     kCFNumberFormatterPadBeforePrefix = 0,
     kCFNumberFormatterPadAfterPrefix = 1,
     kCFNumberFormatterPadBeforeSuffix = 2,
     kCFNumberFormatterPadAfterSuffix = 3
 };
 
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterCurrencyCode;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterDecimalSeparator;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterCurrencyDecimalSeparator;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterAlwaysShowDecimalSeparator;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterGroupingSeparator;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterUseGroupingSeparator;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterPercentSymbol;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterZeroSymbol;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterNaNSymbol;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterInfinitySymbol;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterMinusSign;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterPlusSign;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterCurrencySymbol;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterExponentSymbol;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterMinIntegerDigits;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterMaxIntegerDigits;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterMinFractionDigits;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterMaxFractionDigits;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterGroupingSize;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterSecondaryGroupingSize;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterRoundingMode;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterRoundingIncrement;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterFormatWidth;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterPaddingPosition;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterPaddingCharacter;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterDefaultFormat;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterMultiplier;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterPositivePrefix;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterPositiveSuffix;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterNegativePrefix;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterNegativeSuffix;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterPerMillSymbol;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterInternationalCurrencySymbol;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterCurrencyGroupingSeparator;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterIsLenient;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterUseSignificantDigits;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterMinSignificantDigits;
-COREFOUNDATION_EXPORT const CFStringRef kCFNumberFormatterMaxSignificantDigits;
 
-COREFOUNDATION_EXPORT CFTypeID CFNumberFormatterGetTypeID(void);
+CF_EXPORT
+Boolean CFNumberFormatterGetDecimalInfoForCurrencyCode(CFStringRef currencyCode, int32_t *defaultFractionDigits, double *roundingIncrement);
+	// Returns the number of fraction digits that should be displayed, and
+	// the rounding increment (or 0.0 if no rounding is done by the currency)
+	// for the given currency.  Returns false if the currency code is unknown
+	// or the information is not available.
+	// Not localized because these are properties of the currency.
 
-COREFOUNDATION_EXPORT CFNumberFormatterRef CFNumberFormatterCreate(CFAllocatorRef allocator, CFLocaleRef locale, CFNumberFormatterStyle style);
+CF_EXTERN_C_END
+CF_IMPLICIT_BRIDGING_DISABLED
 
-COREFOUNDATION_EXPORT CFLocaleRef CFNumberFormatterGetLocale(CFNumberFormatterRef self);
-COREFOUNDATION_EXPORT CFNumberFormatterStyle CFNumberFormatterGetStyle(CFNumberFormatterRef self);
-COREFOUNDATION_EXPORT CFStringRef CFNumberFormatterGetFormat(CFNumberFormatterRef self);
+#endif /* ! __COREFOUNDATION_CFNUMBERFORMATTER__ */
 
-COREFOUNDATION_EXPORT void CFNumberFormatterSetFormat(CFNumberFormatterRef self, CFStringRef format);
-COREFOUNDATION_EXPORT void CFNumberFormatterSetProperty(CFNumberFormatterRef self, CFStringRef key, CFTypeRef value);
-
-COREFOUNDATION_EXPORT CFTypeRef CFNumberFormatterCopyProperty(CFNumberFormatterRef self, CFStringRef key);
-COREFOUNDATION_EXPORT CFNumberRef CFNumberFormatterCreateNumberFromString(CFAllocatorRef allocator, CFNumberFormatterRef self, CFStringRef string, CFRange *rangep, CFOptionFlags options);
-COREFOUNDATION_EXPORT CFStringRef CFNumberFormatterCreateStringWithNumber(CFAllocatorRef allocator, CFNumberFormatterRef self, CFNumberRef number);
-COREFOUNDATION_EXPORT CFStringRef CFNumberFormatterCreateStringWithValue(CFAllocatorRef allocator, CFNumberFormatterRef self, CFNumberType numberType, const void *valuep);
-COREFOUNDATION_EXPORT Boolean CFNumberFormatterGetDecimalInfoForCurrencyCode(CFStringRef currencyCode, int32_t *defaultFractionDigits, double *roundingIncrement);
-COREFOUNDATION_EXPORT Boolean CFNumberFormatterGetValueFromString(CFNumberFormatterRef self, CFStringRef string, CFRange *rangep, CFNumberType numberType, void *valuep);
