@@ -98,7 +98,8 @@ typedef struct os_log_pack_s {
     uint64_t olp_pc;
     const char *olp_format;
     uint8_t olp_data[0];
-} *os_log_pack_t;
+} os_log_pack_s;
+typedef os_log_pack_s *os_log_pack_t;
 
 
 __END_DECLS

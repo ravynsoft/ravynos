@@ -33,6 +33,7 @@ target_compile_options(libsystem_malloc PRIVATE
     --target=${TARGET_TRIPLE} -F${RAVYN_SDKROOT}/System/Library/Frameworks
     -Wno-implicit-function-declaration -momit-leaf-frame-pointer
     -Wno-int-conversion -Wno-implicit-int
+    $<$<COMPILE_LANGUAGE:ASM>:-x assembler-with-cpp>
 )
 
 target_link_options(libsystem_malloc PRIVATE

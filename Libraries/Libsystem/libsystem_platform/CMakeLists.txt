@@ -57,6 +57,7 @@ target_include_directories(libsystem_platform PRIVATE
     ../private internal os/resolver ../libsystem_c/darwin
     ../../../Kernel/xnu/libsyscall/mach
     ../../../Kernel/xnu/libsyscall/wrappers
+    ${SDK_SOURCE_DIR}/usr/local/include
 )
 
 target_compile_definitions(libsystem_platform PRIVATE
@@ -73,11 +74,13 @@ target_compile_definitions(libsystem_platform PRIVATE
 target_compile_options(libsystem_platform PRIVATE
     --sysroot=${RAVYN_SDKROOT} -isysroot=${RAVYN_SDKROOT} -w
     --target=${TARGET_TRIPLE} -isystem ${RAVYN_SDKROOT}/usr/include
+    -isystem ${RAVYN_SDKROOT}/usr/local/include
     -iframework ${RAVYN_SDKROOT}/System/Library/Frameworks
     -Wno-implicit-function-declaration
     -Wno-int-conversion -Wno-implicit-int
     -fno-stack-protector -fdollars-in-identifiers -fno-common -fverbose-asm
     -momit-leaf-frame-pointer
+    $<$<COMPILE_LANGUAGE:ASM>:-x assembler-with-cpp>
 )
 
 

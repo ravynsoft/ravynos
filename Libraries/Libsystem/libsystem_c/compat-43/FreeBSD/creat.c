@@ -54,5 +54,6 @@ __creat(const char *path, mode_t mode)
 	return(__open_nocancel(path, O_WRONLY|O_CREAT|O_TRUNC, mode));
 #endif /* VARIANT_CANCELABLE */
 }
+
 __weak_reference(__creat, creat);
 __weak_reference(__creat, _creat);

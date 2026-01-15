@@ -85,7 +85,7 @@ size_t	 strcspn(const char *__s, const char *__charset);
 //Begin-Libc
 #ifndef LIBC_ALIAS_STRERROR
 //End-Libc
-char	*strerror(int __errnum) __DARWIN_ALIAS(strerror);
+char	*strerror(int __errnum) /*__DARWIN_ALIAS(strerror)*/;
 //Begin-Libc
 #else /* LIBC_ALIAS_STRERROR */
 char	*strerror(int __errnum) LIBC_ALIAS(strerror);

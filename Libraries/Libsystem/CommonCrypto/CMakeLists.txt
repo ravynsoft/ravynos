@@ -39,6 +39,7 @@ target_compile_options(libcommonCrypto PRIVATE
     -iframework ${RAVYN_SDKROOT}/System/Library/Frameworks
     -Wno-implicit-function-declaration
     -Wno-int-conversion -Wno-implicit-int
+    $<$<COMPILE_LANGUAGE:ASM>:-x assembler-with-cpp>
 )
 
 

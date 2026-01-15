@@ -10,6 +10,7 @@ add_subdirectory(libsystem_malloc)
 add_subdirectory(libsystem_pthread)
 #add_subdirectory(libsystem_notify)
 add_subdirectory(libsystem_c)
+add_subdirectory(libsystem_darwin)
 #add_subdirectory(CommonCrypto)
 
 target_include_directories(libSystem PRIVATE
@@ -30,12 +31,13 @@ target_compile_options(libSystem PRIVATE
     -iframework ${RAVYN_SDKROOT}/System/Library/Frameworks
     -Wno-implicit-function-declaration
     -Wno-int-conversion -Wno-implicit-int
+    $<$<COMPILE_LANGUAGE:ASM>:-x assembler-with-cpp>
 )
 
-add_dependencies(libsystem_c libsystem_malloc libsystem_platform)
-add_dependencies(libsystem_pthread libsystem_platform)
-add_dependencies(libsystem_malloc libsystem_platform)
-add_dependencies(libsystem_platform compiler_rt)
+#add_dependencies(libsystem_c libsystem_malloc libsystem_platform)
+#add_dependencies(libsystem_pthread libsystem_platform)
+#add_dependencies(libsystem_malloc libsystem_platform)
+#add_dependencies(libsystem_platform compiler_rt)
 #add_dependencies(libsystem_notify xnu_headers)
 #add_dependencies(libcommonCrypto xnu_headers)
 add_dependencies(libSystem 

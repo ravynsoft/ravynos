@@ -164,7 +164,7 @@ add_library(libkernel SHARED
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/open_dprotected_np.c
     ${CMAKE_CURRENT_SOURCE_DIR}/os/alloc_once.c
     ${CMAKE_CURRENT_SOURCE_DIR}/os/log_data.c
-    mach_syscalls.s
+    #mach_syscalls.s
 )
 
 target_sources(libkernel INTERFACE
@@ -213,6 +213,8 @@ set_target_properties(libkernel PROPERTIES
     OUTPUT_NAME "system_kernel" SUFFIX ".dylib" PREFIX "lib" NO_SONAME true)
 
 target_include_directories(libkernel PRIVATE
+    ../private
+    
     ${CMAKE_CURRENT_BINARY_DIR}/internal_hdr/include
     ${CMAKE_CURRENT_BINARY_DIR}/mig_hdr/local/include
     ${CMAKE_CURRENT_BINARY_DIR}/mig_hdr/include

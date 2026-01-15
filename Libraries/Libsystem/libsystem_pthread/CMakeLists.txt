@@ -13,6 +13,8 @@ target_sources(libsystem_pthread PRIVATE
 
 target_include_directories(libsystem_pthread PRIVATE
     ${SDK_SOURCE_DIR}/usr/include
+    ${SDK_SOURCE_DIR}/usr/local/include/pthread
+    ${SDK_SOURCE_DIR}/usr/local/include
     ../private/pthread ../private .. resolver ../libsystem_c/darwin
     ../../../Kernel/xnu/libsyscall/mach
     ../../../Kernel/xnu/libsyscall/wrappers/spawn
@@ -34,13 +36,16 @@ target_compile_definitions(libsystem_pthread PRIVATE
 )
 
 target_compile_options(libsystem_pthread PRIVATE
-    --sysroot=${RAVYN_SDKROOT} -isysroot=${RAVYN_SDKROOT} -w
-    --target=${TARGET_TRIPLE}
+    --target=${TARGET_TRIPLE} -w
+    --sysroot=${RAVYN_SDKROOT} -isysroot=${RAVYN_SDKROOT}
+    -isystem ${RAVYN_SDKROOT}/usr/include
+    -isystem ${RAVYN_SDKROOT}/usr/local/include
     -iframework ${RAVYN_SDKROOT}/System/Library/Frameworks
     -Wno-implicit-function-declaration
     -Wno-int-conversion -Wno-implicit-int
     -fno-stack-protector -fno-stack-check -fno-builtin
     -momit-leaf-frame-pointer
+    $<$<COMPILE_LANGUAGE:ASM>:-x assembler-with-cpp>
 )
 
 target_link_options(libsystem_pthread PRIVATE

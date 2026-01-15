@@ -22,12 +22,12 @@ rm -f "$INTERPOSABLE_LIST"
 rm -f "$UNEXPORT_LIST"
 
 for x in ${BUILD_ARCHIVES[@]}; do
-	nm -AUamgf "$BUILT_PRODUCTS_DIR/lib${x}.a" 2>/dev/null | \
+	${NM} -AUamgf "$BUILT_PRODUCTS_DIR/lib${x}.a" 2>/dev/null | \
 		grep '__TEXT,__text' | \
 		grep -vE '\$VARIANT' | \
 		awk '{ print $NF }' >> "$INTERPOSABLE_LIST"
 
-	nm -AUamgf "$BUILT_PRODUCTS_DIR/lib${x}.a" 2>/dev/null | \
+	${NM} -AUamgf "$BUILT_PRODUCTS_DIR/lib${x}.a" 2>/dev/null | \
 		awk '/\$VARIANT/ { print $NF }' >> "$UNEXPORT_LIST"
 
 	echo "$BUILT_PRODUCTS_DIR/lib${x}.a" >> "$NORMAL_LIST.libtool"

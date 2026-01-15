@@ -44,7 +44,7 @@ strtoIg(CONST char *s00, char **se, FPI *fpi, Long *exp, Bigint **B, int *rvp)
 	Long e1;
 
 	b = *B;
-	rv = strtodg(s00, se, fpi, exp, b->x);
+	rv = strtodg(s00, se, fpi, exp, b->x, 0);
 	if (!(rv & STRTOG_Inexact)) {
 		B[1] = 0;
 		return *rvp = rv;

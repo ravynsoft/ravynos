@@ -28,5 +28,6 @@ target_compile_options(libsystem_notify PRIVATE
     -isystem ${RAVYN_SDKROOT}/usr/include
     -fno-exceptions -Wno-implicit-function-declaration
     -Wno-int-conversion -Wno-implicit-int
+    $<$<COMPILE_LANGUAGE:ASM>:-x assembler-with-cpp>
 )
 

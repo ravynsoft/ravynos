@@ -118,13 +118,16 @@ sub writeMakefile {
     foreach my $target (sort keys %targets) {
         my $opts = "";
         my $name = ${targets{$target}}{"name"};
+        my $sourceref = ${targets{$target}}{"sources"};
+
         print "add_library($name STATIC\n";
-        foreach my $file (sort keys %fileopts) {
-            my $path = ${fileopts{$file}}{"path"}, "\n";
-            print "\t$path\n";
+        my @files = @{$sources{$sourceref}};
+        foreach my $file (@files) {
+            my $path = ${fileopts{$file}}{"path"};
             my $flags = ${fileopts{$file}}{"COMPILE_OPTIONS"};
+            print "\t$path\n";
             if($flags) {
-                $opts = "${opts}set_source_file_properties($path TARGET_DIRECTORY ".
+                $opts = "${opts}set_source_files_properties($path TARGET_DIRECTORY ".
                     "${name} PROPERTIES COMPILE_OPTIONS ${flags})\n";
             }
         }
