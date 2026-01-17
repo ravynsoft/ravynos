@@ -5,6 +5,7 @@ set_target_properties(libsystem_platform PROPERTIES
 target_sources(libsystem_platform PRIVATE
     simple/asl.c
     simple/getenv.c
+    simple/string_io.c
     string/generic/memmove.c
     string/generic/strcpy.c
     string/generic/strlen.c
@@ -52,42 +53,35 @@ target_sources(libsystem_platform PRIVATE
 )
 
 target_include_directories(libsystem_platform PRIVATE
-    ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders
-    ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers
-    ../private internal os/resolver ../libsystem_c/darwin
-    ../../../Kernel/xnu/libsyscall/mach
-    ../../../Kernel/xnu/libsyscall/wrappers
-    ${SDK_SOURCE_DIR}/usr/local/include
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
+    ../libsystem_c/include
+    ../private internal
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/osfmk
+    os/resolver
+    ${CMAKE_CURRENT_BINARY_DIR}/../libsystem_kernel/mig_hdr/include
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/wrappers
 )
 
 target_compile_definitions(libsystem_platform PRIVATE
-    DISPATCH_USE_DTRACE=0
-    memory_order_dependency=os_atomic_memory_order_dependency
-    memory_order_acquire=os_atomic_memory_order_acquire
-    memory_order_release=os_atomic_memory_order_release
-    memory_order_relaxed=os_atomic_memory_order_relaxed
+    DISPATCH_USE_DTRACE=0 voucher_mach_msg_state_t=mach_port_t;
     OS_ATOMIC_CONFIG_MEMORY_ORDER_DEPENDENCY=1
     OS_ATOMIC_CONFIG_STARVATION_FREE_ONLY=0 OS_UNFAIR_LOCK_INLINE=0
-    OSATOMIC_USE_INLINED=0 OSATOMIC_DEPRECATED=0 OSSPINLOCK_USE_INLINED=1
+    OSATOMIC_USE_INLINED=0 OSATOMIC_DEPRECATED=0 OSSPINLOCK_USE_INLINED=0
 )
 
 target_compile_options(libsystem_platform PRIVATE
-    --sysroot=${RAVYN_SDKROOT} -isysroot=${RAVYN_SDKROOT} -w
-    --target=${TARGET_TRIPLE} -isystem ${RAVYN_SDKROOT}/usr/include
-    -isystem ${RAVYN_SDKROOT}/usr/local/include
-    -iframework ${RAVYN_SDKROOT}/System/Library/Frameworks
-    -Wno-implicit-function-declaration
-    -Wno-int-conversion -Wno-implicit-int
+    --sysroot=${RAVYN_SDKROOT} -isysroot${RAVYN_SDKROOT} -w
+    -Wno-implicit-function-declaration -Wno-int-conversion -Wno-implicit-int
     -fno-stack-protector -fdollars-in-identifiers -fno-common -fverbose-asm
-    -momit-leaf-frame-pointer
+    -momit-leaf-frame-pointer -DPRIVATE
     $<$<COMPILE_LANGUAGE:ASM>:-x assembler-with-cpp>
 )
-
 
 target_link_options(libsystem_platform PRIVATE
     -mmacos-version-min=10.15 -v -Wl,-install_name,/usr/lib/system/libsystem_platform.dylib
     -rdynamic -nodefaultlibs -Wl,-search_paths_first
-    -all_load -nostdlib -L${RAVYN_SDKROOT}/usr/lib/system -umbrella System
-    #-lcompiler-rt -ldyld -lkernel
+    -all_load -nostdlib -L${RAVYN_SDKROOT}/usr/lib/system -umbrella System -lsystem_kernel
+    #-lcompiler-rt -ldyld
     -Wl,-alias_list,${CMAKE_CURRENT_SOURCE_DIR}/xcodeconfig/libplatform.aliases
 )

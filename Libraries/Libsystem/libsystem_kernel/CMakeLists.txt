@@ -332,3 +332,7 @@ target_link_options(libkernel PRIVATE
 target_link_libraries(libkernel PRIVATE libkernel_static
     libsyscalls ${CMAKE_CURRENT_BINARY_DIR}/libmach.a)
 
+add_custom_command(TARGET libkernel POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libkernel> 
+		${RAVYN_SDKROOT}/usr/lib/system/libsystem_kernel.dylib
+)

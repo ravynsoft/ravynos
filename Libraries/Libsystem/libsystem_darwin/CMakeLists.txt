@@ -1,6 +1,6 @@
 add_library(libsystem_darwin STATIC)
 set_property(TARGET libsystem_c PROPERTY OUTPUT_NAME "system_darwin")
-set_property(TARGET libsystem_c PROPERTY SUFFIX ".dylib")
+#set_property(TARGET libsystem_c PROPERTY SUFFIX ".dylib")
 set_property(TARGET libsystem_c PROPERTY PREFIX "lib")
 
 target_sources(libsystem_darwin PRIVATE
@@ -24,9 +24,9 @@ target_include_directories(libsystem_darwin PRIVATE
     ../../../Kernel/xnu/libsyscall/mach ../../../Kernel/xnu/libkern
     ../../openbsm ../../../Kernel/xnu/libsyscall/wrappers/spawn
     ../../../Kernel/xnu/libsyscall/wrappers/libproc ../liblaunch
-    ${SDK_SOURCE_DIR}/usr/local/include ${SDK_SOURCE_DIR}/usr/include
-    ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders
-    ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/PrivateHeaders
+#    ${SDK_SOURCE_DIR}/usr/local/include ${SDK_SOURCE_DIR}/usr/include
+#    ${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders
+#    ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/PrivateHeaders
 )
 
 target_compile_definitions(libsystem_darwin PRIVATE
@@ -35,12 +35,11 @@ target_compile_definitions(libsystem_darwin PRIVATE
 )
 
 target_compile_options(libsystem_darwin PRIVATE
-    --sysroot=${RAVYN_SDKROOT} -isysroot=${RAVYN_SDKROOT} -w
-    --target=${TARGET_TRIPLE}
+    --sysroot=${RAVYN_SDKROOT} -isysroot${RAVYN_SDKROOT} -w
+    #--target=${TARGET_TRIPLE}
     -isystem ${CMAKE_CURRENT_SOURCE_DIR}/h
-    -isystem ${RAVYN_SDKROOT}/usr/include
-    -iframework ${RAVYN_SDKROOT}/System/Library/Frameworks
     -Wno-implicit-function-declaration
     -Wno-int-conversion -Wno-implicit-int
     $<$<COMPILE_LANGUAGE:ASM>:-x assembler-with-cpp>
 )
+
