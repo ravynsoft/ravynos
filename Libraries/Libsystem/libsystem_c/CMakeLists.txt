@@ -1360,6 +1360,7 @@ add_library(libsystem_c SHARED
 set_property(TARGET libsystem_c PROPERTY OUTPUT_NAME "system_c")
 set_property(TARGET libsystem_c PROPERTY SUFFIX ".dylib")
 set_property(TARGET libsystem_c PROPERTY PREFIX "lib")
+set_property(TARGET libsystem_c PROPERTY NO_SONAME true)
 
 add_custom_target(generateLinklists
 	COMMAND env 
