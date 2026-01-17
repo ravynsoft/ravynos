@@ -31,6 +31,7 @@ target_sources(libelf.host PRIVATE
 )
 set_property(TARGET libelf.host PROPERTY OUTPUT_NAME elf)
 target_include_directories(libelf.host PRIVATE ../include ../include/sys)
+target_compile_definitions(libelf.host PRIVATE __APPLE_CPP__ __LITTLE_ENDIAN__)
 set_property(TARGET libelf.host PROPERTY CXX_STANDARD 17)
 
 if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")

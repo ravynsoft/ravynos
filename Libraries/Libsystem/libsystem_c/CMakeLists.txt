@@ -1063,7 +1063,7 @@ set_source_files_properties(./stdlib/FreeBSD/system.c TARGET_DIRECTORY vDarwinEx
 
 
 #-------------------------------------------------------------------------
-# libDarwinExtsnCancelable.a
+# libvDarwinExtsnCancelable.a
 #-------------------------------------------------------------------------
 set(CMAKE_CURRENT_SOURCE_DIR ${ROOT_SOURCE_DIR}/Libraries/Libsystem/libsystem_c)
 add_library(vDarwinExtsnCancelable STATIC

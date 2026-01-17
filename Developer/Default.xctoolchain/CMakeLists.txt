@@ -45,12 +45,15 @@ set(GNU_CONFIGURE_ARGS
     --prefix=/usr --sysconfdir=/etc --bindir=/bin --sbindir=/sbin --localstatedir=/var
 )
 add_custom_target(host_gmake
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/gmake
-        && cd ${CMAKE_CURRENT_BINARY_DIR}/gmake
-        && ${CMAKE_CURRENT_SOURCE_DIR}/gmake/configure ${GNU_CONFIGURE_ARGS}
-        && ./build.sh
-        && ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/gmake/make
-            ${TOOLCHAIN}/usr/bin/
+    COMMAND 
+        if [ ! -f ${CMAKE_CURRENT_BINARY_DIR}/gmake/make ] $<SEMICOLON> then
+          ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/gmake
+          && cd ${CMAKE_CURRENT_BINARY_DIR}/gmake
+          && ${CMAKE_CURRENT_SOURCE_DIR}/gmake/configure ${GNU_CONFIGURE_ARGS}
+          && ./build.sh
+          && ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/gmake/make
+            ${TOOLCHAIN}/usr/bin/ $<SEMICOLON>
+        fi
 )
 
 add_dependencies(BootstrapTools

@@ -29,4 +29,5 @@ target_sources(libdwarf.host PRIVATE
     dwarf_weaks.c
 )
 set_property(TARGET libdwarf.host PROPERTY OUTPUT_NAME dwarf)
+target_compile_definitions(libdwarf.host PRIVATE __APPLE_CPP__ __LITTLE_ENDIAN__)
 target_include_directories(libdwarf.host PRIVATE ../include)

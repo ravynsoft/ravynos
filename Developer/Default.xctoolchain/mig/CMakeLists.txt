@@ -60,7 +60,8 @@ target_sources(host_migcom PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/y.tab.c
     ${CMAKE_CURRENT_BINARY_DIR}/lexxer.yy.c
 )
-target_compile_definitions(host_migcom PRIVATE MIG_VERSION=\"\")
+target_compile_definitions(host_migcom PRIVATE MIG_VERSION=\"\"
+    __APPLE_CPP__ __LITTLE_ENDIAN__)
 target_include_directories(host_migcom PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
     target_include_directories(host_migcom PRIVATE

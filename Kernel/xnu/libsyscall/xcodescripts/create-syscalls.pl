@@ -368,6 +368,7 @@ sub writeStubForSymbol {
 
     if (scalar(@conditions)) {
         printf $f "#if " . join(" || ", @conditions) . "\n";
+        printf $f ".globl %s\n", $$symbol{asm_sym};
         printf $f "__SYSCALL2(%s, %s, %d, %s)\n", $$symbol{asm_sym}, $$symbol{syscall}, $$symbol{nargs}, $nc;
         if (!$$symbol{is_private} && (scalar(@conditions) < scalar(@Architectures))) {
             printf $f "#else\n";

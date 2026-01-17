@@ -101,6 +101,7 @@ target_sources(host_ctfmerge PRIVATE
 set_property(TARGET host_ctfmerge PROPERTY OUTPUT_NAME ctfmerge)
 target_include_directories(host_ctfmerge PRIVATE ../include ../include/sys ../libelf)
 target_link_libraries(host_ctfmerge PRIVATE libelf.host libdwarf.host libctf.host ${ZLIB_LIBRARY_RELEASE})
+target_compile_definitions(host_ctfmerge PRIVATE __APPLE_CPP__ __LITTLE_ENDIAN__)
 set_property(TARGET host_ctfmerge PROPERTY CXX_STANDARD 17)
 
 if(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")

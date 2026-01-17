@@ -103,6 +103,8 @@ fi
 
 MIGS_INTERNAL="mach_port.defs
 	mach_vm.defs
+	mach_host.defs
+	mach_voucher.defs
 	thread_act.defs
 	vm_map.defs"
 

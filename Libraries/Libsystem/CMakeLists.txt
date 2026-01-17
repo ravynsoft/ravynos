@@ -34,9 +34,9 @@ target_compile_options(libSystem PRIVATE
     $<$<COMPILE_LANGUAGE:ASM>:-x assembler-with-cpp>
 )
 
-#add_dependencies(libsystem_c libsystem_malloc libsystem_platform)
-#add_dependencies(libsystem_pthread libsystem_platform)
-#add_dependencies(libsystem_malloc libsystem_platform)
+add_dependencies(libsystem_c libsystem_malloc libsystem_platform)
+add_dependencies(libsystem_pthread libsystem_platform)
+add_dependencies(libsystem_malloc libsystem_platform)
 #add_dependencies(libsystem_platform compiler_rt)
 #add_dependencies(libsystem_notify xnu_headers)
 #add_dependencies(libcommonCrypto xnu_headers)

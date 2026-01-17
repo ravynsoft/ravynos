@@ -29,10 +29,6 @@
 #ifndef _OS_OSBYTEORDER_H
 #define _OS_OSBYTEORDER_H
 
-#ifdef __linux__
-#include <endian.h>
-#endif
-
 #include <stdint.h>
 #include <libkern/_OSByteOrder.h>
 
