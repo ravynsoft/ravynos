@@ -31,7 +31,7 @@
 #include <mach/mach_vm.h>
 #include <mach/vm_map.h>
 #include <mach/vm_param.h>
-#include <libkern/OSAtomic.h>
+#include <stdatomic.h>
 #include <asl_string.h>
 #include <asl_private.h>
 
@@ -65,7 +65,7 @@ asl_string_retain(asl_string_t *str)
 {
 	if (str == NULL) return NULL;
 
-	OSAtomicIncrement32Barrier(&(str->refcount));
+	atomic_fetch_add(&(str->refcount), 1);
 	return str;
 }
 
@@ -73,7 +73,7 @@ void
 asl_string_release(asl_string_t *str)
 {
 	if (str == NULL) return;
-	if (OSAtomicDecrement32Barrier(&(str->refcount)) != 0) return;
+	if (atomic_fetch_sub(&(str->refcount), 1) != 0) return;
 
 	if (str->encoding & ASL_STRING_VM)
 	{
@@ -100,7 +100,7 @@ asl_string_release_return_bytes(asl_string_t *str)
 		memcpy(str->buf, tmp, 10);
 	}
 
-	if (OSAtomicDecrement32Barrier(&(str->refcount)) != 0)
+	if (atomic_fetch_sub(&(str->refcount), 1) != 0)
 	{
 		/* string is still retained - copy buf */
 		if (str->encoding & ASL_STRING_VM)

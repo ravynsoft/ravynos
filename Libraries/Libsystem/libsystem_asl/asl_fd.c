@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <strings.h> // fls()
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/event.h>
