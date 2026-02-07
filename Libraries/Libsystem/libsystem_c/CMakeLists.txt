@@ -1367,7 +1367,7 @@ add_custom_target(generateLinklists
 		BUILD_ARCHIVES="Base FreeBSD TRE vInode32"
 		BUILT_PRODUCTS_DIR=${CMAKE_CURRENT_BINARY_DIR} 
 		DERIVED_FILES_DIR=${CMAKE_CURRENT_BINARY_DIR}
-		sh ${CMAKE_CURRENT_SOURCE_DIR}/xcodescripts/build_linklists.sh
+		bash ${CMAKE_CURRENT_SOURCE_DIR}/xcodescripts/build_linklists.sh
 )
 
 add_dependencies(libsystem_c Platform
