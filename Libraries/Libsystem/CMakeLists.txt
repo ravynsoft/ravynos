@@ -117,6 +117,7 @@ target_link_options(libSystem PRIVATE
     -mmacos-version-min=10.15 -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib
     -Wl,-flat_namespace -Wl,-undefined,warning -Wl,-no_warn_inits
     -L${RAVYN_SDKROOT}/usr/lib/system -L${RAVYN_SDKROOT}/usr/local/lib/system
+    -L${RAVYN_SDKROOT}/usr/lib
     -Wl,-install_name,/usr/lib/libSystem.dylib -Wl,-current_version,1254
     -Wl,-compatibility_version,1.0.0
     -rdynamic -nodefaultlibs -Wl,-search_paths_first

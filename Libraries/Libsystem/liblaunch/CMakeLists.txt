@@ -59,3 +59,8 @@ target_link_options(liblaunch PRIVATE
     -lsystem_asl -mmacos-version-min=10.15)
 
 add_dependencies(liblaunch libsystem_darwin libsystem_asl)
+add_custom_command(TARGET liblaunch POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${RAVYN_SDKROOT}/usr/lib/system ${SYSROOT_DIR}/usr/lib/system
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:liblaunch> ${RAVYN_SDKROOT}/usr/lib/system/
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:liblaunch> ${SYSROOT_DIR}/usr/lib/system/
+)

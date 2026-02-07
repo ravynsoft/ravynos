@@ -96,6 +96,7 @@ add_custom_command(
         -Wl,-current_version,228
         -mmacos-version-min=10.15
 	    ${CMAKE_CURRENT_SOURCE_DIR}/runtime/objc-blocktramps-x86_64.s
+	    && ${CMAKE_COMMAND} -E make_directory ${SYSROOT_DIR}/usr/lib ${RAVYN_SDKROOT}/usr/lib
 	    && ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/libobjc-trampolines.dylib
 	        ${RAVYN_SDKROOT}/usr/lib/
         && ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/libobjc-trampolines.dylib
@@ -106,8 +107,8 @@ add_dependencies(objc libsystem_darwin)
 
 add_custom_command(TARGET objc POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${RAVYN_SDKROOT}/usr/lib ${SYSROOT_DIR}/usr/lib
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:objc> ${RAVYN_SDKROOT}/usr/lib/
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:objc> ${SYSROOT_DIR}/usr/lib/
-    COMMAND ${CMAKE_COMMAND} -E create_symlink libobjc.A.dylib ${RAVYN_SDKROOT}/usr/lib/libobjc.dylib
-    COMMAND ${CMAKE_COMMAND} -E create_symlink libobjc.A.dylib ${SYSROOT_DIR}/usr/lib/libobjc.dylib
+        && ${CMAKE_COMMAND} -E copy $<TARGET_FILE:objc> ${RAVYN_SDKROOT}/usr/lib/
+        && ${CMAKE_COMMAND} -E copy $<TARGET_FILE:objc> ${SYSROOT_DIR}/usr/lib/
+        && ${CMAKE_COMMAND} -E create_symlink libobjc.A.dylib ${RAVYN_SDKROOT}/usr/lib/libobjc.dylib
+        && ${CMAKE_COMMAND} -E create_symlink libobjc.A.dylib ${SYSROOT_DIR}/usr/lib/libobjc.dylib
 )

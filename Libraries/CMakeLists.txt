@@ -20,6 +20,7 @@ set(CMAKE_OBJCXX_COMPILER ${CXX})
 set(CMAKE_LINK_DEPENDS_USE_LINKER OFF)
 
 add_subdirectory(libfirehose_kernel)
+add_dependencies(xnu libfirehose_kernel)
 add_subdirectory(CrashReporterClient)
 add_subdirectory(dyld)
 add_subdirectory(Libsystem)
@@ -137,7 +138,7 @@ ExternalProject_Add(libcxx DEPENDS xnu_headers libunwind
         "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-flat_namespace \
         -Wl,-undefined,warning -Wl,-umbrella,System \
         -Wl,-install_name,/usr/lib/system/libc++.dylib \
-        -L${RAVYN_SDKROOT}/usr/lib/system \
+        -L${RAVYN_SDKROOT}/usr/lib/system -L${RAVYN_SDKROOT}/usr/lib \
         -L${ROOT_BINARY_DIR}/Libraries/llvm_target/libunwind/lib \
         -lunwind -lcompiler_rt"
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON

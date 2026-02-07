@@ -53,9 +53,9 @@ target_link_options(libsystem_asl PRIVATE
     -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib -umbrella System
     -Wl,-all_load -L${RAVYN_SDKROOT}/usr/lib/system -L${RAVYN_SDKROOT}/usr/lib
     -lCrashReporterClient -lcompiler_rt -ldyld -lsystem_kernel -lsystem_platform
-    -lsystem_pthread -lsystem_malloc -lsystem_c -lsystem_blocks
-    # -lsystem_trace -lsystem_notify -llaunch
-    -lunwind -ldispatch -lxpc -ldispatch  -lxpc -lcompiler_rt
+    -lsystem_pthread -lsystem_malloc -lsystem_c
+    # -lsystem_trace -lsystem_notify
+    -ldispatch -lxpc -lxpc
     #-Wl,-upward-lsystem_info
     -Wl,-undefined,warning -Wl,-flat_namespace
     -Wl,-install_name,/usr/lib/system/libsystem_asl.dylib -Wl,-current_version,377.0.1

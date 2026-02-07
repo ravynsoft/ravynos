@@ -9,3 +9,5 @@ set_target_properties(libnv PROPERTIES PREFIX "lib" OUTPUT_NAME "nv")
 target_include_directories(libnv PRIVATE  ../openbsm/compat)
 target_compile_definitions(libnv PRIVATE "__packed=__attribute__((packed))")
 
+add_dependencies(libnv libc_static)
+add_dependencies(libsbuf libc_static)

@@ -289,8 +289,8 @@ target_compile_options(libkernel PRIVATE ${common_opts}
     $<$<COMPILE_LANGUAGE:ASM>:-x assembler-with-cpp>)
 
 add_custom_command(TARGET libkernel POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libkernel>
-        ${RAVYN_SDKROOT}/usr/local/lib/kernel/
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${RAVYN_SDKROOT}/usr/local/lib/kernel
+        && ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libkernel> ${RAVYN_SDKROOT}/usr/local/lib/kernel/
 )
 
 add_library(libsystem_kernel SHARED stub.c)

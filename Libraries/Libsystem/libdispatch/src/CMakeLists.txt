@@ -115,6 +115,7 @@ target_link_options(dispatch PRIVATE
     -mmacos-version-min=10.15 -umbrella System)
 
 add_custom_command(TARGET dispatch POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${RAVYN_SDKROOT}/usr/lib/system ${SYSROOT_DIR}/usr/lib/system
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:dispatch> ${RAVYN_SDKROOT}/usr/lib/system/
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:dispatch> ${SYSROOT_DIR}/usr/lib/system/
 )
