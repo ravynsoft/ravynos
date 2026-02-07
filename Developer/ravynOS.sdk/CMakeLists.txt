@@ -44,7 +44,7 @@ execute_process(COMMAND
 set(libc_path ${ROOT_SOURCE_DIR}/Libraries/Libsystem/libsystem_c)
 execute_process(COMMAND env SRCROOT=${libc_path} DSTROOT=${RAVYN_SDKROOT}
     SDK_INSTALL_HEADERS_ROOT=. "PATH=${TOOLS}:$ENV{PATH}" ARCHS="${CpuArch} "
-    VARIANT_PLATFORM_NAME=macosx sh ${libc_path}/xcodescripts/headers.sh
+    VARIANT_PLATFORM_NAME=macosx bash ${libc_path}/xcodescripts/headers.sh
 )
 execute_process(
     COMMAND
