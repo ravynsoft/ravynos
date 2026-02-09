@@ -1,16 +1,11 @@
-#import <objc/runtime.h>
+#import <runtime/objc-private.h>
 #import <Foundation/NSObject.h>
 #import <Foundation/NSInvocation.h>
 #include <stdio.h>
 
 #define NSABISizeofRegisterReturn 8
-#ifndef GCC_RUNTIME_3
 #define NSABIasm_jmp_objc_msgSend __asm__("jmp _objc_msgSend")
 #define NSABIasm_jmp_objc_msgSend_stret __asm__("jmp _objc_msgSend_stret")
-#endif
-// 64-bit freebsd, FIX
-// #define NSABIasm_jmp_objc_msgSend __asm__("jmp _objc_msgSend@PLT")
-// #define NSABIasm_jmp_objc_msgSend_stret __asm__("jmp _objc_msgSend_stret@PLT");
 
 static void OBJCRaiseException(const char *name,const char *format,...) {
     va_list arguments;
@@ -25,12 +20,12 @@ static void OBJCRaiseException(const char *name,const char *format,...) {
 }
 
 
-#if !COCOTRON_DISALLOW_FORWARDING
+#if !FOUNDATION_DISALLOW_FORWARDING
 @interface NSObject(fastforwarding)
 -forwardingTargetForSelector:(SEL)selector;
 @end
 
-@interface NSInvocation(private)
+@interface NSInvocation(_private)
 +(NSInvocation *)invocationWithMethodSignature:(NSMethodSignature *)signature arguments:(void *)arguments;
 @end
 
@@ -45,6 +40,7 @@ id NSObjCGetFastForwardTarget(id object,SEL selector){
    return check;
 }
 #endif
+#endif
 
 void NSObjCForwardInvocation(void *returnValue,id object,SEL selector,va_list arguments){
    NSMethodSignature *signature=[object methodSignatureForSelector:selector];
@@ -52,7 +48,7 @@ void NSObjCForwardInvocation(void *returnValue,id object,SEL selector,va_list ar
    if(signature==nil)
     [object doesNotRecognizeSelector:selector];
    else {
-#if COCOTRON_DISALLOW_FORWARDING
+#if FOUNDATION_DISALLOW_FORWARDING
     Class class = object_getClass(object);
     OBJCRaiseException("ForwardingDisallowed", "%c[%s %s(%d)]", class_isMetaClass(class) ? '+' : '-', class_getName(class) , sel_getName(selector), selector);
 #else
@@ -103,52 +99,10 @@ void NSObjCForward_stret(void *returnValue,id object,SEL selector,...){
 
    va_end(arguments);
 }
-#endif
-
-
-// both of these suck, we should be using NSMethodSignature types to extract the frame and create the NSInvocation here
-#ifdef __sparc__
-id objc_msgForward(id object, SEL message, ...)
-{
-    Class class = object_getClass(object);
-
-    struct objc_method *method;
-    va_list arguments;
-    unsigned i, frameLength, limit;
-    unsigned *frame;
-
-    if ((method = class_getInstanceMethod(class, @selector(_frameLengthForSelector:))) == NULL) {
-        OBJCRaiseException("OBJCDoesNotRecognizeSelector", "%c[%s %s(%d)]", class_isMetaClass(class) ? '+' : '-', class_getName(class) , sel_getName(message), message);
-        return nil;
-    }
-    IMP imp = method_getImplementation(method);
-    frameLength = imp(object, @selector(_frameLengthForSelector:), message);
-    frame = __builtin_alloca(2 * sizeof(unsigned) + frameLength);
-    va_start(arguments, message);
-    frame[0] = object;
-    frame[1] = message;
-    for (i = 0; i < frameLength / sizeof(unsigned); i++) {
-        frame[i+2] = va_arg(arguments, unsigned);
-    }
-
-    if ((method = class_getInstanceMethod(class, @selector(forwardSelector:arguments:))) != NULL) {
-        imp = method_getImplementation(method);
-
-        return imp(object, @selector(forwardSelector:arguments:), message, frame);
-    } else {
-        OBJCRaiseException("OBJCDoesNotRecognizeSelector", "%c[%s %s(%d)]", class_isMetaClass(class) ? '+' : '-', class_getName(class), sel_getName(message), message);
-        return nil;
-    }
-}
-
-void objc_msgForward_stret(void *result, id object, SEL message, ...)
-{
-}
-
-#else
 
 id objc_msgForward(id object, SEL message, ...)
 {
+#ifndef APPLE_RUNTIME_4
     Class class = object_getClass(object);
     struct objc_slot *slot;
     void *arguments = &object;
@@ -165,14 +119,16 @@ id objc_msgForward(id object, SEL message, ...)
         OBJCRaiseException("OBJCDoesNotRecognizeSelector", "%c[%s %s(%d)]", class_isMetaClass(class) ? '+' : '-', class_getName(class), sel_getName(message), message);
         return nil;
     }
+#else
+    /* FIXME: zoe 2/9/26 this is almost certainly wrong. just enough to get it compiling */
+    return ((id (*)(id,SEL,...))_objc_msgForward_impcache)(object, message);
+#endif
 }
 
 
 void objc_msgForward_stret(void *result, id object, SEL message, ...)
 {
 }
-
-#endif
 
 #ifdef GCC_RUNTIME_3
 // TODO Forwarding currently only works for methods returning types not wider than id. The result

@@ -20,10 +20,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <objc/message.h>
 #import "forwarding.h"
 
-#ifdef GCC_RUNTIME_3
-#import <objc/hooks.h>
-#endif
-
 
 // From Apple docs:
 // Returns a Boolean value that indicates whether the receiver is an instance of given class
@@ -212,7 +208,7 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 }
 
 -(Class)classForCoder {
-   return isa;
+   return object_getClass(self);
 }
 
 -(Class)classForArchiver {
@@ -233,17 +229,17 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 }
 
 -(IMP)methodForSelector:(SEL)selector {
-   return class_getMethodImplementation(isa,selector);
+   return class_getMethodImplementation(object_getClass(self),selector);
 }
 
 -(void)doesNotRecognizeSelector:(SEL)selector {
    [NSException raise:NSInvalidArgumentException
-     format:@"%c[%@ %@]: selector not recognized", class_isMetaClass(isa)?'+':'-',
-      NSStringFromClass(isa),NSStringFromSelector(selector)];
+     format:@"%c[%@ %@]: selector not recognized", class_isMetaClass(object_getClass(self))?'+':'-',
+      NSStringFromClass(object_getClass(self)),NSStringFromSelector(selector)];
 }
 
 -(NSMethodSignature *)methodSignatureForSelector:(SEL)selector {
-   Method      method=class_getInstanceMethod(isa,selector);
+   Method      method=class_getInstanceMethod(object_getClass(self),selector);
    const char *types=method_getTypeEncoding(method);
 
    return (types==NULL)?(NSMethodSignature *)nil:[NSMethodSignature signatureWithObjCTypes:types];
@@ -297,12 +293,12 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 
 
 -(Class)class {
-   return isa;
+   return object_getClass(self);
 }
 
-
+/* FIXME: is there a object_getSuperClass? */
 -(Class)superclass {
-   return class_getSuperclass(isa);
+   return class_getSuperclass(object_getClass(self));
 }
 
 
@@ -318,7 +314,7 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 #else
     IMP imp = objc_msg_lookup_sender(self, selector, self);
 #endif
-    return imp(self, selector);
+    return ((id (*)(id,SEL))imp)(self, selector);
 }
 
 
@@ -329,7 +325,7 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 #else
     IMP imp = objc_msg_lookup_sender(self, selector, self);
 #endif
-    return imp(self, selector, object0);
+    return ((id (*)(id,SEL,id))imp)(self, selector, object0);
 }
 
 - performSelector:(SEL)selector withObject:object0 withObject:object1
@@ -339,7 +335,7 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 #else
     IMP imp = objc_msg_lookup_sender(self, selector, self);
 #endif
-    return imp(self, selector, object0, object1);
+    return ((id (*)(id,SEL,id,id))imp)(self, selector, object0, object1);
 }
 
 
@@ -354,17 +350,17 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 
 
 -(BOOL)isMemberOfClass:(Class)class {
-   return (isa==class);
+   return (object_getClass(self)==class);
 }
 
 
 -(BOOL)conformsToProtocol:(Protocol *)protocol {
-   return [isa conformsToProtocol:protocol];
+   return [object_getClass(self) conformsToProtocol:protocol];
 }
 
 
 -(BOOL)respondsToSelector:(SEL)selector {
-   return class_respondsToSelector(isa,selector);
+   return class_respondsToSelector(object_getClass(self),selector);
 }
 
 -autorelease {
@@ -401,7 +397,7 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 }
 
 -(NSString *)className {
-   return NSStringFromClass(isa);
+   return NSStringFromClass(object_getClass(self));
 }
 
 -(NSString *)description {

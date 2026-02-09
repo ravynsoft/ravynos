@@ -252,7 +252,7 @@ NSString *const NSUndefinedKeyException = @"NSUnknownKeyException";
 //    TRY_FORMAT("_get%s");
     #undef TRY_FORMAT
 
-    if ([isa accessInstanceVariablesDirectly]) {
+    if ([object_getClass(self) accessInstanceVariablesDirectly]) {
         sprintf(selBuffer, "_%s", keyCString);
         sel = sel_getUid(selBuffer);
 
@@ -262,9 +262,9 @@ NSString *const NSUndefinedKeyException = @"NSUnknownKeyException";
         }
 
 
-        Ivar ivar = class_getInstanceVariable(isa, selBuffer);
+        Ivar ivar = class_getInstanceVariable(object_getClass(self), selBuffer);
         if (!ivar) {
-            ivar = class_getInstanceVariable(isa, keyCString);
+            ivar = class_getInstanceVariable(object_getClass(self), keyCString);
         }
 
         if (ivar) {
@@ -297,10 +297,10 @@ NSString *const NSUndefinedKeyException = @"NSUnknownKeyException";
         return [self _setValue:value withSelector:sel fromKey:key];
     }
 
-	BOOL shouldNotify=[isa automaticallyNotifiesObserversForKey:key] && [self _hasObserverForKey: key] ;
+	BOOL shouldNotify=[object_getClass(self) automaticallyNotifiesObserversForKey:key] && [self _hasObserverForKey: key] ;
 	if (shouldNotify == YES) {
 	}
-	if([isa accessInstanceVariablesDirectly])
+	if([object_getClass(self) accessInstanceVariablesDirectly])
 	{
         // Check the _setXXX: method
         strcpy(check,"_set");strcat(check,uppercaseKeyCString);strcat(check,":");
@@ -311,17 +311,17 @@ NSString *const NSUndefinedKeyException = @"NSUnknownKeyException";
         }
 
         strcpy(check, "_"); strcat(check, keyCString);
-        Ivar ivar = class_getInstanceVariable(isa, check);
+        Ivar ivar = class_getInstanceVariable(object_getClass(self), check);
         if (!ivar) {
             strcpy(check,"_is"); strcat(check, uppercaseKeyCString);
-            ivar = class_getInstanceVariable(isa, check);
+            ivar = class_getInstanceVariable(object_getClass(self), check);
         }
         if (!ivar) {
-            ivar = class_getInstanceVariable(isa, keyCString);
+            ivar = class_getInstanceVariable(object_getClass(self), keyCString);
         }
         if (!ivar) {
             strcpy(check, "is"); strcat(check, uppercaseKeyCString);
-            ivar = class_getInstanceVariable(isa, check);
+            ivar = class_getInstanceVariable(object_getClass(self), check);
         }
 
         if (ivar) {

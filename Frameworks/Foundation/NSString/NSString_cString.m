@@ -6,23 +6,25 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#import <Foundation/NSString_cString.h>
-#import <Foundation/NSString_defaultEncoding.h>
-#import <Foundation/NSString_nextstepCString.h>
-#import <Foundation/NSString_unicode.h>
-#import <Foundation/NSString_macOSRoman.h>
-#import <Foundation/NSString_win1252.h>
-#import <Foundation/NSStringSymbol.h>
-#import <Foundation/NSString_isoLatin1.h>
-#import <Foundation/NSString_isoLatin2.h>
+#include <string.h>
+#include <sys/param.h>
+
+#import <Foundation/NSZone.h>
 #import <Foundation/NSStringUTF8.h>
 #import <Foundation/NSAutoreleasePool-private.h>
 #import <Foundation/NSRaise.h>
 #import <Foundation/NSRaiseException.h>
+#import <Foundation/NSStringSymbol.h>
 
+#import "NSString_cString.h"
+#import "NSString_defaultEncoding.h"
+#import "NSString_nextstepCString.h"
+#import "NSString_unicode.h"
+#import "NSString_macOSRoman.h"
+#import "NSString_win1252.h"
+#import "NSString_isoLatin1.h"
+#import "NSString_isoLatin2.h"
 #import "NSStringEncoder.h"
-
-#include <string.h>
 
 // Note: we are falling back to NeXTSTEP encoding for unsupported ones, and log a message only once
 //       And before supporting non ASCII based ones, we should probably first clean any use of NSString<->C string conversion

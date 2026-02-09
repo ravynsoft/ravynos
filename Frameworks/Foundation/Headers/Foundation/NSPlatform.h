@@ -16,6 +16,7 @@ FOUNDATION_EXPORT NSString *const NSPlatformExecutableFileExtension;
 FOUNDATION_EXPORT NSString *const NSPlatformLoadableObjectFileExtension;
 FOUNDATION_EXPORT NSString *const NSPlatformLoadableObjectFilePrefix;
 FOUNDATION_EXPORT NSString *const NSPlatformExecutableDirectory;
+FOUNDATION_EXPORT NSString *const NSPlatformAlternateExecutableDirectory;
 FOUNDATION_EXPORT NSString *const NSPlatformResourceNameSuffix;
 
 @interface NSPlatform : NSObject

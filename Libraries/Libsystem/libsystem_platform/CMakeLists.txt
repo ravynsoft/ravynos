@@ -93,12 +93,12 @@ target_compile_definitions(libplatform PRIVATE ${libplatform_defs}
 target_compile_options(libplatform PRIVATE ${libplatform_opts})
 
 target_link_options(libsystem_platform PRIVATE
-    --sysroot=${RAVYN_SDKROOT}
+    --sysroot=${RAVYN_SDKROOT} -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib
     -mmacos-version-min=10.15 -flat_namespace -undefined warning
     -Wl,-install_name,/usr/lib/system/libsystem_platform.dylib
     -Wl,-current_version,220 -Wl,-compatibility_version,1.0.0
     -Wl,-search_paths_first -umbrella System -Wl,-all_load
-    -L${RAVYN_SDKROOT}/usr/lib/system
+    -L${RAVYN_SDKROOT}/usr/lib/system -L${RAVYN_SDKROOT}/usr/lib
     -L${ROOT_BINARY_DIR}/Libraries/llvm_target/compiler-rt/lib/ravynos
     -lsystem_c -lsystem_pthread -lsystem_malloc -ldyld
     -lsystem_kernel -lcompiler_rt

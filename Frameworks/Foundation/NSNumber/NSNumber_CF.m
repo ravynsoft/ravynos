@@ -1,4 +1,4 @@
-#import <Foundation/NSNumber_CF.h>
+#import "NSNumber_CF.h"
 
 @implementation NSNumber_CF
 

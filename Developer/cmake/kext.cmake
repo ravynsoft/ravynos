@@ -3,14 +3,13 @@ function(add_kext_bundle name)
 
     add_library(${name} SHARED)
 
-    string(SUBSTRING ${name} 0 3 name_prefix)
-    if(name_prefix STREQUAL "lib")
-        string(SUBSTRING ${name} 3 -1 base_name)
-        set_property(TARGET ${name} PROPERTY OUTPUT_NAME ${base_name})
-    endif()
+    string(REGEX REPLACE "^lib" "" libname ${name})
+    string(REGEX REPLACE "\.kext\$" "" libname ${libname})
+    set(bname ${libname})
+    string(APPEND bname ".kext")
 
     set_target_properties(${name} PROPERTIES
-        SUFFIX "" PREFIX ""
+        SUFFIX "" PREFIX "" OUTPUT_NAME "${libname}"
         OSX_ARCHITECTURES ${CpuArch}
         CMAKE_OSX_DEPLOYMENT_TARGET ${CMAKE_MACOSX_MIN_VERSION}
         NO_SONAME true BUILD_WITH_INSTALL_NAME_DIR false)
@@ -57,11 +56,6 @@ function(add_kext_bundle name)
 
     add_kmod_info(${name} MAIN_FUNCTION ${SL_MAIN_FUNCTION} ANTIMAIN_FUNCTION ${SL_ANTIMAIN_FUNCTION})
 
-    set(bname ${name})
-    string(REGEX MATCH "\.kext\$" has_suffix ${bname})
-    if(NOT ("${has_suffix}" STREQUAL ".kext"))
-        string(APPEND bname ".kext")
-    endif()
     add_custom_command(TARGET ${name} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${bname}/Contents/MacOS
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${name}> ${CMAKE_CURRENT_BINARY_DIR}/${bname}/Contents/MacOS/

@@ -34,6 +34,7 @@ add_custom_target(helperMIG
         ${CMAKE_CURRENT_BINARY_DIR}/launchd_helperUser.c
         ${CMAKE_CURRENT_BINARY_DIR}/launchd_helperServer.c
 )
+add_dependencies(helperMIG libxpc)
 add_custom_target(jobMIG
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/job.defs
     COMMAND ${MIG} ${MIG_FLAGS} -sheader jobServer.h
@@ -42,6 +43,8 @@ add_custom_target(jobMIG
         ${CMAKE_CURRENT_BINARY_DIR}/jobUser.c
         ${CMAKE_CURRENT_BINARY_DIR}/job.h
 )
+add_dependencies(jobMIG libxpc)
+
 target_sources(liblaunch PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/job.h
     ${CMAKE_CURRENT_BINARY_DIR}/jobServer.h
@@ -58,7 +61,7 @@ target_link_options(liblaunch PRIVATE
     -L${RAVYN_SDKROOT}/usr/lib/system -lcompiler_rt -ldispatch -lsystem_c
     -lsystem_asl -mmacos-version-min=10.15)
 
-add_dependencies(liblaunch libsystem_darwin libsystem_asl)
+add_dependencies(liblaunch libsystem_darwin libsystem_asl libxpc)
 add_custom_command(TARGET liblaunch POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${RAVYN_SDKROOT}/usr/lib/system ${SYSROOT_DIR}/usr/lib/system
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:liblaunch> ${RAVYN_SDKROOT}/usr/lib/system/

@@ -8,9 +8,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #import <Foundation/NSStringFileIO.h>
 #import <Foundation/NSRaise.h>
-#import <Foundation/NSString_nextstep.h>
 #import <Foundation/NSUnicodeCaseMapping.h>
 #import <Foundation/NSData.h>
+
+#import "NSString_nextstep.h"
 
 // FIX, inefficient
 unichar *NSCharactersWithContentsOfFile(NSString *path,

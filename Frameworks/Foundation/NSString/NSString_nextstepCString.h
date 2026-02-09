@@ -6,11 +6,17 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#import <Foundation/NSNumber_CF.h>
+#import "NSString_nextstep.h"
 
-@interface NSNumber_char : NSNumber_CF {
-    char _value;
-}
+@interface NSString_nextstepCString : NSString_nextstep
+
 @end
 
-NSNumber *NSNumber_charNew(NSZone *zone, char value);
+NSString *NSNEXTSTEPCStringNewWithBytes(NSZone *zone,
+    const char *bytes, NSUInteger length);
+
+NSString *NSNEXTSTEPCStringNewWithCharacters(NSZone *zone,
+    const unichar *characters, NSUInteger length, BOOL lossy);
+
+NSString *NSNEXTSTEPCStringNewWithCapacity(NSZone *zone,
+    NSUInteger capacity, char **ptr);

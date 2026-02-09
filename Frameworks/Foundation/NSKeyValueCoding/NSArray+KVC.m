@@ -231,7 +231,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(void)addObserver:(id)observer forKeyPath:(NSString*)keyPath options:(NSKeyValueObservingOptions)options context:(void*)context;
 {
-	if([isa instanceMethodForSelector:_cmd]==[NSArray instanceMethodForSelector:_cmd])
+	if([object_getClass(self) instanceMethodForSelector:_cmd]==[NSArray instanceMethodForSelector:_cmd])
 		NSRaiseException(NSInvalidArgumentException,self,_cmd,@"not supported for key path %@ (observer was %@)", keyPath, observer);
 	else
 		[super addObserver:observer
@@ -242,7 +242,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(void)removeObserver:(id)observer forKeyPath:(NSString*)keyPath;
 {
-	if([isa instanceMethodForSelector:_cmd]==[NSArray instanceMethodForSelector:_cmd])
+	if([object_getClass(self) instanceMethodForSelector:_cmd]==[NSArray instanceMethodForSelector:_cmd])
 		NSRaiseException(NSInvalidArgumentException,self,_cmd,@"not supported for key path %@ (observer was %@)", keyPath, observer);
 	else
 		[super removeObserver:observer

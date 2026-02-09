@@ -6,12 +6,13 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#import <Foundation/NSSortDescriptor.h>
+#import <Foundation/NSObjCRuntime.h>
 #import <Foundation/NSString.h>
+#import <Foundation/NSSortDescriptor.h>
 #import <Foundation/NSKeyValueCoding.h>
 #import <Foundation/NSRaise.h>
 #import <Foundation/NSCoder.h> 
-#import <Foundation/NSKeyedUnarchiver.h> 
+#import <Foundation/NSKeyedUnarchiver.h>
 
 @implementation NSSortDescriptor
 
@@ -73,7 +74,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -reversedSortDescriptor {
-   return [[[isa alloc] initWithKey:_key ascending:!_ascending selector:_selector] autorelease];
+   return [[[object_getClass(self) alloc] initWithKey:_key ascending:!_ascending selector:_selector] autorelease];
 }
 
 - (void)encodeWithCoder:(NSCoder *)coder { 

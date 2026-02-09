@@ -8,11 +8,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSData.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSObjCRuntime.h>
-#import <Foundation/NSMutableData_concrete.h>
 #import <Foundation/NSAutoreleasePool-private.h>
 #import <Foundation/NSRaise.h>
-#import <Foundation/NSData_concrete.h>
 #import <Foundation/NSRaiseException.h>
+
+#import "NSData_concrete.h"
+#import "NSMutableData_concrete.h"
 
 @implementation NSMutableData
 

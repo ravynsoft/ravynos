@@ -5,26 +5,29 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+#include <string.h>
+
 #import <Foundation/NSValue.h>
 #import <Foundation/NSCoder.h>
 #import <Foundation/NSRaise.h>
-#import <Foundation/NSNumber_char.h>
-#import <Foundation/NSNumber_double.h>
-#import <Foundation/NSNumber_float.h>
-#import <Foundation/NSNumber_int.h>
-#import <Foundation/NSNumber_longLong.h>
-#import <Foundation/NSNumber_long.h>
-#import <Foundation/NSNumber_short.h>
-#import <Foundation/NSNumber_unsignedChar.h>
-#import <Foundation/NSNumber_unsignedInt.h>
-#import <Foundation/NSNumber_unsignedLongLong.h>
-#import <Foundation/NSNumber_unsignedLong.h>
-#import <Foundation/NSNumber_unsignedShort.h>
-#import <Foundation/NSNumber_BOOL.h>
-#import <Foundation/NSNumber_placeholder.h>
+
 #import <Foundation/NSAutoreleasePool-private.h>
 
-#include <string.h>
+#import "NSNumber_char.h"
+#import "NSNumber_double.h"
+#import "NSNumber_float.h"
+#import "NSNumber_int.h"
+#import "NSNumber_longLong.h"
+#import "NSNumber_long.h"
+#import "NSNumber_short.h"
+#import "NSNumber_unsignedChar.h"
+#import "NSNumber_unsignedInt.h"
+#import "NSNumber_unsignedLongLong.h"
+#import "NSNumber_unsignedLong.h"
+#import "NSNumber_unsignedShort.h"
+#import "NSNumber_BOOL.h"
+#import "NSNumber_placeholder.h"
+
 
 @implementation NSNumber
 
@@ -522,7 +525,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(NSString *)descriptionWithLocale:(NSDictionary *)locale {
    NSInvalidAbstractInvocation();
-   return [NSString stringWithFormat:@"<%@ %p>",isa,self];
+   return [NSString stringWithFormat:@"<%@ %p>",object_getClass(self),self];
 }
 
 -(NSString *)description {

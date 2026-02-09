@@ -1,6 +1,13 @@
-#add_framework(Foundation)
-add_library(Foundation STATIC)
-add_dependencies(Foundation BUILD_PHASE_FRAMEWORKS objc)
+add_framework_bundle(Foundation
+    VERSION C
+    INFO_PLIST Info.plist
+    RESOURCES_DIRS English.lproj/*
+    RESOURCES_FILES NSCharacterSet/*.bitmap
+    HEADERS Headers/Foundation/*
+    INSTALL_NAME_DIR /System/Library/Frameworks/Foundation.framework/Versions/C
+)
+
+set_target_properties(Foundation PROPERTIES CXX_STANDARD 14)
 target_sources(Foundation PRIVATE
 	NSFormatter.m
 	NSDictionary/NSEnumerator_dictionaryObjects.m
@@ -296,378 +303,68 @@ target_sources(Foundation PRIVATE
 	NSDate/NSDateFormatter.m 
 )
 
-target_sources(Foundation INTERFACE
-	NSLocale.h 
-	NSNull.h 
-	NSDictionary/NSMutableDictionary_mapTable.h 
-	NSDictionary/NSDictionary.h 
-	NSDictionary/NSEnumerator_dictionaryKeys.h 
-	NSDictionary/NSDictionary_mapTable.h 
-	NSDictionary/NSEnumerator_dictionaryObjects.h 
-	NSDictionary/NSMutableDictionary.h 
-	NSSpellEngine.h 
-	NSOrthography.h 
-	NSPointerFunctions.h 
-	NSTimeZone/NSTimeZoneType.h 
-	NSTimeZone/NSTimeZone_absolute.h 
-	NSTimeZone/NSTimeZone.h 
-	NSTimeZone/NSTimeZoneTransition.h 
-	NSStream/NSOutputStream.h 
-	NSStream/NSSelectSet.h 
-	NSStream/NSInputStream_socket.h 
-	NSStream/NSStream.h 
-	NSStream/NSInputStream_data.h 
-	NSStream/NSSelectInputSource.h 
-	NSStream/NSInputStream_file.h 
-	NSStream/NSOutputStream_socket.h 
-	NSStream/NSFileHandle_stream.h 
-	NSStream/NSSelectInputSourceSet.h 
-	NSStream/NSInputStream.h 
-	NSStream/CFSSLHandler.h 
-	NSStream/NSSocket.h 
-	NSStream/NSFileHandle.h 
-	NSStream/NSOutputStream_file.h 
-	NSStream/NSOutputStream_data.h 
-	NSStream/NSOutputStream_buffer.h 
-	NSScanner/NSScanner_concrete.h 
-	NSScanner/NSScanner.h 
-	NSCoder.h 
-	NSNotificationCenter/NSNotificationObserver.h 
-	NSNotificationCenter/NSNotificationCenter.h 
-	NSNotificationCenter/NSObjectToObservers.h 
-	NSMethodSignature.h 
-	NSDistributedNotificationCenter.h 
-	NSObjCRuntime.h 
-	NSScript/NSScriptWhoseTests.h 
-	NSAtomicCompareAndSwap.h 
-	NSMapTable.h 
-	NSException/NSException.h 
-	NSException/NSRaise.h 
-	NSException/NSRaiseException.h 
-	NSException/debugHelpers.h 
-	NSStringsFileFormat/NSStringsFileParser.h 
-	NSNetService/NSNetServices.h 
-	NSNetService/bonjour.h 
-	NSPlatform.h 
-	NSDistributedLock.h 
-	NSClassDescription.h 
-	NSTask.h 
-	NSTextCheckingResult.h 
-	NSUndoManager/NSUndoGroup.h 
-	NSUndoManager/NSUndoManager.h 
-	Foundation.h 
-	NSGeometry.h 
-	NSProxy.h 
-	NSKeyedArchiving/NSKeyedUnarchiver.h 
-	NSKeyedArchiving/NSKeyedArchiver.h 
-	NSFileManager.h 
-	NSAffineTransform.h 
-	NSBundle.h 
-	NSData/NSData.h 
-	NSData/NSMutableData_concrete.h 
-	NSData/NSData_mapped.h 
-	NSData/NSMutableData.h 
-	NSData/NSData_concrete.h 
-	NSHost.h 
-	NSURL/NSURL.h 
-	NSURL/NSURLError.h 
-	NSURL/NSURLProtectionSpace.h 
-	NSURL/NSURLHandle.h 
-	NSURL/NSURLRequest.h 
-	NSURL/NSURLProtocol_http.h 
-	NSURL/NSURLCache.h 
-	NSURL/NSURLResponse.h 
-	NSURL/NSURLConnection.h 
-	NSURL/NSURLConnectionState.h 
-	NSURL/NSURLProtocol.h 
-	NSURL/NSCachedURLResponse.h 
-	NSURL/NSHTTPURLResponse.h 
-	NSURL/NSURLCredential.h 
-	NSURL/NSURLAuthenticationChallenge.h 
-	NSURL/NSURLDownload.h 
-	NSURL/NSURLCredentialStorage.h 
-	NSURL/NSMutableURLRequest.h 
-	xml/NSXMLDTDNode.h 
-	xml/NSXMLDTD.h 
-	xml/NSXMLNode.h 
-	xml/NSXMLElement.h 
-	xml/NSXMLNodeOptions.h 
-	xml/NSXMLParser.h 
-	xml/NSXMLDocument.h 
-	NSKeyValueCoding/NSKeyObserver.h 
-	NSKeyValueCoding/NSKeyPathObserver.h 
-	NSKeyValueCoding/NSKVCMutableArray.h 
-	NSKeyValueCoding/NSKeyValueObserving-Private.h 
-	NSKeyValueCoding/NSKeyValueCoding.h 
-	NSKeyValueCoding/NSString+KVCAdditions.h 
-	NSKeyValueCoding/NSKVOInfoPerObject.h 
-	NSKeyValueCoding/NSKeyValueObserving.h 
-	NSGarbageCollector.h 
-	NSAssertionHandler.h 
-	NSString/NSMutableString_unicodePtr.h 
-	NSString/NSStringHashing.h 
-	NSString/NSString_macOSRoman.h 
-	NSString/NSString_isoLatin1.h 
-	NSString/NSStringFileIO.h 
-	NSString/NSString_cString.h 
-	NSString/NSString_unicodePtr.h 
-	NSString/NSString_isoLatin2.h 
-	NSString/Encoding/8859-1.h 
-	NSString/Encoding/CP1256.h 
-	NSString/Encoding/CP1252.h 
-	NSString/Encoding/CP1258.h 
-	NSString/Encoding/8859-5.h 
-	NSString/Encoding/8859-16.h 
-	NSString/Encoding/CP1255.h 
-	NSString/Encoding/8859-8.h 
-	NSString/Encoding/8859-2.h 
-	NSString/Encoding/8859-11.h 
-	NSString/Encoding/8859-6.h 
-	NSString/Encoding/CP874.h 
-	NSString/Encoding/8859-15.h 
-	NSString/Encoding/CP1251.h 
-	NSString/Encoding/CP1254.h 
-	NSString/Encoding/8859-10.h 
-	NSString/Encoding/8859-3.h 
-	NSString/Encoding/8859-9.h 
-	NSString/Encoding/CP950.h 
-	NSString/Encoding/8859-14.h 
-	NSString/Encoding/8859-7.h 
-	NSString/Encoding/CP1250.h 
-	NSString/Encoding/8859-13.h 
-	NSString/Encoding/CP936.h 
-	NSString/Encoding/CP1257.h 
-	NSString/Encoding/CP1253.h 
-	NSString/Encoding/8859-4.h 
-	NSString/Encoding/CP932.h 
-	NSString/Encoding/CP949.h 
-	NSString/NSStringEncoder.h 
-	NSString/NSMutableString.h 
-	NSString/NSString_defaultEncoding.h 
-	NSString/NSString_placeholder.h 
-	NSString/NSStringUTF8.h 
-	NSString/NSString_win1252.h 
-	NSString/unibuffer.h 
-	NSString/NSString_nextstep.h 
-	NSString/NSPathUtilities.h 
-	NSString/NSString_unicode.h 
-	NSString/NSStringFormatter.h 
-	NSString/NSStringSymbol.h 
-	NSString/NSString.h 
-	NSString/NSUnicodeCaseMapping.h 
-	NSString/NSString_nextstepCString.h 
-	NSArchiver.h 
-	NSConnection/NSSocketPort.h 
-	NSConnection/NSProtocolChecker.h 
-	NSConnection/NSPortCoder.h 
-	NSConnection/NSPortMessage.h 
-	NSConnection/NSPort.h 
-	NSConnection/NSMessagePort.h 
-	NSConnection/NSConnection.h 
-	NSConnection/NSDistantObject.h 
-	NSHTTPCookie/NSHTTPCookieStorage.h 
-	NSHTTPCookie/NSHTTPCookie.h 
-	NSFormatter.h 
-	NSNotificationQueue/NSNotificationQueue-Private.h 
-	NSNotificationQueue/NSNotificationAndModes.h 
-	NSNotificationQueue/NSNotificationQueue.h 
-	NSEnumerator.h 
-	NSAutoreleasePool/NSAutoreleasePool.h 
-	NSAutoreleasePool/NSAutoreleasePool-private.h 
-	NSValueTransformer/NSValueTransformer_KeyedUnarchiveFromData.h 
-	NSValueTransformer/NSValueTransformer_IsNil.h 
-	NSValueTransformer/NSValueTransformer_NegateBoolean.h 
-	NSValueTransformer/NSValueTransformer_UnarchiveFromData.h 
-	NSValueTransformer/NSValueTransformer_IsNotNil.h 
-	NSValueTransformer/NSValueTransformer.h 
-	NSArray/NSArray_concrete.h 
-	NSArray/NSMutableArray.h 
-	NSArray/NSArray.h 
-	NSArray/NSEnumerator_arrayReverse.h 
-	NSArray/NSArray_placeholder.h 
-	NSArray/NSMutableArray_concrete.h 
-	NSArray/NSEnumerator_array.h 
-	NSIndexPath.h 
-	NSThread/NSThread-Private.h 
-	NSThread/NSThread.h 
-	NSOperation/NSOperation.h 
-	NSOperation/NSOperationQueue.h 
-	NSOperation/NSAtomicList.h 
-	NSPredicate/NSPredicate.h 
-	NSPredicate/NSExpression_function.h 
-	NSPredicate/NSExpression.h 
-	NSPredicate/NSComparisonPredicate.h 
-	NSPredicate/NSExpression_self.h 
-	NSPredicate/NSExpression_variable.h 
-	NSPredicate/NSExpression_array.h 
-	NSPredicate/NSExpression_constant.h 
-	NSPredicate/NSCompoundPredicate.h 
-	NSPredicate/NSExpression_operator.h 
-	NSPredicate/NSPredicate_BOOL.h 
-	NSPredicate/NSExpression_assignment.h 
-	NSPredicate/NSExpression_keypath.h 
-	NSInvocation.h 
-	NSUserDefaults/NSPersistantDomain.h
-	NSUserDefaults/NSUserDefaults.h 
-	NSIndexSet/NSMutableIndexSet.h 
-	NSIndexSet/NSIndexSet.h 
-	NSCharacterSet/NSCharacterSet_rangeInverted.h 
-	NSCharacterSet/NSMutableCharacterSet.h 
-	NSCharacterSet/NSCharacterSet.h 
-	NSCharacterSet/NSMutableCharacterSet_bitmap.h 
-	NSCharacterSet/bitmapRepresentation.h 
-	NSCharacterSet/NSCharacterSet_range.h 
-	NSCharacterSet/NSCharacterSet_string.h 
-	NSCharacterSet/NSCharacterSet_bitmap.h 
-	NSLock/NSLock.h 
-	NSLock/NSSynchronization.h 
-	NSLock/NSConditionLock.h 
-	NSLock/NSRecursiveLock.h 
-	NSError.h 
-	NSValue/NSValue_pointer.h 
-	NSValue/NSValue_placeholder.h 
-	NSValue/NSValue.h 
-	NSValue/NSValue_nonRetainedObject.h 
-	NSValue/NSValue_concrete.h 
-	NSPortNameServer/NSPortNameServer.h 
-	NSPortNameServer/NSSocketPortNameServer.h 
-	NSPortNameServer/NSMessagePortNameServer.h 
-	NSDecimal/NSDecimalNumberPlaceholder.h 
-	NSDecimal/NSDecimalNumber.h 
-	NSDecimal/NSDecimal.h 
-	NSPointerArray.h 
-	NSNumber/NSNumber_double_const.h 
-	NSNumber/NSNumber_BOOL_const_impl.h 
-	NSNumber/NSNumber_double.h 
-	NSNumber/NSNumber_BOOL.h 
-	NSNumber/NSNumber_long.h 
-	NSNumber/NSNumber_unsignedChar.h 
-	NSNumber/NSConstObject.h 
-	NSNumber/NSNumber_unsignedShort.h 
-	NSNumber/NSNumber_unsignedInt.h 
-	NSNumber/NSNumber_BOOL_const.h 
-	NSNumber/NSNumber_int.h 
-	NSNumber/NSNumber_char.h 
-	NSNumber/NSNumber_longLong.h 
-	NSNumber/NSNumber_unsignedLong.h 
-	NSNumber/NSNumber_placeholder.h 
-	NSNumber/NSNumber_unsignedLongLong.h 
-	NSNumber/NSNumber_short.h 
-	NSNumber/NSNumber_float.h 
-	NSNumber/NSNumber.h 
-	NSNumber/NSNumber_CF.h 
-	NSTimer/NSTimer.h 
-	NSTimer/NSTimer_targetAction.h 
-	NSTimer/NSTimer_invocation.h 
-	NSTimer/NSTimer_concrete.h 
-	NSConcreteDirectoryEnumerator.h 
-	NSSet/NSInlineSetTable.h 
-	NSSet/NSCountedSet.h 
-	NSSet/NSSet.h 
-	NSSet/NSMutableSet.h 
-	NSSet/NSSet_placeholder.h 
-	NSSet/NSSet_concrete.h 
-	NSSet/NSMutableSet_concrete.h 
-	NSSet/NSEnumerator_set.h 
-	FoundationErrors.h 
-	NSAttributedString/NSAttributedString_placeholder.h 
-	NSAttributedString/NSAttributedString_nilAttributes.h 
-	NSAttributedString/NSAttributedString.h 
-	NSAttributedString/NSMutableAttributedString.h 
-	NSAttributedString/NSMutableString_proxyToMutableAttributedString.h 
-	NSAttributedString/NSAttributedString_oneAttribute.h 
-	NSAttributedString/NSRangeEntries.h 
-	NSAttributedString/NSMutableAttributedString_concrete.h 
-	NSAttributedString/NSAttributedString_manyAttributes.h 
-	NSObject/forwarding.h 
-	NSObject/NSObject.h 
-	NSObject/objc_forward_ffi.h 
-	NSObject/NSZombieObject.h 
-	NSObject/objc_size_alignment.h 
-	NSMetadata/NSMetadataItem.h 
-	NSMetadata/NSMetadataQueryAttributeValueTuple.h 
-	NSMetadata/NSMetadataQueryResultGroup.h 
-	NSMetadata/NSMetadataQuery.h 
-	NSDebug.h 
-	NSSortDescriptor.h 
-	NSRange.h 
-	NSPropertyList/NSPropertyListWriter_vintage.h 
-	NSPropertyList/NSPropertyListReader.h 
-	NSPropertyList/NSOldXMLDocument.h 
-	NSPropertyList/NSPropertyListReader_vintage.h 
-	NSPropertyList/NSPropertyListReader_xml1.h 
-	NSPropertyList/NSOldXMLReader.h 
-	NSPropertyList/NSPropertyListReader_binary1.h 
-	NSPropertyList/NSOldXMLAttribute.h 
-	NSPropertyList/NSOldXMLElement.h 
-	NSPropertyList/NSPropertyListWriter_xml1.h 
-	NSPropertyList/CFUID.h 
-	NSPropertyList/NSPropertyList.h 
-	NSUnarchiver.h 
-	NSProcessInfo.h 
-	NSRunLoop/NSRunLoopState.h 
-	NSRunLoop/NSOrderedPerform.h 
-	NSRunLoop/NSDelayedPerform.h 
-	NSRunLoop/NSInputSourceSet.h 
-	NSRunLoop/NSRunLoop.h 
-	NSRunLoop/NSRunLoop-InputSource.h 
-	NSRunLoop/NSInputSource.h 
-	NSNotification/NSNotification_concrete.h 
-	NSNotification/NSNotification.h 
-	NSZone/NSZone.h 
-	NSDate/NSDateComponents.h 
-	NSDate/NSDate.h 
-	NSDate/NSDateFormatter.h 
-	NSDate/NSCalendar.h 
-	NSDate/NSDate_timeInterval.h 
-	NSDate/NSCalendarDate.h 
-	NSHashTable.h 
-	NSNumberFormatter.h 
-	NSDirectoryEnumerator.h 
-	NSPipe.h 
-	NSByteOrder.h 
-	NSCFTypeID.h 
-	NSSpellServer.h
-)
-
-target_compile_options(Foundation PRIVATE --sysroot=${RAVYN_SDKROOT})
-target_include_directories(Foundation PRIVATE
-    ${RAVYN_SDKROOT}/usr/local/include
-    Headers ..)
-
-target_link_options(Foundation PRIVATE
-    -Wl,-rpath,@executable_path/../../../CFNetwork.framework/Versions/Current
-	  -L${SYSROOT_DIR}/System/Library/Frameworks/CFNetwork.framework/Versions/Current
-	  -lCFNetwork
-#	  -lobjc -lexecinfo -lpthread
-)
-
-if(CpuArch MATCHES "aarch64")
-    target_compile_definitions(Foundation PRIVATE COCOTRON_DISALLOW_FORWARDING=1)
-    target_sources(Foundation PRIVATE NSObject/platform_linux/msgSendv-aarch64.s)
-else()
-    target_sources(Foundation PRIVATE NSObject/platform_linux/msgSendv-x64.s)
+if(CMAKE_SYSTEM_NAME MATCHES Darwin)
+    target_sources(Foundation PRIVATE
+        platform_darwin/DarwinMemoryFunctions.m
+        platform_darwin/NSPlatform_darwin.m
+        platform_darwin/NSString_defaultEncoding_darwin.m
+        platform_darwin/libmain.m)
 endif()
 
-#NO_FMWK_COMMON=yes
-#.include "../framework.common.mk"
+if(CMAKE_SYSTEM_NAME MATCHES Linux)
+    target_sources(Foundation PRIVATE
+        platform_linux/NSMemoryFunctions_linux.m
+        platform_linux/NSPlatform_linux.m
+        platform_linux/libmain.m)
 
-#RESOURCES=Info.plist English.lproj
-#	NSCharacterSet/alphanumericCharacterSet.bitmap
-#	NSCharacterSet/controlCharacterSet.bitmap
-#	NSCharacterSet/decimalDigitCharacterSet.bitmap
-#	NSCharacterSet/illegalCharacterSet.bitmap
-#	NSCharacterSet/letterCharacterSet.bitmap
-#	NSCharacterSet/lowercaseLetterCharacterSet.bitmap
-#	NSCharacterSet/punctuationCharacterSet.bitmap
-#	NSCharacterSet/uppercaseLetterCharacterSet.bitmap
-#	NSCharacterSet/whitespaceAndNewlineCharacterSet.bitmap
-#	NSCharacterSet/whitespaceCharacterSet.bitmap
+    if(CpuArch MATCHES "aarch64")
+        target_compile_definitions(Foundation PRIVATE OBJC_DISALLOW_FORWARDING=1)
+        target_sources(Foundation PRIVATE NSObject/platform_linux/msgSendv-aarch64.s)
+    else()
+        target_sources(Foundation PRIVATE NSObject/platform_linux/msgSendv-x64.s)
+    endif()
+endif()
 
-#_install-hook:
-#	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
-#	mv ${FRAMEWORK_DIR}/Resources/NSCharacterSet/*.bitmap
-#		${FRAMEWORK_DIR}/Resources/
-#	rmdir ${FRAMEWORK_DIR}/Resources/NSCharacterSet
-#	mv -fv ${MAKEOBJDIR}/libFoundation.so ${FRAMEWORK_DIR}/Versions/A/
-#	cp -av ${FRAMEWORK_DIR} ${BUILDROOT}/System/Library/Frameworks/
+if((CMAKE_SYSTEM_NAME MATCHES Darwin) OR (CMAKE_SYSTEM_NAME MATCHES Linux))
+    target_sources(Foundation PRIVATE
+        platform_posix/NSCancelInputSource_posix.m
+        platform_posix/NSCondition_posix.m
+        platform_posix/NSConditionLock_posix.m
+        platform_posix/NSConstantString.m
+        platform_posix/NSFileHandle_posix.m
+        platform_posix/NSFileManager_posix.m
+        platform_posix/NSLocale_posix.m
+        platform_posix/NSLock_posix.m
+        platform_posix/NSMemoryFunctions_posix.m
+        platform_posix/NSPersistantDomain_posix.m
+        platform_posix/NSPipe_posix.m
+        platform_posix/NSPlatform_posix.m
+        platform_posix/NSRecursiveLock_posix.m
+        platform_posix/NSRunLoopState_posix.m
+        platform_posix/NSSelectSet_bsd.m
+        platform_posix/NSSocket_bsd.m
+        platform_posix/NSSocketPort_posix.m
+        platform_posix/NSString_defaultEncoding_posix.m
+        platform_posix/NSTask_posix.m
+        platform_posix/NSTimeZone_posix.m)
+endif()
+
+# FIXME: we should build with HAVE_FFI=1
+target_compile_definitions(Foundation PRIVATE APPLE_RUNTIME_4 DARWIN NULL=0 TARGET_OS_IOSMAC=0)
+target_compile_options(Foundation PRIVATE -isysroot${RAVYN_SDKROOT} -Wno-implicit-function-declaration)
+
+target_include_directories(Foundation PRIVATE
+    ${RAVYN_SDKROOT}/usr/local/include/kernel
+    Headers ..
+    ${ROOT_SOURCE_DIR}/Libraries/Libsystem/libsystem_info/lookup.subproj)
+
+target_link_options(Foundation PRIVATE
+    -F${RAVYN_SDKROOT}/System/Library/Frameworks
+     -lobjc -lpthread)
+
+set_source_files_properties(NSProcessInfo.m NSStringsFileFormat/NSStringsFileParser.m NSData/NSData.m NSNumberFormatter.m TARGET_DIRECTORY Foundation PROPERTIES COMPILE_OPTIONS "-I${CMAKE_CURRENT_SOURCE_DIR}/NSString")
+set_source_files_properties(NSAutoreleasePool/NSAutoreleasePool.m TARGET_DIRECTORY Foundation PROPERTIES COMPILE_OPTIONS "-I${ROOT_SOURCE_DIR}/Libraries/objc4")
+set_source_files_properties(NSObject/forwarding.m TARGET_DIRECTORY Foundation PROPERTIES
+    LANGUAGE OBJCXX
+    COMPILE_OPTIONS "-I${ROOT_SOURCE_DIR}/Libraries/objc4;-I${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders;-I/nest/ravynos/Libraries/Libsystem/private"
+)

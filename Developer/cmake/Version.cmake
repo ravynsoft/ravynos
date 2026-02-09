@@ -8,6 +8,8 @@ set(PROD_FAMILY "Pre Alpha")
 set(ARCH_CONFIGS X86_64)
 set(KERNEL_CONFIGS RELEASE)
 
+set(MACOS_VERSION_MIN 10.15)
+
 # ------------------------------------------------------------------------
 # We have not included llvm's makefiles yet and we don't want to do it
 # here since this gets included multiple times, so parse them out

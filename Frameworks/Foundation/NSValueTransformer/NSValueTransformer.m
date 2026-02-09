@@ -64,7 +64,7 @@ static NSMapTable *_nameToTransformer=NULL;
 
 -reverseTransformedValue:value {
    if(![[self class] allowsReverseTransformation])
-    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] on value transformer which returns NO allowsReverseTransformation",isa,sel_getName(_cmd)];
+    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] on value transformer which returns NO allowsReverseTransformation",object_getClass(self),sel_getName(_cmd)];
    
    return [self transformedValue:value];
 }

@@ -61,7 +61,7 @@ target_compile_options(objc PRIVATE --sysroot=${RAVYN_SDKROOT}
     -Wno-deprecated-declarations)
 
 target_link_options(objc PRIVATE
-    -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib
+    -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib -umbrella System
     -L${RAVYN_SDKROOT}/usr/lib -L${RAVYN_SDKROOT}/usr/lib/system
     -L${RAVYN_SDKROOT}/usr/local/lib
     -Wl,-install_name,/usr/lib/libobjc.dylib -Wl,-current_version,228

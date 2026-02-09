@@ -6,11 +6,16 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#import <Foundation/NSNumber_CF.h>
+#import <Foundation/NSZone.h>
+#import <Foundation/NSArray.h>
 
-@interface NSNumber_unsignedLongLong : NSNumber_CF {
-    unsigned long long _value;
+@interface NSMutableArray_concrete : NSMutableArray {
+    NSUInteger _count;
+    NSUInteger _capacity;
+    id *_objects;
 }
+
 @end
 
-NSNumber *NSNumber_unsignedLongLongNew(NSZone *zone, unsigned long long value);
+NSArray *NSMutableArray_concreteNew(NSZone *zone, id *objects, NSUInteger count);
+NSArray *NSMutableArray_concreteNewWithCapacity(NSZone *zone, NSUInteger capacity);

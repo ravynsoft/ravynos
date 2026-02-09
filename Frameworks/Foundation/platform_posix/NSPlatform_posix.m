@@ -25,7 +25,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <pwd.h>
 #include <unistd.h>
-#import <rpc/types.h>
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>

@@ -8,12 +8,9 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #import <Foundation/NSData.h>
-#import <Foundation/NSString_cString.h>
-#import <Foundation/NSData_concrete.h>
-#import <Foundation/NSAutoreleasePool-private.h>
 #import <Foundation/NSKeyedUnarchiver.h>
 #import <Foundation/NSKeyedArchiver.h>
-
+#import <Foundation/NSAutoreleasePool-private.h>
 #import <Foundation/NSRaise.h>
 #import <Foundation/NSPlatform.h>
 #import <Foundation/NSCoder.h>
@@ -25,6 +22,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSCFTypeID.h>
 #import <Foundation/NSError.h>
 #import <Foundation/NSDictionary.h>
+
+#import "NSString_cString.h"
+#import "NSData_concrete.h"
 
 @implementation NSData
 

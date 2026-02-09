@@ -125,7 +125,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(NSString *)description {
-   return [NSString stringWithFormat:@"<%@ %x: url=%@>",isa,self,_url];
+   return [NSString stringWithFormat:@"<%@ %x: url=%@>",object_getClass(self),self,_url];
 }
 
 @end

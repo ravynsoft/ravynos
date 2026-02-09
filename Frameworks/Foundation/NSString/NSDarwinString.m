@@ -7,8 +7,9 @@
 
 #import "NSDarwinString.h"
 #include <stdio.h>
+#include <sys/param.h>
 
-#if defined(__APPLE__) || defined(__RAVYNOS__)
+#if defined(__APPLE__)
 #import <Foundation/NSException.h>
 #import <Foundation/NSStringHashing.h>
 #import <Foundation/NSRaiseException.h>

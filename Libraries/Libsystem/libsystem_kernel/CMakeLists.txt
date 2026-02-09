@@ -156,7 +156,7 @@ target_compile_definitions(libkernel_legacy PRIVATE
 )
 target_compile_options(libkernel_legacy PRIVATE ${common_opts})
 target_include_directories(libkernel_legacy PRIVATE ${common_headers})
-add_dependencies(libkernel_legacy xnu_headers)
+add_dependencies(libkernel_legacy xnu_headers features)
 
 add_library(libkernel STATIC
     libmach.a

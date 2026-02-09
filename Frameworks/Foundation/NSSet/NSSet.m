@@ -336,7 +336,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    id next;
    NSInteger i,count=[self count];
 
-   [result appendFormat:@"<%@: 0x%x> (",isa,self];
+   [result appendFormat:@"<%@: 0x%x> (",object_getClass(self),self];
    for(i=0;(next=[objects nextObject])!=nil;i++){
     [result appendFormat:@"%@",next];
     if(i+1<count)

@@ -93,7 +93,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 {
     char typeBuf[1 + sizeof(NSUInteger) * 3 + strlen(itemType) + 2];
 
-    sprintf(typeBuf, "[" NSUIntegerFormat "%s]", count, itemType);
+    sprintf(typeBuf, "[%ld%s]", count, itemType);
     [self encodeValueOfObjCType:typeBuf at:ptr];
 }
 
@@ -102,7 +102,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 {
     char typeBuf[1 + sizeof(NSUInteger) * 3 + 1 + 1 + 1];
 
-    sprintf(typeBuf, "[" NSUIntegerFormat "c]", length);
+    sprintf(typeBuf, "[%ldc]", length);
 
     [self encodeValueOfObjCType:@encode(NSUInteger) at:&length];
     [self encodeValueOfObjCType:typeBuf at:byteaddr];
@@ -229,7 +229,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 {
     char typeBuf[1 + sizeof(NSUInteger) * 3 + strlen(itemType) + 1 + 1];
 
-    sprintf(typeBuf, "[" NSUIntegerFormat "%s]", count, itemType);
+    sprintf(typeBuf, "[%ld%s]", count, itemType);
     [self decodeValueOfObjCType:typeBuf at:ptr];
 }
 
@@ -242,7 +242,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     [self decodeValueOfObjCType:@encode(NSUInteger) at:lengthp];
 
     byteaddr = NSZoneCalloc(NULL, *lengthp, sizeof(char));
-    sprintf(typeBuf, "[" NSUIntegerFormat "c]", *lengthp);
+    sprintf(typeBuf, "[%ldc]", *lengthp);
     [self decodeValueOfObjCType:typeBuf at:byteaddr];
     return byteaddr;
 }

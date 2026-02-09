@@ -81,6 +81,7 @@ add_dependencies(libsystem_darwin libdyld libsystem_c)
 add_dependencies(libxpc libsystem_darwin)
 add_dependencies(dispatch libsystem_darwin)
 add_dependencies(liblaunch libxpc)
+add_dependencies(libsystem_asl libxpc)
 #add_dependencies(libsystem_notify xnu_headers)
 #add_dependencies(libcommonCrypto xnu_headers)
 add_dependencies(libSystem 

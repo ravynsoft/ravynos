@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 4.0.0)
-project(Libraries LANGUAGES C CXX ASM)
+project(Libraries LANGUAGES C CXX ASM OBJC OBJCXX)
 
 include(${ROOT_SOURCE_DIR}/Developer/cmake/Version.cmake)
 include(${ROOT_SOURCE_DIR}/Developer/cmake/Paths.cmake)
@@ -114,9 +114,8 @@ ExternalProject_Add(libunwind DEPENDS xnu_headers runtime
 # ------------------------------------------------------------------------
 
 set(LIBCXX_FLAGS
-    "-target ${CpuArch}-apple-darwin -isysroot${RAVYN_SDKROOT} \
-    -I${ROOT_SOURCE_DIR}/Kernel/xnu/bsd \
-    -I${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders \
+    "-target ${CpuArch}-apple-darwin -nostdinc -nobuiltininc \
+    -isystem${RAVYN_SDKROOT}/usr/include \
     -DCRT_HAS_128BIT \
     -Wno-incompatible-sysroot -Wno-user-defined-literals \
     -Wno-nullability-completeness -Wno-expansion-to-defined"
@@ -135,7 +134,7 @@ ExternalProject_Add(libcxx DEPENDS xnu_headers libunwind
         -DCMAKE_LINKER=${LD} -DCMAKE_ASM_COMPILER=${CC}
         -DCMAKE_LINK_DEPENDS_USE_LINKER=OFF
         -DCMAKE_INSTALL_PREFIX=${RAVYN_SDKROOT}/usr -DCMAKE_BUILD_TYPE=Release
-        "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-flat_namespace \
+        "-DCMAKE_SHARED_LINKER_FLAGS=-v -nodefaultlibs -Wl,-flat_namespace \
         -Wl,-undefined,warning -Wl,-umbrella,System \
         -Wl,-install_name,/usr/lib/system/libc++.dylib \
         -L${RAVYN_SDKROOT}/usr/lib/system -L${RAVYN_SDKROOT}/usr/lib \

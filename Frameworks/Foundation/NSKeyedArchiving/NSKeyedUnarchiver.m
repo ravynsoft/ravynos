@@ -6,10 +6,12 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 #include <math.h>
+float powf(float, float);
 
+#import <Foundation/NSObjCRuntime.h>
+#import <Foundation/NSString.h>
 #import <Foundation/NSKeyedUnarchiver.h>
 #import <Foundation/NSPropertyListReader.h>
-#import <Foundation/NSString.h>
 #import <Foundation/NSArray.h>
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSNumber.h>
@@ -17,7 +19,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSException.h>
 #import <Foundation/CFUID.h>
 #import <Foundation/NSCFTypeID.h>
-
 #import <Foundation/NSRaise.h>
 
 NSString* NSInvalidUnarchiveOperationException=@"NSInvalidUnarchiveOperationException";
@@ -597,7 +598,7 @@ static inline NSNumber *_numberForKey(NSKeyedUnarchiver *self,NSString *key){
     id check = NSMapGet(_uidToObject, (void *)uid);
 
     if (check != object) {
-        NSLog(@"fail " NSIntegerFormat " %p %p", uid, check, object);
+        NSLog(@"fail %ld %p %p", uid, check, object);
     } else {
         if ([_delegate respondsToSelector:@selector(unarchiver:willReplaceObject:withObject:)]) {
             [_delegate unarchiver:self willReplaceObject:object withObject:replacement];

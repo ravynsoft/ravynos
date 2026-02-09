@@ -6,12 +6,17 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#import <Foundation/NSValue.h>
+#import <Foundation/NSZone.h>
+#import <Foundation/NSArray.h>
 
-@interface NSValue_concrete : NSValue {
-    char _bytes[0]; // type \0 value
+@interface NSArray_concrete : NSArray {
+    NSUInteger _count;
+    id _objects[0];
 }
-
 @end
 
-NSValue *NSValue_concreteNew(NSZone *zone, const void *value, const char *type);
+NSArray *NSArray_concreteNew(NSZone *zone, id *objects, NSUInteger count);
+NSArray *NSArray_concreteNewWithCount(NSZone *zone, id **objects, NSUInteger count);
+NSArray *NSArray_concreteWithArrayAndObject(NSArray *array, id object);
+NSArray *NSArray_concreteWithArrayAndArray(NSArray *array1, NSArray *array2);
+NSArray *NSArray_concreteWithArrayRange(NSArray *array1, NSRange range);

@@ -68,7 +68,7 @@ void *NSFrameAddress(NSUInteger level)
         return NULL;
     }
     
-    int i, frameCount = backtrace(callstack, level + 1);
+    int i, frameCount = 0; /*backtrace(callstack, level + 1);*/
     if (frameCount < level + 1) {
         return NULL;
     }

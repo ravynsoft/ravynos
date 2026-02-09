@@ -9,13 +9,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSData.h>
 #import <Foundation/NSBundle.h>
 #import <Foundation/NSMapTable.h>
-#import <Foundation/NSCharacterSet_range.h>
-#import <Foundation/NSCharacterSet_bitmap.h>
-#import <Foundation/NSMutableCharacterSet_bitmap.h>
-#import <Foundation/NSCharacterSet_string.h>
-#import <Foundation/bitmapRepresentation.h>
 #import <Foundation/NSAutoreleasePool-private.h>
 #import <Foundation/NSRaise.h>
+
+#import "NSCharacterSet_range.h"
+#import "NSCharacterSet_bitmap.h"
+#import "NSMutableCharacterSet_bitmap.h"
+#import "NSCharacterSet_string.h"
+#import "bitmapRepresentation.h"
 
 @implementation NSCharacterSet
 

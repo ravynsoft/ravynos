@@ -24,9 +24,13 @@
 #import <Foundation/NSObject.h>
 #import <CoreFoundation/CFBase.h>
 
-typedef CGPoint NSPoint;
-typedef CGSize NSSize;
-typedef CGRect NSRect;
+typedef struct { float x; float y; } NSPoint;
+typedef struct { float width; float height; } NSSize;
+typedef struct { NSPoint origin; NSSize size; } NSRect;
+typedef float CGFloat;
+typedef NSRect CGRect;
+typedef NSSize CGSize;
+typedef NSPoint CGPoint;
 
 typedef NSPoint *NSPointArray;
 typedef NSPoint *NSPointPointer;

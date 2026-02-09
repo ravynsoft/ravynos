@@ -1384,11 +1384,11 @@ target_link_options(libsystem_c PRIVATE
     -rdynamic -nostdlib -nodefaultlibs -Wl,-search_paths_first
     -all_load -L${RAVYN_SDKROOT}/usr/lib/system -umbrella System
     -ldyld -lsystem_malloc -lsystem_platform -lsystem_pthread -lsystem_kernel
-    -Wl,-upward-lsystem_blocks
-    -lCrashReporterClient #-lm
-    #-Wl,-upward-ldispatch -Wl,-upward-lmacho -Wl,-upward-lsystem_asl
-    #-Wl,-upward-lsystem_info -Wl,-upward-lsystem_notify -Wl,-upward-lxpc -Wl,-upward-lcorecrypto
-    #-Wl,-upward-lsystem_trace
+    #-lm
+    -lCrashReporterClient -Wl,-upward-lsystem_blocks -Wl,-upward-lxpc
+    -Wl,-upward-ldispatch -Wl,-upward-lsystem_asl
+    #-Wl,-upward-lsystem_info -Wl,-upward-lsystem_notify -Wl,-upward-lcorecrypto
+    #-Wl,-upward-lsystem_trace -Wl,-upward-lmacho
     -Wl,-interposable_list,${CMAKE_CURRENT_BINARY_DIR}/interposable.list
     -Wl,-unexported_symbols_list,${CMAKE_CURRENT_BINARY_DIR}/unexport.list
     -Wl,-alias_list,${CMAKE_CURRENT_SOURCE_DIR}/xcodescripts/alias.list

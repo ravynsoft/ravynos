@@ -24,9 +24,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSUserDefaults.h>
 #import <objc/runtime.h>
 #import <Foundation/NSRaiseException.h>
-#if defined(__APPLE__)
-#import"OBJCRegisterModule_Darwin.h"
-#endif
 
 #import <objc/objc.h>
 #include <stdio.h>
@@ -50,14 +47,7 @@ OBJC_EXPORT void *NSSymbolInModule(NSModuleHandle handle, const char *symbol);
 #include <unistd.h>
 #endif
 
-#ifndef GCC_RUNTIME_3
-#import <objc/dyld.h>
-#endif
-
-#if defined(GCC_RUNTIME_3) || defined(APPLE_RUNTIME_4)
-
 #if defined(LINUX) || defined(__FreeBSD__)
-
 #include <sys/stat.h>
 
 static inline unsigned int processMaps(char *maps, const char **soNames)
@@ -158,10 +148,8 @@ static const char **objc_copyImageNames(unsigned int *count)
 }
 
 #endif //LINUX || __FreeBSD__
-#endif //GCC_RUNTIME_3 || APPLE_RUNTIME_4
 
 #ifdef WIN32
-
 static char *lastErrorString(DWORD error) {
     LPVOID lpMsgBuf;
 
@@ -271,10 +259,6 @@ NSModuleHandle NSLoadModule(const char *path, NSError **error) {
            *error = [NSError errorWithDomain:NSPOSIXErrorDomain code:0 userInfo:[NSDictionary dictionaryWithObject:[NSString stringWithFormat:@"%s", NSLastModuleError()] forKey:NSLocalizedDescriptionKey]];
        }
     }
-
-#ifdef __APPLE__    
-    OBJCRegisterModule_Darwin(path);
-#endif
 
     return handle;
 }
@@ -714,6 +698,12 @@ static NSMapTable *pathToObject=NULL;
    contents=[[NSFileManager defaultManager] directoryContentsAtPath:checkDir];
    count=[contents count];
 
+   if(count == 0) {
+    checkDir=[[_path stringByAppendingPathComponent:@"Contents"] stringByAppendingPathComponent:NSPlatformAlternateExecutableDirectory];
+    contents=[[NSFileManager defaultManager] directoryContentsAtPath:checkDir];
+    count=[contents count];
+   }
+
 // Need to check for <name>*  versioning
    for(i=0;i<count;i++){
     NSString *check=[contents objectAtIndex:i];
@@ -979,7 +969,7 @@ static NSMapTable *pathToObject=NULL;
 }
 
 -(NSString *)description {
-   return [NSString stringWithFormat:@"<%@[0x%lx] path: %@ resourcePath: %@ isLoaded: %@>", isa, self, _path, _resourcePath, (_isLoaded ? @"YES" : @"NO")];
+   return [NSString stringWithFormat:@"<%@[0x%lx] path: %@ resourcePath: %@ isLoaded: %@>", object_getClass(self), self, _path, _resourcePath, (_isLoaded ? @"YES" : @"NO")];
 }
 
 @end

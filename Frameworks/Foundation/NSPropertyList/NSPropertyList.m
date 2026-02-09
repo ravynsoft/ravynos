@@ -9,9 +9,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSRaise.h>
 #import "NSPropertyListWriter_xml1.h"
 #import "NSPropertyListWriter_vintage.h"
-#import <Foundation/NSPropertyListReader_xml1.h>
-#import <Foundation/NSPropertyListReader_vintage.h>
-#import <Foundation/NSPropertyListReader_binary1.h>
+#import "NSPropertyListReader_xml1.h"
+#import "NSPropertyListReader_vintage.h"
+#import "NSPropertyListReader_binary1.h"
 
 @implementation NSPropertyListSerialization
 

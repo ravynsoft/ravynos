@@ -5,25 +5,28 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+#include <sys/param.h>
+
 #import <Foundation/NSArray.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSData.h>
 #import <Foundation/NSRaise.h>
 #import <Foundation/NSCoder.h>
-#import <Foundation/NSArray_placeholder.h>
-#import <Foundation/NSArray_concrete.h>
-#import <Foundation/NSEnumerator_array.h>
-#import <Foundation/NSEnumerator_arrayReverse.h>
 #import <Foundation/NSAutoreleasePool-private.h>
 #import <Foundation/NSPropertyListReader.h>
-#import <Foundation/NSPropertyListWriter_vintage.h>
 #import <Foundation/NSKeyedUnarchiver.h>
 #import <Foundation/NSKeyedArchiver.h>
 #import <Foundation/NSPredicate.h>
 #import <Foundation/NSIndexSet.h>
 #import <Foundation/NSURL.h>
 #import <Foundation/NSRaiseException.h>
+
+#import "NSArray_placeholder.h"
+#import "NSArray_concrete.h"
+#import "NSEnumerator_array.h"
+#import "NSEnumerator_arrayReverse.h"
+#import "../NSPropertyList/NSPropertyListWriter_vintage.h"
 
 @interface NSKeyedArchiver (PrivateToContainers)
 - (void)encodeArray:(NSArray *)array forKey:(NSString *)key;
@@ -422,7 +425,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    return array;
 }
 
--(NSArray *)sortedArrayUsingFunction:(NSInteger (*)(id, id, void *))function
+-(NSArray *)sortedArrayUsingFunction:(NSComparisonResult (*)(id, id, void *))function
    context:(void *)context {
    NSMutableArray *array=[NSMutableArray arrayWithArray:self];
 

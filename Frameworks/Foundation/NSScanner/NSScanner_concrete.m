@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSRaise.h>
 #import <Foundation/NSLocale.h>
 #import <Foundation/NSAutoreleasePool.h>
+#import <Foundation/NSZone.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <ctype.h>

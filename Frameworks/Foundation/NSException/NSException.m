@@ -16,6 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSObjCRuntime.h>
 #import <Foundation/NSDebug.h>
 #import <Foundation/NSRaiseException.h>
+#include <objc/objc-exception.h>
 #include <stdio.h>
 
 NSString * const NSGenericException=@"NSGenericException";
@@ -97,8 +98,8 @@ NSString * const NSInconsistentArchiveException=@"NSInconsistentArchiveException
     NSCLog("  %u. %s", i, [[stackTrace objectAtIndex:i] UTF8String]);
    NSCLog("");
    [stackTrace release];
-   _NSRaiseException(self);
-//   objc_exception_throw(self);
+   //NSRaiseException(_name, self, nil, _reason);
+   objc_exception_throw(self);
 }
 
 -(NSString *)name {

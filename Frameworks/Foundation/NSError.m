@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSRaise.h>
 #import <Foundation/NSBundle.h>
+#import <Foundation/NSZone.h>
 
 NSString * const NSPOSIXErrorDomain=@"NSPOSIXErrorDomain";
 NSString * const NSOSStatusErrorDomain=@"NSOSStatusErrorDomain";

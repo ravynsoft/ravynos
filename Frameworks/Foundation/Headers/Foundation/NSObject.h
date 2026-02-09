@@ -24,9 +24,10 @@
 #ifndef _FOUNDATION_NSOBJECT_H_
 #define _FOUNDATION_NSOBJECT_H_
 
-#ifndef FOUNDATION_EXPORT
-#define FOUNDATION_EXPORT extern
-#endif
+#include <stdarg.h>
+#include <stdint.h>
+#include <limits.h>
+#include <sys/types.h>
 
 typedef enum NSComparisonResult {
     NSOrderedAscending = -1,
@@ -34,8 +35,34 @@ typedef enum NSComparisonResult {
     NSOrderedDescending = 1
 } NSComparisonResult;
 
+#define NSNotFound NSIntegerMax
+
+#include <Foundation/NSObjCRuntime.h>
 #include <objc/NSObject.h>
 
-#define NS_RETURNS_INNER_POINTER __attribute__((objc_returns_inner_pointer))
+@interface NSObject(ravyn)
++(NSInteger)version;
++(void)setVersion:(NSInteger)version;
++(void)load;
++(void)initialize;
+@end
 
+@protocol NSCopying
+- copyWithZone:(struct _NSZone *) __unused zone;
+@end
+
+@protocol NSMutableCopying
+- mutableCopyWithZone:(struct _NSZone *) __unused zone;
+@end
+
+@class NSCoder;
+@protocol NSCoding
+- initWithCoder:(NSCoder *)coder;
+- (void)encodeWithCoder:(NSCoder *)coder;
+@end
+
+void NSLog(NSString *format,...);
+void NSLogv(NSString *format,va_list arguments);
+
+#define NS_RETURNS_INNER_POINTER __attribute__((objc_returns_inner_pointer))
 #endif

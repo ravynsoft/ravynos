@@ -10,9 +10,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <stdio.h>
 
 #import <Foundation/NSPropertyListReader.h>
-#import <Foundation/NSPropertyListReader_xml1.h>
+#import "NSPropertyListReader_xml1.h"
 #import "NSPropertyListReader_binary1.h"
-#import <Foundation/NSPropertyListReader_vintage.h>
+#import "NSPropertyListReader_vintage.h"
 #import <Foundation/NSData.h>
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSException.h>

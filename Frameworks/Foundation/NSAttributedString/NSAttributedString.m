@@ -9,10 +9,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 // Original - Christopher Lloyd <cjwl@objc.net>
 #import <Foundation/NSAttributedString.h>
 #import <Foundation/NSMutableAttributedString.h>
-#import <Foundation/NSAttributedString_placeholder.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSRaise.h>
+
+#import "NSAttributedString_placeholder.h"
 
 @implementation NSAttributedString
 
