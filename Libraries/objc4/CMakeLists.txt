@@ -61,16 +61,15 @@ target_compile_options(objc PRIVATE --sysroot=${RAVYN_SDKROOT}
     -Wno-deprecated-declarations)
 
 target_link_options(objc PRIVATE
-    -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib -umbrella System
+    -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib
     -L${RAVYN_SDKROOT}/usr/lib -L${RAVYN_SDKROOT}/usr/lib/system
-    -L${RAVYN_SDKROOT}/usr/local/lib
     -Wl,-install_name,/usr/lib/libobjc.dylib -Wl,-current_version,228
     -Wl,-compatibility_version,1 -Wl,-order_file,${CMAKE_CURRENT_SOURCE_DIR}/libobjc.order
     -Wl,-interposable_list,${CMAKE_CURRENT_SOURCE_DIR}/interposable.txt
     -Wl,-sectalign,__DATA,__data,0x1000 -lc++abi -lCrashReporterClient
     -Wl,-unexported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/unexported_symbols
     -mmacos-version-min=10.15 -Wl,-flat_namespace -Wl,-undefined,warning
-    -lobjc-trampolines
+    -lobjc-trampolines -lCrashReporterClient
 )
 target_include_directories(objc PRIVATE runtime
     ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd

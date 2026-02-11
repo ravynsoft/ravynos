@@ -198,7 +198,7 @@ __unused
 }
 
 #ifdef __LP64__
-#define DEPTH(x)	(2 * (flsl((long)(x)) - 1))
+#define DEPTH(x)	(2 * (flsll((long)(x)) - 1))
 #else /* !__LP64__ */
 #define DEPTH(x)	(2 * (fls((int)(x)) - 1))
 #endif /* __LP64__ */
@@ -357,7 +357,7 @@ _psort_parallel(void *x)
 static size_t
 isqrt(size_t x)
 {
-    size_t s = 1L << (flsl(x) / 2);
+    size_t s = 1L << (flsll(x) / 2);
     return (s + x / s) / 2;
 }
 

@@ -8,9 +8,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #ifdef PLATFORM_IS_POSIX
 #include <pthread.h>
 
-#import <Foundation/NSLock_posix.h>
 #import <Foundation/Foundation.h>
 #import <Foundation/NSRaiseException.h>
+#import "NSLock_posix.h"
 
 @implementation NSLock_posix
 

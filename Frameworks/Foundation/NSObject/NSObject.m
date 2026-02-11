@@ -20,6 +20,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <objc/message.h>
 #import "forwarding.h"
 
+/* zoe 2/10/26 - we now use NSObject from Apple's runtime. The remaining functions
+ * here are additions or changes to the base class */
 
 // From Apple docs:
 // Returns a Boolean value that indicates whether the receiver is an instance of given class
@@ -57,25 +59,12 @@ BOOL NSObjectIsKindOfClass(id object,Class kindOf) {
    class_setVersion(self,version);
 }
 
+#ifndef APPLE_RUNTIME_4
 +(void)load {
-#if defined(__RAVYNOS__)
-    objc_create_block_classes_as_subclasses_of(self);
-#endif
 }
-
-
-#ifdef GCC_RUNTIME_3
-static IMP objc_msg_forward(id rcv, SEL message) {
-    return objc_msgForward;
-}
-#endif
 
 +(void)initialize {
-#ifdef GCC_RUNTIME_3
-    __objc_msg_forward2 = objc_msg_forward;
-#else
-    objc_setForwardHandler(objc_msgForward,objc_msgForward_stret);
-#endif
+    objc_setForwardHandler(_objc_msgForward,_objc_msgForward_stret);
 }
 
 +(Class)superclass {
@@ -392,20 +381,21 @@ static IMP objc_msg_forward(id rcv, SEL message) {
    return object_getRetainCount_np(self);
 }
 
-+(NSString *)className {
-   return NSStringFromClass(self);
-}
-
--(NSString *)className {
-   return NSStringFromClass(object_getClass(self));
-}
-
 -(NSString *)description {
    return [NSString stringWithFormat:@"<%@ 0x%08x>",[self class],self];
 }
 
 -(NSString *)debugDescription {
     return [self description];
+}
+#endif /* APPLE_RUNTIME_4 */
+
++(NSString *)className {
+   return NSStringFromClass(self);
+}
+
+-(NSString *)className {
+   return NSStringFromClass(object_getClass(self));
 }
 
 @end

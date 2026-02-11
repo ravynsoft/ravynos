@@ -1,5 +1,5 @@
 include_directories(.)
-add_compile_options(-mmacos-version-min=10.15 --sysroot=${RAVYN_SDKROOT})
+add_compile_options(-mmacos-version-min=${MACOS_VERSION_MIN} --sysroot=${RAVYN_SDKROOT})
 
 add_library(libsbuf STATIC sbuf.c)
 set_target_properties(libsbuf PROPERTIES PREFIX "lib" OUTPUT_NAME "sbuf")

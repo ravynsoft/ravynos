@@ -6,14 +6,16 @@
 
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 #ifdef PLATFORM_IS_POSIX
-#import <Foundation/NSConditionLock_posix.h>
+#include <sys/time.h>
+#include <math.h>
+#include <errno.h>
+
 #import <Foundation/NSException.h>
 #import <Foundation/NSRaiseException.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSThread.h>
-#include <sys/time.h>
-#include <math.h>
-#include <errno.h>
+
+#import "NSConditionLock_posix.h"
 
 @implementation NSConditionLock_posix
 -(id)init {

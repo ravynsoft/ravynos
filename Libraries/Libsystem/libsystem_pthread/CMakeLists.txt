@@ -42,7 +42,7 @@ target_compile_definitions(libsystem_pthread PRIVATE ${libpthread_defs})
 target_compile_options(libsystem_pthread PRIVATE ${libpthread_opts})
 
 target_link_options(libsystem_pthread PRIVATE
-    --sysroot=${RAVYN_SDKROOT} -isysroot=${RAVYN_SDKROOT}
+    --sysroot=${RAVYN_SDKROOT} -isysroot${RAVYN_SDKROOT}
     -mmacos-version-min=10.15 -flat_namespace -undefined warning
     -Wl,-install_name,/usr/lib/system/libsystem_pthread.dylib
     -Wl,-current_version,416.0.6 -Wl,-compatibility_version,1.0.0

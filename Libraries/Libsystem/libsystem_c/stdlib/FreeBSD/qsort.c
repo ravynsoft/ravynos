@@ -113,7 +113,7 @@ __unused
 }
 
 #ifdef __LP64__
-#define DEPTH(x)	(2 * (flsl((long)(x)) - 1))
+#define DEPTH(x)	(2 * (flsll((long)(x)) - 1))
 #else /* !__LP64__ */
 #define DEPTH(x)	(2 * (fls((int)(x)) - 1))
 #endif /* __LP64__ */

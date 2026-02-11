@@ -1,11 +1,26 @@
 /* Copyright (c) 2006-2007 Christopher J. W. Lloyd
+ * Copyright (C) 2026 Zoe Knox
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
-
+#include <runtime/runtime.h>
 #import <Foundation/NSZone.h>
 #import <Foundation/NSObject.h>
 #import <Foundation/NSHashTable.h>
@@ -22,21 +37,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 // NSZone functions implemented in platform subproject
 
 void NSIncrementExtraRefCount(id object) {
-    objc_retain_fast_np(object);
-    //printf("NSIncrement %p %s = %d\n", object, class_getName([object class]), object_getRetainCount_np(object));
-    if(object_getRetainCount_np(object) == 0)
+    objc_retain(object);
+    if([object retainCount] == 0)
         abort();
 }
 
 BOOL NSDecrementExtraRefCountWasZero(id object) {
-    BOOL destroy = objc_release_fast_no_destroy_np(object);
-    //printf("NSDecrement %p %s = %d (destroy=%d)\n", object, class_getName([object class]), object_getRetainCount_np(object), destroy);
+    BOOL destroy = objc_release(object);
     return destroy;
 }
 
 NSUInteger NSExtraRefCount(id object) {
-    //printf("NSExtraRefCount %p %s = %d\n", object, class_getName([object class]), object_getRetainCount_np(object));
-    return object_getRetainCount_np(object)/* - 1*/;
+    return [object retainCount];
 }
 
 BOOL NSShouldRetainWithZone(id object,NSZone *zone) {
@@ -60,7 +72,6 @@ id NSAllocateObject(Class class, NSUInteger extraBytes, NSZone *zone)
         if (__NSAllocateObjectHook) {
             __NSAllocateObjectHook(result);
         }
-        //printf("allocated %p %s refs %d\n", result, class_getName(class),object_getRetainCount_np(result));
     }
 
     return result;
@@ -69,19 +80,9 @@ id NSAllocateObject(Class class, NSUInteger extraBytes, NSZone *zone)
 
 void NSDeallocateObject(id object)
 {
-#if !defined(APPLE_RUNTIME_4)
-    //delete associations
-    objc_removeAssociatedObjects(object);
-#endif
-    
     if (NSZombieEnabled) {
         NSRegisterZombie(object);
     } else {
-        //printf("deallocating %p %s refs %d\n", object, class_getName([object class]),object_getRetainCount_np(object));
-
-#if !defined(GCC_RUNTIME_3) && !defined(APPLE_RUNTIME_4)
-        object->isa = 0;
-#endif
         object_dispose(object);
     }
 }

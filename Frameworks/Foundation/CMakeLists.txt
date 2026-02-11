@@ -350,18 +350,20 @@ if((CMAKE_SYSTEM_NAME MATCHES Darwin) OR (CMAKE_SYSTEM_NAME MATCHES Linux))
 endif()
 
 # FIXME: we should build with HAVE_FFI=1
-target_compile_definitions(Foundation PRIVATE APPLE_RUNTIME_4 DARWIN NULL=0 TARGET_OS_IOSMAC=0)
+target_compile_definitions(Foundation PRIVATE
+    APPLE_RUNTIME_4 DARWIN NULL=0 TARGET_OS_IOSMAC=0 PLATFORM_IS_POSIX PLATFORM_USES_BSD_SOCKETS)
 target_compile_options(Foundation PRIVATE -isysroot${RAVYN_SDKROOT} -Wno-implicit-function-declaration)
 
 target_include_directories(Foundation PRIVATE
     ${RAVYN_SDKROOT}/usr/local/include/kernel
-    Headers ..
+    Headers .. ${ROOT_SOURCE_DIR}/Libraries/objc4
     ${ROOT_SOURCE_DIR}/Libraries/Libsystem/libsystem_info/lookup.subproj)
 
 target_link_options(Foundation PRIVATE
-    -F${RAVYN_SDKROOT}/System/Library/Frameworks
-     -lobjc -lpthread)
-
+    -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib
+    -Wl,-current_version,1677.104.0 -Wl,-compatibility_version,300.0.0
+    -L${RAVYN_SDKROOT}/usr/lib -L${RAVYN_SDKROOT}/usr/lib/system -lobjc
+)
 set_source_files_properties(NSProcessInfo.m NSStringsFileFormat/NSStringsFileParser.m NSData/NSData.m NSNumberFormatter.m TARGET_DIRECTORY Foundation PROPERTIES COMPILE_OPTIONS "-I${CMAKE_CURRENT_SOURCE_DIR}/NSString")
 set_source_files_properties(NSAutoreleasePool/NSAutoreleasePool.m TARGET_DIRECTORY Foundation PROPERTIES COMPILE_OPTIONS "-I${ROOT_SOURCE_DIR}/Libraries/objc4")
 set_source_files_properties(NSObject/forwarding.m TARGET_DIRECTORY Foundation PROPERTIES

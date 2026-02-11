@@ -10,18 +10,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/Foundation.h>
 #import <Foundation/NSSelectInputSourceSet.h>
 #import <Foundation/NSPlatform_posix.h>
-#import <Foundation/NSFileHandle_posix.h>
-#import <Foundation/NSFileManager_posix.h>
-#import <Foundation/NSLock_posix.h>
-#import <Foundation/NSRecursiveLock_posix.h>
-#import <Foundation/NSCondition_posix.h>
-#import <Foundation/NSConditionLock_posix.h>
-#import <Foundation/NSPersistantDomain_posix.h>
-#import <Foundation/NSTimeZone_posix.h>
-#import <Foundation/NSTask_posix.h>
-#import <Foundation/NSSocketPort_posix.h>
-#import <Foundation/NSPipe_posix.h>
 #import <Foundation/NSRaiseException.h>
+
+#import "NSFileHandle_posix.h"
+#import "NSFileManager_posix.h"
+#import "NSLock_posix.h"
+#import "NSRecursiveLock_posix.h"
+#import "NSCondition_posix.h"
+#import "NSConditionLock_posix.h"
+#import "NSPersistantDomain_posix.h"
+#import "NSTimeZone_posix.h"
+#import "NSTask_posix.h"
+#import "NSSocketPort_posix.h"
+#import "NSPipe_posix.h"
 
 #include <pwd.h>
 #include <unistd.h>

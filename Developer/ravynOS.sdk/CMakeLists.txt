@@ -19,8 +19,8 @@ file(COPY
 file(CREATE_LINK Versions/Current/PrivateHeaders ${RAVYN_SDKROOT}${FPATH}/PrivateHeaders SYMBOLIC)
 file(CREATE_LINK Versions/Current/Resources ${RAVYN_SDKROOT}${FPATH}/Resources SYMBOLIC)
 file(CREATE_LINK B ${RAVYN_SDKROOT}${FPATH}/Versions/Current SYMBOLIC)
-file(CREATE_LINK Versions/Current/System.dylib ${RAVYN_SDKROOT}${FPATH}/System.dylib SYMBOLIC)
-file(CREATE_LINK ../../../../../../usr/lib/libSystem.B.dylib ${RAVYN_SDKROOT}${FPATH}/Versions/B/System.dylib SYMBOLIC)
+file(CREATE_LINK Versions/Current/System ${RAVYN_SDKROOT}${FPATH}/System SYMBOLIC)
+file(CREATE_LINK ../../../../../../usr/lib/libSystem.B.dylib ${RAVYN_SDKROOT}${FPATH}/Versions/B/System SYMBOLIC)
 file(CREATE_LINK libSystem.B.dylib ${RAVYN_SDKROOT}/usr/lib/libSystem.dylib SYMBOLIC)
 
 file(MAKE_DIRECTORY ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A)

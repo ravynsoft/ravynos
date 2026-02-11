@@ -392,7 +392,7 @@ querylocale(int mask, locale_t loc)
 		return NULL;
 	}
 	DEFAULT_CURRENT_LOCALE(loc);
-	m = ffs(mask);
+	m = ffsll(mask);
 	if (m == 0 || m > _LC_NUM_MASK) {
 		errno = EINVAL;
 		return NULL;

@@ -44,6 +44,7 @@ add_subdirectory(libsystem_pthread)
 add_subdirectory(libsystem_c)
 add_subdirectory(libsystem_darwin)
 add_subdirectory(libsystem_asl)
+add_subdirectory(libsystem_m)
 #add_subdirectory(CommonCrypto)
 add_subdirectory(libxpc)
 add_subdirectory(libdispatch)
@@ -82,11 +83,12 @@ add_dependencies(libxpc libsystem_darwin)
 add_dependencies(dispatch libsystem_darwin)
 add_dependencies(liblaunch libxpc)
 add_dependencies(libsystem_asl libxpc)
+add_dependencies(libsystem_m libsystem_platform)
 #add_dependencies(libsystem_notify xnu_headers)
 #add_dependencies(libcommonCrypto xnu_headers)
 add_dependencies(libSystem 
     libsystem_c libsystem_malloc libsystem_pthread libsystem_platform libdyld
-    libxpc dispatch libsystem_blocks liblaunch
+    libxpc dispatch libsystem_blocks liblaunch CrashReporterClient libsystem_m
     #libsystem_notify libcommonCrypto
 )
 add_dependencies(xnu libSystem)
@@ -127,9 +129,9 @@ target_link_options(libSystem PRIVATE
     -Wl,-reexport-lsystem_darwin -Wl,-reexport-lsystem_pthread
     -Wl,-reexport-lsystem_kernel -Wl,-reexport-lcompiler_rt
     -Wl,-reexport-lunwind -Wl,-reexport-ldyld -Wl,-reexport-lxpc
-    -Wl,-reexport-llaunch -Wl,-reexport-ldispatch
+    -Wl,-reexport-llaunch -Wl,-reexport-ldispatch -Wl,-reexport-lsystem_m
     -lsystem_c -lsystem_malloc -lsystem_platform -lsystem_pthread -lsystem_darwin
-    -lsystem_kernel -lcompiler_rt -ldyld -lc++
+    -lsystem_kernel -lcompiler_rt -ldyld -lc++ -lCrashReporterClient
 )
 
 add_custom_command(TARGET libSystem POST_BUILD

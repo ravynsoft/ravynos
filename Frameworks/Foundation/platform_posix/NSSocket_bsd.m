@@ -97,7 +97,7 @@ static inline void byteZero(void *vsrc,size_t size){
 {
     int pipes[2];
     if (pipe(pipes) == 0) {
-        *otherX = [[[isa alloc] initWithDescriptor:pipes[0]] autorelease];
+        *otherX = [[[object_getClass(self) alloc] initWithDescriptor:pipes[0]] autorelease];
         return [self initWithDescriptor:pipes[1]];
     } else {
         NSLog(@"NSSocket: could not create pipe: (%d) %s", errno, strerror(errno));

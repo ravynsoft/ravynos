@@ -100,30 +100,7 @@ void NSObjCForward_stret(void *returnValue,id object,SEL selector,...){
    va_end(arguments);
 }
 
-id objc_msgForward(id object, SEL message, ...)
-{
-#ifndef APPLE_RUNTIME_4
-    Class class = object_getClass(object);
-    struct objc_slot *slot;
-    void *arguments = &object;
-
-    if ((slot = objc_get_slot(class, @selector(forwardSelector:arguments:))) != NULL) {
-        // handle nil receiver when forwarding
-        if(slot->owner == nil)
-            return objc_msg_lookup_sender(object,@selector(forwardSelector:arguments:),object);
-
-        IMP imp = method_getImplementation(slot->method);
-
-        return imp(object, @selector(forwardSelector:arguments:), message, arguments);
-    } else {
-        OBJCRaiseException("OBJCDoesNotRecognizeSelector", "%c[%s %s(%d)]", class_isMetaClass(class) ? '+' : '-', class_getName(class), sel_getName(message), message);
-        return nil;
-    }
-#else
-    /* FIXME: zoe 2/9/26 this is almost certainly wrong. just enough to get it compiling */
-    return ((id (*)(id,SEL,...))_objc_msgForward_impcache)(object, message);
-#endif
-}
+//#define objc_msgForward _objc_msgForward
 
 
 void objc_msgForward_stret(void *result, id object, SEL message, ...)
