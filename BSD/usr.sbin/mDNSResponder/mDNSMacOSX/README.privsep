@@ -1,0 +1,40 @@
+On Mac OS X, mDNSResponder now runs with user-ID and group-ID
+"_mdnsresponder". In order to perform certain privileged operations, a
+helper (unimagintively called mDNSResponderHelper) runs as root when
+needed and handles requests from mDNSResponder.
+
+
+* A new LaunchD job com.apple.mDNSResponderHelper starts
+  mDNSResponderHelper on demand.  The helper exits after approximately
+  10 seconds of idle time.
+
+* The com.apple.mDNSResponder LaunchD job specifies the account under
+  which to run, so that mDNSResponder starts as _mdnsresponder.
+
+* A subdirectory named "mdns" and owned by _mdnsresponder has been
+  created in /var/run.  The PID file and uDNS server socket has been
+  moved to that subdirectory.
+
+* There are currently six remote procedure calls handled by
+  mDNSResponderHelper: mDNSPreferencesSetName, mDNSKeychainGetSecrets,
+  mDNSConfigureServer, and mDNSAutoTunnelSetKeys
+
+* mDNSPreferencesSetName allows mDNSResponder to set the computer name
+  or local host name, and displays a notification if there was a
+  conflict.
+
+* mDNSKeychainGetSecrets causes mDNSResponderHelper to collect DNS
+  keys from the system keychain.  SetDomainSecrets uses the result to
+  populate AuthInfoList.  One could refactor this code further so that
+  mDNSResponderHelper performs all the cryptographic operations, with
+  the result that a compromise of mDNSResponder does not compromise
+  keys.  But I think that may be more change than is advisable at this
+  point.
+
+* On the advice of the Security.framework team, I've used
+  SecKeychainSetPreferenceDomain to ensure that the system keychain is
+  references whenever a NULL SecKeychainRef is used.  Wherever a
+  SecKeychainRef is needed, NULL is now specified.
+
+* mDNSConfigureServer, and mDNSAutoTunnelSetKeys do various setup and
+  teardown for BTMM.

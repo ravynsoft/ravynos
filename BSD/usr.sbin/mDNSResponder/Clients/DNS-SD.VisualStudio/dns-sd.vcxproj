@@ -1,0 +1,272 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{AA230639-E115-4A44-AA5A-44A61235BA50}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../../mDNSShared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_CONSOLE;NOT_HAVE_GETOPT;NOT_HAVE_SETLINEBUF;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>../../mDNSWindows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <AdditionalOptions>/NXCOMPAT /DYNAMICBASE /SAFESEH %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>../../mDNSWindows/DLL/$(Platform)/$(Configuration)/dnssd.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)dns-sd.exe</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)dns-sd.pdb</ProgramDatabaseFile>
+      <SubSystem>Console</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <Manifest>
+      <AdditionalManifestFiles>DNS-SD.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../../mDNSShared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_CONSOLE;NOT_HAVE_GETOPT;NOT_HAVE_SETLINEBUF;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>../../mDNSWindows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <AdditionalOptions>/NXCOMPAT /DYNAMICBASE %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>../../mDNSWindows/DLL/$(Platform)/$(Configuration)/dnssd.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)dns-sd.exe</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)dns-sd.pdb</ProgramDatabaseFile>
+      <SubSystem>Console</SubSystem>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+    <Manifest>
+      <AdditionalManifestFiles>DNS-SD64.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <OmitFramePointers>true</OmitFramePointers>
+      <AdditionalIncludeDirectories>../../mDNSShared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_CONSOLE;NOT_HAVE_GETOPT;NOT_HAVE_SETLINEBUF;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>../../mDNSWindows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <AdditionalOptions>/NXCOMPAT /DYNAMICBASE /SAFESEH %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>../../mDNSWindows/DLL/$(Platform)/$(Configuration)/dnssd.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)dns-sd.exe</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <Manifest>
+      <AdditionalManifestFiles>DNS-SD.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
+    <PostBuildEvent>
+      <Command>if not "%RC_XBS%" == "YES" goto END
+if not exist "$(DSTROOT)\WINDOWS\system32\$(Platform)"            mkdir "$(DSTROOT)\WINDOWS\system32\$(Platform)"
+if not exist "$(DSTROOT)\Program Files\Bonjour SDK\Samples\C"               mkdir "$(DSTROOT)\Program Files\Bonjour SDK\Samples\C"
+if not exist "$(DSTROOT)\Program Files\Bonjour SDK\Samples\CS"           mkdir "$(DSTROOT)\Program Files\Bonjour SDK\Samples\CS"
+if not exist "$(DSTROOT)\Program Files\Bonjour SDK\Samples\CS\DNSServiceBrowser" mkdir "$(DSTROOT)\Program Files\Bonjour SDK\Samples\CS\DNSServiceBrowser"
+if not exist "$(DSTROOT)\Program Files\Bonjour SDK\Samples\CS\SimpleChat"               mkdir "$(DSTROOT)\Program Files\Bonjour SDK\Samples\CS\SimpleChat"
+if not exist "$(DSTROOT)\Program Files\Bonjour SDK\Samples\VB"             mkdir "$(DSTROOT)\Program Files\Bonjour SDK\Samples\VB"
+if not exist "$(DSTROOT)\Program Files\Bonjour SDK\Samples\VB\DNSServiceBrowser" mkdir "$(DSTROOT)\Program Files\Bonjour SDK\Samples\VB\DNSServiceBrowser"
+if not exist "$(DSTROOT)\Program Files\Bonjour SDK\Samples\VB\DNSServiceBrowser\My Project" mkdir "$(DSTROOT)\Program Files\Bonjour SDK\Samples\VB\DNSServiceBrowser\My Project"
+if not exist "$(DSTROOT)\Program Files\Bonjour SDK\Samples\VB\SimpleChat"               mkdir "$(DSTROOT)\Program Files\Bonjour SDK\Samples\VB\SimpleChat"
+xcopy /I/Y "$(TargetPath)"                                                                           "$(DSTROOT)\WINDOWS\system32\$(Platform)"
+xcopy /I/Y "$(ProjectDir)..\dns-sd.c"                                                            "$(DSTROOT)\Program Files\Bonjour SDK\Samples\C"
+xcopy /I/Y "$(ProjectDir)..\ClientCommon.c"                                             "$(DSTROOT)\Program Files\Bonjour SDK\Samples\C"
+xcopy /I/Y "$(ProjectDir)..\ClientCommon.h"                                             "$(DSTROOT)\Program Files\Bonjour SDK\Samples\C"
+xcopy /I/Y "$(ProjectDir)resource.h"                                                             "$(DSTROOT)\Program Files\Bonjour SDK\Samples\C"
+xcopy /I/Y "$(ProjectDir)DNS-SD.manifest"                                                 "$(DSTROOT)\Program Files\Bonjour SDK\Samples\C"
+xcopy /I/Y "$(ProjectDir)DNS-SD64.manifest"                                             "$(DSTROOT)\Program Files\Bonjour SDK\Samples\C"
+xcopy /I/Y "$(ProjectDir)dns-sd.sdk.rc"                                                        "$(DSTROOT)\Program Files\Bonjour SDK\Samples\C"
+move /Y "$(DSTROOT)\Program Files\Bonjour SDK\Samples\C\dns-sd.sdk.rc" "$(DSTROOT)\Program Files\Bonjour SDK\Samples\C\dns-sd.rc"
+xcopy /I/Y "$(ProjectDir)dns-sd.sdk.vcproj"                                                "$(DSTROOT)\Program Files\Bonjour SDK\Samples\C"
+move /Y "$(DSTROOT)\Program Files\Bonjour SDK\Samples\C\dns-sd.sdk.vcproj" "$(DSTROOT)\Program Files\Bonjour SDK\Samples\C\dns-sd.vcproj"
+xcopy /I/Y "$(ProjectDir)..\DNSServiceBrowser.NET\App.ico"                  "$(DSTROOT)\Program Files\Bonjour SDK\Samples\CS\DNSServiceBrowser"
+xcopy /I/Y "$(ProjectDir)..\DNSServiceBrowser.NET\AssemblyInfo.cs"                  "$(DSTROOT)\Program Files\Bonjour SDK\Samples\CS\DNSServiceBrowser"
+xcopy /I/Y "$(ProjectDir)..\DNSServiceBrowser.NET\DNSServiceBrowser.NET.csproj"                  "$(DSTROOT)\Program Files\Bonjour SDK\Samples\CS\DNSServiceBrowser"
+xcopy /I/Y "$(ProjectDir)..\DNSServiceBrowser.NET\DNSServiceBrowser.cs"                  "$(DSTROOT)\Program Files\Bonjour SDK\Samples\CS\DNSServiceBrowser"
+xcopy /I/Y "$(ProjectDir)..\DNSServiceBrowser.NET\DNSServiceBrowser.resx"                  "$(DSTROOT)\Program Files\Bonjour SDK\Samples\CS\DNSServiceBrowser"
+xcopy /I/Y "$(ProjectDir)..\SimpleChat.NET\App.ico"                  "$(DSTROOT)\Program Files\Bonjour SDK\Samples\CS\SimpleChat"
+xcopy /I/Y "$(ProjectDir)..\SimpleChat.NET\AssemblyInfo.cs"                  "$(DSTROOT)\Program Files\Bonjour SDK\Samples\CS\SimpleChat"
+xcopy /I/Y "$(ProjectDir)..\SimpleChat.NET\SimpleChat.NET.csproj"                  "$(DSTROOT)\Program Files\Bonjour SDK\Samples\CS\SimpleChat"
+xcopy /I/Y "$(ProjectDir)..\SimpleChat.NET\SimpleChat.cs"                  "$(DSTROOT)\Program Files\Bonjour SDK\Samples\CS\SimpleChat"
+xcopy /I/Y "$(ProjectDir)..\SimpleChat.NET\SimpleChat.resx"                  "$(DSTROOT)\Program Files\Bonjour SDK\Samples\CS\SimpleChat"
+xcopy /I/Y "$(ProjectDir)..\DNSServiceBrowser.VB\DNSServiceBrowser.Designer.vb"  "$(DSTROOT)\Program Files\Bonjour SDK\Samples\VB\DNSServiceBrowser"
+xcopy /I/Y "$(ProjectDir)..\DNSServiceBrowser.VB\DNSServiceBrowser.VB.vbproj"   "$(DSTROOT)\Program Files\Bonjour SDK\Samples\VB\DNSServiceBrowser"
+xcopy /I/Y "$(ProjectDir)..\DNSServiceBrowser.VB\DNSServiceBrowser.resx"   "$(DSTROOT)\Program Files\Bonjour SDK\Samples\VB\DNSServiceBrowser"
+xcopy /I/Y "$(ProjectDir)..\DNSServiceBrowser.VB\DNSServiceBrowser.vb"   "$(DSTROOT)\Program Files\Bonjour SDK\Samples\VB\DNSServiceBrowser"
+xcopy /E/Y "$(ProjectDir)..\DNSServiceBrowser.VB\My Project"                      "$(DSTROOT)\Program Files\Bonjour SDK\Samples\VB\DNSServiceBrowser\My Project"
+xcopy /E/Y "$(ProjectDir)..\SimpleChat.VB"                                               "$(DSTROOT)\Program Files\Bonjour SDK\Samples\VB\SimpleChat"
+:END
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <OmitFramePointers>true</OmitFramePointers>
+      <AdditionalIncludeDirectories>../../mDNSShared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_CONSOLE;NOT_HAVE_GETOPT;NOT_HAVE_SETLINEBUF;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>../../mDNSWindows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <AdditionalOptions>/NXCOMPAT /DYNAMICBASE %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>../../mDNSWindows/DLL/$(Platform)/$(Configuration)/dnssd.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)dns-sd.exe</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+    <Manifest>
+      <AdditionalManifestFiles>DNS-SD64.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
+    <PostBuildEvent>
+      <Command>if not "%RC_XBS%" == "YES" goto END
+if not exist "$(DSTROOT)\WINDOWS\system32\$(Platform)"            mkdir "$(DSTROOT)\WINDOWS\system32\$(Platform)"
+if not exist "$(DSTROOT)\Program Files\Bonjour SDK\Samples\C"               mkdir "$(DSTROOT)\Program Files\Bonjour SDK\Samples\C"
+xcopy /I/Y "$(TargetPath)"                                                                           "$(DSTROOT)\WINDOWS\system32\$(Platform)"
+:END
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\ClientCommon.c" />
+    <ClCompile Include="..\dns-sd.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\ClientCommon.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="dns-sd.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

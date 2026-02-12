@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.apple.mDNSResponder.mdns-tcpdump</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/usr/sbin/tcpdump</string>
+		<string>-w</string>
+		<string>/tmp/mdns-tcpdump.pcapng</string>
+		<string>-C</string>
+		<string>10</string>
+		<string>-W</string>
+		<string>16</string>
+		<string>( udp port 5353 ) or arp or icmp or icmp6</string>
+	</array>
+	<key>KeepAlive</key>
+	<false/>
+</dict>
+</plist>

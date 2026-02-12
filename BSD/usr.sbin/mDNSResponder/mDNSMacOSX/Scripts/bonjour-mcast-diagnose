@@ -1,0 +1,452 @@
+#! /bin/bash
+#
+#	Copyright (c) 2017-2019 Apple Inc. All rights reserved.
+#
+#	This script is currently for Apple Internal use only.
+#
+
+declare -r version=1.6
+declare -r script=${BASH_SOURCE[0]}
+declare -r dnssdutil=${dnssdutil:-dnssdutil}
+
+# The serviceTypesOfInterest array is initialized with commonly-debugged service types or service types whose records can
+# provide useful debugging information, e.g., _airport._tcp in case an AirPort base station is a WiFi network's access
+# point. Note: Additional service types can be added with the '-s' option.
+
+serviceTypesOfInterest=(
+	_airplay._tcp			# AirPlay
+	_airport._tcp			# AirPort Base Station
+	_companion-link._tcp	# Companion Link
+	_hap._tcp				# HomeKit Accessory Protocol
+	_homekit._tcp			# HomeKit
+	_raop._tcp				# Remote Audio Output Protocol
+)
+
+#============================================================================================================================
+#	PrintUsage
+#============================================================================================================================
+
+PrintUsage()
+{
+	echo ""
+	echo "Usage: $( basename "${script}" ) [options]"
+	echo ""
+	echo "Options:"
+	echo "    -s    Specifies a service type of interest, e.g., _airplay._tcp, _raop._tcp, etc. Can be used more than once."
+	echo "    -V    Display version of this script and exit."
+	echo ""
+}
+
+#============================================================================================================================
+#	LogOut
+#============================================================================================================================
+
+LogOut()
+{
+	echo "$( date '+%Y-%m-%d %H:%M:%S%z' ): $*"
+}
+
+#============================================================================================================================
+#	LogMsg
+#============================================================================================================================
+
+LogMsg()
+{
+	echo "$*"
+	if [ -d "${workPath}" ]; then
+		LogOut "$*" >> "${workPath}/log.txt"
+	fi
+}
+
+#============================================================================================================================
+#	ErrQuit
+#============================================================================================================================
+
+ErrQuit()
+{
+	echo "error: $*"
+	exit 1
+}
+
+#============================================================================================================================
+#	SignalHandler
+#============================================================================================================================
+
+SignalHandler()
+{
+	LogMsg "Exiting due to signal."
+	trap '' SIGINT SIGTERM
+	pkill -TERM -P $$
+	wait
+	exit 2
+}
+
+#============================================================================================================================
+#	ExitHandler
+#============================================================================================================================
+
+ExitHandler()
+{
+	if [ -d "${tempPath}" ]; then
+		rm -fr "${tempPath}"
+	fi
+}
+
+#============================================================================================================================
+#	GetStateDump
+#============================================================================================================================
+
+GetStateDump()
+{
+	local suffix=''
+	if [ -n "${1}" ]; then
+		suffix="-${1//[^A-Za-z0-9._-]/_}"
+	fi
+	LogMsg "Getting mDNSResponder state dump."
+	dns-sd -O -stdout &> "${workPath}/state-dump${suffix}.txt"
+}
+
+#============================================================================================================================
+#	RunNetStat
+#============================================================================================================================
+
+RunNetStat()
+{
+	LogMsg "Running netstat -g -n -s"
+	netstat -g -n -s &> "${workPath}/netstat-g-n-s.txt"
+}
+
+#============================================================================================================================
+#	StartPacketCapture
+#============================================================================================================================
+
+StartPacketCapture()
+{
+	LogMsg "Starting tcpdump."
+	tcpdump -n -w "${workPath}/tcpdump.pcapng" &> "${workPath}/tcpdump.txt" &
+	tcpdumpPID=$!
+	tcpdump -i lo0 -n -w "${workPath}/tcpdump-loopback.pcapng" &> "${workPath}/tcpdump-loopback.txt" 'udp port 5353' &
+	tcpdumpLoopbackPID=$!
+}
+
+#============================================================================================================================
+#	SaveExistingPacketCaptures
+#============================================================================================================================
+
+SaveExistingPacketCaptures()
+{
+	LogMsg "Saving existing mDNS packet captures."
+	mkdir "${workPath}/pcaps"
+	for file in /tmp/mdns-tcpdump.pcapng*; do
+		[ -e "${file}" ] || continue
+		baseName=$( basename "${file}" | sed -E 's/^mdns-tcpdump.pcapng([0-9]+)$/mdns-tcpdump-\1.pcapng/' )
+		gzip < "${file}" > "${workPath}/pcaps/${baseName}.gz"
+	done
+}
+
+#============================================================================================================================
+#	StopPacketCapture
+#============================================================================================================================
+
+StopPacketCapture()
+{
+	LogMsg "Stopping tcpdump."
+	kill -TERM "${tcpdumpPID}"
+	kill -TERM "${tcpdumpLoopbackPID}"
+}
+
+#============================================================================================================================
+#	RunInterfaceMulticastTests
+#============================================================================================================================
+
+RunInterfaceMulticastTests()
+{
+	local -r ifname=${1}
+	local -r allHostsV4=224.0.0.1
+	local -r allHostsV6=ff02::1
+	local -r mDNSV4=224.0.0.251
+	local -r mDNSV6=ff02::fb
+	local -r log="${workPath}/mcast-test-log-${ifname}.txt"
+	local serviceList=( $( "${dnssdutil}" queryrecord -i "${ifname}" -A -t ptr -n _services._dns-sd._udp.local -l 6 | sed -E -n 's/.*(_.*_(tcp|udp)\.local\.)$/\1/p' ) )
+	serviceList+=( "${serviceTypesOfInterest[@]/%/.local.}" )
+	serviceList=( $( IFS=$'\n' sort -f -u <<< "${serviceList[*]}" ) )
+	
+	LogOut "List of services: ${serviceList[*]}" >> "${log}"
+	
+	# Ping IPv4 broadcast address.
+	
+	local broadcastAddr=$( ifconfig "${ifname}" inet | awk '$5 == "broadcast" {print $6}' )
+	if [ -n "${broadcastAddr}" ]; then
+		LogOut "Pinging ${broadcastAddr} on interface ${ifname}." >> "${log}"
+		ping -t 5 -b "${ifname}" "${broadcastAddr}" &> "${workPath}/ping-broadcast-${ifname}.txt"
+	else
+		LogOut "No IPv4 broadcast address for ${ifname}." >> "${log}"
+	fi
+	
+	# Ping All Hosts IPv4 multicast address.
+	
+	local routeOutput=$( route -n get -ifscope "${ifname}" "${allHostsV4}" 2> /dev/null )
+	if [ -n "${routeOutput}" ]; then
+		LogOut "Pinging ${allHostsV4} on interface ${ifname}." >> "${log}"
+		ping -t 5 -b "${ifname}" "${allHostsV4}" &> "${workPath}/ping-all-hosts-${ifname}.txt"
+	else
+		LogOut "No route to ${allHostsV4} on interface ${ifname}." >> "${log}"
+	fi
+	
+	# Ping mDNS IPv4 multicast address.
+	
+	routeOutput=$( route -n get -ifscope "${ifname}" "${mDNSV4}" 2> /dev/null )
+	if [ -n "${routeOutput}" ]; then
+		LogOut "Pinging ${mDNSV4} on interface ${ifname}." >> "${log}"
+		ping -t 5 -b "${ifname}" "${mDNSV4}" &> "${workPath}/ping-mDNS-${ifname}.txt"
+	else
+		LogOut "No route to ${mDNSV4} on interface ${ifname}." >> "${log}"
+	fi
+	
+	# Ping All Hosts IPv6 multicast address.
+	
+	routeOutput=$( route -n get -ifscope "${ifname}" -inet6 "${allHostsV6}" 2> /dev/null )
+	if [ -n "${routeOutput}" ]; then
+		LogOut "Pinging ${allHostsV6} on interface ${ifname}." >> "${log}"
+		ping6 -c 6 -I "${ifname}" "${allHostsV6}" &> "${workPath}/ping6-all-hosts-${ifname}.txt"
+	else
+		LogOut "No route to ${allHostsV6} on interface ${ifname}." >> "${log}"
+	fi
+	
+	# Ping mDNS IPv6 multicast address.
+	
+	routeOutput=$( route -n get -ifscope "${ifname}" -inet6 "${mDNSV6}" 2> /dev/null )
+	if [ -n "${routeOutput}" ]; then
+		LogOut "Pinging ${mDNSV6} on interface ${ifname}." >> "${log}"
+		ping6 -c 6 -I "${ifname}" "${mDNSV6}" &> "${workPath}/ping6-mDNS-${ifname}.txt"
+	else
+		LogOut "No route to ${mDNSV6} on interface ${ifname}." >> "${log}"
+	fi
+	
+	# Send mDNS queries for services.
+	
+	for service in "${serviceList[@]}"; do
+		LogOut "Sending mDNS queries for ${service} on interface ${ifname}." >> "${log}"
+		for(( i = 1; i <= 3; ++i )); do
+			printf "\n"
+			"${dnssdutil}" mdnsquery -i "${ifname}" -n "${service}" -t ptr -r 2
+			printf "\n"
+			"${dnssdutil}" mdnsquery -i "${ifname}" -n "${service}" -t ptr -r 1 --QU -p 5353
+			printf "\n"
+		done >> "${workPath}/mdnsquery-${ifname}.txt" 2>&1
+	done
+}
+
+#============================================================================================================================
+#	RunMulticastTests
+#============================================================================================================================
+
+RunMulticastTests()
+{
+	local -r interfaces=( $( ifconfig -l -u ) )
+	local -r skipPrefixes=( ap awdl bridge ipsec llw p2p pdp_ip pktap UDC utun )
+	local -a pids
+	local ifname
+	local skip
+	local pid
+	
+	LogMsg "List of interfaces: ${interfaces[*]}"
+	for ifname in "${interfaces[@]}"; do
+		skip=false
+		for prefix in "${skipPrefixes[@]}"; do
+			if [[ ${ifname} =~ ^${prefix}[0-9]*$ ]]; then
+				skip=true
+				break
+			fi
+		done
+		
+		if ! "${skip}"; then
+			ifconfig ${ifname} | egrep -q '\binet6?\b'
+			if [ $? -ne 0 ]; then
+				skip=true
+			fi
+		fi
+		
+		if "${skip}"; then
+			continue
+		fi
+		
+		LogMsg "Starting interface multicast tests for ${ifname}."
+		RunInterfaceMulticastTests "${ifname}" & pids+=( $! )
+	done
+	
+	LogMsg "Waiting for interface multicast tests to complete..."
+	for pid in "${pids[@]}"; do
+		wait "${pid}"
+	done
+	LogMsg "All interface multicast tests completed."
+}
+
+#============================================================================================================================
+#	RunBrowseTest
+#============================================================================================================================
+
+RunBrowseTest()
+{
+	local -a typeArgs
+	
+	if [ "${#serviceTypesOfInterest[@]}" -gt 0 ]; then
+		for serviceType in "${serviceTypesOfInterest[@]}"; do
+			typeArgs+=( "-t" "${serviceType}" )
+		done
+		
+		LogMsg "Running dnssdutil browseAll command for service types of interest."
+		"${dnssdutil}" browseAll -A -d local -b 10 -c 10 "${typeArgs[@]}" &> "${workPath}/browseAll-STOI.txt"
+	fi
+	
+	LogMsg "Running general dnssdutil browseAll command."
+	"${dnssdutil}" browseAll -A -d local -b 10 -c 10 &> "${workPath}/browseAll.txt"
+}
+
+#============================================================================================================================
+#	IsMacOS
+#============================================================================================================================
+
+IsMacOS()
+{
+	[[ $( sw_vers -productName ) =~ ^Mac\ OS ]]
+}
+
+#============================================================================================================================
+#	ArchiveLogs
+#============================================================================================================================
+
+ArchiveLogs()
+{
+	local -r workdir=$( basename "${workPath}" )
+	local parentDir
+	if IsMacOS; then
+		parentDir=/var/tmp
+	else
+		parentDir=/var/mobile/Library/Logs/CrashReporter
+	fi
+	local -r archivePath="${parentDir}/${workdir}.tar.gz"
+	
+	LogMsg "Archiving logs."
+	echo "---"
+	tar -C "${tempPath}" -czf "${archivePath}" "${workdir}"
+	if [ -e "${archivePath}" ]; then
+		echo "Created log archive at ${archivePath}"
+		echo "*** Please run sysdiagnose NOW. ***"
+		echo "Attach both the log archive and the sysdiagnose archive to the radar."
+		if IsMacOS; then
+			open "${parentDir}"
+		fi
+	else
+		echo "Failed to create archive at ${archivePath}."
+	fi
+	echo "---"
+}
+
+#============================================================================================================================
+#	CreateWorkDirName
+#============================================================================================================================
+
+CreateWorkDirName()
+{
+	local suffix=''
+	local -r productName=$( sw_vers -productName )
+	if [ -n "${productName}" ]; then
+		suffix+="_${productName}"
+	fi
+	
+	local model
+	if IsMacOS; then
+		model=$( sysctl -n hw.model )
+		model=${model//,/-}
+	else
+		model=$( gestalt_query -undecorated DeviceName )
+	fi
+	if [ -n "${model}" ]; then
+		suffix+="_${model}"
+	fi
+	
+	local -r buildVersion=$( sw_vers -buildVersion )
+	if [ -n "${buildVersion}" ]; then
+		suffix+="_${buildVersion}"
+	fi
+	
+	suffix=${suffix//[^A-Za-z0-9._-]/_}
+	
+	printf "bonjour-mcast-diags_$( date '+%Y.%m.%d_%H-%M-%S%z' )${suffix}"
+}
+
+#============================================================================================================================
+#	main
+#============================================================================================================================
+
+main()
+{
+	while getopts ":s:hV" option; do
+		case "${option}" in
+			h)
+				PrintUsage
+				exit 0
+				;;
+			s)
+				serviceType=$( awk '{print tolower($0)}' <<< "${OPTARG}" )
+				if [[ ${serviceType} =~ ^_[-a-z0-9]*\._(tcp|udp)$ ]]; then
+					serviceTypesOfInterest+=( "${serviceType}" )
+				else
+					ErrQuit "Service type '${OPTARG}' is malformed."
+				fi
+				;;
+			V)
+				echo "$( basename "${script}" ) version ${version}"
+				exit 0
+				;;
+			:)
+				ErrQuit "option '${OPTARG}' requires an argument."
+				;;
+			*)
+				ErrQuit "unknown option '${OPTARG}'."
+				;;
+		esac
+	done
+	
+	[ "${OPTIND}" -gt "$#" ] || ErrQuit "unexpected argument \"${!OPTIND}\"."
+	
+	if IsMacOS; then
+		if [ "${EUID}" -ne 0 ]; then
+			echo "Re-launching with sudo"
+			exec sudo "${script}" "$@"
+		fi
+	else
+		[ "${EUID}" -eq 0 ] || ErrQuit "$( basename "${script}" ) needs to be run as root."
+	fi
+	
+	tempPath=$( mktemp -d -q ) || ErrQuit "Failed to make temp directory."
+	workPath="${tempPath}/$( CreateWorkDirName )"
+	mkdir "${workPath}" || ErrQuit "Failed to make work directory."
+	
+	trap SignalHandler	SIGINT SIGTERM
+	trap ExitHandler	EXIT
+	
+	LogMsg "About: $( basename "${script}" ) version ${version} ($( md5 -q "${script}" ))."
+	if [ "${dnssdutil}" != "dnssdutil" ]; then
+		if [ -x "$( which "${dnssdutil}" )" ]; then
+			LogMsg "Using $( "${dnssdutil}" -V ) at $( which "${dnssdutil}" )."
+		else
+			LogMsg "WARNING: dnssdutil (${dnssdutil}) isn't an executable."
+		fi
+	fi
+	
+	serviceTypesOfInterest=( $( IFS=$'\n' sort -u <<< "${serviceTypesOfInterest[*]}" ) )
+	
+	GetStateDump 'before'
+	RunNetStat
+	StartPacketCapture
+	SaveExistingPacketCaptures
+	RunBrowseTest
+	RunMulticastTests
+	GetStateDump 'after'
+	StopPacketCapture
+	ArchiveLogs
+}
+
+main "$@"

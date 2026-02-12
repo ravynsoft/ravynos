@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{f366b81b-a033-4fe2-83f9-f249205c8f41}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{dd34ed24-7798-4514-b9b3-ecc1172409a0}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;jpg;jpeg;jpe;manifest</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource_dll.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\about.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\banner_icon.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Info.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\NetworkPrinter.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\Printer.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\PrinterSetupWizardRes.rc2">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\watermark.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="PrinterSetupWizardRes.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

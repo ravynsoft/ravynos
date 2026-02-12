@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="JavaSamples"
+	ProjectGUID="{A987A0C1-344F-475C-869C-F082EB11EEBA}"
+	Keyword="MakeFileProj"
+	>
+	<Platforms>
+		<Platform
+			Name="Win32"
+		/>
+		<Platform
+			Name="x64"
+		/>
+	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
+	<Configurations>
+		<Configuration
+			Name="Debug|Win32"
+			OutputDirectory="Debug"
+			IntermediateDirectory="Debug"
+			ConfigurationType="0"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			>
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="nmake /f nmakefile DEBUG=1 DNS_SD=..\..\mDNSWindows\Java\build\debug\dns_sd.jar"
+				ReBuildCommandLine="nmake /f nmakefile DEBUG=1 DNS_SD=..\..\mDNSWindows\Java\build\debug\dns_sd.jar"
+				CleanCommandLine="nmake /f nmakefile DEBUG=1 CLEAN"
+				Output=""
+				PreprocessorDefinitions=""
+				IncludeSearchPath=""
+				ForcedIncludes=""
+				AssemblySearchPath=""
+				ForcedUsingAssemblies=""
+				CompileAsManaged=""
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="Release"
+			IntermediateDirectory="Release"
+			ConfigurationType="0"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			>
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="nmake /f nmakefile DNS_SD=..\..\mDNSWindows\Java\build\prod\dns_sd.jar"
+				ReBuildCommandLine="nmake /f nmakefile DNS_SD=..\..\mDNSWindows\Java\build\prod\dns_sd.jar"
+				CleanCommandLine="nmake /f nmakefile CLEAN"
+				Output=""
+				PreprocessorDefinitions=""
+				IncludeSearchPath=""
+				ForcedIncludes=""
+				AssemblySearchPath=""
+				ForcedUsingAssemblies=""
+				CompileAsManaged=""
+			/>
+		</Configuration>
+		<Configuration
+			Name="Debug|x64"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="0"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			>
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="nmake /f nmakefile DEBUG=1 DNS_SD=..\..\mDNSWindows\Java\build\debug\dns_sd.jar"
+				ReBuildCommandLine="nmake /f nmakefile DEBUG=1 DNS_SD=..\..\mDNSWindows\Java\build\debug\dns_sd.jar"
+				CleanCommandLine="nmake /f nmakefile DEBUG=1 CLEAN"
+				Output=""
+				PreprocessorDefinitions=""
+				IncludeSearchPath=""
+				ForcedIncludes=""
+				AssemblySearchPath=""
+				ForcedUsingAssemblies=""
+				CompileAsManaged=""
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|x64"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="0"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			>
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="nmake /f nmakefile DNS_SD=..\..\mDNSWindows\Java\build\prod\dns_sd.jar"
+				ReBuildCommandLine="nmake /f nmakefile DNS_SD=..\..\mDNSWindows\Java\build\prod\dns_sd.jar"
+				CleanCommandLine="nmake /f nmakefile CLEAN"
+				Output=""
+				PreprocessorDefinitions=""
+				IncludeSearchPath=""
+				ForcedIncludes=""
+				AssemblySearchPath=""
+				ForcedUsingAssemblies=""
+				CompileAsManaged=""
+			/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>

@@ -1,0 +1,40 @@
+The mDNSResponder project has three umbrella targets:
+Build Some
+Build More
+Build All
+
+The “Build Some” target builds:
+mDNSResponder
+mDNSResponderHelper
+dns-sd tool
+dnsctl
+mDNSNetMonitor
+dns_services
+BonjourEvents
+
+The “Build More” target builds all of “Build Some”, plus
+dnsextd
+ddnswriteconfig
+PreferencePane
+
+The “Build All” target builds all of “Build More” (including “Build Some”) plus
+SystemLibraries
+
+Now, the explanation for this three-layer hierarchy:
+
+The “Build More” is the *first* target in the Xcode project.
+This is what B&I builds by default.
+Why not “Build All”? Because SystemLibraries is special.
+B&I builds the project in two passes. B&I builds SystemLibraries first, to
+make LibSystem. Then B&I builds builds the rest. The default target needs to
+be everything *except* SystemLibraries — i.e. the “Build More” target.
+
+The “Build Some” target builds the subset of “Build More”
+that is useful in routine day-to-day development.
+Since dnsextd, ddnswriteconfig and the PreferencePane aren’t usually
+what we’re working on, it’s quicker not to rebuild them every time.
+
+The “Build All” target is the final one. It builds absolutely everything.
+B&I never builds this (they do the two-pass build) but it’s there so that
+after making changes, but before checking them in, we can quickly and
+easily do a “Build All” and make sure our changes haven’t broken anything.

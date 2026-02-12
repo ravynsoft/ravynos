@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14205.2" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14205.2"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="SafariExtensionViewController">
+            <connections>
+                <outlet property="domainBrowserView" destination="37z-K3-tt2" id="lMe-Hz-bIu"/>
+                <outlet property="mainSplitView" destination="j4B-ff-oDf" id="As5-d3-ZaT"/>
+                <outlet property="serviceBrowserView" destination="Z6A-YV-gRJ" id="vPa-V8-NPE"/>
+                <outlet property="view" destination="j4B-ff-oDf" id="Ajs-fF-Ums"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <splitView arrangesAllSubviews="NO" dividerStyle="paneSplitter" id="j4B-ff-oDf">
+            <rect key="frame" x="0.0" y="0.0" width="309" height="200"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <subviews>
+                <customView fixedFrame="YES" id="Z6A-YV-gRJ" customClass="CNServiceBrowserView">
+                    <rect key="frame" x="0.0" y="0.0" width="309" height="114"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <connections>
+                        <outlet property="delegate" destination="-2" id="Aj5-LX-1WO"/>
+                    </connections>
+                </customView>
+                <customView fixedFrame="YES" id="37z-K3-tt2" customClass="CNDomainBrowserView">
+                    <rect key="frame" x="0.0" y="124" width="309" height="76"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="boolean" keyPath="ignoreBTMM" value="YES"/>
+                    </userDefinedRuntimeAttributes>
+                    <connections>
+                        <outlet property="delegate" destination="-2" id="oQE-Gn-Jaw"/>
+                    </connections>
+                </customView>
+            </subviews>
+            <holdingPriorities>
+                <real value="250"/>
+                <real value="250"/>
+            </holdingPriorities>
+            <connections>
+                <outlet property="delegate" destination="-2" id="umg-fZ-b72"/>
+            </connections>
+            <point key="canvasLocation" x="-752" y="-484"/>
+        </splitView>
+    </objects>
+</document>

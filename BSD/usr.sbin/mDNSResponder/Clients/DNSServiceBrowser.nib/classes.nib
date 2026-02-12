@@ -1,0 +1,37 @@
+{
+    IBClasses = (
+        {
+            ACTIONS = {
+                addNewService = id; 
+                connect = id; 
+                handleDomainClick = id; 
+                handleNameClick = id; 
+                handleTableClick = id; 
+                handleTypeClick = id; 
+                loadDomains = id; 
+                removeSelected = id; 
+            }; 
+            CLASS = BrowserController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                domainField = id; 
+                hostField = id; 
+                interfaceField = id; 
+                ip6AddressField = id; 
+                ipAddressField = id; 
+                nameColumn = id; 
+                nameField = id; 
+                portField = id; 
+                serviceDisplayTable = id; 
+                serviceNameField = id; 
+                serviceTypeField = id; 
+                textField = id; 
+                typeColumn = id; 
+                typeField = id; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }
+    ); 
+    IBVersion = 1; 
+}

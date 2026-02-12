@@ -1,0 +1,135 @@
+.\" -*- tab-width: 4 -*-
+.\" 
+.\" Copyright (c) 2003-2012 Apple Inc. All Rights Reserved.
+.\" 
+.\" Licensed under the Apache License, Version 2.0 (the "License");
+.\" you may not use this file except in compliance with the License.
+.\" You may obtain a copy of the License at
+.\" 
+.\"     http://www.apache.org/licenses/LICENSE-2.0
+.\" 
+.\" Unless required by applicable law or agreed to in writing, software
+.\" distributed under the License is distributed on an "AS IS" BASIS,
+.\" WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+.\" See the License for the specific language governing permissions and
+.\" limitations under the License.
+.\"
+.Dd April 2004              \" Date
+.Dt mDNSResponder 8         \" Document Title
+.Os Darwin                  \" Operating System
+.\"
+.Sh NAME
+.Nm mDNSResponder
+.Nd Multicast and Unicast DNS daemon    \" Name Description for whatis database
+.\" 
+.Sh SYNOPSIS
+.Nm
+.\"
+.Sh DESCRIPTION
+.Nm
+(also known as
+.Nm mdnsd
+on some systems)
+is a daemon invoked at boot time to implement Multicast DNS and DNS Service Discovery. On
+Mac OS X 10.6 (Snow Leopard), 
+.Nm 
+is also the system-wide Unicast DNS Resolver.
+.Pp
+.Nm
+listens on UDP port 5353 for Multicast DNS Query packets.
+When it receives a query for which it knows an answer,
+.Nm
+issues the appropriate Multicast DNS Reply packet.
+.Pp
+.Nm
+also performs Unicast and Multicast DNS Queries on behalf of client processes, and 
+maintains a cache of the replies.
+.Pp
+.Nm
+has no user-specifiable command-line argument, and users should not run
+.Nm
+manually.
+.Pp
+.Sh LOGGING
+There are several methods with which to examine 
+.Nm Ns 's internal state for debugging and diagnostic purposes. The syslog(1)
+logging levels map as follows:
+.Pp
+.Dl Error - Error messages
+.Dl Warning - Client-initiated operations
+.Dl Notice - Sleep proxy operations
+.Dl Info - Informational messages
+.Pp
+By default, only log level Error is logged.
+.Pp
+A SIGUSR1 signal toggles additional logging, with Warning and Notice
+enabled by default:
+.Pp
+.Dl % sudo killall -USR1 mDNSResponder
+.Pp
+Once this logging is enabled, users can additionally use syslog(1)
+to change the log filter for the process. For example, to enable log levels Emergency - Debug:
+.Pp
+.Dl % sudo syslog -c mDNSResponder -d
+.Pp
+A SIGUSR2 signal toggles packet logging:
+.Pp
+.Dl % sudo killall -USR2 mDNSResponder
+.Pp
+A SIGINFO signal will dump a snapshot summary of the internal state to 
+.Pa /var/log/system.log Ns :
+.Pp
+.Dl % sudo killall -INFO mDNSResponder
+.Sh OPTIONAL ARGUMENTS
+.Nm
+accepts the following optional arguments:
+.Bl -tag -width "AlwaysAppendSearchDomains"
+.It Fl AlwaysAppendSearchDomains
+Append search domains for multi-labeled Partially Qualified Domain Name as well as single-labeled Partially Qualified Domain Name. 
+This argument is not recommended because of the extra DNS traffic it generates and its adverse effect on battery life.
+.It Fl NoMulticastAdvertisements
+Prevent the system from advertising Bonjour services via Multicast DNS.
+.El
+.Pp
+To cause
+.Nm
+to run with these optional arguments when it launches on OS X 10.11 (El Capitan) and later, set the
+.Sy AlwaysAppendSearchDomains
+or
+.Sy NoMulticastAdvertisements
+boolean keys to true in /Library/Preferences/com.apple.mDNSResponder.plist and reboot.
+.Pp
+.Sh FILES
+.Pa /usr/sbin/mDNSResponder
+.Pa /Library/Preferences/com.apple.mDNSResponder.plist
+.Pp
+.Sh INFO
+.Pp
+For information on Multicast DNS, see
+.Pa http://www.multicastdns.org/
+.Pp
+For information on DNS Service Discovery, see
+.Pa http://www.dns-sd.org/
+.Pp
+For information on how to use the Multicast DNS and the
+DNS Service Discovery APIs on Mac OS X and other platforms, see
+.Pa http://developer.apple.com/bonjour/
+.Pp
+For the source code to
+.Nm , see
+.Pa http://developer.apple.com/darwin/projects/bonjour/
+.\"
+.Sh BUGS
+.Nm
+bugs are tracked in Apple Radar component "mDNSResponder".
+.\"
+.Sh HISTORY
+The
+.Nm
+daemon first appeared in Mac OS X 10.2 (Jaguar).
+.Pp
+Also available from the Darwin open source repository
+(though not officially supported by Apple) are 
+.Nm
+daemons for other platforms, including Microsoft Windows,
+Linux, FreeBSD, NetBSD, Solaris, and other POSIX systems.
