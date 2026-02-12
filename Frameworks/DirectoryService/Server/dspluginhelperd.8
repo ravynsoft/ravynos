@@ -1,0 +1,71 @@
+.Dd Jun 23, 2010       \" DATE 
+.Dt dspluginhelperd 8       \" Program name and manual section number 
+.Os MacOSX
+.Sh NAME                 \" Section Header - required - don't modify 
+.Nm dspluginhelperd 
+.Nd support daemon for legacy DirectoryService plugins
+.Sh SYNOPSIS             \" Section Header - required - don't modify
+.Nm
+.Op Fl v         \" [-f path] 
+.Sh DESCRIPTION          \" Section Header - required - don't modify
+DirectoryService has been replaced by
+.Xr opendirectoryd 8 .
+.Nm
+provides support for 3rd party DirectoryService plugins.
+.Pp
+More information can be accessed from the Darwin Open Directory Page: http://developer.apple.com/darwin/projects/opendirectory/
+.Pp
+.Sh OPTIONS
+.Pp
+The options are as follows:
+.Pp
+.Bl -tag -width -indent  \" Differs from above in -compact tag removed 
+.It Fl v                 \"-a flag as a list item
+Display the release version.
+.El                      \" Ends the list
+.Pp
+.Sh DIAGNOSTICS      \"Sections 1, 6, 7, and 8
+See 
+.Xr odutil 1
+for information on enabling debug logging and various other options introspection of opendirectoryd.
+.Pp
+.Sh ERRORS           \"Sections 2 and 3
+Error codes are available using 
+.Xr dserr 1
+or from framework headers <DirectoryService/DirServiceTypes.h>.  DirectoryService.framework
+is deprecated as of 10.6 and OpenDirectory.framework should be used instead.
+.Pp
+.Sh OPEN SOURCE
+The source code for
+.Nm
+is available as part of Apple's Darwin open source initiative.
+.Nm
+is part of the DirectoryService project.
+More information on Darwin may be found on the Web at
+.Pp
+.Dl http://developer.apple.com/darwin/projects/opendirectory/
+.Pp
+DirectoryService API and Plug-in API are documented at
+.Pp
+.Dl http://developer.apple.com/referencelibrary/Networking/
+.Pp
+The headers for the deprecated DirectoryService APIs can also be found in the following location:
+.Pp
+.Dl /System/Library/Frameworks/DirectoryService.framework/Headers/
+.Sh FILES
+.Bl -tag -width "/Library/DirectoryServices/PlugIns   "
+.It Pa /Library/DirectoryServices/PlugIns
+location of third party plugins
+.El
+.Pp
+.Sh SEE ALSO 
+.Xr opendirectoryd 8 ,
+.Xr odutil 1 ,
+.Xr DirectoryServiceAttributes 7 ,
+.Xr dscl 1 ,
+.Xr dsmemberutil 1 ,
+.Xr dscacheutil 1 ,
+.Xr dseditgroup 8 ,
+.Xr dsenableroot 8 ,
+.Xr dserr 8 ,
+.Xr pwpolicy 8
