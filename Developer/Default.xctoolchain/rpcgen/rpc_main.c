@@ -43,6 +43,7 @@
 #include <sys/param.h>
 #include <sys/file.h>
 #include <sys/stat.h>
+#include <rpc/types.h>
 #include "rpc_parse.h"
 #include "rpc_scan.h"
 #include "rpc_util.h"

@@ -1375,7 +1375,7 @@ target_link_options(libsystem_c PRIVATE
     -Wl,-alias_list,${CMAKE_CURRENT_SOURCE_DIR}/xcodescripts/alias.list
     -Wl,-order_file,${CMAKE_CURRENT_SOURCE_DIR}/xcodescripts/Libc.order
     -ldyld -lsystem_malloc -lsystem_platform -lsystem_pthread -lsystem_kernel
-    -lsystem_m -lCrashReporterClient
+    -lsystem_m -lCrashReporterClient -Wl,-flat_namespace -Wl,-undefined,warning
 )
 target_link_libraries(libsystem_c PRIVATE  Base NetBSD FortifySource Platform
     TRE FreeBSD vCancelable vDarwinExtsn vInode32)

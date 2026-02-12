@@ -73,3 +73,5 @@ file(COPY ${OBJC}/runtime/maptable.h ${OBJC}/runtime/NSObject-internal.h
     ${OBJC}/runtime/objc-ptrauth.h ${OBJC}/runtime/hashtable.h
     ${OBJC}/runtime/hashtable2.h ${OBJC}/runtime/objc-class.h
     DESTINATION ${RAVYN_SDKROOT}/usr/local/include/objc/)
+
+add_subdirectory(rpcsvc)

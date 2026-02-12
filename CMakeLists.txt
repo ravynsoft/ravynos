@@ -18,7 +18,7 @@ message(STATUS "Darwin ${DARWIN_VERSION}, Apple LLVM/TAPI ${LLVM_VERSION}")
 #  Top level targets
 # ------------------------------------------------------------------------
 
-add_compile_options(-fcolor-diagnostics)
+add_compile_options(-fcolor-diagnostics -Wno-incompatible-sysroot)
 add_custom_target(Darwin)
 add_custom_target(Bootstrap)
 

@@ -37,7 +37,6 @@
 #define _RPC_TYPES_H
 
 #include <sys/types.h>
-#include <sys/_null.h>
 
 typedef int32_t bool_t;
 typedef int32_t enum_t;
@@ -58,23 +57,12 @@ typedef  int32_t rpc_inline_t;
 #	define TRUE	(1)
 #endif
 
-#ifdef _KERNEL
-#ifdef _SYS_MALLOC_H_
-MALLOC_DECLARE(M_RPC);
-#endif
-#define mem_alloc(bsize)	malloc(bsize, M_RPC,  M_WAITOK|M_ZERO)
-#define mem_free(ptr, bsize)	free(ptr, M_RPC)
-#else
+#define nitems(a) (sizeof(a) / sizeof(a[0]))
 #define mem_alloc(bsize)	calloc(1, bsize)
 #define mem_free(ptr, bsize)	free(ptr)
-#endif
 
 #include <sys/time.h>
-#ifdef _KERNEL
-#include <rpc/netconfig.h>
-#else
-#include <netconfig.h>
-#endif
+//#include <rpc/netconfig.h>
 
 /*
  * The netbuf structure is defined here, because FreeBSD / NetBSD only use

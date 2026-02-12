@@ -40,7 +40,8 @@ add_subdirectory(libsystem_kernel)
 add_subdirectory(libsystem_platform)
 add_subdirectory(libsystem_malloc)
 add_subdirectory(libsystem_pthread)
-#add_subdirectory(libsystem_notify)
+add_subdirectory(libsystem_notify)
+add_subdirectory(libsystem_info)
 add_subdirectory(libsystem_c)
 add_subdirectory(libsystem_darwin)
 add_subdirectory(libsystem_asl)
@@ -84,12 +85,11 @@ add_dependencies(dispatch libsystem_darwin)
 add_dependencies(liblaunch libxpc)
 add_dependencies(libsystem_asl libxpc)
 add_dependencies(libsystem_m libsystem_platform)
-#add_dependencies(libsystem_notify xnu_headers)
 #add_dependencies(libcommonCrypto xnu_headers)
 add_dependencies(libSystem 
     libsystem_c libsystem_malloc libsystem_pthread libsystem_platform libdyld
     libxpc dispatch libsystem_blocks liblaunch CrashReporterClient libsystem_m
-    #libsystem_notify libcommonCrypto
+    libsystem_notify libsystem_info #libcommonCrypto
 )
 add_dependencies(xnu libSystem)
 
@@ -108,7 +108,7 @@ add_custom_command(OUTPUT libunwind.dylib
         -Wl,-install_name,/usr/lib/system/libunwind.dylib 
         -Wl,-compatibility_version,1.0.0 -Wl,-current_version,35.4
         -L${RAVYN_SDKROOT}/usr/lib -L${RAVYN_SDKROOT}/usr/lib/system
-        -mmacosx-version-min=10.15 -umbrella System
+        -mmacosx-version-min=${MACOS_VERSION_MIN} -umbrella System
         -Wl,-all_load ${RAVYN_SDKROOT}/usr/lib/libunwind.a
         -lsystem_c -lsystem_pthread -lsystem_platform -lcompiler_rt
         -lsystem_malloc -ldyld
@@ -117,7 +117,7 @@ add_custom_command(OUTPUT libunwind.dylib
 target_sources(libSystem PRIVATE config libunwind.dylib)
 
 target_link_options(libSystem PRIVATE
-    -mmacos-version-min=10.15 -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib
+    -mmacos-version-min=${MACOS_VERSION_MIN} -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib
     -Wl,-flat_namespace -Wl,-undefined,warning -Wl,-no_warn_inits
     -L${RAVYN_SDKROOT}/usr/lib/system -L${RAVYN_SDKROOT}/usr/local/lib/system
     -L${RAVYN_SDKROOT}/usr/lib
@@ -130,8 +130,9 @@ target_link_options(libSystem PRIVATE
     -Wl,-reexport-lsystem_kernel -Wl,-reexport-lcompiler_rt
     -Wl,-reexport-lunwind -Wl,-reexport-ldyld -Wl,-reexport-lxpc
     -Wl,-reexport-llaunch -Wl,-reexport-ldispatch -Wl,-reexport-lsystem_m
-    -lsystem_c -lsystem_malloc -lsystem_platform -lsystem_pthread -lsystem_darwin
-    -lsystem_kernel -lcompiler_rt -ldyld -lc++ -lCrashReporterClient
+    -Wl,-reexport-lsystem_notify -Wl,-reexport-lsystem_info
+    #-lsystem_c -lsystem_malloc -lsystem_platform -lsystem_pthread -lsystem_darwin
+    #-lsystem_kernel -lcompiler_rt -ldyld -lc++ -lCrashReporterClient
 )
 
 add_custom_command(TARGET libSystem POST_BUILD

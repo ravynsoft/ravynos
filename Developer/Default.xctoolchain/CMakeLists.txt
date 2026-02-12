@@ -13,6 +13,7 @@ add_subdirectory(mig)
 add_subdirectory(unifdef)
 add_subdirectory(xar)
 add_subdirectory(dtrace_ctf)
+add_subdirectory(rpcgen)
 
 ExternalProject_Add(host_xcbuild
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/xcbuild
@@ -64,7 +65,7 @@ add_dependencies(BootstrapTools
     host_indr host_strip host_segedit host_pagestuff host_codesign_allocate
     host_bitcode_strip host_ctf_insert host_check_dylib host_cmpdylib host_inout
     host_vtool host_nmedit host_ranlib host_migcom host_xcbuild host_ctfconvert
-    host_ctfmerge host_ctfdump host_clang host_ld host_xar host_libxar
+    host_ctfmerge host_ctfdump host_clang host_ld host_xar host_libxar host_rpcgen
 )
 
 file(MAKE_DIRECTORY ${TOOLCHAIN}/usr/libexec)
@@ -112,6 +113,7 @@ add_custom_command(TARGET BootstrapTools
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:host_ctfconvert> ${TOOLCHAIN}/usr/bin/
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:host_ctfdump> ${TOOLCHAIN}/usr/bin/
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:host_ctfmerge> ${TOOLCHAIN}/usr/bin/
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:host_rpcgen> ${TOOLCHAIN}/usr/bin/rpcgen
     COMMAND ${CMAKE_COMMAND} -E create_symlink llvm-otool ${TOOLCHAIN}/usr/bin/otool
     COMMAND ${CMAKE_COMMAND} -E create_symlink llvm-as ${TOOLCHAIN}/usr/bin/as
     COMMAND ${CMAKE_COMMAND} -E create_symlink ld ${TOOLCHAIN}/usr/bin/ld64

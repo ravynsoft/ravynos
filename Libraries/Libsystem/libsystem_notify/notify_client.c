@@ -1796,6 +1796,7 @@ _notify_dispatch_local_notification(registration_node_t *r)
 	dispatch_queue_t thequeue = r->queue;
 	dispatch_retain(thequeue);
 
+#if DISPATCH_USE_DTRACE
 	/*
 	 * If DTrace probes are currently active that deal with the delivery of a
 	 * notification, then the name needs to live until the end of the delivery.
@@ -1806,6 +1807,7 @@ _notify_dispatch_local_notification(registration_node_t *r)
 	{
 		name = strdup(r->name_node->name);
 	}
+#endif
 
 	// notify_dispatch_source runs on a DISPATCH_QUEUE_PRIORITY_HIGH queue (IN
 	// QoS). Dispatching directly from that queue to the client queue taints the
@@ -1819,13 +1821,19 @@ _notify_dispatch_local_notification(registration_node_t *r)
 		if (_libnotify_debug & DEBUG_NOTIFICATION) _notify_client_log(ASL_LEVEL_NOTICE, "-> dispatch_async token %d (%svalid) registration node %p", token, valid ? "" : "in", r);
 #endif
 		/* check if the token is still valid: it may have been cancelled */
+#if DISPATCH_USE_DTRACE
 		if (name) NOTIFY_DELIVER_START(name);
+#endif
 		if (valid) theblock(token);
+#if DISPATCH_USE_DTRACE
 		if (name) NOTIFY_DELIVER_END(name);
+#endif
 		_Block_release(theblock);
 		dispatch_release(thequeue);
 
+#if DISPATCH_USE_DTRACE
 		if (name) free(name);
+#endif
 #ifdef DEBUG
 		if (_libnotify_debug & DEBUG_NOTIFICATION) _notify_client_log(ASL_LEVEL_NOTICE, "<- dispatch_async token %d", token);
 #endif

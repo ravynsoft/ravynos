@@ -83,16 +83,6 @@ struct netconfig *getnetconfig(void *);
 struct netconfig *getnetconfigent(const char *);
 void freenetconfigent(struct netconfig *);
 int endnetconfig(void *);
-
-#ifndef _KERNEL
-void *setnetpath(void);
-struct netconfig *getnetpath(void *);
-int endnetpath(void *);
-
-void nc_perror(const char *);
-char *nc_sperror(void);
-#endif
-
 __END_DECLS
 
 #endif /* _NETCONFIG_H_ */

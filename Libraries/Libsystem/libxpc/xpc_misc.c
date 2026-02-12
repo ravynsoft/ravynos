@@ -339,7 +339,6 @@ ld2xpc(launch_data_t ld)
 	return (xo);
 }
 
-#if 0
 xpc_object_t
 xpc_copy_entitlement_for_token(const char *key __unused, audit_token_t *token __unused)
 {
@@ -348,7 +347,6 @@ xpc_copy_entitlement_for_token(const char *key __unused, audit_token_t *token __
 	val.b = true;
 	return (_xpc_prim_create(_XPC_TYPE_BOOL, val,0));
 }
-#endif
 
 int
 xpc_pipe_send(xpc_object_t xobj, uint64_t id, xpc_port_t local, xpc_port_t remote)

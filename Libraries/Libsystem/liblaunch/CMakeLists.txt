@@ -3,7 +3,7 @@ add_library(liblaunch SHARED libbootstrap.c liblaunch.c libvproc.c)
 set_target_properties(liblaunch PROPERTIES PREFIX "lib" OUTPUT_NAME "launch"
     SUFFIX ".dylib" NO_SONAME true)
 
-set(CFLAGS --sysroot=${RAVYN_SDKROOT} -g -DPRIVATE -mmacos-version-min=10.15)
+set(CFLAGS --sysroot=${RAVYN_SDKROOT} -g -DPRIVATE -mmacos-version-min=${MACOS_VERSION_MIN})
 set(MIG_FLAGS ${CFLAGS} -D__MigTypeCheck)
 target_compile_options(liblaunch PRIVATE ${CFLAGS}
     -include${RAVYN_SDKROOT}/usr/include/sys/_types/_mach_port_t.h
@@ -16,7 +16,7 @@ target_include_directories(liblaunch PRIVATE
     ../libdispatch/config
     ../libsystem_pthread
     ../libsystem_c/fbsdcompat
-    ${ROOT_SOURCE_DIR}/BSD/launchd
+    ${ROOT_SOURCE_DIR}/BSD/sbin/launchd
     ${RAVYN_SDKROOT}/usr/local/include
     ${RAVYN_SDKROOT}/usr/local/include/kernel
     ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/wrappers/libproc

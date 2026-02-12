@@ -1,4 +1,5 @@
 add_library(libsystem_info SHARED
+    copyHeaders
 	./dns.subproj/herror.c
 	./dns.subproj/res_comp.c
 	./dns.subproj/res_query.c
@@ -109,18 +110,22 @@ set_target_properties(libsystem_info PROPERTIES
     OUTPUT_NAME "system_info" SUFFIX ".dylib" PREFIX "lib" NO_SONAME true)
 
 set(CFLAGS -DPRIVATE -D__APPLE__ -fblocks -fno-common -DDISPATCH_USE_DTRACE=0 -DINET6
-    -D__DARWIN_NON_CANCELABLE -DCONFIG_MAC -DDS_AVAILABLE -DSYNTH_ROOTFS
+    -D__DARWIN_NON_CANCELABLE -DCONFIG_MAC -DSYNTH_ROOTFS # -DDS_AVAILABLE -- zoe 2/11/26 Put this back once we have DirectoryServices
     --sysroot=${RAVYN_SDKROOT} -mmacos-version-min=${MACOS_VERSION_MIN}
     -I${CMAKE_CURRENT_SOURCE_DIR}
     -I${CMAKE_CURRENT_SOURCE_DIR}/Libinfo
     -I${CMAKE_CURRENT_SOURCE_DIR}/gen.subproj
+    -I${CMAKE_CURRENT_SOURCE_DIR}/nis.subproj
+    -I${CMAKE_CURRENT_SOURCE_DIR}/lookup.subproj
+    -I${CMAKE_CURRENT_SOURCE_DIR}/membership.subproj
     -I${CMAKE_CURRENT_SOURCE_DIR}/../liblaunch
-    #-I${CMAKE_CURRENT_SOURCE_DIR}/../libsystem_c
-    #-I${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch/private 
-    #-I${CMAKE_CURRENT_BINARY_DIR}
-    #-I${ROOT_BINARY_DIR}/${CpuArch}
+    -I${CMAKE_CURRENT_SOURCE_DIR}/../libsystem_notify
+    -I${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch/private
+    -I${ROOT_SOURCE_DIR}/BSD/usr.sbin/mDNSResponder/mDNSShared
+    -I${ROOT_SOURCE_DIR}/BSD/usr.sbin/configd/dnsinfo
+    -I${ROOT_SOURCE_DIR}/BSD/sbin/launchd
+    -I${RAVYN_SDKROOT}/usr/include/arpa
     -I${RAVYN_SDKROOT}/usr/local/include/kernel
-    #-I${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders
 )
 
 set(MIG_FLAGS ${CFLAGS} -D__MigTypeCheck)
@@ -145,3 +150,8 @@ add_custom_command(TARGET libsystem_info POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libsystem_info> ${SYSROOT_DIR}/usr/lib/system/
 )
 
+add_custom_command(OUTPUT copyHeaders
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND
+        env DSTROOT=${RAVYN_SDKROOT} SRCROOT=${CMAKE_CURRENT_SOURCE_DIR}
+            sh ${CMAKE_CURRENT_SOURCE_DIR}/xcodescripts/install_files.sh)
