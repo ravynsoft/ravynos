@@ -9,6 +9,7 @@ target_sources(libxpc PRIVATE
     xpc_dictionary.c
     xpc_misc.c
     xpc_type.c
+    xpc_runtime.c
     transports/mach.c
 )
 target_sources(libxpc INTERFACE

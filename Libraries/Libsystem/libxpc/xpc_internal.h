@@ -100,7 +100,7 @@ typedef union {
 	uintptr_t ptr;
 	int fd;
 	uuid_t uuid;
-#ifdef MACH
+#ifdef __MACH__
 	mach_port_t port;
 #endif
 } xpc_u;
@@ -119,7 +119,7 @@ struct xpc_object {
 	volatile _Atomic(uint32_t)	xo_refcnt;
 	size_t			xo_size;
 	xpc_u			xo_u;
-#ifdef MACH
+#ifdef __MACH__
 	audit_token_t *		xo_audit_token;
 #endif
 	TAILQ_ENTRY(xpc_object) xo_link;
@@ -143,7 +143,7 @@ struct xpc_credentials {
     uid_t			xc_remote_euid;
     gid_t			xc_remote_guid;
     pid_t			xc_remote_pid;
-#ifdef MACH
+#ifdef __MACH__
     au_asid_t			xc_remote_asid;
     audit_token_t		xc_audit_token;
 #endif

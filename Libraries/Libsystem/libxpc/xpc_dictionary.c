@@ -1,5 +1,6 @@
 /*
  * Copyright 2014-2015 iXsystems, Inc.
+ * Copyright 2026 Zoe Knox
  * All rights reserved
  *
  * Redistribution and use in source and binary forms, with or without
@@ -383,4 +384,10 @@ xpc_dictionary_apply(xpc_object_t xdict, xpc_dictionary_applier_t applier)
 	}
 
 	return (true);
+}
+
+xpc_object_t
+xpc_create_from_plist(uint8_t *buf, size_t length)
+{
+    return NULL; /* FIXME: stub */
 }

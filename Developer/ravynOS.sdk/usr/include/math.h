@@ -57,10 +57,9 @@
 #define M_PI        3.14159265358979323846
 
 #ifndef __cplusplus
-#ifdef bool
-#undef bool
+#ifndef bool
+typedef _Bool bool;
 #endif
-typedef int bool;
 #endif
 
 #ifndef __cplusplus

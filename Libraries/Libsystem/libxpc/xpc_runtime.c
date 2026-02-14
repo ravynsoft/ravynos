@@ -1,5 +1,5 @@
 /**
- * xpc/private.h
+ * xpc_runtime.c
  * Author: Zoe Knox      Created: 2026-02-14
  *
  * Copyright (C) 2026 Zoe Knox. All rights reserved.
@@ -24,40 +24,12 @@
  * THE SOFTWARE.
  */
 
-#ifndef __XPC_PRIVATE_H__
-#define __XPC_PRIVATE_H__
+#include "xpc/private.h"
 
-#include <xpc/launchd.h>
-
-/**
- * @function _xpc_runtime_is_app_sandboxed
- *
- * @abstract
- * Returns `true` if the runtime is currently sandboxed. In ravynOS, this
- * function currently always returns `false`.
- *
- * @discussion
- * This is a private API. It is used in libcopyfile and ...?
- */
-XPC_EXPORT
 bool
-_xpc_runtime_is_app_sandboxed(void);
-
-
-/**
- * @function xpc_create_from_plist
- *
- * @abstract
- * Accepts the serialized plist blob given by `buf` and `length`, and returns
- * an equivalent XPC_DICTIONARY object.
- *
- * @param buf Pointer to start of plist data
- * @param length Length of plist data in bytes
- *
- * @return xpc_object_t The converted plist
- */
-XPC_EXPORT
-xpc_object_t
-xpc_create_from_plist(uint8_t *buf, size_t length);
-
-#endif /* __XPC_PRIVATE_H__ */
+_xpc_runtime_is_app_sandboxed(void)
+{
+    /* Just here to satisfy the linker. This will always return false
+     * until we implement AppSandbox.framework */
+    return false;
+}
