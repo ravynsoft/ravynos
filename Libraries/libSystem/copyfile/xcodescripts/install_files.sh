@@ -9,8 +9,8 @@ function InstallManPages() {
 	for MANPAGE in "$@"; do
 		SECTION=`basename "${MANPAGE/*./}"`
 		MANDIR="$DSTROOT"/usr/share/man/man"$SECTION"
-		install -d -o "$INSTALL_OWNER" -g "$INSTALL_GROUP" -m 0755 "$MANDIR"
-		install -o "$INSTALL_OWNER" -g "$INSTALL_GROUP" -m 0444 "$MANPAGE" "$MANDIR"
+		install -d  -m 0755 "$MANDIR"
+		install -m 0444 "$MANPAGE" "$MANDIR"
 	done
 }
 
@@ -20,7 +20,7 @@ function LinkManPages() {
 	MANDIR="$DSTROOT"/usr/share/man/man"$SECTION"
 	shift
 	for LINK in "$@"; do
-		ln -hf "$MANDIR/$MANPAGE" "$MANDIR/$LINK"
+		ln -f "$MANDIR/$MANPAGE" "$MANDIR/$LINK"
 	done
 }
 
@@ -37,4 +37,3 @@ LinkManPages    xattr_name_with_flags.3 \
 	xattr_name_without_flags.3 \
 	xattr_flags_from_name.3 \
 	xattr_intent_with_flags.3
-

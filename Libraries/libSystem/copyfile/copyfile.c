@@ -54,9 +54,15 @@
 
 #include <TargetConditionals.h>
 #if !TARGET_OS_IPHONE
+#ifndef NO_QUARANTINE
 #include <quarantine.h>
+#endif
 
+#ifdef NO_QUARANTINE
+#define	XATTR_QUARANTINE_NAME ""
+#else
 #define	XATTR_QUARANTINE_NAME qtn_xattr_name
+#endif
 #else /* TARGET_OS_IPHONE */
 #define qtn_file_t void *
 #define QTN_SERIALIZED_DATA_MAX 0
@@ -116,7 +122,11 @@ struct _copyfile_state
 	uint32_t debug;
 	copyfile_callback_t	statuscb;
 	void	*ctx;
+#ifdef NO_QUARANTINE
+    void *qinfo;
+#else
 	qtn_file_t qinfo;	/* Quarantine information -- probably NULL */
+#endif
 	filesec_t original_fsec;
 	filesec_t permissive_fsec;
 	off_t totalCopied;
@@ -347,6 +357,9 @@ static int copyfile_quarantine(copyfile_state_t);
 
 static int copyfile_quarantine(copyfile_state_t s)
 {
+#ifdef NO_QUARANTINE
+    return 0;
+#else
 	int rv = 0;
 	if (s->qinfo == NULL)
 	{
@@ -367,6 +380,7 @@ static int copyfile_quarantine(copyfile_state_t s)
 	}
 done:
 	return rv;
+#endif
 }
 
 static int
@@ -1355,6 +1369,7 @@ static int copyfile_internal(copyfile_state_t s, copyfile_flags_t flags)
 	 * to apply it to dst_fd.  We don't care if
 	 * it fails, not yet anyway.
 	 */
+#ifndef NO_QUARANTINE
 	if (s->qinfo)
 	{
 		int qr;
@@ -1400,6 +1415,7 @@ static int copyfile_internal(copyfile_state_t s, copyfile_flags_t flags)
 			}
 		}
 	}
+#endif
 
 	/*
 	 * COPYFILE_XATTR tells us to copy the extended attributes;
@@ -1504,8 +1520,10 @@ int copyfile_state_free(copyfile_state_t s)
 		if (s->permissive_fsec)
 			filesec_free(s->permissive_fsec);
 
+#ifndef NO_QUARANTINE
 		if (s->qinfo)
 			qtn_file_free(s->qinfo);
+#endif
 
 		if (copyfile_close(s) < 0)
 		{
@@ -1952,7 +1970,9 @@ static copyfile_flags_t copyfile_check(copyfile_state_t s)
 	acl_t acl = NULL;
 	copyfile_flags_t ret = 0;
 	int nofollow = (s->flags & COPYFILE_NOFOLLOW_SRC);
+#ifndef NO_QUARANTINE
 	qtn_file_t qinfo;
+#endif
 
 	if (!s->src)
 	{
@@ -1980,7 +2000,7 @@ static copyfile_flags_t copyfile_check(copyfile_state_t s)
 
 	if (acl)
 		acl_free(acl);
-
+#ifndef NO_QUARANTINE
 	if (s->qinfo) {
 		/* If the state has had quarantine info set already, we use that */
 		ret |= ((s->flags & COPYFILE_XATTR) ? COPYFILE_XATTR : COPYFILE_ACL);
@@ -2024,6 +2044,7 @@ static copyfile_flags_t copyfile_check(copyfile_state_t s)
 			ret |= qret;
 		}
 	}
+#endif
 	return ret;
 }
 
@@ -3067,7 +3088,11 @@ int copyfile_state_get(copyfile_state_t s, uint32_t flag, void *ret)
 			*(char**)ret = s->dst;
 			break;
 		case COPYFILE_STATE_QUARANTINE:
+#ifdef NO_QUARANTINE
+            ret = NULL;
+#else
 			*(qtn_file_t*)ret = s->qinfo;
+#endif
 			break;
 #if 0
 		case COPYFILE_STATE_STATS:
@@ -3148,6 +3173,9 @@ int copyfile_state_set(copyfile_state_t s, uint32_t flag, const void * thing)
 			copyfile_set_string(s->dst, thing);
 			break;
 		case COPYFILE_STATE_QUARANTINE:
+#ifdef NO_QUARANTINE
+            s->qinfo = NULL;
+#else
 			if (s->qinfo)
 			{
 				qtn_file_free(s->qinfo);
@@ -3155,6 +3183,7 @@ int copyfile_state_set(copyfile_state_t s, uint32_t flag, const void * thing)
 			}
 			if (*(qtn_file_t*)thing)
 				s->qinfo = qtn_file_clone(*(qtn_file_t*)thing);
+#endif
 			break;
 #if 0
 		case COPYFILE_STATE_STATS:
@@ -3818,6 +3847,7 @@ static int copyfile_unpack(copyfile_state_t s)
 
 			if (strcmp((char*)entry->name, XATTR_QUARANTINE_NAME) == 0)
 			{
+#ifndef NO_QUARANTINE
 				qtn_file_t tqinfo = NULL;
 
 				if (s->qinfo == NULL)
@@ -3863,6 +3893,7 @@ static int copyfile_unpack(copyfile_state_t s)
 				{
 					qtn_file_free(tqinfo);
 				}
+#endif
 			}
 			/* Look for ACL data */
 			else if (strcmp((char*)entry->name, XATTR_SECURITY_NAME) == 0)
@@ -4211,6 +4242,7 @@ exit:
 static int copyfile_pack_quarantine(copyfile_state_t s, void **buf, ssize_t *len)
 {
 	int ret = 0;
+#ifndef NO_QUARANTINE
 	char qbuf[QTN_SERIALIZED_DATA_MAX];
 	size_t qlen = sizeof(qbuf);
 
@@ -4233,6 +4265,7 @@ static int copyfile_pack_quarantine(copyfile_state_t s, void **buf, ssize_t *len
 		*len = qlen;
 	}
 done:
+#endif
 	return ret;
 }
 

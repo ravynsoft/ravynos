@@ -50,6 +50,8 @@ add_subdirectory(libsystem_m)
 add_subdirectory(libxpc)
 add_subdirectory(libdispatch)
 add_subdirectory(liblaunch)
+add_subdirectory(removefile)
+add_subdirectory(copyfile)
 
 target_include_directories(libSystem PRIVATE
     libsystem_c/darwin ../../Kernel/xnu/EXTERNAL_HEADERS
@@ -80,6 +82,8 @@ add_dependencies(libsystem_malloc libsystem_platform CrashReporterClient)
 add_dependencies(libsystem_platform compiler_rt libkernel)
 add_dependencies(libplatform libkernel)
 add_dependencies(libsystem_darwin libdyld libsystem_c)
+add_dependencies(removefile libsystem_darwin)
+add_dependencies(copyfile libsystem_darwin)
 add_dependencies(libxpc libsystem_darwin)
 add_dependencies(dispatch libsystem_darwin)
 add_dependencies(liblaunch libxpc)
@@ -89,7 +93,7 @@ add_dependencies(libsystem_m libsystem_platform)
 add_dependencies(libSystem 
     libsystem_c libsystem_malloc libsystem_pthread libsystem_platform libdyld
     libxpc dispatch libsystem_blocks liblaunch CrashReporterClient libsystem_m
-    libsystem_notify libsystem_info #libcommonCrypto
+    libsystem_notify libsystem_info copyfile removefile #libcommonCrypto
 )
 add_dependencies(xnu libSystem)
 
