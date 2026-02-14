@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdatomic.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <pwd.h>
@@ -280,7 +281,7 @@ typedef struct si_mod_s
 {
 	char *name;
 	uint32_t vers;
-	int32_t refcount;
+	_Atomic(int32_t) refcount;
 	uint32_t flags;
 
 	void *bundle;

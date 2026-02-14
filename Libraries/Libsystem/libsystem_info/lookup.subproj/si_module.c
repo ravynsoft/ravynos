@@ -63,7 +63,7 @@ typedef struct si_async_workunit_s
 	uint32_t err;
 	/* async support below */
 	uint32_t flags;
-	int32_t refcount;
+	_Atomic(int32_t) refcount;
 	void *callback;
 	void *context;
 	mach_port_t port;
@@ -265,7 +265,7 @@ si_module_retain(si_mod_t *si)
 	if (si == NULL) return NULL;
 	if (si->flags & SI_MOD_FLAG_STATIC) return si;
 
-	OSAtomicIncrement32Barrier(&si->refcount);
+	atomic_fetch_add(&si->refcount, 1);
 
 	return si;
 }
@@ -279,7 +279,7 @@ si_module_release(si_mod_t *si)
 	if (si == NULL) return;
 	if (si->flags & SI_MOD_FLAG_STATIC) return;
 
-	i = OSAtomicDecrement32Barrier(&si->refcount);
+	i = atomic_fetch_sub(&si->refcount, 1);
 	if (i > 0) return;
 
 	pthread_mutex_lock(&module_mutex);
@@ -1038,7 +1038,7 @@ si_async_workunit_release(si_async_workunit_t *r)
 {
 	if (r == NULL) return;
 
-	if (OSAtomicDecrement32Barrier(&(r->refcount)) != 0) return;
+	if (atomic_fetch_sub(&(r->refcount), 1) != 0) return;
 
 #ifdef CALL_TRACE
 	fprintf(stderr, "** %s freeing worklist item %p\n", __func__, r);
@@ -1090,7 +1090,7 @@ si_async_launchpad(si_async_workunit_t *r)
 	 * Otherwise, setting it here prevents si_async_cancel from cancelling:
 	 * too late to cancel now!
 	 */
-	if (OSAtomicTestAndSetBarrier(WORKUNIT_CANCELLED_BIT_ADDRESS, &(r->flags)) == 1)
+	if (atomic_fetch_or((_Atomic(uint32_t) *)&(r->flags), WORKUNIT_CANCELLED_BIT_ADDRESS) == 1)
 	{
 		si_async_workunit_release(r);
 #ifdef CALL_TRACE
@@ -1179,7 +1179,7 @@ si_async_cancel(mach_port_t p)
 	 * Test and set the WORKUNIT_CANCELLED flag.
 	 * If it was already set, this work item has been executed - too late to really cancel.
 	 */
-	if (OSAtomicTestAndSetBarrier(WORKUNIT_CANCELLED_BIT_ADDRESS, &(r->flags)) == 1)
+	if (atomic_fetch_or((_Atomic(uint32_t) *)&(r->flags), WORKUNIT_CANCELLED_BIT_ADDRESS) == 1)
 	{
 		/* already executed */
 #ifdef CALL_TRACE
