@@ -121,11 +121,15 @@ set(CFLAGS -DPRIVATE -D__APPLE__ -fblocks -fno-common -DDISPATCH_USE_DTRACE=0 -D
     -I${CMAKE_CURRENT_SOURCE_DIR}/../liblaunch
     -I${CMAKE_CURRENT_SOURCE_DIR}/../libsystem_notify
     -I${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch/private
+    -I${CMAKE_CURRENT_SOURCE_DIR}/../libresolv
+    -I${CMAKE_CURRENT_SOURCE_DIR}/../../openbsm
     -I${ROOT_SOURCE_DIR}/BSD/usr.sbin/mDNSResponder/mDNSShared
     -I${ROOT_SOURCE_DIR}/BSD/usr.sbin/configd/dnsinfo
     -I${ROOT_SOURCE_DIR}/BSD/sbin/launchd
     -I${RAVYN_SDKROOT}/usr/include/arpa
     -I${RAVYN_SDKROOT}/usr/local/include/kernel
+    -I${ROOT_SOURCE_DIR}/Kernel/xnu/libkern
+    -I${RAVYN_SDKROOT}/System/Library/Frameworks/System.framework/Versions/B/PrivateHeaders
 )
 
 set(MIG_FLAGS ${CFLAGS} -D__MigTypeCheck)
@@ -133,15 +137,14 @@ set(MIG_FLAGS ${CFLAGS} -D__MigTypeCheck)
 target_compile_options(libsystem_info PRIVATE
     ${CFLAGS} -Wno-int-conversion -Wno-implicit-int
     $<$<COMPILE_LANGUAGE:ASM>:-x assembler-with-cpp>
-    "-include${RAVYN_SDKROOT}/usr/include/xpc/xpc.h"
-    "-include${RAVYN_SDKROOT}/usr/include/xpc/launchd.h")
+)
 
 target_link_options(libsystem_info PRIVATE
     -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib -umbrella System
     -L${RAVYN_SDKROOT}/usr/lib -L${RAVYN_SDKROOT}/usr/lib/system
     -Wl,-all_load -Wl,-current_version,${PROD_VERSION} -Wl,-compatibility_version,1
     -Wl,-install_name,/usr/lib/system/libsystem_info.dylib
-    -mmacos-version-min=${MACOS_VERSION_MIN})
+    -mmacos-version-min=${MACOS_VERSION_MIN} -Wl,-flat_namespace -Wl,-undefined,warning)
 
 add_dependencies(libsystem_info libsystem_darwin dispatch)
 add_custom_command(TARGET libsystem_info POST_BUILD
