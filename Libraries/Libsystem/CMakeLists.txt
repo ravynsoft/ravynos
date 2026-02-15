@@ -93,7 +93,7 @@ add_dependencies(libsystem_m libsystem_platform)
 add_dependencies(libSystem 
     libsystem_c libsystem_malloc libsystem_pthread libsystem_platform libdyld
     libxpc dispatch libsystem_blocks liblaunch CrashReporterClient libsystem_m
-    libsystem_notify libsystem_info copyfile removefile #libcommonCrypto
+    libsystem_notify libsystem_info# copyfile removefile #libcommonCrypto
 )
 add_dependencies(xnu libSystem)
 
@@ -134,7 +134,8 @@ target_link_options(libSystem PRIVATE
     -Wl,-reexport-lsystem_kernel -Wl,-reexport-lcompiler_rt
     -Wl,-reexport-lunwind -Wl,-reexport-ldyld -Wl,-reexport-lxpc
     -Wl,-reexport-llaunch -Wl,-reexport-ldispatch -Wl,-reexport-lsystem_m
-    -Wl,-reexport-lsystem_notify -Wl,-reexport-lsystem_info
+    -Wl,-reexport-lsystem_notify -Wl,-reexport-lsystem_info #-Wl,-reexport-lcopyfile
+    #-Wl,-reexport-lremovefile
     #-lsystem_c -lsystem_malloc -lsystem_platform -lsystem_pthread -lsystem_darwin
     #-lsystem_kernel -lcompiler_rt -ldyld -lc++ -lCrashReporterClient
 )

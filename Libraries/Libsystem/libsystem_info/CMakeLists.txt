@@ -110,7 +110,7 @@ set_target_properties(libsystem_info PROPERTIES
     OUTPUT_NAME "system_info" SUFFIX ".dylib" PREFIX "lib" NO_SONAME true)
 
 set(CFLAGS -DPRIVATE -D__APPLE__ -fblocks -fno-common -DDISPATCH_USE_DTRACE=0 -DINET6
-    -D__DARWIN_NON_CANCELABLE -DCONFIG_MAC -DSYNTH_ROOTFS # -DDS_AVAILABLE -- zoe 2/11/26 Put this back once we have DirectoryServices
+    -D__DARWIN_NON_CANCELABLE -DCONFIG_MAC -DSYNTH_ROOTFS # -DDS_AVAILABLE -- zoe 2/11/26 Put this back once we have DirectoryService
     --sysroot=${RAVYN_SDKROOT} -mmacos-version-min=${MACOS_VERSION_MIN}
     -I${CMAKE_CURRENT_SOURCE_DIR}
     -I${CMAKE_CURRENT_SOURCE_DIR}/Libinfo
@@ -143,8 +143,10 @@ target_link_options(libsystem_info PRIVATE
     -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib -umbrella System
     -L${RAVYN_SDKROOT}/usr/lib -L${RAVYN_SDKROOT}/usr/lib/system
     -Wl,-all_load -Wl,-current_version,${PROD_VERSION} -Wl,-compatibility_version,1
-    -Wl,-install_name,/usr/lib/system/libsystem_info.dylib
-    -mmacos-version-min=${MACOS_VERSION_MIN} -Wl,-flat_namespace -Wl,-undefined,warning)
+    -Wl,-install_name,/usr/lib/system/libsystem_info.dylib -lsystem_c -lxpc
+    -lsystem_blocks -lsystem_malloc -lsystem_platform -lsystem_kernel
+    -mmacos-version-min=${MACOS_VERSION_MIN} -Wl,-flat_namespace #-Wl,-undefined,warning
+    )
 
 add_dependencies(libsystem_info libsystem_darwin dispatch)
 add_custom_command(TARGET libsystem_info POST_BUILD

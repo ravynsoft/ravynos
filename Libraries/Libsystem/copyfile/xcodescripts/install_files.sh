@@ -5,18 +5,11 @@ set -e -x
 if [ "$ACTION" = installhdrs ]; then exit 0; fi
 if [ "${PLATFORM_NAME/iphone/}" != "${PLATFORM_NAME}" ]; then exit 0; fi
 
-# open source plist
-OSV="$DSTROOT"/usr/local/OpenSourceVersions
-OSL="$DSTROOT"/usr/local/OpenSourceLicenses
-mkdir -p -m 0755 "$OSV" "$OSL"
-install -m 0444 removefile.plist "$OSV"
-install -m 0444 LICENSE "$OSL"/removefile.txt
-
 function InstallManPages() {
 	for MANPAGE in "$@"; do
 		SECTION=`basename "${MANPAGE/*./}"`
 		MANDIR="$DSTROOT"/usr/share/man/man"$SECTION"
-		install -d -m 0755 "$MANDIR"
+		install -d  -m 0755 "$MANDIR"
 		install -m 0444 "$MANPAGE" "$MANDIR"
 	done
 }
@@ -31,13 +24,16 @@ function LinkManPages() {
 	done
 }
 
-InstallManPages removefile.3
-LinkManPages removefile.3 \
-	removefile_state_alloc.3 \
-	removefile_state_free.3 \
-	removefile_state_get.3 \
-	removefile_state_set.3
+#InstallManPages copyfile.3
+LinkManPages copyfile.3 \
+	fcopyfile.3 \
+	copyfile_state_alloc.3 \
+	copyfile_state_free.3 \
+	copyfile_state_get.3 \
+	copyfile_state_set.3
 
-InstallManPages checkint.3 
-LinkManPages checkint.3 \
-	check_{,u}int{32,64}_{add,sub,mul,div}.3
+#InstallManPages xattr_name_with_flags.3
+LinkManPages    xattr_name_with_flags.3 \
+	xattr_name_without_flags.3 \
+	xattr_flags_from_name.3 \
+	xattr_intent_with_flags.3

@@ -93,4 +93,3 @@ lockf(int filedes, int function, off_t size)
 	return (__fcntl_nocancel(filedes, cmd, &fl));
 #endif /* VARIANT_CANCELABLE */
 }
-
