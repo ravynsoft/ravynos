@@ -7,21 +7,22 @@
 #
 # How this should work:
 #  - Base, Platform, FreeBSD, NetBSD, TRE, FortifySource are built as
-#    `ar` archives in normal and static variants (`libX_normal.a` and
-#    `libX_static.a`) with differing compiler flags. These are the big
-#    archives with most of the libc code.
+#    `ar` archives for a standard config. These are the big archives with
+#    most of the libc code.
 #  - vCancelable, vDarwinExtsn, vDarwinExtsnCancelable, vPre1050, vLegacy,
 #    vInode32 are built as `ar` archives with differing compiler flags
 #    (most notably the -DVARIANT_xxx flag). These are small archives with
-#    only a few .c files each.
+#    only a few .c files each. They provide variants of certain functions,
+#    identified by a suffix like `$NOCANCEL` or `$DARWIN_EXTSN`.
 #  - libc_static.a is created from the static variant archives and a few
 #    additional source files. This goes in /usr/local/lib/system/libc.a
 #    and a symlink is created from /usr/local/lib/loaderd/libc.a.
 # - libc_dyld.a is created and installed to /usr/local/lib/dyld/libc.a
-# - Finally, certain variant archives are combined into libsystem_c.dylib.
-#   This ends up in /usr/lib/libsystem and is part of libSystem.dylib.
+# - Finally, certain static and variant archives are combined into
+#   libsystem_c.dylib. This ends up in /usr/lib/libsystem and is part of
+#   libSystem.dylib.
 #
-# !! Note that the two libc.a's above are completely different archives!
+# !! Note that the two libc.a's above are completely different archives !!
 #-----------------------------------------------------------------------------
 
 # FIXME: This badly needs to be refactored now that we understand the layers
@@ -34,7 +35,8 @@ set(CMAKE_CURRENT_SOURCE_DIR ${ROOT_SOURCE_DIR}/Libraries/Libsystem/libsystem_c)
 
 # Settings common to all targets
 add_compile_definitions(
-    __LIBC__ _FORTIFY_SOURCE=0	PR_13085474_CHECK=0 # Remove this once dyld is built!
+    __LIBC__ _FORTIFY_SOURCE=0 PR_13085474_CHECK=0 # Remove this once dyld is built!
+    __DARWIN_UNIX03 __DARWIN_64_BIT_INO_T __DARWIN_NON_CANCELABLE __DARWIN_VERS_1050
 )
 add_compile_options(
     --target=${CpuArch}-apple-darwin -std=gnu11 -isysroot${RAVYN_SDKROOT} -w
@@ -59,40 +61,7 @@ add_library(libsystem_c SHARED
 set_target_properties(libsystem_c PROPERTIES
 	OUTPUT_NAME "c" SUFFIX ".dylib" PREFIX "libsystem_" NO_SONAME true)
 
-#-----------------------------------------------------------------------------
-# Macros and functions
-#-----------------------------------------------------------------------------
-
-function(add_variants name)
-    cmake_parse_arguments(SL "" "" "VARIANTS;SOURCES;COMPILE_OPTIONS;COMPILE_DEFINITIONS;INCLUDE_DIRS" ${ARGN})
-
-    add_library(${name} STATIC)
-    set_target_properties(${name} PROPERTIES PREFIX "lib" OUTPUT_NAME "${name}")
-    add_dependencies(${name} xnu_headers features)
-    target_sources(${name} PRIVATE ${SL_SOURCES})
-    target_compile_options(${name} PRIVATE
-        -mmacos-version-min=${MACOS_VERSION_MIN} -UBUILDING_VARIANT ${SL_COMPILE_OPTIONS})
-    target_compile_definitions(${name} PRIVATE ${SL_COMPILE_DEFINITIONS})
-    target_include_directories(${name} PRIVATE ${SL_INCLUDE_DIRS})
-    target_link_options(${name} PRIVATE -mmacos-version-min=${MACOS_VERSION_MIN})
-
-    foreach(variant IN LISTS SL_VARIANTS)
-        add_library("${name}_${variant}" STATIC)
-        set_target_properties("${name}_${variant}" PROPERTIES PREFIX "lib" OUTPUT_NAME "${name}_${variant}")
-        add_dependencies("${name}_${variant}" xnu_headers)
-        target_sources("${name}_${variant}" PRIVATE ${SL_SOURCES})
-        target_compile_definitions("${name}_${variant}" PRIVATE ${SL_COMPILE_DEFINITIONS})
-        target_compile_options("${name}_${variant}" PRIVATE
-            -mmacos-version-min=${MACOS_VERSION_MIN} -DVARIANT_${variant} ${SL_COMPILE_OPTIONS})
-        target_include_directories("${name}_${variant}" PRIVATE ${SL_INCLUDE_DIRS})
-        target_link_options("${name}_${variant}" PRIVATE -mmacos-version-min=${MACOS_VERSION_MIN})
-        add_dependencies(${name} "${name}_${variant}")
-    endforeach()
-
-    add_dependencies(libsystem_c ${name})
-endfunction()
-
-
+# Generate features.h
 add_custom_target(features DEPENDS xnu_headers
 	COMMAND env "ARCHS=${CpuArch} " VARIANT_PLATFORM_NAME=macosx
 		DERIVED_FILES_DIR=${ROOT_BINARY_DIR}
@@ -113,124 +82,122 @@ add_custom_target(features DEPENDS xnu_headers
 # libBase.a
 #-----------------------------------------------------------------------------
 set(CMAKE_CURRENT_SOURCE_DIR ${ROOT_SOURCE_DIR}/Libraries/Libsystem/libsystem_c)
-add_variants(Base
-    VARIANTS STATIC
-    SOURCES
-        emulated/lchflags.c
-        emulated/lchmod.c
-        emulated/lutimes.c
-        emulated/statvfs.c
-        gen/backtrace.c
-        gen/clock_gettime.c
-        gen/confstr.c
-        gen/crypt.c
-        gen/devname.c
-        gen/disklabel.c
-        gen/errlst.c
-        gen/filesec.c
-        gen/fts.c
-        gen/get_compat.c
-        gen/getloadavg.c
-        gen/getttyent.c
-        gen/getusershell.c
-        gen/getvfsbyname.c
-        darwin/atexit_receipt.c
-        gen/nftw.c
-        gen/setlogin.c
-        gen/sigsetops.c
-        gen/strtofflags.c
-        gen/thread_stack_pcs.c
-        gen/uname.c
-        gen/utmpx-darwin.c
-        os/debug_private.c
-        gmon/gmon.c
-        locale/isctype.c
-        string/bcopy.c
-        locale/iswctype.c
-        locale/xlocale.c
-        posix1e/acl.c
-        posix1e/acl_entry.c
-        posix1e/acl_file.c
-        posix1e/acl_flag.c
-        posix1e/acl_perm.c
-        posix1e/acl_translate.c
-        stdtime/getdate.c
-        stdtime/timezone_unix03.c
-        stdio/xprintf_all_in_one.c
-        stdio/xprintf_comp.c
-        stdio/xprintf_domain.c
-        stdio/xprintf_exec.c
-        util/fparseln.c
-        util/login_tty.c
-        util/logwtmp.c
-        util/mkpath_np.c
-        gen/raise.c
-        util/opendev.c
-        util/pty.c
-        uuid/uuidsrc/clear.c
-        uuid/uuidsrc/compare.c
-        uuid/uuidsrc/copy.c
-        uuid/uuidsrc/gen_uuid.c
-        uuid/uuidsrc/isnull.c
-        uuid/uuidsrc/pack.c
-        uuid/uuidsrc/parse.c
-        uuid/uuidsrc/unpack.c
-        uuid/uuidsrc/unparse.c
-        emulated/tcgetsid.c
-        sys/_libc_init.c
-        sys/_libc_fork_child.c
-        sys/chmodx_np.c
-        sys/crt_externs.c
-        sys/fork.c
-        sys/gettimeofday.c
-        sys/openx_np.c
-        sys/posix_spawn.c
-        sys/settimeofday.c
-        sys/sigaction.c
-        sys/statx_np.c
-        sys/umaskx_np.c
-        locale/frune.c
-        locale/mbrune.c
-        locale/runedepreciated.c
-        locale/setinvalidrune.c
-        util/login.c
-        util/logout.c
-        gen/nlist.c
-        sys/OSThermalNotification.c
-        string/stpcpy.c
-        string/stpncpy.c
-        string/strcat.c
-        string/strncat.c
-        gen/sync_volume_np.c
-        gen/dirfd.c
-        os/assumes.c
-    INCLUDE_DIRS
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
-        ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/bsd
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/mach
-        ${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat
-        ${CMAKE_CURRENT_SOURCE_DIR}/gdtoa
-        ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
-        ${CMAKE_CURRENT_SOURCE_DIR}/../private
-        ${CMAKE_CURRENT_SOURCE_DIR}/../libsystem_info/membership.subproj
-        ${CMAKE_CURRENT_SOURCE_DIR}/../libsystem_info/lookup.subproj
-        ${CMAKE_CURRENT_SOURCE_DIR}/../libsystem_notify
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern
-        ${ROOT_SOURCE_DIR}/Libraries/Libsystem/private
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/wrappers/spawn
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern
-        ${SDK_SOURCE_DIR}/usr/include
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS
-    COMPILE_OPTIONS
-        -DPRIVATE
-        -Wimplicit-fallthrough -Wno-unknown-pragmas -Wno-assume
-        -Wformat-nonliteral -Wno-vla-extension -Wundef-prefix=SUPPORT_
-        "-include${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat/_fbsd_compat_.h"
-    COMPILE_DEFINITIONS
-        __DARWIN_NON_CANCELABLE __DARWIN_UNIX03 __DARWIN_64_BIT_INO_T __DARWIN_VERS_1050
-        HAVE_STDINT_H
-)
+add_library(Base STATIC
+    emulated/lchflags.c
+    emulated/lchmod.c
+    emulated/lutimes.c
+    emulated/statvfs.c
+    gen/backtrace.c
+    gen/clock_gettime.c
+    gen/confstr.c
+    gen/crypt.c
+    gen/devname.c
+    gen/disklabel.c
+    gen/errlst.c
+    gen/filesec.c
+    gen/fts.c
+    gen/get_compat.c
+    gen/getloadavg.c
+    gen/getttyent.c
+    gen/getusershell.c
+    gen/getvfsbyname.c
+    darwin/atexit_receipt.c
+    gen/nftw.c
+    gen/setlogin.c
+    gen/sigsetops.c
+    gen/strtofflags.c
+    gen/thread_stack_pcs.c
+    gen/uname.c
+    gen/utmpx-darwin.c
+    os/debug_private.c
+    gmon/gmon.c
+    locale/isctype.c
+    string/bcopy.c
+    locale/iswctype.c
+    locale/xlocale.c
+    posix1e/acl.c
+    posix1e/acl_entry.c
+    posix1e/acl_file.c
+    posix1e/acl_flag.c
+    posix1e/acl_perm.c
+    posix1e/acl_translate.c
+    stdtime/getdate.c
+    stdtime/timezone_unix03.c
+    stdio/xprintf_all_in_one.c
+    stdio/xprintf_comp.c
+    stdio/xprintf_domain.c
+    stdio/xprintf_exec.c
+    util/fparseln.c
+    util/login_tty.c
+    util/logwtmp.c
+    util/mkpath_np.c
+    gen/raise.c
+    util/opendev.c
+    util/pty.c
+    uuid/uuidsrc/clear.c
+    uuid/uuidsrc/compare.c
+    uuid/uuidsrc/copy.c
+    uuid/uuidsrc/gen_uuid.c
+    uuid/uuidsrc/isnull.c
+    uuid/uuidsrc/pack.c
+    uuid/uuidsrc/parse.c
+    uuid/uuidsrc/unpack.c
+    uuid/uuidsrc/unparse.c
+    emulated/tcgetsid.c
+    sys/_libc_init.c
+    sys/_libc_fork_child.c
+    sys/chmodx_np.c
+    sys/crt_externs.c
+    sys/fork.c
+    sys/gettimeofday.c
+    sys/openx_np.c
+    sys/posix_spawn.c
+    sys/settimeofday.c
+    sys/sigaction.c
+    sys/statx_np.c
+    sys/umaskx_np.c
+    locale/frune.c
+    locale/mbrune.c
+    locale/runedepreciated.c
+    locale/setinvalidrune.c
+    util/login.c
+    util/logout.c
+    gen/nlist.c
+    sys/OSThermalNotification.c
+    string/stpcpy.c
+    string/stpncpy.c
+    string/strcat.c
+    string/strncat.c
+    gen/sync_volume_np.c
+    gen/dirfd.c
+    os/assumes.c)
+
+target_include_directories(Base PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/bsd
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/mach
+    ${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat
+    ${CMAKE_CURRENT_SOURCE_DIR}/gdtoa
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
+    ${CMAKE_CURRENT_SOURCE_DIR}/../private
+    ${CMAKE_CURRENT_SOURCE_DIR}/../libsystem_info/membership.subproj
+    ${CMAKE_CURRENT_SOURCE_DIR}/../libsystem_info/lookup.subproj
+    ${CMAKE_CURRENT_SOURCE_DIR}/../libsystem_notify
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern
+    ${ROOT_SOURCE_DIR}/Libraries/Libsystem/private
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/wrappers/spawn
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern
+    ${SDK_SOURCE_DIR}/usr/include
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS)
+
+target_compile_options(Base PRIVATE
+    -DPRIVATE -Wimplicit-fallthrough -Wno-unknown-pragmas -Wno-assume
+    -Wformat-nonliteral -Wno-vla-extension -Wundef-prefix=SUPPORT_
+    "-include${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat/_fbsd_compat_.h")
+
+target_compile_definitions(Base PRIVATE HAVE_STDINT_H)
+
 set_source_files_properties(./string/bcopy.c TARGET_DIRECTORY Base PROPERTIES COMPILE_OPTIONS "-momit-leaf-frame-pointer")
 set_source_files_properties(./stdio/xprintf_all_in_one.c TARGET_DIRECTORY Base PROPERTIES COMPILE_OPTIONS "-I${CMAKE_CURRENT_SOURCE_DIR}/stdio/FreeBSD")
 set_source_files_properties(./stdio/xprintf_comp.c TARGET_DIRECTORY Base PROPERTIES COMPILE_OPTIONS "-I${CMAKE_CURRENT_SOURCE_DIR}/stdio/FreeBSD")
@@ -261,17 +228,12 @@ add_dependencies(Platform features)
 if("${CpuArch}" STREQUAL "x86_64")
     target_sources(Platform PRIVATE x86_64/gen/mcount.s)
 endif()
-target_compile_definitions(Platform PRIVATE
-	__DARWIN_NON_CANCELABLE __DARWIN_UNIX03 __DARWIN_64_BIT_INO_T __DARWIN_VERS_1050
-)
 
 #-------------------------------------------------------------------------
 # libFreeBSD.a
 #-------------------------------------------------------------------------
 set(CMAKE_CURRENT_SOURCE_DIR ${ROOT_SOURCE_DIR}/Libraries/Libsystem/libsystem_c)
-add_variants(FreeBSD
-    VARIANTS STATIC
-    SOURCES
+add_library(FreeBSD STATIC
         compat-43/FreeBSD/gethostid.c
         compat-43/FreeBSD/getwd.c
         compat-43/FreeBSD/killpg.c
@@ -279,6 +241,8 @@ add_variants(FreeBSD
         compat-43/FreeBSD/setpgrp.c
         compat-43/FreeBSD/setrgid.c
         compat-43/FreeBSD/setruid.c
+        compat-43/sigcompat.c
+
         db/btree/FreeBSD/bt_close.c
         db/btree/FreeBSD/bt_conv.c
         db/btree/FreeBSD/bt_debug.c
@@ -309,7 +273,8 @@ add_variants(FreeBSD
         db/recno/FreeBSD/rec_search.c
         db/recno/FreeBSD/rec_seq.c
         db/recno/FreeBSD/rec_utils.c
-        string/FreeBSD/timingsafe_bcmp.c
+
+        gdtoa/FreeBSD/_ldtoa.c
         gdtoa/FreeBSD/_hdtoa.c
         gdtoa/FreeBSD/gdtoa-dmisc.c
         gdtoa/FreeBSD/gdtoa-dtoa.c
@@ -328,6 +293,8 @@ add_variants(FreeBSD
         gdtoa/FreeBSD/gdtoa-sum.c
         gdtoa/FreeBSD/gdtoa-ulp.c
         gdtoa/FreeBSD/glue.c
+
+        gen/nanosleep.c
         gen/FreeBSD/_rand48.c
         gen/FreeBSD/alarm.c
         gen/FreeBSD/arc4random.c
@@ -385,6 +352,7 @@ add_variants(FreeBSD
         gen/FreeBSD/sysctl.c
         gen/FreeBSD/sysctlbyname.c
         gen/FreeBSD/sysctlnametomib.c
+        gen/FreeBSD/termios.c
         gen/FreeBSD/telldir.c
         gen/FreeBSD/time.c
         gen/FreeBSD/times.c
@@ -392,10 +360,17 @@ add_variants(FreeBSD
         gen/FreeBSD/ttyslot.c
         gen/FreeBSD/ualarm.c
         gen/FreeBSD/ulimit.c
+        gen/FreeBSD/usleep.c
         gen/FreeBSD/unvis.c
         gen/FreeBSD/utime.c
         gen/FreeBSD/vis.c
         gen/FreeBSD/wait3.c
+        gen/FreeBSD/waitpid.c
+        gen/FreeBSD/wordexp.c
+        gen/FreeBSD/timespec_get.c
+        gen/FreeBSD/scandir_b.c
+        gen/FreeBSD/getmntinfo64.c
+
         locale/FreeBSD/ascii.c
         locale/FreeBSD/big5.c
         locale/FreeBSD/btowc.c
@@ -450,10 +425,12 @@ add_variants(FreeBSD
         locale/FreeBSD/wctrans.c
         locale/FreeBSD/wctype.c
         locale/FreeBSD/wcwidth.c
+        locale/FreeBSD/rune.c
+        locale/FreeBSD/utf2.c
+
         net/FreeBSD/addr2ascii.c
         net/FreeBSD/ascii2addr.c
         net/FreeBSD/inet_addr.c
-        stdio/FreeBSD/open_memstream.c
         net/FreeBSD/inet_lnaof.c
         net/FreeBSD/inet_makeaddr.c
         net/FreeBSD/inet_net_ntop.c
@@ -466,7 +443,16 @@ add_variants(FreeBSD
         net/FreeBSD/nsap_addr.c
         net/FreeBSD/sockatmark.c
         net/FreeBSD/sourcefilter.c
+        net/FreeBSD/recv.c
+        net/FreeBSD/send.c
+        net/inet_ntop.c
+        net/inet_pton.c
+
         nls/FreeBSD/msgcat.c
+
+        regex/FreeBSD/regerror.c
+
+        stdio/FreeBSD/open_memstream.c
         stdio/FreeBSD/_flock_stub.c
         stdio/FreeBSD/asprintf.c
         stdio/FreeBSD/clrerr.c
@@ -517,7 +503,6 @@ add_variants(FreeBSD
         stdio/FreeBSD/makebuf.c
         stdio/FreeBSD/mktemp.c
         stdio/FreeBSD/perror.c
-        string/FreeBSD/rpmatch.c
         stdio/FreeBSD/printf-pos.c
         stdio/FreeBSD/printf.c
         stdio/FreeBSD/putc.c
@@ -565,6 +550,17 @@ add_variants(FreeBSD
         stdio/FreeBSD/wscanf.c
         stdio/FreeBSD/wsetup.c
         stdio/FreeBSD/open_wmemstream.c
+        stdio/FreeBSD/fmemopen.c
+        stdio/FreeBSD/xprintf_errno.c
+        stdio/FreeBSD/xprintf_float.c
+        stdio/FreeBSD/xprintf_hexdump.c
+        stdio/FreeBSD/xprintf_int.c
+        stdio/FreeBSD/xprintf_quote.c
+        stdio/FreeBSD/xprintf_str.c
+        stdio/FreeBSD/xprintf_time.c
+        stdio/FreeBSD/xprintf_vis.c
+        stdio/FreeBSD/xprintf.c
+
         stdtime/FreeBSD/asctime.c
         stdtime/FreeBSD/difftime.c
         stdtime/FreeBSD/ftime.c
@@ -573,6 +569,8 @@ add_variants(FreeBSD
         stdtime/FreeBSD/strptime.c
         stdtime/FreeBSD/time32.c
         stdtime/FreeBSD/timelocal.c
+
+        string/FreeBSD/rpmatch.c
         string/FreeBSD/memmem.c
         string/FreeBSD/rindex.c
         string/FreeBSD/strcasecmp.c
@@ -600,7 +598,6 @@ add_variants(FreeBSD
         string/FreeBSD/wcscmp.c
         string/FreeBSD/wcscoll.c
         string/FreeBSD/wcscpy.c
-        gen/FreeBSD/wordexp.c
         string/FreeBSD/wcscspn.c
         string/FreeBSD/wcsdup.c
         string/FreeBSD/wcslcat.c
@@ -614,7 +611,6 @@ add_variants(FreeBSD
         string/FreeBSD/wcspbrk.c
         string/FreeBSD/wcsrchr.c
         string/FreeBSD/wcsspn.c
-        stdio/FreeBSD/fmemopen.c
         string/FreeBSD/wcsstr.c
         string/FreeBSD/wcstok.c
         string/FreeBSD/wcswidth.c
@@ -624,12 +620,13 @@ add_variants(FreeBSD
         string/FreeBSD/wmemcpy.c
         string/FreeBSD/wmemmove.c
         string/FreeBSD/wmemset.c
-        regex/FreeBSD/regerror.c
-        stdlib/FreeBSD/abort.c
-        locale/FreeBSD/utf2.c
+        string/FreeBSD/timingsafe_bcmp.c
+
         sys/OpenBSD/stack_protector.c
+
         stdlib/a64l.c
         stdlib/FreeBSD/_Exit_.c
+        stdlib/FreeBSD/abort.c
         stdlib/FreeBSD/abs.c
         stdlib/FreeBSD/atexit.c
         stdlib/FreeBSD/atof.c
@@ -673,6 +670,7 @@ add_variants(FreeBSD
         stdlib/FreeBSD/strtoull.c
         stdlib/FreeBSD/strtoumax.c
         stdlib/FreeBSD/strtouq.c
+        stdlib/FreeBSD/system.c
         stdlib/FreeBSD/tdelete.c
         stdlib/FreeBSD/tfind.c
         stdlib/FreeBSD/tsearch.c
@@ -684,34 +682,19 @@ add_variants(FreeBSD
         stdlib/qsort_b.c
         stdlib/FreeBSD/heapsort_b.c
         stdlib/FreeBSD/heapsort_r.c
-        gdtoa/FreeBSD/_ldtoa.c
-        gen/FreeBSD/timespec_get.c
-        locale/FreeBSD/rune.c
         stdlib/FreeBSD/merge_b.c
         stdlib/FreeBSD/psort.c
         stdlib/FreeBSD/psort_b.c
-        stdlib/FreeBSD/psort_r.c
-        gen/FreeBSD/scandir_b.c
-        gen/FreeBSD/getmntinfo64.c
-        net/inet_ntop.c
-        net/inet_pton.c
-        stdio/FreeBSD/xprintf_errno.c
-        stdio/FreeBSD/xprintf_float.c
-        stdio/FreeBSD/xprintf_hexdump.c
-        stdio/FreeBSD/xprintf_int.c
-        stdio/FreeBSD/xprintf_quote.c
-        stdio/FreeBSD/xprintf_str.c
-        stdio/FreeBSD/xprintf_time.c
-        stdio/FreeBSD/xprintf_vis.c
-        stdio/FreeBSD/xprintf.c
-    COMPILE_DEFINITIONS
-        __DARWIN_NON_CANCELABLE __DARWIN_UNIX03 __DARWIN_64_BIT_INO_T __DARWIN_VERS_1050
-        HAVE_STDINT_H __isthreaded
-    COMPILE_OPTIONS
+        stdlib/FreeBSD/psort_r.c)
+
+target_compile_definitions(FreeBSD PRIVATE HAVE_STDINT_H __isthreaded)
+
+target_compile_options(FreeBSD PRIVATE
         "-include${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat/_fbsd_compat_.h"
         "-include${SDK_SOURCE_DIR}/usr/include/os/availability.h"
-        -DPRIVATE -D__ct_rune_t=ct_rune_t -D__va_list=va_list
-    INCLUDE_DIRS
+        -DPRIVATE)
+
+target_include_directories(FreeBSD PRIVATE
         fbsdcompat include
         ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
         ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/bsd
@@ -726,8 +709,8 @@ add_variants(FreeBSD
         ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/wrappers/libproc
         ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern
         ${SDK_SOURCE_DIR}/usr/include ${SDK_SOURCE_DIR}/usr/include/arpa
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS
-)
+        ${ROOT_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS)
+
 if("${CpuArch}" STREQUAL "x86_64")
     target_sources(FreeBSD PRIVATE
         gdtoa/FreeBSD/gdtoa-strtopx.c gdtoa/FreeBSD/machdep_ldisx.c)
@@ -736,6 +719,7 @@ elseif("${CpuArch}" STREQUAL "arm64")
 endif()
 
 set_source_files_properties(./compat-43/FreeBSD/creat.c TARGET_DIRECTORY FreeBSD PROPERTIES COMPILE_OPTIONS "-D__FBSDID=__RCSID")
+set_source_files_properties(./compat-43/sigcompat.c TARGET_DIRECTORY FreeBSD PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_SIGPAUSE")
 set_source_files_properties(./db/btree/FreeBSD/bt_close.c TARGET_DIRECTORY FreeBSD PROPERTIES COMPILE_OPTIONS "-D__DBINTERFACE_PRIVATE")
 set_source_files_properties(./db/btree/FreeBSD/bt_conv.c TARGET_DIRECTORY FreeBSD PROPERTIES COMPILE_OPTIONS "-D__DBINTERFACE_PRIVATE")
 set_source_files_properties(./db/btree/FreeBSD/bt_debug.c TARGET_DIRECTORY FreeBSD PROPERTIES COMPILE_OPTIONS "-D__DBINTERFACE_PRIVATE")
@@ -773,6 +757,7 @@ set_source_files_properties(./gen/FreeBSD/rewinddir.c TARGET_DIRECTORY FreeBSD P
 set_source_files_properties(./gen/FreeBSD/scandir.c TARGET_DIRECTORY FreeBSD PROPERTIES COMPILE_OPTIONS "-include${CMAKE_CURRENT_SOURCE_DIR}/gen/__dirent.h")
 set_source_files_properties(./gen/FreeBSD/seekdir.c TARGET_DIRECTORY FreeBSD PROPERTIES COMPILE_OPTIONS "-include${CMAKE_CURRENT_SOURCE_DIR}/gen/__dirent.h")
 set_source_files_properties(./gen/FreeBSD/telldir.c TARGET_DIRECTORY FreeBSD PROPERTIES COMPILE_OPTIONS "-include${CMAKE_CURRENT_SOURCE_DIR}/gen/__dirent.h")
+set_source_files_properties(./gen/FreeBSD/termios.c TARGET_DIRECTORY FreeBSD PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_TCDRAIN")
 set_source_files_properties(./locale/FreeBSD/collate.c TARGET_DIRECTORY FreeBSD PROPERTIES COMPILE_OPTIONS "-D_DARWIN_UNLIMITED_STREAMS")
 set_source_files_properties(./locale/FreeBSD/setrunelocale.c TARGET_DIRECTORY FreeBSD PROPERTIES COMPILE_OPTIONS "-D_DARWIN_UNLIMITED_STREAMS")
 set_source_files_properties(./sys/OpenBSD/stack_protector.c TARGET_DIRECTORY FreeBSD PROPERTIES COMPILE_OPTIONS "-fno-stack-protector")
@@ -793,88 +778,77 @@ set_source_files_properties(./stdio/FreeBSD/xprintf.c TARGET_DIRECTORY FreeBSD P
 # libNetBSD.a
 #-------------------------------------------------------------------------
 set(CMAKE_CURRENT_SOURCE_DIR ${ROOT_SOURCE_DIR}/Libraries/Libsystem/libsystem_c)
-add_variants(NetBSD
-    VARIANTS STATIC
-    SOURCES
-        gen/NetBSD/utmpx.c
-        stdlib/NetBSD/strfmon.c
-        string/NetBSD/memset_s.c
-        gen/NetBSD/rb.c
-    COMPILE_DEFINITIONS
-        __DARWIN_NON_CANCELABLE __DARWIN_UNIX03 __DARWIN_64_BIT_INO_T __DARWIN_VERS_1050
-        HAVE_STDINT_H rsize_t=__darwin_size_t
-    COMPILE_OPTIONS
-        -include${CMAKE_CURRENT_SOURCE_DIR}/nbsdcompat/_nbsd_compat_.h
-    INCLUDE_DIRS
-        include ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
-        ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/bsd
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/mach
-        ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
-        nbsdcompat ../private
-        ${SDK_SOURCE_DIR}/usr/include ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern
-)
+add_library(NetBSD STATIC
+    gen/NetBSD/utmpx.c
+    stdlib/NetBSD/strfmon.c
+    string/NetBSD/memset_s.c
+    gen/NetBSD/rb.c)
+
+target_compile_definitions(NetBSD PRIVATE HAVE_STDINT_H) # rsize_t=__darwin_size_t
+
+target_compile_options(NetBSD PRIVATE -include${CMAKE_CURRENT_SOURCE_DIR}/nbsdcompat/_nbsd_compat_.h)
+
+target_include_directories(NetBSD PRIVATE
+    include ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/bsd
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/mach
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
+    nbsdcompat ../private
+    ${SDK_SOURCE_DIR}/usr/include ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern)
 
 #-------------------------------------------------------------------------
 # libTRE.a
 #-------------------------------------------------------------------------
-add_variants(TRE
-    VARIANTS STATIC
-    SOURCES
-        regex/TRE/lib/regcomp.c
-        regex/TRE/lib/regexec.c
-        regex/TRE/lib/tre-ast.c
-        regex/TRE/lib/tre-compile.c
-        regex/TRE/lib/tre-match-backtrack.c
-        regex/TRE/lib/tre-match-parallel.c
-        regex/TRE/lib/tre-mem.c
-        regex/TRE/lib/tre-parse.c
-        regex/TRE/lib/tre-stack.c
-    COMPILE_DEFINITIONS
-        __DARWIN_NON_CANCELABLE __DARWIN_UNIX03 __DARWIN_64_BIT_INO_T __DARWIN_VERS_1050
-        HAVE_STDINT_H HAVE_CONFIG_H
-    INCLUDE_DIRS
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
-        ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/bsd
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/mach
-        ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
-        regex/TRE regex/FreeBSD locale/FreeBSD stdtime/FreeBSD ../private
-        ${SDK_SOURCE_DIR}/usr/include ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern
-)
+add_library(TRE STATIC
+    regex/TRE/lib/regcomp.c
+    regex/TRE/lib/regexec.c
+    regex/TRE/lib/tre-ast.c
+    regex/TRE/lib/tre-compile.c
+    regex/TRE/lib/tre-match-backtrack.c
+    regex/TRE/lib/tre-match-parallel.c
+    regex/TRE/lib/tre-mem.c
+    regex/TRE/lib/tre-parse.c
+    regex/TRE/lib/tre-stack.c)
+
+target_compile_definitions(TRE PRIVATE HAVE_STDINT_H HAVE_CONFIG_H)
+
+target_include_directories(TRE PRIVATE
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/bsd
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/mach
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
+    regex/TRE regex/FreeBSD locale/FreeBSD stdtime/FreeBSD ../private
+    ${SDK_SOURCE_DIR}/usr/include ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern)
 
 #-------------------------------------------------------------------------
 # libFortifySource.a
 #-------------------------------------------------------------------------
-add_variants(FortifySource
-    VARIANTS STATIC
-    SOURCES
-        secure/strlcat_chk.c
-        secure/chk_fail.c
-        secure/memset_chk.c
-        secure/strlcpy_chk.c
-        secure/strncat_chk.c
-        secure/strncpy_chk.c
-        secure/memmove_chk.c
-        secure/strcpy_chk.c
-        secure/memccpy_chk.c
-        secure/snprintf_chk.c
-        secure/strcat_chk.c
-        secure/vsprintf_chk.c
-        secure/stpcpy_chk.c
-        secure/sprintf_chk.c
-        secure/memcpy_chk.c
-        secure/stpncpy_chk.c
-        secure/vsnprintf_chk.c
-    COMPILE_DEFINITIONS
-        __DARWIN_NON_CANCELABLE __DARWIN_UNIX03 __DARWIN_64_BIT_INO_T __DARWIN_VERS_1050
-        HAVE_STDINT_H HAVE_CONFIG_H _FORTIFY_SOURCE=1
-    INCLUDE_DIRS
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd ../private
-)
+add_library(FortifySource STATIC
+    secure/strlcat_chk.c
+    secure/chk_fail.c
+    secure/memset_chk.c
+    secure/strlcpy_chk.c
+    secure/strncat_chk.c
+    secure/strncpy_chk.c
+    secure/memmove_chk.c
+    secure/strcpy_chk.c
+    secure/memccpy_chk.c
+    secure/snprintf_chk.c
+    secure/strcat_chk.c
+    secure/vsprintf_chk.c
+    secure/stpcpy_chk.c
+    secure/sprintf_chk.c
+    secure/memcpy_chk.c
+    secure/stpncpy_chk.c
+    secure/vsnprintf_chk.c)
+
+target_compile_definitions(FortifySource PRIVATE HAVE_STDINT_H HAVE_CONFIG_H _FORTIFY_SOURCE=1)
+
+target_include_directories(FortifySource PRIVATE ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd ../private)
 
 #-------------------------------------------------------------------------
 #                          STATIC LIB TARGETS
 #-------------------------------------------------------------------------
-
 
 #-------------------------------------------------------------------------
 # libc_dyld.a (DYLD variant)
@@ -912,11 +886,10 @@ set_property(TARGET libc_dyld PROPERTY OUTPUT_NAME "c_dyld")
 add_dependencies(libc_dyld features)
 target_compile_options(libc_dyld PRIVATE
     "-include${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat/_fbsd_compat_.h"
-    -DPRIVATE -UBUILDING_VARIANT
+    -DPRIVATE -U__DARWIN_NON_CANCELABLE
 )
 target_compile_definitions(libc_dyld PRIVATE
-    VARIANT_STATIC VARIANT_CANCELABLE VARIANT_DARWINEXTSN
-    __DARWIN_NON_CANCELABLE=0 __DARWIN_UNIX03 __DARWIN_64_BIT_INO_T __DARWIN_VERS_1050
+    VARIANT_STATIC VARIANT_CANCELABLE VARIANT_DARWINEXTSN __DARWIN_NON_CANCELABLE=0
 )
 target_include_directories(libc_dyld PRIVATE
     ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/bsd
@@ -972,12 +945,14 @@ if("${CpuArch}" STREQUAL "x86_64")
     target_sources(libc_static PRIVATE x86_64/gen/mcount.s)
 endif()
 set_property(TARGET libc_static PROPERTY OUTPUT_NAME c)
+
 add_dependencies(libc_static features)
-target_compile_options(libc_static PRIVATE -UBUILDING_VARIANT)
+
+target_compile_options(libc_static PRIVATE -UBUILDING_VARIANT -U__DARWIN_NON_CANCELABLE)
+
 target_compile_definitions(libc_static PRIVATE
-    VARIANT_STATIC VARIANT_CANCELABLE VARIANT_DARWINEXTSN
-    __DARWIN_NON_CANCELABLE=0 __DARWIN_UNIX03 __DARWIN_64_BIT_INO_T __DARWIN_VERS_1050
-)
+    VARIANT_STATIC VARIANT_CANCELABLE VARIANT_DARWINEXTSN  __DARWIN_NON_CANCELABLE=0)
+
 target_include_directories(libc_static PRIVATE
     ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/bsd
     ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/mach fbsdcompat gdtoa
@@ -985,14 +960,12 @@ target_include_directories(libc_static PRIVATE
     ../private ../libsystem_info/membership.subproj
     ../libsystem_info/lookup.subproj
     ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
-    ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern
-)
-target_link_options(libc_static PRIVATE -ld-path=${LIBTOOL} -Wl,-static
-    -o libc.a $<TARGET_FILE:Base_STATIC> $<TARGET_FILE:NetBSD_STATIC>
-    $<TARGET_FILE:FortifySource_STATIC> $<TARGET_FILE:FreeBSD_STATIC>
-    $<TARGET_FILE:TRE_STATIC> $<TARGET_FILE:vCancelable_STATIC>
-    $<TARGET_FILE:vDarwinExtsn_STATIC>
-)
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern)
+
+target_link_options(libc_static PRIVATE -ld-path=${LIBTOOL} -Wl,-static -o libc.a
+    $<TARGET_FILE:Base> $<TARGET_FILE:NetBSD> $<TARGET_FILE:FortifySource>
+    $<TARGET_FILE:FreeBSD> $<TARGET_FILE:TRE>
+    $<TARGET_FILE:vCancelable> $<TARGET_FILE:vDarwinExtsn>)
 
 add_custom_command(TARGET libc_static POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${RAVYN_SDKROOT}/usr/local/lib/system
@@ -1012,45 +985,45 @@ add_custom_command(TARGET libc_static POST_BUILD
 #-------------------------------------------------------------------------
 
 set(CMAKE_CURRENT_SOURCE_DIR ${ROOT_SOURCE_DIR}/Libraries/Libsystem/libsystem_c)
-add_variants(vCancelable
-    VARIANTS STATIC
-    SOURCES
-        compat-43/FreeBSD/creat.c
-        compat-43/sigcompat.c
-        gen/FreeBSD/lockf.c
-        gen/nanosleep.c
-        gen/FreeBSD/pause.c
-        gen/FreeBSD/sleep.c
-        gen/FreeBSD/termios.c
-        gen/FreeBSD/usleep.c
-        gen/FreeBSD/wait.c
-        gen/FreeBSD/waitpid.c
-        net/FreeBSD/recv.c
-        net/FreeBSD/send.c
-        stdlib/FreeBSD/system.c
-    COMPILE_DEFINITIONS
-        VARIANT_CANCELABLE
-        __DARWIN_NON_CANCELABLE=0 __DARWIN_UNIX03 __DARWIN_64_BIT_INO_T __DARWIN_VERS_1050
-    INCLUDE_DIRS
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
-        ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/bsd fbsdcompat
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/mach
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/wrappers/spawn
-        ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
-        regex/TRE regex/FreeBSD locale/FreeBSD stdtime/FreeBSD ../private
-        ${SDK_SOURCE_DIR}/usr/include ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern
-    COMPILE_OPTIONS
-    	"-include${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat/_fbsd_compat_.h"
-)
+add_library(vCancelable STATIC
+    compat-43/FreeBSD/creat.c
+    compat-43/sigcompat.c
+    gen/FreeBSD/lockf.c
+    gen/nanosleep.c
+    gen/FreeBSD/pause.c
+    gen/FreeBSD/sleep.c
+    gen/FreeBSD/termios.c
+    gen/FreeBSD/usleep.c
+    gen/FreeBSD/wait.c
+    gen/FreeBSD/waitpid.c
+    net/FreeBSD/recv.c
+    net/FreeBSD/send.c
+    stdlib/FreeBSD/system.c)
+
+target_compile_definitions(vCancelable PRIVATE BUILDING_VARIANT VARIANT_CANCELABLE)
+
+target_include_directories(vCancelable PRIVATE
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/bsd fbsdcompat
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/mach
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/wrappers/spawn
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
+    regex/TRE regex/FreeBSD locale/FreeBSD stdtime/FreeBSD ../private
+    ${SDK_SOURCE_DIR}/usr/include ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern)
+
+target_compile_options(vCancelable PRIVATE
+    -U__DARWIN_NON_CANCELABLE -D__DARWIN_NON_CANCELABLE=0
+    "-include${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat/_fbsd_compat_.h")
+
 set_source_files_properties(./compat-43/FreeBSD/creat.c TARGET_DIRECTORY vCancelable PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_CREAT")
 set_source_files_properties(./compat-43/sigcompat.c TARGET_DIRECTORY vCancelable PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_SIGPAUSE")
 set_source_files_properties(./gen/FreeBSD/lockf.c TARGET_DIRECTORY vCancelable PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_LOCKF")
-set_source_files_properties(./gen/FreeBSD/pause.c TARGET_DIRECTORY vCancelable PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_PAUSE;-U__DARWIN_NON_CANCELABLE;-D__DARWIN_NON_CANCELABLE=0")
-set_source_files_properties(./gen/FreeBSD/sleep.c TARGET_DIRECTORY vCancelable PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_SLEEP;-U__DARWIN_NON_CANCELABLE;-D__DARWIN_NON_CANCELABLE=0")
-set_source_files_properties(./gen/FreeBSD/termios.c TARGET_DIRECTORY vCancelable PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_TCDRAIN;-U__DARWIN_NON_CANCELABLE;-D__DARWIN_NON_CANCELABLE=0")
-set_source_files_properties(./gen/FreeBSD/usleep.c TARGET_DIRECTORY vCancelable PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_USLEEP;-U__DARWIN_NON_CANCELABLE;-D__DARWIN_NON_CANCELABLE=0")
-set_source_files_properties(./gen/FreeBSD/wait.c TARGET_DIRECTORY vCancelable PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_WAIT;-U__DARWIN_NON_CANCELABLE;-D__DARWIN_NON_CANCELABLE=0")
-set_source_files_properties(./gen/FreeBSD/waitpid.c TARGET_DIRECTORY vCancelable PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_WAITPID;-U__DARWIN_NON_CANCELABLE;-D__DARWIN_NON_CANCELABLE=0")
+set_source_files_properties(./gen/FreeBSD/pause.c TARGET_DIRECTORY vCancelable PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_PAUSE")
+set_source_files_properties(./gen/FreeBSD/sleep.c TARGET_DIRECTORY vCancelable PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_SLEEP")
+set_source_files_properties(./gen/FreeBSD/termios.c TARGET_DIRECTORY vCancelable PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_TCDRAIN")
+set_source_files_properties(./gen/FreeBSD/usleep.c TARGET_DIRECTORY vCancelable PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_USLEEP")
+set_source_files_properties(./gen/FreeBSD/wait.c TARGET_DIRECTORY vCancelable PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_WAIT")
+set_source_files_properties(./gen/FreeBSD/waitpid.c TARGET_DIRECTORY vCancelable PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_WAITPID")
 set_source_files_properties(./net/FreeBSD/recv.c TARGET_DIRECTORY vCancelable PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_RECV")
 set_source_files_properties(./net/FreeBSD/send.c TARGET_DIRECTORY vCancelable PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_SEND")
 set_source_files_properties(./stdlib/FreeBSD/system.c TARGET_DIRECTORY vCancelable PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_SYSTEM")
@@ -1059,26 +1032,26 @@ set_source_files_properties(./stdlib/FreeBSD/system.c TARGET_DIRECTORY vCancelab
 # libvDarwinExtsn.a
 #-------------------------------------------------------------------------
 set(CMAKE_CURRENT_SOURCE_DIR ${ROOT_SOURCE_DIR}/Libraries/Libsystem/libsystem_c)
-add_variants(vDarwinExtsn
-    VARIANTS STATIC
-    SOURCES
-        stdio/FreeBSD/fdopen.c
-        stdio/FreeBSD/fopen.c
-        sys/getgroups.c
-    COMPILE_OPTIONS
-        -include${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat/_fbsd_compat_.h
-    COMPILE_DEFINITIONS
-        VARIANT_DARWINEXTSN
-        __DARWIN_NON_CANCELABLE __DARWIN_UNIX03 __DARWIN_64_BIT_INO_T __DARWIN_VERS_1050
-    INCLUDE_DIRS
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
-        ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/bsd fbsdcompat
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/mach
-        ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/wrappers/spawn
-        ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
-        regex/TRE regex/FreeBSD locale/FreeBSD stdtime/FreeBSD ../private
-        ${SDK_SOURCE_DIR}/usr/include ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern
-)
+add_library(vDarwinExtsn STATIC
+    gen/FreeBSD/popen.c
+    stdio/FreeBSD/fdopen.c
+    stdio/FreeBSD/fopen.c
+    stdlib/FreeBSD/realpath.c
+    sys/getgroups.c)
+
+target_compile_options(vDarwinExtsn PRIVATE -include${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat/_fbsd_compat_.h)
+
+target_compile_definitions(vDarwinExtsn PRIVATE BUILDING_VARIANT VARIANT_DARWINEXTSN)
+
+target_include_directories(vDarwinExtsn PRIVATE
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/bsd fbsdcompat
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/mach
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/wrappers/spawn
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
+    regex/TRE regex/FreeBSD locale/FreeBSD stdtime/FreeBSD ../private
+    ${SDK_SOURCE_DIR}/usr/include ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern)
+
 set_source_files_properties(./gen/FreeBSD/popen.c TARGET_DIRECTORY vDarwinExtsn PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_POPEN")
 set_source_files_properties(./stdio/FreeBSD/fdopen.c TARGET_DIRECTORY vDarwinExtsn PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_FDOPEN")
 set_source_files_properties(./stdio/FreeBSD/fopen.c TARGET_DIRECTORY vDarwinExtsn PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_FOPEN")
@@ -1089,19 +1062,18 @@ set_source_files_properties(./stdio/FreeBSD/fopen.c TARGET_DIRECTORY vDarwinExts
 #-------------------------------------------------------------------------
 set(CMAKE_CURRENT_SOURCE_DIR ${ROOT_SOURCE_DIR}/Libraries/Libsystem/libsystem_c)
 add_library(vDarwinExtsnCancelable STATIC
-    #gen/FreeBSD/popen.c
+    gen/FreeBSD/popen.c
     stdio/FreeBSD/fdopen.c
     stdio/FreeBSD/fopen.c
+    stdlib/FreeBSD/realpath.c
     sys/getgroups.c
 )
-add_dependencies(vDarwinExtsnCancelable features)
 target_compile_definitions(vDarwinExtsnCancelable PRIVATE
-    VARIANT_CANCELABLE VARIANT_DARWINEXTSN
-    DARWIN_NON_CANCELABLE __DARWIN_UNIX03 __DARWIN_64_BIT_INO_T __DARWIN_VERS_1050
-)
+    BUILDING_VARIANT VARIANT_CANCELABLE VARIANT_DARWINEXTSN)
+
 target_include_directories(vDarwinExtsnCancelable PRIVATE
-    include ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
-    fbsdcompat ../private
+    fbsdcompat include ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
+    ../private
     ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/mach
     ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/wrappers/spawn
     ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
@@ -1118,23 +1090,23 @@ set_source_files_properties(./stdio/FreeBSD/fopen.c TARGET_DIRECTORY vDarwinExts
 # libvPre1050.a
 #-------------------------------------------------------------------------
 set(CMAKE_CURRENT_SOURCE_DIR ${ROOT_SOURCE_DIR}/Libraries/Libsystem/libsystem_c)
+
 add_library(vPre1050 STATIC gen/FreeBSD/daemon.c)
-add_dependencies(vPre1050 features)
-target_compile_definitions(vPre1050 PRIVATE
-    VARIANT_PRE1050
-    DARWIN_NON_CANCELABLE __DARWIN_UNIX03 __DARWIN_64_BIT_INO_T __DARWIN_VERS_1050=0
-)
+
+target_compile_options(vPre1050 PRIVATE
+    -U__DARWIN_VERS_1050 -D__DARWIN_VERS_1050=0 -DPRIVATE
+    "-include${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat/_fbsd_compat_.h")
+
+target_compile_definitions(vPre1050 PRIVATE  BUILDING_VARIANT VARIANT_PRE1050)
+
 target_include_directories(vPre1050 PRIVATE
-    include ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
-    fbsdcompat ../private
+    fbsdcompat include ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
+    ../private
     ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/mach
     ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/wrappers/spawn
     ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
 )
-target_compile_options(vPre1050 PRIVATE
-    "-include${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat/_fbsd_compat_.h"
-    -DPRIVATE
-)
+
 
 #-------------------------------------------------------------------------
 # libvLegacy.a
@@ -1189,18 +1161,20 @@ add_library(vLegacy STATIC
     sys/semctl.c
     sys/shmctl.c
 )
-add_dependencies(vLegacy features)
-target_compile_definitions(vLegacy PRIVATE
-    VARIANT_LEGACY
-    __DARWIN_NON_CANCELABLE=0 __DARWIN_UNIX03=0 __DARWIN_64_BIT_INO_T __DARWIN_VER_1050
-    HAVE_MBSTATE_T __isthreaded)
+
+target_compile_options(vLegacy PRIVATE
+    -U__DARWIN_UNIX03 -D__DARWIN_UNIX03=0
+    -U__DARWIN_64_BIT_INO_T -D__DARWIN_64_BIT_INO_T=0
+    "-include${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat/_fbsd_compat_.h")
+
+target_compile_definitions(vLegacy PRIVATE BUILDING_VARIANT VARIANT_LEGACY HAVE_MBSTATE_T __isthreaded)
+
 target_include_directories(vLegacy PRIVATE
 	BEFORE include ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd
 	AFTER ../private fbsdcompat ${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/mach
 	${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk gdtoa
 	../private/pthread regex/TRE ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern
 )
-target_compile_options(vLegacy PRIVATE "-include${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat/_fbsd_compat_.h")
 set_source_files_properties(./compat-43/FreeBSD/creat.c TARGET_DIRECTORY vLegacy PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_CREAT;-include${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat/sys/cdefs.h")
 set_source_files_properties(./compat-43/setregid.c TARGET_DIRECTORY vLegacy PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_SETREGID;-include${CMAKE_CURRENT_SOURCE_DIR}/include/sys/cdefs.h")
 set_source_files_properties(./compat-43/setreuid.c TARGET_DIRECTORY vLegacy PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_SETREUID;-include${CMAKE_CURRENT_SOURCE_DIR}/include/sys/cdefs.h")
@@ -1219,7 +1193,7 @@ set_source_files_properties(./gen/FreeBSD/termios.c TARGET_DIRECTORY vLegacy PRO
 set_source_files_properties(./gen/FreeBSD/ttyname.c TARGET_DIRECTORY vLegacy PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_TTYNAME_R")
 set_source_files_properties(./gen/FreeBSD/usleep.c TARGET_DIRECTORY vLegacy PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_USLEEP")
 set_source_files_properties(./gen/FreeBSD/wait.c TARGET_DIRECTORY vLegacy PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_WAIT;-include${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat/sys/cdefs.h")
-set_source_files_properties(./gen/FreeBSD/waitpid.c TARGET_DIRECTORY vLegacy PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_WAITPID;-include${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat/sys/cdefs.h")
+set_source_files_properties(./gen/FreeBSD/waitpid.c TARGET_DIRECTORY vLegacy PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_WAITPID")
 set_source_files_properties(./gen/nanosleep.c TARGET_DIRECTORY vLegacy PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_NANOSLEEP;-include${CMAKE_CURRENT_SOURCE_DIR}/include/sys/cdefs.h")
 set_source_files_properties(./gen/nftw.c TARGET_DIRECTORY vLegacy PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_FTW;-DLIBC_ALIAS_NFTW")
 set_source_files_properties(./locale/FreeBSD/wcsftime.c TARGET_DIRECTORY vLegacy PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_WCSFTIME;-DLIBC_ALIAS_WCSFTIME_L")
@@ -1250,34 +1224,34 @@ set(CMAKE_CURRENT_SOURCE_DIR ${ROOT_SOURCE_DIR}/Libraries/Libsystem/libsystem_c)
 add_library(vInode32 STATIC
     gen/fts.c
     gen/FreeBSD/getmntinfo.c
-    #gen/FreeBSD/glob.c
+    gen/FreeBSD/glob.c
     gen/nftw.c
     gen/FreeBSD/opendir.c
     gen/FreeBSD/readdir.c
     gen/FreeBSD/rewinddir.c
     gen/FreeBSD/scandir.c
     gen/FreeBSD/seekdir.c
-    #gen/FreeBSD/telldir.c
+    gen/FreeBSD/telldir.c
     gen/FreeBSD/scandir_b.c
     sys/statx_np.c
 )
-add_dependencies(vInode32 features)
-target_compile_definitions(vInode32 PRIVATE
-    VARIANT_INODE32
-    __DARWIN_NON_CANCELABLE __DARWIN_UNIX03 __DARWIN_64_BIT_INO_T=0  __DARWIN_VERS_1050
-    __isthreaded
+
+target_compile_options(vInode32 PRIVATE
+	-DPRIVATE -U__DARWIN_64_BIT_INO_T -D__DARWIN_64_BIT_INO_T=0
+	"-include${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat/_fbsd_compat_.h"
+	"-include${ROOT_SOURCE_DIR}/Kernel/xnu/bsd/sys/dirent.h"
 )
+
+target_compile_definitions(vInode32 PRIVATE
+    BUILDING_VARIANT VARIANT_INODE32 __isthreaded)
+
 target_include_directories(vInode32 PRIVATE
 	include ${ROOT_SOURCE_DIR}/Kernel/xnu/bsd 
 	${ROOT_SOURCE_DIR}/Kernel/xnu/libsyscall/mach
 	${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
 	../private fbsdcompat
 )
-target_compile_options(vInode32 PRIVATE
-	-DPRIVATE
-	"-include${CMAKE_CURRENT_SOURCE_DIR}/fbsdcompat/_fbsd_compat_.h"
-	"-include${ROOT_SOURCE_DIR}/Kernel/xnu/bsd/sys/dirent.h"
-)
+
 set_source_files_properties(./gen/FreeBSD/glob.c TARGET_DIRECTORY vInode32 PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS_GLOB")
 set_source_files_properties(./gen/FreeBSD/opendir.c TARGET_DIRECTORY vInode32 PROPERTIES COMPILE_OPTIONS "-DLIBC_ALIAS___OPENDIR2;-DLIBC_ALIAS_OPENDIR;-include${CMAKE_CURRENT_SOURCE_DIR}/gen/__dirent.h")
 set_source_files_properties(./gen/FreeBSD/readdir.c TARGET_DIRECTORY vInode32 PROPERTIES COMPILE_OPTIONS "-include${CMAKE_CURRENT_SOURCE_DIR}/gen/__dirent.h")
@@ -1290,11 +1264,17 @@ set_source_files_properties(./gen/nftw.c TARGET_DIRECTORY vInode32 PROPERTIES CO
 set_source_files_properties(./gen/FreeBSD/scandir_b.c TARGET_DIRECTORY vInode32 PROPERTIES COMPILE_OPTIONS "-include${CMAKE_CURRENT_SOURCE_DIR}/gen/__dirent.h")
 
 #-----------------------------------------------------------------------------
-#                     LIBSYSTEM_C DYLIB
+#                            LIBSYSTEM_C DYLIB
 #-----------------------------------------------------------------------------
 
 add_dependencies(Base NetBSD FortifySource)
-add_dependencies(libc_static Base_STATIC FreeBSD_STATIC TRE_STATIC vCancelable_STATIC vDarwinExtsn_STATIC)
+add_dependencies(libc_static Base FreeBSD TRE vCancelable vDarwinExtsn)
+add_dependencies(vInode32 features)
+add_dependencies(vPre1050 features)
+add_dependencies(vLegacy features)
+add_dependencies(vCancelable features)
+add_dependencies(vDarwinExtsnCancelable features)
+add_dependencies(vDarwinExtsn features)
 
 add_custom_target(generateLinklists
     COMMAND env
@@ -1306,7 +1286,7 @@ add_custom_target(generateLinklists
 )
 
 add_dependencies(libsystem_c
-    Platform Base FreeBSD TRE vCancelable vDarwinExtsn vPre1050 vInode32
+    Platform Base FreeBSD TRE vCancelable vDarwinExtsn vPre1050 vInode32 vLegacy
     libc_dyld libc_static libsystem_malloc libsystem_platform libsystem_pthread
     generateLinklists
 )

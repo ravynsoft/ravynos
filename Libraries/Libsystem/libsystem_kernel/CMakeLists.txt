@@ -24,8 +24,8 @@ set(common_headers
 )
 
 set(common_defs
-    -D__DARWIN_VERS_1050 -DLIBSYSCALL_INTERFACE -DNO_SYSCALL_LEGACY -DSYSCALL_PRE1050
-    -DCF_OPEN_SOURCE -DCF_EXCLUDE_CSTD_HEADERS -DDEBUG -DFORTIFY_SOURCE=0
+    -D__DARWIN_VERS_1050 -DLIBSYSCALL_INTERFACE -DSYSCALL_PRE1050 -DNO_SYSCALL_LEGACY
+    -DCF_OPEN_SOURCE -DCF_EXCLUDE_CSTD_HEADERS -DDEBUG -D_FORTIFY_SOURCE=0
     -DDARWIN_C_SOURCE=DARWIN_C_FULL
 )
 
@@ -119,7 +119,6 @@ add_library(libkernel STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/legacy/open.c
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/legacy/select-pre1050.c
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/legacy/select.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/legacy/munmap.c
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/legacy/getaudit.c
 
     # unix03 syscalls
@@ -127,6 +126,7 @@ add_library(libkernel STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/unix03/fchmod.c
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/unix03/getrlimit.c
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/unix03/mmap.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/unix03/munmap.c
     ${CMAKE_CURRENT_SOURCE_DIR}/wrappers/unix03/setrlimit.c
 
     # cancelable syscalls
