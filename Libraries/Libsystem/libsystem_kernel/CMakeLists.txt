@@ -258,7 +258,7 @@ set_source_files_properties(wrappers/skywalk/cpu_in_cksum_gen.c PROPERTIES COMPI
 set_source_files_properties(./Kernel/xnu/libsyscall/wrappers/skywalk/os_channel_event.c PROPERTIES COMPILE_OPTIONS "-fno-builtin")
 
 
-set_target_properties(libkernel PROPERTIES  OUTPUT_NAME "kernel" PREFIX "lib")
+set_target_properties(libkernel PROPERTIES  OUTPUT_NAME "kernel" PREFIX "libsystem_")
 add_dependencies(libkernel features xnu_headers compiler_rt)
 
 target_include_directories(libkernel PRIVATE ${common_headers})

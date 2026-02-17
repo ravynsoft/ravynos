@@ -1,6 +1,6 @@
 add_library(libsystem_blocks SHARED data.c runtime.c)
 set_target_properties(libsystem_blocks PROPERTIES NO_SONAME true
-    PREFIX "lib" OUTPUT_NAME "system_blocks" SUFFIX ".dylib")
+    PREFIX "libsystem_" OUTPUT_NAME "blocks" SUFFIX ".dylib")
 
 target_compile_options(libsystem_blocks PRIVATE
     --sysroot=${RAVYN_SDKROOT} -isysroot${RAVYN_SDKROOT}

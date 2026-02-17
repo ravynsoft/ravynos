@@ -1,6 +1,6 @@
 add_library(libsystem_malloc SHARED)
 set_target_properties(libsystem_malloc PROPERTIES
-    OUTPUT_NAME "system_malloc" SUFFIX ".dylib" PREFIX "lib" NO_SONAME true)
+    OUTPUT_NAME "malloc" SUFFIX ".dylib" PREFIX "libsystem_" NO_SONAME true)
 
 set(libmalloc_sources
     bitarray.c empty.s frozen_malloc.c legacy_malloc.c

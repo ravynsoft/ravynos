@@ -31,7 +31,38 @@
 #ifndef __LOG_INTERNAL_H
 #define __LOG_INTERNAL_H
 
+#include <sys/param.h>
+#include <sys/types.h>
+#include <Block.h>
+#include <os/base.h>
+#include <os/object.h>
+#include <os/log.h>
 
+/* This is an overlay on the NSObject. Leave room for refcount and class info */
+struct os_log_s {
+    uintptr_t _opaque[2];
+};
+
+/* typedef void (^)(void) os_block_t; */
+/* typedef void (*)(void *) os_function_t; */
+
+extern size_t os_proc_available_memory();
+extern void * os_retain(void * object);
+extern void os_release(void * object);
+
+/*
+oslog
+The OS_LOG_DEFAULT constant or a custom log object that you create with the os_log_create function.
+
+type
+A log type constant, such as OS_LOG_TYPE_DEFAULT, OS_LOG_TYPE_INFO, OS_LOG_TYPE_DEBUG, OS_LOG_TYPE_ERROR, or OS_LOG_TYPE_FAULT, that specifies the level of logging to check.
+
+Return Value
+true if logging at the specified level is in an enabled state; otherwise, false.
+*/
+extern bool os_log_type_enabled(os_log_t oslog, os_log_type_t type);
+
+extern bool os_signpost_enabled(os_log_t log);
 
 
 #endif /* __LOG_INTERNAL_H */

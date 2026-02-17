@@ -107,7 +107,7 @@ add_library(libsystem_info SHARED
 	./gen.subproj/configuration_profile.c
 )
 set_target_properties(libsystem_info PROPERTIES
-    OUTPUT_NAME "system_info" SUFFIX ".dylib" PREFIX "lib" NO_SONAME true)
+    OUTPUT_NAME "info" SUFFIX ".dylib" PREFIX "libsystem_" NO_SONAME true)
 
 set(CFLAGS -DPRIVATE -D__APPLE__ -fblocks -fno-common -DDISPATCH_USE_DTRACE=0 -DINET6
     -D__DARWIN_NON_CANCELABLE -DCONFIG_MAC -DSYNTH_ROOTFS # -DDS_AVAILABLE -- zoe 2/11/26 Put this back once we have DirectoryService
@@ -144,8 +144,8 @@ target_link_options(libsystem_info PRIVATE
     -L${RAVYN_SDKROOT}/usr/lib -L${RAVYN_SDKROOT}/usr/lib/system
     -Wl,-all_load -Wl,-current_version,${PROD_VERSION} -Wl,-compatibility_version,1
     -Wl,-install_name,/usr/lib/system/libsystem_info.dylib -lsystem_c -lxpc
-    -lsystem_blocks -lsystem_malloc -lsystem_platform -lsystem_kernel
-    -mmacos-version-min=${MACOS_VERSION_MIN} -Wl,-flat_namespace #-Wl,-undefined,warning
+    -lsystem_blocks -lsystem_malloc -lsystem_platform -lsystem_kernel -lsystem_trace
+    -mmacos-version-min=${MACOS_VERSION_MIN}
     )
 
 add_dependencies(libsystem_info libsystem_darwin dispatch)

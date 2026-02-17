@@ -1,6 +1,6 @@
 add_library(libsystem_notify SHARED)
 set_target_properties(libsystem_notify PROPERTIES
-    OUTPUT_NAME "system_notify" SUFFIX ".dylib" PREFIX "lib" NO_SONAME true)
+    OUTPUT_NAME "notify" SUFFIX ".dylib" PREFIX "libsystem_" NO_SONAME true)
 
 # FIXME: zoe 2/10/26 Change notify_probes.h to .d and generate header with dtrace
 target_sources(libsystem_notify PRIVATE libnotify.c notify_client.c table.c notify_probes.h)

@@ -46,6 +46,7 @@ add_subdirectory(libsystem_c)
 add_subdirectory(libsystem_darwin)
 add_subdirectory(libsystem_asl)
 add_subdirectory(libsystem_m)
+add_subdirectory(libsystem_trace)
 #add_subdirectory(CommonCrypto)
 add_subdirectory(libxpc)
 add_subdirectory(libdispatch)
@@ -93,7 +94,7 @@ add_dependencies(libsystem_m libsystem_platform)
 add_dependencies(libSystem 
     libsystem_c libsystem_malloc libsystem_pthread libsystem_platform libdyld
     libxpc dispatch libsystem_blocks liblaunch CrashReporterClient libsystem_m
-    libsystem_notify libsystem_info# copyfile removefile #libcommonCrypto
+    libsystem_notify libsystem_info copyfile removefile libsystem_trace #libcommonCrypto
 )
 add_dependencies(xnu libSystem)
 
@@ -134,8 +135,8 @@ target_link_options(libSystem PRIVATE
     -Wl,-reexport-lsystem_kernel -Wl,-reexport-lcompiler_rt
     -Wl,-reexport-lunwind -Wl,-reexport-ldyld -Wl,-reexport-lxpc
     -Wl,-reexport-llaunch -Wl,-reexport-ldispatch -Wl,-reexport-lsystem_m
-    -Wl,-reexport-lsystem_notify -Wl,-reexport-lsystem_info #-Wl,-reexport-lcopyfile
-    #-Wl,-reexport-lremovefile
+    -Wl,-reexport-lsystem_notify -Wl,-reexport-lsystem_info -Wl,-reexport-lcopyfile
+    -Wl,-reexport-lremovefile -reexport-lsystem_trace
     #-lsystem_c -lsystem_malloc -lsystem_platform -lsystem_pthread -lsystem_darwin
     #-lsystem_kernel -lcompiler_rt -ldyld -lc++ -lCrashReporterClient
 )

@@ -1,6 +1,6 @@
 add_library(libsystem_asl SHARED)
-set_target_properties(libsystem_asl PROPERTIES NO_SONAME true PREFIX "lib"
-    OUTPUT_NAME "system_asl" SUFFIX ".dylib")
+set_target_properties(libsystem_asl PROPERTIES NO_SONAME true PREFIX "libsystem_"
+    OUTPUT_NAME "asl" SUFFIX ".dylib")
 
 target_sources(libsystem_asl PRIVATE
     asl.c

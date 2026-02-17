@@ -1,6 +1,6 @@
 add_library(libsystem_darwin SHARED)
 set_target_properties(libsystem_darwin PROPERTIES 
-    OUTPUT_NAME "system_darwin" SUFFIX ".dylib" PREFIX "lib" NO_SONAME true)
+    OUTPUT_NAME "darwin" SUFFIX ".dylib" PREFIX "libsystem_" NO_SONAME true)
 
 target_sources(libsystem_darwin PRIVATE
     bsd.c

@@ -1,6 +1,6 @@
 add_library(libsystem_m SHARED math.c)
-set_target_properties(libsystem_m PROPERTIES SUFFIX ".dylib" PREFIX "lib"
-    OUTPUT_NAME "system_m" NO_SONAME true)
+set_target_properties(libsystem_m PROPERTIES SUFFIX ".dylib" PREFIX "libsystem_"
+    OUTPUT_NAME "m" NO_SONAME true)
 
 target_compile_options(libsystem_m PRIVATE
     -mmacos-version-min=${MACOS_VERSION_MIN} --sysroot=${RAVYN_SDKROOT})
