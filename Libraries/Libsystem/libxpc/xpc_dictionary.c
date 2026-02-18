@@ -368,6 +368,34 @@ xpc_dictionary_get_string(xpc_object_t xdict, const char *key)
 	return (xpc_string_get_string_ptr(xo));
 }
 
+xpc_object_t
+xpc_dictionary_get_dictionary(xpc_object_t xdict, const char *key)
+{
+    xpc_object_t xo;
+    xo = xpc_dictionary_get_value(xdict, key); // FIXME: does this need to be unpacked? (see `mpack`)
+    if(xo) {
+        if(xpc_get_type(xo) == XPC_TYPE_DICTIONARY)
+            xpc_retain(xo);
+        else
+            xo = NULL;
+    }
+    return xo;
+}
+
+xpc_object_t
+xpc_dictionary_get_array(xpc_object_t xdict, const char *key)
+{
+    xpc_object_t xo;
+    xo = xpc_dictionary_get_value(xdict, key); // FIXME: does this need to be unpacked? (see `mpack`)
+    if(xo) {
+        if(xpc_get_type(xo) == XPC_TYPE_ARRAY)
+            xpc_retain(xo);
+        else
+            xo = NULL;
+    }
+    return xo;
+}
+
 bool
 xpc_dictionary_apply(xpc_object_t xdict, xpc_dictionary_applier_t applier)
 {

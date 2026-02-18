@@ -2373,6 +2373,53 @@ const uint8_t *
 xpc_dictionary_get_uuid(xpc_object_t xdict, const char *key);
 
 /*!
+ * @function xpc_dictionary_get_dictionary
+ *
+ * @abstract
+ * Gets a dictionary object from a dictionary directly.
+ *
+ * @param xdict
+ * The dictionary object which is to be examined.
+ *
+ * @param key
+ * The key whose value is to be obtained.
+ *
+ * @result
+ * A <code>xpc_object_t</code> value for the specified key. NULL if the
+ * value at the specified index is not a XPC_DICTIONARY value.
+ */
+__OSX_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_5_0)
+XPC_EXPORT XPC_WARN_RESULT XPC_NONNULL1 XPC_NONNULL2
+const uint8_t *
+xpc_dictionary_get_dictionary(xpc_object_t xdict, const char *key);
+
+/*!
+ * @function xpc_dictionary_get_array
+ *
+ * @abstract
+ * Gets an array object from a dictionary directly.
+ *
+ * @param xdict
+ * The dictionary object which is to be examined.
+ *
+ * @param key
+ * The key whose value is to be obtained.
+ *
+ * @result
+ * The <code>xpc_object_t</code> for the specified key. NULL if the
+ * value at the specified key is not an array or the key does not have a
+ * value.
+ *
+ * @discussion
+ * The caller does not receive a reference to the object and must not
+ * release it.
+ */
+__OSX_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_5_0)
+XPC_EXPORT XPC_WARN_RESULT XPC_NONNULL1 XPC_NONNULL2
+const uint8_t *
+xpc_dictionary_get_array(xpc_object_t xdict, const char *key);
+
+/*!
  * @function xpc_dictionary_dup_fd
  *
  * @abstract
