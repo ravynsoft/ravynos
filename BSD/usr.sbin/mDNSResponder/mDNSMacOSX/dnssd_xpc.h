@@ -17,9 +17,10 @@
 #ifndef __DNSSD_XPC_H__
 #define __DNSSD_XPC_H__
 
-#include <CoreUtils/CommonServices.h>
-#include <dns_sd.h>
+#include <mach/mach_types.h>
+#include <CoreUtils/CoreUtils.h>
 #include <xpc/xpc.h>
+#include <dns_sd.h>
 
 #define DNSSD_MACH_SERVICE_NAME	"com.apple.dnssd.service"
 

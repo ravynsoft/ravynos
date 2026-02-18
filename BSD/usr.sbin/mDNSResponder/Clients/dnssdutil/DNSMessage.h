@@ -34,7 +34,7 @@ typedef struct
 }	DNSHeader;
 
 #define kDNSHeaderLength		12
-check_compile_time( sizeof( DNSHeader ) == kDNSHeaderLength );
+__Check_Compile_Time( sizeof( DNSHeader ) == kDNSHeaderLength );
 
 #define DNSHeaderGetID( HDR )					ReadBig16( ( HDR )->id )
 #define DNSHeaderGetFlags( HDR )				ReadBig16( ( HDR )->flags )
@@ -105,7 +105,7 @@ check_compile_time( sizeof( DNSHeader ) == kDNSHeaderLength );
 	{																\
 		WriteBig ## BIT_SIZE ( inFields->FIELD, inValue );			\
 	}																\
-	check_compile_time( ( sizeof_field( dns_fixed_fields_ ## TYPE, FIELD ) * 8 ) == (BIT_SIZE) )
+	__Check_Compile_Time( ( sizeof_field( dns_fixed_fields_ ## TYPE, FIELD ) * 8 ) == (BIT_SIZE) )
 
 // DNS question fixed-length fields (see <https://tools.ietf.org/html/rfc1035#section-4.1.2>)
 
@@ -116,7 +116,7 @@ typedef struct
 	
 }	dns_fixed_fields_question;
 
-check_compile_time( sizeof( dns_fixed_fields_question ) == 4 );
+__Check_Compile_Time( sizeof( dns_fixed_fields_question ) == 4 );
 
 dns_fixed_fields_define_accessors( question, type,  16 );
 dns_fixed_fields_define_accessors( question, class, 16 );
@@ -142,7 +142,7 @@ typedef struct
 	
 }	dns_fixed_fields_record;
 
-check_compile_time( sizeof( dns_fixed_fields_record ) == 10 );
+__Check_Compile_Time( sizeof( dns_fixed_fields_record ) == 10 );
 
 dns_fixed_fields_define_accessors( record, type,     16 );
 dns_fixed_fields_define_accessors( record, class,    16 );
@@ -173,7 +173,7 @@ typedef struct
 	
 }	dns_fixed_fields_srv;
 
-check_compile_time( sizeof( dns_fixed_fields_srv ) == 6 );
+__Check_Compile_Time( sizeof( dns_fixed_fields_srv ) == 6 );
 
 dns_fixed_fields_define_accessors( srv, priority, 16 );
 dns_fixed_fields_define_accessors( srv, weight,   16 );
@@ -203,7 +203,7 @@ typedef struct
 	
 }	dns_fixed_fields_soa;
 
-check_compile_time( sizeof( dns_fixed_fields_soa ) == 20 );
+__Check_Compile_Time( sizeof( dns_fixed_fields_soa ) == 20 );
 
 dns_fixed_fields_define_accessors( soa, serial,  32 );
 dns_fixed_fields_define_accessors( soa, refresh, 32 );

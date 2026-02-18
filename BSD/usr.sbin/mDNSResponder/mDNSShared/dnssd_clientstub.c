@@ -26,8 +26,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+
+char *strerror(int);
 
 #include "dnssd_ipc.h"
 

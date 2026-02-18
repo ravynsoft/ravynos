@@ -17,6 +17,7 @@
 #ifndef __DNSSD_PRIVATE_H__
 #define __DNSSD_PRIVATE_H__
 
+#include <AssertMacros.h>
 #include <dispatch/dispatch.h>
 #include <dns_sd.h>
 #include <os/object.h>

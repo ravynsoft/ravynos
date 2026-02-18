@@ -62,7 +62,7 @@
 	_dnssd_ ## NAME ## _alloc(void)												\
 	{																			\
 		DNSSD_TYPE(NAME) obj = dnssd_object_ ## NAME ## _alloc(sizeof(*obj));	\
-		require_quiet(obj, exit);												\
+		__Require_Quiet(obj, exit);												\
 																				\
 		const dnssd_object_t base = (dnssd_object_t)obj;						\
 		base->kind = &_dnssd_ ## NAME ## _kind;									\
@@ -295,13 +295,13 @@ dnssd_getaddrinfo_create(void)
 {
 	dnssd_getaddrinfo_t	gai = NULL;
 	dnssd_getaddrinfo_t	obj = _dnssd_getaddrinfo_alloc();
-	require_quiet(obj, exit);
+	__Require_Quiet(obj, exit);
 
 	obj->params = xpc_dictionary_create(NULL, NULL, 0);
-	require_quiet(obj->params, exit);
+	__Require_Quiet(obj->params, exit);
 
 	obj->mutex_queue = dispatch_queue_create("com.apple.dnssd.getaddrinfo.mutex", DISPATCH_QUEUE_SERIAL);
-	require_quiet(obj->mutex_queue, exit);
+	__Require_Quiet(obj->mutex_queue, exit);
 
 	gai = obj;
 	obj = NULL;
@@ -456,7 +456,7 @@ dnssd_getaddrinfo_invalidate(dnssd_getaddrinfo_t me)
 static void
 _dnssd_client_invalidate_getaddrinfo(dnssd_getaddrinfo_t gai)
 {
-	require_quiet(gai->state != dnssd_getaddrinfo_state_invalidated, exit);
+	__Require_Quiet(gai->state != dnssd_getaddrinfo_state_invalidated, exit);
 
 	_dnssd_client_deregister_getaddrinfo(gai);
 	if ((gai->state == dnssd_getaddrinfo_state_starting) || (gai->state == dnssd_getaddrinfo_state_started)) {
@@ -528,7 +528,7 @@ _dnssd_getaddrinfo_copy_description(dnssd_getaddrinfo_t me, const bool debug, co
 		if (debug) {
 			const size_t len = (size_t)(end - dst);
 			n = snprintf(dst, len, "dnssd_%s (%p): ", me->base.kind->name, (void *)me);
-			require_quiet(n >= 0, exit);
+			__Require_Quiet(n >= 0, exit);
 
 			if (buf_ptr) {
 				dst = (((size_t)n) < len) ? &dst[n] : end;
@@ -537,13 +537,13 @@ _dnssd_getaddrinfo_copy_description(dnssd_getaddrinfo_t me, const bool debug, co
 			}
 		}
 		n = snprintf(dst, (size_t)(end - dst), "hostname = %s", hostname ? hostname : "<NO HOSTNAME>");
-		require_quiet(n >= 0, exit);
+		__Require_Quiet(n >= 0, exit);
 
 		if (!buf_ptr) {
 			need += (size_t)n;
 			buf_len = need + 1;
 			buf_ptr = malloc(buf_len);
-			require_quiet(buf_ptr, exit);
+			__Require_Quiet(buf_ptr, exit);
 		} else {
 			break;
 		}
@@ -753,7 +753,7 @@ _dnssd_getaddrinfo_result_copy_description(dnssd_getaddrinfo_result_t me, const 
 		if (debug) {
 			const size_t len = (size_t)(end - dst);
 			n = snprintf(dst, len, "dnssd_%s (%p): ", me->base.kind->name, (void *)me);
-			require_quiet(n >= 0, exit);
+			__Require_Quiet(n >= 0, exit);
 
 			if (buf_ptr) {
 				dst = (((size_t)n) < len) ? &dst[n] : end;
@@ -765,13 +765,13 @@ _dnssd_getaddrinfo_result_copy_description(dnssd_getaddrinfo_result_t me, const 
 			dnssd_getaddrinfo_result_type_to_string(me->type), hostname ? hostname : "<NO HOSTNAME>",
 			actual_hostname ? actual_hostname : "<NO ACTUAL HOSTNAME>", addr ? addr : "<NO IP ADDRESS>",
 			(unsigned long)me->interface_index);
-		require_quiet(n >= 0, exit);
+		__Require_Quiet(n >= 0, exit);
 
 		if (!buf_ptr) {
 			need += (size_t)n;
 			buf_len = need + 1;
 			buf_ptr = malloc(buf_len);
-			require_quiet(buf_ptr, exit);
+			__Require_Quiet(buf_ptr, exit);
 		} else {
 			break;
 		}
@@ -857,12 +857,12 @@ _dnssd_client_handle_message(xpc_object_t msg)
 			break;
 		}
 	}
-	require_quiet(gai, exit);
+	__Require_Quiet(gai, exit);
 
 	const OSStatus error = dnssd_xpc_message_get_error(msg, NULL);
 	if (!error) {
 		xpc_object_t const result_array = dnssd_xpc_message_get_results(msg);
-		require_quiet(result_array, exit);
+		__Require_Quiet(result_array, exit);
 
 		dnssd_getaddrinfo_result_t				result_list	= NULL;
 		__block dnssd_getaddrinfo_result_t *	result_ptr	= &result_list;
@@ -877,7 +877,7 @@ _dnssd_client_handle_message(xpc_object_t msg)
 			}
 			return true;
 		});
-		require_quiet(result_list, exit);
+		__Require_Quiet(result_list, exit);
 
 		_dnssd_getaddrinfo_append_results(gai, result_list);
 		result_list = NULL;
@@ -1109,7 +1109,7 @@ exit:
 static void
 _dnssd_client_handle_getaddrinfo_reply(dnssd_getaddrinfo_t gai, xpc_object_t reply)
 {
-	require_quiet(gai->state == dnssd_getaddrinfo_state_starting, exit);
+	__Require_Quiet(gai->state == dnssd_getaddrinfo_state_starting, exit);
 
 	if (xpc_get_type(reply) == XPC_TYPE_DICTIONARY) {
 		const OSStatus error = dnssd_xpc_message_get_error(reply, NULL);
@@ -1219,10 +1219,10 @@ _dnssd_extract_result_dict_values(xpc_object_t result, xpc_object_t *out_hostnam
 {
 	bool result_is_valid = false;
 	xpc_object_t const hostname = dnssd_xpc_result_get_record_name_object(result);
-	require_quiet(hostname, exit);
+	__Require_Quiet(hostname, exit);
 
 	xpc_object_t const rdata = dnssd_xpc_result_get_record_data_object(result);
-	require_quiet(rdata, exit);
+	__Require_Quiet(rdata, exit);
 
 	if (out_hostname) {
 		*out_hostname = hostname;
