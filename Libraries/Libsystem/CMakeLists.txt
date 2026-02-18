@@ -139,7 +139,7 @@ target_link_options(libSystem PRIVATE
     -Wl,-reexport-lunwind -Wl,-reexport-ldyld -Wl,-reexport-lxpc
     -Wl,-reexport-llaunch -Wl,-reexport-ldispatch -Wl,-reexport-lsystem_m
     -Wl,-reexport-lsystem_notify -Wl,-reexport-lsystem_info -Wl,-reexport-lcopyfile
-    -Wl,-reexport-lremovefile -reexport-lsystem_trace -reexport-lsystem_dnssd
+    -Wl,-reexport-lremovefile -Wl,-reexport-lsystem_trace -Wl,-reexport-lsystem_dnssd
     #-lsystem_c -lsystem_malloc -lsystem_platform -lsystem_pthread -lsystem_darwin
     #-lsystem_kernel -lcompiler_rt -ldyld -lc++ -lCrashReporterClient
 )
