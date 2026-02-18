@@ -145,7 +145,7 @@ target_link_options(libsystem_info PRIVATE
     -Wl,-all_load -Wl,-current_version,${PROD_VERSION} -Wl,-compatibility_version,1
     -Wl,-install_name,/usr/lib/system/libsystem_info.dylib -lsystem_c -lxpc
     -lsystem_blocks -lsystem_malloc -lsystem_platform -lsystem_kernel -lsystem_trace
-    -mmacos-version-min=${MACOS_VERSION_MIN}
+    -lsystem_dnssd -mmacos-version-min=${MACOS_VERSION_MIN}
     )
 
 add_dependencies(libsystem_info libsystem_darwin dispatch)
