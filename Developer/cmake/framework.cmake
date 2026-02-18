@@ -3,7 +3,7 @@ function(add_framework_bundle name)
 
     add_library(${name} SHARED)
     set_target_properties(${name} PROPERTIES PREFIX "" OUTPUT_NAME ${name} SUFFIX "" NO_SONAME true)
-    add_dependencies(Foundation BUILD_PHASE_FRAMEWORKS objc)
+    add_dependencies(${name} BUILD_PHASE_FRAMEWORKS objc)
     target_compile_options(${name} PRIVATE -mmacos-version-min=${MACOS_VERSION_MIN})
     target_link_options(${name} PRIVATE -mmacos-version-min=${MACOS_VERSION_MIN})
 
