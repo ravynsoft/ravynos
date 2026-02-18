@@ -346,6 +346,7 @@ add_library(FreeBSD STATIC
         gen/FreeBSD/siginterrupt.c
         gen/FreeBSD/siglist.c
         gen/FreeBSD/signal.c
+        gen/FreeBSD/sleep.c
         gen/FreeBSD/srand48.c
         gen/FreeBSD/stringlist.c
         gen/FreeBSD/sysconf.c
