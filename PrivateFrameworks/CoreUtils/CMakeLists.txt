@@ -1,10 +1,14 @@
-add_framework_bundle(CoreUtils VERSION A INFO_PLIST Info.plist)
+add_framework_bundle(CoreUtils
+    PRIVATE_FRAMEWORK
+    VERSION A
+    INFO_PLIST Info.plist
+    HEADERS CoreUtils.h DebugServices.h CommonServices.h
+)
 
 target_include_directories(CoreUtils PRIVATE ..)
 target_sources(CoreUtils PRIVATE CoreUtils.c DebugServices.c)
 target_compile_options(CoreUtils PRIVATE -isysroot${RAVYN_SDKROOT} -mmacos-version-min=${MACOS_VERSION_MIN})
 
-add_custom_command(TARGET CoreUtils POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${RAVYN_SDKROOT}/System/Library/PrivateFrameworks 
-    COMMAND cp -R ${CMAKE_CURRENT_BINARY_DIR}/CoreUtils.framework ${RAVYN_SDKROOT}/System/Library/PrivateFrameworks/
-)
+add_dependencies(dns_services CoreUtils)
+add_dependencies(liblog_mdnsresponder CoreUtils)
+

@@ -1,31 +1,3 @@
-
-#add_library(libsystem_dnssd_debug STATIC
-#	 dnssd_ipc.c
-#	 dnssd_clientlib.c
-#	./DNSServiceDiscovery.c
-#	 dnssd_clientstub.c
-#)
-#add_library(libsystem_dnssd_profile STATIC
-#	 dnssd_ipc.c
-#	 dnssd_clientlib.c
-#	./DNSServiceDiscovery.c
-#	 dnssd_clientstub.c
-#)
-
-add_library(libsystem_dnssd STATIC
-	 dnssd_ipc.c
-	 dnssd_clientlib.c
-	./DNSServiceDiscovery.c
-	 dnssd_clientstub.c
-)
-
-#add_library(libdns_sd_static STATIC
-#	 dnssd_ipc.c
-#	 dnssd_clientlib.c
-#	./DNSServiceDiscovery.c
-#	 dnssd_clientstub.c
-#)
-
 #add_library(dns_services STATIC
 #	./Private/dns_services.c
 #	./dnssd.c
@@ -114,9 +86,4 @@ add_library(libsystem_dnssd STATIC
 #	./SettingsBundle/BonjourSCStore.m
 #	 ClientCommon.c
 #	./DomainBrowser/Shared/_CNDomainBrowser.m
-#)
-
-#add_library(liblog_mdnsresponder STATIC
-#	./LoggingProfiles/liblog_mdnsresponder.m
-#	 DNSMessage.c
 #)

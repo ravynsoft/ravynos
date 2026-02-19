@@ -1,5 +1,5 @@
 function(add_framework_bundle name)
-    cmake_parse_arguments(SL "" "VERSION;INFO_PLIST;INSTALL_FILE_NAME;INSTALL_NAME_DIR" "RPATHS;RESOURCES_DIRS;RESOURCES_FILES" ${ARGN})
+    cmake_parse_arguments(SL "PRIVATE_FRAMEWORK" "VERSION;INFO_PLIST;INSTALL_FILE_NAME;INSTALL_NAME_DIR" "HEADERS;PRIVATE_HEADERS;RPATHS;RESOURCES_DIRS;RESOURCES_FILES" ${ARGN})
 
     add_library(${name} SHARED)
     set_target_properties(${name} PROPERTIES PREFIX "" OUTPUT_NAME ${name} SUFFIX "" NO_SONAME true)
@@ -65,8 +65,17 @@ function(add_framework_bundle name)
     )
     target_sources(${name} PRIVATE ${name}_Bundle)
 
+    if(SL_PRIVATE_FRAMEWORK)
+        set(SLFPATH "/System/Library/PrivateFrameworks")
+    else()
+        set(SLFPATH "/System/Library/Frameworks")
+    endif()
+
     add_custom_command(TARGET ${name} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${name}> ${CMAKE_CURRENT_BINARY_DIR}/${name}.framework/Versions/${SL_VERSION}/
         COMMAND ${CMAKE_COMMAND} -E copy ${SL_INFO_PLIST} ${CMAKE_CURRENT_BINARY_DIR}/${name}.framework/Versions/${SL_VERSION}/Resources/Info.plist
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${RAVYN_SDKROOT}${SLFPATH} ${SYSROOT_DIR}${SLFPATH}
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/${name}.framework ${RAVYN_SDKROOT}${SLFPATH}/
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/${name}.framework ${SYSROOT_DIR}${SLFPATH}/
     )
 endfunction()

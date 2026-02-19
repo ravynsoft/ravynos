@@ -344,7 +344,6 @@ if((CMAKE_SYSTEM_NAME MATCHES Darwin) OR (CMAKE_SYSTEM_NAME MATCHES Linux))
         platform_posix/NSSelectSet_bsd.m
         platform_posix/NSSocket_bsd.m
         platform_posix/NSSocketPort_posix.m
-        platform_posix/NSString_defaultEncoding_posix.m
         platform_posix/NSTask_posix.m
         platform_posix/NSTimeZone_posix.m)
 endif()
@@ -363,6 +362,7 @@ target_link_options(Foundation PRIVATE
     -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib
     -Wl,-current_version,1677.104.0 -Wl,-compatibility_version,300.0.0
     -L${RAVYN_SDKROOT}/usr/lib -L${RAVYN_SDKROOT}/usr/lib/system -lobjc
+    -Wl,-flat_namespace -Wl,-undefined,warning
 )
 set_source_files_properties(NSProcessInfo.m NSStringsFileFormat/NSStringsFileParser.m NSData/NSData.m NSNumberFormatter.m TARGET_DIRECTORY Foundation PROPERTIES COMPILE_OPTIONS "-I${CMAKE_CURRENT_SOURCE_DIR}/NSString")
 set_source_files_properties(NSAutoreleasePool/NSAutoreleasePool.m TARGET_DIRECTORY Foundation PROPERTIES COMPILE_OPTIONS "-I${ROOT_SOURCE_DIR}/Libraries/objc4")

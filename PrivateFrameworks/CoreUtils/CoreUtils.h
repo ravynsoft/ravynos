@@ -50,12 +50,20 @@
 #include <CoreUtils/DebugServices.h>
 // #import <CoreUtils/SoftLinking.h>
 
-// static const char path[] = "/System/Library/PrivateFrameworks/CoreUtils.framework/CoreUtils";
 
 int16_t ReadBig16(int16_t *p);
 int32_t ReadBig32(int32_t *p);
 void WriteBig16(int16_t *p, int16_t v);
 void WriteBig32(int32_t *p, int32_t v);
+
+/* Structure to represent an IPv4 or IPv6 address */
+struct sockaddr_ip {
+    uint8_t sa_len;         /* total length */
+    sa_family_t sa_family;  /* [XSI] address family */
+    struct in_addr v4;
+    struct in6_addr v6;
+};
+
 
 // These comments were found in mDNSResponder. FIXME: implement all these
 // Note: strcpy_literal() appears in CoreUtils code, but isn't currently defined in framework headers.
