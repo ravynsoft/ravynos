@@ -123,3 +123,5 @@ add_custom_command(TARGET BootstrapTools
     COMMAND ${CMAKE_COMMAND} -E rm -rf ${TOOLCHAIN}/CMakeFiles
     COMMAND ${CMAKE_COMMAND} -E rm -rf ${TOOLCHAIN}/libBootstrapTools.a
 )
+
+add_subdirectory(lzvndecode)
