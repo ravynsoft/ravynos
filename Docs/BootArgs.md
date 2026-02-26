@@ -9,10 +9,15 @@ These arguments can be specified in `com.ravynos.boot.plist` and on the booter
 | -s               | Single-user startup                                        |
 | -disable_x86_64h | Force pre-Haswell CPU support                              |
 | -enable_x86_64h  | Require Haswell or later CPU architecture                  |
+| -topo            | Enable CPU topology debug logging
 |                  |                                                            |
 | debug            | Flags for Kernel Debugger/KDP (see: osfmk/kern/debug.h)    |
 | dart             | Flags for IOPlatformExpert (see: iokit/IOKit/IOKitDebug.h) |
-
+| io               | Debug flags for IOKit                                      |
+| iotrace          | Debug flags for IOKit                                      |
+| pmtimeout        | Debug flags for IOKit (power management timeout)           |
+| dk               | Debug flags for DriverKit(?) (IODK)                        |
+| vm_compressor    | Configure the compressed VM pager                          |
 
 ### Architecture-specific flags: ARM64
 ```
@@ -69,7 +74,6 @@ These arguments can be specified in `com.ravynos.boot.plist` and on the booter
     -rootdmg-ramdisk
     -rwroot_hack
     -show_pointers
-    -topo
     -unsafe_kernel_text
     -use_hwpagesize
     -vm16k
@@ -354,7 +358,6 @@ These arguments can be specified in `com.ravynos.boot.plist` and on the booter
     validation_disables
     vm_check_map_sanity
     vm_compression_limit
-    vm_compressor
     vm_compressor_codec
     vm_compressor_validation
     vm_footprint_suspend_allowed
