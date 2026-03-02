@@ -29,6 +29,7 @@ ExternalProject_Add(xnu_headers
     SOURCE_DIR ${ROOT_SOURCE_DIR}/Kernel/xnu
     BINARY_DIR ${ROOT_BINARY_DIR}/Kernel/xnu
     DEPENDS BootstrapTools
+    USES_TERMINAL_BUILD
     CONFIGURE_COMMAND ""
     BUILD_COMMAND
     	PATH=${PATH} ${GMAKE} -C <SOURCE_DIR> LOGCOLORS=y
@@ -65,6 +66,7 @@ ExternalProject_Add(xnu
     SOURCE_DIR ${ROOT_SOURCE_DIR}/Kernel/xnu
     BINARY_DIR ${ROOT_BINARY_DIR}/Kernel/xnu
     STEP_TARGETS build install
+    USES_TERMINAL_BUILD
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     	${GMAKE} -C <SOURCE_DIR>
@@ -107,4 +109,4 @@ ExternalProject_Add(xnu
 
 add_subdirectory(xnu/libkern/kmod libkmod)
 add_subdirectory(Extensions)
-#add_subdirectory(kext_tools)
+add_subdirectory(kext_tools)
