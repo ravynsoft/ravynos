@@ -1,5 +1,5 @@
-add_kext_bundle(pthread.kext INFO_PLIST pthread-Info.plist KERNEL_PRIVATE
-    BUNDLE_IDENTIFIER com.ravynos.kext.pthread
+add_kext_bundle(pthread.kext INFO_PLIST Info.plist KERNEL_PRIVATE
+    BUNDLE_IDENTIFIER com.apple.kec.pthread
     BUNDLE_VERSION ${PROD_VERSION}
     MAIN_FUNCTION pthread_start ANTIMAIN_FUNCTION pthread_stop)
 
@@ -32,7 +32,7 @@ target_compile_definitions(pthread.kext PRIVATE XNU_KERNEL_PRIVATE
     _LIBC_NO_FEATURE_VERIFICATION)
 
 target_link_options(pthread.kext PRIVATE
-    -mmacos-version-min=10.15
+    -mmacos-version-min=${MACOS_VERSION_MIN}
     -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib
     -L${RAVYN_SDKROOT}/usr/local/lib)
 
