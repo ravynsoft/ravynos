@@ -1,1 +1,0 @@
-set_property(TEST t3 DIRECTORY ../TEST-subdir1 PROPERTY PASS_REGULAR_EXPRESSION "Subdirectory")

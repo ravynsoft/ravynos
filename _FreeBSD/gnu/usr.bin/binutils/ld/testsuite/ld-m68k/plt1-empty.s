@@ -1,3 +1,0 @@
-	.text
-	.globl	foo
-foo:

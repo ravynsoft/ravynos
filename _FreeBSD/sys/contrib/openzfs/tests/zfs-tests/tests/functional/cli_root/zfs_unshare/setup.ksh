@@ -1,1 +1,0 @@
-../zfs_share/setup.ksh

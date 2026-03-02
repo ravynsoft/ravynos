@@ -1,6 +1,0 @@
-build_script:
-  - md build
-  - cd build
-  - cmake ..
-  - cmake --build . --config Release
-  - ctest --output-on-failure

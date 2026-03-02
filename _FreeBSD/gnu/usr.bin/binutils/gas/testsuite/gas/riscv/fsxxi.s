@@ -1,4 +1,0 @@
-	fsrmi x10, 0x1f
-	fsrmi 0x1e
-	fsflagsi x14, 0x1d
-	fsflagsi 0x1c

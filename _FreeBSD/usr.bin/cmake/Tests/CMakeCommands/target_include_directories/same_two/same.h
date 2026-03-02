@@ -1,1 +1,0 @@
-#define CORRECT_SAME_H_INCLUDED

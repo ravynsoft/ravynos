@@ -1,4 +1,0 @@
-{
-  global: bar;
-  local: *;
-};

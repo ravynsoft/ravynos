@@ -1,3 +1,0 @@
-#...
-.*Dependency audit library: \[tmpdir/audit.so:tmpdir/audit2.so:tmpdir/audit3.so\].*
-#pass

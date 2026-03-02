@@ -1,2 +1,0 @@
- .data
- .space 80

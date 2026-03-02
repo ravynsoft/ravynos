@@ -1,9 +1,0 @@
-print <<DUMMY_TEST;
-1..4
-ok 1
-ok 2
-ok 3
-DUMMY_TEST
-
-eval "use vmsish 'hushed'" if ($^O eq 'VMS');
-exit 1;

@@ -1,3 +1,0 @@
-#...
-  GNU_RELRO .*
-#pass

@@ -1,5 +1,0 @@
-SECTIONS
-{
-  .text : {*(.text*)}
-  /DISCARD/ : { *(.*) }
-}

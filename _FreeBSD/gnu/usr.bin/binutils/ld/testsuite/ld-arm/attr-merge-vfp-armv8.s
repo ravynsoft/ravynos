@@ -1,2 +1,0 @@
-.fpu fp-armv8
-

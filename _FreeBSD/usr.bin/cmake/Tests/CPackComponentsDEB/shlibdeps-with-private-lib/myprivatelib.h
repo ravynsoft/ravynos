@@ -1,1 +1,0 @@
-void myprivatelib_function();

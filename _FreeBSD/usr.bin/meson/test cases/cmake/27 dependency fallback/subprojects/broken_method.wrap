@@ -1,2 +1,0 @@
-[wrap-file]
-method=notfound

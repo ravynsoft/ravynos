@@ -1,7 +1,0 @@
-SECTIONS
-{
-  . = 0x100;
-  .text : { *(.text) *(.stub) }
-  .data : { *(.data) *(.ovtab) }
-  .bss : { *(.bss) }
-}

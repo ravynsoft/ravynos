@@ -1,5 +1,0 @@
-project('non-permitted kwargs', 'c')
-cc = meson.get_compiler('c')
-cc.has_header_symbol('stdio.h', 'printf', prefixxx: '#define XXX')
-cc.links('int main(void){}', argsxx: '')
-cc.get_id(invalidxx: '')

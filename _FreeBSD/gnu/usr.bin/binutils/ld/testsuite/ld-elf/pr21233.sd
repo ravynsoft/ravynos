@@ -1,9 +1,0 @@
-# Make sure the `bar' reference is global rather than local
-# in the dynamic symbol table, e.g.:
-#    Num:    Value  Size Type    Bind   Vis      Ndx Name
-#      1: 00000000     0 OBJECT  GLOBAL DEFAULT  UND bar
-# vs:
-#      1: 00000000     0 OBJECT  LOCAL  DEFAULT  UND bar
-#...
- *[0-9]+: +[0-9a-f]+ +0 +OBJECT +GLOBAL +DEFAULT +UND +bar
-#pass

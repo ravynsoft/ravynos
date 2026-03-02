@@ -1,2 +1,0 @@
-install(FILES CMakeLists.txt DESTINATION foo)
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_LIST_DIR}/Example.txt")

@@ -1,3 +1,0 @@
-project('fff')
-
-subdir('subprojects')

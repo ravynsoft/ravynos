@@ -1,1 +1,0 @@
-project('abc', 'c')

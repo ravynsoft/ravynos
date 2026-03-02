@@ -1,1 +1,0 @@
-/* Would contain C code to generate Perl constants if not using cFile.pc */

@@ -1,2 +1,0 @@
-block(SCOPE_FOR POLICIES PROPAGATE VAR1)
-endblock()

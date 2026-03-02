@@ -1,6 +1,0 @@
-macro(print_versions name)
-  foreach(v "" _MAJOR _MINOR _PATCH _TWEAK)
-    message(STATUS "PROJECT_VERSION${v}='${PROJECT_VERSION${v}}'")
-    message(STATUS "${name}_VERSION${v}='${${name}_VERSION${v}}'")
-  endforeach()
-endmacro()

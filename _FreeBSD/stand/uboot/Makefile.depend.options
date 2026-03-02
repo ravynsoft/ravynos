@@ -1,9 +1,0 @@
-DIRDEPS_OPTIONS = FORTH LOADER_LUA
-
-DIRDEPS.FORTH.yes += \
-	stand/ficl \
-
-DIRDEPS.LOADER_LUA.yes += \
-	stand/lua \
-
-.include <dirdeps-options.mk>

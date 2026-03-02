@@ -1,3 +1,0 @@
-CDEC$   IF .NOT. DEFINED(SOME_DEF)
-CDEC$     INCLUDE 'SOME_DEF not defined'
-CDEC$   END IF

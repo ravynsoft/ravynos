@@ -1,2 +1,0 @@
-	.abicalls
-	.word	foo

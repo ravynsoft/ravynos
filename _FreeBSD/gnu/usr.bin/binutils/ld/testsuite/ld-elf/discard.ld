@@ -1,3 +1,0 @@
-SECTIONS {
-        /DISCARD/ : { *(.discard) }
-}

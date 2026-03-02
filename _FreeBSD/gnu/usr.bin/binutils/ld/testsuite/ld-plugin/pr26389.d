@@ -1,3 +1,0 @@
-#...
-0+ C _?nm_test_var
-#pass

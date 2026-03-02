@@ -1,1 +1,0 @@
-file(CONFIGURE OUTPUT out.txt CONTENT "")

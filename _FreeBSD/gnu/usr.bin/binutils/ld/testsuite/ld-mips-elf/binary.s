@@ -1,2 +1,0 @@
-	.data
-	.ascii	"abcdefghijklmnop"

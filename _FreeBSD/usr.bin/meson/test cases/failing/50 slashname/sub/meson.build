@@ -1,1 +1,0 @@
-pf = files('prog.c')

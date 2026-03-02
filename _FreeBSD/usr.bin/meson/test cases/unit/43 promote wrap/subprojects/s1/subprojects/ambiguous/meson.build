@@ -1,1 +1,0 @@
-project('ambiguous', 'c')

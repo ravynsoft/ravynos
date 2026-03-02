@@ -1,1 +1,0 @@
-include(ManualSourceDirectory.cmake)

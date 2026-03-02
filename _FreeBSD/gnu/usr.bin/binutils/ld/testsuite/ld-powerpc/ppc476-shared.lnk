@@ -1,6 +1,0 @@
-SECTIONS
-{
-  . = 0xfffc;
-  .text : { *(.text) }
-  .bss : ALIGN (0x10000) { *(.bss) }
-}

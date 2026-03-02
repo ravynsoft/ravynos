@@ -1,4 +1,0 @@
-void
-xyz (void)
-{
-}

@@ -1,5 +1,0 @@
-message(STATUS "Loading D with components: '${D_FIND_COMPONENTS}'")
-include(CMakeFindDependencyMacro)
-find_dependency(A COMPONENTS A1 NO_DEFAULT_PATH PATHS ${CMAKE_CURRENT_LIST_DIR})
-find_dependency(B NO_DEFAULT_PATH PATHS ${CMAKE_CURRENT_LIST_DIR})
-find_dependency(C NO_DEFAULT_PATH PATHS ${CMAKE_CURRENT_LIST_DIR})

@@ -1,9 +1,0 @@
-# Simple termcap file.  -*- conf -*-
-#
-# Term::Cap 1.16 will try to fall back to infocmp or a dumb terminal setting
-# unless termcap_path() finds a path to a termcap file.  This is a bug in
-# Term::Cap (see <https://rt.cpan.org/Public/Bug/Display.html?id=96695>), but
-# provide this file anyway to ensure the test suite will still run.
-
-xterm:co=#80:do=^J:md=\E[1m:us=\E[4m:me=\E[m
-unknown:co=#80:do=^J

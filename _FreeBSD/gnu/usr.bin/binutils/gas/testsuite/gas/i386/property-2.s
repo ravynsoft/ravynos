@@ -1,2 +1,0 @@
-	.text
-	cmove		%eax,%ebx
