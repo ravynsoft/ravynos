@@ -1,36 +1,37 @@
-add_executable(kextcache
-	./FILES/kextcache_main.c
-	./staging.m
-	./FILES/update_boot.c
-	./syspolicy.m
-	./compression.c
-	./bootcaches.c
-	./driverkit.m
-	./FILES/mkext1_file.c
-	./safecalls.c
-	./rosp_staging.m
-	./kext_tools_util.c
-	./signposts.m
-	./fork_program.c
-	./kernelcache.c
-	./security.c
+add_executable(host_kextcache)
+target_sources(host_kextcache PRIVATE
+    compression.c
+    kextcache_main.c
+    kext_tools_util.c
+    kernelcache.c
+    security.c
+    linuxshims.c
+    ../IOKitUser/kext.subproj/macho_util.c
+    FILES/OSKext.c
 )
-
-target_include_directories(kextcache PRIVATE
-    ${ROOT_SOURCE_DIR}/Frameworks
+target_include_directories(host_kextcache PRIVATE
+    ./FILES/3rd . ..
+    ${ROOT_SOURCE_DIR}/Developer/Default.xctoolchain/include
     ${ROOT_SOURCE_DIR}/Frameworks/Foundation/Headers
-    ${CMAKE_CURRENT_SOURCE_DIR}/../IOKitUser/kext.subproj
-    ${RAVYN_SDKROOT}/usr/local/include/kernel
-    ${RAVYN_SDKROOT}/usr/local/include
-    ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/Headers)
-
-target_compile_options(kextcache PRIVATE
-    --sysroot=${RAVYN_SDKROOT} -mmacos-version-min=${MACOS_VERSION_MIN}
-    -F${RAVYN_SDKROOT}/System/Library/Frameworks
-    -F${RAVYN_SDKROOT}/System/Library/PrivateFrameworks
+    ${ROOT_SOURCE_DIR}/Frameworks
+    ${ROOT_SOURCE_DIR}/Libraries/Libsystem/libxpc
+    ${ROOT_SOURCE_DIR}/Libraries/Libsystem/libsystem_notify
+    ${ROOT_SOURCE_DIR}/Libraries/Libsystem/libsystem_asl
+    ${ROOT_SOURCE_DIR}/Libraries/openbsm/sys
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern
+    ${ROOT_SOURCE_DIR}/Kernel/xnu/libkern/libkern
+    ../IOKitUser/kext.subproj
+)
+target_compile_options(host_kextcache PRIVATE -w
+    -include${CMAKE_CURRENT_SOURCE_DIR}/FILES/linuxshims.h
 )
 
-target_link_options(kextcache PRIVATE
-    -mmacos-version-min=${MACOS_VERSION_MIN}
-    -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib
-    -L${RAVYN_SDKROOT}/usr/local/lib)
+# This uses Open CF-Lite, not our CoreFoundation. Make sure you have
+# it installed! (opencflite in AUR)
+target_link_options(host_kextcache PRIVATE
+    -v -L${ROOT_BINARY_DIR}/Developer/Default.xctoolchain/cctools/libmacho
+)
+target_link_libraries(host_kextcache PRIVATE
+    host_libmacho -lCoreFoundation -luuid -lz
+)
+

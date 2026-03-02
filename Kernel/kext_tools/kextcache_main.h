@@ -19,9 +19,10 @@
 
 #include "kext_tools_util.h"
 #include "kernelcache.h"
+#if !HOST_BUILD
 #include "bootroot_internal.h"
 #include "security.h"
-
+#endif
 
 #pragma mark Basic Types & Constants
 /*******************************************************************************
@@ -272,8 +273,10 @@ typedef struct {
 
     CFURLRef  updateVolumeURL;      // -u / -U OR -i / -invalidate options
 
+#if !HOST_BUILD
     // see BRUpdateOpts_t in bootroot_internal.h
     BRUpdateOpts_t updateOpts;      // -U, -f, -Installer, ...
+#endif
 
     char    * kernelPath;    // overriden by -kernel option
     int       kernel_fd;     // File Descriptor for kernelPath
@@ -302,7 +305,9 @@ typedef struct {
     Boolean   clearStaging;
     Boolean   pruneStaging;
 
+#if !HOST_BUILD
     AuthOptions_t      authenticationOptions;
+#endif
 } KextcacheArgs;
 
 #pragma mark Function Prototypes
