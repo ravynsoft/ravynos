@@ -12,9 +12,11 @@ target_compile_options(host_plktool PRIVATE -w)
 # This uses Open CF-Lite, not our CoreFoundation. Make sure you have
 # it installed! (opencflite in AUR)
 target_link_options(host_plktool PRIVATE
-    -v -L${ROOT_BINARY_DIR}/Developer/Default.xctoolchain/cctools/libmacho
+    -L${ROOT_BINARY_DIR}/Developer/Default.xctoolchain/cctools/libmacho
+    -L${ROOT_BINARY_DIR}/libkxld
 )
 target_link_libraries(host_plktool PRIVATE
-    host_libmacho -lCoreFoundation -luuid -lssl -lcrypto -lz
+    -lkxld host_libmacho host_libstuff
+    -lCoreFoundation -luuid -lssl -lcrypto -lz -lstdc++
 )
 

@@ -100,6 +100,10 @@ static char * segIdxToName(enum enumSegIdx idx) {
     }
 }
 
+boolean_t __os_warn_unused(const boolean_t x)
+{
+        return x;
+}
 
 /* -----------------------[ from misc_util.c ]----------------------------- */
 
