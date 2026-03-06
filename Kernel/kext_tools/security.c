@@ -20,34 +20,26 @@
  *
  * @APPLE_LICENSE_HEADER_END@
  */
-
 #include <asl.h>
 #include <IOKit/kext/OSKext.h>
 #include <IOKit/kext/OSKextPrivate.h>
 #include <IOKit/IOKitLib.h>
-#if !HOST_BUILD
 #include <Security/Security.h>
 #include <sys/sysctl.h>
 #include <sys/csr.h>
 #include <sys/xattr.h>
-
+#include <syslog.h>
 #include <servers/bootstrap.h>
 #include <IOKit/kext/kextmanager_types.h>
-#endif
-#include <syslog.h>
 
-#if !HOST_BUILD
 #include <os/feature_private.h>
-#endif
 
 #include "kext_tools_util.h"
 #include "security.h"
-#if !HOST_BUILD
 #include "signposts.h"
 #include "staging.h"
 #include "syspolicy.h"
 #include "driverkit.h"
-#endif
 
 #if HAVE_DANGERZONE
 #include <dz/dz.h>
@@ -78,9 +70,6 @@ static uint32_t     getKextDevModeFlags(void);
 Boolean
 authenticateKext(OSKextRef theKext, void *context)
 {
-#if HOST_BUILD
-    return true;
-#else
     Boolean result = false;
     OSStatus sigResult = 0;
     const AuthOptions_t *authOptions = (const AuthOptions_t*)context;
@@ -196,7 +185,6 @@ authenticateKext(OSKextRef theKext, void *context)
 
 finish:
     return result;
-#endif
 }
 
 /*******************************************************************************
@@ -205,7 +193,6 @@ finish:
  *******************************************************************************/
 Boolean checkEntitlementAtURL(CFURLRef anURL, CFStringRef entitlementString, Boolean allowNetwork)
 {
-#if !HOST_BUILD
     SecRequirementRef entitlementRef    = NULL;
     SecStaticCodeRef  staticCodeRef     = NULL;
     CFStringRef       entitlementReq    = NULL;
@@ -252,9 +239,6 @@ finish:
     SAFE_RELEASE(staticCodeRef);
     SAFE_RELEASE(entitlementReq);
     return result;
-#else
-    return true; /* everything is allowed */
-#endif
 }
 
 /*******************************************************************************
@@ -268,7 +252,6 @@ finish:
 #pragma clang diagnostic ignored "-Wdeprecated-declarations" // needed for asl_*
 void messageTraceExcludedKext(OSKextRef theKext)
 {
-#if !HOST_BUILD
     CFStringRef     versionString;
     CFStringRef     bundleIDString;
     CFURLRef        kextURL             = NULL;   // must release
@@ -328,7 +311,6 @@ finish:
     if (amsg) {
         asl_free(amsg);
     }
-#endif
     return;
 }
 #pragma clang diagnostic pop
@@ -340,9 +322,6 @@ finish:
  *******************************************************************************/
 static OSStatus checkRootCertificateIsApple(OSKextRef aKext)
 {
-#if HOST_BUILD
-    return 0; /* Sure, we're Apple and this code is signed ^_^ */
-#else
     OSStatus                result          = -1;
     CFURLRef                kextURL         = NULL;   // must release
     SecStaticCodeRef        staticCodeRef   = NULL;   // must release
@@ -402,7 +381,6 @@ finish:
     SAFE_RELEASE(requirementRef);
 
     return result;
-#endif /* !HOST_BUILD */
 }
 
 
@@ -413,14 +391,6 @@ finish:
 
 void getAdhocSignatureHash(CFURLRef kextURL, char ** signatureBuffer, CFDictionaryRef codesignAttributes)
 {
-/*
- * FIXME: We should respect the Apple code signatures and chain of trust,
- * so reinstate all this. We should also create a ravynOS root CA and root
- * our own chain of trust there so we can do signed code and SIP eventually.
- */
-#if HOST_BUILD
-    *signatureBuffer = NULL;
-#else
     OSStatus status                     = errSecSuccess;
     CFMutableDictionaryRef signdict     = NULL;   // must release
     SecCodeSignerRef    signerRef       = NULL;   // must release
@@ -654,7 +624,6 @@ finish:
     SAFE_RELEASE(myHashNumValue);
 
     *signatureBuffer = tempBufPtr;
-#endif
 }
 
 /*******************************************************************************
@@ -726,9 +695,6 @@ finish:
  *******************************************************************************/
 static CFStringRef copyTeamID(SecCertificateRef certificate)
 {
-#if HOST_BUILD
-    return NULL;
-#else
     if (!certificate ||
         CFGetTypeID(certificate) !=SecCertificateGetTypeID()) {
         return NULL;
@@ -840,7 +806,6 @@ finish:
     SAFE_RELEASE(certificateKeys);
     SAFE_RELEASE(certificateDict);
     return teamID;
-#endif
 }
 
 /*******************************************************************************
@@ -850,9 +815,6 @@ finish:
  *******************************************************************************/
 static CFStringRef copyIssuerCN(SecCertificateRef certificate)
 {
-#if HOST_BUILD
-    return NULL;
-#else
     if (!certificate ||
         CFGetTypeID(certificate) !=SecCertificateGetTypeID()) {
         return NULL;
@@ -931,7 +893,6 @@ finish:
     SAFE_RELEASE(certificateDict);
     SAFE_RELEASE(certificateKeys);
     return issuerCN;
-#endif
 }
 
 /*******************************************************************************
@@ -941,9 +902,6 @@ finish:
  *******************************************************************************/
 static CFStringRef copyCDHash(SecStaticCodeRef code)
 {
-#if HOST_BUILD
-    return NULL;
-#else
     CFDictionaryRef signingInfo     = NULL; // must release
     char *          tempBufPtr      = NULL; // free
     const UInt8 *   hashDataPtr     = NULL; // do not free
@@ -987,7 +945,6 @@ finish:
     SAFE_FREE(tempBufPtr);
     SAFE_RELEASE(signingInfo);
     return hash;
-#endif
 }
 
 /*******************************************************************************
@@ -996,9 +953,6 @@ finish:
  *******************************************************************************/
 CFStringRef copyCDHashFromURL(CFURLRef anURL)
 {
-#if HOST_BUILD
-    return NULL;
-#else
     SecStaticCodeRef code   = NULL; // must release
     CFStringRef      cdHash = NULL; // do not release
 
@@ -1018,7 +972,6 @@ CFStringRef copyCDHashFromURL(CFURLRef anURL)
 finish:
     SAFE_RELEASE(code);
     return cdHash;
-#endif
 }
 
 /*******************************************************************************
@@ -1039,7 +992,7 @@ void copySigningInfo(CFURLRef kextURL,
     if (!kextURL) {
         return;
     }
-#if !HOST_BUILD
+
     SecStaticCodeRef    code                = NULL; // must release
     CFDictionaryRef     information         = NULL; // must release
 
@@ -1099,7 +1052,6 @@ void copySigningInfo(CFURLRef kextURL,
 finish:
     SAFE_RELEASE(code);
     SAFE_RELEASE(information);
-#endif
 
     return;
 }
@@ -1116,9 +1068,6 @@ static CFArrayRef copySubjectCNArray(CFURLRef kextURL)
         return NULL;
     }
 
-#if HOST_BUILD
-    return NULL;
-#else
     CFMutableArrayRef   subjectCNArray      = NULL; // do not release
     CFArrayRef          certificateChain    = NULL; // do not release
     SecCertificateRef   certificate         = NULL; // do not release
@@ -1177,7 +1126,6 @@ finish:
     SAFE_RELEASE(information);
 
     return subjectCNArray;
-#endif
 }
 
 /*******************************************************************************
@@ -1203,15 +1151,11 @@ finish:
     if (!personalities) return;
 
     CFRetain(personality);
-#if HOST_BUILD
-    CFArrayAppendValue(personalities, personalityName);
-#else
     match = IOServiceGetMatchingService(kIOMasterPortDefault, personality);
     if (MACH_PORT_NULL != match) {
         IOObjectRelease(match);
         CFArrayAppendValue(personalities, personalityName);
     }
-#endif
 }
 
 /*******************************************************************************
@@ -1277,7 +1221,6 @@ static void filterKextLoadForMT(OSKextRef aKext, CFMutableArrayRef kextList, Boo
         codeless = kCFBooleanTrue;
     }
 
-#if !HOST_BUILD
     if (SecStaticCodeCreateWithPath(kextURL,
                                     kSecCSDefaultFlags,
                                     &code) != 0
@@ -1293,9 +1236,6 @@ static void filterKextLoadForMT(OSKextRef aKext, CFMutableArrayRef kextList, Boo
     }
 
     isSigned = CFDictionaryContainsKey(information, kSecCodeInfoIdentifier);
-#else
-    isSigned = false;
-#endif
     if (!isSigned) {
         /* The kext is unsigned, so there is little information we can retrieve.
          * A hash of the kext is generated for data collection. */
@@ -1308,7 +1248,6 @@ static void filterKextLoadForMT(OSKextRef aKext, CFMutableArrayRef kextList, Boo
                                                    kCFStringEncodingUTF8);
         }
     }
-#if !HOST_BUILD
     else {
         CFStringRef myCFString = NULL; // do not release
         myCFString = OSKextGetIdentifier(aKext);
@@ -1403,8 +1342,7 @@ static void filterKextLoadForMT(OSKextRef aKext, CFMutableArrayRef kextList, Boo
             }
         }
     }
-#endif /* !HOST_BUILD */
-    
+
     personalities = OSKextGetValueForInfoDictionaryKey(aKext,
         CFSTR(kIOKitPersonalitiesKey));
     if (personalities
@@ -1590,9 +1528,6 @@ OSStatus checkKextSignature(OSKextRef aKext,
                             Boolean checkExceptionList,
                             Boolean allowNetwork)
 {
-#if HOST_BUILD
-    return 0;
-#else
     OSStatus                result          = errSecCSSignatureFailed;
     CFURLRef                kextURL         = NULL;   // must release
     SecStaticCodeRef        staticCodeRef   = NULL;   // must release
@@ -1688,7 +1623,6 @@ finish:
     SAFE_RELEASE(requirementRef);
 
     return result;
-#endif
 }
 
 /*********************************************************************
@@ -1703,9 +1637,6 @@ finish:
  *********************************************************************/
 Boolean isAllowedToLoadThirdPartyKext(OSKextRef theKext)
 {
-#if HOST_BUILD
-    return true;
-#else
     static CFArrayRef       sValidThirdPartyHashes  = NULL;
     static CFArrayRef       sValidThirdPartyBundles = NULL;
     static CFArrayRef       sExceptionListBundles   = NULL;
@@ -1889,7 +1820,6 @@ Boolean isAllowedToLoadThirdPartyKext(OSKextRef theKext)
     SAFE_RELEASE(staticCodeRef);
 
     return result;
-#endif
 }
 
 
@@ -1936,7 +1866,6 @@ Boolean isInExceptionList(OSKextRef theKext,
             goto finish;
         }
 
-#if !HOST_BUILD
         /* can we trust AppleKextExcludeList.kext?
          * If we are NOT allowing untrusted kexts then make sure
          * AppleKextExcludeList.kext is valid!
@@ -1959,7 +1888,6 @@ Boolean isInExceptionList(OSKextRef theKext,
                 goto finish;
             }
         }
-#endif
 
         tempDict = OSKextGetValueForInfoDictionaryKey(
                                         excludelistKext,
@@ -2049,9 +1977,8 @@ Boolean isInStrictExceptionList(OSKextRef theKext,
         goto finish;
     }
 
-#if !HOST_BUILD
     CFDictionaryAddValue(attributes, kSecCodeAttributeArchitecture, archName);
-    
+
     /* invalidate the exception list "by hash" cache or create if not
      * present
      */
@@ -2105,7 +2032,6 @@ Boolean isInStrictExceptionList(OSKextRef theKext,
             }
         }
     }
-#endif
 
     /* Passing both arguments as NULL is just a way to prime the cache (above),
      * so there's no more work to do.
@@ -2114,7 +2040,6 @@ Boolean isInStrictExceptionList(OSKextRef theKext,
         goto finish;
     }
 
-#if !HOST_BUILD
     if (sStrictExceptionHashListDict) {
         if (theKextURL == NULL) {
             kextURL = CFURLCopyAbsoluteURL(OSKextGetURL(theKext));
@@ -2140,7 +2065,6 @@ Boolean isInStrictExceptionList(OSKextRef theKext,
                       kextPath, targetArch->name);
         }
     }
-#endif
 
 finish:
     SAFE_RELEASE(archName);
@@ -2250,9 +2174,6 @@ Boolean isDevMode(void)
 
 Boolean isPrelinkedKernelAutoRebuildDisabled(void)
 {
-#if HOST_BUILD
-    return true;
-#else
     uint32_t    kextDevModeFlags = 0x00;
 
     /* only skip auto rebuild if kernel debugging allowed */
@@ -2260,16 +2181,13 @@ Boolean isPrelinkedKernelAutoRebuildDisabled(void)
         kextDevModeFlags = getKextDevModeFlags();
     }
     return(kextDevModeFlags & kKextDevModeFlagsDisableAutoRebuild);
-#endif
 }
 
 static uint32_t getKextDevModeFlags(void)
 {
     uint32_t    kext_dev_mode = 0;
 
-#if !HOST_BUILD
     (void)get_bootarg_int(KEXT_DEV_MODE_STRING, &kext_dev_mode);
-#endif
     return kext_dev_mode;
 }
 
@@ -2317,9 +2235,6 @@ Boolean isInSystemLibraryExtensionsFolder(OSKextRef theKext)
  *******************************************************************************/
 Boolean isInvalidSignatureAllowed(void)
 {
-#if HOST_BUILD
-    return true; // Everyone is welcome!
-#else
     Boolean      result = false;      // default to not allowed
 
     if (csr_check(CSR_ALLOW_UNTRUSTED_KEXTS) == 0 || csr_check(CSR_ALLOW_APPLE_INTERNAL) == 0) {
@@ -2334,9 +2249,7 @@ Boolean isInvalidSignatureAllowed(void)
     }
 
     return(result);
-#endif
 }
-#if !HOST_BUILD
 #include <Security/SecKeychainPriv.h>
 
 /* If kextd isn't running, assume it's early boot and that securityd
@@ -2408,7 +2321,6 @@ Boolean isNetBooted(void)
 __out:
     return isNetBooted;
 }
-#endif /* !HOST_BUILD */
 
 #if HAVE_DANGERZONE
 

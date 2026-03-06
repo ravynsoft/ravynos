@@ -52,9 +52,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/ucred.h>
-#if HOST_BUILD
-#include <sys/fcntl.h>
-#endif
 
 #include <IOKit/kext/kextmanager_types.h>
 

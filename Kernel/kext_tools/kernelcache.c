@@ -9,9 +9,7 @@
 
 #include "kernelcache.h"
 #include "compression.h"
-#if !HOST_BUILD
 #include "bootcaches.h"
-#endif
 
 #if EMBEDDED_HOST
 size_t lzvn_encode(void *       dst,
@@ -689,13 +687,8 @@ readMachOSlicesWith_fd(
     if (archsOut) *archsOut = (CFMutableArrayRef) CFRetain(fileArchs);
     if (modeOut) *modeOut = statBuf.st_mode;
     if (machOTimesOut) {
-#ifdef __linux__
-        TIMESPEC_TO_TIMEVAL(&machOTimesOut[0], &statBuf.st_atim);
-        TIMESPEC_TO_TIMEVAL(&machOTimesOut[1], &statBuf.st_mtim);
-#else
         TIMESPEC_TO_TIMEVAL(&machOTimesOut[0], &statBuf.st_atimespec);
         TIMESPEC_TO_TIMEVAL(&machOTimesOut[1], &statBuf.st_mtimespec);
-#endif
     }
 
 finish:

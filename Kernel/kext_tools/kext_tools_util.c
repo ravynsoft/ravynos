@@ -24,13 +24,7 @@
 #include <TargetConditionals.h>
 #if !TARGET_OS_EMBEDDED
     #include <bless.h>
-#ifdef __linux__
-    #include <sys/types.h>
-    #include <dirent.h>
-#endif
-#if !HOST_BUILD
     #include "bootcaches.h"
-#endif
 #endif  // !TARGET_OS_EMBEDDED
 
 #include <libc.h>
@@ -43,16 +37,14 @@
 #include <sys/resource.h>
 #include <IOKit/kext/OSKext.h>
 #include <IOKit/kext/OSKextPrivate.h>
-#if !HOST_BUILD
 #include <sandbox/rootless.h>
 #include <os/log_private.h>
-#endif
 
 #include <sys/types.h>
 #include <sys/sysctl.h>
 
 #include "kext_tools_util.h"
-#if !defined(EMBEDDED_HOST) && !defined(HOST_BUILD)
+#ifndef EMBEDDED_HOST
 #include "signposts.h"
 #endif
 
@@ -264,7 +256,6 @@ finish:
 void postNoteAboutKexts( CFStringRef theNotificationCenterName,
                          CFMutableDictionaryRef theDict )
 {
-#if !HOST_BUILD
     CFNotificationCenterRef     myCenter    = NULL;
 
     if (theDict == NULL || theNotificationCenterName == NULL)
@@ -281,7 +272,6 @@ void postNoteAboutKexts( CFStringRef theNotificationCenterName,
         kCFNotificationDeliverImmediately | kCFNotificationPostToAllSessions );
 
     SAFE_RELEASE(theDict);
-#endif
 
     return;
 }
@@ -296,7 +286,6 @@ void postNoteAboutKexts( CFStringRef theNotificationCenterName,
 void postNoteAboutKextLoadsMT(CFStringRef theNotificationCenterName,
                               CFMutableArrayRef theKextPathArray)
 {
-#if !HOST_BUILD
     CFMutableDictionaryRef      myInfoDict  = NULL; // must release
     CFNotificationCenterRef     myCenter    = NULL;
 
@@ -324,7 +313,6 @@ void postNoteAboutKextLoadsMT(CFStringRef theNotificationCenterName,
     }
 
     SAFE_RELEASE(myInfoDict);
-#endif
 
     return;
 }
@@ -725,7 +713,6 @@ bool
 readKextHashAllowList(bool mustMatchCurrentBoot, CFStringRef *bootUUIDStr, CFArrayRef *allowedHashesRef,
                       CFArrayRef *allowedBundleIDsRef, CFArrayRef *exceptionListBundlesRef)
 {
-#if !HOST_BUILD
     bool result = false;
     char bootuuid[37] = {};
     size_t len;
@@ -888,16 +875,12 @@ out:
 #endif
 
     return result;
-#else /* HOST_BUILD */
-    return true;
-#endif
 }
 
 
 static bool
 validateCDHashDataForWriting(const char *current_bootuuid, CFDataRef cdhashData)
 {
-#if !HOST_BUILD
     bool result = false;
     CFErrorRef        error           = NULL; // must release
     CFPropertyListRef allowPlist      = NULL; // must release
@@ -951,16 +934,12 @@ out:
     SAFE_RELEASE(allowPlist);
     SAFE_RELEASE(bootuuid_cfstr);
     return result;
-#else
-    return true;
-#endif
 }
 
 
 ExitStatus
 writeKextAllowList(const char *bootuuid, CFDataRef cdhashData, int to_dir_fd, const char *to_fname)
 {
-#if !HOST_BUILD
     char *tmpPath        = NULL; // must free
     char *tmpBaseName    = NULL; // must free
     char *tmpDirName     = NULL; // must free
@@ -1100,9 +1079,6 @@ out:
 #endif
 
     return result;
-#else
-    return true;
-#endif
 }
 
 
@@ -1361,14 +1337,9 @@ getLatestTimesFromCFURLArray(
         if (result != EX_OK) {
             goto finish;
         }
-#ifdef __linux__
-        TIMESPEC_TO_TIMEVAL(&myTempAccessTime, &myStatBuf.st_atim);
-        TIMESPEC_TO_TIMEVAL(&myTempModTime, &myStatBuf.st_mtim);
-#else
         TIMESPEC_TO_TIMEVAL(&myTempAccessTime, &myStatBuf.st_atimespec);
         TIMESPEC_TO_TIMEVAL(&myTempModTime, &myStatBuf.st_mtimespec);
-#endif
-	
+
         if (timercmp(&myTempModTime, &dirTimeVals[1], >)) {
             dirTimeVals[0].tv_sec = myTempAccessTime.tv_sec;
             dirTimeVals[0].tv_usec = myTempAccessTime.tv_usec;
@@ -1392,30 +1363,6 @@ getLatestTimesFromDirURL(
                          struct timeval dirTimeVals[2])
 {
     ExitStatus          result              = EX_SOFTWARE;
-#if HOST_BUILD
-    struct dirent *entry;
-    char *path[PATH_MAX];
-    struct stat         myStatBuf;
-    struct timeval      myTempModTime;
-    struct timeval      myTempAccessTime;
-    
-    DIR *dirp = opendir(CFStringGetCStringPtr(CFURLGetString(dirURL), kCFStringEncodingUTF8));
-    bzero(dirTimeVals, sizeof(struct timeval) * 2);
-    while((entry = readdir(dirp)) != NULL) {
-        statPath(path, &myStatBuf);
-        TIMESPEC_TO_TIMEVAL(&myTempAccessTime, &myStatBuf.st_atim);
-        TIMESPEC_TO_TIMEVAL(&myTempModTime, &myStatBuf.st_mtim);
-
-        if (timercmp(&myTempModTime, &dirTimeVals[1], >)) {
-            dirTimeVals[0].tv_sec = myTempAccessTime.tv_sec;
-            dirTimeVals[0].tv_usec = myTempAccessTime.tv_usec;
-            dirTimeVals[1].tv_sec = myTempModTime.tv_sec;
-            dirTimeVals[1].tv_usec = myTempModTime.tv_usec;
-        }
-    }
-
-    return EX_OK;
-#else
     CFURLEnumeratorRef  myEnumerator        = NULL; // must release
     struct stat         myStatBuf;
     struct timeval      myTempModTime;
@@ -1459,7 +1406,6 @@ getLatestTimesFromDirURL(
 finish:
     if (myEnumerator)   CFRelease(myEnumerator);
     return result;
-#endif
 }
 
 /*******************************************************************************
@@ -1540,14 +1486,10 @@ getFileDescriptorTimes(
     if (result != EX_OK) {
         goto finish;
     }
-#ifdef __linux__
-    TIMESPEC_TO_TIMEVAL(&cacheFileTimes[0], &statBuffer.st_atim);
-    TIMESPEC_TO_TIMEVAL(&cacheFileTimes[1], &statBuffer.st_mtim);
-#else
+
     TIMESPEC_TO_TIMEVAL(&cacheFileTimes[0], &statBuffer.st_atimespec);
     TIMESPEC_TO_TIMEVAL(&cacheFileTimes[1], &statBuffer.st_mtimespec);
-#endif
-    
+
     result = EX_OK;
 finish:
     return result;
@@ -1568,14 +1510,9 @@ getFilePathTimes(
         goto finish;
     }
 
-#ifdef __linux__
-    TIMESPEC_TO_TIMEVAL(&cacheFileTimes[0], &statBuffer.st_atim);
-    TIMESPEC_TO_TIMEVAL(&cacheFileTimes[1], &statBuffer.st_mtim);
-#else
     TIMESPEC_TO_TIMEVAL(&cacheFileTimes[0], &statBuffer.st_atimespec);
     TIMESPEC_TO_TIMEVAL(&cacheFileTimes[1], &statBuffer.st_mtimespec);
-#endif
-    
+
     result = EX_OK;
 finish:
     return result;
@@ -1964,9 +1901,6 @@ void beQuiet(void)
 char *
 get_bootarg(char *bootArg)
 {
-#if HOST_BUILD
-    return NULL;
-#else
     static char   bootArgs[1024] = {};
     static size_t size  = sizeof(bootArgs);
     static bool   gotIt = false;
@@ -1978,7 +1912,6 @@ get_bootarg(char *bootArg)
     }
 
     return strcasestr(bootArgs, bootArg);
-#endif
 }
 
 bool
@@ -2015,7 +1948,6 @@ static os_log_t  sKextSignpostLog = NULL;
 
 void tool_initlog()
 {
-#if !HOST_BUILD
     uint32_t kextlog_mode = 0;
     if (get_bootarg_int("kextlog", &kextlog_mode)) {
         os_log(OS_LOG_DEFAULT, "Setting kext log mode: 0x%x", kextlog_mode);
@@ -2027,15 +1959,12 @@ void tool_initlog()
         sKextLog = os_log_create("com.apple.kext", "kextlog");
         sKextSignpostLog = os_log_create("com.apple.kext", "signposts");
     }
-#endif
 }
 
 void tool_openlog(const char * __unused name)
 {
     sNewLoggingOnly = true;
-#if !HOST_BUILD
     tool_initlog();
-#endif
 }
 
 os_log_t
@@ -2210,10 +2139,6 @@ Boolean getKernelPathForURL(CFURLRef    theVolRootURL,
     if (theBuffer) {
         *theBuffer = 0x00;
 
-#if HOST_BUILD
-    }
-    return TRUE;
-#else
         myDict = copyBootCachesDictForURL(theVolRootURL);
         if (myDict != NULL) {
             postBootPathsDict = (CFDictionaryRef)
@@ -2259,7 +2184,6 @@ Boolean getKernelPathForURL(CFURLRef    theVolRootURL,
     SAFE_RELEASE(myDict);
 
     return(myResult);
-#endif
 }
 
 /*******************************************************************************
@@ -2272,11 +2196,10 @@ Boolean getKernelPathForURL(CFURLRef    theVolRootURL,
  *******************************************************************************/
 CFDictionaryRef copyBootCachesDictForURL(CFURLRef theVolRootURL)
 {
-    CFDictionaryRef         myBootCachesPlist = NULL;   // do not release
-#if !HOST_BUILD
     CFStringRef             myVolRoot = NULL;           // must release
     CFStringRef             myPath = NULL;              // must release
     CFURLRef                myURL = NULL;               // must release
+    CFDictionaryRef         myBootCachesPlist = NULL;   // do not release
     char *                  myCString = NULL;           // must free
 
     if (theVolRootURL) {
@@ -2356,7 +2279,6 @@ finish:
     SAFE_RELEASE(myVolRoot);
     SAFE_FREE(myCString);
 
-#endif
     return(myBootCachesPlist);
 }
 
@@ -2719,9 +2641,6 @@ finish:
 void
 setVariantSuffix(void)
 {
-#if HOST_BUILD
-    OSKextSetExecutableSuffix("release", NULL);
-#else
     char* variant = 0;
     size_t len = 0;
     int result;
@@ -2748,7 +2667,6 @@ setVariantSuffix(void)
             kOSKextLogErrorLevel,
             "Impossible to query kern.osbuildconfig");
     }
-#endif
 }
 
 /*******************************************************************************
@@ -2756,9 +2674,6 @@ setVariantSuffix(void)
 
 int findmnt(dev_t devid, char mntpt[MNAMELEN], bool getDevicePath)
 {
-#ifdef __linux__
-    int rval = ELAST + 1;
-#else
     int rval = ELAST + 1;
     int i, nmnts = getfsstat(NULL, 0, MNT_NOWAIT);
     int bufsz;
@@ -2785,7 +2700,6 @@ int findmnt(dev_t devid, char mntpt[MNAMELEN], bool getDevicePath)
 
 finish:
     if (mounts)     free(mounts);
-#endif /* !__linux__ */
     return rval;
 }
 

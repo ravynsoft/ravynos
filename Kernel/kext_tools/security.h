@@ -14,14 +14,12 @@
 
 //  <rdar://problem/12435992>
 #include <asl.h>
-#if !HOST_BUILD
 #include <Security/SecCode.h>
 #include <Security/SecCodeSigner.h>
 #include <Security/SecStaticCode.h>
 #include <Security/SecRequirement.h>
 #include <Security/SecRequirementPriv.h>
 #include <Security/SecCodePriv.h>
-#endif
 
 #define kMessageTracerDomainKey     "com.apple.message.domain"
 #define kMessageTracerHashKey       "com.apple.message.hash"
@@ -111,14 +109,12 @@ typedef struct AuthOptions {
 // context is expected to be a pointer to an AuthOptions_t structure.
 Boolean authenticateKext(OSKextRef theKext, void *context);
 
-#if !HOST_BUILD
 #if !TARGET_OS_EMBEDDED
 #include <dz/dz.h>
 #if DZ_API_VERSION >= 20170214
 #define HAVE_DANGERZONE 1
 #endif // DZ_API_VERSION
 #endif // !TARGET_OS_EMBEDDED
-#endif
 
 #if HAVE_DANGERZONE
 void dzRecordKextLoadUser(OSKextRef kext, bool allowed);
