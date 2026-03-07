@@ -25,13 +25,25 @@
  *
  * This file implements just enough of OSKext and kext_tools to make a prelinked
  * kernel image from a Linux host, and is used in the ravynOS build toolchain
+ *
+ * Also beware: this file is IMMENSELY MESSY and needs to be refactored into
+ * multiple files and functions. It's a first draft.
  */
 
 #define __unused            __attribute__((unused))
 #define __kStringUnknown    "(unknown)"
+
 #define KEXT_MIN_ALIGN      6 /* 1 << 6 = 64 */
+
 #define SEG_TEXT_EXEC       "__TEXT_EXEC"
 #define SEG_LLVM_COV        "__LLVM_COV"
+
+#define VERS_MAJOR_MULT  (1000000000000)
+#define VERS_MINOR_MULT      (100000000)
+#define VERS_REVISION_MULT       (10000)
+#define VERS_STAGE_MULT           (1000)
+
+#define SAFE_RELEASE(x) if(x) CFRelease(x)
 
 #include <openssl/evp.h>
 #include <openssl/sha.h>
@@ -42,6 +54,7 @@
 #include <sys/mman.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreFoundation/CFRuntime.h>
+#include <CoreFoundation/CFBundlePriv.h>
 #include <OSKext.h>
 #include <OSKextPrivate.h>
 #include <IOKit/IOCFSerialize.h>
@@ -50,6 +63,35 @@
 #include <libkern/prelink.h>
 #include <mach-o/loader.h>
 #include <mach-o/swap.h>
+
+/* CF Type stuff */
+/* This gets set by __OSKextInitialize() */
+static CFTypeID __kOSKextTypeID = _kCFRuntimeNotATypeID;
+
+CFTypeID OSKextGetTypeID(void) {
+    return __kOSKextTypeID;
+}
+
+static void __OSKextReleaseContents(CFTypeRef cf);
+static const CFRuntimeClass __OSKextClass = {
+    0,                            // version
+    "OSKext",                     // className
+    NULL,                         // init
+    NULL,                         // copy
+    __OSKextReleaseContents,      // finalize
+    NULL,                         // equal: pointer equality, baby.
+    NULL,                         // hash
+    NULL,                         // copyFormattingDesc
+    NULL,                         // copyDebugDesc
+#if CF_RECLAIM_AVAILABLE
+    NULL,                         // xxx - need to set reclaim field for garbage collection
+#endif
+#if CF_REFCOUNT_AVAILABLE
+    NULL
+#endif
+};
+
+typedef int64_t OSKextVersion;
 
 typedef enum {
     macho_seek_result_error          = -1,
@@ -524,6 +566,20 @@ typedef struct __OSKext {
 
 } __OSKext, * __OSKextRef;
 
+static void __OSKextReleaseContents(CFTypeRef cfObject)
+{
+    OSKextRef aKext = (OSKextRef)cfObject;
+    if(aKext->bundleURL)
+        CFRelease(aKext->bundleURL);
+    if(aKext->bundleID)
+        CFRelease(aKext->bundleID);
+    if(aKext->executableURL)
+        CFRelease(aKext->executableURL);
+    if(aKext->infoDictionary)
+        CFRelease(aKext->infoDictionary);
+    return;
+}
+
 static boolean_t SwapHeaders(CFDataRef kernelImage)
 {
     u_char *file = (u_char *) CFDataGetBytePtr(kernelImage);
@@ -843,12 +899,17 @@ static u_long CopyPrelinkedKexts(
 
        /* xxx - Is it safe to assume aKext->loadInfo exists here?
         */
+#if 0
         memcpy(prelinkData + fileOffset + size, 
             CFDataGetBytePtr(aKext->loadInfo->prelinkedExecutable),
             CFDataGetLength(aKext->loadInfo->prelinkedExecutable));
-
-        size += (CFDataGetLength(aKext->loadInfo->prelinkedExecutable)
-                 + (PAGE_SIZE - 1)) & ~(PAGE_SIZE - 1);
+#else
+        size = CFDataGetLength(aKext->loadInfo->prelinkedExecutable);
+        CFDataAppendBytes(prelinkImage,
+                          aKext->loadInfo->prelinkedExecutable,
+                          size);
+        size += (PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+#endif
     }
 
     sourceAddr += size;
@@ -899,7 +960,7 @@ static boolean_t __OSKextValidatePLKInfo(
         uint64_t seg_fileoff = segInfo->fileoff + seg_vmoff;
         if (segInfo->vmaddr > plkSeg[i]->plk_next_kext_vmaddr) {
             fprintf(stderr,
-                      "%s vmaddr %p larger than plk_next_kext_vmaddr %p for %s",
+                      "%s vmaddr %p larger than plk_next_kext_vmaddr %p for %s\n",
                       plkSeg[i]->plk_seg_name,
                       (void *)segInfo->vmaddr,
                       (void *)plkSeg[i]->plk_next_kext_vmaddr,
@@ -908,7 +969,7 @@ static boolean_t __OSKextValidatePLKInfo(
         }
         if (segInfo->vmaddr + segInfo->vmsize < plkSeg[i]->plk_next_kext_vmaddr) {
             fprintf(stderr,
-                      "%s overflow! plk_next_kext_vmaddr %p past end of segment %p for %s",
+                      "%s overflow! plk_next_kext_vmaddr %p past end of segment %p for %s\n",
                       plkSeg[i]->plk_seg_name,
                       (void *)plkSeg[i]->plk_next_kext_vmaddr,
                       (void *)(segInfo->vmaddr + segInfo->vmsize),
@@ -917,7 +978,7 @@ static boolean_t __OSKextValidatePLKInfo(
         }
         if (segInfo->fileoff > seg_fileoff) {
             fprintf(stderr,
-                      "%s fileoff %llu larger than plk_next_kext_fileoff %llu for %s",
+                      "%s fileoff %llu larger than plk_next_kext_fileoff %llu for %s\n",
                       plkSeg[i]->plk_seg_name,
                       segInfo->fileoff,
                       seg_fileoff,
@@ -926,7 +987,7 @@ static boolean_t __OSKextValidatePLKInfo(
         }
         if (segInfo->fileoff + segInfo->vmsize < seg_fileoff) {
             fprintf(stderr,
-                      "%s overflow! plk_next_kext_fileoff %llu past end of segment %llu for %s",
+                      "%s overflow! plk_next_kext_fileoff %llu past end of segment %llu for %s\n",
                       plkSeg[i]->plk_seg_name,
                       seg_fileoff,
                       (segInfo->fileoff + segInfo->vmsize),
@@ -961,7 +1022,7 @@ static boolean_t __OSKextSetLinkInfo(
     {
         char *kextID = NULL;
         kextID = createUTF8CStringForCFString(aKext->bundleID);
-        fprintf(stderr, "processing %s", kextID);
+        fprintf(stderr, "processing %s\n", kextID);
         if(kextID)
             free(kextID);
     }
@@ -1017,7 +1078,7 @@ static boolean_t __OSKextSetLinkInfo(
             continue;
 
         fprintf(stderr,
-                "segName %s vmaddr %llx vmsize %llx fileoff %llx filesize %llx maxalign %llx",
+                "segName %s vmaddr %llx vmsize %llx fileoff %llx filesize %llx maxalign %llx\n",
                 segName, my_vmaddr, my_vmsize, my_fileoff, my_filesize, my_maxalign);
 
         {
@@ -1029,7 +1090,7 @@ static boolean_t __OSKextSetLinkInfo(
         }
 
         next_vmaddr = __OSKextAlignAddress(getKCPlkSegNextVMAddr(plkInfo, segIndex), my_maxalign);
-        fprintf(stderr, "segName %s new vmaddr %llx", segName, next_vmaddr);
+        fprintf(stderr, "segName %s new vmaddr %llx\n", segName, next_vmaddr);
 
         setKextVMAddr(aKext, segIndex, next_vmaddr);
 
@@ -1127,7 +1188,7 @@ Boolean __OSKextReadExecutable(OSKextRef aKext)
                                 MAP_FILE|MAP_PRIVATE,
                                 fd,
                                 0);
-        fprintf(stderr, "mapped executable file %s, %lu bytes\n",
+        fprintf(stderr, "Mapped executable file %s, %lu bytes\n",
                 executablePath, length);
         
         CFAllocatorGetContext(kCFAllocatorDefault, &mmapAllocatorContext);
@@ -1159,7 +1220,7 @@ Boolean __OSKextReadExecutable(OSKextRef aKext)
 
         if (executableBuffer) {
             fprintf(stderr,
-                    "Error encountered, unmapping executable file %s (%lu bytes).",
+                    "Error encountered, unmapping executable file %s (%lu bytes).\n",
                     executablePath, (unsigned long)length);
             munmap(executableBuffer, length);
         }
@@ -1219,7 +1280,7 @@ static Boolean __OSKextPerformLink(
          goto finish;
      }
         
-     fprintf(stderr, "Linking %s.", kextPath);
+     fprintf(stderr, "Linking %s.\n", kextPath);
      bundleIDCString = createUTF8CStringForCFString(aKext->bundleID);
 
      relocBytesPtr = &relocBytes;
@@ -1238,7 +1299,7 @@ static Boolean __OSKextPerformLink(
     
     
      if (kxldResult != KERN_SUCCESS) {
-         fprintf(stderr, "Link failed (error code %d).", kxldResult);
+         fprintf(stderr, "Link failed (error code %d).\n", kxldResult);
          goto finish;
      }
     
@@ -1550,18 +1611,8 @@ static boolean_t __OSKextGetSegmentFileAndVMSizeDataRef(
     return result;
 }
 
-CF_RETURNS_RETAINED
-CFTypeRef
-IOCFUnserialize(const char *buffer,
-                CFAllocatorRef allocator,
-                CFOptionFlags options,
-                CFStringRef *errorString)
-{
-    /* stub to satisfy linker */
-    return (CFTypeRef)0;
-}
+#include "../IOKitUser/IOCFUnserialize.tab.c"
 
-#define SAFE_RELEASE(x) if(x) CFRelease(x)
 static CFDataRef __OSKextCreatePrelinkInfoDictionary(
     plkInfo   *plkInfo,
     CFArrayRef loadList,
@@ -1589,7 +1640,7 @@ static CFDataRef __OSKextCreatePrelinkInfoDictionary(
     char                      * kextVolPath             = NULL; // do not free
     int                         i                       = 0;
     int                         count                   = 0;
-    EVP_MD_CTX                * ctx;
+    EVP_MD_CTX                * ctx                     = NULL;
     unsigned char               kernelCacheHash[SHA256_DIGEST_LENGTH];
     CFDataRef                   kcID                    = NULL; // must release
 
@@ -1615,10 +1666,10 @@ static CFDataRef __OSKextCreatePrelinkInfoDictionary(
         kextInfoDictArray);
 
     ctx = EVP_MD_CTX_new();
-    EVP_DigestInit(&ctx, EVP_sha256);
+    EVP_DigestInit_ex(ctx, EVP_sha256(), NULL);
 
     if (kernelUUID) {
-        EVP_DigestUpdate(&ctx, (unsigned char*) CFDataGetBytePtr(kernelUUID), CFDataGetLength(kernelUUID));
+        EVP_DigestUpdate(ctx, (unsigned char*) CFDataGetBytePtr(kernelUUID), CFDataGetLength(kernelUUID));
     }
 
     /* Create an info dictionary for each kext in the load list */
@@ -1638,7 +1689,7 @@ static CFDataRef __OSKextCreatePrelinkInfoDictionary(
         __OSKextGetFileSystemPath(aKext, /* otherURL */ NULL,
             /* resolveToBase */ true, kextPath);
 
-        fprintf(stdout, "Adding %s to prelinked kernel.", kextPath);
+        fprintf(stdout, "Adding %s to prelinked kernel.\n", kextPath);
 
         /* Get the existing info dictionary from the kext */
         kextInfoDict =     aKext->infoDictionary;
@@ -1864,42 +1915,48 @@ CFDataRef CreatePrelinkedKernel(
                                             0, /* isARM64 */
                                             kernelUUID);
 
-    /* grow the prelink image */
-    size = CFDataGetLength(prelinkImage) + CFDataGetLength(prelinkInfoData);
-    size += (PAGE_SIZE - 1) & ~(PAGE_SIZE - 1); /* round to page size */     
-    prelinkImage = CFDataCreateMutable(kCFAllocatorDefault, size);
+    /* grow the prelink image: kernel + info dict, page aligned */
+    u_long kernlen = CFDataGetLength(kernelImage);
+    size = CFDataGetLength(prelinkInfoData) + kernlen
+        + (PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+    prelinkImage = CFDataCreateMutable(kCFAllocatorDefault, 0);
     CFDataSetLength(prelinkImage, size);
     
-    if(swapped)
-        UnswapHeaders(kernelImage);
-    swapped = 0;
-    
-    CFDataReplaceBytes(prelinkImage, CFRangeMake(0, CFDataGetLength(kernelImage)),
-                       CFDataGetBytePtr(kernelImage), CFDataGetLength(kernelImage));
-    
-    uintptr_t fileOffset = baseFileOffset;
+    /* if(swapped) */
+    /*     UnswapHeaders(kernelImage); */
+    /* swapped = 0; */
+    SwapHeaders(prelinkImage);
+
+    CFRange range = CFRangeMake(0, kernlen);
+    uint8_t *bytePtr = CFDataGetBytePtr(kernelImage);
+    CFDataReplaceBytes(prelinkImage, range, bytePtr, kernlen);
+
+    uintptr_t fileOffset = kernlen;
     uintptr_t srcAddr = baseSrcAddr;
+    
     size = CopyPrelinkedKexts(prelinkImage,
                               loadList,
                               fileOffset,
                               srcAddr);
     srcAddr += size;
-
+    
     u_char    * prelinkData = CFDataGetMutableBytePtr(prelinkImage);
     u_long      pdsize      = 0;
-    
+
     pdsize = CFDataGetLength(prelinkInfoData);
-    memcpy(prelinkData + fileOffset, CFDataGetBytePtr(prelinkInfoData), size);
+    CFDataAppendBytes(prelinkImage, CFDataGetBytePtr(prelinkInfoData), pdsize);
+    fprintf(stdout, "copied info dict, total len = %d\n", CFDataGetLength(prelinkImage));
     
     /* Set the info dictionary segment headers */
     mach_header = (struct mach_header_64 *) CFDataGetBytePtr(prelinkImage);
     struct segment_command_64 *seg = macho_get_segment_by_name_64(mach_header, kPrelinkInfoSegment);
     if (!seg) {
+        fprintf(stderr, "no seg\n");
         goto failed;
     }
     
     seg->vmaddr = srcAddr;
-    seg->vmsize = (size + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+    seg->vmsize = (pdsize + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
     seg->fileoff = fileOffset;
     seg->filesize = pdsize;
 
@@ -1907,6 +1964,7 @@ CFDataRef CreatePrelinkedKernel(
                                                            kPrelinkInfoSegment,
                                                            kPrelinkInfoSection);
     if (!sect) {
+        fprintf(stderr, "no sect\n");
         goto failed;
     }
         
@@ -1915,22 +1973,472 @@ CFDataRef CreatePrelinkedKernel(
     sect->size = pdsize;
 
     pdsize += (PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
-
-    CFDataSetLength(prelinkImage, fileOffset);
+    CFDataSetLength(prelinkImage, fileOffset + size + pdsize);
+    
     CFDataRef result = CFRetain(prelinkImage);
     
   failed:
-    CFRelease(loadList);
-    CFRelease(prelinkInfoData);
-    CFRelease(prelinkImage);
-    CFRelease(kernelUUID);
-    kxld_destroy_context(&kxldContext);
+//    kxld_destroy_context(&kxldContext);
     return result;
 }
 
+static OSKextRef __OSKextAlloc(
+    CFAllocatorRef       allocator,
+    CFAllocatorContext * context __unused)
+{
+    OSKextRef   result  = NULL;
+    char      * offset  = NULL;
+    UInt32      size;
+
+    size  = sizeof(__OSKext) - sizeof(CFRuntimeBase);
+    result = (OSKextRef)_CFRuntimeCreateInstance(allocator,
+        __kOSKextTypeID, size, NULL);
+    if (!result) {
+        fprintf(stderr, "__OSKextAlloc: CFRuntimeCreateInstance failed\n");
+        goto finish;
+    }
+    offset = (char *)result;
+    bzero(offset + sizeof(CFRuntimeBase), size);
+
+finish:
+    return result;
+}
+
+Boolean _GetStringProperty(
+    OSKextRef       aKext,
+    CFStringRef     propKey,
+    CFStringRef   * valueOut)
+{
+    
+    if (CFStringHasPrefix(propKey, CFSTR("OS"))
+        || CFStringHasPrefix(propKey, CFSTR("IO"))) {
+        const NXArchInfo * lookupArchInfo = NXGetArchInfoFromCpuType(
+            CPU_TYPE_X86_64, CPU_SUBTYPE_MULTIPLE);
+
+        if (lookupArchInfo) {
+            CFTypeRef   result = NULL;
+            CFStringRef compositeKey = CFStringCreateWithFormat(CFGetAllocator(aKext),
+                                                                NULL,
+                                                                CFSTR("%s_%s"),
+                                                                propKey,
+                                                                lookupArchInfo->name);
+            if (!compositeKey) {
+                perror("calloc");
+                return false;
+            }
+
+            result = CFDictionaryGetValue(aKext->infoDictionary, compositeKey);
+            if (!result) {
+                result = CFDictionaryGetValue(aKext->infoDictionary, propKey);
+            }
+
+            CFRelease(compositeKey);
+
+            if (valueOut) {
+                *valueOut = result;
+            }
+
+            return true;
+        } else {
+            fprintf(stderr, "failed to get arch info\n");
+            return false;
+        }
+    } else {
+        CFStringRef value = CFDictionaryGetValue(aKext->infoDictionary, propKey);
+        if (!value) {
+            return false;
+        }
+        if (valueOut) {
+            *valueOut = value;
+        }
+
+        return true;
+    }
+
+    fprintf(stderr, "you shouldn't be here, friend\n");
+    return false;
+}
+
+Boolean _GetBooleanProperty(
+    OSKextRef       aKext,
+    CFStringRef     propKey,
+    CFBooleanRef  * valueOut)
+{
+    CFBooleanRef value = CFDictionaryGetValue(aKext->infoDictionary, propKey);
+    if (!value) {
+        return false;
+    }
+    if (valueOut) {
+        *valueOut = value;
+    }
+
+    return true;
+}
+
+Boolean __OSKextReadInfoDictionary(
+    OSKextRef   aKext,
+    CFBundleRef kextBundle)
+{
+    Boolean        result        = false;
+    CFBundleRef    createdBundle = NULL;  // must release
+    CFURLRef       infoDictURL   = NULL;  // must release
+    struct stat    statbuf;
+    char         * infoDictXML   = NULL;  // must free
+    int            fd = -1;               // must close
+    ssize_t        totalBytesRead;
+    CFStringRef    errorString   = NULL;  // must release
+    char           kextPath[PATH_MAX];
+    char           infoDictPath[PATH_MAX];
+
+    __OSKextGetFileSystemPath(aKext, /* otherURL */ NULL,
+        /* resolveToBase */ false, kextPath);
+
+    if (aKext->infoDictionary) {
+        result = true;
+        goto finish;
+    }
+
+    if (!kextBundle) {
+        fprintf(stdout, "Opening CFBundle for %s.\n", kextPath);
+        kextBundle = createdBundle = CFBundleCreate(kCFAllocatorDefault,
+            aKext->bundleURL);
+        if (!createdBundle) {
+            fprintf(stderr, "Can't open CFBundle for %s.\n", kextPath);
+            goto finish;
+        }
+    }
+    infoDictURL = _CFBundleCopyInfoPlistURL(kextBundle);
+
+    if (!infoDictURL) {
+        fprintf(stderr, "%s has no Info.plist file.\n", kextPath);
+        goto finish;
+    }
+
+    if (!__OSKextGetFileSystemPath(/* kext */ NULL, infoDictURL,
+        /* resolveToBase */ true, infoDictPath)) {
+        fprintf(stderr, "Failed to resolve filesystem path for %s\n", infoDictPath);
+        goto finish;
+    }
+
+    if(stat(infoDictPath, &statbuf) < 0) {
+        perror("infoDict: stat");
+        goto finish;
+    }
+    
+    fd = open(infoDictPath, O_RDONLY);
+    if (fd < 0) {
+        perror("infoDict: open");
+        goto finish;
+    }
+
+    infoDictXML = (char *)malloc((1 + statbuf.st_size) * sizeof(char));
+    if (!infoDictXML) {
+       /* XXX - Basically hosed if this happens. */
+        perror("infoDict: malloc");
+        goto finish;
+    }
+
+    for (totalBytesRead = 0; totalBytesRead < statbuf.st_size; /* nothing */) {
+        ssize_t bytesRead = read(fd, infoDictXML + totalBytesRead,
+            statbuf.st_size - totalBytesRead);
+        if (bytesRead < 0) {
+            perror("infoDict: read");
+            goto finish;
+        }
+        totalBytesRead += bytesRead;
+    }
+
+    infoDictXML[totalBytesRead] = '\0';
+
+    CFDictionaryRef dict = (CFDictionaryRef)IOCFUnserialize(
+        (const char *)infoDictXML, CFGetAllocator(aKext), 0, &errorString);
+    
+    if (!dict || CFDictionaryGetTypeID() != CFGetTypeID(dict)) {
+        /* This is a full abort! Issue the abort codes right away and log this. */
+        fprintf(stderr, "Can't read info dictionary for %s: %s.\n",
+                kextPath, CFStringGetCStringPtr(errorString, kCFStringEncodingUTF8));
+        goto finish;
+    }
+    aKext->infoDictionary = CFRetain(dict);
+
+    result = true;
+
+finish:
+    if(createdBundle)
+        CFRelease(createdBundle);
+    if(infoDictURL)
+        CFRelease(infoDictURL);
+    if(infoDictXML)
+        CFRelease(infoDictXML);
+    if(errorString)
+        CFRelease(errorString);
+
+    if (fd >= 0) {
+        close(fd);
+    }
+
+    if (!result) {
+        aKext->flags.invalid = 1;
+        aKext->flags.valid = 0;
+    }
+    return result;
+}
+
+OSKextVersion OSKextParseVersionString(const char * versionString)
+{
+    OSKextVersion   result             = -1;
+    int             vers_digit         = -1;
+    int             num_digits_scanned = 0;
+    OSKextVersion   vers_major         = 0;
+    OSKextVersion   vers_minor         = 0;
+    OSKextVersion   vers_revision      = 0;
+    OSKextVersion   vers_stage         = 0;
+    OSKextVersion   vers_stage_level   = 0;
+    char          * current_char_p;
+    const char    * start_of_segment;
+
+    if (!versionString || *versionString == '\0') {
+        return -1;
+    }
+
+    start_of_segment = (const char *)&versionString[0];
+    current_char_p = (const char *)&versionString[0];
+    
+    /* find first period in string */
+    while(*current_char_p && *current_char_p != '.')
+        ++current_char_p;
+    *current_char_p = '\0';
+    sscanf(start_of_segment, "%d", &vers_major);
+
+    start_of_segment = current_char_p + 1; /* skip '.' */
+
+    while(*current_char_p && *current_char_p != '.')
+        ++current_char_p;
+    *current_char_p = '\0';
+    sscanf(start_of_segment, "%d", &vers_minor);
+
+    start_of_segment = current_char_p + 1; /* skip '.' */
+
+    while(*current_char_p && *current_char_p >= '0' && *current_char_p <= '9')
+        ++current_char_p;
+    *current_char_p = '\0';
+    sscanf(start_of_segment, "%d", &vers_revision);
+
+    vers_stage = 1; // development stage. 3=alpha, 5=beta, RC=7, release=9
+    vers_stage_level = 1;
+    
+finish:
+
+    result = (vers_major * VERS_MAJOR_MULT) + 
+             (vers_minor * VERS_MINOR_MULT) +
+             (vers_revision * VERS_REVISION_MULT) +
+             (vers_stage * VERS_STAGE_MULT) +
+             vers_stage_level; 
+
+    return result;
+}
+
+Boolean __OSKextProcessInfoDictionary(
+    OSKextRef   aKext,
+    CFBundleRef kextBundle)
+{
+    CFBooleanRef      boolValue           = NULL;   // do not release
+    CFStringRef       stringValue         = NULL;   // do not release
+//    CFDictionaryRef   dictValue           = NULL;   // do not release
+    Boolean           isInterfaceSetFalse = false;
+    OSKextVersion     bundleVersion       = -1;
+    OSKextVersion     compatibleVersion   = -1;
+
+    if (!__OSKextReadInfoDictionary(aKext, kextBundle)) {
+        return false;
+    }
+
+    /* The real version of this does a lot of checking. We skip all that.
+       Just retrieve the keys from the kext infoDict and go. */
+
+    _GetStringProperty(aKext, CFSTR("CFBundleIdentifier"), &stringValue);
+    aKext->bundleID = CFRetain(stringValue);
+    
+    _GetStringProperty(aKext, CFSTR("CFBundleVersion"), &stringValue);
+    aKext->version = OSKextParseVersionString(
+        CFStringGetCStringPtr(stringValue, kCFStringEncodingUTF8));
+
+    _GetStringProperty(aKext, CFSTR("OSBundleCompatibleVersion"), &stringValue);
+    aKext->compatibleVersion = OSKextParseVersionString(
+        CFStringGetCStringPtr(stringValue, kCFStringEncodingUTF8));
+
+    /* We just assume this because you're not an idiot, right? You're only
+       trying to link valid kecs and kexts - no interfaces, no dexts here. */
+    aKext->flags.isKernelComponent = 1;
+    aKext->flags.isInterface = 1;
+
+    _GetStringProperty(aKext, CFSTR("CFBundleExecutable"), &stringValue);
+    if(stringValue)
+        aKext->flags.declaresKernelExecutable = 1;
+
+    /* No logging for you! */
+    aKext->flags.loggingEnabled = 0;
+    aKext->flags.plistHasEnableLoggingSet = 0;
+
+    aKext->flags.isLoadableInSafeBoot = 0; /* we ignore this anyway */
+    aKext->flags.invalid = 0;
+    aKext->flags.valid = 1;
+
+    return true;
+}
+
+static Boolean __OSKextInitWithPath(
+    OSKextRef aKext,
+    const char * kextPath)
+{
+    Boolean     result     = false;
+    CFBundleRef kextBundle = NULL;  // must release
+
+    fprintf(stdout, "Opening CFBundle for %s.\n", kextPath);
+
+    CFURLRef urlPath = CFURLCreateFromFileSystemRepresentation(
+        CFGetAllocator(aKext),
+        kextPath,
+        strlen(kextPath),
+        false /* isDirectory */);
+    if(!urlPath) {
+        fprintf(stderr, "Failed to create CFURL for %s\n", kextPath);
+        goto finish;
+    }
+    kextBundle = CFBundleCreate(CFGetAllocator(aKext), urlPath);
+    if (!kextBundle) {
+        fprintf(stderr, "Can't open CFBundle for %s.\n", kextPath);
+        goto finish;
+    }
+
+   /* Save the URL only after we've confirmed we can open a bundle there.
+    * See __OSKextRemoveKext().
+    */
+    aKext->bundleURL = CFRetain(urlPath);
+
+   /* If we can't get the info dictionary at all, we don't even
+    * have an examinable broken kext.
+    */
+    if (!__OSKextReadInfoDictionary(aKext, kextBundle)) {
+        goto finish;
+    }
+
+   /* Don't worry about the return value of this; we want to be
+    * able to open bad kexts to do further diagnostics. It's up
+    * to the client to close out unusable kexts.
+    */
+    __OSKextProcessInfoDictionary(aKext, kextBundle);
+    result = true;
+
+finish:
+    if (kextBundle) {
+        fprintf(stdout, "Releasing CFBundle for %s\n", kextPath);
+        CFRelease(kextBundle);
+    }
+    return result;
+}
 
 int main(int argc, char **argv)
 {
-    printf("plktool -k kernel [kexts ...]\n");
-    return 0;
+    struct stat st;
+    int kernfd = -1;
+    char * kernelbuf = NULL;
+    int kernlen = 0;
+    CFDataRef kernelImage = NULL;
+    CFArrayRef kextArray = NULL;
+    int result = 1; /* assume something will fail */
+    
+    if(argc < 4) {
+        fprintf(stdout, "plktool kernelcache kernel kext [kext ...]\n");
+        return 1;
+    }
+
+    fprintf(stdout, "Examining kernel image\n");
+    if(stat(argv[2], &st) < 0) {
+        perror("stat");
+        goto finish;
+    }
+    kernlen = st.st_size;
+    
+    kernfd = open(argv[2], O_RDWR);
+    if(kernfd < 0) {
+        perror("open");
+        goto finish;
+    }
+
+    kernelbuf = mmap(0, kernlen, PROT_READ|PROT_WRITE, MAP_PRIVATE, kernfd, 0);
+    if(!kernelbuf) {
+        perror("mmap");
+        goto finish;
+    }
+    
+    kernelImage = CFDataCreateWithBytesNoCopy(kCFAllocatorDefault,
+                                              kernelbuf,
+                                              kernlen,
+                                              NULL);
+    if(!kernelImage) {
+        fprintf(stderr, "Failed to create CFData for kernel image\n");
+        goto finish;
+    }
+    CFRetain(kernelImage);
+    
+    fprintf(stdout, "Creating extensions array\n");
+    kextArray = CFArrayCreateMutable(kCFAllocatorDefault,
+                                     argc,
+                                     &kCFTypeArrayCallBacks);
+    if(!kextArray) {
+        fprintf(stderr, "Failed to create CFArray for kext images\n");
+        goto finish;
+    }
+
+    __kOSKextTypeID = _CFRuntimeRegisterClass(&__OSKextClass);
+    
+    /* now load the kexts from the arg list */
+    for(int i = 3; i < argc; ++i) {
+        if(stat(argv[i], &st) < 0) {
+            fprintf(stderr, "Skipping %s - stat error %s\n", argv[i],
+                    strerror(errno));
+            continue;
+        }
+
+        __OSKextRef theKext = __OSKextAlloc(kCFAllocatorDefault, /* context */NULL);
+        if(!theKext) {
+            fprintf(stderr, "Failed to create OSKext for %s\n", argv[i]);
+            goto finish;
+        }
+        if(!__OSKextInitWithPath(theKext, argv[i])) {
+            CFRelease(theKext);
+            theKext = NULL;
+            goto finish;
+        }
+
+        CFArrayAppendValue(kextArray, CFRetain(theKext));
+    }
+
+    fprintf(stdout, "Linking ...\n");
+    CFDataRef prelinkImage = CreatePrelinkedKernel(kernelImage, kextArray);
+    if(!prelinkImage) {
+        fprintf(stderr, "Failed to create prelinked kernel.\n");
+        goto finish;
+    }
+
+    int fd_out = open(argv[1], O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
+    if(fd_out < 0) {
+        perror("open");
+        goto finish;
+    }
+    size_t bytes = write(fd_out, CFDataGetBytePtr(prelinkImage),
+                         CFDataGetLength(prelinkImage));
+    close(fd_out);
+    
+    fprintf(stdout, "Wrote %d bytes to %s\nFinished!\n", bytes, argv[1]);
+        
+  finish:
+    if(kernelbuf)
+        munmap(kernelbuf, kernlen);
+    
+    if(kernfd >= 0)
+        close(kernfd);
+
+    return result;
 }

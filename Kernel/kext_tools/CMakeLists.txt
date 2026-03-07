@@ -7,7 +7,7 @@ target_include_directories(host_plktool PRIVATE
     ../IOKitUser/kext.subproj
     ../IOKitUser
 )
-target_compile_options(host_plktool PRIVATE -w)
+target_compile_options(host_plktool PRIVATE -w -g -O0)
 
 # This uses Open CF-Lite, not our CoreFoundation. Make sure you have
 # it installed! (opencflite in AUR)
