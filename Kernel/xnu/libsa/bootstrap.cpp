@@ -597,7 +597,7 @@ KLDBootstrap::readBooterExtensions(void)
 	    "Reading startup extensions from booter memory.");
 
 	booterMemoryMap = IORegistryEntry::fromPath( "/chosen/memory-map", gIODTPlane);
-
+	kprintf("KLDBootstrap::readBooterExtensions mem-map=%p\n",booterMemoryMap);
 	if (!booterMemoryMap) {
 		OSKextLog(/* kext */ NULL,
 		    kOSKextLogErrorLevel |
@@ -607,6 +607,7 @@ KLDBootstrap::readBooterExtensions(void)
 	}
 
 	propertyDict = booterMemoryMap->dictionaryWithProperties();
+	kprintf("KLDBootstrap propertyDict=%p\n", propertyDict);
 	if (!propertyDict) {
 		OSKextLog(/* kext */ NULL,
 		    kOSKextLogErrorLevel |
@@ -616,6 +617,7 @@ KLDBootstrap::readBooterExtensions(void)
 	}
 
 	keyIterator = OSCollectionIterator::withCollection(propertyDict);
+	kprintf("KLDBootstrap keyIterator=%p\n", keyIterator);
 	if (!keyIterator) {
 		OSKextLog(/* kext */ NULL,
 		    kOSKextLogErrorLevel |
@@ -800,9 +802,11 @@ KLDBootstrap::loadKernelComponentKexts(void)
 		theKext = OSKext::lookupKextWithIdentifier(*kextIDPtr);
 
 		if (theKext) {
+		        kprintf("KLDBootstrap loadKernelComponentKexts %s @0x%p\n", *kextIDPtr, theKext);
 			if (kOSReturnSuccess != OSKext::loadKextWithIdentifier(
 				    *kextIDPtr, /* allowDefer */ false)) {
 				// xxx - check KextBookkeeping, might be redundant
+			  kprintf(" -- failed to init\n");
 				OSKextLog(/* kext */ NULL,
 				    kOSKextLogErrorLevel |
 				    kOSKextLogDirectoryScanFlag | kOSKextLogKextBookkeepingFlag,
@@ -856,14 +860,16 @@ KLDBootstrap::loadKernelExternalComponents(void)
 
 	while ((bundleID = OSDynamicCast(OSString, keyIterator->getNextObject()))) {
 		const char * bundle_id = bundleID->getCStringNoCopy();
-
+#if !defined(__RAVYNOS__) /* FIXME: filter for ours too? */
 		/* Skip extensions whose bundle IDs don't start with "com.apple.kec.".
 		 */
 		if (!bundle_id ||
 		    (strncmp(bundle_id, COM_APPLE_KEC, CONST_STRLEN(COM_APPLE_KEC)) != 0)) {
 			continue;
 		}
+#endif
 
+		kprintf(" -- considering kext %s as kec\n", bundle_id);
 		theKext = OSDynamicCast(OSKext, extensionsDict->getObject(bundleID));
 		if (!theKext) {
 			continue;
@@ -871,6 +877,7 @@ KLDBootstrap::loadKernelExternalComponents(void)
 
 		isKernelExternalComponent = OSDynamicCast(OSBoolean,
 		    theKext->getPropertyForHostArch(kAppleKernelExternalComponentKey));
+		kprintf(" -- kec? %d\n", isKernelExternalComponent);
 		if (isKernelExternalComponent && isKernelExternalComponent->isTrue()) {
 			OSKextLog(/* kext */ NULL,
 			    kOSKextLogStepLevel |
@@ -901,6 +908,7 @@ KLDBootstrap::readBuiltinPersonalities(void)
 	OSCollectionIterator  * personalitiesIterator = NULL;// must release
 	unsigned int            count, i;
 
+	kprintf("Reading built-in kernel personalities for I/O Kit drivers.\n");
 	OSKextLog(/* kext */ NULL,
 	    kOSKextLogStepLevel |
 	    kOSKextLogLoadFlag,
@@ -980,6 +988,7 @@ KLDBootstrap::readBuiltinPersonalities(void)
 			continue; // xxx - well really, what can we do? should we panic?
 		}
 
+		kprintf("Building personality list\n");
 		while ((personalityName = OSDynamicCast(OSString,
 		    personalitiesIterator->getNextObject()))) {
 			OSDictionary * personality = OSDynamicCast(OSDictionary,
@@ -998,6 +1007,7 @@ KLDBootstrap::readBuiltinPersonalities(void)
 		}
 	}
 
+	kprintf("Adding drivers to IOCatalogue\n");
 	gIOCatalogue->addDrivers(allPersonalities, false);
 
 finish:

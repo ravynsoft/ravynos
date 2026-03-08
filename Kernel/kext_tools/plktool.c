@@ -899,17 +899,11 @@ static u_long CopyPrelinkedKexts(
 
        /* xxx - Is it safe to assume aKext->loadInfo exists here?
         */
-#if 0
-        memcpy(prelinkData + fileOffset + size, 
-            CFDataGetBytePtr(aKext->loadInfo->prelinkedExecutable),
-            CFDataGetLength(aKext->loadInfo->prelinkedExecutable));
-#else
         size = CFDataGetLength(aKext->loadInfo->prelinkedExecutable);
         CFDataAppendBytes(prelinkImage,
                           aKext->loadInfo->prelinkedExecutable,
                           size);
         size += (PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
-#endif
     }
 
     sourceAddr += size;
@@ -1915,18 +1909,11 @@ CFDataRef CreatePrelinkedKernel(
                                             0, /* isARM64 */
                                             kernelUUID);
 
-    /* grow the prelink image: kernel + info dict, page aligned */
+    /* create the prelink image in a CFData */
     u_long kernlen = CFDataGetLength(kernelImage);
-    size = CFDataGetLength(prelinkInfoData) + kernlen
-        + (PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
     prelinkImage = CFDataCreateMutable(kCFAllocatorDefault, 0);
-    CFDataSetLength(prelinkImage, size);
+    CFDataSetLength(prelinkImage, kernlen);
     
-    /* if(swapped) */
-    /*     UnswapHeaders(kernelImage); */
-    /* swapped = 0; */
-    SwapHeaders(prelinkImage);
-
     CFRange range = CFRangeMake(0, kernlen);
     uint8_t *bytePtr = CFDataGetBytePtr(kernelImage);
     CFDataReplaceBytes(prelinkImage, range, bytePtr, kernlen);
@@ -1938,14 +1925,13 @@ CFDataRef CreatePrelinkedKernel(
                               loadList,
                               fileOffset,
                               srcAddr);
+    fileOffset += size;
     srcAddr += size;
-    
-    u_char    * prelinkData = CFDataGetMutableBytePtr(prelinkImage);
-    u_long      pdsize      = 0;
 
+    u_long      pdsize      = 0;
     pdsize = CFDataGetLength(prelinkInfoData);
     CFDataAppendBytes(prelinkImage, CFDataGetBytePtr(prelinkInfoData), pdsize);
-    fprintf(stdout, "copied info dict, total len = %d\n", CFDataGetLength(prelinkImage));
+    fprintf(stdout, "Copied info dictionary. Total len = %d\n", CFDataGetLength(prelinkImage));
     
     /* Set the info dictionary segment headers */
     mach_header = (struct mach_header_64 *) CFDataGetBytePtr(prelinkImage);
@@ -1972,9 +1958,6 @@ CFDataRef CreatePrelinkedKernel(
     sect->offset = fileOffset;
     sect->size = pdsize;
 
-    pdsize += (PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
-    CFDataSetLength(prelinkImage, fileOffset + size + pdsize);
-    
     CFDataRef result = CFRetain(prelinkImage);
     
   failed:

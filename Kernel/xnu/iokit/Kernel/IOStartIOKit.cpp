@@ -171,15 +171,16 @@ StartIOKit( void * p1, void * p2, void * p3, void * p4 )
 	interruptAccountingInit();
 
 	rootNub = new IOPlatformExpertDevice;
-
 	if (rootNub && rootNub->initWithArgs( p1, p2, p3, p4)) {
 		rootNub->attach( NULL );
 
 		/* If the bootstrap segment set up a function to record startup
 		 * extensions, call it now.
 		 */
+		kprintf("rootNub after attach fn=%p\n", record_startup_extensions_function);
 		if (record_startup_extensions_function) {
-			record_startup_extensions_function();
+		  kprintf("record startup extensions = %d\n");
+		  record_startup_extensions_function();
 		}
 
 		rootNub->registerService();
