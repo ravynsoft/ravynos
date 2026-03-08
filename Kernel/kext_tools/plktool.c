@@ -142,6 +142,19 @@ static char * segIdxToName(enum enumSegIdx idx) {
     }
 }
 
+typedef struct prelinked_kernel_header {
+    uint32_t  signature;
+    uint32_t  compressType;
+    uint32_t  adler32;
+    uint32_t  uncompressedSize;
+    uint32_t  compressedSize;
+    uint32_t  prelinkVersion;
+    uint32_t  reserved[10];
+    char      platformName[64]; // unused
+    char      rootPath[256];    // unused
+    char      data[0];
+} PrelinkedKernelHeader;
+
 boolean_t __os_warn_unused(const boolean_t x)
 {
         return x;
@@ -2410,8 +2423,25 @@ int main(int argc, char **argv)
         perror("open");
         goto finish;
     }
-    size_t bytes = write(fd_out, CFDataGetBytePtr(prelinkImage),
-                         CFDataGetLength(prelinkImage));
+
+    size_t prelinkLength = CFDataGetLength(prelinkImage);
+    
+    PrelinkedKernelHeader pkh = {
+        htonl(0x636f6d70),      /* signature */
+        0,                      /* compressType */
+        0,                      /* adler32 */
+        htonl(prelinkLength),   /* uncompressedSize */
+        htonl(prelinkLength),   /* compressedSize */
+        htonl(2),               /* prelinkVersion */
+        0,                      /* reserved */
+        0,                      /* platformName */
+        0,                      /* rootPath */
+        0                       /* data */
+    };
+
+    size_t bytes = write(fd_out, &pkh, sizeof(pkh));
+    bytes += write(fd_out, CFDataGetBytePtr(prelinkImage),
+                   CFDataGetLength(prelinkImage));
     close(fd_out);
     
     fprintf(stdout, "Wrote %d bytes to %s\nFinished!\n", bytes, argv[1]);
