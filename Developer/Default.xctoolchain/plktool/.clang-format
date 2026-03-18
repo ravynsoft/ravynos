@@ -1,0 +1,64 @@
+---
+Language: C
+BasedOnStyle: LLVM
+
+# indentation
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 4
+
+# braces
+BreakBeforeBraces: Allman
+
+# return type placement
+AlwaysBreakAfterReturnType: All
+AlwaysBreakAfterDefinitionReturnType: All
+
+# parameters / arguments
+BinPackParameters: false
+BinPackArguments: false
+AllowAllParametersOfDeclarationOnNextLine: true
+
+# short statements
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
+AllowShortBlocksOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: None
+
+# pointer / casts
+PointerAlignment: Right
+SpaceAfterCStyleCast: true
+
+# switch formatting
+IndentCaseLabels: true
+IndentCaseBlocks: true
+
+# labels (goto targets)
+IndentGotoLabels: false
+
+# alignment
+AlignConsecutiveDeclarations: Consecutive
+AlignConsecutiveAssignments: false
+AlignOperands: false
+
+# line width (Mach/XNU style effectively unlimited)
+ColumnLimit: 0
+
+# includes
+SortIncludes: false
+IncludeBlocks: Preserve
+
+# spacing
+SpaceBeforeParens: ControlStatements
+SpacesInParentheses: false
+SpacesInCStyleCastParentheses: false
+
+# keep manual structure
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 2
+
+# misc
+ReflowComments: false
+BreakBeforeBinaryOperators: None
+...

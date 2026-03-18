@@ -14,6 +14,7 @@ add_subdirectory(unifdef)
 add_subdirectory(xar)
 add_subdirectory(dtrace_ctf)
 add_subdirectory(rpcgen)
+add_subdirectory(plktool)
 
 ExternalProject_Add(host_xcbuild
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/xcbuild

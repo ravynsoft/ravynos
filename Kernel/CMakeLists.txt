@@ -109,4 +109,4 @@ ExternalProject_Add(xnu
 
 add_subdirectory(xnu/libkern/kmod libkmod)
 add_subdirectory(Extensions)
-add_subdirectory(kext_tools)
+
