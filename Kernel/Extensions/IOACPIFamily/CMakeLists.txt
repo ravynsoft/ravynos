@@ -1,12 +1,27 @@
-add_kext_bundle(IOACPIFamily KERNEL_PRIVATE INFO_PLIST Info.plist BUNDLE_IDENTIFIER com.apple.iokit.IOACPIFamily BUNDLE_VERSION 1.0.0d1)
+add_kext_bundle(IOACPIFamily
+    KERNEL_PRIVATE
+    INFO_PLIST Info.plist
+    BUNDLE_IDENTIFIER com.apple.iokit.IOACPIFamily
+    BUNDLE_VERSION 1.0.0d1)
+
 target_sources(IOACPIFamily PRIVATE
     IOACPIPlatformDevice.cpp
     IOACPIPlatformExpert.cpp
+    hack.s
 )
 
-target_compile_options(IOACPIFamily PRIVATE -Wno-implicit-int-conversion -Wno-sign-conversion)
-target_link_libraries(IOACPIFamily PRIVATE IOACPIFamilyHeaders)
-install(TARGETS IOACPIFamily DESTINATION System/Library/Extensions COMPONENT BaseSystem)
+target_include_directories(IOACPIFamily PRIVATE
+    include
+    ../../xnu/iokit
+    ../../xnu/osfmk
+    ../../xnu/bsd
+    ../../xnu/libkern
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/)    
+    
+target_compile_options(IOACPIFamily PRIVATE
+    -Wno-implicit-int-conversion -Wno-sign-conversion
+    $<$<COMPILE_LANGUAGE:ASM>:-x assembler-with-cpp>)
 
-add_library(IOACPIFamilyHeaders INTERFACE)
-target_include_directories(IOACPIFamilyHeaders INTERFACE include)
+target_link_options(IOACPIFamily PRIVATE
+    -mmacos-version-min=${MACOS_VERSION_MIN})
