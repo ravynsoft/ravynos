@@ -26,7 +26,26 @@
 
 #include "plktool.h"
 
+#define RANGE_ALL(a)    CFRangeMake(0, CFArrayGetCount(a))
+#define SAFE_FREE(a)    if(a) free(a);
+
+#define __kOSKextKernelIdentifier        CFSTR("__kernel__")
+#define __kOSKextUnknownIdentifier       "__unknown__"
+
+#define __kOSKextApplePrefix             CFSTR("com.apple.")
+#define __kOSKextKernelLibBundleID       CFSTR("com.apple.kernel")
+#define __kOSKextKernelLibPrefix         CFSTR("com.apple.kernel.")
+#define __kOSKextKPIPrefix               CFSTR("com.apple.kpi.")
+#define __kOSKextCompatibilityBundleID   "com.apple.kernel.6.0"
+#define __kOSKextPrivateKPI              CFSTR("com.apple.kpi.private")
+
+#define __kOSKextKmodInfoSymbol         "_kmod_info"
+
 static const boolean_t g_max_align_to_4k = false;
+
+static CFMutableArrayRef      __sOSAllKexts                 = NULL;
+static CFMutableDictionaryRef __sOSKextsByURL               = NULL;
+static CFMutableDictionaryRef __sOSKextsByIdentifier        = NULL;
 
 const CFRuntimeClass __OSKextClass = {
     0,                       // version
@@ -103,6 +122,78 @@ __OSKextReleaseContents(CFTypeRef cfObject)
     return;
 }
 
+boolean_t
+initializeAllKexts(void)
+{
+    CFArrayCallBacks nonrefcountValueCallBacks = kCFTypeArrayCallBacks;
+    
+    nonrefcountValueCallBacks.retain = NULL;
+    nonrefcountValueCallBacks.release = NULL;
+
+    if (!__sOSAllKexts)
+    {
+        __sOSAllKexts = CFArrayCreateMutable(kCFAllocatorDefault, 0, &nonrefcountValueCallBacks);
+        if (!__sOSAllKexts) {
+            fprintf(stderr, "Out of memory\n");
+            return false;
+        }
+    }
+
+
+    CFDictionaryValueCallBacks nonrefcountDValueCallBacks = kCFTypeDictionaryValueCallBacks;
+    CFDictionaryKeyCallBacks nonrefcountKeyCallBacks = kCFTypeDictionaryKeyCallBacks;
+
+    nonrefcountDValueCallBacks.retain = NULL;
+    nonrefcountDValueCallBacks.release = NULL;
+
+    if (!__sOSKextsByIdentifier)
+    {
+        __sOSKextsByIdentifier = CFDictionaryCreateMutable(kCFAllocatorDefault,
+                                                           0,
+                                                           &nonrefcountKeyCallBacks,
+                                                           &nonrefcountDValueCallBacks);
+        if (!__sOSKextsByIdentifier) {
+            fprintf(stderr, "Out of memory\n");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+CFStringRef
+__OSKextCreateCompositeKey(CFStringRef baseKey,
+                           const char *auxKey)
+{
+    return CFStringCreateWithFormat(kCFAllocatorDefault, NULL,
+                                    CFSTR("%@%s%s"), baseKey, "_", auxKey);
+}
+
+CFTypeRef
+__CFDictionaryGetValueForCompositeKey(CFDictionaryRef aDict,
+                                      CFStringRef     baseKey,
+                                      const char     *auxKey)
+{
+    CFTypeRef   result = NULL;
+    CFStringRef compositeKey = NULL; // must release
+
+    compositeKey = __OSKextCreateCompositeKey(baseKey, auxKey);
+    if (!compositeKey)
+    {
+        fprintf(stderr, "Out of memory\n");
+        goto finish;
+    }
+
+    result = CFDictionaryGetValue(aDict, compositeKey);
+    if (!result)
+    {
+        result = CFDictionaryGetValue(aDict, baseKey);
+    }
+
+finish:
+    SAFE_RELEASE(compositeKey);
+    return result;
+}
 
 void
 __OSKextLoggingCallback(KXLDLogSubsystem subsystem,
@@ -118,16 +209,41 @@ __OSKextLoggingCallback(KXLDLogSubsystem subsystem,
 static void
 __OSKextCheckLoaded(OSKextRef aKext)
 {
-    if (!aKext->loadInfo) return;
+    char kextPath[PATH_MAX];
 
-    /* It's guaranteed to not be loaded on a Linux host :) */
-    aKext->loadInfo->flags.isLoaded = 0;
-    aKext->loadInfo->flags.otherUUIDIsLoaded = 0;
-    aKext->loadInfo->flags.isStarted = 0;
-    aKext->loadInfo->loadTag = 0;
+    __OSKextGetFileSystemPath(aKext, NULL, false, kextPath);
+    if(!aKext->loadInfo)
+    {
+        fprintf(stderr, "No loadInfo for %s\n", basename(kextPath));
+        return;
+    }
 
-    aKext->loadInfo->linkInfo.vmaddr_TEXT = 0; // FIXME: calculate from top of __text?
-    aKext->loadInfo->linkInfo.linkedKextSize = 0; // FIXME: what goes here? loadSize;
+    if(!aKext->loadInfo->kernelLoadInfo)
+        return;
+
+    CFNumberRef scratchNumber = CFDictionaryGetValue(aKext->loadInfo->kernelLoadInfo,
+        CFSTR(kOSBundleLoadAddressKey));
+    if (scratchNumber) {
+        uint64_t loadAddress;
+        if (CFNumberGetValue(scratchNumber, kCFNumberSInt64Type,
+            &loadAddress))
+        {
+            aKext->loadInfo->linkInfo.vmaddr_TEXT =  loadAddress;
+            fprintf(stdout, "CheckLoaded: %s loadAddress = %p\n",
+                    basename(kextPath), loadAddress);
+        }
+    }
+}
+
+Boolean
+__OSKextHasAllDependencies(OSKextRef aKext)
+{
+    if (aKext->flags.isKernelComponent ||
+        (aKext->loadInfo && aKext->loadInfo->flags.hasAllDependencies))
+    {
+        return true;
+    }
+    return false;
 }
 
 uint64_t
@@ -150,9 +266,9 @@ finish:
 }
 
 kxld_addr_t
-__OSKextLinkAddressCallback(u_long                   size,
-                            KXLDAllocateFlags       *flags __unused,
-                            void                    *user_data)
+__OSKextLinkAddressCallback(u_long             size,
+                            KXLDAllocateFlags *flags __unused,
+                            void              *user_data)
 {
     kxld_addr_t                  result = 0;
     kxld_addr_t                  kextAddress = 0;
@@ -196,22 +312,22 @@ __OSKextUUIDCallback(struct load_command *load_command,
     return macho_seek_result_not_found;
 }
 
-OSKextRef __OSKextAlloc(
-    CFAllocatorRef       allocator,
-    CFAllocatorContext * context __unused)
+OSKextRef
+__OSKextAlloc(CFAllocatorRef      allocator,
+              CFAllocatorContext *context __unused)
 {
     OSKextRef   result  = NULL;
     char      * offset  = NULL;
     UInt32      size;
 
-    size  = sizeof(__OSKext) - sizeof(CFRuntimeBase);
-    result = (OSKextRef)_CFRuntimeCreateInstance(allocator,
-        __kOSKextTypeID, size, NULL);
-    if (!result) {
+    size = sizeof(__OSKext) - sizeof(CFRuntimeBase);
+    result = (OSKextRef) _CFRuntimeCreateInstance(allocator, __kOSKextTypeID, size, NULL);
+    if (!result)
+    {
         fprintf(stderr, "Out of memory\n");
         goto finish;
     }
-    offset = (char *)result;
+    offset = (char *) result;
     bzero(offset + sizeof(CFRuntimeBase), size);
 
 finish:
@@ -431,11 +547,10 @@ __OSKextAlignAddress(uint64_t address, uint32_t align)
 }
 
 boolean_t
-__OSKextGetSegmentAddressAndOffsetDataRef(
-    CFDataRef   imageRef,
-    const char *segname,
-    uint32_t   *fileOffsetOut,
-    uint64_t   *loadAddrOut)
+__OSKextGetSegmentAddressAndOffsetDataRef(CFDataRef   imageRef,
+                                          const char *segname,
+                                          uint32_t   *fileOffsetOut,
+                                          uint64_t   *loadAddrOut)
 {
     boolean_t    result;
     const UInt8 *imagePtr = CFDataGetBytePtr(imageRef);
@@ -450,11 +565,10 @@ __OSKextGetSegmentAddressAndOffsetDataRef(
 
 
 boolean_t
-__OSKextGetSegmentFileAndVMSize(
-    const UInt8 *imagePtr,
-    const char  *segname,
-    uint64_t    *fileSizeOut,
-    uint64_t    *VMSizeOut)
+__OSKextGetSegmentFileAndVMSize(const UInt8 *imagePtr,
+                                const char  *segname,
+                                uint64_t    *fileSizeOut,
+                                uint64_t    *VMSizeOut)
 {
     boolean_t result = false;
     uint64_t  filesize = 0;
@@ -480,11 +594,10 @@ finish:
 }
 
 boolean_t
-__OSKextGetSegmentFileAndVMSizeDataRef(
-    CFDataRef   imageRef,
-    const char *segname,
-    uint64_t   *fileSizeOut,
-    uint64_t   *VMSizeOut)
+__OSKextGetSegmentFileAndVMSizeDataRef(CFDataRef   imageRef,
+                                       const char *segname,
+                                       uint64_t   *fileSizeOut,
+                                       uint64_t   *VMSizeOut)
 {
     boolean_t    result;
     const UInt8 *imagePtr = CFDataGetBytePtr(imageRef);
@@ -497,52 +610,29 @@ __OSKextGetSegmentFileAndVMSizeDataRef(
     return result;
 }
 
-static boolean_t
-setKextVMAddr(OSKextRef aKext, enum enumSegIdx idx, uint64_t vmaddr)
-{
-    if (!aKext)
-        return false;
-
-    switch (idx)
-    {
-        case SEG_IDX_TEXT:
-            aKext->loadInfo->linkInfo.vmaddr_TEXT = vmaddr;
-            return true;
-        case SEG_IDX_TEXT_EXEC:
-            aKext->loadInfo->linkInfo.vmaddr_TEXT_EXEC = vmaddr;
-            return true;
-        case SEG_IDX_DATA:
-            aKext->loadInfo->linkInfo.vmaddr_DATA = vmaddr;
-            return true;
-        case SEG_IDX_DATA_CONST:
-            aKext->loadInfo->linkInfo.vmaddr_DATA_CONST = vmaddr;
-            return true;
-        case SEG_IDX_LINKEDIT:
-            aKext->loadInfo->linkInfo.vmaddr_LINKEDIT = vmaddr;
-            return true;
-        case SEG_IDX_LLVM_COV:
-            aKext->loadInfo->linkInfo.vmaddr_LLVM_COV = vmaddr;
-            return true;
-        default:
-            /* shouldn't ever be here */
-            assert(false);
-            return false;
-    }
-}
 
 Boolean
 __OSKextReadExecutable(OSKextRef aKext)
 {
-    Boolean                 result = false;
-    char                    kextPath[PATH_MAX];
-    char                    executablePath[PATH_MAX];
-    char                   *executableBuffer = NULL;
-    struct stat             statbuf;
-    CFAllocatorContext      mmapAllocatorContext;
-    CFAllocatorRef          mmapAllocator;
-    __OSKextMmapBufferInfo *mmapAllocatorInfo;
-    int                     fd = -1;
-    int                     length = 0;
+    Boolean                   result = false;
+    char                      kextPath[PATH_MAX];
+    char                      executablePath[PATH_MAX];
+    char                     *executableBuffer = NULL;
+    struct stat               statbuf;
+    CFAllocatorContext        mmapAllocatorContext;
+    CFAllocatorRef            mmapAllocator;
+    __OSKextMmapBufferInfo   *mmapAllocatorInfo;
+    int                       fd = -1;
+    int                       length = 0;
+    const struct mach_header *mach_header = NULL; // do not free
+    const void               *file_end = NULL;    // do not free
+    macho_seek_result         seek_result;
+    uint8_t                   nlist_type;
+    const void               *symbol_address = NULL;     // do not free
+    const kmod_info_64_v1_t  *kmod_info_64 = NULL;       // do not free
+    const u_char             *kmodNameCString = NULL;    // do not free
+    const u_char             *kmodVersionCString = NULL; // do not free
+    CFStringRef               kmodName = NULL;           // must release
 
     if (!aKext || aKext->flags.declaresKernelExecutable == false)
         goto finish;
@@ -609,12 +699,35 @@ __OSKextReadExecutable(OSKextRef aKext)
         aKext->loadInfo->executable = CFDataCreateWithBytesNoCopy(
             CFGetAllocator(aKext), executableBuffer, length,
             /* bytesDeallocator */ mmapAllocator);
+
+
+        if(!aKext->flags.isInterface)
+        {
+            /* Find the kmod_info struct symbol */
+            mach_header = (const struct mach_header *)executableBuffer;
+            file_end = ((const char *)mach_header) + length;
+        
+            seek_result = macho_find_symbol(mach_header,
+                                            file_end,
+                                            __kOSKextKmodInfoSymbol,
+                                            &nlist_type,
+                                            &symbol_address);
+
+            if ((macho_seek_result_found != seek_result) ||
+                ((nlist_type & N_TYPE) != N_SECT) ||
+                (symbol_address == NULL))
+            {
+                fprintf(stderr, "Kext is missing kmod_info\n");
+                goto finish;
+            }
+        }
     }
 
     if (!aKext->loadInfo->executable)
         return false;
+    CFRetain(aKext->loadInfo->executable);
     result = true;
-
+    
 finish:
     if (mmapAllocator)
         CFRelease(mmapAllocator);
@@ -634,6 +747,163 @@ finish:
         }
     }
 
+    return result;
+}
+
+
+/*********************************************************************
+* List must be built in postorder (link order)
+* xxx - de we want any kind of kOSKextLogDependenciesFlag
+* xxx - messages for these?
+*********************************************************************/
+Boolean
+__OSKextAddLinkDependencies(OSKextRef         aKext,
+                            CFMutableArrayRef linkDependencies,
+                            Boolean           needAllFlag,
+                            Boolean           bleedthroughFlag)
+{
+    Boolean result = false;
+    CFIndex count, i;
+
+   /* A kernel component has no dependencies other than an implicit
+    * one on the kernel, and such a kext never has an array of
+    * dependencies.
+    */
+    if (aKext->flags.isKernelComponent)
+    {
+        result = true;
+        goto finish;
+    }
+
+   /* If the kext doesn't have loadInfo or dependencies, we've hit
+    * an internal error.
+    */
+    if (!aKext->loadInfo || !aKext->loadInfo->dependencies)
+    {
+        result = !needAllFlag;
+        goto finish;
+    }
+
+    count = CFArrayGetCount(aKext->loadInfo->dependencies);
+    for (i = 0; i < count; i++) {
+        OSKextRef dependency =
+            (OSKextRef)CFArrayGetValueAtIndex(aKext->loadInfo->dependencies, i);
+
+       /* The easy part: a kext with an executable goes on the list if it isn't
+        * already on!
+        */
+        if (dependency->flags.declaresKernelExecutable)
+        {
+            if (kCFNotFound == CFArrayGetFirstIndexOfValue(linkDependencies,
+                RANGE_ALL(linkDependencies), dependency))
+            {
+
+                CFArrayAppendValue(linkDependencies, dependency);
+            }
+        }
+    }
+
+    result = true;
+
+finish:
+    return result;
+}
+
+
+CFArrayRef
+OSKextCopyLinkDependencies(OSKextRef aKext,
+                           Boolean   needAllFlag)
+{
+    CFMutableArrayRef result = NULL;
+    Boolean resolved = OSKextResolveDependencies(aKext);
+    if (needAllFlag && !resolved)
+    {
+        goto finish;
+    }
+
+    result = CFArrayCreateMutable(CFGetAllocator(aKext), 0, &kCFTypeArrayCallBacks);
+    if (!result) {
+        fprintf(stderr, "Out of memory\n");
+        goto finish;
+    }
+
+    if (!__OSKextAddLinkDependencies(aKext, result, needAllFlag, /* bleedthrough */ false)) {
+        if (result)
+            CFRelease(result);
+        result = NULL;
+    }
+
+finish:
+    return result;
+}
+
+Boolean __OSKextInitKXLDDependency(KXLDDependency * dependency,
+                                   OSKextRef        aKext,
+                                   CFDataRef        kernelImage,
+                                   Boolean          isDirect)
+{
+    Boolean result = FALSE;
+    char    kextPath[PATH_MAX];
+    
+    if (!aKext->loadInfo->linkedExecutable)
+    {
+        __OSKextGetFileSystemPath(aKext,
+                                  /* otherURL */ NULL,
+                                  /* resolveToBase */ false, kextPath);
+        fprintf(stderr, "Can't use %s - not linked.", kextPath);
+        goto finish;
+    }
+    
+    if (aKext->flags.isInterface)
+    {
+        CFDataRef   interfaceTarget     = NULL;
+        CFStringRef interfaceTargetName = NULL;
+        
+        if (aKext->flags.isKernelComponent)
+        {
+            interfaceTarget = kernelImage;
+            interfaceTargetName = __kOSKextKernelIdentifier;
+        }
+        else
+        {
+            OSKextRef interfaceTargetKext = (OSKextRef)
+                CFArrayGetValueAtIndex(aKext->loadInfo->dependencies, 0);
+            
+            if (!interfaceTargetKext->loadInfo->linkedExecutable)
+            {
+                __OSKextGetFileSystemPath(interfaceTargetKext,
+                                          /* otherURL */ NULL,
+                                          /* resolveToBase */ false, kextPath);
+                
+                fprintf(stderr, "Can't use %s - not linked.", kextPath);
+                goto finish;
+            }
+            interfaceTarget = interfaceTargetKext->loadInfo->linkedExecutable;
+            interfaceTargetName = interfaceTargetKext->bundleID;
+        }
+        
+        dependency->kext = (u_char *) CFDataGetBytePtr(interfaceTarget);
+        dependency->kext_size = CFDataGetLength(interfaceTarget);
+        dependency->kext_name = createUTF8CStringForCFString(interfaceTargetName);
+        
+        dependency->interface = (u_char *) CFDataGetBytePtr(aKext->loadInfo->linkedExecutable);
+        dependency->interface_size = CFDataGetLength(aKext->loadInfo->linkedExecutable);
+        dependency->interface_name = createUTF8CStringForCFString(aKext->bundleID);
+    }
+    else
+    {
+        dependency->kext = (u_char *) CFDataGetBytePtr(aKext->loadInfo->linkedExecutable);
+        dependency->kext_size = CFDataGetLength(aKext->loadInfo->linkedExecutable);
+        dependency->kext_name = createUTF8CStringForCFString(aKext->bundleID);
+        dependency->interface = NULL;
+        dependency->interface_size = 0;
+        dependency->interface_name = NULL;
+    }
+    
+    dependency->is_direct_dependency = isDirect;
+    result = TRUE;
+    
+finish:
     return result;
 }
 
@@ -677,8 +947,6 @@ __OSKextPerformLink(OSKextRef    aKext,
     }
 
     __OSKextGetFileSystemPath(aKext, NULL, true, kextPath);
-
-    kxldDependencies = malloc(sizeof(KXLDDependency)*8);
     
     if (!__OSKextReadExecutable(aKext))
     {
@@ -686,31 +954,6 @@ __OSKextPerformLink(OSKextRef    aKext,
         goto finish;
     }
     kextExecutable = aKext->loadInfo->executable;
-
-    /* FIXME: We probably need to handle dependencies properly here ...
-              This is an ugly hack */
-    kxldDependencies[0].kext = CFDataGetBytePtr(kernelImage);
-    kxldDependencies[0].kext_size = CFDataGetLength(kernelImage);
-    kxldDependencies[0].kext_name = "com.apple.kernel";
-        kxldDependencies[0].is_direct_dependency = 1;
-    ++numKxldDependencies;
-    
-    if (strstr(kextPath, "System.kext") != NULL)
-    {
-        aKext->flags.isInterface = true;
-        kxldDependencies[0].interface = CFDataGetBytePtr(kextExecutable);
-        kxldDependencies[0].interface_size = CFDataGetLength(kextExecutable);
-        kxldDependencies[0].interface_name = CFStringGetCStringPtr(aKext->bundleID, kCFStringEncodingUTF8);
-        kxldDependencies[0].is_direct_dependency = 1;
-    }
-    else
-    {
-        kxldDependencies[1].kext = CFDataGetBytePtr(kextExecutable);
-        kxldDependencies[1].kext_size = CFDataGetLength(kextExecutable);
-        kxldDependencies[1].kext_name = CFStringGetCStringPtr(aKext->bundleID, kCFStringEncodingUTF8);
-        kxldDependencies[1].is_direct_dependency = 1;
-        ++numKxldDependencies;
-    }
 
     if (aKext->flags.isInterface == true)
     {
@@ -721,13 +964,48 @@ __OSKextPerformLink(OSKextRef    aKext,
         goto finish;
     }
 
-    bundleIDCString = createUTF8CStringForCFString(aKext->bundleID);
+    dependencies = OSKextCopyLinkDependencies(aKext, /* needAll */ true);
+    if (!dependencies)
+        goto finish;
+    
 
+    bundleIDCString = createUTF8CStringForCFString(aKext->bundleID);
     relocBytesPtr = &relocBytes;
 
     linkAddressContext.kernelLoadAddress = kernelLoadAddress;
     linkAddressContext.kext = aKext;
 
+    numDirectDependencies = CFArrayGetCount(dependencies);
+    if (!numDirectDependencies)
+    {
+        fprintf(stderr,
+                "Internal error: attempting to link a kext without its dependencies. (%s)\n",
+                bundleIDCString);
+        goto finish;
+    }
+
+    /* FIXME: Do we need indirect deps here? It was only done if bleedthrough == true */
+
+    numKxldDependencies = numDirectDependencies + numIndirectDependencies;
+    kxldDependencies = (KXLDDependency *) calloc(numKxldDependencies, sizeof(*kxldDependencies));
+    if (!kxldDependencies)
+    {
+        fprintf(stderr, "Out of memory\n");
+        goto finish;
+    }
+    
+    for (i = 0; i < numDirectDependencies; i++)
+    {
+        OSKextRef dependency =
+            (OSKextRef) CFArrayGetValueAtIndex(dependencies, i);
+        
+        if (!__OSKextInitKXLDDependency(&kxldDependencies[i],
+                                        dependency, kernelImage, TRUE)) {
+            
+            goto finish;
+        }
+    }
+    
     kxldResult = kxld_link_file(kxldContext,
                                 (void *) CFDataGetBytePtr(kextExecutable),
                                 CFDataGetLength(kextExecutable),
@@ -735,7 +1013,7 @@ __OSKextPerformLink(OSKextRef    aKext,
                                 /* callbackData */ (void *)&linkAddressContext,
                                 kxldDependencies,
                                 numKxldDependencies,
-                                relocBytesPtr,
+                                &relocBytes,
                                 &kmodInfoKern);
 
 
@@ -767,6 +1045,8 @@ __OSKextPerformLink(OSKextRef    aKext,
     result = true;
 
 finish:
+    if (kxldDependencies)
+        free(kxldDependencies);
     if (kextExecutable)
         CFRelease(kextExecutable);
     if (relocData)
@@ -774,6 +1054,618 @@ finish:
     if (bundleIDCString)
         CFRelease(bundleIDCString);
     return result;
+}
+
+typedef struct
+{
+    CFMutableArrayRef   array;
+    uint32_t            minDepth;
+    uint32_t            depth;
+    Boolean             error;
+} __OSKextAddDependenciesContext;
+
+typedef struct
+{
+    Boolean result;
+} __OSKextResolveDependenciesContext;
+
+
+static void __OSKextFlushDependenciesApplierFunction(const void * vKey __unused,
+                                                     const void * vValue,
+                                                     void       * vContext __unused)
+{
+    OSKextRef theKext = (OSKextRef)vValue;
+
+    OSKextFlushDependencies(theKext);
+    return;
+}
+
+void __OSKextClearHasAllDependenciesOnKext(OSKextRef aKext)
+{
+    char      kextPath[PATH_MAX];
+    CFIndex   count, i;
+
+    count = CFArrayGetCount(__sOSAllKexts);
+    for (i = 0; i < count; i++)
+    {
+        OSKextRef checkKext = (OSKextRef)CFArrayGetValueAtIndex(__sOSAllKexts, i);
+        if (!checkKext->loadInfo || !checkKext->loadInfo->dependencies ||
+            !checkKext->loadInfo->flags.hasAllDependencies)
+        {
+            continue;
+        }
+        if (CFArrayContainsValue(checkKext->loadInfo->dependencies,
+            RANGE_ALL(checkKext->loadInfo->dependencies), aKext))
+        {
+
+            __OSKextGetFileSystemPath(checkKext, /* otherURL */ NULL,
+                /* resolveToBase */ false, kextPath);
+            fprintf(stdout, "Clearing \"has all dependencies\" for %s.\n", kextPath);
+
+            checkKext->loadInfo->flags.hasAllDependencies = 0;
+            __OSKextClearHasAllDependenciesOnKext(checkKext);
+        }
+    }
+    
+    return;
+}
+
+void OSKextFlushDependencies(OSKextRef aKext)
+{
+    static Boolean flushingAll = false;
+    char           kextPath[PATH_MAX];
+
+    if (aKext)
+    {
+#if VERBOSE
+        if (!flushingAll)
+        {
+            __OSKextGetFileSystemPath(aKext, /* otherURL */ NULL,
+                                      /* resolveToBase */ false, kextPath);
+            fprintf(stdout, "Flushing dependencies for %s.\n", kextPath);
+        }
+#endif /* VERBOSE */
+
+        if (aKext->loadInfo)
+        {
+            aKext->loadInfo->flags.hasRawKernelDependency = 0;
+            aKext->loadInfo->flags.hasKernelDependency = 0;
+            aKext->loadInfo->flags.hasKPIDependency = 0;
+
+            if (aKext->loadInfo->dependencies)
+            {
+                if(aKext->loadInfo->dependencies)
+                {
+                    CFRelease(aKext->loadInfo->dependencies);
+                    aKext->loadInfo->dependencies = NULL;
+                }
+
+                aKext->loadInfo->flags.hasAllDependencies = 0;
+                aKext->loadInfo->flags.dependenciesValid = 0;
+                aKext->loadInfo->flags.dependenciesAuthentic = 0;
+
+               /* If we've cleared any dependency info, we need to go up
+                * all dependency graphs and clear the "has all dependencies"
+                * bits on any dependents of this kext, direct or indirect.
+                */
+                __OSKextClearHasAllDependenciesOnKext(aKext);
+            }
+        }
+    } else if (__sOSKextsByURL) {
+        flushingAll = true;
+        fprintf(stdout, "Flushing dependencies for all kexts.\n");
+        CFDictionaryApplyFunction(__sOSKextsByURL,
+            __OSKextFlushDependenciesApplierFunction, NULL);
+        flushingAll = false;
+    }
+    return;
+}
+
+static void
+__OSKextResolveDependenciesApplierFunction(const void * vKey __unused,
+                                           const void * vValue,
+                                           void       * vContext)
+{
+    OSKextRef aKext = (OSKextRef) vValue;
+    Boolean   resolved = false;
+
+    __OSKextResolveDependenciesContext *context =
+        (__OSKextResolveDependenciesContext *) vContext;
+
+    resolved = OSKextResolveDependencies(aKext);
+    if (!resolved)
+    {
+        context->result = false;
+    }
+    return;
+}
+
+OSKextRef
+OSKextGetKextWithIdentifier(CFStringRef aBundleID)
+{
+    OSKextRef result     = NULL;
+    CFTypeRef foundEntry = NULL;  // do not release
+    OSKextRef theKext    = NULL;  // do not release
+
+    foundEntry = CFDictionaryGetValue(__sOSKextsByIdentifier, aBundleID);
+
+    if (!foundEntry)
+    {
+         goto finish;
+    }
+
+    if (OSKextGetTypeID() == CFGetTypeID(foundEntry))
+    {
+        theKext = (OSKextRef)foundEntry;
+        result = theKext;
+    }
+    else if (CFArrayGetTypeID() == CFGetTypeID(foundEntry))
+    {
+        CFMutableArrayRef kexts = (CFMutableArrayRef)foundEntry;
+        CFIndex           count, i;
+
+        count = CFArrayGetCount(kexts);
+        for (i = 0; i < count; i++)
+        {
+            theKext = (OSKextRef)CFArrayGetValueAtIndex(kexts, i);
+            result = theKext;
+            goto finish;
+        }
+    }
+
+finish:
+    return result;
+}
+
+Boolean
+__OSKextResolveDependencies(OSKextRef         aKext,
+                            OSKextRef         rootKext,
+                            CFMutableSetRef   resolvedSet,
+                            CFMutableArrayRef loopStack)
+{
+    /* clang-format off */
+    Boolean         result               = false;
+    Boolean         error                = false;
+    Boolean         addedToLoopStack     = false;
+    CFDictionaryRef declaredDependencies = NULL;  // do not release
+    CFStringRef   * libIDs               = NULL;  // must free
+    CFStringRef   * libVersions          = NULL;  // must free
+    char          * libIDCString         = NULL;  // must free
+    char            kextPath[PATH_MAX];
+    char            dependencyPath[PATH_MAX];
+    CFIndex         count = 0, i = 0;
+    /* clang-format on */
+    
+    __OSKextGetFileSystemPath(aKext, /* otherURL */ NULL,
+        /* resolveToBase */ false, kextPath);
+
+    if (!__OSKextReadInfoDictionary(aKext, /* bundle */ NULL) || !aKext->infoDictionary)
+    {
+        fprintf(stderr, "%s has no info dictionary; can't resolve dependencies.\n", kextPath);
+        goto finish;
+    }
+    
+   /* If the kext is invalid, it's best not to try to resolve personalities.
+    * I suppose we could add a flag bit specifically covering whether the
+    * CFBundleVersion, OSBundleCompatibleVersion, and OSBundleLibraries
+    * properties are kosher, but really the developer should just fix the
+    * validation problems before doing more.
+    */
+    if (!aKext->flags.valid)
+    {
+        fprintf(stderr, "%s is invalid; can't resolve dependencies.\n", kextPath);
+        goto finish;
+    }
+
+   /* If we've already done resolution for aKext on this run
+    * through the graph, we shouldn't repeat the work.
+    */
+    if (CFSetContainsValue(resolvedSet, aKext))
+    {
+#if VERBOSE
+        fprintf(stderr, "%s already has dependencies resolved.\n", kextPath);
+#endif        
+        result = true;
+        goto finish;
+    }
+
+    // This looks silly being printed for kernel components
+    if (!aKext->flags.isKernelComponent)
+    {
+        fprintf(stderr, "Resolving dependencies for %s.\n", kextPath);
+    }
+
+    if (CFArrayGetCountOfValue(loopStack, RANGE_ALL(loopStack), aKext))
+    {
+        fprintf(stderr, "Circular reference for %s\n", kextPath);
+        goto finish;
+    }
+
+    CFArrayAppendValue(loopStack, aKext);
+    addedToLoopStack = true;
+
+    OSKextFlushDependencies(aKext);
+    if (!__OSKextCreateLoadInfo(aKext))
+    {
+        goto finish;
+    }
+
+   /* Other code expects the array to exist, even for a kernel component.
+    */
+    aKext->loadInfo->dependencies =
+        CFArrayCreateMutable(CFGetAllocator(aKext), 0, &kCFTypeArrayCallBacks);
+    if (!aKext->loadInfo->dependencies)
+    {
+        fprintf(stderr, "Out of memory\n");
+        goto finish;
+    }
+
+   /* If we got this far we've confirmed it's a dictionary.
+    */
+    declaredDependencies =
+        __CFDictionaryGetValueForCompositeKey(aKext->infoDictionary,
+                                              CFSTR(kOSBundleLibrariesKey),
+                                              "x86_64");
+
+    /* No more work to do for a kernel component! */
+    if (aKext->flags.isKernelComponent)
+    {
+        if (aKext == rootKext)
+        {
+            fprintf(stdout, "%s is a kernel component with no dependencies.\n", kextPath);
+        }
+        result = true;
+        goto finish;
+    }
+
+    if (declaredDependencies)
+    {
+        count = CFDictionaryGetCount(declaredDependencies);
+        if (count)
+        {
+            libIDs = (CFStringRef *)malloc(count * sizeof(CFStringRef));
+            libVersions = (CFStringRef *)malloc(count * sizeof(CFStringRef));
+            if (!libIDs || !libVersions) {
+                fprintf(stderr, "Out of memory\n");
+                goto finish;
+            }
+            CFDictionaryGetKeysAndValues(declaredDependencies,
+                (const void **)libIDs, (const void **)libVersions);
+        }
+    }
+
+    for (i = 0; i < count; i++)
+    {
+        /* clang-format off */
+        CFStringRef   libID            = libIDs[i];
+        CFStringRef   libVersion       = libVersions[i];
+        char        * versionString    = CFStringGetCStringPtr(libVersion, kCFStringEncodingUTF8);
+        OSKextVersion requestedVersion = OSKextParseVersionString(versionString);
+                                                                          
+        OSKextRef     dependency       = NULL;
+        Boolean       loaded           = false;
+        Boolean       compatible       = false;
+        /* clang-format on */
+
+        if (libIDCString)
+            free(libIDCString);
+        libIDCString = createUTF8CStringForCFString(libID);
+
+        dependency = OSKextGetKextWithIdentifier(libID);
+        if (dependency)
+        {
+            loaded = dependency->loadInfo && dependency->loadInfo->flags.isLoaded;
+        }
+        
+        if (CFEqual(libID, __kOSKextKernelLibBundleID))
+        {
+            aKext->loadInfo->flags.hasRawKernelDependency = 1;
+        }
+        else if (CFStringHasPrefix(libID, __kOSKextKernelLibPrefix))
+        {
+            aKext->loadInfo->flags.hasKernelDependency = 1;
+        }
+        else if (CFStringHasPrefix(libID, __kOSKextKPIPrefix))
+        {
+            aKext->loadInfo->flags.hasKPIDependency = 1;
+            if (CFEqual(libID, __kOSKextPrivateKPI))
+            {
+                aKext->loadInfo->flags.hasPrivateKPIDependency = 1;
+            }
+        }
+
+       /* If we got a usable dependency, add it to the list. Otherwise
+        * dig a little more for a proper diagnostic.
+        */
+        if (dependency)
+        {
+            Boolean kernelComponent = dependency->flags.isKernelComponent;
+            Boolean promotable = false; /* FIXME: support this later */
+            Boolean compatible = true; /* FIXME: support this later */
+
+            __OSKextGetFileSystemPath(dependency, /* otherURL */ NULL,
+                /* resolveToBase */ false, dependencyPath);
+#if VERBOSE            
+            fprintf(stdout, "%s found %s%s%sdependency %s for %s%s.\n", kextPath,
+                    compatible ? "compatible " : "incompatible ",
+                    promotable ? "promotable " : "",
+                    loaded ? "loaded " : "",
+                    dependencyPath, libIDCString,
+                    kernelComponent ? " (kernel component)" : "");
+#endif
+            CFArrayAppendValue(aKext->loadInfo->dependencies, dependency);
+        }
+        else
+        {
+            fprintf(stderr, "%s - dependency '%s' not found.\n", kextPath, libIDCString);
+            error = true;
+            continue;
+        }
+    }
+
+    if (aKext->loadInfo->flags.hasRawKernelDependency)
+    {
+        fprintf(stderr, "Kext has raw kernel dependency.\n");
+        error = true;
+    }
+
+   /* Interface kexts must have exactly one dependency.
+    */
+    if (aKext->flags.isInterface &&
+        CFArrayGetCount(aKext->loadInfo->dependencies) != 1)
+    {
+        fprintf(stderr,
+                "%s - Interface kext must have exactly one dependency.\n",
+                kextPath);
+        error = true;
+    }
+
+   /* Now that we've resolved aKext's dependencies, go through and
+    * resolve the dependencies of the dependencies recursively.
+    * Keep this in post-order for sanity with the logging.
+    */
+    count = CFArrayGetCount(aKext->loadInfo->dependencies);
+    for (i = 0; i < count; i++) {
+        OSKextRef dependency =
+            (OSKextRef)CFArrayGetValueAtIndex(aKext->loadInfo->dependencies, i);
+        CFStringRef libID = dependency->bundleID;
+
+        if (!__OSKextResolveDependencies(dependency, rootKext, resolvedSet, loopStack))
+        {
+            CFIndex stackCount, stackIndex;
+
+            stackCount = CFArrayGetCount(loopStack);
+            for (stackIndex = 0; stackIndex < stackCount; stackIndex++)
+            {
+                OSKextRef stackKext = (OSKextRef)CFArrayGetValueAtIndex(loopStack, stackIndex);
+            }
+            error = true;
+        }
+    }
+
+#if 0
+    /*
+     * If this is a KASan kext, implicitly link against the KASan bundle.
+     */
+    if (OSKextDeclaresExecutable(aKext) && __OSKextHasSuffix(aKext, "_kasan"))
+    {
+        OSKextRef kasan_kext = OSKextGetKextWithIdentifier(__kOSKextKasanKPI);
+        if (kasan_kext)
+        {
+            OSKextLog(aKext, kOSKextLogDetailLevel | kOSKextLogDependenciesFlag,
+                    "%s adding implicit KASan dependency", kextPath);
+            CFArrayAppendValue(aKext->loadInfo->dependencies, kasan_kext);
+        }
+    }
+#endif
+
+    /* On 64-bit, we require that a kext explicitly list its dependencies
+     * through KPIs only. This means that while it is not an error not to link
+     * against any kernel components, we also won't implicitly link the kext
+     * against the kernel.
+     */
+    if (aKext->flags.declaresKernelExecutable)
+    {
+        if (aKext->loadInfo->flags.hasKernelDependency)
+        {
+            fprintf(stderr, "Kext declares raw kernel dependency\n");
+            goto finish;
+        }
+
+        if (!aKext->loadInfo->flags.hasKPIDependency)
+        {
+            fprintf(stderr, "Kext does not declare KPIs\n");
+        }
+    }
+
+    if (aKext->loadInfo->flags.hasKPIDependency &&
+        aKext->loadInfo->flags.hasKernelDependency) {
+        fprintf(stderr, "Kext declares both raw kernel and KPI dependencies\n");
+    }
+    
+    /* No verification of Apple copyright strings or prefix. */
+
+    if (!error) result = true;
+    
+finish:
+    SAFE_FREE(libIDCString);
+    SAFE_FREE(libIDs);
+    SAFE_FREE(libVersions);
+
+    if (result && aKext->loadInfo)
+    {
+        aKext->loadInfo->flags.hasAllDependencies = 1;
+    }
+
+   /* Whether successful or not, we've done resolution.
+    */
+    CFSetAddValue(resolvedSet, aKext);
+
+    if (addedToLoopStack)
+    {
+        CFArrayRemoveValueAtIndex(loopStack, CFArrayGetCount(loopStack) - 1);
+    }
+
+    return result;
+}
+
+
+Boolean
+OSKextResolveDependencies(OSKextRef aKext)
+{
+    Boolean           result       = false;
+    CFMutableSetRef   resolvedSet  = NULL;  // must release
+    CFMutableArrayRef loopStack    = NULL;  // must release
+    CFArrayRef        loadList     = NULL;  // must release
+    CFStringRef       kextID       = NULL;  // do not release
+    CFIndex           count, i, j;
+    char              kextPath[PATH_MAX];
+
+    resolvedSet = CFSetCreateMutable(CFGetAllocator(aKext), 0,
+                                     &kCFTypeSetCallBacks);
+    
+    loopStack = CFArrayCreateMutable(CFGetAllocator(aKext), 0,
+                                     &kCFTypeArrayCallBacks);
+    
+    if (!resolvedSet || !loopStack)
+    {
+        fprintf(stderr, "Out of memory\n");
+        goto finish;
+    }
+
+    if (aKext)
+    {
+        if (__OSKextHasAllDependencies(aKext))
+        {
+            result = true;
+            goto finish;
+        }
+        result = __OSKextResolveDependencies(aKext,
+                                             aKext,
+                                             resolvedSet,
+                                             loopStack);
+
+        if (result)
+        {
+            loadList = OSKextCopyLoadList(aKext, /* needAll */ true);
+            if (!loadList)
+            {
+                result = false;
+                goto finish;
+            }
+        }
+    }
+    else if (__sOSKextsByURL)
+    {
+        __OSKextResolveDependenciesContext context;
+        context.result = true;  // failed resolve sets to false
+        CFDictionaryApplyFunction(__sOSKextsByURL,
+            __OSKextResolveDependenciesApplierFunction, &context);
+    }
+finish:
+    SAFE_RELEASE(resolvedSet);
+    SAFE_RELEASE(loopStack);
+    SAFE_RELEASE(loadList);
+    return result;
+}
+
+static void
+__OSKextAddDependenciesApplierFunction(const void * vKext, void * vContext)
+{
+    char      kextPath[PATH_MAX];
+    OSKextRef aKext = (OSKextRef) vKext;
+
+    __OSKextAddDependenciesContext * context =
+        (__OSKextAddDependenciesContext *)vContext;
+
+   /* A kernel component has no dependencies other than an implicit
+    * one on the kernel, and such a kext never has an array of
+    * dependencies.
+    */
+    if (aKext->flags.isKernelComponent)
+    {
+        goto finish;
+    }
+
+    if (!aKext->loadInfo || !aKext->loadInfo->dependencies)
+    {
+        __OSKextGetFileSystemPath(aKext,
+                                  /* otherURL */ NULL,
+                                  /* resolve */ true,
+                                  kextPath);
+        fprintf(stderr,
+            "%s - missing load info or dependencies array in applier function.\n",
+            kextPath);
+        context->error = true;
+        goto finish;
+    }
+
+    context->depth++;
+    CFArrayApplyFunction(aKext->loadInfo->dependencies,
+                         RANGE_ALL(aKext->loadInfo->dependencies),
+                         &__OSKextAddDependenciesApplierFunction,
+                         context);
+    context->depth--;
+
+finish:
+    if (!context->error)
+    {
+        if (context->depth >= context->minDepth)
+        {
+            if (CFArrayGetFirstIndexOfValue(context->array,
+                                            RANGE_ALL(context->array),
+                                            aKext) == -1)
+            {
+
+                CFArrayAppendValue(context->array, aKext);
+            }
+        }
+    }
+
+    return;
+}            
+
+static CFMutableArrayRef
+__OSKextCopyDependenciesList(OSKextRef aKext,
+                             Boolean needAll,
+                             uint32_t minDepth)
+{
+    __OSKextAddDependenciesContext context;
+    CFMutableArrayRef result = NULL;
+    Boolean resolved = OSKextResolveDependencies(aKext);
+    if (needAll && !resolved)
+        goto finish;
+
+    result = CFArrayCreateMutable(CFGetAllocator(aKext), 0,
+                                  &kCFTypeArrayCallBacks);
+    if (!result)
+    {
+        fprintf(stderr, "Failed to create dependencies array\n");
+        goto finish;
+    }
+
+    context.array = result;
+    context.minDepth = minDepth;
+    context.depth = 0;
+    context.error = false;
+
+    __OSKextAddDependenciesApplierFunction(aKext, &context);
+    if (context.error)
+    {
+        if (result)
+            CFRelease(result);
+        result = NULL;
+    }
+
+ finish:
+    return result;
+}
+
+CFMutableArrayRef
+OSKextCopyLoadList(OSKextRef aKext, Boolean needAll)
+{
+    /* minDepth 0 means include self */
+    return __OSKextCopyDependenciesList(aKext, needAll, 0);
 }
 
 CFMutableArrayRef
@@ -820,10 +1712,20 @@ OSKextCopyLoadListForKexts(CFArrayRef kexts, Boolean needAll)
         */
         if (CFSetGetValue(resolvedKexts, theKext)) continue;
 
-        /* We are deliberately not handling dependencies here. You must
-         * provide a full set of kexts to link
-         * FIXME: Do this right ...
-         */
+        valid = theKext->flags.valid;
+        loadList = OSKextCopyLoadList(theKext, false /* need all */);
+        if (!loadList)
+            goto finish;
+
+        loadListCount = CFArrayGetCount(loadList);
+        for (j = 0; j < loadListCount; ++j)
+        {
+            OSKextRef listKext = (OSKextRef)CFArrayGetValueAtIndex(loadList, j);
+            if (CFSetGetValue(resolvedKexts, listKext)) continue;
+            CFArrayAppendValue(globalLoadList, listKext);
+            CFSetSetValue(resolvedKexts, listKext);
+        }
+
         CFArrayAppendValue(globalLoadList, theKext);
         CFSetSetValue(resolvedKexts, theKext);
     }
@@ -888,23 +1790,24 @@ __OSKextPrelinkKexts(CFArrayRef   kextArray,
         /* Set the load address of the kext.
         */
 
-        loadAddr = (loadAddrBase + loadSize + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+        loadAddr = loadAddrBase + loadSize;
         sourceAddr = sourceAddrBase + loadSize;
 
         __OSKextCreateLoadInfo(aKext);
         aKext->loadInfo->linkInfo.vmaddr_TEXT = loadAddr;
         aKext->loadInfo->sourceAddress = sourceAddr;
 
-        success = __OSKextPerformLink(aKext, kernelImage, 0, false, kxldContext);
-
-        if (!success)
+        if (!aKext->loadInfo->linkedExecutable)
         {
-            fprintf(stderr, "Prelink failed at %s\n", kextIdentifierCString);
-            goto finish;
+            success = __OSKextPerformLink(aKext, kernelImage, 0, false, kxldContext);
+            if (!success)
+            {
+                fprintf(stderr, "Prelink failed at %s\n", kextIdentifierCString);
+                goto finish;
+            }
         }
 
-        loadSize += aKext->loadInfo->linkInfo.linkedKextSize;
-        loadSize += (PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+        loadSize += (aKext->loadInfo->linkInfo.linkedKextSize + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
     } // kext loadList for loop
 
     result = CFRetain(loadList);
@@ -974,7 +1877,8 @@ _GetStringProperty(OSKextRef    aKext,
             }
 
             result = CFDictionaryGetValue(aKext->infoDictionary, compositeKey);
-            if (!result)
+            
+            if (!result || !CFStringGetCStringPtr(result, kCFStringEncodingUTF8))
             {
                 result = CFDictionaryGetValue(aKext->infoDictionary, propKey);
             }
@@ -1344,6 +2248,7 @@ finish:
         aKext->flags.invalid = 1;
         aKext->flags.valid = 0;
     }
+
     return result;
 }
 
@@ -1390,7 +2295,7 @@ OSKextParseVersionString(const char *versionString)
     sscanf(start_of_segment, "%d", &vers_revision);
 
     vers_stage = 1; // development stage. 3=alpha, 5=beta, RC=7, release=9
-    vers_stage_level = 1;
+    vers_stage_level = 7;
 
 finish:
 
@@ -1407,8 +2312,8 @@ Boolean
 __OSKextProcessInfoDictionary(OSKextRef   aKext,
                               CFBundleRef kextBundle)
 {
-    CFBooleanRef boolValue = NULL;   // do not release
-    CFStringRef  stringValue = NULL; // do not release
+    CFBooleanRef  boolValue = NULL;   // do not release
+    CFStringRef   stringValue = NULL; // do not release
     Boolean       isInterfaceSetFalse = false;
     OSKextVersion bundleVersion = -1;
     OSKextVersion compatibleVersion = -1;
@@ -1421,10 +2326,16 @@ __OSKextProcessInfoDictionary(OSKextRef   aKext,
     /* The real version of this does a lot of checking. We skip all that.
        Just retrieve the keys from the kext infoDict and go. */
 
-    _GetStringProperty(aKext, CFSTR("CFBundleIdentifier"), &stringValue);
-    aKext->bundleID = CFRetain(stringValue);
+    stringValue = (CFStringRef)CFDictionaryGetValue(aKext->infoDictionary, CFSTR("CFBundleIdentifier"));
+    char buf[1024];
+    CFStringGetCString(stringValue, buf, sizeof(buf) - 1, kCFStringEncodingUTF8);
+    char *bundleIDCString = &buf[0];
+    if (bundleIDCString)
+        aKext->bundleID = CFRetain(stringValue);
+    else
+        aKext->bundleID = CFSTR(__kOSKextUnknownIdentifier);
 
-    _GetStringProperty(aKext, CFSTR("CFBundleVersion"), &stringValue);
+    _GetStringProperty(aKext, kCFBundleVersionKey, &stringValue);
 
     /* clang-format off */
     aKext->version = OSKextParseVersionString(
@@ -1435,11 +2346,14 @@ __OSKextProcessInfoDictionary(OSKextRef   aKext,
                                CFStringGetCStringPtr(stringValue, kCFStringEncodingUTF8));
     /* clang-format on */
 
-    /* FIXME: need this to be real */
-    aKext->flags.isKernelComponent = 0;
-    aKext->flags.isInterface = 0;
-    aKext->flags.declaresKernelExecutable = 0;
+    /* FIXME: This could be more real, but probably ok for now */
+    _GetBooleanProperty(aKext, CFSTR("OSKernelResource"), &boolValue);
+    aKext->flags.isKernelComponent = CFBooleanGetValue(boolValue);
 
+    _GetBooleanProperty(aKext, CFSTR("OSBundleIsInterface"), &boolValue);
+    aKext->flags.isInterface = (aKext->flags.isKernelComponent || boolValue);
+    
+    aKext->flags.declaresKernelExecutable = 0;
     _GetStringProperty(aKext, CFSTR("CFBundleExecutable"), &stringValue);
     if (stringValue)
     {
@@ -1449,13 +2363,18 @@ __OSKextProcessInfoDictionary(OSKextRef   aKext,
             aKext->flags.declaresKernelExecutable = 1;
     }
 
-    /* No logging for you! */
-    aKext->flags.loggingEnabled = 0;
+
+    aKext->flags.loggingEnabled = 1;
     aKext->flags.plistHasEnableLoggingSet = 0;
 
-    aKext->flags.isLoadableInSafeBoot = 0; /* we ignore this anyway */
+    aKext->flags.isLoadableInSafeBoot = 1; /* we ignore this anyway */
     aKext->flags.invalid = 0;
     aKext->flags.valid = 1;
+    aKext->flags.validated = 1;
+    aKext->flags.authentic = 1;
+    aKext->flags.authenticated = 1;
+
+    CFDictionarySetValue(__sOSKextsByIdentifier, aKext->bundleID, aKext);
 
     return true;
 }
@@ -1483,9 +2402,6 @@ __OSKextInitWithPath(OSKextRef   aKext,
         goto finish;
     }
 
-    /* Save the URL only after we've confirmed we can open a bundle there.
-    * See __OSKextRemoveKext().
-    */
     aKext->bundleURL = CFRetain(urlPath);
 
     /* If we can't get the info dictionary at all, we don't even
@@ -1501,6 +2417,14 @@ __OSKextInitWithPath(OSKextRef   aKext,
     * to the client to close out unusable kexts.
     */
     __OSKextProcessInfoDictionary(aKext, kextBundle);
+
+    /* Record the kext in the main array */
+    if (CFArrayGetFirstIndexOfValue(__sOSAllKexts, RANGE_ALL(__sOSAllKexts), aKext) == kCFNotFound)
+    {
+        CFArrayAppendValue(__sOSAllKexts, aKext);
+    }
+
+    CFDictionarySetValue(__sOSKextsByIdentifier, aKext->bundleID, aKext);
     result = true;
 
 finish:

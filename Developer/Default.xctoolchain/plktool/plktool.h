@@ -270,6 +270,9 @@ OSKextGetTypeID(void);
 static char *
 segIdxToName(enum enumSegIdx idx);
 
+boolean_t
+initializeAllKexts(void);
+
 static void
 __OSKextReleaseContents(CFTypeRef cfObject);
 
@@ -446,6 +449,17 @@ macho_get_section_by_name_64(struct mach_header_64 *mach_header,
                              const char            *segname,
                              const char            *sectname);
 
+void *
+macho_find_section_numbered(const void *file_start,
+                            const void *file_end,
+                            uint8_t     sect_num);
+
+macho_seek_result
+macho_find_symbol(const void  *file_start,
+                  const void  *file_end,
+                  const char  *name,
+                  uint8_t     *nlist_type,
+                  const void **symbol_address);
 
 /* plktool.c */
 char *

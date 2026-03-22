@@ -6,9 +6,9 @@
  * Portions Copyright (c) 2008, 2012 Apple Inc.  All Rights Reserved.
  *
  * This file contains Original Code and/or Modifications of Original Code as
- * defined in and that are subject to the Apple Public Source License Version 2.0
- * (the 'License').  You may not use this file except in compliance with the
- * License.  Please obtain a copy of the License at
+ * defined in and that are subject to the Apple Public Source License Version
+ * 2.0 (the 'License').  You may not use this file except in compliance with
+ * the License.  Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this file.
  *
  * The Original Code and all software distributed under the License are
@@ -25,6 +25,8 @@
  */
 
 #include "plktool.h"
+
+const uint64_t __kOSKextMaxDisplacement = 2 * 1024 * 1024 * 1024ULL;
 
 char *
 createUTF8CStringForCFString(CFStringRef aString)
@@ -251,24 +253,23 @@ CreatePrelinkedKernel(CFDataRef  kernelImage,
     CFMutableDataRef             prelinkImage = NULL;
     CFArrayRef                   loadList = NULL;
     CFDataRef                    kernelUUID = NULL;
-    uintptr_t                    baseFileOffset = 0;
-    uintptr_t                    baseLoadAddr = 0;
-    uintptr_t                    baseSrcAddr = 0;
+    uint32_t                     baseFileOffset = 0;
+    uint64_t                     baseLoadAddr = 0;
+    uint64_t                     baseSrcAddr = 0;
     const struct mach_header_64 *mach_header;
     const unsigned char         *file_end;
     KXLDContext                 *kxldContext;
     u_long                       size = 0;
-    uintptr_t                    textLoadAddr;
-    uintptr_t                    textVMSize;
-
+    uint64_t                     textLoadAddr;
+    uint64_t                     textVMSize;
+    CFDataRef                    result = NULL;
 
     baseFileOffset = CFDataGetLength(kernelImage);
-    memset(&plkInfo, 0, sizeof(plkInfo));
 
     kxld_create_context(&kxldContext,
                         __OSKextLinkAddressCallback,
                         __OSKextLoggingCallback,
-                        kKxldFlagDefault | kKXLDFlagIncludeRelocs,
+                        kKxldFlagDefault,
                         CPU_TYPE_X86_64,
                         CPU_SUBTYPE_X86_64_ALL,
                         0);
@@ -299,22 +300,29 @@ CreatePrelinkedKernel(CFDataRef  kernelImage,
     }
 
 
-    baseLoadAddr = baseSrcAddr;
-
+    baseLoadAddr = (textLoadAddr + textVMSize + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+    if (baseLoadAddr < __kOSKextMaxDisplacement)
+    {
+        fprintf(stderr, "Kext base load address underflow\n");
+        goto failed;
+    }
+    baseLoadAddr -= __kOSKextMaxDisplacement; /* Kext VMA base */
+    
     loadList = __OSKextPrelinkKexts(kextArray,
                                     kernelImage,
-                                    baseLoadAddr, // where we load kext __TEXT segments
+                                    baseLoadAddr, // where we load kexts: 2GB from top of __TEXT
                                     baseSrcAddr,
                                     kxldContext,
                                     &size,
                                     true,   /* (flags & kOSKextKernelcacheNeedAllFlag), */
                                     true,   /* (flags & kOSKextKernelcacheSkipAuthenticationFlag), */
                                     true,   /* (flags & kOSKextKernelcachePrintDiagnosticsFlag), */
-                                    false); /* (flags & kOSKextKernelcacheStripSymbolsFlag)); */ /* if this is true, do we have to provide the callback? */
+                                    false); /* (flags & kOSKextKernelcacheStripSymbolsFlag)); */
 
     if (!loadList)
         goto failed;
 
+    fprintf(stdout, "Linked %d bytes\n", size);
     mach_header = (const struct mach_header_64 *) CFDataGetBytePtr(kernelImage);
     file_end = (((const char *) mach_header) + CFDataGetLength(kernelImage));
     struct _uuid_stuff seek_uuid;
@@ -340,30 +348,29 @@ CreatePrelinkedKernel(CFDataRef  kernelImage,
                                             kernelUUID);
 
     /* create the prelink image in a CFData */
-    u_long kernlen = CFDataGetLength(kernelImage);
     prelinkImage = CFDataCreateMutable(kCFAllocatorDefault, 0);
-    CFDataSetLength(prelinkImage, kernlen);
+    CFDataSetLength(prelinkImage, baseFileOffset);
 
-    CFRange  range = CFRangeMake(0, kernlen);
+    CFRange  range = CFRangeMake(0, baseFileOffset);
     uint8_t *bytePtr = CFDataGetBytePtr(kernelImage);
-    CFDataReplaceBytes(prelinkImage, range, bytePtr, kernlen);
+    CFDataReplaceBytes(prelinkImage, range, bytePtr, baseFileOffset);
 
-    uintptr_t fileOffset = kernlen;
+    uintptr_t fileOffset = baseFileOffset;
     uintptr_t srcAddr = baseSrcAddr;
 
     size = CopyPrelinkedKexts(prelinkImage,
                               loadList,
                               fileOffset,
                               srcAddr);
-    fileOffset += (size + (PAGE_SIZE - 1)) & ~(PAGE_SIZE - 1);
-    srcAddr += (size + (PAGE_SIZE - 1)) & ~(PAGE_SIZE - 1);
-    uintptr_t loadAddr = (baseLoadAddr + size + (PAGE_SIZE - 1)) & ~(PAGE_SIZE - 1);
 
-    CFDataSetLength(prelinkImage, fileOffset); // round to page
+    fileOffset += size;
+    srcAddr += size;
+    CFDataSetLength(prelinkImage, fileOffset);
 
-    u_long pdsize = 0;
-    pdsize = CFDataGetLength(prelinkInfoData);
+    u_long pdsize = CFDataGetLength(prelinkInfoData);
     CFDataAppendBytes(prelinkImage, CFDataGetBytePtr(prelinkInfoData), pdsize);
+    pdsize = (pdsize + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+    CFDataSetLength(prelinkImage, fileOffset + pdsize);
 
     /* Set the info dictionary segment headers */
     mach_header = (struct mach_header_64 *) CFDataGetBytePtr(prelinkImage);
@@ -374,7 +381,7 @@ CreatePrelinkedKernel(CFDataRef  kernelImage,
         goto failed;
     }
 
-    seg->vmaddr = loadAddr;
+    seg->vmaddr = srcAddr;
     seg->vmsize = pdsize;
     seg->fileoff = fileOffset;
     seg->filesize = pdsize;
@@ -388,11 +395,14 @@ CreatePrelinkedKernel(CFDataRef  kernelImage,
         goto failed;
     }
 
-    sect->addr = loadAddr;
+    sect->addr = srcAddr;
     sect->offset = fileOffset;
     sect->size = pdsize;
 
-    CFDataRef result = CFRetain(prelinkImage);
+    fileOffset += pdsize;
+    CFDataSetLength(prelinkImage, fileOffset);
+    
+    result = CFRetain(prelinkImage);
 
 failed:
     kxld_destroy_context(kxldContext);
@@ -417,6 +427,9 @@ main(int argc, char **argv)
         return 1;
     }
 
+    if(!initializeAllKexts())
+        goto finish;
+    
     fprintf(stdout, "Examining kernel image\n");
     if (stat(argv[2], &st) < 0)
     {
