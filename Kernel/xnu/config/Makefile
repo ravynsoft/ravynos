@@ -25,8 +25,8 @@ SYMBOL_COMPONENT_LIST =	\
         Libkern		\
         Mach		\
         MACFramework	\
-        Unsupported	
-        #Private
+        Unsupported     \
+        Private
 
 # In general you want it to be possible to have a CPU sub-type's symbol exports
 # alias to the parent type's exports. This is a special-case way to handle it

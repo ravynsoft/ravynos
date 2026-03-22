@@ -802,7 +802,10 @@ KLDBootstrap::loadKernelComponentKexts(void)
 		theKext = OSKext::lookupKextWithIdentifier(*kextIDPtr);
 
 		if (theKext) {
-		        kprintf("KLDBootstrap loadKernelComponentKexts %s @0x%p\n", *kextIDPtr, theKext);
+		        kprintf("KLDBootstrap loadKernelComponentKexts %s %p\n", *kextIDPtr, theKext);
+                        kprintf("infoDict %p staticFlags %x flags %x\n", theKext->infoDict, theKext->flags);
+                        kprintf("tag %d kmod_info %p\n", theKext->loadTag, theKext->kmod_info);
+
 			if (kOSReturnSuccess != OSKext::loadKextWithIdentifier(
 				    *kextIDPtr, /* allowDefer */ false)) {
 				// xxx - check KextBookkeeping, might be redundant
