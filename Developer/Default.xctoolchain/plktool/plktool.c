@@ -74,67 +74,6 @@ UnswapHeaders(CFDataRef kernelImage)
 }
 
 
-/* FIXME: remove? not used */
-
-static uint64_t
-getKCPlkSegNextVMAddr(plkInfo *plkInfo, enum enumSegIdx idx)
-{
-    assert(plkInfo);
-
-    switch (idx)
-    {
-        case SEG_IDX_TEXT:
-            return plkInfo->plk_TEXT.plk_next_kext_vmaddr;
-        case SEG_IDX_TEXT_EXEC:
-            return plkInfo->plk_TEXT_EXEC.plk_next_kext_vmaddr;
-        case SEG_IDX_DATA:
-            return plkInfo->plk_DATA.plk_next_kext_vmaddr;
-        case SEG_IDX_DATA_CONST:
-            return plkInfo->plk_DATA_CONST.plk_next_kext_vmaddr;
-        case SEG_IDX_LINKEDIT:
-            return plkInfo->plk_LINKEDIT.plk_next_kext_vmaddr;
-        case SEG_IDX_LLVM_COV:
-            return plkInfo->plk_LLVM_COV.plk_next_kext_vmaddr;
-        default:
-            /* shouldn't ever be here */
-            assert(false);
-            return 0;
-    }
-}
-
-static boolean_t
-setKCPlkSegNextVMAddr(plkInfo *plkInfo, enum enumSegIdx idx, uint64_t x)
-{
-    if (!plkInfo)
-        return false;
-
-    switch (idx)
-    {
-        case SEG_IDX_TEXT:
-            plkInfo->plk_TEXT.plk_next_kext_vmaddr = x;
-            return true;
-        case SEG_IDX_TEXT_EXEC:
-            plkInfo->plk_TEXT_EXEC.plk_next_kext_vmaddr = x;
-            return true;
-        case SEG_IDX_DATA:
-            plkInfo->plk_DATA.plk_next_kext_vmaddr = x;
-            return true;
-        case SEG_IDX_DATA_CONST:
-            plkInfo->plk_DATA_CONST.plk_next_kext_vmaddr = x;
-            return true;
-        case SEG_IDX_LINKEDIT:
-            plkInfo->plk_LINKEDIT.plk_next_kext_vmaddr = x;
-            return true;
-        case SEG_IDX_LLVM_COV:
-            plkInfo->plk_LLVM_COV.plk_next_kext_vmaddr = x;
-            return true;
-        default:
-            /* shouldn't ever be here */
-            assert(false);
-            return false;
-    }
-}
-
 static u_long
 CopyPrelinkedKexts(CFMutableDataRef prelinkImage,
                    CFArrayRef       loadList,
@@ -171,8 +110,6 @@ CopyPrelinkedKexts(CFMutableDataRef prelinkImage,
     sect->offset = fileOffset;
 
     /* Copy all kext executables */
-
-    int rounded = 0;
     for (i = 0; i < CFArrayGetCount(loadList); ++i)
     {
         OSKextRef aKext = (OSKextRef) CFArrayGetValueAtIndex(loadList, i);
@@ -182,26 +119,23 @@ CopyPrelinkedKexts(CFMutableDataRef prelinkImage,
             continue;
         }
 
-        /* xxx - Is it safe to assume aKext->loadInfo exists here?
-        */
-        size = CFDataGetLength(aKext->loadInfo->prelinkedExecutable);
-        rounded = (size + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+        memcpy(prelinkData + fileOffset + size, 
+               CFDataGetBytePtr(aKext->loadInfo->prelinkedExecutable),
+               CFDataGetLength(aKext->loadInfo->prelinkedExecutable));
         
-        CFDataAppendBytes(prelinkImage,
-                          CFDataGetBytePtr(aKext->loadInfo->prelinkedExecutable),
-                          size);
-        CFDataIncreaseLength(prelinkImage, rounded - size);
-        
-        sourceAddr += rounded;
-        fileOffset += rounded;
-        totalSize += rounded;
+        size += (CFDataGetLength(aKext->loadInfo->prelinkedExecutable) +
+                        PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
     }
+
+    sourceAddr += size;
+    fileOffset += size;
+    totalSize += size;
 
     /* Set the text segment and section size */
 
-    seg->vmsize = rounded;
-    seg->filesize = rounded;
-    sect->size = rounded;
+    seg->vmsize = size;
+    seg->filesize = size;
+    sect->size = size;
 
     return totalSize;
 

@@ -229,7 +229,7 @@ __OSKextCheckLoaded(OSKextRef aKext)
             &loadAddress))
         {
             aKext->loadInfo->linkInfo.vmaddr_TEXT =  loadAddress;
-            fprintf(stdout, "CheckLoaded: %s loadAddress = %p\n",
+            fprintf(stdout, "CheckLoaded: %s loadAddress = %p from kernelLoadInfo\n",
                     basename(kextPath), loadAddress);
         }
     }
@@ -260,6 +260,7 @@ OSKextGetLoadAddress(OSKextRef aKext)
         __OSKextCheckLoaded(aKext);
     }
     result = aKext->loadInfo->linkInfo.vmaddr_TEXT;
+    fprintf(stdout, "GetLoadAddr: loadAddress = %p\n", result);
 
 finish:
     return result;
@@ -278,6 +279,7 @@ __OSKextLinkAddressCallback(u_long             size,
 
     context->kext->loadInfo->linkInfo.linkedKextSize = size;
     kextAddress = (kxld_addr_t) OSKextGetLoadAddress(context->kext);
+
     if (kextAddress)
     {
         result = kextAddress;
@@ -954,6 +956,8 @@ __OSKextPerformLink(OSKextRef    aKext,
         goto finish;
     }
     kextExecutable = aKext->loadInfo->executable;
+    if(!kextExecutable)
+        goto finish;
 
     if (aKext->flags.isInterface == true)
     {
@@ -1797,14 +1801,15 @@ __OSKextPrelinkKexts(CFArrayRef   kextArray,
         aKext->loadInfo->linkInfo.vmaddr_TEXT = loadAddr;
         aKext->loadInfo->sourceAddress = sourceAddr;
 
-        if (!aKext->loadInfo->linkedExecutable)
+
+        fprintf(stdout, "PrelinkKext: %s load at %p src %p loadSize = %d\n",
+		kextIdentifierCString, loadAddr, sourceAddr, loadSize);
+
+        success = __OSKextPerformLink(aKext, kernelImage, 0, false, kxldContext);
+        if (!success)
         {
-            success = __OSKextPerformLink(aKext, kernelImage, 0, false, kxldContext);
-            if (!success)
-            {
-                fprintf(stderr, "Prelink failed at %s\n", kextIdentifierCString);
-                goto finish;
-            }
+	    fprintf(stderr, "Prelink failed at %s\n", kextIdentifierCString);
+	    goto finish;
         }
 
         loadSize += (aKext->loadInfo->linkInfo.linkedKextSize + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
