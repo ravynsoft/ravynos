@@ -26,6 +26,8 @@
 
 #include "plktool.h"
 
+extern CFMutableArrayRef __sOSAllKexts;
+
 const uint64_t __kOSKextMaxDisplacement = 2 * 1024 * 1024 * 1024ULL;
 
 char *
@@ -203,7 +205,7 @@ CreatePrelinkedKernel(CFDataRef  kernelImage,
     kxld_create_context(&kxldContext,
                         __OSKextLinkAddressCallback,
                         __OSKextLoggingCallback,
-                        kKxldFlagDefault,
+                        kKxldFlagDefault|kKXLDFlagIncludeRelocs,
                         CPU_TYPE_X86_64,
                         CPU_SUBTYPE_X86_64_ALL,
                         0);
@@ -364,7 +366,6 @@ main(int argc, char **argv)
     if(!initializeAllKexts())
         goto finish;
     
-    fprintf(stdout, "Examining kernel image\n");
     if (stat(argv[2], &st) < 0)
     {
         perror("stat");
@@ -430,11 +431,12 @@ main(int argc, char **argv)
             goto finish;
         }
 
-        CFArrayAppendValue(kextArray, CFRetain(theKext));
+	if(!CFArrayContainsValue(__sOSAllKexts, RANGE_ALL(__sOSAllKexts), theKext))
+            CFArrayAppendValue(kextArray, CFRetain(theKext));
     }
 
     fprintf(stdout, "Linking ...\n");
-    CFDataRef prelinkImage = CreatePrelinkedKernel(kernelImage, kextArray);
+    CFDataRef prelinkImage = CreatePrelinkedKernel(kernelImage, __sOSAllKexts);
     if (!prelinkImage)
     {
         fprintf(stderr, "Failed to create prelinked kernel.\n");

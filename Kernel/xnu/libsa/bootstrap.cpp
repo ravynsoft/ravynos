@@ -597,7 +597,6 @@ KLDBootstrap::readBooterExtensions(void)
 	    "Reading startup extensions from booter memory.");
 
 	booterMemoryMap = IORegistryEntry::fromPath( "/chosen/memory-map", gIODTPlane);
-	kprintf("KLDBootstrap::readBooterExtensions mem-map=%p\n",booterMemoryMap);
 	if (!booterMemoryMap) {
 		OSKextLog(/* kext */ NULL,
 		    kOSKextLogErrorLevel |
@@ -607,7 +606,6 @@ KLDBootstrap::readBooterExtensions(void)
 	}
 
 	propertyDict = booterMemoryMap->dictionaryWithProperties();
-	kprintf("KLDBootstrap propertyDict=%p\n", propertyDict);
 	if (!propertyDict) {
 		OSKextLog(/* kext */ NULL,
 		    kOSKextLogErrorLevel |
@@ -617,7 +615,6 @@ KLDBootstrap::readBooterExtensions(void)
 	}
 
 	keyIterator = OSCollectionIterator::withCollection(propertyDict);
-	kprintf("KLDBootstrap keyIterator=%p\n", keyIterator);
 	if (!keyIterator) {
 		OSKextLog(/* kext */ NULL,
 		    kOSKextLogErrorLevel |
@@ -802,14 +799,9 @@ KLDBootstrap::loadKernelComponentKexts(void)
 		theKext = OSKext::lookupKextWithIdentifier(*kextIDPtr);
 
 		if (theKext) {
-		        kprintf("KLDBootstrap loadKernelComponentKexts %s %p\n", *kextIDPtr, theKext);
-                        kprintf("infoDict %p staticFlags %x flags %x\n", theKext->infoDict, theKext->flags);
-                        kprintf("tag %d kmod_info %p\n", theKext->loadTag, theKext->kmod_info);
-
 			if (kOSReturnSuccess != OSKext::loadKextWithIdentifier(
 				    *kextIDPtr, /* allowDefer */ false)) {
 				// xxx - check KextBookkeeping, might be redundant
-			  kprintf(" -- failed to init\n");
 				OSKextLog(/* kext */ NULL,
 				    kOSKextLogErrorLevel |
 				    kOSKextLogDirectoryScanFlag | kOSKextLogKextBookkeepingFlag,
@@ -872,7 +864,6 @@ KLDBootstrap::loadKernelExternalComponents(void)
 		}
 #endif
 
-		kprintf(" -- considering kext %s as kec\n", bundle_id);
 		theKext = OSDynamicCast(OSKext, extensionsDict->getObject(bundleID));
 		if (!theKext) {
 			continue;
@@ -880,7 +871,6 @@ KLDBootstrap::loadKernelExternalComponents(void)
 
 		isKernelExternalComponent = OSDynamicCast(OSBoolean,
 		    theKext->getPropertyForHostArch(kAppleKernelExternalComponentKey));
-		kprintf(" -- kec? %d\n", isKernelExternalComponent);
 		if (isKernelExternalComponent && isKernelExternalComponent->isTrue()) {
 			OSKextLog(/* kext */ NULL,
 			    kOSKextLogStepLevel |

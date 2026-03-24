@@ -177,9 +177,7 @@ StartIOKit( void * p1, void * p2, void * p3, void * p4 )
 		/* If the bootstrap segment set up a function to record startup
 		 * extensions, call it now.
 		 */
-		kprintf("rootNub after attach fn=%p\n", record_startup_extensions_function);
 		if (record_startup_extensions_function) {
-		  kprintf("record startup extensions = %d\n");
 		  record_startup_extensions_function();
 		}
 

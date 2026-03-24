@@ -26,7 +26,6 @@
 
 #include "plktool.h"
 
-#define RANGE_ALL(a)    CFRangeMake(0, CFArrayGetCount(a))
 #define SAFE_FREE(a)    if(a) free(a);
 
 #define __kOSKextKernelIdentifier        CFSTR("__kernel__")
@@ -43,7 +42,7 @@
 
 static const boolean_t g_max_align_to_4k = false;
 
-static CFMutableArrayRef      __sOSAllKexts                 = NULL;
+CFMutableArrayRef      __sOSAllKexts                 = NULL;
 static CFMutableDictionaryRef __sOSKextsByURL               = NULL;
 static CFMutableDictionaryRef __sOSKextsByIdentifier        = NULL;
 
@@ -229,8 +228,6 @@ __OSKextCheckLoaded(OSKextRef aKext)
             &loadAddress))
         {
             aKext->loadInfo->linkInfo.vmaddr_TEXT =  loadAddress;
-            fprintf(stdout, "CheckLoaded: %s loadAddress = %p from kernelLoadInfo\n",
-                    basename(kextPath), loadAddress);
         }
     }
 }
@@ -260,7 +257,6 @@ OSKextGetLoadAddress(OSKextRef aKext)
         __OSKextCheckLoaded(aKext);
     }
     result = aKext->loadInfo->linkInfo.vmaddr_TEXT;
-    fprintf(stdout, "GetLoadAddr: loadAddress = %p\n", result);
 
 finish:
     return result;
@@ -1104,7 +1100,6 @@ void __OSKextClearHasAllDependenciesOnKext(OSKextRef aKext)
 
             __OSKextGetFileSystemPath(checkKext, /* otherURL */ NULL,
                 /* resolveToBase */ false, kextPath);
-            fprintf(stdout, "Clearing \"has all dependencies\" for %s.\n", kextPath);
 
             checkKext->loadInfo->flags.hasAllDependencies = 0;
             __OSKextClearHasAllDependenciesOnKext(checkKext);
@@ -1726,11 +1721,13 @@ OSKextCopyLoadListForKexts(CFArrayRef kexts, Boolean needAll)
         {
             OSKextRef listKext = (OSKextRef)CFArrayGetValueAtIndex(loadList, j);
             if (CFSetGetValue(resolvedKexts, listKext)) continue;
-            CFArrayAppendValue(globalLoadList, listKext);
+	    if(!CFArrayContainsValue(globalLoadList, RANGE_ALL(globalLoadList), listKext))
+                CFArrayAppendValue(globalLoadList, listKext);
             CFSetSetValue(resolvedKexts, listKext);
         }
 
-        CFArrayAppendValue(globalLoadList, theKext);
+        if(!CFArrayContainsValue(globalLoadList, RANGE_ALL(globalLoadList), theKext))
+            CFArrayAppendValue(globalLoadList, theKext);
         CFSetSetValue(resolvedKexts, theKext);
     }
 
@@ -1800,10 +1797,6 @@ __OSKextPrelinkKexts(CFArrayRef   kextArray,
         __OSKextCreateLoadInfo(aKext);
         aKext->loadInfo->linkInfo.vmaddr_TEXT = loadAddr;
         aKext->loadInfo->sourceAddress = sourceAddr;
-
-
-        fprintf(stdout, "PrelinkKext: %s load at %p src %p loadSize = %d\n",
-		kextIdentifierCString, loadAddr, sourceAddr, loadSize);
 
         success = __OSKextPerformLink(aKext, kernelImage, 0, false, kxldContext);
         if (!success)

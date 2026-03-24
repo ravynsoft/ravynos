@@ -30,6 +30,8 @@
 /* We need this for OSKextPrivate.h */
 #define __unused __attribute__((unused))
 
+#define RANGE_ALL(a)    CFRangeMake(0, CFArrayGetCount(a))
+
 #include <openssl/evp.h>
 #include <openssl/sha.h>
 #include <strings.h>
