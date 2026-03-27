@@ -1035,12 +1035,16 @@ __OSKextPerformLink(OSKextRef    aKext,
         }
         aKext->loadInfo->linkedExecutable = CFRetain(relocData);
         aKext->loadInfo->kmodInfoAddress = kmodInfoKern;
+        fprintf(stdout, "%s loadAddress = %p, kmodInfoAddress = %p\n",
+                bundleIDCString,
+                aKext->loadInfo->linkInfo.vmaddr_TEXT,
+                kmodInfoKern);
 
         if (!aKext->loadInfo->prelinkedExecutable)
         {
             aKext->loadInfo->prelinkedExecutable = CFRetain(relocData);
         }
-    } // relocBytes...
+    } // relocBytes... 
 
     result = true;
 

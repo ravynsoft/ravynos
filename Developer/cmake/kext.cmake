@@ -96,5 +96,5 @@ function(add_kmod_info target)
 
     configure_file(${ROOT_SOURCE_DIR}/Developer/cmake/templates/kmod_info.c.in ${CMAKE_CURRENT_BINARY_DIR}/kmod_info.c)
     target_sources(${target} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/kmod_info.c)
-    target_link_libraries(${target} PRIVATE ${ROOT_BINARY_DIR}/Kernel/libkmod/libkmod.a)
+#    target_link_libraries(${target} PRIVATE ${ROOT_BINARY_DIR}/Kernel/libkmod/libkmod.a)
 endfunction()

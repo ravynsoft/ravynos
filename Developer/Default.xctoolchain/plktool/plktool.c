@@ -135,9 +135,9 @@ CopyPrelinkedKexts(CFMutableDataRef prelinkImage,
 
     /* Set the text segment and section size */
 
-    seg->vmsize = size;
-    seg->filesize = size;
-    sect->size = size;
+    seg->vmsize = totalSize;
+    seg->filesize = totalSize;
+    sect->size = totalSize;
 
     return totalSize;
 
@@ -459,8 +459,9 @@ main(int argc, char **argv)
         htonl(prelinkLength), /* uncompressedSize */
         htonl(prelinkLength), /* compressedSize */
         htonl(1),             /* prelinkVersion */
-        0,                    /* reserved */
-        0,                    /* platformName */
+        0, 0, 0, 0, 0,        /* reserved[10] */
+        0, 0, 0, 0, 0,
+        "GenericX86_64",      /* platformName */
         0,                    /* rootPath */
         0                     /* data */
     };
