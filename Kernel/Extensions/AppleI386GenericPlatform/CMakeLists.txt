@@ -19,6 +19,7 @@ target_link_options(AppleI386GenericPlatform PRIVATE
     -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib
     -L${RAVYN_SDKROOT}/usr/local/lib)
 
-add_dependencies(AppleI386GenericPlatform xnu libkmod)
-
 install(TARGETS AppleI386GenericPlatform DESTINATION ${SYSROOT_DIR}/System/Library/Extensions COMPONENT BaseSystem)
+
+add_dependencies(AppleI386GenericPlatform kextBuild)
+
