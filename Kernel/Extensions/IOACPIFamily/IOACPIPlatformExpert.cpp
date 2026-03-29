@@ -21,6 +21,7 @@
  */
 
 #include <IOKit/acpi/IOACPIPlatformExpert.h>
+extern void kprintf(const char *fmt, ...);
 
 const IORegistryPlane * gIOACPIPlane           = 0;
 const OSSymbol *        gIOACPIHardwareIDKey   = 0;
@@ -108,6 +109,7 @@ OSMetaClassDefineReservedUnused( IOACPIPlatformExpert, 31 );
 
 bool IOACPIPlatformExpert::start( IOService * provider )
 {
+    kprintf("IOACPIPE start\n");
     if ( super::start(provider) == false )
         return false;
 

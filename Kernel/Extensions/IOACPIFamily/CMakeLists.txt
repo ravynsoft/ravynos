@@ -8,6 +8,8 @@ target_sources(IOACPIFamily PRIVATE
     IOACPIPlatformDevice.cpp
     IOACPIPlatformExpert.cpp
     hack.s
+    AppleI386CPU.cpp
+    AppleI386PlatformExpert.cpp
 )
 
 target_include_directories(IOACPIFamily PRIVATE
@@ -25,3 +27,5 @@ target_compile_options(IOACPIFamily PRIVATE
 
 target_link_options(IOACPIFamily PRIVATE
     -mmacos-version-min=${MACOS_VERSION_MIN})
+
+add_dependencies(IOACPIFamily kextBuild)
