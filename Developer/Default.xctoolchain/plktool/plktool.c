@@ -336,7 +336,58 @@ CreatePrelinkedKernel(CFDataRef  kernelImage,
     sect->size = pdsize;
 
     fileOffset += pdsize;
+    srcAddr = (srcAddr + pdsize + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+    
     CFDataSetLength(prelinkImage, fileOffset);
+
+    if (gPEKext)
+    {
+        /* now create the __BUILTIN segment with our PlatformExpert */
+        int segmentSize = 0;
+
+        seg = macho_get_segment_by_name_64(mach_header, "__BUILTIN");
+        if (!seg) {
+            fprintf(stderr, "no __BUILTIN seg\n");
+            goto failed;
+        }
+
+        seg->vmaddr = srcAddr;
+        seg->fileoff = fileOffset;
+
+        CFMutableArrayRef dicts = CFArrayCreateMutable(kCFAllocatorDefault,
+                                                       0,
+                                                       &kCFTypeArrayCallBacks);
+        CFArrayAppendValue(dicts, gPEKext->infoDictionary);
+        
+        CFDataRef infodict = IOCFSerialize(dicts, kNilOptions);
+        int size = CFDataGetLength(infodict);
+        segmentSize += size;
+            
+        CFDataAppendBytes(prelinkImage,
+                          CFDataGetBytePtr(infodict),
+                          size);
+            
+        sect = macho_get_section_by_name_64(mach_header,
+                                            "__BUILTIN",
+                                            "__info");
+        if (!sect)
+        {
+            fprintf(stderr, "no sect\n");
+            goto failed;
+        }
+
+        sect->size = size;
+        sect->addr = srcAddr;
+        sect->offset = fileOffset;
+
+        fileOffset += size;
+        srcAddr = (srcAddr + size + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+
+        seg->vmsize = segmentSize;
+        seg->filesize = segmentSize;
+        printf("Added Platform Expert kext to __BUILTIN: %p %d %d %d\n",
+               seg->vmaddr, seg->vmsize, seg->fileoff, seg->filesize);
+    } /* gBuiltin */
     
     result = CFRetain(prelinkImage);
 

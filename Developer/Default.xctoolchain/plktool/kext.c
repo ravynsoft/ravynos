@@ -42,9 +42,11 @@
 
 static const boolean_t g_max_align_to_4k = false;
 
-CFMutableArrayRef      __sOSAllKexts                 = NULL;
-static CFMutableDictionaryRef __sOSKextsByURL               = NULL;
-static CFMutableDictionaryRef __sOSKextsByIdentifier        = NULL;
+CFMutableArrayRef      __sOSAllKexts = NULL;
+static CFMutableDictionaryRef __sOSKextsByURL = NULL;
+static CFMutableDictionaryRef __sOSKextsByIdentifier = NULL;
+
+OSKextRef gPEKext = NULL;
 
 const CFRuntimeClass __OSKextClass = {
     0,                       // version
@@ -1039,6 +1041,9 @@ __OSKextPerformLink(OSKextRef    aKext,
                 bundleIDCString,
                 aKext->loadInfo->linkInfo.vmaddr_TEXT,
                 kmodInfoKern);
+        
+        if (!strcmp(bundleIDCString, "com.apple.iokit.IOACPIFamily"))
+            gPEKext = aKext;
 
         if (!aKext->loadInfo->prelinkedExecutable)
         {
@@ -2436,3 +2441,4 @@ finish:
     }
     return result;
 }
+

@@ -266,6 +266,8 @@ extern CFTypeID             __kOSKextTypeID;
 extern const CFRuntimeClass __OSKextClass;
 
 /* kext.c */
+extern OSKextRef gPEKext;
+
 CFTypeID
 OSKextGetTypeID(void);
 
