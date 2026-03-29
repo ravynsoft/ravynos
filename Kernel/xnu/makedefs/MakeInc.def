@@ -476,6 +476,8 @@ LDFLAGS_KERNEL_GEN = \
 	-Wl,-segprot,__PRELINK_TEXT,r-x,r-x \
 	-Wl,-segprot,__DATA,rw-,r-- \
 	-Wl,-sectcreate,__PRELINK_INFO,__info,/dev/null \
+	-Wl,-sectcreate,__BUILTIN,__info,/dev/null \
+	-Wl,-sectcreate,__BUILTIN,__kmod_info,/dev/null \
 	-Wl,-pagezero_size,0x0 \
 	-Wl,-version_load_command \
 	-Wl,-function_starts \
