@@ -35,6 +35,7 @@ install(TARGETS IOStorageFamily DESTINATION System/Library/Extensions COMPONENT 
 # add_bundle_iconset(IOStorageFamily IconResources/Removable.iconset)
 # add_bundle_resources(IOStorageFamily en.lproj/InfoPlist.strings)
 
+add_dependencies(IOStorageFamily kextBuild)
 
 add_library(IOStorageFamilyHeaders INTERFACE)
 target_include_directories(IOStorageFamilyHeaders INTERFACE .)

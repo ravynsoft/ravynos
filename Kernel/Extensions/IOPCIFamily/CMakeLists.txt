@@ -18,3 +18,5 @@ add_library(IOPCIFamilyHeaders INTERFACE)
 target_include_directories(IOPCIFamilyHeaders INTERFACE include)
 
 add_subdirectory(ApplePIODMA)
+add_dependencies(ApplePIODMA kextBuild)
+

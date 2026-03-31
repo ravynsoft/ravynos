@@ -36,6 +36,6 @@ target_link_options(pthread.kext PRIVATE
     -Wl,-syslibroot,${RAVYN_SDKROOT}/usr/lib
     -L${RAVYN_SDKROOT}/usr/local/lib)
 
-add_dependencies(pthread.kext xnu libkmod)
+add_dependencies(pthread.kext kextBuild)
 
 install(TARGETS pthread.kext DESTINATION ${SYSROOT_DIR}/System/Library/Extensions COMPONENT BaseSystem)

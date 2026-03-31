@@ -7,3 +7,5 @@ target_compile_options(AppleAPIC PRIVATE -Wno-implicit-int-conversion -Wno-sign-
 target_include_directories(AppleAPIC PRIVATE
     ${RAVYN_SDKROOT}/System/Library/Frameworks/Kernel.framework/Versions/A/PrivateHeaders)
 install(TARGETS AppleAPIC DESTINATION ${SYSROOT_DIR}/System/Library/Extensions COMPONENT BaseSystem)
+
+add_dependencies(AppleAPIC kextBuild)

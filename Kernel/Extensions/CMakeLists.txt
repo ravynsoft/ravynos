@@ -15,6 +15,10 @@ set(CMAKE_CXX_COMPILER ${CXX})
 set(CMAKE_LINK_DEPENDS_USE_LINKER OFF)
 set(CMAKE_INSTALL_PREFIX "")
 
+# This target gates kext build readiness
+add_custom_target(kextBuild)
+add_dependencies(kextBuild xnu libkmod)
+
 #add_subdirectory(AppleAPIC)
 add_subdirectory(AppleI386GenericPlatform)
 #add_subdirectory(AppleIntelPIIXATA)
@@ -25,4 +29,3 @@ add_subdirectory(IOACPIFamily)
 #add_subdirectory(IOStorageFamily)
 #add_subdirectory(corecrypto)
 add_subdirectory(pthread)
-add_subdirectory(private)
