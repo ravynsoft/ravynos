@@ -26,10 +26,14 @@
  */
 
 #include <sys/types.h>
-#include <mach/mach.h>
-#include <xpc/launchd.h>
-#include <sys/fileport.h>
+#include <time.h>
+#include <string.h>
+#include <sys/bsm/audit.h>
+#include <bsm/libbsm.h>
+#include "xpc/xpc.h"
 #include "xpc_internal.h"
+
+char *strdup(const char *);
 
 struct _xpc_type_s {
 };
@@ -60,6 +64,15 @@ typedef const struct _xpc_bool_s xb;
 
 xb _xpc_bool_true;
 xb _xpc_bool_false;
+
+struct _xpc_dictionary_s {
+};
+
+typedef const struct _xpc_dictionary_s xs;
+
+xs _xpc_error_connection_interrupted;
+xs _xpc_error_connection_invalid;
+xs _xpc_error_connection_imminent;
 
 static size_t xpc_data_hash(const uint8_t *data, size_t length);
 
@@ -125,7 +138,9 @@ _xpc_prim_create_flags(int type, xpc_u value, size_t size, uint16_t flags)
 	xo->xo_flags = flags;
 	xo->xo_u = value;
 	xo->xo_refcnt = 1;
+#if MACH
 	xo->xo_audit_token = NULL;
+#endif
 
 	if (type == _XPC_TYPE_DICTIONARY)
 		TAILQ_INIT(&xo->xo_dict);
@@ -139,7 +154,7 @@ _xpc_prim_create_flags(int type, xpc_u value, size_t size, uint16_t flags)
 xpc_object_t
 xpc_null_create(void)
 {
-	xpc_u val = { 0 };
+	xpc_u val;
 	return _xpc_prim_create(_XPC_TYPE_NULL, val, 0);
 }
 
@@ -247,7 +262,13 @@ xpc_date_create(int64_t interval)
 xpc_object_t
 xpc_date_create_from_current(void)
 {
+	xpc_u val;
+	struct timespec tp;
 
+	clock_gettime(CLOCK_REALTIME, &tp);
+
+	val.ui = *(uint64_t *)&tp;
+	return _xpc_prim_create(_XPC_TYPE_DATE, val, 1);
 }
 
 int64_t
@@ -273,11 +294,13 @@ xpc_data_create(const void *bytes, size_t length)
 	return _xpc_prim_create(_XPC_TYPE_DATA, val, length);
 }
 
+#ifdef MACH
 xpc_object_t
 xpc_data_create_with_dispatch_data(dispatch_data_t ddata)
 {
 
 }
+#endif
 
 size_t
 xpc_data_get_length(xpc_object_t xdata)
@@ -302,28 +325,10 @@ xpc_data_get_bytes_ptr(xpc_object_t xdata)
 		return (NULL);
 
 	if (xo->xo_xpc_type == _XPC_TYPE_DATA)
-		return (void *)(xo->xo_ptr);
+		return ((const void *)xo->xo_ptr);
 
 	return (0);	
 }
-
-xpc_object_t
-xpc_fd_create(int fd)
-{
-	xpc_u val;
-	fileport_makeport(fd, &val.port);
-	return _xpc_prim_create(_XPC_TYPE_FD, val, sizeof(val.port));
-}
-
-int
-xpc_fd_dup(xpc_object_t xfd)
-{
-	struct xpc_object *xo = xfd;
-	if (xo->xo_xpc_type != _XPC_TYPE_FD)
-		return -1;
-	return fileport_makefd(xo->xo_u.port);
-}
-
 
 size_t
 xpc_data_get_bytes(xpc_object_t xdata, void *buffer, size_t off, size_t length)
@@ -338,7 +343,7 @@ xpc_string_create(const char *string)
 {
 	xpc_u val;
 
-	val.str = string;
+	val.str = __DECONST(char *, string);
 	return _xpc_prim_create(_XPC_TYPE_STRING, val, strlen(string));
 }
 
@@ -349,7 +354,7 @@ xpc_string_create_with_format(const char *fmt, ...)
 	xpc_u val;
 
 	va_start(ap, fmt);
-	vasprintf((char **)&val.str, fmt, ap);
+	vasprintf(&val.str, fmt, ap);
 	va_end(ap);
 	return _xpc_prim_create(_XPC_TYPE_STRING, val, strlen(val.str));
 }
@@ -359,7 +364,7 @@ xpc_string_create_with_format_and_arguments(const char *fmt, va_list ap)
 {
 	xpc_u val;
 
-	vasprintf((char **)&val.str, fmt, ap);
+	vasprintf(&val.str, fmt, ap);
 	return _xpc_prim_create(_XPC_TYPE_STRING, val, strlen(val.str));
 }
 
@@ -431,7 +436,53 @@ xpc_equal(xpc_object_t x1, xpc_object_t x2)
 
 	xo1 = x1;
 	xo2 = x2;
-	return (xo1 == xo2);
+
+	/* FIXME */
+	return (false);
+}
+
+xpc_object_t
+xpc_copy(xpc_object_t obj)
+{
+	struct xpc_object *xo, *xotmp;
+	const void *newdata;
+
+	xo = obj;
+	switch (xo->xo_xpc_type) {
+		case _XPC_TYPE_BOOL:
+		case _XPC_TYPE_INT64:
+		case _XPC_TYPE_UINT64:
+		case _XPC_TYPE_DATE:
+		case _XPC_TYPE_ENDPOINT:
+			return _xpc_prim_create(xo->xo_xpc_type, xo->xo_u, 1);
+
+		case _XPC_TYPE_STRING:
+			return xpc_string_create(strdup(
+			    xpc_string_get_string_ptr(xo)));
+
+		case _XPC_TYPE_DATA:
+			newdata = xpc_data_get_bytes_ptr(obj);
+			return (xpc_data_create(newdata,
+			    xpc_data_get_length(obj)));
+
+		case _XPC_TYPE_DICTIONARY:
+			xotmp = xpc_dictionary_create(NULL, NULL, 0);
+			xpc_dictionary_apply(obj, ^(const char *k, xpc_object_t v) {
+			    xpc_dictionary_set_value(xotmp, k, xpc_copy(v));
+			    return (bool)true;
+			});
+			return (xotmp);
+
+		case _XPC_TYPE_ARRAY:
+			xotmp = xpc_array_create(NULL, 0);
+			xpc_array_apply(obj, ^(size_t idx, xpc_object_t v) {
+			    xpc_array_set_value(xotmp, idx, xpc_copy(v));
+			    return ((bool)true);
+			});
+			return (xotmp);
+	}
+
+	return (0);
 }
 
 static size_t
@@ -485,7 +536,8 @@ xpc_hash(xpc_object_t obj)
 		});
 		return (hash);
 	}
-	return 0;
+
+	return (0);
 }
 
 __private_extern__ const char *

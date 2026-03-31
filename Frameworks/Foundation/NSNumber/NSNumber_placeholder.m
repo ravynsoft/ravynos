@@ -7,24 +7,25 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 // Original - Christopher Lloyd <cjwl@objc.net>
-#import <Foundation/NSNumber_placeholder.h>
-#import <Foundation/NSNumber_char.h>
-#import <Foundation/NSNumber_double.h>
-#import <Foundation/NSNumber_float.h>
-#import <Foundation/NSNumber_int.h>
-#import <Foundation/NSNumber_longLong.h>
-#import <Foundation/NSNumber_long.h>
-#import <Foundation/NSNumber_short.h>
-#import <Foundation/NSNumber_unsignedChar.h>
-#import <Foundation/NSNumber_unsignedInt.h>
-#import <Foundation/NSNumber_unsignedLongLong.h>
-#import <Foundation/NSNumber_unsignedLong.h>
-#import <Foundation/NSNumber_unsignedShort.h>
-#import <Foundation/NSNumber_BOOL.h>
+
 #import <Foundation/NSString.h>
 #import <Foundation/NSException.h>
 #import <Foundation/NSCoder.h>
 
+#import "NSNumber_placeholder.h"
+#import "NSNumber_char.h"
+#import "NSNumber_double.h"
+#import "NSNumber_float.h"
+#import "NSNumber_int.h"
+#import "NSNumber_longLong.h"
+#import "NSNumber_long.h"
+#import "NSNumber_short.h"
+#import "NSNumber_unsignedChar.h"
+#import "NSNumber_unsignedInt.h"
+#import "NSNumber_unsignedLongLong.h"
+#import "NSNumber_unsignedLong.h"
+#import "NSNumber_unsignedShort.h"
+#import "NSNumber_BOOL.h"
 
 static NSNumber_placeholder *sSharedInstance;
 

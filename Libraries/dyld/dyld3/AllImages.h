@@ -30,16 +30,13 @@
 #include <os/lock_private.h>
 #include <mach-o/dyld_priv.h>
 
-#include <sys/types.h>
-
 #include "Closure.h"
 #include "Loading.h"
 #include "MachOLoaded.h"
 #include "DyldSharedCache.h"
-#include "PointerAuth.h"
 
 
-#if TARGET_OS_OSX
+#if __MAC_OS_X_VERSION_MIN_REQUIRED
 // only in macOS and deprecated 
 struct VIS_HIDDEN OFIInfo
 {
@@ -59,7 +56,6 @@ public:
     typedef void                (*NotifyFunc)(const mach_header* mh, intptr_t slide);
     typedef void                (*LoadNotifyFunc)(const mach_header* mh, const char* path, bool unloadable);
     typedef void                (*BulkLoadNotifier)(unsigned count, const mach_header* mhs[], const char* paths[]);
-    typedef void                (*MainFunc)(void);
 
     void                        init(const closure::LaunchClosure* closure, const DyldSharedCache* dyldCacheLoadAddress, const char* dyldCachePath,
                                      const Array<LoadedImage>& initialImages);
@@ -67,14 +63,13 @@ public:
     void                        setHasCacheOverrides(bool someCacheImageOverriden);
     bool                        hasCacheOverrides() const;
     void                        setMainPath(const char* path);
-    void                        setLaunchMode(uint32_t flags);
     void                        applyInitialImages();
 
     void                        addImages(const Array<LoadedImage>& newImages);
     void                        removeImages(const Array<LoadedImage>& unloadImages);
     void                        runImageNotifiers(const Array<LoadedImage>& newImages);
     void                        runImageCallbacks(const Array<LoadedImage>& newImages);
-    void                        applyInterposingToDyldCache(const closure::Closure* closure, mach_port_t mach_task_self);
+    void                        applyInterposingToDyldCache(const closure::Closure* closure);
     void                        runStartupInitialzers();
     void                        runInitialzersBottomUp(const closure::Image* topImage);
     void                        runLibSystemInitializer(LoadedImage& libSystem);
@@ -104,8 +99,7 @@ public:
     const char*                 imagePath(const closure::Image*) const;
     dyld_platform_t             platform() const;
     const GradedArchs&          archs() const;
-    uint32_t                    launchMode() const { return _launchMode; }
-    
+
     const Array<const closure::ImageArray*>& imagesArrays();
 
     void                        incRefCount(const mach_header* loadAddress);
@@ -125,7 +119,7 @@ public:
     void                        notifyMonitorLoads(const Array<LoadedImage>& newImages);
     void                        notifyMonitorUnloads(const Array<LoadedImage>& unloadingImages);
 
-#if TARGET_OS_OSX
+#if __MAC_OS_X_VERSION_MIN_REQUIRED
     NSObjectFileImage           addNSObjectFileImage(const OFIInfo&);
     void                        removeNSObjectFileImage(NSObjectFileImage);
     bool                        forNSObjectFileImage(NSObjectFileImage imageHandle,
@@ -137,13 +131,8 @@ public:
                                                  void (^callback)(void* classPtr, bool isLoaded, bool* stop)) const;
     void                        forEachObjCProtocol(const char* protocolName,
                                                     void (^callback)(void* protocolPtr, bool isLoaded, bool* stop)) const;
-    
-    MainFunc                    getDriverkitMain();
-    void                        setDriverkitMain(MainFunc mainFunc);
 
-    const MachOLoaded*          dlopen(Diagnostics& diag, const char* path, bool rtldNoLoad, bool rtldLocal, bool rtldNoDelete,
-                                       bool forceBindLazies, bool fromOFI, const void* callerAddress,
-                                       bool canUsePrebuiltSharedCacheClosure = true);
+    const MachOLoaded*          dlopen(Diagnostics& diag, const char* path, bool rtldNoLoad, bool rtldLocal, bool rtldNoDelete, bool forceBindLazies, bool fromOFI, const void* callerAddress);
 
     struct ProgramVars
     {
@@ -153,7 +142,7 @@ public:
         const char***      environPtr;
         const char**       __prognamePtr;
     };
-    void                    setProgramVars(ProgramVars* vars, bool keysOff, bool platformBinariesOnly);
+    void                    setProgramVars(ProgramVars* vars);
 
     // Note these are to be used exclusively by forking
     void takeLockBeforeFork();
@@ -189,10 +178,8 @@ private:
         }                               array[2];  // programs with only main-exe and dyld cache fit in here
     };
 
-    const MachOLoaded*          loadImage(Diagnostics& diag, const char* path,
-                                          closure::ImageNum topImageNum, const closure::DlopenClosure* newClosure,
-                                          bool rtldLocal, bool rtldNoDelete, bool rtldNow, bool fromOFI,
-                                          const void* callerAddress);
+    const MachOLoaded*          loadImage(Diagnostics& diag, closure::ImageNum topImageNum, const closure::DlopenClosure* newClosure,
+                                          bool rtldLocal, bool rtldNoDelete, bool rtldNow, bool fromOFI);
 
 
     typedef void (*Initializer)(int argc, const char* argv[], char* envp[], const char* apple[], const ProgramVars* vars);
@@ -216,13 +203,17 @@ private:
     uintptr_t                   resolveTarget(closure::Image::ResolvedSymbolTarget target) const;
     void                        addImmutableRange(uintptr_t start, uintptr_t end);
 
+    void                        constructMachPorts(int slot);
+    void                        teardownMachPorts(int slot);
+    void                        forEachPortSlot(void (^callback)(int slot));
+    void                        sendMachMessage(int slot, mach_msg_id_t msg_id, mach_msg_header_t* msg_buffer, mach_msg_size_t msg_size);
+    void                        notifyMonitoringDyld(bool unloading, const Array<LoadedImage>& images);
+
     static void                 runAllStaticTerminatorsHelper(void*);
 
     typedef closure::ImageArray  ImageArray;
 
-    typedef const closure::LaunchClosure* __ptrauth_dyld_address_auth MainClosurePtrType;
-
-    MainClosurePtrType                      _mainClosure         = nullptr;
+    const closure::LaunchClosure*           _mainClosure         = nullptr;
     const DyldSharedCache*                  _dyldCacheAddress    = nullptr;
     const char*                             _dyldCachePath       = nullptr;
     uint64_t                                _dyldCacheSlide      = 0;
@@ -245,11 +236,8 @@ private:
     bool                                    _allowAtPaths        = false;
     bool                                    _allowEnvPaths       = false;
     bool                                    _someImageOverridden = false;
-    uint32_t                                _launchMode          = 0;
     uintptr_t                               _lowestNonCached     = 0;
     uintptr_t                               _highestNonCached    = UINTPTR_MAX;
-    
-    MainFunc                               _driverkitMain       = nullptr;
 #ifdef OS_UNFAIR_RECURSIVE_LOCK_INIT
     mutable os_unfair_recursive_lock        _globalLock      = OS_UNFAIR_RECURSIVE_LOCK_INIT;
 #else
@@ -262,9 +250,9 @@ private:
     GrowableArray<BulkLoadNotifier, 2, 2>   _loadBulkNotifiers;
     GrowableArray<DlopenCount, 4, 4>        _dlopenRefCounts;
     GrowableArray<LoadedImage, 16>          _loadedImages;
-#if TARGET_OS_OSX
-    uint64_t                                _nextObjectFileImageNum = 0;
-    GrowableArray<OFIInfo, 4, 1>            _objectFileImages;
+#if __MAC_OS_X_VERSION_MIN_REQUIRED
+    uint64_t                                 _nextObjectFileImageNum = 0;
+    GrowableArray<OFIInfo, 4, 1>             _objectFileImages;
 #endif
 
     // ObjC selectors

@@ -86,6 +86,7 @@ MIGS="clock.defs
 	memory_entry.defs
 	processor.defs
 	processor_set.defs
+	restartable.defs
 	task.defs
 	thread_act.defs
 	vm_map.defs"

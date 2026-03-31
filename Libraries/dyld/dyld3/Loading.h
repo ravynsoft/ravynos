@@ -33,7 +33,6 @@
 
 #include "Closure.h"
 #include "MachOLoaded.h"
-#include "MachOAnalyzerSet.h"
 
 namespace objc_opt {
 struct objc_clsopt_t;
@@ -42,15 +41,6 @@ struct objc_selopt_t;
 
 namespace dyld3 {
 
-class RootsChecker;
-
-struct LaunchErrorInfo
-{
-    uintptr_t       kind;
-    const char*     clientOfDylibPath;
-    const char*     targetDylibPath;
-    const char*     symbol;
-};
 
 //
 // Tuple of info about a loaded image. Contains the loaded address, Image*, and state.
@@ -99,23 +89,20 @@ private:
 //
 // Utility class to recursively load dependents
 //
-class VIS_HIDDEN Loader : public MachOAnalyzerSet {
+class VIS_HIDDEN Loader {
 public:
         typedef bool (*LogFunc)(const char*, ...) __attribute__((format(printf, 1, 2)));
 
                         Loader(const Array<LoadedImage>& existingImages, Array<LoadedImage>& newImagesStorage,
                                const void* cacheAddress, const Array<const dyld3::closure::ImageArray*>& imagesArrays,
                                const closure::ObjCSelectorOpt* selOpt, const Array<closure::Image::ObjCSelectorImage>& selImages,
-                               const RootsChecker& rootsChecker, dyld3::Platform platform,
-                               LogFunc log_loads, LogFunc log_segments, LogFunc log_fixups, LogFunc log_dofs,
-                               bool allowMissingLazies=false, dyld3::LaunchErrorInfo* launchErrorInfo=nullptr);
+                               LogFunc log_loads, LogFunc log_segments, LogFunc log_fixups, LogFunc log_dofs);
 
     void                addImage(const LoadedImage&);
     void                completeAllDependents(Diagnostics& diag, bool& someCacheImageOverridden);
-    void                mapAndFixupAllImages(Diagnostics& diag, bool processDOFs, bool fromOFI, bool* closureOutOfDate, bool* recoverable);
+    void                mapAndFixupAllImages(Diagnostics& diag, bool processDOFs, bool fromOFI=false);
     uintptr_t           resolveTarget(closure::Image::ResolvedSymbolTarget target);
-    LoadedImage*        findImage(closure::ImageNum targetImageNum) const;
-    void                forEachImage(void (^handler)(const LoadedImage& li, bool& stop)) const;
+    LoadedImage*        findImage(closure::ImageNum targetImageNum);
 
     static void         unmapImage(LoadedImage& info);
     static bool         dtraceUserProbesEnabled();
@@ -139,7 +126,7 @@ private:
     struct LaunchImagesCache {
         LoadedImage*                    findImage(closure::ImageNum targetImageNum,
                                                   Array<LoadedImage>& images) const;
-        void                            tryAddImage(closure::ImageNum targetImageNum, uint64_t allImagesIndex) const;
+        void                            tryAddImage(closure::ImageNum targetImageNum, uint64_t allImagesIndex);
 
         static const uint64_t           _cacheSize = 128;
         static const closure::ImageNum  _firstImageNum = closure::kFirstLaunchClosureImageNum;
@@ -148,11 +135,11 @@ private:
         // Note, the cache stores "indices + 1" into the _allImages array.
         // 0 means we haven't cached an entry yet
         uint32_t                        _cacheStorage[_cacheSize] = { 0 };
-        mutable Array<uint32_t>         _imageIndices = { &_cacheStorage[0], _cacheSize, _cacheSize };
+        Array<uint32_t>                 _imageIndices = { &_cacheStorage[0], _cacheSize, _cacheSize };
     };
 #endif
 
-    void                mapImage(Diagnostics& diag, LoadedImage& info, bool fromOFI, bool* closureOutOfDate);
+    void                mapImage(Diagnostics& diag, LoadedImage& info, bool fromOFI);
     void                applyFixupsToImage(Diagnostics& diag, LoadedImage& info);
     void                registerDOFs(const Array<DOFInfo>& dofs);
     void                setSegmentProtects(const LoadedImage& info, bool write);
@@ -160,16 +147,6 @@ private:
     bool                sandboxBlockedOpen(const char* path);
     bool                sandboxBlockedStat(const char* path);
     bool                sandboxBlocked(const char* path, const char* kind);
-    void                unmapAllImages();
-
-    // MachOAnalyzerSet support
-    void            mas_forEachImage(void (^handler)(const WrappedMachO& anImage, bool hidden, bool& stop)) const override;
-    void            mas_mainExecutable(WrappedMachO& anImage) const override;
-    void*           mas_dyldCache() const override;
-    bool            wmo_dependent(const WrappedMachO* image, uint32_t depIndex, WrappedMachO& childObj, bool& missingWeakDylib) const override;
-    const char*     wmo_path(const WrappedMachO* image) const override;
-    bool            wmo_missingSymbolResolver(const WrappedMachO* fromWmo, bool weakImport, bool lazyBind, const char* symbolName, const char* expectedInDylibPath, const char* clientPath, FixupTarget& target) const override;
-
 
     const Array<LoadedImage>&                       _existingImages;
     Array<LoadedImage>&                             _newImages;
@@ -178,17 +155,13 @@ private:
     const objc_opt::objc_selopt_t*                  _dyldCacheSelectorOpt;
     const closure::ObjCSelectorOpt*                 _closureSelectorOpt;
     const Array<closure::Image::ObjCSelectorImage>& _closureSelectorImages;
-    const RootsChecker&                             _rootsChecker;
 #if BUILDING_DYLD
     LaunchImagesCache                               _launchImagesCache;
 #endif
-    bool                                            _allowMissingLazies;
-    dyld3::Platform                                 _platform;
     LogFunc                                         _logLoads;
     LogFunc                                         _logSegments;
     LogFunc                                         _logFixups;
     LogFunc                                         _logDofs;
-    dyld3::LaunchErrorInfo*                         _launchErrorInfo;
 };
 
 

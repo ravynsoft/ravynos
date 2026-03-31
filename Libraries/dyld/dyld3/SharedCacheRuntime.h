@@ -30,7 +30,6 @@
 #include <stdint.h>
 
 #include "DyldSharedCache.h"
-#include "PointerAuth.h"
 
 namespace dyld3 {
 
@@ -39,12 +38,10 @@ struct SharedCacheOptions {
     bool            forcePrivate;
     bool            useHaswell;
     bool            verbose;
-    bool            disableASLR;
 };
 
 struct SharedCacheLoadInfo {
-    typedef const DyldSharedCache* __ptrauth_dyld_address_auth DyldCachePtrType;
-    DyldCachePtrType             loadAddress;
+    const DyldSharedCache*       loadAddress;
     long                         slide;
     const char*                  errorMessage;
     char                         path[256];

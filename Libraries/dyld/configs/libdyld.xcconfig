@@ -1,22 +1,10 @@
-#include "base.xcconfig"
 
-LIBSYSTEM_LIBS[sdk=*simulator*]     = -Wl,-no_warn_unused_dylibs -Wl,-upward-lsystem_sim_platform -Wl,-upward-lsystem_malloc -Wl,-upward-lsystem_c -Wl,-upward-lsystem_sim_pthread -Wl,-upward-lxpc -Wl,-upward-lsystem_blocks -Wl,-upward-lsystem_sim_kernel -Wl,-upward-ldispatch
-LIBSYSTEM_LIBS[sdk=embedded*]       = -Wl,-no_warn_unused_dylibs -Wl,-upward-lsystem_platform     -Wl,-upward-lsystem_malloc -Wl,-upward-lsystem_c -Wl,-upward-lsystem_pthread     -Wl,-upward-lxpc -Wl,-upward-lsystem_blocks -Wl,-upward-lsystem_kernel     -Wl,-upward-ldispatch -Wl,-upward-lcompiler_rt
-LIBSYSTEM_LIBS[sdk=macosx*]         = -Wl,-no_warn_unused_dylibs -Wl,-upward-lsystem_platform     -Wl,-upward-lsystem_malloc -Wl,-upward-lsystem_c -Wl,-upward-lsystem_pthread     -Wl,-upward-lxpc -Wl,-upward-lsystem_blocks -Wl,-upward-lsystem_kernel     -Wl,-upward-ldispatch -Wl,-upward-lcompiler_rt
-LIBSYSTEM_LIBS[sdk=driverkit*]      = -Wl,-no_warn_unused_dylibs -Wl,-upward-lsystem_platform     -Wl,-upward-lsystem_malloc -Wl,-upward-lsystem_c -Wl,-upward-lsystem_pthread                                                 -Wl,-upward-lsystem_kernel
+LIBSYSTEM_LIBS[sdk=*simulator*]     = -Wl,-upward-lsystem_sim_platform -Wl,-upward-lsystem_malloc -Wl,-upward-lsystem_c -Wl,-upward-lsystem_sim_pthread -Wl,-upward-lxpc -Wl,-upward-lsystem_blocks -Wl,-upward-lsystem_sim_kernel -Wl,-upward-lsystem_sandbox -Wl,-upward-ldispatch -Wl,-upward-lcorecrypto  -Wl,-upward-lcompiler_rt
+LIBSYSTEM_LIBS[sdk=embedded*]       = -Wl,-upward-lsystem_platform     -Wl,-upward-lsystem_malloc -Wl,-upward-lsystem_c -Wl,-upward-lsystem_pthread     -Wl,-upward-lxpc -Wl,-upward-lsystem_blocks -Wl,-upward-lsystem_kernel     -Wl,-upward-lsystem_sandbox -Wl,-upward-ldispatch -Wl,-upward-lcorecrypto  -Wl,-upward-lcompiler_rt
+LIBSYSTEM_LIBS[sdk=macosx*]         = -Wl,-upward-lsystem_platform     -Wl,-upward-lsystem_malloc -Wl,-upward-lsystem_c -Wl,-upward-lsystem_pthread     -Wl,-upward-lxpc -Wl,-upward-lsystem_blocks -Wl,-upward-lsystem_kernel     -Wl,-upward-lsystem_sandbox -Wl,-upward-ldispatch -Wl,-upward-lcorecrypto  -Wl,-upward-lcompiler_rt
+LIBSYSTEM_LIBS[sdk=driverkit*]      = -Wl,-upward-lsystem_platform     -Wl,-upward-lsystem_malloc -Wl,-upward-lsystem_c -Wl,-upward-lsystem_pthread  -Wl,-upward-lsystem_blocks -Wl,-upward-lsystem_kernel    -Wl,-upward-lcompiler_rt
 
-EXTRA_SECTIONS                      = 
-EXTRA_SECTIONS[arch=arm64e]         = -Wl,-sectcreate,__SHARED_CACHE,__cfstring,/dev/null
+USE_CHAINED_FIXUPS                  = 
 
-INSTALL_PATH = $(SYSTEM_PREFIX)/usr/lib/system
+INSTALL_PATH = /usr/lib/system
 
-// FIXME: -Wl,-unexported_symbol is a hack to deal with C++20 comparison visbility, we can probably fix it better
-OTHER_LDFLAGS = -Wl,-no_inits -nostdlib -lCrashReporterClient $(LIBSYSTEM_LIBS) -umbrella System -L$(SDKROOT)/$(DRIVERKITROOT)/usr/lib/system $(EXTRA_SECTIONS) -Wl,-unexported_symbol,__ZNSt3*
-
-PRIVATE_TAPI_FLAGS                  = -extra-private-header ${SRCROOT}/include/mach-o/dyld_priv.h
-PRIVATE_TAPI_FLAGS[sdk=*simulator*] = -extra-private-header ./include/dlfcn_private.h -extra-private-header ${SRCROOT}/include/mach-o/dyld_priv.h
-PRIVATE_TAPI_FLAGS[sdk=embedded*]   = -extra-private-header ./include/dlfcn_private.h -extra-private-header ${SRCROOT}/include/mach-o/dyld_priv.h
-PRIVATE_TAPI_FLAGS[sdk=macosx*]     = -extra-private-header ./include/dlfcn_private.h -extra-private-header ${SRCROOT}/include/mach-o/dyld_priv.h
-PRIVATE_TAPI_FLAGS[sdk=driverkit*]  = -extra-private-header ./include/dlfcn_private.h -extra-private-header ${SRCROOT}/include/mach-o/dyld_priv.h
-
-OTHER_TAPI_FLAGS = -extra-public-header ./include/mach-o/dyld.h -extra-public-header ./include/dlfcn.h $(PRIVATE_TAPI_FLAGS) -ObjC++ -std=c++20 -umbrella System

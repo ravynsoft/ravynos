@@ -27,6 +27,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <string.h>
 #include <ctype.h>
 #include <pthread.h>
+#include <stdlib.h>
 
 #import "NSString+KVCAdditions.h"
 #import "NSKeyValueObserving-Private.h"
@@ -868,15 +869,15 @@ CHANGE_DECLARATION(SEL)
 
 
 -(id)_KVO_className {
-	return [NSString stringWithCString:class_getName(isa)+strlen("KVONotifying_")];
+	return [NSString stringWithCString:class_getName(object_getClass(self))+strlen("KVONotifying_")];
 }
 
 -(Class)_KVO_class {
-    return class_getSuperclass(isa);
+    return class_getSuperclass(object_getClass(self));
 }
 
 -(Class)_KVO_classForCoder {
-    return class_getSuperclass(isa);
+    return class_getSuperclass(object_getClass(self));
 }
 
 
@@ -922,7 +923,7 @@ CHANGE_DECLARATION(SEL)
 	if([className hasPrefix:@"KVONotifying_"])
 		return; // this class is already swizzled
     pthread_mutex_lock(&kvoLock);
-	isa=[self _KVO_swizzledClass];
+	object_setClass(self, [self _KVO_swizzledClass]);
     pthread_mutex_unlock(&kvoLock);
 }
 
@@ -1008,7 +1009,7 @@ static BOOL methodIsAutoNotifyingSetter(Class class,const char *methodCString){
     }
 
     // swizzled class doesn't exist; create
-    swizzledClass = objc_allocateClassPair(isa, swizzledName, 0);
+    swizzledClass = objc_allocateClassPair(object_getClass(self), swizzledName, 0);
     if(!swizzledClass) {
         [NSException raise:@"NSClassCreationException" format:@"couldn't swizzle class %@ for KVO", [self className]];
     }
@@ -1029,7 +1030,7 @@ static BOOL methodIsAutoNotifyingSetter(Class class,const char *methodCString){
     class_addMethod(swizzledClass, @selector(class), classImp, classTypes);
     class_addMethod(swizzledClass, @selector(classForCoder), classForCoderImp, classForCoderTypes);
 
-    Class currentClass = isa;
+    Class currentClass = object_getClass(self);
 
     for (; currentClass && class_getSuperclass(currentClass) != currentClass; currentClass = class_getSuperclass(currentClass)) {
         unsigned int count;

@@ -1,6 +1,6 @@
 
-// BUILD:  $CC myzlib.c -dynamiclib -o $BUILD_DIR/override/libz.1.dylib -install_name /usr/lib/libz.1.dylib -compatibility_version 1.0
-// BUILD:  $CC reexported-myzlib.c -dynamiclib -o $BUILD_DIR/re-export-override/reexported.dylib -compatibility_version 1.0 -install_name $RUN_DIR/re-export-override/reexported.dylib
+// BUILD:  $CC myzlib.c -dynamiclib -o $BUILD_DIR/override/libz.1.dylib -install_name /usr/lib/libz.1.dylib -compatibility_version 1.0 -framework CoreFoundation
+// BUILD:  $CC reexported-myzlib.c -dynamiclib -o $BUILD_DIR/re-export-override/reexported.dylib -compatibility_version 1.0 -framework CoreFoundation -install_name $RUN_DIR/re-export-override/reexported.dylib
 // BUILD:  $CC reexporter.c -dynamiclib -o $BUILD_DIR/re-export-override/libz.1.dylib -install_name /usr/lib/libz.1.dylib -compatibility_version 1.0 -Wl,-reexport_library,$BUILD_DIR/re-export-override/reexported.dylib -Wl,-debug_variant
 // BUILD:  $CC main.c  -o $BUILD_DIR/env-DYLD_LIBRARY_PATH-cache.exe -lz
 // BUILD:  $DYLD_ENV_VARS_ENABLE $BUILD_DIR/env-DYLD_LIBRARY_PATH-cache.exe

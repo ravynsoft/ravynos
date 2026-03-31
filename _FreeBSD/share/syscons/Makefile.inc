@@ -1,1 +1,0 @@
-FILESPACKAGE=	syscons-data

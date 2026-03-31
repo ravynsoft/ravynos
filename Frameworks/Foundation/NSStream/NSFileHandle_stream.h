@@ -1,3 +1,4 @@
+#include <sys/types.h>
 #import <Foundation/NSFileHandle.h>
 
 @class NSInputStream, NSOutputStream, NSSocket, NSMutableData;

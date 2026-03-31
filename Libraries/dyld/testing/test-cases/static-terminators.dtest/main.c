@@ -1,6 +1,6 @@
 
-// BUILD:  $CC base.c  -dynamiclib -ltest_support -install_name $RUN_DIR/libbase.dylib  -o $BUILD_DIR/libbase.dylib
-// BUILD:  $CC foo.c   -dynamiclib -ltest_support -install_name $RUN_DIR/libdynamic.dylib  -o $BUILD_DIR/libdynamic.dylib $BUILD_DIR/libbase.dylib
+// BUILD:  $CC base.c  -dynamiclib -install_name $RUN_DIR/libbase.dylib  -o $BUILD_DIR/libbase.dylib
+// BUILD:  $CC foo.c   -dynamiclib -install_name $RUN_DIR/libdynamic.dylib  -o $BUILD_DIR/libdynamic.dylib $BUILD_DIR/libbase.dylib
 // BUILD:  $CC main.c -o $BUILD_DIR/static-terminators.exe -DRUN_DIR="$RUN_DIR" $BUILD_DIR/libbase.dylib
 
 // RUN:  ./static-terminators.exe

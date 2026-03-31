@@ -19,16 +19,6 @@
 
 #include "test_support.h"
 
-static bool objcOptimizedByDyld() {
-    extern const uint32_t objcInfo[]  __asm("section$start$__DATA_CONST$__objc_imageinfo");
-    return (objcInfo[1] & 0x80);
-}
-
-static bool haveDyldCache() {
-    size_t unusedCacheLen;
-    return (_dyld_get_shared_cache_range(&unusedCacheLen) != NULL);
-}
-
 // All the libraries have a copy of DyldProtocol
 @protocol DyldProtocol
 @end
@@ -63,15 +53,21 @@ static bool isInImage(void* ptr, const char* name) {
 }
 
 int main(int argc, const char* argv[], const char* envp[], const char* apple[]) {
-   if (!objcOptimizedByDyld() || !haveDyldCache()) {
-    __block bool sawClass = false;
-    _dyld_for_each_objc_class("DyldClass", ^(void* classPtr, bool isLoaded, bool* stop) {
-      sawClass = true;
+  // This API is only available with dyld3 and shared caches.  If we have dyld2 then don't do anything
+  const char* testDyldMode = getenv("TEST_DYLD_MODE");
+  assert(testDyldMode);
+
+  size_t unusedCacheLen;
+  bool haveSharedCache = _dyld_get_shared_cache_range(&unusedCacheLen) != 0;
+  if (!strcmp(testDyldMode, "2") || !haveSharedCache) {
+    __block bool sawProtocol = false;
+    _dyld_for_each_objc_protocol("DyldProtocol", ^(void* protocolPtr, bool isLoaded, bool* stop) {
+      sawProtocol = true;
     });
-    if (sawClass) {
-      FAIL("dyld2 shouldn't see any classes");
+    if (sawProtocol) {
+      FAIL("dyld2 shouldn't see any protocols");
     }
-    PASS("no shared cache or no dyld optimized objc");
+    PASS("dyld2 or no shared cache");
   }
 
   // Check that DyldProtocol comes from liblinked2 as it is last in load order
@@ -142,19 +138,6 @@ int main(int argc, const char* argv[], const char* envp[], const char* apple[]) 
   if (!isInImage(DyldMainProtocolImpl, "_dyld_for_each_objc_protocol.exe")) {
     FAIL("_dyld_for_each_objc_protocol should have returned DyldMainProtocol from main.exe");
   }
-
-#if __has_feature(ptrauth_calls)
-  // Check the ISA was signed correctly on arm64e
-  id dyldMainProtocol = @protocol(DyldMainProtocol);
-  void* originalISA = *(void **)dyldMainProtocol;
-  void* strippedISA = __builtin_ptrauth_strip(originalISA, ptrauth_key_asda);
-  uint64_t discriminator = __builtin_ptrauth_blend_discriminator((void*)dyldMainProtocol, 27361);
-  void* signedISA = __builtin_ptrauth_sign_unauthenticated((void*)strippedISA, 2, discriminator);
-  if ( originalISA != signedISA ) {
-    FAIL("_dyld_for_each_objc_protocol DyldMainProtocol ISA is not signed correctly: %p vs %p",
-         originalISA, signedISA);
-  }
-#endif
 
   PASS("Success");
 }

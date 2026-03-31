@@ -1,5 +1,0 @@
-if(actual_stdout MATCHES [["debugger" *: *true]])
-  set_property(DIRECTORY PROPERTY CMake_ENABLE_DEBUGGER 1)
-else()
-  set_property(DIRECTORY PROPERTY CMake_ENABLE_DEBUGGER 0)
-endif()

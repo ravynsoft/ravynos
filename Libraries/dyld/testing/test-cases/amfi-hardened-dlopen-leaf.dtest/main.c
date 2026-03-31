@@ -1,10 +1,10 @@
+// BUILD_ONLY: MacOSX
+
 // BOOT_ARGS: dyld_flags=2
 
-// BUILD(macos):  $CC my.c -dynamiclib -o $BUILD_DIR/libmy.dylib -install_name $RUN_DIR/libmy.dylib
-// BUILD(macos):  $CC main.c -o $BUILD_DIR/amfi-hardened-dlopen-leaf.exe -DHARDENED=1
-// BUILD(macos):  $CC main.c -o $BUILD_DIR/amfi-not-hardened-dlopen-leaf.exe
-
-// BUILD(ios,tvos,watchos,bridgeos):
+// BUILD:  $CC my.c -dynamiclib -o $BUILD_DIR/libmy.dylib -install_name $RUN_DIR/libmy.dylib
+// BUILD:  $CC main.c -o $BUILD_DIR/amfi-hardened-dlopen-leaf.exe -DHARDENED=1
+// BUILD:  $CC main.c -o $BUILD_DIR/amfi-not-hardened-dlopen-leaf.exe
 
 // RUN:  DYLD_AMFI_FAKE=0x14 ./amfi-hardened-dlopen-leaf.exe
 // RUN:  DYLD_AMFI_FAKE=0x3F ./amfi-not-hardened-dlopen-leaf.exe

@@ -1,2 +1,0 @@
-	.data
-	.byte	0

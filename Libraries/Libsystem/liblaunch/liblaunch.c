@@ -17,12 +17,16 @@
  * 
  * @APPLE_APACHE_LICENSE_HEADER_END@
  */
+#include <string.h>
+char *strdup(const char *);
+char *strerror(int);
 
 #include "config.h"
 #include "launch.h"
 #include "launch_priv.h"
 #include "launch_internal.h"
-#include "ktrace.h"
+
+#include <sys/ktrace.h>
 
 #include <mach/mach.h>
 #include <mach/mach_port.h>

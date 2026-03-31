@@ -1,9 +1,0 @@
-.*: Assembler messages:
-.*:3: Error: .*`nop'.*
-.*:4: Error: .*`nop'.*
-.*:6: Error: .*`nop'.*
-.*:7: Error: .*`nop'.*
-.*:9: Error: .*`nop'.*
-.*:10: Error: .*`nop'.*
-.*:12: Error: .*`vzeroall'.*
-.*:13: Error: .*`vmovmskps'.*

@@ -1,5 +1,0 @@
-include(CTest)
-get_property(site CACHE SITE PROPERTY VALUE)
-if(NOT "${site}" STREQUAL "${SITE}")
-  message(FATAL_ERROR "SITE is not a cache entry")
-endif()

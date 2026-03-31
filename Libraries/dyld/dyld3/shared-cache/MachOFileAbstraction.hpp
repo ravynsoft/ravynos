@@ -49,19 +49,6 @@
 #define DYLD_CACHE_ADJ_V2_IMAGE_OFF_32			0x0C
 #define DYLD_CACHE_ADJ_V2_THREADED_POINTER_64   0x0D
 
-#ifndef LC_FILESET_ENTRY
-#define LC_FILESET_ENTRY      (0x35 | LC_REQ_DYLD) /* used with fileset_entry_command */
-struct fileset_entry_command {
-    uint32_t        cmd;        /* LC_FILESET_ENTRY */
-    uint32_t        cmdsize;    /* includes id string */
-    uint64_t        vmaddr;     /* memory address of the dylib */
-    uint64_t        fileoff;    /* file offset of the dylib */
-    union lc_str    entry_id;   /* contained entry id */
-    uint32_t        reserved;   /* entry_id is 32-bits long, so this is the reserved padding */
-};
-#endif
-
-
 #include "FileAbstraction.hpp"
 //#include "Architectures.hpp"
 
@@ -866,77 +853,6 @@ private:
 	dyld_info_command	fields;
 };
 
-
-//
-// mach-o build version load command
-//
-template <typename P>
-class macho_build_version_command {
-public:
-	uint32_t		cmd() const                             INLINE { return E::get32(fields.cmd); }
-	void			set_cmd(uint32_t value)                 INLINE { E::set32(fields.cmd, value); }
-
-	uint32_t		cmdsize() const							INLINE { return E::get32(fields.cmdsize); }
-	void			set_cmdsize(uint32_t value)				INLINE { E::set32(fields.cmdsize, value); }
-
-    uint32_t        platform() const                        INLINE { return E::get32(fields.platform); }
-    void            set_platform(uint32_t value)            INLINE { E::set32(fields.platform, value); }
-
-    uint32_t        minos() const                           INLINE { return E::get32(fields.minos); }
-    void            set_minos(uint32_t value)               INLINE { E::set32(fields.minos, value); }
-
-    uint32_t        sdk() const                             INLINE { return E::get32(fields.sdk); }
-    void            set_sdk(uint32_t value)                 INLINE { E::set32(fields.sdk, value); }
-
-    uint32_t        ntools() const                          INLINE { return E::get32(fields.ntools); }
-    void            set_ntools(uint32_t value)              INLINE { E::set32(fields.ntools, value); }
-
-	typedef typename P::E		E;
-private:
-	build_version_command	fields;
-};
-
-//
-// mach-o routines load command
-//
-template <typename P> struct macho_fileset_entry_command_content {};
-template <> struct macho_fileset_entry_command_content<Pointer32<BigEndian> >      { fileset_entry_command		fields; enum { CMD = LC_FILESET_ENTRY	}; };
-template <> struct macho_fileset_entry_command_content<Pointer64<BigEndian> >	    { fileset_entry_command	    fields; enum { CMD = LC_FILESET_ENTRY	}; };
-template <> struct macho_fileset_entry_command_content<Pointer32<LittleEndian> >   { fileset_entry_command		fields; enum { CMD = LC_FILESET_ENTRY	}; };
-template <> struct macho_fileset_entry_command_content<Pointer64<LittleEndian> >   { fileset_entry_command	    fields; enum { CMD = LC_FILESET_ENTRY	}; };
-
-template <typename P>
-class macho_fileset_entry_command {
-public:
-	uint32_t		cmd() const							INLINE { return E::get32(cache_entry_id.fields.cmd); }
-	void			set_cmd(uint32_t value)				INLINE { E::set32(cache_entry_id.fields.cmd, value); }
-
-	uint32_t		cmdsize() const						INLINE { return E::get32(cache_entry_id.fields.cmdsize); }
-	void			set_cmdsize(uint32_t value)			INLINE { E::set32(cache_entry_id.fields.cmdsize, value); }
-
-	uint64_t		vmaddr() const				        INLINE { return P::getP(cache_entry_id.fields.vmaddr); }
-	void			set_vmaddr(uint64_t value)	        INLINE { P::setP(cache_entry_id.fields.vmaddr, value); }
-
-	uint64_t		fileoff() const				        INLINE { return P::getP(cache_entry_id.fields.fileoff); }
-	void			set_fileoff(uint64_t value)	        INLINE { P::setP(cache_entry_id.fields.fileoff, value); }
-
-    uint32_t        entry_id_offset() const             INLINE { return E::get32(cache_entry_id.fields.entry_id.offset); }
-    void            set_entry_id_offset(uint32_t value) INLINE { E::set32(cache_entry_id.fields.entry_id.offset, value);  }
-
-    const char*     entry_id() const                    INLINE { return (const char*)&cache_entry_id.fields + entry_id_offset(); }
-    void            set_entry_id(const char* value)     INLINE {
-        set_entry_id_offset(sizeof(cache_entry_id.fields));
-        strcpy(((char*)&cache_entry_id.fields) + sizeof(cache_entry_id.fields), value);
-    }
-
-	typedef typename P::E		E;
-	enum {
-		CMD = macho_fileset_entry_command_content<P>::CMD
-	};
-private:
-	macho_fileset_entry_command_content<P>	cache_entry_id;
-};
-
 #ifndef NO_ULEB 
 inline uint64_t read_uleb128(const uint8_t*& p, const uint8_t* end) {
 	uint64_t result = 0;
@@ -972,7 +888,7 @@ inline int64_t read_sleb128(const uint8_t*& p, const uint8_t* end)
 		bit += 7;
 	} while (byte & 0x80);
 	// sign extend negative numbers
-    if ( ((byte & 0x40) != 0) && (bit < 64) )
+	if ( (byte & 0x40) != 0 )
 		result |= (~0ULL) << bit;
 	return result;
 }

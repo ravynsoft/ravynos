@@ -5,7 +5,7 @@ extern void setState(const char* from);
 
 void c(const char* from) {
     char buffer[100];
-    snprintf(buffer, 100, "c() from %s", from);
+    sprintf(buffer, "c() from %s", from);
     setState(buffer);
 }
 

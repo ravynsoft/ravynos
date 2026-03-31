@@ -38,8 +38,8 @@ struct dyld_cache_header
     uint64_t    dyldBaseAddress;        // base address of dyld when cache was built
     uint64_t    codeSignatureOffset;    // file offset of code signature blob
     uint64_t    codeSignatureSize;      // size of code signature blob (zero means to end of file)
-    uint64_t    slideInfoOffsetUnused;  // unused.  Used to be file offset of kernel slid info
-    uint64_t    slideInfoSizeUnused;    // unused.  Used to be size of kernel slid info
+    uint64_t    slideInfoOffset;        // file offset of kernel slid info
+    uint64_t    slideInfoSize;          // size of kernel slid info
     uint64_t    localSymbolsOffset;     // file offset of where local symbols are stored
     uint64_t    localSymbolsSize;       // size of local symbols information
     uint8_t     uuid[16];               // unique value for each shared cache file
@@ -76,8 +76,6 @@ struct dyld_cache_header
     uint64_t    otherImageArraySize;    // size of ImageArray for dylibs and bundles with dlopen closures
     uint64_t    otherTrieAddr;          // (unslid) address of trie of indexes of all dylibs and bundles with dlopen closures
     uint64_t    otherTrieSize;          // size of trie of dylibs and bundles with dlopen closures
-    uint32_t    mappingWithSlideOffset; // file offset to first dyld_cache_mapping_and_slide_info
-    uint32_t    mappingWithSlideCount;  // number of dyld_cache_mapping_and_slide_info entries
 };
 
 // Uncomment this and check the build errors for the current mapping offset to check against when adding new fields.
@@ -88,24 +86,6 @@ struct dyld_cache_mapping_info {
     uint64_t    address;
     uint64_t    size;
     uint64_t    fileOffset;
-    uint32_t    maxProt;
-    uint32_t    initProt;
-};
-
-// Contains the flags for the dyld_cache_mapping_and_slide_info flgs field
-enum {
-    DYLD_CACHE_MAPPING_AUTH_DATA            = 1 << 0U,
-    DYLD_CACHE_MAPPING_DIRTY_DATA           = 1 << 1U,
-    DYLD_CACHE_MAPPING_CONST_DATA           = 1 << 2U,
-};
-
-struct dyld_cache_mapping_and_slide_info {
-    uint64_t    address;
-    uint64_t    size;
-    uint64_t    fileOffset;
-    uint64_t    slideInfoFileOffset;
-    uint64_t    slideInfoFileSize;
-    uint64_t    flags;
     uint32_t    maxProt;
     uint32_t    initProt;
 };
@@ -494,8 +474,7 @@ struct dyld_cache_patchable_export
 struct dyld_cache_patchable_location
 {
     uint64_t    cacheOffset             : 32,
-                high7                   : 7,
-                addend                  : 5,    // 0..31
+                addend                  : 12,    // +/- 2048
                 authenticated           : 1,
                 usesAddressDiversity    : 1,
                 key                     : 2,
@@ -503,12 +482,8 @@ struct dyld_cache_patchable_location
 };
 
 
-// This is the  location of the macOS shared cache on macOS 11.0 and later
-#define MACOSX_MRM_DYLD_SHARED_CACHE_DIR   "/System/Library/dyld/"
 
-// This is old define for the old location of the dyld cache
-#define MACOSX_DYLD_SHARED_CACHE_DIR       MACOSX_MRM_DYLD_SHARED_CACHE_DIR
-
+#define MACOSX_DYLD_SHARED_CACHE_DIR       "/private/var/db/dyld/"
 #define IPHONE_DYLD_SHARED_CACHE_DIR       "/System/Library/Caches/com.apple.dyld/"
 #if !TARGET_OS_SIMULATOR
   #define DYLD_SHARED_CACHE_BASE_NAME        "dyld_shared_cache_"

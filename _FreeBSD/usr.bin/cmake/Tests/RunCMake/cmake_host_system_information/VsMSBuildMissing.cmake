@@ -1,1 +1,0 @@
-cmake_host_system_information(RESULT msbuild QUERY VS_MSBUILD_COMMAND)

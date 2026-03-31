@@ -97,7 +97,6 @@ public:
     void        setMappingInfo(uint64_t sliceOffset, uint64_t vmSize);
     void        setFileInfo(uint64_t inode, uint64_t modTime);
     void        setRebaseInfo(const Array<Image::RebasePattern>&);
-    void        setRebasesNotEncoded();
     void        setTextRebaseInfo(const Array<Image::TextFixupPattern>&);
     void        setBindInfo(const Array<Image::BindPattern>&);
     void        setObjCFixupInfo(const Image::ResolvedSymbolTarget& objcProtocolClassTarget,
@@ -109,7 +108,6 @@ public:
     void        setAsOverrideOf(ImageNum);
     void        setInitsOrder(const ImageNum images[], uint32_t count);
     void        setChainedFixups(uint64_t runtimeStartsStructOffset, const Array<Image::ResolvedSymbolTarget>& targets);
-    void        setFixupsNotEncoded();
 
     const Image* currentImage();
 
@@ -162,6 +160,7 @@ public:
     void                    setMustExistFiles(const Array<LaunchClosure::SkippedFile>& files);
     void                    addInterposingTuples(const Array<InterposingTuple>& tuples);
     void                    setDyldCacheUUID(const uuid_t);
+    void                    setBootUUID(const char* uuid);
     void                    addEnvVar(const char* envVar);
     void                    setObjCSelectorInfo(const Array<uint8_t>& hashTable, const Array<Image::ObjCSelectorImage>& hashTableImages);
     void                    setObjCClassAndProtocolInfo(const Array<uint8_t>& classHashTable, const Array<uint8_t>& protocolHashTable,

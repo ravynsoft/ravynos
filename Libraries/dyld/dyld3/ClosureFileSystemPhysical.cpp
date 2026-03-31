@@ -23,23 +23,21 @@
 
 #include "ClosureFileSystemPhysical.h"
 
-#include <TargetConditionals.h>
-
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+#if BUILDING_UPDATE_DYLD_CACHE_BUILDER
+  #include <rootless.h>
+#endif
 #include <sys/errno.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <mach/mach.h>
-#if !TARGET_OS_SIMULATOR && !TARGET_OS_DRIVERKIT
+#if !TARGET_OS_SIMULATOR && !TARGET_OS_DRIVERKIT && !defined(WITHOUT_SANDBOX)
   #include <sandbox.h>
   #include <sandbox/private.h>
 #endif
-#include <TargetConditionals.h>
-#include "MachOFile.h"
-#include "MachOAnalyzer.h"
 
 using dyld3::closure::FileSystemPhysical;
 
@@ -47,7 +45,7 @@ bool FileSystemPhysical::getRealPath(const char possiblePath[MAXPATHLEN], char r
     __block bool success = false;
     // first pass: open file and ask kernel for canonical path
     forEachPath(possiblePath, ^(const char* aPath, unsigned prefixLen, bool& stop) {
-        int fd = dyld3::open(aPath, O_RDONLY, 0);
+        int fd = ::open(aPath, O_RDONLY, 0);
         if ( fd != -1 ) {
             char tempPath[MAXPATHLEN];
             success = (fcntl(fd, F_GETPATH, tempPath) == 0);
@@ -75,7 +73,7 @@ bool FileSystemPhysical::getRealPath(const char possiblePath[MAXPATHLEN], char r
 
 static bool sandboxBlocked(const char* path, const char* kind)
 {
-#if TARGET_OS_SIMULATOR || TARGET_OS_DRIVERKIT
+#if TARGET_OS_SIMULATOR || TARGET_OS_DRIVERKIT || defined(WITHOUT_SANDBOX)
     // sandbox calls not yet supported in dyld_sim
     return false;
 #else
@@ -112,8 +110,6 @@ void FileSystemPhysical::forEachPath(const char* path, void (^handler)(const cha
     }
     if ( _rootPath != nullptr ) {
         strlcpy(altPath, _rootPath, PATH_MAX);
-        if ( path[0] != '/' )
-            strlcat(altPath, "/", PATH_MAX);
         strlcat(altPath, path, PATH_MAX);
         handler(altPath, (unsigned)strlen(_rootPath), stop);
         if ( stop )
@@ -148,8 +144,9 @@ bool FileSystemPhysical::loadFile(const char* path, LoadedFileInfo& info, char r
     // open file
     __block int fd;
     __block struct stat statBuf;
+    __block bool sipProtected = false;
     forEachPath(path, ^(const char* aPath, unsigned prefixLen, bool& stop) {
-        fd = dyld3::open(aPath, O_RDONLY, 0);
+        fd = ::open(aPath, O_RDONLY, 0);
         if ( fd == -1 ) {
             int openErrno = errno;
             if ( (openErrno == EPERM) && sandboxBlockedOpen(path) )
@@ -186,6 +183,9 @@ bool FileSystemPhysical::loadFile(const char* path, LoadedFileInfo& info, char r
                     }
                     else
                         strcpy(realerPath, realPathWithin);
+    #if BUILDING_UPDATE_DYLD_CACHE_BUILDER
+                    sipProtected = (rootless_check_trusted_fd(fd) == 0);
+    #endif
                     stop = true;
                 }
                 else {
@@ -217,7 +217,7 @@ bool FileSystemPhysical::loadFile(const char* path, LoadedFileInfo& info, char r
     info.fileContentLen = statBuf.st_size;
     info.sliceOffset = 0;
     info.sliceLen = statBuf.st_size;
-    info.isOSBinary = false;
+    info.isSipProtected = sipProtected;
     info.inode = statBuf.st_ino;
     info.mtime = statBuf.st_mtime;
     info.path  = path;
@@ -240,27 +240,6 @@ bool FileSystemPhysical::loadFile(const char* path, LoadedFileInfo& info, char r
     }
     info.fileContent = wholeFile;
 
-    // if this is an arm64e mach-o or a fat file with an arm64e slice we need to record if it is an OS binary
-#if TARGET_OS_OSX && __arm64e__
-    const MachOAnalyzer* ma = (MachOAnalyzer*)wholeFile;
-    if ( ma->hasMachOMagic() ) {
-        if ( (ma->cputype == CPU_TYPE_ARM64) && ((ma->cpusubtype & ~CPU_SUBTYPE_MASK) == CPU_SUBTYPE_ARM64E) ) {
-            if ( ma->isOSBinary(fd, 0, info.fileContentLen) )
-                info.isOSBinary = true;
-        }
-    }
-    else if ( const FatFile* fat = FatFile::isFatFile(wholeFile) ) {
-        Diagnostics diag;
-        fat->forEachSlice(diag, info.fileContentLen, ^(uint32_t sliceCpuType, uint32_t sliceCpuSubType, const void* sliceStart, uint64_t sliceSize, bool& stop) {
-            if ( (sliceCpuType == CPU_TYPE_ARM64) && ((sliceCpuSubType & ~CPU_SUBTYPE_MASK) == CPU_SUBTYPE_ARM64E) ) {
-                uint64_t sliceOffset = (uint8_t*)sliceStart-(uint8_t*)wholeFile;
-                const MachOAnalyzer* sliceMA = (MachOAnalyzer*)((uint8_t*)wholeFile + sliceOffset);
-                if ( sliceMA->isOSBinary(fd, sliceOffset, sliceSize) )
-                    info.isOSBinary = true;
-            }
-        });
-    }
-#endif
     // Set unmap as the unload method.
     info.unload = [](const LoadedFileInfo& info) {
         ::munmap((void*)info.fileContent, (size_t)info.fileContentLen);
@@ -278,11 +257,11 @@ void FileSystemPhysical::unloadFile(const LoadedFileInfo& info) const {
 void FileSystemPhysical::unloadPartialFile(LoadedFileInfo& info, uint64_t keepStartOffset, uint64_t keepLength) const {
     // Unmap from 0..keepStartOffset and (keepStartOffset+keepLength)..info.fileContentLen
     if (keepStartOffset)
-        ::munmap((void*)info.fileContent, (size_t)trunc_page(keepStartOffset));
+        ::munmap((void*)info.fileContent, (size_t)keepStartOffset);
     if ((keepStartOffset + keepLength) != info.fileContentLen) {
-        uintptr_t start = round_page((uintptr_t)info.fileContent + keepStartOffset + keepLength);
-        uintptr_t end = (uintptr_t)info.fileContent + info.fileContentLen;
-        ::munmap((void*)start, end - start);
+        // Round up to page alignment
+        keepLength = (keepLength + PAGE_SIZE - 1) & (-PAGE_SIZE);
+        ::munmap((void*)((char*)info.fileContent + keepStartOffset + keepLength), (size_t)(info.fileContentLen - (keepStartOffset + keepLength)));
     }
     info.fileContent = (const void*)((char*)info.fileContent + keepStartOffset);
     info.fileContentLen = keepLength;
@@ -293,7 +272,7 @@ bool FileSystemPhysical::fileExists(const char* path, uint64_t* inode, uint64_t*
     __block bool result = false;
     forEachPath(path, ^(const char* aPath, unsigned prefixLen, bool& stop) {
         struct stat statBuf;
-        if ( dyld3::stat(aPath, &statBuf) == 0 ) {
+        if ( ::stat(aPath, &statBuf) == 0 ) {
             if (inode)
                 *inode = statBuf.st_ino;
             if (mtime)

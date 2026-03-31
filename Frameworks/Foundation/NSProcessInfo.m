@@ -11,14 +11,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSPathUtilities.h>
 #import <Foundation/NSStringFormatter.h>
 #import <Foundation/NSRaise.h>
-#import <Foundation/NSDarwinString.h>
-#import <Foundation/NSString_cString.h>
 #import <Foundation/NSThread-Private.h>
 #import <Foundation/NSPlatform.h>
 #ifdef __WINDOWS__
 #import <Foundation/NSPlatform_win32.h>
 #endif
 #import <objc/runtime.h>
+
+#import "NSDarwinString.h"
+#import "NSString_cString.h"
 
 @implementation NSProcessInfo
 
@@ -202,10 +203,10 @@ int __NSConstantStringClassReference[24];
 FOUNDATION_EXPORT void __NSInitializeProcess(int argc,const char *argv[]) {
    NSProcessInfoArgc=argc;
    NSProcessInfoArgv=argv;
-#if !defined(APPLE_RUNTIME_4) && !defined(__RAVYNOS__)
+#if !defined(APPLE_RUNTIME_4)
     OBJCInitializeProcess();
 #endif
-#if defined(__APPLE__) || defined(__RAVYNOS__)
+#if defined(__APPLE__)
     Class cls = objc_getClass("__builtin_NSString");
     memcpy(&__NSConstantStringClassReference, cls, sizeof(__NSConstantStringClassReference));
 

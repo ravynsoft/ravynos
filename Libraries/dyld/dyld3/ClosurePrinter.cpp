@@ -49,7 +49,7 @@ static std::string printTarget(const Array<const ImageArray*>& imagesArrays, Ima
                 return std::string("bind to ") + targetImage->leafName() + " - " + hex8(-signExtend);
             }
             else
-                return std::string("bind to ") + hex4(target.image.imageNum) + "-" + targetImage->leafName() + " + " + hex8(target.image.offset);
+                return std::string("bind to ") + targetImage->leafName() + " + " + hex8(target.image.offset);
             break;
         case Image::ResolvedSymbolTarget::kindSharedCache:
             return std::string("bind to dyld cache + ") + hex8(target.sharedCache.offset);
@@ -139,6 +139,8 @@ static const char* nameForType(TypedBytes::Type type) {
         return "libDyldEntry";
     case TypedBytes::Type::libSystemNum:
         return "libSystemNum";
+    case TypedBytes::Type::bootUUID:
+        return "bootUUID";
     case TypedBytes::Type::mainEntry:
         return "mainEntry";
     case TypedBytes::Type::startEntry:
@@ -207,6 +209,7 @@ static Node buildImageNode(const Image* image, const Array<const ImageArray*>& i
     imageNode.map["has-plus-loads"].value = (image->mayHavePlusLoads() ? "true" : "false");
     imageNode.map["never-unload"].value = (image->neverUnload() ? "true" : "false");
     imageNode.map["has-precomputed-objc"].value = (image->hasPrecomputedObjC() ? "true" : "false");
+//    imageNode.map["platform-binary"].value = (image->isPlatformBinary() ? "true" : "false");
 //    if ( image->cwdMustBeThisDir() )
 //        imageNode.map["cwd-must-be-this-dir"].value = "true";
     if ( !image->inDyldCache() ) {
@@ -283,12 +286,6 @@ static Node buildImageNode(const Image* image, const Array<const ImageArray*>& i
             }
         });
 
-        uint64_t expectedInode;
-        uint64_t expectedMtime;
-        if ( image->hasFileModTimeAndInode(expectedInode, expectedMtime) ) {
-            imageNode.map["file-inode"].value = hex(expectedInode);
-            imageNode.map["file-mod-time"].value = hex(expectedMtime);
-        }
 
         if ( printFixups ) {
             image->forEachFixup(^(uint64_t imageOffsetToRebase, bool &stop) {
@@ -429,10 +426,6 @@ static Node buildImageNode(const Image* image, const Array<const ImageArray*>& i
         imageNode.map["override-of-dyld-cache-image"].value = ImageArray::findImage(imagesArrays, cacheImageNum)->path();
 	}
 
-    if ( image->inDyldCache() && image->overridableDylib() ) {
-        imageNode.map["overridable-dylib"].value = "true";
-    }
-
 
 #if 0
     // add things to init before this image
@@ -485,7 +478,7 @@ static Node buildClosureNode(const DlopenClosure* closure, const Array<const Ima
     closure->forEachPatchEntry(^(const Closure::PatchEntry& patchEntry) {
         Node patchNode;
         patchNode.map["func-dyld-cache-offset"].value = hex8(patchEntry.exportCacheOffset);
-        patchNode.map["func-image-num"].value         = hex4(patchEntry.overriddenDylibInCache);
+        patchNode.map["func-image-num"].value         = hex8(patchEntry.overriddenDylibInCache);
         patchNode.map["replacement"].value            = printTarget(imagesArrays, patchEntry.replacement);
         root.map["dyld-cache-fixups"].array.push_back(patchNode);
     });
@@ -523,7 +516,7 @@ static Node buildClosureNode(const LaunchClosure* closure, const Array<const Ima
     closure->forEachPatchEntry(^(const Closure::PatchEntry& patchEntry) {
         Node patchNode;
         patchNode.map["func-dyld-cache-offset"].value = hex8(patchEntry.exportCacheOffset);
-        patchNode.map["func-image-num"].value         = hex4(patchEntry.overriddenDylibInCache);
+        patchNode.map["func-image-num"].value         = hex8(patchEntry.overriddenDylibInCache);
         patchNode.map["replacement"].value            = printTarget(imagesArrays, patchEntry.replacement);
         root.map["dyld-cache-fixups"].array.push_back(patchNode);
     });
@@ -563,6 +556,14 @@ static Node buildClosureNode(const LaunchClosure* closure, const Array<const Ima
         tupleNode.map["stock"].value   = printTarget(imagesArrays, tuple.stockImplementation);
         tupleNode.map["replace"].value = printTarget(imagesArrays, tuple.newImplementation);
         root.map["interposing-tuples"].array.push_back(tupleNode);
+    });
+
+    closure->forEachPatchEntry(^(const Closure::PatchEntry& patchEntry) {
+        Node patchNode;
+        patchNode.map["func-dyld-cache-offset"].value = hex8(patchEntry.exportCacheOffset);
+        patchNode.map["func-image-num"].value         = hex8(patchEntry.overriddenDylibInCache);
+        patchNode.map["replacement"].value            = printTarget(imagesArrays, patchEntry.replacement);
+        root.map["dyld-cache-fixups"].array.push_back(patchNode);
     });
 
     root.map["initial-image-count"].value = decimal(closure->initialLoadCount());

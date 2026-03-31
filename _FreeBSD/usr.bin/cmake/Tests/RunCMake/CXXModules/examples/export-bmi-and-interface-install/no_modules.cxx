@@ -1,3 +1,0 @@
-void no_modules()
-{
-}

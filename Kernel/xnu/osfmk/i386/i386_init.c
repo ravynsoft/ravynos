@@ -99,9 +99,6 @@
 #include <i386/pmCPU.h>
 #include <i386/tsc.h>
 #include <i386/locks.h> /* LcksOpts */
-#if DEBUG
-#include <machine/pal_routines.h>
-#endif
 
 #if MONOTONIC
 #include <kern/monotonic.h>
@@ -671,11 +668,13 @@ vstart(vm_offset_t boot_args_start)
 		set_cr3_raw((uintptr_t)ID_MAP_VTOP(IdlePML4));
 		/* Find our logical cpu number */
 		cpu = lapic_to_cpu[(LAPIC_READ(ID) >> LAPIC_ID_SHIFT) & LAPIC_ID_MASK];
-#if DEBUG
+#if DEBUG 
 		gsbase = rdmsr64(MSR_IA32_GS_BASE);
 #endif
 		cpu_desc_load(cpu_datap(cpu));
+#if DEBUG 
 		DBG("CPU: %d, GSBASE initial value: 0x%llx\n", cpu, gsbase);
+#endif
 	}
 
 	early_boot = 0;

@@ -5,9 +5,10 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
-#import "NSKVCMutableArray.h"
 #import <Foundation/NSString.h>
 #import <Foundation/NSKeyValueCoding.h>
+
+#import "NSKVCMutableArray.h"
 
 @implementation NSKVCMutableArray
 -(id)initWithKey:(id)theKey forProxyObject:(id)object
@@ -48,7 +49,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 {
 	if(accessor)
 	{
-		return accessor(proxyObject, accessorSel);
+		return ((id (*)(id,SEL))accessor)(proxyObject, accessorSel);
 	}
 	return [proxyObject valueForKey:key];
 }
@@ -56,7 +57,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -(void)_setRepresentedObject:(id)object
 {
 	if(setter)
-		setter(proxyObject, setterSel, object);
+		((void (*)(id,SEL,id))setter)(proxyObject, setterSel, object);
 	else
 		[proxyObject setValue:object forKey:key];
 }
@@ -71,21 +72,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - (NSUInteger)count;
 {
 	if(count)
-		return (NSUInteger)count(proxyObject, countSel);
+		return ((NSUInteger (*)(id,SEL))count)(proxyObject, countSel);
 	return [[self _representedObject] count];
 }
 
 - (id)objectAtIndex:(NSUInteger)index;
 {
 	if(objectAtIndex)
-		return objectAtIndex(proxyObject, objectAtIndexSel, index);
+		return ((id (*)(id,SEL,int))objectAtIndex)(proxyObject, objectAtIndexSel, index);
 	return [[self _representedObject] objectAtIndex:index];
 }
 
 - (void)addObject:(id)anObject;
 {
 	if(insert)
-		insert(proxyObject, insertSel, anObject, [self count]); 
+		((void (*)(id,SEL,id,int))insert)(proxyObject, insertSel, anObject, [self count]);
 	else
 	{
 		id target=[[self _representedObject] mutableCopy];
@@ -99,7 +100,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 {
 	if(insert)
 	{
-		insert(proxyObject, insertSel, anObject, index); 
+		((void (*)(id,SEL,id,int))insert)(proxyObject, insertSel, anObject, index);
 	}
 	else
 	{
@@ -113,7 +114,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - (void)removeLastObject;
 {
 	if(remove)
-		remove(proxyObject, removeSel, [self count]-1); 
+		((void (*)(id,SEL,int))remove)(proxyObject, removeSel, [self count]-1);
 	else
 	{
 		id target=[[self _representedObject] mutableCopy];
@@ -126,7 +127,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - (void)removeObjectAtIndex:(NSUInteger)index;
 {
 	if(remove)
-		remove(proxyObject, removeSel, index); 
+		((void (*)(id,SEL,int))remove)(proxyObject, removeSel, index);
 	else
 	{
 		id target=[[self _representedObject] mutableCopy];
@@ -139,7 +140,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - (void)replaceObjectAtIndex:(NSUInteger)index withObject:(id)anObject;
 {
 	if(replace)
-		replace(proxyObject, replaceSel, index, anObject);
+		((void (*)(id,SEL,int,id))replace)(proxyObject, replaceSel, index, anObject);
 	else
 	{
 		id target=[[self _representedObject] mutableCopy];

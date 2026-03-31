@@ -1,0 +1,66 @@
+#
+# List of symbols that we don't want exported in CoreFramework because
+# they generate weak references.
+#
+
+#
+# All of the following symbols are here because we use STL's vector.
+#
+# For each excluded symbol, there are three lines - the first two lines are
+# comments, while the third line does the actual exlucsion.
+#   The first line:   the symbol's unmangled name
+#   The second line:  the symbol's mangled name in SnowLeopard
+#   The third line:   the symbol's name with wildcards
+#
+# I chose to use the names with wildcards because the mangled names can change
+# when gcc changes and/or the STL headers change.
+#
+
+#__gnu_cxx::new_allocator<void*>::allocate(unsigned long, void const*)
+#__ZN9__gnu_cxx13new_allocatorIPvE8allocateEmPKv
+*__gnu_cxx*new_allocator*
+
+#std::_Vector_base<void*, std::allocator<void*> >::~_Vector_base()
+#__ZNSt12_Vector_baseIPvSaIS0_EED2Ev
+*_Vector_base*
+
+#std::vector<void*, std::allocator<void*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<void**, std::vector<void*, std::allocator<void*> > >, void* const&)
+#__ZNSt6vectorIPvSaIS0_EE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPS0_S2_EERKS0_
+*vector*_M_insert_aux*__gnu_cxx*__normal_iterator*
+
+#std::vector<void*, std::allocator<void*> >::push_back(void* const&)
+#__ZNSt6vectorIPvSaIS0_EE9push_backERKS0_
+*vector*push_back
+
+#std::vector<void*, std::allocator<void*> >::~vector()
+#__ZNSt6vectorIPvSaIS0_EED1Ev
+*vector*
+
+#void** std::__copy_backward<true, std::random_access_iterator_tag>::__copy_b<void*>(void* const*, void* const*, void**)
+#__ZNSt15__copy_backwardILb1ESt26random_access_iterator_tagE8__copy_bIPvEEPT_PKS4_S7_S5_
+*__copy_backward*random_access_iterator_tag*__copy_b*
+
+#void** std::uninitialized_copy<void**, void**>(void**, void**, void**)
+#__ZSt18uninitialized_copyIPPvS1_ET0_T_S3_S2_
+*uninitialized_copy*
+
+*_Rb_tree*
+
+#__ZNSt3mapImP14sContinueEntrySt4lessImESaISt4pairIKmS1_EEEixERS5_
+#__ZNSt3mapIjP14sContinueEntrySt4lessIjESaISt4pairIKjS1_EEEixERS5_
+__ZNSt3mapI*
+
+__ZSt10__copy_auxIPPvS1_ET0_T_S3_S2_
+__ZSt13__destroy_auxIPPvEvT_S2_St11__true_type
+__ZSt13copy_backwardIPPvS1_ET0_T_S3_S2_
+__ZSt19__copy_backward_auxIPPvS1_ET0_T_S3_S2_
+__ZSt4copyIPPvS1_ET0_T_S3_S2_
+__ZSt8_DestroyIPPvEvT_S2_
+__ZSt8_DestroyIPPvS0_EvT_S2_SaIT0_E
+__ZnwmPv
+
+# 8375490
+__ZN5CFile5flushEv
+__ZN5CFile5tellgEv
+__ZN5CFile5tellpEv
+__ZN9DSCThread10LastChanceEv

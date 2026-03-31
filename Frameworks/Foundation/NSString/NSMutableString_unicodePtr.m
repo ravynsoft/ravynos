@@ -5,21 +5,24 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
-#import <Foundation/NSMutableString_unicodePtr.h>
+#include <string.h>
+#include <sys/param.h>
+
 #import <Foundation/NSRaise.h>
 #import <Foundation/NSData.h>
 #import <Foundation/NSStringHashing.h>
 #import <Foundation/NSStringFormatter.h>
 #import <Foundation/NSStringFileIO.h>
-#import <Foundation/NSString_cString.h>
-#import <Foundation/NSString_nextstep.h>
-#import <Foundation/NSString_isoLatin1.h>
-#import <Foundation/NSString_win1252.h>
 #import <Foundation/NSStringSymbol.h>
 #import <Foundation/NSStringUTF8.h>
 #import <Foundation/NSUnicodeCaseMapping.h>
 #import <Foundation/NSRaiseException.h>
-#include <string.h>
+
+#import "NSMutableString_unicodePtr.h"
+#import "NSString_cString.h"
+#import "NSString_nextstep.h"
+#import "NSString_isoLatin1.h"
+#import "NSString_win1252.h"
 
 @implementation NSMutableString_unicodePtr
 

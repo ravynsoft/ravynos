@@ -34,21 +34,17 @@
 #include <mach/mach_time.h>
 #include <mach/shared_region.h>
 #include <apfs/apfs_fsctl.h>
-#include <iostream>
 
 #include <CommonCrypto/CommonHMAC.h>
 #include <CommonCrypto/CommonDigest.h>
 #include <CommonCrypto/CommonDigestSPI.h>
 
-#include "mach-o/dyld_priv.h"
 #include "ClosureBuilder.h"
 #include "Closure.h"
 #include "ClosureFileSystemNull.h"
 #include "CodeSigningTypes.h"
 #include "MachOFileAbstraction.hpp"
 #include "SharedCacheBuilder.h"
-#include "RootsChecker.h"
-#include "IMPCachesBuilder.hpp"
 
 #include "FileUtils.h"
 #include "StringUtils.h"
@@ -63,44 +59,40 @@
     #define ARM64_SHARED_REGION_SIZE     0x100000000ULL
 #endif
 
-#if ARM64_SHARED_REGION_START == 0x7FFF00000000
-    #define ARM64_DELTA_MASK 0x00FF000000000000
-#else
-    #define ARM64_DELTA_MASK 0x00FFFF0000000000
-#endif
-
 #ifndef ARM64_32_SHARED_REGION_START
     #define ARM64_32_SHARED_REGION_START 0x1A000000ULL
     #define ARM64_32_SHARED_REGION_SIZE  0x26000000ULL
 #endif
 
-#define  ARMV7K_CHAIN_BITS    0xC0000000
-
-#if BUILDING_UPDATE_DYLD_CACHE_BUILDER
-    #define DISCONTIGUOUS_RX   0x7FFF20000000ULL
+#if ARM_SHARED_REGION_SIZE > 0x26000000ULL
+  #define  ARMV7K_CHAIN_BITS    0xC0000000
+  #define  ARMV7K_MAX           0x0
 #else
-    #define DISCONTIGUOUS_RX   0x7FFF20000000ULL    // size for MRM builder
+  #define  ARMV7K_CHAIN_BITS    0xE0000000
+  #define  ARMV7K_MAX           0x20000000
 #endif
-#define DISCONTIGUOUS_RW   0x7FFF80000000ULL
-#define DISCONTIGUOUS_RO   0x7FFFC0000000ULL
-#define DISCONTIGUOUS_RX_SIZE (DISCONTIGUOUS_RW - DISCONTIGUOUS_RX)
-#define DISCONTIGUOUS_RW_SIZE 0x40000000
-#define DISCONTIGUOUS_RO_SIZE 0x3FE00000
 
 const SharedCacheBuilder::ArchLayout SharedCacheBuilder::_s_archLayout[] = {
-    { DISCONTIGUOUS_RX,             0xEFE00000ULL,               0x40000000, 0x00FFFF0000000000, "x86_64",   CS_PAGE_SIZE_4K,  14, 2, true,  true,  true  },
-    { DISCONTIGUOUS_RX,             0xEFE00000ULL,               0x40000000, 0x00FFFF0000000000, "x86_64h",  CS_PAGE_SIZE_4K,  14, 2, true,  true,  true  },
-    { SHARED_REGION_BASE_I386,      SHARED_REGION_SIZE_I386,     0x00200000,                0x0, "i386",     CS_PAGE_SIZE_4K,  12, 0, false, false, true  },
-    { ARM64_SHARED_REGION_START,    ARM64_SHARED_REGION_SIZE,    0x02000000,   ARM64_DELTA_MASK, "arm64",    CS_PAGE_SIZE_4K,  14, 2, false, true,  false },
+    { 0x7FFF20000000ULL,            0xEFE00000ULL,              0x0,         0x40000000, 0x00FFFF0000000000, "x86_64",   CS_PAGE_SIZE_4K,  12, 2, true,  true,  true  },
+    { 0x7FFF20000000ULL,            0xEFE00000ULL,              0x0,         0x40000000, 0x00FFFF0000000000, "x86_64h",  CS_PAGE_SIZE_4K,  12, 2, true,  true,  true  },
+    { SHARED_REGION_BASE_I386,      SHARED_REGION_SIZE_I386,    0x0,         0x00200000,                0x0, "i386",     CS_PAGE_SIZE_4K,  12, 0, false, false, true  },
+    { ARM64_SHARED_REGION_START,    ARM64_SHARED_REGION_SIZE,   0x0,         0x02000000, 0x00FFFF0000000000, "arm64",    CS_PAGE_SIZE_4K,  14, 2, false, true,  false },
 #if SUPPORT_ARCH_arm64e
-    { ARM64_SHARED_REGION_START,    ARM64_SHARED_REGION_SIZE,    0x02000000,   ARM64_DELTA_MASK, "arm64e",   CS_PAGE_SIZE_16K, 14, 2, false, true,  false },
+    { ARM64_SHARED_REGION_START,    ARM64_SHARED_REGION_SIZE,   0x0,         0x02000000, 0x00FFFF0000000000, "arm64e",   CS_PAGE_SIZE_16K, 14, 2, false, true,  false },
 #endif
 #if SUPPORT_ARCH_arm64_32
-    { ARM64_32_SHARED_REGION_START, ARM64_32_SHARED_REGION_SIZE, 0x02000000,         0xC0000000, "arm64_32", CS_PAGE_SIZE_16K, 14, 6, false, false, true  },
+    { ARM64_32_SHARED_REGION_START, ARM64_32_SHARED_REGION_SIZE,0x0,         0x02000000,         0xC0000000, "arm64_32", CS_PAGE_SIZE_16K, 14, 6, false, false, true  },
 #endif
-    { ARM_SHARED_REGION_START,      ARM_SHARED_REGION_SIZE,      0x02000000,         0xE0000000, "armv7s",   CS_PAGE_SIZE_4K,  14, 4, false, false, true  },
-    { ARM_SHARED_REGION_START,      ARM_SHARED_REGION_SIZE,      0x00400000,  ARMV7K_CHAIN_BITS, "armv7k",   CS_PAGE_SIZE_4K,  14, 4, false, false, true  },
-    { 0x40000000,                   0x40000000,                  0x02000000,                0x0, "sim-x86",  CS_PAGE_SIZE_4K,  14, 0, false, false, true  }
+    { ARM_SHARED_REGION_START,      ARM_SHARED_REGION_SIZE,     0x0,         0x02000000,         0xE0000000, "armv7s",   CS_PAGE_SIZE_4K,  14, 4, false, false, true  },
+    { ARM_SHARED_REGION_START,      ARM_SHARED_REGION_SIZE,     ARMV7K_MAX,  0x00400000,  ARMV7K_CHAIN_BITS, "armv7k",   CS_PAGE_SIZE_4K,  14, 4, false, false, true  },
+    { 0x40000000,                   0x40000000,                 0x0,         0x02000000,                0x0, "sim-x86",  CS_PAGE_SIZE_4K,  14, 0, false, false, true  }
+};
+
+
+// These are dylibs that may be interposed, so stubs calling into them should never be bypassed
+const char* const SharedCacheBuilder::_s_neverStubEliminateDylibs[] = {
+    "/usr/lib/system/libdispatch.dylib",
+    nullptr
 };
 
 // These are functions that are interposed by Instruments.app or ASan
@@ -215,12 +207,10 @@ const char* const SharedCacheBuilder::_s_neverStubEliminateSymbols[] = {
     "_malloc_create_zone",
     "_malloc_default_purgeable_zone",
     "_malloc_default_zone",
-    "_malloc_destroy_zone",
     "_malloc_good_size",
     "_malloc_make_nonpurgeable",
     "_malloc_make_purgeable",
     "_malloc_set_zone_name",
-    "_malloc_zone_from_ptr",
     "_mbsnrtowcs",
     "_mbsrtowcs",
     "_mbstowcs",
@@ -391,11 +381,6 @@ public:
         for (CacheBuilder::InputFile& inputFile : inputFiles) {
             char realerPath[MAXPATHLEN];
             dyld3::closure::LoadedFileInfo loadedFileInfo = dyld3::MachOAnalyzer::load(inputFile.diag, fileSystem, inputFile.path, reqArchs, reqPlatform, realerPath);
-            if ( (reqPlatform == dyld3::Platform::macOS) && inputFile.diag.hasError() ) {
-                // Try again with iOSMac
-                inputFile.diag.clearError();
-                loadedFileInfo = dyld3::MachOAnalyzer::load(inputFile.diag, fileSystem, inputFile.path, reqArchs, dyld3::Platform::iOSMac, realerPath);
-            }
             const dyld3::MachOAnalyzer* ma = (const dyld3::MachOAnalyzer*)loadedFileInfo.fileContent;
             if (ma == nullptr) {
                 couldNotLoadFiles.emplace_back((CacheBuilder::LoadedMachO){ DyldSharedCache::MappedMachO(), loadedFileInfo, &inputFile });
@@ -409,29 +394,18 @@ public:
             if (ma->isDylib()) {
                 std::string installName = ma->installName();
 
-                const char* dylibPath = inputFile.path;
-                if ( (installName != inputFile.path) && (reqPlatform == dyld3::Platform::macOS) ) {
-                    // We now typically require that install names and paths match.  However symlinks may allow us to bring in a path which
-                    // doesn't match its install name.
-                    // For example:
-                    //   /usr/lib/libstdc++.6.0.9.dylib is a real file with install name /usr/lib/libstdc++.6.dylib
-                    //   /usr/lib/libstdc++.6.dylib is a symlink to /usr/lib/libstdc++.6.0.9.dylib
-                    // So long as we add both paths (with one as an alias) then this will work, even if dylibs are removed from disk
-                    // but the symlink remains.
-                    char resolvedSymlinkPath[PATH_MAX];
-                    if ( fileSystem.getRealPath(installName.c_str(), resolvedSymlinkPath) ) {
-                        if (!strcmp(resolvedSymlinkPath, inputFile.path)) {
-                            // Symlink is the install name and points to the on-disk dylib
-                            //fprintf(stderr, "Symlink works: %s == %s\n", inputFile.path, installName.c_str());
-                            dylibPath = installName.c_str();
-                        }
-                    }
+                // Let the platform exclude the file before we do anything else.
+                if (platformExcludesInstallName(installName)) {
+                    inputFile.diag.verbose("Platform excluded file\n");
+                    fileSystem.unloadFile(loadedFileInfo);
+                    continue;
                 }
 
-                if (!ma->canBePlacedInDyldCache(dylibPath, ^(const char* msg) {
+                if (!ma->canBePlacedInDyldCache(inputFile.path, ^(const char* msg) {
                     inputFile.diag.warning("Dylib located at '%s' cannot be placed in cache because: %s", inputFile.path, msg);
                 })) {
-
+                    // TODO: Add exclusion lists here?
+                    // Probably not as we already applied the dylib exclusion list.
                     if (!ma->canHavePrecomputedDlopenClosure(inputFile.path, ^(const char* msg) {
                         inputFile.diag.verbose("Dylib located at '%s' cannot prebuild dlopen closure in cache because: %s", inputFile.path, msg);
                     }) ) {
@@ -467,7 +441,7 @@ public:
                     }
                 }
             } else if (ma->isBundle()) {
-
+                // TODO: Add exclusion lists here?
                 if (!ma->canHavePrecomputedDlopenClosure(inputFile.path, ^(const char* msg) {
                     inputFile.diag.verbose("Dylib located at '%s' cannot prebuild dlopen closure in cache because: %s", inputFile.path, msg);
                 }) ) {
@@ -476,9 +450,7 @@ public:
                 }
                 otherDylibs.emplace_back((CacheBuilder::LoadedMachO){ mappedFile, loadedFileInfo, &inputFile });
             } else if (ma->isDynamicExecutable()) {
-
-                // Let the platform exclude the file before we do anything else.
-                if (platformExcludesExecutablePath(inputFile.path)) {
+                if (platformExcludesExecutablePath_macOS(inputFile.path)) {
                     inputFile.diag.verbose("Platform excluded file\n");
                     fileSystem.unloadFile(loadedFileInfo);
                     continue;
@@ -493,31 +465,89 @@ public:
 
 private:
 
-    static bool platformExcludesExecutablePath_macOS(const std::string& path) {
-        // We no longer support ROSP, so skip all paths which start with the special prefix
-        if ( startsWith(path, "/System/Library/Templates/Data/") )
+
+
+    static bool platformExcludesInstallName_macOS(const std::string& installName) {
+        return false;
+    }
+
+    static bool platformExcludesInstallName_iOS(const std::string& installName) {
+        if ( installName == "/System/Library/Caches/com.apple.xpc/sdk.dylib" )
             return true;
+        if ( installName == "/System/Library/Caches/com.apple.xpcd/xpcd_cache.dylib" )
+            return true;
+        return false;
+    }
 
-        static const char* sAllowedPrefixes[] = {
-            "/bin/",
-            "/sbin/",
-            "/usr/",
-            "/System/",
-            "/Library/Apple/System/",
-            "/Library/Apple/usr/",
-            "/System/Applications/Safari.app/",
-            "/Library/CoreMediaIO/Plug-Ins/DAL/"                // temp until plugins moved or closured working
-        };
+    static bool platformExcludesInstallName_tvOS(const std::string& installName) {
+        return platformExcludesInstallName_iOS(installName);
+    }
 
-        bool inSearchDir = false;
-        for (const char* searchDir : sAllowedPrefixes ) {
-            if ( strncmp(searchDir, path.c_str(), strlen(searchDir)) == 0 )  {
-                inSearchDir = true;
-                break;
-            }
+    static bool platformExcludesInstallName_watchOS(const std::string& installName) {
+        return platformExcludesInstallName_iOS(installName);
+    }
+
+    static bool platformExcludesInstallName_bridgeOS(const std::string& installName) {
+        return platformExcludesInstallName_iOS(installName);
+    }
+
+    // Returns true if the current platform requires that this install name be excluded from the shared cache
+    // Note that this overrides any exclusion from anywhere else.
+    bool platformExcludesInstallName(const std::string& installName) {
+        switch (reqPlatform) {
+            case dyld3::Platform::unknown:
+                return false;
+            case dyld3::Platform::macOS:
+                return platformExcludesInstallName_macOS(installName);
+            case dyld3::Platform::iOS:
+                return platformExcludesInstallName_iOS(installName);
+            case dyld3::Platform::tvOS:
+                return platformExcludesInstallName_tvOS(installName);
+            case dyld3::Platform::watchOS:
+                return platformExcludesInstallName_watchOS(installName);
+            case dyld3::Platform::bridgeOS:
+                return platformExcludesInstallName_bridgeOS(installName);
+            case dyld3::Platform::iOSMac:
+                return false;
+            case dyld3::Platform::iOS_simulator:
+                return false;
+            case dyld3::Platform::tvOS_simulator:
+                return false;
+            case dyld3::Platform::watchOS_simulator:
+                return false;
+            case dyld3::Platform::driverKit:
+                return false;
         }
+    }
 
-        return !inSearchDir;
+
+
+
+    static bool platformExcludesExecutablePath_macOS(const std::string& path) {
+        return false;
+    }
+
+    static bool platformExcludesExecutablePath_iOS(const std::string& path) {
+        //HACK exclude all launchd and installd variants until we can do something about xpcd_cache.dylib and friends
+        if (path == "/sbin/launchd"
+            || path == "/usr/local/sbin/launchd.debug"
+            || path == "/usr/local/sbin/launchd.development"
+            || path == "/usr/libexec/installd") {
+            return true;
+        }
+        return false;
+    }
+
+    static bool platformExcludesExecutablePath_tvOS(const std::string& path) {
+        return platformExcludesExecutablePath_iOS(path);
+    }
+
+    static bool platformExcludesExecutablePath_watchOS(const std::string& path) {
+        return platformExcludesExecutablePath_iOS(path);
+    }
+
+    static bool platformExcludesExecutablePath_bridgeOS(const std::string& path) {
+        return platformExcludesExecutablePath_iOS(path);
     }
 
     // Returns true if the current platform requires that this path be excluded from the shared cache
@@ -529,15 +559,15 @@ private:
             case dyld3::Platform::macOS:
                 return platformExcludesExecutablePath_macOS(path);
             case dyld3::Platform::iOS:
-                return false;
+                return platformExcludesExecutablePath_iOS(path);
             case dyld3::Platform::tvOS:
-                return false;
+                return platformExcludesExecutablePath_tvOS(path);
             case dyld3::Platform::watchOS:
-                return false;
+                return platformExcludesExecutablePath_watchOS(path);
             case dyld3::Platform::bridgeOS:
-                return false;
+                return platformExcludesExecutablePath_bridgeOS(path);
             case dyld3::Platform::iOSMac:
-                return platformExcludesExecutablePath_macOS(path);
+                return false;
             case dyld3::Platform::iOS_simulator:
                 return false;
             case dyld3::Platform::tvOS_simulator:
@@ -575,8 +605,7 @@ SharedCacheBuilder::SharedCacheBuilder(const DyldSharedCache::CreateOptions& opt
     }
 }
 
-static void verifySelfContained(const dyld3::closure::FileSystem& fileSystem,
-                                std::vector<CacheBuilder::LoadedMachO>& dylibsToCache,
+static void verifySelfContained(std::vector<CacheBuilder::LoadedMachO>& dylibsToCache,
                                 std::vector<CacheBuilder::LoadedMachO>& otherDylibs,
                                 std::vector<CacheBuilder::LoadedMachO>& couldNotLoadFiles)
 {
@@ -602,44 +631,8 @@ static void verifySelfContained(const dyld3::closure::FileSystem& fileSystem,
         allDylibs.insert({ dylib.inputFile->path, &dylib });
     }
 
-    // Exclude bad unzippered twins.  These are where a zippered binary links
-    // an unzippered twin
-    std::unordered_map<std::string, std::string> macOSPathToTwinPath;
-    for (const CacheBuilder::LoadedMachO& dylib : dylibsToCache) {
-        macOSPathToTwinPath[dylib.mappedFile.runtimePath] = "";
-    }
-    for (const CacheBuilder::LoadedMachO& dylib : dylibsToCache) {
-        if ( startsWith(dylib.mappedFile.runtimePath, "/System/iOSSupport/") ) {
-            std::string tail = dylib.mappedFile.runtimePath.substr(18);
-            if ( macOSPathToTwinPath.find(tail) != macOSPathToTwinPath.end() )
-                macOSPathToTwinPath[tail] = dylib.mappedFile.runtimePath;
-        }
-    }
-
-    __block std::map<std::string, std::set<std::string>> badDylibs;
-    for (const CacheBuilder::LoadedMachO& dylib : dylibsToCache) {
-        if ( badDylibs.count(dylib.mappedFile.runtimePath) != 0 )
-            continue;
-        if ( dylib.mappedFile.mh->isZippered() ) {
-            dylib.mappedFile.mh->forEachDependentDylib(^(const char* loadPath, bool isWeak, bool isReExport, bool isUpward, uint32_t compatVersion, uint32_t curVersion, bool& stop) {
-                auto macOSAndTwinPath = macOSPathToTwinPath.find(loadPath);
-                if ( macOSAndTwinPath != macOSPathToTwinPath.end() ) {
-                    const std::string& twinPath = macOSAndTwinPath->second;
-                    if ( badDylibs.count(twinPath) != 0 )
-                        return;
-                    knownDylibs.erase(twinPath);
-                    badDylibs[twinPath].insert(std::string("evicting UIKitForMac binary as it is linked by zippered binary '") + dylib.mappedFile.runtimePath + "'");
-                }
-            });
-        }
-    }
-
-    // HACK: Exclude some dylibs and transitive deps for now until we have project fixes
-    __block std::set<std::string> badProjects;
-    badProjects.insert("/System/Library/PrivateFrameworks/TuriCore.framework/Versions/A/TuriCore");
-    badProjects.insert("/System/Library/PrivateFrameworks/UHASHelloExtensionPoint-macOS.framework/Versions/A/UHASHelloExtensionPoint-macOS");
-
     // check all dependencies to assure every dylib in cache only depends on other dylibs in cache
+    __block std::map<std::string, std::set<std::string>> badDylibs;
     __block bool doAgain = true;
     while ( doAgain ) {
         doAgain = false;
@@ -647,32 +640,9 @@ static void verifySelfContained(const dyld3::closure::FileSystem& fileSystem,
         for (const CacheBuilder::LoadedMachO& dylib : dylibsToCache) {
             if ( badDylibs.count(dylib.mappedFile.runtimePath) != 0 )
                 continue;
-            if ( badProjects.count(dylib.mappedFile.runtimePath) != 0 )
-                continue;
             dylib.mappedFile.mh->forEachDependentDylib(^(const char* loadPath, bool isWeak, bool isReExport, bool isUpward, uint32_t compatVersion, uint32_t curVersion, bool& stop) {
                 if (isWeak)
                     return;
-                if ( badProjects.count(loadPath) != 0 ) {
-                    // We depend on a bad dylib, so add this one to the list too
-                    badProjects.insert(dylib.mappedFile.runtimePath);
-                    badProjects.insert(dylib.mappedFile.mh->installName());
-                    knownDylibs.erase(dylib.mappedFile.runtimePath);
-                    knownDylibs.erase(dylib.mappedFile.mh->installName());
-                    badDylibs[dylib.mappedFile.runtimePath].insert(std::string("Depends on bad project '") + loadPath + "'");
-                    doAgain = true;
-                    return;
-                }
-                char resolvedSymlinkPath[PATH_MAX];
-                if ( knownDylibs.count(loadPath) == 0 ) {
-                    // The loadPath was embedded when the dylib was built, but we may be in the process of moving
-                    // a dylib with symlinks from old to new paths
-                    // In this case, the realpath will tell us the new location
-                    if ( fileSystem.getRealPath(loadPath, resolvedSymlinkPath) ) {
-                        if ( strcmp(resolvedSymlinkPath, loadPath) != 0 ) {
-                            loadPath = resolvedSymlinkPath;
-                        }
-                    }
-                }
                 if ( knownDylibs.count(loadPath) == 0 ) {
                     badDylibs[dylib.mappedFile.runtimePath].insert(std::string("Could not find dependency '") + loadPath + "'");
                     knownDylibs.erase(dylib.mappedFile.runtimePath);
@@ -774,7 +744,7 @@ void SharedCacheBuilder::build(std::vector<CacheBuilder::InputFile>& inputFiles,
     std::vector<LoadedMachO> couldNotLoadFiles;
     cacheInputBuilder.loadMachOs(inputFiles, dylibsToCache, otherDylibs, executables, couldNotLoadFiles);
 
-    verifySelfContained(_fileSystem, dylibsToCache, otherDylibs, couldNotLoadFiles);
+    verifySelfContained(dylibsToCache, otherDylibs, couldNotLoadFiles);
 
     // Check for required binaries before we try to build the cache
     if (!_diagnostics.hasError()) {
@@ -913,8 +883,7 @@ void SharedCacheBuilder::build(const std::vector<LoadedMachO>& dylibs,
         _diagnostics.error("missing required minimum set of dylibs");
         return;
     }
-
-    _timeRecorder.pushTimedSection();
+    uint64_t t1 = mach_absolute_time();
 
     // make copy of dylib list and sort
     makeSortedDylibs(dylibs, _options.dylibOrdering);
@@ -926,48 +895,12 @@ void SharedCacheBuilder::build(const std::vector<LoadedMachO>& dylibs,
         return;
     }
 
-    _timeRecorder.recordTime("sort dylibs");
-
-    bool impCachesSuccess = false;
-    IMPCaches::HoleMap selectorAddressIntervals;
-    _impCachesBuilder = new IMPCaches::IMPCachesBuilder(_sortedDylibs, _options.objcOptimizations, _diagnostics, _timeRecorder, _fileSystem);
-
-    // Note, macOS allows install names and paths to mismatch.  This is currently not supported by
-    // IMP caches as we use install names to look up the set of dylibs.
-    if (    _archLayout->is64
-        && (_options.platform !=  dyld3::Platform::macOS)
-        && ((_impCachesBuilder->neededClasses.size() > 0) || (_impCachesBuilder->neededMetaclasses.size() > 0))) {
-        // Build the class map across all dylibs (including cross-image superclass references)
-        _impCachesBuilder->buildClassesMap(_diagnostics);
-
-        // Determine which methods will end up in each class's IMP cache
-        impCachesSuccess = _impCachesBuilder->parseDylibs(_diagnostics);
-
-        // Compute perfect hash functions for IMP caches
-        if (impCachesSuccess) _impCachesBuilder->buildPerfectHashes(selectorAddressIntervals, _diagnostics);
-    }
-
-    constexpr bool log = false;
-    if (log) {
-        for (const auto& p : _impCachesBuilder->selectors.map) {
-            printf("0x%06x %s\n", p.second->offset, p.second->name);
-        }
-    }
-
-    _timeRecorder.recordTime("compute IMP caches");
-
-    IMPCaches::SelectorMap emptyMap;
-    IMPCaches::SelectorMap& selectorMap = impCachesSuccess ? _impCachesBuilder->selectors : emptyMap;
     // assign addresses for each segment of each dylib in new cache
-    parseCoalescableSegments(selectorMap, selectorAddressIntervals);
-    processSelectorStrings(osExecutables, selectorAddressIntervals);
-
+    parseCoalescableSegments();
+    processSelectorStrings(osExecutables);
     assignSegmentAddresses();
     std::vector<const LoadedMachO*> overflowDylibs;
     while ( cacheOverflowAmount() != 0 ) {
-        // IMP caches: we may need to recompute the selector addresses here to be slightly more compact
-        // if we remove dylibs? This is probably overkill.
-
         if ( !_options.evictLeafDylibsOnOverflow ) {
             _diagnostics.error("cache overflow by %lluMB", cacheOverflowAmount() / 1024 / 1024);
             return;
@@ -976,16 +909,9 @@ void SharedCacheBuilder::build(const std::vector<LoadedMachO>& dylibs,
         // re-layout cache
         for (DylibInfo& dylib : _sortedDylibs)
             dylib.cacheLocation.clear();
-        _dataRegions.clear();
         _coalescedText.clear();
-        
-        // Re-generate the hole map to remove any cruft that was added when parsing the coalescable text the first time.
-        // Always clear the hole map, even if IMP caches are off, as it is used by the text coalescer
-        selectorAddressIntervals.clear();
-        if (impCachesSuccess) _impCachesBuilder->computeLowBits(selectorAddressIntervals);
-        
-        parseCoalescableSegments(selectorMap, selectorAddressIntervals);
-        processSelectorStrings(osExecutables, selectorAddressIntervals);
+        parseCoalescableSegments();
+        processSelectorStrings(osExecutables);
         assignSegmentAddresses();
 
         _diagnostics.verbose("cache overflow, evicted %lu leaf dylibs\n", evictionCount);
@@ -993,99 +919,60 @@ void SharedCacheBuilder::build(const std::vector<LoadedMachO>& dylibs,
     markPaddingInaccessible();
 
      // copy all segments into cache
-
-    unsigned long wastedSelectorsSpace = selectorAddressIntervals.totalHoleSize();
-    if (wastedSelectorsSpace > 0) {
-        _diagnostics.verbose("Selector placement for IMP caches wasted %lu bytes\n", wastedSelectorsSpace);
-        if (log) {
-            std::cerr << selectorAddressIntervals << std::endl;
-        }
-    }
-
-    _timeRecorder.recordTime("layout cache");
-
+    uint64_t t2 = mach_absolute_time();
     writeCacheHeader();
     copyRawSegments();
-    _timeRecorder.recordTime("copy cached dylibs into buffer");
 
     // rebase all dylibs for new location in cache
-
-    _aslrTracker.setDataRegion(firstDataRegion()->buffer, dataRegionsTotalSize());
+    uint64_t t3 = mach_absolute_time();
+    _aslrTracker.setDataRegion(_readWriteRegion.buffer, _readWriteRegion.sizeInUse);
     if ( !_options.cacheSupportsASLR )
         _aslrTracker.disable();
-    adjustAllImagesForNewSegmentLocations(_archLayout->sharedMemoryStart, _aslrTracker,
-                                          &_lohTracker, &_coalescedText);
+    adjustAllImagesForNewSegmentLocations();
     if ( _diagnostics.hasError() )
         return;
 
-    _timeRecorder.recordTime("adjust segments for new split locations");
-
     // build ImageArray for dyld3, which has side effect of binding all cached dylibs
+    uint64_t t4 = mach_absolute_time();
     buildImageArray(aliases);
     if ( _diagnostics.hasError() )
         return;
 
-    _timeRecorder.recordTime("bind all images");
-
     // optimize ObjC
+    uint64_t t5 = mach_absolute_time();
     DyldSharedCache* dyldCache = (DyldSharedCache*)_readExecuteRegion.buffer;
-    optimizeObjC(impCachesSuccess, _impCachesBuilder->inlinedSelectors);
-
-    delete _impCachesBuilder;
-    _impCachesBuilder = nullptr;
-
+    if ( _options.optimizeObjC )
+        optimizeObjC();
     if ( _diagnostics.hasError() )
         return;
 
-    _timeRecorder.recordTime("optimize Objective-C");
 
-    if ( _options.optimizeStubs ) {
-        __block std::vector<std::pair<const mach_header*, const char*>> images;
-        dyldCache->forEachImage(^(const mach_header *mh, const char *installName) {
-            images.push_back({ mh, installName });
-        });
-
-        int64_t cacheSlide = (long)dyldCache - dyldCache->unslidLoadAddress();
-        uint64_t cacheUnslideAddr = dyldCache->unslidLoadAddress();
-        optimizeAwayStubs(images, cacheSlide, cacheUnslideAddr,
-                          dyldCache, _s_neverStubEliminateSymbols);
-    }
+    // optimize away stubs
+    uint64_t t6 = mach_absolute_time();
+    if ( _options.optimizeStubs )
+         optimizeAwayStubs();
 
 
     // FIPS seal corecrypto, This must be done after stub elimination (so that __TEXT,__text is not changed after sealing)
     fipsSign();
 
-    _timeRecorder.recordTime("do stub elimination");
-
     // merge and compact LINKEDIT segments
-    {
-        // If we want to remove, not just unmap locals, then set the dylibs themselves to be stripped
-        DylibStripMode dylibStripMode = DylibStripMode::stripNone;
-        if ( _options.localSymbolMode == DyldSharedCache::LocalSymbolsMode::strip )
-            dylibStripMode = CacheBuilder::DylibStripMode::stripLocals;
-
-        __block std::vector<std::tuple<const mach_header*, const char*, DylibStripMode>> images;
-        dyldCache->forEachImage(^(const mach_header *mh, const char *installName) {
-            images.push_back({ mh, installName, dylibStripMode });
-        });
-        optimizeLinkedit(&_localSymbolsRegion, images);
-    }
+    uint64_t t7 = mach_absolute_time();
+    optimizeLinkedit();
 
     // copy ImageArray to end of read-only region
     addImageArray();
     if ( _diagnostics.hasError() )
         return;
+    uint64_t t8 = mach_absolute_time();
 
-    _timeRecorder.recordTime("optimize LINKEDITs");
-
-    // don't add dyld3 closures to simulator cache or the base system where size is more of an issue
-    if ( _options.optimizeDyldDlopens ) {
+    // don't add dyld3 closures to simulator cache
+    if ( !dyld3::MachOFile::isSimulatorPlatform(_options.platform) ) {
         // compute and add dlopen closures for all other dylibs
         addOtherImageArray(otherOsDylibsInput, overflowDylibs);
         if ( _diagnostics.hasError() )
             return;
-    }
-    if ( _options.optimizeDyldLaunches ) {
+
         // compute and add launch closures to end of read-only region
         addClosures(osExecutables);
         if ( _diagnostics.hasError() )
@@ -1094,20 +981,16 @@ void SharedCacheBuilder::build(const std::vector<LoadedMachO>& dylibs,
 
     // update final readOnly region size
     dyld_cache_mapping_info* mappings = (dyld_cache_mapping_info*)(_readExecuteRegion.buffer + dyldCache->header.mappingOffset);
-    mappings[dyldCache->header.mappingCount - 1].size = _readOnlyRegion.sizeInUse;
-    dyld_cache_mapping_and_slide_info* slidableMappings = (dyld_cache_mapping_and_slide_info*)(_readExecuteRegion.buffer + dyldCache->header.mappingWithSlideOffset);
-    slidableMappings[dyldCache->header.mappingCount - 1].size = _readOnlyRegion.sizeInUse;
-    if ( _localSymbolsRegion.sizeInUse != 0 ) {
+    mappings[2].size = _readOnlyRegion.sizeInUse;
+    if ( _options.excludeLocalSymbols )
         dyldCache->header.localSymbolsOffset = _readOnlyRegion.cacheFileOffset + _readOnlyRegion.sizeInUse;
-        dyldCache->header.localSymbolsSize   = _localSymbolsRegion.sizeInUse;
-    }
 
     // record max slide now that final size is established
     if ( _archLayout->sharedRegionsAreDiscontiguous ) {
         // special case x86_64 which has three non-contiguous chunks each in their own 1GB regions
-        uint64_t maxSlide0 = DISCONTIGUOUS_RX_SIZE - _readExecuteRegion.sizeInUse; // TEXT region has 1.5GB region
-        uint64_t maxSlide1 = DISCONTIGUOUS_RW_SIZE - dataRegionsTotalSize();
-        uint64_t maxSlide2 = DISCONTIGUOUS_RO_SIZE - _readOnlyRegion.sizeInUse;
+        uint64_t maxSlide0 = 0x60000000 - _readExecuteRegion.sizeInUse; // TEXT region has 1.5GB region
+        uint64_t maxSlide1 = 0x40000000 - _readWriteRegion.sizeInUse;
+        uint64_t maxSlide2 = 0x3FE00000 - _readOnlyRegion.sizeInUse;
         dyldCache->header.maxSlide = std::min(std::min(maxSlide0, maxSlide1), maxSlide2);
     }
     else {
@@ -1121,13 +1004,7 @@ void SharedCacheBuilder::build(const std::vector<LoadedMachO>& dylibs,
     // mark if any input dylibs were built with chained fixups
     dyldCache->header.builtFromChainedFixups = _someDylibsUsedChainedFixups;
 
-    _timeRecorder.recordTime("build %lu closures", osExecutables.size());
-    // Emit the CF strings without their ISAs being signed
-    // This must be after addImageArray() as it depends on hasImageIndex().
-    // It also has to be before emitting slide info as it adds ASLR entries.
-    emitContantObjects();
-
-    _timeRecorder.recordTime("emit constant objects");
+    uint64_t t9 = mach_absolute_time();
 
     // fill in slide info at start of region[2]
     // do this last because it modifies pointers in DATA segments
@@ -1147,7 +1024,7 @@ void SharedCacheBuilder::build(const std::vector<LoadedMachO>& dylibs,
             writeSlideInfoV2<Pointer32<LittleEndian>>(_aslrTracker.bitmap(), _aslrTracker.dataPageCount());
     }
 
-    _timeRecorder.recordTime("compute slide info");
+    uint64_t t10 = mach_absolute_time();
 
     // last sanity check on size
     if ( cacheOverflowAmount() != 0 ) {
@@ -1160,10 +1037,19 @@ void SharedCacheBuilder::build(const std::vector<LoadedMachO>& dylibs,
     if ( _diagnostics.hasError() )
         return;
 
-    _timeRecorder.recordTime("compute UUID and codesign cache file");
+    uint64_t t11 = mach_absolute_time();
 
-    if (_options.verbose) {
-        _timeRecorder.logTimings();
+    if ( _options.verbose ) {
+        fprintf(stderr, "time to layout cache: %ums\n", absolutetime_to_milliseconds(t2-t1));
+        fprintf(stderr, "time to copy cached dylibs into buffer: %ums\n", absolutetime_to_milliseconds(t3-t2));
+        fprintf(stderr, "time to adjust segments for new split locations: %ums\n", absolutetime_to_milliseconds(t4-t3));
+        fprintf(stderr, "time to bind all images: %ums\n", absolutetime_to_milliseconds(t5-t4));
+        fprintf(stderr, "time to optimize Objective-C: %ums\n", absolutetime_to_milliseconds(t6-t5));
+        fprintf(stderr, "time to do stub elimination: %ums\n", absolutetime_to_milliseconds(t7-t6));
+        fprintf(stderr, "time to optimize LINKEDITs: %ums\n", absolutetime_to_milliseconds(t8-t7));
+        fprintf(stderr, "time to build %lu closures: %ums\n", osExecutables.size(), absolutetime_to_milliseconds(t9-t8));
+        fprintf(stderr, "time to compute slide info: %ums\n", absolutetime_to_milliseconds(t10-t9));
+        fprintf(stderr, "time to compute UUID and codesign cache file: %ums\n", absolutetime_to_milliseconds(t11-t10));
     }
 
     return;
@@ -1182,23 +1068,19 @@ const std::set<const dyld3::MachOAnalyzer*> SharedCacheBuilder::evictions()
 void SharedCacheBuilder::deleteBuffer()
 {
     // Cache buffer
-    if ( _allocatedBufferSize != 0 ) {
-        vm_deallocate(mach_task_self(), _fullAllocatedBuffer, _allocatedBufferSize);
-        _fullAllocatedBuffer = 0;
-        _allocatedBufferSize = 0;
-    }
+    vm_deallocate(mach_task_self(), _fullAllocatedBuffer, _archLayout->sharedMemorySize);
+    _fullAllocatedBuffer = 0;
+    _allocatedBufferSize = 0;
     // Local symbols buffer
     if ( _localSymbolsRegion.bufferSize != 0 ) {
         vm_deallocate(mach_task_self(), (vm_address_t)_localSymbolsRegion.buffer, _localSymbolsRegion.bufferSize);
         _localSymbolsRegion.buffer = 0;
         _localSymbolsRegion.bufferSize = 0;
     }
-    // Code signatures
-    if ( _codeSignatureRegion.bufferSize != 0 ) {
-        vm_deallocate(mach_task_self(), (vm_address_t)_codeSignatureRegion.buffer, _codeSignatureRegion.bufferSize);
-        _codeSignatureRegion.buffer = 0;
-        _codeSignatureRegion.bufferSize = 0;
-    }
+    // Code singatures
+    vm_deallocate(mach_task_self(), (vm_address_t)_codeSignatureRegion.buffer, _codeSignatureRegion.bufferSize);
+    _codeSignatureRegion.buffer = 0;
+    _codeSignatureRegion.bufferSize = 0;
 }
 
 
@@ -1246,22 +1128,29 @@ uint64_t SharedCacheBuilder::cacheOverflowAmount()
 {
     if ( _archLayout->sharedRegionsAreDiscontiguous ) {
         // for macOS x86_64 cache, need to check each region for overflow
-        if ( _readExecuteRegion.sizeInUse > DISCONTIGUOUS_RX_SIZE )
-            return (_readExecuteRegion.sizeInUse - DISCONTIGUOUS_RX_SIZE);
+        if ( _readExecuteRegion.sizeInUse > 0x60000000 )
+            return (_readExecuteRegion.sizeInUse - 0x60000000);
 
-        uint64_t dataSize = dataRegionsTotalSize();
-        if ( dataSize > DISCONTIGUOUS_RW_SIZE )
-            return (dataSize - DISCONTIGUOUS_RW_SIZE);
+        if ( _readWriteRegion.sizeInUse > 0x40000000 )
+            return (_readWriteRegion.sizeInUse - 0x40000000);
 
-        if ( _readOnlyRegion.sizeInUse > DISCONTIGUOUS_RO_SIZE )
-            return (_readOnlyRegion.sizeInUse - DISCONTIGUOUS_RO_SIZE);
+        if ( _readOnlyRegion.sizeInUse > 0x3FE00000 )
+            return (_readOnlyRegion.sizeInUse - 0x3FE00000);
+    }
+    else if ( _archLayout->textAndDataMaxSize != 0 ) {
+        // for armv7k, limit is 512MB of TEX+DATA
+        uint64_t totalTextAndData = _readWriteRegion.unslidLoadAddress + _readWriteRegion.sizeInUse - _readExecuteRegion.unslidLoadAddress;
+        if ( totalTextAndData < _archLayout->textAndDataMaxSize )
+            return 0;
+        else
+            return totalTextAndData - _archLayout->textAndDataMaxSize;
     }
     else {
         bool alreadyOptimized = (_readOnlyRegion.sizeInUse != _readOnlyRegion.bufferSize);
         uint64_t vmSize = _readOnlyRegion.unslidLoadAddress - _readExecuteRegion.unslidLoadAddress;
         if ( alreadyOptimized )
             vmSize += _readOnlyRegion.sizeInUse;
-        else if ( _options.localSymbolMode == DyldSharedCache::LocalSymbolsMode::unmap )
+        else if ( _options.excludeLocalSymbols )
             vmSize += (_readOnlyRegion.sizeInUse * 37/100); // assume locals removal and LINKEDIT optimzation reduces LINKEDITs %37 of original size
         else
             vmSize += (_readOnlyRegion.sizeInUse * 80/100); // assume LINKEDIT optimzation reduces LINKEDITs to %80 of original size
@@ -1315,7 +1204,7 @@ size_t SharedCacheBuilder::evictLeafDylibs(uint64_t reductionTarget, std::vector
         DylibAndSize candidate;
         uint64_t candidateOrder = 0;
         for(const auto& dylib : dylibsToSort) {
-            const auto& i = referencesPtr->find(dylib.installName);
+            const auto &i = referencesPtr->find(dylib.installName);
             assert(i != referencesPtr->end());
             if (!i->second.empty()) {
                 continue;
@@ -1381,24 +1270,18 @@ void SharedCacheBuilder::writeCacheHeader()
     magic.append(_options.archs->name());
     assert(magic.length() == 15);
 
-    // 1 __TEXT segment, n __DATA segments, and 1 __LINKEDIT segment
-    const uint32_t mappingCount = 2 + (uint32_t)_dataRegions.size();
-    assert(mappingCount <= DyldSharedCache::MaxMappings);
-
     // fill in header
     dyld_cache_header* dyldCacheHeader = (dyld_cache_header*)_readExecuteRegion.buffer;
     memcpy(dyldCacheHeader->magic, magic.c_str(), 16);
     dyldCacheHeader->mappingOffset        = sizeof(dyld_cache_header);
-    dyldCacheHeader->mappingCount         = mappingCount;
-    dyldCacheHeader->mappingWithSlideOffset = (uint32_t)(dyldCacheHeader->mappingOffset + mappingCount*sizeof(dyld_cache_mapping_and_slide_info));
-    dyldCacheHeader->mappingWithSlideCount  = mappingCount;
-    dyldCacheHeader->imagesOffset         = (uint32_t)(dyldCacheHeader->mappingWithSlideOffset + mappingCount*sizeof(dyld_cache_mapping_and_slide_info));
+    dyldCacheHeader->mappingCount         = 3;
+    dyldCacheHeader->imagesOffset         = (uint32_t)(dyldCacheHeader->mappingOffset + 3*sizeof(dyld_cache_mapping_info));
     dyldCacheHeader->imagesCount          = (uint32_t)_sortedDylibs.size() + _aliasCount;
     dyldCacheHeader->dyldBaseAddress      = 0;
     dyldCacheHeader->codeSignatureOffset  = 0;
     dyldCacheHeader->codeSignatureSize    = 0;
-    dyldCacheHeader->slideInfoOffsetUnused     = 0;
-    dyldCacheHeader->slideInfoSizeUnused       = 0;
+    dyldCacheHeader->slideInfoOffset      = _slideInfoFileOffset;
+    dyldCacheHeader->slideInfoSize        = _slideInfoBufferSizeAllocated;
     dyldCacheHeader->localSymbolsOffset   = 0;
     dyldCacheHeader->localSymbolsSize     = 0;
     dyldCacheHeader->cacheType            = _options.optimizeStubs ? kDyldSharedCacheTypeProduction : kDyldSharedCacheTypeDevelopment;
@@ -1429,74 +1312,21 @@ void SharedCacheBuilder::writeCacheHeader()
 
    // fill in mappings
     dyld_cache_mapping_info* mappings = (dyld_cache_mapping_info*)(_readExecuteRegion.buffer + dyldCacheHeader->mappingOffset);
-    assert(_readExecuteRegion.cacheFileOffset == 0);
     mappings[0].address    = _readExecuteRegion.unslidLoadAddress;
-    mappings[0].fileOffset = _readExecuteRegion.cacheFileOffset;
+    mappings[0].fileOffset = 0;
     mappings[0].size       = _readExecuteRegion.sizeInUse;
     mappings[0].maxProt    = VM_PROT_READ | VM_PROT_EXECUTE;
     mappings[0].initProt   = VM_PROT_READ | VM_PROT_EXECUTE;
-    for (uint32_t i = 0; i != _dataRegions.size(); ++i) {
-        if ( i == 0 ) {
-            assert(_dataRegions[i].cacheFileOffset == _readExecuteRegion.sizeInUse);
-        }
-
-        assert(_dataRegions[i].initProt != 0);
-        assert(_dataRegions[i].maxProt != 0);
-
-        mappings[i + 1].address    = _dataRegions[i].unslidLoadAddress;
-        mappings[i + 1].fileOffset = _dataRegions[i].cacheFileOffset;
-        mappings[i + 1].size       = _dataRegions[i].sizeInUse;
-        mappings[i + 1].maxProt    = _dataRegions[i].maxProt;
-        mappings[i + 1].initProt   = _dataRegions[i].initProt;
-    }
-    assert(_readOnlyRegion.cacheFileOffset == (_dataRegions.back().cacheFileOffset + _dataRegions.back().sizeInUse));
-    mappings[mappingCount - 1].address    = _readOnlyRegion.unslidLoadAddress;
-    mappings[mappingCount - 1].fileOffset = _readOnlyRegion.cacheFileOffset;
-    mappings[mappingCount - 1].size       = _readOnlyRegion.sizeInUse;
-    mappings[mappingCount - 1].maxProt    = VM_PROT_READ;
-    mappings[mappingCount - 1].initProt   = VM_PROT_READ;
-
-    // Add in the new mappings with also have slide info
-    dyld_cache_mapping_and_slide_info* slidableMappings = (dyld_cache_mapping_and_slide_info*)(_readExecuteRegion.buffer + dyldCacheHeader->mappingWithSlideOffset);
-    slidableMappings[0].address             = _readExecuteRegion.unslidLoadAddress;
-    slidableMappings[0].fileOffset          = _readExecuteRegion.cacheFileOffset;
-    slidableMappings[0].size                = _readExecuteRegion.sizeInUse;
-    slidableMappings[0].maxProt             = VM_PROT_READ | VM_PROT_EXECUTE;
-    slidableMappings[0].initProt            = VM_PROT_READ | VM_PROT_EXECUTE;
-    slidableMappings[0].slideInfoFileOffset = 0;
-    slidableMappings[0].slideInfoFileSize   = 0;
-    slidableMappings[0].flags               = 0;
-    for (uint32_t i = 0; i != _dataRegions.size(); ++i) {
-        // Work out which flags this mapping has
-        uint64_t flags = 0;
-        if ( startsWith(_dataRegions[i].name, "__AUTH") )
-            flags |= DYLD_CACHE_MAPPING_AUTH_DATA;
-        if ( (_dataRegions[i].name == "__AUTH_DIRTY") || (_dataRegions[i].name == "__DATA_DIRTY") ) {
-            flags |= DYLD_CACHE_MAPPING_DIRTY_DATA;
-        } else if ( (_dataRegions[i].name == "__AUTH_CONST") || (_dataRegions[i].name == "__DATA_CONST") ) {
-            flags |= DYLD_CACHE_MAPPING_CONST_DATA;
-        }
-
-        assert(_dataRegions[i].initProt != 0);
-        assert(_dataRegions[i].maxProt != 0);
-
-        slidableMappings[i + 1].address             = _dataRegions[i].unslidLoadAddress;
-        slidableMappings[i + 1].fileOffset          = _dataRegions[i].cacheFileOffset;
-        slidableMappings[i + 1].size                = _dataRegions[i].sizeInUse;
-        slidableMappings[i + 1].maxProt             = _dataRegions[i].maxProt;
-        slidableMappings[i + 1].initProt            = _dataRegions[i].initProt;
-        slidableMappings[i + 1].slideInfoFileOffset = _dataRegions[i].slideInfoFileOffset;
-        slidableMappings[i + 1].slideInfoFileSize   = _dataRegions[i].slideInfoFileSize;
-        slidableMappings[i + 1].flags               = flags;
-    }
-    slidableMappings[mappingCount - 1].address             = _readOnlyRegion.unslidLoadAddress;
-    slidableMappings[mappingCount - 1].fileOffset          = _readOnlyRegion.cacheFileOffset;
-    slidableMappings[mappingCount - 1].size                = _readOnlyRegion.sizeInUse;
-    slidableMappings[mappingCount - 1].maxProt             = VM_PROT_READ;
-    slidableMappings[mappingCount - 1].initProt            = VM_PROT_READ;
-    slidableMappings[mappingCount - 1].slideInfoFileOffset = 0;
-    slidableMappings[mappingCount - 1].slideInfoFileSize   = 0;
-    slidableMappings[mappingCount - 1].flags               = 0;
+    mappings[1].address    = _readWriteRegion.unslidLoadAddress;
+    mappings[1].fileOffset = _readExecuteRegion.sizeInUse;
+    mappings[1].size       = _readWriteRegion.sizeInUse;
+    mappings[1].maxProt    = VM_PROT_READ | VM_PROT_WRITE;
+    mappings[1].initProt   = VM_PROT_READ | VM_PROT_WRITE;
+    mappings[2].address    = _readOnlyRegion.unslidLoadAddress;
+    mappings[2].fileOffset = _readExecuteRegion.sizeInUse + _readWriteRegion.sizeInUse;
+    mappings[2].size       = _readOnlyRegion.sizeInUse;
+    mappings[2].maxProt    = VM_PROT_READ;
+    mappings[2].initProt   = VM_PROT_READ;
 
     // fill in image table
     dyld_cache_image_info* images = (dyld_cache_image_info*)(_readExecuteRegion.buffer + dyldCacheHeader->imagesOffset);
@@ -1559,16 +1389,10 @@ void SharedCacheBuilder::writeCacheHeader()
     assert(stringOffset <= (firstImage->address - mappings[0].address));
 }
 
-void SharedCacheBuilder::processSelectorStrings(const std::vector<LoadedMachO>& executables, IMPCaches::HoleMap& selectorsHoleMap) {
+void SharedCacheBuilder::processSelectorStrings(const std::vector<LoadedMachO>& executables) {
     const bool log = false;
 
-    // We only do this optimisation to reduce the size of the shared cache executable closures
-    // Skip this is those closures are not being built
-    if ( !_options.optimizeDyldDlopens || !_options.optimizeDyldLaunches )
-        return;
-
     _selectorStringsFromExecutables = 0;
-    uint64_t totalBytesPulledIn = 0;
 
     // Don't do this optimisation on watchOS where the shared cache is too small
     if (_options.platform == dyld3::Platform::watchOS)
@@ -1581,39 +1405,32 @@ void SharedCacheBuilder::processSelectorStrings(const std::vector<LoadedMachO>& 
 
         uint64_t sizeBeforeProcessing = cacheStringSection.bufferSize;
 
-        ma->forEachObjCMethodName(^(const char* methodName) {
+        ma->forEachObjCMethodName(^(const char *methodName) {
             std::string_view str = methodName;
-            if (cacheStringSection.stringsToOffsets.find(str) == cacheStringSection.stringsToOffsets.end()) {
-                int offset = selectorsHoleMap.addStringOfSize((unsigned)str.size() + 1);
-                cacheStringSection.stringsToOffsets[str] = offset;
-
-                // If we inserted the string past the end then we need to include it in the total
-                int possibleNewEnd = offset + (int)str.size() + 1;
-                if (cacheStringSection.bufferSize < (uint32_t)possibleNewEnd) {
-                    cacheStringSection.bufferSize = (uint32_t)possibleNewEnd;
-                }
+            auto itAndInserted = cacheStringSection.stringsToOffsets.insert({ str, cacheStringSection.bufferSize });
+            if (itAndInserted.second) {
+                // If we inserted the string then we need to include it in the total
+                cacheStringSection.bufferSize += str.size() + 1;
                 // if (log) printf("Selector: %s -> %s\n", ma->installName(), methodName);
                 ++_selectorStringsFromExecutables;
             }
         });
 
         uint64_t sizeAfterProcessing = cacheStringSection.bufferSize;
-        totalBytesPulledIn += (sizeAfterProcessing - sizeBeforeProcessing);
         if ( log && (sizeBeforeProcessing != sizeAfterProcessing) ) {
             printf("Pulled in % 6lld bytes of selectors from %s\n",
                    sizeAfterProcessing - sizeBeforeProcessing, executable.loadedFileInfo.path);
         }
     }
 
-    _diagnostics.verbose("Pulled in %lld selector strings (%lld bytes) from executables\n",
-                         _selectorStringsFromExecutables, totalBytesPulledIn);
+    _diagnostics.verbose("Pulled in %lld selector strings from executables\n", _selectorStringsFromExecutables);
 }
 
-void SharedCacheBuilder::parseCoalescableSegments(IMPCaches::SelectorMap& selectors, IMPCaches::HoleMap& selectorsHoleMap) {
+void SharedCacheBuilder::parseCoalescableSegments() {
     const bool log = false;
 
     for (DylibInfo& dylib : _sortedDylibs)
-        _coalescedText.parseCoalescableText(dylib.input->mappedFile.mh, dylib.textCoalescer, selectors, selectorsHoleMap);
+        _coalescedText.parseCoalescableText(dylib.input->mappedFile.mh, dylib.textCoalescer);
 
     if (log) {
         for (const char* section : CacheCoalescedText::SupportedSections) {
@@ -1622,454 +1439,12 @@ void SharedCacheBuilder::parseCoalescableSegments(IMPCaches::SelectorMap& select
                    sectionData.bufferSize + sectionData.savedSpace, sectionData.bufferSize, sectionData.savedSpace);
         }
     }
-
-    // arm64e needs to convert CF constants to tagged pointers
-    if ( !strcmp(_archLayout->archName, "arm64e") ) {
-        // Find the dylib which exports the CFString ISA.  It's likely CoreFoundation but it could move
-        CacheCoalescedText::CFSection& cfStrings = _coalescedText.cfStrings;
-        for (DylibInfo& dylib : _sortedDylibs) {
-            const dyld3::MachOAnalyzer* ma = dylib.input->mappedFile.mh;
-            dyld3::MachOAnalyzer::FoundSymbol foundInfo;
-            bool foundISASymbol = ma->findExportedSymbol(_diagnostics, cfStrings.isaClassName, false, foundInfo, nullptr);
-            if ( foundISASymbol ) {
-                // This dylib exports the ISA, so everyone else should look here for the ISA too.
-                if ( cfStrings.isaInstallName != nullptr ) {
-                    // Found a duplicate.  We can't do anything here
-                    _diagnostics.verbose("Could not optimize CFString's due to duplicate ISA symbols");
-                    cfStrings.isaInstallName = nullptr;
-                    break;
-                } else {
-                    cfStrings.isaInstallName = ma->installName();
-                    cfStrings.isaVMOffset    = foundInfo.value;
-                }
-            }
-        }
-        if ( cfStrings.isaInstallName != nullptr ) {
-            for (DylibInfo& dylib : _sortedDylibs) {
-                _coalescedText.parseCFConstants(dylib.input->mappedFile.mh, dylib.textCoalescer);
-            }
-        }
-    }
-}
-
-// This is the new method which will put all __DATA* mappings in to a their own mappings
-void SharedCacheBuilder::assignMultipleDataSegmentAddresses(uint64_t& addr, uint32_t totalProtocolDefCount) {
-    uint64_t nextRegionFileOffset = _readExecuteRegion.sizeInUse;
-
-    const size_t dylibCount = _sortedDylibs.size();
-    BLOCK_ACCCESSIBLE_ARRAY(uint32_t, dirtyDataSortIndexes, dylibCount);
-    for (size_t i=0; i < dylibCount; ++i)
-        dirtyDataSortIndexes[i] = (uint32_t)i;
-    std::sort(&dirtyDataSortIndexes[0], &dirtyDataSortIndexes[dylibCount], [&](const uint32_t& a, const uint32_t& b) {
-        const auto& orderA = _options.dirtyDataSegmentOrdering.find(_sortedDylibs[a].input->mappedFile.runtimePath);
-        const auto& orderB = _options.dirtyDataSegmentOrdering.find(_sortedDylibs[b].input->mappedFile.runtimePath);
-        bool foundA = (orderA != _options.dirtyDataSegmentOrdering.end());
-        bool foundB = (orderB != _options.dirtyDataSegmentOrdering.end());
-
-        // Order all __DATA_DIRTY segments specified in the order file first, in the order specified in the file,
-        // followed by any other __DATA_DIRTY segments in lexicographic order.
-        if ( foundA && foundB )
-            return orderA->second < orderB->second;
-        else if ( foundA )
-            return true;
-        else if ( foundB )
-             return false;
-        else
-             return _sortedDylibs[a].input->mappedFile.runtimePath < _sortedDylibs[b].input->mappedFile.runtimePath;
-    });
-
-    bool supportsAuthFixups = false;
-
-    // This tracks which segments contain authenticated data, even if their name isn't __AUTH*
-    std::set<uint32_t> authenticatedSegments[dylibCount];
-    if ( strcmp(_archLayout->archName, "arm64e") == 0 ) {
-        supportsAuthFixups = true;
-
-        for (DylibInfo& dylib : _sortedDylibs) {
-            uint64_t dylibIndex = &dylib - _sortedDylibs.data();
-            __block std::set<uint32_t>& authSegmentIndices = authenticatedSegments[dylibIndex];
-
-            // Put all __DATA_DIRTY segments in the __AUTH region first, then we don't need to walk their chains
-            dylib.input->mappedFile.mh->forEachSegment(^(const dyld3::MachOFile::SegmentInfo& segInfo, bool& stop) {
-                if ( strcmp(segInfo.segName, "__DATA_DIRTY") == 0 ) {
-                    authSegmentIndices.insert(segInfo.segIndex);
-                    stop = true;
-                }
-            });
-            dylib.input->mappedFile.mh->withChainStarts(_diagnostics, 0,
-                                                        ^(const dyld_chained_starts_in_image *starts) {
-                dylib.input->mappedFile.mh->forEachFixupChainSegment(_diagnostics, starts,
-                                                                     ^(const dyld_chained_starts_in_segment* segmentInfo, uint32_t segIndex, bool& stopSegment) {
-                    // Skip walking segments we already know are __AUTH, ie, __DATA_DIRTY
-                    if ( authSegmentIndices.count(segIndex) )
-                        return;
-
-                    dylib.input->mappedFile.mh->forEachFixupInSegmentChains(_diagnostics, segmentInfo, false,
-                                                                            ^(dyld3::MachOLoaded::ChainedFixupPointerOnDisk* fixupLoc, const dyld_chained_starts_in_segment* segInfo, bool& stopChain) {
-                        uint16_t chainedFixupsFormat = segInfo->pointer_format;
-                        assert( (chainedFixupsFormat == DYLD_CHAINED_PTR_ARM64E) || (chainedFixupsFormat == DYLD_CHAINED_PTR_ARM64E_USERLAND) || (chainedFixupsFormat == DYLD_CHAINED_PTR_ARM64E_USERLAND24) );
-
-                        if ( fixupLoc->arm64e.authRebase.auth ) {
-                            authSegmentIndices.insert(segIndex);
-                            stopChain = true;
-                            return;
-                        }
-                    });
-                });
-            });
-        }
-    }
-
-    // Categorize each segment in each binary
-    enum class SegmentType : uint8_t {
-        skip,       // used for non-data segments we should ignore here
-        data,
-        dataDirty,
-        dataConst,
-        auth,
-        authDirty,
-        authConst,
-    };
-
-    BLOCK_ACCCESSIBLE_ARRAY(uint64_t, textSegVmAddrs, dylibCount);
-    BLOCK_ACCCESSIBLE_ARRAY(std::vector<SegmentType>, segmentTypes, dylibCount);
-
-    // Just in case __AUTH is used in a non-arm64e binary, we can force it to use data enums
-    SegmentType authSegment      = supportsAuthFixups ? SegmentType::auth      : SegmentType::data;
-    SegmentType authConstSegment = supportsAuthFixups ? SegmentType::authConst : SegmentType::dataConst;
-
-    for (const DylibInfo& dylib : _sortedDylibs) {
-        uint64_t dylibIndex = &dylib - _sortedDylibs.data();
-        __block std::set<uint32_t>& authSegmentIndices = authenticatedSegments[dylibIndex];
-        __block std::vector<SegmentType>& dylibSegmentTypes = segmentTypes[dylibIndex];
-        uint64_t &textSegVmAddr = textSegVmAddrs[dylibIndex];
-        dylib.input->mappedFile.mh->forEachSegment(^(const dyld3::MachOFile::SegmentInfo& segInfo, bool& stop) {
-            if ( strcmp(segInfo.segName, "__TEXT") == 0 ) {
-                textSegVmAddr = segInfo.vmAddr;
-            }
-
-            // Skip non-DATA segments
-            if ( segInfo.protections != (VM_PROT_READ | VM_PROT_WRITE) ) {
-                dylibSegmentTypes.push_back(SegmentType::skip);
-                return;
-            }
-
-            // If we don't have split seg v2, then all remaining segments must look like __DATA so that they
-            // stay contiguous
-            if (!dylib.input->mappedFile.mh->isSplitSegV2()) {
-                dylibSegmentTypes.push_back(SegmentType::data);
-                return;
-            }
-
-            __block bool supportsDataConst = true;
-            if ( dylib.input->mappedFile.mh->isSwiftLibrary() ) {
-                uint64_t objcConstSize = 0;
-                bool containsObjCSection = dylib.input->mappedFile.mh->findSectionContent(segInfo.segName, "__objc_const", objcConstSize);
-
-                // <rdar://problem/66284631> Don't put __objc_const read-only memory as Swift has method lists we can't see
-                if ( containsObjCSection )
-                    supportsDataConst = false;
-            } else if ( !strcmp(dylib.input->mappedFile.mh->installName(), "/System/Library/Frameworks/Foundation.framework/Foundation") ||
-                        !strcmp(dylib.input->mappedFile.mh->installName(), "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation") ) {
-                // <rdar://problem/69813664> _NSTheOneTruePredicate is incompatible with __DATA_CONST
-                supportsDataConst = false;
-            } else if ( !strcmp(dylib.input->mappedFile.mh->installName(), "/usr/lib/system/libdispatch.dylib") ) {
-               // rdar://72361509 (Speechrecognitiond crashing on AzulE18E123)
-               supportsDataConst = false;
-            } else if ( !strcmp(dylib.input->mappedFile.mh->installName(), "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation") ||
-                        !strcmp(dylib.input->mappedFile.mh->installName(), "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation") ) {
-                // rdar://74112547 CF writes to kCFNull constant object
-                supportsDataConst = false;
-            }
-
-            // Don't use data const for dylibs containing resolver functions.  This will be fixed in ld64 by moving their pointer atoms to __DATA
-            if ( supportsDataConst && endsWith(segInfo.segName, "_CONST") ) {
-                dylib.input->mappedFile.mh->forEachExportedSymbol(_diagnostics,
-                                                                  ^(const char *symbolName, uint64_t imageOffset, uint64_t flags, uint64_t other, const char *importName, bool &stop) {
-                    if ( (flags & EXPORT_SYMBOL_FLAGS_STUB_AND_RESOLVER ) != 0 ) {
-                        _diagnostics.verbose("%s: preventing use of __DATA_CONST due to resolvers\n", dylib.dylibID.c_str());
-                        supportsDataConst = false;
-                        stop = true;
-                    }
-                });
-            }
-
-            // If we are still allowed to use __DATA_CONST, then make sure that we are not using pointer based method lists.  These may not be written in libobjc due
-            // to uniquing or sorting (as those are done in the builder), but clients can still call setIMP to mutate them.
-            if ( supportsDataConst && endsWith(segInfo.segName, "_CONST") ) {
-                uint64_t segStartVMAddr = segInfo.vmAddr;
-                uint64_t segEndVMAddr = segInfo.vmAddr + segInfo.vmSize;
-
-                auto vmAddrConverter = dylib.input->mappedFile.mh->makeVMAddrConverter(false);
-                const uint32_t pointerSize = dylib.input->mappedFile.mh->pointerSize();
-
-                __block bool foundPointerBasedMethodList = false;
-                auto visitMethodList = ^(uint64_t methodListVMAddr) {
-                    if ( foundPointerBasedMethodList )
-                        return;
-                    if ( methodListVMAddr == 0 )
-                        return;
-                    // Ignore method lists in other segments
-                    if ( (methodListVMAddr < segStartVMAddr) || (methodListVMAddr >= segEndVMAddr) )
-                        return;
-                    auto visitMethod = ^(uint64_t methodVMAddr, const dyld3::MachOAnalyzer::ObjCMethod& method) { };
-                    bool isRelativeMethodList = false;
-                    dylib.input->mappedFile.mh->forEachObjCMethod(methodListVMAddr, vmAddrConverter, visitMethod, &isRelativeMethodList);
-                    if ( !isRelativeMethodList )
-                        foundPointerBasedMethodList = true;
-                };
-
-                auto visitClass = ^(Diagnostics& diag, uint64_t classVMAddr,
-                                    uint64_t classSuperclassVMAddr, uint64_t classDataVMAddr,
-                                    const dyld3::MachOAnalyzer::ObjCClassInfo& objcClass, bool isMetaClass) {
-                    visitMethodList(objcClass.baseMethodsVMAddr(pointerSize));
-                };
-
-                auto visitCategory = ^(Diagnostics& diag, uint64_t categoryVMAddr,
-                                       const dyld3::MachOAnalyzer::ObjCCategory& objcCategory) {
-                    visitMethodList(objcCategory.instanceMethodsVMAddr);
-                    visitMethodList(objcCategory.classMethodsVMAddr);
-                };
-
-                // Walk the class list
-                Diagnostics classDiag;
-                dylib.input->mappedFile.mh->forEachObjCClass(classDiag, vmAddrConverter, visitClass);
-
-                // Walk the category list
-                Diagnostics categoryDiag;
-                dylib.input->mappedFile.mh->forEachObjCCategory(categoryDiag, vmAddrConverter, visitCategory);
-
-                // Note we don't walk protocols as they don't have an IMP to set
-
-                if ( foundPointerBasedMethodList ) {
-                    _diagnostics.verbose("%s: preventing use of read-only %s due to pointer based method list\n", dylib.dylibID.c_str(), segInfo.segName);
-                    supportsDataConst = false;
-                }
-            }
-
-            // __AUTH_CONST
-            if ( strcmp(segInfo.segName, "__AUTH_CONST") == 0 ) {
-                dylibSegmentTypes.push_back(supportsDataConst ? authConstSegment : authSegment);
-                return;
-            }
-
-            // __DATA_CONST
-            if ( (strcmp(segInfo.segName, "__DATA_CONST") == 0) || (strcmp(segInfo.segName, "__OBJC_CONST") == 0) ) {
-                if ( authSegmentIndices.count(segInfo.segIndex) ) {
-                    // _diagnostics.verbose("%s: treating authenticated %s as __AUTH_CONST\n", dylib.dylibID.c_str(), segInfo.segName);
-                    dylibSegmentTypes.push_back(supportsDataConst ? SegmentType::authConst : SegmentType::auth);
-                } else {
-                    dylibSegmentTypes.push_back(supportsDataConst ? SegmentType::dataConst : SegmentType::data);
-                }
-                return;
-            }
-
-            // __DATA_DIRTY
-            if ( strcmp(segInfo.segName, "__DATA_DIRTY") == 0 ) {
-                if ( authSegmentIndices.count(segInfo.segIndex) ) {
-                    dylibSegmentTypes.push_back(SegmentType::authDirty);
-                } else {
-                    dylibSegmentTypes.push_back(SegmentType::dataDirty);
-                }
-                return;
-            }
-
-            // __AUTH
-            if ( strcmp(segInfo.segName, "__AUTH") == 0 ) {
-                dylibSegmentTypes.push_back(authSegment);
-                return;
-            }
-
-            // DATA
-            if ( authSegmentIndices.count(segInfo.segIndex) ) {
-                // _diagnostics.verbose("%s: treating authenticated %s as __AUTH\n", dylib.dylibID.c_str(), segInfo.segName);
-                dylibSegmentTypes.push_back(SegmentType::auth);
-            } else {
-                dylibSegmentTypes.push_back(SegmentType::data);
-            }
-        });
-    }
-
-    auto processDylibSegments = ^(SegmentType onlyType, Region& region) {
-        for (size_t unsortedDylibIndex = 0; unsortedDylibIndex != dylibCount; ++unsortedDylibIndex) {
-            size_t dylibIndex = unsortedDylibIndex;
-            if ( (onlyType == SegmentType::dataDirty) || (onlyType == SegmentType::authDirty) )
-                dylibIndex = dirtyDataSortIndexes[dylibIndex];
-
-            DylibInfo& dylib = _sortedDylibs[dylibIndex];
-            const std::vector<SegmentType>& dylibSegmentTypes = segmentTypes[dylibIndex];
-            const uint64_t textSegVmAddr = textSegVmAddrs[dylibIndex];
-
-            bool forcePageAlignedData = false;
-            if ( (_options.platform == dyld3::Platform::macOS) && (onlyType == SegmentType::data) ) {
-                forcePageAlignedData = dylib.input->mappedFile.mh->hasUnalignedPointerFixups();
-                //if ( forcePageAlignedData )
-                //    warning("unaligned pointer in %s\n", dylib.input->mappedFile.runtimePath.c_str());
-            }
-
-            dylib.input->mappedFile.mh->forEachSegment(^(const dyld3::MachOFile::SegmentInfo& segInfo, bool& stop) {
-                if ( dylibSegmentTypes[segInfo.segIndex] != onlyType )
-                    return;
-
-                // We may have coalesced the sections at the end of this segment.  In that case, shrink the segment to remove them.
-                __block size_t sizeOfSections = 0;
-                __block bool foundCoalescedSection = false;
-                dylib.input->mappedFile.mh->forEachSection(^(const dyld3::MachOAnalyzer::SectionInfo &sectInfo, bool malformedSectionRange, bool &stopSection) {
-                    if (strcmp(sectInfo.segInfo.segName, segInfo.segName) != 0)
-                        return;
-                    if ( dylib.textCoalescer.sectionWasCoalesced(segInfo.segName, sectInfo.sectName)) {
-                        foundCoalescedSection = true;
-                    } else {
-                        sizeOfSections = sectInfo.sectAddr + sectInfo.sectSize - segInfo.vmAddr;
-                    }
-                });
-                if (!foundCoalescedSection)
-                    sizeOfSections = segInfo.sizeOfSections;
-
-                if ( !forcePageAlignedData ) {
-                    // Pack __DATA segments
-                    addr = align(addr, segInfo.p2align);
-                }
-                else {
-                    // Keep __DATA segments 4K or more aligned
-                    addr = align(addr, std::max((int)segInfo.p2align, (int)12));
-                }
-
-                size_t copySize = std::min((size_t)segInfo.fileSize, (size_t)sizeOfSections);
-                uint64_t offsetInRegion = addr - region.unslidLoadAddress;
-                SegmentMappingInfo loc;
-                loc.srcSegment             = (uint8_t*)dylib.input->mappedFile.mh + segInfo.vmAddr - textSegVmAddr;
-                loc.segName                = segInfo.segName;
-                loc.dstSegment             = region.buffer + offsetInRegion;
-                loc.dstCacheUnslidAddress  = addr;
-                loc.dstCacheFileOffset     = (uint32_t)(region.cacheFileOffset + offsetInRegion);
-                loc.dstCacheSegmentSize    = (uint32_t)sizeOfSections;
-                loc.dstCacheFileSize       = (uint32_t)copySize;
-                loc.copySegmentSize        = (uint32_t)copySize;
-                loc.srcSegmentIndex        = segInfo.segIndex;
-                dylib.cacheLocation.push_back(loc);
-                addr += loc.dstCacheSegmentSize;
-            });
-        }
-
-        // align region end
-        addr = align(addr, _archLayout->sharedRegionAlignP2);
-    };
-
-    struct DataRegion {
-        const char*                 regionName;
-        SegmentType                 dataSegment;
-        std::optional<SegmentType>  dirtySegment;
-        // Note this is temporary as once all platforms/archs support __DATA_CONST, we can move to a DataRegion just for CONST
-        std::optional<SegmentType>  dataConstSegment;
-        bool                        addCFStrings;
-        bool                        addObjCRW;
-    };
-    std::vector<DataRegion> dataRegions;
-
-    // We only support __DATA_CONST on arm64(e) for now.
-    bool supportDataConst = false;
-    //supportDataConst |= strcmp(_archLayout->archName, "arm64") == 0;
-    supportDataConst |= strcmp(_archLayout->archName, "arm64e") == 0;
-    if ( supportDataConst ) {
-        bool addObjCRWToData = !supportsAuthFixups;
-        DataRegion dataWriteRegion  = { "__DATA",       SegmentType::data,      SegmentType::dataDirty, {}, false,  addObjCRWToData  };
-        DataRegion dataConstRegion  = { "__DATA_CONST", SegmentType::dataConst, {},                     {}, true,   false            };
-        DataRegion authWriteRegion  = { "__AUTH",       SegmentType::auth,      SegmentType::authDirty, {}, false,  !addObjCRWToData };
-        DataRegion authConstRegion  = { "__AUTH_CONST", SegmentType::authConst, {},                     {}, false,  false            };
-        dataRegions.push_back(dataWriteRegion);
-        dataRegions.push_back(dataConstRegion);
-        if ( supportsAuthFixups ) {
-            dataRegions.push_back(authWriteRegion);
-            dataRegions.push_back(authConstRegion);
-        }
-    } else {
-        DataRegion dataWriteRegion  = { "__DATA",       SegmentType::data,      SegmentType::dataDirty, SegmentType::dataConst, false,  true  };
-        dataRegions.push_back(dataWriteRegion);
-    }
-
-    for (DataRegion& dataRegion : dataRegions)
-    {
-        Region region;
-        region.buffer               = (uint8_t*)_fullAllocatedBuffer + addr - _archLayout->sharedMemoryStart;
-        region.bufferSize           = 0;
-        region.sizeInUse            = 0;
-        region.unslidLoadAddress    = addr;
-        region.cacheFileOffset      = nextRegionFileOffset;
-        region.name                 = dataRegion.regionName;
-        region.initProt             = endsWith(dataRegion.regionName, "_CONST") ? VM_PROT_READ : (VM_PROT_READ | VM_PROT_WRITE);
-        region.maxProt              = VM_PROT_READ | VM_PROT_WRITE;
-
-        // layout all __DATA_DIRTY segments, sorted (FIXME)
-        if (dataRegion.dirtySegment.has_value())
-            processDylibSegments(*dataRegion.dirtySegment, region);
-
-        // layout all __DATA segments (and other r/w non-dirty, non-const, non-auth) segments
-        processDylibSegments(dataRegion.dataSegment, region);
-
-        // When __DATA_CONST is not its own DataRegion, we fold it in to the __DATA DataRegion
-        if (dataRegion.dataConstSegment.has_value())
-            processDylibSegments(*dataRegion.dataConstSegment, region);
-
-        // Make space for the cfstrings
-        if ( (dataRegion.addCFStrings) && (_coalescedText.cfStrings.bufferSize != 0) ) {
-            // Keep __DATA segments 4K or more aligned
-            addr = align(addr, 12);
-            uint64_t offsetInRegion = addr - region.unslidLoadAddress;
-
-            CacheCoalescedText::CFSection& cacheSection = _coalescedText.cfStrings;
-            cacheSection.bufferAddr         = region.buffer + offsetInRegion;
-            cacheSection.bufferVMAddr       = addr;
-            cacheSection.cacheFileOffset    = region.cacheFileOffset + offsetInRegion;
-            addr += cacheSection.bufferSize;
-        }
-
-        if ( dataRegion.addObjCRW ) {
-            // reserve space for objc r/w optimization tables
-            _objcReadWriteBufferSizeAllocated = align(computeReadWriteObjC((uint32_t)_sortedDylibs.size(), totalProtocolDefCount), 14);
-            addr = align(addr, 4); // objc r/w section contains pointer and must be at least pointer align
-            _objcReadWriteBuffer = region.buffer + (addr - region.unslidLoadAddress);
-            _objcReadWriteFileOffset = (uint32_t)((_objcReadWriteBuffer - region.buffer) + region.cacheFileOffset);
-            addr += _objcReadWriteBufferSizeAllocated;
-
-
-            // align region end
-            addr = align(addr, _archLayout->sharedRegionAlignP2);
-        }
-
-        // align DATA region end
-        uint64_t endDataAddress = addr;
-        region.bufferSize   = endDataAddress - region.unslidLoadAddress;
-        region.sizeInUse    = region.bufferSize;
-
-        _dataRegions.push_back(region);
-        nextRegionFileOffset = region.cacheFileOffset + region.sizeInUse;
-
-        // Only arm64 and arm64e shared caches have enough space to pad between __DATA and __DATA_CONST
-        // All other caches are overflowing.
-        if ( !strcmp(_archLayout->archName, "arm64") || !strcmp(_archLayout->archName, "arm64e") )
-            addr = align((addr + _archLayout->sharedRegionPadding), _archLayout->sharedRegionAlignP2);
-    }
-
-    // Sanity check that we didn't put the same segment in 2 different ranges
-    for (DylibInfo& dylib : _sortedDylibs) {
-        std::unordered_set<uint64_t> seenSegmentIndices;
-        for (SegmentMappingInfo& segmentInfo : dylib.cacheLocation) {
-            if ( seenSegmentIndices.count(segmentInfo.srcSegmentIndex) != 0 ) {
-                _diagnostics.error("%s segment %s was duplicated in layout",
-                                   dylib.input->mappedFile.mh->installName(), segmentInfo.segName);
-                return;
-            }
-            seenSegmentIndices.insert(segmentInfo.srcSegmentIndex);
-        }
-    }
 }
 
 void SharedCacheBuilder::assignSegmentAddresses()
 {
     // calculate size of header info and where first dylib's mach_header should start
-    size_t startOffset = sizeof(dyld_cache_header) + DyldSharedCache::MaxMappings * sizeof(dyld_cache_mapping_info);
-    startOffset += DyldSharedCache::MaxMappings * sizeof(dyld_cache_mapping_and_slide_info);
+    size_t startOffset = sizeof(dyld_cache_header) + 3*sizeof(dyld_cache_mapping_info);
     startOffset += sizeof(dyld_cache_image_info) * _sortedDylibs.size();
     startOffset += sizeof(dyld_cache_image_text_info) * _sortedDylibs.size();
     for (const DylibInfo& dylib : _sortedDylibs) {
@@ -2107,7 +1482,7 @@ void SharedCacheBuilder::assignSegmentAddresses()
             dylib.input->mappedFile.mh->forEachSection(^(const dyld3::MachOAnalyzer::SectionInfo &sectInfo, bool malformedSectionRange, bool &stopSection) {
                 if (strcmp(sectInfo.segInfo.segName, segInfo.segName) != 0)
                     return;
-                if ( dylib.textCoalescer.sectionWasCoalesced(segInfo.segName, sectInfo.sectName)) {
+                if ( dylib.textCoalescer.sectionWasCoalesced(sectInfo.sectName)) {
                     foundCoalescedSection = true;
                 } else {
                     sizeOfSections = sectInfo.sectAddr + sectInfo.sectSize - segInfo.vmAddr;
@@ -2132,6 +1507,36 @@ void SharedCacheBuilder::assignSegmentAddresses()
             dylib.cacheLocation.push_back(loc);
             addr += loc.dstCacheSegmentSize;
         });
+    }
+    // move read-only segments to end of TEXT
+    if ( _archLayout->textAndDataMaxSize != 0 ) {
+       for (DylibInfo& dylib : _sortedDylibs) {
+            __block uint64_t textSegVmAddr = 0;
+            dylib.input->mappedFile.mh->forEachSegment(^(const dyld3::MachOFile::SegmentInfo& segInfo, bool& stop) {
+                if ( strcmp(segInfo.segName, "__TEXT") == 0 )
+                    textSegVmAddr = segInfo.vmAddr;
+                if ( segInfo.protections != VM_PROT_READ )
+                    return;
+                if ( strcmp(segInfo.segName, "__LINKEDIT") == 0 )
+                    return;
+
+                // Keep segments segments 4K or more aligned
+                addr = align(addr, std::max((int)segInfo.p2align, (int)12));
+                uint64_t offsetInRegion = addr - _readExecuteRegion.unslidLoadAddress;
+                SegmentMappingInfo loc;
+                loc.srcSegment             = (uint8_t*)dylib.input->mappedFile.mh + segInfo.vmAddr - textSegVmAddr;
+                loc.segName                = segInfo.segName;
+                loc.dstSegment             = _readExecuteRegion.buffer + offsetInRegion;
+                loc.dstCacheUnslidAddress  = addr;
+                loc.dstCacheFileOffset     = (uint32_t)(_readExecuteRegion.cacheFileOffset + offsetInRegion);
+                loc.dstCacheSegmentSize    = (uint32_t)align(segInfo.sizeOfSections, 12);
+                loc.dstCacheFileSize       = (uint32_t)segInfo.sizeOfSections;
+                loc.copySegmentSize        = (uint32_t)segInfo.sizeOfSections;
+                loc.srcSegmentIndex        = segInfo.segIndex;
+                dylib.cacheLocation.push_back(loc);
+                addr += loc.dstCacheSegmentSize;
+            });
+        }
     }
 
     // reserve space for objc optimization tables and deduped strings
@@ -2164,13 +1569,8 @@ void SharedCacheBuilder::assignSegmentAddresses()
     if ( coalescedSelectorCount > totalSelectorRefCount )
         totalSelectorRefCount = coalescedSelectorCount;
     addr += align(computeReadOnlyObjC(totalSelectorRefCount, totalClassDefCount, totalProtocolDefCount), 14);
-
-    size_t impCachesSize = _impCachesBuilder->totalIMPCachesSize();
-    size_t alignedImpCachesSize = align(impCachesSize, 14);
-    _diagnostics.verbose("Reserving %zd bytes for IMP caches (aligned to %zd)\n", impCachesSize, alignedImpCachesSize);
-    addr += alignedImpCachesSize;
-
     _objcReadOnlyBufferSizeAllocated = addr - objcReadOnlyBufferVMAddr;
+
 
     // align TEXT region end
     uint64_t endTextAddress = align(addr, _archLayout->sharedRegionAlignP2);
@@ -2180,24 +1580,168 @@ void SharedCacheBuilder::assignSegmentAddresses()
 
     // assign __DATA* addresses
     if ( _archLayout->sharedRegionsAreDiscontiguous )
-        addr = DISCONTIGUOUS_RW;
+        addr = _archLayout->sharedMemoryStart + 0x60000000;
     else
         addr = align((addr + _archLayout->sharedRegionPadding), _archLayout->sharedRegionAlignP2);
+    _readWriteRegion.buffer               = (uint8_t*)_fullAllocatedBuffer + addr - _archLayout->sharedMemoryStart;
+    _readWriteRegion.bufferSize           = 0;
+    _readWriteRegion.sizeInUse            = 0;
+    _readWriteRegion.unslidLoadAddress    = addr;
+    _readWriteRegion.cacheFileOffset      = _readExecuteRegion.sizeInUse;
 
-    // __DATA*
-    assignMultipleDataSegmentAddresses(addr, totalProtocolDefCount);
+    // layout all __DATA_CONST segments
+    __block int dataConstSegmentCount = 0;
+    for (DylibInfo& dylib : _sortedDylibs) {
+        __block uint64_t textSegVmAddr = 0;
+       dylib.input->mappedFile.mh->forEachSegment(^(const dyld3::MachOFile::SegmentInfo& segInfo, bool& stop) {
+           if ( _options.platform == dyld3::Platform::watchOS_simulator)
+               return;
+            if ( strcmp(segInfo.segName, "__TEXT") == 0 )
+                textSegVmAddr = segInfo.vmAddr;
+            if ( segInfo.protections != (VM_PROT_READ | VM_PROT_WRITE) )
+                return;
+            if ( strcmp(segInfo.segName, "__DATA_CONST") != 0 )
+                return;
+            ++dataConstSegmentCount;
+            // Pack __DATA_CONST segments
+            addr = align(addr, segInfo.p2align);
+            size_t copySize = std::min((size_t)segInfo.fileSize, (size_t)segInfo.sizeOfSections);
+            uint64_t offsetInRegion = addr - _readWriteRegion.unslidLoadAddress;
+            SegmentMappingInfo loc;
+            loc.srcSegment             = (uint8_t*)dylib.input->mappedFile.mh + segInfo.vmAddr - textSegVmAddr;
+            loc.segName                = segInfo.segName;
+            loc.dstSegment             = _readWriteRegion.buffer + offsetInRegion;
+            loc.dstCacheUnslidAddress  = addr;
+            loc.dstCacheFileOffset     = (uint32_t)(_readWriteRegion.cacheFileOffset + offsetInRegion);
+            loc.dstCacheSegmentSize    = (uint32_t)segInfo.sizeOfSections;
+            loc.dstCacheFileSize       = (uint32_t)copySize;
+            loc.copySegmentSize        = (uint32_t)copySize;
+            loc.srcSegmentIndex        = segInfo.segIndex;
+            dylib.cacheLocation.push_back(loc);
+            addr += loc.dstCacheSegmentSize;
+        });
+    }
+
+    // layout all __DATA segments (and other r/w non-dirty, non-const) segments
+    for (DylibInfo& dylib : _sortedDylibs) {
+        __block uint64_t textSegVmAddr = 0;
+       dylib.input->mappedFile.mh->forEachSegment(^(const dyld3::MachOFile::SegmentInfo& segInfo, bool& stop) {
+            if ( strcmp(segInfo.segName, "__TEXT") == 0 )
+                textSegVmAddr = segInfo.vmAddr;
+            if ( segInfo.protections != (VM_PROT_READ | VM_PROT_WRITE) )
+                return;
+            if ( _options.platform != dyld3::Platform::watchOS_simulator) {
+                if ( strcmp(segInfo.segName, "__DATA_CONST") == 0 )
+                    return;
+                if ( strcmp(segInfo.segName, "__DATA_DIRTY") == 0 )
+                    return;
+            }
+            bool forcePageAlignedData = false;
+            if (_options.platform == dyld3::Platform::macOS) {
+                forcePageAlignedData = dylib.input->mappedFile.mh->hasUnalignedPointerFixups();
+                //if ( forcePageAlignedData )
+                //    warning("unaligned pointer in %s\n", dylib.input->mappedFile.runtimePath.c_str());
+            }
+            if ( (dataConstSegmentCount > 10) && !forcePageAlignedData ) {
+                // Pack __DATA segments only if we also have __DATA_CONST segments
+                addr = align(addr, segInfo.p2align);
+            }
+            else {
+                // Keep __DATA segments 4K or more aligned
+                addr = align(addr, std::max((int)segInfo.p2align, (int)12));
+            }
+            size_t copySize = std::min((size_t)segInfo.fileSize, (size_t)segInfo.sizeOfSections);
+            uint64_t offsetInRegion = addr - _readWriteRegion.unslidLoadAddress;
+            SegmentMappingInfo loc;
+            loc.srcSegment             = (uint8_t*)dylib.input->mappedFile.mh + segInfo.vmAddr - textSegVmAddr;
+            loc.segName                = segInfo.segName;
+            loc.dstSegment             = _readWriteRegion.buffer + offsetInRegion;
+            loc.dstCacheUnslidAddress  = addr;
+            loc.dstCacheFileOffset     = (uint32_t)(_readWriteRegion.cacheFileOffset + offsetInRegion);
+            loc.dstCacheSegmentSize    = (uint32_t)segInfo.sizeOfSections;
+            loc.dstCacheFileSize       = (uint32_t)copySize;
+            loc.copySegmentSize        = (uint32_t)copySize;
+            loc.srcSegmentIndex        = segInfo.segIndex;
+            dylib.cacheLocation.push_back(loc);
+            addr += loc.dstCacheSegmentSize;
+        });
+    }
+
+    // layout all __DATA_DIRTY segments, sorted (FIXME)
+    const size_t dylibCount = _sortedDylibs.size();
+    uint32_t dirtyDataSortIndexes[dylibCount];
+    for (size_t i=0; i < dylibCount; ++i)
+        dirtyDataSortIndexes[i] = (uint32_t)i;
+    std::sort(&dirtyDataSortIndexes[0], &dirtyDataSortIndexes[dylibCount], [&](const uint32_t& a, const uint32_t& b) {
+        const auto& orderA = _options.dirtyDataSegmentOrdering.find(_sortedDylibs[a].input->mappedFile.runtimePath);
+        const auto& orderB = _options.dirtyDataSegmentOrdering.find(_sortedDylibs[b].input->mappedFile.runtimePath);
+        bool foundA = (orderA != _options.dirtyDataSegmentOrdering.end());
+        bool foundB = (orderB != _options.dirtyDataSegmentOrdering.end());
+
+        // Order all __DATA_DIRTY segments specified in the order file first, in the order specified in the file,
+        // followed by any other __DATA_DIRTY segments in lexicographic order.
+        if ( foundA && foundB )
+            return orderA->second < orderB->second;
+        else if ( foundA )
+            return true;
+        else if ( foundB )
+             return false;
+        else
+             return _sortedDylibs[a].input->mappedFile.runtimePath < _sortedDylibs[b].input->mappedFile.runtimePath;
+    });
+    addr = align(addr, 12);
+    for (size_t i=0; i < dylibCount; ++i) {
+        DylibInfo& dylib  = _sortedDylibs[dirtyDataSortIndexes[i]];
+        __block uint64_t textSegVmAddr = 0;
+        dylib.input->mappedFile.mh->forEachSegment(^(const dyld3::MachOFile::SegmentInfo& segInfo, bool& stop) {
+            if ( _options.platform == dyld3::Platform::watchOS_simulator)
+                return;
+            if ( strcmp(segInfo.segName, "__TEXT") == 0 )
+                textSegVmAddr = segInfo.vmAddr;
+            if ( segInfo.protections != (VM_PROT_READ | VM_PROT_WRITE) )
+                return;
+            if ( strcmp(segInfo.segName, "__DATA_DIRTY") != 0 )
+                return;
+            // Pack __DATA_DIRTY segments
+            addr = align(addr, segInfo.p2align);
+            size_t copySize = std::min((size_t)segInfo.fileSize, (size_t)segInfo.sizeOfSections);
+            uint64_t offsetInRegion = addr - _readWriteRegion.unslidLoadAddress;
+            SegmentMappingInfo loc;
+            loc.srcSegment             = (uint8_t*)dylib.input->mappedFile.mh + segInfo.vmAddr - textSegVmAddr;
+            loc.segName                = segInfo.segName;
+            loc.dstSegment             = _readWriteRegion.buffer + offsetInRegion;
+            loc.dstCacheUnslidAddress  = addr;
+            loc.dstCacheFileOffset     = (uint32_t)(_readWriteRegion.cacheFileOffset + offsetInRegion);
+            loc.dstCacheSegmentSize    = (uint32_t)segInfo.sizeOfSections;
+            loc.dstCacheFileSize       = (uint32_t)copySize;
+            loc.copySegmentSize        = (uint32_t)copySize;
+            loc.srcSegmentIndex        = segInfo.segIndex;
+            dylib.cacheLocation.push_back(loc);
+            addr += loc.dstCacheSegmentSize;
+        });
+    }
+
+    // reserve space for objc r/w optimization tables
+    _objcReadWriteBufferSizeAllocated = align(computeReadWriteObjC((uint32_t)_sortedDylibs.size(), totalProtocolDefCount), 14);
+    addr = align(addr, 4); // objc r/w section contains pointer and must be at least pointer align
+    _objcReadWriteBuffer = _readWriteRegion.buffer + (addr - _readWriteRegion.unslidLoadAddress);
+    addr += _objcReadWriteBufferSizeAllocated;
+
+    // align DATA region end
+    uint64_t endDataAddress = align(addr, _archLayout->sharedRegionAlignP2);
+    _readWriteRegion.bufferSize   = endDataAddress - _readWriteRegion.unslidLoadAddress;
+    _readWriteRegion.sizeInUse    = _readWriteRegion.bufferSize;
 
     // start read-only region
     if ( _archLayout->sharedRegionsAreDiscontiguous )
-        addr = DISCONTIGUOUS_RO;
+        addr = _archLayout->sharedMemoryStart + 0xA0000000;
     else
         addr = align((addr + _archLayout->sharedRegionPadding), _archLayout->sharedRegionAlignP2);
     _readOnlyRegion.buffer               = (uint8_t*)_fullAllocatedBuffer + addr - _archLayout->sharedMemoryStart;
     _readOnlyRegion.bufferSize           = 0;
     _readOnlyRegion.sizeInUse            = 0;
     _readOnlyRegion.unslidLoadAddress    = addr;
-    _readOnlyRegion.cacheFileOffset      = lastDataRegion()->cacheFileOffset + lastDataRegion()->sizeInUse;
-
+    _readOnlyRegion.cacheFileOffset      = _readWriteRegion.cacheFileOffset + _readWriteRegion.sizeInUse;
 
     // reserve space for kernel ASLR slide info at start of r/o region
     if ( _options.cacheSupportsASLR ) {
@@ -2205,46 +1749,41 @@ void SharedCacheBuilder::assignSegmentAddresses()
         slideInfoSize = std::max(slideInfoSize, sizeof(dyld_cache_slide_info2));
         slideInfoSize = std::max(slideInfoSize, sizeof(dyld_cache_slide_info3));
         slideInfoSize = std::max(slideInfoSize, sizeof(dyld_cache_slide_info4));
-        // We need one slide info header per data region, plus enough space for that regions pages
-        // Each region will also be padded to a page-size so that the kernel can wire it.
-        for (Region& region : _dataRegions) {
-            uint64_t offsetInRegion = addr - _readOnlyRegion.unslidLoadAddress;
-            region.slideInfoBuffer = _readOnlyRegion.buffer + offsetInRegion;
-            region.slideInfoBufferSizeAllocated = align(slideInfoSize + (region.sizeInUse/4096) * _archLayout->slideInfoBytesPerPage + 0x4000, _archLayout->sharedRegionAlignP2);
-            region.slideInfoFileOffset = _readOnlyRegion.cacheFileOffset + offsetInRegion;
-            addr += region.slideInfoBufferSizeAllocated;
-        }
+        _slideInfoBufferSizeAllocated = align(slideInfoSize + (_readWriteRegion.sizeInUse/4096) * _archLayout->slideInfoBytesPerPage + 0x4000, _archLayout->sharedRegionAlignP2);
+        _slideInfoFileOffset = _readOnlyRegion.cacheFileOffset;
+        addr += _slideInfoBufferSizeAllocated;
     }
 
     // layout all read-only (but not LINKEDIT) segments
-    for (DylibInfo& dylib : _sortedDylibs) {
-        __block uint64_t textSegVmAddr = 0;
-        dylib.input->mappedFile.mh->forEachSegment(^(const dyld3::MachOFile::SegmentInfo& segInfo, bool& stop) {
-            if ( strcmp(segInfo.segName, "__TEXT") == 0 )
-                textSegVmAddr = segInfo.vmAddr;
-            if ( segInfo.protections != VM_PROT_READ )
-                return;
-            if ( strcmp(segInfo.segName, "__LINKEDIT") == 0 )
-                return;
+    if ( _archLayout->textAndDataMaxSize == 0 ) {
+        for (DylibInfo& dylib : _sortedDylibs) {
+            __block uint64_t textSegVmAddr = 0;
+            dylib.input->mappedFile.mh->forEachSegment(^(const dyld3::MachOFile::SegmentInfo& segInfo, bool& stop) {
+                if ( strcmp(segInfo.segName, "__TEXT") == 0 )
+                    textSegVmAddr = segInfo.vmAddr;
+                if ( segInfo.protections != VM_PROT_READ )
+                    return;
+                if ( strcmp(segInfo.segName, "__LINKEDIT") == 0 )
+                    return;
 
-            // Keep segments segments 4K or more aligned
-            addr = align(addr, std::max((int)segInfo.p2align, (int)12));
-            uint64_t offsetInRegion = addr - _readOnlyRegion.unslidLoadAddress;
-            SegmentMappingInfo loc;
-            loc.srcSegment             = (uint8_t*)dylib.input->mappedFile.mh + segInfo.vmAddr - textSegVmAddr;
-            loc.segName                = segInfo.segName;
-            loc.dstSegment             = _readOnlyRegion.buffer + offsetInRegion;
-            loc.dstCacheUnslidAddress  = addr;
-            loc.dstCacheFileOffset     = (uint32_t)(_readOnlyRegion.cacheFileOffset + offsetInRegion);
-            loc.dstCacheSegmentSize    = (uint32_t)align(segInfo.sizeOfSections, 12);
-            loc.dstCacheFileSize       = (uint32_t)segInfo.sizeOfSections;
-            loc.copySegmentSize        = (uint32_t)segInfo.sizeOfSections;
-            loc.srcSegmentIndex        = segInfo.segIndex;
-            dylib.cacheLocation.push_back(loc);
-            addr += loc.dstCacheSegmentSize;
-        });
+                // Keep segments segments 4K or more aligned
+                addr = align(addr, std::max((int)segInfo.p2align, (int)12));
+                uint64_t offsetInRegion = addr - _readOnlyRegion.unslidLoadAddress;
+                SegmentMappingInfo loc;
+                loc.srcSegment             = (uint8_t*)dylib.input->mappedFile.mh + segInfo.vmAddr - textSegVmAddr;
+                loc.segName                = segInfo.segName;
+                loc.dstSegment             = _readOnlyRegion.buffer + offsetInRegion;
+                loc.dstCacheUnslidAddress  = addr;
+                loc.dstCacheFileOffset     = (uint32_t)(_readOnlyRegion.cacheFileOffset + offsetInRegion);
+                loc.dstCacheSegmentSize    = (uint32_t)align(segInfo.sizeOfSections, 12);
+                loc.dstCacheFileSize       = (uint32_t)segInfo.sizeOfSections;
+                loc.copySegmentSize        = (uint32_t)segInfo.sizeOfSections;
+                loc.srcSegmentIndex        = segInfo.segIndex;
+                dylib.cacheLocation.push_back(loc);
+                addr += loc.dstCacheSegmentSize;
+            });
+        }
     }
-
     // layout all LINKEDIT segments (after other read-only segments), aligned to 16KB
     addr = align(addr, 14);
     _nonLinkEditReadOnlySize =  addr - _readOnlyRegion.unslidLoadAddress;
@@ -2277,13 +1816,12 @@ void SharedCacheBuilder::assignSegmentAddresses()
     }
 
     // align r/o region end
-    addr = align(addr, _archLayout->sharedRegionAlignP2);
-    uint64_t endReadOnlyAddress = addr;
-    _readOnlyRegion.bufferSize  = endReadOnlyAddress - _readOnlyRegion.unslidLoadAddress + 0x100000;
+    uint64_t endReadOnlyAddress = align(addr, _archLayout->sharedRegionAlignP2);
+    _readOnlyRegion.bufferSize  = endReadOnlyAddress - _readOnlyRegion.unslidLoadAddress;
     _readOnlyRegion.sizeInUse   = _readOnlyRegion.bufferSize;
 
     //fprintf(stderr, "RX region=%p -> %p, logical addr=0x%llX\n", _readExecuteRegion.buffer, _readExecuteRegion.buffer+_readExecuteRegion.bufferSize, _readExecuteRegion.unslidLoadAddress);
-    //fprintf(stderr, "RW region=%p -> %p, logical addr=0x%llX\n", readWriteRegion.buffer,   readWriteRegion.buffer+readWriteRegion.bufferSize, readWriteRegion.unslidLoadAddress);
+    //fprintf(stderr, "RW region=%p -> %p, logical addr=0x%llX\n", _readWriteRegion.buffer,   _readWriteRegion.buffer+_readWriteRegion.bufferSize, _readWriteRegion.unslidLoadAddress);
     //fprintf(stderr, "RO region=%p -> %p, logical addr=0x%llX\n", _readOnlyRegion.buffer,    _readOnlyRegion.buffer+_readOnlyRegion.bufferSize, _readOnlyRegion.unslidLoadAddress);
 
     // sort SegmentMappingInfo for each image to be in the same order as original segments
@@ -2294,62 +1832,30 @@ void SharedCacheBuilder::assignSegmentAddresses()
     }
 }
 
-// Return the total size of the data regions, including padding between them.
-// Note this assumes they are contiguous, or that we don't care about including
-// additional space between them.
-uint64_t SharedCacheBuilder::dataRegionsTotalSize() const {
-    const Region* firstRegion = nullptr;
-    const Region* lastRegion = nullptr;
-    for (const Region& region : _dataRegions) {
-        if ( (firstRegion == nullptr) || (region.buffer < firstRegion->buffer) )
-            firstRegion = &region;
-        if ( (lastRegion == nullptr) || (region.buffer > lastRegion->buffer) )
-            lastRegion = &region;
-    }
-    return (lastRegion->buffer - firstRegion->buffer) + lastRegion->sizeInUse;
-}
-
-
-// Return the total size of the data regions, excluding padding between them
-uint64_t SharedCacheBuilder::dataRegionsSizeInUse() const {
-    size_t size = 0;
-    for (const Region& dataRegion : _dataRegions)
-        size += dataRegion.sizeInUse;
-    return size;
-}
-
-// Return the earliest data region by address
-const CacheBuilder::Region* SharedCacheBuilder::firstDataRegion() const {
-    const Region* firstRegion = nullptr;
-    for (const Region& region : _dataRegions) {
-        if ( (firstRegion == nullptr) || (region.buffer < firstRegion->buffer) )
-            firstRegion = &region;
-    }
-    return firstRegion;
-}
-
-// Return the lateset data region by address
-const CacheBuilder::Region* SharedCacheBuilder::lastDataRegion() const {
-    const Region* lastRegion = nullptr;
-    for (const Region& region : _dataRegions) {
-        if ( (lastRegion == nullptr) || (region.buffer > lastRegion->buffer) )
-            lastRegion = &region;
-    }
-    return lastRegion;
-}
-static dyld_cache_patchable_location makePatchLocation(size_t cacheOff, dyld3::MachOAnalyzerSet::PointerMetaData pmd, uint64_t addend) {
-     dyld_cache_patchable_location patch;
+static dyld_cache_patchable_location makePatchLocation(size_t cacheOff, uint64_t ad) {
+    int64_t signedAddend = (int64_t)ad;
+    assert(((signedAddend << 52) >> 52) == signedAddend);
+    dyld_cache_patchable_location patch;
     patch.cacheOffset           = cacheOff;
-    patch.high7                 = pmd.high8 >> 1;
-    patch.addend                = addend;
-    patch.authenticated         = pmd.authenticated;
-    patch.usesAddressDiversity  = pmd.usesAddrDiversity;
-    patch.key                   = pmd.key;
-    patch.discriminator         = pmd.diversity;
-    // check for truncations
-    assert(patch.cacheOffset == cacheOff);
-    assert(patch.addend == addend);
-    assert((patch.high7 << 1) == pmd.high8);
+    patch.addend                = ad;
+    patch.authenticated         = 0;
+    patch.usesAddressDiversity  = 0;
+    patch.key                   = 0;
+    patch.discriminator         = 0;
+    return patch;
+}
+
+static dyld_cache_patchable_location makePatchLocation(size_t cacheOff, uint64_t ad,
+                                                       dyld3::MachOLoaded::ChainedFixupPointerOnDisk authInfo) {
+    int64_t signedAddend = (int64_t)ad;
+    assert(((signedAddend << 52) >> 52) == signedAddend);
+    dyld_cache_patchable_location patch;
+    patch.cacheOffset           = cacheOff;
+    patch.addend                = ad;
+    patch.authenticated         = authInfo.arm64e.authBind.auth;
+    patch.usesAddressDiversity  = authInfo.arm64e.authBind.addrDiv;
+    patch.key                   = authInfo.arm64e.authBind.key;
+    patch.discriminator         = authInfo.arm64e.authBind.diversity;
     return patch;
 }
 
@@ -2362,9 +1868,6 @@ void SharedCacheBuilder::buildImageArray(std::vector<DyldSharedCache::FileAlias>
     __block std::unordered_map<dyld3::closure::ImageNum, const dyld3::MachOLoaded*> imageNumToML;
     DyldSharedCache* cache = (DyldSharedCache*)_readExecuteRegion.buffer;
     cache->forEachImage(^(const mach_header* mh, const char* installName) {
-        const dyld3::MachOLoaded* ml = (dyld3::MachOLoaded*)mh;
-        if ( !_someDylibsUsedChainedFixups && ml->hasChainedFixups() )
-            _someDylibsUsedChainedFixups = true;
         uint64_t mtime;
         uint64_t inode;
         cache->getIndexedImageEntry((uint32_t)dylibInfos.size(), mtime, inode);
@@ -2375,7 +1878,7 @@ void SharedCacheBuilder::buildImageArray(std::vector<DyldSharedCache::FileAlias>
         entry.fileInfo.inode        = inode;
         entry.fileInfo.mtime        = mtime;
         dylibInfos.push_back(entry);
-        imageNumToML[(dyld3::closure::ImageNum)(dylibInfos.size())] = ml;
+        imageNumToML[(dyld3::closure::ImageNum)(dylibInfos.size())] = (dyld3::MachOLoaded*)mh;
     });
 
     // Convert symlinks from STL to simple char pointers.
@@ -2384,89 +1887,271 @@ void SharedCacheBuilder::buildImageArray(std::vector<DyldSharedCache::FileAlias>
     for (const auto& alias : aliases)
         dylibAliases.push_back({ alias.realPath.c_str(), alias.aliasPath.c_str() });
 
-    typedef dyld3::MachOAnalyzerSet::FixupTarget        FixupTarget;
-    typedef dyld3::MachOAnalyzerSet::PointerMetaData    PointerMetaData;
+    dyld3::closure::ClosureBuilder::CacheDylibsBindingHandlers handlers;
 
-    dyld3::closure::ClosureBuilder::DylibFixupHandler handler = ^(const dyld3::MachOLoaded* fixupIn, uint64_t fixupLocRuntimeOffset,
-                                                                  PointerMetaData pmd, const FixupTarget& target) {
-        uint8_t*  fixupLoc = (uint8_t*)fixupIn + fixupLocRuntimeOffset;
-        uint32_t* fixupLoc32 = (uint32_t*)fixupLoc;
-        uint64_t* fixupLoc64 = (uint64_t*)fixupLoc;
-        uint64_t  targetSymbolOffsetInCache;
-        switch ( target.kind ) {
-            case FixupTarget::Kind::rebase:
-                // rebasing already done in AdjustDylibSegments, but if input dylib uses chained fixups, target might not fit
-                if ( _archLayout->is64 ) {
-                    if ( pmd.authenticated )
-                        _aslrTracker.setAuthData(fixupLoc, pmd.diversity, pmd.usesAddrDiversity, pmd.key);
-                    if ( pmd.high8 )
-                        _aslrTracker.setHigh8(fixupLoc, pmd.high8);
-                    uint64_t targetVmAddr;
-                    if ( _aslrTracker.hasRebaseTarget64(fixupLoc, &targetVmAddr) )
-                        *fixupLoc64 = targetVmAddr;
-                    else
-                        *fixupLoc64 = (uint8_t*)target.foundInImage._mh - _readExecuteRegion.buffer + target.offsetInImage + _readExecuteRegion.unslidLoadAddress;
-                }
-                else {
-                    uint32_t targetVmAddr;
-                    assert(_aslrTracker.hasRebaseTarget32(fixupLoc, &targetVmAddr) && "32-bit archs always store target in side table");
-                    *fixupLoc32 = targetVmAddr;
-                }
-                break;
-            case FixupTarget::Kind::bindAbsolute:
-                if ( _archLayout->is64 )
-                    *fixupLoc64 = target.offsetInImage;
-                else
-                    *fixupLoc32 = (uint32_t)(target.offsetInImage);
-                // don't record absolute targets for ASLR
-                _aslrTracker.remove(fixupLoc);
-                break;
-            case FixupTarget::Kind::bindToImage:
-                targetSymbolOffsetInCache = (uint8_t*)target.foundInImage._mh - _readExecuteRegion.buffer + target.offsetInImage - target.addend;
-                if ( !target.weakCoalesced || !_aslrTracker.has(fixupLoc) ) {
-                    // this handler is called a second time for weak_bind info, which we ignore when building cache
-                    _aslrTracker.add(fixupLoc);
-                    if ( _archLayout->is64 ) {
-                        if ( pmd.high8 )
-                            _aslrTracker.setHigh8(fixupLoc, pmd.high8);
-                        if ( pmd.authenticated )
-                            _aslrTracker.setAuthData(fixupLoc, pmd.diversity, pmd.usesAddrDiversity, pmd.key);
-                        *fixupLoc64 = _archLayout->sharedMemoryStart + targetSymbolOffsetInCache + target.addend;
+    handlers.chainedBind = ^(dyld3::closure::ImageNum, const dyld3::MachOLoaded* imageLoadAddress,
+                             const  dyld_chained_starts_in_image* starts,
+                             const dyld3::Array<dyld3::closure::Image::ResolvedSymbolTarget>& targets,
+                             const dyld3::Array<dyld3::closure::ClosureBuilder::ResolvedTargetInfo>& targetInfos) {
+        _someDylibsUsedChainedFixups = true;
+        imageLoadAddress->forEachFixupInAllChains(_diagnostics, starts, true, ^(dyld3::MachOLoaded::ChainedFixupPointerOnDisk* fixupLoc, const dyld_chained_starts_in_segment* segInfo, bool& stop) {
+            uint64_t                                                  offsetInCache;
+            dyld3::closure::Image::ResolvedSymbolTarget               target;
+            const dyld3::closure::ClosureBuilder::ResolvedTargetInfo* targetInfo;
+            dyld3::MachOLoaded::ChainedFixupPointerOnDisk             orgValue;
+            uint64_t                                                  targetVMAddr;
+            uint64_t                                                  addend;
+            bool                                                      pointerIntoCache = true;
+            switch (segInfo->pointer_format) {
+                case DYLD_CHAINED_PTR_ARM64E:
+                    orgValue = *fixupLoc;
+                    if ( fixupLoc->arm64e.bind.bind ) {
+                        target     = targets[fixupLoc->arm64e.bind.ordinal];
+                        targetInfo = &targetInfos[fixupLoc->arm64e.bind.ordinal];
+                        switch ( target.sharedCache.kind ) {
+                            case dyld3::closure::Image::ResolvedSymbolTarget::kindSharedCache:
+                                offsetInCache = target.sharedCache.offset - targetInfo->addend;
+                                _dylibToItsExports[targetInfo->foundInDylib].insert(offsetInCache);
+                                _exportsToName[offsetInCache] = targetInfo->foundSymbolName;
+                                addend = targetInfo->addend;
+                                {
+                                    uint16_t top16 = addend >> 48;
+                                    uint8_t  top8  = addend >> 56;
+                                    // if top byte is non-zero and this is not a negative addend, pull off high8
+                                    if ( (top16 != 0xFFFF) && (top8 != 0) ) {
+                                        _aslrTracker.setHigh8(fixupLoc, top8);
+                                        addend &= 0x00FFFFFFFFFFFFFFULL;
+                                    }
+                                }
+                                targetVMAddr = _archLayout->sharedMemoryStart + target.sharedCache.offset;
+                                if ( fixupLoc->arm64e.authBind.auth ) {
+                                    // store auth data in side table
+                                    _aslrTracker.setAuthData(fixupLoc, fixupLoc->arm64e.authBind.diversity, fixupLoc->arm64e.authBind.addrDiv, fixupLoc->arm64e.authBind.key);
+                                    _exportsToUses[offsetInCache].push_back(makePatchLocation((uint8_t*)fixupLoc - _readExecuteRegion.buffer, addend, *fixupLoc));
+                                }
+                                else {
+                                    _exportsToUses[offsetInCache].push_back(makePatchLocation((uint8_t*)fixupLoc - _readExecuteRegion.buffer, addend));
+                                    // plain binds can have addend in chain
+                                    targetVMAddr += fixupLoc->arm64e.bind.addend;
+                                }
+                                // change location from a chain ptr into a raw pointer to the target vmaddr
+                                fixupLoc->raw64 = targetVMAddr;
+                                _aslrTracker.add(fixupLoc);
+                                break;
+                            case dyld3::closure::Image::ResolvedSymbolTarget::kindAbsolute:
+                                fixupLoc->raw64 = target.absolute.value;
+                                pointerIntoCache = false;
+                                // don't record absolute targets for ASLR
+                                _aslrTracker.remove(fixupLoc);
+                                if ( (targetInfo->libOrdinal > 0) && (targetInfo->libOrdinal <= (int)(imageLoadAddress->dependentDylibCount())) ) {
+                                    _missingWeakImports[fixupLoc] = imageLoadAddress->dependentDylibLoadPath(targetInfo->libOrdinal - 1);
+                                }
+                               break;
+                            default:
+                                assert(0 && "unsupported ResolvedSymbolTarget kind in dyld cache");
+                        }
                     }
                     else {
-                        assert(targetSymbolOffsetInCache < (_readOnlyRegion.buffer - _readExecuteRegion.buffer) && "offset not into TEXT or DATA of cache file");
+                        // convert rebase chain entry to raw pointer to target vmaddr
+                        if ( fixupLoc->arm64e.rebase.auth ) {
+                            // store auth data in side table
+                            _aslrTracker.setAuthData(fixupLoc, fixupLoc->arm64e.authRebase.diversity, fixupLoc->arm64e.authRebase.addrDiv, fixupLoc->arm64e.authRebase.key);
+                            targetVMAddr = fixupLoc->arm64e.authRebase.target;
+                            fixupLoc->raw64 = targetVMAddr;
+                        }
+                        else {
+                            targetVMAddr = fixupLoc->arm64e.rebase.target;
+                            if ( targetVMAddr == CacheBuilder::kRebaseTargetInSideTableArm64e ) {
+                                // target was stored in side table
+                                _aslrTracker.hasRebaseTarget64(fixupLoc, &targetVMAddr);
+                            }
+                            // store high8 in side table
+                            if ( fixupLoc->arm64e.rebase.high8 )
+                                _aslrTracker.setHigh8(fixupLoc, fixupLoc->arm64e.rebase.high8);
+                            fixupLoc->raw64 = targetVMAddr;
+                        }
+                    }
+                    if ( pointerIntoCache ) {
+                        assert(fixupLoc->raw64 > _readExecuteRegion.unslidLoadAddress);
+                        assert(fixupLoc->raw64 < _readOnlyRegion.unslidLoadAddress+_readOnlyRegion.sizeInUse);
+                    }
+                    break;
+                case DYLD_CHAINED_PTR_64:
+                    if ( fixupLoc->generic64.bind.bind ) {
+                        target     = targets[fixupLoc->generic64.bind.ordinal];
+                        targetInfo = &targetInfos[fixupLoc->generic64.bind.ordinal];
+                        switch ( target.sharedCache.kind ) {
+                            case dyld3::closure::Image::ResolvedSymbolTarget::kindSharedCache:
+                                offsetInCache = target.sharedCache.offset - targetInfo->addend;
+                                _dylibToItsExports[targetInfo->foundInDylib].insert(offsetInCache);
+                                _exportsToName[offsetInCache] = targetInfo->foundSymbolName;
+                                addend = targetInfo->addend + fixupLoc->generic64.bind.addend;
+                                {
+                                    uint16_t top16 = addend >> 48;
+                                    uint8_t  top8  = addend >> 56;
+                                    // if top byte is non-zero and this is not a negative addend, pull off high8
+                                    if ( (top16 != 0xFFFF) && (top8 != 0) ) {
+                                        _aslrTracker.setHigh8(fixupLoc, top8);
+                                        addend &= 0x00FFFFFFFFFFFFFFULL;
+                                    }
+                                }
+                                // turn this bind into a flat vmaddr
+                                fixupLoc->raw64 = _archLayout->sharedMemoryStart + target.sharedCache.offset + fixupLoc->generic64.bind.addend;
+                                _exportsToUses[offsetInCache].push_back(makePatchLocation((uint8_t*)fixupLoc - _readExecuteRegion.buffer, addend));
+                                _aslrTracker.add(fixupLoc);
+                                break;
+                            case dyld3::closure::Image::ResolvedSymbolTarget::kindAbsolute:
+                                fixupLoc->raw64 = target.absolute.value;
+                                pointerIntoCache = false;
+                                // don't record absolute targets for ASLR
+                                _aslrTracker.remove(fixupLoc);
+                                if ( (targetInfo->libOrdinal > 0) && (targetInfo->libOrdinal <= (int)(imageLoadAddress->dependentDylibCount())) ) {
+                                    _missingWeakImports[fixupLoc] = imageLoadAddress->dependentDylibLoadPath(targetInfo->libOrdinal - 1);
+                                }
+                                break;
+                            default:
+                                assert(0 && "unsupported ResolvedSymbolTarget kind in dyld cache");
+                        }
+                    }
+                    else {
+                        // convert rebase chain entry to raw pointer to target vmaddr
+                        targetVMAddr = fixupLoc->generic64.rebase.target;
+                        if ( targetVMAddr == CacheBuilder::kRebaseTargetInSideTableArm64 ) {
+                            // target was stored in side table
+                            _aslrTracker.hasRebaseTarget64(fixupLoc, &targetVMAddr);
+                        }
+                        // store high8 in side table
+                        if ( fixupLoc->generic64.rebase.high8 )
+                            _aslrTracker.setHigh8(fixupLoc, fixupLoc->generic64.rebase.high8);
+                        fixupLoc->raw64 = targetVMAddr;
+                    }
+                    if ( pointerIntoCache ) {
+                        assert(fixupLoc->raw64 > _readExecuteRegion.unslidLoadAddress);
+                        assert(fixupLoc->raw64 < _readOnlyRegion.unslidLoadAddress+_readOnlyRegion.sizeInUse);
+                    }
+                    break;
+                case DYLD_CHAINED_PTR_32:
+                    if ( fixupLoc->generic32.bind.bind ) {
+                        // turn this bind into a flat vmaddr pointer
+                        target     = targets[fixupLoc->generic32.bind.ordinal];
+                        targetInfo = &targetInfos[fixupLoc->generic32.bind.ordinal];
+                        switch ( target.sharedCache.kind ) {
+                            case dyld3::closure::Image::ResolvedSymbolTarget::kindSharedCache:
+                                offsetInCache = target.sharedCache.offset - targetInfo->addend;
+                                _dylibToItsExports[targetInfo->foundInDylib].insert(offsetInCache);
+                                _exportsToName[offsetInCache] = targetInfo->foundSymbolName;
+                                fixupLoc->raw32 = (uint32_t)(_archLayout->sharedMemoryStart + target.sharedCache.offset + fixupLoc->generic32.bind.addend);
+                                _exportsToUses[offsetInCache].push_back(makePatchLocation((uint8_t*)fixupLoc - _readExecuteRegion.buffer, targetInfo->addend+fixupLoc->generic32.bind.addend));
+                                _aslrTracker.add(fixupLoc);
+                                break;
+                            case dyld3::closure::Image::ResolvedSymbolTarget::kindAbsolute:
+                                fixupLoc->raw32 = (uint32_t)target.absolute.value;
+                                pointerIntoCache = false;
+                                // don't record absolute targets for ASLR
+                                _aslrTracker.remove(fixupLoc);
+                                if ( (targetInfo->libOrdinal > 0) && (targetInfo->libOrdinal <= (int)(imageLoadAddress->dependentDylibCount())) ) {
+                                    _missingWeakImports[fixupLoc] = imageLoadAddress->dependentDylibLoadPath(targetInfo->libOrdinal - 1);
+                                }
+                                break;
+                            default:
+                                assert(0 && "unsupported ResolvedSymbolTarget kind in dyld cache");
+                        }
+                    }
+                    else if ( fixupLoc->generic32.rebase.target == CacheBuilder::kRebaseTargetInSideTableGeneric32 ) {
                         uint32_t targetVmAddr;
                         if ( _aslrTracker.hasRebaseTarget32(fixupLoc, &targetVmAddr) )
-                            *fixupLoc32 = targetVmAddr;
+                            fixupLoc->raw32 = targetVmAddr;
                         else
-                            *fixupLoc32 = (uint32_t)(_archLayout->sharedMemoryStart + targetSymbolOffsetInCache + target.addend);
+                            assert(0 && "missing target for rebase");
                     }
+                    else if ( fixupLoc->generic32.rebase.target > segInfo->max_valid_pointer ) {
+                        __block const char* badImagePath = nullptr;
+                        cache->forEachImage(^(const mach_header* mh, const char* installName) {
+                            if ( mh == imageLoadAddress )
+                                badImagePath = installName;
+                        });
+                        _diagnostics.error("unexpected non-pointer in chain for image at %s", badImagePath);
+                        stop = true;
+                        pointerIntoCache = false;
+                    }
+                    if ( pointerIntoCache ) {
+                        assert(fixupLoc->raw32 > _readExecuteRegion.unslidLoadAddress);
+                        assert(fixupLoc->raw32 < _readOnlyRegion.unslidLoadAddress+_readOnlyRegion.sizeInUse);
+                    }
+                    break;
+                case DYLD_CHAINED_PTR_64_OFFSET:
+                case DYLD_CHAINED_PTR_ARM64E_OFFSET:
+                    assert(0 && "unsupported chained bind type");
+                    break;
+                default:
+                    assert(0 && "unsupported chained bind type");
+            }
+
+        });
+    };
+
+    handlers.rebase = ^(dyld3::closure::ImageNum imageNum, const dyld3::MachOLoaded* imageToFix, uint32_t runtimeOffset) {
+        // record location in aslr tracker so kernel can slide this on page-in
+        uint8_t* fixupLoc = (uint8_t*)imageToFix+runtimeOffset;
+        _aslrTracker.add(fixupLoc);
+    };
+
+    handlers.bind = ^(dyld3::closure::ImageNum imageNum, const dyld3::MachOLoaded* mh,
+                      uint32_t runtimeOffset, dyld3::closure::Image::ResolvedSymbolTarget target,
+                      const dyld3::closure::ClosureBuilder::ResolvedTargetInfo& targetInfo) {
+        uint8_t* fixupLoc = (uint8_t*)mh+runtimeOffset;
+
+        // binder is called a second time for weak_bind info, which we ignore when building cache
+        const bool weakDefUseAlreadySet = targetInfo.weakBindCoalese && _aslrTracker.has(fixupLoc);
+
+        // do actual bind that sets pointer in image to unslid target address
+        uint64_t offsetInCache;
+        switch ( target.sharedCache.kind ) {
+            case dyld3::closure::Image::ResolvedSymbolTarget::kindSharedCache:
+                offsetInCache = target.sharedCache.offset - targetInfo.addend;
+                _dylibToItsExports[targetInfo.foundInDylib].insert(offsetInCache);
+                if (targetInfo.isWeakDef)
+                    _dylibWeakExports.insert({ targetInfo.foundInDylib, offsetInCache });
+                _exportsToUses[offsetInCache].push_back(makePatchLocation(fixupLoc - _readExecuteRegion.buffer, targetInfo.addend));
+                _exportsToName[offsetInCache] = targetInfo.foundSymbolName;
+                if ( !weakDefUseAlreadySet ) {
+                    if ( _archLayout->is64 )
+                        *((uint64_t*)fixupLoc) = _archLayout->sharedMemoryStart + target.sharedCache.offset;
+                    else
+                        *((uint32_t*)fixupLoc) = (uint32_t)(_archLayout->sharedMemoryStart + target.sharedCache.offset);
+                    // record location in aslr tracker so kernel can slide this on page-in
+                    _aslrTracker.add(fixupLoc);
                 }
-                _dylibToItsExports[target.foundInImage._mh].insert(targetSymbolOffsetInCache);
-                if ( target.isWeakDef )
-                    _dylibWeakExports.insert({ target.foundInImage._mh, targetSymbolOffsetInCache });
-                _exportsToUses[targetSymbolOffsetInCache].push_back(makePatchLocation(fixupLoc - _readExecuteRegion.buffer, pmd, target.addend));
-                _exportsToName[targetSymbolOffsetInCache] = target.foundSymbolName;
                 break;
-            case FixupTarget::Kind::bindMissingSymbol:
-                // if there are missing symbols, makeDyldCacheImageArray() will error 
+            case dyld3::closure::Image::ResolvedSymbolTarget::kindAbsolute:
+                 if ( _archLayout->is64 )
+                    *((uint64_t*)fixupLoc) = target.absolute.value;
+                else
+                    *((uint32_t*)fixupLoc) = (uint32_t)(target.absolute.value);
+                // don't record absolute targets for ASLR
+                // HACK: Split seg may have added a target.  Remove it
+                _aslrTracker.remove(fixupLoc);
+                if ( (targetInfo.libOrdinal > 0) && (targetInfo.libOrdinal <= (int)(mh->dependentDylibCount())) ) {
+                    _missingWeakImports[fixupLoc] = mh->dependentDylibLoadPath(targetInfo.libOrdinal - 1);
+                }
                 break;
+            default:
+                assert(0 && "unsupported ResolvedSymbolTarget kind in dyld cache");
         }
     };
 
-
     // build ImageArray for all dylibs in dyld cache
     dyld3::closure::PathOverrides pathOverrides;
-    dyld3::RootsChecker rootsChecker;
-    dyld3::closure::ClosureBuilder cb(dyld3::closure::kFirstDyldCacheImageNum, _fileSystem, rootsChecker, cache, false, *_options.archs, pathOverrides,
-                                      dyld3::closure::ClosureBuilder::AtPath::none, false, nullptr, _options.platform, handler);
+    dyld3::closure::ClosureBuilder cb(dyld3::closure::kFirstDyldCacheImageNum, _fileSystem, cache, false, *_options.archs, pathOverrides,
+                                      dyld3::closure::ClosureBuilder::AtPath::none, false, nullptr, _options.platform, &handlers);
     dyld3::Array<CachedDylibInfo> dylibs(&dylibInfos[0], dylibInfos.size(), dylibInfos.size());
     const dyld3::Array<dyld3::closure::ClosureBuilder::CachedDylibAlias> aliasesArray(dylibAliases.data(), dylibAliases.size(), dylibAliases.size());
-    _imageArray = cb.makeDyldCacheImageArray(dylibs, aliasesArray);
+    _imageArray = cb.makeDyldCacheImageArray(_options.optimizeStubs, dylibs, aliasesArray);
     if ( cb.diagnostics().hasError() ) {
         _diagnostics.error("%s", cb.diagnostics().errorMessage().c_str());
         return;
     }
+
 }
 
 static bool operator==(const dyld_cache_patchable_location& a, const dyld_cache_patchable_location& b) {
@@ -2510,6 +2195,10 @@ void SharedCacheBuilder::addImageArray()
         return alwaysGeneratePatch.find(exportName) != alwaysGeneratePatch.end();
     };
 
+    std::set<std::string> alwaysPatchDylibs;
+    for (const char* const* d= _s_neverStubEliminateDylibs; *d != nullptr; ++d)
+        alwaysPatchDylibs.insert(*d);
+
     // First calculate how much space we need
     const DyldSharedCache* cache = (DyldSharedCache*)_readExecuteRegion.buffer;
     cache->forEachImage(^(const mach_header* mh, const char* installName) {
@@ -2517,7 +2206,7 @@ void SharedCacheBuilder::addImageArray()
         const std::set<CacheOffset>& dylibExports = _dylibToItsExports[ml];
 
         // On a customer cache, only store patch locations for interposable dylibs and weak binding
-        bool dylibNeedsPatching = cache->isOverridablePath(installName);
+        bool dylibNeedsPatching = !_options.optimizeStubs || alwaysPatchDylibs.count(installName);
 
         uint64_t numDylibExports = 0;
         for (CacheOffset exportCacheOffset : dylibExports) {
@@ -2550,7 +2239,7 @@ void SharedCacheBuilder::addImageArray()
         const std::set<CacheOffset>& dylibExports = _dylibToItsExports[ml];
 
         // On a customer cache, only store patch locations for interposable dylibs and weak binding
-        bool dylibNeedsPatching = cache->isOverridablePath(installName);
+        bool dylibNeedsPatching = !_options.optimizeStubs || alwaysPatchDylibs.count(installName);
 
         // Add the patch image which points in to the exports
         dyld_cache_image_patches patchImage;
@@ -2635,7 +2324,6 @@ void SharedCacheBuilder::addImageArray()
 
     // Free the underlying image array buffer
     _imageArray->deallocate();
-    _imageArray = nullptr;
 }
 
 void SharedCacheBuilder::addOtherImageArray(const std::vector<LoadedMachO>& otherDylibsAndBundles, std::vector<const LoadedMachO*>& overflowDylibs)
@@ -2643,8 +2331,7 @@ void SharedCacheBuilder::addOtherImageArray(const std::vector<LoadedMachO>& othe
     DyldSharedCache* cache = (DyldSharedCache*)_readExecuteRegion.buffer;
     dyld3::closure::PathOverrides pathOverrides;
     dyld3::closure::FileSystemNull nullFileSystem;
-    dyld3::RootsChecker rootsChecker;
-    dyld3::closure::ClosureBuilder cb(dyld3::closure::kFirstOtherOSImageNum, nullFileSystem, rootsChecker, cache, false, *_options.archs, pathOverrides,
+    dyld3::closure::ClosureBuilder cb(dyld3::closure::kFirstOtherOSImageNum, nullFileSystem, cache, false, *_options.archs, pathOverrides,
                                       dyld3::closure::ClosureBuilder::AtPath::none, false, nullptr, _options.platform);
 
     // make ImageArray for other dylibs and bundles
@@ -2723,18 +2410,8 @@ void SharedCacheBuilder::addClosures(const std::vector<LoadedMachO>& osExecutabl
         if ( startsWith(loadedMachO.mappedFile.runtimePath, "/private/var/staged_system_apps/") ) {
             return;
         }
-
-        // prebuilt closures use the cdhash of the dylib to verify that the dylib is still the same
-        // at runtime as when the shared cache processed it.  We must have a code signature to record this information
-        uint32_t codeSigFileOffset;
-        uint32_t codeSigSize;
-        if ( !loadedMachO.mappedFile.mh->hasCodeSignature(codeSigFileOffset, codeSigSize) ) {
-            return;
-        }
-
         dyld3::closure::PathOverrides pathOverrides;
-        dyld3::RootsChecker rootsChecker;
-        dyld3::closure::ClosureBuilder builder(dyld3::closure::kFirstLaunchClosureImageNum, _fileSystem, rootsChecker, dyldCache, false, *_options.archs, pathOverrides,
+        dyld3::closure::ClosureBuilder builder(dyld3::closure::kFirstLaunchClosureImageNum, _fileSystem, dyldCache, false, *_options.archs, pathOverrides,
                                                dyld3::closure::ClosureBuilder::AtPath::all, false, nullptr, _options.platform, nullptr);
         bool issetuid = false;
         if ( this->_options.platform == dyld3::Platform::macOS || dyld3::MachOFile::isSimulatorPlatform(this->_options.platform) )
@@ -2819,149 +2496,25 @@ void SharedCacheBuilder::addClosures(const std::vector<LoadedMachO>& osExecutabl
     _readOnlyRegion.sizeInUse = align(_readOnlyRegion.sizeInUse, 14);
 }
 
-void SharedCacheBuilder::emitContantObjects() {
-    if ( _coalescedText.cfStrings.bufferSize == 0 )
-        return;
-
-    assert(_coalescedText.cfStrings.isaInstallName != nullptr);
-    DyldSharedCache* cache = (DyldSharedCache*)_readExecuteRegion.buffer;
-    __block uint64_t targetSymbolOffsetInCache = 0;
-    __block const dyld3::MachOAnalyzer* targetSymbolMA = nullptr;
-    __block const dyld3::MachOAnalyzer* libdyldMA = nullptr;
-    cache->forEachImage(^(const mach_header* mh, const char* installName) {
-        const dyld3::MachOAnalyzer* ma = (const dyld3::MachOAnalyzer*)mh;
-
-        if ( strcmp(installName, "/usr/lib/system/libdyld.dylib") == 0 ) {
-            libdyldMA = ma;
-        }
-
-        if ( targetSymbolOffsetInCache != 0 )
-            return;
-        if ( strcmp(installName, _coalescedText.cfStrings.isaInstallName) != 0 )
-            return;
-        dyld3::MachOAnalyzer::FoundSymbol foundInfo;
-        bool foundSymbol = ma->findExportedSymbol(_diagnostics, _coalescedText.cfStrings.isaClassName,
-                                                  false, foundInfo, nullptr);
-        if ( foundSymbol ) {
-            targetSymbolOffsetInCache = (uint8_t*)ma - _readExecuteRegion.buffer + foundInfo.value;
-            targetSymbolMA = ma;
-        }
-    });
-    if ( targetSymbolOffsetInCache == 0 ) {
-        _diagnostics.error("Could not find export of '%s' in '%s'", _coalescedText.cfStrings.isaClassName,
-                           _coalescedText.cfStrings.isaInstallName);
-        return;
-    }
-    if ( libdyldMA == nullptr ) {
-        _diagnostics.error("Could not libdyld.dylib in shared cache");
-        return;
-    }
-
-    // If all binds to this symbol were via CF constants, then we'll never have seen the ISA patch export
-    // os add it now just in case
-    _dylibToItsExports[targetSymbolMA].insert(targetSymbolOffsetInCache);
-    _exportsToName[targetSymbolOffsetInCache] = _coalescedText.cfStrings.isaClassName;
-
-    // CFString's have so far just been memcpy'ed from the source dylib to the shared cache.
-    // We now need to rewrite their ISAs to be rebases to the ___CFConstantStringClassReference class
-    const uint64_t cfStringAtomSize = (uint64_t)DyldSharedCache::ConstantClasses::cfStringAtomSize;
-    assert( (_coalescedText.cfStrings.bufferSize % cfStringAtomSize) == 0);
-    for (uint64_t bufferOffset = 0; bufferOffset != _coalescedText.cfStrings.bufferSize; bufferOffset += cfStringAtomSize) {
-        uint8_t* atomBuffer = _coalescedText.cfStrings.bufferAddr + bufferOffset;
-        // The ISA fixup is at an offset of 0 in to the atom
-        uint8_t* fixupLoc = atomBuffer;
-        // We purposefully want to remove the pointer authentication from the ISA so
-        // just use an empty pointer metadata
-        dyld3::Loader::PointerMetaData pmd;
-        uint64_t addend = 0;
-        _exportsToUses[targetSymbolOffsetInCache].push_back(makePatchLocation(fixupLoc - _readExecuteRegion.buffer, pmd, addend));
-        *(uint64_t*)fixupLoc = _archLayout->sharedMemoryStart + targetSymbolOffsetInCache;
-        _aslrTracker.add(fixupLoc);
-    }
-
-    // Set the ranges in the libdyld in the shared cache.  At runtime we can use these to quickly check if a given address
-    // is a valid constant
-    typedef std::pair<const uint8_t*, const uint8_t*> ObjCConstantRange;
-    std::pair<const void*, uint64_t> sharedCacheRanges = cache->getObjCConstantRange();
-    uint64_t numRanges = sharedCacheRanges.second / sizeof(ObjCConstantRange);
-    dyld3::Array<ObjCConstantRange> rangeArray((ObjCConstantRange*)sharedCacheRanges.first, numRanges, numRanges);
-
-    if ( numRanges > dyld_objc_string_kind ) {
-        rangeArray[dyld_objc_string_kind].first = (const uint8_t*)_coalescedText.cfStrings.bufferVMAddr;
-        rangeArray[dyld_objc_string_kind].second = rangeArray[dyld_objc_string_kind].first + _coalescedText.cfStrings.bufferSize;
-        _aslrTracker.add(&rangeArray[dyld_objc_string_kind].first);
-        _aslrTracker.add(&rangeArray[dyld_objc_string_kind].second);
-    }
-
-    // Update the __SHARED_CACHE range in libdyld to contain the cf/objc constants
-    libdyldMA->forEachLoadCommand(_diagnostics, ^(const load_command* cmd, bool& stop) {
-        // We don't handle 32-bit as this is only needed for pointer authentication
-        assert(cmd->cmd != LC_SEGMENT);
-        if ( cmd->cmd == LC_SEGMENT_64 ) {
-            segment_command_64* seg = (segment_command_64*)cmd;
-            if ( strcmp(seg->segname, "__SHARED_CACHE") == 0 ) {
-                // Update the range of this segment, and any sections inside
-                seg->vmaddr     = _coalescedText.cfStrings.bufferVMAddr;
-                seg->vmsize     = _coalescedText.cfStrings.bufferSize;
-                seg->fileoff    = _coalescedText.cfStrings.cacheFileOffset;
-                seg->fileoff    = _coalescedText.cfStrings.bufferSize;
-                section_64* const sectionsStart = (section_64*)((char*)seg + sizeof(struct segment_command_64));
-                section_64* const sectionsEnd   = &sectionsStart[seg->nsects];
-                for (section_64* sect=sectionsStart; sect < sectionsEnd; ++sect) {
-                    if ( !strcmp(sect->sectname, "__cfstring") ) {
-                        sect->addr      = _coalescedText.cfStrings.bufferVMAddr;
-                        sect->size      = _coalescedText.cfStrings.bufferSize;
-                        sect->offset    = (uint32_t)_coalescedText.cfStrings.cacheFileOffset;
-                    }
-                }
-                stop = true;
-            }
-        }
-    });
-}
-
 
 bool SharedCacheBuilder::writeCache(void (^cacheSizeCallback)(uint64_t size), bool (^copyCallback)(const uint8_t* src, uint64_t size, uint64_t dstOffset))
 {
     const dyld_cache_header*       cacheHeader = (dyld_cache_header*)_readExecuteRegion.buffer;
     const dyld_cache_mapping_info* mappings = (dyld_cache_mapping_info*)(_readExecuteRegion.buffer + cacheHeader->mappingOffset);
-    const uint32_t mappingsCount = cacheHeader->mappingCount;
-    // Check the sizes of all the regions are correct
     assert(_readExecuteRegion.sizeInUse       == mappings[0].size);
-    for (uint32_t i = 0; i != _dataRegions.size(); ++i) {
-        assert(_dataRegions[i].sizeInUse == mappings[i + 1].size);
-    }
-    assert(_readOnlyRegion.sizeInUse          == mappings[mappingsCount - 1].size);
-
-    // Check the file offsets of all the regions are correct
+    assert(_readWriteRegion.sizeInUse         == mappings[1].size);
+    assert(_readOnlyRegion.sizeInUse          == mappings[2].size);
     assert(_readExecuteRegion.cacheFileOffset == mappings[0].fileOffset);
-    for (uint32_t i = 0; i != _dataRegions.size(); ++i) {
-        assert(_dataRegions[i].cacheFileOffset   == mappings[i + 1].fileOffset);
-    }
-    assert(_readOnlyRegion.cacheFileOffset    == mappings[mappingsCount - 1].fileOffset);
+    assert(_readWriteRegion.cacheFileOffset   == mappings[1].fileOffset);
+    assert(_readOnlyRegion.cacheFileOffset    == mappings[2].fileOffset);
     assert(_codeSignatureRegion.sizeInUse     == cacheHeader->codeSignatureSize);
-    assert(cacheHeader->codeSignatureOffset   == _readOnlyRegion.cacheFileOffset+_readOnlyRegion.sizeInUse+_localSymbolsRegion.sizeInUse);
-
-    // Make sure the slidable mappings have the same ranges as the original mappings
-    const dyld_cache_mapping_and_slide_info* slidableMappings = (dyld_cache_mapping_and_slide_info*)(_readExecuteRegion.buffer + cacheHeader->mappingWithSlideOffset);
-    assert(cacheHeader->mappingCount == cacheHeader->mappingWithSlideCount);
-    for (uint32_t i = 0; i != cacheHeader->mappingCount; ++i) {
-        assert(mappings[i].address      == slidableMappings[i].address);
-        assert(mappings[i].size         == slidableMappings[i].size);
-        assert(mappings[i].fileOffset   == slidableMappings[i].fileOffset);
-        assert(mappings[i].maxProt      == slidableMappings[i].maxProt);
-        assert(mappings[i].initProt     == slidableMappings[i].initProt);
-    }
-
-    // Now that we know everything is correct, actually copy the data
-    cacheSizeCallback(_readExecuteRegion.sizeInUse+dataRegionsSizeInUse()+_readOnlyRegion.sizeInUse+_localSymbolsRegion.sizeInUse+_codeSignatureRegion.sizeInUse);
+    assert(cacheHeader->codeSignatureOffset   == mappings[2].fileOffset+_readOnlyRegion.sizeInUse+_localSymbolsRegion.sizeInUse);
+    cacheSizeCallback(_readExecuteRegion.sizeInUse+_readWriteRegion.sizeInUse+_readOnlyRegion.sizeInUse+_localSymbolsRegion.sizeInUse+_codeSignatureRegion.sizeInUse);
     bool fullyWritten = copyCallback(_readExecuteRegion.buffer, _readExecuteRegion.sizeInUse, mappings[0].fileOffset);
-    for (uint32_t i = 0; i != _dataRegions.size(); ++i) {
-        fullyWritten &= copyCallback(_dataRegions[i].buffer, _dataRegions[i].sizeInUse, mappings[i + 1].fileOffset);
-    }
-    fullyWritten &= copyCallback(_readOnlyRegion.buffer, _readOnlyRegion.sizeInUse, mappings[cacheHeader->mappingCount - 1].fileOffset);
+    fullyWritten &= copyCallback(_readWriteRegion.buffer, _readWriteRegion.sizeInUse, mappings[1].fileOffset);
+    fullyWritten &= copyCallback(_readOnlyRegion.buffer, _readOnlyRegion.sizeInUse, mappings[2].fileOffset);
     if ( _localSymbolsRegion.sizeInUse != 0 ) {
-        assert(cacheHeader->localSymbolsOffset == mappings[cacheHeader->mappingCount - 1].fileOffset+_readOnlyRegion.sizeInUse);
+        assert(cacheHeader->localSymbolsOffset == mappings[2].fileOffset+_readOnlyRegion.sizeInUse);
         fullyWritten &= copyCallback(_localSymbolsRegion.buffer, _localSymbolsRegion.sizeInUse, cacheHeader->localSymbolsOffset);
     }
     fullyWritten &= copyCallback(_codeSignatureRegion.buffer, _codeSignatureRegion.sizeInUse, cacheHeader->codeSignatureOffset);
@@ -2978,6 +2531,12 @@ void SharedCacheBuilder::writeFile(const std::string& path)
     int fd = mkstemp(pathTemplateSpace);
     if ( fd != -1 ) {
         auto cacheSizeCallback = ^(uint64_t size) {
+            // if making macOS dyld cache for current OS into standard location
+            if ( (_options.platform == dyld3::Platform::macOS) && startsWith(path, MACOSX_DYLD_SHARED_CACHE_DIR) ) {
+                // <rdar://48687550> pin cache file to SSD on fusion drives
+                apfs_data_pin_location_t where = APFS_PIN_DATA_TO_MAIN;
+                ::fsctl(pathTemplateSpace, APFSIOC_PIN_DATA, &where, 0);
+            }
             // set final cache file size (may help defragment file)
             ::ftruncate(fd, size);
         };
@@ -3006,27 +2565,16 @@ void SharedCacheBuilder::writeFile(const std::string& path)
         if ( fullyWritten ) {
             ::fchmod(fd, S_IRUSR|S_IRGRP|S_IROTH); // mkstemp() makes file "rw-------", switch it to "r--r--r--"
             // <rdar://problem/55370916> TOCTOU: verify path is still a realpath (not changed)
-            // For MRM bringup, dyld installs symlinks from:
-            //   dyld_shared_cache_x86_64 -> ../../../../System/Library/dyld/dyld_shared_cache_x86_64
-            //   dyld_shared_cache_x86_64h -> ../../../../System/Library/dyld/dyld_shared_cache_x86_64h
-            // We don't want to follow that symlink when we install the cache, but instead write over it
-            auto lastSlash = path.find_last_of("/");
-            if ( lastSlash != std::string::npos ) {
-                std::string directoryPath = path.substr(0, lastSlash);
-
-                char resolvedPath[PATH_MAX];
-                ::realpath(directoryPath.c_str(), resolvedPath);
-                // Note: if the target cache file does not already exist, realpath() will return NULL, but still fill in the path buffer
-                if ( directoryPath != resolvedPath ) {
-                    _diagnostics.error("output directory file path changed from: '%s' to: '%s'", directoryPath.c_str(), resolvedPath);
-                    return;
-                }
+            char resolvedPath[PATH_MAX];
+            ::realpath(path.c_str(), resolvedPath);
+            // Note: if the target cache file does not already exist, realpath() will return NULL, but still fill in the path buffer
+            if ( path != resolvedPath ) {
+                _diagnostics.error("output file path changed from: '%s' to: '%s'", path.c_str(), resolvedPath);
+                return;
             }
             if ( ::rename(pathTemplateSpace, path.c_str()) == 0) {
                 ::close(fd);
                 return; // success
-            } else {
-                _diagnostics.error("could not rename file '%s' to: '%s'", pathTemplateSpace, path.c_str());
             }
         }
         else {
@@ -3055,17 +2603,12 @@ void SharedCacheBuilder::writeBuffer(uint8_t*& buffer, uint64_t& bufferSize) {
 
 void SharedCacheBuilder::writeMapFile(const std::string& path)
 {
-    std::string mapContent = getMapFileBuffer();
+    const DyldSharedCache* cache = (DyldSharedCache*)_readExecuteRegion.buffer;
+    std::string mapContent = cache->mapFile();
     safeSave(mapContent.c_str(), mapContent.size(), path);
 }
 
-std::string SharedCacheBuilder::getMapFileBuffer() const
-{
-    const DyldSharedCache* cache = (DyldSharedCache*)_readExecuteRegion.buffer;
-    return cache->mapFile();
-}
-
-std::string SharedCacheBuilder::getMapFileJSONBuffer(const std::string& cacheDisposition) const
+std::string SharedCacheBuilder::getMapFileBuffer(const std::string& cacheDisposition) const
 {
     const DyldSharedCache* cache = (DyldSharedCache*)_readExecuteRegion.buffer;
     return cache->generateJSONMap(cacheDisposition.c_str());
@@ -3075,12 +2618,11 @@ void SharedCacheBuilder::markPaddingInaccessible()
 {
     // region between RX and RW
     uint8_t* startPad1 = _readExecuteRegion.buffer+_readExecuteRegion.sizeInUse;
-    uint8_t* endPad1   = firstDataRegion()->buffer;
+    uint8_t* endPad1   = _readWriteRegion.buffer;
     ::vm_protect(mach_task_self(), (vm_address_t)startPad1, endPad1-startPad1, false, 0);
 
     // region between RW and RO
-    const Region* lastRegion = lastDataRegion();
-    uint8_t* startPad2 = lastRegion->buffer+lastRegion->sizeInUse;
+    uint8_t* startPad2 = _readWriteRegion.buffer+_readWriteRegion.sizeInUse;
     uint8_t* endPad2   = _readOnlyRegion.buffer;
     ::vm_protect(mach_task_self(), (vm_address_t)startPad2, endPad2-startPad2, false, 0);
 }
@@ -3088,23 +2630,7 @@ void SharedCacheBuilder::markPaddingInaccessible()
 
 void SharedCacheBuilder::forEachCacheDylib(void (^callback)(const std::string& path)) {
     for (const DylibInfo& dylibInfo : _sortedDylibs)
-        callback(dylibInfo.dylibID);
-}
-
-
-void SharedCacheBuilder::forEachCacheSymlink(void (^callback)(const std::string& path))
-{
-    const DyldSharedCache* cache = (DyldSharedCache*)_readExecuteRegion.buffer;
-    const dyld3::closure::ImageArray* images = cache->cachedDylibsImageArray();
-    if ( images == nullptr )
-        return;
-
-    // Aliases we folded in to the cache are in the cache dylib closures
-    images->forEachImage(^(const dyld3::closure::Image *image, bool &stop) {
-        image->forEachAlias(^(const char *aliasPath, bool &stop) {
-            callback(aliasPath);
-        });
-    });
+        callback(dylibInfo.runtimePath);
 }
 
 
@@ -3213,7 +2739,7 @@ void SharedCacheBuilder::codeSign()
             cacheIdentifier += ".development";
     }
     // get pointers into shared cache buffer
-    size_t          inBbufferSize = _readExecuteRegion.sizeInUse+dataRegionsSizeInUse()+_readOnlyRegion.sizeInUse+_localSymbolsRegion.sizeInUse;
+    size_t          inBbufferSize = _readExecuteRegion.sizeInUse+_readWriteRegion.sizeInUse+_readOnlyRegion.sizeInUse+_localSymbolsRegion.sizeInUse;
 
     const uint16_t pageSize = _archLayout->csPageSize;
 
@@ -3360,50 +2886,26 @@ void SharedCacheBuilder::codeSign()
     cache->codeSignatureOffset  = inBbufferSize;
     cache->codeSignatureSize    = sigSize;
 
-    struct SlotRange {
-        uint64_t        start   = 0;
-        uint64_t        end     = 0;
-        const uint8_t*  buffer  = nullptr;
-    };
-    std::vector<SlotRange> regionSlots;
-    // __TEXT
-    regionSlots.push_back({ 0, (_readExecuteRegion.sizeInUse / pageSize), _readExecuteRegion.buffer });
-    // __DATA
-    for (const Region& dataRegion : _dataRegions) {
-        // The first data region starts at the end of __TEXT, and subsequent regions are
-        // after the previous __DATA region.
-        uint64_t previousEnd = regionSlots.back().end;
-        uint64_t numSlots = dataRegion.sizeInUse / pageSize;
-        regionSlots.push_back({ previousEnd, previousEnd + numSlots, dataRegion.buffer });
-    }
-    // __LINKEDIT
-    {
-        uint64_t previousEnd = regionSlots.back().end;
-        uint64_t numSlots = _readOnlyRegion.sizeInUse / pageSize;
-        regionSlots.push_back({ previousEnd, previousEnd + numSlots, _readOnlyRegion.buffer });
-    }
-    // local symbols
-    if ( _localSymbolsRegion.sizeInUse != 0 ) {
-        uint64_t previousEnd = regionSlots.back().end;
-        uint64_t numSlots = _localSymbolsRegion.sizeInUse / pageSize;
-        regionSlots.push_back({ previousEnd, previousEnd + numSlots, _localSymbolsRegion.buffer });
-    }
-
+    const uint32_t rwSlotStart = (uint32_t)(_readExecuteRegion.sizeInUse / pageSize);
+    const uint32_t roSlotStart = (uint32_t)(rwSlotStart + _readWriteRegion.sizeInUse / pageSize);
+    const uint32_t localsSlotStart = (uint32_t)(roSlotStart + _readOnlyRegion.sizeInUse / pageSize);
     auto codeSignPage = ^(size_t i) {
+        const uint8_t* code = nullptr;
         // move to correct region
-        for (const SlotRange& slotRange : regionSlots) {
-            if ( (i >= slotRange.start) && (i < slotRange.end) ) {
-                const uint8_t* code = slotRange.buffer + ((i - slotRange.start) * pageSize);
+        if ( i < rwSlotStart )
+            code = _readExecuteRegion.buffer + (i * pageSize);
+        else if ( i >= rwSlotStart && i < roSlotStart )
+            code = _readWriteRegion.buffer + ((i - rwSlotStart) * pageSize);
+        else if ( i >= roSlotStart && i < localsSlotStart )
+            code = _readOnlyRegion.buffer + ((i - roSlotStart) * pageSize);
+        else
+            code = _localSymbolsRegion.buffer + ((i - localsSlotStart) * pageSize);
 
-                CCDigest(dscDigestFormat, code, pageSize, hashSlot + (i * dscHashSize));
+        CCDigest(dscDigestFormat, code, pageSize, hashSlot + (i * dscHashSize));
 
-                if ( agile ) {
-                    CCDigest(kCCDigestSHA256, code, pageSize, hash256Slot + (i * CS_HASH_SIZE_SHA256));
-                }
-                return;
-            }
+        if ( agile ) {
+            CCDigest(kCCDigestSHA256, code, pageSize, hash256Slot + (i * CS_HASH_SIZE_SHA256));
         }
-        assert(0 && "Out of range slot");
     };
 
     // compute hashes
@@ -3472,14 +2974,6 @@ const std::string SharedCacheBuilder::uuid() const
     uuid_string_t uuidStr;
     uuid_unparse(cache->uuid, uuidStr);
     return uuidStr;
-}
-
-void SharedCacheBuilder::forEachDylibInfo(void (^callback)(const DylibInfo& dylib, Diagnostics& dylibDiag)) {
-    for (const DylibInfo& dylibInfo : _sortedDylibs) {
-        // The shared cache builder doesn't use per-dylib errors right now
-        // so just share the global diagnostics
-        callback(dylibInfo, _diagnostics);
-    }
 }
 
 
@@ -3554,7 +3048,7 @@ bool SharedCacheBuilder::makeRebaseChainV2(uint8_t* pageContent, uint16_t lastLo
         uint16_t nOffset = nonRebaseLocationOffsets[n];
         assert(nOffset != 0);
         pint_t* nLoc = (pint_t*)&pageContent[nOffset];
-        pint_t delta2 = nOffset - prevOffset;
+        uint32_t delta2 = nOffset - prevOffset;
         pint_t value = (pint_t)P::getP(*prevLoc);
         pint_t newValue;
         if ( value == 0 )
@@ -3566,7 +3060,7 @@ bool SharedCacheBuilder::makeRebaseChainV2(uint8_t* pageContent, uint16_t lastLo
         prevOffset = nOffset;
         prevLoc = nLoc;
     }
-    pint_t delta3 = offset - prevOffset;
+    uint32_t delta3 = offset - prevOffset;
     pint_t value = (pint_t)P::getP(*prevLoc);
     pint_t newValue;
     if ( value == 0 )
@@ -3632,70 +3126,54 @@ void SharedCacheBuilder::addPageStartsV2(uint8_t* pageContent, const bool bitmap
 }
 
 template <typename P>
-void SharedCacheBuilder::writeSlideInfoV2(const bool bitmapForAllDataRegions[], unsigned dataPageCountForAllDataRegions)
+void SharedCacheBuilder::writeSlideInfoV2(const bool bitmap[], unsigned dataPageCount)
 {
     typedef typename P::uint_t    pint_t;
     typedef typename P::E         E;
+    const uint32_t pageSize = 4096;
 
-    const uint32_t  pageSize = _aslrTracker.pageSize();
-    const uint8_t*  firstDataRegionBuffer = firstDataRegion()->buffer;
-    for (uint32_t dataRegionIndex = 0; dataRegionIndex != _dataRegions.size(); ++dataRegionIndex) {
-        Region& dataRegion = _dataRegions[dataRegionIndex];
+    // fill in fixed info
+    assert(_slideInfoFileOffset != 0);
+    dyld_cache_slide_info2* info = (dyld_cache_slide_info2*)_readOnlyRegion.buffer;
+    info->version    = 2;
+    info->page_size  = pageSize;
+    info->delta_mask = _archLayout->pointerDeltaMask;
+    info->value_add  = _archLayout->useValueAdd ? _archLayout->sharedMemoryStart : 0;
 
-        // fill in fixed info
-        assert(dataRegion.slideInfoFileOffset != 0);
-        assert((dataRegion.sizeInUse % pageSize) == 0);
-        unsigned dataPageCount = (uint32_t)dataRegion.sizeInUse / pageSize;
-        dyld_cache_slide_info2* info = (dyld_cache_slide_info2*)dataRegion.slideInfoBuffer;
-        info->version    = 2;
-        info->page_size  = pageSize;
-        info->delta_mask = _archLayout->pointerDeltaMask;
-        info->value_add  = _archLayout->useValueAdd ? _archLayout->sharedMemoryStart : 0;
-
-        // set page starts and extras for each page
-        std::vector<uint16_t> pageStarts;
-        std::vector<uint16_t> pageExtras;
-        pageStarts.reserve(dataPageCount);
-
-        const size_t bitmapEntriesPerPage = (sizeof(bool)*(pageSize/4));
-        uint8_t* pageContent = dataRegion.buffer;
-        unsigned numPagesFromFirstDataRegion = (uint32_t)(dataRegion.buffer - firstDataRegionBuffer) / pageSize;
-        assert((numPagesFromFirstDataRegion + dataPageCount) <= dataPageCountForAllDataRegions);
-        const bool* bitmapForRegion = (const bool*)bitmapForAllDataRegions + (bitmapEntriesPerPage * numPagesFromFirstDataRegion);
-        const bool* bitmapForPage = bitmapForRegion;
-        for (unsigned i=0; i < dataPageCount; ++i) {
-            //warning("page[%d]", i);
-            addPageStartsV2<P>(pageContent, bitmapForPage, info, pageStarts, pageExtras);
-            if ( _diagnostics.hasError() ) {
-                return;
-            }
-            pageContent += pageSize;
-            bitmapForPage += (sizeof(bool)*(pageSize/4));
+    // set page starts and extras for each page
+    std::vector<uint16_t> pageStarts;
+    std::vector<uint16_t> pageExtras;
+    pageStarts.reserve(dataPageCount);
+    uint8_t* pageContent = _readWriteRegion.buffer;
+    const bool* bitmapForPage = bitmap;
+    for (unsigned i=0; i < dataPageCount; ++i) {
+        //warning("page[%d]", i);
+        addPageStartsV2<P>(pageContent, bitmapForPage, info, pageStarts, pageExtras);
+        if ( _diagnostics.hasError() ) {
+            return;
         }
-
-        // fill in computed info
-        info->page_starts_offset = sizeof(dyld_cache_slide_info2);
-        info->page_starts_count  = (unsigned)pageStarts.size();
-        info->page_extras_offset = (unsigned)(sizeof(dyld_cache_slide_info2)+pageStarts.size()*sizeof(uint16_t));
-        info->page_extras_count  = (unsigned)pageExtras.size();
-        uint16_t* pageStartsBuffer = (uint16_t*)((char*)info + info->page_starts_offset);
-        uint16_t* pageExtrasBuffer = (uint16_t*)((char*)info + info->page_extras_offset);
-        for (unsigned i=0; i < pageStarts.size(); ++i)
-            pageStartsBuffer[i] = pageStarts[i];
-        for (unsigned i=0; i < pageExtras.size(); ++i)
-            pageExtrasBuffer[i] = pageExtras[i];
-        // update header with final size
-        uint64_t slideInfoSize = align(info->page_extras_offset + pageExtras.size()*sizeof(uint16_t), _archLayout->sharedRegionAlignP2);
-        dataRegion.slideInfoFileSize = slideInfoSize;
-        if ( dataRegion.slideInfoFileSize > dataRegion.slideInfoBufferSizeAllocated ) {
-            _diagnostics.error("kernel slide info overflow buffer");
-        }
-        // Update the mapping entry on the cache header
-        const dyld_cache_header*       cacheHeader = (dyld_cache_header*)_readExecuteRegion.buffer;
-        dyld_cache_mapping_and_slide_info* slidableMappings = (dyld_cache_mapping_and_slide_info*)(_readExecuteRegion.buffer + cacheHeader->mappingWithSlideOffset);
-        slidableMappings[1 + dataRegionIndex].slideInfoFileSize = dataRegion.slideInfoFileSize;
-        //fprintf(stderr, "pageCount=%u, page_starts_count=%lu, page_extras_count=%lu\n", dataPageCount, pageStarts.size(), pageExtras.size());
+        pageContent += pageSize;
+        bitmapForPage += (sizeof(bool)*(pageSize/4));
     }
+
+    // fill in computed info
+    info->page_starts_offset = sizeof(dyld_cache_slide_info2);
+    info->page_starts_count  = (unsigned)pageStarts.size();
+    info->page_extras_offset = (unsigned)(sizeof(dyld_cache_slide_info2)+pageStarts.size()*sizeof(uint16_t));
+    info->page_extras_count  = (unsigned)pageExtras.size();
+    uint16_t* pageStartsBuffer = (uint16_t*)((char*)info + info->page_starts_offset);
+    uint16_t* pageExtrasBuffer = (uint16_t*)((char*)info + info->page_extras_offset);
+    for (unsigned i=0; i < pageStarts.size(); ++i)
+        pageStartsBuffer[i] = pageStarts[i];
+    for (unsigned i=0; i < pageExtras.size(); ++i)
+        pageExtrasBuffer[i] = pageExtras[i];
+    // update header with final size
+    uint64_t slideInfoSize = align(info->page_extras_offset + pageExtras.size()*sizeof(uint16_t), _archLayout->sharedRegionAlignP2);
+    if ( slideInfoSize > _slideInfoBufferSizeAllocated ) {
+        _diagnostics.error("kernel slide info overflow buffer");
+    }
+    ((dyld_cache_header*)_readExecuteRegion.buffer)->slideInfoSize = slideInfoSize;
+    //fprintf(stderr, "pageCount=%u, page_starts_count=%lu, page_extras_count=%lu\n", dataPageCount, pageStarts.size(), pageExtras.size());
 }
 
 #if SUPPORT_ARCH_arm64_32 || SUPPORT_ARCH_armv7k
@@ -3841,10 +3319,10 @@ void SharedCacheBuilder::addPageStartsV4(uint8_t* pageContent, const bool bitmap
         pint_t lastValue = (pint_t)P::getP(*lastLoc);
         pint_t newValue = ((lastValue - valueAdd) & valueMask);
         P::setP(*lastLoc, newValue);
-        if ( startValue & DYLD_CACHE_SLIDE4_PAGE_USE_EXTRA ) {
-            // add end bit to extras
-            pageExtras.back() |= DYLD_CACHE_SLIDE4_PAGE_EXTRA_END;
-        }
+    }
+    if ( startValue & DYLD_CACHE_SLIDE4_PAGE_USE_EXTRA ) {
+        // add end bit to extras
+        pageExtras.back() |= DYLD_CACHE_SLIDE4_PAGE_EXTRA_END;
     }
     pageStarts.push_back(startValue);
 }
@@ -3852,67 +3330,52 @@ void SharedCacheBuilder::addPageStartsV4(uint8_t* pageContent, const bool bitmap
 
 
 template <typename P>
-void SharedCacheBuilder::writeSlideInfoV4(const bool bitmapForAllDataRegions[], unsigned dataPageCountForAllDataRegions)
+void SharedCacheBuilder::writeSlideInfoV4(const bool bitmap[], unsigned dataPageCount)
 {
     typedef typename P::uint_t    pint_t;
     typedef typename P::E         E;
+    const uint32_t pageSize = 4096;
 
-    const uint32_t  pageSize = _aslrTracker.pageSize();
-    const uint8_t*  firstDataRegionBuffer = firstDataRegion()->buffer;
-    for (uint32_t dataRegionIndex = 0; dataRegionIndex != _dataRegions.size(); ++dataRegionIndex) {
-        Region& dataRegion = _dataRegions[dataRegionIndex];
+    // fill in fixed info
+    assert(_slideInfoFileOffset != 0);
+    dyld_cache_slide_info4* info = (dyld_cache_slide_info4*)_readOnlyRegion.buffer;
+    info->version    = 4;
+    info->page_size  = pageSize;
+    info->delta_mask = _archLayout->pointerDeltaMask;
+    info->value_add  = info->value_add  = _archLayout->useValueAdd ? _archLayout->sharedMemoryStart : 0;
 
-        // fill in fixed info
-        assert(dataRegion.slideInfoFileOffset != 0);
-        assert((dataRegion.sizeInUse % pageSize) == 0);
-        unsigned dataPageCount = (uint32_t)dataRegion.sizeInUse / pageSize;
-        dyld_cache_slide_info4* info = (dyld_cache_slide_info4*)dataRegion.slideInfoBuffer;
-        info->version    = 4;
-        info->page_size  = pageSize;
-        info->delta_mask = _archLayout->pointerDeltaMask;
-        info->value_add  = info->value_add  = _archLayout->useValueAdd ? _archLayout->sharedMemoryStart : 0;
-
-        // set page starts and extras for each page
-        std::vector<uint16_t> pageStarts;
-        std::vector<uint16_t> pageExtras;
-        pageStarts.reserve(dataPageCount);
-        const size_t bitmapEntriesPerPage = (sizeof(bool)*(pageSize/4));
-        uint8_t* pageContent = dataRegion.buffer;
-        unsigned numPagesFromFirstDataRegion = (uint32_t)(dataRegion.buffer - firstDataRegionBuffer) / pageSize;
-        assert((numPagesFromFirstDataRegion + dataPageCount) <= dataPageCountForAllDataRegions);
-        const bool* bitmapForRegion = (const bool*)bitmapForAllDataRegions + (bitmapEntriesPerPage * numPagesFromFirstDataRegion);
-        const bool* bitmapForPage = bitmapForRegion;
-        for (unsigned i=0; i < dataPageCount; ++i) {
-            addPageStartsV4<P>(pageContent, bitmapForPage, info, pageStarts, pageExtras);
-            if ( _diagnostics.hasError() ) {
-                return;
-            }
-            pageContent += pageSize;
-            bitmapForPage += (sizeof(bool)*(pageSize/4));
+    // set page starts and extras for each page
+    std::vector<uint16_t> pageStarts;
+    std::vector<uint16_t> pageExtras;
+    pageStarts.reserve(dataPageCount);
+    uint8_t* pageContent = _readWriteRegion.buffer;
+    const bool* bitmapForPage = bitmap;
+    for (unsigned i=0; i < dataPageCount; ++i) {
+        addPageStartsV4<P>(pageContent, bitmapForPage, info, pageStarts, pageExtras);
+        if ( _diagnostics.hasError() ) {
+            return;
         }
-        // fill in computed info
-        info->page_starts_offset = sizeof(dyld_cache_slide_info4);
-        info->page_starts_count  = (unsigned)pageStarts.size();
-        info->page_extras_offset = (unsigned)(sizeof(dyld_cache_slide_info4)+pageStarts.size()*sizeof(uint16_t));
-        info->page_extras_count  = (unsigned)pageExtras.size();
-        uint16_t* pageStartsBuffer = (uint16_t*)((char*)info + info->page_starts_offset);
-        uint16_t* pageExtrasBuffer = (uint16_t*)((char*)info + info->page_extras_offset);
-        for (unsigned i=0; i < pageStarts.size(); ++i)
-            pageStartsBuffer[i] = pageStarts[i];
-        for (unsigned i=0; i < pageExtras.size(); ++i)
-            pageExtrasBuffer[i] = pageExtras[i];
-        // update header with final size
-        uint64_t slideInfoSize = align(info->page_extras_offset + pageExtras.size()*sizeof(uint16_t), _archLayout->sharedRegionAlignP2);
-        dataRegion.slideInfoFileSize = slideInfoSize;
-        if ( dataRegion.slideInfoFileSize > dataRegion.slideInfoBufferSizeAllocated ) {
-            _diagnostics.error("kernel slide info overflow buffer");
-        }
-        // Update the mapping entry on the cache header
-        const dyld_cache_header*       cacheHeader = (dyld_cache_header*)_readExecuteRegion.buffer;
-        dyld_cache_mapping_and_slide_info* slidableMappings = (dyld_cache_mapping_and_slide_info*)(_readExecuteRegion.buffer + cacheHeader->mappingWithSlideOffset);
-        slidableMappings[1 + dataRegionIndex].slideInfoFileSize = dataRegion.slideInfoFileSize;
-        //fprintf(stderr, "pageCount=%u, page_starts_count=%lu, page_extras_count=%lu\n", dataPageCount, pageStarts.size(), pageExtras.size());
+        pageContent += pageSize;
+        bitmapForPage += (sizeof(bool)*(pageSize/4));
     }
+    // fill in computed info
+    info->page_starts_offset = sizeof(dyld_cache_slide_info4);
+    info->page_starts_count  = (unsigned)pageStarts.size();
+    info->page_extras_offset = (unsigned)(sizeof(dyld_cache_slide_info4)+pageStarts.size()*sizeof(uint16_t));
+    info->page_extras_count  = (unsigned)pageExtras.size();
+    uint16_t* pageStartsBuffer = (uint16_t*)((char*)info + info->page_starts_offset);
+    uint16_t* pageExtrasBuffer = (uint16_t*)((char*)info + info->page_extras_offset);
+    for (unsigned i=0; i < pageStarts.size(); ++i)
+        pageStartsBuffer[i] = pageStarts[i];
+    for (unsigned i=0; i < pageExtras.size(); ++i)
+        pageExtrasBuffer[i] = pageExtras[i];
+    // update header with final size
+    uint64_t slideInfoSize = align(info->page_extras_offset + pageExtras.size()*sizeof(uint16_t), _archLayout->sharedRegionAlignP2);
+    if ( slideInfoSize > _slideInfoBufferSizeAllocated ) {
+        _diagnostics.error("kernel slide info v4 overflow buffer, need %lldKB, have room for %lldKB", slideInfoSize, _slideInfoBufferSizeAllocated);
+    }
+    ((dyld_cache_header*)_readExecuteRegion.buffer)->slideInfoSize = slideInfoSize;
+    //fprintf(stderr, "pageCount=%u, page_starts_count=%lu, page_extras_count=%lu\n", dataPageCount, pageStarts.size(), pageExtras.size());
 }
 #endif
 
@@ -4042,43 +3505,31 @@ uint16_t SharedCacheBuilder::pageStartV3(uint8_t* pageContent, uint32_t pageSize
 }
 
 
-void SharedCacheBuilder::writeSlideInfoV3(const bool bitmapForAllDataRegions[], unsigned dataPageCountForAllDataRegions)
+void SharedCacheBuilder::writeSlideInfoV3(const bool bitmap[], unsigned dataPageCount)
 {
-    const uint32_t  pageSize = _aslrTracker.pageSize();
-    const uint8_t*  firstDataRegionBuffer = firstDataRegion()->buffer;
-    for (uint32_t dataRegionIndex = 0; dataRegionIndex != _dataRegions.size(); ++dataRegionIndex) {
-        Region& dataRegion = _dataRegions[dataRegionIndex];
-        // fprintf(stderr, "writeSlideInfoV3: %s 0x%llx->0x%llx\n", dataRegion.name.c_str(), dataRegion.cacheFileOffset, dataRegion.cacheFileOffset + dataRegion.sizeInUse);
-        // fill in fixed info
-        assert(dataRegion.slideInfoFileOffset != 0);
-        assert((dataRegion.sizeInUse % pageSize) == 0);
-        unsigned dataPageCount = (uint32_t)dataRegion.sizeInUse / pageSize;
-        dyld_cache_slide_info3* info = (dyld_cache_slide_info3*)dataRegion.slideInfoBuffer;
-        info->version           = 3;
-        info->page_size         = pageSize;
-        info->page_starts_count = dataPageCount;
-        info->auth_value_add    = _archLayout->sharedMemoryStart;
+    const uint32_t pageSize = 4096;
 
-        // fill in per-page starts
-        const size_t bitmapEntriesPerPage = (sizeof(bool)*(pageSize/4));
-        uint8_t* pageContent = dataRegion.buffer;
-        unsigned numPagesFromFirstDataRegion = (uint32_t)(dataRegion.buffer - firstDataRegionBuffer) / pageSize;
-        assert((numPagesFromFirstDataRegion + dataPageCount) <= dataPageCountForAllDataRegions);
-        const bool* bitmapForRegion = (const bool*)bitmapForAllDataRegions + (bitmapEntriesPerPage * numPagesFromFirstDataRegion);
-        const bool* bitmapForPage = bitmapForRegion;
-        //for (unsigned i=0; i < dataPageCount; ++i) {
-        dispatch_apply(dataPageCount, DISPATCH_APPLY_AUTO, ^(size_t i) {
-            info->page_starts[i] = pageStartV3(pageContent + (i * pageSize), pageSize, bitmapForPage + (i * bitmapEntriesPerPage));
-        });
+    // fill in fixed info
+    assert(_slideInfoFileOffset != 0);
+    dyld_cache_slide_info3* info = (dyld_cache_slide_info3*)_readOnlyRegion.buffer;
+    info->version           = 3;
+    info->page_size         = pageSize;
+    info->page_starts_count = dataPageCount;
+    info->auth_value_add    = _archLayout->sharedMemoryStart;
 
-        // update region with final size
-        dataRegion.slideInfoFileSize = align(__offsetof(dyld_cache_slide_info3, page_starts[dataPageCount]), _archLayout->sharedRegionAlignP2);
-        if ( dataRegion.slideInfoFileSize > dataRegion.slideInfoBufferSizeAllocated ) {
-            _diagnostics.error("kernel slide info overflow buffer");
-        }
-        // Update the mapping entry on the cache header
-        const dyld_cache_header*       cacheHeader = (dyld_cache_header*)_readExecuteRegion.buffer;
-        dyld_cache_mapping_and_slide_info* slidableMappings = (dyld_cache_mapping_and_slide_info*)(_readExecuteRegion.buffer + cacheHeader->mappingWithSlideOffset);
-        slidableMappings[1 + dataRegionIndex].slideInfoFileSize = dataRegion.slideInfoFileSize;
+    // fill in per-page starts
+    uint8_t* pageContent = _readWriteRegion.buffer;
+    const bool* bitmapForPage = bitmap;
+    for (unsigned i=0; i < dataPageCount; ++i) {
+        info->page_starts[i] = pageStartV3(pageContent, pageSize, bitmapForPage);
+        pageContent += pageSize;
+        bitmapForPage += (sizeof(bool)*(pageSize/4));
+    }
+
+    // update header with final size
+    dyld_cache_header* dyldCacheHeader = (dyld_cache_header*)_readExecuteRegion.buffer;
+    dyldCacheHeader->slideInfoSize = align(__offsetof(dyld_cache_slide_info3, page_starts[dataPageCount]), _archLayout->sharedRegionAlignP2);
+    if ( dyldCacheHeader->slideInfoSize > _slideInfoBufferSizeAllocated ) {
+        _diagnostics.error("kernel slide info overflow buffer");
     }
 }

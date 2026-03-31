@@ -20,6 +20,7 @@
  *
  * @APPLE_LICENSE_HEADER_END@
  */
+#include <stdatomic.h>
 #include <asl_object.h>
 #include <asl_core.h>
 #include <asl_private.h>
@@ -29,7 +30,6 @@
 #include <asl_store.h>
 #include <asl_file.h>
 #include <dispatch/dispatch.h>
-#include <libkern/OSAtomic.h>
 
 static const asl_jump_table_t *asl_jump[ASL_TYPE_COUNT];
 static dispatch_once_t asl_object_once;
@@ -212,7 +212,7 @@ asl_retain(asl_object_t obj)
 	asl_object_private_t *oo = (asl_object_private_t *)obj;
 	if (oo == NULL) return NULL;
 
-	OSAtomicIncrement32Barrier(&(oo->refcount));
+	atomic_fetch_add(&(oo->refcount), 1);
 	return obj;
 }
 

@@ -1,7 +1,0 @@
-# Make sure no internal symbol is present in the dynamic symbol table, e.g.:
-#    Num:    Value  Size Type    Bind   Vis      Ndx Name
-#      6: 004003f0     8 FUNC    GLOBAL INTERNAL   8 f1
-#failif
-#...
-.+ +INTERNAL +.+ +f1
-#pass

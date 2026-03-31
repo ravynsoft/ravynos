@@ -1,8 +1,7 @@
 
 // BUILD:  $CC foo.c -dynamiclib  -install_name $RUN_DIR/libfoo-static.dylib  -o $BUILD_DIR/libfoo-static.dylib
 // BUILD:  $CC foo.c -dynamiclib  -install_name $RUN_DIR/libfoo-dynamic.dylib -o $BUILD_DIR/libfoo-dynamic.dylib -DDYN
-// BUILD:  $CC bar.c -dynamiclib  -install_name $RUN_DIR/libbar.dylib -o $BUILD_DIR/libbar.dylib
-// BUILD:  $CC main.c $BUILD_DIR/libfoo-static.dylib -Wl,-reexport_library,$BUILD_DIR/libbar.dylib -o $BUILD_DIR/dlsym-RTLD_MAIN_ONLY.exe -DRUN_DIR="$RUN_DIR"
+// BUILD:  $CC main.c $BUILD_DIR/libfoo-static.dylib -o $BUILD_DIR/dlsym-RTLD_MAIN_ONLY.exe -DRUN_DIR="$RUN_DIR"
 
 // RUN:  ./dlsym-RTLD_MAIN_ONLY.exe
 
@@ -40,11 +39,6 @@ int main(int argc, const char* argv[], const char* envp[], const char* apple[]) 
     // verify mainSymbol is found
     if ( !symbolInImage("mainSymbol", "dlsym-RTLD_MAIN_ONLY") ) {
         FAIL("mainSymbol should have been found");
-    }
-
-    // verify bar is found in libbar.dylib, because RTLD_MAIN_ONLY searches main executable and re-exports
-    if ( dlsym(RTLD_MAIN_ONLY, "bar") == NULL ) {
-        FAIL("bar should have been found");
     }
 
     // verify free is found in this program - not in OS

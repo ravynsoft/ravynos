@@ -9,20 +9,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSObjCRuntime.h>
 #import <Foundation/NSDate.h>
 #import <Foundation/NSProcessInfo.h>
-
 #import <Foundation/NSStringFormatter.h>
-#import <Foundation/NSString_cString.h>
 #import <Foundation/NSStringUTF8.h>
 #import <Foundation/NSRaise.h>
 #import <Foundation/NSPlatform.h>
 #import <Foundation/NSAutoreleasePool-private.h>
 
-#import <objc/runtime.h>
-#import <Foundation/objc_size_alignment.h>
-#import <objc/objc.h>
-#include <ctype.h>
-#include <assert.h>
-#include <string.h>
+#import "NSString/NSString_cString.h"
 
 typedef void (*NSLogCStringFunc)(const char *string, unsigned length, BOOL withSyslogBanner);
 

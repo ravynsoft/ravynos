@@ -1,4 +1,0 @@
-	nop
-	rts
-	bgnd
-	swi

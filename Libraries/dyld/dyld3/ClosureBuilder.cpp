@@ -39,17 +39,11 @@
 #include "ClosureWriter.h"
 #include "ClosureBuilder.h"
 #include "MachOAnalyzer.h"
-#include "MachOAnalyzerSet.h"
 #include "libdyldEntryVector.h"
-#include "RootsChecker.h"
 #include "Tracing.h"
 
 #define CLOSURE_SELOPT_WRITE
 #include "objc-shared-cache.h"
-
-#if BUILDING_DYLD
-namespace dyld { void log(const char*, ...); }
-#endif
 
 namespace dyld3 {
 namespace closure {
@@ -57,15 +51,16 @@ namespace closure {
 
 const DlopenClosure* ClosureBuilder::sRetryDlopenClosure = (const DlopenClosure*)(-1);
 
-ClosureBuilder::ClosureBuilder(uint32_t startImageNum, const FileSystem& fileSystem, const RootsChecker& rootsChecker,
-                               const DyldSharedCache* dyldCache, bool dyldCacheIsLive,
+ClosureBuilder::ClosureBuilder(uint32_t startImageNum, const FileSystem& fileSystem, const DyldSharedCache* dyldCache, bool dyldCacheIsLive,
                                const GradedArchs& archs, const PathOverrides& pathOverrides, AtPath atPathHandling, bool allowRelativePaths,
-                               LaunchErrorInfo* errorInfo, Platform platform, DylibFixupHandler handler)
-: _fileSystem(fileSystem), _rootsChecker(rootsChecker), _dyldCache(dyldCache), _pathOverrides(pathOverrides), _archs(archs), _platform(platform), _startImageNum(startImageNum),
-      _dylibFixupHandler(handler), _atPathHandling(atPathHandling), _launchErrorInfo(errorInfo), _dyldCacheIsLive(dyldCacheIsLive), _allowRelativePaths(allowRelativePaths)
+                               LaunchErrorInfo* errorInfo, Platform platform, const CacheDylibsBindingHandlers* handlers)
+    : _fileSystem(fileSystem), _dyldCache(dyldCache), _pathOverrides(pathOverrides), _archs(archs), _platform(platform), _startImageNum(startImageNum),
+      _handlers(handlers), _atPathHandling(atPathHandling), _launchErrorInfo(errorInfo), _dyldCacheIsLive(dyldCacheIsLive), _allowRelativePaths(allowRelativePaths)
 {
     if ( dyldCache != nullptr ) {
         _dyldImageArray = dyldCache->cachedDylibsImageArray();
+        if ( (dyldCache->header.otherImageArrayAddr != 0) && (dyldCache->header.progClosuresSize == 0) )
+            _makingClosuresInCache = true;
     }
 }
 
@@ -77,11 +72,6 @@ ClosureBuilder::~ClosureBuilder() {
         PathPool::deallocate(_mustBeMissingPaths);
     if ( _objcDuplicateClassWarnings != nullptr )
         PathPool::deallocate(_objcDuplicateClassWarnings);
-}
-
-static bool iOSSupport(const char* path)
-{
-    return ( strncmp(path, "/System/iOSSupport/", 19) == 0 );
 }
 
 bool ClosureBuilder::findImage(const char* loadPath, const LoadedImageChain& forImageChain, BuilderLoadedImage*& foundImage, LinkageType linkageType,
@@ -98,13 +88,6 @@ bool ClosureBuilder::findImage(const char* loadPath, const LoadedImageChain& for
     if ( _dyldCache != nullptr ) {
         pathIsInDyldCacheWhichCannotBeOverridden = _dyldCache->hasNonOverridablePath(loadPath);
         dylibsExpectedOnDisk = _dyldCache->header.dylibsExpectedOnDisk;
-    }
-
-    // when building dyld cache for macOS, if requesting dylib is iOSMac unzippered twin, tell pathOverrides object to look in /System/iOSSupport first
-    dyld3::Platform targetPlatform = _platform;
-    if ( _makingDyldCacheImages && (_platform == dyld3::Platform::macOS) ) {
-        if ( forImageChain.image.loadAddress()->builtForPlatform(Platform::iOSMac, true) )
-            targetPlatform = Platform::iOSMac;
     }
 
     _pathOverrides.forEachPathVariant(loadPath, pathIsInDyldCacheWhichCannotBeOverridden, ^(const char* possibleVariantPath, bool isFallbackPath, bool& stopPathVariant) {
@@ -160,30 +143,7 @@ bool ClosureBuilder::findImage(const char* loadPath, const LoadedImageChain& for
                 if ( _fileSystem.fileExists(possiblePath, &fileFoundINode, &fileFoundMTime, nullptr, &inodesMatchRuntime) ) {
                     fileFound = true;
                     for (BuilderLoadedImage& li: _loadedImages) {
-                        if ( (li.loadedFileInfo.inode == 0) && (li.loadedFileInfo.mtime == 0) ) {
-                            // Some already loaded image does not have an inode/mtime recorded, fix that if we can
-                            if ( dylibsExpectedOnDisk || !li.loadAddress()->inDyldCache() ) {
-                                _fileSystem.fileExists(li.path(), &li.loadedFileInfo.inode, &li.loadedFileInfo.mtime , nullptr, nullptr);
-                            }
-                        }
                         if ( (li.loadedFileInfo.inode == fileFoundINode) && (li.loadedFileInfo.mtime == fileFoundMTime) )  {
-                            foundImage = &li;
-                            result = true;
-                            stop = true;
-                            return;
-                        }
-                    }
-                }
-            }
-
-            // We record the realpath of the file in the loaded images, but we might be loading via a symlink path.
-            // We need to search using the realpath just in case the dylib the symlink points to was overwritten while
-            // the process is running
-            if ( fileFound ) {
-                char realPath[MAXPATHLEN];
-                if ( _fileSystem.getRealPath(possiblePath, realPath) ) {
-                    for (BuilderLoadedImage& li: _loadedImages) {
-                        if ( strcmp(li.path(), realPath) == 0 ) {
                             foundImage = &li;
                             result = true;
                             stop = true;
@@ -238,46 +198,26 @@ bool ClosureBuilder::findImage(const char* loadPath, const LoadedImageChain& for
                             }
                         }
                     }
-                }
-
-                // If found in the cache, but not on-disk, this may be an already loaded image, but we are opening the alias.
-                // For example, we are trying to open .../AppKit but we already have a loaded root of .../Versions/C/AppKit
-                // This doesn't work with the calls to realpath when the symlinks themselves were removed from disk.
-                if ( foundInCache && !fileFound ) {
-                    ImageNum dyldCacheImageNum = dyldCacheImageIndex + 1;
-                    for (BuilderLoadedImage& li: _loadedImages) {
-                        if ( (li.overrideImageNum == dyldCacheImageNum) || (li.imageNum == dyldCacheImageNum) ) {
-                            foundImage = &li;
-                            result = true;
-                            stop = true;
-                            return;
-                        }
-                    }
-                }
-
-                // if not found in cache, may be a symlink to something in cache
-                // We have to do this check even if the symlink target is not on disk as we may
-                // have symlinks in iOSMac dlopen paths which are resolved to a dylib removed from disk
-                if ( !foundInCache && (mh == nullptr) ) {
-                    if ( _fileSystem.getRealPath(possiblePath, realPath) ) {
-                        foundInCache = _dyldCache->hasImagePath(realPath, dyldCacheImageIndex);
-                        if ( foundInCache ) {
-                            ImageNum dyldCacheImageNum = dyldCacheImageIndex + 1;
-                            const Image* image = _dyldImageArray->imageForNum(dyldCacheImageNum);
-                            filePath = image->path();
-#if BUILDING_LIBDYLD
-                            // handle case where OS dylib was updated after this process launched
+                    // if not found in cache, may be a symlink to something in cache
+                    if ( mh == nullptr ) {
+                        if ( _fileSystem.getRealPath(possiblePath, realPath) ) {
+                            foundInCache = _dyldCache->hasImagePath(realPath, dyldCacheImageIndex);
                             if ( foundInCache ) {
-                                for (BuilderLoadedImage& li: _loadedImages) {
-                                    if ( strcmp(li.path(), filePath) == 0 ) {
-                                        foundImage = &li;
-                                        result = true;
-                                        stop = true;
-                                        return;
+                                filePath = realPath;
+#if BUILDING_LIBDYLD
+                                // handle case where OS dylib was updated after this process launched
+                                if ( foundInCache ) {
+                                    for (BuilderLoadedImage& li: _loadedImages) {
+                                        if ( strcmp(li.path(), realPath) == 0 ) {
+                                            foundImage = &li;
+                                            result = true;
+                                            stop = true;
+                                            return;
+                                        }
                                     }
                                 }
-                            }
 #endif
+                            }
                         }
                     }
                 }
@@ -287,32 +227,25 @@ bool ClosureBuilder::findImage(const char* loadPath, const LoadedImageChain& for
                     ImageNum dyldCacheImageNum = dyldCacheImageIndex + 1;
                     bool useCache = true;
                     markNeverUnload = true; // dylibs in cache, or dylibs that override cache should not be unloaded at runtime
-                    bool ignoreCacheDylib = false;
                     const Image* image = _dyldImageArray->imageForNum(dyldCacheImageNum);
                     if ( image->overridableDylib() ) {
                         if ( fileFound ) {
-                            if ( _makingClosuresInCache ) {
+                            uint64_t expectedInode;
+                            uint64_t expectedModTime;
+                            if ( image->hasFileModTimeAndInode(expectedInode, expectedModTime) ) {
+                                // macOS where dylibs remain on disk.  only use cache if mtime and inode have not changed
+                                useCache = ( (fileFoundINode == expectedInode) && (fileFoundMTime == expectedModTime) );
+                            }
+                            else if ( _makingClosuresInCache ) {
                                 // during iOS cache build, don't look at files on disk, use ones in cache
                                 useCache = true;
-                            } else if ( !_rootsChecker.onDiskFileIsRoot(filePath, _dyldCache, image,
-                                                                        &_fileSystem, fileFoundINode, fileFoundMTime) ) {
-                                // file exists, but is not a root
-                                useCache = true;
-                            } else {
+                            }
+                            else {
                                 // iOS internal build. Any disk on cache overrides cache
                                 useCache = false;
                             }
                         }
-                        if ( useCache && ((targetPlatform == Platform::iOSMac) || (targetPlatform == Platform::macOS)) ) {
-                            // check this cached dylib is suitable for catalyst or mac program
-                            mh = (MachOAnalyzer*)_dyldCache->getIndexedImageEntry(dyldCacheImageNum-1, loadedFileInfo.mtime, loadedFileInfo.inode);
-                            if ( !mh->loadableIntoProcess(targetPlatform, possiblePath) ) {
-                                useCache = false;
-                                mh = nullptr;
-                                ignoreCacheDylib = true;
-                            }
-                        }
-                        if ( !useCache && !ignoreCacheDylib ) {
+                        if ( !useCache ) {
                             overrideImageNum = dyldCacheImageNum;
                             _foundDyldCacheRoots = true;
                         }
@@ -339,7 +272,7 @@ bool ClosureBuilder::findImage(const char* loadPath, const LoadedImageChain& for
                 return;
             }
 
-            // if not found yet, mmap file
+             // if not found yet, mmap file
             if ( mh == nullptr ) {
                 loadedFileInfo = MachOAnalyzer::load(_diag, _fileSystem, filePath, _archs, _platform, realPath);
                 mh = (const MachOAnalyzer*)loadedFileInfo.fileContent;
@@ -398,17 +331,10 @@ bool ClosureBuilder::findImage(const char* loadPath, const LoadedImageChain& for
                 loadedFileInfo.fileContent = mh;
             }
 
-            if ( mh->inDyldCache() ) {
-                // We may be loading from a symlink, so use the path in the cache which is the realpath
-                filePath = _dyldImageArray->imageForNum(foundImageNum)->path();
-            }
-
             // if path is not original path, or its an inserted path (as forEachInColonList uses a stack temporary)
             if ( (filePath != loadPath) || (linkageType == LinkageType::kInserted) ) {
-                if ( !mh->inDyldCache() ) {
-                    // possiblePath may be a temporary (stack) string, since we found file at that path, make it permanent
-                    filePath = strdup_temp(filePath);
-                }
+                // possiblePath may be a temporary (stack) string, since we found file at that path, make it permanent
+                filePath = strdup_temp(filePath);
                 // check if this overrides what would have been found in cache
                 // This is the case where we didn't find the image with the path in the shared cache, perhaps as it used library paths
                 // but the path we requested had pointed in to the cache
@@ -422,17 +348,6 @@ bool ClosureBuilder::findImage(const char* loadPath, const LoadedImageChain& for
                                 overrideImageNum = possibleOverrideNum;
                         }
                     }
-                }
-            }
-
-            // check if this is an iOSMac dylib that is overriding a macOS dylib in the dyld cache
-            if ( mh->inDyldCache() && iOSSupport(filePath) ) {
-                const char* twinPath = &filePath[18];
-                uint32_t dyldCacheImageIndex;
-                if ( (_dyldCache != nullptr) && _dyldCache->hasImagePath(twinPath, dyldCacheImageIndex) ) {
-                    ImageNum possibleOverrideNum = dyldCacheImageIndex+1;
-                    if ( possibleOverrideNum != foundImageNum )
-                        overrideImageNum = possibleOverrideNum;
                 }
             }
 
@@ -454,13 +369,25 @@ bool ClosureBuilder::findImage(const char* loadPath, const LoadedImageChain& for
 
             if ( !markNeverUnload ) {
                 // If the parent didn't force us to be never unload, other conditions still may
-                markNeverUnload = mh->markNeverUnload(_diag);
+                if ( mh->hasThreadLocalVariables() ) {
+                    markNeverUnload = true;
+                } else if ( mh->hasObjC() && mh->isDylib() ) {
+                    markNeverUnload = true;
+                } else {
+                    // record if image has DOF sections
+                    __block bool hasDOFs = false;
+                    mh->forEachDOFSection(_diag, ^(uint32_t offset) {
+                        hasDOFs = true;
+                    });
+                    if ( hasDOFs )
+                        markNeverUnload = true;
+                }
             }
 
             // Set the path again just in case it was strdup'ed.
             loadedFileInfo.path = filePath;
 
-             // add new entry
+            // add new entry
             BuilderLoadedImage entry;
             entry.loadedFileInfo        = loadedFileInfo;
             entry.imageNum              = foundImageNum;
@@ -472,10 +399,7 @@ bool ClosureBuilder::findImage(const char* loadPath, const LoadedImageChain& for
             entry.isBadImage            = false;
             entry.mustBuildClosure      = mustBuildClosure;
             entry.hasMissingWeakImports = false;
-            entry.hasInterposingTuples  = !mh->inDyldCache() && mh->hasInterposingTuples();
             entry.overrideImageNum      = overrideImageNum;
-            entry.exportsTrieOffset     = 0;
-            entry.exportsTrieSize       = 0;
             _loadedImages.push_back(entry);
             foundImage = &_loadedImages.back();
             if ( isFallbackPath )
@@ -485,7 +409,7 @@ bool ClosureBuilder::findImage(const char* loadPath, const LoadedImageChain& for
         });
         if (result)
             stopPathVariant = true;
-    }, targetPlatform);
+    }, _platform);
 
     // If we found a file, but also had an error, then we must have logged a diagnostic for a file we couldn't use.
     // Clear that for now.
@@ -532,16 +456,13 @@ bool ClosureBuilder::expandAtLoaderPath(const char* loadPath, bool fromLCRPATH, 
     return false;
 }
 
-bool ClosureBuilder::expandAtExecutablePath(const char* loadPath, bool fromLCRPATH, bool fromLCRPATHinMain, char fixedPath[])
+bool ClosureBuilder::expandAtExecutablePath(const char* loadPath, bool fromLCRPATH, char fixedPath[])
 {
     switch ( _atPathHandling ) {
         case AtPath::none:
             return false;
         case AtPath::onlyInRPaths:
             if ( !fromLCRPATH )
-                return false;
-            // main executables can always have an LC_RPATH that uses @executable_path, other images cannot if restricted
-            if  ( !fromLCRPATHinMain )
                 return false;
             break;
         case AtPath::all:
@@ -598,7 +519,7 @@ void ClosureBuilder::forEachResolvedPathVar(const char* loadPath, const LoadedIm
 
     // expand @executable_path
     // Note this is supported for DYLD_INSERT_LIBRARIES
-    if ( expandAtExecutablePath(loadPath, false, false, tempPath) ) {
+    if ( expandAtExecutablePath(loadPath, false, tempPath) ) {
         bool stop = false;
         handler(tempPath, stop);
         return;
@@ -625,28 +546,14 @@ void ClosureBuilder::forEachResolvedPathVar(const char* loadPath, const LoadedIm
         // LC_RPATHS from each dylib as they are recursively loaded.  Our imageChain represents that stack.
         __block bool done = false;
         for (const LoadedImageChain* link = &forImageChain; (link != nullptr) && !done; link = link->previous) {
-            bool mainExecutable = link->image.loadAddress()->isMainExecutable();
             link->image.loadAddress()->forEachRPath(^(const char* rPath, bool& stop) {
                 // fprintf(stderr, "LC_RPATH %s from %s\n", rPath, link->image.loadedFileInfo.path);
-                if ( expandAtLoaderPath(rPath, true, link->image, tempPath) || expandAtExecutablePath(rPath, true, mainExecutable, tempPath) ) {
+                if ( expandAtLoaderPath(rPath, true, link->image, tempPath) || expandAtExecutablePath(rPath, true, tempPath) ) {
                     // @loader_path allowed and expended
                     strlcat(tempPath, rpathTail, PATH_MAX);
                     handler(tempPath, stop);
                 }
                 else if ( rPath[0] == '/' ) {
-#if (TARGET_OS_OSX && TARGET_CPU_ARM64)
-                    if ( (_platform == Platform::iOS) && (strncmp(rPath, "/usr/lib/swift", 14) == 0) ) {
-                        // LC_RPATH is to /usr/lib/swift, but running on macOS that is /System/iOSSupport/usr/lib/swift
-                        strlcpy(tempPath, "/System/iOSSupport", PATH_MAX);
-                        strlcat(tempPath, rPath, PATH_MAX);
-                        strlcat(tempPath, rpathTail, PATH_MAX);
-                        handler(tempPath, stop);
-                        if (stop) {
-                            done = true;
-                            return;
-                        }
-                    }
-#endif
                     // LC_RPATH is an absolute path, not blocked by AtPath::none
                     strlcpy(tempPath, rPath, PATH_MAX);
                     strlcat(tempPath, rpathTail, PATH_MAX);
@@ -676,7 +583,7 @@ void ClosureBuilder::forEachResolvedPathVar(const char* loadPath, const LoadedIm
     handler(loadPath, stop);
 }
 
-const char* ClosureBuilder::strdup_temp(const char* path) const
+const char* ClosureBuilder::strdup_temp(const char* path)
 {
     if ( _tempPaths == nullptr )
         _tempPaths = PathPool::allocate();
@@ -688,9 +595,7 @@ void ClosureBuilder::addMustBeMissingPath(const char* path)
     //fprintf(stderr, "must be missing: %s\n", path);
     if ( _mustBeMissingPaths == nullptr )
         _mustBeMissingPaths = PathPool::allocate();
-    // don't add path if already in list
-    if ( !_mustBeMissingPaths->contains(path) )
-        _mustBeMissingPaths->add(path);
+    _mustBeMissingPaths->add(path);
 }
 
 void ClosureBuilder::addSkippedFile(const char* path, uint64_t inode, uint64_t mtime)
@@ -710,21 +615,6 @@ ClosureBuilder::BuilderLoadedImage& ClosureBuilder::findLoadedImage(ImageNum ima
             return li;
         }
     }
-    assert(0 && "LoadedImage not found by num");
-}
-
-const ClosureBuilder::BuilderLoadedImage& ClosureBuilder::findLoadedImage(ImageNum imageNum) const
-{
-    for (const BuilderLoadedImage& li : _loadedImages) {
-        if ( li.imageNum == imageNum ) {
-            return li;
-        }
-    }
-    for (const BuilderLoadedImage& li : _loadedImages) {
-        if ( li.overrideImageNum == imageNum ) {
-            return li;
-        }
-    }
     assert(0 && "LoadedImage not found");
 }
 
@@ -735,7 +625,7 @@ ClosureBuilder::BuilderLoadedImage& ClosureBuilder::findLoadedImage(const MachOA
              return li;
         }
     }
-    assert(0 && "LoadedImage not found by mh");
+    assert(0 && "LoadedImage not found");
 }
 
 const MachOAnalyzer* ClosureBuilder::machOForImageNum(ImageNum imageNum)
@@ -900,10 +790,20 @@ void ClosureBuilder::loadDanglingUpwardLinks(bool canUseSharedCacheClosure)
 
 bool ClosureBuilder::overridableDylib(const BuilderLoadedImage& forImage)
 {
-    // on macOS, the cache can be customer/development in the basesystem/main OS
+    // only set on dylibs in the dyld shared cache
+    if ( !_makingDyldCacheImages )
+        return false;
+
+    // on macOS dylibs always override cache
+    if ( _platform == Platform::macOS )
+        return true;
+
     // on embedded platforms with Internal cache, allow overrides
-    // on customer caches, only allow libdispatch.dylib to be overridden
-    return _dyldCache->isOverridablePath(forImage.path());
+    if ( !_makingCustomerCache )
+        return true;
+
+    // embedded platform customer caches, no overrides
+    return false;  // FIXME, allow libdispatch.dylib to be overridden
 }
 
 void ClosureBuilder::buildImage(ImageWriter& writer, BuilderLoadedImage& forImage)
@@ -919,10 +819,7 @@ void ClosureBuilder::buildImage(ImageWriter& writer, BuilderLoadedImage& forImag
     writer.setIs64(macho->is64());
     writer.setIsExecutable(macho->isMainExecutable());
     writer.setUses16KPages(macho->uses16KPages());
-    if ( macho->inDyldCache() ) {
-        // only set on dylibs in the dyld shared cache
-        writer.setOverridableDylib(overridableDylib(forImage));
-    }
+    writer.setOverridableDylib(overridableDylib(forImage));
     writer.setInDyldCache(macho->inDyldCache());
     if ( macho->hasObjC() ) {
         writer.setHasObjC(true);
@@ -956,15 +853,17 @@ void ClosureBuilder::buildImage(ImageWriter& writer, BuilderLoadedImage& forImag
         writer.setFileInfo(forImage.loadedFileInfo.inode, forImage.loadedFileInfo.mtime);
     }
 #else
-    // in cache builder code
-    if ( !_dyldCache->header.dylibsExpectedOnDisk ) {
-        // don't add file info for shared cache files mastered out of final file system
-        // This also covers executable and dlopen closures as we are not running on a live
-        // file system. no we don't have access to accurate inode/mtime
+    if ( _platform == Platform::macOS || MachOFile::isSimulatorPlatform(_platform) ) {
+        if ( macho->inDyldCache() && !_dyldCache->header.dylibsExpectedOnDisk ) {
+            // don't add file info for shared cache files mastered out of final file system
+        }
+        else {
+            // file is either not in cache or is in cache but not mastered out
+            writer.setFileInfo(forImage.loadedFileInfo.inode, forImage.loadedFileInfo.mtime);
+        }
     }
     else {
-        // file is either not in cache or is in cache but not mastered out
-        writer.setFileInfo(forImage.loadedFileInfo.inode, forImage.loadedFileInfo.mtime);
+        // all other platforms, cache is built off-device, so inodes are not known
     }
 #endif
 
@@ -1008,16 +907,6 @@ void ClosureBuilder::buildImage(ImageWriter& writer, BuilderLoadedImage& forImag
     // set segments
     addSegments(writer, macho);
 
-    // if shared cache contains two variants of same framework (macOS and iOS), mark iOS one as override of macOS one
-    if ( _makingDyldCacheImages && iOSSupport(forImage.path()) ) {
-        const char* truncName = forImage.path()+18;
-        for (const BuilderLoadedImage& li : _loadedImages) {
-            if ( strcmp(li.path(), truncName) == 0 ) {
-                writer.setAsOverrideOf(li.imageNum);
-            }
-        }
-    }
-
     // record if this dylib overrides something in the cache
     if ( forImage.overrideImageNum != 0 ) {
         writer.setAsOverrideOf(forImage.overrideImageNum);
@@ -1029,65 +918,46 @@ void ClosureBuilder::buildImage(ImageWriter& writer, BuilderLoadedImage& forImag
             _libSystemImageNum = forImage.imageNum;
     }
 
-    // record fix up info
-    if ( macho->inDyldCache() && !_makingDyldCacheImages ) {
-        // when building app closures, don't record fix up info about dylibs in the cache
-    }
-    else if ( _makeMinimalClosure ) {
-        // don't record fix up info in dyld3s mode
-        writer.setFixupsNotEncoded();
-    }
-    else if ( !_makingDyldCacheImages && macho->hasChainedFixups() ) {
-        // when building app closures, just evaluate target of chain binds and record that table
-        addChainedFixupInfo(writer, forImage);
-    }
-    else {
-        // run rebase/bind opcodes or chained fixups
-        addFixupInfo(writer, forImage);
+    // do fix up info for non-cached, and cached if building cache
+    if ( !macho->inDyldCache() || _makingDyldCacheImages ) {
+        if ( macho->hasChainedFixups() ) {
+            addChainedFixupInfo(writer, forImage);
+        }
+        else {
+            if ( _handlers != nullptr ) {
+                reportRebasesAndBinds(writer, forImage);
+            }
+            else {
+                // Note we have to do binds before rebases so that we know if we have missing lazy binds
+                addBindInfo(writer, forImage);
+                if ( _diag.noError() )
+                    addRebaseInfo(writer, macho);
+            }
+        }
     }
     if ( _diag.hasError() ) {
         writer.setInvalid();
         return;
     }
     
-
-    // add initializers
-#if BUILDING_CACHE_BUILDER
-
-    // In the shared cache builder, we'll only ever see 'inDyldCache' images here for the shared
-    // cache dylibs themselves.  These are in an intermediate state where the cache is not live, the pointers
-    // are unslid, but the pointers also don't contain fixup chains
-    dyld3::MachOAnalyzer::VMAddrConverter vmAddrConverter = macho->makeVMAddrConverter(forImage.contentRebased);
-    if ( macho->inDyldCache() ) {
-        vmAddrConverter.preferredLoadAddress = 0;
-        vmAddrConverter.slide = 0;
-        vmAddrConverter.chainedPointerFormat = 0;
-        vmAddrConverter.contentRebased = false;
-        vmAddrConverter.sharedCacheChainedPointerFormat  = MachOAnalyzer::VMAddrConverter::SharedCacheFormat::none;
+    // Don't build iOSMac for now.  Just add an invalid placeholder
+    if ( _makingDyldCacheImages && strncmp(forImage.path(), "/System/iOSSupport/", 19) == 0 ) {
+        writer.setInvalid();
+        return;
     }
 
-#else
-
-    dyld3::MachOAnalyzer::VMAddrConverter vmAddrConverter = macho->makeVMAddrConverter(forImage.contentRebased);
-#if !(BUILDING_LIBDYLD || BUILDING_DYLD)
-    // The shared cache is always live in dyld/libdyld, but if we get here then we are an offline tool
-    // In that case, use the shared cache vmAddrConverter if we need it
-    if ( macho->inDyldCache() )
-        vmAddrConverter = _dyldCache->makeVMAddrConverter(forImage.contentRebased);
-#endif
-
-#endif // BUILDING_CACHE_BUILDER
-
+    // add initializers
+    bool contentRebased = forImage.contentRebased;
     __block unsigned initCount = 0;
     Diagnostics initializerDiag;
-    macho->forEachInitializer(initializerDiag, vmAddrConverter, ^(uint32_t offset) {
+    macho->forEachInitializer(initializerDiag, contentRebased, ^(uint32_t offset) {
         ++initCount;
     }, _dyldCache);
     if ( initializerDiag.noError() ) {
         if ( initCount != 0 ) {
             BLOCK_ACCCESSIBLE_ARRAY(uint32_t, initOffsets, initCount);
             __block unsigned index = 0;
-           macho->forEachInitializer(_diag, vmAddrConverter, ^(uint32_t offset) {
+           macho->forEachInitializer(_diag, contentRebased, ^(uint32_t offset) {
                 initOffsets[index++] = offset;
             }, _dyldCache);
             writer.setInitOffsets(initOffsets, initCount);
@@ -1106,13 +976,13 @@ void ClosureBuilder::buildImage(ImageWriter& writer, BuilderLoadedImage& forImag
     // add terminators (except for dylibs in the cache because they are never unloaded)
     if ( !macho->inDyldCache() ) {
         __block unsigned termCount = 0;
-        macho->forEachTerminator(_diag, vmAddrConverter, ^(uint32_t offset) {
+        macho->forEachTerminator(_diag, contentRebased, ^(uint32_t offset) {
             ++termCount;
         });
         if ( termCount != 0 ) {
             BLOCK_ACCCESSIBLE_ARRAY(uint32_t, termOffsets, termCount);
             __block unsigned index = 0;
-            macho->forEachTerminator(_diag, vmAddrConverter, ^(uint32_t offset) {
+            macho->forEachTerminator(_diag, contentRebased, ^(uint32_t offset) {
                 termOffsets[index++] = offset;
             });
             writer.setTermOffsets(termOffsets, termCount);
@@ -1237,9 +1107,8 @@ void ClosureBuilder::addInterposingTuples(LaunchClosureWriter& writer, const Ima
                     if ( !isTupleFixup(sectVmOffset, sectVmEndOffset, fixupOffset, entrySize, tupleIndex) )
                         return;
                     uint32_t bindOrdinal;
-                    int64_t  addend;
                     uint64_t rebaseTargetOffset;
-                    if ( fixupLoc->isBind(segInfo->pointer_format, bindOrdinal, addend) ) {
+                    if ( fixupLoc->isBind(segInfo->pointer_format, bindOrdinal) ) {
                         if ( bindOrdinal < targets.count() ) {
                             resolvedTuples[tupleIndex].stockImplementation = targets[bindOrdinal];
                         }
@@ -1300,376 +1169,72 @@ void ClosureBuilder::addInterposingTuples(LaunchClosureWriter& writer, const Ima
     });
 }
 
-const Image::RebasePattern RebasePatternBuilder::_s_maxLeapPattern = { 0xFFFFF, 0, 0xF};
-const uint64_t             RebasePatternBuilder::_s_maxLeapCount   = _s_maxLeapPattern.repeatCount * _s_maxLeapPattern.skipCount;
-
-
-
-RebasePatternBuilder::RebasePatternBuilder(OverflowSafeArray<closure::Image::RebasePattern>& entriesStorage, uint64_t ptrSize)
-    : _rebaseEntries(entriesStorage), _lastLocation(-ptrSize), _ptrSize(ptrSize)
+void ClosureBuilder::addRebaseInfo(ImageWriter& writer, const MachOAnalyzer* mh)
 {
-}
-
-void RebasePatternBuilder::add(uint64_t runtimeOffset)
-{
-    const uint64_t delta   = runtimeOffset - _lastLocation;
-    const bool     aligned = ((delta % _ptrSize) == 0);
-    if ( delta == _ptrSize ) {
-        // this rebase location is contiguous to previous
-        if ( _rebaseEntries.back().contigCount < 255 ) {
-            // just bump previous's contigCount
-            _rebaseEntries.back().contigCount++;
-        }
-        else {
-            // previous contiguous run already has max 255, so start a new run
-            _rebaseEntries.push_back({ 1, 1, 0 });
-        }
-    }
-    else if ( aligned && (delta <= (_ptrSize*15)) ) {
-        // this rebase is within skip distance of last rebase
-        _rebaseEntries.back().skipCount = (uint8_t)((delta-_ptrSize)/_ptrSize);
-        int lastIndex = (int)(_rebaseEntries.count() - 1);
-        if ( lastIndex > 1 ) {
-            if ( (_rebaseEntries[lastIndex].contigCount == _rebaseEntries[lastIndex-1].contigCount)
-              && (_rebaseEntries[lastIndex].skipCount   == _rebaseEntries[lastIndex-1].skipCount) ) {
-                // this entry as same contig and skip as prev, so remove it and bump repeat count of previous
-                _rebaseEntries.pop_back();
-                _rebaseEntries.back().repeatCount += 1;
-            }
-        }
-        _rebaseEntries.push_back({ 1, 1, 0 });
-    }
-    else {
-        uint64_t advanceCount = (delta-_ptrSize);
-        if ( (runtimeOffset < _lastLocation) && (_lastLocation != -_ptrSize) ) {
-            // out of rebases! handle this be resting rebase offset to zero
-            _rebaseEntries.push_back({ 0, 0, 0 });
-            advanceCount = runtimeOffset;
-        }
-        // if next rebase is too far to reach with one pattern, use series
-        while ( advanceCount > _s_maxLeapCount ) {
-            _rebaseEntries.push_back(_s_maxLeapPattern);
-            advanceCount -= _s_maxLeapCount;
-        }
-        // if next rebase is not reachable with skipCount==1 or skipCount==15, add intermediate
-        while ( advanceCount > _s_maxLeapPattern.repeatCount ) {
-            uint64_t count = advanceCount / _s_maxLeapPattern.skipCount;
-            _rebaseEntries.push_back({ (uint32_t)count, 0, _s_maxLeapPattern.skipCount });
-            advanceCount -= (count*_s_maxLeapPattern.skipCount);
-        }
-        if ( advanceCount != 0 )
-            _rebaseEntries.push_back({ (uint32_t)advanceCount, 0, 1 });
-        _rebaseEntries.push_back({ 1, 1, 0 });
-    }
-    _lastLocation = runtimeOffset;
-
-}
-
-
-BindPatternBuilder::BindPatternBuilder(OverflowSafeArray<closure::Image::BindPattern>& entriesStorage, uint64_t ptrSize)
-   : _bindEntries(entriesStorage), _ptrSize(ptrSize), _lastOffset(-ptrSize), _lastTarget({ {0, 0} })
-{
-}
-
-void BindPatternBuilder::add(uint64_t runtimeOffset, Image::ResolvedSymbolTarget target, bool weakBindCoalese)
-{
-    if ( weakBindCoalese )  {
-        // may be previous bind to this location
-        // if so, update that rather create new BindPattern
-        for (Image::BindPattern& aBind : _bindEntries) {
-            if ( (aBind.startVmOffset == runtimeOffset) && (aBind.repeatCount == 1)  && (aBind.skipCount == 0) ) {
-                aBind.target = target;
-                return;
-            }
-        }
-    }
-    bool mergedIntoPrevious = false;
-    if ( !mergedIntoPrevious && (target == _lastTarget) && (runtimeOffset > _lastOffset) && !_bindEntries.empty() ) {
-        uint64_t skipAmount = (runtimeOffset - _lastOffset - _ptrSize)/_ptrSize;
-        if ( skipAmount*_ptrSize != (runtimeOffset - _lastOffset - _ptrSize) ) {
-            // misaligned pointer means we cannot optimize
-        }
-        else {
-            if ( (_bindEntries.back().repeatCount == 1) && (_bindEntries.back().skipCount == 0) && (skipAmount <= 255) ) {
-                _bindEntries.back().repeatCount = 2;
-                _bindEntries.back().skipCount   = skipAmount;
-                assert(_bindEntries.back().skipCount == skipAmount); // check overflow
-                mergedIntoPrevious       = true;
-            }
-            else if ( (_bindEntries.back().skipCount == skipAmount) && (_bindEntries.back().repeatCount < 0xfff) ) {
-                uint32_t prevRepeatCount = _bindEntries.back().repeatCount;
-                _bindEntries.back().repeatCount += 1;
-                assert(_bindEntries.back().repeatCount > prevRepeatCount); // check overflow
-                mergedIntoPrevious       = true;
-            }
-        }
-    }
-    if ( (target == _lastTarget) && (runtimeOffset == _lastOffset) && !_bindEntries.empty() ) {
-        // duplicate bind for same location, ignore this one
-        mergedIntoPrevious = true;
-    }
-    if ( !mergedIntoPrevious ) {
-        Image::BindPattern pattern;
-        pattern.target        = target;
-        pattern.startVmOffset = runtimeOffset;
-        pattern.repeatCount   = 1;
-        pattern.skipCount     = 0;
-        assert(pattern.startVmOffset == runtimeOffset);
-        _bindEntries.push_back(pattern);
-    }
-    _lastTarget = target;
-    _lastOffset = runtimeOffset;
-}
-
-
-bool ClosureBuilder::mas_fromImageWeakDefLookup(const WrappedMachO& fromWmo, const char* symbolName, uint64_t addend, CachePatchHandler patcher, FixupTarget& target) const
-{
-    // when building dylibs into the dyld cache, there is no load-order, so we cannot use the standard algorithm
-    // otherwise call through to standard weak-def coalescing algorithm
-    if ( !_makingDyldCacheImages )
-        return MachOAnalyzerSet::mas_fromImageWeakDefLookup(fromWmo, symbolName, addend, patcher, target);
-
-
-    // look first in /usr/lib/libc++, most will be here
-    Diagnostics diag;
-    for (const BuilderLoadedImage& li : _loadedImages) {
-        if ( li.loadAddress()->hasWeakDefs() && (strncmp(li.path(), "/usr/lib/libc++", 15) == 0) ) {
-            WrappedMachO libcxxWmo(li.loadAddress(), this, (void*)&li);
-            if ( libcxxWmo.findSymbolIn(diag, symbolName, addend, target) )
-                return true;
-        }
-    }
-
-    // if not found, try looking in the images itself, most custom weak-def symbols have a copy in the image itself
-    if ( fromWmo.findSymbolIn(diag, symbolName, addend, target) )
-        return true;
-
-    // if we link with something that also defines this weak-def, use it
-    ClosureBuilder::BuilderLoadedImage* fromImage = (ClosureBuilder::BuilderLoadedImage*)(fromWmo._other);
-    for (Image::LinkedImage child : fromImage->dependents) {
-        if (child.imageNum() == kMissingWeakLinkedImage)
-            continue;
-        if (child.kind() == Image::LinkKind::upward)
-            continue;
-        const BuilderLoadedImage& childLi = findLoadedImage(child.imageNum());
-        if ( childLi.loadAddress()->hasWeakDefs() ) {
-            WrappedMachO childWmo(childLi.loadAddress(), this, (void*)&childLi);
-            if ( childWmo.findSymbolIn(diag, symbolName, addend, target) )
-                return true;
-        }
-    }
-    return false;
-}
-
-void ClosureBuilder::mas_forEachImage(void (^handler)(const WrappedMachO& wmo, bool hidden, bool& stop)) const
-{
-    bool stop = false;
-    for (const ClosureBuilder::BuilderLoadedImage& li : _loadedImages) {
-        WrappedMachO wmo(li.loadAddress(), this, (void*)&li);
-        handler(wmo, li.rtldLocal, stop);
-        if ( stop )
-            break;
-    }
-}
-
-bool ClosureBuilder::wmo_missingSymbolResolver(const WrappedMachO* fromWmo, bool weakImport, bool lazyBind, const char* symbolName, const char* expectedInDylibPath, const char* clientPath, FixupTarget& target) const
-{
-    // if weakImport and missing, bind to NULL
-    if ( weakImport ) {
-        // construct NULL target
-        target.offsetInImage        = 0;
-        target.kind                 = FixupTarget::Kind::bindAbsolute;
-        target.requestedSymbolName  = symbolName;
-        target.foundSymbolName      = nullptr;
-        // Record that we found a missing weak import so that the objc optimizer doens't have to check
-        ClosureBuilder::BuilderLoadedImage* fromBLI = (ClosureBuilder::BuilderLoadedImage*)(fromWmo->_other);
-        fromBLI->hasMissingWeakImports = true;
-        return true;
-    }
-    // dyld3 binds everything ahead of time, to simulator lazy failure
-    // if non-weakImport and lazy, then bind to __dyld_missing_symbol_abort()
-    if ( lazyBind && _allowMissingLazies ) {
-        for (const BuilderLoadedImage& li : _loadedImages) {
-            if ( li.loadAddress()->isDylib() && (strcmp(li.loadAddress()->installName(), "/usr/lib/system/libdyld.dylib") == 0) ) {
-                WrappedMachO libdyldWmo(li.loadAddress(), this, (void*)&li);
-                Diagnostics  diag;
-                if ( libdyldWmo.findSymbolIn(diag, "__dyld_missing_symbol_abort", 0, target) ) {
-                     // <rdar://problem/44315944> closures should bind missing lazy-bind symbols to a missing symbol handler in libdyld in flat namespace
-                     return true;
-                }
-                break;
-            }
-        }
-    }
-    // support abort payload
-    if ( _launchErrorInfo != nullptr ) {
-         _launchErrorInfo->kind              = DYLD_EXIT_REASON_SYMBOL_MISSING;
-         _launchErrorInfo->clientOfDylibPath = strdup_temp(clientPath);
-         _launchErrorInfo->targetDylibPath   = strdup_temp(expectedInDylibPath);
-         _launchErrorInfo->symbol            = symbolName;
-    }
-    return false;
-}
-
-void ClosureBuilder::mas_mainExecutable(WrappedMachO& wmo) const
-{
-    const ClosureBuilder::BuilderLoadedImage& mainLi = _loadedImages[_mainProgLoadIndex];
-    WrappedMachO mainWmo(mainLi.loadAddress(), this, (void*)&mainLi);
-    wmo = mainWmo;
-}
-
-void* ClosureBuilder::mas_dyldCache() const
-{
-    return (void*)_dyldCache;
-}
-
-bool ClosureBuilder::wmo_dependent(const WrappedMachO* wmo, uint32_t depIndex, WrappedMachO& childWmo, bool& missingWeakDylib) const
-{
-    ClosureBuilder::BuilderLoadedImage* forImage = (ClosureBuilder::BuilderLoadedImage*)(wmo->_other);
-
-    if ( depIndex >= forImage->dependents.count() )
-        return false;
-
-    ImageNum childNum = forImage->dependents[depIndex].imageNum();
-    if ( childNum == kMissingWeakLinkedImage ) {
-        missingWeakDylib = true;
-        return true;
-    }
-    const BuilderLoadedImage& depLoadedImage = this->findLoadedImage(childNum);
-    childWmo = WrappedMachO(depLoadedImage.loadAddress(), this, (void*)&depLoadedImage);
-    missingWeakDylib = false;
-    return true;
-}
-
-const char* ClosureBuilder::wmo_path(const WrappedMachO* wmo) const
-{
-    ClosureBuilder::BuilderLoadedImage* forImage = (ClosureBuilder::BuilderLoadedImage*)(wmo->_other);
-    return forImage->loadedFileInfo.path;
-}
-
-MachOAnalyzerSet::ExportsTrie ClosureBuilder::wmo_getExportsTrie(const WrappedMachO* wmo) const
-{
-    ClosureBuilder::BuilderLoadedImage* forImage = (ClosureBuilder::BuilderLoadedImage*)(wmo->_other);
-    if ( forImage->exportsTrieOffset == 0 ) {
-        // if trie location not already cached, look it up
-        wmo->_mh->hasExportTrie(forImage->exportsTrieOffset, forImage->exportsTrieSize);
-    }
-    const uint8_t* start = nullptr;
-    const uint8_t* end   = nullptr;
-    if ( forImage->exportsTrieOffset != 0 ) {
-        start = (uint8_t*)wmo->_mh + forImage->exportsTrieOffset;
-        end   = start + forImage->exportsTrieSize;
-    }
-    return { start, end };
-}
-
-
-Image::ResolvedSymbolTarget ClosureBuilder::makeResolvedTarget(const FixupTarget& target) const
-{
-     Image::ResolvedSymbolTarget resolvedTarget;
-     switch ( target.kind ) {
-        case MachOAnalyzerSet::FixupTarget::Kind::rebase:
-            assert(0 && "target is a rebase");
-            break;
-        case MachOAnalyzerSet::FixupTarget::Kind::bindToImage:
-            if ( target.foundInImage._mh->inDyldCache() ) {
-                resolvedTarget.sharedCache.kind   = Image::ResolvedSymbolTarget::kindSharedCache;
-                resolvedTarget.sharedCache.offset = (uint8_t*)target.foundInImage._mh - (uint8_t*)_dyldCache + target.offsetInImage;
+	const uint64_t ptrSize = mh->pointerSize();
+    Image::RebasePattern maxLeapPattern = { 0xFFFFF, 0, 0xF };
+    const uint64_t maxLeapCount = maxLeapPattern.repeatCount * maxLeapPattern.skipCount;
+    STACK_ALLOC_OVERFLOW_SAFE_ARRAY(Image::RebasePattern, rebaseEntries, 1024);
+    __block uint64_t lastLocation = -ptrSize;
+	mh->forEachRebase(_diag, !_foundMissingLazyBinds, ^(uint64_t runtimeOffset, bool& stop) {
+        const uint64_t delta   = runtimeOffset - lastLocation;
+        const bool     aligned = ((delta % ptrSize) == 0);
+        if ( delta == ptrSize ) {
+            // this rebase location is contiguous to previous
+            if ( rebaseEntries.back().contigCount < 255 ) {
+                // just bump previous's contigCount
+                rebaseEntries.back().contigCount++;
             }
             else {
-                ClosureBuilder::BuilderLoadedImage* targetBuildLoaderImage = (ClosureBuilder::BuilderLoadedImage*)(target.foundInImage._other);
-                resolvedTarget.image.kind     = Image::ResolvedSymbolTarget::kindImage;
-                resolvedTarget.image.imageNum = targetBuildLoaderImage->imageNum;
-                resolvedTarget.image.offset   = target.offsetInImage;
+                // previous contiguous run already has max 255, so start a new run
+                rebaseEntries.push_back({ 1, 1, 0 });
             }
-            return resolvedTarget;
-        case MachOAnalyzerSet::FixupTarget::Kind::bindAbsolute:
-          resolvedTarget.absolute.kind   = Image::ResolvedSymbolTarget::kindAbsolute;
-          resolvedTarget.absolute.value  = target.offsetInImage;
-          return resolvedTarget;
-        case MachOAnalyzerSet::FixupTarget::Kind::bindMissingSymbol:
-            assert(0 && "unknown FixupTarget::Kind::bindMissingSymbol found in closure");
-            break;
-    }
-    assert(0 && "unknown FixupTarget kind");
-}
-
-void ClosureBuilder::addFixupInfo(ImageWriter& writer, BuilderLoadedImage& forImage)
-{
-    STACK_ALLOC_OVERFLOW_SAFE_ARRAY(Image::RebasePattern, rebaseEntries, 1024);
-    STACK_ALLOC_OVERFLOW_SAFE_ARRAY(Image::BindPattern, binds, 512);
-    __block RebasePatternBuilder rebaseBuilder(rebaseEntries, forImage.loadAddress()->pointerSize());
-    __block BindPatternBuilder bindBuilder(binds, forImage.loadAddress()->pointerSize());
-
-    const bool stompedLazyOpcodes = forImage.loadAddress()->hasStompedLazyOpcodes();
-    WrappedMachO forImage_wmo(forImage.loadAddress(), this, (void*)&forImage);
-    forImage_wmo.forEachFixup(_diag,
-        ^(uint64_t fixupLocRuntimeOffset, PointerMetaData pmd, const MachOAnalyzerSet::FixupTarget& target, bool& stop) {
-            if ( target.kind == MachOAnalyzerSet::FixupTarget::Kind::rebase ) {
-                // normally ignore rebase on lazy pointer because dyld3 will immediately bind that same pointer
-                // but if app is licensewared and stomps lazy bind opcodes, keep the rebases
-                if ( target.isLazyBindRebase && !stompedLazyOpcodes )
-                    return;
-            }
-            if ( _dylibFixupHandler ) {
-                // applying fixups to dylibs in dyld cache as the cache is being built
-                _dylibFixupHandler(forImage.loadAddress(), fixupLocRuntimeOffset, pmd, target);
-                return;
-            }
-            switch ( target.kind ) {
-                case MachOAnalyzerSet::FixupTarget::Kind::rebase:
-                    if ( !_leaveRebasesAsOpcodes )
-                        rebaseBuilder.add(fixupLocRuntimeOffset);
-                    break;
-                case MachOAnalyzerSet::FixupTarget::Kind::bindToImage:
-                case MachOAnalyzerSet::FixupTarget::Kind::bindAbsolute:
-                    bindBuilder.add(fixupLocRuntimeOffset, makeResolvedTarget(target), target.weakCoalesced);
-                    break;
-                case MachOAnalyzerSet::FixupTarget::Kind::bindMissingSymbol:
-                    // this is last call from forEachFixup() because a symbol could not be resolved
-                    break;
-            }
-        },
-        ^(uint32_t cachedDylibIndex, uint32_t exportCacheOffset, const FixupTarget& target) {
-            addWeakDefCachePatch(cachedDylibIndex, exportCacheOffset, target);
         }
-    );
-
-    // check for __dyld section in main executable to support licenseware
-    if ( forImage.loadAddress()->filetype == MH_EXECUTE ) {
-        forImage.loadAddress()->forEachSection(^(const MachOAnalyzer::SectionInfo& sectInfo, bool malformedSectionRange, bool& stop) {
-            if ( (strcmp(sectInfo.sectName, "__dyld") == 0) && (strcmp(sectInfo.segInfo.segName, "__DATA") == 0) ) {
-                // find dyld3::compatFuncLookup in libdyld.dylib
-                assert(_libDyldImageNum != 0);
-                const BuilderLoadedImage& libdyldImage = findLoadedImage(_libDyldImageNum);
-                WrappedMachO libdyldWmo(libdyldImage.loadAddress(), this, (void*)&libdyldImage);
-                FixupTarget libdyldCompatTarget;
-                if ( libdyldWmo.findSymbolIn(_diag, "__ZN5dyld316compatFuncLookupEPKcPPv", 0, libdyldCompatTarget) ) {
-                    // dyld_func_lookup is second pointer in __dyld section
-                    uint64_t fixupLocRuntimeOffset = sectInfo.sectAddr - forImage.loadAddress()->preferredLoadAddress() + forImage.loadAddress()->pointerSize();
-                    bindBuilder.add(fixupLocRuntimeOffset, makeResolvedTarget(libdyldCompatTarget), false);
-                }
-                else {
-                    _diag.error("libdyld.dylib is missing dyld3::compatFuncLookup");
+        else if ( aligned && (delta <= (ptrSize*15)) ) {
+            // this rebase is within skip distance of last rebase
+            rebaseEntries.back().skipCount = (uint8_t)((delta-ptrSize)/ptrSize);
+            int lastIndex = (int)(rebaseEntries.count() - 1);
+            if ( lastIndex > 1 ) {
+                if ( (rebaseEntries[lastIndex].contigCount == rebaseEntries[lastIndex-1].contigCount)
+                  && (rebaseEntries[lastIndex].skipCount   == rebaseEntries[lastIndex-1].skipCount) ) {
+                    // this entry as same contig and skip as prev, so remove it and bump repeat count of previous
+                    rebaseEntries.pop_back();
+                    rebaseEntries.back().repeatCount += 1;
                 }
             }
-        });
-    }
-
-    // add all rebase and bind info into closure, unless building dyld cache
-    if ( !_makingDyldCacheImages ) {
-        if ( _leaveRebasesAsOpcodes )
-            writer.setRebasesNotEncoded();
-        else
-            writer.setRebaseInfo(rebaseEntries);
-       writer.setBindInfo(binds);
-    }
+            rebaseEntries.push_back({ 1, 1, 0 });
+        }
+        else {
+            uint64_t advanceCount = (delta-ptrSize);
+            if ( (runtimeOffset < lastLocation) && (lastLocation != -ptrSize) ) {
+                // out of rebases! handle this be resting rebase offset to zero
+                rebaseEntries.push_back({ 0, 0, 0 });
+                advanceCount = runtimeOffset;
+            }
+            // if next rebase is too far to reach with one pattern, use series
+            while ( advanceCount > maxLeapCount ) {
+                rebaseEntries.push_back(maxLeapPattern);
+                advanceCount -= maxLeapCount;
+            }
+            // if next rebase is not reachable with skipCount==1 or skipCount==15, add intermediate
+            while ( advanceCount > maxLeapPattern.repeatCount ) {
+                uint64_t count = advanceCount / maxLeapPattern.skipCount;
+                rebaseEntries.push_back({ (uint32_t)count, 0, maxLeapPattern.skipCount });
+                advanceCount -= (count*maxLeapPattern.skipCount);
+            }
+            if ( advanceCount != 0 )
+                rebaseEntries.push_back({ (uint32_t)advanceCount, 0, 1 });
+            rebaseEntries.push_back({ 1, 1, 0 });
+        }
+        lastLocation = runtimeOffset;
+	});
+    writer.setRebaseInfo(rebaseEntries);
 
     // i386 programs also use text relocs to rebase stubs
-    if ( (forImage.loadAddress()->cputype == CPU_TYPE_I386) && !_makingDyldCacheImages ) {
+    if ( mh->cputype == CPU_TYPE_I386 ) {
         STACK_ALLOC_OVERFLOW_SAFE_ARRAY(Image::TextFixupPattern, textRebases, 512);
         __block uint64_t lastOffset = -4;
-        forImage.loadAddress()->forEachTextRebase(_diag, ^(uint64_t runtimeOffset, bool& stop) {
+        mh->forEachTextRebase(_diag, ^(uint64_t runtimeOffset, bool& stop) {
             if ( textRebases.freeCount() < 2 ) {
                 _diag.error("too many text rebase locations (%ld) in %s", textRebases.maxCount(), writer.currentImage()->path());
                 stop = true;
@@ -1699,64 +1264,486 @@ void ClosureBuilder::addFixupInfo(ImageWriter& writer, BuilderLoadedImage& forIm
         });
         writer.setTextRebaseInfo(textRebases);
     }
-
 }
 
 
-
-
-void ClosureBuilder::addWeakDefCachePatch(uint32_t cachedDylibIndex, uint32_t exportCacheOffset, const FixupTarget& patchTarget)
+void ClosureBuilder::forEachBind(BuilderLoadedImage& forImage, void (^handler)(uint64_t runtimeOffset, Image::ResolvedSymbolTarget target, const ResolvedTargetInfo& targetInfo, bool& stop),
+                                                               void (^strongHandler)(const char* strongSymbolName),
+                                                               void (^missingLazyBindHandler)())
 {
-    // minimal closures don't need weak def patches, they are regenerated at launch
-    if ( _makeMinimalClosure )
-        return;
-
-    // don't add duplicates
-    for (const Closure::PatchEntry& aPatch : _weakDefCacheOverrides) {
-        if ( aPatch.exportCacheOffset == exportCacheOffset )
-            return;
-    }
-    // add new patch entry
-    ClosureBuilder::BuilderLoadedImage* targetImage = (ClosureBuilder::BuilderLoadedImage*)(patchTarget.foundInImage._other);
-    Closure::PatchEntry patch;
-    patch.overriddenDylibInCache     = cachedDylibIndex+1; // convert image index to ImageNum
-    patch.exportCacheOffset          = exportCacheOffset;
-    patch.replacement.image.kind     = Image::ResolvedSymbolTarget::kindImage;
-    patch.replacement.image.imageNum = targetImage->imageNum;
-    patch.replacement.image.offset   = patchTarget.offsetInImage;
-    _weakDefCacheOverrides.push_back(patch);
+    __block int                         lastLibOrdinal  = 256;
+    __block const char*                 lastSymbolName  = nullptr;
+    __block uint64_t                    lastAddend      = 0;
+    __block Image::ResolvedSymbolTarget target;
+    __block ResolvedTargetInfo          targetInfo;
+    forImage.loadAddress()->forEachBind(_diag, ^(uint64_t runtimeOffset, int libOrdinal, const char* symbolName, bool weakImport, bool lazyBind, uint64_t addend, bool& stop) {
+        if ( (symbolName == lastSymbolName) && (libOrdinal == lastLibOrdinal) && (addend == lastAddend) ) {
+            // same symbol lookup as last location
+            handler(runtimeOffset, target, targetInfo, stop);
+        }
+        else if ( findSymbol(forImage, libOrdinal, symbolName, weakImport, lazyBind, addend, target, targetInfo) ) {
+            if ( !targetInfo.skippableWeakDef ) {
+                handler(runtimeOffset, target, targetInfo, stop);
+                lastSymbolName = symbolName;
+                lastLibOrdinal = libOrdinal;
+                lastAddend     = addend;
+            }
+        }
+        else {
+            stop = true;
+        }
+    }, ^(const char* symbolName) {
+        strongHandler(symbolName);
+    }, ^() {
+        missingLazyBindHandler();
+    });
 }
+
+void ClosureBuilder::addBindInfo(ImageWriter& writer, BuilderLoadedImage& forImage)
+{
+    const uint32_t ptrSize = forImage.loadAddress()->pointerSize();
+	STACK_ALLOC_OVERFLOW_SAFE_ARRAY(Image::BindPattern, binds, 512);
+    __block uint64_t                    lastOffset = -ptrSize;
+	__block Image::ResolvedSymbolTarget lastTarget = { {0, 0} };
+    forEachBind(forImage, ^(uint64_t runtimeOffset, Image::ResolvedSymbolTarget target, const ResolvedTargetInfo& targetInfo, bool& stop) {
+        if ( targetInfo.weakBindCoalese )  {
+            // may be previous bind to this location
+            // if so, update that rather create new BindPattern
+            for (Image::BindPattern& aBind : binds) {
+                if ( (aBind.startVmOffset == runtimeOffset) && (aBind.repeatCount == 1)  && (aBind.skipCount == 0) ) {
+                    aBind.target = target;
+                    return;
+                }
+            }
+        }
+        bool mergedIntoPrevious = false;
+        if ( !mergedIntoPrevious && (target == lastTarget) && (runtimeOffset > lastOffset) && !binds.empty() ) {
+            uint64_t skipAmount = (runtimeOffset - lastOffset - ptrSize)/ptrSize;
+            if ( skipAmount*ptrSize != (runtimeOffset - lastOffset - ptrSize) ) {
+                // misaligned pointer means we cannot optimize 
+            }
+            else {
+                if ( (binds.back().repeatCount == 1) && (binds.back().skipCount == 0) && (skipAmount <= 255) ) {
+                    binds.back().repeatCount = 2;
+                    binds.back().skipCount   = skipAmount;
+                    assert(binds.back().skipCount == skipAmount); // check overflow
+                    mergedIntoPrevious       = true;
+                }
+                else if ( (binds.back().skipCount == skipAmount) && (binds.back().repeatCount < 0xfff) ) {
+                    uint32_t prevRepeatCount = binds.back().repeatCount;
+                    binds.back().repeatCount += 1;
+                    assert(binds.back().repeatCount > prevRepeatCount); // check overflow
+                    mergedIntoPrevious       = true;
+                }
+            }
+        }
+        if ( (target == lastTarget) && (runtimeOffset == lastOffset) && !binds.empty() ) {
+            // duplicate bind for same location, ignore this one
+            mergedIntoPrevious = true;
+        }
+        if ( !mergedIntoPrevious ) {
+            Image::BindPattern pattern;
+            pattern.target        = target;
+            pattern.startVmOffset = runtimeOffset;
+            pattern.repeatCount   = 1;
+            pattern.skipCount     = 0;
+            assert(pattern.startVmOffset == runtimeOffset);
+            binds.push_back(pattern);
+        }
+        lastTarget = target;
+        lastOffset = runtimeOffset;
+	}, ^(const char* strongSymbolName) {
+        if ( !_makingDyldCacheImages ) {
+            // something has a strong symbol definition that may override a weak impl in the dyld cache
+            Image::ResolvedSymbolTarget strongOverride;
+            ResolvedTargetInfo          strongTargetInfo;
+            if ( findSymbolInImage(forImage.loadAddress(), strongSymbolName, 0, false, false, strongOverride, strongTargetInfo) ) {
+                for (const BuilderLoadedImage& li : _loadedImages) {
+                    if ( li.loadAddress()->inDyldCache() && li.loadAddress()->hasWeakDefs() ) {
+                        Image::ResolvedSymbolTarget implInCache;
+                        ResolvedTargetInfo          implInCacheInfo;
+                        if ( findSymbolInImage(li.loadAddress(), strongSymbolName, 0, false, false, implInCache, implInCacheInfo) ) {
+                            // found another instance in some dylib in dyld cache, will need to patch it
+                            Closure::PatchEntry patch;
+                            patch.exportCacheOffset      = (uint32_t)implInCache.sharedCache.offset;
+                            patch.overriddenDylibInCache = li.imageNum;
+                            patch.replacement            = strongOverride;
+                            _weakDefCacheOverrides.push_back(patch);
+                        }
+                    }
+                }
+            }
+        }
+    }, ^() {
+        _foundMissingLazyBinds = true;
+    });
+
+    // check for __dyld section in main executable to support licenseware
+    if ( forImage.loadAddress()->filetype == MH_EXECUTE ) {
+        forImage.loadAddress()->forEachSection(^(const MachOAnalyzer::SectionInfo& sectInfo, bool malformedSectionRange, bool& stop) {
+            if ( (strcmp(sectInfo.sectName, "__dyld") == 0) && (strcmp(sectInfo.segInfo.segName, "__DATA") == 0) ) {
+                // find dyld3::compatFuncLookup in libdyld.dylib
+                assert(_libDyldImageNum != 0);
+                Image::ResolvedSymbolTarget lookupFuncTarget;
+                ResolvedTargetInfo          lookupFuncInfo;
+                if ( findSymbolInImage(findLoadedImage(_libDyldImageNum).loadAddress(), "__ZN5dyld316compatFuncLookupEPKcPPv", 0, false, false, lookupFuncTarget, lookupFuncInfo) ) {
+                    // add bind to set second pointer in __dyld section to be dyld3::compatFuncLookup
+                    uint64_t runtimeOffset = sectInfo.sectAddr - forImage.loadAddress()->preferredLoadAddress() + forImage.loadAddress()->pointerSize();
+                    Image::BindPattern compatFuncPattern;
+                    compatFuncPattern.target        = lookupFuncTarget;
+                    compatFuncPattern.startVmOffset = runtimeOffset;
+                    compatFuncPattern.repeatCount   = 1;
+                    compatFuncPattern.skipCount     = 0;
+                    assert(compatFuncPattern.startVmOffset == runtimeOffset);
+                    binds.push_back(compatFuncPattern);
+                }
+                else {
+                    _diag.error("libdyld.dylib is dyld3::compatFuncLookup");
+                }
+            }
+        });
+    }
+
+    writer.setBindInfo(binds);
+}
+
+void ClosureBuilder::reportRebasesAndBinds(ImageWriter& writer, BuilderLoadedImage& forImage)
+{
+    // report all rebases
+    forImage.loadAddress()->forEachRebase(_diag, true, ^(uint64_t runtimeOffset, bool& stop) {
+        _handlers->rebase(forImage.imageNum, forImage.loadAddress(), (uint32_t)runtimeOffset);
+    });
+
+    // report all binds
+    forEachBind(forImage, ^(uint64_t runtimeOffset, Image::ResolvedSymbolTarget target, const ResolvedTargetInfo& targetInfo, bool& stop) {
+        _handlers->bind(forImage.imageNum, forImage.loadAddress(), (uint32_t)runtimeOffset, target, targetInfo);
+    },
+    ^(const char* strongSymbolName) {},
+    ^() { });
+
+    // i386 programs also use text relocs to rebase stubs
+    if ( forImage.loadAddress()->cputype == CPU_TYPE_I386 ) {
+        // FIX ME
+    }
+}
+
+// These are mangled symbols for all the variants of operator new and delete
+// which a main executable can define (non-weak) and override the
+// weak-def implementation in the OS.
+static const char* const sTreatAsWeak[] = {
+    "__Znwm", "__ZnwmRKSt9nothrow_t",
+    "__Znam", "__ZnamRKSt9nothrow_t",
+    "__ZdlPv", "__ZdlPvRKSt9nothrow_t", "__ZdlPvm",
+    "__ZdaPv", "__ZdaPvRKSt9nothrow_t", "__ZdaPvm",
+    "__ZnwmSt11align_val_t", "__ZnwmSt11align_val_tRKSt9nothrow_t",
+    "__ZnamSt11align_val_t", "__ZnamSt11align_val_tRKSt9nothrow_t",
+    "__ZdlPvSt11align_val_t", "__ZdlPvSt11align_val_tRKSt9nothrow_t", "__ZdlPvmSt11align_val_t",
+    "__ZdaPvSt11align_val_t", "__ZdaPvSt11align_val_tRKSt9nothrow_t", "__ZdaPvmSt11align_val_t"
+};
+
 
 void ClosureBuilder::addChainedFixupInfo(ImageWriter& writer, BuilderLoadedImage& forImage)
 {
-    // as a side effect of building targets array, we discover if anything in dyld cache uses weak-defs that need
-    // to be redirected to an impl in some other dylib (cache patched)
-    auto patchAddr = ^(uint32_t cachedDylibIndex, uint32_t exportCacheOffset, const FixupTarget& patchTarget) {
-                        addWeakDefCachePatch(cachedDylibIndex, exportCacheOffset, patchTarget);
-                    };
-
     // build array of targets
     STACK_ALLOC_OVERFLOW_SAFE_ARRAY(Image::ResolvedSymbolTarget, targets,     1024);
+    STACK_ALLOC_OVERFLOW_SAFE_ARRAY(ResolvedTargetInfo,          targetInfos, 1024);
     forImage.loadAddress()->forEachChainedFixupTarget(_diag, ^(int libOrdinal, const char* symbolName, uint64_t addend, bool weakImport, bool& stop) {
-        FixupTarget target;
-        WrappedMachO forImageWmo(forImage.loadAddress(), this, (void*)&forImage);
-        if ( wmo_findSymbolFrom(&forImageWmo, _diag, libOrdinal, symbolName, weakImport, false, addend, patchAddr, target) )
-            targets.push_back(makeResolvedTarget(target));
-        else
+        Image::ResolvedSymbolTarget target;
+        ResolvedTargetInfo          targetInfo;
+        if ( !findSymbol(forImage, libOrdinal, symbolName, weakImport, false, addend, target, targetInfo) ) {
             stop = true;
+            return;
+        }
+        if ( libOrdinal == BIND_SPECIAL_DYLIB_WEAK_LOOKUP ) {
+            // add if not already in array
+            bool alreadyInArray = false;
+            for (const char* sym : _weakDefsFromChainedBinds) {
+                if ( strcmp(sym, symbolName) == 0 ) {
+                    alreadyInArray = true;
+                    break;
+                }
+            }
+            if ( !alreadyInArray )
+                _weakDefsFromChainedBinds.push_back(symbolName);
+        }
+        targets.push_back(target);
+        targetInfos.push_back(targetInfo);
     });
     if ( _diag.hasError() )
         return;
 
-    // C++ main executables can overide operator new, check for that
-    if ( forImage.loadAddress()->isMainExecutable() && forImage.loadAddress()->hasWeakDefs() ) {
-        WrappedMachO mainWmo(forImage.loadAddress(), this, (void*)&forImage);
-        wmo_findExtraSymbolFrom(&mainWmo, patchAddr);
+    uint64_t chainStartsOffset = forImage.loadAddress()->chainStartsOffset();
+    if ( _handlers != nullptr ) {
+        forImage.loadAddress()->withChainStarts(_diag, chainStartsOffset, ^(const dyld_chained_starts_in_image* starts) {
+            _handlers->chainedBind(forImage.imageNum, forImage.loadAddress(), starts, targets, targetInfos);
+        });
+    }
+    else {
+        writer.setChainedFixups(chainStartsOffset, targets);
     }
 
-    uint64_t chainStartsOffset = forImage.loadAddress()->chainStartsOffset();
-    writer.setChainedFixups(chainStartsOffset, targets);
- }
+    // with chained fixups, main executable may define symbol that overrides weak-defs but has no fixup
+    if ( _isLaunchClosure && forImage.loadAddress()->hasWeakDefs() && forImage.loadAddress()->isMainExecutable() ) {
+        for (const char* weakSymbolName : sTreatAsWeak) {
+            Diagnostics exportDiag;
+            dyld3::MachOAnalyzer::FoundSymbol foundInfo;
+            if ( forImage.loadAddress()->findExportedSymbol(exportDiag, weakSymbolName, false, foundInfo, nullptr) ) {
+                _weakDefsFromChainedBinds.push_back(weakSymbolName);
+            }
+        }
+    }
+}
+
+
+bool ClosureBuilder::findSymbolInImage(const MachOAnalyzer* macho, const char* symbolName, uint64_t addend, bool followReExports,
+                                       bool weakImport, Image::ResolvedSymbolTarget& target, ResolvedTargetInfo& targetInfo)
+{
+    targetInfo.foundInDylib        = nullptr;
+    targetInfo.requestedSymbolName = symbolName;
+    targetInfo.addend              = addend;
+    targetInfo.weakBindCoalese     = false;
+    targetInfo.weakBindSameImage   = false;
+    targetInfo.isWeakDef           = false;
+    targetInfo.skippableWeakDef    = false;
+    MachOLoaded::DependentToMachOLoaded reexportFinder = ^(const MachOLoaded* mh, uint32_t depIndex) {
+        return (const MachOLoaded*)findDependent(mh, depIndex);
+    };
+    MachOAnalyzer::DependentToMachOLoaded finder = nullptr;
+    if ( followReExports )
+        finder = reexportFinder;
+
+    dyld3::MachOAnalyzer::FoundSymbol foundInfo;
+    if ( macho->findExportedSymbol(_diag, symbolName, weakImport, foundInfo, finder) ) {
+        const MachOAnalyzer* impDylib = (const MachOAnalyzer*)foundInfo.foundInDylib;
+        targetInfo.foundInDylib    = foundInfo.foundInDylib;
+        targetInfo.foundSymbolName = foundInfo.foundSymbolName;
+        if ( foundInfo.isWeakDef )
+            targetInfo.isWeakDef = true;
+        if ( foundInfo.kind == MachOAnalyzer::FoundSymbol::Kind::absolute ) {
+            target.absolute.kind   = Image::ResolvedSymbolTarget::kindAbsolute;
+            target.absolute.value  = foundInfo.value + addend;
+        }
+        else if ( impDylib->inDyldCache() ) {
+            uint64_t offsetValue = (uint8_t*)impDylib - (uint8_t*)_dyldCache + foundInfo.value + addend;
+            target.sharedCache.kind   = Image::ResolvedSymbolTarget::kindSharedCache;
+            target.sharedCache.offset = offsetValue;
+            assert(target.sharedCache.offset == offsetValue);
+        }
+        else {
+            uint64_t offsetValue = foundInfo.value + addend;
+            target.image.kind     = Image::ResolvedSymbolTarget::kindImage;
+            target.image.imageNum = findLoadedImage(impDylib).imageNum;
+            target.image.offset   = offsetValue;
+            assert(target.image.offset == offsetValue);
+        }
+        return true;
+    }
+    return false;
+}
+
+bool ClosureBuilder::findSymbol(BuilderLoadedImage& fromImage, int libOrdinal, const char* symbolName, bool weakImport, bool lazyBind,
+                                uint64_t addend, Image::ResolvedSymbolTarget& target, ResolvedTargetInfo& targetInfo)
+{
+    target.raw                      = 0;
+    targetInfo.weakBindCoalese      = false;
+    targetInfo.weakBindSameImage    = false;
+    targetInfo.isWeakDef            = false;
+    targetInfo.skippableWeakDef     = false;
+    targetInfo.requestedSymbolName  = symbolName;
+    targetInfo.foundSymbolName      = nullptr;
+    targetInfo.libOrdinal           = libOrdinal;
+    if ( libOrdinal == BIND_SPECIAL_DYLIB_FLAT_LOOKUP ) {
+        for (const BuilderLoadedImage& li : _loadedImages) {
+            if ( !li.rtldLocal && findSymbolInImage(li.loadAddress(), symbolName, addend, true, weakImport, target, targetInfo) )
+                return true;
+        }
+        if ( weakImport ) {
+            target.absolute.kind  = Image::ResolvedSymbolTarget::kindAbsolute;
+            target.absolute.value = 0;
+            // Record that we found a missing weak import so that the objc optimizer doens't have to check
+            fromImage.hasMissingWeakImports = true;
+            return true;
+        }
+        // <rdar://problem/44315944> closures should bind missing lazy-bind symbols to a missing symbol handler in libdyld in flat namespace
+        if ( lazyBind && _allowMissingLazies ) {
+            if ( findMissingSymbolHandler(target, targetInfo) )
+                return true;
+        }
+        _diag.error("symbol '%s' not found, expected in flat namespace by '%s'", symbolName, fromImage.path());
+    }
+    else if ( libOrdinal == BIND_SPECIAL_DYLIB_WEAK_LOOKUP ) {
+        // to resolve weakDef coalesing, we need to search all images in order and use first definition
+        // but, if first found is a weakDef, a later non-weak def overrides that
+        bool foundWeakDefImpl   = false;
+        bool foundStrongDefImpl = false;
+        bool foundImpl          = false;
+
+        if ( _makingDyldCacheImages ) {
+            // _loadedImages is all dylibs in the dyld cache, it is not load-order, so need alterate weak-def binding algorithm
+            // look first in /usr/lib/libc++, most will be here
+            for (const BuilderLoadedImage& li : _loadedImages) {
+                if ( li.loadAddress()->hasWeakDefs() && (strncmp(li.path(), "/usr/lib/libc++", 15) == 0) ) {
+                   if ( findSymbolInImage(li.loadAddress(), symbolName, addend, false, weakImport, target, targetInfo) ) {
+                        foundImpl = true;
+                        break;
+                    }
+                }
+            }
+            // if not found, try looking in the images itself, most custom weak-def symbols have a copy in the image itself
+            if ( !foundImpl ) {
+                if ( findSymbolInImage(fromImage.loadAddress(), symbolName, addend, false, weakImport, target, targetInfo) ) {
+                    foundImpl = true;
+                }
+            }
+            // if still not found, then this is the rare case of a simple use of a weak-def symbol
+            if ( !foundImpl ) {
+                // look in all direct dependents
+                for (Image::LinkedImage child : fromImage.dependents) {
+                    if (child.imageNum() == kMissingWeakLinkedImage)
+                        continue;
+                    BuilderLoadedImage& childLi = findLoadedImage(child.imageNum());
+                    if ( childLi.loadAddress()->hasWeakDefs() && findSymbolInImage(childLi.loadAddress(), symbolName, addend, false, weakImport, target, targetInfo) ) {
+                        foundImpl = true;
+                        break;
+                    }
+                }
+            }
+            targetInfo.weakBindCoalese = true;
+        }
+        else {
+            // walk images in load-order to find first that implements this symbol
+            Image::ResolvedSymbolTarget  aTarget;
+            ResolvedTargetInfo           aTargetInfo;
+            STACK_ALLOC_ARRAY(const BuilderLoadedImage*, cachedDylibsUsingSymbol, 1024);
+            for (const BuilderLoadedImage& li : _loadedImages) {
+                // only search images with weak-defs that were not loaded with RTLD_LOCAL
+                if ( li.loadAddress()->hasWeakDefs() && !li.rtldLocal ) {
+                    if ( findSymbolInImage(li.loadAddress(), symbolName, addend, false, weakImport, aTarget, aTargetInfo) ) {
+                        foundImpl = true;
+                        // with non-chained images, weak-defs first have a rebase to their local impl, and a weak-bind which allows earlier impls to override
+                        if ( !li.loadAddress()->hasChainedFixups() && (aTargetInfo.foundInDylib == fromImage.loadAddress()) )
+                            targetInfo.weakBindSameImage = true;
+                        if ( aTargetInfo.isWeakDef ) {
+                            // found a weakDef impl, if this is first found, set target to this
+                            if ( !foundWeakDefImpl && !foundStrongDefImpl ) {
+                                target      = aTarget;
+                                targetInfo  = aTargetInfo;
+                            }
+                            foundWeakDefImpl = true;
+                        }
+                        else {
+                            // found a non-weak impl, use this (unless early strong found)
+                            if ( !foundStrongDefImpl ) {
+                                target      = aTarget;
+                                targetInfo  = aTargetInfo;
+                            }
+                            foundStrongDefImpl = true;
+                        }
+                    }
+                    if ( foundImpl && li.loadAddress()->inDyldCache() )
+                        cachedDylibsUsingSymbol.push_back(&li);
+                }
+            }
+
+            // now that final target found, if any dylib in dyld cache uses that symbol name, redirect it to new target
+            if ( !cachedDylibsUsingSymbol.empty() ) {
+                for (const BuilderLoadedImage* li : cachedDylibsUsingSymbol) {
+                    Image::ResolvedSymbolTarget implInCache;
+                    ResolvedTargetInfo          implInCacheInfo;
+                    if ( findSymbolInImage(li->loadAddress(), symbolName, addend, false, weakImport, implInCache, implInCacheInfo) ) {
+                        if ( implInCache != target ) {
+                            // found another instance in some dylib in dyld cache, will need to patch it
+                            Closure::PatchEntry patch;
+                            patch.exportCacheOffset      = (uint32_t)implInCache.sharedCache.offset;
+                            patch.overriddenDylibInCache = li->imageNum;
+                            patch.replacement            = target;
+                            _weakDefCacheOverrides.push_back(patch);
+                        }
+                    }
+                }
+            }
+            targetInfo.weakBindCoalese = true;
+        }
+
+        if ( foundImpl )
+            return true;
+        if ( weakImport ) {
+            target.absolute.kind  = Image::ResolvedSymbolTarget::kindAbsolute;
+            target.absolute.value = 0;
+            return true;
+        }
+        if ( ! fromImage.loadAddress()->hasChainedFixups() ) {
+            // support old binaries where symbols have been stripped and have weak_bind to itself
+            targetInfo.skippableWeakDef = true;
+            return true;
+        }
+
+        _diag.error("symbol '%s' not found, expected to be weak-def coalesced by '%s'", symbolName, fromImage.path());
+    }
+    else {
+        const BuilderLoadedImage* targetLoadedImage = nullptr;
+        if ( (libOrdinal > 0) && (libOrdinal <= (int)fromImage.dependents.count()) ) {
+            ImageNum childNum = fromImage.dependents[libOrdinal - 1].imageNum();
+            if ( childNum != kMissingWeakLinkedImage ) {
+                targetLoadedImage = &findLoadedImage(childNum);
+            }
+        }
+        else if ( libOrdinal == BIND_SPECIAL_DYLIB_SELF ) {
+            targetLoadedImage = &fromImage;
+        }
+        else if ( libOrdinal == BIND_SPECIAL_DYLIB_MAIN_EXECUTABLE ) {
+            targetLoadedImage = &_loadedImages[_mainProgLoadIndex];
+        }
+        else {
+            _diag.error("unknown special ordinal %d in %s", libOrdinal, fromImage.path());
+            return false;
+        }
+
+        if ( targetLoadedImage != nullptr ) {
+            if ( findSymbolInImage(targetLoadedImage->loadAddress(), symbolName, addend, true, weakImport, target, targetInfo) )
+                return true;
+        }
+
+        if ( weakImport ) {
+            target.absolute.kind  = Image::ResolvedSymbolTarget::kindAbsolute;
+            target.absolute.value = 0;
+            // Record that we found a missing weak import so that the objc optimizer doens't have to check
+            fromImage.hasMissingWeakImports = true;
+            return true;
+        }
+
+        // <rdar://problem/43315403> closures should bind missing lazy-bind symbols to a missing symbol handler in libdyld
+        if ( lazyBind && _allowMissingLazies ) {
+            if ( findMissingSymbolHandler(target, targetInfo) )
+                return true;
+        }
+
+        // symbol not found and not weak or lazy so error out
+        const char* expectedInPath = targetLoadedImage ? targetLoadedImage->path() : "unknown";
+        _diag.error("symbol '%s' not found, expected in '%s', needed by '%s'", symbolName, expectedInPath, fromImage.path());
+        if ( _launchErrorInfo != nullptr ) {
+            _launchErrorInfo->kind              = DYLD_EXIT_REASON_SYMBOL_MISSING;
+            _launchErrorInfo->clientOfDylibPath = strdup_temp(fromImage.path());
+            _launchErrorInfo->targetDylibPath   = strdup_temp(expectedInPath);
+            _launchErrorInfo->symbol            = symbolName;
+        }
+    }
+    return false;
+}
+
+
+bool ClosureBuilder::findMissingSymbolHandler(Image::ResolvedSymbolTarget& target, ResolvedTargetInfo& targetInfo)
+{
+   for (BuilderLoadedImage& li : _loadedImages) {
+         if ( li.loadAddress()->isDylib() && (strcmp(li.loadAddress()->installName(), "/usr/lib/system/libdyld.dylib") == 0) ) {
+            if ( findSymbolInImage(li.loadAddress(), "__dyld_missing_symbol_abort", 0, false, false, target, targetInfo) ) {
+                return true;
+            }
+            break;
+        }
+    }
+    return false;
+}
 
 void ClosureBuilder::depthFirstRecurseSetInitInfo(uint32_t loadIndex, InitInfo initInfos[], uint32_t& initOrder, bool& hasError)
 {
@@ -1769,10 +1756,11 @@ void ClosureBuilder::depthFirstRecurseSetInitInfo(uint32_t loadIndex, InitInfo i
         hasError = true;
         return;
     }
+
     for (const Image::LinkedImage& dep : _loadedImages[loadIndex].dependents) {
         if ( dep.imageNum() == kMissingWeakLinkedImage )
             continue;
-        const ClosureBuilder::BuilderLoadedImage& depLi = findLoadedImage(dep.imageNum());
+        ClosureBuilder::BuilderLoadedImage& depLi = findLoadedImage(dep.imageNum());
         uint32_t depLoadIndex = (uint32_t)_loadedImages.index(depLi);
         if ( dep.kind() == Image::LinkKind::upward ) {
             if ( !initInfos[depLoadIndex].visited )
@@ -1855,19 +1843,20 @@ void ClosureBuilder::addClosureInfo(LaunchClosureWriter& closureWriter)
 
     // record which is libdyld
     assert(_libDyldImageNum != 0);
-    const BuilderLoadedImage& libdyldImage = findLoadedImage(_libDyldImageNum);
-    WrappedMachO libdyldWmo(libdyldImage.loadAddress(), this, (void*)&libdyldImage);
-    FixupTarget libdyldEntryTarget;
-    if ( libdyldWmo.findSymbolIn(_diag, "__ZN5dyld318entryVectorForDyldE", 0, libdyldEntryTarget) ) {
+    Image::ResolvedSymbolTarget entryLocation;
+    ResolvedTargetInfo          entryInfo;
+    if ( findSymbolInImage(findLoadedImage(_libDyldImageNum).loadAddress(), "__ZN5dyld318entryVectorForDyldE", 0, false, false, entryLocation, entryInfo) ) {
         const dyld3::LibDyldEntryVector* libDyldEntry = nullptr;
-        if ( libdyldEntryTarget.kind == MachOAnalyzerSet::FixupTarget::Kind::bindToImage ) {
-            libDyldEntry = (dyld3::LibDyldEntryVector*)((uint8_t*)libdyldEntryTarget.foundInImage._mh + libdyldEntryTarget.offsetInImage);
+        switch ( entryLocation.image.kind ) {
+            case Image::ResolvedSymbolTarget::kindSharedCache:
+                libDyldEntry = (dyld3::LibDyldEntryVector*)((uint8_t*)_dyldCache + entryLocation.sharedCache.offset);
+                break;
+            case Image::ResolvedSymbolTarget::kindImage:
+                libDyldEntry = (dyld3::LibDyldEntryVector*)((uint8_t*)findLoadedImage(entryLocation.image.imageNum).loadAddress() + entryLocation.image.offset);
+                break;
         }
-        // peak at entry vector to see if version is compatible
-        if ( (libDyldEntry != nullptr) && ((libDyldEntry->binaryFormatVersion & LibDyldEntryVector::kBinaryFormatVersionMask) == dyld3::closure::kFormatVersion) ) {
-            Image::ResolvedSymbolTarget entryLocation = makeResolvedTarget(libdyldEntryTarget);
+        if ( (libDyldEntry != nullptr) && ((libDyldEntry->binaryFormatVersion & LibDyldEntryVector::kBinaryFormatVersionMask) == dyld3::closure::kFormatVersion) )
             closureWriter.setLibDyldEntry(entryLocation);
-        }
         else
             _diag.error("libdyld.dylib entry vector is incompatible");
     }
@@ -1880,13 +1869,13 @@ void ClosureBuilder::addClosureInfo(LaunchClosureWriter& closureWriter)
     closureWriter.setTopImageNum(mainProgImageNum);
 
     // add entry
-    uint64_t    entryOffset;
+    uint32_t    entryOffset;
     bool        usesCRT;
     if ( _loadedImages[_mainProgLoadIndex].loadAddress()->getEntry(entryOffset, usesCRT) ) {
         Image::ResolvedSymbolTarget location;
         location.image.kind     = Image::ResolvedSymbolTarget::kindImage;
         location.image.imageNum = mainProgImageNum;
-        location.image.offset   = (uint32_t)entryOffset;
+        location.image.offset   = entryOffset;
         if ( usesCRT )
             closureWriter.setStartEntry(location);
         else
@@ -1924,7 +1913,7 @@ void ClosureBuilder::invalidateInitializerRoots()
             for (Image::LinkedImage depIndex : li.dependents) {
                 if ( depIndex.imageNum() == kMissingWeakLinkedImage )
                     continue;
-                const BuilderLoadedImage& depImage = findLoadedImage(depIndex.imageNum());
+                BuilderLoadedImage& depImage = findLoadedImage(depIndex.imageNum());
                 // If a dependent is bad, or a new image num, or an override, then we need this image to get a new closure
                 if ( depImage.mustBuildClosure ) {
                     li.mustBuildClosure = true;    // mark bad
@@ -1948,7 +1937,6 @@ size_t ClosureBuilder::HashCString::hash(const char* v) {
 bool ClosureBuilder::EqualCString::equal(const char* s1, const char* s2) {
     return strcmp(s1, s2) == 0;
 }
-
 
 
 struct HashUInt64 {
@@ -2059,11 +2047,6 @@ bool ClosureBuilder::optimizeObjC(Array<ImageWriter>& writers) {
     Image::ResolvedSymbolTarget objcProtocolClassTarget;
     objcProtocolClassTarget.sharedCache.kind = Image::ResolvedSymbolTarget::kindSharedCache;
     if ( _dyldCacheIsLive ) {
-        // If we are on arm64e, the protocol ISA in the shared cache was signed.  We don't
-        // want the signature bits in the encoded value
-#if __has_feature(ptrauth_calls)
-        classProtocolVMAddr = (uint64_t)__builtin_ptrauth_strip((void*)classProtocolVMAddr, ptrauth_key_asda);
-#endif
         objcProtocolClassTarget.sharedCache.offset = classProtocolVMAddr - (uint64_t)_dyldCache;
     } else {
         objcProtocolClassTarget.sharedCache.offset = classProtocolVMAddr - _dyldCache->unslidLoadAddress();
@@ -2112,9 +2095,8 @@ bool ClosureBuilder::optimizeObjC(Array<ImageWriter>& writers) {
                     // We've tested the 64-bit chained fixups.
                     break;
                 case DYLD_CHAINED_PTR_64_OFFSET:
+                case DYLD_CHAINED_PTR_ARM64E_OFFSET:
                 case DYLD_CHAINED_PTR_ARM64E_USERLAND:
-                case DYLD_CHAINED_PTR_ARM64E_USERLAND24:
-                case DYLD_CHAINED_PTR_ARM64E_FIRMWARE:
                     // FIXME: Test 64-bit offset chained fixups then enable this.
                     continue;
                 case DYLD_CHAINED_PTR_32:
@@ -2147,17 +2129,12 @@ bool ClosureBuilder::optimizeObjC(Array<ImageWriter>& writers) {
         image.objcImageInfoVMOffset = (uint64_t)objcImageInfo - (uint64_t)ma;
     }
 
-    // objc supports a linker set which is a magic section of duplicate objc classes to ignore
-    // We need to match that behaviour
-    Map<const char*, bool, HashCString, EqualCString> duplicateClassesToIgnore;
-    parseObjCClassDuplicates(duplicateClassesToIgnore);
-
     OverflowSafeArray<const char*>                                                          closureSelectorStrings;
     Map<const char*, dyld3::closure::Image::ObjCImageOffset, HashCString, EqualCString>     closureSelectorMap;
     OverflowSafeArray<const char*>                                                          closureDuplicateSharedCacheClassNames;
     Map<const char*, dyld3::closure::Image::ObjCDuplicateClass, HashCString, EqualCString>  closureDuplicateSharedCacheClassMap;
     for (ObjCOptimizerImage& image : objcImages) {
-        optimizeObjCClasses(objcClassOpt, sharedCacheImagesMap, closureDuplicateSharedCacheClassMap, duplicateClassesToIgnore, image);
+        optimizeObjCClasses(objcClassOpt, sharedCacheImagesMap, closureDuplicateSharedCacheClassMap, image);
         if (image.diag.hasError())
             continue;
 
@@ -2356,43 +2333,8 @@ bool ClosureBuilder::optimizeObjC(Array<ImageWriter>& writers) {
         }
 
         // Method list fixups
+        // TODO: Implement this
         STACK_ALLOC_OVERFLOW_SAFE_ARRAY(Image::MethodListFixup, methodListFixups, 512);
-        if ( !image.methodListFixups.empty() ) {
-
-            __block uint64_t lastOffset = -pointerSize;
-            for (uint64_t runtimeOffset : image.methodListFixups) {
-                bool mergedIntoPrevious = false;
-                if ( (runtimeOffset > lastOffset) && !methodListFixups.empty() ) {
-                    uint64_t skipAmount = (runtimeOffset - lastOffset - pointerSize)/pointerSize;
-                    if ( skipAmount*pointerSize != (runtimeOffset - lastOffset - pointerSize) ) {
-                        // misaligned pointer means we cannot optimize
-                    }
-                    else {
-                        if ( (methodListFixups.back().repeatCount == 1) && (methodListFixups.back().skipCount == 0) && (skipAmount <= 255) ) {
-                            methodListFixups.back().repeatCount = 2;
-                            methodListFixups.back().skipCount   = skipAmount;
-                            assert(methodListFixups.back().skipCount == skipAmount); // check overflow
-                            mergedIntoPrevious       = true;
-                        }
-                        else if ( (methodListFixups.back().skipCount == skipAmount) && (methodListFixups.back().repeatCount < 0xfff) ) {
-                            uint32_t prevRepeatCount = methodListFixups.back().repeatCount;
-                            methodListFixups.back().repeatCount += 1;
-                            assert(methodListFixups.back().repeatCount > prevRepeatCount); // check overflow
-                            mergedIntoPrevious       = true;
-                        }
-                    }
-                }
-                if ( !mergedIntoPrevious ) {
-                    Image::MethodListFixup pattern;
-                    pattern.startVmOffset = runtimeOffset;
-                    pattern.repeatCount   = 1;
-                    pattern.skipCount     = 0;
-                    assert(pattern.startVmOffset == runtimeOffset);
-                    methodListFixups.push_back(pattern);
-                }
-                lastOffset = runtimeOffset;
-            }
-        }
 
         image.writer->setObjCFixupInfo(objcProtocolClassTarget, image.objcImageInfoVMOffset, protocolFixups,
                                        selRefFixups, stableSwiftFixups, methodListFixups);
@@ -2410,7 +2352,6 @@ void ClosureBuilder::optimizeObjCSelectors(const objc_opt::objc_selopt_t* objcSe
     const dyld3::MachOAnalyzer* ma = li.loadAddress();
     uint32_t pointerSize = ma->pointerSize();
     const uint64_t loadAddress = ma->preferredLoadAddress();
-    const dyld3::MachOAnalyzer::VMAddrConverter vmAddrConverter = ma->makeVMAddrConverter(li.contentRebased);
 
     // The legacy (objc1) codebase uses a bunch of sections we don't want to reason about.  If we see them just give up.
     __block bool foundBadSection = false;
@@ -2442,20 +2383,9 @@ void ClosureBuilder::optimizeObjCSelectors(const objc_opt::objc_selopt_t* objcSe
 
     uint32_t sharedCacheSentinelIndex = objcSelOpt->getSentinelIndex();
 
-    // Track the locations where we've updated selector references.  With relative method lists,
-    // we share selref slots across classes, categories, protocols, and SEL() expressions, so we may
-    // visit a location more than once
-    __block Map<uint64_t, bool, HashUInt64, EqualUInt64> seenSelectorReferenceImageOffsets;
-
     auto visitReferenceToObjCSelector = ^void(uint64_t selectorStringVMAddr, uint64_t selectorReferenceVMAddr) {
 
         uint64_t selectorUseImageOffset = selectorReferenceVMAddr - loadAddress;
-        auto selUseItAndInserted = seenSelectorReferenceImageOffsets.insert({ selectorUseImageOffset, true });
-        if ( !selUseItAndInserted.second ) {
-            // If we didn't insert the selector reference, then its already there so we should skip it
-            return;
-        }
-
         if ( (selectorUseImageOffset & 3) != 0 ) {
             image.diag.error("Unaligned selector reference fixup");
             return;
@@ -2575,56 +2505,49 @@ void ClosureBuilder::optimizeObjCSelectors(const objc_opt::objc_selopt_t* objcSe
         visitReferenceToObjCSelector(method.nameVMAddr, method.nameLocationVMAddr);
     };
 
-    auto visitMethodList = ^(uint64_t methodListVMAddr) {
-        if ( methodListVMAddr == 0 )
-            return;
-        bool isRelativeMethodList = false;
-        ma->forEachObjCMethod(methodListVMAddr, vmAddrConverter, visitMethod, &isRelativeMethodList);
-        if (image.diag.hasError())
-            return;
-        // Record the offset to the method list so that we can mark it as being uniqued
-        // We can only do this if we have a pointer based method list as relative method lists are
-        // in read-only memory
-        if ( !isRelativeMethodList )
-            image.methodListFixups.push_back(methodListVMAddr - loadAddress);
-    };
-
     auto visitClass = ^(Diagnostics& diag, uint64_t classVMAddr,
                         uint64_t classSuperclassVMAddr, uint64_t classDataVMAddr,
                         const dyld3::MachOAnalyzer::ObjCClassInfo& objcClass, bool isMetaClass) {
-        visitMethodList(objcClass.baseMethodsVMAddr(pointerSize));
+        ma->forEachObjCMethod(objcClass.baseMethodsVMAddr(pointerSize), li.contentRebased,
+                              visitMethod);
     };
 
     auto visitCategory = ^(Diagnostics& diag, uint64_t categoryVMAddr,
                            const dyld3::MachOAnalyzer::ObjCCategory& objcCategory) {
-        visitMethodList(objcCategory.instanceMethodsVMAddr);
-        visitMethodList(objcCategory.classMethodsVMAddr);
+        ma->forEachObjCMethod(objcCategory.instanceMethodsVMAddr, li.contentRebased,
+                              visitMethod);
+        ma->forEachObjCMethod(objcCategory.classMethodsVMAddr, li.contentRebased,
+                              visitMethod);
     };
     auto visitProtocol = ^(Diagnostics& diag, uint64_t protocolVMAddr,
                            const dyld3::MachOAnalyzer::ObjCProtocol& objCProtocol) {
-        visitMethodList(objCProtocol.instanceMethodsVMAddr);
-        visitMethodList(objCProtocol.classMethodsVMAddr);
-        visitMethodList(objCProtocol.optionalInstanceMethodsVMAddr);
-        visitMethodList(objCProtocol.optionalClassMethodsVMAddr);
+        ma->forEachObjCMethod(objCProtocol.instanceMethodsVMAddr, li.contentRebased,
+                              visitMethod);
+        ma->forEachObjCMethod(objCProtocol.classMethodsVMAddr, li.contentRebased,
+                              visitMethod);
+        ma->forEachObjCMethod(objCProtocol.optionalInstanceMethodsVMAddr, li.contentRebased,
+                              visitMethod);
+        ma->forEachObjCMethod(objCProtocol.optionalClassMethodsVMAddr, li.contentRebased,
+                              visitMethod);
     };
 
     // Walk the class list
-    ma->forEachObjCClass(image.diag, vmAddrConverter, visitClass);
+    ma->forEachObjCClass(image.diag, li.contentRebased, visitClass);
     if (image.diag.hasError())
         return;
 
     // Walk the category list
-    ma->forEachObjCCategory(image.diag, vmAddrConverter, visitCategory);
+    ma->forEachObjCCategory(image.diag, li.contentRebased, visitCategory);
     if (image.diag.hasError())
         return;
 
     // Walk the protocol list
-    ma->forEachObjCProtocol(image.diag, vmAddrConverter, visitProtocol);
+    ma->forEachObjCProtocol(image.diag, li.contentRebased, visitProtocol);
     if (image.diag.hasError())
         return;
 
     // Visit the selector refs
-    ma->forEachObjCSelectorReference(image.diag, vmAddrConverter, ^(uint64_t selRefVMAddr, uint64_t selRefTargetVMAddr) {
+    ma->forEachObjCSelectorReference(image.diag, li.contentRebased, ^(uint64_t selRefVMAddr, uint64_t selRefTargetVMAddr) {
         visitReferenceToObjCSelector(selRefTargetVMAddr, selRefVMAddr);
     });
     if (image.diag.hasError())
@@ -2682,7 +2605,6 @@ void ClosureBuilder::addDuplicateObjCClassWarning(const char* className,
 void ClosureBuilder::optimizeObjCClasses(const objc_opt::objc_clsopt_t* objcClassOpt,
                                          const Map<const dyld3::MachOAnalyzer*, bool, HashPointer, EqualPointer>& sharedCacheImagesMap,
                                          const Map<const char*, dyld3::closure::Image::ObjCDuplicateClass, HashCString, EqualCString>& duplicateSharedCacheClasses,
-                                         const Map<const char*, bool, HashCString, EqualCString>& duplicateClassesToIgnore,
                                          ObjCOptimizerImage& image) {
 
     BuilderLoadedImage& li = *image.loadedImage;
@@ -2691,15 +2613,15 @@ void ClosureBuilder::optimizeObjCClasses(const objc_opt::objc_clsopt_t* objcClas
     const dyld3::MachOAnalyzer* ma = li.loadAddress();
     const uint32_t pointerSize = ma->pointerSize();
     const uint64_t loadAddress = ma->preferredLoadAddress();
-    const dyld3::MachOAnalyzer::VMAddrConverter vmAddrConverter = ma->makeVMAddrConverter(li.contentRebased);
 
     // Keep track of any missing weak imports so that we can tell if the superclasses are nil
     // This is necessary as the shared cache will be marked with 'no missing weak superclasses'
     // and so we need to continue to satisfy that constraint
     __block Map<uint64_t, bool, HashUInt64, EqualUInt64> missingWeakImportOffets;
     if (li.hasMissingWeakImports) {
-        const Image* closureImage = image.writer->currentImage();
-        if ( closureImage->hasChainedFixups() ) {
+        if (ma->hasChainedFixups()) {
+            const Image* closureImage = image.writer->currentImage();
+
             const Array<Image::ResolvedSymbolTarget> targets = closureImage->chainedTargets();
             if ( !targets.empty() ) {
                 ma->withChainStarts(_diag, closureImage->chainedStartsOffset(), ^(const dyld_chained_starts_in_image* startsInfo) {
@@ -2707,8 +2629,7 @@ void ClosureBuilder::optimizeObjCClasses(const objc_opt::objc_clsopt_t* objcClas
                                                                             const dyld_chained_starts_in_segment* segInfo, bool& fixupsStop) {
                         uint64_t fixupOffset = (uint8_t*)fixupLoc - (uint8_t*)ma;
                         uint32_t bindOrdinal;
-                        int64_t  addend;
-                        if ( fixupLoc->isBind(segInfo->pointer_format, bindOrdinal, addend) ) {
+                        if ( fixupLoc->isBind(segInfo->pointer_format, bindOrdinal) ) {
                             if ( bindOrdinal < targets.count() ) {
                                 const Image::ResolvedSymbolTarget& target = targets[bindOrdinal];
                                 if ( (target.absolute.kind == Image::ResolvedSymbolTarget::kindAbsolute) && (target.absolute.value == 0) )
@@ -2724,12 +2645,12 @@ void ClosureBuilder::optimizeObjCClasses(const objc_opt::objc_clsopt_t* objcClas
                 if (image.diag.hasError())
                     return;
             }
-        }
-        else {
-            closureImage->forEachBind(^(uint64_t imageOffsetToBind, Image::ResolvedSymbolTarget bindTarget, bool &stop) {
-                if ( (bindTarget.absolute.kind == Image::ResolvedSymbolTarget::kindAbsolute) && (bindTarget.absolute.value == 0) )
-                    missingWeakImportOffets[imageOffsetToBind] = true;
-            });
+        } else {
+            forEachBind(li, ^(uint64_t runtimeOffset, Image::ResolvedSymbolTarget target, const ResolvedTargetInfo& targetInfo, bool& stop) {
+                if ( (target.absolute.kind == Image::ResolvedSymbolTarget::kindAbsolute) && (target.absolute.value == 0) )
+                    missingWeakImportOffets[runtimeOffset] = true;
+            }, ^(const char *strongSymbolName) {
+            }, ^() { });
         }
     }
 
@@ -2737,9 +2658,9 @@ void ClosureBuilder::optimizeObjCClasses(const objc_opt::objc_clsopt_t* objcClas
     __block MachOAnalyzer::SectionCache classNameSectionCache(ma);
     __block MachOAnalyzer::SectionCache classSectionCache(ma);
 
-    ma->forEachObjCClass(image.diag, vmAddrConverter, ^(Diagnostics &diag, uint64_t classVMAddr,
-                                                        uint64_t classSuperclassVMAddr, uint64_t classDataVMAddr,
-                                                        const MachOAnalyzer::ObjCClassInfo &objcClass, bool isMetaClass) {
+    ma->forEachObjCClass(image.diag, li.contentRebased, ^(Diagnostics &diag, uint64_t classVMAddr,
+                                                          uint64_t classSuperclassVMAddr, uint64_t classDataVMAddr,
+                                                          const MachOAnalyzer::ObjCClassInfo &objcClass, bool isMetaClass) {
         if (isMetaClass) return;
 
         // Make sure the superclass pointer is not nil
@@ -2797,8 +2718,7 @@ void ClosureBuilder::optimizeObjCClasses(const objc_opt::objc_clsopt_t* objcClas
                 // exactly one matching class.  Check if its loaded
                 const dyld3::MachOAnalyzer* sharedCacheMA = getMachHeaderFromObjCHeaderInfo(hi, pointerSize);
                 if (sharedCacheImagesMap.find(sharedCacheMA) != sharedCacheImagesMap.end()) {
-                    if ( duplicateClassesToIgnore.find(className) == duplicateClassesToIgnore.end() )
-                        addDuplicateObjCClassWarning(className, li.path(), sharedCacheMA->installName());
+                    addDuplicateObjCClassWarning(className, li.path(), sharedCacheMA->installName());
 
                     // We have a duplicate class, so check if we've already got it in our map.
                     if ( duplicateSharedCacheClasses.find(className) == duplicateSharedCacheClasses.end() ) {
@@ -2818,8 +2738,7 @@ void ClosureBuilder::optimizeObjCClasses(const objc_opt::objc_clsopt_t* objcClas
                 for (uint32_t i = 0; i < count; i++) {
                     const dyld3::MachOAnalyzer* sharedCacheMA = getMachHeaderFromObjCHeaderInfo(hilist[i], pointerSize);
                     if (sharedCacheImagesMap.find(sharedCacheMA) != sharedCacheImagesMap.end()) {
-                        if ( duplicateClassesToIgnore.find(className) == duplicateClassesToIgnore.end() )
-                            addDuplicateObjCClassWarning(className, li.path(), sharedCacheMA->installName());
+                        addDuplicateObjCClassWarning(className, li.path(), sharedCacheMA->installName());
 
                         // We have a duplicate class, so check if we've already got it in our map.
                         if ( duplicateSharedCacheClasses.find(className) == duplicateSharedCacheClasses.end() ) {
@@ -2907,14 +2826,18 @@ void ClosureBuilder::optimizeObjCProtocols(const objc_opt::objc_protocolopt2_t* 
     const dyld3::MachOAnalyzer* ma = li.loadAddress();
     const uint32_t pointerSize = ma->pointerSize();
     const uint64_t loadAddress = ma->preferredLoadAddress();
-    const dyld3::MachOAnalyzer::VMAddrConverter vmAddrConverter = ma->makeVMAddrConverter(li.contentRebased);
 
     // Protocol names and data may be in different sections depending on swift vs objc so handle multiple sections
     __block MachOAnalyzer::SectionCache protocolNameSectionCache(ma);
     __block MachOAnalyzer::SectionCache protocolSectionCache(ma);
 
-    ma->forEachObjCProtocol(image.diag, vmAddrConverter, ^(Diagnostics &diag, uint64_t protocolVMAddr,
-                                                           const dyld3::MachOAnalyzer::ObjCProtocol &objCProtocol) {
+    ma->forEachObjCProtocol(image.diag, li.contentRebased, ^(Diagnostics &diag, uint64_t protocolVMAddr,
+                                                             const dyld3::MachOAnalyzer::ObjCProtocol &objCProtocol) {
+        if ( objCProtocol.requiresObjCReallocation ) {
+            // We can't optimize this protocol as the runtime needs all fields to be present
+            diag.error("Protocol is too small to be optimized");
+            return;
+        }
         if ( objCProtocol.isaVMAddr != 0 ) {
             // We can't optimize this protocol if it has an ISA as we want to override it
             diag.error("Protocol ISA cannot be non-zero");
@@ -3033,40 +2956,6 @@ void ClosureBuilder::optimizeObjCProtocols(const objc_opt::objc_protocolopt2_t* 
     });
 }
 
-void ClosureBuilder::parseObjCClassDuplicates(Map<const char*, bool, HashCString, EqualCString>& duplicateClassesToIgnore) {
-    const ClosureBuilder::BuilderLoadedImage& mainLi = _loadedImages[_mainProgLoadIndex];
-
-    const dyld3::MachOAnalyzer* ma = mainLi.loadAddress();
-
-    const uint32_t pointerSize = ma->pointerSize();
-    const intptr_t slide = ma->getSlide();
-    const dyld3::MachOAnalyzer::VMAddrConverter vmAddrConverter = ma->makeVMAddrConverter(mainLi.contentRebased);
-
-    uint64_t sectionSize = 0;
-    const void* section = ma->findSectionContent("__DATA", "__objc_dupclass", sectionSize);
-
-    if ( !section )
-        return;
-
-    // Ignore sections which are the wrong size
-    if ( (sectionSize % pointerSize) != 0 )
-        return;
-
-    // Copied from objc-abi.h
-    typedef struct _objc_duplicate_class {
-        uint32_t version;
-        uint32_t flags;
-        const char name[64];
-    } objc_duplicate_class;
-
-    for (uint64_t offset = 0; offset != sectionSize; offset += pointerSize) {
-        uint64_t vmAddr = *(uint64_t*)((uint64_t)section + offset);
-        vmAddr = vmAddrConverter.convertToVMAddr(vmAddr);
-        const objc_duplicate_class* duplicateClass = (const objc_duplicate_class*)(vmAddr + slide);
-        duplicateClassesToIgnore.insert({ duplicateClass->name, true });
-    }
-}
-
 // used at launch by dyld when kernel has already mapped main executable
 const LaunchClosure* ClosureBuilder::makeLaunchClosure(const LoadedFileInfo& fileInfo, bool allowInsertFailures)
 {
@@ -3077,10 +2966,12 @@ const LaunchClosure* ClosureBuilder::makeLaunchClosure(const LoadedFileInfo& fil
     Image::LinkedImage  dependenciesStorage[512*8];
     InterposingTuple    tuplesStorage[64];
     Closure::PatchEntry cachePatchStorage[64];
+    const char*         weakDefNameStorage[64];
     _loadedImages.setInitialStorage(loadImagesStorage, 512);
     _dependencies.setInitialStorage(dependenciesStorage, 512*8);
     _interposingTuples.setInitialStorage(tuplesStorage, 64);
     _weakDefCacheOverrides.setInitialStorage(cachePatchStorage, 64);
+    _weakDefsFromChainedBinds.setInitialStorage(weakDefNameStorage, 64);
     ArrayFinalizer<BuilderLoadedImage> scopedCleanup(_loadedImages, ^(BuilderLoadedImage& li) { if (li.unmapWhenDone) {_fileSystem.unloadFile(li.loadedFileInfo); li.unmapWhenDone=false;} });
 
     const MachOAnalyzer* mainExecutable = MachOAnalyzer::validMainExecutable(_diag, mainMH, fileInfo.path, fileInfo.sliceLen, _archs, _platform);
@@ -3090,35 +2981,8 @@ const LaunchClosure* ClosureBuilder::makeLaunchClosure(const LoadedFileInfo& fil
         _diag.error("not a main executable");
         return nullptr;
     }
-    if ( _platform == Platform::macOS ) {
-        // If this is an iOSMac program running on macOS, switch platforms
-        if ( mainExecutable->builtForPlatform(Platform::iOSMac, true) ) {
-            //_platform = Platform::iOSMac;
-            Platform* selfPlatform = const_cast<Platform*>(&_platform);
-            *selfPlatform = Platform::iOSMac;
-        }
-#if (TARGET_OS_OSX && TARGET_CPU_ARM64)
-        else if ( mainExecutable->builtForPlatform(Platform::iOS, true) ) {
-            //_platform = Platform::iOS;
-            Platform* selfPlatform = const_cast<Platform*>(&_platform);
-            *selfPlatform = Platform::iOS;
-        }
-#endif
-        if ( mainExecutable->usesObjCGarbageCollection() ) {
-            _diag.error("program requires ObjC Garbage Collection which is no longer supported");
-            return nullptr;
-        }
-    }
-    // <rdar://problem/63308841> licenseware apps that zero out lazy bind opcodes cannot be pre-bound
-    if ( mainExecutable->hasStompedLazyOpcodes() )
-        _makeMinimalClosure = true;
-
     _isLaunchClosure    = true;
     _allowMissingLazies = true;
-
-#if BUILDING_CACHE_BUILDER
-    _makingClosuresInCache = true;
-#endif
 
     _nextIndex = 0;
 
@@ -3134,10 +2998,7 @@ const LaunchClosure* ClosureBuilder::makeLaunchClosure(const LoadedFileInfo& fil
     mainEntry.isBadImage                = false;
     mainEntry.mustBuildClosure          = true;
     mainEntry.hasMissingWeakImports     = false;
-    mainEntry.hasInterposingTuples      = false;    // only dylibs not in the dyld cache can have interposing tuples
     mainEntry.overrideImageNum          = 0;
-    mainEntry.exportsTrieOffset         = 0;
-    mainEntry.exportsTrieSize           = 0;
 
     // Set the executable load path so that @executable_path can use it later
     _mainProgLoadPath = fileInfo.path;
@@ -3149,8 +3010,7 @@ const LaunchClosure* ClosureBuilder::makeLaunchClosure(const LoadedFileInfo& fil
         if ( !findImage(dylibPath, chainMain, foundTopImage, LinkageType::kInserted, 0, true) ) {
             if ( !allowInsertFailures ) {
                 if ( _diag.noError() )
-                    // if no other error was reported while trying to find the library, that means it is missing
-                    _diag.error("could not load inserted dylib '%s' because image not found", dylibPath);
+                    _diag.error("could not load inserted dylib %s", dylibPath);
                 stop = true;
                 return;
             }
@@ -3184,22 +3044,10 @@ const LaunchClosure* ClosureBuilder::makeLaunchClosure(const LoadedFileInfo& fil
 
     // now that everything loaded, set _libDyldImageNum and _libSystemImageNum
     for (BuilderLoadedImage& li : _loadedImages) {
-        if ( mainExecutable->builtForPlatform(Platform::driverKit) ) {
-            if ( li.loadAddress()->isDylib() && (strcmp(li.loadAddress()->installName(), "/System/DriverKit/usr/lib/system/libdyld.dylib") == 0) )
-                _libDyldImageNum = li.imageNum;
-            else if ( strcmp(li.path(), "/System/DriverKit/usr/lib/libSystem.dylib") == 0 )
-                _libSystemImageNum = li.imageNum;
-        } else {
-            if ( li.loadAddress()->isDylib() && (strcmp(li.loadAddress()->installName(), "/usr/lib/system/libdyld.dylib") == 0) )
-                _libDyldImageNum = li.imageNum;
-            else if ( strcmp(li.path(), "/usr/lib/libSystem.B.dylib") == 0 )
-                _libSystemImageNum = li.imageNum;
-        }
-        // don't use minimal closures when interposing is in play because we don't have runtime support to do interposing
-        if ( li.hasInterposingTuples ) {
-            _makeMinimalClosure = false;
-            _leaveRebasesAsOpcodes = false;
-        }
+        if ( li.loadAddress()->isDylib() && (strcmp(li.loadAddress()->installName(), "/usr/lib/system/libdyld.dylib") == 0) )
+            _libDyldImageNum = li.imageNum;
+        else if ( strcmp(li.path(), "/usr/lib/libSystem.B.dylib") == 0 )
+            _libSystemImageNum = li.imageNum;
     }
 
     // only some images need to go into closure (non-rooted ones from dyld cache do not)
@@ -3213,8 +3061,7 @@ const LaunchClosure* ClosureBuilder::makeLaunchClosure(const LoadedFileInfo& fil
         }
    }
 
-    // only build objc closure info when building full closures
-    bool optimizedObjC = !_makeMinimalClosure && optimizeObjC(writers);
+    bool optimizedObjC = optimizeObjC(writers);
 
     // Note we have to compute the init order after buildImage as buildImage may set hasInits to true
     for (uintptr_t imageIndex = 0, writerIndex = 0; imageIndex != _loadedImages.count(); ++imageIndex) {
@@ -3270,7 +3117,7 @@ const LaunchClosure* ClosureBuilder::makeLaunchClosure(const LoadedFileInfo& fil
                 MachOLoaded::DependentToMachOLoaded reexportFinder = ^(const MachOLoaded* mh, uint32_t depIndex) {
                     return (const MachOLoaded*)findDependent(mh, depIndex);
                 };
-                //fprintf(stderr, "'%s' overrides something in cache\n", li.loadedFileInfo.path);
+                //fprintf(stderr, "'%s' overrides '%s'\n", li.loadedFileInfo.path, cacheImage->path());
                 _dyldCache->forEachPatchableExport(imageIndex, ^(uint32_t cacheOffsetOfImpl, const char* symbolName) {
                     dyld3::MachOAnalyzer::FoundSymbol foundInfo;
                     Diagnostics                       patchDiag;
@@ -3284,32 +3131,9 @@ const LaunchClosure* ClosureBuilder::makeLaunchClosure(const LoadedFileInfo& fil
                         patch.replacement.image.offset   = foundInfo.value;
                     }
                     else {
-                        // this means the symbol is missing in the cache override dylib, see it moved to a sibling
-                        // <rdar://problem/59196856> allow patched impls to move between re-export sibling dylibs
-                        bool foundViaParent = false;
-                        for (const BuilderLoadedImage& li2 : _loadedImages) {
-                            if ( (li2.overrideImageNum != 0) && (li2.imageNum != li.imageNum) ) {
-                                for (Image::LinkedImage aDep : li2.dependents) {
-                                    if ( (aDep.kind() == Image::LinkKind::reExport) && (aDep.imageNum() == li.imageNum) ) {
-                                        if ( li2.loadAddress()->findExportedSymbol(patchDiag, symbolName, false, foundInfo, reexportFinder) ) {
-                                             const MachOAnalyzer* impDylib = (const MachOAnalyzer*)foundInfo.foundInDylib;
-                                             patch.replacement.image.kind     = Image::ResolvedSymbolTarget::kindImage;
-                                             patch.replacement.image.imageNum = findLoadedImage(impDylib).imageNum;
-                                             patch.replacement.image.offset   = foundInfo.value;
-                                             foundViaParent = true;
-                                             //fprintf(stderr, "found patch target '%s' previously in '%s', now in '%s'\n", symbolName, li.path(), li2.path());
-                                             break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        if ( !foundViaParent ) {
-                            // symbol is missing from override, set other cached dylibs that used it to NULL
-                            //fprintf(stderr, "could not find symbol '%s' in %s \n", symbolName, li.path());
-                            patch.replacement.absolute.kind    = Image::ResolvedSymbolTarget::kindAbsolute;
-                            patch.replacement.absolute.value   = 0;
-                        }
+                        // this means the symbol is missing in the cache override dylib, so set any uses to NULL
+                        patch.replacement.absolute.kind    = Image::ResolvedSymbolTarget::kindAbsolute;
+                        patch.replacement.absolute.value   = 0;
                     }
                     patches.push_back(patch);
                 });
@@ -3317,13 +3141,60 @@ const LaunchClosure* ClosureBuilder::makeLaunchClosure(const LoadedFileInfo& fil
             }
         }
 
-        // record any cache patching needed because weak-def C++ symbols override dyld cache
-        if ( !_weakDefCacheOverrides.empty() ) {
-            closureWriter.addCachePatches(_weakDefCacheOverrides);
+        // handle any extra weak-def coalescing needed by chained fixups
+        if ( !_weakDefsFromChainedBinds.empty() ) {
+            for (const char* symbolName : _weakDefsFromChainedBinds) {
+                Image::ResolvedSymbolTarget cacheOverrideTarget;
+                bool haveCacheOverride = false;
+                bool foundCachOverrideIsWeakDef = false;
+                for (const BuilderLoadedImage& li : _loadedImages) {
+                    if ( !li.loadAddress()->hasWeakDefs() )
+                        continue;
+                    Image::ResolvedSymbolTarget target;
+                    ResolvedTargetInfo          targetInfo;
+                    if ( findSymbolInImage(li.loadAddress(), symbolName, 0, false, false, target, targetInfo) ) {
+                        if ( li.loadAddress()->inDyldCache() ) {
+                            if ( haveCacheOverride ) {
+                                Closure::PatchEntry patch;
+                                patch.exportCacheOffset      = (uint32_t)target.sharedCache.offset;
+                                patch.overriddenDylibInCache = li.imageNum;
+                                patch.replacement            = cacheOverrideTarget;
+                                _weakDefCacheOverrides.push_back(patch);
+                            }
+                            else {
+                                // found first in cached dylib, so no need to patch cache for this symbol
+                                break;
+                            }
+                        }
+                        else {
+                            // found image that exports this symbol and is not in cache
+                            if ( !haveCacheOverride || (foundCachOverrideIsWeakDef && !targetInfo.isWeakDef) ) {
+                                // update cache to use this symbol if it if first found or it is first non-weak found
+                                cacheOverrideTarget         = target;
+                                foundCachOverrideIsWeakDef  = targetInfo.isWeakDef;
+                                haveCacheOverride           = true;
+                            }
+                        }
+                    }
+                }
+            }
         }
+
+        // record any cache patching needed because weak-def C++ symbols override dyld cache
+        if ( !_weakDefCacheOverrides.empty() )
+            closureWriter.addCachePatches(_weakDefCacheOverrides);
+
    }
 
-#if TARGET_OS_OSX
+#if __IPHONE_OS_VERSION_MIN_REQUIRED
+    // if closure is built on-device for iOS, then record boot UUID
+    char bootSessionUUID[256] = { 0 };
+    size_t bootSize = sizeof(bootSessionUUID);
+    if ( sysctlbyname("kern.bootsessionuuid", bootSessionUUID, &bootSize, NULL, 0) == 0 )
+        closureWriter.setBootUUID(bootSessionUUID);
+#endif
+
+#if __MAC_OS_X_VERSION_MIN_REQUIRED
     uint32_t progVarsOffset;
     if ( mainExecutable->hasProgramVars(_diag, progVarsOffset) ) {
         // on macOS binaries may have a __dyld section that has ProgramVars to use
@@ -3369,10 +3240,10 @@ const DlopenClosure* ClosureBuilder::makeDlopenClosure(const char* path, const L
 {
     dyld3::ScopedTimer timer(DBG_DYLD_TIMING_BUILD_CLOSURE, 0, 0, 0);
     // set up stack based storage for all arrays
-    BuilderLoadedImage  loadImagesStorage[256];
+    BuilderLoadedImage  loadImagesStorage[300];
     Image::LinkedImage  dependenciesStorage[128];
     Closure::PatchEntry cachePatchStorage[64];
-    _loadedImages.setInitialStorage(loadImagesStorage, 256);
+    _loadedImages.setInitialStorage(loadImagesStorage, 300);
     _dependencies.setInitialStorage(dependenciesStorage, 128);
     _weakDefCacheOverrides.setInitialStorage(cachePatchStorage, 64);
     ArrayFinalizer<BuilderLoadedImage> scopedCleanup(_loadedImages, ^(BuilderLoadedImage& li) { if (li.unmapWhenDone) {_fileSystem.unloadFile(li.loadedFileInfo); li.unmapWhenDone=false;} });
@@ -3401,11 +3272,8 @@ const DlopenClosure* ClosureBuilder::makeDlopenClosure(const char* path, const L
         entry.isBadImage                 = false;
         entry.mustBuildClosure           = false;
         entry.hasMissingWeakImports      = false;
-        entry.hasInterposingTuples       = !inDyldCache && ma->isDylib() && ma->hasInterposingTuples();
         entry.overrideImageNum           = 0;
-        entry.exportsTrieOffset          = 0;
-        entry.exportsTrieSize            = 0;
-        if ( image->isOverrideOfDyldCacheImage(overrideImageNum) ) {
+        if ( !inDyldCache && image->isOverrideOfDyldCacheImage(overrideImageNum) ) {
             entry.overrideImageNum  = overrideImageNum;
             canUseSharedCacheClosure = false;
         }
@@ -3414,7 +3282,7 @@ const DlopenClosure* ClosureBuilder::makeDlopenClosure(const char* path, const L
         if ( entry.imageNum == callerImageNum )
             callerImageIndex = _loadedImages.count();
         _loadedImages.push_back(entry);
-    }
+   }
     _alreadyInitedIndex = (uint32_t)_loadedImages.count();
 
     // find main executable (may be needed for @executable_path)
@@ -3434,13 +3302,13 @@ const DlopenClosure* ClosureBuilder::makeDlopenClosure(const char* path, const L
     }
 
     // add top level dylib being dlopen()ed
-    BuilderLoadedImage* foundTopImage = nullptr;
+    BuilderLoadedImage* foundTopImage;
     _nextIndex = 0;
     // @rpath has caller's LC_PRATH, then main executable's LC_RPATH
     BuilderLoadedImage& callerImage = (callerImageIndex != UINTPTR_MAX) ? _loadedImages[callerImageIndex]  : _loadedImages[_mainProgLoadIndex];
-    LoadedImageChain chainMain = { nullptr, _loadedImages[_mainProgLoadIndex] };
-    LoadedImageChain chainCaller = { &chainMain, callerImage };
-    if ( !findImage(path, chainCaller, foundTopImage, LinkageType::kDynamic, 0, canUseSharedCacheClosure) ) {
+    LoadedImageChain chainCaller = { nullptr, callerImage };
+    LoadedImageChain chainMain = { &chainCaller, _loadedImages[_mainProgLoadIndex] };
+    if ( !findImage(path, chainMain, foundTopImage, LinkageType::kDynamic, 0, canUseSharedCacheClosure) ) {
         // If we didn't find the image, it might be a symlink to something in the dyld cache that is not on disk
         if ( (_dyldCache != nullptr) && !_dyldCache->header.dylibsExpectedOnDisk ) {
             char resolvedPath[PATH_MAX];
@@ -3494,11 +3362,6 @@ const DlopenClosure* ClosureBuilder::makeDlopenClosure(const char* path, const L
 
     // RTLD_NOW means fail the dlopen() if a symbol cannot be bound
     _allowMissingLazies = !forceBindLazies;
-
-    // If we got this far, we are not using a prebuilt dlopen-closure
-    // Since dlopen closures are never saved to disk, don't put fixups into the closure
-    // Except if interposing is used, since we don't have plumbing to apply interposing dynamically
-    _makeMinimalClosure = !mainClosure->hasInterposings();
 
     // only some images need to go into closure (ones from dyld cache do not, unless the cache format changed)
     STACK_ALLOC_ARRAY(ImageWriter, writers, _loadedImages.count());
@@ -3613,12 +3476,16 @@ const LaunchClosure* ClosureBuilder::makeLaunchClosure(const char* mainPath, boo
 {
     char realerPath[MAXPATHLEN];
     closure::LoadedFileInfo loadedFileInfo = MachOAnalyzer::load(_diag, _fileSystem, mainPath, _archs, _platform, realerPath);
-    if ( _diag.hasError() )
-        return nullptr;
-    loadedFileInfo.path = mainPath;
     const MachOAnalyzer* mh = (const MachOAnalyzer*)loadedFileInfo.fileContent;
+    loadedFileInfo.path = mainPath;
+    if (_diag.hasError())
+        return nullptr;
     if (mh == nullptr) {
         _diag.error("could not load file");
+        return nullptr;
+    }
+    if (!mh->isDynamicExecutable()) {
+        _diag.error("file is not an executable");
         return nullptr;
     }
     const_cast<PathOverrides*>(&_pathOverrides)->setMainExecutable(mh, mainPath);
@@ -3633,7 +3500,7 @@ void ClosureBuilder::setDyldCacheInvalidFormatVersion() {
 
 
 // used by dyld shared cache builder
-const ImageArray* ClosureBuilder::makeDyldCacheImageArray(const Array<CachedDylibInfo>& dylibs, const Array<CachedDylibAlias>& aliases)
+const ImageArray* ClosureBuilder::makeDyldCacheImageArray(bool customerCache, const Array<CachedDylibInfo>& dylibs, const Array<CachedDylibAlias>& aliases)
 {
     // because this is run in cache builder using dispatch_apply() there is minimal stack space
     // so set up storage for all arrays to be vm_allocated
@@ -3643,6 +3510,7 @@ const ImageArray* ClosureBuilder::makeDyldCacheImageArray(const Array<CachedDyli
 
     _makingDyldCacheImages = true;
     _allowMissingLazies    = false;
+    _makingCustomerCache   = customerCache;
     _aliases               = &aliases;
 
     // build _loadedImages[] with every dylib in cache
@@ -3659,10 +3527,7 @@ const ImageArray* ClosureBuilder::makeDyldCacheImageArray(const Array<CachedDyli
         entry.isBadImage                    = false;
         entry.mustBuildClosure              = false;
         entry.hasMissingWeakImports         = false;
-        entry.hasInterposingTuples          = false;    // dylibs in dyld cache cannot have interposing tuples
         entry.overrideImageNum              = 0;
-        entry.exportsTrieOffset             = 0;
-        entry.exportsTrieSize               = 0;
         _loadedImages.push_back(entry);
     }
 
@@ -3713,23 +3578,18 @@ const ImageArray* ClosureBuilder::makeOtherDylibsImageArray(const Array<LoadedFi
     // build _loadedImages[] with every dylib in cache, followed by others
     _nextIndex = 0;
     for (const LoadedFileInfo& aDylibInfo : otherDylibs)  {
-        auto *mh = (const MachOAnalyzer*)aDylibInfo.fileContent;
-        
         BuilderLoadedImage entry;
         entry.loadedFileInfo                = aDylibInfo;
         entry.imageNum                      = _startImageNum + _nextIndex++;
         entry.unmapWhenDone                 = false;
         entry.contentRebased                = false;
         entry.hasInits                      = false;
-        entry.markNeverUnload               = mh->markNeverUnload(_diag);
+        entry.markNeverUnload               = false;
         entry.rtldLocal                     = false;
         entry.isBadImage                    = false;
         entry.mustBuildClosure              = false;
         entry.hasMissingWeakImports         = false;
-        entry.hasInterposingTuples          = false;    // all images here have passed canHavePrecomputedDlopenClosure() which does not allow interposing tuples
         entry.overrideImageNum              = 0;
-        entry.exportsTrieOffset             = 0;
-        entry.exportsTrieSize               = 0;
         _loadedImages.push_back(entry);
     }
 
@@ -3860,7 +3720,7 @@ void ClosureBuilder::buildLoadOrderRecurse(Array<LoadedImage>& loadedList, const
 
 void ClosureBuilder::buildLoadOrder(Array<LoadedImage>& loadedList, const Array<const ImageArray*>& imagesArrays, const Closure* toAdd)
 {
-    const dyld3::closure::Image* topImage = ImageArray::findImage(imagesArrays, toAdd->topImageNum());
+    const dyld3::closure::Image* topImage = ImageArray::findImage(imagesArrays, toAdd->topImage());
 	loadedList.push_back(LoadedImage::make(topImage));
 	buildLoadOrderRecurse(loadedList, imagesArrays, topImage);
 }
@@ -3960,7 +3820,6 @@ void ObjCClassOpt::write(const PerfectHashT& phash, const Array<std::pair<const 
         }
     });
 }
-
 
 } // namespace closure
 } // namespace dyld3

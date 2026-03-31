@@ -30,59 +30,18 @@
 
 #include <string>
 #include <map>
-#include <sstream>
 #include <vector>
 
 namespace dyld3 {
 namespace json {
 
-enum class NodeValueType {
-    Default,
-    String,
-    RawValue,
-};
-
 struct Node
 {
-    NodeValueType               type = NodeValueType::Default;
     std::string                 value;
     std::map<std::string, Node> map;
     std::vector<Node>           array;
-
-    inline Node()
-    : type(NodeValueType::Default), value(), map(), array() { }
-
-    inline Node(std::string string)
-    : type(NodeValueType::String), value(string), map(), array() { }
-
-    inline Node(const char *string) : Node(std::string{string}) { }
-
-    inline Node(bool b)
-    : type(NodeValueType::RawValue), value(b ? "true" : "false")
-    , map(), array() { }
-
-    inline Node(int64_t i64)
-    : type(NodeValueType::RawValue), value(), map(), array()
-    {
-        std::ostringstream os{};
-        os << i64;
-        value = os.str();
-    }
-
-    inline Node(uint64_t u64)
-    : type(NodeValueType::RawValue), value(), map(), array()
-    {
-        std::ostringstream os{};
-        os << u64;
-        value = os.str();
-    }
 };
 
-static inline Node makeNode(std::string value) {
-    Node node;
-    node.value = value;
-    return node;
-}
 
 } // namespace json
 } // namespace dyld3

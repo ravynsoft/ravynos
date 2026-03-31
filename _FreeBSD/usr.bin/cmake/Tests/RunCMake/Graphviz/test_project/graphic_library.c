@@ -1,3 +1,0 @@
-void initialize_graphics()
-{
-}

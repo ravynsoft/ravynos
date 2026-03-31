@@ -211,7 +211,6 @@ void MachOLoaded::getLayoutInfo(LayoutInfo& result) const
             result.linkeditFileSize     = (uint32_t)info.fileSize;
             result.linkeditSegIndex     = info.segIndex;
         }
-        result.lastSegIndex = info.segIndex;
     });
 }
 
@@ -708,8 +707,9 @@ bool MachOLoaded::intersectsRange(uintptr_t start, uintptr_t length) const
 
 const uint8_t* MachOLoaded::trieWalk(Diagnostics& diag, const uint8_t* start, const uint8_t* end, const char* symbol)
 {
-    STACK_ALLOC_OVERFLOW_SAFE_ARRAY(uint32_t, visitedNodeOffsets, 128);
-    visitedNodeOffsets.push_back(0);
+    uint32_t visitedNodeOffsets[128];
+    int visitedNodeOffsetCount = 0;
+    visitedNodeOffsets[visitedNodeOffsetCount++] = 0;
     const uint8_t* p = start;
     while ( p < end ) {
         uint64_t terminalSize = *p++;
@@ -778,14 +778,17 @@ const uint8_t* MachOLoaded::trieWalk(Diagnostics& diag, const uint8_t* start, co
                 diag.error("malformed trie child, nodeOffset=0x%llX out of range\n", nodeOffset);
                return nullptr;
             }
-            // check for cycles
-            for (uint32_t aVisitedNodeOffset : visitedNodeOffsets) {
-                if ( aVisitedNodeOffset == nodeOffset ) {
+            for (int i=0; i < visitedNodeOffsetCount; ++i) {
+                if ( visitedNodeOffsets[i] == nodeOffset ) {
                     diag.error("malformed trie child, cycle to nodeOffset=0x%llX\n", nodeOffset);
                     return nullptr;
                 }
             }
-            visitedNodeOffsets.push_back((uint32_t)nodeOffset);
+            visitedNodeOffsets[visitedNodeOffsetCount++] = (uint32_t)nodeOffset;
+            if ( visitedNodeOffsetCount >= 128 ) {
+                diag.error("malformed trie too deep\n");
+                return nullptr;
+            }
             p = &start[nodeOffset];
         }
         else
@@ -911,7 +914,7 @@ void MachOLoaded::forEachCodeDirectoryBlob(const void* codeSigStart, size_t code
 
     // Note: The kernel sometimes chooses sha1 on watchOS, and sometimes sha256.
     // Embed all of them so that we just need to match any of them
-    const bool isWatchOS = this->builtForPlatform(Platform::watchOS);
+    const bool isWatchOS = this->supportsPlatform(Platform::watchOS);
     const bool isMainExecutable = this->isMainExecutable();
     auto hashRankFn = isWatchOS ? &hash_rank_watchOS_dylibs : &hash_rank;
 
@@ -964,58 +967,43 @@ uint64_t MachOLoaded::ChainedFixupPointerOnDisk::Arm64e::signExtendedAddend() co
 {
     assert(this->authBind.bind == 1);
     assert(this->authBind.auth == 0);
-    uint64_t addend19 = this->bind.addend;
+    uint64_t addend19     = this->bind.addend;
     if ( addend19 & 0x40000 )
         return addend19 | 0xFFFFFFFFFFFC0000ULL;
     else
         return addend19;
 }
 
-const char* MachOLoaded::ChainedFixupPointerOnDisk::Arm64e::keyName(uint8_t keyBits)
+const char* MachOLoaded::ChainedFixupPointerOnDisk::Arm64e::keyName() const
 {
     static const char* names[] = {
         "IA", "IB", "DA", "DB"
     };
+    assert(this->authBind.auth == 1);
+    uint8_t keyBits = this->authBind.key;
     assert(keyBits < 4);
     return names[keyBits];
 }
-const char* MachOLoaded::ChainedFixupPointerOnDisk::Arm64e::keyName() const
-{
-    assert(this->authBind.auth == 1);
-    return keyName(this->authBind.key);
-}
-
-uint64_t MachOLoaded::ChainedFixupPointerOnDisk::Arm64e::signPointer(uint64_t unsignedAddr, void* loc, bool addrDiv, uint16_t diversity, uint8_t key)
-{
-    // don't sign NULL
-    if ( unsignedAddr == 0 )
-        return 0;
-        
-#if __has_feature(ptrauth_calls)
-    uint64_t extendedDiscriminator = diversity;
-    if ( addrDiv )
-        extendedDiscriminator = __builtin_ptrauth_blend_discriminator(loc, extendedDiscriminator);
-    switch ( key ) {
-        case 0: // IA
-            return (uintptr_t)__builtin_ptrauth_sign_unauthenticated((void*)unsignedAddr, 0, extendedDiscriminator);
-        case 1: // IB
-            return (uintptr_t)__builtin_ptrauth_sign_unauthenticated((void*)unsignedAddr, 1, extendedDiscriminator);
-        case 2: // DA
-            return (uintptr_t)__builtin_ptrauth_sign_unauthenticated((void*)unsignedAddr, 2, extendedDiscriminator);
-        case 3: // DB
-            return (uintptr_t)__builtin_ptrauth_sign_unauthenticated((void*)unsignedAddr, 3, extendedDiscriminator);
-    }
-    assert(0 && "invalid signing key");
-#else
-    assert(0 && "arm64e signing only arm64e");
-#endif
-}
-
 
 uint64_t MachOLoaded::ChainedFixupPointerOnDisk::Arm64e::signPointer(void* loc, uint64_t target) const
 {
     assert(this->authBind.auth == 1);
-    return signPointer(target, loc, authBind.addrDiv, authBind.diversity, authBind.key);
+#if __has_feature(ptrauth_calls)
+    uint64_t discriminator = authBind.diversity;
+    if ( authBind.addrDiv )
+        discriminator = __builtin_ptrauth_blend_discriminator(loc, discriminator);
+    switch ( authBind.key ) {
+        case 0: // IA
+            return (uint64_t)__builtin_ptrauth_sign_unauthenticated((void*)target, 0, discriminator);
+        case 1: // IB
+            return (uint64_t)__builtin_ptrauth_sign_unauthenticated((void*)target, 1, discriminator);
+        case 2: // DA
+            return (uint64_t)__builtin_ptrauth_sign_unauthenticated((void*)target, 2, discriminator);
+        case 3: // DB
+            return (uint64_t)__builtin_ptrauth_sign_unauthenticated((void*)target, 3, discriminator);
+    }
+#endif
+    return target;
 }
 
 uint64_t MachOLoaded::ChainedFixupPointerOnDisk::Generic64::unpackedTarget() const
@@ -1032,25 +1020,23 @@ uint64_t MachOLoaded::ChainedFixupPointerOnDisk::Generic64::signExtendedAddend()
     return newValue;
 }
 
-const char* MachOLoaded::ChainedFixupPointerOnDisk::Kernel64::keyName() const
-{
-    static const char* names[] = {
-        "IA", "IB", "DA", "DB"
-    };
-    assert(this->isAuth == 1);
-    uint8_t keyBits = this->key;
-    assert(keyBits < 4);
-    return names[keyBits];
-}
-
 bool MachOLoaded::ChainedFixupPointerOnDisk::isRebase(uint16_t pointerFormat, uint64_t preferedLoadAddress, uint64_t& targetRuntimeOffset) const
 {
     switch (pointerFormat) {
        case DYLD_CHAINED_PTR_ARM64E:
+            if ( this->arm64e.bind.bind )
+                return false;
+            if ( this->arm64e.authRebase.auth ) {
+                targetRuntimeOffset = this->arm64e.authRebase.target;
+                return true;
+            }
+            else {
+                targetRuntimeOffset = this->arm64e.unpackTarget() - preferedLoadAddress;
+                return true;
+            }
+            break;
+       case DYLD_CHAINED_PTR_ARM64E_OFFSET:
        case DYLD_CHAINED_PTR_ARM64E_USERLAND:
-       case DYLD_CHAINED_PTR_ARM64E_USERLAND24:
-       case DYLD_CHAINED_PTR_ARM64E_KERNEL:
-       case DYLD_CHAINED_PTR_ARM64E_FIRMWARE:
             if ( this->arm64e.bind.bind )
                 return false;
             if ( this->arm64e.authRebase.auth ) {
@@ -1059,24 +1045,19 @@ bool MachOLoaded::ChainedFixupPointerOnDisk::isRebase(uint16_t pointerFormat, ui
             }
             else {
                 targetRuntimeOffset = this->arm64e.unpackTarget();
-                if ( (pointerFormat == DYLD_CHAINED_PTR_ARM64E) || (pointerFormat == DYLD_CHAINED_PTR_ARM64E_FIRMWARE) ) {
-                    targetRuntimeOffset -= preferedLoadAddress;
-                }
                 return true;
             }
             break;
         case DYLD_CHAINED_PTR_64:
+            if ( this->generic64.bind.bind )
+                return false;
+            targetRuntimeOffset = this->generic64.unpackedTarget() - preferedLoadAddress;
+            return true;
+            break;
         case DYLD_CHAINED_PTR_64_OFFSET:
             if ( this->generic64.bind.bind )
                 return false;
             targetRuntimeOffset = this->generic64.unpackedTarget();
-            if ( pointerFormat == DYLD_CHAINED_PTR_64 )
-                targetRuntimeOffset -= preferedLoadAddress;
-            return true;
-            break;
-        case DYLD_CHAINED_PTR_64_KERNEL_CACHE:
-        case DYLD_CHAINED_PTR_X86_64_KERNEL_CACHE:
-            targetRuntimeOffset = this->kernel64.target;
             return true;
             break;
         case DYLD_CHAINED_PTR_32:
@@ -1085,40 +1066,26 @@ bool MachOLoaded::ChainedFixupPointerOnDisk::isRebase(uint16_t pointerFormat, ui
             targetRuntimeOffset = this->generic32.rebase.target - preferedLoadAddress;
             return true;
             break;
-        case DYLD_CHAINED_PTR_32_FIRMWARE:
-            targetRuntimeOffset = this->firmware32.target - preferedLoadAddress;
-            return true;
-            break;
         default:
             break;
     }
     assert(0 && "unsupported pointer chain format");
 }
 
-bool MachOLoaded::ChainedFixupPointerOnDisk::isBind(uint16_t pointerFormat, uint32_t& bindOrdinal, int64_t& addend) const
+bool MachOLoaded::ChainedFixupPointerOnDisk::isBind(uint16_t pointerFormat, uint32_t& bindOrdinal) const
 {
-    addend = 0;
     switch (pointerFormat) {
         case DYLD_CHAINED_PTR_ARM64E:
+        case DYLD_CHAINED_PTR_ARM64E_OFFSET:
         case DYLD_CHAINED_PTR_ARM64E_USERLAND:
-        case DYLD_CHAINED_PTR_ARM64E_USERLAND24:
-        case DYLD_CHAINED_PTR_ARM64E_KERNEL:
-        case DYLD_CHAINED_PTR_ARM64E_FIRMWARE:
             if ( !this->arm64e.authBind.bind )
                 return false;
             if ( this->arm64e.authBind.auth ) {
-                if ( pointerFormat == DYLD_CHAINED_PTR_ARM64E_USERLAND24 )
-                    bindOrdinal = this->arm64e.authBind24.ordinal;
-                else
-                    bindOrdinal = this->arm64e.authBind.ordinal;
+                bindOrdinal = this->arm64e.authBind.ordinal;
                 return true;
             }
             else {
-                if ( pointerFormat == DYLD_CHAINED_PTR_ARM64E_USERLAND24 )
-                    bindOrdinal = this->arm64e.bind24.ordinal;
-                else
-                    bindOrdinal = this->arm64e.bind.ordinal;
-                addend = this->arm64e.signExtendedAddend();
+                bindOrdinal = this->arm64e.bind.ordinal;
                 return true;
             }
             break;
@@ -1127,43 +1094,16 @@ bool MachOLoaded::ChainedFixupPointerOnDisk::isBind(uint16_t pointerFormat, uint
             if ( !this->generic64.bind.bind )
                 return false;
             bindOrdinal = this->generic64.bind.ordinal;
-            addend = this->generic64.bind.addend;
             return true;
             break;
         case DYLD_CHAINED_PTR_32:
             if ( !this->generic32.bind.bind )
                 return false;
             bindOrdinal = this->generic32.bind.ordinal;
-            addend = this->generic32.bind.addend;
             return true;
             break;
-        case DYLD_CHAINED_PTR_64_KERNEL_CACHE:
-        case DYLD_CHAINED_PTR_X86_64_KERNEL_CACHE:
-            return false;
         default:
             break;
-    }
-    assert(0 && "unsupported pointer chain format");
-}
-
-unsigned MachOLoaded::ChainedFixupPointerOnDisk::strideSize(uint16_t pointerFormat)
-{
-    switch (pointerFormat) {
-        case DYLD_CHAINED_PTR_ARM64E:
-        case DYLD_CHAINED_PTR_ARM64E_USERLAND:
-        case DYLD_CHAINED_PTR_ARM64E_USERLAND24:
-            return 8;
-        case DYLD_CHAINED_PTR_ARM64E_KERNEL:
-        case DYLD_CHAINED_PTR_ARM64E_FIRMWARE:
-        case DYLD_CHAINED_PTR_32_FIRMWARE:
-        case DYLD_CHAINED_PTR_64:
-        case DYLD_CHAINED_PTR_64_OFFSET:
-        case DYLD_CHAINED_PTR_32:
-        case DYLD_CHAINED_PTR_32_CACHE:
-        case DYLD_CHAINED_PTR_64_KERNEL_CACHE:
-            return 4;
-        case DYLD_CHAINED_PTR_X86_64_KERNEL_CACHE:
-            return 1;
     }
     assert(0 && "unsupported pointer chain format");
 }
@@ -1178,20 +1118,16 @@ void MachOLoaded::fixupAllChainedFixups(Diagnostics& diag, const dyld_chained_st
 #if __LP64__
   #if  __has_feature(ptrauth_calls)
            case DYLD_CHAINED_PTR_ARM64E:
-           case DYLD_CHAINED_PTR_ARM64E_KERNEL:
-           case DYLD_CHAINED_PTR_ARM64E_USERLAND:
-           case DYLD_CHAINED_PTR_ARM64E_USERLAND24:
                if ( fixupLoc->arm64e.authRebase.auth ) {
                     if ( fixupLoc->arm64e.authBind.bind ) {
-                        uint32_t bindOrdinal = (segInfo->pointer_format == DYLD_CHAINED_PTR_ARM64E_USERLAND24) ? fixupLoc->arm64e.authBind24.ordinal : fixupLoc->arm64e.authBind.ordinal;
-                        if ( bindOrdinal >= bindTargets.count() ) {
-                            diag.error("out of range bind ordinal %d (max %lu)", bindOrdinal, bindTargets.count());
+                        if ( fixupLoc->arm64e.authBind.ordinal >= bindTargets.count() ) {
+                            diag.error("out of range bind ordinal %d (max %lu)", fixupLoc->arm64e.authBind.ordinal, bindTargets.count());
                             stop = true;
                             break;
                         }
                         else {
                             // authenticated bind
-                            newValue = (void*)(bindTargets[bindOrdinal]);
+                            newValue = (void*)(bindTargets[fixupLoc->arm64e.bind.ordinal]);
                             if (newValue != 0)  // Don't sign missing weak imports
                                 newValue = (void*)fixupLoc->arm64e.signPointer(fixupLoc, (uintptr_t)newValue);
                         }
@@ -1203,31 +1139,86 @@ void MachOLoaded::fixupAllChainedFixups(Diagnostics& diag, const dyld_chained_st
                 }
                 else {
                     if ( fixupLoc->arm64e.bind.bind ) {
-                        uint32_t bindOrdinal = (segInfo->pointer_format == DYLD_CHAINED_PTR_ARM64E_USERLAND24) ? fixupLoc->arm64e.bind24.ordinal : fixupLoc->arm64e.bind.ordinal;
-                        if ( bindOrdinal >= bindTargets.count() ) {
-                            diag.error("out of range bind ordinal %d (max %lu)", bindOrdinal, bindTargets.count());
+                        if ( fixupLoc->arm64e.bind.ordinal >= bindTargets.count() ) {
+                            diag.error("out of range bind ordinal %d (max %lu)", fixupLoc->arm64e.bind.ordinal, bindTargets.count());
                             stop = true;
                             break;
                         }
                         else {
                             // plain bind
-                            newValue = (void*)((long)bindTargets[bindOrdinal] + fixupLoc->arm64e.signExtendedAddend());
+                            newValue = (void*)((long)bindTargets[fixupLoc->arm64e.bind.ordinal] + fixupLoc->arm64e.signExtendedAddend());
                         }
                     }
                     else {
-                        // plain rebase (old format target is vmaddr, new format target is offset)
-                        if ( segInfo->pointer_format == DYLD_CHAINED_PTR_ARM64E )
-                            newValue = (void*)(fixupLoc->arm64e.unpackTarget()+slide);
-                        else
-                            newValue = (void*)((uintptr_t)this + fixupLoc->arm64e.unpackTarget());
+                        // plain rebase
+                        newValue = (void*)(fixupLoc->arm64e.unpackTarget()+slide);
                    }
                 }
                 if ( logFixup )
                     logFixup(fixupLoc, newValue);
                 fixupLoc->raw64 = (uintptr_t)newValue;
                 break;
+            case DYLD_CHAINED_PTR_ARM64E_OFFSET:
+            case DYLD_CHAINED_PTR_ARM64E_USERLAND:
+                if ( fixupLoc->arm64e.authRebase.auth ) {
+                     if ( fixupLoc->arm64e.authBind.bind ) {
+                         if ( fixupLoc->arm64e.authBind.ordinal >= bindTargets.count() ) {
+                             diag.error("out of range bind ordinal %d (max %lu)", fixupLoc->arm64e.authBind.ordinal, bindTargets.count());
+                             stop = true;
+                             break;
+                         }
+                         else {
+                             // authenticated bind
+                             newValue = (void*)(bindTargets[fixupLoc->arm64e.bind.ordinal]);
+                             if (newValue != 0)  // Don't sign missing weak imports
+                                 newValue = (void*)fixupLoc->arm64e.signPointer(fixupLoc, (uintptr_t)newValue);
+                         }
+                     }
+                     else {
+                         // authenticated rebase
+                         newValue = (void*)fixupLoc->arm64e.signPointer(fixupLoc, (uintptr_t)this + fixupLoc->arm64e.authRebase.target);
+                     }
+                 }
+                 else {
+                     if ( fixupLoc->arm64e.bind.bind ) {
+                         if ( fixupLoc->arm64e.bind.ordinal >= bindTargets.count() ) {
+                             diag.error("out of range bind ordinal %d (max %lu)", fixupLoc->arm64e.bind.ordinal, bindTargets.count());
+                             stop = true;
+                             break;
+                         }
+                         else {
+                             // plain bind
+                             newValue = (void*)((long)bindTargets[fixupLoc->arm64e.bind.ordinal] + fixupLoc->arm64e.signExtendedAddend());
+                         }
+                     }
+                     else {
+                         // plain rebase
+                         newValue = (void*)((uintptr_t)this + fixupLoc->arm64e.unpackTarget());
+                    }
+                 }
+                 if ( logFixup )
+                     logFixup(fixupLoc, newValue);
+                 fixupLoc->raw64 = (uintptr_t)newValue;
+                 break;
   #endif
             case DYLD_CHAINED_PTR_64:
+                if ( fixupLoc->generic64.bind.bind ) {
+                    if ( fixupLoc->generic64.bind.ordinal >= bindTargets.count() ) {
+                        diag.error("out of range bind ordinal %d (max %lu)", fixupLoc->generic64.bind.ordinal, bindTargets.count());
+                        stop = true;
+                        break;
+                    }
+                    else {
+                        newValue = (void*)((long)bindTargets[fixupLoc->generic64.bind.ordinal] + fixupLoc->generic64.signExtendedAddend());
+                    }
+                }
+                else {
+                    newValue = (void*)(fixupLoc->generic64.unpackedTarget()+slide);
+                }
+                if ( logFixup )
+                    logFixup(fixupLoc, newValue);
+                fixupLoc->raw64 = (uintptr_t)newValue;
+               break;
             case DYLD_CHAINED_PTR_64_OFFSET:
                 if ( fixupLoc->generic64.bind.bind ) {
                     if ( fixupLoc->generic64.bind.ordinal >= bindTargets.count() ) {
@@ -1240,11 +1231,7 @@ void MachOLoaded::fixupAllChainedFixups(Diagnostics& diag, const dyld_chained_st
                     }
                 }
                 else {
-                    // plain rebase (old format target is vmaddr, new format target is offset)
-                    if ( segInfo->pointer_format == DYLD_CHAINED_PTR_64 )
-                        newValue = (void*)(fixupLoc->generic64.unpackedTarget()+slide);
-                    else
-                        newValue = (void*)((uintptr_t)this + fixupLoc->generic64.unpackedTarget());
+                    newValue = (void*)((uintptr_t)this + fixupLoc->generic64.unpackedTarget());
                 }
                 if ( logFixup )
                     logFixup(fixupLoc, newValue);
@@ -1286,31 +1273,29 @@ void MachOLoaded::fixupAllChainedFixups(Diagnostics& diag, const dyld_chained_st
 }
 #endif
 
-
-bool MachOLoaded::walkChain(Diagnostics& diag, ChainedFixupPointerOnDisk* chain, uint16_t pointer_format, bool notifyNonPointers, uint32_t max_valid_pointer,
-                            void (^handler)(ChainedFixupPointerOnDisk* fixupLocation, bool& stop)) const
+bool MachOLoaded::walkChain(Diagnostics& diag, const dyld_chained_starts_in_segment* segInfo, uint32_t pageIndex, uint16_t offsetInPage,
+                            bool notifyNonPointers, void (^handler)(ChainedFixupPointerOnDisk* fixupLocation, const dyld_chained_starts_in_segment* segInfo, bool& stop)) const
 {
-    const unsigned stride = ChainedFixupPointerOnDisk::strideSize(pointer_format);
-    bool  stop = false;
-    bool  chainEnd = false;
+    bool                       stop = false;
+    uint8_t*                   pageContentStart = (uint8_t*)this + segInfo->segment_offset + (pageIndex * segInfo->page_size);
+    ChainedFixupPointerOnDisk* chain = (ChainedFixupPointerOnDisk*)(pageContentStart+offsetInPage);
+    bool                       chainEnd = false;
     while (!stop && !chainEnd) {
         // copy chain content, in case handler modifies location to final value
         ChainedFixupPointerOnDisk chainContent = *chain;
-        handler(chain, stop);
+        handler(chain, segInfo, stop);
         if ( !stop ) {
-            switch (pointer_format) {
+            switch (segInfo->pointer_format) {
                 case DYLD_CHAINED_PTR_ARM64E:
-                case DYLD_CHAINED_PTR_ARM64E_KERNEL:
                 case DYLD_CHAINED_PTR_ARM64E_USERLAND:
-                case DYLD_CHAINED_PTR_ARM64E_USERLAND24:
-                case DYLD_CHAINED_PTR_ARM64E_FIRMWARE:
                     if ( chainContent.arm64e.rebase.next == 0 )
                         chainEnd = true;
                     else
-                        chain = (ChainedFixupPointerOnDisk*)((uint8_t*)chain + chainContent.arm64e.rebase.next*stride);
+                        chain = (ChainedFixupPointerOnDisk*)((uint8_t*)chain + chainContent.arm64e.rebase.next*8);
                     break;
                 case DYLD_CHAINED_PTR_64:
                 case DYLD_CHAINED_PTR_64_OFFSET:
+                case DYLD_CHAINED_PTR_ARM64E_OFFSET:
                     if ( chainContent.generic64.rebase.next == 0 )
                         chainEnd = true;
                     else
@@ -1322,78 +1307,20 @@ bool MachOLoaded::walkChain(Diagnostics& diag, ChainedFixupPointerOnDisk* chain,
                     else {
                         chain = (ChainedFixupPointerOnDisk*)((uint8_t*)chain + chainContent.generic32.rebase.next*4);
                         if ( !notifyNonPointers ) {
-                            while ( (chain->generic32.rebase.bind == 0) && (chain->generic32.rebase.target > max_valid_pointer) ) {
+                            while ( (chain->generic32.rebase.bind == 0) && (chain->generic32.rebase.target > segInfo->max_valid_pointer) ) {
                                 // not a real pointer, but a non-pointer co-opted into chain
                                 chain = (ChainedFixupPointerOnDisk*)((uint8_t*)chain + chain->generic32.rebase.next*4);
                             }
                         }
                     }
                     break;
-                case DYLD_CHAINED_PTR_64_KERNEL_CACHE:
-                case DYLD_CHAINED_PTR_X86_64_KERNEL_CACHE:
-                    if ( chainContent.kernel64.next == 0 )
-                        chainEnd = true;
-                    else
-                        chain = (ChainedFixupPointerOnDisk*)((uint8_t*)chain + chainContent.kernel64.next*stride);
-                    break;
-                case DYLD_CHAINED_PTR_32_FIRMWARE:
-                    if ( chainContent.firmware32.next == 0 )
-                        chainEnd = true;
-                    else
-                        chain = (ChainedFixupPointerOnDisk*)((uint8_t*)chain + chainContent.firmware32.next*4);
-                    break;
                 default:
-                    diag.error("unknown pointer format 0x%04X", pointer_format);
+                    diag.error("unknown pointer format 0x%04X", segInfo->pointer_format);
                     stop = true;
             }
         }
     }
     return stop;
-}
-
-void MachOLoaded::forEachFixupChainSegment(Diagnostics& diag, const dyld_chained_starts_in_image* starts,
-                                           void (^handler)(const dyld_chained_starts_in_segment* segInfo, uint32_t segIndex, bool& stop)) const
-{
-    bool stopped = false;
-    for (uint32_t segIndex=0; segIndex < starts->seg_count && !stopped; ++segIndex) {
-        if ( starts->seg_info_offset[segIndex] == 0 )
-            continue;
-        const dyld_chained_starts_in_segment* segInfo = (dyld_chained_starts_in_segment*)((uint8_t*)starts + starts->seg_info_offset[segIndex]);
-        handler(segInfo, segIndex, stopped);
-    }
-}
-
-void MachOLoaded::forEachFixupInSegmentChains(Diagnostics& diag, const dyld_chained_starts_in_segment* segInfo, bool notifyNonPointers,
-                                              void (^handler)(ChainedFixupPointerOnDisk* fixupLocation, const dyld_chained_starts_in_segment* segInfo, bool& stop)) const
-{
-    auto adaptor = ^(ChainedFixupPointerOnDisk* fixupLocation, bool& stop) {
-         handler(fixupLocation, segInfo, stop);
-    };
-    bool stopped = false;
-    for (uint32_t pageIndex=0; pageIndex < segInfo->page_count && !stopped; ++pageIndex) {
-        uint16_t offsetInPage = segInfo->page_start[pageIndex];
-        if ( offsetInPage == DYLD_CHAINED_PTR_START_NONE )
-            continue;
-        if ( offsetInPage & DYLD_CHAINED_PTR_START_MULTI ) {
-            // 32-bit chains which may need multiple starts per page
-            uint32_t overflowIndex = offsetInPage & ~DYLD_CHAINED_PTR_START_MULTI;
-            bool chainEnd = false;
-            while (!stopped && !chainEnd) {
-                chainEnd = (segInfo->page_start[overflowIndex] & DYLD_CHAINED_PTR_START_LAST);
-                offsetInPage = (segInfo->page_start[overflowIndex] & ~DYLD_CHAINED_PTR_START_LAST);
-                uint8_t* pageContentStart = (uint8_t*)this + segInfo->segment_offset + (pageIndex * segInfo->page_size);
-                ChainedFixupPointerOnDisk* chain = (ChainedFixupPointerOnDisk*)(pageContentStart+offsetInPage);
-                stopped = walkChain(diag, chain, segInfo->pointer_format, notifyNonPointers, segInfo->max_valid_pointer, adaptor);
-                ++overflowIndex;
-            }
-        }
-        else {
-            // one chain per page
-            uint8_t* pageContentStart = (uint8_t*)this + segInfo->segment_offset + (pageIndex * segInfo->page_size);
-            ChainedFixupPointerOnDisk* chain = (ChainedFixupPointerOnDisk*)(pageContentStart+offsetInPage);
-            stopped = walkChain(diag, chain, segInfo->pointer_format, notifyNonPointers, segInfo->max_valid_pointer, adaptor);
-        }
-    }
 }
 
 void MachOLoaded::forEachFixupInAllChains(Diagnostics& diag, const dyld_chained_starts_in_image* starts, bool notifyNonPointers,
@@ -1404,17 +1331,27 @@ void MachOLoaded::forEachFixupInAllChains(Diagnostics& diag, const dyld_chained_
         if ( starts->seg_info_offset[segIndex] == 0 )
             continue;
         const dyld_chained_starts_in_segment* segInfo = (dyld_chained_starts_in_segment*)((uint8_t*)starts + starts->seg_info_offset[segIndex]);
-        forEachFixupInSegmentChains(diag, segInfo, notifyNonPointers, handler);
-    }
-}
-
-void MachOLoaded::forEachFixupInAllChains(Diagnostics& diag, uint16_t pointer_format, uint32_t starts_count, const uint32_t chain_starts[],
-                                          void (^handler)(ChainedFixupPointerOnDisk* fixupLocation, bool& stop)) const
-{
-    for (uint32_t i=0; i < starts_count; ++i) {
-        ChainedFixupPointerOnDisk* chain = (ChainedFixupPointerOnDisk*)((uint8_t*)this + chain_starts[i]);
-        if ( walkChain(diag, chain, pointer_format, false, 0, handler) )
-            break;
+        for (uint32_t pageIndex=0; pageIndex < segInfo->page_count && !stopped; ++pageIndex) {
+            uint16_t offsetInPage = segInfo->page_start[pageIndex];
+            if ( offsetInPage == DYLD_CHAINED_PTR_START_NONE )
+                continue;
+            if ( offsetInPage & DYLD_CHAINED_PTR_START_MULTI ) {
+                // 32-bit chains which may need multiple starts per page
+                uint32_t overflowIndex = offsetInPage & ~DYLD_CHAINED_PTR_START_MULTI;
+                bool chainEnd = false;
+                while (!stopped && !chainEnd) {
+                    chainEnd = (segInfo->page_start[overflowIndex] & DYLD_CHAINED_PTR_START_LAST);
+                    offsetInPage = (segInfo->page_start[overflowIndex] & ~DYLD_CHAINED_PTR_START_LAST);
+                    if ( walkChain(diag, segInfo, pageIndex, offsetInPage, notifyNonPointers, handler) )
+                        stopped = true;
+                    ++overflowIndex;
+                }
+            }
+            else {
+                // one chain per page
+                walkChain(diag, segInfo, pageIndex, offsetInPage, notifyNonPointers, handler);
+            }
+        }
     }
 }
 

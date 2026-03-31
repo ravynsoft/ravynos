@@ -10,7 +10,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/Foundation.h>
 #import <Foundation/NSPlatform_darwin.h>
 
-#import <rpc/types.h>
 #include <time.h>
 #import <sys/param.h>
 #include <netdb.h>
@@ -75,8 +74,9 @@ void NSPlatformSleepThreadForTimeInterval(NSTimeInterval interval) {
     return [self hostName];
 }
 
-NSString * const NSPlatformExecutableDirectory=@"Darwin";
-NSString * const NSPlatformResourceNameSuffix=@"darwin";
+NSString * const NSPlatformExecutableDirectory=@"ravynOS";
+NSString * const NSPlatformAlternateExecutableDirectory=@"MacOS";
+NSString * const NSPlatformResourceNameSuffix=@"";
 
 NSString * const NSPlatformExecutableFileExtension=@"";
 NSString * const NSPlatformLoadableObjectFileExtension=@"dylib";

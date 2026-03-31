@@ -34,7 +34,6 @@ namespace dyld3 {
 namespace json {
 
 Node readJSON(Diagnostics& diags, const char* filePath);
-Node readJSON(Diagnostics& diags, const void* contents, size_t length);
 
 // Given a map node, returns the node representing the given value.
 // If it is missing, returns a sentinel node and sets an error on the diagnostic
@@ -46,9 +45,6 @@ const Node* getOptionalValue(Diagnostics& diags, const Node& node, const char* k
 
 // Parses an int from the given node, or throws an error if its not an integer payload
 uint64_t parseRequiredInt(Diagnostics& diags, const Node& node);
-
-// Parses a bool from the given node, or throws an error if its not a boolean payload
-bool parseRequiredBool(Diagnostics& diags, const Node& node);
 
 // Parses a string from the given node, or throws an error if its not a string payload
 const std::string& parseRequiredString(Diagnostics& diags, const Node& node);

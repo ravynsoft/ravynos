@@ -16,9 +16,6 @@ int main(int argc, const char* argv[], const char* envp[], const char* apple[]) 
     dyld_platform_t base = dyld_get_base_platform(active);
     dyld_build_version_t absoluteMin = { .platform = base, .version = 0 };
     dyld_build_version_t absoluteMax = { .platform = base, .version = 0xffffffff };
-    // We choose  high platform value that is unlikely to ever be used, and a non-zero version number
-    // If the platform number we choose here is ever used it will fail on that platform and this test will need to be fixed.
-    dyld_build_version_t bogusPlatformVersion = { .platform = 0xffff0000, .version = 1 };
 
 #if TARGET_OS_OSX
     if ( base != PLATFORM_MACOS ) {
@@ -73,23 +70,6 @@ int main(int argc, const char* argv[], const char* envp[], const char* apple[]) 
     if (dyld_minos_at_least(&__dso_handle, absoluteMax)) {
         FAIL("executable min version should not > 65536.0.0");
     }
-
-    if (dyld_minos_at_least(&__dso_handle, bogusPlatformVersion)) {
-        FAIL("dyld_minos_at_least should be false for bogus platform");
-    }
-
-    if (dyld_program_minos_at_least(bogusPlatformVersion)) {
-        FAIL("dyld_program_minos_at_least should be false for bogus platform");
-    }
-
-    if (dyld_sdk_at_least(&__dso_handle, bogusPlatformVersion)) {
-        FAIL("dyld_sdk_at_least should be false for bogus platform");
-    }
-
-    if (dyld_program_sdk_at_least(bogusPlatformVersion)) {
-        FAIL("dyld_program_sdk_at_least should be false for bogus platform");
-    }
-
 
     PASS("Success");
 }

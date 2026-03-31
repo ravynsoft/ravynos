@@ -1,12 +1,10 @@
 
-// BUILD(macos):  $CC foo.c -dynamiclib -o $BUILD_DIR/hideyhole/libfoo1.dylib -install_name /bad/path/libfoo1.dylib
-// BUILD(macos):  $CC foo.c -dynamiclib -o $BUILD_DIR/hideyhole/libfoo2.dylib -install_name /bad/path2/libfoo2.dylib
-// BUILD(macos):  $CC main.c            -o $BUILD_DIR/LC_DYLD_ENV-DYLD_LIBRARY_PATH-main1.exe $BUILD_DIR/hideyhole/libfoo1.dylib -Wl,-dyld_env,DYLD_LIBRARY_PATH=@executable_path/hideyhole
-// BUILD(macos):  $CC main.c            -o $BUILD_DIR/LC_DYLD_ENV-DYLD_LIBRARY_PATH-main2.exe $BUILD_DIR/hideyhole/libfoo1.dylib -Wl,-dyld_env,DYLD_LIBRARY_PATH=@loader_path/hideyhole
-// BUILD(macos):  $DYLD_ENV_VARS_ENABLE $BUILD_DIR/LC_DYLD_ENV-DYLD_LIBRARY_PATH-main1.exe
-// BUILD(macos):  $DYLD_ENV_VARS_ENABLE $BUILD_DIR/LC_DYLD_ENV-DYLD_LIBRARY_PATH-main2.exe
-
-// BUILD(ios,tvos,watchos,bridgeos):
+// BUILD:  $CC foo.c -dynamiclib -o $BUILD_DIR/hideyhole/libfoo1.dylib -install_name /bad/path/libfoo1.dylib
+// BUILD:  $CC foo.c -dynamiclib -o $BUILD_DIR/hideyhole/libfoo2.dylib -install_name /bad/path2/libfoo2.dylib
+// BUILD:  $CC main.c            -o $BUILD_DIR/LC_DYLD_ENV-DYLD_LIBRARY_PATH-main1.exe $BUILD_DIR/hideyhole/libfoo1.dylib -Wl,-dyld_env,DYLD_LIBRARY_PATH=@executable_path/hideyhole
+// BUILD:  $CC main.c            -o $BUILD_DIR/LC_DYLD_ENV-DYLD_LIBRARY_PATH-main2.exe $BUILD_DIR/hideyhole/libfoo1.dylib -Wl,-dyld_env,DYLD_LIBRARY_PATH=@loader_path/hideyhole
+// BUILD:  $DYLD_ENV_VARS_ENABLE $BUILD_DIR/LC_DYLD_ENV-DYLD_LIBRARY_PATH-main1.exe
+// BUILD:  $DYLD_ENV_VARS_ENABLE $BUILD_DIR/LC_DYLD_ENV-DYLD_LIBRARY_PATH-main2.exe
 
 // RUN:  ./LC_DYLD_ENV-DYLD_LIBRARY_PATH-main1.exe
 // RUN:  ./LC_DYLD_ENV-DYLD_LIBRARY_PATH-main2.exe

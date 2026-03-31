@@ -74,15 +74,8 @@
   #define S_INIT_FUNC_OFFSETS       0x16
 #endif
 
-#ifndef MH_FILESET
-    #define MH_FILESET              0xc     /* set of mach-o's */
-#endif
-
 namespace dyld3 {
 
-// replacements for posix that handle EINTR
-int	stat(const char* path, struct stat* buf) VIS_HIDDEN;
-int	open(const char* path, int flag, int other) VIS_HIDDEN;
 
 
 /// Returns true if (addLHS + addRHS) > b, or if the add overflowed
@@ -106,7 +99,7 @@ enum class Platform {
     tvOS                = 3,    // PLATFORM_TVOS
     watchOS             = 4,    // PLATFORM_WATCHOS
     bridgeOS            = 5,    // PLATFORM_BRIDGEOS
-    iOSMac              = 6,    // PLATFORM_MACCATALYST
+    iOSMac              = 6,    // PLATFORM_IOSMAC
     iOS_simulator       = 7,    // PLATFORM_IOSSIMULATOR
     tvOS_simulator      = 8,    // PLATFORM_TVOSSIMULATOR
     watchOS_simulator   = 9,    // PLATFORM_WATCHOSSIMULATOR
@@ -118,15 +111,13 @@ struct MachOFile; // forward ref
 // A prioritized list of architectures
 class VIS_HIDDEN GradedArchs {
 public:
-    // never construct new ones - just use existing static instances
-    GradedArchs()                   = delete;
-    GradedArchs(const GradedArchs&) = delete;
+    // no ctors. we never construct new ones - just use existing
+    // static instances below
 
-    static const GradedArchs&  forCurrentOS(bool keysOff, bool platformBinariesOnly);
-    static const GradedArchs&  forName(const char* archName, bool keysOff = false);
+    static const GradedArchs&  forCurrentOS(const MachOFile* mainExecutable);
+    static const GradedArchs&  forName(const char* archName, bool forMainExecutable = false);
 
-
-    int                     grade(uint32_t cputype, uint32_t cpusubtype, bool platformBinariesOnly) const;
+    int                     grade(uint32_t cputype, uint32_t cpusubtype) const;
     const char*             name() const;
 
     // pre-built lists for existing hardware
@@ -135,10 +126,8 @@ public:
     static const GradedArchs x86_64h;         // haswell Mac
     static const GradedArchs arm64;           // A11 or earlier iPhone or iPad
 #if SUPPORT_ARCH_arm64e
-    static const GradedArchs arm64e;            // A12 or later iPhone or iPad
-    static const GradedArchs arm64e_keysoff;    // A12 running with signing keys disabled
-    static const GradedArchs arm64e_pb;         // macOS Apple Silicon running platform binary
-    static const GradedArchs arm64e_keysoff_pb; // macOS Apple Silicon running with signing keys disabled
+    static const GradedArchs arm64e;          // A12 or later iPhone or iPad
+    static const GradedArchs arm64e_compat;   // A12 running arm64 main executable
 #endif
     static const GradedArchs armv7k;          // watch thru series 3
     static const GradedArchs armv7s;          // deprecated
@@ -149,7 +138,7 @@ public:
 
 // private:
 // should be private, but compiler won't statically initialize static members above
-    struct CpuGrade { uint32_t type; uint32_t subtype; bool osBinary; uint16_t grade; };
+    struct CpuGrade { uint32_t type; uint32_t subtype; uint32_t grade; };
     const CpuGrade     _orderedCpuTypes[3];  // zero terminated
 };
 
@@ -159,7 +148,7 @@ struct VIS_HIDDEN FatFile : fat_header
 {
     static const FatFile*  isFatFile(const void* fileContent);
     void                   forEachSlice(Diagnostics& diag, uint64_t fileLen, void (^callback)(uint32_t sliceCpuType, uint32_t sliceCpuSubType, const void* sliceStart, uint64_t sliceSize, bool& stop)) const;
-    bool                   isFatFileWithSlice(Diagnostics& diag, uint64_t fileLen, const GradedArchs& archs, bool osBinary, uint64_t& sliceOffset, uint64_t& sliceLen, bool& missingSlice) const;
+    bool                   isFatFileWithSlice(Diagnostics& diag, uint64_t fileLen, const GradedArchs& archs, uint64_t& sliceOffset, uint64_t& sliceLen, bool& missingSlice) const;
 
 private:
     bool                   isValidSlice(Diagnostics& diag, uint64_t fileLen, uint32_t sliceIndex,
@@ -190,21 +179,18 @@ struct VIS_HIDDEN MachOFile : mach_header
     bool            isMainExecutable() const;
     bool            isDynamicExecutable() const;
     bool            isStaticExecutable() const;
-    bool            isKextBundle() const;
-    bool            isFileSet() const;
     bool            isPreload() const;
     bool            isPIE() const;
     bool            isArch(const char* archName) const;
     const char*     archName() const;
     bool            is64() const;
-    uint32_t        maskedCpuSubtype() const;
     size_t          machHeaderSize() const;
     uint32_t        pointerSize() const;
     bool            uses16KPages() const;
-    bool            builtForPlatform(Platform, bool onlyOnePlatform=false) const;
-    bool            loadableIntoProcess(Platform processPlatform, const char* path) const;
+    bool            supportsPlatform(Platform) const;
     bool            isZippered() const;
     bool            inDyldCache() const;
+    bool            isSimulatorBinary() const;
     bool            getUuid(uuid_t uuid) const;
     bool            hasWeakDefs() const;
     bool            hasThreadLocalVariables() const;
@@ -213,22 +199,12 @@ struct VIS_HIDDEN MachOFile : mach_header
     const char*     installName() const;  // returns nullptr is no install name
     void            forEachDependentDylib(void (^callback)(const char* loadPath, bool isWeak, bool isReExport, bool isUpward, uint32_t compatVersion, uint32_t curVersion, bool& stop)) const;
     bool            canBePlacedInDyldCache(const char* path, void (^failureReason)(const char*)) const;
-#if BUILDING_APP_CACHE_UTIL
-    bool            canBePlacedInKernelCollection(const char* path, void (^failureReason)(const char*)) const;
-#endif
-    bool            canHavePrecomputedDlopenClosure(const char* path, void (^failureReason)(const char*)) const;
     bool            canBeFairPlayEncrypted() const;
     bool            isFairPlayEncrypted(uint32_t& textOffset, uint32_t& size) const;
     bool            allowsAlternatePlatform() const;
     bool            hasChainedFixups() const;
-    bool            hasChainedFixupsLoadCommand() const;
     void            forDyldEnv(void (^callback)(const char* envVar, bool& stop)) const;
     bool            enforceCompatVersion() const;
-    bool            hasInterposingTuples() const;
-
-    const thread_command*   unixThreadLoadCommand() const;
-    uint32_t                entryAddrRegisterIndexForThreadCmd() const;
-    uint64_t                entryAddrFromThreadCmd(const thread_command* cmd) const;
 
     struct SegmentInfo
     {
@@ -269,7 +245,6 @@ struct VIS_HIDDEN MachOFile : mach_header
 protected:
     bool            hasMachOBigEndianMagic() const;
     void            forEachLoadCommand(Diagnostics& diag, void (^callback)(const load_command* cmd, bool& stop)) const;
-    void            removeLoadCommand(Diagnostics& diag, void (^callback)(const load_command* cmd, bool& remove, bool& stop));
     bool            hasLoadCommand(uint32_t) const;
 
     const encryption_info_command* findFairPlayEncryptionLoadCommand() const;

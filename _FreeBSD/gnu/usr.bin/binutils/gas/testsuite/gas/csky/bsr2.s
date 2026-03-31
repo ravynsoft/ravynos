@@ -1,3 +1,0 @@
-.text
-lable:
-   bsr hello

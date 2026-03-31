@@ -250,9 +250,6 @@ _tlv_get_addr:
 	ret		lr
 
 LlazyAllocate:
-#if __has_feature(ptrauth_returns)
-	pacibsp
-#endif
 	stp		fp, lr, [sp, #-16]!
 	mov		fp, sp
 	sub		sp, sp, #288
@@ -295,11 +292,7 @@ LlazyAllocate:
 
 	mov		sp, fp
 	ldp		fp, lr, [sp], #16
-#if __has_feature(ptrauth_returns)
-	retab
-#else
-	ret
-#endif
+	ret		lr
 
 #endif
 

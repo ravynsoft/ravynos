@@ -1,0 +1,193 @@
+.Dd November 14, 2012 
+.Os Darwin
+.Dt KEXTLOAD 8
+.Sh NAME
+.Nm kextload
+.Nd load kernel extensions (kexts) into the kernel
+.Sh SYNOPSIS
+.Nm
+.Op Ar options
+.Op Fl -
+.Op Ar kext Li \&.\|.\|.
+.Sh DESCRIPTION
+The
+.Nm
+program is used to explicitly load kernel extensions (kexts).
+For most kexts,
+.Nm
+must run as the superuser (root).
+Kexts installed under
+.Pa /System/
+with an
+OSBundleAllowUserLoad
+property set to true
+may be loaded via
+.Nm
+by non-root users.
+.Pp
+.Em Notice:
+On Mac OS X 10.6 (Snow Leopard), the developer functionality of 
+.Nm
+has moved to the new program
+.Xr kextutil 8 ;
+all developer-related options have been removed from
+.Nm
+and are no longer recognized.
+On Mac OS X 10.6 (Snow Leopard),
+.Nm
+simply forwards a load request to
+.Xr kextd 8 ,
+which performs all communication with the kernel.
+.Pp
+.Nm
+is a formal interface for kext loading in all versions
+of Darwin OS and macOS.
+Software and installers can rely on its presence
+and invoke it in order to load kexts.
+Note that long options are present as of Mac OS X 10.6 (Snow Leopard).
+.Pp
+Mac OS X 10.6 (Snow Leopard) introduces
+C functions for loading kexts:
+.Xr KextManagerLoadKextWithIdentifier()
+and
+.Xr KextManagerLoadKextWithURL() ,
+which are described in Apple's developer documentation.
+.Pp
+.Sh ARGUMENTS AND OPTIONS
+.Bl -tag -width -indent
+.It Ar kext
+The pathname of a kext bundle to load.
+The kext's plugins are available for dependency resolution.
+Kexts can also be specified by CFBundleIdentifier with the
+.Fl bundle-id
+option.
+.It Fl b Ar identifier , Fl bundle-id Ar identifier
+Look up the kext whose CFBundleIdentifier is
+.Ar identifier
+within the set of known kexts and load it.
+The kext of the highest CFBundleVersion with the given identifier is used;
+in the case of version ties,
+the last such kext specified on the command line is used.
+See the
+.Fl dependency
+and
+.Fl repository
+options for more information.
+.It Fl d Ar kext , Fl dependency Ar kext
+Add
+.Ar kext
+and its plugins to the set of known kexts for resolving dependencies.
+This is useful for adding a single kext from a directory
+while excluding the others.
+See the
+.Fl repository
+option for more information.
+.It Fl h , Fl help
+Print a help message describing each option flag and exit with a success result,
+regardless of any other options on the command line.
+.It Fl q , Fl quiet
+Quiet mode; print no informational or error messages.
+.It Fl r Ar directory , Fl repository Ar directory
+Use
+.Ar directory
+as a repository of kexts.
+This adds to the set of known kexts for resolving dependencies
+or looking up by CFBundleIdentifier when using the
+.Fl bundle-id
+option.
+This is not recursive; only kexts directly within the directory,
+and their plugins, are scanned.
+See also the
+.Fl dependency
+option.
+.It Fl v Li [ 0-6 | 0x#### Ns Li ] , Fl verbose Li [ 0-6 | 0x#### Ns Li ]
+Verbose mode; print information about program operation.
+Higher levels of verbosity include all lower levels.
+You can specify a level from 0-6,
+or a bitmask of flags as a hexadecimal number prefixed with 0x
+(as described in
+.Xr kext_logging 8 Ns No ).
+Because
+.Nm
+messages
+.Xr kextd 8 ,
+to perform the actual work of loading,
+the decimal levels 1-6 generally have little effect.
+You may wish to use
+.Xr kextutil 8
+if you want verbose output about the kext loading operation.
+.Pp
+.It Fl -
+End of all options. Only kext names follow.
+.El
+.Sh EXAMPLES
+To load a kext, run
+.Nm
+and supply a kext bundle name;
+no options are required:
+.Bd -literal -offset "xxx"
+kextload TabletDriver.kext
+.Ed
+.Pp
+Alternatively, you can use the
+.Fl bundle-id
+.Li ( Ns Fl b Ns Li )
+option to specify a kext by its CFBundleIdentifier:
+.Bd -literal -offset "xxx"
+kextload -bundle-id com.mycompany.driver.TabletDriver
+.Ed
+.Pp
+With no additional options
+.Nm
+looks in the extensions directories
+.Li ( Ns Pa /System/Library/Extensions/
+and
+.Pa /Library/Extensions/ Ns Li )
+for a kext with the given CFBundleIdentifier.
+Adding repository directories with the
+.Fl repository
+option or individual kexts with the
+.Fl dependency
+option expands the set of kexts that
+.Nm
+looks among for dependency resolution and for loading by bundle identifier:
+.Bd -literal -offset "xxx"
+kextload -repository /Applications/MyApp.app/Contents/Resources \\
+    TabletDriver.kext
+.Ed
+.Pp
+.Sh FILES
+.Bl -tag -width "/System/Library/Extensions/" -compact
+.It Pa /System/Library/Extensions/
+The standard system repository of kernel extensions
+.It Pa /Library/Extensions/
+The standard repository of non Apple kernel extensions
+.El
+.Sh DIAGNOSTICS
+.Nm
+exits with a zero status if all kexts specified load successfully
+(or are already loaded).
+If any kext fails to load,
+.Nm
+prints an error message for that kext,
+continues trying to load any remaining kexts,
+then exits with a nonzero status.
+.Pp
+For a kext to be loadable, it must be
+valid, authenticated, and all dependencies of the kext must be available and loadable.
+A valid kext has a well formed bundle, info dictionary,
+and an executable built for the running kernel's architecture.
+An authentic kext's component files,
+not including plugins,
+are owned by root:wheel,
+with permissions nonwritable by group and other.
+If your kext fails to load, try using
+.Xr kextutil 8
+to examine the kext for problems.
+.Sh SEE ALSO 
+.Xr kextcache 8 ,
+.Xr kextd 8 ,
+.Xr kextstat 8 ,
+.Xr kextunload 8 ,
+.Xr kextutil 8 ,
+.Xr kext_logging 8

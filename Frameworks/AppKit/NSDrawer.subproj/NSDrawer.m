@@ -110,9 +110,9 @@ NSString * const NSDrawerDidCloseNotification = @"NSDrawerDidCloseNotification";
             if (NSMaxY(screenRect) - NSMaxY(parentRect) < drawerRect.size.height)
                 if (parentRect.origin.y - screenRect.origin.y > drawerRect.size.height)
                     return NSMinYEdge;
-            
-            return NSMinXEdge;
-            
+
+            return NSMaxYEdge;
+
         default:
             return NSMaxXEdge;
     }

@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSString.h>
 #import <Foundation/NSCoder.h>
 
-#import <Foundation/NSAttributedString_placeholder.h>
+#import "NSAttributedString_placeholder.h"
 #import "NSAttributedString_nilAttributes.h"
 #import "NSAttributedString_oneAttribute.h"
 #import "NSAttributedString_manyAttributes.h"

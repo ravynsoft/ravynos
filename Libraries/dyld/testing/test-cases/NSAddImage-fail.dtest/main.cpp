@@ -1,8 +1,6 @@
-// BUILD(macos):  $CXX main.cpp          -o $BUILD_DIR/NSAddImage-fail.exe -Wno-deprecated-declarations -DRUN_DIR="$RUN_DIR"
+// BUILD_ONLY: MacOSX
 
-// BUILD(ios,tvos,watchos,bridgeos):
-
-// NO_CRASH_LOG: NSAddImage-fail.exe
+// BUILD:  $CXX main.cpp          -o $BUILD_DIR/NSAddImage-fail.exe -Wno-deprecated-declarations -DRUN_DIR="$RUN_DIR"
 
 // RUN:  ./NSAddImage-fail.exe return
 // RUN:  ./NSAddImage-fail.exe abort
@@ -44,9 +42,9 @@ int main(int argc, const char* argv[], const char* envp[], const char* apple[]) 
         process.set_env(env);
         process.set_crash_handler(^(task_t task) {
             LOG("Crash for task=%u", task);
-            mach_vm_address_t corpse_data;
-            mach_vm_size_t corpse_size;
-            if (task_map_corpse_info_64(mach_task_self(), task, &corpse_data, &corpse_size) != KERN_SUCCESS) {
+            vm_address_t corpse_data;
+            uint32_t corpse_size;
+            if (task_map_corpse_info(mach_task_self(), task, &corpse_data, &corpse_size) != KERN_SUCCESS) {
                 FAIL("Could not read corpse data");
             }
             kcdata_iter_t autopsyData = kcdata_iter((void*)corpse_data, corpse_size);

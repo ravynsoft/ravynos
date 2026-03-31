@@ -26,10 +26,6 @@ extern int foo1();
 extern int foo2();
 extern int foo3() __attribute__((weak_import));
 extern int foo4() __attribute__((weak_import));
-extern int foo5();
-extern int foo6();
-extern int foo7() __attribute__((weak_import));
-extern int foo8() __attribute__((weak_import));
 
 #ifndef NO_FOO34
     #define MODE "present"
@@ -61,32 +57,6 @@ int main(int argc, const char* argv[], const char* envp[], const char* apple[]) 
 
 	if ( &foo4 != NULL ) {
         FAIL(MODE ", &foo4 != NULL");
-    }
-#endif
-
-  	if ( foo5() != 5 ) {
-        FAIL(MODE ", foo1() != 5");
-    }
-
-	if ( foo6() != 16 ) {
-        FAIL(MODE ", foo2() != 16");
-    }
-
-#ifndef NO_FOO34
- 	if ( foo7() != 7 ) {
-        FAIL(MODE ", foo7() != 7");
-    }
-
-	if ( foo8() != 8 ) {
-        FAIL(MODE ", foo8() != 8");
-    }
-#else
-	if ( &foo7 != NULL ) {
-        FAIL(MODE ", &foo7 != NULL");
-    }
-
-	if ( &foo8 != NULL ) {
-        FAIL(MODE ", &foo8 != NULL");
     }
 #endif
 

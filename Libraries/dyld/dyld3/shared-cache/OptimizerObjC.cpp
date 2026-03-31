@@ -37,7 +37,6 @@
 #include "MachOFileAbstraction.hpp"
 #include "MachOLoaded.h"
 #include "MachOAnalyzer.h"
-#include "MachOAnalyzerSet.h"
 
 #ifndef MH_HAS_OBJC
   #define MH_HAS_OBJC            0x40000000
@@ -312,7 +311,7 @@ public:
     {
         if (cls->isMetaClass(cache)) return;
 
-        const char* name = cls->getName(cache);
+        const char *name = cls->getName(cache);
         uint64_t name_vmaddr = cache->vmAddrForContent((void*)name);
         uint64_t cls_vmaddr = cache->vmAddrForContent(cls);
         uint64_t hinfo_vmaddr = cache->vmAddrForContent(_hInfos.hinfoForHeader(cache, header));
@@ -330,404 +329,6 @@ public:
     }
 
     size_t count() const { return _count; }
-};
-
-
-/// Builds a map from (install name, class name, method name) to actual IMPs
-template <typename P>
-class IMPMapBuilder
-{
-private:
-    typedef typename P::uint_t pint_t;
-
-public:
-
-    struct MapKey {
-        std::string_view installName;
-        std::string_view className;
-        std::string_view methodName;
-        bool isInstanceMethod;
-
-        bool operator==(const MapKey& other) const {
-            return isInstanceMethod == other.isInstanceMethod &&
-                    installName == other.installName &&
-                    className == other.className &&
-                    methodName == other.methodName;
-        }
-
-        size_t hash() const {
-            std::size_t seed = 0;
-            seed ^= std::hash<std::string_view>()(installName) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-            seed ^= std::hash<std::string_view>()(className) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-            seed ^= std::hash<std::string_view>()(methodName) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-            seed ^= std::hash<bool>()(isInstanceMethod) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-            return seed;
-        }
-    };
-
-    struct MapKeyHasher {
-        size_t operator()(const MapKey& k) const {
-            return k.hash();
-        }
-    };
-
-    std::unordered_map<MapKey, pint_t, MapKeyHasher> impMap;
-    bool relativeMethodListSelectorsAreDirect;
-
-    IMPMapBuilder(bool relativeMethodListSelectorsAreDirect)
-        : relativeMethodListSelectorsAreDirect(relativeMethodListSelectorsAreDirect) { }
-
-    void visitClass(ContentAccessor* cache,
-                    const macho_header<P>* header,
-                    objc_class_t<P>* cls)
-    {
-        objc_method_list_t<P> *methodList = cls->getMethodList(cache);
-        if (methodList == nullptr) return;
-
-        const dyld3::MachOAnalyzer* ma = (const dyld3::MachOAnalyzer*)header;
-        bool isInstanceMethod = !cls->isMetaClass(cache);
-        const char* className = cls->getName(cache);
-        const char* installName = ma->installName();
-
-        for (uint32_t n = 0; n < methodList->getCount(); n++) {
-            // do not clobber an existing entry if any, because categories win
-            impMap.try_emplace(MapKey{
-                .installName = installName,
-                .className = className,
-                .methodName = methodList->getStringName(cache, n, relativeMethodListSelectorsAreDirect),
-                .isInstanceMethod = isInstanceMethod
-            }, methodList->getImp(n, cache));
-        }
-    }
-
-    void visit(ContentAccessor* cache, const macho_header<P>* header) {
-        const dyld3::MachOAnalyzer* ma = (const dyld3::MachOAnalyzer*)header;
-
-        // Method lists from categories
-        PointerSection<P, objc_category_t<P> *>
-            cats(cache, header, "__DATA", "__objc_catlist");
-        for (pint_t i = 0; i < cats.count(); i++) {
-            objc_category_t<P> *cat = cats.get(i);
-            objc_class_t<P>* cls = cat->getClass(cache);
-            if (cls == nullptr)
-                continue;
-
-            objc_method_list_t<P> *instanceMethods = cat->getInstanceMethods(cache);
-            if (instanceMethods != nullptr) {
-                for (uint32_t n = 0; n < instanceMethods->getCount(); n++) {
-                    MapKey k {
-                        .installName = ma->installName(),
-                        .className = cls->getName(cache),
-                        .methodName = instanceMethods->getStringName(cache, n, relativeMethodListSelectorsAreDirect),
-                        .isInstanceMethod = true
-                    };
-                    //printf("Adding %s %s %s %d cat %s\n", k.installName.data(), k.className.data(), k.methodName.data(), k.isInstanceMethod, k.catName->data());
-                    impMap[k] = instanceMethods->getImp(n, cache);
-                }
-            }
-            objc_method_list_t<P> *classMethods = cat->getClassMethods(cache);
-            if (classMethods != nullptr) {
-                for (uint32_t n = 0; n < classMethods->getCount(); n++) {
-                    MapKey k {
-                        .installName = ma->installName(),
-                        .className = cls->getName(cache),
-                        .methodName = classMethods->getStringName(cache, n, relativeMethodListSelectorsAreDirect),
-                        .isInstanceMethod = false
-                    };
-                    //printf("Adding %s %s %s %d cat %s\n", k.installName.data(), k.className.data(), k.methodName.data(), k.isInstanceMethod, k.catName->data());
-                    impMap[k] = classMethods->getImp(n, cache);
-                }
-            }
-        }
-    }
-};
-
-// List of offsets in libobjc that the shared cache optimization needs to use.
-template <typename T>
-struct objc_opt_imp_caches_pointerlist_tt {
-    T selectorStringVMAddrStart;
-    T selectorStringVMAddrEnd;
-    T inlinedSelectorsVMAddrStart;
-    T inlinedSelectorsVMAddrEnd;
-};
-
-template <typename P>
-class IMPCachesEmitter
-{
-    typedef typename P::uint_t pint_t;
-
-private:
-    Diagnostics&                 diag;
-    const IMPMapBuilder<P>&      impMapBuilder;
-    uint64_t                     selectorStringVMAddr;
-    uint8_t*&                    readOnlyBuffer;
-    size_t&                      readOnlyBufferSize;
-    uint8_t*&                    readWriteBuffer;
-    size_t&                      readWriteBufferSize;
-    CacheBuilder::ASLR_Tracker& aslrTracker;
-
-    std::map<std::string_view, const CacheBuilder::DylibInfo*> _dylibInfos;
-    std::map<std::string_view, const macho_header<P>*> _dylibs;
-    const std::vector<const IMPCaches::Selector*> inlinedSelectors;
-
-    struct ImpCacheHeader {
-        int32_t  fallback_class_offset;
-        uint32_t cache_shift :  5;
-        uint32_t cache_mask  : 11;
-        uint32_t occupied    : 14;
-        uint32_t has_inlines :  1;
-        uint32_t bit_one     :  1;
-    };
-
-    struct ImpCacheEntry {
-        uint32_t selOffset;
-        uint32_t impOffset;
-    };
-
-public:
-
-    static size_t sizeForImpCacheWithCount(int entries) {
-        return sizeof(ImpCacheHeader) + entries * sizeof(ImpCacheEntry);
-    }
-
-    struct ImpCacheContents {
-        struct bucket_t {
-            uint32_t sel_offset = 0;
-            uint64_t imp = 0;
-        };
-        std::vector<bucket_t>   buckets;
-        uint64_t                occupiedBuckets = 0;
-        bool hasInlines = false;
-
-        uint64_t capacity() const
-        {
-            return buckets.size();
-        }
-
-        uint64_t occupied() const {
-            return occupiedBuckets;
-        }
-
-        void incrementOccupied() {
-            ++occupiedBuckets;
-        }
-
-        void insert(uint64_t slot, uint64_t selOffset, uint64_t imp) {
-            bucket_t& b = buckets[slot];
-            assert(b.imp == 0);
-
-            if (!b.imp) incrementOccupied();
-            assert((uint32_t)selOffset == selOffset);
-            b.sel_offset = (uint32_t)selOffset;
-            b.imp = imp;
-        }
-
-        void fillBuckets(const IMPCaches::ClassData* classData, bool metaclass, const IMPMapBuilder<P> & classRecorder) {
-            const std::vector<IMPCaches::ClassData::Method> & methods = classData->methods;
-            buckets.resize(classData->modulo());
-            for (const IMPCaches::ClassData::Method& method : methods) {
-                typename IMPMapBuilder<P>::MapKey k {
-                    .installName = method.installName,
-                    .className = method.className,
-                    .methodName = method.selector->name,
-                    .isInstanceMethod = !metaclass
-                };
-
-                pint_t imp = classRecorder.impMap.at(k);
-                int slot = (method.selector->inProgressBucketIndex >> classData->shift) & classData->mask();
-                insert(slot, method.selector->offset, imp);
-                hasInlines |= (method.wasInlined && !method.fromFlattening);
-            }
-        }
-
-        std::pair<uint64_t, uint64_t>
-        write(ContentAccessor* cache,
-              uint64_t cacheSelectorStringVMAddr, uint64_t clsVMAddr,
-              uint8_t*& buf, size_t& bufSize, Diagnostics& diags) {
-            constexpr bool log = false;
-            uint64_t spaceRequired = sizeof(ImpCacheEntry) * capacity();
-
-            if (spaceRequired > bufSize) {
-                diags.error("Not enough space for imp cache");
-                return { 0, 0 };
-            }
-
-            // Convert from addresses to offsets and write out
-            ImpCacheEntry* offsetBuckets = (ImpCacheEntry*)buf;
-            // printf("Buckets: 0x%08llx\n", cache->vmAddrForContent(offsetBuckets));
-            for (uint64_t index = 0; index != buckets.size(); ++index) {
-                bucket_t bucket = buckets[index];
-                if (bucket.sel_offset == 0 && bucket.imp == 0) {
-                    // Empty bucket
-                    offsetBuckets[index].selOffset = 0xFFFFFFFF;
-                    offsetBuckets[index].impOffset = 0;
-                } else {
-                    int64_t selOffset = (int64_t)bucket.sel_offset;
-                    int64_t impOffset = clsVMAddr - bucket.imp;
-                    assert((int32_t)impOffset == impOffset);
-                    assert((int32_t)selOffset == selOffset);
-                    offsetBuckets[index].selOffset = (int32_t)selOffset;
-                    offsetBuckets[index].impOffset = (int32_t)impOffset;
-                    if (log) {
-                        diags.verbose("[IMP Caches] Coder[%lld]: %#08llx (sel: %#08x, imp %#08x) %s\n", index,
-                           cache->vmAddrForOnDiskVMAddr(bucket.imp),
-                           (int32_t)selOffset, (int32_t)impOffset,
-                           (const char*)cache->contentForVMAddr(cacheSelectorStringVMAddr + bucket.sel_offset));
-                    }
-                }
-            }
-
-            buf += spaceRequired;
-            bufSize -= spaceRequired;
-
-            return { cache->vmAddrForContent(offsetBuckets), (uint64_t)buckets.size() };
-        }
-    };
-
-    IMPCachesEmitter(Diagnostics& diags, const IMPMapBuilder<P>& builder, uint64_t selectorStringVMAddr, uint8_t*& roBuf, size_t& roBufSize, uint8_t* &rwBuf, size_t& rwBufSize, const std::vector<CacheBuilder::DylibInfo> & dylibInfos, const std::vector<const macho_header<P>*> & dylibs, CacheBuilder::ASLR_Tracker& tracker)
-        : diag(diags), impMapBuilder(builder), selectorStringVMAddr(selectorStringVMAddr), readOnlyBuffer(roBuf), readOnlyBufferSize(roBufSize), readWriteBuffer(rwBuf), readWriteBufferSize(rwBufSize), aslrTracker(tracker) {
-            for (const CacheBuilder::DylibInfo& d : dylibInfos) {
-                _dylibInfos[d.dylibID] = &d;
-            }
-            for (const macho_header<P>* d : dylibs) {
-                const dyld3::MachOAnalyzer* ma = (const dyld3::MachOAnalyzer*) d;
-                _dylibs[ma->installName()] = d;
-            }
-        }
-
-    // Returns true if we should filter this class out from getting an imp cache
-    bool filter(ContentAccessor* cache, const dyld3::MachOAnalyzer* ma, const objc_class_t<P>* cls) {
-        const CacheBuilder::DylibInfo* d = _dylibInfos[ma->installName()];
-        IMPCaches::ClassKey key {
-            .name = cls->getName(cache),
-            .metaclass = cls->isMetaClass(cache)
-        };
-        return (d->impCachesClassData.find(key) == d->impCachesClassData.end());
-    }
-
-    void visitClass(ContentAccessor* cache,
-                    const macho_header<P>* header,
-                    objc_class_t<P>* cls)
-    {
-        // If we ran out of space then don't try to optimize more
-        if (diag.hasError())
-            return;
-
-        const dyld3::MachOAnalyzer* ma = (const dyld3::MachOAnalyzer*) header;
-        if (filter(cache, ma, cls)) {
-            *cls->getVTableAddress() = 0;
-            return;
-        }
-
-        const char* className = cls->getName(cache);
-
-        if (cls->getVTable(cache) != 0) {
-            diag.error("Class '%s' has non-zero vtable\n", className);
-            return;
-        }
-
-        const CacheBuilder::DylibInfo* d = _dylibInfos[ma->installName()];
-        IMPCaches::ClassKey key {
-            .name = cls->getName(cache),
-            .metaclass = cls->isMetaClass(cache)
-        };
-        IMPCaches::ClassData* data = (d->impCachesClassData.at(key)).get();
-#if 0
-        for (const objc_method_t<P>& method : methods) {
-            printf("  0x%llx: 0x%llx (%s)\n", method.getImp(), method.getName(),
-                   (const char*)cache->contentForVMAddr(method.getName()));
-        }
-#endif
-
-        uint64_t clsVMAddr = cache->vmAddrForContent(cls);
-
-        if (data->mask() > 0x7ff) {
-            diag.verbose("Cache for class %s (%#08llx) is too large (mask: %#x)\n",
-                         className, clsVMAddr, data->mask());
-            return;
-        }
-
-        ImpCacheContents impCache;
-        impCache.fillBuckets(data, cls->isMetaClass(cache), impMapBuilder);
-
-        constexpr bool log = false;
-        if (log) {
-            printf("Writing cache for %sclass %s (%#08llx)\n", cls->isMetaClass(cache) ? "meta" : "", className, clsVMAddr);
-        }
-
-        struct ImpCacheHeader {
-            int32_t  fallback_class_offset;
-            uint32_t cache_shift :  5;
-            uint32_t cache_mask  : 11;
-            uint32_t occupied    : 14;
-            uint32_t has_inlines :  1;
-            uint32_t bit_one     :  1;
-        };
-        pint_t* vtableAddr = cls->getVTableAddress();
-
-        // the alignment of ImpCaches to 16 bytes is only needed for arm64_32.
-        ImpCacheHeader* cachePtr = (ImpCacheHeader*)align_buffer(readOnlyBuffer, sizeof(pint_t) == 4 ? 4 : 3);
-
-        assert(readOnlyBufferSize > sizeof(ImpCacheHeader));
-
-        uint64_t occupied = impCache.occupied();
-        int64_t fallback_class_offset = *(cls->getSuperClassAddress()) - clsVMAddr;
-
-        if (data->flatteningRootSuperclass) {
-            // If we are a class being flattened (inheriting all the selectors of
-            // its superclasses up to and including the flattening root), the fallback class
-            // should be the first superclass which is not flattened.
-            
-            // Find the VMAddr of that superclass, given its segment index and offset
-            // in the source dylib.
-            const auto & superclass = *(data->flatteningRootSuperclass);
-            const macho_header<P> * d = _dylibs[superclass.installName];
-            __block uint64_t superclassVMAddr = 0;
-            const dyld3::MachOAnalyzer *ma = (const dyld3::MachOAnalyzer *)d;
-            ma->forEachSegment(^(const dyld3::MachOAnalyzer::SegmentInfo &info, bool &stop) {
-                if (info.segIndex == superclass.segmentIndex) {
-                    superclassVMAddr = info.vmAddr + superclass.segmentOffset;
-                    stop = true;
-                }
-            });
-
-            assert(superclassVMAddr > 0);
-            fallback_class_offset = superclassVMAddr - clsVMAddr;
-        }
-
-        assert((int32_t)fallback_class_offset == fallback_class_offset);
-        assert((uint32_t)occupied == occupied);
-
-        *cachePtr = (ImpCacheHeader){
-            .fallback_class_offset = (int32_t)fallback_class_offset,
-            .cache_shift = (uint32_t)(data->shift + 7),
-            .cache_mask = (uint32_t)data->mask(),
-            .occupied = (uint32_t)occupied,
-            .has_inlines = impCache.hasInlines,
-            .bit_one = 1, // obj-c plays HORRENDOUS games here
-        };
-
-        // is this right?
-        int64_t vmaddr = cache->vmAddrForContent(readOnlyBuffer);
-        assert((pint_t)vmaddr == (uint64_t)vmaddr);
-        *vtableAddr =  (pint_t)cache->vmAddrForContent(readOnlyBuffer);
-        aslrTracker.add(vtableAddr);
-        readOnlyBuffer += sizeof(ImpCacheHeader);
-        readOnlyBufferSize -= sizeof(ImpCacheHeader);
-
-        impCache.write(cache, selectorStringVMAddr, clsVMAddr, readOnlyBuffer, readOnlyBufferSize, diag);
-    }
-
-    void emitInlinedSelectors(const std::vector<const IMPCaches::Selector*> selectors) {
-        // FIXME: this should be in constant memory
-        for (const IMPCaches::Selector* s : selectors) {
-            assert(readWriteBufferSize >= sizeof(pint_t));
-            *(pint_t*)readWriteBuffer = (pint_t)(selectorStringVMAddr + s->offset);
-            aslrTracker.add(readWriteBuffer);
-            readWriteBuffer += sizeof(pint_t);
-            readWriteBufferSize -= sizeof(pint_t);
-        }
-    }
 };
 
 template <typename P>
@@ -769,7 +370,7 @@ public:
         for (pint_t i = 0; i < protocols.count(); i++) {
             objc_protocol_t<P> *proto = protocols.get(i);
 
-            const char* name = proto->getName(cache);
+            const char *name = proto->getName(cache);
             if (_protocolNames.count(name) == 0) {
                 if (proto->getSize() > sizeof(objc_protocol_t<P>)) {
                     _diagnostics.error("objc protocol is too big");
@@ -793,8 +394,7 @@ public:
                                uint8_t *& rwdest, size_t& rwremaining,
                                uint8_t *& rodest, size_t& roremaining, 
                                CacheBuilder::ASLR_Tracker& aslrTracker,
-                               pint_t protocolClassVMAddr,
-                               const dyld3::MachOAnalyzerSet::PointerMetaData& PMD)
+                               pint_t protocolClassVMAddr)
     {
         if (_protocolCount == 0) return NULL;
 
@@ -823,12 +423,6 @@ public:
             if (!proto->getIsaVMAddr()) {
                 proto->setIsaVMAddr(protocolClassVMAddr);
             }
-
-            // If the objc runtime signed the Protocol ISA, then we need to too
-            if ( PMD.authenticated ) {
-                aslrTracker.setAuthData(proto->getISALocation(), PMD.diversity, PMD.usesAddrDiversity, PMD.key);
-            }
-
             if (oldSize < sizeof(*proto)) {
                 // Protocol object is old. Populate new fields.
                 proto->setSize(sizeof(objc_protocol_t<P>));
@@ -908,7 +502,7 @@ template <typename P>
 void addObjcSegments(Diagnostics& diag, DyldSharedCache* cache, const mach_header* libobjcMH,
                      uint8_t* objcReadOnlyBuffer, uint64_t objcReadOnlyBufferSizeAllocated,
                      uint8_t* objcReadWriteBuffer, uint64_t objcReadWriteBufferSizeAllocated,
-                     uint64_t objcRwFileOffset)
+                     uint32_t objcRwFileOffset)
 {
     // validate there is enough free space to add the load commands
     const dyld3::MachOAnalyzer* libobjcMA = ((dyld3::MachOAnalyzer*)libobjcMH);
@@ -977,43 +571,6 @@ void addObjcSegments(Diagnostics& diag, DyldSharedCache* cache, const mach_heade
     }
 }
 
-template <typename P> static inline void emitIMPCaches(ContentAccessor& cacheAccessor,
-                                         std::vector<CacheBuilder::DylibInfo> & allDylibs,
-                                         std::vector<const macho_header<P>*> & sizeSortedDylibs,
-                                         bool relativeMethodListSelectorsAreDirect,
-                                         uint64_t selectorStringVMAddr,
-                                         uint8_t* optROData, size_t& optRORemaining,
-                                         uint8_t* optRWData, size_t& optRWRemaining,
-                                         CacheBuilder::ASLR_Tracker& aslrTracker,
-                                         const std::vector<const IMPCaches::Selector*> & inlinedSelectors,
-                                         uint8_t* &inlinedSelectorsStart,
-                                         uint8_t* &inlinedSelectorsEnd,
-                                         Diagnostics& diag,
-                                         TimeRecorder& timeRecorder) {
-    diag.verbose("[IMP caches] computing IMP map\n");
-
-    IMPMapBuilder<P> classRecorder(relativeMethodListSelectorsAreDirect);
-    for (const macho_header<P>* mh : sizeSortedDylibs) {
-        ClassWalker<P, IMPMapBuilder<P>> classWalker(classRecorder, ClassWalkerMode::ClassAndMetaclasses);
-        classWalker.walk(&cacheAccessor, mh);
-        classRecorder.visit(&cacheAccessor, mh);
-    }
-
-    timeRecorder.recordTime("compute IMP map");
-    diag.verbose("[IMP caches] emitting IMP caches\n");
-
-    IMPCachesEmitter<P> impCachesEmitter(diag, classRecorder, selectorStringVMAddr, optROData, optRORemaining, optRWData, optRWRemaining, allDylibs, sizeSortedDylibs, aslrTracker);
-    ClassWalker<P, IMPCachesEmitter<P>> impEmitterClassWalker(impCachesEmitter, ClassWalkerMode::ClassAndMetaclasses);
-    for (const macho_header<P>* mh : sizeSortedDylibs) {
-        impEmitterClassWalker.walk(&cacheAccessor, mh);
-        if (diag.hasError())
-            return;
-    }
-
-    inlinedSelectorsStart = optRWData;
-    impCachesEmitter.emitInlinedSelectors(inlinedSelectors);
-    inlinedSelectorsEnd = optRWData;
-}
 
 template <typename P>
 void doOptimizeObjC(DyldSharedCache* cache, bool forProduction, CacheBuilder::ASLR_Tracker& aslrTracker,
@@ -1021,11 +578,7 @@ void doOptimizeObjC(DyldSharedCache* cache, bool forProduction, CacheBuilder::AS
                     const std::map<void*, std::string>& missingWeakImports, Diagnostics& diag,
                     uint8_t* objcReadOnlyBuffer, uint64_t objcReadOnlyBufferSizeUsed, uint64_t objcReadOnlyBufferSizeAllocated,
                     uint8_t* objcReadWriteBuffer, uint64_t objcReadWriteBufferSizeAllocated,
-                    uint64_t objcRwFileOffset,
-                    std::vector<CacheBuilder::DylibInfo> & allDylibs,
-                    const std::vector<const IMPCaches::Selector*> & inlinedSelectors,
-                    bool impCachesSuccess,
-                    TimeRecorder& timeRecorder)
+                    uint32_t objcRwFileOffset)
 {
     typedef typename P::E           E;
     typedef typename P::uint_t      pint_t;
@@ -1046,7 +599,6 @@ void doOptimizeObjC(DyldSharedCache* cache, bool forProduction, CacheBuilder::AS
     __block const mach_header*      libobjcMH = nullptr;
     __block const macho_section<P> *optROSection = nullptr;
     __block const macho_section<P> *optPointerListSection = nullptr;
-    __block const macho_section<P> *optImpCachesPointerSection = nullptr;
     __block std::vector<const macho_header<P>*> objcDylibs;
     cache->forEachImage(^(const mach_header* machHeader, const char* installName) {
         const macho_header<P>* mh = (const macho_header<P>*)machHeader;
@@ -1054,9 +606,6 @@ void doOptimizeObjC(DyldSharedCache* cache, bool forProduction, CacheBuilder::AS
             libobjcMH = (mach_header*)mh;
             optROSection = mh->getSection("__TEXT", "__objc_opt_ro");
             optPointerListSection = mh->getSection("__DATA", "__objc_opt_ptrs");
-            if ( optPointerListSection == nullptr )
-                optPointerListSection = mh->getSection("__AUTH", "__objc_opt_ptrs");
-            optImpCachesPointerSection = mh->getSection("__DATA_CONST", "__objc_scoffs");
         }
         if ( mh->getSection("__DATA", "__objc_imageinfo") || mh->getSection("__OBJC", "__image_info") ) {
             objcDylibs.push_back(mh);
@@ -1070,9 +619,6 @@ void doOptimizeObjC(DyldSharedCache* cache, bool forProduction, CacheBuilder::AS
     if ( optPointerListSection == nullptr ) {
         diag.warning("libobjc's pointer list section missing (metadata not optimized)");
         return;
-    }
-    if ( optImpCachesPointerSection == nullptr ) {
-        diag.warning("libobjc's magical shared cache offsets list section missing (metadata not optimized)");
     }
     // point optROData into space allocated in dyld cache
     uint8_t* optROData = objcReadOnlyBuffer + objcReadOnlyBufferSizeUsed;
@@ -1204,11 +750,7 @@ void doOptimizeObjC(DyldSharedCache* cache, bool forProduction, CacheBuilder::AS
         return (uint8_t*)(((uintptr_t)ptr + 0x7) & ~0x7);
     };
 
-    // Relative method lists names are initially an offset to a selector reference.
-    // Eventually we'll update them to offsets directly to the selector string.
-    bool relativeMethodListSelectorsAreDirect = false;
-
-    SelectorOptimizer<P, ObjCSelectorUniquer<P> > selOptimizer(uniq, relativeMethodListSelectorsAreDirect);
+    SelectorOptimizer<P, ObjCSelectorUniquer<P> > selOptimizer(uniq);
     selOptimizer.visitCoalescedStrings(coalescedText);
     for (const macho_header<P>* mh : sizeSortedDylibs) {
         LegacySelectorUpdater<P, ObjCSelectorUniquer<P>>::update(&cacheAccessor, mh, uniq);
@@ -1306,7 +848,7 @@ void doOptimizeObjC(DyldSharedCache* cache, bool forProduction, CacheBuilder::AS
     //
     // This is SAFE: modified binaries are still usable as unsorted lists.
     // This must be done AFTER uniquing selectors.
-    MethodListSorter<P> methodSorter(relativeMethodListSelectorsAreDirect);
+    MethodListSorter<P> methodSorter;
     for (const macho_header<P>* mh : sizeSortedDylibs) {
         methodSorter.optimize(&cacheAccessor, mh);
     }
@@ -1328,26 +870,10 @@ void doOptimizeObjC(DyldSharedCache* cache, bool forProduction, CacheBuilder::AS
                protocolOptimizer.protocolCount());
 
     pint_t protocolClassVMAddr = (pint_t)P::getP(optPointerList->protocolClass);
-
-    // Get the pointer metadata from the magic protocolClassVMAddr symbol
-    // We'll transfer it over to the ISA on all the objc protocols when we set their ISAs
-    dyld3::MachOAnalyzerSet::PointerMetaData protocolClassPMD;
-    uint16_t    protocolClassAuthDiversity  = 0;
-    bool        protocolClassAuthIsAddr     = false;
-    uint8_t     protocolClassAuthKey        = 0;
-    if ( aslrTracker.hasAuthData((void*)&optPointerList->protocolClass, &protocolClassAuthDiversity, &protocolClassAuthIsAddr, &protocolClassAuthKey) ) {
-        protocolClassPMD.diversity           = protocolClassAuthDiversity;
-        protocolClassPMD.high8               = 0;
-        protocolClassPMD.authenticated       = 1;
-        protocolClassPMD.key                 = protocolClassAuthKey;
-        protocolClassPMD.usesAddrDiversity   = protocolClassAuthIsAddr;
-    }
-
     err = protocolOptimizer.writeProtocols(&cacheAccessor,
                                            optRWData, optRWRemaining,
                                            optROData, optRORemaining,
-                                           aslrTracker, protocolClassVMAddr,
-                                           protocolClassPMD);
+                                           aslrTracker, protocolClassVMAddr);
     if (err) {
         diag.warning("%s", err);
         return;
@@ -1399,56 +925,6 @@ void doOptimizeObjC(DyldSharedCache* cache, bool forProduction, CacheBuilder::AS
     
     diag.verbose("  updated  % 6ld ivar offsets\n", ivarOffsetOptimizer.optimized());
 
-    //
-    // Build imp caches
-    //
-    // Objc has a magic section of imp cache base pointers.  We need these to
-    // offset everything else from
-    const CacheBuilder::CacheCoalescedText::StringSection& methodNames = coalescedText.getSectionData("__objc_methname");
-    uint64_t selectorStringVMAddr = methodNames.bufferVMAddr;
-    uint64_t selectorStringVMSize = methodNames.bufferSize;
-    uint64_t impCachesVMSize = 0; // We'll calculate this later
-
-    uint64_t optRODataRemainingBeforeImpCaches = optRORemaining;
-
-    timeRecorder.pushTimedSection();
-    
-    uint8_t* inlinedSelectorsStart = optRWData;
-    uint8_t* inlinedSelectorsEnd = optRWData;
-    
-    if (impCachesSuccess) {
-        emitIMPCaches<P>(cacheAccessor, allDylibs, sizeSortedDylibs, relativeMethodListSelectorsAreDirect,
-                         selectorStringVMAddr, optROData, optRORemaining, optRWData, optRWRemaining,
-                         aslrTracker, inlinedSelectors, inlinedSelectorsStart, inlinedSelectorsEnd, diag, timeRecorder);
-    }
-
-    uint8_t* alignedROData = alignPointer(optROData);
-    optRORemaining -= (alignedROData - optROData);
-    optROData = alignedROData;
-
-    impCachesVMSize = optRODataRemainingBeforeImpCaches - optRORemaining;
-    timeRecorder.recordTime("emit IMP caches");
-    timeRecorder.popTimedSection();
-
-    diag.verbose("[IMP Caches] Imp caches size: %'lld bytes\n\n", impCachesVMSize);
-
-    // Update the pointers in the pointer list section
-    if (optImpCachesPointerSection) {
-        if (optImpCachesPointerSection->size() < sizeof(objc_opt::objc_opt_pointerlist_tt<pint_t>)) {
-            diag.warning("libobjc's pointer list section is too small (metadata not optimized)");
-            return;
-        }
-        auto *impCachePointers = (objc_opt_imp_caches_pointerlist_tt<pint_t> *)cacheAccessor.contentForVMAddr(optImpCachesPointerSection->addr());
-        impCachePointers->selectorStringVMAddrStart = (pint_t)selectorStringVMAddr;
-        impCachePointers->selectorStringVMAddrEnd   = (pint_t)(selectorStringVMAddr + selectorStringVMSize);
-        impCachePointers->inlinedSelectorsVMAddrStart = (pint_t)cacheAccessor.vmAddrForContent(inlinedSelectorsStart);
-        impCachePointers->inlinedSelectorsVMAddrEnd = (pint_t)cacheAccessor.vmAddrForContent(inlinedSelectorsEnd);
-
-        aslrTracker.add(&impCachePointers->selectorStringVMAddrStart);
-        aslrTracker.add(&impCachePointers->selectorStringVMAddrEnd);
-        aslrTracker.add(&impCachePointers->inlinedSelectorsVMAddrStart);
-        aslrTracker.add(&impCachePointers->inlinedSelectorsVMAddrEnd);        
-    }
 
     // Collect flags.
     uint32_t headerFlags = 0;
@@ -1497,7 +973,7 @@ void doOptimizeObjC(DyldSharedCache* cache, bool forProduction, CacheBuilder::AS
 
 
     // Now that objc has uniqued the selector references, we can apply the LOHs so that ADRP/LDR -> ADRP/ADD
-    {
+    if (forProduction) {
         const bool logSelectors = false;
         uint64_t lohADRPCount = 0;
         uint64_t lohLDRCount = 0;
@@ -1609,41 +1085,19 @@ void doOptimizeObjC(DyldSharedCache* cache, bool forProduction, CacheBuilder::AS
 
 } // anon namespace
 
-size_t IMPCaches::sizeForImpCacheWithCount(int count) {
-    // The architecture should not be relevant here as it's all offsets and fixed int sizes.
-    // It was just the most logical place to host this function in.
-
-    size_t size64 = IMPCachesEmitter<Pointer64<LittleEndian>>::sizeForImpCacheWithCount(count);
-    size_t size32 = IMPCachesEmitter<Pointer32<LittleEndian>>::sizeForImpCacheWithCount(count);
-    assert(size64 == size32);
-
-    return size64;
-}
-
-void SharedCacheBuilder::optimizeObjC(bool impCachesSuccess, const std::vector<const IMPCaches::Selector*> & inlinedSelectors)
+void SharedCacheBuilder::optimizeObjC()
 {
+    uint32_t objcRwFileOffset = (uint32_t)((_objcReadWriteBuffer - _readWriteRegion.buffer) + _readWriteRegion.cacheFileOffset);
     if ( _archLayout->is64 )
-        doOptimizeObjC<Pointer64<LittleEndian>>((DyldSharedCache*)_readExecuteRegion.buffer,
-            _options.optimizeStubs,
-            _aslrTracker, _lohTracker,
-            _coalescedText,
-            _missingWeakImports, _diagnostics,
-            _objcReadOnlyBuffer,
-            _objcReadOnlyBufferSizeUsed,
-            _objcReadOnlyBufferSizeAllocated,
-            _objcReadWriteBuffer, _objcReadWriteBufferSizeAllocated,
-            _objcReadWriteFileOffset, _sortedDylibs, inlinedSelectors, impCachesSuccess, _timeRecorder);
+        doOptimizeObjC<Pointer64<LittleEndian>>((DyldSharedCache*)_readExecuteRegion.buffer, _options.optimizeStubs, _aslrTracker, _lohTracker,
+                                                _coalescedText, _missingWeakImports,
+                                                _diagnostics, _objcReadOnlyBuffer, _objcReadOnlyBufferSizeUsed, _objcReadOnlyBufferSizeAllocated,
+                                                _objcReadWriteBuffer, _objcReadWriteBufferSizeAllocated, objcRwFileOffset);
     else
-        doOptimizeObjC<Pointer32<LittleEndian>>((DyldSharedCache*)_readExecuteRegion.buffer,
-            _options.optimizeStubs,
-            _aslrTracker, _lohTracker,
-            _coalescedText,
-            _missingWeakImports, _diagnostics,
-            _objcReadOnlyBuffer,
-            _objcReadOnlyBufferSizeUsed,
-            _objcReadOnlyBufferSizeAllocated,
-            _objcReadWriteBuffer, _objcReadWriteBufferSizeAllocated,
-            _objcReadWriteFileOffset, _sortedDylibs, inlinedSelectors, impCachesSuccess, _timeRecorder);
+        doOptimizeObjC<Pointer32<LittleEndian>>((DyldSharedCache*)_readExecuteRegion.buffer, _options.optimizeStubs, _aslrTracker, _lohTracker,
+                                                _coalescedText, _missingWeakImports,
+                                                _diagnostics, _objcReadOnlyBuffer, _objcReadOnlyBufferSizeUsed, _objcReadOnlyBufferSizeAllocated,
+                                                _objcReadWriteBuffer, _objcReadWriteBufferSizeAllocated, objcRwFileOffset);
 }
 
 static uint32_t hashTableSize(uint32_t maxElements, uint32_t perElementData)
@@ -1664,8 +1118,5 @@ uint32_t SharedCacheBuilder::computeReadOnlyObjC(uint32_t selRefCount, uint32_t 
 // Space to replace the __objc_opt_rw section.
 uint32_t SharedCacheBuilder::computeReadWriteObjC(uint32_t imageCount, uint32_t protocolDefCount)
 {
-    uint8_t pointerSize = _archLayout->is64 ? 8 : 4;
-    return 8*imageCount
-         + protocolDefCount*12*pointerSize
-         + (int)_impCachesBuilder->inlinedSelectors.size() * pointerSize;
+    return 8*imageCount + protocolDefCount*12*(_archLayout->is64 ? 8 : 4);
 }

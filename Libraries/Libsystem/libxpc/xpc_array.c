@@ -26,8 +26,7 @@
  */
 
 #include <sys/types.h>
-#include <mach/mach.h>
-#include <xpc/launchd.h>
+#include <xpc/xpc.h>
 #include "xpc_internal.h"
 
 xpc_object_t
@@ -35,7 +34,7 @@ xpc_array_create(const xpc_object_t *objects, size_t count)
 {
 	struct xpc_object *xo;
 	size_t i;
-	xpc_u val = { 0 };
+	xpc_u val;
 
 	xo = _xpc_prim_create(_XPC_TYPE_ARRAY, val, 0);
 	
@@ -207,7 +206,7 @@ xpc_array_set_fd(xpc_object_t xarray, size_t index, int value)
 	struct xpc_object *xo, *xotmp;
 
 	xo = xarray;
-	xotmp = xpc_fd_create(value);
+	//xotmp = xpc_fd_create(value);
 	return (xpc_array_set_value(xarray, index, xotmp));
 }
 

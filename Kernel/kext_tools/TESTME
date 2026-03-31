@@ -1,0 +1,273 @@
+#/bin/sh -e
+
+# Currently, this TESTME script is capable of generating command lines
+# that can be copied and pasted.
+
+# re-launch a copy from /tmp
+tmprun="${TMP:-/tmp}/kt.TESTME"
+if [ "$0" != "$tmprun" ]; then
+    cp "$0" "$tmprun"
+    exec "$tmprun"
+fi
+
+usage() {
+    echo "Usage: TESTME [-h]"
+    exit "$1"
+}
+
+[ "$1" = "-h" ] && usage 0
+
+die() {
+    echo `basename "$0"`: "$@"
+    exit 1
+}
+
+unset raiddisk raidvol
+unset csdisk csvol
+unset fdedisk fdevol
+MOUNTPOINTAWKBITS="{
+    if (index(\$0, \"/Volumes\")) {
+        print substr(\$0, index(\$0,\"/Volumes\"), length(\$0))
+    } else {
+        print \$NF
+    }
+}"
+
+isOSvol() {
+    [ -s "$1"/System/Library/CoreServices/Finder.app ]
+}
+
+# only looks at first one
+findRAIDos() {
+    raiddisk=$(diskutil ar list | awk '/^Device Node:/ { print $NF; exit 0 }')
+    [ -z "$raiddisk" ] && return 1
+
+    raidvol=$(df -lh | awk "/$raiddisk / $MOUNTPOINTAWKBITS")
+    isOSvol "$raidvol" && echo "$raidvol"
+}
+
+findCSos() {
+    searchstr="Logical Volume [0-9A-F]"
+    [ "$1" ] && searchstr="$1"
+    csdisks=$(diskutil cs list | sed -n "/$searchstr/,/Disk:/ {
+        /Disk:.*disk/ {
+            s/^[^D]*Disk:[^d]*//
+            p
+        }
+        }")
+    [ -z "$csdisks" ] && return 1
+
+    for csdisk in $csdisks; do
+        csvol=$(df -lh | awk "/$csdisk/ $MOUNTPOINTAWKBITS")
+        isOSvol "$csvol" && echo "$csvol" && return
+    done
+}
+
+findFDEos() {
+    findCSos "Encryption Type:.*AES-XTS"
+}
+
+getHelper() {
+    bless -verbose -info "$1" 2>&1 >/dev/null | awk '/Aux.*Part/ { getline; print $1 }'
+}
+
+[ "$kextcache" ] || kextcache=/usr/sbin/kextcache
+brtest=/usr/local/bin/brtest
+[ -x "$brtest" ] || brtest=./brtest
+[ -d "$bros" ] || bros=$(findRAIDos)
+[ -d "$csos" ] || csos=$(findCSos);
+if ! [ -d "$bros" ]; then
+    if [ -d "$csos" ]; then
+        echo "WARNING: no RAID OS found; substituting CoreStorage volume $csos" >&2
+        sleep 2
+        bros=$csos
+    else
+        echo "WARNING: no Boot!=Root OS volumes found..." >&2
+        sleep 5
+        bros="[unknown!]"
+    fi
+fi
+[ -d "$fdeos" ] || fdeos=$(findFDEos)
+if ! [ -d "$fdeos" ]; then
+    echo "WARNING: no FDE OS volumes found..." >&2
+    diskutil cs list | grep -q -- "Encryptions Status:.*Locked" && \
+         echo "(there appears to be one offline)" >&2
+    sleep 5
+fi
+
+unset brhelper cshelper fdehelper 
+brhelper=$(getHelper "$bros")
+cshelper=$(getHelper "$csos")
+fdehelper=$(getHelper "$fdeos")
+
+
+# dump commands (yes, the next round will start executing some of them :)
+${PAGER:-less} <<TESTME_TEXT
+    Targets:
+        all                     - default desktop target (most targets ship)
+            kextcache
+-- To TEST --
+# basic Boot!=Root tests
+sudo touch /System/Library/Extensions && sudo time "$kextcache" -v -u /; echo \$?
+sudo touch "$bros"/Library/Preferences/SystemConfiguration/com.apple.Boot.plist && \
+    sudo "$kextcache" -v -u "$bros"; echo \$?
+sudo touch /System/Library/Extensions && \
+    (sleep 6; sudo time "$kextcache" -vu /; echo \$?)  # let kextd do it
+sudo rm "$fdeos"/System/Library/Caches/com.apple.corestorage/EncryptedRoot.plist.wipekey && \
+    sudo "$kextcache" -v -u "$fdeos"; echo \$?
+
+# early-boot -> reboot if needed (later tests use this for reporting)
+sudo "$kextcache" -U "$bros"; echo \$?        # should be 0
+sudo touch "$bros"/Library/Preferences/SystemConfiguration/com.apple.Boot.plist \
+    && sudo "$kextcache" -U "$bros"; echo \$?        # should be EX_OSFILE (72)
+
+# installer test (mid-way, non-FDE: should not rebuild EFILoginLocalizations)
+sudo rm -rf "$bros"/System/Library/Caches/com.apple.kext.caches/Startup/kernelcache \
+    "$bros"/System/Library/Caches/com.apple.corestorage/EFILoginLocalizations \
+    "$bros"/System/Library/Caches/com.apple.corestorage/EncryptedRoot.plist.wipekey \
+    "$bros"/System/Library/CoreServices/boot.efi \
+    && sudo "$kextcache" -v -Installer -u "$bros"; echo \$?
+sudo bless -folder "$bros"/System/Library/CoreServices -bootefi  # restore boot.efi
+
+# and at the end
+# background kextcache -vU success w/9567748 fixed
+(sleep 2 && sudo kextcache -vU "$bros"; echo \$?) & \
+sudo rm -rf "$bros"/System/Library/Caches/com.apple.kext.caches/Startup/kernelcache \
+    "$bros"/System/Library/Caches/com.apple.corestorage/EFILoginLocalizations \
+    && sudo "$kextcache" -v -Installer -u "$bros"; echo \$?
+
+# now targetting an FDE volume (should rebuild EFILoginLocalizations)
+sudo rm -rf "$fdeos"/System/Library/Caches/com.apple.corestorage/EFILoginLocalizations \
+    "$fdeos"/System/Library/Caches/com.apple.corestorage/EncryptedRoot.plist.wipekey \
+    && sudo "$kextcache" -v -Installer -u "$fdeos"; echo \$?
+
+# -caches-only
+# background kextcache -vU should only update the helpers
+(sleep 2 && sudo kextcache -vU "$bros"; echo \$?) & \
+sudo rm -rf "$bros"/System/Library/Caches/com.apple.kext.caches/Startup/kernelcache \
+    "$bros"/System/Library/Caches/com.apple.corestorage/EFILoginLocalizations \
+    && sudo "$kextcache" -v -caches-only -u "$bros"; echo \$?
+
+# enable FDE on root volume (or use GUI)
+[ "$bros" = / ] && echo "/ appears to already be using Boot!=Root"
+[ "$fdeos" = / ] && echo "/ is already running FDE"
+[ "$csos" = / ] && echo "/ appears may be unencrypted CoreStorage (use 'diskutil cs encryptVolume')"
+sudo diskutil cs convert / -passphrase test && sudo reboot 
+echo EFI Login should come up on reboot.
+echo "----- AFTER REBOOT -----"
+diskutil mount $fdehelper
+ls -l /Volumes/Rec*             # should have com.apple.boot.[RPS]
+bless -info /Volumes/Rec*       # finderinfo[0] -> /S/L/CoreServices
+                                # finderinfo[1] -> /S/L/CoreServices/boot.efi
+                                # finderinfo[3] -> com.apple.recovery.boot
+echo feel free to turn off FDE, either w/SecPref or diskutil cs decrypt
+
+# kextcache -u -f tested below w/brtest
+
+[...need to fill in lots more...]
+-- end TEST --
+
+            kextd
+            kextfind
+            kextlibs
+            kextload
+            kextstat
+            kextunload
+            kextutil
+            kextsymboltool      - /usr/local/bin
+            mkextunpack
+
+            libBootRoot
+            brtest
+-- To TEST --
+# run through the verbs
+"$brtest" listboots "$bros"
+
+sudo "$brtest" erasefiles "$fdeos" $fdehelper -f  # temporarily make unbootable
+diskutil mount "$fdehelper"                     # check disable FDE case
+bless -info /Volumes/Recovery*                  # Recovery should be blessed
+ls -la /Volumes/Recovery*                       # no cruft
+
+sudo "$kextcache" -vu "$fdeos"                  # '/' should look clean
+sudo $brtest update "$fdeos"                    # shouldn't update
+diskutil mount "$fdehelper"
+ls -la /Volumes/Recovery*                       # check still empty
+
+sudo "$brtest" copyfiles "$fdeos" $fdehelper    # update one of them
+diskutil mount "$fdehelper"                     # check copied
+bless -info /Volumes/Recovery*                  # Boot!=Root should be blessed
+ls -la /Volumes/Recovery*                       # Boot!=Root back
+
+sudo "$brtest" erasefiles "$fdeos" $fdehelper -f  # nuke $brhelper again
+sudo "$brtest" update "$fdeos" -f               # should update all
+diskutil mount "$fdehelper"                     # check everything is back
+bless -info /Volumes/Recovery*
+ls -la /Volumes/Recovery*
+
+# try w/multi-PV FDE, try w/unencrypted CoreStorage
+sudo "$brtest" erasefiles "$csos" $cshelper -f   # temporarily make unbootable :)
+sudo "$kextcache" -vu "$csos" -f                 # should update everything
+
+# set up non-functional dmg-booting inputs
+diskutil mount "$fdehelper"
+sudo ln -fs /Volumes/Rec*/com.apple.recovery.boot/BaseSystem.dmg "$fdeos"
+hdid "$fdeos"/BaseSystem.dmg
+
+# InstallAssistant[.app] on an encrypted volume
+sudo "$brtest" copyfiles "/Volumes/Mac OS X Internal Base System" "$fdeos" /BaseSystem.dmg "$fdehelper" 
+sudo cat /Volumes/Recovery*/com.apple.boot.?/Library/Preferences/SystemConfiguration/com.apple.Boot.plist 
+# should have root-dmg referring to BaseSystem.dmg (.dmg keeps A_B mounted :)
+
+# Time Machine making an encrypted backup bootable
+sudo mkdir /Volumes/Recovery\ HD/testdir
+sudo "$brtest" copyfiles "/Volumes/Mac OS X Internal Base System" "$fdeos" /BaseSystem.dmg "$fdehelper"/testdir 
+cat /Volumes/Recovery*/testdir/com.apple.Boot.plist 
+# confirm root-dmg + Kernel Cache
+
+# clean up
+df -lh
+# eject Internal System
+diskutil unmount "$fdehelper"
+
+
+-- end TEST --
+
+            setsegname          - /usr/local/bin
+            Create system cache folders     - script
+
+        embedded                - built for the device (no tools ship)?
+            Create system cache folders     - script
+            kextunload
+            kextstat
+
+        embedded-host           - for internal SDK (to build kernel caches)
+            kextcache-embedded-host
+            kextsymboltool-embedded-host
+            setsegname
+-- To TEST --
+# mountebuild.sh
+sudo ditto -v ~rc/Software/$IOSTRAIN/Updates/Current$IOSTRAIN/Roots/MacOSXSDKInternal10_7/ /
+if [ "$kxld_changed" ]; then
+    sudo ~rc/bin/buildit xnu -release "$IOSTRAIN" -project libkxld_host -arch i386 -arch x86_64 -noinstallsrc -noverify -merge /
+fi
+if [ "$kxldAPI_changed" -o "$IOKit_Kext_changed" ]; then
+    sudo ~rc/bin/buildit IOKitUser -release "$IOSTRAIN" -project IOKitUser_host -arch i386 -arch x86_64 -target libkext -noinstallsrc -noverify -merge /
+fi
+# libkxld_host and IOKitUser_host both build static libs that end up in /Developer/SDKs/iPhoneHostSideTools.sparse.sdk/
+sudo ~rc/bin/buildit kext_tools -release "$IOSTRAIN" -project kext_tools_host -arch i386 -arch x86_64 -target embedded-host -noinstallsrc -noverify # -merge /
+# kext_tools_host builds the tools used during development (e.g. kcgen)
+-- end TEST --
+
+
+
+        KextUserAgent           - inactive?
+
+    Build Configurations:
+        Development             - maximal debugging; only build current arch
+        Deployment              - optimized code; will build multiple archs
+(If no build configuration is specified "Deployment" is used by desktop B&I.)
+        Analyze                 - run analyzer on optimized code
+
+A number of Build settings are mirrored amongst these configurations
+(-D__MigTypeCheck=1 anyone?) and should be moved to the top level.
+TESTME_TEXT

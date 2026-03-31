@@ -7,14 +7,6 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #ifdef PLATFORM_IS_POSIX
-#import <Foundation/NSTask_posix.h>
-#import <Foundation/NSRunLoop-InputSource.h>
-#import <Foundation/NSPlatform_posix.h>
-#import <Foundation/NSFileHandle_posix.h>
-#import <Foundation/NSProcessInfo.h>
-#import <Foundation/Foundation.h>
-#import <Foundation/NSRaiseException.h>
-
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
@@ -22,6 +14,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <sys/wait.h>
 #include <signal.h>
 #include <errno.h>
+
+#import <Foundation/NSRunLoop-InputSource.h>
+#import <Foundation/NSPlatform_posix.h>
+#import <Foundation/NSProcessInfo.h>
+#import <Foundation/Foundation.h>
+#import <Foundation/NSRaiseException.h>
+
+#import "NSTask_posix.h"
+#import "NSFileHandle_posix.h"
 
 static NSMutableArray *_liveTasks = nil;
 static BOOL           _taskFinished = NO;

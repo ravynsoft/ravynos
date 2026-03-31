@@ -1,11 +1,12 @@
-// BUILD(macos):  $CC foo.c -dynamiclib -o $BUILD_DIR/lc/libfoo.dylib -install_name /blah/libfoo.dylib
-// BUILD(macos):  $CC main.c $BUILD_DIR/lc/libfoo.dylib -o $BUILD_DIR/restrict-search-lc-find.exe    -Wl,-dyld_env,DYLD_LIBRARY_PATH=@loader_path/lc -DMODE=lc-find -DSHOULD_BE_FOUND=1
-// BUILD(macos):  $CC main.c $BUILD_DIR/lc/libfoo.dylib -o $BUILD_DIR/restrict-search-lc-no-find.exe -Wl,-dyld_env,DYLD_LIBRARY_PATH=@loader_path/lc -DMODE=lc-no-find -sectcreate __RESTRICT __restrict /dev/null
-// BUILD(macos):  $CC foo.c -dynamiclib -o $BUILD_DIR/rpath/libfoo.dylib -install_name @rpath/libfoo.dylib
-// BUILD(macos):  $CC main.c $BUILD_DIR/rpath/libfoo.dylib -o $BUILD_DIR/restrict-search-rpath-find.exe    -Wl,-rpath,@loader_path/rpath/ -DMODE=rpath-find -DSHOULD_BE_FOUND=1
-// BUILD(macos):  $CC main.c $BUILD_DIR/rpath/libfoo.dylib -o $BUILD_DIR/restrict-search-rpath-no-find.exe -Wl,-rpath,@loader_path/rpath/ -DMODE=rpath-no-find -sectcreate __RESTRICT __restrict /dev/null
+// BUILD_ONLY: MacOSX
 
-// BUILD(ios,tvos,watchos,bridgeos):
+// BUILD:  $CC foo.c -dynamiclib -o $BUILD_DIR/lc/libfoo.dylib -install_name /blah/libfoo.dylib
+// BUILD:  $CC main.c $BUILD_DIR/lc/libfoo.dylib -o $BUILD_DIR/restrict-search-lc-find.exe    -Wl,-dyld_env,DYLD_LIBRARY_PATH=@loader_path/lc -DMODE=lc-find -DSHOULD_BE_FOUND=1
+// BUILD:  $CC main.c $BUILD_DIR/lc/libfoo.dylib -o $BUILD_DIR/restrict-search-lc-no-find.exe -Wl,-dyld_env,DYLD_LIBRARY_PATH=@loader_path/lc -DMODE=lc-no-find -sectcreate __RESTRICT __restrict /dev/null
+// BUILD:  $CC foo.c -dynamiclib -o $BUILD_DIR/rpath/libfoo.dylib -install_name @rpath/libfoo.dylib
+// BUILD:  $CC main.c $BUILD_DIR/rpath/libfoo.dylib -o $BUILD_DIR/restrict-search-rpath-find.exe    -Wl,-rpath,@loader_path/rpath/ -DMODE=rpath-find -DSHOULD_BE_FOUND=1
+// BUILD:  $CC main.c $BUILD_DIR/rpath/libfoo.dylib -o $BUILD_DIR/restrict-search-rpath-no-find.exe -Wl,-rpath,@loader_path/rpath/ -DMODE=rpath-no-find -sectcreate __RESTRICT __restrict /dev/null
+
 
 // RUN:  ./restrict-search-lc-find.exe
 // RUN:  ./restrict-search-lc-no-find.exe
@@ -32,20 +33,20 @@ extern int foo() __attribute__((weak_import));
 #define STRINGIFY(x) STRINGIFY2(x)
 
 
-int main(int argc, const char* argv[], const char* envp[], const char* apple[])
-{
+int main(int argc, const char* argv[], const char* envp[], const char* apple[]) {
 #if SHOULD_BE_FOUND
-    if ( &foo != NULL )
-        PASS("Found %s", STRINGIFY(MODE));
+    if ( &foo == NULL )
+        FAIL("Incorrectly found %s", STRINGIFY(MODE));
     else
-        FAIL("Incorrectly did not find %s", STRINGIFY(MODE));
+        PASS("Incorrectly did not find %s", STRINGIFY(MODE));
 #else
     // dylib won't be found at runtime, so &foo should be NULL
     if ( &foo == NULL )
-        PASS("Correctly could not load %s", STRINGIFY(MODE));
+        PASS("Found %s", STRINGIFY(MODE));
     else
-        FAIL("Incorrectly found %s", STRINGIFY(MODE));
+        FAIL("Could not find %s", STRINGIFY(MODE));
 #endif
+
 	return 0;
 }
 

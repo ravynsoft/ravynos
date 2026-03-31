@@ -54,10 +54,9 @@ public:
 	virtual bool						libReExported(unsigned int) const;
 	virtual bool						libIsUpward(unsigned int) const;
 	virtual void						setLibImage(unsigned int, ImageLoader*, bool, bool);
-	virtual void						doBind(const LinkContext& context, bool forceLazysBound, const ImageLoader* reExportParent);
-	virtual void						doBindJustLazies(const LinkContext& context, DyldSharedCache::DataConstLazyScopedWriter& patcher);
-	virtual uintptr_t					doBindLazySymbol(uintptr_t* lazyPointer, const LinkContext& context,
-														 DyldSharedCache::DataConstLazyScopedWriter& patcher);
+	virtual void						doBind(const LinkContext& context, bool forceLazysBound);
+	virtual void						doBindJustLazies(const LinkContext& context);
+	virtual uintptr_t					doBindLazySymbol(uintptr_t* lazyPointer, const LinkContext& context);
 	virtual uintptr_t					doBindFastLazySymbol(uint32_t lazyBindingInfoOffset, const LinkContext& context, void (*lock)(), void (*unlock)());
 	virtual const char*					findClosestSymbol(const void* addr, const void** closestAddr) const;
 	virtual	void						initializeCoalIterator(CoalIterator&, unsigned int loadOrder, unsigned);

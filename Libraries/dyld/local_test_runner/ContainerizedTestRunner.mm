@@ -60,15 +60,15 @@ struct TestInfo
 
 + (void)load {
     for (const TestInfo& info : sTests) {
-        if ( strstr(info.runLine, "run-static") != nullptr ) {
-            [self registerTest:info withEnv:"" andExtensions:"static"];
-        } else {
-            [self registerTest:info withEnv:"DYLD_USE_CLOSURES=0" andExtensions:"dyld2"];
-            [self registerTest:info withEnv:"DYLD_USE_CLOSURES=1" andExtensions:"dyld3"];
-        }
+        [self registerTest:info withEnv:"TEST_DYLD_MODE=2 DYLD_USE_CLOSURES=0" andExtensions:"dyld2"];
+        [self registerTest:info withEnv:"TEST_DYLD_MODE=2 DYLD_USE_CLOSURES=0 DYLD_SHARED_REGION=avoid" andExtensions:"dyld2_nocache"];
+        [self registerTest:info withEnv:"TEST_DYLD_MODE=3 DYLD_USE_CLOSURES=1" andExtensions:"dyld3"];
+        [self registerTest:info withEnv:"TEST_DYLD_MODE=3 DYLD_USE_CLOSURES=1 DYLD_SHARED_REGION=avoid" andExtensions:"dyld3_nocache"];
 #if 0
-        [self registerTest:info withEnv:"DYLD_USE_CLOSURES=0 MallocStackLogging=1 MallocDebugReport=none" andExtensions:"dyld2_leaks"];
-        [self registerTest:info withEnv:"DYLD_USE_CLOSURES=1 MallocStackLogging=1 MallocDebugReport=none" andExtensions:"dyld3_leaks"];
+        [self registerTest:info withEnv:"TEST_DYLD_MODE=2 DYLD_USE_CLOSURES=0 MallocStackLogging=1 MallocDebugReport=none" andExtensions:"dyld2_leaks"];
+        [self registerTest:info withEnv:"TEST_DYLD_MODE=2 DYLD_USE_CLOSURES=0 DYLD_SHARED_REGION=avoid MallocStackLogging=1 MallocDebugReport=none" andExtensions:"dyld2_nocache_leaks"];
+        [self registerTest:info withEnv:"TEST_DYLD_MODE=3 DYLD_USE_CLOSURES=1 MallocStackLogging=1 MallocDebugReport=none" andExtensions:"dyld3_leaks"];
+        [self registerTest:info withEnv:"TEST_DYLD_MODE=3 DYLD_USE_CLOSURES=1 DYLD_SHARED_REGION=avoid MallocStackLogging=1 MallocDebugReport=none" andExtensions:"dyld3_nocache_leaks"];
 #endif
     };
 }
@@ -150,37 +150,24 @@ struct TestInfo
         int exitStatus = WEXITSTATUS(status);
         if (exitStatus != 0) {
             NSString *failure = [NSString stringWithFormat:@"Test exited with return code %d\n%s", exitStatus, command];
-            XCTSourceCodeContext *context = [[XCTSourceCodeContext alloc] initWithLocation:[[XCTSourceCodeLocation alloc] initWithFilePath:@__FILE__ lineNumber:__LINE__]];
-            XCTIssue *issue = [[XCTIssue alloc] initWithType:XCTIssueTypeUncaughtException compactDescription:failure detailedDescription:NULL sourceCodeContext:context associatedError:NULL attachments:[[NSArray alloc] init]];
-            [self recordIssue: issue];
+            [self recordFailureWithDescription:failure inFile:@__FILE__ atLine:__LINE__ expected:NO];
             return;
         }
         if (!output) {
             NSString *failure = [NSString stringWithFormat:@"Test did not write any data to stdout\n%s", command];
-            XCTSourceCodeContext *context = [[XCTSourceCodeContext alloc] initWithLocation:[[XCTSourceCodeLocation alloc] initWithFilePath:@__FILE__ lineNumber:__LINE__]];
-            XCTIssue *issue = [[XCTIssue alloc] initWithType:XCTIssueTypeUncaughtException compactDescription:failure detailedDescription:NULL sourceCodeContext:context associatedError:NULL attachments:[[NSArray alloc] init]];
-            [self recordIssue: issue];
+            [self recordFailureWithDescription:failure inFile:@__FILE__ atLine:__LINE__ expected:NO];
             return;
         }
         NSError *error = nil;
         NSDictionary *dict = [NSPropertyListSerialization propertyListWithData:(NSData *)output options:NSPropertyListImmutable format:nil error:&error];
         if (!dict) {
             NSString *failure = [NSString stringWithFormat:@"Could not convert stdout \"%@\" to property list. Got Error %@\n%s", output, error, command];
-            XCTSourceCodeContext *context = [[XCTSourceCodeContext alloc] initWithLocation:[[XCTSourceCodeLocation alloc] initWithFilePath:@__FILE__ lineNumber:__LINE__]];
-            XCTIssue *issue = [[XCTIssue alloc] initWithType:XCTIssueTypeUncaughtException compactDescription:failure detailedDescription:NULL sourceCodeContext:context associatedError:NULL attachments:[[NSArray alloc] init]];
-            [self recordIssue: issue];
+            [self recordFailureWithDescription:failure inFile:@__FILE__ atLine:__LINE__ expected:NO];
             return;
         }
-
-        if (dict[@"LOGS"]) {
-            NSLog(@"LOGS:\n%@",[NSString stringWithFormat:@"%@\n", dict[@"LOGS"]]);
-        }
-
         if (![dict[@"PASS"] boolValue]) {
             NSString *failure = [NSString stringWithFormat:@"%@\n%s", dict[@"INFO"], command];
-            XCTSourceCodeContext *context = [[XCTSourceCodeContext alloc] initWithLocation:[[XCTSourceCodeLocation alloc] initWithFilePath:dict[@"FILE"] lineNumber:(NSInteger)dict[@"LINE"]]];
-            XCTIssue *issue = [[XCTIssue alloc] initWithType:XCTIssueTypeUncaughtException compactDescription:failure detailedDescription:NULL sourceCodeContext:context associatedError:NULL attachments:[[NSArray alloc] init]];
-            [self recordIssue: issue];
+            [self recordFailureWithDescription:failure inFile:dict[@"FILE"] atLine:[dict[@"LINE"] unsignedIntegerValue] expected:NO];
             return;
         }
     });

@@ -136,7 +136,7 @@
 // Don't export the legacy __basic_string_common class and its methods from the built library.
 #    define _LIBCPP_ABI_DO_NOT_EXPORT_BASIC_STRING_COMMON
 // Don't export the legacy __vector_base_common class and its methods from the built library.
-#    define _LIBCPP_ABI_DO_NOT_EXPORT_VECTOR_BASE_COMMON
+//#    define _LIBCPP_ABI_DO_NOT_EXPORT_VECTOR_BASE_COMMON
 // According to the Standard, `bitset::operator[] const` returns bool
 #    define _LIBCPP_ABI_BITSET_VECTOR_BOOL_CONST_SUBSCRIPT_RETURN_BOOL
 // Fix the implementation of CityHash used for std::hash<fundamental-type>.

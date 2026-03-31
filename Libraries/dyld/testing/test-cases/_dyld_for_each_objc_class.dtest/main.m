@@ -24,8 +24,7 @@
 @end
 
 // Only the main executable has DyldMainClass
-__attribute__((objc_root_class))
-@interface DyldMainClass
+@interface DyldMainClass : NSObject
 @end
 
 @implementation DyldMainClass
@@ -57,19 +56,14 @@ static bool gotDyldClassMain = false;
 static bool gotDyldClassLinked = false;
 static bool gotDyldClassLinked2 = false;
 
-
-static bool objcOptimizedByDyld() {
-    extern const uint32_t objcInfo[]  __asm("section$start$__DATA_CONST$__objc_imageinfo");
-    return (objcInfo[1] & 0x80);
-}
-
-static bool haveDyldCache() {
-    size_t unusedCacheLen;
-    return (_dyld_get_shared_cache_range(&unusedCacheLen) != NULL);
-}
-
 int main(int argc, const char* argv[], const char* envp[], const char* apple[]) {
-   if (!objcOptimizedByDyld() || !haveDyldCache()) {
+  // This API is only available with dyld3 and shared caches.  If we have dyld2 then don't do anything
+  const char* testDyldMode = getenv("TEST_DYLD_MODE");
+  assert(testDyldMode);
+
+  size_t unusedCacheLen;
+  bool haveSharedCache = _dyld_get_shared_cache_range(&unusedCacheLen) != 0;
+  if (!strcmp(testDyldMode, "2") || !haveSharedCache) {
     __block bool sawClass = false;
     _dyld_for_each_objc_class("DyldClass", ^(void* classPtr, bool isLoaded, bool* stop) {
       sawClass = true;
@@ -77,7 +71,7 @@ int main(int argc, const char* argv[], const char* envp[], const char* apple[]) 
     if (sawClass) {
       FAIL("dyld2 shouldn't see any classes");
     }
-    PASS("no shared cache or no dyld optimized objc");
+    PASS("dyld2 or no shared cache)");
   }
 
   // Check that DyldClass comes from liblinked2 as it is last in load order

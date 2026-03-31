@@ -1,1 +1,0 @@
-#include "../tests/testlocale.c"

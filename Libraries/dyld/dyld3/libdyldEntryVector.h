@@ -27,7 +27,6 @@
 #define __DYLD_ENTRY_VECTOR_H__
 
 #include <mach-o/loader.h>
-#include <sys/types.h>
 #include <Availability.h>
 
 #include "Loading.h"
@@ -38,24 +37,21 @@ struct ProgramVars;
 
 namespace dyld3 {
 
-typedef void  (*MainFunc)(void);
 
 struct LibDyldEntryVector
 {
-    enum { kCurrentVectorVersion = 10 };
+    enum { kCurrentVectorVersion = 8 };
     // The 32-bit caches steal bits to make rebase chains, so use 32-bits for the binary format version storage, but mask only some to actually use
     enum { kBinaryFormatVersionMask = 0x00FFFFFF };
 
     uint32_t    vectorVersion;              // should be kCurrentVectorVersion
     uint32_t    binaryFormatVersion;        // should be dyld3::closure::kFormatVersion
-    void        (*setVars)(const mach_header* mainMH, int argc, const char* argv[], const char* envp[], const char* apple[],
-                           bool keysOff, bool platformBinariesOnly, bool enableSharedCacheDataConst);
+    void        (*setVars)(const mach_header* mainMH, int argc, const char* argv[], const char* envp[], const char* apple[]);
     void        (*setHaltFunction)(void (*func)(const char* message) __attribute__((noreturn)) );
     void        (*setOldAllImageInfo)(dyld_all_image_infos*);
     void        (*setInitialImageList)(const closure::LaunchClosure* closure,
-                                       const DyldSharedCache* dyldCacheLoadAddress, const char* dyldCachePath,
-                                       const Array<LoadedImage>& initialImages, LoadedImage& libSystem,
-                                       mach_port_t mach_task_self);
+                                        const DyldSharedCache* dyldCacheLoadAddress, const char* dyldCachePath,
+                                        const Array<LoadedImage>& initialImages, LoadedImage& libSystem);
     void        (*runInitialzersBottomUp)(const mach_header* topImageLoadAddress);
     void        (*startFunc)();
     // added in version 3
@@ -74,12 +70,6 @@ struct LibDyldEntryVector
 
     // added in version 8
     void        (*setProgramVars)(struct ProgramVars* progVars);
-    
-    // added in version 9
-    void        (*setLaunchMode)(uint32_t flags);
-
-    // added in version 10
-    MainFunc    (*getDriverkitMain)(void);
 };
 
 extern const LibDyldEntryVector entryVectorForDyld;

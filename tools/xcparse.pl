@@ -121,7 +121,10 @@ sub writeMakefile {
         my $sourceref = ${targets{$target}}{"sources"};
 
         print "add_library($name STATIC\n";
-        my @files = @{$sources{$sourceref}};
+        my @files;
+        if($sourceref && $sources{$sourceref}) {
+            @files = @{$sources{$sourceref}};
+        }
         foreach my $file (@files) {
             my $path = ${fileopts{$file}}{"path"};
             my $flags = ${fileopts{$file}}{"COMPILE_OPTIONS"};

@@ -212,7 +212,7 @@ Lapple:	ldr	r4, [r3]
 
 
 
-#if __arm64__ && !TARGET_OS_SIMULATOR
+#if __arm64__
 	.text
 	.align 2
 	.globl __dyld_start
@@ -287,7 +287,7 @@ Lapple:	ldr	w4, [x3]
 	br      x16
 #endif
 
-#endif // __arm64__ && !TARGET_OS_SIMULATOR
+#endif // __arm64__
 
 
 // When iOS 10.0 simulator runs on 10.11, abort_with_payload() does not exist,
@@ -297,11 +297,11 @@ Lapple:	ldr	w4, [x3]
 	.align 2
 	.globl	_dyld_fatal_error
 _dyld_fatal_error:
-#if __arm64__ || __arm64e__
-    brk #3
-#else
     int3
-#endif
     nop
 #endif
+
+
+
+
 

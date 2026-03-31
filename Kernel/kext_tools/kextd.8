@@ -1,0 +1,146 @@
+.Dd March 6, 2009 
+.Os Darwin
+.Dt KEXTD 8
+.Sh NAME
+.Nm kextd
+.Nd kernel extension server
+.Sh SYNOPSIS
+.Nm
+.Op Ar options
+.Sh DESCRIPTION
+.Nm
+is the kernel extension server.
+It runs as a standalone
+.Xr launchd 8 daemon to handle requests from the kernel
+and from other user-space processes
+to load kernel extensions (kexts) or provide information about them.
+.Sh OPTIONS
+These options are available:
+.Bl -tag -width -indent
+.It Fl c , Fl no-caches
+Ignore any repository cache files and scan all kext bundles
+to gather information.
+If this option is not given,
+.Nm
+attempts to use cache files and to create them
+if they are out of date or don't exist.
+.It Fl d , Fl debug
+Debug mode; print messages to stdout/stderr rather than
+the system log.
+.It Fl h , Fl help
+Print a help message describing each option flag and exit with a success result,
+regardless of any other options on the command line.
+.It Fl q , Fl quiet
+Quiet mode; log no informational or error messages.
+.It Fl v Li [ 0-6 | 0x#### Ns Li ] , Fl verbose Li [ 0-6 | 0x#### Ns Li ]
+Verbose mode; print information about program operation.
+Higher levels of verbosity include all lower levels.
+By default
+.Nm
+logs at verbose level 1.
+You can specify a level from 0-6,
+or a hexadecimal log specification
+(as described in
+.Xr kext_logging 8 Ns No ).
+The levels of verbose output are:
+.Bl -tag -width "1 (or none)"
+.It 0
+Print only errors (that is, suppress warnings); see also
+.Fl quiet .
+.It 1 (or none)
+Print basic information about program operation.
+.It 2
+Print information about program operation progress, client requests, and files created.
+.It 3
+Print information about individual kexts with an
+OSBundleEnableKextLogging property set to true.
+.It 4
+Print information about spawned child processes.
+.It 5
+Print debug-level information.
+.It 6
+Identical to level 5 but for all kexts read by the program.
+.El
+.Pp
+See
+.Xr kext_logging 8
+for more information on verbose logging.
+.It Fl x , Fl safe-boot
+Run
+.Nm
+in safe boot mode (indicating startup with the Shift key held down).
+Kexts that don't specify a proper value for the OSBundleRequired
+info dictionary property will not be loaded.
+As of Mac OS X 10.5 (Leopard),
+.Nm
+determines from the kernel
+whether the system has started in safe boot mode,
+so this flag is no longer necessary (but may be used for testing).
+In safe boot mode,
+.Nm
+does not use caches
+(that is, this option implies the use of the
+.Fl no-caches
+option).
+.El
+.Sh RESETTING KEXTD
+On Mac OS X 10.3 and later, it is possible to reset
+.Nm
+without terminating and restarting it, by sending it a HUP signal.  This
+causes
+.Nm
+to rescan the Extensions folder, rebuild all its caches,
+and send all I/O Kit drivers' personalities to the kernel
+for a new round of driver matching.
+As of Mac OS X 10.5 (Leopard),
+.Nm
+watches
+.Pa /System/Library/Extensions/
+and automatically invokes
+.Xr kextcache 8
+to rebuild kext caches when its modification time changes.
+It also sends new drivers'
+personalities to the kernel at this time.
+.Pp
+Installers that add new drivers can signal
+.Nm
+in these ways instead of requiring the computer to be restarted.
+Note that if a hardware device has a driver attached when this is done,
+a newly-installed driver will not match on it.
+For more information, see
+.Dq "Apple Developer Technical Q&A QA1319: Installing an I/O Kit Kext Without Rebooting" .
+.Sh FILES
+.Bl -tag -width "/System/Library/Extensions/"
+.It Pa /System/Library/Extensions/
+The standard system repository of kernel extensions.
+.It Pa /System/Library/Caches/com.apple.kext.caches/
+Contains all kext caches for a Mac OS X 10.6 (Snow Leopard) system: prelinked kernel,
+mkext, and system kext info caches.
+.It Pa /usr/standalone/bootcaches.plist
+Describes specific kext cache files for a macOS volume.
+.It Pa /System/Library/LaunchDaemons/com.apple.kextd.plist
+The
+.Xr launchd.plist 5
+controlling the
+.Nm
+job.
+.El
+.Sh DIAGNOSTICS
+.Nm
+normally never exits.
+If an error occurs it exits with a nonzero status.
+.Pp
+.Nm
+logs all error and verbose messages to the system log,
+or to the console if the system log facility isn't available.
+When running in debug mode all output is printed
+to the standard output and error streams.
+.Sh SEE ALSO 
+.Xr kextcache 8 ,
+.Xr kextload 8 ,
+.Xr kextutil 8 ,
+.Xr kextstat 8 ,
+.Xr kextunload 8 ,
+.Xr kextfind 8 ,
+.Xr syslogd 8 ,
+.Xr launchd.plist 5

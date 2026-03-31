@@ -1,7 +1,7 @@
-// BUILD(macos):  $CC main.c  -o $BUILD_DIR/NSCreateObjectFileImageFromFile-basic.exe -Wno-deprecated-declarations
-// BUILD(macos):  $CC foo.c   -o $BUILD_DIR/foo.bundle -bundle
+// BUILD_ONLY: MacOSX
 
-// BUILD(ios,tvos,watchos,bridgeos):
+// BUILD:  $CC main.c  -o $BUILD_DIR/NSCreateObjectFileImageFromFile-basic.exe -Wno-deprecated-declarations
+// BUILD:  $CC foo.c   -o $BUILD_DIR/foo.bundle -bundle
 
 // RUN:  ./NSCreateObjectFileImageFromFile-basic.exe $RUN_DIR/foo.bundle
 

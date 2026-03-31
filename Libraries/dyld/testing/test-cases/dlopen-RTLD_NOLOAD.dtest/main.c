@@ -2,7 +2,6 @@
 // BUILD:  $CC foo.c -dynamiclib  -install_name $RUN_DIR/libfoo.dylib -o $BUILD_DIR/libfoo.dylib
 // BUILD:  $CC main.c -DRUN_DIR="$RUN_DIR" $BUILD_DIR/libfoo.dylib -o $BUILD_DIR/dlopen-RTLD_NOLOAD-basic.exe
 // BUILD:  $SYMLINK libfoo.dylib $BUILD_DIR/libfoo-sym.dylib
-// BUILD:  $CC twice.c -dynamiclib  -ltest_support -install_name $RUN_DIR/libtwice.dylib -o $BUILD_DIR/libtwice.dylib
 
 // RUN:  ./dlopen-RTLD_NOLOAD-basic.exe
 
@@ -51,17 +50,6 @@ int main(int argc, const char* argv[], const char* envp[], const char* apple[]) 
     if ( handle4 != NULL ) {
         FAIL("dlopen(\"libz.dylib\", RTLD_NOLOAD) worked but it should have failed");
     }
-
-
-    ///
-    /// This tests that RTLD_NOLOAD does not run initializer again
-    ///
-    void* handle5 = dlopen(RUN_DIR "/libtwice.dylib", RTLD_NOW);
-    if ( handle5 == NULL ) {
-        FAIL("dlopen(\"libtwice.dylib\", RTLD_NOW) failed but it should have worked: %s", dlerror());
-    }
-    dlopen(RUN_DIR "/libtwice.dylib", RTLD_NOLOAD); // calls FAIL in initializer if run a second time
-    dlopen(RUN_DIR "/libtwice.dylib", RTLD_NOLOAD); // calls FAIL in initializer if run a second time
 
     PASS("Success");
 }

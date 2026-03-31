@@ -1,7 +1,0 @@
-#
-# Some CSKY tests
-#
-
-if {[istarget csky*-*-*]} {
-    run_dump_tests [lsort [glob -nocomplain $srcdir/$subdir/*.d]]
-}

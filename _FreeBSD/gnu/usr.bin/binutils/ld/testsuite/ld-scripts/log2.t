@@ -1,8 +1,0 @@
-ASSERT(LOG2CEIL(0) == 0,      "LOG2CEIL(0) == 0");
-ASSERT(LOG2CEIL(1) == 0,      "LOG2CEIL(1) == 0");
-ASSERT(LOG2CEIL(2) == 1,      "LOG2CEIL(2) == 1");
-ASSERT(LOG2CEIL(3) == 2,      "LOG2CEIL(3) == 2");
-ASSERT(LOG2CEIL(4) == 2,      "LOG2CEIL(4) == 2");
-ASSERT(LOG2CEIL(0x0ff) == 8,  "LOG2CEIL(0x0ff) == 8");
-ASSERT(LOG2CEIL(0x100) == 8,  "LOG2CEIL(0x100) == 8");
-ASSERT(LOG2CEIL(0x1ff) == 9,  "LOG2CEIL(0x1ff) == 9");

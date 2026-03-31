@@ -463,6 +463,12 @@ typedef struct dispatch_queue_specific_head_s {
 #define DISPATCH_WORKLOOP_ATTR_HAS_QOS_CLASS  0x0008u
 #define DISPATCH_WORKLOOP_ATTR_NEEDS_DESTROY  0x0010u
 #define DISPATCH_WORKLOOP_ATTR_HAS_OBSERVERS  0x0020u
+typedef struct dispatch_pthread_root_queue_observer_hooks_s {
+	void (*queue_will_execute)(dispatch_queue_t queue);
+	void (*queue_did_execute)(dispatch_queue_t queue);
+} dispatch_pthread_root_queue_observer_hooks_s;
+typedef dispatch_pthread_root_queue_observer_hooks_s
+		*dispatch_pthread_root_queue_observer_hooks_t;
 typedef struct dispatch_workloop_attr_s *dispatch_workloop_attr_t;
 typedef struct dispatch_workloop_attr_s {
 	uint32_t dwla_flags;
@@ -646,14 +652,6 @@ struct dispatch_queue_static_s {
 struct dispatch_queue_global_s {
 	DISPATCH_QUEUE_ROOT_CLASS_HEADER(lane);
 } DISPATCH_CACHELINE_ALIGN;
-
-
-typedef struct dispatch_pthread_root_queue_observer_hooks_s {
-	void (*queue_will_execute)(dispatch_queue_t queue);
-	void (*queue_did_execute)(dispatch_queue_t queue);
-} dispatch_pthread_root_queue_observer_hooks_s;
-typedef dispatch_pthread_root_queue_observer_hooks_s
-		*dispatch_pthread_root_queue_observer_hooks_t;
 
 #ifdef __APPLE__
 #define DISPATCH_IOHID_SPI 1

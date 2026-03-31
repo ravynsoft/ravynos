@@ -1,1 +1,0 @@
-project('dummy', 'c', 'cpp')

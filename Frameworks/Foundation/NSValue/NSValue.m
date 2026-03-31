@@ -6,16 +6,18 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#include <string.h>
+
 #import <Foundation/NSValue.h>
 #import <Foundation/NSRaise.h>
-#import <Foundation/NSValue_concrete.h>
-#import <Foundation/NSValue_placeholder.h>
 #import <Foundation/NSAutoreleasePool-private.h>
 #import <Foundation/NSObjCRuntime.h>
-#import <Foundation/NSValue_nonRetainedObject.h>
-#import <Foundation/NSValue_pointer.h>
-#import <Foundation/NSData_concrete.h>
-#include <string.h>
+
+#import "NSValue_concrete.h"
+#import "NSValue_placeholder.h"
+#import "NSValue_nonRetainedObject.h"
+#import "NSValue_pointer.h"
+#import "../NSData/NSData_concrete.h"
 
 @implementation NSValue
 

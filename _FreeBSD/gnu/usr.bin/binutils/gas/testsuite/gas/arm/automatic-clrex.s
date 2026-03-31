@@ -1,3 +1,0 @@
-.thumb
-.syntax unified
-clrex

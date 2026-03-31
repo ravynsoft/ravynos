@@ -94,33 +94,6 @@ uint64_t parseRequiredInt(Diagnostics& diags, const Node& node) {
     return atoi(node.value.c_str());
 }
 
-bool parseRequiredBool(Diagnostics& diags, const Node& node) {
-    if (diags.hasError())
-        return false;
-
-    if (!node.array.empty()) {
-        diags.error("Cannot get integer value from array node\n");
-        return false;
-    }
-    if (!node.map.empty()) {
-        diags.error("Cannot get integer value from value node\n");
-        return false;
-    }
-    if (node.value.empty()) {
-        diags.error("Cannot get integer value from empty node\n");
-        return false;
-    }
-
-    if ( (node.value == "true") || (node.value == "1") )
-        return true;
-
-    if ( (node.value == "false") || (node.value == "0") )
-        return false;
-
-    diags.error("Boolean value should be true/false/0/1\n");
-    return false;
-}
-
 const std::string& parseRequiredString(Diagnostics& diags, const Node& node) {
     static std::string sentinelString = "";
 
@@ -195,12 +168,6 @@ Node parseNode(Diagnostics& diags, id jsonObject) {
         return node;
     }
 
-    // NSBoolean -> string
-    if ([jsonObject isKindOfClass:[NSNumber class]]) {
-        node.value = [[(NSNumber*)jsonObject stringValue] UTF8String];
-        return node;
-    }
-
     diags.error("Unknown json deserialized type\n");
     return Node();
 }
@@ -224,18 +191,6 @@ Node readJSON(Diagnostics& diags, const char* filePath) {
     Node node = parseNode(diags, jsonObject);
     [inputStream close];
     return node;
-}
-
-Node readJSON(Diagnostics& diags, const void * contents, size_t length) {
-    NSData* data = [NSData dataWithBytes:contents length:length];
-    NSError* error = nil;
-    id jsonObject = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:&error];
-    if (!jsonObject) {
-        diags.error("Could not deserialize json because '%s'\n", [[error localizedFailureReason] UTF8String]);
-        return Node();
-    }
-
-    return parseNode(diags, jsonObject);
 }
 
 } //namespace json

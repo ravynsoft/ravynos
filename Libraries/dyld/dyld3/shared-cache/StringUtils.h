@@ -82,7 +82,7 @@ inline void putHexByte(uint8_t value, char*& p)
     putHexNibble(value & 0x0F, p);
 }
 
-inline bool hexCharToUInt(const char hexByte, uint8_t& value) {
+inline uint8_t hexCharToUInt(const char hexByte, uint8_t& value) {
     if (hexByte >= '0' && hexByte <= '9') {
         value = hexByte - '0';
         return true;
@@ -122,21 +122,20 @@ inline uint64_t hexToUInt64(const char* startHexByte, const char** endHexByte) {
     return retval;
 }
 
-inline bool hexStringToBytes(const char* hexString, uint8_t buffer[], unsigned bufferMaxSize, unsigned& bufferLenUsed)
-{
-    bufferLenUsed = 0;
-    bool high = true;
-    for (const char* s=hexString; *s != '\0'; ++s) {
-        if ( bufferLenUsed > bufferMaxSize )
-            return false;
+inline bool hexToBytes(const char* startHexByte, uint32_t length, uint8_t buffer[]) {
+    if (startHexByte == nullptr)
+        return false;
+    const char *currentHexByte = startHexByte;
+    for (uint32_t i = 0; i < length; ++i) {
         uint8_t value;
-        if ( !hexCharToUInt(*s, value) )
+        if (!hexCharToUInt(currentHexByte[i], value)) {
             return false;
-        if ( high )
-            buffer[bufferLenUsed] = value << 4;
-        else
-            buffer[bufferLenUsed++] |= value;
-        high = !high;
+        }
+        if (i%2 == 0) {
+            buffer[i/2] = value << 4;
+        } else {
+            buffer[(i-1)/2] |= value;
+        }
     }
     return true;
 }

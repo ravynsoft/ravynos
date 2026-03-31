@@ -1,2 +1,0 @@
-
-file(GENERATE OUTPUT result.txt CONTENT "$<LIST:TRANSFORM,a;b;c,WRONG_ACTION>")

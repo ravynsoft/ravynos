@@ -235,7 +235,7 @@ NSString * const NSNetServicesErrorDomain = @"NSNetServicesErrorDomain";
 
       default:
         if(NSDebugEnabled)
-         NSLog(@"-[%@ %s] Don't know how to handle rrtype <%d>",isa,sel_getName(_cmd),rrtype);
+         NSLog(@"-[%@ %s] Don't know how to handle rrtype <%d>",object_getClass(self),sel_getName(_cmd),rrtype);
         break;
     }
 

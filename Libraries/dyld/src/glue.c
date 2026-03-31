@@ -35,7 +35,6 @@
 #include <stdio.h>
 #include <mach/mach.h>
 #include <mach/mach_time.h>
-#include <mach/mach_traps.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -401,6 +400,29 @@ void* memset(void* b, int c, size_t len)
 }
 
 
+// <rdar://problem/10111032> wrap calls to stat() with check for EAGAIN
+int _ZN4dyld7my_statEPKcP4stat(const char* path, struct stat* buf)
+{
+	int result;
+	do {
+		result = stat(path, buf);
+    } while ((result == -1) && ((errno == EAGAIN) || (errno == EINTR)));
+
+	return result;
+}
+
+// <rdar://problem/13805025> dyld should retry open() if it gets an EGAIN
+int _ZN4dyld7my_openEPKcii(const char* path, int flag, int other)
+{
+	int result;
+	do {
+		result = open(path, flag, other);
+	} while ((result == -1) && ((errno == EAGAIN) || (errno == EINTR)));
+
+	return result;
+}
+
+
 //
 // The dyld in the iOS simulator cannot do syscalls, so it calls back to
 // host dyld.
@@ -408,15 +430,9 @@ void* memset(void* b, int c, size_t len)
 
 #if TARGET_OS_SIMULATOR
 
-int open(const char* path, int oflag, ...) {
-	int retval;
-
-	va_list args;
-	va_start(args, oflag);
-	retval = gSyscallHelpers->open(path, oflag, va_arg(args, int));
-	va_end(args);
-
-	return retval;
+int myopen(const char* path, int oflag, int extra) __asm("_open");
+int myopen(const char* path, int oflag, int extra) {
+	return gSyscallHelpers->open(path, oflag, extra);
 }
 
 int close(int fd) {
@@ -447,26 +463,14 @@ int stat(const char* path, struct stat* buf) {
 	return gSyscallHelpers->stat(path, buf);
 }
 
-int fcntl(int fd, int cmd, ...) {
-        int retval;
-
-        va_list args;
-        va_start(args, cmd);
-        retval = gSyscallHelpers->fcntl(fd, cmd, va_arg(args, void *));
-        va_end(args);
-
-	return retval;
+int myfcntl(int fd, int cmd, void* result) __asm("_fcntl");
+int myfcntl(int fd, int cmd, void* result) {
+	return gSyscallHelpers->fcntl(fd, cmd, result);
 }
 
-int ioctl(int fd, unsigned long request, ...) {
-        int retval;
-
-        va_list args;
-        va_start(args, request);
-        retval = gSyscallHelpers->ioctl(fd, request, va_arg(args, void *));
-        va_end(args);
-
-	return retval;
+int myioctl(int fd, unsigned long request, void* result) __asm("_ioctl");
+int myioctl(int fd, unsigned long request, void* result) {
+	return gSyscallHelpers->ioctl(fd, request, result);
 }
 
 int issetugid() {
@@ -892,21 +896,6 @@ kern_return_t mach_port_destruct(ipc_space_t task, mach_port_name_t name, mach_p
     return KERN_NOT_SUPPORTED;
 }
 
-kern_return_t task_dyld_process_info_notify_get( mach_port_name_array_t names_addr, mach_msg_type_number_t *names_count_addr) {
-    if ( gSyscallHelpers->version >= 14 ) {
-        return gSyscallHelpers->task_dyld_process_info_notify_get(names_addr, names_count_addr);
-    }
-    struct dyld_all_image_infos* imageInfo = (struct dyld_all_image_infos*)(gSyscallHelpers->getProcessInfo());
-    for (int slot=0; slot < DYLD_MAX_PROCESS_INFO_NOTIFY_COUNT; ++slot) {
-        if ( imageInfo->notifyPorts[slot] != 0 ) {
-            // Bump the refs
-            (void)mach_port_mod_refs(mach_task_self(), imageInfo->notifyPorts[slot], MACH_PORT_RIGHT_SEND, 1);
-        }
-    }
-
-    return KERN_NOT_SUPPORTED;
-}
-
 void abort_with_payload(uint32_t reason_namespace, uint64_t reason_code, void* payload, uint32_t payload_size, const char* reason_string, uint64_t reason_flags)
 {
 	if ( gSyscallHelpers->version >= 6 )
@@ -1089,6 +1078,12 @@ void _ZN4dyld20notifyMonitoringDyldEbjPPK11mach_headerPPKc(bool unloading, unsig
         gSyscallHelpers->notifyMonitoringDyld(unloading, imageCount, loadAddresses, imagePaths);
         return;
     }
+#if SUPPORT_HOST_10_11
+    findHostFunctions();
+    for (int slot=0; slot < DYLD_MAX_PROCESS_INFO_NOTIFY_COUNT; ++slot) {
+        notifyMonitoringDyld(unloading, slot, imageCount, loadAddresses, imagePaths);
+    }
+#endif
 }
 
 int* __error(void) {
@@ -1115,8 +1110,6 @@ vm_size_t vm_page_size = 0x1000;
 #if ! TARGET_OS_SIMULATOR
 	#include <mach-o/dyld_process_info.h>
 
-    // <rdar://problem/69456906> dyld should mark _dyld_debugger_notification `noinline`
-    __attribute__ ((noinline))
 	void _dyld_debugger_notification(enum dyld_notify_mode mode, unsigned long count, uint64_t machHeaders[])
 	{
 		// Do nothing.  This exists for the debugger to set a break point on to see what images have been loaded or unloaded.
@@ -1170,6 +1163,3 @@ void uuid_unparse_upper(const uuid_t uu, uuid_string_t out)
              uu[8], uu[9],
              uu[10], uu[11], uu[12], uu[13], uu[14], uu[15]);
 }
-
-
-

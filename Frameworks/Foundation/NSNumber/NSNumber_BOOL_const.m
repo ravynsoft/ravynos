@@ -8,5 +8,5 @@
 
 
 #if defined(__APPLE__)
-#import <Foundation/NSNumber_BOOL_const_impl.h>
+#import "NSNumber_BOOL_const_impl.h"
 #endif

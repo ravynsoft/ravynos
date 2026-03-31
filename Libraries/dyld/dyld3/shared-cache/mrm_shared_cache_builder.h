@@ -42,7 +42,7 @@ enum Platform {
     tvOS                = 3,    // PLATFORM_TVOS
     watchOS             = 4,    // PLATFORM_WATCHOS
     bridgeOS            = 5,    // PLATFORM_BRIDGEOS
-    iOSMac              = 6,    // PLATFORM_MACCATALYST
+    iOSMac              = 6,    // PLATFORM_IOSMAC
     iOS_simulator       = 7,    // PLATFORM_IOSIMULATOR
     tvOS_simulator      = 8,    // PLATFORM_TVOSSIMULATOR
     watchOS_simulator   = 9     // PLATFORM_WATCHOSSIMULATOR
@@ -66,8 +66,7 @@ enum FileFlags
 
     // These are for the order files
     DylibOrderFile                              = 100,
-    DirtyDataOrderFile                          = 101,
-    ObjCOptimizationsFile                       = 102,
+    DirtyDataOrderFile                          = 101
 };
 
 struct BuildOptions_v1
@@ -81,22 +80,6 @@ struct BuildOptions_v1
     uint64_t                                    numArchs;
     bool                                        verboseDiagnostics;
     bool                                        isLocallyBuiltCache;
-};
-
-// This is available when getVersion() returns 1.2 or higher
-struct BuildOptions_v2
-{
-    uint64_t                                    version;                        // Future proofing, set to 2
-    const char *                                updateName;                     // BuildTrain+UpdateNumber
-    const char *                                deviceName;
-    enum Disposition                            disposition;                    // Internal, Customer, etc.
-    enum Platform                               platform;                       // Enum: unknown, macOS, iOS, ...
-    const char **                               archs;
-    uint64_t                                    numArchs;
-    bool                                        verboseDiagnostics;
-    bool                                        isLocallyBuiltCache;
-    // Added in v2
-    bool                                        optimizeForSize;
 };
 
 enum FileBehavior

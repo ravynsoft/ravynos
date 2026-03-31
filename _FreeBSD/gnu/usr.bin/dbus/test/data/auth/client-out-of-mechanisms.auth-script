@@ -1,7 +1,0 @@
-## this tests that tests that the client disconnects when it's out of
-## known mechanisms
-
-CLIENT
-EXPECT_COMMAND AUTH
-SEND 'REJECTED BONGO_MD5'
-EXPECT_STATE NEED_DISCONNECT

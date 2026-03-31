@@ -64,7 +64,7 @@ extern "C" long __stack_chk_guard;
 
 #define LIBSYSTEM_DYLIB_PATH 		  	  "/usr/lib/libSystem.B.dylib"
 #define LIBDYLD_DYLIB_PATH 		  	  "/usr/lib/system/libdyld.dylib"
-#if TARGET_OS_OSX
+#if __MAC_OS_X_VERSION_MIN_REQUIRED
   #define DRIVERKIT_LIBSYSTEM_DYLIB_PATH  "/System/DriverKit/usr/lib/libSystem.dylib"
   #define DRIVERKIT_LIBDYLD_DYLIB_PATH 	  "/System/DriverKit/usr/lib/system/libdyld.dylib"
 #endif
@@ -127,7 +127,7 @@ fSegmentsCount(segCount), fIsSplitSeg(false), fInSharedCache(false),
 
 }
 
-#if TARGET_OS_OSX
+#if __MAC_OS_X_VERSION_MIN_REQUIRED
 static uintptr_t pageAlign(uintptr_t value)
 {
 	return (value + 4095) & (-4096);
@@ -148,6 +148,8 @@ void ImageLoaderMachO::sniffLoadCommands(const macho_header* mh, const char* pat
 
 	const uint32_t cmd_count = mh->ncmds;
 	const uint32_t sizeofcmds = mh->sizeofcmds;
+	if ( sizeofcmds > (MAX_MACH_O_HEADER_AND_LOAD_COMMANDS_SIZE-sizeof(macho_header)) )
+		dyld::throwf("malformed mach-o: load commands size (%u) > %u", sizeofcmds, MAX_MACH_O_HEADER_AND_LOAD_COMMANDS_SIZE);
 	if ( cmd_count > (sizeofcmds/sizeof(load_command)) )
 		dyld::throwf("malformed mach-o: ncmds (%u) too large to fit in sizeofcmds (%u)", cmd_count, sizeofcmds);
 	const struct load_command* const startCmds = (struct load_command*)(((uint8_t*)mh) + sizeof(macho_header));
@@ -195,7 +197,7 @@ void ImageLoaderMachO::sniffLoadCommands(const macho_header* mh, const char* pat
 				break;
 			case LC_SEGMENT_COMMAND:
 				segCmd = (struct macho_segment_command*)cmd;
-#if TARGET_OS_OSX
+#if __MAC_OS_X_VERSION_MIN_REQUIRED
 				// rdar://problem/19617624 allow unmapped segments on OSX (but not iOS)
 				if ( ((segCmd->filesize) > pageAlign(segCmd->vmsize)) && (segCmd->vmsize != 0) )
 #else
@@ -347,7 +349,7 @@ void ImageLoaderMachO::sniffLoadCommands(const macho_header* mh, const char* pat
 					throw "malformed mach-o image: LC_DYSYMTAB size wrong";
 				dynSymbTabCmd = (dysymtab_command*)cmd;
 				break;
-#if TARGET_OS_OSX
+#if __MAC_OS_X_VERSION_MIN_REQUIRED
 			// <rdar://problem/26797345> error when loading iOS Simulator mach-o binary into macOS process
 			case LC_VERSION_MIN_WATCHOS:
 			case LC_VERSION_MIN_TVOS:
@@ -367,7 +369,7 @@ void ImageLoaderMachO::sniffLoadCommands(const macho_header* mh, const char* pat
 	if ( !inCache && (startOfFileSegCmd == NULL) )
 		throw "malformed mach-o image: missing __TEXT segment that maps start of file";
 	// <rdar://problem/13145644> verify every segment does not overlap another segment
-	if ( context.strictMachORequired && !inCache ) {
+	if ( context.strictMachORequired ) {
 		uintptr_t lastFileStart = 0;
 		uintptr_t linkeditFileStart = 0;
 		const struct load_command* cmd1 = startCmds;
@@ -508,7 +510,7 @@ void ImageLoaderMachO::sniffLoadCommands(const macho_header* mh, const char* pat
 			if ( context.strictMachORequired || (symTabCmd->stroff + symTabCmd->strsize > ((linkeditFileOffsetEnd + 4095) & (-4096))) )
 				throw "malformed mach-o image: symbol strings overrun __LINKEDIT";
 		}
-#if TARGET_OS_OSX
+#if __MAC_OS_X_VERSION_MIN_REQUIRED
 		if ( (symTabCmd->symoff % sizeof(void*)) != 0 ) {
 			// <rdar://53723577> allow old malformed plugins in new app
 			if ( sdkVersion((mach_header*)mh) >= DYLD_PACKED_VERSION(10,15,0) )
@@ -670,7 +672,7 @@ void ImageLoaderMachO::parseLoadCmds(const LinkContext& context)
 	for(unsigned int i=0; i < fSegmentsCount; ++i) {
 		// set up pointer to __LINKEDIT segment
 		if ( strcmp(segName(i),"__LINKEDIT") == 0 ) {
-	#if !TARGET_OS_OSX
+	#if !__MAC_OS_X_VERSION_MIN_REQUIRED
 			// <rdar://problem/42419336> historically, macOS never did this check
 			if ( segFileOffset(i) > fCoveredCodeLength )
 				dyld::throwf("cannot load '%s' (segment outside of code signature)", this->getShortName());
@@ -761,7 +763,7 @@ void ImageLoaderMachO::parseLoadCmds(const LinkContext& context)
 				{
 					const struct macho_segment_command* seg = (struct macho_segment_command*)cmd;
 					const bool isTextSeg = (strcmp(seg->segname, "__TEXT") == 0);
-		#if __i386__ && TARGET_OS_OSX
+		#if __i386__ && __MAC_OS_X_VERSION_MIN_REQUIRED
 					const bool isObjCSeg = (strcmp(seg->segname, "__OBJC") == 0);
 					if ( isObjCSeg )
 						fNotifyObjC = true;
@@ -785,7 +787,7 @@ void ImageLoaderMachO::parseLoadCmds(const LinkContext& context)
 						else if ( isTextSeg && (strcmp(sect->sectname, "__unwind_info") == 0) )
 							fUnwindInfoSectionOffset = (uint32_t)((uint8_t*)sect - fMachOData);
 
-		#if __i386__ && TARGET_OS_OSX
+		#if __i386__ && __MAC_OS_X_VERSION_MIN_REQUIRED
 						else if ( isObjCSeg ) {
 							if ( strcmp(sect->sectname, "__image_info") == 0 ) {
 								const uint32_t* imageInfo = (uint32_t*)(sect->addr + fSlide);
@@ -799,7 +801,7 @@ void ImageLoaderMachO::parseLoadCmds(const LinkContext& context)
 						}
 		#else
 						else if ( isDataSeg && (strncmp(sect->sectname, "__objc_imageinfo", 16) == 0) ) {
-			#if TARGET_OS_OSX
+			#if __MAC_OS_X_VERSION_MIN_REQUIRED
 							const uint32_t* imageInfo = (uint32_t*)(sect->addr + fSlide);
 							uint32_t flags = imageInfo[1];
 							if ( (flags & 4) && (((macho_header*)fMachOData)->filetype != MH_EXECUTE) )
@@ -1137,7 +1139,7 @@ void ImageLoaderMachO::loadCodeSignature(const struct linkedit_data_command* cod
 		disableCoverageCheck();
 	}
 	else {
-#if TARGET_OS_OSX
+#if __MAC_OS_X_VERSION_MIN_REQUIRED
 		// <rdar://problem/13622786> ignore code signatures in binaries built with pre-10.9 tools
 		if ( this->sdkVersion() < DYLD_PACKED_VERSION(10,9,0) ) {
 			disableCoverageCheck();
@@ -1189,7 +1191,7 @@ void ImageLoaderMachO::loadCodeSignature(const struct linkedit_data_command* cod
 
 void ImageLoaderMachO::validateFirstPages(const struct linkedit_data_command* codeSigCmd, int fd, const uint8_t *fileData, size_t lenFileData, off_t offsetInFat, const LinkContext& context)
 {
-#if TARGET_OS_OSX
+#if __MAC_OS_X_VERSION_MIN_REQUIRED
 	// rdar://problem/21839703> 15A226d: dyld crashes in mageLoaderMachO::validateFirstPages during dlopen() after encountering an mmap failure
 	// We need to ignore older code signatures because they will be bad.
 	if ( this->sdkVersion() < DYLD_PACKED_VERSION(10,9,0) ) {
@@ -1344,13 +1346,8 @@ void* ImageLoaderMachO::getEntryFromLC_MAIN() const
 			entry_point_command* mainCmd = (entry_point_command*)cmd;
 			void* entry = (void*)(mainCmd->entryoff + (char*)fMachOData);
 			// <rdar://problem/8543820&9228031> verify entry point is in image
-			if ( this->containsAddress(entry) ) {
-#if __has_feature(ptrauth_calls)
-				// start() calls the result pointer as a function pointer so we need to sign it.
-				return __builtin_ptrauth_sign_unauthenticated(entry, 0, 0);
-#endif
+			if ( this->containsAddress(entry) )
 				return entry;
-			}
 			else
 				throw "LC_MAIN entryoff is out of range";
 		}
@@ -1376,6 +1373,13 @@ void* ImageLoaderMachO::getEntryFromLC_UNIXTHREAD() const
 	#elif __x86_64__
 			const x86_thread_state64_t* registers = (x86_thread_state64_t*)(((char*)cmd) + 16);
 			void* entry = (void*)(registers->rip + fSlide);
+			// <rdar://problem/8543820&9228031> verify entry point is in image
+			if ( this->containsAddress(entry) )
+				return entry;
+	#elif __arm64__ && !__arm64e__
+			// temp support until <rdar://39514191> is fixed
+			const uint64_t* regs64 = (uint64_t*)(((char*)cmd) + 16);
+			void* entry = (void*)(regs64[32] + fSlide); // arm_thread_state64_t.__pc
 			// <rdar://problem/8543820&9228031> verify entry point is in image
 			if ( this->containsAddress(entry) )
 				return entry;
@@ -1411,9 +1415,10 @@ bool ImageLoaderMachO::needsAddedLibSystemDepency(unsigned int libCount, const m
 				{
 				const dylib_command* dylibID = (dylib_command*)cmd;
 				const char* installPath = (char*)cmd + dylibID->dylib.name.offset;
-				// It is OK for OS dylibs (libSystem or libmath) to have no dependents
+				// It is OK for OS dylibs (libSystem or libmath or Rosetta shims) to have no dependents
 				// but all other dylibs must depend on libSystem for initialization to initialize libSystem first
-				isNonOSdylib = ( (strncmp(installPath, "/usr/lib/", 9) != 0) && (strncmp(installPath, "/System/DriverKit/usr/lib/", 26) != 0) );
+				// <rdar://problem/6497528> rosetta circular dependency spew
+				isNonOSdylib = ( (strncmp(installPath, "/usr/lib/", 9) != 0) && (strncmp(installPath, "/System/DriverKit/usr/lib/", 26) != 0) && (strncmp(installPath, "/usr/libexec/oah/Shims", 9) != 0) );
 				// if (isNonOSdylib) dyld::log("ImageLoaderMachO::needsAddedLibSystemDepency(%s)\n", installPath);
 				}
 				break;
@@ -1539,7 +1544,7 @@ void ImageLoaderMachO::getRPaths(const LinkContext& context, std::vector<const c
 						strlcpy(newPath, *rp, PATH_MAX);
 						strlcat(newPath, path, PATH_MAX);
 						struct stat stat_buf;
-						if ( dyld3::stat(newPath, &stat_buf) != -1 ) {
+						if ( stat(newPath, &stat_buf) != -1 ) {
 							// dyld::log("combined DYLD_ROOT_PATH and LC_RPATH: %s\n", newPath);
 							paths.push_back(strdup(newPath));
 						}
@@ -2074,7 +2079,7 @@ extern "C" int _dyld_func_lookup(const char* name, void** address);
 
 static const char* libDyldPath(const ImageLoader::LinkContext& context)
 {
-#if TARGET_OS_OSX
+#if __MAC_OS_X_VERSION_MIN_REQUIRED
 	if ( context.driverKit )
 		return DRIVERKIT_LIBDYLD_DYLIB_PATH;
 	else
@@ -2277,7 +2282,7 @@ void ImageLoaderMachO::doImageInit(const LinkContext& context)
 
 static const char* libSystemPath(const ImageLoader::LinkContext& context)
 {
-#if TARGET_OS_OSX
+#if __MAC_OS_X_VERSION_MIN_REQUIRED
 	if ( context.driverKit )
 		return DRIVERKIT_LIBSYSTEM_DYLIB_PATH;
 	else
@@ -2489,13 +2494,13 @@ void ImageLoaderMachO::printStatisticsDetails(unsigned int imageCount, const Ini
 	dyld::log("total images using weak symbols:  %u\n", fgImagesRequiringCoalescing);
 }
 
-intptr_t ImageLoaderMachO::assignSegmentAddresses(const LinkContext& context, size_t extraAllocationSize)
+
+intptr_t ImageLoaderMachO::assignSegmentAddresses(const LinkContext& context)
 {
 	// preflight and calculate slide if needed
 	const bool inPIE = (fgNextPIEDylibAddress != 0);
 	intptr_t slide = 0;
 	if ( this->segmentsCanSlide() && this->segmentsMustSlideTogether() ) {
-		intptr_t segmentReAlignSlide = 0;
 		bool needsToSlide = false;
 		bool imageHasPreferredLoadAddress = segHasPreferredLoadAddress(0);
 		uintptr_t lowAddr = (unsigned long)(-1);
@@ -2513,53 +2518,22 @@ intptr_t ImageLoaderMachO::assignSegmentAddresses(const LinkContext& context, si
 				lowAddr = segLow;
 			if ( segHigh > highAddr )
 				highAddr = segHigh;
-
-#if defined(__x86_64__) && !TARGET_OS_SIMULATOR
-			// For Cambria on Aruba systems (16k page size), realign the image so the first segment ends on a 16k boundry.
-			// FIXME: this can be removed when Aruba dev systems are no longer supported.
-			if ( dyld::isTranslated() && vm_page_size == 0x4000 && i == 0 && segLow == 0 ) {
-				const uintptr_t segHighPageOffset = segHigh & vm_page_mask;
-				if ( segHighPageOffset > 0 ) {
-					// Adjust the slide to make the first segment end on a page boundry.
-					needsToSlide = true;
-					segmentReAlignSlide = vm_page_size - segHighPageOffset;
-
-					if (context.verboseMapping) {
-						dyld::log("dyld: Image %s first segment(%s) does not end on a page boundry [0x%lx, 0x%lx) adding 0x%lx to slide to realign\n", getPath(), segName(i), segLow, segHigh, segmentReAlignSlide);
-					}
-				}
-			}
-#endif
+				
 			if ( needsToSlide || !imageHasPreferredLoadAddress || inPIE || !reserveAddressRange(segPreferredLoadAddress(i), segSize(i)) )
 				needsToSlide = true;
 		}
 		if ( needsToSlide ) {
 			// find a chunk of address space to hold all segments
-			size_t size = highAddr-lowAddr+segmentReAlignSlide;
-			uintptr_t addr = reserveAnAddressRange(size+extraAllocationSize, context);
-			slide = addr - lowAddr + segmentReAlignSlide;
-		} else if ( extraAllocationSize ) {
-			if (!reserveAddressRange(highAddr, extraAllocationSize)) {
-				throw "failed to reserve space for aot";
-			}
+			uintptr_t addr = reserveAnAddressRange(highAddr-lowAddr, context);
+			slide = addr - lowAddr;
 		}
 	} 
 	else if ( ! this->segmentsCanSlide() ) {
-		uintptr_t highAddr = 0;
 		for(unsigned int i=0, e=segmentCount(); i < e; ++i) {
-			const uintptr_t segLow = segPreferredLoadAddress(i);
-			const uintptr_t segHigh = dyld_page_round(segLow + segSize(i));
-
-			if ( segHigh > highAddr )
-				highAddr = segHigh;
-
 			if ( (strcmp(segName(i), "__PAGEZERO") == 0) && (segFileSize(i) == 0) && (segPreferredLoadAddress(i) == 0) )
 				continue;
 			if ( !reserveAddressRange(segPreferredLoadAddress(i), segSize(i)) )
 				dyld::throwf("can't map unslidable segment %s to 0x%lX with size 0x%lX", segName(i), segPreferredLoadAddress(i), segSize(i));
-		}
-		if (extraAllocationSize) {
-			dyld::throwf("binaries with non-slidable segments don't support aot: %s", this->getPath());
 		}
 	}
 	else {
@@ -2602,23 +2576,12 @@ bool ImageLoaderMachO::reserveAddressRange(uintptr_t start, size_t length)
 	return true;
 }
 
+
+
 void ImageLoaderMachO::mapSegments(int fd, uint64_t offsetInFat, uint64_t lenInFat, uint64_t fileLen, const LinkContext& context)
 {
-	uint64_t extra_allocation_size = 0;
-
-#if defined(__x86_64__) && !TARGET_OS_SIMULATOR
-	if (dyld::isTranslated()) {
-		fAotPath = new char[PATH_MAX];
-		int ret = syscall(0x7000001, fd, this->getPath(), &extra_allocation_size, fAotPath, PATH_MAX);
-		if (ret != 0) {
-			delete fAotPath;
-			fAotPath = nullptr;
-		}
-	}
-#endif
-
 	// find address range for image
-	intptr_t slide = this->assignSegmentAddresses(context, extra_allocation_size);
+	intptr_t slide = this->assignSegmentAddresses(context);
 	if ( context.verboseMapping ) {
 		if ( offsetInFat != 0 )
 			dyld::log("dyld: Mapping %s (slice offset=%llu)\n", this->getPath(), (unsigned long long)offsetInFat);
@@ -2636,24 +2599,10 @@ void ImageLoaderMachO::mapSegments(int fd, uint64_t offsetInFat, uint64_t lenInF
 		dyld::log("dyld: Speculatively read offset=0x%08llX, len=0x%08llX, path=%s\n", offsetInFat, lenInFat, this->getPath());
 
 	// map in all segments
-	uintptr_t baseAddress = (unsigned long)(-1);
-	uintptr_t endAddress = 0;
-	uintptr_t mappedMachHeaderAddress = 0;
 	for(unsigned int i=0, e=segmentCount(); i < e; ++i) {
 		vm_offset_t fileOffset = (vm_offset_t)(segFileOffset(i) + offsetInFat);
 		vm_size_t size = segFileSize(i);
 		uintptr_t requestedLoadAddress = segPreferredLoadAddress(i) + slide;
-		const uintptr_t segmentEnd = dyld_page_round(requestedLoadAddress + segSize(i));
-
-		if ( requestedLoadAddress < baseAddress )
-			baseAddress = requestedLoadAddress;
-		if ( segmentEnd > endAddress )
-			endAddress = segmentEnd;
-
-		if (segFileOffset(i) == 0 && segFileSize(i) != 0) {
-			mappedMachHeaderAddress = requestedLoadAddress;
-		}
-
 		int protection = 0;
 		if ( !segUnaccessible(i) ) {
 			if ( segExecutable(i) )
@@ -2700,24 +2649,6 @@ void ImageLoaderMachO::mapSegments(int fd, uint64_t offsetInFat, uint64_t lenInF
 				(protection & PROT_READ) ? 'r' : '.',  (protection & PROT_WRITE) ? 'w' : '.',  (protection & PROT_EXEC) ? 'x' : '.' );
 	}
 
-#if defined(__x86_64__) && !TARGET_OS_SIMULATOR
-	if (dyld::isTranslated() && extra_allocation_size != 0) {
-		const struct mach_header* aot_load_address;
-		dyld_aot_image_info aot_image_info = {};
-		int ret = syscall(0x7000002, this->getPath(), mappedMachHeaderAddress, endAddress, &aot_load_address, &aot_image_info.aotImageSize, aot_image_info.aotImageKey);
-		if (ret == 0) {
-			extern void addAotImagesToAllAotImages(uint32_t aotInfoCount, const dyld_aot_image_info aotInfo[]);
-
-			// fill in the aot load address, at this point the cambria trap has filled in
-			// the image size and image key fields
-			aot_image_info.aotLoadAddress = aot_load_address;
-			aot_image_info.x86LoadAddress = (struct mach_header*)baseAddress;
-
-			addAotImagesToAllAotImages(1, &aot_image_info);
-		}
-	}
-#endif
-
 	// update slide to reflect load location			
 	this->setSlide(slide);
 }
@@ -2725,7 +2656,7 @@ void ImageLoaderMachO::mapSegments(int fd, uint64_t offsetInFat, uint64_t lenInF
 void ImageLoaderMachO::mapSegments(const void* memoryImage, uint64_t imageLen, const LinkContext& context)
 {
 	// find address range for image
-	intptr_t slide = this->assignSegmentAddresses(context, 0);
+	intptr_t slide = this->assignSegmentAddresses(context);
 	if ( context.verboseMapping )
 		dyld::log("dyld: Mapping memory %p\n", memoryImage);
 	// map in all segments
@@ -2743,52 +2674,24 @@ void ImageLoaderMachO::mapSegments(const void* memoryImage, uint64_t imageLen, c
 	this->setSlide(slide);
 	// set R/W permissions on all segments at slide location
 	for(unsigned int i=0, e=segmentCount(); i < e; ++i) {
-		segProtect(i, context);
+		segProtect(i, context);		
 	}
-}
-
-static vm_prot_t protectionForSegIndex(const ImageLoaderMachO* image, unsigned int segIndex)
-{
-	if ( image->segUnaccessible(segIndex) )
-		return 0;
-	vm_prot_t protection = 0;
-	if ( image->segExecutable(segIndex) )
-		protection |= PROT_EXEC;
-	if ( image->segReadable(segIndex) )
-		protection |= PROT_READ;
-	if ( image->segWriteable(segIndex) )
-		protection |= PROT_WRITE;
-	return protection;
 }
 
 
 void ImageLoaderMachO::segProtect(unsigned int segIndex, const ImageLoader::LinkContext& context)
 {
-	vm_prot_t protection = protectionForSegIndex(this, segIndex);
+	vm_prot_t protection = 0;
+	if ( !segUnaccessible(segIndex) ) {
+		if ( segExecutable(segIndex) )
+			protection   |= PROT_EXEC;
+		if ( segReadable(segIndex) )
+			protection   |= PROT_READ;
+		if ( segWriteable(segIndex) )
+			protection   |= PROT_WRITE;
+	}
 	vm_address_t addr = segActualLoadAddress(segIndex);
 	vm_size_t size = segSize(segIndex);
-
-#if defined(__x86_64__) && !TARGET_OS_SIMULATOR
-	if ( dyld::isTranslated() ) {
-		// <rdar://problem/60543794> can't vm_protect non-16KB segments
-		if ( (segIndex > 0) && ((addr & 0x3FFF) != 0) ) {
-			// overlaps previous segment
-			vm_prot_t prevProt = protectionForSegIndex(this, segIndex-1);
-			if ( (protection & prevProt) != prevProt ) {
-				// previous had more bits, so we need to not apply new permissions to the overlap
-				vm_size_t overlap = 0x4000 - (addr & 0x3FFF);
-				addr += overlap;
-				if ( size >= overlap )
-					size -= overlap;
-				else if ( size < overlap )
-					size = 0;
-			}
-			if ( size == 0 )
-				return;
-		}
-	}
-#endif
-
 	const bool setCurrentPermissions = false;
 	kern_return_t r = vm_protect(mach_task_self(), addr, size, setCurrentPermissions, protection);
 	if ( r != KERN_SUCCESS ) {

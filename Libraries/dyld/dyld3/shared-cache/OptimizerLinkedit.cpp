@@ -53,12 +53,7 @@ class SortedStringPool
 public:
     // add a string and symbol table entry index to be updated later
     void add(uint32_t symbolIndex, const char* symbolName) {
-        _map[symbolName].push_back({ symbolIndex, false });
-    }
-
-    // add a string and symbol table entry index to be updated later
-    void addIndirect(uint32_t symbolIndex, const char* symbolName) {
-        _map[symbolName].push_back({ symbolIndex, true });
+        _map[symbolName].push_back(symbolIndex);
     }
 
     // copy sorted strings to buffer and update all symbol's string offsets
@@ -71,13 +66,8 @@ public:
             // append string to pool
             strcpy(&dstStringPool[poolOffset], symName.c_str());
             //  set each string offset of each symbol using it
-            for (std::pair<uint32_t, bool> symbolIndexAndIndirect : entry.second) {
-                if ( symbolIndexAndIndirect.second ) {
-                    // Indirect
-                    symbolTable[symbolIndexAndIndirect.first].set_n_value(poolOffset);
-                } else {
-                    symbolTable[symbolIndexAndIndirect.first].set_n_strx(poolOffset);
-                }
+            for (uint32_t symbolIndex : entry.second) {
+                symbolTable[symbolIndex].set_n_strx(poolOffset);
             }
             poolOffset += symName.size() + 1;
         }
@@ -95,7 +85,7 @@ public:
 
 
 private:
-    std::map<std::string, std::vector<std::pair<uint32_t, bool>>> _map;
+    std::map<std::string, std::vector<uint32_t>> _map;
 };
 
 
@@ -113,12 +103,11 @@ struct LocalSymbolInfo
 template <typename P>
 class LinkeditOptimizer {
 public:
-                    LinkeditOptimizer(const void* containerBuffer, macho_header<P>* mh, const char* dylibID,
-                                      Diagnostics& diag);
+                    LinkeditOptimizer(void* cacheBuffer, macho_header<P>* mh, Diagnostics& diag);
 
     uint32_t        linkeditSize() { return _linkeditSize; }
     uint64_t        linkeditAddr() { return _linkeditAddr; }
-    const char*     dylibID() { return _dylibID; }
+    const char*     installName() { return _installName; }
     void            copyWeakBindingInfo(uint8_t* newLinkEditContent, uint32_t& offset);
     void            copyLazyBindingInfo(uint8_t* newLinkEditContent, uint32_t& offset);
     void            copyBindingInfo(uint8_t* newLinkEditContent, uint32_t& offset);
@@ -135,9 +124,6 @@ public:
                                        uint32_t sharedSymbolTableStartOffset, uint32_t sharedSymbolTableCount,
                                        uint32_t sharedSymbolStringsOffset, uint32_t sharedSymbolStringsSize);
 
-    typedef CacheBuilder::DylibStripMode DylibStripMode;
-    void            setStripMode(DylibStripMode stripMode);
-
     macho_header<P>*                        machHeader() { return _mh; }
     const std::vector<const char*>          getDownwardDependents() { return _downDependentPaths; }
     const std::vector<const char*>          getAllDependents() { return _allDependentPaths; }
@@ -152,11 +138,8 @@ public:
     const std::vector<macho_segment_command<P>*>&  segCmds() { return _segCmds; }
 
 
-    static void optimizeLinkedit(CacheBuilder& builder, const void* containerBuffer,
-                                 CacheBuilder::UnmappedRegion* localSymbolsRegion,
-                                 const std::vector<std::tuple<const mach_header*, const char*, DylibStripMode>>& images);
-    static void mergeLinkedits(CacheBuilder& builder, CacheBuilder::UnmappedRegion* localSymbolsRegion,
-                               std::vector<LinkeditOptimizer<P>*>& optimizers);
+    static void optimizeLinkedit(CacheBuilder& builder);
+    static void mergeLinkedits(CacheBuilder& builder, std::vector<LinkeditOptimizer<P>*>& optimizers);
 
 private:
 
@@ -164,12 +147,12 @@ private:
     typedef typename P::E E;
 
     macho_header<P>*                        _mh;
-    const void*                             _containerBuffer;
+    void*                                   _cacheBuffer;
     Diagnostics&                            _diagnostics;
     uint32_t                                _linkeditSize        = 0;
     uint64_t                                _linkeditAddr        = 0;
     const uint8_t*                          _linkeditBias       = nullptr;
-    const char*                             _dylibID            = nullptr;
+    const char*                             _installName        = nullptr;
     macho_symtab_command<P>*                _symTabCmd          = nullptr;
     macho_dysymtab_command<P>*              _dynSymTabCmd       = nullptr;
     macho_dyld_info_command<P>*             _dyldInfo           = nullptr;
@@ -199,14 +182,13 @@ private:
     uint32_t                                _newDataInCodeOffset            = 0;
     uint32_t                                _newIndirectSymbolTableOffset   = 0;
     uint64_t                                _dyldSectionAddr                = 0;
-    DylibStripMode                          _stripMode                 = DylibStripMode::stripAll;
 };
 
 
+
 template <typename P>
-LinkeditOptimizer<P>::LinkeditOptimizer(const void* containerBuffer, macho_header<P>* mh,
-                                        const char* dylibID, Diagnostics& diag)
-: _mh(mh), _dylibID(dylibID), _containerBuffer(containerBuffer), _diagnostics(diag)
+LinkeditOptimizer<P>::LinkeditOptimizer(void* cacheBuffer, macho_header<P>* mh, Diagnostics& diag)
+: _mh(mh), _cacheBuffer(cacheBuffer), _diagnostics(diag)
 {
     const unsigned origLoadCommandsSize = mh->sizeofcmds();
     unsigned bytesRemaining = origLoadCommandsSize;
@@ -222,6 +204,9 @@ LinkeditOptimizer<P>::LinkeditOptimizer(const void* containerBuffer, macho_heade
     for (uint32_t i = 0; i < cmdCount; ++i) {
         bool remove = false;
         switch (cmd->cmd()) {
+            case LC_ID_DYLIB:
+                _installName = ((macho_dylib_command<P>*)cmd)->name();
+                break;
             case LC_SYMTAB:
                 _symTabCmd = (macho_symtab_command<P>*)cmd;
                 break;
@@ -322,11 +307,6 @@ LinkeditOptimizer<P>::LinkeditOptimizer(const void* containerBuffer, macho_heade
     // update header
     mh->set_ncmds(cmdCount - removedCount);
     mh->set_sizeofcmds(origLoadCommandsSize - bytesRemaining);
-}
-
-template <typename P>
-void LinkeditOptimizer<P>::setStripMode(DylibStripMode stripMode) {
-    _stripMode = stripMode;
 }
 
 /*
@@ -432,22 +412,20 @@ void LinkeditOptimizer<P>::updateLoadCommands(uint32_t mergedLinkeditStartOffset
     _symTabCmd->set_strsize(sharedSymbolStringsSize);
 
     // update dynamic symbol table to have proper offsets into shared symbol table
-    if ( _dynSymTabCmd != nullptr ) {
-        _dynSymTabCmd->set_ilocalsym(0);
-        _dynSymTabCmd->set_nlocalsym(_newLocalSymbolCount);
-        _dynSymTabCmd->set_iextdefsym(_newExportedSymbolsStartIndex-_newLocalSymbolsStartIndex);
-        _dynSymTabCmd->set_nextdefsym(_newExportedSymbolCount);
-        _dynSymTabCmd->set_iundefsym(_newImportedSymbolsStartIndex-_newLocalSymbolsStartIndex);
-        _dynSymTabCmd->set_nundefsym(_newImportedSymbolCount);
-        _dynSymTabCmd->set_tocoff(0);
-        _dynSymTabCmd->set_ntoc(0);
-        _dynSymTabCmd->set_modtaboff(0);
-        _dynSymTabCmd->set_nmodtab(0);
-        _dynSymTabCmd->set_indirectsymoff(mergedLinkeditStartOffset + _newIndirectSymbolTableOffset);
-        _dynSymTabCmd->set_extreloff(0);
-        _dynSymTabCmd->set_locreloff(0);
-        _dynSymTabCmd->set_nlocrel(0);
-    }
+    _dynSymTabCmd->set_ilocalsym(0);
+    _dynSymTabCmd->set_nlocalsym(_newLocalSymbolCount);
+    _dynSymTabCmd->set_iextdefsym(_newExportedSymbolsStartIndex-_newLocalSymbolsStartIndex);
+    _dynSymTabCmd->set_nextdefsym(_newExportedSymbolCount);
+    _dynSymTabCmd->set_iundefsym(_newImportedSymbolsStartIndex-_newLocalSymbolsStartIndex);
+    _dynSymTabCmd->set_nundefsym(_newImportedSymbolCount);
+    _dynSymTabCmd->set_tocoff(0);
+    _dynSymTabCmd->set_ntoc(0);
+    _dynSymTabCmd->set_modtaboff(0);
+    _dynSymTabCmd->set_nmodtab(0);
+    _dynSymTabCmd->set_indirectsymoff(mergedLinkeditStartOffset + _newIndirectSymbolTableOffset);
+    _dynSymTabCmd->set_extreloff(0);
+    _dynSymTabCmd->set_locreloff(0);
+    _dynSymTabCmd->set_nlocrel(0);
 
     // update dyld info
     if ( _dyldInfo != nullptr ) {
@@ -555,27 +533,11 @@ void LinkeditOptimizer<P>::copyLocalSymbols(uint8_t* newLinkEditContent, SortedS
                                             bool redact, std::vector<LocalSymbolInfo>& localSymbolInfos,
                                             std::vector<macho_nlist<P>>& unmappedLocalSymbols, SortedStringPool<P>& localSymbolsStringPool)
 {
-    localSymbolInfos.push_back(LocalSymbolInfo());
-
-    LocalSymbolInfo& localInfo = localSymbolInfos.back();
-    localInfo.dylibOffset = (uint32_t)(((uint8_t*)_mh) - (uint8_t*)_containerBuffer);
+    LocalSymbolInfo localInfo;
+    localInfo.dylibOffset = (uint32_t)(((uint8_t*)_mh) - (uint8_t*)_cacheBuffer);
     localInfo.nlistStartIndex = (uint32_t)unmappedLocalSymbols.size();
     localInfo.nlistCount = 0;
     _newLocalSymbolsStartIndex = symbolIndex;
-    _newLocalSymbolCount = 0;
-
-    switch (_stripMode) {
-        case CacheBuilder::DylibStripMode::stripNone:
-        case CacheBuilder::DylibStripMode::stripExports:
-            break;
-        case CacheBuilder::DylibStripMode::stripLocals:
-        case CacheBuilder::DylibStripMode::stripAll:
-            return;
-    }
-
-    if ( _dynSymTabCmd == nullptr )
-        return;
-
     const char* strings = (char*)&_linkeditBias[_symTabCmd->stroff()];
     const macho_nlist<P>* const symbolTable = (macho_nlist<P>*)(&_linkeditBias[_symTabCmd->symoff()]);
     const macho_nlist<P>* const firstExport = &symbolTable[_dynSymTabCmd->ilocalsym()];
@@ -608,6 +570,7 @@ void LinkeditOptimizer<P>::copyLocalSymbols(uint8_t* newLinkEditContent, SortedS
     }
     _newLocalSymbolCount = symbolIndex - _newLocalSymbolsStartIndex;
     localInfo.nlistCount = (uint32_t)unmappedLocalSymbols.size() - localInfo.nlistStartIndex;
+    localSymbolInfos.push_back(localInfo);
 }
 
 
@@ -615,20 +578,6 @@ template <typename P>
 void LinkeditOptimizer<P>::copyExportedSymbols(uint8_t* newLinkEditContent, SortedStringPool<P>& stringPool, uint32_t& offset, uint32_t& symbolIndex)
 {
     _newExportedSymbolsStartIndex = symbolIndex;
-    _newExportedSymbolCount = 0;
-
-    switch (_stripMode) {
-        case CacheBuilder::DylibStripMode::stripNone:
-        case CacheBuilder::DylibStripMode::stripLocals:
-            break;
-        case CacheBuilder::DylibStripMode::stripExports:
-        case CacheBuilder::DylibStripMode::stripAll:
-            return;
-    }
-
-    if ( _dynSymTabCmd == nullptr )
-        return;
-
     const char* strings = (char*)&_linkeditBias[_symTabCmd->stroff()];
     const macho_nlist<P>* const symbolTable = (macho_nlist<P>*)(&_linkeditBias[_symTabCmd->symoff()]);
     const macho_nlist<P>* const firstExport = &symbolTable[_dynSymTabCmd->iextdefsym()];
@@ -657,20 +606,6 @@ template <typename P>
 void LinkeditOptimizer<P>::copyImportedSymbols(uint8_t* newLinkEditContent, SortedStringPool<P>& stringPool, uint32_t& offset, uint32_t& symbolIndex)
 {
     _newImportedSymbolsStartIndex = symbolIndex;
-    _newImportedSymbolCount = 0;
-
-    if ( _dynSymTabCmd == nullptr )
-        return;
-
-    switch (_stripMode) {
-        case CacheBuilder::DylibStripMode::stripNone:
-            break;
-        case CacheBuilder::DylibStripMode::stripLocals:
-        case CacheBuilder::DylibStripMode::stripExports:
-        case CacheBuilder::DylibStripMode::stripAll:
-            return;
-    }
-
     const char* strings = (char*)&_linkeditBias[_symTabCmd->stroff()];
     const macho_nlist<P>* const symbolTable = (macho_nlist<P>*)(&_linkeditBias[_symTabCmd->symoff()]);
     const macho_nlist<P>* const firstImport = &symbolTable[_dynSymTabCmd->iundefsym()];
@@ -695,10 +630,6 @@ template <typename P>
 void LinkeditOptimizer<P>::copyIndirectSymbolTable(uint8_t* newLinkEditContent, uint32_t& offset)
 {
     _newIndirectSymbolTableOffset = offset;
-
-    if ( _dynSymTabCmd == nullptr )
-        return;
-
      const uint32_t* const indirectTable = (uint32_t*)&_linkeditBias[_dynSymTabCmd->indirectsymoff()];
     uint32_t* newIndirectTable = (uint32_t*)&newLinkEditContent[offset];
     for (uint32_t i=0; i < _dynSymTabCmd->nindirectsyms(); ++i) {
@@ -712,9 +643,7 @@ void LinkeditOptimizer<P>::copyIndirectSymbolTable(uint8_t* newLinkEditContent, 
 }
 
 template <typename P>
-void LinkeditOptimizer<P>::mergeLinkedits(CacheBuilder& builder,
-                                          CacheBuilder::UnmappedRegion* localSymbolsRegion,
-                                          std::vector<LinkeditOptimizer<P>*>& optimizers)
+void LinkeditOptimizer<P>::mergeLinkedits(CacheBuilder& builder, std::vector<LinkeditOptimizer<P>*>& optimizers)
 {
     // allocate space for new linkedit data
     uint64_t totalUnoptLinkeditsSize = builder._readOnlyRegion.sizeInUse - builder._nonLinkEditReadOnlySize;
@@ -764,11 +693,9 @@ void LinkeditOptimizer<P>::mergeLinkedits(CacheBuilder& builder,
         builder._diagnostics.verbose("  lazy bindings size:      %5uKB\n", (offset-startLazyBindingsInfosOffset)/1024);
     }
 
-    bool unmapLocals = ( builder._options.localSymbolMode == DyldSharedCache::LocalSymbolsMode::unmap );
-
     // copy symbol table entries
     std::vector<macho_nlist<P>> unmappedLocalSymbols;
-    if ( unmapLocals )
+    if ( builder._options.excludeLocalSymbols )
         unmappedLocalSymbols.reserve(0x01000000);
     std::vector<LocalSymbolInfo> localSymbolInfos;
         localSymbolInfos.reserve(optimizers.size());
@@ -778,7 +705,7 @@ void LinkeditOptimizer<P>::mergeLinkedits(CacheBuilder& builder,
     uint32_t sharedSymbolTableExportsCount = 0;
     uint32_t sharedSymbolTableImportsCount = 0;
     for (LinkeditOptimizer<P>* op : optimizers) {
-         op->copyLocalSymbols(newLinkEdit, stringPool, offset, symbolIndex, unmapLocals,
+         op->copyLocalSymbols(newLinkEdit, stringPool, offset, symbolIndex, builder._options.excludeLocalSymbols,
                              localSymbolInfos, unmappedLocalSymbols, localSymbolsStringPool);
         uint32_t x = symbolIndex;
         op->copyExportedSymbols(newLinkEdit, stringPool, offset, symbolIndex);
@@ -820,6 +747,7 @@ void LinkeditOptimizer<P>::mergeLinkedits(CacheBuilder& builder,
     uint64_t newLinkeditAlignedSize = align(offset, 14);
     builder._diagnostics.verbose("  symbol table size:       %5uKB (%d exports, %d imports)\n", (sharedSymbolTableEndOffset-sharedSymbolTableStartOffset)/1024, sharedSymbolTableExportsCount, sharedSymbolTableImportsCount);
     builder._diagnostics.verbose("  symbol string pool size: %5uKB\n", sharedSymbolStringsSize/1024);
+    builder._sharedStringsPoolVmOffset = (uint32_t)((builder._readOnlyRegion.unslidLoadAddress - builder._readExecuteRegion.unslidLoadAddress) + builder._nonLinkEditReadOnlySize + sharedSymbolStringsOffset);
 
     // overwrite mapped LINKEDIT area in cache with new merged LINKEDIT content
     builder._diagnostics.verbose("LINKEDITS optimized from %uMB to %uMB\n", (uint32_t)totalUnoptLinkeditsSize/(1024*1024), (uint32_t)newLinkeditUnalignedSize/(1024*1024));
@@ -828,7 +756,7 @@ void LinkeditOptimizer<P>::mergeLinkedits(CacheBuilder& builder,
     builder._readOnlyRegion.sizeInUse = builder._nonLinkEditReadOnlySize + newLinkeditAlignedSize;
 
     // overwrite end of un-opt linkedits to create a new unmapped region for local symbols
-    if ( unmapLocals ) {
+    if ( builder._options.excludeLocalSymbols ) {
         const uint32_t entriesOffset = sizeof(dyld_cache_local_symbols_info);
         const uint32_t entriesCount  = (uint32_t)localSymbolInfos.size();
         const uint32_t nlistOffset   = (uint32_t)align(entriesOffset + entriesCount * sizeof(dyld_cache_local_symbols_info), 4); // 16-byte align start
@@ -859,10 +787,13 @@ void LinkeditOptimizer<P>::mergeLinkedits(CacheBuilder& builder,
             ::memcpy(newLocalsSymbolTable, &unmappedLocalSymbols[0], nlistCount*sizeof(macho_nlist<P>));
             // copy string pool
             localSymbolsStringPool.copyPoolAndUpdateOffsets(((char*)infoHeader)+stringsOffset, newLocalsSymbolTable);
+            // update cache header
+            DyldSharedCache* cacheHeader = (DyldSharedCache*)builder._readExecuteRegion.buffer;
+            cacheHeader->header.localSymbolsSize    = localsBufferSize;
             // return buffer of local symbols, caller to free() it
-            localSymbolsRegion->buffer      = (uint8_t*)localsBuffer;
-            localSymbolsRegion->bufferSize  = localsBufferSize;
-            localSymbolsRegion->sizeInUse   = localsBufferSize;
+            builder._localSymbolsRegion.buffer      = (uint8_t*)localsBuffer;
+            builder._localSymbolsRegion.bufferSize  = localsBufferSize;
+            builder._localSymbolsRegion.sizeInUse   = localsBufferSize;
         }
         else {
             builder._diagnostics.warning("could not allocate local symbols");
@@ -881,16 +812,14 @@ void LinkeditOptimizer<P>::mergeLinkedits(CacheBuilder& builder,
 
 
 template <typename P>
-void LinkeditOptimizer<P>::optimizeLinkedit(CacheBuilder& builder, const void* containerBuffer,
-                                            CacheBuilder::UnmappedRegion* localSymbolsRegion,
-                                            const std::vector<std::tuple<const mach_header*, const char*, DylibStripMode>>& images)
+void LinkeditOptimizer<P>::optimizeLinkedit(CacheBuilder& builder)
 {
+    DyldSharedCache* cache = (DyldSharedCache*)builder._readExecuteRegion.buffer;
     // construct a LinkeditOptimizer for each image
     __block std::vector<LinkeditOptimizer<P>*> optimizers;
-    for (std::tuple<const mach_header*, const char*, DylibStripMode> image : images) {
-        optimizers.push_back(new LinkeditOptimizer<P>(containerBuffer, (macho_header<P>*)std::get<0>(image), std::get<1>(image), builder._diagnostics));
-        optimizers.back()->setStripMode(std::get<2>(image));
-    }
+    cache->forEachImage(^(const mach_header* mh, const char*) {
+        optimizers.push_back(new LinkeditOptimizer<P>(cache, (macho_header<P>*)mh, builder._diagnostics));
+    });
 #if 0
     // add optimizer for each branch pool
     for (uint64_t poolOffset : branchPoolOffsets) {
@@ -899,24 +828,20 @@ void LinkeditOptimizer<P>::optimizeLinkedit(CacheBuilder& builder, const void* c
     }
 #endif
     // merge linkedit info
-    mergeLinkedits(builder, localSymbolsRegion, optimizers);
+    mergeLinkedits(builder, optimizers);
 
     // delete optimizers
     for (LinkeditOptimizer<P>* op : optimizers)
         delete op;
 }
 
-void CacheBuilder::optimizeLinkedit(UnmappedRegion* localSymbolsRegion,
-                                    const std::vector<std::tuple<const mach_header*, const char*, DylibStripMode>>& images)
+void CacheBuilder::optimizeLinkedit()
 {
-    const void* buffer = (const void*)_fullAllocatedBuffer;
     if ( _is64 ) {
-        return LinkeditOptimizer<Pointer64<LittleEndian>>::optimizeLinkedit(*this, buffer,
-                                                                            localSymbolsRegion, images);
+        return LinkeditOptimizer<Pointer64<LittleEndian>>::optimizeLinkedit(*this);
     }
     else {
-         return LinkeditOptimizer<Pointer32<LittleEndian>>::optimizeLinkedit(*this, buffer,
-                                                                             localSymbolsRegion, images);
+         return LinkeditOptimizer<Pointer32<LittleEndian>>::optimizeLinkedit(*this);
     }
 }
 

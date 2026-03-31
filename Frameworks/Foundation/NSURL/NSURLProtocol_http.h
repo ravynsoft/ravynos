@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #import <Foundation/NSURLProtocol.h>
 #import <Foundation/NSRange.h>
+#include <sys/param.h>
 
 @class NSInputStream, NSOutputStream, NSMutableData, NSMutableDictionary, NSMutableArray, NSTimer;
 

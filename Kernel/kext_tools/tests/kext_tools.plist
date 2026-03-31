@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Project</key>
+	<string>kext_tools</string>
+	<key>Tests</key>
+	<array>
+		<dict>
+			<key>AsRoot</key>
+			<false/>
+			<key>Command</key>
+			<array>
+				<string>/AppleInternal/CoreOS/kext_tools/security_test</string>
+			</array>
+			<key>ShowSubtestResults</key>
+			<false/>
+			<key>TestName</key>
+			<string>security_test</string>
+		</dict>
+		<dict>
+			<key>AsRoot</key>
+			<true/>
+			<key>Command</key>
+			<array>
+				<string>/AppleInternal/CoreOS/kext_tools/kextaudit_test</string>
+			</array>
+			<key>ShowSubtestResults</key>
+			<false/>
+			<key>TestName</key>
+			<string>kextaudit_test</string>
+		</dict>
+	</array>
+</dict>
+</plist>

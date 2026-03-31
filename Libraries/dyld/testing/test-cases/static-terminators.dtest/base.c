@@ -23,14 +23,13 @@ void libDynamicTerminated()
 static __attribute__((destructor))
 void myTerm()
 {
-    if ( !mainCalled ) {
+    if ( !mainCalled )
         FAIL("main's terminator not called");
-    } else if ( !libCalled ) {
+    else if ( !libCalled )
         FAIL("libDynamic's terminator not called");
-    } else if ( !libCalledBeforeMain ) {
+    else if ( !libCalledBeforeMain )
         FAIL("libDynamic's terminator called out of order");
-    } else {
+    else
         PASS("Success");
-    }
 }
 

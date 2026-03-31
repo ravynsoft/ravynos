@@ -6,14 +6,19 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+#include <stdlib.h>
+#include <math.h>
+#include <stdio.h>
+#include <locale.h>
+#include <sys/param.h>
+
 #import <Foundation/NSGeometry.h>
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSStringFormatter.h>
 #import <Foundation/NSObjCRuntime.h>
 #import <Foundation/NSRaise.h>
-#include <math.h>
-#include <stdio.h>
-#include <locale.h>
+
+#define _NSFLOAT_SCAN "%g"
 
 const NSPoint NSZeroPoint={0,0};
 
@@ -34,7 +39,7 @@ NSPoint NSPointFromString(NSString *string)
     if (string != nil) {
         struct lconv *lconv = localeconv();
         NSString *fmt = [NSString stringWithFormat:@"{%s%s %s}",
-            CGFLOAT_SCAN, lconv->thousands_sep, CGFLOAT_SCAN];
+            _NSFLOAT_SCAN, lconv->thousands_sep, _NSFLOAT_SCAN];
         sscanf([string UTF8String], [fmt UTF8String], &result.x, &result.y);
         [fmt release];
     }
@@ -62,7 +67,7 @@ NSSize NSSizeFromString(NSString *string)
     if (string != nil) {
         struct lconv *lconv = localeconv();
         NSString *fmt = [NSString stringWithFormat:@"{%s%s %s}",
-            CGFLOAT_SCAN, lconv->thousands_sep, CGFLOAT_SCAN];
+            _NSFLOAT_SCAN, lconv->thousands_sep, _NSFLOAT_SCAN];
         sscanf([string UTF8String], [fmt UTF8String], &result.width, &result.height);
         [fmt release];
     }
@@ -207,8 +212,8 @@ NSRect NSRectFromString(NSString *string)
     if (string != nil) {
         struct lconv *lconv = localeconv();
         NSString *fmt = [NSString stringWithFormat:@"{{%s%s %s}%s {%s%s %s}}",
-            CGFLOAT_SCAN, lconv->thousands_sep, CGFLOAT_SCAN, lconv->thousands_sep,
-            CGFLOAT_SCAN, lconv->thousands_sep, CGFLOAT_SCAN];
+            _NSFLOAT_SCAN, lconv->thousands_sep, _NSFLOAT_SCAN, lconv->thousands_sep,
+            _NSFLOAT_SCAN, lconv->thousands_sep, _NSFLOAT_SCAN];
         sscanf([string UTF8String], [fmt UTF8String], &result.origin.x, &result.origin.y, &result.size.width, &result.size.height);
         [fmt release];
     }

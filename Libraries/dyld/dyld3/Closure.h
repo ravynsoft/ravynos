@@ -110,6 +110,7 @@ struct VIS_HIDDEN TypedBytes
         topImage                = 36,  // sizeof(ImageNum)
         libDyldEntry            = 37,  // sizeof(ResolvedSymbolTarget)
         libSystemNum            = 38,  // sizeof(ImageNum)
+        bootUUID                = 39,  // c-string 40
         mainEntry               = 40,  // sizeof(ResolvedSymbolTarget)
         startEntry              = 41,  // sizeof(ResolvedSymbolTarget)     // used by programs built with crt1.o
         cacheOverrides          = 42,  // sizeof(PatchEntry) * count       // used if process uses interposing or roots (cached dylib overrides)
@@ -165,8 +166,6 @@ struct VIS_HIDDEN Image : ContainerTypedBytes
     bool                hasObjC() const;
     bool                hasInitializers() const;
     bool                hasPrecomputedObjC() const;
-    bool                fixupsNotEncoded() const;   // minimal closure, dyld must parse and apply fixups
-    bool                rebasesNotEncoded() const;
     bool                hasTerminators() const;
     bool                hasReadOnlyData() const;
     bool                hasChainedFixups() const;
@@ -178,6 +177,7 @@ struct VIS_HIDDEN Image : ContainerTypedBytes
     bool                is64() const;
     bool                neverUnload() const;
     bool                cwdMustBeThisDir() const;
+    bool                isPlatformBinary() const;
     bool                overridableDylib() const;
     bool                hasFileModTimeAndInode(uint64_t& inode, uint64_t& mTime) const;
     void                forEachCDHash(void (^handler)(const uint8_t cdHash[20], bool& stop)) const;
@@ -193,7 +193,6 @@ struct VIS_HIDDEN Image : ContainerTypedBytes
     bool                hasPathWithHash(const char* path, uint32_t hash) const;
     bool                isOverrideOfDyldCacheImage(ImageNum& cacheImageNum) const;
     uint64_t            textSize() const;
-    const char*         variantString() const; // "minimal" or "full" closure
 
 	union ResolvedSymbolTarget
     {
@@ -361,8 +360,6 @@ struct VIS_HIDDEN Image : ContainerTypedBytes
     void                forEachTextReloc(void (^rebase)(uint32_t imageOffsetToRebase, bool& stop),
                                          void (^bind)(uint32_t imageOffsetToBind, ResolvedSymbolTarget bindTarget, bool& stop)) const;
 
-    bool                forEachBind(void (^bind)(uint64_t imageOffsetToBind, ResolvedSymbolTarget bindTarget, bool& stop)) const;
-
  	static_assert(sizeof(ResolvedSymbolTarget) == 8, "Overflow in size of SymbolTargetLocation");
 
     static uint32_t     hashFunction(const char*);
@@ -373,9 +370,7 @@ private:
     friend class ClosureBuilder;
     friend class ClosureWriter;
     friend class LaunchClosureWriter;
-    friend class RebasePatternBuilder;
-    friend class BindPatternBuilder;
-    
+
     uint32_t             pageSize() const;
 
     struct Flags
@@ -401,10 +396,7 @@ private:
                         hasReadOnlyData              : 1,
                         hasChainedFixups             : 1,
                         hasPrecomputedObjC           : 1,
-                        fixupsNotEncoded             : 1,
-                        rebasesNotEncoded            : 1,
-                        hasOverrideImageNum          : 1,
-                        padding                      : 14;
+                        padding                      : 17;
     };
 
     static_assert(sizeof(Flags) == sizeof(uint64_t), "Flags overflow");
@@ -665,8 +657,7 @@ struct VIS_HIDDEN Closure : public ContainerTypedBytes
 {
     size_t              size() const;
     const ImageArray*   images() const;
-    ImageNum            topImageNum() const;
-    const Image*        topImage() const;
+    ImageNum            topImage() const;
     void                deallocate() const;
 
     friend class ClosureWriter;
@@ -707,6 +698,7 @@ struct VIS_HIDDEN LaunchClosure : public Closure
     };
 
     bool                builtAgainstDyldCache(uuid_t cacheUUID) const;
+    const char*         bootUUID() const;
     void                forEachMustBeMissingFile(void (^handler)(const char* path, bool& stop)) const;
     void                forEachSkipIfExistsFile(void (^handler)(const SkippedFile& file, bool& stop)) const;
     void                forEachEnvVar(void (^handler)(const char* keyEqualValue, bool& stop)) const;
@@ -729,8 +721,8 @@ struct VIS_HIDDEN LaunchClosure : public Closure
     bool                hasInterposings() const;
     bool                hasProgramVars(uint32_t& runtimeOffset) const;
     
-    static bool         buildClosureCachePath(const char* mainExecutablePath, const char* envp[],
-                                              bool makeDirsIfMissing, char closurePath[]);
+    static bool         buildClosureCachePath(const char* mainExecutablePath, char closurePath[], const char* tempDir,
+                                              bool makeDirsIfMissing);
 
 private:
     friend class LaunchClosureWriter;

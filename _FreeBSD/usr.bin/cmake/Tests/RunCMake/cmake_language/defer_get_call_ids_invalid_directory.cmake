@@ -1,2 +1,0 @@
-add_subdirectory(defer_get_call_ids_invalid_directory)
-cmake_language(DEFER DIRECTORY defer_get_call_ids_invalid_directory GET_CALL_IDS var)

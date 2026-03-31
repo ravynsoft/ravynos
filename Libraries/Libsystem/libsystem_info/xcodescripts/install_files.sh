@@ -4,8 +4,8 @@
 function InstallHeaders() {
 	DESTDIR="$DSTROOT/$1"
 	shift
-	install -d -o "$INSTALL_OWNER" -g "$INSTALL_GROUP" -m 0755 "$DESTDIR"
-	install -o "$INSTALL_OWNER" -g "$INSTALL_GROUP" -m 0444 "$@" "$DESTDIR"
+	install -d -m 0755 "$DESTDIR"
+	install -m 0444 "$@" "$DESTDIR"
 }
 
 InstallHeaders /usr/include \
@@ -66,8 +66,8 @@ function InstallManPages() {
 	for MANPAGE in "$@"; do
 		SECTION=`basename "${MANPAGE/*./}"`
 		MANDIR="$DSTROOT"/usr/share/man/man"$SECTION"
-		install -d -o "$INSTALL_OWNER" -g "$INSTALL_GROUP" -m 0755 "$MANDIR"
-		install -o "$INSTALL_OWNER" -g "$INSTALL_GROUP" -m 0444 "$MANPAGE" "$MANDIR"
+		install -d -m 0755 "$MANDIR"
+		install -m 0444 "$MANPAGE" "$MANDIR"
 	done
 }
 
@@ -77,7 +77,7 @@ function LinkManPages() {
 	MANDIR="$DSTROOT"/usr/share/man/man"$SECTION"
 	shift
 	for LINK in "$@"; do
-		ln -hf "$MANDIR/$MANPAGE" "$MANDIR/$LINK"
+		ln -f "$MANDIR/$MANPAGE" "$MANDIR/$LINK"
 	done
 }
 

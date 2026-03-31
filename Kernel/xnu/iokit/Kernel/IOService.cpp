@@ -66,7 +66,7 @@
 
 #define LOG kprintf
 //#define LOG IOLog
-#define MATCH_DEBUG     0
+#define MATCH_DEBUG     1
 #define IOSERVICE_OBFUSCATE(x) ((void *)(VM_KERNEL_ADDRPERM(x)))
 
 // disabled since lockForArbitration() can be held externally
@@ -1125,6 +1125,7 @@ IOService::catalogNewDrivers( OSOrderedSet * newTables )
 		    kIOServiceRegisteredState,
 		    kIOServiceExistingSet);
 		UNLOCKNOTIFY();
+
 		if (set) {
 #if IOMATCHDEBUG
 			count += set->getCount();
@@ -1147,10 +1148,22 @@ IOService::catalogNewDrivers( OSOrderedSet * newTables )
 
 	if (allSet) {
 		while ((service = (IOService *) allSet->getAnyObject())) {
-			service->startMatching(kIOServiceAsynchronous);
-			allSet->removeObject(service);
+                    const OSSymbol *sym = OSSymbol::withCString("IOACPIPlatformExpert");
+                    const OSMetaClass *mc = OSMetaClass::getMetaClassWithName(sym);
+                    OSKext *kext = OSKext::lookupKextWithIdentifier("com.apple.iokit.IOACPIFamily");
+                    if (kext && !mc) {
+                        struct kmod_info ki;
+                        ki.id = kext->getLoadTag();
+                        ki.address = 0;
+                        ki.size = 0;
+                        IOStatistics::onKextLoad(kext, &ki);
+                        OSRuntimeInitializeCPP(kext);
+                    }
+
+                    service->startMatching(kIOServiceAsynchronous);
+                    allSet->removeObject(service);
 		}
-		allSet->release();
+                allSet->release();
 	}
 
 	newTables->release();

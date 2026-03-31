@@ -1,3 +1,0 @@
-project('master')
-
-subproject('a')

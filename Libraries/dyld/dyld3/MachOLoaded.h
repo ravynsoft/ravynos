@@ -79,7 +79,6 @@ struct VIS_HIDDEN MachOLoaded : public MachOFile
                                                   Array<const void*> bindTargets, void (^fixupLogger)(void* loc, void* newValue)) const;
 #endif
 
-    void                    forEachGlobalSymbol(Diagnostics& diag, void (^callback)(const char* symbolName, uint64_t n_value, uint8_t n_type, uint8_t n_sect, uint16_t n_desc, bool& stop)) const;
 
 
     // For use with new rebase/bind scheme were each fixup location on disk contains info on what
@@ -91,15 +90,11 @@ struct VIS_HIDDEN MachOLoaded : public MachOFile
             dyld_chained_ptr_arm64e_auth_bind   authBind;
             dyld_chained_ptr_arm64e_rebase      rebase;
             dyld_chained_ptr_arm64e_bind        bind;
-            dyld_chained_ptr_arm64e_bind24      bind24;
-            dyld_chained_ptr_arm64e_auth_bind24 authBind24;
 
             uint64_t        signExtendedAddend() const;
             uint64_t        unpackTarget() const;
             const char*     keyName() const;
             uint64_t        signPointer(void* loc, uint64_t target) const;
-            static uint64_t    signPointer(uint64_t unsignedPtr, void* loc, bool addrDiv, uint16_t diversity, uint8_t key);
-            static const char* keyName(uint8_t keyBits);
         };
 
         union Generic64 {
@@ -117,27 +112,19 @@ struct VIS_HIDDEN MachOLoaded : public MachOFile
             uint64_t        signExtendedAddend() const;
         };
 
-        struct Kernel64 : dyld_chained_ptr_64_kernel_cache_rebase {
-            const char* keyName() const;
-        };
-
-        struct Firm32 : dyld_chained_ptr_32_firmware_rebase { };
-
         typedef dyld_chained_ptr_32_cache_rebase Cache32;
 
         uint64_t            raw64;
         Arm64e              arm64e;
         Generic64           generic64;
-        Kernel64            kernel64;
 
         uint32_t            raw32;
         Generic32           generic32;
         Cache32             cache32;
-        Firm32              firmware32;
+
 
         bool                isRebase(uint16_t pointerFormat, uint64_t preferedLoadAddress, uint64_t& targetRuntimeOffset) const;
-        bool                isBind(uint16_t pointerFormat, uint32_t& bindOrdinal, int64_t& addend) const;
-        static unsigned     strideSize(uint16_t pointerFormat);
+        bool                isBind(uint16_t pointerFormat, uint32_t& bindOrdinal) const;
     };
 
 
@@ -148,7 +135,6 @@ struct VIS_HIDDEN MachOLoaded : public MachOFile
         uint32_t     linkeditFileOffset;
         uint32_t     linkeditFileSize;
         uint32_t     linkeditSegIndex;
-        uint32_t     lastSegIndex;
     };
 
     struct LinkEditInfo
@@ -166,19 +152,9 @@ struct VIS_HIDDEN MachOLoaded : public MachOFile
     };
     void                    getLinkEditPointers(Diagnostics& diag, LinkEditInfo&) const;
 
-    void forEachFixupChainSegment(Diagnostics& diag, const dyld_chained_starts_in_image* starts,
-                                  void (^handler)(const dyld_chained_starts_in_segment* segInfo, uint32_t segIndex, bool& stop)) const;
-
-    void forEachFixupInSegmentChains(Diagnostics& diag, const dyld_chained_starts_in_segment* segInfo, bool notifyNonPointers,
-                                     void (^handler)(ChainedFixupPointerOnDisk* fixupLocation, const dyld_chained_starts_in_segment* segInfo, bool& stop)) const;
-
-    // for dyld loaded images
+    // use by dyldinfo
     void                    forEachFixupInAllChains(Diagnostics& diag, const dyld_chained_starts_in_image* starts, bool notifyNonPointers,
                                                     void (^callback)(ChainedFixupPointerOnDisk* fixupLocation, const dyld_chained_starts_in_segment* segInfo, bool& stop)) const;
-    // for preload images
-    void                    forEachFixupInAllChains(Diagnostics& diag, uint16_t pointer_format, uint32_t starts_count, const uint32_t chain_starts[],
-                                                    void (^handler)(ChainedFixupPointerOnDisk* fixupLocation, bool& stop)) const;
-
 protected:
     friend SharedCacheBuilder;
 
@@ -199,8 +175,8 @@ protected:
     void                    getLayoutInfo(LayoutInfo&) const;
     const uint8_t*          getLinkEditContent(const LayoutInfo& info, uint32_t fileOffset) const;
     const uint8_t*          getExportsTrie(const LinkEditInfo& info, uint64_t& trieSize) const;
+    void                    forEachGlobalSymbol(Diagnostics& diag, void (^callback)(const char* symbolName, uint64_t n_value, uint8_t n_type, uint8_t n_sect, uint16_t n_desc, bool& stop)) const;
     void                    forEachLocalSymbol(Diagnostics& diag, void (^callback)(const char* symbolName, uint64_t n_value, uint8_t n_type, uint8_t n_sect, uint16_t n_desc, bool& stop)) const;
-
     uint32_t                dependentDylibCount() const;
     bool                    findClosestFunctionStart(uint64_t address, uint64_t* functionStartAddress) const;
 
@@ -210,8 +186,9 @@ protected:
     // On all other platforms this always returns a single best cd hash (ranked to match the kernel).
     // Note the callback parameter is really a CS_CodeDirectory.
     void                    forEachCodeDirectoryBlob(const void* codeSigStart, size_t codeSignLen, void (^callback)(const void* cd)) const;
-    bool                    walkChain(Diagnostics& diag, ChainedFixupPointerOnDisk* start, uint16_t pointer_format, bool notifyNonPointers, uint32_t max_valid_pointer,
-                                        void (^handler)(ChainedFixupPointerOnDisk* fixupLocation, bool& stop)) const;
+    bool                    walkChain(Diagnostics& diag, const dyld_chained_starts_in_segment* segInfo, uint32_t pageIndex, uint16_t offsetInPage,
+                                      bool notifyNonPointers, void (^handler)(ChainedFixupPointerOnDisk* fixupLocation, const dyld_chained_starts_in_segment* segInfo, bool& stop)) const;
+
 
 };
 

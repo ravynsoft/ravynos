@@ -6,6 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#ifndef __RAVYNOS__
+
 #include <stddef.h>
 
 __attribute__((visibility("hidden"))) void *__dso_handle = &__dso_handle;
@@ -133,3 +135,5 @@ __asm__(".pushsection .fini,\"ax\",@progbits\n\t"
 #else
 #error "crtbegin without .init_fini array unimplemented for this architecture"
 #endif  // CRT_HAS_INIT_FINI_ARRAY
+
+#endif // __RAVYNOS__

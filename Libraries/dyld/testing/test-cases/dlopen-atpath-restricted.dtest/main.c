@@ -1,21 +1,21 @@
-// BUILD(macos):  $CC bar.c -dynamiclib -o $BUILD_DIR/test1/libtest1.dylib -install_name @rpath/libtest1.dylib
-// BUILD(macos):  $CC foo.c -bundle -o $BUILD_DIR/test1.bundle -Wl,-rpath,@loader_path/test1/ $BUILD_DIR/test1/libtest1.dylib
+// BUILD_ONLY: MacOSX
 
-// BUILD(macos):  $CC bar.c -dynamiclib -o $BUILD_DIR/test2/libtest2.dylib -install_name @loader_path/test2/libtest2.dylib
-// BUILD(macos):  $CC foo.c -bundle -o $BUILD_DIR/test2.bundle $BUILD_DIR/test2/libtest2.dylib
+// BUILD:  $CC bar.c -dynamiclib -o $BUILD_DIR/test1/libtest1.dylib -install_name @rpath/libtest1.dylib
+// BUILD:  $CC foo.c -bundle -o $BUILD_DIR/test1.bundle -Wl,-rpath,@loader_path/test1/ $BUILD_DIR/test1/libtest1.dylib
 
-// BUILD(macos):  $CC bar.c -dynamiclib -o $BUILD_DIR/test3/libtest3.dylib -install_name @rpath/libtest3.dylib
-// BUILD(macos):  $CC foo.c -bundle -o $BUILD_DIR/test3.bundle -Wl,-rpath,$RUN_DIR/test3  $BUILD_DIR/test3/libtest3.dylib 
+// BUILD:  $CC bar.c -dynamiclib -o $BUILD_DIR/test2/libtest2.dylib -install_name @loader_path/test2/libtest2.dylib
+// BUILD:  $CC foo.c -bundle -o $BUILD_DIR/test2.bundle $BUILD_DIR/test2/libtest2.dylib
 
-// BUILD(macos):  $CC bar.c -dynamiclib -o $BUILD_DIR/test4/libtest4.dylib -install_name @rpath/libtest4.dylib
-// BUILD(macos):  $CC foo.c -bundle -o $BUILD_DIR/test4.bundle -Wl,-rpath,@executable_path/test4/ $BUILD_DIR/test4/libtest4.dylib
+// BUILD:  $CC bar.c -dynamiclib -o $BUILD_DIR/test3/libtest3.dylib -install_name @rpath/libtest3.dylib
+// BUILD:  $CC foo.c -bundle -o $BUILD_DIR/test3.bundle -Wl,-rpath,$RUN_DIR/test3  $BUILD_DIR/test3/libtest3.dylib 
 
-// BUILD(macos):  $CC bar.c -dynamiclib -o $BUILD_DIR/test5/libtest5.dylib -install_name @executable_path/test5/libtest5.dylib
-// BUILD(macos):  $CC foo.c -bundle -o $BUILD_DIR/test5.bundle $BUILD_DIR/test5/libtest5.dylib
+// BUILD:  $CC bar.c -dynamiclib -o $BUILD_DIR/test4/libtest4.dylib -install_name @rpath/libtest4.dylib
+// BUILD:  $CC foo.c -bundle -o $BUILD_DIR/test4.bundle -Wl,-rpath,@executable_path/test4/ $BUILD_DIR/test4/libtest4.dylib
 
-// BUILD(macos):  $CC main.c -o $BUILD_DIR/dlopen-restricted.exe -DRUN_DIR="$RUN_DIR" -sectcreate __RESTRICT __restrict /dev/null
+// BUILD:  $CC bar.c -dynamiclib -o $BUILD_DIR/test5/libtest5.dylib -install_name @executable_path/test5/libtest5.dylib
+// BUILD:  $CC foo.c -bundle -o $BUILD_DIR/test5.bundle $BUILD_DIR/test5/libtest5.dylib
 
-// BUILD(ios,tvos,watchos,bridgeos):
+// BUILD:  $CC main.c -o $BUILD_DIR/dlopen-restricted.exe -DRUN_DIR="$RUN_DIR" -sectcreate __RESTRICT __restrict /dev/null
 
 // RUN:  ./dlopen-restricted.exe
 

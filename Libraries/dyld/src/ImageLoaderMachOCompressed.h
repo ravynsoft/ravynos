@@ -57,10 +57,9 @@ public:
 	virtual bool						libReExported(unsigned int) const;
 	virtual bool						libIsUpward(unsigned int) const;
 	virtual void						setLibImage(unsigned int, ImageLoader*, bool, bool);
-	virtual void						doBind(const LinkContext& context, bool forceLazysBound, const ImageLoader* reExportParent);
-	virtual void						doBindJustLazies(const LinkContext& context, DyldSharedCache::DataConstLazyScopedWriter& patcher);
-	virtual uintptr_t					doBindLazySymbol(uintptr_t* lazyPointer, const LinkContext& context,
-														 DyldSharedCache::DataConstLazyScopedWriter& patcher);
+	virtual void						doBind(const LinkContext& context, bool forceLazysBound);
+	virtual void						doBindJustLazies(const LinkContext& context);
+	virtual uintptr_t					doBindLazySymbol(uintptr_t* lazyPointer, const LinkContext& context);
 	virtual uintptr_t					doBindFastLazySymbol(uint32_t lazyBindingInfoOffset, const LinkContext& context, void (*lock)(), void (*unlock)());
 	virtual const char*					findClosestSymbol(const void* addr, const void** closestAddr) const;
 	virtual	void						initializeCoalIterator(CoalIterator&, unsigned int loadOrder, unsigned);
@@ -96,7 +95,7 @@ protected:
 	virtual void						resetPreboundLazyPointers(const LinkContext& context);
 #endif
 	virtual uintptr_t					resolveWeak(const LinkContext& context, const char* symbolName, bool weak_import, bool runResolver,
-													const ImageLoader** foundIn, DyldSharedCache::DataConstLazyScopedWriter& patcher);
+													const ImageLoader** foundIn);
 
 		
 private:
@@ -124,14 +123,12 @@ private:
                                                uint8_t symboFlags, intptr_t addend, long libraryOrdinal,
                                                ExtraBindData *extraBindData,
                                                const char* msg,
-                                               DyldSharedCache::DataConstLazyScopedWriter& patcher,
 												LastLookup* last, bool runResolver=false);
 	void								bindCompressed(const LinkContext& context);
 	void								throwBadBindingAddress(uintptr_t address, uintptr_t segmentEndAddress, int segmentIndex, 
 												const uint8_t* startOpcodes, const uint8_t* endOpcodes, const uint8_t* pos);
 	uintptr_t							resolve(const LinkContext& context, const char* symbolName, 
-												uint8_t symboFlags, long libraryOrdinal, const ImageLoader** targetImage,
-												DyldSharedCache::DataConstLazyScopedWriter& patcher, 
+												uint8_t symboFlags, long libraryOrdinal, const ImageLoader** targetImage, 
 												LastLookup* last = NULL, bool runResolver=false);
 	uintptr_t							resolveFlat(const LinkContext& context, const char* symbolName, bool weak_import, bool runResolver,
 													const ImageLoader** foundIn);
@@ -150,8 +147,7 @@ private:
     void                                updateOptimizedLazyPointers(const LinkContext& context);
     void                                updateAlternateLazyPointer(uint8_t* stub, void** originalLazyPointerAddr, const LinkContext& context);
 	void								registerEncryption(const struct encryption_info_command* encryptCmd, const LinkContext& context);
-	void								doApplyFixups(const LinkContext& context, const dyld_chained_fixups_header* fixupsHeader,
-												      DyldSharedCache::DataConstLazyScopedWriter& patcher);
+	void								doApplyFixups(const LinkContext& context, const dyld_chained_fixups_header* fixupsHeader);
 
 	const struct dyld_info_command*			fDyldInfo;
 	const struct linkedit_data_command*		fChainedFixups;

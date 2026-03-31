@@ -1,4 +1,0 @@
-struct OdrBase {
-  virtual ~OdrBase() {
-  }
-};

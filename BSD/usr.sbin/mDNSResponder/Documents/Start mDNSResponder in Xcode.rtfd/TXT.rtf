@@ -1,0 +1,58 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1504\cocoasubrtf150
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;\csgray\c100000;}
+\margl1440\margr1440\vieww51000\viewh25780\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs24 \cf0 \expnd0\expndtw0\kerning0
+Instructions on how to run a secondary mDNSResponder in the Xcode debugger.  (Two known issues, the secondary mDNSResponder will not receive unicast mDNS packets and it does not support BTMM.)\
+\
+1.) From Terminal shell, open mDNSResponder Xcode project. \'a0\
+\
+	$ open mDNSMacOSX/mDNSResponder.xcodeproj/\
+\
+You can also just double click on the project from Finder.\
+\
+2.) Configure Xcode Project Scheme by adding the following three arguments, -d -NoSandbox -UseDebugSocket.\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 {{\NeXTGraphic A944EB40-AEFD-4CA1-BF10-E8F52835CA8C.png \width18360 \height4420
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \expnd0\expndtw0\kerning0
+\
+\pard\pardeftab720\partightenfactor0
+\cf0 \
+3.) Build and run mDNSResponder by setting the target to mDNSResponder.\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 	{{\NeXTGraphic Screen Shot 2015-09-16 at 4.22.37 PM.png \width5980 \height660
+}¬}\expnd0\expndtw0\kerning0
+\
+\pard\pardeftab720\partightenfactor0
+\cf0 \
+	Then execute\'a0Command-R to build and run your code with the active scheme.\
+\
+\pard\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 4.) Before using dns-sd with Xcode-version of mDNSResponder, make sure to export the socket UDS path by executing one of the following commands:\
+\
+	From a Borne, bash or zsh, execute this command:\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 		export DNSSD_UDS_PATH=/var/tmp/mDNSResponder\
+\
+\pard\tx729\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 	From csh or tcsh, execute this command:\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\pardirnatural\partightenfactor0
+\cf0 \
+		\expnd0\expndtw0\kerning0
+\CocoaLigature1 setenv DNSSD_UDS_PATH /var/tmp/mDNSResponder\
+\
+	There may be other variants to setting the environment variable as well for other shells.\kerning1\expnd0\expndtw0 \CocoaLigature0 \
+\
+	Now running dns-sd  will interoperate with the secondary Xcode-version of mDNSResponder as long as you run dns-sd from this terminal shell.\
+\
+5.) \expnd0\expndtw0\kerning0
+\CocoaLigature1 Now set a breakpoint in Xcode and try to trigger it using dns-sd.\
+}

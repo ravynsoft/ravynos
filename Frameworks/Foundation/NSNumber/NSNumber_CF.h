@@ -1,3 +1,4 @@
+#import <Foundation/NSZone.h>
 #import <Foundation/NSNumber.h>
 #import <CoreFoundation/CFNumber.h>
 

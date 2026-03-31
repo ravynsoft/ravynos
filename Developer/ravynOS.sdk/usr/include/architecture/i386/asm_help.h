@@ -35,7 +35,7 @@
  *	for the Intel i386 family processors.
  *
  * HISTORY
- * 11-01-26   Zoe Knox (zoe@pixin.net)
+ * 11-Jan-26  Zoe Knox (zoe@pixin.net)
  *  Adapted to x86_64 and ravynOS
  * 10-Mar-92  Bruce Martin (bmartin@next.com)
  *	Adapted to i386

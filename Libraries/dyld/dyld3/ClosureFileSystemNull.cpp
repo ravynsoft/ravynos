@@ -34,14 +34,9 @@ bool FileSystemNull::loadFile(const char* path, LoadedFileInfo& info, char reale
 }
 
 void FileSystemNull::unloadFile(const LoadedFileInfo& info) const {
-    if (info.unload)
-        info.unload(info);
 }
 
 void FileSystemNull::unloadPartialFile(LoadedFileInfo& info, uint64_t keepStartOffset, uint64_t keepLength) const {
-    // Note we don't actually unload the data here, but we do want to update the offsets for other data structures to track where we are
-    info.fileContent = (const void*)((char*)info.fileContent + keepStartOffset);
-    info.fileContentLen = keepLength;
 }
 
 bool FileSystemNull::fileExists(const char* path, uint64_t* inode, uint64_t* mtime,

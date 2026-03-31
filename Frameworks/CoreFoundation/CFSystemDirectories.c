@@ -44,10 +44,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pwd.h>
-#include <NSSystemDirectories.h>
+#include <sysdir.h>
 
 CFSearchPathEnumerationState __CFStartSearchPathEnumeration(CFSearchPathDirectory dir, CFSearchPathDomainMask domainMask) {
-    return NSStartSearchPathEnumeration(dir, domainMask);
+    return sysdir_start_search_path_enumeration(dir, domainMask);
 }
 
 CFSearchPathEnumerationState __CFGetNextSearchPathEnumeration(CFSearchPathEnumerationState state, uint8_t *path, CFIndex pathSize) {
@@ -55,10 +55,10 @@ CFSearchPathEnumerationState __CFGetNextSearchPathEnumeration(CFSearchPathEnumer
     // NSGetNextSearchPathEnumeration requires a MAX_PATH size
     if (pathSize < PATH_MAX) {
         uint8_t tempPath[PATH_MAX];
-        result = NSGetNextSearchPathEnumeration(state, (char *)tempPath);
+        result = sysdir_get_next_search_path_enumeration(state, (char *)tempPath);
         strlcpy((char *)path, (char *)tempPath, pathSize);
     } else {
-        result = NSGetNextSearchPathEnumeration(state, (char *)path);
+        result = sysdir_get_next_search_path_enumeration(state, (char *)path);
     }
     return result;
 }
@@ -112,4 +112,3 @@ CFArrayRef CFCopySearchPathForDirectoriesInDomains(CFSearchPathDirectory directo
 #undef numDomains
 #undef invalidDomains
 #undef invalidDomains
-

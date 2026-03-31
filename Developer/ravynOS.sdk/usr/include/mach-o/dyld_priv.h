@@ -26,9 +26,7 @@
 
 #include <assert.h>
 #include <stdbool.h>
-#if __has_include(<unistd.h>)
 #include <unistd.h>
-#endif
 #include <Availability.h>
 #include <TargetConditionals.h>
 #include <mach-o/dyld.h>
@@ -47,24 +45,12 @@ extern void _dyld_atfork_prepare(void);
 extern void _dyld_atfork_parent(void);
 extern void _dyld_fork_child(void);
 
-extern void _dyld_dlopen_atfork_prepare(void);
-extern void _dyld_dlopen_atfork_parent(void);
-extern void _dyld_dlopen_atfork_child(void);
-
 
 
 typedef void (*_dyld_objc_notify_mapped)(unsigned count, const char* const paths[], const struct mach_header* const mh[]);
 typedef void (*_dyld_objc_notify_init)(const char* path, const struct mach_header* mh);
 typedef void (*_dyld_objc_notify_unmapped)(const char* path, const struct mach_header* mh);
-typedef void (*_dyld_objc_notify_patch_class)(const struct mach_header* originalMH, void* originalClass,
-                                              const struct mach_header* replacementMH, const void* replacementClass);
-struct _dyld_objc_notify_mapped_info {
-    const struct mach_header*   mh;
-    const char*                 path;
-    uint32_t                    dyldOptimized :  1,
-                                flags         : 31;
-};
-typedef void (*_dyld_objc_notify_mapped2)(unsigned count, const struct _dyld_objc_notify_mapped_info infos[]);
+
 
 //
 // Note: only for use by objc runtime
@@ -79,37 +65,6 @@ typedef void (*_dyld_objc_notify_mapped2)(unsigned count, const struct _dyld_obj
 void _dyld_objc_notify_register(_dyld_objc_notify_mapped    mapped,
                                 _dyld_objc_notify_init      init,
                                 _dyld_objc_notify_unmapped  unmapped);
-
-
-struct _dyld_objc_callbacks
-{
-    uintptr_t version;
-};
-
-struct _dyld_objc_callbacks_v1
-{
-    uintptr_t                       version; // == 1
-    _dyld_objc_notify_mapped        mapped;
-    _dyld_objc_notify_init          init;
-    _dyld_objc_notify_unmapped      unmapped;
-    _dyld_objc_notify_patch_class   patches;
-};
-
-struct _dyld_objc_callbacks_v2
-{
-    uintptr_t                       version; // == 2
-    _dyld_objc_notify_mapped2       mapped;
-    _dyld_objc_notify_init          init;
-    _dyld_objc_notify_unmapped      unmapped;
-    _dyld_objc_notify_patch_class   patches;
-};
-
-
-// Exists in Mac OS X 13.0 and later
-// Exists in iOS 16.0 and later
-// Exists in watchOS 9.0 and later
-// Exists in tvOS 16.0 and later.
-void _dyld_objc_register_callbacks(const struct _dyld_objc_callbacks*);
 
 
 //
@@ -158,18 +113,6 @@ extern const char* dyld_image_path_containing_address(const void* addr);
 // Exists in Mac OS X 10.11 and later
 extern const struct mach_header* dyld_image_header_containing_address(const void* addr);
 
-//
-// Return the mach header of the process
-//
-// Exists in Mac OS X 10.16 and later
-extern const struct mach_header* _dyld_get_prog_image_header(void);
-
-//
-// Return the mach header of the binary returned by dlopen
-//
-// Exists in Mac OS X 13.0 and later
-extern const struct mach_header* _dyld_get_dlopen_image_header(void* handle);
-
 typedef uint32_t dyld_platform_t;
 
 typedef struct {
@@ -182,28 +125,6 @@ extern dyld_platform_t dyld_get_active_platform(void) __API_AVAILABLE(macos(10.1
 
 // Base platforms are platforms that have version numbers (macOS, iOS, watchos, tvOS, bridgeOS)
 // All other platforms are mapped to a base platform for version checks
-
-// It is intended that most code in the OS will use the version set constants, which will correctly deal with secret and future
-// platforms. For example:
-
-//  if (dyld_program_sdk_at_least(dyld_fall_2018_os_versions)) {
-//      New behaviour for programs built against the iOS 12, tvOS 12, watchOS 5, macOS 10.14, or bridgeOS 3 (or newer) SDKs
-//  } else {
-//      Old behaviour
-//  }
-
-// In cases where more precise control is required (such as APIs that were added to varions platforms in different years)
-// the os specific values may be used instead. Unlike the version set constants, the platform specific ones will only ever
-// return true if the running binary is the platform being testsed, allowing conditions to be built for specific platforms
-// and releases that came out at different times. For example:
-
-//  if (dyld_program_sdk_at_least(dyld_platform_version_iOS_12_0)
-//      || dyld_program_sdk_at_least(dyld_platform_version_watchOS_6_0)) {
-//      New behaviour for programs built against the iOS 12 (fall 2018), watchOS 6 (fall 2019) (or newer) SDKs
-//  } else {
-//      Old behaviour all other platforms, as well as older iOSes and watchOSes
-//  }
-
 extern dyld_platform_t dyld_get_base_platform(dyld_platform_t platform) __API_AVAILABLE(macos(10.14), ios(12.0), watchos(5.0), tvos(12.0), bridgeos(3.0));
 
 // SPI to ask if a platform is a simulation platform
@@ -228,16 +149,415 @@ extern void dyld_get_image_versions(const struct mach_header* mh, void (^callbac
 
 // Convienence constants for dyld version SPIs.
 
-// Because we now have so many different OSes with different versions these version set values are intended to
-// to provide a more convenient way to version check. They may be used instead of platform specific version in
-// dyld_sdk_at_least(), dyld_minos_at_least(), dyld_program_sdk_at_least(), and dyld_program_minos_at_least().
-// Since they are references into a lookup table they MUST NOT be used by any code that does not ship as part of
-// the OS, as the values may change and the tables in older OSes may not have the necessary values for back
-// deployed binaries. These values are future proof against new platforms being added, and any checks against
-// platforms that did not exist at the epoch of a version set will return true since all versions of that platform
-// are inherently newer.
+#if TARGET_OS_OSX
+#define dyld_fall_2011_os_versions dyld_platform_version_macOS_10_7
+#define dyld_fall_2012_os_versions dyld_platform_version_macOS_10_8
+#define dyld_fall_2013_os_versions dyld_platform_version_macOS_10_9
+#define dyld_fall_2014_os_versions dyld_platform_version_macOS_10_10
+#define dyld_fall_2015_os_versions dyld_platform_version_macOS_10_11
+#define dyld_fall_2016_os_versions dyld_platform_version_macOS_10_12
+#define dyld_fall_2017_os_versions dyld_platform_version_macOS_10_13
+#define dyld_winter_2017_os_versions dyld_platform_version_macOS_10_13_2
+#define dyld_fall_2018_os_versions dyld_platform_version_macOS_10_14
+#define dyld_late_fall_2018_os_versions dyld_platform_version_macOS_10_14_1
+#define dyld_spring_2019_os_versions dyld_platform_version_macOS_10_14_4
+#define dyld_summer_2019_os_versions dyld_platform_version_macOS_10_14_5
+#define dyld_late_summer_2019_os_versions dyld_platform_version_macOS_10_14_6
+#define dyld_fall_2019_os_versions dyld_platform_version_macOS_10_15
+#define dyld_autumn_2019_os_versions dyld_platform_version_macOS_10_15
+#define dyld_late_fall_2019_os_versions dyld_platform_version_macOS_10_15_1
+#define dyld_winter_2019_os_versions dyld_platform_version_macOS_10_15_1
+#define dyld_spring_2020_os_versions dyld_platform_version_macOS_10_15_1
+#define dyld_late_spring_2020_os_versions dyld_platform_version_macOS_10_15_1
+#define dyld_summer_2020_os_versions dyld_platform_version_macOS_10_15_1
+#define dyld_late_summer_2020_os_versions dyld_platform_version_macOS_10_15_1
+#define dyld_fall_2020_os_versions dyld_platform_version_macOS_10_16
+#define dyld_late_fall_2020_os_versions dyld_platform_version_macOS_10_16
+#endif /* TARGET_OS_OSX */
+#if TARGET_OS_IOS
+#define dyld_fall_2011_os_versions dyld_platform_version_iOS_5_0
+#define dyld_fall_2012_os_versions dyld_platform_version_iOS_6_0
+#define dyld_fall_2013_os_versions dyld_platform_version_iOS_7_0
+#define dyld_fall_2014_os_versions dyld_platform_version_iOS_8_0
+#define dyld_fall_2015_os_versions dyld_platform_version_iOS_9_0
+#define dyld_fall_2016_os_versions dyld_platform_version_iOS_10_0
+#define dyld_fall_2017_os_versions dyld_platform_version_iOS_11_0
+#define dyld_winter_2017_os_versions dyld_platform_version_iOS_11_2
+#define dyld_fall_2018_os_versions dyld_platform_version_iOS_12_0
+#define dyld_late_fall_2018_os_versions dyld_platform_version_iOS_12_1
+#define dyld_spring_2019_os_versions dyld_platform_version_iOS_12_2
+#define dyld_summer_2019_os_versions dyld_platform_version_iOS_12_3
+#define dyld_late_summer_2019_os_versions dyld_platform_version_iOS_12_4
+#define dyld_fall_2019_os_versions dyld_platform_version_iOS_13_0
+#define dyld_autumn_2019_os_versions dyld_platform_version_iOS_13_1
+#define dyld_late_fall_2019_os_versions dyld_platform_version_iOS_13_2
+#define dyld_winter_2019_os_versions dyld_platform_version_iOS_13_3
+#define dyld_spring_2020_os_versions dyld_platform_version_iOS_13_4
+#define dyld_late_spring_2020_os_versions dyld_platform_version_iOS_13_5
+#define dyld_summer_2020_os_versions dyld_platform_version_iOS_13_6
+#define dyld_late_summer_2020_os_versions dyld_platform_version_iOS_13_7
+#define dyld_fall_2020_os_versions dyld_platform_version_iOS_14_0
+#define dyld_late_fall_2020_os_versions dyld_platform_version_iOS_14_2
+#endif /* TARGET_OS_IOS */
+#if TARGET_OS_TV
+#define dyld_fall_2011_os_versions dyld_platform_version_tvOS_
+#define dyld_fall_2012_os_versions dyld_platform_version_tvOS_
+#define dyld_fall_2013_os_versions dyld_platform_version_tvOS_
+#define dyld_fall_2014_os_versions dyld_platform_version_tvOS_
+#define dyld_fall_2015_os_versions dyld_platform_version_tvOS_9_0
+#define dyld_fall_2016_os_versions dyld_platform_version_tvOS_10_0
+#define dyld_fall_2017_os_versions dyld_platform_version_tvOS_11_0
+#define dyld_winter_2017_os_versions dyld_platform_version_tvOS_11_2
+#define dyld_fall_2018_os_versions dyld_platform_version_tvOS_12_0
+#define dyld_late_fall_2018_os_versions dyld_platform_version_tvOS_12_1
+#define dyld_spring_2019_os_versions dyld_platform_version_tvOS_12_2
+#define dyld_summer_2019_os_versions dyld_platform_version_tvOS_12_3
+#define dyld_late_summer_2019_os_versions dyld_platform_version_tvOS_12_4
+#define dyld_fall_2019_os_versions dyld_platform_version_tvOS_13_0
+#define dyld_autumn_2019_os_versions dyld_platform_version_tvOS_13_0
+#define dyld_late_fall_2019_os_versions dyld_platform_version_tvOS_13_2
+#define dyld_winter_2019_os_versions dyld_platform_version_tvOS_13_3
+#define dyld_spring_2020_os_versions dyld_platform_version_tvOS_13_4
+#define dyld_late_spring_2020_os_versions dyld_platform_version_tvOS_13_4
+#define dyld_summer_2020_os_versions dyld_platform_version_tvOS_13_4
+#define dyld_late_summer_2020_os_versions dyld_platform_version_tvOS_13_4
+#define dyld_fall_2020_os_versions dyld_platform_version_tvOS_14_0
+#define dyld_late_fall_2020_os_versions dyld_platform_version_tvOS_14_2
+#endif /* TARGET_OS_TV */
+#if TARGET_OS_WATCH
+#define dyld_fall_2011_os_versions dyld_platform_version_watchOS_
+#define dyld_fall_2012_os_versions dyld_platform_version_watchOS_
+#define dyld_fall_2013_os_versions dyld_platform_version_watchOS_
+#define dyld_fall_2014_os_versions dyld_platform_version_watchOS_
+#define dyld_fall_2015_os_versions dyld_platform_version_watchOS_2_0
+#define dyld_fall_2016_os_versions dyld_platform_version_watchOS_3_0
+#define dyld_fall_2017_os_versions dyld_platform_version_watchOS_4_0
+#define dyld_winter_2017_os_versions dyld_platform_version_watchOS_4_2
+#define dyld_fall_2018_os_versions dyld_platform_version_watchOS_5_0
+#define dyld_late_fall_2018_os_versions dyld_platform_version_watchOS_5_1
+#define dyld_spring_2019_os_versions dyld_platform_version_watchOS_5_2
+#define dyld_summer_2019_os_versions dyld_platform_version_watchOS_5_2
+#define dyld_late_summer_2019_os_versions dyld_platform_version_watchOS_5_3
+#define dyld_fall_2019_os_versions dyld_platform_version_watchOS_6_0
+#define dyld_autumn_2019_os_versions dyld_platform_version_watchOS_6_0
+#define dyld_late_fall_2019_os_versions dyld_platform_version_watchOS_6_1
+#define dyld_winter_2019_os_versions dyld_platform_version_watchOS_6_1
+#define dyld_spring_2020_os_versions dyld_platform_version_watchOS_6_2
+#define dyld_late_spring_2020_os_versions dyld_platform_version_watchOS_6_2
+#define dyld_summer_2020_os_versions dyld_platform_version_watchOS_6_2
+#define dyld_late_summer_2020_os_versions dyld_platform_version_watchOS_6_2
+#define dyld_fall_2020_os_versions dyld_platform_version_watchOS_7_0
+#define dyld_late_fall_2020_os_versions dyld_platform_version_watchOS_7_1
+#endif /* TARGET_OS_WATCH */
+#if TARGET_OS_BRIDGE
+#define dyld_fall_2011_os_versions dyld_platform_version_bridgeOS_
+#define dyld_fall_2012_os_versions dyld_platform_version_bridgeOS_
+#define dyld_fall_2013_os_versions dyld_platform_version_bridgeOS_
+#define dyld_fall_2014_os_versions dyld_platform_version_bridgeOS_
+#define dyld_fall_2015_os_versions dyld_platform_version_bridgeOS_
+#define dyld_fall_2016_os_versions dyld_platform_version_bridgeOS_
+#define dyld_fall_2017_os_versions dyld_platform_version_bridgeOS_2_0
+#define dyld_winter_2017_os_versions dyld_platform_version_bridgeOS_2_0
+#define dyld_fall_2018_os_versions dyld_platform_version_bridgeOS_3_0
+#define dyld_late_fall_2018_os_versions dyld_platform_version_bridgeOS_3_1
+#define dyld_spring_2019_os_versions dyld_platform_version_bridgeOS_3_4
+#define dyld_summer_2019_os_versions dyld_platform_version_bridgeOS_3_4
+#define dyld_late_summer_2019_os_versions dyld_platform_version_bridgeOS_3_4
+#define dyld_fall_2019_os_versions dyld_platform_version_bridgeOS_4_0
+#define dyld_autumn_2019_os_versions dyld_platform_version_bridgeOS_4_0
+#define dyld_late_fall_2019_os_versions dyld_platform_version_bridgeOS_4_1
+#define dyld_winter_2019_os_versions dyld_platform_version_bridgeOS_4_1
+#define dyld_spring_2020_os_versions dyld_platform_version_bridgeOS_4_1
+#define dyld_late_spring_2020_os_versions dyld_platform_version_bridgeOS_4_1
+#define dyld_summer_2020_os_versions dyld_platform_version_bridgeOS_4_1
+#define dyld_late_summer_2020_os_versions dyld_platform_version_bridgeOS_4_1
+#define dyld_fall_2020_os_versions dyld_platform_version_bridgeOS_5_0
+#define dyld_late_fall_2020_os_versions dyld_platform_version_bridgeOS_5_0
+#endif /* TARGET_OS_BRIDGE */
 
-//@VERSION_DEFS@
+static dyld_build_version_t dyld_platform_version_macOS_10_0            = { .platform = PLATFORM_MACOS, .version = 0x000a0000 };
+static dyld_build_version_t dyld_platform_version_macOS_10_1            = { .platform = PLATFORM_MACOS, .version = 0x000a0100 };
+static dyld_build_version_t dyld_platform_version_macOS_10_2            = { .platform = PLATFORM_MACOS, .version = 0x000a0200 };
+static dyld_build_version_t dyld_platform_version_macOS_10_3            = { .platform = PLATFORM_MACOS, .version = 0x000a0300 };
+static dyld_build_version_t dyld_platform_version_macOS_10_4            = { .platform = PLATFORM_MACOS, .version = 0x000a0400 };
+static dyld_build_version_t dyld_platform_version_macOS_10_5            = { .platform = PLATFORM_MACOS, .version = 0x000a0500 };
+static dyld_build_version_t dyld_platform_version_macOS_10_6            = { .platform = PLATFORM_MACOS, .version = 0x000a0600 };
+static dyld_build_version_t dyld_platform_version_macOS_10_7            = { .platform = PLATFORM_MACOS, .version = 0x000a0700 };
+static dyld_build_version_t dyld_platform_version_macOS_10_8            = { .platform = PLATFORM_MACOS, .version = 0x000a0800 };
+static dyld_build_version_t dyld_platform_version_macOS_10_9            = { .platform = PLATFORM_MACOS, .version = 0x000a0900 };
+static dyld_build_version_t dyld_platform_version_macOS_10_10           = { .platform = PLATFORM_MACOS, .version = 0x000a0a00 };
+static dyld_build_version_t dyld_platform_version_macOS_10_10_2         = { .platform = PLATFORM_MACOS, .version = 0x000a0a02 };
+static dyld_build_version_t dyld_platform_version_macOS_10_10_3         = { .platform = PLATFORM_MACOS, .version = 0x000a0a03 };
+static dyld_build_version_t dyld_platform_version_macOS_10_11           = { .platform = PLATFORM_MACOS, .version = 0x000a0b00 };
+static dyld_build_version_t dyld_platform_version_macOS_10_11_2         = { .platform = PLATFORM_MACOS, .version = 0x000a0b02 };
+static dyld_build_version_t dyld_platform_version_macOS_10_11_3         = { .platform = PLATFORM_MACOS, .version = 0x000a0b03 };
+static dyld_build_version_t dyld_platform_version_macOS_10_11_4         = { .platform = PLATFORM_MACOS, .version = 0x000a0b04 };
+static dyld_build_version_t dyld_platform_version_macOS_10_12           = { .platform = PLATFORM_MACOS, .version = 0x000a0c00 };
+static dyld_build_version_t dyld_platform_version_macOS_10_12_1         = { .platform = PLATFORM_MACOS, .version = 0x000a0c01 };
+static dyld_build_version_t dyld_platform_version_macOS_10_12_2         = { .platform = PLATFORM_MACOS, .version = 0x000a0c02 };
+static dyld_build_version_t dyld_platform_version_macOS_10_12_4         = { .platform = PLATFORM_MACOS, .version = 0x000a0c04 };
+static dyld_build_version_t dyld_platform_version_macOS_10_13           = { .platform = PLATFORM_MACOS, .version = 0x000a0d00 };
+static dyld_build_version_t dyld_platform_version_macOS_10_13_1         = { .platform = PLATFORM_MACOS, .version = 0x000a0d01 };
+static dyld_build_version_t dyld_platform_version_macOS_10_13_2         = { .platform = PLATFORM_MACOS, .version = 0x000a0d02 };
+static dyld_build_version_t dyld_platform_version_macOS_10_13_4         = { .platform = PLATFORM_MACOS, .version = 0x000a0d04 };
+static dyld_build_version_t dyld_platform_version_macOS_10_14           = { .platform = PLATFORM_MACOS, .version = 0x000a0e00 };
+static dyld_build_version_t dyld_platform_version_macOS_10_14_1         = { .platform = PLATFORM_MACOS, .version = 0x000a0e01 };
+static dyld_build_version_t dyld_platform_version_macOS_10_14_4         = { .platform = PLATFORM_MACOS, .version = 0x000a0e04 };
+static dyld_build_version_t dyld_platform_version_macOS_10_14_5         = { .platform = PLATFORM_MACOS, .version = 0x000a0e05 };
+static dyld_build_version_t dyld_platform_version_macOS_10_14_6         = { .platform = PLATFORM_MACOS, .version = 0x000a0e06 };
+static dyld_build_version_t dyld_platform_version_macOS_10_15           = { .platform = PLATFORM_MACOS, .version = 0x000a0f00 };
+static dyld_build_version_t dyld_platform_version_macOS_10_15_1         = { .platform = PLATFORM_MACOS, .version = 0x000a0f01 };
+static dyld_build_version_t dyld_platform_version_macOS_10_16           = { .platform = PLATFORM_MACOS, .version = 0x000a1000 };
+static dyld_build_version_t dyld_platform_version_macOS_11_00           = { .platform = PLATFORM_MACOS, .version = 0x000b0000 };
+
+static dyld_build_version_t dyld_platform_version_iOS_2_0               = { .platform = PLATFORM_IOS, .version = 0x00020000 };
+static dyld_build_version_t dyld_platform_version_iOS_2_1               = { .platform = PLATFORM_IOS, .version = 0x00020100 };
+static dyld_build_version_t dyld_platform_version_iOS_2_2               = { .platform = PLATFORM_IOS, .version = 0x00020200 };
+static dyld_build_version_t dyld_platform_version_iOS_3_0               = { .platform = PLATFORM_IOS, .version = 0x00030000 };
+static dyld_build_version_t dyld_platform_version_iOS_3_1               = { .platform = PLATFORM_IOS, .version = 0x00030100 };
+static dyld_build_version_t dyld_platform_version_iOS_3_2               = { .platform = PLATFORM_IOS, .version = 0x00030200 };
+static dyld_build_version_t dyld_platform_version_iOS_4_0               = { .platform = PLATFORM_IOS, .version = 0x00040000 };
+static dyld_build_version_t dyld_platform_version_iOS_4_1               = { .platform = PLATFORM_IOS, .version = 0x00040100 };
+static dyld_build_version_t dyld_platform_version_iOS_4_2               = { .platform = PLATFORM_IOS, .version = 0x00040200 };
+static dyld_build_version_t dyld_platform_version_iOS_4_3               = { .platform = PLATFORM_IOS, .version = 0x00040300 };
+static dyld_build_version_t dyld_platform_version_iOS_5_0               = { .platform = PLATFORM_IOS, .version = 0x00050000 };
+static dyld_build_version_t dyld_platform_version_iOS_5_1               = { .platform = PLATFORM_IOS, .version = 0x00050100 };
+static dyld_build_version_t dyld_platform_version_iOS_6_0               = { .platform = PLATFORM_IOS, .version = 0x00060000 };
+static dyld_build_version_t dyld_platform_version_iOS_6_1               = { .platform = PLATFORM_IOS, .version = 0x00060100 };
+static dyld_build_version_t dyld_platform_version_iOS_7_0               = { .platform = PLATFORM_IOS, .version = 0x00070000 };
+static dyld_build_version_t dyld_platform_version_iOS_7_1               = { .platform = PLATFORM_IOS, .version = 0x00070100 };
+static dyld_build_version_t dyld_platform_version_iOS_8_0               = { .platform = PLATFORM_IOS, .version = 0x00080000 };
+static dyld_build_version_t dyld_platform_version_iOS_8_1               = { .platform = PLATFORM_IOS, .version = 0x00080100 };
+static dyld_build_version_t dyld_platform_version_iOS_8_2               = { .platform = PLATFORM_IOS, .version = 0x00080200 };
+static dyld_build_version_t dyld_platform_version_iOS_8_3               = { .platform = PLATFORM_IOS, .version = 0x00080300 };
+static dyld_build_version_t dyld_platform_version_iOS_8_4               = { .platform = PLATFORM_IOS, .version = 0x00080400 };
+static dyld_build_version_t dyld_platform_version_iOS_9_0               = { .platform = PLATFORM_IOS, .version = 0x00090000 };
+static dyld_build_version_t dyld_platform_version_iOS_9_1               = { .platform = PLATFORM_IOS, .version = 0x00090100 };
+static dyld_build_version_t dyld_platform_version_iOS_9_2               = { .platform = PLATFORM_IOS, .version = 0x00090200 };
+static dyld_build_version_t dyld_platform_version_iOS_9_3               = { .platform = PLATFORM_IOS, .version = 0x00090300 };
+static dyld_build_version_t dyld_platform_version_iOS_10_0              = { .platform = PLATFORM_IOS, .version = 0x000a0000 };
+static dyld_build_version_t dyld_platform_version_iOS_10_1              = { .platform = PLATFORM_IOS, .version = 0x000a0100 };
+static dyld_build_version_t dyld_platform_version_iOS_10_2              = { .platform = PLATFORM_IOS, .version = 0x000a0200 };
+static dyld_build_version_t dyld_platform_version_iOS_10_3              = { .platform = PLATFORM_IOS, .version = 0x000a0300 };
+static dyld_build_version_t dyld_platform_version_iOS_11_0              = { .platform = PLATFORM_IOS, .version = 0x000b0000 };
+static dyld_build_version_t dyld_platform_version_iOS_11_1              = { .platform = PLATFORM_IOS, .version = 0x000b0100 };
+static dyld_build_version_t dyld_platform_version_iOS_11_2              = { .platform = PLATFORM_IOS, .version = 0x000b0200 };
+static dyld_build_version_t dyld_platform_version_iOS_11_3              = { .platform = PLATFORM_IOS, .version = 0x000b0300 };
+static dyld_build_version_t dyld_platform_version_iOS_11_4              = { .platform = PLATFORM_IOS, .version = 0x000b0400 };
+static dyld_build_version_t dyld_platform_version_iOS_12_0              = { .platform = PLATFORM_IOS, .version = 0x000c0000 };
+static dyld_build_version_t dyld_platform_version_iOS_12_1              = { .platform = PLATFORM_IOS, .version = 0x000c0100 };
+static dyld_build_version_t dyld_platform_version_iOS_12_2              = { .platform = PLATFORM_IOS, .version = 0x000c0200 };
+static dyld_build_version_t dyld_platform_version_iOS_12_3              = { .platform = PLATFORM_IOS, .version = 0x000c0300 };
+static dyld_build_version_t dyld_platform_version_iOS_12_4              = { .platform = PLATFORM_IOS, .version = 0x000c0400 };
+static dyld_build_version_t dyld_platform_version_iOS_13_0              = { .platform = PLATFORM_IOS, .version = 0x000d0000 };
+static dyld_build_version_t dyld_platform_version_iOS_13_1              = { .platform = PLATFORM_IOS, .version = 0x000d0100 };
+static dyld_build_version_t dyld_platform_version_iOS_13_2              = { .platform = PLATFORM_IOS, .version = 0x000d0200 };
+static dyld_build_version_t dyld_platform_version_iOS_13_3              = { .platform = PLATFORM_IOS, .version = 0x000d0300 };
+static dyld_build_version_t dyld_platform_version_iOS_13_4              = { .platform = PLATFORM_IOS, .version = 0x000d0400 };
+static dyld_build_version_t dyld_platform_version_iOS_13_5              = { .platform = PLATFORM_IOS, .version = 0x000d0500 };
+static dyld_build_version_t dyld_platform_version_iOS_13_6              = { .platform = PLATFORM_IOS, .version = 0x000d0600 };
+static dyld_build_version_t dyld_platform_version_iOS_13_7              = { .platform = PLATFORM_IOS, .version = 0x000d0700 };
+static dyld_build_version_t dyld_platform_version_iOS_14_0              = { .platform = PLATFORM_IOS, .version = 0x000e0000 };
+static dyld_build_version_t dyld_platform_version_iOS_14_1              = { .platform = PLATFORM_IOS, .version = 0x000e0100 };
+static dyld_build_version_t dyld_platform_version_iOS_14_2              = { .platform = PLATFORM_IOS, .version = 0x000e0200 };
+
+static dyld_build_version_t dyld_platform_version_watchOS_1_0           = { .platform = PLATFORM_WATCHOS, .version = 0x00010000 };
+static dyld_build_version_t dyld_platform_version_watchOS_2_0           = { .platform = PLATFORM_WATCHOS, .version = 0x00020000 };
+static dyld_build_version_t dyld_platform_version_watchOS_2_1           = { .platform = PLATFORM_WATCHOS, .version = 0x00020100 };
+static dyld_build_version_t dyld_platform_version_watchOS_2_2           = { .platform = PLATFORM_WATCHOS, .version = 0x00020200 };
+static dyld_build_version_t dyld_platform_version_watchOS_3_0           = { .platform = PLATFORM_WATCHOS, .version = 0x00030000 };
+static dyld_build_version_t dyld_platform_version_watchOS_3_1           = { .platform = PLATFORM_WATCHOS, .version = 0x00030100 };
+static dyld_build_version_t dyld_platform_version_watchOS_3_1_1         = { .platform = PLATFORM_WATCHOS, .version = 0x00030101 };
+static dyld_build_version_t dyld_platform_version_watchOS_3_2           = { .platform = PLATFORM_WATCHOS, .version = 0x00030200 };
+static dyld_build_version_t dyld_platform_version_watchOS_4_0           = { .platform = PLATFORM_WATCHOS, .version = 0x00040000 };
+static dyld_build_version_t dyld_platform_version_watchOS_4_1           = { .platform = PLATFORM_WATCHOS, .version = 0x00040100 };
+static dyld_build_version_t dyld_platform_version_watchOS_4_2           = { .platform = PLATFORM_WATCHOS, .version = 0x00040200 };
+static dyld_build_version_t dyld_platform_version_watchOS_4_3           = { .platform = PLATFORM_WATCHOS, .version = 0x00040300 };
+static dyld_build_version_t dyld_platform_version_watchOS_5_0           = { .platform = PLATFORM_WATCHOS, .version = 0x00050000 };
+static dyld_build_version_t dyld_platform_version_watchOS_5_1           = { .platform = PLATFORM_WATCHOS, .version = 0x00050100 };
+static dyld_build_version_t dyld_platform_version_watchOS_5_2           = { .platform = PLATFORM_WATCHOS, .version = 0x00050200 };
+static dyld_build_version_t dyld_platform_version_watchOS_5_3           = { .platform = PLATFORM_WATCHOS, .version = 0x00050300 };
+static dyld_build_version_t dyld_platform_version_watchOS_6_0           = { .platform = PLATFORM_WATCHOS, .version = 0x00060000 };
+static dyld_build_version_t dyld_platform_version_watchOS_6_1           = { .platform = PLATFORM_WATCHOS, .version = 0x00060100 };
+static dyld_build_version_t dyld_platform_version_watchOS_6_2           = { .platform = PLATFORM_WATCHOS, .version = 0x00060200 };
+static dyld_build_version_t dyld_platform_version_watchOS_7_0           = { .platform = PLATFORM_WATCHOS, .version = 0x00070000 };
+static dyld_build_version_t dyld_platform_version_watchOS_7_1           = { .platform = PLATFORM_WATCHOS, .version = 0x00070100 };
+
+static dyld_build_version_t dyld_platform_version_tvOS_9_0              = { .platform = PLATFORM_TVOS, .version = 0x00090000 };
+static dyld_build_version_t dyld_platform_version_tvOS_9_1              = { .platform = PLATFORM_TVOS, .version = 0x00090100 };
+static dyld_build_version_t dyld_platform_version_tvOS_9_2              = { .platform = PLATFORM_TVOS, .version = 0x00090200 };
+static dyld_build_version_t dyld_platform_version_tvOS_10_0             = { .platform = PLATFORM_TVOS, .version = 0x000a0000 };
+static dyld_build_version_t dyld_platform_version_tvOS_10_0_1           = { .platform = PLATFORM_TVOS, .version = 0x000a0001 };
+static dyld_build_version_t dyld_platform_version_tvOS_10_1             = { .platform = PLATFORM_TVOS, .version = 0x000a0100 };
+static dyld_build_version_t dyld_platform_version_tvOS_10_2             = { .platform = PLATFORM_TVOS, .version = 0x000a0200 };
+static dyld_build_version_t dyld_platform_version_tvOS_11_0             = { .platform = PLATFORM_TVOS, .version = 0x000b0000 };
+static dyld_build_version_t dyld_platform_version_tvOS_11_1             = { .platform = PLATFORM_TVOS, .version = 0x000b0100 };
+static dyld_build_version_t dyld_platform_version_tvOS_11_2             = { .platform = PLATFORM_TVOS, .version = 0x000b0200 };
+static dyld_build_version_t dyld_platform_version_tvOS_11_3             = { .platform = PLATFORM_TVOS, .version = 0x000b0300 };
+static dyld_build_version_t dyld_platform_version_tvOS_11_4             = { .platform = PLATFORM_TVOS, .version = 0x000b0400 };
+static dyld_build_version_t dyld_platform_version_tvOS_12_0             = { .platform = PLATFORM_TVOS, .version = 0x000c0000 };
+static dyld_build_version_t dyld_platform_version_tvOS_12_1             = { .platform = PLATFORM_TVOS, .version = 0x000c0100 };
+static dyld_build_version_t dyld_platform_version_tvOS_12_2             = { .platform = PLATFORM_TVOS, .version = 0x000c0200 };
+static dyld_build_version_t dyld_platform_version_tvOS_12_3             = { .platform = PLATFORM_TVOS, .version = 0x000c0300 };
+static dyld_build_version_t dyld_platform_version_tvOS_12_4             = { .platform = PLATFORM_TVOS, .version = 0x000c0400 };
+static dyld_build_version_t dyld_platform_version_tvOS_13_0             = { .platform = PLATFORM_TVOS, .version = 0x000d0000 };
+static dyld_build_version_t dyld_platform_version_tvOS_13_2             = { .platform = PLATFORM_TVOS, .version = 0x000d0200 };
+static dyld_build_version_t dyld_platform_version_tvOS_13_3             = { .platform = PLATFORM_TVOS, .version = 0x000d0300 };
+static dyld_build_version_t dyld_platform_version_tvOS_13_4             = { .platform = PLATFORM_TVOS, .version = 0x000d0400 };
+static dyld_build_version_t dyld_platform_version_tvOS_14_0             = { .platform = PLATFORM_TVOS, .version = 0x000e0000 };
+static dyld_build_version_t dyld_platform_version_tvOS_14_1             = { .platform = PLATFORM_TVOS, .version = 0x000e0100 };
+static dyld_build_version_t dyld_platform_version_tvOS_14_2             = { .platform = PLATFORM_TVOS, .version = 0x000e0200 };
+
+static dyld_build_version_t dyld_platform_version_bridgeOS_2_0          = { .platform = PLATFORM_BRIDGEOS, .version = 0x00020000 };
+static dyld_build_version_t dyld_platform_version_bridgeOS_3_0          = { .platform = PLATFORM_BRIDGEOS, .version = 0x00030000 };
+static dyld_build_version_t dyld_platform_version_bridgeOS_3_1          = { .platform = PLATFORM_BRIDGEOS, .version = 0x00030100 };
+static dyld_build_version_t dyld_platform_version_bridgeOS_3_4          = { .platform = PLATFORM_BRIDGEOS, .version = 0x00030400 };
+static dyld_build_version_t dyld_platform_version_bridgeOS_4_0          = { .platform = PLATFORM_BRIDGEOS, .version = 0x00040000 };
+static dyld_build_version_t dyld_platform_version_bridgeOS_4_1          = { .platform = PLATFORM_BRIDGEOS, .version = 0x00040100 };
+static dyld_build_version_t dyld_platform_version_bridgeOS_5_0          = { .platform = PLATFORM_BRIDGEOS, .version = 0x00050000 };
+
+// Convienence constants for return values from dyld_get_sdk_version() and friends.
+
+#define DYLD_MACOSX_VERSION_10_0                0x000a0000
+#define DYLD_MACOSX_VERSION_10_1                0x000a0100
+#define DYLD_MACOSX_VERSION_10_2                0x000a0200
+#define DYLD_MACOSX_VERSION_10_3                0x000a0300
+#define DYLD_MACOSX_VERSION_10_4                0x000a0400
+#define DYLD_MACOSX_VERSION_10_5                0x000a0500
+#define DYLD_MACOSX_VERSION_10_6                0x000a0600
+#define DYLD_MACOSX_VERSION_10_7                0x000a0700
+#define DYLD_MACOSX_VERSION_10_8                0x000a0800
+#define DYLD_MACOSX_VERSION_10_9                0x000a0900
+#define DYLD_MACOSX_VERSION_10_10               0x000a0a00
+#define DYLD_MACOSX_VERSION_10_10_2             0x000a0a02
+#define DYLD_MACOSX_VERSION_10_10_3             0x000a0a03
+#define DYLD_MACOSX_VERSION_10_11               0x000a0b00
+#define DYLD_MACOSX_VERSION_10_11_2             0x000a0b02
+#define DYLD_MACOSX_VERSION_10_11_3             0x000a0b03
+#define DYLD_MACOSX_VERSION_10_11_4             0x000a0b04
+#define DYLD_MACOSX_VERSION_10_12               0x000a0c00
+#define DYLD_MACOSX_VERSION_10_12_1             0x000a0c01
+#define DYLD_MACOSX_VERSION_10_12_2             0x000a0c02
+#define DYLD_MACOSX_VERSION_10_12_4             0x000a0c04
+#define DYLD_MACOSX_VERSION_10_13               0x000a0d00
+#define DYLD_MACOSX_VERSION_10_13_1             0x000a0d01
+#define DYLD_MACOSX_VERSION_10_13_2             0x000a0d02
+#define DYLD_MACOSX_VERSION_10_13_4             0x000a0d04
+#define DYLD_MACOSX_VERSION_10_14               0x000a0e00
+#define DYLD_MACOSX_VERSION_10_14_1             0x000a0e01
+#define DYLD_MACOSX_VERSION_10_14_4             0x000a0e04
+#define DYLD_MACOSX_VERSION_10_14_5             0x000a0e05
+#define DYLD_MACOSX_VERSION_10_14_6             0x000a0e06
+#define DYLD_MACOSX_VERSION_10_15               0x000a0f00
+#define DYLD_MACOSX_VERSION_10_15_1             0x000a0f01
+#define DYLD_MACOSX_VERSION_10_16               0x000a1000
+#define DYLD_MACOSX_VERSION_11_00               0x000b0000
+
+#define DYLD_IOS_VERSION_2_0                    0x00020000
+#define DYLD_IOS_VERSION_2_1                    0x00020100
+#define DYLD_IOS_VERSION_2_2                    0x00020200
+#define DYLD_IOS_VERSION_3_0                    0x00030000
+#define DYLD_IOS_VERSION_3_1                    0x00030100
+#define DYLD_IOS_VERSION_3_2                    0x00030200
+#define DYLD_IOS_VERSION_4_0                    0x00040000
+#define DYLD_IOS_VERSION_4_1                    0x00040100
+#define DYLD_IOS_VERSION_4_2                    0x00040200
+#define DYLD_IOS_VERSION_4_3                    0x00040300
+#define DYLD_IOS_VERSION_5_0                    0x00050000
+#define DYLD_IOS_VERSION_5_1                    0x00050100
+#define DYLD_IOS_VERSION_6_0                    0x00060000
+#define DYLD_IOS_VERSION_6_1                    0x00060100
+#define DYLD_IOS_VERSION_7_0                    0x00070000
+#define DYLD_IOS_VERSION_7_1                    0x00070100
+#define DYLD_IOS_VERSION_8_0                    0x00080000
+#define DYLD_IOS_VERSION_8_1                    0x00080100
+#define DYLD_IOS_VERSION_8_2                    0x00080200
+#define DYLD_IOS_VERSION_8_3                    0x00080300
+#define DYLD_IOS_VERSION_8_4                    0x00080400
+#define DYLD_IOS_VERSION_9_0                    0x00090000
+#define DYLD_IOS_VERSION_9_1                    0x00090100
+#define DYLD_IOS_VERSION_9_2                    0x00090200
+#define DYLD_IOS_VERSION_9_3                    0x00090300
+#define DYLD_IOS_VERSION_10_0                   0x000a0000
+#define DYLD_IOS_VERSION_10_1                   0x000a0100
+#define DYLD_IOS_VERSION_10_2                   0x000a0200
+#define DYLD_IOS_VERSION_10_3                   0x000a0300
+#define DYLD_IOS_VERSION_11_0                   0x000b0000
+#define DYLD_IOS_VERSION_11_1                   0x000b0100
+#define DYLD_IOS_VERSION_11_2                   0x000b0200
+#define DYLD_IOS_VERSION_11_3                   0x000b0300
+#define DYLD_IOS_VERSION_11_4                   0x000b0400
+#define DYLD_IOS_VERSION_12_0                   0x000c0000
+#define DYLD_IOS_VERSION_12_1                   0x000c0100
+#define DYLD_IOS_VERSION_12_2                   0x000c0200
+#define DYLD_IOS_VERSION_12_3                   0x000c0300
+#define DYLD_IOS_VERSION_12_4                   0x000c0400
+#define DYLD_IOS_VERSION_13_0                   0x000d0000
+#define DYLD_IOS_VERSION_13_1                   0x000d0100
+#define DYLD_IOS_VERSION_13_2                   0x000d0200
+#define DYLD_IOS_VERSION_13_3                   0x000d0300
+#define DYLD_IOS_VERSION_13_4                   0x000d0400
+#define DYLD_IOS_VERSION_13_5                   0x000d0500
+#define DYLD_IOS_VERSION_13_6                   0x000d0600
+#define DYLD_IOS_VERSION_13_7                   0x000d0700
+#define DYLD_IOS_VERSION_14_0                   0x000e0000
+#define DYLD_IOS_VERSION_14_1                   0x000e0100
+#define DYLD_IOS_VERSION_14_2                   0x000e0200
+
+#define DYLD_WATCHOS_VERSION_1_0                0x00010000
+#define DYLD_WATCHOS_VERSION_2_0                0x00020000
+#define DYLD_WATCHOS_VERSION_2_1                0x00020100
+#define DYLD_WATCHOS_VERSION_2_2                0x00020200
+#define DYLD_WATCHOS_VERSION_3_0                0x00030000
+#define DYLD_WATCHOS_VERSION_3_1                0x00030100
+#define DYLD_WATCHOS_VERSION_3_1_1              0x00030101
+#define DYLD_WATCHOS_VERSION_3_2                0x00030200
+#define DYLD_WATCHOS_VERSION_4_0                0x00040000
+#define DYLD_WATCHOS_VERSION_4_1                0x00040100
+#define DYLD_WATCHOS_VERSION_4_2                0x00040200
+#define DYLD_WATCHOS_VERSION_4_3                0x00040300
+#define DYLD_WATCHOS_VERSION_5_0                0x00050000
+#define DYLD_WATCHOS_VERSION_5_1                0x00050100
+#define DYLD_WATCHOS_VERSION_5_2                0x00050200
+#define DYLD_WATCHOS_VERSION_5_3                0x00050300
+#define DYLD_WATCHOS_VERSION_6_0                0x00060000
+#define DYLD_WATCHOS_VERSION_6_1                0x00060100
+#define DYLD_WATCHOS_VERSION_6_2                0x00060200
+#define DYLD_WATCHOS_VERSION_7_0                0x00070000
+#define DYLD_WATCHOS_VERSION_7_1                0x00070100
+
+#define DYLD_TVOS_VERSION_9_0                   0x00090000
+#define DYLD_TVOS_VERSION_9_1                   0x00090100
+#define DYLD_TVOS_VERSION_9_2                   0x00090200
+#define DYLD_TVOS_VERSION_10_0                  0x000a0000
+#define DYLD_TVOS_VERSION_10_0_1                0x000a0001
+#define DYLD_TVOS_VERSION_10_1                  0x000a0100
+#define DYLD_TVOS_VERSION_10_2                  0x000a0200
+#define DYLD_TVOS_VERSION_11_0                  0x000b0000
+#define DYLD_TVOS_VERSION_11_1                  0x000b0100
+#define DYLD_TVOS_VERSION_11_2                  0x000b0200
+#define DYLD_TVOS_VERSION_11_3                  0x000b0300
+#define DYLD_TVOS_VERSION_11_4                  0x000b0400
+#define DYLD_TVOS_VERSION_12_0                  0x000c0000
+#define DYLD_TVOS_VERSION_12_1                  0x000c0100
+#define DYLD_TVOS_VERSION_12_2                  0x000c0200
+#define DYLD_TVOS_VERSION_12_3                  0x000c0300
+#define DYLD_TVOS_VERSION_12_4                  0x000c0400
+#define DYLD_TVOS_VERSION_13_0                  0x000d0000
+#define DYLD_TVOS_VERSION_13_2                  0x000d0200
+#define DYLD_TVOS_VERSION_13_3                  0x000d0300
+#define DYLD_TVOS_VERSION_13_4                  0x000d0400
+#define DYLD_TVOS_VERSION_14_0                  0x000e0000
+#define DYLD_TVOS_VERSION_14_1                  0x000e0100
+#define DYLD_TVOS_VERSION_14_2                  0x000e0200
+
+#define DYLD_BRIDGEOS_VERSION_2_0               0x00020000
+#define DYLD_BRIDGEOS_VERSION_3_0               0x00030000
+#define DYLD_BRIDGEOS_VERSION_3_1               0x00030100
+#define DYLD_BRIDGEOS_VERSION_3_4               0x00030400
+#define DYLD_BRIDGEOS_VERSION_4_0               0x00040000
+#define DYLD_BRIDGEOS_VERSION_4_1               0x00040100
+#define DYLD_BRIDGEOS_VERSION_5_0               0x00050000
 
 //
 // This finds the SDK version a binary was built against.
@@ -275,20 +595,6 @@ extern uint32_t dyld_get_program_sdk_watch_os_version(void) __API_AVAILABLE(watc
 extern uint32_t dyld_get_program_min_watch_os_version(void) __API_AVAILABLE(watchos(3.0));
 #endif
 
-#if TARGET_OS_BRIDGE
-// bridgeOS only.
-// This finds the bridgeOS SDK version that the main executable was built against.
-// Exists in bridgeOSOS 2.0 and later
-extern uint32_t dyld_get_program_sdk_bridge_os_version(void) __API_AVAILABLE(bridgeos(2.0));
-
-// bridgeOS only.
-// This finds the Watch min OS version that the main executable was built to run on.
-// Note: dyld_get_program_min_os_version() returns the iOS equivalent (e.g. 9.0)
-//       whereas this returns the raw bridgeOS version (e.g. 2.0).
-// Exists in bridgeOS 2.0 and later
-extern uint32_t dyld_get_program_min_bridge_os_version(void) __API_AVAILABLE(bridgeos(2.0));
-#endif
-
 //
 // This finds the min OS version a binary was built to run on.
 // Returns zero on error, or if no min OS recorded in binary.
@@ -310,9 +616,7 @@ extern uint32_t dyld_get_program_min_os_version(void);
 
 
 //
-// Returns true if any OS dylib has overridden its copy in the shared cache
-// Returns false for iOS unzippered twins in the shared cache overriding
-// their macOS counterpart in catalyst mode.
+// Returns if any OS dylib has overridden its copy in the shared cache
 //
 // Exists in iPhoneOS 3.1 and later 
 // Exists in Mac OS X 10.10 and later
@@ -322,8 +626,6 @@ extern bool dyld_shared_cache_some_image_overridden(void);
 	
 //
 // Returns if the process is setuid or is code signed with entitlements.
-// NOTE: It is safe to call this prior to malloc being initialized.  This function
-// is guaranteed to not call malloc, or depend on its state.
 //
 // Exists in Mac OS X 10.9 and later
 extern bool dyld_process_is_restricted(void);
@@ -343,14 +645,6 @@ extern const char* dyld_shared_cache_file_path(void);
 //
 // Exists in Mac OS X 10.15 and later
 extern bool dyld_has_inserted_or_interposing_libraries(void);
-
-//
-// Return true if dyld contains a fix for a specific identifier. Intended for staging breaking SPI
-// changes
-//
-// Exists in macOS 10.16, iOS 14, tvOS14, watchOS 7 and later
-
-extern bool _dyld_has_fix_for_radar(const char *rdar);
 
 
 //
@@ -375,7 +669,7 @@ extern void dyld_dynamic_interpose(const struct mach_header* mh, const struct dy
 
 
 struct dyld_shared_cache_dylib_text_info {
-	uint64_t		version;		// current version 2
+	uint64_t		version;		// current version 1
 	// following fields all exist in version 1
 	uint64_t		loadAddressUnslid;
 	uint64_t		textSegmentSize; 
@@ -465,7 +759,7 @@ extern bool _dyld_shared_cache_is_locally_built(void);
 //
 // Exists in Mac OS X 10.15 and later
 // Exists in iOS 13.0 and later
-extern bool dyld_need_closure(const char* execPath, const char* dataContainerRootDir);
+extern bool dyld_need_closure(const char* execPath, const char* tempDir);
 
 
 struct dyld_image_uuid_offset {
@@ -515,32 +809,6 @@ extern void _dyld_register_for_bulk_image_loads(void (*func)(unsigned imageCount
 //
 extern void _dyld_register_driverkit_main(void (*mainFunc)(void));
 
-
-//
-// This is similar to _dyld_shared_cache_contains_path(), except that it returns the canonical
-// shared cache path for the given path.
-//
-// Exists in macOS 10.16 and later
-// Exists in iOS 14.0 and later
-extern const char* _dyld_shared_cache_real_path(const char* path);
-
-
-//
-// Dyld has a number of modes. This function returns the mode for the current process.
-// dyld2 is the classic "interpreter" way to run.
-// dyld3 runs by compiling down and caching what dyld needs to do into a "closure".
-//
-// Exists in macOS 10.16 and later
-// Exists in iOS 14.0 and later
-//
-#define DYLD_LAUNCH_MODE_USING_CLOSURE               0x00000001     // dyld4: 0 => main is JITLoader, 1=> main is PrebuiltLoader
-#define DYLD_LAUNCH_MODE_BUILT_CLOSURE_AT_LAUNCH     0x00000002     // dyld4: currently unused
-#define DYLD_LAUNCH_MODE_CLOSURE_SAVED_TO_FILE       0x00000004     // dyld4: built and wrote PrebuiltLoaderSet to disk
-#define DYLD_LAUNCH_MODE_CLOSURE_FROM_OS             0x00000008     // dyld4: PrebuiltLoaderSet used was built into dyld cache
-#define DYLD_LAUNCH_MODE_MINIMAL_CLOSURE             0x00000010     // dyld4: unused
-#define DYLD_LAUNCH_MODE_HAS_INTERPOSING             0x00000020     // dyld4: process has interposed symbols
-#define DYLD_LAUNCH_MODE_OPTIMIZED_DYLD_CACHE        0x00000040     // dyld4: dyld shared cache is optimized (stubs eliminated)
-extern uint32_t _dyld_launch_mode(void);
 
 
 //
@@ -625,130 +893,15 @@ extern void _dyld_for_each_objc_class(const char* className,
 extern void _dyld_for_each_objc_protocol(const char* protocolName,
                                          void (^callback)(void* protocolPtr, bool isLoaded, bool* stop));
 
-// Called only by lldb to visit every objc Class in the shared cache hash table
-//
-// Exists in Mac OS X 12.0 and later
-// Exists in iOS 15.0 and later
-extern void _dyld_visit_objc_classes(void (^callback)(const void* classPtr));
-
-// Called only by libobjc to get the number of classes in the shared cache hash table
-//
-// Exists in Mac OS X 12.0 and later
-// Exists in iOS 15.0 and later
-extern uint32_t _dyld_objc_class_count(void);
-
-// Called only by libobjc to check if relative method lists are the new large caches format
-//
-// Exists in Mac OS X 12.0 and later
-// Exists in iOS 15.0 and later
-extern bool _dyld_objc_uses_large_shared_cache(void);
-
-
-enum _dyld_protocol_conformance_result_kind {
-  _dyld_protocol_conformance_result_kind_found_descriptor,
-  _dyld_protocol_conformance_result_kind_found_witness_table,
-  _dyld_protocol_conformance_result_kind_not_found,
-  _dyld_protocol_conformance_result_kind_definitive_failure
-  // Unknown values will be considered to be a non-definitive failure, so we can
-  // add more response kinds later if needed without a synchronized submission.
-};
-
-struct _dyld_protocol_conformance_result {
-    // Note this is really a _dyld_protocol_conformance_result_kind in disguise
-    uintptr_t kind;
-
-    // Contains a ProtocolConformanceDescriptor iff `kind` is _dyld_protocol_conformance_result_kind_found_descriptor
-    // Contains a WitnessTable iff `kind` is _dyld_protocol_conformance_result_kind_found_witness_table
-    const void *value;
-};
-
-// Called only by Swift to see if dyld has pre-optimized protocol conformances for the given
-// protocolDescriptor/metadataType and typeDescriptor.
-//
-// Exists in Mac OS X 12.0 and later
-// Exists in iOS 15.0 and later
-extern struct _dyld_protocol_conformance_result
-_dyld_find_protocol_conformance(const void *protocolDescriptor,
-                                const void *metadataType,
-                                const void *typeDescriptor);
-
-// Called only by Swift to see if dyld has pre-optimized protocol conformances for the given
-// foreign type descriptor name and protocol
-//
-// Exists in Mac OS X 12.0 and later
-// Exists in iOS 15.0 and later
-extern struct _dyld_protocol_conformance_result
-_dyld_find_foreign_type_protocol_conformance(const void *protocol,
-                                             const char *foreignTypeIdentityStart,
-                                             size_t foreignTypeIdentityLength);
-
-// Called only by Swift to check what version of the optimizations are available.
-//
-// Exists in Mac OS X 12.0 and later
-// Exists in iOS 15.0 and later
-// Exists in watchOS 8.0 and later
-// Exists in tvOS 15.0 and later.
-
-extern uint32_t _dyld_swift_optimizations_version(void) __API_AVAILABLE(macos(12.0), ios(15.0), watchos(8.0), tvos(15.0));
-
-// Swift uses this define to guard for the above symbol being available at build time
-#define DYLD_FIND_PROTOCOL_CONFORMANCE_DEFINED 1
-
-// Called only by Swift to check if dyld has pre-optimized protocol conformances in the closure
-// for the given on-disk mach_header containing a __swift5_proto section
-//
-// Exists in Mac OS X 13.0 and later
-// Exists in iOS 16.0 and later
-extern bool _dyld_has_preoptimized_swift_protocol_conformances(const struct mach_header* mh);
-
-// Called only by Swift to see if dyld has pre-optimized protocol conformances for the given
-// protocolDescriptor/metadataType and typeDescriptor in the closure on disk.
-//
-// Exists in Mac OS X 13.0 and later
-// Exists in iOS 16.0 and later
-extern struct _dyld_protocol_conformance_result
-_dyld_find_protocol_conformance_on_disk(const void *protocolDescriptor,
-                                        const void *metadataType,
-                                        const void *typeDescriptor,
-                                        uint32_t flags);
-
-// Called only by Swift to see if dyld has pre-optimized protocol conformances for the given
-// foreign type descriptor name and protocol in the closure on disk.
-//
-// Exists in Mac OS X 13.0 and later
-// Exists in iOS 16.0 and later
-extern struct _dyld_protocol_conformance_result
-_dyld_find_foreign_type_protocol_conformance_on_disk(const void *protocol,
-                                                     const char *foreignTypeIdentityStart,
-                                                     size_t foreignTypeIdentityLength,
-                                                     uint32_t flags);
-
-// Swift uses this define to guard for the above symbols being available at build time
-#define DYLD_FIND_PROTOCOL_ON_DISK_CONFORMANCE_DEFINED 1
 
 // called by exit() before it calls cxa_finalize() so that thread_local
 // objects are destroyed before global objects.
 extern void _tlv_exit(void);
 
-typedef enum {
-    dyld_objc_string_kind
-} DyldObjCConstantKind;
-
-// CF constants such as CFString's can be moved in to a contiguous range of
-// shared cache memory.  This returns true if the given pointer is to an object of
-// the given kind.
-//
-// Exists in Mac OS X 10.16 and later
-// Exists in iOS 14.0 and later
-extern bool _dyld_is_objc_constant(DyldObjCConstantKind kind, const void* addr);
-
 
 // temp exports to keep tapi happy, until ASan stops using dyldVersionNumber
 extern double      dyldVersionNumber;
 extern const char* dyldVersionString;
-
-// True if dyld told objc to patch classes
-extern uint8_t dyld_process_has_objc_patches;
 
 #if __cplusplus
 }

@@ -54,8 +54,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(void)doesNotRecognizeSelector:(SEL)selector {
 	[NSException raise:NSInvalidArgumentException
-				format:@"%c[%@ %@]: selector not recognized", class_isMetaClass(isa)?'+':'-',
-	 NSStringFromClass(isa),NSStringFromSelector(selector)];
+				format:@"%c[%@ %@]: selector not recognized", class_isMetaClass(object_getClass(self))?'+':'-',
+	 NSStringFromClass(object_getClass(self)),NSStringFromSelector(selector)];
 }
 
 -(NSMethodSignature *)methodSignatureForSelector:(SEL)selector {
@@ -101,12 +101,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 
 -(Class)class {
-   return isa;
+   return object_getClass(self);
 }
 
 
 -(Class)superclass {
-   return class_getSuperclass(isa);
+   return class_getSuperclass(object_getClass(self));
 }
 
 
@@ -122,7 +122,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #else
     IMP imp = objc_msg_lookup(self, selector);
 #endif
-    return imp(self, selector);
+    return ((id (*)(id,SEL))imp)(self, selector);
 }
 
 
@@ -133,7 +133,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #else
     IMP imp = objc_msg_lookup(self, selector);
 #endif
-    return imp(self, selector, object1);
+    return ((id (*)(id,SEL,id))imp)(self, selector, object1);
 }
 
 
@@ -144,7 +144,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #else
     IMP imp = objc_msg_lookup(self, selector);
 #endif
-    return imp(self, selector, object1, object2);
+    return ((id (*)(id,SEL,id,id))imp)(self, selector, object1, object2);
 }
 
 
@@ -230,7 +230,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 
 -(NSString *)description {
-   return NSStringWithFormat(@"<%@: 0x%0x>",NSStringFromClass(isa),self);
+   return NSStringWithFormat(@"<%@: 0x%0x>",NSStringFromClass(object_getClass(self)),self);
 }
 
 -(NSString *)debugDescription {

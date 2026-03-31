@@ -163,7 +163,6 @@ WARNFLAGS_STD := \
 	-Wno-variadic-macros \
 	-Wno-vla \
 	-Wno-zero-length-array \
-	-Wno-incompatible-sysroot \
 	-Wno-nullability-completeness \
 	-Wno-incompatible-sysroot
 
@@ -204,13 +203,8 @@ endef
 #
 # Default ARCH_FLAGS, for use with compiler/linker/assembler/mig drivers
 
-ifeq ($(OPSYS),Linux)
-ARCH_FLAGS_X86_64     = -march=x86-64
-ARCH_FLAGS_X86_64H    = -march=x86-64h
-else
 ARCH_FLAGS_X86_64	  = -arch x86_64
 ARCH_FLAGS_X86_64H	  = -arch x86_64h
-endif
 
 ifneq ($(filter ARM ARM64,$(CURRENT_ARCH_CONFIG)),)
 
@@ -287,10 +281,11 @@ CFLAGS_GEN = $(DEBUG_CFLAGS) -nostdinc -w \
 	-fno-common \
 	-fsigned-bitfields \
 	-fmerge-all-constants \
-	-fno-c++-static-destructors \
+	-fno-stack-clash-protection \
+	-fno-stack-check \
 	-mno-stack-arg-probe \
-	-fno-stack-check -fno-stack-clash-protection \
 	$(OTHER_CFLAGS)
+
 
 CFLAGS_RELEASE	=
 CFLAGS_DEVELOPMENT	=
@@ -309,7 +304,7 @@ CFLAGS_ARM	= -Darm -DARM -D__ARM__ -DPAGE_SIZE_FIXED \
 CFLAGS_ARM64	= -Darm64 -DARM64 -D__ARM64__ -DLP64 -DPAGE_SIZE_FIXED \
 			-momit-leaf-frame-pointer -fno-strict-aliasing -D__API__=v4 -mkernel
 
-CFLAGS_RELEASEX86_64 = -O2
+CFLAGS_RELEASEX86_64 = -O0
 CFLAGS_DEVELOPMENTX86_64 = -O2
 CFLAGS_KASANX86_64 = $(CFLAGS_DEVELOPMENTX86_64)
 # No space optimization for the DEBUG kernel for the benefit of gdb:
@@ -459,7 +454,7 @@ SFLAGS	= $(SFLAGS_GEN) \
 #
 # Linker command
 #
-LD	= $(KC++) -nostdlib -fuse-ld=$(LD)
+LD	= $(KC++) -nostdlib
 
 #
 # Default LDFLAGS
@@ -468,24 +463,27 @@ LD	= $(KC++) -nostdlib -fuse-ld=$(LD)
 # ctf_insert creates the CTF section.  It needs reserved padding in the
 # headers for the load command segment and the CTF section structures.
 #
+
 LDFLAGS_KERNEL_GEN = \
-	-nostdlib \
+    -nostdlib \
 	-fapple-kext \
 	-Wl,-e,__start \
 	-Wl,-sectalign,__TEXT,__text,0x1000 \
-	-Wl,-sectalign,__DATA,__percpu,0x80 \
 	-Wl,-sectalign,__DATA,__common,0x1000 \
 	-Wl,-sectalign,__DATA,__bss,0x1000 \
+	-Wl,-sectalign,__DATA,__percpu,0x80 \
 	-Wl,-sectcreate,__PRELINK_TEXT,__text,/dev/null \
 	-Wl,-segprot,__PRELINK_TEXT,r-x,r-x \
+	-Wl,-segprot,__DATA,rw-,r-- \
 	-Wl,-sectcreate,__PRELINK_INFO,__info,/dev/null \
+	-Wl,-sectcreate,__BUILTIN,__info,/dev/null \
+	-Wl,-sectcreate,__BUILTIN,__kmod_info,/dev/null \
 	-Wl,-pagezero_size,0x0 \
 	-Wl,-version_load_command \
 	-Wl,-function_starts \
 	-Wl,-headerpad,152
 
-LDFLAGS_KERNEL_SDK	= -L$(SDKROOT)/usr/local/lib/kernel -lfirehose_kernel
-
+LDFLAGS_KERNEL_SDK	= -L$(SDKROOT)/usr/local/lib/kernel
 LDFLAGS_KERNEL_RELEASE	=
 LDFLAGS_KERNEL_DEVELOPMENT     =
 LDFLAGS_KERNEL_KASAN = $(LDFLAGS_KERNEL_DEVELOPMENT)
@@ -508,7 +506,7 @@ KERNEL_TEXT_BASE        = $(shell printf "0x%016x" \
 			  $$[ $(KERNEL_HIB_SECTION_BASE) + 0x100000 ])
 
 LDFLAGS_KERNEL_RELEASEX86_64 = \
-	-Wl,-pie -Wl,-kernel \
+	-Wl,-pie \
 	-Wl,-segaddr,__HIB,$(KERNEL_HIB_SECTION_BASE) \
 	-Wl,-image_base,$(KERNEL_TEXT_BASE) \
 	-Wl,-seg_page_size,__TEXT,0x200000 \
@@ -524,7 +522,8 @@ LDFLAGS_KERNEL_RELEASEX86_64 = \
 	-Wl,-sectalign,__HIB,__llvm_prf_data,0x1000 \
 	-Wl,-sectalign,__HIB,__textcoal_nt,0x1000 \
 	-Wl,-rename_section,__DATA,__const,__DATA_CONST,__const \
-	-Wl,-no_zero_fill_sections -Wl,-add_split_seg_info \
+	-Wl,-no_zero_fill_sections \
+    -Wl,-add_split_seg_info \
 	$(LDFLAGS_NOSTRIP_FLAG)
 
 ifeq ($(SAN),1)
@@ -664,13 +663,6 @@ LDFLAGS_KERNEL	= $(LDFLAGS_KERNEL_GEN) \
 		  $($(addsuffix $(CURRENT_ARCH_CONFIG), $(addsuffix $(CURRENT_KERNEL_CONFIG),LDFLAGS_KERNEL_))) \
 		  $(DEPLOYMENT_TARGET_FLAGS)
 
-LDFLAGS_KERNEL_ONLY   =   \
-                 $($(addsuffix $(CURRENT_ARCH_CONFIG), $(addsuffix $(CURRENT_KERNEL_CONFIG),LDFLAGS_KERNEL_ONLY_CONFIG_))) \
-                 $($(addsuffix $(ARCH_STRING_FOR_CURRENT_MACHINE_CONFIG),LDFLAGS_KERNEL_ONLY_SUBARCH_)) \
-                 -Wl,-alias_list,$(TARGET)/all-alias.exp \
-                 -Wl,-segprot,__LINKINFO,r--,r--
-               # -Wl,-sectcreate,__LINKINFO,__symbolsets,$(TARGET)/symbolsets.plist
-
 LDFLAGS_KERNEL_EXPORTS   =   \
 		  $($(addsuffix $(CURRENT_ARCH_CONFIG), $(addsuffix $(CURRENT_KERNEL_CONFIG),LDFLAGS_KERNEL_EXPORTS_))) \
 		  -Wl,-alias_list,$(TARGET)/all-alias.exp
@@ -707,9 +699,7 @@ INCFLAGS_IMPORT	= $(patsubst %, -I$(OBJROOT)/EXPORT_HDRS/%, $(COMPONENT_IMPORT_L
 INCFLAGS_EXTERN	= -I$(SRCROOT)/EXTERNAL_HEADERS
 INCFLAGS_GEN	= -I$(SRCROOT)/$(COMPONENT) -I$(OBJROOT)/EXPORT_HDRS/$(COMPONENT)
 INCFLAGS_LOCAL	= -I.
-INCFLAGS_SDK	= -I$(SRCROOT)/../../Libraries/Libsystem/libdispatch \
-				  -I$(SRCROOT)/libkern/firehose \
-                  -I$(SDKROOT)/usr/local/include/kernel -I$(OBJROOT)/bsd
+INCFLAGS_SDK	= -I$(SDKROOT)/usr/local/include/kernel
 
 INCFLAGS	= $(INCFLAGS_LOCAL) $(INCFLAGS_GEN) $(INCFLAGS_IMPORT) $(INCFLAGS_EXTERN) $(INCFLAGS_MAKEFILE) $(INCFLAGS_SDK)
 

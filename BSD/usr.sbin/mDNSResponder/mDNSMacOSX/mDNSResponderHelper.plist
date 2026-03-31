@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- To run mDNSResponderHelper on Tiger, place this file into /etc/mach_init.d -->
+<plist version="1.0">
+<dict>
+        <key>ServiceName</key>
+        <string>com.apple.mDNSResponderHelper</string>
+        <key>Command</key>
+        <string>/usr/sbin/mDNSResponderHelper</string>
+	<key>OnDemand</key>
+	<true/>
+</dict>
+</plist>

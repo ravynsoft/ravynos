@@ -38,14 +38,14 @@ int main(int argc, const char* argv[], const char* envp[], const char* apple[]) 
     /// Load three foo dylibs in order
     ///
     void* handle1 = dlopen(RUN_DIR "/libfoo1.dylib", RTLD_GLOBAL);
+    void* handle2 = dlopen(RUN_DIR "/libfoo2.dylib", RTLD_LOCAL);
+    void* handle3 = dlopen(RUN_DIR "/libfoo3.dylib", RTLD_GLOBAL);
     if ( handle1 == NULL ) {
         FAIL("dlopen(\"libfoo1.dylib\", RTLD_GLOBAL) failed but it should have worked: %s", dlerror());
     }
-    void* handle2 = dlopen(RUN_DIR "/libfoo2.dylib", RTLD_LOCAL);
     if ( handle2 == NULL ) {
         FAIL("dlopen(\"libfoo2.dylib\", RTLD_LOCAL) failed but it should have worked: %s", dlerror());
     }
-    void* handle3 = dlopen(RUN_DIR "/libfoo3.dylib", RTLD_GLOBAL);
     if ( handle3 == NULL ) {
         FAIL("dlopen(\"libfoo3.dylib\", RTLD_GLOBAL) failed but it should have worked: %s", dlerror());
     }

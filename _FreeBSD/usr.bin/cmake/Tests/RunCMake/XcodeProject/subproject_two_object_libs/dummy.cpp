@@ -1,5 +1,0 @@
-namespace {
-void foo()
-{
-}
-}

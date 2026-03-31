@@ -57,7 +57,6 @@ public:
     bool            noError() const;
     void            clearError();
     void            assertNoError() const;
-    bool            errorMessageContains(const char* subString) const;
 
 #if !BUILDING_CACHE_BUILDER
     const char*                     errorMessage() const;
@@ -69,7 +68,6 @@ public:
 #endif
 
 private:
-
     void*                    _buffer = nullptr;
 #if BUILDING_CACHE_BUILDER
     std::string              _prefix;
@@ -78,37 +76,7 @@ private:
 #endif
 };
 
-#if BUILDING_CACHE_BUILDER
 
-class VIS_HIDDEN TimeRecorder
-{
-public:
-    // Call pushTimedSection(), then mark events with recordTime. Call popTimedSection() to stop the current timing session.
-    // This is stack-based, so you can start a sub-timer with pushTimedSection() / recordTime / recordTime... / popTimedSection()
-    // inside a first timed section.
-    // Call logTimings() to print everything.
 
-    // Start a new timed section.
-    void pushTimedSection();
-
-    // Records the time taken since the last pushTimedSection() / recordTime() at the current level
-    void recordTime(const char* format, ...);
-
-    // Stop the current timed section and pop back one level.
-    void popTimedSection();
-
-    void logTimings();
-private:
-    struct TimingEntry {
-        uint64_t time;
-        std::string logMessage;
-        int depth;
-    };
-
-    std::vector<uint64_t> openTimings;
-    std::vector<TimingEntry> timings;
-};
-
-#endif /* BUILDING_CACHE_BUILDER */
 
 #endif // Diagnostics_h

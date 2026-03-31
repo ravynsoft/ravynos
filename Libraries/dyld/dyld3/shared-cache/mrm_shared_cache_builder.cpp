@@ -26,19 +26,17 @@
 #include "SharedCacheBuilder.h"
 #include "ClosureFileSystem.h"
 #include "FileUtils.h"
-#include "JSONReader.h"
 #include <pthread.h>
 #include <memory>
 #include <vector>
 #include <map>
 #include <sys/stat.h>
 
-
 static const uint64_t kMinBuildVersion = 1; //The minimum version BuildOptions struct we can support
-static const uint64_t kMaxBuildVersion = 2; //The maximum version BuildOptions struct we can support
+static const uint64_t kMaxBuildVersion = 1; //The maximum version BuildOptions struct we can support
 
 static const uint32_t MajorVersion = 1;
-static const uint32_t MinorVersion = 2;
+static const uint32_t MinorVersion = 0;
 
 namespace dyld3 {
 namespace closure {
@@ -99,7 +97,7 @@ public:
         info.fileContentLen             = fileInfo.length;
         info.sliceOffset                = 0;
         info.sliceLen                   = fileInfo.length;
-        info.isOSBinary                 = true;
+        info.isSipProtected             = false;
         info.inode                      = fileInfo.inode;
         info.mtime                      = fileInfo.mtime;
         info.unload                     = nullptr;
@@ -205,8 +203,6 @@ struct BuildInstance {
     uint8_t*                                        cacheData       = nullptr;
     uint64_t                                        cacheSize       = 0;
     std::string                                     jsonMap;
-    std::string                                     macOSMap;       // For compatibility with update_dyld_shared_cache's .map file
-    std::string                                     macOSMapPath;   // Owns the string for the path
     std::string                                     cdHash;         // Owns the data for the cdHash
     std::string                                     cdHashType;     // Owns the data for the cdHashType
     std::string                                     uuid;           // Owns the data for the uuid
@@ -218,14 +214,6 @@ struct BuildFileResult {
     uint64_t                                    size;
 };
 
-struct TranslationResult {
-    const uint8_t*   data;
-    size_t           size;
-    std::string      cdHash;
-    std::string      path;
-    bool             bufferWasMalloced;
-};
-
 struct MRMSharedCacheBuilder {
     MRMSharedCacheBuilder(const BuildOptions_v1* options);
     const BuildOptions_v1*          options;
@@ -233,27 +221,23 @@ struct MRMSharedCacheBuilder {
 
     std::string dylibOrderFileData;
     std::string dirtyDataOrderFileData;
-    void* objcOptimizationsFileData;
-    size_t objcOptimizationsFileLength;
 
     // An array of builders and their options as we may have more than one builder for a given device variant.
     std::vector<BuildInstance> builders;
 
     // The paths in all of the caches
     // We keep this here to own the std::string path data
-    std::map<std::string, std::unordered_set<const BuildInstance*>> dylibsInCaches;
+    std::map<std::string, uint32_t> dylibsInCaches;
 
     // The results from all of the builders
     // We keep this in a vector to own the data.
-    std::vector<FileResult*>                     fileResults;
-    std::vector<FileResult>                      fileResultStorage;
-    std::vector<std::pair<uint64_t, bool>>       fileResultBuffers;
+    std::vector<FileResult*>    fileResults;
+    std::vector<FileResult>     fileResultStorage;
 
     // The results from all of the builders
     // We keep this in a vector to own the data.
     std::vector<CacheResult*>    cacheResults;
     std::vector<CacheResult>     cacheResultStorage;
-
 
     // The files to remove.  These are in every copy of the caches we built
     std::vector<const char*> filesToRemove;
@@ -289,12 +273,7 @@ struct MRMSharedCacheBuilder {
     }
 };
 
-MRMSharedCacheBuilder::MRMSharedCacheBuilder(const BuildOptions_v1* options)
-: options(options)
-, lock(PTHREAD_MUTEX_INITIALIZER)
-, objcOptimizationsFileData(nullptr)
-, objcOptimizationsFileLength(0)
-{
+MRMSharedCacheBuilder::MRMSharedCacheBuilder(const BuildOptions_v1* options) : options(options), lock(PTHREAD_MUTEX_INITIALIZER) {
 
 }
 
@@ -315,7 +294,6 @@ void validiateBuildOptions(const BuildOptions_v1* options, MRMSharedCacheBuilder
         case Disposition::Unknown:
         case Disposition::InternalDevelopment:
         case Disposition::Customer:
-        case Disposition::InternalMinDevelopment:
             break;
         default:
             builder.error("unknown disposition value");
@@ -395,11 +373,6 @@ bool addFile(struct MRMSharedCacheBuilder* builder, const char* path, uint8_t* d
                 builder->dirtyDataOrderFileData = std::string((char*)data, size);
                 success = true;
                 return;
-            case ObjCOptimizationsFile:
-                builder->objcOptimizationsFileData = data;
-                builder->objcOptimizationsFileLength = size;
-                success = true;
-                return;
             default:
                 builder->error("unknown file flags value");
                 break;
@@ -442,44 +415,22 @@ bool addSymlink(struct MRMSharedCacheBuilder* builder, const char* fromPath, con
     return success;
 }
 
-static DyldSharedCache::LocalSymbolsMode platformExcludeLocalSymbols(Platform platform) {
+static bool platformExcludeLocalSymbols(Platform platform) {
     switch (platform) {
         case Platform::unknown:
         case Platform::macOS:
-            return DyldSharedCache::LocalSymbolsMode::keep;
+            return false;
         case Platform::iOS:
         case Platform::tvOS:
         case Platform::watchOS:
         case Platform::bridgeOS:
-            return DyldSharedCache::LocalSymbolsMode::unmap;
+            return true;
         case Platform::iOSMac:
         case Platform::iOS_simulator:
         case Platform::tvOS_simulator:
         case Platform::watchOS_simulator:
-            return DyldSharedCache::LocalSymbolsMode::keep;
+            return false;
     }
-}
-
-static DyldSharedCache::LocalSymbolsMode excludeLocalSymbols(const BuildOptions_v1* options) {
-    if ( options->version >= 2 ) {
-        const BuildOptions_v2* v2 = (const BuildOptions_v2*)options;
-        if ( v2->optimizeForSize )
-            return DyldSharedCache::LocalSymbolsMode::strip;
-    }
-
-    // Old build options always use the platform default
-    return platformExcludeLocalSymbols(options->platform);
-}
-
-static bool optimizeDyldDlopens(const BuildOptions_v1* options) {
-    // Old builds always default to dyld3 optimisations
-    if ( options->version < 2 ) {
-        return true;
-    }
-
-    // If we want to optimize for size instead of speed, then disable dyld3 dlopen closures
-    const BuildOptions_v2* v2 = (const BuildOptions_v2*)options;
-    return !v2->optimizeForSize;
 }
 
 static DyldSharedCache::CodeSigningDigestMode platformCodeSigningDigestMode(Platform platform) {
@@ -530,12 +481,6 @@ static const char* dispositionName(Disposition disposition) {
     }
 }
 
-// This is a JSON file containing the list of classes for which
-// we should try to build IMP caches.
-dyld3::json::Node parseObjcOptimizationsFile(Diagnostics& diags, const void* data, size_t length) {
-    return dyld3::json::readJSON(diags, data, length);
-}
-
 bool runSharedCacheBuilder(struct MRMSharedCacheBuilder* builder) {
     __block bool success = false;
     builder->runSync(^() {
@@ -548,7 +493,7 @@ bool runSharedCacheBuilder(struct MRMSharedCacheBuilder* builder) {
             builder->error("Cannot run builder with no files");
         }
 
-        __block Diagnostics diag;
+        Diagnostics diag;
         std::vector<DyldSharedCache::FileAlias> aliases = builder->fileSystem.getResolvedSymlinks(diag);
         if (diag.hasError()) {
             diag.verbose("Symlink resolver error: %s\n", diag.errorMessage().c_str());
@@ -559,49 +504,42 @@ bool runSharedCacheBuilder(struct MRMSharedCacheBuilder* builder) {
             return;
         }
 
-        __block std::vector<SharedCacheBuilder::InputFile> inputFiles;
+        __block std::vector<CacheBuilder::InputFile> inputFiles;
         builder->fileSystem.forEachFileInfo(^(const char* path, FileFlags fileFlags) {
-            SharedCacheBuilder::InputFile::State state = SharedCacheBuilder::InputFile::Unset;
+            CacheBuilder::InputFile::State state = CacheBuilder::InputFile::Unset;
             switch (fileFlags) {
                 case FileFlags::NoFlags:
-                    state = SharedCacheBuilder::InputFile::Unset;
+                    state = CacheBuilder::InputFile::Unset;
                     break;
                 case FileFlags::MustBeInCache:
-                    state = SharedCacheBuilder::InputFile::MustBeIncluded;
+                    state = CacheBuilder::InputFile::MustBeIncluded;
                     break;
                 case FileFlags::ShouldBeExcludedFromCacheIfUnusedLeaf:
-                    state = SharedCacheBuilder::InputFile::MustBeExcludedIfUnused;
+                    state = CacheBuilder::InputFile::MustBeExcludedIfUnused;
                     break;
                 case FileFlags::RequiredClosure:
-                    state = SharedCacheBuilder::InputFile::MustBeIncluded;
+                    state = CacheBuilder::InputFile::MustBeIncluded;
                     break;
                 case FileFlags::DylibOrderFile:
                 case FileFlags::DirtyDataOrderFile:
-                case FileFlags::ObjCOptimizationsFile:
                     builder->error("Order files should not be in the file system");
                     return;
             }
-            inputFiles.emplace_back((SharedCacheBuilder::InputFile){ path, state });
+            inputFiles.emplace_back((CacheBuilder::InputFile){ path, state });
         });
 
         auto addCacheConfiguration = ^(bool isOptimized) {
             for (uint64_t i = 0; i != builder->options->numArchs; ++i) {
-                // HACK: Skip i386 for macOS
-                if ( (builder->options->platform == Platform::macOS) && (strcmp(builder->options->archs[i], "i386") == 0 ) )
-                    continue;
                 auto options = std::make_unique<DyldSharedCache::CreateOptions>((DyldSharedCache::CreateOptions){});
                 const char *cacheSuffix = (isOptimized ? "" : ".development");
-                if ( builder->options->platform == Platform::macOS )
-                    cacheSuffix = "";
-                std::string runtimePath = (builder->options->platform == Platform::macOS) ? MACOSX_MRM_DYLD_SHARED_CACHE_DIR : IPHONE_DYLD_SHARED_CACHE_DIR;
+                std::string runtimePath = (builder->options->platform == Platform::macOS) ? "/private/var/db/dyld/" : "/System/Library/Caches/com.apple.dyld/";
                 options->outputFilePath = runtimePath + "dyld_shared_cache_" + builder->options->archs[i] + cacheSuffix;
                 options->outputMapFilePath = options->outputFilePath + ".json";
                 options->archs = &dyld3::GradedArchs::forName(builder->options->archs[i]);
                 options->platform = (dyld3::Platform)builder->options->platform;
-                options->localSymbolMode = excludeLocalSymbols(builder->options);
+                options->excludeLocalSymbols = platformExcludeLocalSymbols(builder->options->platform);
                 options->optimizeStubs = isOptimized;
-                options->optimizeDyldDlopens = optimizeDyldDlopens(builder->options);
-                options->optimizeDyldLaunches = true;
+                options->optimizeObjC = true;
                 options->codeSigningDigestMode = platformCodeSigningDigestMode(builder->options->platform);
                 options->dylibsRemovedDuringMastering = true;
                 options->inodesAreSameAsRuntime = false;
@@ -613,7 +551,6 @@ bool runSharedCacheBuilder(struct MRMSharedCacheBuilder* builder) {
                 options->loggingPrefix = std::string(builder->options->deviceName) + dispositionName(builder->options->disposition) + "." + builder->options->archs[i] + cacheSuffix;
                 options->dylibOrdering = parseOrderFile(builder->dylibOrderFileData);
                 options->dirtyDataSegmentOrdering = parseOrderFile(builder->dirtyDataOrderFileData);
-                options->objcOptimizations = parseObjcOptimizationsFile(diag, builder->objcOptimizationsFileData, builder->objcOptimizationsFileLength);
 
                 auto cacheBuilder = std::make_unique<SharedCacheBuilder>(*options.get(), builder->fileSystem);
                 builder->builders.emplace_back((BuildInstance) { std::move(options), std::move(cacheBuilder), inputFiles });
@@ -624,13 +561,8 @@ bool runSharedCacheBuilder(struct MRMSharedCacheBuilder* builder) {
         switch (builder->options->disposition) {
             case Disposition::Unknown:
             case Disposition::InternalDevelopment:
-                // HACK: MRM for the mac should only get development, even if it requested both
-                if (builder->options->platform == Platform::macOS) {
-                    addCacheConfiguration(false);
-                } else {
-                    addCacheConfiguration(false);
-                    addCacheConfiguration(true);
-                }
+                addCacheConfiguration(false);
+                addCacheConfiguration(true);
                 break;
             case Disposition::Customer:
                 addCacheConfiguration(true);
@@ -667,12 +599,7 @@ bool runSharedCacheBuilder(struct MRMSharedCacheBuilder* builder) {
 
             if (cacheBuilder->errorMessage().empty()) {
                 cacheBuilder->writeBuffer(buildInstance.cacheData, buildInstance.cacheSize);
-                buildInstance.jsonMap = cacheBuilder->getMapFileJSONBuffer(builder->options->deviceName);
-                if ( buildInstance.options->platform == dyld3::Platform::macOS ) {
-                    // For compatibility with update_dyld_shared_cache, put a .map file next to the shared cache
-                    buildInstance.macOSMap = cacheBuilder->getMapFileBuffer();
-                    buildInstance.macOSMapPath = buildInstance.options->outputFilePath + ".map";
-                }
+                buildInstance.jsonMap = cacheBuilder->getMapFileBuffer(builder->options->deviceName);
                 buildInstance.cdHash = cacheBuilder->cdHashFirst();
                 buildInstance.uuid = cacheBuilder->uuid();
                 switch (buildInstance.options->codeSigningDigestMode) {
@@ -686,24 +613,14 @@ bool runSharedCacheBuilder(struct MRMSharedCacheBuilder* builder) {
                         buildInstance.cdHashType = "sha1";
                         break;
                 }
-
-                // Track the dylibs which were included in this cache
-                cacheBuilder->forEachCacheDylib(^(const std::string &path) {
-                    builder->dylibsInCaches[path.c_str()].insert(&buildInstance);
-                });
-                cacheBuilder->forEachCacheSymlink(^(const std::string &path) {
-                    builder->dylibsInCaches[path.c_str()].insert(&buildInstance);
-                });
             }
-            // Free the cache builder now so that we don't keep too much memory resident
-            cacheBuilder->deleteBuffer();
-            buildInstance.builder.reset();
         }
-
 
         // Now that we have run all of the builds, collect the results
         // First push file results for each of the shared caches we built
         for (auto& buildInstance : builder->builders) {
+            SharedCacheBuilder* cacheBuilder = buildInstance.builder.get();
+
             CacheResult cacheBuildResult;
             cacheBuildResult.version                = 1;
             cacheBuildResult.loggingPrefix          = buildInstance.options->loggingPrefix.c_str();
@@ -717,7 +634,7 @@ bool runSharedCacheBuilder(struct MRMSharedCacheBuilder* builder) {
 
             builder->cacheResultStorage.emplace_back(cacheBuildResult);
 
-            if (!buildInstance.errors.empty())
+            if (!cacheBuilder->errorMessage().empty())
                 continue;
 
             FileResult cacheFileResult;
@@ -730,23 +647,11 @@ bool runSharedCacheBuilder(struct MRMSharedCacheBuilder* builder) {
             cacheFileResult.hashType         = buildInstance.cdHashType.c_str();
             cacheFileResult.hash             = buildInstance.cdHash.c_str();
 
-            builder->fileResultBuffers.push_back({ builder->fileResultStorage.size(), true });
             builder->fileResultStorage.emplace_back(cacheFileResult);
 
-            // Add a file result for the .map file
-            if ( !buildInstance.macOSMap.empty() ) {
-                FileResult cacheFileResult;
-                cacheFileResult.version          = 1;
-                cacheFileResult.path             = buildInstance.macOSMapPath.c_str();
-                cacheFileResult.behavior         = AddFile;
-                cacheFileResult.data             = (const uint8_t*)buildInstance.macOSMap.data();
-                cacheFileResult.size             = buildInstance.macOSMap.size();
-                cacheFileResult.hashArch         = buildInstance.options->archs->name();
-                cacheFileResult.hashType         = buildInstance.cdHashType.c_str();
-                cacheFileResult.hash             = buildInstance.cdHash.c_str();
-
-                builder->fileResultStorage.emplace_back(cacheFileResult);
-            }
+            cacheBuilder->forEachCacheDylib(^(const std::string &path) {
+                ++builder->dylibsInCaches[path.c_str()];
+            });
         }
 
         // Copy from the storage to the vector we can return to the API.
@@ -759,67 +664,15 @@ bool runSharedCacheBuilder(struct MRMSharedCacheBuilder* builder) {
         // Add entries to tell us to remove all of the dylibs from disk which are in every cache.
         const size_t numCaches = builder->builders.size();
         for (const auto& dylibAndCount : builder->dylibsInCaches) {
-            const char* pathToRemove = dylibAndCount.first.c_str();
-
-            if ( builder->options->platform == Platform::macOS ) {
-                // macOS has to leave the simulator support binaries on disk
-                if ( strcmp(pathToRemove, "/usr/lib/system/libsystem_kernel.dylib") == 0 )
-                    continue;
-                if ( strcmp(pathToRemove, "/usr/lib/system/libsystem_platform.dylib") == 0 )
-                    continue;
-                if ( strcmp(pathToRemove, "/usr/lib/system/libsystem_pthread.dylib") == 0 )
-                    continue;
-            }
-
-            if (dylibAndCount.second.size() == numCaches) {
-                builder->filesToRemove.push_back(pathToRemove);
-            } else {
-                // File is not in every cache, so likely has perhaps only x86_64h slice
-                // but we built both x86_64 and x86_64h caches.
-                // We may still delete it if its in all caches it's eligible for, ie, we
-                // assume the cache builder knows about all possible arch's on the system and
-                // can delete anything it knows can't run
-                bool canDeletePath = true;
-                for (auto& buildInstance : builder->builders) {
-                    if ( dylibAndCount.second.count(&buildInstance) != 0 )
-                        continue;
-                    // This builder didn't get this image.  See if the image was ineligible
-                    // based on slide, ie, that dyld at runtime couldn't load this anyway, so
-                    // so removing it from disk won't hurt
-                    Diagnostics loaderDiag;
-                    const dyld3::GradedArchs* archs = buildInstance.options->archs;
-                    dyld3::Platform platform = buildInstance.options->platform;
-                    char realerPath[MAXPATHLEN];
-                    dyld3::closure::LoadedFileInfo fileInfo = dyld3::MachOAnalyzer::load(loaderDiag, builder->fileSystem,
-                                                                                         pathToRemove, *archs, platform, realerPath);
-                    if ( (platform == dyld3::Platform::macOS) && loaderDiag.hasError() ) {
-                        // Try again with iOSMac
-                        loaderDiag.clearError();
-                        fileInfo = dyld3::MachOAnalyzer::load(loaderDiag, builder->fileSystem,
-                                                              pathToRemove, *archs, dyld3::Platform::iOSMac, realerPath);
-                    }
-
-                    // We don't need the file content now, as we only needed to know if this file could be loaded
-                    builder->fileSystem.unloadFile(fileInfo);
-
-                    if ( loaderDiag.hasError() || (fileInfo.fileContent == nullptr) ) {
-                        // This arch/platform combination couldn't load this path, so we can remove it
-                        continue;
-                    }
-
-                    // This arch was compatible, so the dylib was rejected from this cache for some other reason, eg,
-                    // cache overflow.  We need to keep it on-disk
-                    canDeletePath = false;
-                    break;
-                }
-                if ( canDeletePath )
-                    builder->filesToRemove.push_back(pathToRemove);
+            if (dylibAndCount.second == numCaches) {
+                builder->filesToRemove.push_back(dylibAndCount.first.c_str());
             }
         }
 
         // Quit if we had any errors.
         for (auto& buildInstance : builder->builders) {
-            if (!buildInstance.errors.empty())
+            CacheBuilder* cacheBuilder = buildInstance.builder.get();
+            if (!cacheBuilder->errorMessage().empty())
                 return;
         }
 
@@ -858,13 +711,12 @@ const char* const* getFilesToRemove(const struct MRMSharedCacheBuilder* builder,
 }
 
 void destroySharedCacheBuilder(struct MRMSharedCacheBuilder* builder) {
-    for (auto &indexAndIsDataMalloced : builder->fileResultBuffers) {
-        FileResult& fileResult = builder->fileResultStorage[indexAndIsDataMalloced.first];
-        if (indexAndIsDataMalloced.second) {
-            free((void*)fileResult.data);
-        } else {
-            vm_deallocate(mach_task_self(), (vm_address_t)fileResult.data, fileResult.size);
-        }
+    for (auto& buildInstance : builder->builders) {
+        SharedCacheBuilder* cacheBuilder = buildInstance.builder.get();
+        cacheBuilder->deleteBuffer();
+    }
+    for (auto &fileResult : builder->fileResultStorage) {
+        free((void*)fileResult.data);
         fileResult.data = nullptr;
     }
     delete builder;

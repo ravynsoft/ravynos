@@ -1,6 +1,0 @@
-
-{ for (i = 1; i <= NF; i++)
-	w[$i]++
-}
-
-END { for (i in w) print w[i], i | "sort -nr" }

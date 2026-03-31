@@ -44,6 +44,8 @@
 #include <asl_msg.h>
 #include <asl_msg_list.h>
 
+char *strdup(const char *);
+
 #define TOKEN_NULL  0
 #define TOKEN_OPEN  1
 #define TOKEN_CLOSE 2

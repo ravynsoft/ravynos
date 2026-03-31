@@ -30,9 +30,8 @@ struct _process {
     void set_exit_handler(_dyld_test_exit_handler_t EH);
     void set_crash_handler(_dyld_test_crash_handler_t CH);
     void set_launch_suspended(bool S);
-    void set_alt_page_size(bool PS);
+    void set_launch_async(bool S);
     void set_launch_arch(cpu_type_t A);
-    pid_t get_pid() const;
     pid_t launch();
     void *operator new(size_t size);
     void operator delete(void *ptr);
@@ -44,47 +43,18 @@ private:
     _dyld_test_reader_t stderrHandler;
     _dyld_test_crash_handler_t crashHandler;
     _dyld_test_exit_handler_t exitHandler;
+    pid_t pid;
     cpu_type_t arch;
     bool suspended;
-    bool altPageSize;
-    pid_t pid;
+    bool async;
 };
-
-#define STDERR_WRITER ^(int fd) {           \
-    char buffer[16384];                     \
-    ssize_t size = 0;                       \
-    do {                                    \
-        size = read(fd, &buffer[0], 16384); \
-        buffer[size] = 0;                   \
-        fprintf(stderr, "%s", &buffer[0]);  \
-    } while (size > 0);                     \
-}
-
-#define STDOUT_WRITER ^(int fd) {           \
-    char buffer[16384];                     \
-    ssize_t size = 0;                       \
-    do {                                    \
-        size = read(fd, &buffer[0], 16384); \
-        buffer[size] = 0;                   \
-        fprintf(stdout, "%s", &buffer[0]);  \
-    } while (size > 0);                     \
-}
-
 #endif /* __cplusplus */
 
-#ifdef USE_PRINTF_MACROS
-#include <stdio.h>
-extern const char* __progname;
-#define PASS(...)           printf("[PASS] %s: ", __progname); printf(__VA_ARGS__); printf("\n"); exit(0);
-#define FAIL(...)           printf("[FAIL] %s: ", __progname); printf(__VA_ARGS__); printf("\n"); exit(0);
-#define LOG(...)            printf("[LOG] %s: ", __progname); printf(__VA_ARGS__); printf("\n");
-#define BEGIN()             printf("[BEGIN] %s\n", __progname);
-#else
 #define PASS(...)           _PASS(__FILE__,__LINE__,__VA_ARGS__)
 #define FAIL(...)           _FAIL(__FILE__,__LINE__,__VA_ARGS__)
 #define LOG(...)            _LOG(__FILE__,__LINE__,__VA_ARGS__)
 #define TIMEOUT(seconds)    _TIMEOUT(__FILE__,__LINE__,seconds)
-#endif
+
 // MARK: Private implementation details
 
 #if __cplusplus

@@ -61,7 +61,7 @@ static inline void indentBy(uint32_t spaces, std::ostream& out) {
     }
 }
 
-static inline void printJSON(const Node& node, uint32_t indent = 0, std::ostream& out = std::cout)
+static inline void printJSON(const Node& node, uint32_t indent, std::ostream& out)
 {
     if ( !node.map.empty() ) {
         out << "{";
@@ -95,54 +95,19 @@ static inline void printJSON(const Node& node, uint32_t indent = 0, std::ostream
         out << "]";
     }
     else {
-        auto &value = node.value;
-        switch (node.type) {
-        case NodeValueType::Default:
-        case NodeValueType::String:
-            if (value.find('"') == std::string::npos) {
-                out << "\"" << value << "\"";
-            } else {
-                std::string escapedString;
-                escapedString.reserve(value.size());
-                for (char c : value) {
-                    if (c == '"')
-                        escapedString += '\\';
-                    escapedString += c;
-                }
-                out << "\"" << escapedString << "\"";
-            }
-            break;
-        case NodeValueType::RawValue:
-            out << value;
-            break;
+        std::string escapedString;
+        escapedString.reserve(node.value.size());
+        for (char c : node.value) {
+            if (c == '"')
+                escapedString += '\\';
+            escapedString += c;
         }
+        out << "\"" << escapedString << "\"";
     }
     if ( indent == 0 )
         out << "\n";
 }
 
-static inline void streamArrayBegin(bool &needsComma, std::ostream& out = std::cout)
-{
-    out << "[";
-    needsComma = false;
-}
-
-static inline void streamArrayNode(bool &needsComma, Node &node, std::ostream& out = std::cout)
-{
-    if (needsComma)
-        out << ",";
-    out << "\n";
-    indentBy(2, out);
-    printJSON(node, 2, out);
-    needsComma = true;
-}
-
-static inline void streamArrayEnd(bool &needsComma, std::ostream& out = std::cout)
-{
-    if (needsComma)
-        out << "\n";
-    out << "]\n";
-}
 
 } // namespace json
 } // namespace dyld3

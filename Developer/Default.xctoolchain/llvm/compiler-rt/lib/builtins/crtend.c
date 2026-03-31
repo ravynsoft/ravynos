@@ -6,6 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#ifndef __RAVYNOS__
+
 #include <stdint.h>
 
 // Put 4-byte zero which is the length field in FDE at the end as a terminator.
@@ -20,3 +22,5 @@ fp __CTOR_LIST_END__[]
 fp __DTOR_LIST_END__[]
     __attribute__((section(".dtors"), visibility("hidden"), used)) = {0};
 #endif
+
+#endif // __RAVYNOS__

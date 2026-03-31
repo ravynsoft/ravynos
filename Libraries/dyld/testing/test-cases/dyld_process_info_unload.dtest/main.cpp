@@ -13,7 +13,6 @@
 #include <signal.h>
 #include <spawn.h>
 #include <errno.h>
-#include <sys/proc.h>
 #include <mach/mach.h>
 #include <mach/machine.h>
 #include <mach-o/dyld_process_info.h>
@@ -24,12 +23,13 @@ int main(int argc, const char* argv[], const char* envp[], const char* apple[]) 
     _process process;
     process.set_executable_path(RUN_DIR "/target.exe");
     process.set_launch_suspended(true);
+    process.set_launch_async(true);
     const char* env[] = { "TEST_OUTPUT=None", NULL};
     process.set_env(env);
     pid_t pid = process.launch();
     task_t task;
-    if (task_read_for_pid(mach_task_self(), pid, &task) != KERN_SUCCESS) {
-        FAIL("task_read_for_pid() failed");
+    if (task_for_pid(mach_task_self(), pid, &task) != KERN_SUCCESS) {
+        FAIL("task_for_pid() failed");
     }
 
     dispatch_async(dispatch_get_main_queue(), ^{

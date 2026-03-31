@@ -1,4 +1,4 @@
-#ifdef COCOTRON_DISALLOW_FORWARDING
+#ifdef OBJC_DISALLOW_FORWARDING
 #import <Foundation/NSException.h>
 #import <Foundation/NSString.h>
 #import <objc/message.h>

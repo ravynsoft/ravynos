@@ -28,7 +28,7 @@
 #import <Foundation/NSMutableArray.h>
 #import <Foundation/NSUserDefaults.h>
 #import <langinfo.h>
-#import <xlocale.h>
+#import <locale.h>
 
 @implementation NSLocale(posix)
 

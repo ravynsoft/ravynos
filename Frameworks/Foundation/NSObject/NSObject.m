@@ -20,10 +20,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <objc/message.h>
 #import "forwarding.h"
 
-#ifdef GCC_RUNTIME_3
-#import <objc/hooks.h>
-#endif
-
+/* zoe 2/10/26 - we now use NSObject from Apple's runtime. The remaining functions
+ * here are additions or changes to the base class */
 
 // From Apple docs:
 // Returns a Boolean value that indicates whether the receiver is an instance of given class
@@ -61,25 +59,12 @@ BOOL NSObjectIsKindOfClass(id object,Class kindOf) {
    class_setVersion(self,version);
 }
 
+#ifndef APPLE_RUNTIME_4
 +(void)load {
-#if defined(__RAVYNOS__)
-    objc_create_block_classes_as_subclasses_of(self);
-#endif
 }
-
-
-#ifdef GCC_RUNTIME_3
-static IMP objc_msg_forward(id rcv, SEL message) {
-    return objc_msgForward;
-}
-#endif
 
 +(void)initialize {
-#ifdef GCC_RUNTIME_3
-    __objc_msg_forward2 = objc_msg_forward;
-#else
-    objc_setForwardHandler(objc_msgForward,objc_msgForward_stret);
-#endif
+    objc_setForwardHandler(_objc_msgForward,_objc_msgForward_stret);
 }
 
 +(Class)superclass {
@@ -212,7 +197,7 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 }
 
 -(Class)classForCoder {
-   return isa;
+   return object_getClass(self);
 }
 
 -(Class)classForArchiver {
@@ -233,17 +218,17 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 }
 
 -(IMP)methodForSelector:(SEL)selector {
-   return class_getMethodImplementation(isa,selector);
+   return class_getMethodImplementation(object_getClass(self),selector);
 }
 
 -(void)doesNotRecognizeSelector:(SEL)selector {
    [NSException raise:NSInvalidArgumentException
-     format:@"%c[%@ %@]: selector not recognized", class_isMetaClass(isa)?'+':'-',
-      NSStringFromClass(isa),NSStringFromSelector(selector)];
+     format:@"%c[%@ %@]: selector not recognized", class_isMetaClass(object_getClass(self))?'+':'-',
+      NSStringFromClass(object_getClass(self)),NSStringFromSelector(selector)];
 }
 
 -(NSMethodSignature *)methodSignatureForSelector:(SEL)selector {
-   Method      method=class_getInstanceMethod(isa,selector);
+   Method      method=class_getInstanceMethod(object_getClass(self),selector);
    const char *types=method_getTypeEncoding(method);
 
    return (types==NULL)?(NSMethodSignature *)nil:[NSMethodSignature signatureWithObjCTypes:types];
@@ -297,12 +282,12 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 
 
 -(Class)class {
-   return isa;
+   return object_getClass(self);
 }
 
-
+/* FIXME: is there a object_getSuperClass? */
 -(Class)superclass {
-   return class_getSuperclass(isa);
+   return class_getSuperclass(object_getClass(self));
 }
 
 
@@ -318,7 +303,7 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 #else
     IMP imp = objc_msg_lookup_sender(self, selector, self);
 #endif
-    return imp(self, selector);
+    return ((id (*)(id,SEL))imp)(self, selector);
 }
 
 
@@ -329,7 +314,7 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 #else
     IMP imp = objc_msg_lookup_sender(self, selector, self);
 #endif
-    return imp(self, selector, object0);
+    return ((id (*)(id,SEL,id))imp)(self, selector, object0);
 }
 
 - performSelector:(SEL)selector withObject:object0 withObject:object1
@@ -339,7 +324,7 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 #else
     IMP imp = objc_msg_lookup_sender(self, selector, self);
 #endif
-    return imp(self, selector, object0, object1);
+    return ((id (*)(id,SEL,id,id))imp)(self, selector, object0, object1);
 }
 
 
@@ -354,17 +339,17 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 
 
 -(BOOL)isMemberOfClass:(Class)class {
-   return (isa==class);
+   return (object_getClass(self)==class);
 }
 
 
 -(BOOL)conformsToProtocol:(Protocol *)protocol {
-   return [isa conformsToProtocol:protocol];
+   return [object_getClass(self) conformsToProtocol:protocol];
 }
 
 
 -(BOOL)respondsToSelector:(SEL)selector {
-   return class_respondsToSelector(isa,selector);
+   return class_respondsToSelector(object_getClass(self),selector);
 }
 
 -autorelease {
@@ -396,20 +381,21 @@ static IMP objc_msg_forward(id rcv, SEL message) {
    return object_getRetainCount_np(self);
 }
 
-+(NSString *)className {
-   return NSStringFromClass(self);
-}
-
--(NSString *)className {
-   return NSStringFromClass(isa);
-}
-
 -(NSString *)description {
    return [NSString stringWithFormat:@"<%@ 0x%08x>",[self class],self];
 }
 
 -(NSString *)debugDescription {
     return [self description];
+}
+#endif /* APPLE_RUNTIME_4 */
+
++(NSString *)className {
+   return NSStringFromClass(self);
+}
+
+-(NSString *)className {
+   return NSStringFromClass(object_getClass(self));
 }
 
 @end

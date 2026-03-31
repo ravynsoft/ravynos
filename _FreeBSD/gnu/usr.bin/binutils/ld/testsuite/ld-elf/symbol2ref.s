@@ -1,3 +1,0 @@
-	.data
-	.dc.a Foo
-

@@ -312,16 +312,6 @@ void ImageWriter::setBindInfo(const Array<Image::BindPattern>& fixups)
     append(TypedBytes::Type::bindFixups, fixups.begin(), (uint32_t)fixups.count()*sizeof(Image::BindPattern));
 }
 
-void ImageWriter::setFixupsNotEncoded()
-{
-    getFlags().fixupsNotEncoded = true;
-}
-
-void ImageWriter::setRebasesNotEncoded()
-{
-    getFlags().rebasesNotEncoded = true;
-}
-
 void ImageWriter::setChainedFixups(uint64_t runtimeStartsStructOffset, const Array<Image::ResolvedSymbolTarget>& targets)
 {
     getFlags().hasChainedFixups = true;
@@ -407,7 +397,6 @@ void ImageWriter::setAsOverrideOf(ImageNum imageNum)
 {
     uint32_t temp = imageNum;
     append(TypedBytes::Type::imageOverride, &temp, sizeof(temp));
-    getFlags().hasOverrideImageNum = true;
 }
 
 void ImageWriter::setInitsOrder(const ImageNum images[], uint32_t count)
@@ -630,6 +619,17 @@ void LaunchClosureWriter::addInterposingTuples(const Array<InterposingTuple>& tu
 void LaunchClosureWriter::setDyldCacheUUID(const uuid_t uuid)
 {
     append(TypedBytes::Type::dyldCacheUUID, uuid, sizeof(uuid_t));
+}
+
+void LaunchClosureWriter::setBootUUID(const char* uuid)
+{
+    unsigned len = (unsigned)strlen(uuid);
+    char temp[len+8];
+    strcpy(temp, uuid);
+    unsigned paddedSize = len+1;
+    while ( (paddedSize % 4) != 0 )
+        temp[paddedSize++] = '\0';
+    append(TypedBytes::Type::bootUUID, temp, paddedSize);
 }
 
 void LaunchClosureWriter::setHasProgramVars(uint32_t offset)

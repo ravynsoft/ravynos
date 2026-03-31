@@ -28,7 +28,6 @@
 #include <sys/mman.h>
 #include <execinfo.h>
 
-#include <TargetConditionals.h>
 #include <System/sys/csr.h>
 #include <crt_externs.h>
 #include <Availability.h>
@@ -40,13 +39,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <System/sys/codesign.h>
-#include <libc_private.h>
 
 #include <mach-o/dyld_images.h>
 #include <mach-o/dyld.h>
 #include <mach-o/dyld_priv.h>
-
-#include <ptrauth.h>
 
 #include "dyld_cache_format.h"
 #include "objc-shared-cache.h"
@@ -75,17 +71,6 @@ extern "C" void __cxa_finalize_ranges(const struct __cxa_range_t ranges[], int c
 //
 extern "C" int _dyld_func_lookup(const char* dyld_func_name, void **address);
 
-template<typename T>
-static void dyld_func_lookup_and_resign(const char *dyld_func_name, T *__ptrauth_dyld_function_ptr* address) {
-    void *funcAsVoidPtr;
-    int res = _dyld_func_lookup(dyld_func_name, &funcAsVoidPtr);
-    (void)res;
-
-    // If C function pointer discriminators are type-diverse this cast will be
-    // an authenticate and resign operation.
-    *address = reinterpret_cast<T *>(funcAsVoidPtr);
-}
-
 #if TARGET_OS_IOS && !TARGET_OS_SIMULATOR
 namespace dyld3 {
     extern int compatFuncLookup(const char* name, void** address) __API_AVAILABLE(ios(13.0));
@@ -94,58 +79,13 @@ extern "C" void setLookupFunc(void*);
 #endif
 
 
-extern void* __ptrauth_dyld_address_auth gUseDyld3;
-
-
-// <rdar://problem/61161069> libdyld.dylib should use abort_with_payload() for asserts
-VIS_HIDDEN
-void abort_report_np(const char* format, ...)
-{
-    va_list list;
-    const char *str;
-    _SIMPLE_STRING s = _simple_salloc();
-    if ( s != NULL ) {
-        va_start(list, format);
-        _simple_vsprintf(s, format, list);
-        va_end(list);
-        str = _simple_string(s);
-    }
-    else {
-        // _simple_salloc failed, but at least format may have useful info by itself
-        str = format;
-    }
-    if ( gUseDyld3 ) {
-        dyld3::halt(str);
-    }
-    else {
-        typedef void (*funcType)(const char* msg) __attribute__((__noreturn__));
-        static funcType __ptrauth_dyld_function_ptr p = NULL;
-        dyld_func_lookup_and_resign("__dyld_halt", &p);
-        p(str);
-    }
-    // halt() doesn't return, so we can't call _simple_sfree
-}
-
-// libc uses assert()
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-noreturn"
-VIS_HIDDEN
-void __assert_rtn(const char* func, const char* file, int line, const char* failedexpr)
-{
-    if (func == NULL) {
-        abort_report_np("Assertion failed: (%s), file %s, line %d.\n", failedexpr, file, line);
-    } else {
-        abort_report_np("Assertion failed: (%s), function %s, file %s, line %d.\n", failedexpr, func, file, line);
-    }
-}
-#pragma clang diagnostic pop
-
+extern bool gUseDyld3;
 
 // deprecated APIs are still availble on Mac OS X, but not on iPhone OS
-#if TARGET_OS_OSX
-	#define DEPRECATED_APIS_SUPPORTED 1
-#else
+#if __IPHONE_OS_VERSION_MIN_REQUIRED || TARGET_OS_DRIVERKIT
 	#define DEPRECATED_APIS_SUPPORTED 0
+#else
+	#define DEPRECATED_APIS_SUPPORTED 1
 #endif
 
 /*
@@ -214,11 +154,10 @@ const NSLinkEditErrorHandlers* handlers)
  	typedef NSModule (*mcallback_t)(NSSymbol s, NSModule old, NSModule newhandler);
 	typedef void (*lcallback_t)(NSLinkEditErrors c, int errorNumber,
 								const char* fileName, const char* errorString);
-	typedef void (*funcType)(ucallback_t undefined, mcallback_t multiple, lcallback_t linkEdit);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+	static void (*p)(ucallback_t undefined, mcallback_t multiple, lcallback_t linkEdit) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_install_handlers", &p);
+	    _dyld_func_lookup("__dyld_install_handlers", (void**)&p);
 	mcallback_t m = handlers->multiple;
 	p(handlers->undefined, m, handlers->linkEdit);
 }
@@ -231,11 +170,10 @@ NSModule module)
 		return dyld3::NSNameOfModule(module);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef const char* (*funcType)(NSModule module);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static const char*  (*p)(NSModule module) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSNameOfModule", &p);
+	    _dyld_func_lookup("__dyld_NSNameOfModule", (void**)&p);
 	return(p(module));
 } 
 
@@ -247,11 +185,10 @@ NSModule module)
 		return dyld3::NSLibraryNameForModule(module);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef const char*  (*funcType)(NSModule module);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static const char*  (*p)(NSModule module) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSLibraryNameForModule", &p);
+	    _dyld_func_lookup("__dyld_NSLibraryNameForModule", (void**)&p);
 	return(p(module));
 }
 
@@ -263,11 +200,10 @@ const char* symbolName)
 		return dyld3::NSIsSymbolNameDefined(symbolName);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)(const char* symbolName);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)(const char* symbolName) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSIsSymbolNameDefined", &p);
+	    _dyld_func_lookup("__dyld_NSIsSymbolNameDefined", (void**)&p);
 	return(p(symbolName));
 }
 
@@ -280,12 +216,11 @@ const char* libraryNameHint)
 		return dyld3::NSIsSymbolNameDefinedWithHint(symbolName, libraryNameHint);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)(const char* symbolName,
-                             const char* libraryNameHint);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)(const char* symbolName,
+			  const char* libraryNameHint) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSIsSymbolNameDefinedWithHint", &p);
+	    _dyld_func_lookup("__dyld_NSIsSymbolNameDefinedWithHint", (void**)&p);
 	return(p(symbolName, libraryNameHint));
 }
 
@@ -298,12 +233,11 @@ const char* symbolName)
 		return dyld3::NSIsSymbolNameDefinedInImage(image, symbolName);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)(const struct mach_header *image,
-                             const char* symbolName);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)(const struct mach_header *image,
+			  const char* symbolName) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSIsSymbolNameDefinedInImage", &p);
+	    _dyld_func_lookup("__dyld_NSIsSymbolNameDefinedInImage", (void**)&p);
 	return(p(image, symbolName));
 }
 
@@ -315,11 +249,10 @@ const char* symbolName)
 		return dyld3::NSLookupAndBindSymbol(symbolName);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef NSSymbol (*funcType)(const char* symbolName);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static NSSymbol (*p)(const char* symbolName) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSLookupAndBindSymbol", &p);
+	    _dyld_func_lookup("__dyld_NSLookupAndBindSymbol", (void**)&p);
 	return(p(symbolName));
 }
 
@@ -332,12 +265,11 @@ const char* libraryNameHint)
 		return dyld3::NSLookupAndBindSymbolWithHint(symbolName, libraryNameHint);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef NSSymbol (*funcType)(const char* symbolName,
-                                 const char* libraryNameHint);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static NSSymbol (*p)(const char* symbolName,
+			 const char* libraryNameHint) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSLookupAndBindSymbolWithHint", &p);
+	    _dyld_func_lookup("__dyld_NSLookupAndBindSymbolWithHint", (void**)&p);
 	return(p(symbolName, libraryNameHint));
 }
 
@@ -350,11 +282,10 @@ const char* symbolName)
 		return dyld3::NSLookupSymbolInModule(module, symbolName);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef NSSymbol (*funcType)(NSModule module, const char* symbolName);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static NSSymbol (*p)(NSModule module, const char* symbolName) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSLookupSymbolInModule", &p);
+	    _dyld_func_lookup("__dyld_NSLookupSymbolInModule", (void**)&p);
 	return(p(module, symbolName));
 }
 
@@ -368,13 +299,12 @@ uint32_t options)
 		return dyld3::NSLookupSymbolInImage(image, symbolName, options);
 
  	DYLD_LOCK_THIS_BLOCK;
-    typedef NSSymbol (*funcType)(const struct mach_header *image,
-                                 const char* symbolName,
-                                 uint32_t options);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static NSSymbol (*p)(const struct mach_header *image,
+			 const char* symbolName,
+			 uint32_t options) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSLookupSymbolInImage", &p);
+	    _dyld_func_lookup("__dyld_NSLookupSymbolInImage", (void**)&p);
 	return(p(image, symbolName, options));
 }
 
@@ -386,11 +316,10 @@ NSSymbol symbol)
 		return dyld3::NSNameOfSymbol(symbol);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef char * (*funcType)(NSSymbol symbol);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static char * (*p)(NSSymbol symbol) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSNameOfSymbol",&p);
+	    _dyld_func_lookup("__dyld_NSNameOfSymbol",(void**)&p);
 	return(p(symbol));
 }
 
@@ -402,11 +331,10 @@ NSSymbol symbol)
 		return dyld3::NSAddressOfSymbol(symbol);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef void * (*funcType)(NSSymbol symbol);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static void * (*p)(NSSymbol symbol) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSAddressOfSymbol", &p);
+	    _dyld_func_lookup("__dyld_NSAddressOfSymbol", (void**)&p);
 	return(p(symbol));
 }
 
@@ -418,11 +346,10 @@ NSSymbol symbol)
 		return dyld3::NSModuleForSymbol(symbol);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef NSModule (*funcType)(NSSymbol symbol);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static NSModule (*p)(NSSymbol symbol) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSModuleForSymbol", &p);
+	    _dyld_func_lookup("__dyld_NSModuleForSymbol", (void**)&p);
 	return(p(symbol));
 }
 
@@ -434,11 +361,10 @@ const char* pathName)
 		return dyld3::NSAddLibrary(pathName);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)(const char* pathName);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)(const char* pathName) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSAddLibrary", &p);
+	    _dyld_func_lookup("__dyld_NSAddLibrary", (void**)&p);
 	return(p(pathName));
 }
 
@@ -450,11 +376,10 @@ const char* pathName)
 		return dyld3::NSAddLibrary(pathName);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)(const char* pathName);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)(const char* pathName) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSAddLibraryWithSearching", &p);
+	    _dyld_func_lookup("__dyld_NSAddLibraryWithSearching", (void**)&p);
 	return(p(pathName));
 }
 
@@ -467,12 +392,11 @@ uint32_t options)
 		return dyld3::NSAddImage(image_name, options);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef const struct mach_header * (*funcType)(const char* image_name,
-                                                   uint32_t options);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static const struct mach_header * (*p)(const char* image_name,
+					   uint32_t options) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSAddImage", &p);
+	    _dyld_func_lookup("__dyld_NSAddImage", (void**)&p);
 	return(p(image_name, options));
 }
 #endif // DEPRECATED_APIS_SUPPORTED
@@ -702,10 +626,15 @@ bool _dyld_get_image_uuid(const struct mach_header* mh, uuid_t uuid)
 }
 
 dyld_platform_t dyld_get_active_platform(void) {
-    if (gUseDyld3)
-        return dyld3::dyld_get_active_platform();
+    if (gUseDyld3) { return dyld3::dyld_get_active_platform(); }
+    if (_dyld_get_all_image_infos()->version >= 16) { return (dyld_platform_t)_dyld_get_all_image_infos()->platform; }
 
-    return (dyld_platform_t)_dyld_get_all_image_infos()->platform;
+    __block dyld_platform_t result;
+    // FIXME: Remove this once we only care about version 16 or greater all image infos
+    dyld3::dyld_get_image_versions((mach_header*)_NSGetMachExecuteHeader(), ^(dyld_platform_t platform, uint32_t sdk_version, uint32_t min_version) {
+        result = platform;
+    });
+    return result;
 }
 
 dyld_platform_t dyld_get_base_platform(dyld_platform_t platform) {
@@ -725,11 +654,11 @@ bool dyld_minos_at_least(const struct mach_header* mh, dyld_build_version_t vers
 }
 
 bool dyld_program_sdk_at_least(dyld_build_version_t version) {
-    return dyld3::dyld_program_sdk_at_least(version);
+    return dyld3::dyld_sdk_at_least((mach_header*)_NSGetMachExecuteHeader(),version);
 }
 
 bool dyld_program_minos_at_least(dyld_build_version_t version) {
-    return dyld3::dyld_program_minos_at_least(version);
+    return dyld3::dyld_minos_at_least((mach_header*)_NSGetMachExecuteHeader(), version);
 }
 
 // Function that walks through the load commands and calls the internal block for every version found
@@ -758,11 +687,10 @@ NSObjectFileImage *objectFileImage)
 		return dyld3::NSCreateObjectFileImageFromFile(pathName, objectFileImage);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef NSObjectFileImageReturnCode (*funcType)(const char*, NSObjectFileImage*);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static NSObjectFileImageReturnCode (*p)(const char*, NSObjectFileImage*) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSCreateObjectFileImageFromFile", &p);
+	    _dyld_func_lookup("__dyld_NSCreateObjectFileImageFromFile", (void**)&p);
 	return p(pathName, objectFileImage);
 }
 
@@ -793,11 +721,10 @@ NSObjectFileImage *objectFileImage)
 		return dyld3::NSCreateObjectFileImageFromMemory(address, size, objectFileImage);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef NSObjectFileImageReturnCode (*funcType)(const void*, size_t, NSObjectFileImage*);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static NSObjectFileImageReturnCode (*p)(const void*, size_t, NSObjectFileImage*) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSCreateObjectFileImageFromMemory", &p);
+	    _dyld_func_lookup("__dyld_NSCreateObjectFileImageFromMemory", (void**)&p);
 	return p(address, size, objectFileImage);
 }
 
@@ -814,10 +741,10 @@ const char* pathName,
 NSObjectFileImage *objectFileImage)
 {
 	DYLD_LOCK_THIS_BLOCK;
-    typedef NSObjectFileImageReturnCode (*funcType)(const char*, NSObjectFileImage*) = NULL;
+    static NSObjectFileImageReturnCode (*p)(const char*, NSObjectFileImage*) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSCreateCoreFileImageFromFile", &p);
+	    _dyld_func_lookup("__dyld_NSCreateCoreFileImageFromFile", (void**)&p);
 	return p(pathName, objectFileImage);
 }
 #endif
@@ -830,11 +757,10 @@ NSObjectFileImage objectFileImage)
 		return dyld3::NSDestroyObjectFileImage(objectFileImage);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)(NSObjectFileImage);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)(NSObjectFileImage) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSDestroyObjectFileImage", &p);
+	    _dyld_func_lookup("__dyld_NSDestroyObjectFileImage", (void**)&p);
 	return p(objectFileImage);
 }
 
@@ -849,11 +775,10 @@ uint32_t options)
 		return dyld3::NSLinkModule(objectFileImage, moduleName, options);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef NSModule (*funcType)(NSObjectFileImage, const char*, unsigned long);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static NSModule (*p)(NSObjectFileImage, const char*, unsigned long) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSLinkModule", &p);
+	    _dyld_func_lookup("__dyld_NSLinkModule", (void**)&p);
 		
 	return p(objectFileImage, moduleName, options);
 }
@@ -873,11 +798,10 @@ NSObjectFileImage objectFileImage)
 		return dyld3::NSSymbolDefinitionCountInObjectFileImage(objectFileImage);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef uint32_t (*funcType)(NSObjectFileImage);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static uint32_t (*p)(NSObjectFileImage) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSSymbolDefinitionCountInObjectFileImage", &p);
+	    _dyld_func_lookup("__dyld_NSSymbolDefinitionCountInObjectFileImage", (void**)&p);
 		
 	return p(objectFileImage);
 }
@@ -897,11 +821,10 @@ uint32_t ordinal)
 		return dyld3::NSSymbolDefinitionNameInObjectFileImage(objectFileImage, ordinal);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef const char*  (*funcType)(NSObjectFileImage, uint32_t);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static const char*  (*p)(NSObjectFileImage, uint32_t) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSSymbolDefinitionNameInObjectFileImage", &p);
+	    _dyld_func_lookup("__dyld_NSSymbolDefinitionNameInObjectFileImage", (void**)&p);
 		
 	return p(objectFileImage, ordinal);
 }
@@ -918,11 +841,10 @@ NSObjectFileImage objectFileImage)
 		return dyld3::NSSymbolReferenceCountInObjectFileImage(objectFileImage);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef uint32_t (*funcType)(NSObjectFileImage);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static uint32_t (*p)(NSObjectFileImage) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSSymbolReferenceCountInObjectFileImage", &p);
+	    _dyld_func_lookup("__dyld_NSSymbolReferenceCountInObjectFileImage", (void**)&p);
 		
 	return p(objectFileImage);
 }
@@ -943,11 +865,10 @@ bool *tentative_definition) /* can be NULL */
 		return dyld3::NSSymbolReferenceNameInObjectFileImage(objectFileImage, ordinal, tentative_definition);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef const char*  (*funcType)(NSObjectFileImage, uint32_t, bool*);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static const char*  (*p)(NSObjectFileImage, uint32_t, bool*) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSSymbolReferenceNameInObjectFileImage", &p);
+	    _dyld_func_lookup("__dyld_NSSymbolReferenceNameInObjectFileImage", (void**)&p);
 		
 	return p(objectFileImage, ordinal, tentative_definition);
 }
@@ -965,11 +886,10 @@ const char* symbolName)
 		return dyld3::NSIsSymbolDefinedInObjectFileImage(objectFileImage, symbolName);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)(NSObjectFileImage, const char*);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)(NSObjectFileImage, const char*) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSIsSymbolDefinedInObjectFileImage", &p);
+	    _dyld_func_lookup("__dyld_NSIsSymbolDefinedInObjectFileImage", (void**)&p);
 		
 	return p(objectFileImage, symbolName);
 }
@@ -992,11 +912,10 @@ unsigned long *size) /* can be NULL */
 		return dyld3::NSGetSectionDataInObjectFileImage(objectFileImage, segmentName, sectionName, size);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef void* (*funcType)(NSObjectFileImage, const char*, const char*, unsigned long*);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static void* (*p)(NSObjectFileImage, const char*, const char*, unsigned long*) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_NSGetSectionDataInObjectFileImage", &p);
+	    _dyld_func_lookup("__dyld_NSGetSectionDataInObjectFileImage", (void**)&p);
 		
 	return p(objectFileImage, segmentName, sectionName, size);
 }
@@ -1013,14 +932,13 @@ const char* *errorString)
 		return dyld3::NSLinkEditError(c, errorNumber, fileName, errorString);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef void (*funcType)(NSLinkEditErrors *c,
-                             int *errorNumber,
-                             const char* *fileName,
-                             const char* *errorString);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static void (*p)(NSLinkEditErrors *c,
+		     int *errorNumber, 
+		     const char* *fileName,
+		     const char* *errorString) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_link_edit_error", &p);
+	    _dyld_func_lookup("__dyld_link_edit_error", (void**)&p);
 	if(p != NULL)
 	    p(c, errorNumber, fileName, errorString);
 }
@@ -1034,11 +952,10 @@ uint32_t options)
 		return dyld3::NSUnLinkModule(module, options);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)(NSModule module, uint32_t options);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)(NSModule module, uint32_t options) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_unlink_module", &p);
+	    _dyld_func_lookup("__dyld_unlink_module", (void**)&p);
 
 	return p(module, options);
 }
@@ -1075,11 +992,10 @@ uint32_t *bufsize)
 		return dyld3::_NSGetExecutablePath(buf, bufsize);
 
 	DYLD_NO_LOCK_THIS_BLOCK;
-    typedef int (*funcType)(char *buf, uint32_t *bufsize);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static int (*p)(char *buf, uint32_t *bufsize) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld__NSGetExecutablePath", &p);
+	    _dyld_func_lookup("__dyld__NSGetExecutablePath", (void**)&p);
 	return(p(buf, bufsize));
 }
 
@@ -1090,15 +1006,11 @@ const char* symbol_name,
 void** address,
 NSModule* module)
 {
-	if ( gUseDyld3 )
-		return dyld3::_dyld_lookup_and_bind(symbol_name, address, module);
-
 	DYLD_LOCK_THIS_BLOCK;
-    typedef void (*funcType)(const char*, void** , NSModule*);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static void (*p)(const char*, void** , NSModule*) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_lookup_and_bind", &p);
+	    _dyld_func_lookup("__dyld_lookup_and_bind", (void**)&p);
 	p(symbol_name, address, module);
 }
 
@@ -1110,11 +1022,10 @@ void** address,
 NSModule* module)
 {
 	DYLD_LOCK_THIS_BLOCK;
-    typedef void (*funcType)(const char*, const char*, void**, NSModule*);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static void (*p)(const char*, const char*, void**, NSModule*) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_lookup_and_bind_with_hint", &p);
+	    _dyld_func_lookup("__dyld_lookup_and_bind_with_hint", (void**)&p);
 	p(symbol_name, library_name_hint, address, module);
 }
 
@@ -1126,10 +1037,10 @@ void** address,
 NSModule* module)
 {
 	DYLD_LOCK_THIS_BLOCK;
-    typedef void (*funcType)(const char* , void**, NSModule*) = NULL;
+    static void (*p)(const char* , void**, NSModule*) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_lookup_and_bind_objc", &p);
+	    _dyld_func_lookup("__dyld_lookup_and_bind_objc", (void**)&p);
 	p(symbol_name, address, module);
 }
 #endif
@@ -1141,11 +1052,10 @@ void** address,
 NSModule* module)
 {
 	DYLD_LOCK_THIS_BLOCK;
-    typedef void (*funcType)(const char*, void**, NSModule*);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static void (*p)(const char*, void**, NSModule*) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_lookup_and_bind_fully", &p);
+	    _dyld_func_lookup("__dyld_lookup_and_bind_fully", (void**)&p);
 	p(symbol_name, address, module);
 }
 
@@ -1154,11 +1064,10 @@ _dyld_bind_fully_image_containing_address(
 const void* address)
 {
 	DYLD_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)(const void*);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)(const void*) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_bind_fully_image_containing_address", &p);
+	    _dyld_func_lookup("__dyld_bind_fully_image_containing_address", (void**)&p);
 	return p(address);
 }
 #endif // DEPRECATED_APIS_SUPPORTED
@@ -1178,15 +1087,12 @@ void (*func)(const struct mach_header *mh, intptr_t vmaddr_slide))
 		return dyld3::_dyld_register_func_for_add_image(func);
 
 	DYLD_LOCK_THIS_BLOCK;
-	// Func must be a "void *" because dyld itself calls it. DriverKit
-	// libdyld.dylib uses diversified C function pointers but its dyld (the
-	// plain OS one) doesn't, so it must be resigned with 0 discriminator.
-	typedef void (*funcType)(void *func);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+	typedef void (*callback_t)(const struct mach_header *mh, intptr_t vmaddr_slide);
+    static void (*p)(callback_t func) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_register_func_for_add_image", &p);
-	p(reinterpret_cast<void *>(func));
+	    _dyld_func_lookup("__dyld_register_func_for_add_image", (void**)&p);
+	p(func);
 }
 
 /*
@@ -1202,15 +1108,12 @@ void (*func)(const struct mach_header *mh, intptr_t vmaddr_slide))
 		return dyld3::_dyld_register_func_for_remove_image(func);
 
 	DYLD_LOCK_THIS_BLOCK;
-	// Func must be a "void *" because dyld itself calls it. DriverKit
-	// libdyld.dylib uses diversified C function pointers but its dyld (the
-	// plain OS one) doesn't, so it must be resigned with 0 discriminator.
-	typedef void (*funcType)(void *func);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+	typedef void (*callback_t)(const struct mach_header *mh, intptr_t vmaddr_slide);
+    static void (*p)(callback_t func) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_register_func_for_remove_image", &p);
-	p(reinterpret_cast<void *>(func));
+	    _dyld_func_lookup("__dyld_register_func_for_remove_image", (void**)&p);
+	p(func);
 }
 
 #if OBSOLETE_DYLD_API
@@ -1225,14 +1128,11 @@ _dyld_register_func_for_link_module(
 void (*func)(NSModule module))
 {
 	DYLD_LOCK_THIS_BLOCK;
-	// Func must be a "void *" because dyld itself calls it. DriverKit
-	// libdyld.dylib uses diversified C function pointers but its dyld (the
-	// plain OS one) doesn't, so it must be resigned with 0 discriminator.
-	static void (*funcType)(void *func) = NULL;
+    static void (*p)(void (*func)(NSModule module)) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_register_func_for_link_module", &p);
-	p(reinterpret_cast<void *>(func));
+	    _dyld_func_lookup("__dyld_register_func_for_link_module", (void**)&p);
+	p(func);
 }
 
 /*
@@ -1244,14 +1144,11 @@ _dyld_register_func_for_unlink_module(
 void (*func)(NSModule module))
 {
 	DYLD_LOCK_THIS_BLOCK;
-	// Func must be a "void *" because dyld itself calls it. DriverKit
-	// libdyld.dylib uses diversified C function pointers but its dyld (the
-	// plain OS one) doesn't, so it must be resigned with 0 discriminator.
-	static void (*funcType)(void *func) = NULL;
+    static void (*p)(void (*func)(NSModule module)) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_register_func_for_unlink_module", &p);
-	p(reinterpret_cast<void *>(func));
+	    _dyld_func_lookup("__dyld_register_func_for_unlink_module", (void**)&p);
+	p(func);
 }
 
 /*
@@ -1263,14 +1160,12 @@ _dyld_register_func_for_replace_module(
 void (*func)(NSModule oldmodule, NSModule newmodule))
 {
 	DYLD_LOCK_THIS_BLOCK;
-	// Func must be a "void *" because dyld itself calls it. DriverKit
-	// libdyld.dylib uses diversified C function pointers but its dyld (the
-	// plain OS one) doesn't, so it must be resigned with 0 discriminator.
-    typedef void (*funcType)(void *func) = NULL;
+    static void (*p)(void (*func)(NSModule oldmodule,
+				  NSModule newmodule)) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_register_func_for_replace_module", &p);
-	p(reinterpret_cast<void *>(func));
+	    _dyld_func_lookup("__dyld_register_func_for_replace_module", (void**)&p);
+	p(func);
 }
 
 
@@ -1286,12 +1181,12 @@ void **objc_module,
 unsigned long *size)
 {
 	DYLD_LOCK_THIS_BLOCK;
-    typedef void (*funcType)(NSModule module,
-                             void **objc_module,
-                             unsigned long *size) = NULL;
+    static void (*p)(NSModule module,
+		     void **objc_module,
+		     unsigned long *size) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_get_objc_module_sect_for_module", &p);
+	    _dyld_func_lookup("__dyld_get_objc_module_sect_for_module", (void**)&p);
 	p(module, objc_module, size);
 }
 
@@ -1313,11 +1208,10 @@ _dyld_image_count(void)
 		return dyld3::_dyld_image_count();
 
 	DYLD_NO_LOCK_THIS_BLOCK;
-    typedef uint32_t (*funcType)(void);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static uint32_t (*p)(void) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_image_count", &p);
+	    _dyld_func_lookup("__dyld_image_count", (void**)&p);
 	return(p());
 }
 
@@ -1328,11 +1222,10 @@ _dyld_get_image_header(uint32_t image_index)
 		return dyld3::_dyld_get_image_header(image_index);
 
 	DYLD_NO_LOCK_THIS_BLOCK;
-    typedef struct mach_header * (*funcType)(uint32_t image_index);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static struct mach_header * (*p)(uint32_t image_index) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_get_image_header", &p);
+	    _dyld_func_lookup("__dyld_get_image_header", (void**)&p);
 	return(p(image_index));
 }
 
@@ -1343,11 +1236,10 @@ _dyld_get_image_vmaddr_slide(uint32_t image_index)
 		return dyld3::_dyld_get_image_vmaddr_slide(image_index);
 
 	DYLD_NO_LOCK_THIS_BLOCK;
-    typedef unsigned long (*funcType)(uint32_t image_index);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static unsigned long (*p)(uint32_t image_index) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_get_image_vmaddr_slide", &p);
+	    _dyld_func_lookup("__dyld_get_image_vmaddr_slide", (void**)&p);
 	return(p(image_index));
 }
 
@@ -1358,11 +1250,10 @@ _dyld_get_image_name(uint32_t image_index)
 		return dyld3::_dyld_get_image_name(image_index);
 
 	DYLD_NO_LOCK_THIS_BLOCK;
-    typedef const char*  (*funcType)(uint32_t image_index);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static const char*  (*p)(uint32_t image_index) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_get_image_name", &p);
+	    _dyld_func_lookup("__dyld_get_image_name", (void**)&p);
 	return(p(image_index));
 }
 
@@ -1373,20 +1264,6 @@ intptr_t _dyld_get_image_slide(const struct mach_header* mh)
 	return dyld3::_dyld_get_image_slide(mh);
 }
 
-const struct mach_header *
-_dyld_get_prog_image_header()
-{
-    if ( gUseDyld3 )
-        return dyld3::_dyld_get_prog_image_header();
-
-    DYLD_LOCK_THIS_BLOCK;
-    typedef const struct mach_header * (*funcType)(void);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
-
-    if(p == NULL)
-        dyld_func_lookup_and_resign("__dyld_get_prog_image_header", &p);
-    return p();
-}
 
 #if DEPRECATED_APIS_SUPPORTED
 bool
@@ -1396,11 +1273,10 @@ _dyld_image_containing_address(const void* address)
 		return dyld3::_dyld_image_containing_address(address);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)(const void*);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)(const void*) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_image_containing_address", &p);
+	    _dyld_func_lookup("__dyld_image_containing_address", (void**)&p);
 	return(p(address));
 }
 
@@ -1412,39 +1288,36 @@ const void* address)
 		return dyld3::_dyld_get_image_header_containing_address(address);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef const struct mach_header * (*funcType)(const void*);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static const struct mach_header * (*p)(const void*) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_get_image_header_containing_address", &p);
+	    _dyld_func_lookup("__dyld_get_image_header_containing_address", (void**)&p);
 	return p(address);
 }
 
 bool _dyld_launched_prebound(void)
 {
 	DYLD_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)(void);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)(void) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_launched_prebound", &p);
+	    _dyld_func_lookup("__dyld_launched_prebound", (void**)&p);
 	return(p());
 }
 
 bool _dyld_all_twolevel_modules_prebound(void)
 {
 	DYLD_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)(void);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)(void) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_all_twolevel_modules_prebound", &p);
+	    _dyld_func_lookup("__dyld_all_twolevel_modules_prebound", (void**)&p);
 	return(p());
 }
 #endif // DEPRECATED_APIS_SUPPORTED
 
 
-#include <dlfcn_private.h>
+#include <dlfcn.h>
 #include <stddef.h>
 #include <pthread.h>
 #include <stdlib.h>
@@ -1537,26 +1410,23 @@ static void shared_cache_out_of_date()
 	// leave until dyld's that might call this are rare
 }
 
-// FIXME: This is a mess. Why can't Driverkit have its own dyld?
-static int cxa_atexit_thunk(void (*func)(void *), void *arg, void *dso)
-{
-	// Func will have come from dyld and so be signed with 0 discriminator,
-	// resign it appropriately before passing to the real __cxa_atexit.
-	func = ptrauth_auth_and_resign(func, ptrauth_key_function_pointer, 0,
-	    ptrauth_key_function_pointer,
-	    ptrauth_function_pointer_type_discriminator(__typeof__(func)));
-	return __cxa_atexit(func, arg, dso);
-}
-
-template<typename FTy> static FTy *resign_for_dyld(FTy *func) {
-	return ptrauth_auth_and_resign(func, ptrauth_key_function_pointer,
-	    ptrauth_function_pointer_type_discriminator(__typeof__(func)),
-	    ptrauth_key_function_pointer, 0);
-}
-
 
 // the table passed to dyld containing thread helpers
-static dyld::LibSystemHelpers sHelpers = { 13 };
+static dyld::LibSystemHelpers sHelpers = { 13, &dyldGlobalLockAcquire, &dyldGlobalLockRelease,
+									&getPerThreadBufferFor_dlerror, &malloc, &free, &__cxa_atexit,
+									&shared_cache_missing, &shared_cache_out_of_date,
+									NULL, NULL,
+									&pthread_key_create, &pthread_setspecific,
+									&malloc_size,
+									&pthread_getspecific,
+									&__cxa_finalize,
+									address_of_start,
+									&hasPerThreadBufferFor_dlerror,
+									&isLaunchdOwned,
+									&vm_allocate,
+									&mmap,
+									&__cxa_finalize_ranges
+                                    };
 
 static const objc_opt::objc_opt_t* gObjCOpt = nullptr;
 //
@@ -1565,31 +1435,8 @@ static const objc_opt::objc_opt_t* gObjCOpt = nullptr;
 //
 extern "C" void tlv_initializer();
 void _dyld_initializer()
-{
-    sHelpers.acquireGlobalDyldLock = resign_for_dyld(&dyldGlobalLockAcquire);
-    sHelpers.releaseGlobalDyldLock = resign_for_dyld(&dyldGlobalLockRelease);
-    sHelpers.getThreadBufferFor_dlerror = resign_for_dyld(&getPerThreadBufferFor_dlerror);
-    sHelpers.malloc = resign_for_dyld(&malloc);
-    sHelpers.free = resign_for_dyld(&free);
-    sHelpers.cxa_atexit = resign_for_dyld(&cxa_atexit_thunk);
-    sHelpers.dyld_shared_cache_missing = resign_for_dyld(&shared_cache_missing);
-    sHelpers.dyld_shared_cache_out_of_date = resign_for_dyld(&shared_cache_out_of_date);
-    sHelpers.acquireDyldInitializerLock = NULL;
-    sHelpers.releaseDyldInitializerLock = NULL;
-    sHelpers.pthread_key_create = resign_for_dyld(&pthread_key_create);
-    sHelpers.pthread_setspecific = resign_for_dyld(&pthread_setspecific);
-    sHelpers.malloc_size = resign_for_dyld(&malloc_size);
-    sHelpers.pthread_getspecific = resign_for_dyld(&pthread_getspecific);
-    sHelpers.cxa_finalize = resign_for_dyld(&__cxa_finalize);
-    sHelpers.startGlueToCallExit = address_of_start;
-    sHelpers.hasPerThreadBufferFor_dlerror = resign_for_dyld(&hasPerThreadBufferFor_dlerror);
-    sHelpers.isLaunchdOwned = resign_for_dyld(&isLaunchdOwned);
-    sHelpers.vm_alloc = resign_for_dyld(&vm_allocate);
-    sHelpers.mmap = resign_for_dyld(&mmap);
-    sHelpers.cxa_finalize_ranges = resign_for_dyld(&__cxa_finalize_ranges);
-
-    typedef void (*funcType)(dyld::LibSystemHelpers*);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+{	
+   void (*p)(dyld::LibSystemHelpers*);
 
     // Get the optimized objc pointer now that the cache is loaded
     const dyld_all_image_infos* allInfo = _dyld_get_all_image_infos();
@@ -1608,7 +1455,7 @@ void _dyld_initializer()
 #endif
 	}
 	else {
-		dyld_func_lookup_and_resign("__dyld_register_thread_helpers", &p);
+		_dyld_func_lookup("__dyld_register_thread_helpers", (void**)&p);
 		if(p != NULL)
 			p(&sHelpers);
 	}
@@ -1624,11 +1471,10 @@ int dladdr(const void* addr, Dl_info* info)
         result = dyld3::dladdr(addr, info);
     } else {
         DYLD_LOCK_THIS_BLOCK;
-        typedef int (*funcType)(const void* , Dl_info*);
-        static funcType __ptrauth_dyld_function_ptr p = NULL;
+        static int (*p)(const void* , Dl_info*) = NULL;
 
         if(p == NULL)
-            dyld_func_lookup_and_resign("__dyld_dladdr", &p);
+            _dyld_func_lookup("__dyld_dladdr", (void**)&p);
         result = p(addr, info);
     }
     timer.setData4(result);
@@ -1644,11 +1490,10 @@ char* dlerror()
 		return dyld3::dlerror();
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef char* (*funcType)();
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static char* (*p)() = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_dlerror", &p);
+	    _dyld_func_lookup("__dyld_dlerror", (void**)&p);
 	return(p());
 }
 
@@ -1662,22 +1507,22 @@ int dlclose(void* handle)
     }
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef int (*funcType)(void* handle);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static int (*p)(void* handle) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_dlclose", &p);
+	    _dyld_func_lookup("__dyld_dlclose", (void**)&p);
     result = p(handle);
     timer.setData4(result);
 	return result;
 }
 
-static void* dlopen_internal(const char* path, int mode, void* callerAddress)
+void* dlopen(const char* path, int mode)
 {
     dyld3::ScopedTimer timer(DBG_DYLD_TIMING_DLOPEN, path, mode, 0);
     void* result = nullptr;
+
     if ( gUseDyld3 ) {
-        result = dyld3::dlopen_internal(path, mode, callerAddress);
+        result = dyld3::dlopen_internal(path, mode, __builtin_return_address(0));
         timer.setData4(result);
         return result;
     }
@@ -1685,12 +1530,11 @@ static void* dlopen_internal(const char* path, int mode, void* callerAddress)
     // dlopen is special. locking is done inside dyld to allow initializer to run without lock
     DYLD_NO_LOCK_THIS_BLOCK;
 
-    typedef void* (*funcType)(const char* path, int, void*);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static void* (*p)(const char* path, int, void*) = NULL;
 
     if(p == NULL)
-        dyld_func_lookup_and_resign("__dyld_dlopen_internal", &p);
-    result = p(path, mode, callerAddress);
+        _dyld_func_lookup("__dyld_dlopen_internal", (void**)&p);
+    result = p(path, mode, __builtin_return_address(0));
     // use asm block to prevent tail call optimization
     // this is needed because dlopen uses __builtin_return_address() and depends on this glue being in the frame chain
     // <rdar://problem/5313172 dlopen() looks too far up stack, can cause crash>
@@ -1699,31 +1543,6 @@ static void* dlopen_internal(const char* path, int mode, void* callerAddress)
 
 	return result;
 }
-
-void* dlopen(const char* path, int mode)
-{
-    void* result = dlopen_internal(path, mode, __builtin_return_address(0));
-    if ( result )
-        return result;
-
-
-    return nullptr;
-}
-
-void* dlopen_from(const char* path, int mode, void* addressInCaller)
-{
-#if __has_feature(ptrauth_calls)
-    addressInCaller = __builtin_ptrauth_strip(addressInCaller, ptrauth_key_asia);
-#endif
-    return dlopen_internal(path, mode, addressInCaller);
-}
-
-#if !__i386__
-void* dlopen_audited(const char* path, int mode)
-{
-	return dlopen(path, mode);
-}
-#endif // !__i386__
 
 bool dlopen_preflight(const char* path)
 {
@@ -1737,11 +1556,10 @@ bool dlopen_preflight(const char* path)
     }
 
     DYLD_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)(const char* path, void* callerAddress);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)(const char* path, void* callerAddress) = NULL;
 
     if(p == NULL)
-        dyld_func_lookup_and_resign("__dyld_dlopen_preflight_internal", &p);
+        _dyld_func_lookup("__dyld_dlopen_preflight_internal", (void**)&p);
     result = p(path, __builtin_return_address(0));
     timer.setData4(result);
     return result;
@@ -1759,11 +1577,10 @@ void* dlsym(void* handle, const char* symbol)
     }
 
     DYLD_LOCK_THIS_BLOCK;
-    typedef void* (*funcType)(void* handle, const char* symbol, void *callerAddress);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static void* (*p)(void* handle, const char* symbol, void *callerAddress) = NULL;
 
     if(p == NULL)
-        dyld_func_lookup_and_resign("__dyld_dlsym_internal", &p);
+        _dyld_func_lookup("__dyld_dlsym_internal", (void**)&p);
     result = p(handle, symbol, __builtin_return_address(0));
     timer.setData4(result);
     return result;
@@ -1777,11 +1594,10 @@ const struct dyld_all_image_infos* _dyld_get_all_image_infos()
 		return dyld3::_dyld_get_all_image_infos();
 
 	DYLD_NO_LOCK_THIS_BLOCK;
-    typedef struct dyld_all_image_infos* (*funcType)();
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static struct dyld_all_image_infos* (*p)() = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_get_all_image_infos", &p);
+	    _dyld_func_lookup("__dyld_get_all_image_infos", (void**)&p);
 	return p();
 }
 
@@ -1792,11 +1608,10 @@ bool _dyld_find_unwind_sections(void* addr, dyld_unwind_sections* info)
 		return dyld3::_dyld_find_unwind_sections(addr, info);
 
 	DYLD_NO_LOCK_THIS_BLOCK;
-    typedef void* (*funcType)(void*, dyld_unwind_sections*);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static void* (*p)(void*, dyld_unwind_sections*) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_find_unwind_sections", &p);
+	    _dyld_func_lookup("__dyld_find_unwind_sections", (void**)&p);
 	return p(addr, info);
 }
 #endif
@@ -1807,11 +1622,10 @@ __attribute__((visibility("hidden")))
 void* _dyld_fast_stub_entry(void* loadercache, long lazyinfo)
 {
 	DYLD_NO_LOCK_THIS_BLOCK;
-    typedef void* (*funcType)(void*, long);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static void* (*p)(void*, long) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_fast_stub_entry", &p);
+	    _dyld_func_lookup("__dyld_fast_stub_entry", (void**)&p);
 	return p(loadercache, lazyinfo);
 }
 #endif
@@ -1823,11 +1637,10 @@ const char* dyld_image_path_containing_address(const void* addr)
 		return dyld3::dyld_image_path_containing_address(addr);
 
 	DYLD_NO_LOCK_THIS_BLOCK;
-    typedef const char* (*funcType)(const void*);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static const char* (*p)(const void*) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_image_path_containing_address", &p);
+	    _dyld_func_lookup("__dyld_image_path_containing_address", (void**)&p);
 	return p(addr);
 }
 
@@ -1837,11 +1650,10 @@ const struct mach_header* dyld_image_header_containing_address(const void* addr)
 		return dyld3::dyld_image_header_containing_address(addr);
 
 	DYLD_NO_LOCK_THIS_BLOCK;
-    typedef const mach_header* (*funcType)(const void*);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static const mach_header* (*p)(const void*) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_get_image_header_containing_address", &p);
+	    _dyld_func_lookup("__dyld_get_image_header_containing_address", (void**)&p);
 	return p(addr);
 }
 
@@ -1852,11 +1664,10 @@ bool dyld_shared_cache_some_image_overridden()
 		return dyld3::dyld_shared_cache_some_image_overridden();
 
 	DYLD_NO_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)();
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)() = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_shared_cache_some_image_overridden", &p);
+	    _dyld_func_lookup("__dyld_shared_cache_some_image_overridden", (void**)&p);
 	return p();
 }
 
@@ -1866,11 +1677,10 @@ bool _dyld_get_shared_cache_uuid(uuid_t uuid)
 		return dyld3::_dyld_get_shared_cache_uuid(uuid);
 
 	DYLD_NO_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)(uuid_t);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)(uuid_t) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_get_shared_cache_uuid", &p);
+	    _dyld_func_lookup("__dyld_get_shared_cache_uuid", (void**)&p);
 	return p(uuid);
 }
 
@@ -1880,11 +1690,10 @@ const void* _dyld_get_shared_cache_range(size_t* length)
 		return dyld3::_dyld_get_shared_cache_range(length);
 
 	DYLD_NO_LOCK_THIS_BLOCK;
-    typedef const void* (*funcType)(size_t*);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static const void* (*p)(size_t*) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_get_shared_cache_range", &p);
+	    _dyld_func_lookup("__dyld_get_shared_cache_range", (void**)&p);
 	return p(length);
 }
 
@@ -1916,43 +1725,16 @@ bool _dyld_shared_cache_is_locally_built()
     return false;
 }
 
-const char* _dyld_shared_cache_real_path(const char* path)
-{
-    const dyld_all_image_infos* allInfo = _dyld_get_all_image_infos();
-    if ( allInfo != nullptr  ) {
-        const DyldSharedCache* cache = (const DyldSharedCache*)(allInfo->sharedCacheBaseAddress);
-        if ( cache != nullptr )
-            return cache->getCanonicalPath(path);
-    }
-    return nullptr;
-}
-
-bool _dyld_shared_cache_contains_path(const char* path)
-{
-    return _dyld_shared_cache_real_path(path) != nullptr;
-}
-
-
-uint32_t _dyld_launch_mode()
-{
-    if ( gUseDyld3 )
-        return dyld3::_dyld_launch_mode();
-
-    // in dyld2 mode all flag bits are zero
-    return 0;
-}
-
 void _dyld_images_for_addresses(unsigned count, const void* addresses[], struct dyld_image_uuid_offset infos[])
 {
     if ( gUseDyld3 )
         return dyld3::_dyld_images_for_addresses(count, addresses, infos);
 
     DYLD_NO_LOCK_THIS_BLOCK;
-    typedef const void (*funcType)(unsigned, const void*[], struct dyld_image_uuid_offset[]);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static const void (*p)(unsigned, const void*[], struct dyld_image_uuid_offset[]) = NULL;
 
     if(p == NULL)
-        dyld_func_lookup_and_resign("__dyld_images_for_addresses", &p);
+        _dyld_func_lookup("__dyld_images_for_addresses", (void**)&p);
     return p(count, addresses, infos);
 }
 
@@ -1962,11 +1744,10 @@ void _dyld_register_for_image_loads(void (*func)(const mach_header* mh, const ch
         return dyld3::_dyld_register_for_image_loads(func);
 
     DYLD_NO_LOCK_THIS_BLOCK;
-    typedef const void (*funcType)(void (*)(const mach_header* mh, const char* path, bool unloadable));
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static const void (*p)(void (*)(const mach_header* mh, const char* path, bool unloadable)) = NULL;
 
     if(p == NULL)
-        dyld_func_lookup_and_resign("__dyld_register_for_image_loads", &p);
+        _dyld_func_lookup("__dyld_register_for_image_loads", (void**)&p);
     return p(func);
 }
 
@@ -1976,17 +1757,16 @@ void _dyld_register_for_bulk_image_loads(void (*func)(unsigned imageCount, const
         return dyld3::_dyld_register_for_bulk_image_loads(func);
 
     DYLD_NO_LOCK_THIS_BLOCK;
-    typedef const void (*funcType)(void (*)(unsigned imageCount, const mach_header* mhs[], const char* paths[]));
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static const void (*p)(void (*)(unsigned imageCount, const mach_header* mhs[], const char* paths[])) = NULL;
 
     if(p == NULL)
-        dyld_func_lookup_and_resign("__dyld_register_for_bulk_image_loads", &p);
+        _dyld_func_lookup("__dyld_register_for_bulk_image_loads", (void**)&p);
     return p(func);
 }
 
-bool dyld_need_closure(const char* execPath, const char* dataContainerRootDir)
+bool dyld_need_closure(const char* execPath, const char* tempDir)
 {
-    return dyld3::dyld_need_closure(execPath, dataContainerRootDir);
+    return dyld3::dyld_need_closure(execPath, tempDir);
 }
 
 bool dyld_process_is_restricted()
@@ -1995,11 +1775,10 @@ bool dyld_process_is_restricted()
 		return dyld3::dyld_process_is_restricted();
 
 	DYLD_NO_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)();
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)() = NULL;
 	
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_process_is_restricted", &p);
+	    _dyld_func_lookup("__dyld_process_is_restricted", (void**)&p);
 	return p();
 }
 
@@ -2009,11 +1788,10 @@ const char* dyld_shared_cache_file_path()
 		return dyld3::dyld_shared_cache_file_path();
 
 	DYLD_NO_LOCK_THIS_BLOCK;
-    typedef const char* (*funcType)();
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static const char* (*p)() = NULL;
 	
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_shared_cache_file_path", &p);
+	    _dyld_func_lookup("__dyld_shared_cache_file_path", (void**)&p);
 	return p();
 }
 
@@ -2023,20 +1801,12 @@ bool dyld_has_inserted_or_interposing_libraries()
 		return dyld3::dyld_has_inserted_or_interposing_libraries();
 
 	DYLD_NO_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)();
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+	static bool (*p)() = NULL;
 
 	if (p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_has_inserted_or_interposing_libraries", &p);
+	    _dyld_func_lookup("__dyld_has_inserted_or_interposing_libraries", (void**)&p);
 	return p();
 }
-
-bool _dyld_has_fix_for_radar(const char *rdar) {
-    // There is no point in shimming this to dyld3, actual functionality can exist purely in libSystem for
-    // both dyld2 and dyld3.
-    return false;
-}
-
 
 void dyld_dynamic_interpose(const struct mach_header* mh, const struct dyld_interpose_tuple array[], size_t count)
 {
@@ -2044,11 +1814,10 @@ void dyld_dynamic_interpose(const struct mach_header* mh, const struct dyld_inte
 		return dyld3::dyld_dynamic_interpose(mh, array, count);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef void (*funcType)(const struct mach_header* mh, const struct dyld_interpose_tuple array[], size_t count);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static void (*p)(const struct mach_header* mh, const struct dyld_interpose_tuple array[], size_t count) = NULL;
 
 	if (p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_dynamic_interpose", &p);
+	    _dyld_func_lookup("__dyld_dynamic_interpose", (void**)&p);
 	p(mh, array, count);
 }
 
@@ -2073,11 +1842,10 @@ void _dyld_fork_child()
 		return dyld3::_dyld_fork_child();
 
 	DYLD_NO_LOCK_THIS_BLOCK;
-    typedef void (*funcType)();
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static void (*p)() = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_fork_child", &p);
+	    _dyld_func_lookup("__dyld_fork_child", (void**)&p);
 	return p();
 }
 
@@ -2086,13 +1854,13 @@ void _dyld_fork_child()
 static void* mapStartOfCache(const char* path, size_t length)
 {
 	struct stat statbuf;
-	if ( dyld3::stat(path, &statbuf) == -1 )
+	if ( ::stat(path, &statbuf) == -1 )
 		return NULL;
 
 	if ( (size_t)statbuf.st_size < length )
 		return NULL;
 
-	int cache_fd = dyld3::open(path, O_RDONLY, 0);
+	int cache_fd = ::open(path, O_RDONLY);
 	if ( cache_fd < 0 )
 		return NULL;
 
@@ -2125,7 +1893,7 @@ static const dyld_cache_header* findCacheInDirAndMap(const uuid_t cacheUuid, con
 			if ( strlcat(cachePath, entp->d_name, PATH_MAX) >= PATH_MAX )
 				continue;
 			if ( const dyld_cache_header* cacheHeader = (dyld_cache_header*)mapStartOfCache(cachePath, 0x00100000) ) {
-				if ( (::memcmp(cacheHeader, "dyld_", 5) != 0) || (::memcmp(cacheHeader->uuid, cacheUuid, 16) != 0) ) {
+				if ( ::memcmp(cacheHeader->uuid, cacheUuid, 16) != 0 ) {
 					// wrong uuid, unmap and keep looking
 					::munmap((void*)cacheHeader, 0x00100000);
 				}
@@ -2158,11 +1926,12 @@ int dyld_shared_cache_find_iterate_text(const uuid_t cacheUuid, const char* extr
 	}
 	else {
 		// look first is default location for cache files
-    #if TARGET_OS_IPHONE
-		cacheHeader = findCacheInDirAndMap(cacheUuid, IPHONE_DYLD_SHARED_CACHE_DIR);
-    #else
-		cacheHeader = findCacheInDirAndMap(cacheUuid, MACOSX_MRM_DYLD_SHARED_CACHE_DIR);
-    #endif
+	#if	__IPHONE_OS_VERSION_MIN_REQUIRED
+		const char* defaultSearchDir = IPHONE_DYLD_SHARED_CACHE_DIR;
+	#else
+		const char* defaultSearchDir = MACOSX_DYLD_SHARED_CACHE_DIR;
+	#endif
+		cacheHeader = findCacheInDirAndMap(cacheUuid, defaultSearchDir);
 		// if not there, look in extra search locations
 		if ( cacheHeader == NULL ) {
 			for (const char** p = extraSearchDirs; *p != NULL; ++p) {
@@ -2176,7 +1945,7 @@ int dyld_shared_cache_find_iterate_text(const uuid_t cacheUuid, const char* extr
 	if ( cacheHeader == NULL )
 		return -1;
 	
-	if ( cacheHeader->mappingOffset <= __offsetof(dyld_cache_header, imagesTextOffset) ) {
+	if ( cacheHeader->mappingOffset < sizeof(dyld_cache_header) ) {
 		// old cache without imagesText array
 		if ( needToUnmap )
 			::munmap((void*)cacheHeader, 0x00100000);
@@ -2221,11 +1990,10 @@ bool _dyld_is_memory_immutable(const void* addr, size_t length)
 		return dyld3::_dyld_is_memory_immutable(addr, length);
 
 	DYLD_NO_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)(const void*, size_t);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)(const void*, size_t) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_is_memory_immutable", &p);
+	    _dyld_func_lookup("__dyld_is_memory_immutable", (void**)&p);
 	return p(addr, length);
 }
 
@@ -2238,11 +2006,10 @@ void _dyld_objc_notify_register(_dyld_objc_notify_mapped    mapped,
 		return dyld3::_dyld_objc_notify_register(mapped, init, unmapped);
 
 	DYLD_LOCK_THIS_BLOCK;
-    typedef bool (*funcType)(_dyld_objc_notify_mapped, _dyld_objc_notify_init, _dyld_objc_notify_unmapped);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)(_dyld_objc_notify_mapped, _dyld_objc_notify_init, _dyld_objc_notify_unmapped) = NULL;
 
 	if(p == NULL)
-	    dyld_func_lookup_and_resign("__dyld_objc_notify_register", &p);
+	    _dyld_func_lookup("__dyld_objc_notify_register", (void**)&p);
 	p(mapped, init, unmapped);
 }
 
@@ -2282,75 +2049,9 @@ void _dyld_for_each_objc_protocol(const char* protocolName,
 
 void _dyld_register_driverkit_main(void (*mainFunc)(void))
 {
-    if ( gUseDyld3 )
-        return dyld3::_dyld_register_driverkit_main(mainFunc);
-
-    typedef bool (*funcType)(void *);
-    static funcType __ptrauth_dyld_function_ptr p = NULL;
+    static bool (*p)(void (*mainFunc)(void)) = NULL;
 
     if(p == NULL)
-        dyld_func_lookup_and_resign("__dyld_register_driverkit_main", &p);
-    p(reinterpret_cast<void *>(mainFunc));
-}
-
-// This is populated in the shared cache builder, so that the ranges are protected by __DATA_CONST
-// If we have a root, we can find this range in the shared cache libdyld at runtime
-typedef std::pair<const uint8_t*, const uint8_t*> ObjCConstantRange;
-
-#if TARGET_OS_OSX
-__attribute__((section(("__DATA, __objc_ranges"))))
-#else
-__attribute__((section(("__DATA_CONST, __objc_ranges"))))
-#endif
-__attribute__((used))
-static ObjCConstantRange gSharedCacheObjCConstantRanges[dyld_objc_string_kind + 1];
-
-static std::pair<const void*, uint64_t> getDyldCacheConstantRanges() {
-    const dyld_all_image_infos* allInfo = _dyld_get_all_image_infos();
-    if ( allInfo != nullptr  ) {
-        const DyldSharedCache* cache = (const DyldSharedCache*)(allInfo->sharedCacheBaseAddress);
-        if ( cache != nullptr ) {
-            return cache->getObjCConstantRange();
-        }
-    }
-    return { nullptr, 0 };
-}
-
-bool _dyld_is_objc_constant(DyldObjCConstantKind kind, const void* addr) {
-    assert(kind <= dyld_objc_string_kind);
-    // The common case should be that the value is in range, as this is a security
-    // check, so first test against the values in the struct.  If we have a root then
-    // we'll take the slow path later
-    if ( (addr >= gSharedCacheObjCConstantRanges[kind].first) && (addr < gSharedCacheObjCConstantRanges[kind].second) ) {
-        // Make sure that we are pointing at the start of a constant object, not in to the middle of it
-        uint64_t offset = (uint64_t)addr - (uint64_t)gSharedCacheObjCConstantRanges[kind].first;
-        return (offset % (uint64_t)DyldSharedCache::ConstantClasses::cfStringAtomSize) == 0;
-    }
-
-    // If we are in the shared cache, then the above check was sufficient, so this really isn't a valid constant address
-    extern void* __dso_handle;
-    const dyld3::MachOAnalyzer* ma = (const dyld3::MachOAnalyzer*)&__dso_handle;
-    if ( ma->inDyldCache() )
-        return false;
-
-    // We now know we are a root, so use the pointers in the shared cache libdyld version of gSharedCacheObjCConstantRanges
-    static std::pair<const void*, uint64_t> sharedCacheRanges = { nullptr, ~0ULL };
-
-    // FIXME: Should we fold this in as an inititalizer above?
-    // That would mean we need to link against somewhere to get ___cxa_guard_acquire/___cxa_guard_release
-    if ( sharedCacheRanges.second == ~0ULL )
-        sharedCacheRanges = getDyldCacheConstantRanges();
-
-    // We have the range of the section in libdyld in the shared cache, now get an array of ranges from it
-    uint64_t numRanges = sharedCacheRanges.second / sizeof(ObjCConstantRange);
-    if ( kind >= numRanges )
-        return false;
-
-    const ObjCConstantRange* rangeArrayBase = (const ObjCConstantRange*)sharedCacheRanges.first;
-    if ( (addr >= rangeArrayBase[kind].first) && (addr < rangeArrayBase[kind].second) ) {
-        // Make sure that we are pointing at the start of a constant object, not in to the middle of it
-        uint64_t offset = (uint64_t)addr - (uint64_t)rangeArrayBase[kind].first;
-        return (offset % (uint64_t)DyldSharedCache::ConstantClasses::cfStringAtomSize) == 0;
-    }
-    return false;
+        _dyld_func_lookup("__dyld_register_driverkit_main", (void**)&p);
+   p(mainFunc);
 }

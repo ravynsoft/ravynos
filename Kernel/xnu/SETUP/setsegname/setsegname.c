@@ -266,6 +266,7 @@ main(int argc, char * argv[])
 	}
 
 	int fd = open(output_name, O_WRONLY | O_CREAT | O_TRUNC, 0755);
+        error = 0;
 	if (-1 == fd) {
 		error = -1;
 	} else {
@@ -274,7 +275,7 @@ main(int argc, char * argv[])
 	}
 
 	if (error) {
-		fprintf(stderr, "couldn't write output: %s\n", strerror(errno));
+            fprintf(stderr, "couldn't write output\n");
 		exit(1);
 	}
 

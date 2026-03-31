@@ -13,13 +13,11 @@
 int main(int argc, const char* argv[], const char* envp[], const char* apple[]) {
     // We only support trying to save to containerised paths, so anything not
     // of that form should fail
+    if ( !dyld_need_closure("./foo.exe", "/tmp/Containers/Data/") ) {
+        FAIL("Should have needed a closure for containerised path");
+    }
 
-// FIXME: dyld_need_closure() needs an existing directory structure, so we can't run this in BATS
-//    if ( !dyld_need_closure("./foo.exe", "/private/var/mobile/Containers/Data/Application") ) {
-//        FAIL("Should have needed a closure for containerised path");
-//    }
-
-    if ( dyld_need_closure("./foo.exe", "/private/var/mobile/Other/Stuff") ) {
+    if ( dyld_need_closure("./foo.exe", "/tmp/Containers/Data2/") ) {
         FAIL("Should have rejected a closure for non-containerised path");
     }
 

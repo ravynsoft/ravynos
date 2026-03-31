@@ -1,0 +1,80 @@
+.Dd March 13, 2014 
+.Os Darwin
+.Dt KEXTSTAT 8
+.Sh NAME
+.Nm kextstat
+.Nd display status of loaded kernel extensions (kexts)
+.Sh SYNOPSIS
+.Nm kextstat
+.Op Fl a
+.Op Fl h
+.Op Fl k
+.Op Fl l
+.Op Fl b Ar identifier
+.Li \&.\|.\|.
+.Sh DESCRIPTION
+The
+.Nm
+utility displays the status of any kexts
+currently loaded in the kernel.
+The following information is shown for each loaded kext:
+.Bl -tag -width indentXX
+.It Index
+The load index of the kext (used to track linkage references).
+Gaps in the list indicate kexts that have been unloaded.
+.It Refs
+The number of references to this kext by others.
+If nonzero, the kext cannot be unloaded.
+.It Address
+The address in kernel space where the kext has been loaded.
+.It Size
+The number of bytes of kernel memory that the kext occupies.
+If this is zero, the kext is a built-in part of the kernel
+that has a record as a kext for resolving dependencies among kexts.
+.It Wired
+The number of wired bytes of kernel memory that the kext occupies.
+.It Architecture (if the -a option is used)
+The architecture of the kext.
+.It Name
+The CFBundleIdentifier of the kext.
+.It (Version)
+The CFBundleVersion of the kext.
+.It <Linked Against>
+The index numbers of all other kexts that this kext
+has a reference to.
+.El
+.Sh OPTIONS
+These options are available:
+.Bl -tag -width indentXX
+.It Fl a , Fl arch
+Print the architecture of the kext.
+.It Fl b Ar identifier , Fl bundle-id Ar identifier
+Display the status of only the kext with
+the given bundle identifier.
+This option trumps the
+.Fl no-kernel
+option;
+if both are given and a kernel component is specified,
+its information is shown.
+.It Fl h , Fl help
+Print a help message describing each option flag and exit with a success result,
+regardless of any other options on the command line.
+.It Fl k , Fl no-kernel
+Don't show information for built-in components of the kernel.
+.It Fl l , Fl list-only
+Print the list of loaded kexts only and omit the header
+(useful for running output through text-analysis tools).
+.It Fl s , Fl sort
+Sort the list by load address.
+.El
+.Sh DIAGNOSTICS
+The
+.Nm
+utility exits with a status of 0 on success
+and with a nonzero status if an error occurs.
+.Sh SEE ALSO
+.Xr kextcache 8 ,
+.Xr kextd 8 ,
+.Xr kextload 8 ,
+.Xr kextunload 8 ,
+.Xr kextutil 8

@@ -1,1 +1,0 @@
-__thread int foo;

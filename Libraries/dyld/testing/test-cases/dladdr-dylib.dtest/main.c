@@ -1,5 +1,5 @@
 
-// BUILD:  $CC foo.c -dynamiclib  -ltest_support -install_name $RUN_DIR/libfoo.dylib -o $BUILD_DIR/libfoo.dylib
+// BUILD:  $CC foo.c -dynamiclib  -install_name $RUN_DIR/libfoo.dylib -o $BUILD_DIR/libfoo.dylib
 // BUILD:  $CC main.c $BUILD_DIR/libfoo.dylib -o $BUILD_DIR/dladdr-dylib.exe
 
 // RUN:  ./dladdr-dylib.exe

@@ -6,19 +6,20 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#include <string.h>
+#include <stdlib.h>
 
 #import <Foundation/NSArray.h>
 #import <Foundation/NSObjCRuntime.h>
 #import <Foundation/NSRaise.h>
-#import <Foundation/NSMutableArray_concrete.h>
 #import <Foundation/NSAutoreleasePool-private.h>
 #import <Foundation/NSPropertyListReader.h>
 #import <Foundation/NSPredicate.h>
 #import <Foundation/NSSortDescriptor.h>
 #import <Foundation/NSIndexSet.h>
 #import <Foundation/NSRaiseException.h>
-#include <string.h>
-#include <stdlib.h>
+
+#import "NSMutableArray_concrete.h"
 
 @implementation NSMutableArray
 
@@ -407,7 +408,7 @@ static int _nsmutablearraycompareindices(const void* v1, const void* v2)
    [object release];
 }
 
-static NSInteger selectorCompare(id object1,id object2,void *userData){
+static NSComparisonResult selectorCompare(id object1,id object2,void *userData){
    SEL selector=userData;
 
    return (NSComparisonResult)[object1 performSelector:selector withObject:object2];
@@ -512,7 +513,7 @@ static NSComparisonResult compareObjectsUsingDescriptors(id A, id B, void *descr
 
 -(void)filterUsingPredicate:(NSPredicate *)predicate {
    if(predicate==nil){
-    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] predicate is nil",isa,_cmd];
+    [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] predicate is nil",object_getClass(self),_cmd];
     return;
    }
 

@@ -13,13 +13,15 @@ add_subdirectory(mig)
 add_subdirectory(unifdef)
 add_subdirectory(xar)
 add_subdirectory(dtrace_ctf)
+add_subdirectory(rpcgen)
+add_subdirectory(plktool)
 
 ExternalProject_Add(host_xcbuild
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/xcbuild
     CMAKE_ARGS -Wno-dev
         -DROOT_SOURCE_DIR=${ROOT_SOURCE_DIR}
         -DROOT_BINARY_DIR=${ROOT_BINARY_DIR}
-        -DCMAKE_BUILD_RPATH=${RPATH}/../lib 
+        -DCMAKE_BUILD_RPATH=${RPATH}/../lib
         -DCMAKE_INSTALL_RPATH=${RPATH}/../lib
         -DCMAKE_INSTALL_PREFIX=${TOOLCHAIN}
 )
@@ -30,12 +32,13 @@ ExternalProject_Add(host_clang DEPENDS host_migcom
     USES_TERMINAL_BUILD
     CMAKE_ARGS
         ${EXTRA_ARGS} -Wno-dev
+        -C${CMAKE_CURRENT_SOURCE_DIR}/llvm/clang/cmake/caches/Apple-stage1.cmake
         -DCMAKE_INSTALL_PREFIX=${TOOLCHAIN}/usr -DCMAKE_BUILD_TYPE=Release
-        -DLLVM_ENABLE_LIBCXX=ON -DLLVM_APPEND_VC_REV=OFF
+        -DLLVM_BOOTSTRAP_ENABLE_LIBCXX=ON -DLLVM_APPEND_VC_REV=OFF
         -DLLVM_TARGETS_TO_BUILD=${BuildArch} -DLLVM_ENABLE_LTO=OFF
         -DLLVM_BUILD_DOCS=OFF -DLLVM_INCLUDE_TESTS=OFF
         -DLLVM_INSTALL_BINUTILS_SYMLINKS=ON -DLLVM_NATIVE_TOOL_DIR=${TOOLS}
-        -DLLVM_DEFAULT_TARGET_TRIPLE=${TARGET_TRIPLE}
+        -DLLVM_BOOTSTRAP_DEFAULT_TARGET_TRIPLE=${CpuArch}-apple-darwin${DARWIN_MAJOR}
         -DLLVM_INCLUDE_BENCHMARKS=OFF -DLLVM_ENABLE_WARNINGS=OFF
         -DLLVM_ENABLE_PROJECTS=clang$<SEMICOLON>tapi$<SEMICOLON>lld
         -DLLVM_BUILD_RUNTIMES=OFF -DLLVM_BUILD_BUILTINS=OFF
@@ -45,7 +48,7 @@ set(GNU_CONFIGURE_ARGS
     --prefix=/usr --sysconfdir=/etc --bindir=/bin --sbindir=/sbin --localstatedir=/var
 )
 add_custom_target(host_gmake
-    COMMAND 
+    COMMAND
         if [ ! -f ${CMAKE_CURRENT_BINARY_DIR}/gmake/make ] $<SEMICOLON> then
           ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/gmake
           && cd ${CMAKE_CURRENT_BINARY_DIR}/gmake
@@ -63,7 +66,7 @@ add_dependencies(BootstrapTools
     host_indr host_strip host_segedit host_pagestuff host_codesign_allocate
     host_bitcode_strip host_ctf_insert host_check_dylib host_cmpdylib host_inout
     host_vtool host_nmedit host_ranlib host_migcom host_xcbuild host_ctfconvert
-    host_ctfmerge host_ctfdump host_clang host_ld host_xar host_libxar
+    host_ctfmerge host_ctfdump host_clang host_ld host_xar host_libxar host_rpcgen
 )
 
 file(MAKE_DIRECTORY ${TOOLCHAIN}/usr/libexec)
@@ -111,6 +114,7 @@ add_custom_command(TARGET BootstrapTools
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:host_ctfconvert> ${TOOLCHAIN}/usr/bin/
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:host_ctfdump> ${TOOLCHAIN}/usr/bin/
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:host_ctfmerge> ${TOOLCHAIN}/usr/bin/
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:host_rpcgen> ${TOOLCHAIN}/usr/bin/rpcgen
     COMMAND ${CMAKE_COMMAND} -E create_symlink llvm-otool ${TOOLCHAIN}/usr/bin/otool
     COMMAND ${CMAKE_COMMAND} -E create_symlink llvm-as ${TOOLCHAIN}/usr/bin/as
     COMMAND ${CMAKE_COMMAND} -E create_symlink ld ${TOOLCHAIN}/usr/bin/ld64
@@ -120,3 +124,5 @@ add_custom_command(TARGET BootstrapTools
     COMMAND ${CMAKE_COMMAND} -E rm -rf ${TOOLCHAIN}/CMakeFiles
     COMMAND ${CMAKE_COMMAND} -E rm -rf ${TOOLCHAIN}/libBootstrapTools.a
 )
+
+add_subdirectory(lzvndecode)

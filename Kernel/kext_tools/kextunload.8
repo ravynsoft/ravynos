@@ -1,0 +1,126 @@
+.Dd March 6, 2009 
+.Os Darwin
+.Dt KEXTUNLOAD 8
+.Sh NAME
+.Nm kextunload
+.Nd terminate driver I/O Kit driver instances and unload kernel extensions (kexts)
+.Sh SYNOPSIS
+.Nm
+.Op Ar options
+.Op Fl -
+.Op Ar kext Li \&.\|.\|.
+.Sh DESCRIPTION
+The
+.Nm
+program is used to terminate and unregister I/O Kit objects
+associated with a kernel extension (kext)
+and to unload the code and personalities for that kext.
+.Nm
+must run with superuser privileges.
+.Pp
+If another loaded kext has a dependency on the kext being unloaded,
+the unload will fail.
+You can determine whether a kext has dependents using the
+.Xr kextstat 8
+tool.
+.Pp
+.Nm
+is a formal interface for unloading kexts in the Darwin OS and
+in macOS.
+Software and installers can rely on its presence
+and invoke it in order to unload kexts.
+Note that long options are present as of Mac OS X 10.6 (Snow Leopard).
+.Pp
+The arguments and options are:
+.Bl -tag -width -indent
+.It Ar kext
+Unload the loaded kext whose bundle identifier matches
+the CFBundleIdentifier of
+.Ar kext .
+All instances of IOService subclasses defined by the loaded kext
+and in the IOService plane of the I/O Registry are terminated;
+the kext is checked to make sure no instances
+of its libkern C++ classes remain;
+the kext's C++ static destructores and module stop routine are invoked;
+then the kext's executable and IOKitPersonalities are unloaded from the kernel.
+Failure at any stage prevents kext unload.
+.It Fl b Ar identifier , Fl bundle-id Ar identifier
+Unload executable and IOKitPersonalities (as described immediately above)
+for the kext whose CFBundleIdentifier is
+.Ar identifier .
+.It Fl c Ar classname , Fl class Ar classname
+Terminate all instances of class
+.Ar classname
+that are in the IOService plane of the I/O Registry,
+if possible,
+but do not unload the defining kext or its IOKitPersonalities.
+New load requests for devices that were driven
+by these terminated instances
+may result in the same class being instantiated at any time.
+.It Fl h , Fl help
+Print a help message describing each option flag and exit with a success result,
+regardless of any other options on the command line.
+.It Fl m Ar identifier
+Same as
+.Fl b
+(remains for backward compatibility).
+.It Fl p , Fl personalities-only
+Terminate services and remove personalities only;
+do not unload kexts.
+.It Fl q , Fl quiet
+Quiet mode; print no informational or error messages.
+.It Fl v Li [ 0-6 | 0x#### Ns Li ] , Fl verbose Li [ 0-6 | 0x#### Ns Li ]
+Verbose mode; print information about program operation.
+Higher levels of verbosity include all lower levels.
+By default
+.Nm
+prints only warnings and errors.
+You can specify a level from 0-6,
+or a hexadecimal log specification
+(as described in
+.Xr kext_logging 8 Ns No ).
+The levels of verbose output are:
+.Bl -tag -width "1 (or none)"
+.It 0
+Print only errors (that is, suppress warnings); see also
+.Fl quiet .
+.It 1 (or none)
+Print basic information about program operation.
+.It 2
+Prints information about unload stages.
+.It 3
+Prints information about removal of personalities.
+.It 4
+Prints information about module stop functions and C++ class destruction.
+.It 5
+Prints detailed information internal operations such as bookkeping.
+.It 6
+Identical to level 5 for
+.Nm .
+.El
+.Pp
+Unlike in other kext tools,
+the
+.Fl verbose
+flag in
+.Nm
+applies to all kexts
+(that is, it turns on hexadecimal bit 0x8 by default).
+See
+.Xr kext_logging 8
+for more information on verbose logging.
+.El
+.Sh DIAGNOSTICS
+.Nm
+exits with a zero status upon success,
+or prints an error message and exits with a nonzero status upon failure.
+.Sh BUGS
+Many single-letter options are inconsistent in meaning
+with (or directly contradictory to) the same letter options
+in other kext tools.
+.Sh SEE ALSO
+.Xr kextcache 8 ,
+.Xr kextd 8 ,
+.Xr kextload 8 ,
+.Xr kextstat 8 ,
+.Xr kext_logging 8

@@ -1,8 +1,8 @@
 
 // BUILD:  $CC bar.c -dynamiclib -o $BUILD_DIR/libbar.dylib         -install_name $RUN_DIR/libbar.dylib
 // BUILD:  $CC bar.c -dynamiclib -o $BUILD_DIR/libbar-present.dylib  -install_name $RUN_DIR/libbar.dylib -DHAS_SYMBOL=1
-// BUILD:  $CC foo.c -dynamiclib -Os -install_name $RUN_DIR/libfoo.dylib -o $BUILD_DIR/libfoo.dylib $BUILD_DIR/libbar-present.dylib -Wl,-no_fixup_chains
-// BUILD:  $CC main.c -o $BUILD_DIR/dlopen-RTLD_NOW.exe -DRUN_DIR="$RUN_DIR" -Wl,-no_fixup_chains
+// BUILD:  $CC foo.c -dynamiclib -Os -install_name $RUN_DIR/libfoo.dylib -o $BUILD_DIR/libfoo.dylib $BUILD_DIR/libbar-present.dylib
+// BUILD:  $CC main.c -o $BUILD_DIR/dlopen-RTLD_NOW.exe -DRUN_DIR="$RUN_DIR"
 
 // BUILD: $SKIP_INSTALL $BUILD_DIR/libbar-present.dylib
 
@@ -16,9 +16,6 @@
 #include <mach-o/getsect.h>
 
 #include "test_support.h"
-
-// NOTE: RTLD_LAZY only makes sense to test if there are lazy pointers.  Chained fixups do not have lazy pointers.
-// So, we force this project to build without chained fixups
 
 #if __LP64__
 extern struct mach_header_64 __dso_handle;

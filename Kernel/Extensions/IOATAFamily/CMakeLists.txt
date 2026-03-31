@@ -35,3 +35,6 @@ add_library(IOATAFamilyPrivateHeaders INTERFACE)
 target_include_directories(IOATAFamilyPrivateHeaders INTERFACE private_include)
 
 install(TARGETS IOATAFamily DESTINATION System/Library/Extensions COMPONENT BaseSystem)
+
+add_dependencies(IOATAFamily kextBuild)
+

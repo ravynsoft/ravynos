@@ -1,0 +1,293 @@
+.Dd March 6, 2009 
+.Os Darwin
+.Dt KEXT_LOGGING 8
+.Sh NAME
+.Nm kext logging
+.Nd verbose/logging flags for kernel extensions (kexts) in the kernel and command-line utilities
+.Sh DESCRIPTION
+The kext management facilities of macOS
+allow for logging of kext activity at all system levels,
+from the kernel to the user-space kext daemon and most command-line kext tools.
+The
+.Fl verbose
+.Li ( Ns Fl v Ns Li )
+flag of the tools provides a simple system of levels that apply a set
+of lower level binary logging flags appropriate to each tool,
+for maximally useful verbose output.
+The binary log specification is used for kernel logging
+and is also available for use with the
+.Fl verbose
+option when you need precise control over logging.
+.Sh ENABLING LOGGING
+For command-line tools the
+.Fl verbose
+.Li ( Ns Fl v Ns Li )
+and
+.Fl quiet
+.Li ( Ns Fl q Ns Li )
+flags control verbose output.
+The
+.Fl verbose
+flag accepts a decimal level from 0-6 or a hexadecimal log specification,
+both described below. 
+The
+.Fl verbose
+flag temporarily sets the log spec within the kernel,
+and captures any log messages from the kernel to print along with the tool's own log messages.
+.Pp
+If you wish to alter the logging behavior of
+.Xr kextd 8 ,
+you will need to edit its
+.Xr launchd.plist 5
+file in
+.Pa /System/Library/LaunchDaemons/com.apple.kextd.plist .
+.Pp
+To enable kernel kext logging (in
+.Pa /var/log/kernel.log )
+on a long-term basis,
+use the
+.Sy kextlog
+boot arg or
+.Xr sysctl 8
+parameter.
+You can set it as root using
+.Xr nvram 8
+like so:
+.Bd -literal -offset indent
+.Li "nvram boot-args=" Ns Qo kextlog=0x Ns Ar logspec  Ar other_boot_args Ns Qc
+.Ed
+.Pp
+where
+.Ar logspec
+is a hexadecimal log specification,
+as described below under
+.Dq BINARY LOG SPECIFICATION .
+.Pp
+.Em Caution:
+Enabling logging at a high level via boot arg can greatly slow down system startup time.
+.Pp
+To change the
+.Sy kextlog
+setting at any time use
+.Xr sysctl 8 :
+.Bd -literal -offset indent
+.Li "sysctl -w debug.kextlog=0x" Ns Ar logspec
+.Ed
+.Sh VERBOSE LEVELS
+As mentioned, for the command-line kext tools you use the
+.Fl verbose
+.Li ( Ns Fl v Ns Li )
+flag,
+which takes an optional argument that is either a decimal level from 0-6,
+or a hexadecimal log specification (described under
+.Do BINARY LOG SPECIFICATION Dc Ns ).
+The details of each level vary by tool, but in general they are:
+.Bl -tag -width "1 (or none)"
+.It 0
+Errors only (that is, suppress warnings).
+Tools with a
+.Fl verbose
+flag also support a
+.Fl quiet
+flag to suppress all output.
+.It 1 (or none)
+Basic information about program operation.
+.It 2
+Basic information about program progress, including files created.
+.It 3
+Information about individual kexts, link/load operation,
+and processing of I/O Kit personalities.
+.It 4
+Detailed information about kext operations,
+including C++ class construction/destruction,
+and for archives,
+about compression and architectures processed.
+.It 5
+Debug-level information about internal operations.
+.It 6
+Identical to level 5 but with bit 0x8 turned on
+(see the hexadecimal log specification for details).
+.El
+.Sh BINARY LOG SPECIFICATION
+The binary log specification is a 32-bit value comprising a log level with a bitmask
+divided into several regions from the least-significant nibble
+(corresponding to digits from right to left in a hexadecimal representation).
+This table describes the regions and bits used;
+unlisted regions and bits are reserved for future use:
+.Bl -tag -width "Nibbles 1-2"
+.It Nibble 0
+The log level, from 0-7.
+Each level includes all levels below it.
+This is generally two higher than the decimal level specified with
+.Fl verbose .
+.Bl -inset
+.It Em "Log level 0" -
+Silent.
+.It Em "Log level 1" -
+Errors.
+.It Em "Log level 2" -
+Warnings.
+.It Em "Log level 3" -
+Basic outcome/result.
+.It Em "Log level 4" -
+Operation progress.
+.It Em "Log level 5" -
+Steps in a given operation.
+.It Em "Log level 6" -
+Detailed logging.
+.It Em "Log level 7" -
+Debug level logging.
+.El
+.Pp
+In addition, bit 0x8 of this nibble controls
+whether kext-specific log messages are always printed.
+.Xr kextcache 8
+and
+.Xr kextunload 8
+turn this bit on with their
+.Fl verbose
+flag.
+See
+.Dq PER-KEXT LOGGING
+for more information.
+.It Nibbles 1-2
+Activity flags relevant to general tool use, as in development scenarios.
+The
+.Fl verbose
+flag always includes these.
+8 bits total.
+.Bl -inset
+.It Em "Nibble 1, Bit 0 (0x10)" -
+General activity.
+.It Em "Nibble 1, Bit 1 (0x20)" -
+Load activity.
+.It Em "Nibble 1, Bit 2 (0x40)" -
+IPC and load settings.
+.It Em "Nibble 1, Bit 3 (0x80)" -
+Archive processing.
+.It Em "Nibble 2" -
+Reserved.
+.El
+.It Nibbles 3-7
+Activity flags for internal operations,
+for debugging the kext management system itself.
+These are available only when using a hexadecimal log specification;
+the
+.Fl verbose
+flag never includes these.
+20 bits total.
+.Bl -inset
+.It Em "Nibble 3, Bit 0 (0x1000)" -
+Kext validation.
+.It Em "Nibble 3, Bit 1 (0x2000)" -
+Kext authentication.
+.It Em "Nibble 3, Bit 2 (0x4000)" -
+Kext dependency resolution.
+.It Em "Nibble 4, Bit 0 (0x10000)" -
+Directory scan (booter data scan in the kernel).
+.It Em "Nibble 4, Bit 1 (0x20000)" -
+File I/O.
+.It Em "Nibble 4, Bit 2 (0x40000)" -
+Kext bookkeeping.
+.It Em "Nibble 5, Bit 0 (0x100000)" -
+Link activity.
+.It Em "Nibble 5, Bit 1 (0x200000)" -
+C++ patching activity.
+.It Em "Nibbles 6-7" -
+Reserved.
+.El
+.El
+.Sh PER-KEXT LOGGING
+Many log messages apply to the kext being processed.
+The kernel and most of the command-line kext tools do not log
+these messages by default.
+You can enable these messages for an individual kext
+by specifying an OSBundleEnableKextLogging
+property in its
+.Pa Info.plist
+file with a boolean value of true.
+For convenience,
+.Xr kextutil 8
+automatically sets this property for the kexts it is loading.
+.Pp
+You can activate all per-kext log messages using
+level 6 with the
+.Fl verbose
+flag or by turning on bit 0x8 in a hexadecimal log specification.
+For convenience,
+.Xr kextcache 8
+and
+.Xr kextunload 8
+do this for all verbose levels of their
+.Fl verbose
+flag.
+.Sh MAPPING VERBOSE LEVELS TO LOG SPECIFICATIONS
+Here is a list of the exact hexadecimal log specifications
+applied by each of the
+.Fl verbose
+levels:
+.Bl -tag -width "1 (or none)"
+.It 0
+equivalent to 0x0 for all tools.
+.It (default level)
+equivalent to 0xff2,
+0xff9 for
+.Xr kextcache 8
+and
+.Xr kextunload 8 ,
+0xff3 for
+.Xr kextd 8
+and for
+.Xr kextcache 8
+spawned by
+.Xr kextd 8 .
+.It 1 (or none)
+equivalent to 0xff3, or 0xffa for
+.Xr kextcache 8
+and
+.Xr kextunload 8 .
+.It 2
+equivalent to 0xff4, or 0xffb for
+.Xr kextcache 8
+and
+.Xr kextunload 8 .
+.It 3
+equivalent to 0xff5, or 0xffc for
+.Xr kextcache 8
+and
+.Xr kextunload 8 .
+.It 4
+equivalent to 0xff6, or 0xffd for
+.Xr kextcache 8
+and
+.Xr kextunload 8 .
+.It 5
+equivalent to 0xff7, or 0xffe for
+.Xr kextcache 8
+and
+.Xr kextunload 8 .
+.It 6
+equivalent to 0xfff for all tools.
+.El
+.Sh FILES
+.Bl -tag -width "/var/log/kernel.log"
+.It Pa /var/log/kernel.log
+The kernel log file, where kernel kext activity is logged.
+.It Pa /var/log/system.log
+The system log file, where
+.Xr kextd 8
+activity is logged.
+.It Pa /System/Library/LaunchDaemons/com.apple.kextd.plist
+Edit this
+.Xr launchd.plist 5
+file to specify verbose logging for
+.Xr kextd 8 .
+.El
+.Sh SEE ALSO
+.Xr syslog 1 ,
+.Xr kextcache 8 ,
+.Xr kextd 8 ,
+.Xr kextlibs 8 ,
+.Xr kextload 8 ,
+.Xr kextunload 8 ,
+.Xr kextutil 8

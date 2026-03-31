@@ -38,10 +38,10 @@
 
 extern "C" 	void _dyld_debugger_notification(enum dyld_notify_mode mode, unsigned long count, uint64_t machHeaders[]);
 
-#if TARGET_OS_OSX
-	#define INITIAL_UUID_IMAGE_COUNT 32
-#else
+#if __IPHONE_OS_VERSION_MIN_REQUIRED
 	#define INITIAL_UUID_IMAGE_COUNT 4
+#else
+	#define INITIAL_UUID_IMAGE_COUNT 32
 #endif
 
 VECTOR_NEVER_DESTRUCTED(dyld_image_info);
@@ -49,10 +49,6 @@ VECTOR_NEVER_DESTRUCTED(dyld_uuid_info);
 
 static std::vector<dyld_image_info> sImageInfos;
 static std::vector<dyld_uuid_info>  sImageUUIDs;
-
-#if __x86_64__
-static std::vector<dyld_aot_image_info> sAotImageInfos;
-#endif
 
 size_t allImagesCount()
 {
@@ -95,26 +91,6 @@ void addImagesToAllImages(uint32_t infoCount, const dyld_image_info info[])
 	// set infoArray back to base address of vector (other process can now read)
 	dyld::gProcessInfo->infoArray = &sImageInfos[0];
 }
-
-#if __x86_64__
-void addAotImagesToAllAotImages(uint32_t aotInfoCount, const dyld_aot_image_info aotInfo[])
-{
-    if (sAotImageInfos.size() == 0) {
-        sAotImageInfos.reserve(INITIAL_IMAGE_COUNT);
-    }
-    // set aotInfoArray to NULL to denote it is in-use
-    dyld::gProcessInfo->aotInfoArray = NULL;
-
-    for (uint32_t i = 0; i < aotInfoCount; ++i) {
-        sAotImageInfos.push_back(aotInfo[i]);
-    }
-    dyld::gProcessInfo->aotInfoCount = (uint32_t)sAotImageInfos.size();
-    dyld::gProcessInfo->aotInfoArrayChangeTimestamp = mach_absolute_time();
-
-    // set aotInfoArray back to base address of vector (other process can now read)
-    dyld::gProcessInfo->aotInfoArray = &sAotImageInfos[0];
-}
-#endif
 
 #if TARGET_OS_SIMULATOR
 // called once in dyld_sim start up to copy image list from host dyld to sImageInfos
@@ -253,10 +229,10 @@ void removeImageFromAllImages(const struct mach_header* loadAddress)
 
 	struct dyld_all_image_infos  dyld_all_image_infos __attribute__ ((section ("__DATA,__all_image_info"))) 
 								= { 
-									17, 0, {NULL}, &gdb_image_notifier, false, false, (const mach_header*)&__dso_handle, NULL,
+									16, 0, {NULL}, &gdb_image_notifier, false, false, (const mach_header*)&__dso_handle, NULL,
 									XSTR(DYLD_VERSION), NULL, 0, NULL, 0, 0, NULL, &dyld_all_image_infos,
 									0, 0, NULL, NULL, NULL, 0, {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,},
-									0, {0}, "/usr/lib/dyld", {0}, {0}, 0, 0, NULL, 0
+									0, {0}, "/usr/lib/dyld", {0}, {0}, 0
 									};
 
 	struct dyld_shared_cache_ranges dyld_shared_cache_ranges;

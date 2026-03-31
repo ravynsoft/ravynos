@@ -1,6 +1,0 @@
-#include "tools_base.xcconfig"
-
-OTHER_LDFLAGS = $(inherited) -lCrashReporterClient
-
-INSTALL_PATH = /usr/local/bin
-GCC_PREPROCESSOR_DEFINITIONS = $(inherited) BUILDING_CLOSURE_UTIL=1

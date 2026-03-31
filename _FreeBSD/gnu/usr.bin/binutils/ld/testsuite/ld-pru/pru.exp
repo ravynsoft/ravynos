@@ -1,8 +1,0 @@
-if { ! [istarget pru-*-*] } {
-    return
-}
-
-foreach test [lsort [glob -nocomplain $srcdir/$subdir/*.d]] {
-    verbose [file rootname $test]
-    run_dump_test [file rootname $test]
-}

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>POSIXSpawnType</key>
+	<string>App</string>
+	<key>Label</key>
+	<string>com.apple.kextd</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/usr/libexec/kextd</string>
+	</array>
+	<key>KeepAlive</key>
+	<dict>
+		<key>Crashed</key>
+		<true/>
+	</dict>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>MachServices</key>
+	<dict>
+		<key>com.apple.KernelExtensionServer</key>
+		<dict>
+            <!-- HostSpecialPort # from xnu/osfmk/mach/host_special_ports.h -->
+			<key>HostSpecialPort</key>
+			<integer>15</integer>
+		</dict>
+	</dict>
+</dict>
+</plist>

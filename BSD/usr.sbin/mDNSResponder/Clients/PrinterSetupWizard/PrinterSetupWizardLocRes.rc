@@ -1,0 +1,310 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource_loc_res.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "WinVersRes.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Russian resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
+#ifdef _WIN32
+LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+#pragma code_page(1251)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource_loc_res.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""WinVersRes.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#include ""res\\PrinterSetupWizardLocRes.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Russian resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 235, 55
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "About Printer Wizard"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            128,IDC_STATIC,11,17,20,20
+    LTEXT           "Printer Wizard Version 1.0",IDC_STATIC,40,10,119,
+                    8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2002",IDC_STATIC,40,25,119,8
+    DEFPUSHBUTTON   "OK",IDOK,178,7,50,16,WS_GROUP
+END
+
+IDD_PRINTERSETUPWIZARD_DIALOG DIALOGEX 0, 0, 320, 200
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "Bonjour Printer Wizard"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,263,7,50,16
+    PUSHBUTTON      "Cancel",IDCANCEL,263,25,50,16
+    PUSHBUTTON      "Start Wizard",IDC_BUTTON1,100,86,109,35
+END
+
+IDD_SECOND_PAGE DIALOGEX 0, 0, 290, 154
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Bonjour Printer Wizard"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    LTEXT           "Shared printers:",IDC_STATIC,3,0,171,8
+    CONTROL         "",IDC_BROWSE_LIST,"SysTreeView32",TVS_DISABLEDRAGDROP | 
+                    TVS_SHOWSELALWAYS | TVS_FULLROWSELECT | WS_BORDER | 
+                    WS_TABSTOP,2,11,286,101
+    LTEXT           "Description:",IDC_DESCRIPTION_LABEL,13,128,39,8
+    LTEXT           "Location:",IDC_LOCATION_LABEL,13,139,30,8
+    GROUPBOX        "Printer information",IDC_PRINTER_INFORMATION,2,116,286,
+                    37
+    LTEXT           "",IDC_DESCRIPTION_FIELD,57,128,226,8
+    LTEXT           "",IDC_LOCATION_FIELD,57,139,226,8
+END
+
+IDD_FIRST_PAGE DIALOGEX 0, 0, 290, 199
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Bonjour Printer Wizard"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    LTEXT           "Welcome to the Bonjour Printer Wizard",
+                    IDC_GREETING,114,7,171,46
+    LTEXT           "To continue, click Next.",IDC_STATIC,115,188,143,8
+    LTEXT           "This wizard helps you connect to a shared printer using Bonjour.  Make sure your printer is turned on and connected to your network.",
+                    IDC_STATIC,114,60,171,62
+END
+
+IDD_THIRD_PAGE DIALOGEX 0, 0, 290, 154
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Bonjour Printer Wizard"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_PRINTER_MODEL,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SORTASCENDING | 
+                    LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,110,58,178,76
+    CONTROL         "",IDC_PRINTER_MANUFACTURER,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SORTASCENDING | 
+                    LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,2,58,105,76
+    ICON            1017,1,3,5,20,27
+    LTEXT           "",IDC_PRINTER_NAME,40,5,173,8
+    LTEXT           "The Bonjour Printer Wizard has auto-selected the following printer settings.  To continue installing this printer, click Next.",
+                    IDC_PRINTER_SELECTION_TEXT,40,18,243,33
+    CONTROL         "Use this printer as the default printer",
+                    IDC_DEFAULT_PRINTER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,3,142,140,10
+    PUSHBUTTON      "Have Disk...",IDC_HAVE_DISK,238,140,50,14
+END
+
+IDD_FOURTH_PAGE DIALOGEX 0, 0, 290, 199
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Bonjour Printer Wizard"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Completing the Bonjour Printer Wizard",IDC_GOODBYE,
+                    116,7,171,27
+    LTEXT           "You are ready to complete the Bonjour Printer Wizard.  The printer has the following settings:",
+                    IDC_STATIC,116,42,171,31
+    LTEXT           "Name:",IDC_STATIC,116,78,22,8
+    LTEXT           "Manufacturer:",IDC_STATIC,116,91,47,8
+    LTEXT           "Model:",IDC_STATIC,116,104,22,8
+    LTEXT           "Protocol:",IDC_STATIC,116,117,38,8
+    LTEXT           "Default:",IDC_STATIC,116,130,27,8
+    LTEXT           "",IDC_PRINTER_NAME,172,78,113,8,SS_ENDELLIPSIS
+    LTEXT           "",IDC_PRINTER_MANUFACTURER,172,91,113,8
+    LTEXT           "",IDC_PRINTER_MODEL,172,104,113,8
+    LTEXT           "",IDC_PRINTER_PROTOCOL,172,117,113,8
+    LTEXT           "",IDC_PRINTER_DEFAULT,172,130,113,8
+    LTEXT           "To complete the installation, click Finish.",IDC_COMPLETE1,116,180,171,8
+    LTEXT           "To change these settings, click Back.",IDC_COMPLETE2,116,190,171,8
+	LTEXT			"Please wait a few moments while the Bonjour Printer Wizard installs the printer.",IDC_INSTALLING,116,170,171,31
+	CONTROL			"",IDC_PROGRESS,"msctls_progress32",WS_BORDER,116,190,165,8
+END
+
+IDD_DIALOG1 DIALOGEX 0, 0, 265, 130
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         138,IDC_STATIC,"Static",SS_BITMAP | SS_REALSIZEIMAGE,0,0,
+                    265,131
+    LTEXT           "Static",IDC_STATIC,77,12,19,8
+    LTEXT           "Static",IDC_STATIC,71,46,19,8
+    LTEXT           "Static",IDC_STATIC,71,89,19,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION MASTER_PROD_VERS
+ PRODUCTVERSION MASTER_PROD_VERS
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904e4"
+        BEGIN
+            VALUE "CompanyName", MASTER_COMPANY_NAME
+            VALUE "FileDescription", "Bonjour Resource Module"
+            VALUE "FileVersion", MASTER_PROD_VERS_STR
+            VALUE "InternalName", "PrinterWizardLocalized.dll"
+            VALUE "LegalCopyright", MASTER_LEGAL_COPYRIGHT
+            VALUE "OriginalFilename", "PrinterWizardLocalized.dll"
+            VALUE "ProductName", MASTER_PROD_NAME
+            VALUE "ProductVersion", MASTER_PROD_VERS_STR
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "&About Bonjour Printer Wizard..."
+    IDS_GOODBYE             "Completing the Bonjour Printer Wizard."
+    IDS_GREETING            "Welcome to the Bonjour Printer Wizard"
+    IDS_BROWSE_TITLE        "Browse for Bonjour Printers"
+    IDS_BROWSE_SUBTITLE     "Select the printer you want to use from the list below."
+    IDS_CAPTION             "Bonjour Printer Wizard"
+    IDS_GOODBYE_GOOD1       "You are ready to complete the Bonjour Printer Wizard.  The printer has the following settings:"
+    IDS_SEARCHING           "Searching for printers..."
+    IDS_GOODBYTE_GOOD2      "To complete the installation, click Finish."
+    IDS_INSTALL_TITLE       "Install Bonjour Printer"
+    IDS_INSTALL_SUBTITLE    "The manufacturer and model determine which printer software to use."
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_ERROR_SELECTING_PRINTER_TEXT 
+                            "There was an error selecting this printer."
+    IDS_ERROR_SELECTING_PRINTER_CAPTION "Error"
+    IDS_INSTALL_ERROR_CAPTION "Error"
+    IDS_INSTALL_ERROR_MESSAGE 
+                            "You do not have sufficient access to your computer to connect to the selected printer."
+	IDS_NO_MATCH_INF_FILE	"The software that you chose does not match the selected printer."
+	IDS_NO_MATCH_INF_FILE_CAPTION "Select Device"
+	IDS_BAD_INF_FILE		"The specified location does not contain information about your printer"
+	IDS_BAD_INF_FILE_CAPTION "Select Device"
+    IDS_MANUFACTURER_HEADING "Manufacturer"
+    IDS_MODEL_HEADING       "Model"
+    IDS_NO_PRINTERS         "No Bonjour Printers are available"
+    IDS_NO_MDNSRESPONDER_SERVICE_TEXT "Bonjour Service is not available."
+    IDS_NO_MDNSRESPONDER_SERVICE_CAPTION "Error"
+    IDS_PRINTER_MATCH_GOOD  "The Bonjour Printer Wizard has auto-selected the following printer settings.  Click 'Next' to continue installing this printer."
+    IDS_PRINTER_MATCH_BAD   "The Bonjour Printer Wizard cannot find a driver for this printer.  Manually select from the list, or click 'Have Disk' if your printer came with an installation disk. "
+    IDS_PRINTER_MATCH_MAYBE "The Bonjour Printer Wizard has selected a generic printer driver for this printer. If your printer came with an installation disk, click 'Have Disk' now to load the manufacturer's drivers."
+    IDS_YES                 "Yes"
+    IDS_NO                  "No"
+    IDS_LARGE_FONT          "MS Sans Serif"
+    IDS_FIREWALL            "Please check firewall setting to ensure the Bonjour Printer Wizard operates correctly."
+    IDS_ERROR_CAPTION       "Error"
+    IDS_PRINTER_UNAVAILABLE "The Bonjour printer you have selected is no longer available. Please make sure the printer is powered-on and plugged-in."
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_FIREWALL_CAPTION    "Firewall Detected"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#include "res\PrinterSetupWizardLocRes.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

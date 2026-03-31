@@ -1,0 +1,66 @@
+February 2002:
+
+The mDNSResponder code has a slight architectural change to improve
+efficiency.
+
+The mDNSResponder code previously called ScheduleNextTask() after every
+operation, to calculate the time at which it needed to be called back to
+perform its next timed operation. When the workload is light, and
+protocol operations are rare and far apart, this makes sense.
+
+However, on networks where there is a lot of mDNS traffic (or the CPU is
+slow), this leads to the following anomolous behaviour: mDNSResponder
+spends a lot of CPU time working out what to do next, when what it needs
+to do next should be obvious: Finish processing the big backlog of
+packets that have been received.
+
+To remedy this, mDNSResponder now only executes ScheduleNextTask() when
+there is no other obvious work waiting to be done. However, the
+mDNSResponder code does not have direct access to this knowledge. Only
+the platform layer below knows whether there are packets waiting to be
+processed. Only the client layer above knows whether it is in the
+process of performing a long sequence of back-to-back mDNS API calls.
+
+This means that the new architecture places an additional responsibility
+on the client layer and/or platform support layer. As long as they have
+immediate work to do, they should call the appropriate mDNSCore routines
+to accomplish that work. With each call, mDNSCore will do only what it
+immediately has to do to satisfy the call. Any optional work will be
+deferred. As soon as there is no more immediate work to do, the calling
+layer MUST call mDNS_Execute(). Failure to call mDNS_Execute() will lead
+to unreliable or incorrect operation.
+
+The value returned from mDNS_Execute() is the next time (in absolute
+platform time units) at which mDNS_Execute() MUST be called again to
+perform its next necessary operation (e.g. transmitting its next
+scheduled query packet, etc.) Note that the time returned is an absolute
+time, not the time *interval* between now and the next required call.
+For OS APIs that work in terms of intervals instead of absolute times,
+mDNSPlatformTimeNow() must be subtracted from the absolute time to get
+the interval between now and the next event.
+
+In a single-threaded application using a blocking select() call as its
+main synchronization point, this means that you should call
+mDNS_Execute() before calling select(), and the timeout value you pass
+to select() MUST NOT be larger than that indicated by the result
+returned from mDNS_Execute(). After the blocking select() call returns,
+you should do whatever work you have to do, and then, if mDNS packets
+were received, or mDNS API calls were made, be sure to call
+mDNS_Execute() again, and if necessary adjust your timeout value
+accordingly, before going back into the select() call.
+
+In an asynchronous or interrupt-driven application, there are three
+places that should call mDNS_Execute():
+
+1. After delivering received packets, the platform support layer should
+call mDNS_Execute(), and use the value returned to set the platform
+callback timer to fire at the indicated time.
+
+2. After making any mDNS API call or series of calls, the client layer
+should call mDNS_Execute(), and use the value returned to set the
+platform callback timer to fire at the indicated time.
+
+3. When the platform callback timer fires, it should call mDNS_Execute()
+(to allow mDNSCore to perform its necessary work) and then the timer
+routine use the result returned to reset itself to fire at the right
+time for the next scheduled event.

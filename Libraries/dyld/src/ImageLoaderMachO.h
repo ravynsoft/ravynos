@@ -89,8 +89,7 @@ public:
 	virtual	bool						incrementCoalIterator(CoalIterator&) = 0;
 	virtual	uintptr_t					getAddressCoalIterator(CoalIterator&, const LinkContext& contex) = 0;
 	virtual	void						updateUsesCoalIterator(CoalIterator&, uintptr_t newAddr, ImageLoader* target, unsigned targetIndex, const LinkContext& context) = 0;
-	virtual uintptr_t					doBindLazySymbol(uintptr_t* lazyPointer, const LinkContext& context,
-													     DyldSharedCache::DataConstLazyScopedWriter& patcher) = 0;
+	virtual uintptr_t					doBindLazySymbol(uintptr_t* lazyPointer, const LinkContext& context) = 0;
 	virtual uintptr_t					doBindFastLazySymbol(uint32_t lazyBindingInfoOffset, const LinkContext& context, void (*lock)(), void (*unlock)()) = 0;
 	virtual void						doTermination(const LinkContext& context);
 	virtual bool						needsInitialization();
@@ -199,8 +198,8 @@ protected:
 	virtual	void		getRPaths(const LinkContext& context, std::vector<const char*>&) const;
 	virtual	bool		getUUID(uuid_t) const;
 	virtual void		doRebase(const LinkContext& context);
-	virtual void		doBind(const LinkContext& context, bool forceLazysBound, const ImageLoader* reExportParent) = 0;
-	virtual void		doBindJustLazies(const LinkContext& context, DyldSharedCache::DataConstLazyScopedWriter& patcher) = 0;
+	virtual void		doBind(const LinkContext& context, bool forceLazysBound) = 0;
+	virtual void		doBindJustLazies(const LinkContext& context) = 0;
 	virtual bool		doInitialization(const LinkContext& context);
 	virtual void		doGetDOFSections(const LinkContext& context, std::vector<ImageLoader::DOFInfo>& dofs);
 	virtual bool		needsTermination();
@@ -231,7 +230,7 @@ protected:
 			bool		segIsReadOnlyImport(unsigned int) const;
 #endif
 			bool		segIsReadOnlyData(unsigned int) const;
-			intptr_t	assignSegmentAddresses(const LinkContext& context, size_t extraAllocationSize);
+			intptr_t	assignSegmentAddresses(const LinkContext& context);
 			uintptr_t	reserveAnAddressRange(size_t length, const ImageLoader::LinkContext& context);
 			bool		reserveAddressRange(uintptr_t start, size_t length);
 			void		mapSegments(int fd, uint64_t offsetInFat, uint64_t lenInFat, uint64_t fileLen, const LinkContext& context);

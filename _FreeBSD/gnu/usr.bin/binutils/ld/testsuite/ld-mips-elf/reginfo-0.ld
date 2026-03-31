@@ -1,5 +1,0 @@
-SECTIONS
-{
-  .reginfo : { foo = .; }
-  /DISCARD/ : { *(*) }
-}

@@ -22,13 +22,13 @@ file(COPY ${ROOT_SOURCE_DIR}/Kernel/xnu/EXTERNAL_HEADERS/corecrypto
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 
 target_compile_definitions(host_ld PRIVATE __DARWIN_UNIX03 _DARWIN_C_SOURCE=1)
-target_compile_options(host_ld PRIVATE 
+target_compile_options(host_ld PRIVATE
     "-Wno-#warnings" -Wno-deprecated -Wno-macro-redefined -fblocks
     -F${SYSROOT_DIR}/System/Library/Frameworks
 )
 if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
     target_sources(host_ld PRIVATE linuxshim.cpp)
-    set(RPATH_ORIGIN -R$ORIGIN)
+    set(RPATH_ORIGIN -R\\$$ORIGIN)
     target_compile_definitions(host_ld PRIVATE
         __APPLE_CC__=1 u_int8_t=__uint8_t u_int32_t=__uint32_t
         u_int64_t=__uint64_t OS_ALWAYS_INLINE=inline OS_WARN_RESULT=

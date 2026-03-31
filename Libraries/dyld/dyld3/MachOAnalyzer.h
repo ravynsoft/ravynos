@@ -44,23 +44,7 @@ struct VIS_HIDDEN MachOAnalyzer : public MachOLoaded
     using MachOLoaded::getDylibInstallName;
     using MachOLoaded::FoundSymbol;
     using MachOLoaded::findExportedSymbol;
-    using MachOLoaded::forEachGlobalSymbol;
-    using MachOLoaded::forEachLocalSymbol;
-    using MachOFile::canBePlacedInDyldCache;
-    using MachOFile::forEachLoadCommand;
-    using MachOFile::removeLoadCommand;
 
-    enum class Rebase {
-        unknown,
-        pointer32,
-        pointer64,
-        textPCrel32,
-        textAbsolute32,
-    };
-
-    static bool loadFromBuffer(Diagnostics& diag, const closure::FileSystem& fileSystem,
-                               const char* path, const GradedArchs& archs, Platform platform,
-                               closure::LoadedFileInfo& info);
     static closure::LoadedFileInfo load(Diagnostics& diag, const closure::FileSystem& fileSystem,
                                         const char* logicalPath, const GradedArchs& archs, Platform platform, char realerPath[MAXPATHLEN]);
     static const MachOAnalyzer*  validMainExecutable(Diagnostics& diag, const mach_header* mh, const char* path, uint64_t sliceLength,
@@ -68,47 +52,25 @@ struct VIS_HIDDEN MachOAnalyzer : public MachOLoaded
 
     typedef void (^ExportsCallback)(const char* symbolName, uint64_t imageOffset, uint64_t flags,
                                     uint64_t other, const char* importName, bool& stop);
-    bool                validMachOForArchAndPlatform(Diagnostics& diag, size_t mappedSize, const char* path, const GradedArchs& archs, Platform platform, bool isOSBinary) const;
-
-    // Caches data useful for converting from raw data to VM addresses
-    struct VMAddrConverter {
-        uint64_t preferredLoadAddress                       = 0;
-        intptr_t slide                                      = 0;
-        uint16_t chainedPointerFormat                       = 0;
-        bool contentRebased                                 = false;
-#if !(BUILDING_LIBDYLD || BUILDING_DYLD)
-        enum class SharedCacheFormat : uint8_t {
-            none            = 0,
-            v2_x86_64_tbi   = 1,
-            v3              = 2
-        };
-        SharedCacheFormat sharedCacheChainedPointerFormat   = SharedCacheFormat::none;
-#endif
-
-        uint64_t convertToVMAddr(uint64_t v) const;
-    };
-
-    VMAddrConverter     makeVMAddrConverter(bool contentRebased) const;
-
+    bool                validMachOForArchAndPlatform(Diagnostics& diag, size_t mappedSize, const char* path, const GradedArchs& archs, Platform platform) const;
     uint64_t            mappedSize() const;
     bool                hasObjC() const;
     bool                hasPlusLoadMethod(Diagnostics& diag) const;
-    bool                usesObjCGarbageCollection() const;
-    bool                isSwiftLibrary() const;
     uint64_t            preferredLoadAddress() const;
+    void                forEachLocalSymbol(Diagnostics& diag, void (^callback)(const char* symbolName, uint64_t n_value, uint8_t n_type, uint8_t n_sect, uint16_t n_desc, bool& stop)) const;
     void                forEachRPath(void (^callback)(const char* rPath, bool& stop)) const;
     bool                hasProgramVars(Diagnostics& diag, uint32_t& progVarsOffset) const;
     void                forEachCDHash(void (^handler)(const uint8_t cdHash[20])) const;
     bool                hasCodeSignature(uint32_t& fileOffset, uint32_t& size) const;
     bool                usesLibraryValidation() const;
     bool                isRestricted() const;
-    bool                getEntry(uint64_t& offset, bool& usesCRT) const;
+    bool                getEntry(uint32_t& offset, bool& usesCRT) const;
     bool                isSlideable() const;
-    bool                hasInitializer(Diagnostics& diag, const VMAddrConverter& vmAddrConverter, const void* dyldCache=nullptr) const;
+    bool                hasInitializer(Diagnostics& diag, bool contentRebased, const void* dyldCache=nullptr) const;
     void                forEachInitializerPointerSection(Diagnostics& diag, void (^callback)(uint32_t sectionOffset, uint32_t sectionSize, const uint8_t* content, bool& stop)) const;
-    void                forEachInitializer(Diagnostics& diag, const VMAddrConverter& vmAddrConverter, void (^callback)(uint32_t offset), const void* dyldCache=nullptr) const;
-    bool                hasTerminators(Diagnostics& diag, const VMAddrConverter& vmAddrConverter) const;
-    void                forEachTerminator(Diagnostics& diag, const VMAddrConverter& vmAddrConverter, void (^callback)(uint32_t offset)) const;
+    void                forEachInitializer(Diagnostics& diag, bool contentRebased, void (^callback)(uint32_t offset), const void* dyldCache=nullptr) const;
+    bool                hasTerminators(Diagnostics& diag, bool contentRebased) const;
+    void                forEachTerminator(Diagnostics& diag, bool contentRebased, void (^callback)(uint32_t offset)) const;
     void                forEachDOFSection(Diagnostics& diag, void (^callback)(uint32_t offset)) const;
     uint32_t            segmentCount() const;
     void                forEachExportedSymbol(Diagnostics& diag, ExportsCallback callback) const;
@@ -125,36 +87,26 @@ struct VIS_HIDDEN MachOAnalyzer : public MachOLoaded
     const void*         getBindOpcodes(uint32_t& size) const;
     const void*         getLazyBindOpcodes(uint32_t& size) const;
     const void*         getSplitSeg(uint32_t& size) const;
-    bool                hasSplitSeg() const;
-    bool                isSplitSegV1() const;
-    bool                isSplitSegV2() const;
     uint64_t            segAndOffsetToRuntimeOffset(uint8_t segIndex, uint64_t segOffset) const;
     bool                hasLazyPointers(uint32_t& runtimeOffset, uint32_t& size) const;
     void                forEachRebase(Diagnostics& diag, bool ignoreLazyPointer, void (^callback)(uint64_t runtimeOffset, bool& stop)) const;
-    void                forEachRebase(Diagnostics& diag, void (^callback)(uint64_t runtimeOffset, bool isLazyPointerRebase, bool& stop)) const;
     void                forEachTextRebase(Diagnostics& diag, void (^callback)(uint64_t runtimeOffset, bool& stop)) const;
     void                forEachBind(Diagnostics& diag, void (^callback)(uint64_t runtimeOffset, int libOrdinal, const char* symbolName,
                                                                         bool weakImport, bool lazyBind, uint64_t addend, bool& stop),
-                                    void (^strongHandler)(const char* symbolName)) const;
-    void                forEachBind(Diagnostics& diag, void (^callback)(uint64_t runtimeOffset, int libOrdinal, uint8_t type, const char* symbolName,
-                                                                        bool weakImport, bool lazyBind, uint64_t addend, bool& stop),
-                                    void (^strongHandler)(const char* symbolName)) const;
+                                                       void (^strongHandler)(const char* symbolName),
+                                                       void (^missingLazyBindHandler)()) const;
     void                forEachChainedFixupTarget(Diagnostics& diag, void (^callback)(int libOrdinal, const char* symbolName, uint64_t addend, bool weakImport, bool& stop)) const;
+    bool                canHavePrecomputedDlopenClosure(const char* path, void (^failureReason)(const char*)) const;
     void                forEachRebase(Diagnostics& diag, void (^handler)(const char* opcodeName, const LinkEditInfo& leInfo, const SegmentInfo segments[],
-                                                                             bool segIndexSet, uint32_t pointerSize, uint8_t segmentIndex, uint64_t segmentOffset, Rebase kind, bool& stop)) const;
+                                                                             bool segIndexSet, uint32_t pointerSize, uint8_t segmentIndex, uint64_t segmentOffset, uint8_t type, bool& stop)) const;
     void                forEachBind(Diagnostics& diag, void (^handler)(const char* opcodeName, const LinkEditInfo& leInfo, const SegmentInfo segments[],
                                                                        bool segIndexSet,  bool libraryOrdinalSet, uint32_t dylibCount, int libOrdinal,
                                                                        uint32_t pointerSize, uint8_t segmentIndex, uint64_t segmentOffset,
                                                                        uint8_t type, const char* symbolName, bool weakImport, bool lazyBind, uint64_t addend, bool& stop),
-                                                       void (^strongHandler)(const char* symbolName)) const;
+                                                       void (^strongHandler)(const char* symbolName),
+                                                       void (^missingLazyBindHandler)()) const;
     bool                canBePlacedInDyldCache(const char* path, void (^failureReason)(const char*)) const;
-    bool                canHavePrecomputedDlopenClosure(const char* path, void (^failureReason)(const char*)) const;
-#if BUILDING_APP_CACHE_UTIL
-    bool                canBePlacedInKernelCollection(const char* path, void (^failureReason)(const char*)) const;
-#endif
-    bool                usesClassicRelocationsInKernelCollection() const;
     uint32_t            loadCommandsFreeSpace() const;
-    bool                hasStompedLazyOpcodes() const;
  
 #if DEBUG
     void                validateDyldCacheDylib(Diagnostics& diag, const char* path) const;
@@ -165,13 +117,8 @@ struct VIS_HIDDEN MachOAnalyzer : public MachOLoaded
     static uint16_t     chainedPointerFormat(const dyld_chained_fixups_header* chainHeader);
     bool                hasUnalignedPointerFixups() const;
     const dyld_chained_fixups_header* chainedFixupsHeader() const;
-    bool                hasFirmwareChainStarts(uint16_t* pointerFormat, uint32_t* startsCount, const uint32_t** starts) const;
-    bool                isOSBinary(int fd, uint64_t sliceOffset, uint64_t sliceSize) const;  // checks if binary is codesigned to be part of the OS
-    static bool         sliceIsOSBinary(int fd, uint64_t sliceOffset, uint64_t sliceSize);
 
     const MachOAnalyzer*    remapIfZeroFill(Diagnostics& diag, const closure::FileSystem& fileSystem, closure::LoadedFileInfo& info) const;
-    
-    bool                markNeverUnload(Diagnostics &diag) const;
 
     struct ObjCInfo {
         uint32_t    selRefCount;
@@ -194,12 +141,20 @@ struct VIS_HIDDEN MachOAnalyzer : public MachOLoaded
         dyld3::OverflowSafeArray<SectionInfo> sectionInfos = { buffer, sizeof(buffer) / sizeof(buffer[0]) };
     };
 
+    // Caches data useful for converting from raw data to VM addresses
+    struct VMAddrConverter {
+        uint64_t preferredLoadAddress   = 0;
+        intptr_t slide                  = 0;
+        uint16_t chainedPointerFormat   = 0;
+        bool contentRebased             = false;
+    };
+
     struct ObjCClassInfo {
         // These fields are all present on the objc_class_t struct
         uint64_t isaVMAddr                                  = 0;
         uint64_t superclassVMAddr                           = 0;
         //uint64_t methodCacheBuckets;
-        uint64_t methodCacheVMAddr                          = 0;
+        //uint64_t methodCacheProperties;
         uint64_t dataVMAddr                                 = 0;
 
         // This field is only present if this is a Swift object, ie, has the Swift
@@ -216,7 +171,6 @@ struct VIS_HIDDEN MachOAnalyzer : public MachOLoaded
         // These are from the class_ro_t which data points to
         enum class ReadOnlyDataField {
             name,
-            baseProtocols,
             baseMethods,
             baseProperties,
             flags
@@ -225,9 +179,6 @@ struct VIS_HIDDEN MachOAnalyzer : public MachOLoaded
         uint64_t getReadOnlyDataField(ReadOnlyDataField field, uint32_t pointerSize) const;
         uint64_t nameVMAddr(uint32_t pointerSize) const {
             return getReadOnlyDataField(ReadOnlyDataField::name, pointerSize);
-        }
-        uint64_t baseProtocolsVMAddr(uint32_t pointerSize) const {
-            return getReadOnlyDataField(ReadOnlyDataField::baseProtocols, pointerSize);
         }
         uint64_t baseMethodsVMAddr(uint32_t pointerSize) const {
             return getReadOnlyDataField(ReadOnlyDataField::baseMethods, pointerSize);
@@ -261,19 +212,6 @@ struct VIS_HIDDEN MachOAnalyzer : public MachOLoaded
             bool isActuallySwiftLegacy = (swiftClassFlags & isSwiftPreStableABI) != 0;
             return !isActuallySwiftLegacy;
         }
-    };
-
-    struct ObjCMethodList {
-        // This matches the bits in the objc runtime
-        enum : uint32_t {
-            methodListIsUniqued = 0x1,
-            methodListIsSorted  = 0x2,
-
-            // The size is bits 2 through 16 of the entsize field
-            // The low 2 bits are uniqued/sorted as above.  The upper 16-bits
-            // are reserved for other flags
-            methodListSizeMask  = 0x0000FFFC
-        };
     };
 
     struct ObjCImageInfo {
@@ -313,7 +251,7 @@ struct VIS_HIDDEN MachOAnalyzer : public MachOLoaded
     struct ObjCProtocol {
         uint64_t isaVMAddr;
         uint64_t nameVMAddr;
-        uint64_t protocolsVMAddr;
+        //uint64_t protocolsVMAddr;
         uint64_t instanceMethodsVMAddr;
         uint64_t classMethodsVMAddr;
         uint64_t optionalInstanceMethodsVMAddr;
@@ -325,6 +263,10 @@ struct VIS_HIDDEN MachOAnalyzer : public MachOLoaded
         //uint64_t extendedMethodTypesVMAddr;
         //uint64_t demangledNameVMAddr;
         //uint64_t classPropertiesVMAddr;
+
+        // Note this isn't in a protocol, but we use it in dyld to track if the protocol
+        // is large enough to avoid a reallocation in objc.
+        bool requiresObjCReallocation;
     };
 
     enum class PrintableStringResult {
@@ -337,42 +279,29 @@ struct VIS_HIDDEN MachOAnalyzer : public MachOLoaded
     const char* getPrintableString(uint64_t stringVMAddr, PrintableStringResult& result,
                                    SectionCache* sectionCache = nullptr,
                                    bool (^sectionHandler)(const SectionInfo& sectionInfo) = nullptr) const;
-
-    void parseObjCClass(Diagnostics& diag, const VMAddrConverter& vmAddrConverter,
-                        uint64_t classVMAddr,
-                        void (^handler)(Diagnostics& diag,
-                                        uint64_t classSuperclassVMAddr,
-                                        uint64_t classDataVMAddr,
-                                        const ObjCClassInfo& objcClass)) const;
-
-    void forEachObjCClass(Diagnostics& diag, const VMAddrConverter& vmAddrConverter,
+    
+    void forEachObjCClass(Diagnostics& diag, bool contentRebased,
                           void (^handler)(Diagnostics& diag, uint64_t classVMAddr,
                                           uint64_t classSuperclassVMAddr, uint64_t classDataVMAddr,
                                           const ObjCClassInfo& objcClass, bool isMetaClass)) const;
 
-    void forEachObjCCategory(Diagnostics& diag, const VMAddrConverter& vmAddrConverter,
+    void forEachObjCCategory(Diagnostics& diag, bool contentRebased,
                              void (^handler)(Diagnostics& diag, uint64_t categoryVMAddr,
                                              const dyld3::MachOAnalyzer::ObjCCategory& objcCategory)) const;
 
-    // lists all Protocols defined in the image
-    void forEachObjCProtocol(Diagnostics& diag, const VMAddrConverter& vmAddrConverter,
+    void forEachObjCProtocol(Diagnostics& diag, bool contentRebased,
                              void (^handler)(Diagnostics& diag, uint64_t protocolVMAddr,
                                              const dyld3::MachOAnalyzer::ObjCProtocol& objCProtocol)) const;
 
     // Walk a method list starting from its vmAddr.
     // Note, classes, categories, protocols, etc, all share the same method list struture so can all use this.
-    void forEachObjCMethod(uint64_t methodListVMAddr, const VMAddrConverter& vmAddrConverter,
-                           void (^handler)(uint64_t methodVMAddr, const ObjCMethod& method),
-                           bool* isRelativeMethodList = nullptr) const;
+    void forEachObjCMethod(uint64_t methodListVMAddr, bool contentRebased,
+                           void (^handler)(uint64_t methodVMAddr, const ObjCMethod& method)) const;
 
-    void forEachObjCProperty(uint64_t propertyListVMAddr, const VMAddrConverter& vmAddrConverter,
+    void forEachObjCProperty(uint64_t propertyListVMAddr, bool contentRebased,
                              void (^handler)(uint64_t propertyVMAddr, const ObjCProperty& property)) const;
 
-    // lists all Protocols on a protocol_list_t
-    void forEachObjCProtocol(uint64_t protocolListVMAddr, const VMAddrConverter& vmAddrConverter,
-                             void (^handler)(uint64_t protocolRefVMAddr, const ObjCProtocol& protocol)) const;
-
-    void forEachObjCSelectorReference(Diagnostics& diag, const VMAddrConverter& vmAddrConverter,
+    void forEachObjCSelectorReference(Diagnostics& diag, bool contentRebased,
                                       void (^handler)(uint64_t selRefVMAddr, uint64_t selRefTargetVMAddr)) const;
 
     void forEachObjCMethodName(void (^handler)(const char* methodName)) const;
@@ -381,7 +310,7 @@ struct VIS_HIDDEN MachOAnalyzer : public MachOLoaded
 
     const ObjCImageInfo* objcImageInfo() const;
 
-    void forEachWeakDef(Diagnostics& diag, void (^handler)(const char* symbolName, uint64_t imageOffset, bool isFromExportTrie)) const;
+    void forEachWeakDef(Diagnostics& diag, void (^handler)(const char* symbolName, uintptr_t imageOffset, bool isFromExportTrie)) const;
     
 private:
 
@@ -395,8 +324,7 @@ private:
                     segSize           : 61;
 	};
 
-    enum class Malformed { linkeditOrder, linkeditAlignment, linkeditPermissions, dyldInfoAndlocalRelocs, segmentOrder,
-                            textPermissions, executableData, writableData, codeSigAlignment, sectionsAddrRangeWithinSegment };
+    enum class Malformed { linkeditOrder, linkeditAlignment, linkeditPermissions, dyldInfoAndlocalRelocs, segmentOrder, textPermissions, executableData, codeSigAlignment };
     bool                    enforceFormat(Malformed) const;
 
     const uint8_t*          getContentForVMAddr(const LayoutInfo& info, uint64_t vmAddr) const;
@@ -412,7 +340,7 @@ private:
     bool                    validChainedFixupsInfoOldArm64e(Diagnostics& diag, const char* path) const;
 
     bool                    invalidRebaseState(Diagnostics& diag, const char* opcodeName, const char* path, const LinkEditInfo& leInfo, const SegmentInfo segments[],
-                                              bool segIndexSet, uint32_t pointerSize, uint8_t segmentIndex, uint64_t segmentOffset, Rebase kind) const;
+                                              bool segIndexSet, uint32_t pointerSize, uint8_t segmentIndex, uint64_t segmentOffset, uint8_t type) const;
     bool                    invalidBindState(Diagnostics& diag, const char* opcodeName, const char* path, const LinkEditInfo& leInfo, const SegmentInfo segments[],
                                               bool segIndexSet,  bool libraryOrdinalSet, uint32_t dylibCount, int libOrdinal, uint32_t pointerSize,
                                               uint8_t segmentIndex, uint64_t segmentOffset, uint8_t type, const char* symbolName) const;
@@ -425,19 +353,18 @@ private:
 
     void                    getAllSegmentsInfos(Diagnostics& diag, SegmentInfo segments[]) const;
     bool                    segmentHasTextRelocs(uint32_t segIndex) const;
-    uint64_t                localRelocBaseAddress(const SegmentInfo segmentsInfos[], uint32_t segCount) const;
-    uint64_t                externalRelocBaseAddress(const SegmentInfo segmentsInfos[], uint32_t segCount) const;
+    uint64_t                relocBaseAddress(const SegmentInfo segmentsInfos[], uint32_t segCount) const;
     bool                    segIndexAndOffsetForAddress(uint64_t addr, const SegmentInfo segmentsInfos[], uint32_t segCount, uint32_t& segIndex, uint64_t& segOffset) const;
     void                    parseOrgArm64eChainedFixups(Diagnostics& diag, void (^targetCount)(uint32_t totalTargets, bool& stop),
                                                                            void (^addTarget)(const LinkEditInfo& leInfo, const SegmentInfo segments[], bool libraryOrdinalSet, uint32_t dylibCount, int libOrdinal, uint8_t type, const char* symbolName, uint64_t addend, bool weakImport, bool& stop),
                                                                            void (^addChainStart)(const LinkEditInfo& leInfo, const SegmentInfo segments[], uint8_t segmentIndex, bool segIndexSet, uint64_t segmentOffset, uint16_t format, bool& stop)) const;
     bool                    contentIsRegularStub(const uint8_t* helperContent) const;
+    uint64_t                entryAddrFromThreadCmd(const thread_command* cmd) const;
     void                    recurseTrie(Diagnostics& diag, const uint8_t* const start, const uint8_t* p, const uint8_t* const end,
                                         OverflowSafeArray<char>& cummulativeString, int curStrOffset, bool& stop, MachOAnalyzer::ExportsCallback callback) const;
     void                    analyzeSegmentsLayout(uint64_t& vmSpace, bool& hasZeroFill) const;
 
 };
-
 
 } // namespace dyld3
 

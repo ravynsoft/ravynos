@@ -1,8 +1,0 @@
-#!/bin/rc
-
-# aperl:   
-# Executes perl command and alters stderr to produce Acme-friendly error messages
-# Created 02-JUL-1996, Luther Huffman,  lutherh@stratcom.com
-# Modified May 2020, David Romano, unobe@cpan.org
-
-/bin/perl-_P9P_VERSION $* |[2]  /bin/perl-_P9P_VERSION -pe 's/ line (\d+)/:$1/'  >[1=2]

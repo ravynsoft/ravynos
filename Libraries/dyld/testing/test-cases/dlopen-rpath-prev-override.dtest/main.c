@@ -1,6 +1,6 @@
 
 // BUILD:  $CC good.c -dynamiclib -install_name @rpath/libtest.dylib     -o $BUILD_DIR/good/libtest.dylib
-// BUILD:  $CC bad.c -dynamiclib -ltest_support -install_name @rpath/libtest.dylib     -o $BUILD_DIR/bad/libtest.dylib
+// BUILD:  $CC bad.c  -dynamiclib -install_name @rpath/libtest.dylib     -o $BUILD_DIR/bad/libtest.dylib
 // BUILD:  $CC dyn.c  -dynamiclib -install_name @rpath/libdynamic.dylib  -o $BUILD_DIR/dir/libdynamic.dylib $BUILD_DIR/good/libtest.dylib -rpath @loader_path/../bad
 // BUILD:  $CC main.c $BUILD_DIR/good/libtest.dylib -DRUN_DIR="$RUN_DIR" -o $BUILD_DIR/dlopen-rpath-prev-override.exe -rpath @loader_path/good
 

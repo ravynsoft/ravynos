@@ -301,6 +301,15 @@ long double    truncl(long double x);
 #    include_next <math.h>
 #  endif
 
+#ifndef FP_NORMAL
+#define FP_NAN          1
+#define FP_INFINITE     2
+#define FP_ZERO         3
+#define FP_NORMAL       4
+#define FP_SUBNORMAL    5
+#define FP_SUPERNORMAL  6
+#endif
+
 #ifdef __cplusplus
 
 // We support including .h headers inside 'extern "C"' contexts, so switch

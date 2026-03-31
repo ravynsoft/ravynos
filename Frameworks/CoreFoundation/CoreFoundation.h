@@ -39,7 +39,7 @@
 #include <float.h>
 #include <limits.h>
 #include <locale.h>
-#include <math.h>
+//#include <math.h>
 #include <setjmp.h>
 #include <signal.h>
 #include <stddef.h>

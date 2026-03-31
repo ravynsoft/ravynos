@@ -1,1 +1,0 @@
-extern int funcOBJ(void);

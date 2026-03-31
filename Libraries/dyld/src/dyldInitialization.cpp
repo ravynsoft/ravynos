@@ -38,7 +38,7 @@
 // from libc.a
 extern "C" void mach_init();
 extern "C" void __guard_setup(const char* apple[]);
-extern "C" void _subsystem_init(const char* apple[]);
+
 
 // from dyld_debugger.cpp
 extern void syncProcessInfo();
@@ -139,8 +139,6 @@ uintptr_t start(const dyld3::MachOLoaded* appsMachHeader, int argc, const char* 
 	// run all C++ initializers inside dyld
 	runDyldInitializers(argc, argv, envp, apple);
 #endif
-
-	_subsystem_init(apple);
 
 	// now that we are done bootstrapping dyld, call dyld's main
 	uintptr_t appsSlide = appsMachHeader->getSlide();

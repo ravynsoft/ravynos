@@ -25,19 +25,20 @@
 #define __SI_DATA_H__
 
 #include <stdint.h>
+#include <stdatomic.h>
 
 typedef struct
 {
 	void *src;
 	uint32_t type;
-	int32_t refcount;
+	_Atomic(int32_t) refcount;
 	uint64_t validation_a;
 	uint64_t validation_b;
 } si_item_t;
 
 typedef struct
 {
-	int32_t refcount;
+	_Atomic(int32_t) refcount;
 	uint32_t count;
 	uint32_t curr;
 	si_item_t **entry;

@@ -80,6 +80,7 @@ static SVCXPRT **xports;
 
 #define NULL_SVC ((struct svc_callout *)0)
 #define	RQCRED_SIZE	400		/* this size is excessive */
+#define ffs(x) __builtin_ffs(x)
 
 #define max(a, b) (a > b ? a : b)
 

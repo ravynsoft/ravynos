@@ -1,3 +1,0 @@
-SECTIONS {
-	scnfoo : { *(scnfoo) }
-}

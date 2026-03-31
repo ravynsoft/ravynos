@@ -110,6 +110,7 @@ bool IOACPIPlatformDevice::init( IOService *    platform,
                                  void *         handle,
                                  OSDictionary * properties )
 {
+    kprintf("IOACPI init\n");
     if ( super::init( properties ) != true ) return false;
 
     _deviceHandle    = handle;
@@ -143,6 +144,7 @@ void IOACPIPlatformDevice::free( void )
 bool IOACPIPlatformDevice::attachToParent( IORegistryEntry * parent,
                                            const IORegistryPlane * plane )
 {
+    kprintf("IOACPI attach\n");
     bool success = super::attachToParent( parent, plane );
 
     if ( success && ( plane == gIOACPIPlane ) )

@@ -1,6 +1,0 @@
-#source: relax-undef-weak.s
-#ld: -pie
-#readelf: -r
-#...
-There are no relocations in this file.
-#...

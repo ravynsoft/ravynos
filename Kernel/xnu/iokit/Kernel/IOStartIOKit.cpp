@@ -171,7 +171,6 @@ StartIOKit( void * p1, void * p2, void * p3, void * p4 )
 	interruptAccountingInit();
 
 	rootNub = new IOPlatformExpertDevice;
-
 	if (rootNub && rootNub->initWithArgs( p1, p2, p3, p4)) {
 		rootNub->attach( NULL );
 
@@ -179,7 +178,7 @@ StartIOKit( void * p1, void * p2, void * p3, void * p4 )
 		 * extensions, call it now.
 		 */
 		if (record_startup_extensions_function) {
-			record_startup_extensions_function();
+		  record_startup_extensions_function();
 		}
 
 		rootNub->registerService();

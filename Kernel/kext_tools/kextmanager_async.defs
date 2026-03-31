@@ -1,0 +1,63 @@
+/*
+ * Copyright (c) 2007 Apple Inc. All rights reserved.
+ *
+ * @APPLE_LICENSE_HEADER_START@
+ * 
+ * This file contains Original Code and/or Modifications of Original Code
+ * as defined in and that are subject to the Apple Public Source License
+ * Version 2.0 (the 'License'). You may not use this file except in
+ * compliance with the License. Please obtain a copy of the License at
+ * http://www.opensource.apple.com/apsl/ and read it before using this
+ * file.
+ * 
+ * The Original Code and all software distributed under the License are
+ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+ * Please see the License for the specific language governing rights and
+ * limitations under the License.
+ * 
+ * @APPLE_LICENSE_HEADER_END@
+ */
+
+/*
+ * FILE: kextmanager_async.defs
+ * AUTH: Soren Spies (sspies)
+ * DATE: 3 September 2007 (Copyright Apple, Inc)
+ * DESC: MiG definitions for kextd's async replies to waiting lockers
+ */
+
+#include <mach/std_types.defs>
+#include <mach/mach_types.defs>
+
+import <IOKit/kext/kextmanager_types.h>;
+
+// length must match MNAMELEN (sys/mount.h)   
+#if __DARWIN_64_BIT_INO_T
+type mountpoint_t = array [MAXPATHLEN] of char;
+#else
+type mountpoint_t = array [90] of char;
+#endif
+
+subsystem kextmanager_reply 70100;      // +100 from kextmanager_mig.defs
+
+// skip aligns message IDs with IOKitUser/kext.subproj/kextmanager_mig.defs
+skip;   /* kextmanager_path_for_bundle_id */
+skip;   /* kextmanager_create_property_value_array */
+skip;   /* kextmanager_user_did_log_in */
+skip;   /* kextmanager_user_will_log_out */
+skip;   /* kextmanager_get_logged_in_userid */
+skip;   /* kextmanager_record_nonsecure_kextload */
+
+// replies to kextmanager_lock_reboot
+simpleroutine lock_reboot_reply(
+    replyPart   : mach_port_move_send_once_t;
+    rval        : kern_return_t, RetCode;
+    busyVol     : mountpoint_t;
+    busyStatus  : int);
+
+simpleroutine lock_volume_reply(
+    replyPart   : mach_port_move_send_once_t;
+    rval        : kern_return_t, RetCode;
+    lockStatus  : int);

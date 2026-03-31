@@ -1,0 +1,90 @@
+#!/usr/bin/expect
+
+if { $::argc != 4 && $::argc != 2 } {
+    puts "usage: _kcbot_expect ASTRIS SERIALPORT \[ KERNELCACHE LOCATION \] \n"
+    exit 1
+}
+
+set astris      [lindex $::argv 0]
+set port        [lindex $::argv 1]
+set kernelcache ""
+set location ""
+if { $::argc == 4 } {
+    set kernelcache [lindex $::argv 2]
+    set location    [lindex $::argv 3]
+}
+
+puts ""
+puts " ******************* KCBOOT ***********************"
+puts ""
+
+
+puts "kernelcache = $kernelcache"
+puts "astris = $astris"
+puts "serialport = $port"
+puts "location = $location"
+
+
+proc abort {} {
+    puts "EEEEK"
+    exit 1
+}
+
+
+set timeout 1
+
+set baud 115200
+set fd [open $port w+]
+fconfigure $fd -mode "$baud,n,8,1"
+set spawned [spawn -open $fd]
+
+puts ""
+puts " ******************** REBOOTING **********************"
+puts ""
+
+system "astrisctl --probe $astris reset"
+
+puts ""
+puts " ******************** LOOKING FOR IBOOT  **********************"
+puts ""
+
+set timeout 10
+expect "Hit enter to break into the command prompt"
+send "\n\n\n"
+expect "Entering recovery mode"
+
+if { [ string length $kernelcache ] == 0 } {
+    exit 0
+}
+
+puts ""
+puts " ******************** LOADING KERNEL  **********************"
+puts ""
+
+spawn usbterm -locationid $location
+set timeout 10
+
+send "\nhelp\n"
+
+expect {
+    "command list:" {}
+    timeout { abort }
+}
+
+send "usb get $kernelcache\n"
+expect {
+    "GET complete" {}
+    timeout { abort }
+}
+
+puts ""
+puts " ******************** BOOTING  **********************"
+puts ""
+
+send "bootx\n"
+
+expect {
+    "Loading kernel cache at" {}
+    "booting kernel at" {}
+    timeout { abort }
+}

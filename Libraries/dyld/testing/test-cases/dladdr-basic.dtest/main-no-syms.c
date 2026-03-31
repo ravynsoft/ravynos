@@ -1,6 +1,6 @@
 
 // BUILD:  $CC main-no-syms.c            -o $BUILD_DIR/dladdr-stripped.exe
-// BUILD:  $STRIP $BUILD_DIR/dladdr-stripped.exe -no_code_signature_warning
+// BUILD:  $STRIP $BUILD_DIR/dladdr-stripped.exe
 
 // RUN:  ./dladdr-stripped.exe
 

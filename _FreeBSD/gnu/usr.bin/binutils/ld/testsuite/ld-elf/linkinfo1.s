@@ -1,2 +1,0 @@
-	.text
-	call	foo@PLT

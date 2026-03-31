@@ -54,8 +54,6 @@
 #include "ClosureBuilder.h"
 #include "ClosureFileSystemPhysical.h"
 
-#include <dyld/VersionMap.h>
-
 #if __has_feature(ptrauth_calls)
 #include <ptrauth.h>
 #endif
@@ -79,6 +77,10 @@ static const void *stripPointer(const void *ptr) {
 }
 
 pthread_mutex_t RecursiveAutoLock::_sMutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
+
+// forward declaration
+static void dyld_get_image_versions_internal(const struct mach_header* mh, void (^callback)(dyld_platform_t platform, uint32_t sdk_version, uint32_t min_version));
+
 
 uint32_t _dyld_image_count(void)
 {
@@ -120,11 +122,6 @@ const char* _dyld_get_image_name(uint32_t imageIndex)
     return gAllImages.imagePathByIndex(imageIndex);
 }
 
-const struct mach_header * _dyld_get_prog_image_header()
-{
-    log_apis("_dyld_get_prog_image_header()\n");
-    return gAllImages.mainExecutable();
-}
 
 static bool nameMatch(const char* installName, const char* libraryName)
 {
@@ -308,18 +305,7 @@ uint32_t dyld_get_sdk_version(const mach_header* mh)
 uint32_t dyld_get_program_sdk_version()
 {
 	log_apis("dyld_get_program_sdk_version()\n");
-    uint32_t result = dyld3::dyld_get_sdk_version(gAllImages.mainExecutable());
-#if TARGET_OS_OSX
-    // HACK: We didn't have time to fix all the zippered clients in the spring releases, so keep the mapping. We have resolved it for all new clients using the platform aware SPIs. Since we are doing to deprecate this SPI we will leave the hack in.
-    if (dyld_get_active_platform() == (dyld_platform_t)dyld3::Platform::iOSMac) {
-        if (result >= 0x000D0400) {
-            result = 0x000A0F04;
-        } else {
-            result = 0x000A0F00;
-        }
-    }
-#endif
-    return result;
+    return dyld3::dyld_get_sdk_version(gAllImages.mainExecutable());
 }
 
 uint32_t dyld_get_min_os_version(const mach_header* mh)
@@ -349,7 +335,7 @@ dyld_platform_t dyld_get_active_platform(void) {
 
 dyld_platform_t dyld_get_base_platform(dyld_platform_t platform) {
     switch (platform) {
-        case PLATFORM_MACCATALYST:               return PLATFORM_IOS;
+        case PLATFORM_IOSMAC:               return PLATFORM_IOS;
         case PLATFORM_IOSSIMULATOR:         return PLATFORM_IOS;
         case PLATFORM_WATCHOSSIMULATOR:     return PLATFORM_WATCHOS;
         case PLATFORM_TVOSSIMULATOR:        return PLATFORM_TVOS;
@@ -368,24 +354,8 @@ bool dyld_is_simulator_platform(dyld_platform_t platform) {
     }
 }
 
-static
-dyld_build_version_t mapFromVersionSet(dyld_build_version_t version) {
-    if (version.platform != 0xffffffff) return version;
-    auto i = std::lower_bound(sVersionMap.begin(), sVersionMap.end(), version.version);
-    assert(i != sVersionMap.end());
-    switch(dyld3::dyld_get_base_platform(::dyld_get_active_platform())) {
-        case PLATFORM_MACOS: return { .platform = PLATFORM_MACOS, .version = i->macos };
-        case PLATFORM_IOS: return { .platform = PLATFORM_IOS, .version = i->ios };
-        case PLATFORM_WATCHOS: return { .platform = PLATFORM_WATCHOS, .version = i->watchos };
-        case PLATFORM_TVOS: return { .platform = PLATFORM_TVOS, .version = i->tvos };
-        case PLATFORM_BRIDGEOS: return { .platform = PLATFORM_BRIDGEOS, .version = i->bridgeos };
-        default: return { .platform = 0, .version = 0 };
-    }
-}
-
 bool dyld_sdk_at_least(const struct mach_header* mh, dyld_build_version_t version) {
     __block bool retval = false;
-    version = mapFromVersionSet(version);
     dyld3::dyld_get_image_versions(mh, ^(dyld_platform_t platform, uint32_t sdk_version, uint32_t min_version) {
         if (dyld3::dyld_get_base_platform(platform) == version.platform && sdk_version >= version.version) {
             retval = true;
@@ -396,7 +366,6 @@ bool dyld_sdk_at_least(const struct mach_header* mh, dyld_build_version_t versio
 
 bool dyld_minos_at_least(const struct mach_header* mh, dyld_build_version_t version) {
     __block bool retval = false;
-    version = mapFromVersionSet(version);
     dyld3::dyld_get_image_versions(mh, ^(dyld_platform_t platform, uint32_t sdk_version, uint32_t min_version) {
         if (dyld3::dyld_get_base_platform(platform) == version.platform && min_version >= version.version) {
             retval = true;
@@ -405,7 +374,15 @@ bool dyld_minos_at_least(const struct mach_header* mh, dyld_build_version_t vers
     return retval;
 }
 
-#if TARGET_OS_OSX
+bool dyld_program_sdk_at_least(dyld_build_version_t version) {
+    return dyld3::dyld_sdk_at_least(gAllImages.mainExecutable(), version);
+}
+
+bool dyld_program_minos_at_least(dyld_build_version_t version) {
+    return dyld3::dyld_minos_at_least(gAllImages.mainExecutable(), version);
+}
+
+#if TARGET_OS_OSX || TARGET_OS_IOS
 static
 uint32_t linkedDylibVersion(const mach_header* mh, const char *installname) {
     __block uint32_t retval = 0;
@@ -423,18 +400,17 @@ uint32_t linkedDylibVersion(const mach_header* mh, const char *installname) {
 #define PACKED_VERSION(major, minor, tiny) ((((major) & 0xffff) << 16) | (((minor) & 0xff) << 8) | ((tiny) & 0xff))
 
 static uint32_t deriveVersionFromDylibs(const struct mach_header* mh) {
-#if TARGET_OS_IOS
-    // 7.0 is the last version that was in iOSes mapping table, and it is the earliest version that support 64 bit binarie.
-    // Since we dropped 32 bit support, we know any binary with a version must be from 7.0
-    return 0x00070000;
-#elif TARGET_OS_OSX
     // This is a binary without a version load command, we need to infer things
     struct DylibToOSMapping {
         uint32_t dylibVersion;
         uint32_t osVersion;
     };
-    uint32_t linkedVersion = linkedDylibVersion(mh, "/usr/lib/libSystem.B.dylib");
+    uint32_t linkedVersion = 0;
+#if TARGET_OS_OSX
+    linkedVersion = linkedDylibVersion(mh, "/usr/lib/libSystem.B.dylib");
     static const DylibToOSMapping versionMapping[] = {
+        { PACKED_VERSION(88,1,3),   0x000A0400 },
+        { PACKED_VERSION(111,0,0),  0x000A0500 },
         { PACKED_VERSION(123,0,0),  0x000A0600 },
         { PACKED_VERSION(159,0,0),  0x000A0700 },
         { PACKED_VERSION(169,3,0),  0x000A0800 },
@@ -443,6 +419,31 @@ static uint32_t deriveVersionFromDylibs(const struct mach_header* mh) {
         // We don't need to expand this table because all recent
         // binaries have LC_VERSION_MIN_ load command.
     };
+#elif TARGET_OS_IOS
+        linkedVersion = linkedDylibVersion(mh, "/System/Library/Frameworks/Foundation.framework/Foundation");
+        static const DylibToOSMapping versionMapping[] = {
+            { PACKED_VERSION(678,24,0), 0x00020000 },
+            { PACKED_VERSION(678,26,0), 0x00020100 },
+            { PACKED_VERSION(678,29,0), 0x00020200 },
+            { PACKED_VERSION(678,47,0), 0x00030000 },
+            { PACKED_VERSION(678,51,0), 0x00030100 },
+            { PACKED_VERSION(678,60,0), 0x00030200 },
+            { PACKED_VERSION(751,32,0), 0x00040000 },
+            { PACKED_VERSION(751,37,0), 0x00040100 },
+            { PACKED_VERSION(751,49,0), 0x00040200 },
+            { PACKED_VERSION(751,58,0), 0x00040300 },
+            { PACKED_VERSION(881,0,0),  0x00050000 },
+            { PACKED_VERSION(890,1,0),  0x00050100 },
+            { PACKED_VERSION(992,0,0),  0x00060000 },
+            { PACKED_VERSION(993,0,0),  0x00060100 },
+            { PACKED_VERSION(1038,14,0),0x00070000 },
+            { PACKED_VERSION(0,0,0),    0x00070000 }
+            // We don't need to expand this table because all recent
+            // binaries have LC_VERSION_MIN_ load command.
+    };
+#else
+    static const DylibToOSMapping versionMapping[] = {};
+#endif
     if ( linkedVersion != 0 ) {
         uint32_t lastOsVersion = 0;
         for (const DylibToOSMapping* p=versionMapping; ; ++p) {
@@ -455,7 +456,6 @@ static uint32_t deriveVersionFromDylibs(const struct mach_header* mh) {
             lastOsVersion = p->osVersion;
         }
     }
-#endif
     return 0;
 }
 
@@ -469,6 +469,14 @@ static void dyld_get_image_versions_internal(const struct mach_header* mh, void 
         // If SDK field is empty then derive the value from library linkages
         if (sdk == 0) {
             sdk = deriveVersionFromDylibs(mh);
+        }
+        // HACK: We don't have time to fix all the zippered clients in the spring releases, so keep the mapping
+        if (platform == dyld3::Platform::iOSMac) {
+            if (sdk >= 0x000D0400) {
+                sdk = 0x000A0F04;
+            } else {
+                sdk = 0x000A0F00;
+            }
         }
         callback((const dyld_platform_t)platform, sdk, minOS);
     });
@@ -543,120 +551,6 @@ void dyld_get_image_versions(const struct mach_header* mh, void (^callback)(dyld
 #endif
     if ( mf->isMachO(diag, mh->sizeofcmds + sizeof(mach_header_64)) )
         dyld_get_image_versions_internal(mh, callback);
-}
-
-struct VIS_HIDDEN VersionSPIDispatcher {
-    static bool dyld_program_minos_at_least(dyld_build_version_t version) {
-        return dyld_program_minos_at_least_active(version);
-    }
-    static bool dyld_program_sdk_at_least(dyld_build_version_t version) {
-        return dyld_program_sdk_at_least_active(version);
-    }
-private:
-    // We put these into a struct to guarantee so we can control the placement to guarantee a version and the set equivalent
-    // Can be loaded via a single load pair instruction.
-    struct FastPathData {
-        uint32_t version;
-        uint32_t versionSetEquivalent;
-        dyld_platform_t platform;
-    };
-    static uint32_t findVersionSetEquuivalent(uint32_t version) {
-        uint32_t candidateVersion = 0;
-        uint32_t candidateVersionEquivalent = 0;
-        uint32_t newVersionSetVersion = 0;
-        for (const auto& i : sVersionMap) {
-            switch (dyld_get_base_platform(::dyld_get_active_platform())) {
-                case PLATFORM_MACOS:    newVersionSetVersion = i.macos; break;
-                case PLATFORM_IOS:      newVersionSetVersion = i.ios; break;
-                case PLATFORM_WATCHOS:  newVersionSetVersion = i.watchos; break;
-                case PLATFORM_TVOS:     newVersionSetVersion = i.tvos; break;
-                case PLATFORM_BRIDGEOS: newVersionSetVersion = i.bridgeos; break;
-                default: newVersionSetVersion = 0xffffffff; // If we do not know about the platform it is newer than everything
-            }
-            if (newVersionSetVersion > version) { break; }
-            candidateVersion = newVersionSetVersion;
-            candidateVersionEquivalent = i.set;
-        }
-        return candidateVersionEquivalent;
-    };
-
-    static void setVersionMappingFastPathData(const struct mach_header* mh) {
-        dyld3::dyld_get_image_versions(mh, ^(dyld_platform_t platform, uint32_t sdk_version, uint32_t min_version) {
-            minosFastPathData.platform = dyld_get_base_platform(::dyld_get_active_platform());
-            sdkFastPathData.platform = dyld_get_base_platform(::dyld_get_active_platform());
-            minosFastPathData.version = min_version;
-            minosFastPathData.versionSetEquivalent = findVersionSetEquuivalent(min_version);
-            sdkFastPathData.version = sdk_version;
-            sdkFastPathData.versionSetEquivalent = findVersionSetEquuivalent(sdk_version);
-        });
-    }
-
-    static void setupFastPath(void) {
-        setVersionMappingFastPathData((const struct mach_header*)_NSGetMachExecuteHeader());
-        dyld_program_minos_at_least_active = &dyld_program_minos_at_least_fast;
-        dyld_program_sdk_at_least_active = &dyld_program_sdk_at_least_fast;
-    }
-
-    static bool dyld_program_minos_at_least_slow (dyld_build_version_t version) {
-        setupFastPath();
-        return dyld_program_minos_at_least_fast(version);
-    }
-
-    static bool dyld_program_sdk_at_least_slow (dyld_build_version_t version) {
-        setupFastPath();
-        return dyld_program_sdk_at_least_fast(version);
-    }
-
-    // Fast path implementation of version checks for main executables
-    // This works by using the fact that are essentially 3 cases we care about:
-    // 1. Comparing the exctuable against any other platform (which should always return false)
-    // 2. Comparing the exctuable against a version set (platform 0xfffffff)
-    // 3. Comparing the exctuable againstt our base platform
-    //
-    // We achieve this by setting up a single compare (currentVersion >= version.version) and a couple of
-    // of simple tests that will all compile to conditional moves to setup that compare:
-    // 1. We setup the comapreVersion as 0. It will only keep that value if it is not a version set and it
-    //    it is not the platform we are testing against. 0 will be less than the value encoded in any well
-    //    formed binary, so the test will end up returning false
-    // 2. If the platform is 0xffffffff it is a version set. In the fast path setup we we calculated a value
-    //    that allows a direct comparison, so we set comapreVersion to that (versionSetEquivalent)
-    // 3. If it is a concrete platform and it matches the current platform running then we can set comapreVersion
-    //    to the actual version number that the was embedded in the binary, which is we stashed in the fast
-    //    path data
-
-    static bool dyld_program_minos_at_least_fast (dyld_build_version_t version) {
-        uint32_t currentVersion = 0;
-        if (version.platform == 0xffffffff) { currentVersion = minosFastPathData.versionSetEquivalent; }
-        if (version.platform == minosFastPathData.platform) { currentVersion = minosFastPathData.version; }
-        return (currentVersion >= version.version);
-    }
-
-    static bool dyld_program_sdk_at_least_fast (dyld_build_version_t version) {
-        uint32_t currentVersion = 0;
-        if (version.platform == 0xffffffff) { currentVersion = sdkFastPathData.versionSetEquivalent ; }
-        if (version.platform == sdkFastPathData.platform) { currentVersion = sdkFastPathData.version; }
-        return (currentVersion >= version.version);
-    }
-
-    static bool (*dyld_program_minos_at_least_active)(dyld_build_version_t version);
-    static bool (*dyld_program_sdk_at_least_active)(dyld_build_version_t version);
-    static FastPathData minosFastPathData;
-    static FastPathData sdkFastPathData;
-};
-
-bool (*VersionSPIDispatcher::dyld_program_minos_at_least_active)(dyld_build_version_t version) = &VersionSPIDispatcher::dyld_program_minos_at_least_slow;
-bool (*VersionSPIDispatcher::dyld_program_sdk_at_least_active)(dyld_build_version_t version) = &VersionSPIDispatcher::dyld_program_sdk_at_least_slow;
-VersionSPIDispatcher::FastPathData VersionSPIDispatcher::minosFastPathData = {0, 0, 0};
-VersionSPIDispatcher::FastPathData VersionSPIDispatcher::sdkFastPathData = {0, 0, 0};
-
-
-// We handle this directly instead of dispatching through dyld3::dyld_program_sdk_at_least because they are very perf sensitive
-bool dyld_program_minos_at_least(dyld_build_version_t version) {
-    return VersionSPIDispatcher::dyld_program_minos_at_least(version);
-}
-
-bool dyld_program_sdk_at_least(dyld_build_version_t version) {
-    return VersionSPIDispatcher::dyld_program_sdk_at_least(version);
 }
 
 uint32_t dyld_get_program_min_os_version()
@@ -958,8 +852,7 @@ void* dlopen_internal(const char* path, int mode, void* callerAddress)
     else
         leafName = path;
 
-
-#if TARGET_OS_IPHONE
+#if __IPHONE_OS_VERSION_MIN_REQUIRED
     // <rdar://problem/40235395> dyld3: dlopen() not working with non-canonical paths
     char canonicalPath[PATH_MAX];
     if ( leafName != path ) {
@@ -1020,8 +913,8 @@ bool dlopen_preflight_internal(const char* path)
     DYLD_LOAD_LOCK_THIS_BLOCK
     log_apis("dlopen_preflight(%s)\n", path);
 
-    // check if path is in dyld shared cache, or is a symlink to the cache
-    if ( _dyld_shared_cache_contains_path(path) )
+    // check if path is in dyld shared cache
+    if ( gAllImages.dyldCacheHasPath(path) )
         return true;
 
     // check if file is loadable
@@ -1033,6 +926,8 @@ bool dlopen_preflight_internal(const char* path)
         fileSystem.unloadFile(loadedFileInfo);
         return true;
     }
+
+    // FIXME: may be symlink to something in dyld cache
 
     return false;
 }
@@ -1241,12 +1136,6 @@ bool _dyld_shared_cache_is_locally_built()
     return false;
 }
 
-uint32_t _dyld_launch_mode()
-{
-    return gAllImages.launchMode();
-}
-
-
 void _dyld_images_for_addresses(unsigned count, const void* addresses[], dyld_image_uuid_offset infos[])
 {
     log_apis("_dyld_images_for_addresses(%u, %p, %p)\n", count, addresses, infos);
@@ -1348,13 +1237,13 @@ void dyld_dynamic_interpose(const mach_header* mh, const dyld_interpose_tuple ar
 static void* mapStartOfCache(const char* path, size_t length)
 {
     struct stat statbuf;
-    if ( dyld3::stat(path, &statbuf) == -1 )
+    if ( ::stat(path, &statbuf) == -1 )
         return NULL;
 
     if ( statbuf.st_size < length )
         return NULL;
 
-    int cache_fd = dyld3::open(path, O_RDONLY, 0);
+    int cache_fd = ::open(path, O_RDONLY);
     if ( cache_fd < 0 )
         return NULL;
 
@@ -1388,7 +1277,7 @@ static const DyldSharedCache* findCacheInDirAndMap(const uuid_t cacheUuid, const
             if ( const DyldSharedCache* cache = (DyldSharedCache*)mapStartOfCache(cachePath, 0x00100000) ) {
                 uuid_t foundUuid;
                 cache->getUUID(foundUuid);
-                if ( (::memcmp(cache, "dyld_", 5) != 0) || (::memcmp(foundUuid, cacheUuid, 16) != 0) ) {
+                if ( ::memcmp(foundUuid, cacheUuid, 16) != 0 ) {
                     // wrong uuid, unmap and keep looking
                     ::munmap((void*)cache, 0x00100000);
                 }
@@ -1420,11 +1309,12 @@ int dyld_shared_cache_find_iterate_text(const uuid_t cacheUuid, const char* extr
     }
     if ( sharedCache == nullptr ) {
          // if not, look in default location for cache files
-    #if TARGET_OS_IPHONE
-        sharedCache = findCacheInDirAndMap(cacheUuid, IPHONE_DYLD_SHARED_CACHE_DIR, sizeMapped);
+    #if    __IPHONE_OS_VERSION_MIN_REQUIRED
+        const char* defaultSearchDir = IPHONE_DYLD_SHARED_CACHE_DIR;
     #else
-        sharedCache = findCacheInDirAndMap(cacheUuid, MACOSX_MRM_DYLD_SHARED_CACHE_DIR, sizeMapped);
-   #endif
+        const char* defaultSearchDir = MACOSX_DYLD_SHARED_CACHE_DIR;
+    #endif
+        sharedCache = findCacheInDirAndMap(cacheUuid, defaultSearchDir, sizeMapped);
         // if not there, look in extra search locations
         if ( sharedCache == nullptr ) {
             for (const char** p = extraSearchDirs; *p != nullptr; ++p) {
@@ -1439,8 +1329,7 @@ int dyld_shared_cache_find_iterate_text(const uuid_t cacheUuid, const char* extr
 
     // get base address of cache
     __block uint64_t cacheUnslidBaseAddress = 0;
-    sharedCache->forEachRegion(^(const void *content, uint64_t vmAddr, uint64_t size,
-                                 uint32_t initProt, uint32_t maxProt, uint64_t flags) {
+    sharedCache->forEachRegion(^(const void *content, uint64_t vmAddr, uint64_t size, uint32_t permissions) {
         if ( cacheUnslidBaseAddress == 0 )
             cacheUnslidBaseAddress = vmAddr;
     });
@@ -1471,9 +1360,9 @@ int dyld_shared_cache_iterate_text(const uuid_t cacheUuid, void (^callback)(cons
     return dyld3::dyld_shared_cache_find_iterate_text(cacheUuid, extraSearchDirs, callback);
 }
     
-bool dyld_need_closure(const char* execPath, const char* dataContainerRootDir)
+bool dyld_need_closure(const char* execPath, const char* tempDir)
 {
-    log_apis("dyld_need_closure(%s)\n", execPath);
+    log_apis("dyld_need_closure()\n");
 
     // We don't need to build a closure if the shared cache has it already
     const DyldSharedCache* sharedCache = (DyldSharedCache*)gAllImages.cacheLoadAddress();
@@ -1482,29 +1371,11 @@ bool dyld_need_closure(const char* execPath, const char* dataContainerRootDir)
             return false;
     }
 
-    // this SPI changed. Originally the second path was to $TMPDIR, now it is $HOME
-    // if called old way, adjust
-    size_t rootDirLen = strlen(dataContainerRootDir);
-    char homeFromTmp[PATH_MAX];
-    if ( (rootDirLen > 5) && (strcmp(&dataContainerRootDir[rootDirLen-4], "/tmp") == 0) && (rootDirLen < PATH_MAX) ) {
-        strlcpy(homeFromTmp, dataContainerRootDir, PATH_MAX);
-        homeFromTmp[rootDirLen-4] = '\0';
-        dataContainerRootDir = homeFromTmp;
-    }
-
-    // dummy up envp needed by buildClosureCachePath()
-    char strBuf[PATH_MAX+8]; // room for HOME= and max path
-    strcpy(strBuf, "HOME=");
-    strlcat(strBuf, dataContainerRootDir, sizeof(strBuf));
-    const char* envp[2];
-    envp[0] = strBuf;
-    envp[1] = nullptr;
 
     char closurePath[PATH_MAX];
-    if ( dyld3::closure::LaunchClosure::buildClosureCachePath(execPath, envp, false, closurePath) ) {
+    if ( dyld3::closure::LaunchClosure::buildClosureCachePath(execPath, closurePath, tempDir, false) ) {
         struct stat statbuf;
-        // if no file at location where closure would be stored, then need to build a closure
-        return (dyld3::stat(closurePath, &statbuf) != 0);
+        return (::stat(closurePath, &statbuf) != 0);
     }
 
     // Not containerized so no point in building a closure.
@@ -1545,12 +1416,6 @@ void _dyld_for_each_objc_protocol(const char* protocolName,
     gAllImages.forEachObjCProtocol(protocolName, callback);
 }
 
-void _dyld_register_driverkit_main(void (*mainFunc)())
-{
-    log_apis("_dyld_register_driverkit_main()\n");
-    gAllImages.setDriverkitMain(mainFunc);
-}
-
 #if !TARGET_OS_DRIVERKIT
 struct dyld_func {
     const char*  name;
@@ -1565,10 +1430,6 @@ static const struct dyld_func dyld_funcs[] = {
     {"__dyld_get_image_name",           (void*)dyld3::_dyld_get_image_name },
     {"__dyld_get_image_header",         (void*)dyld3::_dyld_get_image_header },
     {"__dyld_get_image_vmaddr_slide",   (void*)dyld3::_dyld_get_image_vmaddr_slide },
-#if TARGET_OS_OSX
-    // <rdar://problem/59265987> support old licenseware plug ins on macOS
-    {"__dyld_lookup_and_bind",          (void*)dyld3::_dyld_lookup_and_bind },
-#endif
 };
 #endif
 

@@ -1,9 +1,9 @@
-// BUILD(macos):  $CC main.c  -o $BUILD_DIR/dlopen-indirect-groupNum.exe -Wno-deprecated-declarations
-// BUILD(macos):  $CC foo.c   -o $BUILD_DIR/foo.bundle -bundle
-// BUILD(macos):  $CC bar.c -dynamiclib  -install_name $RUN_DIR/libbar.dylib -o $BUILD_DIR/libbar.dylib
-// BUILD(macos):  $CC baz.c -dynamiclib  -install_name $RUN_DIR/libbaz.dylib -o $BUILD_DIR/libbaz.dylib $BUILD_DIR/libbar.dylib
+// BUILD_ONLY: MacOSX
 
-// BUILD(ios,tvos,watchos,bridgeos):
+// BUILD:  $CC main.c  -o $BUILD_DIR/dlopen-indirect-groupNum.exe -Wno-deprecated-declarations
+// BUILD:  $CC foo.c   -o $BUILD_DIR/foo.bundle -bundle
+// BUILD:  $CC bar.c -dynamiclib  -install_name $RUN_DIR/libbar.dylib -o $BUILD_DIR/libbar.dylib
+// BUILD:  $CC baz.c -dynamiclib  -install_name $RUN_DIR/libbaz.dylib -o $BUILD_DIR/libbaz.dylib $BUILD_DIR/libbar.dylib
 
 // RUN:  ./dlopen-indirect-groupNum.exe $RUN_DIR/foo.bundle $RUN_DIR/libbar.dylib $RUN_DIR/libbaz.dylib
 

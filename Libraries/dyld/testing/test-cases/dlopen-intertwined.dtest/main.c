@@ -1,6 +1,6 @@
 
 
-// BUILD:  $CC base.c -dynamiclib -ltest_support -o $BUILD_DIR/libbase.dylib -install_name $RUN_DIR/libbase.dylib
+// BUILD:  $CC base.c -dynamiclib -o $BUILD_DIR/libbase.dylib -install_name $RUN_DIR/libbase.dylib
 // BUILD:  $CC A.c -dynamiclib -o $BUILD_DIR/libA.dylib -install_name $RUN_DIR/libA.dylib $BUILD_DIR/libbase.dylib
 // BUILD:  $CC C.c -dynamiclib -o $BUILD_DIR/libC.dylib -install_name $RUN_DIR/libC.dylib $BUILD_DIR/libbase.dylib
 // BUILD:  $CC B.c -dynamiclib -o $BUILD_DIR/libB.dylib -install_name $RUN_DIR/libB.dylib $BUILD_DIR/libbase.dylib $BUILD_DIR/libC.dylib

@@ -1,0 +1,191 @@
+.Dd November 14, 2012 
+.Os Darwin
+.Dt KEXTLIBS 8
+.Sh NAME
+.Nm kextlibs
+.Nd find OSBundleLibraries needed by a kext
+.Sh SYNOPSIS
+.Nm
+.Op Ar options
+.Op Fl -
+.Ar kext Li \&.\|.\|.
+.Sh DESCRIPTION
+The
+.Nm
+utility searches for library kexts that define symbols
+needed for linking by
+.Ar kext ,
+printing their bundle identifiers and versions to
+.Pa stdout .
+If the kext has a multiple-architecture executable,
+libraries are resolved for each architecture.
+If any symbols are not found, or are found in multiple libraries,
+the numbers of such symbols are printed to standard error
+after the library kext information for each architecture.
+.Pp
+A handy use of
+.Nm
+is to run it with just the
+.Fl xml
+flag and pipe the output to
+.Xr pbcopy(1) ;
+if the exit status is zero
+(indicating no undefined or multiply-defined symbols),
+you can open your kext's
+.Pa Info.plist
+file in a text editor
+and paste the library declarations over the OSBundleLibraries property.
+.Pp
+You can use
+.Nm
+to find libraries for older releases of macOS
+using the
+.Fl repository
+option to specify an extensions folder to search
+other than the extensions directories for the root volume
+(although releases prior to Mac OS X 10.6 (Snow Leopard)
+don't check for architecture-specific properties,
+so be sure to check the output and edit as needed).
+If you don't explicitly specify a repository directory,
+.Nm
+searches the root volume's /System/Library/Extensions and /Library/Extensions directories.
+.Sh OPTIONS
+.Bl -tag -width -indent
+.It Fl h , help
+Print a help message describing each option flag and exit with a success result,
+regardless of any other options on the command line.
+.It Fl all-symbols
+Print reports on all symbols that remain undefined,
+all symbols that have been resolved in one library kext each,
+and all symbols that have multiple definitions in different library kexts.
+Equivalent to specifying all of
+.Fl undef-symbols ,
+.Fl onedef-symbols ,
+and
+.Fl multdef-symbols .
+Normally only the number of missing and duplicate symbols is printed.
+.It Fl c , Fl compatible-versions
+Print the compatible version rather than the current version.
+.It Fl multdef-symbols
+Print all undefined symbols from
+.Ar kext
+found in more than one library kext,
+followed by those library kexts' bundle identifiers
+and versions (or compatible versions if
+.Fl compatible-versions
+was specified).
+Normally only the number of multiply-defined symbols is printed.
+.It Fl non-kpi
+Search the compatibility kext, com.apple.kernel.6.0,
+rather than any of the com.apple.kpi.* system kexts.
+Use of this option is not recommended:
+The exact kernel component (mach, bsd, libkern, or iokit)
+cannot be determined,
+and the compatible version of com.apple.kernel
+is locked to its current version,
+so kexts linking against it can only load against that exact version.
+.It Fl onedef-symbols
+Print all undefined symbols from
+.Ar kext
+found in exactly one library kext,
+followed by that library kext's bundle identifier
+and version (or compatible version if
+.Fl compatible-versions
+was specified).
+Normally nothing is printed about symbols that are found once.
+.It Fl r Ar directory , Fl repository Ar directory
+Search
+.Ar directory
+for dependencies.
+This option may be specified multiple times.
+You can use this to get library declarations
+relative to a set of extensions other than those of the running system
+(such as for a different release of macOS),
+or to include a side directory of library kexts.
+Note: If you specify a directory with this option,
+the system extensions folders are not implicitly searched.
+See
+.Fl system-extensions .
+.It Fl e , Fl system-extensions
+Add /System/Library/Extensions and /Library/Extensions to the list of directories to search.
+If you don't specify any directories or kexts, this is used by default.
+.It Fl undef-symbols
+Print all undefined symbols from
+.Ar kext
+that can't be found in any library kexts.
+Normally only the number of symbols not found is printed.
+.It Fl unsupported
+Search unsupported library kexts for symbols (by default they are not searched).
+.It Fl v Li [ 0-6 | 0x#### Ns Li ] , Fl verbose Li [ 0-6 | 0x#### Ns Li ]
+Verbose mode; print information about program operation.
+Higher levels of verbosity include all lower levels.
+You can specify a level from 0-6,
+or a hexadecimal log specification
+(as described in
+.Xr kext_logging 8 Ns No ).
+For
+.Nm ,
+the decimal levels 1-6 generally have little effect.
+.It Fl xml
+Print an XML fragment to
+.Pa stdout
+suitable for copying and pasting directly
+into an
+.Pa Info.plist
+file.
+This option prints
+information about libraries to
+.Pa stdout ,
+and then prints
+information
+about symbols to
+.Pa stderr.
+In XML mode, if the libraries for all architectures
+are the same, only one set of OSBundleLibraries is printed;
+if any differ from any others,
+architecture-specific listings for all architectures are printed
+(OSBundleLibraries_i386, OSBundleLibraries_x86_64, and so on).
+.Pp
+.It Fl -
+End of options.
+.El
+.Sh FILES
+.Bl -tag -width "/System/Library/Extensions/" -compact
+.It Pa /System/Library/Extensions/
+The standard system repository of kernel extensions.
+.It Pa /Library/Extensions/
+The standard repository of non Apple kernel extensions.
+.El
+.Sh DIAGNOSTICS
+The
+.Nm
+utility exits with a status of 0 on completion
+if all undefined symbols are found exactly once;
+with a status of 1 if any undefined symbols remain,
+or with a status of 2 if any symbols
+are found in more than one library kext
+(whether or not any undefined symbols remain),
+and with another nonzero status on some other problem.
+.Sh BUGS
+.Nm
+uses a simple algorithm of string matching to resolve symbols,
+and does not apply any of the patching that the full link process does.
+This can cause it to fail when searching for symbols
+in a kext built against an SDK for a prior release of macOS
+than the one on which
+.Nm
+is being used.
+In such cases, you can run
+.Nm
+against the Extensions folder of that prior release
+using the
+.Fl repository
+option.
+.Pp
+Many single-letter options are inconsistent in meaning
+with (or directly contradictory to) the same letter options
+in other kext tools.
+.Sh SEE ALSO
+.Xr kextutil 8 ,
+.Xr kextfind 8 ,
+.Xr kext_logging 8

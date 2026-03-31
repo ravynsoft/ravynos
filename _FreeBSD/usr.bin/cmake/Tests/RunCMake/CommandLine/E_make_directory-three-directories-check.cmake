@@ -1,6 +1,0 @@
-if(NOT IS_DIRECTORY ${out}/d1)
-  set(RunCMake_TEST_FAILED "directory d1 was not created")
-endif()
-if(NOT IS_DIRECTORY ${out}/d2)
-  set(RunCMake_TEST_FAILED "directory d2 was not created")
-endif()

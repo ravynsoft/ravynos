@@ -1,6 +1,6 @@
 
 
-// BUILD:  $CC foo.c -dynamiclib -ltest_support -o $BUILD_DIR/libfoo.dylib -install_name $RUN_DIR/libfoo.dylib
+// BUILD:  $CC foo.c -dynamiclib -o $BUILD_DIR/libfoo.dylib -install_name $RUN_DIR/libfoo.dylib
 // BUILD:  $CC main.c -o $BUILD_DIR/dlopen-in-init.exe $BUILD_DIR/libfoo.dylib
 
 // RUN:  ./dlopen-in-init.exe

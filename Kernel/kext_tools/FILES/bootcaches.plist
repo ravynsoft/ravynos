@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PreBootPaths</key>     <!-- stored at root of any Apple_Boot -->
+    <dict>
+        <key>DiskLabel</key>    <!-- to be tweaked for the picker -->
+        <string>/System/Library/CoreServices/.disk_label</string>
+        <!-- implied .disk_label helper files -->
+        <key>AdditionalPaths</key>  <!-- optional stuff at the root -->
+        <array>
+            <string>/.VolumeIcon.icns</string>
+            <string>/System/Library/CoreServices/SystemVersion.plist</string>
+            <string>/System/Library/CoreServices/PlatformSupport.plist</string>
+        </array>
+    </dict>
+
+    <key>BooterPaths</key>      <!-- to be blessed appropriately -->
+    <dict>
+        <key>EFIBooter</key>    <!-- finderinfo[1] -> file -->
+        <string>/System/Library/CoreServices/boot.efi</string>
+    </dict>
+
+    <key>PostBootPaths</key>    <!-- in RPS directories known to booter -->
+    <dict>
+        <key>BootConfig</key>   <!-- to be updated w/UUID in Apple_Boot -->
+        <string>/Library/Preferences/SystemConfiguration/com.apple.Boot.plist</string>
+        <key>EncryptedRoot</key>
+        <dict>
+            <key>EncryptedPropertyCache</key>
+            <string>/System/Library/Caches/com.apple.corestorage/EncryptedRoot.plist.wipekey</string>
+            <!-- OS doesn't require content in the root volume's ER.pl.wk -->
+            <key>RootVolumePropertyCache</key>
+            <false/>
+            <key>DefaultResourcesDir</key>
+            <string>/usr/standalone/i386/EfiLoginUI/</string>
+            <!-- localized resources are optional but are all or nothing -->
+            <key>LocalizationSource</key>
+            <string>/System/Library/PrivateFrameworks/EFILogin.framework/Resources/EFIResourceBuilder.bundle/Contents/Resources</string>
+            <key>LanguagesPref</key>
+            <string>/Library/Preferences/.GlobalPreferences.plist</string>
+            <key>BackgroundImage</key>
+            <string>/Library/Caches/com.apple.desktop.admin.png</string>
+            <key>LocalizedResourcesCache</key>
+            <string>/System/Library/Caches/com.apple.corestorage/EFILoginLocalizations</string>
+        </dict>
+        <key>Kernelcache v1.5</key>
+        <dict>
+            <key>ExtensionsDir</key>
+            <array>
+                <string>/Library/Extensions</string>
+                <string>/AppleInternal/Library/Extensions</string>
+                <string>/Library/Apple/System/Library/Extensions</string>
+                <string>/System/Library/Extensions</string>
+            </array>
+            <key>Path</key>
+            <string>/Library/Apple/System/Library/PrelinkedKernels/prelinkedkernel</string>
+            <key>ReadOnlyPath</key>
+            <string>/System/Library/PrelinkedKernels/prelinkedkernel</string>
+            <key>KernelPath</key>
+            <string>/System/Library/Kernels/kernel</string>
+            <key>KernelsDir</key>
+            <string>/System/Library/Kernels</string>
+            <key>Archs</key>
+            <array>
+                <string>x86_64</string>
+            </array>
+            <key>Preferred Compression</key>
+            <string>lzvn</string>
+        </dict>
+    </dict>
+</dict>
+</plist>

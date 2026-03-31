@@ -8,7 +8,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #ifdef PLATFORM_IS_POSIX
 #include <time.h>
-#import <Foundation/NSTimeZone_posix.h>
 #import <Foundation/NSTimeZone.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSPathUtilities.h>
@@ -25,6 +24,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSFileManager.h>
 #import <Foundation/NSRaiseException.h>
 
+#import "NSTimeZone_posix.h"
 
 // structures in tzfiles are big-endian
 // for definition of file format see

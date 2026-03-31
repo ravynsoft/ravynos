@@ -1,0 +1,89 @@
+#!/bin/zsh
+
+PROG=${0##*/}
+DB=$1
+shift
+OUTFILE=$1
+shift
+
+function usage() {
+	echo "$PROG: list known 3rd party kext UUIDs"
+	echo "usage:"
+	echo "        $PROG [syspolicydb] [outfile]"
+	echo
+	exit 1
+}
+
+if [ -z "$DB" -o -z "$OUTFILE" ]; then
+	usage
+fi
+
+if [ `whoami` != "root" -o $UID -ne 0 ]; then
+	echo "$PROG must be run as root!"
+	exit 2
+fi
+
+BASE64=`which base64`
+if [ ! -x "$BASE64" ]; then
+	echo "Can't find base64 in your path!"
+	exit 3
+fi
+
+SQLITE=`which sqlite3`
+if [ ! -x "$SQLITE" ]; then
+	echo "Can't find sqlite3 in your path!"
+	exit 4
+fi
+
+# Write plist header
+cat > "$OUTFILE" <<__END__
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CDHashArray</key>
+	<array>
+__END__
+
+# write one CFData array element for each hash we find
+QUERY="SELECT cdhash FROM kext_load_history_v3 WHERE cdhash IS NOT NULL;"
+HASHES=( $(echo "$QUERY" | $SQLITE "$DB") )
+for hash in ${HASHES[@]}; do
+	echo "\t\t<data>$(echo -n $hash | $BASE64)</data>" >> "$OUTFILE"
+done
+echo "\t</array>" >> "$OUTFILE"
+
+# grab all the bundle IDs from the db - this will cover kext upgrades with the same bundle ID
+QUERY="SELECT bundle_id FROM kext_load_history_v3 WHERE team_id IS NOT NULL;"
+BUNDLES=( $(echo "$QUERY" | $SQLITE "$DB") )
+if [ ! -z "$BUNDLES" ]; then
+	echo "\t<key>NullHashBundles</key>" >> "$OUTFILE"
+	echo "\t<array>" >> "$OUTFILE"
+	for bundle in $BUNDLES; do
+		echo "\t\t<string>$bundle</string>" >> "$OUTFILE"
+	done
+	echo -e "\t</array>" >> "$OUTFILE"
+fi
+
+QUERY="SELECT bundle_id FROM kext_load_history_v3 where team_id IS NULL;"
+BUNDLES=( $(echo "$QUERY" | $SQLITE "$DB") )
+if [ ! -z "$BUNDLES" ]; then
+	echo "\t<key>ExceptionListBundles</key>" >> "$OUTFILE"
+	echo "\t<array>" >> "$OUTFILE"
+	for bundle in $BUNDLES; do
+		echo "\t\t<string>$bundle</string>" >> "$OUTFILE"
+	done
+	echo -e "\t</array>" >> "$OUTFILE"
+fi
+
+echo "\t<key>BootSessionUUID</key>" >> "$OUTFILE"
+echo "\t<string>$(sysctl -n kern.bootsessionuuid)</string>" >> "$OUTFILE"
+
+cat >> "$OUTFILE" <<__END__
+</dict>
+</plist>
+__END__
+
+if [ ! -z "$1" ]; then
+	cat "$OUTFILE"
+fi

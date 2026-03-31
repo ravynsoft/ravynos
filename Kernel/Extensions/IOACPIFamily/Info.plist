@@ -19,11 +19,53 @@
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>IOKitPersonalities</key>
-	<dict/>
+	<dict>
+		<key>ACPI Platform Expert</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>com.apple.iokit.IOACPIFamily</string>
+			<key>IOClass</key>
+			<string>ACPIPlatformExpert</string>
+			<key>IONameMatch</key>
+			<string>ACPI</string>
+			<key>IOProviderClass</key>
+			<string>IOPlatformExpertDevice</string>
+			<key>IOProbeScore</key>
+                        <integer>10000</integer>
+			<key>top-level</key>
+			<array>
+                            <!--
+				<dict>
+					<key>IOName</key>
+					<string>bios</string>
+				</dict>
+				<dict>
+					<key>IOName</key>
+					<string>8259-apic</string>
+				</dict>
+				<dict>
+					<key>IOName</key>
+					<string>pci</string>
+			        </dict>
+                            -->
+			</array>
+		</dict>
+		<key>ACPI X86 CPU</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>com.apple.iokit.IOACPIFamily</string>
+			<key>IOClass</key>
+			<string>ACPICPU</string>
+			<key>IONameMatch</key>
+			<string>processor</string>
+			<key>IOProbeScore</key>
+			<integer>10000</integer>
+			<key>IOProviderClass</key>
+			<string>IOCPU</string>
+		</dict>
+	</dict>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2019 PureDarwin Project. All rights reserved.</string>
-	<key>CFBundleGetInfoString</key>
-	<string>Copyright © 2019 PureDarwin Project. All rights reserved.</string>
+	<string>Copyright © 2026 ravynOS Project. All rights reserved.</string>
 	<key>OSBundleLibraries</key>
 	<dict>
 		<key>com.apple.kpi.iokit</key>
@@ -38,6 +80,6 @@
 	<key>OSBundleRequired</key>
 	<string>Root</string>
 	<key>OSBundleCompatibleVersion</key>
-	<string>1.0.0d1</string>
+	<string>1.0.0</string>
 </dict>
 </plist>

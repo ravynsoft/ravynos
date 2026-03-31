@@ -1,12 +1,29 @@
+cmake_minimum_required(VERSION 4.0.0)
+project(Extensions LANGUAGES C CXX ASM)
 cmake_policy(SET CMP0114 NEW)
 
+include(${ROOT_SOURCE_DIR}/Developer/cmake/Version.cmake)
+include(${ROOT_SOURCE_DIR}/Developer/cmake/Paths.cmake)
+include(${ROOT_SOURCE_DIR}/Developer/cmake/Tools.cmake)
+include(${ROOT_SOURCE_DIR}/Developer/cmake/kext.cmake)
+
+set(ENV{DERIVED_DATA_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+set(CMAKE_SYSTEM_NAME Darwin)
+set(CMAKE_C_COMPILER ${CC})
+set(CMAKE_ASM_COMPILER ${CC})
+set(CMAKE_CXX_COMPILER ${CXX})
+set(CMAKE_LINK_DEPENDS_USE_LINKER OFF)
 set(CMAKE_INSTALL_PREFIX "")
 
+# This target gates kext build readiness
+add_custom_target(kextBuild)
+add_dependencies(kextBuild xnu libkmod)
+
 #add_subdirectory(AppleAPIC)
-#add_subdirectory(AppleI386GenericPlatform)
+add_subdirectory(AppleI386GenericPlatform)
 #add_subdirectory(AppleIntelPIIXATA)
 #add_subdirectory(ApplePS2Controller)
-#add_subdirectory(IOACPIFamily)
+add_subdirectory(IOACPIFamily)
 #add_subdirectory(IOATAFamily)
 #add_subdirectory(IOPCIFamily)
 #add_subdirectory(IOStorageFamily)

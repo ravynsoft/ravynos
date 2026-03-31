@@ -1,2 +1,0 @@
-project('exit status')
-exception()

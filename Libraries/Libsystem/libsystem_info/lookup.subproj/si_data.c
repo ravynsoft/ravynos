@@ -134,7 +134,7 @@ si_list_retain(si_list_t *list)
 
 	if (list == NULL) return NULL;
 
-	rc = OSAtomicIncrement32Barrier(&list->refcount);
+	rc = atomic_fetch_add(&list->refcount, 1);
 	assert(rc >= 1);
 
 	return list;
@@ -148,7 +148,7 @@ si_list_release(si_list_t *list)
 
 	if (list == NULL) return;
 
-	rc = OSAtomicDecrement32Barrier(&list->refcount);
+	rc = atomic_fetch_sub(&list->refcount, 1);
 	assert(rc >= 0);
 
 	if (rc == 0)
@@ -171,7 +171,7 @@ si_item_retain(si_item_t *item)
 
 	if (item == NULL) return NULL;
 
-	rc = OSAtomicIncrement32Barrier(&item->refcount);
+	rc = atomic_fetch_add(&item->refcount, 1);
 	assert(rc >= 1);
 
 	return item;
@@ -185,7 +185,7 @@ si_item_release(si_item_t *item)
 
 	if (item == NULL) return;
 
-	rc = OSAtomicDecrement32Barrier(&item->refcount);
+	rc = atomic_fetch_sub(&item->refcount, 1);
 	assert(rc >= 0);
 
 	if (rc == 0) free(item);

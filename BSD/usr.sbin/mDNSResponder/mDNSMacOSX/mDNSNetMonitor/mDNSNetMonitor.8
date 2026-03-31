@@ -1,0 +1,40 @@
+.\"Modified from man(1) of FreeBSD, the NetBSD mdoc.template, and mdoc.samples.
+.\"See Also:
+.\"man mdoc.samples for a complete listing of options
+.\"man mdoc for the short list of editing options
+.\"/usr/share/misc/mdoc.template
+.Dd 8/31/16               \" DATE
+.Dt mDNSNetMonitor 8      \" Program name and manual section number
+.Os Darwin
+.Sh NAME                 \" Section Header - required - don't modify 
+.Nm mDNSNetMonitor
+.\" The following lines are read in generating the apropos(man -k) database. Use only key
+.\" words here as the database is built based on the words here and in the .ND line. 
+.\" Use .Nm macro to designate other names for the documented program.
+.Nd dumps mDNS traffic on a network
+.Sh SYNOPSIS             \" Section Header - required - don't modify
+.Nm
+.Op Fl i Ar interface
+.Op  Ar host
+.Sh DESCRIPTION          \" Section Header - required - don't modify
+.Nm
+prints out a description of the contents of mDNS packets on a network interface. It is similiar to tcpdump in that it continuously captures packets until it is interrupted by a SIGINT signal (generated, for example, by typing your interrupt character, typically  control-C)  or a SIGTERM signal (typically generated with the kill(1) command). 
+
+When mDNSNetMonitor finishes capturing packets, it will report counts of packets captured per mDNS packet type, service type and source device.
+ 
+Note that mDNSNetMonitor will not capture unicast mDNS packets.
+.Sh OPTION 
+
+-i interface    Displays packets on specified interface.
+.Sh Example 
+
+To print all packets arriving at or departing from 
+.Pa sundown Ns :
+    % mDNSNetMonitor sundown
+.Sh SEE ALSO 
+.\" List links in ascending order by section, alphabetically within a section.
+.\" Please do not reference files that do not exist without filing a bug report
+.Xr mDNSResponder 8 ,
+.Xr dns-sd 8
+.\" .Sh BUGS              \" Document known, unremedied bugs 
+.\" .Sh HISTORY           \" Document history if command behaves in a unique manner

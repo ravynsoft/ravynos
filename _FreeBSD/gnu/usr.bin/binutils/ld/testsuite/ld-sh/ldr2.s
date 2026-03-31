@@ -1,3 +1,0 @@
- .text
- .long bar
-bar:

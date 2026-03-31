@@ -1,4 +1,0 @@
-#include "base.xcconfig"
-
-// This entitlement doesn't seem to work on macOS, so only set on iOS
-CODE_SIGN_ENTITLEMENTS[sdk=embedded*] = $(SRCROOT)/configs/jumbo_address_space_entitlement.plist

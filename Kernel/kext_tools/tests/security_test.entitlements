@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+     syspolicyd requires callers to have the kext-secure-management entitlement, but respects a special
+     -internal variant of the entitlement on apple internal machines only.  Use that for this test binary
+     so it is not expoitable on a user machine if it were released into the wild.
+     -->
+    <key>com.apple.private.security.kext-management-internal</key>
+    <true/>
+</dict>
+</plist>

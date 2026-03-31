@@ -1,8 +1,0 @@
-#include "unittests_base.xcconfig"
-
-GCC_PREPROCESSOR_DEFINITIONS = $(inherited) BUILDING_UNIT_TESTS=1
-
-// reset header search paths
-HEADER_SEARCH_PATHS         =
-
-OTHER_LDFLAGS = $(inherited) -lCrashReporterClient

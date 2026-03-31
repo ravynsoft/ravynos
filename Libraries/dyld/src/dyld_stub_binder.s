@@ -127,7 +127,7 @@ dyld_stub_binder:
 	test		$0xF,%rsp				# at this point stack should be 16-byte aligned
 	jne			_stack_not_16_byte_aligned_error
 	movq		%rsp,%rbp
-	subq		$STATIC_STACK_SIZE,%rsp
+	subq		$0x100,%rsp // STATIC_STACK_SIZE
 	movq		%rdi,RDI_SAVE_RBP(%rbp)	# save registers that might be used as parameters
 	movq		%rsi,RSI_SAVE_RBP(%rbp)
 	movq		%rdx,RDX_SAVE_RBP(%rbp)

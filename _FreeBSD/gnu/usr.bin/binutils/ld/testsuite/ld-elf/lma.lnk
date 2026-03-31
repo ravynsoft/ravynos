@@ -1,6 +1,0 @@
-SECTIONS
-{
-  . = -0x100000;
-  .text : AT(ADDR(.text) + 0x100000) { *(.text) }
-  /DISCARD/ : { *(*) }
-}

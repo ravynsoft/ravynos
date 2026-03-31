@@ -347,7 +347,7 @@ NSLog(@"parse error %d %o",__LINE__,code);
 NSLog(@"zero chunk");
        }
        else {
-NSLog(@"chunk=%d",_chunkSize);
+NSLog(@"chunk=%d",(long)_chunkSize);
         _state=STATE_waitingForChunkCompletion;
         rangeAction=advanceLocationToNext;
        }

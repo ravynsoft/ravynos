@@ -196,7 +196,7 @@ bool ImageLoaderMegaDylib::hasDylib(const char* path, unsigned* index) const
 {
 	const uint8_t* imageNode = ImageLoader::trieWalk(_dylibsTrieStart, _dylibsTrieEnd, path);
 	if ( imageNode == NULL ) {
-  #if TARGET_OS_OSX
+  #if __MAC_OS_X_VERSION_MIN_REQUIRED
 		// not all symlinks are recorded as aliases in accelerator tables
 		if ( (strncmp(path, "/usr/lib/", 9) == 0) || (strncmp(path, "/System/Library/", 16) == 0) ) {
 			char resolvedPath[PATH_MAX];
@@ -573,7 +573,7 @@ void ImageLoaderMegaDylib::recursiveLoadLibraries(const LinkContext& context, bo
 	recursiveMarkLoaded(context, index);
 }
 
-unsigned int ImageLoaderMegaDylib::updateDepth(unsigned int maxDepth)
+unsigned int ImageLoaderMegaDylib::recursiveUpdateDepth(unsigned int maxDepth)
 {
 	setDepth(maxDepth);
 	return maxDepth;
@@ -946,7 +946,7 @@ void ImageLoaderMegaDylib::recursiveInitialization(const LinkContext& context, m
 	}
 }
 
-void ImageLoaderMegaDylib::recursiveBind(const LinkContext& context, bool forceLazysBound, bool neverUnload, const ImageLoader* parent)
+void ImageLoaderMegaDylib::recursiveBind(const LinkContext& context, bool forceLazysBound, bool neverUnload)
 {
 	markAllbound(context);
 }

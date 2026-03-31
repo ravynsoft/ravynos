@@ -24,4 +24,5 @@ endif()
 
 add_subdirectory(ravynOS.sdk)
 add_subdirectory(Default.xctoolchain)
+add_subdirectory(InternalSDK)
 

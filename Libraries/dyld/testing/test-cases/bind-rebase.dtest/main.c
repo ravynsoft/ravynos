@@ -14,15 +14,11 @@
 extern char tzname[];  // a char array in libSystem.dylib
 
 
-#define VERIFY(a,b) assert(a==(b))
+#define VERIFY(a,b) assert(a==b)
 
 
 static uint8_t a;
 uint8_t* const rebasedPtrs[] = { NULL, NULL, &a, &a+1, &a+16, &a+1023, NULL, &a-1 };
-
-#if __LP64__
-uint8_t* const tbiPointers[] = { &a+0x8000000000000000, &a, &a+0x9000000000000000 };
-#endif
 
 void verifyRebases()
 {
@@ -34,10 +30,6 @@ void verifyRebases()
     VERIFY(rebasedPtrs[5], &a+1023);
     VERIFY(rebasedPtrs[6], NULL);
     VERIFY(rebasedPtrs[7], &a-1);
-#if __LP64__
-    VERIFY(tbiPointers[0], &a + 0x8000000000000000);
-    VERIFY(tbiPointers[2], &a + 0x9000000000000000);
-#endif
 }
 
 

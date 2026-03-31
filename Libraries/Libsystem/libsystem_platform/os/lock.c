@@ -74,12 +74,10 @@ _os_lock_corruption_abort(void *lock_ptr OS_UNUSED, uintptr_t lock_value)
 
 OS_NOEXPORT OS_NOINLINE void _OSSpinLockLockSlow(volatile OSSpinLock *l);
 
-/**
 OS_ATOMIC_EXPORT void OSSpinLockLock(volatile OSSpinLock *l);
 OS_ATOMIC_EXPORT bool OSSpinLockTry(volatile OSSpinLock *l);
 OS_ATOMIC_EXPORT int spin_lock_try(volatile OSSpinLock *l);
 OS_ATOMIC_EXPORT void OSSpinLockUnlock(volatile OSSpinLock *l);
-*/
 
 #if TARGET_OS_IPHONE && !TARGET_OS_SIMULATOR
 static const OSSpinLock _OSSpinLockLocked = 1;

@@ -1,0 +1,660 @@
+.Dd November 14, 2012
+.Os Darwin
+.Dt KEXTFIND 8
+.Sh NAME
+.Nm kextfind
+.Nd find kernel extensions (kexts) based on a variety of criteria and print information
+.Sh SYNOPSIS
+.Nm
+.Op Ar options
+.Op Fl -
+.Op Ar kext_or_directory Li \&.\|.\|.
+.Op Ar query
+.Op Fl report Oo Fl no-header Oc Ar report_predicate Li \&.\|.\|.
+.Sh DESCRIPTION
+The
+.Nm
+utility locates and prints information, or generates reports,
+about kernel extensions (kexts)
+matching the search criteria in
+.Ar query
+from among those in the named directory and extension arguments.
+If no directories or extensions are specified,
+.Nm
+searches /System/Library/Extensions and /Library/Extensions.
+Searches are performed via kext management logic
+as used by
+.Xr kextload 8
+and
+.Xr kextd 8 ,
+by which only kexts directly in the repository directory
+or kexts explicitly named
+(and their immediate plugins) are eligible;
+this is specifically not an exhaustive, recursive filesystem search.
+.Pp
+Construct your search using any of the
+query and command predicates listed below.
+You can combine predicates with the
+logical operators
+.Fl and ,
+.Fl or ,
+and
+.Fl not ,
+and group them with parentheses.
+.Pp
+Query command predicates generally print
+some bit of information about a kext,
+such as its pathname or bundle identifier,
+followed by either a newline or an ASCII NUL.
+You can also generate a tab-delimited report
+using the
+.Fl report
+keyword after the query expression;
+if you do, you must not specify
+any of the command predicates described below.
+.Pp
+If no command predicate or report is specified,
+.Nm
+implicitly executes a
+.Fl print
+command predicate for each kext matching the query.
+.Sh OPTIONS
+.Bl -tag -width indent -compact
+.It Fl h , Fl help
+Print a help message describing each option flag and exit with a success result,
+regardless of any other options on the command line.
+.It Fl set-arch Ar arch
+Set the architecture used for such things as architecture-specific
+properties to
+.Ar arch .
+You can only perform a query with one such architecture;
+searches for multiple executable architectures are possible,
+for example,
+but you can't search for two architecture-specific values
+of a single property.
+.It Fl i , Fl case-insensitive
+Perform case-insensitive comparisons for all property, match property,
+and bundle identifier query predicates when values are strings.
+Has no effect when property values are numbers or booleans.
+You can also use this option with individual property query predicates.
+.It Fl s , Fl substring
+Perform substring searches for all property, match property,
+and bundle identifier query predicates when values are strings.
+Has no effect when property values are numbers or booleans.
+You can also use this option with individual property query predicates.
+.It Fl no-paths
+Print no paths for kexts, just their bundle names,
+and for info dictionary and executable files,
+their paths relative to the kext itself.
+This can be ambiguous with plugins of the same name
+and when searching multiple repositories.
+.It Fl relative-paths
+Print pathnames relative to kexts' repositories
+(which can be ambiguous if multiple repositories are being searched).
+.It Fl 0 , Fl nul
+Make the
+.Fl echo
+and all
+.Fl print Ns \&.\|.\|.
+command predicates except for
+.Fl print-diagnostics
+emit an ASCII NUL character (character code 0)
+in place of any newlines.
+This is useful when sending the output to
+.Xr xargs 1 .
+You can also use this flag individually with those command predicates.
+.It Fl f Ar kext_or_directory , Fl search-item Ar kext_or_directory
+Specifies a kext or directory of kexts to search.
+May be specified multiple times.
+While you can normally just list them
+without an option flag,
+these are provided to prevent ambiguity with the query expression.
+.It Fl e , Fl system-extensions
+Adds /System/Library/Extensions and /Library/Extensions to the list of directories to search.
+If you don't specify any directories or kexts, this is used by default.
+.It Fl -
+End of options.
+.El
+.Sh QUERY PREDICATES
+Descriptions of all available search criteria and commands follow,
+grouped by general category.
+.Sh Search by Bundle Name, or Info Dictionary or Match (Personality) Properties
+Most of these predicates take the
+.Fl case-insensitive Li ( Ns Fl i Ns Li )
+and
+.Fl substring Li ( Ns Fl s Ns Li )
+options as described above.
+.Pp
+.Bl -tag -width indent -compact
+.It Fl b Oo Fl i Ns Li | Ns Fl case-insensitive Oc Oo Fl s Ns Li | Ns Fl substring Oc Ar identifier
+.It Fl bundle-id Oo Fl i Ns Li | Ns Fl case-insensitive Oc Oo Fl s Ns Li | Ns Fl substring Oc Ar identifier
+True if the kext's bundle identifier matches
+.Ar identifier .
+This is equivalent to
+.Fl property Cm CFBundleIdentifier Ar identifier Ns Li .
+.It Fl dup
+.It Fl duplicate-id
+True if any other kext has the same bundle identifier as the current kext.
+.It Fl B Oo Fl i Ns Li | Ns Fl case-insensitive Oc Oo Fl s Ns Li | Ns Fl substring Oc Ar name
+.It Fl bundle-name Oo Fl i Ns Li | Ns Fl case-insensitive Oc Oo Fl s Ns Li | Ns Fl substring Oc Ar name
+True if the kext's bundle name matches
+.Ar name .
+.It Fl m Oo Fl i Ns Li | Ns Fl case-insensitive Oc Oo Fl s Ns Li | Ns Fl substring Oc Ar name value
+.It Fl match-property Oo Fl i Ns Li | Ns Fl case-insensitive Oc Oo Fl s Ns Li | Ns Fl substring Oc Ar name Ar value
+True if the kext has at least one personality
+that contains
+.Ar value
+as a string, number, or boolean value
+(expressible as
+.Dq Li true ,
+.Dq Li yes ,
+.Dq Li 1
+or
+.Dq Li false ,
+.Dq Li no ,
+.Dq Li 0 )
+for the named property.
+.It Fl me Ar name
+.It Fl match-property-exists Ar name
+True if the kext has at least one personality
+containing any value for the named property.
+.It Fl p Oo Fl i Ns Li | Ns Fl case-insensitive Oc Oo Fl s Ns Li | Ns Fl substring Oc Ar name Ar value
+.It Fl property Oo Fl i Ns Li | Ns Fl case-insensitive Oc Oo Fl s Ns Li | Ns Fl substring Oc Ar name Ar value
+True if the kext's info dictionary contains
+.Ar value
+as a string, number, or boolean value
+(expressible as
+.Dq Li true ,
+.Dq Li yes ,
+.Dq Li 1
+or
+.Dq Li false ,
+.Dq Li no ,
+.Dq Li 0 )
+for the named property.
+.It Fl pe Ar name
+.It Fl property-exists Ar name
+True if the kext's info dictionary
+contains any value for the named property.
+.El
+.Sh Search by Loaded/Loadable
+.Bl -tag -width indent -compact
+.It Fl a , Fl authentic
+True if the kext is owned by root:wheel and has proper permissions.
+.It Fl d , Fl dependencies-met
+True if the kext has all its dependencies met.
+.It Fl nd , Fl dependencies-missing
+True if the kext is missing dependencies
+(or can't have its dependencies resolved).
+.It Fl na , Fl inauthentic
+True if the kext is not owned by root:wheel or has improper permissions
+(or can't be so authenticated).
+.It Fl nv , Fl invalid
+True if the kext is not valid.
+.It Fl l , Fl loadable
+True if the kext appears to be loadable.
+(It may still fail to load due to link errors.)
+.It Fl loaded
+True if the kext is currently loaded
+(if its bundle identifier, version, and executable UUID match
+a kext loaded in the kernel).
+.It Fl nl , Fl nonloadable
+True if the kext can't be loaded because it is invalid, inauthentic,
+or missing dependencies.
+.It Fl v , Fl valid
+True if the kext is valid.
+.It Fl w , Fl warnings
+True if any warnings are noted while validating the kext.
+.El
+.Sh Search by Executable, Architecture, or Symbol
+.Bl -tag -width indent -compact
+.It Fl arch Ar arch1 Ns Oo Ns Cm , Ns Ar arch2 Ns Li \&.\|.\|. Oc
+True if the kext contains
+all of the named CPU architectures (separated by commas only with no spaces),
+and possibly others,
+in its executable.
+.It Fl ax Ar arch1 Ns Oo Ns Cm , Ns Ar arch2 Ns Li \&.\|.\|. Oc , Fl arch-exact Ar arch1 Ns Oo Ns Cm , Ns Ar arch2 Ns Li \&.\|.\|. Oc
+True if the kext contains
+.Em all
+of the named CPU architectures (separated by commas only with no spaces),
+and no others,
+in its executable.
+.It Fl dsym Ar symbol , Fl defines-symbol Ar symbol
+True if the kext defines the named
+.Ar symbol 
+in any of its architectures.
+The name must match exactly
+with the (possibly mangled) symbol
+in the kext's executable.
+Such names typically begin with at lease one underscore;
+see
+.Xr nm 1 .
+A kext must also be a library for others to link against it
+(see
+.Fl "library" Ns ).
+.It Fl x , Fl executable
+True if the kext declares an executable via the CFBundleExecutable property
+(whether it actually has one or not;
+that is, if the kext declares one but it's missing,
+this predicate is true even though the kext is invalid).
+.It Fl nx , Fl no-executable
+True if the kext does not declare an executable via the CFBundleExecutable property.
+.It Fl rsym Ar symbol , Fl references-symbol Ar symbol
+True if the kext has an undefined reference to the named
+.Ar symbol 
+in any of its architectures.
+The name must match exactly
+with the (possibly mangled) symbol
+in the kext's executable.
+Such names typically begin with at lease one underscore;
+see
+.Xr nm 1 .
+.El
+.Sh Search by Miscellaneous Attribute
+.Bl -tag -width indent -compact
+.It Fl debug
+True if the kext has a top-level OSBundleEnableKextLogging property set to true,
+or if any of its personalities has an IOKitDebug property other than zero.
+(Note: As of Mac OS X 10.6 (Snow Leopard), the property OSBundleDebugLevel is no longer used.)
+.It Fl has-plugins
+True if the kext contains plugins.
+.It Fl integrity Li { Cm correct Ns | Ns Cm modified Ns | Ns Cm no-receipt Ns | Ns Cm not-apple Ns | Ns Cm unknown Li }
+OBSOLETE. As of Mac OS X 10.6 (Snow Leopard),
+kext integrity is not used and this predicate always evaluates to false.
+.It Fl kernel-resource
+True if the kext represents a resource built into the kernel.
+.It Fl lib , Fl library
+True if the kext is a library that other kexts can link against.
+.It Fl plugin
+True if the kext is a plugin of another kext.
+.El
+.Sh Search by Startup Requirement
+These options find kexts that are used at startup or allowed
+to load during safe boot.
+They should be combined with the
+.Fl or
+operator.
+(The standard system mkext file contains
+console, local-root, and root kexts,
+so you would specify
+.Do Li \\e( -console -or -local-root -or -root \\e) Dc Ns .
+.Pp
+.Bl -tag -width indent -compact
+.It Fl C , Fl console
+True if the kext is potentially required for console-mode startup
+(same as
+.Fl p Cm OSBundleRequired Console
+but always case-sensitive).
+.It Fl L , Fl local-root
+True if the kext is potentially required for local-root startup
+(same as
+.Fl p Cm OSBundleRequired Local-Root
+but always case-sensitive).
+.It Fl N , Fl network-root
+True if the kext is potentially required for network-root startup
+(same as
+.Fl p Cm OSBundleRequired Network-Root
+but always case-sensitive).
+.It Fl R , Fl root
+True if the kext is potentially required for root startup
+(same as
+.Fl p Cm OSBundleRequired Root
+but always case-sensitive).
+.It Fl S , Fl safe-boot
+True if the kext is potentially allowed to load during safe boot
+(same as
+.Fl p Cm OSBundleRequired 'Safe Boot'
+but always case-sensitive).
+.El
+.Sh Search by Version
+.Bl -tag -width indent -compact
+.It Fl compatible-with-version Ar version
+True if the kext is a library kext compatible with the given version.
+.It Fl V Xo
+.Oo Cm ne Ns | Ns Cm gt Ns | Ns Cm ge Ns | Ns Cm lt Ns | Ns Cm le Oc Ns Ar version Ns
+.Oo Ns Cm - Ns Ar version Oc
+.Xc
+.It Fl version Xo
+.Oo Cm ne Ns | Ns Cm gt Ns | Ns Cm ge Ns | Ns Cm lt Ns | Ns Cm le Oc Ns Ar version Ns
+.Oo Ns Cm - Ns Ar version Oc
+.Xc
+True if the kext's version matches the version expression.
+You can either specify an operator before a single version,
+or a range of versions.
+Remember that nonfinal versions such as 1.0d21
+compare as less than final versions (in this case 1.0);
+construct your version expression accordingly.
+See also
+.Fl library .
+.El
+.Sh QUERY COMMAND PREDICATES
+These predicates print information about kexts that match the query,
+or run a utility on the kext bundle directory, its info dictionary file,
+or its executable.
+Execpt for
+.Fl exec ,
+these all have a true result for purposes of query evaluation.
+.Pp
+The
+.Fl echo
+and all
+.Fl print Ns \&.\|.\|.
+command predicates except for
+.Fl print-diagnostics
+accept a
+.Fl nul Li ( Ns Fl 0 Ns Li )
+option to emit an ASCII NUL character (character code 0)
+in place of any newlines.
+This is useful when sending the output to
+.Xr xargs 1 .
+.Pp
+.Bl -tag -width indent -compact
+.It Fl echo Oo Fl n Ns | Ns Fl no-newline Oc Oo Fl 0 Ns | Ns Fl nul Oc Ar string
+Prints
+.Ar string 
+followed by a newline.
+You can specify
+.Fl n
+or
+.Fl no-newline
+to omit the newline.
+If you specify both
+.Fl n
+and
+.Fl nul ,
+.Ar string
+is not followed
+by either a newline or an ASCII NUL character.
+.It Ic -exec Ar utility Oo Ar argument Li \&.\|.\|. Oc Li \&;
+True if the program named
+.Ar utility
+returns a zero value as its exit status.
+Optional
+.Ar arguments
+may be passed to the utility.
+The expression must be terminated by a semicolon
+.Pq Dq Li \&; .
+If you invoke
+.Nm
+from a shell you may need to quote the semicolon if the shell would
+otherwise treat it as a control operator.
+The strings
+.Dq Li {} ,
+.Dq Li {info-dictionary} ,
+and
+.Dq Li {executable} ,
+appearing anywhere in the utility name or the
+arguments are replaced by the pathname of the current kext,
+its info dictionary, or its executable, respectively.
+.Ar utility
+will be executed from the directory from which
+.Nm
+was executed.
+.Ar utility
+and
+.Ar arguments
+are not subject to the further expansion of shell patterns
+and constructs.
+.It Fl print Oo Fl 0 Ns | Ns Fl nul Oc
+Prints the pathname of the kext.
+If no command predicate is specified,
+the query as a whole becomes equivalent to
+.Cm \&( Ar query Cm \&) Fl and Fl print .
+.It Fl print0
+Equivalent to
+.Fl print
+.Fl nul ,
+for all you
+.Xr find 1
+users out there.
+.It Fl pa Oo Fl 0 Ns | Ns Fl nul Oc
+.It Fl print-arches Oo Fl 0 Ns | Ns Fl nul Oc
+Prints the names of all the architectures
+in the kext executable (if it has one),
+separated by commas.
+.It Fl print-dependencies Oo Fl 0 Ns | Ns Fl nul Oc
+Prints the pathnames of all direct and indirect dependencies of the kext.
+.It Fl print-dependents Oo Fl 0 Ns | Ns Fl nul Oc
+Prints the pathnames of all direct and indirect dependents of the kext.
+.It Fl pdiag
+.It Fl print-diagnostics
+Prints validation and authentication failures,
+missing dependencies,
+and warnings for the kext.
+.It Fl px Oo Fl 0 Ns | Ns Fl nul Oc
+.It Fl print-executable Oo Fl 0 Ns | Ns Fl nul Oc
+Prints the pathname to the kext's executable file.
+.It Fl pid Oo Fl 0 Ns | Ns Fl nul Oc
+.It Fl print-info-dictionary Oo Fl 0 Ns | Ns Fl nul Oc
+Prints the pathname to the kext's info dictionary file.
+(You can use
+.Do Li "-exec cat {info-dictionary} \e;" Dc
+or
+.Do Li "-exec pl -input {info-dictionary} \e;" Dc
+to print the contents of the file.)
+.It Fl print-integrity Oo Fl 0 Ns | Ns Fl nul Oc
+OBSOLETE. As of Mac OS X 10.6 (Snow Leopard),
+kext integrity is not used and this command prints
+.Dq n/a
+for
+.Dq "not applicable" .
+.It Fl print-plugins Oo Fl 0 Ns | Ns Fl nul Oc
+Prints the pathnames of all plugins of the kext.
+.It Fl pm Oo Fl 0 Ns | Ns Fl nul Oc Ar name
+.It Fl print-match-property Oo Fl 0 Ns | Ns Fl nul Oc Ar name
+For each matching personality in the kext, if the named property exists,
+prints the personality's name, a colon, then
+.Ar name
+followed by an equals sign and the property's value.
+Results in true even if the property does not exist for any personality.
+.It Fl pp Oo Fl 0 Ns | Ns Fl nul Oc Ar name
+.It Fl print-property Oo Fl 0 Ns | Ns Fl nul Oc Ar name
+If the top-level property exists, prints
+.Ar name
+followed by an equals sign and its value.
+Results in true even if the property does not exist.
+.El
+.Sh OPERATORS
+The query primaries may be combined using the following operators.
+The operators are listed in order of decreasing precedence.
+.Pp
+.Bl -tag -width indent -compact
+.It Cm \&( Ar expression Cm \&)
+This evaluates to true if the parenthesized
+.Ar expression
+evaluates to true.
+Note that in many shells parentheses are special characters
+and must be escaped or quoted.
+.It Cm \&! Ar expression
+.It Fl not Ar expression
+This is the unary NOT operator.
+It evaluates to true if
+.Ar expression
+is false,
+to false if
+.Ar expression
+is true.
+Note that in many shells
+.Dq Li \&!
+is a special character
+and must be escaped or quoted.
+.It Ar expression Fl and Ar expression
+.It Ar expression Ar expression
+The
+.Ar and
+operator is the logical AND operator.
+It is implied by the juxtaposition of two expressions
+and therefore need not be specified.
+It evaluates to true if both expressions are true.
+If the first expression is false, the second expression is not evaluated.
+.It Ar expression Fl or Ar expression
+The
+.Fl or
+operator is the logical OR operator.
+It evaluates to true if either expression is true.
+If the first expression is true, the second expression is not evaluated.
+.El
+.Sh REPORTS
+Use the following predicates in a report expression
+to generate a tab-delimited format,
+one kext per line,
+suitable for further processing (or immediate edification).
+The report normally starts with a header line labeling each column;
+you can skip this by following
+.Fl report
+directly with
+.Fl no-header .
+.Pp
+The report predicate keywords are almost all the same as query predicates,
+but have different purposes (and arguments in several cases).
+In general, where a query predicate is looking for a value,
+a report predicate is retrieving it.
+Thus, the property predicates only take the name of the property,
+and print the value of that property for the kext being examined.
+Report predicates based on attributes with multiple values,
+such as
+.Fl print-dependencies ,
+print the number of values rather than the values themselves.
+Finally, report predicates for yes/no questions print
+.Dq yes
+or
+.Dq no .
+.Pp
+Note that many shorthands for inverted meanings, such as
+.Fl invalid ,
+are not available for reports (they would only be confusing).
+Others, such as
+.Fl match-property ,
+could generate multiple values that would be impossible
+to embed meaningfully in plain tab-delimited text
+(and knowing how many of them there are is not useful).
+.Pp
+.Sh Value Report Predicates
+.Bl -tag -width indent -compact
+.It Fl b , Fl bundle-id
+Prints the kext's bundle identifier.
+.It Fl B , Fl bundle-name
+Prints the kext's bundle name.
+.It Fl integrity , Fl print-integrity
+OBSOLETE. As of Mac OS X 10.6 (Snow Leopard),
+kext integrity is not used and this command prints
+.Dq n/a
+for
+.Dq "not applicable" .
+.It Fl V , Fl version
+Prints the kext's version.
+.It Fl print
+Prints the kext's pathname.
+.It Fl pa , Fl print-arches
+Prints the names of the architectures, if any, in the kext executable.
+.It Fl print-dependencies
+Prints the number of dependencies found for the kext.
+.It Fl print-dependents
+Prints the number of kexts found that depend on the kext.
+.It Fl px , Fl print-executable
+Prints the pathname of the kext's executable (if it has one).
+.It Fl pid , Fl print-info-dictionary
+Prints the pathname of the kext's info dictionary.
+.It Fl print-plugins
+Prints the number of plugin kexts the kext has.
+.It Fl p Ar name , Fl property Ar name
+.It Fl pp Ar name , Fl print-property Ar name
+Prints the value for the top-level info dictionary property with key
+.Ar name .
+If the key is not defined, prints
+.Dq Li "<null>" .
+.It Fl sym Ar symbol , Fl symbol Ar symbol
+Prints
+.Dq references
+or
+.Dq defines
+if the kext
+references or defines
+.Ar symbol .
+(This is the only report predicate that is not also a query predicate.)
+.El
+.Sh Yes/No Report Predicates
+.Bl -tag -width indent -compact
+.It Fl arch Ar arch1 Ns Oo Ns Cm , Ns Ar arch2 Ns \&.\|.\|. Oc
+.Dq Li yes
+if the kexts contains
+.Em all
+the named architectures (and possibly others),
+.Dq Li no
+otherwise.
+.It Fl ax Ar arch1 Ns Oo Ns Cm , Ns Ar arch2 Ns \&.\|.\|. Oc , Fl arch-exact Ar arch1 Ns Oo Ns Cm , Ns Ar arch2 Ns \&.\|.\|. Oc
+.Dq Li yes
+if the kexts contains
+.Em exactly
+the named architectures (and no others),
+.Dq Li no
+otherwise.
+.It Fl a , Fl authentic
+.It Fl debug
+.It Fl d , Fl dependencies-met
+.It Fl dup, Fl duplicate-identifier
+.It Fl x , Fl executable
+.It Fl has-plugins
+.It Fl kernel-resource
+.It Fl lib , Fl library
+.It Fl l , Fl loadable
+.It Fl loaded
+.It Fl plugin
+.It Fl w , Fl warnings
+.It Fl v , Fl valid
+.El
+.Sh EXAMPLES
+The following examples are shown as given to the shell:
+.Pp
+.Bl -tag -width indent
+.It Li "kextfind -case-insensitive -not -bundle-id -substring 'com.apple.' -print"
+Print a list of all non-Apple kexts.
+.It Li "kextfind \e( -nonloadable -or -warnings \e) -print -print-diagnostics"
+Print a list of all kexts that aren't loadable or that have any warnings,
+along with what's wrong with each.
+.It Li "kextfind -nonloadable -print-dependents | sort | uniq"
+Print a list of all kexts that can't be loaded because
+of problems with their dependencies.
+.It Li "kextfind -defines-symbol __ZTV14IONetworkStack"
+Print a list of all kexts that define the symbol
+__ZTV14IONetworkStack.
+.It Li "kextfind -relative-paths -arch-exact ppc,i386"
+Print a list of all kexts kexts that contain only ppc and i386 code.
+.It Li "kextfind -debug -print -pp OSBundleDebugLevel -pm IOKitDebug"
+Print a list of all kexts that have debug options set,
+along with the values of the debug options.
+.It Li "kextfind -m IOProviderClass IOMedia -print -exec pl -input {info-dictionary} \;"
+Print a list of all kexts that match on IOMedia,
+along with their info dictionaries.
+.It Li "kextfind -no-paths -nl -report -print -v -a -d"
+Print a report of kexts that can't be loaded,
+with hints as to the problems.
+.El
+.Sh DIAGNOSTICS
+The
+.Nm
+utility exits with a status of 0 on completion
+(whether or not any kexts are found),
+or with a nonzero status if an error occurs.
+.Sh SEE ALSO
+.Xr find 1 ,
+.Xr kextcache 8 ,
+.Xr kextd 8 ,
+.Xr kextload 8 ,
+.Xr kextstat 8 ,
+.Xr kextunload 8 ,
+.Xr xargs 1
+.Sh BUGS
+Many single-letter options are inconsistent in meaning
+with (or directly contradictory to) the same letter options
+in other kext tools.
+.Pp
+Several special characters used by
+.Nm
+are also special characters to many shell programs.
+In particular, the characters
+.Dq Li \&! ,
+.Dq Li \&( ,
+and
+.Dq Li \&) ,
+may have to be escaped from the shell.

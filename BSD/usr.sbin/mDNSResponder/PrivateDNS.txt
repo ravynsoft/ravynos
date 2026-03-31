@@ -1,0 +1,275 @@
+Private DNS
+
+Summary
+
+Private DNS is an extension to standard Wide Area Bonjour that allows
+for secure, encrypted, and authorized communications. Private data sent
+from a client to a DNS server is encrypted using Transport Layer
+Security (TLS), ensuring that the data is hidden from prying eyes, and
+contains Transaction Signatures (TSIG), so the server can authorize the
+request. TSIGs are typically associated with Dynamic Updates; we are
+using them for standard and long-lived queries as well. Private DNS also
+protects Dynamic Updates from eavesdropping, by wrapping the update in a
+TLS communication channel if the server has been configured appropriately.
+
+Architectural Overview
+
+mDNSResponder has been modified to automatically issue a private query
+when necessary. After receiving an NXDOMAIN error, mDNSResponder checks
+in the system keychain to see if the user has a DNS query key (TSIG key)
+for the name in question, or for a parent of that name. If a suitable
+key is found, mDNSResponder looks up the zone data associated with the
+name of the question. After determining the correct name server,
+mDNSResponder looks up an additional SRV record "_dns-private._tcp". If
+it finds this record, mDNSResponder will re-issue the query privately.
+If either there is no _dns-private._tcp record, or there is no secret
+key, the call fails as it initially did, with an NXDOMAIN error.
+
+Once the secret key is found and the SRV record is looked up, mDNSResponder
+opens a TLS connection to the server on the port specified in the SRV
+record just looked up. After the connection succeeds, mDNSResponder
+can proceed to use that communication channel to make requests of
+the server. Every private packet must also have a TSIG record;
+the DNS server uses this TSIG record to allow access to its data.
+
+When setting up a long-lived query over TCP (with or without TLS)
+TCP's standard three-way handshake makes the full four-packet LLQ setup
+exchange described in <http://files.dns-sd.org/draft-sekar-dns-llq.txt>
+unnecessary. Instead, when connecting over TCP, the client simply sends
+a setup message and expects to receive ACK + Answers. The setup message
+sent is formatted as described in the LLQ document, however there is
+an additional TSIG' resource record added to the end of it. The TSIG
+resource records looks and acts exactly as it does in a secure update.
+So when the server receives an LLQ (or a standard query), it looks to
+see if the zone that is being referenced is public or private. If it's
+private, then it makes sure that the client is authorized to query that
+zone (by using the TSIG signature) and returns the appropriate data.
+When a zone is configured as private, the server will do this type of
+authorization checking for every query except those queries that are
+looking for SOA and NS records.
+
+Implementation Issues
+
+dnsextd
+
+dnsextd has been modified to behave much like a DNS firewall. The "real"
+DNS server is configured to listen on non-standard ports on the loopback
+interface. dnsextd then listens on the standard DNS ports (TCP/UDP port
+53) and intercepts all DNS traffic. It is responsible for determining
+what zone a DNS request is associated with, determining whether the
+client is allowed access to that zone, and returning the appropriate
+information back to the caller. If the packet is allowed access, dnsextd
+forwards the request to the "real" nameserver, and returns the result to
+the caller.
+
+It was tempting to use BIND9's facility for configuring TSIG enabled
+queries while doing this work. However after proceeding down that path,
+enough subtle interaction problems were found that it was not practical
+to pursue this direction, so instead dnsextd does all TSIG processing
+for queries itself. It does continue to use BIND9 for processing TSIG
+enabled dynamic updates, though one minor downside with this is that
+there are two configuration files (named.conf or dnsextd.conf) that have
+the same secret key information. That seems redundant and error-prone,
+and moving all TSIG processing for both queries and updates into dnsextd
+would fix this.
+
+All private LLQ operations are TSIG-enabled and sent over a secure
+encrypted TLS channel. To accommodate service providers who don't want
+to have to keep open a large number of TLS connections to a large number
+of client machines, the server has the option of dropping the TLS
+connection after initial LLQ setup and sending subsequent events and
+refreshes using unencrypted UDP packets. This results in less load on
+the server, at the cost of slightly lower security (LLQs can only be set
+up by an authorized client, but once set up, subsequent change event
+packets sent over unencrypted UDP could be observed by an eavesdropper).
+A potential solution to this deficiency might be in using DTLS, which is
+a protocol based on TLS that is capable of securing datagram traffic.
+More investigation needs to be done to see if DTLS is suitable for
+private DNS.
+
+It was necessary to relax one of the checks that dnsextd performs during
+processing of an LLQ refresh. Prior to these changes, dnsextd would
+verify that the refresh request came from the same entity that setup the
+LLQ by comparing both the IP Address and port number of the request
+packet with the IP Address and port number of the setup packet. Because
+of the preceding issue, a refresh request might be sent over two
+different sockets. While their IP addresses would be the same, their
+port numbers could potentially differ. This check has been modified to
+only check that the IP addresses match.
+
+When setting up a semi-private LLQ (where the request and initial answer
+set is sent over TLS/TCP, but subsequent change events are sent over
+unencrypted UDP), dnsextd uses the port number of the client's TCP
+socket to determine the UDP event port number. While this eliminates the
+need to pass the UDP event port number in the LLQ setup request
+(obviating a potential data mismatch error), I think it does more harm
+than good, for three reasons:
+
+1) We are relying that all the routers out there implement the Port
+   Mapping Protocol spec correctly.
+
+2) Upon setup every LLQ must NAT map two ports. Upon tear down every LLQ
+   must tear down two NAT mappings.
+
+3) Every LLQ opens up two sockets (TCP and UDP), rather than just the
+   one TCP socket.
+
+All of this just to avoid sending two bytes in the LLQ setup packet
+doesn't seem logical. The approach also necessitates creating an
+additional UDP socket for every private LLQ, port mapping both the TCP
+socket as well as the UDP socket, and moderately increasing the
+complexity and efficiency of the code. Because of this we plan to allow
+the LLQ setup packet to specify a different UDP port for change event
+packets. This will allow mDNSResponder to receive all UDP change event
+packets on a single UDP port, instead of a different one for each LLQ.
+
+Currently, dnsextd is buggy on multi-homed hosts. If it receives a
+packet on interface 2, it will reply on interface 1 causing an error in
+the client program.
+
+dnsextd doesn't fully process all of its option parameters.
+Specifically, it doesn't process the keywords: "listen-on",
+"nameserver", "private", and "llq". It defaults to expecting the "real"
+nameserver to be listening on 127.0.0.1:5030.
+
+
+mDNSResponder
+
+Currently, mDNSResponder attempts to issue private queries for all
+queries that initially result in an NXDOMAIN error. This behavior might
+be modified in future versions, however it seems patently incorrect to
+do this for reverse name lookups. The code that attempts to get the zone
+data associated with the name will never find the zone for a reverse
+name lookup, and so will issue a number of wasteful DNS queries.
+
+mDNSResponder doesn't handle SERV_FULL or STATIC return codes after
+setting up an LLQ over TCP. This isn't a terrible problem right now,
+because dnsextd doesn't ever return them, but this should be fixed so
+that mDNSResponder will work when talking to other servers that do
+return these error codes.
+
+
+Configuration:
+
+Sample named.conf:
+
+//
+// Include keys file
+//
+include "/etc/rndc.key";
+// Declares control channels to be used by the rndc utility.
+//
+// It is recommended that 127.0.0.1 be the only address used.
+// This also allows non-privileged users on the local host to manage
+// your name server.
+
+//
+// Default controls
+//
+controls
+	{
+	inet 127.0.0.1 port 54 allow { any; } keys { "rndc-key"; };
+	};
+
+options
+	{
+	directory "/var/named";
+	/*
+	 * If there is a firewall between you and nameservers you want
+	 * to talk to, you might need to uncomment the query-source
+	 * directive below. Previous versions of BIND always asked
+	 * questions using port 53, but BIND 8.1 uses an unprivileged
+	 * port by default.
+	 */
+	
+	forwarders
+			{
+			65.23.128.2;
+			65.23.128.3;
+			};
+	
+	listen-on port 5030 { 127.0.0.1; };
+	recursion true;
+	};
+
+// 
+// a caching only nameserver config
+// 
+zone "." IN
+	{
+	type hint;
+	file "named.ca";
+	};
+
+zone "localhost" IN
+	{
+	type master;
+	file "localhost.zone";
+	allow-update { none; };
+	};
+
+zone "0.0.127.in-addr.arpa" IN
+	{
+	type master;
+	file "named.local";
+	allow-update { none; };
+	};
+
+zone "hungrywolf.org." in
+	{
+	type master;
+	file "db.hungrywolf.org";
+	allow-update { key hungrywolf.org.; };
+	};
+
+zone "157.23.65.in-addr.arpa" IN
+	{
+	file "db.65.23.157";
+	type master;
+	};
+
+zone "100.255.17.in-addr.arpa" IN
+	{
+	file "db.17.255.100";
+	type master;
+	};
+
+zone "66.6.24.in-addr.arpa" IN
+	{
+	file "db.24.6.66";
+	type master;
+	};
+
+key hungrywolf.org.
+	{
+	algorithm hmac-md5;
+	secret "c8LWr16K6ju6KMO5zT6Tyg==";
+	};
+
+logging
+	{
+	category default { _default_log; };
+
+	channel _default_log
+		{
+		file "/Library/Logs/named.log";
+		severity info;
+		print-time yes;
+		};
+	};
+
+
+Sample dnsextd.conf:
+
+options { };
+
+key "hungrywolf.org."
+	{
+	secret "c8LWr16K6ju6KMO5zT6Tyg==";
+	};
+
+zone "hungrywolf.org."
+	{
+	type private;
+	allow-query { key hungrywolf.org.; };
+	};

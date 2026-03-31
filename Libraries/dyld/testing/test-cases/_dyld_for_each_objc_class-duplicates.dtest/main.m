@@ -13,17 +13,6 @@
 
 #include "test_support.h"
 
-
-static bool objcOptimizedByDyld() {
-    extern const uint32_t objcInfo[]  __asm("section$start$__DATA_CONST$__objc_imageinfo");
-    return (objcInfo[1] & 0x80);
-}
-
-static bool haveDyldCache() {
-    size_t unusedCacheLen;
-    return (_dyld_get_shared_cache_range(&unusedCacheLen) != NULL);
-}
-
 // All the libraries have a copy of NSString
 @interface NSString : NSObject
 @end
@@ -144,17 +133,23 @@ void testDuplicate(const char* className, Class nonCacheClass) {
 }
 
 int main(int argc, const char* argv[], const char* envp[], const char* apple[]) {
-    size_t sharedCacheLen = 0;
-    const void* sharedCacheStart = _dyld_get_shared_cache_range(&sharedCacheLen);
-    if (!objcOptimizedByDyld() || (sharedCacheStart==NULL)) {
+  // This API is only available with dyld3 and shared caches.  If we have dyld2 then don't do anything
+  const char* testDyldMode = getenv("TEST_DYLD_MODE");
+  assert(testDyldMode);
+
+  size_t sharedCacheLen = 0;
+  const void* sharedCacheStart = 0;
+  sharedCacheStart = _dyld_get_shared_cache_range(&sharedCacheLen);
+  bool haveSharedCache = sharedCacheStart != NULL;
+  if (!strcmp(testDyldMode, "2") || !haveSharedCache) {
     __block bool sawClass = false;
-    _dyld_for_each_objc_class("DyldClass", ^(void* classPtr, bool isLoaded, bool* stop) {
+    _dyld_for_each_objc_class("NSString", ^(void* classPtr, bool isLoaded, bool* stop) {
       sawClass = true;
     });
     if (sawClass) {
       FAIL("dyld2 shouldn't see any classes");
     }
-    PASS("no shared cache or no dyld optimized objc");
+    PASS("dyld2 or no shared cache)");
   }
 
   // Check that NSString comes from Foundation as the shared cache should win here.

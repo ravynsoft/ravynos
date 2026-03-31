@@ -27,10 +27,6 @@
 #include <utility>
 #include <algorithm>
 
-#ifndef _POSIX_SPAWN_FORCE_4K_PAGES
-#define _POSIX_SPAWN_FORCE_4K_PAGES 0x1000
-#endif /* _POSIX_SPAWN_FORCE_4K_PAGES */
-
 extern "C" {
 #include "execserverServer.h"
 
@@ -131,9 +127,9 @@ inline void GrowableArray<T,QUANT,INIT>::erase(T& targ)
 struct TestState {
     TestState();
     static TestState* getState();
-    void _PASSV(const char* file, unsigned line, const char* format, va_list args) __attribute__ ((noreturn, format(printf, 4, 0)));
-    void _FAILV(const char* file, unsigned line, const char* format, va_list args) __attribute__ ((noreturn, format(printf, 4, 0)));
-    void _LOGV(const char* file, unsigned line, const char* format, va_list args) __attribute__ ((format(printf, 4, 0)));
+    void _PASSV(const char* file, unsigned line, const char* format, va_list args) __attribute__ ((noreturn));
+    void _FAILV(const char* file, unsigned line, const char* format, va_list args) __attribute__ ((noreturn));
+    void _LOGV(const char* file, unsigned line, const char* format, va_list args);
     GrowableArray<std::pair<mach_port_t, _dyld_test_crash_handler_t>>& getCrashHandlers();
 private:
     enum OutputStyle {
@@ -142,10 +138,8 @@ private:
         Console,
         XCTest
     };
-    void emitBegin();
     void runLeaks();
     void dumpLogs();
-    void getLogsString(char** buffer);
     static uint8_t hexCharToUInt(const char hexByte, uint8_t* value);
     static uint64_t hexToUInt64(const char* startHexByte, const char** endHexByte);
     
@@ -160,9 +154,9 @@ private:
 };
 
 // Okay, this is tricky. We need something with roughly he semantics of a weak def, but without using weak defs as their presence
-// may impact certain tests. Instead we do the following:
+// m ay impact certain tests. Instead we do the following:
 //
-// 1. Embed a stuct containing a lock and a pointer to our global state object in each binary
+// 1. Embed a stuct containing a lock and a pointer to our global state object in eahc binary
 // 2. Once per binary we walk the entire image list looking for the first entry that also has state data
 // 3. If it has state we lock its initializaion lock, and if it is not initialized we initialize it
 // 4. We then copy the initalized pointer into our own state, and unlock the initializer lock
@@ -230,7 +224,7 @@ catch_mach_exception_raise_state_identity(mach_port_t exception_port,
 }
 
 _process::_process() :  executablePath(nullptr), args(nullptr), env(nullptr), stdoutHandler(nullptr), stderrHandler(nullptr),
-                        crashHandler(nullptr), exitHandler(nullptr), arch(currentArch), suspended(false), altPageSize(false), pid(0) {}
+                        crashHandler(nullptr), exitHandler(nullptr), pid(0), arch(currentArch), suspended(false), async(false) {}
 _process::~_process() {
     if (stdoutHandler) { Block_release(stdoutHandler);}
     if (stderrHandler) { Block_release(stderrHandler);}
@@ -246,9 +240,8 @@ void _process::set_stderr_handler(_dyld_test_reader_t SEH) { stderrHandler = Blo
 void _process::set_exit_handler(_dyld_test_exit_handler_t EH) { exitHandler = Block_copy(EH); }
 void _process::set_crash_handler(_dyld_test_crash_handler_t CH) { crashHandler = Block_copy(CH); }
 void _process::set_launch_suspended(bool S) { suspended = S; }
-void _process::set_alt_page_size(bool PS) { altPageSize = PS; }
+void _process::set_launch_async(bool S) { async = S; }
 void _process::set_launch_arch(cpu_type_t A) { arch = A; }
-pid_t _process::get_pid() const { return pid; }
 
 pid_t _process::launch() {
     dispatch_queue_t queue = dispatch_queue_create("com.apple.dyld.test.launch", NULL);
@@ -259,17 +252,12 @@ pid_t _process::launch() {
     dispatch_source_t stderrSource = NULL;
     int stdoutPipe[2];
     int stderrPipe[2];
-    int flags = POSIX_SPAWN_START_SUSPENDED;
-
-    if (altPageSize) {
-        flags |= _POSIX_SPAWN_FORCE_4K_PAGES;
-    }
 
     if (posix_spawn_file_actions_init(&fileActions) != 0) {
         FAIL("Setting up spawn filea actions");
     }
     if (posix_spawnattr_init(&attr) != 0) { FAIL("Setting up spawn attr"); }
-    if (posix_spawnattr_setflags(&attr, flags) != 0) {
+    if (posix_spawnattr_setflags(&attr, POSIX_SPAWN_START_SUSPENDED) != 0) {
         FAIL("Setting up spawn attr: POSIX_SPAWN_START_SUSPENDED");
     }
 
@@ -341,6 +329,7 @@ pid_t _process::launch() {
         dispatch_resume(crashSource);
     }
 
+    pid_t pid;
     uint32_t argc = 0;
     if (args) {
         for (argc = 0; args[argc] != NULL; ++argc) {}
@@ -387,6 +376,9 @@ pid_t _process::launch() {
     posix_spawnattr_destroy(&attr);
     if (!suspended) {
         kill(pid, SIGCONT);
+    }
+    if (!async) {
+        dispatch_block_wait(oneShotSemaphoreBlock, DISPATCH_TIME_FOREVER);
     }
     Block_release(oneShotSemaphoreBlock);
     dispatch_release(queue);
@@ -463,29 +455,6 @@ uint64_t TestState::hexToUInt64(const char* startHexByte, const char** endHexByt
     return retval;
 }
 
-void TestState::getLogsString(char** buffer)
-{
-    char *logBuf = NULL;
-    if ( logs.count() ) {
-        size_t idx = 0;
-        size_t bufSize = 0;
-        for (const auto& log : logs) {
-            size_t logSize = strlen(log);
-            bufSize += logSize + 2;  // \t and \n
-            logBuf = (char*)realloc(logBuf, bufSize);
-            strncpy(logBuf+idx, "\t", 1);
-            idx++;
-            strncpy(logBuf+idx, log, logSize);
-            idx += logSize;
-            strncpy(logBuf+idx, "\n", 1);
-            idx++;
-        }
-        logBuf = (char*)realloc(logBuf, bufSize + 1);
-        logBuf[bufSize] = '\0';
-        *buffer = logBuf;
-    }
-}
-
 TestState::TestState() : testName(__progname), logImmediate(false), logOnSuccess(false),  checkForLeaks(false), output(Console) {
     forEachEnvVar(environ, [this](const char* env, const char* val) {
         if (strcmp(env, "TEST_LOG_IMMEDIATE") == 0) {
@@ -505,15 +474,12 @@ TestState::TestState() : testName(__progname), logImmediate(false), logOnSuccess
             }
         }
     });
-}
-
-void TestState::emitBegin() {
     if (output == BATS) {
         printf("[BEGIN]");
         if (checkForLeaks) {
             printf(" MallocStackLogging=1 MallocDebugReport=none");
         }
-        forEachEnvVar(environ, [](const char* env, const char* val) {
+        forEachEnvVar(environ, [this](const char* env, const char* val) {
             if ((strncmp(env, "DYLD_", 5) == 0) || (strncmp(env, "TEST_", 5) == 0)) {
                 printf(" %s=%s", env, val);
             }
@@ -526,53 +492,57 @@ void TestState::emitBegin() {
     }
 }
 
+static std::atomic<TestState*>& getExecutableImageState() {
+    uint32_t imageCnt = _dyld_image_count();
+    for (uint32_t i = 0; i < imageCnt; ++i) {
+        #if __LP64__
+            const struct mach_header_64* mh = (const struct mach_header_64*)_dyld_get_image_header(i);
+        #else
+            const struct mach_header* mh = _dyld_get_image_header(i);
+        #endif
+        if (mh->filetype != MH_EXECUTE) {
+            continue;
+        }
+        size_t size = 0;
+        auto state = (std::atomic<TestState*>*)getsectiondata(mh, "__DATA", "__dyld_test", &size);
+        if (!state) {
+            fprintf(stderr, "Could not find test state in main executable TestState\n");
+            exit(0);
+        }
+        return *state;
+    }
+    fprintf(stderr, "Could not find test state in main executable\n");
+    exit(0);
+}
+
 GrowableArray<std::pair<mach_port_t, _dyld_test_crash_handler_t>>& TestState::getCrashHandlers() {
     return crashHandlers;
 }
 
 TestState* TestState::getState() {
     if (!sState) {
-        uint32_t imageCnt = _dyld_image_count();
-        for (uint32_t i = 0; i < imageCnt; ++i) {
-            #if __LP64__
-                const struct mach_header_64* mh = (const struct mach_header_64*)_dyld_get_image_header(i);
-            #else
-                const struct mach_header* mh = _dyld_get_image_header(i);
-            #endif
-            if (mh->filetype != MH_EXECUTE) {
-                continue;
+        auto& state = getExecutableImageState();
+        if (state == nullptr) {
+            void *temp = malloc(sizeof(TestState));
+            auto newState = new (temp) TestState();
+            TestState* expected = nullptr;
+            if(!state.compare_exchange_strong(expected, newState)) {
+                newState->~TestState();
+                free(temp);
             }
-            size_t size = 0;
-            auto state = (std::atomic<TestState*>*)getsectiondata(mh, "__DATA", "__dyld_test", &size);
-//            fprintf(stderr, "__dyld_test -> 0x%llx\n", state);
-            if (!state) {
-                fprintf(stderr, "Could not find test state in main executable TestState\n");
-                exit(0);
-            }
-            if (*state == nullptr) {
-                void *temp = malloc(sizeof(TestState));
-                auto newState = new (temp) TestState();
-                TestState* expected = nullptr;
-                if(!state->compare_exchange_strong(expected, newState)) {
-                    newState->~TestState();
-                    free(temp);
-                } else {
-                    newState->emitBegin();
-                }
-            }
-            sState.store(*state);
-            break; // don't print [BEGIN] if a second main executeable is dlopen()ed
         }
+        sState.store(state);
     }
     assert(sState != nullptr);
     return sState;
 }
+
 __attribute__((noreturn))
 void TestState::runLeaks(void) {
     auto testState = TestState::getState();
-    pid_t currentPid = getpid();
+    pid_t pid = getpid();
     char pidString[32];
-    snprintf(&pidString[0], sizeof(pidString), "%d", currentPid);
+    sprintf(&pidString[0], "%d", pid);
     if (getuid() != 0) {
         printf("Insufficient priviledges, skipping Leak check: %s\n", testState->testName);
         exit(0);
@@ -609,7 +579,7 @@ void TestState::runLeaks(void) {
                 const void * buffer;
                 size_t size;
                 __unused dispatch_data_t map = dispatch_data_create_map(leaksOutput, &buffer, &size);
-                FAIL("Found Leaks:\n\n%s", (char*)buffer);
+                FAIL("Found Leaks:\n\n%s", buffer);
             }
         }
     });
@@ -626,7 +596,7 @@ void TestState::_PASSV(const char* file, unsigned line, const char* format, va_l
     if (checkForLeaks) {
         runLeaks();
     } else {
-        _IOlock.withLock([this,&format,&args](){
+        _IOlock.withLock([this,&format,&args,&file,&line](){
             if (output == Console) {
                 printf("[\033[0;32mPASS\033[0m] %s: ", testName);
                 vprintf(format, args);
@@ -653,21 +623,12 @@ void TestState::_PASSV(const char* file, unsigned line, const char* format, va_l
                 printf("<plist version=\"1.0\">");
                 printf("<dict>");
                 printf("<key>PASS</key><true />");
-                if (logOnSuccess) {
-                    char *logBuffer = NULL;
-                    getLogsString(&logBuffer);
-                    if ( logBuffer != NULL ) {
-                        printf("<key>LOGS</key><string>%s</string>", logBuffer);
-                        free(logBuffer);
-                    }
-                }
                 printf("</dict>");
                 printf("</plist>");
             }
-            exit(0);
         });
+        exit(0);
     }
-    __builtin_unreachable();
 }
 
 void _PASS(const char* file, unsigned line, const char* format, ...)  {
@@ -703,6 +664,7 @@ void TestState::_FAILV(const char* file, unsigned line, const char* format, va_l
                 }
             }
         } else if (output == XCTest) {
+            char *buffer;
             printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
             printf("<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">");
             printf("<plist version=\"1.0\">");
@@ -710,22 +672,14 @@ void TestState::_FAILV(const char* file, unsigned line, const char* format, va_l
             printf("<key>PASS</key><false />");
             printf("<key>FILE</key><string>%s</string>", file);
             printf("<key>LINE</key><integer>%u</integer>", line);
-            char *buffer;
             vasprintf(&buffer, format, args);
             printf("<key>INFO</key><string>%s</string>", buffer);
             free(buffer);
-            char *logBuffer = NULL;
-            getLogsString(&logBuffer);
-            if ( logBuffer != NULL ) {
-                printf("<key>LOGS</key><string>%s</string>", logBuffer);
-                free(logBuffer);
-            }
             printf("</dict>");
             printf("</plist>");
         }
-        exit(0);
     });
-    __builtin_unreachable();
+    exit(0);
 }
 
 void _FAIL(const char* file, unsigned line, const char* format, ...)  {

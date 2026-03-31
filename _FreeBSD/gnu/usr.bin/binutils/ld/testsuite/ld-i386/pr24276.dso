@@ -1,9 +1,0 @@
-INPUT(pr19319.so)
-SECTIONS {
-  my_section : {
-    __start_my_section = .;
-    *(my_section);
-    __stop_my_section = .;
-
-  }
-}

@@ -67,12 +67,6 @@ struct dyld_all_image_infos_32 {
     uint32_t                        compact_dyld_image_info_addr;
     uint32_t                        compact_dyld_image_info_size;
     uint32_t                        platform;
-    // the aot fields below will not be set in the 32 bit case
-    uint32_t                        aotInfoCount;
-    std::atomic<uint64_t>           aotInfoArray;
-    uint64_t                        aotInfoArrayChangeTimestamp;
-    uint64_t                        aotSharedCacheBaseAddress;
-    std::array<uint8_t, 16>         aotSharedCacheUUID[16];
 };
 
 struct dyld_all_image_infos_64 {
@@ -108,11 +102,6 @@ struct dyld_all_image_infos_64 {
     uint64_t                compact_dyld_image_info_addr;
     uint64_t                compact_dyld_image_info_size;
     uint32_t                platform;
-    uint32_t                aotInfoCount;
-    std::atomic<uint64_t>   aotInfoArray;
-    uint64_t                aotInfoArrayChangeTimestamp;
-    uint64_t                aotSharedCacheBaseAddress;
-    std::array<uint8_t, 16> aotSharedCacheUUID[16];
 };
 
 struct dyld_image_info_32 {
@@ -124,14 +113,6 @@ struct dyld_image_info_64 {
     uint64_t                    imageLoadAddress;
     uint64_t                    imageFilePath;
     uint64_t                    imageFileModDate;
-};
-
-#define DYLD_AOT_IMAGE_KEY_SIZE 32
-struct dyld_aot_image_info_64 {
-    uint64_t                    x86LoadAddress;
-    uint64_t                    aotLoadAddress;
-    uint64_t                    aotImageSize;
-    uint8_t                     aotImageKey[DYLD_AOT_IMAGE_KEY_SIZE];
 };
 
 #define DYLD_PROCESS_INFO_NOTIFY_MAX_BUFFER_SIZE	(32*1024)
@@ -159,23 +140,26 @@ struct dyld_process_info_notify_header {
 //FIXME: Refactor this out into a seperate file
 struct VIS_HIDDEN RemoteBuffer {
     RemoteBuffer();
-    RemoteBuffer(task_t task, mach_vm_address_t remote_address, size_t remote_size, bool allow_truncation);
+    RemoteBuffer(task_t task, mach_vm_address_t remote_address, size_t remote_size, bool shared, bool allow_truncation);
     RemoteBuffer& operator=(RemoteBuffer&& other);
     ~RemoteBuffer();
     void *getLocalAddress() const;
     kern_return_t getKernelReturn() const;
     size_t getSize() const;
 private:
-    static std::pair<mach_vm_address_t, kern_return_t> map( task_t task, mach_vm_address_t remote_address, vm_size_t _size);
-    static std::tuple<mach_vm_address_t,vm_size_t,kern_return_t>create(    task_t task,
+    static std::pair<mach_vm_address_t, kern_return_t> map( task_t task, mach_vm_address_t remote_address,
+                                                            vm_size_t _size, bool shared);
+    static std::tuple<mach_vm_address_t,vm_size_t,kern_return_t,bool>create(    task_t task,
                                                                                 mach_vm_address_t remote_address,
                                                                                 size_t remote_size,
+                                                                                bool shared,
                                                                                 bool allow_truncation);
-    RemoteBuffer(std::tuple<mach_vm_address_t,vm_size_t,kern_return_t> T);
+    RemoteBuffer(std::tuple<mach_vm_address_t,vm_size_t,kern_return_t,bool> T);
 
     mach_vm_address_t _localAddress;
     vm_size_t _size;
     kern_return_t _kr;
+    bool _shared;
 };
 
 // only called during libdyld set up
@@ -184,12 +168,12 @@ void setNotifyMonitoringDyld(void (*func)(bool unloading, unsigned imageCount,
                                           const struct mach_header* loadAddresses[],
                                           const char* imagePaths[])) VIS_HIDDEN;
 
-void withRemoteBuffer(task_t task, mach_vm_address_t remote_address, size_t remote_size, bool allow_truncation, kern_return_t *kr, void (^block)(void *buffer, size_t size)) __attribute__((visibility("hidden")));
+void withRemoteBuffer(task_t task, mach_vm_address_t remote_address, size_t remote_size, bool shared, bool allow_truncation, kern_return_t *kr, void (^block)(void *buffer, size_t size)) __attribute__((visibility("hidden")));
 
 template<typename T>
-VIS_HIDDEN void withRemoteObject(task_t task, mach_vm_address_t remote_address, kern_return_t *kr, void (^block)(T t))
+VIS_HIDDEN void withRemoteObject(task_t task, mach_vm_address_t remote_address, bool shared, kern_return_t *kr, void (^block)(T t))
 {
-    withRemoteBuffer(task, remote_address, sizeof(T), false, kr, ^(void *buffer, size_t size) {
+    withRemoteBuffer(task, remote_address, sizeof(T), shared, false, kr, ^(void *buffer, size_t size) {
         block(*reinterpret_cast<T *>(buffer));
     });
 }

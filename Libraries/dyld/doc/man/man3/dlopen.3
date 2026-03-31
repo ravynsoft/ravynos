@@ -1,4 +1,4 @@
-.Dd Jan 20, 2022
+.Dd Aug 7, 2012
 .Os
 .Dt DLOPEN 3
 .Sh NAME
@@ -118,59 +118,59 @@ is NULL and the option RTLD_FIRST is used, the
 returned will only search the main executable.
 .El
 .Sh SEARCHING
-In general, dyld does not search for dylibs.  Dylibs are specified via a full path, either as a static
-dependent dylib in a mach-o file, or as a path passed to
 .Fn dlopen
-, But during development the env vars DYLD_LIBRARY_PATH and DYLD_FRAMEWORK_PATH can be used to override
-the specified path and look for the leaf framework/dylib name in the specified directories.
+searches for a compatible Mach-O file in the directories specified by a set of environment variables and 
+the process's current working directory.
+When set, the environment variables contain a colon-separated list of directory paths, 
+which can be absolute or relative to the current working directory. 
 .Pp
 When 
 .Fa path
 does not contain a slash character (i.e. it is just a leaf name), 
 .Fn dlopen
-will do searching.  If $DYLD_LIBRARY_PATH was set at launch, dyld will first look in that directory.
-Next, if the calling mach-o file or the main executable specify an LC_RPATH, then dyld
-will look in those directories. Next, if the process is unrestricted, dyld will search in the current
-working directory. Lastly, for old binaries, dyld will try some fallbacks.  If $DYLD_FALLBACK_LIBRARY_PATH
-was set at launch, dyld will search in those directories, otherwise, dyld will look in /usr/local/lib/
-(if the process is unrestricted), and then in /usr/lib/.
+searches the following until it finds a compatible Mach-O file: $LD_LIBRARY_PATH, 
+$DYLD_LIBRARY_PATH, current working directory, $DYLD_FALLBACK_LIBRARY_PATH.
 .Pp
 When 
 .Fa path 
-looks like a framework path (e.g. /stuff/foo.framework/foo),
-if $DYLD_FRAMEWORK_PATH was set at launch, dyld will first look in that directory for
-the framework partial path (e.g. foo.framework/foo). Next, dyld will try the supplied
+looks like a framework path (e.g. /stuff/foo.framework/foo), 
+.Fn dlopen
+searches the following until it finds a compatible Mach-O file: 
+$DYLD_FRAMEWORK_PATH (with framework partial path from 
 .Fa path
-as-is (using current working directory for relative paths).
-Lastly, for old binaries, dyld will try some fallbacks.  If
-$DYLD_FALLBACK_FRAMEWORK_PATH was set at launch, dyld will search those directories.
-Otherwise, it will search /Library/Frameworks (on macOS if
-process is unrestricted), then /System/Library/Frameworks.
+), then the supplied 
+.Fa path 
+(using current working directory for relative paths), then 
+$DYLD_FALLBACK_FRAMEWORK_PATH (with framework partial path from 
+.Fa path
+).
 .Pp
 When 
 .Fa path 
 contains a slash but is not a framework path (i.e. a full path or a partial path to a dylib), 
 .Fn dlopen
-first looks in (if set) in $DYLD_LIBRARY_PATH (with leaf part from
+searches the following until it finds a compatible Mach-O file: 
+$DYLD_LIBRARY_PATH (with leaf name from 
 .Fa path 
-).  Next, dyld tries the supplied
+), then the supplied 
 .Fa path 
-(using current working directory for relative paths (but only for unrestricted processes)).
-Lastly, for older binaries, dyld will try fallbacks.
-If $DYLD_FALLBACK_LIBRARY_PATH was set at launch, dyld will search in those directories,
-otherwise, dyld will look in /usr/local/lib/ (if the process is unrestricted), and then in /usr/lib/.
+(using current working directory for relative paths), then 
+$DYLD_FALLBACK_LIBRARY_PATH (with leaf name from  
+.Fa path 
+).
 .Pp
-If you want to find a dylib via the dynamic run path, use @rpath (e.g. dlopen("@rpath/libfoo.dylib",xxx)),
+Note: If DYLD_FALLBACK_LIBRARY_PATH is not set, dlopen operates as if 
+DYLD_FALLBACK_LIBRARY_PATH was set to $HOME/lib:/usr/local/lib:/usr/lib.
+.Pp
+Note: If DYLD_FALLBACK_FRAMEWORK_PATH is not set, dlopen operates as if 
+DYLD_FALLBACK_FRAMEWORK_PATH was set to $HOME/Library/Frameworks:/Library/Frameworks:/Network/Library/Frameworks:/System/Library/Frameworks. 
 .Pp
 Note: There are no configuration files to control dlopen searching.  
 .Pp
 Note: If the main executable is a set[ug]id binary or codesigned with entitlements, 
 then all environment variables are ignored, and only a full path can be used. 
 .Pp
-Note: Apple platforms use "universal" files to combine 32-bit and 64-bit libraries.  This means there are no separate 32-bit and 64-bit search paths.
-.Pp
-Note: On Apple platforms most OS dylibs are combined into the dyld cache and do not exist on disk. Therefore, calling stat() to preflight if an OS
-dylib exists won't work.
+Note: Mac OS X uses "universal" files to combine 32-bit and 64-bit libraries.  This means there are no separate 32-bit and 64-bit search paths.
 .Pp
 .Sh RETURN VALUES
 If 

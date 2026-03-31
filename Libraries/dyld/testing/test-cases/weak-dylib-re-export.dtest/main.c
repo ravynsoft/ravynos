@@ -1,8 +1,8 @@
 
 
 // BUILD:  $CC bar.c -dynamiclib -o $BUILD_DIR/libbar.dylib -install_name $RUN_DIR/libbar.dylib
-// BUILD:  $CC foo.c -dynamiclib -L$BUILD_DIR -weak-lbar -Wl,-reexported_symbols_list,$SRC_DIR/symbols.txt -install_name $RUN_DIR/libfoo.dylib -o $BUILD_DIR/libfoo.dylib $DEPENDS_ON $BUILD_DIR/libbar.dylib
-// BUILD:  $CC main.c -o $BUILD_DIR/dylib-re-export.exe $BUILD_DIR/libfoo.dylib
+// BUILD:  $CC foo.c -dynamiclib -L$BUILD_DIR -weak-lbar -Wl,-reexported_symbols_list,$SRC_DIR/symbols.txt -install_name $RUN_DIR/libfoo.dylib -o $BUILD_DIR/libfoo.dylib
+// BUILD:  $CC main.c -o $BUILD_DIR/dylib-re-export.exe $BUILD_DIR/libfoo.dylib -L$BUILD_DIR
 
 // BUILD: $SKIP_INSTALL $BUILD_DIR/libbar.dylib
 

@@ -20,6 +20,8 @@
  * 
  * @APPLE_LICENSE_HEADER_END@
  */
+#include <stdio.h>
+
 #include "test_support.h"
 
 #include "base.h"

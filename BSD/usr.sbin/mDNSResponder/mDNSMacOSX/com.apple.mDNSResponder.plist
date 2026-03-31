@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.apple.mDNSResponder.reloaded</string>
+	<key>InitGroups</key>
+	<false/>
+	<key>UserName</key>
+	<string>_mdnsresponder</string>
+	<key>GroupName</key>
+	<string>_mdnsresponder</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/usr/sbin/mDNSResponder</string>
+	</array>
+	<key>MachServices</key>
+	<dict>
+		<key>com.apple.dnssd.service</key>
+		<true/>
+		<key>com.apple.mDNSResponder.log_utility</key>
+		<true/>
+		<key>com.apple.mDNSResponder.dnsproxy</key>
+		<true/>
+	</dict>
+	<key>Sockets</key>
+	<dict>
+		<key>Listeners</key>
+		<dict>
+			<key>SockFamily</key>
+			<string>Unix</string>
+			<key>SockPathName</key>
+			<string>/var/run/mDNSResponder</string>
+			<key>SockPathMode</key>
+			<integer>438</integer>
+		</dict>
+	</dict>
+	<key>POSIXSpawnType</key>
+	<string>Interactive</string>
+	<key>EnablePressuredExit</key>
+	<false/>
+</dict>
+</plist>

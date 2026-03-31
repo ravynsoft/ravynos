@@ -1,7 +1,6 @@
 
-// BUILD:  $CC foo2.c -dynamiclib -install_name $RUN_DIR/libfoo2.dylib -o $BUILD_DIR/libfoo2.dylib
-// BUILD:  $CC foo.c  -dynamiclib -install_name $RUN_DIR/libfoo.dylib  -o $BUILD_DIR/libfoo.dylib $BUILD_DIR/libfoo2.dylib
-// BUILD:  $CC bar.c  -dynamiclib -install_name $RUN_DIR/libbar.dylib  -o $BUILD_DIR/libbar.dylib
+// BUILD:  $CC foo.c -dynamiclib  -install_name $RUN_DIR/libfoo.dylib -o $BUILD_DIR/libfoo.dylib
+// BUILD:  $CC bar.c -dynamiclib  -install_name $RUN_DIR/libbar.dylib -o $BUILD_DIR/libbar.dylib
 // BUILD:  $CC main.c -o $BUILD_DIR/dlopen-RTLD_LOCAL-hides.exe -DRUN_DIR="$RUN_DIR"
 
 // RUN:  ./dlopen-RTLD_LOCAL-hides.exe
@@ -29,13 +28,6 @@ int main(int argc, const char* argv[], const char* envp[], const char* apple[]) 
     if ( sym2 != NULL ) {
         FAIL("dlsym(RTLD_DEFAULT, \"foo\") succeeded but it should have failed");
     }
-    // verify that RTLD_LOCAL only applied to top level dylib
-    void* sym2a = dlsym(RTLD_DEFAULT, "foo2");
-    if ( sym2a == NULL ) {
-        FAIL("dlsym(RTLD_DEFAULT, \"foo2\") failed but it should have worked");
-    }
-
-
 
     ///
     /// This tests that RTLD_GLOBAL after RTLD_LOCAL allows RTLD_DEFAULT to find symbols

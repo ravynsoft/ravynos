@@ -13,7 +13,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSDictionary_mapTable.h>
 #import <Foundation/NSEnumerator_dictionaryObjects.h>
 #import <Foundation/NSPropertyListReader.h>
-#import <Foundation/NSPropertyListWriter_vintage.h>
 #import <Foundation/NSRaise.h>
 #import <Foundation/NSCoder.h>
 #import <Foundation/NSKeyedUnarchiver.h>
@@ -21,6 +20,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSURL.h>
 #import <Foundation/NSAutoreleasePool.h>
 
+#import "../NSPropertyList/NSPropertyListWriter_vintage.h"
 
 @interface NSKeyedArchiver (PrivateToContainers)
 - (void)encodeArray:(NSArray *)array forKey:(NSString *)key;

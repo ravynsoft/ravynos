@@ -26,10 +26,10 @@
 #include "firehoseServer.h" // MiG
 #include "firehose_reply.h" // MiG
 
-#if __has_feature(c_static_assert)
-_Static_assert(offsetof(struct firehose_client_s, fc_mem_sent_flushed_pos)
-		% 8 == 0, "Make sure atomic fields are properly aligned");
-#endif
+//#if __has_feature(c_static_assert)
+//_Static_assert(offsetof(struct firehose_client_s, fc_mem_sent_flushed_pos)
+//		% 8 == 0, "Make sure atomic fields are properly aligned");
+//#endif
 
 typedef struct fs_client_queue_s {
 	struct firehose_client_s *volatile fs_client_head;

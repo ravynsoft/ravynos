@@ -1,7 +1,7 @@
-// BUILD(macos):  $CC zzz.c -dynamiclib -o $BUILD_DIR/libzzz.dylib -install_name $RUN_DIR/libzzz.dylib
-// BUILD(macos):  $CC main.c            -o $BUILD_DIR/NSAddImage-basic.exe -Wno-deprecated-declarations
+// BUILD_ONLY: MacOSX
 
-// BUILD(ios,tvos,watchos,bridgeos):
+// BUILD:  $CC zzz.c -dynamiclib -o $BUILD_DIR/libzzz.dylib -install_name $RUN_DIR/libzzz.dylib
+// BUILD:  $CC main.c            -o $BUILD_DIR/NSAddImage-basic.exe -Wno-deprecated-declarations
 
 // RUN:  ./NSAddImage-basic.exe $RUN_DIR/libzzz.dylib
 // RUN:  ./NSAddImage-basic.exe libzzz.dylib

@@ -21,12 +21,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
  All other methods should use at most the above methods, at least as a fallback. */
 
+#include <math.h>
+
 #import <Foundation/NSString.h>
 #import <Foundation/NSCoder.h>
-#import <Foundation/NSString_cString.h>
-#import <Foundation/NSString_nextstep.h>
-#import <Foundation/NSString_isoLatin1.h>
-#import <Foundation/NSString_win1252.h>
 #import <Foundation/NSStringSymbol.h>
 #import <Foundation/NSStringUTF8.h>
 #import <Foundation/NSUnicodeCaseMapping.h>
@@ -40,10 +38,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSCharacterSet.h>
 #import <Foundation/NSLocale.h>
 
-#import <Foundation/NSString_placeholder.h>
-#import <Foundation/NSString_unicode.h>
-#import <Foundation/NSString_unicodePtr.h>
-#import <Foundation/NSString_defaultEncoding.h>
 #import <Foundation/NSStringFormatter.h>
 #import <Foundation/NSAutoreleasePool-private.h>
 #import <Foundation/NSStringFileIO.h>
@@ -55,8 +49,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSRaiseException.h>
 #import <Foundation/NSCFTypeID.h>
 #import <Foundation/NSBundle.h>
-#include <limits.h>
-#include <string.h>
+
+#import "NSString_cString.h"
+#import "NSString_nextstep.h"
+#import "NSString_isoLatin1.h"
+#import "NSString_win1252.h"
+#import "NSString_placeholder.h"
+#import "NSString_unicode.h"
+#import "NSString_unicodePtr.h"
+#import "NSString_defaultEncoding.h"
 
 extern BOOL NSObjectIsKindOfClass(id object,Class kindOf);
 
@@ -757,7 +758,7 @@ static inline void reverseString(unichar *buf, NSUInteger len) {
     }
     
     if(range.location+range.length>[self length]) {
-        [NSException raise:NSRangeException format:@"-[%@ %s] range %d,%d beyond length %d",isa,sel_getName(_cmd),range.location,range.length,[self length]];
+        [NSException raise:NSRangeException format:@"-[%@ %s] range %d,%d beyond length %d",object_getClass(self),sel_getName(_cmd),range.location,range.length,[self length]];
     }
     
     unichar  *buffer = NSZoneMalloc(NULL, sizeof(unichar) * length);
@@ -1034,7 +1035,7 @@ static inline void reverseString(unichar *buf, NSUInteger len) {
    unichar *unicode;
 
    if(NSMaxRange(range)>[self length])
-    [NSException raise:NSRangeException format:@"-[%@ %s] range %d,%d beyond length %d",isa,sel_getName(_cmd),range.location,range.length,[self length]];
+    [NSException raise:NSRangeException format:@"-[%@ %s] range %d,%d beyond length %d",object_getClass(self),sel_getName(_cmd),range.location,range.length,[self length]];
 
    if(range.length==0)
     return @"";
@@ -1050,7 +1051,7 @@ static inline void reverseString(unichar *buf, NSUInteger len) {
    NSRange range={location,[self length]-location};
 
    if(location>[self length])
-    [NSException raise:NSRangeException format:@"-[%@ %s] index %d beyond length %d",isa,sel_getName(_cmd),location,[self length]];
+    [NSException raise:NSRangeException format:@"-[%@ %s] index %d beyond length %d",object_getClass(self),sel_getName(_cmd),location,[self length]];
 
    return [self substringWithRange:range];
 }
@@ -1062,7 +1063,7 @@ static inline void reverseString(unichar *buf, NSUInteger len) {
     return [[self copy] autorelease];
 
    if(location>[self length])
-    [NSException raise:NSRangeException format:@"-[%@ %s] index %d beyond length %d",isa,sel_getName(_cmd),location,[self length]];
+    [NSException raise:NSRangeException format:@"-[%@ %s] index %d beyond length %d",object_getClass(self),sel_getName(_cmd),location,[self length]];
 
    return [self substringWithRange:range];
 }

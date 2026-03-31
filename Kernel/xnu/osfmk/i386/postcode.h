@@ -34,7 +34,7 @@
  * because platforms may not have builtin port 0x80 support.
  * To re-enable postcode outpout, uncomment the following define:
  */
-#define DEBUG_POSTCODE 1
+//#define DEBUG_POSTCODE 1
 
 /* Define this to delay about 1 sec after posting each code */
 //#define POSTCODE_DELAY 1

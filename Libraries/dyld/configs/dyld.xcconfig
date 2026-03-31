@@ -1,11 +1,17 @@
-#include "base.xcconfig"
-#include? "dyld_features.xcconfig"
-
 ALIGNMENT[arch=armv7s]     = -Wl,-segalign,0x4000
 
-OTHER_CODE_SIGN_FLAGS[sdk=*simulator*]   = --entitlements $(SRCROOT)/dyld/dyld_sim-entitlements.plist
+ENTRY[sdk=*simulator*]     = -Wl,-e,_start_sim
+ENTRY[sdk=iphoneos*]       = -Wl,-e,__dyld_start
+ENTRY[sdk=macosx*]         = -Wl,-e,__dyld_start
+
+OTHER_CODE_SIGN_FLAGS[sdk=*simulator*]   = --entitlements $(SRCROOT)/dyld_sim-entitlements.plist
 OTHER_CODE_SIGN_FLAGS[sdk=iphoneos*]     =
 OTHER_CODE_SIGN_FLAGS[sdk=macosx*]       =
+
+
+EXPORTED_SYMBOLS_FILE[sdk=*simulator*]   = $(SRCROOT)/src/dyld_sim.exp
+EXPORTED_SYMBOLS_FILE[sdk=iphoneos*]     = $(SRCROOT)/src/dyld.exp
+EXPORTED_SYMBOLS_FILE[sdk=macosx*]       = $(SRCROOT)/src/dyld.exp
 
 PRODUCT_NAME[sdk=*simulator*] = dyld_sim
 PRODUCT_NAME[sdk=iphoneos*]   = dyld
@@ -13,20 +19,8 @@ PRODUCT_NAME[sdk=macosx*]     = dyld
 
 INSTALL_PATH   = /usr/lib
 
-GCC_PREPROCESSOR_DEFINITIONS_Debug = DYLD_VERSION=$(RC_ProjectSourceVersion) BUILDING_DYLD=1 DEBUG=1
-GCC_PREPROCESSOR_DEFINITIONS_Release = DYLD_VERSION=$(RC_ProjectSourceVersion) BUILDING_DYLD=1
-GCC_PREPROCESSOR_DEFINITIONS = $(GCC_PREPROCESSOR_DEFINITIONS_$(CONFIGURATION)) $(GCC_PREPROCESSOR_DEFINITIONS_FEATURES)
+//:configuration = Debug
+GCC_PREPROCESSOR_DEFINITIONS = DYLD_VERSION=$(RC_ProjectSourceVersion) BUILDING_DYLD=1 DEBUG=1
 
-ENTRY_NAME[sdk=*simulator*] = __dyld_sim_prepare
-ENTRY_NAME[sdk=iphoneos*]   = __dyld_start
-ENTRY_NAME[sdk=macosx*]     = __dyld_start
-
-DIRTY                    = -Wl,-dirty_data_list,$(DERIVED_SOURCES_DIR)/dyld.dirty
-
-LLDB_SUPPORT[sdk=*simulator*] =
-LLDB_SUPPORT[sdk=iphoneos*]   = -Wl,-exported_symbol,_lldb_image_notifier -Wl,-exported_symbol,__dyld_debugger_notification
-LLDB_SUPPORT[sdk=macosx*]     = -Wl,-exported_symbol,_lldb_image_notifier -Wl,-exported_symbol,__dyld_debugger_notification
-
-
-
-OTHER_LDFLAGS = -e $(ENTRY_NAME) -Wl,-exported_symbol,$(ENTRY_NAME) $(LLDB_SUPPORT) -Wl,-no_inits @$(DERIVED_SOURCES_DIR)/archives.txt -nostdlib -Wl,-dylinker -Wl,-dylinker_install_name,/usr/lib/dyld $(ALIGNMENT) -Wl,-fixup_chains -Wl,-data_const -fapple-link-rtlib $(DIRTY)
+//:configuration = Release
+GCC_PREPROCESSOR_DEFINITIONS = DYLD_VERSION=$(RC_ProjectSourceVersion) BUILDING_DYLD=1

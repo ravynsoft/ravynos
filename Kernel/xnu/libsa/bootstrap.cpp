@@ -597,7 +597,6 @@ KLDBootstrap::readBooterExtensions(void)
 	    "Reading startup extensions from booter memory.");
 
 	booterMemoryMap = IORegistryEntry::fromPath( "/chosen/memory-map", gIODTPlane);
-
 	if (!booterMemoryMap) {
 		OSKextLog(/* kext */ NULL,
 		    kOSKextLogErrorLevel |
@@ -856,13 +855,14 @@ KLDBootstrap::loadKernelExternalComponents(void)
 
 	while ((bundleID = OSDynamicCast(OSString, keyIterator->getNextObject()))) {
 		const char * bundle_id = bundleID->getCStringNoCopy();
-
+#if !defined(__RAVYNOS__) /* FIXME: filter for ours too? */
 		/* Skip extensions whose bundle IDs don't start with "com.apple.kec.".
 		 */
 		if (!bundle_id ||
 		    (strncmp(bundle_id, COM_APPLE_KEC, CONST_STRLEN(COM_APPLE_KEC)) != 0)) {
 			continue;
 		}
+#endif
 
 		theKext = OSDynamicCast(OSKext, extensionsDict->getObject(bundleID));
 		if (!theKext) {
@@ -901,6 +901,7 @@ KLDBootstrap::readBuiltinPersonalities(void)
 	OSCollectionIterator  * personalitiesIterator = NULL;// must release
 	unsigned int            count, i;
 
+	kprintf("Reading built-in kernel personalities for I/O Kit drivers.\n");
 	OSKextLog(/* kext */ NULL,
 	    kOSKextLogStepLevel |
 	    kOSKextLogLoadFlag,
@@ -980,6 +981,7 @@ KLDBootstrap::readBuiltinPersonalities(void)
 			continue; // xxx - well really, what can we do? should we panic?
 		}
 
+		kprintf("Building personality list\n");
 		while ((personalityName = OSDynamicCast(OSString,
 		    personalitiesIterator->getNextObject()))) {
 			OSDictionary * personality = OSDynamicCast(OSDictionary,
@@ -998,6 +1000,7 @@ KLDBootstrap::readBuiltinPersonalities(void)
 		}
 	}
 
+	kprintf("Adding drivers to IOCatalogue\n");
 	gIOCatalogue->addDrivers(allPersonalities, false);
 
 finish:

@@ -72,7 +72,7 @@
 }
 
 -(NSString *)description {
-	return [NSString stringWithFormat:@"<%@ %x _object: %@ _keypath: %@>",isa, self,_object,_keyPath];
+	return [NSString stringWithFormat:@"<%@ %x _object: %@ _keypath: %@>",object_getClass(self), self,_object,_keyPath];
 }
 
 @end

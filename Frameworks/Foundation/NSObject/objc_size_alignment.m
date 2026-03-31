@@ -8,17 +8,13 @@
  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
-
-#ifdef GCC_RUNTIME_3
-#include <objc/runtime.h>
-#else
-#import <objc/objc-class.h>
-#endif
-#import "objc_size_alignment.h"
-#import <Foundation/NSString.h>
-#import <Foundation/NSException.h>
+#include <sys/param.h>
 #include <string.h>
 #include <ctype.h>
+#include <objc/runtime.h>
+#import <objc_size_alignment.h>
+#import <Foundation/NSString.h>
+#import <Foundation/NSException.h>
 
 static inline size_t
 ROUND(size_t v, size_t a)
@@ -30,6 +26,15 @@ ROUND(size_t v, size_t a)
 	}
 }
 
+#ifdef APPLE_RUNTIME_4
+#define _C_COMPLEX  'j'
+#define _C_CONST    'r'
+#define _C_IN       'n'
+#define _C_INOUT    'N'
+#define _C_OUT      'o'
+#define _C_BYCOPY   'O'
+#define _C_ONEWAY   'V'
+#endif
 
 static inline const char*
 objc_ext_skip_type_qualifier (const char* type)
@@ -178,7 +183,7 @@ objc_ext_skip_type_specifier (const char *type,BOOL skipDigits)
  Return the alignment of an object specified by type
  */
 
-/*
+/*   == FIXME: is this still true?? zoe 2/8/26 ==
  *  On MacOS X, the elements of a struct are aligned differently inside the
  *  struct than outside. That is, the maximum alignment of any struct field
  *  (except the first) is 4, doubles outside of a struct have an alignment of
@@ -198,7 +203,7 @@ PyObjC_EmbeddedAlignOfType (const char*  type)
 
 	size_t align = objc_ext_alignof_type(type);
 
-#if (defined(__i386__) || defined(__x86_64__)) && !(defined(LINUX) || defined(__FreeBSD__))
+#if (defined(__i386__) || defined(__x86_64__)) && defined(__APPLE__)
 	return align;
 
 #else

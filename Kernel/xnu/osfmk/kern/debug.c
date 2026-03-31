@@ -244,7 +244,7 @@ uuid_string_t kernelcache_uuid_string;
  */
 static boolean_t debugger_is_panic = TRUE;
 
-#if DEVELOPMENT || DEBUG
+#if DEVELOPMENT || DEBUG || 1
 boolean_t debug_boot_arg_inited = FALSE;
 #endif
 
@@ -293,6 +293,17 @@ panic_init(void)
 	 * Initialize the value of the debug boot-arg
 	 */
 	debug_boot_arg = 0;
+
+	/************** FIXME FIXME FIXME **********
+         * Remove this block once done debugging!!
+         *******************************************/
+	debug_boot_arg = 0x44;
+	halt_in_debugger = 1;
+	kdebug_serial = TRUE;
+	debug_boot_arg_inited = TRUE;
+	debugger_is_panic = TRUE;
+	/******************************************/
+
 #if ((CONFIG_EMBEDDED && MACH_KDP) || defined(__x86_64__))
 	if (PE_parse_boot_argn("debug", &debug_boot_arg, sizeof(debug_boot_arg))) {
 #if DEVELOPMENT || DEBUG

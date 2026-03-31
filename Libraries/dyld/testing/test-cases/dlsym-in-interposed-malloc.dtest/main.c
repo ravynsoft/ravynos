@@ -1,6 +1,6 @@
 // BUILD:  $CC main.c -o $BUILD_DIR/dlsym-in-interposed-malloc.exe
 // BUILD:  $DYLD_ENV_VARS_ENABLE $BUILD_DIR/dlsym-in-interposed-malloc.exe
-// BUILD:  $CC interposer.c -ltest_support -dynamiclib -o $BUILD_DIR/libmyalloc.dylib -install_name libmyalloc.dylib
+// BUILD:  $CC interposer.c -dynamiclib -o $BUILD_DIR/libmyalloc.dylib -install_name libmyalloc.dylib
 
 // RUN:    DYLD_INSERT_LIBRARIES=libmyalloc.dylib   ./dlsym-in-interposed-malloc.exe
 

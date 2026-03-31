@@ -549,7 +549,7 @@ module std_experimental [system] {
     export *
   }
   module regex {
-    requires LIBCXX_CONFIGURED_WITHOUT_SUPPORT_FOR_THIS_HEADER
+    
     header "experimental/regex"
     export *
   }

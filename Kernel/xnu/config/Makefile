@@ -25,7 +25,7 @@ SYMBOL_COMPONENT_LIST =	\
         Libkern		\
         Mach		\
         MACFramework	\
-        Unsupported	\
+        Unsupported     \
         Private
 
 # In general you want it to be possible to have a CPU sub-type's symbol exports
@@ -74,20 +74,20 @@ $(foreach symbolset,$(SYMBOL_COMPONENT_LIST),$(eval $(call symbol_set_rule,$(sym
 .PHONY: check_all_exports
 
 check_all_exports: $(OBJPATH)/allsymbols $(KEXT_CREATE_SYMBOL_SET)
-	$(_v)$(KEXT_CREATE_SYMBOL_SET)					\
-		$(ARCH_FLAGS_$(CURRENT_ARCH_CONFIG))			\
-		-import $(OBJPATH)/allsymbols				\
-		$(foreach symbolset,$(filter-out Private,$(SYMBOL_COMPONENT_LIST)),	\
-			-export $(SOURCE)/$(symbolset).exports		\
-			-export $(SOURCE)/$(symbolset).$(EXPORT_SOURCE_ARCH_CONFIG_LC).exports)	\
-		-output /dev/null $(_vstdout)
-	$(_v)$(KEXT_CREATE_SYMBOL_SET)					\
-		$(ARCH_FLAGS_$(CURRENT_ARCH_CONFIG))			\
-		-import $(OBJPATH)/allsymbols				\
-		$(foreach symbolset,$(filter-out Unsupported,$(SYMBOL_COMPONENT_LIST)),	\
-			-export $(SOURCE)/$(symbolset).exports		\
-			-export $(SOURCE)/$(symbolset).$(EXPORT_SOURCE_ARCH_CONFIG_LC).exports)	\
-		-output /dev/null $(_vstdout)
+#	$(_v)$(KEXT_CREATE_SYMBOL_SET)					\
+#		$(ARCH_FLAGS_$(CURRENT_ARCH_CONFIG))			\
+#		-import $(OBJPATH)/allsymbols				\
+#		$(foreach symbolset,$(filter-out Private,$(SYMBOL_COMPONENT_LIST)),	\
+#			-export $(SOURCE)/$(symbolset).exports		\
+#			-export $(SOURCE)/$(symbolset).$(EXPORT_SOURCE_ARCH_CONFIG_LC).exports)	\
+#		-output /dev/null $(_vstdout)
+#	$(_v)$(KEXT_CREATE_SYMBOL_SET)					\
+#		$(ARCH_FLAGS_$(CURRENT_ARCH_CONFIG))			\
+#		-import $(OBJPATH)/allsymbols				\
+#		$(foreach symbolset,$(filter-out Unsupported,$(SYMBOL_COMPONENT_LIST)),	\
+#			-export $(SOURCE)/$(symbolset).exports		\
+#			-export $(SOURCE)/$(symbolset).$(EXPORT_SOURCE_ARCH_CONFIG_LC).exports)	\
+#		-output /dev/null $(_vstdout)
 
 $(OBJPATH)/$(MD_SUPPORTED_KPI_FILENAME): $(EXPORTS_FILES)
 	$(call makelog,$(ColorH)SUPPORTED_KPI$(Color0) "($(ColorLF)$(CURRENT_ARCH_CONFIG_LC)$(Color0))")

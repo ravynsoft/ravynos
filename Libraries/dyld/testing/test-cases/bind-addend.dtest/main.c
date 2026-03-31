@@ -14,11 +14,7 @@ __attribute__((weak))
 void* p = 0;
 
 // Choose a large enough negative offset to be before the shared cache or the image
-#if __LP64__
 const uintptr_t offset = 1ULL << 36;
-#else
-const uintptr_t offset = 1ULL << 28;
-#endif
 void* pMinus = (void*)((uintptr_t)&p - offset);
 
 // Get a pointer to something we assume is in the shared cache

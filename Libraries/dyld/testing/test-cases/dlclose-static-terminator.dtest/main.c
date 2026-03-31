@@ -39,11 +39,6 @@ int main(int argc, const char* argv[], const char* envp[], const char* apple[]) 
     // unload dylib
     dlclose(handle);
 
-#if __arm64e__
-    // static terminators not supported on armt64e, so force test to pass
-    termDidRun = true;
-#endif
-
     if ( termDidRun )
         PASS("Success");
     else

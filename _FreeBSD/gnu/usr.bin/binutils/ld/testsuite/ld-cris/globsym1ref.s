@@ -1,1 +1,0 @@
- .long globsym1

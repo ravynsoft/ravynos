@@ -14,8 +14,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <string.h>
 #import <objc/message.h>
 
-id objc_msgSendv(id self, SEL selector, unsigned arg_size, void *arg_frame);
-
 @implementation NSInvocation
 
 -(void)buildFrame {
@@ -246,7 +244,7 @@ static void byteCopy(void *src,void *dst,NSUInteger length){
 
         byteCopy(&promoted, _argumentFrame + _argumentOffsets[index], promotedSize);
     } else {
-        [NSException raise:NSInvalidArgumentException format:@"Unable to convert naturalSize=" NSUIntegerFormat " to promotedSize=" NSUIntegerFormat, naturalSize, promotedSize];
+        [NSException raise:NSInvalidArgumentException format:@"Unable to convert naturalSize=%ld to promotedSize=%ld", naturalSize, promotedSize];
     }
 }
 
@@ -324,6 +322,9 @@ static void byteCopy(void *src,void *dst,NSUInteger length){
 
 - (void)invoke
 {
+#if 1
+#warning [invoke] is a stub until objc_msgSendv is replaced
+#else
     const char *returnType = [_signature methodReturnType];
     void *msgSendv = objc_msgSendv;
 
@@ -469,6 +470,7 @@ static void byteCopy(void *src,void *dst,NSUInteger length){
             }
             break;
     }
+#endif /* 1 */
 }
 
 

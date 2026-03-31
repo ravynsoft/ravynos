@@ -1,6 +1,6 @@
 
 // BUILD:  $CC bar.c  -dynamiclib -install_name @rpath/libbar.dylib -o $BUILD_DIR/dir/libbar.dylib
-// BUILD:  $CC test.c -dynamiclib -ltest_support -install_name $RUN_DIR/libtest.dylib -o $BUILD_DIR/libtest.dylib -rpath @loader_path/dir
+// BUILD:  $CC test.c -dynamiclib -install_name $RUN_DIR/libtest.dylib -o $BUILD_DIR/libtest.dylib -rpath @loader_path/dir
 // BUILD:  $CC main.c -o $BUILD_DIR/dlopen-rpath-from-dylib.exe $BUILD_DIR/libtest.dylib 
 
 // RUN:  ./dlopen-rpath-from-dylib.exe

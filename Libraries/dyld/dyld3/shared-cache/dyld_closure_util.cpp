@@ -48,7 +48,6 @@
 #include "ClosureBuilder.h"
 #include "ClosurePrinter.h"
 #include "ClosureFileSystemPhysical.h"
-#include "RootsChecker.h"
 
 using dyld3::closure::ImageArray;
 using dyld3::closure::Image;
@@ -82,16 +81,15 @@ static const DyldSharedCache* mapCacheFile(const char* path)
     }
     const dyld_cache_header*       header   = (dyld_cache_header*)firstPage;
 	const dyld_cache_mapping_info* mappings = (dyld_cache_mapping_info*)(firstPage + header->mappingOffset);
-    const dyld_cache_mapping_info* lastMapping = &mappings[header->mappingCount - 1];
 
-    size_t vmSize = (size_t)(lastMapping->address + lastMapping->size - mappings[0].address);
+    size_t vmSize = (size_t)(mappings[2].address + mappings[2].size - mappings[0].address);
     vm_address_t result;
     kern_return_t r = ::vm_allocate(mach_task_self(), &result, vmSize, VM_FLAGS_ANYWHERE);
     if ( r != KERN_SUCCESS ) {
         fprintf(stderr, "Error: failed to allocate space to load shared cache file at %s\n", path);
         return nullptr;
 	}
-    for (int i=0; i < header->mappingCount; ++i) {
+    for (int i=0; i < 3; ++i) {
         void* mapped_cache = ::mmap((void*)(result + mappings[i].address - mappings[0].address), (size_t)mappings[i].size,
                                     PROT_READ, MAP_FIXED | MAP_PRIVATE, cache_fd, mappings[i].fileOffset);
         if (mapped_cache == MAP_FAILED) {
@@ -275,8 +273,13 @@ int main(int argc, const char* argv[])
         dyldCacheIsLive = false;
     }
     else {
+#if __MAC_OS_X_VERSION_MIN_REQUIRED && (__MAC_OS_X_VERSION_MIN_REQUIRED < 101300)
+        fprintf(stderr, "this tool needs to run on macOS 10.13 or later\n");
+        return 1;
+#else
         size_t cacheLength;
         dyldCache = (DyldSharedCache*)_dyld_get_shared_cache_range(&cacheLength);
+#endif
     }
     dyld3::Platform            platform = dyldCache->platform();
     const dyld3::GradedArchs&  archs    = dyld3::GradedArchs::forName(dyldCache->archName(), true);
@@ -288,13 +291,11 @@ int main(int argc, const char* argv[])
         STACK_ALLOC_ARRAY(const ImageArray*,    imagesArrays, 3+dlopens.size());
         STACK_ALLOC_ARRAY(dyld3::LoadedImage,   loadedArray,  1024);
         imagesArrays.push_back(dyldCache->cachedDylibsImageArray());
-        if ( auto others = dyldCache->otherOSImageArray() )
-            imagesArrays.push_back(others);
+        imagesArrays.push_back(dyldCache->otherOSImageArray());
 
         dyld3::closure::FileSystemPhysical fileSystem(fsRootPath, fsOverlayPath);
-        dyld3::RootsChecker rootsChecker;
         ClosureBuilder::AtPath atPathHanding = allowAtPaths ? ClosureBuilder::AtPath::all : ClosureBuilder::AtPath::none;
-        ClosureBuilder builder(dyld3::closure::kFirstLaunchClosureImageNum, fileSystem, rootsChecker, dyldCache, dyldCacheIsLive, archs, pathOverrides, atPathHanding, true, nullptr, platform, nullptr);
+        ClosureBuilder builder(dyld3::closure::kFirstLaunchClosureImageNum, fileSystem, dyldCache, dyldCacheIsLive, archs, pathOverrides, atPathHanding, true, nullptr, platform, nullptr);
         if (forceInvalidFormatVersion)
             builder.setDyldCacheInvalidFormatVersion();
 
@@ -324,13 +325,13 @@ int main(int argc, const char* argv[])
                 else {
                     Diagnostics diag;
                     char realerPath[MAXPATHLEN];
-                    dyld3::closure::LoadedFileInfo loadedFileInfo = dyld3::MachOAnalyzer::load(diag, fileSystem, li.image()->path(), archs, builder.platform(), realerPath);
+                    dyld3::closure::LoadedFileInfo loadedFileInfo = dyld3::MachOAnalyzer::load(diag, fileSystem, li.image()->path(), archs, platform, realerPath);
                     li.setLoadedAddress((const dyld3::MachOAnalyzer*)loadedFileInfo.fileContent);
                 }
             }
 
             ClosureBuilder::AtPath atPathHandingDlopen = allowAtPaths ? ClosureBuilder::AtPath::all : ClosureBuilder::AtPath::onlyInRPaths;
-            ClosureBuilder dlopenBuilder(nextNum, fileSystem, rootsChecker, dyldCache, dyldCacheIsLive, archs, pathOverrides, atPathHandingDlopen, true, nullptr, builder.platform(), nullptr);
+            ClosureBuilder dlopenBuilder(nextNum, fileSystem, dyldCache, dyldCacheIsLive, archs, pathOverrides, atPathHandingDlopen, true, nullptr, platform, nullptr);
             if (forceInvalidFormatVersion)
                 dlopenBuilder.setDyldCacheInvalidFormatVersion();
 
@@ -372,8 +373,7 @@ int main(int argc, const char* argv[])
         if ( closure != nullptr ) {
             STACK_ALLOC_ARRAY(const ImageArray*, imagesArrays, 3);
             imagesArrays.push_back(dyldCache->cachedDylibsImageArray());
-            if ( auto others = dyldCache->otherOSImageArray() )
-                imagesArrays.push_back(others);
+            imagesArrays.push_back(dyldCache->otherOSImageArray());
             imagesArrays.push_back(closure->images());
             dyld3::closure::printClosureAsJSON(closure, imagesArrays, verboseFixups, printRaw, dyldCache);
         }
@@ -400,8 +400,7 @@ int main(int argc, const char* argv[])
         if ( const dyld3::closure::Image* image = dyldCache->findDlopenOtherImage(printOtherDylib) ) {
             STACK_ALLOC_ARRAY(const ImageArray*, imagesArrays, 2);
             imagesArrays.push_back(dyldCache->cachedDylibsImageArray());
-            if ( auto others = dyldCache->otherOSImageArray() )
-                imagesArrays.push_back(others);
+            imagesArrays.push_back(dyldCache->otherOSImageArray());
             dyld3::closure::printImageAsJSON(image, imagesArrays, verboseFixups);
         }
         else {

@@ -5,9 +5,9 @@
 // RUN:  ./chained-fixups-many-binds.exe
 
 // Here's how to generate this monster
-// ( for i in `seq 1 70000`; do echo "void foo$i() { }"; done ) > foo.c
-// ( for i in `seq 1 70000`; do echo "extern void foo$i();"; done ) > foo.h
-// ( for i in `seq 1 70000`; do echo "__attribute__((used)) void* use$i = (void*)&foo$i;"; done ) > uses.h
+// ( for i in `seq 1 65000`; do echo "void foo$i() { }"; done ) > foo.c
+// ( for i in `seq 1 65000`; do echo "extern void foo$i();"; done ) > foo.h
+// ( for i in `seq 1 65000`; do echo "__attribute__((used)) void* use$i = (void*)&foo$i;"; done ) > uses.h
 
 #include <stdio.h>
 

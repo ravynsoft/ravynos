@@ -1,0 +1,30 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {
+                addNewService = id; 
+                registerService = id; 
+                removeSelected = id; 
+                unregisterService = id; 
+            }; 
+            CLASS = RegistrationController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                domainColumn = NSTableColumn; 
+                nameColumn = NSTableColumn; 
+                portColumn = NSTableColumn; 
+                serviceDisplayTable = NSTableView; 
+                serviceDomainField = NSTextField; 
+                serviceNameField = NSTextField; 
+                servicePortField = NSTextField; 
+                serviceTextField = NSTextField; 
+                serviceTypeField = NSTextField; 
+                textColumn = NSTableColumn; 
+                typeColumn = NSTableColumn; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }
+    ); 
+    IBVersion = 1; 
+}

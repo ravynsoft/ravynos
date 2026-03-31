@@ -1,1 +1,0 @@
-name = 'file_magic'

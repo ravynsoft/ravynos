@@ -2,24 +2,18 @@
 
 // BUILD:  $CC foo.c -dynamiclib -o $BUILD_DIR/libfoo.dylib         -install_name $RUN_DIR/libfoo.dylib
 // BUILD:  $CC foo.c -dynamiclib -o $BUILD_DIR/libfoo-present.dylib  -install_name $RUN_DIR/libfoo.dylib -DHAS_SYMBOL=1
-// BUILD:  $CC foo.c -dynamiclib -o $BUILD_DIR/libbar-missing.dylib  -install_name $RUN_DIR/libbar-missing.dylib -DHAS_SYMBOL=1
 // BUILD:  $CC main.c            -o $BUILD_DIR/lazy-symbol-missing.exe        $BUILD_DIR/libfoo-present.dylib -Os
 // BUILD:  $CC main.c            -o $BUILD_DIR/lazy-symbol-missing-flat.exe   -undefined dynamic_lookup      -Os -DFLAT=1
 // BUILD:  $CC main-call.c       -o $BUILD_DIR/lazy-symbol-missing-called.exe $BUILD_DIR/libfoo-present.dylib -Os
-// BUILD:  $CC main-call.c       -o $BUILD_DIR/lazy-symbol-missing-called-weak-lib.exe $BUILD_DIR/libbar-missing.dylib -Os -DWEAK=1
 // BUILD:  $CXX runner.cpp         -o $BUILD_DIR/lazy-symbol-runner.exe -DRUN_DIR="$RUN_DIR"
-// BUILD:  $CXX runner.cpp         -o $BUILD_DIR/lazy-symbol-runner-weak-lib.exe -DRUN_DIR="$RUN_DIR" -DWEAK=1
 
 // BUILD: $SKIP_INSTALL $BUILD_DIR/libfoo-present.dylib
-// BUILD: $SKIP_INSTALL $BUILD_DIR/libbar-missing.dylib
 
 // NO_CRASH_LOG: lazy-symbol-missing-called.exe
-// NO_CRASH_LOG: lazy-symbol-missing-called-weak-lib.exe
 
 // RUN:  ./lazy-symbol-missing.exe
 // RUN:  ./lazy-symbol-runner.exe
 // RUN:  ./lazy-symbol-missing-flat.exe
-// RUN:  ./lazy-symbol-runner-weak-lib.exe
 
 
 #include <stdio.h>

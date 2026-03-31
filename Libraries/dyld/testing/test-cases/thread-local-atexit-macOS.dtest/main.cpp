@@ -1,6 +1,6 @@
-// BUILD(macos):  $CXX main.cpp -std=c++11 -o $BUILD_DIR/thread-local-atexit-macOS.exe
+// BUILD_ONLY: MacOSX
 
-// BUILD(ios,tvos,watchos,bridgeos):
+// BUILD:  $CXX main.cpp -std=c++11 -o $BUILD_DIR/thread-local-atexit-macOS.exe
 
 // RUN:  ./thread-local-atexit-macOS.exe
 

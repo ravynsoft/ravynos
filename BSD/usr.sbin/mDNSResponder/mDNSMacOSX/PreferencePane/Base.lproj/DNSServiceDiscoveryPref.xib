@@ -1,0 +1,816 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14724.4" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14724.4"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="DNSServiceDiscoveryPref">
+            <connections>
+                <outlet property="_initialKeyView" destination="107" id="235"/>
+                <outlet property="_lastKeyView" destination="107" id="183"/>
+                <outlet property="_window" destination="12" id="142"/>
+                <outlet property="addBrowseDomainButton" destination="381" id="384"/>
+                <outlet property="addBrowseDomainManualWindow" destination="NFb-eI-atL" id="0AN-Mr-e84"/>
+                <outlet property="addBrowseDomainWindow" destination="333" id="363"/>
+                <outlet property="applyButton" destination="208" id="238"/>
+                <outlet property="bonjourBrowserView" destination="200327" id="200328"/>
+                <outlet property="browseCancelButton" destination="341" id="375"/>
+                <outlet property="browseDomainList" destination="327" id="349"/>
+                <outlet property="browseDomainTextField" destination="W2d-Us-Cpm" id="kOZ-wG-OPp"/>
+                <outlet property="browseOKButton" destination="340" id="376"/>
+                <outlet property="comboAuthButton" destination="137" id="201"/>
+                <outlet property="hostName" destination="107" id="224"/>
+                <outlet property="hostNameSharedSecretButton" destination="263" id="270"/>
+                <outlet property="regDomainTextField" destination="OEh-fL-Ol6" id="Dv0-aj-gah"/>
+                <outlet property="regDomainView" destination="Reu-VC-MNz" id="4I2-zS-sdq"/>
+                <outlet property="registrationBrowserView" destination="agb-WV-smo" id="j7U-ZK-LIb"/>
+                <outlet property="registrationSelectButton" destination="KqE-pc-8z0" id="CJS-ml-2CA"/>
+                <outlet property="registrationSharedSecretButton" destination="267" id="268"/>
+                <outlet property="removeBrowseDomainButton" destination="383" id="385"/>
+                <outlet property="revertButton" destination="290" id="292"/>
+                <outlet property="secretCancelButton" destination="341" id="373"/>
+                <outlet property="secretOKButton" destination="260" id="377"/>
+                <outlet property="selectRegistrationDomainManualWindow" destination="he2-0K-CWy" id="eXD-7o-XQU"/>
+                <outlet property="selectRegistrationDomainWindow" destination="ail-If-2Xp" id="34V-c7-D3b"/>
+                <outlet property="sharedSecretName" destination="256" id="275"/>
+                <outlet property="sharedSecretValue" destination="257" id="276"/>
+                <outlet property="sharedSecretWindow" destination="255" id="274"/>
+                <outlet property="statusImageView" destination="320" id="321"/>
+                <outlet property="tabView" destination="100" id="380"/>
+                <outlet property="wideAreaCheckBox" destination="179" id="240"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <window title="Bonjour" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" deferred="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="12" userLabel="PrefPane">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="51" y="335" width="596" height="343"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1417"/>
+            <value key="minSize" type="size" width="213.66399999999999" height="10"/>
+            <view key="contentView" id="6">
+                <rect key="frame" x="0.0" y="0.0" width="596" height="343"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <tabView translatesAutoresizingMaskIntoConstraints="NO" id="100">
+                        <rect key="frame" x="13" y="52" width="570" height="285"/>
+                        <font key="font" metaFont="system"/>
+                        <tabViewItems>
+                            <tabViewItem label="Hostname" identifier="1" id="102">
+                                <view key="view" id="101">
+                                    <rect key="frame" x="10" y="33" width="550" height="239"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <subviews>
+                                        <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="107">
+                                            <rect key="frame" x="119" y="155" width="383" height="22"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" alignment="left" placeholderString="steve.example.com" drawsBackground="YES" id="100107">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                            <connections>
+                                                <outlet property="delegate" destination="-2" id="227"/>
+                                            </connections>
+                                        </textField>
+                                        <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="108">
+                                            <rect key="frame" x="43" y="158" width="70" height="17"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Hostname:" id="100108">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="117">
+                                            <rect key="frame" x="18" y="185" width="514" height="34"/>
+                                            <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="left" title="Enter a hostname for this computer.  Other computers on the Internet will be able to reach your computer using this hostname." id="100117">
+                                                <font key="font" metaFont="systemBold"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="263">
+                                            <rect key="frame" x="113" y="119" width="109" height="32"/>
+                                            <buttonCell key="cell" type="push" title="Password…" bezelStyle="rounded" alignment="center" borderStyle="border" inset="2" id="100263">
+                                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="changeButtonPressed:" target="-2" id="272"/>
+                                            </connections>
+                                        </button>
+                                        <imageView translatesAutoresizingMaskIntoConstraints="NO" id="320">
+                                            <rect key="frame" x="510" y="156" width="20" height="20"/>
+                                            <constraints>
+                                                <constraint firstAttribute="width" constant="20" id="7Qf-g0-5SV"/>
+                                                <constraint firstAttribute="height" constant="20" id="bfL-QJ-KFw"/>
+                                            </constraints>
+                                            <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageAlignment="left" imageScaling="proportionallyDown" id="100320"/>
+                                        </imageView>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstItem="263" firstAttribute="leading" secondItem="107" secondAttribute="leading" id="4Dv-gf-Cjr"/>
+                                        <constraint firstAttribute="trailing" secondItem="117" secondAttribute="trailing" constant="20" symbolic="YES" id="5zc-LQ-OC8"/>
+                                        <constraint firstItem="320" firstAttribute="leading" secondItem="107" secondAttribute="trailing" constant="8" symbolic="YES" id="BIu-YL-Fr2"/>
+                                        <constraint firstItem="263" firstAttribute="top" secondItem="107" secondAttribute="bottom" constant="8" symbolic="YES" id="K1w-WG-3KW"/>
+                                        <constraint firstItem="107" firstAttribute="centerY" secondItem="320" secondAttribute="centerY" id="LlU-Oy-3va"/>
+                                        <constraint firstItem="107" firstAttribute="top" secondItem="117" secondAttribute="bottom" constant="8" symbolic="YES" id="V8c-G1-gsR"/>
+                                        <constraint firstItem="117" firstAttribute="top" secondItem="101" secondAttribute="top" constant="20" symbolic="YES" id="Xnz-bz-ahU"/>
+                                        <constraint firstItem="117" firstAttribute="leading" secondItem="101" secondAttribute="leading" constant="20" symbolic="YES" id="ZIG-S4-cst"/>
+                                        <constraint firstItem="107" firstAttribute="leading" secondItem="108" secondAttribute="trailing" constant="8" symbolic="YES" id="cQG-zv-Ozo"/>
+                                        <constraint firstItem="108" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="101" secondAttribute="leading" constant="20" symbolic="YES" id="foH-DQ-yvJ"/>
+                                        <constraint firstItem="107" firstAttribute="leading" secondItem="101" secondAttribute="leading" priority="499" constant="119" id="qGZ-fm-Wgf"/>
+                                        <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="263" secondAttribute="trailing" constant="20" symbolic="YES" id="vFp-zd-1ea"/>
+                                        <constraint firstAttribute="trailing" secondItem="320" secondAttribute="trailing" constant="20" symbolic="YES" id="w2R-Kc-Tj3"/>
+                                        <constraint firstItem="108" firstAttribute="baseline" secondItem="107" secondAttribute="baseline" id="xcr-32-mbs"/>
+                                    </constraints>
+                                </view>
+                            </tabViewItem>
+                            <tabViewItem label="Registration" identifier="2" id="98">
+                                <view key="view" id="99">
+                                    <rect key="frame" x="10" y="33" width="550" height="239"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <subviews>
+                                        <button translatesAutoresizingMaskIntoConstraints="NO" id="179">
+                                            <rect key="frame" x="41" y="157" width="72" height="18"/>
+                                            <buttonCell key="cell" type="check" title="Domain:" bezelStyle="regularSquare" imagePosition="left" alignment="right" inset="2" id="100179">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="wideAreaCheckBoxChanged:" target="-2" id="317"/>
+                                            </connections>
+                                        </button>
+                                        <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="267">
+                                            <rect key="frame" x="222" y="119" width="109" height="32"/>
+                                            <buttonCell key="cell" type="push" title="Password…" bezelStyle="rounded" alignment="center" borderStyle="border" inset="2" id="100267">
+                                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="changeButtonPressed:" target="-2" id="273"/>
+                                            </connections>
+                                        </button>
+                                        <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="348">
+                                            <rect key="frame" x="18" y="185" width="514" height="34"/>
+                                            <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Check the box and select a registration domain to enable Bonjour advertising beyond the local subnet." id="100348">
+                                                <font key="font" metaFont="systemBold"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="KqE-pc-8z0">
+                                            <rect key="frame" x="113" y="119" width="109" height="32"/>
+                                            <buttonCell key="cell" type="push" title="Select…" bezelStyle="rounded" alignment="center" borderStyle="border" inset="2" id="TjV-QO-BW7">
+                                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="selectWideAreaDomainButtonPressed:" target="-2" id="d4S-la-iyw"/>
+                                            </connections>
+                                        </button>
+                                        <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cxI-8W-6HI">
+                                            <rect key="frame" x="119" y="155" width="411" height="22"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" enabled="NO" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="Oao-6x-0X9">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <customView translatesAutoresizingMaskIntoConstraints="NO" id="Reu-VC-MNz" customClass="CNBonjourDomainView">
+                                            <rect key="frame" x="119" y="155" width="411" height="22"/>
+                                            <constraints>
+                                                <constraint firstAttribute="height" constant="22" id="l7c-m9-GcE"/>
+                                            </constraints>
+                                        </customView>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstItem="267" firstAttribute="leading" secondItem="KqE-pc-8z0" secondAttribute="trailing" constant="12" symbolic="YES" id="2kZ-P9-l60"/>
+                                        <constraint firstItem="Reu-VC-MNz" firstAttribute="centerY" secondItem="cxI-8W-6HI" secondAttribute="centerY" id="984-4H-aIz"/>
+                                        <constraint firstItem="179" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="99" secondAttribute="leading" constant="20" symbolic="YES" id="D3d-wd-QYX"/>
+                                        <constraint firstItem="Reu-VC-MNz" firstAttribute="top" secondItem="348" secondAttribute="bottom" constant="8" symbolic="YES" id="GcL-zf-7HQ"/>
+                                        <constraint firstItem="348" firstAttribute="top" secondItem="99" secondAttribute="top" constant="20" symbolic="YES" id="HDQ-fd-PwR"/>
+                                        <constraint firstItem="Reu-VC-MNz" firstAttribute="height" secondItem="cxI-8W-6HI" secondAttribute="height" id="HUo-M5-tyi"/>
+                                        <constraint firstItem="Reu-VC-MNz" firstAttribute="width" secondItem="cxI-8W-6HI" secondAttribute="width" id="JML-71-xrY"/>
+                                        <constraint firstItem="cxI-8W-6HI" firstAttribute="baseline" secondItem="179" secondAttribute="baseline" id="NX1-5X-UZI"/>
+                                        <constraint firstItem="348" firstAttribute="leading" secondItem="99" secondAttribute="leading" constant="20" symbolic="YES" id="P0u-7u-LJv"/>
+                                        <constraint firstItem="KqE-pc-8z0" firstAttribute="leading" secondItem="cxI-8W-6HI" secondAttribute="leading" id="RDS-Bc-KYd"/>
+                                        <constraint firstItem="Reu-VC-MNz" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="99" secondAttribute="leading" constant="20" symbolic="YES" id="d8L-Kb-W49"/>
+                                        <constraint firstItem="Reu-VC-MNz" firstAttribute="centerX" secondItem="cxI-8W-6HI" secondAttribute="centerX" id="dfu-qB-Ezj"/>
+                                        <constraint firstItem="Reu-VC-MNz" firstAttribute="leading" secondItem="179" secondAttribute="trailing" constant="8" symbolic="YES" id="rUC-3C-r32"/>
+                                        <constraint firstItem="KqE-pc-8z0" firstAttribute="top" secondItem="cxI-8W-6HI" secondAttribute="bottom" constant="8" symbolic="YES" id="skb-cf-d2E"/>
+                                        <constraint firstAttribute="trailing" secondItem="Reu-VC-MNz" secondAttribute="trailing" constant="20" symbolic="YES" id="ta5-1S-y3v"/>
+                                        <constraint firstAttribute="trailing" secondItem="348" secondAttribute="trailing" constant="20" symbolic="YES" id="tr3-Ed-I8w"/>
+                                        <constraint firstItem="267" firstAttribute="baseline" secondItem="KqE-pc-8z0" secondAttribute="baseline" id="vt0-3i-y05"/>
+                                        <constraint firstItem="267" firstAttribute="width" secondItem="KqE-pc-8z0" secondAttribute="width" id="vxX-jt-NDx"/>
+                                        <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="267" secondAttribute="trailing" constant="20" symbolic="YES" id="w1s-Ah-Gmw"/>
+                                        <constraint firstItem="Reu-VC-MNz" firstAttribute="leading" secondItem="99" secondAttribute="leading" priority="499" constant="119" id="xdT-xB-bam"/>
+                                    </constraints>
+                                </view>
+                            </tabViewItem>
+                            <tabViewItem label="Browsing" identifier="" id="322">
+                                <view key="view" id="323">
+                                    <rect key="frame" x="10" y="33" width="550" height="239"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <subviews>
+                                        <scrollView horizontalLineScroll="24" horizontalPageScroll="10" verticalLineScroll="24" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="326">
+                                            <rect key="frame" x="20" y="82" width="510" height="112"/>
+                                            <clipView key="contentView" id="r8V-oO-qTS">
+                                                <rect key="frame" x="1" y="1" width="508" height="110"/>
+                                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                                <subviews>
+                                                    <tableView focusRingType="none" verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="22" id="327">
+                                                        <rect key="frame" x="0.0" y="0.0" width="508" height="110"/>
+                                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                                        <size key="intercellSpacing" width="3" height="2"/>
+                                                        <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                        <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
+                                                        <tableColumns>
+                                                            <tableColumn identifier="Enabled" width="35" minWidth="30" maxWidth="1000" id="328">
+                                                                <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left">
+                                                                    <font key="font" metaFont="smallSystem"/>
+                                                                    <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
+                                                                    <color key="backgroundColor" white="0.33333299" alpha="1" colorSpace="calibratedWhite"/>
+                                                                </tableHeaderCell>
+                                                                <buttonCell key="dataCell" type="check" bezelStyle="regularSquare" imagePosition="above" alignment="center" inset="2" id="358">
+                                                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                                    <font key="font" metaFont="cellTitle"/>
+                                                                    <connections>
+                                                                        <action selector="enableBrowseDomainClicked:" target="-2" id="360"/>
+                                                                    </connections>
+                                                                </buttonCell>
+                                                            </tableColumn>
+                                                            <tableColumn identifier="Domain" editable="NO" width="451.9541015625" minWidth="49.3466796875" maxWidth="1000" id="329">
+                                                                <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Domain">
+                                                                    <font key="font" metaFont="smallSystem"/>
+                                                                    <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
+                                                                    <color key="backgroundColor" white="0.33333299" alpha="1" colorSpace="calibratedWhite"/>
+                                                                </tableHeaderCell>
+                                                                <customCell key="dataCell" alignment="left" id="LhH-Yh-n33" customClass="CNBonjourDomainCell"/>
+                                                            </tableColumn>
+                                                        </tableColumns>
+                                                        <connections>
+                                                            <outlet property="dataSource" destination="-2" id="350"/>
+                                                            <outlet property="delegate" destination="-2" id="351"/>
+                                                        </connections>
+                                                    </tableView>
+                                                </subviews>
+                                            </clipView>
+                                            <constraints>
+                                                <constraint firstAttribute="height" constant="112" id="Pf1-34-QXp"/>
+                                            </constraints>
+                                            <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="100326">
+                                                <rect key="frame" x="-100" y="-100" width="493" height="15"/>
+                                                <autoresizingMask key="autoresizingMask"/>
+                                            </scroller>
+                                            <scroller key="verticalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="200326">
+                                                <rect key="frame" x="493" y="1" width="16" height="110"/>
+                                                <autoresizingMask key="autoresizingMask"/>
+                                            </scroller>
+                                        </scrollView>
+                                        <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="330">
+                                            <rect key="frame" x="18" y="202" width="514" height="17"/>
+                                            <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Choose which domains to browse using Wide-Area Bonjour." id="100330">
+                                                <font key="font" metaFont="systemBold"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <button toolTip="Click to define shortcuts within applications." verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="381">
+                                            <rect key="frame" x="20" y="49" width="24" height="26"/>
+                                            <constraints>
+                                                <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="24" id="llU-4M-pcI"/>
+                                                <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="24" id="qD8-y4-ZkW"/>
+                                            </constraints>
+                                            <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSAddTemplate" imagePosition="overlaps" alignment="center" state="on" borderStyle="border" id="100381">
+                                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="addBrowseDomainClicked:" target="-2" id="386"/>
+                                            </connections>
+                                        </button>
+                                        <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="383">
+                                            <rect key="frame" x="43" y="49" width="24" height="26"/>
+                                            <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSRemoveTemplate" imagePosition="overlaps" alignment="center" controlSize="small" state="on" borderStyle="border" id="100383">
+                                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="smallSystem"/>
+                                                <string key="keyEquivalent"></string>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="removeBrowseDomainClicked:" target="-2" id="387"/>
+                                            </connections>
+                                        </button>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstItem="326" firstAttribute="leading" secondItem="323" secondAttribute="leading" constant="20" symbolic="YES" id="BHw-zP-zzH"/>
+                                        <constraint firstItem="381" firstAttribute="centerY" secondItem="383" secondAttribute="centerY" id="Cae-WW-gYH"/>
+                                        <constraint firstItem="326" firstAttribute="leading" secondItem="381" secondAttribute="leading" id="GCR-nb-Kbp"/>
+                                        <constraint firstItem="381" firstAttribute="height" secondItem="383" secondAttribute="height" id="GYW-Vr-6c8"/>
+                                        <constraint firstAttribute="trailing" secondItem="326" secondAttribute="trailing" constant="20" symbolic="YES" id="HGK-Ej-oKA"/>
+                                        <constraint firstItem="383" firstAttribute="leading" secondItem="381" secondAttribute="trailing" constant="-1" id="KYa-XM-Qrh"/>
+                                        <constraint firstAttribute="trailing" secondItem="330" secondAttribute="trailing" constant="20" symbolic="YES" id="Lkk-cy-gcf"/>
+                                        <constraint firstItem="326" firstAttribute="top" secondItem="330" secondAttribute="bottom" constant="8" symbolic="YES" id="Pna-sQ-Iom"/>
+                                        <constraint firstItem="381" firstAttribute="top" secondItem="326" secondAttribute="bottom" constant="8" symbolic="YES" id="YmF-BH-VOk"/>
+                                        <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="383" secondAttribute="trailing" constant="20" symbolic="YES" id="aY5-XO-vJN"/>
+                                        <constraint firstItem="381" firstAttribute="width" secondItem="383" secondAttribute="width" id="kJf-PK-P0M"/>
+                                        <constraint firstItem="330" firstAttribute="leading" secondItem="323" secondAttribute="leading" constant="20" symbolic="YES" id="luC-Nv-ec5"/>
+                                        <constraint firstItem="330" firstAttribute="top" secondItem="323" secondAttribute="top" constant="20" symbolic="YES" id="yVJ-PT-T31"/>
+                                    </constraints>
+                                </view>
+                            </tabViewItem>
+                        </tabViewItems>
+                    </tabView>
+                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="137" customClass="SFAuthorizationView">
+                        <rect key="frame" x="20" y="20" width="356" height="34"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="34" id="T24-JY-FUW"/>
+                            <constraint firstAttribute="width" constant="356" id="hHs-jB-Xz8"/>
+                        </constraints>
+                    </customView>
+                    <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="208">
+                        <rect key="frame" x="502" y="13" width="80" height="32"/>
+                        <buttonCell key="cell" type="push" title="Apply" bezelStyle="rounded" alignment="center" enabled="NO" borderStyle="border" inset="2" id="100208">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                        </buttonCell>
+                        <connections>
+                            <action selector="applyClicked:" target="-2" id="209"/>
+                        </connections>
+                    </button>
+                    <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="290">
+                        <rect key="frame" x="422" y="13" width="80" height="32"/>
+                        <buttonCell key="cell" type="push" title="Revert" bezelStyle="rounded" alignment="center" enabled="NO" borderStyle="border" inset="2" id="100290">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                        </buttonCell>
+                        <connections>
+                            <action selector="revertClicked:" target="-2" id="293"/>
+                        </connections>
+                    </button>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="290" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="6" secondAttribute="leading" constant="20" symbolic="YES" id="0rt-dY-Rii"/>
+                    <constraint firstAttribute="trailing" secondItem="100" secondAttribute="trailing" constant="20" symbolic="YES" id="DEs-Vk-n3D"/>
+                    <constraint firstItem="208" firstAttribute="width" secondItem="290" secondAttribute="width" id="GMB-MK-qPS"/>
+                    <constraint firstAttribute="bottom" secondItem="137" secondAttribute="bottom" constant="20" symbolic="YES" id="M0C-li-Dr1"/>
+                    <constraint firstItem="100" firstAttribute="leading" secondItem="6" secondAttribute="leading" constant="20" symbolic="YES" id="Ozi-Cv-NdV"/>
+                    <constraint firstAttribute="bottom" secondItem="208" secondAttribute="bottom" constant="20" symbolic="YES" id="PGr-uI-dUi"/>
+                    <constraint firstItem="290" firstAttribute="baseline" secondItem="208" secondAttribute="baseline" id="Rcf-kj-OQp"/>
+                    <constraint firstItem="137" firstAttribute="leading" secondItem="6" secondAttribute="leading" constant="20" symbolic="YES" id="dWc-kl-h8o"/>
+                    <constraint firstItem="208" firstAttribute="leading" secondItem="290" secondAttribute="trailing" constant="12" symbolic="YES" id="g3l-gL-wIw"/>
+                    <constraint firstItem="137" firstAttribute="top" secondItem="100" secondAttribute="bottom" constant="8" symbolic="YES" id="jDb-sm-pFt"/>
+                    <constraint firstItem="100" firstAttribute="top" secondItem="6" secondAttribute="top" constant="12" symbolic="YES" id="nWn-mH-iEl"/>
+                    <constraint firstAttribute="trailing" secondItem="208" secondAttribute="trailing" constant="20" symbolic="YES" id="xIc-XH-CzB"/>
+                </constraints>
+            </view>
+            <point key="canvasLocation" x="6" y="454"/>
+        </window>
+        <window title="Shared Secret" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="255" userLabel="SharedSecret">
+            <windowStyleMask key="styleMask" titled="YES"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="591" y="108" width="496" height="148"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1417"/>
+            <value key="minSize" type="size" width="213" height="107"/>
+            <view key="contentView" id="254">
+                <rect key="frame" x="0.0" y="0.0" width="496" height="148"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="256">
+                        <rect key="frame" x="96" y="81" width="380" height="22"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" alignment="left" drawsBackground="YES" id="100256">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                        <connections>
+                            <outlet property="delegate" destination="-2" id="283"/>
+                            <outlet property="nextKeyView" destination="257" id="288"/>
+                        </connections>
+                    </textField>
+                    <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="257" customClass="NSSecureTextField">
+                        <rect key="frame" x="96" y="49" width="380" height="22"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" alignment="left" drawsBackground="YES" id="100257">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                        <connections>
+                            <outlet property="delegate" destination="-2" id="284"/>
+                            <outlet property="nextKeyView" destination="256" id="289"/>
+                        </connections>
+                    </textField>
+                    <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="258">
+                        <rect key="frame" x="46" y="84" width="44" height="17"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Name:" id="100258">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="259">
+                        <rect key="frame" x="24" y="52" width="66" height="17"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Password:" id="100259">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <button verticalHuggingPriority="750" tag="1" translatesAutoresizingMaskIntoConstraints="NO" id="260">
+                        <rect key="frame" x="400" y="13" width="82" height="32"/>
+                        <buttonCell key="cell" type="push" title="OK" bezelStyle="rounded" alignment="center" borderStyle="border" inset="2" id="100260">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent" base64-UTF8="YES">
+DQ
+</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="closeMyCustomSheet:" target="-2" id="279"/>
+                        </connections>
+                    </button>
+                    <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="261">
+                        <rect key="frame" x="318" y="13" width="82" height="32"/>
+                        <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" inset="2" id="100261">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent" base64-UTF8="YES">
+Gw
+</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="closeMyCustomSheet:" target="-2" id="280"/>
+                        </connections>
+                    </button>
+                    <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="262">
+                        <rect key="frame" x="18" y="111" width="460" height="17"/>
+                        <constraints>
+                            <constraint firstAttribute="width" priority="499" constant="456" id="Mua-9c-7eO"/>
+                        </constraints>
+                        <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="left" title="Enter a password if your DNS server requires authentication." id="100262">
+                            <font key="font" metaFont="systemBold"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                </subviews>
+                <constraints>
+                    <constraint firstAttribute="trailing" secondItem="256" secondAttribute="trailing" constant="20" symbolic="YES" id="3mf-gO-3d5"/>
+                    <constraint firstAttribute="trailing" secondItem="262" secondAttribute="trailing" constant="20" symbolic="YES" id="7wb-gt-2py"/>
+                    <constraint firstItem="261" firstAttribute="baseline" secondItem="260" secondAttribute="baseline" id="9Qx-ne-W5G"/>
+                    <constraint firstItem="258" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="254" secondAttribute="leading" constant="20" symbolic="YES" id="9jU-dY-JqX"/>
+                    <constraint firstItem="260" firstAttribute="top" secondItem="257" secondAttribute="bottom" constant="8" symbolic="YES" id="Dt1-uv-H2r"/>
+                    <constraint firstItem="262" firstAttribute="leading" secondItem="254" secondAttribute="leading" constant="20" symbolic="YES" id="El6-is-b6l"/>
+                    <constraint firstItem="256" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="254" secondAttribute="leading" constant="20" symbolic="YES" id="IAp-Sj-ojh"/>
+                    <constraint firstItem="262" firstAttribute="top" secondItem="254" secondAttribute="top" constant="20" symbolic="YES" id="IKv-MA-MaG"/>
+                    <constraint firstItem="260" firstAttribute="leading" secondItem="261" secondAttribute="trailing" constant="12" symbolic="YES" id="Jih-R5-3WX"/>
+                    <constraint firstAttribute="trailing" secondItem="260" secondAttribute="trailing" constant="20" symbolic="YES" id="L7K-Si-lMS"/>
+                    <constraint firstItem="256" firstAttribute="leading" secondItem="254" secondAttribute="leading" priority="499" constant="96" id="MGe-DK-IsJ"/>
+                    <constraint firstItem="257" firstAttribute="leading" secondItem="256" secondAttribute="leading" id="XiH-SB-ew9"/>
+                    <constraint firstItem="261" firstAttribute="width" secondItem="260" secondAttribute="width" id="ZBv-82-oHI"/>
+                    <constraint firstItem="257" firstAttribute="leading" secondItem="254" secondAttribute="leading" priority="499" constant="96" id="ZSQ-Eu-kfv"/>
+                    <constraint firstItem="257" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="254" secondAttribute="leading" constant="20" symbolic="YES" id="awk-Ih-h6t"/>
+                    <constraint firstAttribute="trailing" secondItem="257" secondAttribute="trailing" constant="20" symbolic="YES" id="b4B-N1-Kkw"/>
+                    <constraint firstItem="256" firstAttribute="top" secondItem="262" secondAttribute="bottom" constant="8" symbolic="YES" id="bMU-Gr-KAT"/>
+                    <constraint firstItem="259" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="254" secondAttribute="leading" constant="20" symbolic="YES" id="djz-PT-u6u"/>
+                    <constraint firstItem="259" firstAttribute="baseline" secondItem="257" secondAttribute="baseline" id="eqD-gu-QY7"/>
+                    <constraint firstItem="256" firstAttribute="leading" secondItem="258" secondAttribute="trailing" constant="8" symbolic="YES" id="g6K-nY-Pnf"/>
+                    <constraint firstAttribute="bottom" secondItem="260" secondAttribute="bottom" constant="20" symbolic="YES" id="qad-Pr-uFC"/>
+                    <constraint firstItem="257" firstAttribute="top" secondItem="256" secondAttribute="bottom" constant="10" symbolic="YES" id="qyJ-gm-15K"/>
+                    <constraint firstItem="257" firstAttribute="leading" secondItem="259" secondAttribute="trailing" constant="8" symbolic="YES" id="sAe-2s-bxV"/>
+                    <constraint firstItem="258" firstAttribute="baseline" secondItem="256" secondAttribute="baseline" id="xZU-Nd-Q5f"/>
+                </constraints>
+            </view>
+            <point key="canvasLocation" x="148" y="69"/>
+        </window>
+        <window title="Add Browse Domains" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="333" userLabel="AddDomain">
+            <windowStyleMask key="styleMask" titled="YES"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="634" y="377" width="496" height="220"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1417"/>
+            <value key="minSize" type="size" width="213" height="107"/>
+            <view key="contentView" id="334">
+                <rect key="frame" x="0.0" y="0.0" width="496" height="220"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="336">
+                        <rect key="frame" x="18" y="183" width="460" height="17"/>
+                        <constraints>
+                            <constraint firstAttribute="width" priority="499" constant="456" id="qTJ-tL-p1s"/>
+                        </constraints>
+                        <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="left" title="Choose a domain to add to your list of Bonjour browse domains." id="100336">
+                            <font key="font" metaFont="systemBold"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="200327" customClass="CNDomainBrowserView">
+                        <rect key="frame" x="20" y="61" width="456" height="114"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="114" id="ey8-36-A8G"/>
+                        </constraints>
+                        <userDefinedRuntimeAttributes>
+                            <userDefinedRuntimeAttribute type="boolean" keyPath="registrationDomains" value="NO"/>
+                            <userDefinedRuntimeAttribute type="boolean" keyPath="ignoreLocal" value="YES"/>
+                            <userDefinedRuntimeAttribute type="boolean" keyPath="ignoreBTMM" value="NO"/>
+                            <userDefinedRuntimeAttribute type="boolean" keyPath="browseRegistration" value="NO"/>
+                        </userDefinedRuntimeAttributes>
+                    </customView>
+                    <button verticalHuggingPriority="750" tag="1" translatesAutoresizingMaskIntoConstraints="NO" id="340">
+                        <rect key="frame" x="400" y="13" width="82" height="32"/>
+                        <buttonCell key="cell" type="push" title="OK" bezelStyle="rounded" alignment="center" borderStyle="border" inset="2" id="100340">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent" base64-UTF8="YES">
+DQ
+</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="closeMyCustomSheet:" target="-2" id="365"/>
+                        </connections>
+                    </button>
+                    <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="341">
+                        <rect key="frame" x="318" y="13" width="82" height="32"/>
+                        <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" inset="2" id="100341">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent" base64-UTF8="YES">
+Gw
+</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="closeMyCustomSheet:" target="-2" id="364"/>
+                        </connections>
+                    </button>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="341" firstAttribute="width" secondItem="340" secondAttribute="width" id="1kP-hH-4fg"/>
+                    <constraint firstItem="336" firstAttribute="leading" secondItem="334" secondAttribute="leading" constant="20" symbolic="YES" id="6p2-FN-dgI"/>
+                    <constraint firstItem="200327" firstAttribute="leading" secondItem="334" secondAttribute="leading" constant="20" symbolic="YES" id="BFf-ab-vji"/>
+                    <constraint firstItem="341" firstAttribute="baseline" secondItem="340" secondAttribute="baseline" id="DdL-N2-sRf"/>
+                    <constraint firstItem="336" firstAttribute="top" secondItem="334" secondAttribute="top" constant="20" symbolic="YES" id="Iei-fi-sMQ"/>
+                    <constraint firstItem="340" firstAttribute="top" secondItem="200327" secondAttribute="bottom" constant="20" symbolic="YES" id="Ouj-CX-0R3"/>
+                    <constraint firstAttribute="trailing" secondItem="200327" secondAttribute="trailing" constant="20" symbolic="YES" id="QWi-nn-fZb"/>
+                    <constraint firstItem="200327" firstAttribute="top" secondItem="336" secondAttribute="bottom" constant="8" symbolic="YES" id="f1Y-2w-Xl7"/>
+                    <constraint firstAttribute="trailing" secondItem="336" secondAttribute="trailing" constant="20" symbolic="YES" id="gOk-i6-e6u"/>
+                    <constraint firstAttribute="trailing" secondItem="340" secondAttribute="trailing" constant="20" symbolic="YES" id="gvy-DL-dCw"/>
+                    <constraint firstAttribute="bottom" secondItem="340" secondAttribute="bottom" constant="20" symbolic="YES" id="i1j-hc-gtt"/>
+                    <constraint firstItem="340" firstAttribute="leading" secondItem="341" secondAttribute="trailing" constant="12" symbolic="YES" id="yRJ-0k-a3r"/>
+                </constraints>
+            </view>
+            <point key="canvasLocation" x="-27" y="-234"/>
+        </window>
+        <window title="Add Browse Domains" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="NFb-eI-atL" userLabel="AddDomainManual">
+            <windowStyleMask key="styleMask" titled="YES"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="634" y="377" width="496" height="133"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1417"/>
+            <value key="minSize" type="size" width="213" height="107"/>
+            <view key="contentView" id="gUJ-3k-BQQ">
+                <rect key="frame" x="0.0" y="0.0" width="496" height="133"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <button verticalHuggingPriority="750" tag="1" translatesAutoresizingMaskIntoConstraints="NO" id="aoV-3v-A7q">
+                        <rect key="frame" x="400" y="13" width="82" height="32"/>
+                        <buttonCell key="cell" type="push" title="OK" bezelStyle="rounded" alignment="center" borderStyle="border" inset="2" id="Jo3-6e-vxc">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent" base64-UTF8="YES">
+DQ
+</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="closeMyCustomSheet:" target="-2" id="hMi-BR-qQY"/>
+                        </connections>
+                    </button>
+                    <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="a0y-0s-TTY">
+                        <rect key="frame" x="318" y="13" width="82" height="32"/>
+                        <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" inset="2" id="qne-aW-QHl">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent" base64-UTF8="YES">
+Gw
+</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="closeMyCustomSheet:" target="-2" id="eUl-Y1-c5S"/>
+                        </connections>
+                    </button>
+                    <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Sfp-nO-NP2">
+                        <rect key="frame" x="36" y="52" width="54" height="17"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Domain:" id="b6L-KA-Dqu">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="Myg-XJ-ngM">
+                        <rect key="frame" x="18" y="79" width="460" height="34"/>
+                        <constraints>
+                            <constraint firstAttribute="width" priority="499" constant="456" id="nwj-Vn-nBx"/>
+                        </constraints>
+                        <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="left" title="The following domain will be added to your list of Bonjour browse domains." id="m5w-3d-gfR">
+                            <font key="font" metaFont="systemBold"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="W2d-Us-Cpm">
+                        <rect key="frame" x="96" y="49" width="380" height="22"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="kJz-0i-YUX">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                </subviews>
+                <constraints>
+                    <constraint firstAttribute="trailing" secondItem="W2d-Us-Cpm" secondAttribute="trailing" constant="20" symbolic="YES" id="08z-5S-y1p"/>
+                    <constraint firstAttribute="trailing" secondItem="Myg-XJ-ngM" secondAttribute="trailing" constant="20" symbolic="YES" id="2qd-6o-hRs"/>
+                    <constraint firstAttribute="trailing" secondItem="aoV-3v-A7q" secondAttribute="trailing" constant="20" symbolic="YES" id="5WH-eg-Ibw"/>
+                    <constraint firstItem="W2d-Us-Cpm" firstAttribute="leading" secondItem="gUJ-3k-BQQ" secondAttribute="leading" priority="499" constant="96" id="KBy-nt-u24"/>
+                    <constraint firstItem="aoV-3v-A7q" firstAttribute="baseline" secondItem="a0y-0s-TTY" secondAttribute="baseline" id="L8X-K0-cNZ"/>
+                    <constraint firstItem="W2d-Us-Cpm" firstAttribute="leading" secondItem="Sfp-nO-NP2" secondAttribute="trailing" constant="8" symbolic="YES" id="Pw7-gK-pJO"/>
+                    <constraint firstItem="Myg-XJ-ngM" firstAttribute="top" secondItem="gUJ-3k-BQQ" secondAttribute="top" constant="20" symbolic="YES" id="Vkn-zN-QmY"/>
+                    <constraint firstAttribute="bottom" secondItem="aoV-3v-A7q" secondAttribute="bottom" constant="20" symbolic="YES" id="aJb-Dk-Ofa"/>
+                    <constraint firstItem="aoV-3v-A7q" firstAttribute="top" secondItem="W2d-Us-Cpm" secondAttribute="bottom" constant="8" symbolic="YES" id="bbw-LB-NG3"/>
+                    <constraint firstItem="Myg-XJ-ngM" firstAttribute="leading" secondItem="gUJ-3k-BQQ" secondAttribute="leading" constant="20" symbolic="YES" id="cab-6m-9M7"/>
+                    <constraint firstItem="W2d-Us-Cpm" firstAttribute="top" secondItem="Myg-XJ-ngM" secondAttribute="bottom" constant="8" symbolic="YES" id="ewM-hb-zj3"/>
+                    <constraint firstItem="W2d-Us-Cpm" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="gUJ-3k-BQQ" secondAttribute="leading" constant="20" symbolic="YES" id="jsT-pp-iwi"/>
+                    <constraint firstItem="Sfp-nO-NP2" firstAttribute="baseline" secondItem="W2d-Us-Cpm" secondAttribute="baseline" id="qPo-ba-jjr"/>
+                    <constraint firstItem="aoV-3v-A7q" firstAttribute="leading" secondItem="a0y-0s-TTY" secondAttribute="trailing" constant="12" symbolic="YES" id="tzd-P2-c6b"/>
+                    <constraint firstItem="Sfp-nO-NP2" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="gUJ-3k-BQQ" secondAttribute="leading" constant="20" symbolic="YES" id="vVs-34-dSS"/>
+                    <constraint firstItem="aoV-3v-A7q" firstAttribute="width" secondItem="a0y-0s-TTY" secondAttribute="width" id="xg1-eb-4Pj"/>
+                </constraints>
+            </view>
+            <point key="canvasLocation" x="-27" y="-524"/>
+        </window>
+        <window title="Add Registration Domain" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="ail-If-2Xp" userLabel="SelectRegDomain">
+            <windowStyleMask key="styleMask" titled="YES"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="634" y="377" width="496" height="220"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1417"/>
+            <value key="minSize" type="size" width="213" height="107"/>
+            <view key="contentView" id="W37-VK-yC5">
+                <rect key="frame" x="0.0" y="0.0" width="496" height="220"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="q4Y-tT-1h7">
+                        <rect key="frame" x="18" y="183" width="460" height="17"/>
+                        <constraints>
+                            <constraint firstAttribute="width" priority="499" constant="456" id="zF0-CN-3xD"/>
+                        </constraints>
+                        <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="left" title="Choose a domain to use as your Bonjour registration domain." id="EDB-Ul-M1P">
+                            <font key="font" metaFont="systemBold"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="agb-WV-smo" customClass="CNDomainBrowserView">
+                        <rect key="frame" x="20" y="61" width="456" height="114"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="114" id="3JN-68-aTf"/>
+                        </constraints>
+                        <userDefinedRuntimeAttributes>
+                            <userDefinedRuntimeAttribute type="boolean" keyPath="registrationDomains" value="YES"/>
+                            <userDefinedRuntimeAttribute type="boolean" keyPath="ignoreLocal" value="YES"/>
+                            <userDefinedRuntimeAttribute type="boolean" keyPath="ignoreBTMM" value="NO"/>
+                            <userDefinedRuntimeAttribute type="boolean" keyPath="browseRegistration" value="YES"/>
+                        </userDefinedRuntimeAttributes>
+                    </customView>
+                    <button verticalHuggingPriority="750" tag="1" translatesAutoresizingMaskIntoConstraints="NO" id="8fZ-4V-xd6">
+                        <rect key="frame" x="400" y="13" width="82" height="32"/>
+                        <buttonCell key="cell" type="push" title="OK" bezelStyle="rounded" alignment="center" borderStyle="border" inset="2" id="eLF-AD-BgY">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent" base64-UTF8="YES">
+DQ
+</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="closeMyCustomSheet:" target="-2" id="HFg-iF-1qy"/>
+                        </connections>
+                    </button>
+                    <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="I6S-g0-R0G">
+                        <rect key="frame" x="318" y="13" width="82" height="32"/>
+                        <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" inset="2" id="a1o-he-Kv7">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent" base64-UTF8="YES">
+Gw
+</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="closeMyCustomSheet:" target="-2" id="SQP-5g-qGG"/>
+                        </connections>
+                    </button>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="8fZ-4V-xd6" firstAttribute="top" secondItem="agb-WV-smo" secondAttribute="bottom" constant="20" symbolic="YES" id="4cD-Af-ApJ"/>
+                    <constraint firstItem="q4Y-tT-1h7" firstAttribute="leading" secondItem="W37-VK-yC5" secondAttribute="leading" constant="20" symbolic="YES" id="8fj-II-NeF"/>
+                    <constraint firstItem="q4Y-tT-1h7" firstAttribute="top" secondItem="W37-VK-yC5" secondAttribute="top" constant="20" symbolic="YES" id="Bq5-8Z-4eY"/>
+                    <constraint firstItem="agb-WV-smo" firstAttribute="leading" secondItem="W37-VK-yC5" secondAttribute="leading" constant="20" symbolic="YES" id="Kex-pV-3tR"/>
+                    <constraint firstAttribute="trailing" secondItem="q4Y-tT-1h7" secondAttribute="trailing" constant="20" symbolic="YES" id="Piu-PE-SEc"/>
+                    <constraint firstItem="agb-WV-smo" firstAttribute="top" secondItem="q4Y-tT-1h7" secondAttribute="bottom" constant="8" symbolic="YES" id="Spl-BU-U7l"/>
+                    <constraint firstItem="8fZ-4V-xd6" firstAttribute="width" secondItem="I6S-g0-R0G" secondAttribute="width" id="Xx2-3v-4H5"/>
+                    <constraint firstItem="8fZ-4V-xd6" firstAttribute="leading" secondItem="I6S-g0-R0G" secondAttribute="trailing" constant="12" symbolic="YES" id="aly-0r-bvb"/>
+                    <constraint firstAttribute="bottom" secondItem="8fZ-4V-xd6" secondAttribute="bottom" constant="20" symbolic="YES" id="eqT-TT-gxE"/>
+                    <constraint firstItem="8fZ-4V-xd6" firstAttribute="baseline" secondItem="I6S-g0-R0G" secondAttribute="baseline" id="h1B-xs-zFp"/>
+                    <constraint firstAttribute="trailing" secondItem="agb-WV-smo" secondAttribute="trailing" constant="20" symbolic="YES" id="xLH-br-4Uh"/>
+                    <constraint firstAttribute="trailing" secondItem="8fZ-4V-xd6" secondAttribute="trailing" constant="20" symbolic="YES" id="xiF-Cr-13M"/>
+                </constraints>
+            </view>
+            <point key="canvasLocation" x="538" y="-234"/>
+        </window>
+        <window title="Add Registration Domain" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="he2-0K-CWy" userLabel="SelectRegDomainManual">
+            <windowStyleMask key="styleMask" titled="YES"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="634" y="377" width="496" height="133"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1417"/>
+            <value key="minSize" type="size" width="213" height="107"/>
+            <view key="contentView" id="FYv-ly-yOd">
+                <rect key="frame" x="0.0" y="0.0" width="496" height="133"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <button verticalHuggingPriority="750" tag="1" translatesAutoresizingMaskIntoConstraints="NO" id="sau-gD-LVt">
+                        <rect key="frame" x="400" y="13" width="82" height="32"/>
+                        <buttonCell key="cell" type="push" title="OK" bezelStyle="rounded" alignment="center" borderStyle="border" inset="2" id="jAh-nT-Qwg">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent" base64-UTF8="YES">
+DQ
+</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="closeMyCustomSheet:" target="-2" id="ySI-9p-3tZ"/>
+                        </connections>
+                    </button>
+                    <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Ypd-8h-xfJ">
+                        <rect key="frame" x="318" y="13" width="82" height="32"/>
+                        <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" inset="2" id="Nd2-rR-DtX">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent" base64-UTF8="YES">
+Gw
+</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="closeMyCustomSheet:" target="-2" id="YM3-jW-TNM"/>
+                        </connections>
+                    </button>
+                    <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="die-Uf-Bn9">
+                        <rect key="frame" x="36" y="52" width="54" height="17"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Domain:" id="ZIy-WQ-OIZ">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="06e-WM-3MP">
+                        <rect key="frame" x="18" y="79" width="460" height="34"/>
+                        <constraints>
+                            <constraint firstAttribute="width" priority="499" constant="456" id="ilh-EM-DG1"/>
+                        </constraints>
+                        <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="left" title="The following registration domain will be used by Bonjour to advertise beyond the local subnet." id="SLP-nX-Q2C">
+                            <font key="font" metaFont="systemBold"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="OEh-fL-Ol6">
+                        <rect key="frame" x="96" y="49" width="380" height="22"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="aIe-CQ-mQ3">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="OEh-fL-Ol6" firstAttribute="leading" secondItem="FYv-ly-yOd" secondAttribute="leading" priority="499" constant="96" id="1Nc-CQ-lXd"/>
+                    <constraint firstItem="06e-WM-3MP" firstAttribute="top" secondItem="FYv-ly-yOd" secondAttribute="top" constant="20" symbolic="YES" id="5wy-Ji-7tZ"/>
+                    <constraint firstItem="OEh-fL-Ol6" firstAttribute="top" secondItem="06e-WM-3MP" secondAttribute="bottom" constant="8" symbolic="YES" id="7BD-rk-RTl"/>
+                    <constraint firstItem="sau-gD-LVt" firstAttribute="leading" secondItem="Ypd-8h-xfJ" secondAttribute="trailing" constant="12" symbolic="YES" id="7oo-eg-nGA"/>
+                    <constraint firstItem="die-Uf-Bn9" firstAttribute="baseline" secondItem="OEh-fL-Ol6" secondAttribute="baseline" id="DbC-UI-YFz"/>
+                    <constraint firstItem="die-Uf-Bn9" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="FYv-ly-yOd" secondAttribute="leading" constant="20" symbolic="YES" id="Ip2-Q3-r3l"/>
+                    <constraint firstAttribute="trailing" secondItem="sau-gD-LVt" secondAttribute="trailing" constant="20" symbolic="YES" id="Jce-ky-wTf"/>
+                    <constraint firstItem="sau-gD-LVt" firstAttribute="width" secondItem="Ypd-8h-xfJ" secondAttribute="width" id="NkV-L2-e4p"/>
+                    <constraint firstItem="sau-gD-LVt" firstAttribute="top" secondItem="OEh-fL-Ol6" secondAttribute="bottom" constant="8" symbolic="YES" id="Omq-c5-SZQ"/>
+                    <constraint firstAttribute="trailing" secondItem="06e-WM-3MP" secondAttribute="trailing" constant="20" symbolic="YES" id="U0T-5s-Jip"/>
+                    <constraint firstAttribute="bottom" secondItem="sau-gD-LVt" secondAttribute="bottom" constant="20" symbolic="YES" id="cWG-NL-TzC"/>
+                    <constraint firstAttribute="trailing" secondItem="OEh-fL-Ol6" secondAttribute="trailing" constant="20" symbolic="YES" id="igv-0W-kuw"/>
+                    <constraint firstItem="OEh-fL-Ol6" firstAttribute="leading" secondItem="die-Uf-Bn9" secondAttribute="trailing" constant="8" symbolic="YES" id="j71-MK-aiv"/>
+                    <constraint firstItem="sau-gD-LVt" firstAttribute="baseline" secondItem="Ypd-8h-xfJ" secondAttribute="baseline" id="t9l-JC-Ab2"/>
+                    <constraint firstItem="06e-WM-3MP" firstAttribute="leading" secondItem="FYv-ly-yOd" secondAttribute="leading" constant="20" symbolic="YES" id="wIW-Ja-ih6"/>
+                    <constraint firstItem="OEh-fL-Ol6" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="FYv-ly-yOd" secondAttribute="leading" constant="20" symbolic="YES" id="wia-Av-Bte"/>
+                </constraints>
+            </view>
+            <point key="canvasLocation" x="538" y="-525"/>
+        </window>
+    </objects>
+    <resources>
+        <image name="NSAddTemplate" width="11" height="11"/>
+        <image name="NSRemoveTemplate" width="11" height="11"/>
+    </resources>
+</document>

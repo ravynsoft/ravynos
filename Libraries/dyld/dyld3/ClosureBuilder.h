@@ -32,7 +32,6 @@
 #include "PathOverrides.h"
 #include "DyldSharedCache.h"
 #include "MachOAnalyzer.h"
-#include "MachOAnalyzerSet.h"
 #include "Map.h"
 #include "Loading.h"
 
@@ -44,19 +43,24 @@ struct objc_selopt_t;
 struct objc_protocolopt2_t;
 }
 
-typedef dyld3::MachOAnalyzerSet::WrappedMachO   WrappedMachO;
-
 namespace dyld3 {
 
-class RootsChecker;
 
 namespace closure {
 
-class ClosureAnalyzerSet;
 
-class VIS_HIDDEN ClosureBuilder : public dyld3::MachOAnalyzerSet
+
+class VIS_HIDDEN ClosureBuilder
 {
 public:
+
+    struct LaunchErrorInfo
+    {
+        uintptr_t       kind;
+        const char*     clientOfDylibPath;
+        const char*     targetDylibPath;
+        const char*     symbol;
+    };
 
     struct ResolvedTargetInfo
     {
@@ -71,23 +75,26 @@ public:
         int                libOrdinal;
     };
 
-    typedef void (^DylibFixupHandler)(const MachOLoaded* fixupIn, uint64_t fixupLocRuntimeOffset, PointerMetaData pmd, const MachOAnalyzerSet::FixupTarget& target);
+    struct CacheDylibsBindingHandlers
+    {
+        void        (^rebase)(ImageNum, const MachOLoaded* imageToFix, uint32_t runtimeOffset);
+        void        (^bind)(ImageNum, const MachOLoaded* imageToFix, uint32_t runtimeOffset, Image::ResolvedSymbolTarget target, const ResolvedTargetInfo& targetInfo);
+        void        (^chainedBind)(ImageNum, const MachOLoaded*, const dyld_chained_starts_in_image* starts, const Array<Image::ResolvedSymbolTarget>& targets, const Array<ResolvedTargetInfo>& targetInfos);
+   };
 
     enum class AtPath { none, all, onlyInRPaths };
 
-                                ClosureBuilder(uint32_t startImageNum, const FileSystem& fileSystem, const RootsChecker& rootsChecker,
-                                               const DyldSharedCache* dyldCache, bool dyldCacheIsLive,
+                                ClosureBuilder(uint32_t startImageNum, const FileSystem& fileSystem, const DyldSharedCache* dyldCache, bool dyldCacheIsLive,
                                                const GradedArchs& archs, const PathOverrides& pathOverrides,
                                                AtPath atPathHandling=AtPath::all, bool allowRelativePaths=true, LaunchErrorInfo* errorInfo=nullptr,
-                                               Platform platform=MachOFile::currentPlatform(), DylibFixupHandler dylibFixupHandler=nullptr);
+                                               Platform platform=MachOFile::currentPlatform(), const CacheDylibsBindingHandlers* handlers=nullptr);
                                 ~ClosureBuilder();
     Diagnostics&                diagnostics() { return _diag; }
 
     const LaunchClosure*        makeLaunchClosure(const LoadedFileInfo& fileInfo, bool allowInsertFailures);
 
     const LaunchClosure*        makeLaunchClosure(const char* mainPath,bool allowInsertFailures);
-    void                        makeMinimalClosures() { _makeMinimalClosure = true; }
-    void                        setCanSkipEncodingRebases() { _leaveRebasesAsOpcodes = true; }
+
 
     static const DlopenClosure* sRetryDlopenClosure;
     const DlopenClosure*        makeDlopenClosure(const char* dylibPath, const LaunchClosure* mainClosure, const Array<LoadedImage>& loadedList,
@@ -95,8 +102,7 @@ public:
                                                   closure::ImageNum* topImageNum);
 
     ImageNum                    nextFreeImageNum() const { return _startImageNum + _nextIndex; }
-    Platform                    platform() const { return _platform; }
-    
+
     void                        setDyldCacheInvalidFormatVersion();
     void                        disableInterposing() { _interposingDisabled = true; }
 
@@ -120,20 +126,20 @@ public:
         const char*             aliasPath;
     };
 
-    const ImageArray*           makeDyldCacheImageArray(const Array<CachedDylibInfo>& dylibs, const Array<CachedDylibAlias>& aliases);
+    const ImageArray*           makeDyldCacheImageArray(bool customerCache, const Array<CachedDylibInfo>& dylibs, const Array<CachedDylibAlias>& aliases);
 
     const ImageArray*           makeOtherDylibsImageArray(const Array<LoadedFileInfo>& otherDylibs, uint32_t cachedDylibsCount);
 
     static void                 buildLoadOrder(Array<LoadedImage>& loadedList, const Array<const ImageArray*>& imagesArrays, const Closure* toAdd);
 
 private:
-    friend ClosureAnalyzerSet;
+
 
     struct InitInfo
     {
-        uint32_t   initOrder       : 30,
-                   danglingUpward  :  1,
-                   visited         :  1;
+        uint32_t    initOrder;
+        bool        danglingUpward;
+        bool        visited;
     };
 
     struct BuilderLoadedImage
@@ -148,11 +154,8 @@ private:
                                     isBadImage              : 1,
                                     mustBuildClosure        : 1,
                                     hasMissingWeakImports   : 1,
-                                    hasInterposingTuples    : 1,
-                                    padding                 : 11,
+                                    padding                 : 12,
                                     overrideImageNum        : 12;
-        uint32_t                    exportsTrieOffset;
-        uint32_t                    exportsTrieSize;
         LoadedFileInfo              loadedFileInfo;
 
         // Convenience method to get the information from the loadedFileInfo
@@ -184,27 +187,36 @@ private:
                                       uint32_t compatVersion, bool canUseSharedCacheClosure);
     void                    buildImage(ImageWriter& writer, BuilderLoadedImage& forImage);
     void                    addSegments(ImageWriter& writer, const MachOAnalyzer* mh);
-    void                    addFixupInfo(ImageWriter& writer, BuilderLoadedImage& forImage);
+    void                    addRebaseInfo(ImageWriter& writer, const MachOAnalyzer* mh);
+    void                    addSynthesizedRebaseInfo(ImageWriter& writer, const MachOAnalyzer* mh);
+    void                    addSynthesizedBindInfo(ImageWriter& writer, const MachOAnalyzer* mh);
+    void                    addBindInfo(ImageWriter& writer, BuilderLoadedImage& forImage);
+    void                    reportRebasesAndBinds(ImageWriter& writer, BuilderLoadedImage& forImage);
     void                    addChainedFixupInfo(ImageWriter& writer, BuilderLoadedImage& forImage);
     void                    addInterposingTuples(LaunchClosureWriter& writer, const Image* image, const MachOAnalyzer* mh);
     void                    computeInitOrder(ImageWriter& writer, uint32_t loadIndex);
     void                    addClosureInfo(LaunchClosureWriter& closureWriter);
     void                    depthFirstRecurseSetInitInfo(uint32_t loadIndex, InitInfo initInfos[], uint32_t& initOrder, bool& hasError);
+    bool                    findSymbol(BuilderLoadedImage& fromImage, int libraryOrdinal, const char* symbolName, bool weakImport, bool lazyBind, uint64_t addend,
+                                       Image::ResolvedSymbolTarget& target, ResolvedTargetInfo& targetInfo);
+    bool                    findSymbolInImage(const MachOAnalyzer* macho, const char* symbolName, uint64_t addend, bool followReExports,
+                                              bool weakImport, Image::ResolvedSymbolTarget& target, ResolvedTargetInfo& targetInfo);
     const MachOAnalyzer*    machOForImageNum(ImageNum imageNum);
     ImageNum                imageNumForMachO(const MachOAnalyzer* mh);
     const MachOAnalyzer*    findDependent(const MachOLoaded* mh, uint32_t depIndex);
     BuilderLoadedImage&     findLoadedImage(ImageNum imageNum);
-    const BuilderLoadedImage& findLoadedImage(ImageNum imageNum) const;
     BuilderLoadedImage&     findLoadedImage(const MachOAnalyzer* mh);
     uint32_t                index(const BuilderLoadedImage&);
     bool                    expandAtLoaderPath(const char* loadPath, bool fromLCRPATH, const BuilderLoadedImage& loadedImage, char fixedPath[]);
-    bool                    expandAtExecutablePath(const char* loadPath, bool fromLCRPATH, bool fromLCRPATHinMain, char fixedPath[]);
+    bool                    expandAtExecutablePath(const char* loadPath, bool fromLCRPATH, char fixedPath[]);
     void                    addMustBeMissingPath(const char* path);
     void                    addSkippedFile(const char* path, uint64_t inode, uint64_t mtime);
-    const char*             strdup_temp(const char* path) const;
+    const char*             strdup_temp(const char* path);
     bool                    overridableDylib(const BuilderLoadedImage& forImage);
-    void                    addOperatorCachePatches(BuilderLoadedImage& forImage);
-    void                    addWeakDefCachePatch(uint32_t cachedDylibIndex, uint32_t exportCacheOffset, const FixupTarget& patchTarget);
+    void                    forEachBind(BuilderLoadedImage& forImage, void (^handler)(uint64_t runtimeOffset, Image::ResolvedSymbolTarget target, const ResolvedTargetInfo& targetInfo, bool& stop),
+                                                                      void (^strongHandler)(const char* strongSymbolName),
+                                                                      void (^missingLazyBindHandler)());
+    bool                    findMissingSymbolHandler(Image::ResolvedSymbolTarget& target, ResolvedTargetInfo& targetInfo);
 
     struct HashCString {
         static size_t hash(const char* v);
@@ -272,7 +284,6 @@ private:
         OverflowSafeArray<SelectorFixup>                                                    selectorFixups;
         Map<const char*, dyld3::closure::Image::ObjCImageOffset, HashCString, EqualCString> selectorMap;
         std::optional<uint64_t>                                                             methodNameVMOffset;
-        OverflowSafeArray<uint64_t>                                                         methodListFixups;
     };
 
     bool                    optimizeObjC(Array<ImageWriter>& writers);
@@ -282,7 +293,6 @@ private:
     void                    optimizeObjCClasses(const objc_opt::objc_clsopt_t* objcClassOpt,
                                                 const Map<const dyld3::MachOAnalyzer*, bool, HashPointer, EqualPointer>& sharedCacheImagesMap,
                                                 const Map<const char*, dyld3::closure::Image::ObjCDuplicateClass, HashCString, EqualCString>& duplicateSharedCacheClasses,
-                                                const Map<const char*, bool, HashCString, EqualCString>& duplicateClassesToIgnore,
                                                 ObjCOptimizerImage& image);
     void                    optimizeObjCProtocols(const objc_opt::objc_protocolopt2_t* objcProtocolOpt,
                                                   const Map<const dyld3::MachOAnalyzer*, bool, HashPointer, EqualPointer>& sharedCacheImagesMap,
@@ -293,52 +303,38 @@ private:
                                                          const char* duplicateDefinitionPath,
                                                          const char* canonicalDefinitionPath);
 
-    void                    parseObjCClassDuplicates(Map<const char*, bool, HashCString, EqualCString>& duplicateClassesToIgnore);
-
     static bool             inLoadedImageArray(const Array<LoadedImage>& loadedList, ImageNum imageNum);
     static void             buildLoadOrderRecurse(Array<LoadedImage>& loadedList, const Array<const ImageArray*>& imagesArrays, const Image* toAdd);
     void                    invalidateInitializerRoots();
-    Image::ResolvedSymbolTarget makeResolvedTarget(const FixupTarget& target) const;
-
-    // MachOAnalyzerSet implementations
-    void                mas_forEachImage(void (^handler)(const WrappedMachO& anImage, bool hidden, bool& stop)) const override;
-    bool                mas_fromImageWeakDefLookup(const WrappedMachO& fromWmo, const char* symbolName, uint64_t addend, CachePatchHandler patcher, FixupTarget& target) const override;
-    void                mas_mainExecutable(WrappedMachO& anImage) const override;
-    void*               mas_dyldCache() const override;
-    bool                wmo_dependent(const WrappedMachO* image, uint32_t depIndex, WrappedMachO& childObj, bool& missingWeakDylib) const override;
-    const char*         wmo_path(const WrappedMachO* image) const override;
-    ExportsTrie         wmo_getExportsTrie(const WrappedMachO* image) const override;
-    bool                wmo_missingSymbolResolver(const WrappedMachO* fromWmo, bool weakImport, bool lazyBind, const char* symbolName, const char* expectedInDylibPath, const char* clientPath, FixupTarget& target) const override;
-
 
     const FileSystem&                       _fileSystem;
-    const RootsChecker&                     _rootsChecker;
     const DyldSharedCache* const            _dyldCache;
     const PathOverrides&                    _pathOverrides;
     const GradedArchs&                      _archs;
     Platform const                          _platform;
     uint32_t const                          _startImageNum;
     const ImageArray*                       _dyldImageArray                 = nullptr;
-    DylibFixupHandler                       _dylibFixupHandler              = nullptr;
+    const CacheDylibsBindingHandlers*       _handlers                       = nullptr;
     const Array<CachedDylibAlias>*          _aliases                        = nullptr;
     const AtPath                            _atPathHandling                 = AtPath::none;
     uint32_t                                _mainProgLoadIndex              = 0;
     const char*                             _mainProgLoadPath               = nullptr;
     Diagnostics                             _diag;
     LaunchErrorInfo*                        _launchErrorInfo                = nullptr;
-    mutable PathPool*                       _tempPaths                      = nullptr;
+    PathPool*                               _tempPaths                      = nullptr;
     PathPool*                               _mustBeMissingPaths             = nullptr;
     OverflowSafeArray<SkippedFile>          _skippedFiles;
     uint32_t                                _nextIndex                      = 0;
-    OverflowSafeArray<BuilderLoadedImage,2048>  _loadedImages;
+    OverflowSafeArray<BuilderLoadedImage,2048>   _loadedImages;
     OverflowSafeArray<Image::LinkedImage,65536> _dependencies;                  // all dylibs in cache need ~20,000 edges
     OverflowSafeArray<InterposingTuple>     _interposingTuples;
     OverflowSafeArray<Closure::PatchEntry>  _weakDefCacheOverrides;
+    OverflowSafeArray<const char*>          _weakDefsFromChainedBinds;
     OverflowSafeArray<uint8_t>              _objcSelectorsHashTable;
     OverflowSafeArray<Image::ObjCSelectorImage> _objcSelectorsHashTableImages;
     OverflowSafeArray<uint8_t>              _objcClassesHashTable;
     OverflowSafeArray<uint8_t>              _objcProtocolsHashTable;
-    OverflowSafeArray<Image::ObjCClassImage> _objcClassesHashTableImages;
+    OverflowSafeArray<Image::ObjCClassImage>    _objcClassesHashTableImages;
     OverflowSafeArray<uint8_t>              _objcClassesDuplicatesHashTable;
     PathPool*                               _objcDuplicateClassWarnings     = nullptr;
     uint32_t                                _alreadyInitedIndex             = 0;
@@ -346,6 +342,7 @@ private:
     bool                                    _makingDyldCacheImages          = false;
     bool                                    _dyldCacheIsLive                = false;    // means kernel is rebasing dyld cache content being viewed
     bool                                    _makingClosuresInCache          = false;
+    bool                                    _makingCustomerCache            = false;
     bool                                    _allowRelativePaths             = false;
     bool                                    _atPathUsed                     = false;
     bool                                    _interposingTuplesUsed          = false;
@@ -355,39 +352,13 @@ private:
     bool                                    _foundNonCachedImage            = false;    // true means we have one or more images from disk we need to build closure(s) for
     bool                                    _foundDyldCacheRoots            = false;    // true if one or more images are roots of the shared cache
     bool                                    _foundMissingLazyBinds          = false;    // true if one or more images having missing lazy binds
-    bool                                    _makeMinimalClosure             = false;
     bool                                    _interposingDisabled            = false;
-    bool                                    _leaveRebasesAsOpcodes          = false;
     ImageNum                                _libDyldImageNum                = 0;
     ImageNum                                _libSystemImageNum              = 0;
 };
 
-class VIS_HIDDEN RebasePatternBuilder
-{
-public:
-            RebasePatternBuilder(OverflowSafeArray<closure::Image::RebasePattern>& entriesStorage, uint64_t ptrSize);
-    void    add(uint64_t runtimeOffset);
-private:
-    OverflowSafeArray<closure::Image::RebasePattern>&   _rebaseEntries;
-    uint64_t                                            _lastLocation;
-    const uint64_t                                      _ptrSize;
-
-    static const Image::RebasePattern                   _s_maxLeapPattern;
-    static const uint64_t                               _s_maxLeapCount;
-};
 
 
-class VIS_HIDDEN BindPatternBuilder
-{
-public:
-            BindPatternBuilder(OverflowSafeArray<closure::Image::BindPattern>& entriesStorage, uint64_t ptrSize);
-    void    add(uint64_t runtimeOffset, Image::ResolvedSymbolTarget target, bool weakBindCoalese);
-private:
-    OverflowSafeArray<closure::Image::BindPattern>&   _bindEntries;
-    const uint64_t                                    _ptrSize;
-    uint64_t                                          _lastOffset;
-    Image::ResolvedSymbolTarget                       _lastTarget;
-};
 
 
 } //  namespace closure

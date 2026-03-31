@@ -33,11 +33,11 @@
 #include <limits.h>
 #include <sys/errno.h>
 #include <unistd.h>
-#include <TargetConditionals.h>
 
 #include <initializer_list>
 
 #include "PathOverrides.h"
+
 
 
 namespace dyld3 {
@@ -94,7 +94,7 @@ PathOverrides::~PathOverrides()
 
 void PathOverrides::forEachInsertedDylib(void (^handler)(const char* dylibPath, bool &stop)) const
 {
-    if ( _insertedDylibs != nullptr && _insertedDylibs[0] != '\0' ) {
+    if ( _insertedDylibs != nullptr ) {
         forEachInColonList(_insertedDylibs, nullptr, ^(const char* path, bool &stop) {
             handler(path, stop);
         });
@@ -401,25 +401,6 @@ void PathOverrides::forEachPathVariant(const char* initialPath, bool pathIsInDyl
             return;
     }
 
-    // try rootpath
-    bool searchiOSSupport = (platform == Platform::iOSMac);
-#if (TARGET_OS_OSX && TARGET_CPU_ARM64)
-    if ( platform == Platform::iOS ) {
-        searchiOSSupport = true;
-        // <rdar://problem/58959974> some old Almond apps reference old WebKit location
-        if ( strcmp(initialPath, "/System/Library/PrivateFrameworks/WebKit.framework/WebKit") == 0 )
-            initialPath = "/System/Library/Frameworks/WebKit.framework/WebKit";
-    }
-#endif
-    if ( searchiOSSupport ) {
-        char rtpath[strlen("/System/iOSSupport")+strlen(initialPath)+8];
-        strcpy(rtpath, "/System/iOSSupport");
-        strcat(rtpath, initialPath);
-        forEachImageSuffix(rtpath, false, pathIsInDyldCacheWhichCannotBeOverridden, stop, handler);
-        if ( stop )
-            return;
-    }
-
     // try original path
     forEachImageSuffix(initialPath, false, pathIsInDyldCacheWhichCannotBeOverridden, stop, handler);
     if ( stop )
@@ -552,7 +533,7 @@ const char* PathPool::add(const char* path)
     return _next->add(path);
 }
 
-void PathPool::forEachPath(void (^handler)(const char* path)) const
+void PathPool::forEachPath(void (^handler)(const char* path))
 {
     for (const char* s = _buffer; s < _current; ++s) {
         handler(s);
@@ -561,20 +542,6 @@ void PathPool::forEachPath(void (^handler)(const char* path)) const
 
     if ( _next != nullptr )
         _next->forEachPath(handler);
-}
-
-bool PathPool::contains(const char* path) const
-{
-    for (const char* s = _buffer; s < _current; ++s) {
-        if ( strcmp(s, path) == 0 )
-            return true;
-        s += strlen(s);
-    }
-
-    if ( _next != nullptr )
-        return _next->contains(path);
-
-    return false;
 }
 
 

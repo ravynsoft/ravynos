@@ -31,7 +31,6 @@
 #include <sys/stat.h>
 #include <sys/sysctl.h>
 #include <System/machine/cpu_capabilities.h>
-#include <_simple.h>
 
 extern "C" {
   #include <corecrypto/ccdigest.h>
@@ -143,7 +142,7 @@ bool Image::representsImageNum(ImageNum num) const
         return true;
     if ( !flags.isDylib )
         return false;
-    if ( !flags.hasOverrideImageNum )
+    if ( flags.inDyldCache )
         return false;
     ImageNum cacheImageNum;
     if ( isOverrideOfDyldCacheImage(cacheImageNum) )
@@ -574,16 +573,6 @@ bool Image::hasPrecomputedObjC() const
     return getFlags().hasPrecomputedObjC;
 }
 
-bool Image::fixupsNotEncoded() const
-{
-    return getFlags().fixupsNotEncoded;
-}
-
-bool Image::rebasesNotEncoded() const
-{
-    return getFlags().rebasesNotEncoded;
-}
-
 void Image::forEachTerminator(const void* imageLoadAddress, void (^handler)(const void* terminator)) const
 {
     uint32_t size;
@@ -654,10 +643,17 @@ void Image::forEachFixup(void (^rebase)(uint64_t imageOffsetToRebase, bool& stop
     if ( stop )
         return;
 
-    stop = this->forEachBind(bind);
-    if ( stop )
-        return;
-
+    for (const Image::BindPattern& bindPat : bindFixups()) {
+        uint64_t curBindOffset = bindPat.startVmOffset;
+        for (uint16_t i=0; i < bindPat.repeatCount; ++i) {
+            bind(curBindOffset, bindPat.target, stop);
+            curBindOffset += (pointerSize * (1 + bindPat.skipCount));
+            if ( stop )
+                break;
+        }
+        if ( stop )
+            break;
+    }
 
     if (hasChainedFixups())
         chainedFixups(chainedStartsOffset(), chainedTargets(), stop);
@@ -731,24 +727,6 @@ void Image::forEachFixup(void (^rebase)(uint64_t imageOffsetToRebase, bool& stop
                 break;
         }
     }
-}
-
-bool Image::forEachBind(void (^bind)(uint64_t imageOffsetToBind, ResolvedSymbolTarget bindTarget, bool& stop)) const
-{
-    const uint32_t pointerSize = is64() ? 8 : 4;
-    bool stop = false;
-    for (const Image::BindPattern& bindPat : bindFixups()) {
-        uint64_t curBindOffset = bindPat.startVmOffset;
-        for (uint16_t i=0; i < bindPat.repeatCount; ++i) {
-            bind(curBindOffset, bindPat.target, stop);
-            curBindOffset += (pointerSize * (1 + bindPat.skipCount));
-            if ( stop )
-                break;
-        }
-        if ( stop )
-            break;
-    }
-    return stop;
 }
 
 void Image::forEachTextReloc(void (^rebase)(uint32_t imageOffsetToRebase, bool& stop),
@@ -910,11 +888,6 @@ void Image::forEachImageToInitBefore(void (^handler)(ImageNum imageToInit, bool&
     }
 }
 
-const char* Image::variantString() const
-{
-    return (this->fixupsNotEncoded() ? "minimal" : "full");
-}
-
 ////////////////////////////  ImageArray ////////////////////////////////////////
 
 size_t ImageArray::size() const
@@ -981,11 +954,7 @@ const Image* ImageArray::imageForNum(ImageNum num) const
 
 const Image* ImageArray::findImage(const Array<const ImageArray*> imagesArrays, ImageNum imageNum)
 {
-    // Search image arrays backwards as the main closure, or dlopen closures, may rebuild closures
-    // for shared cache images which are not roots, but whose initialisers must rebuild as they depend
-    // on a root
-    for (uintptr_t index = imagesArrays.count(); index > 0; --index) {
-        const ImageArray* ia = imagesArrays[index - 1];
+   for (const ImageArray* ia : imagesArrays) {
         if ( const Image* result = ia->imageForNum(imageNum) )
             return result;
     }
@@ -1017,20 +986,13 @@ const ImageArray* Closure::images() const
     return (ImageArray*)result;
 }
 
-ImageNum Closure::topImageNum() const
+ImageNum Closure::topImage() const
 {
     uint32_t size;
     const ImageNum* top = (ImageNum*)findAttributePayload(Type::topImage, &size);
     assert(top != nullptr);
     assert(size == sizeof(ImageNum));
     return *top;
-}
-
-const Image* Closure::topImage() const
-{
-    ImageNum                            imageNum      = this->topImageNum();
-    const dyld3::closure::ImageArray*   closureImages = this->images();
-    return closureImages->imageForNum(imageNum);
 }
 
 void Closure::forEachPatchEntry(void (^handler)(const PatchEntry& entry)) const
@@ -1058,7 +1020,6 @@ void Closure::deallocate() const
 {
     ::vm_deallocate(mach_task_self(), (long)this, size());
 }
-
 
 ////////////////////////////  LaunchClosure ////////////////////////////////////////
 
@@ -1111,6 +1072,12 @@ bool LaunchClosure::builtAgainstDyldCache(uuid_t cacheUUID) const
     assert(size == sizeof(uuid_t));
     memcpy(cacheUUID, uuidBytes, sizeof(uuid_t));
     return true;
+}
+
+const char* LaunchClosure::bootUUID() const
+{
+    uint32_t size;
+    return (char*)findAttributePayload(Type::bootUUID, &size);
 }
 
 void LaunchClosure::forEachEnvVar(void (^handler)(const char* keyEqualValue, bool& stop)) const
@@ -1302,68 +1269,85 @@ void LaunchClosure::duplicateClassesHashTable(const ObjCClassDuplicatesOpt*& dup
     duplicateClassesHashTable = (const ObjCClassDuplicatesOpt*)buffer;
 }
 
-
-static bool getContainerLibraryCachesDir(const char* envp[], char libCacheDir[])
+static void putHexNibble(uint8_t value, char*& p)
 {
-    // $HOME is root of writable data container
-    const char* homeDir = _simple_getenv(envp, "HOME");
-    if ( homeDir == nullptr )
-        return false;
+    if ( value < 10 )
+        *p++ = '0' + value;
+    else
+        *p++ = 'A' + value - 10;
+}
 
-    // Use realpath to block malicious values like HOME=/tmp/../usr/bin
-    char realHomePath[PATH_MAX];
-    if ( realpath(homeDir, realHomePath) != nullptr )
-        homeDir = realHomePath;
-#if TARGET_OS_OSX
-    // <rdar://problem/66593232> iOS apps on Apple Silicon macOS have a different data container location
-    if ( strstr(homeDir, "/Library/Containers/") == nullptr )
+static void putHexByte(uint8_t value, char*& p)
+{
+    value &= 0xFF;
+    putHexNibble(value >> 4,   p);
+    putHexNibble(value & 0x0F, p);
+}
+
+static bool hashBootAndFileInfo(const char* mainExecutablePath, char hashString[32])
+{
+    struct stat statbuf;
+    if ( ::stat(mainExecutablePath, &statbuf) != 0)
         return false;
-#else
-    // <rdar://problem/47688842> dyld3 should only save closures to disk for containerized apps
-    if ( strncmp(homeDir, "/private/var/mobile/Containers/Data/", 36) != 0 )
-        return false;
+#if !TARGET_OS_DRIVERKIT // Temp until core crypto is available
+    const struct ccdigest_info* di = ccsha256_di();
+    ccdigest_di_decl(di, hashTemp); // defines hashTemp array in stack
+    ccdigest_init(di, hashTemp);
+
+    // put boot time into hash
+    const uint64_t* bootTime = ((uint64_t*)_COMM_PAGE_BOOTTIME_USEC);
+    ccdigest_update(di, hashTemp, sizeof(uint64_t), bootTime);
+
+    // put inode of executable into hash
+    ccdigest_update(di, hashTemp, sizeof(statbuf.st_ino), &statbuf.st_ino);
+
+    // put mod-time of executable into hash
+    ccdigest_update(di, hashTemp, sizeof(statbuf.st_mtime), &statbuf.st_mtime);
+
+    // complete hash computation and append as hex string
+    uint8_t hashBits[32];
+    ccdigest_final(di, hashTemp, hashBits);
+    char* s = hashString;
+    for (size_t i=0; i < sizeof(hashBits); ++i)
+        putHexByte(hashBits[i], s);
+    *s = '\0';
 #endif
-
-    // return $HOME/Library/Caches/
-    strlcpy(libCacheDir, homeDir, PATH_MAX);
-    strlcat(libCacheDir, "/Library/Caches", PATH_MAX);
     return true;
 }
 
-bool LaunchClosure::buildClosureCachePath(const char* mainExecutablePath, const char* envp[],
-                                          bool makeDirsIfMissing, char closurePath[])
+bool LaunchClosure::buildClosureCachePath(const char* mainExecutablePath, char closurePath[], const char* tempDir,
+                                          bool makeDirsIfMissing)
 {
-    // get path to data container's Library/Caches/ dir
-    if ( !getContainerLibraryCachesDir(envp, closurePath) )
+    // <rdar://problem/47688842> dyld3 should only save closures to disk for containerized apps
+    if ( strstr(tempDir, "/Containers/Data/") == nullptr )
         return false;
 
-    // make sure XXX/Library/Caches/ exists
-    struct stat statbuf;
-    if ( dyld3::stat(closurePath, &statbuf) != 0 )
-        return false;
-
-    // add dyld sub-dir
-    strlcat(closurePath, "/com.apple.dyld", PATH_MAX);
+    strlcpy(closurePath, tempDir, PATH_MAX);
+    strlcat(closurePath, "/com.apple.dyld/", PATH_MAX);
+    
+    // make sure dyld sub-dir exists
     if ( makeDirsIfMissing ) {
-        if ( dyld3::stat(closurePath, &statbuf) != 0 ) {
+        struct stat statbuf;
+        if ( ::stat(closurePath, &statbuf) != 0 ) {
             if ( ::mkdir(closurePath, S_IRWXU) != 0 )
                 return false;
         }
     }
-
-    // add <prog-name> + ".closure"
+    
     const char* leafName = strrchr(mainExecutablePath, '/');
     if ( leafName == nullptr )
         leafName = mainExecutablePath;
     else
         ++leafName;
-    strlcat(closurePath, "/", PATH_MAX);
     strlcat(closurePath, leafName, PATH_MAX);
+    strlcat(closurePath, "-", PATH_MAX);
+
+    if ( !hashBootAndFileInfo(mainExecutablePath, &closurePath[strlen(closurePath)]) )
+        return false;
 
     strlcat(closurePath, ".closure", PATH_MAX);
     return true;
 }
-
 
 ////////////////////////////  ObjCStringTable ////////////////////////////////////////
     

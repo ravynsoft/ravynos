@@ -1,3 +1,0 @@
-#...
-  \[[ 0-9]+\] \.gnu.warning.foo[ \t]+PROGBITS[ \t0-9a-f]+.*
-#pass

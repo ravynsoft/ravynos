@@ -1,4 +1,0 @@
-# Increase stack limit to a figure based on the Linux default, with 4MB added
-# as GCC turns out to need that much more to pass all the limits-* tests.
-LDFLAGS += -Wl,--stack,12582912
-BOOT_LDFLAGS += -Wl,--stack,12582912

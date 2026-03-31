@@ -1,1 +1,0 @@
-	.inst 0xffffffff

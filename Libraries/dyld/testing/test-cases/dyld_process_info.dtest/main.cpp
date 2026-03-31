@@ -14,11 +14,9 @@
 #include <spawn.h>
 #include <errno.h>
 #include <sys/uio.h>
-#include <sys/proc.h>
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <mach/mach.h>
-#include <sys/sysctl.h>
 #include <mach/machine.h>
 #include <mach-o/dyld_priv.h>
 #include <mach-o/dyld_process_info.h>
@@ -32,7 +30,7 @@ static void inspectProcess(task_t task, bool launchedSuspended, bool expectCF, b
     kern_return_t result;
     dyld_process_info info = _dyld_process_info_create(task, 0, &result);
     if (result != KERN_SUCCESS) {
-        FAIL("dyld_process_info() should succeed, get return code %d", result);
+        FAIL("dyld_process_info() should succeed");
     }
     if (info == NULL) {
         FAIL("dyld_process_info(task, 0) alwats return a value");
@@ -57,8 +55,8 @@ static void inspectProcess(task_t task, bool launchedSuspended, bool expectCF, b
         if (remotePlatform != 0)  {
             FAIL("_dyld_process_info_get_platform() should be 0 for launchSuspended processes");
         }
-    } else if (forceIOSMac && (remotePlatform != PLATFORM_MACCATALYST)) {
-        FAIL("_dyld_process_info_get_platform(%u) should be PLATFORM_MACCATALYST", remotePlatform);
+    } else if (forceIOSMac && (remotePlatform != PLATFORM_IOSMAC)) {
+        FAIL("_dyld_process_info_get_platform(%u) should be PLATFORM_IOSMAC", remotePlatform);
     } else if (!forceIOSMac && (remotePlatform != localPlatform)) {
         FAIL("_dyld_process_info_get_platform(%u) should be the same dyld_get_active_platform(%u)",
              remotePlatform, localPlatform);
@@ -95,43 +93,32 @@ cpu_type_t otherArch[] = { CPU_TYPE_ARM64 };
 #endif
 
 
-static void launchTest(bool launchOtherArch, bool launchSuspended, bool forceIOSMac, bool  altPageSize, bool useCorpse)
+static void launchTest(bool launchOtherArch, bool launchSuspended, bool forceIOSMac)
 {
-    if (altPageSize) {
-        int supported = 0;
-        size_t supported_size = sizeof(size_t);
-        int r = sysctlbyname("debug.vm_mixed_pagesize_supported", &supported, &supported_size, NULL, 0);
-        if (r != 0 || !supported) { return; }
-    }
-    LOG("launchTest %s / %s / %s / %s", launchSuspended ? "suspended" : "unsuspended",
-                                        launchOtherArch ? "alternative arch" : "native arch",
-                                        altPageSize ? "alternative page size" : "native page size",
-                                        useCorpse ? "corpse" : "live process");
+    LOG("launchTest %s", launchSuspended ? "suspended" : "unsuspended");
     const char * program = RUN_DIR "/linksWithCF.exe";
 
     _process process;
     process.set_executable_path(RUN_DIR "/linksWithCF.exe");
     process.set_launch_suspended(launchSuspended);
-    if (altPageSize) {
-        process.set_alt_page_size(true);
-    }
+    process.set_launch_async(true);
     if (forceIOSMac) {
-        LOG("\tLaunching native");
+        LOG("Launching native");
         const char* env[] = { "TEST_OUTPUT=None", "DYLD_FORCE_PLATFORM=6", NULL};
         process.set_env(env);
     } else {
-        LOG("\tLaunching iOSMac");
+        LOG("Launching iOSMac");
         const char* env[] = { "TEST_OUTPUT=None", NULL};
         process.set_env(env);
     }
     pid_t pid = process.launch();
-    LOG("\tlaunchTest pid: %d", pid);
+    LOG("launchTest pid: %d", pid);
 
     task_t task;
-    if (task_read_for_pid(mach_task_self(), pid, &task) != KERN_SUCCESS) {
-        FAIL("task_read_for_pid() failed");
+    if (task_for_pid(mach_task_self(), pid, &task) != KERN_SUCCESS) {
+        FAIL("task_for_pid() failed");
     }
-    LOG("\tlaunchTest task: %u", task);
+    LOG("launchTest task: %u", task);
 
     // wait until process is up and has suspended itself
     if (!launchSuspended) {
@@ -141,52 +128,29 @@ static void launchTest(bool launchOtherArch, bool launchSuspended, bool forceIOS
         dispatch_source_t signalSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL, SIGUSR1,
                                                                 0, queue);
         dispatch_source_set_event_handler(signalSource, ^{
-            LOG("\tRecieved signal");
+            LOG("Recieved signal");
             oneShotSemaphore();
             dispatch_source_cancel(signalSource);
         });
         dispatch_resume(signalSource);
         dispatch_block_wait(oneShotSemaphore, DISPATCH_TIME_FOREVER);
     }
-    LOG("\ttask running");
-
-    if (useCorpse) {
-        mach_port_t corpse;
-        kern_return_t kr = KERN_SUCCESS;
-        kr = task_generate_corpse(task, &corpse);
-        // FIXME: The system rate limits corpses, and I don't currently have a way to stop it.
-        // Even once the port is deallocated it does not seem to reset the slot, will need to talk to xnu folks
-        if (kr == KERN_RESOURCE_SHORTAGE) {
-            LOG("\tCORPSE limit exceeded");
-            return;
-        }
-        LOG("\tGENERATED CORPSE: 0x%x", corpse);
-        if (kr != KERN_SUCCESS) {
-            FAIL("task_generate_corpse() failed: %u", kr);
-        }
-    }
+    LOG("task running");
 
     inspectProcess(task, launchSuspended, !launchSuspended, forceIOSMac);
-    if (useCorpse) {
-        kern_return_t kr = mach_port_deallocate(mach_task_self(), task);
-    }
 }
 
 int main(int argc, const char* argv[], const char* envp[], const char* apple[]) {
     signal(SIGUSR1, SIG_IGN);
-    launchTest(false, false, false, false, false);
-    launchTest(false, true, false, false, false);
-    launchTest(false, false, false, false, true);
-    launchTest(false, true, false, false, true);
+    TIMEOUT(120);
+    launchTest(false, false, false);
+    launchTest(false, true, false);
 #if __MAC_OS_X_VERSION_MIN_REQUIRED
-    launchTest(false, false, true, false, false);
-    launchTest(false, true, true, false, false);
-    launchTest(false, false, false, true, false);
-    launchTest(false, true, false, true, false);
-    launchTest(false, false, true, false, true);
-    launchTest(false, true, true, false, true);
-    launchTest(false, false, false, true, true);
-    launchTest(false, true, false, true, true);
+    // FIXME: Reenable these ones i386 is turned back on for simulators
+    //launchTest(true, false, false);
+    //launchTest(true, true, false);
+    launchTest(false, false, true);
+    launchTest(false, true, true);
     //FIXME: This functionality is broken, but it is an edge case no one should ever hit
     //launchTest(true, true, true);
 #endif

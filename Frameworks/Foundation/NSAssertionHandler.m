@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSException.h>
 #import <Foundation/NSThread.h>
+#import <Foundation/NSZone.h>
 #import <Foundation/NSString.h>
 
 @implementation NSAssertionHandler

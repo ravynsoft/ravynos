@@ -45,7 +45,7 @@
 
 @implementation DISPATCH_CLASS(data)
 
-+ (id)allocWithZone:(NSZone *) DISPATCH_UNUSED zone {
++ (id)allocWithZone:(struct _NSZone *) DISPATCH_UNUSED zone {
 	return _dispatch_objc_alloc(self, sizeof(struct dispatch_data_s));
 }
 
@@ -169,7 +169,7 @@ OS_OBJECT_NONLAZY_CLASS_LOAD
 	return ULONG_MAX;
 }
 
-+ (id)allocWithZone:(NSZone *) DISPATCH_UNUSED zone {
++ (id)allocWithZone:(struct _NSZone *) DISPATCH_UNUSED zone {
 	return (id)&_dispatch_data_empty;
 }
 

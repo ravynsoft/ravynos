@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash 
 
 if [ $# -ne 5 ]; then
     echo "Usage: $0 <archs> <variants> <outputdir> <sdkroot> <srcroot>" 1>&2
@@ -13,6 +13,7 @@ OUTPUTDIR="$3"
 SDKROOT="$4"
 SRCROOT="$5"
 
+export DEVELOPER_DIR
 LIBSYS="${SDKROOT}/${SDK_INSTALL_ROOT}/usr/local/lib/system"
 LSYS="${SDKROOT}/${SDK_INSTALL_ROOT}/usr/lib/system"
 
@@ -53,7 +54,7 @@ for arch in ${ARCHS}; do
 	# non-normal variants can always link against normal clients
 	cd ${LSYS} && ls lib*.{dylib,tbd,api,spi} | sed -E -e 's/_(debug|profile|static)\././' | while read l; do
 		if [ "${l: -6}" == ".dylib" ]; then
-			xcrun -sdk "${SDKROOT}" lipo "${LSYS}/${l}" -verify_arch "${arch}" 2>/dev/null
+			xcrun -sdk "${SDKROOT}" lipo "${LSYS}/${l}" -verify_arch "${arch}" #2>/dev/null
 		else
 			xcrun -sdk "${SDKROOT}" tapi archive "${LSYS}/${l}" --verify-arch "${arch}" 2>/dev/null
 		fi

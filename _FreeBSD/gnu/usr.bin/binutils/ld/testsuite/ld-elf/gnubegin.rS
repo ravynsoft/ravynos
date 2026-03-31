@@ -1,3 +1,0 @@
-#...
- +\[[ 0-9]+\] .zdebug_.* +(PROGBITS|MIPS_DWARF) +0+ +[0-9a-f]+ +[0-9a-f]+ [0-9a-f]+ +0 +0 +1
-#pass

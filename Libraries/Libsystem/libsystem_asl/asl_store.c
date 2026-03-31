@@ -42,6 +42,8 @@ extern int asl_file_create(const char *path, uid_t uid, gid_t gid, mode_t mode);
 
 #define SECONDS_PER_DAY 86400
 
+char *strdup(const char *);
+
 /* 
  * The ASL Store is organized as a set of files in a common directory.
  * Files are prefixed by the date (YYYY.MM.DD) of their contents.

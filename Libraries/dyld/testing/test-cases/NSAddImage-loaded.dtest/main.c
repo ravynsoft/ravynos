@@ -1,6 +1,6 @@
-// BUILD(macos):  $CC main.c            -o $BUILD_DIR/NSAddImage-loaded.exe -Wno-deprecated-declarations
+// BUILD_ONLY: MacOSX
 
-// BUILD(ios,tvos,watchos,bridgeos):
+// BUILD:  $CC main.c            -o $BUILD_DIR/NSAddImage-loaded.exe -Wno-deprecated-declarations
 
 // RUN:  ./NSAddImage-loaded.exe return
 

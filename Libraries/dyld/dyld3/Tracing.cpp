@@ -49,7 +49,7 @@ void kdebug_trace_dyld_image(const uint32_t code,
                        const fsid_t fsid,
                        const mach_header* load_addr)
 {
-    uint64_t id = kdebug_trace_string(KDBG_CODE(DBG_DYLD, DBG_DYLD_UUID, code), 0, imagePath);
+    uint64_t id = kdebug_trace_string(code, 0, imagePath);
 #if __ARM_ARCH_7K__
     uint32_t *uuid = (uint32_t *)uuid_bytes;
     kdebug_trace(KDBG_CODE(DBG_DYLD, DBG_DYLD_UUID, code + 2), uuid[0],
@@ -69,7 +69,7 @@ void kdebug_trace_dyld_image(const uint32_t code,
                  ((uint64_t)fsobjid.fid_generation << 32),
                  id, 0, 0);
 #endif /* !__ARM_ARCH_7K__ */
-    kdebug_trace_string(KDBG_CODE(DBG_DYLD, DBG_DYLD_UUID, code), id, nullptr);
+    kdebug_trace_string(code, id, nullptr);
 }
 
 // FIXME

@@ -1,9 +1,9 @@
-// BUILD(macos):  $CC main.c            -o $BUILD_DIR/env-DYLD_FORCE_PLATFORM.exe -DENABLE_ALT_PLATFORMS=1
-// BUILD(macos):  $CC main.c            -o $BUILD_DIR/env-DYLD_FORCE_PLATFORM-fail.exe
-// BUILD(macos):  $TASK_FOR_PID_ENABLE  $BUILD_DIR/env-DYLD_FORCE_PLATFORM.exe
-// BUILD(macos):  $TASK_FOR_PID_ENABLE  $BUILD_DIR/env-DYLD_FORCE_PLATFORM-fail.exe
 
-// BUILD(ios,tvos,watchos,bridgeos):
+// BUILD_ONLY: MacOSX
+// BUILD:  $CC main.c            -o $BUILD_DIR/env-DYLD_FORCE_PLATFORM.exe -DENABLE_ALT_PLATFORMS=1
+// BUILD:  $CC main.c            -o $BUILD_DIR/env-DYLD_FORCE_PLATFORM-fail.exe
+// BUILD:  $TASK_FOR_PID_ENABLE  $BUILD_DIR/env-DYLD_FORCE_PLATFORM.exe
+// BUILD:  $TASK_FOR_PID_ENABLE  $BUILD_DIR/env-DYLD_FORCE_PLATFORM-fail.exe
 
 // RUN:  DYLD_FORCE_PLATFORM=6 ./env-DYLD_FORCE_PLATFORM.exe
 // RUN:  DYLD_FORCE_PLATFORM=6 ./env-DYLD_FORCE_PLATFORM-fail.exe

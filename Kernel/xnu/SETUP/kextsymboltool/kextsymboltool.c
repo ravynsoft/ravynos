@@ -621,7 +621,8 @@ main(int argc, char * argv[])
 		}
 		if (false && !files[filenum].nsyms) {
 			fprintf(stderr, "warning: file %s contains no names\n", files[filenum].path);
-		}
+
+                }
 	}
 
 

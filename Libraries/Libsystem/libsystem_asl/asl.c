@@ -50,8 +50,11 @@
 #include <bootstrap_priv.h>
 #include <pthread.h>
 #include <dispatch/dispatch.h>
+#define OS_ATOMIC_USE_INLINED 1
 #include <libkern/OSAtomic.h>
+#ifdef HAVE_OS_ACTIVITY
 #include <os/activity.h>
+#endif
 #include <os/log.h>
 #include <os/log_private.h>
 #include <asl_ipc.h>
@@ -1054,7 +1057,9 @@ asl_base_msg(asl_client_t *asl, uint32_t level, const struct timeval *tv, const 
 	char aux_val[64];
 	asl_msg_t *aux;
 	int status;
+#ifdef HAVE_OS_ACTIVITY
 	os_activity_id_t osaid;
+#endif
 
 	aux = asl_msg_new(ASL_TYPE_MSG);
 	if (aux == NULL) return NULL;
@@ -1080,12 +1085,14 @@ asl_base_msg(asl_client_t *asl, uint32_t level, const struct timeval *tv, const 
 	asl_msg_set_key_val(aux, ASL_KEY_PID, aux_val);
 
 	/* OSActivityID */
+#ifdef HAVE_OS_ACTIVITY
 	osaid = os_activity_get_identifier(OS_ACTIVITY_CURRENT, NULL);
 	if (osaid)
 	{
 		snprintf(aux_val, sizeof(aux_val), "0x%016llx", osaid);
 		asl_msg_set_key_val(aux, ASL_KEY_OS_ACTIVITY_ID, aux_val);
 	}
+#endif
 
 	/* Sender */
 	if ((sstr == NULL) && (asl != NULL))

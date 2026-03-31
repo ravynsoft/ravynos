@@ -1,0 +1,69 @@
+.\" -*- tab-width: 4 -*-
+.\" 
+.\" Copyright (c) 2004, 2006, 2009 Apple Inc. All Rights Reserved.
+.\" 
+.\" Licensed under the Apache License, Version 2.0 (the "License");
+.\" you may not use this file except in compliance with the License.
+.\" You may obtain a copy of the License at
+.\" 
+.\"     http://www.apache.org/licenses/LICENSE-2.0
+.\" 
+.\" Unless required by applicable law or agreed to in writing, software
+.\" distributed under the License is distributed on an "AS IS" BASIS,
+.\" WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+.\" See the License for the specific language governing permissions and
+.\" limitations under the License.
+.\"
+.Dd August 2004             \" Date
+.Dt dnsextd 8               \" Document Title
+.Os Darwin                  \" Operating System
+.\"
+.Sh NAME
+.Nm dnsextd
+.Nd BIND Extension Daemon   \" Name Description for whatis database
+.\" 
+.Sh SYNOPSIS
+.Nm
+.\"
+.Sh DESCRIPTION
+.Nm
+is a daemon invoked at boot time, running alongside BIND 9,
+to implement two EDNS0 extensions to the standard DNS protocol.
+.Pp
+.Nm
+allows clients to perform DNS Updates with an attached lease lifetime,
+so that if the client crashes or is disconnected from the network, its
+address records will be automatically deleted after the lease expires.
+.Pp
+.Nm
+allows clients to perform long-lived queries. Instead of rapidly polling
+the server to discover when information changes, long-lived queries
+enable a client to indicate its interest in some set of data, and then
+be notified asynchronously by the server whenever any of that data changes.
+.Pp
+.Nm
+has no user-specifiable command-line argument, and users should not run
+.Nm
+manually.
+.\"
+.Sh SEE ALSO
+.Xr mDNS 1
+.Xr mDNSResponder 8
+.Pp
+For information on Dynamic DNS Update, see RFC 2136
+"Dynamic Updates in the Domain Name System (DNS UPDATE)"
+.Pp
+For information on Dynamic DNS Update Leases, see
+.Pa http://files.dns-sd.org/draft-dns-update-leases.txt
+.Pp
+For information on Long-Lived Queries, see
+.Pa http://files.dns-sd.org/draft-dns-llq.txt
+.\"
+.Sh BUGS
+.Nm
+bugs are tracked in Apple Radar component "mDNSResponder".
+.\"
+.Sh HISTORY
+The
+.Nm
+daemon first appeared in Mac OS X 10.4 (Tiger).

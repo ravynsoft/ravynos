@@ -42,8 +42,7 @@ public:
     static PathPool*    allocate();
     static void         deallocate(PathPool* pool);
     const char*         add(const char* path);
-    void                forEachPath(void (^handler)(const char* path)) const;
-    bool                contains(const char* path) const;
+    void                forEachPath(void (^handler)(const char* path));
 
 private:
     enum { kAllocationSize = 32*1024 };

@@ -1,1 +1,0 @@
-sources += files('file.c')

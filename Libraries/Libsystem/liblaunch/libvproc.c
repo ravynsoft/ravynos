@@ -17,7 +17,6 @@
  * 
  * @APPLE_APACHE_LICENSE_HEADER_END@
  */
-
 #include "config.h"
 #include "vproc.h"
 #include "vproc_priv.h"
@@ -41,10 +40,12 @@
 #include <sys/event.h>
 #include <System/sys/fileport.h>
 
+#include <string.h>
 #include <sys/types.h>
 #include <machine/atomic.h>
-
 #include <os/assumes.h>
+
+char *strdup(const char *);
 
 #if HAVE_QUARANTINE
 #include <quarantine.h>
@@ -73,7 +74,7 @@ void _vproc_transaction_end_internal(void *arg __unused);
 
 #pragma mark vproc Object
 struct vproc_s {
-	int32_t refcount;
+	_Atomic(int32_t) refcount;
 	mach_port_t j_port;
 };
 
@@ -100,7 +101,7 @@ vprocmgr_lookup_vproc(const char *label)
 vproc_t
 vproc_retain(vproc_t vp)
 {
-	int32_t orig = atomic_fetchadd_int(&vp->refcount, 1) - 1;
+	int32_t orig = atomic_fetch_add(&vp->refcount, 1) - 1;
 	if (orig <= 0) {
 		_vproc_set_crash_log_message("Under-retain / over-release of vproc_t.");
 		abort();
@@ -112,7 +113,7 @@ vproc_retain(vproc_t vp)
 void
 vproc_release(vproc_t vp)
 {
-	int32_t newval = atomic_fetchadd_int(&vp->refcount, -1);
+	int32_t newval = atomic_fetch_add(&vp->refcount, -1);
 	if (newval < 0) {
 		_vproc_set_crash_log_message("Over-release of vproc_t.");
 		abort();
@@ -602,7 +603,7 @@ _spawn_via_launchd(const char *label, const char *const *argv, const struct spaw
 			for (tmpp = spawn_attrs->spawn_env; *tmpp; tmpp++) {
 				char *eqoff, tmpstr[strlen(*tmpp) + 1];
 
-				strcpy(tmpstr, *tmpp);
+				strcpy(tmpstr, *tmpp, strlen(*tmpp));
 
 				eqoff = strchr(tmpstr, '=');
 
@@ -1033,7 +1034,7 @@ launch_wait(mach_port_t port)
 	return status;
 }
 
-#ifndef __FreeBSD__
+//#ifndef __FreeBSD__
 launch_data_t
 launch_socket_service_check_in(void)
 {
@@ -1050,7 +1051,7 @@ launch_socket_service_check_in(void)
 				mach_msg_size_t sreplyCnt = 0;
 				mach_port_array_t fdps = NULL;
 				mach_msg_size_t fdpsCnt = 0;
-				kern_return_t kr = vproc_mig_legacy_ipc_request(bootstrap_port, (vm_address_t)buff, sz, NULL, 0, &sreply, &sreplyCnt, &fdps, &fdpsCnt, _audit_session_self());
+				kern_return_t kr = vproc_mig_ipc_request(bootstrap_port, (vm_address_t)buff, sz, NULL, 0, &sreply, &sreplyCnt, &fdps, &fdpsCnt, _audit_session_self());
 				if (kr == BOOTSTRAP_SUCCESS) {
 					int fds[128];
 
@@ -1079,4 +1080,4 @@ launch_socket_service_check_in(void)
 
 	return reply;
 }
-#endif
+//#endif

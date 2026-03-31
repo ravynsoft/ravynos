@@ -44,7 +44,7 @@ struct entsize_iterator {
     entsize_iterator() { } 
     
     entsize_iterator(const Tlist& list, uint32_t start = 0)
-        : entsize(list.getEntsize()), index(start), current((T*)list.get(start))
+        : entsize(list.getEntsize()), index(start), current(&list.get(start)) 
     { }
     
     const entsize_iterator<P,T,Tlist>& operator += (ptrdiff_t count) {
@@ -152,403 +152,101 @@ public:
     }
 };
 
+
+template <typename P>
+class objc_method_list_t;  // forward reference
+
+
+template <typename P>
+class objc_method_t {
+    typedef typename P::uint_t pint_t;
+    pint_t name;   // SEL
+    pint_t types;  // const char *
+    pint_t imp;    // IMP
+    friend class objc_method_list_t<P>;
+public:
+    pint_t getName() const { return (pint_t)P::getP(name); }
+    void setName(pint_t newName) { P::setP(name, newName); }
+
+    struct SortBySELAddress : 
+        public std::binary_function<const objc_method_t<P>&, 
+                                    const objc_method_t<P>&, bool>
+    {
+        bool operator() (const objc_method_t<P>& lhs, 
+                         const objc_method_t<P>& rhs)
+        {
+            return lhs.getName() < rhs.getName();
+        }
+    };
+};
+
 template <typename P>
 class objc_method_list_t {
-
-    typedef typename P::uint_t pint_t;
-
-    template <typename PtrTy>
-    class objc_method_small_t {
-        typedef typename PtrTy::uint_t pint_t;
-        int32_t name;   // SEL
-        int32_t types;  // const char *
-        int32_t imp;    // IMP
-        friend class objc_method_list_t<PtrTy>;
-
-        objc_method_small_t() = delete;
-        ~objc_method_small_t() = delete;
-        objc_method_small_t(const objc_method_small_t& other) = delete;
-        objc_method_small_t(objc_method_small_t&& other) = delete;
-        objc_method_small_t& operator=(const objc_method_small_t& other) = delete;
-        objc_method_small_t& operator=(objc_method_small_t&& other) = delete;
-
-    public:
-
-        pint_t getName(ContentAccessor* cache, bool isOffsetToSel) const {
-            // We want to return the VM address of the "const char*" our selector
-            // reference is pointing at.
-            pint_t* nameRef = (pint_t*)((uint8_t*)&name + name);
-            if ( isOffsetToSel ) {
-                // Offset is directly to the SEL, not a selRef
-                return (pint_t)cache->vmAddrForContent(nameRef);
-            } else {
-                return (pint_t)PtrTy::getP(*nameRef);
-            }
-        }
-        // We want to update the selRef we are pointing at with the new content
-        // We may share the same selRef with other method lists or @SEL expressions, but as
-        // all of them want the same uniqued selector anyway, its safe to overwrite it here for
-        // everyone.
-        void setName(ContentAccessor* cache, pint_t newNameVMAddr, bool isOffsetToSel) {
-            if ( isOffsetToSel ) {
-                // Offset is directly to the SEL, not a selRef
-                void* namePtr = cache->contentForVMAddr(newNameVMAddr);
-                this->name = (int32_t)(intptr_t)((uint8_t*)namePtr - (uint8_t*)&this->name);
-            } else {
-                pint_t* selRef = (pint_t*)((uint8_t*)&name + name);
-                PtrTy::setP(*selRef, newNameVMAddr);
-            }
-        }
-        // Returns the vmAddr of the types
-        pint_t getTypes(ContentAccessor* cache) const {
-            pint_t* typesRef = (pint_t*)((uint8_t*)&types + types);
-            return (pint_t)cache->vmAddrForContent(typesRef);
-        }
-        void setTypes(ContentAccessor* cache, pint_t newTypesVMAddr) {
-            void* typesPtr = cache->contentForVMAddr(newTypesVMAddr);
-            this->types = (int32_t)(intptr_t)((uint8_t*)typesPtr - (uint8_t*)&this->types);
-        }
-        // Returns the vmAddr of the IMP
-        pint_t getIMP(ContentAccessor* cache) const {
-            pint_t* impRef = (pint_t*)((uint8_t*)&imp + imp);
-            return (pint_t)cache->vmAddrForContent(impRef);
-        }
-        void setIMP(ContentAccessor* cache, pint_t newIMPVMAddr) {
-            void* impPtr = cache->contentForVMAddr(newIMPVMAddr);
-            this->imp = (int32_t)(intptr_t)((uint8_t*)impPtr - (uint8_t*)&this->imp);
-        }
-
-        // Swap the contents of this value and other
-        // This has to recompute all of the relative offsets
-        void swap(objc_method_small_t<PtrTy>* other) {
-            // Get our targets
-            uint8_t* ourNameTarget  = (uint8_t*)&this->name + this->name;
-            uint8_t* ourTypesTarget = (uint8_t*)&this->types + this->types;
-            uint8_t* ourIMPTarget   = (uint8_t*)&this->imp + this->imp;
-            // Get their targets
-            uint8_t* theirNameTarget  = (uint8_t*)&other->name + other->name;
-            uint8_t* theirTypesTarget = (uint8_t*)&other->types + other->types;
-            uint8_t* theirIMPTarget   = (uint8_t*)&other->imp + other->imp;
-            // Set our targets
-            this->name = (int32_t)(intptr_t)(theirNameTarget - (uint8_t*)&this->name);
-            this->types = (int32_t)(intptr_t)(theirTypesTarget - (uint8_t*)&this->types);
-            this->imp = (int32_t)(intptr_t)(theirIMPTarget - (uint8_t*)&this->imp);
-            // Set their targets
-            other->name = (int32_t)(intptr_t)(ourNameTarget - (uint8_t*)&other->name);
-            other->types = (int32_t)(intptr_t)(ourTypesTarget - (uint8_t*)&other->types);
-            other->imp = (int32_t)(intptr_t)(ourIMPTarget - (uint8_t*)&other->imp);
-        }
-
-        struct SortBySELAddress :
-            public std::binary_function<const objc_method_small_t<PtrTy>&,
-                                        const objc_method_small_t<PtrTy>&, bool>
-        {
-            SortBySELAddress(ContentAccessor* cache, bool isOffsetToSel)
-                : cache(cache), isOffsetToSel(isOffsetToSel) { }
-
-            bool operator() (const objc_method_small_t<PtrTy>& lhs,
-                             const objc_method_small_t<PtrTy>& rhs)
-            {
-                return lhs.getName(cache, isOffsetToSel) < rhs.getName(cache, isOffsetToSel);
-            }
-
-            ContentAccessor* cache  = nullptr;
-            bool isOffsetToSel      = false;
-        };
-    };
-
-    template <typename PtrTy>
-    class objc_method_large_t {
-        typedef typename PtrTy::uint_t pint_t;
-        pint_t name;   // SEL
-        pint_t types;  // const char *
-        pint_t imp;    // IMP
-        friend class objc_method_list_t<PtrTy>;
-    public:
-        pint_t getName() const {
-            return (pint_t)PtrTy::getP(name);
-        }
-        void setName(pint_t newName) {
-            PtrTy::setP(name, newName);
-        }
-        pint_t getTypes() const {
-            return (pint_t)PtrTy::getP(types);
-        }
-        void setTypes(pint_t newTypes) {
-            PtrTy::setP(types, newTypes);
-        }
-        pint_t getIMP() const {
-            return (pint_t)PtrTy::getP(imp);
-        }
-        void setIMP(pint_t newIMP) {
-            PtrTy::setP(imp, newIMP);
-        }
-
-        struct SortBySELAddress :
-            public std::binary_function<const objc_method_large_t<PtrTy>&,
-                                        const objc_method_large_t<PtrTy>&, bool>
-        {
-            bool operator() (const objc_method_large_t<PtrTy>& lhs,
-                             const objc_method_large_t<PtrTy>& rhs)
-            {
-                return lhs.getName() < rhs.getName();
-            }
-        };
-    };
-
-    // Temporary struct to use when sorting small methods as their int32_t offsets can't reach
-    // from the stack where temporary values are placed, in to the shared cache buffer where the data lives
-    struct TempMethod {
-        // Relative methods in the shared cache always use direct offsets to the SEL
-        // at the point where this is running.  That means we don't need to indirect through
-        // a SEL reference.
-        pint_t selVMAddr;
-        pint_t typesVMAddr;
-        pint_t impVMAddr;
-    };
-
-    template <typename PtrTy>
-    struct SortBySELAddress :
-        public std::binary_function<const TempMethod&,
-                                    const TempMethod&, bool>
-    {
-        SortBySELAddress(ContentAccessor* cache) : cache(cache) { }
-
-        bool operator() (const TempMethod& lhs,
-                         const TempMethod& rhs)
-        {
-            return lhs.selVMAddr < rhs.selVMAddr;
-        }
-
-        ContentAccessor* cache = nullptr;
-    };
-
     uint32_t entsize;
     uint32_t count;
-    union {
-        objc_method_small_t<P> small;
-        objc_method_large_t<P> large;
-    } first;
+    objc_method_t<P> first;
 
     void* operator new (size_t, void* buf) { return buf; }
 
-    enum : uint32_t {
-        // If this is set, the relative method lists name_offset field is an
-        // offset directly to the SEL, not a SEL ref.
-        relativeMethodSelectorsAreDirectFlag    = 0x40000000,
-
-        // If this is set, then method lists are the new relative format, not
-        // the old pointer based format
-        relativeMethodFlag                      = 0x80000000,
-
-        // The upper 16-bits are all defined to be flags
-        methodListFlagsMask                     = 0xFFFF0000
-    };
-
-    uint32_t getFlags() const {
-        return (P::E::get32(entsize) & methodListFlagsMask);
-    }
-
-    typedef entsize_iterator<P, objc_method_small_t<P>, objc_method_list_t<P> > small_method_iterator;
-    typedef entsize_iterator<P, objc_method_large_t<P>, objc_method_list_t<P> > large_method_iterator;
-
-    small_method_iterator beginSmall() {
-        assert(usesRelativeMethods());
-        return small_method_iterator(*this, 0);
-    }
-    small_method_iterator endSmall() {
-        assert(usesRelativeMethods());
-        return small_method_iterator(*this, getCount());
-    }
-
-    large_method_iterator beginLarge() {
-        assert(!usesRelativeMethods());
-        return large_method_iterator(*this, 0);
-    }
-    large_method_iterator endLarge() {
-        assert(!usesRelativeMethods());
-        return large_method_iterator(*this, getCount());
-    }
-
 public:
+
+    typedef entsize_iterator<P, objc_method_t<P>, objc_method_list_t<P> > method_iterator;
 
     uint32_t getCount() const { return P::E::get32(count); }
 
-    uint32_t getEntsize() const {
-        return P::E::get32(entsize) & ~(uint32_t)3 & ~methodListFlagsMask;
-    }
+    uint32_t getEntsize() const {return P::E::get32(entsize)&~(uint32_t)3;}
+
+    objc_method_t<P>& get(uint32_t i) const { return *(objc_method_t<P> *)((uint8_t *)&first + i * getEntsize()); }
 
     uint32_t byteSize() const { 
         return byteSizeForCount(getCount(), getEntsize()); 
     }
 
-    static uint32_t byteSizeForCount(uint32_t c, uint32_t e) {
-        return sizeof(entsize) + sizeof(count) + c*e;
+    static uint32_t byteSizeForCount(uint32_t c, uint32_t e = sizeof(objc_method_t<P>)) { 
+        return sizeof(objc_method_list_t<P>) - sizeof(objc_method_t<P>) + c*e;
     }
 
-    bool usesRelativeMethods() const {
-        return (P::E::get32(entsize) & relativeMethodFlag) != 0;
-    }
+    method_iterator begin() { return method_iterator(*this, 0); }
+    method_iterator end() { return method_iterator(*this, getCount()); }
+    const method_iterator begin() const { return method_iterator(*this, 0); }
+    const method_iterator end() const { return method_iterator(*this, getCount()); }
 
-    void setFixedUp() {
-        P::E::set32(entsize, getEntsize() | 3 | getFlags());
-    }
+    void setFixedUp() { P::E::set32(entsize, getEntsize() | 3); }
 
-    void setMethodListSelectorsAreDirect() {
-        P::E::set32(entsize, getEntsize() | getFlags() | relativeMethodSelectorsAreDirectFlag);
-    }
-
-    void sortMethods(ContentAccessor* cache, pint_t *typelist, bool isOffsetToSel) {
-        if ( usesRelativeMethods() ) {
-            // At this point we assume we are using offsets directly to selectors.  This
-            // is so that the TempMethod struct can also use direct offsets and not track the
-            // SEL reference VMAddrs
-            assert(isOffsetToSel);
-
-            if ( typelist == nullptr ) {
-                // This is the case when we are sorting the methods on a class.
-                // Only protocols have a type list which causes the other sort to be used
-                // We can't sort the small methods in place as their 32-bit offsets can't reach
-                // the VM space where the shared cache is being created.  Instead create a list
-                // of large methods and sort those.
-
-                std::vector<TempMethod> largeMethods;
-                for (unsigned i = 0 ; i != count; ++i) {
-                    const objc_method_small_t<P>* smallMethod = (const objc_method_small_t<P>*)get(i);
-                    TempMethod largeMethod;
-                    largeMethod.selVMAddr = smallMethod->getName(cache, isOffsetToSel);
-                    largeMethod.typesVMAddr = smallMethod->getTypes(cache);
-                    largeMethod.impVMAddr = smallMethod->getIMP(cache);
-                    largeMethods.push_back(largeMethod);
-                }
-
-                SortBySELAddress<P> sorter(cache);
-                std::stable_sort(largeMethods.begin(), largeMethods.end(), sorter);
-
-                for (unsigned i = 0 ; i != count; ++i) {
-                    const TempMethod& largeMethod = largeMethods[i];
-                    objc_method_small_t<P>* smallMethod = (objc_method_small_t<P>*)get(i);
-                    smallMethod->setName(cache, largeMethod.selVMAddr, isOffsetToSel);
-                    smallMethod->setTypes(cache, largeMethod.typesVMAddr);
-                    smallMethod->setIMP(cache, largeMethod.impVMAddr);
-                }
-
-#if 0
-                // Check the method lists are sorted
-                {
-                    typename objc_method_small_t<P>::SortBySELAddress sorter(cache);
-                    for (uint32_t i = 0; i < getCount(); i++) {
-                        for (uint32_t j = i+1; j < getCount(); j++) {
-                            objc_method_small_t<P>* mi = (objc_method_small_t<P>*)get(i);
-                            objc_method_small_t<P>* mj = (objc_method_small_t<P>*)get(j);
-                            if ( mi->getName(cache) == mj->getName(cache) )
-                                continue;
-                            if (! sorter(*mi, *mj)) {
-                                assert(false);
-                            }
-                        }
-                    }
-                }
-#endif
-            }
-            else {
-                typename objc_method_small_t<P>::SortBySELAddress sorter(cache, isOffsetToSel);
-                // can't easily use std::stable_sort here
-                for (uint32_t i = 0; i < getCount(); i++) {
-                    for (uint32_t j = i+1; j < getCount(); j++) {
-                        objc_method_small_t<P>* mi = (objc_method_small_t<P>*)get(i);
-                        objc_method_small_t<P>* mj = (objc_method_small_t<P>*)get(j);
-                        if (! sorter(*mi, *mj)) {
-                            mi->swap(mj);
-                            if (typelist) std::swap(typelist[i], typelist[j]);
-                        }
-                    }
-                }
-            }
-        } else {
-            typename objc_method_large_t<P>::SortBySELAddress sorter;
-
-            if ( typelist == nullptr ) {
-                // This is the case when we are sorting the methods on a class.
-                // Only protocols have a type list which causes the other sort to be used
-                std::stable_sort(beginLarge(), endLarge(), sorter);
-            }
-            else {
-                // can't easily use std::stable_sort here
-                for (uint32_t i = 0; i < getCount(); i++) {
-                    for (uint32_t j = i+1; j < getCount(); j++) {
-                        objc_method_large_t<P>* mi = (objc_method_large_t<P>*)get(i);
-                        objc_method_large_t<P>* mj = (objc_method_large_t<P>*)get(j);
-                        if (! sorter(*mi, *mj)) {
-                            std::swap(*mi, *mj);
-                            if (typelist) std::swap(typelist[i], typelist[j]);
-                        }
-                    }
-                }
-            }
+    void getPointers(std::set<void*>& pointersToRemove) {
+        for(method_iterator it = begin(); it != end(); ++it) {
+            objc_method_t<P>& entry = *it;
+            pointersToRemove.insert(&(entry.name));
+            pointersToRemove.insert(&(entry.types));
+            pointersToRemove.insert(&(entry.imp));
         }
-        // mark method list as sorted
-        this->setFixedUp();
     }
-
-    pint_t getName(ContentAccessor* cache, uint32_t i, bool isOffsetToSel) {
-        pint_t name = 0;
-        if ( usesRelativeMethods() ) {
-            small_method_iterator it = beginSmall() + i;
-            objc_method_small_t<P>& method = *it;
-            name = method.getName(cache, isOffsetToSel);
-        } else {
-            large_method_iterator it = beginLarge() + i;
-            objc_method_large_t<P>& method = *it;
-            name = method.getName();
-        }
-        return name;
-    }
-
-    void setName(ContentAccessor* cache, uint32_t i, pint_t name, bool isOffsetToSel) {
-        if ( usesRelativeMethods() ) {
-            small_method_iterator it = beginSmall() + i;
-            objc_method_small_t<P>& method = *it;
-            method.setName(cache, name, isOffsetToSel);
-        } else {
-            large_method_iterator it = beginLarge() + i;
-            objc_method_large_t<P>& method = *it;
-            method.setName(name);
+    
+    static void addPointers(uint8_t* methodList, CacheBuilder::ASLR_Tracker& aslrTracker) {
+        objc_method_list_t<P>* mlist = (objc_method_list_t<P>*)methodList;
+        for(method_iterator it = mlist->begin(); it != mlist->end(); ++it) {
+            objc_method_t<P>& entry = *it;
+            aslrTracker.add(&(entry.name));
+            aslrTracker.add(&(entry.types));
+            aslrTracker.add(&(entry.imp));
         }
     }
 
-    const char* getStringName(ContentAccessor* cache, uint32_t i, bool isOffsetToSel) {
-        return (const char*)cache->contentForVMAddr(getName(cache, i, isOffsetToSel));
-    }
-
-    pint_t getImp(uint32_t i, ContentAccessor* cache) {
-        pint_t name = 0;
-        if ( usesRelativeMethods() ) {
-            small_method_iterator it = beginSmall() + i;
-            objc_method_small_t<P>& method = *it;
-            name = method.getIMP(cache);
-        } else {
-            large_method_iterator it = beginLarge() + i;
-            objc_method_large_t<P>& method = *it;
-            name = method.getIMP();
-        }
-        return name;
-    }
-
-    void* get(uint32_t i) const {
-        if ( usesRelativeMethods() ) {
-            return (void*)(objc_method_small_t<P> *)((uint8_t *)&first + i * getEntsize());
-        } else {
-            return (void*)(objc_method_large_t<P> *)((uint8_t *)&first + i * getEntsize());
-        }
+    static objc_method_list_t<P>* newMethodList(size_t newCount, uint32_t newEntsize) {
+        void *buf = ::calloc(byteSizeForCount(newCount, newEntsize), 1);
+        return new (buf) objc_method_list_t<P>(newCount, newEntsize);
     }
 
     void operator delete(void * p) { 
         ::free(p); 
     }
 
-private:
+    objc_method_list_t(uint32_t newCount, 
+                       uint32_t newEntsize = sizeof(objc_method_t<P>))
+        : entsize(newEntsize), count(newCount) 
+    { }
 
+private:
     // use newMethodList instead
     void* operator new (size_t);
 };
@@ -595,7 +293,7 @@ public:
 
     uint32_t getEntsize() const { return P::E::get32(entsize); }
 
-    void* get(pint_t i) const { return (void*)(objc_ivar_t<P> *)((uint8_t *)&first + i * P::E::get32(entsize)); }
+    objc_ivar_t<P>& get(pint_t i) const { return *(objc_ivar_t<P> *)((uint8_t *)&first + i * P::E::get32(entsize)); }
 
     uint32_t byteSize() const { 
         return byteSizeForCount(getCount(), getEntsize()); 
@@ -660,7 +358,7 @@ public:
 
     uint32_t getEntsize() const { return P::E::get32(entsize); }
 
-    void* get(uint32_t i) const { return (objc_property_t<P> *)((uint8_t *)&first + i * getEntsize()); }
+    objc_property_t<P>& get(uint32_t i) const { return *(objc_property_t<P> *)((uint8_t *)&first + i * getEntsize()); }
 
     uint32_t byteSize() const { 
         return byteSizeForCount(getCount(), getEntsize()); 
@@ -734,7 +432,6 @@ class objc_protocol_t {
 public:
     pint_t getIsaVMAddr() const { return (pint_t)P::getP(isa); }
     void setIsaVMAddr(pint_t newIsa) { P::setP(isa, newIsa); }
-    void* getISALocation() const { return (void*)&isa; }
 
     const char *getName(ContentAccessor* cache) const { return (const char *)cache->contentForVMAddr(P::getP(name)); }
 
@@ -945,14 +642,11 @@ public:
     objc_class_t<P> *getIsa(ContentAccessor* cache) const { return (objc_class_t<P> *)cache->contentForVMAddr(P::getP(isa)); }
 
     objc_class_t<P> *getSuperclass(ContentAccessor* cache) const { return (objc_class_t<P> *)cache->contentForVMAddr(P::getP(superclass)); }
+    
     const pint_t* getSuperClassAddress() const { return &superclass; }
 
     // Low bit marks Swift classes.
     objc_class_data_t<P> *getData(ContentAccessor* cache) const { return (objc_class_data_t<P> *)cache->contentForVMAddr(P::getP(data & ~0x3LL)); }
-
-    objc_class_t<P> *getVTable(ContentAccessor* cache) const { return (objc_class_t<P> *)cache->contentForVMAddr(P::getP(vtable)); }
-
-    pint_t* getVTableAddress() { return &vtable; }
 
     objc_method_list_t<P> *getMethodList(ContentAccessor* cache) const {
         objc_class_data_t<P>* d = getData(cache);
@@ -1060,9 +754,9 @@ public:
         objc_ivar_list_t<P> *ivars = data->getIvarList(cache);
         if (ivars) {
             for (pint_t i = 0; i < ivars->getCount(); i++) {
-                objc_ivar_t<P>* ivar = (objc_ivar_t<P>*)ivars->get(i);
+                objc_ivar_t<P>& ivar = ivars->get(i);
                 //fprintf(stderr, "visiting ivar: %s\n", ivar.getName(cache));
-                ivarVisitor.visitIvar(cache, header, cls, ivar);
+                ivarVisitor.visitIvar(cache, header, cls, &ivar);
             }
         } else {
             //fprintf(stderr, "no ivars\n");
@@ -1075,20 +769,14 @@ public:
     }
 };
 
-enum class ClassWalkerMode {
-    ClassesOnly,
-    ClassAndMetaclasses,
-};
-
 // Call visitor.visitClass() on every class.
 template <typename P, typename V>
 class ClassWalker {
     typedef typename P::uint_t pint_t;
     V& _visitor;
-    ClassWalkerMode _mode;
 public:
     
-    ClassWalker(V& visitor, ClassWalkerMode mode = ClassWalkerMode::ClassesOnly) : _visitor(visitor), _mode(mode) { }
+    ClassWalker(V& visitor) : _visitor(visitor) { }
     
     void walk(ContentAccessor* cache, const macho_header<P>* header)
     {   
@@ -1096,14 +784,8 @@ public:
         
         for (pint_t i = 0; i < classList.count(); i++) {
             objc_class_t<P>* cls = classList.get(i);
-            if (cls) {
-                //fprintf(stderr, "visiting class: %s\n", cls->getName(cache));
-                _visitor.visitClass(cache, header, cls);
-                if (_mode == ClassWalkerMode::ClassAndMetaclasses) {
-                    //fprintf(stderr, "visiting metaclass: %s\n", cls->getIsa(cache)->getName(cache));
-                    _visitor.visitClass(cache, header, cls->getIsa(cache));
-                }
-            }
+            //fprintf(stderr, "visiting class: %s\n", cls->getName(cache));
+            if (cls) _visitor.visitClass(cache, header, cls);
         }
     }
 };
@@ -1219,10 +901,10 @@ public:
             objc_class_t<P> *cls = classes.get(i);
             objc_method_list_t<P> *mlist;
             if ((mlist = cls->getMethodList(cache))) {
-                mVisitor.visitMethodList(cache, mlist);
+                mVisitor.visitMethodList(mlist);
             }
             if ((mlist = cls->getIsa(cache)->getMethodList(cache))) {
-                mVisitor.visitMethodList(cache, mlist);
+                mVisitor.visitMethodList(mlist);
             }
         }
         
@@ -1233,10 +915,10 @@ public:
             objc_category_t<P> *cat = cats.get(i);
             objc_method_list_t<P> *mlist;
             if ((mlist = cat->getInstanceMethods(cache))) {
-                mVisitor.visitMethodList(cache, mlist);
+                mVisitor.visitMethodList(mlist);
             }
             if ((mlist = cat->getClassMethods(cache))) {
-                mVisitor.visitMethodList(cache, mlist);
+                mVisitor.visitMethodList(mlist);
             }
         }
 
@@ -1249,19 +931,19 @@ public:
             pint_t *typelist = proto->getExtendedMethodTypes(cache);
 
             if ((mlist = proto->getInstanceMethods(cache))) {
-                mVisitor.visitProtocolMethodList(cache, mlist, typelist);
+                mVisitor.visitProtocolMethodList(mlist, typelist);
                 if (typelist) typelist += mlist->getCount();
             }
             if ((mlist = proto->getClassMethods(cache))) {
-                mVisitor.visitProtocolMethodList(cache, mlist, typelist);
+                mVisitor.visitProtocolMethodList(mlist, typelist);
                 if (typelist) typelist += mlist->getCount();
             }
             if ((mlist = proto->getOptionalInstanceMethods(cache))) {
-                mVisitor.visitProtocolMethodList(cache, mlist, typelist);
+                mVisitor.visitProtocolMethodList(mlist, typelist);
                 if (typelist) typelist += mlist->getCount();
             }
             if ((mlist = proto->getOptionalClassMethods(cache))) {
-                mVisitor.visitProtocolMethodList(cache, mlist, typelist);
+                mVisitor.visitProtocolMethodList(mlist, typelist);
                 if (typelist) typelist += mlist->getCount();
             }
         }
@@ -1279,36 +961,25 @@ class SelectorOptimizer {
     std::set<pint_t> selectorRefVMAddrs;
 
     friend class MethodListWalker<P, SelectorOptimizer<P,V> >;
-    void visitMethodList(ContentAccessor* cache, objc_method_list_t<P> *mlist)
+    void visitMethodList(objc_method_list_t<P> *mlist)
     {
         // Gather selectors. Update method names.
         for (uint32_t m = 0; m < mlist->getCount(); m++) {
-            // Read names as relative offsets to selRefs
-            pint_t oldValue = mlist->getName(cache, m, false);
+            pint_t oldValue = mlist->get(m).getName();
             pint_t newValue = mVisitor.visit(oldValue);
-            // And write names as relative offsets to SELs themselves.
-            mlist->setName(cache, m, newValue, true);
+            mlist->get(m).setName(newValue);
         }
-        // Set this method list as now being relative offsets directly to the selector string
-        if ( mlist->usesRelativeMethods() )
-            mlist->setMethodListSelectorsAreDirect();
-
         // Do not setFixedUp: the methods are not yet sorted.
     }
 
-    void visitProtocolMethodList(ContentAccessor* cache, objc_method_list_t<P> *mlist, pint_t *types)
+    void visitProtocolMethodList(objc_method_list_t<P> *mlist, pint_t *types)
     {
-        visitMethodList(cache, mlist);
+        visitMethodList(mlist);
     }
 
 public:
 
-    SelectorOptimizer(V& visitor, bool& relativeMethodListSelectorsAreDirect) : mVisitor(visitor) {
-        // This pass requires that relative method lists are initially indirected via the selector
-        // ref.  After this pass runs we'll use relative offsets to the selectors themselves
-        assert(!relativeMethodListSelectorsAreDirect);
-        relativeMethodListSelectorsAreDirect = true;
-    }
+    SelectorOptimizer(V& visitor) : mVisitor(visitor) { }
 
     void visitCoalescedStrings(const CacheBuilder::CacheCoalescedText& coalescedText) {
         mVisitor.visitCoalescedStrings(coalescedText);
@@ -1490,27 +1161,37 @@ class MethodListSorter {
     typedef typename P::uint_t pint_t;
 
     uint32_t _optimized;
-    bool     _isOffsetToSel;
 
     friend class MethodListWalker<P, MethodListSorter<P> >;
-
-    void sortMethodList(ContentAccessor* cache, objc_method_list_t<P> *mlist, pint_t *typelist) {
-        mlist->sortMethods(cache, typelist, _isOffsetToSel);
+    void visitMethodList(objc_method_list_t<P> *mlist)
+    {
+        typename objc_method_t<P>::SortBySELAddress sorter;
+        std::stable_sort(mlist->begin(), mlist->end(), sorter);
+        mlist->setFixedUp();
         _optimized++;
     }
 
-    void visitMethodList(ContentAccessor* cache, objc_method_list_t<P> *mlist)
+    void visitProtocolMethodList(objc_method_list_t<P> *mlist, pint_t *typelist)
     {
-        sortMethodList(cache, mlist, nullptr);
-    }
+        typename objc_method_t<P>::SortBySELAddress sorter;
+        // can't easily use std::stable_sort here
+        for (uint32_t i = 0; i < mlist->getCount(); i++) {
+            for (uint32_t j = i+1; j < mlist->getCount(); j++) {
+                objc_method_t<P>& mi = mlist->get(i);
+                objc_method_t<P>& mj = mlist->get(j);
+                if (! sorter(mi, mj)) {
+                    std::swap(mi, mj);
+                    if (typelist) std::swap(typelist[i], typelist[j]);
+                }
+            }
+        }
 
-    void visitProtocolMethodList(ContentAccessor* cache, objc_method_list_t<P> *mlist, pint_t *typelist)
-    {
-        sortMethodList(cache, mlist, typelist);
+        mlist->setFixedUp();
+        _optimized++;
     }
 
 public:
-    MethodListSorter(bool isOffsetToSel) : _optimized(0), _isOffsetToSel(isOffsetToSel) { }
+    MethodListSorter() : _optimized(0) { }
 
     size_t optimized() const { return _optimized; }
 

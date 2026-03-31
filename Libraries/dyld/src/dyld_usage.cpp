@@ -73,7 +73,7 @@ exit_usage(void)
     fprintf(stderr, "  pid   selects process(s) to sample\n");
     fprintf(stderr, "  cmd   selects process(s) matching command string to sample\n");
     fprintf(stderr, "By default (no options) the following processes are excluded from the output:\n");
-    fprintf(stderr, "dyld_usage, Terminal, telnetd, sshd, rlogind, tcsh, csh, sh\n");
+    fprintf(stderr, "dyld_usage, Terminal, telnetd, sshd, rlogind, tcsh, csh, sh\n\n");
 
     exit(1);
 }
@@ -346,11 +346,11 @@ public:
         if (auto dlopenNode = dynamic_cast<dlopen *>(node.get())) {
             sstr << std::hex;
             sstr << "{\"type\":\"dlopen\",\"path\":\"" << dlopenNode->path << "\",\"flags\":\"0x" << dlopenNode->flags << "\"";
-            sstr << ",\"result\":\"0x" << dlopenNode->result << "\"";
+            sstr << ",\"result\":\"" << dlopenNode->result << "\"";
         } else if (auto dlopenPreflightNode = dynamic_cast<dlopen_preflight *>(node.get())) {
             sstr << std::hex;
             sstr << "{\"type\":\"dlopen_preflight\",\"path\":\"" << dlopenPreflightNode->path << "\"";
-            sstr << ",\"result\":\"0x" << dlopenPreflightNode->result << "\"";
+            sstr << ",\"result\":\"" << dlopenPreflightNode->result << "\"";
         } else if (auto dlsymNode = dynamic_cast<dlsym *>(node.get())) {
             sstr << std::hex  << "{\"type\":\"dlsym\",\"symbol\":\"" << dlsymNode->symbol << "\",\"handle\":\"0x";
             sstr << dlsymNode->handle << "\",\"result\":\"0x" << dlsymNode->result << "\"";
@@ -729,7 +729,7 @@ main(int argc, char *argv[])
     s = ktrace_session_create();
     assert(s);
 
-    while ((ch = getopt(argc, argv, "hjJeR:t:")) != -1) {
+    while ((ch = getopt(argc, argv, "jJeR:t:")) != -1) {
         switch (ch) {
             case 'j':
                 JSON_flag = true;
@@ -756,7 +756,6 @@ main(int argc, char *argv[])
                     exit(1);
                 }
                 break;
-            case 'h':
             default:
                 exit_usage();
         }
@@ -779,7 +778,7 @@ main(int argc, char *argv[])
 
     if (!RAW_flag) {
         if (geteuid() != 0) {
-            fprintf(stderr, "'dyld_usage' must be run as root\n");
+            fprintf(stderr, "'dyld_usage' must be run as root...\n");
             exit(1);
         }
 
@@ -880,7 +879,6 @@ main(int argc, char *argv[])
         exit(1);
     }
 
-    setvbuf(stdout, (char *)NULL, _IONBF, 0);
     dispatch_main();
 
     return 0;

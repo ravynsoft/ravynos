@@ -1,0 +1,56 @@
+#! /bin/bash
+#
+#	Copyright (c) 2018 Apple Inc. All rights reserved.
+#
+#	This script is currently for Apple Internal use only.
+#
+
+version=1.0
+script=${BASH_SOURCE[0]}
+
+#============================================================================================================================
+#	PrintUsage
+#============================================================================================================================
+
+PrintUsage()
+{
+	echo ""
+	echo "Usage: $( basename "${script}" ) [options]"
+	echo ""
+	echo "Options:"
+	echo "    -V    Display version of this script and exit."
+	echo ""
+}
+
+#============================================================================================================================
+#	main
+#============================================================================================================================
+
+main()
+{
+	while getopts ":hV" option; do
+		case "${option}" in
+			h)
+				PrintUsage
+				exit 0
+				;;
+			V)
+				echo "$( basename "${script}" ) version ${version}"
+				exit 0
+				;;
+			:)
+				ErrQuit "option '${OPTARG}' requires an argument."
+				;;
+			*)
+				ErrQuit "unknown option '${OPTARG}'."
+				;;
+		esac
+	done
+	
+	[ "${OPTIND}" -gt "$#" ] || ErrQuit "unexpected argument \""${!OPTIND}"\"."
+	
+	launchctl load /Library/LaunchDaemons/com.apple.mDNSResponder.mdns-tcpdump.plist
+	launchctl start com.apple.mDNSResponder.mdns-tcpdump
+}
+
+main "$@"

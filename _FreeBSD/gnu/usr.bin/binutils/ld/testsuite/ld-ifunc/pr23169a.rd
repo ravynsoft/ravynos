@@ -1,3 +1,0 @@
-#...
- +[0-9]+: +[0-9a-f]+ +[0-9]+ +I?FUNC +GLOBAL +DEFAULT.* [0-9]+ +func
-#pass

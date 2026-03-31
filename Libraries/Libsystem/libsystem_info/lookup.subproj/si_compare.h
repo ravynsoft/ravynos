@@ -12,7 +12,7 @@
 #include <sys/socket.h>
 #include <stdbool.h>
 #include <os/availability.h>
-
+#include <os/log.h>
 
 __BEGIN_DECLS
 

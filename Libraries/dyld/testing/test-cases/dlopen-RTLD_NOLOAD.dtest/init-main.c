@@ -1,5 +1,5 @@
 
-// BUILD:  $CC init-b.c -dynamiclib -ltest_support -DRUN_DIR="$RUN_DIR" -install_name $RUN_DIR/libInitB.dylib -o $BUILD_DIR/libInitB.dylib
+// BUILD:  $CC init-b.c -dynamiclib -DRUN_DIR="$RUN_DIR" -install_name $RUN_DIR/libInitB.dylib -o $BUILD_DIR/libInitB.dylib
 // BUILD:  $CC init-a.c -dynamiclib                      -install_name $RUN_DIR/libInitA.dylib $BUILD_DIR/libInitB.dylib -o $BUILD_DIR/libInitA.dylib
 // BUILD:  $CC init-main.c $BUILD_DIR/libInitA.dylib -o $BUILD_DIR/dlopen-RTLD_NOLOAD-in-initializer.exe
 

@@ -123,6 +123,8 @@ namespace dyld {
 	extern bool					processIsRestricted();
 	extern const char*			getStandardSharedCacheFilePath();
 	extern bool					hasInsertedOrInterposingLibraries();
+	extern int					my_stat(const char* path, struct stat* buf);
+	extern int					my_open(const char* path, int flag, int other);
 	bool						sandboxBlockedOpen(const char* path);
 	bool						sandboxBlockedMmap(const char* path);
 	bool						sandboxBlockedStat(const char* path);
@@ -138,8 +140,5 @@ namespace dyld {
 	bool						dladdrFromCache(const void* address, Dl_info* info);
 	bool						isPathInCache(const char* path);
 	const char*					getPathFromIndex(unsigned cacheIndex);
-#endif
-#if defined(__x86_64__)
-	bool 						isTranslated();
 #endif
 }

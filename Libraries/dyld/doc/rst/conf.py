@@ -232,15 +232,18 @@ for name in os.listdir(command_guide_path):
         header = f.readline().rstrip('\n')
 
         if len(header) != len(title):
-            print("error: invalid header in {} (does not match title)".
-            format(file_subpath), file=sys.stderr)
+            print >>sys.stderr, (
+                "error: invalid header in %r (does not match title)" % (
+                    file_subpath,))
         if ' - ' not in title:
-            print("error: invalid title in {} (expected '<name> - <description>')".
-            format(file_subpath), file=sys.stderr)
+            print >>sys.stderr, (
+                ("error: invalid title in %r "
+                 "(expected '<name> - <description>')") % (
+                    file_subpath,))
 
         # Split the name out of the title.
         name,description = title.split(' - ', 1)
-        man_pages.append((name.replace('.rst',''), name,
+        man_pages.append((file_subpath.replace('.rst',''), name,
                           description, man_page_authors, 1))
 
 # If true, show URL addresses after external links.

@@ -1,10 +1,10 @@
 dyld_usage - report dynamic linker activity in real-time
-========================================================
+==========================================================
 
 SYNOPSIS
 --------
 
-:program:`dyld_usage` **[-e] [-f mode] [-j] [-h] [-t seconds] [-R rawfile [-S start_time]
+:program:`dyld_usage` **[-e] [-f mode] [-t seconds] [-R rawfile [-S start_time]
 [-E end_time]] [pid | cmd [pid | cmd] ...]**
 
 DESCRIPTION
@@ -31,21 +31,13 @@ OPTIONS
   Exclude the specified list of pids and commands from the sample, and exclude
   :program:`dyld_usage` by default.
 
-  .. option:: -j
-
-  Display output in JSON format.
-
-.. option:: -h
-
-  Display usage information and exit.
-
 .. option:: -R
 
-  Specify a raw trace file to process.
+  specifies a raw trace file to process.
 
 .. option:: -t
 
-  Specify timeout in seconds (for use in automated tools).
+  specifies timeout in seconds (for use in automated tools).
 
 DISPLAY
 -------

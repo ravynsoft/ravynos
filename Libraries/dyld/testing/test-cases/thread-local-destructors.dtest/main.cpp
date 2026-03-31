@@ -151,7 +151,12 @@ bool passedChecksInMain = false;
 void checkMainThreadFinalizer() {
     if ( !passedChecksInMain )
         return;
+    // _tlv_exit is only called on x86 mac
+#if TARGET_OS_OSX
     bool shouldFinalize = true;
+#else
+    bool shouldFinalize = false;
+#endif
     if ( sMainThreadFinalized != shouldFinalize )
         FAIL("Main thread finalisation not as expected");
     else if ( sMainThreadFinalized_Another != shouldFinalize )

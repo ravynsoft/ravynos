@@ -113,7 +113,7 @@ $(3)/.UNIFDEF_FLAGS: ALWAYS | $(3)_MKDIR
 
 $(1): $(dir $(firstword $(1)))% : $(if $(2),%,$$(SOURCE)/%) | $(3)_MKDIR
 	$$(call makelog,$$(ColorH)INSTALLHDR$$(Color0)    $$(ColorF)$$*$$(Color0))
-	$$(_v)$$(UNIFDEF) $(4) $(SEED_DEFINES) $$< > ./$(3)/$$*.unifdef.$$$$$$$$;	\
+	$$(_v)$$(UNIFDEF) $(4) $$< > ./$(3)/$$*.unifdef.$$$$$$$$;	\
 	if [ $$$$? -eq 2 ]; then						\
 		$(ERR) Parse failure for $$<;				\
 		exit 1;							\
@@ -150,7 +150,7 @@ $(3)/.UNIFDEF_FLAGS: ALWAYS | $(3)_MKDIR
 $(1): $(5)% : $(2) | $(3)_MKDIR
 	$$(call makelog,$$(ColorH)INSTALLPY$$(Color0)     $$(ColorF)$$*$$(Color0))
 	$$(_v)$$(MKDIR) $$(dir $$@) $$(dir ./$(3)/$$*)
-	$$(_v)$$(UNIFDEF) -t $(4) $(SEED_DEFINES) $$< > ./$(3)/$$*.unifdef.$$$$$$$$$$(suffix $$*); \
+	$$(_v)$$(UNIFDEF) -t $(4) $$< > ./$(3)/$$*.unifdef.$$$$$$$$$$(suffix $$*); \
 	if [ $$$$? -eq 2 ]; then						\
 		$(ERR) Parse failure for $$<;				\
 		exit 1;							\

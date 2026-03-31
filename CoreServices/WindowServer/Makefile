@@ -1,3 +1,10 @@
+#
+# FIXME: zoe 2/11/26 This should live in SkyLight now. See
+# https://eclecticlight.co/2020/06/08/windowserver-display-compositor-and-input-event-router/
+# "In Catalina, it's to be found in /System/Library/PrivateFrameworks/SkyLight.framework/Resources,
+# alongside pointer/cursor support."
+# Plist goes in /Library/Preferences/com.apple.windowserver.plist
+#
 MK_AUTO_OBJ=    yes
 APP=	        WindowServer
 .PATH:          ${.CURDIR}

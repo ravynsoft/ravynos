@@ -1,0 +1,1477 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 45;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		6B2438D110A1FAC2005D708C /* Default */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 6B2438DB10A1FADC005D708C /* Build configuration list for PBXAggregateTarget "Default" */;
+			buildPhases = (
+			);
+			dependencies = (
+				6B2438D510A1FAD4005D708C /* PBXTargetDependency */,
+				6B2438D710A1FAD9005D708C /* PBXTargetDependency */,
+			);
+			name = Default;
+			productName = Default;
+		};
+		FD10638B10336827009E1154 /* Root */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = FD1063A21033688A009E1154 /* Build configuration list for PBXAggregateTarget "Root" */;
+			buildPhases = (
+			);
+			dependencies = (
+				FD10639010336832009E1154 /* PBXTargetDependency */,
+				FD10638E10336830009E1154 /* PBXTargetDependency */,
+				6BCD3FD6109519BB002D5CC3 /* PBXTargetDependency */,
+			);
+			name = Root;
+			productName = Root;
+		};
+		FD37D207102BAAF20029C36C /* All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = FD37D22B102BAB020029C36C /* Build configuration list for PBXAggregateTarget "All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				FD37D20C102BAAF70029C36C /* PBXTargetDependency */,
+				FD0760101032067D0061953C /* PBXTargetDependency */,
+				6B40A6821092975400636183 /* PBXTargetDependency */,
+				FD37D20A102BAAF70029C36C /* PBXTargetDependency */,
+				FD10639410336845009E1154 /* PBXTargetDependency */,
+			);
+			name = All;
+			productName = All;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		6B24386510A1EF27005D708C /* NSOpenDirectoryPriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 6B24386410A1EF27005D708C /* NSOpenDirectoryPriv.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		6B2438F510A1FDA7005D708C /* CFOpenDirectory.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* CFOpenDirectory.framework */; };
+		6B40A1C110916F2700636183 /* OpenDirectoryPriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 6B40A1C010916F2700636183 /* OpenDirectoryPriv.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		6BA024C910913DDC004A8A2A /* DirectoryService.h in Headers */ = {isa = PBXBuildFile; fileRef = 6BA024A710913D6D004A8A2A /* DirectoryService.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		6BA024CA10913DDC004A8A2A /* DirectoryServicePriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 6BA024A810913D6D004A8A2A /* DirectoryServicePriv.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		6BA024CB10913DDC004A8A2A /* DirServices.h in Headers */ = {isa = PBXBuildFile; fileRef = 6BA024AA10913D6D004A8A2A /* DirServices.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		6BA024CC10913DDC004A8A2A /* DirServicesConst.h in Headers */ = {isa = PBXBuildFile; fileRef = 6BA024AB10913D6D004A8A2A /* DirServicesConst.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		6BA024CD10913DDC004A8A2A /* DirServicesConstPriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 6BA024AC10913D6D004A8A2A /* DirServicesConstPriv.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		6BA024CE10913DDC004A8A2A /* DirServicesCustom.h in Headers */ = {isa = PBXBuildFile; fileRef = 6BA024AE10913D6D004A8A2A /* DirServicesCustom.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		6BA024CF10913DDC004A8A2A /* DirServicesPriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 6BA024B010913D6D004A8A2A /* DirServicesPriv.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		6BA024D010913DDC004A8A2A /* DirServicesTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 6BA024B110913D6D004A8A2A /* DirServicesTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		6BA024D210913DDC004A8A2A /* DirServicesUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 6BA024B410913D6D004A8A2A /* DirServicesUtils.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		6BA024D310913DDC004A8A2A /* DirServicesUtilsPriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 6BA024B510913D6D004A8A2A /* DirServicesUtilsPriv.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		6BA024D710913E6A004A8A2A /* DirServicesCustom.c in Sources */ = {isa = PBXBuildFile; fileRef = 6BA024AD10913D6D004A8A2A /* DirServicesCustom.c */; };
+		6BA024D810913E6A004A8A2A /* DirServices.c in Sources */ = {isa = PBXBuildFile; fileRef = 6BA024A910913D6D004A8A2A /* DirServices.c */; };
+		6BA024DA10913E6A004A8A2A /* DirServicesUtils.c in Sources */ = {isa = PBXBuildFile; fileRef = 6BA024B310913D6D004A8A2A /* DirServicesUtils.c */; };
+		6BA025CE10914AA2004A8A2A /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD37D0FD102A4B490029C36C /* CoreFoundation.framework */; };
+		6BB9049110E3CDB0004BCFDA /* DirServicesTypesPriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 6BB9049010E3CDB0004BCFDA /* DirServicesTypesPriv.h */; };
+		8DC2EF530486A6940098B216 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C1666FE841158C02AAC07 /* InfoPlist.strings */; };
+		FD075F261031EED90061953C /* CFODRecord.h in Headers */ = {isa = PBXBuildFile; fileRef = FD075F241031EED90061953C /* CFODRecord.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FD075F271031EED90061953C /* CFODRecord.c in Sources */ = {isa = PBXBuildFile; fileRef = FD075F251031EED90061953C /* CFODRecord.c */; };
+		FD075F6E103200EC0061953C /* CFODQuery.h in Headers */ = {isa = PBXBuildFile; fileRef = FD075F6C103200EC0061953C /* CFODQuery.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FD075F6F103200EC0061953C /* CFODQuery.c in Sources */ = {isa = PBXBuildFile; fileRef = FD075F6D103200EC0061953C /* CFODQuery.c */; };
+		FD07633010320B970061953C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0867D69BFE84028FC02AAC07 /* Foundation.framework */; };
+		FD07633110320BA10061953C /* CFOpenDirectory.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* CFOpenDirectory.framework */; };
+		FD07634D10320C050061953C /* OpenDirectory.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD075FDA103205D90061953C /* OpenDirectory.framework */; };
+		FD0763B81032102F0061953C /* OpenDirectory.h in Headers */ = {isa = PBXBuildFile; fileRef = FD0763B31032100F0061953C /* OpenDirectory.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FD076423103214570061953C /* CFOpenDirectory.h in Headers */ = {isa = PBXBuildFile; fileRef = FD076422103214570061953C /* CFOpenDirectory.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FD0764B910321CE00061953C /* OpenDirectory.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD075FDA103205D90061953C /* OpenDirectory.framework */; };
+		FD0764C410321CEB0061953C /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD37D0FD102A4B490029C36C /* CoreFoundation.framework */; };
+		FD076530103221870061953C /* constants.c in Sources */ = {isa = PBXBuildFile; fileRef = FD07652F103221870061953C /* constants.c */; };
+		FD0765D1103233EC0061953C /* CFODContext.h in Headers */ = {isa = PBXBuildFile; fileRef = FD0765CF103233EC0061953C /* CFODContext.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FD0765D2103233EC0061953C /* CFODContext.c in Sources */ = {isa = PBXBuildFile; fileRef = FD0765D0103233EC0061953C /* CFODContext.c */; };
+		FD21699A12761CB400A71DB3 /* rb.c in Sources */ = {isa = PBXBuildFile; fileRef = FD21699812761CB400A71DB3 /* rb.c */; };
+		FD21699B12761CB400A71DB3 /* rb.h in Headers */ = {isa = PBXBuildFile; fileRef = FD21699912761CB400A71DB3 /* rb.h */; };
+		FD37CFEC102A32740029C36C /* CFODSession.h in Headers */ = {isa = PBXBuildFile; fileRef = FD37CFEA102A32740029C36C /* CFODSession.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FD37CFED102A32740029C36C /* CFODSession.c in Sources */ = {isa = PBXBuildFile; fileRef = FD37CFEB102A32740029C36C /* CFODSession.c */; };
+		FD37D0FE102A4B490029C36C /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD37D0FD102A4B490029C36C /* CoreFoundation.framework */; };
+		FD37D1D8102A5C920029C36C /* CFOpenDirectoryPriv.h in Headers */ = {isa = PBXBuildFile; fileRef = FD37D1D7102A5C920029C36C /* CFOpenDirectoryPriv.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		FD37D230102BAB230029C36C /* test.m in Sources */ = {isa = PBXBuildFile; fileRef = FD37D1FE102BAACC0029C36C /* test.m */; };
+		FD37D2E2102CAD450029C36C /* transaction.h in Headers */ = {isa = PBXBuildFile; fileRef = FD37D2E0102CAD450029C36C /* transaction.h */; };
+		FD37D2E3102CAD450029C36C /* transaction.c in Sources */ = {isa = PBXBuildFile; fileRef = FD37D2E1102CAD450029C36C /* transaction.c */; };
+		FD37D3F6102CD8C30029C36C /* CFODNode.h in Headers */ = {isa = PBXBuildFile; fileRef = FD37D3F4102CD8C30029C36C /* CFODNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FD37D3F7102CD8C30029C36C /* CFODNode.c in Sources */ = {isa = PBXBuildFile; fileRef = FD37D3F5102CD8C30029C36C /* CFODNode.c */; };
+		FD41FDAA12B312300058BB2D /* odxpc.c in Sources */ = {isa = PBXBuildFile; fileRef = FD41FDA812B312300058BB2D /* odxpc.c */; };
+		FD41FDAB12B312300058BB2D /* odxpc.h in Headers */ = {isa = PBXBuildFile; fileRef = FD41FDA912B312300058BB2D /* odxpc.h */; };
+		FD536A05126D1EB80087B3A3 /* libCrashReporterClient.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FD536A04126D1EA80087B3A3 /* libCrashReporterClient.a */; };
+		FD59714E12A725CC00E0C496 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = FD59714C12A725CC00E0C496 /* Localizable.strings */; };
+		FD5B2FC4117E84220042D7FC /* CFODTrigger.c in Sources */ = {isa = PBXBuildFile; fileRef = FD5B2FC2117E84210042D7FC /* CFODTrigger.c */; };
+		FD5B2FC5117E84220042D7FC /* CFODTrigger.h in Headers */ = {isa = PBXBuildFile; fileRef = FD5B2FC3117E84220042D7FC /* CFODTrigger.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		FD5B35A0117FB42E0042D7FC /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD5B359B117FB4110042D7FC /* SystemConfiguration.framework */; };
+		FD6DE05C107AD636002C912D /* NSOpenDirectory.h in Headers */ = {isa = PBXBuildFile; fileRef = FD6DE04D107AD614002C912D /* NSOpenDirectory.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FD86B29D1030CD83005C866D /* errors.c in Sources */ = {isa = PBXBuildFile; fileRef = FD86B29B1030CD83005C866D /* errors.c */; };
+		FD86B4D71030F8F3005C866D /* TestApp.c in Sources */ = {isa = PBXBuildFile; fileRef = FD86B4CB1030F8DC005C866D /* TestApp.c */; };
+		FD86B4E11030F905005C866D /* TestApp.m in Sources */ = {isa = PBXBuildFile; fileRef = FD86B4CC1030F8DC005C866D /* TestApp.m */; };
+		FD897D501073D85F0005CA39 /* OpenDirectory.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD075FDA103205D90061953C /* OpenDirectory.framework */; };
+		FD897D5F1073D8600005CA39 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0867D69BFE84028FC02AAC07 /* Foundation.framework */; };
+		FD897E311073D8630005CA39 /* bridgetest.m in Sources */ = {isa = PBXBuildFile; fileRef = FD897D3C1073D8380005CA39 /* bridgetest.m */; };
+		FDCB0D7C126FC4FD00186E0D /* extauth.c in Sources */ = {isa = PBXBuildFile; fileRef = FDCB0D7A126FC4FD00186E0D /* extauth.c */; };
+		FDCB0D7D126FC4FD00186E0D /* extauth.h in Headers */ = {isa = PBXBuildFile; fileRef = FDCB0D7B126FC4FD00186E0D /* extauth.h */; };
+		FDCB0DC0126FC7B800186E0D /* record_internal.h in Headers */ = {isa = PBXBuildFile; fileRef = FDCB0DBF126FC7B800186E0D /* record_internal.h */; };
+		FDD6C04A1072BA96002E3BE8 /* ODNode.h in Headers */ = {isa = PBXBuildFile; fileRef = FDD6C0191072B83D002E3BE8 /* ODNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FDD6C04B1072BA9A002E3BE8 /* ODNode.m in Sources */ = {isa = PBXBuildFile; fileRef = FDD6C01A1072B83D002E3BE8 /* ODNode.m */; };
+		FDD6C0541072BACD002E3BE8 /* ODRecord.h in Headers */ = {isa = PBXBuildFile; fileRef = FDD6C0521072BACD002E3BE8 /* ODRecord.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FDD6C0551072BACD002E3BE8 /* ODRecord.m in Sources */ = {isa = PBXBuildFile; fileRef = FDD6C0531072BACD002E3BE8 /* ODRecord.m */; };
+		FDD6C05A1072BAE5002E3BE8 /* ODQuery.h in Headers */ = {isa = PBXBuildFile; fileRef = FDD6C0581072BAE5002E3BE8 /* ODQuery.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FDD6C05B1072BAE5002E3BE8 /* ODQuery.m in Sources */ = {isa = PBXBuildFile; fileRef = FDD6C0591072BAE5002E3BE8 /* ODQuery.m */; };
+		FDD6C05E1072BAED002E3BE8 /* ODContext.h in Headers */ = {isa = PBXBuildFile; fileRef = FDD6C05C1072BAED002E3BE8 /* ODContext.h */; settings = {ATTRIBUTES = (); }; };
+		FDD6C05F1072BAED002E3BE8 /* ODContext.m in Sources */ = {isa = PBXBuildFile; fileRef = FDD6C05D1072BAED002E3BE8 /* ODContext.m */; };
+		FDD6C1691072D57F002E3BE8 /* OpenDirectory.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD075FDA103205D90061953C /* OpenDirectory.framework */; };
+		FDD6C17A1072D58E002E3BE8 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0867D69BFE84028FC02AAC07 /* Foundation.framework */; };
+		FDDB91D310717E110019787B /* ODSession.h in Headers */ = {isa = PBXBuildFile; fileRef = FDDB91D110717E110019787B /* ODSession.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FDDB91D410717E110019787B /* ODSession.m in Sources */ = {isa = PBXBuildFile; fileRef = FDDB91D210717E110019787B /* ODSession.m */; };
+		FDDB934010718D9A0019787B /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0867D69BFE84028FC02AAC07 /* Foundation.framework */; };
+		FDDB937F10718F780019787B /* libobjc.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = FDDB937D10718F6D0019787B /* libobjc.dylib */; };
+		FDED97E01045D683001281D8 /* internal.h in Headers */ = {isa = PBXBuildFile; fileRef = FDED97DF1045D683001281D8 /* internal.h */; };
+		FDED98141045F209001281D8 /* format.h in Headers */ = {isa = PBXBuildFile; fileRef = FDED98121045F209001281D8 /* format.h */; };
+		FDED98151045F209001281D8 /* format.c in Sources */ = {isa = PBXBuildFile; fileRef = FDED98131045F209001281D8 /* format.c */; };
+		FDFC15B010570632000E4840 /* libodshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FDFC15651057060F000E4840 /* libodshared.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		6B2438D410A1FAD4005D708C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FD075FD9103205D90061953C;
+			remoteInfo = OpenDirectory;
+		};
+		6B2438D610A1FAD9005D708C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6BA024BC10913D7E004A8A2A;
+			remoteInfo = DirectoryService;
+		};
+		6B40A6811092975400636183 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6BA024BC10913D7E004A8A2A;
+			remoteInfo = DirectoryService;
+		};
+		6BCD3FD5109519BB002D5CC3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6BA024BC10913D7E004A8A2A;
+			remoteInfo = DirectoryService;
+		};
+		FD07600F1032067D0061953C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FD075FD9103205D90061953C;
+			remoteInfo = OpenDirectory;
+		};
+		FD07639F10320F890061953C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FD075FD9103205D90061953C;
+			remoteInfo = OpenDirectory;
+		};
+		FD0763A110320F8B0061953C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FD075FD9103205D90061953C;
+			remoteInfo = OpenDirectory;
+		};
+		FD10638D10336830009E1154 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FD075FD9103205D90061953C;
+			remoteInfo = OpenDirectory;
+		};
+		FD10638F10336832009E1154 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8DC2EF4F0486A6940098B216;
+			remoteInfo = CFOpenDirectory;
+		};
+		FD10639310336845009E1154 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FD86B4D11030F8ED005C866D;
+			remoteInfo = "TestApp-CF";
+		};
+		FD37D209102BAAF70029C36C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FD37D1F6102BAABB0029C36C;
+			remoteInfo = test;
+		};
+		FD37D20B102BAAF70029C36C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8DC2EF4F0486A6940098B216;
+			remoteInfo = OpenDirectory;
+		};
+		FD897E641073D9280005CA39 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FD075FD9103205D90061953C;
+			remoteInfo = OpenDirectory;
+		};
+		FDE1B624104862F800E4DFD9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FD075FD9103205D90061953C;
+			remoteInfo = OpenDirectory;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0867D69BFE84028FC02AAC07 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		089C1667FE841158C02AAC07 /* InfoPlist.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = Core/English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		6B24386410A1EF27005D708C /* NSOpenDirectoryPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NSOpenDirectoryPriv.h; path = Framework/NSOpenDirectoryPriv.h; sourceTree = "<group>"; };
+		6B40A1C010916F2700636183 /* OpenDirectoryPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OpenDirectoryPriv.h; path = Framework/OpenDirectoryPriv.h; sourceTree = "<group>"; };
+		6BA024A610913D6D004A8A2A /* DirectoryService.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = DirectoryService.exp; sourceTree = "<group>"; };
+		6BA024A710913D6D004A8A2A /* DirectoryService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DirectoryService.h; sourceTree = "<group>"; };
+		6BA024A810913D6D004A8A2A /* DirectoryServicePriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DirectoryServicePriv.h; sourceTree = "<group>"; };
+		6BA024A910913D6D004A8A2A /* DirServices.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = DirServices.c; sourceTree = "<group>"; };
+		6BA024AA10913D6D004A8A2A /* DirServices.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DirServices.h; sourceTree = "<group>"; };
+		6BA024AB10913D6D004A8A2A /* DirServicesConst.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DirServicesConst.h; sourceTree = "<group>"; };
+		6BA024AC10913D6D004A8A2A /* DirServicesConstPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DirServicesConstPriv.h; sourceTree = "<group>"; };
+		6BA024AD10913D6D004A8A2A /* DirServicesCustom.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = DirServicesCustom.c; sourceTree = "<group>"; };
+		6BA024AE10913D6D004A8A2A /* DirServicesCustom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DirServicesCustom.h; sourceTree = "<group>"; };
+		6BA024B010913D6D004A8A2A /* DirServicesPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DirServicesPriv.h; sourceTree = "<group>"; };
+		6BA024B110913D6D004A8A2A /* DirServicesTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DirServicesTypes.h; sourceTree = "<group>"; };
+		6BA024B310913D6D004A8A2A /* DirServicesUtils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = DirServicesUtils.c; sourceTree = "<group>"; };
+		6BA024B410913D6D004A8A2A /* DirServicesUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DirServicesUtils.h; sourceTree = "<group>"; };
+		6BA024B510913D6D004A8A2A /* DirServicesUtilsPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DirServicesUtilsPriv.h; sourceTree = "<group>"; };
+		6BA024BD10913D7E004A8A2A /* DirectoryService.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DirectoryService.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		6BA024BE10913D7E004A8A2A /* DirectoryService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "DirectoryService-Info.plist"; sourceTree = "<group>"; };
+		6BB9049010E3CDB0004BCFDA /* DirServicesTypesPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DirServicesTypesPriv.h; sourceTree = "<group>"; };
+		8DC2EF5A0486A6940098B216 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Core/Info.plist; sourceTree = "<group>"; };
+		8DC2EF5B0486A6940098B216 /* CFOpenDirectory.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = CFOpenDirectory.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FD075F241031EED90061953C /* CFODRecord.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CFODRecord.h; path = Core/CFODRecord.h; sourceTree = "<group>"; };
+		FD075F251031EED90061953C /* CFODRecord.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = CFODRecord.c; path = Core/CFODRecord.c; sourceTree = "<group>"; };
+		FD075F6C103200EC0061953C /* CFODQuery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CFODQuery.h; path = Core/CFODQuery.h; sourceTree = "<group>"; };
+		FD075F6D103200EC0061953C /* CFODQuery.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = CFODQuery.c; path = Core/CFODQuery.c; sourceTree = "<group>"; };
+		FD075FDA103205D90061953C /* OpenDirectory.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = OpenDirectory.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FD075FDB103205D90061953C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Framework/Info.plist; sourceTree = "<group>"; };
+		FD0763B31032100F0061953C /* OpenDirectory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OpenDirectory.h; path = Framework/OpenDirectory.h; sourceTree = "<group>"; };
+		FD076422103214570061953C /* CFOpenDirectory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CFOpenDirectory.h; path = Core/CFOpenDirectory.h; sourceTree = "<group>"; };
+		FD07652F103221870061953C /* constants.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = constants.c; path = Core/constants.c; sourceTree = "<group>"; };
+		FD0765CF103233EC0061953C /* CFODContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CFODContext.h; path = Core/CFODContext.h; sourceTree = "<group>"; };
+		FD0765D0103233EC0061953C /* CFODContext.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = CFODContext.c; path = Core/CFODContext.c; sourceTree = "<group>"; };
+		FD21699812761CB400A71DB3 /* rb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = rb.c; path = Core/rb.c; sourceTree = "<group>"; };
+		FD21699912761CB400A71DB3 /* rb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rb.h; path = Core/rb.h; sourceTree = "<group>"; };
+		FD37CFEA102A32740029C36C /* CFODSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CFODSession.h; path = Core/CFODSession.h; sourceTree = "<group>"; };
+		FD37CFEB102A32740029C36C /* CFODSession.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = CFODSession.c; path = Core/CFODSession.c; sourceTree = "<group>"; };
+		FD37D0FD102A4B490029C36C /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
+		FD37D1D7102A5C920029C36C /* CFOpenDirectoryPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CFOpenDirectoryPriv.h; path = Core/CFOpenDirectoryPriv.h; sourceTree = "<group>"; };
+		FD37D1F7102BAABB0029C36C /* test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test; sourceTree = BUILT_PRODUCTS_DIR; };
+		FD37D1FE102BAACC0029C36C /* test.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = test.m; path = Tests/test.m; sourceTree = "<group>"; };
+		FD37D2E0102CAD450029C36C /* transaction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = transaction.h; path = Core/transaction.h; sourceTree = "<group>"; };
+		FD37D2E1102CAD450029C36C /* transaction.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = transaction.c; path = Core/transaction.c; sourceTree = "<group>"; };
+		FD37D3F4102CD8C30029C36C /* CFODNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CFODNode.h; path = Core/CFODNode.h; sourceTree = "<group>"; };
+		FD37D3F5102CD8C30029C36C /* CFODNode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = CFODNode.c; path = Core/CFODNode.c; sourceTree = "<group>"; };
+		FD41FDA812B312300058BB2D /* odxpc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = odxpc.c; path = Core/odxpc.c; sourceTree = "<group>"; };
+		FD41FDA912B312300058BB2D /* odxpc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = odxpc.h; path = Core/odxpc.h; sourceTree = "<group>"; };
+		FD536A04126D1EA80087B3A3 /* libCrashReporterClient.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libCrashReporterClient.a; path = /usr/local/lib/libCrashReporterClient.a; sourceTree = "<absolute>"; };
+		FD59714D12A725CC00E0C496 /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = English; path = Core/English.lproj/Localizable.strings; sourceTree = "<group>"; };
+		FD5B2FC2117E84210042D7FC /* CFODTrigger.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = CFODTrigger.c; path = Core/CFODTrigger.c; sourceTree = "<group>"; };
+		FD5B2FC3117E84220042D7FC /* CFODTrigger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CFODTrigger.h; path = Core/CFODTrigger.h; sourceTree = "<group>"; };
+		FD5B359B117FB4110042D7FC /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = /System/Library/Frameworks/SystemConfiguration.framework; sourceTree = "<absolute>"; };
+		FD6DE04D107AD614002C912D /* NSOpenDirectory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NSOpenDirectory.h; path = Framework/NSOpenDirectory.h; sourceTree = "<group>"; };
+		FD86B29B1030CD83005C866D /* errors.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = errors.c; path = Core/errors.c; sourceTree = "<group>"; };
+		FD86B4CB1030F8DC005C866D /* TestApp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = TestApp.c; path = Tests/TestApp.c; sourceTree = "<group>"; };
+		FD86B4CC1030F8DC005C866D /* TestApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestApp.m; path = Tests/TestApp.m; sourceTree = "<group>"; };
+		FD86B4D21030F8ED005C866D /* TestApp-CF */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "TestApp-CF"; sourceTree = BUILT_PRODUCTS_DIR; };
+		FD86B4DC1030F8FF005C866D /* TestApp-NS */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "TestApp-NS"; sourceTree = BUILT_PRODUCTS_DIR; };
+		FD897D3C1073D8380005CA39 /* bridgetest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = bridgetest.m; path = Tests/bridgetest.m; sourceTree = "<group>"; };
+		FD897D4B1073D8550005CA39 /* bridgetest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = bridgetest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FDCB0D7A126FC4FD00186E0D /* extauth.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = extauth.c; path = Core/extauth.c; sourceTree = "<group>"; };
+		FDCB0D7B126FC4FD00186E0D /* extauth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = extauth.h; path = Core/extauth.h; sourceTree = "<group>"; };
+		FDCB0DBF126FC7B800186E0D /* record_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = record_internal.h; path = Core/record_internal.h; sourceTree = "<group>"; };
+		FDD6C0191072B83D002E3BE8 /* ODNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ODNode.h; path = Framework/ODNode.h; sourceTree = "<group>"; };
+		FDD6C01A1072B83D002E3BE8 /* ODNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ODNode.m; path = Framework/ODNode.m; sourceTree = "<group>"; };
+		FDD6C0521072BACD002E3BE8 /* ODRecord.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ODRecord.h; path = Framework/ODRecord.h; sourceTree = "<group>"; };
+		FDD6C0531072BACD002E3BE8 /* ODRecord.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ODRecord.m; path = Framework/ODRecord.m; sourceTree = "<group>"; };
+		FDD6C0581072BAE5002E3BE8 /* ODQuery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ODQuery.h; path = Framework/ODQuery.h; sourceTree = "<group>"; };
+		FDD6C0591072BAE5002E3BE8 /* ODQuery.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ODQuery.m; path = Framework/ODQuery.m; sourceTree = "<group>"; };
+		FDD6C05C1072BAED002E3BE8 /* ODContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ODContext.h; path = Framework/ODContext.h; sourceTree = "<group>"; };
+		FDD6C05D1072BAED002E3BE8 /* ODContext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ODContext.m; path = Framework/ODContext.m; sourceTree = "<group>"; };
+		FDDB91D110717E110019787B /* ODSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ODSession.h; path = Framework/ODSession.h; sourceTree = "<group>"; };
+		FDDB91D210717E110019787B /* ODSession.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ODSession.m; path = Framework/ODSession.m; sourceTree = "<group>"; };
+		FDDB937D10718F6D0019787B /* libobjc.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libobjc.dylib; path = /usr/lib/libobjc.dylib; sourceTree = "<absolute>"; };
+		FDED97DF1045D683001281D8 /* internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = internal.h; path = Core/internal.h; sourceTree = "<group>"; };
+		FDED98121045F209001281D8 /* format.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = format.h; path = Core/format.h; sourceTree = "<group>"; };
+		FDED98131045F209001281D8 /* format.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = format.c; path = Core/format.c; sourceTree = "<group>"; };
+		FDFC15651057060F000E4840 /* libodshared.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libodshared.a; path = /usr/local/lib/opendirectory/libodshared.a; sourceTree = "<absolute>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		6BA024BB10913D7E004A8A2A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6B2438F510A1FDA7005D708C /* CFOpenDirectory.framework in Frameworks */,
+				6BA025CE10914AA2004A8A2A /* CoreFoundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8DC2EF560486A6940098B216 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FD5B35A0117FB42E0042D7FC /* SystemConfiguration.framework in Frameworks */,
+				FD37D0FE102A4B490029C36C /* CoreFoundation.framework in Frameworks */,
+				FDDB937F10718F780019787B /* libobjc.dylib in Frameworks */,
+				FDFC15B010570632000E4840 /* libodshared.a in Frameworks */,
+				FD536A05126D1EB80087B3A3 /* libCrashReporterClient.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FD075FD8103205D90061953C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FD07633010320B970061953C /* Foundation.framework in Frameworks */,
+				FD07633110320BA10061953C /* CFOpenDirectory.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FD37D1F5102BAABB0029C36C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FD07634D10320C050061953C /* OpenDirectory.framework in Frameworks */,
+				FDDB934010718D9A0019787B /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FD86B4D01030F8ED005C866D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FD0764C410321CEB0061953C /* CoreFoundation.framework in Frameworks */,
+				FD0764B910321CE00061953C /* OpenDirectory.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FD86B4DA1030F8FF005C866D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FDD6C17A1072D58E002E3BE8 /* Foundation.framework in Frameworks */,
+				FDD6C1691072D57F002E3BE8 /* OpenDirectory.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FD897D491073D8550005CA39 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FD897D5F1073D8600005CA39 /* Foundation.framework in Frameworks */,
+				FD897D501073D85F0005CA39 /* OpenDirectory.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		034768DFFF38A50411DB9C8B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8DC2EF5B0486A6940098B216 /* CFOpenDirectory.framework */,
+				FD37D1F7102BAABB0029C36C /* test */,
+				FD86B4D21030F8ED005C866D /* TestApp-CF */,
+				FD86B4DC1030F8FF005C866D /* TestApp-NS */,
+				FD075FDA103205D90061953C /* OpenDirectory.framework */,
+				FD897D4B1073D8550005CA39 /* bridgetest */,
+				6BA024BD10913D7E004A8A2A /* DirectoryService.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0867D691FE84028FC02AAC07 /* OpenDirectory */ = {
+			isa = PBXGroup;
+			children = (
+				08FB77AEFE84172EC02AAC07 /* Core */,
+				FD07609710320AB10061953C /* Framework */,
+				6BA0249D10913D2F004A8A2A /* DirectoryService */,
+				FD37D48C102CE6CE0029C36C /* Tests */,
+				0867D69AFE84028FC02AAC07 /* External Frameworks and Libraries */,
+				034768DFFF38A50411DB9C8B /* Products */,
+			);
+			name = OpenDirectory;
+			sourceTree = "<group>";
+			usesTabs = 1;
+		};
+		0867D69AFE84028FC02AAC07 /* External Frameworks and Libraries */ = {
+			isa = PBXGroup;
+			children = (
+				FDFC15651057060F000E4840 /* libodshared.a */,
+				FDDB937D10718F6D0019787B /* libobjc.dylib */,
+				FD5B359B117FB4110042D7FC /* SystemConfiguration.framework */,
+				0867D69BFE84028FC02AAC07 /* Foundation.framework */,
+				FD37D0FD102A4B490029C36C /* CoreFoundation.framework */,
+				FD536A04126D1EA80087B3A3 /* libCrashReporterClient.a */,
+			);
+			name = "External Frameworks and Libraries";
+			sourceTree = "<group>";
+		};
+		089C1665FE841158C02AAC07 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				FD59714C12A725CC00E0C496 /* Localizable.strings */,
+				8DC2EF5A0486A6940098B216 /* Info.plist */,
+				089C1666FE841158C02AAC07 /* InfoPlist.strings */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		08FB77AEFE84172EC02AAC07 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				FD07652F103221870061953C /* constants.c */,
+				FDD6C27D1072D701002E3BE8 /* Headers */,
+				FDD6C2721072D6A8002E3BE8 /* Classes */,
+				FDD6C28A1072D7B2002E3BE8 /* Internals */,
+				089C1665FE841158C02AAC07 /* Resources */,
+			);
+			name = Core;
+			sourceTree = "<group>";
+		};
+		6BA0249D10913D2F004A8A2A /* DirectoryService */ = {
+			isa = PBXGroup;
+			children = (
+				6BA024D410913E29004A8A2A /* Headers */,
+				6BA024D510913E3F004A8A2A /* Core */,
+				6BA024D610913E56004A8A2A /* Resources */,
+			);
+			path = DirectoryService;
+			sourceTree = "<group>";
+		};
+		6BA024D410913E29004A8A2A /* Headers */ = {
+			isa = PBXGroup;
+			children = (
+				6BA024A710913D6D004A8A2A /* DirectoryService.h */,
+				6BA024A810913D6D004A8A2A /* DirectoryServicePriv.h */,
+				6BA024AA10913D6D004A8A2A /* DirServices.h */,
+				6BA024AB10913D6D004A8A2A /* DirServicesConst.h */,
+				6BA024AC10913D6D004A8A2A /* DirServicesConstPriv.h */,
+				6BA024AE10913D6D004A8A2A /* DirServicesCustom.h */,
+				6BA024B010913D6D004A8A2A /* DirServicesPriv.h */,
+				6BA024B110913D6D004A8A2A /* DirServicesTypes.h */,
+				6BB9049010E3CDB0004BCFDA /* DirServicesTypesPriv.h */,
+				6BA024B410913D6D004A8A2A /* DirServicesUtils.h */,
+				6BA024B510913D6D004A8A2A /* DirServicesUtilsPriv.h */,
+			);
+			name = Headers;
+			sourceTree = "<group>";
+		};
+		6BA024D510913E3F004A8A2A /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				6BA024A910913D6D004A8A2A /* DirServices.c */,
+				6BA024AD10913D6D004A8A2A /* DirServicesCustom.c */,
+				6BA024B310913D6D004A8A2A /* DirServicesUtils.c */,
+			);
+			name = Core;
+			sourceTree = "<group>";
+		};
+		6BA024D610913E56004A8A2A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				6BA024A610913D6D004A8A2A /* DirectoryService.exp */,
+				6BA024BE10913D7E004A8A2A /* DirectoryService-Info.plist */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		FD07609710320AB10061953C /* Framework */ = {
+			isa = PBXGroup;
+			children = (
+				FDD6C2871072D795002E3BE8 /* Headers */,
+				FDD6C2861072D786002E3BE8 /* Classes */,
+				FD07637E10320E650061953C /* Resources */,
+			);
+			name = Framework;
+			sourceTree = "<group>";
+		};
+		FD07637E10320E650061953C /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				FD075FDB103205D90061953C /* Info.plist */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		FD37D48C102CE6CE0029C36C /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				FD37D1FE102BAACC0029C36C /* test.m */,
+				FD86B4CB1030F8DC005C866D /* TestApp.c */,
+				FD86B4CC1030F8DC005C866D /* TestApp.m */,
+				FD897D3C1073D8380005CA39 /* bridgetest.m */,
+			);
+			name = Tests;
+			sourceTree = "<group>";
+		};
+		FDD6C2721072D6A8002E3BE8 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				FD37CFEA102A32740029C36C /* CFODSession.h */,
+				FD37CFEB102A32740029C36C /* CFODSession.c */,
+				FD37D3F4102CD8C30029C36C /* CFODNode.h */,
+				FD37D3F5102CD8C30029C36C /* CFODNode.c */,
+				FD075F241031EED90061953C /* CFODRecord.h */,
+				FD075F251031EED90061953C /* CFODRecord.c */,
+				FD075F6C103200EC0061953C /* CFODQuery.h */,
+				FD075F6D103200EC0061953C /* CFODQuery.c */,
+				FD0765CF103233EC0061953C /* CFODContext.h */,
+				FD0765D0103233EC0061953C /* CFODContext.c */,
+				FD5B2FC3117E84220042D7FC /* CFODTrigger.h */,
+				FD5B2FC2117E84210042D7FC /* CFODTrigger.c */,
+			);
+			name = Classes;
+			sourceTree = "<group>";
+		};
+		FDD6C27D1072D701002E3BE8 /* Headers */ = {
+			isa = PBXGroup;
+			children = (
+				FD076422103214570061953C /* CFOpenDirectory.h */,
+				FD37D1D7102A5C920029C36C /* CFOpenDirectoryPriv.h */,
+			);
+			name = Headers;
+			sourceTree = "<group>";
+		};
+		FDD6C2861072D786002E3BE8 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				FDDB91D110717E110019787B /* ODSession.h */,
+				FDDB91D210717E110019787B /* ODSession.m */,
+				FDD6C0191072B83D002E3BE8 /* ODNode.h */,
+				FDD6C01A1072B83D002E3BE8 /* ODNode.m */,
+				FDD6C0521072BACD002E3BE8 /* ODRecord.h */,
+				FDD6C0531072BACD002E3BE8 /* ODRecord.m */,
+				FDD6C0581072BAE5002E3BE8 /* ODQuery.h */,
+				FDD6C0591072BAE5002E3BE8 /* ODQuery.m */,
+				FDD6C05C1072BAED002E3BE8 /* ODContext.h */,
+				FDD6C05D1072BAED002E3BE8 /* ODContext.m */,
+			);
+			name = Classes;
+			sourceTree = "<group>";
+		};
+		FDD6C2871072D795002E3BE8 /* Headers */ = {
+			isa = PBXGroup;
+			children = (
+				6B40A1C010916F2700636183 /* OpenDirectoryPriv.h */,
+				FD0763B31032100F0061953C /* OpenDirectory.h */,
+				FD6DE04D107AD614002C912D /* NSOpenDirectory.h */,
+				6B24386410A1EF27005D708C /* NSOpenDirectoryPriv.h */,
+			);
+			name = Headers;
+			sourceTree = "<group>";
+		};
+		FDD6C28A1072D7B2002E3BE8 /* Internals */ = {
+			isa = PBXGroup;
+			children = (
+				FD41FDA812B312300058BB2D /* odxpc.c */,
+				FD41FDA912B312300058BB2D /* odxpc.h */,
+				FDCB0D7A126FC4FD00186E0D /* extauth.c */,
+				FDCB0D7B126FC4FD00186E0D /* extauth.h */,
+				FD21699812761CB400A71DB3 /* rb.c */,
+				FD21699912761CB400A71DB3 /* rb.h */,
+				FD37D2E0102CAD450029C36C /* transaction.h */,
+				FD37D2E1102CAD450029C36C /* transaction.c */,
+				FDED97DF1045D683001281D8 /* internal.h */,
+				FD86B29B1030CD83005C866D /* errors.c */,
+				FDED98121045F209001281D8 /* format.h */,
+				FDED98131045F209001281D8 /* format.c */,
+				FDCB0DBF126FC7B800186E0D /* record_internal.h */,
+			);
+			name = Internals;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		6BA024B810913D7E004A8A2A /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6BA024C910913DDC004A8A2A /* DirectoryService.h in Headers */,
+				6BA024CA10913DDC004A8A2A /* DirectoryServicePriv.h in Headers */,
+				6BA024CB10913DDC004A8A2A /* DirServices.h in Headers */,
+				6BA024CC10913DDC004A8A2A /* DirServicesConst.h in Headers */,
+				6BA024CD10913DDC004A8A2A /* DirServicesConstPriv.h in Headers */,
+				6BA024CE10913DDC004A8A2A /* DirServicesCustom.h in Headers */,
+				6BA024CF10913DDC004A8A2A /* DirServicesPriv.h in Headers */,
+				6BA024D010913DDC004A8A2A /* DirServicesTypes.h in Headers */,
+				6BA024D210913DDC004A8A2A /* DirServicesUtils.h in Headers */,
+				6BA024D310913DDC004A8A2A /* DirServicesUtilsPriv.h in Headers */,
+				6BB9049110E3CDB0004BCFDA /* DirServicesTypesPriv.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8DC2EF500486A6940098B216 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FD37CFEC102A32740029C36C /* CFODSession.h in Headers */,
+				FD37D1D8102A5C920029C36C /* CFOpenDirectoryPriv.h in Headers */,
+				FD37D2E2102CAD450029C36C /* transaction.h in Headers */,
+				FD37D3F6102CD8C30029C36C /* CFODNode.h in Headers */,
+				FD075F261031EED90061953C /* CFODRecord.h in Headers */,
+				FD075F6E103200EC0061953C /* CFODQuery.h in Headers */,
+				FD076423103214570061953C /* CFOpenDirectory.h in Headers */,
+				FD0765D1103233EC0061953C /* CFODContext.h in Headers */,
+				FDED97E01045D683001281D8 /* internal.h in Headers */,
+				FDED98141045F209001281D8 /* format.h in Headers */,
+				FD5B2FC5117E84220042D7FC /* CFODTrigger.h in Headers */,
+				FDCB0D7D126FC4FD00186E0D /* extauth.h in Headers */,
+				FDCB0DC0126FC7B800186E0D /* record_internal.h in Headers */,
+				FD21699B12761CB400A71DB3 /* rb.h in Headers */,
+				FD41FDAB12B312300058BB2D /* odxpc.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FD075FD5103205D90061953C /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FD6DE05C107AD636002C912D /* NSOpenDirectory.h in Headers */,
+				FD0763B81032102F0061953C /* OpenDirectory.h in Headers */,
+				FDDB91D310717E110019787B /* ODSession.h in Headers */,
+				FDD6C04A1072BA96002E3BE8 /* ODNode.h in Headers */,
+				FDD6C0541072BACD002E3BE8 /* ODRecord.h in Headers */,
+				FDD6C05A1072BAE5002E3BE8 /* ODQuery.h in Headers */,
+				FDD6C05E1072BAED002E3BE8 /* ODContext.h in Headers */,
+				6B40A1C110916F2700636183 /* OpenDirectoryPriv.h in Headers */,
+				6B24386510A1EF27005D708C /* NSOpenDirectoryPriv.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		6BA024BC10913D7E004A8A2A /* DirectoryService */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6BA024C010913D7F004A8A2A /* Build configuration list for PBXNativeTarget "DirectoryService" */;
+			buildPhases = (
+				6BA024B810913D7E004A8A2A /* Headers */,
+				6BA024B910913D7E004A8A2A /* Resources */,
+				6BA024BA10913D7E004A8A2A /* Sources */,
+				6BA024BB10913D7E004A8A2A /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DirectoryService;
+			productName = DirectoryService;
+			productReference = 6BA024BD10913D7E004A8A2A /* DirectoryService.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		8DC2EF4F0486A6940098B216 /* CFOpenDirectory */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1DEB91AD08733DA50010E9CD /* Build configuration list for PBXNativeTarget "CFOpenDirectory" */;
+			buildPhases = (
+				8DC2EF500486A6940098B216 /* Headers */,
+				FDE153EE1267DC1C0019BE25 /* Copy odconstants(_priv).h */,
+				8DC2EF520486A6940098B216 /* Resources */,
+				8DC2EF540486A6940098B216 /* Sources */,
+				8DC2EF560486A6940098B216 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CFOpenDirectory;
+			productInstallPath = "$(HOME)/Library/Frameworks";
+			productName = OpenDirectory;
+			productReference = 8DC2EF5B0486A6940098B216 /* CFOpenDirectory.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		FD075FD9103205D90061953C /* OpenDirectory */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FD075FDD103205DA0061953C /* Build configuration list for PBXNativeTarget "OpenDirectory" */;
+			buildPhases = (
+				FD075FD5103205D90061953C /* Headers */,
+				FD075FD6103205D90061953C /* Resources */,
+				FD075FD7103205D90061953C /* Sources */,
+				FD075FD8103205D90061953C /* Frameworks */,
+				FD5CBAEC10A8D33D008370D2 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = OpenDirectory;
+			productName = OpenDirectory;
+			productReference = FD075FDA103205D90061953C /* OpenDirectory.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		FD37D1F6102BAABB0029C36C /* test */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FD37D200102BAACC0029C36C /* Build configuration list for PBXNativeTarget "test" */;
+			buildPhases = (
+				FD37D1F4102BAABB0029C36C /* Sources */,
+				FD37D1F5102BAABB0029C36C /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FDE1B625104862F800E4DFD9 /* PBXTargetDependency */,
+			);
+			name = test;
+			productName = test;
+			productReference = FD37D1F7102BAABB0029C36C /* test */;
+			productType = "com.apple.product-type.tool";
+		};
+		FD86B4D11030F8ED005C866D /* TestApp-CF */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FD86B4F11030F926005C866D /* Build configuration list for PBXNativeTarget "TestApp-CF" */;
+			buildPhases = (
+				FD86B4CF1030F8ED005C866D /* Sources */,
+				FD86B4D01030F8ED005C866D /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FD0763A010320F890061953C /* PBXTargetDependency */,
+			);
+			name = "TestApp-CF";
+			productName = "TestApp-CF";
+			productReference = FD86B4D21030F8ED005C866D /* TestApp-CF */;
+			productType = "com.apple.product-type.tool";
+		};
+		FD86B4DB1030F8FF005C866D /* TestApp-NS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FD86B4F21030F926005C866D /* Build configuration list for PBXNativeTarget "TestApp-NS" */;
+			buildPhases = (
+				FD86B4D91030F8FF005C866D /* Sources */,
+				FD86B4DA1030F8FF005C866D /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FD0763A210320F8B0061953C /* PBXTargetDependency */,
+			);
+			name = "TestApp-NS";
+			productName = "TestApp-NS";
+			productReference = FD86B4DC1030F8FF005C866D /* TestApp-NS */;
+			productType = "com.apple.product-type.tool";
+		};
+		FD897D4A1073D8550005CA39 /* bridgetest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FD897E401073D8660005CA39 /* Build configuration list for PBXNativeTarget "bridgetest" */;
+			buildPhases = (
+				FD897D481073D8550005CA39 /* Sources */,
+				FD897D491073D8550005CA39 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FD897E651073D9280005CA39 /* PBXTargetDependency */,
+			);
+			name = bridgetest;
+			productName = bridgetest;
+			productReference = FD897D4B1073D8550005CA39 /* bridgetest */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0867D690FE84028FC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				ORGANIZATIONNAME = Apple;
+			};
+			buildConfigurationList = 1DEB91B108733DA50010E9CD /* Build configuration list for PBXProject "OpenDirectory" */;
+			compatibilityVersion = "Xcode 3.1";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 0867D691FE84028FC02AAC07 /* OpenDirectory */;
+			productRefGroup = 034768DFFF38A50411DB9C8B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				FD10638B10336827009E1154 /* Root */,
+				6B2438D110A1FAC2005D708C /* Default */,
+				8DC2EF4F0486A6940098B216 /* CFOpenDirectory */,
+				FD075FD9103205D90061953C /* OpenDirectory */,
+				6BA024BC10913D7E004A8A2A /* DirectoryService */,
+				FD37D207102BAAF20029C36C /* All */,
+				FD37D1F6102BAABB0029C36C /* test */,
+				FD86B4D11030F8ED005C866D /* TestApp-CF */,
+				FD86B4DB1030F8FF005C866D /* TestApp-NS */,
+				FD897D4A1073D8550005CA39 /* bridgetest */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		6BA024B910913D7E004A8A2A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8DC2EF520486A6940098B216 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8DC2EF530486A6940098B216 /* InfoPlist.strings in Resources */,
+				FD59714E12A725CC00E0C496 /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FD075FD6103205D90061953C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		FD5CBAEC10A8D33D008370D2 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 8;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+			shellPath = /bin/sh;
+			shellScript = "ln -s Versions/Current/Frameworks ${DSTROOT}/System/Library/Frameworks/OpenDirectory.framework/Frameworks";
+			showEnvVarsInLog = 0;
+		};
+		FDE153EE1267DC1C0019BE25 /* Copy odconstants(_priv).h */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy odconstants(_priv).h";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -ex\ncp /usr/local/include/opendirectory/odconstants.h ${BUILT_PRODUCTS_DIR}/${PUBLIC_HEADERS_FOLDER_PATH}/CFOpenDirectoryConstants.h\ncp /usr/local/include/opendirectory/odconstants_priv.h ${BUILT_PRODUCTS_DIR}/${PRIVATE_HEADERS_FOLDER_PATH}/CFOpenDirectoryConstantsPriv.h";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		6BA024BA10913D7E004A8A2A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6BA024D710913E6A004A8A2A /* DirServicesCustom.c in Sources */,
+				6BA024D810913E6A004A8A2A /* DirServices.c in Sources */,
+				6BA024DA10913E6A004A8A2A /* DirServicesUtils.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8DC2EF540486A6940098B216 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FD37D2E3102CAD450029C36C /* transaction.c in Sources */,
+				FD86B29D1030CD83005C866D /* errors.c in Sources */,
+				FD37D3F7102CD8C30029C36C /* CFODNode.c in Sources */,
+				FD075F271031EED90061953C /* CFODRecord.c in Sources */,
+				FD37CFED102A32740029C36C /* CFODSession.c in Sources */,
+				FD075F6F103200EC0061953C /* CFODQuery.c in Sources */,
+				FD076530103221870061953C /* constants.c in Sources */,
+				FD0765D2103233EC0061953C /* CFODContext.c in Sources */,
+				FDED98151045F209001281D8 /* format.c in Sources */,
+				FD5B2FC4117E84220042D7FC /* CFODTrigger.c in Sources */,
+				FDCB0D7C126FC4FD00186E0D /* extauth.c in Sources */,
+				FD21699A12761CB400A71DB3 /* rb.c in Sources */,
+				FD41FDAA12B312300058BB2D /* odxpc.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FD075FD7103205D90061953C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FDDB91D410717E110019787B /* ODSession.m in Sources */,
+				FDD6C04B1072BA9A002E3BE8 /* ODNode.m in Sources */,
+				FDD6C0551072BACD002E3BE8 /* ODRecord.m in Sources */,
+				FDD6C05B1072BAE5002E3BE8 /* ODQuery.m in Sources */,
+				FDD6C05F1072BAED002E3BE8 /* ODContext.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FD37D1F4102BAABB0029C36C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FD37D230102BAB230029C36C /* test.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FD86B4CF1030F8ED005C866D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FD86B4D71030F8F3005C866D /* TestApp.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FD86B4D91030F8FF005C866D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FD86B4E11030F905005C866D /* TestApp.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FD897D481073D8550005CA39 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FD897E311073D8630005CA39 /* bridgetest.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		6B2438D510A1FAD4005D708C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FD075FD9103205D90061953C /* OpenDirectory */;
+			targetProxy = 6B2438D410A1FAD4005D708C /* PBXContainerItemProxy */;
+		};
+		6B2438D710A1FAD9005D708C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6BA024BC10913D7E004A8A2A /* DirectoryService */;
+			targetProxy = 6B2438D610A1FAD9005D708C /* PBXContainerItemProxy */;
+		};
+		6B40A6821092975400636183 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6BA024BC10913D7E004A8A2A /* DirectoryService */;
+			targetProxy = 6B40A6811092975400636183 /* PBXContainerItemProxy */;
+		};
+		6BCD3FD6109519BB002D5CC3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6BA024BC10913D7E004A8A2A /* DirectoryService */;
+			targetProxy = 6BCD3FD5109519BB002D5CC3 /* PBXContainerItemProxy */;
+		};
+		FD0760101032067D0061953C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FD075FD9103205D90061953C /* OpenDirectory */;
+			targetProxy = FD07600F1032067D0061953C /* PBXContainerItemProxy */;
+		};
+		FD0763A010320F890061953C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FD075FD9103205D90061953C /* OpenDirectory */;
+			targetProxy = FD07639F10320F890061953C /* PBXContainerItemProxy */;
+		};
+		FD0763A210320F8B0061953C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FD075FD9103205D90061953C /* OpenDirectory */;
+			targetProxy = FD0763A110320F8B0061953C /* PBXContainerItemProxy */;
+		};
+		FD10638E10336830009E1154 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FD075FD9103205D90061953C /* OpenDirectory */;
+			targetProxy = FD10638D10336830009E1154 /* PBXContainerItemProxy */;
+		};
+		FD10639010336832009E1154 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8DC2EF4F0486A6940098B216 /* CFOpenDirectory */;
+			targetProxy = FD10638F10336832009E1154 /* PBXContainerItemProxy */;
+		};
+		FD10639410336845009E1154 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FD86B4D11030F8ED005C866D /* TestApp-CF */;
+			targetProxy = FD10639310336845009E1154 /* PBXContainerItemProxy */;
+		};
+		FD37D20A102BAAF70029C36C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FD37D1F6102BAABB0029C36C /* test */;
+			targetProxy = FD37D209102BAAF70029C36C /* PBXContainerItemProxy */;
+		};
+		FD37D20C102BAAF70029C36C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8DC2EF4F0486A6940098B216 /* CFOpenDirectory */;
+			targetProxy = FD37D20B102BAAF70029C36C /* PBXContainerItemProxy */;
+		};
+		FD897E651073D9280005CA39 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FD075FD9103205D90061953C /* OpenDirectory */;
+			targetProxy = FD897E641073D9280005CA39 /* PBXContainerItemProxy */;
+		};
+		FDE1B625104862F800E4DFD9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FD075FD9103205D90061953C /* OpenDirectory */;
+			targetProxy = FDE1B624104862F800E4DFD9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		089C1666FE841158C02AAC07 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				089C1667FE841158C02AAC07 /* InfoPlist.strings */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		FD59714C12A725CC00E0C496 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				FD59714D12A725CC00E0C496 /* English */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		1DEB91AF08733DA50010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXPORTED_SYMBOLS_FILE = CFOpenDirectory.exp;
+				FRAMEWORK_VERSION = A;
+				INFOPLIST_FILE = Core/Info.plist;
+				INSTALL_PATH = /System/Library/Frameworks/OpenDirectory.framework/Versions/A/Frameworks;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/lib/opendirectory,
+				);
+				PRODUCT_NAME = CFOpenDirectory;
+				WRAPPER_EXTENSION = framework;
+			};
+			name = Release;
+		};
+		1DEB91B308733DA50010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = YES;
+				CURRENT_PROJECT_VERSION = "$(RC_ProjectSourceVersion)";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"_FORTIFY_SOURCE=2",
+					DISPATCH_NO_LEGACY,
+				);
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				RUN_CLANG_STATIC_ANALYZER = YES;
+				VALID_ARCHS = "armv7 armv6 i386 x86_64";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = __;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		6B2438D210A1FAC3005D708C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = Default;
+			};
+			name = Debug;
+		};
+		6B2438D310A1FAC3005D708C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = Default;
+			};
+			name = Release;
+		};
+		6B40A4B51092646600636183 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CODE_SIGN_IDENTITY = "-";
+				CURRENT_PROJECT_VERSION = "$(RC_ProjectSourceVersion)";
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"_FORTIFY_SOURCE=2",
+					DISPATCH_NO_LEGACY,
+				);
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				RUN_CLANG_STATIC_ANALYZER = YES;
+				VALID_ARCHS = "armv7 armv6 i386 x86_64";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = __;
+			};
+			name = Debug;
+		};
+		6B40A4B61092646600636183 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = Root;
+			};
+			name = Debug;
+		};
+		6B40A4B71092646600636183 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXPORTED_SYMBOLS_FILE = OpenDirectory.exp;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SYSTEM_LIBRARY_DIR)/Frameworks/OpenDirectory.framework/Versions/A/Frameworks",
+				);
+				FRAMEWORK_VERSION = A;
+				GCC_ENABLE_OBJC_GC = supported;
+				INFOPLIST_FILE = Framework/Info.plist;
+				INSTALLHDRS_SCRIPT_PHASE = YES;
+				INSTALL_PATH = /System/Library/Frameworks;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-sub_umbrella",
+					CFOpenDirectory,
+					"-Xlinker",
+					"-objc_gc_compaction",
+				);
+				PRODUCT_NAME = OpenDirectory;
+			};
+			name = Debug;
+		};
+		6B40A4B81092646600636183 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXPORTED_SYMBOLS_FILE = CFOpenDirectory.exp;
+				FRAMEWORK_VERSION = A;
+				INFOPLIST_FILE = Core/Info.plist;
+				INSTALL_PATH = /System/Library/Frameworks/OpenDirectory.framework/Versions/A/Frameworks;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/lib/opendirectory,
+				);
+				PRODUCT_NAME = CFOpenDirectory;
+				WRAPPER_EXTENSION = framework;
+			};
+			name = Debug;
+		};
+		6B40A4B91092646600636183 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks",
+					"$(SYSTEM_LIBRARY_DIR)/Frameworks/OpenDirectory.framework/Versions/A/Frameworks",
+				);
+				FRAMEWORK_VERSION = A;
+				INFOPLIST_FILE = "DirectoryService/DirectoryService-Info.plist";
+				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Frameworks";
+				OTHER_LDFLAGS = (
+					"-framework",
+					CFOpenDirectory,
+				);
+				PRODUCT_NAME = DirectoryService;
+			};
+			name = Debug;
+		};
+		6B40A4BA1092646600636183 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Debug;
+		};
+		6B40A4BB1092646600636183 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = test;
+			};
+			name = Debug;
+		};
+		6B40A4BC1092646600636183 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_SHADOW = NO;
+				GCC_WARN_SIGN_COMPARE = NO;
+				GCC_WARN_UNUSED_VARIABLE = NO;
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = "TestApp-CF";
+			};
+			name = Debug;
+		};
+		6B40A4BD1092646600636183 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = "TestApp-NS";
+			};
+			name = Debug;
+		};
+		6B40A4BE1092646600636183 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = bridgetest;
+			};
+			name = Debug;
+		};
+		6BA024BF10913D7F004A8A2A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks",
+					"$(SYSTEM_LIBRARY_DIR)/Frameworks/OpenDirectory.framework/Versions/A/Frameworks",
+				);
+				FRAMEWORK_VERSION = A;
+				INFOPLIST_FILE = "DirectoryService/DirectoryService-Info.plist";
+				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Frameworks";
+				OTHER_LDFLAGS = (
+					"-framework",
+					CFOpenDirectory,
+				);
+				PRODUCT_NAME = DirectoryService;
+			};
+			name = Release;
+		};
+		FD075FDC103205D90061953C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXPORTED_SYMBOLS_FILE = OpenDirectory.exp;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SYSTEM_LIBRARY_DIR)/Frameworks/OpenDirectory.framework/Versions/A/Frameworks",
+				);
+				FRAMEWORK_VERSION = A;
+				GCC_ENABLE_OBJC_GC = supported;
+				INFOPLIST_FILE = Framework/Info.plist;
+				INSTALLHDRS_SCRIPT_PHASE = YES;
+				INSTALL_PATH = /System/Library/Frameworks;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-sub_umbrella",
+					CFOpenDirectory,
+					"-Xlinker",
+					"-objc_gc_compaction",
+				);
+				PRODUCT_NAME = OpenDirectory;
+			};
+			name = Release;
+		};
+		FD10638C10336827009E1154 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = Root;
+			};
+			name = Release;
+		};
+		FD37D1F9102BAABC0029C36C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = test;
+			};
+			name = Release;
+		};
+		FD37D208102BAAF30029C36C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Release;
+		};
+		FD86B4D41030F8EE005C866D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_SHADOW = NO;
+				GCC_WARN_SIGN_COMPARE = NO;
+				GCC_WARN_UNUSED_VARIABLE = NO;
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = "TestApp-CF";
+			};
+			name = Release;
+		};
+		FD86B4DE1030F900005C866D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = "TestApp-NS";
+			};
+			name = Release;
+		};
+		FD897D4D1073D8550005CA39 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = bridgetest;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1DEB91AD08733DA50010E9CD /* Build configuration list for PBXNativeTarget "CFOpenDirectory" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6B40A4B81092646600636183 /* Debug */,
+				1DEB91AF08733DA50010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1DEB91B108733DA50010E9CD /* Build configuration list for PBXProject "OpenDirectory" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6B40A4B51092646600636183 /* Debug */,
+				1DEB91B308733DA50010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6B2438DB10A1FADC005D708C /* Build configuration list for PBXAggregateTarget "Default" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6B2438D210A1FAC3005D708C /* Debug */,
+				6B2438D310A1FAC3005D708C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6BA024C010913D7F004A8A2A /* Build configuration list for PBXNativeTarget "DirectoryService" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6B40A4B91092646600636183 /* Debug */,
+				6BA024BF10913D7F004A8A2A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FD075FDD103205DA0061953C /* Build configuration list for PBXNativeTarget "OpenDirectory" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6B40A4B71092646600636183 /* Debug */,
+				FD075FDC103205D90061953C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FD1063A21033688A009E1154 /* Build configuration list for PBXAggregateTarget "Root" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6B40A4B61092646600636183 /* Debug */,
+				FD10638C10336827009E1154 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FD37D200102BAACC0029C36C /* Build configuration list for PBXNativeTarget "test" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6B40A4BB1092646600636183 /* Debug */,
+				FD37D1F9102BAABC0029C36C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FD37D22B102BAB020029C36C /* Build configuration list for PBXAggregateTarget "All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6B40A4BA1092646600636183 /* Debug */,
+				FD37D208102BAAF30029C36C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FD86B4F11030F926005C866D /* Build configuration list for PBXNativeTarget "TestApp-CF" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6B40A4BC1092646600636183 /* Debug */,
+				FD86B4D41030F8EE005C866D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FD86B4F21030F926005C866D /* Build configuration list for PBXNativeTarget "TestApp-NS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6B40A4BD1092646600636183 /* Debug */,
+				FD86B4DE1030F900005C866D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FD897E401073D8660005CA39 /* Build configuration list for PBXNativeTarget "bridgetest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6B40A4BE1092646600636183 /* Debug */,
+				FD897D4D1073D8550005CA39 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0867D690FE84028FC02AAC07 /* Project object */;
+}

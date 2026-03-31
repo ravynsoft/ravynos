@@ -76,9 +76,7 @@
 #endif // !defined(HAVE_DYLD_IS_MEMORY_IMMUTABLE)
 #endif // __has_include(<mach-o/dyld_priv.h>)
 
-#if !defined(USE_OBJC) && HAVE_OBJC
 #define USE_OBJC 1
-#endif
 
 #if USE_OBJC
 #define OS_OBJECT_HAVE_OBJC_SUPPORT 1

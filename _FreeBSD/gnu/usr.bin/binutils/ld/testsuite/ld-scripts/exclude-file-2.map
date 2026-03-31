@@ -1,7 +1,0 @@
-#...
-\.data +0x[0-9a-f]+ +0x[0-9a-f]+
- \*\(EXCLUDE_FILE\(\*-b\.o\) \.data EXCLUDE_FILE\(\*-b\.o\) \.data\.\*\)
- \.data +0x[0-9a-f]+ +0x[0-9a-f]+ tmpdir/exclude-file-a\.o
- \.data\.1 +0x[0-9a-f]+ +0x[0-9a-f]+ tmpdir/exclude-file-a\.o
-
-#...

@@ -1,4 +1,0 @@
-	.code
-
-	.VERSION "abc123"
-

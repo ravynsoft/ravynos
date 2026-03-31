@@ -1,8 +1,8 @@
 
 
-// BUILD:  $CC bar.c -ltest_support -dynamiclib -o $BUILD_DIR/libbar.dylib -install_name $RUN_DIR/libbar.dylib -DRUN_DIR="$RUN_DIR"
-// BUILD:  $CC baz.c -ltest_support -dynamiclib -o $BUILD_DIR/libbaz.dylib -install_name $RUN_DIR/libbaz.dylib
-// BUILD:  $CC foo.c -ltest_support -dynamiclib -o $BUILD_DIR/libfoo.dylib -install_name $RUN_DIR/libfoo.dylib $BUILD_DIR/libbar.dylib $BUILD_DIR/libbaz.dylib
+// BUILD:  $CC bar.c -dynamiclib -o $BUILD_DIR/libbar.dylib -install_name $RUN_DIR/libbar.dylib -DRUN_DIR="$RUN_DIR"
+// BUILD:  $CC baz.c -dynamiclib -o $BUILD_DIR/libbaz.dylib -install_name $RUN_DIR/libbaz.dylib
+// BUILD:  $CC foo.c -dynamiclib -o $BUILD_DIR/libfoo.dylib -install_name $RUN_DIR/libfoo.dylib $BUILD_DIR/libbar.dylib $BUILD_DIR/libbaz.dylib
 // BUILD:  $CC main.c -o $BUILD_DIR/dlopen-in-init3.exe -DRUN_DIR="$RUN_DIR"
 
 // RUN:  ./dlopen-in-init3.exe

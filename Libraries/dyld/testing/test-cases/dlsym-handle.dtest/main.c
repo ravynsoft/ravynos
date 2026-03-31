@@ -69,8 +69,6 @@ int main(int argc, const char* argv[], const char* envp[], const char* apple[]) 
     }
     
     // verify bad handle errors
-    // Note this is disabled as dyld4 doesn't currently check if the handle is valid
-#if 0
     if ( dlsym((void*)0xdeadbeef, "malloc") != NULL ) {
         FAIL("malloc found with bad handle");
     }
@@ -80,7 +78,6 @@ int main(int argc, const char* argv[], const char* envp[], const char* apple[]) 
             FAIL(" invalid handle error message missing 'invalid'");
         }
     }
-#endif
 
     PASS("Success");
 }

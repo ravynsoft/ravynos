@@ -1,6 +1,6 @@
-// BUILD(macos):  $CC main.m -o $BUILD_DIR/_dyld_get_objc_selector-chained.exe -lobjc -Wl,-fixup_chains
+// BUILD_ONLY: MacOSX
 
-// BUILD(ios,tvos,watchos,bridgeos):
+// BUILD:  $CC main.m -o $BUILD_DIR/_dyld_get_objc_selector-chained.exe -lobjc -Wl,-fixup_chains
 
 // RUN:  ./_dyld_get_objc_selector-chained.exe
 

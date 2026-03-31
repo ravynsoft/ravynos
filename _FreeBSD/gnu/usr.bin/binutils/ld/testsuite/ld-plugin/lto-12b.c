@@ -1,1 +1,0 @@
-int value = -1;
