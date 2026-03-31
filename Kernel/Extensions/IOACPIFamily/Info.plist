@@ -32,6 +32,21 @@
 			<string>IOPlatformExpertDevice</string>
 			<key>IOProbeScore</key>
             <integer>10000</integer>
+			<key>top-level</key>
+			<array>
+				<dict>
+					<key>IOName</key>
+					<string>bios</string>
+				</dict>
+				<dict>
+					<key>IOName</key>
+					<string>8259-apic</string>
+				</dict>
+				<dict>
+					<key>IOName</key>
+					<string>pci</string>
+				</dict>
+			</array>
 		</dict>
 		<key>ACPI X86 CPU</key>
 		<dict>

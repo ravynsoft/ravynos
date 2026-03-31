@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2026 Zoe Knox. All rights reserved.
  * Portions Copyright (c) 1999-2003 Apple Computer, Inc. All Rights
  * Reserved.
  *
@@ -18,7 +19,8 @@
  * limitations under the License.
  *
  * This file was modified by William Kent in 2017 to support the PureDarwin
- * project. This notice is included in support of clause 2.2(b) of the License.
+ * project, and extensively modified by Zoe Knox in 2026 to support ravynOS.
+ * This notice is included in support of clause 2.2(b) of the License.
  */
 
 #ifndef _IOKIT_APPLEI386PLATFORM_H
@@ -27,32 +29,91 @@
 #include <IOKit/IOPlatformExpert.h>
 #include "AppleI386CPU.h"
 
+#define PE_VERBOSE 1
+
+struct RSDP
+{
+    uint8_t signature[8];
+    uint8_t checksum;
+    char OEMID[6];
+    uint8_t revision;
+    uint32_t rsdtAddress;
+
+    // v.2
+    uint32_t length;
+    uint64_t xsdtAddress;
+    uint8_t extChecksum;
+    uint8_t reserved[3];
+} __attribute__((packed));
+
+struct XSDT
+{
+    uint8_t signature[4];                           \
+    uint32_t length;
+    uint8_t revision;
+    uint8_t checksum;
+    char OEMID[6];
+    char OEMTableID[8];
+    uint32_t OEMRevision;
+    uint32_t creatorID;
+    uint32_t creatorRevision;
+    uint64_t tables[0];
+} __attribute__((packed));
+
+typedef struct {
+    uint8_t type;
+    uint8_t length;
+} __attribute__((packed)) MADT_Record;
+
+struct MADT
+{
+    uint8_t signature[4];                           \
+    uint32_t length;
+    uint8_t revision;
+    uint8_t checksum;
+    char OEMID[6];
+    char OEMTableID[8];
+    uint32_t OEMRevision;
+    uint32_t creatorID;
+    uint32_t creatorRevision;
+    uint32_t lapicAddress;
+    uint32_t flags;
+    MADT_Record records[1];
+} __attribute__((packed));
+
+
 class AppleI386PlatformExpert : public IOPlatformExpert {
-	OSDeclareDefaultStructors(AppleI386PlatformExpert)
+    OSDeclareDefaultStructors(AppleI386PlatformExpert)
 
 private:
-	const OSSymbol *_interruptControllerName;
-	AppleI386CPU *bootCPU;
+    const char *RSDP_SIGNATURE = "RSD PTR";
+    
+    const OSSymbol *_interruptControllerName;
+    AppleI386CPU *bootCPU;
 
-	void setupPIC(IOService *nub);
-	void setupBIOS(IOService *nub);
+    void PE_Log(const char *fmt, ...);
+    void parseAPIC(void * table, IOService * nub);
+    void parseFADT(void * table, IOService * nub);
+    
+    void setupPIC(IOService *nub);
+    void setupBIOS(IOService *nub);
 
-	static int handlePEHaltRestart(unsigned int type);
+    static int handlePEHaltRestart(unsigned int type);
 
 public:
-	virtual bool init(OSDictionary *properties) APPLE_KEXT_OVERRIDE;
-	virtual IOService *probe(IOService *provider, SInt32 *score) APPLE_KEXT_OVERRIDE;
-	virtual bool start(IOService *provider) APPLE_KEXT_OVERRIDE;
-	virtual bool configure(IOService *provider) APPLE_KEXT_OVERRIDE;
-	virtual bool matchNubWithPropertyTable(IOService *nub, OSDictionary *table);
-	virtual IOService *createNub(OSDictionary *from) APPLE_KEXT_OVERRIDE;
-	virtual bool reserveSystemInterrupt(IOService *client, UInt32 vectorNumber, bool exclusive);
-	virtual void releaseSystemInterrupt(IOService *client, UInt32 vectorNumber, bool exclusive);
-	virtual bool setNubInterruptVectors(IOService *nub, const UInt32 vectors[], UInt32 vectorCount);
-	virtual bool setNubInterruptVector(IOService *nub, UInt32 vector);
-	virtual IOReturn callPlatformFunction(const OSSymbol *functionName, bool waitForFunction, void *param1, void *param2, void *param3, void *param4) APPLE_KEXT_OVERRIDE;
-	virtual bool getModelName(char *name, int maxLengh) APPLE_KEXT_OVERRIDE;
-	virtual bool getMachineName(char *name, int maxLength) APPLE_KEXT_OVERRIDE;
+    virtual bool init(OSDictionary *properties) APPLE_KEXT_OVERRIDE;
+    virtual IOService *probe(IOService *provider, SInt32 *score) APPLE_KEXT_OVERRIDE;
+    virtual bool start(IOService *provider) APPLE_KEXT_OVERRIDE;
+    virtual bool configure(IOService *provider) APPLE_KEXT_OVERRIDE;
+    virtual bool matchNubWithPropertyTable(IOService *nub, OSDictionary *table);
+    virtual IOService *createNub(OSDictionary *from) APPLE_KEXT_OVERRIDE;
+    virtual bool reserveSystemInterrupt(IOService *client, UInt32 vectorNumber, bool exclusive);
+    virtual void releaseSystemInterrupt(IOService *client, UInt32 vectorNumber, bool exclusive);
+    virtual bool setNubInterruptVectors(IOService *nub, const UInt32 vectors[], UInt32 vectorCount);
+    virtual bool setNubInterruptVector(IOService *nub, UInt32 vector);
+    virtual IOReturn callPlatformFunction(const OSSymbol *functionName, bool waitForFunction, void *param1, void *param2, void *param3, void *param4) APPLE_KEXT_OVERRIDE;
+    virtual bool getModelName(char *name, int maxLengh) APPLE_KEXT_OVERRIDE;
+    virtual bool getMachineName(char *name, int maxLength) APPLE_KEXT_OVERRIDE;
 };
 
 #endif /* ! _IOKIT_APPLEI386PLATFORM_H */

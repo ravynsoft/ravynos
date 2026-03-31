@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2026 Zoe Knox. All rights reserved.
  * Portions Copyright (c) 1999-2003 Apple Computer, Inc. All Rights
  * Reserved.
  *
@@ -18,21 +19,26 @@
  * limitations under the License.
  *
  * This file was modified by William Kent in 2017 to support the PureDarwin
- * project. This notice is included in support of clause 2.2(b) of the License.
+ * project, and extensively modified by Zoe Knox in 2026 to support ravynOS.
+ * This notice is included in support of clause 2.2(b) of the License.
  */
 
 #include <IOKit/IOLib.h>
 #include <IOKit/assert.h>
 #include <IOKit/system.h>
 #include <IOKit/IORegistryEntry.h>
+#include <IOKit/IODeviceTreeSupport.h>
 #include <IOKit/platform/ApplePlatformExpert.h>
 #include <libkern/c++/OSContainers.h>
 #include <libkern/c++/OSUnserialize.h>
 #include <pexpert/i386/boot.h>
 
+
 extern "C" {
 #include <i386/cpuid.h>
 #include <pexpert/i386/protos.h>
+#include <corecrypto/cckprng.h>
+#include <prng/random.h>
 }
 
 #include "AppleI386PlatformExpert.h"
@@ -75,29 +81,143 @@ AppleI386PlatformExpertGlobals::~AppleI386PlatformExpertGlobals() {
 OSDefineMetaClassAndStructors(AppleI386PlatformExpert, IOPlatformExpert);
 
 IOService *AppleI386PlatformExpert::probe(IOService *provider, SInt32 *score) {
-    kprintf("PE: probe %p\n", provider);
 	if (score != 0) *score = 10000;
 	return this;
 }
 
+void prng_init(struct cckprng_ctx *ctx,
+			 unsigned max_ngens,
+			 size_t entropybuf_nbytes,
+			 const void *entropybuf,
+			 const uint32_t *entropybuf_nsamples,
+			 size_t seed_nbytes,
+			 const void *seed,
+			 size_t nonce_nbytes,
+			 const void *nonce)
+{
+	kprintf("PRNG dummy init\n");
+	return;
+}
+
+void prng_initgen(struct cckprng_ctx *ctx, unsigned gen_idx)
+{
+	kprintf("PRNG dummy initgen\n");
+	return;
+}
+void prng_reseed(struct cckprng_ctx *ctx, size_t nbytes, const void *seed)
+{
+	kprintf("PRNG dummy reseed\n");
+	return;
+}
+void prng_refresh(struct cckprng_ctx *ctx)
+{
+	kprintf("PRNG dummy refresh\n");
+	return;
+}
+void prng_generate(struct cckprng_ctx *ctx, unsigned gen_idx, size_t nbytes, void *out)
+{
+	kprintf("PRNG dummy generate %d bytes\n", nbytes);
+	return;
+}
+
 bool AppleI386PlatformExpert::init(OSDictionary *properties) {
-    kprintf("PE: init %p\n", properties);
 	if (!super::init()) return false;
 
 	OSString *name = (OSString *)getProperty("InterruptControllerName");
 	if (name == 0) name = OSString::withCStringNoCopy("AppleI386CPUInterruptController");
 	_interruptControllerName = OSSymbol::withString(name);
 
+	struct cckprng_funcs prng_funcs = {
+		prng_init, prng_initgen, prng_reseed, prng_refresh, prng_generate };
+	struct cckprng_ctx prng_ctx = {0}; // this will panic quickly for sure
+
+	register_and_init_prng(&prng_ctx, &prng_funcs);
+
 	return true;
 }
 
 bool AppleI386PlatformExpert::start(IOService *provider) {
-    kprintf("PE: start %p\n", provider);
 	setBootROMType(kBootROMTypeNewWorld);
 
 	if (!super::start(provider)) return false;
 	PE_halt_restart = handlePEHaltRestart;
 	registerService();
+
+#if PE_VERBOSE
+	PE_Log("Start ACPI mapping");
+#endif
+        IORegistryEntry	* entry = IORegistryEntry::fromPath("/ACPI", gIODTPlane);
+        if (!entry) {
+            PE_Log("Unable to locate ACPI root node");
+            return false;
+        }
+        
+        OSData * data = OSDynamicCast(OSData, entry->getProperty("RSDP"));
+        if (!data) {
+            PE_Log("RSDP property not found in DT!");
+            return false;
+        }
+
+        uint64_t addr = *(uint64_t *)(data->getBytesNoCopy());
+        IOMemoryDescriptor *desc
+            = IOMemoryDescriptor::withPhysicalAddress((IOPhysicalAddress)addr,
+                                                      sizeof(struct RSDP),
+                                                      kIODirectionInOut);
+        IOMemoryMap *map = desc->map(0);
+        struct RSDP * rsdp = (struct RSDP *) map->getVirtualAddress();
+        
+        if (memcmp(rsdp->signature, RSDP_SIGNATURE, 7)) {
+            PE_Log("RSDP table is not valid");
+            return false;
+        }
+
+        struct XSDT * xsdt = (struct XSDT *) rsdp->xsdtAddress;
+        PE_Log("v%d XSDT %p", rsdp->revision, xsdt);
+
+        map->release();
+        desc->release();
+
+        if (!xsdt) {
+            PE_Log("XSDT is missing");
+            return false;
+        }
+
+        /* We're not going to care much about error checking or cleaning up
+         * resources. If this fails, we're going to panic immediately anyway.
+         */
+        desc = IOMemoryDescriptor::withPhysicalAddress((IOPhysicalAddress)xsdt,
+                                                       1024,
+                                                       kIODirectionInOut);
+        map = desc->map(0);
+        xsdt = (struct XSDT *) map->getVirtualAddress();
+        
+        if (memcmp(xsdt->signature, "XSDT", 4)) {
+            PE_Log("XSDT is not valid");
+            return false;
+        }
+
+        int tableCount = (xsdt->length - sizeof(struct XSDT)) / 8;
+        for (int i = 0; i < tableCount; ++i) {
+            IOMemoryDescriptor *tdesc
+                = IOMemoryDescriptor::withPhysicalAddress((IOPhysicalAddress)(xsdt->tables[i]),
+                                                          1024, kIODirectionInOut);
+            IOMemoryMap *tmap = tdesc->map(0);
+
+            /* SDT all have the same header */
+            XSDT *p = (XSDT *) tmap->getVirtualAddress();
+            char name[5] = {0};
+            memcpy(name, p->signature, 4);
+            PE_Log("XSDT table %p = %s", p, name);
+
+            if (!strcmp(name, "APIC"))
+                parseAPIC(p, provider);
+            else if (!strcmp(name, "FACP"))
+                parseFADT(p, provider);
+
+            tmap->release();
+            tdesc->release();
+        }
+
 
 	// Hack: Initialize AppleI386CPU ourself because no one else will.
 	bootCPU = new AppleI386CPU;
@@ -115,7 +235,6 @@ bool AppleI386PlatformExpert::configure(IOService *provider) {
 	OSDictionary *dict;
 	IOService *nub;
 
-    kprintf("PE: configure %p\n", provider);
 	topLevel = OSDynamicCast(OSArray, getProperty("top-level"));
 
 	if (topLevel) {
@@ -138,8 +257,6 @@ bool AppleI386PlatformExpert::matchNubWithPropertyTable(IOService *nub, OSDictio
 	OSString *nameProp;
 	OSString *match;
 
-        kprintf("PE: matchNub %p\n", nub);
-
 	if ((nameProp = (OSString *)nub->getProperty(gIONameKey)) == 0) return false;
 	if ((match = (OSString *)table->getObject(gIONameMatchKey)) == 0) return false;
 
@@ -149,7 +266,6 @@ bool AppleI386PlatformExpert::matchNubWithPropertyTable(IOService *nub, OSDictio
 IOService *AppleI386PlatformExpert::createNub(OSDictionary *from) {
 	IOService *nub;
 
-    kprintf("PE: createNub %p\n", from);
 	nub = super::createNub(from);
 	if (nub) {
 		const char *name = nub->getName();

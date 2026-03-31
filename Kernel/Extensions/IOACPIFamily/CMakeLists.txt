@@ -10,6 +10,7 @@ target_sources(IOACPIFamily PRIVATE
     hack.s
     AppleI386CPU.cpp
     AppleI386PlatformExpert.cpp
+    util.cpp
 )
 
 target_include_directories(IOACPIFamily PRIVATE
@@ -19,7 +20,8 @@ target_include_directories(IOACPIFamily PRIVATE
     ../../xnu/bsd
     ../../xnu/libkern
     ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
-    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/)    
+    ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/
+    ../../xnu/EXTERNAL_HEADERS)
     
 target_compile_options(IOACPIFamily PRIVATE
     -Wno-implicit-int-conversion -Wno-sign-conversion
