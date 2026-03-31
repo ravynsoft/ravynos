@@ -21,21 +21,21 @@
  * project. This notice is included in support of clause 2.2(b) of the License.
  */
 
-#include "AppleI386CPU.h"
+#include "ACPICPU.h"
 
 #undef super
 #define super IOCPU
 
-OSDefineMetaClassAndStructors(AppleI386CPU, IOCPU);
+OSDefineMetaClassAndStructors(ACPICPU, IOCPU);
 
-IOService *AppleI386CPU::probe(IOService *provider, SInt32 *score) {
+IOService *ACPICPU::probe(IOService *provider, SInt32 *score) {
 	return this;
 }
 
-bool AppleI386CPU::startCommon() {
+bool ACPICPU::startCommon() {
 	if (startCommonCompleted) return true;
 
-	cpuIC = new AppleI386CPUInterruptController;
+	cpuIC = new ACPICPUInterruptController;
 	if (cpuIC == 0) return false;
 	if (cpuIC->initCPUInterruptController(1) != kIOReturnSuccess) return false;
 
@@ -50,30 +50,30 @@ bool AppleI386CPU::startCommon() {
 	return true;
 }
 
-bool AppleI386CPU::start(IOService *provider) {
+bool ACPICPU::start(IOService *provider) {
 	if (!super::start(provider)) return false;
 	return startCommon();
 }
 
-void AppleI386CPU::initCPU(bool boot) {
+void ACPICPU::initCPU(bool boot) {
 	cpuIC->enableCPUInterrupt(this);
 	setCPUState(kIOCPUStateRunning);
 }
 
-void AppleI386CPU::quiesceCPU() {
+void ACPICPU::quiesceCPU() {
 	// Not required.
 }
 
-kern_return_t AppleI386CPU::startCPU(vm_offset_t start_paddr, vm_offset_t arg_paddr) {
+kern_return_t ACPICPU::startCPU(vm_offset_t start_paddr, vm_offset_t arg_paddr) {
 	// Not implemented.
 	return KERN_FAILURE;
 }
 
-void AppleI386CPU::haltCPU() {
+void ACPICPU::haltCPU() {
 	// Not required.
 }
 
-const OSSymbol *AppleI386CPU::getCPUName() {
+const OSSymbol *ACPICPU::getCPUName() {
 	return OSSymbol::withCStringNoCopy("Primary0");
 }
 
@@ -81,9 +81,9 @@ const OSSymbol *AppleI386CPU::getCPUName() {
 #undef super
 #define super IOCPUInterruptController
 
-OSDefineMetaClassAndStructors(AppleI386CPUInterruptController, IOCPUInterruptController);
+OSDefineMetaClassAndStructors(ACPICPUInterruptController, IOCPUInterruptController);
 
-IOReturn AppleI386CPUInterruptController::handleInterrupt(void *refCon, IOService *nub, int source) {
+IOReturn ACPICPUInterruptController::handleInterrupt(void *refCon, IOService *nub, int source) {
 	// Override the implementation in IOCPUInterruptController to
 	// dispatch interrupts the old way. The source argument is ignored;
 	// the first IOCPUInterruptController in the vector array is always used.

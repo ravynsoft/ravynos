@@ -27,7 +27,7 @@
 #define _IOKIT_APPLEI386PLATFORM_H
 
 #include <IOKit/IOPlatformExpert.h>
-#include "AppleI386CPU.h"
+#include "ACPICPU.h"
 
 #define PE_VERBOSE 1
 
@@ -82,14 +82,14 @@ struct MADT
 } __attribute__((packed));
 
 
-class AppleI386PlatformExpert : public IOPlatformExpert {
-    OSDeclareDefaultStructors(AppleI386PlatformExpert)
+class ACPIPlatformExpert : public IOPlatformExpert {
+    OSDeclareDefaultStructors(ACPIPlatformExpert)
 
 private:
     const char *RSDP_SIGNATURE = "RSD PTR";
     
     const OSSymbol *_interruptControllerName;
-    AppleI386CPU *bootCPU;
+    ACPICPU *bootCPU;
 
     void PE_Log(const char *fmt, ...);
     void parseAPIC(void * table, IOService * nub);

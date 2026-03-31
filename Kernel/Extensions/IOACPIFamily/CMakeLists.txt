@@ -2,14 +2,14 @@ add_kext_bundle(IOACPIFamily
     KERNEL_PRIVATE
     INFO_PLIST Info.plist
     BUNDLE_IDENTIFIER com.apple.iokit.IOACPIFamily
-    BUNDLE_VERSION 1.0.0d1)
+    BUNDLE_VERSION 1.0.0)
 
 target_sources(IOACPIFamily PRIVATE
-    IOACPIPlatformDevice.cpp
-    IOACPIPlatformExpert.cpp
+#    IOACPIPlatformDevice.cpp
+#    IOACPIPlatformExpert.cpp
     hack.s
-    AppleI386CPU.cpp
-    AppleI386PlatformExpert.cpp
+    ACPICPU.cpp
+    ACPIPlatformExpert.cpp
     util.cpp
 )
 

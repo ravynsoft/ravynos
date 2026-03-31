@@ -26,8 +26,8 @@
 
 #include <IOKit/IOCPU.h>
 
-class AppleI386CPU : public IOCPU {
-	OSDeclareDefaultStructors(AppleI386CPU);
+class ACPICPU : public IOCPU {
+	OSDeclareDefaultStructors(ACPICPU);
 
 private:
 	IOCPUInterruptController *cpuIC;
@@ -44,8 +44,8 @@ public:
 	bool startCommon(void);
 };
 
-class AppleI386CPUInterruptController : public IOCPUInterruptController {
-	OSDeclareDefaultStructors(AppleI386CPUInterruptController);
+class ACPICPUInterruptController : public IOCPUInterruptController {
+	OSDeclareDefaultStructors(ACPICPUInterruptController);
 
 public:
 	virtual IOReturn handleInterrupt(void *refCon, IOService *nub, int source) APPLE_KEXT_OVERRIDE;

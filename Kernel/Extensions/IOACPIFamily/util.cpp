@@ -20,33 +20,162 @@
  * THE SOFTWARE.
  */
 
-#include "AppleI386PlatformExpert.h"
+#include "ACPIPlatformExpert.h"
+#include <IOKit/IODeviceTreeSupport.h>
 
 void
-AppleI386PlatformExpert::PE_Log(const char * fmt, ...)
+ACPIPlatformExpert::PE_Log(const char * fmt, ...)
 {
-    char buffer[1024];
+    char    buffer[1024];
     va_list args;
-    va_start(args, fmt);
     
+    va_start(args, fmt);
     vsnprintf(buffer, sizeof(buffer) - 1, fmt, args);
     va_end(args);
     kprintf("[ACPI PE] %s\n", buffer);
 }
 
 void
-AppleI386PlatformExpert::parseAPIC(void * table, IOService * nub)
+ACPIPlatformExpert::parseAPIC(void * table, IOService * nub)
 {
-    PE_Log("setupAPIC(%p, %p)", table, nub);
+    struct LAPIC_RECORD {
+        uint8_t  type;
+        uint8_t  length;
+        uint8_t  proc_id;
+        uint8_t  lapic_id;
+        uint32_t flags;
+    } __attribute__((packed));
+
+    struct IOAPIC_RECORD {
+        uint8_t  type;
+        uint8_t  length;
+        uint8_t  io_apic_id;
+        uint8_t  reserved;
+        uint32_t address;
+        uint32_t gsi_base;
+    } __attribute__((packed));
+
+    struct ISO_RECORD {
+        uint8_t  type;
+        uint8_t  length;
+        uint8_t  bus;
+        uint8_t  source;
+        uint32_t gsi;
+        uint16_t flags;
+    } __attribute__((packed));
+
+    char          buf[64];
     struct MADT * madt = (struct MADT *) table;
-    PE_Log("MADT LAPIC %p flags %p", madt->lapicAddress, madt->flags);
-    PE_Log("MADT record type %d len %d", madt->records[0].type,
-           madt->records[0].length);
+    MADT_Record * rec = madt->records;
+    int           index = 0;
+    OSArray     * intrOverrides = NULL;
+    OSArray     * intrSources = NULL;
+    
+    PE_Log("setupAPIC(%p, %p) flags %p",
+           table, madt->lapicAddress, madt->flags);
+
+    intrOverrides = OSArray::withCapacity(20);
+    intrSources = OSArray::withCapacity(20);
+    if (!intrOverrides) {
+        PE_Log("Failed to create array for overrides!");
+        return; /* and panic */
+    }
+    
+    while ((uint64_t)rec < ((uint64_t)madt + madt->length)) {
+        if (rec->length == 0) {
+            rec = (MADT_Record *) ((uint64_t)rec + sizeof(MADT_Record));
+        }
+        
+        switch (rec->type) {
+            case 0: { /* Local APIC */
+                struct LAPIC_RECORD * lr = (struct LAPIC_RECORD *) rec;
+                OSDictionary * dict = OSDictionary::withCapacity(7);
+
+                dict->setObject("device_type", OSString::withCString("processor"));
+                dict->setObject("compatible", OSString::withCString("processor"));
+                dict->setObject("apic-id", OSNumber::withNumber(lr->lapic_id, 32));
+                dict->setObject("processor-id", OSNumber::withNumber(lr->proc_id, 32));
+                dict->setObject("cpu-number", OSNumber::withNumber(index, 32));
+                
+                sprintf(buf, "cpu@%d", index++);
+                dict->setObject("name", OSString::withCString(buf));
+                dict->setObject("location", OSNumber::withNumber(madt->lapicAddress, 32));
+
+                ACPICPU * cpuNub = new ACPICPU();
+                if (!cpuNub) {
+                    PE_Log("Failed to create cpu nub!");
+                    return;
+                }
+                
+                cpuNub->init(dict);
+                cpuNub->attach(nub);
+                cpuNub->registerService();
+
+                cpuNub->release();
+                dict->release();
+                break;
+            }
+            case 1: { /* I/O APIC */
+                struct IOAPIC_RECORD *apic = (struct IOAPIC_RECORD *) rec;
+                OSDictionary * dict = OSDictionary::withCapacity(7);
+
+                dict->setObject("device_type", OSString::withCString("io-apic"));
+                dict->setObject("io-apic-id", OSNumber::withNumber(apic->io_apic_id, 32));
+                dict->setObject("GSI-Base", OSNumber::withNumber(apic->gsi_base, 32));
+                dict->setObject("address", OSNumber::withNumber(apic->address, 32));
+
+                sprintf(buf, "io-apic@%d", apic->io_apic_id);
+                dict->setObject("name", OSString::withCString(buf));
+
+                IOSharedInterruptController *apicNub = new IOSharedInterruptController();
+                if (!apicNub) {
+                    PE_Log("Failed to create apic nub!");
+                    return;
+                }
+
+                apicNub->init(dict);
+                apicNub->attach(nub);
+                apicNub->registerService();
+
+                apicNub->release();
+                dict->release();
+                break;
+            }
+            case 2: { /* Interrupt Source Override */
+                struct ISO_RECORD *iso = (struct ISO_RECORD *) rec;
+                OSDictionary * dict = OSDictionary::withCapacity(4);
+                dict->setObject("bus", OSNumber::withNumber(iso->bus, 32));
+                dict->setObject("source", OSNumber::withNumber(iso->source, 32));
+                dict->setObject("gsi", OSNumber::withNumber(iso->gsi, 32));
+                dict->setObject("flags", OSNumber::withNumber(iso->flags, 32));
+                intrOverrides->setObject(dict);
+                dict->release();
+                break;
+            }
+            case 4: { /* LAPIC NMI */
+                uint32_t v = *(uint32_t *) ((uint64_t)rec + sizeof(MADT_Record));
+                uint32_t acpi_id = (v & 0xff000000) >> 24;
+                uint32_t flags = (v & 0x00ffff00) >> 8;
+                uint32_t lint = (v & 0xff);
+                OSDictionary * dict = OSDictionary::withCapacity(3);
+                dict->setObject("acpi-id", OSNumber::withNumber(acpi_id, 32));
+                dict->setObject("flags", OSNumber::withNumber(flags, 32));
+                dict->setObject("lint", OSNumber::withNumber(lint, 32));
+                intrSources->setObject(dict);
+                dict->release();
+                break;
+            }
+        }
+        
+        rec = (MADT_Record *) ((uint64_t)rec + rec->length);
+    }
+
+    this->setProperty("interrupt-overrides", intrOverrides);
+    this->setProperty("interrupt-sources", intrSources);
 }
 
 void
-AppleI386PlatformExpert::parseFADT(void * table, IOService * nub)
+ACPIPlatformExpert::parseFADT(void * table, IOService * nub)
 {
     PE_Log("setupFADT(%p, %p)", table, nub);
 }
-

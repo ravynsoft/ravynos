@@ -41,7 +41,7 @@ extern "C" {
 #include <prng/random.h>
 }
 
-#include "AppleI386PlatformExpert.h"
+#include "ACPIPlatformExpert.h"
 
 enum {
 	kIRQAvailable   = 0,
@@ -57,20 +57,20 @@ static struct {
 
 static IOLock *ResourceLock;
 
-class AppleI386PlatformExpertGlobals {
+class ACPIPlatformExpertGlobals {
 public:
 	bool isValid;
-	AppleI386PlatformExpertGlobals();
-	~AppleI386PlatformExpertGlobals();
+	ACPIPlatformExpertGlobals();
+	~ACPIPlatformExpertGlobals();
 };
 
-static AppleI386PlatformExpertGlobals AppleI386PlatformExpertGlobals;
-AppleI386PlatformExpertGlobals::AppleI386PlatformExpertGlobals() {
+static ACPIPlatformExpertGlobals ACPIPlatformExpertGlobals;
+ACPIPlatformExpertGlobals::ACPIPlatformExpertGlobals() {
 	ResourceLock = IOLockAlloc();
 	bzero(IRQ, sizeof(IRQ));
 }
 
-AppleI386PlatformExpertGlobals::~AppleI386PlatformExpertGlobals() {
+ACPIPlatformExpertGlobals::~ACPIPlatformExpertGlobals() {
 	if (ResourceLock) IOLockFree(ResourceLock);
 }
 
@@ -78,9 +78,9 @@ AppleI386PlatformExpertGlobals::~AppleI386PlatformExpertGlobals() {
 
 #define super IOPlatformExpert
 
-OSDefineMetaClassAndStructors(AppleI386PlatformExpert, IOPlatformExpert);
+OSDefineMetaClassAndStructors(ACPIPlatformExpert, IOPlatformExpert);
 
-IOService *AppleI386PlatformExpert::probe(IOService *provider, SInt32 *score) {
+IOService *ACPIPlatformExpert::probe(IOService *provider, SInt32 *score) {
 	if (score != 0) *score = 10000;
 	return this;
 }
@@ -120,11 +120,11 @@ void prng_generate(struct cckprng_ctx *ctx, unsigned gen_idx, size_t nbytes, voi
 	return;
 }
 
-bool AppleI386PlatformExpert::init(OSDictionary *properties) {
+bool ACPIPlatformExpert::init(OSDictionary *properties) {
 	if (!super::init()) return false;
 
 	OSString *name = (OSString *)getProperty("InterruptControllerName");
-	if (name == 0) name = OSString::withCStringNoCopy("AppleI386CPUInterruptController");
+	if (name == 0) name = OSString::withCStringNoCopy("ACPICPUInterruptController");
 	_interruptControllerName = OSSymbol::withString(name);
 
 	struct cckprng_funcs prng_funcs = {
@@ -136,7 +136,7 @@ bool AppleI386PlatformExpert::init(OSDictionary *properties) {
 	return true;
 }
 
-bool AppleI386PlatformExpert::start(IOService *provider) {
+bool ACPIPlatformExpert::start(IOService *provider) {
 	setBootROMType(kBootROMTypeNewWorld);
 
 	if (!super::start(provider)) return false;
@@ -207,7 +207,6 @@ bool AppleI386PlatformExpert::start(IOService *provider) {
             XSDT *p = (XSDT *) tmap->getVirtualAddress();
             char name[5] = {0};
             memcpy(name, p->signature, 4);
-            PE_Log("XSDT table %p = %s", p, name);
 
             if (!strcmp(name, "APIC"))
                 parseAPIC(p, provider);
@@ -218,19 +217,10 @@ bool AppleI386PlatformExpert::start(IOService *provider) {
             tdesc->release();
         }
 
-
-	// Hack: Initialize AppleI386CPU ourself because no one else will.
-	bootCPU = new AppleI386CPU;
-	if (bootCPU == 0) return false;
-
-	bootCPU->init();
-	bootCPU->attach(0);
-	if (!bootCPU->startCommon()) return false;
-
 	return true;
 }
 
-bool AppleI386PlatformExpert::configure(IOService *provider) {
+bool ACPIPlatformExpert::configure(IOService *provider) {
 	OSArray *topLevel;
 	OSDictionary *dict;
 	IOService *nub;
@@ -253,7 +243,7 @@ bool AppleI386PlatformExpert::configure(IOService *provider) {
 	return true;
 }
 
-bool AppleI386PlatformExpert::matchNubWithPropertyTable(IOService *nub, OSDictionary *table) {
+bool ACPIPlatformExpert::matchNubWithPropertyTable(IOService *nub, OSDictionary *table) {
 	OSString *nameProp;
 	OSString *match;
 
@@ -263,7 +253,7 @@ bool AppleI386PlatformExpert::matchNubWithPropertyTable(IOService *nub, OSDictio
 	return match->isEqualTo(nameProp);
 }
 
-IOService *AppleI386PlatformExpert::createNub(OSDictionary *from) {
+IOService *ACPIPlatformExpert::createNub(OSDictionary *from) {
 	IOService *nub;
 
 	nub = super::createNub(from);
@@ -283,7 +273,7 @@ IOService *AppleI386PlatformExpert::createNub(OSDictionary *from) {
 	return nub;
 }
 
-void AppleI386PlatformExpert::setupPIC(IOService *nub) {
+void ACPIPlatformExpert::setupPIC(IOService *nub) {
 	int i;
 	OSDictionary *propTable;
 	OSArray *controller;
@@ -318,19 +308,19 @@ void AppleI386PlatformExpert::setupPIC(IOService *nub) {
 	controller->release();
 }
 
-void AppleI386PlatformExpert::setupBIOS(IOService *nub) {
+void ACPIPlatformExpert::setupBIOS(IOService *nub) {
 	// TODO: Implement this function.
 	// This function is dependent upon being able to retrieve the
 	// PCI bus data. While the booter does collect some PCI data,
 	// but it does not include the data needed here.
 }
 
-bool AppleI386PlatformExpert::getMachineName(char *name, int maxLength) {
+bool ACPIPlatformExpert::getMachineName(char *name, int maxLength) {
 	strncpy(name, "x86", maxLength);
 	return true;
 }
 
-bool AppleI386PlatformExpert::getModelName(char *name, int maxLengh) {
+bool ACPIPlatformExpert::getModelName(char *name, int maxLengh) {
 	i386_cpu_info_t *cpuid_cpu_info = cpuid_info();
 
 	if (cpuid_cpu_info->cpuid_brand_string[0] != '\0') {
@@ -342,7 +332,7 @@ bool AppleI386PlatformExpert::getModelName(char *name, int maxLengh) {
 	return true;
 }
 
-int AppleI386PlatformExpert::handlePEHaltRestart(unsigned int type) {
+int ACPIPlatformExpert::handlePEHaltRestart(unsigned int type) {
 	int ret = -1;
 	int temporary_sum = 0;
 
@@ -373,7 +363,7 @@ int AppleI386PlatformExpert::handlePEHaltRestart(unsigned int type) {
 	return ret;
 }
 
-bool AppleI386PlatformExpert::setNubInterruptVectors(IOService *nub, const UInt32 *vectors, UInt32 vectorCount) {
+bool ACPIPlatformExpert::setNubInterruptVectors(IOService *nub, const UInt32 *vectors, UInt32 vectorCount) {
 	OSArray *controller = 0;
 	OSArray *specifier = 0;
 	bool success = false;
@@ -405,11 +395,11 @@ done:
 	return success;
 }
 
-bool AppleI386PlatformExpert::setNubInterruptVector(IOService *nub, UInt32 vector) {
+bool ACPIPlatformExpert::setNubInterruptVector(IOService *nub, UInt32 vector) {
 	return setNubInterruptVectors(nub, &vector, 1);
 }
 
-IOReturn AppleI386PlatformExpert::callPlatformFunction(const OSSymbol *functionName, bool waitForFunction, void *param1, void *param2, void *param3, void *param4) {
+IOReturn ACPIPlatformExpert::callPlatformFunction(const OSSymbol *functionName, bool waitForFunction, void *param1, void *param2, void *param3, void *param4) {
 	bool ok;
 
 	if (functionName->isEqualTo("SetDeviceInterrupts")) {
@@ -440,7 +430,7 @@ IOReturn AppleI386PlatformExpert::callPlatformFunction(const OSSymbol *functionN
 	return super::callPlatformFunction(functionName, waitForFunction, param1, param2, param3, param4);
 }
 
-bool AppleI386PlatformExpert::reserveSystemInterrupt(IOService *client, UInt32 vectorNumber, bool exclusive) {
+bool ACPIPlatformExpert::reserveSystemInterrupt(IOService *client, UInt32 vectorNumber, bool exclusive) {
 	bool ok = false;
 	if (vectorNumber >= kSystemIRQCount) return ok;
 
@@ -464,7 +454,7 @@ bool AppleI386PlatformExpert::reserveSystemInterrupt(IOService *client, UInt32 v
 	return ok;
 }
 
-void AppleI386PlatformExpert::releaseSystemInterrupt(IOService *client, UInt32 vectorNumber, bool exclusive) {
+void ACPIPlatformExpert::releaseSystemInterrupt(IOService *client, UInt32 vectorNumber, bool exclusive) {
 	if (vectorNumber >= kSystemIRQCount) return;
 	IOLockLock(ResourceLock);
 
