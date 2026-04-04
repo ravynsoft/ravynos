@@ -4,7 +4,7 @@ set(CMAKE_ASM_COMPILER ${CC})
 set(CMAKE_CXX_COMPILER ${CXX})
 set(CMAKE_LINK_DEPENDS_USE_LINKER OFF)
 
-add_library(libkmod STATIC c_start.c c_stop.c)
+add_library(libkmod STATIC c_start.c c_stop.c pure.c)
 set_property(TARGET libkmod PROPERTY OUTPUT_NAME "kmod")
 add_dependencies(libkmod xnu_headers xnu)
 target_compile_options(libkmod PRIVATE
