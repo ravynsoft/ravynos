@@ -5,9 +5,6 @@ add_kext_bundle(IOACPIFamily
     BUNDLE_VERSION 1.0.0)
 
 target_sources(IOACPIFamily PRIVATE
-#    IOACPIPlatformDevice.cpp
-#    IOACPIPlatformExpert.cpp
-    hack.s
     ACPICPU.cpp
     ACPIPlatformExpert.cpp
     util.cpp
@@ -21,7 +18,8 @@ target_include_directories(IOACPIFamily PRIVATE
     ../../xnu/libkern
     ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/osfmk
     ${ROOT_BINARY_DIR}/Kernel/xnu/EXPORT_HDRS/
-    ../../xnu/EXTERNAL_HEADERS)
+    ../../xnu/EXTERNAL_HEADERS
+    ../IOPCIFamily)
     
 target_compile_options(IOACPIFamily PRIVATE
     -Wno-implicit-int-conversion -Wno-sign-conversion

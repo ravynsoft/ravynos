@@ -31,6 +31,9 @@
 
 #define PE_VERBOSE 1
 
+extern const IORegistryPlane * gIOACPIPlane;
+extern const char *gIOACPIPlaneName;
+
 struct RSDP
 {
     uint8_t signature[8];
@@ -94,9 +97,9 @@ private:
     void PE_Log(const char *fmt, ...);
     void parseAPIC(void * table, IOService * nub);
     void parseFADT(void * table, IOService * nub);
+    void parseMCFG(void * table, IOService * nub);
     
     void setupPIC(IOService *nub);
-    void setupBIOS(IOService *nub);
 
     static int handlePEHaltRestart(unsigned int type);
 

@@ -43,6 +43,9 @@ extern "C" {
 
 #include "ACPIPlatformExpert.h"
 
+const IORegistryPlane * gIOACPIPlane;
+const char *gIOACPIPlaneName = "IOACPIPlane";
+
 enum {
 	kIRQAvailable   = 0,
 	kIRQExclusive   = 1,
@@ -133,6 +136,8 @@ bool ACPIPlatformExpert::init(OSDictionary *properties) {
 
 	register_and_init_prng(&prng_ctx, &prng_funcs);
 
+	gIOACPIPlane = IORegistryEntry::makePlane(gIOACPIPlaneName);
+
 	return true;
 }
 
@@ -143,80 +148,6 @@ bool ACPIPlatformExpert::start(IOService *provider) {
 	PE_halt_restart = handlePEHaltRestart;
 	registerService();
 
-#if PE_VERBOSE
-	PE_Log("Start ACPI mapping");
-#endif
-        IORegistryEntry	* entry = IORegistryEntry::fromPath("/ACPI", gIODTPlane);
-        if (!entry) {
-            PE_Log("Unable to locate ACPI root node");
-            return false;
-        }
-        
-        OSData * data = OSDynamicCast(OSData, entry->getProperty("RSDP"));
-        if (!data) {
-            PE_Log("RSDP property not found in DT!");
-            return false;
-        }
-
-        uint64_t addr = *(uint64_t *)(data->getBytesNoCopy());
-        IOMemoryDescriptor *desc
-            = IOMemoryDescriptor::withPhysicalAddress((IOPhysicalAddress)addr,
-                                                      sizeof(struct RSDP),
-                                                      kIODirectionInOut);
-        IOMemoryMap *map = desc->map(0);
-        struct RSDP * rsdp = (struct RSDP *) map->getVirtualAddress();
-        
-        if (memcmp(rsdp->signature, RSDP_SIGNATURE, 7)) {
-            PE_Log("RSDP table is not valid");
-            return false;
-        }
-
-        struct XSDT * xsdt = (struct XSDT *) rsdp->xsdtAddress;
-        PE_Log("v%d XSDT %p", rsdp->revision, xsdt);
-
-        map->release();
-        desc->release();
-
-        if (!xsdt) {
-            PE_Log("XSDT is missing");
-            return false;
-        }
-
-        /* We're not going to care much about error checking or cleaning up
-         * resources. If this fails, we're going to panic immediately anyway.
-         */
-        desc = IOMemoryDescriptor::withPhysicalAddress((IOPhysicalAddress)xsdt,
-                                                       1024,
-                                                       kIODirectionInOut);
-        map = desc->map(0);
-        xsdt = (struct XSDT *) map->getVirtualAddress();
-        
-        if (memcmp(xsdt->signature, "XSDT", 4)) {
-            PE_Log("XSDT is not valid");
-            return false;
-        }
-
-        int tableCount = (xsdt->length - sizeof(struct XSDT)) / 8;
-        for (int i = 0; i < tableCount; ++i) {
-            IOMemoryDescriptor *tdesc
-                = IOMemoryDescriptor::withPhysicalAddress((IOPhysicalAddress)(xsdt->tables[i]),
-                                                          1024, kIODirectionInOut);
-            IOMemoryMap *tmap = tdesc->map(0);
-
-            /* SDT all have the same header */
-            XSDT *p = (XSDT *) tmap->getVirtualAddress();
-            char name[5] = {0};
-            memcpy(name, p->signature, 4);
-
-            if (!strcmp(name, "APIC"))
-                parseAPIC(p, provider);
-            else if (!strcmp(name, "FACP"))
-                parseFADT(p, provider);
-
-            tmap->release();
-            tdesc->release();
-        }
-
 	return true;
 }
 
@@ -224,6 +155,81 @@ bool ACPIPlatformExpert::configure(IOService *provider) {
 	OSArray *topLevel;
 	OSDictionary *dict;
 	IOService *nub;
+
+	PE_Log("Start ACPI mapping");
+
+    IORegistryEntry	* entry = IORegistryEntry::fromPath("/ACPI", gIODTPlane);
+    if (!entry) {
+        PE_Log("Unable to locate ACPI root node");
+        return false;
+    }
+
+    OSData * data = OSDynamicCast(OSData, entry->getProperty("RSDP"));
+    if (!data) {
+        PE_Log("RSDP property not found in DT!");
+        return false;
+    }
+
+    uint64_t addr = *(uint64_t *)(data->getBytesNoCopy());
+    IOMemoryDescriptor *desc
+        = IOMemoryDescriptor::withPhysicalAddress((IOPhysicalAddress)addr,
+                                                  sizeof(struct RSDP),
+                                                  kIODirectionInOut);
+    IOMemoryMap *map = desc->map(0);
+    struct RSDP * rsdp = (struct RSDP *) map->getVirtualAddress();
+
+    if (memcmp(rsdp->signature, RSDP_SIGNATURE, 7)) {
+        PE_Log("RSDP table is not valid");
+        return false;
+    }
+
+    struct XSDT * xsdt = (struct XSDT *) rsdp->xsdtAddress;
+    PE_Log("v%d XSDT %p", rsdp->revision, xsdt);
+
+    map->release();
+    desc->release();
+
+    if (!xsdt) {
+        PE_Log("XSDT is missing");
+        return false;
+    }
+
+    /* We're not going to care much about error checking or cleaning up
+     * resources. If this fails, we're going to panic immediately anyway.
+     */
+    desc = IOMemoryDescriptor::withPhysicalAddress((IOPhysicalAddress)xsdt,
+                                                   1024,
+                                                   kIODirectionInOut);
+    map = desc->map(0);
+    xsdt = (struct XSDT *) map->getVirtualAddress();
+
+    if (memcmp(xsdt->signature, "XSDT", 4)) {
+        PE_Log("XSDT is not valid");
+        return false;
+    }
+
+    int tableCount = (xsdt->length - sizeof(struct XSDT)) / 8;
+    for (int i = 0; i < tableCount; ++i) {
+        IOMemoryDescriptor *tdesc
+            = IOMemoryDescriptor::withPhysicalAddress((IOPhysicalAddress)(xsdt->tables[i]),
+                                                      1024, kIODirectionInOut);
+        IOMemoryMap *tmap = tdesc->map(0);
+
+        /* SDT all have the same header */
+        XSDT *p = (XSDT *) tmap->getVirtualAddress();
+        char name[5] = {0};
+        memcpy(name, p->signature, 4);
+
+        if (!strcmp(name, "APIC"))
+            parseAPIC(p, this);
+        else if (!strcmp(name, "FACP"))
+            parseFADT(p, this);
+        else if (!strcmp(name, "MCFG"))
+            parseMCFG(p, this);
+
+        tmap->release();
+        tdesc->release();
+    }
 
 	topLevel = OSDynamicCast(OSArray, getProperty("top-level"));
 
@@ -263,8 +269,6 @@ IOService *ACPIPlatformExpert::createNub(OSDictionary *from) {
 		if (strcmp(name, "pci") == 0) {
 			// TODO: Get the PCI info from the boot args
 			// and set it as the `pci-bus-info` property in the `from` dict.
-		} else if (strcmp(name, "bios") == 0) {
-			setupBIOS(nub);
 		} else if (strcmp(name, "8259-pic") == 0) {
 			setupPIC(nub);
 		}
@@ -306,13 +310,6 @@ void ACPIPlatformExpert::setupPIC(IOService *nub) {
 
 	specifier->release();
 	controller->release();
-}
-
-void ACPIPlatformExpert::setupBIOS(IOService *nub) {
-	// TODO: Implement this function.
-	// This function is dependent upon being able to retrieve the
-	// PCI bus data. While the booter does collect some PCI data,
-	// but it does not include the data needed here.
 }
 
 bool ACPIPlatformExpert::getMachineName(char *name, int maxLength) {

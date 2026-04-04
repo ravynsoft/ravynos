@@ -264,6 +264,7 @@ read_frandom(void * buffer, u_int numBytes)
 void
 register_and_init_prng(struct cckprng_ctx *ctx, const struct cckprng_funcs *funcs)
 {
+	kprintf("register_and_init_prng: ctx=%p funcs=%p\n", ctx, funcs);
 	assert(cpu_number() == master_cpu);
 	assert(!prng_ready);
 

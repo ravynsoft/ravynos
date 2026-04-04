@@ -26,6 +26,7 @@
 
 #include <IOKit/pci/IOPCIBridge.h>
 #include <IOKit/pci/IOPCIPrivate.h>
+#include <PCIDriverKit/PCIDriverKitPrivate.h>
 #include <IOKit/pci/IOAGPDevice.h>
 #include <IOKit/pci/IOPCIConfigurator.h>
 #include <IOKit/pci/IOPCIPrivate.h>
@@ -485,7 +486,7 @@ IOReturn IOPCIDevice::setPCIPowerState(uint8_t powerState, uint32_t options)
 						{
 							bits &= ~kPCIPMCSPMEEnable;
 							bits |= kPCIPMCSPMEStatus;
-							prevState = -1;
+							prevState = -1U;
 						}
 						else
 						{
@@ -590,7 +591,7 @@ IOReturn IOPCIDevice::setPowerState( unsigned long newState,
     if (isInactive())
         return (kIOPMAckImplied);
 
-	if ((getProperty(kIOPMResetPowerStateOnWakeKey) == kOSBooleanTrue) && (kIOPCIDeviceOffState == newState))
+	if ((kIOPCIConfiguratorWakeToOff & gIOPCIFlags) && (kIOPCIDeviceOffState == newState))
 	{
 		changePowerStateTo(kIOPCIDeviceOffState);
 		changePowerStateToPriv(kIOPCIDeviceOffState);
@@ -840,7 +841,7 @@ UInt32 IOPCIDevice::extendedConfigRead32( IOByteCount offset )
 {
 	if (!configAccess(false)) return (0xFFFFFFFF);
     IOPCIAddressSpace _space = space;
-    _space.es.registerNumExtended = ((offset >> 8) & 0xF);
+    _space.es.registerNumExtended = (offset >> 8);
     return (configRead32(_space, offset));
 }
 
@@ -848,7 +849,7 @@ void IOPCIDevice::extendedConfigWrite32( IOByteCount offset, UInt32 data )
 {
 	if (!configAccess(true)) return;
     IOPCIAddressSpace _space = space;
-    _space.es.registerNumExtended = ((offset >> 8) & 0xF);
+    _space.es.registerNumExtended = (offset >> 8);
     configWrite32(_space, offset, data);
 }
 
@@ -856,7 +857,7 @@ UInt16 IOPCIDevice::extendedConfigRead16( IOByteCount offset )
 {
 	if (!configAccess(false)) return (0xFFFF);
     IOPCIAddressSpace _space = space;
-    _space.es.registerNumExtended = ((offset >> 8) & 0xF);
+    _space.es.registerNumExtended = (offset >> 8);
     return (configRead16(_space, offset));
 }
 
@@ -864,7 +865,7 @@ void IOPCIDevice::extendedConfigWrite16( IOByteCount offset, UInt16 data )
 {
 	if (!configAccess(true)) return;
     IOPCIAddressSpace _space = space;
-    _space.es.registerNumExtended = ((offset >> 8) & 0xF);
+    _space.es.registerNumExtended = (offset >> 8);
     configWrite16(_space, offset, data);
 }
 
@@ -872,7 +873,7 @@ UInt8 IOPCIDevice::extendedConfigRead8( IOByteCount offset )
 {
 	if (!configAccess(false)) return (0xFF);
     IOPCIAddressSpace _space = space;
-    _space.es.registerNumExtended = ((offset >> 8) & 0xF);
+    _space.es.registerNumExtended = (offset >> 8);
     return (configRead8(_space, offset));
 }
 
@@ -880,7 +881,7 @@ void IOPCIDevice::extendedConfigWrite8( IOByteCount offset, UInt8 data )
 {
 	if (!configAccess(true)) return;
     IOPCIAddressSpace _space = space;
-    _space.es.registerNumExtended = ((offset >> 8) & 0xF);
+    _space.es.registerNumExtended = (offset >> 8);
     configWrite8(_space, offset, data);
 }
 
@@ -893,7 +894,7 @@ UInt32 IOPCIDevice::findPCICapability( UInt8 capabilityID, UInt8 * offset )
 
 UInt32 IOPCIDevice::extendedFindPCICapability( UInt32 capabilityID, IOByteCount * offset )
 {
-    return (parent->extendedFindPCICapability(reserved->configEntry, capabilityID, offset));
+    return (parent->extendedFindPCICapability(space, capabilityID, offset));
 }
 
 UInt32 IOPCIDevice::setConfigBits( UInt8 reg, UInt32 mask, UInt32 value )
@@ -1054,9 +1055,9 @@ bool IOPCIDevice::hasPCIPowerManagement(IOOptionBits state)
         if ((aString = OSDynamicCast(OSData, getProperty("sleep-power-state"))))
         {
             DLOG("%s[%p]::hasPCIPwrMgmt found sleep-power-state string %p\n", getName(), this, aString);
-            if (aString->isEqualTo("D3cold", static_cast<unsigned int>(strlen("D3cold"))))
+            if (aString->isEqualTo("D3cold", strlen("D3cold")))
                 reserved->sleepControlBits = (kPCIPMCSPMEStatus | kPCIPMCSPMEEnable | kPCIPMCSPowerStateD3);
-            else if (aString->isEqualTo("D3Hot", static_cast<unsigned int>(strlen("D3Hot"))))
+            else if (aString->isEqualTo("D3Hot", strlen("D3Hot")))
                 reserved->sleepControlBits = (kPCIPMCSPMEStatus | kPCIPMCSPMEEnable | kPCIPMCSPowerStateD3);
         }
     }
@@ -1401,17 +1402,6 @@ bool IOPCIDevice::handleOpen(IOService * forClient, IOOptionBits options, void *
     if (result == true)
     {
         reserved->sessionOptions = options;
-
-        if((options & kIOPCISessionOptionDriverkit) != 0)
-        {
-            // check if the task is entitled to disable the offload engine
-            OSObject* offloadEngineDisableEntitlement = IOUserClient::copyClientEntitlement(current_task(), kIOPCITransportDextEntitlementOffloadEngineDisable);
-            if(offloadEngineDisableEntitlement != NULL)
-            {
-                reserved->offloadEngineMMIODisable = 1;
-            }
-            OSSafeReleaseNULL(offloadEngineDisableEntitlement);
-        }
     }
 
     return result;
@@ -1422,7 +1412,6 @@ void IOPCIDevice::handleClose(IOService * forClient, IOOptionBits options)
     if (   (isOpen(forClient) == true)
         && ((reserved->sessionOptions & kIOPCISessionOptionDriverkit) != 0))
     {
-        reserved->offloadEngineMMIODisable = 0;
         // Driverkit either called close or crashed. Turn off bus mastering to prevent any further DMAs
         uint16_t command = extendedConfigRead16(kIOPCIConfigurationOffsetCommand);
         if ((command & (kIOPCICommandBusMaster | kIOPCICommandMemorySpace)) != 0)
@@ -1534,350 +1523,8 @@ void IOPCIDevice::copyAERErrorDescriptionForBit(bool uncorrectable, uint32_t bit
     }
 }
 
-IOReturn IOPCIDevice::deviceMemoryRead64(uint8_t   memoryIndex,
-                                         uint64_t  offset,
-                                         uint64_t* readData)
-{
-    IOReturn result = kIOReturnUnsupported;
-
-#if TARGET_CPU_ARM || TARGET_CPU_ARM64
-    if(   (reserved->offloadEngineMMIODisable == 0)
-       && (ml_get_interrupts_enabled() == true)
-       && (ml_at_interrupt_context() == false))
-    {
-        IODeviceMemory* deviceMemoryDescriptor = reserved->deviceMemory[memoryIndex];
-        if(deviceMemoryDescriptor == NULL)
-        {
-            DLOG("IOPCIDevice::deviceMemoryRead64: failed to get memory for index %u\n", memoryIndex);
-            return kIOReturnBadArgument;
-        }
-
-        IOPCIAddressSpace addressSpace;
-        addressSpace.bits = static_cast<uint32_t>(deviceMemoryDescriptor->getTag());
-
-        if(   (addressSpace.s.space != kIOPCI32BitMemorySpace)
-           && (addressSpace.s.space != kIOPCI64BitMemorySpace))
-        {
-            DLOG("IOPCIDevice::deviceMemoryRead64: index %u is not MMIO space\n", memoryIndex);
-            return kIOReturnBadArgument;
-        }
-
-
-        result = reserved->configEntry->hostBridge->deviceMemoryRead(deviceMemoryDescriptor,
-                                                                     offset,
-                                                                     readData,
-                                                                     sizeof(uint64_t));
-    }
-#endif
-
-    // if the host bridge can't do the access through a DMA transaction, directly do the transaction ourself
-    if(result == kIOReturnUnsupported)
-    {
-        IOMemoryMap* deviceMemoryMap = reserved->deviceMemoryMap[memoryIndex];
-        if(deviceMemoryMap != NULL)
-        {
-            *readData = ml_io_read64(deviceMemoryMap->getVirtualAddress() + offset);
-            result = kIOReturnSuccess;
-        }
-        else
-        {
-            DLOG("IOPCIDevice::deviceMemoryRead64: index %u could not get mapping\n", memoryIndex);
-            return kIOReturnNoMemory;
-        }
-    }
-
-    return result;
-}
-
-IOReturn IOPCIDevice::deviceMemoryRead32(uint8_t   memoryIndex,
-                                   uint64_t  offset,
-                                   uint32_t* readData)
-{
-    IOReturn result = kIOReturnUnsupported;
-
-#if TARGET_CPU_ARM || TARGET_CPU_ARM64
-    if(   (reserved->offloadEngineMMIODisable == 0)
-       && (ml_get_interrupts_enabled() == true)
-       && (ml_at_interrupt_context() == false))
-    {
-        IODeviceMemory* deviceMemoryDescriptor = reserved->deviceMemory[memoryIndex];
-        if(deviceMemoryDescriptor == NULL)
-        {
-            DLOG("IOPCIDevice::deviceMemoryRead32: failed to get memory for index %u\n", memoryIndex);
-            return kIOReturnBadArgument;
-        }
-
-        IOPCIAddressSpace addressSpace;
-        addressSpace.bits = static_cast<uint32_t>(deviceMemoryDescriptor->getTag());
-
-        if(   (addressSpace.s.space != kIOPCI32BitMemorySpace)
-           && (addressSpace.s.space != kIOPCI64BitMemorySpace))
-        {
-            DLOG("IOPCIDevice::deviceMemoryRead32: index %u is not MMIO space\n", memoryIndex);
-            return kIOReturnBadArgument;
-        }
-
-        result = reserved->configEntry->hostBridge->deviceMemoryRead(deviceMemoryDescriptor,
-                                                                     offset,
-                                                                     readData,
-                                                                     sizeof(uint32_t));
-    }
-#endif
-
-    // if the host bridge can't do the access through a DMA transaction, directly do the transaction ourself
-    if(result == kIOReturnUnsupported)
-    {
-        IOMemoryMap* deviceMemoryMap = reserved->deviceMemoryMap[memoryIndex];
-        if(deviceMemoryMap != NULL)
-        {
-            *readData = ml_io_read32(deviceMemoryMap->getVirtualAddress() + offset);
-            result = kIOReturnSuccess;
-        }
-        else
-        {
-            DLOG("IOPCIDevice::deviceMemoryRead32: index %u could not get mapping\n", memoryIndex);
-            return kIOReturnNoMemory;
-        }
-    }
-
-    return result;
-}
-
-IOReturn IOPCIDevice::deviceMemoryRead16(uint8_t   memoryIndex,
-                                 uint64_t  offset,
-                                 uint16_t* readData)
-{
-    IOReturn result = kIOReturnUnsupported;
-
-#if TARGET_CPU_ARM || TARGET_CPU_ARM64
-    if(   (reserved->offloadEngineMMIODisable == 0)
-       && (ml_get_interrupts_enabled() == true)
-       && (ml_at_interrupt_context() == false))
-    {
-        IODeviceMemory* deviceMemoryDescriptor = reserved->deviceMemory[memoryIndex];
-        if(deviceMemoryDescriptor == NULL)
-        {
-            DLOG("IOPCIDevice::deviceMemoryRead16: failed to get memory for index %u\n", memoryIndex);
-            return kIOReturnBadArgument;
-        }
-
-        IOPCIAddressSpace addressSpace;
-        addressSpace.bits = static_cast<uint32_t>(deviceMemoryDescriptor->getTag());
-
-        if(   (addressSpace.s.space != kIOPCI32BitMemorySpace)
-           && (addressSpace.s.space != kIOPCI64BitMemorySpace))
-        {
-            DLOG("IOPCIDevice::deviceMemoryRead16: index %u is not MMIO space\n", memoryIndex);
-            return kIOReturnBadArgument;
-        }
-
-        result = reserved->configEntry->hostBridge->deviceMemoryRead(deviceMemoryDescriptor,
-                                                                     offset,
-                                                                     readData,
-                                                                     sizeof(uint16_t));
-    }
-#endif
-
-    // if the host bridge can't do the access through a DMA transaction, directly do the transaction ourself
-    if(result == kIOReturnUnsupported)
-    {
-        IOMemoryMap* deviceMemoryMap = reserved->deviceMemoryMap[memoryIndex];
-        if(deviceMemoryMap != NULL)
-        {
-            *readData = ml_io_read16(deviceMemoryMap->getVirtualAddress() + offset);
-            result = kIOReturnSuccess;
-        }
-        else
-        {
-            DLOG("IOPCIDevice::deviceMemoryRead16: index %u could not get mapping\n", memoryIndex);
-            return kIOReturnNoMemory;
-        }
-    }
-
-    return result;
-}
-
-IOReturn IOPCIDevice::deviceMemoryRead8(uint8_t  memoryIndex,
-                                        uint64_t offset,
-                                        uint8_t* readData)
-{
-    IOReturn result = kIOReturnUnsupported;
-
-#if TARGET_CPU_ARM || TARGET_CPU_ARM64
-    if(   (reserved->offloadEngineMMIODisable == 0)
-       && (ml_get_interrupts_enabled() == true)
-       && (ml_at_interrupt_context() == false))
-    {
-        IODeviceMemory* deviceMemoryDescriptor = reserved->deviceMemory[memoryIndex];
-        if(deviceMemoryDescriptor == NULL)
-        {
-            DLOG("IOPCIDevice::deviceMemoryRead8: failed to get memory for index %u\n", memoryIndex);
-            return kIOReturnBadArgument;
-        }
-
-        IOPCIAddressSpace addressSpace;
-        addressSpace.bits = static_cast<uint32_t>(deviceMemoryDescriptor->getTag());
-
-        if(   (addressSpace.s.space != kIOPCI32BitMemorySpace)
-           && (addressSpace.s.space != kIOPCI64BitMemorySpace))
-        {
-            DLOG("IOPCIDevice::deviceMemoryRead8: index %u is not MMIO space\n", memoryIndex);
-            return kIOReturnBadArgument;
-        }
-
-        result = reserved->configEntry->hostBridge->deviceMemoryRead(deviceMemoryDescriptor,
-                                                                     offset,
-                                                                     readData,
-                                                                     sizeof(uint8_t));
-    }
-#endif
-
-    // if the host bridge can't do the access through a DMA transaction, directly do the transaction ourself
-    if(result == kIOReturnUnsupported)
-    {
-        IOMemoryMap* deviceMemoryMap = reserved->deviceMemoryMap[memoryIndex];
-        if(deviceMemoryMap != NULL)
-        {
-            *readData = ml_io_read8(deviceMemoryMap->getVirtualAddress() + offset);
-            result = kIOReturnSuccess;
-        }
-        else
-        {
-            DLOG("IOPCIDevice::deviceMemoryRead8: index %u could not get mapping\n", memoryIndex);
-            return kIOReturnNoMemory;
-        }
-    }
-
-    return result;
-}
-
-// TODO: support memory writes being routed to the host bridge?
-IOReturn IOPCIDevice::deviceMemoryWrite64(uint8_t  memoryIndex,
-                                          uint64_t offset,
-                                          uint64_t data)
-{
-    IOReturn result = kIOReturnUnsupported;
-
-    IOMemoryMap* deviceMemoryMap = reserved->deviceMemoryMap[memoryIndex];
-    if(deviceMemoryMap != NULL)
-    {
-        ml_io_write(deviceMemoryMap->getVirtualAddress() + offset, data, sizeof(uint64_t));
-        result = kIOReturnSuccess;
-    }
-    else
-    {
-        DLOG("IOPCIDevice::deviceMemoryRead64: index %u could not get mapping\n", memoryIndex);
-        return kIOReturnNoMemory;
-    }
-
-    return result;
-}
-
-IOReturn IOPCIDevice::deviceMemoryWrite32(uint8_t  memoryIndex,
-                                          uint64_t offset,
-                                          uint32_t data)
-{
-    IOReturn result = kIOReturnUnsupported;
-
-    IOMemoryMap* deviceMemoryMap = reserved->deviceMemoryMap[memoryIndex];
-    if(deviceMemoryMap != NULL)
-    {
-        ml_io_write(deviceMemoryMap->getVirtualAddress() + offset, data, sizeof(uint32_t));
-        result = kIOReturnSuccess;
-    }
-    else
-    {
-        DLOG("IOPCIDevice::deviceMemoryRead32: index %u could not get mapping\n", memoryIndex);
-        return kIOReturnNoMemory;
-    }
-
-    return result;
-}
-
-IOReturn IOPCIDevice::deviceMemoryWrite16(uint8_t  memoryIndex,
-                                          uint64_t offset,
-                                          uint16_t data)
-{
-    IOReturn result = kIOReturnUnsupported;
-
-    IOMemoryMap* deviceMemoryMap = reserved->deviceMemoryMap[memoryIndex];
-    if(deviceMemoryMap != NULL)
-    {
-        ml_io_write(deviceMemoryMap->getVirtualAddress() + offset, data, sizeof(uint16_t));
-        result = kIOReturnSuccess;
-    }
-    else
-    {
-        DLOG("IOPCIDevice::deviceMemoryRead16: index %u could not get mapping\n", memoryIndex);
-        return kIOReturnNoMemory;
-    }
-
-    return result;
-}
-
-IOReturn IOPCIDevice::deviceMemoryWrite8(uint8_t  memoryIndex,
-                                         uint64_t offset,
-                                         uint8_t  data)
-{
-    IOReturn result = kIOReturnUnsupported;
-    IOMemoryMap* deviceMemoryMap = reserved->deviceMemoryMap[memoryIndex];
-    if(deviceMemoryMap != NULL)
-    {
-        ml_io_write(deviceMemoryMap->getVirtualAddress() + offset, data, sizeof(uint8_t));
-        result = kIOReturnSuccess;
-    }
-    else
-    {
-        DLOG("IOPCIDevice::deviceMemoryRead8: index %u could not get mapping\n", memoryIndex);
-        return kIOReturnNoMemory;
-    }
-
-    return result;
-}
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-#if TARGET_OS_OSX && !defined(__PUREDARWIN__)
-
-#pragma mark Public DriverKit Methods
-
-kern_return_t IOPCIDevice::SetProperties_Impl(OSDictionary* properties)
-{
-    kern_return_t result = kIOReturnBadArgument;
-
-    if(properties == NULL)
-    {
-        return result;
-    }
-
-    OSObject* dictionaryValue = properties->getObject(kIOPMPCIConfigSpaceVolatileKey);
-    if(   (dictionaryValue == kOSBooleanTrue)
-       || (dictionaryValue == kOSBooleanFalse))
-    {
-        DLOG("%s setting property %s to device %u:%u:%u\n", __PRETTY_FUNCTION__, kIOPMPCIConfigSpaceVolatileKey, PCI_ADDRESS_TUPLE(this));
-        result = kIOReturnSuccess;
-        setProperty(kIOPMPCIConfigSpaceVolatileKey, dictionaryValue);
-    }
-
-    dictionaryValue = properties->getObject(kIOPMPCISleepLinkDisableKey);
-    if(   (dictionaryValue == kOSBooleanTrue)
-       || (dictionaryValue == kOSBooleanFalse))
-    {
-        DLOG("%s setting property %s to device %u:%u:%u\n", __PRETTY_FUNCTION__, kIOPMPCISleepLinkDisableKey, PCI_ADDRESS_TUPLE(this));
-        result = kIOReturnSuccess;
-        setProperty(kIOPMPCISleepLinkDisableKey, dictionaryValue);
-    }
-
-    dictionaryValue = properties->getObject(kIOPMPCISleepResetKey);
-    if(   (dictionaryValue == kOSBooleanTrue)
-       || (dictionaryValue == kOSBooleanFalse))
-    {
-        DLOG("%s setting property %s to device %u:%u:%u\n", __PRETTY_FUNCTION__, kIOPMPCISleepResetKey, PCI_ADDRESS_TUPLE(this));
-        result = kIOReturnSuccess;
-        setProperty(kIOPMPCISleepResetKey, dictionaryValue);
-    }
-
-    return result;
-}
+#if TARGET_OS_OSX
 
 #pragma mark Private DriverKit Methods
 kern_return_t
@@ -1904,89 +1551,6 @@ IMPL(IOPCIDevice, _ManageSession)
     return result;
 }
 
-kern_return_t IOPCIDevice::ClientCrashed_Impl(IOService *client, uint64_t options)
-{
-    // disable bus mastering early, ref: rdar://74099674
-    uint16_t command = extendedConfigRead16(kIOPCIConfigurationOffsetCommand);
-    if ((command & (kIOPCICommandBusMaster | kIOPCICommandMemorySpace)) != 0)
-    {
-        DLOG("IOPCIDevice::ClientCrashed_Impl disabling memory and bus mastering for client %s\n", (client) ? client->getName() : "unknown");
-        extendedConfigWrite16(kIOPCIConfigurationOffsetCommand, command & ~(kIOPCICommandBusMaster | kIOPCICommandMemorySpace));
-    }
-
-    // only reset the device if the driver potentially changed the state of the device
-    if(isOpen(client) == true)
-    {
-        IOLog("%s: PCIDriverKit client, %s, crashed for device %s[%u:%u:%u], attempting to recover\n",
-              __PRETTY_FUNCTION__,
-              (client != NULL) ? client->getName() : "unknown",
-              getName(),
-              PCI_ADDRESS_TUPLE(this));
-
-        thread_call_t threadCall = thread_call_allocate(OSMemberFunctionCast(thread_call_func_t,
-                                                                             this,
-                                                                             &IOPCIDevice::clientCrashedThreadCall),
-                                                        this);
-
-        // threadcall because terminating in this context can deadlock
-        if(threadCall != NULL)
-        {
-            retain();
-            parent->retain();
-            if(thread_call_enter1(threadCall, threadCall /* so the call cleans itself up */) == TRUE)
-            {
-                thread_call_free(threadCall);
-                release();
-                parent->release();
-            }
-        }
-    }
-
-    return kIOReturnSuccess;
-}
-
-IOReturn IOPCIDevice::clientCrashedThreadCall(thread_call_t threadCall)
-{
-    // TODO:
-    // perform hot-reset either by doing a secondary reset on the downstream bridge
-    // or disabling the link and re-enabling it
-
-    // terminate the IOPCIDevice and all its functions
-    OSIterator* peerIterator =  parent->getChildIterator(gIOServicePlane);
-    OSObject*   peer         =  NULL;
-    while (   (peerIterator != NULL)
-           && ((peer = peerIterator->getNextObject()) != NULL))
-    {
-        IOPCIDevice* pciPeer = OSDynamicCast(IOPCIDevice, peer);
-        if (   (pciPeer != NULL)
-            && (pciPeer->isInactive() == false))
-        {
-            DLOG("%s Terminating device %u:%u:%u\n", __PRETTY_FUNCTION__, PCI_ADDRESS_TUPLE(pciPeer));
-            // terminate the IOPCIDevices
-            pciPeer->terminate();
-        }
-    }
-
-    IOPCIDevice* bridgeDevice = OSDynamicCast(IOPCIDevice, parent->getParentEntry(gIOServicePlane));
-    if (bridgeDevice != NULL)
-    {
-        DLOG("%s waiting for downstream devices to finish terminating\n", __PRETTY_FUNCTION__);
-        // wait for the drivers and termination to settle
-        parent->waitQuiet();
-
-        DLOG("%s reprobing bus\n", __PRETTY_FUNCTION__);
-        // re-scan the bridge for this device and its functions
-        parent->kernelRequestProbe(bridgeDevice, kIOPCIProbeOptionNeedsScan | kIOPCIProbeOptionDone);
-    }
-
-    // clean up threadcall
-    release();
-    parent->release();
-    thread_call_free(threadCall);
-
-    return kIOReturnSuccess;
-}
-
 kern_return_t
 IMPL(IOPCIDevice, _MemoryAccess)
 {
@@ -1995,13 +1559,6 @@ IMPL(IOPCIDevice, _MemoryAccess)
         DLOG("IOPCIDevice::%s: device not open for client %s\n", __FUNCTION__, (forClient != NULL) ? forClient->getName() : "unknown client");
         return kIOReturnNotOpen;
     }
-
-	uint8_t memoryIndex = operation & kPCIDriverKitMemoryAccessOperationDeviceMemoryIndexMask;
-	if(memoryIndex > kIOPCIRangeExpansionROM)
-	{
-		DLOG("IOPCIDevice::%s: invalid index %u for client %s\n", __FUNCTION__, memoryIndex, (forClient != NULL) ? forClient->getName() : "unknown client");
-		return kIOReturnBadArgument;
-	}
 
     IOReturn  result = kIOReturnSuccess;
 
@@ -2016,8 +1573,8 @@ IMPL(IOPCIDevice, _MemoryAccess)
             DLOG("%s::%s bad offset 0x%llx\n", "IOPCIDevice", __FUNCTION__, offset);
         }
 
-
-        IOMemoryDescriptor* memoryDescriptor = reserved->deviceMemory[memoryIndex];
+        uint8_t memoryIndex = operation & kPCIDriverKitMemoryAccessOperationDeviceMemoryIndexMask;
+        IOMemoryDescriptor* memoryDescriptor = getDeviceMemoryWithIndex(memoryIndex);
         if (   (memoryDescriptor != NULL)
             && (ioMap != NULL))
         {
@@ -2026,35 +1583,9 @@ IMPL(IOPCIDevice, _MemoryAccess)
 
             IOPhysicalAddress ioSpaceStartAddress = ioMap->getPhysicalAddress();
             IOPhysicalAddress ioSpaceBarAddress   = memoryDescriptor->getPhysicalAddress();
-            IOByteCount       accessSize          = 0;
 
-            // take into account the size of the access so we're not going over the the Bar region
-            switch (operation & kPCIDriverKitMemoryAccessOperationSizeMask)
-            {
-                case kPCIDriverKitMemoryAccessOperation8Bit:
-                {
-                    accessSize = sizeof(uint8_t);
-                    break;
-                }
-                case kPCIDriverKitMemoryAccessOperation16Bit:
-                {
-                    accessSize = sizeof(uint16_t);
-                    break;
-                }
-                case kPCIDriverKitMemoryAccessOperation32Bit:
-                {
-                    accessSize = sizeof(uint32_t);
-                    break;
-                }
-                default:
-                {
-                    DLOG("%s::%s bad request with memeoryIndex %u, offset 0x%x, operation 0x%llx\n", "IOPCIDevice", __FUNCTION__, memoryIndex, ioSpaceOffset, operation);
-                    break;
-                }
-            }
             if(   (addressSpace.s.space == kIOPCIIOSpace)
-               && (accessSize > 0)
-               && ((ioSpaceOffset + accessSize) <= memoryDescriptor->getLength())
+               && (ioSpaceOffset < memoryDescriptor->getLength())
                && (ioSpaceStartAddress <= ioSpaceBarAddress))
             {
                 // I/O space is physically contiguous
@@ -2125,7 +1656,7 @@ IMPL(IOPCIDevice, _MemoryAccess)
     else
 #endif
     {
-        switch (operation & (~kPCIDriverKitMemoryAccessOperationDeviceMemoryIndexMask))
+        switch (operation)
         {
             case kPCIDriverKitMemoryAccessOperationConfigurationRead | kPCIDriverKitMemoryAccessOperation32Bit:
             {
@@ -2157,46 +1688,6 @@ IMPL(IOPCIDevice, _MemoryAccess)
                 extendedConfigWrite8(offset, static_cast<uint8_t>(data));
                 break;
             }
-            case kPCIDriverKitMemoryAccessOperationDeviceRead | kPCIDriverKitMemoryAccessOperation64Bit:
-            {
-                result = deviceMemoryRead64(memoryIndex, offset, readData);
-                break;
-            }
-            case kPCIDriverKitMemoryAccessOperationDeviceRead | kPCIDriverKitMemoryAccessOperation32Bit:
-            {
-                result = deviceMemoryRead32(memoryIndex, offset, reinterpret_cast<uint32_t*>(readData));
-                break;
-            }
-            case kPCIDriverKitMemoryAccessOperationDeviceRead | kPCIDriverKitMemoryAccessOperation16Bit:
-            {
-                result = deviceMemoryRead16(memoryIndex, offset, reinterpret_cast<uint16_t*>(readData));
-                break;
-            }
-            case kPCIDriverKitMemoryAccessOperationDeviceRead | kPCIDriverKitMemoryAccessOperation8Bit:
-            {
-                result = deviceMemoryRead8(memoryIndex, offset, reinterpret_cast<uint8_t*>(readData));
-                break;
-            }
-            case kPCIDriverKitMemoryAccessOperationDeviceWrite | kPCIDriverKitMemoryAccessOperation64Bit:
-            {
-                result = deviceMemoryWrite64(memoryIndex, offset, static_cast<uint64_t>(data));
-                break;
-            }
-            case kPCIDriverKitMemoryAccessOperationDeviceWrite | kPCIDriverKitMemoryAccessOperation32Bit:
-            {
-                result = deviceMemoryWrite32(memoryIndex, offset, static_cast<uint32_t>(data));
-                break;
-            }
-            case kPCIDriverKitMemoryAccessOperationDeviceWrite | kPCIDriverKitMemoryAccessOperation16Bit:
-            {
-                result = deviceMemoryWrite16(memoryIndex, offset, static_cast<uint16_t>(data));
-                break;
-            }
-            case kPCIDriverKitMemoryAccessOperationDeviceWrite | kPCIDriverKitMemoryAccessOperation8Bit:
-            {
-                result = deviceMemoryWrite8(memoryIndex, offset, static_cast<uint8_t>(data));
-                break;
-            }
             default:
             {
                 result = kIOReturnUnsupported;
@@ -2217,49 +1708,28 @@ IMPL(IOPCIDevice, _CopyDeviceMemoryWithIndex)
         return kIOReturnNotOpen;
     }
 
-    if(memoryIndex > kIOPCIRangeExpansionROM)
+    IOReturn result = kIOReturnUnsupported;
+    IOMemoryDescriptor * memoryDescriptor;
+
+    memoryDescriptor = getDeviceMemoryWithIndex(memoryIndex);
+
+    if (memoryDescriptor != NULL)
     {
-        DLOG("IOPCIDevice::%s: invalid index %llu for client %s\n", __FUNCTION__, memoryIndex, (forClient != NULL) ? forClient->getName() : "unknown client");
-        return kIOReturnBadArgument;
-    }
+        IOPCIAddressSpace addressSpace;
+        addressSpace.bits = static_cast<uint32_t>(memoryDescriptor->getTag());
 
-
-    IOReturn result                       = kIOReturnUnsupported;
-    IOMemoryDescriptor * memoryDescriptor = reserved->deviceMemory[memoryIndex];
-    OSArray*  deviceMemoryArray           = NULL;
-    OSObject* deviceMemoryObject          = copyProperty(gIODeviceMemoryKey);
-
-    if((deviceMemoryArray = OSDynamicCast(OSArray, deviceMemoryObject)) != NULL)
-    {
-        if(memoryIndex <= deviceMemoryArray->getCount())
+        if(addressSpace.s.space == kIOPCIIOSpace)
         {
-            memoryDescriptor = OSDynamicCast(IOMemoryDescriptor, deviceMemoryArray->getObject(static_cast<uint32_t>(memoryIndex)));
+            memoryDescriptor = NULL;
+            *returnMemory    = NULL;
         }
-
-        if (memoryDescriptor != NULL)
+        else
         {
-            // since we're bypassing getDeviceMemoryWithIndex, implement our subclass implementation as well.
-            // Make sure L1 is not set
-            if (kTunnelL1NotSet == reserved->tunnelL1Allow) setTunnelL1Enable(this, false);
-
-            IOPCIAddressSpace addressSpace;
-            addressSpace.bits = static_cast<uint32_t>(memoryDescriptor->getTag());
-
-            if(addressSpace.s.space == kIOPCIIOSpace)
-            {
-                memoryDescriptor = NULL;
-                *returnMemory    = NULL;
-            }
-            else
-            {
-                memoryDescriptor->retain();
-                *returnMemory = memoryDescriptor;
-                result = kIOReturnSuccess;
-            }
+            memoryDescriptor->retain();
+            *returnMemory = memoryDescriptor;
+            result = kIOReturnSuccess;
         }
     }
-
-    OSSafeReleaseNULL(deviceMemoryObject);
 
     return result;
 }
@@ -2293,13 +1763,13 @@ IMPL(IOPCIDevice, GetBusDeviceFunction)
 kern_return_t
 IMPL(IOPCIDevice, HasPCIPowerManagement)
 {
-    return hasPCIPowerManagement(static_cast<IOOptionBits>(state)) ? kIOReturnSuccess : kIOReturnUnsupported;
+    return hasPCIPowerManagement(state) ? kIOReturnSuccess : kIOReturnUnsupported;
 }
 
 kern_return_t
 IMPL(IOPCIDevice, EnablePCIPowerManagement)
 {
-    return enablePCIPowerManagement(static_cast<IOOptionBits>(state));
+    return enablePCIPowerManagement(state);
 }
 
 

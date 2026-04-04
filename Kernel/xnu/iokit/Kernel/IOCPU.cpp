@@ -625,6 +625,7 @@ IOCPU::start(IOService *provider)
 {
 	OSData *busFrequency, *cpuFrequency, *timebaseFrequency;
 
+        kprintf("IOCPU::start prov = %p\n", provider);
 	if (!super::start(provider)) {
 		return false;
 	}
