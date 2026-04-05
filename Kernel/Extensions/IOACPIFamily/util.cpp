@@ -21,10 +21,12 @@
  */
 
 #include "ACPIPlatformExpert.h"
+#include "AppleAPIC.h"
 #include <IOKit/IODeviceTreeSupport.h>
 #include <IOKit/pci/IOPCIBridge.h>
 #include <IOKit/pci/IOPCIDevice.h>
 #include <IOKit/pci/IOPCIConfigurator.h>
+#include <pexpert/pexpert.h>
 
 typedef struct {
     uint64_t baseAddress;
@@ -154,7 +156,7 @@ ACPIPlatformExpert::parseAPIC(void * table, IOService * nub)
         PE_Log("Failed to create interrupt arrays!");
         return; /* and panic */
     }
-    
+
     while ((uint64_t)rec < ((uint64_t)madt + madt->length)) {
         if (rec->length == 0) {
             rec = (MADT_Record *) ((uint64_t)rec + sizeof(MADT_Record));
@@ -174,18 +176,11 @@ ACPIPlatformExpert::parseAPIC(void * table, IOService * nub)
                 sprintf(buf, "cpu@%d", index++);
                 dict->setObject("name", OSString::withCString(buf));
                 dict->setObject("location", OSNumber::withNumber(madt->lapicAddress, 32));
-
-                ACPICPU * cpuNub = new ACPICPU();
-                if (!cpuNub) {
-                    PE_Log("Failed to create cpu nub!");
-                    return;
+                IOService * nub = createNub(dict);
+                if (nub) {
+                    nub->attach(this);
+                    nub->registerService();
                 }
-                
-                cpuNub->init(dict);
-                cpuNub->attach(nub);
-                cpuNub->registerService();
-
-                cpuNub->release();
                 dict->release();
                 break;
             }
@@ -207,18 +202,13 @@ ACPIPlatformExpert::parseAPIC(void * table, IOService * nub)
                 sprintf(buf, "io-apic@%d", apic->io_apic_id);
                 dict->setObject("InterruptControllerName",
                                 OSString::withCString(buf));
+                dict->setObject("name", OSString::withCString(buf));
 
-                IOService * apicNub = new IOService();
-                if (!apicNub) {
-                    PE_Log("Failed to create apic nub!");
-                    return;
+                IOService * nub = createNub(dict);
+                if (nub) {
+                    nub->attach(this);
+                    nub->registerService();
                 }
-
-                apicNub->init(dict);
-                apicNub->attach(nub);
-                apicNub->registerService();
-
-                apicNub->release();
                 dict->release();
                 break;
             }
@@ -291,6 +281,83 @@ setCompatibleList(OSDictionary *dict,
     compat->release();
 }
 
+static void
+logDTSubtree(IORegistryEntry *node, int depth)
+{
+    if (!node) return;
+
+    const int maxIndent = 60;
+    int indentLen = depth * 2;
+    if (indentLen > maxIndent) indentLen = maxIndent;
+
+    char indent[maxIndent + 1];
+    memset(indent, ' ', sizeof(indent));
+    indent[indentLen] = '\0';
+
+    const char *name = node->getName(gIODTPlane);
+    if (!name) name = node->getName();
+    if (!name) name = "<unnamed>";
+
+    kprintf("DT %s%s\n", indent, name);
+
+    OSIterator *iter = node->getChildIterator(gIODTPlane);
+    if (!iter) return;
+
+    OSObject *obj = NULL;
+    while ((obj = iter->getNextObject())) {
+        IORegistryEntry *child = OSDynamicCast(IORegistryEntry, obj);
+        if (child) {
+            logDTSubtree(child, depth + 1);
+        }
+    }
+
+    iter->release();
+}
+
+static void
+logGeneratedPCIDeviceTree(void)
+{
+    IORegistryEntry *dtRoot = IORegistryEntry::fromPath("/", gIODTPlane);
+    if (!dtRoot) {
+        kprintf("[ACPI PE] DT dump skipped: unable to find root node\n");
+        return;
+    }
+
+    kprintf("[ACPI PE] Dumping DT nodes\n");
+
+    OSIterator *iter = dtRoot->getChildIterator(gIODTPlane);
+    if (iter) {
+        OSObject *obj = NULL;
+        while ((obj = iter->getNextObject())) {
+            IORegistryEntry *child = OSDynamicCast(IORegistryEntry, obj);
+            if (!child) continue;
+
+            const char *name = child->getName(gIODTPlane);
+            if (name /*&& strncmp(name, "PCI", 3) == 0*/) {
+                logDTSubtree(child, 0);
+            }
+        }
+        iter->release();
+    }
+
+    dtRoot->release();
+}
+
+static bool
+shouldDumpPCIDeviceTree(IOService *pe)
+{
+    int dump = 0;
+    if (PE_parse_boot_argn("acpi_pci_dt_dump", &dump, sizeof(dump))) {
+        return dump != 0;
+    }
+
+    if (pe && pe->getProperty("acpi-pci-dt-dump")) {
+        return true;
+    }
+
+    return false;
+}
+
 void
 ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
 {
@@ -324,6 +391,7 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
 
                 dtHost = new IORegistryEntry();
                 if (dtHost && dtHost->init(hostDict)) {
+                    dtHost->setName(hostName);
                     dtHost->attachToParent(dtRoot, gIODTPlane);
                 } else if (dtHost) {
                     dtHost->release();
@@ -494,20 +562,17 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                     IORegistryEntry * child = new IORegistryEntry();
                     if (parentNode && child) {
                         if (child->init(dict)) {
+                            child->setName(buf);
                             child->attachToParent(parentNode, gIODTPlane);
                         }
                         child->release();
                     }
 
-                    IOService * pciNub = new IOService();
-                    if (pciNub) {
-                        pciNub->init(dict);
-                        pciNub->setName(buf);
-                        pciNub->attach(hostService ? hostService : nub);
-                        pciNub->registerService();
-                        pciNub->release();
+                    IOService * nub = createNub(dict);
+                    if (nub) {
+                        nub->attach(this);
+                        nub->registerService();
                     }
-
                     dict->release();
                     map->release();
                     desc->release();
@@ -518,6 +583,13 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
         if (hostService) hostService->release();
         if (dtHost) dtHost->release();
         if (dtRoot) dtRoot->release();
+    }
+
+    /* Dump generated PCI device trees after enumeration completes.
+     * Enable with boot arg acpi_pci_dt_dump=1
+     */
+    if (shouldDumpPCIDeviceTree(this)) {
+        logGeneratedPCIDeviceTree();
     }
 }
 
@@ -552,4 +624,14 @@ bool appendBridgeRange(uint8_t  * ranges,
     memcpy(ranges + index, &r, sizeof(r));
     index += sizeof(r);
     return true;
+}
+
+const char * ACPIPlatformExpert::deleteList( void )
+{
+    return "()";
+}
+
+const char * ACPIPlatformExpert::excludeList( void )
+{
+    return "(\"cpus\",\"PCI0\",\"PCI1\",\"ACPI\")";
 }

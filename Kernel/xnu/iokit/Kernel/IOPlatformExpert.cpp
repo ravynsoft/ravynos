@@ -109,7 +109,6 @@ OSSymbol * gPlatformInterruptControllerName;
 bool
 IOPlatformExpert::attach( IOService * provider )
 {
-	kprintf("IOPlatformExpert::attach provider = %p\n", provider);
 	if (!super::attach( provider )) {
 		return false;
 	}
@@ -125,7 +124,6 @@ IOPlatformExpert::start( IOService * provider )
 	uint32_t            debugFlags;
 
 
-	kprintf("IOPlatformExpert::start provider = %p\n", provider);
 	if (!super::start(provider)) {
 		return false;
 	}
@@ -200,7 +198,6 @@ IOPlatformExpert::configure( IOService * provider )
 	IOService *         nub;
 
 	topLevel = OSDynamicCast( OSSet, getProperty("top-level"));
-	kprintf("IOPlatformExpert::configure provider = %p, topLevel = %p\n", provider, topLevel);
 
 	if (topLevel) {
 		while ((dict = OSDynamicCast( OSDictionary,
@@ -232,7 +229,6 @@ IOPlatformExpert::createNub( OSDictionary * from )
 			nub = NULL;
 		}
 	}
-	kprintf("IOPlatformExpert::createNub from %p, nub = %p\n", from, nub);
 	return nub;
 }
 
@@ -241,7 +237,6 @@ IOPlatformExpert::compareNubName( const IOService * nub,
     OSString * name, OSString ** matched ) const
 {
 	bool result = nub->IORegistryEntry::compareName( name, matched );
-	kprintf("IOPlatformExpert::compareNubName ret %d\n", result);
 	return result;
 }
 
@@ -1568,7 +1563,7 @@ IODTPlatformExpert::processTopLevel( IORegistryEntry * rootEntry )
 	IORegistryEntry *   cpus;
 	IORegistryEntry *   options;
 
-        kprintf("IODTPE::processTopLevel\n");
+    kprintf("IODTPE::processTopLevel\n");
 	// infanticide
 	kids = IODTFindMatchingEntries( rootEntry, 0, deleteList());
 	if (kids) {

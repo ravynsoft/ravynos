@@ -22,7 +22,7 @@
 
 #include <IOKit/IOLib.h>
 #include <IOKit/acpi/IOACPIPlatformDevice.h>
-#include <IOKit/acpi/IOACPIPlatformExpert.h>
+#include "ACPIPlatformExpert.h"
 #include "IOACPIInlineIO.h"
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -107,15 +107,15 @@ static const char * _PSx[4] = { "_PS0", "_PS1", "_PS2", "_PS3" };
 //---------------------------------------------------------------------------
 
 bool IOACPIPlatformDevice::init( IOService *    platform,
-                                 void *         handle,
-                                 OSDictionary * properties )
+                                  void *         handle,
+                                  OSDictionary * properties )
 {
     kprintf("IOACPI init\n");
     if ( super::init( properties ) != true ) return false;
 
     _deviceHandle    = handle;
     _deviceType      = kTypeDevice;
-    _platform        = OSDynamicCast( IOACPIPlatformExpert, platform );
+    _platform        = OSDynamicCast( ACPIPlatformExpert, platform );
     _sleepPowerState = kIOACPIDevicePowerStateD3;
 
     _powerStateFlags = IONew( UInt32, kIOACPIDevicePowerStateCount );

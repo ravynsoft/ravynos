@@ -27,12 +27,11 @@
 #define _IOKIT_APPLEI386PLATFORM_H
 
 #include <IOKit/IOPlatformExpert.h>
+#include <IOKit/acpi/IOACPIPlatformDevice.h>
+#include <IOKit/acpi/IOACPITypes.h>
 #include "ACPICPU.h"
 
 #define PE_VERBOSE 1
-
-extern const IORegistryPlane * gIOACPIPlane;
-extern const char *gIOACPIPlaneName;
 
 struct RSDP
 {
@@ -85,23 +84,93 @@ struct MADT
 } __attribute__((packed));
 
 
-class ACPIPlatformExpert : public IOPlatformExpert {
+class ACPIPlatformExpert : public IODTPlatformExpert {
     OSDeclareDefaultStructors(ACPIPlatformExpert)
+    friend class IOACPIPlatformDevice;
 
-private:
+ private:
     const char *RSDP_SIGNATURE = "RSD PTR";
     
     const OSSymbol *_interruptControllerName;
-    ACPICPU *bootCPU;
+    OSSet * topLevel;
 
     void PE_Log(const char *fmt, ...);
     void parseAPIC(void * table, IOService * nub);
     void parseFADT(void * table, IOService * nub);
     void parseMCFG(void * table, IOService * nub);
-    
-    void setupPIC(IOService *nub);
-
     static int handlePEHaltRestart(unsigned int type);
+    IOService * createNub(OSDictionary *dict);
+
+
+protected:
+    virtual SInt32 installDeviceInterruptForFixedEvent(IOService *device,
+                                                       UInt32 fixedEvent);
+    virtual SInt32 installDeviceInterruptForGPE(IOService *device,
+                                                UInt32 gpeNumber,
+                                                void *gpeBlockDevice,
+                                                IOOptionBits options);
+
+    virtual IOReturn acquireGlobalLock(IOService *client,
+                                       UInt32 *lockToken,
+                                       const mach_timespec_t *timeout);
+    virtual void releaseGlobalLock(IOService *client,
+                                   UInt32 lockToken);
+
+    virtual IOReturn validateObject(IOACPIPlatformDevice *device,
+                                    const OSSymbol *objectName);
+    virtual IOReturn validateObject(IOACPIPlatformDevice *device,
+                                    const char *objectName);
+
+    virtual IOReturn evaluateObject(IOACPIPlatformDevice *device,
+                                    const OSSymbol *objectName,
+                                    OSObject **result,
+                                    OSObject *params[],
+                                    IOItemCount paramCount,
+                                    IOOptionBits options);
+    virtual IOReturn evaluateObject(IOACPIPlatformDevice *device,
+                                    const char *objectName,
+                                    OSObject **result,
+                                    OSObject *params[],
+                                    IOItemCount paramCount,
+                                    IOOptionBits options);
+
+    virtual const OSData *getACPITableData(const char *tableName,
+                                           UInt32 tableInstance);
+
+    virtual IOReturn registerAddressSpaceHandler(IOACPIPlatformDevice *device,
+                                                 IOACPIAddressSpaceID spaceID,
+                                                 IOACPIAddressSpaceHandler handler,
+                                                 void *context,
+                                                 IOOptionBits options);
+
+    virtual void unregisterAddressSpaceHandler(IOACPIPlatformDevice *device,
+                                               IOACPIAddressSpaceID spaceID,
+                                               IOACPIAddressSpaceHandler handler,
+                                               IOOptionBits options);
+
+    virtual IOReturn readAddressSpace(UInt64 *value,
+                                      IOACPIAddressSpaceID spaceID,
+                                      IOACPIAddress address,
+                                      UInt32 bitWidth,
+                                      UInt32 bitOffset,
+                                      IOOptionBits options);
+
+    virtual IOReturn writeAddressSpace(UInt64 value,
+                                       IOACPIAddressSpaceID spaceID,
+                                       IOACPIAddress address,
+                                       UInt32 bitWidth,
+                                       UInt32 bitOffset,
+                                       IOOptionBits options);
+
+    virtual IOReturn setDevicePowerState(IOACPIPlatformDevice *device,
+                                         UInt32 powerState);
+    virtual IOReturn getDevicePowerState(IOACPIPlatformDevice *device,
+                                         UInt32 *powerState);
+    virtual IOReturn setDeviceWakeEnable(IOACPIPlatformDevice *device,
+                                         bool enable);
+
+    virtual const char * deleteList( void );
+    virtual const char * excludeList( void );
 
 public:
     virtual bool init(OSDictionary *properties) APPLE_KEXT_OVERRIDE;
@@ -109,7 +178,6 @@ public:
     virtual bool start(IOService *provider) APPLE_KEXT_OVERRIDE;
     virtual bool configure(IOService *provider) APPLE_KEXT_OVERRIDE;
     virtual bool matchNubWithPropertyTable(IOService *nub, OSDictionary *table);
-    virtual IOService *createNub(OSDictionary *from) APPLE_KEXT_OVERRIDE;
     virtual bool reserveSystemInterrupt(IOService *client, UInt32 vectorNumber, bool exclusive);
     virtual void releaseSystemInterrupt(IOService *client, UInt32 vectorNumber, bool exclusive);
     virtual bool setNubInterruptVectors(IOService *nub, const UInt32 vectors[], UInt32 vectorCount);

@@ -11,6 +11,7 @@ These arguments can be specified in `com.ravynos.boot.plist` and on the booter
 | -enable_x86_64h  | Require Haswell or later CPU architecture                  |
 | -topo            | Enable CPU topology debug logging
 |                  |                                                            |
+| acpi_pci_dt_dump | Dump generated PCI DT subtree after ACPI MCFG parse (`=1`) |
 | debug            | Flags for Kernel Debugger/KDP (see: osfmk/kern/debug.h)    |
 | dart             | Flags for IOPlatformExpert (see: iokit/IOKit/IOKitDebug.h) |
 | io               | Debug flags for IOKit                                      |

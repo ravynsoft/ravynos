@@ -27,7 +27,7 @@
 #include <IOKit/IOPlatformExpert.h>
 #include <IOKit/acpi/IOACPITypes.h>
 
-class IOACPIPlatformExpert;
+class ACPIPlatformExpert;
 
 class IOACPIPlatformDevice : public IOPlatformDevice
 {
@@ -40,7 +40,7 @@ protected:
     UInt32 *               _powerStateFlags;
     UInt32                 _sleepPowerState;
     IOService *            _acpiParent;
-    IOACPIPlatformExpert * _platform;
+    ACPIPlatformExpert * _platform;
 
     /*! @struct ExpansionData
         @discussion This structure will be used to expand the capablilties
