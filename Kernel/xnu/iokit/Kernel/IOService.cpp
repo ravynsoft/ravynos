@@ -1146,24 +1146,44 @@ IOService::catalogNewDrivers( OSOrderedSet * newTables )
 		newTables->removeObject(table);
 	}
 
+    const OSSymbol *sym = OSSymbol::withCString("IOACPIPlatformExpert");
+    const OSMetaClass *mc = OSMetaClass::getMetaClassWithName(sym);
+    if (sym)
+        sym->release();
+
+    OSKext *kext = OSKext::lookupKextWithIdentifier("com.apple.iokit.IOACPIFamily");
+	if (kext && !mc && !kext->isCPPInitialized()) {
+		struct kmod_info ki = {};
+        ki.id = kext->getLoadTag();
+
+		kernel_section_t *sec = kext->lookupSection("__TEXT", "__text");
+		if (!sec)
+			sec = kext->lookupSection("__TEXT_EXEC", "__text");
+
+		if (sec) {
+			ki.address = sec->addr;
+			ki.size = sec->size;
+		} else {
+		    kprintf("Unable to find __text section for kext %s\n",
+		                  kext->getIdentifierCString());
+		}
+
+        if (ki.address != 0 && ki.size != 0) {
+            IOStatistics::onKextLoad(kext, &ki);
+        }
+
+        (void) OSRuntimeInitializeCPP(kext);
+    }
+    /* Do NOT release kext here. Nothing else retains it yet and the
+     * kernel will panic if it loses the Platform Expert.
+     */
+
 	if (allSet) {
 		while ((service = (IOService *) allSet->getAnyObject())) {
-                    const OSSymbol *sym = OSSymbol::withCString("IOACPIPlatformExpert");
-                    const OSMetaClass *mc = OSMetaClass::getMetaClassWithName(sym);
-                    OSKext *kext = OSKext::lookupKextWithIdentifier("com.apple.iokit.IOACPIFamily");
-                    if (kext && !mc) {
-                        struct kmod_info ki;
-                        ki.id = kext->getLoadTag();
-                        ki.address = 0;
-                        ki.size = 0;
-                        IOStatistics::onKextLoad(kext, &ki);
-                        OSRuntimeInitializeCPP(kext);
-                    }
-
-                    service->startMatching(kIOServiceAsynchronous);
-                    allSet->removeObject(service);
+			service->startMatching(kIOServiceAsynchronous);
+			allSet->removeObject(service);
 		}
-                allSet->release();
+		allSet->release();
 	}
 
 	newTables->release();
@@ -3826,6 +3846,9 @@ IOService::probeCandidates( OSOrderedSet * matches )
 				if (__state[1] & kIOServiceSynchronousState) {
 					inst->__state[1] |= kIOServiceSynchronousState;
 				}
+				if (!inst->getProperty(gIONameKey)) {
+					inst->setName(symbol->getCStringNoCopy());
+				}
 
 				// give the driver the default match category if not specified
 				category = OSDynamicCast( OSSymbol,
@@ -3846,7 +3869,7 @@ IOService::probeCandidates( OSOrderedSet * matches )
 #if IOMATCHDEBUG
 				if (debugFlags & kIOLogProbe) {
 					LOG("%s::probe(%s)\n",
-					    inst->getMetaClass()->getClassName(), getName());
+					    inst->getName(), getName());
 				}
 #endif
 

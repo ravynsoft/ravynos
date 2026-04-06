@@ -222,7 +222,12 @@ bool ACPIPlatformExpert::configure(IOService *provider) {
         = IOMemoryDescriptor::withPhysicalAddress((IOPhysicalAddress)addr,
                                                   sizeof(struct RSDP),
                                                   kIODirectionInOut);
+    if (!desc) return false;
     IOMemoryMap *map = desc->map(0);
+    if (!map) {
+        desc->release();
+        return false;
+    }
     struct RSDP * rsdp = (struct RSDP *) map->getVirtualAddress();
 
     if (memcmp(rsdp->signature, RSDP_SIGNATURE, 7)) {
@@ -247,7 +252,12 @@ bool ACPIPlatformExpert::configure(IOService *provider) {
     desc = IOMemoryDescriptor::withPhysicalAddress((IOPhysicalAddress)xsdt,
                                                    1024,
                                                    kIODirectionInOut);
+    if (!desc) return false;
     map = desc->map(0);
+    if (!map) {
+        desc->release();
+        return false;
+    }
     xsdt = (struct XSDT *) map->getVirtualAddress();
 
     if (memcmp(xsdt->signature, "XSDT", 4)) {
@@ -260,7 +270,12 @@ bool ACPIPlatformExpert::configure(IOService *provider) {
         IOMemoryDescriptor *tdesc
             = IOMemoryDescriptor::withPhysicalAddress((IOPhysicalAddress)(xsdt->tables[i]),
                                                       1024, kIODirectionInOut);
+        if (!tdesc) continue;
         IOMemoryMap *tmap = tdesc->map(0);
+        if (!tmap) {
+            tdesc->release();
+            continue;
+        }
 
         /* SDT all have the same header */
         XSDT *p = (XSDT *) tmap->getVirtualAddress();
@@ -278,11 +293,19 @@ bool ACPIPlatformExpert::configure(IOService *provider) {
         tdesc->release();
     }
 
+    map->release();
+    desc->release();
+
 	return super::configure(provider);
 }
 
 IOService *
 ACPIPlatformExpert::createNub(OSDictionary *dict) {
+    if (!dict) {
+        PE_Log("createNub called with null dictionary");
+        return NULL;
+    }
+
     IOService * nub = 0;
     OSString * type = (OSString *)dict->getObject("device_type");
     OSString * osName = (OSString *)dict->getObject("name");
@@ -293,41 +316,72 @@ ACPIPlatformExpert::createNub(OSDictionary *dict) {
         PE_Log("new ACPICPU(%p)", nub);
         if (!nub || !nub->init(dict)) {
             PE_Log("Failed to create processor nub!");
+            if (nub) nub->release();
             return NULL;
         }
         nub->setName(name);
     } else if (type && type->isEqualTo("io-apic")) {
-        nub = new IOService();
-        PE_Log("new APIC IOService(%p)", nub);
-        if (!nub || !nub->init(dict)) {
+        IOACPIPlatformDevice *device = new IOACPIPlatformDevice();
+        nub = device;
+        PE_Log("new APIC(%p)", nub);
+        if (!device || !device->init(this, nullptr, dict)) {
             PE_Log("Failed to create APIC nub!");
+            if (device) device->release();
             return NULL;
         }
         nub->setName(name);
     } else if (type && type->isEqualTo("pci")) {
-        IOService * nub = new IOService();
+        IOACPIPlatformDevice *device = new IOACPIPlatformDevice();
+        nub = device;
         PE_Log("new PCI IOService(%p)", nub);
-        if (!nub || !nub->init(dict)) {
+        if (!device || !device->init(this, nullptr, dict)) {
             PE_Log("Failed to create PCI nub!");
+            if (device) device->release();
             return NULL;
         }
         nub->setName(name);
     } else {
-        PE_Log("Unknown device '%s' type '%s' in ACPI table, skipping",
-                osName, type->getCStringNoCopy());
+        PE_Log("Unknown device '%s' in ACPI table, skipping", name);
     }
 
     return nub;
 }
 
 bool ACPIPlatformExpert::matchNubWithPropertyTable(IOService *nub, OSDictionary *table) {
+  if (!nub || !table) return false;
+
 	OSString *nameProp;
 	OSString *match;
 
 	if ((nameProp = (OSString *)nub->getProperty(gIONameKey)) == 0) return false;
 	if ((match = (OSString *)table->getObject(gIONameMatchKey)) == 0) return false;
 
-	return match->isEqualTo(nameProp);
+    /* Try exact match first */
+	bool result = match->isEqualTo(nameProp);
+	if (result) return result;
+
+	/* Fall back to prefix match, which is common for ACPI devices. */
+    char buf[64];
+	const char *pName =  nameProp->getCStringNoCopy();
+	PE_Log("FALLBACK(%s) %s vs %s",
+	    nameProp->getCStringNoCopy(),
+	    pName,
+	    match->getCStringNoCopy());
+	if (!pName) return false;
+	int i = 0;
+	while (*(pName+i) && i < sizeof(buf)-1) {
+        if (*(pName+i) == '@')
+            break;
+        ++i;
+    }
+    memset(buf, 0, sizeof(buf));
+    memcpy(buf, pName, i);
+    OSString * prefix = OSString::withCString(buf);
+    if (!prefix) return false;
+    PE_Log("buf = %s, prefix = %p", buf, prefix);
+    result =  match->isEqualTo(prefix);
+    prefix->release();
+    return result;
 }
 
 bool ACPIPlatformExpert::getMachineName(char *name, int maxLength) {

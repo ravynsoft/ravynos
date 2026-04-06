@@ -176,10 +176,11 @@ ACPIPlatformExpert::parseAPIC(void * table, IOService * nub)
                 sprintf(buf, "cpu@%d", index++);
                 dict->setObject("name", OSString::withCString(buf));
                 dict->setObject("location", OSNumber::withNumber(madt->lapicAddress, 32));
-                IOService * nub = createNub(dict);
-                if (nub) {
-                    nub->attach(this);
-                    nub->registerService();
+                IOService * aNub = createNub(dict);
+                if (aNub) {
+                    aNub->attach(nub);
+                    aNub->registerService();
+                    aNub->release();
                 }
                 dict->release();
                 break;
@@ -189,7 +190,6 @@ ACPIPlatformExpert::parseAPIC(void * table, IOService * nub)
                 OSDictionary * dict = OSDictionary::withCapacity(7);
 
                 dict->setObject("device_type", OSString::withCString("io-apic"));
-                dict->setObject("compatible", OSString::withCString("8259-pic"));
 
                 /* These should get AppleAPIC to match */
                 dict->setObject("Destination APIC ID",
@@ -203,11 +203,13 @@ ACPIPlatformExpert::parseAPIC(void * table, IOService * nub)
                 dict->setObject("InterruptControllerName",
                                 OSString::withCString(buf));
                 dict->setObject("name", OSString::withCString(buf));
+                dict->setObject("compatible", OSString::withCString("io-apic"));
 
-                IOService * nub = createNub(dict);
-                if (nub) {
-                    nub->attach(this);
-                    nub->registerService();
+                IOService * aNub = createNub(dict);
+                if (aNub) {
+                    aNub->attach(nub);
+                    aNub->registerService();
+                    aNub->release();
                 }
                 dict->release();
                 break;
@@ -252,9 +254,10 @@ ACPIPlatformExpert::parseFADT(void * table, IOService * nub)
 }
 
 bool
-appendBridgeRange(uint8_t  * ranges,
-                                  uint8_t    spaceType,
-                                  bool       prefetch,
+appendBridgeRange(uint8_t   * ranges,
+                                  uint32_t * index,
+                                  uint8_t     spaceType,
+                                  bool         prefetch,
                                   uint64_t   parentBase,
                                   uint64_t   size);
 
@@ -513,12 +516,14 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                         uint8_t ranges[3 * 8 * sizeof(uint32_t)]; // up to 3 entries, 8 cells each
 
                         // I/O window
+                        uint32_t index = 0;
                         uint64_t ioBase  = ((uint64_t)(b->io_base  & 0xF0) << 8)
                                          | ((uint64_t)b->io_base_upper16  << 16);
                         uint64_t ioLimit = ((uint64_t)(b->io_limit & 0xF0) << 8)
                                          | ((uint64_t)b->io_limit_upper16 << 16) | 0xFFFULL;
                         if (ioLimit >= ioBase)
                             appendBridgeRange(ranges,
+                                              &index,
                                               kIOPCIIOSpace,
                                               false,
                                               ioBase,
@@ -529,6 +534,7 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                         uint64_t memLimit = ((uint64_t)(b->memory_limit & 0xFFF0) << 16) | 0xFFFFFULL;
                         if (memLimit >= memBase)
                             appendBridgeRange(ranges,
+                                              &index,
                                               kIOPCI32BitMemorySpace,
                                               false,
                                               memBase,
@@ -542,6 +548,7 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                                          | ((uint64_t)b->prefetchable_limit_upper32 << 32);
                         if (pfLimit >= pfBase)
                             appendBridgeRange(ranges,
+                                              &index,
                                               kIOPCI32BitMemorySpace,
                                               true,
                                               pfBase,
@@ -568,10 +575,10 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                         child->release();
                     }
 
-                    IOService * nub = createNub(dict);
-                    if (nub) {
-                        nub->attach(this);
-                        nub->registerService();
+                    IOService * aNub = createNub(dict);
+                    if (aNub) {
+                        aNub->attach(nub);
+                        aNub->registerService();
                     }
                     dict->release();
                     map->release();
@@ -593,13 +600,13 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
     }
 }
 
-bool appendBridgeRange(uint8_t  * ranges,
-                       uint8_t    spaceType,
-                       bool       prefetch,
-                       uint64_t   parentBase,
-                       uint64_t   size)
+bool appendBridgeRange(uint8_t    * ranges,
+                                          uint32_t  * index,
+                                          uint8_t      spaceType,
+                                          bool          prefetch,
+                                          uint64_t    parentBase,
+                                          uint64_t    size)
 {
-    static int index = 0;
     if (!ranges || size == 0) return false;
 
     IOPCIPhysicalAddress r = {};
@@ -618,11 +625,11 @@ bool appendBridgeRange(uint8_t  * ranges,
 
     // child address (3 cells)
     int bytes = sizeof(r.physHi) + sizeof(r.physMid) + sizeof(r.physLo);
-    memcpy(ranges + index, &r, bytes);
-    index += bytes;  
+    memcpy(ranges + *index, &r, bytes);
+    *index += bytes;
     // parent address + size (5 cells)
-    memcpy(ranges + index, &r, sizeof(r));
-    index += sizeof(r);
+    memcpy(ranges + *index, &r, sizeof(r));
+    *index += sizeof(r);
     return true;
 }
 
