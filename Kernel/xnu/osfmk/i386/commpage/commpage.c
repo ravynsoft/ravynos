@@ -60,6 +60,7 @@
 #include <machine/cpu_capabilities.h>
 #include <machine/commpage.h>
 #include <machine/pmap.h>
+#include <pexpert/pexpert.h>
 #include <vm/vm_kern.h>
 #include <vm/vm_map.h>
 #include <stdatomic.h>
@@ -247,9 +248,26 @@ commpage_specific_addr_of(char *commPageBase, commpage_address_t addr_at_runtime
 static int
 commpage_cpus( void )
 {
-	int cpus;
+	int cpus = 0;
+	int skip_ml_maxcpus = 0;
 
-	cpus = ml_get_max_cpus();                   // NB: this call can block
+	/* Bring-up escape hatch for platforms where ml_get_max_cpus() can block. */
+	(void) PE_parse_boot_argn("commpage_skip_ml_maxcpus", &skip_ml_maxcpus, sizeof(skip_ml_maxcpus));
+	if (!skip_ml_maxcpus) {
+		cpus = ml_get_max_cpus();                   // NB: this call can block
+	} else {
+		cpus = machine_info.logical_cpu_max;
+		if (cpus <= 0) {
+			i386_cpu_info_t *cpu_info = cpuid_info();
+			if (cpu_info && cpu_info->cpuid_logical_per_package > 0) {
+				cpus = (int)cpu_info->cpuid_logical_per_package;
+			}
+		}
+		if (cpus <= 0) {
+			cpus = 1;
+		}
+		kprintf("commpage: bypassing ml_get_max_cpus(), using %d CPUs\n", cpus);
+	}
 
 	if (cpus == 0) {
 		panic("commpage cpus==0");

@@ -579,6 +579,7 @@ kernel_bootstrap_thread(void)
 #ifdef  IOKIT
 	kernel_bootstrap_log("PE_init_iokit");
 	PE_init_iokit();
+	kernel_bootstrap_log("PE_init_iokit completed");
 #endif
 
 	assert(ml_get_interrupts_enabled() == FALSE);
@@ -594,6 +595,7 @@ kernel_bootstrap_thread(void)
 	ml_spin_debug_clear_self();
 #endif
 	(void) spllo();         /* Allow interruptions */
+	kprintf("after spllo\n");
 
 #if (defined(__i386__) || defined(__x86_64__)) && NCOPY_WINDOWS > 0
 	/*
@@ -605,13 +607,17 @@ kernel_bootstrap_thread(void)
 	 */
 	cpu_userwindow_init(0);
 #endif
+	kprintf("after cpu_userwindow_init\n");
 
 	/*
 	 *	Initialize the shared region module.
 	 */
 	vm_shared_region_init();
+	kprintf("after vm_shared_region_init\n");
 	vm_commpage_init();
+	kprintf("after vm_commpage_init\n");
 	vm_commpage_text_init();
+	kprintf("after vm_commpage_text_init\n");
 
 #if CONFIG_MACF
 	kernel_bootstrap_log("mac_policy_initmach");
@@ -634,6 +640,7 @@ kernel_bootstrap_thread(void)
 	 * the static KVA mappings used for the jettisoned bootstrap segments.
 	 */
 	OSKextRemoveKextBootstrap();
+	kprintf("after OSKextRemoveKextBootstrap\n");
 #if defined(__arm__) || defined(__arm64__)
 #if CONFIG_KERNEL_INTEGRITY
 	machine_lockdown_preflight();
@@ -654,15 +661,21 @@ kernel_bootstrap_thread(void)
 	 * rather than early_random().
 	 */
 	read_random(&vm_kernel_addrperm, sizeof(vm_kernel_addrperm));
+	kprintf("after read_random 1\n");
 	vm_kernel_addrperm |= 1;
 	read_random(&buf_kernel_addrperm, sizeof(buf_kernel_addrperm));
+	kprintf("after read_random 2\n");
 	buf_kernel_addrperm |= 1;
 	read_random(&vm_kernel_addrperm_ext, sizeof(vm_kernel_addrperm_ext));
+	kprintf("after read_random 3\n");
 	vm_kernel_addrperm_ext |= 1;
 	read_random(&vm_kernel_addrhash_salt, sizeof(vm_kernel_addrhash_salt));
+	kprintf("after read_random 4\n");
 	read_random(&vm_kernel_addrhash_salt_ext, sizeof(vm_kernel_addrhash_salt_ext));
+	kprintf("after read_random 5\n");
 
 	vm_set_restrictions();
+	kprintf("after vm_set_restrictions\n");
 
 
 #ifdef CONFIG_XNUPOST
@@ -674,6 +687,7 @@ kernel_bootstrap_thread(void)
 	kernel_bootstrap_log("kernel_do_post - done");
 #endif /* CONFIG_XNUPOST */
 
+    kprintf("before bsd_init()");
 
 	/*
 	 *	Start the user bootstrap.

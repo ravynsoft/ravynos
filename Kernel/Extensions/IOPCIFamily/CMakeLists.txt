@@ -14,6 +14,8 @@ target_sources(IOPCIFamily PRIVATE
     IOPCIMessagedInterruptController.cpp
 )
 
+add_dependencies(IOPCIFamily kextBuild)
+
 # Keep DriverKit-only IMPL() methods out of kernel IOPCIDevice.cpp.
 set_source_files_properties(IOPCIDevice.cpp PROPERTIES
     COMPILE_DEFINITIONS TARGET_OS_OSX=0)

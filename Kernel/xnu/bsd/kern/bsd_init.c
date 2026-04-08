@@ -486,6 +486,7 @@ bsd_init(void)
 #else
 #define bsd_init_kprintf(x, ...)
 #endif
+    kprintf("bsd_init: starting\n");
 
 	throttle_init();
 

@@ -26,6 +26,7 @@
 #include <IOKit/pci/IOPCIBridge.h>
 #include <IOKit/pci/IOPCIDevice.h>
 #include <IOKit/pci/IOPCIConfigurator.h>
+#include <IOKit/pci/IOPCIPrivate.h>
 #include <pexpert/pexpert.h>
 
 typedef struct {
@@ -365,12 +366,20 @@ void
 ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
 {
     PE_Log("parseMCFG(%p, %p)", table, nub);
+    PE_Log("IOPCIPlatformInitialize() = %d", IOPCIPlatformInitialize());
 
     ACPI_MCFG *entry = (ACPI_MCFG *) ((uint64_t)table
             + sizeof(struct XSDT) + sizeof(uint64_t) /* reserved field */);
 
     int count = (((struct XSDT *)table)->length
                     - sizeof(struct XSDT) - sizeof(uint64_t)) / sizeof(ACPI_MCFG);
+
+    IOPCIConfigurator * configurator = new IOPCIConfigurator();
+    if (!configurator) {
+        PE_Log("Failed to create PCI configurator!");
+        return;
+    }
+    configurator->init(IOWorkLoop::workLoop(), 0);
 
     for (int i = 0; i < count; i++) {
         int bus = entry[i].startBus;
@@ -379,41 +388,6 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
         IORegistryEntry * dtRoot = IORegistryEntry::fromPath("/", gIODTPlane);
         IORegistryEntry * dtHost = NULL;
         IOService * hostService = NULL;
-        if (dtRoot) {
-            OSDictionary * hostDict = OSDictionary::withCapacity(8);
-            if (hostDict) {
-                char hostName[32];
-                snprintf(hostName, sizeof(hostName), "PCI%u", entry[i].segmentGroup);
-                hostDict->setObject("name", OSString::withCString(hostName));
-                hostDict->setObject("device_type", OSString::withCString("pci"));
-                hostDict->setObject("compatible", OSString::withCString("pci-host-bridge"));
-
-                uint32_t ac = 3, sc = 2;
-                hostDict->setObject("#address-cells", OSData::withBytes(&ac, sizeof(ac)));
-                hostDict->setObject("#size-cells", OSData::withBytes(&sc, sizeof(sc)));
-
-                dtHost = new IORegistryEntry();
-                if (dtHost && dtHost->init(hostDict)) {
-                    dtHost->setName(hostName);
-                    dtHost->attachToParent(dtRoot, gIODTPlane);
-                } else if (dtHost) {
-                    dtHost->release();
-                    dtHost = NULL;
-                }
-
-                hostService = new IOService();
-                if (hostService && hostService->init(hostDict)) {
-                    hostService->setName(hostName);
-                    hostService->attach(nub);
-                    hostService->registerService();
-                } else if (hostService) {
-                    hostService->release();
-                    hostService = NULL;
-                }
-
-                hostDict->release();
-            }
-        }
 
         for (; bus <= entry[i].endBus; bus++) {
             for (int device = 0; device < 32; device++) {
@@ -445,7 +419,7 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                     uint8_t hdrTypeRaw = header->header_type;
                     uint8_t hdrType = (uint8_t)(hdrTypeRaw & 0x7f);
 
-                    if (vendorID == 0xffff || vendorID == 0x0000 || hdrType > 1) {
+                    if (vendorID == 0xffff || hdrType > 1) {
                         map->release();
                         desc->release();
                         continue;
@@ -459,6 +433,7 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                     uint32_t classCode = (header->class_code << 16)
                                        | (header->subclass << 8)
                                        |  header->prog_if;
+                    bool isBridge = (header->class_code == 0x06);
 
                     PE_Log("Found PCI device %04x:%04x at %d:%d:%d, class %06x",
                             vendorID, deviceID, bus, device, function, classCode);
@@ -466,8 +441,8 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                     OSDictionary * dict = OSDictionary::withCapacity(16);
 
                     char buf[32];
-                    sprintf(buf, "%s@%d,%d", hdrType == 1 ? "PCI" : "pci",
-                                                              device, function);
+                    /* host bridge gets capital letters :) */
+                    sprintf(buf, "pci@%d,%d", device, function);
                     dict->setObject("name", OSString::withCString(buf));
 
                     IOPCIAddressSpace reg = {};
@@ -477,10 +452,12 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                     reg.s.registerNum = 0;
                     dict->setObject("reg", OSData::withBytes(&reg, sizeof(reg)));
 
-                    dict->setObject("vendor-id", OSData::withBytes(&vendorID, sizeof(vendorID)));
-                    dict->setObject("device-id", OSData::withBytes(&deviceID, sizeof(deviceID)));
+                    uint32_t vendorID32 = vendorID;
+                    uint32_t deviceID32 = deviceID;
+                    dict->setObject("vendor-id", OSData::withBytes(&vendorID32, sizeof(vendorID32)));
+                    dict->setObject("device-id", OSData::withBytes(&deviceID32, sizeof(deviceID32)));
                     dict->setObject("class-code", OSData::withBytes(&classCode, sizeof(classCode)));
-                    dict->setObject("revision-id", OSData::withBytes(&header->revision_id, sizeof(uint32_t)));
+                    dict->setObject("revision-id", OSData::withBytes(&header->revision_id, sizeof(header->revision_id)));
                     dict->setObject("device_type", OSString::withCString("pci"));
 
                     if (hdrType == 0) {
@@ -556,30 +533,45 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                         dict->setObject("ranges", OSData::withBytes(ranges, sizeof(ranges)));
 
                         // Bridge compatible string list: "pci-bridge", "pciVVVV,DDDD", "pciclass,060400"
-                        char compat1[32];
+                        char compat1[32], compat2[32];
                         snprintf(compat1, sizeof(compat1), "pci%04x,%04x", vendorID, deviceID);
-                        setCompatibleList(dict, "pci-bridge", compat1, "pciclass,060400");
+                        snprintf(compat2, sizeof(compat2), "pciclass,%06x", classCode);
+                        setCompatibleList(dict, "pci-bridge", compat1, compat2);
                     }
 
                     uint32_t ac = 3, sc = 2;
                     dict->setObject("#address-cells", OSData::withBytes(&ac, sizeof(ac)));
                     dict->setObject("#size-cells", OSData::withBytes(&sc, sizeof(sc)));
 
-                    IORegistryEntry * parentNode = dtHost ? dtHost : dtRoot;
+                    IORegistryEntry * parentNode = isBridge ? dtRoot : dtHost;
                     IORegistryEntry * child = new IORegistryEntry();
                     if (parentNode && child) {
                         if (child->init(dict)) {
                             child->setName(buf);
                             child->attachToParent(parentNode, gIODTPlane);
                         }
-                        child->release();
+                        if (isBridge)
+                            dtHost = child;
                     }
 
-                    IOService * aNub = createNub(dict);
-                    if (aNub) {
-                        aNub->attach(nub);
-                        aNub->registerService();
+                    if (isBridge) {
+                        IOService * aNub = createNub(dict);
+                        if (aNub) {
+                            const OSMetaClass *mc = aNub->getMetaClass();
+                            PE_Log("PCI nub %s class=%s parent=%s",
+                                   buf,
+                                   (mc ? mc->getClassName() : "<null>"),
+                                   (hostService ? hostService->getName() : nub->getName()));
+                            //aNub->attach(hostService ? hostService : nub);
+                            //aNub->registerService();
+                            if (isBridge)
+                                hostService = aNub;
+                        }
+                        //int result = 0;
+                        //configurator->configOp(aNub, kConfigOpAddHostBridge, &result);
+                        //kprintf("result = %d\n", result);
                     }
+
                     dict->release();
                     map->release();
                     desc->release();

@@ -739,6 +739,7 @@ bool IOPCIDevice::compareName( OSString * name, OSString ** matched ) const
 
 IOReturn IOPCIDevice::getResources( void )
 {
+    kprintf("%s[%p]::getResources() parent %p\n", getName(), this, parent);
     return (parent->getNubResources(this));
 }
 

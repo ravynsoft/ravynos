@@ -163,6 +163,33 @@ void prng_generate(struct cckprng_ctx *ctx, unsigned gen_idx, size_t nbytes, voi
 	return;
 }
 
+class ACPIPrngBootstrap {
+public:
+  ACPIPrngBootstrap();
+
+private:
+  struct cckprng_ctx _ctx;
+  struct cckprng_funcs _funcs;
+};
+
+static ACPIPrngBootstrap gACPIPrngBootstrap;
+
+ACPIPrngBootstrap::ACPIPrngBootstrap()
+{
+    kprintf("ACPIPrngBootstrap::ACPIPrngBootstrap()\n");
+    bzero(&_ctx, sizeof(_ctx));
+    bzero(&_funcs, sizeof(_funcs));
+
+    _funcs.init = prng_init;
+    _funcs.initgen = prng_initgen;
+    _funcs.reseed = prng_reseed;
+    _funcs.refresh = prng_refresh;
+    _funcs.generate = prng_generate;
+
+    register_and_init_prng(&_ctx, &_funcs);
+    kprintf("Registered ACPI PRNG\n");
+}
+
 bool ACPIPlatformExpert::init(OSDictionary *properties) {
 	if (!super::init()) return false;
 
@@ -173,19 +200,13 @@ bool ACPIPlatformExpert::init(OSDictionary *properties) {
     topLevel = OSDynamicCast(OSSet, getProperty("top-level"));
     if (!topLevel)
         topLevel = OSSet::withCapacity(32);
-
-	struct cckprng_funcs prng_funcs = {
-		prng_init, prng_initgen, prng_reseed, prng_refresh, prng_generate };
-	struct cckprng_ctx prng_ctx = {0}; // this will panic quickly for sure
-
-	register_and_init_prng(&prng_ctx, &prng_funcs);
-
 	return true;
 }
 
 bool ACPIPlatformExpert::start(IOService *provider) {
 	setBootROMType(kBootROMTypeNewWorld);
 
+    kprintf("ACPIPlatformExpert::start(%p)\n", provider);
 	if (!super::start(provider)) return false;
 	if (!gIOACPIPlatformExpertGlobals.isValid()) return false;
 
@@ -194,7 +215,9 @@ bool ACPIPlatformExpert::start(IOService *provider) {
 	}
 
 	PE_halt_restart = handlePEHaltRestart;
+    kprintf("ACPIPlatformExpert::registerService(%p)\n", provider);
 	registerService();
+    kprintf("ACPIPlatformExpert::start done\n");
 
 	return true;
 }
@@ -203,6 +226,8 @@ bool ACPIPlatformExpert::start(IOService *provider) {
 bool ACPIPlatformExpert::configure(IOService *provider) {
 	OSDictionary *dict;
 	IOService * nub;
+
+    if (!super::configure(provider)) return false;
 
     IORegistryEntry *entry = IORegistryEntry::fromPath("/ACPI", gIODTPlane);
 	PE_Log("Start ACPI mapping(%p, %p)", entry, topLevel);
@@ -296,7 +321,7 @@ bool ACPIPlatformExpert::configure(IOService *provider) {
     map->release();
     desc->release();
 
-	return super::configure(provider);
+	return true;
 }
 
 IOService *
@@ -313,7 +338,6 @@ ACPIPlatformExpert::createNub(OSDictionary *dict) {
 
     if (type && type->isEqualTo("processor")) {
         nub = new ACPICPU();
-        PE_Log("new ACPICPU(%p)", nub);
         if (!nub || !nub->init(dict)) {
             PE_Log("Failed to create processor nub!");
             if (nub) nub->release();
@@ -323,7 +347,6 @@ ACPIPlatformExpert::createNub(OSDictionary *dict) {
     } else if (type && type->isEqualTo("io-apic")) {
         IOACPIPlatformDevice *device = new IOACPIPlatformDevice();
         nub = device;
-        PE_Log("new APIC(%p)", nub);
         if (!device || !device->init(this, nullptr, dict)) {
             PE_Log("Failed to create APIC nub!");
             if (device) device->release();
@@ -331,10 +354,9 @@ ACPIPlatformExpert::createNub(OSDictionary *dict) {
         }
         nub->setName(name);
     } else if (type && type->isEqualTo("pci")) {
-        IOACPIPlatformDevice *device = new IOACPIPlatformDevice();
+        IOPCIDevice *device = new IOPCIDevice();
         nub = device;
-        PE_Log("new PCI IOService(%p)", nub);
-        if (!device || !device->init(this, nullptr, dict)) {
+        if (!device || !device->init(dict)) {
             PE_Log("Failed to create PCI nub!");
             if (device) device->release();
             return NULL;

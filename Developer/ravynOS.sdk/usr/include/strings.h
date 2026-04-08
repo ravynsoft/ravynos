@@ -80,6 +80,7 @@ int	 strncasecmp(const char *, const char *, size_t);
 __END_DECLS
 
 /* Darwin extensions */
+#ifndef KERNEL
 #if __DARWIN_C_LEVEL >= __DARWIN_C_FULL
 __BEGIN_DECLS
 int	 ffsl(long) __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_2_0);
@@ -90,6 +91,7 @@ int	 flsll(long long) __OSX_AVAILABLE_STARTING(__MAC_10_9, __IPHONE_7_0);
 __END_DECLS
 
 #include <string.h>
+#endif
 #endif
 
 #if defined (__GNUC__) && _FORTIFY_SOURCE > 0 && !defined (__cplusplus)

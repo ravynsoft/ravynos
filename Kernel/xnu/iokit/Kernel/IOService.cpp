@@ -1106,6 +1106,82 @@ IOService::kextdLaunched(void)
 #endif /* !NO_KEXTD */
 }
 
+static void
+ioServiceInitKextCPP(OSKext *target)
+{
+    kprintf("DEBUG: Initializing C++ for kext %s\n", target ? target->getIdentifierCString() : "null");
+	if (!target || target->isCPPInitialized()) {
+		return;
+	}
+
+	struct kmod_info ki = {};
+	ki.id = target->getLoadTag();
+
+	kernel_section_t *sec = target->lookupSection("__TEXT", "__text");
+	if (!sec) {
+		sec = target->lookupSection("__TEXT_EXEC", "__text");
+	}
+
+	if (sec) {
+		ki.address = sec->addr;
+		ki.size = sec->size;
+	} else {
+		kprintf("Unable to find __text section for kext %s\n",
+			target->getIdentifierCString());
+	}
+
+	if (ki.address != 0 && ki.size != 0) {
+		IOStatistics::onKextLoad(target, &ki);
+	}
+
+	(void) OSRuntimeInitializeCPP(target);
+	kprintf("DEBUG: Initialized C++ for kext %s, metaclass %p\n",
+	           target->getIdentifierCString(), target->getMetaClass());
+}
+
+static void
+ioServiceInitKextCPPDependencies(OSKext *root, OSSet *visited)
+{
+	if (!root || !visited || visited->containsObject(root)) {
+		return;
+	}
+
+	visited->setObject(root);
+	ioServiceInitKextCPP(root);
+
+    OSArray * deps = 0;
+    OSDictionary *libs = OSDynamicCast(OSDictionary,
+            root->getPropertyForHostArch("OSBundleLibraries"));
+    if (libs) {
+        deps = OSArray::withCapacity(libs->getCount());
+        OSCollectionIterator *it = OSCollectionIterator::withCollection(libs);
+        if (it) {
+            OSObject *keyObj;
+            while ((keyObj = it->getNextObject())) {
+                OSString *depID = OSDynamicCast(OSString, keyObj);
+                if (!depID) continue;
+
+                OSKext *dep = OSKext::lookupKextWithIdentifier(depID);
+                if (dep) {
+                    deps->setObject(dep);
+                }
+            }
+            it->release();
+        }
+    }
+
+	if (!deps) {
+		return;
+	}
+
+	for (unsigned int idx = 0, count = deps->getCount(); idx < count; idx++) {
+		OSKext *dep = OSDynamicCast(OSKext, deps->getObject(idx));
+		if (dep) {
+			ioServiceInitKextCPPDependencies(dep, visited);
+		}
+	}
+}
+
 IOReturn
 IOService::catalogNewDrivers( OSOrderedSet * newTables )
 {
@@ -1151,29 +1227,16 @@ IOService::catalogNewDrivers( OSOrderedSet * newTables )
     if (sym)
         sym->release();
 
-    OSKext *kext = OSKext::lookupKextWithIdentifier("com.apple.iokit.IOACPIFamily");
-	if (kext && !mc && !kext->isCPPInitialized()) {
-		struct kmod_info ki = {};
-        ki.id = kext->getLoadTag();
-
-		kernel_section_t *sec = kext->lookupSection("__TEXT", "__text");
-		if (!sec)
-			sec = kext->lookupSection("__TEXT_EXEC", "__text");
-
-		if (sec) {
-			ki.address = sec->addr;
-			ki.size = sec->size;
+	OSKext *kext = OSKext::lookupKextWithIdentifier("com.apple.iokit.IOACPIFamily");
+  if (kext && !mc && !kext->isCPPInitialized()) {
+		OSSet *visited = OSSet::withCapacity(8);
+		if (visited) {
+			ioServiceInitKextCPPDependencies(kext, visited);
+			visited->release();
 		} else {
-		    kprintf("Unable to find __text section for kext %s\n",
-		                  kext->getIdentifierCString());
+			ioServiceInitKextCPP(kext);
 		}
-
-        if (ki.address != 0 && ki.size != 0) {
-            IOStatistics::onKextLoad(kext, &ki);
-        }
-
-        (void) OSRuntimeInitializeCPP(kext);
-    }
+  }
     /* Do NOT release kext here. Nothing else retains it yet and the
      * kernel will panic if it loses the Platform Expert.
      */

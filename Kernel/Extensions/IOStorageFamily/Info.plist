@@ -22,7 +22,6 @@
 	<string>2.1</string>
 	<key>IOKitPersonalities</key>
 	<dict>
-#if TARGET_OS_OSX
 		<key>IOAppleLabelScheme</key>
 		<dict>
 			<key>Content Mask</key>
@@ -47,7 +46,6 @@
 			<key>IOProviderClass</key>
 			<string>IOMedia</string>
 		</dict>
-#endif /* TARGET_OS_OSX */
 		<key>IOApplePartitionScheme</key>
 		<dict>
 			<key>Content Mask</key>
