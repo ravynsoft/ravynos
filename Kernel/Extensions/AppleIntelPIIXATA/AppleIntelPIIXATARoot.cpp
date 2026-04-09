@@ -127,6 +127,11 @@ IOService * AppleIntelPIIXATARoot::probe( IOService * provider,
 {
     IOPCIDevice * pciDevice;
 
+    kprintf("AppleIntelPIIXATARoot::probe provider=%p class=%s name=%s\n",
+            provider,
+            provider ? provider->getMetaClass()->getClassName() : "<null>",
+            provider ? provider->getName() : "<null>");
+
     // Let our superclass probe first.
 
     if ( super::probe( provider, score ) == 0 )
@@ -139,17 +144,24 @@ IOService * AppleIntelPIIXATARoot::probe( IOService * provider,
     pciDevice = OSDynamicCast( IOPCIDevice, provider );
     if ( pciDevice == 0 )
     {
+        kprintf("AppleIntelPIIXATARoot::probe: provider is not IOPCIDevice\n");
         return 0;
     }
 
     // BIOS did not enable I/O space decoding.
     // For now assume the ATA controller is disabled.
 
-    if ( (pciDevice->configRead16( kIOPCIConfigCommand ) &
+    uint16_t command = pciDevice->configRead16( kIOPCIConfigCommand );
+    kprintf("AppleIntelPIIXATARoot::probe: cmd=0x%04x\n", command);
+
+    if ( (command &
           kIOPCICommandIOSpace) == 0 )
     {
+        kprintf("AppleIntelPIIXATARoot::probe: I/O space disabled\n");
         return 0;
     }
+
+    kprintf("AppleIntelPIIXATARoot::probe: matched\n");
 
     return this;
 }

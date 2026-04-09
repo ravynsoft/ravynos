@@ -23,10 +23,6 @@
 #include "ACPIPlatformExpert.h"
 #include "AppleAPIC.h"
 #include <IOKit/IODeviceTreeSupport.h>
-#include <IOKit/pci/IOPCIBridge.h>
-#include <IOKit/pci/IOPCIDevice.h>
-#include <IOKit/pci/IOPCIConfigurator.h>
-#include <IOKit/pci/IOPCIPrivate.h>
 #include <pexpert/pexpert.h>
 
 typedef struct {
@@ -337,7 +333,7 @@ logGeneratedPCIDeviceTree(void)
             if (!child) continue;
 
             const char *name = child->getName(gIODTPlane);
-            if (name /*&& strncmp(name, "PCI", 3) == 0*/) {
+            if (name) {
                 logDTSubtree(child, 0);
             }
         }
@@ -366,20 +362,12 @@ void
 ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
 {
     PE_Log("parseMCFG(%p, %p)", table, nub);
-    PE_Log("IOPCIPlatformInitialize() = %d", IOPCIPlatformInitialize());
 
     ACPI_MCFG *entry = (ACPI_MCFG *) ((uint64_t)table
             + sizeof(struct XSDT) + sizeof(uint64_t) /* reserved field */);
 
     int count = (((struct XSDT *)table)->length
                     - sizeof(struct XSDT) - sizeof(uint64_t)) / sizeof(ACPI_MCFG);
-
-    IOPCIConfigurator * configurator = new IOPCIConfigurator();
-    if (!configurator) {
-        PE_Log("Failed to create PCI configurator!");
-        return;
-    }
-    configurator->init(IOWorkLoop::workLoop(), 0);
 
     for (int i = 0; i < count; i++) {
         int bus = entry[i].startBus;
@@ -434,6 +422,9 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                                        | (header->subclass << 8)
                                        |  header->prog_if;
                     bool isBridge = (header->class_code == 0x06);
+                    uint64_t mcfgBase = entry[i].baseAddress;
+                    uint32_t mcfgStartBus = entry[i].startBus;
+                    uint32_t mcfgEndBus = entry[i].endBus;
 
                     PE_Log("Found PCI device %04x:%04x at %d:%d:%d, class %06x",
                             vendorID, deviceID, bus, device, function, classCode);
@@ -441,9 +432,8 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                     OSDictionary * dict = OSDictionary::withCapacity(16);
 
                     char buf[32];
-                    /* host bridge gets capital letters :) */
                     sprintf(buf, "pci@%d,%d", device, function);
-                    dict->setObject("name", OSString::withCString(buf));
+                    dict->setObject("IOName", OSString::withCString(buf));
 
                     IOPCIAddressSpace reg = {};
                     reg.s.busNum = (uint8_t) bus;
@@ -457,8 +447,13 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                     dict->setObject("vendor-id", OSData::withBytes(&vendorID32, sizeof(vendorID32)));
                     dict->setObject("device-id", OSData::withBytes(&deviceID32, sizeof(deviceID32)));
                     dict->setObject("class-code", OSData::withBytes(&classCode, sizeof(classCode)));
-                    dict->setObject("revision-id", OSData::withBytes(&header->revision_id, sizeof(header->revision_id)));
+                    // IOPCIFamily consumers read revision-id as a 32-bit value.
+                    uint32_t revisionID = header->revision_id;
+                    dict->setObject("revision-id", OSData::withBytes(&revisionID, sizeof(revisionID)));
                     dict->setObject("device_type", OSString::withCString("pci"));
+                    dict->setObject("acpi-mcfg-base", OSData::withBytes(&mcfgBase, sizeof(mcfgBase)));
+                    dict->setObject("acpi-mcfg-start-bus", OSData::withBytes(&mcfgStartBus, sizeof(mcfgStartBus)));
+                    dict->setObject("acpi-mcfg-end-bus", OSData::withBytes(&mcfgEndBus, sizeof(mcfgEndBus)));
 
                     if (hdrType == 0) {
                         PCIHeaderType0 *d = (PCIHeaderType0 *)header;
@@ -530,7 +525,9 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                                               true,
                                               pfBase,
                                               pfLimit - pfBase + 1);
-                        dict->setObject("ranges", OSData::withBytes(ranges, sizeof(ranges)));
+                        if (index) {
+                            dict->setObject("ranges", OSData::withBytes(ranges, index));
+                        }
 
                         // Bridge compatible string list: "pci-bridge", "pciVVVV,DDDD", "pciclass,060400"
                         char compat1[32], compat2[32];
@@ -550,26 +547,25 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                             child->setName(buf);
                             child->attachToParent(parentNode, gIODTPlane);
                         }
-                        if (isBridge)
+                        if (isBridge) {
                             dtHost = child;
-                    }
-
-                    if (isBridge) {
-                        IOService * aNub = createNub(dict);
-                        if (aNub) {
-                            const OSMetaClass *mc = aNub->getMetaClass();
-                            PE_Log("PCI nub %s class=%s parent=%s",
-                                   buf,
-                                   (mc ? mc->getClassName() : "<null>"),
-                                   (hostService ? hostService->getName() : nub->getName()));
-                            //aNub->attach(hostService ? hostService : nub);
-                            //aNub->registerService();
-                            if (isBridge)
+                            IOService * aNub = createNub(dict, child);
+                            if (aNub) {
+                                aNub->attach(nub);
+                                kprintf("ACPI PCI service nub attach: %s -> %s\n",
+                                        aNub->getName(), nub->getName());
+                                aNub->registerService();
                                 hostService = aNub;
+                            }
+                        } else {
+                            IOService * aNub = createNub(dict, child);
+                            if (aNub) {
+                                aNub->attach(hostService ? hostService : nub);
+                                kprintf("ACPI PCI service nub attach: %s -> %s\n",
+                                        aNub->getName(), (hostService ? hostService : nub)->getName());
+                                aNub->registerService();
+                            }
                         }
-                        //int result = 0;
-                        //configurator->configOp(aNub, kConfigOpAddHostBridge, &result);
-                        //kprintf("result = %d\n", result);
                     }
 
                     dict->release();

@@ -6,6 +6,7 @@ add_kext_bundle(IOACPIFamily
 
 target_sources(IOACPIFamily PRIVATE
     ACPICPU.cpp
+    ACPIPCIBridge.cpp
     ACPIPlatformExpert.cpp
     IOACPIPlatformDevice.cpp
     util.cpp

@@ -1229,21 +1229,21 @@ IOService::catalogNewDrivers( OSOrderedSet * newTables )
     const OSMetaClass *mc = OSMetaClass::getMetaClassWithName(sym);
     if (sym)
         sym->release();
-
+#if 0
 	OSKext *kext = OSKext::lookupKextWithIdentifier("com.apple.iokit.IOACPIFamily");
-  if (kext && !mc && !kext->isCPPInitialized()) {
+    if (kext && !mc && !kext->isCPPInitialized()) {
 		OSSet *visited = OSSet::withCapacity(8);
 		if (visited) {
 			ioServiceInitKextCPPDependencies(kext, visited);
 			visited->release();
 		} else {
 			ioServiceInitKextCPP(kext);
-		}
+	}
   }
     /* Do NOT release kext here. Nothing else retains it yet and the
      * kernel will panic if it loses the Platform Expert.
      */
-
+#endif
 	if (allSet) {
 		while ((service = (IOService *) allSet->getAnyObject())) {
 			service->startMatching(kIOServiceAsynchronous);

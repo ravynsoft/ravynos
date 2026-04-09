@@ -29,7 +29,9 @@
 #include <IOKit/IOPlatformExpert.h>
 #include <IOKit/acpi/IOACPIPlatformDevice.h>
 #include <IOKit/acpi/IOACPITypes.h>
+
 #include "ACPICPU.h"
+#include "ACPIPCIBridge.h"
 
 #define PE_VERBOSE 1
 
@@ -84,6 +86,21 @@ struct MADT
 } __attribute__((packed));
 
 
+enum {
+	kIRQAvailable   = 0,
+	kIRQExclusive   = 1,
+	kIRQSharable    = 2,
+	kSystemIRQCount = 16
+};
+
+class IOACPIPlatformExpertGlobals {
+public:
+    bool isInitialized;
+    IOACPIPlatformExpertGlobals();
+    ~IOACPIPlatformExpertGlobals();
+    inline bool isValid() const;
+};
+
 class ACPIPlatformExpert : public IODTPlatformExpert {
     OSDeclareDefaultStructors(ACPIPlatformExpert)
     friend class IOACPIPlatformDevice;
@@ -95,11 +112,12 @@ class ACPIPlatformExpert : public IODTPlatformExpert {
     OSSet * topLevel;
 
     void PE_Log(const char *fmt, ...);
+    bool parseACPI(IOService *provider);
     void parseAPIC(void * table, IOService * nub);
     void parseFADT(void * table, IOService * nub);
     void parseMCFG(void * table, IOService * nub);
     static int handlePEHaltRestart(unsigned int type);
-    IOService * createNub(OSDictionary *dict);
+    IOService * createNub(OSDictionary *dict, IORegistryEntry *from = NULL);
 
 
 protected:
