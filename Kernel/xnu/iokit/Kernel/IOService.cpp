@@ -1135,8 +1135,6 @@ ioServiceInitKextCPP(OSKext *target)
 	}
 
 	(void) OSRuntimeInitializeCPP(target);
-	kprintf("DEBUG: Initialized C++ for kext %s, metaclass %p\n",
-	           target->getIdentifierCString(), target->getMetaClass());
 }
 
 static void
@@ -1163,6 +1161,11 @@ ioServiceInitKextCPPDependencies(OSKext *root, OSSet *visited)
 
                 OSKext *dep = OSKext::lookupKextWithIdentifier(depID);
                 if (dep) {
+                    const char * bundleID = dep->getIdentifierCString();
+                    if (!strncmp(bundleID, "com.apple.kpi.", 14) ||
+                        !strncmp(bundleID, "com.apple.kernel", 16)) {
+                        continue;
+                    }
                     deps->setObject(dep);
                 }
             }
@@ -4742,7 +4745,13 @@ IOService::doServiceMatch( IOOptionBits options )
 		if (matches) {
 			lockForArbitration();
 			if (0 == (__state[0] & kIOServiceFirstPublishState)) {
-				getMetaClass()->addInstance(this);
+				const OSMetaClass * meta = getMetaClass();
+				if (meta) {
+					meta->addInstance(this);
+				} else {
+					IOLog("IOService::doServiceMatch: null metaclass for service %s (%p)\n",
+					    getName(), this);
+				}
 				notifiers[0] = copyNotifiers(gIOFirstPublishNotification,
 				    kIOServiceFirstPublishState, 0xffffffff );
 			}
@@ -5168,7 +5177,9 @@ _IOConfigThread::main(void * arg, wait_result_t result)
 
 		IOTakeLock( gJobsLock );
 		job = (_IOServiceJob *) gJobs->getFirstObject();
-		job->retain();
+		if (job) {
+			job->retain();
+		}
 		gJobs->removeObject(job);
 		if (job) {
 			gOutstandingJobs--;
@@ -5179,6 +5190,22 @@ _IOConfigThread::main(void * arg, wait_result_t result)
 
 		if (job) {
 			nub = job->nub;
+			if (!nub) {
+				IOLog("config(%p): null nub in job type %d\n",
+				    IOSERVICE_OBFUSCATE(IOThreadSelf()), job->type);
+				job->release();
+				IOTakeLock( gJobsLock );
+				alive = (gOutstandingJobs > gNumWaitingThreads);
+				if (alive) {
+					gNumWaitingThreads++;
+				} else {
+					if (0 == --gNumConfigThreads) {
+						IOLockWakeup( gJobsLock, (event_t) &gNumConfigThreads, false );
+					}
+				}
+				IOUnlock( gJobsLock );
+				continue;
+			}
 
 			if (gIOKitDebug & kIOLogConfig) {
 				LOG("config(%p): starting on %s, %d\n",
