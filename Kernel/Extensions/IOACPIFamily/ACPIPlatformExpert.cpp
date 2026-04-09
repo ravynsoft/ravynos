@@ -410,7 +410,7 @@ bool ACPIPlatformExpert::matchNubWithPropertyTable(IOService *nub, OSDictionary 
 
     if ((nameProp = (OSString *)nub->getProperty(gIONameKey)) == 0) return false;
     if ((match = (OSString *)table->getObject(gIONameMatchKey)) == 0) return false;
-    
+
     /* Try exact match first */
     bool result = match->isEqualTo(nameProp);
     if (result) return result;
