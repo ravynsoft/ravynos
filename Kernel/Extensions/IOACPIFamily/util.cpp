@@ -426,9 +426,6 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                     uint32_t mcfgStartBus = entry[i].startBus;
                     uint32_t mcfgEndBus = entry[i].endBus;
 
-                    PE_Log("Found PCI device %04x:%04x at %d:%d:%d, class %06x",
-                            vendorID, deviceID, bus, device, function, classCode);
-
                     OSDictionary * dict = OSDictionary::withCapacity(16);
 
                     char buf[32];
@@ -552,8 +549,6 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                             IOService * aNub = createNub(dict, child);
                             if (aNub) {
                                 aNub->attach(nub);
-                                kprintf("ACPI PCI service nub attach: %s -> %s\n",
-                                        aNub->getName(), nub->getName());
                                 aNub->registerService();
                                 hostService = aNub;
                             }
@@ -561,8 +556,6 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                             IOService * aNub = createNub(dict, child);
                             if (aNub) {
                                 aNub->attach(hostService ? hostService : nub);
-                                kprintf("ACPI PCI service nub attach: %s -> %s\n",
-                                        aNub->getName(), (hostService ? hostService : nub)->getName());
                                 aNub->registerService();
                             }
                         }

@@ -410,7 +410,7 @@ bool ACPIPlatformExpert::matchNubWithPropertyTable(IOService *nub, OSDictionary 
 
     if ((nameProp = (OSString *)nub->getProperty(gIONameKey)) == 0) return false;
     if ((match = (OSString *)table->getObject(gIONameMatchKey)) == 0) return false;
-
+kprintf
     /* Try exact match first */
     bool result = match->isEqualTo(nameProp);
     if (result) return result;
@@ -418,10 +418,6 @@ bool ACPIPlatformExpert::matchNubWithPropertyTable(IOService *nub, OSDictionary 
     /* Fall back to prefix match, which is common for ACPI devices. */
     char buf[64];
     const char *pName =  nameProp->getCStringNoCopy();
-    PE_Log("FALLBACK(%s) %s vs %s",
-        nameProp->getCStringNoCopy(),
-        pName,
-        match->getCStringNoCopy());
     if (!pName) return false;
     int i = 0;
     while (*(pName+i) && i < sizeof(buf)-1) {
@@ -433,7 +429,6 @@ bool ACPIPlatformExpert::matchNubWithPropertyTable(IOService *nub, OSDictionary 
     memcpy(buf, pName, i);
     OSString * prefix = OSString::withCString(buf);
     if (!prefix) return false;
-    PE_Log("buf = %s, prefix = %p", buf, prefix);
     result =  match->isEqualTo(prefix);
     prefix->release();
     return result;
