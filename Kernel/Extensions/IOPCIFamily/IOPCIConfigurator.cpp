@@ -465,7 +465,6 @@ bool CLASS::createRoot(void)
 
 
 	IOLog  ("pci (build %s %s), flags 0x%x\n", __TIME__, __DATE__, gIOPCIFlags);
-	kprintf("pci (build %s %s), flags 0x%x\n", __TIME__, __DATE__, gIOPCIFlags);
 
     root->deviceState |= kPCIDeviceStateScanned | kPCIDeviceStateConfigurationDone;
     fRoot = root;
@@ -1338,8 +1337,6 @@ bool CLASS::bridgeConstructDeviceTree(void * unused, IOPCIConfigEntry * bridge)
         {
             nub = OSTypeAlloc(IOPCIDevice);
             if (!nub) continue;
-            kprintf("IOPCIConfigurator: create IOPCIDevice from dtEntry=%p dtNub=%p\n",
-                    child->dtEntry, child->dtNub);
             initFrom = 0;
             initDT = false;
             ok = false;
@@ -1347,8 +1344,6 @@ bool CLASS::bridgeConstructDeviceTree(void * unused, IOPCIConfigEntry * bridge)
             {
 #if ACPI_SUPPORT
                 ok = nub->init(child->dtEntry, gIODTPlane);
-                kprintf("IOPCIConfigurator: init(from DT) %s for nub=%p\n",
-                        ok ? "ok" : "failed", nub);
                 child->dtNub = child->dtEntry = 0;
                 initDT = true;
 #else  /* !ACPI_SUPPORT */
@@ -1364,8 +1359,6 @@ bool CLASS::bridgeConstructDeviceTree(void * unused, IOPCIConfigEntry * bridge)
                     addProps = false;
                 }
                 ok = (nub->init(initFrom) && nub->attachToParent(dtBridge, gIODTPlane));
-                kprintf("IOPCIConfigurator: init(from dict) %s for nub=%p\n",
-                        ok ? "ok" : "failed", nub);
                 initFrom->release();
             }
             nub->release();
