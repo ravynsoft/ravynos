@@ -358,6 +358,154 @@ shouldDumpPCIDeviceTree(IOService *pe)
     return false;
 }
 
+static inline uint32_t
+pciConfigRead32(PCIHeaderCommon *header, uint8_t reg)
+{
+    volatile uint32_t *p = (volatile uint32_t *)((volatile uint8_t *)header + reg);
+    return *p;
+}
+
+static inline void
+pciConfigWrite32(PCIHeaderCommon *header, uint8_t reg, uint32_t value)
+{
+    volatile uint32_t *p = (volatile uint32_t *)((volatile uint8_t *)header + reg);
+    *p = value;
+}
+
+static uint64_t
+probeBARSize(PCIHeaderCommon *header, uint8_t barReg, bool isIO, bool is64)
+{
+    const uint32_t savedCmd = header->command;
+    // Disable decode while probing size masks.
+    header->command = (uint16_t)(savedCmd & ~(uint32_t)0x3);
+
+    uint64_t size = 0;
+    const uint32_t savedLo = pciConfigRead32(header, barReg);
+
+    if (is64) {
+        const uint32_t savedHi = pciConfigRead32(header, (uint8_t)(barReg + 4));
+        pciConfigWrite32(header, barReg, 0xFFFFFFFFU);
+        pciConfigWrite32(header, (uint8_t)(barReg + 4), 0xFFFFFFFFU);
+        const uint32_t maskLo = pciConfigRead32(header, barReg);
+        const uint32_t maskHi = pciConfigRead32(header, (uint8_t)(barReg + 4));
+        pciConfigWrite32(header, barReg, savedLo);
+        pciConfigWrite32(header, (uint8_t)(barReg + 4), savedHi);
+
+        const uint64_t mask = ((uint64_t)maskHi << 32) | (uint64_t)(maskLo & ~0xFU);
+        if (mask) {
+            size = (~mask) + 1ULL;
+        }
+    } else {
+        pciConfigWrite32(header, barReg, 0xFFFFFFFFU);
+        const uint32_t mask = pciConfigRead32(header, barReg);
+        pciConfigWrite32(header, barReg, savedLo);
+
+        uint32_t decMask = isIO ? (mask & ~0x3U) : (mask & ~0xFU);
+        if (decMask) {
+            size = (uint64_t)(~decMask + 1U);
+        }
+    }
+
+    header->command = (uint16_t)savedCmd;
+    return size;
+}
+
+static uint32_t
+probeROMSize(PCIHeaderCommon *header, uint8_t romReg)
+{
+    const uint32_t savedCmd = header->command;
+    header->command = (uint16_t)(savedCmd & ~(uint32_t)0x2);
+
+    const uint32_t saved = pciConfigRead32(header, romReg);
+    pciConfigWrite32(header, romReg, 0xFFFFFFFEU);
+    const uint32_t mask = pciConfigRead32(header, romReg);
+    pciConfigWrite32(header, romReg, saved);
+    header->command = (uint16_t)savedCmd;
+
+    const uint32_t decMask = (mask & ~0x7FFU);
+    if (!decMask) return 0;
+    return (~decMask + 1U);
+}
+
+static bool
+appendAssignedAddress(OSData *assigned,
+                      const IOPCIAddressSpace &space,
+                      uint8_t reg,
+                      uint8_t spaceType,
+                      bool prefetch,
+                      uint64_t base,
+                      uint64_t size)
+{
+    if (!assigned || !size || !base) return false;
+
+    IOPCIPhysicalAddress a = {};
+    a.physHi = space;
+    a.physHi.s.reloc = 1;
+    a.physHi.s.space = spaceType;
+    a.physHi.s.prefetch = prefetch ? 1 : 0;
+    a.physHi.s.registerNum = reg;
+    a.physMid = (uint32_t)(base >> 32);
+    a.physLo = (uint32_t)(base & 0xFFFFFFFFU);
+    a.lengthHi = (uint32_t)(size >> 32);
+    a.lengthLo = (uint32_t)(size & 0xFFFFFFFFU);
+    assigned->appendBytes(&a, sizeof(a));
+    return true;
+}
+
+static OSData *
+buildAssignedAddresses(PCIHeaderCommon *header, const IOPCIAddressSpace &space, uint8_t headerType)
+{
+    OSData *assigned = OSData::withCapacity(8 * sizeof(IOPCIPhysicalAddress));
+    if (!assigned) return NULL;
+
+    int barCount = (headerType == 1) ? 2 : 6;
+    for (int i = 0; i < barCount; i++) {
+        uint8_t barReg = (uint8_t)(kIOPCIConfigBaseAddress0 + (i * 4));
+        uint32_t barLo = pciConfigRead32(header, barReg);
+        if (!barLo || (barLo == 0xFFFFFFFFU)) {
+            continue;
+        }
+
+        if (barLo & 0x1U) {
+            uint64_t base = (uint64_t)(barLo & ~0x3U);
+            uint64_t size = probeBARSize(header, barReg, true, false);
+            appendAssignedAddress(assigned, space, barReg, kIOPCIIOSpace, false, base, size);
+            continue;
+        }
+
+        uint32_t memType = ((barLo >> 1) & 0x3U);
+        bool prefetch = (barLo & 0x8U) != 0;
+        bool is64 = (memType == 0x2U);
+        uint64_t base = (uint64_t)(barLo & ~0xFU);
+        uint64_t size = 0;
+
+        if (is64 && (i + 1) < barCount) {
+            uint32_t barHi = pciConfigRead32(header, (uint8_t)(barReg + 4));
+            base |= ((uint64_t)barHi << 32);
+            size = probeBARSize(header, barReg, false, true);
+            appendAssignedAddress(assigned, space, barReg, kIOPCI64BitMemorySpace, prefetch, base, size);
+            i++; // consume upper BAR slot
+        } else {
+            size = probeBARSize(header, barReg, false, false);
+            appendAssignedAddress(assigned, space, barReg, kIOPCI32BitMemorySpace, prefetch, base, size);
+        }
+    }
+
+    // Expansion ROM BAR (32-bit memory resource)
+    uint8_t romReg = kIOPCIConfigExpansionROMBase;
+    uint32_t rom = pciConfigRead32(header, romReg);
+    uint64_t romBase = (uint64_t)(rom & ~0x7FFU);
+    uint64_t romSize = (uint64_t)probeROMSize(header, romReg);
+    appendAssignedAddress(assigned, space, romReg, kIOPCI32BitMemorySpace, false, romBase, romSize);
+
+    if (!assigned->getLength()) {
+        assigned->release();
+        return NULL;
+    }
+
+    return assigned;
+}
+
 void
 ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
 {
@@ -438,6 +586,12 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                     reg.s.functionNum = (uint8_t) function;
                     reg.s.registerNum = 0;
                     dict->setObject("reg", OSData::withBytes(&reg, sizeof(reg)));
+
+                    OSData *assigned = buildAssignedAddresses(header, reg, hdrType);
+                    if (assigned) {
+                        dict->setObject("assigned-addresses", assigned);
+                        assigned->release();
+                    }
 
                     uint32_t vendorID32 = vendorID;
                     uint32_t deviceID32 = deviceID;
@@ -544,10 +698,15 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                             child->setName(buf);
                             child->attachToParent(parentNode, gIODTPlane);
                         }
+
+                        OSData *d = OSDynamicCast(OSData, dict->getObject("assigned-addresses"));
+
                         if (isBridge) {
                             dtHost = child;
                             IOService * aNub = createNub(dict, child);
                             if (aNub) {
+                                if (d)
+                                    aNub->setProperty("assigned-addresses", d);
                                 aNub->attach(nub);
                                 aNub->registerService();
                                 hostService = aNub;
@@ -555,6 +714,8 @@ ACPIPlatformExpert::parseMCFG(void * table, IOService * nub)
                         } else {
                             IOService * aNub = createNub(dict, child);
                             if (aNub) {
+                                if (d)
+                                    aNub->setProperty("assigned-addresses", d);
                                 aNub->attach(hostService ? hostService : nub);
                                 aNub->registerService();
                             }
