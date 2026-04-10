@@ -32,6 +32,7 @@
 #include <IOKit/pci/IOPCIPrivate.h>
 #include <IOKit/IOPlatformExpert.h>
 #include <IOKit/IODeviceTreeSupport.h>
+#include <IOKit/IOSubMemoryDescriptor.h>
 #include <IOKit/IOUserClient.h>
 #include <IOKit/IOUserServer.h>
 #include <IOKit/IOKitKeys.h>
@@ -953,6 +954,73 @@ IODeviceMemory * IOPCIDevice::getDeviceMemoryWithIndex(unsigned int index)
 	if (kTunnelL1NotSet == reserved->tunnelL1Allow) setTunnelL1Enable(this, false);
 
     return (super::getDeviceMemoryWithIndex(index));
+}
+
+static OSArray *
+copyDeviceMemoryFromAssignedAddresses(IOPCIDevice *device)
+{
+    if (!device) return NULL;
+
+    OSData *assigned = OSDynamicCast(OSData, device->getProperty("assigned-addresses"));
+    if (!assigned) {
+        IORegistryEntry *dtEntry = OSDynamicCast(IORegistryEntry,
+                                                device->getProperty(kIOPCIDeviceDeviceTreeEntryKey));
+        if (dtEntry) {
+            assigned = OSDynamicCast(OSData, dtEntry->getProperty("assigned-addresses"));
+        }
+    }
+    if (!assigned) return NULL;
+
+    const uint32_t entrySize = sizeof(IOPCIPhysicalAddress);
+    const uint32_t len = (uint32_t) assigned->getLength();
+    if (len < entrySize) return NULL;
+
+    OSArray *array = OSArray::withCapacity(4);
+    if (!array) return NULL;
+
+    const uint8_t *bytes = (const uint8_t *) assigned->getBytesNoCopy();
+    IODeviceMemory *ioMemory = device->ioDeviceMemory();
+
+    for (uint32_t off = 0; off + entrySize <= len; off += entrySize) {
+        const IOPCIPhysicalAddress *a = (const IOPCIPhysicalAddress *)(bytes + off);
+        uint64_t phys = ((uint64_t) a->physMid << 32) | a->physLo;
+        uint64_t size = ((uint64_t) a->lengthHi << 32) | a->lengthLo;
+        IOMemoryDescriptor *md = NULL;
+
+        if (!phys || !size) continue;
+
+        if (a->physHi.s.space == kIOPCIIOSpace) {
+            if (ioMemory) {
+                uint64_t ioPhys = phys & 0x00ffffffULL;
+                md = IOSubMemoryDescriptor::withSubRange(ioMemory, ioPhys, size, kIOMemoryThreadSafe);
+                if (!md) {
+                    md = IOMemoryDescriptor::withAddressRange(
+                        ioPhys + ioMemory->getPhysicalSegment(0, 0, kIOMemoryMapperNone),
+                        size,
+                        kIODirectionNone | kIOMemoryHostOnly,
+                        NULL);
+                }
+            }
+        } else {
+            md = IOMemoryDescriptor::withAddressRange(
+                phys,
+                size,
+                kIODirectionNone | kIOMemoryMapperNone,
+                NULL);
+        }
+
+        if (!md) continue;
+        md->setTag(a->physHi.bits);
+        array->setObject(md);
+        md->release();
+    }
+
+    if (!array->getCount()) {
+        array->release();
+        return NULL;
+    }
+
+    return array;
 }
 
 IODeviceMemory * IOPCIDevice::getDeviceMemoryWithRegister( UInt8 reg )
