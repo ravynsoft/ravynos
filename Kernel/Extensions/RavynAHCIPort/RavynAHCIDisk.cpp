@@ -48,7 +48,7 @@ RavynAHCIDisk::initWithPort(RavynAHCIPort *parent, UInt32 portIndex)
     char loc[8];
     snprintf(loc, sizeof(loc), "%u", portIndex);
     setLocation(loc);
-    snprintf(buf, sizeof(buf) - 1, "ata@%u", portIndex);
+    snprintf(buf, sizeof(buf) - 1, "disk%u", portIndex);
     setName(buf);
     AHCI_Log("%s init port=%u model=%s fw=%s sectors=0x%llx",
              buf, portIndex, fProductStr, fRevisionStr,
@@ -90,7 +90,7 @@ RavynAHCIDisk::doAsyncReadWrite(IOMemoryDescriptor  * buffer,
 
     UInt64 maxBlock = fParent->sectorCount(fPortIndex);
     if (maxBlock == 0 || block >= maxBlock || nblks > (maxBlock - block)) {
-        AHCI_Log("ata@%u rejecting I/O block=%llu nblks=%llu max=%llu",
+        AHCI_Log("disk%u rejecting I/O block=%llu nblks=%llu max=%llu",
                  fPortIndex, block, nblks, maxBlock);
         IOStorage::complete(completion, kIOReturnBadArgument, 0);
         return kIOReturnBadArgument;
@@ -107,7 +107,7 @@ RavynAHCIDisk::doAsyncReadWrite(IOMemoryDescriptor  * buffer,
     IOReturn   ret;
 
     if (block < 64) {
-        AHCI_Log("ata@%u %s block=%llu nblks=%llu bytes=%llu",
+        AHCI_Log("disk%u %s block=%llu nblks=%llu bytes=%llu",
                  fPortIndex, isWrite ? "write" : "read", block, nblks, totBytes);
     }
 

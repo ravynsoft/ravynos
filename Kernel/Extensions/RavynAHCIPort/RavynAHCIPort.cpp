@@ -102,7 +102,6 @@ RavynAHCIPort::probe(IOService *provider, SInt32 *score)
         *score += 1000;
     }
 
-    AHCI_Log("probe(%p)", provider);
     return super::probe(provider, score);
 }
 
@@ -125,14 +124,14 @@ bool RavynAHCIPort::start(IOService *provider)
     uint16_t device    = fProvider->configRead16(kIOPCIConfigDeviceID);
     uint32_t classCode = fProvider->configRead32(kIOPCIConfigRevisionID) >> 8;
 
-    AHCI_Log("start provider=%p %04x:%04x class %06x",
+    AHCI_Log("start provider=%p pci%x,%x pciclass,%06x",
              provider, vendor, device, classCode);
 
     /* Map AHCI BAR5 = ABAR */
     const uint32_t bar4 = fProvider->configRead32(kIOPCIConfigBaseAddress4);
     const uint32_t bar5 = fProvider->configRead32(kIOPCIConfigBaseAddress5);
     const uint16_t cmd  = fProvider->configRead16(kIOPCIConfigCommand);
-    AHCI_Log("PCI CMD=%04x BAR4=%08x BAR5=%08x", cmd, bar4, bar5);
+//    AHCI_Log("PCI CMD=%04x BAR4=%08x BAR5=%08x", cmd, bar4, bar5);
 
     fABARMap = fProvider->mapDeviceMemoryWithRegister(kIOPCIConfigBaseAddress5);
 
@@ -295,9 +294,7 @@ bool RavynAHCIPort::start(IOService *provider)
     }
 
     fDiskNub = diskNub;
-    AHCI_Log("ata@%d publishing nub for driver matching", firstDisk);
     fDiskNub->registerService();
-    AHCI_Log("ata@%d registerService() returned", firstDisk);
     return true;
 }
 
