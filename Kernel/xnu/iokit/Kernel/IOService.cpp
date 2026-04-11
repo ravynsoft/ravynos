@@ -1107,9 +1107,8 @@ IOService::kextdLaunched(void)
 }
 
 static void
-ioServiceInitKextCPP(OSKext *target)
+IOServiceInitKextCPP(OSKext *target)
 {
-    kprintf("DEBUG: Initializing C++ for kext %s\n", target ? target->getIdentifierCString() : "null");
 	if (!target || target->isCPPInitialized()) {
 		return;
 	}
@@ -1138,14 +1137,27 @@ ioServiceInitKextCPP(OSKext *target)
 }
 
 static void
-ioServiceInitKextCPPDependencies(OSKext *root, OSSet *visited)
+IOServiceInitKextCPPDependencies(OSKext *root, OSSet *visited)
 {
-	if (!root || !visited || visited->containsObject(root)) {
+	if (!root || !visited) {
 		return;
 	}
 
-	visited->setObject(root);
-	ioServiceInitKextCPP(root);
+	const char *rootID = root->getIdentifierCString();
+	const OSSymbol *rootSym = rootID ? OSSymbol::withCString(rootID) : NULL;
+	if (rootSym && visited->containsObject(rootSym)) {
+		rootSym->release();
+		return;
+	}
+	if (!rootSym && visited->containsObject(root)) {
+		return;
+	}
+	if (rootSym) {
+		visited->setObject(rootSym);
+		rootSym->release();
+	} else {
+		visited->setObject(root);
+	}
 
     OSArray * deps = 0;
     OSDictionary *libs = OSDynamicCast(OSDictionary,
@@ -1162,8 +1174,9 @@ ioServiceInitKextCPPDependencies(OSKext *root, OSSet *visited)
                 OSKext *dep = OSKext::lookupKextWithIdentifier(depID);
                 if (dep) {
                     const char * bundleID = dep->getIdentifierCString();
-                    if (!strncmp(bundleID, "com.apple.kpi.", 14) ||
-                        !strncmp(bundleID, "com.apple.kernel", 16)) {
+					if (bundleID &&
+						(!strncmp(bundleID, "com.apple.kpi.", 14) ||
+						!strncmp(bundleID, "com.apple.kernel", 16))) {
                         continue;
                     }
                     deps->setObject(dep);
@@ -1174,15 +1187,21 @@ ioServiceInitKextCPPDependencies(OSKext *root, OSSet *visited)
     }
 
 	if (!deps) {
+		IOServiceInitKextCPP(root);
 		return;
 	}
 
 	for (unsigned int idx = 0, count = deps->getCount(); idx < count; idx++) {
 		OSKext *dep = OSDynamicCast(OSKext, deps->getObject(idx));
 		if (dep) {
-			ioServiceInitKextCPPDependencies(dep, visited);
+			IOServiceInitKextCPPDependencies(dep, visited);
 		}
 	}
+
+	deps->release();
+
+	// Initialize the target after dependencies so class hierarchies are ready.
+	IOServiceInitKextCPP(root);
 }
 
 IOReturn
@@ -1225,24 +1244,21 @@ IOService::catalogNewDrivers( OSOrderedSet * newTables )
 		newTables->removeObject(table);
 	}
 
-    const OSSymbol *sym = OSSymbol::withCString("IOACPIPlatformExpert");
-    const OSMetaClass *mc = OSMetaClass::getMetaClassWithName(sym);
-    if (sym)
-        sym->release();
-
-	OSKext *kext = OSKext::lookupKextWithIdentifier("com.apple.iokit.IOACPIFamily");
-    if (kext && !mc && !kext->isCPPInitialized()) {
-		OSSet *visited = OSSet::withCapacity(8);
-		if (visited) {
-			ioServiceInitKextCPPDependencies(kext, visited);
-			visited->release();
-		} else {
-			ioServiceInitKextCPP(kext);
-	}
-  }
-    /* Do NOT release kext here. Nothing else retains it yet and the
-     * kernel will panic if it loses the Platform Expert.
-     */
+	const char *rootKexts[] = {
+	    "com.apple.iokit.IOStorageFamily",
+        "com.apple.iokit.IOACPIFamily",
+    };
+    OSSet *visited = OSSet::withCapacity(16);
+	for (const char *kextID : rootKexts) {
+        OSKext *kext = OSKext::lookupKextWithIdentifier(kextID);
+        if (!kext) {
+            kprintf("Unable to find root kext %s\n", kextID);
+            continue;
+        }
+        IOServiceInitKextCPPDependencies(kext, visited);
+    }
+    if (visited)
+        visited->release();
 
 	if (allSet) {
 		while ((service = (IOService *) allSet->getAnyObject())) {
@@ -4640,6 +4656,8 @@ IOService::checkResource( OSObject * matching )
 	} else if ((table = OSDynamicCast( OSDictionary, matching ))) {
 		table->retain();
 	} else {
+	    kprintf("%s: Can't match using: %s\n", getName(),
+    	    matching->getMetaClass()->getClassName());
 		IOLog("%s: Can't match using: %s\n", getName(),
 		    matching->getMetaClass()->getClassName());
 		/* false would stall forever */
@@ -4749,7 +4767,7 @@ IOService::doServiceMatch( IOOptionBits options )
 				if (meta) {
 					meta->addInstance(this);
 				} else {
-					IOLog("IOService::doServiceMatch: null metaclass for service %s (%p)\n",
+					kprintf("IOService::doServiceMatch: null metaclass for service %s (%p)\n",
 					    getName(), this);
 				}
 				notifiers[0] = copyNotifiers(gIOFirstPublishNotification,
